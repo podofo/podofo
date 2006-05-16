@@ -1,0 +1,1 @@
+SUBDIRS = podofoimgextract podofouncompress podofotxt2pdf

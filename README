@@ -1,0 +1,83 @@
+
+PoDoFo
+======
+
+1. What is PoDoFo Lib?
+2. Where can I can get it?
+3. Requirements
+4. Installation
+5. Contact
+6. Licensing
+
+1. What is PoDoFo?
+==================
+
+PoDoFo is a library to work with the PDF file format and includes also a few
+tools. The name comes from the first letter of PDF (Portable Document
+Format). 
+
+The PoDoFo library is a free portable C++ library which includes
+classes to parse a PDF file and modify its contents into memory. The changes
+can be written back to disk easily. The parser could also be used to write a
+PDF viewer. Besides parsing PoDoFo includes also very simple classes to create
+your own PDF files. All classes are documented so it is easy to start writing
+your own application using PoDoFo.
+
+The PoDoFo tools are simple tools build around the PoDoFo library. These tools
+are first of all examples on how to use the PoDoFo library in your own
+projects. But secondly they offer also features for working with PDF
+files. More tools will come with future release and the existing tools will
+gain more features. Currently there are two tools: podofoimgextract (which
+extracts all jpeg images from a given PDF file) and podofouncompress (which
+removes all compression filters from a PDF file - this is useful for debugging
+existing PDF files).
+
+Additionally there is the external tool PoDoFoBrowser which is not included in
+this package, but can be downloaded from the PoDoFo webpage. PoDoFoBrowser is
+a Qt application for browsing the objects in a PDF file and modifying their
+keys easily. It is very useful if you want to look on the internal structure
+of PDF files.
+
+As of now PoDoFo is only available for Unix platforms. But the code is
+portable C++ and a Windows version will be available soon.
+
+2. Where can I can get it?
+==========================
+
+PoDoFo is available on the internet: podofo.sf.net
+
+3. Requirements
+===============
+
+To build PoDoFo lib you need besides a working GNU toolchain and a c++
+compiler as well as the following libraries:
+
+- fontconfig
+- freetype2
+- zlib
+- libjpeg
+
+4. Installation
+===============
+
+Installation should be done on any Unix system with the following commands:
+
+./configure
+make
+su
+make install
+
+5. Contact
+==========
+
+If you have questions on PoDoFo or bug reports, feature requests you email the
+author:
+	Dominik Seichter <domseichter@web.de>
+
+6. Licensing
+============
+
+The library is licensed under the LGPL (i.e. you may even use the shared
+library in closed sourced applications). The tests and tools which are
+included in PoDoFo are licensed under the GPL. See the files COPYING and
+COPYING.LIB for details.
