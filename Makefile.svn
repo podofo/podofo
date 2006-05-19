@@ -1,0 +1,10 @@
+
+all:
+	aclocal
+	libtoolize --force
+	automake
+	autoconf
+
+	@echo "Please run ./configure now"
+
+.SILENT:
