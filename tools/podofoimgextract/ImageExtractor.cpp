@@ -35,7 +35,7 @@ ImageExtractor::~ImageExtractor()
 PdfError ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnNum )
 {
     PdfError    eCode;
-    const char* pszValue = NULL;
+    PdfVariant  var;
 
     if( !pszInput || !pszOutput )
     {
@@ -56,13 +56,13 @@ PdfError ImageExtractor::Init( const char* pszInput, const char* pszOutput, int*
     {
         if( (*it)->HasKey( PdfName::KeyType ) )
         {
-            pszValue = (*it)->GetKeyValueString( PdfName::KeyType, NULL ).String();
-            if( pszValue && strcmp( pszValue, "XObject" ) == 0 )
+            SAFE_OP( (*it)->GetKeyValueVariant( PdfName::KeyType, var ) );
+            if( var.GetName().Name() && strcmp( var.GetName().Name(), "XObject" ) == 0 )
             {
                 if( (*it)->HasKey( PdfName::KeySubtype ) )
                 {
-                    pszValue = (*it)->GetKeyValueString( PdfName::KeySubtype, NULL ).String();
-                    if( pszValue && strcmp( pszValue, "Image" ) == 0 )
+                    SAFE_OP( (*it)->GetKeyValueVariant( PdfName::KeySubtype, var ) );
+                    if( var.GetName().Name() && strcmp( var.GetName().Name(), "Image" ) == 0 )
                     {
                         SAFE_OP( ExtractImage( *it ) );
 
