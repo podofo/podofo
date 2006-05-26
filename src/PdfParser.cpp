@@ -376,34 +376,36 @@ PdfError PdfParser::ReadTrailer()
     long       lTrailerLength = 0;
     int        nEof, i;
     const int  TRAILER_LEN  = 7; // strlen( "trailer" )
+    long       lXRefBuf;
 
     fseek( m_hFile, 0, SEEK_END );
     nEof = ftell( m_hFile );
+    lXRefBuf = PDF_MIN( nEof, PDF_XREF_BUF );
 
     do {
         // TODO: this can cause a problem if trailer is splitted beween to searches
         // e.g. the first search block starts with "ailer" whereas the second one
         // ends with "tr". trailer cannot be found in this case
 
-        if( fseek( m_hFile, -PDF_XREF_BUF, SEEK_CUR ) != 0 )
+        if( fseek( m_hFile, -lXRefBuf, SEEK_CUR ) != 0 )
         {
             RAISE_ERROR( ePdfError_NoTrailer );
         }
 
-        if( fread( m_szBuffer, PDF_XREF_BUF, sizeof(char), m_hFile ) != 1 )
+        if( fread( m_szBuffer, lXRefBuf, sizeof(char), m_hFile ) != 1 )
         {
             RAISE_ERROR( ePdfError_NoTrailer );
         }
 
-        if( fseek( m_hFile, -PDF_XREF_BUF, SEEK_CUR ) != 0 )
+        if( fseek( m_hFile, -lXRefBuf, SEEK_CUR ) != 0 )
         {
             RAISE_ERROR( ePdfError_NoTrailer );
         }
         
-        m_szBuffer[PDF_XREF_BUF] = '\0';
+        m_szBuffer[lXRefBuf] = '\0';
         // search backwards in the buffer in case the buffer contains null bytes
         // because it is right after a stream (can't use strstr for this reason)
-        for( i = PDF_XREF_BUF - TRAILER_LEN; i >= 0; i-- )
+        for( i = lXRefBuf - TRAILER_LEN; i >= 0; i-- )
             if( strncmp( m_szBuffer+i, "trailer", TRAILER_LEN ) == 0 )
             {
                 pszStart = m_szBuffer+i;
@@ -452,22 +454,26 @@ PdfError PdfParser::ReadXRef( long* pXRefOffset )
     char*       pszStart = NULL;
     char*       pszEnd = NULL;
     int         i;
+    long        lXRefBuf, lFileSize;
 
-    if( fseek( m_hFile, -PDF_XREF_BUF, SEEK_CUR ) != 0 )
+    lFileSize = ftell( m_hFile );
+    lXRefBuf = PDF_MIN( lFileSize, PDF_XREF_BUF );
+
+    if( fseek( m_hFile, -lXRefBuf, SEEK_CUR ) != 0 )
     {
         RAISE_ERROR( ePdfError_NoXRef );
     }
 
-    if( fread( m_szBuffer, PDF_XREF_BUF, sizeof(char), m_hFile ) != 1 )
+    if( fread( m_szBuffer, lXRefBuf, sizeof(char), m_hFile ) != 1 )
     {
         RAISE_ERROR( ePdfError_NoXRef );
     }
 
-    m_szBuffer[PDF_XREF_BUF] = '\0';
+    m_szBuffer[lXRefBuf] = '\0';
 
     // search backwards in the buffer in case the buffer contains null bytes
     // because it is right after a stream (can't use strstr for this reason)
-    for( i = PDF_XREF_BUF - STARTXREF_LEN; i >= 0; i-- )
+    for( i = lXRefBuf - STARTXREF_LEN; i >= 0; i-- )
         if( strncmp( m_szBuffer+i, "startxref", STARTXREF_LEN ) == 0 )
         {
             pszStart = m_szBuffer+i;

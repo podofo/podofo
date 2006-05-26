@@ -81,13 +81,13 @@ void PdfDate::CreateStringRepresentation()
     // e.g. +01 instead off +0100
     szZone[3] = '\0';
    
-    if( strftime( szDate, PDF_DATE_BUFFER_SIZE, "(D:%Y%m%d%H%M%S", stm ) == 0 )
+    if( strftime( szDate, PDF_DATE_BUFFER_SIZE, "D:%Y%m%d%H%M%S", stm ) == 0 )
     {
         strcpy( m_szDate, INVALIDDATE );
         return;
     }
 
-    snprintf( m_szDate, PDF_DATE_BUFFER_SIZE, "%s%s'00')", szDate, szZone );
+    snprintf( m_szDate, PDF_DATE_BUFFER_SIZE, "%s%s'00'", szDate, szZone );
     m_bValid = true;
 }
     

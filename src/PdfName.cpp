@@ -45,7 +45,8 @@ PdfName::PdfName( const char* pszName )
         strncpy( m_pszData, pszName, PDF_NAME_MAX_LENGTH );
     else
     {
-        PdfError::LogMessage( eLogSeverity_Warning, "Length of PDF Names has to be > 0 and < %i. Length of %i passed to PdfName.", PDF_NAME_MAX_LENGTH, m_length );
+        if( pszName )
+            PdfError::LogMessage( eLogSeverity_Warning, "Length of PDF Names has to be > 0 and < %i. Length of %i passed to PdfName.\n", PDF_NAME_MAX_LENGTH, m_length );
         m_length = 0;
     }
 }

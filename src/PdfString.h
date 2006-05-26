@@ -52,22 +52,20 @@ class PdfString {
      *  The input string will be copied.
      *
      *  \param pszString the string to copy
-     *  \param bHex if true the data is considered to be
+     *  \param bHex if true the data will be 
      *              hex encoded and IsHex() will return true.
      */
-    PdfString( const char* pszString, bool bHex );
+    PdfString( const char* pszString, long lLen, bool bHex = false );
 
-    /** Construct a new PdfString from a block of binary data.
-     *  The resulting string will be hex encoded.
-     * 
-     *  \param pszData the data to copy
-     *  \param lLen length of data in bytes
-     *  \param bHex if bHex is true a hex string will be created
-     *  \param lPadding padd the hexencoded data with 0 bytes to maxlength
-     *  \param bHexEncode if true the data is hex encoded, otherwise it is already
-     *                    expected to be hex encoded
+    /** Set hex encoded data as the strings data. 
+     *  \param pszHex must be hex encoded data.
+     *  \param lLen   length of the hex encoded data.
+     *                if lLen == -1 then strlen( pszHex ) will
+     *                be used as length of the hex data. 
+     *                pszHex has to be zero terminated in this case.
+     *  \returns ePdfError_ErrOk on success.
      */
-    PdfString( const char* pszData, long lLen, bool bHex = true, long lPadding = 0, bool bHexEncode = true );
+    PdfError SetHexData( const char* pszHex, long lLen = -1 );
 
     /** Copy an existing PdfString 
      *  \param rhs another PdfString to copy
@@ -134,15 +132,18 @@ class PdfString {
      *  and output a warning if not successfull.
      *  \returns true if successfuly.
      */
-    bool allocate();
+    bool Allocate();
 
     /** Construct a new PdfString from a 0 terminated
      *  string. 
      *  The input string will be copied.
+     *  if m_bhex is true the copied data will be hex encoded.
      *
      *  \param pszString the string to copy
+     *  \param lLen length of the string data to copy
+     *  
      */
-    void init( const char* pszString );
+    void Init( const char* pszString, long lLen );
 
  private:
     char* m_pszData;

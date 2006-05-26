@@ -109,7 +109,7 @@ PdfError init( const char* pszInput, const char* pszOutput )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    SAFE_OP( writer.Init( pszOutput ) );
+    SAFE_OP( writer.Init() );
 
     fseek( hFile, 0x00, SEEK_END );
     lSize  = ftell( hFile );
@@ -134,7 +134,7 @@ PdfError init( const char* pszInput, const char* pszOutput )
     fclose( hFile );
 
     SAFE_OP( draw( pszBuf, &writer ) );
-    SAFE_OP( writer.Write() );
+    SAFE_OP( writer.Write( pszOutput ) );
 
     free( pszBuf );
     return eCode;

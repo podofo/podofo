@@ -172,7 +172,7 @@ class PdfAnnotation : public PdfObject {
      */
     const char* AnnotationKey( EPdfAnnotation eAnnot );
 
-    PdfError AddReferenceToKey( PdfObject* pObject, const char* pszKeyName, const char* pszReference );
+    PdfError AddReferenceToKey( PdfObject* pObject, const PdfName & keyName, const char* pszReference );
 
  private:
     EPdfAnnotation m_eAnnotation;

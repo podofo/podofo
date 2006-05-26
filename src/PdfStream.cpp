@@ -20,7 +20,7 @@
 
 #include "PdfStream.h"
 
-#include "PdfAlgorithm.h"
+#include "PdfFilter.h"
 #include "PdfObject.h"
 #include "PdfVariant.h"
 
@@ -164,20 +164,22 @@ PdfError PdfStream::GetCopy( char** pBuffer, long* lLen ) const
     return eCode;
 }
 
-PdfError PdfStream::GetFilteredCopy( char** pBuffer, long* lLen ) const
+PdfError PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
 {
-    PdfError     eCode;
-    TVecFilters  vecFilters;
-    TIVecFilters it;
-    
+    PdfError        eCode;
+    TVecFilters     vecFilters;
+    TIVecFilters    it;
+    PdfFilter*      pFilter;
+    PdfFlateFilter* pFlate;
+
     // variables for DecodeParams
     PdfObject*            pDecodeParams = NULL;
     TFlatePredictorParams tParams;
 
-    char*                 pBuf;
-    long                  lLength;
+    char*                 pInBuf = m_szStream;
+    long                  lInLen = m_lLength;
 
-    if( !pBuffer || !lLen )
+    if( !ppBuffer || !lLen )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -208,55 +210,60 @@ PdfError PdfStream::GetFilteredCopy( char** pBuffer, long* lLen ) const
     {
         it = vecFilters.begin();
 
-        while( it != vecFilters.end() && eCode == ePdfError_ErrOk ) 
+        while( it != vecFilters.end() && !eCode.IsError() ) 
         {
-            switch( *it )
+            pFilter = PdfFilterFactory::Create( *it );
+            if( !pFilter ) 
             {
-                case ePdfFilter_FlateDecode:
-                    // TODO: this works only as long FlateDecode is the only filter!!!
-                    eCode = PdfAlgorithm::FlateDecodeBuffer( m_szStream, m_lLength, pBuffer, lLen );
-                    
-                    if( pDecodeParams && !eCode.IsError() )
-                    {
-                        eCode = PdfAlgorithm::RevertFlateDecodePredictor( &tParams, *pBuffer, *lLen, &pBuf, &lLength );
-                        free( *pBuffer );
-                        *lLen = lLength;
-                        *pBuffer = pBuf;
-                    }
-
-                    break;
-                case ePdfFilter_RunLengthDecode:
-                    // TODO: this works only as long RunLength is the only filter!!!
-                    eCode = PdfAlgorithm::FlateDecodeBuffer( m_szStream, m_lLength, pBuffer, lLen );
-                    break;
-
-                case ePdfFilter_CCITTFaxDecode:
-                case ePdfFilter_DCTDecode:
-                    PdfError::LogMessage( eLogSeverity_Warning, "Warning: %i Filter not implemented!\n", *it );
-                    break;
-                default:
-                    PdfError::LogMessage( eLogSeverity_Error, "Error: Found an unsupported filter: %i\n", *it );
-                    eCode.SetError( ePdfError_UnsupportedFilter );
-                    break;
+                PdfError::LogMessage( eLogSeverity_Error, "Error: Found an unsupported filter: %i\n", *it );
+                eCode.SetError( ePdfError_UnsupportedFilter );
+                break;
             }
+
+            eCode = pFilter->Decode( pInBuf, lInLen, ppBuffer, lLen );
+            
+            if( pInBuf != m_szStream ) 
+            {
+                // the input buffer was malloc'ed by another filter before
+                // so free it and let it point
+                free( pInBuf );
+                pInBuf = *ppBuffer;
+                lInLen = *lLen;
+            }
+            
+            if( pDecodeParams && !eCode.IsError() )
+            {
+                pFlate = dynamic_cast<PdfFlateFilter*>(pFilter);
+                if( !pFilter )
+                    eCode.SetError( ePdfError_InvalidHandle );
+                else
+                {
+                    eCode = pFlate->RevertPredictor( &tParams, pInBuf, lInLen, ppBuffer, lLen );
+                    free( pInBuf );
+                    pInBuf = *ppBuffer;
+                    lInLen = *lLen;
+                }
+            }
+
+            delete pFilter;
             ++it;
         }
     }
     else
     {
-        *pBuffer = (char*)malloc( sizeof( char ) * m_lLength );
+        *ppBuffer = (char*)malloc( sizeof( char ) * m_lLength );
         *lLen = m_lLength;
 
-        if( !*pBuffer )
+        if( !*ppBuffer )
         {
             RAISE_ERROR( ePdfError_OutOfMemory );
         }
                 
-        memcpy( *pBuffer, m_szStream, m_lLength );
+        memcpy( *ppBuffer, m_szStream, m_lLength );
     }
 
     if( eCode.IsError() )
-        free( *pBuffer );
+        free( *ppBuffer );
 
     return eCode;
 }
@@ -343,16 +350,25 @@ PdfError PdfStream::FlateDecode()
 PdfError PdfStream::FlateDecodeStreamData()
 {
     PdfError   eCode;
+    PdfFilter* pFilter;
     char*      pBuffer;
     long       lLen;
 
-    SAFE_OP( PdfAlgorithm::FlateEncodeBuffer( m_szStream, m_lLength, &pBuffer, &lLen ) );
+    pFilter = PdfFilterFactory::Create( ePdfFilter_FlateDecode );
+    if( pFilter ) 
+    {
+        SAFE_OP( pFilter->Encode( m_szStream, m_lLength, &pBuffer, &lLen ) );
+        delete pFilter;
+        free( m_szStream );
     
-    free( m_szStream );
-    
-    m_szStream  = pBuffer;
-    m_lSize     = lLen;
-    m_lLength   = lLen;
+        m_szStream  = pBuffer;
+        m_lSize     = lLen;
+        m_lLength   = lLen;
+    }
+    else
+    {
+        RAISE_ERROR( ePdfError_UnsupportedFilter );
+    }
 
     return eCode;
 }

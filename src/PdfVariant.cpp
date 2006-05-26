@@ -79,7 +79,8 @@ PdfError PdfVariant::Init( const char* pszData, int nLen, long* pLen )
 
         if( *pszBuf == '>' )
         {
-            m_pString = new PdfString( pszData+1, pszBuf - pszData - 1, true, 0, false );
+            m_pString = new PdfString();
+            SAFE_OP( m_pString->SetHexData( pszData+1, pszBuf - pszData - 1 ) );
             ++pszBuf;
         }
         else
@@ -102,7 +103,7 @@ PdfError PdfVariant::Init( const char* pszData, int nLen, long* pLen )
 
         if( *pszBuf == ')' )
         {
-            m_pString = new PdfString( pszData+1, pszBuf - pszData - 1, false );
+            m_pString = new PdfString( pszData+1, pszBuf - pszData - 1 );
             ++pszBuf; // for correct calculation of the parsed length
         }
         else
@@ -393,6 +394,12 @@ PdfError PdfVariant::ToString( std::string & rsData ) const
     ostringstream   out;
     string          sTmp;
 
+    if( (m_eDataType == ePdfDataType_HexString ||
+        m_eDataType == ePdfDataType_String) && (!m_pString || !m_pString->String()) )
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
     // TODO:
     //     ePdfDataType_Stream,
     switch( m_eDataType ) 
@@ -556,8 +563,8 @@ PdfError PdfVariant::SetString( const PdfString & rsString )
 {
     PdfError eCode;
 
-    if( m_eDataType != ePdfDataType_String ||
-        m_eDataType != ePdfDataType_HexString )
+    if( !(m_eDataType == ePdfDataType_String ||
+         m_eDataType == ePdfDataType_HexString )) 
     {
         RAISE_ERROR( ePdfError_InvalidDataType );
     }

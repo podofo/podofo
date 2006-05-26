@@ -40,11 +40,11 @@ PdfError UnCompress::Init( const char* pszInput, const char* pszOutput )
 
     SAFE_OP( this->UncompressObjects() );
 
-    SAFE_OP( m_pWriter->Init( pszOutput, m_pParser ) );
+    SAFE_OP( m_pWriter->Init( m_pParser ) );
 
     m_pWriter->SetPdfCompression( false );
 
-    SAFE_OP( m_pWriter->Write() );
+    SAFE_OP( m_pWriter->Write( pszOutput ) );
 
     return eCode;
 }

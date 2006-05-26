@@ -38,6 +38,17 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      *  \returns the found object or NULL if no object was found.
      */
     PdfObject* GetObject( long lObject, long lGeneration ) const;
+
+    /** Remove the object with the given object and generation number from the list
+     *  of objects.
+     *  The object is returned if it was found. Otherwise NULL is returned.
+     *  The caller has to delte the object by hisself.
+     *
+     *  \param lObj the object number of the object
+     *  \param lGen the generation number of the object
+     *  \returns The removed object.
+     */
+    PdfObject* RemoveObject( long lObj, long lGen );
 };
 
 typedef PdfVecObjects                TVecObjects;

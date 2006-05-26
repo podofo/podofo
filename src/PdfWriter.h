@@ -58,27 +58,33 @@ class PdfWriter {
     virtual ~PdfWriter();
 
     /** Create a new pdf file, based on an existing pdf file.
-     *  \param pszFilename file name of the new pdf file
      *  \param pParser     a pdf parser object
      *  \returns ErrOk on success.
      */
-    PdfError Init( const char* pszFilename, PdfParser* pParser );
+    PdfError Init( PdfParser* pParser );
 
     /** Create a new pdf file from scratch.
-     *  \param pszFilename file name of the new pdf file
+     *  \param bInternal if true create some prvate objects as internal objects.
+     *                   Specifiying false here should be never necessary.
      *  \returns ErrOk on success.
      */
-    PdfError Init( const char* pszFilename );
+    PdfError Init( bool bInternal = true );
 
-    /** Writes the complete document to the pdf file specified 
-     *  at Init()
+    /** Writes the complete document to a PDF file.
      *
-     *  \param pDevice write to the specified device instead of the file specified
-     *                 to Init if pDevice is not NULL.
+     *  \param pszFilename filename of a PDF file.
      *
      *  \returns ErrOk on success.
      */
-    PdfError Write( PdfOutputDevice* pDevice = NULL );
+    PdfError Write( const char* pszFilename );
+
+    /** Writes the complete document to a PdfOutputDevice
+     *
+     *  \param pDevice write to the specified device 
+     *
+     *  \returns ErrOk on success.
+     */
+    PdfError Write( PdfOutputDevice* pDevice );
 
     /** Set the PDF Version of the document. Has to be called before Write() to
      *  have an effect.
@@ -101,6 +107,19 @@ class PdfWriter {
      *  \returns PdfObject pointer to the new PdfObject
      */
     PdfObject* CreateObject( const char* pszType = NULL, bool bInternal = false );
+
+    /** Remove the object with the given object and generation number from the list
+     *  of objects.
+     *  The object is returned if it was found. Otherwise NULL is returned.
+     *  The caller has to delte the object by hisself.
+     *
+     *  Internal objects canot be removed.
+     *
+     *  \param lObj the object number of the object
+     *  \param lGen the generation number of the object
+     *  \returns The removed object.
+     */
+    PdfObject* RemoveObject( long lObj, long lGen );
 
     /** Create a PdfObject of type T which must be a subclasss of PdfObject
      *  and it does not need a parameter for pszType.
@@ -178,6 +197,13 @@ class PdfWriter {
     PdfError WriteToBuffer( char** ppBuffer, unsigned long* pulLen );
 
  private:
+    /** Delete all internal structures and free allocated memory.
+     *  This function is called from the destructor and from
+     *  Init(), so that calling Init() twice does not 
+     *  cause a memory leak.
+     */
+    void Clear();
+
     /** Writes the pdf header to the current file.
      *  \param pDevice write to this output device
      *
@@ -214,7 +240,6 @@ class PdfWriter {
     TVecObjects     m_vecObjects;
 
  private:
-    PdfOutputDevice m_cDevice;
     EPdfVersion     m_eVersion;
     PdfParser*      m_pParser;
 

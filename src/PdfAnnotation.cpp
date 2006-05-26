@@ -34,16 +34,16 @@ PdfAnnotation::PdfAnnotation( unsigned int nObjectNo, unsigned int nGenerationNo
     m_eAnnotation = ePdfAnnotation_Unknown;
 }
 
-PdfError PdfAnnotation::AddReferenceToKey( PdfObject* pObject, const char* pszKeyName, const char* pszReference )
+PdfError PdfAnnotation::AddReferenceToKey( PdfObject* pObject, const PdfName & keyName, const char* pszReference )
 {
     PdfError     eCode;
     PdfVariant   var;
     PdfVariant   ref;
     TVariantList list;
 
-    if( pObject->HasKey( pszKeyName ) )
+    if( pObject->HasKey( keyName ) )
     {
-        SAFE_OP( pObject->GetKeyValueVariant( pszKeyName, var ) );
+        SAFE_OP( pObject->GetKeyValueVariant( keyName, var ) );
         if( var.GetDataType() != ePdfDataType_Array )
         {
             RAISE_ERROR( ePdfError_InvalidDataType );
@@ -58,7 +58,7 @@ PdfError PdfAnnotation::AddReferenceToKey( PdfObject* pObject, const char* pszKe
     var.SetDataType( ePdfDataType_Array );
     SAFE_OP( var.SetArray( list ) );
 
-    pObject->AddKey( pszKeyName, var );
+    pObject->AddKey( keyName, var );
 
     return eCode;
 }
@@ -95,13 +95,12 @@ PdfError PdfAnnotation::Init( PdfObject* pObject, EPdfAnnotation eAnnot, PdfRect
     SAFE_OP( this->AddReferenceToKey( pObject, "Annots", this->Reference().c_str() ) );
     
     rRect.ToVariant( rect );
-
     date.ToString( sDate );
+
     SAFE_OP( this->AddKey( PdfName::KeySubtype, name ) );
     SAFE_OP( this->AddKey( PdfName::KeyRect, rect ) );
     SAFE_OP( this->AddKey( "P", pObject->Reference() ) );
     SAFE_OP( this->AddKey( "M", sDate ) );
-             
     return eCode;
 }
 

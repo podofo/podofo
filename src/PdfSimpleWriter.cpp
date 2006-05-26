@@ -70,7 +70,7 @@ PdfSimpleWriter::~PdfSimpleWriter()
         FT_Done_FreeType( m_ftLibrary );
 }
 
-PdfError PdfSimpleWriter::Init( const char* pszFilename )
+PdfError PdfSimpleWriter::Init()
 {
     PdfError  eCode;
     PdfDate   cDate;
@@ -82,7 +82,7 @@ PdfError PdfSimpleWriter::Init( const char* pszFilename )
         RAISE_ERROR( ePdfError_FreeType );
     }
 
-    SAFE_OP( PdfWriter::Init( pszFilename ) );
+    SAFE_OP( PdfWriter::Init() );
 
     m_pPageTree = CreateObject( "Pages", true );
     m_pPageTree->AddKey( "Kids", "[ ]" );

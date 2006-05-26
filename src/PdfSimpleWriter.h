@@ -62,10 +62,9 @@ class PdfSimpleWriter : public PdfWriter {
     virtual ~PdfSimpleWriter();
     
     /** Create a new pdf file from scratch.
-     *  \param pszFilename file name of the new pdf file
      *  \returns ErrOk on success.
      */
-    PdfError Init( const char* pszFilename );
+    PdfError Init();
 
     /** Creates a new page object and inserts it into the internal
      *  object tree. The object is owned by the PdfSimpleWriter and 

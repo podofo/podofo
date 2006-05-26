@@ -50,9 +50,9 @@ int main( int argc, char*  argv[] )
     {
         writer.SetPdfCompression( false );
 
-        eCode = writer.Init( argv[2], &parser );
+        eCode = writer.Init( &parser );
         if( !eCode.IsError() )
-            eCode = writer.Write();
+            eCode = writer.Write( argv[2] );
 
         printf("ECode after writing=%i\n", eCode.Error() );
     }

@@ -21,7 +21,7 @@
 #include "PdfVariant.h"
 #include "../PdfTest.h"
 
-#include "PdfAlgorithm.h"
+#include "PdfFilter.h"
 
 using namespace PoDoFo;
 
@@ -60,10 +60,13 @@ PdfError Test( const char* pszString, EPdfDataType eDataType )
 
 int main() 
 {
-    PdfError eCode;
+    PdfError   eCode;
+    PdfFilter* pFilter;
 
     printf("This test tests the PdfVariant class.\n");
     printf("---\n");
+
+    pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
 
     // testing strings
     TEST_SAFE_OP( Test( "(Hallo Welt!)", ePdfDataType_String ) );
@@ -123,7 +126,7 @@ int main()
     long lLen = strlen( pszHex );
     long lRes;
 
-    TEST_SAFE_OP( PdfAlgorithm::HexEncodeBuffer( pszHex, lLen, &pszResult, &lRes ) );
+    TEST_SAFE_OP( pFilter->Encode( pszHex, lLen, &pszResult, &lRes ) );
     free( pszHex );
     pszHex = pszResult;
     lLen = lRes;
@@ -131,7 +134,7 @@ int main()
     pszHex[lLen-1] = '\0';
     printf("Encoded Buffer: (%s)\n", pszHex );
 
-    TEST_SAFE_OP( PdfAlgorithm::HexDecodeBuffer( pszHex, lLen, &pszResult, &lRes ) );
+    TEST_SAFE_OP( pFilter->Decode( pszHex, lLen, &pszResult, &lRes ) );
     free( pszHex );
     pszHex = pszResult;
     lLen = lRes;
@@ -139,7 +142,7 @@ int main()
     pszHex[lLen-1] = '\0';
     printf("Decoded Buffer: (%s)\n", pszHex );
 
-    TEST_SAFE_OP( PdfAlgorithm::HexEncodeBuffer( pszHex, lLen, &pszResult, &lRes ) );
+    TEST_SAFE_OP( pFilter->Encode( pszHex, lLen, &pszResult, &lRes ) );
     free( pszHex );
     pszHex = pszResult;
     lLen = lRes;
@@ -147,7 +150,7 @@ int main()
     pszHex[lLen-1] = '\0';
     printf("Encoded Buffer: (%s)\n", pszHex );
 
-    TEST_SAFE_OP( PdfAlgorithm::HexDecodeBuffer( pszHex, lLen, &pszResult, &lRes  ) );
+    TEST_SAFE_OP( pFilter->Decode( pszHex, lLen, &pszResult, &lRes  ) );
     free( pszHex );
     pszHex = pszResult;
     lLen = lRes;
@@ -161,7 +164,7 @@ int main()
     strcpy( pszHex, "48616C6C6F2044\n75207363686F656E652057656C7421");
     lLen = strlen( pszHex );
 
-    TEST_SAFE_OP( PdfAlgorithm::HexDecodeBuffer( pszHex, lLen, &pszResult, &lRes  ) );
+    TEST_SAFE_OP( pFilter->Decode( pszHex, lLen, &pszResult, &lRes  ) );
     free( pszHex );
     pszHex = pszResult;
     lLen = lRes;

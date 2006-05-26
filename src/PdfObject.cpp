@@ -129,11 +129,14 @@ PdfError PdfObject::AddKey( const PdfName & identifier, long nValue )
 
 PdfError PdfObject::AddKey( const PdfName & identifier, const PdfString & rValue )
 {
+    PdfError   eCode;
     PdfVariant cVariant;
-    cVariant.SetDataType( rValue.IsHex() ? ePdfDataType_HexString : ePdfDataType_String );
-    cVariant.SetString( rValue );
 
-    return this->AddKey( identifier, cVariant );
+    cVariant.SetDataType( rValue.IsHex() ? ePdfDataType_HexString : ePdfDataType_String );
+    SAFE_OP( cVariant.SetString( rValue ) );
+    SAFE_OP( this->AddKey( identifier, cVariant ) );
+
+    return eCode;
 }
 
 PdfError PdfObject::AddKey( const PdfName & identifier, const PdfName & rValue )

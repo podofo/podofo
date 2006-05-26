@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
+ *   Copyright (C) 2006 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -19,17 +19,173 @@
  ***************************************************************************/
 
 #include "PdfDefines.h"
-#include "PdfAlgorithm.h"
+#include "PdfFilter.h"
 
 #include "PdfParserBase.h"
 
 #include <zlib.h>
-
 #define CHUNK       16384
 
 namespace PoDoFo {
 
-PdfError PdfAlgorithm::FlateDecodeBuffer( char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen )
+PdfFilter* PdfFilterFactory::Create( const EPdfFilter eFilter )
+{
+    PdfFilter* pFilter = NULL;
+
+    switch( eFilter ) 
+    {
+        case ePdfFilter_ASCIIHexDecode:
+            pFilter = new PdfHexFilter();
+            break;
+
+        case ePdfFilter_ASCII85Decode:
+        case ePdfFilter_LZWDecode:
+            break;
+
+        case ePdfFilter_FlateDecode:
+            pFilter = new PdfFlateFilter();
+            break;
+
+        case ePdfFilter_RunLengthDecode:
+        case ePdfFilter_CCITTFaxDecode:
+        case ePdfFilter_JBIG2Decode:
+        case ePdfFilter_DCTDecode:
+        case ePdfFilter_JPXDecode:
+        case ePdfFilter_Crypt:
+        default:
+            break;
+    }
+
+    return pFilter;
+}
+
+PdfError PdfHexFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen )
+{
+    PdfError eCode;
+    char*    pStart;
+    int      i      = 0;
+
+    if( !plOutLen || !pInBuffer || !ppOutBuffer )
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    *plOutLen = (lInLen << 1);
+    *ppOutBuffer = (char*)malloc( *plOutLen * sizeof(char) );
+    if( !*ppOutBuffer )
+    {
+        RAISE_ERROR( ePdfError_OutOfMemory );
+    }
+
+    pStart = *ppOutBuffer;
+    while( i < lInLen )
+    {
+        *pStart  = (pInBuffer[i] & 0xF0) >> 4;
+        *pStart += (*pStart > 9 ? 'A' - 10 : '0');
+
+        ++pStart;
+
+        *pStart  = (pInBuffer[i] & 0x0F);
+        *pStart += (*pStart > 9 ? 'A' - 10 : '0');
+
+        ++pStart;
+        ++i;
+    }
+
+    return eCode;
+}
+
+PdfError PdfHexFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen )
+{
+    PdfError eCode;
+    int      i      = 0;
+    char*    pStart;
+    char     hi, low;
+
+    if( !plOutLen || !pInBuffer || !ppOutBuffer )
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    *ppOutBuffer = (char*)malloc( sizeof(char) * (lInLen >> 1) );
+    pStart       = *ppOutBuffer;
+
+    if( !pStart )
+    {
+        RAISE_ERROR( ePdfError_OutOfMemory );
+    }
+
+    while( i < lInLen )
+    {
+        while( PdfParserBase::IsWhitespace( pInBuffer[i] ) )
+            ++i;
+        hi  = pInBuffer[i++];
+
+        while( PdfParserBase::IsWhitespace( pInBuffer[i] ) )
+            ++i;
+        low = pInBuffer[i++];
+
+        hi  -= ( hi  < 'A' ? '0' : 'A'-10 );
+        low -= ( low < 'A' ? '0' : 'A'-10 );
+
+        *pStart = (hi << 4) | (low & 0x0F);
+        ++pStart;
+    }
+
+    *plOutLen = (pStart - *ppOutBuffer);
+
+    return eCode;
+
+}
+
+PdfError PdfFlateFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen )
+{
+    PdfError eCode;
+
+    z_stream d_stream; 
+    char*    buf;
+    long     lBufLen;
+
+    if( !pInBuffer || !plOutLen || !ppOutBuffer )
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    d_stream.zalloc   = Z_NULL;
+    d_stream.zfree    = Z_NULL;
+    d_stream.opaque   = Z_NULL;
+    d_stream.avail_in = lInLen;
+    d_stream.next_in  = (Bytef*)pInBuffer;
+    
+    if( deflateInit( &d_stream, Z_DEFAULT_COMPRESSION ) )
+    {
+        RAISE_ERROR( ePdfError_Flate );
+    }
+
+    lBufLen = deflateBound( &d_stream, lInLen );
+    buf = (char*)malloc( sizeof( char ) * lBufLen );
+    if( !buf )
+    {
+        RAISE_ERROR( ePdfError_OutOfMemory );
+    }
+
+    d_stream.avail_out = lBufLen;
+    d_stream.next_out  = (Bytef*)buf;
+    
+    if( deflate( &d_stream, Z_FINISH ) != Z_STREAM_END )
+    {
+        RAISE_ERROR( ePdfError_Flate );
+    }
+
+    *plOutLen = lBufLen - d_stream.avail_out;
+    *ppOutBuffer = buf;
+
+    (void)deflateEnd(&d_stream);
+
+    return eCode;
+}
+
+PdfError PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen )
 {
     PdfError  eCode;
 
@@ -110,154 +266,29 @@ PdfError PdfAlgorithm::FlateDecodeBuffer( char* pInBuffer, long lInLen, char** p
     return eCode;
 }
 
-PdfError PdfAlgorithm::FlateEncodeBuffer( char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen )
-{
-    PdfError eCode;
-
-    z_stream d_stream; 
-    char*    buf;
-    long     lBufLen;
-
-    if( !pInBuffer || !plOutLen || !ppOutBuffer )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    d_stream.zalloc   = Z_NULL;
-    d_stream.zfree    = Z_NULL;
-    d_stream.opaque   = Z_NULL;
-    d_stream.avail_in = lInLen;
-    d_stream.next_in  = (Bytef*)pInBuffer;
-    
-    if( deflateInit( &d_stream, Z_DEFAULT_COMPRESSION ) )
-    {
-        RAISE_ERROR( ePdfError_Flate );
-    }
-
-    lBufLen = deflateBound( &d_stream, lInLen );
-    buf = (char*)malloc( sizeof( char ) * lBufLen );
-    if( !buf )
-    {
-        RAISE_ERROR( ePdfError_OutOfMemory );
-    }
-
-    d_stream.avail_out = lBufLen;
-    d_stream.next_out  = (Bytef*)buf;
-    
-    if( deflate( &d_stream, Z_FINISH ) != Z_STREAM_END )
-    {
-        RAISE_ERROR( ePdfError_Flate );
-    }
-
-    *plOutLen = lBufLen - d_stream.avail_out;
-    *ppOutBuffer = buf;
-
-    (void)deflateEnd(&d_stream);
-
-    return eCode;
-}
-
-PdfError PdfAlgorithm::HexDecodeBuffer( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen )
-{
-    PdfError eCode;
-    int     i      = 0;
-    char*   pStart;
-    char    hi, low;
-
-    if( !plOutLen || !pInBuffer || !ppOutBuffer )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    *ppOutBuffer = (char*)malloc( sizeof(char) * (lInLen >> 1) );
-    pStart       = *ppOutBuffer;
-
-    if( !pStart )
-    {
-        RAISE_ERROR( ePdfError_OutOfMemory );
-    }
-
-    while( i < lInLen )
-    {
-        while( PdfParserBase::IsWhitespace( pInBuffer[i] ) )
-            ++i;
-        hi  = pInBuffer[i++];
-
-        while( PdfParserBase::IsWhitespace( pInBuffer[i] ) )
-            ++i;
-        low = pInBuffer[i++];
-
-        hi  -= ( hi  < 'A' ? '0' : 'A'-10 );
-        low -= ( low < 'A' ? '0' : 'A'-10 );
-
-        *pStart = (hi << 4) | (low & 0x0F);
-        ++pStart;
-    }
-
-    *plOutLen = (pStart - *ppOutBuffer);
-
-    return eCode;
-}
-
-PdfError PdfAlgorithm::HexEncodeBuffer( const char* pInBuffer, long lInLen, char** ppOutBuffer, long *plOutLen )
-{
-    PdfError eCode;
-    char*    pData;
-    char*    pStart;
-    int      i      = 0;
-
-    if( !plOutLen || !pInBuffer || !ppOutBuffer )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    *plOutLen = (lInLen << 1);
-    pData = (char*)malloc( *plOutLen * sizeof(char) );
-    if( !pData )
-    {
-        RAISE_ERROR( ePdfError_OutOfMemory );
-    }
-
-    pStart = pData;
-    while( i < lInLen )
-    {
-        *pData  = (pInBuffer[i] & 0xF0) >> 4;
-        *pData += (*pData > 9 ? 'A' - 10 : '0');
-
-        ++pData;
-
-        *pData  = (pInBuffer[i] & 0x0F);
-        *pData += (*pData > 9 ? 'A' - 10 : '0');
-
-        ++pData;
-
-        ++i;
-    }
-
-    *ppOutBuffer = pStart;
-
-    return eCode;
-}
-
-PdfError PdfAlgorithm::RevertFlateDecodePredictor( const TFlatePredictorParams* pParams, char* pInBuffer, long lInLen, char** ppOutBuffer, long *plOutLen )
+PdfError PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen )
 {
     PdfError eCode;
     unsigned char*   pPrev;
     int     nRows;
     int     i;
     char*   pOutBufStart;
-    char*   pBuffer = pInBuffer;
+    const char*   pBuffer = pInBuffer;
     int     nPredictor;
 
+#ifdef _DEBUG
     printf("Applying Predictor %i to buffer of size %i\n", pParams->nPredictor, lInLen );
     printf("Cols: %i Modulo: %i Comps: %i\n", pParams->nColumns, lInLen % (pParams->nColumns +1), pParams->nBPC );
+#endif // _DEBUG
 
     if( pParams->nPredictor == 1 )  // No Predictor
         return ePdfError_ErrOk;
 
     nRows = (pParams->nColumns * pParams->nBPC) >> 3; 
+#ifdef _DEBUG
     printf("nRows=%i\n", nRows );
     printf("nBPC=%i\n", pParams->nBPC );
+#endif // _DEBUG
 
     pPrev = (unsigned char*)malloc( sizeof(char) * nRows );
     if( !pPrev )
@@ -267,7 +298,10 @@ PdfError PdfAlgorithm::RevertFlateDecodePredictor( const TFlatePredictorParams* 
 
     memset( pPrev, 0, sizeof(char) * nRows );
 
+#ifdef _DEBUG
     printf("Alloc: %i\n", (lInLen / (pParams->nColumns + 1)) * pParams->nColumns );
+#endif // _DEBUG
+
     *ppOutBuffer = (char*)malloc( sizeof(char) * (lInLen / (pParams->nColumns + 1)) * pParams->nColumns );
     pOutBufStart = *ppOutBuffer;
 
@@ -311,16 +345,28 @@ PdfError PdfAlgorithm::RevertFlateDecodePredictor( const TFlatePredictorParams* 
         }
     }
 
+#ifdef _DEBUG
     printf("pOutBufStart=%p\n", pOutBufStart );
     printf("pOutBuffer=%p\n", *ppOutBuffer );
+#endif // _DEBUG
+
     *plOutLen = (pOutBufStart - *ppOutBuffer);
+
+#ifdef _DEBUG
     printf("Size of new buffer: %i ecode=%i\n", *plOutLen, eCode.Error() );
+#endif // _DEBUG
+
     free( pPrev );
 
     return eCode;
 }
 
-PdfError PdfAlgorithm::RunLengthDecodeBuffer( char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen )
+PdfError PdfRLEFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen )
+{
+    return ePdfError_UnsupportedFilter;
+}
+
+PdfError PdfRLEFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen )
 {
     PdfError              eCode;
     char*                 pBuf;
@@ -398,7 +444,7 @@ PdfError PdfAlgorithm::RunLengthDecodeBuffer( char* pInBuffer, long lInLen, char
     *plOutLen    = lCur;
 
     return eCode;
+
 }
 
 };
-

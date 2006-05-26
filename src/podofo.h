@@ -29,11 +29,11 @@
 #include "PdfDefines.h"
 
 #include "PdfAction.h"
-#include "PdfAlgorithm.h"
 #include "PdfAnnotation.h"
 #include "PdfCanvas.h"
 #include "PdfDate.h"
 #include "PdfError.h"
+#include "PdfFilter.h"
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
 #include "PdfImage.h"

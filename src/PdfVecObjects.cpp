@@ -54,5 +54,24 @@ PdfObject* PdfVecObjects::GetObject( long lObject, long lGeneration ) const
     return NULL;
 }
 
+PdfObject* PdfVecObjects::RemoveObject( long lObject, long lGeneration )
+{
+    TIVecObjects it;
+    PdfObject*   pObj;
+
+    it = std::find_if( this->begin(), this->end(), ObjectsComperator( lObject, lGeneration ) );
+    
+    if( it != this->end() )
+    {
+        pObj = *it;
+        this->erase( it );
+        return pObj;
+    }
+
+    return NULL;
+}
+
+
+
 };
 

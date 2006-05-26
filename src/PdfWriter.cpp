@@ -33,17 +33,15 @@ namespace PoDoFo {
 
 PdfWriter::PdfWriter()
 {
-    m_pParser      = NULL;
-    m_eVersion     = ePdfVersion_1_3;
-    m_nObjectCount = 1;
-
-    m_pCatalog     = NULL;
-    m_pInfo        = NULL;
-
-    m_bCompress    = true;
+    Clear();
 }
 
 PdfWriter::~PdfWriter()
+{
+    Clear();
+}
+
+void PdfWriter::Clear() 
 {
     TIVecObjects it = m_vecObjects.begin();
 
@@ -59,26 +57,34 @@ PdfWriter::~PdfWriter()
         delete (*it);
         ++it;
     }
+
+    m_vecInternalObjects.clear();
+    m_vecObjects.clear();
+
+    m_pParser      = NULL;
+    m_eVersion     = ePdfVersion_1_3;
+    m_nObjectCount = 1;
+
+    m_pCatalog     = NULL;
+    m_pInfo        = NULL;
+
+    m_bCompress    = true;
 }
 
-PdfError PdfWriter::Init( const char* pszFilename )
+PdfError PdfWriter::Init( bool bInternal )
 {
     PdfError eCode;
 
-    if( !pszFilename )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    // clear everything - so that calling Init twice will work
+    Clear();
 
-    SAFE_OP( m_cDevice.Init( pszFilename ) );
-
-    m_pInfo     = CreateObject( NULL, true);
-    m_pCatalog  = CreateObject( "Catalog", true );
+    m_pInfo     = CreateObject( NULL, bInternal );
+    m_pCatalog  = CreateObject( "Catalog", bInternal );
     
     return eCode;
 }
 
-PdfError PdfWriter::Init( const char* pszFilename, PdfParser* pParser )
+PdfError PdfWriter::Init( PdfParser* pParser )
 {
     PdfError   eCode;
     PdfVariant cVar;
@@ -86,12 +92,13 @@ PdfError PdfWriter::Init( const char* pszFilename, PdfParser* pParser )
     long       lObj; 
     long       lGen;
 
-    if( !pszFilename || !pParser)
+    // clear everything - so that calling Init twice will work
+    Clear();
+
+    if( !pParser)
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
-
-    SAFE_OP( m_cDevice.Init( pszFilename ) );
 
     m_pParser      = pParser;
     m_eVersion     = pParser->GetPdfVersion();
@@ -105,7 +112,6 @@ PdfError PdfWriter::Init( const char* pszFilename, PdfParser* pParser )
         PdfOutputDevice dev;
         dev.Init( str );
         PdfObject( *pTrailer ).Write( &dev );
-        printf("Trailer=%s\n", str.c_str() );
 
         SAFE_OP( pTrailer->GetKeyValueVariant( "Root", cVar ) );
         SAFE_OP( cVar.GetReference( &lObj, &lGen ) );
@@ -130,6 +136,22 @@ PdfError PdfWriter::Init( const char* pszFilename, PdfParser* pParser )
     return eCode;
 }
 
+PdfError PdfWriter::Write( const char* pszFilename )
+{
+    PdfError        eCode;
+    PdfOutputDevice device;
+
+    if( !pszFilename )
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    SAFE_OP( device.Init( pszFilename ) );
+    SAFE_OP( this->Write( &device ) );
+
+    return eCode;
+}
+
 PdfError PdfWriter::Write( PdfOutputDevice* pDevice )
 {
     PdfError eCode;
@@ -138,7 +160,9 @@ PdfError PdfWriter::Write( PdfOutputDevice* pDevice )
     m_vecXRef.clear();
 
     if( !pDevice )
-        pDevice = &m_cDevice;
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
 
     SAFE_OP( WritePdfHeader( pDevice ) );
     SAFE_OP( WritePdfObjects( pDevice, m_vecObjects ) );
@@ -337,6 +361,11 @@ PdfObject* PdfWriter::CreateObject( const char* pszType, bool bInternal )
         m_vecObjects.push_back( pObj );
 
     return pObj;
+}
+
+PdfObject* PdfWriter::RemoveObject( long lObj, long lGen )
+{
+    return m_vecObjects.RemoveObject( lObj, lGen );
 }
 
 PdfError PdfWriter::GetByteOffset( PdfObject* pObject, unsigned long* pulOffset )

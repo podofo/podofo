@@ -310,13 +310,13 @@ PdfError ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWrit
     TEST_SAFE_OP( pAnnot1->Init( pPage, ePdfAnnotation_Widget, rect1 ) );
     TEST_SAFE_OP( pAnnot2->Init( pPage, ePdfAnnotation_Link, rect2 ) );
 
-    pAnnot1->SetTitle( "(Author: Dominik Seichter)" );
-    pAnnot1->SetContents( "(Hallo Welt!)" );
+    pAnnot1->SetTitle( PdfString("Author: Dominik Seichter") );
+    pAnnot1->SetContents( PdfString("Hallo Welt!") );
     pAnnot1->SetAppearanceStream( pXObj );
 
     PdfAction* pAction = pWriter->CreateObject<PdfAction>();
     TEST_SAFE_OP( pAction->Init( ePdfAction_URI ) );
-    pAction->SetURI( "(http://www.tec-it.com)" );
+    pAction->SetURI( PdfString("http://www.tec-it.com") );
 
     //pAnnot2->SetDestination( pPage );
     pAnnot2->SetDestination( pAction );
@@ -358,7 +358,7 @@ int main( int argc, char* argv[] )
     printf("It creates a new PdfFile from scratch.\n");
     printf("---\n");
 
-    TEST_SAFE_OP( writer.Init( argv[1] ) );
+    TEST_SAFE_OP( writer.Init() );
 
     pPage = writer.CreatePage( PdfPage::CreateStadardPageSize( ePdfPageSize_A4 ) );
     painter.SetPage( pPage );
@@ -393,13 +393,13 @@ int main( int argc, char* argv[] )
 
     printf("Setting document informations.\n\n");
     // Setup the document information dictionary
-    writer.SetDocumentCreator ( "(CreationTest - A simple test application)" );
-    writer.SetDocumentAuthor  ( "(Dominik Seichter)" );
-    writer.SetDocumentTitle   ( "(Test Document)" );
-    writer.SetDocumentSubject ( "(Testing the PDF Library)" );
-    writer.SetDocumentKeywords( "(Test;PDF;)" );
+    writer.SetDocumentCreator ( PdfString("CreationTest - A simple test application") );
+    writer.SetDocumentAuthor  ( PdfString("Dominik Seichter") );
+    writer.SetDocumentTitle   ( PdfString("Test Document") );
+    writer.SetDocumentSubject ( PdfString("Testing the PDF Library") );
+    writer.SetDocumentKeywords( PdfString("Test;PDF;") );
 
-    TEST_SAFE_OP( writer.Write() );
+    TEST_SAFE_OP( writer.Write( argv[1] ) );
     printf("Error Code: %i\n", eCode.Error() );
 
     if( eCode.IsError() )

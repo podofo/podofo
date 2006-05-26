@@ -20,8 +20,8 @@
 
 #include "PdfPainter.h"
 
-#include "PdfAlgorithm.h"
 #include "PdfCanvas.h"
+#include "PdfFilter.h"
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
 #include "PdfImage.h"
@@ -555,7 +555,11 @@ PdfError PdfPainter::DrawText( long lX, long lY, const PdfString & sText, long l
     }
 
     if( !sText.IsHex() )
-        SAFE_OP( PdfAlgorithm::HexEncodeBuffer( pszTab, lStringLen, &pBuffer, &lLen ) );
+    {
+        PdfFilter* pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+        SAFE_OP( pFilter->Encode( pszTab, lStringLen, &pBuffer, &lLen ) );
+        delete pFilter;
+    }
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "BT\n/%s %.3f Tf\n%.3f %.3f Td\n<", 
               m_pFont->Identifier().Name(), m_pFont->FontSize(),
@@ -564,7 +568,7 @@ PdfError PdfPainter::DrawText( long lX, long lY, const PdfString & sText, long l
 
     m_pCanvas->Append( m_szBuffer );
 
-    if( sText.IsHex() )
+    if( !sText.IsHex() )
     {
         m_pCanvas->Append( pBuffer, lLen );
         free( pBuffer );

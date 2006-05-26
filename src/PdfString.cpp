@@ -20,7 +20,7 @@
 
 #include "PdfString.h"
 
-#include "PdfAlgorithm.h"
+#include "PdfFilter.h"
 #include "PdfOutputDevice.h"
 
 namespace PoDoFo {
@@ -35,15 +35,17 @@ PdfString::PdfString()
 PdfString::PdfString( const char* pszString )
     : m_pszData( NULL ), m_lLen( 0 ), m_bHex( false )
 {
-    init( pszString );
+    if( pszString )
+        Init( pszString, strlen( pszString ) );
 }
 
-PdfString::PdfString( const char* pszString, bool bHex )
+PdfString::PdfString( const char* pszString, long lLen, bool bHex )
     : m_pszData( NULL ), m_lLen( 0 ), m_bHex( bHex )
 {
-    init( pszString );
+    Init( pszString, lLen );
 }
 
+#if 0
 PdfString::PdfString( const char* pszData, long lLen, bool bHex, long lPadding, bool bHexEncode )
     : m_pszData( NULL ), m_lLen( 0 ), m_bHex( bHex )
 {
@@ -73,7 +75,7 @@ PdfString::PdfString( const char* pszData, long lLen, bool bHex, long lPadding, 
         if( m_lLen < lPadding )
             m_lLen = lPadding + 1;
 
-        if( !allocate() )
+        if( !Allocate() )
             return;
 
         memcpy( m_pszData, pHex, lHex );
@@ -85,6 +87,7 @@ PdfString::PdfString( const char* pszData, long lLen, bool bHex, long lPadding, 
         m_pszData[m_lLen-1] = '\0';
     }
 }
+#endif // 0
 
 PdfString::PdfString( const PdfString & rhs )
     : m_pszData( NULL ), m_lLen( 0 ), m_bHex( false )
@@ -95,6 +98,35 @@ PdfString::PdfString( const PdfString & rhs )
 PdfString::~PdfString()
 {
     free( m_pszData );
+}
+
+PdfError PdfString::SetHexData( const char* pszHex, long lLen )
+{
+    PdfError eCode;
+
+    if( !pszHex ) 
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    if( m_pszData )
+    {
+        free( m_pszData );
+        m_pszData = NULL;
+    }
+
+    if( lLen == -1 )
+        lLen = strlen( pszHex );
+
+    m_lLen    = lLen + 1;
+    m_bHex    = true;
+    
+    if( Allocate() )
+        memcpy( m_pszData, pszHex, lLen );
+
+    m_pszData[m_lLen-1] = '\0';
+
+    return eCode;
 }
 
 PdfError PdfString::Write ( PdfOutputDevice* pDevice )
@@ -114,13 +146,13 @@ const PdfString & PdfString::operator=( const PdfString & rhs )
     this->m_lLen    = rhs.m_lLen;
     this->m_bHex    = rhs.m_bHex;
     
-    if( allocate() )
+    if( Allocate() )
         memcpy( m_pszData, rhs.m_pszData, m_lLen );
 
     return *this;
 }
 
-bool PdfString::allocate()
+bool PdfString::Allocate()
 {
     m_pszData = (char*)malloc( sizeof(char) * m_lLen );
 
@@ -134,22 +166,48 @@ bool PdfString::allocate()
     return true;
 }
 
-void PdfString::init( const char* pszString ) 
+void PdfString::Init( const char* pszString, long lLen )
 {
-    long len;
+    PdfError   eCode;
+    PdfFilter* pFilter;
 
     // TODO: escape characters inside of strings!
-    
+    if( m_pszData )
+    {
+        free( m_pszData );
+        m_pszData = NULL;
+    }
+
     if( pszString ) 
     {
-        len    = strlen( pszString );
-        m_lLen = len + 1;
+        if( m_bHex ) 
+        {
+            pFilter = PdfFilterFactory::Create( ePdfFilter_FlateDecode );
+            if( pFilter ) 
+            {
+                eCode = pFilter->Encode( pszString, lLen, &m_pszData, &m_lLen );
+                delete pFilter;
+            }
+            else
+            {
+                eCode = ePdfError_UnsupportedFilter;
+            }
 
-        if( !allocate() )
-            return;
-
-        strncpy( m_pszData, pszString, len );
-        m_pszData[m_lLen-1] = '\0';
+            if( eCode.IsError() )
+            {
+                eCode.PrintErrorMsg();
+                return;
+            }
+        }
+        else
+        {
+            m_lLen = lLen + 1;
+            if( !Allocate() )
+                return;
+            
+            strncpy( m_pszData, pszString, lLen );
+            m_pszData[m_lLen-1] = '\0';
+        }
     }
 }
 

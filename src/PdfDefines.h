@@ -239,6 +239,7 @@ static const char s_cDelimiters[] = {
 
 // macros
 #define PDF_MAX(x,y) (x>y?x:y)
+#define PDF_MIN(x,y) (x<y?x:y)
 
 #define SAFE_OP_ADV( x, msg ) eCode = x;\
                               if( eCode.IsError() ) {\
