@@ -140,6 +140,49 @@ EPdfFilter PdfHexFilter::type() const
     return ePdfFilter_ASCIIHexDecode;
 }
 
+/** The Ascii85 filter.
+ */
+class PdfAscii85Filter : public PdfFilter {
+ public:
+    /** Encodes a buffer using a filter. The buffer will malloc'ed and
+     *  has to be free'd by the caller.
+     *  
+     *  \param pInBuffer input buffer
+     *  \param lInLen    length of the input buffer
+     *  \param ppOutBuffer pointer to the buffer of the encoded data
+     *  \param plOutLen pointer to the length of the output buffer
+     *
+     *  \returns ErrOk on success.
+     */
+    virtual PdfError Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen );
+
+    /** Decodes a buffer using a filter. The buffer will malloc'ed and
+     *  has to be free'd by the caller.
+     *  
+     *  \param pInBuffer input buffer
+     *  \param lInLen    length of the input buffer
+     *  \param ppOutBuffer pointer to the buffer of the decoded data
+     *  \param plOutLen pointer to the length of the output buffer
+     *
+     *  \returns ErrOk on success.
+     */
+    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen );
+
+    /** Type of this filter.
+     *  \returs the type of this filter
+     */
+    inline virtual EPdfFilter type() const;
+
+ private:
+    PdfError WidePut( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes );
+    static unsigned long sPowers85[];
+};
+
+EPdfFilter PdfAscii85Filter::type() const
+{
+    return ePdfFilter_ASCII85Decode;
+}
+
 /** The flate filter.
  */
 class PdfFlateFilter : public PdfFilter {

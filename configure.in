@@ -14,5 +14,5 @@ CXXFLAGS="-pg -O2 -g3 -Wall"
 AC_PROG_CXX
 AC_HAVE_HEADERS(string.h stdio.h)
 
-AC_OUTPUT( [Makefile src/Makefile test/Makefile test/AlgorithmTest/Makefile test/ObjectParserTest/Makefile test/ParserTest/Makefile test/VariantTest/Makefile test/CreationTest/Makefile tools/Makefile tools/podofoimgextract/Makefile tools/podofouncompress/Makefile tools/podofotxt2pdf/Makefile ] )
+AC_OUTPUT( [Makefile src/Makefile test/Makefile test/FilterTest/Makefile test/ObjectParserTest/Makefile test/ParserTest/Makefile test/VariantTest/Makefile test/CreationTest/Makefile tools/Makefile tools/podofoimgextract/Makefile tools/podofouncompress/Makefile tools/podofotxt2pdf/Makefile ] )
 

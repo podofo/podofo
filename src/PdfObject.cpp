@@ -20,7 +20,6 @@
 
 #include "PdfObject.h"
 
-#include "PdfAlgorithm.h"
 #include "PdfOutputDevice.h"
 #include "PdfStream.h"
 #include "PdfVariant.h"

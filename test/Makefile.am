@@ -1,5 +1,5 @@
 
-SUBDIRS = ObjectParserTest ParserTest VariantTest CreationTest
+SUBDIRS = FilterTest ObjectParserTest ParserTest VariantTest CreationTest
 
 EXTRA_DIST = runTests.sh
 
