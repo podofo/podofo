@@ -174,7 +174,9 @@ class PdfAscii85Filter : public PdfFilter {
     inline virtual EPdfFilter type() const;
 
  private:
+    PdfError Encode ( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes );
     PdfError WidePut( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes );
+
     static unsigned long sPowers85[];
 };
 

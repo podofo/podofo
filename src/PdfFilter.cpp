@@ -50,6 +50,9 @@ PdfFilter* PdfFilterFactory::Create( const EPdfFilter eFilter )
             break;
 
         case ePdfFilter_RunLengthDecode:
+            pFilter = new PdfRLEFilter();
+            break;
+
         case ePdfFilter_CCITTFaxDecode:
         case ePdfFilter_JBIG2Decode:
         case ePdfFilter_DCTDecode:
@@ -162,16 +165,13 @@ PdfError PdfAscii85Filter::Encode( const char* pInBuffer, long lInLen, char** pp
     int           count = 0;
     unsigned long tuple = 0;
     int           pos   = 0;
-    int           i;
-    char          buf[5];
-    char*         start;
 
     if( !plOutLen || !pInBuffer || !ppOutBuffer )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    *plOutLen = (int)(lInLen/4) * 5;
+    *plOutLen = (int)(lInLen/4) * 6;
     *ppOutBuffer = (char*)malloc( *plOutLen * sizeof(char) );
    
     if( !*ppOutBuffer )
@@ -197,27 +197,9 @@ PdfError PdfAscii85Filter::Encode( const char* pInBuffer, long lInLen, char** pp
 		} 
                 else
                 {
-                    start = buf;
-                    i = 5;
-
-                    do 
-                    {
-                        *start++ = tuple % 85;
-                        tuple /= 85;
-                    } 
-                    while (--i > 0);
-
-                    i = count;
-                    do 
-                    {
-                        if( pos >= *plOutLen )
-                        {
-                            RAISE_ERROR( ePdfError_OutOfMemory );
-                        }
-                        (*ppOutBuffer)[pos++] = (*--start + '!');
-                    } 
-                    while (i-- > 0);
+                    SAFE_OP( this->Encode( *ppOutBuffer, &pos, *plOutLen, tuple, count ) ); 
                 }
+
 		tuple = 0;
 		count = 0;
 		break;
@@ -226,7 +208,40 @@ PdfError PdfAscii85Filter::Encode( const char* pInBuffer, long lInLen, char** pp
         ++pInBuffer;
     }
 
+    if (count > 0)
+    {
+        SAFE_OP( this->Encode( *ppOutBuffer, &pos, *plOutLen, tuple, count ) );
+    }
+
     *plOutLen = pos;
+    return eCode;
+}
+
+PdfError PdfAscii85Filter::Encode( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int count ) 
+{
+    PdfError eCode;
+    int      i      = 5;
+    char     buf[5];
+    char*    start  = buf;;
+
+    do 
+    {
+        *start++ = tuple % 85;
+        tuple /= 85;
+    } 
+    while (--i > 0);
+    
+    i = count;
+    do 
+    {
+        if( *bufferPos >= lBufferLen )
+        {
+            RAISE_ERROR( ePdfError_OutOfMemory );
+        }
+        pBuffer[(*bufferPos)++] = (*--start + '!');
+    } 
+    while (i-- > 0);
+    
     return eCode;
 }
 
@@ -252,7 +267,6 @@ PdfError PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** pp
 
     while( lInLen ) 
     {
-        printf("Reading %c %x\n", *pInBuffer, *pInBuffer );
         switch ( *pInBuffer ) 
         {
             default:
@@ -315,7 +329,6 @@ PdfError PdfAscii85Filter::WidePut( char* pBuffer, int* bufferPos, long lBufferL
         RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
-    printf("bufferPos=%i bytes=%i\n", *bufferPos, bytes );
     switch (bytes) {
 	case 4:
             pBuffer[ (*bufferPos)++ ] = tuple >> 24;
@@ -336,7 +349,6 @@ PdfError PdfAscii85Filter::WidePut( char* pBuffer, int* bufferPos, long lBufferL
             pBuffer[ (*bufferPos)++ ] = tuple >> 24;
             break;
     }
-    printf("bufferPos=%i\n", *bufferPos );
 
     return eCode;
 }
