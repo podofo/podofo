@@ -1,9 +1,9 @@
 
 all:
 	aclocal
-	libtoolize --force
-	automake
 	autoconf
+	libtoolize --force
+	automake --add-missing
 
 	@echo "Please run ./configure now"
 

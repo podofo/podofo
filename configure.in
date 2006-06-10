@@ -6,8 +6,6 @@ AC_INIT(podofo, 0.1, domseichter@web.de )
 AM_INIT_AUTOMAKE([ -Wall -Werror ]) dnl
 AC_PROG_LIBTOOL
 
-value=truea
-
 dnl Enable profiling, optimization level 2 and full debugging support
 CXXFLAGS="-pg -O2 -g3 -Wall"
 

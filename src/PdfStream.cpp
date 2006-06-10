@@ -281,8 +281,7 @@ PdfError PdfStream::FlateDecode()
         return eCode; // ePdfError_ErrOk
 
     // add another compression filter to this stream
-    //vFilter.Init( "FlateDecode", ePdfDataType_Name );
-    vFilter.Init( "ASCII85Decode", ePdfDataType_Name );
+    vFilter.Init( "FlateDecode", ePdfDataType_Name );
 
     if( m_pParent->HasKey( "Filter" ) )
     {
@@ -341,8 +340,7 @@ PdfError PdfStream::FlateDecode()
     }
     else
     {
-        //m_pParent->AddKey( "Filter", PdfName("FlateDecode") );
-        m_pParent->AddKey( "Filter", PdfName("ASCII85Decode") );
+        m_pParent->AddKey( "Filter", PdfName( "FlateDecode" ) );
         SAFE_OP( FlateDecodeStreamData() );
     }
     
@@ -356,8 +354,7 @@ PdfError PdfStream::FlateDecodeStreamData()
     char*      pBuffer;
     long       lLen;
 
-//    pFilter = PdfFilterFactory::Create( ePdfFilter_FlateDecode );
-    pFilter = PdfFilterFactory::Create( ePdfFilter_ASCII85Decode );
+    pFilter = PdfFilterFactory::Create( ePdfFilter_FlateDecode );
     if( pFilter ) 
     {
         SAFE_OP( pFilter->Encode( m_szStream, m_lLength, &pBuffer, &lLen ) );

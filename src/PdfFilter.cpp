@@ -165,6 +165,7 @@ PdfError PdfAscii85Filter::Encode( const char* pInBuffer, long lInLen, char** pp
     int           count = 0;
     unsigned long tuple = 0;
     int           pos   = 0;
+    unsigned int  c;
 
     if( !plOutLen || !pInBuffer || !ppOutBuffer )
     {
@@ -179,15 +180,17 @@ PdfError PdfAscii85Filter::Encode( const char* pInBuffer, long lInLen, char** pp
         RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
+    int i = 0;
     while( lInLen ) 
     {
+        c = *pInBuffer & 0xff;
 	switch (count++) {
-            case 0: tuple |= ( ((unsigned char)*pInBuffer) << 24); break;
-            case 1: tuple |= ( ((unsigned char)*pInBuffer) << 16); break;
-            case 2: tuple |= ( ((unsigned char)*pInBuffer) <<  8); break;
+            case 0: tuple |= ( c << 24); break;
+            case 1: tuple |= ( c << 16); break;
+            case 2: tuple |= ( c <<  8); break;
             case 3:
-		tuple |= (unsigned char)*pInBuffer;
-		if (tuple == 0) 
+		tuple |= c;
+		if( 0 == tuple ) 
                 {
                     if( pos >= *plOutLen )
                     {
@@ -238,7 +241,7 @@ PdfError PdfAscii85Filter::Encode( char* pBuffer, int* bufferPos, long lBufferLe
         {
             RAISE_ERROR( ePdfError_OutOfMemory );
         }
-        pBuffer[(*bufferPos)++] = (*--start + '!');
+        pBuffer[(*bufferPos)++] = (unsigned char)(*--start) + '!';
     } 
     while (i-- > 0);
     
@@ -331,22 +334,22 @@ PdfError PdfAscii85Filter::WidePut( char* pBuffer, int* bufferPos, long lBufferL
 
     switch (bytes) {
 	case 4:
-            pBuffer[ (*bufferPos)++ ] = tuple >> 24;
-            pBuffer[ (*bufferPos)++ ] = tuple >> 16;
-            pBuffer[ (*bufferPos)++ ] = tuple >>  8;
-            pBuffer[ (*bufferPos)++ ] = tuple;
+            pBuffer[ (*bufferPos)++ ] = (char)(tuple >> 24);
+            pBuffer[ (*bufferPos)++ ] = (char)(tuple >> 16);
+            pBuffer[ (*bufferPos)++ ] = (char)(tuple >>  8);
+            pBuffer[ (*bufferPos)++ ] = (char)(tuple);
             break;
 	case 3:
-            pBuffer[ (*bufferPos)++ ] = tuple >> 24;
-            pBuffer[ (*bufferPos)++ ] = tuple >> 16;
-            pBuffer[ (*bufferPos)++ ] = tuple >>  8;
+            pBuffer[ (*bufferPos)++ ] = (char)(tuple >> 24);
+            pBuffer[ (*bufferPos)++ ] = (char)(tuple >> 16);
+            pBuffer[ (*bufferPos)++ ] = (char)(tuple >>  8);
             break;
 	case 2:
-            pBuffer[ (*bufferPos)++ ] = tuple >> 24;
-            pBuffer[ (*bufferPos)++ ] = tuple >> 16;
+            pBuffer[ (*bufferPos)++ ] = (char)(tuple >> 24);
+            pBuffer[ (*bufferPos)++ ] = (char)(tuple >> 16);
             break;
 	case 1:
-            pBuffer[ (*bufferPos)++ ] = tuple >> 24;
+            pBuffer[ (*bufferPos)++ ] = (char)(tuple >> 24);
             break;
     }
 
