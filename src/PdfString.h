@@ -47,11 +47,11 @@ class PdfString {
      */
     PdfString( const char* pszString );
 
-    /** Construct a new PdfString from a 0 terminated
-     *  string. 
+    /** Construct a new PdfString from a string. 
      *  The input string will be copied.
      *
      *  \param pszString the string to copy
+     *  \param lLen length of the string data to encode
      *  \param bHex if true the data will be 
      *              hex encoded and IsHex() will return true.
      */

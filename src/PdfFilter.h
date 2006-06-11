@@ -81,7 +81,7 @@ class PdfFilter {
     virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) = 0;
 
     /** Type of this filter.
-     *  \returs the type of this filter
+     *  \returns the type of this filter
      */
     virtual EPdfFilter type() const = 0;
 };
@@ -130,7 +130,7 @@ class PdfHexFilter : public PdfFilter {
     virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen );
 
     /** Type of this filter.
-     *  \returs the type of this filter
+     *  \returns the type of this filter
      */
     inline virtual EPdfFilter type() const;
 };
@@ -169,7 +169,7 @@ class PdfAscii85Filter : public PdfFilter {
     virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen );
 
     /** Type of this filter.
-     *  \returs the type of this filter
+     *  \returns the type of this filter
      */
     inline virtual EPdfFilter type() const;
 
@@ -214,7 +214,7 @@ class PdfFlateFilter : public PdfFilter {
     virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen );
 
     /** Type of this filter.
-     *  \returs the type of this filter
+     *  \returns the type of this filter
      */
     inline virtual EPdfFilter type() const;
 
@@ -255,7 +255,7 @@ class PdfRLEFilter : public PdfFilter {
     virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen );
 
     /** Type of this filter.
-     *  \returs the type of this filter
+     *  \returns the type of this filter
      */
     inline virtual EPdfFilter type() const;
 };
