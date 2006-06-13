@@ -27,6 +27,7 @@ namespace PoDoFo {
 
 int         PdfError::s_line = 0;
 const char* PdfError::s_file = NULL;
+std::string PdfError::s_info = "";
 
 PdfError::PdfError()
 {
@@ -85,6 +86,9 @@ void PdfError::PrintErrorMsg() const
     const char* pszName = PdfError::ErrorName( m_error );
 
     PdfError::LogMessage( eLogSeverity_Error, "\n\nPoDoFo encounter an error. Error: %i %s\n", m_error, pszName ? pszName : "" );
+
+    if( !s_info.empty() )
+        PdfError::LogMessage( eLogSeverity_Error, "\tInformation: %s\n", s_info.c_str() );
 
     if( pszMsg )
         PdfError::LogMessage( eLogSeverity_Error, "\tError Description: %s\n", pszMsg );
@@ -278,6 +282,11 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
 const char* PdfError::Filename()
 {
     return PdfError::s_file;
+}
+
+const char* PdfError::Information()
+{
+    return PdfError::s_info.c_str();
 }
 
 const int PdfError::Line()

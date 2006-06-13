@@ -78,6 +78,7 @@ typedef enum ELogSeverity {
 };
 
 #define RAISE_ERROR( x ) eCode.SetError( x, __FILE__, __LINE__ ); return eCode;
+#define RAISE_ERROR_INFO( x, y ) eCode.SetError( x, __FILE__, __LINE__, y ); return eCode;
 
 /** The error handling class of PoDoFo lib.
  *  Whenever a function encounters an error
@@ -156,8 +157,18 @@ class PdfError {
      *  \param line    the line of source causing the error
      *                 or 0. Typically you will use the gcc 
      *                 macro __LINE__ here.
+     *  \param pszInformation additional information on the error.
+     *         e.g. how to fix the error. This string is intended to 
+     *         be shown to the user.
      */
-    inline void SetError( const EPdfError & eCode, const char* pszFile = NULL, int line = 0 );
+    inline void SetError( const EPdfError & eCode, const char* pszFile = NULL, int line = 0, const char* pszInformation = NULL );
+
+    /** Set additional error informatiom
+     *  \param pszInformation additional information on the error.
+     *         e.g. how to fix the error. This string is intended to 
+     *         be shown to the user.
+     */
+    inline void SetErrorInformation( const char* pszInformation );
 
     /** \returns true if an error code was set 
      *           and false if the error code is ePdfError_ErrOk
@@ -191,6 +202,11 @@ class PdfError {
      */
     static const int Line();
 
+    /** \returns additional information on the error
+     *           e.g. how to fix it.
+     */
+    static const char* Information();
+
     /** Log a message to the logging system defined for PoDoFo.
      *  \param eLogSeverity the sevirity of the log message
      *  \param pszMsg       the message to be logged
@@ -202,6 +218,7 @@ class PdfError {
 
     static int         s_line;
     static const char* s_file;
+    static std::string s_info;
 };
 
 EPdfError PdfError::Error() const
@@ -209,11 +226,17 @@ EPdfError PdfError::Error() const
     return m_error;
 }
 
-void PdfError::SetError( const EPdfError & eCode, const char* pszFile, int line )
+void PdfError::SetError( const EPdfError & eCode, const char* pszFile, int line, const char* pszInformation )
 {
     m_error = eCode;
     s_file  = pszFile;
     s_line  = line;
+    s_info  = pszInformation ? pszInformation : "";
+}
+
+void PdfError::SetErrorInformation( const char* pszInformation )
+{
+    s_info  = pszInformation;
 }
 
 bool PdfError::IsError() const
