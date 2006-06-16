@@ -136,8 +136,8 @@ typedef enum EPdfFilter {
  */
 typedef enum EPdfColorSpace {
     ePdfColorSpace_DeviceGray,        /**< Gray */
-    ePdfColorSpace_DeviceRGB,         /**< RGB */
-    ePdfColorSpace_DeviceCMYK,
+    ePdfColorSpace_DeviceRGB,         /**< RGB  */
+    ePdfColorSpace_DeviceCMYK,        /**< CMYK */
 
     ePdfColorSpace_Unknown = 0xff
 };
@@ -180,11 +180,15 @@ typedef enum EPdfLineJoinStyle {
 };
 
 /**
- * Enum holding the supported page sizes by PoDoFo
+ * Enum holding the supported page sizes by PoDoFo.
+ * Can be used to construct a TSize structure with 
+ * measurements of a page object.
+ *
+ * \see PdfPage
  */
 typedef enum EPdfPageSize {
-    ePdfPageSize_A4,
-    ePdfPageSize_Letter,
+    ePdfPageSize_A4,              /**< DIN A4 */
+    ePdfPageSize_Letter,          /**< Letter */
 
     ePdfPageSize_Unknown = 0xff
 };
@@ -201,11 +205,10 @@ struct TXRefEntry {
  *
  * A simple size data structure which keeps
  * a long value for width and height.
- * 
  */
 struct TSize {
-    long lWidth;
-    long lHeight;
+    long lWidth;  /**< the width in 1/1000th mm */
+    long lHeight; /**< the height in 1/1000th mm */
 
     TSize& operator=( const TSize & rhs )
         {
@@ -262,15 +265,46 @@ static const char s_cDelimiters[] = {
 };
 
 // macros
+/**
+ * \def PDF_MAX(x,y)
+ * \returns the maximum of x and y
+ */
 #define PDF_MAX(x,y) (x>y?x:y)
+
+/**
+ * \def PDF_MIN(x,y)
+ * \returns the minimum of x and y
+ */
 #define PDF_MIN(x,y) (x<y?x:y)
 
+/**
+ * \def SAFE_OP_ADV( x, msg ) 
+ *
+ * Execute the function x and assign the returned PdfError
+ * to a variable named eCode ( The variable has to exist 
+ * already!). If eCode.IsError() returns true, msg (which 
+ * has to be a c-string) is set as additional information 
+ * of the error object and the function returns the eCode
+ * (the function using this macro has to have a return type
+ * of PdfError).
+ *
+ */
 #define SAFE_OP_ADV( x, msg ) eCode = x;\
                               if( eCode.IsError() ) {\
-                                fprintf( stderr, "Error: %s\n", msg );\
+                                eCode.SetInformation( msg );\
                                 return eCode;\
                                }
 
+/**
+ * \def SAFE_OP( x ) 
+ *
+ * Execute the function x and assign the returned PdfError
+ * to a variable named eCode ( The variable has to exist 
+ * already!). If eCode.IsError() is true, the function returns 
+ * the eCode (the function using this macro has to have a return 
+ * type of PdfError).
+ *
+ */
 #define SAFE_OP( x ) eCode = x;\
                      if( eCode.IsError() ) {\
                        return eCode;\
