@@ -21,10 +21,10 @@
 #ifndef _PDF_DEFINES_H_
 #define _PDF_DEFINES_H_
 
-/** This file should be included as first file in every header
- *  of PoDoFo lib. It includes all standard files, defines
- *  all error codes, some useful macros, some datatypes and 
- *  all important enumeration types.
+/** \file PdfDefines.h
+ *        This file should be included as first file in every header
+ *        of PoDoFo lib. It includes all standard files, defines some useful macros, some datatypes and 
+ *        all important enumeration types.
  */ 
 
 // Include common system files
@@ -35,107 +35,117 @@
 #include <string>
 #include <vector>
 
-// Debug define: enable if needed
+/** \def _DEBUG
+ *  Debug define. Enable it, if you need
+ *  more debuf output to the commandline from PoDoFo
+ */
 // #define _DEBUG
+
+/** \def CONVERSION_CONSTANT
+ *  Conversation constant to convert 1/1000th mm to 1/72 inch
+ *  Internal use only.
+ */
+#define CONVERSION_CONSTANT 0.002834645669291339
 
 // Error Handling Defines
 #include "PdfError.h"
 
-/*
-//#define ERRCODE        int
-#define ErrOk          0
-
-#define ERROR_PDF_FILE_NOT_FOUND        -41
-#define ERROR_PDF_NO_PDF_FILE           -42
-#define ERROR_PDF_NO_XREF               -43
-#define ERROR_PDF_UNEXPECTED_EOF        -44
-#define ERROR_PDF_INVALID_HANDLE        -45
-#define ERROR_PDF_NO_OBJ                -46
-#define ERROR_PDF_INVALID_STREAM_LENGTH -47
-#define ERROR_PDF_OUT_OF_MEMORY         -48
-#define ERROR_PDF_NO_TRAILER            -49
-#define ERROR_PDF_INVALID_TRAILER_SIZE  -50
-#define ERROR_PDF_NO_NUMBER             -51
-#define ERROR_PDF_INVALID_LINEARIZATION -52
-#define ERROR_PDF_MISSING_ENDSTREAM     -53
-#define ERROR_PDF_INVALID_DATA_TYPE     -54
-#define ERROR_PDF_INVALID_XREF          -55
-#define ERROR_PDF_UNSUPPORTED_FILTER    -56
-#define ERROR_PDF_DATE_ERROR            -57
-#define ERROR_PDF_VALUE_OUT_OF_RANGE    -58
-#define ERROR_PDF_FILE_UNEXPECTED_EOF   -59
-#define ERROR_PDF_INVALID_HEX_STRING    -60
-#define ERROR_PDF_FLATE_ERROR           -61
-#define ERROR_PDF_INVALID_XREF_STREAM_W -62
-#define ERROR_PDF_INVALID_XREF_TYPE     -63
-#define ERROR_PDF_INVALID_PREDICTOR     -64
-#define ERROR_PDF_INVALID_STROKE_STYLE  -65
-*/
-
-// Conversation constant to convert 1/1000th mm to 1/72 inch
-#define CONVERSION_CONSTANT 0.002834645669291339
-
+/**
+ * \namespace PoDoFo
+ * 
+ * All classes, functions, types and enums of PoDoFo
+ * are members of these namespace.
+ *
+ * If you use PoDoFo, you might want to add the line:
+ *       using namespace PoDoFo;
+ * to your application.
+ */ 
 namespace PoDoFo {
 
 // Datatypes which are required to have a certain size when porting
+
+/**
+ * unsigned int which is defined to be 32 bits wide.
+ */
 typedef unsigned int pdf_uint32;
 
 
 // Enums
 
-/** Enum to identify diferent versions of the PDF file format
+/**
+ * Enum to identify diferent versions of the PDF file format
  */
 typedef enum EPdfVersion {
-    ePdfVersion_1_0 = 0,
-    ePdfVersion_1_1,
-    ePdfVersion_1_2,
-    ePdfVersion_1_3,
-    ePdfVersion_1_4,
-    ePdfVersion_1_5,
-    ePdfVersion_1_6,
+    ePdfVersion_1_0 = 0,       /**< PDF 1.0 */
+    ePdfVersion_1_1,           /**< PDF 1.1 */
+    ePdfVersion_1_2,           /**< PDF 1.2 */  
+    ePdfVersion_1_3,           /**< PDF 1.3 */ 
+    ePdfVersion_1_4,           /**< PDF 1.4 */
+    ePdfVersion_1_5,           /**< PDF 1.5 */
+    ePdfVersion_1_6,           /**< PDF 1.6 */ 
 
-    ePdfVersion_Unknown = 0xff
+    ePdfVersion_Unknown = 0xff /**< Unknown PDF version */
 };
 
+/**
+ * Every PDF datatype that can occur in a PDF file
+ * is referenced by an own enum (e.g. Bool or String).
+ *
+ * \see PdfVariant
+ */
 typedef enum EPdfDataType {
-    ePdfDataType_Bool,
-    ePdfDataType_Number,
-    ePdfDataType_Real,
-    ePdfDataType_String,
-    ePdfDataType_HexString,
-    ePdfDataType_Name,
-    ePdfDataType_Array,
-    ePdfDataType_Dictionary,
-    ePdfDataType_Stream,
-    ePdfDataType_Null,
-    ePdfDataType_Reference,
+    ePdfDataType_Bool,                  /**< Boolean datatype: Accepts the values "true" and "false" */
+    ePdfDataType_Number,                /**< Number datatype for integer values */
+    ePdfDataType_Real,                  /**< Real datatype for floating point numbers */
+    ePdfDataType_String,                /**< String datatype in PDF file. Strings have the form (Hallo World!) in PDF files. \see PdfString */
+    ePdfDataType_HexString,             /**< HexString datatype in PDF file. Hex encoded strings have the form &lt;AF00BE&gt; in PDF files. \see PdfString */
+    ePdfDataType_Name,                  /**< Name datatype. Names are used as keys in dictionary to reference values. \see PdfName */
+    ePdfDataType_Array,                 /**< An array of other PDF data types. */
+    ePdfDataType_Dictionary,            /**< A dictionary associates keys with values. A key can have another dictionary as value. */
+    ePdfDataType_Stream,                /**< A stream can be attached to a dictionary and contain additional data. \see PdfStream */
+    ePdfDataType_Null,                  /**< The null datatype is always null. */
+    ePdfDataType_Reference,             /**< The reference datatype contains references to PDF objects in the PDF file of the form 4 0 R. \see PdfObject */
 
-    ePdfDataType_Unknown = 0xff
+    ePdfDataType_Unknown = 0xff         /**< Unknown and unsupported PDF datatype. */
 };
 
+/**
+ * Every filter that can be used to encode a stream 
+ * in a PDF file is referenced by an own enum value.
+ * Common filters are ePdfFilter_FlateDecode (i.e. Zip) or
+ * ePdfFilter_ASCIIHexDecode
+ */
 typedef enum EPdfFilter {
-    ePdfFilter_ASCIIHexDecode,
-    ePdfFilter_ASCII85Decode,
-    ePdfFilter_LZWDecode,
-    ePdfFilter_FlateDecode,
-    ePdfFilter_RunLengthDecode,
+    ePdfFilter_ASCIIHexDecode,            /**< Converts data from and to hexadecimal. Increases size of the data by a factor of 2! \see PdfHexFilter */
+    ePdfFilter_ASCII85Decode,             /**< Converts to and from Ascii85 encoding. \see PdfAscii85Filter */
+    ePdfFilter_LZWDecode,                 
+    ePdfFilter_FlateDecode,               /**< Compress data using the Flate algorithm of ZLib. This filter is recommended to be used always. \see PdfFlateFilter */
+    ePdfFilter_RunLengthDecode,           /**< Run length decode data. \see PdfRLEFilter */
     ePdfFilter_CCITTFaxDecode,
     ePdfFilter_JBIG2Decode,
     ePdfFilter_DCTDecode,
     ePdfFilter_JPXDecode,
     ePdfFilter_Crypt,
 
-    ePdfFilter_Unknown = 0xff    
+    ePdfFilter_Unknown = 0xff             /**< Unknown PDF filter */
 };
 
+/** 
+ * Enum for the three colorspaces supported
+ * by PDF.
+ */
 typedef enum EPdfColorSpace {
-    ePdfColorSpace_DeviceGray,
-    ePdfColorSpace_DeviceRGB,
+    ePdfColorSpace_DeviceGray,        /**< Gray */
+    ePdfColorSpace_DeviceRGB,         /**< RGB */
     ePdfColorSpace_DeviceCMYK,
 
     ePdfColorSpace_Unknown = 0xff
 };
 
+/**
+ * Enum for the different stroke styles that can be set
+ * when drawing to a PDF file (mostly for line drawing).
+ */
 typedef enum EPdfStrokeStyle {
     ePdfStrokeStyle_Solid,
     ePdfStrokeStyle_Dash,
@@ -147,6 +157,9 @@ typedef enum EPdfStrokeStyle {
     ePdfStrokeStyle_Unknown = 0xff
 };
 
+/**
+ * Enum for line cap styles when drawing.
+ */
 typedef enum EPdfLineCapStyle {
     ePdfLineCapStyle_Butt    = 0,
     ePdfLineCapStyle_Round   = 1,
@@ -155,6 +168,9 @@ typedef enum EPdfLineCapStyle {
     ePdfLineCapStyle_Unknown = 0xff
 };
 
+/**
+ * Enum for line join styles when drawing.
+ */
 typedef enum EPdfLineJoinStyle {
     ePdfLineJoinStyle_Miter   = 0,
     ePdfLineJoinStyle_Round   = 1,
@@ -163,8 +179,9 @@ typedef enum EPdfLineJoinStyle {
     ePdfLineJoinStyle_Unknown = 0xff
 };
 
-// TODO: Define all major page sizes
-//       and add them also to PdfPage::CreateStadardPageSize
+/**
+ * Enum holding the supported page sizes by PoDoFo
+ */
 typedef enum EPdfPageSize {
     ePdfPageSize_A4,
     ePdfPageSize_Letter,
@@ -179,6 +196,13 @@ struct TXRefEntry {
     char cUsed;
 };
 
+/**
+ * \struct TSize
+ *
+ * A simple size data structure which keeps
+ * a long value for width and height.
+ * 
+ */
 struct TSize {
     long lWidth;
     long lHeight;

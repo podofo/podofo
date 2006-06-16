@@ -27,6 +27,17 @@ namespace PoDoFo {
 
 class PdfObject;
 
+/** A STL vector of PdfObjects. I.e. a list of PdfObject classes.
+ *  The PdfParser will read the PdfFile into memory and create 
+ *  a PdfVecObjects of all dictionaries found in the PDF file.
+ * 
+ *  The PdfWriter class contrary creates a PdfVecObjects internally
+ *  and writes it to a PDF file later with an appropriate  table of 
+ *  contents.
+ *
+ *  These class contains also advanced funtions for searching of PdfObject's
+ *  in a PdfVecObject. 
+ */
 class PdfVecObjects : public std::vector<PdfObject*> {
  public:
 

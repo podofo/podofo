@@ -1,0 +1,8 @@
+
+PoDoFo 0.2
+       - Complete API Documentation (enum's and typedefs!)
+       - Some more drawing routines (tiles, save and restore?)
+       - Create fonts from freetype handle
+       - PdfParser should return more information (i.e. vector of all pages
+       and a reference to the PageTree)
+       - Introduce PdfReference Object

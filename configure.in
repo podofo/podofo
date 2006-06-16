@@ -2,7 +2,7 @@ dnl                                                  dnl
 dnl Written by Dominik Seichter <domseichter@web.de> dnl
 dnl                                                  dnl
 
-AC_INIT(podofo, 0.1, domseichter@web.de )
+AC_INIT(podofo, 0.2, domseichter@web.de )
 AM_INIT_AUTOMAKE([ -Wall -Werror ]) dnl
 AC_PROG_LIBTOOL
 
