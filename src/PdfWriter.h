@@ -115,11 +115,10 @@ class PdfWriter {
      *
      *  Internal objects canot be removed.
      *
-     *  \param lObj the object number of the object
-     *  \param lGen the generation number of the object
+     *  \param ref a reference to the object to remove
      *  \returns The removed object.
      */
-    PdfObject* RemoveObject( long lObj, long lGen );
+    PdfObject* RemoveObject( const PdfReference & ref );
 
     /** Create a PdfObject of type T which must be a subclasss of PdfObject
      *  and it does not need a parameter for pszType.

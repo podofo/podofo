@@ -34,11 +34,10 @@ PdfAnnotation::PdfAnnotation( unsigned int nObjectNo, unsigned int nGenerationNo
     m_eAnnotation = ePdfAnnotation_Unknown;
 }
 
-PdfError PdfAnnotation::AddReferenceToKey( PdfObject* pObject, const PdfName & keyName, const char* pszReference )
+PdfError PdfAnnotation::AddReferenceToKey( PdfObject* pObject, const PdfName & keyName, const PdfReference & rRef )
 {
     PdfError     eCode;
     PdfVariant   var;
-    PdfVariant   ref;
     TVariantList list;
 
     if( pObject->HasKey( keyName ) )
@@ -52,9 +51,10 @@ PdfError PdfAnnotation::AddReferenceToKey( PdfObject* pObject, const PdfName & k
         list = var.GetArray();
     }
 
-    SAFE_OP( ref.Init( pszReference, ePdfDataType_Reference ) );
+    var.SetDataType( ePdfDataType_Reference );
+    var.SetReference( rRef );
+    list.push_back( var );
 
-    list.push_back( ref );
     var.SetDataType( ePdfDataType_Array );
     SAFE_OP( var.SetArray( list ) );
 
@@ -92,7 +92,7 @@ PdfError PdfAnnotation::Init( PdfObject* pObject, EPdfAnnotation eAnnot, PdfRect
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    SAFE_OP( this->AddReferenceToKey( pObject, "Annots", this->Reference().c_str() ) );
+    SAFE_OP( this->AddReferenceToKey( pObject, "Annots", this->Reference() ) );
     
     rRect.ToVariant( rect );
     date.ToString( sDate );
@@ -139,27 +139,20 @@ void PdfAnnotation::SetContents( const PdfString & sContents )
 
 PdfError PdfAnnotation::SetDestination( const PdfPage* pPage )
 {
-    PdfVariant   tmp;
-    
-    tmp.SetDataType( ePdfDataType_Reference );
-    tmp.SetReference( pPage->ObjectNumber(), pPage->GenerationNumber() );
-
-    return this->SetDestination( tmp );
+    return this->SetDestination( pPage->Reference() );
 }
 
-PdfError PdfAnnotation::SetDestination( const PdfVariant & rReference )
+PdfError PdfAnnotation::SetDestination( const PdfReference & rReference )
 {
     PdfError     eCode;
     PdfVariant   var;
     PdfVariant   tmp;
     TVariantList list;
 
-    if( rReference.GetDataType() != ePdfDataType_Reference )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    tmp.SetDataType( ePdfDataType_Reference );
+    tmp.SetReference( rReference );
+    list.push_back( tmp );
 
-    list.push_back( rReference );
     tmp.SetDataType( ePdfDataType_Name );
     tmp.SetName( "Fit" );
     list.push_back( tmp );

@@ -2,4 +2,5 @@
 Version 0.2
 	Improved Documentation
 	Added SetInformation for additional error information to PdfError
+	Fixed the underline color of text
 	

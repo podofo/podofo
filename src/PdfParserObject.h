@@ -98,6 +98,7 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
 
     PdfError ParseValue( char** szBuffer, std::string & sKey, std::string & sValue  );
     PdfError GetDataType( char c, int* counter, EPdfDataType* eDataType, bool* bType );
+    PdfError ReadObjectNumber();
 
  private:
     bool m_bStream;

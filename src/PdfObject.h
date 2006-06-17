@@ -22,6 +22,7 @@
 #define _PDF_OBJECT_H_
 
 #include "PdfDefines.h"
+#include "PdfReference.h"
 #include "PdfVariant.h"
 
 namespace PoDoFo {
@@ -142,6 +143,13 @@ class PdfObject {
      *  \returns ErrOk on sucess
      */
     PdfError AddKey( const PdfName & identifier, const PdfName & rValue );
+
+    /** Add a key to the dictionary whose value is a PdfReference
+     *  \param identifier the key is identified by this name in the dictionary
+     *  \param rValue the data of this key. 
+     *  \returns ErrOk on sucess
+     */
+    PdfError AddKey( const PdfName & identifier, const PdfReference & rValue );
 
     /** Add a key to the dictionary. This is the fastest way to add a key
      *  as all other functions will have to parse the values given to them first.
@@ -281,11 +289,9 @@ class PdfObject {
     PdfError GetObjectLength( unsigned long* pulLength );
 
     /** Get a indirect reference to this object
-     *  e.g. "1 0 R"
-     *  \returns a string containing the indirect reference to
-     *           this object
+     *  \returns a PdfReference pointing to this object.
      */
-    const std::string Reference() const;
+    inline const PdfReference & Reference() const;
 
     /** Get a handle to a PDF stream object
      *  If the PDF object does not have a stream,
@@ -334,7 +340,7 @@ class PdfObject {
     inline bool operator<( const PdfObject & rhs );
 
     /** Comperasion operator.
-     *  Compares two PDF object by their object and generation number
+     *  Compares two PDF object only based on their object and generation number
      */
     inline bool operator==( const PdfObject & rhs );
 
@@ -375,8 +381,7 @@ class PdfObject {
     void Clear();
 
  protected:
-    long         m_nObjectno;
-    long         m_nGenerationno;
+    PdfReference m_reference;
     bool         m_bDirect;
     bool         m_bEmptyEntry;
 
@@ -424,7 +429,7 @@ bool PdfObject::IsEmptyEntry() const
 // -----------------------------------------------------
 void PdfObject::SetObjectNumber( unsigned int nObjNo )
 {
-    m_nObjectno = nObjNo;
+    m_reference.SetObjectNumber( nObjNo );
 }
 
 // -----------------------------------------------------
@@ -448,7 +453,7 @@ const TObjKeyMap & PdfObject::GetObjectKeys() const
 // -----------------------------------------------------
 unsigned int PdfObject::ObjectNumber() const
 { 
-    return m_nObjectno; 
+    return m_reference.ObjectNumber(); 
 }
 
 // -----------------------------------------------------
@@ -456,7 +461,15 @@ unsigned int PdfObject::ObjectNumber() const
 // -----------------------------------------------------
 unsigned int PdfObject::GenerationNumber() const 
 { 
-    return m_nGenerationno; 
+    return m_reference.GenerationNumber(); 
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfReference & PdfObject::Reference() const
+{
+    return m_reference;
 }
 
 // -----------------------------------------------------
@@ -472,10 +485,10 @@ bool PdfObject::HasSingleValue() const
 // -----------------------------------------------------
 bool PdfObject::operator<( const PdfObject & rhs )
 {
-    if( m_nObjectno == rhs.m_nObjectno )
-        return m_nGenerationno < rhs.m_nGenerationno;
+    if( ObjectNumber() == rhs.ObjectNumber() )
+        return GenerationNumber() < rhs.GenerationNumber();
     else
-        return m_nObjectno < rhs.m_nObjectno;
+        return ObjectNumber() < rhs.ObjectNumber();
 }
 
 // -----------------------------------------------------
@@ -483,7 +496,7 @@ bool PdfObject::operator<( const PdfObject & rhs )
 // -----------------------------------------------------
 bool PdfObject::operator==( const PdfObject & rhs )
 {
-    return (m_nObjectno == rhs.m_nObjectno && m_nGenerationno < rhs.m_nGenerationno);
+    return (m_reference == rhs.m_reference);
 }
 
 // -----------------------------------------------------

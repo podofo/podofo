@@ -58,6 +58,26 @@ void PdfParserObject::Init()
     m_lStreamOffset = 0;
 }
 
+PdfError PdfParserObject::ReadObjectNumber()
+{
+    PdfError  eCode;
+
+    long      number;
+
+    SAFE_OP( GetNextNumberFromFile( &number ) );
+    m_reference.SetObjectNumber( number );
+    SAFE_OP( GetNextNumberFromFile( &number ) );
+    m_reference.SetGenerationNumber( number );
+    
+    SAFE_OP( GetNextStringFromFile( ) );
+    if( strncmp( m_szBuffer, "obj", 3 ) != 0 )
+    {
+        RAISE_ERROR( ePdfError_NoObject );
+    }
+    
+    return eCode;
+}
+
 PdfError PdfParserObject::ParseFile(bool bIsTrailer )
 {
     PdfError     eCode;
@@ -66,13 +86,12 @@ PdfError PdfParserObject::ParseFile(bool bIsTrailer )
     int          c;
     int          counter         = 0;
     int          nObjCount       = 0;
-    bool         bNewType;
     char*        szData          = m_szBuffer;
     long         lDataLen        = this->GetBufferSize();
     bool         bOwnBuffer      = false;
     bool         bStringMode     = false;
     bool         bHexStringMode  = false;
-    bool         bIgnoreNextChar = false;
+    bool         bIgnoreNextChar = false;    
     EPdfDataType eDataType       = ePdfDataType_Unknown;
 
     if( !m_hFile )
@@ -82,14 +101,7 @@ PdfError PdfParserObject::ParseFile(bool bIsTrailer )
 
     if( !bIsTrailer )
     {
-        SAFE_OP( GetNextNumberFromFile( &m_nObjectno ) );
-        SAFE_OP( GetNextNumberFromFile( &m_nGenerationno ) );
-
-        SAFE_OP( GetNextStringFromFile( ) );
-        if( strncmp( m_szBuffer, "obj", 3 ) != 0 )
-        {
-            RAISE_ERROR( ePdfError_NoObject );
-        }
+        SAFE_OP( ReadObjectNumber() );
     }
 
     lPosition = ftell( m_hFile );
@@ -450,11 +462,12 @@ PdfError PdfParserObject::ParseValue( char** szBuffer, string & sKey, string & s
 
 PdfError PdfParserObject::ParseStream( PdfParser* pParser )
 {
-    PdfError   eCode;
-    long       lLen  = -1;
-    char*      szBuf;
-    int        c;
-    PdfVariant variant;
+    PdfError     eCode;
+    long         lLen  = -1;
+    char*        szBuf;
+    int          c;
+    PdfVariant   variant;
+    PdfReference ref;
 
     if( !m_hFile || !pParser )
     {
@@ -492,13 +505,10 @@ PdfError PdfParserObject::ParseStream( PdfParser* pParser )
     }
     else if( variant.GetDataType() == ePdfDataType_Reference )
     {
-        long lObject, lGeneration;
         PdfObject* pObj;
 
-        SAFE_OP( variant.GetReference( &lObject, &lGeneration ) );
-        printf("Reading Length from %i %i\n", lObject, lGeneration );
-
-        pObj = pParser->GetObjects().GetObject( lObject, lGeneration );
+        ref  = variant.GetReference();
+        pObj = pParser->GetObjects().GetObject( ref );
         if( !pObj )
         {
             RAISE_ERROR( ePdfError_InvalidHandle );

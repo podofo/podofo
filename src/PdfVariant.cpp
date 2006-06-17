@@ -240,7 +240,7 @@ PdfError PdfVariant::Init( const TVariantList & tList )
 
     m_eDataType = ePdfDataType_Array;
     m_vecArray = tList;
-
+    
     return ePdfError_ErrOk;
 }
 
@@ -250,6 +250,7 @@ PdfError PdfVariant::GetDataType( const char* pszData, long nLen, EPdfDataType* 
     char    c     = pszData[0];
     char*   pszStart;
     char*   pszRefStart;
+    long    lRef;
 
     if( !eDataType )
     {
@@ -306,7 +307,9 @@ PdfError PdfVariant::GetDataType( const char* pszData, long nLen, EPdfDataType* 
     {
         eCode.SetError( ePdfError_ErrOk );
 
-        m_Data.tReference.lRefObject = strtol( pszData, &pszStart, 10 );
+        lRef = strtol( pszData, &pszStart, 10 );
+        m_reference.SetObjectNumber( lRef );
+
         if( pszStart == pszData )
             eCode.SetError( ePdfError_InvalidDataType, __FILE__, __LINE__ );
 
@@ -317,7 +320,9 @@ PdfError PdfVariant::GetDataType( const char* pszData, long nLen, EPdfDataType* 
                 ++pszStart;
 
             pszRefStart = pszStart;
-            m_Data.tReference.lRefGeneration = strtol( pszRefStart, &pszStart, 10 );
+            lRef = strtol( pszRefStart, &pszStart, 10 );
+            m_reference.SetGenerationNumber( lRef );
+
             if( pszStart == pszRefStart )
                 eCode.SetError( ePdfError_InvalidDataType, __FILE__, __LINE__ );
 
@@ -335,8 +340,7 @@ PdfError PdfVariant::GetDataType( const char* pszData, long nLen, EPdfDataType* 
                 else
                 {
                     eCode.SetError( ePdfError_InvalidDataType, __FILE__, __LINE__ );
-                    m_Data.tReference.lRefGeneration = 0;
-                    m_Data.tReference.lRefObject     = 0;
+                    m_reference = PdfReference();
                 }
             }
         }
@@ -379,6 +383,7 @@ void PdfVariant::Clear()
     m_pDictionary = NULL;
     m_pName       = NULL;
     m_pString     = NULL;
+    m_reference   = PdfReference();
 
     memset( &m_Data, sizeof( UVariant ), 0 );
     
@@ -442,7 +447,7 @@ PdfError PdfVariant::ToString( std::string & rsData ) const
             out << "null";
             break;
         case ePdfDataType_Reference:
-            out << m_Data.tReference.lRefObject << " " << m_Data.tReference.lRefGeneration << " R";
+            out << m_reference.ToString();
             break;
         case ePdfDataType_Unknown:
         default:
@@ -594,22 +599,17 @@ PdfError PdfVariant::SetName( const PdfName & rsName )
     return eCode;
 }
 
-PdfError PdfVariant::GetReference( long* plObject, long* plGeneration ) const
+const PdfReference & PdfVariant::GetReference() const
 {
-    PdfError eCode;
-
     if( m_eDataType != ePdfDataType_Reference )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        return m_reference;
     }
 
-    *plObject     = m_Data.tReference.lRefObject;
-    *plGeneration = m_Data.tReference.lRefGeneration;
-
-    return eCode;
+    return m_reference;
 }
 
-PdfError PdfVariant::SetReference( long lObj, long lGen )
+PdfError PdfVariant::SetReference( const PdfReference & ref )
 {
     PdfError eCode;
 
@@ -618,8 +618,7 @@ PdfError PdfVariant::SetReference( long lObj, long lGen )
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    m_Data.tReference.lRefObject     = lObj;
-    m_Data.tReference.lRefGeneration = lGen;
+    m_reference = ref;
 
     return eCode;
 }

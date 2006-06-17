@@ -61,7 +61,8 @@ am_libpodofo_la_OBJECTS = PdfObject.lo PdfParser.lo PdfParserObject.lo \
 	PdfPage.lo PdfPainter.lo PdfFont.lo PdfFontMetrics.lo \
 	PdfImage.lo PdfStream.lo PdfVecObjects.lo PdfDate.lo \
 	PdfAnnotation.lo PdfRect.lo PdfXObject.lo PdfOutputDevice.lo \
-	PdfAction.lo PdfError.lo PdfString.lo PdfName.lo PdfFilter.lo
+	PdfAction.lo PdfError.lo PdfString.lo PdfName.lo PdfFilter.lo \
+	PdfReference.lo
 libpodofo_la_OBJECTS = $(am_libpodofo_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -189,14 +190,14 @@ include_HEADERS = podofo.h PdfDefines.h PdfObject.h PdfParser.h PdfParserObject.
 	PdfPage.h PdfPainter.h PdfFont.h PdfFontMetrics.h PdfImage.h PdfStream.h \
 	PdfVecObjects.h PdfDate.h PdfAnnotation.h PdfRect.h PdfXObject.h \
 	PdfCanvas.h PdfOutputDevice.h PdfAction.h PdfError.h PdfString.h PdfName.h \
-	PdfFilter.h
+	PdfFilter.h PdfReference.h
 
 libpodofo_la_SOURCES = PdfObject.cpp PdfParser.cpp PdfParserObject.cpp \
 	PdfParserBase.cpp PdfWriter.cpp PdfVariant.cpp PdfSimpleWriter.cpp \
 	PdfPage.cpp PdfPainter.cpp PdfFont.cpp PdfFontMetrics.cpp PdfImage.cpp PdfStream.cpp \
 	PdfVecObjects.cpp PdfDate.cpp PdfAnnotation.cpp PdfRect.cpp PdfXObject.cpp \
 	PdfOutputDevice.cpp PdfAction.cpp PdfError.cpp PdfString.cpp PdfName.cpp \
-	PdfFilter.cpp
+	PdfFilter.cpp PdfReference.cpp
 
 all: all-am
 
@@ -284,6 +285,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfParserBase.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfParserObject.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfRect.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfReference.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfSimpleWriter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfStream.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfString.Plo@am__quote@

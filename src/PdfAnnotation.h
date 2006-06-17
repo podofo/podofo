@@ -150,7 +150,7 @@ class PdfAnnotation : public PdfObject {
      *  \param rReference must be an indirect reference to an page object
      *  \returns ErrOk on success
      */
-    PdfError SetDestination( const PdfVariant & rReference );
+    PdfError SetDestination( const PdfReference & rReference );
 
     /** Set the destination for Link annotations
      *  Perform an action when clicking on this action.
@@ -172,7 +172,7 @@ class PdfAnnotation : public PdfObject {
      */
     const char* AnnotationKey( EPdfAnnotation eAnnot );
 
-    PdfError AddReferenceToKey( PdfObject* pObject, const PdfName & keyName, const char* pszReference );
+    PdfError AddReferenceToKey( PdfObject* pObject, const PdfName & keyName, const PdfReference & rRef );
 
  private:
     EPdfAnnotation m_eAnnotation;

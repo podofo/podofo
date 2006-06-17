@@ -89,8 +89,7 @@ PdfError PdfWriter::Init( PdfParser* pParser )
     PdfError   eCode;
     PdfVariant cVar;
     const PdfObject* pTrailer;
-    long       lObj; 
-    long       lGen;
+    PdfReference     ref;
 
     // clear everything - so that calling Init twice will work
     Clear();
@@ -114,8 +113,13 @@ PdfError PdfWriter::Init( PdfParser* pParser )
         PdfObject( *pTrailer ).Write( &dev );
 
         SAFE_OP( pTrailer->GetKeyValueVariant( "Root", cVar ) );
-        SAFE_OP( cVar.GetReference( &lObj, &lGen ) );
-        m_pCatalog = m_vecObjects.GetObject( lObj, lGen );
+        if( cVar.GetDataType() != ePdfDataType_Reference )
+        {
+            RAISE_ERROR( ePdfError_InvalidDataType );
+        }
+
+        ref = cVar.GetReference();
+        m_pCatalog = m_vecObjects.GetObject( ref );
         if( !m_pCatalog )
         {
             fprintf( stderr, "Error: No catalog dictionary found in the trailer.\n" );
@@ -248,8 +252,6 @@ PdfError PdfWriter::WriteXRefEntries( PdfOutputDevice* pDevice, const TVecOffset
 {
     PdfError          eCode;
     TCIVecOffsets     itOffsets = vecOffsets.begin();
-    long              lLen;
-    unsigned long     ulTmp;
 
     if( !pDevice )
     {
@@ -269,7 +271,6 @@ PdfError PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
 {
     PdfError          eCode;
     long              lXRef;
-    PdfObject*        pTrailer  = NULL;
     PdfVariant        var;
     std::string       str;
     unsigned int      nSize     = 0;
@@ -342,8 +343,8 @@ PdfError PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
             RAISE_ERROR( ePdfError_InvalidHandle );
         }
 
-        SAFE_OP( pDevice->Print( "/Info %s\n", m_pInfo->Reference().c_str() ) );
-        SAFE_OP( pDevice->Print( "/Root %s\n", m_pCatalog->Reference().c_str() ) );
+        SAFE_OP( pDevice->Print( "/Info %s\n", m_pInfo->Reference().ToString().c_str() ) );
+        SAFE_OP( pDevice->Print( "/Root %s\n", m_pCatalog->Reference().ToString().c_str() ) );
     }
 
     SAFE_OP( pDevice->Print( ">>\nstartxref\n%li\n%%%%EOF\n", lXRef ) );
@@ -363,9 +364,9 @@ PdfObject* PdfWriter::CreateObject( const char* pszType, bool bInternal )
     return pObj;
 }
 
-PdfObject* PdfWriter::RemoveObject( long lObj, long lGen )
+PdfObject* PdfWriter::RemoveObject( const PdfReference & ref )
 {
-    return m_vecObjects.RemoveObject( lObj, lGen );
+    return m_vecObjects.RemoveObject( ref );
 }
 
 PdfError PdfWriter::GetByteOffset( PdfObject* pObject, unsigned long* pulOffset )

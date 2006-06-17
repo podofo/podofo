@@ -23,61 +23,89 @@
 
 #include "PdfDefines.h"
 
+/** \file PdfError.h
+ *  Error information and logging is implemented in this file.
+ */
+
 namespace PoDoFo {
 
+/** Error Code defines which are used in PdfError to describe the error.
+ *
+ *  If you add an error code to this enum, please also add it to PdfError::ErrorName
+ *  and PdfError::ErrorMessage.
+ * 
+ *  \see PdfError
+ */
 typedef enum EPdfError {
-    ePdfError_ErrOk = 0,
+    ePdfError_ErrOk = 0,                /**< The default value indicating no error. */
 
-    ePdfError_TestFailed, 
+    ePdfError_TestFailed,               /**< Used in PoDoFo tests, to indicate that a test failed for some reason. */
 
-    ePdfError_InvalidHandle,
-    ePdfError_FileNotFound,
-    ePdfError_UnexpectedEOF,
-    ePdfError_OutOfMemory,
-    ePdfError_ValueOutOfRange,
+    ePdfError_InvalidHandle,            /**< Null pointer was passed, but null pointer is not allowed. */
+    ePdfError_FileNotFound,             /**< A file was not found or cannot be opened. */
+    ePdfError_UnexpectedEOF,            /**< End of file was reached but data was expected. */
+    ePdfError_OutOfMemory,              /**< Not enough memory to complete an operation. */
+    ePdfError_ValueOutOfRange,          /**< The specified memory is out of the allowed range. */
 
-    ePdfError_NoPdfFile,
-    ePdfError_NoXRef,
-    ePdfError_NoTrailer,
-    ePdfError_NoNumber,
-    ePdfError_NoObject,
+    ePdfError_NoPdfFile,                /**< The file is no PDF file. */
+    ePdfError_NoXRef,                   /**< The PDF file has no or an invalid XRef table. */
+    ePdfError_NoTrailer,                /**< The PDF file has no or an invalid trailer. */
+    ePdfError_NoNumber,                 /**< A number was expected in the PDF file, but the read string is no number. */
+    ePdfError_NoObject,                 /**< A object was expected and non was found. */
 
-    ePdfError_InvalidTrailerSize,
-    ePdfError_InvalidLinearization,
-    ePdfError_InvalidDataType,
-    ePdfError_InvalidXRef,
-    ePdfError_InvalidXRefStream,
-    ePdfError_InvalidXRefType,
-    ePdfError_InvalidPredictor,
-    ePdfError_InvalidStrokeStyle,
-    ePdfError_InvalidHexString,
-    ePdfError_InvalidStream,
-    ePdfError_InvalidStreamLength,
-    ePdfError_InvalidKey,
+    ePdfError_InvalidTrailerSize,       /**< The trailer size is invalid. */
+    ePdfError_InvalidLinearization,     /**< The linearization directory of a web-optimized PDF file is invalid. */
+    ePdfError_InvalidDataType,          /**< The passed datatype is invalid or was not recognized */
+    ePdfError_InvalidXRef,              /**< The XRef table is invalid */
+    ePdfError_InvalidXRefStream,        /**< A XRef steam is invalid */
+    ePdfError_InvalidXRefType,          /**< The XRef type is invalid or was not found */
+    ePdfError_InvalidPredictor,         /**< Invalid or unimplemented predictor */
+    ePdfError_InvalidStrokeStyle,       /**< Invalid stroke style during drawing */
+    ePdfError_InvalidHexString,         /**< Invalid hex string */
+    ePdfError_InvalidStream,            /**< The stream is invalid */
+    ePdfError_InvalidStreamLength,      /**< The stream length is invlaid */
+    ePdfError_InvalidKey,               /**< The specified key is invalid */
 
-    ePdfError_UnsupportedFilter,
+    ePdfError_UnsupportedFilter,        /**< The requested filter is not yet implemented. */
 
-    ePdfError_MissingEndStream,
-    ePdfError_Date,
-    ePdfError_Flate,
-    ePdfError_FreeType,
-    ePdfError_SignatureError,
-
-    ePdfError_Unknown = 0xffff
+    ePdfError_MissingEndStream,         /**< The required token endstream was not found. */
+    ePdfError_Date,                     /**< Date/time error */
+    ePdfError_Flate,                    /**< Error in zlib */
+    ePdfError_FreeType,                 /**< Error in FreeType */
+    ePdfError_SignatureError,           /**< Error in signature */
+  
+    ePdfError_Unknown = 0xffff          /**< Unknown error */
 };
 
+/**
+ * Used in PdfError::LogMessage to specify the log level.
+ *
+ * \see PdfError::LogMessage
+ */
 typedef enum ELogSeverity {
-    eLogSeverity_Critical,
-    eLogSeverity_Error,
-    eLogSeverity_Warning,
-    eLogSeverity_Information,
-    eLogSeverity_Debug,
-    eLogSeverity_None,
+    eLogSeverity_Critical,            /**< Critical unexpected error */
+    eLogSeverity_Error,               /**< Error */
+    eLogSeverity_Warning,             /**< Warning */
+    eLogSeverity_Information,         /**< Information message */
+    eLogSeverity_Debug,               /**< Debug information */
+    eLogSeverity_None,                /**< No specified level */
 
-    eLogSeverity_Unknown = 0xffff
+    eLogSeverity_Unknown = 0xffff     /**< Unknown log level */
 };
 
+/** \def RAISE_ERROR( x )
+ *  
+ *  Set the value of the variable eCode (which has to exist in the current function) to x
+ *  and return the eCode.
+ */
 #define RAISE_ERROR( x ) eCode.SetError( x, __FILE__, __LINE__ ); return eCode;
+
+/** \def RAISE_ERROR_INFO( x, y )
+ *  
+ *  Set the value of the variable eCode (which has to exist in the current function) to x
+ *  and return the eCode. Additionally additional information on the error y is set. y has 
+ *  to be an c-string.
+ */
 #define RAISE_ERROR_INFO( x, y ) eCode.SetError( x, __FILE__, __LINE__, y ); return eCode;
 
 /** The error handling class of PoDoFo lib.

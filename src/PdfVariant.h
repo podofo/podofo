@@ -23,6 +23,7 @@
 
 #include "PdfDefines.h"
 #include "PdfName.h"
+#include "PdfReference.h"
 #include "PdfString.h"
 
 namespace PoDoFo {
@@ -188,18 +189,15 @@ class PdfVariant {
     const PdfObject & GetDictionary() const; 
 
     /** Get the reference values of this object.
-     *  \param plObject the object number is stored into this pointer
-     *  \param plGeneration the generation number is stored into this pointer
-     *  \returns an error if GetDataType() != ePdfDataType_Reference
+     *  \returns a PdfReference
      */
-    PdfError GetReference( long* plObject, long* plGeneration ) const;
+    const PdfReference & GetReference() const;
 
     /** Set the variants reference values
-     *  \param lObj object number
-     *  \param lGen generation number
+     *  \param ref PdfReference
      *  \returns an error if GetDataType() != ePdfDataType_Reference
      */
-    PdfError SetReference( long lObj, long lGen );
+    PdfError SetReference( const PdfReference & ref );
 
     /** Assign the values of another PdfVariant to this one.
      *  \param rhs an existing variant which is copied.
@@ -226,11 +224,6 @@ class PdfVariant {
         bool       bBoolValue;
         double     dNumber;
         long       nNumber;
-
-        struct { 
-            long lRefObject;
-            long lRefGeneration;
-        } tReference;
     } UVariant;
 
     UVariant     m_Data;
@@ -240,6 +233,10 @@ class PdfVariant {
      *  the union UVariant.
      */
     EPdfDataType m_eDataType;
+
+    /** Holds the reference value
+     */
+    PdfReference m_reference;
 
     /** Holds the values of strings
      */

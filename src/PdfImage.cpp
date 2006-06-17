@@ -47,7 +47,7 @@ PdfImageRef::PdfImageRef( const PdfImageRef & rhs )
 const PdfImageRef & PdfImageRef::operator=( const PdfImageRef & rhs )
 {
     m_Identifier  = rhs.m_Identifier;
-    m_sReference  = rhs.m_sReference;
+    m_reference   = rhs.m_reference;
     m_nWidth      = rhs.m_nWidth;
     m_nHeight     = rhs.m_nHeight;
 

@@ -37,6 +37,13 @@ PdfPainter::PdfPainter()
 {
     m_pCanvas = NULL;
     m_pFont   = NULL;
+
+    m_curColor1 = 
+        m_curColor2 = 
+        m_curColor3 = 
+        m_curColor4 = 0.0;
+
+    m_eCurColorSpace = ePdfColorSpace_DeviceRGB;
 }
 
 PdfPainter::~PdfPainter()
@@ -85,6 +92,9 @@ PdfError PdfPainter::SetGray( double g )
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%f G\n", g );
     m_pCanvas->Append( m_szBuffer );
+
+    m_curColor1      = g;
+    m_eCurColorSpace = ePdfColorSpace_DeviceGray;
 
     return eCode;
 }
@@ -145,6 +155,11 @@ PdfError PdfPainter::SetColor( double r, double g, double b )
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%f %f %f rg\n", r, g, b );
     m_pCanvas->Append( m_szBuffer );
+
+    m_curColor1      = r;
+    m_curColor2      = g;
+    m_curColor3      = b;
+    m_eCurColorSpace = ePdfColorSpace_DeviceRGB;
 
     return eCode;
 }
@@ -215,6 +230,12 @@ PdfError PdfPainter::SetColorCMYK( double c, double m, double y, double k )
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%f %f %f %f k\n", c, m, y, k );
     m_pCanvas->Append( m_szBuffer );
+
+    m_curColor1      = c;
+    m_curColor2      = m;
+    m_curColor3      = y;
+    m_curColor4      = k;
+    m_eCurColorSpace = ePdfColorSpace_DeviceCMYK;
 
     return eCode;
 }
@@ -540,12 +561,12 @@ PdfError PdfPainter::DrawText( long lX, long lY, const PdfString & sText, long l
         // so this cast is ok
         pszTab = const_cast<char*>(sText.String());
 
-    SAFE_OP( this->AddToPageResources( m_pFont->Identifier(), m_pFont->Reference().c_str(), PdfName("Font") ) );
+    SAFE_OP( this->AddToPageResources( m_pFont->Identifier(), m_pFont->Reference(), PdfName("Font") ) );
 
     if( m_pFont->IsUnderlined() )
     {
         SAFE_OP( this->Save() );
-        // TODO: set the correct underline color!!! SAFE_OP( this->SetColor( ) );
+        SAFE_OP( this->SetCurrentStrokingColor() );
         SAFE_OP( this->SetStrokeWidth( m_pFont->FontMetrics()->UnderlineThickness() ) );
         SAFE_OP( this->DrawLine( lX, 
                                  lY - m_pFont->FontMetrics()->UnderlinePosition(), 
@@ -715,11 +736,11 @@ PdfError PdfPainter::Restore()
     return eCode;
 }
 
-PdfError PdfPainter::AddToPageResources( const PdfName & rIdentifier, const char* pszRef, const PdfName & rName )
+PdfError PdfPainter::AddToPageResources( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName )
 {
     PdfError eCode;
 
-    if( !m_pPage || !pszRef || !rName.Length() || !rIdentifier.Length() )
+    if( !m_pPage || !rName.Length() || !rIdentifier.Length() )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -740,8 +761,8 @@ PdfError PdfPainter::AddToPageResources( const PdfName & rIdentifier, const char
         pResource->AddKey( rName, pKey );
     }
 
-    if( !pKey->HasKey( pszRef ) )
-        pKey->AddKey( rIdentifier, pszRef );
+    if( !pKey->HasKey( rIdentifier ) )
+        pKey->AddKey( rIdentifier, rRef );
 
     return eCode;
 }
@@ -788,6 +809,38 @@ void PdfPainter::ConvertRectToBezier( long lX, long lY, long lWidth, long lHeigh
     plPointY[0]  =
     plPointY[12] =
     plPointY[6]  = lCenterY;
+}
+
+PdfError PdfPainter::SetCurrentStrokingColor()
+{
+    PdfError eCode;
+    
+    switch( m_eCurColorSpace )
+    {
+        case ePdfColorSpace_DeviceGray:
+        {
+            SAFE_OP( this->SetStrokingGray( m_curColor1 ) );
+        }
+        break;
+        case ePdfColorSpace_DeviceRGB:
+        {
+            SAFE_OP( this->SetStrokingColor( m_curColor1, m_curColor2, m_curColor3 ) );
+        }
+        break;
+        case ePdfColorSpace_DeviceCMYK:
+        {
+            SAFE_OP( this->SetStrokingColorCMYK( m_curColor1, m_curColor2, m_curColor3, m_curColor4 ) );
+        }
+        break;
+        default:
+        {
+            eCode = ePdfError_InvalidDataType;
+            eCode.SetErrorInformation( "The color space for the current text drawing operation is invalid. Please set a correct color."  );           
+        }
+        break;
+    }
+    
+    return eCode;
 }
 
 };

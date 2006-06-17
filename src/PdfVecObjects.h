@@ -22,6 +22,7 @@
 #define _PDF_VEC_OBJECTS_H_
 
 #include "PdfDefines.h"
+#include "PdfReference.h"
 
 namespace PoDoFo {
 
@@ -44,22 +45,20 @@ class PdfVecObjects : public std::vector<PdfObject*> {
     /** Finds the object with object no lObject and generation
      *  np lGeneration in m_vecOffsets and returns a pointer to it
      *  if it is found.
-     *  \param lObject the object number of the object to be found
-     *  \param lGeneration the object number of the object to be found
+     *  \param ref the object to be found
      *  \returns the found object or NULL if no object was found.
      */
-    PdfObject* GetObject( long lObject, long lGeneration ) const;
+    PdfObject* GetObject( const PdfReference & ref ) const;
 
     /** Remove the object with the given object and generation number from the list
      *  of objects.
      *  The object is returned if it was found. Otherwise NULL is returned.
      *  The caller has to delte the object by hisself.
      *
-     *  \param lObj the object number of the object
-     *  \param lGen the generation number of the object
+     *  \param ref the object to be found
      *  \returns The removed object.
      */
-    PdfObject* RemoveObject( long lObj, long lGen );
+    PdfObject* RemoveObject( const PdfReference & ref );
 };
 
 typedef PdfVecObjects                TVecObjects;

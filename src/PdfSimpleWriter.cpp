@@ -87,7 +87,7 @@ PdfError PdfSimpleWriter::Init()
     m_pPageTree = CreateObject( "Pages", true );
     m_pPageTree->AddKey( "Kids", "[ ]" );
 
-    this->GetCatalog()->AddKey( "Pages", m_pPageTree->Reference().c_str() );
+    this->GetCatalog()->AddKey( "Pages", m_pPageTree->Reference().ToString().c_str() );
 
     cDate.ToString( sDate );
     this->GetInfo()->AddKey( "Producer", PRODUCER_NAME );
@@ -98,30 +98,35 @@ PdfError PdfSimpleWriter::Init()
 
 PdfPage* PdfSimpleWriter::CreatePage( const TSize & tSize )
 {
-    ostringstream oStream;
-    ostringstream oStreamKids;
+    ostringstream    oStream;
+    PdfVariant       var;
+    TVariantList     array;
 
-    TCIStringList it;
-    PdfPage*      pPage    = new PdfPage( tSize, this, m_nObjectCount++, 0 );
+    TCIReferenceList it;
+    PdfPage*         pPage    = new PdfPage( tSize, this, m_nObjectCount++, 0 );
 
     m_vecObjects       .push_back( pPage );
     m_vecPageReferences.push_back( pPage->Reference() );
 
     oStream << ++m_nPageTreeSize;
 
-    oStreamKids << "[ ";
+    var.SetDataType( ePdfDataType_Reference );
+
     it = m_vecPageReferences.begin();
     while( it != m_vecPageReferences.end()  )
     {
-        oStreamKids << (*it) << " ";
+        var.SetReference( *it );
+        array.push_back( var );
         ++it;
     }
-    oStreamKids << "]";
+
+    var.SetDataType( ePdfDataType_Array );
+    var.SetArray( array );
 
     m_pPageTree->AddKey( "Count", oStream.str().c_str() );
-    m_pPageTree->AddKey( "Kids",  oStreamKids.str().c_str() );
+    m_pPageTree->AddKey( "Kids",  var );
 
-    pPage->AddKey( "Parent", m_pPageTree->Reference().c_str() );
+    pPage->AddKey( "Parent", m_pPageTree->Reference() );
     if( pPage->Init() != ePdfError_ErrOk )
         return NULL;
 

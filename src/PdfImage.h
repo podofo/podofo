@@ -55,9 +55,9 @@ class PdfImageRef {
     inline void SetIdentifier( const PdfName & rIdentifier );
 
     /** Set the object reference of this object (i.e. 3 0 R)
-     *  \param rsRef reference to this object
+     *  \param rRef reference to this object
      */
-    inline void SetReference( const std::string & rsRef );
+    inline void SetReference( const PdfReference & rRef );
 
     /** Set the width in pixels
      *  \param nWidth width of the image in pixels
@@ -77,7 +77,7 @@ class PdfImageRef {
     /** Get the reference
      *  \returns a zero terminated string pointer to the reference
      */
-    inline const char*  Reference()  const;
+    inline const PdfReference & Reference()  const;
 
     /** Get the width of the object in pixels
      *  \returns width in pixels
@@ -96,7 +96,7 @@ class PdfImageRef {
 
  private:
     PdfName       m_Identifier;
-    std::string   m_sReference;
+    PdfReference  m_reference;
     unsigned int  m_nWidth;
     unsigned int  m_nHeight;
 };
@@ -106,9 +106,9 @@ void PdfImageRef::SetIdentifier( const PdfName & rIdentifier )
     m_Identifier = rIdentifier;
 }
 
-void PdfImageRef::SetReference( const std::string & rsRef )
+void PdfImageRef::SetReference( const PdfReference & rRef )
 {
-    m_sReference = rsRef;
+    m_reference = rRef;
 }
 
 void PdfImageRef::SetWidth( unsigned int nWidth )
@@ -126,9 +126,9 @@ const PdfName & PdfImageRef::Identifier() const
     return m_Identifier;
 } 
 
-const char* PdfImageRef::Reference() const
+const PdfReference & PdfImageRef::Reference() const
 {
-    return m_sReference.c_str();
+    return m_reference;
 } 
 
 unsigned int PdfImageRef::Width()  const

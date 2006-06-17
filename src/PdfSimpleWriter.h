@@ -29,15 +29,15 @@
 
 namespace PoDoFo {
 
-typedef std::vector<std::string>        TStringList;
-typedef TStringList::iterator           TIStringList;
-typedef TStringList::const_iterator     TCIStringList;
+typedef std::vector<PdfReference>          TReferenceList;
+typedef TReferenceList::iterator           TIReferenceList;
+typedef TReferenceList::const_iterator     TCIReferenceList;
 
 class PdfObject;
 class PdfPage;
 class PdfFont;
 class PdfImage;
- class PdfString;
+class PdfString;
 
 typedef std::vector<PdfFont*>           TSortedFontList;
 typedef TSortedFontList::iterator       TISortedFontList;
@@ -118,7 +118,7 @@ class PdfSimpleWriter : public PdfWriter {
     PdfObject*      m_pPageTree;
     unsigned int    m_nPageTreeSize;
 
-    TStringList     m_vecPageReferences;
+    TReferenceList  m_vecPageReferences;
     TSortedFontList m_vecFonts;
 
     void*           m_pFcConfig; // (FcConfig*)

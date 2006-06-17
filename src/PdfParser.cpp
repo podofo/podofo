@@ -149,7 +149,6 @@ void PdfParser::Clear()
 PdfError PdfParser::ReadDocumentStructure()
 {
     PdfError eCode;
-    long    lXRefSize = 0;
 
     SAFE_OP( IsLinearized() );
     
@@ -161,7 +160,6 @@ PdfError PdfParser::ReadDocumentStructure()
 
     if( m_pLinearization )
     {
-        long lTrailerPos;
         SAFE_OP_ADV( ReadXRefContents( m_nXRefOffset, true ), "Unable to skip xref dictionary." );
         // another trailer directory is to follow right after this XRef section
         SAFE_OP( GetNextStringFromFile() );
@@ -373,7 +371,6 @@ PdfError PdfParser::ReadTrailer()
     char*      pszStart       = NULL;
     int        nSearchCnt     = 0;
     const int  nMaxSearch   = 5;
-    long       lTrailerLength = 0;
     int        nEof, i;
     const int  TRAILER_LEN  = 7; // strlen( "trailer" )
     long       lXRefBuf;
@@ -412,7 +409,6 @@ PdfError PdfParser::ReadTrailer()
                 break;
             }
 
-        
         ++nSearchCnt;
     } while( !pszStart && nSearchCnt < nMaxSearch );
 
@@ -512,7 +508,6 @@ PdfError PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
     long        nFirstObject = 0;
     long        nNumObjects  = 0;
 
-    printf("Offset=%li\n", lOffset);
     if( fseek( m_hFile, lOffset, SEEK_SET ) != 0 )
     {
         RAISE_ERROR( ePdfError_NoXRef );
@@ -520,7 +515,6 @@ PdfError PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
     
     SAFE_OP( GetNextStringFromFile( ) );
 
-    printf("m_szBuffer=%s\n", m_szBuffer );
     if( strncmp( m_szBuffer, "xref", 4 ) != 0 )
     {
         if( m_ePdfVersion < ePdfVersion_1_5 )
@@ -613,7 +607,6 @@ PdfError PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects 
 PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
 {
     PdfError    eCode;
-    TXRefEntry  tXRef;
     int         count     = 0;
     long        nFirstObj = 0;
     const char* pszType   = NULL;
@@ -675,7 +668,6 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
         }
 
         vWArray.GetArray()[i].GetNumber( &(nW[i]) );
-        printf("W[%i]=%i\n", i, nW[i] );
     }
 
     // get the first object number in this crossref stream.
@@ -702,7 +694,6 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
         // TODO: fix this
         if( vWArray.GetArray().size() != 2 )
         {
-            printf("ERROR: size=%i\n",vWArray.GetArray().size() );
             RAISE_ERROR( ePdfError_NoXRef );
         }
     }
@@ -897,7 +888,7 @@ PdfError PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
     int              i       = 0;
 
     // generation number of object streams is always 0
-    pStream = dynamic_cast<PdfParserObject*>(m_vecObjects.GetObject( nObjNo, 0 ) );
+    pStream = dynamic_cast<PdfParserObject*>(m_vecObjects.GetObject( PdfReference( nObjNo, 0 ) ) );
     if( !pStream )
     {
         RAISE_ERROR( ePdfError_NoObject );

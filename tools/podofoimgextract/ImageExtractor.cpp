@@ -97,7 +97,7 @@ PdfError ImageExtractor::ExtractImage( PdfObject* pObject )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    printf("-> Writing image object %s to the file: %s\n", pObject->Reference().c_str(), m_szBuffer);
+    printf("-> Writing image object %s to the file: %s\n", pObject->Reference().ToString().c_str(), m_szBuffer);
 
     fwrite( pObject->Stream()->Get(), pObject->Stream()->Length(), sizeof(char), hFile );
     fclose( hFile );

@@ -34,11 +34,9 @@ using namespace std;
 namespace PoDoFo {
 
 PdfObject::PdfObject( unsigned int objectno, unsigned int generationno, const char* pszType )
+    : m_reference( objectno, generationno )
 {
     Init();
-
-    m_nObjectno     = objectno;
-    m_nGenerationno = generationno;
 
     if( pszType )
         this->AddKey( PdfName::KeyType, PdfName( pszType ) );
@@ -58,8 +56,6 @@ PdfObject::~PdfObject()
 
 void PdfObject::Init()
 {
-    m_nObjectno     = 0;
-    m_nGenerationno = 0;
     m_bDirect       = false;;
     m_bEmptyEntry   = false;
 
@@ -143,6 +139,15 @@ PdfError PdfObject::AddKey( const PdfName & identifier, const PdfName & rValue )
     PdfVariant cVariant;
     cVariant.SetDataType( ePdfDataType_Name );
     cVariant.SetName( rValue );
+
+    return this->AddKey( identifier, cVariant );
+}
+
+PdfError PdfObject::AddKey( const PdfName & identifier, const PdfReference & rValue )
+{
+    PdfVariant cVariant;
+    cVariant.SetDataType( ePdfDataType_Reference );
+    cVariant.SetReference( rValue );
 
     return this->AddKey( identifier, cVariant );
 }
@@ -368,7 +373,7 @@ PdfError PdfObject::Write( PdfOutputDevice* pDevice, const PdfName & keyStop )
     }
 
     if( !m_bDirect )
-        SAFE_OP( pDevice->Print( "%i %i obj\n", m_nObjectno, m_nGenerationno ) );
+        SAFE_OP( pDevice->Print( "%i %i obj\n", m_reference.ObjectNumber(), m_reference.GenerationNumber() ) );
 
     if( m_pStream )
         this->AddKey( PdfName::KeyLength, (long)m_pStream->Length() );
@@ -453,13 +458,6 @@ PdfError PdfObject::GetObjectLength( unsigned long* pulLength )
     return eCode;
 }
 
-const string PdfObject::Reference() const
-{
-    ostringstream out;
-    out << m_nObjectno << " " << m_nGenerationno << " R";
-    return out.str();
-}
-
 PdfStream* PdfObject::Stream()
 {
     if( !m_pStream )
@@ -486,8 +484,7 @@ const PdfObject & PdfObject::operator=( const PdfObject & rhs )
     Clear();
     Init();
 
-    m_nObjectno     = rhs.m_nObjectno;
-    m_nGenerationno = rhs.m_nGenerationno;
+    m_reference     = rhs.m_reference;
     m_bDirect       = rhs.m_bDirect;
     m_bEmptyEntry   = rhs.m_bEmptyEntry;
 

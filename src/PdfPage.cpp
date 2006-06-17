@@ -55,7 +55,7 @@ PdfError PdfPage::Init()
 
     m_pContents = m_pWriter->CreateObject();
 
-    this->AddKey( PdfName::KeyContents, m_pContents->Reference().c_str() );
+    this->AddKey( PdfName::KeyContents, m_pContents->Reference() );
 
     return eCode;
 }

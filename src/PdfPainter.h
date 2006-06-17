@@ -32,8 +32,10 @@ class PdfFont;
 class PdfImageRef;
 class PdfName;
 class PdfObject;
+class PdfReference;
 class PdfStream;
 class PdfString;
+
 
 /**
  * This class provides an easy to use painter object which allows you to draw on a PDF page
@@ -331,11 +333,11 @@ class PdfPainter {
      *  so that it can be used for any following drawing operations.
      *  
      *  \param rIdentifier identifier of this object, e.g. /Ft0
-     *  \param pszRef reference to the object you want to register
+     *  \param rRef reference to the object you want to register
      *  \param rName register under this key in the resource dictionary
      *  \returns ErrOk on success
      */
-    PdfError AddToPageResources( const PdfName & rIdentifier, const char* pszRef, const PdfName & rName );
+    PdfError AddToPageResources( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName );
 
     /** Coverts a rectangle to an array of points which can be used 
      *  to draw an ellipse using 4 bezier curves.
@@ -374,6 +376,16 @@ class PdfPainter {
     inline unsigned short TabWidth() const;
 
  protected:
+    /** Sets the color that was last set by the user as the current stroking color.
+     *  You should always enclose this function by Save() and Restore()
+     *
+     *  \returns ePdfError_ErrOk on success.
+     *
+     *  \see Save() \see Restore()
+     */
+    PdfError SetCurrentStrokingColor();
+
+ protected:
     /** All drawing operations work on this stream.
      *  This object may not be NULL. If it is NULL any function accessing it should
      *  return ERROR_PDF_INVALID_HANDLE
@@ -398,6 +410,14 @@ class PdfPainter {
      *  spaces before drawing text. Default is a value of 4
      */
     unsigned short m_nTabWidth;
+
+    /** The current color space for non stroking colors
+     */
+    EPdfColorSpace m_eCurColorSpace;
+
+    /** Save the current color
+     */
+    double m_curColor1, m_curColor2, m_curColor3, m_curColor4;
 };
 
 PdfFont* PdfPainter::Font() const
