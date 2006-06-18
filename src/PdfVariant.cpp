@@ -493,6 +493,23 @@ const PdfObject & PdfVariant::GetDictionary() const
     return *m_pDictionary;
 }
 
+PdfError PdfVariant::SetDictionary( const PdfObject & obj )
+{
+    PdfError eCode;
+
+    if( m_eDataType != ePdfDataType_Dictionary )
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
+    if( m_pDictionary )
+        delete m_pDictionary;
+
+    m_pDictionary = new PdfObject( obj );
+
+    return eCode;
+}
+
 PdfError PdfVariant::GetBool( bool* pBool ) const
 {
     PdfError eCode;
@@ -655,9 +672,11 @@ const PdfVariant & PdfVariant::operator=( const PdfVariant & rhs )
         ++itArray;
     }
     
-    m_pDictionary = rhs.m_pDictionary ? new PdfObject( *(rhs.m_pDictionary) ) : NULL;
-    m_pName       = rhs.m_pName ? new PdfName( *(rhs.m_pName) ) : NULL;
-    m_pString     = rhs.m_pString ? new PdfString( *(rhs.m_pString) ) : NULL;
+    m_reference   = rhs.m_reference;
+    m_pDictionary = rhs.m_pDictionary && m_eDataType == ePdfDataType_Dictionary ? new PdfObject( *(rhs.m_pDictionary) ) : NULL;
+    m_pName       = rhs.m_pName && m_eDataType == ePdfDataType_Name ? new PdfName( *(rhs.m_pName) ) : NULL;
+    m_pString     = rhs.m_pString && 
+        (m_eDataType == ePdfDataType_String || m_eDataType == ePdfDataType_HexString ) ? new PdfString( *(rhs.m_pString) ) : NULL;
 
     return (*this);
 }

@@ -4,6 +4,9 @@ Version 0.2
 	Added SetInformation for additional error information to PdfError
 	Fixed the underline color of text
 	Introduced PdfReference class
+	Fixed PdfStream::GetFilteredCopy
+	Improved handling of DecodeParms for filters
+	Fixed PDF files with more than one DecodeParms dictionary in one object
 
 Version 0.1 (11 June 2006)
 	Initial release

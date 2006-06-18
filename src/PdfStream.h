@@ -22,6 +22,7 @@
 #define _PDF_STREAM_H_
 
 #include "PdfDefines.h"
+#include "PdfVecObjects.h"
 
 namespace PoDoFo {
 
@@ -152,6 +153,22 @@ class PdfStream {
      *  \returns ErrOk on success
      */
     PdfError FlateDecodeStreamData();
+
+    /** Get a list of extra decode parameters for this dictionary.
+     *  The list contains copies of the objects and has to be deleted by the caller! 
+     *  \returns ErrOk on success
+     */
+    PdfError GetDecodeParms( TVecObjects* pParams );
+
+    /** Set a list of extra decode parameters for this dictionary. Replace any old
+     *  decode paramaters with this.
+     *
+     *  This function may change pParams->SetAutoDelete!
+     *
+     *  \param pParams a list of decode parameter dictioniers, may contain null pointers
+     *  \returns ErrOk on success
+     */
+    PdfError SetDecodeParms( TVecObjects* pParams );
     
  private:
     PdfObject*   m_pParent;

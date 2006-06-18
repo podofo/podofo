@@ -188,6 +188,11 @@ class PdfVariant {
      */
     const PdfObject & GetDictionary() const; 
 
+    /** Set a dictionary as value.
+     *  \returns an error if GetDataType() != ePdfDataType_Dictionary 
+     */
+    PdfError SetDictionary( const PdfObject & obj );
+
     /** Get the reference values of this object.
      *  \returns a PdfReference
      */

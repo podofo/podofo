@@ -264,7 +264,7 @@ void PdfError::SetError( const EPdfError & eCode, const char* pszFile, int line,
 
 void PdfError::SetErrorInformation( const char* pszInformation )
 {
-    s_info  = pszInformation;
+    s_info  = pszInformation ? pszInformation : "";
 }
 
 bool PdfError::IsError() const

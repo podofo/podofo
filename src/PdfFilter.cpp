@@ -559,7 +559,7 @@ PdfError PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, 
                     break;
                 
                 default:
-                    eCode.SetError( ePdfError_InvalidPredictor );
+                    eCode.SetError( ePdfError_InvalidPredictor, __FILE__, __LINE__ );
                     break;
             }
   

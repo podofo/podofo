@@ -40,6 +40,24 @@ private:
     const PdfReference m_ref;
 };
 
+PdfVecObjects::PdfVecObjects()
+    : m_bAutoDelete( false )
+{
+}
+
+PdfVecObjects::~PdfVecObjects()
+{
+    if( m_bAutoDelete ) 
+    {
+        TIVecObjects it = this->begin();
+        while( it != this->end() )
+        {
+            delete *it;
+            ++it;
+        }
+    }
+}
+
 PdfObject* PdfVecObjects::GetObject( const PdfReference & ref ) const
 {
     TCIVecObjects it;

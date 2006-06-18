@@ -34,6 +34,8 @@ class PdfParser;
  * Parsing starts always at the current file position.
  */
 class PdfParserObject : public PdfObject, public PdfParserBase {
+    friend class PdfParser;
+
  public:
     /** Parse the object data from the given file handle starting at
      *  the current position.

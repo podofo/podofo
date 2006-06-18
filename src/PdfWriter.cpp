@@ -107,10 +107,12 @@ PdfError PdfWriter::Init( PdfParser* pParser )
     pTrailer = m_pParser->GetTrailer();
     if( pTrailer )
     {
+        /*
         std::string str;
         PdfOutputDevice dev;
         dev.Init( str );
         PdfObject( *pTrailer ).Write( &dev );
+        */
 
         SAFE_OP( pTrailer->GetKeyValueVariant( "Root", cVar ) );
         if( cVar.GetDataType() != ePdfDataType_Reference )
@@ -119,6 +121,7 @@ PdfError PdfWriter::Init( PdfParser* pParser )
         }
 
         ref = cVar.GetReference();
+        printf("ref=%s\n", ref.ToString().c_str());
         m_pCatalog = m_vecObjects.GetObject( ref );
         if( !m_pCatalog )
         {

@@ -41,6 +41,23 @@ class PdfObject;
  */
 class PdfVecObjects : public std::vector<PdfObject*> {
  public:
+    /** Default constuctor 
+     */
+    PdfVecObjects();
+
+    virtual ~PdfVecObjects();
+
+    /** Enable/disable auto deletion.
+     *  \param bAutoDelete if true all objects will be deleted when the PdfVecObjects is 
+     *         deleted.
+     */
+    inline void SetAutoDelete( bool bAutoDelete );
+
+    /** 
+     *  \returns if autodeletion is enabled and all objects will be deleted when the PdfVecObjects is 
+     *           deleted.
+     */
+    inline bool AutoDelete() const;
 
     /** Finds the object with object no lObject and generation
      *  np lGeneration in m_vecOffsets and returns a pointer to it
@@ -59,7 +76,20 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      *  \returns The removed object.
      */
     PdfObject* RemoveObject( const PdfReference & ref );
+
+ private:
+    bool m_bAutoDelete;
 };
+
+void PdfVecObjects::SetAutoDelete( bool bAutoDelete ) 
+{
+    m_bAutoDelete = bAutoDelete;
+}
+
+bool PdfVecObjects::AutoDelete() const
+{
+    return m_bAutoDelete;
+}
 
 typedef PdfVecObjects                TVecObjects;
 typedef TVecObjects::iterator        TIVecObjects;

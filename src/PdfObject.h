@@ -371,7 +371,7 @@ class PdfObject {
      */
     PdfError GetByteOffset( const char* pszKey, unsigned long* pulOffset );
 
- private:
+ protected:
     /** Initialize all private members with their default values
      */
     void Init();

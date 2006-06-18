@@ -165,7 +165,6 @@ PdfError PdfParser::ReadDocumentStructure()
         SAFE_OP( GetNextStringFromFile() );
 
         // ReadXRefcontents has read the first 't' from "trailer" so just check for "railer"
-        printf("LINEAR: %s\n", m_szBuffer );
         if( strcmp( m_szBuffer, "railer" ) == 0 )
         {
             PdfParserObject pTrailer( m_hFile, this->GetBuffer(), this->GetBufferSize() );
@@ -176,8 +175,6 @@ PdfError PdfParser::ReadDocumentStructure()
         }
     }
 
-    printf("m_pTrailer=%p\n", m_pTrailer );
-    printf("Size=%li\n", m_pTrailer->GetKeyValueLong( PdfName::KeySize, 0 ) );
     m_nNumObjects = m_pTrailer->GetKeyValueLong( PdfName::KeySize, -1 );
     if( m_nNumObjects == -1 )
     {
@@ -522,7 +519,9 @@ PdfError PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
             RAISE_ERROR( ePdfError_NoXRef );
         }
         else
+        {
             return ReadXRefStreamContents( lOffset, bPositionAtEnd );
+        }
     }
 
     // read all xref subsections
@@ -609,12 +608,12 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
     PdfError    eCode;
     int         count     = 0;
     long        nFirstObj = 0;
-    const char* pszType   = NULL;
     char*       pBuffer;
     char*       pStart;
     long        lBufferLen;
     long        lSize     = 0;
     PdfVariant  vWArray;
+    PdfVariant  xrefType;
 
     long        nW[W_ARRAY_SIZE] = { 0, 0, 0 };
     int         i;
@@ -627,15 +626,12 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
     PdfParserObject xrefObject( m_hFile, m_szBuffer, this->GetBufferSize() );
     SAFE_OP( xrefObject.ParseFile() );
 
-    pszType = xrefObject.GetKeyValueString( PdfName::KeyType, NULL ).String();
-    if( !pszType || strcmp( pszType, "/XRef" ) != 0 )
+
+    SAFE_OP( xrefObject.GetKeyValueVariant( PdfName::KeyType, xrefType ) );
+    if( xrefType.GetDataType() != ePdfDataType_Name || strcmp( xrefType.GetName().Name(), "XRef" ) != 0 )
     {
         RAISE_ERROR( ePdfError_NoXRef );
-    }
-
-#ifdef _DEBUG
-    printf("XREF Ref=%s Type=%s\n", xrefObject.Reference().c_str(), pszType );
-#endif // _DEBUG
+    } 
 
     if( !m_pTrailer )    
         m_pTrailer = new PdfParserObject( m_hFile, this->GetBuffer(), this->GetBufferSize() );
@@ -689,7 +685,6 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
         vWArray.GetArray()[0].GetNumber( &nFirstObj );
         std::string str;
         vWArray.ToString( str );
-        printf("vWArray=%s\n", str.c_str());
         
         // TODO: fix this
         if( vWArray.GetArray().size() != 2 )
@@ -707,8 +702,6 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
     SAFE_OP( xrefObject.Stream()->GetFilteredCopy( &pBuffer, &lBufferLen ) );
 
     pStart = pBuffer;
-    printf("pStart=%p lBufferLen=%i\n", pStart, lBufferLen );
-    printf("XRef=%i\n", xrefObject.ObjectNumber() );
     while( pBuffer - pStart < lBufferLen )
     {
         SAFE_OP( ReadXRefStreamEntry( pBuffer, lBufferLen, nW, nFirstObj + count++ ) );
@@ -829,7 +822,6 @@ PdfError PdfParser::ReadObjects()
         }
         else
         {
-            printf("Empty Object: %i\n", i );
             // TODO: should not be necessary anymore, remove to save some ram
             
             // add an empty object to the vector

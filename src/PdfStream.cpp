@@ -184,7 +184,7 @@ PdfError PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    PdfError::LogMessage( eLogSeverity_Debug, "Internal Buffer Length=%i Internal Buffer=%p\n", m_lLength, m_szStream );
+    PdfError::LogMessage( eLogSeverity_Debug, "%s: Internal Buffer Length=%i Internal Buffer=%p\n", m_pParent->Reference().ToString().c_str(), m_lLength, m_szStream );
     SAFE_OP( FillFilterList( vecFilters ) );
 
     // check for DecodeParams
@@ -225,11 +225,11 @@ PdfError PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
             if( pInBuf != m_szStream ) 
             {
                 // the input buffer was malloc'ed by another filter before
-                // so free it and let it point
+                // so free it and let it point to the output buffer
                 free( pInBuf );
-                pInBuf = *ppBuffer;
-                lInLen = *lLen;
             }
+            pInBuf = *ppBuffer;
+            lInLen = *lLen;
             
             if( pDecodeParams && !eCode.IsError() )
             {
@@ -239,7 +239,9 @@ PdfError PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
                 else
                 {
                     eCode = pFlate->RevertPredictor( &tParams, pInBuf, lInLen, ppBuffer, lLen );
-                    free( pInBuf );
+                    if( pInBuf != m_szStream ) 
+                        free( pInBuf );
+
                     pInBuf = *ppBuffer;
                     lInLen = *lLen;
                 }
@@ -275,8 +277,9 @@ PdfError PdfStream::FlateDecode()
     PdfVariant     vFilter;
     PdfVariant     vFilterList;
     TVariantList   tFilters;
+    TVecObjects    tDecodeParams;
     TCIVariantList tciFilters;
-
+    
     if( !m_szStream )
         return eCode; // ePdfError_ErrOk
 
@@ -285,6 +288,11 @@ PdfError PdfStream::FlateDecode()
 
     if( m_pParent->HasKey( "Filter" ) )
     {
+        // DecodeParms dictionaries of already used filters
+        // have to be handled.
+        SAFE_OP( GetDecodeParms( &tDecodeParams ) );
+        tDecodeParams.SetAutoDelete( true );
+
         SAFE_OP( m_pParent->GetKeyValueVariant( "Filter", vVar ) );
         if( vVar.GetDataType() == ePdfDataType_Name )
         {
@@ -335,6 +343,15 @@ PdfError PdfStream::FlateDecode()
 
         vFilterList.Init( tFilters );
         m_pParent->AddKey( "Filter", vFilterList );
+
+        // add an empty DecodeParams dictionary to the list of DecodeParams,
+        // but only if another DecodeParams dictionary does exist.
+        if( tDecodeParams.size() ) 
+        {
+            tDecodeParams.insert( tDecodeParams.begin(), NULL );
+            // Write the decode params back to the file
+            SAFE_OP( SetDecodeParms( &tDecodeParams ) );
+        }
 
         SAFE_OP( FlateDecodeStreamData() );
     }
@@ -472,6 +489,138 @@ const PdfStream & PdfStream::operator=( const PdfStream & rhs )
     memcpy( m_szStream, rhs.m_szStream, m_lLength );
 
     return *this;
+}
+
+PdfError PdfStream::GetDecodeParms( TVecObjects* pParams )
+{
+    PdfError       eCode;
+    PdfObject*     pDecodeParams;
+    PdfVariant     array;
+    TVariantList   list;
+    TCIVariantList it;
+
+    if( !pParams )
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    if( m_pParent->HasObjectKey( "DecodeParms" ) || m_pParent->HasObjectKey( "DP" ) )
+    {
+        pDecodeParams = m_pParent->GetKeyValueObject( "DecodeParms" );
+        
+        // See Implementation Note 3.2.7:
+        // Adobe Viewers support DP as abbreviation for DecodeParms
+        if( !pDecodeParams )
+            pDecodeParams = m_pParent->GetKeyValueObject( "DP" );
+
+        pParams->push_back( new PdfObject( *pDecodeParams ) );
+        return eCode;
+    }
+    else if( m_pParent->HasKey( "DecodeParms" ) )
+    {
+        SAFE_OP( m_pParent->GetKeyValueVariant( "DecodeParms", array ) );
+    }
+    else if( m_pParent->HasKey( "DP" ) )
+    {
+        SAFE_OP( m_pParent->GetKeyValueVariant( "DP", array ) );
+    }
+
+    // No decode params dictionary!
+    if( array.IsEmpty() )
+        return eCode;
+
+    if( array.GetDataType() != ePdfDataType_Array ) 
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
+    list = array.GetArray();
+    it = list.begin();
+
+    while( it != list.end() ) 
+    {
+        if( (*it).GetDataType() == ePdfDataType_Null )
+            pParams->push_back( NULL );
+        else if( (*it).GetDataType() == ePdfDataType_Dictionary )
+            pParams->push_back( new PdfObject( (*it).GetDictionary()) );
+        else
+        {
+            RAISE_ERROR( ePdfError_InvalidDataType );
+        }
+
+        ++it;
+    }
+    
+    return eCode;
+}
+
+PdfError PdfStream::SetDecodeParms( TVecObjects* pParams )
+{
+    PdfError       eCode;
+    PdfVariant     var;
+    TVariantList   array;    
+    TCIVecObjects   it;
+
+    if( !pParams )
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    // remove any existing old keys first
+    if( m_pParent->HasKey( "DecodeParms" ) )
+    {
+        m_pParent->RemoveKey( "DecodeParms" );
+    }
+    else if( m_pParent->HasKey( "DP" ) )
+    {
+        m_pParent->RemoveKey( "DP" );
+    }
+    else if( m_pParent->HasObjectKey( "DecodeParms" ) ) 
+    {
+        m_pParent->RemoveObjectKey( "DecodeParms" );
+    }
+    else if( m_pParent->HasObjectKey( "DP" ) ) 
+    {
+        m_pParent->RemoveObjectKey( "DP" );
+    }
+
+
+    // add the new DecodeParms 
+    if( pParams->size() > 1 ) 
+    {
+        it = pParams->begin();
+        while( it != pParams->end() )
+        {
+            if( *it ) 
+            {
+                var.SetDataType( ePdfDataType_Dictionary );
+                var.SetDictionary( *(*it) );
+                array.push_back( var );
+            }
+            else
+            {
+                var.SetDataType( ePdfDataType_Null );
+                array.push_back( var );
+            }
+            
+            ++it;
+        }
+
+        var.SetDataType( ePdfDataType_Array );
+        var.SetArray( array );
+
+        m_pParent->AddKey( "DecodeParms", var );
+    }
+    else if( pParams->size() == 1 ) 
+    {
+        if( (*pParams)[0] )
+        {
+            m_pParent->AddKey( "DecodeParms", (*pParams)[0] );
+            pParams->SetAutoDelete( false );
+        }
+    }
+
+    return eCode;
 }
 
 };
