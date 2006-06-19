@@ -172,12 +172,11 @@ PdfError PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
     PdfFilter*      pFilter;
     PdfFlateFilter* pFlate;
 
-    // variables for DecodeParams
-    PdfObject*            pDecodeParams = NULL;
-    TFlatePredictorParams tParams;
+    TVecObjects     tDecodeParams;
+    TCIVecObjects   itDecodeParams;
 
-    char*                 pInBuf = m_szStream;
-    long                  lInLen = m_lLength;
+    char*           pInBuf = m_szStream;
+    long            lInLen = m_lLength;
 
     if( !ppBuffer || !lLen )
     {
@@ -186,29 +185,20 @@ PdfError PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
 
     PdfError::LogMessage( eLogSeverity_Debug, "%s: Internal Buffer Length=%i Internal Buffer=%p\n", m_pParent->Reference().ToString().c_str(), m_lLength, m_szStream );
     SAFE_OP( FillFilterList( vecFilters ) );
+    SAFE_OP( GetDecodeParms( &tDecodeParams ) );
 
-    // check for DecodeParams
-    // TODO: support more than one DecodeParams dictionary if more than
-    //       one filter is used with decode parameters
-    pDecodeParams = m_pParent->GetKeyValueObject( "DecodeParms" );
-    
-    // See Implementation Note 3.2.7:
-    // Adobe Viewers support DP as abbreviation for DecodeParms
-    if( !pDecodeParams )
-        pDecodeParams = m_pParent->GetKeyValueObject( "DP" );
+    tDecodeParams.SetAutoDelete( true );
 
-    if( pDecodeParams )
+    if( tDecodeParams.size() > 0 && tDecodeParams.size() != vecFilters.size() )
     {
-        tParams.nPredictor   = pDecodeParams->GetKeyValueLong( "Predictor", tParams.nPredictor );
-        tParams.nColors      = pDecodeParams->GetKeyValueLong( "Colors", tParams.nColors );
-        tParams.nBPC         = pDecodeParams->GetKeyValueLong( "BitsPerComponent", tParams.nBPC );
-        tParams.nColumns     = pDecodeParams->GetKeyValueLong( "Columns", tParams.nColumns );
-        tParams.nEarlyChange = pDecodeParams->GetKeyValueLong( "EarlyChange", tParams.nEarlyChange );
+        RAISE_ERROR( ePdfError_InvalidPredictor );
     }
 
     if( !vecFilters.empty() )
     {
         it = vecFilters.begin();
+        if( tDecodeParams.size() )
+            itDecodeParams = tDecodeParams.begin();
 
         while( it != vecFilters.end() && !eCode.IsError() ) 
         {
@@ -220,7 +210,7 @@ PdfError PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
                 break;
             }
 
-            eCode = pFilter->Decode( pInBuf, lInLen, ppBuffer, lLen );
+            eCode = pFilter->Decode( pInBuf, lInLen, ppBuffer, lLen, tDecodeParams.size() ? *itDecodeParams : NULL );
             
             if( pInBuf != m_szStream ) 
             {
@@ -231,24 +221,11 @@ PdfError PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
             pInBuf = *ppBuffer;
             lInLen = *lLen;
             
-            if( pDecodeParams && !eCode.IsError() )
-            {
-                pFlate = dynamic_cast<PdfFlateFilter*>(pFilter);
-                if( !pFilter )
-                    eCode.SetError( ePdfError_InvalidHandle );
-                else
-                {
-                    eCode = pFlate->RevertPredictor( &tParams, pInBuf, lInLen, ppBuffer, lLen );
-                    if( pInBuf != m_szStream ) 
-                        free( pInBuf );
-
-                    pInBuf = *ppBuffer;
-                    lInLen = *lLen;
-                }
-            }
-
             delete pFilter;
             ++it;
+
+            if( tDecodeParams.size() )
+                ++itDecodeParams;
         }
     }
     else
@@ -491,7 +468,7 @@ const PdfStream & PdfStream::operator=( const PdfStream & rhs )
     return *this;
 }
 
-PdfError PdfStream::GetDecodeParms( TVecObjects* pParams )
+PdfError PdfStream::GetDecodeParms( TVecObjects* pParams ) const
 {
     PdfError       eCode;
     PdfObject*     pDecodeParams;

@@ -75,10 +75,14 @@ class PdfFilter {
      *  \param lInLen    length of the input buffer
      *  \param ppOutBuffer pointer to the buffer of the decoded data
      *  \param plOutLen pointer to the length of the output buffer
+     *  \param pDecodeParms optional pointer to an decode parameters dictionary
+     *                      containing additional information to decode the data.
+     *                      This pointer must be NULL if no decode parameter dictionary
+     *                      is available.
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) = 0;
+    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL ) = 0;
 
     /** Type of this filter.
      *  \returns the type of this filter
@@ -124,10 +128,14 @@ class PdfHexFilter : public PdfFilter {
      *  \param lInLen    length of the input buffer
      *  \param ppOutBuffer pointer to the buffer of the decoded data
      *  \param plOutLen pointer to the length of the output buffer
+     *  \param pDecodeParms optional pointer to an decode parameters dictionary
+     *                      containing additional information to decode the data.
+     *                      This pointer must be NULL if no decode parameter dictionary
+     *                      is available.
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen );
+    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL );
 
     /** Type of this filter.
      *  \returns the type of this filter
@@ -163,10 +171,14 @@ class PdfAscii85Filter : public PdfFilter {
      *  \param lInLen    length of the input buffer
      *  \param ppOutBuffer pointer to the buffer of the decoded data
      *  \param plOutLen pointer to the length of the output buffer
+     *  \param pDecodeParms optional pointer to an decode parameters dictionary
+     *                      containing additional information to decode the data.
+     *                      This pointer must be NULL if no decode parameter dictionary
+     *                      is available.
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen );
+    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL );
 
     /** Type of this filter.
      *  \returns the type of this filter
@@ -208,10 +220,14 @@ class PdfFlateFilter : public PdfFilter {
      *  \param lInLen    length of the input buffer
      *  \param ppOutBuffer pointer to the buffer of the decoded data
      *  \param plOutLen pointer to the length of the output buffer
+     *  \param pDecodeParms optional pointer to an decode parameters dictionary
+     *                      containing additional information to decode the data.
+     *                      This pointer must be NULL if no decode parameter dictionary
+     *                      is available.
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen );
+    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL );
 
     /** Type of this filter.
      *  \returns the type of this filter
@@ -249,10 +265,14 @@ class PdfRLEFilter : public PdfFilter {
      *  \param lInLen    length of the input buffer
      *  \param ppOutBuffer pointer to the buffer of the decoded data
      *  \param plOutLen pointer to the length of the output buffer
+     *  \param pDecodeParms optional pointer to an decode parameters dictionary
+     *                      containing additional information to decode the data.
+     *                      This pointer must be NULL if no decode parameter dictionary
+     *                      is available.
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen );
+    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL );
 
     /** Type of this filter.
      *  \returns the type of this filter

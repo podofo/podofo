@@ -22,6 +22,7 @@
 #include "PdfFilter.h"
 
 #include "PdfParserBase.h"
+#include "PdfObject.h"
 
 #include <zlib.h>
 #define CHUNK       16384
@@ -104,7 +105,7 @@ PdfError PdfHexFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutB
     return eCode;
 }
 
-PdfError PdfHexFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen )
+PdfError PdfHexFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms )
 {
     PdfError eCode;
     int      i      = 0;
@@ -180,7 +181,6 @@ PdfError PdfAscii85Filter::Encode( const char* pInBuffer, long lInLen, char** pp
         RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
-    int i = 0;
     while( lInLen ) 
     {
         c = *pInBuffer & 0xff;
@@ -248,7 +248,7 @@ PdfError PdfAscii85Filter::Encode( char* pBuffer, int* bufferPos, long lBufferLe
     return eCode;
 }
 
-PdfError PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen )
+PdfError PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms )
 {
     PdfError      eCode;
     unsigned long tuple = 0;
@@ -406,7 +406,7 @@ PdfError PdfFlateFilter::Encode( const char* pInBuffer, long lInLen, char** ppOu
     return eCode;
 }
 
-PdfError PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen )
+PdfError PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms )
 {
     PdfError  eCode;
 
@@ -418,6 +418,7 @@ PdfError PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOu
     char* pTmp = NULL;
 
     long  lBufSize = 0;
+    TFlatePredictorParams tParams;
 
     if( !pInBuffer || !plOutLen || !ppOutBuffer )
     {
@@ -483,6 +484,18 @@ PdfError PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOu
 
     *ppOutBuffer = pBuf;
     *plOutLen    = lBufSize;
+
+    if( pDecodeParms ) 
+    {
+        tParams.nPredictor   = pDecodeParms->GetKeyValueLong( "Predictor", tParams.nPredictor );
+        tParams.nColors      = pDecodeParms->GetKeyValueLong( "Colors", tParams.nColors );
+        tParams.nBPC         = pDecodeParms->GetKeyValueLong( "BitsPerComponent", tParams.nBPC );
+        tParams.nColumns     = pDecodeParms->GetKeyValueLong( "Columns", tParams.nColumns );
+        tParams.nEarlyChange = pDecodeParms->GetKeyValueLong( "EarlyChange", tParams.nEarlyChange );
+
+        eCode = this->RevertPredictor( &tParams, pBuf, lBufSize, ppOutBuffer, plOutLen );
+        free( pBuf );
+    }
 
     return eCode;
 }
@@ -593,7 +606,7 @@ PdfError PdfRLEFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutB
     return ePdfError_UnsupportedFilter;
 }
 
-PdfError PdfRLEFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen )
+PdfError PdfRLEFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms )
 {
     PdfError              eCode;
     char*                 pBuf;

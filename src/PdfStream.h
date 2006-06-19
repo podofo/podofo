@@ -158,7 +158,7 @@ class PdfStream {
      *  The list contains copies of the objects and has to be deleted by the caller! 
      *  \returns ErrOk on success
      */
-    PdfError GetDecodeParms( TVecObjects* pParams );
+    PdfError GetDecodeParms( TVecObjects* pParams ) const;
 
     /** Set a list of extra decode parameters for this dictionary. Replace any old
      *  decode paramaters with this.
