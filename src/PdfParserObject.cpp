@@ -58,7 +58,7 @@ void PdfParserObject::Init()
 {
     m_bIsTrailer        = false;
 
-    m_bLoadOnDemandDone = false;
+    m_bLoadOnDemand     = false;
     m_lOffset           = -1;
 
     m_bStream           = false;
@@ -108,7 +108,7 @@ PdfError PdfParserObject::ParseFile( PdfParser* pParser, bool bIsTrailer )
     m_lOffset    = ftell( m_hFile );
     m_bIsTrailer = bIsTrailer;
 
-    if( !m_bLoadOnDemandDone )
+    if( !m_bLoadOnDemand )
         SAFE_OP( ParseFileComplete( m_bIsTrailer ) );
 
     return eCode;
@@ -630,17 +630,18 @@ PdfError PdfParserObject::LoadOnDemand( const PdfVecObjects* pVecObjects )
 {
     PdfError eCode;
 
-    if( m_bLoadOnDemandDone )
+    if( m_bLoadOnDemand )
     {
         m_bLoadOnDemandDone = true;
 
         printf("-> Delayed Parsing Object %s\n", m_reference.ToString().c_str() );
         SAFE_OP( ParseFileComplete( m_bIsTrailer ) );
 
-#warning "TODO: Parsing of streams does not work here for some reason." 
-#error   "FIX THIS"
+        printf("-> HasStreamToParse = %i HasStream() = %i\n", this->HasStreamToParse(), this->HasStream() );
+
         if( this->HasStreamToParse() && !this->HasStream() )
         {
+            printf("-> Parsing Stream...\n");
             SAFE_OP_ADV( this->ParseStream( pVecObjects ), "Unable to parse the objects stream." );
         }
     }

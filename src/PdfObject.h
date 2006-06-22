@@ -46,7 +46,9 @@ typedef TObjKeyMap::const_iterator         TCIObjKeyMap;
 #define DELAYED_LOADING()     if( !m_bLoadOnDemandDone ) \
                               { \
                                 PdfObject* p = const_cast<PdfObject*>(this); \
-                                p->LoadOnDemand( m_pParser ? &(m_pParser->GetObjects()) : NULL ); \
+                                PdfError MyERROR = p->LoadOnDemand( m_pParser ? &(m_pParser->GetObjects()) : NULL ); \
+                                if( MyERROR.IsError() ) \
+                                    MyERROR.PrintErrorMsg(); \
                               }
 
 
@@ -393,6 +395,11 @@ class PdfObject {
      */
     void Clear();
 
+    /**
+     *  \returns ErrOk on sucess
+     */
+    inline PdfError DelayedLoad() const;
+
  protected:
     PdfReference m_reference;
     bool         m_bDirect;
@@ -539,6 +546,22 @@ inline PdfError PdfObject::LoadOnDemand( const PdfVecObjects* )
 {
     m_bLoadOnDemandDone = true;
     return PdfError();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfError PdfObject::DelayedLoad() const
+{
+    PdfError eCode;
+    
+    if( !m_bLoadOnDemandDone ) 
+    {
+        PdfObject* p = const_cast<PdfObject*>(this);
+        SAFE_OP( p->LoadOnDemand( m_pParser ? &(m_pParser->GetObjects()) : NULL ) );
+    }
+
+    return eCode;
 }
 
 };

@@ -2,6 +2,8 @@
 PoDoFo 0.3 
        - PdfWebWriter who creates linearized PDF files
        - Some more drawing routines (tiles, save and rstore?)
+       - PdfWriter should be able to write objects immediately
+         and not keep all in memory first.
 
 PoDoFo 0.2
        - PdfParser should return more information (i.e. vector of all pages
