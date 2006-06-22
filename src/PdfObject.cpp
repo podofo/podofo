@@ -56,10 +56,13 @@ PdfObject::~PdfObject()
 
 void PdfObject::Init()
 {
-    m_bDirect       = false;;
-    m_bEmptyEntry   = false;
+    m_bDirect             = false;;
+    m_bEmptyEntry         = false;
 
-    m_pStream       = NULL;
+    m_pStream             = NULL;
+    m_pParser             = NULL;
+
+    m_bLoadOnDemandDone = false;
 }
 
 void PdfObject::Clear()
@@ -298,6 +301,8 @@ PdfObject* PdfObject::GetKeyValueObject( const PdfName & key ) const
 
 bool PdfObject::HasKey( const PdfName & key ) const
 {
+    DELAYED_LOADING();
+
     if( !key.Length() )
         return false;
     
@@ -306,6 +311,8 @@ bool PdfObject::HasKey( const PdfName & key ) const
 
 bool PdfObject::HasObjectKey( const PdfName & key ) const
 {
+    DELAYED_LOADING();
+
     if( !key.Length() )
         return false;
     
@@ -336,6 +343,9 @@ const PdfString & PdfObject::GetSingleValueString() const
 long PdfObject::GetSingleValueLong() const
 {
     long lNum = 0;
+
+    DELAYED_LOADING();
+
     m_singleValue.GetNumber( &lNum );
 
     return lNum;
@@ -344,6 +354,9 @@ long PdfObject::GetSingleValueLong() const
 bool PdfObject::GetSingleValueBool() const
 {
     bool bVal = false;
+
+    DELAYED_LOADING();
+
     m_singleValue.GetBool( &bVal );
 
     return bVal;
@@ -351,6 +364,8 @@ bool PdfObject::GetSingleValueBool() const
 
 const PdfVariant & PdfObject::GetSingleValueVariant () const
 {
+    DELAYED_LOADING();
+
     return m_singleValue;
 }
 
@@ -366,6 +381,8 @@ PdfError PdfObject::Write( PdfOutputDevice* pDevice, const PdfName & keyStop )
     // do not write empty objects to disc
     if( m_bEmptyEntry )
         return eCode;
+
+    DELAYED_LOADING();
 
     if( !pDevice )
     {
@@ -460,6 +477,8 @@ PdfError PdfObject::GetObjectLength( unsigned long* pulLength )
 
 PdfStream* PdfObject::Stream()
 {
+    DELAYED_LOADING();
+
     if( !m_pStream )
         m_pStream = new PdfStream( this );
     
@@ -468,11 +487,15 @@ PdfStream* PdfObject::Stream()
 
 const PdfStream* PdfObject::Stream() const
 {
+    DELAYED_LOADING();
+
     return m_pStream;
 }
 
 PdfError PdfObject::FlateDecodeStream() 
 {
+    DELAYED_LOADING();
+
     return m_pStream ? m_pStream->FlateDecode() : ePdfError_ErrOk;
 }
 
@@ -483,6 +506,12 @@ const PdfObject & PdfObject::operator=( const PdfObject & rhs )
 
     Clear();
     Init();
+
+    if( !rhs.m_bLoadOnDemandDone ) 
+    {
+        PdfObject* p = const_cast<PdfObject*>(&rhs); \
+        p->LoadOnDemand( &(rhs.m_pParser->GetObjects()) );
+    }
 
     m_reference     = rhs.m_reference;
     m_bDirect       = rhs.m_bDirect;

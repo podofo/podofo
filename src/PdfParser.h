@@ -57,9 +57,13 @@ class PdfParser : public PdfParserBase {
      *  This function has to be called before you can access any other
      *  function.
      *  \param pszFilename filename of the file which is going to be parsed
+     *  \param bLoadOnDemand if true all objects will be read from the file at
+     *                       the time they are accesed first.
+     *                       This is faster if you do not need the complete PDF 
+     *                       file in memory.
      *  \returns ErrOk on success
      */
-    PdfError Init( const char* pszFilename );
+    PdfError Init( const char* pszFilename, bool bLoadOnDemand = false );
 
     /** Get a reference to the sorted internal objects vector.
      *  \returns the internal objects vector.
@@ -80,6 +84,13 @@ class PdfParser : public PdfParserBase {
      *  which can be written unmodified to a pdf file.
      */
     inline const PdfObject* GetTrailer() const;
+
+    /** \returns true if this PdfParser loads all objects on demand at
+     *                the time they are accessed for the first time.
+     *                The default is to load all object immediately.
+     *                In this case false is returned.
+     */
+    inline bool LoadOnDemand() const;
 
  protected:
     /** Reads the xref sections and the trailers of the file
@@ -173,6 +184,8 @@ class PdfParser : public PdfParserBase {
  private:
     EPdfVersion  m_ePdfVersion;
 
+    bool         m_bLoadOnDemand;
+
     long         m_nXRefOffset;
     long         m_nFirstObject;
     long         m_nNumObjects;
@@ -186,6 +199,11 @@ class PdfParser : public PdfParserBase {
 
     TMapObjectStreamCache m_mapStreamCache;
 };
+
+bool PdfParser::LoadOnDemand() const
+{
+    return m_bLoadOnDemand;
+}
 
 EPdfVersion PdfParser::GetPdfVersion() const
 {

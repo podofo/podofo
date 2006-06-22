@@ -22,6 +22,7 @@
 #define _PDF_OBJECT_H_
 
 #include "PdfDefines.h"
+#include "PdfParser.h"
 #include "PdfReference.h"
 #include "PdfVariant.h"
 
@@ -32,6 +33,7 @@ class PdfObject;
 class PdfOutputDevice;
 class PdfStream;
 class PdfString;
+class PdfVecObjects;
 
 typedef std::map<PdfName,PdfVariant>       TKeyMap;
 typedef TKeyMap::iterator                  TIKeyMap;
@@ -40,6 +42,13 @@ typedef TKeyMap::const_iterator            TCIKeyMap;
 typedef std::map<PdfName,PdfObject*>       TObjKeyMap;
 typedef TObjKeyMap::iterator               TIObjKeyMap;
 typedef TObjKeyMap::const_iterator         TCIObjKeyMap;
+
+#define DELAYED_LOADING()     if( !m_bLoadOnDemandDone ) \
+                              { \
+                                PdfObject* p = const_cast<PdfObject*>(this); \
+                                p->LoadOnDemand( m_pParser ? &(m_pParser->GetObjects()) : NULL ); \
+                              }
+
 
 /**
  * This class represents a PDF Object into the memory
@@ -371,6 +380,10 @@ class PdfObject {
      */
     PdfError GetByteOffset( const char* pszKey, unsigned long* pulOffset );
 
+    /** Load all data of the object if load object on demand is enabled
+     */
+    inline virtual PdfError LoadOnDemand( const PdfVecObjects* pVecObjects );
+
  protected:
     /** Initialize all private members with their default values
      */
@@ -384,12 +397,16 @@ class PdfObject {
     PdfReference m_reference;
     bool         m_bDirect;
     bool         m_bEmptyEntry;
+    
+    bool         m_bLoadOnDemandDone;
 
     TKeyMap      m_mapKeys;
     TObjKeyMap   m_mapObjKeys;
-
+    
     PdfVariant   m_singleValue;
     PdfStream*   m_pStream;
+
+    PdfParser*   m_pParser;
 };
 
 // -----------------------------------------------------
@@ -437,6 +454,8 @@ void PdfObject::SetObjectNumber( unsigned int nObjNo )
 // -----------------------------------------------------
 const TKeyMap & PdfObject::GetKeys() const
 {
+    DELAYED_LOADING();
+
     return m_mapKeys;
 }
 
@@ -445,6 +464,8 @@ const TKeyMap & PdfObject::GetKeys() const
 // -----------------------------------------------------
 const TObjKeyMap & PdfObject::GetObjectKeys() const
 {
+    DELAYED_LOADING();
+
     return m_mapObjKeys;
 }
 
@@ -477,6 +498,8 @@ const PdfReference & PdfObject::Reference() const
 // -----------------------------------------------------
 bool PdfObject::HasSingleValue() const
 {
+    DELAYED_LOADING();
+
     return !m_singleValue.IsEmpty();
 }
 
@@ -504,7 +527,18 @@ bool PdfObject::operator==( const PdfObject & rhs )
 // -----------------------------------------------------
 inline bool PdfObject::HasStream() const
 {
+    DELAYED_LOADING();
+
     return (bool)m_pStream;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfError PdfObject::LoadOnDemand( const PdfVecObjects* )
+{
+    m_bLoadOnDemandDone = true;
+    return PdfError();
 }
 
 };

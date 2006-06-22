@@ -40,6 +40,8 @@ bool ObjectLittle( PdfObject* p1, PdfObject* p2 )
 PdfParser::PdfParser()
     : PdfParserBase()
 {
+    m_bLoadOnDemand   = false;
+
     m_hFile           = NULL;
     m_pTrailer        = NULL;
     m_pLinearization  = NULL;
@@ -58,7 +60,7 @@ PdfParser::~PdfParser()
     Clear();
 }
 
-PdfError PdfParser::Init( const char* pszFilename )
+PdfError PdfParser::Init( const char* pszFilename, bool bLoadOnDemand )
 {
     PdfError eCode;
 
@@ -70,7 +72,9 @@ PdfError PdfParser::Init( const char* pszFilename )
     // make sure everything is clean
     Clear();
 
-    m_hFile = fopen( pszFilename, "rb" );
+    m_bLoadOnDemand = bLoadOnDemand;
+
+    m_hFile           = fopen( pszFilename, "rb" );
     if( !m_hFile )
     {
         RAISE_ERROR( ePdfError_FileNotFound );
@@ -84,6 +88,7 @@ PdfError PdfParser::Init( const char* pszFilename )
     SAFE_OP( ReadDocumentStructure() );
     SAFE_OP_ADV( ReadObjects(),      "Unable to load objects from file." );
 
+    printf("Read all objects\n");
     // Now sort the list of objects
     std::sort( m_vecObjects.begin(), m_vecObjects.end(), ObjectLittle );
 
@@ -168,7 +173,7 @@ PdfError PdfParser::ReadDocumentStructure()
         if( strcmp( m_szBuffer, "railer" ) == 0 )
         {
             PdfParserObject pTrailer( m_hFile, this->GetBuffer(), this->GetBufferSize() );
-            SAFE_OP_ADV( pTrailer.ParseFile( true ), "The linearized trailer was found in the file, but contains errors." );
+            SAFE_OP_ADV( pTrailer.ParseFile( this, true ), "The linearized trailer was found in the file, but contains errors." );
 
             // now merge the information of this trailer with the main documents trailer
             SAFE_OP( MergeTrailer( &pTrailer ) );
@@ -256,7 +261,7 @@ PdfError PdfParser::IsLinearized()
 
     fseek( m_hFile, pszObj - m_szBuffer + 3, SEEK_SET );
     m_pLinearization = new PdfParserObject( m_hFile, this->GetBuffer(), this->GetBufferSize() );
-    eCode = static_cast<PdfParserObject*>(m_pLinearization)->ParseFile();
+    eCode = static_cast<PdfParserObject*>(m_pLinearization)->ParseFile( this );
 
     if( eCode.IsError() || !m_pLinearization->HasKey( "Linearized" ) )
     {
@@ -431,7 +436,7 @@ PdfError PdfParser::ReadTrailer()
     }
 
     m_pTrailer = new PdfParserObject( m_hFile, this->GetBuffer(), this->GetBufferSize() );
-    SAFE_OP_ADV( static_cast<PdfParserObject*>(m_pTrailer)->ParseFile( true ), "The trailer was found in the file, but contains errors." );
+    SAFE_OP_ADV( static_cast<PdfParserObject*>(m_pTrailer)->ParseFile( this, true ), "The trailer was found in the file, but contains errors." );
 #ifdef _DEBUG
     printf("Size=%li\n", m_pTrailer->GetKeyValueLong( PdfName::KeySize, 0 ) );
 #endif // _DEBUG
@@ -624,7 +629,7 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
     }
 
     PdfParserObject xrefObject( m_hFile, m_szBuffer, this->GetBufferSize() );
-    SAFE_OP( xrefObject.ParseFile() );
+    SAFE_OP( xrefObject.ParseFile( this ) );
 
 
     SAFE_OP( xrefObject.GetKeyValueVariant( PdfName::KeyType, xrefType ) );
@@ -698,7 +703,7 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
         RAISE_ERROR( ePdfError_NoXRef );
     }
 
-    SAFE_OP( xrefObject.ParseStream( this ) );
+    SAFE_OP( xrefObject.ParseStream( &(this->GetObjects()) ) );
     SAFE_OP( xrefObject.Stream()->GetFilteredCopy( &pBuffer, &lBufferLen ) );
 
     pStart = pBuffer;
@@ -799,10 +804,9 @@ PdfError PdfParser::ReadObjects()
         {
             if( m_ppOffsets[i]->cUsed == 'n'  )
             {
-                fseek( m_hFile, m_ppOffsets[i]->lOffset, SEEK_SET );
-
-                pObject = new PdfParserObject( m_hFile, m_szBuffer, this->GetBufferSize() );
-                eCode = pObject->ParseFile();
+                pObject = new PdfParserObject( m_hFile, m_szBuffer, this->GetBufferSize(), m_ppOffsets[i]->lOffset );
+                pObject->SetLoadOnDemand( m_bLoadOnDemand );
+                eCode = pObject->ParseFile( this );
 
                 // final pdf should not contain a linerization dictionary as it contents are invalid 
                 // as we change some objects and the final xref table
@@ -847,20 +851,25 @@ PdfError PdfParser::ReadObjects()
     m_mapStreamCache.clear();
 
     // Now let all objects read theier associate streams
-    itObjects = m_vecObjects.begin();
-    while( itObjects != m_vecObjects.end() )
+    if( !m_bLoadOnDemand )
     {
-        pObject = dynamic_cast<PdfParserObject*>(*itObjects);
-        // only parse streams for objects that have not yet parsed
-        // their streams 
-        if( pObject && pObject->HasStreamToParse() && !pObject->HasStream() )
+        itObjects = m_vecObjects.begin();
+        while( itObjects != m_vecObjects.end() )
         {
-            SAFE_OP_ADV( pObject->ParseStream( this ), "Unable to parse the objects stream." );
+            pObject = dynamic_cast<PdfParserObject*>(*itObjects);
+            // only parse streams for objects that have not yet parsed
+            // their streams 
+            if( pObject && pObject->HasStreamToParse() && !pObject->HasStream() )
+            {
+                SAFE_OP_ADV( pObject->ParseStream( &(this->GetObjects()) ), "Unable to parse the objects stream." );
+            }
+            
+            ++itObjects;
         }
-
-        ++itObjects;
+        
     }
-
+    
+    printf("Reading Done\n");
     return eCode;
 }
 
@@ -895,7 +904,7 @@ PdfError PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
         // that this is done now!
         if( pStream->HasStreamToParse() && !pStream->HasStream() )
         {
-            SAFE_OP_ADV( pStream->ParseStream( this ), "Unable to parse the objects stream." );
+            SAFE_OP_ADV( pStream->ParseStream( &(this->GetObjects()) ), "Unable to parse the objects stream." );
         }
         
         SAFE_OP( pStream->Stream()->GetFilteredCopy( &pBuffer, &lBufferLen ) );

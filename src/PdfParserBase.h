@@ -41,6 +41,9 @@ class PdfParserBase {
     PdfParserBase( FILE* hFile, char* szBuffer = NULL , long lBufferSize = 0 );
     virtual ~PdfParserBase();
 
+    /** Set the internal file handle
+     *  \param hFile a file handle
+     */
     inline void SetFileHandle( FILE* hFile );
 
     /** Returns true if the given character is a delimiter
