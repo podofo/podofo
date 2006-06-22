@@ -536,7 +536,7 @@ PdfError PdfParserObject::ParseStream( const PdfVecObjects* pVecObjects )
         pObj = pVecObjects->GetObject( ref );
         if( !pObj )
         {
-            RAISE_ERROR( ePdfError_InvalidHandle );
+            RAISE_ERROR_INFO( ePdfError_InvalidHandle );
         }
 
         if( !pObj->HasSingleValue() )
