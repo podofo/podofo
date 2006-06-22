@@ -287,14 +287,11 @@ PdfError PdfParserObject::ParseFileComplete( bool bIsTrailer )
 PdfError PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, long* plParsedLength )
 {
     PdfError         eCode;
-    string*          pCur    = NULL;
     string           sValue;
     char*            szInitial = szBuffer;
     PdfVariant       cVariant;
     PdfName          cName;
     long             lLen;
-    long             lInternalLen;
-    PdfParserObject* pObj;
 
     sValue.reserve( KEY_BUFFER );
 
@@ -536,7 +533,7 @@ PdfError PdfParserObject::ParseStream( const PdfVecObjects* pVecObjects )
         pObj = pVecObjects->GetObject( ref );
         if( !pObj )
         {
-            RAISE_ERROR_INFO( ePdfError_InvalidHandle );
+            RAISE_ERROR( ePdfError_InvalidHandle );
         }
 
         if( !pObj->HasSingleValue() )

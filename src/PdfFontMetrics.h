@@ -22,7 +22,9 @@
 #define _PDF_FONT_METRICS_H_
 
 #include "PdfDefines.h"
+#ifndef _WIN32
 #include <fontconfig.h>
+#endif
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -38,6 +40,14 @@ class PdfFontMetrics {
      *  \param pszFilename filename of a truetype file
      */
     PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename );
+
+   /** Create a font metrics object for a given memory buffer
+     *  \param pLibrary handle to an initialized FreeType2 library handle
+     *  \param pBuffer block of memory representing the font data
+	 *  \param nBufLen the length of the buffer
+     */
+	PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen );
+
     virtual ~PdfFontMetrics();
 
     /** Create a width array for this font which is a required part
@@ -92,8 +102,18 @@ class PdfFontMetrics {
      */
     inline const char* Filename() const;
 
-    /** Get a pointer to a string with the postscript name of the font.
-     *  \returns the postscript name of the font or NULL if no postscript name is available.
+    /** Get a pointer to the actual font data - if it was loaded from memory.
+     *  \returns a binary buffer of data containing the font data
+     */
+    inline const char* FontData() const;
+
+    /** Get the length of the actual font data - if it was loaded from memory.
+     *  \returns a the length of the font data
+     */
+    inline unsigned int FontDataLen() const;
+
+    /** Get a string with the postscript name of the font.
+     *  \returns the postscript name of the font or NULL string if no postscript name is available.
      */
     const char* Fontname() const;
 
@@ -150,7 +170,10 @@ class PdfFontMetrics {
      *  \returns the compelte absolute path to a matching font file or NULL
      *           if none was found.
      */
+#ifdef _WIN32
+#else
     static std::string GetFilenameForFont( FcConfig* pConfig, const char* pszFontname );
+#endif
 
  private:
     FT_Face       m_face;
@@ -166,44 +189,91 @@ class PdfFontMetrics {
     unsigned long m_lUnderlineThickness;
     long          m_lUnderlinePosition;
 
-    std::string  m_sFilename;
+    std::string   m_sFilename;
+    char*	  m_pFontData;
+    unsigned int  m_nFontDataLen;
+    
+    /** Load the metric data from the FTFace data
+     *		Called internally by the constructors
+     */
+    void InitFromFace();
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 unsigned long PdfFontMetrics::LineSpacing() const
 {
     return m_lLineSpacing;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 long PdfFontMetrics::UnderlinePosition() const
 {
     return m_lUnderlinePosition;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 unsigned long PdfFontMetrics::UnderlineThickness() const
 {
     return m_lUnderlineThickness;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 const char* PdfFontMetrics::Filename() const
 {
     return m_sFilename.c_str();
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const char* PdfFontMetrics::FontData() const
+{
+    return m_pFontData;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+unsigned int PdfFontMetrics::FontDataLen() const
+{
+    return m_nFontDataLen;
+}  
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 unsigned int PdfFontMetrics::Weight() const
 {
     return m_nWeight;
 }  
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 double PdfFontMetrics::Ascent() const
 {
     return m_dAscent;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 double PdfFontMetrics::Descent() const
 {
     return m_dDescent;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 int PdfFontMetrics::ItalicAngle() const
 {
     return m_nItalicAngle;

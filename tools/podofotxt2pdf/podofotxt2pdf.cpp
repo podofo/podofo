@@ -103,7 +103,7 @@ PdfError init( const char* pszInput, const char* pszOutput )
     char*  pszBuf;
     long   lSize;
 
-    hFile = fopen( pszInput, "r" );
+    hFile = fopen( pszInput, "rb" );	// read it as binary if we are going to compare sizes!
     if( !hFile )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );

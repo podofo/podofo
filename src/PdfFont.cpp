@@ -126,8 +126,8 @@ PdfError PdfFont::EmbeddFont( PdfObject* pDescriptor )
     PdfError   eCode;
     PdfObject* pContents;
     FILE*      hFile;
-    char*      pBuffer;
-    long       lSize;
+    char*      pBuffer = NULL;
+    long       lSize = 0;
 
     pContents = m_pWriter->CreateObject();
     if( !pContents )
@@ -137,23 +137,30 @@ PdfError PdfFont::EmbeddFont( PdfObject* pDescriptor )
 
     pDescriptor->AddKey( "FontFile2", pContents->Reference() );
 
-    hFile = fopen( m_pMetrics->Filename(), "rb" );
-    if( !hFile )
-    {
-        RAISE_ERROR( ePdfError_FileNotFound );
-    }
+	// if the data was loaded from memory - use it from there
+	// otherwise, load from disk
+	if ( m_pMetrics->FontDataLen() && m_pMetrics->FontData() ) {
+		pBuffer = const_cast<char*>( m_pMetrics->FontData() );
+		lSize = m_pMetrics->FontDataLen();
+	} else {
+		hFile = fopen( m_pMetrics->Filename(), "rb" );
+		if( !hFile )
+		{
+			RAISE_ERROR( ePdfError_FileNotFound );
+		}
 
-    fseek( hFile, 0, SEEK_END );
-    lSize = ftell( hFile );
-    fseek( hFile, 0, SEEK_SET );
+		fseek( hFile, 0, SEEK_END );
+		lSize = ftell( hFile );
+		fseek( hFile, 0, SEEK_SET );
 
-    pBuffer = (char*)malloc( sizeof(char) * lSize );
-    fread( pBuffer, lSize, sizeof(char), hFile ); 
+		pBuffer = (char*)malloc( sizeof(char) * lSize );
+		fread( pBuffer, lSize, sizeof(char), hFile ); 
 
-    fclose( hFile );
-    
+		fclose( hFile );
+	}
+
     pContents->AddKey( "Length1", lSize );
-    pContents->Stream()->Set( pBuffer, lSize );
+    pContents->Stream()->Set( pBuffer, lSize, !m_pMetrics->FontDataLen() );	// if we loaded from memory, DO NOT let Stream take possession
 
     return eCode;
 }

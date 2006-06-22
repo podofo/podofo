@@ -9,6 +9,7 @@ Version 0.2
 	Fixed PDF files with more than one DecodeParms dictionary in one
 	object;
 	Added on demand loading of objects to the PdfParser;
+	Ported to windows by Leonard Rosenthol;
 
 Version 0.1 (11 June 2006)
 	Initial release;

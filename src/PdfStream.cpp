@@ -34,6 +34,7 @@ PdfStream::PdfStream( PdfObject* pParent )
     m_szStream = NULL;
     m_lLength  = 0;
     m_lSize    = 0;
+	m_bOwnedBuffer = false;
 }
 
 PdfStream::PdfStream( const PdfStream & rhs )
@@ -41,21 +42,22 @@ PdfStream::PdfStream( const PdfStream & rhs )
     m_szStream = NULL;
     m_lLength  = 0;
     m_lSize    = 0;
+	m_bOwnedBuffer = false;
 
     operator=(rhs);
 }
 
 PdfStream::~PdfStream()
 {
-    if( m_szStream && m_lLength )
+    if( m_szStream && m_lLength && m_bOwnedBuffer )
         free( m_szStream );
 }
 
-PdfError PdfStream::Set( char* szBuffer, long lLen )
+PdfError PdfStream::Set( char* szBuffer, long lLen, bool takePossession )
 {
     PdfError eCode;
 
-    if( m_szStream && m_lLength )
+    if( m_szStream && m_lLength && m_bOwnedBuffer )
         free( m_szStream );
 
     if( !szBuffer )
@@ -81,7 +83,8 @@ PdfError PdfStream::Set( const char* pszString )
 
     if( m_szStream && m_lLength )
     {
-        free( m_szStream );
+		if ( m_bOwnedBuffer )
+			free( m_szStream );
 
         m_szStream = NULL;
         m_lLength  = 0;
@@ -461,6 +464,7 @@ const PdfStream & PdfStream::operator=( const PdfStream & rhs )
     m_pParent  = rhs.m_pParent;
     m_lSize    = rhs.m_lLength;
     m_lLength  = rhs.m_lLength;
+	m_bOwnedBuffer = true;	// since we're making a copy
     
     m_szStream = (char*)malloc( sizeof(char) * m_lLength );
     memcpy( m_szStream, rhs.m_szStream, m_lLength );

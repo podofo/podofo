@@ -60,9 +60,10 @@ class PdfStream {
      *  not with new, as free is used instead of delete for freeing the memory.
      *  \param szBuffer buffer containing the stream data
      *  \param lLen length of the buffer
+	 *  \param takePossession does the stream now own this buffer...
      *  \returns ErrOk
      */
-    PdfError Set( char* szBuffer, long lLen );
+    PdfError Set( char* szBuffer, long lLen, bool takePossession = true );
 
     /** Set a text buffer as the streams contents.
      *  The string will be copied into a newly allocated buffer.
@@ -176,6 +177,7 @@ class PdfStream {
     char*        m_szStream;
     long         m_lLength;
     long         m_lSize;
+	bool		 m_bOwnedBuffer;
 };
 
 const char* PdfStream::Get() const

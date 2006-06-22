@@ -20,7 +20,7 @@
 
 #include "ImageExtractor.h"
 
-#include <unistd.h>
+#include <sys/stat.h>
 
 ImageExtractor::ImageExtractor()
     : m_pszOutputDirectory( NULL ), m_nCount( 0 )
@@ -64,10 +64,15 @@ PdfError ImageExtractor::Init( const char* pszInput, const char* pszOutput, int*
                     SAFE_OP( (*it)->GetKeyValueVariant( PdfName::KeySubtype, var ) );
                     if( var.GetName().Name() && strcmp( var.GetName().Name(), "Image" ) == 0 )
                     {
-                        SAFE_OP( ExtractImage( *it ) );
+						SAFE_OP( (*it)->GetKeyValueVariant( PdfName::KeyFilter, var ) );
+						if( var.GetName().Name() && strcmp( var.GetName().Name(), "DCTDecode" ) == 0 )
+						{	// ONLY images with filter of DCTDecode can be extracted out as JPEG this way!
 
-                        if( pnNum )
-                            ++(*pnNum);
+							SAFE_OP( ExtractImage( *it ) );
+
+							if( pnNum )
+								++(*pnNum);
+						}
                     }
                 }
             }
@@ -84,7 +89,7 @@ PdfError ImageExtractor::ExtractImage( PdfObject* pObject )
 {
     PdfError eCode;
     FILE*    hFile = NULL;
-    long     lLen;
+//    long     lLen;
 
     // Do not overwrite existing files:
     do {
@@ -107,9 +112,11 @@ PdfError ImageExtractor::ExtractImage( PdfObject* pObject )
 
 bool ImageExtractor::FileExists( const char* pszFilename )
 {
-    int result;
+    bool result = true;
     
-    result = access (pszFilename, F_OK);
+	// if there is an error, it's probably because the file doesn't yet exist
+	struct	stat	stBuf;
+	if ( stat( pszFilename, &stBuf ) == -1 )	result = false;
 
-    return (result == 0);
+    return result;
 }

@@ -535,8 +535,7 @@ bool PdfObject::operator==( const PdfObject & rhs )
 inline bool PdfObject::HasStream() const
 {
     DELAYED_LOADING();
-
-    return (bool)m_pStream;
+    return ( m_pStream != NULL );
 }
 
 // -----------------------------------------------------

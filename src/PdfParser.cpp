@@ -24,8 +24,9 @@
 #include "PdfStream.h"
 #include "PdfVariant.h"
 
-#include <string.h>
-#include <stdlib.h>
+#include <algorithm>
+#include <cstring>
+#include <cstdlib>
 
 #define PDF_MAGIC_LEN       8
 #define PDF_XREF_ENTRY_SIZE 20
@@ -850,7 +851,8 @@ PdfError PdfParser::ReadObjects()
 
     m_mapStreamCache.clear();
 
-    // Now let all objects read theier associate streams
+    // Now let all objects read their associate streams
+	// NOTE: this is BAD IDEA to do upfront for PDFs with LOTS of images or other streams!
     if( !m_bLoadOnDemand )
     {
         itObjects = m_vecObjects.begin();

@@ -52,7 +52,7 @@ const PdfReference & PdfReference::operator=( const PdfReference & rhs )
 {
     m_nObjectNo     = rhs.m_nObjectNo;
     m_nGenerationNo = rhs.m_nGenerationNo;
-
+	return *this;
 }
 
 bool PdfReference::operator==( const PdfReference & rhs ) const

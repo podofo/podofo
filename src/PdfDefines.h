@@ -28,7 +28,7 @@
  */ 
 
 // Include common system files
-#include <stdio.h>
+#include <cstdio>
 
 // Include common STL files
 #include <map>
@@ -310,6 +310,15 @@ static const char s_cDelimiters[] = {
                        eCode.SetErrorInformation( NULL ); \
                        return eCode;\
                      }
+
+/*
+	This is needed to enable compilation with VC++ on Windows
+*/
+#ifdef _MSC_VER
+#define snprintf _snprintf
+#define vsnprintf _vsnprintf
+#endif
+
 
 /**
  * \mainpage

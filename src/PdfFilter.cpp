@@ -383,7 +383,11 @@ PdfError PdfFlateFilter::Encode( const char* pInBuffer, long lInLen, char** ppOu
         RAISE_ERROR( ePdfError_Flate );
     }
 
+#ifndef deflateBound
+	 lBufLen = lInLen + 1024; /* 1024=emergency extra space */
+#else
     lBufLen = deflateBound( &d_stream, lInLen );
+#endif
     buf = (char*)malloc( sizeof( char ) * lBufLen );
     if( !buf )
     {

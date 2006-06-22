@@ -115,6 +115,7 @@ class PdfName {
     static const PdfName KeySize;
     static const PdfName KeySubtype;
     static const PdfName KeyType;
+	static const PdfName KeyFilter;
 
  private:
     char   m_pszData[PDF_NAME_MAX_LENGTH];

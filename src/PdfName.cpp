@@ -30,6 +30,7 @@ const PdfName PdfName::KeyRect      = PdfName( "Rect" );
 const PdfName PdfName::KeySize      = PdfName( "Size" );
 const PdfName PdfName::KeySubtype   = PdfName( "Subtype" );
 const PdfName PdfName::KeyType      = PdfName( "Type" );
+const PdfName PdfName::KeyFilter    = PdfName( "Filter" );
 
 PdfName::PdfName()
 {

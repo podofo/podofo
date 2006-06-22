@@ -27,8 +27,11 @@
 #include "PdfPage.h"
 #include "PdfImage.h"
 
+#ifndef _WIN32
 #include <fontconfig.h>
+#endif
 
+#include <algorithm>
 #include <sstream>
 
 #define PRODUCER_NAME "(PdfSignature Library)"
@@ -59,12 +62,16 @@ PdfSimpleWriter::PdfSimpleWriter()
     m_nPageTreeSize = 0;
     m_bInitDone     = false;
 
+#ifndef _WIN32
     m_pFcConfig     = (void*)FcInitLoadConfigAndFonts();
+#endif
 }    
 
 PdfSimpleWriter::~PdfSimpleWriter()
 {
+#ifndef _WIN32
     FcConfigDestroy( (FcConfig*)m_pFcConfig );
+#endif
 
     if( m_bInitDone )    
         FT_Done_FreeType( m_ftLibrary );
@@ -136,7 +143,11 @@ PdfPage* PdfSimpleWriter::CreatePage( const TSize & tSize )
 PdfFont* PdfSimpleWriter::CreateFont( const char* pszFontName, bool bEmbedd )
 {
     PdfError          eCode;
+#ifdef _WIN32
+	std::string		  sPath = PdfFontMetrics::GetFilenameForFont( pszFontName );
+#else
     std::string       sPath = PdfFontMetrics::GetFilenameForFont( (FcConfig*)m_pFcConfig, pszFontName );
+#endif
     PdfFont*          pFont;
     PdfFontMetrics*   pMetrics;
     TCISortedFontList it;
