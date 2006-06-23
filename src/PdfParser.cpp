@@ -656,7 +656,7 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
 
 
     SAFE_OP( xrefObject.GetKeyValueVariant( PdfName::KeyType, xrefType ) );
-    if( xrefType.GetDataType() != ePdfDataType_Name || strcmp( xrefType.GetName().Name(), "XRef" ) != 0 )
+    if( xrefType.GetDataType() != ePdfDataType_Name || ( xrefType.GetName().Name() != "XRef" ) )
     {
         RAISE_ERROR( ePdfError_NoXRef );
     } 

@@ -32,40 +32,45 @@ const PdfName PdfName::KeySubtype   = PdfName( "Subtype" );
 const PdfName PdfName::KeyType      = PdfName( "Type" );
 const PdfName PdfName::KeyFilter    = PdfName( "Filter" );
 
-PdfName::PdfName()
+PdfName::PdfName() : m_Data( "" ) {}
+
+PdfName::PdfName( const std::string& sName )
 {
-    m_pszData[0] = '\0';
-    m_length     = 0;
+	if( !sName.empty() && sName.length() < PDF_NAME_MAX_LENGTH )
+		m_Data = sName;
+	else
+	{
+		if( !sName.empty() )
+			PdfError::LogMessage( eLogSeverity_Warning, 
+								  "Length of PDF Names has to be > 0 and < %d. Length of %d passed to PdfName.\n", 
+								  PDF_NAME_MAX_LENGTH, sName.length() );
+	}
 }
 
 PdfName::PdfName( const char* pszName )
 {
-    m_pszData[0] = '\0';
-
-    if( pszName && (m_length = strlen( pszName )) < PDF_NAME_MAX_LENGTH )
-        strncpy( m_pszData, pszName, PDF_NAME_MAX_LENGTH );
+    if( pszName && strlen( pszName ) < PDF_NAME_MAX_LENGTH )
+        m_Data.assign( pszName );
     else
     {
         if( pszName )
-            PdfError::LogMessage( eLogSeverity_Warning, "Length of PDF Names has to be > 0 and < %i. Length of %i passed to PdfName.\n", PDF_NAME_MAX_LENGTH, m_length );
-        m_length = 0;
+            PdfError::LogMessage( eLogSeverity_Warning, 
+								  "Length of PDF Names has to be > 0 and < %d. Length of %d passed to PdfName.\n", 
+								  PDF_NAME_MAX_LENGTH, strlen( pszName ) );
     }
 }
 
 PdfName::PdfName( const char* pszName, long lLen )
 {
-    m_pszData[0] = '\0';
-    m_length     = lLen;
-
-    if( pszName && m_length < PDF_NAME_MAX_LENGTH )
+    if( pszName && lLen < PDF_NAME_MAX_LENGTH )
     {
-        strncpy( m_pszData, pszName, m_length );
-        m_pszData[m_length] = '\0';
+        m_Data.assign( pszName, lLen );
     }
     else
     {
-        PdfError::LogMessage( eLogSeverity_Warning, "Length of PDF Names has to be > 0 and < %i. Length of %i passed to PdfName.", PDF_NAME_MAX_LENGTH, m_length );
-        m_length = 0;
+        PdfError::LogMessage( eLogSeverity_Warning, 
+							 "Length of PDF Names has to be > 0 and < %i. Length of %i passed to PdfName.", 
+							  PDF_NAME_MAX_LENGTH, lLen );
     }
 }
 
@@ -80,52 +85,50 @@ PdfName::~PdfName()
 
 const PdfName& PdfName::operator=( const PdfName & rhs )
 {
-    m_length = rhs.m_length;
-    if( rhs.m_pszData )
-        strncpy( m_pszData, rhs.m_pszData, PDF_NAME_MAX_LENGTH );
-    else
-        m_pszData[0] = '\0';
-
+	m_Data = rhs.m_Data;
     return *this;
 }
 
 bool PdfName::operator==( const PdfName & rhs ) const
 {
-    if( m_length != rhs.m_length )
-        return false;
-    else
-    {
-        return this->operator==( rhs.m_pszData );
-    }
+	return ( m_Data == rhs.m_Data );
+}
 
-    return false;
+bool PdfName::operator==( const std::string & rhs ) const
+{
+	return ( m_Data == rhs );
 }
 
 bool PdfName::operator==( const char* rhs ) const
 {
-    if( !m_pszData && !rhs )
+	/*
+		If the string is empty and you pass NULL - that's equivalent
+		If the string is NOT empty and you pass NULL - that's not equal
+		Otherwise, compare them
+	*/
+    if( m_Data.empty() && !rhs )
         return true;
-    else if( !m_pszData || !rhs )
+    else if( !m_Data.empty() && !rhs )
         return false;
     else
-        return (strcmp( m_pszData, rhs ) == 0 );
+		return ( m_Data == std::string( rhs ) );
 }
 
 bool PdfName::operator<( const PdfName & rhs ) const
 {
-    if( m_length == rhs.m_length )
+    if( m_Data.length() == rhs.m_Data.length() )
     {
-        if( !m_pszData && !rhs.m_pszData )
+        if( m_Data.empty() && rhs.m_Data.empty() )
             return false;
-        else if( !m_pszData && rhs.m_pszData )
+        else if( m_Data.empty() && !rhs.m_Data.empty() )
             return false;
-        else if( m_pszData && !rhs.m_pszData )
+        else if( !m_Data.empty() && rhs.m_Data.empty() )
             return true;
         else
-            return (strcmp( m_pszData, rhs.m_pszData ) < 0 );
+            return ( m_Data < rhs.m_Data );
     }
     else
-        return m_length < rhs.m_length;
+        return m_Data.length() < rhs.m_Data.length();
 }
 
 };

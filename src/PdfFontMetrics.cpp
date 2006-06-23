@@ -72,6 +72,19 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsig
     InitFromFace();
 }
 
+/*
+PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen )
+	: m_pLibrary( pLibrary ), m_sFilename( "" ), m_pFontData( const_cast<char*>(pBuffer) ), m_nFontDataLen( nBufLen )
+{
+	m_face                = NULL;
+
+	// TODO: handle errors here
+	FT_Error	error = FT_New_Memory_Face( *pLibrary, (unsigned char*)pBuffer, nBufLen, 0, &m_face );
+
+	InitFromFace();
+}
+*/
+
 PdfFontMetrics::~PdfFontMetrics()
 {
     if ( m_face )
@@ -104,6 +117,15 @@ const char* PdfFontMetrics::Fontname() const
     const char*	s = FT_Get_Postscript_Name( m_face );
     return s ? s : "";
 }
+
+/*
+const std::string PdfFontMetrics::Fontname() const
+{
+	const char*	s = FT_Get_Postscript_Name( m_face );
+	return  s ? std::string( s ) : std::string( "" );
+//    return FT_Get_Postscript_Name( m_face );
+}
+*/
 
 PdfError PdfFontMetrics::GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast ) const
 {

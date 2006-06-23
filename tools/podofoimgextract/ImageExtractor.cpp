@@ -57,15 +57,15 @@ PdfError ImageExtractor::Init( const char* pszInput, const char* pszOutput, int*
         if( (*it)->HasKey( PdfName::KeyType ) )
         {
             SAFE_OP( (*it)->GetKeyValueVariant( PdfName::KeyType, var ) );
-            if( var.GetName().Name() && strcmp( var.GetName().Name(), "XObject" ) == 0 )
+            if( var.IsName() && ( var.GetName().Name() == "XObject" ) )
             {
                 if( (*it)->HasKey( PdfName::KeySubtype ) )
                 {
                     SAFE_OP( (*it)->GetKeyValueVariant( PdfName::KeySubtype, var ) );
-                    if( var.GetName().Name() && strcmp( var.GetName().Name(), "Image" ) == 0 )
+                    if( var.IsName() && ( var.GetName().Name() == "Image" ) )
                     {
 						SAFE_OP( (*it)->GetKeyValueVariant( PdfName::KeyFilter, var ) );
-						if( var.GetName().Name() && strcmp( var.GetName().Name(), "DCTDecode" ) == 0 )
+						if( var.IsName() && ( var.GetName().Name() == "DCTDecode" ) )
 						{	// ONLY images with filter of DCTDecode can be extracted out as JPEG this way!
 
 							SAFE_OP( ExtractImage( *it ) );

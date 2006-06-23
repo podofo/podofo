@@ -235,7 +235,7 @@ class PdfWriter {
     PdfError WritePdfTableOfContents( PdfOutputDevice* pDevice );
 
  protected:
-    unsigned int    m_nObjectCount;
+    size_t			m_nObjectCount;
     TVecObjects     m_vecObjects;
 
  private:

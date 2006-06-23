@@ -439,9 +439,9 @@ PdfError PdfVariant::ToString( std::string & rsData ) const
             out << "]";
             break;
         case ePdfDataType_Dictionary:
-            device.Init( sTmp );
+            device.Init( &out );
             eCode = m_pDictionary->Write( &device );
-            out << sTmp;
+            // out << sTmp;
             break;
         case ePdfDataType_Null:
             out << "null";

@@ -439,7 +439,7 @@ PdfError PdfObject::Write( PdfOutputDevice* pDevice, const PdfName & keyStop )
                     return eCode;
 
                 SAFE_OP( (*itKeys).second.ToString( sData ) );
-                SAFE_OP( pDevice->Print( "/%s %s\n", (*itKeys).first.Name(), sData.c_str() ) );
+                SAFE_OP( pDevice->Print( "/%s %s\n", (*itKeys).first.Name().c_str(), sData.c_str() ) );
             }
 
             ++itKeys;
@@ -450,7 +450,7 @@ PdfError PdfObject::Write( PdfOutputDevice* pDevice, const PdfName & keyStop )
             if( keyStop.Length() && (*itObjKeys).first == keyStop )
                 return eCode;
 
-            SAFE_OP( pDevice->Print( "/%s ", (*itObjKeys).first.Name() ) );
+            SAFE_OP( pDevice->Print( "/%s ", (*itObjKeys).first.Name().c_str() ) );
             SAFE_OP( (*itObjKeys).second->Write( pDevice ) );
             ++itObjKeys;
         }

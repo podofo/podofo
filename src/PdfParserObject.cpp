@@ -342,7 +342,7 @@ PdfError PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, 
             {
                 cVariant.ToString( sValue );
 #ifdef _DEBUG
-                printf("Key: (%s) Got Value: (%s) %i belongs to: %s\n", cName.Name(), sValue.c_str(), (int)cVariant.GetDataType(), this->Reference().ToString().c_str() );
+                printf("Key: (%s) Got Value: (%s) %i belongs to: %s\n", cName.Name().c_str(), sValue.c_str(), (int)cVariant.GetDataType(), this->Reference().ToString().c_str() );
 #endif // _DEBUG
                 this->AddKey( cName, cVariant );
             }

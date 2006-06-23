@@ -20,8 +20,10 @@
 
 #include "PdfOutputDevice.h"
 
-#include <stdio.h>
-#include <stdarg.h>
+#include <cstdio>
+#include <cstdarg>
+#include <fstream>
+#include <sstream>
 
 namespace PoDoFo {
 
@@ -69,14 +71,13 @@ PdfError PdfOutputDevice::Init( char* pBuffer, long lLen )
     return eCode;
 }
 
-PdfError PdfOutputDevice::Init( std::string & rsString )
+PdfError PdfOutputDevice::Init( const std::ostream* pOutStream )
 {
     PdfError eCode;
 
     SAFE_OP( this->Init() );
 
-    m_pString = &rsString;
-    m_pString->clear();
+	m_pStream = const_cast< std::ostream* >( pOutStream );
 
     return eCode;
 }
@@ -87,7 +88,7 @@ PdfError PdfOutputDevice::Init()
 
     m_hFile      = NULL;
     m_pBuffer    = NULL;
-    m_pString    = NULL;
+    m_pStream    = NULL;
     m_lBufferLen = 0;
 
     return ePdfError_ErrOk;
@@ -123,7 +124,7 @@ PdfError PdfOutputDevice::Print( const char* pszFormat, ... )
         else
             eCode.SetError( ePdfError_OutOfMemory, __FILE__, __LINE__ );
     }
-    else if( m_pString )
+    else if( m_pStream )
     {
         ++lBytes;
         std::string str;
@@ -135,7 +136,7 @@ PdfError PdfOutputDevice::Print( const char* pszFormat, ... )
         
         vsnprintf( data, lBytes, pszFormat, args );
         str.assign( data, lBytes );
-        *m_pString += str.c_str();
+        *m_pStream << str;
         free( data );
     }
 
@@ -164,9 +165,9 @@ PdfError PdfOutputDevice::Write( const char* pBuffer, long lLen )
         else
             eCode.SetError( ePdfError_OutOfMemory, __FILE__, __LINE__ );
     }
-    else if( m_pString )
+    else if( m_pStream )
     {
-        *m_pString = m_pString->append( pBuffer, lLen );
+        m_pStream->write( pBuffer, lLen );
     }
 
     if( !eCode.IsError() )

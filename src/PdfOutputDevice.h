@@ -21,6 +21,8 @@
 #ifndef _PDF_OUTPUT_DEVICE_H_
 #define _PDF_OUTPUT_DEVICE_H_
 
+#include <ostream>
+
 #include "PdfDefines.h"
 
 namespace PoDoFo {
@@ -65,15 +67,13 @@ class PdfOutputDevice {
     PdfError Init( char* pBuffer, long lLen );
 
     /** Initialize the PdfOutputDevice and cause all data to be written
-     *  to a std::string. Be careful with writing binary data to this object.
+     *  to a std::ostream. 
      *
-     *  Using an output device of this type might me slower than the other types.
-     *
-     *  \param rsString write to this string object
+     *  \param pOutStream write to this std::ostream
      *
      *  \returns ErrOk on success
      */
-    PdfError Init( std::string & rsString  );
+	PdfError Init( const std::ostream* pOutStream );
 
     /** Initialize the PdfOutputDevice and do not write any data but 
      *  count the length of the written data.
@@ -115,9 +115,9 @@ class PdfOutputDevice {
 
     FILE*         m_hFile;
     char*         m_pBuffer;
-    long          m_lBufferLen;
+    unsigned long m_lBufferLen;
 
-    std::string*  m_pString;
+    std::ostream*  m_pStream;
 };
 
 unsigned long PdfOutputDevice::Length() const

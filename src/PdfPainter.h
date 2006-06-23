@@ -208,19 +208,19 @@ class PdfPainter {
     PdfError FillRect( long lX, long lY, long lWidth, long lHeight );
 
     /** Draw an ellipse with the current stroking settings
-     *  \param lX x coordinate of the rectangle (left coordinate)
-     *  \param lY y coordinate of the rectangle (top coordinate)
-     *  \param lWidth width of the rectangle
-     *  \param lHeight absolute height of the rectangle
+     *  \param lX x coordinate of the ellipse (left coordinate)
+     *  \param lY y coordinate of the ellipse (top coordinate)
+     *  \param lWidth width of the ellipse
+     *  \param lHeight absolute height of the ellipse
      *  \returns ErrOk on success
      */
     PdfError DrawEllipse( long lX, long lY, long lWidth, long lHeight ); 
 
     /** Fill an ellipse with the current fill settings
-     *  \param lX x coordinate of the rectangle (left coordinate)
-     *  \param lY y coordinate of the rectangle (top coordinate)
-     *  \param lWidth width of the rectangle 
-     *  \param lHeight absolute height of the rectangle
+     *  \param lX x coordinate of the ellipse (left coordinate)
+     *  \param lY y coordinate of the ellipse (top coordinate)
+     *  \param lWidth width of the ellipse 
+     *  \param lHeight absolute height of the ellipse
      *  \returns ErrOk on success
      */
     PdfError FillEllipse( long lX, long lY, long lWidth, long lHeight ); 
@@ -258,7 +258,6 @@ class PdfPainter {
      */
     PdfError DrawImage( long lX, long lY, PdfImageRef* pImageRef, double dScaleX = 1.0, double dScaleY = 1.0);
 
-    // TODO: change to use the top right position!!!
     /** Draw an XObject on the current page.
      *  \param lX the x coordinate (bottom left position of the XObject)
      *  \param lY the y coordinate (bottom position of the XObject)

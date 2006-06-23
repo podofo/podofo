@@ -582,7 +582,7 @@ PdfError PdfPainter::DrawText( long lX, long lY, const PdfString & sText, long l
     }
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "BT\n/%s %.3f Tf\n%.3f %.3f Td\n<", 
-              m_pFont->Identifier().Name(), m_pFont->FontSize(),
+              m_pFont->Identifier().Name().c_str(), m_pFont->FontSize(),
               (double)lX * CONVERSION_CONSTANT,
               (double)(m_pPage->PageSize().lHeight - lY) * CONVERSION_CONSTANT );
 
@@ -625,7 +625,7 @@ PdfError PdfPainter::DrawXObject( long lX, long lY, PdfImageRef* pImageRef, doub
               (double)pImageRef->Height() * dScaleY,
               (double)lX * CONVERSION_CONSTANT,
               (double)(m_pPage->PageSize().lHeight - lY) * CONVERSION_CONSTANT,
-              pImageRef->Identifier().Name() );
+              pImageRef->Identifier().Name().c_str() );
     m_pCanvas->Append( m_szBuffer );
 
     return eCode;

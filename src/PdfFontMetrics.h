@@ -117,6 +117,11 @@ class PdfFontMetrics {
      */
     const char* Fontname() const;
 
+     /** Get a string with the postscript name of the font.
+     *  \returns the postscript name of the font or empty string if no postscript name is available.
+     */
+    // const std::string Fontname() const;
+
     /** Get the weight of this font.
      *  Used to build the font dictionay
      *  \returns the weight of this font (500 is normal).
@@ -190,7 +195,7 @@ class PdfFontMetrics {
     long          m_lUnderlinePosition;
 
     std::string   m_sFilename;
-    char*	  m_pFontData;
+    char*		  m_pFontData;
     unsigned int  m_nFontDataLen;
     
     /** Load the metric data from the FTFace data

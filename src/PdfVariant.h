@@ -115,6 +115,20 @@ class PdfVariant {
      *  \param eDataType the data type of this variant.
      */        
     inline void SetDataType( EPdfDataType eDataType );
+
+	/** Shortcut methods for checking the type of data this is
+	*/
+	bool IsBool() const { return GetDataType() == ePdfDataType_Bool; }
+	bool IsNumber() const { return GetDataType() == ePdfDataType_Number; }
+	bool IsReal() const { return GetDataType() == ePdfDataType_Real; }
+	bool IsString() const { return GetDataType() == ePdfDataType_String; }
+	bool IsHexString() const { return GetDataType() == ePdfDataType_HexString; }
+	bool IsName() const { return GetDataType() == ePdfDataType_Name; }
+	bool IsArray() const { return GetDataType() == ePdfDataType_Array; }
+	bool IsDictionary() const { return GetDataType() == ePdfDataType_Dictionary; }
+	bool IsStream() const { return GetDataType() == ePdfDataType_Stream; }
+	bool IsNull() const { return GetDataType() == ePdfDataType_Null; }
+	bool IsReference() const { return GetDataType() == ePdfDataType_Reference; }
        
     /** Converts the current object into a string representation
      *  which can be written directly to a PDF file on disc.

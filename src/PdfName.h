@@ -44,6 +44,12 @@ class PdfName {
     PdfName();
 
     /** Create a new PdfName object.
+     *  \param sName the value of this name. Please specify
+     *                 the name without the leading '/'.
+     */
+	PdfName( const std::string& sName );
+
+    /** Create a new PdfName object.
      *  \param pszName the value of this name. Please specify
      *                 the name without the leading '/'.
      *                 Has to be a zero terminated string.
@@ -67,12 +73,12 @@ class PdfName {
     /** \returns the value of this name object
      *           without the leading slash
      */
-    inline const char* Name() const;
+	inline const std::string& Name() const;
 
     /** \returns the length of this
      *           name object
      */
-    inline short Length() const;
+    inline size_t Length() const;
 
     /** Assign anotehr name to this object
      *  \param rhs another PdfName object
@@ -89,6 +95,12 @@ class PdfName {
      *  \returns true if this objects name is equal to pszName
      */
     bool operator==( const char* rhs ) const;
+
+    /** overloaded operator for convinience
+     *  \param rhs a name
+     *  \returns true if this objects name is equal to pszName
+     */
+	bool operator==( const std::string& rhs ) const;
 
     /** compare two PdfName objects.
      *  \returns true if both PdfNames have different values.
@@ -118,19 +130,20 @@ class PdfName {
 	static const PdfName KeyFilter;
 
  private:
-    char   m_pszData[PDF_NAME_MAX_LENGTH];
-    short  m_length;
+//     char   m_pszData[PDF_NAME_MAX_LENGTH];
+//     short  m_length;
+	 std::string	m_Data;
 };
 
-const char* PdfName::Name() const
+const /*char**/std::string& PdfName::Name() const
 {
     // avoid returning null strings
-    return m_pszData ? m_pszData : "";
+    return m_Data;	// m_pszData ? m_pszData : "";
 }
 
-short PdfName::Length() const
+size_t PdfName::Length() const
 {
-    return m_length;
+    return m_Data.length();	// m_length;
 }
 
 bool PdfName::operator!=( const PdfName & rhs ) const
