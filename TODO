@@ -4,7 +4,8 @@ PoDoFo 0.3
        - Some more drawing routines (tiles, save and rstore?)
        - PdfWriter should be able to write objects immediately
          and not keep all in memory first.
-
-PoDoFo 0.2
        - PdfParser should return more information (i.e. vector of all pages
        and a reference to the PageTree)
+       - introduce PdfArray and PdfDictionary classes
+       - Add configure checks for zlib, freetype and fontconfig
+
