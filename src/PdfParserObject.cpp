@@ -34,8 +34,8 @@ static const int s_nLenEndObj    = 6; // strlen("endobj");
 static const int s_nLenStream    = 6; // strlen("stream");
 static const int s_nLenEndStream = 9; // strlen("endstream");
 
-PdfParserObject::PdfParserObject( FILE* hFile, char* szBuffer, long lBufferSize, long lOffset )
-    : PdfObject( 0, 0, NULL), PdfParserBase( hFile, szBuffer, lBufferSize )
+PdfParserObject::PdfParserObject( PdfParser* pParser, FILE* hFile, char* szBuffer, long lBufferSize, long lOffset )
+    : PdfObject( 0, 0, NULL), PdfParserBase( hFile, szBuffer, lBufferSize ), m_pParser( pParser )
 {
     Init();
 
@@ -43,7 +43,7 @@ PdfParserObject::PdfParserObject( FILE* hFile, char* szBuffer, long lBufferSize,
 }
 
 PdfParserObject::PdfParserObject( char* szBuffer, long lBufferSize )
-    : PdfObject( 0, 0, NULL), PdfParserBase( NULL, szBuffer, lBufferSize)
+    : PdfObject( 0, 0, NULL), PdfParserBase( NULL, szBuffer, lBufferSize), m_pParser( NULL )
 {
     Init();
     this->SetDirect( true );
@@ -87,11 +87,11 @@ PdfError PdfParserObject::ReadObjectNumber()
     return eCode;
 }
 
-PdfError PdfParserObject::ParseFile( PdfParser* pParser, bool bIsTrailer )
+PdfError PdfParserObject::ParseFile( bool bIsTrailer )
 {
     PdfError     eCode;
 
-    if( !m_hFile || !pParser )
+    if( !m_hFile || !m_pParser )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -104,7 +104,6 @@ PdfError PdfParserObject::ParseFile( PdfParser* pParser, bool bIsTrailer )
         SAFE_OP( ReadObjectNumber() );
     }
 
-    m_pParser    = pParser;
     m_lOffset    = ftell( m_hFile );
     m_bIsTrailer = bIsTrailer;
 
@@ -482,7 +481,7 @@ PdfError PdfParserObject::ParseValue( char** szBuffer, string & sKey, string & s
 }
 #endif // 0
 
-PdfError PdfParserObject::ParseStream( const PdfVecObjects* pVecObjects )
+PdfError PdfParserObject::ParseStream()
 {
     PdfError     eCode;
     long         lLen  = -1;
@@ -491,7 +490,7 @@ PdfError PdfParserObject::ParseStream( const PdfVecObjects* pVecObjects )
     PdfVariant   variant;
     PdfReference ref;
 
-    if( !m_hFile || !pVecObjects )
+    if( !m_hFile || !m_pParser )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -530,7 +529,7 @@ PdfError PdfParserObject::ParseStream( const PdfVecObjects* pVecObjects )
         PdfObject* pObj;
 
         ref  = variant.GetReference();
-        pObj = pVecObjects->GetObject( ref );
+        pObj = m_pParser->GetObjects().GetObject( ref );
         if( !pObj )
         {
             RAISE_ERROR( ePdfError_InvalidHandle );
@@ -623,27 +622,41 @@ PdfError PdfParserObject::GetDataType( char c, int* counter, EPdfDataType* eData
     return eCode;
 }
 
-PdfError PdfParserObject::LoadOnDemand( const PdfVecObjects* pVecObjects )
+PdfError PdfParserObject::LoadOnDemand()
 {
     PdfError eCode;
 
-    if( m_bLoadOnDemand )
+    if( m_bLoadOnDemand && !m_bLoadOnDemandDone )
     {
         m_bLoadOnDemandDone = true;
 
-        printf("-> Delayed Parsing Object %s\n", m_reference.ToString().c_str() );
         SAFE_OP( ParseFileComplete( m_bIsTrailer ) );
-
-        printf("-> HasStreamToParse = %i HasStream() = %i\n", this->HasStreamToParse(), this->HasStream() );
-
-        if( this->HasStreamToParse() && !this->HasStream() )
-        {
-            printf("-> Parsing Stream...\n");
-            SAFE_OP_ADV( this->ParseStream( pVecObjects ), "Unable to parse the objects stream." );
-        }
     }
 
     return eCode;
 }
+
+PdfError PdfParserObject::LoadStreamOnDemand()
+{
+    PdfError eCode;
+
+    if( m_bLoadOnDemand && !m_bLoadStreamOnDemandDone )
+    {
+        if( !m_bLoadOnDemandDone )
+        {
+            SAFE_OP( LoadOnDemand() );
+        }
+
+        m_bLoadStreamOnDemandDone = true;
+
+        if( this->HasStreamToParse() && !this->HasStream() )
+        {
+            SAFE_OP_ADV( this->ParseStream(), "Unable to parse the objects stream." );
+        }
+    }
+    
+    return eCode;
+}
+
 
 };

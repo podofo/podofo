@@ -55,7 +55,7 @@ PdfError TestSingleObject( const char* pszFilename, const char* pszData, long lO
 
     printf("Parsing Object: %li %li\n", lObjNo, lGenNo );
 
-    PdfParserObject obj( hFile, NULL, 0 );
+    PdfParserObject obj( NULL, hFile, NULL, 0 );
     eCode = obj.ParseFile( false );
     if( eCode.IsError() ) 
     {
@@ -133,7 +133,7 @@ PdfError TestObject( const char* pszFilename, const char* pszData, long lObjNo, 
 
     printf("Parsing Object: %li %li\n", lObjNo, lGenNo );
 
-    PdfParserObject obj( hFile, NULL, 0 );
+    PdfParserObject obj( NULL, hFile, NULL, 0 );
     eCode = obj.ParseFile( false );
     if( eCode.IsError() ) 
     {

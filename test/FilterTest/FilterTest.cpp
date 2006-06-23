@@ -41,8 +41,8 @@ const char pTestBuffer[]  = "Man is distinguished, not only by his reason, but b
 
 PdfError test_filter( EPdfFilter eFilter ) 
 {
-    PdfError   eCode;
-    PdfFilter* pFilter;
+    PdfError         eCode;
+    const PdfFilter* pFilter;
 
     char*      pEncoded;
     char*      pDecoded;

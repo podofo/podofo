@@ -22,6 +22,7 @@
 #define _PDF_FILTER_H_
 
 #include "PdfDefines.h"
+#include <map>
 
 namespace PoDoFo {
 
@@ -66,7 +67,7 @@ class PdfFilter {
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) = 0;
+    virtual PdfError Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const = 0;
 
     /** Decodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
@@ -82,7 +83,7 @@ class PdfFilter {
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL ) = 0;
+    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL ) const = 0;
 
     /** Type of this filter.
      *  \returns the type of this filter
@@ -95,14 +96,19 @@ class PdfFilter {
 class PdfFilterFactory {
  public:
     /** Create a filter from an enum. 
-     *  The filter is allocated using new and the caller has to delete it.
+     *  The filter is cached and may not be delted!
      *
      *  \param eFilter the type of filter that should be created.
      *
      *  \returns a new PdfFilter allocated using new or NULL if no 
      *           filter is available for this type.
      */
-    static PdfFilter* Create( const EPdfFilter eFilter );
+    static const PdfFilter* Create( const EPdfFilter eFilter );
+
+ private:
+    /** static cache of filter objects
+     */
+    static std::map<EPdfFilter,PdfFilter*> s_mapFilters;
 };
 
 /** The ascii hex filter.
@@ -119,7 +125,7 @@ class PdfHexFilter : public PdfFilter {
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen );
+    virtual PdfError Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
 
     /** Decodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
@@ -135,7 +141,7 @@ class PdfHexFilter : public PdfFilter {
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL );
+    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL ) const;
 
     /** Type of this filter.
      *  \returns the type of this filter
@@ -162,7 +168,7 @@ class PdfAscii85Filter : public PdfFilter {
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen );
+    virtual PdfError Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
 
     /** Decodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
@@ -178,7 +184,7 @@ class PdfAscii85Filter : public PdfFilter {
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL );
+    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL ) const;
 
     /** Type of this filter.
      *  \returns the type of this filter
@@ -186,8 +192,8 @@ class PdfAscii85Filter : public PdfFilter {
     inline virtual EPdfFilter type() const;
 
  private:
-    PdfError Encode ( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes );
-    PdfError WidePut( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes );
+    PdfError Encode ( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes ) const;
+    PdfError WidePut( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes ) const;
 
     static unsigned long sPowers85[];
 };
@@ -211,7 +217,7 @@ class PdfFlateFilter : public PdfFilter {
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen );
+    virtual PdfError Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
 
     /** Decodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
@@ -227,14 +233,14 @@ class PdfFlateFilter : public PdfFilter {
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL );
+    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL ) const;
 
     /** Type of this filter.
      *  \returns the type of this filter
      */
     inline virtual EPdfFilter type() const;
 
-    PdfError RevertPredictor( const TFlatePredictorParams* pParams, const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen );
+    PdfError RevertPredictor( const TFlatePredictorParams* pParams, const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
 };
 
 EPdfFilter PdfFlateFilter::type() const
@@ -256,7 +262,7 @@ class PdfRLEFilter : public PdfFilter {
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen );
+    virtual PdfError Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
 
     /** Decodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
@@ -272,7 +278,7 @@ class PdfRLEFilter : public PdfFilter {
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL );
+    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL ) const;
 
     /** Type of this filter.
      *  \returns the type of this filter

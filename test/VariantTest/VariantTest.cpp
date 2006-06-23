@@ -61,7 +61,7 @@ PdfError Test( const char* pszString, EPdfDataType eDataType )
 int main() 
 {
     PdfError   eCode;
-    PdfFilter* pFilter;
+    const PdfFilter* pFilter;
 
     printf("This test tests the PdfVariant class.\n");
     printf("---\n");

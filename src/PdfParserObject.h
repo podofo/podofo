@@ -39,6 +39,8 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
  public:
     /** Parse the object data from the given file handle starting at
      *  the current position.
+     *  \param pParser    pointer to a parent PdfParser object.
+     *                    required to resolve indirect references in the PDF file.
      *  \param hFile  an open file handle which is positioned in
      *                front of the object which is going to be parsed.
      *  \param szBuffer buffer to use for parsing to avoid reallocations
@@ -47,7 +49,7 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
      *                 if lOffset = -1, the object will be read from the current 
      *                 position in the file.
      */
-    PdfParserObject( FILE* hFile, char* szBuffer, long lBufferSize, long lOffset = -1 );
+    PdfParserObject( PdfParser* pParser, FILE* hFile, char* szBuffer, long lBufferSize, long lOffset = -1 );
 
     /** Parse the object data for an internal object.
      *  You have to call ParseDictionaryKeys as next function call.
@@ -60,7 +62,7 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
      *  \param szBuffer buffer to use for parsing to avoid reallocations
      *  \param lBufferSize size of the buffer
      */
-    PdfParserObject(char* szBuffer, long lBufferSize );
+    PdfParserObject( char* szBuffer, long lBufferSize );
 
     virtual ~PdfParserObject();
 
@@ -68,13 +70,11 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
      *  If delayed loading is enabled, only the object and generation number
      *  is read now and everything else is read later.
      *
-     *  \param pParser    pointer to a parent PdfParser object.
-     *                    required to resolve indirect references in the PDF file.
      *  \param bIsTrailer wether this is a trailer dictionary or not.
      *                    trailer dictionaries do not have a object number etc.
      *  \returns ErrOk on success
      */
-    PdfError ParseFile( PdfParser* pParser, bool bIsTrailer = false );
+    PdfError ParseFile( bool bIsTrailer = false );
 
     /** Returns if this object has a stream object appended.
      *  which has to be parsed.
@@ -85,13 +85,10 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
     /** Starts reading at the file position m_lStreamOffset and interprets all bytes
      *  as contents of the objects stream.
      *  It is assumed that the dictionary has a valid /Length key already.
-     *  \param pVecObjects a vector of pdf object which is used to retrieve objects
-     *                     this is needed if the /Length key is a indirect reference
-     *                     to another object
      *
      *  \returns ErrOk on success
      */
-    PdfError ParseStream( const PdfVecObjects* pVecObjects );
+    PdfError ParseStream();
 
     /** Parse the keys of a dictionary from a zero terminated buffer
      *  \param szBuffer  buffer containing the dictioniaries data
@@ -106,7 +103,7 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
      *                The default is to load all object immediately.
      *                In this case false is returned.
      */
-    inline bool LoadOnDemand() const;
+    inline bool IsLoadOnDemand() const;
 
     /** Sets wether this object shall be loaded on demand
      *  when it's data is accessed for the first time.
@@ -115,10 +112,15 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
     inline void SetLoadOnDemand( bool bDelayed );
 
  protected:
-    /** Load all data of the object if load object on demand is enabled
+    /** Load all data of the object if load object on demand is enabled.
      *  Reimplemented from PdfObject.
      */
-    virtual PdfError LoadOnDemand( const PdfVecObjects* pVecObjects );
+    virtual PdfError LoadOnDemand();
+
+    /** Load the stream of the object if it has one and if loading on demand is enabled.
+     *  Reimplemented from PdfObject.
+     */
+    virtual PdfError LoadStreamOnDemand();
 
  private:
     /** Initialize private members in this object with their default values
@@ -144,9 +146,12 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
 
     bool m_bStream;
     long m_lStreamOffset;
+
+
+    PdfParser*   m_pParser;
 };
 
-bool PdfParserObject::LoadOnDemand() const
+bool PdfParserObject::IsLoadOnDemand() const
 {
     return m_bLoadOnDemand;
 }

@@ -56,13 +56,13 @@ PdfObject::~PdfObject()
 
 void PdfObject::Init()
 {
-    m_bDirect             = false;;
-    m_bEmptyEntry         = false;
+    m_bDirect                 = false;;
+    m_bEmptyEntry             = false;
 
-    m_pStream             = NULL;
-    m_pParser             = NULL;
+    m_pStream                 = NULL;
 
-    m_bLoadOnDemandDone = false;
+    m_bLoadOnDemandDone       = false;
+    m_bLoadStreamOnDemandDone = false;
 }
 
 void PdfObject::Clear()
@@ -159,6 +159,8 @@ PdfError PdfObject::AddKey( const PdfName & identifier, const PdfVariant & rVari
 {
     PdfError eCode;
 
+    SAFE_OP( DelayedLoad() );
+
     if( !identifier.Length() )
     {
         RAISE_ERROR( ePdfError_InvalidDataType );
@@ -173,18 +175,25 @@ PdfError PdfObject::AddKey( const PdfName & identifier, const PdfVariant & rVari
     return eCode;
 }
 
-void PdfObject::AddKey( const PdfName & identifier, PdfObject* pObj )
+PdfError PdfObject::AddKey( const PdfName & identifier, PdfObject* pObj )
 {
+    PdfError eCode;
+
+    SAFE_OP( DelayedLoad() );
+
     PdfObject* pTmp = m_mapObjKeys[identifier];
     if( pTmp )
         delete pTmp;
 
     m_mapObjKeys[identifier] = pObj;
     m_singleValue.Clear();
+
+    return eCode;
 }
 
 bool PdfObject::RemoveKey( const PdfName & identifier )
 {
+    // HasKey calls DelayedLoad()
     if( HasKey( identifier ) )
     {
         m_mapKeys.erase( identifier );
@@ -196,6 +205,7 @@ bool PdfObject::RemoveKey( const PdfName & identifier )
 
 bool PdfObject::RemoveObjectKey( const PdfName & identifier )
 {
+    // HasObjectKey calls DelayedLoad()
     if( HasObjectKey( identifier ) )
     {
         delete GetKeyValueObject( identifier );
@@ -230,6 +240,7 @@ const PdfString & PdfObject::GetKeyValueString ( const PdfName & key, const PdfS
 {
     TCIKeyMap it;
 
+    // HasKey calls DelayedLoad()
     if( HasKey( key ) )
     {
         it = m_mapKeys.find( key );
@@ -244,6 +255,7 @@ long PdfObject::GetKeyValueLong   ( const PdfName & key, long lDefault ) const
     TCIKeyMap it;
     long      lNum;
 
+    // HasKey calls DelayedLoad()
     if( HasKey( key ) )
     {
         it = m_mapKeys.find( key );
@@ -260,6 +272,7 @@ bool PdfObject::GetKeyValueBool   ( const PdfName & key, bool bDefault ) const
     PdfVariant  var;
     std::string str;
 
+    // GetKeyValueVariant calls DelayedLoad()
     eCode = this->GetKeyValueVariant( key, var );
     if( eCode.IsError() )
         return bDefault;
@@ -273,6 +286,7 @@ PdfError PdfObject::GetKeyValueVariant( const PdfName & key, PdfVariant & rVaria
     PdfError   eCode;
     TCIKeyMap it;
 
+    // HasKey calls DelayedLoad()
     if( HasKey( key ) )
     {
         it = m_mapKeys.find( key );
@@ -290,6 +304,7 @@ PdfObject* PdfObject::GetKeyValueObject( const PdfName & key ) const
 {
     TCIObjKeyMap it;
 
+    // HasObjectKey calls DelayedLoad()
     if( HasObjectKey( key ) )
     {
         it = m_mapObjKeys.find( key );
@@ -301,7 +316,7 @@ PdfObject* PdfObject::GetKeyValueObject( const PdfName & key ) const
 
 bool PdfObject::HasKey( const PdfName & key ) const
 {
-    DELAYED_LOADING();
+    DelayedLoad();
 
     if( !key.Length() )
         return false;
@@ -311,7 +326,7 @@ bool PdfObject::HasKey( const PdfName & key ) const
 
 bool PdfObject::HasObjectKey( const PdfName & key ) const
 {
-    DELAYED_LOADING();
+    DelayedLoad();
 
     if( !key.Length() )
         return false;
@@ -322,6 +337,8 @@ bool PdfObject::HasObjectKey( const PdfName & key ) const
 void PdfObject::SetSingleValue( const PdfVariant & var  )
 {
     TIObjKeyMap itObjects = m_mapObjKeys.begin();
+
+    DelayedLoad();
 
     while( itObjects != m_mapObjKeys.end() )
     {
@@ -337,6 +354,8 @@ void PdfObject::SetSingleValue( const PdfVariant & var  )
 
 const PdfString & PdfObject::GetSingleValueString() const
 {
+    DelayedLoad();
+
     return m_singleValue.GetString();
 }
 
@@ -344,7 +363,7 @@ long PdfObject::GetSingleValueLong() const
 {
     long lNum = 0;
 
-    DELAYED_LOADING();
+    DelayedLoad();
 
     m_singleValue.GetNumber( &lNum );
 
@@ -355,7 +374,7 @@ bool PdfObject::GetSingleValueBool() const
 {
     bool bVal = false;
 
-    DELAYED_LOADING();
+    DelayedLoad();
 
     m_singleValue.GetBool( &bVal );
 
@@ -364,7 +383,7 @@ bool PdfObject::GetSingleValueBool() const
 
 const PdfVariant & PdfObject::GetSingleValueVariant () const
 {
-    DELAYED_LOADING();
+    DelayedLoad();
 
     return m_singleValue;
 }
@@ -382,7 +401,7 @@ PdfError PdfObject::Write( PdfOutputDevice* pDevice, const PdfName & keyStop )
     if( m_bEmptyEntry )
         return eCode;
 
-    DELAYED_LOADING();
+    DelayedStreamLoad();
 
     if( !pDevice )
     {
@@ -477,7 +496,7 @@ PdfError PdfObject::GetObjectLength( unsigned long* pulLength )
 
 PdfStream* PdfObject::Stream()
 {
-    DELAYED_LOADING();
+    DelayedStreamLoad();
 
     if( !m_pStream )
         m_pStream = new PdfStream( this );
@@ -487,14 +506,14 @@ PdfStream* PdfObject::Stream()
 
 const PdfStream* PdfObject::Stream() const
 {
-    DELAYED_LOADING();
+    DelayedStreamLoad();
 
     return m_pStream;
 }
 
 PdfError PdfObject::FlateDecodeStream() 
 {
-    DELAYED_LOADING();
+    DelayedStreamLoad();
 
     return m_pStream ? m_pStream->FlateDecode() : ePdfError_ErrOk;
 }
@@ -507,10 +526,10 @@ const PdfObject & PdfObject::operator=( const PdfObject & rhs )
     Clear();
     Init();
 
-    if( !rhs.m_bLoadOnDemandDone ) 
+    if( !rhs.m_bLoadOnDemandDone || !rhs.m_bLoadStreamOnDemandDone ) 
     {
         PdfObject* p = const_cast<PdfObject*>(&rhs); \
-        p->LoadOnDemand( &(rhs.m_pParser->GetObjects()) );
+        p->LoadStreamOnDemand();
     }
 
     m_reference     = rhs.m_reference;

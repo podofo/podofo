@@ -577,9 +577,8 @@ PdfError PdfPainter::DrawText( long lX, long lY, const PdfString & sText, long l
 
     if( !sText.IsHex() )
     {
-        PdfFilter* pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+        const PdfFilter* pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
         SAFE_OP( pFilter->Encode( pszTab, lStringLen, &pBuffer, &lLen ) );
-        delete pFilter;
     }
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "BT\n/%s %.3f Tf\n%.3f %.3f Td\n<", 

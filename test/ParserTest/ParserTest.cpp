@@ -40,7 +40,7 @@ int main( int argc, char*  argv[] )
     printf("The PDF file should look unmodified in any viewer\n");
     printf("---\n");
 
-    eCode = parser.Init( argv[1], true );
+    eCode = parser.Init( argv[1] );
 
     printf("PdfVersion=%i\n", (int)parser.GetPdfVersion() );
     printf("PdfVersionString=%s\n", parser.GetPdfVersionString() );

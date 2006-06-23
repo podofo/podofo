@@ -43,15 +43,6 @@ typedef std::map<PdfName,PdfObject*>       TObjKeyMap;
 typedef TObjKeyMap::iterator               TIObjKeyMap;
 typedef TObjKeyMap::const_iterator         TCIObjKeyMap;
 
-#define DELAYED_LOADING()     if( !m_bLoadOnDemandDone ) \
-                              { \
-                                PdfObject* p = const_cast<PdfObject*>(this); \
-                                PdfError MyERROR = p->LoadOnDemand( m_pParser ? &(m_pParser->GetObjects()) : NULL ); \
-                                if( MyERROR.IsError() ) \
-                                    MyERROR.PrintErrorMsg(); \
-                              }
-
-
 /**
  * This class represents a PDF Object into the memory
  * 
@@ -176,8 +167,9 @@ class PdfObject {
      *  \param pObj use this object as internal object. The object will get owned
      *         by this PdfObject. Be sure to never create internal objects with
      *         PdfWriter::CreateObject!
+     *  \returns ErrOk on sucess
      */
-    void AddKey( const PdfName & identifier, PdfObject* pObj );
+    PdfError AddKey( const PdfName & identifier, PdfObject* pObj );
 
     /** Remove a key from this object
      *  If the key does not exists, this function does nothing.
@@ -241,17 +233,17 @@ class PdfObject {
            */
     PdfError     GetKeyValueVariant( const PdfName & key, PdfVariant & rVariant ) const;
 
-          /** Allows to check if a dictionary contains a certain key.
-           *  \param key look for the key named key.Name() in the dictionary
-           *  \returns true if the key is part of the dictionary, otherwise false.
-           */
-          bool  HasKey            ( const PdfName & key  ) const;
+    /** Allows to check if a dictionary contains a certain key.
+     *  \param key look for the key named key.Name() in the dictionary
+     *  \returns true if the key is part of the dictionary, otherwise false.
+     */
+    bool  HasKey( const PdfName & key  ) const;
 
-          /** Allows to check if a dictionary contains a certain key which is an internal object.
-           *  \param key look for the key named key in the dictionary
-           *  \returns true if the key is part of the dictionary, otherwise false.
-           */
-          bool  HasObjectKey      ( const PdfName & key ) const;
+    /** Allows to check if a dictionary contains a certain key which is an internal object.
+     *  \param key look for the key named key in the dictionary
+     *  \returns true if the key is part of the dictionary, otherwise false.
+     */
+    bool  HasObjectKey( const PdfName & key ) const;
 
     /** Sets the object to have only a single value 
      *  (instead of more dictionary keys), any existing keys will be
@@ -261,12 +253,31 @@ class PdfObject {
      */
     void SetSingleValue( const PdfVariant & var );
 
+    /** Get the single value as PdfString if HasSingleValue returns true.
+     *  Please check the type of the variant first.
+     *  \see GetSingleValueVariant().GetDataType()
+     *  \returns the single value as PdfString
+     */
+    const PdfString & GetSingleValueString() const;
 
-    const PdfString & GetSingleValueString () const;
-          long  GetSingleValueLong   () const;
-          bool  GetSingleValueBool   () const;
-    const PdfVariant & GetSingleValueVariant () const;
+    /** Get the single value as long if HasSingleValue returns true.
+     *  Please check the type of the variant first.
+     *  \see GetSingleValueVariant().GetDataType()
+     *  \returns the single value as long
+     */
+    long  GetSingleValueLong() const;
 
+    /** Get the single value as bool if HasSingleValue returns true.
+     *  Please check the type of the variant first.
+     *  \see GetSingleValueVariant().GetDataType()
+     *  \returns the single value as bool
+     */
+    bool  GetSingleValueBool() const;
+
+    /** Get the single value as PdfVariant if HasSingleValue returns true.
+     *  \returns the single value as PdfVariant
+     */
+    const PdfVariant & GetSingleValueVariant() const;
 
     /** Get read only access to all keys in the dictionary.
      *  You can iterate yourself over this map.
@@ -384,7 +395,11 @@ class PdfObject {
 
     /** Load all data of the object if load object on demand is enabled
      */
-    inline virtual PdfError LoadOnDemand( const PdfVecObjects* pVecObjects );
+    inline virtual PdfError LoadOnDemand();
+
+    /** Load the stream of the object if it has one and if loading on demand is enabled
+     */
+    inline virtual PdfError LoadStreamOnDemand();
 
  protected:
     /** Initialize all private members with their default values
@@ -400,20 +415,24 @@ class PdfObject {
      */
     inline PdfError DelayedLoad() const;
 
+    /**
+     *  \returns ErrOk on sucess
+     */
+    inline PdfError DelayedStreamLoad() const;
+
  protected:
     PdfReference m_reference;
     bool         m_bDirect;
     bool         m_bEmptyEntry;
     
     bool         m_bLoadOnDemandDone;
+    bool         m_bLoadStreamOnDemandDone;
 
     TKeyMap      m_mapKeys;
     TObjKeyMap   m_mapObjKeys;
     
     PdfVariant   m_singleValue;
     PdfStream*   m_pStream;
-
-    PdfParser*   m_pParser;
 };
 
 // -----------------------------------------------------
@@ -461,7 +480,7 @@ void PdfObject::SetObjectNumber( unsigned int nObjNo )
 // -----------------------------------------------------
 const TKeyMap & PdfObject::GetKeys() const
 {
-    DELAYED_LOADING();
+    DelayedLoad();
 
     return m_mapKeys;
 }
@@ -471,7 +490,7 @@ const TKeyMap & PdfObject::GetKeys() const
 // -----------------------------------------------------
 const TObjKeyMap & PdfObject::GetObjectKeys() const
 {
-    DELAYED_LOADING();
+    DelayedLoad();
 
     return m_mapObjKeys;
 }
@@ -505,7 +524,7 @@ const PdfReference & PdfObject::Reference() const
 // -----------------------------------------------------
 bool PdfObject::HasSingleValue() const
 {
-    DELAYED_LOADING();
+    DelayedLoad();
 
     return !m_singleValue.IsEmpty();
 }
@@ -534,17 +553,28 @@ bool PdfObject::operator==( const PdfObject & rhs )
 // -----------------------------------------------------
 inline bool PdfObject::HasStream() const
 {
-    DELAYED_LOADING();
+    DelayedStreamLoad();
+
     return ( m_pStream != NULL );
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline PdfError PdfObject::LoadOnDemand( const PdfVecObjects* )
+inline PdfError PdfObject::LoadOnDemand()
 {
     m_bLoadOnDemandDone = true;
     return PdfError();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfError PdfObject::LoadStreamOnDemand()
+{
+    PdfError eCode = DelayedLoad();
+    m_bLoadStreamOnDemandDone = true;
+    return eCode;
 }
 
 // -----------------------------------------------------
@@ -557,7 +587,29 @@ inline PdfError PdfObject::DelayedLoad() const
     if( !m_bLoadOnDemandDone ) 
     {
         PdfObject* p = const_cast<PdfObject*>(this);
-        SAFE_OP( p->LoadOnDemand( m_pParser ? &(m_pParser->GetObjects()) : NULL ) );
+        SAFE_OP( p->LoadOnDemand() );
+    }
+
+    return eCode;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfError PdfObject::DelayedStreamLoad() const
+{
+    PdfError eCode;
+
+    if( !m_bLoadOnDemandDone ) 
+    {
+        PdfObject* p = const_cast<PdfObject*>(this);
+        SAFE_OP( p->LoadOnDemand() );
+    }
+
+    if( !m_bLoadStreamOnDemandDone ) 
+    {
+        PdfObject* p = const_cast<PdfObject*>(this);
+        SAFE_OP( p->LoadStreamOnDemand() );
     }
 
     return eCode;

@@ -57,13 +57,14 @@ class PdfParser : public PdfParserBase {
      *  This function has to be called before you can access any other
      *  function.
      *  \param pszFilename filename of the file which is going to be parsed
-     *  \param bLoadOnDemand if true all objects will be read from the file at
+     *  \param bLoadOnDemand If true all objects will be read from the file at
      *                       the time they are accesed first.
+     *                       If false all objects will be read immediately.
      *                       This is faster if you do not need the complete PDF 
      *                       file in memory.
      *  \returns ErrOk on success
      */
-    PdfError Init( const char* pszFilename, bool bLoadOnDemand = false );
+    PdfError Init( const char* pszFilename, bool bLoadOnDemand = true );
 
     /** Get a reference to the sorted internal objects vector.
      *  \returns the internal objects vector.

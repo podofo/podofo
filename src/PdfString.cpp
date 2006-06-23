@@ -168,8 +168,8 @@ bool PdfString::Allocate()
 
 void PdfString::Init( const char* pszString, long lLen )
 {
-    PdfError   eCode;
-    PdfFilter* pFilter;
+    PdfError         eCode;
+    const PdfFilter* pFilter;
 
     // TODO: escape characters inside of strings!
     if( m_pszData )
@@ -186,7 +186,6 @@ void PdfString::Init( const char* pszString, long lLen )
             if( pFilter ) 
             {
                 eCode = pFilter->Encode( pszString, lLen, &m_pszData, &m_lLen );
-                delete pFilter;
             }
             else
             {

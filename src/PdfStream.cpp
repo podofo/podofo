@@ -169,11 +169,10 @@ PdfError PdfStream::GetCopy( char** pBuffer, long* lLen ) const
 
 PdfError PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
 {
-    PdfError        eCode;
-    TVecFilters     vecFilters;
-    TIVecFilters    it;
-    PdfFilter*      pFilter;
-    PdfFlateFilter* pFlate;
+    PdfError               eCode;
+    TVecFilters            vecFilters;
+    TIVecFilters           it;
+    const PdfFilter*       pFilter;
 
     TVecObjects     tDecodeParams;
     TCIVecObjects   itDecodeParams;
@@ -186,7 +185,6 @@ PdfError PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    PdfError::LogMessage( eLogSeverity_Debug, "%s: Internal Buffer Length=%i Internal Buffer=%p\n", m_pParent->Reference().ToString().c_str(), m_lLength, m_szStream );
     SAFE_OP( FillFilterList( vecFilters ) );
     SAFE_OP( GetDecodeParms( &tDecodeParams ) );
 
@@ -223,8 +221,7 @@ PdfError PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
             }
             pInBuf = *ppBuffer;
             lInLen = *lLen;
-            
-            delete pFilter;
+
             ++it;
 
             if( tDecodeParams.size() )
@@ -346,16 +343,15 @@ PdfError PdfStream::FlateDecode()
 
 PdfError PdfStream::FlateDecodeStreamData()
 {
-    PdfError   eCode;
-    PdfFilter* pFilter;
-    char*      pBuffer;
-    long       lLen;
+    PdfError         eCode;
+    const PdfFilter* pFilter;
+    char*            pBuffer;
+    long             lLen;
 
     pFilter = PdfFilterFactory::Create( ePdfFilter_FlateDecode );
     if( pFilter ) 
     {
         SAFE_OP( pFilter->Encode( m_szStream, m_lLength, &pBuffer, &lLen ) );
-        delete pFilter;
         free( m_szStream );
     
         m_szStream  = pBuffer;
