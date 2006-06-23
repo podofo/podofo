@@ -34,8 +34,6 @@
 #include <algorithm>
 #include <sstream>
 
-#define PRODUCER_NAME "(PdfSignature Library)"
-
 namespace PoDoFo {
 
 using namespace std;
@@ -91,13 +89,13 @@ PdfError PdfSimpleWriter::Init()
 
     SAFE_OP( PdfWriter::Init() );
 
-    m_pPageTree = CreateObject( "Pages", true );
+    m_pPageTree = m_vecObjects.CreateObject( "Pages" );
     m_pPageTree->AddKey( "Kids", "[ ]" );
 
     this->GetCatalog()->AddKey( "Pages", m_pPageTree->Reference().ToString().c_str() );
 
     cDate.ToString( sDate );
-    this->GetInfo()->AddKey( "Producer", PRODUCER_NAME );
+    this->GetInfo()->AddKey( "Producer", PdfString("PoDoFo") );
     this->GetInfo()->AddKey( "CreationDate", sDate );
 
     return eCode;
@@ -110,9 +108,9 @@ PdfPage* PdfSimpleWriter::CreatePage( const TSize & tSize )
     TVariantList     array;
 
     TCIReferenceList it;
-    PdfPage*         pPage    = new PdfPage( tSize, this, m_nObjectCount++, 0 );
+    PdfPage*         pPage    = m_vecObjects.CreateObject<PdfPage>();
 
-    m_vecObjects       .push_back( pPage );
+
     m_vecPageReferences.push_back( pPage->Reference() );
 
     oStream << ++m_nPageTreeSize;
@@ -134,8 +132,11 @@ PdfPage* PdfSimpleWriter::CreatePage( const TSize & tSize )
     m_pPageTree->AddKey( "Kids",  var );
 
     pPage->AddKey( "Parent", m_pPageTree->Reference() );
-    if( pPage->Init() != ePdfError_ErrOk )
+    if( pPage->Init( tSize, &m_vecObjects ).IsError() )
+    {
+        delete pPage;
         return NULL;
+    }
 
     return pPage;
 }
@@ -144,7 +145,7 @@ PdfFont* PdfSimpleWriter::CreateFont( const char* pszFontName, bool bEmbedd )
 {
     PdfError          eCode;
 #ifdef _WIN32
-	std::string		  sPath = PdfFontMetrics::GetFilenameForFont( pszFontName );
+    std::string       sPath = PdfFontMetrics::GetFilenameForFont( pszFontName );
 #else
     std::string       sPath = PdfFontMetrics::GetFilenameForFont( (FcConfig*)m_pFcConfig, pszFontName );
 #endif
@@ -163,15 +164,14 @@ PdfFont* PdfSimpleWriter::CreateFont( const char* pszFontName, bool bEmbedd )
     if( it == m_vecFonts.end() )
     {
         pMetrics = new PdfFontMetrics( &m_ftLibrary, sPath.c_str() );
-        pFont    = new PdfFont( pMetrics, this, m_nObjectCount++, 0 );
+        pFont    = m_vecObjects.CreateObject<PdfFont>();
 
-        m_vecObjects.push_back( pFont );
         m_vecFonts  .push_back( pFont );
 
         // Now sort the font list
         std::sort( m_vecFonts.begin(), m_vecFonts.end() );
 
-        eCode = pFont->Init( bEmbedd );
+        eCode = pFont->Init( pMetrics, &m_vecObjects, bEmbedd );
         if( eCode.IsError() )
         {
             eCode.PrintErrorMsg();
@@ -187,11 +187,7 @@ PdfFont* PdfSimpleWriter::CreateFont( const char* pszFontName, bool bEmbedd )
 
 PdfImage* PdfSimpleWriter::CreateImage()
 {
-    PdfImage* pImage = new PdfImage( m_nObjectCount++, 0 );
-
-    m_vecObjects.push_back( pImage );
-
-    return pImage;
+    return m_vecObjects.CreateObject<PdfImage>();
 }
 
 void PdfSimpleWriter::SetDocumentAuthor( const PdfString & sAuthor )

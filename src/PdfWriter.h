@@ -64,11 +64,9 @@ class PdfWriter {
     PdfError Init( PdfParser* pParser );
 
     /** Create a new pdf file from scratch.
-     *  \param bInternal if true create some prvate objects as internal objects.
-     *                   Specifiying false here should be never necessary.
      *  \returns ErrOk on success.
      */
-    PdfError Init( bool bInternal = true );
+    PdfError Init();
 
     /** Writes the complete document to a PDF file.
      *
@@ -97,17 +95,6 @@ class PdfWriter {
      */
     inline EPdfVersion GetPdfVersion() const;
 
-    /** Creates a new object and inserts it into the internal
-     *  object tree. The object is owned by the PdfWriter and 
-     *  will be deleted if necessary.
-     *  \param pszType optionall value of the /Type key of the object
-     *  \param bInternal set to true to create an internal object which 
-     *                  is written at the end. This is used only internally
-     *                  in the PdfWriter.
-     *  \returns PdfObject pointer to the new PdfObject
-     */
-    PdfObject* CreateObject( const char* pszType = NULL, bool bInternal = false );
-
     /** Remove the object with the given object and generation number from the list
      *  of objects.
      *  The object is returned if it was found. Otherwise NULL is returned.
@@ -119,12 +106,6 @@ class PdfWriter {
      *  \returns The removed object.
      */
     PdfObject* RemoveObject( const PdfReference & ref );
-
-    /** Create a PdfObject of type T which must be a subclasss of PdfObject
-     *  and it does not need a parameter for pszType.
-     *  \returns a new PdfObject subclasss
-     */
-    template <class T> T* CreateObject();
 
     /** Get access to the internal Catalog dictionary
      *  or root object.
@@ -161,7 +142,13 @@ class PdfWriter {
     /** Get a reference to the sorted internal objects vector.
      *  \returns the internal objects vector.
      */
-    inline const TVecObjects & GetObjects() const;
+    inline const PdfVecObjects & GetObjects() const;
+
+    /** Get a reference to the sorted internal objects vector.
+     *  This is an overloaded function for your convinience.
+     *  \returns the internal objects vector.
+     */
+    inline PdfVecObjects & GetObjects();
 
     /** Calculate the byte offset of the object pObject in the PDF file
      *  if the file was written to disk at the moment of calling this function.
@@ -235,15 +222,13 @@ class PdfWriter {
     PdfError WritePdfTableOfContents( PdfOutputDevice* pDevice );
 
  protected:
-    size_t			m_nObjectCount;
-    TVecObjects     m_vecObjects;
+    PdfVecObjects   m_vecObjects;
 
  private:
     EPdfVersion     m_eVersion;
     PdfParser*      m_pParser;
 
     TVecXRefTable   m_vecXRef;
-    TVecObjects     m_vecInternalObjects;
 
     PdfObject*      m_pCatalog;
     PdfObject*      m_pInfo;
@@ -251,57 +236,69 @@ class PdfWriter {
     bool            m_bCompress;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfWriter::SetPdfVersion( EPdfVersion eVersion )
 {
     m_eVersion = eVersion;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 EPdfVersion PdfWriter::GetPdfVersion() const
 {
     return m_eVersion;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 PdfObject* PdfWriter::GetCatalog() const
 {
     return m_pCatalog;
 }
-    
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 PdfObject* PdfWriter::GetInfo() const
 {
     return m_pInfo;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfWriter::SetPdfCompression( bool bCompress )
 {
     m_bCompress = bCompress;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfWriter::GetPdfCompression() const
 {
     return m_bCompress;
 }
 
-const TVecObjects & PdfWriter::GetObjects() const
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfVecObjects & PdfWriter::GetObjects() const
 {
     return m_vecObjects;
 }
 
-template <class T>
-T* PdfWriter::CreateObject()
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfVecObjects & PdfWriter::GetObjects()
 {
-    T*         pTemplate = new T( m_nObjectCount++, 0 );
-    PdfObject* pObject   = dynamic_cast<PdfObject*>(pTemplate);
-
-    if( !pObject )
-    {
-        delete pTemplate;
-        return NULL;
-    }
-
-    m_vecObjects.push_back( pObject );
-    return pTemplate;
+    return m_vecObjects;
 }
-
 
 };
 

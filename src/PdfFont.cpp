@@ -34,8 +34,8 @@ using namespace std;
 
 namespace PoDoFo {
 
-PdfFont::PdfFont( PdfFontMetrics* pMetrics, PdfWriter* pWriter, unsigned int objectno, unsigned int generationno )
-    : PdfObject( objectno, generationno, "Font" ), m_pWriter( pWriter ), m_pMetrics( pMetrics )
+PdfFont::PdfFont( unsigned int objectno, unsigned int generationno )
+    : PdfObject( objectno, generationno, "Font" )
 {
     ostringstream out;
 
@@ -56,7 +56,7 @@ PdfFont::~PdfFont()
     delete m_pMetrics;
 }
 
-PdfError PdfFont::Init( bool bEmbedd )
+PdfError PdfFont::Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool bEmbedd )
 {
     PdfError      eCode;
 
@@ -66,6 +66,8 @@ PdfError PdfFont::Init( bool bEmbedd )
     PdfObject*    pDescriptor;
     PdfVariant    var;
     std::string   sTmp;
+
+    m_pMetrics = pMetrics;
 
     // replace all spaces in the base font name as suggested in 
     // the PDF reference section 5.5.2
@@ -79,7 +81,7 @@ PdfError PdfFont::Init( bool bEmbedd )
     m_BaseFont = PdfName( sTmp.c_str() );
 
     SAFE_OP( m_pMetrics->GetWidthArray( var, FIRST_CHAR, LAST_CHAR ) );
-    pWidth = m_pWriter->CreateObject();
+    pWidth = pParent->CreateObject();
     if( !pWidth )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -87,7 +89,7 @@ PdfError PdfFont::Init( bool bEmbedd )
 
     pWidth->SetSingleValue( var );
 
-    pDescriptor = m_pWriter->CreateObject( "FontDescriptor" );
+    pDescriptor = pParent->CreateObject( "FontDescriptor" );
     if( !pDescriptor )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -115,13 +117,13 @@ PdfError PdfFont::Init( bool bEmbedd )
 
     if( bEmbedd )
     {
-        SAFE_OP( EmbeddFont( pDescriptor ) );
+        SAFE_OP( EmbeddFont( pParent, pDescriptor ) );
     }
 
     return eCode;
 }
 
-PdfError PdfFont::EmbeddFont( PdfObject* pDescriptor )
+PdfError PdfFont::EmbeddFont( PdfVecObjects* pParent, PdfObject* pDescriptor )
 {
     PdfError   eCode;
     PdfObject* pContents;
@@ -129,7 +131,7 @@ PdfError PdfFont::EmbeddFont( PdfObject* pDescriptor )
     char*      pBuffer = NULL;
     long       lSize = 0;
 
-    pContents = m_pWriter->CreateObject();
+    pContents = pParent->CreateObject();
     if( !pContents )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );

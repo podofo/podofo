@@ -37,7 +37,6 @@ using namespace PoDoFo;
 PdfError LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
 {
     PdfError eCode;
-    int      i     = 0;
     long     x     = 10000;
     long     y     = 10000;
     PdfFont* pFont;
@@ -139,7 +138,6 @@ PdfError LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWrite
 PdfError RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
 {
     PdfError eCode;
-    int      i     = 0;
     long     x     = 10000;
     long     y     = 10000;
     PdfFont* pFont;
@@ -277,10 +275,10 @@ PdfError ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWrit
     PdfRect        rect1( 80000, 180000, 20000, 20000 );
     PdfRect        rect2( 80000, 120000, 10000, 10000 );
 
-    PdfAnnotation* pAnnot1 = pWriter->CreateObject<PdfAnnotation>();
-    PdfAnnotation* pAnnot2 = pWriter->CreateObject<PdfAnnotation>();
+    PdfAnnotation* pAnnot1 = pWriter->GetObjects().CreateObject<PdfAnnotation>();
+    PdfAnnotation* pAnnot2 = pWriter->GetObjects().CreateObject<PdfAnnotation>();
 
-    PdfXObject*    pXObj   = pWriter->CreateObject<PdfXObject>();
+    PdfXObject*    pXObj   = pWriter->GetObjects().CreateObject<PdfXObject>();
     PdfPainter     pnt;    // XObject painter
 
     TEST_SAFE_OP( pXObj->Init( rect ) );
@@ -314,7 +312,7 @@ PdfError ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWrit
     pAnnot1->SetContents( PdfString("Hallo Welt!") );
     pAnnot1->SetAppearanceStream( pXObj );
 
-    PdfAction* pAction = pWriter->CreateObject<PdfAction>();
+    PdfAction* pAction = pWriter->GetObjects().CreateObject<PdfAction>();
     TEST_SAFE_OP( pAction->Init( ePdfAction_URI ) );
     pAction->SetURI( PdfString("http://www.tec-it.com") );
 

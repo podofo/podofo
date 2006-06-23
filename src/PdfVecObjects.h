@@ -40,12 +40,25 @@ class PdfObject;
  *  in a PdfVecObject. 
  */
 class PdfVecObjects : public std::vector<PdfObject*> {
+    friend class PdfWriter;
+
  public:
     /** Default constuctor 
      */
     PdfVecObjects();
 
+    /** Copy constructor
+     *  \param rhs the object to copy
+     */
+    PdfVecObjects( const PdfVecObjects & rhs );
+
     virtual ~PdfVecObjects();
+
+    /** Assign another PdfVecObjects to this PdfVecObjects
+     *  \param rhs the object to copy
+     *  \returns this object
+     */
+    const PdfVecObjects & operator=( const PdfVecObjects & rhs );
 
     /** Enable/disable auto deletion.
      *  \param bAutoDelete if true all objects will be deleted when the PdfVecObjects is 
@@ -77,18 +90,61 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      */
     PdfObject* RemoveObject( const PdfReference & ref );
 
+    /** Create a PdfObject of type T which must be a subclasss of PdfObject
+     *  and it does not need a parameter for pszType.
+     *  This function assigns the next free object number to the PdfObject
+     *  and add is to the internal vector.
+     *
+     *  \returns a new PdfObject subclasss
+     */
+    template <class T> T* CreateObject();
+
+    /** Creates a new object and inserts it into the vector.
+     *  This function assigns the next free object number to the PdfObject.
+     *
+     *  \param pszType optionall value of the /Type key of the object
+     *  \returns PdfObject pointer to the new PdfObject
+     */
+    PdfObject* CreateObject( const char* pszType = NULL );
+
  private:
-    bool m_bAutoDelete;
+    bool     m_bAutoDelete;
+    size_t   m_nObjectCount;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfVecObjects::SetAutoDelete( bool bAutoDelete ) 
 {
     m_bAutoDelete = bAutoDelete;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfVecObjects::AutoDelete() const
 {
     return m_bAutoDelete;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+template <class T>
+T* PdfVecObjects::CreateObject()
+{
+    T*         pTemplate = new T( m_nObjectCount++, 0 );
+    PdfObject* pObject   = dynamic_cast<PdfObject*>(pTemplate);
+
+    if( !pObject )
+    {
+        delete pTemplate;
+        return NULL;
+    }
+
+    this->push_back( pObject );
+    return pTemplate;
 }
 
 typedef PdfVecObjects                TVecObjects;

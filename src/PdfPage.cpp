@@ -26,21 +26,14 @@
 
 namespace PoDoFo {
 
-PdfPage::PdfPage( const TSize & tSize, PdfWriter* pWriter, unsigned int nObjectNo, unsigned int nGenerationNo )
-    : PdfObject( nObjectNo, nGenerationNo, "Page" ), PdfCanvas(), m_pWriter( pWriter )
+PdfPage::PdfPage( unsigned int nObjectNo, unsigned int nGenerationNo )
+    : PdfObject( nObjectNo, nGenerationNo, "Page" ), PdfCanvas()
 {
-    PdfVariant rect;
-
     m_pResources = new PdfObject( 0, 0, NULL );
     m_pResources->SetDirect( true );
 
-    m_tPageSize = tSize;
-
-    PdfRect( 0, 0, tSize.lWidth, tSize.lHeight ).ToVariant( rect );
-    this->AddKey( "Resources", m_pResources );
-    this->AddKey( "MediaBox", rect );
-
     // The PDF specification suggests that we send all available PDF Procedure sets
+    this->AddKey( "Resources", m_pResources );
     m_pResources->AddKey( "ProcSet", "[/PDF /Text /ImageB /ImageC /ImageI]" );
 }
 
@@ -49,12 +42,18 @@ PdfPage::~PdfPage()
 
 }
 
-PdfError PdfPage::Init()
+PdfError PdfPage::Init( const TSize & tSize, PdfVecObjects* pParent )
 {
-    PdfError eCode;
+    PdfError   eCode;
+    PdfVariant rect;
 
-    m_pContents = m_pWriter->CreateObject();
+    m_pContents = pParent->CreateObject();
 
+    m_tPageSize = tSize;
+
+    PdfRect( 0, 0, tSize.lWidth, tSize.lHeight ).ToVariant( rect );
+
+    this->AddKey( "MediaBox", rect );
     this->AddKey( PdfName::KeyContents, m_pContents->Reference() );
 
     return eCode;

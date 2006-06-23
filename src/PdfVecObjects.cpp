@@ -41,8 +41,13 @@ private:
 };
 
 PdfVecObjects::PdfVecObjects()
-    : m_bAutoDelete( false )
+    : m_bAutoDelete( false ), m_nObjectCount( 1 )
 {
+}
+
+PdfVecObjects::PdfVecObjects( const PdfVecObjects & rhs )
+{
+    this->operator=( rhs );
 }
 
 PdfVecObjects::~PdfVecObjects()
@@ -56,6 +61,16 @@ PdfVecObjects::~PdfVecObjects()
             ++it;
         }
     }
+}
+
+const PdfVecObjects & PdfVecObjects::operator=( const PdfVecObjects & rhs )
+{
+    m_bAutoDelete  = rhs.m_bAutoDelete;
+    m_nObjectCount = rhs.m_nObjectCount;
+
+    std::vector<PdfObject*>::operator=( rhs );
+
+    return *this;
 }
 
 PdfObject* PdfVecObjects::GetObject( const PdfReference & ref ) const
@@ -87,7 +102,14 @@ PdfObject* PdfVecObjects::RemoveObject( const PdfReference & ref )
     return NULL;
 }
 
+PdfObject* PdfVecObjects::CreateObject( const char* pszType )
+{
+    PdfObject* pObj = new PdfObject( m_nObjectCount++, 0, pszType );
 
+    this->push_back( pObj );
+
+    return pObj;
+}
 
 };
 

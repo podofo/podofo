@@ -51,19 +51,10 @@ void PdfWriter::Clear()
         ++it;
     }
 
-    it = m_vecInternalObjects.begin();
-    while( it != m_vecInternalObjects.end() )
-    {
-        delete (*it);
-        ++it;
-    }
-
-    m_vecInternalObjects.clear();
     m_vecObjects.clear();
 
     m_pParser      = NULL;
     m_eVersion     = ePdfVersion_1_3;
-    m_nObjectCount = 1;
 
     m_pCatalog     = NULL;
     m_pInfo        = NULL;
@@ -71,16 +62,16 @@ void PdfWriter::Clear()
     m_bCompress    = true;
 }
 
-PdfError PdfWriter::Init( bool bInternal )
+PdfError PdfWriter::Init()
 {
     PdfError eCode;
 
     // clear everything - so that calling Init twice will work
     Clear();
 
-    m_pInfo     = CreateObject( NULL, bInternal );
-    m_pCatalog  = CreateObject( "Catalog", bInternal );
-    
+    m_pInfo     = m_vecObjects.CreateObject( NULL );
+    m_pCatalog  = m_vecObjects.CreateObject( "Catalog" );
+
     return eCode;
 }
 
@@ -102,7 +93,6 @@ PdfError PdfWriter::Init( PdfParser* pParser )
     m_pParser      = pParser;
     m_eVersion     = pParser->GetPdfVersion();
     m_vecObjects   = pParser->GetObjects();
-    m_nObjectCount = m_vecObjects.size() + 1;
 
     pTrailer = m_pParser->GetTrailer();
     if( pTrailer )
@@ -279,8 +269,6 @@ PdfError PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
     unsigned int      nSize     = 0;
     TCIVecXRefTable   it;
 
-    SAFE_OP( WritePdfObjects( pDevice, m_vecInternalObjects ) );
-
     lXRef = pDevice->Length();
     SAFE_OP( pDevice->Print( "xref\n" ) );
 
@@ -353,18 +341,6 @@ PdfError PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
     SAFE_OP( pDevice->Print( ">>\nstartxref\n%li\n%%%%EOF\n", lXRef ) );
 
     return eCode;
-}
-
-PdfObject* PdfWriter::CreateObject( const char* pszType, bool bInternal )
-{
-    PdfObject* pObj = new PdfObject( m_nObjectCount++, 0, pszType );
-
-    if( bInternal )
-        m_vecInternalObjects.push_back( pObj );
-    else
-        m_vecObjects.push_back( pObj );
-
-    return pObj;
 }
 
 PdfObject* PdfWriter::RemoveObject( const PdfReference & ref )

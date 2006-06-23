@@ -25,24 +25,26 @@ class PdfFont : public PdfObject {
      *
      *  The font has a default font size of 12.0pt.
      *
-     *  \param pMetrics pointer to a font metrics object. The font in the PDF
-     *         file will match this fontmetrics object. The metrics object will 
-     *         get deleted along with the PdFont object.
-     *  \param pWriter PDF Writer object which is needed so that the Font can create 
-     *         other objects on its own
      *  \param objectno the object number
      *  \param generationno gernation number
      */
-    PdfFont( PdfFontMetrics* pMetrics, PdfWriter* pWriter, unsigned int objectno, unsigned int generationno );
+    PdfFont( unsigned int objectno, unsigned int generationno );
     virtual ~PdfFont();
 
     /** Initialize a newly generated PdfFont object. If you use the CreateFont
      *  method of PdfSimpleWriter you do not have to call this method.
+     *
+     *  \param pMetrics pointer to a font metrics object. The font in the PDF
+     *         file will match this fontmetrics object. The metrics object will 
+     *         get deleted along with the PdFont object.
+     *  \param pParent PdfVecObjects object which is needed so that the Font can create 
+     *         other objects on its own
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
+     *
      *  \returns ErrOk on success
      */
-    PdfError Init( bool bEmbedd );
+    PdfError Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool bEmbedd );
 
     /** Set the font size before drawing with this font.
      *  \param fSize font size in points
@@ -80,10 +82,12 @@ class PdfFont : public PdfObject {
 
  private:
     /** Embedd the font file directly into the PDF file.
+     *  \param pParent PdfVecObjects object which is needed so that the Font can create 
+     *         other objects on its own     
      *  \param pDescriptor font descriptor object
      *  \returns ErrOk on success.
      */
-    PdfError EmbeddFont( PdfObject* pDescriptor );
+    PdfError EmbeddFont( PdfVecObjects* pParent, PdfObject* pDescriptor );
 
  private: 
     float m_fFontSize;
@@ -95,7 +99,6 @@ class PdfFont : public PdfObject {
     PdfName m_Identifier;
     PdfName m_BaseFont;
 
-    PdfWriter*      m_pWriter;
     PdfFontMetrics* m_pMetrics;
 };
 

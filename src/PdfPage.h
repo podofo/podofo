@@ -27,7 +27,7 @@
 
 namespace PoDoFo {
 
-class PdfWriter;
+class PdfVecObjects;
 
 /** PdfPage is one page in the pdf document. 
  *  It is possible to draw on a page using a PdfPainter object.
@@ -36,19 +36,19 @@ class PdfWriter;
 class PdfPage : public PdfObject, public PdfCanvas {
  public:
     /** Create a new PdfPage object.
-     *  \param tSize a size structure spezifying the size of the page (i.e the /MediaBox key) in 1/1000th mm
-     *  \param pWriter pointer to the parent PdfWriter object
      *  \param nObjectNo object no
      *  \param nGenerationNo generation number of the object
      */
-    PdfPage( const TSize & tSize, PdfWriter* pWriter, unsigned int nObjectNo, unsigned int nGenerationNo );
+    PdfPage( unsigned int nObjectNo, unsigned int nGenerationNo );
     ~PdfPage();
 
     /** Initialize a newly generated PdfPage object. If you use the CreatePage method of PdfSimpleWriter
      *  you do not have to call this method.
+     *  \param tSize a size structure spezifying the size of the page (i.e the /MediaBox key) in 1/1000th mm
+     *  \param pParent pointer to the parent PdfVecObjects object
      *  \returns ErrOk on success
      */
-    PdfError Init();
+    PdfError Init( const TSize & tSize, PdfVecObjects* pParent );
 
     /** Creates a TSize page size object which is needed to create a PdfPage object
      *  from an enum which are defined for a few standard page sizes.
@@ -76,12 +76,10 @@ class PdfPage : public PdfObject, public PdfCanvas {
     virtual inline const TSize & PageSize() const;
 
  private:
-    PdfWriter* m_pWriter;
     PdfObject* m_pResources;
     PdfObject* m_pContents;
 
     TSize      m_tPageSize;
-    
 };
 
 PdfObject* PdfPage::Contents() const
