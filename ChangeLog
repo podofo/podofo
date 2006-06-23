@@ -13,10 +13,10 @@ Version 0.2
 	On demand loading of objects is now the default;
 	Refactored PdfFilter interface so that filters are cached;
 	Fixed multiple connected XRef tables through /Prev keys in the trailer;
-	Fixed a number of compiler warnings
-	Replaced char*'s with std::strings in a number of classes
-	Added std::ostream support to PdfOutputDevice
-	Improvements to the ImageExtractor tool	
+	Fixed a number of compiler warnings;
+	Replaced char*'s with std::strings in a number of classes;
+	Added std::ostream support to PdfOutputDevice;
+	Improvements to the ImageExtractor tool;
 
 Version 0.1 (11 June 2006)
 	Initial release;
