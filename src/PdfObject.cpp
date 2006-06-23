@@ -536,6 +536,9 @@ const PdfObject & PdfObject::operator=( const PdfObject & rhs )
     m_bDirect       = rhs.m_bDirect;
     m_bEmptyEntry   = rhs.m_bEmptyEntry;
 
+    m_bLoadOnDemandDone       = true;
+    m_bLoadStreamOnDemandDone = true;
+
     m_singleValue  = rhs.m_singleValue;
 
     itKeys = rhs.m_mapKeys.begin();

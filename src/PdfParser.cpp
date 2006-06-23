@@ -88,7 +88,6 @@ PdfError PdfParser::Init( const char* pszFilename, bool bLoadOnDemand )
 
     SAFE_OP( ReadDocumentStructure() );
     SAFE_OP_ADV( ReadObjects(),      "Unable to load objects from file." );
-
     // Now sort the list of objects
     std::sort( m_vecObjects.begin(), m_vecObjects.end(), ObjectLittle );
 
@@ -167,17 +166,11 @@ PdfError PdfParser::ReadDocumentStructure()
     {
         SAFE_OP_ADV( ReadXRefContents( m_nXRefOffset, true ), "Unable to skip xref dictionary." );
         // another trailer directory is to follow right after this XRef section
-        SAFE_OP( GetNextStringFromFile() );
-
-        // ReadXRefcontents has read the first 't' from "trailer" so just check for "railer"
-        if( strcmp( m_szBuffer, "railer" ) == 0 )
-        {
-            PdfParserObject pTrailer( this, m_hFile, this->GetBuffer(), this->GetBufferSize() );
-            SAFE_OP_ADV( pTrailer.ParseFile( true ), "The linearized trailer was found in the file, but contains errors." );
-
-            // now merge the information of this trailer with the main documents trailer
-            SAFE_OP( MergeTrailer( &pTrailer ) );
-        }
+        eCode = ReadNextTrailer();
+        if( eCode == ePdfError_NoTrailer )
+            eCode = ePdfError_ErrOk;
+        else 
+            return eCode;
     }
 
     m_nNumObjects = m_pTrailer->GetKeyValueLong( PdfName::KeySize, -1 );
@@ -204,7 +197,6 @@ PdfError PdfParser::ReadDocumentStructure()
     }
 
     SAFE_OP_ADV( ReadXRefContents( m_nXRefOffset ), "Unable to load xref entries." );
-
     if( m_pTrailer->HasKey( "Prev" ) )
     {
         SAFE_OP_ADV( ReadXRefContents( m_pTrailer->GetKeyValueLong( "Prev", 0 ) ), "Unable to load /Prev xref entries." );
@@ -363,6 +355,31 @@ PdfError PdfParser::MergeTrailer( const PdfObject* pTrailer )
         pTrailer->GetKeyValueVariant( "ID", cVar );
         m_pTrailer->AddKey( "ID", cVar );
     }
+
+    return eCode;
+}
+
+PdfError PdfParser::ReadNextTrailer()
+{
+    PdfError eCode;
+
+    SAFE_OP( GetNextStringFromFile() );
+    // ReadXRefcontents has read the first 't' from "trailer" so just check for "railer"
+    if( strcmp( m_szBuffer, "railer" ) == 0 )
+    {
+        PdfParserObject pTrailer( this, m_hFile, this->GetBuffer(), this->GetBufferSize() );
+        SAFE_OP_ADV( pTrailer.ParseFile( true ), "The linearized trailer was found in the file, but contains errors." );
+        
+        // now merge the information of this trailer with the main documents trailer
+        SAFE_OP( MergeTrailer( &pTrailer ) );
+
+        if( pTrailer.HasKey( "Prev" ) )
+        {
+            SAFE_OP_ADV( ReadXRefContents( pTrailer.GetKeyValueLong( "Prev", 0 ) ), "Unable to load /Prev xref entries." );
+        }
+    }
+    else
+        return ePdfError_NoTrailer;
 
     return eCode;
 }
@@ -533,11 +550,11 @@ PdfError PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
     do {
         eCode = GetNextNumberFromFile( &nFirstObject );
         if( eCode == ePdfError_NoNumber )
-            return ePdfError_ErrOk;
+            break;
 
         eCode = GetNextNumberFromFile( &nNumObjects );
         if( eCode == ePdfError_NoNumber )
-            return ePdfError_ErrOk;
+            break;
 
 #ifdef _DEBUG
         printf("Reading numbers: %i %i\n", nFirstObject, nNumObjects );
@@ -551,6 +568,12 @@ PdfError PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
             eCode = ReadXRefSubsection( nFirstObject, nNumObjects );
     } while( !eCode.IsError() );
     
+
+    eCode = ReadNextTrailer();
+
+    if( eCode == ePdfError_NoTrailer )
+        eCode = ePdfError_ErrOk;
+
     return eCode;
 }
 
@@ -792,7 +815,6 @@ PdfError PdfParser::ReadObjects()
     PdfError         eCode;
     int              i          = 0;
     PdfParserObject* pObject    = NULL;
-    PdfObject*       pObj       = NULL;
     TCIVecObjects    itObjects;
 
     m_vecObjects.reserve( m_nNumObjects );
@@ -825,6 +847,7 @@ PdfError PdfParser::ReadObjects()
         }
         else
         {
+            /*
             // TODO: should not be necessary anymore, remove to save some ram
             
             // add an empty object to the vector
@@ -834,6 +857,7 @@ PdfError PdfParser::ReadObjects()
             pObj = new PdfObject( i, 0, NULL );
             pObj->SetEmptyEntry( true );
             m_vecObjects.push_back( pObj );
+            */
         }
     }
 
@@ -849,8 +873,6 @@ PdfError PdfParser::ReadObjects()
 
     m_mapStreamCache.clear();
 
-    // Now let all objects read their associate streams
-	// NOTE: this is BAD IDEA to do upfront for PDFs with LOTS of images or other streams!
     if( !m_bLoadOnDemand )
     {
         itObjects = m_vecObjects.begin();

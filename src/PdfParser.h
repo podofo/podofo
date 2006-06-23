@@ -177,6 +177,8 @@ class PdfParser : public PdfParserBase {
      */
     bool    IsPdfFile();
 
+    PdfError ReadNextTrailer();
+
  private:
     /** Free all internal data structures
      */

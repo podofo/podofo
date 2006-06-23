@@ -66,7 +66,9 @@ const PdfFilter* PdfFilterFactory::Create( const EPdfFilter eFilter )
             default:
                 break;
         }
-        s_mapFilters[eFilter] = pFilter;
+
+        if( pFilter )
+            s_mapFilters[eFilter] = pFilter;
     }
 
     return pFilter;
