@@ -24,6 +24,7 @@
 #include "../PdfTest.h"
 
 #include <stdio.h>
+#include <sstream>
 
 #define HEADER_LEN 15
 
@@ -95,8 +96,11 @@ PdfError TestSingleObject( const char* pszFilename, const char* pszData, long lO
     printf("  -> Object Length: %li\n", lObjLen );
 
     PdfOutputDevice deviceTest;
-    TEST_SAFE_OP( deviceTest.Init( sLen ) );
+    std::ostringstream os;
+    TEST_SAFE_OP( deviceTest.Init( &os ) );
     TEST_SAFE_OP( obj.Write( &deviceTest ) );
+
+    sLen = os.str();
     printf("  -> Object String: %s\n", sLen.c_str() );
     printf("  -> Object String Length: %li\n", sLen.length() );
 

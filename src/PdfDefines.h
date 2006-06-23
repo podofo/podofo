@@ -292,7 +292,6 @@ static const char s_cDelimiters[] = {
 #define SAFE_OP_ADV( x, msg ) eCode = x;\
                               if( eCode.IsError() ) {\
                                 eCode.SetErrorInformation( msg );\
-                                eCode.PrintErrorMsg(); \
                                 return eCode;\
                                }
 
@@ -309,7 +308,6 @@ static const char s_cDelimiters[] = {
 #define SAFE_OP( x ) eCode = x;\
                      if( eCode.IsError() ) {\
                        eCode.SetErrorInformation( NULL ); \
-                       eCode.PrintErrorMsg(); \
                        return eCode;\
                      }
 

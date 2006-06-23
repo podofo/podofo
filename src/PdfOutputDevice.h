@@ -73,7 +73,7 @@ class PdfOutputDevice {
      *
      *  \returns ErrOk on success
      */
-	PdfError Init( const std::ostream* pOutStream );
+    PdfError Init( const std::ostream* pOutStream );
 
     /** Initialize the PdfOutputDevice and do not write any data but 
      *  count the length of the written data.

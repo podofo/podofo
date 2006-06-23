@@ -77,7 +77,7 @@ PdfError PdfOutputDevice::Init( const std::ostream* pOutStream )
 
     SAFE_OP( this->Init() );
 
-	m_pStream = const_cast< std::ostream* >( pOutStream );
+    m_pStream = const_cast< std::ostream* >( pOutStream );
 
     return eCode;
 }

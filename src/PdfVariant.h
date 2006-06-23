@@ -116,19 +116,49 @@ class PdfVariant {
      */        
     inline void SetDataType( EPdfDataType eDataType );
 
-	/** Shortcut methods for checking the type of data this is
-	*/
-	bool IsBool() const { return GetDataType() == ePdfDataType_Bool; }
-	bool IsNumber() const { return GetDataType() == ePdfDataType_Number; }
-	bool IsReal() const { return GetDataType() == ePdfDataType_Real; }
-	bool IsString() const { return GetDataType() == ePdfDataType_String; }
-	bool IsHexString() const { return GetDataType() == ePdfDataType_HexString; }
-	bool IsName() const { return GetDataType() == ePdfDataType_Name; }
-	bool IsArray() const { return GetDataType() == ePdfDataType_Array; }
-	bool IsDictionary() const { return GetDataType() == ePdfDataType_Dictionary; }
-	bool IsStream() const { return GetDataType() == ePdfDataType_Stream; }
-	bool IsNull() const { return GetDataType() == ePdfDataType_Null; }
-	bool IsReference() const { return GetDataType() == ePdfDataType_Reference; }
+    /** \returns true if this variant is a bool (i.e. GetDataType() == ePdfDataType_Bool)
+     */
+    inline bool IsBool() const { return GetDataType() == ePdfDataType_Bool; }
+
+    /** \returns true if this variant is a number (i.e. GetDataType() == ePdfDataType_Number)
+     */
+    inline bool IsNumber() const { return GetDataType() == ePdfDataType_Number; }
+
+    /** \returns true if this variant is a real (i.e. GetDataType() == ePdfDataType_Real)
+     */
+    inline bool IsReal() const { return GetDataType() == ePdfDataType_Real; }
+
+    /** \returns true if this variant is a string (i.e. GetDataType() == ePdfDataType_String)
+     */
+    inline bool IsString() const { return GetDataType() == ePdfDataType_String; }
+
+    /** \returns true if this variant is a hex-string (i.e. GetDataType() == ePdfDataType_HexString)
+     */
+    inline bool IsHexString() const { return GetDataType() == ePdfDataType_HexString; }
+
+    /** \returns true if this variant is a name (i.e. GetDataType() == ePdfDataType_Name)
+     */
+    inline bool IsName() const { return GetDataType() == ePdfDataType_Name; }
+
+    /** \returns true if this variant is an array (i.e. GetDataType() == ePdfDataType_Array)
+     */
+    inline bool IsArray() const { return GetDataType() == ePdfDataType_Array; }
+
+    /** \returns true if this variant is a dictionary (i.e. GetDataType() == ePdfDataType_Dictionary)
+     */
+    inline bool IsDictionary() const { return GetDataType() == ePdfDataType_Dictionary; }
+
+    /** \returns true if this variant is a stream (i.e. GetDataType() == ePdfDataType_Stream)
+     */
+    inline bool IsStream() const { return GetDataType() == ePdfDataType_Stream; }
+
+    /** \returns true if this variant is null (i.e. GetDataType() == ePdfDataType_Null)
+     */
+    inline bool IsNull() const { return GetDataType() == ePdfDataType_Null; }
+
+    /** \returns true if this variant is a reference (i.e. GetDataType() == ePdfDataType_Reference)
+     */
+    inline bool IsReference() const { return GetDataType() == ePdfDataType_Reference; }
        
     /** Converts the current object into a string representation
      *  which can be written directly to a PDF file on disc.
