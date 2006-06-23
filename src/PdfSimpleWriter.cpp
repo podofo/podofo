@@ -103,33 +103,12 @@ PdfError PdfSimpleWriter::Init()
 
 PdfPage* PdfSimpleWriter::CreatePage( const TSize & tSize )
 {
-    ostringstream    oStream;
-    PdfVariant       var;
-    TVariantList     array;
-
-    TCIReferenceList it;
     PdfPage*         pPage    = m_vecObjects.CreateObject<PdfPage>();
-
 
     m_vecPageReferences.push_back( pPage->Reference() );
 
-    oStream << ++m_nPageTreeSize;
-
-    var.SetDataType( ePdfDataType_Reference );
-
-    it = m_vecPageReferences.begin();
-    while( it != m_vecPageReferences.end()  )
-    {
-        var.SetReference( *it );
-        array.push_back( var );
-        ++it;
-    }
-
-    var.SetDataType( ePdfDataType_Array );
-    var.SetArray( array );
-
-    m_pPageTree->AddKey( "Count", oStream.str().c_str() );
-    m_pPageTree->AddKey( "Kids",  var );
+    m_pPageTree->AddKey( "Count", PdfVariant( (long)++m_nPageTreeSize ) );
+    m_pPageTree->AddKey( "Kids",  PdfVariant( m_vecPageReferences ) );
 
     pPage->AddKey( "Parent", m_pPageTree->Reference() );
     if( pPage->Init( tSize, &m_vecObjects ).IsError() )

@@ -36,6 +36,7 @@ PdfError TestSingleObject( const char* pszFilename, const char* pszData, long lO
     FILE*         hFile;
     unsigned long lObjLen;
     std::string   sLen;
+    PdfParser     parser;
 
     hFile = fopen( pszFilename, "w" );
     if( !hFile )
@@ -56,7 +57,7 @@ PdfError TestSingleObject( const char* pszFilename, const char* pszData, long lO
 
     printf("Parsing Object: %li %li\n", lObjNo, lGenNo );
 
-    PdfParserObject obj( NULL, hFile, NULL, 0 );
+    PdfParserObject obj( &parser, hFile, NULL, 0 );
     eCode = obj.ParseFile( false );
     if( eCode.IsError() ) 
     {

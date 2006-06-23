@@ -22,16 +22,13 @@
 #define _PDF_SIMPLE_WRITER_H_
 
 #include "PdfDefines.h"
+#include "PdfVariant.h"
 #include "PdfWriter.h"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
 namespace PoDoFo {
-
-typedef std::vector<PdfReference>          TReferenceList;
-typedef TReferenceList::iterator           TIReferenceList;
-typedef TReferenceList::const_iterator     TCIReferenceList;
 
 class PdfObject;
 class PdfPage;
@@ -118,7 +115,7 @@ class PdfSimpleWriter : public PdfWriter {
     PdfObject*      m_pPageTree;
     unsigned int    m_nPageTreeSize;
 
-    TReferenceList  m_vecPageReferences;
+    TVariantList    m_vecPageReferences;
     TSortedFontList m_vecFonts;
 
     void*           m_pFcConfig; // (FcConfig*)

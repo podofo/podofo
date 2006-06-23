@@ -131,7 +131,6 @@ PdfError PdfFontMetrics::GetWidthArray( PdfVariant & var, unsigned int nFirst, u
 {
     PdfError      eCode;
     unsigned int  i;
- //   FT_UInt       uiCharCode;
     TVariantList  list;
 
     if( !m_face ) 
@@ -139,14 +138,11 @@ PdfError PdfFontMetrics::GetWidthArray( PdfVariant & var, unsigned int nFirst, u
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    var.SetDataType( ePdfDataType_Real );
-
     for( i=nFirst;i<=nLast;i++ )
     {
         if( i < FIRST_READABLE )
         {
-            var.SetNumber( 0.0 );
-            list.push_back( var );
+            list.push_back( PdfVariant( 0.0 ) );
         }
         else
         {
@@ -155,13 +151,11 @@ PdfError PdfFontMetrics::GetWidthArray( PdfVariant & var, unsigned int nFirst, u
                 //RAISE_ERROR( ePdfError_FreeType );
             }
 
-            var.SetNumber( m_face->glyph->metrics.horiAdvance * 1000.0 / m_face->units_per_EM );
-            list.push_back( var );
+            list.push_back( PdfVariant( m_face->glyph->metrics.horiAdvance * 1000.0 / m_face->units_per_EM ) );
         }
     }
 
-    var.SetDataType( ePdfDataType_Array );
-    var.SetArray   ( list );
+    var = PdfVariant( list );
 
     return eCode;
 }

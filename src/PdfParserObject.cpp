@@ -262,7 +262,7 @@ PdfError PdfParserObject::ParseFileComplete( bool bIsTrailer )
     else
     {
         PdfVariant var;
-        SAFE_OP( var.Init( szData ) );
+        SAFE_OP( var.Parse( szData ) );
         this->SetSingleValue( var );
     }
 
@@ -318,7 +318,7 @@ PdfError PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, 
     {
         if( *szBuffer == '/' )
         {
-            SAFE_OP_ADV( cVariant.Init( szBuffer, lBufferLen-(szBuffer-szInitial), &lLen ), "Parsing new key" );
+            SAFE_OP_ADV( cVariant.Parse( szBuffer, lBufferLen-(szBuffer-szInitial), &lLen ), "Parsing new key" );
             szBuffer+=lLen;
 
             if( cVariant.GetDataType() != ePdfDataType_Name )
@@ -331,7 +331,7 @@ PdfError PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, 
             while( *szBuffer && IsWhitespace( *szBuffer ) )
                 ++szBuffer;
 
-            SAFE_OP_ADV( cVariant.Init( szBuffer, lBufferLen-(szBuffer-szInitial), &lLen ), "Parsing new value" );
+            SAFE_OP_ADV( cVariant.Parse( szBuffer, lBufferLen-(szBuffer-szInitial), &lLen ), "Parsing new value" );
             szBuffer+=lLen;
 
             if( cVariant.GetDataType() == ePdfDataType_Dictionary )
@@ -527,7 +527,7 @@ PdfError PdfParserObject::ParseStream()
     SAFE_OP( this->GetKeyValueVariant( PdfName::KeyLength, variant ) ); 
     if( variant.GetDataType() == ePdfDataType_Number )
     {
-        SAFE_OP( variant.GetNumber( &lLen ) );
+        lLen = variant.GetNumber();   
     }
     else if( variant.GetDataType() == ePdfDataType_Reference )
     {

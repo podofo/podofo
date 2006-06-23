@@ -51,14 +51,9 @@ PdfError PdfAnnotation::AddReferenceToKey( PdfObject* pObject, const PdfName & k
         list = var.GetArray();
     }
 
-    var.SetDataType( ePdfDataType_Reference );
-    var.SetReference( rRef );
-    list.push_back( var );
+    list.push_back( PdfVariant( rRef ) );
 
-    var.SetDataType( ePdfDataType_Array );
-    SAFE_OP( var.SetArray( list ) );
-
-    pObject->AddKey( keyName, var );
+    pObject->AddKey( keyName, PdfVariant( list ) );
 
     return eCode;
 }
@@ -145,22 +140,13 @@ PdfError PdfAnnotation::SetDestination( const PdfPage* pPage )
 PdfError PdfAnnotation::SetDestination( const PdfReference & rReference )
 {
     PdfError     eCode;
-    PdfVariant   var;
-    PdfVariant   tmp;
     TVariantList list;
 
-    tmp.SetDataType( ePdfDataType_Reference );
-    tmp.SetReference( rReference );
-    list.push_back( tmp );
 
-    tmp.SetDataType( ePdfDataType_Name );
-    tmp.SetName( "Fit" );
-    list.push_back( tmp );
+    list.push_back( PdfVariant( rReference ) );
+    list.push_back( PdfVariant( PdfName( "Fit" ) ) );
 
-    var.SetDataType( ePdfDataType_Array );
-    var.SetArray( list );
-
-    SAFE_OP( this->AddKey( "Dest", var ) );
+    SAFE_OP( this->AddKey( "Dest", PdfVariant( list ) ) );
  
     return eCode;
 }

@@ -83,25 +83,7 @@ PdfError PdfObject::AddKey( const  PdfName & identifier, const char* pszValue )
     PdfError   eCode;
     PdfVariant cVariant;
 
-// TODO:
-// use a hash map:
-/*
- // a hash function object that returns a hash value for a given string
-class StringHashFunctionObject
-{
-public:
-	unsigned int operator()(const std::string &str) const
-	{
-		unsigned int sum=0;
-		for (int i=0; i<str.size(); ++i)
-			sum=(sum+str[i])%100;
-		return sum;
-	}
-};
-
-*/
-        
-    SAFE_OP( cVariant.Init( pszValue ) );
+    SAFE_OP( cVariant.Parse( pszValue ) );
     SAFE_OP( this->AddKey( identifier, cVariant ) );
 
     return eCode;
@@ -109,50 +91,27 @@ public:
 
 PdfError PdfObject::AddKey( const PdfName & identifier, double dValue )
 {
-    PdfVariant cVariant;
-    cVariant.SetDataType( ePdfDataType_Real );
-    cVariant.SetNumber( dValue );
-
-    return this->AddKey( identifier, cVariant );
+    return this->AddKey( identifier, PdfVariant( dValue ) );
 }
 
 PdfError PdfObject::AddKey( const PdfName & identifier, long nValue )
 {
-    PdfVariant cVariant;
-    cVariant.SetDataType( ePdfDataType_Number );
-    cVariant.SetNumber( nValue );
-
-    return this->AddKey( identifier, cVariant );
+    return this->AddKey( identifier, PdfVariant( nValue ) );
 }
 
 PdfError PdfObject::AddKey( const PdfName & identifier, const PdfString & rValue )
 {
-    PdfError   eCode;
-    PdfVariant cVariant;
-
-    cVariant.SetDataType( rValue.IsHex() ? ePdfDataType_HexString : ePdfDataType_String );
-    SAFE_OP( cVariant.SetString( rValue ) );
-    SAFE_OP( this->AddKey( identifier, cVariant ) );
-
-    return eCode;
+    return this->AddKey( identifier, PdfVariant( rValue ) );
 }
 
 PdfError PdfObject::AddKey( const PdfName & identifier, const PdfName & rValue )
 {
-    PdfVariant cVariant;
-    cVariant.SetDataType( ePdfDataType_Name );
-    cVariant.SetName( rValue );
-
-    return this->AddKey( identifier, cVariant );
+    return this->AddKey( identifier, PdfVariant( rValue ) );
 }
 
 PdfError PdfObject::AddKey( const PdfName & identifier, const PdfReference & rValue )
 {
-    PdfVariant cVariant;
-    cVariant.SetDataType( ePdfDataType_Reference );
-    cVariant.SetReference( rValue );
-
-    return this->AddKey( identifier, cVariant );
+    return this->AddKey( identifier, PdfVariant( rValue ) );
 }
 
 PdfError PdfObject::AddKey( const PdfName & identifier, const PdfVariant & rVariant )
@@ -253,14 +212,13 @@ const PdfString & PdfObject::GetKeyValueString ( const PdfName & key, const PdfS
 long PdfObject::GetKeyValueLong   ( const PdfName & key, long lDefault ) const
 {
     TCIKeyMap it;
-    long      lNum;
 
     // HasKey calls DelayedLoad()
     if( HasKey( key ) )
     {
         it = m_mapKeys.find( key );
-        if( !(*it).second.GetNumber( &lNum ).IsError() )
-            return lNum; 
+        if( (*it).second.GetDataType() == ePdfDataType_Number )
+            return (*it).second.GetNumber();
     }
 
     return lDefault;
@@ -270,15 +228,13 @@ bool PdfObject::GetKeyValueBool   ( const PdfName & key, bool bDefault ) const
 {
     PdfError    eCode;
     PdfVariant  var;
-    std::string str;
 
     // GetKeyValueVariant calls DelayedLoad()
     eCode = this->GetKeyValueVariant( key, var );
-    if( eCode.IsError() )
+    if( eCode.IsError() || var.GetDataType() != ePdfDataType_Bool )
         return bDefault;
 
-    var.GetBool( &bDefault );
-    return bDefault;
+    return var.GetBool();
 }
 
 PdfError PdfObject::GetKeyValueVariant( const PdfName & key, PdfVariant & rVariant ) const
@@ -361,24 +317,16 @@ const PdfString & PdfObject::GetSingleValueString() const
 
 long PdfObject::GetSingleValueLong() const
 {
-    long lNum = 0;
-
     DelayedLoad();
 
-    m_singleValue.GetNumber( &lNum );
-
-    return lNum;
+    return m_singleValue.GetNumber();
 }
 
 bool PdfObject::GetSingleValueBool() const
 {
-    bool bVal = false;
-
     DelayedLoad();
 
-    m_singleValue.GetBool( &bVal );
-
-    return bVal;
+    return m_singleValue.GetBool();
 }
 
 const PdfVariant & PdfObject::GetSingleValueVariant () const

@@ -251,7 +251,7 @@ PdfError PdfStream::FlateDecode()
 {
     PdfError       eCode;
     PdfVariant     vVar;
-    PdfVariant     vFilter;
+    PdfVariant     vFilter( PdfName("FlateDecode" ) );
     PdfVariant     vFilterList;
     TVariantList   tFilters;
     TVecObjects    tDecodeParams;
@@ -260,8 +260,6 @@ PdfError PdfStream::FlateDecode()
     if( !m_szStream )
         return eCode; // ePdfError_ErrOk
 
-    // add another compression filter to this stream
-    vFilter.Init( "FlateDecode", ePdfDataType_Name );
 
     if( m_pParent->HasKey( "Filter" ) )
     {
@@ -318,7 +316,7 @@ PdfError PdfStream::FlateDecode()
             // TODO: handle other cases
             return ePdfError_ErrOk;
 
-        vFilterList.Init( tFilters );
+        vFilterList = PdfVariant( tFilters );
         m_pParent->AddKey( "Filter", vFilterList );
 
         // add an empty DecodeParams dictionary to the list of DecodeParams,
@@ -503,11 +501,12 @@ PdfError PdfStream::GetDecodeParms( TVecObjects* pParams ) const
     }
 
     // No decode params dictionary!
-    if( array.IsEmpty() )
+    if( array.IsEmpty() || array.IsNull() )
         return eCode;
 
     if( array.GetDataType() != ePdfDataType_Array ) 
     {
+        PdfError::LogMessage( eLogSeverity_Error, "Datatype is %i but array was expected.\n", array.GetDataType() );
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
@@ -534,7 +533,6 @@ PdfError PdfStream::GetDecodeParms( TVecObjects* pParams ) const
 PdfError PdfStream::SetDecodeParms( TVecObjects* pParams )
 {
     PdfError       eCode;
-    PdfVariant     var;
     TVariantList   array;    
     TCIVecObjects   it;
 
@@ -570,23 +568,17 @@ PdfError PdfStream::SetDecodeParms( TVecObjects* pParams )
         {
             if( *it ) 
             {
-                var.SetDataType( ePdfDataType_Dictionary );
-                var.SetDictionary( *(*it) );
-                array.push_back( var );
+                array.push_back( PdfVariant( *(*it) ) );
             }
             else
             {
-                var.SetDataType( ePdfDataType_Null );
-                array.push_back( var );
+                array.push_back( PdfVariant() );
             }
             
             ++it;
         }
 
-        var.SetDataType( ePdfDataType_Array );
-        var.SetArray( array );
-
-        m_pParent->AddKey( "DecodeParms", var );
+        m_pParent->AddKey( "DecodeParms", PdfVariant( array ) );
     }
     else if( pParams->size() == 1 ) 
     {

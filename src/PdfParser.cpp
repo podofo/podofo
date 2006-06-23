@@ -691,7 +691,7 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
             RAISE_ERROR( ePdfError_NoXRef );
         }
 
-        vWArray.GetArray()[i].GetNumber( &(nW[i]) );
+        nW[i] = vWArray.GetArray()[i].GetNumber();
     }
 
     // get the first object number in this crossref stream.
@@ -710,10 +710,8 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
             RAISE_ERROR( ePdfError_NoXRef );
         }
 
-        vWArray.GetArray()[0].GetNumber( &nFirstObj );
-        std::string str;
-        vWArray.ToString( str );
-        
+        nFirstObj = vWArray.GetArray()[0].GetNumber();
+
         // TODO: fix this
         if( vWArray.GetArray().size() != 2 )
         {

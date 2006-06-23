@@ -87,7 +87,7 @@ class PdfString {
      *  by yourself.
      *
      *  \returns true if this is a hex string.
-     *  \see String() \see PdfAlgorith::HexDecode
+     *  \see String() \see PdfAlgorithm::HexDecode
      */
     inline bool        IsHex () const;
 

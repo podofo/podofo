@@ -49,16 +49,15 @@ PdfRect::PdfRect( const PdfRect & rhs )
 
 void PdfRect::ToVariant( PdfVariant & var, PdfPage* pPage ) const
 {
-    ostringstream oStream;
+    TVariantList array;
     long lTop = pPage ? (pPage->PageSize().lHeight - m_lTop) : m_lTop;
+    
+    array.push_back( PdfVariant( CONVERSION_CONSTANT * m_lLeft ) );
+    array.push_back( PdfVariant( CONVERSION_CONSTANT * (lTop+m_lHeight) ) );
+    array.push_back( PdfVariant( CONVERSION_CONSTANT * (m_lLeft+m_lWidth) ) );
+    array.push_back( PdfVariant( CONVERSION_CONSTANT * lTop ) );
 
-    oStream << "[ " << 
-        CONVERSION_CONSTANT * m_lLeft << " " <<
-        CONVERSION_CONSTANT * (lTop+m_lHeight) << " " <<
-        CONVERSION_CONSTANT * (m_lLeft+m_lWidth) << " " <<
-        CONVERSION_CONSTANT * lTop << " ]";
-
-    var.Init( oStream.str().c_str(), ePdfDataType_Array );
+    var = array;
 }
 
 PdfRect & PdfRect::operator=( const PdfRect & rhs )

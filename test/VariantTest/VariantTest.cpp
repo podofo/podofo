@@ -33,7 +33,7 @@ PdfError Test( const char* pszString, EPdfDataType eDataType )
     long lLen           = 0;
 
     printf("Testing with value: %s\n", pszString );
-    SAFE_OP( variant.Init( pszString, strlen( pszString ), &lLen ) );
+    SAFE_OP( variant.Parse( pszString, strlen( pszString ), &lLen ) );
 
     printf("   -> Expected Datatype: %i\n", eDataType );
     printf("   -> Got      Datatype: %i\n", variant.GetDataType() );

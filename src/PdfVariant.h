@@ -38,12 +38,61 @@ typedef TVariantList::const_iterator TCIVariantList;
  * A variant data type which supports all data types supported by the PDF standard.
  * The data can be parsed directly from a string or set by one of the members.
  * One can also convert the variant back to a string after setting the values.
+ *
+ * TODO: domseichter: Make this class implicitly shared
  */
 class PdfVariant {
  public:
     /** Construct an empty variant type
+     *  IsNull() will return true.
      */
     PdfVariant();
+
+    /** Construct a PdfVariant that is a bool.
+     *  \param b the boolean value of this PdfVariant
+     */
+    PdfVariant( bool b );
+
+    /** Construct a PdfVariant that is a number.
+     *  \param l the value of the number.
+     */
+    PdfVariant( long l );
+
+    /** Construct a PdfVariant that is a real number.
+     *  \param d the value of the real number.
+     */    
+    PdfVariant( double d );
+
+    /** Construct a PdfVariant that is a string.
+     *  \param rsString the value of the string
+     */        
+    PdfVariant( const PdfString & rsString );
+
+    /** Construct a PdfVariant that is a name.
+     *  \param rName the value of the name
+     */        
+    PdfVariant( const PdfName & rName );
+
+    /** Construct a PdfVariant that is a name.
+     *  \param rRef the value of the name
+     */        
+    PdfVariant( const PdfReference & rRef );
+
+    /** Initalize a PdfVariant object with array data.
+     *  The variant will automatically get the datatype
+     *  ePdfDataType_Array. This Init call is the fastest
+     *  way to create a new PdfVariant that is an array.
+     *
+     *  \param tList a list of variants
+     *
+     *  \returns ErrOk on sucess
+     */
+    PdfVariant( const TVariantList & tList );
+
+    /** Construct a PdfVariant that is a dictionary.
+     *  \param rObj the value of the dictionary.
+     */        
+    PdfVariant( const PdfObject & rObj );
 
     /** Constructs a new PdfVariant which has the same 
      *  contents as rhs.
@@ -60,37 +109,7 @@ class PdfVariant {
      *              parsed is returned in this parameter
      *  \returns ErrOk on success
      */
-    PdfError Init( const char* pszData, int nLen = 0, long* pLen = NULL );
-
-    /** Initialize a PdfVariant with data. This function does not parse
-     *  the data, but assumes that it is already in the correct format
-     *  for the specified datatype.
-     *  If you want to initialize with an key /FlateDecode for example
-     *  the call would look like: Init( "FlateDecode", ePdfDataType_Name );
-     *  No leading slash is needed, as the data type is specified
-     *  by the enum.
-     *  
-     *  This function is much faster than the Init version which 
-     *  has to parse all of the string data. It is not faster
-     *  for array and reference types though, as these will be parsed anyways.
-     *
-     *  \param pszData string containing the data
-     *  \param eDataType data type of pszData
-     *
-     *  \returns ErrOk on sucess
-     */
-    PdfError Init( const char* pszData, EPdfDataType eDataType );
-
-    /** Initalize a PdfVariant object with array data.
-     *  The variant will automatically get the datatype
-     *  ePdfDataType_Array. This Init call is the fastest
-     *  way to create a new PdfVariant that is an array.
-     *
-     *  \param tList a list of variants
-     *
-     *  \returns ErrOk on sucess
-     */
-    PdfError Init( const TVariantList & tList );
+    PdfError Parse( const char* pszData, int nLen = 0, long* pLen = NULL );
 
     /** \returns true if this PdfVariant is empty.
      *           i.e. m_eDataType == ePdfDataType_Unknown
@@ -99,6 +118,7 @@ class PdfVariant {
 
     /** Clear all internal member variables and free the memory
      *  they have allocated.
+     *  Sets the datatype to ePdfDataType_Unknown
      */
     void Clear();
 
@@ -106,15 +126,6 @@ class PdfVariant {
      *  if it does not have a value.
      */
     inline const EPdfDataType GetDataType() const;
-
-    /** Set the data type of this PdfVariant object.
-     *  You will have to call one of the set methods next
-     *  to set a value for this variant. Do not call init()
-     *  after this function.
-     *
-     *  \param eDataType the data type of this variant.
-     */        
-    inline void SetDataType( EPdfDataType eDataType );
 
     /** \returns true if this variant is a bool (i.e. GetDataType() == ePdfDataType_Bool)
      */
@@ -167,86 +178,43 @@ class PdfVariant {
      */
     PdfError ToString( std::string & rsData ) const;
 
-    /** Get the value of the object as bool.
-     *  \param pBool pointer to a bool where the value can be stored
-     *  \returns an error if GetDataType() != ePdfDataType_Bool
+    /** Get the value if this object is a bool.
+     *  \returns the bool value.
      */
-    PdfError GetBool( bool* pBool ) const;
+    inline bool GetBool() const;
 
     /** Get the value of the object as long.
-     *  \param pNum pointer to a long where the number can be stored
-     *  \returns an error if GetDataType() != ePdfDataType_Number
+     *  \return the value of the number
      */
-    PdfError GetNumber( long* pNum ) const;
-
-    /** Set the value of this variant.
-     *  \param lNum new value of this variant.
-     *  \returns an error if GetDataType() != ePdfDataType_Number
-     */
-    PdfError SetNumber( long lNum );
+    inline long GetNumber() const;
 
     /** Get the value of the object as double.
-     *  \param pNum pointer to a double where the number can be stored
-     *  \returns an error if GetDataType() != ePdfDataType_Real
+     *  \return the value of the number
      */
-    PdfError GetNumber( double* pNum ) const;
-
-    /** Set the value of this variant.
-     *  \param dNum new value of this variant.
-     *  \returns an error if GetDataType() != ePdfDataType_Number
-     */
-    PdfError SetNumber( double dNum );
-
-    /** Set the value of this variant.
-     *  \param rsName new value of this variant.
-     *  \returns an error if GetDataType() != ePdfDataType_Name
-     */
-    PdfError SetName( const PdfName & rsName );
-
-    /** Set the value of this variant.
-     *  \param rsString new value of this variant.
-     *  \returns an error if GetDataType() != ePdfDataType_String or ePdfDataType_HexString
-     */
-    PdfError SetString( const PdfString & rsString );
+    inline double GetReal() const;
 
     /** \returns the value of the object as string.
      */
-    const PdfString & GetString() const;
+    inline const PdfString & GetString() const;
 
     /** \returns the value of the object as name
      */
-    const PdfName & GetName() const;
+    inline const PdfName & GetName() const;
 
     /** Returns the value of the object as array
      *  \returns a array
      */
-    const TVariantList & GetArray() const;
-
-    /** Set the array value.
-     *  \returns an error if GetDataType() != ePdfDataType_Array
-     */
-    PdfError SetArray( const TVariantList & vArray );
+    inline const TVariantList & GetArray() const;
 
     /** Returns the dictionary value of this object
      *  \returns a PdfObject
      */
-    const PdfObject & GetDictionary() const; 
-
-    /** Set a dictionary as value.
-     *  \returns an error if GetDataType() != ePdfDataType_Dictionary 
-     */
-    PdfError SetDictionary( const PdfObject & obj );
+    inline const PdfObject & GetDictionary() const; 
 
     /** Get the reference values of this object.
      *  \returns a PdfReference
      */
-    const PdfReference & GetReference() const;
-
-    /** Set the variants reference values
-     *  \param ref PdfReference
-     *  \returns an error if GetDataType() != ePdfDataType_Reference
-     */
-    PdfError SetReference( const PdfReference & ref );
+    inline const PdfReference & GetReference() const;
 
     /** Assign the values of another PdfVariant to this one.
      *  \param rhs an existing variant which is copied.
@@ -309,24 +277,92 @@ class PdfVariant {
     int         m_nPadding;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfVariant::IsEmpty() const
 {
     return (m_eDataType == ePdfDataType_Unknown);
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 const EPdfDataType PdfVariant::GetDataType() const
 {
     return m_eDataType;
 }
 
-void PdfVariant::SetDataType( EPdfDataType eDataType )
-{
-    m_eDataType = eDataType;
-}
-
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfVariant::SetPaddingLength( long lLength )
 {
     m_nPadding = lLength;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfVariant::GetBool() const
+{
+    return m_Data.bBoolValue;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+long PdfVariant::GetNumber() const
+{
+    return m_Data.nNumber;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+double PdfVariant::GetReal() const
+{
+    return m_Data.dNumber;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfString & PdfVariant::GetString() const
+{
+    return *m_pString;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfName & PdfVariant::GetName() const
+{
+    return *m_pName;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const TVariantList & PdfVariant::GetArray() const
+{
+    return m_vecArray;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfObject & PdfVariant::GetDictionary() const
+{
+    return *m_pDictionary;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfReference & PdfVariant::GetReference() const
+{
+    return m_reference;
 }
 
 };
