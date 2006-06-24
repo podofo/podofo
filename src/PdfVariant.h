@@ -112,17 +112,17 @@ class PdfVariant {
     PdfError Parse( const char* pszData, int nLen = 0, long* pLen = NULL );
 
     /** \returns true if this PdfVariant is empty.
-     *           i.e. m_eDataType == ePdfDataType_Unknown
+     *           i.e. m_eDataType == ePdfDataType_Null
      */
     inline bool IsEmpty() const;
 
     /** Clear all internal member variables and free the memory
      *  they have allocated.
-     *  Sets the datatype to ePdfDataType_Unknown
+     *  Sets the datatype to ePdfDataType_Null
      */
     void Clear();
 
-    /** \returns the datatype of this object or ePdfDataType_Unknow 
+    /** \returns the datatype of this object or ePdfDataType_Unknown
      *  if it does not have a value.
      */
     inline const EPdfDataType GetDataType() const;
@@ -282,7 +282,7 @@ class PdfVariant {
 // -----------------------------------------------------
 bool PdfVariant::IsEmpty() const
 {
-    return (m_eDataType == ePdfDataType_Unknown);
+    return (m_eDataType == ePdfDataType_Null);
 }
 
 // -----------------------------------------------------

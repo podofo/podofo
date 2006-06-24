@@ -65,10 +65,10 @@ PdfVecObjects::~PdfVecObjects()
 
 const PdfVecObjects & PdfVecObjects::operator=( const PdfVecObjects & rhs )
 {
+    std::vector<PdfObject*>::operator=( rhs );
+
     m_bAutoDelete  = rhs.m_bAutoDelete;
     m_nObjectCount = rhs.m_nObjectCount;
-
-    std::vector<PdfObject*>::operator=( rhs );
 
     return *this;
 }

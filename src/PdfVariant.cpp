@@ -445,7 +445,7 @@ void PdfVariant::Clear()
     delete m_pString;
 
     m_nPadding    = 0;
-    m_eDataType   = ePdfDataType_Unknown;
+    m_eDataType   = ePdfDataType_Null;
     m_pDictionary = NULL;
     m_pName       = NULL;
     m_pString     = NULL;

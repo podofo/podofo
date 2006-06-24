@@ -631,15 +631,13 @@ PdfError PdfParserObject::LoadOnDemand()
 {
     PdfError eCode;
 
-    //printf("Trying to load on demand: %i %i\n", m_bLoadOnDemand, !m_bLoadOnDemandDone );
     if( m_bLoadOnDemand && !m_bLoadOnDemandDone )
     {
         m_bLoadOnDemandDone = true;
 
-        printf("-> Delayed Parsing Object %s\n", m_reference.ToString().c_str() );
         SAFE_OP( ParseFileComplete( m_bIsTrailer ) );
     }
-    //printf("Loding done!\n");
+
     return eCode;
 }
 
@@ -658,7 +656,6 @@ PdfError PdfParserObject::LoadStreamOnDemand()
 
         if( this->HasStreamToParse() && !this->HasStream() )
         {
-            printf("-> Delayed Parsing Stream: %s\n", m_reference.ToString().c_str() );
             SAFE_OP_ADV( this->ParseStream(), "Unable to parse the objects stream." );
         }
     }

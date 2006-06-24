@@ -40,8 +40,6 @@ class PdfObject;
  *  in a PdfVecObject. 
  */
 class PdfVecObjects : public std::vector<PdfObject*> {
-    friend class PdfWriter;
-
  public:
     /** Default constuctor 
      */
@@ -107,6 +105,14 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      */
     PdfObject* CreateObject( const char* pszType = NULL );
 
+    /** Insert a object into this vector.
+     *  Overwritten from std::vector so that 
+     *  m_bObjectCount can be increased for each object.
+     * 
+     *  \param pObj pointer to the object you want to insert
+     */
+    inline void push_back( PdfObject* pObj );
+
  private:
     bool     m_bAutoDelete;
     size_t   m_nObjectCount;
@@ -145,6 +151,15 @@ T* PdfVecObjects::CreateObject()
 
     this->push_back( pObject );
     return pTemplate;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfVecObjects::push_back( PdfObject* pObj )
+{
+    ++m_nObjectCount;
+    std::vector<PdfObject*>::push_back( pObj );
 }
 
 typedef PdfVecObjects                TVecObjects;
