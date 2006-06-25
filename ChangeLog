@@ -1,4 +1,8 @@
-
+Version 0.3
+	Added new PdfDocument object - new high level object for reading & writing a PDF doc
+	Improved handling of the /Info dict for both reading and writing PDFs
+	Added new test app - podofopdfinfo, which will be used to dump metadata, etc. from a PDF
+	
 Version 0.2
 	Improved Documentation;
 	Added SetInformation for additional error information to PdfError;

@@ -88,12 +88,12 @@ class PdfWriter {
      *  have an effect.
      *  \param eVersion  version of the pdf document
      */
-    inline void SetPdfVersion( EPdfVersion eVersion );
+	void SetPdfVersion( EPdfVersion eVersion ) { m_eVersion = eVersion;}
 
     /** Get the PDF version of the document
      *  \returns EPdfVersion version of the pdf document
      */
-    inline EPdfVersion GetPdfVersion() const;
+	EPdfVersion GetPdfVersion() const { return m_eVersion; }
 
     /** Remove the object with the given object and generation number from the list
      *  of objects.
@@ -113,12 +113,12 @@ class PdfWriter {
      *  \returns PdfObject the documents catalog or NULL 
      *                     if no catalog is available
      */
-    inline PdfObject* GetCatalog() const;
+	PdfObject* GetCatalog() const { return m_pCatalog; }
     
     /** Get access to the internal Info dictionary
      *  \returns PdfObject the info dictionary
      */
-    inline PdfObject* GetInfo() const;
+    PdfObject* GetInfo() const { return m_pInfo; }
 
     /** Set wether all streams in the pdf document should
      *  be compress using the FlateDecode algorithm.
@@ -130,25 +130,25 @@ class PdfWriter {
      *
      *  \param bCompress enable/disable compression
      */
-    inline void SetPdfCompression( bool bCompress );
+	void SetPdfCompression( bool bCompress ) { m_bCompress = bCompress; }
 
     /** Get wether PDF compression is enabled.
      *  \see SetPdfCompression
      *  \returns true if all streams will be compressed using
      *           the FlateDecode algorithm.
      */
-    inline bool GetPdfCompression() const;
+	bool GetPdfCompression() const { return m_bCompress; }
 
     /** Get a reference to the sorted internal objects vector.
      *  \returns the internal objects vector.
      */
-    inline const PdfVecObjects & GetObjects() const;
+	const PdfVecObjects & GetObjects() const { return m_vecObjects; }
 
     /** Get a reference to the sorted internal objects vector.
      *  This is an overloaded function for your convinience.
      *  \returns the internal objects vector.
      */
-    inline PdfVecObjects & GetObjects();
+    PdfVecObjects & GetObjects() { return m_vecObjects; }
 
     /** Calculate the byte offset of the object pObject in the PDF file
      *  if the file was written to disk at the moment of calling this function.
@@ -235,70 +235,6 @@ class PdfWriter {
 
     bool            m_bCompress;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfWriter::SetPdfVersion( EPdfVersion eVersion )
-{
-    m_eVersion = eVersion;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-EPdfVersion PdfWriter::GetPdfVersion() const
-{
-    return m_eVersion;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfObject* PdfWriter::GetCatalog() const
-{
-    return m_pCatalog;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfObject* PdfWriter::GetInfo() const
-{
-    return m_pInfo;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfWriter::SetPdfCompression( bool bCompress )
-{
-    m_bCompress = bCompress;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfWriter::GetPdfCompression() const
-{
-    return m_bCompress;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfVecObjects & PdfWriter::GetObjects() const
-{
-    return m_vecObjects;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfVecObjects & PdfWriter::GetObjects()
-{
-    return m_vecObjects;
-}
 
 };
 

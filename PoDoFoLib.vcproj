@@ -109,6 +109,9 @@
 				RelativePath=".\src\PdfDate.cpp">
 			</File>
 			<File
+				RelativePath=".\src\PdfDocument.cpp">
+			</File>
+			<File
 				RelativePath=".\src\PdfError.cpp">
 			</File>
 			<File
@@ -193,6 +196,9 @@
 			</File>
 			<File
 				RelativePath=".\src\PdfDefines.h">
+			</File>
+			<File
+				RelativePath=".\src\PdfDocument.h">
 			</File>
 			<File
 				RelativePath=".\src\PdfError.h">

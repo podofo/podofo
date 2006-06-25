@@ -97,13 +97,7 @@ PdfError PdfWriter::Init( PdfParser* pParser )
     pTrailer = m_pParser->GetTrailer();
     if( pTrailer )
     {
-        /*
-        std::string str;
-        PdfOutputDevice dev;
-        dev.Init( str );
-        PdfObject( *pTrailer ).Write( &dev );
-        */
-
+		// load the Catalog/Root object
         SAFE_OP( pTrailer->GetKeyValueVariant( "Root", cVar ) );
         if( cVar.GetDataType() != ePdfDataType_Reference )
         {
@@ -111,13 +105,25 @@ PdfError PdfWriter::Init( PdfParser* pParser )
         }
 
         ref = cVar.GetReference();
-        printf("ref=%s\n", ref.ToString().c_str());
+        printf("/Catalog ref=%s\n", ref.ToString().c_str());
         m_pCatalog = m_vecObjects.GetObject( ref );
         if( !m_pCatalog )
         {
             fprintf( stderr, "Error: No catalog dictionary found in the trailer.\n" );
             eCode = ePdfError_InvalidHandle;
         }
+
+		// see if there is an Info dict present - and if so, load it
+		SAFE_OP( pTrailer->GetKeyValueVariant( "Info", cVar ) );
+		if( cVar.GetDataType() != ePdfDataType_Reference )
+		{
+			RAISE_ERROR( ePdfError_InvalidDataType );
+		}
+
+		ref = cVar.GetReference();
+		printf("/Info ref=%s\n", ref.ToString().c_str());
+		m_pInfo = m_vecObjects.GetObject( ref );
+		// no need to check error, since it's optional
     }
 
     // clear the parsers object value
@@ -329,13 +335,19 @@ PdfError PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
     }
     else
     {
-        if( !m_pInfo || !m_pCatalog )
+		// Info dict is optional - so only bother writing if present
+        if( m_pInfo )
         {
-            RAISE_ERROR( ePdfError_InvalidHandle );
+			SAFE_OP( pDevice->Print( "/Info %s\n", m_pInfo->Reference().ToString().c_str() ) );
         }
 
-        SAFE_OP( pDevice->Print( "/Info %s\n", m_pInfo->Reference().ToString().c_str() ) );
-        SAFE_OP( pDevice->Print( "/Root %s\n", m_pCatalog->Reference().ToString().c_str() ) );
+		// Catalog, however, is required!
+		if( !m_pCatalog )
+		{
+			RAISE_ERROR( ePdfError_InvalidHandle );
+		} else {
+			SAFE_OP( pDevice->Print( "/Root %s\n", m_pCatalog->Reference().ToString().c_str() ) );
+		}
     }
 
     SAFE_OP( pDevice->Print( ">>\nstartxref\n%li\n%%%%EOF\n", lXRef ) );

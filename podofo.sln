@@ -31,6 +31,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlib", "Zlib\zlib.vcproj", 
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "podofopdfinfo", "tools\podofopdfinfo\podofopdfinfo.vcproj", "{3E81FBF6-B676-458E-9A69-7A85F62A01AB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C110CB09-10F9-460E-8055-F53AF55911AB} = {C110CB09-10F9-460E-8055-F53AF55911AB}
+		{6C9D2F98-D323-487C-8B82-592BA6F95BE5} = {6C9D2F98-D323-487C-8B82-592BA6F95BE5}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
@@ -74,6 +80,12 @@ Global
 		{6C9D2F98-D323-487C-8B82-592BA6F95BE5}.PDFEnhancer Debug.Build.0 = Debug|Win32
 		{6C9D2F98-D323-487C-8B82-592BA6F95BE5}.Release.ActiveCfg = Release|Win32
 		{6C9D2F98-D323-487C-8B82-592BA6F95BE5}.Release.Build.0 = Release|Win32
+		{3E81FBF6-B676-458E-9A69-7A85F62A01AB}.Debug.ActiveCfg = Debug|Win32
+		{3E81FBF6-B676-458E-9A69-7A85F62A01AB}.Debug.Build.0 = Debug|Win32
+		{3E81FBF6-B676-458E-9A69-7A85F62A01AB}.PDFEnhancer Debug.ActiveCfg = Debug|Win32
+		{3E81FBF6-B676-458E-9A69-7A85F62A01AB}.PDFEnhancer Debug.Build.0 = Debug|Win32
+		{3E81FBF6-B676-458E-9A69-7A85F62A01AB}.Release.ActiveCfg = Release|Win32
+		{3E81FBF6-B676-458E-9A69-7A85F62A01AB}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection
