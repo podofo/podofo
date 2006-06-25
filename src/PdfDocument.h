@@ -27,50 +27,50 @@
 
 namespace PoDoFo {
 
-	class PdfDocument {
-	public:
+class PdfDocument {
+ public:
 
-		/** Construct a new (empty) PdfDocument
-		*/
-		PdfDocument();
+    /** Construct a new (empty) PdfDocument
+     */
+    PdfDocument();
+    
+    /** Construct a PdfDocument from an existing PDF (on disk)
+     *  \param sFilename filename of the file which is going to be parsed/opened
+     */
+    PdfDocument( const std::string& sPathname );
+    
+    /** Close down/destruct the PdfDocument
+     */
+    virtual ~PdfDocument();
+    
+    /** Set the PDF Version of the document. Has to be called before Write() to
+     *  have an effect.
+     *  \param eVersion  version of the pdf document
+     */
+    void SetPdfVersion( EPdfVersion eVersion )	{ return mWriter.SetPdfVersion( eVersion ); }
+    
+    /** Get the PDF version of the document
+     *  \returns EPdfVersion version of the pdf document
+     */
+    EPdfVersion GetPdfVersion() const	{ return mWriter.GetPdfVersion(); }
 
-		/** Construct a PdfDocument from an existing PDF (on disk)
-		*  \param sFilename filename of the file which is going to be parsed/opened
-		*/
-		PdfDocument( const std::string& sPathname );
+    /** Get access to the internal Catalog dictionary
+     *  or root object.
+     *  
+     *  \returns PdfObject the documents catalog or NULL 
+     *                     if no catalog is available
+     */
+    PdfObject* GetCatalog() const { return mWriter.GetCatalog(); }
 
-		/** Close down/destruct the PdfDocument
-		*/
-		virtual ~PdfDocument();
+    /** Get access to the internal Info dictionary
+     *  \returns PdfObject the info dictionary
+     */
+    PdfObject* GetInfo() const { return mWriter.GetInfo(); }
 
-		/** Set the PDF Version of the document. Has to be called before Write() to
-		*  have an effect.
-		*  \param eVersion  version of the pdf document
-		*/
-		void SetPdfVersion( EPdfVersion eVersion )	{ return mWriter.SetPdfVersion( eVersion ); }
-
-		/** Get the PDF version of the document
-		*  \returns EPdfVersion version of the pdf document
-		*/
-		EPdfVersion GetPdfVersion() const	{ return mWriter.GetPdfVersion(); }
-
-		/** Get access to the internal Catalog dictionary
-		*  or root object.
-		*  
-		*  \returns PdfObject the documents catalog or NULL 
-		*                     if no catalog is available
-		*/
-		PdfObject* GetCatalog() const { return mWriter.GetCatalog(); }
-
-		/** Get access to the internal Info dictionary
-		*  \returns PdfObject the info dictionary
-		*/
-		PdfObject* GetInfo() const { return mWriter.GetInfo(); }
-
-	private:
-		PdfParser*	mParser;
-		PdfWriter	mWriter;
-	};
+ private:
+    PdfParser*	mParser;
+    PdfWriter	mWriter;
+};
 
 };
 

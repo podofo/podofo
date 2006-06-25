@@ -151,7 +151,7 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-SUBDIRS = podofoimgextract podofouncompress podofotxt2pdf
+SUBDIRS = podofoimgextract podofouncompress podofotxt2pdf podofopdfinfo
 all: all-recursive
 
 .SUFFIXES:

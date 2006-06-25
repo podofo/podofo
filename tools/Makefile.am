@@ -1,1 +1,1 @@
-SUBDIRS = podofoimgextract podofouncompress podofotxt2pdf
+SUBDIRS = podofoimgextract podofouncompress podofotxt2pdf podofopdfinfo

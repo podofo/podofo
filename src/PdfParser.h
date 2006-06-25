@@ -66,19 +66,6 @@ class PdfParser : public PdfParserBase {
      */
     PdfError Init( const char* pszFilename, bool bLoadOnDemand = true );
 
-    /** Initialize the PdfParser object before you can use it.
-     *  This function has to be called before you can access any other
-     *  function.
-     *  \param sFilename filename of the file which is going to be parsed
-     *  \param bLoadOnDemand If true all objects will be read from the file at
-     *                       the time they are accesed first.
-     *                       If false all objects will be read immediately.
-     *                       This is faster if you do not need the complete PDF 
-     *                       file in memory.
-     *  \returns ErrOk on success
-     */
-	PdfError Init( const std::string& sFilename, bool bLoadOnDemand = true ) { return Init( sFilename.c_str(), bLoadOnDemand ); }
-
     /** Get a reference to the sorted internal objects vector.
      *  \returns the internal objects vector.
      */

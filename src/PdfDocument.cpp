@@ -23,26 +23,26 @@
 namespace PoDoFo {
 
 PdfDocument::PdfDocument()
-: mParser( NULL )
+    : mParser( NULL )
 {
-	mWriter.Init();	// initialize a new document
+    mWriter.Init();	// initialize a new document
 }
 
 PdfDocument::PdfDocument( const std::string& sPathname )
-: mParser( new PdfParser() )
+    : mParser( new PdfParser() )
 {
-	mParser->Init( sPathname, true );	// load the file, with objects on demand
-	mWriter.Init( mParser );
+    mParser->Init( sPathname.c_str(), true );	// load the file, with objects on demand
+    mWriter.Init( mParser );
 }
 
 PdfDocument::~PdfDocument()
 {
-	if ( mParser ) {
-		delete mParser;
-		mParser = NULL;
-	}
+    if ( mParser ) 
+    {
+        delete mParser;
+        mParser = NULL;
+    }
 }
-
 
 };
 
