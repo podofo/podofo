@@ -106,6 +106,9 @@
 				RelativePath=".\src\PdfAnnotation.cpp">
 			</File>
 			<File
+				RelativePath=".\src\PdfArray.cpp">
+			</File>
+			<File
 				RelativePath=".\src\PdfDate.cpp">
 			</File>
 			<File
@@ -187,6 +190,9 @@
 			</File>
 			<File
 				RelativePath=".\src\PdfAnnotation.h">
+			</File>
+			<File
+				RelativePath=".\src\PdfArray.h">
 			</File>
 			<File
 				RelativePath=".\src\PdfCanvas.h">
