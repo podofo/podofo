@@ -30,6 +30,32 @@ const char* PdfError::s_file = NULL;
 std::string PdfError::s_info = "";
 bool        PdfError::s_DgbEnabled = true;
 
+PdfErrorInfo::PdfErrorInfo()
+    : m_nLine( -1 )
+{
+}
+
+PdfErrorInfo::PdfErrorInfo( int line, const char* pszFile, const char* pszInfo )
+    : m_nLine( line ), m_sFile( pszFile ), m_sInfo( pszInfo )
+{
+
+}
+ 
+PdfErrorInfo::PdfErrorInfo( const PdfErrorInfo & rhs )
+{
+    this->operator=( rhs );
+}
+
+const PdfErrorInfo & PdfErrorInfo::operator=( const PdfErrorInfo & rhs )
+{
+    m_nLine = rhs.m_nLine;
+    m_sFile = rhs.m_sFile;
+    m_sInfo = rhs.m_sInfo;
+
+    return *this;
+}
+
+
 PdfError::PdfError()
 {
     m_error = ePdfError_ErrOk;
@@ -323,7 +349,8 @@ void PdfError::LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... )
 
 void PdfError::DebugMessage( const char* pszMsg, ... )
 {
-	if ( !PdfError::DebugEnabled() )		return;
+	if ( !PdfError::DebugEnabled() )		
+            return;
 
 	const char* pszPrefix = "DEBUG: ";
 

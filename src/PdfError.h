@@ -22,6 +22,7 @@
 #define _PDF_ERROR_H_
 
 #include "PdfDefines.h"
+#include <queue>
 
 /** \file PdfError.h
  *  Error information and logging is implemented in this file.
@@ -107,6 +108,24 @@ typedef enum ELogSeverity {
  *  to be an c-string.
  */
 #define RAISE_ERROR_INFO( x, y ) eCode.SetError( x, __FILE__, __LINE__, y ); return eCode;
+
+class PdfErrorInfo {
+ public:
+    PdfErrorInfo();
+    PdfErrorInfo( int line, const char* pszFile, const char* pszInfo );
+    PdfErrorInfo( const PdfErrorInfo & rhs );
+
+    const PdfErrorInfo & operator=( const PdfErrorInfo & rhs );
+
+    inline int Line() const { return m_nLine; }
+    inline const std::string & Filename() const { return m_sFile; }
+    inline const std::string & Information() const { return m_sFile; }
+
+ private:
+    int         m_nLine;
+    std::string m_sFile;
+    std::string m_sInfo;
+};
 
 /** The error handling class of PoDoFo lib.
  *  Whenever a function encounters an error
@@ -256,7 +275,9 @@ class PdfError {
 	static bool DebugEnabled() { return PdfError::s_DgbEnabled; }
 
  private:
-    EPdfError m_error;
+    EPdfError                m_error;
+
+    std::queue<PdfErrorInfo> m_callStack;
 
     static int         s_line;
     static const char* s_file;

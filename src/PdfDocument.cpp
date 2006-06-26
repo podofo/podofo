@@ -46,13 +46,14 @@ PdfDocument::~PdfDocument()
 
 PdfObject* PdfDocument::GetNamedObjectFromCatalog( const char* pszName ) const 
 {
-	PdfObject*	anObj = NULL;
-	PdfObject*	rootObj = GetCatalog();
-	if ( rootObj ) {
-		anObj = rootObj->GetKeyValueObject( PdfName( pszName ) );
-	}
+    PdfObject*	anObj   = NULL;
+    PdfObject*	rootObj = GetCatalog();
+    if ( rootObj ) 
+    {
+        anObj = rootObj->GetKeyValueObject( PdfName( pszName ) );
+    }
 
-	return anObj;
+    return anObj;
 }
 
 };
