@@ -28,6 +28,7 @@ namespace PoDoFo {
 int         PdfError::s_line = 0;
 const char* PdfError::s_file = NULL;
 std::string PdfError::s_info = "";
+bool        PdfError::s_DgbEnabled = true;
 
 PdfError::PdfError()
 {
@@ -318,6 +319,22 @@ void PdfError::LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... )
 
     vfprintf( stderr, pszMsg, args );
     va_end( args );
+}
+
+void PdfError::DebugMessage( const char* pszMsg, ... )
+{
+	if ( !PdfError::DebugEnabled() )		return;
+
+	const char* pszPrefix = "DEBUG: ";
+
+	va_list  args;
+	va_start( args, pszMsg );
+
+	if( pszPrefix )
+		fprintf( stderr, pszPrefix );
+
+	vfprintf( stderr, pszMsg, args );
+	va_end( args );
 }
 
 };

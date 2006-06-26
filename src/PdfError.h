@@ -241,12 +241,28 @@ class PdfError {
      */
     static void LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... );
 
+    /** Log a message to the logging system defined for PoDoFo for debugging
+     *  \param pszMsg       the message to be logged
+     */
+    static void DebugMessage( const char* pszMsg, ... );
+
+    /** Enable or disable the display of debugging messages
+     *  \param bEnable       enable (true) or disable (false)
+     */
+	static void EnableDebug( bool bEnable ) { PdfError::s_DgbEnabled = bEnable; }
+	
+    /** Is the display of debugging messages enabled or not?
+     */
+	static bool DebugEnabled() { return PdfError::s_DgbEnabled; }
+
  private:
     EPdfError m_error;
 
     static int         s_line;
     static const char* s_file;
     static std::string s_info;
+
+	static bool        s_DgbEnabled;
 };
 
 EPdfError PdfError::Error() const

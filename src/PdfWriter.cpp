@@ -105,11 +105,11 @@ PdfError PdfWriter::Init( PdfParser* pParser )
         }
 
         ref = cVar.GetReference();
-        printf("/Catalog ref=%s\n", ref.ToString().c_str());
+        PdfError::DebugMessage("/Catalog ref=%s\n", ref.ToString().c_str());
         m_pCatalog = m_vecObjects.GetObject( ref );
         if( !m_pCatalog )
         {
-            fprintf( stderr, "Error: No catalog dictionary found in the trailer.\n" );
+			PdfError::LogMessage( eLogSeverity_Error, "Error: No catalog dictionary found in the trailer.\n" );
             eCode = ePdfError_InvalidHandle;
         }
 
@@ -121,7 +121,7 @@ PdfError PdfWriter::Init( PdfParser* pParser )
 		}
 
 		ref = cVar.GetReference();
-		printf("/Info ref=%s\n", ref.ToString().c_str());
+		PdfError::DebugMessage("/Info ref=%s\n", ref.ToString().c_str());
 		m_pInfo = m_vecObjects.GetObject( ref );
 		// no need to check error, since it's optional
     }

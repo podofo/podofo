@@ -526,8 +526,8 @@ PdfError PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, 
     int     nPredictor;
 
 #ifdef _DEBUG
-    printf("Applying Predictor %i to buffer of size %i\n", pParams->nPredictor, lInLen );
-    printf("Cols: %i Modulo: %i Comps: %i\n", pParams->nColumns, lInLen % (pParams->nColumns +1), pParams->nBPC );
+    PdfError::DebugMessage("Applying Predictor %i to buffer of size %i\n", pParams->nPredictor, lInLen );
+    PdfError::DebugMessage("Cols: %i Modulo: %i Comps: %i\n", pParams->nColumns, lInLen % (pParams->nColumns +1), pParams->nBPC );
 #endif // _DEBUG
 
     if( pParams->nPredictor == 1 )  // No Predictor
@@ -535,8 +535,8 @@ PdfError PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, 
 
     nRows = (pParams->nColumns * pParams->nBPC) >> 3; 
 #ifdef _DEBUG
-    printf("nRows=%i\n", nRows );
-    printf("nBPC=%i\n", pParams->nBPC );
+    PdfError::DebugMessage("nRows=%i\n", nRows );
+    PdfError::DebugMessage("nBPC=%i\n", pParams->nBPC );
 #endif // _DEBUG
 
     pPrev = (unsigned char*)malloc( sizeof(char) * nRows );
@@ -548,7 +548,7 @@ PdfError PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, 
     memset( pPrev, 0, sizeof(char) * nRows );
 
 #ifdef _DEBUG
-    printf("Alloc: %i\n", (lInLen / (pParams->nColumns + 1)) * pParams->nColumns );
+    PdfError::DebugMessage("Alloc: %i\n", (lInLen / (pParams->nColumns + 1)) * pParams->nColumns );
 #endif // _DEBUG
 
     *ppOutBuffer = (char*)malloc( sizeof(char) * (lInLen / (pParams->nColumns + 1)) * pParams->nColumns );

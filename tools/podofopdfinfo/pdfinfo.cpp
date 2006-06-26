@@ -34,6 +34,29 @@ PdfInfo::~PdfInfo()
 	}
 }
 
+void PdfInfo::OutputDocumentInfo( std::ostream& sOutStream )
+{
+	sOutStream << "FileSize: " << mDoc->FileSize() << " bytes" << std::endl;
+	sOutStream << "PDF Version: " << mDoc->GetPdfVersionString() << std::endl;
+	sOutStream << "Fast Web View Enabled: " << (mDoc->IsLinearized() ? "Yes" : "No") << std::endl;
+	sOutStream << "Tagged: " << (mDoc->GetStructTreeRoot() != NULL ? "Yes" : "No") << std::endl;
+
+
+/*
+// print encryption info
+printf("Encrypted:      ");
+if (doc->isEncrypted()) {
+printf("yes (print:%s copy:%s change:%s addNotes:%s)\n",
+doc->okToPrint(gTrue) ? "yes" : "no",
+doc->okToCopy(gTrue) ? "yes" : "no",
+doc->okToChange(gTrue) ? "yes" : "no",
+doc->okToAddNotes(gTrue) ? "yes" : "no");
+} else {
+printf("no\n");
+}
+*/
+}
+
 void PdfInfo::OutputInfoDict( std::ostream& sOutStream )
 {
 	PdfObject	*infoObj = mDoc->GetInfo();

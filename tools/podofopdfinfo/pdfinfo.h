@@ -32,6 +32,7 @@ public:
 	PdfInfo( const std::string& inPathname );
 	virtual ~PdfInfo();
 
+	void OutputDocumentInfo( std::ostream& sOutStream );
 	void OutputInfoDict( std::ostream& sOutStream );
 
 private:

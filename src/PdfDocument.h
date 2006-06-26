@@ -22,6 +22,7 @@
 #define _PDF_DOCUMENT_H_
 
 #include "PdfDefines.h"
+#include "PdfObject.h"
 #include "PdfParser.h"
 #include "PdfWriter.h"
 
@@ -54,7 +55,20 @@ class PdfDocument {
      */
     EPdfVersion GetPdfVersion() const	{ return mWriter.GetPdfVersion(); }
 
-    /** Get access to the internal Catalog dictionary
+	/** Get the file format version of the pdf
+	*  \returns the file format version as string
+	*/
+	const char* GetPdfVersionString() const { return mWriter.GetPdfVersionString(); }
+
+	/** \returns whether the parsed document contains linearization tables
+	*/
+	bool IsLinearized() const { if (mParser) return mParser->IsLinearized(); else return false; }
+
+	/** \returns the size of a read/parsed PDF
+	*/
+	size_t FileSize() const { if (mParser) return mParser->FileSize(); else return 0; }
+
+	/** Get access to the internal Catalog dictionary
      *  or root object.
      *  
      *  \returns PdfObject the documents catalog or NULL 
@@ -67,9 +81,31 @@ class PdfDocument {
      */
     PdfObject* GetInfo() const { return mWriter.GetInfo(); }
 
+    /** Get access to the StructTreeRoot dictionary
+     *  \returns PdfObject the StructTreeRoot dictionary
+     */
+	PdfObject* GetStructTreeRoot() const { return GetNamedObjectFromCatalog( "StructTreeRoot" ); }
+
+    /** Get access to the Metadata stream
+     *  \returns PdfObject the Metadata stream (should be in XML, using XMP grammar)
+     */
+	PdfObject* GetMetadata() const { return GetNamedObjectFromCatalog( "Metadata" ); }
+
+    /** Get access to the Outlines (Bookmarks) dictionary
+     *  \returns PdfObject the Outlines/Bookmarks dictionary
+     */
+	PdfObject* GetOutlines() const { return GetNamedObjectFromCatalog( "Outlines" ); }
+
+    /** Get access to the AcroForm dictionary
+     *  \returns PdfObject the AcroForm dictionary
+     */
+	PdfObject* GetAcroForm() const { return GetNamedObjectFromCatalog( "AcroForm" ); }
+
  private:
     PdfParser*	mParser;
     PdfWriter	mWriter;
+
+	PdfObject* GetNamedObjectFromCatalog( const char* pszName ) const;
 };
 
 };

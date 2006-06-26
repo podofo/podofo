@@ -38,6 +38,10 @@ int main( int argc, char* argv[] )
 {
   PdfError eCode;
 
+#if 1
+  PdfError::EnableDebug( false );	// turn it off to better view the output from this app!
+#endif
+
   if( argc != 2 )
   {
     print_help();
@@ -48,16 +52,15 @@ int main( int argc, char* argv[] )
   std::string fName( pszInput );
   PdfInfo	myInfo( fName );
 
+  std::cout << "Document Info for " << fName << std::endl;
+  std::cout << "-------------------------------------------------------------------------------" << std::endl;
+  myInfo.OutputDocumentInfo( std::cout );
+  std::cout << std::endl;
+
+  std::cout << "Classic Metadata" << std::endl;
+  std::cout << "----------------" << std::endl;
   myInfo.OutputInfoDict( std::cout );
 
-//   eCode = unc.Init( pszInput, pszOutput );
-// 
-//   if( !eCode.IsError() )
-//   {
-//       printf("%s was sucessfully uncompressed to: %s\n", pszInput, pszOutput );
-//   }
-//   else
-//       fprintf( stderr, "Error: An error %i ocurred during uncompressing the pdf file.\n", eCode.Error() );
   
   return eCode.Error();
 }

@@ -238,6 +238,16 @@ static const char* s_szPdfVersions[] = {
     "%PDF-1.6"
 };
 
+static const char* s_szPdfVersionNums[] = {
+	"1.0",
+	"1.1",
+	"1.2",
+	"1.3",
+	"1.4",
+	"1.5",
+	"1.6"
+};
+
 static const int s_nNumWhiteSpaces = 6;
 static const char s_cWhiteSpaces[] = {
     0x00, // NULL

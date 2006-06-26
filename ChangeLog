@@ -1,7 +1,21 @@
 Version 0.3
-	Added new PdfDocument object - new high level object for reading & writing a PDF doc
-	Improved handling of the /Info dict for both reading and writing PDFs
-	Added new test app - podofopdfinfo, which will be used to dump metadata, etc. from a PDF
+	Added new PdfDocument object - new high level object for reading & writing a PDF doc;
+	Improved handling of the /Info dict for both reading and writing PDFs;
+	Added new test app - podofopdfinfo, which will be used to dump metadata, etc. from a PDF;
+	Added PdfError::DebugMessage() as the official way to write out debugging info;
+		updated all other debugging msgs to use this;
+	Added PdfError::DebugEnabled() to enable/disable display of debug messages;
+	Added tracking of file size in PdfParser;
+	Minor tweak to Linearization handling - to enable getting the status from a doc;
+	Added getting GetPdfVersionAsString() to PdfWriter;
+	Added new info/object getting methods to PdfDocument;
+		bool IsLinearized();
+		size_t FileSize();
+		PdfObject* GetStructTreeRoot();
+		PdfObject* GetMetadata();
+		PdfObject* GetOutlines();
+		PdfObject* GetAcroForm();
+	Updated pdfinfo & podofopdfinfo to call the new PdfDocument methods;
 	
 Version 0.2
 	Improved Documentation;

@@ -93,6 +93,14 @@ class PdfParser : public PdfParserBase {
      */
     inline bool LoadOnDemand() const;
 
+    /** \returns whether the parsed document contains linearization tables
+     */
+	bool IsLinearized() const { return m_pLinearization != NULL; }
+
+    /** \returns the length of the file
+     */
+	size_t FileSize() const { return m_nFileSize; }
+
  protected:
     /** Reads the xref sections and the trailers of the file
      *  in the correct order in the memory
@@ -104,7 +112,7 @@ class PdfParser : public PdfParserBase {
      *  Initializes the linearization directory on sucess.
      *  \returns ErrOk on success
      */
-    PdfError IsLinearized();
+    PdfError HasLinearizationDict();
 
     /** Merge the information of this trailer object
      *  in the parsers main trailer object.
@@ -193,6 +201,7 @@ class PdfParser : public PdfParserBase {
     long         m_nFirstObject;
     long         m_nNumObjects;
     long         m_nXRefLinearizedOffset;
+	size_t       m_nFileSize;
 
     TXRefEntry** m_ppOffsets;
     TVecObjects  m_vecObjects;

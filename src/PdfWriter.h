@@ -95,6 +95,11 @@ class PdfWriter {
      */
 	EPdfVersion GetPdfVersion() const { return m_eVersion; }
 
+	/** Get the file format version of the pdf
+	*  \returns the file format version as string
+	*/
+	const char* GetPdfVersionString() const { return s_szPdfVersionNums[(int)m_eVersion]; }
+
     /** Remove the object with the given object and generation number from the list
      *  of objects.
      *  The object is returned if it was found. Otherwise NULL is returned.

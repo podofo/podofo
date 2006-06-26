@@ -154,10 +154,11 @@ PdfError PdfParser::ReadDocumentStructure()
 {
     PdfError eCode;
 
-    SAFE_OP( IsLinearized() );
+    SAFE_OP( HasLinearizationDict() );
     
     // position at the end of the file to search the xref table.
     fseek( m_hFile, 0, SEEK_END );
+	m_nFileSize = ftell( m_hFile );
 
     SAFE_OP_ADV( ReadXRef( &m_nXRefOffset ), "Unable to find startxref entry in file." );
     SAFE_OP_ADV( ReadTrailer(),              "Unable to find trailer in file." );
@@ -181,14 +182,14 @@ PdfError PdfParser::ReadDocumentStructure()
     }
 
 #ifdef _DEBUG
-    printf("Allocating for %i objects\n", m_nNumObjects );
+    PdfError::DebugMessage("Allocating for %i objects\n", m_nNumObjects );
 #endif // _DEBUG
 
     m_ppOffsets = (TXRefEntry**)malloc( sizeof( TXRefEntry* ) * (m_nNumObjects+1)  );
     memset( m_ppOffsets, 0, sizeof( TXRefEntry* ) * m_nNumObjects );
 
 #ifdef _DEBUG
-        printf("Linearized Offset: %i Pointer: %p\n", m_nXRefLinearizedOffset, m_pLinearization );
+    PdfError::DebugMessage("Linearized Offset: %i Pointer: %p\n", m_nXRefLinearizedOffset, m_pLinearization );
 #endif // _DEBUG
 
     if( m_pLinearization )
@@ -227,7 +228,7 @@ bool PdfParser::IsPdfFile()
     return true;
 }
 
-PdfError PdfParser::IsLinearized()
+PdfError PdfParser::HasLinearizationDict()
 {
     PdfError  eCode;
     int       i          = 0;
@@ -455,7 +456,7 @@ PdfError PdfParser::ReadTrailer()
     m_pTrailer = new PdfParserObject( this, m_hFile, this->GetBuffer(), this->GetBufferSize() );
     SAFE_OP_ADV( static_cast<PdfParserObject*>(m_pTrailer)->ParseFile( true ), "The trailer was found in the file, but contains errors." );
 #ifdef _DEBUG
-    printf("Size=%li\n", m_pTrailer->GetKeyValueLong( PdfName::KeySize, 0 ) );
+    PdfError::DebugMessage("Size=%li\n", m_pTrailer->GetKeyValueLong( PdfName::KeySize, 0 ) );
 #endif // _DEBUG
 
     return eCode;
@@ -557,7 +558,7 @@ PdfError PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
             break;
 
 #ifdef _DEBUG
-        printf("Reading numbers: %i %i\n", nFirstObject, nNumObjects );
+        PdfError::DebugMessage("Reading numbers: %i %i\n", nFirstObject, nNumObjects );
 #endif // _DEBUG
 
         if( bPositionAtEnd && !eCode.IsError() )
@@ -583,7 +584,7 @@ PdfError PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects 
     int         count        = 0;
 
 #ifdef _DEBUG
-    printf("Reading XRef Section: %i with %i Objects\n", nFirstObject, nNumObjects );
+    PdfError::DebugMessage("Reading XRef Section: %i with %i Objects\n", nFirstObject, nNumObjects );
 #endif // _DEBUG 
 
     while( count < nNumObjects && fread( m_szBuffer, PDF_XREF_ENTRY_SIZE, sizeof(char), m_hFile ) == 1 )
@@ -617,13 +618,13 @@ PdfError PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects 
     {
         long lOffset = 0;
 
-        printf("Searching at: %i\n", m_ppOffsets[nFirstObject]->lOffset );
+        PdfError::DebugMessage("Searching at: %i\n", m_ppOffsets[nFirstObject]->lOffset );
         SAFE_OP( fseek( m_hFile, m_ppOffsets[nFirstObject]->lOffset, SEEK_SET ) );
         eCode = ReadXRef( &lOffset );
         if( eCode )
             eCode == ErrOk;
 
-        printf("Found XRef at: %i\n", lOffset );
+        PdfError::DebugMessage("Found XRef at: %i\n", lOffset );
         SAFE_OP( ReadXRefContents( lOffset ) );
     }
     */
