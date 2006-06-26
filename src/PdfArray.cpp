@@ -22,5 +22,18 @@
 
 namespace PoDoFo {
 
+PdfArray::PdfArray()
+{
+}
+
+PdfArray::PdfArray( const PdfVariant & var ) 
+{
+    this->push_back( var );
+}
+
+PdfArray::PdfArray( const PdfArray & rhs )
+{
+    this->operator=( rhs );
+}
 
 };

@@ -37,6 +37,20 @@ namespace PoDoFo {
 class PdfArray : public std::vector<PdfVariant> {
  public:
 
+    /** Create an empty array 
+     */
+    PdfArray();
+
+    /** Create an array and add one value to it.
+     *  \param var add this variant to the array.
+     */
+    PdfArray( const PdfVariant & var );
+
+    /** Copy an existing PdfArray
+     *  \param rhs the array to copy
+     */
+    PdfArray( const PdfArray & rhs );
+
 };
 
 typedef PdfArray                 TVariantList;
