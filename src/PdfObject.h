@@ -22,17 +22,17 @@
 #define _PDF_OBJECT_H_
 
 #include "PdfDefines.h"
+#include "PdfName.h"
 #include "PdfParser.h"
 #include "PdfReference.h"
+#include "PdfString.h"
 #include "PdfVariant.h"
 
 namespace PoDoFo {
 
-class PdfName;
 class PdfObject;
 class PdfOutputDevice;
 class PdfStream;
-class PdfString;
 class PdfVecObjects;
 
 typedef std::map<PdfName,PdfVariant>       TKeyMap;

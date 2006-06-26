@@ -20,6 +20,7 @@
 
 #include "PdfVariant.h"
 
+#include "PdfArray.h"
 #include "PdfOutputDevice.h"
 #include "PdfParserObject.h"
 
@@ -34,7 +35,7 @@ namespace PoDoFo {
 using namespace std;
 
 PdfVariant::PdfVariant()
-    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL )
+    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL ), m_pArray( NULL )
 {
     Clear();
 
@@ -42,7 +43,7 @@ PdfVariant::PdfVariant()
 }
 
 PdfVariant::PdfVariant( bool b )
-    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL )
+    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL ), m_pArray( NULL )
 {
     Clear();
 
@@ -51,7 +52,7 @@ PdfVariant::PdfVariant( bool b )
 }
 
 PdfVariant::PdfVariant( long l )
-    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL )
+    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL ), m_pArray( NULL )
 {
     Clear();
 
@@ -60,7 +61,7 @@ PdfVariant::PdfVariant( long l )
 }
 
 PdfVariant::PdfVariant( double d )
-    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL )
+    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL ), m_pArray( NULL )
 {
     Clear();
 
@@ -69,7 +70,7 @@ PdfVariant::PdfVariant( double d )
 }
 
 PdfVariant::PdfVariant( const PdfString & rsString )
-    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL )
+    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL ), m_pArray( NULL )
 {
     Clear();
 
@@ -78,7 +79,7 @@ PdfVariant::PdfVariant( const PdfString & rsString )
 }
 
 PdfVariant::PdfVariant( const PdfName & rName )
-    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL )
+    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL ), m_pArray( NULL )
 {
     Clear();
 
@@ -87,7 +88,7 @@ PdfVariant::PdfVariant( const PdfName & rName )
 }
 
 PdfVariant::PdfVariant( const PdfReference & rRef )
-    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL )
+    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL ), m_pArray( NULL )
 {
     Clear();
 
@@ -95,17 +96,17 @@ PdfVariant::PdfVariant( const PdfReference & rRef )
     m_reference = rRef;
 }
 
-PdfVariant::PdfVariant( const TVariantList & tList )
-    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL )
+PdfVariant::PdfVariant( const PdfArray & rArray )
+    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL ), m_pArray( NULL )
 {
     Clear();
 
     m_eDataType = ePdfDataType_Array;
-    m_vecArray = tList;
+    m_pArray = new PdfArray( rArray );
 }
 
 PdfVariant::PdfVariant( const PdfObject & rObj )
-    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL )
+    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL ), m_pArray( NULL )
 {
     Clear();
 
@@ -114,7 +115,7 @@ PdfVariant::PdfVariant( const PdfObject & rObj )
 }
 
 PdfVariant::PdfVariant( const PdfVariant & rhs )
-    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL )
+    : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL ), m_pArray( NULL )
 {
     this->operator=(rhs);
 }
@@ -228,7 +229,10 @@ PdfError PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
 
             pszBuf += lArrayLen;
 
-            m_vecArray.push_back( vVar );
+            if( !m_pArray )
+                m_pArray = new PdfArray();
+
+            m_pArray->push_back( vVar );
         }
 
         if( pszBuf - pszData < nLen && *pszBuf == ']' )
@@ -443,17 +447,17 @@ void PdfVariant::Clear()
     delete m_pDictionary;
     delete m_pName;
     delete m_pString;
+    delete m_pArray;
 
     m_nPadding    = 0;
     m_eDataType   = ePdfDataType_Null;
     m_pDictionary = NULL;
     m_pName       = NULL;
     m_pString     = NULL;
+    m_pArray      = NULL;
     m_reference   = PdfReference();
 
     memset( &m_Data, sizeof( UVariant ), 0 );
-    
-    m_vecArray  .clear();
 }
 
 PdfError PdfVariant::ToString( std::string & rsData ) const
@@ -467,6 +471,11 @@ PdfError PdfVariant::ToString( std::string & rsData ) const
 
     if( (m_eDataType == ePdfDataType_HexString ||
         m_eDataType == ePdfDataType_String) && (!m_pString || !m_pString->String()) )
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    if( m_eDataType == ePdfDataType_Array && !m_pArray ) 
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -494,9 +503,9 @@ PdfError PdfVariant::ToString( std::string & rsData ) const
             out << "/" << m_pName->Name();
             break;
         case ePdfDataType_Array:
-            itArray = m_vecArray.begin();
+            itArray = m_pArray->begin();
             out << "[ ";
-            while( itArray != m_vecArray.end() )
+            while( itArray != m_pArray->end() )
             {
                 SAFE_OP( (*itArray).ToString( sTmp ) );
                 out << sTmp << " ";
@@ -537,21 +546,14 @@ PdfError PdfVariant::ToString( std::string & rsData ) const
 
 const PdfVariant & PdfVariant::operator=( const PdfVariant & rhs )
 {
-    TCIVariantList itArray = rhs.m_vecArray.begin();
-
     Clear();
 
     m_eDataType      = rhs.m_eDataType;
     m_Data           = rhs.m_Data;
     m_nPadding       = rhs.m_nPadding;
-
-    while( itArray != rhs.m_vecArray.end() )
-    {
-        m_vecArray.push_back( (*itArray) );
-        ++itArray;
-    }
     
     m_reference   = rhs.m_reference;
+    m_pArray      = rhs.m_pArray && m_eDataType == ePdfDataType_Array ? new PdfArray( *(rhs.m_pArray) ) : NULL;
     m_pDictionary = rhs.m_pDictionary && m_eDataType == ePdfDataType_Dictionary ? new PdfObject( *(rhs.m_pDictionary) ) : NULL;
     m_pName       = rhs.m_pName && m_eDataType == ePdfDataType_Name ? new PdfName( *(rhs.m_pName) ) : NULL;
     m_pString     = rhs.m_pString && 

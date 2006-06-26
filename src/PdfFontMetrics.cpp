@@ -24,6 +24,7 @@
 
 #include "PdfFontMetrics.h"
 
+#include "PdfArray.h"
 #include "PdfVariant.h"
 #include <sstream>
 
@@ -131,7 +132,7 @@ PdfError PdfFontMetrics::GetWidthArray( PdfVariant & var, unsigned int nFirst, u
 {
     PdfError      eCode;
     unsigned int  i;
-    TVariantList  list;
+    PdfArray  list;
 
     if( !m_face ) 
     {

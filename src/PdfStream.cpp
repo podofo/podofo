@@ -20,6 +20,7 @@
 
 #include "PdfStream.h"
 
+#include "PdfArray.h"
 #include "PdfFilter.h"
 #include "PdfObject.h"
 #include "PdfVariant.h"
@@ -253,9 +254,10 @@ PdfError PdfStream::FlateDecode()
     PdfVariant     vVar;
     PdfVariant     vFilter( PdfName("FlateDecode" ) );
     PdfVariant     vFilterList;
-    TVariantList   tFilters;
+    PdfArray       tFilters;
     TVecObjects    tDecodeParams;
-    TCIVariantList tciFilters;
+
+    PdfArray::const_iterator tciFilters;
     
     if( !m_szStream )
         return eCode; // ePdfError_ErrOk

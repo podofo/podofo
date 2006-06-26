@@ -30,6 +30,7 @@
 
 #include "PdfAction.h"
 #include "PdfAnnotation.h"
+#include "PdfArray.h"
 #include "PdfCanvas.h"
 #include "PdfDate.h"
 #include "PdfDocument.h"

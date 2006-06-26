@@ -18,57 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "PdfRect.h"
-
 #include "PdfArray.h"
-#include "PdfPage.h"
-#include "PdfVariant.h"
-
-#include <sstream>
-
-using namespace std;
 
 namespace PoDoFo {
 
-PdfRect::PdfRect()
-{
-    m_lTop = m_lLeft = m_lWidth = m_lHeight = 0;
-}
-
-PdfRect::PdfRect( long lLeft, long lTop, long lWidth, long lHeight )
-{
-    m_lTop    = lTop;
-    m_lLeft   = lLeft;
-    m_lWidth  = lWidth;
-    m_lHeight = lHeight;
-}
-
-PdfRect::PdfRect( const PdfRect & rhs )
-{
-    this->operator=( rhs );
-}
-
-void PdfRect::ToVariant( PdfVariant & var, PdfPage* pPage ) const
-{
-    PdfArray array;
-    long lTop = pPage ? (pPage->PageSize().lHeight - m_lTop) : m_lTop;
-    
-    array.push_back( PdfVariant( CONVERSION_CONSTANT * m_lLeft ) );
-    array.push_back( PdfVariant( CONVERSION_CONSTANT * (lTop+m_lHeight) ) );
-    array.push_back( PdfVariant( CONVERSION_CONSTANT * (m_lLeft+m_lWidth) ) );
-    array.push_back( PdfVariant( CONVERSION_CONSTANT * lTop ) );
-
-    var = array;
-}
-
-PdfRect & PdfRect::operator=( const PdfRect & rhs )
-{
-    this->m_lTop    = rhs.m_lTop;
-    this->m_lLeft   = rhs.m_lLeft;
-    this->m_lWidth  = rhs.m_lWidth;
-    this->m_lHeight = rhs.m_lHeight;
-
-    return *this;
-}
 
 };

@@ -22,6 +22,7 @@
 #define _PDF_SIMPLE_WRITER_H_
 
 #include "PdfDefines.h"
+#include "PdfArray.h"
 #include "PdfVariant.h"
 #include "PdfWriter.h"
 
@@ -115,7 +116,7 @@ class PdfSimpleWriter : public PdfWriter {
     PdfObject*      m_pPageTree;
     unsigned int    m_nPageTreeSize;
 
-    TVariantList    m_vecPageReferences;
+    PdfArray        m_vecPageReferences;
     TSortedFontList m_vecFonts;
 
     void*           m_pFcConfig; // (FcConfig*)

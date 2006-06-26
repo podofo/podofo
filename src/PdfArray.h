@@ -18,57 +18,31 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "PdfRect.h"
+#ifndef _PDF_ARRAY_H_
+#define _PDF_ARRAY_H_
 
-#include "PdfArray.h"
-#include "PdfPage.h"
+#include "PdfDefines.h"
+
 #include "PdfVariant.h"
-
-#include <sstream>
-
-using namespace std;
 
 namespace PoDoFo {
 
-PdfRect::PdfRect()
-{
-    m_lTop = m_lLeft = m_lWidth = m_lHeight = 0;
-}
-
-PdfRect::PdfRect( long lLeft, long lTop, long lWidth, long lHeight )
-{
-    m_lTop    = lTop;
-    m_lLeft   = lLeft;
-    m_lWidth  = lWidth;
-    m_lHeight = lHeight;
-}
-
-PdfRect::PdfRect( const PdfRect & rhs )
-{
-    this->operator=( rhs );
-}
-
-void PdfRect::ToVariant( PdfVariant & var, PdfPage* pPage ) const
-{
-    PdfArray array;
-    long lTop = pPage ? (pPage->PageSize().lHeight - m_lTop) : m_lTop;
-    
-    array.push_back( PdfVariant( CONVERSION_CONSTANT * m_lLeft ) );
-    array.push_back( PdfVariant( CONVERSION_CONSTANT * (lTop+m_lHeight) ) );
-    array.push_back( PdfVariant( CONVERSION_CONSTANT * (m_lLeft+m_lWidth) ) );
-    array.push_back( PdfVariant( CONVERSION_CONSTANT * lTop ) );
-
-    var = array;
-}
-
-PdfRect & PdfRect::operator=( const PdfRect & rhs )
-{
-    this->m_lTop    = rhs.m_lTop;
-    this->m_lLeft   = rhs.m_lLeft;
-    this->m_lWidth  = rhs.m_lWidth;
-    this->m_lHeight = rhs.m_lHeight;
-
-    return *this;
-}
+/** This class represents a PdfArray
+ *  Use it for all arrays that are written to a PDF file.
+ *  
+ *  A PdfArray can hold any PdfVariant.
+ *
+ *  \see PdfVariant
+ */
+class PdfArray : public std::vector<PdfVariant> {
+ public:
 
 };
+
+typedef PdfArray                 TVariantList;
+typedef PdfArray::iterator       TIVariantList;
+typedef PdfArray::const_iterator TCIVariantList;
+
+};
+
+#endif // _PDF_ARRAY_H_

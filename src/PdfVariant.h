@@ -22,17 +22,14 @@
 #define _PDF_VARIANT_H_
 
 #include "PdfDefines.h"
-#include "PdfName.h"
+
 #include "PdfReference.h"
-#include "PdfString.h"
 
 namespace PoDoFo {
 
-class PdfVariant;
-
-typedef std::vector<PdfVariant>      TVariantList;
-typedef TVariantList::iterator       TIVariantList;
-typedef TVariantList::const_iterator TCIVariantList;
+class PdfArray;
+class PdfName;
+class PdfString;
 
 /**
  * A variant data type which supports all data types supported by the PDF standard.
@@ -87,7 +84,7 @@ class PdfVariant {
      *
      *  \returns ErrOk on sucess
      */
-    PdfVariant( const TVariantList & tList );
+    PdfVariant( const PdfArray & tList );
 
     /** Construct a PdfVariant that is a dictionary.
      *  \param rObj the value of the dictionary.
@@ -204,7 +201,7 @@ class PdfVariant {
     /** Returns the value of the object as array
      *  \returns a array
      */
-    inline const TVariantList & GetArray() const;
+    inline const PdfArray & GetArray() const;
 
     /** Returns the dictionary value of this object
      *  \returns a PdfObject
@@ -263,13 +260,13 @@ class PdfVariant {
      */
     PdfName* m_pName;
 
-    /** Stores the values of arrays.
-     */
-    TVariantList m_vecArray;
-
     /** Holds a dictionary
      */
     PdfObject*   m_pDictionary;
+
+    /** Stores the values of arrays.
+     */
+    PdfArray*  m_pArray;
 
     /** if not 0 the object is padded with spaces
      *  to this length
@@ -344,9 +341,9 @@ const PdfName & PdfVariant::GetName() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const TVariantList & PdfVariant::GetArray() const
+const PdfArray & PdfVariant::GetArray() const
 {
-    return m_vecArray;
+    return *m_pArray;
 }
 
 // -----------------------------------------------------

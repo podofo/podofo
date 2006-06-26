@@ -20,6 +20,7 @@
 
 #include "PdfParser.h"
 
+#include "PdfArray.h"
 #include "PdfParserObject.h"
 #include "PdfStream.h"
 #include "PdfVariant.h"

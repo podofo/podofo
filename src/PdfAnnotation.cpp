@@ -20,6 +20,7 @@
 
 #include "PdfAnnotation.h"
 #include "PdfAction.h"
+#include "PdfArray.h"
 #include "PdfDate.h"
 #include "PdfPage.h"
 #include "PdfRect.h"
@@ -36,9 +37,9 @@ PdfAnnotation::PdfAnnotation( unsigned int nObjectNo, unsigned int nGenerationNo
 
 PdfError PdfAnnotation::AddReferenceToKey( PdfObject* pObject, const PdfName & keyName, const PdfReference & rRef )
 {
-    PdfError     eCode;
-    PdfVariant   var;
-    TVariantList list;
+    PdfError      eCode;
+    PdfVariant    var;
+    PdfArray      list;
 
     if( pObject->HasKey( keyName ) )
     {
