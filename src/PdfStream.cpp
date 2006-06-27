@@ -35,7 +35,7 @@ PdfStream::PdfStream( PdfObject* pParent )
     m_szStream = NULL;
     m_lLength  = 0;
     m_lSize    = 0;
-	m_bOwnedBuffer = false;
+    m_bOwnedBuffer = true;
 }
 
 PdfStream::PdfStream( const PdfStream & rhs )
@@ -43,7 +43,7 @@ PdfStream::PdfStream( const PdfStream & rhs )
     m_szStream = NULL;
     m_lLength  = 0;
     m_lSize    = 0;
-	m_bOwnedBuffer = false;
+    m_bOwnedBuffer = true;
 
     operator=(rhs);
 }
