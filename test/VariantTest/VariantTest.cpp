@@ -157,6 +157,7 @@ int main()
     //pszHex[lLen] = '\0';
     pszHex[lLen-1] = '\0';
     printf("Decoded Buffer: (%s)\n", pszHex );
+    free( pszHex );
 
 
     // test a hex string containing a whitespace character
@@ -170,6 +171,7 @@ int main()
     lLen = lRes;
     pszHex[lLen] = '\0';
     printf("Decoded Buffer: (%s)\n", pszHex );
+    free( pszResult );
 
     printf("Test completed with error code: %i\n", eCode.Error() );
     return eCode.Error();
