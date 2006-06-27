@@ -38,6 +38,8 @@ void PdfInfo::OutputDocumentInfo( std::ostream& sOutStream )
 {
 	sOutStream << "FileSize: " << mDoc->FileSize() << " bytes" << std::endl;
 	sOutStream << "PDF Version: " << mDoc->GetPdfVersionString() << std::endl;
+	sOutStream << "Page Count:" << mDoc->GetPageCount() << std::endl;
+	sOutStream << std::endl;
 	sOutStream << "Fast Web View Enabled: " << (mDoc->IsLinearized() ? "Yes" : "No") << std::endl;
 	sOutStream << "Tagged: " << (mDoc->GetStructTreeRoot() != NULL ? "Yes" : "No") << std::endl;
 

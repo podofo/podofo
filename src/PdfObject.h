@@ -68,6 +68,11 @@ class PdfObject {
      */
     PdfObject( unsigned int objectno, unsigned int generationno, const char* pszType = NULL );
 
+    /** Construct a new PDF object from a PdfReference
+     *  \param inRef an existing PdfReference (probably from a PdfVariant)
+     */
+    PdfObject( const PdfReference& inRef );
+
     /** Creates a copy of an existing PdfObject
      *  All assosiated objects and streams will be copied along with the PdfObject
      *  \param rhs PdfObject to clone

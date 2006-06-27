@@ -42,6 +42,14 @@ PdfObject::PdfObject( unsigned int objectno, unsigned int generationno, const ch
         this->AddKey( PdfName::KeyType, PdfName( pszType ) );
 }
 
+PdfObject::PdfObject( const PdfReference& inRef )
+: m_reference( inRef )
+{
+	Init();
+
+	m_singleValue = PdfVariant( inRef );
+}
+
 PdfObject::PdfObject( const PdfObject & rhs )
 {
     Init();

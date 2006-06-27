@@ -62,7 +62,7 @@ class PdfReference {
      */
     const std::string ToString() const;
 
-    /**
+   /**
      * Assigne the value of another object to this PdfReference.
      *
      * \param rhs the object to copy

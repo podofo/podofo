@@ -28,6 +28,8 @@
 
 namespace PoDoFo {
 
+class PdfPagesTree;
+
 class PdfDocument {
  public:
 
@@ -101,6 +103,12 @@ class PdfDocument {
      */
     PdfObject* GetAcroForm() const { return GetNamedObjectFromCatalog( "AcroForm" ); }
 
+    /** Get the total number of pages in a document
+     *  \returns int number of pages
+     */
+    int GetPageCount() const;
+
+
  private:
     /** Get a dictioary from the catalog dictionary by its name.
      *  \param pszName will be converted into a PdfName
@@ -108,9 +116,15 @@ class PdfDocument {
      */
     PdfObject* GetNamedObjectFromCatalog( const char* pszName ) const;
 
+   /** Internal method for initializing the pages tree for this document
+     */
+	void InitPagesTree();
+
  private:
-    PdfParser*	mParser;
-    PdfWriter	mWriter;
+    PdfParser*	    mParser;
+    PdfWriter	    mWriter;
+	
+	PdfPagesTree*   mPagesTree;
 };
 
 };
