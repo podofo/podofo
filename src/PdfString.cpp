@@ -138,7 +138,7 @@ void PdfString::Init( const char* pszString, long lLen )
     {
         if( m_bHex ) 
         {
-            pFilter = PdfFilterFactory::Create( ePdfFilter_FlateDecode );
+            pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
             if( pFilter ) 
             {
                 eCode = pFilter->Encode( pszString, lLen, &m_pszData, &m_lLen );

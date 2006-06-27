@@ -52,7 +52,7 @@ class PdfDocument {
      *  \param eVersion  version of the pdf document
      */
     void SetPdfVersion( EPdfVersion eVersion )	{ return mWriter.SetPdfVersion( eVersion ); }
-  
+
     /** Get the PDF version of the document
      *  \returns EPdfVersion version of the pdf document
      */

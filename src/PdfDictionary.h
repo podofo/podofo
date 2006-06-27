@@ -117,6 +117,11 @@ class PdfDictionary {
      */
     PdfError Write( PdfOutputDevice* pDevice, const PdfName & keyStop = PdfName::KeyNull );
 
+    /** Get access to the internal map of keys.
+     *  \returns all keys of this dictionary
+     */
+    inline const TKeyMap & GetKeys() const;
+
  private:
     TKeyMap      m_mapKeys;
 };
@@ -124,6 +129,14 @@ class PdfDictionary {
 typedef std::vector<PdfDictionary*>      TVecDictionaries;
 typedef TVecDictionaries::iterator       TIVecDictionaries;
 typedef TVecDictionaries::const_iterator TCIVecDictionaries;
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const TKeyMap & PdfDictionary::GetKeys() const
+{
+    return m_mapKeys;
+}
 
 };
 
