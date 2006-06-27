@@ -444,7 +444,7 @@ PdfError PdfParser::ReadTrailer()
     m_pTrailer = new PdfParserObject( this, m_hFile, this->GetBuffer(), this->GetBufferSize() );
     SAFE_OP_ADV( static_cast<PdfParserObject*>(m_pTrailer)->ParseFile( true ), "The trailer was found in the file, but contains errors." );
 #ifdef _DEBUG
-    PdfError::DebugMessage("Size=%li\n", m_pTrailer->GetKeyValueLong( PdfName::KeySize, 0 ) );
+    PdfError::DebugMessage("Size=%li\n", m_pTrailer->GetDictionary().GetKeyAsLong( PdfName::KeySize, 0 ) );
 #endif // _DEBUG
 
     return eCode;

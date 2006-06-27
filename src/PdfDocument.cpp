@@ -70,14 +70,15 @@ PdfPagesTree::~PdfPagesTree()
 
 int PdfPagesTree::GetTotalNumberOfPages() const
 {
+	int	pgCount = 0;	// assume a new document w/o any pages
+
     if ( mPagesRoot ) 
     {
         if( mPagesRoot->HasKey( "Count" ) )
             return mPagesRoot->GetDictionary().GetKeyAsLong( "Count", 0 );
-    } else {
-        // it's a new document w/o any pages
-        return 0;
     }
+
+	return pgCount;
 }
 
 PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )

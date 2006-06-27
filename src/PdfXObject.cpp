@@ -55,9 +55,11 @@ PdfError PdfXObject::Init( const PdfRect & rRect )
 
     PdfVariant var;
     rRect.ToVariant( var );
-
     this->AddKey( "BBox", var );
-    this->AddKey( "Matrix", "[ 1 0 0 1 0 0 ]" );
+
+	PdfVariant	matVar;
+	matVar.Parse( "[ 1 0 0 1 0 0 ]" );
+    this->AddKey( "Matrix", matVar );
 
     m_size.lWidth  = rRect.Width();
     m_size.lHeight = rRect.Height();
