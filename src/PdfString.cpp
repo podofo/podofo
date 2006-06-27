@@ -45,50 +45,6 @@ PdfString::PdfString( const char* pszString, long lLen, bool bHex )
     Init( pszString, lLen );
 }
 
-#if 0
-PdfString::PdfString( const char* pszData, long lLen, bool bHex, long lPadding, bool bHexEncode )
-    : m_pszData( NULL ), m_lLen( 0 ), m_bHex( bHex )
-{
-    PdfError eCode;
-    char*    pHex;
-    long     lHex;
-    long     lSpace;
-
-    if( pszData ) 
-    {
-        if( bHex && bHexEncode ) 
-        {
-            eCode = PdfAlgorithm::HexEncodeBuffer( pszData, lLen, &pHex, &lHex );
-            if( eCode.IsError() )
-            {
-                eCode.PrintErrorMsg();
-                return;
-            }
-        }
-        else
-        {
-            lHex = lLen;
-            pHex = const_cast<char*>(pszData);
-        }
-
-        m_lLen = lHex + 1;
-        if( m_lLen < lPadding )
-            m_lLen = lPadding + 1;
-
-        if( !Allocate() )
-            return;
-
-        memcpy( m_pszData, pHex, lHex );
-        
-        lSpace = m_lLen - (lHex);
-        if( lSpace )
-            memset( (m_pszData+lHex), '0', lSpace );
-
-        m_pszData[m_lLen-1] = '\0';
-    }
-}
-#endif // 0
-
 PdfString::PdfString( const PdfString & rhs )
     : m_pszData( NULL ), m_lLen( 0 ), m_bHex( false )
 {
@@ -129,7 +85,7 @@ PdfError PdfString::SetHexData( const char* pszHex, long lLen )
     return eCode;
 }
 
-PdfError PdfString::Write ( PdfOutputDevice* pDevice )
+PdfError PdfString::Write ( PdfOutputDevice* pDevice ) const
 {
     PdfError eCode;
     

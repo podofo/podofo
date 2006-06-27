@@ -31,6 +31,7 @@
 
 namespace PoDoFo {
 
+class PdfArray;
 class PdfVariant;
 
 class PdfFontMetrics {
@@ -61,10 +62,11 @@ class PdfFontMetrics {
 
     /** Create the bounding box array as required by the PDF reference
      *  so that it can be written directly to a PDF file.
-     *  \param rsBounds bbox of the font
+     * 
+     *  \param array write the bounding box to this array.
      *  \returns ErrOk on success
      */
-    PdfError GetBoundingBox( std::string & rsBounds ) const;
+    PdfError GetBoundingBox( PdfArray & array ) const;
 
     /** Retrieve the width of a given text string in 1/1000th mm when
      *  drawn with the current font

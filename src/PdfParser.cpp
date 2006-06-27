@@ -21,6 +21,7 @@
 #include "PdfParser.h"
 
 #include "PdfArray.h"
+#include "PdfDictionary.h"
 #include "PdfParserObject.h"
 #include "PdfStream.h"
 #include "PdfVariant.h"
@@ -175,12 +176,13 @@ PdfError PdfParser::ReadDocumentStructure()
             return eCode;
     }
 
-    m_nNumObjects = m_pTrailer->GetKeyValueLong( PdfName::KeySize, -1 );
-    if( m_nNumObjects == -1 )
+    if( !m_pTrailer->HasKey( PdfName::KeySize ) )
     {
         PdfError::LogMessage( eLogSeverity_Error, "No /Size key was specified in the trailer directory." );
         RAISE_ERROR( ePdfError_InvalidTrailerSize );
     }
+
+    m_nNumObjects = m_pTrailer->GetDictionary().GetKeyAsLong( PdfName::KeySize );
 
 #ifdef _DEBUG
     PdfError::DebugMessage("Allocating for %i objects\n", m_nNumObjects );
@@ -201,7 +203,7 @@ PdfError PdfParser::ReadDocumentStructure()
     SAFE_OP_ADV( ReadXRefContents( m_nXRefOffset ), "Unable to load xref entries." );
     if( m_pTrailer->HasKey( "Prev" ) )
     {
-        SAFE_OP_ADV( ReadXRefContents( m_pTrailer->GetKeyValueLong( "Prev", 0 ) ), "Unable to load /Prev xref entries." );
+        SAFE_OP_ADV( ReadXRefContents( m_pTrailer->GetDictionary().GetKeyAsLong( "Prev", 0 ) ), "Unable to load /Prev xref entries." );
     }
 
     return eCode;
@@ -264,7 +266,7 @@ PdfError PdfParser::HasLinearizationDict()
         return ePdfError_ErrOk;
     }
     
-    lXRef = m_pLinearization->GetKeyValueLong( "T", lXRef );
+    lXRef = m_pLinearization->GetDictionary().GetKeyAsLong( "T", lXRef );
     if( lXRef == -1 )
     {
         RAISE_ERROR( ePdfError_InvalidLinearization );
@@ -329,34 +331,19 @@ PdfError PdfParser::MergeTrailer( const PdfObject* pTrailer )
     }
 
     if( pTrailer->HasKey( PdfName::KeySize ) )
-    {
-        pTrailer->GetKeyValueVariant( PdfName::KeySize, cVar );
-        m_pTrailer->AddKey( PdfName::KeySize, cVar );
-    }
+        m_pTrailer->AddKey( PdfName::KeySize, pTrailer->GetKey( PdfName::KeySize ) );
 
     if( pTrailer->HasKey( "Root" ) )
-    {
-        pTrailer->GetKeyValueVariant( "Root", cVar );
-        m_pTrailer->AddKey( "Root", cVar );
-    }
+        m_pTrailer->AddKey( "Root", pTrailer->GetKey( "Root" ) );
 
     if( pTrailer->HasKey( "Encrypt" ) )
-    {
-        pTrailer->GetKeyValueVariant( "Encrypt", cVar );
-        m_pTrailer->AddKey( "Encrypt", cVar );
-    }
+        m_pTrailer->AddKey( "Encrypt", pTrailer->GetKey( "Encrypt" ) );
 
     if( pTrailer->HasKey( "Info" ) )
-    {
-        pTrailer->GetKeyValueVariant( "Info", cVar );
-        m_pTrailer->AddKey( "Info", cVar );
-    }
+        m_pTrailer->AddKey( "Info", pTrailer->GetKey( "Info" ) );
 
     if( pTrailer->HasKey( "ID" ) )
-    {            
-        pTrailer->GetKeyValueVariant( "ID", cVar );
-        m_pTrailer->AddKey( "ID", cVar );
-    }
+        m_pTrailer->AddKey( "ID", pTrailer->GetKey( "ID" ) );
 
     return eCode;
 }
@@ -369,15 +356,15 @@ PdfError PdfParser::ReadNextTrailer()
     // ReadXRefcontents has read the first 't' from "trailer" so just check for "railer"
     if( strcmp( m_szBuffer, "railer" ) == 0 )
     {
-        PdfParserObject pTrailer( this, m_hFile, this->GetBuffer(), this->GetBufferSize() );
-        SAFE_OP_ADV( pTrailer.ParseFile( true ), "The linearized trailer was found in the file, but contains errors." );
+        PdfParserObject trailer( this, m_hFile, this->GetBuffer(), this->GetBufferSize() );
+        SAFE_OP_ADV( trailer.ParseFile( true ), "The linearized trailer was found in the file, but contains errors." );
         
         // now merge the information of this trailer with the main documents trailer
-        SAFE_OP( MergeTrailer( &pTrailer ) );
+        SAFE_OP( MergeTrailer( &trailer ) );
 
-        if( pTrailer.HasKey( "Prev" ) )
+        if( trailer.HasKey( "Prev" ) )
         {
-            SAFE_OP_ADV( ReadXRefContents( pTrailer.GetKeyValueLong( "Prev", 0 ) ), "Unable to load /Prev xref entries." );
+            SAFE_OP_ADV( ReadXRefContents( trailer.GetDictionary().GetKeyAsLong( "Prev", 0 ) ), "Unable to load /Prev xref entries." );
         }
     }
     else
@@ -657,7 +644,12 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
     SAFE_OP( xrefObject.ParseFile() );
 
 
-    SAFE_OP( xrefObject.GetKeyValueVariant( PdfName::KeyType, xrefType ) );
+    if( !xrefObject.HasKey( PdfName::KeyType ) )
+    {
+        RAISE_ERROR( ePdfError_NoXRef );
+    } 
+
+    xrefType = xrefObject.GetDictionary().GetKey( PdfName::KeyType );
     if( xrefType.GetDataType() != ePdfDataType_Name || ( xrefType.GetName().Name() != "XRef" ) )
     {
         RAISE_ERROR( ePdfError_NoXRef );
@@ -676,8 +668,8 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
         RAISE_ERROR( ePdfError_NoXRef );
     }
 
-    lSize  = xrefObject.GetKeyValueLong    ( PdfName::KeySize, 0    );
-    SAFE_OP( xrefObject.GetKeyValueVariant ( "W", vWArray ) );
+    lSize   = xrefObject.GetDictionary().GetKeyAsLong( PdfName::KeySize, 0 );
+    vWArray = xrefObject.GetDictionary().GetKey      ( "W" );
 
     // The pdf reference states that W is always an array with 3 entries
     // all of them have to be integeres
@@ -701,7 +693,7 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
     if( xrefObject.HasKey( "Index" ) )
     {
         // reuse vWArray!!
-        SAFE_OP( xrefObject.GetKeyValueVariant ( "Index", vWArray ) );
+        vWArray = xrefObject.GetKey( "Index" );
         if( vWArray.GetDataType() != ePdfDataType_Array )
         {
             RAISE_ERROR( ePdfError_NoXRef );
@@ -740,7 +732,7 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
 
     if( xrefObject.HasKey("Prev") )
     {
-        lOffset = xrefObject.GetKeyValueLong( "Prev", 0 );
+        lOffset = xrefObject.GetDictionary().GetKeyAsLong( "Prev", 0 );
         SAFE_OP( ReadXRefStreamContents( lOffset, bReadOnlyTrailer ) );
     }
 
@@ -916,8 +908,8 @@ PdfError PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
         RAISE_ERROR( ePdfError_NoObject );
     }
 
-    lNum   = pStream->GetKeyValueLong( "N", 0 );
-    lFirst = pStream->GetKeyValueLong( "First", 0 );
+    lNum   = pStream->GetDictionary().GetKeyAsLong( "N", 0 );
+    lFirst = pStream->GetDictionary().GetKeyAsLong( "First", 0 );
 
     if( m_mapStreamCache.find( nObjNo ) == m_mapStreamCache.end() )
     {
@@ -943,7 +935,6 @@ PdfError PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
             SAFE_OP( pObj->ParseDictionaryKeys( (char*)(pBuffer+lFirst+lOff), lBufferLen-lFirst-lOff, NULL ) );
 
             pObj->SetObjectNumber( lObj );
-            pObj->SetDirect( false );
 
             // TODO: remove cache
             m_mapStreamCache[nObjNo][nIndex] = pObj;

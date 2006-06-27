@@ -97,8 +97,8 @@ PdfError PdfWriter::Init( PdfParser* pParser )
     pTrailer = m_pParser->GetTrailer();
     if( pTrailer )
     {
-		// load the Catalog/Root object
-        SAFE_OP( pTrailer->GetKeyValueVariant( "Root", cVar ) );
+        // load the Catalog/Root object
+        cVar = pTrailer->GetKey( "Root" );
         if( cVar.GetDataType() != ePdfDataType_Reference )
         {
             RAISE_ERROR( ePdfError_InvalidDataType );
@@ -109,21 +109,21 @@ PdfError PdfWriter::Init( PdfParser* pParser )
         m_pCatalog = m_vecObjects.GetObject( ref );
         if( !m_pCatalog )
         {
-			PdfError::LogMessage( eLogSeverity_Error, "Error: No catalog dictionary found in the trailer.\n" );
+            PdfError::LogMessage( eLogSeverity_Error, "Error: No catalog dictionary found in the trailer.\n" );
             eCode = ePdfError_InvalidHandle;
         }
 
-		// see if there is an Info dict present - and if so, load it
-		SAFE_OP( pTrailer->GetKeyValueVariant( "Info", cVar ) );
-		if( cVar.GetDataType() != ePdfDataType_Reference )
-		{
-			RAISE_ERROR( ePdfError_InvalidDataType );
-		}
-
-		ref = cVar.GetReference();
-		PdfError::DebugMessage("/Info ref=%s\n", ref.ToString().c_str());
-		m_pInfo = m_vecObjects.GetObject( ref );
-		// no need to check error, since it's optional
+        // see if there is an Info dict present - and if so, load it
+        cVar = pTrailer->GetKey( "Info" );
+        if( cVar.GetDataType() != ePdfDataType_Reference )
+        {
+            RAISE_ERROR( ePdfError_InvalidDataType );
+        }
+        
+        ref = cVar.GetReference();
+        PdfError::DebugMessage("/Info ref=%s\n", ref.ToString().c_str());
+        m_pInfo = m_vecObjects.GetObject( ref );
+        // no need to check error, since it's optional
     }
 
     // clear the parsers object value
@@ -270,8 +270,6 @@ PdfError PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
 {
     PdfError          eCode;
     long              lXRef;
-    PdfVariant        var;
-    std::string       str;
     unsigned int      nSize     = 0;
     TCIVecXRefTable   it;
 
@@ -300,54 +298,46 @@ PdfError PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
         }
 
         // Prev is ignored as we write only one crossref section
-        SAFE_OP( m_pParser->GetTrailer()->GetKeyValueVariant( "Root", var ) );
-        SAFE_OP( var.ToString( str ) );
         SAFE_OP( pDevice->Print( "/Root " ) );
-        SAFE_OP( pDevice->Print( str.c_str() ) );
+        SAFE_OP( m_pParser->GetTrailer()->GetKey( "Root" ).Write( pDevice ) );
         SAFE_OP( pDevice->Print( "\n" ) );
 
         if( m_pParser->GetTrailer()->HasKey( "Encrypt" ) )
         {
-            SAFE_OP( m_pParser->GetTrailer()->GetKeyValueVariant( "Encrypt", var ) );
-            SAFE_OP( var.ToString( str ) );
             SAFE_OP( pDevice->Print( "/Encrypt " ) );
-            SAFE_OP( pDevice->Print( str.c_str() ) );
+            SAFE_OP( m_pParser->GetTrailer()->GetKey( "Encrypt" ).Write( pDevice ) );
             SAFE_OP( pDevice->Print( "\n" ) );
         }
 
         if( m_pParser->GetTrailer()->HasKey( "Info" ) )
         {
-            SAFE_OP( m_pParser->GetTrailer()->GetKeyValueVariant( "Info", var ) );
-            SAFE_OP( var.ToString( str ) );
             SAFE_OP( pDevice->Print( "/Info " ) );
-            SAFE_OP( pDevice->Print( str.c_str() ) );
+            SAFE_OP( m_pParser->GetTrailer()->GetKey( "Info" ).Write( pDevice ) );
             SAFE_OP( pDevice->Print( "\n" ) );
         }
 
         if( m_pParser->GetTrailer()->HasKey( "ID" ) )
         {
-            SAFE_OP( m_pParser->GetTrailer()->GetKeyValueVariant( "ID", var ) );
-            SAFE_OP( var.ToString( str ) );
             SAFE_OP( pDevice->Print( "/ID " ) );
-            SAFE_OP( pDevice->Print( str.c_str() ) );
+            SAFE_OP( m_pParser->GetTrailer()->GetKey( "ID" ).Write( pDevice ) );
             SAFE_OP( pDevice->Print( "\n" ) );
         }
     }
     else
     {
-		// Info dict is optional - so only bother writing if present
+        // Info dict is optional - so only bother writing if present
         if( m_pInfo )
         {
-			SAFE_OP( pDevice->Print( "/Info %s\n", m_pInfo->Reference().ToString().c_str() ) );
+            SAFE_OP( pDevice->Print( "/Info %s\n", m_pInfo->Reference().ToString().c_str() ) );
         }
-
-		// Catalog, however, is required!
-		if( !m_pCatalog )
-		{
-			RAISE_ERROR( ePdfError_InvalidHandle );
-		} else {
-			SAFE_OP( pDevice->Print( "/Root %s\n", m_pCatalog->Reference().ToString().c_str() ) );
-		}
+        
+        // Catalog, however, is required!
+        if( !m_pCatalog )
+        {
+            RAISE_ERROR( ePdfError_InvalidHandle );
+        } else {
+            SAFE_OP( pDevice->Print( "/Root %s\n", m_pCatalog->Reference().ToString().c_str() ) );
+        }
     }
 
     SAFE_OP( pDevice->Print( ">>\nstartxref\n%li\n%%%%EOF\n", lXRef ) );
@@ -416,6 +406,11 @@ PdfError PdfWriter::WriteToBuffer( char** ppBuffer, unsigned long* pulLen )
     SAFE_OP( this->Write( &device ) );
    
     return eCode;
+}
+
+PdfDictionary* PdfWriter::GetInfo() const
+{
+    return &(m_pInfo->GetVariant().GetDictionary()); 
 }
 
 };

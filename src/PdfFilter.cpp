@@ -22,12 +22,35 @@
 #include "PdfFilter.h"
 
 #include "PdfParserBase.h"
-#include "PdfObject.h"
+#include "PdfDictionary.h"
 
 #include <zlib.h>
 #define CHUNK       16384
 
 namespace PoDoFo {
+
+/** 
+ * This structur contains all necessary values
+ * for a FlateDecode and LZWDecode Predictor.
+ * These values are normally stored in the /DecodeParams
+ * key of a PDF dictionary.
+ */
+struct TFlatePredictorParams {
+    TFlatePredictorParams() {
+        nPredictor   = 1;
+        nColors      = 1;
+        nBPC         = 8;
+        nColumns     = 1;
+        nEarlyChange = 1;
+    };
+
+    int nPredictor;
+    int nColors;
+    int nBPC;
+    int nColumns;
+    int nEarlyChange;
+};
+
 
 std::map<EPdfFilter,PdfFilter*> PdfFilterFactory::s_mapFilters;
 
@@ -113,7 +136,7 @@ PdfError PdfHexFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutB
     return eCode;
 }
 
-PdfError PdfHexFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms ) const
+PdfError PdfHexFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
 {
     PdfError eCode;
     int      i      = 0;
@@ -256,7 +279,7 @@ PdfError PdfAscii85Filter::Encode( char* pBuffer, int* bufferPos, long lBufferLe
     return eCode;
 }
 
-PdfError PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms ) const
+PdfError PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
 {
     PdfError      eCode;
     unsigned long tuple = 0;
@@ -418,7 +441,7 @@ PdfError PdfFlateFilter::Encode( const char* pInBuffer, long lInLen, char** ppOu
     return eCode;
 }
 
-PdfError PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms ) const
+PdfError PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
 {
     PdfError  eCode;
 
@@ -499,11 +522,11 @@ PdfError PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOu
 
     if( pDecodeParms ) 
     {
-        tParams.nPredictor   = pDecodeParms->GetKeyValueLong( "Predictor", tParams.nPredictor );
-        tParams.nColors      = pDecodeParms->GetKeyValueLong( "Colors", tParams.nColors );
-        tParams.nBPC         = pDecodeParms->GetKeyValueLong( "BitsPerComponent", tParams.nBPC );
-        tParams.nColumns     = pDecodeParms->GetKeyValueLong( "Columns", tParams.nColumns );
-        tParams.nEarlyChange = pDecodeParms->GetKeyValueLong( "EarlyChange", tParams.nEarlyChange );
+        tParams.nPredictor   = pDecodeParms->GetKeyAsLong( "Predictor", tParams.nPredictor );
+        tParams.nColors      = pDecodeParms->GetKeyAsLong( "Colors", tParams.nColors );
+        tParams.nBPC         = pDecodeParms->GetKeyAsLong( "BitsPerComponent", tParams.nBPC );
+        tParams.nColumns     = pDecodeParms->GetKeyAsLong( "Columns", tParams.nColumns );
+        tParams.nEarlyChange = pDecodeParms->GetKeyAsLong( "EarlyChange", tParams.nEarlyChange );
 
         eCode = this->RevertPredictor( &tParams, pBuf, lBufSize, ppOutBuffer, plOutLen );
         free( pBuf );
@@ -609,7 +632,7 @@ PdfError PdfRLEFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutB
     return ePdfError_UnsupportedFilter;
 }
 
-PdfError PdfRLEFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms ) const
+PdfError PdfRLEFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
 {
     PdfError              eCode;
     char*                 pBuf;

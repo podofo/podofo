@@ -161,20 +161,20 @@ PdfError PdfFontMetrics::GetWidthArray( PdfVariant & var, unsigned int nFirst, u
     return eCode;
 }
 
-PdfError PdfFontMetrics::GetBoundingBox( std::string & rsBounds ) const
+PdfError PdfFontMetrics::GetBoundingBox( PdfArray & array ) const
 {
-    PdfError      eCode;
-    std::ostringstream out;
+    PdfError eCode;
 
     if( !m_face ) 
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    out << "[ " << m_face->bbox.xMin * 1000.0 / m_face->units_per_EM << " " << m_face->bbox.yMin  * 1000.0 / m_face->units_per_EM << " "
-        << m_face->bbox.xMax  * 1000.0 / m_face->units_per_EM << " " << m_face->bbox.yMax  * 1000.0 / m_face->units_per_EM << " ]";
-
-    rsBounds = out.str();
+    array.Clear();
+    array.push_back( PdfVariant( m_face->bbox.xMin * 1000.0 / m_face->units_per_EM ) );
+    array.push_back( PdfVariant( m_face->bbox.yMin  * 1000.0 / m_face->units_per_EM ) );
+    array.push_back( PdfVariant( m_face->bbox.xMax  * 1000.0 / m_face->units_per_EM ) );
+    array.push_back( PdfVariant( m_face->bbox.yMax  * 1000.0 / m_face->units_per_EM ) );
 
     return eCode;
 }

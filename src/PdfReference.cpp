@@ -20,6 +20,8 @@
 
 #include "PdfReference.h"
 
+#include "PdfOutputDevice.h"
+
 #include <sstream>
 
 namespace PoDoFo {
@@ -41,6 +43,11 @@ PdfReference::PdfReference( const PdfReference & rhs )
     this->operator=( rhs );
 }
 
+PdfError PdfReference::Write( PdfOutputDevice* pDevice ) const
+{
+    return pDevice->Print( "%i %i R", m_nObjectNo, m_nGenerationNo );
+}
+
 const std::string PdfReference::ToString() const
 {
     std::ostringstream out;
@@ -52,7 +59,7 @@ const PdfReference & PdfReference::operator=( const PdfReference & rhs )
 {
     m_nObjectNo     = rhs.m_nObjectNo;
     m_nGenerationNo = rhs.m_nGenerationNo;
-	return *this;
+    return *this;
 }
 
 bool PdfReference::operator==( const PdfReference & rhs ) const

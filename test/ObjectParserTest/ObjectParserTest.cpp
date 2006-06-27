@@ -36,6 +36,7 @@ PdfError TestSingleObject( const char* pszFilename, const char* pszData, long lO
     FILE*         hFile;
     unsigned long lObjLen;
     std::string   sLen;
+    std::string   str;
     PdfParser     parser;
 
     hFile = fopen( pszFilename, "w" );
@@ -77,20 +78,14 @@ PdfError TestSingleObject( const char* pszFilename, const char* pszData, long lO
     {
         RAISE_ERROR( ePdfError_TestFailed );
     }
-        
-    if( obj.HasSingleValue() )
-    {
-        PdfVariant var;
-        std::string str;
 
-        var = obj.GetSingleValueVariant();
-        TEST_SAFE_OP( var.ToString( str ) );
-        printf("  -> Expected value of this object: (%s)\n", pszExpectedValue );
-        printf("  -> Single Value in this object: (%s)\n", str.c_str() );
-        if( strcmp( str.c_str(), pszExpectedValue ) != 0 )
-        {
-            RAISE_ERROR( ePdfError_TestFailed );
-        }
+    PdfVariant var = obj.GetVariant();
+    TEST_SAFE_OP( var.ToString( str ) );
+    printf("  -> Expected value of this object: (%s)\n", pszExpectedValue );
+    printf("  -> Value in this object         : (%s)\n", str.c_str() );
+    if( strcmp( str.c_str(), pszExpectedValue ) != 0 )
+    {
+        RAISE_ERROR( ePdfError_TestFailed );
     }
 
     TEST_SAFE_OP( obj.GetObjectLength( &lObjLen ) );
@@ -116,8 +111,9 @@ PdfError TestSingleObject( const char* pszFilename, const char* pszData, long lO
 
 PdfError TestObject( const char* pszFilename, const char* pszData, long lObjNo, long lGenNo )
 {
-    PdfError eCode;
-    FILE*    hFile;
+    PdfError  eCode;
+    PdfParser parser;
+    FILE*     hFile;
 
     hFile = fopen( pszFilename, "w" );
     if( !hFile )
@@ -138,7 +134,7 @@ PdfError TestObject( const char* pszFilename, const char* pszData, long lObjNo, 
 
     printf("Parsing Object: %li %li\n", lObjNo, lGenNo );
 
-    PdfParserObject obj( NULL, hFile, NULL, 0 );
+    PdfParserObject obj( &parser, hFile, NULL, 0 );
     eCode = obj.ParseFile( false );
     if( eCode.IsError() ) 
     {

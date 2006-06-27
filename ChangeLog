@@ -15,7 +15,9 @@ Version 0.3
 		PdfObject* GetMetadata();
 		PdfObject* GetOutlines();
 		PdfObject* GetAcroForm();
-	Updated pdfinfo & podofopdfinfo to call the new PdfDocument methods;
+	Updated pdfinfo & podofopdfinfo to call the new PdfDocument
+	methods;
+	Added PdfDictionary and PdfArray classes;
 	Added new PdfPagesTree (inside of PdfDocument.cpp) for handling walking a /Pages tree
 	Added new GetPageCount() method to PdfDocument
 	

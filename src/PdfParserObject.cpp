@@ -20,6 +20,7 @@
 
 #include "PdfParserObject.h"
 
+#include "PdfDictionary.h"
 #include "PdfParser.h"
 #include "PdfStream.h"
 #include "PdfVariant.h"
@@ -46,7 +47,6 @@ PdfParserObject::PdfParserObject( char* szBuffer, long lBufferSize )
     : PdfObject( 0, 0, NULL), PdfParserBase( NULL, szBuffer, lBufferSize), m_pParser( NULL )
 {
     Init();
-    this->SetDirect( true );
 }
 
 PdfParserObject::~PdfParserObject()
@@ -263,7 +263,7 @@ PdfError PdfParserObject::ParseFileComplete( bool bIsTrailer )
     {
         PdfVariant var;
         SAFE_OP( var.Parse( szData ) );
-        this->SetSingleValue( var );
+        this->SetVariant( var );
     }
 
     if( bOwnBuffer )
@@ -334,18 +334,12 @@ PdfError PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, 
             SAFE_OP_ADV( cVariant.Parse( szBuffer, lBufferLen-(szBuffer-szInitial), &lLen ), "Parsing new value" );
             szBuffer+=lLen;
 
-            if( cVariant.GetDataType() == ePdfDataType_Dictionary )
-            {
-                this->AddKey( cName, new PdfObject( cVariant.GetDictionary() ) );
-            }
-            else
-            {
-                cVariant.ToString( sValue );
 #ifdef _DEBUG
-                PdfError::DebugMessage("Key: (%s) Got Value: (%s) %i belongs to: %s\n", cName.Name().c_str(), sValue.c_str(), (int)cVariant.GetDataType(), this->Reference().ToString().c_str() );
+            cVariant.ToString( sValue );
+            PdfError::DebugMessage("Key: (%s) Got Value: (%s) %i belongs to: %s\n", cName.Name().c_str(), sValue.c_str(), (int)cVariant.GetDataType(), this->Reference().ToString().c_str() );
+
 #endif // _DEBUG
-                this->AddKey( cName, cVariant );
-            }
+            this->AddKey( cName, cVariant );
         }
         else if( *szBuffer == '>' )
         {
@@ -524,7 +518,7 @@ PdfError PdfParserObject::ParseStream()
         }
     }
 
-    SAFE_OP( this->GetKeyValueVariant( PdfName::KeyLength, variant ) ); 
+    variant = this->GetDictionary().GetKey( PdfName::KeyLength ); 
     if( variant.GetDataType() == ePdfDataType_Number )
     {
         lLen = variant.GetNumber();   
@@ -545,7 +539,7 @@ PdfError PdfParserObject::ParseStream()
             RAISE_ERROR( ePdfError_InvalidStreamLength );
         }
 
-        lLen = pObj->GetSingleValueLong();
+        lLen = pObj->GetVariant().GetNumber();
         if( !lLen )
         {
             RAISE_ERROR( ePdfError_InvalidStreamLength );

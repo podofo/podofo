@@ -27,6 +27,7 @@
 
 namespace PoDoFo {
 
+class PdfDictionary;
 class PdfParser;
 
 struct TXRefTable{    
@@ -118,12 +119,12 @@ class PdfWriter {
      *  \returns PdfObject the documents catalog or NULL 
      *                     if no catalog is available
      */
-	PdfObject* GetCatalog() const { return m_pCatalog; }
+    PdfObject* GetCatalog() const { return m_pCatalog; }
     
     /** Get access to the internal Info dictionary
      *  \returns PdfObject the info dictionary
      */
-    PdfObject* GetInfo() const { return m_pInfo; }
+    PdfDictionary* GetInfo() const;
 
     /** Set wether all streams in the pdf document should
      *  be compress using the FlateDecode algorithm.
@@ -135,19 +136,19 @@ class PdfWriter {
      *
      *  \param bCompress enable/disable compression
      */
-	void SetPdfCompression( bool bCompress ) { m_bCompress = bCompress; }
+    void SetPdfCompression( bool bCompress ) { m_bCompress = bCompress; }
 
     /** Get wether PDF compression is enabled.
      *  \see SetPdfCompression
      *  \returns true if all streams will be compressed using
      *           the FlateDecode algorithm.
      */
-	bool GetPdfCompression() const { return m_bCompress; }
+    bool GetPdfCompression() const { return m_bCompress; }
 
     /** Get a reference to the sorted internal objects vector.
      *  \returns the internal objects vector.
      */
-	const PdfVecObjects & GetObjects() const { return m_vecObjects; }
+    const PdfVecObjects & GetObjects() const { return m_vecObjects; }
 
     /** Get a reference to the sorted internal objects vector.
      *  This is an overloaded function for your convinience.

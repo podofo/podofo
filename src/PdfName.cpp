@@ -20,6 +20,8 @@
 
 #include "PdfName.h"
 
+#include "PdfOutputDevice.h"
+
 namespace PoDoFo {
 
 const PdfName PdfName::KeyContents  = PdfName( "Contents" );
@@ -36,42 +38,19 @@ PdfName::PdfName() : m_Data( "" ) {}
 
 PdfName::PdfName( const std::string& sName )
 {
-	if( !sName.empty() && sName.length() < PDF_NAME_MAX_LENGTH )
-		m_Data = sName;
-	else
-	{
-		if( !sName.empty() )
-			PdfError::LogMessage( eLogSeverity_Warning, 
-								  "Length of PDF Names has to be > 0 and < %d. Length of %d passed to PdfName.\n", 
-								  PDF_NAME_MAX_LENGTH, sName.length() );
-	}
+    m_Data = sName;
 }
 
 PdfName::PdfName( const char* pszName )
 {
-    if( pszName && strlen( pszName ) < PDF_NAME_MAX_LENGTH )
+    if( pszName )
         m_Data.assign( pszName );
-    else
-    {
-        if( pszName )
-            PdfError::LogMessage( eLogSeverity_Warning, 
-								  "Length of PDF Names has to be > 0 and < %d. Length of %d passed to PdfName.\n", 
-								  PDF_NAME_MAX_LENGTH, strlen( pszName ) );
-    }
 }
 
 PdfName::PdfName( const char* pszName, long lLen )
 {
-    if( pszName && lLen < PDF_NAME_MAX_LENGTH )
-    {
+    if( pszName )
         m_Data.assign( pszName, lLen );
-    }
-    else
-    {
-        PdfError::LogMessage( eLogSeverity_Warning, 
-							 "Length of PDF Names has to be > 0 and < %i. Length of %i passed to PdfName.", 
-							  PDF_NAME_MAX_LENGTH, lLen );
-    }
 }
 
 PdfName::PdfName( const PdfName & rhs )
@@ -83,35 +62,40 @@ PdfName::~PdfName()
 {
 }
 
+PdfError PdfName::Write( PdfOutputDevice* pDevice ) const
+{
+    return pDevice->Print( "/%s", m_Data.c_str() );
+}
+
 const PdfName& PdfName::operator=( const PdfName & rhs )
 {
-	m_Data = rhs.m_Data;
+    m_Data = rhs.m_Data;
     return *this;
 }
 
 bool PdfName::operator==( const PdfName & rhs ) const
 {
-	return ( m_Data == rhs.m_Data );
+    return ( m_Data == rhs.m_Data );
 }
 
 bool PdfName::operator==( const std::string & rhs ) const
 {
-	return ( m_Data == rhs );
+    return ( m_Data == rhs );
 }
 
 bool PdfName::operator==( const char* rhs ) const
 {
-	/*
-		If the string is empty and you pass NULL - that's equivalent
-		If the string is NOT empty and you pass NULL - that's not equal
-		Otherwise, compare them
-	*/
+    /*
+      If the string is empty and you pass NULL - that's equivalent
+      If the string is NOT empty and you pass NULL - that's not equal
+      Otherwise, compare them
+    */
     if( m_Data.empty() && !rhs )
         return true;
     else if( !m_Data.empty() && !rhs )
         return false;
     else
-		return ( m_Data == std::string( rhs ) );
+        return ( m_Data == std::string( rhs ) );
 }
 
 bool PdfName::operator<( const PdfName & rhs ) const

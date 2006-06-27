@@ -18,53 +18,27 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PDF_CANVAS_H_
-#define _PDF_CANVAS_H_
+#include "PdfCanvas.h"
 
-#include "PdfDefines.h"
-
-#include "PdfArray.h"
+#include "PdfName.h"
 
 namespace PoDoFo {
 
-class PdfDictionary;
-class PdfObject;
+PdfArray PdfCanvas::s_procset;
 
-/** A interface that provides the necessary features 
- *  for a painter to draw onto a PdfObject.
- */
-class PdfCanvas {
- public:
-    /** Get access to the contents object of this page.
-     *  If you want to draw onto the page, you have to add 
-     *  drawing commands to the stream of the Contents object.
-     *  \returns a contents object
-     */
-    virtual PdfObject* Contents() const = 0;
+const PdfArray & PdfCanvas::ProcSet()
+{
+    if( s_procset.empty() ) 
+    {
+        s_procset.push_back( PdfName( "PDF" ) );
+        s_procset.push_back( PdfName( "Text" ) );
+        s_procset.push_back( PdfName( "ImageB" ) );
+        s_procset.push_back( PdfName( "ImageC" ) );
+        s_procset.push_back( PdfName( "ImageI" ) );
+    }
 
-    /** Get access to the resources object of this page.
-     *  This is most likely an internal object.
-     *  \returns a resources object
-     */
-    virtual PdfDictionary* Resources() const = 0;
-
-    /** Get the current page size in 1/1000th mm.
-     *  \returns TSize the page size
-     */
-    virtual const TSize & PageSize() const = 0;
-
-    /** Get a reference to a static procset PdfArray.
-     *  \returns a reference to a static procset PdfArray
-     */
-    static const PdfArray & ProcSet();
-
- private:
-    /** The procset is the same for all 
-     *  PdfCanvas objects
-     */
-    static PdfArray s_procset;
-};
+    return s_procset;
+}
 
 };
 
-#endif /* _PDF_CANVAS_H_ */

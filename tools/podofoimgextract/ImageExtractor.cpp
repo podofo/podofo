@@ -56,23 +56,24 @@ PdfError ImageExtractor::Init( const char* pszInput, const char* pszOutput, int*
     {
         if( (*it)->HasKey( PdfName::KeyType ) )
         {
-            SAFE_OP( (*it)->GetKeyValueVariant( PdfName::KeyType, var ) );
+            var = (*it)->GetKey( PdfName::KeyType );
             if( var.IsName() && ( var.GetName().Name() == "XObject" ) )
             {
                 if( (*it)->HasKey( PdfName::KeySubtype ) )
                 {
-                    SAFE_OP( (*it)->GetKeyValueVariant( PdfName::KeySubtype, var ) );
+                    var = (*it)->GetKey( PdfName::KeySubtype );
                     if( var.IsName() && ( var.GetName().Name() == "Image" ) )
                     {
-						SAFE_OP( (*it)->GetKeyValueVariant( PdfName::KeyFilter, var ) );
-						if( var.IsName() && ( var.GetName().Name() == "DCTDecode" ) )
-						{	// ONLY images with filter of DCTDecode can be extracted out as JPEG this way!
+                        var = (*it)->GetKey( PdfName::KeyFilter );
+                        if( var.IsName() && ( var.GetName().Name() == "DCTDecode" ) )
+                        {	
+                           // ONLY images with filter of DCTDecode can be extracted out as JPEG this way!
+                            
+                            SAFE_OP( ExtractImage( *it ) );
 
-							SAFE_OP( ExtractImage( *it ) );
-
-							if( pnNum )
-								++(*pnNum);
-						}
+                            if( pnNum )
+                                ++(*pnNum);
+                        }
                     }
                 }
             }

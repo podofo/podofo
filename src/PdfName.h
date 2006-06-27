@@ -25,7 +25,7 @@
 
 namespace PoDoFo {
 
-static const int PDF_NAME_MAX_LENGTH = 127;
+class PdfOutputDevice;
 
 /** This class represents a PdfName.
  *  Whenever a key is required you have to use a PdfName object.
@@ -47,7 +47,7 @@ class PdfName {
      *  \param sName the value of this name. Please specify
      *                 the name without the leading '/'.
      */
-	PdfName( const std::string& sName );
+    PdfName( const std::string& sName );
 
     /** Create a new PdfName object.
      *  \param pszName the value of this name. Please specify
@@ -70,10 +70,18 @@ class PdfName {
 
     ~PdfName();
 
+    /** Write the name to an output device in PDF format.
+     *  This is an overloaded member function.
+     *
+     *  \param pDevice write the object to this device
+     *  \returns ErrOk on success
+     */
+    PdfError Write( PdfOutputDevice* pDevice ) const;
+
     /** \returns the value of this name object
      *           without the leading slash
      */
-	inline const std::string& Name() const;
+    inline const std::string& Name() const;
 
     /** \returns the length of this
      *           name object
@@ -100,7 +108,7 @@ class PdfName {
      *  \param rhs a name
      *  \returns true if this objects name is equal to pszName
      */
-	bool operator==( const std::string& rhs ) const;
+    bool operator==( const std::string& rhs ) const;
 
     /** compare two PdfName objects.
      *  \returns true if both PdfNames have different values.
@@ -127,12 +135,10 @@ class PdfName {
     static const PdfName KeySize;
     static const PdfName KeySubtype;
     static const PdfName KeyType;
-	static const PdfName KeyFilter;
+    static const PdfName KeyFilter;
 
  private:
-//     char   m_pszData[PDF_NAME_MAX_LENGTH];
-//     short  m_length;
-	 std::string	m_Data;
+    std::string	m_Data;
 };
 
 const /*char**/std::string& PdfName::Name() const

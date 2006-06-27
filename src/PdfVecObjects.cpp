@@ -104,7 +104,7 @@ PdfObject* PdfVecObjects::RemoveObject( const PdfReference & ref )
 
 PdfObject* PdfVecObjects::CreateObject( const char* pszType )
 {
-    PdfObject* pObj = new PdfObject( m_nObjectCount++, 0, pszType );
+    PdfObject* pObj = new PdfObject( m_nObjectCount, 0, pszType );
 
     this->push_back( pObj );
 

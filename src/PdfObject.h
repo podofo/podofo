@@ -35,14 +35,6 @@ class PdfOutputDevice;
 class PdfStream;
 class PdfVecObjects;
 
-typedef std::map<PdfName,PdfVariant>       TKeyMap;
-typedef TKeyMap::iterator                  TIKeyMap;
-typedef TKeyMap::const_iterator            TCIKeyMap;
-
-typedef std::map<PdfName,PdfObject*>       TObjKeyMap;
-typedef TObjKeyMap::iterator               TIObjKeyMap;
-typedef TObjKeyMap::const_iterator         TCIObjKeyMap;
-
 /**
  * This class represents a PDF Object into the memory
  * 
@@ -59,19 +51,13 @@ typedef TObjKeyMap::const_iterator         TCIObjKeyMap;
 class PdfObject {
  public:
     /** Construct a new PDF object.
-     *  \param objectno the object number, maybe 0 if you call SetDirect( true ) later 
-     *                  (direct objects do not have object numbers)
+     *  \param objectno the object number
      *  \param generationno the generation number which is almost ever 0
      *  \param pszType if type is not null a key "/Type" will be added to the dictionary with
      *                 the value of type.
      *  \see SetDirect
      */
     PdfObject( unsigned int objectno, unsigned int generationno, const char* pszType = NULL );
-
-    /** Construct a new PDF object from a PdfReference
-     *  \param inRef an existing PdfReference (probably from a PdfVariant)
-     */
-    PdfObject( const PdfReference& inRef );
 
     /** Creates a copy of an existing PdfObject
      *  All assosiated objects and streams will be copied along with the PdfObject
@@ -80,21 +66,6 @@ class PdfObject {
     PdfObject( const PdfObject & rhs );
 
     virtual ~PdfObject();
-
-    /** Set wether this is an direct object or not.
-     *  A direct PDF Object is part of another dictionary and has
-     *  no own object and generation number.
-     *  The default value for this property is false.
-     *  \param direct if true this is set to be an direct object.
-     *  \see IsDirect
-     */
-    inline void SetDirect( bool direct );
-
-    /** Get if this is an direct object.
-     *  \returns true if this is an direct object
-     *  \see SetDirect
-     */
-    inline bool IsDirect() const;
 
     /** Specifies wether this is an empty dictionary.
      *  i.e. the PdfWriter, should create an empty
@@ -109,55 +80,6 @@ class PdfObject {
      */
     inline bool IsEmptyEntry() const;
 
-    /** Add a key to the dictionary. It is parsed as a PdfVariant and added.
-     *  \param identifier the key is identified by this name in the dictionary
-     *  \param rValue the data of this key. Has to be a valid PDF datatype.
-     *  \returns ErrOk on sucess
-     */
-    PdfError AddKey( const PdfName & identifier, const std::string & rValue );
-
-    /** Add a key to the dictionary. It is parsed as a PdfVariant and added.
-     *  \param identifier the key is identified by this name in the dictionary
-     *  \param pszValue the data of this key. Has to be a valid PDF datatype.
-     *  \returns ErrOk on sucess
-     */
-    PdfError AddKey( const PdfName & identifier, const char* pszValue );
-
-    /** Add a key to the dictionary.
-     *  \param identifier the key is identified by this name in the dictionary
-     *  \param dValue the data of this key.
-     *  \returns ErrOk on sucess
-     */
-    PdfError AddKey( const PdfName & identifier, double dValue );
-
-    /** Add a key to the dictionary.
-     *  \param identifier the key is identified by this name in the dictionary
-     *  \param nValue the data of this key.
-     *  \returns ErrOk on sucess
-     */
-    PdfError AddKey( const PdfName & identifier, long nValue );
-
-    /** Add a key to the dictionary whose value is a PdfString
-     *  \param identifier the key is identified by this name in the dictionary
-     *  \param rValue the data of this key. 
-     *  \returns ErrOk on sucess
-     */
-    PdfError AddKey( const PdfName & identifier, const PdfString & rValue );
-
-    /** Add a key to the dictionary whose value is again a PdfName
-     *  \param identifier the key is identified by this name in the dictionary
-     *  \param rValue the data of this key. 
-     *  \returns ErrOk on sucess
-     */
-    PdfError AddKey( const PdfName & identifier, const PdfName & rValue );
-
-    /** Add a key to the dictionary whose value is a PdfReference
-     *  \param identifier the key is identified by this name in the dictionary
-     *  \param rValue the data of this key. 
-     *  \returns ErrOk on sucess
-     */
-    PdfError AddKey( const PdfName & identifier, const PdfReference & rValue );
-
     /** Add a key to the dictionary. This is the fastest way to add a key
      *  as all other functions will have to parse the values given to them first.
      *  This is not necessary in this case
@@ -166,15 +88,6 @@ class PdfObject {
      *  \returns ErrOk on sucess
      */
     PdfError AddKey( const PdfName & identifier, const PdfVariant & rVariant );
-
-    /** Add a key to the dictionary. This key has an internal PDF obect as value
-     *  \param identifier the key is identified by this name in the dictionary
-     *  \param pObj use this object as internal object. The object will get owned
-     *         by this PdfObject. Be sure to never create internal objects with
-     *         PdfWriter::CreateObject!
-     *  \returns ErrOk on sucess
-     */
-    PdfError AddKey( const PdfName & identifier, PdfObject* pObj );
 
     /** Remove a key from this object
      *  If the key does not exists, this function does nothing.
@@ -186,115 +99,46 @@ class PdfObject {
      */
     bool RemoveKey( const PdfName & identifier );
 
-    /** Remove a key from this object which has an associated internal object
-     *  If the key does not exists, this function does nothing.
-     *
-     *  \param identifier the name of the key to delete
-     * 
-     *  \returns true if the key was found in the object and was removed
-     *           if there was is no key with this name, false is returned.
-     */
-    bool RemoveObjectKey( const PdfName & identifier );
-
-    /** Removes all keys from the dictionary
-     */
-    void ClearKeys();
-
-    /** Removes all object keys from this dictionary
-     */
-    void ClearObjectKeys();
-
-    /** Get a key from the object.
-     *  \param key the key.
-     *  \param sDefault a default value if the key is not found.
-     *  \returns the value of the key as string
-     */
-    const PdfString & GetKeyValueString ( const PdfName & key, const PdfString & sDefault = PdfString::StringNull ) const;
-
-    /** Get a key from the object.
-     *  \param key the key.
-     *  \param lDefault a default value if the key is not found.
-     *  \returns the value of the key as long
-     */
-    long  GetKeyValueLong   ( const PdfName & key, long lDefault ) const;
-
-    /** Get a key from the object.
-     *  \param key the key.
-     *  \param bDefault a default value if the key is not found.
-     *  \returns the value of the key as bool
-     */
-    bool  GetKeyValueBool   ( const PdfName & key, bool bDefault ) const;
-
-          /** Get the key data of an internal object.
-           *  \param key look for the key named pszKey in the dictionary
-           *  \returns the object or NULL if the object was not found.
-           */
-    PdfObject*  GetKeyValueObject( const PdfName & key ) const;
-
-          /** Get the keys data inside of a variant object.
-           *  \param key look for the key names pszKey in the dictionary
-           *  \param rVariant the variant is returned in this object
-           *  \returns ErrOk on sucess
-           */
-    PdfError     GetKeyValueVariant( const PdfName & key, PdfVariant & rVariant ) const;
-
     /** Allows to check if a dictionary contains a certain key.
      *  \param key look for the key named key.Name() in the dictionary
+     *
      *  \returns true if the key is part of the dictionary, otherwise false.
      */
     bool  HasKey( const PdfName & key  ) const;
 
-    /** Allows to check if a dictionary contains a certain key which is an internal object.
-     *  \param key look for the key named key in the dictionary
-     *  \returns true if the key is part of the dictionary, otherwise false.
+    /** Get the keys value if this objects variant is a PdfDictionary
+     *  \param key look for the key names pszKey in the dictionary
+     *  \returns the PdfVariant
      */
-    bool  HasObjectKey( const PdfName & key ) const;
+    const PdfVariant & GetKey( const PdfName & key ) const;
 
-    /** Sets the object to have only a single value 
-     *  (instead of more dictionary keys), any existing keys will be
-     *  cleared by calling this function.
-     *  
-     *  \param var a PdfVariant
-     */
-    void SetSingleValue( const PdfVariant & var );
-
-    /** Get the single value as PdfString if HasSingleValue returns true.
-     *  Please check the type of the variant first.
-     *  \see GetSingleValueVariant().GetDataType()
-     *  \returns the single value as PdfString
-     */
-    const PdfString & GetSingleValueString() const;
-
-    /** Get the single value as long if HasSingleValue returns true.
-     *  Please check the type of the variant first.
-     *  \see GetSingleValueVariant().GetDataType()
-     *  \returns the single value as long
-     */
-    long  GetSingleValueLong() const;
-
-    /** Get the single value as bool if HasSingleValue returns true.
-     *  Please check the type of the variant first.
-     *  \see GetSingleValueVariant().GetDataType()
-     *  \returns the single value as bool
-     */
-    bool  GetSingleValueBool() const;
-
-    /** Get the single value as PdfVariant if HasSingleValue returns true.
+    /** Get the variant of this object, that contains the objects
+     *  data.
+     *
      *  \returns the single value as PdfVariant
      */
-    const PdfVariant & GetSingleValueVariant() const;
+    inline const PdfVariant & GetVariant() const;
 
-    /** Get read only access to all keys in the dictionary.
-     *  You can iterate yourself over this map.
-     *  \returns the internal key map.
+    /** Get the variant of this object, that contains the objects
+     *  data. This is an overloaded member function.
+     *
+     *  \returns the single value as PdfVariant
      */
-    inline const TKeyMap & GetKeys() const;
+    inline PdfVariant & GetVariant();
 
-    /** Get read only access to all object keys in the dictionary.
-     *  You can iterate yourself over this map.
-     *  \returns the internal object key map.
+    /** Set the contents of this object to be the contents 
+     *  of a variant
+     *  \param var the contents of the PdfObject
      */
-    inline const TObjKeyMap & GetObjectKeys() const;
+    inline void SetVariant( const PdfVariant & var );
+
+    /** If this object contains a dictionary you access it through this function.
+     *  This is an overloaded member function and is the same as
+     *  GetVariant().GetDictionary()
+     * 
+     *  \returns a handle to the internal PdfDictionary
+     */
+    inline const PdfDictionary & GetDictionary() const;
 
     /** \returns true if this object has only a single value
      *           and is no dictionary.
@@ -427,33 +271,13 @@ class PdfObject {
 
  protected:
     PdfReference m_reference;
-    bool         m_bDirect;
     bool         m_bEmptyEntry;
     
     bool         m_bLoadOnDemandDone;
     bool         m_bLoadStreamOnDemandDone;
-
-    TKeyMap      m_mapKeys;
-    TObjKeyMap   m_mapObjKeys;
     
-    PdfVariant   m_singleValue;
+    PdfVariant   m_value;
     PdfStream*   m_pStream;
-};
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfObject::SetDirect( bool bDirect )
-{
-    m_bDirect = bDirect;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfObject::IsDirect() const 
-{ 
-    return m_bDirect; 
 };
 
 // -----------------------------------------------------
@@ -483,6 +307,45 @@ void PdfObject::SetObjectNumber( unsigned int nObjNo )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
+const PdfVariant & PdfObject::GetVariant() const
+{
+    DelayedLoad();
+
+    return m_value;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfVariant & PdfObject::GetVariant()
+{
+    DelayedLoad();
+
+    return m_value;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfObject::SetVariant( const PdfVariant & var )
+{
+    DelayedLoad();
+
+    m_value = var;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfDictionary & PdfObject::GetDictionary() const
+{
+    DelayedLoad();
+
+    return m_value.GetDictionary();
+}
+
+
+/*
 const TKeyMap & PdfObject::GetKeys() const
 {
     DelayedLoad();
@@ -499,6 +362,7 @@ const TObjKeyMap & PdfObject::GetObjectKeys() const
 
     return m_mapObjKeys;
 }
+*/
 
 // -----------------------------------------------------
 // 
@@ -531,7 +395,7 @@ bool PdfObject::HasSingleValue() const
 {
     DelayedLoad();
 
-    return !m_singleValue.IsEmpty();
+    return (m_value.GetDataType() != ePdfDataType_Dictionary);
 }
 
 // -----------------------------------------------------

@@ -28,6 +28,7 @@
 
 namespace PoDoFo {
 
+class PdfDictionary;
 class PdfPagesTree;
 
 class PdfDocument {
@@ -81,7 +82,7 @@ class PdfDocument {
     /** Get access to the internal Info dictionary
      *  \returns PdfObject the info dictionary
      */
-    PdfObject* GetInfo() const { return mWriter.GetInfo(); }
+    PdfDictionary* GetInfo() const { return mWriter.GetInfo(); }
 
     /** Get access to the StructTreeRoot dictionary
      *  \returns PdfObject the StructTreeRoot dictionary

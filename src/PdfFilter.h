@@ -26,27 +26,8 @@
 
 namespace PoDoFo {
 
-/** 
- * This structur contains all necessary values
- * for a FlateDecode and LZWDecode Predictor.
- * These values are normally stored in the /DecodeParams
- * key of a PDF dictionary.
- */
-struct TFlatePredictorParams {
-    TFlatePredictorParams() {
-        nPredictor   = 1;
-        nColors      = 1;
-        nBPC         = 8;
-        nColumns     = 1;
-        nEarlyChange = 1;
-    };
-
-    int nPredictor;
-    int nColors;
-    int nBPC;
-    int nColumns;
-    int nEarlyChange;
-};
+class PdfDictionary;
+struct TFlatePredictorParams;
 
 /** The interface that every PdfFilter has to implement.
  *  The two methods Encode and Decode have to be implemented 
@@ -83,7 +64,7 @@ class PdfFilter {
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL ) const = 0;
+    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const = 0;
 
     /** Type of this filter.
      *  \returns the type of this filter
@@ -141,7 +122,7 @@ class PdfHexFilter : public PdfFilter {
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL ) const;
+    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
 
     /** Type of this filter.
      *  \returns the type of this filter
@@ -184,7 +165,7 @@ class PdfAscii85Filter : public PdfFilter {
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL ) const;
+    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
 
     /** Type of this filter.
      *  \returns the type of this filter
@@ -233,7 +214,7 @@ class PdfFlateFilter : public PdfFilter {
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL ) const;
+    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
 
     /** Type of this filter.
      *  \returns the type of this filter
@@ -278,7 +259,7 @@ class PdfRLEFilter : public PdfFilter {
      *
      *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfObject* pDecodeParms = NULL ) const;
+    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
 
     /** Type of this filter.
      *  \returns the type of this filter

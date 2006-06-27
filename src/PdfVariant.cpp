@@ -21,6 +21,7 @@
 #include "PdfVariant.h"
 
 #include "PdfArray.h"
+#include "PdfDictionary.h"
 #include "PdfOutputDevice.h"
 #include "PdfParserObject.h"
 
@@ -33,6 +34,8 @@
 namespace PoDoFo {
 
 using namespace std;
+
+PdfVariant PdfVariant::NullValue;
 
 PdfVariant::PdfVariant()
     : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL ), m_pArray( NULL )
@@ -105,13 +108,13 @@ PdfVariant::PdfVariant( const PdfArray & rArray )
     m_pArray = new PdfArray( rArray );
 }
 
-PdfVariant::PdfVariant( const PdfObject & rObj )
+PdfVariant::PdfVariant( const PdfDictionary & rObj )
     : m_pString( NULL ), m_pName( NULL ), m_pDictionary( NULL ), m_pArray( NULL )
 {
     Clear();
 
     m_eDataType   = ePdfDataType_Dictionary;
-    m_pDictionary = new PdfObject( rObj );
+    m_pDictionary = new PdfDictionary( rObj );
 }
 
 PdfVariant::PdfVariant( const PdfVariant & rhs )
@@ -132,7 +135,6 @@ PdfError PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
     long     lLen      = 0;
     long     lArrayLen;
 
-    PdfParserObject* pParser;
     PdfVariant       vVar;
 
     if( !pszData )
@@ -240,10 +242,10 @@ PdfError PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
     }
     else if( m_eDataType == ePdfDataType_Dictionary )
     {
-        pParser = new PdfParserObject( NULL, 0 );
-        SAFE_OP( pParser->ParseDictionaryKeys( pszBuf, nLen - (pszBuf - pszData), &lArrayLen ) );
+        PdfParserObject parser( NULL, 0 );
+        SAFE_OP( parser.ParseDictionaryKeys( pszBuf, nLen - (pszBuf - pszData), &lArrayLen ) );
         pszBuf += lArrayLen;
-        m_pDictionary = pParser;
+        m_pDictionary = new PdfDictionary( parser.GetDictionary() );
 
         if( pszBuf - pszData < nLen && *pszBuf == '>' )
             ++pszBuf;
@@ -460,15 +462,17 @@ void PdfVariant::Clear()
     memset( &m_Data, sizeof( UVariant ), 0 );
 }
 
-PdfError PdfVariant::ToString( std::string & rsData ) const
+PdfError PdfVariant::Write( PdfOutputDevice* pDevice ) const
+{
+    return this->Write( pDevice, PdfName::KeyNull );
+}
+
+PdfError PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
 {
     PdfError        eCode;
-    TCIVariantList  itArray; 
-    PdfOutputDevice device;
 
-    ostringstream   out;
-    string          sTmp;
-
+    /* Check all handles first 
+     */
     if( (m_eDataType == ePdfDataType_HexString ||
         m_eDataType == ePdfDataType_String) && (!m_pString || !m_pString->String()) )
     {
@@ -480,49 +484,45 @@ PdfError PdfVariant::ToString( std::string & rsData ) const
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    // TODO:
-    //     ePdfDataType_Stream,
+    if( m_eDataType == ePdfDataType_Dictionary && !m_pDictionary )
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    if( m_eDataType == ePdfDataType_Name && !m_pName ) 
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
     switch( m_eDataType ) 
     {
         case ePdfDataType_Bool:
-            out << (m_Data.bBoolValue ? "true" : "false");
+            eCode = pDevice->Print( m_Data.bBoolValue ? "true" : "false" );
             break;
         case ePdfDataType_Number:
-            out << m_Data.nNumber;
+            eCode = pDevice->Print( "%li", m_Data.nNumber );
             break;
         case ePdfDataType_Real:
-            out << m_Data.dNumber;
+            eCode = pDevice->Print( "%g", m_Data.dNumber );
             break;
         case ePdfDataType_HexString:
-            out << "<" << m_pString->String() << ">";
-            break;
         case ePdfDataType_String:
-            out << "(" << m_pString->String() << ")";
+            eCode = m_pString->Write( pDevice );
             break;
         case ePdfDataType_Name:
-            out << "/" << m_pName->Name();
+            eCode = m_pName->Write( pDevice );
             break;
         case ePdfDataType_Array:
-            itArray = m_pArray->begin();
-            out << "[ ";
-            while( itArray != m_pArray->end() )
-            {
-                SAFE_OP( (*itArray).ToString( sTmp ) );
-                out << sTmp << " ";
-                ++itArray;
-            }
-            out << "]";
+            eCode = m_pArray->Write( pDevice );
             break;
         case ePdfDataType_Dictionary:
-            device.Init( &out );
-            eCode = m_pDictionary->Write( &device );
-            // out << sTmp;
+            eCode = m_pDictionary->Write( pDevice, keyStop );
             break;
         case ePdfDataType_Null:
-            out << "null";
+            eCode = pDevice->Print( "null" );
             break;
         case ePdfDataType_Reference:
-            out << m_reference.ToString();
+            eCode = m_reference.Write( pDevice );
             break;
         case ePdfDataType_Unknown:
         default:
@@ -532,14 +532,26 @@ PdfError PdfVariant::ToString( std::string & rsData ) const
 
     if( !eCode.IsError() )
     {
-        rsData = out.str();
-
-        if( m_nPadding && (int)rsData.length() < m_nPadding )
+        if( m_nPadding && (int)pDevice->Length() < m_nPadding )
         {
-            // pad the string with spaces
-            rsData += std::string( m_nPadding - rsData.length(), ' ' ); 
+            std::string str( m_nPadding - pDevice->Length(), ' ' ); 
+            eCode = pDevice->Print( str.c_str() );
         }
     }
+
+    return eCode;
+}
+
+PdfError PdfVariant::ToString( std::string & rsData ) const
+{
+    PdfError        eCode;
+    PdfOutputDevice device;
+    ostringstream   out;
+
+    SAFE_OP( device.Init( &out ) );
+    SAFE_OP( this->Write( &device ) );
+    
+    rsData = out.str();
 
     return eCode;
 }
@@ -554,7 +566,7 @@ const PdfVariant & PdfVariant::operator=( const PdfVariant & rhs )
     
     m_reference   = rhs.m_reference;
     m_pArray      = rhs.m_pArray && m_eDataType == ePdfDataType_Array ? new PdfArray( *(rhs.m_pArray) ) : NULL;
-    m_pDictionary = rhs.m_pDictionary && m_eDataType == ePdfDataType_Dictionary ? new PdfObject( *(rhs.m_pDictionary) ) : NULL;
+    m_pDictionary = rhs.m_pDictionary && m_eDataType == ePdfDataType_Dictionary ? new PdfDictionary( *(rhs.m_pDictionary) ) : NULL;
     m_pName       = rhs.m_pName && m_eDataType == ePdfDataType_Name ? new PdfName( *(rhs.m_pName) ) : NULL;
     m_pString     = rhs.m_pString && 
         (m_eDataType == ePdfDataType_String || m_eDataType == ePdfDataType_HexString ) ? new PdfString( *(rhs.m_pString) ) : NULL;

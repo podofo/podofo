@@ -140,7 +140,7 @@ bool PdfVecObjects::AutoDelete() const
 template <class T>
 T* PdfVecObjects::CreateObject()
 {
-    T*         pTemplate = new T( m_nObjectCount++, 0 );
+    T*         pTemplate = new T( m_nObjectCount, 0 );
     PdfObject* pObject   = dynamic_cast<PdfObject*>(pTemplate);
 
     if( !pObject )

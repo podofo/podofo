@@ -25,6 +25,8 @@
 
 namespace PoDoFo {
 
+class PdfOutputDevice;
+
 /**
  * A reference is a pointer to a object in the PDF file of the form
  * "4 0 R", where 4 is the object number and 0 is the generation number.
@@ -68,6 +70,14 @@ class PdfReference {
      * \param rhs the object to copy
      */
     const PdfReference & operator=( const PdfReference & rhs );
+
+    /** Write the complete variant to an output device.
+     *  This is an overloaded member function.
+     *
+     *  \param pDevice write the object to this device
+     *  \returns ErrOk on success
+     */
+    PdfError Write( PdfOutputDevice* pDevice ) const;
 
     /** 
      * Compare to PdfReference objects.

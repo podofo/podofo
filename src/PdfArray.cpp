@@ -20,6 +20,8 @@
 
 #include "PdfArray.h"
 
+#include "PdfOutputDevice.h"
+
 namespace PoDoFo {
 
 PdfArray::PdfArray()
@@ -34,6 +36,25 @@ PdfArray::PdfArray( const PdfVariant & var )
 PdfArray::PdfArray( const PdfArray & rhs )
 {
     this->operator=( rhs );
+}
+
+PdfError PdfArray::Write( PdfOutputDevice* pDevice ) const
+{
+    PdfError                 eCode;
+    PdfArray::const_iterator it = this->begin();
+
+    SAFE_OP( pDevice->Print( "[ " ) );
+    while( it != this->end() )
+    {
+        SAFE_OP( (*it).Write( pDevice ) );
+        SAFE_OP( pDevice->Print( " " ) );
+
+        ++it;
+    }
+
+    SAFE_OP( pDevice->Print( "]" ) );
+
+    return eCode;
 }
 
 };

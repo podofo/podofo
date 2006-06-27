@@ -23,26 +23,25 @@
 
 PdfInfo::PdfInfo( const std::string& inPathname )
 {
-	mDoc = new PdfDocument( inPathname );
+    mDoc = new PdfDocument( inPathname );
 }
 
 PdfInfo::~PdfInfo()
 {
-	if ( mDoc ) {
-		delete mDoc;
-		mDoc = NULL;
-	}
+    if ( mDoc ) {
+        delete mDoc;
+        mDoc = NULL;
+    }
 }
 
 void PdfInfo::OutputDocumentInfo( std::ostream& sOutStream )
 {
-	sOutStream << "FileSize: " << mDoc->FileSize() << " bytes" << std::endl;
-	sOutStream << "PDF Version: " << mDoc->GetPdfVersionString() << std::endl;
-	sOutStream << "Page Count:" << mDoc->GetPageCount() << std::endl;
-	sOutStream << std::endl;
-	sOutStream << "Fast Web View Enabled: " << (mDoc->IsLinearized() ? "Yes" : "No") << std::endl;
-	sOutStream << "Tagged: " << (mDoc->GetStructTreeRoot() != NULL ? "Yes" : "No") << std::endl;
-
+    sOutStream << "FileSize: " << mDoc->FileSize() << " bytes" << std::endl;
+    sOutStream << "PDF Version: " << mDoc->GetPdfVersionString() << std::endl;
+    sOutStream << "Page Count:" << mDoc->GetPageCount() << std::endl;
+    sOutStream << std::endl;
+    sOutStream << "Fast Web View Enabled: " << (mDoc->IsLinearized() ? "Yes" : "No") << std::endl;
+    sOutStream << "Tagged: " << (mDoc->GetStructTreeRoot() != NULL ? "Yes" : "No") << std::endl;
 
 /*
 // print encryption info
@@ -61,25 +60,8 @@ printf("no\n");
 
 void PdfInfo::OutputInfoDict( std::ostream& sOutStream )
 {
-	PdfObject	*infoObj = mDoc->GetInfo();
-	if ( infoObj ) {
-		if ( infoObj->HasSingleValue() ) {
-			PdfVariant	infoVar = infoObj->GetSingleValueVariant();
-			std::string	varVal;
-			infoVar.ToString( varVal );
-			sOutStream << varVal;
-		} else {
-			TKeyMap	infoKeyMap = infoObj->GetKeys();
-			TIKeyMap	keyItor = infoKeyMap.begin();
-			while ( keyItor != infoKeyMap.end() ) {
-				sOutStream << keyItor->first.Name() << ": ";
-
-				std::string	varVal;
-				keyItor->second.ToString( varVal );
-				sOutStream << varVal << std::endl;
-			
-				keyItor++;
-			}
-		}
-	}
+    PdfDictionary*  infoObj = mDoc->GetInfo();
+    PdfOutputDevice device;
+    device.Init( &sOutStream );
+    infoObj->Write( &device );
 }

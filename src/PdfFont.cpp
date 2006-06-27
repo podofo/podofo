@@ -20,6 +20,7 @@
 
 #include "PdfFont.h"
 
+#include "PdfArray.h"
 #include "PdfFontMetrics.h"
 #include "PdfPage.h"
 #include "PdfStream.h"
@@ -65,6 +66,7 @@ PdfError PdfFont::Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool b
     PdfObject*    pWidth;
     PdfObject*    pDescriptor;
     PdfVariant    var;
+    PdfArray      array;
     std::string   sTmp;
 
     m_pMetrics = pMetrics;
@@ -87,7 +89,7 @@ PdfError PdfFont::Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool b
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    pWidth->SetSingleValue( var );
+    pWidth->SetVariant( var );
 
     pDescriptor = pParent->CreateObject( "FontDescriptor" );
     if( !pDescriptor )
@@ -103,12 +105,12 @@ PdfError PdfFont::Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool b
     this->AddKey("Widths", pWidth->Reference() );
     this->AddKey( "FontDescriptor", pDescriptor->Reference() );
 
-    SAFE_OP( m_pMetrics->GetBoundingBox( sTmp ) );
+    SAFE_OP( m_pMetrics->GetBoundingBox( array ) );
 
     pDescriptor->AddKey( "FontName", m_BaseFont );
     //pDescriptor->AddKey( "FontWeight", (long)m_pMetrics->Weight() );
     pDescriptor->AddKey( PdfName::KeyFlags, (long)32 ); // TODO: 0 ????
-    pDescriptor->AddKey( "FontBBox", sTmp );
+    pDescriptor->AddKey( "FontBBox", array );
     pDescriptor->AddKey( "ItalicAngle", (long)m_pMetrics->ItalicAngle() );
     pDescriptor->AddKey( "Ascent", m_pMetrics->Ascent() );
     pDescriptor->AddKey( "Descent", m_pMetrics->Descent() );

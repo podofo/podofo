@@ -21,6 +21,7 @@
 #include "PdfAnnotation.h"
 #include "PdfAction.h"
 #include "PdfArray.h"
+#include "PdfDictionary.h"
 #include "PdfDate.h"
 #include "PdfPage.h"
 #include "PdfRect.h"
@@ -43,7 +44,7 @@ PdfError PdfAnnotation::AddReferenceToKey( PdfObject* pObject, const PdfName & k
 
     if( pObject->HasKey( keyName ) )
     {
-        SAFE_OP( pObject->GetKeyValueVariant( keyName, var ) );
+        var = pObject->GetDictionary().GetKey( keyName );
         if( var.GetDataType() != ePdfDataType_Array )
         {
             RAISE_ERROR( ePdfError_InvalidDataType );
@@ -102,18 +103,18 @@ PdfError PdfAnnotation::Init( PdfObject* pObject, EPdfAnnotation eAnnot, PdfRect
 
 PdfError PdfAnnotation::SetAppearanceStream( PdfXObject* pObject )
 {
-    PdfError eCode;
+    PdfError      eCode;
+    PdfDictionary dict;
 
     if( !pObject )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    PdfObject* pAP = new PdfObject( 0, 0 );
-    pAP->SetDirect( true );
-    pAP->AddKey( "N", pObject->Reference() );
 
-    this->AddKey( "AP", pAP );
+    dict.AddKey( "N", pObject->Reference() );
+
+    this->AddKey( "AP", dict );
 
     return eCode;
 }

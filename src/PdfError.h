@@ -277,13 +277,13 @@ class PdfError {
  private:
     EPdfError                m_error;
 
-    std::queue<PdfErrorInfo> m_callStack;
+    //std::queue<PdfErrorInfo> m_callStack;
 
     static int         s_line;
     static const char* s_file;
     static std::string s_info;
 
-	static bool        s_DgbEnabled;
+    static bool        s_DgbEnabled;
 };
 
 EPdfError PdfError::Error() const

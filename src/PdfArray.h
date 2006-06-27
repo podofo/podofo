@@ -51,7 +51,26 @@ class PdfArray : public std::vector<PdfVariant> {
      */
     PdfArray( const PdfArray & rhs );
 
+    /** Remove all elements from the array
+     */
+    inline void Clear();
+
+    /** Write the array to an output device.
+     *  This is an overloaded member function.
+     *
+     *  \param pDevice write the object to this device
+     *  \returns ErrOk on success
+     */
+    PdfError Write( PdfOutputDevice* pDevice ) const;
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfArray::Clear() 
+{
+    this->clear();
+}
 
 typedef PdfArray                 TVariantList;
 typedef PdfArray::iterator       TIVariantList;

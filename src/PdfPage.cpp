@@ -18,7 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "PdfPage.h"
+#include "PdfPage.h" 
+#include "PdfDictionary.h"
 #include "PdfRect.h"
 #include "PdfVariant.h"
 #include "PdfWriter.h"
@@ -29,12 +30,12 @@ namespace PoDoFo {
 PdfPage::PdfPage( unsigned int nObjectNo, unsigned int nGenerationNo )
     : PdfObject( nObjectNo, nGenerationNo, "Page" ), PdfCanvas()
 {
-    m_pResources = new PdfObject( 0, 0, NULL );
-    m_pResources->SetDirect( true );
+    PdfDictionary resources;
 
     // The PDF specification suggests that we send all available PDF Procedure sets
-    this->AddKey( "Resources", m_pResources );
-    m_pResources->AddKey( "ProcSet", "[/PDF /Text /ImageB /ImageC /ImageI]" );
+    this->AddKey( "Resources", PdfVariant( resources ) );
+    m_pResources = &(GetVariant().GetDictionary().GetKey( "Resources" ).GetDictionary());
+    Resources()->AddKey( "ProcSet", PdfCanvas::ProcSet() );
 }
 
 PdfPage::~PdfPage()
@@ -57,6 +58,11 @@ PdfError PdfPage::Init( const TSize & tSize, PdfVecObjects* pParent )
     this->AddKey( PdfName::KeyContents, m_pContents->Reference() );
 
     return eCode;
+}
+
+PdfDictionary* PdfPage::Resources() const
+{
+    return m_pResources;
 }
 
 TSize PdfPage::CreateStadardPageSize( const EPdfPageSize ePageSize )

@@ -8,4 +8,5 @@ PoDoFo 0.3
        and a reference to the PageTree)
        - introduce PdfArray and PdfDictionary classes
        - Add configure checks for zlib, freetype and fontconfig
+       - Sorted Map in PdfDictionary to make it faster
 

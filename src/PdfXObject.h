@@ -27,6 +27,7 @@
 
 namespace PoDoFo {
 
+class PdfDictionary;
 class PdfRect;
 class PdfImageRef;
 
@@ -58,7 +59,7 @@ class PdfXObject : public PdfObject, public PdfCanvas {
      *  This is most likely an internal object.
      *  \returns a resources object
      */
-    inline PdfObject* Resources() const;
+    inline PdfDictionary* Resources() const;
 
     /** Get the current page size in 1/1000th mm.
      *  \returns TSize the page size
@@ -84,7 +85,7 @@ class PdfXObject : public PdfObject, public PdfCanvas {
     void GetImageReference( PdfImageRef & rRef );
 
  private:
-    PdfObject* m_pResources;
+    PdfDictionary* m_pResources;
 
     TSize      m_size;
 };
@@ -95,7 +96,7 @@ PdfObject* PdfXObject::Contents() const
 }
 
 
-PdfObject* PdfXObject::Resources() const
+PdfDictionary* PdfXObject::Resources() const
 {
     return m_pResources;
 }

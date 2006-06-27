@@ -18,8 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "PdfXObject.h"
+#include "PdfXObject.h" 
 
+#include "PdfDictionary.h"
 #include "PdfImage.h"
 #include "PdfRect.h"
 #include "PdfVariant.h"
@@ -33,16 +34,16 @@ namespace PoDoFo {
 PdfXObject::PdfXObject( unsigned int nObjectNo, unsigned int nGenerationNo )
     : PdfObject( nObjectNo, nGenerationNo, "XObject" ), PdfCanvas()
 {
-    m_pResources = new PdfObject( 0, 0, NULL );
-    m_pResources->SetDirect( true );
+    PdfDictionary resources;
 
     this->AddKey( PdfName::KeySubtype, PdfName("Form") );
     this->AddKey( "FormType", (long)1 ); // only 1 is only defined in the specification.
-                                      // it is required though.
-    this->AddKey( "Resources", m_pResources );
+
 
     // The PDF specification suggests that we send all available PDF Procedure sets
-    m_pResources->AddKey( "ProcSet", "[/PDF /Text /ImageB /ImageC /ImageI]" );
+    this->AddKey( "Resources", PdfVariant( resources ) );
+    m_pResources = &(GetVariant().GetDictionary().GetKey( "Resources" ).GetDictionary());
+    Resources()->AddKey( "ProcSet", PdfCanvas::ProcSet() );
 
     m_size.lWidth  = 0;
     m_size.lHeight = 0;

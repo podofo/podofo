@@ -104,20 +104,20 @@ class PdfString {
     /** The length of the string data returned by String()
      *  \returns the length of the string. 
      */
-    inline long        Length() const;
+    inline long Length() const;
 
     /** The size of the string data returned by String()
      *  \returns the size of the string in bytes. Typically
      *           Length() + 1
      *  \see Length
      */
-    inline long        Size() const;
+    inline long Size() const;
     
     /** Write this PdfString in PDF format to a PdfOutputDevice 
      *  \param pDevice the output device.
      *  \returns ErrOk on success
      */
-    PdfError           Write ( PdfOutputDevice* pDevice );
+    PdfError Write ( PdfOutputDevice* pDevice ) const;
 
     /** Copy an existing PdfString 
      *  \param rhs another PdfString to copy

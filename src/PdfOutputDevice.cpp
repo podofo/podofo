@@ -135,6 +135,9 @@ PdfError PdfOutputDevice::Print( const char* pszFormat, ... )
         }
         
         vsnprintf( data, lBytes, pszFormat, args );
+        if( lBytes )
+            --lBytes;
+
         str.assign( data, lBytes );
         *m_pStream << str;
         free( data );

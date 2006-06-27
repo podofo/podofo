@@ -20,6 +20,7 @@
 
 #include "PdfSimpleWriter.h"
 
+#include "PdfDictionary.h"
 #include "PdfDate.h"
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
@@ -90,9 +91,9 @@ PdfError PdfSimpleWriter::Init()
     SAFE_OP( PdfWriter::Init() );
 
     m_pPageTree = m_vecObjects.CreateObject( "Pages" );
-    m_pPageTree->AddKey( "Kids", "[ ]" );
+    m_pPageTree->AddKey( "Kids", PdfArray() );
 
-    this->GetCatalog()->AddKey( "Pages", m_pPageTree->Reference().ToString().c_str() );
+    this->GetCatalog()->AddKey( "Pages", m_pPageTree->Reference() );
 
     cDate.ToString( sDate );
     this->GetInfo()->AddKey( "Producer", PdfString("PoDoFo") );

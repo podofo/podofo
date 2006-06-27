@@ -22,11 +22,14 @@
 #define _PDF_PAGE_H_
 
 #include "PdfDefines.h"
+
+#include "PdfArray.h"
 #include "PdfCanvas.h"
 #include "PdfObject.h"
 
 namespace PoDoFo {
 
+class PdfDictionary;
 class PdfVecObjects;
 
 /** PdfPage is one page in the pdf document. 
@@ -68,7 +71,7 @@ class PdfPage : public PdfObject, public PdfCanvas {
      *  This is most likely an internal object.
      *  \returns a resources object
      */
-    virtual inline PdfObject* Resources() const;
+    virtual PdfDictionary* Resources() const;
 
     /** Get the current page size in 1/1000th mm.
      *  \returns TSize the page size
@@ -76,20 +79,14 @@ class PdfPage : public PdfObject, public PdfCanvas {
     virtual inline const TSize & PageSize() const;
 
  private:
-    PdfObject* m_pResources;
-    PdfObject* m_pContents;
-
-    TSize      m_tPageSize;
+    PdfObject*     m_pContents;
+    PdfDictionary* m_pResources;
+    TSize          m_tPageSize;
 };
 
 PdfObject* PdfPage::Contents() const
 {
     return m_pContents;
-}
-
-PdfObject* PdfPage::Resources() const
-{
-    return m_pResources;
 }
 
 const TSize & PdfPage::PageSize() const

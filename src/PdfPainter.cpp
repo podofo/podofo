@@ -21,6 +21,7 @@
 #include "PdfPainter.h"
 
 #include "PdfCanvas.h"
+#include "PdfDictionary.h"
 #include "PdfFilter.h"
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
@@ -737,31 +738,27 @@ PdfError PdfPainter::Restore()
 
 PdfError PdfPainter::AddToPageResources( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName )
 {
-    PdfError eCode;
+    PdfError      eCode;
 
     if( !m_pPage || !rName.Length() || !rIdentifier.Length() )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    PdfObject* pResource = m_pPage->Resources();
+    PdfDictionary* pResource = m_pPage->Resources();
     
     if( !pResource )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    PdfObject* pKey = pResource->GetKeyValueObject( rName );
-
-    if( !pKey )
+    if( !pResource->HasKey( rName ) )
     {
-        pKey = new PdfObject( 0, 0 );
-        pKey->SetDirect( true );
-        pResource->AddKey( rName, pKey );
+        pResource->AddKey( rName, PdfDictionary() );
     }
 
-    if( !pKey->HasKey( rIdentifier ) )
-        pKey->AddKey( rIdentifier, rRef );
+    if( !pResource->GetKey( rName ).GetDictionary().HasKey( rIdentifier ) )
+        pResource->GetKey( rName ).GetDictionary().AddKey( rIdentifier, rRef );
 
     return eCode;
 }
