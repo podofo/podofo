@@ -89,17 +89,17 @@ class PdfWriter {
      *  have an effect.
      *  \param eVersion  version of the pdf document
      */
-	void SetPdfVersion( EPdfVersion eVersion ) { m_eVersion = eVersion;}
+    void SetPdfVersion( EPdfVersion eVersion ) { m_eVersion = eVersion;}
 
     /** Get the PDF version of the document
      *  \returns EPdfVersion version of the pdf document
      */
-	EPdfVersion GetPdfVersion() const { return m_eVersion; }
+    EPdfVersion GetPdfVersion() const { return m_eVersion; }
 
-	/** Get the file format version of the pdf
-	*  \returns the file format version as string
-	*/
-	const char* GetPdfVersionString() const { return s_szPdfVersionNums[(int)m_eVersion]; }
+    /** Get the file format version of the pdf
+     *  \returns the file format version as string
+     */
+    const char* GetPdfVersionString() const { return s_szPdfVersionNums[(int)m_eVersion]; }
 
     /** Remove the object with the given object and generation number from the list
      *  of objects.
