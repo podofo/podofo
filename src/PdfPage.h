@@ -26,6 +26,7 @@
 #include "PdfArray.h"
 #include "PdfCanvas.h"
 #include "PdfObject.h"
+#include "PdfRect.h"
 
 namespace PoDoFo {
 
@@ -56,7 +57,7 @@ class PdfPage : public PdfCanvas {
 
     /** Initialize a newly generated PdfPage object. If you use the CreatePage method of PdfSimpleWriter
      *  you do not have to call this method.
-     *  \param tSize a size structure specifying the size of the page (i.e the /MediaBox key) in 1/1000th mm
+     *  \param tSize a size structure specifying the size of the page (i.e the /MediaBox key) in PDF units
      *  \param pParent pointer to the parent PdfVecObjects object
      *  \returns ErrOk on success
      */
@@ -79,7 +80,7 @@ class PdfPage : public PdfCanvas {
      *  drawing commands to the stream of the Contents object.
      *  \returns a contents object
      */
-    virtual inline PdfObject* Contents() const;
+	virtual PdfObject* Contents() const { return m_pContents; }
 
     /** Get access to the resources object of this page.
      *  This is most likely an internal object.
@@ -87,10 +88,37 @@ class PdfPage : public PdfCanvas {
      */
     virtual PdfDictionary* Resources() const;
 
-    /** Get the current page size in 1/1000th mm.
+    /** Get the current page size in PDF units.
      *  \returns TSize the page size
      */
-    virtual inline const TSize & PageSize() const;
+	virtual const TSize & PageSize() const { return m_tPageSize; }
+
+    /** Get the current MediaBox (physical page size) in PDF units.
+     *  \returns PdfRect the page box
+     */
+	virtual const PdfRect GetMediaBox() const { return GetPageBox( "MediaBox" ); }
+
+    /** Get the current CropBox (visible page size) in PDF units.
+     *  \returns PdfRect the page box
+     */
+	virtual const PdfRect GetCropBox() const { return GetPageBox( "CropBox" ); }
+
+    /** Get the current TrimBox (cut area) in PDF units.
+     *  \returns PdfRect the page box
+     */
+	virtual const PdfRect GetTrimBox() const { return GetPageBox( "TrimBox" ); }
+
+    /** Get the current BleedBox (extra area for printing purposes) in PDF units.
+     *  \returns PdfRect the page box
+     */
+	virtual const PdfRect GetBleedBox() const { return GetPageBox( "BleedBox" ); }
+
+    /** Get the current ArtBox in PDF units.
+     *  \returns PdfRect the page box
+     */
+	virtual const PdfRect GetArtBox() const { return GetPageBox( "ArtBox" ); }
+
+
 
  private:
     PdfDocument*   m_pDocument;
@@ -98,17 +126,13 @@ class PdfPage : public PdfCanvas {
     PdfObject*     m_pContents;
     PdfDictionary* m_pResources;
     TSize          m_tPageSize;
+
+   /** Get the bounds of a specified page box in PDF units.
+     * This function is internal, since there are wrappers for all standard boxes
+     *  \returns PdfRect the page box
+     */
+	const PdfRect GetPageBox( const char* inBox ) const;
 };
-
-PdfObject* PdfPage::Contents() const
-{
-    return m_pContents;
-}
-
-const TSize & PdfPage::PageSize() const
-{
-    return m_tPageSize;
-}
 
 };
 

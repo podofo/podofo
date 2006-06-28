@@ -20,7 +20,12 @@ Version 0.3
 	Added PdfDictionary and PdfArray classes;
 	Added new PdfPagesTree (inside of PdfDocument.cpp) for handling walking a /Pages tree;
 	Added new GetPageCount() method to PdfDocument;
-	Modifications to PdfPage to attach it to a PdfDocument & construct from a PdfObject
+	Modifications to PdfPage to attach it to a PdfDocument & construct from a PdfObject;
+	Added new Legal and A3 standard page sizes;
+	Changed page coordinates to be PDF unit-based instead of 1/1000mm;
+	Changed PdfRect to use PDF units and also use bottom instead of top;
+	Added ability to go between PdfRect and PdfArray & also get string version of a PdfRect;
+	Added support for PdfPage to return all the standard boxes (Media, Crop, etc);
 	
 Version 0.2
 	Improved Documentation;

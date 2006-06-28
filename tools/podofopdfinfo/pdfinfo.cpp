@@ -71,7 +71,12 @@ void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
 	int	pgCount = mDoc->GetPageCount();
 	for ( int pg=0; pg<pgCount; pg++ ) 
 	{
+		sOutStream << "Page " << pg << ":" << std::endl;
+
 		PdfPage*	curPage = mDoc->GetPage( pg );
+
+		PdfRect	mbRect = curPage->GetMediaBox();
+		sOutStream << "\tMediaBox: " << mbRect.ToString() << std::endl;
 
 		delete curPage;	// delete it when done
 	}

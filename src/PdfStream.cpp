@@ -600,7 +600,7 @@ PdfError PdfStream::SetDecodeParms( TVecDictionaries* pParams )
     else if( pParams->size() == 1 ) 
     {
         if( (*pParams)[0] )
-            m_pParent->AddKey( "DecodeParms", PdfVariant( (*pParams)[0] ) );
+            m_pParent->AddKey( "DecodeParms", PdfVariant( (PdfDictionary*)((*pParams)[0] )) );
     }
 
     return eCode;

@@ -271,6 +271,7 @@ PdfError ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWrit
 
     PdfImage*      pImg   = pWriter->CreateImage();
 
+	// TODO: These values need to be replaced with PDF unit-based ones where second value is BOTTOM not top!
     PdfRect        rect( 0, 0, 3000, 4000 );
     PdfRect        rect1( 80000, 180000, 20000, 20000 );
     PdfRect        rect2( 80000, 120000, 10000, 10000 );

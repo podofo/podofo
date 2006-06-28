@@ -189,6 +189,8 @@ typedef enum EPdfLineJoinStyle {
 typedef enum EPdfPageSize {
     ePdfPageSize_A4,              /**< DIN A4 */
     ePdfPageSize_Letter,          /**< Letter */
+    ePdfPageSize_Legal,           /**< Legal */
+    ePdfPageSize_A3,              /**< A3 */
 
     ePdfPageSize_Unknown = 0xff
 };
@@ -204,11 +206,11 @@ struct TXRefEntry {
  * \struct TSize
  *
  * A simple size data structure which keeps
- * a long value for width and height.
+ * a double value for width and height.
  */
 struct TSize {
-    long lWidth;  /**< the width in 1/1000th mm */
-    long lHeight; /**< the height in 1/1000th mm */
+    double lWidth;  /**< the width in PDF units */
+    double lHeight; /**< the height in PDF units */
 
     TSize& operator=( const TSize & rhs )
         {

@@ -26,6 +26,7 @@
 
 namespace PoDoFo {
 
+class PdfArray;
 class PdfPage;
 class PdfVariant;
    
@@ -33,112 +34,127 @@ class PdfVariant;
  */
 class PdfRect {
  public:
-    /** Create an empty rectangle with top=left=with=height=0
+    /** Create an empty rectangle with bottom=left=with=height=0
      */
     PdfRect();
 
     /** Create a rectangle with a given size and position
-     *  All values are in 1/1000th mm
+     *  All values are in PDF units
+	 *	NOTE: since PDF is bottom-left origined, we pass the bottom instead of the top
      */
-    PdfRect( long left, long top, long width, long height );
+    PdfRect( double left, double bottom, double width, double height );
+
+   /** Create a rectangle from an array
+     *  All values are in PDF units
+     */
+    PdfRect( PdfArray& inArray );
 
     /** Copy constructor 
      */
     PdfRect( const PdfRect & rhs );
 
     /** Converts the rectangle into an array
-     *  with all coordinates converted from 1/1000th mm to
-     *  PDF units and adds the array into an variant.
+     *  based on PDF units and adds the array into an variant.
      *  \param var the variant to store the Rect
      *  \param pPage if a page is passed the y coordinate is transformed correctly
      */
     void ToVariant( PdfVariant & var, PdfPage* pPage = NULL ) const;
 
-    /** Get the top coordinate of the rectangle
-     *  \returns top in 1/1000th mm
-     */
-    inline long Top() const;
+	/** Returns a string representation of the PdfRect
+	 * \returns std::string representation as [ left bottom right top ]
+	 */
+	std::string PdfRect::ToString() const;
 
-    /** Set the top coordinate of the rectangle
-     *  \param lTop in 1/1000th mm
+    /** Assigns the values of this PdfRect from the 4 values in the array
+     *  \param inArray the array to load the values from
      */
-    inline void SetTop( long lTop );
+    void FromArray( const PdfArray& inArray );
+
+    /** Get the bottom coordinate of the rectangle
+     *  \returns bottom
+     */
+    inline double Bottom() const;
+
+    /** Set the bottom coordinate of the rectangle
+     *  \param dBottom
+     */
+    inline void SetBottom( double dBottom );
 
     /** Get the left coordinate of the rectangle
-     *  \returns left in 1/1000th mm
+     *  \returns left in PDF units
      */
-    inline long Left() const;
+    inline double Left() const;
 
     /** Set the left coordinate of the rectangle
-     *  \param lLeft in 1/1000th mm
+     *  \param lLeft in PDF units
      */
-    inline void SetLeft( long lLeft );
+    inline void SetLeft( double lLeft );
 
     /** Get the width of the rectangle
-     *  \returns width in 1/1000th mm
+     *  \returns width in PDF units
      */
-    inline long Width() const;
+    inline double Width() const;
 
     /** Set the width of the rectangle
-     *  \param lWidth in 1/1000th mm
+     *  \param lWidth in PDF units
      */
-    inline void SetWidth( long lWidth );
+    inline void SetWidth( double lWidth );
 
     /** Get the height of the rectangle
-     *  \returns height in 1/1000th mm
+     *  \returns height in PDF units
      */
-    inline long Height() const;
+    inline double Height() const;
 
     /** Set the height of the rectangle
-     *  \param lHeight in 1/1000th mm
+     *  \param lHeight in PDF units
      */
-    inline void SetHeight( long lHeight );
+    inline void SetHeight( double lHeight );
 
     PdfRect & operator=( const PdfRect & rhs );
 
  private:
-    long m_lTop;
-    long m_lLeft;
-    long m_lWidth;
-    long m_lHeight;
+    double m_lLeft;
+	double m_lBottom;
+    double m_lWidth;
+    double m_lHeight;
 };
 
-long PdfRect::Top() const
+double PdfRect::Bottom() const
 {
-    return m_lTop;
+    return m_lBottom;
 }
 
-void PdfRect::SetTop( long lTop )
+void PdfRect::SetBottom( double dBottom )
 {
-    m_lTop = lTop;
+    m_lBottom = dBottom;
 }
 
-long PdfRect::Left() const
+double PdfRect::Left() const
 {
     return m_lLeft;
 }
 
-void PdfRect::SetLeft( long lLeft )
+void PdfRect::SetLeft( double lLeft )
 {
     m_lLeft = lLeft;
 }
 
-long PdfRect::Width() const
+double PdfRect::Width() const
 {
     return m_lWidth;
 }
 
-void PdfRect::SetWidth( long lWidth )
+void PdfRect::SetWidth( double lWidth )
 {
     m_lWidth = lWidth;
 }
 
-long PdfRect::Height() const
+double PdfRect::Height() const
 {
     return m_lHeight;
 }
 
-void PdfRect::SetHeight( long lHeight )
+void PdfRect::SetHeight( double lHeight )
 {
     m_lHeight = lHeight;
 }

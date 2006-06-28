@@ -24,23 +24,29 @@
 #include "PdfPage.h"
 #include "PdfVariant.h"
 
+#include <iostream>
 #include <sstream>
-
-using namespace std;
+#include <iomanip>
 
 namespace PoDoFo {
 
 PdfRect::PdfRect()
 {
-    m_lTop = m_lLeft = m_lWidth = m_lHeight = 0;
+    m_lBottom = m_lLeft = m_lWidth = m_lHeight = 0;
 }
 
-PdfRect::PdfRect( long lLeft, long lTop, long lWidth, long lHeight )
+PdfRect::PdfRect( double lLeft, double lBottom, double lWidth, double lHeight )
 {
-    m_lTop    = lTop;
+    m_lBottom = lBottom;
     m_lLeft   = lLeft;
     m_lWidth  = lWidth;
     m_lHeight = lHeight;
+}
+
+PdfRect::PdfRect( PdfArray& inArray )
+{
+	m_lBottom = m_lLeft = m_lWidth = m_lHeight = 0;
+	FromArray( inArray );
 }
 
 PdfRect::PdfRect( const PdfRect & rhs )
@@ -51,19 +57,44 @@ PdfRect::PdfRect( const PdfRect & rhs )
 void PdfRect::ToVariant( PdfVariant & var, PdfPage* pPage ) const
 {
     PdfArray array;
-    long lTop = pPage ? (pPage->PageSize().lHeight - m_lTop) : m_lTop;
     
-    array.push_back( PdfVariant( CONVERSION_CONSTANT * m_lLeft ) );
-    array.push_back( PdfVariant( CONVERSION_CONSTANT * (lTop+m_lHeight) ) );
-    array.push_back( PdfVariant( CONVERSION_CONSTANT * (m_lLeft+m_lWidth) ) );
-    array.push_back( PdfVariant( CONVERSION_CONSTANT * lTop ) );
+    array.push_back( PdfVariant( m_lLeft ) );
+    array.push_back( PdfVariant( m_lBottom ) );
+    array.push_back( PdfVariant( (m_lWidth-m_lLeft) ) );
+    array.push_back( PdfVariant( (m_lBottom+m_lHeight) ) );
 
     var = array;
 }
 
+std::string PdfRect::ToString() const
+{
+	std::ostringstream	oStr;
+	oStr << "[ ";
+	oStr << std::setprecision( 3 ) << m_lLeft << " ";
+	oStr << std::setprecision( 3 ) << m_lBottom << " ";
+	oStr << std::setprecision( 3 ) << m_lWidth + m_lLeft << " ";
+	oStr << std::setprecision( 3 ) << m_lHeight - m_lBottom << " ]";
+
+	return oStr.str();
+}
+
+void PdfRect::FromArray( const PdfArray& inArray )
+{
+	if ( inArray.size() == 4 ) 
+	{
+		m_lLeft = inArray[0].GetReal();
+		m_lBottom = inArray[1].GetReal();
+		m_lWidth = inArray[2].GetReal() - m_lLeft;
+		m_lHeight = inArray[3].GetReal() + m_lBottom;
+	} else 
+	{
+		// TODO: throw an error
+	}
+}
+
 PdfRect & PdfRect::operator=( const PdfRect & rhs )
 {
-    this->m_lTop    = rhs.m_lTop;
+    this->m_lBottom = rhs.m_lBottom;
     this->m_lLeft   = rhs.m_lLeft;
     this->m_lWidth  = rhs.m_lWidth;
     this->m_lHeight = rhs.m_lHeight;

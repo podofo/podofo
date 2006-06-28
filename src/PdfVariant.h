@@ -21,6 +21,8 @@
 #ifndef _PDF_VARIANT_H_
 #define _PDF_VARIANT_H_
 
+#include <cmath>
+
 #include "PdfDefines.h"
 #include "PdfReference.h"
 
@@ -337,7 +339,10 @@ bool PdfVariant::GetBool() const
 // -----------------------------------------------------
 long PdfVariant::GetNumber() const
 {
-    return m_Data.nNumber;
+	if ( IsReal() )
+		return (long)floor( m_Data.dNumber );
+	else
+		return m_Data.nNumber;
 }
 
 // -----------------------------------------------------
@@ -345,7 +350,10 @@ long PdfVariant::GetNumber() const
 // -----------------------------------------------------
 double PdfVariant::GetReal() const
 {
-    return m_Data.dNumber;
+	if ( IsReal() )
+		return m_Data.dNumber;
+	else
+		return m_Data.nNumber;
 }
 
 // -----------------------------------------------------

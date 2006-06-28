@@ -84,22 +84,53 @@ TSize PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize )
     switch( ePageSize ) 
     {
         case ePdfPageSize_A4:
-            tSize.lWidth  = 210000;
-            tSize.lHeight = 297000;
+            tSize.lWidth  = 595;
+            tSize.lHeight = 842;
             break;
 
         case ePdfPageSize_Letter:
-            tSize.lWidth  = 216000;
-            tSize.lHeight = 279000;
+            tSize.lWidth  = 612;
+            tSize.lHeight = 792;
             break;
             
+		case ePdfPageSize_Legal:
+			tSize.lWidth  = 612;
+			tSize.lHeight = 1008;
+			break;
+
+		case ePdfPageSize_A3:
+			tSize.lWidth  = 842;
+			tSize.lHeight = 1190;
+			break;
+
         default:
-            tSize.lWidth = 
-                tSize.lHeight = 0;
+            tSize.lWidth = tSize.lHeight = 0;
             break;
     }
 
     return tSize;
+}
+
+const PdfRect PdfPage::GetPageBox( const char* inBox ) const
+{
+	PdfRect		pageBox;
+	PdfVariant	pbVar;
+
+	// first we check the actual /Page object for the box data - this is the normal case
+	if ( m_pObject->HasKey( inBox ) ) 
+	{
+		pbVar = m_pObject->GetKey( inBox );
+	}
+
+	// however, it may be that it is taking advantage of inherited values, so we need to
+	// walk up the pages tree to find it
+	// TODO!
+
+	// assign the value of the box from the array
+	if ( pbVar.IsArray() )
+		pageBox.FromArray( pbVar.GetArray() );
+
+	return pageBox;
 }
 
 };
