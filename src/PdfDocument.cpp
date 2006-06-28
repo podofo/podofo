@@ -18,13 +18,16 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#include "PdfDocument.h"
+#include <deque>
 
+#include "PdfArray.h"
 #include "PdfDictionary.h"
+#include "PdfDocument.h"
+#include "PdfPage.h"
 
 namespace PoDoFo {
 
-typedef std::map< int, PdfObject* >	PdfPageObjectMap;
+typedef std::deque< PdfObject* >	PdfPageObjects;
 
 /** Class for managing the tree of Pages in a PDF document
 */
@@ -34,7 +37,7 @@ public:
     /** Construct a PdfPagesTree from the root /Pages object
      *  \param sFilename filename of the file which is going to be parsed/opened
      */
-    PdfPagesTree( PdfObject* inRootObj ) : mPagesRoot( inRootObj ) {}
+    PdfPagesTree( PdfDocument* inOwningDoc, PdfObject* inRootObj );
     
     /** Close/down destruct a PdfPagesTree
      */
@@ -54,14 +57,23 @@ public:
 private:
     PdfPagesTree();	// don't allow construction from nothing!
     
-    PdfObject*          mPagesRoot;
-    PdfPageObjectMap	mPageObjMap;
+	PdfDocument*	  mOwningDoc;
+    PdfObject*        mPagesRoot;
+    PdfPageObjects	  mPageObjs;
     
     /** Private method for actually traversing the /Pages tree
      */
     PdfObject* GetPageNode( int nPageNum, PdfObject* pPagesObject );
 };
 
+
+PdfPagesTree::PdfPagesTree( PdfDocument* inOwningDoc, PdfObject* inRootObj ) 
+: mOwningDoc( inOwningDoc ), mPagesRoot( inRootObj )
+{
+	// pre-allocate enough elements
+	// better performance and allows for a "sparse array"
+	mPageObjs.resize( GetTotalNumberOfPages() );
+}
 
 PdfPagesTree::~PdfPagesTree() 
 {
@@ -97,6 +109,29 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
         return NULL;
     }
 
+	PdfArray	kidsArray = var.GetArray();
+	int			numKids = kidsArray.size(),
+				kidsCount = pPagesObject->GetDictionary().GetKeyAsLong( "Count", 0 );
+
+    // the pages tree node represented by pPagesObject has only page nodes in its kids array,
+    // or pages nodes with a kid count of 1, so we can speed things up by going straight to the desired node
+	if ( numKids == kidsCount )
+	{
+		PdfVariant	pgVar = kidsArray[ nPageNum ];
+		if ( !pgVar.IsReference() ) 
+		{
+			return NULL;	// can't handle inline pages just yet...
+		}
+		PdfObject* pgObject = mOwningDoc->GetObject( pgVar.GetReference() );
+
+		// make sure the object is a /Page and not a /Pages with a single kid
+		if ( pgObject->GetDictionary().GetKeyAsName( PdfName( "Type" ) ) == PdfName( "Page" ) )
+			return pgObject;
+
+		// it's a /Pages with a single kid, so dereference and try again...
+
+	}
+
     // Now do something with the contents of the array
     
     /*
@@ -107,8 +142,6 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
       ASInt32 kidsArrayCount = ::CosDictGetIntegerValue( parentPagesDictionary, SPDF_ATOM( kSPDFASAtom_Count ) ) ;
       if( kidsArrayLength == kidsArrayCount )
       {
-      // the pages tree node represented by inPagesDictionary has only page nodes in its kids array,
-      // or pages nodes with a kid count of 1, so we can speed things up by going straight to the desired node
 	CosObj node = ::CosArrayGetDict( kidsArray, inPageNumber ) ;
 	while( true )
 	{
@@ -158,14 +191,22 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
 
 PdfObject* PdfPagesTree::GetPage( int nIndex )
 {
-    PdfPageObjectMap::iterator	pItor = mPageObjMap.find( nIndex );
-    if ( pItor != mPageObjMap.end() ) {
-        // object already exists in the map, so just return it
-        return pItor->second;
-    } else {
-        // create me a new one
-        
-    }
+	// if you try to get a page past the end, return NULL
+	// we use >= since nIndex is 0 based
+	if ( nIndex >= GetTotalNumberOfPages() )
+		return NULL;
+
+	// if we already have the page in our list, return it
+	// otherwise, we need to find it, add it and return it
+	PdfObject*	pObject = mPageObjs[ nIndex ];
+	if ( !pObject ) 
+	{
+		pObject = GetPageNode( nIndex, mPagesRoot );
+		if ( pObject )
+			mPageObjs[ nIndex ] = pObject;
+	}
+
+	return pObject;
 }
 
 //------------------------------------------------------------------------------------
@@ -203,7 +244,7 @@ void PdfDocument::InitPagesTree()
 {
 	PdfObject*	pagesRootObj = GetNamedObjectFromCatalog( "Pages" );
 	if ( pagesRootObj ) {
-		mPagesTree = new PdfPagesTree( pagesRootObj );
+		mPagesTree = new PdfPagesTree( this, pagesRootObj );
 	}
 }
 
@@ -214,23 +255,11 @@ PdfObject* PdfDocument::GetNamedObjectFromCatalog( const char* pszName ) const
     if ( rootObj ) 
     {
         ref = rootObj->GetDictionary().GetKey( PdfName( pszName ) );
-        if( !ref.IsReference() ) 
-        {
+        if( !ref.IsReference() ) {
             return NULL;
         }
         
-        return mParser->GetObjects().GetObject( ref.GetReference() );
-/*
-        if ( !anObj ) 
-        {
-            PdfVariant	var;
-            rootObj->GetKeyValueVariant( PdfName( pszName ), var );
-            if ( var.IsDictionary() )
-                anObj = new PdfObject( var.GetDictionary() );
-            else if ( var.IsReference() ) 
-                anObj = new PdfObject( var.GetReference() );
-        }
-*/
+        return GetObject( ref.GetReference() );
     }
 
     return NULL;
@@ -239,6 +268,18 @@ PdfObject* PdfDocument::GetNamedObjectFromCatalog( const char* pszName ) const
 int PdfDocument::GetPageCount() const
 {
 	return mPagesTree->GetTotalNumberOfPages();
+}
+
+PdfPage* PdfDocument::GetPage( int nIndex ) const
+{
+	PdfPage*    thePage = NULL;
+	PdfObject*	pgObj = mPagesTree->GetPage( nIndex );
+	if ( pgObj ) 
+	{
+		thePage = new PdfPage( const_cast<PdfDocument*>(this), pgObj );
+	}
+
+	return thePage;
 }
 
 //---------------------------------------------------------------

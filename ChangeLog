@@ -20,6 +20,7 @@ Version 0.3
 	Added PdfDictionary and PdfArray classes;
 	Added new PdfPagesTree (inside of PdfDocument.cpp) for handling walking a /Pages tree;
 	Added new GetPageCount() method to PdfDocument;
+	Modifications to PdfPage to attach it to a PdfDocument & construct from a PdfObject
 	
 Version 0.2
 	Improved Documentation;

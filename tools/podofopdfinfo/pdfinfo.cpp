@@ -38,7 +38,7 @@ void PdfInfo::OutputDocumentInfo( std::ostream& sOutStream )
 {
     sOutStream << "FileSize: " << mDoc->FileSize() << " bytes" << std::endl;
     sOutStream << "PDF Version: " << mDoc->GetPdfVersionString() << std::endl;
-    sOutStream << "Page Count:" << mDoc->GetPageCount() << std::endl;
+    sOutStream << "Page Count: " << mDoc->GetPageCount() << std::endl;
     sOutStream << std::endl;
     sOutStream << "Fast Web View Enabled: " << (mDoc->IsLinearized() ? "Yes" : "No") << std::endl;
     sOutStream << "Tagged: " << (mDoc->GetStructTreeRoot() != NULL ? "Yes" : "No") << std::endl;
@@ -64,4 +64,15 @@ void PdfInfo::OutputInfoDict( std::ostream& sOutStream )
     PdfOutputDevice device;
     device.Init( &sOutStream );
     infoObj->Write( &device );
+}
+
+void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
+{
+	int	pgCount = mDoc->GetPageCount();
+	for ( int pg=0; pg<pgCount; pg++ ) 
+	{
+		PdfPage*	curPage = mDoc->GetPage( pg );
+
+		delete curPage;	// delete it when done
+	}
 }

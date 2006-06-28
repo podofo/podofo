@@ -22,6 +22,7 @@
 #define _PDF_SIMPLE_WRITER_H_
 
 #include "PdfDefines.h"
+#include "PdfDocument.h"
 #include "PdfArray.h"
 #include "PdfVariant.h"
 #include "PdfWriter.h"

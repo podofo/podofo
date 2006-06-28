@@ -92,6 +92,8 @@ class PdfDictionary {
 
     bool GetKeyAsBool( const PdfName & key, bool bDefault = false ) const;
 
+	PdfName GetKeyAsName( const PdfName & key ) const;
+
     /** Allows to check if a dictionary contains a certain key.
      *  \param key look for the key named key.Name() in the dictionary
      *

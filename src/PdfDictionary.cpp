@@ -120,6 +120,19 @@ bool PdfDictionary::GetKeyAsBool( const PdfName & key, bool bDefault ) const
     return bDefault;
 }
 
+PdfName PdfDictionary::GetKeyAsName( const PdfName & key ) const
+{
+	const PdfVariant & var = GetKey( key );
+
+	if( var.GetDataType() == ePdfDataType_Name ) 
+	{
+		return var.GetName();
+	}
+
+	return PdfName("");	// return an empty name
+
+}
+
 bool PdfDictionary::HasKey( const PdfName & key ) const
 {
     if( !key.Length() )

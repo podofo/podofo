@@ -136,7 +136,7 @@ void PdfAnnotation::SetContents( const PdfString & sContents )
 
 PdfError PdfAnnotation::SetDestination( const PdfPage* pPage )
 {
-    return this->SetDestination( pPage->Reference() );
+    return this->SetDestination( pPage->GetObject()->Reference() );
 }
 
 PdfError PdfAnnotation::SetDestination( const PdfReference & rReference )

@@ -29,6 +29,7 @@
 namespace PoDoFo {
 
 class PdfDictionary;
+class PdfPage;
 class PdfPagesTree;
 
 class PdfDocument {
@@ -71,7 +72,24 @@ class PdfDocument {
      */
     size_t FileSize() const { if (mParser) return mParser->FileSize(); else return 0; }
     
-    /** Get access to the internal Catalog dictionary
+
+	/** Retrieve the actual object for a given PdfReference in this document
+	*   \param inRef a PdfReference to the object in question
+	*   \returns a PdfObject to the reference
+	*/
+	PdfObject* GetObject( const PdfReference& inRef ) const { return mWriter.GetObjects().GetObject( inRef ); }
+
+	/** Create a PdfObject of type T which must be a subclass of PdfObject
+	*  and it does not need a parameter for pszType.
+	*  This function assigns the next free object number to the PdfObject
+	*  and add is to the internal vector.
+	*
+	*  \returns a new PdfObject subclass
+	*/
+	template <class T> T* CreateObject();
+
+	
+	/** Get access to the internal Catalog dictionary
      *  or root object.
      *  
      *  \returns PdfObject the documents catalog or NULL 
@@ -109,6 +127,12 @@ class PdfDocument {
      */
     int GetPageCount() const;
 
+    /** Get the PdfObject for a specific page in a document
+     * \param nIndex which page (0-based)
+	 *  \returns PdfObject* for the Page
+     */
+    PdfPage* GetPage( int nIndex ) const;
+
 
  private:
     /** Get a dictioary from the catalog dictionary by its name.
@@ -127,6 +151,23 @@ class PdfDocument {
 	
 	PdfPagesTree*   mPagesTree;
 };
+
+template <class T>
+T* PdfDocument::CreateObject()
+{
+	T*         pTemplate = new T( this, mWriter.GetObjects()->GetObjectCount(), 0 );
+	PdfObject* pObject   = dynamic_cast<PdfObject*>(pTemplate);
+
+	if( !pObject )
+	{
+		delete pTemplate;
+		return NULL;
+	}
+
+	mWriter.GetObjects()->push_back( pObject );
+	return pTemplate;
+}
+
 
 };
 

@@ -104,14 +104,26 @@ PdfError PdfSimpleWriter::Init()
 
 PdfPage* PdfSimpleWriter::CreatePage( const TSize & tSize )
 {
-    PdfPage*         pPage    = m_vecObjects.CreateObject<PdfPage>();
+#if 1	// until this gets revamped to use a PdfDocument
+    PdfPage*         pPage = new PdfPage( NULL, m_vecObjects.GetObjectCount(), 0 );
+	PdfObject* pObject   = dynamic_cast<PdfObject*>(pPage);
+	if( !pObject )
+	{
+		delete pPage;
+		return NULL;
+	}
 
-    m_vecPageReferences.push_back( pPage->Reference() );
+	m_vecObjects.push_back( pObject );
+#else
+	PdfPage*         pPage    = m_pDocument.CreateObject<PdfPage>();
+#endif
+
+    m_vecPageReferences.push_back( pPage->GetObject()->Reference() );
 
     m_pPageTree->AddKey( "Count", PdfVariant( (long)++m_nPageTreeSize ) );
     m_pPageTree->AddKey( "Kids",  PdfVariant( m_vecPageReferences ) );
 
-    pPage->AddKey( "Parent", m_pPageTree->Reference() );
+    pPage->GetObject()->AddKey( "Parent", m_pPageTree->Reference() );
     if( pPage->Init( tSize, &m_vecObjects ).IsError() )
     {
         delete pPage;

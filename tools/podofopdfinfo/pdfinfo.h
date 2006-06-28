@@ -34,6 +34,7 @@ public:
 
 	void OutputDocumentInfo( std::ostream& sOutStream );
 	void OutputInfoDict( std::ostream& sOutStream );
+	void OutputPageInfo( std::ostream& sOutStream );
 
 private:
 	PdfDocument*	mDoc;

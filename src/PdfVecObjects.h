@@ -70,6 +70,11 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      */
     inline bool AutoDelete() const;
 
+	/**
+	*  \returns the number of objects in the vector 
+	*/
+	size_t GetObjectCount() const { return m_nObjectCount; }
+
     /** Finds the object with object no lObject and generation
      *  np lGeneration in m_vecOffsets and returns a pointer to it
      *  if it is found.

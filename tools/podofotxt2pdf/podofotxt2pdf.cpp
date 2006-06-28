@@ -55,7 +55,7 @@ PdfError draw( char* pszBuffer, PdfSimpleWriter* pWriter )
     char*  pszStart = pszBuffer;
 
     pFont = pWriter->CreateFont( "Arial" );
-    pPage = pWriter->CreatePage( PdfPage::CreateStadardPageSize( ePdfPageSize_A4 ) );
+    pPage = pWriter->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
 
     if( !pFont || !pPage )
     {
@@ -76,7 +76,7 @@ PdfError draw( char* pszBuffer, PdfSimpleWriter* pWriter )
             lY += pFont->FontMetrics()->LineSpacing();
             if( lY > (pPage->PageSize().lHeight - BORDER_TOP) )
             {
-                pPage = pWriter->CreatePage( PdfPage::CreateStadardPageSize( ePdfPageSize_A4 ) );
+                pPage = pWriter->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
                 if( !pPage )
                 {
                     RAISE_ERROR( ePdfError_InvalidHandle );

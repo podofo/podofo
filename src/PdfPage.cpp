@@ -20,6 +20,7 @@
 
 #include "PdfPage.h" 
 #include "PdfDictionary.h"
+#include "PdfDocument.h"
 #include "PdfRect.h"
 #include "PdfVariant.h"
 #include "PdfWriter.h"
@@ -27,15 +28,26 @@
 
 namespace PoDoFo {
 
-PdfPage::PdfPage( unsigned int nObjectNo, unsigned int nGenerationNo )
-    : PdfObject( nObjectNo, nGenerationNo, "Page" ), PdfCanvas()
+PdfPage::PdfPage( PdfDocument* inOwningDoc, unsigned int nObjectNo, unsigned int nGenerationNo )
+    : m_pDocument( inOwningDoc ), m_pObject( new PdfObject(nObjectNo, nGenerationNo, "Page") ), PdfCanvas()
 {
     PdfDictionary resources;
 
     // The PDF specification suggests that we send all available PDF Procedure sets
-    this->AddKey( "Resources", PdfVariant( resources ) );
-    m_pResources = &(GetVariant().GetDictionary().GetKey( "Resources" ).GetDictionary());
+    m_pObject->AddKey( "Resources", PdfVariant( resources ) );
+    m_pResources = &(m_pObject->GetVariant().GetDictionary().GetKey( "Resources" ).GetDictionary());
     Resources()->AddKey( "ProcSet", PdfCanvas::ProcSet() );
+}
+
+PdfPage::PdfPage( PdfDocument* inOwningDoc, PdfObject* inObject )
+    : m_pDocument( inOwningDoc ), m_pObject( inObject ), PdfCanvas()
+{
+    m_pResources = &(m_pObject->GetVariant().GetDictionary().GetKey( "Resources" ).GetDictionary());
+	PdfVariant cVar = m_pObject->GetDictionary().GetKey( "Contents" );
+	if ( cVar.IsReference() )	// let's hope so!
+	{
+		m_pContents = m_pDocument->GetObject( cVar.GetReference() );
+	}
 }
 
 PdfPage::~PdfPage()
@@ -54,8 +66,8 @@ PdfError PdfPage::Init( const TSize & tSize, PdfVecObjects* pParent )
 
     PdfRect( 0, 0, tSize.lWidth, tSize.lHeight ).ToVariant( rect );
 
-    this->AddKey( "MediaBox", rect );
-    this->AddKey( PdfName::KeyContents, m_pContents->Reference() );
+    m_pObject->AddKey( "MediaBox", rect );
+    m_pObject->AddKey( PdfName::KeyContents, m_pContents->Reference() );
 
     return eCode;
 }
@@ -65,7 +77,7 @@ PdfDictionary* PdfPage::Resources() const
     return m_pResources;
 }
 
-TSize PdfPage::CreateStadardPageSize( const EPdfPageSize ePageSize )
+TSize PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize )
 {
     TSize tSize;
 

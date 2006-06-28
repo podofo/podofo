@@ -29,6 +29,7 @@
 
 namespace PoDoFo {
 
+class PdfDocument;
 class PdfDictionary;
 class PdfVecObjects;
 
@@ -36,18 +37,26 @@ class PdfVecObjects;
  *  It is possible to draw on a page using a PdfPainter object.
  *  Every document needs at least one page.
  */
-class PdfPage : public PdfObject, public PdfCanvas {
+class PdfPage : public PdfCanvas {
  public:
     /** Create a new PdfPage object.
+	 *  \param inOwningDoc the document this page belongs to 
      *  \param nObjectNo object no
      *  \param nGenerationNo generation number of the object
      */
-    PdfPage( unsigned int nObjectNo, unsigned int nGenerationNo );
-    ~PdfPage();
+    PdfPage( PdfDocument* inOwningDoc, unsigned int nObjectNo, unsigned int nGenerationNo );
+ 
+    /** Create a new PdfPage object.
+	 *  \param inOwningDoc the document this page belongs to 
+     *  \param inObject the object from an existing PDF
+     */
+	PdfPage( PdfDocument* inOwningDoc, PdfObject* inObject );
+
+	~PdfPage();
 
     /** Initialize a newly generated PdfPage object. If you use the CreatePage method of PdfSimpleWriter
      *  you do not have to call this method.
-     *  \param tSize a size structure spezifying the size of the page (i.e the /MediaBox key) in 1/1000th mm
+     *  \param tSize a size structure specifying the size of the page (i.e the /MediaBox key) in 1/1000th mm
      *  \param pParent pointer to the parent PdfVecObjects object
      *  \returns ErrOk on success
      */
@@ -58,7 +67,12 @@ class PdfPage : public PdfObject, public PdfCanvas {
      *  \param ePageSize the page size you want
      *  \returns TSize object which can be passed to the PdfPage constructor
      */
-    static TSize CreateStadardPageSize( const EPdfPageSize ePageSize );
+    static TSize CreateStandardPageSize( const EPdfPageSize ePageSize );
+
+	/** Retrieve the actual object for a given page
+	*   \returns the PdfObject for this page
+	*/
+	PdfObject* GetObject() const { return m_pObject; }
 
     /** Get access to the contents object of this page.
      *  If you want to draw onto the page, you have to add 
@@ -79,6 +93,8 @@ class PdfPage : public PdfObject, public PdfCanvas {
     virtual inline const TSize & PageSize() const;
 
  private:
+    PdfDocument*   m_pDocument;
+	PdfObject*     m_pObject;
     PdfObject*     m_pContents;
     PdfDictionary* m_pResources;
     TSize          m_tPageSize;

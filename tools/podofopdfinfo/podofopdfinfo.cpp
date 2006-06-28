@@ -60,6 +60,11 @@ int main( int argc, char* argv[] )
   std::cout << "Classic Metadata" << std::endl;
   std::cout << "----------------" << std::endl;
   myInfo.OutputInfoDict( std::cout );
+  std::cout << std::endl;
+
+  std::cout << "Page Info" << std::endl;
+  std::cout << "---------" << std::endl;
+  myInfo.OutputPageInfo( std::cout );
 
   
   return eCode.Error();
