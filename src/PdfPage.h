@@ -40,7 +40,7 @@ class PdfVecObjects;
 class PdfPage : public PdfCanvas {
  public:
     /** Create a new PdfPage object.
-	 *  \param inOwningDoc the document this page belongs to 
+     *  \param inOwningDoc the document this page belongs to 
      *  \param nObjectNo object no
      *  \param nGenerationNo generation number of the object
      */
@@ -50,9 +50,9 @@ class PdfPage : public PdfCanvas {
 	 *  \param inOwningDoc the document this page belongs to 
      *  \param inObject the object from an existing PDF
      */
-	PdfPage( PdfDocument* inOwningDoc, PdfObject* inObject );
+    PdfPage( PdfDocument* inOwningDoc, PdfObject* inObject );
 
-	~PdfPage();
+    virtual ~PdfPage();
 
     /** Initialize a newly generated PdfPage object. If you use the CreatePage method of PdfSimpleWriter
      *  you do not have to call this method.
@@ -69,10 +69,10 @@ class PdfPage : public PdfCanvas {
      */
     static TSize CreateStandardPageSize( const EPdfPageSize ePageSize );
 
-	/** Retrieve the actual object for a given page
-	*   \returns the PdfObject for this page
-	*/
-	PdfObject* GetObject() const { return m_pObject; }
+    /** Retrieve the actual object for a given page
+     *   \returns the PdfObject for this page
+     */
+    PdfObject* GetObject() const { return m_pObject; }
 
     /** Get access to the contents object of this page.
      *  If you want to draw onto the page, you have to add 
@@ -94,7 +94,7 @@ class PdfPage : public PdfCanvas {
 
  private:
     PdfDocument*   m_pDocument;
-	PdfObject*     m_pObject;
+    PdfObject*     m_pObject;
     PdfObject*     m_pContents;
     PdfDictionary* m_pResources;
     TSize          m_tPageSize;
