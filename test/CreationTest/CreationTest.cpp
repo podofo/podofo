@@ -358,31 +358,31 @@ int main( int argc, char* argv[] )
 
     TEST_SAFE_OP( writer.Init() );
 
-    pPage = writer.CreatePage( PdfPage::CreateStadardPageSize( ePdfPageSize_A4 ) );
+    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
     painter.SetPage( pPage );
 
     printf("Drawing the first page with various lines.\n");
     TEST_SAFE_OP( LineTest( &painter, pPage, &writer ) );
 
-    pPage = writer.CreatePage( PdfPage::CreateStadardPageSize( ePdfPageSize_Letter ) );
+    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_Letter ) );
     painter.SetPage( pPage );
 
     printf("Drawing the second page with various rectangle and triangles.\n");
     TEST_SAFE_OP( RectTest( &painter, pPage, &writer ) );
 
-    pPage = writer.CreatePage( PdfPage::CreateStadardPageSize( ePdfPageSize_A4 ) );
+    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
     painter.SetPage( pPage );
 
     printf("Drawing some text.\n");
     TEST_SAFE_OP( TextTest( &painter, pPage, &writer ) );
 
-    pPage = writer.CreatePage( PdfPage::CreateStadardPageSize( ePdfPageSize_A4 ) );
+    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
     painter.SetPage( pPage );
 
     printf("Drawing some images.\n");
     TEST_SAFE_OP( ImageTest( &painter, pPage, &writer ) );
 
-    pPage = writer.CreatePage( PdfPage::CreateStadardPageSize( ePdfPageSize_A4 ) );
+    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
     painter.SetPage( pPage );
 
     printf("Drawing some circles and ellipsis.\n");
