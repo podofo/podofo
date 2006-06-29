@@ -31,6 +31,8 @@ using namespace std;
 
 namespace PoDoFo {
 
+PdfArray PdfXObject::s_matrix;
+
 PdfXObject::PdfXObject( unsigned int nObjectNo, unsigned int nGenerationNo )
     : PdfObject( nObjectNo, nGenerationNo, "XObject" ), PdfCanvas()
 {
@@ -57,9 +59,18 @@ PdfError PdfXObject::Init( const PdfRect & rRect )
     rRect.ToVariant( var );
     this->AddKey( "BBox", var );
 
-	PdfVariant	matVar;
-	matVar.Parse( "[ 1 0 0 1 0 0 ]" );
-    this->AddKey( "Matrix", matVar );
+    if( s_matrix.empty() )
+    {
+        // This matrix is the same for all PdfXObjects so cache it
+        s_matrix.push_back( PdfVariant( 1L ) );
+        s_matrix.push_back( PdfVariant( 0L ) );
+        s_matrix.push_back( PdfVariant( 0L ) );
+        s_matrix.push_back( PdfVariant( 1L ) );
+        s_matrix.push_back( PdfVariant( 0L ) );
+        s_matrix.push_back( PdfVariant( 0L ) );
+    }
+
+    this->AddKey( "Matrix", s_matrix );
 
     m_size.lWidth  = rRect.Width();
     m_size.lHeight = rRect.Height();

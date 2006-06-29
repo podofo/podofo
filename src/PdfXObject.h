@@ -22,6 +22,7 @@
 #define _PDF_XOBJECT_H_
 
 #include "PdfDefines.h"
+#include "PdfArray.h"
 #include "PdfCanvas.h"
 #include "PdfObject.h"
 
@@ -85,7 +86,8 @@ class PdfXObject : public PdfObject, public PdfCanvas {
     void GetImageReference( PdfImageRef & rRef );
 
  private:
-    PdfDictionary* m_pResources;
+    static PdfArray  s_matrix;
+    PdfDictionary*   m_pResources;
 
     TSize      m_size;
 };

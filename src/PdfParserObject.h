@@ -111,6 +111,14 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
      */
     inline void SetLoadOnDemand( bool bDelayed );
 
+    /** Set the object number of this object.
+     *  It is almost never necessary to use this call.
+     *  It is only included for usage in the PdfParser.
+     *
+     *  \param nObjNo the new object number of this object
+     */
+    inline void SetObjectNumber( unsigned int nObjNo );
+
  protected:
     /** Load all data of the object if load object on demand is enabled.
      *  Reimplemented from PdfObject.
@@ -151,16 +159,33 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
     PdfParser*   m_pParser;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfParserObject::SetObjectNumber( unsigned int nObjNo )
+{
+    m_reference.SetObjectNumber( nObjNo );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfParserObject::IsLoadOnDemand() const
 {
     return m_bLoadOnDemand;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfParserObject::SetLoadOnDemand( bool bDelayed )
 {
     m_bLoadOnDemand = bDelayed;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfParserObject::HasStreamToParse() const
 {
     return m_bStream;

@@ -185,15 +185,6 @@ class PdfObject {
      */
     inline bool HasStream() const;
 
-    /** Set the object number of this object.
-     *  It is almost never necessary to use this call.
-     *  It is only included for usage in the PdfParser.
-     *  DO NOT USE IT!
-     *
-     *  \param nObjNo the new object number of this object
-     */
-    inline void SetObjectNumber( unsigned int nObjNo );
-
     /** Get the object number of this object
      *  \returns the object number
      */
@@ -294,14 +285,6 @@ void PdfObject::SetEmptyEntry( bool empty )
 bool PdfObject::IsEmptyEntry() const
 {
     return m_bEmptyEntry;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfObject::SetObjectNumber( unsigned int nObjNo )
-{
-    m_reference.SetObjectNumber( nObjNo );
 }
 
 // -----------------------------------------------------
