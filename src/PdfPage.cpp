@@ -111,26 +111,77 @@ TSize PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize )
     return tSize;
 }
 
+const PdfVariant PdfPage::GetInheritedKeyFromObject( const char* inKey, PdfObject* inObject ) const
+{
+	PdfVariant	outVar;
+
+	// check for it in the object itself
+	if ( inObject->HasKey( inKey ) ) 
+	{
+		outVar = inObject->GetKey( inKey );
+		if ( !outVar.IsNull() ) 
+			return outVar;
+	}
+
+	// if we get here, we need to go check the parent - if there is one!
+	if ( inObject->HasKey( "Parent" ) ) {
+		PdfVariant	parVar = inObject->GetKey( "Parent" );
+		if ( parVar.IsReference() ) {	// has to be!
+			PdfObject*	parObj = m_pDocument->GetObject( parVar.GetReference() );
+			outVar = GetInheritedKeyFromObject( inKey, parObj );
+		}
+	}
+
+	return outVar;
+}
+
 const PdfRect PdfPage::GetPageBox( const char* inBox ) const
 {
 	PdfRect		pageBox;
 	PdfVariant	pbVar;
 
-	// first we check the actual /Page object for the box data - this is the normal case
-	if ( m_pObject->HasKey( inBox ) ) 
-	{
-		pbVar = m_pObject->GetKey( inBox );
-	}
-
-	// however, it may be that it is taking advantage of inherited values, so we need to
-	// walk up the pages tree to find it
-	// TODO!
+	// Take advantage of inherited values - walking up the tree if necessary
+	pbVar = GetInheritedKeyFromObject( inBox, m_pObject );
 
 	// assign the value of the box from the array
 	if ( pbVar.IsArray() )
 		pageBox.FromArray( pbVar.GetArray() );
 
 	return pageBox;
+}
+
+const int PdfPage::GetRotation() const 
+{ 
+	int rot = 0;
+
+	PdfVariant rotVar = GetInheritedKeyFromObject( "Rotate", m_pObject ); 
+	if ( rotVar.IsNumber() )
+		rot = rotVar.GetNumber();
+
+	return rot;
+}
+
+const int PdfPage::GetNumAnnots() const
+{
+	int	numAnnots = 0;
+
+	// check for it in the object itself
+	if ( m_pObject->HasKey( "Annots" ) ) 
+	{
+		PdfVariant aVar = m_pObject->GetKey( "Annots" );
+		while ( true ) 
+		{
+			if ( aVar.IsArray() ) 
+				return aVar.GetArray().size();
+			else if ( aVar.IsReference() ) 
+			{
+				PdfObject *varObj = m_pDocument->GetObject( aVar.GetReference() );
+				aVar = varObj->GetVariant();
+			}
+		}
+	}
+
+	return numAnnots;
 }
 
 };

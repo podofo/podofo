@@ -77,6 +77,8 @@ void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
 
 		PdfRect	mbRect = curPage->GetMediaBox();
 		sOutStream << "\tMediaBox: " << mbRect.ToString() << std::endl;
+		sOutStream << "\tRotation: " << curPage->GetRotation() << std::endl;
+		sOutStream << "\t# of Annotations: " << curPage->GetNumAnnots() << std::endl;
 
 		delete curPage;	// delete it when done
 	}

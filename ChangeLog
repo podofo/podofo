@@ -26,6 +26,10 @@ Version 0.3
 	Changed PdfRect to use PDF units and also use bottom instead of top;
 	Added ability to go between PdfRect and PdfArray & also get string version of a PdfRect;
 	Added support for PdfPage to return all the standard boxes (Media, Crop, etc);
+	Added support for fetching inherited values from pages (eg. boxes, rotation, etc.)
+	Added more methods to PdfPage;
+		GetRotation();
+		GetNumAnnots();
 	
 Version 0.2
 	Improved Documentation;

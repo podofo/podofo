@@ -118,74 +118,61 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
 	if ( numKids == kidsCount )
 	{
 		PdfVariant	pgVar = kidsArray[ nPageNum ];
-		if ( !pgVar.IsReference() ) 
+
+		while ( true ) 
 		{
-			return NULL;	// can't handle inline pages just yet...
+			if ( !pgVar.IsReference() ) 
+			{
+				return NULL;	// can't handle inline pages just yet...
+			}
+			PdfObject* pgObject = mOwningDoc->GetObject( pgVar.GetReference() );
+
+			// make sure the object is a /Page and not a /Pages with a single kid
+			if ( pgObject->GetDictionary().GetKeyAsName( PdfName( "Type" ) ) == PdfName( "Page" ) )
+				return pgObject;
+
+			// it's a /Pages with a single kid, so dereference and try again...
+			if( !pgObject->HasKey( "Kids" ) )
+				return NULL;
+			pgVar = pgObject->GetKey( "Kids" );
 		}
-		PdfObject* pgObject = mOwningDoc->GetObject( pgVar.GetReference() );
+	} 
+	else 
+	{
+		for( int i = 0 ; i < numKids ; i++ )
+		{
+			PdfVariant	kidsVar = kidsArray[ i ];
 
-		// make sure the object is a /Page and not a /Pages with a single kid
-		if ( pgObject->GetDictionary().GetKeyAsName( PdfName( "Type" ) ) == PdfName( "Page" ) )
-			return pgObject;
+			// is the kid a Pages tree node or a Page object?
+			if ( !kidsVar.IsReference() ) 
+			{
+				return NULL;	// can't handle inline pages just yet...
+			}
+			PdfObject* pgObject = mOwningDoc->GetObject( kidsVar.GetReference() );
 
-		// it's a /Pages with a single kid, so dereference and try again...
-
-	}
-
-    // Now do something with the contents of the array
-    
-    /*
-      assert( NULL != inPagesDictionary ) ;
-      CosObj parentPagesDictionary = inPagesDictionary ;
-      CosObj kidsArray = CPagesTreeHelper::GetKidsArray( parentPagesDictionary ) ;
-      ASInt32 kidsArrayLength = ::CosArrayLength( kidsArray ) ;
-      ASInt32 kidsArrayCount = ::CosDictGetIntegerValue( parentPagesDictionary, SPDF_ATOM( kSPDFASAtom_Count ) ) ;
-      if( kidsArrayLength == kidsArrayCount )
-      {
-	CosObj node = ::CosArrayGetDict( kidsArray, inPageNumber ) ;
-	while( true )
-	{
-	// is node a Page object? if so, we're done
-	if( SPDF_ATOM( kSPDFASAtom_Page ) == ::CosDictGetNameValue( node, SPDF_ATOM( kSPDFASAtom_Type ) ) )
-	return node ;
-        
-	// if node is not a Page object, then it must be a Pages object with a single kid, so we'll dereference it
-	// and try again
-	kidsArray = CPagesTreeHelper::GetKidsArray( node ) ;
-	node = ::CosArrayGetDict( kidsArray, 0 ) ;
-	}
-	}
-	else
-	{
-	for( ASInt32 i = 0 ; i < kidsArrayLength ; i++ )
-	{
-	CosObj oneKidDictionary = ::CosArrayGetDict( kidsArray, i ) ;
-
-	// is the kid a Pages tree node or a Page object?
-	if( SPDF_ATOM( kSPDFASAtom_Page ) == ::CosDictGetNameValue( oneKidDictionary, SPDF_ATOM( kSPDFASAtom_Type ) ) )
-	{
-	numPagesSeenSoFar++ ;
-	if( numPagesSeenSoFar == inPageNumber )
-	{
-	return oneKidDictionary ;
-	}
-	}
-	else
-	{
-	ASInt32 theNumKidPages = ::CosDictGetIntegerValue( oneKidDictionary, SPDF_ATOM( kSPDFASAtom_Count ) ) ;
-	if( ( numPagesSeenSoFar + theNumKidPages ) >= inPageNumber )
-	return this->GetPageNode( inPageNumber - ( numPagesSeenSoFar + 1 ), oneKidDictionary ) ;
-	else
-	numPagesSeenSoFar += theNumKidPages ;
-	}
-	}
+			// if it's a Page, then is it the right page??
+			// otherwise, it's a Pages, and we need to recurse
+			if ( pgObject->GetDictionary().GetKeyAsName( PdfName( "Type" ) ) == PdfName( "Page" ) )
+			{
+				nPagesSeenSoFar++ ;
+				if( nPagesSeenSoFar == nPageNum )
+				{
+					return pgObject;
+				}
+			}
+			else 
+			{
+				int thisKidCount = pgObject->GetDictionary().GetKeyAsLong( "Count", 0 );
+				if( ( nPagesSeenSoFar + thisKidCount ) >= nPageNum )
+					return this->GetPageNode( nPageNum - ( nPagesSeenSoFar + 1 ), pgObject ) ;
+				else
+					nPagesSeenSoFar += thisKidCount ;
+			}
+		}
 	}
 
 	// we should never exit from here - we should always have been able to return a page from above
-	assert( false ) ;
-	return ( CosObj )NULL ;
-	*/
-
+	// assert( false ) ;
     return NULL;
 }
 

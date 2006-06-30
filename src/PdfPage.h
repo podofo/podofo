@@ -118,6 +118,16 @@ class PdfPage : public PdfCanvas {
      */
 	virtual const PdfRect GetArtBox() const { return GetPageBox( "ArtBox" ); }
 
+    /** Get the current page rotation (if any).
+     *  \returns int 0, 90, 180 or 270
+     */
+	virtual const int GetRotation() const;
+
+	/** Get the number of annotations associated with this page
+	* \ returns int number of annotations
+	*/
+	virtual const int GetNumAnnots() const;
+
 
 
  private:
@@ -132,6 +142,11 @@ class PdfPage : public PdfCanvas {
      *  \returns PdfRect the page box
      */
 	const PdfRect GetPageBox( const char* inBox ) const;
+
+	/** Private method for getting a key value that could be inherited (such as the boxes, resources, etc.)
+	*  \returns PdfVariant - the result of the key fetching
+	*/
+	const PdfVariant GetInheritedKeyFromObject( const char* inKey, PdfObject* inObject ) const; 
 };
 
 };
