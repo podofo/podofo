@@ -61,8 +61,8 @@ const PdfImageRef & PdfImageRef::operator=( const PdfImageRef & rhs )
 PdfImage::PdfImage( unsigned int objectno, unsigned int generationno )
     : PdfObject( objectno, generationno )
 {
-    this->AddKey( PdfName::KeySubtype, PdfName( "Image" ) );
-    this->AddKey( "ColorSpace", PdfName( ColorspaceToName( ePdfColorSpace_DeviceRGB ) ) );
+    this->GetDictionary().AddKey( PdfName::KeySubtype, PdfName( "Image" ) );
+    this->GetDictionary().AddKey( "ColorSpace", PdfName( ColorspaceToName( ePdfColorSpace_DeviceRGB ) ) );
 
     m_nHeight = 0;
     m_nWidth  = 0;
@@ -75,15 +75,15 @@ PdfImage::~PdfImage()
 
 void PdfImage::SetImageColorSpace( EPdfColorSpace eColorSpace )
 {
-    this->AddKey( "ColorSpace", PdfName( ColorspaceToName( eColorSpace ) ) );
+    this->GetDictionary().AddKey( "ColorSpace", PdfName( ColorspaceToName( eColorSpace ) ) );
 }
 
 void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight, unsigned int nBitsPerComponent, char* szBuffer, long lLen )
 {
-    this->AddKey( "Width", (long)nWidth );
-    this->AddKey( "Height", (long)nHeight );
-    this->AddKey( "BitsPerComponent", (long)nBitsPerComponent );
-    this->AddKey( "Filter", PdfName("DCTDecode") );
+    this->GetDictionary().AddKey( "Width", (long)nWidth );
+    this->GetDictionary().AddKey( "Height", (long)nHeight );
+    this->GetDictionary().AddKey( "BitsPerComponent", (long)nBitsPerComponent );
+    this->GetDictionary().AddKey( "Filter", PdfName("DCTDecode") );
 
     this->Stream()->Set( szBuffer, lLen );
 }

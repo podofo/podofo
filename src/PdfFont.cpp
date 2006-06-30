@@ -82,14 +82,14 @@ PdfError PdfFont::Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool b
     sTmp.resize(curPos);
     m_BaseFont = PdfName( sTmp.c_str() );
 
-    SAFE_OP( m_pMetrics->GetWidthArray( var, FIRST_CHAR, LAST_CHAR ) );
+
     pWidth = pParent->CreateObject();
     if( !pWidth )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    pWidth->SetVariant( var );
+    SAFE_OP( m_pMetrics->GetWidthArray( *pWidth, FIRST_CHAR, LAST_CHAR ) );
 
     pDescriptor = pParent->CreateObject( "FontDescriptor" );
     if( !pDescriptor )
@@ -97,25 +97,25 @@ PdfError PdfFont::Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool b
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    this->AddKey( PdfName::KeySubtype, PdfName("TrueType") );
-    this->AddKey("BaseFont", m_BaseFont );
-    this->AddKey("FirstChar", (long)FIRST_CHAR );
-    this->AddKey("LastChar", (long)LAST_CHAR );
-    this->AddKey("Encoding", PdfName("WinAnsiEncoding") );
-    this->AddKey("Widths", pWidth->Reference() );
-    this->AddKey( "FontDescriptor", pDescriptor->Reference() );
+    this->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("TrueType") );
+    this->GetDictionary().AddKey("BaseFont", m_BaseFont );
+    this->GetDictionary().AddKey("FirstChar", (long)FIRST_CHAR );
+    this->GetDictionary().AddKey("LastChar", (long)LAST_CHAR );
+    this->GetDictionary().AddKey("Encoding", PdfName("WinAnsiEncoding") );
+    this->GetDictionary().AddKey("Widths", pWidth->Reference() );
+    this->GetDictionary().AddKey( "FontDescriptor", pDescriptor->Reference() );
 
     SAFE_OP( m_pMetrics->GetBoundingBox( array ) );
 
-    pDescriptor->AddKey( "FontName", m_BaseFont );
-    //pDescriptor->AddKey( "FontWeight", (long)m_pMetrics->Weight() );
-    pDescriptor->AddKey( PdfName::KeyFlags, (long)32 ); // TODO: 0 ????
-    pDescriptor->AddKey( "FontBBox", array );
-    pDescriptor->AddKey( "ItalicAngle", (long)m_pMetrics->ItalicAngle() );
-    pDescriptor->AddKey( "Ascent", m_pMetrics->Ascent() );
-    pDescriptor->AddKey( "Descent", m_pMetrics->Descent() );
-    pDescriptor->AddKey( "CapHeight", m_pMetrics->Ascent() ); // //m_pMetrics->CapHeight() );
-    pDescriptor->AddKey( "StemV", (long)1 ); //m_pMetrics->StemV() );
+    pDescriptor->GetDictionary().AddKey( "FontName", m_BaseFont );
+    //pDescriptor->GetDictionary().AddKey( "FontWeight", (long)m_pMetrics->Weight() );
+    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, (long)32 ); // TODO: 0 ????
+    pDescriptor->GetDictionary().AddKey( "FontBBox", array );
+    pDescriptor->GetDictionary().AddKey( "ItalicAngle", (long)m_pMetrics->ItalicAngle() );
+    pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->Ascent() );
+    pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->Descent() );
+    pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->Ascent() ); // //m_pMetrics->CapHeight() );
+    pDescriptor->GetDictionary().AddKey( "StemV", (long)1 ); //m_pMetrics->StemV() );
 
     if( bEmbedd )
     {
@@ -139,31 +139,31 @@ PdfError PdfFont::EmbeddFont( PdfVecObjects* pParent, PdfObject* pDescriptor )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    pDescriptor->AddKey( "FontFile2", pContents->Reference() );
+    pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->Reference() );
 
-	// if the data was loaded from memory - use it from there
-	// otherwise, load from disk
-	if ( m_pMetrics->FontDataLen() && m_pMetrics->FontData() ) {
-		pBuffer = const_cast<char*>( m_pMetrics->FontData() );
-		lSize = m_pMetrics->FontDataLen();
-	} else {
-		hFile = fopen( m_pMetrics->Filename(), "rb" );
-		if( !hFile )
-		{
-			RAISE_ERROR( ePdfError_FileNotFound );
-		}
+    // if the data was loaded from memory - use it from there
+    // otherwise, load from disk
+    if ( m_pMetrics->FontDataLen() && m_pMetrics->FontData() ) {
+        pBuffer = const_cast<char*>( m_pMetrics->FontData() );
+        lSize = m_pMetrics->FontDataLen();
+    } else {
+        hFile = fopen( m_pMetrics->Filename(), "rb" );
+        if( !hFile )
+        {
+            RAISE_ERROR( ePdfError_FileNotFound );
+        }
 
-		fseek( hFile, 0, SEEK_END );
-		lSize = ftell( hFile );
-		fseek( hFile, 0, SEEK_SET );
-
-		pBuffer = (char*)malloc( sizeof(char) * lSize );
-		fread( pBuffer, lSize, sizeof(char), hFile ); 
-
-		fclose( hFile );
-	}
-
-    pContents->AddKey( "Length1", lSize );
+        fseek( hFile, 0, SEEK_END );
+        lSize = ftell( hFile );
+        fseek( hFile, 0, SEEK_SET );
+        
+        pBuffer = (char*)malloc( sizeof(char) * lSize );
+        fread( pBuffer, lSize, sizeof(char), hFile ); 
+        
+        fclose( hFile );
+    }
+    
+    pContents->GetDictionary().AddKey( "Length1", lSize );
     pContents->Stream()->Set( pBuffer, lSize, !m_pMetrics->FontDataLen() );	// if we loaded from memory, DO NOT let Stream take possession
 
     return eCode;

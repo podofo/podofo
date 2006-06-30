@@ -65,7 +65,7 @@ PdfError UnCompress::UncompressObjects()
             SAFE_OP( (*it)->Stream()->GetFilteredCopy( &pBuffer, &lLen ) );
             SAFE_OP( (*it)->Stream()->Set( pBuffer, lLen ) );
 
-            (*it)->RemoveKey( "Filter" );            
+            (*it)->GetDictionary().RemoveKey( "Filter" );            
         }
 
         ++it;

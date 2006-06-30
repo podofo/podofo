@@ -60,7 +60,7 @@ printf("no\n");
 
 void PdfInfo::OutputInfoDict( std::ostream& sOutStream )
 {
-    PdfDictionary*  infoObj = mDoc->GetInfo();
+    PdfObject* infoObj = mDoc->GetInfo();
     PdfOutputDevice device;
     device.Init( &sOutStream );
     infoObj->Write( &device );
@@ -68,18 +68,18 @@ void PdfInfo::OutputInfoDict( std::ostream& sOutStream )
 
 void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
 {
-	int	pgCount = mDoc->GetPageCount();
-	for ( int pg=0; pg<pgCount; pg++ ) 
-	{
-		sOutStream << "Page " << pg << ":" << std::endl;
-
-		PdfPage*	curPage = mDoc->GetPage( pg );
-
-		PdfRect	mbRect = curPage->GetMediaBox();
-		sOutStream << "\tMediaBox: " << mbRect.ToString() << std::endl;
-		sOutStream << "\tRotation: " << curPage->GetRotation() << std::endl;
-		sOutStream << "\t# of Annotations: " << curPage->GetNumAnnots() << std::endl;
-
-		delete curPage;	// delete it when done
-	}
+    int	pgCount = mDoc->GetPageCount();
+    for ( int pg=0; pg<pgCount; pg++ ) 
+    {
+        sOutStream << "Page " << pg << ":" << std::endl;
+        
+        PdfPage*	curPage = mDoc->GetPage( pg );
+        
+        PdfRect	mbRect = curPage->GetMediaBox();
+        sOutStream << "\tMediaBox: " << mbRect.ToString() << std::endl;
+        sOutStream << "\tRotation: " << curPage->GetRotation() << std::endl;
+        sOutStream << "\t# of Annotations: " << curPage->GetNumAnnots() << std::endl;
+        
+        delete curPage;	// delete it when done
+    }
 }

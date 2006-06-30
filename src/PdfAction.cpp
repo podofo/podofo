@@ -20,6 +20,8 @@
 
 #include "PdfAction.h"
 
+#include "PdfDictionary.h"
+
 namespace PoDoFo {
 
 PdfAction::PdfAction( unsigned int nObjectNo, unsigned int nGenerationNo )
@@ -38,7 +40,7 @@ PdfError PdfAction::Init( EPdfAction eAction )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    this->AddKey( "S", type );
+    this->GetDictionary().AddKey( "S", type );
 
     return eCode;
 }
@@ -60,7 +62,7 @@ const char* PdfAction::ActionKey( EPdfAction eAction )
 
 void PdfAction::SetURI( const PdfString & sUri )
 {
-    this->AddKey( "URI", sUri );
+    this->GetDictionary().AddKey( "URI", sUri );
 }
 
 };

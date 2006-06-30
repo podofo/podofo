@@ -176,7 +176,7 @@ PdfError PdfParser::ReadDocumentStructure()
             return eCode;
     }
 
-    if( !m_pTrailer->HasKey( PdfName::KeySize ) )
+    if( !m_pTrailer->IsDictionary() || !m_pTrailer->GetDictionary().HasKey( PdfName::KeySize ) )
     {
         PdfError::LogMessage( eLogSeverity_Error, "No /Size key was specified in the trailer directory." );
         RAISE_ERROR( ePdfError_InvalidTrailerSize );
@@ -201,7 +201,7 @@ PdfError PdfParser::ReadDocumentStructure()
     }
 
     SAFE_OP_ADV( ReadXRefContents( m_nXRefOffset ), "Unable to load xref entries." );
-    if( m_pTrailer->HasKey( "Prev" ) )
+    if( m_pTrailer->GetDictionary().HasKey( "Prev" ) )
     {
         SAFE_OP_ADV( ReadXRefContents( m_pTrailer->GetDictionary().GetKeyAsLong( "Prev", 0 ) ), "Unable to load /Prev xref entries." );
     }
@@ -259,7 +259,7 @@ PdfError PdfParser::HasLinearizationDict()
     m_pLinearization = new PdfParserObject( this, m_hFile, this->GetBuffer(), this->GetBufferSize() );
     eCode = static_cast<PdfParserObject*>(m_pLinearization)->ParseFile();
 
-    if( eCode.IsError() || !m_pLinearization->HasKey( "Linearized" ) )
+    if( eCode.IsError() || !m_pLinearization->GetDictionary().HasKey( "Linearized" ) )
     {
         delete m_pLinearization;
         m_pLinearization = NULL;
@@ -330,20 +330,20 @@ PdfError PdfParser::MergeTrailer( const PdfObject* pTrailer )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    if( pTrailer->HasKey( PdfName::KeySize ) )
-        m_pTrailer->AddKey( PdfName::KeySize, pTrailer->GetKey( PdfName::KeySize ) );
+    if( pTrailer->GetDictionary().HasKey( PdfName::KeySize ) )
+        m_pTrailer->GetDictionary().AddKey( PdfName::KeySize, pTrailer->GetDictionary().GetKey( PdfName::KeySize ) );
 
-    if( pTrailer->HasKey( "Root" ) )
-        m_pTrailer->AddKey( "Root", pTrailer->GetKey( "Root" ) );
+    if( pTrailer->GetDictionary().HasKey( "Root" ) )
+        m_pTrailer->GetDictionary().AddKey( "Root", pTrailer->GetDictionary().GetKey( "Root" ) );
 
-    if( pTrailer->HasKey( "Encrypt" ) )
-        m_pTrailer->AddKey( "Encrypt", pTrailer->GetKey( "Encrypt" ) );
+    if( pTrailer->GetDictionary().HasKey( "Encrypt" ) )
+        m_pTrailer->GetDictionary().AddKey( "Encrypt", pTrailer->GetDictionary().GetKey( "Encrypt" ) );
 
-    if( pTrailer->HasKey( "Info" ) )
-        m_pTrailer->AddKey( "Info", pTrailer->GetKey( "Info" ) );
+    if( pTrailer->GetDictionary().HasKey( "Info" ) )
+        m_pTrailer->GetDictionary().AddKey( "Info", pTrailer->GetDictionary().GetKey( "Info" ) );
 
-    if( pTrailer->HasKey( "ID" ) )
-        m_pTrailer->AddKey( "ID", pTrailer->GetKey( "ID" ) );
+    if( pTrailer->GetDictionary().HasKey( "ID" ) )
+        m_pTrailer->GetDictionary().AddKey( "ID", pTrailer->GetDictionary().GetKey( "ID" ) );
 
     return eCode;
 }
@@ -362,7 +362,7 @@ PdfError PdfParser::ReadNextTrailer()
         // now merge the information of this trailer with the main documents trailer
         SAFE_OP( MergeTrailer( &trailer ) );
 
-        if( trailer.HasKey( "Prev" ) )
+        if( trailer.GetDictionary().HasKey( "Prev" ) )
         {
             SAFE_OP_ADV( ReadXRefContents( trailer.GetDictionary().GetKeyAsLong( "Prev", 0 ) ), "Unable to load /Prev xref entries." );
         }
@@ -644,7 +644,7 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
     SAFE_OP( xrefObject.ParseFile() );
 
 
-    if( !xrefObject.HasKey( PdfName::KeyType ) )
+    if( !xrefObject.GetDictionary().HasKey( PdfName::KeyType ) )
     {
         RAISE_ERROR( ePdfError_NoXRef );
     } 
@@ -663,7 +663,7 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
     if( bReadOnlyTrailer )
         return ePdfError_ErrOk;
 
-    if( !xrefObject.HasKey( PdfName::KeySize ) || !xrefObject.HasKey( "W" ) )
+    if( !xrefObject.GetDictionary().HasKey( PdfName::KeySize ) || !xrefObject.GetDictionary().HasKey( "W" ) )
     {
         RAISE_ERROR( ePdfError_NoXRef );
     }
@@ -690,10 +690,10 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
 
     // get the first object number in this crossref stream.
     // it is not required to have an index key though.
-    if( xrefObject.HasKey( "Index" ) )
+    if( xrefObject.GetDictionary().HasKey( "Index" ) )
     {
         // reuse vWArray!!
-        vWArray = xrefObject.GetKey( "Index" );
+        vWArray = xrefObject.GetDictionary().GetKey( "Index" );
         if( vWArray.GetDataType() != ePdfDataType_Array )
         {
             RAISE_ERROR( ePdfError_NoXRef );
@@ -730,7 +730,7 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
     }
     free( pStart );
 
-    if( xrefObject.HasKey("Prev") )
+    if( xrefObject.GetDictionary().HasKey("Prev") )
     {
         lOffset = xrefObject.GetDictionary().GetKeyAsLong( "Prev", 0 );
         SAFE_OP( ReadXRefStreamContents( lOffset, bReadOnlyTrailer ) );

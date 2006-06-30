@@ -79,8 +79,7 @@ PdfError TestSingleObject( const char* pszFilename, const char* pszData, long lO
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    PdfVariant var = obj.GetVariant();
-    TEST_SAFE_OP( var.ToString( str ) );
+    TEST_SAFE_OP( obj.ToString( str ) );
     printf("  -> Expected value of this object: (%s)\n", pszExpectedValue );
     printf("  -> Value in this object         : (%s)\n", str.c_str() );
     if( strcmp( str.c_str(), pszExpectedValue ) != 0 )

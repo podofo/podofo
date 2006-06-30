@@ -266,56 +266,6 @@ PdfError PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
     return eCode;
 }
 
-#if 0
-PdfError PdfVariant::Init( const char* pszData, EPdfDataType eDataType )
-{
-    PdfError eCode;
-
-    if( !pszData )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    Clear();
-
-    m_eDataType = eDataType;
-
-    switch( m_eDataType )
-    {
-        case ePdfDataType_HexString:
-            m_pString = new PdfString( pszData, true );
-            break;
-        case ePdfDataType_String:
-            m_pString = new PdfString( pszData );
-            break;
-        case ePdfDataType_Name:
-            m_pName = new PdfName( pszData );
-            break;
-        case ePdfDataType_Number:
-            m_Data.nNumber = strtol( pszData, NULL, 10 );
-            break;
-        case ePdfDataType_Real:
-            m_Data.dNumber = strtod( pszData, NULL );
-            break;
-        case ePdfDataType_Array:
-        case ePdfDataType_Reference:
-            SAFE_OP( this->Init( pszData ) );
-            break;
-        case ePdfDataType_Null:
-            break;
-        case ePdfDataType_Bool:
-            m_Data.bBoolValue = (strncmp( pszData, "true", TRUE_LENGTH ) == 0 );            
-            break;
-        default:
-        {
-            RAISE_ERROR( ePdfError_InvalidDataType );
-        }
-    }
-
-    return eCode;
-}
-#endif // 0
-
 PdfError PdfVariant::GetDataType( const char* pszData, long nLen, EPdfDataType* eDataType, long* pLen )
 {
     PdfError eCode;
@@ -470,6 +420,8 @@ PdfError PdfVariant::Write( PdfOutputDevice* pDevice ) const
 PdfError PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
 {
     PdfError        eCode;
+
+    DelayedLoad(); 
 
     /* Check all handles first 
      */

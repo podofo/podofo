@@ -124,7 +124,7 @@ class PdfWriter {
     /** Get access to the internal Info dictionary
      *  \returns PdfObject the info dictionary
      */
-    PdfDictionary* GetInfo() const;
+    PdfObject* GetInfo() const;
 
     /** Set wether all streams in the pdf document should
      *  be compress using the FlateDecode algorithm.

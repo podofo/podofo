@@ -91,13 +91,13 @@ PdfError PdfSimpleWriter::Init()
     SAFE_OP( PdfWriter::Init() );
 
     m_pPageTree = m_vecObjects.CreateObject( "Pages" );
-    m_pPageTree->AddKey( "Kids", PdfArray() );
+    m_pPageTree->GetDictionary().AddKey( "Kids", PdfArray() );
 
-    this->GetCatalog()->AddKey( "Pages", m_pPageTree->Reference() );
+    this->GetCatalog()->GetDictionary().AddKey( "Pages", m_pPageTree->Reference() );
 
     cDate.ToString( sDate );
-    this->GetInfo()->AddKey( "Producer", PdfString("PoDoFo") );
-    this->GetInfo()->AddKey( "CreationDate", sDate );
+    this->GetInfo()->GetDictionary().AddKey( "Producer", PdfString("PoDoFo") );
+    this->GetInfo()->GetDictionary().AddKey( "CreationDate", sDate );
 
     return eCode;
 }
@@ -120,10 +120,10 @@ PdfPage* PdfSimpleWriter::CreatePage( const TSize & tSize )
 
     m_vecPageReferences.push_back( pPage->GetObject()->Reference() );
 
-    m_pPageTree->AddKey( "Count", PdfVariant( (long)++m_nPageTreeSize ) );
-    m_pPageTree->AddKey( "Kids",  PdfVariant( m_vecPageReferences ) );
+    m_pPageTree->GetDictionary().AddKey( "Count", PdfVariant( (long)++m_nPageTreeSize ) );
+    m_pPageTree->GetDictionary().AddKey( "Kids",  PdfVariant( m_vecPageReferences ) );
 
-    pPage->GetObject()->AddKey( "Parent", m_pPageTree->Reference() );
+    pPage->GetObject()->GetDictionary().AddKey( "Parent", m_pPageTree->Reference() );
     if( pPage->Init( tSize, &m_vecObjects ).IsError() )
     {
         delete pPage;
@@ -184,27 +184,27 @@ PdfImage* PdfSimpleWriter::CreateImage()
 
 void PdfSimpleWriter::SetDocumentAuthor( const PdfString & sAuthor )
 {
-    this->GetInfo()->AddKey( "Author", sAuthor );
+    this->GetInfo()->GetDictionary().AddKey( "Author", sAuthor );
 }
 
 void PdfSimpleWriter::SetDocumentCreator( const PdfString & sCreator )
 {
-    this->GetInfo()->AddKey( "Creator", sCreator );
+    this->GetInfo()->GetDictionary().AddKey( "Creator", sCreator );
 }
 
 void PdfSimpleWriter::SetDocumentKeywords( const PdfString & sKeywords )
 {
-    this->GetInfo()->AddKey( "Keywords", sKeywords );
+    this->GetInfo()->GetDictionary().AddKey( "Keywords", sKeywords );
 }
 
 void PdfSimpleWriter::SetDocumentSubject( const PdfString & sSubject )
 {
-    this->GetInfo()->AddKey( "Subject", sSubject );
+    this->GetInfo()->GetDictionary().AddKey( "Subject", sSubject );
 }
 
 void PdfSimpleWriter::SetDocumentTitle( const PdfString & sTitle )
 {
-    this->GetInfo()->AddKey( "Title", sTitle );
+    this->GetInfo()->GetDictionary().AddKey( "Title", sTitle );
 }
 
 }; 

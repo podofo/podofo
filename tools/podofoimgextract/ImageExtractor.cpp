@@ -54,17 +54,17 @@ PdfError ImageExtractor::Init( const char* pszInput, const char* pszOutput, int*
 
     while( it != vecObjects.end() )
     {
-        if( (*it)->HasKey( PdfName::KeyType ) )
+        if( (*it)->GetDictionary().HasKey( PdfName::KeyType ) )
         {
-            var = (*it)->GetKey( PdfName::KeyType );
+            var = (*it)->GetDictionary().GetKey( PdfName::KeyType );
             if( var.IsName() && ( var.GetName().Name() == "XObject" ) )
             {
-                if( (*it)->HasKey( PdfName::KeySubtype ) )
+                if( (*it)->GetDictionary().HasKey( PdfName::KeySubtype ) )
                 {
-                    var = (*it)->GetKey( PdfName::KeySubtype );
+                    var = (*it)->GetDictionary().GetKey( PdfName::KeySubtype );
                     if( var.IsName() && ( var.GetName().Name() == "Image" ) )
                     {
-                        var = (*it)->GetKey( PdfName::KeyFilter );
+                        var = (*it)->GetDictionary().GetKey( PdfName::KeyFilter );
                         if( var.IsName() && ( var.GetName().Name() == "DCTDecode" ) )
                         {	
                            // ONLY images with filter of DCTDecode can be extracted out as JPEG this way!

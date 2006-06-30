@@ -261,9 +261,7 @@ PdfError PdfParserObject::ParseFileComplete( bool bIsTrailer )
     }
     else
     {
-        PdfVariant var;
-        SAFE_OP( var.Parse( szData ) );
-        this->SetVariant( var );
+        SAFE_OP( this->Parse( szData ) );
     }
 
     if( bOwnBuffer )
@@ -339,7 +337,7 @@ PdfError PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, 
             PdfError::DebugMessage("Key: (%s) Got Value: (%s) %i belongs to: %s\n", cName.Name().c_str(), sValue.c_str(), (int)cVariant.GetDataType(), this->Reference().ToString().c_str() );
 
 #endif // _DEBUG
-            this->AddKey( cName, cVariant );
+            this->GetDictionary().AddKey( cName, cVariant );
         }
         else if( *szBuffer == '>' )
         {
@@ -534,12 +532,12 @@ PdfError PdfParserObject::ParseStream()
             RAISE_ERROR( ePdfError_InvalidHandle );
         }
 
-        if( !pObj->HasSingleValue() )
+        if( !pObj->IsDictionary() )
         {
             RAISE_ERROR( ePdfError_InvalidStreamLength );
         }
 
-        lLen = pObj->GetVariant().GetNumber();
+        lLen = pObj->GetNumber();
         if( !lLen )
         {
             RAISE_ERROR( ePdfError_InvalidStreamLength );

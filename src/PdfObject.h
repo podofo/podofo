@@ -48,7 +48,7 @@ class PdfVecObjects;
  *
  * \see Write()
  */
-class PdfObject {
+class PdfObject : public PdfVariant {
  public:
     /** Construct a new PDF object.
      *  \param objectno the object number
@@ -79,71 +79,6 @@ class PdfObject {
      *  \returns true or false
      */
     inline bool IsEmptyEntry() const;
-
-    /** Add a key to the dictionary. This is the fastest way to add a key
-     *  as all other functions will have to parse the values given to them first.
-     *  This is not necessary in this case
-     *  \param identifier the key is identified by this name in the dictionary
-     *  \param rVariant a variant object containing the data.
-     *  \returns ErrOk on sucess
-     */
-    PdfError AddKey( const PdfName & identifier, const PdfVariant & rVariant );
-
-    /** Remove a key from this object
-     *  If the key does not exists, this function does nothing.
-     *
-     *  \param identifier the name of the key to delete
-     * 
-     *  \returns true if the key was found in the object and was removed
-     *           if there was is no key with this name, false is returned.
-     */
-    bool RemoveKey( const PdfName & identifier );
-
-    /** Allows to check if a dictionary contains a certain key.
-     *  \param key look for the key named key.Name() in the dictionary
-     *
-     *  \returns true if the key is part of the dictionary, otherwise false.
-     */
-    bool  HasKey( const PdfName & key  ) const;
-
-    /** Get the keys value if this objects variant is a PdfDictionary
-     *  \param key look for the key names pszKey in the dictionary
-     *  \returns the PdfVariant
-     */
-    const PdfVariant & GetKey( const PdfName & key ) const;
-
-    /** Get the variant of this object, that contains the objects
-     *  data.
-     *
-     *  \returns the single value as PdfVariant
-     */
-    inline const PdfVariant & GetVariant() const;
-
-    /** Get the variant of this object, that contains the objects
-     *  data. This is an overloaded member function.
-     *
-     *  \returns the single value as PdfVariant
-     */
-    inline PdfVariant & GetVariant();
-
-    /** Set the contents of this object to be the contents 
-     *  of a variant
-     *  \param var the contents of the PdfObject
-     */
-    inline void SetVariant( const PdfVariant & var );
-
-    /** If this object contains a dictionary you access it through this function.
-     *  This is an overloaded member function and is the same as
-     *  GetVariant().GetDictionary()
-     * 
-     *  \returns a handle to the internal PdfDictionary
-     */
-    inline const PdfDictionary & GetDictionary() const;
-
-    /** \returns true if this object has only a single value
-     *           and is no dictionary.
-     */
-    inline bool HasSingleValue() const;
 
     /** Write the complete object to a file.
      *  \param pDevice write the object to this device
@@ -253,7 +188,7 @@ class PdfObject {
     /**
      *  \returns ErrOk on sucess
      */
-    inline PdfError DelayedLoad() const;
+    inline virtual PdfError DelayedLoad() const;
 
     /**
      *  \returns ErrOk on sucess
@@ -267,7 +202,6 @@ class PdfObject {
     bool         m_bLoadOnDemandDone;
     bool         m_bLoadStreamOnDemandDone;
     
-    PdfVariant   m_value;
     PdfStream*   m_pStream;
 };
 
@@ -286,66 +220,6 @@ bool PdfObject::IsEmptyEntry() const
 {
     return m_bEmptyEntry;
 }
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfVariant & PdfObject::GetVariant() const
-{
-    DelayedLoad();
-
-    return m_value;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfVariant & PdfObject::GetVariant()
-{
-    DelayedLoad();
-
-    return m_value;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfObject::SetVariant( const PdfVariant & var )
-{
-    DelayedLoad();
-
-    m_value = var;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfDictionary & PdfObject::GetDictionary() const
-{
-    DelayedLoad();
-
-    return m_value.GetDictionary();
-}
-
-
-/*
-const TKeyMap & PdfObject::GetKeys() const
-{
-    DelayedLoad();
-
-    return m_mapKeys;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const TObjKeyMap & PdfObject::GetObjectKeys() const
-{
-    DelayedLoad();
-
-    return m_mapObjKeys;
-}
-*/
 
 // -----------------------------------------------------
 // 
@@ -369,16 +243,6 @@ unsigned int PdfObject::GenerationNumber() const
 const PdfReference & PdfObject::Reference() const
 {
     return m_reference;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfObject::HasSingleValue() const
-{
-    DelayedLoad();
-
-    return (m_value.GetDataType() != ePdfDataType_Dictionary);
 }
 
 // -----------------------------------------------------

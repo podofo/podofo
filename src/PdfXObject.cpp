@@ -38,13 +38,13 @@ PdfXObject::PdfXObject( unsigned int nObjectNo, unsigned int nGenerationNo )
 {
     PdfDictionary resources;
 
-    this->AddKey( PdfName::KeySubtype, PdfName("Form") );
-    this->AddKey( "FormType", (long)1 ); // only 1 is only defined in the specification.
+    this->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Form") );
+    this->GetDictionary().AddKey( "FormType", (long)1 ); // only 1 is only defined in the specification.
 
 
     // The PDF specification suggests that we send all available PDF Procedure sets
-    this->AddKey( "Resources", PdfVariant( resources ) );
-    m_pResources = &(GetVariant().GetDictionary().GetKey( "Resources" ).GetDictionary());
+    this->GetDictionary().AddKey( "Resources", PdfVariant( resources ) );
+    m_pResources = &(GetDictionary().GetKey( "Resources" ).GetDictionary());
     Resources()->AddKey( "ProcSet", PdfCanvas::ProcSet() );
 
     m_size.lWidth  = 0;
@@ -57,7 +57,7 @@ PdfError PdfXObject::Init( const PdfRect & rRect )
 
     PdfVariant var;
     rRect.ToVariant( var );
-    this->AddKey( "BBox", var );
+    this->GetDictionary().AddKey( "BBox", var );
 
     if( s_matrix.empty() )
     {
@@ -70,7 +70,7 @@ PdfError PdfXObject::Init( const PdfRect & rRect )
         s_matrix.push_back( PdfVariant( 0L ) );
     }
 
-    this->AddKey( "Matrix", s_matrix );
+    this->GetDictionary().AddKey( "Matrix", s_matrix );
 
     m_size.lWidth  = rRect.Width();
     m_size.lHeight = rRect.Height();

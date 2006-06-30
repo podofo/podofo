@@ -103,7 +103,7 @@ class PdfVariant {
      */
     PdfVariant( const PdfVariant & rhs );
 
-    ~PdfVariant();
+    virtual ~PdfVariant();
     
     /** Initialize a PdfVariant object from string data.
      *  \param pszData a string that will be parsed.
@@ -132,47 +132,47 @@ class PdfVariant {
 
     /** \returns true if this variant is a bool (i.e. GetDataType() == ePdfDataType_Bool)
      */
-    inline bool IsBool() const { return GetDataType() == ePdfDataType_Bool; }
+    inline bool IsBool() const { DelayedLoad(); return GetDataType() == ePdfDataType_Bool; }
 
     /** \returns true if this variant is a number (i.e. GetDataType() == ePdfDataType_Number)
      */
-    inline bool IsNumber() const { return GetDataType() == ePdfDataType_Number; }
+    inline bool IsNumber() const { DelayedLoad(); return GetDataType() == ePdfDataType_Number; }
 
     /** \returns true if this variant is a real (i.e. GetDataType() == ePdfDataType_Real)
      */
-    inline bool IsReal() const { return GetDataType() == ePdfDataType_Real; }
+    inline bool IsReal() const { DelayedLoad(); return GetDataType() == ePdfDataType_Real; }
 
     /** \returns true if this variant is a string (i.e. GetDataType() == ePdfDataType_String)
      */
-    inline bool IsString() const { return GetDataType() == ePdfDataType_String; }
+    inline bool IsString() const { DelayedLoad(); return GetDataType() == ePdfDataType_String; }
 
     /** \returns true if this variant is a hex-string (i.e. GetDataType() == ePdfDataType_HexString)
      */
-    inline bool IsHexString() const { return GetDataType() == ePdfDataType_HexString; }
+    inline bool IsHexString() const { DelayedLoad(); return GetDataType() == ePdfDataType_HexString; }
 
     /** \returns true if this variant is a name (i.e. GetDataType() == ePdfDataType_Name)
      */
-    inline bool IsName() const { return GetDataType() == ePdfDataType_Name; }
+    inline bool IsName() const { DelayedLoad(); return GetDataType() == ePdfDataType_Name; }
 
     /** \returns true if this variant is an array (i.e. GetDataType() == ePdfDataType_Array)
      */
-    inline bool IsArray() const { return GetDataType() == ePdfDataType_Array; }
+    inline bool IsArray() const { DelayedLoad(); return GetDataType() == ePdfDataType_Array; }
 
     /** \returns true if this variant is a dictionary (i.e. GetDataType() == ePdfDataType_Dictionary)
      */
-    inline bool IsDictionary() const { return GetDataType() == ePdfDataType_Dictionary; }
+    inline bool IsDictionary() const { DelayedLoad(); return GetDataType() == ePdfDataType_Dictionary; }
 
     /** \returns true if this variant is a stream (i.e. GetDataType() == ePdfDataType_Stream)
      */
-    inline bool IsStream() const { return GetDataType() == ePdfDataType_Stream; }
+    inline bool IsStream() const { DelayedLoad(); return GetDataType() == ePdfDataType_Stream; }
 
     /** \returns true if this variant is null (i.e. GetDataType() == ePdfDataType_Null)
      */
-    inline bool IsNull() const { return GetDataType() == ePdfDataType_Null; }
+    inline bool IsNull() const { DelayedLoad(); return GetDataType() == ePdfDataType_Null; }
 
     /** \returns true if this variant is a reference (i.e. GetDataType() == ePdfDataType_Reference)
      */
-    inline bool IsReference() const { return GetDataType() == ePdfDataType_Reference; }
+    inline bool IsReference() const { DelayedLoad(); return GetDataType() == ePdfDataType_Reference; }
        
     /** Write the complete variant to an output device.
      *  This is an overloaded member function.
@@ -189,7 +189,7 @@ class PdfVariant {
      *                 if IsDictionary returns true.
      *  \returns ErrOk on success
      */
-    PdfError Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) const;
+    virtual PdfError Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) const;
 
     /** Converts the current object into a string representation
      *  which can be written directly to a PDF file on disc.
@@ -254,6 +254,15 @@ class PdfVariant {
      */
     inline void SetPaddingLength( long lLength );
 
+ protected:
+
+    /**
+     *  For subclasses that implement loading on demand
+     *
+     *  \returns ErrOk on sucess
+     */
+    inline virtual PdfError DelayedLoad() const { return PdfError(); };
+
  private:
     PdfError GetDataType( const char* pszData, long nLen, EPdfDataType* eDataType, long* pLen = NULL );
 
@@ -307,6 +316,8 @@ class PdfVariant {
 // -----------------------------------------------------
 bool PdfVariant::IsEmpty() const
 {
+    DelayedLoad();
+
     return (m_eDataType == ePdfDataType_Null);
 }
 
@@ -315,6 +326,8 @@ bool PdfVariant::IsEmpty() const
 // -----------------------------------------------------
 const EPdfDataType PdfVariant::GetDataType() const
 {
+    DelayedLoad();
+
     return m_eDataType;
 }
 
@@ -331,6 +344,8 @@ void PdfVariant::SetPaddingLength( long lLength )
 // -----------------------------------------------------
 bool PdfVariant::GetBool() const
 {
+    DelayedLoad();
+
     return m_Data.bBoolValue;
 }
 
@@ -339,10 +354,12 @@ bool PdfVariant::GetBool() const
 // -----------------------------------------------------
 long PdfVariant::GetNumber() const
 {
-	if ( IsReal() )
-		return (long)floor( m_Data.dNumber );
-	else
-		return m_Data.nNumber;
+    DelayedLoad();
+
+    if ( IsReal() )
+        return (long)floor( m_Data.dNumber );
+    else
+        return m_Data.nNumber;
 }
 
 // -----------------------------------------------------
@@ -350,10 +367,12 @@ long PdfVariant::GetNumber() const
 // -----------------------------------------------------
 double PdfVariant::GetReal() const
 {
-	if ( IsReal() )
-		return m_Data.dNumber;
-	else
-		return m_Data.nNumber;
+    DelayedLoad();
+
+    if ( IsReal() )
+        return m_Data.dNumber;
+    else
+        return m_Data.nNumber;
 }
 
 // -----------------------------------------------------
@@ -361,6 +380,8 @@ double PdfVariant::GetReal() const
 // -----------------------------------------------------
 const PdfString & PdfVariant::GetString() const
 {
+    DelayedLoad();
+
     return *m_pString;
 }
 
@@ -369,6 +390,8 @@ const PdfString & PdfVariant::GetString() const
 // -----------------------------------------------------
 const PdfName & PdfVariant::GetName() const
 {
+    DelayedLoad();
+
     return *m_pName;
 }
 
@@ -377,6 +400,8 @@ const PdfName & PdfVariant::GetName() const
 // -----------------------------------------------------
 const PdfArray & PdfVariant::GetArray() const
 {
+    DelayedLoad();
+
     return *m_pArray;
 }
 
@@ -385,6 +410,8 @@ const PdfArray & PdfVariant::GetArray() const
 // -----------------------------------------------------
 const PdfDictionary & PdfVariant::GetDictionary() const
 {
+    DelayedLoad();
+
     return *m_pDictionary;
 }
 
@@ -393,6 +420,8 @@ const PdfDictionary & PdfVariant::GetDictionary() const
 // -----------------------------------------------------
 PdfDictionary & PdfVariant::GetDictionary()
 {
+    DelayedLoad();
+
     return *m_pDictionary;
 }
 
@@ -401,6 +430,8 @@ PdfDictionary & PdfVariant::GetDictionary()
 // -----------------------------------------------------
 const PdfReference & PdfVariant::GetReference() const
 {
+    DelayedLoad();
+
     return m_reference;
 }
 

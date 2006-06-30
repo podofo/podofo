@@ -20,6 +20,7 @@
 
 #include "PdfWriter.h"
 
+#include "PdfDictionary.h"
 #include "PdfObject.h"
 #include "PdfParser.h"
 #include "PdfVariant.h"
@@ -98,7 +99,7 @@ PdfError PdfWriter::Init( PdfParser* pParser )
     if( pTrailer )
     {
         // load the Catalog/Root object
-        cVar = pTrailer->GetKey( "Root" );
+        cVar = pTrailer->GetDictionary().GetKey( "Root" );
         if( cVar.GetDataType() != ePdfDataType_Reference )
         {
             RAISE_ERROR( ePdfError_InvalidDataType );
@@ -114,7 +115,7 @@ PdfError PdfWriter::Init( PdfParser* pParser )
         }
 
         // see if there is an Info dict present - and if so, load it
-        cVar = pTrailer->GetKey( "Info" );
+        cVar = pTrailer->GetDictionary().GetKey( "Info" );
         if( cVar.GetDataType() != ePdfDataType_Reference )
         {
             RAISE_ERROR( ePdfError_InvalidDataType );
@@ -299,27 +300,27 @@ PdfError PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
 
         // Prev is ignored as we write only one crossref section
         SAFE_OP( pDevice->Print( "/Root " ) );
-        SAFE_OP( m_pParser->GetTrailer()->GetKey( "Root" ).Write( pDevice ) );
+        SAFE_OP( m_pParser->GetTrailer()->GetDictionary().GetKey( "Root" ).Write( pDevice ) );
         SAFE_OP( pDevice->Print( "\n" ) );
 
-        if( m_pParser->GetTrailer()->HasKey( "Encrypt" ) )
+        if( m_pParser->GetTrailer()->GetDictionary().HasKey( "Encrypt" ) )
         {
             SAFE_OP( pDevice->Print( "/Encrypt " ) );
-            SAFE_OP( m_pParser->GetTrailer()->GetKey( "Encrypt" ).Write( pDevice ) );
+            SAFE_OP( m_pParser->GetTrailer()->GetDictionary().GetKey( "Encrypt" ).Write( pDevice ) );
             SAFE_OP( pDevice->Print( "\n" ) );
         }
 
-        if( m_pParser->GetTrailer()->HasKey( "Info" ) )
+        if( m_pParser->GetTrailer()->GetDictionary().HasKey( "Info" ) )
         {
             SAFE_OP( pDevice->Print( "/Info " ) );
-            SAFE_OP( m_pParser->GetTrailer()->GetKey( "Info" ).Write( pDevice ) );
+            SAFE_OP( m_pParser->GetTrailer()->GetDictionary().GetKey( "Info" ).Write( pDevice ) );
             SAFE_OP( pDevice->Print( "\n" ) );
         }
 
-        if( m_pParser->GetTrailer()->HasKey( "ID" ) )
+        if( m_pParser->GetTrailer()->GetDictionary().HasKey( "ID" ) )
         {
             SAFE_OP( pDevice->Print( "/ID " ) );
-            SAFE_OP( m_pParser->GetTrailer()->GetKey( "ID" ).Write( pDevice ) );
+            SAFE_OP( m_pParser->GetTrailer()->GetDictionary().GetKey( "ID" ).Write( pDevice ) );
             SAFE_OP( pDevice->Print( "\n" ) );
         }
     }
@@ -408,9 +409,9 @@ PdfError PdfWriter::WriteToBuffer( char** ppBuffer, unsigned long* pulLen )
     return eCode;
 }
 
-PdfDictionary* PdfWriter::GetInfo() const
+PdfObject* PdfWriter::GetInfo() const
 {
-    return &(m_pInfo->GetVariant().GetDictionary()); 
+    return m_pInfo;
 }
 
 };

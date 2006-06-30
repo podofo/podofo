@@ -29,25 +29,25 @@
 namespace PoDoFo {
 
 PdfPage::PdfPage( PdfDocument* inOwningDoc, unsigned int nObjectNo, unsigned int nGenerationNo )
-    : m_pDocument( inOwningDoc ), m_pObject( new PdfObject(nObjectNo, nGenerationNo, "Page") ), PdfCanvas()
+    : PdfCanvas(), m_pDocument( inOwningDoc ), m_pObject( new PdfObject(nObjectNo, nGenerationNo, "Page") )
 {
     PdfDictionary resources;
 
     // The PDF specification suggests that we send all available PDF Procedure sets
-    m_pObject->AddKey( "Resources", PdfVariant( resources ) );
-    m_pResources = &(m_pObject->GetVariant().GetDictionary().GetKey( "Resources" ).GetDictionary());
+    m_pObject->GetDictionary().AddKey( "Resources", PdfVariant( resources ) );
+    m_pResources = &(m_pObject->GetDictionary().GetKey( "Resources" ).GetDictionary());
     Resources()->AddKey( "ProcSet", PdfCanvas::ProcSet() );
 }
 
 PdfPage::PdfPage( PdfDocument* inOwningDoc, PdfObject* inObject )
-    : m_pDocument( inOwningDoc ), m_pObject( inObject ), PdfCanvas()
+    : PdfCanvas(), m_pDocument( inOwningDoc ), m_pObject( inObject )
 {
-    m_pResources = &(m_pObject->GetVariant().GetDictionary().GetKey( "Resources" ).GetDictionary());
-	PdfVariant cVar = m_pObject->GetDictionary().GetKey( "Contents" );
-	if ( cVar.IsReference() )	// let's hope so!
-	{
-		m_pContents = m_pDocument->GetObject( cVar.GetReference() );
-	}
+    m_pResources = &(m_pObject->GetDictionary().GetKey( "Resources" ).GetDictionary());
+    PdfVariant cVar = m_pObject->GetDictionary().GetKey( "Contents" );
+    if ( cVar.IsReference() )	// let's hope so!
+    {
+        m_pContents = m_pDocument->GetObject( cVar.GetReference() );
+    }
 }
 
 PdfPage::~PdfPage()
@@ -66,8 +66,8 @@ PdfError PdfPage::Init( const TSize & tSize, PdfVecObjects* pParent )
 
     PdfRect( 0, 0, tSize.lWidth, tSize.lHeight ).ToVariant( rect );
 
-    m_pObject->AddKey( "MediaBox", rect );
-    m_pObject->AddKey( PdfName::KeyContents, m_pContents->Reference() );
+    m_pObject->GetDictionary().AddKey( "MediaBox", rect );
+    m_pObject->GetDictionary().AddKey( PdfName::KeyContents, m_pContents->Reference() );
 
     return eCode;
 }
@@ -116,20 +116,22 @@ const PdfVariant PdfPage::GetInheritedKeyFromObject( const char* inKey, PdfObjec
 	PdfVariant	outVar;
 
 	// check for it in the object itself
-	if ( inObject->HasKey( inKey ) ) 
+	if ( inObject->GetDictionary().HasKey( inKey ) ) 
 	{
-		outVar = inObject->GetKey( inKey );
-		if ( !outVar.IsNull() ) 
-			return outVar;
+            outVar = inObject->GetDictionary().GetKey( inKey );
+            if ( !outVar.IsNull() ) 
+                return outVar;
 	}
-
+        
 	// if we get here, we need to go check the parent - if there is one!
-	if ( inObject->HasKey( "Parent" ) ) {
-		PdfVariant	parVar = inObject->GetKey( "Parent" );
-		if ( parVar.IsReference() ) {	// has to be!
-			PdfObject*	parObj = m_pDocument->GetObject( parVar.GetReference() );
-			outVar = GetInheritedKeyFromObject( inKey, parObj );
-		}
+	if ( inObject->GetDictionary().HasKey( "Parent" ) ) 
+        {
+            PdfVariant	parVar = inObject->GetDictionary().GetKey( "Parent" );
+            if ( parVar.IsReference() ) 
+            {	// has to be!
+                PdfObject*	parObj = m_pDocument->GetObject( parVar.GetReference() );
+                outVar = GetInheritedKeyFromObject( inKey, parObj );
+            }
 	}
 
 	return outVar;
@@ -163,25 +165,25 @@ const int PdfPage::GetRotation() const
 
 const int PdfPage::GetNumAnnots() const
 {
-	int	numAnnots = 0;
+    int	numAnnots = 0;
 
-	// check for it in the object itself
-	if ( m_pObject->HasKey( "Annots" ) ) 
-	{
-		PdfVariant aVar = m_pObject->GetKey( "Annots" );
-		while ( true ) 
-		{
-			if ( aVar.IsArray() ) 
-				return aVar.GetArray().size();
-			else if ( aVar.IsReference() ) 
-			{
-				PdfObject *varObj = m_pDocument->GetObject( aVar.GetReference() );
-				aVar = varObj->GetVariant();
-			}
-		}
-	}
+    // check for it in the object itself
+    if ( m_pObject->GetDictionary().HasKey( "Annots" ) ) 
+    {
+        PdfVariant aVar = m_pObject->GetDictionary().GetKey( "Annots" );
+        while ( true ) 
+        {
+            if ( aVar.IsArray() ) 
+                return aVar.GetArray().size();
+            else if ( aVar.IsReference() ) 
+            {
+                PdfObject *varObj = m_pDocument->GetObject( aVar.GetReference() );
+                // the pdfobject is variant itself now
+            }
+        }
+    }
 
-	return numAnnots;
+    return numAnnots;
 }
 
 };
