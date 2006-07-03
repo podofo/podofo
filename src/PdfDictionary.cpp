@@ -67,6 +67,11 @@ PdfError PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rO
     return eCode;
 }
 
+PdfError PdfDictionary::AddKey( const PdfName & identifier, const PdfObject* pObject )
+{
+    return this->AddKey( identifier, *pObject );
+}
+
 const PdfObject* PdfDictionary::GetKey( const PdfName & key ) const
 {
     TCIKeyMap it;

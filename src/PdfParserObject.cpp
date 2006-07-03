@@ -268,7 +268,7 @@ PdfError PdfParserObject::ParseFileComplete( bool bIsTrailer )
         free( szData );
 
     if( !bIsTrailer && eDataType != ePdfDataType_Unknown )
-    {
+   {
         SAFE_OP( GetNextStringFromFile( ) );
         if( strncmp( m_szBuffer, "endobj", s_nLenEndObj ) == 0 )
             ; // nothing to do, just validate that the PDF is correct

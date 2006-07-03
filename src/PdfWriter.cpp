@@ -104,8 +104,8 @@ PdfError PdfWriter::Init( PdfParser* pParser )
             RAISE_ERROR( ePdfError_InvalidDataType );
         }
 
-        PdfError::DebugMessage("/Catalog ref=%s\n", pObj->Reference().ToString().c_str());
-        m_pCatalog = m_vecObjects.GetObject( pObj->Reference() );
+        PdfError::DebugMessage("/Catalog ref=%s\n", pObj->GetReference().ToString().c_str());
+        m_pCatalog = m_vecObjects.GetObject( pObj->GetReference() );
         if( !m_pCatalog )
         {
             PdfError::LogMessage( eLogSeverity_Error, "Error: No catalog dictionary found in the trailer.\n" );
@@ -119,8 +119,8 @@ PdfError PdfWriter::Init( PdfParser* pParser )
             RAISE_ERROR( ePdfError_InvalidDataType );
         }
         
-        PdfError::DebugMessage("/Info ref=%s\n", pObj->Reference().ToString().c_str());
-        m_pInfo = m_vecObjects.GetObject( pObj->Reference() );
+        PdfError::DebugMessage("/Info ref=%s\n", pObj->GetReference().ToString().c_str());
+        m_pInfo = m_vecObjects.GetObject( pObj->GetReference() );
         // no need to check error, since it's optional
     }
 

@@ -70,6 +70,16 @@ class PdfDictionary {
      */
     PdfError AddKey( const PdfName & identifier, const PdfObject & rObject );
 
+    /** Add a key to the dictionary. 
+     *  This is an overloaded member function.
+     *
+     *  \param identifier the key is identified by this name in the dictionary
+     *  \param rObject a variant object containing the data.
+     *
+     *  \returns ErrOk on sucess
+     */
+    PdfError AddKey( const PdfName & identifier, const PdfObject* pObject );
+
     /** Get the keys value out of the dictionary.
      *
      *  \param key look for the key names pszKey in the dictionary
