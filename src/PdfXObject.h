@@ -60,7 +60,7 @@ class PdfXObject : public PdfObject, public PdfCanvas {
      *  This is most likely an internal object.
      *  \returns a resources object
      */
-    inline PdfDictionary* Resources() const;
+    inline PdfObject* Resources() const;
 
     /** Get the current page size in 1/1000th mm.
      *  \returns TSize the page size
@@ -87,9 +87,9 @@ class PdfXObject : public PdfObject, public PdfCanvas {
 
  private:
     static PdfArray  s_matrix;
-    PdfDictionary*   m_pResources;
+    PdfObject*       m_pResources;
 
-    TSize      m_size;
+    TSize            m_size;
 };
 
 PdfObject* PdfXObject::Contents() const
@@ -98,7 +98,7 @@ PdfObject* PdfXObject::Contents() const
 }
 
 
-PdfDictionary* PdfXObject::Resources() const
+PdfObject* PdfXObject::Resources() const
 {
     return m_pResources;
 }

@@ -97,19 +97,17 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
 {
     // recurse through the pages tree nodes
     
-    int nPagesSeenSoFar = -1 ;	// initialize to -1 because nPageNum is 0-based
-    
-    PdfVariant var;
+    int        nPagesSeenSoFar = -1;	// initialize to -1 because nPageNum is 0-based
+    PdfObject* pObj            = NULL;
+
     if( !pPagesObject->GetDictionary().HasKey( "Kids" ) )
         return NULL;
 
-    var = pPagesObject->GetDictionary().GetKey( "Kids" );
-    if( !var.IsArray() )
-    {
+    pObj = pPagesObject->GetDictionary().GetKey( "Kids" );
+    if( !pObj->IsArray() )
         return NULL;
-    }
     
-    PdfArray	kidsArray = var.GetArray();
+    PdfArray	kidsArray = pObj->GetArray();
     int	        numKids = kidsArray.size(),
     kidsCount = pPagesObject->GetDictionary().GetKeyAsLong( "Count", 0 );
     
@@ -117,7 +115,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
     // or pages nodes with a kid count of 1, so we can speed things up by going straight to the desired node
     if ( numKids == kidsCount )
     {
-        PdfVariant	pgVar = kidsArray[ nPageNum ];
+        PdfVariant pgVar = kidsArray[ nPageNum ];
 
         while ( true ) 
         {
@@ -134,7 +132,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
             // it's a /Pages with a single kid, so dereference and try again...
             if( !pgObject->GetDictionary().HasKey( "Kids" ) )
                 return NULL;
-            pgVar = pgObject->GetDictionary().GetKey( "Kids" );
+            pgVar = *(pgObject->GetDictionary().GetKey( "Kids" ));
         }
     } 
     else 
@@ -148,13 +146,14 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
             {
                 return NULL;	// can't handle inline pages just yet...
             }
+
             PdfObject* pgObject = mOwningDoc->GetObject( kidsVar.GetReference() );
             
             // if it's a Page, then is it the right page??
             // otherwise, it's a Pages, and we need to recurse
             if ( pgObject->GetDictionary().GetKeyAsName( PdfName( "Type" ) ) == PdfName( "Page" ) )
             {
-                nPagesSeenSoFar++ ;
+                nPagesSeenSoFar++;
                 if( nPagesSeenSoFar == nPageNum )
                 {
                     return pgObject;
@@ -237,16 +236,15 @@ void PdfDocument::InitPagesTree()
 
 PdfObject* PdfDocument::GetNamedObjectFromCatalog( const char* pszName ) const 
 {
-    PdfVariant ref;
+    PdfObject* pObj    = NULL;
     PdfObject* rootObj = GetCatalog();
     if ( rootObj ) 
     {
-        ref = rootObj->GetDictionary().GetKey( PdfName( pszName ) );
-        if( !ref.IsReference() ) {
+        pObj = rootObj->GetDictionary().GetKey( PdfName( pszName ) );
+        if( pObj && !pObj->IsReference() )
             return NULL;
-        }
         
-        return GetObject( ref.GetReference() );
+        return GetObject( pObj->GetReference() );
     }
 
     return NULL;
@@ -254,22 +252,20 @@ PdfObject* PdfDocument::GetNamedObjectFromCatalog( const char* pszName ) const
 
 int PdfDocument::GetPageCount() const
 {
-	return mPagesTree->GetTotalNumberOfPages();
+    return mPagesTree->GetTotalNumberOfPages();
 }
 
 PdfPage* PdfDocument::GetPage( int nIndex ) const
 {
-	PdfPage*    thePage = NULL;
-	PdfObject*	pgObj = mPagesTree->GetPage( nIndex );
-	if ( pgObj ) 
-	{
-		thePage = new PdfPage( const_cast<PdfDocument*>(this), pgObj );
-	}
+    PdfPage*    thePage = NULL;
+    PdfObject*	pgObj = mPagesTree->GetPage( nIndex );
+    if ( pgObj ) 
+    {
+        thePage = new PdfPage( const_cast<PdfDocument*>(this), pgObj );
+    }
 
-	return thePage;
+    return thePage;
 }
-
-//---------------------------------------------------------------
 
 };
 

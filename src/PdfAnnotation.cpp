@@ -39,18 +39,18 @@ PdfAnnotation::PdfAnnotation( unsigned int nObjectNo, unsigned int nGenerationNo
 PdfError PdfAnnotation::AddReferenceToKey( PdfObject* pObject, const PdfName & keyName, const PdfReference & rRef )
 {
     PdfError      eCode;
-    PdfVariant    var;
+    PdfObject*    pObj;
     PdfArray      list;
 
     if( pObject->GetDictionary().HasKey( keyName ) )
     {
-        var = pObject->GetDictionary().GetKey( keyName );
-        if( var.GetDataType() != ePdfDataType_Array )
+        pObj = pObject->GetIndirectKey( keyName );
+        if( !(pObj && pObj->IsArray()) )
         {
             RAISE_ERROR( ePdfError_InvalidDataType );
         }
 
-        list = var.GetArray();
+        list = pObj->GetArray();
     }
 
     list.push_back( PdfVariant( rRef ) );
@@ -121,7 +121,7 @@ PdfError PdfAnnotation::SetAppearanceStream( PdfXObject* pObject )
 
 void PdfAnnotation::SetFlags( pdf_uint32 uiFlags )
 {
-    this->GetDictionary().AddKey( "F", (long)uiFlags );
+    this->GetDictionary().AddKey( "F", PdfVariant( (long)uiFlags ) );
 }
 
 void PdfAnnotation::SetTitle( const PdfString & sTitle )

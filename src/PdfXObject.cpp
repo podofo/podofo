@@ -36,16 +36,14 @@ PdfArray PdfXObject::s_matrix;
 PdfXObject::PdfXObject( unsigned int nObjectNo, unsigned int nGenerationNo )
     : PdfObject( nObjectNo, nGenerationNo, "XObject" ), PdfCanvas()
 {
-    PdfDictionary resources;
-
     this->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Form") );
-    this->GetDictionary().AddKey( "FormType", (long)1 ); // only 1 is only defined in the specification.
+    this->GetDictionary().AddKey( "FormType", PdfVariant( (long)1 ) ); // only 1 is only defined in the specification.
 
 
     // The PDF specification suggests that we send all available PDF Procedure sets
-    this->GetDictionary().AddKey( "Resources", PdfVariant( resources ) );
-    m_pResources = &(GetDictionary().GetKey( "Resources" ).GetDictionary());
-    Resources()->AddKey( "ProcSet", PdfCanvas::ProcSet() );
+    this->GetDictionary().AddKey( "Resources", PdfObject( PdfDictionary() ) );
+    m_pResources = this->GetDictionary().GetKey( "Resources" );
+    m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::ProcSet() );
 
     m_size.lWidth  = 0;
     m_size.lHeight = 0;

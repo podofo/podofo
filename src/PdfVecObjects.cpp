@@ -111,5 +111,13 @@ PdfObject* PdfVecObjects::CreateObject( const char* pszType )
     return pObj;
 }
 
+void PdfVecObjects::push_back( PdfObject* pObj )
+{
+    ++m_nObjectCount;
+
+    pObj->SetParent( this );
+    std::vector<PdfObject*>::push_back( pObj );
+}
+
 };
 

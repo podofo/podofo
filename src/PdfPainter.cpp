@@ -745,20 +745,20 @@ PdfError PdfPainter::AddToPageResources( const PdfName & rIdentifier, const PdfR
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    PdfDictionary* pResource = m_pPage->Resources();
+    PdfObject* pResource = m_pPage->Resources();
     
     if( !pResource )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    if( !pResource->HasKey( rName ) )
+    if( !pResource->GetDictionary().HasKey( rName ) )
     {
-        pResource->AddKey( rName, PdfDictionary() );
+        pResource->GetDictionary().AddKey( rName, PdfDictionary() );
     }
 
-    if( !pResource->GetKey( rName ).GetDictionary().HasKey( rIdentifier ) )
-        pResource->GetKey( rName ).GetDictionary().AddKey( rIdentifier, rRef );
+    if( !pResource->GetDictionary().GetKey( rName )->GetDictionary().HasKey( rIdentifier ) )
+        pResource->GetDictionary().GetKey( rName )->GetDictionary().AddKey( rIdentifier, rRef );
 
     return eCode;
 }

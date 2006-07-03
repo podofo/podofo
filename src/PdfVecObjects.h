@@ -33,7 +33,7 @@ class PdfObject;
  *  a PdfVecObjects of all dictionaries found in the PDF file.
  * 
  *  The PdfWriter class contrary creates a PdfVecObjects internally
- *  and writes it to a PDF file later with an appropriate  table of 
+ *  and writes it to a PDF file later with an appropriate table of 
  *  contents.
  *
  *  These class contains also advanced funtions for searching of PdfObject's
@@ -70,10 +70,10 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      */
     inline bool AutoDelete() const;
 
-	/**
-	*  \returns the number of objects in the vector 
-	*/
-	size_t GetObjectCount() const { return m_nObjectCount; }
+    /**
+     *  \returns the number of objects in the vector 
+     */
+    size_t GetObjectCount() const { return m_nObjectCount; }
 
     /** Finds the object with object no lObject and generation
      *  np lGeneration in m_vecOffsets and returns a pointer to it
@@ -116,7 +116,7 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      * 
      *  \param pObj pointer to the object you want to insert
      */
-    inline void push_back( PdfObject* pObj );
+    void push_back( PdfObject* pObj );
 
  private:
     bool     m_bAutoDelete;
@@ -156,15 +156,6 @@ T* PdfVecObjects::CreateObject()
 
     this->push_back( pObject );
     return pTemplate;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfVecObjects::push_back( PdfObject* pObj )
-{
-    ++m_nObjectCount;
-    std::vector<PdfObject*>::push_back( pObj );
 }
 
 typedef PdfVecObjects                TVecObjects;

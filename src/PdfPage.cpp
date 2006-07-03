@@ -31,23 +31,19 @@ namespace PoDoFo {
 PdfPage::PdfPage( PdfDocument* inOwningDoc, unsigned int nObjectNo, unsigned int nGenerationNo )
     : PdfCanvas(), m_pDocument( inOwningDoc ), m_pObject( new PdfObject(nObjectNo, nGenerationNo, "Page") )
 {
-    PdfDictionary resources;
-
     // The PDF specification suggests that we send all available PDF Procedure sets
-    m_pObject->GetDictionary().AddKey( "Resources", PdfVariant( resources ) );
-    m_pResources = &(m_pObject->GetDictionary().GetKey( "Resources" ).GetDictionary());
-    Resources()->AddKey( "ProcSet", PdfCanvas::ProcSet() );
+    m_pObject->GetDictionary().AddKey( "Resources", PdfObject( PdfDictionary() ) );
+
+    m_pResources = m_pObject->GetDictionary().GetKey( "Resources" );
+    m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::ProcSet() );
 }
 
 PdfPage::PdfPage( PdfDocument* inOwningDoc, PdfObject* inObject )
     : PdfCanvas(), m_pDocument( inOwningDoc ), m_pObject( inObject )
 {
-    m_pResources = &(m_pObject->GetDictionary().GetKey( "Resources" ).GetDictionary());
-    PdfVariant cVar = m_pObject->GetDictionary().GetKey( "Contents" );
-    if ( cVar.IsReference() )	// let's hope so!
-    {
-        m_pContents = m_pDocument->GetObject( cVar.GetReference() );
-    }
+    m_pResources = m_pObject->GetDictionary().GetKey( "Resources" );
+
+    m_pContents = m_pObject->GetIndirectKey( "Contents" );
 }
 
 PdfPage::~PdfPage()
@@ -70,11 +66,6 @@ PdfError PdfPage::Init( const TSize & tSize, PdfVecObjects* pParent )
     m_pObject->GetDictionary().AddKey( PdfName::KeyContents, m_pContents->Reference() );
 
     return eCode;
-}
-
-PdfDictionary* PdfPage::Resources() const
-{
-    return m_pResources;
 }
 
 TSize PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize )
@@ -111,76 +102,65 @@ TSize PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize )
     return tSize;
 }
 
-const PdfVariant PdfPage::GetInheritedKeyFromObject( const char* inKey, PdfObject* inObject ) const
+PdfObject* PdfPage::GetInheritedKeyFromObject( const char* inKey, PdfObject* inObject ) const
 {
-	PdfVariant	outVar;
+    PdfObject* pObj = NULL;
 
-	// check for it in the object itself
-	if ( inObject->GetDictionary().HasKey( inKey ) ) 
-	{
-            outVar = inObject->GetDictionary().GetKey( inKey );
-            if ( !outVar.IsNull() ) 
-                return outVar;
-	}
-        
-	// if we get here, we need to go check the parent - if there is one!
-	if ( inObject->GetDictionary().HasKey( "Parent" ) ) 
-        {
-            PdfVariant	parVar = inObject->GetDictionary().GetKey( "Parent" );
-            if ( parVar.IsReference() ) 
-            {	// has to be!
-                PdfObject*	parObj = m_pDocument->GetObject( parVar.GetReference() );
-                outVar = GetInheritedKeyFromObject( inKey, parObj );
-            }
-	}
+    // check for it in the object itself
+    if ( inObject->GetDictionary().HasKey( inKey ) ) 
+    {
+        pObj = inObject->GetDictionary().GetKey( inKey );
+        if ( !pObj->IsNull() ) 
+            return pObj;
+    }
+    
+    // if we get here, we need to go check the parent - if there is one!
+    if( inObject->GetDictionary().HasKey( "Parent" ) ) 
+    {
+        pObj = inObject->GetIndirectKey( "Parent" );
+        if( pObj )
+            pObj = GetInheritedKeyFromObject( inKey, pObj );
+    }
 
-	return outVar;
+    return pObj;
 }
 
 const PdfRect PdfPage::GetPageBox( const char* inBox ) const
 {
-	PdfRect		pageBox;
-	PdfVariant	pbVar;
-
-	// Take advantage of inherited values - walking up the tree if necessary
-	pbVar = GetInheritedKeyFromObject( inBox, m_pObject );
-
-	// assign the value of the box from the array
-	if ( pbVar.IsArray() )
-		pageBox.FromArray( pbVar.GetArray() );
-
-	return pageBox;
+    PdfRect	 pageBox;
+    PdfObject*   pObj;
+        
+    // Take advantage of inherited values - walking up the tree if necessary
+    pObj = GetInheritedKeyFromObject( inBox, m_pObject );
+    
+    // assign the value of the box from the array
+    if ( pObj && pObj->IsArray() )
+        pageBox.FromArray( pObj->GetArray() );
+    
+    return pageBox;
 }
 
 const int PdfPage::GetRotation() const 
 { 
-	int rot = 0;
-
-	PdfVariant rotVar = GetInheritedKeyFromObject( "Rotate", m_pObject ); 
-	if ( rotVar.IsNumber() )
-		rot = rotVar.GetNumber();
-
-	return rot;
+    int rot = 0;
+    
+    PdfObject* pObj = GetInheritedKeyFromObject( "Rotate", m_pObject ); 
+    if ( pObj && pObj->IsNumber() )
+        rot = pObj->GetNumber();
+    
+    return rot;
 }
 
 const int PdfPage::GetNumAnnots() const
 {
-    int	numAnnots = 0;
-
+    int	       numAnnots = 0;
+    PdfObject* pObj;
     // check for it in the object itself
     if ( m_pObject->GetDictionary().HasKey( "Annots" ) ) 
     {
-        PdfVariant aVar = m_pObject->GetDictionary().GetKey( "Annots" );
-        while ( true ) 
-        {
-            if ( aVar.IsArray() ) 
-                return aVar.GetArray().size();
-            else if ( aVar.IsReference() ) 
-            {
-                PdfObject *varObj = m_pDocument->GetObject( aVar.GetReference() );
-                // the pdfobject is variant itself now
-            }
-        }
+        pObj = m_pObject->GetIndirectKey( "Annots" );
+        if( pObj && pObj->IsArray() )
+            return pObj->GetArray().size();
     }
 
     return numAnnots;

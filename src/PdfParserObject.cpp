@@ -64,7 +64,7 @@ void PdfParserObject::Init()
     m_bStream           = false;
     m_lStreamOffset     = 0;
 
-    PdfObject::Init();
+    PdfObject::Init( true );
 }
 
 PdfError PdfParserObject::ReadObjectNumber()
@@ -484,7 +484,6 @@ PdfError PdfParserObject::ParseStream()
     long         lLen  = -1;
     char*        szBuf;
     int          c;
-    PdfVariant   variant;
     PdfReference ref;
 
     if( !m_hFile || !m_pParser )
@@ -516,17 +515,14 @@ PdfError PdfParserObject::ParseStream()
         }
     }
 
-    variant = this->GetDictionary().GetKey( PdfName::KeyLength ); 
-    if( variant.GetDataType() == ePdfDataType_Number )
+    PdfObject* pObj = this->GetDictionary().GetKey( PdfName::KeyLength );  
+    if( pObj && pObj->IsNumber() )
     {
-        lLen = variant.GetNumber();   
+        lLen = pObj->GetNumber();   
     }
-    else if( variant.GetDataType() == ePdfDataType_Reference )
+    else if( pObj && pObj->IsReference() )
     {
-        PdfObject* pObj;
-
-        ref  = variant.GetReference();
-        pObj = m_pParser->GetObjects().GetObject( ref );
+        pObj = m_pParser->GetObjects().GetObject( pObj->GetReference() );
         if( !pObj )
         {
             RAISE_ERROR( ePdfError_InvalidHandle );
@@ -627,6 +623,7 @@ PdfError PdfParserObject::LoadOnDemand()
     {
         m_bLoadOnDemandDone = true;
 
+        PdfError::DebugMessage( "Loading on Demand: %s\n", this->Reference().ToString().c_str() );
         SAFE_OP( ParseFileComplete( m_bIsTrailer ) );
     }
 

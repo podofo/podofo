@@ -221,8 +221,6 @@ struct TSize {
         }
 };
 
-class PdfObject;
-
 typedef std::vector<TXRefEntry>      TVecOffsets;
 typedef TVecOffsets::iterator        TIVecOffsets;
 typedef TVecOffsets::const_iterator  TCIVecOffsets;

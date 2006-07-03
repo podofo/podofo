@@ -34,18 +34,78 @@ using namespace std;
 
 namespace PoDoFo {
 
-PdfObject::PdfObject( unsigned int objectno, unsigned int generationno, const char* pszType )
+PdfObject::PdfObject()
+    : PdfVariant( PdfDictionary() ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+{
+    Init( false );
+}
+
+PdfObject::PdfObject( unsigned long objectno, unsigned long generationno, const char* pszType )
     : PdfVariant( PdfDictionary() ), m_reference( objectno, generationno )
 {
-    Init();
+    Init( true );
 
     if( pszType )
         this->GetDictionary().AddKey( PdfName::KeyType, PdfName( pszType ) );
 }
 
+PdfObject::PdfObject( const PdfVariant & var )
+    : PdfVariant( var ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+{
+    Init( false );
+}
+
+PdfObject::PdfObject( bool b )
+    : PdfVariant( b ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+{
+    Init( false );
+}
+
+PdfObject::PdfObject( long l )
+    : PdfVariant( l ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+{
+    Init( false );
+}
+
+PdfObject::PdfObject( double d )
+    : PdfVariant( d ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+{
+    Init( false );
+}
+
+PdfObject::PdfObject( const PdfString & rsString )
+    : PdfVariant( rsString ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+{
+    Init( false );
+}
+
+PdfObject::PdfObject( const PdfName & rName )
+    : PdfVariant( rName ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+{
+    Init( false );
+}
+
+PdfObject::PdfObject( const PdfReference & rRef )
+    : PdfVariant( rRef ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+{
+    Init( false );
+}
+
+PdfObject::PdfObject( const PdfArray & tList )
+    : PdfVariant( tList ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+{
+    Init( false );
+}
+
+PdfObject::PdfObject( const PdfDictionary & rDict )
+    : PdfVariant( rDict ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+{
+    Init( false );
+}
+
 PdfObject::PdfObject( const PdfObject & rhs )
 {
-    Init();
+    Init( true );
 
     operator=( rhs );
 }
@@ -55,14 +115,14 @@ PdfObject::~PdfObject()
     Clear();
 }
 
-void PdfObject::Init()
+void PdfObject::Init( bool bLoadOnDemandDone )
 {
     m_bEmptyEntry             = false;
 
     m_pStream                 = NULL;
 
-    m_bLoadOnDemandDone       = false;
-    m_bLoadStreamOnDemandDone = false;
+    m_bLoadOnDemandDone       = bLoadOnDemandDone;
+    m_bLoadStreamOnDemandDone = bLoadOnDemandDone;
 }
 
 void PdfObject::Clear()
@@ -70,11 +130,13 @@ void PdfObject::Clear()
     PdfVariant::Clear();
 
     delete m_pStream;
+    m_pStream = NULL;
 }
 
-PdfError PdfObject::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) 
+PdfError PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
 {
     PdfError      eCode;
+    bool          bIndirect = ( (long)m_reference.ObjectNumber() != -1  && (long)m_reference.GenerationNumber() != -1 );
 
     // do not write empty objects to disc
     if( m_bEmptyEntry )
@@ -87,12 +149,12 @@ PdfError PdfObject::Write( PdfOutputDevice* pDevice, const PdfName & keyStop )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    SAFE_OP( pDevice->Print( "%i %i obj\n", m_reference.ObjectNumber(), m_reference.GenerationNumber() ) );
+    if( bIndirect )
+    {
+        SAFE_OP( pDevice->Print( "%i %i obj\n", m_reference.ObjectNumber(), m_reference.GenerationNumber() ) );
+    }
 
-    if( m_pStream && this->IsDictionary() )
-        this->GetDictionary().AddKey( PdfName::KeyLength, (long)m_pStream->Length() );
-
-    SAFE_OP( PdfVariant::Write( pDevice, keyStop ) );
+    SAFE_OP( this->Write( pDevice, keyStop ) );
     if( !this->IsDictionary() )
     {
         SAFE_OP( pDevice->Print( "\n" ) );
@@ -105,9 +167,28 @@ PdfError PdfObject::Write( PdfOutputDevice* pDevice, const PdfName & keyStop )
         SAFE_OP( pDevice->Print( "\nendstream\n" ) );
     }
 
-    SAFE_OP( pDevice->Print( "endobj\n" ) );
+    if( bIndirect )
+    {
+        SAFE_OP( pDevice->Print( "endobj\n" ) );
+    }
 
     return eCode;
+}
+
+PdfObject* PdfObject::GetIndirectKey( const PdfName & key )
+{
+    PdfObject* pObj = NULL;
+
+    if( this->IsDictionary() && this->GetDictionary().HasKey( key ) )
+    {
+        pObj = this->GetDictionary().GetKey( key );
+        if( pObj->IsReference() && m_pParent ) 
+        {
+            pObj = m_pParent->GetObject( pObj->GetReference() );
+        }
+    }
+
+    return pObj;
 }
 
 PdfError PdfObject::GetObjectLength( unsigned long* pulLength )
@@ -156,7 +237,7 @@ PdfError PdfObject::FlateDecodeStream()
 const PdfObject & PdfObject::operator=( const PdfObject & rhs )
 {
     Clear();
-    Init();
+    Init( true );
 
     if( !rhs.m_bLoadOnDemandDone || !rhs.m_bLoadStreamOnDemandDone ) 
     {

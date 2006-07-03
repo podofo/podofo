@@ -46,7 +46,7 @@ class PdfCanvas {
      *  This is most likely an internal object.
      *  \returns a resources object
      */
-    virtual PdfDictionary* Resources() const = 0;
+    virtual PdfObject* Resources() const = 0;
 
     /** Get the current page size in 1/1000th mm.
      *  \returns TSize the page size

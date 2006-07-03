@@ -99,8 +99,8 @@ PdfError PdfFont::Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool b
 
     this->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("TrueType") );
     this->GetDictionary().AddKey("BaseFont", m_BaseFont );
-    this->GetDictionary().AddKey("FirstChar", (long)FIRST_CHAR );
-    this->GetDictionary().AddKey("LastChar", (long)LAST_CHAR );
+    this->GetDictionary().AddKey("FirstChar", PdfVariant( (long)FIRST_CHAR ) );
+    this->GetDictionary().AddKey("LastChar", PdfVariant( (long)LAST_CHAR ) );
     this->GetDictionary().AddKey("Encoding", PdfName("WinAnsiEncoding") );
     this->GetDictionary().AddKey("Widths", pWidth->Reference() );
     this->GetDictionary().AddKey( "FontDescriptor", pDescriptor->Reference() );
@@ -109,13 +109,13 @@ PdfError PdfFont::Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool b
 
     pDescriptor->GetDictionary().AddKey( "FontName", m_BaseFont );
     //pDescriptor->GetDictionary().AddKey( "FontWeight", (long)m_pMetrics->Weight() );
-    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, (long)32 ); // TODO: 0 ????
+    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( (long)32 ) ); // TODO: 0 ????
     pDescriptor->GetDictionary().AddKey( "FontBBox", array );
-    pDescriptor->GetDictionary().AddKey( "ItalicAngle", (long)m_pMetrics->ItalicAngle() );
+    pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( (long)m_pMetrics->ItalicAngle() ) );
     pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->Ascent() );
     pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->Descent() );
     pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->Ascent() ); // //m_pMetrics->CapHeight() );
-    pDescriptor->GetDictionary().AddKey( "StemV", (long)1 ); //m_pMetrics->StemV() );
+    pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( (long)1 ) ); //m_pMetrics->StemV() );
 
     if( bEmbedd )
     {
@@ -163,7 +163,7 @@ PdfError PdfFont::EmbeddFont( PdfVecObjects* pParent, PdfObject* pDescriptor )
         fclose( hFile );
     }
     
-    pContents->GetDictionary().AddKey( "Length1", lSize );
+    pContents->GetDictionary().AddKey( "Length1", PdfVariant( lSize ) );
     pContents->Stream()->Set( pBuffer, lSize, !m_pMetrics->FontDataLen() );	// if we loaded from memory, DO NOT let Stream take possession
 
     return eCode;

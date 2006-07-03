@@ -24,13 +24,13 @@
 #include "PdfDefines.h"
 
 #include "PdfName.h"
-#include "PdfVariant.h"
+#include "PdfObject.h"
 
 namespace PoDoFo {
 
-typedef std::map<PdfName,PdfVariant>       TKeyMap;
-typedef TKeyMap::iterator                  TIKeyMap;
-typedef TKeyMap::const_iterator            TCIKeyMap;
+typedef std::map<PdfName,PdfObject>       TKeyMap;
+typedef TKeyMap::iterator                 TIKeyMap;
+typedef TKeyMap::const_iterator           TCIKeyMap;
 
 class PdfOutputDevice;
 
@@ -61,15 +61,14 @@ class PdfDictionary {
      */
     void Clear();
 
-    /** Add a key to the dictionary. This is the fastest way to add a key
-     *  as all other functions will have to parse the values given to them first.
-     *  This is not necessary in this case
+    /** Add a key to the dictionary. 
+     *
      *  \param identifier the key is identified by this name in the dictionary
-     *  \param rVariant a variant object containing the data.
+     *  \param rObject a variant object containing the data.
      *
      *  \returns ErrOk on sucess
      */
-    PdfError AddKey( const PdfName & identifier, const PdfVariant & rVariant );
+    PdfError AddKey( const PdfName & identifier, const PdfObject & rObject );
 
     /** Get the keys value out of the dictionary.
      *
@@ -77,22 +76,22 @@ class PdfDictionary {
      * 
      *  \returns the found value of an empty PdfVariant if the key was not found
      */
-    const PdfVariant & GetKey( const PdfName & key ) const;
+    const PdfObject* GetKey( const PdfName & key ) const;
 
     /** Get the keys value out of the dictionary.
      *  This is an overloaded member function.
      *
-     *  \param key look for the key names pszKey in the dictionary
+     *  \param key look for the key named key in the dictionary
      * 
      *  \returns the found value of an empty PdfVariant if the key was not found
      */
-    PdfVariant & GetKey( const PdfName & key );
+    PdfObject* GetKey( const PdfName & key );
 
     long GetKeyAsLong( const PdfName & key, long lDefault = 0 ) const;
 
     bool GetKeyAsBool( const PdfName & key, bool bDefault = false ) const;
 
-	PdfName GetKeyAsName( const PdfName & key ) const;
+    PdfName GetKeyAsName( const PdfName & key ) const;
 
     /** Allows to check if a dictionary contains a certain key.
      *  \param key look for the key named key.Name() in the dictionary

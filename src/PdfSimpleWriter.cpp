@@ -121,7 +121,7 @@ PdfPage* PdfSimpleWriter::CreatePage( const TSize & tSize )
     m_vecPageReferences.push_back( pPage->GetObject()->Reference() );
 
     m_pPageTree->GetDictionary().AddKey( "Count", PdfVariant( (long)++m_nPageTreeSize ) );
-    m_pPageTree->GetDictionary().AddKey( "Kids",  PdfVariant( m_vecPageReferences ) );
+    m_pPageTree->GetDictionary().AddKey( "Kids",  m_vecPageReferences );
 
     pPage->GetObject()->GetDictionary().AddKey( "Parent", m_pPageTree->Reference() );
     if( pPage->Init( tSize, &m_vecObjects ).IsError() )

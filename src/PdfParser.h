@@ -95,11 +95,11 @@ class PdfParser : public PdfParserBase {
 
     /** \returns whether the parsed document contains linearization tables
      */
-	bool IsLinearized() const { return m_pLinearization != NULL; }
+    bool IsLinearized() const { return m_pLinearization != NULL; }
 
     /** \returns the length of the file
      */
-	size_t FileSize() const { return m_nFileSize; }
+    size_t FileSize() const { return m_nFileSize; }
 
  protected:
     /** Reads the xref sections and the trailers of the file

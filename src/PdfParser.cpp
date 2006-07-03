@@ -630,7 +630,7 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
     long        lBufferLen;
     long        lSize     = 0;
     PdfVariant  vWArray;
-    PdfVariant  xrefType;
+    PdfObject*  pObj;
 
     long        nW[W_ARRAY_SIZE] = { 0, 0, 0 };
     int         i;
@@ -649,8 +649,8 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
         RAISE_ERROR( ePdfError_NoXRef );
     } 
 
-    xrefType = xrefObject.GetDictionary().GetKey( PdfName::KeyType );
-    if( xrefType.GetDataType() != ePdfDataType_Name || ( xrefType.GetName().Name() != "XRef" ) )
+    pObj = xrefObject.GetDictionary().GetKey( PdfName::KeyType );
+    if( !pObj->IsName() || ( pObj->GetName().Name() != "XRef" ) )
     {
         RAISE_ERROR( ePdfError_NoXRef );
     } 
@@ -669,18 +669,18 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
     }
 
     lSize   = xrefObject.GetDictionary().GetKeyAsLong( PdfName::KeySize, 0 );
-    vWArray = xrefObject.GetDictionary().GetKey      ( "W" );
+    vWArray = *(xrefObject.GetDictionary().GetKey      ( "W" ));
 
     // The pdf reference states that W is always an array with 3 entries
     // all of them have to be integeres
-    if( vWArray.GetDataType() != ePdfDataType_Array || vWArray.GetArray().size() != 3 )
+    if( !vWArray.IsArray() || vWArray.GetArray().size() != 3 )
     {
         RAISE_ERROR( ePdfError_NoXRef );
     }
 
     for( i=0;i<W_ARRAY_SIZE;i++ )
     {
-        if( vWArray.GetArray()[i].GetDataType() != ePdfDataType_Number )
+        if( !vWArray.GetArray()[i].IsNumber() )
         {
             RAISE_ERROR( ePdfError_NoXRef );
         }
@@ -693,13 +693,13 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
     if( xrefObject.GetDictionary().HasKey( "Index" ) )
     {
         // reuse vWArray!!
-        vWArray = xrefObject.GetDictionary().GetKey( "Index" );
-        if( vWArray.GetDataType() != ePdfDataType_Array )
+        vWArray = *(xrefObject.GetDictionary().GetKey( "Index" ));
+        if( !vWArray.IsArray() )
         {
             RAISE_ERROR( ePdfError_NoXRef );
         }
 
-        if( vWArray.GetArray()[0].GetDataType() != ePdfDataType_Number )
+        if( !vWArray.GetArray()[0].IsNumber() )
         {
             RAISE_ERROR( ePdfError_NoXRef );
         }

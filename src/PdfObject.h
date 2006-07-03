@@ -50,6 +50,12 @@ class PdfVecObjects;
  */
 class PdfObject : public PdfVariant {
  public:
+
+    /** Create a PDF object with object and generation number -1
+     *  and the value of being an empty PdfDictionary.
+     */
+    PdfObject();
+
     /** Construct a new PDF object.
      *  \param objectno the object number
      *  \param generationno the generation number which is almost ever 0
@@ -57,7 +63,70 @@ class PdfObject : public PdfVariant {
      *                 the value of type.
      *  \see SetDirect
      */
-    PdfObject( unsigned int objectno, unsigned int generationno, const char* pszType = NULL );
+    PdfObject( unsigned long objectno, unsigned long generationno, const char* pszType = NULL );
+
+    /** Create a PDF object with object and generation number -1
+     *  and the value of the passed variant.
+     *
+     *  \param var the value of the object
+     */
+    PdfObject( const PdfVariant & var );
+
+    /** Construct a PdfObject with object and generation number -1
+     *  and a bool as value.
+     *
+     *  \param b the boolean value of this PdfObject
+     */
+    PdfObject( bool b );
+
+    /** Construct a PdfObject with object and generation number -1
+     *  and a long as value.
+     *
+     *  \param l the long value of this PdfObject
+     */
+    PdfObject( long l );
+
+    /** Construct a PdfObject with object and generation number -1
+     *  and a double as value.
+     *
+     *  \param d the double value of this PdfObject
+     */
+    PdfObject( double d );
+
+    /** Construct a PdfObject with object and generation number -1
+     *  and a PdfString as value.
+     *
+     *  \param rsString the string value of this PdfObject
+     */        
+    PdfObject( const PdfString & rsString );
+
+    /** Construct a PdfObject with object and generation number -1
+     *  and a PdfName as value.
+     *
+     *  \param rName the value of this PdfObject
+     */        
+    PdfObject( const PdfName & rName );
+
+    /** Construct a PdfObject with object and generation number -1
+     *  and a PdfReference as value.
+     *
+     *  \param rRef the value of the this PdfObject
+     */        
+    PdfObject( const PdfReference & rRef );
+
+    /** Construct a PdfObject with object and generation number -1
+     *  and a PdfArray as value.
+     *
+     *  \param tList the value of the this PdfObject
+     */        
+    PdfObject( const PdfArray & tList );
+
+    /** Construct a PdfObject with object and generation number -1
+     *  and a PdfDictionary as value.
+     *
+     *  \param rDict the value of the this PdfObject
+     */        
+    PdfObject( const PdfDictionary & rDict );
 
     /** Creates a copy of an existing PdfObject
      *  All assosiated objects and streams will be copied along with the PdfObject
@@ -80,13 +149,24 @@ class PdfObject : public PdfVariant {
      */
     inline bool IsEmptyEntry() const;
 
+    /** Get the keys value out of the dictionary. If the key is a reference, 
+     *  the reference is resolved and the object pointed to by the reference is returned.
+     *
+     *
+     *  \param key look for the key named key in the dictionary
+     * 
+     *  \returns the found value or NULL if the value is not in the 
+     *           dictionary or if this object is no dictionary
+     */
+    PdfObject* GetIndirectKey( const PdfName & key );
+
     /** Write the complete object to a file.
      *  \param pDevice write the object to this device
      *  \param keyStop if not KeyNull and a key == keyStop is found
      *                 writing will stop right before this key!
      *  \returns ErrOk on success
      */
-    PdfError Write( PdfOutputDevice* pDevice, const PdfName & keyStop = PdfName::KeyNull );
+    PdfError WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop = PdfName::KeyNull ) const;
 
     /** Get the length of the object in bytes if it was written to disk now.
      *  \param pulLength safe the length of the object in to this unsigned long
@@ -141,6 +221,16 @@ class PdfObject : public PdfVariant {
      */
     inline bool operator==( const PdfObject & rhs );
 
+    /** Set the parent of this object
+     *  \param pVecObjects a vector of pdf objects
+     */
+    inline void SetParent( PdfVecObjects* pVecObjects );
+
+    /** Get the parent of this object
+     *  \return the parent of this object
+     */
+    inline PdfVecObjects* GetParent() const;
+
     /** Creates a copy of an existing PdfObject
      *  All assosiated objects and streams will be copied along with the PdfObject
      *  \param rhs PdfObject to clone
@@ -178,8 +268,9 @@ class PdfObject : public PdfVariant {
 
  protected:
     /** Initialize all private members with their default values
+     *  \param bLoadOnDemandDone wether loading on demand is supported
      */
-    void Init();
+    void Init( bool bLoadOnDemandDone );
 
     /** Clear all internal structures and free alocated memory
      */
@@ -196,13 +287,14 @@ class PdfObject : public PdfVariant {
     inline PdfError DelayedStreamLoad() const;
 
  protected:
-    PdfReference m_reference;
-    bool         m_bEmptyEntry;
+    PdfReference   m_reference;
+    bool           m_bEmptyEntry;
     
-    bool         m_bLoadOnDemandDone;
-    bool         m_bLoadStreamOnDemandDone;
+    bool           m_bLoadOnDemandDone;
+    bool           m_bLoadStreamOnDemandDone;
     
-    PdfStream*   m_pStream;
+    PdfStream*     m_pStream;
+    PdfVecObjects* m_pParent;
 };
 
 // -----------------------------------------------------
@@ -243,6 +335,22 @@ unsigned int PdfObject::GenerationNumber() const
 const PdfReference & PdfObject::Reference() const
 {
     return m_reference;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfObject::SetParent( PdfVecObjects* pVecObjects )
+{
+    m_pParent = pVecObjects;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfVecObjects* PdfObject::GetParent() const
+{
+    return m_pParent;
 }
 
 // -----------------------------------------------------

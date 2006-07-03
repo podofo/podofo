@@ -80,9 +80,9 @@ void PdfImage::SetImageColorSpace( EPdfColorSpace eColorSpace )
 
 void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight, unsigned int nBitsPerComponent, char* szBuffer, long lLen )
 {
-    this->GetDictionary().AddKey( "Width", (long)nWidth );
-    this->GetDictionary().AddKey( "Height", (long)nHeight );
-    this->GetDictionary().AddKey( "BitsPerComponent", (long)nBitsPerComponent );
+    this->GetDictionary().AddKey( "Width", PdfVariant( (long)nWidth ) );
+    this->GetDictionary().AddKey( "Height", PdfVariant( (long)nHeight ) );
+    this->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( (long)nBitsPerComponent ) );
     this->GetDictionary().AddKey( "Filter", PdfName("DCTDecode") );
 
     this->Stream()->Set( szBuffer, lLen );

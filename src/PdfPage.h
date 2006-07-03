@@ -80,74 +80,83 @@ class PdfPage : public PdfCanvas {
      *  drawing commands to the stream of the Contents object.
      *  \returns a contents object
      */
-	virtual PdfObject* Contents() const { return m_pContents; }
+    virtual PdfObject* Contents() const { return m_pContents; }
 
     /** Get access to the resources object of this page.
      *  This is most likely an internal object.
      *  \returns a resources object
      */
-    virtual PdfDictionary* Resources() const;
+    inline virtual PdfObject* Resources() const;
 
     /** Get the current page size in PDF units.
      *  \returns TSize the page size
      */
-	virtual const TSize & PageSize() const { return m_tPageSize; }
+    virtual const TSize & PageSize() const { return m_tPageSize; }
 
     /** Get the current MediaBox (physical page size) in PDF units.
      *  \returns PdfRect the page box
      */
-	virtual const PdfRect GetMediaBox() const { return GetPageBox( "MediaBox" ); }
+    virtual const PdfRect GetMediaBox() const { return GetPageBox( "MediaBox" ); }
 
     /** Get the current CropBox (visible page size) in PDF units.
      *  \returns PdfRect the page box
      */
-	virtual const PdfRect GetCropBox() const { return GetPageBox( "CropBox" ); }
+    virtual const PdfRect GetCropBox() const { return GetPageBox( "CropBox" ); }
 
     /** Get the current TrimBox (cut area) in PDF units.
      *  \returns PdfRect the page box
      */
-	virtual const PdfRect GetTrimBox() const { return GetPageBox( "TrimBox" ); }
+    virtual const PdfRect GetTrimBox() const { return GetPageBox( "TrimBox" ); }
 
     /** Get the current BleedBox (extra area for printing purposes) in PDF units.
      *  \returns PdfRect the page box
      */
-	virtual const PdfRect GetBleedBox() const { return GetPageBox( "BleedBox" ); }
+    virtual const PdfRect GetBleedBox() const { return GetPageBox( "BleedBox" ); }
 
     /** Get the current ArtBox in PDF units.
      *  \returns PdfRect the page box
      */
-	virtual const PdfRect GetArtBox() const { return GetPageBox( "ArtBox" ); }
+    virtual const PdfRect GetArtBox() const { return GetPageBox( "ArtBox" ); }
 
     /** Get the current page rotation (if any).
      *  \returns int 0, 90, 180 or 270
      */
-	virtual const int GetRotation() const;
+    virtual const int GetRotation() const;
+        
+    /** Get the number of annotations associated with this page
+     * \ returns int number of annotations
+     */
+    virtual const int GetNumAnnots() const;
 
-	/** Get the number of annotations associated with this page
-	* \ returns int number of annotations
-	*/
-	virtual const int GetNumAnnots() const;
+ private:
 
+   /** Get the bounds of a specified page box in PDF units.
+     * This function is internal, since there are wrappers for all standard boxes
+     *  \returns PdfRect the page box
+     */
+    const PdfRect GetPageBox( const char* inBox ) const;
+    
+    /** Private method for getting a key value that could be inherited (such as the boxes, resources, etc.)
+     *  \returns PdfVariant - the result of the key fetching
+     */
+    PdfObject* GetInheritedKeyFromObject( const char* inKey, PdfObject* inObject ) const; 
 
 
  private:
     PdfDocument*   m_pDocument;
     PdfObject*     m_pObject;
     PdfObject*     m_pContents;
-    PdfDictionary* m_pResources;
+    PdfObject*     m_pResources;
     TSize          m_tPageSize;
-
-   /** Get the bounds of a specified page box in PDF units.
-     * This function is internal, since there are wrappers for all standard boxes
-     *  \returns PdfRect the page box
-     */
-	const PdfRect GetPageBox( const char* inBox ) const;
-
-	/** Private method for getting a key value that could be inherited (such as the boxes, resources, etc.)
-	*  \returns PdfVariant - the result of the key fetching
-	*/
-	const PdfVariant GetInheritedKeyFromObject( const char* inKey, PdfObject* inObject ) const; 
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfObject* PdfPage::Resources() const
+{
+    return m_pResources;
+}
 
 };
 

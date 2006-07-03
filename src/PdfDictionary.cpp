@@ -50,7 +50,7 @@ void PdfDictionary::Clear()
         m_mapKeys.clear();
 }
 
-PdfError PdfDictionary::AddKey( const PdfName & identifier, const PdfVariant & rVariant )
+PdfError PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObject )
 {
     PdfError eCode;
 
@@ -62,47 +62,44 @@ PdfError PdfDictionary::AddKey( const PdfName & identifier, const PdfVariant & r
     if( m_mapKeys.find( identifier ) != m_mapKeys.end() )
         m_mapKeys.erase( identifier );
 
-    m_mapKeys[identifier] = rVariant;
-
-    // TODO: sorted map!!!
-    // -> faster find in other functions!
+    m_mapKeys[identifier] = rObject;
 
     return eCode;
 }
 
-const PdfVariant & PdfDictionary::GetKey( const PdfName & key ) const
+const PdfObject* PdfDictionary::GetKey( const PdfName & key ) const
 {
     TCIKeyMap it;
 
     if( HasKey( key ) )
     {
         it = m_mapKeys.find( key );
-        return (*it).second;
+        return &((*it).second);
     }
     
-    return PdfVariant::NullValue;
+    return NULL;
 }
 
-PdfVariant & PdfDictionary::GetKey( const PdfName & key )
+PdfObject* PdfDictionary::GetKey( const PdfName & key )
 {
     TIKeyMap it;
 
     if( HasKey( key ) )
     {
         it = m_mapKeys.find( key );
-        return (*it).second;
+        return &((*it).second);
     }
     
-    return PdfVariant::NullValue;
+    return NULL;
 }
 
 long PdfDictionary::GetKeyAsLong( const PdfName & key, long lDefault ) const
 {
-    const PdfVariant & var = GetKey( key );
+    const PdfObject* pObject = GetKey( key );
     
-    if( var.GetDataType() == ePdfDataType_Number ) 
+    if( pObject && pObject->GetDataType() == ePdfDataType_Number ) 
     {
-        return var.GetNumber();
+        return pObject->GetNumber();
     }
 
     return lDefault;
@@ -110,11 +107,11 @@ long PdfDictionary::GetKeyAsLong( const PdfName & key, long lDefault ) const
 
 bool PdfDictionary::GetKeyAsBool( const PdfName & key, bool bDefault ) const
 {
-    const PdfVariant & var = GetKey( key );
-    
-    if( var.GetDataType() == ePdfDataType_Bool ) 
+    const PdfObject* pObject = GetKey( key );
+
+    if( pObject && pObject->GetDataType() == ePdfDataType_Bool ) 
     {
-        return var.GetBool();
+        return pObject->GetBool();
     }
 
     return bDefault;
@@ -122,15 +119,15 @@ bool PdfDictionary::GetKeyAsBool( const PdfName & key, bool bDefault ) const
 
 PdfName PdfDictionary::GetKeyAsName( const PdfName & key ) const
 {
-	const PdfVariant & var = GetKey( key );
+    const PdfObject* pObject = GetKey( key );
 
-	if( var.GetDataType() == ePdfDataType_Name ) 
-	{
-		return var.GetName();
-	}
-
-	return PdfName("");	// return an empty name
-
+    if( pObject && pObject->GetDataType() == ePdfDataType_Name ) 
+    {
+        return pObject->GetName();
+    }
+    
+    return PdfName("");	// return an empty name
+        
 }
 
 bool PdfDictionary::HasKey( const PdfName & key ) const
@@ -169,7 +166,7 @@ PdfError PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfName & keyStop
     {
         // Type has to be the first key in any dictionary
         SAFE_OP( pDevice->Print( "/Type " ) );
-        SAFE_OP( this->GetKey( PdfName::KeyType ).Write( pDevice ) );
+        SAFE_OP( this->GetKey( PdfName::KeyType )->Write( pDevice ) );
         SAFE_OP( pDevice->Print( "\n" ) );
     }
 
