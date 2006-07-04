@@ -528,7 +528,7 @@ PdfError PdfParserObject::ParseStream()
             RAISE_ERROR( ePdfError_InvalidHandle );
         }
 
-        if( !pObj->IsDictionary() )
+        if( !pObj->IsNumber() )
         {
             RAISE_ERROR( ePdfError_InvalidStreamLength );
         }
