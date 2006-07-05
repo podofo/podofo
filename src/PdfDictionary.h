@@ -28,7 +28,7 @@
 
 namespace PoDoFo {
 
-typedef std::map<PdfName,PdfObject>       TKeyMap;
+typedef std::map<PdfName,PdfObject*>      TKeyMap;
 typedef TKeyMap::iterator                 TIKeyMap;
 typedef TKeyMap::const_iterator           TCIKeyMap;
 

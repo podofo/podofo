@@ -46,8 +46,18 @@ const PdfDictionary & PdfDictionary::operator=( const PdfDictionary & rhs )
 
 void PdfDictionary::Clear()
 {
+    TIKeyMap it;
+
     if( !m_mapKeys.empty() )
+    {
+        while( it != m_mapKeys.end() )
+        {
+            delete (*it).second;
+            ++it;
+        }
+
         m_mapKeys.clear();
+    }
 }
 
 PdfError PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObject )
@@ -60,9 +70,12 @@ PdfError PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rO
     }
 
     if( m_mapKeys.find( identifier ) != m_mapKeys.end() )
+    {
+        delete m_mapKeys[identifier];
         m_mapKeys.erase( identifier );
+    }
 
-    m_mapKeys[identifier] = rObject;
+    m_mapKeys[identifier] = new PdfObject( rObject );
 
     return eCode;
 }
@@ -79,7 +92,7 @@ const PdfObject* PdfDictionary::GetKey( const PdfName & key ) const
     if( HasKey( key ) )
     {
         it = m_mapKeys.find( key );
-        return &((*it).second);
+        return (*it).second;
     }
     
     return NULL;
@@ -92,7 +105,7 @@ PdfObject* PdfDictionary::GetKey( const PdfName & key )
     if( HasKey( key ) )
     {
         it = m_mapKeys.find( key );
-        return &((*it).second);
+        return (*it).second;
     }
     
     return NULL;
@@ -147,6 +160,8 @@ bool PdfDictionary::RemoveKey( const PdfName & identifier )
 {
     if( HasKey( identifier ) )
     {
+        delete m_mapKeys[identifier];
+
         m_mapKeys.erase( identifier );
         return true;
     }
@@ -183,7 +198,7 @@ PdfError PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfName & keyStop
                 return eCode;
 
             SAFE_OP( pDevice->Print( "/%s ", (*itKeys).first.Name().c_str() ) );
-            SAFE_OP( (*itKeys).second.Write( pDevice ) );
+            SAFE_OP( (*itKeys).second->Write( pDevice ) );
             SAFE_OP( pDevice->Print("\n") );
         }
         
