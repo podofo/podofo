@@ -428,6 +428,9 @@ PdfError PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) 
     if( (m_eDataType == ePdfDataType_HexString ||
         m_eDataType == ePdfDataType_String) && (!m_pString || !m_pString->String()) )
     {
+        printf("m_pString=%p\n", m_pString );
+        printf("m_pString->String()=%p\n", m_pString->String() );
+        printf("m_pString->String()=(%s)\n", m_pString->String() );
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 

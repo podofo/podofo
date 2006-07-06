@@ -407,7 +407,7 @@ inline PdfError PdfObject::LoadStreamOnDemand()
 inline PdfError PdfObject::DelayedLoad() const
 {
     PdfError eCode;
-    
+
     if( !m_bLoadOnDemandDone ) 
     {
         PdfObject* p = const_cast<PdfObject*>(this);

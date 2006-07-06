@@ -64,7 +64,7 @@ void PdfParserObject::Init()
     m_bStream           = false;
     m_lStreamOffset     = 0;
 
-    PdfObject::Init( true );
+    PdfObject::Init( false );
 }
 
 PdfError PdfParserObject::ReadObjectNumber()

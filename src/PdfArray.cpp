@@ -28,7 +28,7 @@ PdfArray::PdfArray()
 {
 }
 
-PdfArray::PdfArray( const PdfVariant & var ) 
+PdfArray::PdfArray( const PdfObject & var ) 
 {
     this->push_back( var );
 }

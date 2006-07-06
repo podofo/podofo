@@ -105,7 +105,7 @@ PdfObject::PdfObject( const PdfDictionary & rDict )
 
 PdfObject::PdfObject( const PdfObject & rhs )
 {
-    Init( true );
+    Init( false );
 
     operator=( rhs );
 }
@@ -241,7 +241,7 @@ const PdfObject & PdfObject::operator=( const PdfObject & rhs )
 
     if( !rhs.m_bLoadOnDemandDone || !rhs.m_bLoadStreamOnDemandDone ) 
     {
-        PdfObject* p = const_cast<PdfObject*>(&rhs); \
+        PdfObject* p = const_cast<PdfObject*>(&rhs);
         p->LoadStreamOnDemand();
     }
 
