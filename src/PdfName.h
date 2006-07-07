@@ -22,6 +22,7 @@
 #define _PDF_NAME_H_
 
 #include "PdfDefines.h"
+#include "PdfDataType.h"
 
 namespace PoDoFo {
 
@@ -36,7 +37,7 @@ class PdfOutputDevice;
  *
  *  \see PdfObject \see PdfVariant
  */
-class PdfName {
+class PdfName : public PdfDataType {
  public:
     /** Constructor to create NULL strings.
      *  use PdfName::KeyNull instead of this constructor

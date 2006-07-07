@@ -18,65 +18,41 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PDF_ARRAY_H_
-#define _PDF_ARRAY_H_
+#ifndef _PDF_DATATYPE_H_
+#define _PDF_DATATYPE_H_
 
 #include "PdfDefines.h"
-#include "PdfDataType.h"
-
-#include "PdfObject.h"
 
 namespace PoDoFo {
 
-/** This class represents a PdfArray
- *  Use it for all arrays that are written to a PDF file.
- *  
- *  A PdfArray can hold any PdfVariant.
+class PdfOutputDevice;
+
+/** An interface for all PDF datatype classes.
  *
- *  \see PdfVariant
+ *  
+ *  \see PdfName \see PdfArray \see PdfReference 
+ *  \see PdfVariant \see PdfDictionary \see PdfString
  */
-class PdfArray : public std::vector<PdfObject>, public PdfDataType {
+class PdfDataType {
+
+ protected:
+    /** Create a new PdfDataType.
+     *  Can only be called by subclasses
+     */
+    PdfDataType();
+
  public:
+    virtual ~PdfDataType();
 
-    /** Create an empty array 
-     */
-    PdfArray();
-
-    /** Create an array and add one value to it.
-     *  \param var add this object to the array.
-     */
-    PdfArray( const PdfObject & var );
-
-    /** Copy an existing PdfArray
-     *  \param rhs the array to copy
-     */
-    PdfArray( const PdfArray & rhs );
-
-    /** Remove all elements from the array
-     */
-    inline void Clear();
-
-    /** Write the array to an output device.
-     *  This is an overloaded member function.
-     *
+    /** Write the complete datatype to a file.
      *  \param pDevice write the object to this device
      *  \returns ErrOk on success
      */
-    PdfError Write( PdfOutputDevice* pDevice ) const;
+    virtual PdfError Write( PdfOutputDevice* pDevice ) const = 0;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfArray::Clear() 
-{
-    this->clear();
-}
-
-typedef PdfArray                 TVariantList;
-typedef PdfArray::iterator       TIVariantList;
-typedef PdfArray::const_iterator TCIVariantList;
 
 };
 
-#endif // _PDF_ARRAY_H_
+
+#endif /* _PDF_DATATYPE_H_ */
+

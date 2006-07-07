@@ -22,6 +22,7 @@
 #define _PDF_STRING_H_
 
 #include "PdfDefines.h"
+#include "PdfDataType.h"
 
 namespace PoDoFo {
 
@@ -32,7 +33,7 @@ class PdfOutputDevice;
  *  converted into a hex string, otherwise a normal PDF 
  *  string is written to the document.
  */
-class PdfString {
+class PdfString : public PdfDataType{
  public:
 
     /** Create an empty and invalid string 

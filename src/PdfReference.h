@@ -23,6 +23,8 @@
 
 #include "PdfDefines.h"
 
+#include "PdfDataType.h"
+
 namespace PoDoFo {
 
 class PdfOutputDevice;
@@ -34,7 +36,7 @@ class PdfOutputDevice;
  *
  * This class is a indirect reference in a PDF file.
  */
-class PdfReference {
+class PdfReference : public PdfDataType {
  public:
     /**
      * Create a PdfReference with object number and generation number

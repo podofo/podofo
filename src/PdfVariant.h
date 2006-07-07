@@ -24,15 +24,16 @@
 #include <cmath>
 
 #include "PdfDefines.h"
-#include "PdfReference.h"
 
 namespace PoDoFo {
 
 class PdfArray;
+class PdfDataType;
 class PdfDictionary;
 class PdfName;
 class PdfOutputDevice;
 class PdfString;
+class PdfReference;
 
 /**
  * A variant data type which supports all data types supported by the PDF standard.
@@ -285,25 +286,10 @@ class PdfVariant {
      */
     EPdfDataType m_eDataType;
 
-    /** Holds the reference value
+    /** Holds references, strings, 
+     *  names, dictionaries and arrays
      */
-    PdfReference m_reference;
-
-    /** Holds the values of strings
-     */
-    PdfString * m_pString;
-
-    /** Holds the value of names
-     */
-    PdfName* m_pName;
-
-    /** Holds a dictionary
-     */
-    PdfDictionary*   m_pDictionary;
-
-    /** Stores the values of arrays.
-     */
-    PdfArray*  m_pArray;
+    PdfDataType* m_pData;
 
     /** if not 0 the object is padded with spaces
      *  to this length
@@ -382,7 +368,8 @@ const PdfString & PdfVariant::GetString() const
 {
     DelayedLoad();
 
-    return *m_pString;
+    //if( IsString() )
+    return *((PdfString*)(m_pData));
 }
 
 // -----------------------------------------------------
@@ -392,7 +379,8 @@ const PdfName & PdfVariant::GetName() const
 {
     DelayedLoad();
 
-    return *m_pName;
+    //if( IsName() )
+    return *((PdfName*)(m_pData));
 }
 
 // -----------------------------------------------------
@@ -402,7 +390,8 @@ const PdfArray & PdfVariant::GetArray() const
 {
     DelayedLoad();
 
-    return *m_pArray;
+    //if( IsArray() )
+    return *((PdfArray*)(m_pData));
 }
 
 // -----------------------------------------------------
@@ -412,7 +401,8 @@ const PdfDictionary & PdfVariant::GetDictionary() const
 {
     DelayedLoad();
 
-    return *m_pDictionary;
+    //if( IsDictionary() )
+    return *((PdfDictionary*)(m_pData));
 }
 
 // -----------------------------------------------------
@@ -422,7 +412,8 @@ PdfDictionary & PdfVariant::GetDictionary()
 {
     DelayedLoad();
 
-    return *m_pDictionary;
+    //if( IsDictionary() )
+    return *((PdfDictionary*)(m_pData));
 }
 
 // -----------------------------------------------------
@@ -432,7 +423,8 @@ const PdfReference & PdfVariant::GetReference() const
 {
     DelayedLoad();
 
-    return m_reference;
+    //if( IsReference() )
+    return *((PdfReference*)(m_pData));
 }
 
 };

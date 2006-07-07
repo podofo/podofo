@@ -170,7 +170,7 @@ bool PdfDictionary::RemoveKey( const PdfName & identifier )
     return false;
 }
 
-PdfError PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfName & keyStop )
+PdfError PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
 {
     PdfError eCode;
 

@@ -22,6 +22,7 @@
 #define _PDF_DICTIONARY_H_
 
 #include "PdfDefines.h"
+#include "PdfDataType.h"
 
 #include "PdfName.h"
 #include "PdfObject.h"
@@ -34,7 +35,7 @@ typedef TKeyMap::const_iterator           TCIKeyMap;
 
 class PdfOutputDevice;
 
-class PdfDictionary {
+class PdfDictionary : public PdfDataType {
  public:
     /** Create a new, empty dictionary
      */
@@ -122,11 +123,17 @@ class PdfDictionary {
 
     /** Write the complete dictionary to a file.
      *  \param pDevice write the object to this device
+     *  \returns ErrOk on success
+     */
+    inline PdfError Write( PdfOutputDevice* pDevice ) const;
+
+    /** Write the complete dictionary to a file.
+     *  \param pDevice write the object to this device
      *  \param keyStop if not KeyNull and a key == keyStop is found
      *                 writing will stop right before this key!
      *  \returns ErrOk on success
      */
-    PdfError Write( PdfOutputDevice* pDevice, const PdfName & keyStop = PdfName::KeyNull );
+    PdfError Write( PdfOutputDevice* pDevice, const PdfName & keyStop = PdfName::KeyNull ) const;
 
     /** Get access to the internal map of keys.
      *  \returns all keys of this dictionary
@@ -147,6 +154,14 @@ typedef TVecDictionaries::const_iterator TCIVecDictionaries;
 const TKeyMap & PdfDictionary::GetKeys() const
 {
     return m_mapKeys;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfError PdfDictionary::Write( PdfOutputDevice* pDevice ) const
+{
+    return this->Write( pDevice, PdfName::KeyNull );
 }
 
 };
