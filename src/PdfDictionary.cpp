@@ -50,6 +50,7 @@ void PdfDictionary::Clear()
 
     if( !m_mapKeys.empty() )
     {
+        it = m_mapKeys.begin();
         while( it != m_mapKeys.end() )
         {
             delete (*it).second;
