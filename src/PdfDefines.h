@@ -301,7 +301,7 @@ static const char s_cDelimiters[] = {
  */
 #define SAFE_OP_ADV( x, msg ) eCode = x;\
                               if( eCode.IsError() ) {\
-                                eCode.SetErrorInformation( msg );\
+                                eCode.AddToCallstack( __FILE__, __LINE__, msg ); \
                                 return eCode;\
                                }
 
@@ -317,7 +317,7 @@ static const char s_cDelimiters[] = {
  */
 #define SAFE_OP( x ) eCode = x;\
                      if( eCode.IsError() ) {\
-                       eCode.SetErrorInformation( NULL ); \
+                       eCode.AddToCallstack( __FILE__, __LINE__, NULL ); \
                        return eCode;\
                      }
 

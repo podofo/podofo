@@ -25,9 +25,6 @@
 
 namespace PoDoFo {
 
-int         PdfError::s_line = 0;
-const char* PdfError::s_file = NULL;
-std::string PdfError::s_info = "";
 bool        PdfError::s_DgbEnabled = true;
 
 PdfErrorInfo::PdfErrorInfo()
@@ -36,7 +33,7 @@ PdfErrorInfo::PdfErrorInfo()
 }
 
 PdfErrorInfo::PdfErrorInfo( int line, const char* pszFile, const char* pszInfo )
-    : m_nLine( line ), m_sFile( pszFile ), m_sInfo( pszInfo )
+    : m_nLine( line ), m_sFile( pszFile ? pszFile : "" ), m_sInfo( pszInfo ? pszInfo : "" )
 {
 
 }
@@ -55,6 +52,9 @@ const PdfErrorInfo & PdfErrorInfo::operator=( const PdfErrorInfo & rhs )
     return *this;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 
 PdfError::PdfError()
 {
@@ -77,12 +77,16 @@ PdfError::~PdfError()
     
 const PdfError & PdfError::operator=( const PdfError & rhs )
 {
-    return this->operator=( rhs.m_error );
+    m_error     = rhs.m_error;
+    m_callStack = rhs.m_callStack;
+
+    return *this;
 }
 
 const PdfError & PdfError::operator=( const EPdfError & eCode )
 {
     m_error = eCode;
+    m_callStack.clear();
     
     return *this;
 }
@@ -109,21 +113,35 @@ bool PdfError::operator!=( const EPdfError & eCode )
 
 void PdfError::PrintErrorMsg() const
 {
-    const char* pszMsg  = PdfError::ErrorMessage( m_error );
-    const char* pszName = PdfError::ErrorName( m_error );
+    TCIDequeErrorInfo it = m_callStack.begin();
+    const char* pszMsg   = PdfError::ErrorMessage( m_error );
+    const char* pszName  = PdfError::ErrorName( m_error );
+
+    int i                = 0;
 
     PdfError::LogMessage( eLogSeverity_Error, "\n\nPoDoFo encounter an error. Error: %i %s\n", m_error, pszName ? pszName : "" );
 
-    if( !s_info.empty() )
-        PdfError::LogMessage( eLogSeverity_Error, "\tInformation: %s\n", s_info.c_str() );
-
     if( pszMsg )
         PdfError::LogMessage( eLogSeverity_Error, "\tError Description: %s\n", pszMsg );
+    
+    if( m_callStack.size() )
+        PdfError::LogMessage( eLogSeverity_Error, "\tCallstack:\n" );
 
-    if( s_file )
-        PdfError::LogMessage( eLogSeverity_Error, "\tError Source: %s:%i\n", s_file, s_line );
+    while( it != m_callStack.end() )
+    {
+        if( !(*it).Filename().empty() )
+            PdfError::LogMessage( eLogSeverity_Error, "\t#%i Error Source: %s:%i\n", i, (*it).Filename().c_str(), (*it).Line() );
 
+        if( !(*it).Information().empty() )
+            PdfError::LogMessage( eLogSeverity_Error, "\t\tInformation: %s\n", (*it).Information().c_str() );
+        
+        ++i;
+        ++it;
+    }
+
+        
     PdfError::LogMessage( eLogSeverity_Error, "\n\n" );
+
 }
 
 const char* PdfError::ErrorName( EPdfError eCode )
@@ -306,20 +324,6 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
     return pszMsg;
 }
 
-const char* PdfError::Filename()
-{
-    return PdfError::s_file;
-}
-
-const char* PdfError::Information()
-{
-    return PdfError::s_info.c_str();
-}
-
-const int PdfError::Line()
-{
-    return PdfError::s_line;
-}
 
 void PdfError::LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... )
 {

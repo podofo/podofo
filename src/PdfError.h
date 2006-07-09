@@ -119,13 +119,20 @@ class PdfErrorInfo {
 
     inline int Line() const { return m_nLine; }
     inline const std::string & Filename() const { return m_sFile; }
-    inline const std::string & Information() const { return m_sFile; }
+    inline const std::string & Information() const { return m_sInfo; }
+
+    inline void SetInformation( const char* pszInfo ) { m_sInfo = pszInfo ? pszInfo : ""; }
 
  private:
     int         m_nLine;
     std::string m_sFile;
     std::string m_sInfo;
 };
+
+
+typedef std::deque<PdfErrorInfo>        TDequeErrorInfo;
+typedef TDequeErrorInfo::iterator       TIDequeErrorInfo;
+typedef TDequeErrorInfo::const_iterator TCIDequeErrorInfo;
 
 /** The error handling class of PoDoFo lib.
  *  Whenever a function encounters an error
@@ -217,6 +224,21 @@ class PdfError {
      */
     inline void SetErrorInformation( const char* pszInformation );
 
+    /** Add callstack information to an error object. Always call this function
+     *  if you get an error object but do not handle the error but throw it again.
+     *
+     *  \param pszFile the filename of the source file causing
+     *                 the error or NULL. Typically you will use
+     *                 the gcc macro __FILE__ here.
+     *  \param line    the line of source causing the error
+     *                 or 0. Typically you will use the gcc 
+     *                 macro __LINE__ here.
+     *  \param pszInformation additional information on the error.
+     *         e.g. how to fix the error. This string is intended to 
+     *         be shown to the user.
+     */
+    inline void AddToCallstack( const char* pszFile = NULL, int line = 0, const char* pszInformation = NULL );
+
     /** \returns true if an error code was set 
      *           and false if the error code is ePdfError_ErrOk
      */
@@ -268,42 +290,57 @@ class PdfError {
     /** Enable or disable the display of debugging messages
      *  \param bEnable       enable (true) or disable (false)
      */
-	static void EnableDebug( bool bEnable ) { PdfError::s_DgbEnabled = bEnable; }
+    static void EnableDebug( bool bEnable ) { PdfError::s_DgbEnabled = bEnable; }
 	
     /** Is the display of debugging messages enabled or not?
      */
-	static bool DebugEnabled() { return PdfError::s_DgbEnabled; }
+    static bool DebugEnabled() { return PdfError::s_DgbEnabled; }
 
  private:
-    EPdfError                m_error;
+    EPdfError          m_error;
 
-    //std::queue<PdfErrorInfo> m_callStack;
-
-    static int         s_line;
-    static const char* s_file;
-    static std::string s_info;
+    TDequeErrorInfo    m_callStack;
 
     static bool        s_DgbEnabled;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 EPdfError PdfError::Error() const
 {
     return m_error;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfError::SetError( const EPdfError & eCode, const char* pszFile, int line, const char* pszInformation )
 {
     m_error = eCode;
-    s_file  = pszFile;
-    s_line  = line;
-    s_info  = pszInformation ? pszInformation : "";
+    this->AddToCallstack( pszFile, line, pszInformation );
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfError::AddToCallstack( const char* pszFile, int line, const char* pszInformation )
+{
+    m_callStack.push_front( PdfErrorInfo( line, pszFile, pszInformation ) );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfError::SetErrorInformation( const char* pszInformation )
 {
-    s_info  = pszInformation ? pszInformation : "";
+    if( m_callStack.size() )
+        m_callStack.front().SetInformation( pszInformation ? pszInformation : "" );
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfError::IsError() const
 {
     return (m_error != ePdfError_ErrOk);

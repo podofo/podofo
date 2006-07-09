@@ -77,7 +77,7 @@ PdfError PdfParser::Init( const char* pszFilename, bool bLoadOnDemand )
 
     m_bLoadOnDemand = bLoadOnDemand;
 
-    m_hFile           = fopen( pszFilename, "rb" );
+    m_hFile         = fopen( pszFilename, "rb" );
     if( !m_hFile )
     {
         RAISE_ERROR( ePdfError_FileNotFound );
