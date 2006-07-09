@@ -141,7 +141,6 @@ void PdfError::PrintErrorMsg() const
 
         
     PdfError::LogMessage( eLogSeverity_Error, "\n\n" );
-
 }
 
 const char* PdfError::ErrorName( EPdfError eCode )

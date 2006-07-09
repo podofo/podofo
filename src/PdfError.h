@@ -203,6 +203,8 @@ class PdfError {
      */
     inline EPdfError Error() const;
 
+    inline const TDequeErrorInfo & Callstack() const;
+
     /** Set the error code of this object.
      *  \param eCode the error code of this object
      *  \param pszFile the filename of the source file causing
@@ -247,6 +249,12 @@ class PdfError {
     /** Print an error message to stderr
      */
     void PrintErrorMsg() const;
+    
+    /** Get the name for a certain error code.
+     *  \returns the name or NULL if no name for the specified
+     *           error code is available.
+     */
+    static const char* ErrorName( EPdfError eCode );
 
     /** Get the error message for a certain error code.
      *  \returns the error message or NULL if no error
@@ -254,27 +262,6 @@ class PdfError {
      *           is available.
      */
     static const char* ErrorMessage( EPdfError eCode );
-
-    /** Get the name for a certain error code.
-     *  \returns the name or NULL if no name for the specified 
-     *           error code is available.
-     */
-    static const char* ErrorName( EPdfError eCode );
-
-    /** \returns the source filename where the error occurred
-     *           or NULL if none was set.
-     */
-    static const char* Filename();
-
-    /** \returns the source line where the error occurred
-     *           or 0 if none was set.
-     */
-    static const int Line();
-
-    /** \returns additional information on the error
-     *           e.g. how to fix it.
-     */
-    static const char* Information();
 
     /** Log a message to the logging system defined for PoDoFo.
      *  \param eLogSeverity the sevirity of the log message
@@ -310,6 +297,14 @@ class PdfError {
 EPdfError PdfError::Error() const
 {
     return m_error;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const TDequeErrorInfo & PdfError::Callstack() const
+{
+    return m_callStack;
 }
 
 // -----------------------------------------------------
