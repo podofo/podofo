@@ -56,7 +56,13 @@ int main( int argc, char* argv[] )
     PdfError eCode;
 
     printf("Creating an error callstack.\n");
-    eCode = function3();
+    try {
+        function3();
+    } catch( PdfError e ) {
+        eCode = e;
+    }
+
+    
 
     if( eCode.IsError() )
     {

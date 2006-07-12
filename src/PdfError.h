@@ -99,7 +99,7 @@ typedef enum ELogSeverity {
  *  Set the value of the variable eCode (which has to exist in the current function) to x
  *  and return the eCode.
  */
-#define RAISE_ERROR( x ) eCode.SetError( x, __FILE__, __LINE__ ); return eCode;
+#define RAISE_ERROR( x ) PdfError exc_eCode; exc_eCode.SetError( x, __FILE__, __LINE__ ); throw exc_eCode;
 
 /** \def RAISE_ERROR_INFO( x, y )
  *  
@@ -107,7 +107,7 @@ typedef enum ELogSeverity {
  *  and return the eCode. Additionally additional information on the error y is set. y has 
  *  to be an c-string.
  */
-#define RAISE_ERROR_INFO( x, y ) eCode.SetError( x, __FILE__, __LINE__, y ); return eCode;
+#define RAISE_ERROR_INFO( x, y ) PdfError exc_eCode; PdfError exc_eCode.SetError( x, __FILE__, __LINE__, y ); throw exc_eCode;
 
 class PdfErrorInfo {
  public:
@@ -144,7 +144,7 @@ typedef TDequeErrorInfo::const_iterator TCIDequeErrorInfo;
  *  This class provides also meaningfull
  *  error descriptions.
  */
-class PdfError {
+class PdfError : public std::exception {
  public:
     /** Create a PdfError object initialized to ErrOk
      */
@@ -160,7 +160,7 @@ class PdfError {
      */
     PdfError( const PdfError & rhs );
 
-    virtual ~PdfError();
+    virtual ~PdfError() throw();
     
     /** Assignment operator
      *  \param rhs another PdfError object
@@ -203,6 +203,9 @@ class PdfError {
      */
     inline EPdfError Error() const;
 
+    /** Get access to the internal callstack of this error
+     *  \return the callstack
+     */
     inline const TDequeErrorInfo & Callstack() const;
 
     /** Set the error code of this object.
@@ -249,6 +252,11 @@ class PdfError {
     /** Print an error message to stderr
      */
     void PrintErrorMsg() const;
+
+    /** Reimplemented from std::exception.
+     *  \returns a c string describing the error.
+     */
+    virtual const char* what() const throw();
     
     /** Get the name for a certain error code.
      *  \returns the name or NULL if no name for the specified

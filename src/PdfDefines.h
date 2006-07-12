@@ -315,11 +315,14 @@ static const char s_cDelimiters[] = {
  * type of PdfError).
  *
  */
+/*
 #define SAFE_OP( x ) eCode = x;\
                      if( eCode.IsError() ) {\
                        eCode.AddToCallstack( __FILE__, __LINE__, NULL ); \
                        return eCode;\
                      }
+*/
+#define SAFE_OP( x ) try { x; } catch( PdfError & e ) { e.AddToCallstack( __FILE__, __LINE__, NULL ); throw e; }
 
 /*
 	This is needed to enable compilation with VC++ on Windows

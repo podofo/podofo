@@ -71,7 +71,7 @@ PdfError::PdfError( const PdfError & rhs )
     this->operator=( rhs );
 }
 
-PdfError::~PdfError()
+PdfError::~PdfError() throw()
 {
 }
     
@@ -141,6 +141,11 @@ void PdfError::PrintErrorMsg() const
 
         
     PdfError::LogMessage( eLogSeverity_Error, "\n\n" );
+}
+
+const char* PdfError::what() const throw()
+{
+    return PdfError::ErrorName( m_error );
 }
 
 const char* PdfError::ErrorName( EPdfError eCode )

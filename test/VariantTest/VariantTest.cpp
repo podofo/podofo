@@ -108,14 +108,14 @@ int main()
     printf("---\n");
 
     // testing arrays
-    Test( "[]", ePdfDataType_Array );  // this test may fail as the formating is different
+    TEST_SAFE_OP_IGNORE( Test( "[]", ePdfDataType_Array ) );  // this test may fail as the formating is different
     TEST_SAFE_OP( Test( "[ 1 2 3 4 ]", ePdfDataType_Array ) );
-    Test( "[1 2 3 4]", ePdfDataType_Array ); // this test may fail as the formating is different
+    TEST_SAFE_OP_IGNORE( Test( "[1 2 3 4]", ePdfDataType_Array ) ); // this test may fail as the formating is different
     TEST_SAFE_OP( Test( "[ 2 (Hallo Welt!) 3.5 /FMC ]", ePdfDataType_Array ) );
     TEST_SAFE_OP( Test( "[ [ 1 2 ] (Hallo Welt!) 3.5 /FMC ]", ePdfDataType_Array ) );
-    Test( "[/ImageA/ImageB/ImageC]", ePdfDataType_Array ); // this test may fail as the formating is different
-    Test( "[<530464995927cef8aaf46eb953b93373><530464995927cef8aaf46eb953b93373>]", ePdfDataType_Array );
-    Test( "[ 2 0 R (Test Data) 4 << /Key /Data >> 5 0 R ]", ePdfDataType_Array );
+    TEST_SAFE_OP_IGNORE( Test( "[/ImageA/ImageB/ImageC]", ePdfDataType_Array ) ); // this test may fail as the formating is different
+    TEST_SAFE_OP_IGNORE( Test( "[<530464995927cef8aaf46eb953b93373><530464995927cef8aaf46eb953b93373>]", ePdfDataType_Array ) );
+    TEST_SAFE_OP_IGNORE( Test( "[ 2 0 R (Test Data) 4 << /Key /Data >> 5 0 R ]", ePdfDataType_Array ) );
     printf("---\n");
 
 
