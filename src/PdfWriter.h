@@ -28,6 +28,7 @@
 namespace PoDoFo {
 
 class PdfDictionary;
+class PdfName;
 class PdfParser;
 
 struct TXRefTable{    
@@ -218,7 +219,7 @@ class PdfWriter {
      *  \param pTrailer the source dictionary
      *  \param key the key to copy
      */
-    void WriteTrailerKey( PdfOutputDevice* pDevice, PdfObject* pTrailer, const PdfName & key ) 
+    void WriteTrailerKey( PdfOutputDevice* pDevice, const PdfObject* pTrailer, const PdfName & key );
 
  protected:
     PdfVecObjects   m_vecObjects;

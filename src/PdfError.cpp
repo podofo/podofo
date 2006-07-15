@@ -61,9 +61,9 @@ PdfError::PdfError()
     m_error = ePdfError_ErrOk;
 }
 
-PdfError::PdfError( const EPdfError & eCode )
+PdfError::PdfError( const EPdfError & eCode, const char* pszFile, int line, const char* pszInformation )
 {
-    this->operator=( eCode );
+    this->SetError( eCode, pszFile, line, pszInformation );
 }
 
 PdfError::PdfError( const PdfError & rhs )

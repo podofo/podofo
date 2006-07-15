@@ -99,7 +99,7 @@ typedef enum ELogSeverity {
  *  Set the value of the variable eCode (which has to exist in the current function) to x
  *  and return the eCode.
  */
-#define RAISE_ERROR( x ) PdfError exc_eCode; exc_eCode.SetError( x, __FILE__, __LINE__ ); throw exc_eCode;
+#define RAISE_ERROR( x ) throw PdfError( x, __FILE__, __LINE__ );
 
 /** \def RAISE_ERROR_INFO( x, y )
  *  
@@ -107,7 +107,7 @@ typedef enum ELogSeverity {
  *  and return the eCode. Additionally additional information on the error y is set. y has 
  *  to be an c-string.
  */
-#define RAISE_ERROR_INFO( x, y ) PdfError exc_eCode; exc_eCode.SetError( x, __FILE__, __LINE__, y ); throw exc_eCode;
+#define RAISE_ERROR_INFO( x, y ) throw PdfError( x, __FILE__, __LINE__, y );
 
 class PdfErrorInfo {
  public:
@@ -152,8 +152,13 @@ class PdfError : public std::exception {
 
     /** Create a PdfError object with a given error code.
      *  \param eCode the error code of this object
+     *  \param pszFile the file in which the error has occured. 
+     *         Use the compiler macro __FILE__ to initialize the field.
+     *  \param line the line in which the error has occured.
+     *         Use the compiler macro __LINE__ to initialize the field.
+     *  \param pszInformation additional information on this error
      */
-    PdfError( const EPdfError & eCode );
+    PdfError( const EPdfError & eCode, const char* pszFile = NULL, int line = 0, const char* pszInformation = NULL );
 
     /** Copy constructor
      *  \param rhs copy the contents of rhs into this object

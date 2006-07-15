@@ -283,7 +283,7 @@ void PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
     pDevice->Print( ">>\nstartxref\n%li\n%%%%EOF\n", lXRef );
 }
 
-void PdfWriter::WriteTrailerKey( PdfOutputDevice* pDevice, PdfObject* pTrailer, const PdfName & key ) 
+void PdfWriter::WriteTrailerKey( PdfOutputDevice* pDevice, const PdfObject* pTrailer, const PdfName & key ) 
 {
     if( pTrailer->GetDictionary().HasKey( key ) ) 
     {
