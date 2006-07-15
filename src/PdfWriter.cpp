@@ -259,31 +259,10 @@ void PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
             RAISE_ERROR( ePdfError_InvalidHandle );
         }
 
-        // Prev is ignored as we write only one crossref section
-        pDevice->Print( "/Root " );
-        m_pParser->GetTrailer()->GetDictionary().GetKey( "Root" )->Write( pDevice );
-        pDevice->Print( "\n" );
-
-        if( m_pParser->GetTrailer()->GetDictionary().HasKey( "Encrypt" ) )
-        {
-            pDevice->Print( "/Encrypt " );
-            m_pParser->GetTrailer()->GetDictionary().GetKey( "Encrypt" )->Write( pDevice );
-            pDevice->Print( "\n" );
-        }
-
-        if( m_pParser->GetTrailer()->GetDictionary().HasKey( "Info" ) )
-        {
-            pDevice->Print( "/Info " );
-            m_pParser->GetTrailer()->GetDictionary().GetKey( "Info" )->Write( pDevice );
-            pDevice->Print( "\n" );
-        }
-
-        if( m_pParser->GetTrailer()->GetDictionary().HasKey( "ID" ) )
-        {
-            pDevice->Print( "/ID " );
-            m_pParser->GetTrailer()->GetDictionary().GetKey( "ID" )->Write( pDevice );
-            pDevice->Print( "\n" );
-        }
+        this->WriteTrailerKey( pDevice, m_pParser->GetTrailer(), "Root" );
+        this->WriteTrailerKey( pDevice, m_pParser->GetTrailer(), "Encrypt" );
+        this->WriteTrailerKey( pDevice, m_pParser->GetTrailer(), "Info" );
+        this->WriteTrailerKey( pDevice, m_pParser->GetTrailer(), "ID" );
     }
     else
     {
@@ -304,6 +283,17 @@ void PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
     pDevice->Print( ">>\nstartxref\n%li\n%%%%EOF\n", lXRef );
 }
 
+void PdfWriter::WriteTrailerKey( PdfOutputDevice* pDevice, PdfObject* pTrailer, const PdfName & key ) 
+{
+    if( pTrailer->GetDictionary().HasKey( key ) ) 
+    {
+        key.Write( pDevice );
+        pDevice->Print( " " );
+        pTrailer->GetDictionary().GetKey( "Root" )->Write( pDevice );
+        pDevice->Print( "\n" );
+    }
+}
+ 
 PdfObject* PdfWriter::RemoveObject( const PdfReference & ref )
 {
     return m_vecObjects.RemoveObject( ref );

@@ -14,7 +14,5 @@ PoDoFo 0.3
        PdfPage does not need to keep a PdfDocument pointer.
        - RAISE_ERROR macro should only invoke a new PdfError constructor
        - PdfParser should not have an Init method
-       - WritePdfTableOfContents: Write a function that gets a key and copies
-       it into the trailer dictionary
        - Remove PdfSimpleWriter::Init
 

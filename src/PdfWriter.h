@@ -211,6 +211,15 @@ class PdfWriter {
      */
     void WritePdfTableOfContents( PdfOutputDevice* pDevice );
 
+    /** Copies a key and value from a trailer PdfObject into a trailer dictionary that is immediately written
+     *  to a PdfOutputDevice. The key is only copied if it exists in pTrailer
+     * 
+     *  \param pDevice write the key and value to this device
+     *  \param pTrailer the source dictionary
+     *  \param key the key to copy
+     */
+    void WriteTrailerKey( PdfOutputDevice* pDevice, PdfObject* pTrailer, const PdfName & key ) 
+
  protected:
     PdfVecObjects   m_vecObjects;
 
