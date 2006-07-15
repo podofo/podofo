@@ -66,20 +66,16 @@ class PdfDictionary : public PdfDataType {
      *
      *  \param identifier the key is identified by this name in the dictionary
      *  \param rObject a variant object containing the data.
-     *
-     *  \returns ErrOk on sucess
      */
-    PdfError AddKey( const PdfName & identifier, const PdfObject & rObject );
+    void AddKey( const PdfName & identifier, const PdfObject & rObject );
 
     /** Add a key to the dictionary. 
      *  This is an overloaded member function.
      *
      *  \param identifier the key is identified by this name in the dictionary
      *  \param rObject a variant object containing the data.
-     *
-     *  \returns ErrOk on sucess
      */
-    PdfError AddKey( const PdfName & identifier, const PdfObject* pObject );
+    void AddKey( const PdfName & identifier, const PdfObject* pObject );
 
     /** Get the keys value out of the dictionary.
      *
@@ -125,7 +121,7 @@ class PdfDictionary : public PdfDataType {
      *  \param pDevice write the object to this device
      *  \returns ErrOk on success
      */
-    inline PdfError Write( PdfOutputDevice* pDevice ) const;
+    inline void Write( PdfOutputDevice* pDevice ) const;
 
     /** Write the complete dictionary to a file.
      *  \param pDevice write the object to this device
@@ -133,7 +129,7 @@ class PdfDictionary : public PdfDataType {
      *                 writing will stop right before this key!
      *  \returns ErrOk on success
      */
-    PdfError Write( PdfOutputDevice* pDevice, const PdfName & keyStop = PdfName::KeyNull ) const;
+    void Write( PdfOutputDevice* pDevice, const PdfName & keyStop = PdfName::KeyNull ) const;
 
     /** Get access to the internal map of keys.
      *  \returns all keys of this dictionary
@@ -159,7 +155,7 @@ const TKeyMap & PdfDictionary::GetKeys() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-PdfError PdfDictionary::Write( PdfOutputDevice* pDevice ) const
+void PdfDictionary::Write( PdfOutputDevice* pDevice ) const
 {
     return this->Write( pDevice, PdfName::KeyNull );
 }

@@ -33,7 +33,6 @@ void print_help()
 
 int main( int argc, char* argv[] )
 {
-  PdfError eCode;
   char*    pszInput;
   char*    pszOutput;
   int      nNum     = 0;
@@ -49,14 +48,15 @@ int main( int argc, char* argv[] )
   pszInput  = argv[1];
   pszOutput = argv[2];
 
-  eCode = extractor.Init( pszInput, pszOutput, &nNum );
-
-  if( !eCode.IsError() )
-  {
-      printf("Extracted %i images sucessfully from the PDF file.\n", nNum );
+  try {
+      extractor.Init( pszInput, pszOutput, &nNum );
+  } catch( PdfError & e ) {
+      fprintf( stderr, "Error: An error %i ocurred during processing the pdf file.\n", e.Error() );
+      e.PrintErrorMsg();
+      return e.Error();
   }
-  else
-      fprintf( stderr, "Error: An error %i ocurred during processing the pdf file.\n", eCode.Error() );
+
+  printf("Extracted %i images sucessfully from the PDF file.\n", nNum );
   
-  return eCode.Error();
+  return 0;
 }

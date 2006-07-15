@@ -56,9 +56,8 @@ PdfString::~PdfString()
     free( m_pszData );
 }
 
-PdfError PdfString::SetHexData( const char* pszHex, long lLen )
+void PdfString::SetHexData( const char* pszHex, long lLen )
 {
-    PdfError eCode;
 
     if( !pszHex ) 
     {
@@ -81,17 +80,11 @@ PdfError PdfString::SetHexData( const char* pszHex, long lLen )
         memcpy( m_pszData, pszHex, lLen );
 
     m_pszData[m_lLen-1] = '\0';
-
-    return eCode;
 }
 
-PdfError PdfString::Write ( PdfOutputDevice* pDevice ) const
+void PdfString::Write ( PdfOutputDevice* pDevice ) const
 {
-    PdfError eCode;
-    
-    SAFE_OP( pDevice->Print( m_bHex ? "<%s>" : "(%s)", m_pszData ) );
-
-    return eCode;
+    pDevice->Print( m_bHex ? "<%s>" : "(%s)", m_pszData );
 }
 
 const PdfString & PdfString::operator=( const PdfString & rhs )
@@ -140,18 +133,10 @@ void PdfString::Init( const char* pszString, long lLen )
         {
             pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
             if( pFilter ) 
-            {
-                eCode = pFilter->Encode( pszString, lLen, &m_pszData, &m_lLen );
-            }
+                pFilter->Encode( pszString, lLen, &m_pszData, &m_lLen );
             else
             {
-                eCode = ePdfError_UnsupportedFilter;
-            }
-
-            if( eCode.IsError() )
-            {
-                eCode.PrintErrorMsg();
-                return;
+                RAISE_ERROR( ePdfError_UnsupportedFilter );
             }
         }
         else

@@ -41,10 +41,8 @@ void print_help()
   printf("Usage: podofotxt2pdf [inputfile] [outputfile]\n\n");
 }
 
-PdfError draw( char* pszBuffer, PdfSimpleWriter* pWriter )
+void draw( char* pszBuffer, PdfSimpleWriter* pWriter )
 {
-    PdfError eCode;
-
     PdfPage*        pPage;
     PdfPainter      painter;
     PdfFont*        pFont;
@@ -89,13 +87,10 @@ PdfError draw( char* pszBuffer, PdfSimpleWriter* pWriter )
         else
             ++pszBuffer;
     }
-
-    return eCode;
 }
 
-PdfError init( const char* pszInput, const char* pszOutput )
+void init( const char* pszInput, const char* pszOutput )
 {
-    PdfError eCode;
     FILE*   hFile;
 
     PdfSimpleWriter writer;
@@ -109,7 +104,7 @@ PdfError init( const char* pszInput, const char* pszOutput )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    SAFE_OP( writer.Init() );
+    writer.Init();
 
     fseek( hFile, 0x00, SEEK_END );
     lSize  = ftell( hFile );
@@ -133,16 +128,14 @@ PdfError init( const char* pszInput, const char* pszOutput )
 
     fclose( hFile );
 
-    SAFE_OP( draw( pszBuf, &writer ) );
-    SAFE_OP( writer.Write( pszOutput ) );
+    draw( pszBuf, &writer );
+    writer.Write( pszOutput );
 
     free( pszBuf );
-    return eCode;
 }
 
 int main( int argc, char* argv[] )
 {
-  PdfError eCode;
   char*   pszInput;
   char*   pszOutput;
 
@@ -155,10 +148,14 @@ int main( int argc, char* argv[] )
   pszInput  = argv[1];
   pszOutput = argv[2];
 
-  eCode = init( pszInput, pszOutput );
-  if( eCode.IsError() )
-      fprintf( stderr, "Error %i occurred!\n", eCode.Error() );
+  try {
+      init( pszInput, pszOutput );
+  } catch( PdfError & e ) {
+      fprintf( stderr, "Error %i occurred!\n", e.Error() );
+      e.PrintErrorMsg();
+      return e.Error();
+  }
 
-  return eCode.Error();
+  return 0;
 }
 

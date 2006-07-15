@@ -40,19 +40,19 @@ class PdfRect {
 
     /** Create a rectangle with a given size and position
      *  All values are in PDF units
-	 *	NOTE: since PDF is bottom-left origined, we pass the bottom instead of the top
+     *	NOTE: since PDF is bottom-left origined, we pass the bottom instead of the top
      */
     PdfRect( double left, double bottom, double width, double height );
-
-   /** Create a rectangle from an array
+    
+    /** Create a rectangle from an array
      *  All values are in PDF units
      */
     PdfRect( PdfArray& inArray );
-
+    
     /** Copy constructor 
      */
     PdfRect( const PdfRect & rhs );
-
+    
     /** Converts the rectangle into an array
      *  based on PDF units and adds the array into an variant.
      *  \param var the variant to store the Rect
@@ -60,10 +60,10 @@ class PdfRect {
      */
     void ToVariant( PdfVariant & var, PdfPage* pPage = NULL ) const;
 
-	/** Returns a string representation of the PdfRect
-	 * \returns std::string representation as [ left bottom right top ]
-	 */
-	std::string PdfRect::ToString() const;
+    /** Returns a string representation of the PdfRect
+     * \returns std::string representation as [ left bottom right top ]
+     */
+    std::string PdfRect::ToString() const;
 
     /** Assigns the values of this PdfRect from the 4 values in the array
      *  \param inArray the array to load the values from
@@ -114,7 +114,7 @@ class PdfRect {
 
  private:
     double m_lLeft;
-	double m_lBottom;
+    double m_lBottom;
     double m_lWidth;
     double m_lHeight;
 };

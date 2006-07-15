@@ -107,7 +107,7 @@ typedef enum ELogSeverity {
  *  and return the eCode. Additionally additional information on the error y is set. y has 
  *  to be an c-string.
  */
-#define RAISE_ERROR_INFO( x, y ) PdfError exc_eCode; PdfError exc_eCode.SetError( x, __FILE__, __LINE__, y ); throw exc_eCode;
+#define RAISE_ERROR_INFO( x, y ) PdfError exc_eCode; exc_eCode.SetError( x, __FILE__, __LINE__, y ); throw exc_eCode;
 
 class PdfErrorInfo {
  public:

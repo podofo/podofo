@@ -51,9 +51,8 @@ PdfPage::~PdfPage()
 
 }
 
-PdfError PdfPage::Init( const TSize & tSize, PdfVecObjects* pParent )
+void PdfPage::Init( const TSize & tSize, PdfVecObjects* pParent )
 {
-    PdfError   eCode;
     PdfVariant rect;
 
     m_pContents = pParent->CreateObject();
@@ -64,8 +63,6 @@ PdfError PdfPage::Init( const TSize & tSize, PdfVecObjects* pParent )
 
     m_pObject->GetDictionary().AddKey( "MediaBox", rect );
     m_pObject->GetDictionary().AddKey( PdfName::KeyContents, m_pContents->Reference() );
-
-    return eCode;
 }
 
 TSize PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize )
@@ -84,16 +81,16 @@ TSize PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize )
             tSize.lHeight = 792;
             break;
             
-		case ePdfPageSize_Legal:
-			tSize.lWidth  = 612;
-			tSize.lHeight = 1008;
-			break;
-
-		case ePdfPageSize_A3:
-			tSize.lWidth  = 842;
-			tSize.lHeight = 1190;
-			break;
-
+        case ePdfPageSize_Legal:
+            tSize.lWidth  = 612;
+            tSize.lHeight = 1008;
+            break;
+            
+        case ePdfPageSize_A3:
+            tSize.lWidth  = 842;
+            tSize.lHeight = 1190;
+            break;
+            
         default:
             tSize.lWidth = tSize.lHeight = 0;
             break;

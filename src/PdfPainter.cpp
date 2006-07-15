@@ -57,10 +57,8 @@ void PdfPainter::SetPage( PdfCanvas* pPage )
     m_pPage   = pPage;
 }
 
-PdfError PdfPainter::SetStrokingGray( double g )
+void PdfPainter::SetStrokingGray( double g )
 {
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -73,14 +71,10 @@ PdfError PdfPainter::SetStrokingGray( double g )
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%f G\n", g );
     m_pCanvas->Append( m_szBuffer );
-
-    return eCode;
 }
 
-PdfError PdfPainter::SetGray( double g )
+void PdfPainter::SetGray( double g )
 {
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -96,14 +90,10 @@ PdfError PdfPainter::SetGray( double g )
 
     m_curColor1      = g;
     m_eCurColorSpace = ePdfColorSpace_DeviceGray;
-
-    return eCode;
 }
 
-PdfError PdfPainter::SetStrokingColor( double r, double g, double b )
+void PdfPainter::SetStrokingColor( double r, double g, double b )
 {
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -126,14 +116,10 @@ PdfError PdfPainter::SetStrokingColor( double r, double g, double b )
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%f %f %f RG\n", r, g, b );
     m_pCanvas->Append( m_szBuffer );
-
-    return eCode;
 }
 
-PdfError PdfPainter::SetColor( double r, double g, double b )
+void PdfPainter::SetColor( double r, double g, double b )
 {
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -161,14 +147,10 @@ PdfError PdfPainter::SetColor( double r, double g, double b )
     m_curColor2      = g;
     m_curColor3      = b;
     m_eCurColorSpace = ePdfColorSpace_DeviceRGB;
-
-    return eCode;
 }
 
-PdfError PdfPainter::SetStrokingColorCMYK( double c, double m, double y, double k )
+void PdfPainter::SetStrokingColorCMYK( double c, double m, double y, double k )
 {
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -196,14 +178,10 @@ PdfError PdfPainter::SetStrokingColorCMYK( double c, double m, double y, double 
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%f %f %f %f K\n", c, m, y, k );
     m_pCanvas->Append( m_szBuffer );
-
-    return eCode;
 }
 
-PdfError PdfPainter::SetColorCMYK( double c, double m, double y, double k )
+void PdfPainter::SetColorCMYK( double c, double m, double y, double k )
 {
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -237,14 +215,10 @@ PdfError PdfPainter::SetColorCMYK( double c, double m, double y, double k )
     m_curColor3      = y;
     m_curColor4      = k;
     m_eCurColorSpace = ePdfColorSpace_DeviceCMYK;
-
-    return eCode;
 }
 
-PdfError PdfPainter::SetStrokeWidth( long lWidth )
+void PdfPainter::SetStrokeWidth( long lWidth )
 {
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -253,13 +227,10 @@ PdfError PdfPainter::SetStrokeWidth( long lWidth )
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f w\n", 
               (double)lWidth * CONVERSION_CONSTANT );
     m_pCanvas->Append( m_szBuffer );
-
-    return eCode;
 }
 
-PdfError PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom )
+void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom )
 {
-    PdfError    eCode;
     const char* pszCurStroke = NULL;
 
     if( !m_pCanvas )
@@ -301,14 +272,10 @@ PdfError PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCust
     
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%s d\n", pszCurStroke );
     m_pCanvas->Append( m_szBuffer );
-    
-    return eCode;
 }
 
-PdfError PdfPainter::SetLineCapStyle( EPdfLineCapStyle eCapStyle )
+void PdfPainter::SetLineCapStyle( EPdfLineCapStyle eCapStyle )
 {
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -316,15 +283,10 @@ PdfError PdfPainter::SetLineCapStyle( EPdfLineCapStyle eCapStyle )
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%i J\n", (int)eCapStyle );
     m_pCanvas->Append( m_szBuffer );
-
-    
-    return eCode;
 }
 
-PdfError PdfPainter::SetLineJoinStyle( EPdfLineJoinStyle eJoinStyle )
+void PdfPainter::SetLineJoinStyle( EPdfLineJoinStyle eJoinStyle )
 {
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -332,29 +294,20 @@ PdfError PdfPainter::SetLineJoinStyle( EPdfLineJoinStyle eJoinStyle )
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%i j\n", (int)eJoinStyle );
     m_pCanvas->Append( m_szBuffer );
-
-    
-    return eCode;
 }
 
-PdfError PdfPainter::SetFont( PdfFont* pFont )
+void PdfPainter::SetFont( PdfFont* pFont )
 {
-    PdfError eCode;
-
     if( !m_pCanvas || !pFont )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_pFont = pFont;
-
-    return eCode;
 }
 
-PdfError PdfPainter::DrawLine( long lStartX, long lStartY, long lEndX, long lEndY )
+void PdfPainter::DrawLine( long lStartX, long lStartY, long lEndX, long lEndY )
 {
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -366,14 +319,10 @@ PdfError PdfPainter::DrawLine( long lStartX, long lStartY, long lEndX, long lEnd
               (double)lEndX * CONVERSION_CONSTANT,
               (double)(m_pPage->PageSize().lHeight - lEndY) * CONVERSION_CONSTANT );
     m_pCanvas->Append( m_szBuffer );
-
-    return eCode;
 }
 
-PdfError PdfPainter::DrawRect( long lX, long lY, long lWidth, long lHeight )
+void PdfPainter::DrawRect( long lX, long lY, long lWidth, long lHeight )
 { 
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -387,14 +336,10 @@ PdfError PdfPainter::DrawRect( long lX, long lY, long lWidth, long lHeight )
               (double)lWidth * CONVERSION_CONSTANT,
               (double)lHeight * CONVERSION_CONSTANT );
     m_pCanvas->Append( m_szBuffer );
-    
-    return eCode;
 }
 
-PdfError PdfPainter::FillRect( long lX, long lY, long lWidth, long lHeight )
+void PdfPainter::FillRect( long lX, long lY, long lWidth, long lHeight )
 {
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -408,14 +353,10 @@ PdfError PdfPainter::FillRect( long lX, long lY, long lWidth, long lHeight )
               (double)lWidth * CONVERSION_CONSTANT,
              (double)lHeight * CONVERSION_CONSTANT );
     m_pCanvas->Append( m_szBuffer );
-
-    return eCode;
 }
 
-PdfError PdfPainter::DrawEllipse( long lX, long lY, long lWidth, long lHeight )
+void PdfPainter::DrawEllipse( long lX, long lY, long lWidth, long lHeight )
 {
-    PdfError eCode;
-
     long lPointX[BEZIER_POINTS];
     long lPointY[BEZIER_POINTS];
     int  i;
@@ -449,14 +390,10 @@ PdfError PdfPainter::DrawEllipse( long lX, long lY, long lWidth, long lHeight )
         m_pCanvas->Append( m_szBuffer );
     }
     m_pCanvas->Append( "s\n" );
-
-    return eCode;
 }
 
-PdfError PdfPainter::FillEllipse( long lX, long lY, long lWidth, long lHeight )
+void PdfPainter::FillEllipse( long lX, long lY, long lWidth, long lHeight )
 {
-    PdfError eCode;
-
     long lPointX[BEZIER_POINTS];
     long lPointY[BEZIER_POINTS];
     int  i;
@@ -490,31 +427,26 @@ PdfError PdfPainter::FillEllipse( long lX, long lY, long lWidth, long lHeight )
         m_pCanvas->Append( m_szBuffer );
     }
     m_pCanvas->Append( "f\n" );
-
-    return eCode;
 }
 
-PdfError PdfPainter::DrawText( long lX, long lY, const PdfString & sText )
+void PdfPainter::DrawText( long lX, long lY, const PdfString & sText )
 {
-    PdfError eCode;
-
     if( !m_pFont || !m_pCanvas || !m_pPage || !sText.IsValid() )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    return this->DrawText( lX, lY, sText, sText.Length() );
+    this->DrawText( lX, lY, sText, sText.Length() );
 }
 
-PdfError PdfPainter::DrawText( long lX, long lY, const PdfString & sText, long lStringLen )
+void PdfPainter::DrawText( long lX, long lY, const PdfString & sText, long lStringLen )
 {
-    PdfError eCode;
-    int      nTabCnt = 0;
-    int      i,z;
-    char*    pszTab;
-    char*    pBuffer;
+    int         nTabCnt = 0;
+    int         i,z;
+    char*       pszTab;
+    char*       pBuffer;
     const char* pszText;
-    long     lLen;
+    long        lLen;
 
     if( !m_pFont || !m_pCanvas || !m_pPage || !sText.IsValid() )
     {
@@ -562,24 +494,24 @@ PdfError PdfPainter::DrawText( long lX, long lY, const PdfString & sText, long l
         // so this cast is ok
         pszTab = const_cast<char*>(sText.String());
 
-    SAFE_OP( this->AddToPageResources( m_pFont->Identifier(), m_pFont->Reference(), PdfName("Font") ) );
+    this->AddToPageResources( m_pFont->Identifier(), m_pFont->Reference(), PdfName("Font") );
 
     if( m_pFont->IsUnderlined() )
     {
-        SAFE_OP( this->Save() );
-        SAFE_OP( this->SetCurrentStrokingColor() );
-        SAFE_OP( this->SetStrokeWidth( m_pFont->FontMetrics()->UnderlineThickness() ) );
-        SAFE_OP( this->DrawLine( lX, 
-                                 lY - m_pFont->FontMetrics()->UnderlinePosition(), 
-                                 lX + m_pFont->FontMetrics()->StringWidth( pszTab ),
-                                 lY - m_pFont->FontMetrics()->UnderlinePosition() ) );
-        SAFE_OP( this->Restore() );
+        this->Save();
+        this->SetCurrentStrokingColor();
+        this->SetStrokeWidth( m_pFont->FontMetrics()->UnderlineThickness() );
+        this->DrawLine( lX, 
+                        lY - m_pFont->FontMetrics()->UnderlinePosition(), 
+                        lX + m_pFont->FontMetrics()->StringWidth( pszTab ),
+                        lY - m_pFont->FontMetrics()->UnderlinePosition() );
+        this->Restore();
     }
 
     if( !sText.IsHex() )
     {
         const PdfFilter* pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
-        SAFE_OP( pFilter->Encode( pszTab, lStringLen, &pBuffer, &lLen ) );
+        pFilter->Encode( pszTab, lStringLen, &pBuffer, &lLen );
     }
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "BT\n/%s %.3f Tf\n%.3f %.3f Td\n<", 
@@ -601,25 +533,16 @@ PdfError PdfPainter::DrawText( long lX, long lY, const PdfString & sText, long l
 
     if( nTabCnt )
         free( pszTab );
-
-    return eCode;
 }
 
-PdfError PdfPainter::DrawImage( long lX, long lY, PdfImageRef* pImageRef, double dScaleX, double dScaleY )
+void PdfPainter::DrawXObject( long lX, long lY, PdfImageRef* pImageRef, double dScaleX, double dScaleY )
 {
-    return DrawXObject( lX, lY, pImageRef, dScaleX, dScaleY );
-}
-
-PdfError PdfPainter::DrawXObject( long lX, long lY, PdfImageRef* pImageRef, double dScaleX, double dScaleY )
-{
-    PdfError eCode;
-
     if( !pImageRef )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    SAFE_OP( this->AddToPageResources( pImageRef->Identifier(), pImageRef->Reference(), "XObject" ) );
+    this->AddToPageResources( pImageRef->Identifier(), pImageRef->Reference(), "XObject" );
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "q\n%.3f 0 0 %.3f %.3f %.3f cm\n/%s Do\nQ\n",
               (double)pImageRef->Width() * dScaleX,
@@ -628,28 +551,20 @@ PdfError PdfPainter::DrawXObject( long lX, long lY, PdfImageRef* pImageRef, doub
               (double)(m_pPage->PageSize().lHeight - lY) * CONVERSION_CONSTANT,
               pImageRef->Identifier().Name().c_str() );
     m_pCanvas->Append( m_szBuffer );
-
-    return eCode;
 }
 
-PdfError PdfPainter::ClosePath()
+void PdfPainter::ClosePath()
 {
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_pCanvas->Append( "h\n" );
-
-    return eCode;
 }
 
-PdfError PdfPainter::LineTo( long  lX, long lY )
+void PdfPainter::LineTo( long  lX, long lY )
 {
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -659,14 +574,10 @@ PdfError PdfPainter::LineTo( long  lX, long lY )
               (double)lX * CONVERSION_CONSTANT,
               (double)(m_pPage->PageSize().lHeight - lY) * CONVERSION_CONSTANT );
     m_pCanvas->Append( m_szBuffer );
-  
-    return eCode;
 }
 
-PdfError PdfPainter::MoveTo( long  lX, long lY )
+void PdfPainter::MoveTo( long  lX, long lY )
 {
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -676,70 +587,50 @@ PdfError PdfPainter::MoveTo( long  lX, long lY )
               (double)lX * CONVERSION_CONSTANT,
               (double)(m_pPage->PageSize().lHeight - lY) * CONVERSION_CONSTANT );
     m_pCanvas->Append( m_szBuffer );
-  
-    return eCode;
 }
 
-PdfError PdfPainter::Stroke()
+void PdfPainter::Stroke()
 {
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
     m_pCanvas->Append( "S\n" );
-  
-    return eCode;
 }
 
-PdfError PdfPainter::Fill()
+void PdfPainter::Fill()
 {
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
     m_pCanvas->Append( "f\n" );
-  
-    return eCode;
 }
 
-PdfError PdfPainter::Save()
+void PdfPainter::Save()
 {
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_pCanvas->Append( "q\n" );
-  
-    return eCode;
 }
 
-PdfError PdfPainter::Restore()
+void PdfPainter::Restore()
 {
-    PdfError eCode;
-
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_pCanvas->Append( "q\n" );
-  
-    return eCode;
 }
 
-PdfError PdfPainter::AddToPageResources( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName )
+void PdfPainter::AddToPageResources( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName )
 {
-    PdfError      eCode;
-
     if( !m_pPage || !rName.Length() || !rIdentifier.Length() )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -759,8 +650,6 @@ PdfError PdfPainter::AddToPageResources( const PdfName & rIdentifier, const PdfR
 
     if( !pResource->GetDictionary().GetKey( rName )->GetDictionary().HasKey( rIdentifier ) )
         pResource->GetDictionary().GetKey( rName )->GetDictionary().AddKey( rIdentifier, rRef );
-
-    return eCode;
 }
 
 void PdfPainter::ConvertRectToBezier( long lX, long lY, long lWidth, long lHeight, long plPointX[], long plPointY[] )
@@ -807,36 +696,25 @@ void PdfPainter::ConvertRectToBezier( long lX, long lY, long lWidth, long lHeigh
     plPointY[6]  = lCenterY;
 }
 
-PdfError PdfPainter::SetCurrentStrokingColor()
+void PdfPainter::SetCurrentStrokingColor()
 {
-    PdfError eCode;
-    
     switch( m_eCurColorSpace )
     {
         case ePdfColorSpace_DeviceGray:
-        {
-            SAFE_OP( this->SetStrokingGray( m_curColor1 ) );
-        }
+            this->SetStrokingGray( m_curColor1 );
         break;
         case ePdfColorSpace_DeviceRGB:
-        {
-            SAFE_OP( this->SetStrokingColor( m_curColor1, m_curColor2, m_curColor3 ) );
-        }
+            this->SetStrokingColor( m_curColor1, m_curColor2, m_curColor3 );
         break;
         case ePdfColorSpace_DeviceCMYK:
-        {
-            SAFE_OP( this->SetStrokingColorCMYK( m_curColor1, m_curColor2, m_curColor3, m_curColor4 ) );
-        }
+            this->SetStrokingColorCMYK( m_curColor1, m_curColor2, m_curColor3, m_curColor4 );
         break;
         default:
         {
-            eCode = ePdfError_InvalidDataType;
-            eCode.SetErrorInformation( "The color space for the current text drawing operation is invalid. Please set a correct color."  );           
+            RAISE_ERROR_INFO( ePdfError_InvalidDataType, "The color space for the current text drawing operation is invalid. Please set a correct color."  ); 
         }
         break;
     }
-    
-    return eCode;
 }
 
 };

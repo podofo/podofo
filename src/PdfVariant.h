@@ -113,7 +113,7 @@ class PdfVariant {
      *              parsed is returned in this parameter
      *  \returns ErrOk on success
      */
-    PdfError Parse( const char* pszData, int nLen = 0, long* pLen = NULL );
+    void Parse( const char* pszData, int nLen = 0, long* pLen = NULL );
 
     /** \returns true if this PdfVariant is empty.
      *           i.e. m_eDataType == ePdfDataType_Null
@@ -179,25 +179,22 @@ class PdfVariant {
      *  This is an overloaded member function.
      *
      *  \param pDevice write the object to this device
-     *  \returns ErrOk on success
      */
-    PdfError Write( PdfOutputDevice* pDevice ) const;
+    void Write( PdfOutputDevice* pDevice ) const;
 
     /** Write the complete variant to an output device.
      *  \param pDevice write the object to this device
      *  \param keyStop if not KeyNull and a key == keyStop is found
      *                 writing will stop right before this key!
      *                 if IsDictionary returns true.
-     *  \returns ErrOk on success
      */
-    virtual PdfError Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) const;
+    virtual void Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) const;
 
     /** Converts the current object into a string representation
      *  which can be written directly to a PDF file on disc.
      *  \param rsData the object string is returned in this object.
-     *  \returns ErrOk on success
      */
-    PdfError ToString( std::string & rsData ) const;
+    void ToString( std::string & rsData ) const;
 
     /** Get the value if this object is a bool.
      *  \returns the bool value.
@@ -262,10 +259,10 @@ class PdfVariant {
      *
      *  \returns ErrOk on sucess
      */
-    inline virtual PdfError DelayedLoad() const { return PdfError(); };
+    inline virtual void DelayedLoad() const {};
 
  private:
-    PdfError GetDataType( const char* pszData, long nLen, EPdfDataType* eDataType, long* pLen = NULL );
+    void GetDataType( const char* pszData, long nLen, EPdfDataType* eDataType, long* pLen = NULL );
 
  private:
     /** To reduce memory usage of this very often used class,

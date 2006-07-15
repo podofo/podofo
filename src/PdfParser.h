@@ -62,9 +62,8 @@ class PdfParser : public PdfParserBase {
      *                       If false all objects will be read immediately.
      *                       This is faster if you do not need the complete PDF 
      *                       file in memory.
-     *  \returns ErrOk on success
      */
-    PdfError Init( const char* pszFilename, bool bLoadOnDemand = true );
+    void Init( const char* pszFilename, bool bLoadOnDemand = true );
 
     /** Get a reference to the sorted internal objects vector.
      *  \returns the internal objects vector.
@@ -106,31 +105,28 @@ class PdfParser : public PdfParserBase {
      *  in the correct order in the memory
      *  and takes care for linearized pdf files.
      */
-    PdfError ReadDocumentStructure();
+    void ReadDocumentStructure();
 
     /** Checks wether this pdf is linearized or not.
      *  Initializes the linearization directory on sucess.
-     *  \returns ErrOk on success
      */
-    PdfError HasLinearizationDict();
+    void HasLinearizationDict();
 
     /** Merge the information of this trailer object
      *  in the parsers main trailer object.
      *  \param pTrailer take the keys to merge from this dictionary.
-     *  \returns ErrOk on success
      */
-    PdfError MergeTrailer( const PdfObject* pTrailer );
+    void MergeTrailer( const PdfObject* pTrailer );
 
     /** Read the trailer directory at the end of the file.
      */
-    PdfError ReadTrailer();
+    void ReadTrailer();
 
     /** Looks for a startxref entry at the current file position
      *  and saves its byteoffset to pXRefOffset.
      *  \param pXRefOffset store the byte offset of the xref section into this variable.
-     *  \returns ErrOk on sucess.
      */
-    PdfError ReadXRef( long* pXRefOffset );
+    void ReadXRef( long* pXRefOffset );
 
     /** Reads the xref table from a pdf file.
      *  If there is no xref table, ReadXRefStreamContents() is called.
@@ -139,33 +135,28 @@ class PdfParser : public PdfParserBase {
      *                        file stream is positioned directly 
      *                        after the table, which allows reading
      *                        a following trailer dictionary.
-     *  \returns ErrOk on success
      */
-    PdfError ReadXRefContents( long lOffset, bool bPositionAtEnd = false );
+    void ReadXRefContents( long lOffset, bool bPositionAtEnd = false );
 
     /** Read a xref subsection
      *  \param nFirstObject object number of the first object
      *  \param nNumObjects  how many objects should be read from this section
-     *  \returns ErrOk on success
      */
-    PdfError ReadXRefSubsection( long & nFirstObject, long & nNumObjects );
+    void ReadXRefSubsection( long & nFirstObject, long & nNumObjects );
 
     /** Reads a xref stream contens object
      *  \param lOffset read the stream from this offset
      *  \param bReadOnlyTrailer only the trailer is skipped over, the contents
      *         of the xref stream are not parsed
-     *  \returns ErrOk on success
      */
-    PdfError ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer );
+    void ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer );
 
-    PdfError ReadXRefStreamEntry( char* pBuffer, long lLen, long lW[W_ARRAY_SIZE], int nObjNo );
+    void ReadXRefStreamEntry( char* pBuffer, long lLen, long lW[W_ARRAY_SIZE], int nObjNo );
 
     /** Reads all objects from the pdf into memory
      *  from the offsets listed in m_vecOffsets.
-     *
-     *  \returns ErrOk on success
      */
-    PdfError ReadObjects();
+    void ReadObjects();
 
     /** Read the object with index nIndex from the object stream nObjNo
      *  and push it on the objects vector m_vecOffsets.
@@ -173,9 +164,8 @@ class PdfParser : public PdfParserBase {
      *  \param nObjNo object number of the stream object
      *  \param nIndex index of the object which should be parsed
      *
-     *  \returns ErrOk on success
      */
-    PdfError ReadObjectFromStream( int nObjNo, int nIndex );
+    void ReadObjectFromStream( int nObjNo, int nIndex );
 
     /** Checks the magic number at the start of the pdf file
      *  and sets the m_ePdfVersion member to the correct version
@@ -185,7 +175,7 @@ class PdfParser : public PdfParserBase {
      */
     bool    IsPdfFile();
 
-    PdfError ReadNextTrailer();
+    void ReadNextTrailer();
 
  private:
     /** Free all internal data structures
@@ -201,7 +191,7 @@ class PdfParser : public PdfParserBase {
     long         m_nFirstObject;
     long         m_nNumObjects;
     long         m_nXRefLinearizedOffset;
-	size_t       m_nFileSize;
+    size_t       m_nFileSize;
 
     TXRefEntry** m_ppOffsets;
     TVecObjects  m_vecObjects;

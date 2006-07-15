@@ -287,43 +287,6 @@ static const char s_cDelimiters[] = {
  */
 #define PDF_MIN(x,y) (x<y?x:y)
 
-/**
- * \def SAFE_OP_ADV( x, msg ) 
- *
- * Execute the function x and assign the returned PdfError
- * to a variable named eCode ( The variable has to exist 
- * already!). If eCode.IsError() returns true, msg (which 
- * has to be a c-string) is set as additional information 
- * of the error object and the function returns the eCode
- * (the function using this macro has to have a return type
- * of PdfError).
- *
- */
-#define SAFE_OP_ADV( x, msg ) eCode = x;\
-                              if( eCode.IsError() ) {\
-                                eCode.AddToCallstack( __FILE__, __LINE__, msg ); \
-                                return eCode;\
-                               }
-
-/**
- * \def SAFE_OP( x ) 
- *
- * Execute the function x and assign the returned PdfError
- * to a variable named eCode ( The variable has to exist 
- * already!). If eCode.IsError() is true, the function returns 
- * the eCode (the function using this macro has to have a return 
- * type of PdfError).
- *
- */
-/*
-#define SAFE_OP( x ) eCode = x;\
-                     if( eCode.IsError() ) {\
-                       eCode.AddToCallstack( __FILE__, __LINE__, NULL ); \
-                       return eCode;\
-                     }
-*/
-#define SAFE_OP( x ) try { x; } catch( PdfError & e ) { e.AddToCallstack( __FILE__, __LINE__, NULL ); throw e; }
-
 /*
 	This is needed to enable compilation with VC++ on Windows
 */

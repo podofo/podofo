@@ -49,10 +49,8 @@ PdfXObject::PdfXObject( unsigned int nObjectNo, unsigned int nGenerationNo )
     m_size.lHeight = 0;
 }
 
-PdfError PdfXObject::Init( const PdfRect & rRect )
+void PdfXObject::Init( const PdfRect & rRect )
 {
-    PdfError   eCode;
-
     PdfVariant var;
     rRect.ToVariant( var );
     this->GetDictionary().AddKey( "BBox", var );
@@ -72,8 +70,6 @@ PdfError PdfXObject::Init( const PdfRect & rRect )
 
     m_size.lWidth  = rRect.Width();
     m_size.lHeight = rRect.Height();
-
-    return eCode;
 }
 
 void PdfXObject::GetImageReference( PdfImageRef & rRef )

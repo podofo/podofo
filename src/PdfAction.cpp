@@ -30,9 +30,8 @@ PdfAction::PdfAction( unsigned int nObjectNo, unsigned int nGenerationNo )
 
 }
 
-PdfError PdfAction::Init( EPdfAction eAction )
+void PdfAction::Init( EPdfAction eAction )
 {
-    PdfError    eCode;
     const PdfName type = PdfName( ActionKey( eAction ) );
 
     if( !type.Length() )
@@ -41,8 +40,6 @@ PdfError PdfAction::Init( EPdfAction eAction )
     }
 
     this->GetDictionary().AddKey( "S", type );
-
-    return eCode;
 }
 
 const char* PdfAction::ActionKey( EPdfAction eAction )

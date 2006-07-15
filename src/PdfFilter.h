@@ -45,10 +45,8 @@ class PdfFilter {
      *  \param lInLen    length of the input buffer
      *  \param ppOutBuffer pointer to the buffer of the encoded data
      *  \param plOutLen pointer to the length of the output buffer
-     *
-     *  \returns ErrOk on success.
      */
-    virtual PdfError Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const = 0;
+    virtual void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const = 0;
 
     /** Decodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
@@ -61,10 +59,8 @@ class PdfFilter {
      *                      containing additional information to decode the data.
      *                      This pointer must be NULL if no decode parameter dictionary
      *                      is available.
-     *
-     *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const = 0;
+    virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const = 0;
 
     /** Type of this filter.
      *  \returns the type of this filter
@@ -103,10 +99,8 @@ class PdfHexFilter : public PdfFilter {
      *  \param lInLen    length of the input buffer
      *  \param ppOutBuffer pointer to the buffer of the encoded data
      *  \param plOutLen pointer to the length of the output buffer
-     *
-     *  \returns ErrOk on success.
      */
-    virtual PdfError Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
+    virtual void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
 
     /** Decodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
@@ -119,10 +113,8 @@ class PdfHexFilter : public PdfFilter {
      *                      containing additional information to decode the data.
      *                      This pointer must be NULL if no decode parameter dictionary
      *                      is available.
-     *
-     *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
+    virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
 
     /** Type of this filter.
      *  \returns the type of this filter
@@ -146,10 +138,8 @@ class PdfAscii85Filter : public PdfFilter {
      *  \param lInLen    length of the input buffer
      *  \param ppOutBuffer pointer to the buffer of the encoded data
      *  \param plOutLen pointer to the length of the output buffer
-     *
-     *  \returns ErrOk on success.
      */
-    virtual PdfError Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
+    virtual void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
 
     /** Decodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
@@ -162,10 +152,8 @@ class PdfAscii85Filter : public PdfFilter {
      *                      containing additional information to decode the data.
      *                      This pointer must be NULL if no decode parameter dictionary
      *                      is available.
-     *
-     *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
+    virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
 
     /** Type of this filter.
      *  \returns the type of this filter
@@ -173,8 +161,8 @@ class PdfAscii85Filter : public PdfFilter {
     inline virtual EPdfFilter type() const;
 
  private:
-    PdfError Encode ( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes ) const;
-    PdfError WidePut( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes ) const;
+    void Encode ( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes ) const;
+    void WidePut( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes ) const;
 
     static unsigned long sPowers85[];
 };
@@ -195,10 +183,8 @@ class PdfFlateFilter : public PdfFilter {
      *  \param lInLen    length of the input buffer
      *  \param ppOutBuffer pointer to the buffer of the encoded data
      *  \param plOutLen pointer to the length of the output buffer
-     *
-     *  \returns ErrOk on success.
      */
-    virtual PdfError Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
+    virtual void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
 
     /** Decodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
@@ -211,17 +197,15 @@ class PdfFlateFilter : public PdfFilter {
      *                      containing additional information to decode the data.
      *                      This pointer must be NULL if no decode parameter dictionary
      *                      is available.
-     *
-     *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
+    virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
 
     /** Type of this filter.
      *  \returns the type of this filter
      */
     inline virtual EPdfFilter type() const;
 
-    PdfError RevertPredictor( const TFlatePredictorParams* pParams, const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
+    void RevertPredictor( const TFlatePredictorParams* pParams, const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
 };
 
 EPdfFilter PdfFlateFilter::type() const
@@ -240,10 +224,8 @@ class PdfRLEFilter : public PdfFilter {
      *  \param lInLen    length of the input buffer
      *  \param ppOutBuffer pointer to the buffer of the encoded data
      *  \param plOutLen pointer to the length of the output buffer
-     *
-     *  \returns ErrOk on success.
      */
-    virtual PdfError Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
+    virtual void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
 
     /** Decodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
@@ -256,10 +238,8 @@ class PdfRLEFilter : public PdfFilter {
      *                      containing additional information to decode the data.
      *                      This pointer must be NULL if no decode parameter dictionary
      *                      is available.
-     *
-     *  \returns ErrOk on success.
      */
-    virtual PdfError Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
+    virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
 
     /** Type of this filter.
      *  \returns the type of this filter

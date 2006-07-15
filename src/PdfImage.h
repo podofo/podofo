@@ -183,9 +183,8 @@ class PdfImage : public PdfObject {
 
     /** Load the image data from a JPEG file
      *  \param pszFilename
-     *  \returns ErrOk on success.
      */
-    PdfError LoadFromFile( const char* pszFilename );
+    void LoadFromFile( const char* pszFilename );
 
     /** Get an image reference object to this image.
      *  You can pass this image reference object to the

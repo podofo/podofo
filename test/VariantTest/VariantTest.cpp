@@ -25,15 +25,14 @@
 
 using namespace PoDoFo;
 
-PdfError Test( const char* pszString, EPdfDataType eDataType )
+void Test( const char* pszString, EPdfDataType eDataType )
 {
-    PdfError    eCode;
     PdfVariant  variant;
     std::string ret;
     long lLen           = 0;
 
     printf("Testing with value: %s\n", pszString );
-    SAFE_OP( variant.Parse( pszString, strlen( pszString ), &lLen ) );
+    variant.Parse( pszString, strlen( pszString ), &lLen );
 
     printf("   -> Expected Datatype: %i\n", eDataType );
     printf("   -> Got      Datatype: %i\n", variant.GetDataType() );
@@ -42,7 +41,7 @@ PdfError Test( const char* pszString, EPdfDataType eDataType )
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    SAFE_OP( variant.ToString( ret ) );
+    variant.ToString( ret );
     printf("   -> Convert To String: %s\n", ret.c_str() );
     if( strcmp( pszString, ret.c_str() ) != 0 )
     {
@@ -54,8 +53,6 @@ PdfError Test( const char* pszString, EPdfDataType eDataType )
     {
         RAISE_ERROR( ePdfError_TestFailed );
     }
-
-    return eCode;
 }
 
 int main() 

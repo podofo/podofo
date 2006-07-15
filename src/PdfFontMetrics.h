@@ -45,9 +45,9 @@ class PdfFontMetrics {
    /** Create a font metrics object for a given memory buffer
      *  \param pLibrary handle to an initialized FreeType2 library handle
      *  \param pBuffer block of memory representing the font data
-	 *  \param nBufLen the length of the buffer
+     *  \param nBufLen the length of the buffer
      */
-	PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen );
+    PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen );
 
     virtual ~PdfFontMetrics();
 
@@ -56,17 +56,15 @@ class PdfFontMetrics {
      *  \param var the final width array is written to this PdfVariant
      *  \param nFirst first character to be in the array
      *  \param nLast last character code to be in the array
-     *  \returns ErrOk on sucess
      */
-    PdfError GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast ) const;
+    void GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast ) const;
 
     /** Create the bounding box array as required by the PDF reference
      *  so that it can be written directly to a PDF file.
      * 
      *  \param array write the bounding box to this array.
-     *  \returns ErrOk on success
      */
-    PdfError GetBoundingBox( PdfArray & array ) const;
+    void GetBoundingBox( PdfArray & array ) const;
 
     /** Retrieve the width of a given text string in 1/1000th mm when
      *  drawn with the current font

@@ -77,20 +77,14 @@ bool PdfParserBase::IsWhitespace( const char c )
     return false;
 }
 
-PdfError PdfParserBase::GetNextNumberFromFile( long* plNumber )
+long PdfParserBase::GetNextNumberFromFile()
 {
-    PdfError eCode;
-
-    int c; 
-    int counter = 0;
+    long  l;
+    int   c; 
+    int   counter = 0;
     char* end;
 
     if( !m_hFile )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    if( !plNumber )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -115,19 +109,17 @@ PdfError PdfParserBase::GetNextNumberFromFile( long* plNumber )
         RAISE_ERROR( ePdfError_UnexpectedEOF );
     }
 
-    *plNumber = strtol( m_szBuffer, &end, 10 );
+    l = strtol( m_szBuffer, &end, 10 );
     if( end == m_szBuffer )
     {
         RAISE_ERROR( ePdfError_NoNumber );
     }
 
-    return eCode;
+    return l;
 }
 
-PdfError PdfParserBase::GetNextStringFromFile()
+const char* PdfParserBase::GetNextStringFromFile()
 {
-    PdfError eCode;
-
     int c; 
     int counter = 0;
 
@@ -160,7 +152,7 @@ PdfError PdfParserBase::GetNextStringFromFile()
         RAISE_ERROR( ePdfError_UnexpectedEOF );
     }
 
-    return eCode;
+    return m_szBuffer;
 }
 
 };

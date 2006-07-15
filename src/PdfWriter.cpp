@@ -63,22 +63,17 @@ void PdfWriter::Clear()
     m_bCompress    = true;
 }
 
-PdfError PdfWriter::Init()
+void PdfWriter::Init()
 {
-    PdfError eCode;
-
     // clear everything - so that calling Init twice will work
     Clear();
 
     m_pInfo     = m_vecObjects.CreateObject( NULL );
     m_pCatalog  = m_vecObjects.CreateObject( "Catalog" );
-
-    return eCode;
 }
 
-PdfError PdfWriter::Init( PdfParser* pParser )
+void PdfWriter::Init( PdfParser* pParser )
 {
-    PdfError         eCode;
     const PdfObject* pTrailer;
     const PdfObject* pObj;
 
@@ -108,8 +103,7 @@ PdfError PdfWriter::Init( PdfParser* pParser )
         m_pCatalog = m_vecObjects.GetObject( pObj->GetReference() );
         if( !m_pCatalog )
         {
-            PdfError::LogMessage( eLogSeverity_Error, "Error: No catalog dictionary found in the trailer.\n" );
-            eCode = ePdfError_InvalidHandle;
+            RAISE_ERROR_INFO( ePdfError_InvalidHandle, "No catalog dictionary found in the trailer." );
         }
 
         // see if there is an Info dict present - and if so, load it
@@ -128,18 +122,10 @@ PdfError PdfWriter::Init( PdfParser* pParser )
     // other PdfWriter and PdfParser
     // would delete the same objects
     pParser->m_vecObjects.clear();
-
-    if( eCode.IsError() )
-    {
-        RAISE_ERROR( eCode.Error() );
-    }
-
-    return eCode;
 }
 
-PdfError PdfWriter::Write( const char* pszFilename )
+void PdfWriter::Write( const char* pszFilename )
 {
-    PdfError        eCode;
     PdfOutputDevice device;
 
     if( !pszFilename )
@@ -147,16 +133,12 @@ PdfError PdfWriter::Write( const char* pszFilename )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    SAFE_OP( device.Init( pszFilename ) );
-    SAFE_OP( this->Write( &device ) );
-
-    return eCode;
+    device.Init( pszFilename );
+    this->Write( &device );
 }
 
-PdfError PdfWriter::Write( PdfOutputDevice* pDevice )
+void PdfWriter::Write( PdfOutputDevice* pDevice )
 {
-    PdfError eCode;
-
     // Start with an empty XRefTable
     m_vecXRef.clear();
 
@@ -165,42 +147,32 @@ PdfError PdfWriter::Write( PdfOutputDevice* pDevice )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    SAFE_OP( WritePdfHeader( pDevice ) );
-    SAFE_OP( WritePdfObjects( pDevice, m_vecObjects ) );
-    SAFE_OP( WritePdfTableOfContents( pDevice ) );
-
-    return eCode;
+    WritePdfHeader( pDevice );
+    WritePdfObjects( pDevice, m_vecObjects );
+    WritePdfTableOfContents( pDevice );
 }
 
-PdfError PdfWriter::WritePdfHeader( PdfOutputDevice* pDevice )
+void PdfWriter::WritePdfHeader( PdfOutputDevice* pDevice )
 {
-    PdfError eCode;
-    SAFE_OP( pDevice->Print( "%s\n%%%s", s_szPdfVersions[(int)m_eVersion], PDF_MAGIC ) );
-    return eCode;
+    pDevice->Print( "%s\n%%%s", s_szPdfVersions[(int)m_eVersion], PDF_MAGIC );
 }
 
-PdfError PdfWriter::CompressObjects( const TVecObjects& vecObjects ) 
+void PdfWriter::CompressObjects( const TVecObjects& vecObjects ) 
 {
-    PdfError      eCode;
     TCIVecObjects itObjects  = vecObjects.begin();
 
     while( itObjects != vecObjects.end() )
     {
         // make sure that all objects are FlateDecoded if compression is enabled
         if( m_bCompress )
-        {
-            SAFE_OP( (*itObjects)->FlateDecodeStream() );
-        }
+            (*itObjects)->FlateDecodeStream();
 
         ++itObjects;
     }
-
-    return eCode;
 }
 
-PdfError PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, bool bFillXRefOnly )
+void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, bool bFillXRefOnly )
 {
-    PdfError           eCode;
     TCIVecObjects      itObjects  = vecObjects.begin();
     TXRefEntry         tEntry; 
     unsigned int       nLast      = 0;
@@ -211,7 +183,7 @@ PdfError PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects
     tXRef .nFirst      = 0;
     tXRef .nCount      = 0;
 
-    SAFE_OP( this->CompressObjects( vecObjects ) );
+    this->CompressObjects( vecObjects );
 
     while( itObjects != vecObjects.end() )
     {
@@ -235,19 +207,14 @@ PdfError PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects
         nLast = (*itObjects)->ObjectNumber();
 
         if( !bFillXRefOnly )
-        {
-            SAFE_OP( (*itObjects)->WriteObject( pDevice ) );
-        }
+            (*itObjects)->WriteObject( pDevice );
 
         ++itObjects;
     }
-
-    return eCode;
 }
 
-PdfError PdfWriter::WriteXRefEntries( PdfOutputDevice* pDevice, const TVecOffsets & vecOffsets )
+void PdfWriter::WriteXRefEntries( PdfOutputDevice* pDevice, const TVecOffsets & vecOffsets )
 {
-    PdfError          eCode;
     TCIVecOffsets     itOffsets = vecOffsets.begin();
 
     if( !pDevice )
@@ -257,36 +224,33 @@ PdfError PdfWriter::WriteXRefEntries( PdfOutputDevice* pDevice, const TVecOffset
 
     while( itOffsets != vecOffsets.end() )
     {
-        SAFE_OP( pDevice->Print( "%0.10i %0.5i %c \n", (*itOffsets).lOffset, (*itOffsets).lGeneration, (*itOffsets).cUsed ) );
+        pDevice->Print( "%0.10i %0.5i %c \n", (*itOffsets).lOffset, (*itOffsets).lGeneration, (*itOffsets).cUsed );
         ++itOffsets;
     }
-
-    return eCode;
 }
 
-PdfError PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
+void PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
 {
-    PdfError          eCode;
     long              lXRef;
     unsigned int      nSize     = 0;
     TCIVecXRefTable   it;
 
     lXRef = pDevice->Length();
-    SAFE_OP( pDevice->Print( "xref\n" ) );
+    pDevice->Print( "xref\n" );
 
     it = m_vecXRef.begin();
     while( it != m_vecXRef.end() )
     {
         nSize = ( nSize > (*it).nFirst + (*it).nCount ? nSize : (*it).nFirst + (*it).nCount );
 
-        SAFE_OP( pDevice->Print( "%u %u\n", (*it).nFirst, (*it).nCount ) );
-        SAFE_OP( WriteXRefEntries( pDevice, (*it).vecOffsets ) );
+        pDevice->Print( "%u %u\n", (*it).nFirst, (*it).nCount );
+        WriteXRefEntries( pDevice, (*it).vecOffsets );
 
         ++it;
     }
 
     // write the trailer dictionary, see Reference manual: p. 73
-    SAFE_OP( pDevice->Print( "trailer\n<<\n/Size %u\n", nSize ) );
+    pDevice->Print( "trailer\n<<\n/Size %u\n", nSize );
 
     if( m_pParser )
     {
@@ -296,29 +260,29 @@ PdfError PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
         }
 
         // Prev is ignored as we write only one crossref section
-        SAFE_OP( pDevice->Print( "/Root " ) );
-        SAFE_OP( m_pParser->GetTrailer()->GetDictionary().GetKey( "Root" )->Write( pDevice ) );
-        SAFE_OP( pDevice->Print( "\n" ) );
+        pDevice->Print( "/Root " );
+        m_pParser->GetTrailer()->GetDictionary().GetKey( "Root" )->Write( pDevice );
+        pDevice->Print( "\n" );
 
         if( m_pParser->GetTrailer()->GetDictionary().HasKey( "Encrypt" ) )
         {
-            SAFE_OP( pDevice->Print( "/Encrypt " ) );
-            SAFE_OP( m_pParser->GetTrailer()->GetDictionary().GetKey( "Encrypt" )->Write( pDevice ) );
-            SAFE_OP( pDevice->Print( "\n" ) );
+            pDevice->Print( "/Encrypt " );
+            m_pParser->GetTrailer()->GetDictionary().GetKey( "Encrypt" )->Write( pDevice );
+            pDevice->Print( "\n" );
         }
 
         if( m_pParser->GetTrailer()->GetDictionary().HasKey( "Info" ) )
         {
-            SAFE_OP( pDevice->Print( "/Info " ) );
-            SAFE_OP( m_pParser->GetTrailer()->GetDictionary().GetKey( "Info" )->Write( pDevice ) );
-            SAFE_OP( pDevice->Print( "\n" ) );
+            pDevice->Print( "/Info " );
+            m_pParser->GetTrailer()->GetDictionary().GetKey( "Info" )->Write( pDevice );
+            pDevice->Print( "\n" );
         }
 
         if( m_pParser->GetTrailer()->GetDictionary().HasKey( "ID" ) )
         {
-            SAFE_OP( pDevice->Print( "/ID " ) );
-            SAFE_OP( m_pParser->GetTrailer()->GetDictionary().GetKey( "ID" )->Write( pDevice ) );
-            SAFE_OP( pDevice->Print( "\n" ) );
+            pDevice->Print( "/ID " );
+            m_pParser->GetTrailer()->GetDictionary().GetKey( "ID" )->Write( pDevice );
+            pDevice->Print( "\n" );
         }
     }
     else
@@ -326,21 +290,18 @@ PdfError PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
         // Info dict is optional - so only bother writing if present
         if( m_pInfo )
         {
-            SAFE_OP( pDevice->Print( "/Info %s\n", m_pInfo->Reference().ToString().c_str() ) );
+            pDevice->Print( "/Info %s\n", m_pInfo->Reference().ToString().c_str() );
         }
         
         // Catalog, however, is required!
         if( !m_pCatalog )
         {
             RAISE_ERROR( ePdfError_InvalidHandle );
-        } else {
-            SAFE_OP( pDevice->Print( "/Root %s\n", m_pCatalog->Reference().ToString().c_str() ) );
-        }
+        } else
+            pDevice->Print( "/Root %s\n", m_pCatalog->Reference().ToString().c_str() );
     }
 
-    SAFE_OP( pDevice->Print( ">>\nstartxref\n%li\n%%%%EOF\n", lXRef ) );
-
-    return eCode;
+    pDevice->Print( ">>\nstartxref\n%li\n%%%%EOF\n", lXRef );
 }
 
 PdfObject* PdfWriter::RemoveObject( const PdfReference & ref )
@@ -348,21 +309,19 @@ PdfObject* PdfWriter::RemoveObject( const PdfReference & ref )
     return m_vecObjects.RemoveObject( ref );
 }
 
-PdfError PdfWriter::GetByteOffset( PdfObject* pObject, unsigned long* pulOffset )
+void PdfWriter::GetByteOffset( PdfObject* pObject, unsigned long* pulOffset )
 {
-    PdfError        eCode;
     TVecObjects     vecObj = this->GetObjects();
     TCIVecObjects   it     = vecObj.begin();
     PdfOutputDevice deviceHeader;
-    unsigned long   lLen;
 
     if( !pObject || !pulOffset )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    SAFE_OP( deviceHeader.Init() );
-    SAFE_OP( this->WritePdfHeader( &deviceHeader ) );
+    deviceHeader.Init();
+    this->WritePdfHeader( &deviceHeader );
 
     *pulOffset = deviceHeader.Length();
 
@@ -371,18 +330,14 @@ PdfError PdfWriter::GetByteOffset( PdfObject* pObject, unsigned long* pulOffset 
         if( (*it) == pObject )
             break;
 
-        SAFE_OP( (*it)->GetObjectLength( &lLen ) );
-        *pulOffset += lLen;
+        *pulOffset += (*it)->GetObjectLength();
 
         ++it;
     }
-    
-    return eCode;
 }
 
-PdfError PdfWriter::WriteToBuffer( char** ppBuffer, unsigned long* pulLen )
+void PdfWriter::WriteToBuffer( char** ppBuffer, unsigned long* pulLen )
 {
-    PdfError        eCode;
     PdfOutputDevice device;
 
     if( !pulLen )
@@ -390,8 +345,8 @@ PdfError PdfWriter::WriteToBuffer( char** ppBuffer, unsigned long* pulLen )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    SAFE_OP( device.Init() );
-    SAFE_OP( this->Write( &device ) );
+    device.Init();
+    this->Write( &device );
 
     *pulLen = device.Length();
     *ppBuffer = (char*)malloc( *pulLen * sizeof(char) );
@@ -400,10 +355,8 @@ PdfError PdfWriter::WriteToBuffer( char** ppBuffer, unsigned long* pulLen )
         RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
-    SAFE_OP( device.Init( *ppBuffer, *pulLen ) );
-    SAFE_OP( this->Write( &device ) );
-   
-    return eCode;
+    device.Init( *ppBuffer, *pulLen );
+    this->Write( &device );
 }
 
 PdfObject* PdfWriter::GetInfo() const

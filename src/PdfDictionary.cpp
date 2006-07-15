@@ -61,10 +61,8 @@ void PdfDictionary::Clear()
     }
 }
 
-PdfError PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObject )
+void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObject )
 {
-    PdfError eCode;
-
     if( !identifier.Length() )
     {
         RAISE_ERROR( ePdfError_InvalidDataType );
@@ -77,13 +75,11 @@ PdfError PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rO
     }
 
     m_mapKeys[identifier] = new PdfObject( rObject );
-
-    return eCode;
 }
 
-PdfError PdfDictionary::AddKey( const PdfName & identifier, const PdfObject* pObject )
+void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject* pObject )
 {
-    return this->AddKey( identifier, *pObject );
+    this->AddKey( identifier, *pObject );
 }
 
 const PdfObject* PdfDictionary::GetKey( const PdfName & key ) const
@@ -170,25 +166,23 @@ bool PdfDictionary::RemoveKey( const PdfName & identifier )
     return false;
 }
 
-PdfError PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
+void PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
 {
-    PdfError eCode;
-
     TCIKeyMap     itKeys;
 
-    SAFE_OP( pDevice->Print( "<<\n" ) );
+    pDevice->Print( "<<\n" );
 
     itKeys     = m_mapKeys.begin();
 
     if( keyStop != PdfName::KeyNull && keyStop.Length() && keyStop == PdfName::KeyType )
-        return eCode;
+        return;
 
     if( this->HasKey( PdfName::KeyType ) ) 
     {
         // Type has to be the first key in any dictionary
-        SAFE_OP( pDevice->Print( "/Type " ) );
-        SAFE_OP( this->GetKey( PdfName::KeyType )->Write( pDevice ) );
-        SAFE_OP( pDevice->Print( "\n" ) );
+        pDevice->Print( "/Type " );
+        this->GetKey( PdfName::KeyType )->Write( pDevice );
+        pDevice->Print( "\n" );
     }
 
     while( itKeys != m_mapKeys.end() )
@@ -196,19 +190,17 @@ PdfError PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfName & keyStop
         if( (*itKeys).first != PdfName::KeyType )
         {
             if( keyStop != PdfName::KeyNull && keyStop.Length() && (*itKeys).first == keyStop )
-                return eCode;
+                return;
 
-            SAFE_OP( pDevice->Print( "/%s ", (*itKeys).first.Name().c_str() ) );
-            SAFE_OP( (*itKeys).second->Write( pDevice ) );
-            SAFE_OP( pDevice->Print("\n") );
+            pDevice->Print( "/%s ", (*itKeys).first.Name().c_str() );
+            (*itKeys).second->Write( pDevice );
+            pDevice->Print("\n");
         }
         
         ++itKeys;
     }
 
-    SAFE_OP( pDevice->Print( ">>\n" ) );
-
-    return eCode;
+    pDevice->Print( ">>\n" );
 }
 
 };

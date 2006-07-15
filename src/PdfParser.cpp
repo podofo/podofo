@@ -63,10 +63,8 @@ PdfParser::~PdfParser()
     Clear();
 }
 
-PdfError PdfParser::Init( const char* pszFilename, bool bLoadOnDemand )
+void PdfParser::Init( const char* pszFilename, bool bLoadOnDemand )
 {
-    PdfError eCode;
-
     if( !pszFilename || !pszFilename[0] )
     {
         RAISE_ERROR( ePdfError_FileNotFound );
@@ -88,12 +86,16 @@ PdfError PdfParser::Init( const char* pszFilename, bool bLoadOnDemand )
         RAISE_ERROR( ePdfError_NoPdfFile );
     }
 
-    SAFE_OP( ReadDocumentStructure() );
-    SAFE_OP_ADV( ReadObjects(),      "Unable to load objects from file." );
+    ReadDocumentStructure();
+    try {
+        ReadObjects();
+    } catch( PdfError & e ) {
+        e.AddToCallstack( __FILE__, __LINE__, "Unable to load objects from file." );
+        throw e;
+    }
+
     // Now sort the list of objects
     std::sort( m_vecObjects.begin(), m_vecObjects.end(), ObjectLittle );
-
-    return eCode;
 }
 
 void PdfParser::Clear()
@@ -152,28 +154,44 @@ void PdfParser::Clear()
     m_nXRefLinearizedOffset = 0;
 }
 
-PdfError PdfParser::ReadDocumentStructure()
+void PdfParser::ReadDocumentStructure()
 {
-    PdfError eCode;
-
-    SAFE_OP( HasLinearizationDict() );
+    HasLinearizationDict();
     
     // position at the end of the file to search the xref table.
     fseek( m_hFile, 0, SEEK_END );
 	m_nFileSize = ftell( m_hFile );
 
-    SAFE_OP_ADV( ReadXRef( &m_nXRefOffset ), "Unable to find startxref entry in file." );
-    SAFE_OP_ADV( ReadTrailer(),              "Unable to find trailer in file." );
+    try {
+        ReadXRef( &m_nXRefOffset );
+    } catch( PdfError & e ) {
+        e.AddToCallstack( __FILE__, __LINE__, "Unable to find startxref entry in file." );
+        throw e;
+    }
+
+    try {
+        ReadTrailer();
+    } catch( PdfError & e ) {
+        e.AddToCallstack( __FILE__, __LINE__, "Unable to find trailer in file." );
+        throw e;
+    }
 
     if( m_pLinearization )
     {
-        SAFE_OP_ADV( ReadXRefContents( m_nXRefOffset, true ), "Unable to skip xref dictionary." );
+        try { 
+            ReadXRefContents( m_nXRefOffset, true );
+        } catch( PdfError & e ) {
+            e.AddToCallstack( __FILE__, __LINE__, "Unable to skip xref dictionary." );
+            throw e;
+        }
+
         // another trailer directory is to follow right after this XRef section
-        eCode = ReadNextTrailer();
-        if( eCode == ePdfError_NoTrailer )
-            eCode = ePdfError_ErrOk;
-        else 
-            return eCode;
+        try {
+            ReadNextTrailer();
+        } catch( PdfError & e ) {
+            if( e != ePdfError_NoTrailer )
+                throw e;
+        }
     }
 
     if( !m_pTrailer->IsDictionary() || !m_pTrailer->GetDictionary().HasKey( PdfName::KeySize ) )
@@ -197,16 +215,30 @@ PdfError PdfParser::ReadDocumentStructure()
 
     if( m_pLinearization )
     {
-        SAFE_OP_ADV( ReadXRefContents( m_nXRefLinearizedOffset ), "Unable to read linearized XRef section." );
+        try {
+            ReadXRefContents( m_nXRefLinearizedOffset );
+        } catch( PdfError & e ) {
+            e.AddToCallstack( __FILE__, __LINE__, "Unable to read linearized XRef section." );
+            throw e;
+        }
     }
 
-    SAFE_OP_ADV( ReadXRefContents( m_nXRefOffset ), "Unable to load xref entries." );
+    try {
+        ReadXRefContents( m_nXRefOffset );
+    } catch( PdfError & e ) {
+        e.AddToCallstack( __FILE__, __LINE__, "Unable to load xref entries." );
+        throw e;
+    }
+
     if( m_pTrailer->GetDictionary().HasKey( "Prev" ) )
     {
-        SAFE_OP_ADV( ReadXRefContents( m_pTrailer->GetDictionary().GetKeyAsLong( "Prev", 0 ) ), "Unable to load /Prev xref entries." );
+        try {
+            ReadXRefContents( m_pTrailer->GetDictionary().GetKeyAsLong( "Prev", 0 ) ); 
+        } catch( PdfError & e ) {
+            e.AddToCallstack( __FILE__, __LINE__, "Unable to load /Prev xref entries." );
+            throw e;
+        }
     }
-
-    return eCode;
 }
 
 bool PdfParser::IsPdfFile()
@@ -231,9 +263,8 @@ bool PdfParser::IsPdfFile()
     return true;
 }
 
-PdfError PdfParser::HasLinearizationDict()
+void PdfParser::HasLinearizationDict()
 {
-    PdfError  eCode;
     int       i          = 0;
     char*     pszObj     = NULL;
     long      lXRef      = -1;
@@ -243,13 +274,13 @@ PdfError PdfParser::HasLinearizationDict()
     fseek( m_hFile, 0, SEEK_SET );
     // look for a linearization dictionary in the first 1024 bytes
     if( fread( m_szBuffer, PDF_BUFFER, sizeof(char), m_hFile ) != 1 )
-        return ePdfError_ErrOk; // Ignore Error Code: ERROR_PDF_NO_TRAILER;
+        return; // Ignore Error Code: ERROR_PDF_NO_TRAILER;
 
     pszObj = strstr( m_szBuffer, "obj" );
     if( !pszObj )
         // strange that there is no obj in the first 1024 bytes,
         // but ignore it
-        return ePdfError_ErrOk;
+        return;
 
     --pszObj; // *pszObj == 'o', so the while would fail without decrement
     while( *pszObj && (IsWhitespace( *pszObj ) || (*pszObj >= '0' && *pszObj <= '9')) )
@@ -257,13 +288,21 @@ PdfError PdfParser::HasLinearizationDict()
 
     fseek( m_hFile, pszObj - m_szBuffer + 3, SEEK_SET );
     m_pLinearization = new PdfParserObject( this, m_hFile, this->GetBuffer(), this->GetBufferSize() );
-    eCode = static_cast<PdfParserObject*>(m_pLinearization)->ParseFile();
 
-    if( eCode.IsError() || !m_pLinearization->GetDictionary().HasKey( "Linearized" ) )
-    {
+    try {
+        static_cast<PdfParserObject*>(m_pLinearization)->ParseFile();
+
+        if( !m_pLinearization->GetDictionary().HasKey( "Linearized" ) )
+        {
+            delete m_pLinearization;
+            m_pLinearization = NULL;
+            return;
+        }
+        
+    } catch( PdfError & e ) {
         delete m_pLinearization;
         m_pLinearization = NULL;
-        return ePdfError_ErrOk;
+        return;
     }
     
     lXRef = m_pLinearization->GetDictionary().GetKeyAsLong( "T", lXRef );
@@ -316,13 +355,10 @@ PdfError PdfParser::HasLinearizationDict()
             */
         }
     }
-
-    return eCode;
 }
 
-PdfError PdfParser::MergeTrailer( const PdfObject* pTrailer )
+void PdfParser::MergeTrailer( const PdfObject* pTrailer )
 {
-    PdfError    eCode;
     PdfVariant  cVar;
 
     if( !pTrailer || !m_pTrailer )
@@ -344,38 +380,43 @@ PdfError PdfParser::MergeTrailer( const PdfObject* pTrailer )
 
     if( pTrailer->GetDictionary().HasKey( "ID" ) )
         m_pTrailer->GetDictionary().AddKey( "ID", pTrailer->GetDictionary().GetKey( "ID" ) );
-
-    return eCode;
 }
 
-PdfError PdfParser::ReadNextTrailer()
+void PdfParser::ReadNextTrailer()
 {
-    PdfError eCode;
-
-    SAFE_OP( GetNextStringFromFile() );
+    GetNextStringFromFile();
     // ReadXRefcontents has read the first 't' from "trailer" so just check for "railer"
     if( strcmp( m_szBuffer, "railer" ) == 0 )
     {
         PdfParserObject trailer( this, m_hFile, this->GetBuffer(), this->GetBufferSize() );
-        SAFE_OP_ADV( trailer.ParseFile( true ), "The linearized trailer was found in the file, but contains errors." );
-        
-        // now merge the information of this trailer with the main documents trailer
-        SAFE_OP( MergeTrailer( &trailer ) );
+        try {
+            trailer.ParseFile( true );
+        } catch( PdfError & e ) {
+            e.AddToCallstack( __FILE__, __LINE__, "The linearized trailer was found in the file, but contains errors." );
+            throw e;
+        }
 
+        // now merge the information of this trailer with the main documents trailer
+        MergeTrailer( &trailer );
+        
         if( trailer.GetDictionary().HasKey( "Prev" ) )
         {
-            SAFE_OP_ADV( ReadXRefContents( trailer.GetDictionary().GetKeyAsLong( "Prev", 0 ) ), "Unable to load /Prev xref entries." );
+            try {
+                ReadXRefContents( trailer.GetDictionary().GetKeyAsLong( "Prev", 0 ) );
+            } catch( PdfError & e ) {
+                e.AddToCallstack( __FILE__, __LINE__, "Unable to load /Prev xref entries." );
+                throw e;
+            }
+        }
+        else
+        {
+            RAISE_ERROR( ePdfError_NoTrailer );
         }
     }
-    else
-        return ePdfError_NoTrailer;
-
-    return eCode;
 }
 
-PdfError PdfParser::ReadTrailer()
+void PdfParser::ReadTrailer()
 {
-    PdfError   eCode;
     char*      pszStart       = NULL;
     int        nSearchCnt     = 0;
     const int  nMaxSearch   = 5;
@@ -433,7 +474,7 @@ PdfError PdfParser::ReadTrailer()
         // in the crossreference stream object
         // and a trailer dictionary is not required
         if( !pszStart )
-            return ePdfError_ErrOk;
+            return;
     }
 
     if( fseek( m_hFile, (pszStart - m_szBuffer + TRAILER_LEN), SEEK_CUR ) != 0 )
@@ -442,18 +483,19 @@ PdfError PdfParser::ReadTrailer()
     }
 
     m_pTrailer = new PdfParserObject( this, m_hFile, this->GetBuffer(), this->GetBufferSize() );
-    SAFE_OP_ADV( static_cast<PdfParserObject*>(m_pTrailer)->ParseFile( true ), "The trailer was found in the file, but contains errors." );
+    try {
+        static_cast<PdfParserObject*>(m_pTrailer)->ParseFile( true );
+    } catch( PdfError & e ) {
+        e.AddToCallstack( __FILE__, __LINE__, "The trailer was found in the file, but contains errors." );
+        throw e;
+    }
 #ifdef _DEBUG
     PdfError::DebugMessage("Size=%li\n", m_pTrailer->GetDictionary().GetKeyAsLong( PdfName::KeySize, 0 ) );
 #endif // _DEBUG
-
-    return eCode;
 }
 
-PdfError PdfParser::ReadXRef( long* pXRefOffset )
+void PdfParser::ReadXRef( long* pXRefOffset )
 {
-    PdfError eCode;
-
     const int   STARTXREF_LEN = 9; // strlen( "startxref" )
     char*       pszStart = NULL;
     char*       pszEnd = NULL;
@@ -506,13 +548,10 @@ PdfError PdfParser::ReadXRef( long* pXRefOffset )
     {
         RAISE_ERROR( ePdfError_NoXRef );
     }
-
-    return eCode;
 }
 
-PdfError PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
+void PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
 {
-    PdfError    eCode;
     long        nFirstObject = 0;
     long        nNumObjects  = 0;
 
@@ -521,8 +560,7 @@ PdfError PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
         RAISE_ERROR( ePdfError_NoXRef );
     }
     
-    SAFE_OP( GetNextStringFromFile( ) );
-
+    GetNextStringFromFile( );
     if( strncmp( m_szBuffer, "xref", 4 ) != 0 )
     {
         if( m_ePdfVersion < ePdfVersion_1_5 )
@@ -531,44 +569,52 @@ PdfError PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
         }
         else
         {
-            return ReadXRefStreamContents( lOffset, bPositionAtEnd );
+            ReadXRefStreamContents( lOffset, bPositionAtEnd );
+            return;
         }
     }
 
     // read all xref subsections
-    do {
-        eCode = GetNextNumberFromFile( &nFirstObject );
-        if( eCode == ePdfError_NoNumber )
-            break;
-
-        eCode = GetNextNumberFromFile( &nNumObjects );
-        if( eCode == ePdfError_NoNumber )
-            break;
+    for( ;; )
+    {
+        try {
+            nFirstObject = GetNextNumberFromFile();
+            nNumObjects  = GetNextNumberFromFile();
 
 #ifdef _DEBUG
-        PdfError::DebugMessage("Reading numbers: %i %i\n", nFirstObject, nNumObjects );
+            PdfError::DebugMessage("Reading numbers: %i %i\n", nFirstObject, nNumObjects );
 #endif // _DEBUG
 
-        if( bPositionAtEnd && !eCode.IsError() )
-        {
-            fseek( m_hFile, nNumObjects* PDF_XREF_ENTRY_SIZE, SEEK_CUR );
+            if( bPositionAtEnd )
+            {
+                fseek( m_hFile, nNumObjects* PDF_XREF_ENTRY_SIZE, SEEK_CUR );
+            }
+            else
+                ReadXRefSubsection( nFirstObject, nNumObjects );
+        } catch( PdfError & e ) {
+            if( e == ePdfError_NoNumber ) 
+                break;
+            else 
+            {
+                e.AddToCallstack( __FILE__, __LINE__ );
+                throw e;
+            }
         }
-        else
-            eCode = ReadXRefSubsection( nFirstObject, nNumObjects );
-    } while( !eCode.IsError() );
-    
+    };
 
-    eCode = ReadNextTrailer();
-
-    if( eCode == ePdfError_NoTrailer )
-        eCode = ePdfError_ErrOk;
-
-    return eCode;
+    try {
+        ReadNextTrailer();
+    } catch( PdfError & e ) {
+        if( e != ePdfError_NoTrailer ) 
+        {
+            e.AddToCallstack( __FILE__, __LINE__ );
+            throw e;
+        }
+    }
 }
 
-PdfError PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
+void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
 {
-    PdfError    eCode;
     int         count        = 0;
 
 #ifdef _DEBUG
@@ -616,13 +662,10 @@ PdfError PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects 
         SAFE_OP( ReadXRefContents( lOffset ) );
     }
     */
-
-    return eCode;
 }
 
-PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
+void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
 {
-    PdfError    eCode;
     int         count     = 0;
     long        nFirstObj = 0;
     char*       pBuffer;
@@ -641,7 +684,7 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
     }
 
     PdfParserObject xrefObject( this, m_hFile, m_szBuffer, this->GetBufferSize() );
-    SAFE_OP( xrefObject.ParseFile() );
+    xrefObject.ParseFile();
 
 
     if( !xrefObject.GetDictionary().HasKey( PdfName::KeyType ) )
@@ -658,10 +701,10 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
     if( !m_pTrailer )    
         m_pTrailer = new PdfParserObject( this, m_hFile, this->GetBuffer(), this->GetBufferSize() );
 
-    SAFE_OP( MergeTrailer( &xrefObject ) );
+    MergeTrailer( &xrefObject );
 
     if( bReadOnlyTrailer )
-        return ePdfError_ErrOk;
+        return;
 
     if( !xrefObject.GetDictionary().HasKey( PdfName::KeySize ) || !xrefObject.GetDictionary().HasKey( "W" ) )
     {
@@ -718,13 +761,13 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
         RAISE_ERROR( ePdfError_NoXRef );
     }
 
-    SAFE_OP( xrefObject.ParseStream() );
-    SAFE_OP( xrefObject.Stream()->GetFilteredCopy( &pBuffer, &lBufferLen ) );
+    xrefObject.ParseStream();
+    xrefObject.Stream()->GetFilteredCopy( &pBuffer, &lBufferLen );
 
     pStart = pBuffer;
     while( pBuffer - pStart < lBufferLen )
     {
-        SAFE_OP( ReadXRefStreamEntry( pBuffer, lBufferLen, nW, nFirstObj + count++ ) );
+        ReadXRefStreamEntry( pBuffer, lBufferLen, nW, nFirstObj + count++ );
 
         pBuffer += (nW[0] + nW[1] + nW[2]);
     }
@@ -733,23 +776,12 @@ PdfError PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer 
     if( xrefObject.GetDictionary().HasKey("Prev") )
     {
         lOffset = xrefObject.GetDictionary().GetKeyAsLong( "Prev", 0 );
-        SAFE_OP( ReadXRefStreamContents( lOffset, bReadOnlyTrailer ) );
+        ReadXRefStreamContents( lOffset, bReadOnlyTrailer );
     }
-
-    return eCode;
 }
 
-PdfError PdfParser::ReadXRefStreamEntry( char* pBuffer, long lLen, long lW[W_ARRAY_SIZE], int nObjNo )
+void PdfParser::ReadXRefStreamEntry( char* pBuffer, long lLen, long lW[W_ARRAY_SIZE], int nObjNo )
 {
-
-/**
-expected result:
-00 000000 00
- 02 00CDBF 00
- 01 00CE45 00
-
-*/
-    PdfError         eCode;
     int              i, z;
     unsigned long    nData[W_ARRAY_SIZE];
 
@@ -798,13 +830,10 @@ expected result:
             RAISE_ERROR( ePdfError_InvalidXRefType );
         }
     }
-
-    return eCode;
 }
 
-PdfError PdfParser::ReadObjects()
+void PdfParser::ReadObjects()
 {
-    PdfError         eCode;
     int              i          = 0;
     PdfParserObject* pObject    = NULL;
     TCIVecObjects    itObjects;
@@ -819,19 +848,19 @@ PdfError PdfParser::ReadObjects()
             {
                 pObject = new PdfParserObject( this, m_hFile, m_szBuffer, this->GetBufferSize(), m_ppOffsets[i]->lOffset );
                 pObject->SetLoadOnDemand( m_bLoadOnDemand );
-                eCode = pObject->ParseFile();
+                try {
+                    pObject->ParseFile();
 
-                // final pdf should not contain a linerization dictionary as it contents are invalid 
-                // as we change some objects and the final xref table
-                if( m_pLinearization && pObject->ObjectNumber() == m_pLinearization->ObjectNumber() )
-                {
-                    pObject->SetEmptyEntry( true );                    
-                }
-
-                if( eCode.IsError() )
-                {
+                    // final pdf should not contain a linerization dictionary as it contents are invalid 
+                    // as we change some objects and the final xref table
+                    if( m_pLinearization && pObject->ObjectNumber() == m_pLinearization->ObjectNumber() )
+                    {
+                        pObject->SetEmptyEntry( true );                    
+                    }
+                } catch( PdfError & e ) {
                     delete pObject;
-                    return eCode;
+                    e.AddToCallstack( __FILE__, __LINE__ );
+                    throw e;
                 }
 
                 m_vecObjects.push_back( pObject );
@@ -858,9 +887,7 @@ PdfError PdfParser::ReadObjects()
     for( i = 0; i < m_nNumObjects; i++ )
     {
         if( m_ppOffsets[i] && m_ppOffsets[i]->cUsed == 's' ) // we have an object stream
-        {
-            SAFE_OP( ReadObjectFromStream( m_ppOffsets[i]->lGeneration, m_ppOffsets[i]->lOffset ) );
-        }
+            ReadObjectFromStream( m_ppOffsets[i]->lGeneration, m_ppOffsets[i]->lOffset );
     }
 
     m_mapStreamCache.clear();
@@ -875,20 +902,17 @@ PdfError PdfParser::ReadObjects()
             // their streams 
             if( pObject && pObject->HasStreamToParse() && !pObject->HasStream() )
             {
-                SAFE_OP_ADV( pObject->ParseStream(), "Unable to parse the objects stream." );
+                pObject->ParseStream();
             }
             
             ++itObjects;
         }
         
     }
-    
-    return eCode;
 }
 
-PdfError PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
+void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
 {
-    PdfError         eCode;
     PdfParserObject* pStream;
     PdfParserObject* pObj;
     PdfObject*       pTmp;
@@ -917,10 +941,10 @@ PdfError PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
         // that this is done now!
         if( pStream->HasStreamToParse() && !pStream->HasStream() )
         {
-            SAFE_OP_ADV( pStream->ParseStream(), "Unable to parse the objects stream." );
+            pStream->ParseStream();
         }
         
-        SAFE_OP( pStream->Stream()->GetFilteredCopy( &pBuffer, &lBufferLen ) );
+        pStream->Stream()->GetFilteredCopy( &pBuffer, &lBufferLen );
         
         // the object stream is not needed anymore in the final PDF
         pStream->SetEmptyEntry( true );
@@ -932,7 +956,7 @@ PdfError PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
             lOff = strtol( pNumbers, &pNumbers, 10 );
         
             pObj = new PdfParserObject( this->GetBuffer(), this->GetBufferSize() );
-            SAFE_OP( pObj->ParseDictionaryKeys( (char*)(pBuffer+lFirst+lOff), lBufferLen-lFirst-lOff, NULL ) );
+            pObj->ParseDictionaryKeys( (char*)(pBuffer+lFirst+lOff), lBufferLen-lFirst-lOff, NULL );
 
             pObj->SetObjectNumber( lObj );
 
@@ -954,8 +978,6 @@ PdfError PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
             m_mapStreamCache[nObjNo][nIndex] = NULL;
         }
     }
-
-    return eCode;
 }
 
 const char* PdfParser::GetPdfVersionString() const

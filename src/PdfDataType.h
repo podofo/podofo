@@ -46,9 +46,8 @@ class PdfDataType {
 
     /** Write the complete datatype to a file.
      *  \param pDevice write the object to this device
-     *  \returns ErrOk on success
      */
-    virtual PdfError Write( PdfOutputDevice* pDevice ) const = 0;
+    virtual void Write( PdfOutputDevice* pDevice ) const = 0;
 };
 
 };

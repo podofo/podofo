@@ -61,7 +61,7 @@ class PdfPage : public PdfCanvas {
      *  \param pParent pointer to the parent PdfVecObjects object
      *  \returns ErrOk on success
      */
-    PdfError Init( const TSize & tSize, PdfVecObjects* pParent );
+    void Init( const TSize & tSize, PdfVecObjects* pParent );
 
     /** Creates a TSize page size object which is needed to create a PdfPage object
      *  from an enum which are defined for a few standard page sizes.

@@ -39,9 +39,8 @@ const char pTestBuffer[]  = "Man is distinguished, not only by his reason, but b
 // const long lTestLength = 5*13;
 #define lTestLength strlen( pTestBuffer )
 
-PdfError test_filter( EPdfFilter eFilter ) 
+void test_filter( EPdfFilter eFilter ) 
 {
-    PdfError         eCode;
     const PdfFilter* pFilter;
 
     char*      pEncoded;
@@ -53,29 +52,41 @@ PdfError test_filter( EPdfFilter eFilter )
     if( !pFilter )
     {
         printf("!!! Filter %i not implemented.\n", (int)eFilter);
-        return eCode;
+        return;
     }
 
     printf("Testing Algorithm %i:\n", (int)eFilter);
     printf("\t-> Testing Encoding\n");
-    eCode = pFilter->Encode( pTestBuffer, lTestLength, &pEncoded, &lEncoded );
-    if( eCode == ePdfError_UnsupportedFilter ) 
-    {
-        printf("\t-> Encoding not supported for filter %i.\n", (int)eFilter );
-        return ePdfError_ErrOk;
+    try {
+        pFilter->Encode( pTestBuffer, lTestLength, &pEncoded, &lEncoded );
+    } catch( PdfError & e ) {
+        if( e == ePdfError_UnsupportedFilter ) 
+        {
+            printf("\t-> Encoding not supported for filter %i.\n", (int)eFilter );
+            return;
+        }
+        else
+        {
+            e.AddToCallstack( __FILE__, __LINE__ );
+            throw e;
+        }
     }
-    else if( eCode.IsError() )
-        return eCode;
 
     printf("\t-> Testing Decoding\n");
-    eCode = pFilter->Decode( pEncoded, lEncoded, &pDecoded, &lDecoded );
-    if( eCode == ePdfError_UnsupportedFilter ) 
-    {
-        printf("\t-> Decoding not supported for filter %i.\n", (int)eFilter);
-        return ePdfError_ErrOk;
+    try {
+        pFilter->Decode( pEncoded, lEncoded, &pDecoded, &lDecoded );
+    } catch( PdfError & e ) {
+        if( e == ePdfError_UnsupportedFilter ) 
+        {
+            printf("\t-> Decoding not supported for filter %i.\n", (int)eFilter);
+            return;
+        }
+        else
+        {
+            e.AddToCallstack( __FILE__, __LINE__ );
+            throw e;
+        }
     }
-    else if( eCode.IsError() )
-        return eCode;
 
     printf("\t-> Original Data Length: %li\n", lTestLength );
     printf("\t-> Encoded  Data Length: %li\n", lEncoded );
@@ -98,14 +109,11 @@ PdfError test_filter( EPdfFilter eFilter )
     }
 
     printf("\t-> Test succeeded!\n");
-
-    return eCode;
 }
 
 
 int main( int argc, char* argv[] ) 
 {
-    PdfError        eCode;
     int             i;
 
     printf("This test tests all filters of PoDoFo\n");
@@ -122,13 +130,13 @@ int main( int argc, char* argv[] )
     printf("ePdfFilter_JPXDecode          = 8\n");
     printf("ePdfFilter_Crypt              = 9\n");
 
-    for( i=0;i<=ePdfFilter_Crypt && !eCode.IsError();i++ )
-    {
-        eCode = test_filter( (EPdfFilter)i );
+    try {
+        for( i=0;i<=ePdfFilter_Crypt;i++ )
+            test_filter( (EPdfFilter)i );
+    } catch( PdfError & e ) {
+        e.PrintErrorMsg();
+        return e.Error();
     }
 
-    if( eCode.IsError() )
-        eCode.PrintErrorMsg();
-
-    return eCode.Error();
+    return 0;
 }

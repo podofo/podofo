@@ -63,7 +63,7 @@ class PdfSimpleWriter : public PdfWriter {
     /** Create a new pdf file from scratch.
      *  \returns ErrOk on success.
      */
-    PdfError Init();
+    void Init();
 
     /** Creates a new page object and inserts it into the internal
      *  object tree. The object is owned by the PdfSimpleWriter and 

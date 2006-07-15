@@ -26,7 +26,6 @@ using namespace PoDoFo;
 
 int main( int argc, char*  argv[] )
 {
-    PdfError  eCode;
     PdfParser parser;
     PdfWriter writer;
     
@@ -40,25 +39,22 @@ int main( int argc, char*  argv[] )
     printf("The PDF file should look unmodified in any viewer\n");
     printf("---\n");
 
-    eCode = parser.Init( argv[1], false );
+    try {
+        parser.Init( argv[1], false );
 
-    printf("PdfVersion=%i\n", (int)parser.GetPdfVersion() );
-    printf("PdfVersionString=%s\n", parser.GetPdfVersionString() );
-    printf("ECode after parsing=%i\n", eCode.Error() );
+        printf("PdfVersion=%i\n", (int)parser.GetPdfVersion() );
+        printf("PdfVersionString=%s\n", parser.GetPdfVersionString() );
 
-    if( !eCode.IsError() )
-    {
         writer.SetPdfCompression( false );
 
-        eCode = writer.Init( &parser );
-        if( !eCode.IsError() )
-            eCode = writer.Write( argv[2] );
-
-        printf("ECode after writing=%i\n", eCode.Error() );
+        writer.Init( &parser );
+        writer.Write( argv[2] );
+    } catch( PdfError & e ) {
+        e.PrintErrorMsg();
+        return e.Error();
     }
 
-    if( eCode.IsError() )
-        eCode.PrintErrorMsg();
-    
-    return eCode.Error();
+    printf("Parsed and wrote successfully\n");
+
+    return 0;
 }

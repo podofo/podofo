@@ -57,10 +57,8 @@ PdfFont::~PdfFont()
     delete m_pMetrics;
 }
 
-PdfError PdfFont::Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool bEmbedd )
+void PdfFont::Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool bEmbedd )
 {
-    PdfError      eCode;
-
     unsigned int  i;
     int           curPos = 0;
     PdfObject*    pWidth;
@@ -89,7 +87,7 @@ PdfError PdfFont::Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool b
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    SAFE_OP( m_pMetrics->GetWidthArray( *pWidth, FIRST_CHAR, LAST_CHAR ) );
+    m_pMetrics->GetWidthArray( *pWidth, FIRST_CHAR, LAST_CHAR );
 
     pDescriptor = pParent->CreateObject( "FontDescriptor" );
     if( !pDescriptor )
@@ -105,7 +103,7 @@ PdfError PdfFont::Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool b
     this->GetDictionary().AddKey("Widths", pWidth->Reference() );
     this->GetDictionary().AddKey( "FontDescriptor", pDescriptor->Reference() );
 
-    SAFE_OP( m_pMetrics->GetBoundingBox( array ) );
+    m_pMetrics->GetBoundingBox( array );
 
     pDescriptor->GetDictionary().AddKey( "FontName", m_BaseFont );
     //pDescriptor->GetDictionary().AddKey( "FontWeight", (long)m_pMetrics->Weight() );
@@ -119,15 +117,12 @@ PdfError PdfFont::Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool b
 
     if( bEmbedd )
     {
-        SAFE_OP( EmbeddFont( pParent, pDescriptor ) );
+        EmbeddFont( pParent, pDescriptor );
     }
-
-    return eCode;
 }
 
-PdfError PdfFont::EmbeddFont( PdfVecObjects* pParent, PdfObject* pDescriptor )
+void PdfFont::EmbeddFont( PdfVecObjects* pParent, PdfObject* pDescriptor )
 {
-    PdfError   eCode;
     PdfObject* pContents;
     FILE*      hFile;
     char*      pBuffer = NULL;
@@ -165,8 +160,6 @@ PdfError PdfFont::EmbeddFont( PdfVecObjects* pParent, PdfObject* pDescriptor )
     
     pContents->GetDictionary().AddKey( "Length1", PdfVariant( lSize ) );
     pContents->Stream()->Set( pBuffer, lSize, !m_pMetrics->FontDataLen() );	// if we loaded from memory, DO NOT let Stream take possession
-
-    return eCode;
 }
 
 void PdfFont::SetFontSize( float fSize )

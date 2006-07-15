@@ -34,9 +34,8 @@
 
 using namespace PoDoFo;
 
-PdfError LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
+void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
 {
-    PdfError eCode;
     long     x     = 10000;
     long     y     = 10000;
     PdfFont* pFont;
@@ -57,87 +56,84 @@ PdfError LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWrite
     w = pFont->FontMetrics()->StringWidth( "Grayscale Colorspace" );
 
     pPainter->SetFont( pFont );
-    SAFE_OP( pPainter->DrawText( 120000 , y + pFont->FontMetrics()->LineSpacing(), "Grayscale Colorspace" ) );
-    SAFE_OP( pPainter->DrawRect( 120000 , y + pFont->FontMetrics()->LineSpacing(), w, -h ) );
+    pPainter->DrawText( 120000 , y + pFont->FontMetrics()->LineSpacing(), "Grayscale Colorspace" );
+    pPainter->DrawRect( 120000 , y + pFont->FontMetrics()->LineSpacing(), w, -h );
 
     // Draw 10 lines in gray scale
     for( int i = 0; i < 10; i++ )
     {
         x += 10000;
 
-        SAFE_OP( pPainter->SetStrokeWidth( i*1000 ) );
-        SAFE_OP( pPainter->SetStrokingGray( (double)i/10.0 ) );
-        SAFE_OP( pPainter->DrawLine( x, y, x, y + lLineLength ) );
+        pPainter->SetStrokeWidth( i*1000 );
+        pPainter->SetStrokingGray( (double)i/10.0 );
+        pPainter->DrawLine( x, y, x, y + lLineLength );
     }
 
     x = 10000;
     y += lLineLength;
     y += 10000;
 
-    SAFE_OP( pPainter->DrawText( 120000 , y + pFont->FontMetrics()->LineSpacing(), "RGB Colorspace" ) );
+    pPainter->DrawText( 120000 , y + pFont->FontMetrics()->LineSpacing(), "RGB Colorspace" );
 
     // Draw 10 lines in rgb
     for( int i = 0; i < 10; i++ )
     {
         x += 10000;
 
-        SAFE_OP( pPainter->SetStrokeWidth( i*1000 ) );
-        SAFE_OP( pPainter->SetStrokingColor( (double)i/10.0, 0.0, (double)(10-i)/10.0 ) );
-        SAFE_OP( pPainter->DrawLine( x, y, x, y + lLineLength ) );
+        pPainter->SetStrokeWidth( i*1000 );
+        pPainter->SetStrokingColor( (double)i/10.0, 0.0, (double)(10-i)/10.0 );
+        pPainter->DrawLine( x, y, x, y + lLineLength );
     }
 
     x = 10000;
     y += lLineLength;
     y += 10000;
 
-    SAFE_OP( pPainter->DrawText( 120000 , y + pFont->FontMetrics()->LineSpacing(), "CMYK Colorspace" ) );
+    pPainter->DrawText( 120000 , y + pFont->FontMetrics()->LineSpacing(), "CMYK Colorspace" );
 
     // Draw 10 lines in cmyk
     for( int i = 0; i < 10; i++ )
     {
         x += 10000;
 
-        SAFE_OP( pPainter->SetStrokeWidth( i*1000 ) );
-        SAFE_OP( pPainter->SetStrokingColorCMYK( (double)i/10.0, 0.0, (double)(10-i)/10.0, 0.0 ) );
-        SAFE_OP( pPainter->DrawLine( x, y, x, y + lLineLength ) );
+        pPainter->SetStrokeWidth( i*1000 );
+        pPainter->SetStrokingColorCMYK( (double)i/10.0, 0.0, (double)(10-i)/10.0, 0.0 );
+        pPainter->DrawLine( x, y, x, y + lLineLength );
     }
 
     x = 20000;
     y += 60000;
 
-    SAFE_OP( pPainter->SetStrokeWidth( 1000 ) );
-    SAFE_OP( pPainter->SetStrokingColor( 0.0, 0.0, 0.0 ) );
+    pPainter->SetStrokeWidth( 1000 );
+    pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
 
-    SAFE_OP( pPainter->SetStrokeStyle( ePdfStrokeStyle_Solid ) );
-    SAFE_OP( pPainter->DrawLine( x, y, x + 100000, y ) );
+    pPainter->SetStrokeStyle( ePdfStrokeStyle_Solid );
+    pPainter->DrawLine( x, y, x + 100000, y );
     y += 10000;
 
-    SAFE_OP( pPainter->SetStrokeStyle( ePdfStrokeStyle_Dash ) );
-    SAFE_OP( pPainter->DrawLine( x, y, x + 100000, y ) );
+    pPainter->SetStrokeStyle( ePdfStrokeStyle_Dash );
+    pPainter->DrawLine( x, y, x + 100000, y );
     y += 10000;
 
-    SAFE_OP( pPainter->SetStrokeStyle( ePdfStrokeStyle_Dot ) );
-    SAFE_OP( pPainter->DrawLine( x, y, x + 100000, y ) );
+    pPainter->SetStrokeStyle( ePdfStrokeStyle_Dot );
+    pPainter->DrawLine( x, y, x + 100000, y );
     y += 10000;
 
-    SAFE_OP( pPainter->SetStrokeStyle( ePdfStrokeStyle_DashDot ) );
-    SAFE_OP( pPainter->DrawLine( x, y, x + 100000, y ) );
+    pPainter->SetStrokeStyle( ePdfStrokeStyle_DashDot );
+    pPainter->DrawLine( x, y, x + 100000, y );
     y += 10000;
 
-    SAFE_OP( pPainter->SetStrokeStyle( ePdfStrokeStyle_DashDotDot ) );
-    SAFE_OP( pPainter->DrawLine( x, y, x + 100000, y ) );
+    pPainter->SetStrokeStyle( ePdfStrokeStyle_DashDotDot );
+    pPainter->DrawLine( x, y, x + 100000, y );
     y += 10000;
 
-    SAFE_OP( pPainter->SetStrokeStyle( ePdfStrokeStyle_Custom, "[7 9 2] 4" ) );
-    SAFE_OP( pPainter->DrawLine( x, y, x + 100000, y ) );
+    pPainter->SetStrokeStyle( ePdfStrokeStyle_Custom, "[7 9 2] 4" );
+    pPainter->DrawLine( x, y, x + 100000, y );
     y += 10000;
-
-    return eCode;
 }
 
-PdfError RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
+void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
 {
-    PdfError eCode;
     long     x     = 10000;
     long     y     = 10000;
     PdfFont* pFont;
@@ -154,115 +150,108 @@ PdfError RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWrite
     pFont->SetFontSize( 16.0 );
     pPainter->SetFont( pFont );
 
-    SAFE_OP( pPainter->DrawText( 125000 , y  + pFont->FontMetrics()->LineSpacing(), "Rectangles" ) );
+    pPainter->DrawText( 125000 , y  + pFont->FontMetrics()->LineSpacing(), "Rectangles" );
 
-    SAFE_OP( pPainter->SetStrokeWidth( 100 ) );
-    SAFE_OP( pPainter->SetStrokingColor( 0.0, 0.0, 0.0 ) );
-    SAFE_OP( pPainter->DrawRect( x, y, lWidth, lHeight ) );
+    pPainter->SetStrokeWidth( 100 );
+    pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
+    pPainter->DrawRect( x, y, lWidth, lHeight );
 
     x += lWidth;
     x += 10000;
 
-    SAFE_OP( pPainter->SetStrokeWidth( 1000 ) );
-    SAFE_OP( pPainter->SetStrokingColor( 0.0, 0.0, 0.0 ) );
-    SAFE_OP( pPainter->DrawRect( x, y, lWidth, lHeight ) );
+    pPainter->SetStrokeWidth( 1000 );
+    pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
+    pPainter->DrawRect( x, y, lWidth, lHeight );
 
     y += lHeight;
     y += 10000;
     x = 10000;
 
-    SAFE_OP( pPainter->SetStrokeWidth( 100 ) );
-    SAFE_OP( pPainter->SetStrokingColor( 1.0, 0.0, 0.0 ) );
-    SAFE_OP( pPainter->DrawRect( x, y, lWidth, lHeight ) );
+    pPainter->SetStrokeWidth( 100 );
+    pPainter->SetStrokingColor( 1.0, 0.0, 0.0 );
+    pPainter->DrawRect( x, y, lWidth, lHeight );
 
     x += lWidth;
     x += 10000;
-    SAFE_OP( pPainter->SetStrokeWidth( 1000 ) );
-    SAFE_OP( pPainter->SetStrokingColor( 0.0, 1.0, 0.0 ) );
-    SAFE_OP( pPainter->DrawRect( x, y, lWidth, lHeight ) );
+    pPainter->SetStrokeWidth( 1000 );
+    pPainter->SetStrokingColor( 0.0, 1.0, 0.0 );
+    pPainter->DrawRect( x, y, lWidth, lHeight );
 
     y += lHeight;
     y += 10000;
     x = 10000;
 
-    SAFE_OP( pPainter->SetStrokeWidth( 100 ) );
-    SAFE_OP( pPainter->SetStrokingColor( 0.0, 0.0, 0.0 ) );
-    SAFE_OP( pPainter->SetColor( 1.0, 0.0, 0.0 ) );
-    SAFE_OP( pPainter->FillRect( x, y, lWidth, lHeight ) );
-    SAFE_OP( pPainter->DrawRect( x, y, lWidth, lHeight ) );
+    pPainter->SetStrokeWidth( 100 );
+    pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
+    pPainter->SetColor( 1.0, 0.0, 0.0 );
+    pPainter->FillRect( x, y, lWidth, lHeight );
+    pPainter->DrawRect( x, y, lWidth, lHeight );
 
     x += lWidth;
     x += 10000;
-    SAFE_OP( pPainter->SetStrokeWidth( 100 ) );
-    SAFE_OP( pPainter->SetStrokingColor( 0.0, 1.0, 0.0 ) );
-    SAFE_OP( pPainter->SetColor( 0.0, 0.0, 1.0 ) );
-    SAFE_OP( pPainter->FillRect( x, y, lWidth, lHeight ) );
-    SAFE_OP( pPainter->DrawRect( x, y, lWidth, lHeight ) );
+    pPainter->SetStrokeWidth( 100 );
+    pPainter->SetStrokingColor( 0.0, 1.0, 0.0 );
+    pPainter->SetColor( 0.0, 0.0, 1.0 );
+    pPainter->FillRect( x, y, lWidth, lHeight );
+    pPainter->DrawRect( x, y, lWidth, lHeight );
 
     y += lHeight;
     y += 10000;
     x = 10000 + lWidth;
 
-    SAFE_OP( pPainter->DrawText( 120000 , y + pFont->FontMetrics()->LineSpacing(), "Triangles" ) );
+    pPainter->DrawText( 120000 , y + pFont->FontMetrics()->LineSpacing(), "Triangles" );
 
     // Draw a triangle at the current position
-    SAFE_OP( pPainter->SetColor( 0.0, 1.0, 1.0 ) );
-    SAFE_OP( pPainter->MoveTo( x, y ) );
-    SAFE_OP( pPainter->LineTo( x+lWidth, y+lHeight ) );
-    SAFE_OP( pPainter->LineTo( x-lWidth, y+lHeight ) );
-    SAFE_OP( pPainter->ClosePath() );
-    SAFE_OP( pPainter->Fill() );
+    pPainter->SetColor( 0.0, 1.0, 1.0 );
+    pPainter->MoveTo( x, y );
+    pPainter->LineTo( x+lWidth, y+lHeight );
+    pPainter->LineTo( x-lWidth, y+lHeight );
+    pPainter->ClosePath();
+    pPainter->Fill();
 
     y += lHeight;
     y += 10000;
     x = 10000 + lWidth;
 
-    SAFE_OP( pPainter->SetStrokingColor( 0.0, 0.0, 0.0 ) );
-    SAFE_OP( pPainter->MoveTo( x, y ) );
-    SAFE_OP( pPainter->LineTo( x+lWidth, y+lHeight ) );
-    SAFE_OP( pPainter->LineTo( x-lWidth, y+lHeight ) );
-    SAFE_OP( pPainter->ClosePath() );
-    SAFE_OP( pPainter->Stroke() );
-
-    return eCode;
+    pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
+    pPainter->MoveTo( x, y );
+    pPainter->LineTo( x+lWidth, y+lHeight );
+    pPainter->LineTo( x-lWidth, y+lHeight );
+    pPainter->ClosePath();
+    pPainter->Stroke();
 }
 
-PdfError TextTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
+void TextTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
 {
-    PdfError eCode;
-
     long x = 10000;
     long y = 10000;
 
-    SAFE_OP( pPainter->SetFont( pWriter->CreateFont( "Times New Roman" ) ) );
+    pPainter->SetFont( pWriter->CreateFont( "Times New Roman" ) );
     pPainter->Font()->SetFontSize( 24.0 );
     y += pPainter->Font()->FontMetrics()->LineSpacing();
 
-    SAFE_OP( pPainter->SetColor( 0.0, 0.0, 0.0 ) );
-    SAFE_OP( pPainter->DrawText( x, y, "Hallo Welt!" ) );
+    pPainter->SetColor( 0.0, 0.0, 0.0 );
+    pPainter->DrawText( x, y, "Hallo Welt!" );
     
     y += pPainter->Font()->FontMetrics()->LineSpacing();
     pPainter->Font()->SetUnderlined( true );
-    SAFE_OP( pPainter->SetStrokingColor( 1.0, 0.0, 0.0 ) );
-    SAFE_OP( pPainter->DrawText( x, y, "Underlined text in the same font!" ) );
+    pPainter->SetStrokingColor( 1.0, 0.0, 0.0 );
+    pPainter->DrawText( x, y, "Underlined text in the same font!" );
 
     pPainter->Font()->SetUnderlined( false );
     y += pPainter->Font()->FontMetrics()->LineSpacing();
-    SAFE_OP( pPainter->DrawText( x, y, "Disabled the underline again..." ) );
+    pPainter->DrawText( x, y, "Disabled the underline again..." );
     y += pPainter->Font()->FontMetrics()->LineSpacing();
     
     PdfFont* pFont = pWriter->CreateFont( "Arial" );
     pFont->SetFontSize( 12.0 );
 
     pPainter->SetFont( pFont );
-    SAFE_OP( pPainter->DrawText( x, y, "PoDoFo rocks!" ) );
-
-    return eCode;
+    pPainter->DrawText( x, y, "PoDoFo rocks!" );
 }
 
-PdfError ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
+void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
 {
-    PdfError    eCode;
     long        y      = 60000;
 
     PdfImageRef    imgRef;
@@ -281,15 +270,15 @@ PdfError ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWrit
     PdfXObject*    pXObj   = pWriter->GetObjects().CreateObject<PdfXObject>();
     PdfPainter     pnt;    // XObject painter
 
-    SAFE_OP( pXObj->Init( rect ) );
-    SAFE_OP( pImg->LoadFromFile( "./lena.jpg" ) );
+    pXObj->Init( rect );
+    pImg->LoadFromFile( "./lena.jpg" );
 
     pImg->GetImageReference( imgRef );
     pXObj->GetImageReference( xobjRef );
 
     pnt.SetPage( pXObj );
     // Draw onto the XObject
-    SAFE_OP( pnt.SetFont( pWriter->CreateFont( "Comic Sans" ) ) );
+    pnt.SetFont( pWriter->CreateFont( "Comic Sans" ) );
     pnt.Font()->SetFontSize( 8.0 );
     pnt.SetStrokingColor( 1.0, 1.0, 1.0 );
     pnt.SetColor( 1.0, 0.0, 0.0 );
@@ -305,43 +294,37 @@ PdfError ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWrit
     pPainter->DrawImage( 40000, y + 200000, &imgRef, 0.3, 0.3 );
     pPainter->DrawXObject( 120000, y + 15000, &xobjRef );
 
-    SAFE_OP( pAnnot1->Init( pPage, ePdfAnnotation_Widget, rect1 ) );
-    SAFE_OP( pAnnot2->Init( pPage, ePdfAnnotation_Link, rect2 ) );
+    pAnnot1->Init( pPage, ePdfAnnotation_Widget, rect1 );
+    pAnnot2->Init( pPage, ePdfAnnotation_Link, rect2 );
 
     pAnnot1->SetTitle( PdfString("Author: Dominik Seichter") );
     pAnnot1->SetContents( PdfString("Hallo Welt!") );
     pAnnot1->SetAppearanceStream( pXObj );
 
     PdfAction* pAction = pWriter->GetObjects().CreateObject<PdfAction>();
-    TEST_SAFE_OP( pAction->Init( ePdfAction_URI ) );
+    pAction->Init( ePdfAction_URI );
     pAction->SetURI( PdfString("http://www.tec-it.com") );
 
     //pAnnot2->SetDestination( pPage );
     pAnnot2->SetDestination( pAction );
     pAnnot2->SetFlags( ePdfAnnotationFlags_NoZoom );
-    
-    return eCode;
 }
 
-PdfError EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
+void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
 {
-    PdfError    eCode;
     long        lX     = 10000;
     long        lY     = 10000;
 
-    SAFE_OP( pPainter->SetStrokingColor( 0.0, 0.0, 0.0 ) );
-    SAFE_OP( pPainter->DrawEllipse( lX, lY, 20000, 20000 ) );
+    pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
+    pPainter->DrawEllipse( lX, lY, 20000, 20000 );
 
     lY += 30000;
-    SAFE_OP( pPainter->SetColor( 1.0, 0.0, 0.0 ) );
-    SAFE_OP( pPainter->FillEllipse( lX, lY, 20000, 20000 ) );
-
-    return eCode;
+    pPainter->SetColor( 1.0, 0.0, 0.0 );
+    pPainter->FillEllipse( lX, lY, 20000, 20000 );
 }
 
 int main( int argc, char* argv[] ) 
 {
-    PdfError        eCode;
     PdfSimpleWriter writer;
     PdfPage*        pPage;
     PdfPainter      painter;
@@ -398,10 +381,6 @@ int main( int argc, char* argv[] )
     writer.SetDocumentKeywords( PdfString("Test;PDF;") );
 
     TEST_SAFE_OP( writer.Write( argv[1] ) );
-    printf("Error Code: %i\n", eCode.Error() );
-
-    if( eCode.IsError() )
-        eCode.PrintErrorMsg();
 
     // ---
     const char*   pszMemFile = "/home/dominik/mem_out.pdf";
@@ -424,8 +403,5 @@ int main( int argc, char* argv[] )
     fclose( hFile );
     free( pBuffer );
 
-    if( eCode.IsError() )
-        eCode.PrintErrorMsg();
-
-    return eCode.Error();
+    return 0;
 }

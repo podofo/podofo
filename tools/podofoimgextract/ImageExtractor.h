@@ -43,7 +43,7 @@ class ImageExtractor {
      *        the number of processed images can be stored
      *        or null if you do not want this information.
      */
-    PdfError Init( const char* pszInput, const char* pszOutput, int* pnNum = NULL );
+    void Init( const char* pszInput, const char* pszOutput, int* pnNum = NULL );
 
  private:
     /** Extracts the image form the given PdfObject
@@ -51,7 +51,7 @@ class ImageExtractor {
      *  \param pObject a handle to a PDF object
      *  \returns ErrOk on success
      */
-    PdfError ExtractImage( PoDoFo::PdfObject* pObject );
+    void ExtractImage( PoDoFo::PdfObject* pObject );
 
     /** This function checks wether a file with the 
      *  given filename does exist.

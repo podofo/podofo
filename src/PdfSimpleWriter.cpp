@@ -76,9 +76,8 @@ PdfSimpleWriter::~PdfSimpleWriter()
         FT_Done_FreeType( m_ftLibrary );
 }
 
-PdfError PdfSimpleWriter::Init()
+void PdfSimpleWriter::Init()
 {
-    PdfError  eCode;
     PdfDate   cDate;
     PdfString sDate;
 
@@ -88,7 +87,7 @@ PdfError PdfSimpleWriter::Init()
         RAISE_ERROR( ePdfError_FreeType );
     }
 
-    SAFE_OP( PdfWriter::Init() );
+    PdfWriter::Init();
 
     m_pPageTree = m_vecObjects.CreateObject( "Pages" );
     m_pPageTree->GetDictionary().AddKey( "Kids", PdfArray() );
@@ -98,8 +97,6 @@ PdfError PdfSimpleWriter::Init()
     cDate.ToString( sDate );
     this->GetInfo()->GetDictionary().AddKey( "Producer", PdfString("PoDoFo") );
     this->GetInfo()->GetDictionary().AddKey( "CreationDate", sDate );
-
-    return eCode;
 }
 
 PdfPage* PdfSimpleWriter::CreatePage( const TSize & tSize )
@@ -124,18 +121,13 @@ PdfPage* PdfSimpleWriter::CreatePage( const TSize & tSize )
     m_pPageTree->GetDictionary().AddKey( "Kids",  m_vecPageReferences );
 
     pPage->GetObject()->GetDictionary().AddKey( "Parent", m_pPageTree->Reference() );
-    if( pPage->Init( tSize, &m_vecObjects ).IsError() )
-    {
-        delete pPage;
-        return NULL;
-    }
+    pPage->Init( tSize, &m_vecObjects );
 
     return pPage;
 }
 
 PdfFont* PdfSimpleWriter::CreateFont( const char* pszFontName, bool bEmbedd )
 {
-    PdfError          eCode;
 #ifdef _WIN32
     std::string       sPath = PdfFontMetrics::GetFilenameForFont( pszFontName );
 #else
@@ -163,10 +155,11 @@ PdfFont* PdfSimpleWriter::CreateFont( const char* pszFontName, bool bEmbedd )
         // Now sort the font list
         std::sort( m_vecFonts.begin(), m_vecFonts.end() );
 
-        eCode = pFont->Init( pMetrics, &m_vecObjects, bEmbedd );
-        if( eCode.IsError() )
-        {
-            eCode.PrintErrorMsg();
+        try {
+            pFont->Init( pMetrics, &m_vecObjects, bEmbedd );
+        } catch( PdfError & e ) {
+            e.AddToCallstack( __FILE__, __LINE__ );
+            e.PrintErrorMsg();
             PdfError::LogMessage( eLogSeverity_Error, "Cannot initialize font: %s\n", pszFontName );
             return NULL;
         }

@@ -100,9 +100,8 @@ const PdfFilter* PdfFilterFactory::Create( const EPdfFilter eFilter )
 // -------------------------------------------------------
 // Hex
 // -------------------------------------------------------
-PdfError PdfHexFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
+void PdfHexFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
 {
-    PdfError eCode;
     char*    pStart;
     int      i      = 0;
 
@@ -132,11 +131,9 @@ PdfError PdfHexFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutB
         ++pStart;
         ++i;
     }
-
-    return eCode;
 }
 
-PdfError PdfHexFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
+void PdfHexFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
 {
     PdfError eCode;
     int      i      = 0;
@@ -175,8 +172,6 @@ PdfError PdfHexFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutB
 
     *plOutLen = (pStart - *ppOutBuffer);
 
-    return eCode;
-
 }
 
 // -------------------------------------------------------
@@ -191,9 +186,8 @@ unsigned long PdfAscii85Filter::sPowers85[] = {
     85*85*85*85, 85*85*85, 85*85, 85, 1
 };
 
-PdfError PdfAscii85Filter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
+void PdfAscii85Filter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
 {
-    PdfError eCode;
     int           count = 0;
     unsigned long tuple = 0;
     int           pos   = 0;
@@ -231,7 +225,7 @@ PdfError PdfAscii85Filter::Encode( const char* pInBuffer, long lInLen, char** pp
 		} 
                 else
                 {
-                    SAFE_OP( this->Encode( *ppOutBuffer, &pos, *plOutLen, tuple, count ) ); 
+                    this->Encode( *ppOutBuffer, &pos, *plOutLen, tuple, count ); 
                 }
 
 		tuple = 0;
@@ -244,16 +238,14 @@ PdfError PdfAscii85Filter::Encode( const char* pInBuffer, long lInLen, char** pp
 
     if (count > 0)
     {
-        SAFE_OP( this->Encode( *ppOutBuffer, &pos, *plOutLen, tuple, count ) );
+        this->Encode( *ppOutBuffer, &pos, *plOutLen, tuple, count );
     }
 
     *plOutLen = pos;
-    return eCode;
 }
 
-PdfError PdfAscii85Filter::Encode( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int count ) const
+void PdfAscii85Filter::Encode( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int count ) const
 {
-    PdfError eCode;
     int      i      = 5;
     char     buf[5];
     char*    start  = buf;;
@@ -275,13 +267,10 @@ PdfError PdfAscii85Filter::Encode( char* pBuffer, int* bufferPos, long lBufferLe
         pBuffer[(*bufferPos)++] = (unsigned char)(*--start) + '!';
     } 
     while (i-- > 0);
-    
-    return eCode;
 }
 
-PdfError PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
+void PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
 {
-    PdfError      eCode;
     unsigned long tuple = 0;
     int           count = 0;
     int           pos   = 0;
@@ -312,7 +301,7 @@ PdfError PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** pp
                 tuple += ( *pInBuffer - '!') * PdfAscii85Filter::sPowers85[count++];
                 if (count == 5) 
                 {
-                    SAFE_OP( WidePut( *ppOutBuffer, &pos, *plOutLen, tuple, 4 ) );
+                    WidePut( *ppOutBuffer, &pos, *plOutLen, tuple, 4 );
                     count = 0;
                     tuple = 0;
                 }
@@ -346,18 +335,14 @@ PdfError PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** pp
     {
         count--;
         tuple += PdfAscii85Filter::sPowers85[count];
-        SAFE_OP( WidePut( *ppOutBuffer, &pos, *plOutLen, tuple, count ) );
+        WidePut( *ppOutBuffer, &pos, *plOutLen, tuple, count );
     }
 
     *plOutLen = pos;
-
-    return eCode;
 }
 
-PdfError PdfAscii85Filter::WidePut( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes ) const
+void PdfAscii85Filter::WidePut( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes ) const
 {
-    PdfError eCode;
-
     if( *bufferPos + bytes >= lBufferLen ) 
     {
         RAISE_ERROR( ePdfError_OutOfMemory );
@@ -383,17 +368,13 @@ PdfError PdfAscii85Filter::WidePut( char* pBuffer, int* bufferPos, long lBufferL
             pBuffer[ (*bufferPos)++ ] = (char)(tuple >> 24);
             break;
     }
-
-    return eCode;
 }
 
 // -------------------------------------------------------
 // Flate
 // -------------------------------------------------------
-PdfError PdfFlateFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
+void PdfFlateFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
 {
-    PdfError eCode;
-
     z_stream d_stream; 
     char*    buf;
     long     lBufLen;
@@ -437,14 +418,10 @@ PdfError PdfFlateFilter::Encode( const char* pInBuffer, long lInLen, char** ppOu
     *ppOutBuffer = buf;
 
     (void)deflateEnd(&d_stream);
-
-    return eCode;
 }
 
-PdfError PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
+void PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
 {
-    PdfError  eCode;
-
     int          flateErr;
     unsigned int have;
     z_stream strm;
@@ -479,21 +456,19 @@ PdfError PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOu
         strm.avail_out = CHUNK;
         strm.next_out  = (Bytef*)out;
 
-
         switch ( (flateErr = inflate(&strm, Z_NO_FLUSH)) ) {
             case Z_NEED_DICT:
             case Z_DATA_ERROR:
             case Z_MEM_ERROR:
+            {
                 PdfError::LogMessage( eLogSeverity_Error, "Flate Decoding Error from ZLib: %i\n", flateErr );
-                eCode.SetError( ePdfError_Flate );     /* and fall through */
                 (void)inflateEnd(&strm);
-                return eCode;
+
+                RAISE_ERROR( ePdfError_Flate );
+            }
             default:
                 break;
         }
-
-        if( eCode.IsError() )
-            eCode = ePdfError_ErrOk;
 
         have = CHUNK - strm.avail_out;
 
@@ -528,19 +503,23 @@ PdfError PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOu
         tParams.nColumns     = pDecodeParms->GetKeyAsLong( "Columns", tParams.nColumns );
         tParams.nEarlyChange = pDecodeParms->GetKeyAsLong( "EarlyChange", tParams.nEarlyChange );
 
-        eCode = this->RevertPredictor( &tParams, pBuf, lBufSize, ppOutBuffer, plOutLen );
+        try {
+            this->RevertPredictor( &tParams, pBuf, lBufSize, ppOutBuffer, plOutLen );
+        } catch( PdfError & e ) {
+            free( pBuf );
+            e.AddToCallstack( __FILE__, __LINE__ );
+            throw e;
+        }
+
         free( pBuf );
     }
-
-    return eCode;
 }
 
 // -------------------------------------------------------
 // Flate Predictor
 // -------------------------------------------------------
-PdfError PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
+void PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
 {
-    PdfError eCode;
     unsigned char*   pPrev;
     int     nRows;
     int     i;
@@ -554,13 +533,9 @@ PdfError PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, 
 #endif // _DEBUG
 
     if( pParams->nPredictor == 1 )  // No Predictor
-        return ePdfError_ErrOk;
+        return;
 
     nRows = (pParams->nColumns * pParams->nBPC) >> 3; 
-#ifdef _DEBUG
-    PdfError::DebugMessage("nRows=%i\n", nRows );
-    PdfError::DebugMessage("nBPC=%i\n", pParams->nBPC );
-#endif // _DEBUG
 
     pPrev = (unsigned char*)malloc( sizeof(char) * nRows );
     if( !pPrev )
@@ -583,7 +558,7 @@ PdfError PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, 
         RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
-    while( pBuffer < (pInBuffer + lInLen) && eCode == ePdfError_ErrOk )
+    while( pBuffer < (pInBuffer + lInLen) )
     {
         nPredictor = pParams->nPredictor >= 10 ? *pBuffer + 10 : *pBuffer;
         ++pBuffer;
@@ -607,8 +582,11 @@ PdfError PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, 
                     break;
                 
                 default:
-                    eCode.SetError( ePdfError_InvalidPredictor, __FILE__, __LINE__ );
+                {
+                    free( pPrev );
+                    RAISE_ERROR( ePdfError_InvalidPredictor );
                     break;
+                }
             }
   
             pPrev[i] = *pOutBufStart;          
@@ -620,21 +598,18 @@ PdfError PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, 
     *plOutLen = (pOutBufStart - *ppOutBuffer);
 
     free( pPrev );
-
-    return eCode;
 }
 
 // -------------------------------------------------------
 // RLE
 // -------------------------------------------------------
-PdfError PdfRLEFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
+void PdfRLEFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
 {
-    return ePdfError_UnsupportedFilter;
+    RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
-PdfError PdfRLEFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
+void PdfRLEFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
 {
-    PdfError              eCode;
     char*                 pBuf;
     long                  lCur;
     long                  lSize;
@@ -708,9 +683,6 @@ PdfError PdfRLEFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutB
 
     *ppOutBuffer = pBuf;
     *plOutLen    = lCur;
-
-    return eCode;
-
 }
 
 };

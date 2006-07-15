@@ -77,9 +77,8 @@ class PdfReference : public PdfDataType {
      *  This is an overloaded member function.
      *
      *  \param pDevice write the object to this device
-     *  \returns ErrOk on success
      */
-    PdfError Write( PdfOutputDevice* pDevice ) const;
+    void Write( PdfOutputDevice* pDevice ) const;
 
     /** 
      * Compare to PdfReference objects.

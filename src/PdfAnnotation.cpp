@@ -36,9 +36,44 @@ PdfAnnotation::PdfAnnotation( unsigned int nObjectNo, unsigned int nGenerationNo
     m_eAnnotation = ePdfAnnotation_Unknown;
 }
 
-PdfError PdfAnnotation::AddReferenceToKey( PdfObject* pObject, const PdfName & keyName, const PdfReference & rRef )
+void PdfAnnotation::Init( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect )
 {
-    PdfError      eCode;
+    PdfVariant  rect;
+
+    this->Init( (PdfObject*)pPage, eAnnot, rRect );
+
+    rRect.ToVariant( rect, pPage );
+    this->GetDictionary().AddKey( PdfName::KeyRect, rect );
+}
+
+void PdfAnnotation::Init( PdfObject* pObject, EPdfAnnotation eAnnot, const PdfRect & rRect )
+{
+    PdfVariant  rect;
+    PdfDate     date;
+    PdfString   sDate;
+
+    const PdfName name( AnnotationKey( eAnnot ) );
+
+    m_eAnnotation = eAnnot;
+
+    if( !name.Length() )
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    this->AddReferenceToKey( pObject, "Annots", this->Reference() );
+    
+    rRect.ToVariant( rect );
+    date.ToString( sDate );
+
+    this->GetDictionary().AddKey( PdfName::KeySubtype, name );
+    this->GetDictionary().AddKey( PdfName::KeyRect, rect );
+    this->GetDictionary().AddKey( "P", pObject->Reference() );
+    this->GetDictionary().AddKey( "M", sDate );
+}
+
+void PdfAnnotation::AddReferenceToKey( PdfObject* pObject, const PdfName & keyName, const PdfReference & rRef )
+{
     PdfObject*    pObj;
     PdfArray      list;
 
@@ -56,54 +91,10 @@ PdfError PdfAnnotation::AddReferenceToKey( PdfObject* pObject, const PdfName & k
     list.push_back( PdfVariant( rRef ) );
 
     pObject->GetDictionary().AddKey( keyName, PdfVariant( list ) );
-
-    return eCode;
 }
 
-PdfError PdfAnnotation::Init( PdfPage* pPage, EPdfAnnotation eAnnot, PdfRect & rRect )
+void PdfAnnotation::SetAppearanceStream( PdfXObject* pObject )
 {
-    PdfError    eCode;
-    PdfVariant  rect;
-
-    SAFE_OP( this->Init( (PdfObject*)pPage, eAnnot, rRect ) );
-
-    rRect.ToVariant( rect, pPage );
-    SAFE_OP( this->GetDictionary().AddKey( PdfName::KeyRect, rect ) );
-             
-    return eCode;
-}
-
-PdfError PdfAnnotation::Init( PdfObject* pObject, EPdfAnnotation eAnnot, PdfRect & rRect )
-{
-    PdfError    eCode;
-    PdfVariant  rect;
-    PdfDate     date;
-    PdfString   sDate;
-
-    const PdfName name( AnnotationKey( eAnnot ) );
-
-    m_eAnnotation = eAnnot;
-
-    if( !name.Length() )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    SAFE_OP( this->AddReferenceToKey( pObject, "Annots", this->Reference() ) );
-    
-    rRect.ToVariant( rect );
-    date.ToString( sDate );
-
-    SAFE_OP( this->GetDictionary().AddKey( PdfName::KeySubtype, name ) );
-    SAFE_OP( this->GetDictionary().AddKey( PdfName::KeyRect, rect ) );
-    SAFE_OP( this->GetDictionary().AddKey( "P", pObject->Reference() ) );
-    SAFE_OP( this->GetDictionary().AddKey( "M", sDate ) );
-    return eCode;
-}
-
-PdfError PdfAnnotation::SetAppearanceStream( PdfXObject* pObject )
-{
-    PdfError      eCode;
     PdfDictionary dict;
 
     if( !pObject )
@@ -111,12 +102,9 @@ PdfError PdfAnnotation::SetAppearanceStream( PdfXObject* pObject )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-
     dict.AddKey( "N", pObject->Reference() );
 
     this->GetDictionary().AddKey( "AP", dict );
-
-    return eCode;
 }
 
 void PdfAnnotation::SetFlags( pdf_uint32 uiFlags )
@@ -134,37 +122,29 @@ void PdfAnnotation::SetContents( const PdfString & sContents )
     this->GetDictionary().AddKey( "Contents", sContents );
 }
 
-PdfError PdfAnnotation::SetDestination( const PdfPage* pPage )
+void PdfAnnotation::SetDestination( const PdfPage* pPage )
 {
     return this->SetDestination( pPage->GetObject()->Reference() );
 }
 
-PdfError PdfAnnotation::SetDestination( const PdfReference & rReference )
+void PdfAnnotation::SetDestination( const PdfReference & rReference )
 {
-    PdfError     eCode;
-    TVariantList list;
-
+    PdfArray list;
 
     list.push_back( PdfVariant( rReference ) );
     list.push_back( PdfVariant( PdfName( "Fit" ) ) );
 
-    SAFE_OP( this->GetDictionary().AddKey( "Dest", PdfVariant( list ) ) );
- 
-    return eCode;
-}
+    this->GetDictionary().AddKey( "Dest", PdfVariant( list ) );
+ }
 
-PdfError PdfAnnotation::SetDestination( const PdfAction* pAction )
+void PdfAnnotation::SetDestination( const PdfAction* pAction )
 {
-    PdfError eCode;
-
     if( !pAction )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     this->GetDictionary().AddKey( "A", pAction->Reference() );
-
-    return eCode;
 }
 
 const char* PdfAnnotation::AnnotationKey( EPdfAnnotation eAnnot )

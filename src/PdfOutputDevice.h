@@ -52,28 +52,24 @@ class PdfOutputDevice {
      *  to the file specified.
      *  \param pszFilename path to a file that will be opened and all data
      *                     is written to this file.
-     *  \returns ErrOk on success
      */
-    PdfError Init( const char* pszFilename );
+    void Init( const char* pszFilename );
 
     /** Initialize the PdfOutputDevice and cause all data to be written
      *  to a buffer in memory. The buffer will not be owned by this object
      *  and has to be allocated before.
      *  \param pBuffer a buffer in memory
      *  \param lLen the length of the buffer in memory
-     *
-     *  \returns ErrOk on success
      */
-    PdfError Init( char* pBuffer, long lLen );
+    void Init( char* pBuffer, long lLen );
 
     /** Initialize the PdfOutputDevice and cause all data to be written
      *  to a std::ostream. 
      *
      *  \param pOutStream write to this std::ostream
      *
-     *  \returns ErrOk on success
      */
-    PdfError Init( const std::ostream* pOutStream );
+    void Init( const std::ostream* pOutStream );
 
     /** Initialize the PdfOutputDevice and do not write any data but 
      *  count the length of the written data.
@@ -81,7 +77,7 @@ class PdfOutputDevice {
      *
      *  \see Length
      */
-    PdfError Init();
+    void Init();
 
     /** The number of bytes written to this object.
      *  \returns the number of bytes written to this object.
@@ -97,7 +93,7 @@ class PdfOutputDevice {
      *
      *  \see Write
      */
-    PdfError Print( const char* pszFormat, ... );
+    void Print( const char* pszFormat, ... );
 
     /** Write data to the buffer. Use this call instead of Print if you 
      *  want to write binary data to the PdfOutputDevice.
@@ -108,7 +104,7 @@ class PdfOutputDevice {
      * 
      *  \see Print
      */
-    PdfError Write( const char* pBuffer, long lLen );
+    void Write( const char* pBuffer, long lLen );
 
  private:
     unsigned long m_ulLength;

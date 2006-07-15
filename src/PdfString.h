@@ -64,9 +64,8 @@ class PdfString : public PdfDataType{
      *                if lLen == -1 then strlen( pszHex ) will
      *                be used as length of the hex data. 
      *                pszHex has to be zero terminated in this case.
-     *  \returns ePdfError_ErrOk on success.
      */
-    PdfError SetHexData( const char* pszHex, long lLen = -1 );
+    void SetHexData( const char* pszHex, long lLen = -1 );
 
     /** Copy an existing PdfString 
      *  \param rhs another PdfString to copy
@@ -116,9 +115,8 @@ class PdfString : public PdfDataType{
     
     /** Write this PdfString in PDF format to a PdfOutputDevice 
      *  \param pDevice the output device.
-     *  \returns ErrOk on success
      */
-    PdfError Write ( PdfOutputDevice* pDevice ) const;
+    void Write ( PdfOutputDevice* pDevice ) const;
 
     /** Copy an existing PdfString 
      *  \param rhs another PdfString to copy

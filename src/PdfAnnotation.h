@@ -92,6 +92,10 @@ typedef enum EPdfAnnotationFlags {
  */
 class PdfAnnotation : public PdfObject {
  public:
+    /** Create a new PdfAction object
+     *  \param nObjectNo the object number
+     *  \param nGenerationNo the generation number of the object
+     */
     PdfAnnotation( unsigned int nObjectNo, unsigned int nGenerationNo );
 
     /** Initalize the PdfAnnotation object
@@ -101,7 +105,7 @@ class PdfAnnotation : public PdfObject {
      *
      *  \see EPdfAnnotation
      */
-    PdfError Init( PdfPage* pPage, EPdfAnnotation eAnnot, PdfRect & rRect );
+    void Init( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect );
 
     /** Initalize the PdfAnnotation object
      *
@@ -114,14 +118,13 @@ class PdfAnnotation : public PdfObject {
      *
      *  \see EPdfAnnotation
      */
-    PdfError Init( PdfObject* pObject, EPdfAnnotation eAnnot, PdfRect & rRect );
+    void Init( PdfObject* pObject, EPdfAnnotation eAnnot, const PdfRect & rRect );
 
     /** Set an appearance stream for this object
      *  to specify its visual appearance
      *  \param pObject an XObject
-     *  \returns ErrOk on success
      */
-    PdfError SetAppearanceStream( PdfXObject* pObject );
+    void SetAppearanceStream( PdfXObject* pObject );
 
     /** Set the flags of this annotation.
      *  \param uiFlags is an unsigned 32bit integer with different 
@@ -142,22 +145,19 @@ class PdfAnnotation : public PdfObject {
 
     /** Set the destination for Link annotations
      *  \param pPage target of the link
-     *  \returns ErrOk on success
      */
-    PdfError SetDestination( const PdfPage* pPage );
+    void SetDestination( const PdfPage* pPage );
 
     /** Set the destination for Link annotations
      *  \param rReference must be an indirect reference to an page object
-     *  \returns ErrOk on success
      */
-    PdfError SetDestination( const PdfReference & rReference );
+    void SetDestination( const PdfReference & rReference );
 
     /** Set the destination for Link annotations
      *  Perform an action when clicking on this action.
      *  \param pAction a PdfAction
-     *  \returns ErrOk on success
      */
-    PdfError SetDestination( const PdfAction* pAction );
+    void SetDestination( const PdfAction* pAction );
 
     /** Get the type of this annotation
      *  \returns the annotation type
@@ -172,7 +172,7 @@ class PdfAnnotation : public PdfObject {
      */
     const char* AnnotationKey( EPdfAnnotation eAnnot );
 
-    PdfError AddReferenceToKey( PdfObject* pObject, const PdfName & keyName, const PdfReference & rRef );
+    void AddReferenceToKey( PdfObject* pObject, const PdfName & keyName, const PdfReference & rRef );
 
  private:
     EPdfAnnotation m_eAnnotation;

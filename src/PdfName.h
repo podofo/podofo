@@ -75,9 +75,8 @@ class PdfName : public PdfDataType {
      *  This is an overloaded member function.
      *
      *  \param pDevice write the object to this device
-     *  \returns ErrOk on success
      */
-    PdfError Write( PdfOutputDevice* pDevice ) const;
+    void Write( PdfOutputDevice* pDevice ) const;
 
     /** \returns the value of this name object
      *           without the leading slash

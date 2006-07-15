@@ -72,9 +72,8 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
      *
      *  \param bIsTrailer wether this is a trailer dictionary or not.
      *                    trailer dictionaries do not have a object number etc.
-     *  \returns ErrOk on success
      */
-    PdfError ParseFile( bool bIsTrailer = false );
+    void ParseFile( bool bIsTrailer = false );
 
     /** Returns if this object has a stream object appended.
      *  which has to be parsed.
@@ -85,18 +84,15 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
     /** Starts reading at the file position m_lStreamOffset and interprets all bytes
      *  as contents of the objects stream.
      *  It is assumed that the dictionary has a valid /Length key already.
-     *
-     *  \returns ErrOk on success
      */
-    PdfError ParseStream();
+    void ParseStream();
 
     /** Parse the keys of a dictionary from a zero terminated buffer
      *  \param szBuffer  buffer containing the dictioniaries data
      *  \param lBufferLen length of the data buffer
      *  \param plParsedLength if non null, the length of the parsed data is returned
-     *  \returns ErrOk on success
      */
-    PdfError ParseDictionaryKeys( char* szBuffer, long lBufferLen, long* plParsedLength = NULL );
+    void ParseDictionaryKeys( char* szBuffer, long lBufferLen, long* plParsedLength = NULL );
 
     /** \returns true if this PdfParser loads all objects at
      *                the time they are accessed for the first time.
@@ -123,12 +119,12 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
     /** Load all data of the object if load object on demand is enabled.
      *  Reimplemented from PdfObject.
      */
-    virtual PdfError LoadOnDemand();
+    virtual void LoadOnDemand();
 
     /** Load the stream of the object if it has one and if loading on demand is enabled.
      *  Reimplemented from PdfObject.
      */
-    virtual PdfError LoadStreamOnDemand();
+    virtual void LoadStreamOnDemand();
 
  private:
     /** Initialize private members in this object with their default values
@@ -138,13 +134,12 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
     /** Parse the object data from the given file handle 
      *  \param bIsTrailer wether this is a trailer dictionary or not.
      *                    trailer dictionaries do not have a object number etc.
-     *  \returns ErrOk on success
      */
-    PdfError ParseFileComplete( bool bIsTrailer );
+    void ParseFileComplete( bool bIsTrailer );
 
-    PdfError ParseValue( char** szBuffer, std::string & sKey, std::string & sValue  );
-    PdfError GetDataType( char c, int* counter, EPdfDataType* eDataType, bool* bType ) const;
-    PdfError ReadObjectNumber();
+    void ParseValue( char** szBuffer, std::string & sKey, std::string & sValue  );
+    void GetDataType( char c, int* counter, EPdfDataType* eDataType, bool* bType ) const;
+    void ReadObjectNumber();
 
  private:
     bool m_bIsTrailer;

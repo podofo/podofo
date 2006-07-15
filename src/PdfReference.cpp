@@ -43,9 +43,9 @@ PdfReference::PdfReference( const PdfReference & rhs )
     this->operator=( rhs );
 }
 
-PdfError PdfReference::Write( PdfOutputDevice* pDevice ) const
+void PdfReference::Write( PdfOutputDevice* pDevice ) const
 {
-    return pDevice->Print( "%i %i R", m_nObjectNo, m_nGenerationNo );
+    pDevice->Print( "%i %i R", m_nObjectNo, m_nGenerationNo );
 }
 
 const std::string PdfReference::ToString() const

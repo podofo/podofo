@@ -32,26 +32,21 @@ UnCompress::~UnCompress()
     delete m_pWriter;
 }
 
-PdfError UnCompress::Init( const char* pszInput, const char* pszOutput )
+void UnCompress::Init( const char* pszInput, const char* pszOutput )
 {
-    PdfError eCode;
+    m_pParser->Init( pszInput );
 
-    SAFE_OP( m_pParser->Init( pszInput ) );
+    this->UncompressObjects();
 
-    SAFE_OP( this->UncompressObjects() );
-
-    SAFE_OP( m_pWriter->Init( m_pParser ) );
+    m_pWriter->Init( m_pParser );
 
     m_pWriter->SetPdfCompression( false );
 
-    SAFE_OP( m_pWriter->Write( pszOutput ) );
-
-    return eCode;
+    m_pWriter->Write( pszOutput );
 }
 
-PdfError UnCompress::UncompressObjects()
+void UnCompress::UncompressObjects()
 {
-    PdfError     eCode;
     TVecObjects  vecObj = m_pParser->GetObjects();
     TIVecObjects it     = vecObj.begin();
 
@@ -62,14 +57,12 @@ PdfError UnCompress::UncompressObjects()
     {
         if( (*it)->HasStream() )
         {
-            SAFE_OP( (*it)->Stream()->GetFilteredCopy( &pBuffer, &lLen ) );
-            SAFE_OP( (*it)->Stream()->Set( pBuffer, lLen ) );
+            (*it)->Stream()->GetFilteredCopy( &pBuffer, &lLen );
+            (*it)->Stream()->Set( pBuffer, lLen );
 
             (*it)->GetDictionary().RemoveKey( "Filter" );            
         }
 
         ++it;
     }
-
-    return eCode;
 }

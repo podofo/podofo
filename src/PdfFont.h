@@ -41,10 +41,8 @@ class PdfFont : public PdfObject {
      *         other objects on its own
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
-     *
-     *  \returns ErrOk on success
      */
-    PdfError Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool bEmbedd );
+    void Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool bEmbedd );
 
     /** Set the font size before drawing with this font.
      *  \param fSize font size in points
@@ -85,9 +83,8 @@ class PdfFont : public PdfObject {
      *  \param pParent PdfVecObjects object which is needed so that the Font can create 
      *         other objects on its own     
      *  \param pDescriptor font descriptor object
-     *  \returns ErrOk on success.
      */
-    PdfError EmbeddFont( PdfVecObjects* pParent, PdfObject* pDescriptor );
+    void EmbeddFont( PdfVecObjects* pParent, PdfObject* pDescriptor );
 
  private: 
     float m_fFontSize;

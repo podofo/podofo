@@ -54,10 +54,8 @@ PdfStream::~PdfStream()
         free( m_szStream );
 }
 
-PdfError PdfStream::Set( char* szBuffer, long lLen, bool takePossession )
+void PdfStream::Set( char* szBuffer, long lLen, bool takePossession )
 {
-    PdfError eCode;
-
     if( m_szStream && m_lLength && m_bOwnedBuffer )
         free( m_szStream );
 
@@ -73,13 +71,10 @@ PdfError PdfStream::Set( char* szBuffer, long lLen, bool takePossession )
     if( m_pParent )
         m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)m_lLength ) );
 
-    return eCode;
 }
 
-PdfError PdfStream::Set( const char* pszString )
+void PdfStream::Set( const char* pszString )
 {
-    PdfError eCode;
-
     if( !pszString )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -95,24 +90,21 @@ PdfError PdfStream::Set( const char* pszString )
         m_lSize    = 0;
     }
 
-    return Append( pszString );
+    Append( pszString );
 }
 
-PdfError PdfStream::Append( const char* pszString )
+void PdfStream::Append( const char* pszString )
 {
-    PdfError eCode;
-
     if( !pszString )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    return this->Append( pszString, strlen( pszString ) );
+    this->Append( pszString, strlen( pszString ) );
 }
 
-PdfError PdfStream::Append( const char* pszString, long lLen )
+void PdfStream::Append( const char* pszString, long lLen )
 {
-    PdfError eCode;
     long     lSize;
     char*    pBuf;
 
@@ -148,14 +140,10 @@ PdfError PdfStream::Append( const char* pszString, long lLen )
 
     if( m_pParent )
         m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)m_lLength ) );
-
-    return eCode;
 }
 
-PdfError PdfStream::GetCopy( char** pBuffer, long* lLen ) const
+void PdfStream::GetCopy( char** pBuffer, long* lLen ) const
 {
-    PdfError eCode;
-    
     if( !pBuffer || !lLen )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -170,13 +158,10 @@ PdfError PdfStream::GetCopy( char** pBuffer, long* lLen ) const
     }
     
     memcpy( *pBuffer, m_szStream, m_lLength );
-    
-    return eCode;
 }
 
-PdfError PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
+void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
 {
-    PdfError               eCode;
     TVecFilters            vecFilters;
     TIVecFilters           it;
     const PdfFilter*       pFilter;
@@ -192,8 +177,8 @@ PdfError PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    SAFE_OP( FillFilterList( vecFilters ) );
-    SAFE_OP( GetDecodeParms( &tDecodeParams ) );
+    FillFilterList( vecFilters );
+    GetDecodeParms( &tDecodeParams );
 
     if( tDecodeParams.size() > 0 && tDecodeParams.size() != vecFilters.size() )
     {
@@ -206,18 +191,36 @@ PdfError PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
         if( tDecodeParams.size() )
             itDecodeParams = tDecodeParams.begin();
 
-        while( it != vecFilters.end() && !eCode.IsError() ) 
+        while( it != vecFilters.end() ) 
         {
             pFilter = PdfFilterFactory::Create( *it );
             if( !pFilter ) 
             {
+                FreeDecodeParms( &tDecodeParams );
+
                 PdfError::LogMessage( eLogSeverity_Error, "Error: Found an unsupported filter: %i\n", *it );
-                eCode.SetError( ePdfError_UnsupportedFilter );
+                RAISE_ERROR( ePdfError_UnsupportedFilter );
                 break;
             }
 
-            eCode = pFilter->Decode( pInBuf, lInLen, ppBuffer, lLen, tDecodeParams.size() ? *itDecodeParams : NULL );
-            
+            try {            
+                pFilter->Decode( pInBuf, lInLen, ppBuffer, lLen, tDecodeParams.size() ? *itDecodeParams : NULL );
+            } catch( PdfError & e ) {
+                e.AddToCallstack( __FILE__, __LINE__ );
+
+                if( pInBuf != m_szStream ) 
+                {
+                    // the input buffer was malloc'ed by another filter before
+                    // so free it and let it point to the output buffer
+                    free( pInBuf );
+                }
+
+                FreeDecodeParms( &tDecodeParams );
+                free( *ppBuffer );
+
+                throw e;
+            }
+  
             if( pInBuf != m_szStream ) 
             {
                 // the input buffer was malloc'ed by another filter before
@@ -247,15 +250,10 @@ PdfError PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
     }
 
     FreeDecodeParms( &tDecodeParams );
-    if( eCode.IsError() )
-        free( *ppBuffer );
-
-    return eCode;
 }
 
-PdfError PdfStream::FlateDecode()
+void PdfStream::FlateDecode()
 {
-    PdfError          eCode;
     PdfObject*        pObj;
     PdfVariant        vFilter( PdfName("FlateDecode" ) );
     PdfVariant        vFilterList;
@@ -265,16 +263,16 @@ PdfError PdfStream::FlateDecode()
     PdfArray::const_iterator tciFilters;
     
     if( !m_szStream )
-        return eCode; // ePdfError_ErrOk
-
+        return; // ePdfError_ErrOk
 
     if( m_pParent->GetDictionary().HasKey( "Filter" ) )
     {
         // DecodeParms dictionaries of already used filters
         // have to be handled.
-        SAFE_OP( GetDecodeParms( &tDecodeParams ) );
+        GetDecodeParms( &tDecodeParams );
 
         pObj = m_pParent->GetIndirectKey( "Filter" );
+
         if( pObj->IsName() )
         {
             if( pObj->GetName() != "DCTDecode" && pObj->GetName() != "FlateDecode" )
@@ -286,7 +284,7 @@ PdfError PdfStream::FlateDecode()
             {
                 FreeDecodeParms( &tDecodeParams );
                 // do not compress DCTDecoded are already FlateDecoded streams again
-                return ePdfError_ErrOk;
+                return;
             }
         }
         else if( pObj->IsArray() )
@@ -301,7 +299,7 @@ PdfError PdfStream::FlateDecode()
                     if( (*tciFilters).GetName() == "DCTDecode" || (*tciFilters).GetName() == "FlateDecode" )
                     {
                         FreeDecodeParms( &tDecodeParams );
-                        return ePdfError_ErrOk;
+                        return;
                     }
                 }
 
@@ -323,40 +321,36 @@ PdfError PdfStream::FlateDecode()
         {
             FreeDecodeParms( &tDecodeParams );
             // TODO: handle other cases
-            return ePdfError_ErrOk;
+            return;
         }
 
         vFilterList = PdfVariant( tFilters );
         m_pParent->GetDictionary().AddKey( "Filter", vFilterList );
 
-        // add an empty DecodeParams dictionary to the list of DecodeParams,
-        // but only if another DecodeParams dictionary does exist.
-        if( tDecodeParams.size() ) 
-        {
-            tDecodeParams.insert( tDecodeParams.begin(), NULL );
-            // Write the decode params back to the file
-            eCode = SetDecodeParms( &tDecodeParams );
-            if( eCode.IsError() ) 
+        try {
+            // add an empty DecodeParams dictionary to the list of DecodeParams,
+            // but only if another DecodeParams dictionary does exist.
+            if( tDecodeParams.size() ) 
             {
-                FreeDecodeParms( &tDecodeParams );
-                return eCode;
+                tDecodeParams.insert( tDecodeParams.begin(), NULL );
+                // Write the decode params back to the file
+                SetDecodeParms( &tDecodeParams ); // throws an exception on error
             }
-        }
+            
+            FlateDecodeStreamData(); // throws an exception on error
+        } catch( PdfError & e ) {
+            e.AddToCallstack( __FILE__, __LINE__ );
 
-        eCode = FlateDecodeStreamData();
-        if( eCode.IsError() ) 
-        {
             FreeDecodeParms( &tDecodeParams );
-            return eCode;
+
+            throw e;
         }
     }
     else
     {
         m_pParent->GetDictionary().AddKey( "Filter", PdfName( "FlateDecode" ) );
-        SAFE_OP( FlateDecodeStreamData() );
+        FlateDecodeStreamData();
     }
-    
-    return eCode;
 }
 
 void PdfStream::FreeDecodeParms( TVecDictionaries* pParams ) const
@@ -373,9 +367,8 @@ void PdfStream::FreeDecodeParms( TVecDictionaries* pParams ) const
     pParams->clear();
 }
 
-PdfError PdfStream::FlateDecodeStreamData()
+void PdfStream::FlateDecodeStreamData()
 {
-    PdfError         eCode;
     const PdfFilter* pFilter;
     char*            pBuffer;
     long             lLen;
@@ -383,7 +376,7 @@ PdfError PdfStream::FlateDecodeStreamData()
     pFilter = PdfFilterFactory::Create( ePdfFilter_FlateDecode );
     if( pFilter ) 
     {
-        SAFE_OP( pFilter->Encode( m_szStream, m_lLength, &pBuffer, &lLen ) );
+        pFilter->Encode( m_szStream, m_lLength, &pBuffer, &lLen );
         free( m_szStream );
 
         m_szStream  = pBuffer;
@@ -397,13 +390,10 @@ PdfError PdfStream::FlateDecodeStreamData()
     {
         RAISE_ERROR( ePdfError_UnsupportedFilter );
     }
-
-    return eCode;
 }
 
-PdfError PdfStream::FillFilterList( TVecFilters & vecFilters ) const
+void PdfStream::FillFilterList( TVecFilters & vecFilters ) const
 {
-    PdfError   eCode;
     PdfObject* pObj;
     EPdfFilter eFilter = ePdfFilter_Unknown;
 
@@ -414,7 +404,7 @@ PdfError PdfStream::FillFilterList( TVecFilters & vecFilters ) const
         pObj = m_pParent->GetDictionary().GetKey( "Filter" );
         if( pObj->IsName() )
         {
-            SAFE_OP( FilterNameToType( pObj->GetName(), &eFilter ) );
+            eFilter = FilterNameToType( pObj->GetName() );
             vecFilters.push_back( eFilter );
         }
         else if( pObj->IsArray() )
@@ -429,7 +419,7 @@ PdfError PdfStream::FillFilterList( TVecFilters & vecFilters ) const
                     RAISE_ERROR( ePdfError_InvalidDataType );
                 }
 
-                SAFE_OP( PdfStream::FilterNameToType( (*it).GetName(), &eFilter ) );
+                eFilter = PdfStream::FilterNameToType( (*it).GetName() );
                 vecFilters.push_back( eFilter );
                 
                 ++it;
@@ -440,14 +430,10 @@ PdfError PdfStream::FillFilterList( TVecFilters & vecFilters ) const
             RAISE_ERROR( ePdfError_InvalidDataType );
         }
     }
-
-    return eCode;
 }
 
-PdfError PdfStream::FilterNameToType( const PdfName & name, EPdfFilter* peFilter )
+EPdfFilter PdfStream::FilterNameToType( const PdfName & name )
 {
-    PdfError eCode;
-
     static const char* aszFilters[] = {
         "ASCIIHexDecode",
         "ASCII85Decode",
@@ -464,7 +450,7 @@ PdfError PdfStream::FilterNameToType( const PdfName & name, EPdfFilter* peFilter
 
     int i = 0;
 
-    if( !name.Length() || !peFilter )
+    if( !name.Length() )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -472,16 +458,13 @@ PdfError PdfStream::FilterNameToType( const PdfName & name, EPdfFilter* peFilter
     while( aszFilters[i] )
     {
         if( name == aszFilters[i] )
-        {
-            *peFilter = (EPdfFilter)i;
-            return eCode;
-        }
+            return (EPdfFilter)i;
         
         ++i;
     }
 
-    eCode.SetError( ePdfError_UnsupportedFilter );
-    return eCode;
+    RAISE_ERROR( ePdfError_UnsupportedFilter );
+    return ePdfFilter_Unknown;
 }
 
 const PdfStream & PdfStream::operator=( const PdfStream & rhs )
@@ -504,9 +487,8 @@ const PdfStream & PdfStream::operator=( const PdfStream & rhs )
     return *this;
 }
 
-PdfError PdfStream::GetDecodeParms( TVecDictionaries* pParams ) const
+void PdfStream::GetDecodeParms( TVecDictionaries* pParams ) const
 {
-    PdfError                 eCode;
     PdfObject*               pObj = NULL;
     PdfArray                 array;
     PdfArray::const_iterator it;
@@ -528,12 +510,12 @@ PdfError PdfStream::GetDecodeParms( TVecDictionaries* pParams ) const
 
     if( !pObj )
         // No Decode Params dictionary
-        return eCode;
+        return;
     else if( pObj->IsDictionary() )
     {
         pParams->push_back( new PdfDictionary( pObj->GetDictionary() ) );
         // nothin else to do;
-        return eCode;
+        return;
     }
     else if( pObj->IsArray() )
         array = pObj->GetArray();
@@ -558,13 +540,10 @@ PdfError PdfStream::GetDecodeParms( TVecDictionaries* pParams ) const
 
         ++it;
     }
-    
-    return eCode;
 }
 
-PdfError PdfStream::SetDecodeParms( TVecDictionaries* pParams )
+void PdfStream::SetDecodeParms( TVecDictionaries* pParams )
 {
-    PdfError             eCode;
     PdfArray             array;    
     TCIVecDictionaries   it;
 
@@ -608,8 +587,6 @@ PdfError PdfStream::SetDecodeParms( TVecDictionaries* pParams )
         if( (*pParams)[0] )
             m_pParent->GetDictionary().AddKey( "DecodeParms", *((*pParams)[0] ) );
     }
-
-    return eCode;
 }
 
 };

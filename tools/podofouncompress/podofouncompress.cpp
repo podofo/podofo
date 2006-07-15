@@ -36,7 +36,6 @@ void print_help()
 
 int main( int argc, char* argv[] )
 {
-  PdfError eCode;
   char*    pszInput;
   char*    pszOutput;
 
@@ -52,15 +51,17 @@ int main( int argc, char* argv[] )
   pszInput  = argv[1];
   pszOutput = argv[2];
 
-  eCode = unc.Init( pszInput, pszOutput );
-
-  if( !eCode.IsError() )
-  {
-      printf("%s was sucessfully uncompressed to: %s\n", pszInput, pszOutput );
+  try {
+      unc.Init( pszInput, pszOutput );
+  } catch( PdfError & e ) {
+      fprintf( stderr, "Error: An error %i ocurred during uncompressing the pdf file.\n", e.Error() );
+      e.PrintErrorMsg();
+      return e.Error();
   }
-  else
-      fprintf( stderr, "Error: An error %i ocurred during uncompressing the pdf file.\n", eCode.Error() );
+
+
+  printf("%s was sucessfully uncompressed to: %s\n", pszInput, pszOutput );
   
-  return eCode.Error();
+  return 0;
 }
 

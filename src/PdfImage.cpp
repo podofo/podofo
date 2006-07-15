@@ -88,9 +88,8 @@ void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight, unsigned
     this->Stream()->Set( szBuffer, lLen );
 }
 
-PdfError PdfImage::LoadFromFile( const char* pszFilename )
+void PdfImage::LoadFromFile( const char* pszFilename )
 {
-    PdfError eCode;
     FILE*    hInfile;    
     long     lLen;
     char*    szBuffer;
@@ -170,8 +169,6 @@ PdfError PdfImage::LoadFromFile( const char* pszFilename )
     (void) jpeg_destroy_decompress(&cinfo);
 
     fclose( hInfile );
-
-    return eCode;
 }
 
 void PdfImage::GetImageReference( PdfImageRef & rRef )

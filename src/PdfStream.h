@@ -64,27 +64,27 @@ class PdfStream {
 	 *  \param takePossession does the stream now own this buffer...
      *  \returns ErrOk
      */
-    PdfError Set( char* szBuffer, long lLen, bool takePossession = true );
+    void Set( char* szBuffer, long lLen, bool takePossession = true );
 
     /** Set a text buffer as the streams contents.
      *  The string will be copied into a newly allocated buffer.
      *  \param pszString a zero terminated string buffer containing only ASCII text data
      *  \returns ErrOk on sucess
      */
-    PdfError Set( const char* pszString );
+    void Set( const char* pszString );
 
     /** Append to the current stream contents. 
      *  \param pszString a zero terminated string buffer containing only ASCII text data
      *  \returns ErrOk on sucess
      */
-    PdfError Append( const char* pszString ); 
+    void Append( const char* pszString ); 
 
     /** Append to the current stream contents. 
      *  \param pszString a buffer
      *  \param lLen length of the buffer
      *  \returns ErrOk on sucess
      */
-    PdfError Append( const char* pszString, long lLen ); 
+    void Append( const char* pszString, long lLen ); 
 
     /** Get a malloced buffer of the current stream.
      *  No filters will be applied to the buffer.
@@ -93,7 +93,7 @@ class PdfStream {
      *  \param lLen    pointer to the buffer length
      *  \returns ErrOk on success.
      */
-    PdfError GetCopy( char** pBuffer, long* lLen ) const;
+    void GetCopy( char** pBuffer, long* lLen ) const;
 
     /** Get a malloced buffer of the current stream which has been
      *  filtered by all filters as specified in the dictioniries
@@ -102,7 +102,7 @@ class PdfStream {
      *  \param lLen    pointer to the buffer length
      *  \returns ErrOk on success.
      */
-    PdfError GetFilteredCopy( char** pBuffer, long* lLen ) const;
+    void GetFilteredCopy( char** pBuffer, long* lLen ) const;
 
     /** Get a read-only handle to the currenct stream data.
      *  \returns a read-only handle to the streams data
@@ -125,9 +125,8 @@ class PdfStream {
      *  using the FlateDecode algorithm. JPEG compressed streams
      *  will not be compressed again using this function.
      *  Entries to the filter dictionary will be added if necessary.
-     *  \returns ErrOk on sucess
      */
-    PdfError FlateDecode();
+    void FlateDecode();
 
     /** Create a copy of a PdfStream object
      *  \param rhs the object to clone
@@ -141,26 +140,25 @@ class PdfStream {
      *  \param vecFilters add all filters to this vector
      *  \returns ErrOk on success
      */
-    PdfError FillFilterList( TVecFilters & vecFilters ) const;
+    void FillFilterList( TVecFilters & vecFilters ) const;
 
     /** Converts a filter name to the corresponding enum
      *  \param name of the filter without leading
-     *  \param peFilter pointer to a filter enum where the result can be stored
-     *  \returns ErrOk on success
+     *  \returns the filter as enum
      */
-    static PdfError FilterNameToType( const PdfName & name, EPdfFilter* peFilter );
+    static EPdfFilter FilterNameToType( const PdfName & name );
 
     /** Compress the current data using the FlateDecode algorithm
      *  Expects that all filters are setup correctly.
      *  \returns ErrOk on success
      */
-    PdfError FlateDecodeStreamData();
+    void FlateDecodeStreamData();
 
     /** Get a list of extra decode parameters for this dictionary.
      *  The list contains copies of the objects and has to be deleted by the caller! 
      *  \returns ErrOk on success
      */
-    PdfError GetDecodeParms( TVecDictionaries* pParams ) const;
+    void GetDecodeParms( TVecDictionaries* pParams ) const;
 
     /** Set a list of extra decode parameters for this dictionary. Replace any old
      *  decode paramaters with this.
@@ -170,7 +168,7 @@ class PdfStream {
      *  \param pParams a list of decode parameter dictioniers, may contain null pointers
      *  \returns ErrOk on success
      */
-    PdfError SetDecodeParms( TVecDictionaries* pParams );
+    void SetDecodeParms( TVecDictionaries* pParams );
 
     /** Deletes all dictionaries in the vector
      *  \param pParams delete all dictionaries in this vector
@@ -186,20 +184,29 @@ class PdfStream {
     bool	 m_bOwnedBuffer;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 const char* PdfStream::Get() const
-    {
-        return m_szStream;
-    }
+{
+    return m_szStream;
+}
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 long PdfStream::Length() const
-    {
-        return m_lLength;
-    }
+{
+    return m_lLength;
+}
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 long PdfStream::Size() const
-    {
-        return m_lSize;
-    }
+{
+    return m_lSize;
+}
 
 };
 

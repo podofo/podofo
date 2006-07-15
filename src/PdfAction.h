@@ -63,6 +63,10 @@ typedef enum EPdfAction {
  */
 class PdfAction : public PdfObject {
  public:
+    /** Create a new PdfAction object
+     *  \param nObjectNo the object number
+     *  \param nGenerationNo the generation number of the object
+     */
     PdfAction( unsigned int nObjectNo, unsigned int nGenerationNo );
     
     /** Initalize the PdfAction object
@@ -70,7 +74,7 @@ class PdfAction : public PdfObject {
      *
      *  \see EPdfAction
      */
-    PdfError Init( EPdfAction eAction );
+    void Init( EPdfAction eAction );
 
 
     /** Set the URI of an ePdfAction_URI

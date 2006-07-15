@@ -128,9 +128,8 @@ const std::string PdfFontMetrics::Fontname() const
 }
 */
 
-PdfError PdfFontMetrics::GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast ) const
+void PdfFontMetrics::GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast ) const
 {
-    PdfError      eCode;
     unsigned int  i;
     PdfArray  list;
 
@@ -157,14 +156,10 @@ PdfError PdfFontMetrics::GetWidthArray( PdfVariant & var, unsigned int nFirst, u
     }
 
     var = PdfVariant( list );
-
-    return eCode;
 }
 
-PdfError PdfFontMetrics::GetBoundingBox( PdfArray & array ) const
+void PdfFontMetrics::GetBoundingBox( PdfArray & array ) const
 {
-    PdfError eCode;
-
     if( !m_face ) 
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -175,8 +170,6 @@ PdfError PdfFontMetrics::GetBoundingBox( PdfArray & array ) const
     array.push_back( PdfVariant( m_face->bbox.yMin  * 1000.0 / m_face->units_per_EM ) );
     array.push_back( PdfVariant( m_face->bbox.xMax  * 1000.0 / m_face->units_per_EM ) );
     array.push_back( PdfVariant( m_face->bbox.yMax  * 1000.0 / m_face->units_per_EM ) );
-
-    return eCode;
 }
 
 std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )

@@ -8,5 +8,13 @@ PoDoFo 0.3
        and a reference to the PageTree)
        - introduce PdfArray and PdfDictionary classes
        - Add configure checks for zlib, freetype and fontconfig
-       - Sorted Map in PdfDictionary to make it faster
+       - PdfOutputDevice: Remove Init
+       - PdfPage should use PdfObject::GetParent instead of having an own one
+       - PdfVecObject should be able to have a PdfDocument as parent so that
+       PdfPage does not need to keep a PdfDocument pointer.
+       - RAISE_ERROR macro should only invoke a new PdfError constructor
+       - PdfParser should not have an Init method
+       - WritePdfTableOfContents: Write a function that gets a key and copies
+       it into the trailer dictionary
+       - Remove PdfSimpleWriter::Init
 

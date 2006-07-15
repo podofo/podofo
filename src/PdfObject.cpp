@@ -133,14 +133,13 @@ void PdfObject::Clear()
     m_pStream = NULL;
 }
 
-PdfError PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
+void PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
 {
-    PdfError      eCode;
     bool          bIndirect = ( (long)m_reference.ObjectNumber() != -1  && (long)m_reference.GenerationNumber() != -1 );
 
     // do not write empty objects to disc
     if( m_bEmptyEntry )
-        return eCode;
+        return;
 
     DelayedStreamLoad();
 
@@ -150,29 +149,21 @@ PdfError PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keySt
     }
 
     if( bIndirect )
-    {
-        SAFE_OP( pDevice->Print( "%i %i obj\n", m_reference.ObjectNumber(), m_reference.GenerationNumber() ) );
-    }
+        pDevice->Print( "%i %i obj\n", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
 
-    SAFE_OP( this->Write( pDevice, keyStop ) );
+    this->Write( pDevice, keyStop );
     if( !this->IsDictionary() )
-    {
-        SAFE_OP( pDevice->Print( "\n" ) );
-    }
+        pDevice->Print( "\n" );
 
     if( m_pStream )
     {
-        SAFE_OP( pDevice->Print( "stream\n" ) );
-        SAFE_OP( pDevice->Write( m_pStream->Get(), m_pStream->Length() ) );
-        SAFE_OP( pDevice->Print( "\nendstream\n" ) );
+        pDevice->Print( "stream\n" );
+        pDevice->Write( m_pStream->Get(), m_pStream->Length() );
+        pDevice->Print( "\nendstream\n" );
     }
 
     if( bIndirect )
-    {
-        SAFE_OP( pDevice->Print( "endobj\n" ) );
-    }
-
-    return eCode;
+        pDevice->Print( "endobj\n" );
 }
 
 PdfObject* PdfObject::GetIndirectKey( const PdfName & key )
@@ -191,23 +182,14 @@ PdfObject* PdfObject::GetIndirectKey( const PdfName & key )
     return pObj;
 }
 
-PdfError PdfObject::GetObjectLength( unsigned long* pulLength )
+unsigned long PdfObject::GetObjectLength()
 {
-    PdfError        eCode;
     PdfOutputDevice device;
 
-    if( !pulLength )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    device.Init();
+    this->Write( &device );
 
-    SAFE_OP( device.Init() );
-
-    SAFE_OP( this->Write( &device ) );
-
-    *pulLength = device.Length();
-
-    return eCode;
+    return device.Length();
 }
 
 PdfStream* PdfObject::Stream()
@@ -227,11 +209,12 @@ const PdfStream* PdfObject::Stream() const
     return m_pStream;
 }
 
-PdfError PdfObject::FlateDecodeStream() 
+void PdfObject::FlateDecodeStream() 
 {
     DelayedStreamLoad();
 
-    return m_pStream ? m_pStream->FlateDecode() : ePdfError_ErrOk;
+    if( m_pStream )
+        m_pStream->FlateDecode();
 }
 
 const PdfObject & PdfObject::operator=( const PdfObject & rhs )
@@ -259,12 +242,11 @@ const PdfObject & PdfObject::operator=( const PdfObject & rhs )
     return *this;
 }
 
-PdfError PdfObject::GetByteOffset( const char* pszKey, unsigned long* pulOffset )
+unsigned long PdfObject::GetByteOffset( const char* pszKey )
 {
-    PdfError        eCode;
     PdfOutputDevice device;
 
-    if( !pszKey || !pulOffset ) 
+    if( !pszKey )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -274,12 +256,10 @@ PdfError PdfObject::GetByteOffset( const char* pszKey, unsigned long* pulOffset 
         RAISE_ERROR( ePdfError_InvalidKey );
     }
 
-    SAFE_OP( device.Init() );
-    SAFE_OP( this->Write( &device, pszKey ) );
-
-    *pulOffset = device.Length();
+    device.Init();
+    this->Write( &device, pszKey );
     
-    return eCode;
+    return device.Length();
 }
 
 };

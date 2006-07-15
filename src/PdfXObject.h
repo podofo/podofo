@@ -44,7 +44,7 @@ class PdfXObject : public PdfObject, public PdfCanvas {
  public:
     PdfXObject( unsigned int nObjectNo, unsigned int nGenerationNo );
 
-    PdfError Init( const PdfRect & rRect );
+    void Init( const PdfRect & rRect );
 
     /** Get access to the contents object of this page.
      *  If you want to draw onto the page, you have to add 

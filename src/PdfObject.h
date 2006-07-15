@@ -164,15 +164,13 @@ class PdfObject : public PdfVariant {
      *  \param pDevice write the object to this device
      *  \param keyStop if not KeyNull and a key == keyStop is found
      *                 writing will stop right before this key!
-     *  \returns ErrOk on success
      */
-    PdfError WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop = PdfName::KeyNull ) const;
+    void WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop = PdfName::KeyNull ) const;
 
     /** Get the length of the object in bytes if it was written to disk now.
-     *  \param pulLength safe the length of the object in to this unsigned long
-     *  \returns ErrOk on success
+     *  \returns  the length of the object
      */
-    PdfError GetObjectLength( unsigned long* pulLength );
+     unsigned long GetObjectLength();
 
     /** Get a indirect reference to this object
      *  \returns a PdfReference pointing to this object.
@@ -242,10 +240,8 @@ class PdfObject : public PdfVariant {
      *  using the FlateDecode algorithm. JPEG compressed streams
      *  will not be compressed again using this function.
      *  Entries to the filter dictionary will be added if necessary.
-     *
-     *  \returns ErrOk on sucess
      */
-    PdfError FlateDecodeStream();
+    void FlateDecodeStream();
 
     /** Calculate the byte offset of the key pszKey from the start of the object
      *  if the object was written to disk at the moment of calling this function.
@@ -253,18 +249,17 @@ class PdfObject : public PdfVariant {
      *  This function is very calculation intensive!
      *
      *  \param pszKey  key to calculate the byte offset
-     *  \param pulOffset pointer to an unsigned long to save the offset
-     *  \returns ErrOk on success
+     *  \returns the offset of the key 
      */
-    PdfError GetByteOffset( const char* pszKey, unsigned long* pulOffset );
+    unsigned long GetByteOffset( const char* pszKey );
 
     /** Load all data of the object if load object on demand is enabled
      */
-    inline virtual PdfError LoadOnDemand();
+    inline virtual void LoadOnDemand();
 
     /** Load the stream of the object if it has one and if loading on demand is enabled
      */
-    inline virtual PdfError LoadStreamOnDemand();
+    inline virtual void LoadStreamOnDemand();
 
  protected:
     /** Initialize all private members with their default values
@@ -277,14 +272,12 @@ class PdfObject : public PdfVariant {
     void Clear();
 
     /**
-     *  \returns ErrOk on sucess
      */
-    inline virtual PdfError DelayedLoad() const;
+    inline virtual void DelayedLoad() const;
 
     /**
-     *  \returns ErrOk on sucess
      */
-    inline PdfError DelayedStreamLoad() const;
+    inline void DelayedStreamLoad() const;
 
  protected:
     PdfReference   m_reference;
@@ -385,58 +378,48 @@ inline bool PdfObject::HasStream() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline PdfError PdfObject::LoadOnDemand()
+inline void PdfObject::LoadOnDemand()
 {
     m_bLoadOnDemandDone = true;
-    return PdfError();
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline PdfError PdfObject::LoadStreamOnDemand()
+inline void PdfObject::LoadStreamOnDemand()
 {
-    PdfError eCode = DelayedLoad();
+    DelayedLoad();
     m_bLoadStreamOnDemandDone = true;
-    return eCode;
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline PdfError PdfObject::DelayedLoad() const
+inline void PdfObject::DelayedLoad() const
 {
-    PdfError eCode;
-
     if( !m_bLoadOnDemandDone ) 
     {
         PdfObject* p = const_cast<PdfObject*>(this);
-        SAFE_OP( p->LoadOnDemand() );
+        p->LoadOnDemand();
     }
-
-    return eCode;
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline PdfError PdfObject::DelayedStreamLoad() const
+inline void PdfObject::DelayedStreamLoad() const
 {
-    PdfError eCode;
-
     if( !m_bLoadOnDemandDone ) 
     {
         PdfObject* p = const_cast<PdfObject*>(this);
-        SAFE_OP( p->LoadOnDemand() );
+        p->LoadOnDemand();
     }
 
     if( !m_bLoadStreamOnDemandDone ) 
     {
         PdfObject* p = const_cast<PdfObject*>(this);
-        SAFE_OP( p->LoadStreamOnDemand() );
+        p->LoadStreamOnDemand();
     }
-
-    return eCode;
 }
 
 };

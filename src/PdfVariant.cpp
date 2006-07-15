@@ -128,14 +128,13 @@ PdfVariant::~PdfVariant()
     Clear();
 }
 
-PdfError PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
+void PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
 {
-    PdfError eCode;
     char*    pszBuf    = (char*)pszData;
     long     lLen      = 0;
     long     lArrayLen;
 
-    PdfVariant       vVar;
+    PdfVariant vVar;
 
     if( !pszData )
     {
@@ -147,7 +146,7 @@ PdfError PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
     if( !nLen )
         nLen = strlen( pszData );
 
-    SAFE_OP( GetDataType( pszData, nLen, &m_eDataType, &lLen ) );
+    GetDataType( pszData, nLen, &m_eDataType, &lLen );
 
     if( m_eDataType == ePdfDataType_HexString )
     {
@@ -157,7 +156,7 @@ PdfError PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
         if( *pszBuf == '>' )
         {
             m_pData = new PdfString();
-            SAFE_OP( static_cast<PdfString*>(m_pData)->SetHexData( pszData+1, pszBuf - pszData - 1 ) );
+            static_cast<PdfString*>(m_pData)->SetHexData( pszData+1, pszBuf - pszData - 1 );
             ++pszBuf;
         }
         else
@@ -227,7 +226,7 @@ PdfError PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
                 break;
             }
 
-            SAFE_OP( vVar.Parse( pszBuf, (pszData+nLen)-pszBuf, &lArrayLen ) );
+            vVar.Parse( pszBuf, (pszData+nLen)-pszBuf, &lArrayLen );
 
             pszBuf += lArrayLen;
 
@@ -243,7 +242,7 @@ PdfError PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
     else if( m_eDataType == ePdfDataType_Dictionary )
     {
         PdfParserObject parser( NULL, 0 );
-        SAFE_OP( parser.ParseDictionaryKeys( pszBuf, nLen - (pszBuf - pszData), &lArrayLen ) );
+        parser.ParseDictionaryKeys( pszBuf, nLen - (pszBuf - pszData), &lArrayLen );
         pszBuf += lArrayLen;
         m_pData = new PdfDictionary( parser.GetDictionary() );
 
@@ -262,11 +261,9 @@ PdfError PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
         else
             *pLen = pszBuf - pszData;
     }
-
-    return eCode;
 }
 
-PdfError PdfVariant::GetDataType( const char* pszData, long nLen, EPdfDataType* eDataType, long* pLen )
+void PdfVariant::GetDataType( const char* pszData, long nLen, EPdfDataType* eDataType, long* pLen )
 {
     PdfError     eCode;
     PdfReference ref;
@@ -284,19 +281,19 @@ PdfError PdfVariant::GetDataType( const char* pszData, long nLen, EPdfDataType* 
     if( nLen >= NULL_LENGTH && strncmp( pszData, "null", NULL_LENGTH ) == 0 )
     {
         *eDataType = ePdfDataType_Null;
-        return eCode;
+        return;
     }
     else if( nLen >= TRUE_LENGTH && strncmp( pszData, "true", TRUE_LENGTH ) == 0 )
     {
         *eDataType   = ePdfDataType_Bool;
         m_Data.bBoolValue = true;
-        return eCode;
+        return;
     }
     else if( nLen >= FALSE_LENGTH && strncmp( pszData, "false", FALSE_LENGTH ) == 0 )
     {
         *eDataType   = ePdfDataType_Bool;
         m_Data.bBoolValue = false;
-        return eCode;
+        return;
     }
     
     switch( c )
@@ -392,7 +389,8 @@ PdfError PdfVariant::GetDataType( const char* pszData, long nLen, EPdfDataType* 
         }
     }
 
-    return eCode;
+    if( eCode.IsError() )
+        throw eCode;
 }
 
 void PdfVariant::Clear()
@@ -406,15 +404,13 @@ void PdfVariant::Clear()
     memset( &m_Data, sizeof( UVariant ), 0 );
 }
 
-PdfError PdfVariant::Write( PdfOutputDevice* pDevice ) const
+void PdfVariant::Write( PdfOutputDevice* pDevice ) const
 {
     return this->Write( pDevice, PdfName::KeyNull );
 }
 
-PdfError PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
+void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
 {
-    PdfError        eCode;
-
     DelayedLoad(); 
 
     /* Check all handles first 
@@ -431,57 +427,51 @@ PdfError PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) 
     switch( m_eDataType ) 
     {
         case ePdfDataType_Bool:
-            eCode = pDevice->Print( m_Data.bBoolValue ? "true" : "false" );
+            pDevice->Print( m_Data.bBoolValue ? "true" : "false" );
             break;
         case ePdfDataType_Number:
-            eCode = pDevice->Print( "%li", m_Data.nNumber );
+            pDevice->Print( "%li", m_Data.nNumber );
             break;
         case ePdfDataType_Real:
-            eCode = pDevice->Print( "%g", m_Data.dNumber );
+            pDevice->Print( "%g", m_Data.dNumber );
             break;
         case ePdfDataType_HexString:
         case ePdfDataType_String:
         case ePdfDataType_Name:
         case ePdfDataType_Array:
         case ePdfDataType_Reference:
-            eCode = m_pData->Write( pDevice );
+            m_pData->Write( pDevice );
             break;
         case ePdfDataType_Dictionary:
-            eCode = static_cast<PdfDictionary*>(m_pData)->Write( pDevice, keyStop );
+            static_cast<PdfDictionary*>(m_pData)->Write( pDevice, keyStop );
             break;
         case ePdfDataType_Null:
-            eCode = pDevice->Print( "null" );
+            pDevice->Print( "null" );
             break;
         case ePdfDataType_Unknown:
         default:
-            eCode.SetError( ePdfError_InvalidDataType, __FILE__, __LINE__ );
+        {
+            RAISE_ERROR( ePdfError_InvalidDataType );
             break;
+        }
     };
 
-    if( !eCode.IsError() )
+    if( m_nPadding && (int)pDevice->Length() < m_nPadding )
     {
-        if( m_nPadding && (int)pDevice->Length() < m_nPadding )
-        {
-            std::string str( m_nPadding - pDevice->Length(), ' ' ); 
-            eCode = pDevice->Print( str.c_str() );
-        }
+        std::string str( m_nPadding - pDevice->Length(), ' ' ); 
+        pDevice->Print( str.c_str() );
     }
-
-    return eCode;
 }
 
-PdfError PdfVariant::ToString( std::string & rsData ) const
+void PdfVariant::ToString( std::string & rsData ) const
 {
-    PdfError        eCode;
     PdfOutputDevice device;
     ostringstream   out;
 
-    SAFE_OP( device.Init( &out ) );
-    SAFE_OP( this->Write( &device ) );
+    device.Init( &out );
+    this->Write( &device );
     
     rsData = out.str();
-
-    return eCode;
 }
 
 const PdfVariant & PdfVariant::operator=( const PdfVariant & rhs )

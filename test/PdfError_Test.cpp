@@ -24,49 +24,38 @@
 
 using namespace PoDoFo;
 
-PdfError function1()
+void function1()
 {
-    PdfError eCode;
-
     RAISE_ERROR( ePdfError_InvalidHandle );
-
-    return eCode;
 }
 
-PdfError function2()
+void function2()
 {
-    PdfError eCode;
-
-    SAFE_OP( function1() );
-
-    return eCode;
+    try {
+        function1();
+    } catch( PdfError & e ) {
+        e.AddToCallstack( __FILE__, __LINE__ );
+        throw e;
+    }
 }
 
-PdfError function3()
+void function3()
 {
-    PdfError eCode;
-
-    SAFE_OP( function2() );
-
-    return eCode;
+    try {
+        function2();
+    } catch( PdfError & e ) {
+        e.AddToCallstack( __FILE__, __LINE__ );
+        throw e;
+    }
 }
 
 int main( int argc, char* argv[] ) 
 {
-    PdfError eCode;
-
     printf("Creating an error callstack.\n");
     try {
         function3();
-    } catch( PdfError e ) {
-        eCode = e;
-    }
-
-    
-
-    if( eCode.IsError() )
-    {
-        eCode.PrintErrorMsg();
+    } catch( PdfError & e ) {
+        e.PrintErrorMsg();
     }
 
     return 0;

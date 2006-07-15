@@ -1,6 +1,6 @@
 Version 0.3
     TOTAL revamp of PdfObject & PdfVariant to enable clean/consistent object handling;
-	Added new PdfDocument object - new high level object for reading & writing a PDF doc;
+    	Added new PdfDocument object - new high level object for reading & writing a PDF doc;
 	Improved handling of the /Info dict for both reading and writing PDFs;
 	Added new test app - podofopdfinfo, which will be used to dump metadata, etc. from a PDF;
 	Added PdfError::DebugMessage() as the official way to write out debugging info;
@@ -30,6 +30,7 @@ Version 0.3
 	Added more methods to PdfPage;
 		GetRotation();
 		GetNumAnnots();
+	Use Exceptions now instead of error codes;
 	
 Version 0.2
 	Improved Documentation;

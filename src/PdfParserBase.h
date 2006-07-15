@@ -62,20 +62,22 @@ class PdfParserBase {
 
     /** Reads the next number from the current file position
      *  until the next whitespace is readched.
-     *  \param plNumber pointer where the result shall be stored.
      *
-     *  \returns ErrOk on success.
+     *  \returns the next number in the file
      */
-    PdfError GetNextNumberFromFile( long* plNumber );
+    long GetNextNumberFromFile();
 
     /** Reads the next string from the current file position
      *  until the next whitespace is reached.
      *  the result is stored into m_szBuffer.
      *  Leading whitespaces are ignored!
+     * 
+     *  \returns a pointer to the internal buffer 
+     *           where the result is stored
      *
-     *  \returns ErrOk on success
+     *  \see GetBuffer
      */
-    PdfError GetNextStringFromFile( );
+    const char* GetNextStringFromFile( );
 
 
     /** Get a handle to the internal buffer.

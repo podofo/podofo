@@ -30,10 +30,10 @@ class UnCompress {
     UnCompress();
     ~UnCompress();
 
-    PdfError Init( const char* pszInput, const char* pszOutput );
+    void Init( const char* pszInput, const char* pszOutput );
 
  private:
-    PdfError UncompressObjects();
+    void UncompressObjects();
 
  private:
     PdfParser* m_pParser;

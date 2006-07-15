@@ -67,30 +67,28 @@ void PdfParserObject::Init()
     PdfObject::Init( false );
 }
 
-PdfError PdfParserObject::ReadObjectNumber()
+void PdfParserObject::ReadObjectNumber()
 {
-    PdfError  eCode;
+    long number;
 
-    long      number;
+    try {
+        number = GetNextNumberFromFile();
+        m_reference.SetObjectNumber( number );
+        number = GetNextNumberFromFile();
+        m_reference.SetGenerationNumber( number );
+    } catch( PdfError & e ) {
+        RAISE_ERROR_INFO( ePdfError_NoObject, "object and generation number cannot be read." );
+    }
 
-    SAFE_OP( GetNextNumberFromFile( &number ) );
-    m_reference.SetObjectNumber( number );
-    SAFE_OP( GetNextNumberFromFile( &number ) );
-    m_reference.SetGenerationNumber( number );
-    
-    SAFE_OP( GetNextStringFromFile( ) );
+    GetNextStringFromFile( );
     if( strncmp( m_szBuffer, "obj", 3 ) != 0 )
     {
         RAISE_ERROR( ePdfError_NoObject );
     }
-    
-    return eCode;
 }
 
-PdfError PdfParserObject::ParseFile( bool bIsTrailer )
+void PdfParserObject::ParseFile( bool bIsTrailer )
 {
-    PdfError     eCode;
-
     if( !m_hFile || !m_pParser )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -100,28 +98,22 @@ PdfError PdfParserObject::ParseFile( bool bIsTrailer )
         fseek( m_hFile, m_lOffset, SEEK_SET );
 
     if( !bIsTrailer )
-    {
-        SAFE_OP( ReadObjectNumber() );
-    }
+        ReadObjectNumber();
 
     m_lOffset    = ftell( m_hFile );
     m_bIsTrailer = bIsTrailer;
 
     if( !m_bLoadOnDemand )
     {
-        SAFE_OP( ParseFileComplete( m_bIsTrailer ) );
+        ParseFileComplete( m_bIsTrailer );
 
         m_bLoadOnDemandDone       = true;
         m_bLoadStreamOnDemandDone = true;
     }
-
-    return eCode;
 }
 
-PdfError PdfParserObject::ParseFileComplete( bool bIsTrailer )
+void PdfParserObject::ParseFileComplete( bool bIsTrailer )
 {
-    PdfError     eCode;
-
     int          c;
     int          counter         = 0;
     int          nObjCount       = 0;
@@ -146,7 +138,7 @@ PdfError PdfParserObject::ParseFileComplete( bool bIsTrailer )
         }
     }
 
-    SAFE_OP( GetDataType( c, &counter, &eDataType, NULL ) );
+    GetDataType( c, &counter, &eDataType, NULL );
     while( (c = fgetc( m_hFile )) != EOF )
     {
         if( counter == lDataLen )
@@ -257,19 +249,19 @@ PdfError PdfParserObject::ParseFileComplete( bool bIsTrailer )
 
     if( eDataType == ePdfDataType_Dictionary )
     {
-        SAFE_OP( this->ParseDictionaryKeys( szData, counter ) );
+        this->ParseDictionaryKeys( szData, counter );
     }
     else
     {
-        SAFE_OP( this->Parse( szData ) );
+        this->Parse( szData );
     }
 
     if( bOwnBuffer )
         free( szData );
 
     if( !bIsTrailer && eDataType != ePdfDataType_Unknown )
-   {
-        SAFE_OP( GetNextStringFromFile( ) );
+    {
+        GetNextStringFromFile( );
         if( strncmp( m_szBuffer, "endobj", s_nLenEndObj ) == 0 )
             ; // nothing to do, just validate that the PDF is correct
         else if ( strncmp( m_szBuffer, "stream", s_nLenStream ) == 0 )
@@ -282,13 +274,10 @@ PdfError PdfParserObject::ParseFileComplete( bool bIsTrailer )
             RAISE_ERROR( ePdfError_NoObject );
         }
     }
-
-    return eCode;
 }
 
-PdfError PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, long* plParsedLength )
+void PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, long* plParsedLength )
 {
-    PdfError         eCode;
     string           sValue;
     char*            szInitial = szBuffer;
     PdfVariant       cVariant;
@@ -297,17 +286,6 @@ PdfError PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, 
 
     sValue.reserve( KEY_BUFFER );
 
-/*
-    while( *szBuffer && IsWhitespace( *szBuffer ) )
-        ++szBuffer;
-
-    if( *szBuffer == '>' && *(szBuffer+1) == '>' )
-    {
-        if( plParsedLength )
-            *plParsedLength = szBuffer - szInitial;
-        return eCode;
-    }
-*/
     // skip leading <<
     while( *szBuffer && *szBuffer == '<' )
         ++szBuffer;
@@ -316,7 +294,13 @@ PdfError PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, 
     {
         if( *szBuffer == '/' )
         {
-            SAFE_OP_ADV( cVariant.Parse( szBuffer, lBufferLen-(szBuffer-szInitial), &lLen ), "Parsing new key" );
+            try {
+                cVariant.Parse( szBuffer, lBufferLen-(szBuffer-szInitial), &lLen );
+            } catch( PdfError & e ) {
+                e.AddToCallstack( __FILE__, __LINE__, "Parsing dictionary key" );
+                throw e;
+            }
+
             szBuffer+=lLen;
 
             if( cVariant.GetDataType() != ePdfDataType_Name )
@@ -329,7 +313,13 @@ PdfError PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, 
             while( *szBuffer && IsWhitespace( *szBuffer ) )
                 ++szBuffer;
 
-            SAFE_OP_ADV( cVariant.Parse( szBuffer, lBufferLen-(szBuffer-szInitial), &lLen ), "Parsing new value" );
+            try {
+                cVariant.Parse( szBuffer, lBufferLen-(szBuffer-szInitial), &lLen );
+            } catch( PdfError & e ) {
+                e.AddToCallstack( __FILE__, __LINE__, "Parsing dictionary value" );
+                throw e;
+            }
+
             szBuffer+=lLen;
 
 #ifdef _DEBUG
@@ -351,136 +341,10 @@ PdfError PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, 
 
     if( plParsedLength )
         *plParsedLength = szBuffer - szInitial;
-
-    return eCode;
 }
 
-#if 0
-PdfError PdfParserObject::ParseValue( char** szBuffer, string & sKey, string & sValue  )
+void PdfParserObject::ParseStream()
 {
-    PdfError         eCode;
-    char*            szValue;
-    PdfParserObject* pObj    = NULL;
-    // strip leading whitespaces
-    while( **szBuffer && IsWhitespace( **szBuffer ) ) 
-        ++(*szBuffer);
-                
-    szValue = *szBuffer;
-
-    if( *szValue == '/' )
-    {
-        ++(*szBuffer);
-        while( **szBuffer && !IsWhitespace( **szBuffer ) && !IsDelimiter( **szBuffer ) )
-            ++(*szBuffer);
-    }
-    else if( *szValue == '<' )
-    {
-        if( *(szValue+1) == '<' )
-        {
-            long lParsedLength;
-            pObj = new PdfParserObject( this->GetBuffer(), this->GetBufferSize() );
-            eCode = pObj->ParseDictionaryKeys( szValue, &lParsedLength );
-            if( eCode != ePdfError_ErrOk )
-            {
-                delete pObj;
-                return eCode;
-            }
-
-            char* tmp = (char*)malloc( lParsedLength * sizeof(char) + 1 );
-            strncpy( tmp, *szBuffer, lParsedLength );
-            tmp[lParsedLength] = '\0';
-            *szBuffer += lParsedLength;
-            
-            free( tmp );
-        }
-        else
-        {
-            // it is just a hexadecimal encoded string
-            // parse till the closing > is reached
-            while( **szBuffer && **szBuffer != '>' )
-                ++(*szBuffer);
-            ++(*szBuffer);
-        }
-    }
-    else if( *szValue == '(' )
-    {
-        bool bIgnoreNextChar = false;
-
-        while( **szBuffer )
-        {
-            if( !bIgnoreNextChar && **szBuffer == ')' )
-            {
-                ++(*szBuffer);
-                break;
-            }
-
-            bIgnoreNextChar = ( **szBuffer == '\\' && !bIgnoreNextChar);
-
-            ++(*szBuffer);
-        }
-    }
-    else if( *szValue == '[' )
-    {
-        // TODO: DS arrays inside of arrays
-
-        // it is just an array
-        // parse till the closing ] is reached
-        while( **szBuffer && **szBuffer != ']' )
-            ++(*szBuffer);
-        ++(*szBuffer);
-    }
-    else
-    {
-        bool bInc = false;
-
-        while( **szBuffer && **szBuffer != '/' && **szBuffer != '>' )
-            ++(*szBuffer);
-
-        // We are currently most likely on a separator
-        // so skip before the separator and remove whitespaces there
-        if( IsDelimiter( **szBuffer ) )
-        {
-            --(*szBuffer);
-            bInc = true;
-        }
-
-        // strip trailing whitespaces
-        while( IsWhitespace( **szBuffer ) ) 
-            --(*szBuffer);
-
-        if( bInc )
-            ++(*szBuffer);
-    }
-
-    if( pObj )
-    {
-#ifdef _DEBUG
-        PdfError::DebugMessage("Object Key: (%s)\n", sKey.c_str() );
-#endif // _DEBUG
-        this->AddKey( sKey, pObj );
-        pObj = NULL;
-    }
-    else
-    {
-        sValue.assign( szValue, *szBuffer - szValue );
-#ifdef _DEBUG
-        PdfError::DebugMessage("Key: (%s) | (%s)\n", sKey.c_str(), sValue.c_str() );
-#endif // _DEBUG
-        this->AddKey( sKey, sValue );
-    }
-
-    sKey.clear();
-    sValue.clear();
-
-    --(*szBuffer); // reset buffer for caller...
-
-    return eCode;
-}
-#endif // 0
-
-PdfError PdfParserObject::ParseStream()
-{
-    PdfError     eCode;
     long         lLen  = -1;
     char*        szBuf;
     int          c;
@@ -565,29 +429,24 @@ PdfError PdfParserObject::ParseStream()
     if( strncmp( m_szBuffer, "endstream", s_nLenEndStream ) != 0 )
         return ERROR_PDF_MISSING_ENDSTREAM;
     */
-
-    return eCode;
 }
 
-PdfError PdfParserObject::GetDataType( char c, int* counter, EPdfDataType* eDataType, bool* bType ) const
+void PdfParserObject::GetDataType( char c, int* counter, EPdfDataType* eDataType, bool* bType ) const
 {
-    PdfError eCode;
-
     // TODO: Allow for hexadecimal encoded strings: reference: p. 54
     switch( c )
     {
         case '[':
             if( eDataType )
                 *eDataType = ePdfDataType_Array;
-
+            
             if( bType )
                 *bType = false;
             break;
         case '(':
             if( eDataType )
                 *eDataType = ePdfDataType_String;
-
-
+            
             if( bType )
                 *bType = false;
             break;
@@ -611,46 +470,40 @@ PdfError PdfParserObject::GetDataType( char c, int* counter, EPdfDataType* eData
                 *bType = false;
             break;
     }
-            
-    return eCode;
 }
 
-PdfError PdfParserObject::LoadOnDemand()
+void PdfParserObject::LoadOnDemand()
 {
-    PdfError eCode;
-
     if( m_bLoadOnDemand && !m_bLoadOnDemandDone )
     {
         m_bLoadOnDemandDone = true;
 
         PdfError::DebugMessage( "Loading on Demand: %s\n", this->Reference().ToString().c_str() );
-        SAFE_OP( ParseFileComplete( m_bIsTrailer ) );
+        ParseFileComplete( m_bIsTrailer );
     }
-
-    return eCode;
 }
 
-PdfError PdfParserObject::LoadStreamOnDemand()
+void PdfParserObject::LoadStreamOnDemand()
 {
-    PdfError eCode;
-
     if( m_bLoadOnDemand && !m_bLoadStreamOnDemandDone )
     {
         if( !m_bLoadOnDemandDone )
         {
-            SAFE_OP( LoadOnDemand() );
+            LoadOnDemand();
         }
 
         m_bLoadStreamOnDemandDone = true;
 
         if( this->HasStreamToParse() && !this->HasStream() )
         {
-            SAFE_OP_ADV( this->ParseStream(), "Unable to parse the objects stream." );
+            try {
+                this->ParseStream();
+            } catch( PdfError & e ) {
+                e.AddToCallstack( __FILE__, __LINE__, "Unable to parse the objects stream." );
+                throw e;
+            }
         }
     }
-    
-    return eCode;
 }
-
 
 };

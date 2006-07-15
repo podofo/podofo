@@ -60,30 +60,24 @@ class PdfWriter {
 
     /** Create a new pdf file, based on an existing pdf file.
      *  \param pParser     a pdf parser object
-     *  \returns ErrOk on success.
      */
-    PdfError Init( PdfParser* pParser );
+    void Init( PdfParser* pParser );
 
     /** Create a new pdf file from scratch.
-     *  \returns ErrOk on success.
      */
-    PdfError Init();
+    void Init();
 
     /** Writes the complete document to a PDF file.
      *
      *  \param pszFilename filename of a PDF file.
-     *
-     *  \returns ErrOk on success.
      */
-    PdfError Write( const char* pszFilename );
+    void Write( const char* pszFilename );
 
     /** Writes the complete document to a PdfOutputDevice
      *
      *  \param pDevice write to the specified device 
-     *
-     *  \returns ErrOk on success.
      */
-    PdfError Write( PdfOutputDevice* pDevice );
+    void Write( PdfOutputDevice* pDevice );
 
     /** Set the PDF Version of the document. Has to be called before Write() to
      *  have an effect.
@@ -164,18 +158,16 @@ class PdfWriter {
      *  \param pObject object to calculate the byte offset (has to be a 
      *                 child of this PdfWriter)
      *  \param pulOffset pointer to an unsigned long to save the offset
-     *  \returns ErrOk on success
      */
-    PdfError GetByteOffset( PdfObject* pObject, unsigned long* pulOffset );
+    void GetByteOffset( PdfObject* pObject, unsigned long* pulOffset );
 
     /** Make sure the all objects are flate decoded if the user enabled flate decoding
      *  This might be necessary to call before calculating the length of objects.
      *  It is called automatically before writing.
      *
      *  \param vecObjects compress all objects in this vector
-     *  \returns ErrOk on success
      */
-    PdfError CompressObjects( const TVecObjects& vecObjects );
+    void CompressObjects( const TVecObjects& vecObjects );
 
     /** Write the whole document to a buffer in memory.
      *  
@@ -186,7 +178,7 @@ class PdfWriter {
      *  
      *  \see Write
      */
-    PdfError WriteToBuffer( char** ppBuffer, unsigned long* pulLen );
+    void WriteToBuffer( char** ppBuffer, unsigned long* pulLen );
 
  private:
     /** Delete all internal structures and free allocated memory.
@@ -198,34 +190,26 @@ class PdfWriter {
 
     /** Writes the pdf header to the current file.
      *  \param pDevice write to this output device
-     *
-     *  \returns ErrOk on success
      */       
-    PdfError WritePdfHeader( PdfOutputDevice* pDevice );
+    void WritePdfHeader( PdfOutputDevice* pDevice );
 
     /** Write pdf objects to file
      *  \param pDevice write to this output device
      *  \param vecObjects write all objects in this vector to the file
      *  \param bFillXRefOnly only fille the m_vecXRef vector and do not write the objects
-     *
-     *  \returns ErrOk on success
      */ 
-    PdfError WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, bool bFillXRefOnly = false );
+    void WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, bool bFillXRefOnly = false );
 
     /** Writes a list of xref entries to the current file
      *  \param pDevice write to this output device
      *  \param vecOffsets list of objects which will be written
-     *
-     *  \returns ErrOk on success
      */
-    PdfError WriteXRefEntries( PdfOutputDevice* pDevice, const TVecOffsets & vecOffsets );
+    void WriteXRefEntries( PdfOutputDevice* pDevice, const TVecOffsets & vecOffsets );
 
     /** Writes the xref table.
      *  \param pDevice write to this output device
-     *
-     *  \returns ErrOk on success
      */
-    PdfError WritePdfTableOfContents( PdfOutputDevice* pDevice );
+    void WritePdfTableOfContents( PdfOutputDevice* pDevice );
 
  protected:
     PdfVecObjects   m_vecObjects;

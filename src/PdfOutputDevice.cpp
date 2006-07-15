@@ -39,50 +39,38 @@ PdfOutputDevice::~PdfOutputDevice()
         fclose( m_hFile );
 }
 
-PdfError PdfOutputDevice::Init( const char* pszFilename )
+void PdfOutputDevice::Init( const char* pszFilename )
 {
-    PdfError eCode;
-
-    SAFE_OP( this->Init() );
+    this->Init();
 
     m_hFile = fopen( pszFilename, "wb" );
     if( !m_hFile )
     {
         RAISE_ERROR( ePdfError_FileNotFound );
     }
-
-    return eCode;
 }
 
-PdfError PdfOutputDevice::Init( char* pBuffer, long lLen )
+void PdfOutputDevice::Init( char* pBuffer, long lLen )
 {
-    PdfError eCode;
-
     if( !pBuffer )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    SAFE_OP( this->Init() );
+    this->Init();
 
     m_lBufferLen = lLen;
     m_pBuffer    = pBuffer;
-
-    return eCode;
 }
 
-PdfError PdfOutputDevice::Init( const std::ostream* pOutStream )
+void PdfOutputDevice::Init( const std::ostream* pOutStream )
 {
-    PdfError eCode;
-
-    SAFE_OP( this->Init() );
+    this->Init();
 
     m_pStream = const_cast< std::ostream* >( pOutStream );
-
-    return eCode;
 }
 
-PdfError PdfOutputDevice::Init()
+void PdfOutputDevice::Init()
 {
     m_ulLength   = 0;
 
@@ -90,13 +78,10 @@ PdfError PdfOutputDevice::Init()
     m_pBuffer    = NULL;
     m_pStream    = NULL;
     m_lBufferLen = 0;
-
-    return ePdfError_ErrOk;
 }
 
-PdfError PdfOutputDevice::Print( const char* pszFormat, ... )
+void PdfOutputDevice::Print( const char* pszFormat, ... )
 {
-    PdfError eCode;
     va_list  args;
     long     lBytes;
 
@@ -113,7 +98,9 @@ PdfError PdfOutputDevice::Print( const char* pszFormat, ... )
     if( m_hFile )
     {
         if( vfprintf( m_hFile, pszFormat, args ) != lBytes )
-            eCode.SetError( ePdfError_UnexpectedEOF, __FILE__, __LINE__ );
+        {
+            RAISE_ERROR( ePdfError_UnexpectedEOF );
+        }
     }
     else if( m_pBuffer )
     {
@@ -122,7 +109,9 @@ PdfError PdfOutputDevice::Print( const char* pszFormat, ... )
             vsnprintf( m_pBuffer + m_ulLength, m_lBufferLen - m_ulLength, pszFormat, args );
         }
         else
-            eCode.SetError( ePdfError_OutOfMemory, __FILE__, __LINE__ );
+        {
+            RAISE_ERROR( ePdfError_OutOfMemory );
+        }
     }
     else if( m_pStream )
     {
@@ -146,18 +135,16 @@ PdfError PdfOutputDevice::Print( const char* pszFormat, ... )
     va_end( args );
 
     m_ulLength += lBytes;
-
-    return eCode;
 }
 
-PdfError PdfOutputDevice::Write( const char* pBuffer, long lLen )
+void PdfOutputDevice::Write( const char* pBuffer, long lLen )
 {
-    PdfError eCode;
-
     if( m_hFile )
     {
         if( fwrite( pBuffer, sizeof(char), lLen, m_hFile ) != lLen )
-            eCode.SetError( ePdfError_UnexpectedEOF, __FILE__, __LINE__ );
+        {
+            RAISE_ERROR( ePdfError_UnexpectedEOF );
+        }
     }
     else if( m_pBuffer )
     {
@@ -166,17 +153,16 @@ PdfError PdfOutputDevice::Write( const char* pBuffer, long lLen )
             memcpy( m_pBuffer + m_ulLength, pBuffer, lLen );
         }
         else
-            eCode.SetError( ePdfError_OutOfMemory, __FILE__, __LINE__ );
+        {
+            RAISE_ERROR( ePdfError_OutOfMemory );
+        }
     }
     else if( m_pStream )
     {
         m_pStream->write( pBuffer, lLen );
     }
 
-    if( !eCode.IsError() )
-        m_ulLength += lLen;
-
-    return eCode;
+    m_ulLength += lLen;
 }
 
 };

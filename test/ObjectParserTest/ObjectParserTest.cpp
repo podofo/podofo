@@ -30,9 +30,8 @@
 
 using namespace PoDoFo;
 
-PdfError TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo, long lGenNo, const char* pszExpectedValue )
+void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo, long lGenNo, const char* pszExpectedValue )
 {
-    PdfError      eCode;
     FILE*         hFile;
     unsigned long lObjLen;
     std::string   sLen;
@@ -59,15 +58,16 @@ PdfError TestSingleObject( const char* pszFilename, const char* pszData, long lO
     printf("Parsing Object: %li %li\n", lObjNo, lGenNo );
 
     PdfParserObject obj( &parser, hFile, NULL, 0 );
-    eCode = obj.ParseFile( false );
-    if( eCode.IsError() ) 
-    {
-        fprintf( stderr, "Error during test: %i\n", eCode.Error() );
-        eCode.PrintErrorMsg();
+    try {
+        obj.ParseFile( false );
+    } catch( PdfError & e ) {
+        fprintf( stderr, "Error during test: %i\n", e.Error() );
+        e.PrintErrorMsg();
         fclose( hFile );
         unlink( pszFilename ); // do not care for unlink errors in this case
 
-        return eCode;
+        e.AddToCallstack( __FILE__, __LINE__ );
+        throw e;
     }
 
     fclose( hFile );
@@ -79,7 +79,7 @@ PdfError TestSingleObject( const char* pszFilename, const char* pszData, long lO
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    TEST_SAFE_OP( obj.ToString( str ) );
+    obj.ToString( str );
     printf("  -> Expected value of this object: (%s)\n", pszExpectedValue );
     printf("  -> Value in this object         : (%s)\n", str.c_str() );
     if( strcmp( str.c_str(), pszExpectedValue ) != 0 )
@@ -87,13 +87,13 @@ PdfError TestSingleObject( const char* pszFilename, const char* pszData, long lO
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    TEST_SAFE_OP( obj.GetObjectLength( &lObjLen ) );
+    lObjLen = obj.GetObjectLength();
     printf("  -> Object Length: %li\n", lObjLen );
 
     PdfOutputDevice deviceTest;
     std::ostringstream os;
-    TEST_SAFE_OP( deviceTest.Init( &os ) );
-    TEST_SAFE_OP( obj.Write( &deviceTest ) );
+    deviceTest.Init( &os );
+    obj.Write( &deviceTest );
 
     sLen = os.str();
     printf("  -> Object String: %s\n", sLen.c_str() );
@@ -104,13 +104,10 @@ PdfError TestSingleObject( const char* pszFilename, const char* pszData, long lO
         fprintf( stderr, "Object length does not macht! Object Length: %li String Length: %i\n", lObjLen, sLen.length() );
         RAISE_ERROR( ePdfError_TestFailed );
     }
-
-    return eCode;
 }
 
-PdfError TestObject( const char* pszFilename, const char* pszData, long lObjNo, long lGenNo )
+void TestObject( const char* pszFilename, const char* pszData, long lObjNo, long lGenNo )
 {
-    PdfError  eCode;
     PdfParser parser;
     FILE*     hFile;
 
@@ -134,14 +131,15 @@ PdfError TestObject( const char* pszFilename, const char* pszData, long lObjNo, 
     printf("Parsing Object: %li %li\n", lObjNo, lGenNo );
 
     PdfParserObject obj( &parser, hFile, NULL, 0 );
-    eCode = obj.ParseFile( false );
-    if( eCode.IsError() ) 
-    {
-        fprintf( stderr, "Error during test: %i\n", eCode.Error() );
-        eCode.PrintErrorMsg();
+    try {
+        obj.ParseFile( false );
+    } catch( PdfError & e ) {
+        fprintf( stderr, "Error during test: %i\n", e.Error() );
+        e.PrintErrorMsg();
         unlink( pszFilename ); // do not care for unlink errors in this case
 
-        return eCode;
+        e.AddToCallstack( __FILE__, __LINE__  );
+        throw e;
     }
 
     fclose( hFile );
@@ -152,8 +150,6 @@ PdfError TestObject( const char* pszFilename, const char* pszData, long lObjNo, 
     {
         RAISE_ERROR( ePdfError_TestFailed );
     }
-
-    return eCode;
 }
 
 const char* pszSimpleObjectBoolean = "1 0 obj\ntrue\nendobj\n";
@@ -205,27 +201,32 @@ int main()
     printf("This test tests the PdfParserObject class.\n");
     printf("---\n");
 
-    TEST_SAFE_OP( TestSingleObject( pszTmp, pszSimpleObjectBoolean, 1, 0, "true" ) );
-    TEST_SAFE_OP( TestSingleObject( pszTmp, pszSimpleObjectNumber , 2, 1, "23" ) );
-    TEST_SAFE_OP( TestSingleObject( pszTmp, pszSimpleObjectReal   , 3, 0, "3.14" ) );
-    TEST_SAFE_OP( TestSingleObject( pszTmp, pszSimpleObjectString , 4, 0, "(Hallo Welt!)" ) );
-    TEST_SAFE_OP( TestSingleObject( pszTmp, pszSimpleObjectString2, 5, 0, "(Hallo \\(schöne\\) Welt!)" ) );
-    TEST_SAFE_OP( TestSingleObject( pszTmp, pszSimpleObjectHex    , 6, 0, "<48656C6C6F20576F726C64>" ) );
-    TEST_SAFE_OP( TestSingleObject( pszTmp, pszSimpleObjectRef    , 7, 0, "6 0 R" ) );
-    TEST_SAFE_OP( TestSingleObject( pszTmp, pszSimpleObjectArray  , 8, 0, "[ 100 200 300 400 500 ]" ) );
-    TEST_SAFE_OP( TestSingleObject( pszTmp, pszSimpleObjectArray2 , 9, 0, "[ 100 (Hallo Welt) 3.14 400 500 ]" ) );
-    TEST_SAFE_OP( TestSingleObject( pszTmp, pszSimpleObjectArray3 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.14 400 500 ]" ) );
-    TEST_SAFE_OP( TestSingleObject( pszTmp, pszSimpleObjectArray4 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.14 400 500 /Dict <<\n/A (Hallo)\n/B [ 21 22 ]\n>>\n /Wert /Farbe ]" ) );
-    printf("---\n");
+    try {
+        TestSingleObject( pszTmp, pszSimpleObjectBoolean, 1, 0, "true" );
+        TestSingleObject( pszTmp, pszSimpleObjectNumber , 2, 1, "23" );
+        TestSingleObject( pszTmp, pszSimpleObjectReal   , 3, 0, "3.14" );
+        TestSingleObject( pszTmp, pszSimpleObjectString , 4, 0, "(Hallo Welt!)" );
+        TestSingleObject( pszTmp, pszSimpleObjectString2, 5, 0, "(Hallo \\(schöne\\) Welt!)" );
+        TestSingleObject( pszTmp, pszSimpleObjectHex    , 6, 0, "<48656C6C6F20576F726C64>" );
+        TestSingleObject( pszTmp, pszSimpleObjectRef    , 7, 0, "6 0 R" );
+        TestSingleObject( pszTmp, pszSimpleObjectArray  , 8, 0, "[ 100 200 300 400 500 ]" );
+        TestSingleObject( pszTmp, pszSimpleObjectArray2 , 9, 0, "[ 100 (Hallo Welt) 3.14 400 500 ]" );
+        TestSingleObject( pszTmp, pszSimpleObjectArray3 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.14 400 500 ]" );
+        TestSingleObject( pszTmp, pszSimpleObjectArray4 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.14 400 500 /Dict <<\n/A (Hallo)\n/B [ 21 22 ]\n>>\n /Wert /Farbe ]" );
+        printf("---\n");
 
-    TEST_SAFE_OP( TestObject( pszTmp, pszObject, 10, 0 ) );
-    TEST_SAFE_OP( TestObject( pszTmp, pszObject2, 11, 0 ) );
-    TEST_SAFE_OP( TestObject( pszTmp, pszObject3, 12, 0 ) );
-    TEST_SAFE_OP( TestObject( pszTmp, pszObject4, 271, 0 ) );
+        TestObject( pszTmp, pszObject, 10, 0 );
+        TestObject( pszTmp, pszObject2, 11, 0 );
+        TestObject( pszTmp, pszObject3, 12, 0 );
+        TestObject( pszTmp, pszObject4, 271, 0 );
 
-    printf("---\n");
+        printf("---\n");
 
-    printf("All tests sucessful!\n");
+        printf("All tests sucessful!\n");
+    } catch( PdfError & e ) {
+        e.PrintErrorMsg();
+        return e.Error();
+    }
 
-    return eCode.Error();
+    return 0;
 }

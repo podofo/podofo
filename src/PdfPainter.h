@@ -67,17 +67,15 @@ class PdfPainter {
      *  in grayscale colorspace. This operation used the 'G'
      *  PDF operator.
      *  \param g gray scale value in the range 0.0 - 1.0
-     *  \returns ErrOk on success
      */
-    PdfError SetStrokingGray( double g );
+    void SetStrokingGray( double g );
 
     /** Set the color for all following non-stroking operations
      *  in grayscale colorspace. This operation used the 'g'
      *  PDF operator.
      *  \param g gray scale value in the range 0.0 - 1.0
-     *  \returns ErrOk on success
      */
-    PdfError SetGray( double g );
+    void SetGray( double g );
 
     /** Set the color for all following stroking operations
      *  in rgb colorspace. This operation used the 'RG'
@@ -85,9 +83,8 @@ class PdfPainter {
      *  \param r red value in the range 0.0 - 1.0
      *  \param g green value in the range 0.0 - 1.0
      *  \param b blue value in the range 0.0 - 1.0
-     *  \returns ErrOk on success
      */
-    PdfError SetStrokingColor( double r, double g, double b );
+    void SetStrokingColor( double r, double g, double b );
 
     /** Set the color for all following non-stroking operations
      *  in rgb colorspace. This operation used the 'rg'
@@ -98,9 +95,8 @@ class PdfPainter {
      *  \param r red value in the range 0.0 - 1.0
      *  \param g green value in the range 0.0 - 1.0
      *  \param b blue value in the range 0.0 - 1.0
-     *  \returns ErrOk on success
      */
-    PdfError SetColor( double r, double g, double b );
+    void SetColor( double r, double g, double b );
 
     /** Set the color for all following stroking operations
      *  in cmyk colorspace. This operation used the 'K'
@@ -109,9 +105,8 @@ class PdfPainter {
      *  \param m magenta value in the range 0.0 - 1.0
      *  \param y yellow value in the range 0.0 - 1.0
      *  \param k black value in the range 0.0 - 1.0
-     *  \returns ErrOk on success
      */
-    PdfError SetStrokingColorCMYK( double c, double m, double y, double k );
+    void SetStrokingColorCMYK( double c, double m, double y, double k );
 
     /** Set the color for all following non-stroking operations
      *  in cmyk colorspace. This operation used the 'k'
@@ -120,15 +115,13 @@ class PdfPainter {
      *  \param m magenta value in the range 0.0 - 1.0
      *  \param y yellow value in the range 0.0 - 1.0
      *  \param k black value in the range 0.0 - 1.0
-     *  \returns ErrOk on success
      */
-    PdfError SetColorCMYK( double c, double m, double y, double k );
+    void SetColorCMYK( double c, double m, double y, double k );
 
     /** Set the line width for all stroking operations.
      *  \param lWidth in 1/1000th mm.
-     *  \returns ErrOk on success
      */
-    PdfError SetStrokeWidth( long lWidth );
+    void SetStrokeWidth( long lWidth );
 
     /** Set the stoke style for all stroking operations.
      *  \param eStyle style of the stroking operations
@@ -145,7 +138,7 @@ class PdfPainter {
      *    ePdfStrokeStyle_Custom
      *
      */
-    PdfError SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom = NULL );
+    void SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom = NULL );
 
     /** Set the line cap style for all stroking operations.
      *  \param eCapStyle the cap style. 
@@ -155,7 +148,7 @@ class PdfPainter {
      *    ePdfLineCapStyle_Round,
      *    ePdfLineCapStyle_Square
      */
-    PdfError SetLineCapStyle( EPdfLineCapStyle eCapStyle );
+    void SetLineCapStyle( EPdfLineCapStyle eCapStyle );
 
     /** Set the line join style for all stroking operations.
      *  \param eJoinStyle the join style. 
@@ -165,15 +158,14 @@ class PdfPainter {
      *    ePdfLineJoinStyle_Round
      *    ePdfLineJoinStyle_Bevel
      */
-    PdfError SetLineJoinStyle( EPdfLineJoinStyle eJoinStyle );
+    void SetLineJoinStyle( EPdfLineJoinStyle eJoinStyle );
 
     /** Set the font for all text drawing operations
      *  \param pFont a handle to a valid PdfFont object
-     *  \returns ErrOk on success
      *
      *  \see DrawText
      */
-    PdfError SetFont( PdfFont* pFont );
+    void SetFont( PdfFont* pFont );
 
     /** Get the current font:
      *  \returns a font object or NULL if no font was set.
@@ -185,56 +177,50 @@ class PdfPainter {
      *  \param lStartY y coordinate of the starting point
      *  \param lEndX x coordinate of the ending point
      *  \param lEndY y coordinate of the ending point
-     *  \returns ErrOk on success
      */
-    PdfError DrawLine( long lStartX, long lStartY, long lEndX, long lEndY );
+    void DrawLine( long lStartX, long lStartY, long lEndX, long lEndY );
 
     /** Draw a rectangle with the current stroking settings
      *  \param lX x coordinate of the rectangle
      *  \param lY y coordinate of the rectangle
      *  \param lWidth width of the rectangle
      *  \param lHeight absolute height of the rectangle
-     *  \returns ErrOk on success
      */
-    PdfError DrawRect( long lX, long lY, long lWidth, long lHeight );
+    void DrawRect( long lX, long lY, long lWidth, long lHeight );
 
     /** Fill a rectangle with the current fill settings
      *  \param lX x coordinate of the rectangle
      *  \param lY y coordinate of the rectangle
      *  \param lWidth width of the rectangle 
      *  \param lHeight absolute height of the rectangle
-     *  \returns ErrOk on success
      */
-    PdfError FillRect( long lX, long lY, long lWidth, long lHeight );
+    void FillRect( long lX, long lY, long lWidth, long lHeight );
 
     /** Draw an ellipse with the current stroking settings
      *  \param lX x coordinate of the ellipse (left coordinate)
      *  \param lY y coordinate of the ellipse (top coordinate)
      *  \param lWidth width of the ellipse
      *  \param lHeight absolute height of the ellipse
-     *  \returns ErrOk on success
      */
-    PdfError DrawEllipse( long lX, long lY, long lWidth, long lHeight ); 
+    void DrawEllipse( long lX, long lY, long lWidth, long lHeight ); 
 
     /** Fill an ellipse with the current fill settings
      *  \param lX x coordinate of the ellipse (left coordinate)
      *  \param lY y coordinate of the ellipse (top coordinate)
      *  \param lWidth width of the ellipse 
      *  \param lHeight absolute height of the ellipse
-     *  \returns ErrOk on success
      */
-    PdfError FillEllipse( long lX, long lY, long lWidth, long lHeight ); 
+    void FillEllipse( long lX, long lY, long lWidth, long lHeight ); 
 
     /** Draw a text string on a page using a given font object.
      *  You have to call SetFont before calling this function.
      *  \param lX the x coordinate
      *  \param lY the y coordinate
      *  \param sText the text string which should be printed 
-     *  \returns ErrOk on success
      *
      *  \see SetFont()
      */
-    PdfError DrawText( long lX, long lY, const PdfString & sText);
+    void DrawText( long lX, long lY, const PdfString & sText);
 
     /** Draw a text string on a page using a given font object.
      *  You have to call SetFont before calling this function.
@@ -242,11 +228,10 @@ class PdfPainter {
      *  \param lY the y coordinate
      *  \param sText the text string which should be printed (is not allowed to be NULL!)
      *  \param lLen draw only lLen characters of pszText
-     *  \returns ErrOk on success
      *
      *  \see SetFont()
      */
-    PdfError DrawText( long lX, long lY, const PdfString & sText, long lLen );
+    void DrawText( long lX, long lY, const PdfString & sText, long lLen );
 
     /** Draw an image on the current page.
      *  \param lX the x coordinate (bottom left position of the image)
@@ -254,9 +239,8 @@ class PdfPainter {
      *  \param pImageRef an image reference object
      *  \param dScaleX option scaling factor in x direction
      *  \param dScaleY option scaling factor in y direction
-     *  \returns ErrOk on success
      */
-    PdfError DrawImage( long lX, long lY, PdfImageRef* pImageRef, double dScaleX = 1.0, double dScaleY = 1.0);
+    inline void DrawImage( long lX, long lY, PdfImageRef* pImageRef, double dScaleX = 1.0, double dScaleY = 1.0);
 
     /** Draw an XObject on the current page.
      *  \param lX the x coordinate (bottom left position of the XObject)
@@ -265,67 +249,61 @@ class PdfPainter {
      *                   as XObjects and images are handled the same internally).
      *  \param dScaleX option scaling factor in x direction
      *  \param dScaleY option scaling factor in y direction
-     *  \returns ErrOk on success
      */
-    PdfError DrawXObject( long lX, long lY, PdfImageRef* pImageRef, double dScaleX = 1.0, double dScaleY = 1.0);
+    void DrawXObject( long lX, long lY, PdfImageRef* pImageRef, double dScaleX = 1.0, double dScaleY = 1.0);
 
     /** Closes the current path by drawing a line from the current point
      *  to the starting point of the path. Matches the PDF 'h' operator.
      *  This function is useful to construct an own path
      *  for drawing or clipping.
-     *  \returns ErrOk on success
      */
-    PdfError ClosePath();
+    void ClosePath();
 
     /** Append a line segment to the current path. Matches the PDF 'l' operator.
      *  This function is useful to construct an own path
      *  for drawing or clipping.
      *  \param lX x position
      *  \param lY y position
-     *  \returns ErrOk on success
      */
-    PdfError LineTo( long  lX, long lY );
+    void LineTo( long  lX, long lY );
 
     /** Begin a new path. Matches the PDF 'm' operator. 
      *  This function is useful to construct an own path
      *  for drawing or clipping.
      *  \param lX x position
      *  \param lY y position
-     *  \returns ErrOk on success
      */
-    PdfError MoveTo( long  lX, long lY );
+    void MoveTo( long  lX, long lY );
 
     /** Stroke the current path. Matches the PDF 'S' operator.
      *  This function is useful to construct an own path
      *  for drawing or clipping.
      */
-    PdfError Stroke();
+    void Stroke();
 
     /** Fill the current path. Matches the PDF 'f' operator.
      *  This function is useful to construct an own path
      *  for drawing or clipping.
      */
-    PdfError Fill();
+    void Fill();
 
     /** Save the current graphics settings onto the graphics
      *  stack. Operator 'q' in PDF.
      *  This call has to be balanced with a corresponding call 
      *  to Restore()!
      *
-     *  \returns ErrOk on success
      *  \see Restore
      */
-    PdfError Save();
+    void Save();
 
     /** Restore the current graphics settings from the graphics
      *  stack. Operator 'Q' in PDF.
      *  This call has to be balanced with a corresponding call 
      *  to Save()!
      *
-     *  \returns ErrOk on success
      *  \see Save
      */
-    PdfError Restore();
+    void Restore();
 
  private:
     /** Register an object in the resource dictionary of this page
@@ -334,9 +312,8 @@ class PdfPainter {
      *  \param rIdentifier identifier of this object, e.g. /Ft0
      *  \param rRef reference to the object you want to register
      *  \param rName register under this key in the resource dictionary
-     *  \returns ErrOk on success
      */
-    PdfError AddToPageResources( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName );
+    void AddToPageResources( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName );
 
     /** Coverts a rectangle to an array of points which can be used 
      *  to draw an ellipse using 4 bezier curves.
@@ -378,11 +355,9 @@ class PdfPainter {
     /** Sets the color that was last set by the user as the current stroking color.
      *  You should always enclose this function by Save() and Restore()
      *
-     *  \returns ePdfError_ErrOk on success.
-     *
      *  \see Save() \see Restore()
      */
-    PdfError SetCurrentStrokingColor();
+    void SetCurrentStrokingColor();
 
  protected:
     /** All drawing operations work on this stream.
@@ -419,16 +394,33 @@ class PdfPainter {
     double m_curColor1, m_curColor2, m_curColor3, m_curColor4;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfPainter::DrawImage( long lX, long lY, PdfImageRef* pImageRef, double dScaleX, double dScaleY )
+{
+    this->DrawXObject( lX, lY, pImageRef, dScaleX, dScaleY );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 PdfFont* PdfPainter::Font() const
 {
     return m_pFont;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfPainter::SetTabWidth( unsigned short nTabWidth )
 {
     m_nTabWidth = nTabWidth;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 unsigned short PdfPainter::TabWidth() const
 {
     return m_nTabWidth;

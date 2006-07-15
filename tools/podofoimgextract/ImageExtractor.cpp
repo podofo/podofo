@@ -32,9 +32,8 @@ ImageExtractor::~ImageExtractor()
 {
 }
 
-PdfError ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnNum )
+void ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnNum )
 {
-    PdfError    eCode;
     PdfObject*  pObj  = NULL;
 
     if( !pszInput || !pszOutput )
@@ -44,7 +43,7 @@ PdfError ImageExtractor::Init( const char* pszInput, const char* pszOutput, int*
 
     m_pszOutputDirectory = (char*)pszOutput;
 
-    SAFE_OP( m_parser.Init( pszInput ) );
+    m_parser.Init( pszInput );
     
     const TVecObjects&  vecObjects = m_parser.GetObjects();
     TCIVecObjects it = vecObjects.begin();
@@ -69,7 +68,7 @@ PdfError ImageExtractor::Init( const char* pszInput, const char* pszOutput, int*
                         {	
                            // ONLY images with filter of DCTDecode can be extracted out as JPEG this way!
                             
-                            SAFE_OP( ExtractImage( *it ) );
+                            ExtractImage( *it );
 
                             if( pnNum )
                                 ++(*pnNum);
@@ -82,13 +81,10 @@ PdfError ImageExtractor::Init( const char* pszInput, const char* pszOutput, int*
 
         ++it;
     }
-
-    return eCode;
 }
 
-PdfError ImageExtractor::ExtractImage( PdfObject* pObject )
+void ImageExtractor::ExtractImage( PdfObject* pObject )
 {
-    PdfError eCode;
     FILE*    hFile = NULL;
 //    long     lLen;
 
@@ -107,8 +103,6 @@ PdfError ImageExtractor::ExtractImage( PdfObject* pObject )
 
     fwrite( pObject->Stream()->Get(), pObject->Stream()->Length(), sizeof(char), hFile );
     fclose( hFile );
-
-    return eCode;
 }
 
 bool ImageExtractor::FileExists( const char* pszFilename )

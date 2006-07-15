@@ -62,9 +62,9 @@ PdfName::~PdfName()
 {
 }
 
-PdfError PdfName::Write( PdfOutputDevice* pDevice ) const
+void PdfName::Write( PdfOutputDevice* pDevice ) const
 {
-    return pDevice->Print( "/%s", m_Data.c_str() );
+    pDevice->Print( "/%s", m_Data.c_str() );
 }
 
 const PdfName& PdfName::operator=( const PdfName & rhs )
