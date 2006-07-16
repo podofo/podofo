@@ -61,8 +61,7 @@ printf("no\n");
 void PdfInfo::OutputInfoDict( std::ostream& sOutStream )
 {
     PdfObject* infoObj = mDoc->GetInfo();
-    PdfOutputDevice device;
-    device.Init( &sOutStream );
+    PdfOutputDevice device( &sOutStream );
     infoObj->Write( &device );
 }
 

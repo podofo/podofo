@@ -8,10 +8,8 @@ PoDoFo 0.3
        and a reference to the PageTree)
        - introduce PdfArray and PdfDictionary classes
        - Add configure checks for zlib, freetype and fontconfig
-       - PdfOutputDevice: Remove Init
        - PdfPage should use PdfObject::GetParent instead of having an own one
        - PdfVecObject should be able to have a PdfDocument as parent so that
        PdfPage does not need to keep a PdfDocument pointer.
        - PdfParser should not have an Init method
-       - Remove PdfSimpleWriter::Init
 

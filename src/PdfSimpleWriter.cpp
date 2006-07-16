@@ -64,6 +64,8 @@ PdfSimpleWriter::PdfSimpleWriter()
 #ifndef _WIN32
     m_pFcConfig     = (void*)FcInitLoadConfigAndFonts();
 #endif
+
+    this->Init();
 }    
 
 PdfSimpleWriter::~PdfSimpleWriter()

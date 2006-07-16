@@ -34,50 +34,36 @@ namespace PoDoFo {
 class PdfOutputDevice {
  public:
 
-    /** Construct a new PdfOutputDevice.
-     *  You have to call one of the Init methods afterwards
-     *  to initialize the object and to specifiy wether it 
-     *  operates on a real file, on a buffer in memory
-     *  or if it shall count the bytes written to it.
+    /** Construct a new PdfOutputDevice that does not write any data. Only the length
+     *  of the data is counted.
      *
-     *  \see Init
      */
     PdfOutputDevice();
+
+    /** Construct a new PdfOutputDevice that writes all data to a file.
+     *
+     *  \param pszFilename path to a file that will be opened and all data
+     *                     is written to this file.
+     */
+    PdfOutputDevice( const char* pszFilename );
+
+    /** Construct a new PdfOutputDevice that writes all data to a memory buffer.
+     *  The buffer will not be owned by this object and has to be allocated before.
+     *
+     *  \param pBuffer a buffer in memory
+     *  \param lLen the length of the buffer in memory
+     */
+    PdfOutputDevice( char* pBuffer, long lLen );
+
+    /** Construct a new PdfOutputDevice that writes all data to a std::ostream.
+     *
+     *  \param pOutStream write to this std::ostream
+     */
+    PdfOutputDevice( const std::ostream* pOutStream );
 
     /** Destruct the PdfOutputDevice object and close any open files.
      */
     virtual ~PdfOutputDevice();
-
-    /** Initialize the PdfOutputDevice and cause all data to be written
-     *  to the file specified.
-     *  \param pszFilename path to a file that will be opened and all data
-     *                     is written to this file.
-     */
-    void Init( const char* pszFilename );
-
-    /** Initialize the PdfOutputDevice and cause all data to be written
-     *  to a buffer in memory. The buffer will not be owned by this object
-     *  and has to be allocated before.
-     *  \param pBuffer a buffer in memory
-     *  \param lLen the length of the buffer in memory
-     */
-    void Init( char* pBuffer, long lLen );
-
-    /** Initialize the PdfOutputDevice and cause all data to be written
-     *  to a std::ostream. 
-     *
-     *  \param pOutStream write to this std::ostream
-     *
-     */
-    void Init( const std::ostream* pOutStream );
-
-    /** Initialize the PdfOutputDevice and do not write any data but 
-     *  count the length of the written data.
-     *  \returns ErrOk
-     *
-     *  \see Length
-     */
-    void Init();
 
     /** The number of bytes written to this object.
      *  \returns the number of bytes written to this object.
@@ -105,6 +91,11 @@ class PdfOutputDevice {
      *  \see Print
      */
     void Write( const char* pBuffer, long lLen );
+
+ private: 
+    /** Initialize all private members
+     */
+    void Init();
 
  private:
     unsigned long m_ulLength;

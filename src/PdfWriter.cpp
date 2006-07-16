@@ -126,14 +126,8 @@ void PdfWriter::Init( PdfParser* pParser )
 
 void PdfWriter::Write( const char* pszFilename )
 {
-    PdfOutputDevice device;
+    PdfOutputDevice device( pszFilename );
 
-    if( !pszFilename )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    device.Init( pszFilename );
     this->Write( &device );
 }
 
@@ -310,7 +304,6 @@ void PdfWriter::GetByteOffset( PdfObject* pObject, unsigned long* pulOffset )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    deviceHeader.Init();
     this->WritePdfHeader( &deviceHeader );
 
     *pulOffset = deviceHeader.Length();
@@ -335,7 +328,6 @@ void PdfWriter::WriteToBuffer( char** ppBuffer, unsigned long* pulLen )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    device.Init();
     this->Write( &device );
 
     *pulLen = device.Length();
@@ -345,8 +337,8 @@ void PdfWriter::WriteToBuffer( char** ppBuffer, unsigned long* pulLen )
         RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
-    device.Init( *ppBuffer, *pulLen );
-    this->Write( &device );
+    PdfOutputDevice memDevice( *ppBuffer, *pulLen );
+    this->Write( &memDevice );
 }
 
 PdfObject* PdfWriter::GetInfo() const

@@ -53,18 +53,14 @@ typedef TSortedFontList::const_iterator TCISortedFontList;
  */
 class PdfSimpleWriter : public PdfWriter {
  public:
-    /** Create a PdfSimpleWriter object.
-     *  Call Init afterwards.
-     *  \see Init()
+    /** Creates a new PDF file from scratch
      */
     PdfSimpleWriter();
+
+    /** Deletes the PdfSimpleWriter object
+     */
     virtual ~PdfSimpleWriter();
     
-    /** Create a new pdf file from scratch.
-     *  \returns ErrOk on success.
-     */
-    void Init();
-
     /** Creates a new page object and inserts it into the internal
      *  object tree. The object is owned by the PdfSimpleWriter and 
      *  will be deleted if necessary.
@@ -112,6 +108,11 @@ class PdfSimpleWriter : public PdfWriter {
      *  \param sTitle title
      */
     void SetDocumentTitle( const PdfString & sTitle );
+
+ private:
+    /** Create a new pdf file from scratch.
+     */
+    void Init();
 
  private:
     PdfObject*      m_pPageTree;

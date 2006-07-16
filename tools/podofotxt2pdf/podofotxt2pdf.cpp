@@ -104,8 +104,6 @@ void init( const char* pszInput, const char* pszOutput )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    writer.Init();
-
     fseek( hFile, 0x00, SEEK_END );
     lSize  = ftell( hFile );
 

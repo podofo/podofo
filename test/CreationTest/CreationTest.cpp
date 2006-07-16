@@ -339,8 +339,6 @@ int main( int argc, char* argv[] )
     printf("It creates a new PdfFile from scratch.\n");
     printf("---\n");
 
-    TEST_SAFE_OP( writer.Init() );
-
     pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
     painter.SetPage( pPage );
 

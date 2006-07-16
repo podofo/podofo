@@ -90,9 +90,8 @@ void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo
     lObjLen = obj.GetObjectLength();
     printf("  -> Object Length: %li\n", lObjLen );
 
-    PdfOutputDevice deviceTest;
     std::ostringstream os;
-    deviceTest.Init( &os );
+    PdfOutputDevice deviceTest( &os );
     obj.Write( &deviceTest );
 
     sLen = os.str();

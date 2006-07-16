@@ -465,10 +465,9 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) cons
 
 void PdfVariant::ToString( std::string & rsData ) const
 {
-    PdfOutputDevice device;
     ostringstream   out;
+    PdfOutputDevice device( &out );
 
-    device.Init( &out );
     this->Write( &device );
     
     rsData = out.str();

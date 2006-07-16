@@ -30,18 +30,17 @@ namespace PoDoFo {
 
 PdfOutputDevice::PdfOutputDevice()
 {
-    Init();
+    this->Init();
 }
 
-PdfOutputDevice::~PdfOutputDevice()
-{
-    if( m_hFile )
-        fclose( m_hFile );
-}
-
-void PdfOutputDevice::Init( const char* pszFilename )
+PdfOutputDevice::PdfOutputDevice( const char* pszFilename )
 {
     this->Init();
+
+    if( !pszFilename ) 
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
 
     m_hFile = fopen( pszFilename, "wb" );
     if( !m_hFile )
@@ -50,24 +49,30 @@ void PdfOutputDevice::Init( const char* pszFilename )
     }
 }
 
-void PdfOutputDevice::Init( char* pBuffer, long lLen )
+PdfOutputDevice::PdfOutputDevice( char* pBuffer, long lLen )
 {
+    this->Init();
+
     if( !pBuffer )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    this->Init();
-
     m_lBufferLen = lLen;
     m_pBuffer    = pBuffer;
 }
 
-void PdfOutputDevice::Init( const std::ostream* pOutStream )
+PdfOutputDevice::PdfOutputDevice( const std::ostream* pOutStream )
 {
     this->Init();
 
     m_pStream = const_cast< std::ostream* >( pOutStream );
+}
+
+PdfOutputDevice::~PdfOutputDevice()
+{
+    if( m_hFile )
+        fclose( m_hFile );
 }
 
 void PdfOutputDevice::Init()

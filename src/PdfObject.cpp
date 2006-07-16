@@ -186,7 +186,6 @@ unsigned long PdfObject::GetObjectLength()
 {
     PdfOutputDevice device;
 
-    device.Init();
     this->Write( &device );
 
     return device.Length();
@@ -256,7 +255,6 @@ unsigned long PdfObject::GetByteOffset( const char* pszKey )
         RAISE_ERROR( ePdfError_InvalidKey );
     }
 
-    device.Init();
     this->Write( &device, pszKey );
     
     return device.Length();
