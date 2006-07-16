@@ -204,11 +204,10 @@ PdfDocument::PdfDocument()
 }
 
 PdfDocument::PdfDocument( const std::string& sPathname )
-    : mParser( new PdfParser() ), mPagesTree( NULL )
+    : mParser( new PdfParser( sPathname.c_str(), true ) ), mPagesTree( NULL )
 {
-    mParser->Init( sPathname.c_str(), true );	// load the file, with objects on demand
     mWriter.Init( mParser );
-	InitPagesTree();
+    InitPagesTree();
 }
 
 PdfDocument::~PdfDocument()
@@ -219,19 +218,19 @@ PdfDocument::~PdfDocument()
         mPagesTree = NULL;
     }
 
-	if ( mParser ) 
-	{
-		delete mParser;
-		mParser = NULL;
-	}
+    if ( mParser ) 
+    {
+        delete mParser;
+        mParser = NULL;
+    }
 }
 
 void PdfDocument::InitPagesTree()
 {
-	PdfObject*	pagesRootObj = GetNamedObjectFromCatalog( "Pages" );
-	if ( pagesRootObj ) {
-		mPagesTree = new PdfPagesTree( this, pagesRootObj );
-	}
+    PdfObject*	pagesRootObj = GetNamedObjectFromCatalog( "Pages" );
+    if ( pagesRootObj ) {
+        mPagesTree = new PdfPagesTree( this, pagesRootObj );
+    }
 }
 
 PdfObject* PdfDocument::GetNamedObjectFromCatalog( const char* pszName ) const 

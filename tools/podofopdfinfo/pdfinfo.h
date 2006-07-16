@@ -41,4 +41,5 @@ private:
 };
 
 
-#endif	// _PDFINFO_H_
+#endif	// _PDFINFO_H
+

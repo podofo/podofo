@@ -40,7 +40,7 @@ int main( int argc, char*  argv[] )
     printf("---\n");
 
     try {
-        parser.Init( argv[1], false );
+        parser.ParseFile( argv[1], false );
 
         printf("PdfVersion=%i\n", (int)parser.GetPdfVersion() );
         printf("PdfVersionString=%s\n", parser.GetPdfVersionString() );

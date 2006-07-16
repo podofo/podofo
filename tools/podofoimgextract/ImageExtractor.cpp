@@ -43,7 +43,7 @@ void ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnN
 
     m_pszOutputDirectory = (char*)pszOutput;
 
-    m_parser.Init( pszInput );
+    m_parser.ParseFile( pszInput );
     
     const TVecObjects&  vecObjects = m_parser.GetObjects();
     TCIVecObjects it = vecObjects.begin();

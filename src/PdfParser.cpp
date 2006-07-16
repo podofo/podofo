@@ -43,6 +43,23 @@ bool ObjectLittle( PdfObject* p1, PdfObject* p2 )
 PdfParser::PdfParser()
     : PdfParserBase()
 {
+    this->Init();
+}
+
+PdfParser::PdfParser( const char* pszFilename, bool bLoadOnDemand )
+    : PdfParserBase()
+{
+    this->Init();
+    this->ParseFile( pszFilename, bLoadOnDemand );
+}
+
+PdfParser::~PdfParser()
+{
+    Clear();
+}
+
+void PdfParser::Init() 
+{
     m_bLoadOnDemand   = false;
 
     m_hFile           = NULL;
@@ -58,12 +75,7 @@ PdfParser::PdfParser()
     m_nXRefLinearizedOffset = 0;
 }
 
-PdfParser::~PdfParser()
-{
-    Clear();
-}
-
-void PdfParser::Init( const char* pszFilename, bool bLoadOnDemand )
+void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
 {
     if( !pszFilename || !pszFilename[0] )
     {
@@ -142,16 +154,7 @@ void PdfParser::Clear()
     delete m_pTrailer;
     delete m_pLinearization;
 
-    m_pTrailer        = NULL;
-    m_pLinearization  = NULL;
-    m_ppOffsets       = NULL;
-
-    m_ePdfVersion     = ePdfVersion_Unknown;
-
-    m_nXRefOffset     = 0;
-    m_nFirstObject    = 0;
-    m_nNumObjects     = 0;
-    m_nXRefLinearizedOffset = 0;
+    this->Init();
 }
 
 void PdfParser::ReadDocumentStructure()

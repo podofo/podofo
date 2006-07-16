@@ -22,7 +22,7 @@
 
 UnCompress::UnCompress()
 {
-    m_pParser = new PdfParser();
+    m_pParser = NULL;
     m_pWriter = new PdfWriter();
 }
 
@@ -34,7 +34,10 @@ UnCompress::~UnCompress()
 
 void UnCompress::Init( const char* pszInput, const char* pszOutput )
 {
-    m_pParser->Init( pszInput );
+    if( m_pParser )
+        delete m_pParser;
+
+    m_pParser = new PdfParser( pszInput );
 
     this->UncompressObjects();
 

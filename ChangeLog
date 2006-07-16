@@ -32,6 +32,7 @@ Version 0.3
 		GetNumAnnots();
 	Use Exceptions now instead of error codes;
 	Removed Init from PdfOutputDevice
+	Removed Init from PdfParser
 	
 Version 0.2
 	Improved Documentation;

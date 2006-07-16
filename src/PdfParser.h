@@ -49,13 +49,15 @@ class PdfParser : public PdfParserBase {
 
  public:
     /** Create a new PdfParser object
+     *  You have to open a PDF file using ParseFile later.
+     *
+     *  \see ParseFile  
      */
     PdfParser();
-    virtual ~PdfParser();
 
-    /** Initialize the PdfParser object before you can use it.
-     *  This function has to be called before you can access any other
-     *  function.
+    /** Create a new PdfParser object and open a PDF file and parse
+     *  it into memory.
+     *
      *  \param pszFilename filename of the file which is going to be parsed
      *  \param bLoadOnDemand If true all objects will be read from the file at
      *                       the time they are accesed first.
@@ -63,7 +65,22 @@ class PdfParser : public PdfParserBase {
      *                       This is faster if you do not need the complete PDF 
      *                       file in memory.
      */
-    void Init( const char* pszFilename, bool bLoadOnDemand = true );
+    PdfParser( const char* pszFilename, bool bLoadOnDemand = true );
+
+    /** Delete the PdfParser and all PdfObjects
+     */
+    virtual ~PdfParser();
+
+    /** Open a PDF file and parse it.
+     *
+     *  \param pszFilename filename of the file which is going to be parsed
+     *  \param bLoadOnDemand If true all objects will be read from the file at
+     *                       the time they are accesed first.
+     *                       If false all objects will be read immediately.
+     *                       This is faster if you do not need the complete PDF 
+     *                       file in memory.
+     */
+    void ParseFile( const char* pszFilename, bool bLoadOnDemand = true );
 
     /** Get a reference to the sorted internal objects vector.
      *  \returns the internal objects vector.
@@ -181,6 +198,11 @@ class PdfParser : public PdfParserBase {
     /** Free all internal data structures
      */
     void         Clear();
+
+    /** Initializes all private members
+     *  with their initial values.
+     */
+    void         Init();
 
  private:
     EPdfVersion  m_ePdfVersion;
