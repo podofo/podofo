@@ -594,8 +594,9 @@ void PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
             }
             else
                 ReadXRefSubsection( nFirstObject, nNumObjects );
+
         } catch( PdfError & e ) {
-            if( e == ePdfError_NoNumber ) 
+            if( e == ePdfError_NoNumber || e == ePdfError_InvalidXRef) 
                 break;
             else 
             {
