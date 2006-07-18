@@ -112,6 +112,9 @@
 				RelativePath=".\src\PdfCanvas.cpp">
 			</File>
 			<File
+				RelativePath=".\src\PdfDataType.cpp">
+			</File>
+			<File
 				RelativePath=".\src\PdfDate.cpp">
 			</File>
 			<File
@@ -202,6 +205,9 @@
 			</File>
 			<File
 				RelativePath=".\src\PdfCanvas.h">
+			</File>
+			<File
+				RelativePath=".\src\PdfDataType.h">
 			</File>
 			<File
 				RelativePath=".\src\PdfDate.h">
