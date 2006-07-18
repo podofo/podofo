@@ -40,7 +40,7 @@ void PdfAnnotation::Init( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect &
 {
     PdfVariant  rect;
 
-    this->Init( (PdfObject*)pPage, eAnnot, rRect );
+    this->Init( pPage->GetObject(), eAnnot, rRect );
 
     rRect.ToVariant( rect, pPage );
     this->GetDictionary().AddKey( PdfName::KeyRect, rect );

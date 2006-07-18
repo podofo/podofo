@@ -74,8 +74,10 @@ PdfSimpleWriter::~PdfSimpleWriter()
     FcConfigDestroy( (FcConfig*)m_pFcConfig );
 #endif
 
-    if( m_bInitDone )    
+	if( m_bInitDone && m_ftLibrary ) {    
         FT_Done_FreeType( m_ftLibrary );
+		m_ftLibrary = NULL;
+	}
 }
 
 void PdfSimpleWriter::Init()
@@ -83,11 +85,11 @@ void PdfSimpleWriter::Init()
     PdfDate   cDate;
     PdfString sDate;
 
-    m_bInitDone = true;
     if( FT_Init_FreeType( &m_ftLibrary ) )
     {
         RAISE_ERROR( ePdfError_FreeType );
     }
+	m_bInitDone = true;
 
     PdfWriter::Init();
 
@@ -105,6 +107,7 @@ PdfPage* PdfSimpleWriter::CreatePage( const TSize & tSize )
 {
 #if 1	// until this gets revamped to use a PdfDocument
     PdfPage*         pPage = new PdfPage( NULL, m_vecObjects.GetObjectCount(), 0 );
+/*
     PdfObject* pObject   = dynamic_cast<PdfObject*>(pPage);
     if( !pObject )
     {
@@ -113,6 +116,7 @@ PdfPage* PdfSimpleWriter::CreatePage( const TSize & tSize )
     }
 
     m_vecObjects.push_back( pObject );
+*/
 #else
     PdfPage* pPage    = m_pDocument.CreateObject<PdfPage>();
 #endif
