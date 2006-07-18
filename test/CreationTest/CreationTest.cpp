@@ -34,13 +34,16 @@
 
 using namespace PoDoFo;
 
+#define CONVERSION_CONSTANT 0.002834645669291339
+
+
 void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
 {
-    long     x     = 10000;
-    long     y     = 10000;
+    long     x     = 10000 * CONVERSION_CONSTANT;
+    long     y     = 10000 * CONVERSION_CONSTANT;
     PdfFont* pFont;
 
-    const long lLineLength = 50000; // 5cm
+    const long lLineLength = 50000 * CONVERSION_CONSTANT; // 5cm
     unsigned long h,w;
 
     pFont = pWriter->CreateFont( "Arial" );
@@ -56,90 +59,90 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
     w = pFont->FontMetrics()->StringWidth( "Grayscale Colorspace" );
 
     pPainter->SetFont( pFont );
-    pPainter->DrawText( 120000 , y + pFont->FontMetrics()->LineSpacing(), "Grayscale Colorspace" );
-    pPainter->DrawRect( 120000 , y + pFont->FontMetrics()->LineSpacing(), w, -h );
+    pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y + pFont->FontMetrics()->LineSpacing(), "Grayscale Colorspace" );
+    pPainter->DrawRect( 120000 * CONVERSION_CONSTANT , y + pFont->FontMetrics()->LineSpacing(), w, -h );
 
     // Draw 10 lines in gray scale
     for( int i = 0; i < 10; i++ )
     {
-        x += 10000;
+        x += (10000 * CONVERSION_CONSTANT);
 
-        pPainter->SetStrokeWidth( i*1000 );
+        pPainter->SetStrokeWidth( (i*1000) * CONVERSION_CONSTANT );
         pPainter->SetStrokingGray( (double)i/10.0 );
         pPainter->DrawLine( x, y, x, y + lLineLength );
     }
 
-    x = 10000;
+    x = 10000 * CONVERSION_CONSTANT;
     y += lLineLength;
-    y += 10000;
+    y += (10000 * CONVERSION_CONSTANT);
 
-    pPainter->DrawText( 120000 , y + pFont->FontMetrics()->LineSpacing(), "RGB Colorspace" );
+    pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y + pFont->FontMetrics()->LineSpacing(), "RGB Colorspace" );
 
     // Draw 10 lines in rgb
     for( int i = 0; i < 10; i++ )
     {
-        x += 10000;
+        x += (10000 * CONVERSION_CONSTANT);
 
-        pPainter->SetStrokeWidth( i*1000 );
+        pPainter->SetStrokeWidth( (i*1000) * CONVERSION_CONSTANT );
         pPainter->SetStrokingColor( (double)i/10.0, 0.0, (double)(10-i)/10.0 );
         pPainter->DrawLine( x, y, x, y + lLineLength );
     }
 
-    x = 10000;
+    x = 10000 * CONVERSION_CONSTANT;
     y += lLineLength;
-    y += 10000;
+    y += (10000 * CONVERSION_CONSTANT);
 
-    pPainter->DrawText( 120000 , y + pFont->FontMetrics()->LineSpacing(), "CMYK Colorspace" );
+    pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y + pFont->FontMetrics()->LineSpacing(), "CMYK Colorspace" );
 
     // Draw 10 lines in cmyk
     for( int i = 0; i < 10; i++ )
     {
-        x += 10000;
+        x += (10000 * CONVERSION_CONSTANT);
 
-        pPainter->SetStrokeWidth( i*1000 );
+        pPainter->SetStrokeWidth( (i*1000) * CONVERSION_CONSTANT );
         pPainter->SetStrokingColorCMYK( (double)i/10.0, 0.0, (double)(10-i)/10.0, 0.0 );
         pPainter->DrawLine( x, y, x, y + lLineLength );
     }
 
-    x = 20000;
-    y += 60000;
+    x = 20000 * CONVERSION_CONSTANT;
+    y += 60000 * CONVERSION_CONSTANT;
 
-    pPainter->SetStrokeWidth( 1000 );
+    pPainter->SetStrokeWidth( 1000 * CONVERSION_CONSTANT );
     pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
 
     pPainter->SetStrokeStyle( ePdfStrokeStyle_Solid );
-    pPainter->DrawLine( x, y, x + 100000, y );
-    y += 10000;
+    pPainter->DrawLine( x, y, x + (100000 * CONVERSION_CONSTANT), y );
+    y += (10000 * CONVERSION_CONSTANT);
 
     pPainter->SetStrokeStyle( ePdfStrokeStyle_Dash );
-    pPainter->DrawLine( x, y, x + 100000, y );
-    y += 10000;
+    pPainter->DrawLine( x, y, x + (100000 * CONVERSION_CONSTANT), y );
+    y += (10000 * CONVERSION_CONSTANT);
 
     pPainter->SetStrokeStyle( ePdfStrokeStyle_Dot );
-    pPainter->DrawLine( x, y, x + 100000, y );
-    y += 10000;
+    pPainter->DrawLine( x, y, x + (100000 * CONVERSION_CONSTANT), y );
+    y += (10000 * CONVERSION_CONSTANT);
 
     pPainter->SetStrokeStyle( ePdfStrokeStyle_DashDot );
-    pPainter->DrawLine( x, y, x + 100000, y );
-    y += 10000;
+    pPainter->DrawLine( x, y, x + (100000 * CONVERSION_CONSTANT), y );
+    y += (10000 * CONVERSION_CONSTANT);
 
     pPainter->SetStrokeStyle( ePdfStrokeStyle_DashDotDot );
-    pPainter->DrawLine( x, y, x + 100000, y );
-    y += 10000;
+    pPainter->DrawLine( x, y, x + (100000 * CONVERSION_CONSTANT), y );
+    y += (10000 * CONVERSION_CONSTANT);
 
     pPainter->SetStrokeStyle( ePdfStrokeStyle_Custom, "[7 9 2] 4" );
-    pPainter->DrawLine( x, y, x + 100000, y );
-    y += 10000;
+    pPainter->DrawLine( x, y, x + (100000 * CONVERSION_CONSTANT), y );
+    y += (10000 * CONVERSION_CONSTANT);
 }
 
 void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
 {
-    long     x     = 10000;
-    long     y     = 10000;
+    long     x     = 10000 * CONVERSION_CONSTANT;
+    long     y     = 10000 * CONVERSION_CONSTANT;
     PdfFont* pFont;
 
-    const long lWidth  = 50000; // 5cm
-    const long lHeight = 30000; // 5cm
+    const long lWidth  = 50000 * CONVERSION_CONSTANT; // 5cm
+    const long lHeight = 30000 * CONVERSION_CONSTANT; // 5cm
 
     pFont = pWriter->CreateFont( "Arial" );
     if( !pFont )
@@ -150,56 +153,56 @@ void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
     pFont->SetFontSize( 16.0 );
     pPainter->SetFont( pFont );
 
-    pPainter->DrawText( 125000 , y  + pFont->FontMetrics()->LineSpacing(), "Rectangles" );
+    pPainter->DrawText( 125000 * CONVERSION_CONSTANT, y  + pFont->FontMetrics()->LineSpacing(), "Rectangles" );
 
-    pPainter->SetStrokeWidth( 100 );
+    pPainter->SetStrokeWidth( 100 * CONVERSION_CONSTANT );
     pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
     pPainter->DrawRect( x, y, lWidth, lHeight );
 
     x += lWidth;
-    x += 10000;
+    x += 10000 * CONVERSION_CONSTANT;
 
-    pPainter->SetStrokeWidth( 1000 );
+    pPainter->SetStrokeWidth( 1000 * CONVERSION_CONSTANT );
     pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
     pPainter->DrawRect( x, y, lWidth, lHeight );
 
     y += lHeight;
-    y += 10000;
-    x = 10000;
+    y += 10000 * CONVERSION_CONSTANT;
+    x = 10000 * CONVERSION_CONSTANT;
 
-    pPainter->SetStrokeWidth( 100 );
+    pPainter->SetStrokeWidth( 100 * CONVERSION_CONSTANT );
     pPainter->SetStrokingColor( 1.0, 0.0, 0.0 );
     pPainter->DrawRect( x, y, lWidth, lHeight );
 
     x += lWidth;
-    x += 10000;
-    pPainter->SetStrokeWidth( 1000 );
+    x += 10000 * CONVERSION_CONSTANT;
+    pPainter->SetStrokeWidth( 1000 * CONVERSION_CONSTANT );
     pPainter->SetStrokingColor( 0.0, 1.0, 0.0 );
     pPainter->DrawRect( x, y, lWidth, lHeight );
 
     y += lHeight;
-    y += 10000;
-    x = 10000;
+    y += 10000 * CONVERSION_CONSTANT;
+    x = 10000 * CONVERSION_CONSTANT;
 
-    pPainter->SetStrokeWidth( 100 );
+    pPainter->SetStrokeWidth( 100 * CONVERSION_CONSTANT );
     pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
     pPainter->SetColor( 1.0, 0.0, 0.0 );
     pPainter->FillRect( x, y, lWidth, lHeight );
     pPainter->DrawRect( x, y, lWidth, lHeight );
 
     x += lWidth;
-    x += 10000;
-    pPainter->SetStrokeWidth( 100 );
+    x += 10000 * CONVERSION_CONSTANT;
+    pPainter->SetStrokeWidth( 100 * CONVERSION_CONSTANT );
     pPainter->SetStrokingColor( 0.0, 1.0, 0.0 );
     pPainter->SetColor( 0.0, 0.0, 1.0 );
     pPainter->FillRect( x, y, lWidth, lHeight );
     pPainter->DrawRect( x, y, lWidth, lHeight );
 
     y += lHeight;
-    y += 10000;
-    x = 10000 + lWidth;
+    y += 10000 * CONVERSION_CONSTANT;
+    x = (10000 * CONVERSION_CONSTANT) + lWidth;
 
-    pPainter->DrawText( 120000 , y + pFont->FontMetrics()->LineSpacing(), "Triangles" );
+    pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y + pFont->FontMetrics()->LineSpacing(), "Triangles" );
 
     // Draw a triangle at the current position
     pPainter->SetColor( 0.0, 1.0, 1.0 );
@@ -210,8 +213,8 @@ void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
     pPainter->Fill();
 
     y += lHeight;
-    y += 10000;
-    x = 10000 + lWidth;
+    y += 10000 * CONVERSION_CONSTANT;
+    x = (10000 * CONVERSION_CONSTANT) + lWidth;
 
     pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
     pPainter->MoveTo( x, y );
@@ -223,8 +226,8 @@ void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
 
 void TextTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
 {
-    long x = 10000;
-    long y = 10000;
+    long x = 10000 * CONVERSION_CONSTANT;
+    long y = 10000 * CONVERSION_CONSTANT;
 
     pPainter->SetFont( pWriter->CreateFont( "Times New Roman" ) );
     pPainter->Font()->SetFontSize( 24.0 );
@@ -252,7 +255,7 @@ void TextTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
 
 void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
 {
-    long        y      = 60000;
+    long        y      = 60000 * CONVERSION_CONSTANT;
 
     PdfImageRef    imgRef;
     PdfImageRef    xobjRef;
@@ -260,9 +263,9 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
     PdfImage*      pImg   = pWriter->CreateImage();
 
 	// TODO: These values need to be replaced with PDF unit-based ones where second value is BOTTOM not top!
-    PdfRect        rect( 0, 0, 3000, 4000 );
-    PdfRect        rect1( 80000, 180000, 20000, 20000 );
-    PdfRect        rect2( 80000, 120000, 10000, 10000 );
+    PdfRect        rect( 0, 0, 3000 * CONVERSION_CONSTANT, 4000 * CONVERSION_CONSTANT );
+    PdfRect        rect1( 80000 * CONVERSION_CONSTANT, 180000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
+    PdfRect        rect2( 80000 * CONVERSION_CONSTANT, 120000 * CONVERSION_CONSTANT, 10000 * CONVERSION_CONSTANT, 10000 * CONVERSION_CONSTANT );
 
     PdfAnnotation* pAnnot1 = pWriter->GetObjects().CreateObject<PdfAnnotation>();
     PdfAnnotation* pAnnot2 = pWriter->GetObjects().CreateObject<PdfAnnotation>();
@@ -278,21 +281,25 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
 
     pnt.SetPage( pXObj );
     // Draw onto the XObject
+#ifdef _WIN32
+	pnt.SetFont( pWriter->CreateFont( "Comic Sans MS" ) );
+#else
     pnt.SetFont( pWriter->CreateFont( "Comic Sans" ) );
+#endif
     pnt.Font()->SetFontSize( 8.0 );
     pnt.SetStrokingColor( 1.0, 1.0, 1.0 );
     pnt.SetColor( 1.0, 0.0, 0.0 );
     pnt.FillRect( 0, 0, pXObj->PageSize().lWidth, pXObj->PageSize().lHeight );
     pnt.SetColor( 0.0, 0.0, 0.0 );
-    pnt.DrawRect( 0, 1000, 1000, 1000 );
-    pnt.DrawText( 0, 1000, "I am a XObject." );
+    pnt.DrawRect( 0, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT );
+    pnt.DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am a XObject." );
 
     printf("Drawing on the page!\n");
     // Draw onto the page 
-    pPainter->DrawImage( 40000, y, &imgRef, 0.3, 0.3 );
-    pPainter->DrawImage( 40000, y + 100000, &imgRef, 0.2, 0.5 );
-    pPainter->DrawImage( 40000, y + 200000, &imgRef, 0.3, 0.3 );
-    pPainter->DrawXObject( 120000, y + 15000, &xobjRef );
+    pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y, &imgRef, 0.3, 0.3 );
+    pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y + (100000 * CONVERSION_CONSTANT), &imgRef, 0.2, 0.5 );
+    pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y + (200000 * CONVERSION_CONSTANT), &imgRef, 0.3, 0.3 );
+    pPainter->DrawXObject( 120000 * CONVERSION_CONSTANT, y + (15000 * CONVERSION_CONSTANT), &xobjRef );
 
     pAnnot1->Init( pPage, ePdfAnnotation_Widget, rect1 );
     pAnnot2->Init( pPage, ePdfAnnotation_Link, rect2 );
@@ -312,15 +319,15 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
 
 void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
 {
-    long        lX     = 10000;
-    long        lY     = 10000;
+    long        lX     = 10000 * CONVERSION_CONSTANT;
+    long        lY     = 10000 * CONVERSION_CONSTANT;
 
     pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
-    pPainter->DrawEllipse( lX, lY, 20000, 20000 );
+    pPainter->DrawEllipse( lX, lY, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
 
-    lY += 30000;
+    lY += 30000 * CONVERSION_CONSTANT;
     pPainter->SetColor( 1.0, 0.0, 0.0 );
-    pPainter->FillEllipse( lX, lY, 20000, 20000 );
+    pPainter->FillEllipse( lX, lY, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
 }
 
 int main( int argc, char* argv[] ) 
@@ -380,6 +387,8 @@ int main( int argc, char* argv[] )
 
     TEST_SAFE_OP( writer.Write( argv[1] ) );
 
+
+#ifdef TEST_MEM_BUFFER
     // ---
     const char*   pszMemFile = "/home/dominik/mem_out.pdf";
     char*         pBuffer;
@@ -400,6 +409,7 @@ int main( int argc, char* argv[] )
     printf("Wrote=%i\n", (int)fwrite( pBuffer, lBufferLen, sizeof( char ), hFile ) );
     fclose( hFile );
     free( pBuffer );
+#endif
 
     return 0;
 }
