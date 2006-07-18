@@ -232,13 +232,21 @@ void PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
     lXRef = pDevice->Length();
     pDevice->Print( "xref\n" );
 
+	bool	onlyOneXRef = ( m_vecXRef.size() == 1 );
+
     it = m_vecXRef.begin();
     while( it != m_vecXRef.end() )
     {
         nSize = ( nSize > (*it).nFirst + (*it).nCount ? nSize : (*it).nFirst + (*it).nCount );
 
-        pDevice->Print( "%u %u\n", (*it).nFirst, (*it).nCount );
-        WriteXRefEntries( pDevice, (*it).vecOffsets );
+		// when there is only one, then we need to start with 0 and the bogus object...
+		if ( onlyOneXRef ) {
+			pDevice->Print( "%u %u\n", 0, (*it).nCount+1 );
+			pDevice->Print( "%0.10i %0.5i %c \n", 0, 65535, 'f' );
+		} else {
+			pDevice->Print( "%u %u\n", (*it).nFirst, (*it).nCount );
+		}
+		WriteXRefEntries( pDevice, (*it).vecOffsets );
 
         ++it;
     }
