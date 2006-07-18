@@ -44,7 +44,7 @@ class PdfString;
  * During all drawing operations, you are still able to access the stream of the object you are
  * drawing on directly. 
  * 
- * All functions that take coordinates expect these to be in 1/1000mm. Keep in mind that PDF has
+ * All functions that take coordinates expect these to be in PDF User Units. Keep in mind that PDF has
  * its coordinate system origin at the bottom left corner.
  */
 class PdfPainter {
@@ -119,7 +119,7 @@ class PdfPainter {
     void SetColorCMYK( double c, double m, double y, double k );
 
     /** Set the line width for all stroking operations.
-     *  \param lWidth in 1/1000th mm.
+     *  \param lWidth in PDF User Units.
      */
     void SetStrokeWidth( long lWidth );
 

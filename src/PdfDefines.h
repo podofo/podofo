@@ -45,7 +45,7 @@
  *  Conversation constant to convert 1/1000th mm to 1/72 inch
  *  Internal use only.
  */
-#define CONVERSION_CONSTANT 0.002834645669291339
+// #define CONVERSION_CONSTANT 0.002834645669291339
 
 // Error Handling Defines
 #include "PdfError.h"

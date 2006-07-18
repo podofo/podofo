@@ -80,9 +80,8 @@ void PdfXObject::GetImageReference( PdfImageRef & rRef )
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
     out << "XOb" << this->ObjectNumber();
     
-    // convert 1/1000th mm into pixels
-    rRef.SetWidth      ( long(m_size.lWidth  * CONVERSION_CONSTANT) );
-    rRef.SetHeight     ( long(m_size.lHeight * CONVERSION_CONSTANT) );
+    rRef.SetWidth      ( long(m_size.lWidth) );
+    rRef.SetHeight     ( long(m_size.lHeight) );
 
     rRef.SetIdentifier ( PdfName( out.str().c_str() ) );
     rRef.SetReference  ( this->Reference() );

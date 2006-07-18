@@ -224,8 +224,7 @@ void PdfPainter::SetStrokeWidth( long lWidth )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f w\n", 
-              (double)lWidth * CONVERSION_CONSTANT );
+    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f w\n", (double)lWidth );
     m_pCanvas->Append( m_szBuffer );
 }
 
@@ -314,10 +313,10 @@ void PdfPainter::DrawLine( long lStartX, long lStartY, long lEndX, long lEndY )
     }
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f m %.3f %.3f l S\n", 
-              (double)lStartX * CONVERSION_CONSTANT,
-              (double)(m_pPage->PageSize().lHeight - lStartY) * CONVERSION_CONSTANT,
-              (double)lEndX * CONVERSION_CONSTANT,
-              (double)(m_pPage->PageSize().lHeight - lEndY) * CONVERSION_CONSTANT );
+              (double)lStartX,
+              (double)(m_pPage->PageSize().lHeight - lStartY),
+              (double)lEndX,
+              (double)(m_pPage->PageSize().lHeight - lEndY) );
     m_pCanvas->Append( m_szBuffer );
 }
 
@@ -331,10 +330,10 @@ void PdfPainter::DrawRect( long lX, long lY, long lWidth, long lHeight )
     lHeight *= -1;
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f %.3f %.3f re S\n", 
-              (double)lX * CONVERSION_CONSTANT,
-              (double)(m_pPage->PageSize().lHeight - lY) * CONVERSION_CONSTANT,
-              (double)lWidth * CONVERSION_CONSTANT,
-              (double)lHeight * CONVERSION_CONSTANT );
+              (double)lX,
+              (double)(m_pPage->PageSize().lHeight - lY),
+              (double)lWidth,
+              (double)lHeight );
     m_pCanvas->Append( m_szBuffer );
 }
 
@@ -348,10 +347,10 @@ void PdfPainter::FillRect( long lX, long lY, long lWidth, long lHeight )
     lHeight *= -1;
    
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f %.3f %.3f re f\n", 
-              (double)lX * CONVERSION_CONSTANT,
-              (double)(m_pPage->PageSize().lHeight - lY) * CONVERSION_CONSTANT,
-              (double)lWidth * CONVERSION_CONSTANT,
-             (double)lHeight * CONVERSION_CONSTANT );
+              (double)lX,
+              (double)(m_pPage->PageSize().lHeight - lY),
+              (double)lWidth,
+             (double)lHeight );
     m_pCanvas->Append( m_szBuffer );
 }
 
@@ -372,21 +371,20 @@ void PdfPainter::DrawEllipse( long lX, long lY, long lWidth, long lHeight )
     ConvertRectToBezier( lX, lY, lWidth, lHeight, lPointX, lPointY );
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f m\n",
-              (double)lPointX[0] * CONVERSION_CONSTANT,
-              (double)lPointY[0] * CONVERSION_CONSTANT 
+              (double)lPointX[0],
+              (double)lPointY[0] 
         );
     m_pCanvas->Append( m_szBuffer );              
 
     for( i=1;i<BEZIER_POINTS; i+=3 )
     {
         snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f %.3f %.3f %.3f %.3f c\n", 
-                  (double)lPointX[i] * CONVERSION_CONSTANT,
-                  (double)lPointY[i] * CONVERSION_CONSTANT,
-                  (double)lPointX[i+1] * CONVERSION_CONSTANT,
-                  (double)lPointY[i+1] * CONVERSION_CONSTANT,
-                  (double)lPointX[i+2] * CONVERSION_CONSTANT,
-                  (double)lPointY[i+2] * CONVERSION_CONSTANT
-                  );
+                  (double)lPointX[i],
+                  (double)lPointY[i],
+                  (double)lPointX[i+1],
+                  (double)lPointY[i+1],
+                  (double)lPointX[i+2],
+                  (double)lPointY[i+2]);
         m_pCanvas->Append( m_szBuffer );
     }
     m_pCanvas->Append( "s\n" );
@@ -409,21 +407,19 @@ void PdfPainter::FillEllipse( long lX, long lY, long lWidth, long lHeight )
     ConvertRectToBezier( lX, lY, lWidth, lHeight, lPointX, lPointY );
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f m\n",
-              (double)lPointX[0] * CONVERSION_CONSTANT,
-              (double)lPointY[0] * CONVERSION_CONSTANT 
-        );
+              (double)lPointX[0],
+              (double)lPointY[0]);
     m_pCanvas->Append( m_szBuffer );              
 
     for( i=1;i<BEZIER_POINTS; i+=3 )
     {
         snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f %.3f %.3f %.3f %.3f c\n", 
-                  (double)lPointX[i] * CONVERSION_CONSTANT,
-                  (double)lPointY[i] * CONVERSION_CONSTANT,
-                  (double)lPointX[i+1] * CONVERSION_CONSTANT,
-                  (double)lPointY[i+1] * CONVERSION_CONSTANT,
-                  (double)lPointX[i+2] * CONVERSION_CONSTANT,
-                  (double)lPointY[i+2] * CONVERSION_CONSTANT
-                  );
+                  (double)lPointX[i],
+                  (double)lPointY[i],
+                  (double)lPointX[i+1],
+                  (double)lPointY[i+1],
+                  (double)lPointX[i+2],
+                  (double)lPointY[i+2]);
         m_pCanvas->Append( m_szBuffer );
     }
     m_pCanvas->Append( "f\n" );
@@ -516,8 +512,8 @@ void PdfPainter::DrawText( long lX, long lY, const PdfString & sText, long lStri
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "BT\n/%s %.3f Tf\n%.3f %.3f Td\n<", 
               m_pFont->Identifier().Name().c_str(), m_pFont->FontSize(),
-              (double)lX * CONVERSION_CONSTANT,
-              (double)(m_pPage->PageSize().lHeight - lY) * CONVERSION_CONSTANT );
+              (double)lX,
+              (double)(m_pPage->PageSize().lHeight - lY) );
 
     m_pCanvas->Append( m_szBuffer );
 
@@ -547,8 +543,8 @@ void PdfPainter::DrawXObject( long lX, long lY, PdfImageRef* pImageRef, double d
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "q\n%.3f 0 0 %.3f %.3f %.3f cm\n/%s Do\nQ\n",
               (double)pImageRef->Width() * dScaleX,
               (double)pImageRef->Height() * dScaleY,
-              (double)lX * CONVERSION_CONSTANT,
-              (double)(m_pPage->PageSize().lHeight - lY) * CONVERSION_CONSTANT,
+              (double)lX,
+              (double)(m_pPage->PageSize().lHeight - lY),
               pImageRef->Identifier().Name().c_str() );
     m_pCanvas->Append( m_szBuffer );
 }
@@ -571,8 +567,8 @@ void PdfPainter::LineTo( long  lX, long lY )
     }
     
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f l\n", 
-              (double)lX * CONVERSION_CONSTANT,
-              (double)(m_pPage->PageSize().lHeight - lY) * CONVERSION_CONSTANT );
+              (double)lX,
+              (double)(m_pPage->PageSize().lHeight - lY) );
     m_pCanvas->Append( m_szBuffer );
 }
 
@@ -584,8 +580,8 @@ void PdfPainter::MoveTo( long  lX, long lY )
     }
     
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f m\n", 
-              (double)lX * CONVERSION_CONSTANT,
-              (double)(m_pPage->PageSize().lHeight - lY) * CONVERSION_CONSTANT );
+              (double)lX,
+              (double)(m_pPage->PageSize().lHeight - lY) );
     m_pCanvas->Append( m_szBuffer );
 }
 
