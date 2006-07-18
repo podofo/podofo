@@ -129,6 +129,7 @@ class PdfPage : public PdfCanvas {
     virtual const int GetNumAnnots() const;
 
  private:
+	 PdfPage() {}	// don't allow empty construction
 
    /** Get the bounds of a specified page box in PDF units.
      * This function is internal, since there are wrappers for all standard boxes

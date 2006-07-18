@@ -107,6 +107,9 @@ PdfPage* PdfSimpleWriter::CreatePage( const TSize & tSize )
 {
 #if 1	// until this gets revamped to use a PdfDocument
     PdfPage*         pPage = new PdfPage( NULL, m_vecObjects.GetObjectCount(), 0 );
+	if ( pPage ) {
+		m_vecObjects.push_back( pPage->GetObject() );	// need to add it to the local vector!
+	}
 /*
     PdfObject* pObject   = dynamic_cast<PdfObject*>(pPage);
     if( !pObject )
@@ -121,13 +124,13 @@ PdfPage* PdfSimpleWriter::CreatePage( const TSize & tSize )
     PdfPage* pPage    = m_pDocument.CreateObject<PdfPage>();
 #endif
     
+	pPage->Init( tSize, &m_vecObjects );
+	pPage->GetObject()->GetDictionary().AddKey( "Parent", m_pPageTree->Reference() );
+
     m_vecPageReferences.push_back( pPage->GetObject()->Reference() );
 
     m_pPageTree->GetDictionary().AddKey( "Count", PdfVariant( (long)++m_nPageTreeSize ) );
     m_pPageTree->GetDictionary().AddKey( "Kids",  m_vecPageReferences );
-
-    pPage->GetObject()->GetDictionary().AddKey( "Parent", m_pPageTree->Reference() );
-    pPage->Init( tSize, &m_vecObjects );
 
     return pPage;
 }

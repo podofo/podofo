@@ -42,7 +42,6 @@ PdfPage::PdfPage( PdfDocument* inOwningDoc, PdfObject* inObject )
     : PdfCanvas(), m_pDocument( inOwningDoc ), m_pObject( inObject )
 {
     m_pResources = m_pObject->GetDictionary().GetKey( "Resources" );
-
     m_pContents = m_pObject->GetIndirectKey( "Contents" );
 }
 
