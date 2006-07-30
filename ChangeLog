@@ -31,8 +31,9 @@ Version 0.3
 		GetRotation();
 		GetNumAnnots();
 	Use Exceptions now instead of error codes;
-	Removed Init from PdfOutputDevice
-	Removed Init from PdfParser
+	Removed Init from PdfOutputDevice;
+	Removed Init from PdfParser;
+	Added LZW Filter support;
 	
 Version 0.2
 	Improved Documentation;

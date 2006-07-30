@@ -25,7 +25,9 @@
 #include "PdfDictionary.h"
 
 #include <zlib.h>
-#define CHUNK       16384
+
+#define CHUNK               16384
+#define LZW_TABLE_SIZE      4096
 
 namespace PoDoFo {
 
@@ -71,6 +73,7 @@ const PdfFilter* PdfFilterFactory::Create( const EPdfFilter eFilter )
                 break;
                 
             case ePdfFilter_LZWDecode:
+                pFilter = new PdfLZWFilter();
                 break;
                 
             case ePdfFilter_FlateDecode:
@@ -683,6 +686,157 @@ void PdfRLEFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffe
 
     *ppOutBuffer = pBuf;
     *plOutLen    = lCur;
+}
+
+// -------------------------------------------------------
+// RLE
+// -------------------------------------------------------
+
+const unsigned short PdfLZWFilter::s_masks[] = { 0x01FF,
+                                        0x03FF,
+                                        0x07FF,
+                                        0x0FFF };
+
+const unsigned short PdfLZWFilter::s_clear  = 0x0100;      // clear table
+const unsigned short PdfLZWFilter::s_eod    = 0x0101;      // end of data
+
+void PdfLZWFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
+{
+    RAISE_ERROR( ePdfError_UnsupportedFilter );
+}
+
+void PdfLZWFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
+{
+    TLzwTable table( LZW_TABLE_SIZE ); // the lzw table;
+    TLzwItem  item;
+
+    std::vector<unsigned char> output;
+    std::vector<unsigned char> data;
+    std::vector<unsigned char>::const_iterator it;
+
+    unsigned int mask             = 0;
+    unsigned int code_len         = 9;
+    unsigned char character       = 0;
+
+    pdf_uint32   old              = 0xffffffff;
+    pdf_uint32   code             = 0;
+    pdf_uint32   buffer           = 0;
+
+    unsigned int buffer_size      = 0;
+    const unsigned int buffer_max = 24;
+    
+
+    InitTable( &table );
+
+    if( lInLen )
+        character = *pInBuffer;
+
+    while( lInLen > 0 ) 
+    {
+        // Fill the buffer
+        while( buffer_size <= (buffer_max-8) )
+        {
+            buffer <<= 8;
+            buffer |= (pdf_uint32)((unsigned char)*pInBuffer);
+            buffer_size += 8;
+
+            ++pInBuffer;
+            lInLen--;
+        }
+
+        // read from the buffer
+        while( buffer_size >= code_len ) 
+        {
+            code = (buffer >> (buffer_size - code_len)) & PdfLZWFilter::s_masks[mask];
+            buffer_size -= code_len;
+
+            if( code == PdfLZWFilter::s_clear ) 
+            {
+                mask     = 0;
+                code_len = 9;
+
+                InitTable( &table );
+            }
+            else if( code == PdfLZWFilter::s_eod ) 
+            {
+                lInLen = 0;
+                break;
+            }
+            else 
+            {
+                if( code >= table.size() )
+                {
+                    data = table[old].value;
+                    data.push_back( character );
+                }
+                else
+                    data = table[code].value;
+
+                it = data.begin();
+                while( it != data.end() )
+                {
+                    output.push_back( *it );
+                    ++it;
+                }
+
+                character = data[0];
+                if( old < table.size() ) // fix the first loop
+                    data = table[old].value;
+                data.push_back( character );
+
+                item.value = data;
+                table.push_back( item );
+
+                old = code;
+
+                switch( table.size() ) 
+                {
+                    case 511:
+                    case 1023:
+                    case 2047:
+                    case 4095:
+                        ++code_len;
+                        ++mask;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
+    *ppOutBuffer = (char*)malloc( sizeof(char) * output.size() );
+    if( !*ppOutBuffer ) 
+    {
+        RAISE_ERROR( ePdfError_OutOfMemory );
+    }
+
+    *plOutLen = output.size();
+
+    memcpy( *ppOutBuffer, &(output[0]), *plOutLen );
+}
+
+void PdfLZWFilter::InitTable( TLzwTable* pTable ) const
+{
+    int      i;
+    TLzwItem item;
+
+    pTable->clear();
+    pTable->reserve( LZW_TABLE_SIZE );
+
+    for( i=0;i<255;i++ )
+    {
+        item.value.clear();
+        item.value.push_back( (unsigned char)i );
+        pTable->push_back( item );
+    }
+
+    item.value.clear();
+    item.value.push_back( (unsigned char)s_clear );
+    pTable->push_back( item );
+
+    item.value.clear();
+    item.value.push_back( (unsigned char)s_clear );
+    pTable->push_back( item );
 }
 
 };

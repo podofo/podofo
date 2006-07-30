@@ -252,6 +252,65 @@ EPdfFilter PdfRLEFilter::type() const
     return ePdfFilter_RunLengthDecode;
 }
 
+
+struct TLzwItem {
+    std::vector<unsigned char> value;
+};
+
+typedef std::vector<TLzwItem>     TLzwTable;
+typedef TLzwTable::iterator       TILzwTable;
+typedef TLzwTable::const_iterator TCILzwTable;
+
+/** The LZW filter.
+ */
+class PdfLZWFilter : public PdfFilter {
+ public:
+    /** Encodes a buffer using a filter. The buffer will malloc'ed and
+     *  has to be free'd by the caller.
+     *  
+     *  \param pInBuffer input buffer
+     *  \param lInLen    length of the input buffer
+     *  \param ppOutBuffer pointer to the buffer of the encoded data
+     *  \param plOutLen pointer to the length of the output buffer
+     */
+    virtual void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
+
+    /** Decodes a buffer using a filter. The buffer will malloc'ed and
+     *  has to be free'd by the caller.
+     *  
+     *  \param pInBuffer input buffer
+     *  \param lInLen    length of the input buffer
+     *  \param ppOutBuffer pointer to the buffer of the decoded data
+     *  \param plOutLen pointer to the length of the output buffer
+     *  \param pDecodeParms optional pointer to an decode parameters dictionary
+     *                      containing additional information to decode the data.
+     *                      This pointer must be NULL if no decode parameter dictionary
+     *                      is available.
+     */
+    virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
+
+    /** Type of this filter.
+     *  \returns the type of this filter
+     */
+    inline virtual EPdfFilter type() const;
+
+ private:
+    /** Initialize an lzw table.
+     *  \param pTable the lzw table to initialize
+     */
+    void InitTable( TLzwTable* pTable ) const;
+
+ private:
+    static const unsigned short s_masks[4];
+    static const unsigned short s_clear;
+    static const unsigned short s_eod;
+};
+
+EPdfFilter PdfLZWFilter::type() const
+{
+    return ePdfFilter_LZWDecode;
+}
+
 };
 
 
