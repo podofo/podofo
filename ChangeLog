@@ -34,6 +34,7 @@ Version 0.3
 	Removed Init from PdfOutputDevice;
 	Removed Init from PdfParser;
 	Added LZW Filter support;
+	Added PdfElement as base class for PdfAction, PdfAnnotation and PdfPage;
 	
 Version 0.2
 	Improved Documentation;

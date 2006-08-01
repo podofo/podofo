@@ -144,7 +144,7 @@ void PdfAnnotation::SetDestination( const PdfAction* pAction )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    this->GetDictionary().AddKey( "A", pAction->Reference() );
+    this->GetDictionary().AddKey( "A", pAction->Object()->Reference() );
 }
 
 const char* PdfAnnotation::AnnotationKey( EPdfAnnotation eAnnot )

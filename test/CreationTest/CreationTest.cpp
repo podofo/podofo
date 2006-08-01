@@ -308,8 +308,7 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
     pAnnot1->SetContents( PdfString("Hallo Welt!") );
     pAnnot1->SetAppearanceStream( pXObj );
 
-    PdfAction* pAction = pWriter->GetObjects().CreateObject<PdfAction>();
-    pAction->Init( ePdfAction_URI );
+    PdfAction* pAction = new PdfAction( ePdfAction_URI, &(pWriter->GetObjects()) );
     pAction->SetURI( PdfString("http://www.tec-it.com") );
 
     //pAnnot2->SetDestination( pPage );

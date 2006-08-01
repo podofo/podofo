@@ -24,42 +24,82 @@
 
 namespace PoDoFo {
 
-PdfAction::PdfAction( unsigned int nObjectNo, unsigned int nGenerationNo )
-    : PdfObject( nObjectNo, nGenerationNo, "Action" )
-{
 
-}
+const long  PdfAction::s_lNumActions = 19;
+const char* PdfAction::s_names[] = {
+    "GoTo",
+    "GoToR",
+    "GoToE",
+    "Launch",
+    "Thread",
+    "URI",
+    "Sound",
+    "Movie",
+    "Hide",
+    "Named",
+    "SubmitForm",
+    "ResetForm",
+    "ImportData",
+    "JavaScript",
+    "SetOCGState",
+    "Rendition",
+    "Trans",
+    "GoTo3DView",
+    NULL
+};
 
-void PdfAction::Init( EPdfAction eAction )
+PdfAction::PdfAction( EPdfAction eAction, PdfVecObjects* pParent )
+    : PdfElement( "Action", pParent ), m_eType( eAction )
 {
-    const PdfName type = PdfName( ActionKey( eAction ) );
+    const PdfName type = PdfName( PdfAction::ActionName( eAction ) );
 
     if( !type.Length() )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    this->GetDictionary().AddKey( "S", type );
+    m_pObject->GetDictionary().AddKey( "S", type );
 }
 
-const char* PdfAction::ActionKey( EPdfAction eAction )
+PdfAction::PdfAction( PdfObject* pObject )
+    : PdfElement( "Action", pObject )
 {
-    const char* pszKey;
+    m_eType = PdfAction::ActionType( m_pObject->GetDictionary().GetKeyAsName( "S" ).Name().c_str() );
+}
 
-    switch( eAction ) 
+const char* PdfAction::ActionName( EPdfAction eAction )
+{
+    const char* pszKey = NULL;
+
+    if( (long)eAction < PdfAction::s_lNumActions )
     {
-        case ePdfAction_URI:
-            pszKey = "URI"; break;
-        default:
-            pszKey = NULL;
+        pszKey = PdfAction::s_names[(int)eAction];
     }
 
     return pszKey;
 }
 
+EPdfAction PdfAction::ActionType( const char* pszType )
+{
+    EPdfAction eAction = ePdfAction_Unknown;
+    int        i;
+
+    if( !pszType )
+        return eAction;
+
+    for( i=0; i<PdfAction::s_lNumActions; i++ )
+        if( strcmp( pszType, PdfAction::s_names[i] ) == 0 )
+        {
+            eAction = (EPdfAction)i;
+            break;
+        }
+
+    return eAction;
+}
+
 void PdfAction::SetURI( const PdfString & sUri )
 {
-    this->GetDictionary().AddKey( "URI", sUri );
+    m_pObject->GetDictionary().AddKey( "URI", sUri );
 }
 
 };

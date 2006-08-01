@@ -22,9 +22,13 @@
 #define _PDF_ACTION_H_
 
 #include "PdfDefines.h"
-#include "PdfObject.h"
+#include "PdfElement.h"
 
 namespace PoDoFo {
+
+class PdfObject;
+class PdfString;
+class PdfVecObjects;
 
 /** The type of the action.
  *  PDF supports different action types, each of 
@@ -36,7 +40,7 @@ namespace PoDoFo {
  *  supported by the PDF version you are using.
  */
 typedef enum EPdfAction {
-    ePdfAction_GoTo,
+    ePdfAction_GoTo = 0,
     ePdfAction_GoToR,
     ePdfAction_GoToE,
     ePdfAction_Launch,    
@@ -58,42 +62,58 @@ typedef enum EPdfAction {
     ePdfAction_Unknown = 0xff
 };
 
-
 /** An action that can be performed in a PDF document
  */
-class PdfAction : public PdfObject {
+class PdfAction : public PdfElement {
  public:
     /** Create a new PdfAction object
-     *  \param nObjectNo the object number
-     *  \param nGenerationNo the generation number of the object
-     */
-    PdfAction( unsigned int nObjectNo, unsigned int nGenerationNo );
-    
-    /** Initalize the PdfAction object
      *  \param eAction type of this action
-     *
-     *  \see EPdfAction
+     *  \param pParent parent of this action
      */
-    void Init( EPdfAction eAction );
+    PdfAction( EPdfAction eAction, PdfVecObjects* pParent );
 
+    /** Create a PdfAction object from an existing 
+     *  PdfObject
+     */
+    PdfAction( PdfObject* pObject );
 
     /** Set the URI of an ePdfAction_URI
      *  \param sUri must be a correct URI as PdfString
      */
     void SetURI( const PdfString & sUri );
 
- protected:
+    /** Get the type of this action
+     *  \returns the type of this action
+     */
+    inline const EPdfAction Type() const;
+
     /** Convert an action enum to its string representation
      *  which can be written to the PDF file.
      *  \returns the string representation or NULL for unsupported annotation types
      */
-    const char* ActionKey( EPdfAction eAnnot );
+    static const char* ActionName( EPdfAction eAnnot );
+
+    /** Convert an action type name to an enum
+     *  \returns the enum or ePdfAction_Unknown 
+     *           if the type cannot be determined
+     */
+    static EPdfAction ActionType( const char* pszType );
+ private:
+
+    static const long  s_lNumActions;
+    static const char* s_names[];
 
  private:
-    EPdfAction m_type;
-    
-
+    EPdfAction m_eType;
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline const EPdfAction PdfAction::Type() const
+{
+    return m_eType;
+}
 
 };
 

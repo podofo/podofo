@@ -141,22 +141,33 @@ class PdfName : public PdfDataType {
     std::string	m_Data;
 };
 
-const /*char**/std::string& PdfName::Name() const
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const std::string & PdfName::Name() const
 {
-    // avoid returning null strings
-    return m_Data;	// m_pszData ? m_pszData : "";
+    return m_Data;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 size_t PdfName::Length() const
 {
-    return m_Data.length();	// m_length;
+    return m_Data.length();
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfName::operator!=( const PdfName & rhs ) const
 {
     return !this->operator==( rhs );
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfName::operator!=( const char* rhs ) const
 {
     return !this->operator==( rhs );

@@ -18,52 +18,37 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PODOFO_H_
-#define _PODOFO_H_
-
-/** This file can be used in client applications to include
- *  all files required by PoDoFo at once.
- *
- */
-
-#include "PdfDefines.h"
-
-#include "PdfAction.h"
-#include "PdfAnnotation.h"
-#include "PdfArray.h"
-#include "PdfCanvas.h"
-#include "PdfDataType.h"
-#include "PdfDate.h"
-#include "PdfDocument.h"
 #include "PdfElement.h"
-#include "PdfError.h"
-#include "PdfFilter.h"
-#include "PdfFont.h"
-#include "PdfFontMetrics.h"
-#include "PdfImage.h"
-#include "PdfName.h"
+
+#include "PdfDictionary.h"
 #include "PdfObject.h"
-#include "PdfOutputDevice.h"
-#include "PdfPage.h"
-#include "PdfPainter.h"
-#include "PdfParser.h"
-#include "PdfParserBase.h"
-#include "PdfParserObject.h"
-#include "PdfRect.h"
-#include "PdfSimpleWriter.h"
-#include "PdfStream.h"
-#include "PdfString.h"
-#include "PdfVariant.h"
 #include "PdfVecObjects.h"
-#include "PdfWriter.h"
-#include "PdfXObject.h"
 
-#if 0
-#ifndef _PODOFO_NO_NAMESPACE_
-using namespace PoDoFo;
-#endif /* _PODOFO_NO_NAMESPACE_ */
-#endif
+namespace PoDoFo {
 
-#endif /* _PODOFO_H_ */
+PdfElement::PdfElement( const char* pszType, PdfVecObjects* pParent )
+{
+    m_pObject = pParent->CreateObject( pszType );
+}
 
+PdfElement::PdfElement( const char* pszType, PdfObject* pObject )
+{
+    if( !pObject || !pszType )
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
 
+    m_pObject = pObject;
+
+    if( !m_pObject->IsDictionary() ) 
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
+    if( m_pObject->GetDictionary().GetKeyAsName( PdfName::KeyType ) != pszType ) 
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+}
+
+};
