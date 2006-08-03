@@ -47,7 +47,7 @@ class PdfRect {
     /** Create a rectangle from an array
      *  All values are in PDF units
      */
-    PdfRect( PdfArray& inArray );
+    PdfRect( const PdfArray& inArray );
     
     /** Copy constructor 
      */
@@ -56,14 +56,8 @@ class PdfRect {
     /** Converts the rectangle into an array
      *  based on PDF units and adds the array into an variant.
      *  \param var the variant to store the Rect
-     *  \param pPage if a page is passed the y coordinate is transformed correctly
      */
-    void ToVariant( PdfVariant & var, PdfPage* pPage = NULL ) const;
-
-    /** Returns a string representation of the PdfRect
-     * \returns std::string representation as [ left bottom right top ]
-     */
-    std::string PdfRect::ToString() const;
+    void ToVariant( PdfVariant & var ) const;
 
     /** Assigns the values of this PdfRect from the 4 values in the array
      *  \param inArray the array to load the values from
@@ -113,50 +107,74 @@ class PdfRect {
     PdfRect & operator=( const PdfRect & rhs );
 
  private:
-    double m_lLeft;
-    double m_lBottom;
-    double m_lWidth;
-    double m_lHeight;
+    double m_dLeft;
+    double m_dBottom;
+    double m_dWidth;
+    double m_dHeight;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 double PdfRect::Bottom() const
 {
-    return m_lBottom;
+    return m_dBottom;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfRect::SetBottom( double dBottom )
 {
-    m_lBottom = dBottom;
+    m_dBottom = dBottom;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 double PdfRect::Left() const
 {
-    return m_lLeft;
+    return m_dLeft;
 }
 
-void PdfRect::SetLeft( double lLeft )
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfRect::SetLeft( double dLeft )
 {
-    m_lLeft = lLeft;
+    m_dLeft = dLeft;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 double PdfRect::Width() const
 {
-    return m_lWidth;
+    return m_dWidth;
 }
 
-void PdfRect::SetWidth( double lWidth )
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfRect::SetWidth( double dWidth )
 {
-    m_lWidth = lWidth;
+    m_dWidth = dWidth;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 double PdfRect::Height() const
 {
-    return m_lHeight;
+    return m_dHeight;
 }
 
-void PdfRect::SetHeight( double lHeight )
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfRect::SetHeight( double dHeight )
 {
-    m_lHeight = lHeight;
+    m_dHeight = dHeight;
 }
 
 };

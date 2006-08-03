@@ -51,4 +51,28 @@ PdfElement::PdfElement( const char* pszType, PdfObject* pObject )
     }
 }
 
+PdfElement::~PdfElement()
+{
+}
+
+const char* PdfElement::TypeNameForIndex( int i, const char** ppTypes, long lLen ) const
+{
+    return ( i >= lLen ? NULL : ppTypes[i] );
+}
+
+int PdfElement::TypeNameToIndex( const char* pszType, const char** ppTypes, long lLen ) const
+{
+    int i;
+
+    if( !pszType )
+        return --lLen;
+
+    for( i=0; i<lLen; i++ )
+        if( strcmp( pszType, ppTypes[i] ) == 0 )
+            return i;
+
+    return --lLen;
+}
+
+
 };

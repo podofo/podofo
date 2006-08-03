@@ -33,28 +33,13 @@ namespace PoDoFo {
 
 PdfArray PdfXObject::s_matrix;
 
-PdfXObject::PdfXObject( unsigned int nObjectNo, unsigned int nGenerationNo )
-    : PdfObject( nObjectNo, nGenerationNo, "XObject" ), PdfCanvas()
+PdfXObject::PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent )
+    : PdfElement( "XObject", pParent ), PdfCanvas(), m_rRect( rRect )
 {
-    this->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Form") );
-    this->GetDictionary().AddKey( "FormType", PdfVariant( (long)1 ) ); // only 1 is only defined in the specification.
+    PdfVariant    var;
+    ostringstream out;
 
-
-    // The PDF specification suggests that we send all available PDF Procedure sets
-    this->GetDictionary().AddKey( "Resources", PdfObject( PdfDictionary() ) );
-    m_pResources = this->GetDictionary().GetKey( "Resources" );
-    m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::ProcSet() );
-
-    m_size.lWidth  = 0;
-    m_size.lHeight = 0;
-}
-
-void PdfXObject::Init( const PdfRect & rRect )
-{
-    PdfVariant var;
-    rRect.ToVariant( var );
-    this->GetDictionary().AddKey( "BBox", var );
-
+    // Initialize static data
     if( s_matrix.empty() )
     {
         // This matrix is the same for all PdfXObjects so cache it
@@ -66,25 +51,65 @@ void PdfXObject::Init( const PdfRect & rRect )
         s_matrix.push_back( PdfVariant( 0L ) );
     }
 
-    this->GetDictionary().AddKey( "Matrix", s_matrix );
+    rRect.ToVariant( var );
+    m_pObject->GetDictionary().AddKey( "BBox", var );
+    m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Form") );
+    m_pObject->GetDictionary().AddKey( "FormType", PdfVariant( (long)1 ) ); // only 1 is only defined in the specification.
+    m_pObject->GetDictionary().AddKey( "Matrix", s_matrix );
 
-    m_size.lWidth  = rRect.Width();
-    m_size.lHeight = rRect.Height();
-}
-
-void PdfXObject::GetImageReference( PdfImageRef & rRef )
-{
-    ostringstream out;
+    // The PDF specification suggests that we send all available PDF Procedure sets
+    m_pObject->GetDictionary().AddKey( "Resources", PdfObject( PdfDictionary() ) );
+    m_pResources = m_pObject->GetDictionary().GetKey( "Resources" );
+    m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::ProcSet() );
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
-    out << "XOb" << this->ObjectNumber();
-    
-    rRef.SetWidth      ( long(m_size.lWidth) );
-    rRef.SetHeight     ( long(m_size.lHeight) );
+    out << "XOb" << m_pObject->ObjectNumber();
+    m_Identifier = PdfName( out.str().c_str() );
+}
 
-    rRef.SetIdentifier ( PdfName( out.str().c_str() ) );
-    rRef.SetReference  ( this->Reference() );
+PdfXObject::PdfXObject( PdfObject* pObject )
+    : PdfElement( "XObject", pObject ), PdfCanvas()
+{
+    ostringstream out;
+    // Implementation note: the identifier is always
+    // Prefix+ObjectNo. Prefix is /XOb for XObject.
+    out << "XOb" << m_pObject->ObjectNumber();
+
+    
+    m_pResources = pObject->GetIndirectKey( "Resources" );
+    m_Identifier = PdfName( out.str().c_str() );
+    m_rRect      = PdfRect( m_pObject->GetDictionary().GetKey( "BBox" )->GetArray() );
+}
+
+PdfXObject::PdfXObject( const char* pszSubType, PdfVecObjects* pParent )
+    : PdfElement( "XObject", pParent ) 
+{
+    ostringstream out;
+    // Implementation note: the identifier is always
+    // Prefix+ObjectNo. Prefix is /XOb for XObject.
+    out << "XOb" << m_pObject->ObjectNumber();
+
+    m_Identifier = PdfName( out.str().c_str() );
+
+    m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName( pszSubType ) );
+}
+
+PdfXObject::PdfXObject( const char* pszSubType, PdfObject* pObject )
+    : PdfElement( "XObject", pObject ) 
+{
+    ostringstream out;
+
+    if( m_pObject->GetDictionary().GetKeyAsName( PdfName::KeySubtype ) != "Image" ) 
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
+    // Implementation note: the identifier is always
+    // Prefix+ObjectNo. Prefix is /XOb for XObject.
+    out << "XOb" << m_pObject->ObjectNumber();
+
+    m_Identifier = PdfName( out.str().c_str() );
 }
 
 };

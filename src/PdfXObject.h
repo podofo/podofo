@@ -24,13 +24,14 @@
 #include "PdfDefines.h"
 #include "PdfArray.h"
 #include "PdfCanvas.h"
-#include "PdfObject.h"
+#include "PdfElement.h"
+#include "PdfRect.h"
 
 namespace PoDoFo {
 
 class PdfDictionary;
-class PdfRect;
 class PdfImageRef;
+class PdfObject;
 
 /** A XObject is a content stream with several drawing commands and data
  *  which can be used throughout a PDF document.
@@ -40,11 +41,22 @@ class PdfImageRef;
  * 
  *  \see PdfPainter
  */
-class PdfXObject : public PdfObject, public PdfCanvas {
+class PdfXObject : public PdfElement, public PdfCanvas {
  public:
-    PdfXObject( unsigned int nObjectNo, unsigned int nGenerationNo );
-
-    void Init( const PdfRect & rRect );
+    /** Create a new XObject with a specified dimension
+     *  in a given vector of PdfObjects
+     * 
+     *  \param rRect the size of the XObject
+     *  \param pParent the parent vector of the XObject
+     */
+    PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent );
+    
+    /** Create a XObject from an existing PdfObject
+     *  
+     *  \param pObject an existing object which has to be
+     *                 a XObject
+     */
+    PdfXObject( PdfObject* pObject );
 
     /** Get access to the contents object of this page.
      *  If you want to draw onto the page, you have to add 
@@ -54,58 +66,69 @@ class PdfXObject : public PdfObject, public PdfCanvas {
      *
      *  \returns a contents object
      */
-    inline PdfObject* Contents() const;
+    inline virtual PdfObject* Contents() const;
 
     /** Get access to the resources object of this page.
      *  This is most likely an internal object.
      *  \returns a resources object
      */
-    inline PdfObject* Resources() const;
+    inline virtual PdfObject* Resources() const;
 
-    /** Get the current page size in 1/1000th mm.
-     *  \returns TSize the page size
+    /** Get the current page size in PDF Units
+     *  \param rRect store the page size in this rect
      */
-    virtual inline const TSize & PageSize() const;
+    inline virtual const PdfRect PageSize() const;
 
-    /** Get an image reference object to this XObject.
-     *  You can pass this image reference object to the
-     *  DrawXObject method of PdfPainter.
-     * 
-     *  The PdfImageRef is very small in memory and contains
-     *  all the information that is needed for drawing. I.e. 
-     *  the large PdfXObject object can be written to the file
-     *  and delete from the memory and you can still draw the image.
-     *  This saves memory and increases speed therefore.
-     *
-     *  \param rRef the PdfImageRef object is initialized with the 
-     *         necessary values and can be used for drawing later.
-     *
-     *  Images and XObjects are handled the same way internally,
-     *  therefore you need a PdfImageRef object to draw a PdfXObject.
+    /** Get the identifier used for drawig this object
+     *  \returns identifier
      */
-    void GetImageReference( PdfImageRef & rRef );
+    inline const PdfName & Identifier() const;
+
+ protected:
+    PdfXObject( const char* pszSubType, PdfVecObjects* pParent );
+    PdfXObject( const char* pszSubType, PdfObject* pObject );
+
+ protected:
+    PdfRect          m_rRect;
 
  private:
     static PdfArray  s_matrix;
+
     PdfObject*       m_pResources;
 
-    TSize            m_size;
+    PdfName          m_Identifier;
 };
 
-PdfObject* PdfXObject::Contents() const
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfObject* PdfXObject::Contents() const
 {
-    return (PdfObject*)this;
+    return m_pObject;
 }
 
-
-PdfObject* PdfXObject::Resources() const
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfObject* PdfXObject::Resources() const
 {
     return m_pResources;
 }
 
-inline const TSize & PdfXObject::PageSize() const
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline const PdfRect PdfXObject::PageSize() const
 {
-    return m_size;
+    return m_rRect;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline const PdfName & PdfXObject::Identifier() const
+{
+    return m_Identifier;
 }
 
 };

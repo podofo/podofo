@@ -200,7 +200,7 @@ PdfDocument::PdfDocument()
     : mParser( NULL ), mPagesTree( NULL )
 {
     mWriter.Init();	// initialize a new document
-	InitPagesTree();
+    InitPagesTree();
 }
 
 PdfDocument::PdfDocument( const std::string& sPathname )
@@ -228,7 +228,8 @@ PdfDocument::~PdfDocument()
 void PdfDocument::InitPagesTree()
 {
     PdfObject*	pagesRootObj = GetNamedObjectFromCatalog( "Pages" );
-    if ( pagesRootObj ) {
+    if ( pagesRootObj ) 
+    {
         mPagesTree = new PdfPagesTree( this, pagesRootObj );
     }
 }
@@ -260,7 +261,7 @@ PdfPage* PdfDocument::GetPage( int nIndex ) const
     PdfObject*	pgObj = mPagesTree->GetPage( nIndex );
     if ( pgObj ) 
     {
-        thePage = new PdfPage( const_cast<PdfDocument*>(this), pgObj );
+        thePage = new PdfPage( pgObj );
     }
 
     return thePage;

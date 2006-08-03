@@ -29,6 +29,7 @@ namespace PoDoFo {
 
 class PdfDictionary;
 class PdfObject;
+class PdfRect;
 
 /** A interface that provides the necessary features 
  *  for a painter to draw onto a PdfObject.
@@ -48,10 +49,10 @@ class PdfCanvas {
      */
     virtual PdfObject* Resources() const = 0;
 
-    /** Get the current page size in 1/1000th mm.
-     *  \returns TSize the page size
+    /** Get the current page size in PDF Units
+     *  \returns the page size
      */
-    virtual const TSize & PageSize() const = 0;
+    virtual const PdfRect PageSize() const = 0;
 
     /** Get a reference to a static procset PdfArray.
      *  \returns a reference to a static procset PdfArray

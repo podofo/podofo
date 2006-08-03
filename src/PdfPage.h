@@ -25,7 +25,7 @@
 
 #include "PdfArray.h"
 #include "PdfCanvas.h"
-#include "PdfObject.h"
+#include "PdfElement.h"
 #include "PdfRect.h"
 
 namespace PoDoFo {
@@ -38,42 +38,33 @@ class PdfVecObjects;
  *  It is possible to draw on a page using a PdfPainter object.
  *  Every document needs at least one page.
  */
-class PdfPage : public PdfCanvas {
+class PdfPage : public PdfElement, public PdfCanvas {
  public:
     /** Create a new PdfPage object.
-     *  \param inOwningDoc the document this page belongs to 
-     *  \param nObjectNo object no
-     *  \param nGenerationNo generation number of the object
+     *  \param rSize a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
+     *  \param pParent add the page to this parent
      */
-    PdfPage( PdfDocument* inOwningDoc, unsigned int nObjectNo, unsigned int nGenerationNo );
+    PdfPage( const PdfRect & rSize, PdfVecObjects* pParent );
  
-    /** Create a new PdfPage object.
-	 *  \param inOwningDoc the document this page belongs to 
-     *  \param inObject the object from an existing PDF
+    /** Create a PdfPage based on an existing PdfObject
+     *  \param pObject an existing PdfObject
      */
-    PdfPage( PdfDocument* inOwningDoc, PdfObject* inObject );
+    PdfPage( PdfObject* pObject );
 
     virtual ~PdfPage();
 
-    /** Initialize a newly generated PdfPage object. If you use the CreatePage method of PdfSimpleWriter
-     *  you do not have to call this method.
-     *  \param tSize a size structure specifying the size of the page (i.e the /MediaBox key) in PDF units
-     *  \param pParent pointer to the parent PdfVecObjects object
-     *  \returns ErrOk on success
+    /** Get the current page size in PDF Units
+     *  \returns the page size
      */
-    void Init( const TSize & tSize, PdfVecObjects* pParent );
+    inline virtual const PdfRect PageSize() const;
 
-    /** Creates a TSize page size object which is needed to create a PdfPage object
+    /** Creates a PdfRect with the page size as values which is needed to create a PdfPage object
      *  from an enum which are defined for a few standard page sizes.
+     *
      *  \param ePageSize the page size you want
-     *  \returns TSize object which can be passed to the PdfPage constructor
+     *  \returns a PdfRect object which can be passed to the PdfPage constructor
      */
-    static TSize CreateStandardPageSize( const EPdfPageSize ePageSize );
-
-    /** Retrieve the actual object for a given page
-     *   \returns the PdfObject for this page
-     */
-    PdfObject* GetObject() const { return m_pObject; }
+    static PdfRect CreateStandardPageSize( const EPdfPageSize ePageSize );
 
     /** Get access to the contents object of this page.
      *  If you want to draw onto the page, you have to add 
@@ -87,11 +78,6 @@ class PdfPage : public PdfCanvas {
      *  \returns a resources object
      */
     inline virtual PdfObject* Resources() const;
-
-    /** Get the current page size in PDF units.
-     *  \returns TSize the page size
-     */
-    virtual const TSize & PageSize() const { return m_tPageSize; }
 
     /** Get the current MediaBox (physical page size) in PDF units.
      *  \returns PdfRect the page box
@@ -129,8 +115,6 @@ class PdfPage : public PdfCanvas {
     virtual const int GetNumAnnots() const;
 
  private:
-	 PdfPage() {}	// don't allow empty construction
-
    /** Get the bounds of a specified page box in PDF units.
      * This function is internal, since there are wrappers for all standard boxes
      *  \returns PdfRect the page box
@@ -142,13 +126,9 @@ class PdfPage : public PdfCanvas {
      */
     PdfObject* GetInheritedKeyFromObject( const char* inKey, PdfObject* inObject ) const; 
 
-
  private:
-    PdfDocument*   m_pDocument;
-    PdfObject*     m_pObject;
     PdfObject*     m_pContents;
     PdfObject*     m_pResources;
-    TSize          m_tPageSize;
 };
 
 // -----------------------------------------------------
@@ -157,6 +137,14 @@ class PdfPage : public PdfCanvas {
 inline PdfObject* PdfPage::Resources() const
 {
     return m_pResources;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline const PdfRect PdfPage::PageSize() const
+{
+    return this->GetMediaBox();
 }
 
 };

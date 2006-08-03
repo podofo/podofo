@@ -35,8 +35,8 @@ using namespace std;
 
 namespace PoDoFo {
 
-PdfFont::PdfFont( unsigned int objectno, unsigned int generationno )
-    : PdfObject( objectno, generationno, "Font" )
+PdfFont::PdfFont( PdfFontMetrics* pMetrics, bool bEmbedd, PdfVecObjects* pParent )
+    : PdfElement( "Font", pParent ), m_pMetrics( pMetrics )
 {
     ostringstream out;
 
@@ -48,8 +48,10 @@ PdfFont::PdfFont( unsigned int objectno, unsigned int generationno )
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "Ft" << this->ObjectNumber();
+    out << "Ft" << m_pObject->ObjectNumber();
     m_Identifier = PdfName( out.str().c_str() );
+
+    this->Init( bEmbedd );
 }
     
 PdfFont::~PdfFont()
@@ -57,7 +59,7 @@ PdfFont::~PdfFont()
     delete m_pMetrics;
 }
 
-void PdfFont::Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool bEmbedd )
+void PdfFont::Init( bool bEmbedd )
 {
     unsigned int  i;
     int           curPos = 0;
@@ -66,8 +68,6 @@ void PdfFont::Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool bEmbe
     PdfVariant    var;
     PdfArray      array;
     std::string   sTmp;
-
-    m_pMetrics = pMetrics;
 
     // replace all spaces in the base font name as suggested in 
     // the PDF reference section 5.5.2
@@ -81,7 +81,7 @@ void PdfFont::Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool bEmbe
     m_BaseFont = PdfName( sTmp.c_str() );
 
 
-    pWidth = pParent->CreateObject();
+    pWidth = m_pObject->GetParent()->CreateObject();
     if( !pWidth )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -89,19 +89,19 @@ void PdfFont::Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool bEmbe
 
     m_pMetrics->GetWidthArray( *pWidth, FIRST_CHAR, LAST_CHAR );
 
-    pDescriptor = pParent->CreateObject( "FontDescriptor" );
+    pDescriptor = m_pObject->GetParent()->CreateObject( "FontDescriptor" );
     if( !pDescriptor )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    this->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("TrueType") );
-    this->GetDictionary().AddKey("BaseFont", m_BaseFont );
-    this->GetDictionary().AddKey("FirstChar", PdfVariant( (long)FIRST_CHAR ) );
-    this->GetDictionary().AddKey("LastChar", PdfVariant( (long)LAST_CHAR ) );
-    this->GetDictionary().AddKey("Encoding", PdfName("WinAnsiEncoding") );
-    this->GetDictionary().AddKey("Widths", pWidth->Reference() );
-    this->GetDictionary().AddKey( "FontDescriptor", pDescriptor->Reference() );
+    m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("TrueType") );
+    m_pObject->GetDictionary().AddKey("BaseFont", m_BaseFont );
+    m_pObject->GetDictionary().AddKey("FirstChar", PdfVariant( (long)FIRST_CHAR ) );
+    m_pObject->GetDictionary().AddKey("LastChar", PdfVariant( (long)LAST_CHAR ) );
+    m_pObject->GetDictionary().AddKey("Encoding", PdfName("WinAnsiEncoding") );
+    m_pObject->GetDictionary().AddKey("Widths", pWidth->Reference() );
+    m_pObject->GetDictionary().AddKey( "FontDescriptor", pDescriptor->Reference() );
 
     m_pMetrics->GetBoundingBox( array );
 
@@ -117,18 +117,18 @@ void PdfFont::Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool bEmbe
 
     if( bEmbedd )
     {
-        EmbeddFont( pParent, pDescriptor );
+        EmbeddFont( pDescriptor );
     }
 }
 
-void PdfFont::EmbeddFont( PdfVecObjects* pParent, PdfObject* pDescriptor )
+void PdfFont::EmbeddFont( PdfObject* pDescriptor )
 {
     PdfObject* pContents;
     FILE*      hFile;
     char*      pBuffer = NULL;
     long       lSize = 0;
 
-    pContents = pParent->CreateObject();
+    pContents = m_pObject->GetParent()->CreateObject();
     if( !pContents )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );

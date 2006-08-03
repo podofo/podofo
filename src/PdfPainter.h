@@ -29,13 +29,13 @@ namespace PoDoFo {
 
 class PdfCanvas;
 class PdfFont;
-class PdfImageRef;
+class PdfImage;
 class PdfName;
 class PdfObject;
 class PdfReference;
 class PdfStream;
 class PdfString;
-
+class PdfXObject;
 
 /**
  * This class provides an easy to use painter object which allows you to draw on a PDF page
@@ -236,21 +236,20 @@ class PdfPainter {
     /** Draw an image on the current page.
      *  \param lX the x coordinate (bottom left position of the image)
      *  \param lY the y coordinate (bottom position of the image)
-     *  \param pImageRef an image reference object
+     *  \param pObject an PdfXObject
      *  \param dScaleX option scaling factor in x direction
      *  \param dScaleY option scaling factor in y direction
      */
-    inline void DrawImage( long lX, long lY, PdfImageRef* pImageRef, double dScaleX = 1.0, double dScaleY = 1.0);
+    inline void DrawImage( long lX, long lY, PdfImage* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
 
     /** Draw an XObject on the current page.
      *  \param lX the x coordinate (bottom left position of the XObject)
      *  \param lY the y coordinate (bottom position of the XObject)
-     *  \param pImageRef an image reference object (an image reference is used
-     *                   as XObjects and images are handled the same internally).
+     *  \param pObject an PdfXObject
      *  \param dScaleX option scaling factor in x direction
      *  \param dScaleY option scaling factor in y direction
      */
-    void DrawXObject( long lX, long lY, PdfImageRef* pImageRef, double dScaleX = 1.0, double dScaleY = 1.0);
+    void DrawXObject( long lX, long lY, PdfXObject* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
 
     /** Closes the current path by drawing a line from the current point
      *  to the starting point of the path. Matches the PDF 'h' operator.
@@ -397,9 +396,9 @@ class PdfPainter {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfPainter::DrawImage( long lX, long lY, PdfImageRef* pImageRef, double dScaleX, double dScaleY )
+void PdfPainter::DrawImage( long lX, long lY, PdfImage* pObject, double dScaleX, double dScaleY )
 {
-    this->DrawXObject( lX, lY, pImageRef, dScaleX, dScaleY );
+    this->DrawXObject( lX, lY, (PdfXObject*)pObject, dScaleX, dScaleY );
 }
 
 // -----------------------------------------------------

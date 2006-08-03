@@ -47,6 +47,8 @@ class PdfElement {
 
  public:
 
+    virtual ~PdfElement();
+
     /** Get access to the interna object
      *  \returns the internal PdfObject
      */
@@ -75,6 +77,38 @@ class PdfElement {
      *                 by this PdfElement
      */
     PdfElement( const char* pszType, PdfObject* pObject );
+
+    /** Convert an enum or index to its string representation
+     *  which can be written to the PDF file.
+     * 
+     *  This is a helper function for various PdfElement 
+     *  subclasses that need strings and enums for their
+     *  SubTypes keys.
+     *
+     *  \param i the index or enum value
+     *  \param ppTypes an array of strings containing
+     *         the string mapping of the index
+     *  \param lLen the length of the string array
+     *
+     *  \returns the string representation or NULL for 
+     *           values out of range
+     */
+    const char* TypeNameForIndex( int i, const char** ppTypes, long lLen ) const;
+
+    /** Convert a string type to an array index or enum.
+     * 
+     *  This is a helper function for various PdfElement 
+     *  subclasses that need strings and enums for their
+     *  SubTypes keys.
+     *
+     *  \param pszType the type as string
+     *  \param ppTypes an array of strings containing
+     *         the string mapping of the index
+     *  \param lLen the length of the string array
+     *
+     *  \returns the index of the string in the array
+     */
+    int TypeNameToIndex( const char* pszType, const char** ppTypes, long lLen ) const;
 
  protected:
     PdfObject* m_pObject;

@@ -51,7 +51,7 @@ const char* PdfAction::s_names[] = {
 PdfAction::PdfAction( EPdfAction eAction, PdfVecObjects* pParent )
     : PdfElement( "Action", pParent ), m_eType( eAction )
 {
-    const PdfName type = PdfName( PdfAction::ActionName( eAction ) );
+    const PdfName type = PdfName( TypeNameForIndex( eAction, s_names, s_lNumActions ) );
 
     if( !type.Length() )
     {
@@ -64,37 +64,7 @@ PdfAction::PdfAction( EPdfAction eAction, PdfVecObjects* pParent )
 PdfAction::PdfAction( PdfObject* pObject )
     : PdfElement( "Action", pObject )
 {
-    m_eType = PdfAction::ActionType( m_pObject->GetDictionary().GetKeyAsName( "S" ).Name().c_str() );
-}
-
-const char* PdfAction::ActionName( EPdfAction eAction )
-{
-    const char* pszKey = NULL;
-
-    if( (long)eAction < PdfAction::s_lNumActions )
-    {
-        pszKey = PdfAction::s_names[(int)eAction];
-    }
-
-    return pszKey;
-}
-
-EPdfAction PdfAction::ActionType( const char* pszType )
-{
-    EPdfAction eAction = ePdfAction_Unknown;
-    int        i;
-
-    if( !pszType )
-        return eAction;
-
-    for( i=0; i<PdfAction::s_lNumActions; i++ )
-        if( strcmp( pszType, PdfAction::s_names[i] ) == 0 )
-        {
-            eAction = (EPdfAction)i;
-            break;
-        }
-
-    return eAction;
+    m_eType = (EPdfAction)TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).Name().c_str(), s_names, s_lNumActions );
 }
 
 void PdfAction::SetURI( const PdfString & sUri )

@@ -33,39 +33,19 @@ using namespace std;
 
 namespace PoDoFo {
 
-PdfImageRef::PdfImageRef()
+PdfImage::PdfImage( PdfVecObjects* pParent )
+    : PdfXObject( "Image", pParent )
 {
-    m_nWidth  = 0;
-    m_nHeight = 0;
-}
- 
-PdfImageRef::PdfImageRef( const PdfImageRef & rhs )
-{
-    operator=(rhs);
+    m_rRect = PdfRect();
+
+    this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
 }
 
-const PdfImageRef & PdfImageRef::operator=( const PdfImageRef & rhs )
+PdfImage::PdfImage( PdfObject* pObject )
+    : PdfXObject( "Image", pObject )
 {
-    m_Identifier  = rhs.m_Identifier;
-    m_reference   = rhs.m_reference;
-    m_nWidth      = rhs.m_nWidth;
-    m_nHeight     = rhs.m_nHeight;
-
-    return (*this);
-}
-
-/////////////////////////////////////////////////////////////////////
-//
-/////////////////////////////////////////////////////////////////////
-
-PdfImage::PdfImage( unsigned int objectno, unsigned int generationno )
-    : PdfObject( objectno, generationno )
-{
-    this->GetDictionary().AddKey( PdfName::KeySubtype, PdfName( "Image" ) );
-    this->GetDictionary().AddKey( "ColorSpace", PdfName( ColorspaceToName( ePdfColorSpace_DeviceRGB ) ) );
-
-    m_nHeight = 0;
-    m_nWidth  = 0;
+    m_rRect.SetHeight( m_pObject->GetDictionary().GetKey( "Height" )->GetNumber() );
+    m_rRect.SetWidth ( m_pObject->GetDictionary().GetKey( "Width" )->GetNumber() );
 }
 
 PdfImage::~PdfImage()
@@ -75,17 +55,20 @@ PdfImage::~PdfImage()
 
 void PdfImage::SetImageColorSpace( EPdfColorSpace eColorSpace )
 {
-    this->GetDictionary().AddKey( "ColorSpace", PdfName( ColorspaceToName( eColorSpace ) ) );
+    m_pObject->GetDictionary().AddKey( "ColorSpace", PdfName( ColorspaceToName( eColorSpace ) ) );
 }
 
 void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight, unsigned int nBitsPerComponent, char* szBuffer, long lLen )
 {
-    this->GetDictionary().AddKey( "Width", PdfVariant( (long)nWidth ) );
-    this->GetDictionary().AddKey( "Height", PdfVariant( (long)nHeight ) );
-    this->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( (long)nBitsPerComponent ) );
-    this->GetDictionary().AddKey( "Filter", PdfName("DCTDecode") );
+    m_rRect.SetWidth( nWidth );
+    m_rRect.SetHeight( nHeight );
 
-    this->Stream()->Set( szBuffer, lLen );
+    m_pObject->GetDictionary().AddKey( "Width", PdfVariant( (long)nWidth ) );
+    m_pObject->GetDictionary().AddKey( "Height", PdfVariant( (long)nHeight ) );
+    m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( (long)nBitsPerComponent ) );
+    m_pObject->GetDictionary().AddKey( "Filter", PdfName("DCTDecode") );
+
+    m_pObject->Stream()->Set( szBuffer, lLen );
 }
 
 void PdfImage::LoadFromFile( const char* pszFilename )
@@ -144,8 +127,8 @@ void PdfImage::LoadFromFile( const char* pszFilename )
         RAISE_ERROR( ePdfError_UnexpectedEOF );
     }
 
-    m_nWidth  = cinfo.output_width;
-    m_nHeight = cinfo.output_height;
+    m_rRect.SetWidth( cinfo.output_width );
+    m_rRect.SetHeight( cinfo.output_height );
 
     // I am not sure wether this switch is fully correct.
     // it should handle all cases though.
@@ -164,25 +147,11 @@ void PdfImage::LoadFromFile( const char* pszFilename )
             break;
     }
     
-    this->SetImageData( m_nWidth, m_nHeight, 8 , szBuffer, lLen ); // 8 bits per component
+    this->SetImageData( m_rRect.Width(), m_rRect.Height(), 8 , szBuffer, lLen ); // 8 bits per component
 
     (void) jpeg_destroy_decompress(&cinfo);
 
     fclose( hInfile );
-}
-
-void PdfImage::GetImageReference( PdfImageRef & rRef )
-{
-    ostringstream out;
-
-    // Implementation note: the identifier is always
-    // Prefix+ObjectNo. Prefix is /Img for images.
-    out << "Img" << this->ObjectNumber();
-
-    rRef.SetWidth      ( m_nWidth  );
-    rRef.SetHeight     ( m_nHeight );
-    rRef.SetIdentifier ( PdfName( out.str().c_str() ) );
-    rRef.SetReference  ( this->Reference() );
 }
 
 const char* PdfImage::ColorspaceToName( EPdfColorSpace eColorSpace )

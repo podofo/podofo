@@ -4,11 +4,12 @@
 
 #include "PdfDefines.h"
 #include "PdfName.h"
-#include "PdfObject.h"
+#include "PdfElement.h"
 
 namespace PoDoFo {
 
 class PdfFontMetrics;
+class PdfObject;
 class PdfPage;
 class PdfWriter;
 
@@ -18,31 +19,23 @@ class PdfWriter;
  *  You will use PdfSimpleWriter::CreateFont most of the time
  *  to create a new font object.
  */
-class PdfFont : public PdfObject {
+class PdfFont : public PdfElement {
  public:
     /** Create a new PdfFont object which will introduce itself
      *  automatically to every page object it is used on.
      *
      *  The font has a default font size of 12.0pt.
      *
-     *  \param objectno the object number
-     *  \param generationno gernation number
-     */
-    PdfFont( unsigned int objectno, unsigned int generationno );
-    virtual ~PdfFont();
-
-    /** Initialize a newly generated PdfFont object. If you use the CreateFont
-     *  method of PdfSimpleWriter you do not have to call this method.
-     *
      *  \param pMetrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object will 
      *         get deleted along with the PdFont object.
-     *  \param pParent PdfVecObjects object which is needed so that the Font can create 
-     *         other objects on its own
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
+     *  \param pParent parent of the font object
+     *  
      */
-    void Init( PdfFontMetrics* pMetrics, PdfVecObjects* pParent, bool bEmbedd );
+    PdfFont( PdfFontMetrics* pMetrics, bool bEmbedd, PdfVecObjects* pParent );
+    virtual ~PdfFont();
 
     /** Set the font size before drawing with this font.
      *  \param fSize font size in points
@@ -80,11 +73,14 @@ class PdfFont : public PdfObject {
 
  private:
     /** Embedd the font file directly into the PDF file.
-     *  \param pParent PdfVecObjects object which is needed so that the Font can create 
-     *         other objects on its own     
      *  \param pDescriptor font descriptor object
      */
-    void EmbeddFont( PdfVecObjects* pParent, PdfObject* pDescriptor );
+    void EmbeddFont( PdfObject* pDescriptor );
+
+    /** Initialize the object
+     *  \param bEmbedd if true the font will be embeded into the PDF 
+     */
+    void Init( bool bEmbedd );
 
  private: 
     float m_fFontSize;

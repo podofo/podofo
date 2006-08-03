@@ -22,13 +22,16 @@
 #define _PDF_ANNOTATION_H_
 
 #include "PdfDefines.h"
-#include "PdfObject.h"
+#include "PdfElement.h"
 
 namespace PoDoFo {
 
 class PdfAction;
+class PdfName;
 class PdfPage;
 class PdfRect;
+class PdfReference;
+class PdfString;
 class PdfXObject;
 
 /** The type of the annotation.
@@ -90,36 +93,26 @@ typedef enum EPdfAnnotationFlags {
 
 /** An annotation to a PdfPage 
  */
-class PdfAnnotation : public PdfObject {
+class PdfAnnotation : public PdfElement {
  public:
-    /** Create a new PdfAction object
-     *  \param nObjectNo the object number
-     *  \param nGenerationNo the generation number of the object
-     */
-    PdfAnnotation( unsigned int nObjectNo, unsigned int nGenerationNo );
-
-    /** Initalize the PdfAnnotation object
+    /** Create a new annotation object
+     *
      *  \param pPage the parent page of this annotation
      *  \param eAnnot type of the annotation
      *  \param rRect the rectangle in which the annotation will appear on the page
-     *
-     *  \see EPdfAnnotation
+     *  \param pParent parent of this annotation
      */
-    void Init( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect );
+    PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfVecObjects* pParent );
 
-    /** Initalize the PdfAnnotation object
+    /** Create a PdfAnnotation from an existing PdfObject
      *
-     *  This init function is provided so that you can annotation to PdfObjects which 
-     *  are pages you got from a PdfParser but do not have a PdfPage object for.
-     *
-     *  \param pObject the parent page of this annotation (should be a PdfPage object)
-     *  \param eAnnot type of the annoation
+     *  \param pPage the parent page of this annotation
+     *  \param eAnnot type of the annotation
      *  \param rRect the rectangle in which the annotation will appear on the page
-     *
-     *  \see EPdfAnnotation
+     *  \param pParent parent of this annotation
      */
-    void Init( PdfObject* pObject, EPdfAnnotation eAnnot, const PdfRect & rRect );
-
+    PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfObject* pObject );
+    
     /** Set an appearance stream for this object
      *  to specify its visual appearance
      *  \param pObject an XObject
@@ -165,7 +158,6 @@ class PdfAnnotation : public PdfObject {
     inline EPdfAnnotation type() const;
 
  private:
-
     /** Convert an annotation enum to its string representation
      *  which can be written to the PDF file.
      *  \returns the string representation or NULL for unsupported annotation types
@@ -173,6 +165,9 @@ class PdfAnnotation : public PdfObject {
     const char* AnnotationKey( EPdfAnnotation eAnnot );
 
     void AddReferenceToKey( PdfObject* pObject, const PdfName & keyName, const PdfReference & rRef );
+
+    static const long  s_lNumActions;
+    static const char* s_names[];
 
  private:
     EPdfAnnotation m_eAnnotation;

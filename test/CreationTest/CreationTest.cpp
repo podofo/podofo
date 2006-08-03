@@ -267,9 +267,6 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
     PdfRect        rect1( 80000 * CONVERSION_CONSTANT, 180000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
     PdfRect        rect2( 80000 * CONVERSION_CONSTANT, 120000 * CONVERSION_CONSTANT, 10000 * CONVERSION_CONSTANT, 10000 * CONVERSION_CONSTANT );
 
-    PdfAnnotation* pAnnot1 = pWriter->GetObjects().CreateObject<PdfAnnotation>();
-    PdfAnnotation* pAnnot2 = pWriter->GetObjects().CreateObject<PdfAnnotation>();
-
     PdfXObject*    pXObj   = pWriter->GetObjects().CreateObject<PdfXObject>();
     PdfPainter     pnt;    // XObject painter
 
@@ -301,19 +298,19 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
     pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y + (200000 * CONVERSION_CONSTANT), &imgRef, 0.3, 0.3 );
     pPainter->DrawXObject( 120000 * CONVERSION_CONSTANT, y + (15000 * CONVERSION_CONSTANT), &xobjRef );
 
-    pAnnot1->Init( pPage, ePdfAnnotation_Widget, rect1 );
-    pAnnot2->Init( pPage, ePdfAnnotation_Link, rect2 );
+    PdfAnnotation annot1( pPage, ePdfAnnotation_Widget, rect1, &(pWriter->GetObjects()) );
+    PdfAnnotation annot2( pPage, ePdfAnnotation_Link, rect2, &(pWriter->GetObjects()) );
 
-    pAnnot1->SetTitle( PdfString("Author: Dominik Seichter") );
-    pAnnot1->SetContents( PdfString("Hallo Welt!") );
-    pAnnot1->SetAppearanceStream( pXObj );
+    annot1.SetTitle( PdfString("Author: Dominik Seichter") );
+    annot1.SetContents( PdfString("Hallo Welt!") );
+    annot1.SetAppearanceStream( pXObj );
 
-    PdfAction* pAction = new PdfAction( ePdfAction_URI, &(pWriter->GetObjects()) );
-    pAction->SetURI( PdfString("http://www.tec-it.com") );
+    PdfAction action( ePdfAction_URI, &(pWriter->GetObjects()) );
+    action.SetURI( PdfString("http://podofo.sf.net") );
 
     //pAnnot2->SetDestination( pPage );
-    pAnnot2->SetDestination( pAction );
-    pAnnot2->SetFlags( ePdfAnnotationFlags_NoZoom );
+    annot2.SetDestination( &action );
+    annot2.SetFlags( ePdfAnnotationFlags_NoZoom );
 }
 
 void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )

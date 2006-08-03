@@ -87,17 +87,6 @@ class PdfAction : public PdfElement {
      */
     inline const EPdfAction Type() const;
 
-    /** Convert an action enum to its string representation
-     *  which can be written to the PDF file.
-     *  \returns the string representation or NULL for unsupported annotation types
-     */
-    static const char* ActionName( EPdfAction eAnnot );
-
-    /** Convert an action type name to an enum
-     *  \returns the enum or ePdfAction_Unknown 
-     *           if the type cannot be determined
-     */
-    static EPdfAction ActionType( const char* pszType );
  private:
 
     static const long  s_lNumActions;

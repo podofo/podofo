@@ -181,7 +181,7 @@ typedef enum EPdfLineJoinStyle {
 
 /**
  * Enum holding the supported page sizes by PoDoFo.
- * Can be used to construct a TSize structure with 
+ * Can be used to construct a PdfRect structure with 
  * measurements of a page object.
  *
  * \see PdfPage
@@ -200,25 +200,6 @@ struct TXRefEntry {
     long lOffset;
     long lGeneration;
     char cUsed;
-};
-
-/**
- * \struct TSize
- *
- * A simple size data structure which keeps
- * a double value for width and height.
- */
-struct TSize {
-    double lWidth;  /**< the width in PDF units */
-    double lHeight; /**< the height in PDF units */
-
-    TSize& operator=( const TSize & rhs )
-        {
-            lWidth  = rhs.lWidth;
-            lHeight = rhs.lHeight;
-
-            return *this;
-        }
 };
 
 typedef std::vector<TXRefEntry>      TVecOffsets;

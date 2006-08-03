@@ -30,46 +30,68 @@
 
 namespace PoDoFo {
 
-PdfAnnotation::PdfAnnotation( unsigned int nObjectNo, unsigned int nGenerationNo )
-    : PdfObject( nObjectNo, nGenerationNo, "Annot" )
+const long  PdfAnnotation::s_lNumActions = 26;
+const char* PdfAnnotation::s_names[] = {
+    "Text",                       // - supported
+    "Link",
+    "FreeText",       // PDF 1.3  // - supported
+    "Line",           // PDF 1.3  // - supported
+    "Square",         // PDF 1.3
+    "Circle",         // PDF 1.3
+    "Polygon",        // PDF 1.5
+    "PolyLine",       // PDF 1.5
+    "Highlight",      // PDF 1.3
+    "Underline",      // PDF 1.3
+    "Squiggly",       // PDF 1.4
+    "StrikeOut",      // PDF 1.3
+    "Stamp",          // PDF 1.3
+    "Caret",          // PDF 1.5
+    "Ink",            // PDF 1.3
+    "Popup",          // PDF 1.3
+    "FileAttachement",// PDF 1.3
+    "Sound",          // PDF 1.2
+    "Movie",          // PDF 1.2
+    "Widget",         // PDF 1.2  // - supported
+    "Screen",         // PDF 1.5
+    "PrinterMark",    // PDF 1.4
+    "TrapNet",        // PDF 1.3
+    "Watermark",      // PDF 1.6
+    "3D",             // PDF 1.6
+    NULL
+};
+
+PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfVecObjects* pParent )
+    : PdfElement( "Annot", pParent ), m_eAnnotation( eAnnot )
 {
-    m_eAnnotation = ePdfAnnotation_Unknown;
-}
-
-void PdfAnnotation::Init( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect )
-{
-    PdfVariant  rect;
-
-    this->Init( pPage->GetObject(), eAnnot, rRect );
-
-    rRect.ToVariant( rect, pPage );
-    this->GetDictionary().AddKey( PdfName::KeyRect, rect );
-}
-
-void PdfAnnotation::Init( PdfObject* pObject, EPdfAnnotation eAnnot, const PdfRect & rRect )
-{
-    PdfVariant  rect;
-    PdfDate     date;
-    PdfString   sDate;
-
-    const PdfName name( AnnotationKey( eAnnot ) );
-
-    m_eAnnotation = eAnnot;
+    PdfVariant    rect;
+    PdfDate       date;
+    PdfString     sDate;
+    const PdfName name( TypeNameForIndex( eAnnot, s_names, s_lNumActions ) );
 
     if( !name.Length() )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    this->AddReferenceToKey( pObject, "Annots", this->Reference() );
+    rRect.ToVariant( rect );
+
+    m_pObject->GetDictionary().AddKey( PdfName::KeyRect, rect );
+    this->AddReferenceToKey( pPage->Object(), "Annots", m_pObject->Reference() );
     
     rRect.ToVariant( rect );
     date.ToString( sDate );
 
-    this->GetDictionary().AddKey( PdfName::KeySubtype, name );
-    this->GetDictionary().AddKey( PdfName::KeyRect, rect );
-    this->GetDictionary().AddKey( "P", pObject->Reference() );
-    this->GetDictionary().AddKey( "M", sDate );
+    m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, name );
+    m_pObject->GetDictionary().AddKey( PdfName::KeyRect, rect );
+    m_pObject->GetDictionary().AddKey( "P", pPage->Object()->Reference() );
+    m_pObject->GetDictionary().AddKey( "M", sDate );
+
+}
+
+PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfObject* pObject )
+    : PdfElement( "Annot", pObject ), m_eAnnotation( ePdfAnnotation_Unknown )
+{
+    m_eAnnotation = (EPdfAnnotation)TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).Name().c_str(), s_names, s_lNumActions );
 }
 
 void PdfAnnotation::AddReferenceToKey( PdfObject* pObject, const PdfName & keyName, const PdfReference & rRef )
@@ -102,39 +124,39 @@ void PdfAnnotation::SetAppearanceStream( PdfXObject* pObject )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    dict.AddKey( "N", pObject->Reference() );
+    dict.AddKey( "N", pObject->Object()->Reference() );
 
-    this->GetDictionary().AddKey( "AP", dict );
+    m_pObject->GetDictionary().AddKey( "AP", dict );
 }
 
 void PdfAnnotation::SetFlags( pdf_uint32 uiFlags )
 {
-    this->GetDictionary().AddKey( "F", PdfVariant( (long)uiFlags ) );
+    m_pObject->GetDictionary().AddKey( "F", PdfVariant( (long)uiFlags ) );
 }
 
 void PdfAnnotation::SetTitle( const PdfString & sTitle )
 {
-    this->GetDictionary().AddKey( "T", sTitle );
+    m_pObject->GetDictionary().AddKey( "T", sTitle );
 }
 
 void PdfAnnotation::SetContents( const PdfString & sContents )
 {
-    this->GetDictionary().AddKey( "Contents", sContents );
+    m_pObject->GetDictionary().AddKey( "Contents", sContents );
 }
 
 void PdfAnnotation::SetDestination( const PdfPage* pPage )
 {
-    return this->SetDestination( pPage->GetObject()->Reference() );
+    this->SetDestination( pPage->Object()->Reference() );
 }
 
 void PdfAnnotation::SetDestination( const PdfReference & rReference )
 {
     PdfArray list;
 
-    list.push_back( PdfVariant( rReference ) );
-    list.push_back( PdfVariant( PdfName( "Fit" ) ) );
+    list.push_back( rReference );
+    list.push_back( PdfName( "Fit" ) );
 
-    this->GetDictionary().AddKey( "Dest", PdfVariant( list ) );
+    m_pObject->GetDictionary().AddKey( "Dest", list );
  }
 
 void PdfAnnotation::SetDestination( const PdfAction* pAction )
@@ -144,7 +166,7 @@ void PdfAnnotation::SetDestination( const PdfAction* pAction )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    this->GetDictionary().AddKey( "A", pAction->Object()->Reference() );
+    m_pObject->GetDictionary().AddKey( "A", pAction->Object()->Reference() );
 }
 
 const char* PdfAnnotation::AnnotationKey( EPdfAnnotation eAnnot )

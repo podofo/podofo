@@ -36,6 +36,7 @@ class PdfObject;
 class PdfPage;
 class PdfFont;
 class PdfImage;
+class PdfRect;
 class PdfString;
 
 typedef std::vector<PdfFont*>           TSortedFontList;
@@ -62,13 +63,15 @@ class PdfSimpleWriter : public PdfWriter {
     virtual ~PdfSimpleWriter();
     
     /** Creates a new page object and inserts it into the internal
-     *  object tree. The object is owned by the PdfSimpleWriter and 
-     *  will be deleted if necessary.
-     *  The Init() function of the PdfPage is called already by CreatePage.
-     *  \param tSize a size structure spezifying the size of the page (i.e the /MediaBox key) in 1/1000th mm
+     *  object tree. 
+     *
+     *  The returned PdfPage object has to be deleted by the caller.
+     *  TODO: DS: Do not require the user to delete page objects.
+     *
+     *  \param rSize a PdfRect spezifying the size of the page (i.e the /MediaBox key) in 1/1000th mm
      *  \returns PdfObject pointer to the new PdfObject
      */
-    PdfPage* CreatePage( const TSize & tSize );
+    PdfPage* CreatePage( const PdfRect & rSize );
 
     /** Creates a PdfFont object
      *  \param pszFontName name of the font as it is known to the system
@@ -77,11 +80,6 @@ class PdfSimpleWriter : public PdfWriter {
      *  \returns PdfFont* a pointer to a new PdfFont object.
      */
     PdfFont* CreateFont( const char* pszFontName, bool bEmbedd = true );
-
-    /** Creates a PdfImage object
-     *  \returns pointer to a new PdfImage object
-     */
-    PdfImage* CreateImage();
 
     /** Set the author of the document.
      *  \param sAuthor author

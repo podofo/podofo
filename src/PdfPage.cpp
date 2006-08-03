@@ -28,18 +28,25 @@
 
 namespace PoDoFo {
 
-PdfPage::PdfPage( PdfDocument* inOwningDoc, unsigned int nObjectNo, unsigned int nGenerationNo )
-    : PdfCanvas(), m_pDocument( inOwningDoc ), m_pObject( new PdfObject(nObjectNo, nGenerationNo, "Page") )
+PdfPage::PdfPage( const PdfRect & rSize, PdfVecObjects* pParent )
+    : PdfElement( "Page", pParent ), PdfCanvas()
 {
+    PdfVariant mediabox;
+    rSize.ToVariant( mediabox );
+
     // The PDF specification suggests that we send all available PDF Procedure sets
     m_pObject->GetDictionary().AddKey( "Resources", PdfObject( PdfDictionary() ) );
 
     m_pResources = m_pObject->GetDictionary().GetKey( "Resources" );
     m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::ProcSet() );
+
+    m_pContents = pParent->CreateObject();
+    m_pObject->GetDictionary().AddKey( "MediaBox", mediabox );
+    m_pObject->GetDictionary().AddKey( PdfName::KeyContents, m_pContents->Reference() );
 }
 
-PdfPage::PdfPage( PdfDocument* inOwningDoc, PdfObject* inObject )
-    : PdfCanvas(), m_pDocument( inOwningDoc ), m_pObject( inObject )
+PdfPage::PdfPage( PdfObject* pObject )
+    : PdfElement( "Page", pObject ), PdfCanvas()
 {
     m_pResources = m_pObject->GetDictionary().GetKey( "Resources" );
     m_pContents = m_pObject->GetIndirectKey( "Contents" );
@@ -47,55 +54,39 @@ PdfPage::PdfPage( PdfDocument* inOwningDoc, PdfObject* inObject )
 
 PdfPage::~PdfPage()
 {
-
 }
 
-void PdfPage::Init( const TSize & tSize, PdfVecObjects* pParent )
+PdfRect PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize )
 {
-    PdfVariant rect;
-
-    m_pContents = pParent->CreateObject();
-
-    m_tPageSize = tSize;
-
-    PdfRect( 0, 0, tSize.lWidth, tSize.lHeight ).ToVariant( rect );
-
-    m_pObject->GetDictionary().AddKey( "MediaBox", rect );
-    m_pObject->GetDictionary().AddKey( PdfName::KeyContents, m_pContents->Reference() );
-}
-
-TSize PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize )
-{
-    TSize tSize;
+    PdfRect rect;
 
     switch( ePageSize ) 
     {
         case ePdfPageSize_A4:
-            tSize.lWidth  = 595;
-            tSize.lHeight = 842;
+            rect.SetWidth( 595.0 );
+            rect.SetHeight( 842.0 );
             break;
 
         case ePdfPageSize_Letter:
-            tSize.lWidth  = 612;
-            tSize.lHeight = 792;
+            rect.SetWidth( 612.0 );
+            rect.SetHeight( 792.0 );
             break;
             
         case ePdfPageSize_Legal:
-            tSize.lWidth  = 612;
-            tSize.lHeight = 1008;
+            rect.SetWidth( 612.0 );
+            rect.SetHeight( 1008.0 );
             break;
             
         case ePdfPageSize_A3:
-            tSize.lWidth  = 842;
-            tSize.lHeight = 1190;
+            rect.SetWidth( 842.0 );
+            rect.SetHeight( 1190.0 );
             break;
             
         default:
-            tSize.lWidth = tSize.lHeight = 0;
             break;
     }
 
-    return tSize;
+    return rect;
 }
 
 PdfObject* PdfPage::GetInheritedKeyFromObject( const char* inKey, PdfObject* inObject ) const

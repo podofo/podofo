@@ -32,21 +32,21 @@ namespace PoDoFo {
 
 PdfRect::PdfRect()
 {
-    m_lBottom = m_lLeft = m_lWidth = m_lHeight = 0;
+    m_dBottom = m_dLeft = m_dWidth = m_dHeight = 0;
 }
 
 PdfRect::PdfRect( double lLeft, double lBottom, double lWidth, double lHeight )
 {
-    m_lBottom = lBottom;
-    m_lLeft   = lLeft;
-    m_lWidth  = lWidth;
-    m_lHeight = lHeight;
+    m_dBottom = lBottom;
+    m_dLeft   = lLeft;
+    m_dWidth  = lWidth;
+    m_dHeight = lHeight;
 }
 
-PdfRect::PdfRect( PdfArray& inArray )
+PdfRect::PdfRect( const PdfArray& inArray )
 {
-	m_lBottom = m_lLeft = m_lWidth = m_lHeight = 0;
-	FromArray( inArray );
+    m_dBottom = m_dLeft = m_dWidth = m_dHeight = 0;
+    FromArray( inArray );
 }
 
 PdfRect::PdfRect( const PdfRect & rhs )
@@ -54,50 +54,39 @@ PdfRect::PdfRect( const PdfRect & rhs )
     this->operator=( rhs );
 }
 
-void PdfRect::ToVariant( PdfVariant & var, PdfPage* pPage ) const
+void PdfRect::ToVariant( PdfVariant & var ) const
 {
     PdfArray array;
     
-    array.push_back( PdfVariant( m_lLeft ) );
-    array.push_back( PdfVariant( m_lBottom ) );
-    array.push_back( PdfVariant( (m_lWidth-m_lLeft) ) );
-    array.push_back( PdfVariant( (m_lBottom+m_lHeight) ) );
+    array.push_back( PdfVariant( m_dLeft ) );
+    array.push_back( PdfVariant( m_dBottom ) );
+    array.push_back( PdfVariant( (m_dWidth-m_dLeft) ) );
+    array.push_back( PdfVariant( (m_dBottom+m_dHeight) ) );
 
     var = array;
 }
 
-std::string PdfRect::ToString() const
-{
-	std::ostringstream	oStr;
-	oStr << "[ ";
-	oStr << std::setprecision( 3 ) << m_lLeft << " ";
-	oStr << std::setprecision( 3 ) << m_lBottom << " ";
-	oStr << std::setprecision( 3 ) << m_lWidth + m_lLeft << " ";
-	oStr << std::setprecision( 3 ) << m_lHeight - m_lBottom << " ]";
-
-	return oStr.str();
-}
-
 void PdfRect::FromArray( const PdfArray& inArray )
 {
-	if ( inArray.size() == 4 ) 
-	{
-		m_lLeft = inArray[0].GetReal();
-		m_lBottom = inArray[1].GetReal();
-		m_lWidth = inArray[2].GetReal() - m_lLeft;
-		m_lHeight = inArray[3].GetReal() + m_lBottom;
-	} else 
-	{
-		// TODO: throw an error
-	}
+    if ( inArray.size() == 4 ) 
+    {
+        m_dLeft   = inArray[0].GetReal();
+        m_dBottom = inArray[1].GetReal();
+        m_dWidth  = inArray[2].GetReal() - m_dLeft;
+        m_dHeight = inArray[3].GetReal() + m_dBottom;
+    }
+    else 
+    {
+        RAISE_ERROR( ePdfError_ValueOutOfRange );
+    }
 }
 
 PdfRect & PdfRect::operator=( const PdfRect & rhs )
 {
-    this->m_lBottom = rhs.m_lBottom;
-    this->m_lLeft   = rhs.m_lLeft;
-    this->m_lWidth  = rhs.m_lWidth;
-    this->m_lHeight = rhs.m_lHeight;
+    this->m_dBottom = rhs.m_dBottom;
+    this->m_dLeft   = rhs.m_dLeft;
+    this->m_dWidth  = rhs.m_dWidth;
+    this->m_dHeight = rhs.m_dHeight;
 
     return *this;
 }

@@ -74,10 +74,11 @@ PdfSimpleWriter::~PdfSimpleWriter()
     FcConfigDestroy( (FcConfig*)m_pFcConfig );
 #endif
 
-	if( m_bInitDone && m_ftLibrary ) {    
+    if( m_bInitDone && m_ftLibrary ) 
+    {    
         FT_Done_FreeType( m_ftLibrary );
-		m_ftLibrary = NULL;
-	}
+        m_ftLibrary = NULL;
+    }
 }
 
 void PdfSimpleWriter::Init()
@@ -89,7 +90,7 @@ void PdfSimpleWriter::Init()
     {
         RAISE_ERROR( ePdfError_FreeType );
     }
-	m_bInitDone = true;
+    m_bInitDone = true;
 
     PdfWriter::Init();
 
@@ -103,31 +104,12 @@ void PdfSimpleWriter::Init()
     this->GetInfo()->GetDictionary().AddKey( "CreationDate", sDate );
 }
 
-PdfPage* PdfSimpleWriter::CreatePage( const TSize & tSize )
+PdfPage* PdfSimpleWriter::CreatePage( const PdfRect & rSize )
 {
-#if 1	// until this gets revamped to use a PdfDocument
-    PdfPage*         pPage = new PdfPage( NULL, m_vecObjects.GetObjectCount(), 0 );
-	if ( pPage ) {
-		m_vecObjects.push_back( pPage->GetObject() );	// need to add it to the local vector!
-	}
-/*
-    PdfObject* pObject   = dynamic_cast<PdfObject*>(pPage);
-    if( !pObject )
-    {
-        delete pPage;
-        return NULL;
-    }
+    PdfPage* pPage = new PdfPage( rSize, &m_vecObjects );
+    pPage->Object()->GetDictionary().AddKey( "Parent", m_pPageTree->Reference() );
 
-    m_vecObjects.push_back( pObject );
-*/
-#else
-    PdfPage* pPage    = m_pDocument.CreateObject<PdfPage>();
-#endif
-    
-	pPage->Init( tSize, &m_vecObjects );
-	pPage->GetObject()->GetDictionary().AddKey( "Parent", m_pPageTree->Reference() );
-
-    m_vecPageReferences.push_back( pPage->GetObject()->Reference() );
+    m_vecPageReferences.push_back( pPage->Object()->Reference() );
 
     m_pPageTree->GetDictionary().AddKey( "Count", PdfVariant( (long)++m_nPageTreeSize ) );
     m_pPageTree->GetDictionary().AddKey( "Kids",  m_vecPageReferences );
@@ -157,15 +139,14 @@ PdfFont* PdfSimpleWriter::CreateFont( const char* pszFontName, bool bEmbedd )
     if( it == m_vecFonts.end() )
     {
         pMetrics = new PdfFontMetrics( &m_ftLibrary, sPath.c_str() );
-        pFont    = m_vecObjects.CreateObject<PdfFont>();
-
-        m_vecFonts  .push_back( pFont );
-
-        // Now sort the font list
-        std::sort( m_vecFonts.begin(), m_vecFonts.end() );
 
         try {
-            pFont->Init( pMetrics, &m_vecObjects, bEmbedd );
+            pFont    = new PdfFont( pMetrics, bEmbedd, &m_vecObjects );
+
+            m_vecFonts  .push_back( pFont );
+
+            // Now sort the font list
+            std::sort( m_vecFonts.begin(), m_vecFonts.end() );
         } catch( PdfError & e ) {
             e.AddToCallstack( __FILE__, __LINE__ );
             e.PrintErrorMsg();
@@ -177,11 +158,6 @@ PdfFont* PdfSimpleWriter::CreateFont( const char* pszFontName, bool bEmbedd )
         pFont = *it;
 
     return pFont;
-}
-
-PdfImage* PdfSimpleWriter::CreateImage()
-{
-    return m_vecObjects.CreateObject<PdfImage>();
 }
 
 void PdfSimpleWriter::SetDocumentAuthor( const PdfString & sAuthor )
