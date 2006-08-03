@@ -14,7 +14,7 @@ include_HEADERS = podofo.h PdfDefines.h PdfObject.h PdfParser.h PdfParserObject.
 	PdfVecObjects.h PdfDate.h PdfAnnotation.h PdfRect.h PdfXObject.h \
 	PdfCanvas.h PdfOutputDevice.h PdfAction.h PdfError.h PdfString.h PdfName.h \
 	PdfFilter.h PdfReference.h PdfDocument.h PdfArray.h PdfDictionary.h \
-	PdfDataType.h PdfElement.h
+	PdfDataType.h PdfElement.h PdfPainterMM.h
 
 libpodofo_la_SOURCES = PdfObject.cpp PdfParser.cpp PdfParserObject.cpp \
 	PdfParserBase.cpp PdfWriter.cpp PdfVariant.cpp PdfSimpleWriter.cpp \

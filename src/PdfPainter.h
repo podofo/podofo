@@ -202,7 +202,7 @@ class PdfPainter {
      *  \param dWidth width of the ellipse
      *  \param dHeight absolute height of the ellipse
      */
-    void DrawEllipse( double lX, double lY, double lWidth, double lHeight ); 
+    void DrawEllipse( double dX, double dY, double dWidth, double dHeight ); 
 
     /** Fill an ellipse with the current fill settings
      *  \param dX x coordinate of the ellipse (left coordinate)
@@ -272,7 +272,7 @@ class PdfPainter {
      *  \param dX x position
      *  \param dY y position
      */
-    void MoveTo( double lX, double lY );
+    void MoveTo( double dX, double dY );
 
     /** Stroke the current path. Matches the PDF 'S' operator.
      *  This function is useful to construct an own path

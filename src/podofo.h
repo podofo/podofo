@@ -46,6 +46,7 @@
 #include "PdfOutputDevice.h"
 #include "PdfPage.h"
 #include "PdfPainter.h"
+#include "PdfPainterMM.h"
 #include "PdfParser.h"
 #include "PdfParserBase.h"
 #include "PdfParserObject.h"
