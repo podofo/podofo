@@ -257,53 +257,43 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfSimpleWriter* pWriter )
 {
     long        y      = 60000 * CONVERSION_CONSTANT;
 
-    PdfImageRef    imgRef;
-    PdfImageRef    xobjRef;
-
-    PdfImage*      pImg   = pWriter->CreateImage();
+    PdfImage image( &(pWriter->GetObjects()) );
 
 	// TODO: These values need to be replaced with PDF unit-based ones where second value is BOTTOM not top!
     PdfRect        rect( 0, 0, 3000 * CONVERSION_CONSTANT, 4000 * CONVERSION_CONSTANT );
     PdfRect        rect1( 80000 * CONVERSION_CONSTANT, 180000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
     PdfRect        rect2( 80000 * CONVERSION_CONSTANT, 120000 * CONVERSION_CONSTANT, 10000 * CONVERSION_CONSTANT, 10000 * CONVERSION_CONSTANT );
 
-    PdfXObject*    pXObj   = pWriter->GetObjects().CreateObject<PdfXObject>();
+    PdfXObject     xObj( rect, &(pWriter->GetObjects()) );
     PdfPainter     pnt;    // XObject painter
 
-    pXObj->Init( rect );
-    pImg->LoadFromFile( "./lena.jpg" );
+    image.LoadFromFile( "./lena.jpg" );
 
-    pImg->GetImageReference( imgRef );
-    pXObj->GetImageReference( xobjRef );
-
-    pnt.SetPage( pXObj );
+    pnt.SetPage( &xObj );
     // Draw onto the XObject
-#ifdef _WIN32
-	pnt.SetFont( pWriter->CreateFont( "Comic Sans MS" ) );
-#else
-    pnt.SetFont( pWriter->CreateFont( "Comic Sans" ) );
-#endif
+    pnt.SetFont( pWriter->CreateFont( "Comic Sans MS" ) );
+
     pnt.Font()->SetFontSize( 8.0 );
     pnt.SetStrokingColor( 1.0, 1.0, 1.0 );
     pnt.SetColor( 1.0, 0.0, 0.0 );
-    pnt.FillRect( 0, 0, pXObj->PageSize().lWidth, pXObj->PageSize().lHeight );
+    pnt.FillRect( 0, 0, xObj.PageSize().Width(), xObj.PageSize().Height() );
     pnt.SetColor( 0.0, 0.0, 0.0 );
     pnt.DrawRect( 0, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT );
     pnt.DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am a XObject." );
 
     printf("Drawing on the page!\n");
     // Draw onto the page 
-    pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y, &imgRef, 0.3, 0.3 );
-    pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y + (100000 * CONVERSION_CONSTANT), &imgRef, 0.2, 0.5 );
-    pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y + (200000 * CONVERSION_CONSTANT), &imgRef, 0.3, 0.3 );
-    pPainter->DrawXObject( 120000 * CONVERSION_CONSTANT, y + (15000 * CONVERSION_CONSTANT), &xobjRef );
+    pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y, &image, 0.3, 0.3 );
+    pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y + (100000 * CONVERSION_CONSTANT), &image, 0.2, 0.5 );
+    pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y + (200000 * CONVERSION_CONSTANT), &image, 0.3, 0.3 );
+    pPainter->DrawXObject( 120000 * CONVERSION_CONSTANT, y + (15000 * CONVERSION_CONSTANT), &xObj );
 
     PdfAnnotation annot1( pPage, ePdfAnnotation_Widget, rect1, &(pWriter->GetObjects()) );
     PdfAnnotation annot2( pPage, ePdfAnnotation_Link, rect2, &(pWriter->GetObjects()) );
 
     annot1.SetTitle( PdfString("Author: Dominik Seichter") );
     annot1.SetContents( PdfString("Hallo Welt!") );
-    annot1.SetAppearanceStream( pXObj );
+    annot1.SetAppearanceStream( &xObj );
 
     PdfAction action( ePdfAction_URI, &(pWriter->GetObjects()) );
     action.SetURI( PdfString("http://podofo.sf.net") );

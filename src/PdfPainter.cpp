@@ -219,14 +219,14 @@ void PdfPainter::SetColorCMYK( double c, double m, double y, double k )
     m_eCurColorSpace = ePdfColorSpace_DeviceCMYK;
 }
 
-void PdfPainter::SetStrokeWidth( long lWidth )
+void PdfPainter::SetStrokeWidth( double dWidth )
 {
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f w\n", (double)lWidth );
+    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f w\n", dWidth );
     m_pCanvas->Append( m_szBuffer );
 }
 
@@ -307,7 +307,7 @@ void PdfPainter::SetFont( PdfFont* pFont )
     m_pFont = pFont;
 }
 
-void PdfPainter::DrawLine( long lStartX, long lStartY, long lEndX, long lEndY )
+void PdfPainter::DrawLine( double dStartX, double dStartY, double dEndX, double dEndY )
 {
     if( !m_pCanvas )
     {
@@ -315,129 +315,129 @@ void PdfPainter::DrawLine( long lStartX, long lStartY, long lEndX, long lEndY )
     }
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f m %.3f %.3f l S\n", 
-              (double)lStartX,
-              (double)(m_pPage->PageSize().Height() - lStartY),
-              (double)lEndX,
-              (double)(m_pPage->PageSize().Height() - lEndY) );
+              dStartX,
+              m_pPage->PageSize().Height() - dStartY,
+              dEndX,
+              m_pPage->PageSize().Height() - dEndY );
     m_pCanvas->Append( m_szBuffer );
 }
 
-void PdfPainter::DrawRect( long lX, long lY, long lWidth, long lHeight )
+void PdfPainter::DrawRect( double dX, double dY, double dWidth, double dHeight )
 { 
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
-    lHeight *= -1;
+    dHeight *= -1;
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f %.3f %.3f re S\n", 
-              (double)lX,
-              (double)(m_pPage->PageSize().Height() - lY),
-              (double)lWidth,
-              (double)lHeight );
+              dX,
+              m_pPage->PageSize().Height() - dY,
+              dWidth,
+              dHeight );
     m_pCanvas->Append( m_szBuffer );
 }
 
-void PdfPainter::FillRect( long lX, long lY, long lWidth, long lHeight )
+void PdfPainter::FillRect( double dX, double dY, double dWidth, double dHeight )
 {
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    lHeight *= -1;
+    dHeight *= -1;
    
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f %.3f %.3f re f\n", 
-              (double)lX,
-              (double)(m_pPage->PageSize().Height() - lY),
-              (double)lWidth,
-              (double)lHeight );
+              dX,
+              m_pPage->PageSize().Height() - dY,
+              dWidth,
+              dHeight );
     m_pCanvas->Append( m_szBuffer );
 }
 
-void PdfPainter::DrawEllipse( long lX, long lY, long lWidth, long lHeight )
+void PdfPainter::DrawEllipse( double dX, double dY, double dWidth, double dHeight )
 {
-    long lPointX[BEZIER_POINTS];
-    long lPointY[BEZIER_POINTS];
-    int  i;
+    double dPointX[BEZIER_POINTS];
+    double dPointY[BEZIER_POINTS];
+    int    i;
 
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    lHeight *= -1;
-    lY       = (m_pPage->PageSize().Height() - lY);
+    dHeight *= -1;
+    dY       = m_pPage->PageSize().Height() - dY;
 
-    ConvertRectToBezier( lX, lY, lWidth, lHeight, lPointX, lPointY );
+    ConvertRectToBezier( dX, dY, dWidth, dHeight, dPointX, dPointY );
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f m\n",
-              (double)lPointX[0],
-              (double)lPointY[0] 
+              dPointX[0],
+              dPointY[0] 
         );
     m_pCanvas->Append( m_szBuffer );              
 
     for( i=1;i<BEZIER_POINTS; i+=3 )
     {
         snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f %.3f %.3f %.3f %.3f c\n", 
-                  (double)lPointX[i],
-                  (double)lPointY[i],
-                  (double)lPointX[i+1],
-                  (double)lPointY[i+1],
-                  (double)lPointX[i+2],
-                  (double)lPointY[i+2]);
+                  dPointX[i],
+                  dPointY[i],
+                  dPointX[i+1],
+                  dPointY[i+1],
+                  dPointX[i+2],
+                  dPointY[i+2]);
         m_pCanvas->Append( m_szBuffer );
     }
     m_pCanvas->Append( "s\n" );
 }
 
-void PdfPainter::FillEllipse( long lX, long lY, long lWidth, long lHeight )
+void PdfPainter::FillEllipse( double dX, double dY, double dWidth, double dHeight )
 {
-    long lPointX[BEZIER_POINTS];
-    long lPointY[BEZIER_POINTS];
-    int  i;
+    double dPointX[BEZIER_POINTS];
+    double dPointY[BEZIER_POINTS];
+    int    i;
 
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    lHeight *= -1;
-    lY       = (m_pPage->PageSize().Height() - lY);
+    dHeight *= -1;
+    dY       = (m_pPage->PageSize().Height() - dY);
 
-    ConvertRectToBezier( lX, lY, lWidth, lHeight, lPointX, lPointY );
+    ConvertRectToBezier( dX, dY, dWidth, dHeight, dPointX, dPointY );
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f m\n",
-              (double)lPointX[0],
-              (double)lPointY[0]);
+              dPointX[0],
+              dPointY[0]);
     m_pCanvas->Append( m_szBuffer );              
 
     for( i=1;i<BEZIER_POINTS; i+=3 )
     {
         snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f %.3f %.3f %.3f %.3f c\n", 
-                  (double)lPointX[i],
-                  (double)lPointY[i],
-                  (double)lPointX[i+1],
-                  (double)lPointY[i+1],
-                  (double)lPointX[i+2],
-                  (double)lPointY[i+2]);
+                  dPointX[i],
+                  dPointY[i],
+                  dPointX[i+1],
+                  dPointY[i+1],
+                  dPointX[i+2],
+                  dPointY[i+2]);
         m_pCanvas->Append( m_szBuffer );
     }
     m_pCanvas->Append( "f\n" );
 }
 
-void PdfPainter::DrawText( long lX, long lY, const PdfString & sText )
+void PdfPainter::DrawText( double dX, double dY, const PdfString & sText )
 {
     if( !m_pFont || !m_pCanvas || !m_pPage || !sText.IsValid() )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    this->DrawText( lX, lY, sText, sText.Length() );
+    this->DrawText( dX, dY, sText, sText.Length() );
 }
 
-void PdfPainter::DrawText( long lX, long lY, const PdfString & sText, long lStringLen )
+void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long lStringLen )
 {
     int         nTabCnt = 0;
     int         i,z;
@@ -499,10 +499,10 @@ void PdfPainter::DrawText( long lX, long lY, const PdfString & sText, long lStri
         this->Save();
         this->SetCurrentStrokingColor();
         this->SetStrokeWidth( m_pFont->FontMetrics()->UnderlineThickness() );
-        this->DrawLine( lX, 
-                        lY - m_pFont->FontMetrics()->UnderlinePosition(), 
-                        lX + m_pFont->FontMetrics()->StringWidth( pszTab ),
-                        lY - m_pFont->FontMetrics()->UnderlinePosition() );
+        this->DrawLine( dX, 
+                        dY - m_pFont->FontMetrics()->UnderlinePosition(), 
+                        dX + m_pFont->FontMetrics()->StringWidth( pszTab ),
+                        dY - m_pFont->FontMetrics()->UnderlinePosition() );
         this->Restore();
     }
 
@@ -514,8 +514,8 @@ void PdfPainter::DrawText( long lX, long lY, const PdfString & sText, long lStri
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "BT\n/%s %.3f Tf\n%.3f %.3f Td\n<", 
               m_pFont->Identifier().Name().c_str(), m_pFont->FontSize(),
-              (double)lX,
-              (double)(m_pPage->PageSize().Height() - lY) );
+              dX,
+              m_pPage->PageSize().Height() - dY );
 
     m_pCanvas->Append( m_szBuffer );
 
@@ -533,7 +533,7 @@ void PdfPainter::DrawText( long lX, long lY, const PdfString & sText, long lStri
         free( pszTab );
 }
 
-void PdfPainter::DrawXObject( long lX, long lY, PdfXObject* pObject, double dScaleX, double dScaleY )
+void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double dScaleX, double dScaleY )
 {
     if( !pObject )
     {
@@ -543,10 +543,10 @@ void PdfPainter::DrawXObject( long lX, long lY, PdfXObject* pObject, double dSca
     this->AddToPageResources( pObject->Identifier(), pObject->Object()->Reference(), "XObject" );
 
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "q\n%.3f 0 0 %.3f %.3f %.3f cm\n/%s Do\nQ\n",
-              (double)pObject->PageSize().Width() * dScaleX,
-              (double)pObject->PageSize().Height() * dScaleY,
-              (double)lX,
-              (double)(m_pPage->PageSize().Height() - lY),
+              pObject->PageSize().Width() * dScaleX,
+              pObject->PageSize().Height() * dScaleY,
+              dX,
+              m_pPage->PageSize().Height() - dY,
               pObject->Identifier().Name().c_str() );
     m_pCanvas->Append( m_szBuffer );
 }
@@ -561,7 +561,7 @@ void PdfPainter::ClosePath()
     m_pCanvas->Append( "h\n" );
 }
 
-void PdfPainter::LineTo( long  lX, long lY )
+void PdfPainter::LineTo( double dX, double dY )
 {
     if( !m_pCanvas )
     {
@@ -569,12 +569,12 @@ void PdfPainter::LineTo( long  lX, long lY )
     }
     
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f l\n", 
-              (double)lX,
-              (double)(m_pPage->PageSize().Height() - lY) );
+              dX,
+              m_pPage->PageSize().Height() - dY );
     m_pCanvas->Append( m_szBuffer );
 }
 
-void PdfPainter::MoveTo( long  lX, long lY )
+void PdfPainter::MoveTo( double dX, double dY )
 {
     if( !m_pCanvas )
     {
@@ -582,8 +582,8 @@ void PdfPainter::MoveTo( long  lX, long lY )
     }
     
     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f m\n", 
-              (double)lX,
-              (double)(m_pPage->PageSize().Height() - lY) );
+              dX,
+              m_pPage->PageSize().Height() - dY );
     m_pCanvas->Append( m_szBuffer );
 }
 
@@ -650,7 +650,7 @@ void PdfPainter::AddToPageResources( const PdfName & rIdentifier, const PdfRefer
         pResource->GetDictionary().GetKey( rName )->GetDictionary().AddKey( rIdentifier, rRef );
 }
 
-void PdfPainter::ConvertRectToBezier( long lX, long lY, long lWidth, long lHeight, long plPointX[], long plPointY[] )
+void PdfPainter::ConvertRectToBezier( double dX, double dY, double dWidth, double dHeight, double pdPointX[], double pdPointY[] )
 {
     // this function is based on code from:
     // http://www.codeguru.com/Cpp/G-M/gdi/article.php/c131/
@@ -660,38 +660,38 @@ void PdfPainter::ConvertRectToBezier( long lX, long lY, long lWidth, long lHeigh
     //                          2/3*(sqrt(2)-1) 
     const double dConvert =     0.2761423749154;
 
-    long lOffX    = (long)(lWidth  * dConvert);
-    long lOffY    = (long)(lHeight * dConvert);
-    long lCenterX = lX + (lWidth  >> 1); 
-    long lCenterY = lY + (lHeight >> 1); 
+    double dOffX    = dWidth  * dConvert;
+    double dOffY    = dHeight * dConvert;
+    double dCenterX = dX + (dWidth / 2.0); 
+    double dCenterY = dY + (dHeight / 2.0); 
 
-    plPointX[0]  =                            //------------------------//
-    plPointX[1]  =                            //                        //
-    plPointX[11] =                            //        2___3___4       //
-    plPointX[12] = lX;                        //     1             5    //
-    plPointX[5]  =                            //     |             |    //
-    plPointX[6]  =                            //     |             |    //
-    plPointX[7]  = lX + lWidth;               //     0,12          6    //
-    plPointX[2]  =                            //     |             |    //
-    plPointX[10] = lCenterX - lOffX;          //     |             |    //
-    plPointX[4]  =                            //    11             7    //
-    plPointX[8]  = lCenterX + lOffX;          //       10___9___8       //
-    plPointX[3]  =                            //                        //
-    plPointX[9]  = lCenterX;                  //------------------------//
+    pdPointX[0]  =                            //------------------------//
+    pdPointX[1]  =                            //                        //
+    pdPointX[11] =                            //        2___3___4       //
+    pdPointX[12] = dX;                        //     1             5    //
+    pdPointX[5]  =                            //     |             |    //
+    pdPointX[6]  =                            //     |             |    //
+    pdPointX[7]  = dX + dWidth;               //     0,12          6    //
+    pdPointX[2]  =                            //     |             |    //
+    pdPointX[10] = dCenterX - dOffX;          //     |             |    //
+    pdPointX[4]  =                            //    11             7    //
+    pdPointX[8]  = dCenterX + dOffX;          //       10___9___8       //
+    pdPointX[3]  =                            //                        //
+    pdPointX[9]  = dCenterX;                  //------------------------//
 
-    plPointY[2]  =
-    plPointY[3]  =
-    plPointY[4]  = lY;
-    plPointY[8]  =
-    plPointY[9]  =
-    plPointY[10] = lY + lHeight;
-    plPointY[7]  =
-    plPointY[11] = lCenterY + lOffY;
-    plPointY[1]  =
-    plPointY[5]  = lCenterY - lOffY;
-    plPointY[0]  =
-    plPointY[12] =
-    plPointY[6]  = lCenterY;
+    pdPointY[2]  =
+    pdPointY[3]  =
+    pdPointY[4]  = dY;
+    pdPointY[8]  =
+    pdPointY[9]  =
+    pdPointY[10] = dY + dHeight;
+    pdPointY[7]  =
+    pdPointY[11] = dCenterY + dOffY;
+    pdPointY[1]  =
+    pdPointY[5]  = dCenterY - dOffY;
+    pdPointY[0]  =
+    pdPointY[12] =
+    pdPointY[6]  = dCenterY;
 }
 
 void PdfPainter::SetCurrentStrokingColor()

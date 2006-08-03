@@ -119,9 +119,9 @@ class PdfPainter {
     void SetColorCMYK( double c, double m, double y, double k );
 
     /** Set the line width for all stroking operations.
-     *  \param lWidth in PDF User Units.
+     *  \param dWidth in PDF User Units.
      */
-    void SetStrokeWidth( long lWidth );
+    void SetStrokeWidth( double dWidth );
 
     /** Set the stoke style for all stroking operations.
      *  \param eStyle style of the stroking operations
@@ -173,83 +173,83 @@ class PdfPainter {
     inline PdfFont* Font() const;
 
     /** Draw a line with the current color and line settings.
-     *  \param lStartX x coordinate of the starting point
-     *  \param lStartY y coordinate of the starting point
-     *  \param lEndX x coordinate of the ending point
-     *  \param lEndY y coordinate of the ending point
+     *  \param dStartX x coordinate of the starting point
+     *  \param dStartY y coordinate of the starting point
+     *  \param dEndX x coordinate of the ending point
+     *  \param dEndY y coordinate of the ending point
      */
-    void DrawLine( long lStartX, long lStartY, long lEndX, long lEndY );
+    void DrawLine( double dStartX, double dStartY, double dEndX, double dEndY );
 
     /** Draw a rectangle with the current stroking settings
-     *  \param lX x coordinate of the rectangle
-     *  \param lY y coordinate of the rectangle
-     *  \param lWidth width of the rectangle
-     *  \param lHeight absolute height of the rectangle
+     *  \param dX x coordinate of the rectangle
+     *  \param dY y coordinate of the rectangle
+     *  \param dWidth width of the rectangle
+     *  \param dHeight absolute height of the rectangle
      */
-    void DrawRect( long lX, long lY, long lWidth, long lHeight );
+    void DrawRect( double dX, double dY, double dWidth, double dHeight );
 
     /** Fill a rectangle with the current fill settings
-     *  \param lX x coordinate of the rectangle
-     *  \param lY y coordinate of the rectangle
-     *  \param lWidth width of the rectangle 
-     *  \param lHeight absolute height of the rectangle
+     *  \param dX x coordinate of the rectangle
+     *  \param dY y coordinate of the rectangle
+     *  \param dWidth width of the rectangle 
+     *  \param dHeight absolute height of the rectangle
      */
-    void FillRect( long lX, long lY, long lWidth, long lHeight );
+    void FillRect( double dX, double dY, double dWidth, double dHeight );
 
     /** Draw an ellipse with the current stroking settings
-     *  \param lX x coordinate of the ellipse (left coordinate)
-     *  \param lY y coordinate of the ellipse (top coordinate)
-     *  \param lWidth width of the ellipse
-     *  \param lHeight absolute height of the ellipse
+     *  \param dX x coordinate of the ellipse (left coordinate)
+     *  \param dY y coordinate of the ellipse (top coordinate)
+     *  \param dWidth width of the ellipse
+     *  \param dHeight absolute height of the ellipse
      */
-    void DrawEllipse( long lX, long lY, long lWidth, long lHeight ); 
+    void DrawEllipse( double lX, double lY, double lWidth, double lHeight ); 
 
     /** Fill an ellipse with the current fill settings
-     *  \param lX x coordinate of the ellipse (left coordinate)
-     *  \param lY y coordinate of the ellipse (top coordinate)
-     *  \param lWidth width of the ellipse 
-     *  \param lHeight absolute height of the ellipse
+     *  \param dX x coordinate of the ellipse (left coordinate)
+     *  \param dY y coordinate of the ellipse (top coordinate)
+     *  \param dWidth width of the ellipse 
+     *  \param dHeight absolute height of the ellipse
      */
-    void FillEllipse( long lX, long lY, long lWidth, long lHeight ); 
+    void FillEllipse( double dX, double dY, double dWidth, double dHeight ); 
 
     /** Draw a text string on a page using a given font object.
      *  You have to call SetFont before calling this function.
-     *  \param lX the x coordinate
-     *  \param lY the y coordinate
+     *  \param dX the x coordinate
+     *  \param dY the y coordinate
      *  \param sText the text string which should be printed 
      *
      *  \see SetFont()
      */
-    void DrawText( long lX, long lY, const PdfString & sText);
+    void DrawText( double dX, double dY, const PdfString & sText);
 
     /** Draw a text string on a page using a given font object.
      *  You have to call SetFont before calling this function.
-     *  \param lX the x coordinate
-     *  \param lY the y coordinate
+     *  \param dX the x coordinate
+     *  \param dY the y coordinate
      *  \param sText the text string which should be printed (is not allowed to be NULL!)
      *  \param lLen draw only lLen characters of pszText
      *
      *  \see SetFont()
      */
-    void DrawText( long lX, long lY, const PdfString & sText, long lLen );
+    void DrawText( double dX, double dY, const PdfString & sText, long lLen );
 
     /** Draw an image on the current page.
-     *  \param lX the x coordinate (bottom left position of the image)
-     *  \param lY the y coordinate (bottom position of the image)
+     *  \param dX the x coordinate (bottom left position of the image)
+     *  \param dY the y coordinate (bottom position of the image)
      *  \param pObject an PdfXObject
      *  \param dScaleX option scaling factor in x direction
      *  \param dScaleY option scaling factor in y direction
      */
-    inline void DrawImage( long lX, long lY, PdfImage* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
+    inline void DrawImage( double dX, double dY, PdfImage* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
 
     /** Draw an XObject on the current page.
-     *  \param lX the x coordinate (bottom left position of the XObject)
-     *  \param lY the y coordinate (bottom position of the XObject)
+     *  \param dX the x coordinate (bottom left position of the XObject)
+     *  \param dY the y coordinate (bottom position of the XObject)
      *  \param pObject an PdfXObject
      *  \param dScaleX option scaling factor in x direction
      *  \param dScaleY option scaling factor in y direction
      */
-    void DrawXObject( long lX, long lY, PdfXObject* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
+    void DrawXObject( double dX, double dY, PdfXObject* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
 
     /** Closes the current path by drawing a line from the current point
      *  to the starting point of the path. Matches the PDF 'h' operator.
@@ -261,18 +261,18 @@ class PdfPainter {
     /** Append a line segment to the current path. Matches the PDF 'l' operator.
      *  This function is useful to construct an own path
      *  for drawing or clipping.
-     *  \param lX x position
-     *  \param lY y position
+     *  \param dX x position
+     *  \param dY y position
      */
-    void LineTo( long  lX, long lY );
+    void LineTo( double  dX, double dY );
 
     /** Begin a new path. Matches the PDF 'm' operator. 
      *  This function is useful to construct an own path
      *  for drawing or clipping.
-     *  \param lX x position
-     *  \param lY y position
+     *  \param dX x position
+     *  \param dY y position
      */
-    void MoveTo( long  lX, long lY );
+    void MoveTo( double lX, double lY );
 
     /** Stroke the current path. Matches the PDF 'S' operator.
      *  This function is useful to construct an own path
@@ -320,16 +320,16 @@ class PdfPainter {
      *  The arrays plPointX and plPointY need space for at least 12 longs 
      *  to be stored.
      *
-     *  \param lX x position of the bounding rectangle
-     *  \param lY y position of the bounding rectangle
-     *  \param lWidth width of the bounding rectangle
-     *  \param lHeight height of the bounding rectangle
-     *  \param plPointX pointer to an array were the x coordinates 
+     *  \param dX x position of the bounding rectangle
+     *  \param dY y position of the bounding rectangle
+     *  \param dWidth width of the bounding rectangle
+     *  \param dHeight height of the bounding rectangle
+     *  \param pdPointX pointer to an array were the x coordinates 
      *                  of the resulting points will be stored
-     *  \param plPointY pointer to an array were the y coordinates 
+     *  \param pdPointY pointer to an array were the y coordinates 
      *                  of the resulting points will be stored
      */
-    void ConvertRectToBezier( long lX, long lY, long lWidth, long lHeight, long plPointX[], long plPointY[] );
+    void ConvertRectToBezier( double dX, double dY, double dWidth, double dHeight, double pdPointX[], double pdPointY[] );
 
     /** Set the tab width for the DrawText operation.
      *  Every tab '\\t' is replaced with nTabWidth 
@@ -396,9 +396,9 @@ class PdfPainter {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfPainter::DrawImage( long lX, long lY, PdfImage* pObject, double dScaleX, double dScaleY )
+void PdfPainter::DrawImage( double dX, double dY, PdfImage* pObject, double dScaleX, double dScaleY )
 {
-    this->DrawXObject( lX, lY, (PdfXObject*)pObject, dScaleX, dScaleY );
+    this->DrawXObject( dX, dY, (PdfXObject*)pObject, dScaleX, dScaleY );
 }
 
 // -----------------------------------------------------
