@@ -254,9 +254,9 @@ inline void PdfPainterMM::DrawImageMM( long lX, long lY, PdfImage* pObject, doub
 // -----------------------------------------------------
 inline void PdfPainterMM::DrawXObjectMM( long lX, long lY, PdfXObject* pObject, double dScaleX, double dScaleY )
 {
-   this->DrawImage( (double)lX * CONVERSION_CONSTANT,
-                    (double)lY * CONVERSION_CONSTANT,
-                    pObject, dScaleX, dScaleY );
+   this->DrawXObject( (double)lX * CONVERSION_CONSTANT,
+                      (double)lY * CONVERSION_CONSTANT,
+                      pObject, dScaleX, dScaleY );
 }
 
 // -----------------------------------------------------
