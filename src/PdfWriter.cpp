@@ -21,6 +21,7 @@
 #include "PdfWriter.h"
 
 #include "PdfDictionary.h"
+#include "PdfDocument.h"
 #include "PdfObject.h"
 #include "PdfParser.h"
 #include "PdfVariant.h"
@@ -54,7 +55,8 @@ void PdfWriter::Clear()
 
     m_vecObjects.clear();
 
-    m_pParser      = NULL;
+    delete m_pTrailer;
+    m_pTrailer     = NULL;
     m_eVersion     = ePdfVersion_1_3;
 
     m_pCatalog     = NULL;
@@ -68,60 +70,86 @@ void PdfWriter::Init()
     // clear everything - so that calling Init twice will work
     Clear();
 
+    m_pTrailer = new PdfObject();
+    m_pCatalog = m_vecObjects.CreateObject( "Catalog" );
     m_pInfo     = m_vecObjects.CreateObject( NULL );
-    m_pCatalog  = m_vecObjects.CreateObject( "Catalog" );
+
+    m_pTrailer->GetDictionary().AddKey( "Root", m_pCatalog->Reference() );
+    m_pTrailer->GetDictionary().AddKey( "Info", m_pInfo->Reference() );
 }
 
 void PdfWriter::Init( PdfParser* pParser )
 {
-    const PdfObject* pTrailer;
-    const PdfObject* pObj;
-
-    // clear everything - so that calling Init twice will work
-    Clear();
-
-    if( !pParser)
+    if( !pParser )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    m_pParser      = pParser;
     m_eVersion     = pParser->GetPdfVersion();
-    m_vecObjects   = pParser->GetObjects();
-
-    pTrailer = m_pParser->GetTrailer();
-    if( pTrailer )
-    {
-        // load the Catalog/Root object
-        pObj = pTrailer->GetDictionary().GetKey( "Root" );
-        if( !(pObj && pObj->IsReference() ) )
-        {
-            RAISE_ERROR( ePdfError_InvalidDataType );
-        }
-
-        PdfError::DebugMessage("/Catalog ref=%s\n", pObj->GetReference().ToString().c_str());
-        m_pCatalog = m_vecObjects.GetObject( pObj->GetReference() );
-        if( !m_pCatalog )
-        {
-            RAISE_ERROR_INFO( ePdfError_InvalidHandle, "No catalog dictionary found in the trailer." );
-        }
-
-        // see if there is an Info dict present - and if so, load it
-        pObj = pTrailer->GetDictionary().GetKey( "Info" );
-        if( !(pObj && pObj->IsReference() ) )
-        {
-            RAISE_ERROR( ePdfError_InvalidDataType );
-        }
-        
-        PdfError::DebugMessage("/Info ref=%s\n", pObj->GetReference().ToString().c_str());
-        m_pInfo = m_vecObjects.GetObject( pObj->GetReference() );
-        // no need to check error, since it's optional
-    }
+    this->Init( &(pParser->m_vecObjects), pParser->GetTrailer() );
 
     // clear the parsers object value
     // other PdfWriter and PdfParser
     // would delete the same objects
     pParser->m_vecObjects.clear();
+}
+
+void PdfWriter::Init( PdfDocument* pDocument )
+{
+    if( !pDocument )
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    m_eVersion     = pDocument->GetPdfVersion();
+    this->Init( &(pDocument->m_vecObjects), pDocument->GetTrailer() );
+
+    // clear the parsers object value
+    // other PdfWriter and PdfParser
+    // would delete the same objects
+    pDocument->m_vecObjects.clear();
+}
+
+
+void PdfWriter::Init( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
+{
+    const PdfObject* pObj;
+
+    // clear everything - so that calling Init twice will work
+    Clear();
+
+    if( !pVecObjects || !pTrailer )
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    m_pTrailer     = new PdfObject( pTrailer );
+    m_vecObjects   = *pVecObjects;
+
+    // load the Catalog/Root object
+    pObj = m_pTrailer->GetDictionary().GetKey( "Root" );
+    if( !(pObj && pObj->IsReference() ) )
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
+    PdfError::DebugMessage("/Catalog ref=%s\n", pObj->GetReference().ToString().c_str());
+    m_pCatalog = m_vecObjects.GetObject( pObj->GetReference() );
+    if( !m_pCatalog )
+    {
+        RAISE_ERROR_INFO( ePdfError_InvalidHandle, "No catalog dictionary found in the trailer." );
+    }
+    
+    // see if there is an Info dict present - and if so, load it
+    pObj = m_pTrailer->GetDictionary().GetKey( "Info" );
+    if( !(pObj && pObj->IsReference() ) )
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+    
+    PdfError::DebugMessage("/Info ref=%s\n", pObj->GetReference().ToString().c_str());
+    m_pInfo = m_vecObjects.GetObject( pObj->GetReference() );
+    // no need to check error, since it's optional
 }
 
 void PdfWriter::Write( const char* pszFilename )
@@ -254,33 +282,10 @@ void PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
     // write the trailer dictionary, see Reference manual: p. 73
     pDevice->Print( "trailer\n<<\n/Size %u\n", nSize );
 
-    if( m_pParser )
-    {
-        if( !m_pParser->GetTrailer() )
-        {
-            RAISE_ERROR( ePdfError_InvalidHandle );
-        }
-
-        this->WriteTrailerKey( pDevice, m_pParser->GetTrailer(), "Root" );
-        this->WriteTrailerKey( pDevice, m_pParser->GetTrailer(), "Encrypt" );
-        this->WriteTrailerKey( pDevice, m_pParser->GetTrailer(), "Info" );
-        this->WriteTrailerKey( pDevice, m_pParser->GetTrailer(), "ID" );
-    }
-    else
-    {
-        // Info dict is optional - so only bother writing if present
-        if( m_pInfo )
-        {
-            pDevice->Print( "/Info %s\n", m_pInfo->Reference().ToString().c_str() );
-        }
-        
-        // Catalog, however, is required!
-        if( !m_pCatalog )
-        {
-            RAISE_ERROR( ePdfError_InvalidHandle );
-        } else
-            pDevice->Print( "/Root %s\n", m_pCatalog->Reference().ToString().c_str() );
-    }
+    this->WriteTrailerKey( pDevice, m_pTrailer, "Root" );
+    this->WriteTrailerKey( pDevice, m_pTrailer, "Encrypt" );
+    this->WriteTrailerKey( pDevice, m_pTrailer, "Info" );
+    this->WriteTrailerKey( pDevice, m_pTrailer, "ID" );
 
     pDevice->Print( ">>\nstartxref\n%li\n%%%%EOF\n", lXRef );
 }

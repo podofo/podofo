@@ -63,7 +63,8 @@ am_libpodofo_la_OBJECTS = PdfObject.lo PdfParser.lo PdfParserObject.lo \
 	PdfAnnotation.lo PdfRect.lo PdfXObject.lo PdfCanvas.lo \
 	PdfOutputDevice.lo PdfAction.lo PdfError.lo PdfString.lo \
 	PdfName.lo PdfFilter.lo PdfReference.lo PdfDocument.lo \
-	PdfArray.lo PdfDictionary.lo PdfDataType.lo PdfElement.lo
+	PdfArray.lo PdfDictionary.lo PdfDataType.lo PdfElement.lo \
+	PdfPagesTree.lo
 libpodofo_la_OBJECTS = $(am_libpodofo_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -192,7 +193,7 @@ include_HEADERS = podofo.h PdfDefines.h PdfObject.h PdfParser.h PdfParserObject.
 	PdfVecObjects.h PdfDate.h PdfAnnotation.h PdfRect.h PdfXObject.h \
 	PdfCanvas.h PdfOutputDevice.h PdfAction.h PdfError.h PdfString.h PdfName.h \
 	PdfFilter.h PdfReference.h PdfDocument.h PdfArray.h PdfDictionary.h \
-	PdfDataType.h PdfElement.h PdfPainterMM.h
+	PdfDataType.h PdfElement.h PdfPainterMM.h PdfPagesTree.h
 
 libpodofo_la_SOURCES = PdfObject.cpp PdfParser.cpp PdfParserObject.cpp \
 	PdfParserBase.cpp PdfWriter.cpp PdfVariant.cpp PdfSimpleWriter.cpp \
@@ -200,7 +201,7 @@ libpodofo_la_SOURCES = PdfObject.cpp PdfParser.cpp PdfParserObject.cpp \
 	PdfVecObjects.cpp PdfDate.cpp PdfAnnotation.cpp PdfRect.cpp PdfXObject.cpp \
 	PdfCanvas.cpp PdfOutputDevice.cpp PdfAction.cpp PdfError.cpp PdfString.cpp PdfName.cpp \
 	PdfFilter.cpp PdfReference.cpp PdfDocument.cpp PdfArray.cpp PdfDictionary.cpp \
-	PdfDataType.cpp PdfElement.cpp
+	PdfDataType.cpp PdfElement.cpp PdfPagesTree.cpp
 
 all: all-am
 
@@ -289,6 +290,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfObject.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfOutputDevice.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfPage.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfPagesTree.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfPainter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfParser.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfParserBase.Plo@am__quote@

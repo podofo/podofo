@@ -45,6 +45,7 @@ typedef TMapObjectStreamCache::const_iterator  TCIMapObjectStreamCache;
  * Most PDF features are supported
  */
 class PdfParser : public PdfParserBase {
+    friend class PdfDocument;
     friend class PdfWriter;
 
  public:
@@ -85,7 +86,7 @@ class PdfParser : public PdfParserBase {
     /** Get a reference to the sorted internal objects vector.
      *  \returns the internal objects vector.
      */
-    inline const TVecObjects & GetObjects() const;
+    inline const PdfVecObjects & GetObjects() const;
 
     /** Get the file format version of the pdf
      *  \returns the file format version as enum
@@ -234,7 +235,7 @@ EPdfVersion PdfParser::GetPdfVersion() const
     return m_ePdfVersion;
 }
 
-const TVecObjects & PdfParser::GetObjects() const
+const PdfVecObjects & PdfParser::GetObjects() const
 {
     return m_vecObjects;
 }

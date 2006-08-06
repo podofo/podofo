@@ -72,7 +72,7 @@ void draw( char* pszBuffer, PdfSimpleWriter* pWriter )
             pszStart = (++pszBuffer);            
 
             lY += pFont->FontMetrics()->LineSpacing();
-            if( lY > (pPage->PageSize().lHeight - BORDER_TOP) )
+            if( lY > (pPage->PageSize().Height() - BORDER_TOP) )
             {
                 pPage = pWriter->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
                 if( !pPage )

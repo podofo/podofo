@@ -53,6 +53,10 @@ class PdfVecObjects : public std::vector<PdfObject*> {
     virtual ~PdfVecObjects();
 
     /** Assign another PdfVecObjects to this PdfVecObjects
+     *
+     *  Warning: This will change the parent of all objects in
+     *           the vector.
+     *
      *  \param rhs the object to copy
      *  \returns this object
      */

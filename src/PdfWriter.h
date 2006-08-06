@@ -28,8 +28,11 @@
 namespace PoDoFo {
 
 class PdfDictionary;
+class PdfDocument;
 class PdfName;
+class PdfObject;
 class PdfParser;
+class PdfVecObjects;
 
 struct TXRefTable{    
     unsigned int nFirst;
@@ -63,6 +66,18 @@ class PdfWriter {
      *  \param pParser     a pdf parser object
      */
     void Init( PdfParser* pParser );
+
+    /** Create a new pdf file, based on an existing pdf file.
+     *  \param pDocument a PdfDocument
+     */
+    void Init( PdfDocument* pDocument );
+
+    /** Create a new pdf file, from an vector of PdfObjects
+     *  and a trailer object.
+     *  \param pVecObjects the vector of objects
+     *  \param pTrailer a valid trailer object
+     */
+    void Init( PdfVecObjects* pVecObjects, const PdfObject* pTrailer );
 
     /** Create a new pdf file from scratch.
      */
@@ -222,16 +237,18 @@ class PdfWriter {
     void WriteTrailerKey( PdfOutputDevice* pDevice, const PdfObject* pTrailer, const PdfName & key );
 
  protected:
+    // TODO: Only use a pointer and do NOT own the vector of objects
+    //       because we get otherwise problems with the parents vector
     PdfVecObjects   m_vecObjects;
 
  private:
     EPdfVersion     m_eVersion;
-    PdfParser*      m_pParser;
 
     TVecXRefTable   m_vecXRef;
 
     PdfObject*      m_pCatalog;
     PdfObject*      m_pInfo;
+    PdfObject*      m_pTrailer;
 
     bool            m_bCompress;
 };

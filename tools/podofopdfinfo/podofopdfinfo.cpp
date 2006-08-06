@@ -36,10 +36,8 @@ void print_help()
 
 int main( int argc, char* argv[] )
 {
-  PdfError eCode;
-
 #if 1
-  PdfError::EnableDebug( false );	// turn it off to better view the output from this app!
+  PdfError::EnableDebug( true );	// turn it off to better view the output from this app!
 #endif
 
   if( argc != 2 )
@@ -50,23 +48,29 @@ int main( int argc, char* argv[] )
 
   char*    pszInput  = argv[1];
   std::string fName( pszInput );
-  PdfInfo	myInfo( fName );
 
-  std::cout << "Document Info for " << fName << std::endl;
-  std::cout << "-------------------------------------------------------------------------------" << std::endl;
-  myInfo.OutputDocumentInfo( std::cout );
-  std::cout << std::endl;
+  try {
+      PdfInfo	myInfo( fName );
 
-  std::cout << "Classic Metadata" << std::endl;
-  std::cout << "----------------" << std::endl;
-  myInfo.OutputInfoDict( std::cout );
-  std::cout << std::endl;
+      std::cout << "Document Info for " << fName << std::endl;
+      std::cout << "-------------------------------------------------------------------------------" << std::endl;
+      myInfo.OutputDocumentInfo( std::cout );
+      std::cout << std::endl;
 
-  std::cout << "Page Info" << std::endl;
-  std::cout << "---------" << std::endl;
-  myInfo.OutputPageInfo( std::cout );
-
+      std::cout << "Classic Metadata" << std::endl;
+      std::cout << "----------------" << std::endl;
+      myInfo.OutputInfoDict( std::cout );
+      std::cout << std::endl;
+      
+      std::cout << "Page Info" << std::endl;
+      std::cout << "---------" << std::endl;
+      myInfo.OutputPageInfo( std::cout );
+    } catch( PdfError & e ) {
+      fprintf( stderr, "Error: An error %i ocurred during uncompressing the pdf file.\n", e.Error() );
+      e.PrintErrorMsg();
+      return e.Error();
+  }
   
-  return eCode.Error();
+  return 0;
 }
 

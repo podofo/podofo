@@ -23,242 +23,130 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfDocument.h"
+#include "PdfObject.h"
 #include "PdfPage.h"
+#include "PdfPagesTree.h"
+#include "PdfVecObjects.h"
 
 namespace PoDoFo {
 
-typedef std::deque< PdfObject* >	PdfPageObjects;
 
-/** Class for managing the tree of Pages in a PDF document
-*/
-class PdfPagesTree 
-{
-public:
-    /** Construct a PdfPagesTree from the root /Pages object
-     *  \param sFilename filename of the file which is going to be parsed/opened
-     */
-    PdfPagesTree( PdfDocument* inOwningDoc, PdfObject* inRootObj );
-    
-    /** Close/down destruct a PdfPagesTree
-     */
-    virtual ~PdfPagesTree();
-    
-    /** Return the number of pages in the entire tree
-     *  \returns number of pages
-     */
-    int GetTotalNumberOfPages() const;
-    
-    /** Return a PdfObject* for the specified Page index
-     *  \param nIndex page index, 0-based
-     *  \returns a PDFObject* for the given page
-     */
-    PdfObject* GetPage( int nIndex );
-    
-private:
-    PdfPagesTree();	// don't allow construction from nothing!
-    
-	PdfDocument*	  mOwningDoc;
-    PdfObject*        mPagesRoot;
-    PdfPageObjects	  mPageObjs;
-    
-    /** Private method for actually traversing the /Pages tree
-     */
-    PdfObject* GetPageNode( int nPageNum, PdfObject* pPagesObject );
-};
-
-
-PdfPagesTree::PdfPagesTree( PdfDocument* inOwningDoc, PdfObject* inRootObj ) 
-: mOwningDoc( inOwningDoc ), mPagesRoot( inRootObj )
-{
-	// pre-allocate enough elements
-	// better performance and allows for a "sparse array"
-	mPageObjs.resize( GetTotalNumberOfPages() );
-}
-
-PdfPagesTree::~PdfPagesTree() 
-{
-    // at the moment, nothing to do...
-}
-
-int PdfPagesTree::GetTotalNumberOfPages() const
-{
-	int	pgCount = 0;	// assume a new document w/o any pages
-
-    if ( mPagesRoot ) 
-    {
-        if( mPagesRoot->GetDictionary().HasKey( "Count" ) )
-            return mPagesRoot->GetDictionary().GetKeyAsLong( "Count", 0 );
-    }
-
-	return pgCount;
-}
-
-PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
-{
-    // recurse through the pages tree nodes
-    
-    int        nPagesSeenSoFar = -1;	// initialize to -1 because nPageNum is 0-based
-    PdfObject* pObj            = NULL;
-
-    if( !pPagesObject->GetDictionary().HasKey( "Kids" ) )
-        return NULL;
-
-    pObj = pPagesObject->GetDictionary().GetKey( "Kids" );
-    if( !pObj->IsArray() )
-        return NULL;
-    
-    PdfArray	kidsArray = pObj->GetArray();
-    int	        numKids = kidsArray.size(),
-    kidsCount = pPagesObject->GetDictionary().GetKeyAsLong( "Count", 0 );
-    
-    // the pages tree node represented by pPagesObject has only page nodes in its kids array,
-    // or pages nodes with a kid count of 1, so we can speed things up by going straight to the desired node
-    if ( numKids == kidsCount )
-    {
-        PdfVariant pgVar = kidsArray[ nPageNum ];
-
-        while ( true ) 
-        {
-            if ( !pgVar.IsReference() ) 
-            {
-                return NULL;	// can't handle inline pages just yet...
-            }
-            PdfObject* pgObject = mOwningDoc->GetObject( pgVar.GetReference() );
-
-            // make sure the object is a /Page and not a /Pages with a single kid
-            if ( pgObject->GetDictionary().GetKeyAsName( PdfName( "Type" ) ) == PdfName( "Page" ) )
-                return pgObject;
-
-            // it's a /Pages with a single kid, so dereference and try again...
-            if( !pgObject->GetDictionary().HasKey( "Kids" ) )
-                return NULL;
-            pgVar = *(pgObject->GetDictionary().GetKey( "Kids" ));
-        }
-    } 
-    else 
-    {
-        for( int i = 0 ; i < numKids ; i++ )
-        {
-            PdfVariant	kidsVar = kidsArray[ i ];
-            
-            // is the kid a Pages tree node or a Page object?
-            if ( !kidsVar.IsReference() ) 
-            {
-                return NULL;	// can't handle inline pages just yet...
-            }
-
-            PdfObject* pgObject = mOwningDoc->GetObject( kidsVar.GetReference() );
-            
-            // if it's a Page, then is it the right page??
-            // otherwise, it's a Pages, and we need to recurse
-            if ( pgObject->GetDictionary().GetKeyAsName( PdfName( "Type" ) ) == PdfName( "Page" ) )
-            {
-                nPagesSeenSoFar++;
-                if( nPagesSeenSoFar == nPageNum )
-                {
-                    return pgObject;
-                }
-            }
-            else 
-            {
-                int thisKidCount = pgObject->GetDictionary().GetKeyAsLong( "Count", 0 );
-                if( ( nPagesSeenSoFar + thisKidCount ) >= nPageNum )
-                    return this->GetPageNode( nPageNum - ( nPagesSeenSoFar + 1 ), pgObject ) ;
-                else
-                    nPagesSeenSoFar += thisKidCount ;
-            }
-        }
-    }
-
-    // we should never exit from here - we should always have been able to return a page from above
-    // assert( false ) ;
-    return NULL;
-}
-
-PdfObject* PdfPagesTree::GetPage( int nIndex )
-{
-    // if you try to get a page past the end, return NULL
-    // we use >= since nIndex is 0 based
-    if ( nIndex >= GetTotalNumberOfPages() )
-        return NULL;
-    
-    // if we already have the page in our list, return it
-    // otherwise, we need to find it, add it and return it
-    PdfObject*	pObject = mPageObjs[ nIndex ];
-    if ( !pObject ) 
-    {
-        pObject = GetPageNode( nIndex, mPagesRoot );
-        if ( pObject )
-            mPageObjs[ nIndex ] = pObject;
-    }
-    
-    return pObject;
-}
-
-//------------------------------------------------------------------------------------
 PdfDocument::PdfDocument()
-    : mParser( NULL ), mPagesTree( NULL )
+    : m_pPagesTree( NULL ), m_pTrailer( NULL )
 {
-    mWriter.Init();	// initialize a new document
+    m_eVersion    = ePdfVersion_1_3;
+    m_bLinearized = false;
+
+    m_pTrailer = new PdfObject();
+    m_pCatalog = m_vecObjects.CreateObject( "Catalog" );
+
+    m_pTrailer->GetDictionary().AddKey( "Root", m_pCatalog->Reference() );
+
     InitPagesTree();
 }
 
-PdfDocument::PdfDocument( const std::string& sPathname )
-    : mParser( new PdfParser( sPathname.c_str(), true ) ), mPagesTree( NULL )
+PdfDocument::PdfDocument( const char* pszFilename )
+    : m_pPagesTree( NULL ), m_pTrailer( NULL )
 {
-    mWriter.Init( mParser );
+    // TODO: Dom:
+    // Use loading on demand here!
+    // Currently this will crash as the file handle used
+    // by the PdfParserObjects is closed in the PdfParser
+    // destructor. We need a way so that they file is open as long
+    // as it is needed by any object.
+    // ---
+    PdfParser parser( pszFilename, false );
+
+    InitFromParser( &parser );
+    InitPagesTree();
+}
+
+PdfDocument::PdfDocument( PdfParser* pParser )
+    : m_pPagesTree( NULL ), m_pTrailer( NULL )
+{
+    InitFromParser( pParser );
     InitPagesTree();
 }
 
 PdfDocument::~PdfDocument()
 {
-    if ( mPagesTree ) 
+    TIVecObjects it = m_vecObjects.begin();
+
+    while( it != m_vecObjects.end() )
     {
-        delete mPagesTree;
-        mPagesTree = NULL;
+        delete (*it);
+        ++it;
     }
 
-    if ( mParser ) 
+    m_vecObjects.clear();
+
+    if ( m_pPagesTree ) 
     {
-        delete mParser;
-        mParser = NULL;
+        delete m_pPagesTree;
+        m_pPagesTree = NULL;
+    }
+
+    if ( m_pTrailer ) 
+    {
+        delete m_pTrailer;
+        m_pTrailer = NULL;
+    }
+}
+
+void PdfDocument::InitFromParser( PdfParser* pParser )
+{
+    PdfObject* pRoot;
+
+    m_vecObjects   = pParser->GetObjects();
+    m_eVersion     = pParser->GetPdfVersion();
+    m_bLinearized  = pParser->IsLinearized();
+
+    // clear the parsers object value
+    // other PdfWriter and PdfParser
+    // would delete the same objects
+    pParser->m_vecObjects.clear();
+
+    m_pTrailer = new PdfObject( *(pParser->GetTrailer()) );
+
+    pRoot      = m_pTrailer->GetDictionary().GetKey( "Root" );
+    if( pRoot && pRoot->IsReference() )
+        m_pCatalog = m_vecObjects.GetObject( pRoot->GetReference() );
+    else
+    {
+        RAISE_ERROR( ePdfError_NoObject );
     }
 }
 
 void PdfDocument::InitPagesTree()
 {
-    PdfObject*	pagesRootObj = GetNamedObjectFromCatalog( "Pages" );
+    if( !m_pCatalog->GetDictionary().HasKey( "Pages" ) )
+        printf("Kein Pages");
+
+    printf("m_pCatalog->GetParent() == %p m_vecObjects == %p\n", m_pCatalog->GetParent(), &m_vecObjects );
+
+    PdfObject* pagesRootObj = m_pCatalog->GetIndirectKey( PdfName( "Pages" ) );
+    printf("PagesRootObj: %p\n", pagesRootObj );
     if ( pagesRootObj ) 
     {
-        mPagesTree = new PdfPagesTree( this, pagesRootObj );
+        printf("Ja: %i\n", pagesRootObj->IsDictionary() );
+        m_pPagesTree = new PdfPagesTree( pagesRootObj );
     }
 }
 
 PdfObject* PdfDocument::GetNamedObjectFromCatalog( const char* pszName ) const 
 {
-    PdfObject* pObj    = NULL;
-    PdfObject* rootObj = GetCatalog();
-    if ( rootObj ) 
-    {
-        pObj = rootObj->GetDictionary().GetKey( PdfName( pszName ) );
-        if( pObj && !pObj->IsReference() )
-            return NULL;
-        
-        return GetObject( pObj->GetReference() );
-    }
-
-    return NULL;
+    return m_pCatalog->GetIndirectKey( PdfName( pszName ) );
 }
 
 int PdfDocument::GetPageCount() const
 {
-    return mPagesTree->GetTotalNumberOfPages();
+    return m_pPagesTree->GetTotalNumberOfPages();
 }
 
 PdfPage* PdfDocument::GetPage( int nIndex ) const
 {
     PdfPage*    thePage = NULL;
-    PdfObject*	pgObj = mPagesTree->GetPage( nIndex );
+    PdfObject*	pgObj = m_pPagesTree->GetPage( nIndex );
     if ( pgObj ) 
     {
         thePage = new PdfPage( pgObj );

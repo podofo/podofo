@@ -56,6 +56,7 @@ PdfParser::PdfParser( const char* pszFilename, bool bLoadOnDemand )
 PdfParser::~PdfParser()
 {
     Clear();
+    printf("Destructing parsre...");
 }
 
 void PdfParser::Init() 
@@ -130,7 +131,9 @@ void PdfParser::Clear()
         while( itMapObjects != (*itCache).second.end() )
         {
             if( (*itMapObjects).second )
+            {
                 delete (*itMapObjects).second;
+            }
 
             ++itMapObjects;
         }

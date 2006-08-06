@@ -65,10 +65,18 @@ PdfVecObjects::~PdfVecObjects()
 
 const PdfVecObjects & PdfVecObjects::operator=( const PdfVecObjects & rhs )
 {
+    TIVecObjects it;
     std::vector<PdfObject*>::operator=( rhs );
 
     m_bAutoDelete  = rhs.m_bAutoDelete;
     m_nObjectCount = rhs.m_nObjectCount;
+
+    it = this->begin();
+    while( it != this->end() )
+    {
+        (*it)->SetParent( this );
+        ++it;
+    }
 
     return *this;
 }

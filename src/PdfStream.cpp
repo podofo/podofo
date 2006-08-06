@@ -55,13 +55,19 @@ PdfStream::PdfStream( const PdfStream & rhs )
 PdfStream::~PdfStream()
 {
     if( m_pData && !--m_pData->m_lRefCount )
+    {
         delete m_pData;
+        m_pData = NULL;
+    }
 }
 
 void PdfStream::Set( char* szBuffer, long lLen, bool takePossession )
 {
     if( m_pData && !--m_pData->m_lRefCount )
+    {
         delete m_pData;
+        m_pData = NULL;
+    }
 
     if( !szBuffer )
     {
@@ -492,12 +498,13 @@ const PdfStream & PdfStream::operator=( const PdfStream & rhs )
     if( m_pData && !--m_pData->m_lRefCount )
         delete m_pData;
 
+
     m_pData = rhs.m_pData;
+    if( m_pData )
+        m_pData->m_lRefCount++;
 
     if( m_pParent ) 
         m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)(m_pData ? m_pData->m_lLength : 0 ) ) );
-    
-    printf("Copying a stream\n");
 
     return *this;
 }

@@ -32,7 +32,18 @@ class PdfDictionary;
 class PdfPage;
 class PdfPagesTree;
 
+/** PdfDocument is the core class for reading and manipulating
+ *  PDF files and writing them back to disk.
+ *
+ *  PdfDocument provides easy access to the individual pages
+ *  in the PDF file and to certain special dictionaries.
+ *
+ *  \see PdfParser
+ *  \see PdfWriter
+ */
 class PdfDocument {
+    friend class PdfWriter;
+
  public:
 
     /** Construct a new (empty) PdfDocument
@@ -40,67 +51,64 @@ class PdfDocument {
     PdfDocument();
     
     /** Construct a PdfDocument from an existing PDF (on disk)
-     *  \param sFilename filename of the file which is going to be parsed/opened
+     *  \param pszFilename filename of the file which is going to be parsed/opened
      */
-    PdfDocument( const std::string& sPathname );
-    
+    PdfDocument( const char* pszFilename );
+
+    /** Construct a PdfDocument from a PdfParser object.
+     *
+     *  The objects will be removed from the parser and are now
+     *  owned by the PdfDocument.
+     *
+     *  \param pParser pointer to a PdfParser
+     */
+    PdfDocument( PdfParser* pParser );
+
     /** Close down/destruct the PdfDocument
      */
     virtual ~PdfDocument();
-    
+
     /** Set the PDF Version of the document. Has to be called before Write() to
      *  have an effect.
      *  \param eVersion  version of the pdf document
      */
-    void SetPdfVersion( EPdfVersion eVersion )	{ return mWriter.SetPdfVersion( eVersion ); }
+    void SetPdfVersion( EPdfVersion eVersion ) { m_eVersion = eVersion;}
 
     /** Get the PDF version of the document
      *  \returns EPdfVersion version of the pdf document
      */
-    EPdfVersion GetPdfVersion() const	{ return mWriter.GetPdfVersion(); }
+    EPdfVersion GetPdfVersion() const { return m_eVersion; }
+    
+    bool IsLinearized() const { return m_bLinearized; }
+    
+    /** Get a reference to the sorted internal objects vector.
+     *  \returns the internal objects vector.
+     */
+    const PdfVecObjects & GetObjects() const { return m_vecObjects; }
 
-    /** Get the file format version of the pdf
-     *  \returns the file format version as string
+    /** Get a reference to the sorted internal objects vector.
+     *  This is an overloaded function for your convinience.
+     *  \returns the internal objects vector.
      */
-    const char* GetPdfVersionString() const { return mWriter.GetPdfVersionString(); }
-    
-    /** \returns whether the parsed document contains linearization tables
-     */
-    bool IsLinearized() const { if (mParser) return mParser->IsLinearized(); else return false; }
-    
-    /** \returns the size of a read/parsed PDF
-     */
-    size_t FileSize() const { if (mParser) return mParser->FileSize(); else return 0; }
-    
+    PdfVecObjects & GetObjects() { return m_vecObjects; }
 
-    /** Retrieve the actual object for a given PdfReference in this document
-     *   \param inRef a PdfReference to the object in question
-     *   \returns a PdfObject to the reference
-     */
-    PdfObject* GetObject( const PdfReference& inRef ) const { return mWriter.GetObjects().GetObject( inRef ); }
-    
-    /** Create a PdfObject of type T which must be a subclass of PdfObject
-     *  and it does not need a parameter for pszType.
-     *  This function assigns the next free object number to the PdfObject
-     *  and add is to the internal vector.
-     *
-     *  \returns a new PdfObject subclass
-     */
-    template <class T> T* CreateObject();
-
-    
     /** Get access to the internal Catalog dictionary
      *  or root object.
      *  
      *  \returns PdfObject the documents catalog or NULL 
      *                     if no catalog is available
      */
-    PdfObject* GetCatalog() const { return mWriter.GetCatalog(); }
+    PdfObject* GetCatalog() const { return m_pCatalog; }
+
+    /** Get the trailer dictionary
+     *  which can be written unmodified to a pdf file.
+     */
+    const PdfObject* GetTrailer() const { return m_pTrailer; }
     
     /** Get access to the internal Info dictionary
      *  \returns PdfObject the info dictionary
      */
-    PdfObject* GetInfo() const { return mWriter.GetInfo(); }
+    PdfObject* GetInfo() const { return m_pCatalog->GetIndirectKey( PdfName( "Info" ) ); }
 
     /** Get access to the StructTreeRoot dictionary
      *  \returns PdfObject the StructTreeRoot dictionary
@@ -128,11 +136,10 @@ class PdfDocument {
     int GetPageCount() const;
 
     /** Get the PdfObject for a specific page in a document
-     * \param nIndex which page (0-based)
+     *  \param nIndex which page (0-based)
      *  \returns PdfObject* for the Page
      */
     PdfPage* GetPage( int nIndex ) const;
-
 
  private:
     /** Get a dictioary from the catalog dictionary by its name.
@@ -145,32 +152,23 @@ class PdfDocument {
      */
     void InitPagesTree();
 
+    /** Internal method to load all objects from a PdfParser object.
+     *  The objects will be removed from the parser and are now
+     *  owned by the PdfDocument.
+     */
+    void InitFromParser( PdfParser* pParser );
+
  private:
-    PdfParser*	    mParser;
-    PdfWriter	    mWriter;
-	
-    PdfPagesTree*   mPagesTree;
+    bool            m_bLinearized;
+
+    PdfVecObjects   m_vecObjects;
+
+    PdfPagesTree*   m_pPagesTree;
+    PdfObject*      m_pTrailer;
+    PdfObject*      m_pCatalog;
+
+    EPdfVersion     m_eVersion;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-template <class T>
-T* PdfDocument::CreateObject()
-{
-    T*         pTemplate = new T( this, mWriter.GetObjects()->GetObjectCount(), 0 );
-    PdfObject* pObject   = dynamic_cast<PdfObject*>(pTemplate);
-    
-    if( !pObject )
-    {
-        delete pTemplate;
-        return NULL;
-    }
-    
-    mWriter.GetObjects()->push_back( pObject );
-    return pTemplate;
-}
-
 
 };
 

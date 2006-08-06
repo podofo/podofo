@@ -23,7 +23,7 @@
 
 PdfInfo::PdfInfo( const std::string& inPathname )
 {
-    mDoc = new PdfDocument( inPathname );
+    mDoc = new PdfDocument( inPathname.c_str() );
 }
 
 PdfInfo::~PdfInfo()
@@ -36,8 +36,7 @@ PdfInfo::~PdfInfo()
 
 void PdfInfo::OutputDocumentInfo( std::ostream& sOutStream )
 {
-    sOutStream << "FileSize: " << mDoc->FileSize() << " bytes" << std::endl;
-    sOutStream << "PDF Version: " << mDoc->GetPdfVersionString() << std::endl;
+    sOutStream << "PDF Version: " << s_szPdfVersionNums[(int)mDoc->GetPdfVersion()] << std::endl;
     sOutStream << "Page Count: " << mDoc->GetPageCount() << std::endl;
     sOutStream << std::endl;
     sOutStream << "Fast Web View Enabled: " << (mDoc->IsLinearized() ? "Yes" : "No") << std::endl;
@@ -62,11 +61,16 @@ void PdfInfo::OutputInfoDict( std::ostream& sOutStream )
 {
     PdfObject* infoObj = mDoc->GetInfo();
     PdfOutputDevice device( &sOutStream );
-    infoObj->Write( &device );
+
+    if( infoObj )
+        infoObj->Write( &device );
 }
 
 void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
 {
+    PdfVariant  var;
+    std::string str;
+
     int	pgCount = mDoc->GetPageCount();
     for ( int pg=0; pg<pgCount; pg++ ) 
     {
@@ -74,8 +78,10 @@ void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
         
         PdfPage*	curPage = mDoc->GetPage( pg );
         
-        PdfRect	mbRect = curPage->GetMediaBox();
-        sOutStream << "\tMediaBox: " << mbRect.ToString() << std::endl;
+        curPage->GetMediaBox().ToVariant( var );
+        var.ToString( str );
+
+        sOutStream << "\tMediaBox: " << str << std::endl;
         sOutStream << "\tRotation: " << curPage->GetRotation() << std::endl;
         sOutStream << "\t# of Annotations: " << curPage->GetNumAnnots() << std::endl;
         
