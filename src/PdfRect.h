@@ -59,6 +59,11 @@ class PdfRect {
      */
     void ToVariant( PdfVariant & var ) const;
 
+	/** Returns a string representation of the PdfRect
+	 * \returns std::string representation as [ left bottom right top ]
+	 */
+	std::string PdfRect::ToString() const;
+
     /** Assigns the values of this PdfRect from the 4 values in the array
      *  \param inArray the array to load the values from
      */
