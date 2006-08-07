@@ -18,55 +18,63 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PODOFO_H_
-#define _PODOFO_H_
-
-/** This file can be used in client applications to include
- *  all files required by PoDoFo at once.
- *
- */
-
-#include "PdfDefines.h"
-
-#include "PdfAction.h"
-#include "PdfAnnotation.h"
-#include "PdfArray.h"
-#include "PdfCanvas.h"
-#include "PdfDataType.h"
-#include "PdfDate.h"
-#include "PdfDocument.h"
-#include "PdfElement.h"
-#include "PdfError.h"
-#include "PdfFilter.h"
-#include "PdfFont.h"
-#include "PdfFontMetrics.h"
-#include "PdfImage.h"
-#include "PdfName.h"
-#include "PdfObject.h"
-#include "PdfOutputDevice.h"
-#include "PdfPage.h"
-#include "PdfPagesTree.h"
-#include "PdfPainter.h"
-#include "PdfPainterMM.h"
-#include "PdfParser.h"
-#include "PdfParserBase.h"
-#include "PdfParserObject.h"
-#include "PdfRect.h"
 #include "PdfRefCountedFile.h"
-#include "PdfSimpleWriter.h"
-#include "PdfStream.h"
-#include "PdfString.h"
-#include "PdfVariant.h"
-#include "PdfVecObjects.h"
-#include "PdfWriter.h"
-#include "PdfXObject.h"
 
-#if 0
-#ifndef _PODOFO_NO_NAMESPACE_
-using namespace PoDoFo;
-#endif /* _PODOFO_NO_NAMESPACE_ */
-#endif
+namespace PoDoFo {
 
-#endif /* _PODOFO_H_ */
+PdfRefCountedFile::PdfRefCountedFile()
+    : m_pFile( NULL )
+{
+
+}
+
+PdfRefCountedFile::PdfRefCountedFile( const char* pszFilename, const char* pszMode )
+    : m_pFile( NULL )
+{
+    m_pFile = new TRefCountedFile();
+    m_pFile->m_lRefCount = 1;
+    m_pFile->m_hFile     = fopen( pszFilename, pszMode );
+
+    if( !m_pFile->m_hFile ) 
+    {
+        delete m_pFile;
+        m_pFile = NULL;
+
+        RAISE_ERROR( ePdfError_FileNotFound );
+    }
+}
+
+PdfRefCountedFile::PdfRefCountedFile( const PdfRefCountedFile & rhs )
+    : m_pFile( NULL )
+{
+    this->operator=( rhs );
+}
+
+PdfRefCountedFile::~PdfRefCountedFile()
+{
+    Detach();
+}
+
+void PdfRefCountedFile::Detach()
+{
+    if( m_pFile && !--m_pFile->m_lRefCount ) 
+    {
+        // last owner of the file!
+        fclose( m_pFile->m_hFile );
+        delete m_pFile;
+        m_pFile = NULL;
+    }
+
+}
+
+const PdfRefCountedFile & PdfRefCountedFile::operator=( const PdfRefCountedFile & rhs )
+{
+    Detach();
+
+    m_pFile = rhs.m_pFile;
+    if( m_pFile )
+        m_pFile->m_lRefCount++;
+}
 
 
+};

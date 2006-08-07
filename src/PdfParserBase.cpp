@@ -24,17 +24,14 @@ namespace PoDoFo {
 
 PdfParserBase::PdfParserBase()
 {
-    m_hFile = NULL;
-
     m_bFreeBuffer = true;
     m_lBufferSize = PDF_BUFFER;
     m_szBuffer    = (char*)malloc( PDF_BUFFER * sizeof( char  ) );
 }
 
-PdfParserBase::PdfParserBase( FILE* hFile, char* szBuffer, long lBufferSize )
+PdfParserBase::PdfParserBase( const PdfRefCountedFile & rFile, char* szBuffer, long lBufferSize )
+    : m_file( rFile )
 {
-    m_hFile = hFile;
-
     if( szBuffer )
     {
         m_szBuffer    = szBuffer;
@@ -84,12 +81,12 @@ long PdfParserBase::GetNextNumberFromFile()
     int   counter = 0;
     char* end;
 
-    if( !m_hFile )
+    if( !m_file.Handle() )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    while( (c = fgetc( m_hFile )) != EOF && counter < PDF_BUFFER )
+    while( (c = fgetc( m_file.Handle() )) != EOF && counter < PDF_BUFFER )
     {
         if( !counter && IsWhitespace( c ) )
             continue;
@@ -123,19 +120,19 @@ const char* PdfParserBase::GetNextStringFromFile()
     int c; 
     int counter = 0;
 
-    if( !m_hFile )
+    if( !m_file.Handle() )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    while( (c = fgetc( m_hFile )) != EOF && counter < PDF_BUFFER )
+    while( (c = fgetc( m_file.Handle() )) != EOF && counter < PDF_BUFFER )
     {
         if( !counter && IsWhitespace( c ) )
             continue;
         else if( counter && (IsWhitespace( c ) || IsDelimiter( c )) )
         {
             // push c back onto the stream
-            ungetc( c, m_hFile );
+            ungetc( c, m_file.Handle() );
             break;
         }
         else

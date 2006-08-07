@@ -59,6 +59,8 @@ class PdfReference : public PdfDataType {
      */
     PdfReference( const PdfReference & rhs );
 
+    virtual ~PdfReference() {};
+
     /** Convert the reference to a string.
      *  \returns a string representation of the object.
      *

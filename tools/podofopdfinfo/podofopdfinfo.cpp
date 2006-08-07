@@ -37,7 +37,7 @@ void print_help()
 int main( int argc, char* argv[] )
 {
 #if 1
-  PdfError::EnableDebug( true );	// turn it off to better view the output from this app!
+  PdfError::EnableDebug( false );	// turn it off to better view the output from this app!
 #endif
 
   if( argc != 2 )

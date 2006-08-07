@@ -41,7 +41,7 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
      *  the current position.
      *  \param pParser    pointer to a parent PdfParser object.
      *                    required to resolve indirect references in the PDF file.
-     *  \param hFile  an open file handle which is positioned in
+     *  \param rFile  an open reference counted file handle which is positioned in
      *                front of the object which is going to be parsed.
      *  \param szBuffer buffer to use for parsing to avoid reallocations
      *  \param lBufferSize size of the buffer
@@ -49,7 +49,7 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
      *                 if lOffset = -1, the object will be read from the current 
      *                 position in the file.
      */
-    PdfParserObject( PdfParser* pParser, FILE* hFile, char* szBuffer, long lBufferSize, long lOffset = -1 );
+    PdfParserObject( PdfParser* pParser, const PdfRefCountedFile & rFile, char* szBuffer, long lBufferSize, long lOffset = -1 );
 
     /** Parse the object data for an internal object.
      *  You have to call ParseDictionaryKeys as next function call.
@@ -149,7 +149,6 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
 
     bool m_bStream;
     long m_lStreamOffset;
-
 
     PdfParser*   m_pParser;
 };

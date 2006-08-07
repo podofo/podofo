@@ -32,24 +32,22 @@ using namespace PoDoFo;
 
 void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo, long lGenNo, const char* pszExpectedValue )
 {
-    FILE*         hFile;
     unsigned long lObjLen;
     std::string   sLen;
     std::string   str;
     PdfParser     parser;
 
-    hFile = fopen( pszFilename, "w" );
-    if( !hFile )
+    PdfRefCountedFile file( pszFilename, "w" );
+    if( !file.Handle() )
     {
         fprintf( stderr, "Cannot open %s for writing.\n", pszFilename );
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    fprintf( hFile, pszData );
-    fclose( hFile );
+    fprintf( file.Handle(), pszData );
 
-    hFile = fopen( pszFilename, "r" );
-    if( !hFile )
+    file = PdfRefCountedFile( pszFilename, "r" );
+    if( !file.Handle() )
     {
         fprintf( stderr, "Cannot open %s for reading.\n", pszFilename );
         RAISE_ERROR( ePdfError_TestFailed );
@@ -57,20 +55,20 @@ void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo
 
     printf("Parsing Object: %li %li\n", lObjNo, lGenNo );
 
-    PdfParserObject obj( &parser, hFile, NULL, 0 );
+    PdfParserObject obj( &parser, file, NULL, 0 );
     try {
         obj.ParseFile( false );
     } catch( PdfError & e ) {
         fprintf( stderr, "Error during test: %i\n", e.Error() );
         e.PrintErrorMsg();
-        fclose( hFile );
+        file = PdfRefCountedFile();
         unlink( pszFilename ); // do not care for unlink errors in this case
 
         e.AddToCallstack( __FILE__, __LINE__ );
         throw e;
     }
 
-    fclose( hFile );
+    file = PdfRefCountedFile();
     unlink( pszFilename );
 
     printf("  -> Object Number: %u Generation Number: %u\n", obj.ObjectNumber(), obj.GenerationNumber() );
@@ -107,21 +105,20 @@ void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo
 
 void TestObject( const char* pszFilename, const char* pszData, long lObjNo, long lGenNo )
 {
-    PdfParser parser;
-    FILE*     hFile;
+    PdfParser         parser;
+    PdfRefCountedFile file( pszFilename, "w" );
 
-    hFile = fopen( pszFilename, "w" );
-    if( !hFile )
+    if( !file.Handle() )
     {
         fprintf( stderr, "Cannot open %s for writing.\n", pszFilename );
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    fprintf( hFile, pszData );
-    fclose( hFile );
+    fprintf( file.Handle(), pszData );
+    file = PdfRefCountedFile();
 
-    hFile = fopen( pszFilename, "r" );
-    if( !hFile )
+    file = PdfRefCountedFile( pszFilename, "r" );
+    if( !file.Handle() )
     {
         fprintf( stderr, "Cannot open %s for reading.\n", pszFilename );
         RAISE_ERROR( ePdfError_TestFailed );
@@ -129,19 +126,20 @@ void TestObject( const char* pszFilename, const char* pszData, long lObjNo, long
 
     printf("Parsing Object: %li %li\n", lObjNo, lGenNo );
 
-    PdfParserObject obj( &parser, hFile, NULL, 0 );
+    PdfParserObject obj( &parser, file, NULL, 0 );
     try {
         obj.ParseFile( false );
     } catch( PdfError & e ) {
         fprintf( stderr, "Error during test: %i\n", e.Error() );
         e.PrintErrorMsg();
+        file = PdfRefCountedFile();
         unlink( pszFilename ); // do not care for unlink errors in this case
 
         e.AddToCallstack( __FILE__, __LINE__  );
         throw e;
     }
 
-    fclose( hFile );
+    file = PdfRefCountedFile();
     unlink( pszFilename );
 
     printf("  -> Object Number: %u Generation Number: %u\n", obj.ObjectNumber(), obj.GenerationNumber() );

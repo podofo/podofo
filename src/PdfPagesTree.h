@@ -25,7 +25,7 @@
 
 namespace PoDoFo {
 
-    class PdfObject;
+class PdfObject;
 
 typedef std::deque< PdfObject* >	PdfPageObjects;
 

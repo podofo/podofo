@@ -48,14 +48,7 @@ PdfDocument::PdfDocument()
 PdfDocument::PdfDocument( const char* pszFilename )
     : m_pPagesTree( NULL ), m_pTrailer( NULL )
 {
-    // TODO: Dom:
-    // Use loading on demand here!
-    // Currently this will crash as the file handle used
-    // by the PdfParserObjects is closed in the PdfParser
-    // destructor. We need a way so that they file is open as long
-    // as it is needed by any object.
-    // ---
-    PdfParser parser( pszFilename, false );
+    PdfParser parser( pszFilename, true );
 
     InitFromParser( &parser );
     InitPagesTree();

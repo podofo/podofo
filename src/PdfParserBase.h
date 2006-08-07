@@ -22,6 +22,7 @@
 #define _PDF_PARSER_BASE_H_
 
 #include "PdfDefines.h"
+#include "PdfRefCountedFile.h"
 
 #define PDF_BUFFER             1024
 // PDF_XREF_BUF is used in PdfParser.cpp
@@ -38,13 +39,13 @@ namespace PoDoFo {
 class PdfParserBase {
  public:
     PdfParserBase();
-    PdfParserBase( FILE* hFile, char* szBuffer = NULL , long lBufferSize = 0 );
+    PdfParserBase( const PdfRefCountedFile & rFile, char* szBuffer = NULL , long lBufferSize = 0 );
     virtual ~PdfParserBase();
 
     /** Set the internal file handle
      *  \param hFile a file handle
      */
-    inline void SetFileHandle( FILE* hFile );
+    //inline void SetFileHandle( FILE* hFile );
 
     /** Returns true if the given character is a delimiter
      *  according to the pdf reference
@@ -94,17 +95,12 @@ class PdfParserBase {
     inline long GetBufferSize() const;
 
  protected:
-    FILE*        m_hFile;
+    PdfRefCountedFile m_file;
 
-    char*        m_szBuffer;
-    long         m_lBufferSize;
-    bool         m_bFreeBuffer;
+    char*             m_szBuffer;
+    long              m_lBufferSize;
+    bool              m_bFreeBuffer;
 };
-
-void PdfParserBase::SetFileHandle( FILE* hFile )
-{
-    m_hFile = hFile;
-}
 
 char* PdfParserBase::GetBuffer() const
 {

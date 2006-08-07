@@ -48,7 +48,7 @@ class PdfDictionary : public PdfDataType {
 
     /** Destructor
      */
-    ~PdfDictionary();
+    virtual ~PdfDictionary();
 
     /** Asignment operator.
      *  Asign another PdfDictionary to this dictionary.

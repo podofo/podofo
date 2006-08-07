@@ -69,7 +69,7 @@ class PdfName : public PdfDataType {
      */
     PdfName( const PdfName & rhs );
 
-    ~PdfName();
+    virtual ~PdfName();
 
     /** Write the name to an output device in PDF format.
      *  This is an overloaded member function.
