@@ -34,6 +34,7 @@
 namespace PoDoFo {
 
 PdfWriter::PdfWriter()
+    : m_pTrailer( NULL )
 {
     Clear();
 }
@@ -123,7 +124,7 @@ void PdfWriter::Init( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    m_pTrailer     = new PdfObject( pTrailer );
+    m_pTrailer     = new PdfObject( *pTrailer );
     m_vecObjects   = *pVecObjects;
 
     // load the Catalog/Root object
