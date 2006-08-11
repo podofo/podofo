@@ -329,6 +329,11 @@ bool PdfVariant::GetBool() const
 {
     DelayedLoad();
 
+    if( !IsBool() )
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
     return m_Data.bBoolValue;
 }
 
@@ -338,6 +343,11 @@ bool PdfVariant::GetBool() const
 long PdfVariant::GetNumber() const
 {
     DelayedLoad();
+
+    if( !IsReal() && !IsNumber() )
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
 
     if ( IsReal() )
         return (long)floor( m_Data.dNumber );
@@ -352,10 +362,15 @@ double PdfVariant::GetReal() const
 {
     DelayedLoad();
 
+    if( !IsReal() && !IsNumber() )
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
     if ( IsReal() )
         return m_Data.dNumber;
     else
-        return m_Data.nNumber;
+        return (double)m_Data.nNumber;
 }
 
 // -----------------------------------------------------
@@ -365,7 +380,11 @@ const PdfString & PdfVariant::GetString() const
 {
     DelayedLoad();
 
-    //if( IsString() )
+    if( !IsString() )
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
     return *((PdfString*)(m_pData));
 }
 
@@ -376,7 +395,11 @@ const PdfName & PdfVariant::GetName() const
 {
     DelayedLoad();
 
-    //if( IsName() )
+    if( !IsName() )
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
     return *((PdfName*)(m_pData));
 }
 
@@ -387,7 +410,11 @@ const PdfArray & PdfVariant::GetArray() const
 {
     DelayedLoad();
 
-    //if( IsArray() )
+    if( !IsArray() )
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
     return *((PdfArray*)(m_pData));
 }
 
@@ -398,7 +425,11 @@ const PdfDictionary & PdfVariant::GetDictionary() const
 {
     DelayedLoad();
 
-    //if( IsDictionary() )
+    if( !IsDictionary() )
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
     return *((PdfDictionary*)(m_pData));
 }
 
@@ -409,7 +440,11 @@ PdfDictionary & PdfVariant::GetDictionary()
 {
     DelayedLoad();
 
-    //if( IsDictionary() )
+    if( !IsDictionary() )
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
     return *((PdfDictionary*)(m_pData));
 }
 
@@ -420,7 +455,11 @@ const PdfReference & PdfVariant::GetReference() const
 {
     DelayedLoad();
 
-    //if( IsReference() )
+    if( !IsReference() )
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
     return *((PdfReference*)(m_pData));
 }
 

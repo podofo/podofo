@@ -36,7 +36,8 @@ static const int s_nLenStream    = 6; // strlen("stream");
 static const int s_nLenEndStream = 9; // strlen("endstream");
 
 PdfParserObject::PdfParserObject( PdfParser* pParser, const PdfRefCountedFile & rFile, char* szBuffer, long lBufferSize, long lOffset )
-    : PdfObject( 0, 0, NULL), PdfParserBase( rFile, szBuffer, lBufferSize ), m_pParser( pParser )
+//    : PdfObject( 0, 0, NULL), PdfParserBase( rFile, szBuffer, lBufferSize ), m_pParser( pParser )
+    : PdfObject( 0, 0, NULL), PdfParserBase( rFile, NULL, 0 ), m_pParser( pParser )
 {
     Init();
 
@@ -44,7 +45,8 @@ PdfParserObject::PdfParserObject( PdfParser* pParser, const PdfRefCountedFile & 
 }
 
 PdfParserObject::PdfParserObject( char* szBuffer, long lBufferSize )
-    : PdfObject( 0, 0, NULL), PdfParserBase( PdfRefCountedFile(), szBuffer, lBufferSize), m_pParser( NULL )
+//    : PdfObject( 0, 0, NULL), PdfParserBase( PdfRefCountedFile(), szBuffer, lBufferSize), m_pParser( NULL )
+    : PdfObject( 0, 0, NULL), PdfParserBase( PdfRefCountedFile(), NULL, 0 ), m_pParser( NULL )
 {
     Init();
 }
@@ -126,6 +128,8 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     EPdfDataType eDataType       = ePdfDataType_Unknown;
 
     fseek( m_file.Handle(), m_lOffset, SEEK_SET );
+
+//#error " TODO: PdfParserBase::SkipWhiteSpace();"
 
     // skip all whitespace
     while( (c = fgetc( m_file.Handle() )) != EOF )

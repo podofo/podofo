@@ -27,6 +27,11 @@ PdfParserBase::PdfParserBase()
     m_bFreeBuffer = true;
     m_lBufferSize = PDF_BUFFER;
     m_szBuffer    = (char*)malloc( PDF_BUFFER * sizeof( char  ) );
+
+    if( !m_szBuffer ) 
+    {
+        RAISE_ERROR( ePdfError_OutOfMemory );
+    }
 }
 
 PdfParserBase::PdfParserBase( const PdfRefCountedFile & rFile, char* szBuffer, long lBufferSize )
@@ -43,13 +48,21 @@ PdfParserBase::PdfParserBase( const PdfRefCountedFile & rFile, char* szBuffer, l
         m_bFreeBuffer = true;
         m_lBufferSize = PDF_BUFFER;
         m_szBuffer    = (char*)malloc( PDF_BUFFER * sizeof( char  ) );
+
+        if( !m_szBuffer ) 
+        {
+            RAISE_ERROR( ePdfError_OutOfMemory );
+        }
     }
 }
 
 PdfParserBase::~PdfParserBase()
 {
     if( m_bFreeBuffer )
+    {
         free( m_szBuffer );
+        m_szBuffer = NULL;
+    }
 }
 
 bool PdfParserBase::IsDelimiter( const char c )
