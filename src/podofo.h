@@ -28,6 +28,13 @@
 
 #include "PdfDefines.h"
 
+/**
+ * Version number of this release
+ */
+#define PODOFO_MAJOR 0
+#define PODOFO_MINOR 3
+#define PODOFO_REVISION 0
+
 #include "PdfAction.h"
 #include "PdfAnnotation.h"
 #include "PdfArray.h"

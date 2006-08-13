@@ -2,7 +2,48 @@ dnl                                                  dnl
 dnl Written by Dominik Seichter <domseichter@web.de> dnl
 dnl                                                  dnl
 
-AC_INIT(podofo, 0.2, domseichter@web.de )
+AC_INIT(podofo, 0.3.0, domseichter@web.de )
+dnl ==========================================================================
+dnl                               Versioning              
+dnl 
+dnl 
+dnl  Copyright  2003 Keith Packard
+dnl 
+dnl  Permission to use, copy, modify, distribute, and sell this software and its
+dnl  documentation for any purpose is hereby granted without fee, provided that
+dnl  the above copyright notice appear in all copies and that both that
+dnl  copyright notice and this permission notice appear in supporting
+dnl  documentation, and that the name of Keith Packard not be used in
+dnl  advertising or publicity pertaining to distribution of the software without
+dnl  specific, written prior permission.  Keith Packard makes no
+dnl  representations about the suitability of this software for any purpose.  It
+dnl  is provided "as is" without express or implied warranty.
+dnl 
+dnl  KEITH PACKARD DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+dnl  INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+dnl  EVENT SHALL KEITH PACKARD BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+dnl  CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+dnl  DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+dnl  TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+dnl  PERFORMANCE OF THIS SOFTWARE.
+dnl ==========================================================================
+
+PODOFO_HEADER=src/podofo.h
+PODOFO_MAJOR=`awk '/^#define PODOFO_MAJOR/ { print $3 }' $PODOFO_HEADER`
+PODOFO_MINOR=`awk '/^#define PODOFO_MINOR/ { print $3 }' $PODOFO_HEADER`
+PODOFO_REVISION=`awk '/^#define PODOFO_REVISION/ { print $3 }' $PODOFO_HEADER`
+
+AC_SUBST(PODOFO_MAJOR)
+AC_SUBST(PODOFO_MINOR)
+AC_SUBST(PODOFO_REVISION)
+
+dnl libtool versioning
+
+LT_VERSION_NUMBER="$PODOFO_MAJOR:$PODOFO_MINOR:$PODOFO_REVISION"
+AC_SUBST(LT_VERSION_NUMBER)
+
+dnl ==========================================================================
+
 AM_INIT_AUTOMAKE([ -Wall -Werror ]) dnl
 AC_PROG_LIBTOOL
 
@@ -15,6 +56,28 @@ AC_HAVE_HEADERS(string.h stdio.h)
 dnl checking for required libraries
 AC_CHECK_LIB(z, deflate,, ZLIBMISSING=true)
 AC_CHECK_LIB(jpeg, jpeg_write_raw_data,, JPEGLIBMISSING=true)
+
+dnl
+dnl Checks for FreeType
+dnl
+
+AC_ARG_WITH(freetype_config, [ --with-freetype-config=PROG Use FreeType configuration program PROG], freetype_config=$withval, freetype_config=yes)
+
+if test "$freetype_config" = "yes"; then 
+	AC_PATH_PROG(ft_config,freetype-config,no)
+	if test "$ft_config" = "no"; then
+		AC_MSG_ERROR([You must have freetype installed; see http://www.freetype.org/])
+	fi
+else
+	ft_config="$freetype_config"
+fi
+
+FREETYPE_CFLAGS="$($ft_config --cflags)"
+FREETYPE_LIBS="$($ft_config --libs)"
+
+AC_SUBST(FREETYPE_LIBS)
+AC_SUBST(FREETYPE_CFLAGS)
+
 
 AC_CHECK_HEADERS(zlib.h jpeglib.h)
 

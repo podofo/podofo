@@ -1,11 +1,12 @@
 
-AM_CPPFLAGS = -I/usr/include/fontconfig/ -I/usr/include/freetype2/
+AM_CPPFLAGS = -I/usr/include/fontconfig/ $(FREETYPE_CFLAGS)
 
 #
 # Build a shared library
 
 lib_LTLIBRARIES = libpodofo.la
-libpodofo_la_LIBADD = -lz -lfreetype -lfontconfig -ljpeg
+libpodofo_la_LIBADD = -lz $(FREETYPE_LDFLAGS) -lfontconfig -ljpeg
+libpodofo_la_LDFLAGS = -version-number @LT_VERSION_NUMBER@
 #libpodofo_la_CXXFLAGS = -pg -O2 -g
 
 includedir = $(prefix)/include/podofo/
