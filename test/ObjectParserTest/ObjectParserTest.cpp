@@ -160,6 +160,7 @@ const char* pszSimpleObjectArray   = "8 0 obj\n[100 200 300 400 500]\nendobj\n";
 const char* pszSimpleObjectArray2  = "9 0 obj\n[100 (Hallo Welt) 3.14 400 500]\nendobj\n"; 
 const char* pszSimpleObjectArray3  = "9 1 obj\n[100/Name(Hallo Welt)[1 2]3.14 400 500]\nendobj\n"; 
 const char* pszSimpleObjectArray4  = "9 1 obj\n[100/Name(Hallo Welt)[1 2]3.14 400 500 /Dict << /A (Hallo) /B [21 22] >> /Wert /Farbe]\nendobj\n"; 
+const char* pszSimpleObjectArray5  = "1 2 obj\n[123 0 R]\nendobj\n";
 
 const char* pszObject = "10 0 obj\n"
                         "<<\n" 
@@ -210,6 +211,7 @@ int main()
         TestSingleObject( pszTmp, pszSimpleObjectArray2 , 9, 0, "[ 100 (Hallo Welt) 3.14 400 500 ]" );
         TestSingleObject( pszTmp, pszSimpleObjectArray3 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.14 400 500 ]" );
         TestSingleObject( pszTmp, pszSimpleObjectArray4 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.14 400 500 /Dict <<\n/A (Hallo)\n/B [ 21 22 ]\n>>\n /Wert /Farbe ]" );
+        TestSingleObject( pszTmp, pszSimpleObjectArray5 , 1, 2, "[ 123 0 R ]" );
         printf("---\n");
 
         TestObject( pszTmp, pszObject, 10, 0 );

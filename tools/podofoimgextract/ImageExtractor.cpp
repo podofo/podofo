@@ -41,11 +41,13 @@ void ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnN
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
+
+    PdfDocument document( pszInput );
+    int numPages = document.GetPageCount();
+
     m_pszOutputDirectory = (char*)pszOutput;
 
-    m_parser.ParseFile( pszInput );
-    
-    const TVecObjects&  vecObjects = m_parser.GetObjects();
+    const TVecObjects&  vecObjects = document.GetObjects();
     TCIVecObjects it = vecObjects.begin();
 
     if( pnNum )
@@ -53,30 +55,26 @@ void ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnN
 
     while( it != vecObjects.end() )
     {
-        if( (*it)->GetDictionary().HasKey( PdfName::KeyType ) )
-        {
+        if( (*it)->IsDictionary() )
+        {            
             pObj = (*it)->GetDictionary().GetKey( PdfName::KeyType );
-            if( pObj->IsName() && ( pObj->GetName().Name() == "XObject" ) )
+            if( pObj && pObj->IsName() && ( pObj->GetName().Name() == "XObject" ) )
             {
-                if( (*it)->GetDictionary().HasKey( PdfName::KeySubtype ) )
+                pObj = (*it)->GetDictionary().GetKey( PdfName::KeySubtype );
+                if( pObj && pObj->IsName() && ( pObj->GetName().Name() == "Image" ) )
                 {
-                    pObj = (*it)->GetDictionary().GetKey( PdfName::KeySubtype );
-                    if( pObj->IsName() && ( pObj->GetName().Name() == "Image" ) )
-                    {
-                        pObj = (*it)->GetDictionary().GetKey( PdfName::KeyFilter );
-                        if( pObj->IsName() && ( pObj->GetName().Name() == "DCTDecode" ) )
-                        {	
-                           // ONLY images with filter of DCTDecode can be extracted out as JPEG this way!
-                            
-                            ExtractImage( *it );
-
-                            if( pnNum )
-                                ++(*pnNum);
-                        }
+                    pObj = (*it)->GetDictionary().GetKey( PdfName::KeyFilter );
+                    if( pObj && pObj->IsName() && ( pObj->GetName().Name() == "DCTDecode" ) )
+                    {	
+                        // ONLY images with filter of DCTDecode can be extracted out as JPEG this way!
+                        
+                        ExtractImage( *it );
+                    
+                        if( pnNum )
+                            ++(*pnNum);
                     }
                 }
             }
-                    
         }
 
         ++it;
@@ -86,7 +84,6 @@ void ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnN
 void ImageExtractor::ExtractImage( PdfObject* pObject )
 {
     FILE*    hFile = NULL;
-//    long     lLen;
 
     // Do not overwrite existing files:
     do {

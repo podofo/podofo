@@ -64,8 +64,6 @@ class ImageExtractor {
     unsigned int m_nCount;
 
     char         m_szBuffer[MAX_PATH];
-
-    PoDoFo::PdfParser       m_parser;
 };
 
 #endif // _IMAGE_EXTRACTOR_H_
