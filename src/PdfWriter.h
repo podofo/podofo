@@ -131,11 +131,6 @@ class PdfWriter {
      */
     PdfObject* GetCatalog() const { return m_pCatalog; }
     
-    /** Get access to the internal Info dictionary
-     *  \returns PdfObject the info dictionary
-     */
-    PdfObject* GetInfo() const;
-
     /** Set wether all streams in the pdf document should
      *  be compress using the FlateDecode algorithm.
      *  Only streams that are already JPEG compressed are not affected
@@ -247,7 +242,6 @@ class PdfWriter {
     TVecXRefTable   m_vecXRef;
 
     PdfObject*      m_pCatalog;
-    PdfObject*      m_pInfo;
     PdfObject*      m_pTrailer;
 
     bool            m_bCompress;

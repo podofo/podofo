@@ -62,6 +62,12 @@ class PdfElement {
     inline const PdfObject* Object() const;
 
  protected:
+    /** Create an empty PdfElement
+     *  You have to assign a valid PdfElement to this object
+     *  before you can use it.
+     */
+    PdfElement();
+
     /** Creates a new PdfElement 
      *  \param pszType type entry of the elements object
      *  \param pParent parent vector of objects.
@@ -77,6 +83,16 @@ class PdfElement {
      *                 by this PdfElement
      */
     PdfElement( const char* pszType, PdfObject* pObject );
+
+    /** Create a copy of an existing PdfElement
+     *  \praam rhs the PdfElement to copy
+     */
+    PdfElement( const PdfElement & rhs );
+
+    /** Create a copy of an existing PdfElement
+     *  \praam rhs the PdfElement to copy
+     */
+    const PdfElement & operator=( const PdfElement & rhs );
 
     /** Convert an enum or index to its string representation
      *  which can be written to the PDF file.

@@ -181,6 +181,12 @@ class PdfFontMetrics {
 #endif
 
  private:
+    /** Load the metric data from the FTFace data
+     *		Called internally by the constructors
+     */
+    void InitFromFace();
+
+ private:
     FT_Face       m_face;
     FT_Library*   m_pLibrary;
 
@@ -195,13 +201,8 @@ class PdfFontMetrics {
     long          m_lUnderlinePosition;
 
     std::string   m_sFilename;
-    char*		  m_pFontData;
+    char*	  m_pFontData;
     unsigned int  m_nFontDataLen;
-    
-    /** Load the metric data from the FTFace data
-     *		Called internally by the constructors
-     */
-    void InitFromFace();
 };
 
 // -----------------------------------------------------

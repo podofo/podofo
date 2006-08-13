@@ -40,6 +40,15 @@ class PdfVecObjects;
  */
 class PdfPage : public PdfElement, public PdfCanvas {
  public:
+    /**
+     * Create an empty PdfPage object.
+     * You cannot draw on this page
+     * untill you assign a valid PdfPage to it.
+     * 
+     * \see PdfDocument::CreatePage()
+     */
+    PdfPage();
+
     /** Create a new PdfPage object.
      *  \param rSize a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
      *  \param pParent add the page to this parent
@@ -50,6 +59,11 @@ class PdfPage : public PdfElement, public PdfCanvas {
      *  \param pObject an existing PdfObject
      */
     PdfPage( PdfObject* pObject );
+
+    /** Copy an existing PdfPage
+     *  \param rhs copy this PdfPage
+     */
+    PdfPage( const PdfPage & rhs );
 
     virtual ~PdfPage();
 
@@ -113,6 +127,11 @@ class PdfPage : public PdfElement, public PdfCanvas {
      * \ returns int number of annotations
      */
     virtual const int GetNumAnnots() const;
+
+    /** Copy an existing PdfPage
+     *  \param rhs copy this PdfPage
+     */
+    const PdfPage & operator=( const PdfPage & rhs );
 
  private:
    /** Get the bounds of a specified page box in PDF units.

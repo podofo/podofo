@@ -27,8 +27,8 @@ class PdfFont : public PdfElement {
      *  The font has a default font size of 12.0pt.
      *
      *  \param pMetrics pointer to a font metrics object. The font in the PDF
-     *         file will match this fontmetrics object. The metrics object will 
-     *         get deleted along with the PdFont object.
+     *         file will match this fontmetrics object. The metrics object is 
+     *         deleted along with the font.
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
      *  \param pParent parent of the font object

@@ -9,15 +9,16 @@ libpodofo_la_LIBADD = -lz -lfreetype -lfontconfig -ljpeg
 #libpodofo_la_CXXFLAGS = -pg -O2 -g
 
 include_HEADERS = podofo.h PdfDefines.h PdfObject.h PdfParser.h PdfParserObject.h \
-	PdfParserBase.h PdfWriter.h PdfVariant.h PdfSimpleWriter.h \
+	PdfParserBase.h PdfWriter.h PdfVariant.h \
 	PdfPage.h PdfPainter.h PdfFont.h PdfFontMetrics.h PdfImage.h PdfStream.h \
 	PdfVecObjects.h PdfDate.h PdfAnnotation.h PdfRect.h PdfXObject.h \
 	PdfCanvas.h PdfOutputDevice.h PdfAction.h PdfError.h PdfString.h PdfName.h \
 	PdfFilter.h PdfReference.h PdfDocument.h PdfArray.h PdfDictionary.h \
 	PdfDataType.h PdfElement.h PdfPainterMM.h PdfPagesTree.h PdfRefCountedFile.h
 
+# PdfSimpleWriter.cpp # PdfSimpleWriter.h
 libpodofo_la_SOURCES = PdfObject.cpp PdfParser.cpp PdfParserObject.cpp \
-	PdfParserBase.cpp PdfWriter.cpp PdfVariant.cpp PdfSimpleWriter.cpp \
+	PdfParserBase.cpp PdfWriter.cpp PdfVariant.cpp \
 	PdfPage.cpp PdfPainter.cpp PdfFont.cpp PdfFontMetrics.cpp PdfImage.cpp PdfStream.cpp \
 	PdfVecObjects.cpp PdfDate.cpp PdfAnnotation.cpp PdfRect.cpp PdfXObject.cpp \
 	PdfCanvas.cpp PdfOutputDevice.cpp PdfAction.cpp PdfError.cpp PdfString.cpp PdfName.cpp \

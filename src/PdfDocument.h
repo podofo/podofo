@@ -26,11 +26,20 @@
 #include "PdfParser.h"
 #include "PdfWriter.h"
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 namespace PoDoFo {
 
 class PdfDictionary;
+class PdfFont;
 class PdfPage;
 class PdfPagesTree;
+class PdfRect;
+
+typedef std::vector<PdfFont*>           TSortedFontList;
+typedef TSortedFontList::iterator       TISortedFontList;
+typedef TSortedFontList::const_iterator TCISortedFontList;
 
 /** PdfDocument is the core class for reading and manipulating
  *  PDF files and writing them back to disk.
@@ -68,6 +77,12 @@ class PdfDocument {
      */
     virtual ~PdfDocument();
 
+    /** Writes the complete document to a file
+     *
+     *  \param pszFilename filename of the document 
+     */
+    void Write( const char* pszFilename );
+
     /** Set the PDF Version of the document. Has to be called before Write() to
      *  have an effect.
      *  \param eVersion  version of the pdf document
@@ -78,7 +93,11 @@ class PdfDocument {
      *  \returns EPdfVersion version of the pdf document
      */
     EPdfVersion GetPdfVersion() const { return m_eVersion; }
-    
+
+    /** Returns wether this PDF document is linearized, aka
+     *  weboptimized
+     *  \returns true if the PDF document is linearized
+     */
     bool IsLinearized() const { return m_bLinearized; }
     
     /** Get a reference to the sorted internal objects vector.
@@ -106,9 +125,16 @@ class PdfDocument {
     const PdfObject* GetTrailer() const { return m_pTrailer; }
     
     /** Get access to the internal Info dictionary
+     *  \param bCreate if true the dictionary will
+     *         be created if it does not exist
      *  \returns PdfObject the info dictionary
      */
-    PdfObject* GetInfo() const { return m_pCatalog->GetIndirectKey( PdfName( "Info" ) ); }
+    PdfObject* GetInfo( bool bCreate );
+
+    /** Get access to the internal Info dictionary
+     *  \returns PdfObject the info dictionary
+     */
+    PdfObject* GetInfo() const { return m_pCatalog->GetIndirectKey( PdfName( "Info" ) ); };
 
     /** Get access to the StructTreeRoot dictionary
      *  \returns PdfObject the StructTreeRoot dictionary
@@ -137,9 +163,76 @@ class PdfDocument {
 
     /** Get the PdfObject for a specific page in a document
      *  \param nIndex which page (0-based)
-     *  \returns PdfObject* for the Page
+     *  \returns PdfPage for the Page
      */
-    PdfPage* GetPage( int nIndex ) const;
+    PdfPage GetPage( int nIndex ) const;
+
+    /** Creates a PdfFont object
+     *  \param pszFontName name of the font as it is known to the system
+     *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
+     *         Embedding fonts is usually a good idea.
+     *  \returns PdfFont* a pointer to a new PdfFont object.
+     */
+    PdfFont* CreateFont( const char* pszFontName, bool bEmbedd = true );
+
+    /** Creates a new page object and inserts it into the internal
+     *  page tree. 
+     *
+     *  \param rSize a PdfRect spezifying the size of the page (i.e the /MediaBox key) in 1/1000th mm
+     *  \returns a PdfPage object
+     */
+    PdfPage CreatePage( const PdfRect & rSize );
+
+    /** Set the author of the document.
+     *  \param sAuthor author
+     */
+    void SetAuthor( const PdfString & sAuthor );
+
+    /** Get the author of the document
+     *  \returns the author
+     */
+    const PdfString & Author() const;
+
+    /** Set the creator of the document.
+     *  Typically the name of the application using the library.
+     *  \param sCreator creator
+     */
+    void SetCreator( const PdfString & sCreator );
+
+    /** Get the creator of the document
+     *  \returns the creator
+     */
+    const PdfString & Creator() const;
+
+    /** Set keywords for this document
+     *  \param sKeywords a list of keywords
+     */
+    void SetKeywords( const PdfString & sKeywords );
+
+    /** Get the keywords of the document
+     *  \returns the keywords
+     */
+    const PdfString & Keywords() const;
+
+    /** Set the subject of the document.
+     *  \param sSubject subject
+     */
+    void SetSubject( const PdfString & sSubject );
+
+    /** Get the subject of the document
+     *  \returns the subject
+     */
+    const PdfString & Subject() const;
+
+    /** Set the title of the document.
+     *  \param sTitle title
+     */
+    void SetTitle( const PdfString & sTitle );
+
+    /** Get the title of the document
+     *  \returns the title
+     */
+    const PdfString & Title() const;
 
  private:
     /** Get a dictioary from the catalog dictionary by its name.
@@ -158,6 +251,10 @@ class PdfDocument {
      */
     void InitFromParser( PdfParser* pParser );
 
+    /** Initialize freetype and fontconfig
+     */
+    void InitFonts();
+
  private:
     bool            m_bLinearized;
 
@@ -168,6 +265,11 @@ class PdfDocument {
     PdfObject*      m_pCatalog;
 
     EPdfVersion     m_eVersion;
+
+    // Variables for fontloading and redering
+    TSortedFontList m_vecFonts;
+    void*           m_pFcConfig; // (FcConfig*)
+    FT_Library      m_ftLibrary;
 };
 
 };

@@ -173,8 +173,13 @@ PdfObject* PdfObject::GetIndirectKey( const PdfName & key )
     if( this->IsDictionary() && this->GetDictionary().HasKey( key ) )
     {
         pObj = this->GetDictionary().GetKey( key );
-        if( pObj->IsReference() && m_pParent ) 
+        if( pObj->IsReference() ) 
         {
+            if( !m_pParent )
+            {
+                RAISE_ERROR( ePdfError_InvalidHandle );
+            }
+
             pObj = m_pParent->GetObject( pObj->GetReference() );
         }
     }

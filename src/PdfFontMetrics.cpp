@@ -119,15 +119,6 @@ const char* PdfFontMetrics::Fontname() const
     return s ? s : "";
 }
 
-/*
-const std::string PdfFontMetrics::Fontname() const
-{
-	const char*	s = FT_Get_Postscript_Name( m_face );
-	return  s ? std::string( s ) : std::string( "" );
-//    return FT_Get_Postscript_Name( m_face );
-}
-*/
-
 void PdfFontMetrics::GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast ) const
 {
     unsigned int  i;

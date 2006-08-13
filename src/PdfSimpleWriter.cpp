@@ -117,49 +117,6 @@ PdfPage* PdfSimpleWriter::CreatePage( const PdfRect & rSize )
     return pPage;
 }
 
-PdfFont* PdfSimpleWriter::CreateFont( const char* pszFontName, bool bEmbedd )
-{
-#ifdef _WIN32
-    std::string       sPath = PdfFontMetrics::GetFilenameForFont( pszFontName );
-#else
-    std::string       sPath = PdfFontMetrics::GetFilenameForFont( (FcConfig*)m_pFcConfig, pszFontName );
-#endif
-    PdfFont*          pFont;
-    PdfFontMetrics*   pMetrics;
-    TCISortedFontList it;
-
-    if( sPath.empty() )
-    {
-        PdfError::LogMessage( eLogSeverity_Critical, "No path was found for the specified fontname: %s\n", pszFontName );
-        return NULL;
-    }
-
-    it = std::find_if( m_vecFonts.begin(), m_vecFonts.end(), FontComperator( sPath ) );
-
-    if( it == m_vecFonts.end() )
-    {
-        pMetrics = new PdfFontMetrics( &m_ftLibrary, sPath.c_str() );
-
-        try {
-            pFont    = new PdfFont( pMetrics, bEmbedd, &m_vecObjects );
-
-            m_vecFonts  .push_back( pFont );
-
-            // Now sort the font list
-            std::sort( m_vecFonts.begin(), m_vecFonts.end() );
-        } catch( PdfError & e ) {
-            e.AddToCallstack( __FILE__, __LINE__ );
-            e.PrintErrorMsg();
-            PdfError::LogMessage( eLogSeverity_Error, "Cannot initialize font: %s\n", pszFontName );
-            return NULL;
-        }
-    }
-    else
-        pFont = *it;
-
-    return pFont;
-}
-
 void PdfSimpleWriter::SetDocumentAuthor( const PdfString & sAuthor )
 {
     this->GetInfo()->GetDictionary().AddKey( "Author", sAuthor );

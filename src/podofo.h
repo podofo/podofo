@@ -53,7 +53,6 @@
 #include "PdfParserObject.h"
 #include "PdfRect.h"
 #include "PdfRefCountedFile.h"
-#include "PdfSimpleWriter.h"
 #include "PdfStream.h"
 #include "PdfString.h"
 #include "PdfVariant.h"

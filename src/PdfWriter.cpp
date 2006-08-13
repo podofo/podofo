@@ -61,7 +61,6 @@ void PdfWriter::Clear()
     m_eVersion     = ePdfVersion_1_3;
 
     m_pCatalog     = NULL;
-    m_pInfo        = NULL;
 
     m_bCompress    = true;
 }
@@ -73,10 +72,8 @@ void PdfWriter::Init()
 
     m_pTrailer = new PdfObject();
     m_pCatalog = m_vecObjects.CreateObject( "Catalog" );
-    m_pInfo     = m_vecObjects.CreateObject( NULL );
 
     m_pTrailer->GetDictionary().AddKey( "Root", m_pCatalog->Reference() );
-    m_pTrailer->GetDictionary().AddKey( "Info", m_pInfo->Reference() );
 }
 
 void PdfWriter::Init( PdfParser* pParser )
@@ -140,17 +137,6 @@ void PdfWriter::Init( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
     {
         RAISE_ERROR_INFO( ePdfError_InvalidHandle, "No catalog dictionary found in the trailer." );
     }
-    
-    // see if there is an Info dict present - and if so, load it
-    pObj = m_pTrailer->GetDictionary().GetKey( "Info" );
-    if( !(pObj && pObj->IsReference() ) )
-    {
-        RAISE_ERROR( ePdfError_InvalidDataType );
-    }
-    
-    PdfError::DebugMessage("/Info ref=%s\n", pObj->GetReference().ToString().c_str());
-    m_pInfo = m_vecObjects.GetObject( pObj->GetReference() );
-    // no need to check error, since it's optional
 }
 
 void PdfWriter::Write( const char* pszFilename )
@@ -297,7 +283,7 @@ void PdfWriter::WriteTrailerKey( PdfOutputDevice* pDevice, const PdfObject* pTra
     {
         key.Write( pDevice );
         pDevice->Print( " " );
-        pTrailer->GetDictionary().GetKey( "Root" )->Write( pDevice );
+        pTrailer->GetDictionary().GetKey( key )->Write( pDevice );
         pDevice->Print( "\n" );
     }
 }
@@ -353,11 +339,6 @@ void PdfWriter::WriteToBuffer( char** ppBuffer, unsigned long* pulLen )
 
     PdfOutputDevice memDevice( *ppBuffer, *pulLen );
     this->Write( &memDevice );
-}
-
-PdfObject* PdfWriter::GetInfo() const
-{
-    return m_pInfo;
 }
 
 };

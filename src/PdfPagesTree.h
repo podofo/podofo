@@ -22,6 +22,7 @@
 #define _PDF_PAGES_TREE_H_
 
 #include "PdfDefines.h"
+#include "PdfElement.h"
 
 namespace PoDoFo {
 
@@ -34,9 +35,13 @@ typedef std::deque< PdfObject* >	PdfPageObjects;
  *  
  *  \see PdfDocument
  */
-class PdfPagesTree 
+class PdfPagesTree : public PdfElement
 {
  public:
+    /** Construct a new PdfPagesTree
+     */
+    PdfPagesTree( PdfVecObjects* pParent );
+
     /** Construct a PdfPagesTree from the root /Pages object
      *  \param pPagesRoot pointer to page tree dictionary
      */
@@ -56,7 +61,12 @@ class PdfPagesTree
      *  \returns a PDFObject* for the given page
      */
     PdfObject* GetPage( int nIndex );
-    
+
+    /** Inserts a PdfObject in the pages tree
+     *  \param pObject pointer to a pdf page object
+     */
+    void InsertPage( PdfObject* pObject );
+
  private:
     PdfPagesTree();	// don't allow construction from nothing!
 
@@ -65,7 +75,6 @@ class PdfPagesTree
     PdfObject* GetPageNode( int nPageNum, PdfObject* pPagesObject );
     
  private:
-    PdfObject*        m_pPagesRoot;
     PdfPageObjects    m_deqPageObjs;
     
 };
