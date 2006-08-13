@@ -34,7 +34,11 @@ Version 0.3
 	Removed Init from PdfOutputDevice;
 	Removed Init from PdfParser;
 	Added LZW Filter support;
-	Added PdfElement as base class for PdfAction, PdfAnnotation and PdfPage;
+	Added PdfElement as base class for PdfAction, PdfAnnotation and
+	PdfPage;
+	Fixed podofoimageextract, podofotxt2pdf and podofopdfinfo;
+	Removed PdfSimpleWriter in favour of PdfDocument;
+	Headers are now installed in includedir/podofo/;
 	
 Version 0.2
 	Improved Documentation;

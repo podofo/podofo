@@ -8,6 +8,8 @@ lib_LTLIBRARIES = libpodofo.la
 libpodofo_la_LIBADD = -lz -lfreetype -lfontconfig -ljpeg
 #libpodofo_la_CXXFLAGS = -pg -O2 -g
 
+includedir = $(prefix)/include/podofo/
+
 include_HEADERS = podofo.h PdfDefines.h PdfObject.h PdfParser.h PdfParserObject.h \
 	PdfParserBase.h PdfWriter.h PdfVariant.h \
 	PdfPage.h PdfPainter.h PdfFont.h PdfFontMetrics.h PdfImage.h PdfStream.h \
