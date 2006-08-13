@@ -20,11 +20,11 @@
 
 #include <PdfDefines.h>
 
-#include <PdfSimpleWriter.h>
-#include <PdfPage.h>
-#include <PdfPainter.h>
+#include <PdfDocument.h>
 #include <PdfFont.h>
 #include <PdfFontMetrics.h>
+#include <PdfPage.h>
+#include <PdfPainter.h>
 
 using namespace PoDoFo;
 
@@ -41,9 +41,9 @@ void print_help()
   printf("Usage: podofotxt2pdf [inputfile] [outputfile]\n\n");
 }
 
-void draw( char* pszBuffer, PdfSimpleWriter* pWriter )
+void draw( char* pszBuffer, PdfDocument* pDocument )
 {
-    PdfPage*        pPage;
+    PdfPage         page;
     PdfPainter      painter;
     PdfFont*        pFont;
 
@@ -52,16 +52,16 @@ void draw( char* pszBuffer, PdfSimpleWriter* pWriter )
     long   w        = 0;
     char*  pszStart = pszBuffer;
 
-    pFont = pWriter->CreateFont( "Arial" );
-    pPage = pWriter->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+    pFont = pDocument->CreateFont( "Arial" );
+    page = pDocument->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
 
-    if( !pFont || !pPage )
+    if( !pFont )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
     pFont->SetFontSize( FONT_SIZE );
     
-    painter.SetPage( pPage );
+    painter.SetPage( &page );
     painter.SetFont( pFont );
 
     while( *pszBuffer )
@@ -72,15 +72,10 @@ void draw( char* pszBuffer, PdfSimpleWriter* pWriter )
             pszStart = (++pszBuffer);            
 
             lY += pFont->FontMetrics()->LineSpacing();
-            if( lY > (pPage->PageSize().Height() - BORDER_TOP) )
+            if( lY > (page.PageSize().Height() - BORDER_TOP) )
             {
-                pPage = pWriter->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-                if( !pPage )
-                {
-                    RAISE_ERROR( ePdfError_InvalidHandle );
-                }
-
-                painter.SetPage( pPage );
+                page = pDocument->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+                painter.SetPage( &page );
                 lY       = BORDER_TOP;
             }
         }
@@ -93,7 +88,7 @@ void init( const char* pszInput, const char* pszOutput )
 {
     FILE*   hFile;
 
-    PdfSimpleWriter writer;
+    PdfDocument doc;
 
     char*  pszBuf;
     long   lSize;
@@ -126,8 +121,8 @@ void init( const char* pszInput, const char* pszOutput )
 
     fclose( hFile );
 
-    draw( pszBuf, &writer );
-    writer.Write( pszOutput );
+    draw( pszBuf, &doc );
+    doc.Write( pszOutput );
 
     free( pszBuf );
 }

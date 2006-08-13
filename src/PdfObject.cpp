@@ -179,7 +179,6 @@ PdfObject* PdfObject::GetIndirectKey( const PdfName & key )
             {
                 RAISE_ERROR( ePdfError_InvalidHandle );
             }
-
             pObj = m_pParent->GetObject( pObj->GetReference() );
         }
     }

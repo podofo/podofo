@@ -59,11 +59,16 @@ printf("no\n");
 
 void PdfInfo::OutputInfoDict( std::ostream& sOutStream )
 {
-    PdfObject* infoObj = mDoc->GetInfo();
-    PdfOutputDevice device( &sOutStream );
-
-    if( infoObj )
-        infoObj->Write( &device );
+    if( !mDoc->GetInfo() )
+        sOutStream << "No info dictionary in this PDF file!" << std::endl;
+    else
+    {
+        sOutStream << "\tAuthor: "   << ( mDoc->Author().String()   ? mDoc->Author().String()  : "" ) << std::endl;
+        sOutStream << "\tCreator: "  << ( mDoc->Creator().String()  ? mDoc->Creator().String() : "" ) << std::endl;
+        sOutStream << "\tSubject: "  << ( mDoc->Subject().String()  ? mDoc->Subject().String() : "" ) << std::endl;
+        sOutStream << "\tTitle: "    << ( mDoc->Title().String()    ? mDoc->Title().String()  : "" ) << std::endl;
+        sOutStream << "\tKeywords: " << ( mDoc->Keywords().String() ? mDoc->Keywords().String()  : "" ) << std::endl;
+    }
 }
 
 void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
@@ -76,15 +81,13 @@ void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
     {
         sOutStream << "Page " << pg << ":" << std::endl;
         
-        PdfPage*	curPage = mDoc->GetPage( pg );
+        PdfPage	curPage = mDoc->GetPage( pg );
         
-        curPage->GetMediaBox().ToVariant( var );
+        curPage.GetMediaBox().ToVariant( var );
         var.ToString( str );
 
         sOutStream << "\tMediaBox: " << str << std::endl;
-        sOutStream << "\tRotation: " << curPage->GetRotation() << std::endl;
-        sOutStream << "\t# of Annotations: " << curPage->GetNumAnnots() << std::endl;
-        
-        delete curPage;	// delete it when done
+        sOutStream << "\tRotation: " << curPage.GetRotation() << std::endl;
+        sOutStream << "\t# of Annotations: " << curPage.GetNumAnnots() << std::endl;
     }
 }

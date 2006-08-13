@@ -134,7 +134,7 @@ class PdfDocument {
     /** Get access to the internal Info dictionary
      *  \returns PdfObject the info dictionary
      */
-    PdfObject* GetInfo() const { return m_pCatalog->GetIndirectKey( PdfName( "Info" ) ); };
+    PdfObject* GetInfo() const { return m_pTrailer->GetIndirectKey( PdfName( "Info" ) ); };
 
     /** Get access to the StructTreeRoot dictionary
      *  \returns PdfObject the StructTreeRoot dictionary
@@ -191,7 +191,7 @@ class PdfDocument {
     /** Get the author of the document
      *  \returns the author
      */
-    const PdfString & Author() const;
+    inline const PdfString & Author() const;
 
     /** Set the creator of the document.
      *  Typically the name of the application using the library.
@@ -202,7 +202,7 @@ class PdfDocument {
     /** Get the creator of the document
      *  \returns the creator
      */
-    const PdfString & Creator() const;
+    inline const PdfString & Creator() const;
 
     /** Set keywords for this document
      *  \param sKeywords a list of keywords
@@ -212,7 +212,7 @@ class PdfDocument {
     /** Get the keywords of the document
      *  \returns the keywords
      */
-    const PdfString & Keywords() const;
+    inline const PdfString & Keywords() const;
 
     /** Set the subject of the document.
      *  \param sSubject subject
@@ -222,7 +222,7 @@ class PdfDocument {
     /** Get the subject of the document
      *  \returns the subject
      */
-    const PdfString & Subject() const;
+    inline const PdfString & Subject() const;
 
     /** Set the title of the document.
      *  \param sTitle title
@@ -232,7 +232,7 @@ class PdfDocument {
     /** Get the title of the document
      *  \returns the title
      */
-    const PdfString & Title() const;
+    inline const PdfString & Title() const;
 
  private:
     /** Get a dictioary from the catalog dictionary by its name.
@@ -255,6 +255,12 @@ class PdfDocument {
      */
     void InitFonts();
 
+    /** Get a value from the info dictionary as name
+     *  \para rName the key to fetch from the info dictionary
+     *  \return a value from the info dictionary
+     */
+    const PdfString & GetStringFromInfoDict( const PdfName & rName ) const;
+
  private:
     bool            m_bLinearized;
 
@@ -271,6 +277,46 @@ class PdfDocument {
     void*           m_pFcConfig; // (FcConfig*)
     FT_Library      m_ftLibrary;
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfString & PdfDocument::Author() const
+{
+    return this->GetStringFromInfoDict( PdfName("Author") );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfString & PdfDocument::Creator() const
+{
+    return this->GetStringFromInfoDict( PdfName("Creator") );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfString & PdfDocument::Keywords() const
+{
+    return this->GetStringFromInfoDict( PdfName("Keywords") );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfString & PdfDocument::Subject() const
+{
+    return this->GetStringFromInfoDict( PdfName("Subject") );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfString & PdfDocument::Title() const
+{
+    return this->GetStringFromInfoDict( PdfName("Title") );
+}
 
 };
 

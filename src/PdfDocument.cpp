@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <deque>
+#include <iostream>
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
@@ -160,10 +161,8 @@ void PdfDocument::InitFromParser( PdfParser* pParser )
     m_pTrailer = new PdfObject( *(pParser->GetTrailer()) );
     m_pTrailer->SetParent( &m_vecObjects );
 
-    pRoot      = m_pTrailer->GetDictionary().GetKey( "Root" );
-    if( pRoot && pRoot->IsReference() )
-        m_pCatalog = m_vecObjects.GetObject( pRoot->GetReference() );
-    else
+    m_pCatalog  = m_pTrailer->GetIndirectKey( "Root" );
+    if( !m_pCatalog )
     {
         RAISE_ERROR( ePdfError_NoObject );
     }
@@ -283,21 +282,21 @@ PdfPage PdfDocument::CreatePage( const PdfRect & rSize )
     return page;
 }
 
+const PdfString & PdfDocument::GetStringFromInfoDict( const PdfName & rName ) const
+{
+    PdfObject* pObj = this->GetInfo();
+    if( pObj )
+        pObj = pObj->GetDictionary().GetKey( rName );
+    
+    return pObj && pObj->IsString() ? pObj->GetString() : PdfString::StringNull;
+}
+
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
 void PdfDocument::SetAuthor( const PdfString & sAuthor )
 {
     this->GetInfo( true )->GetDictionary().AddKey( "Author", sAuthor );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfString & PdfDocument::Author() const
-{
-    PdfObject* pObj = this->GetInfo()->GetDictionary().GetKey( "Author" );
-    return pObj && pObj->IsString() ? pObj->GetString() : PdfString::StringNull;
 }
 
 // -----------------------------------------------------
@@ -311,27 +310,9 @@ void PdfDocument::SetCreator( const PdfString & sCreator )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const PdfString & PdfDocument::Creator() const
-{
-    PdfObject* pObj = this->GetInfo()->GetDictionary().GetKey( "Creator" );
-    return pObj && pObj->IsString() ? pObj->GetString() : PdfString::StringNull;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 void PdfDocument::SetKeywords( const PdfString & sKeywords )
 {
     this->GetInfo( true )->GetDictionary().AddKey( "Keywords", sKeywords );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfString & PdfDocument::Keywords() const
-{
-    PdfObject* pObj = this->GetInfo()->GetDictionary().GetKey( "Keywords" );
-    return pObj && pObj->IsString() ? pObj->GetString() : PdfString::StringNull;
 }
 
 // -----------------------------------------------------
@@ -345,27 +326,9 @@ void PdfDocument::SetSubject( const PdfString & sSubject )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const PdfString & PdfDocument::Subject() const
-{
-    PdfObject* pObj = this->GetInfo()->GetDictionary().GetKey( "Subject" );
-    return pObj && pObj->IsString() ? pObj->GetString() : PdfString::StringNull;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 void PdfDocument::SetTitle( const PdfString & sTitle )
 {
     this->GetInfo( true )->GetDictionary().AddKey( "Title", sTitle );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfString & PdfDocument::Title() const
-{
-    PdfObject* pObj = this->GetInfo()->GetDictionary().GetKey( "Title" );
-    return pObj && pObj->IsString() ? pObj->GetString() : PdfString::StringNull;
 }
 
 };
