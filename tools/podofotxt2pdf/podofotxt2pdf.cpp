@@ -24,7 +24,7 @@
 #include <PdfFont.h>
 #include <PdfFontMetrics.h>
 #include <PdfPage.h>
-#include <PdfPainter.h>
+#include <PdfPainterMM.h>
 
 using namespace PoDoFo;
 
@@ -32,8 +32,8 @@ using namespace PoDoFo;
 #include <config.h>
 #endif // _HAVE_CONFIG
 
-#define BORDER_TOP   10000
-#define BORDER_LEFT  10000
+#define BORDER_TOP   10000 * CONVERSION_CONSTANT
+#define BORDER_LEFT  10000 * CONVERSION_CONSTANT
 #define FONT_SIZE    12.0
 
 void print_help()
@@ -46,14 +46,16 @@ void draw( char* pszBuffer, PdfDocument* pDocument )
     PdfPage         page;
     PdfPainter      painter;
     PdfFont*        pFont;
+    PdfRect         size;
 
-    long   lX       = BORDER_LEFT;
-    long   lY       = BORDER_TOP;
-    long   w        = 0;
+    double dX       = BORDER_LEFT;
+    double dY       = BORDER_TOP;
+    double w        = 0;
     char*  pszStart = pszBuffer;
 
+    size            = PdfPage::CreateStandardPageSize( ePdfPageSize_A4 );
     pFont = pDocument->CreateFont( "Arial" );
-    page = pDocument->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+    page = pDocument->CreatePage( size );
 
     if( !pFont )
     {
@@ -68,15 +70,16 @@ void draw( char* pszBuffer, PdfDocument* pDocument )
     {
         if( *pszBuffer == '\n' )
         {
-            painter.DrawText( lX, lY, pszStart, pszBuffer-pszStart );
+            painter.DrawText( dX, dY, pszStart, pszBuffer-pszStart );
+    
             pszStart = (++pszBuffer);            
 
-            lY += pFont->FontMetrics()->LineSpacing();
-            if( lY > (page.PageSize().Height() - BORDER_TOP) )
+            dY += pFont->FontMetrics()->LineSpacing();
+            if( dY > (size.Height() -  BORDER_TOP) )
             {
-                page = pDocument->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+                page = pDocument->CreatePage( size );
                 painter.SetPage( &page );
-                lY       = BORDER_TOP;
+                dY       = BORDER_TOP;
             }
         }
         else
@@ -102,7 +105,7 @@ void init( const char* pszInput, const char* pszOutput )
     fseek( hFile, 0x00, SEEK_END );
     lSize  = ftell( hFile );
 
-    pszBuf = (char*)malloc( sizeof( char ) * lSize );
+    pszBuf = (char*)malloc( sizeof( char ) * (lSize+1) );
     fseek( hFile, 0x00, SEEK_SET );
     if( !pszBuf )
     {
@@ -121,7 +124,12 @@ void init( const char* pszInput, const char* pszOutput )
 
     fclose( hFile );
 
+    pszBuf[lSize] = '\0';
+
     draw( pszBuf, &doc );
+
+    doc.SetCreator( PdfString("podofotxt2pdf") );
+    doc.SetTitle( PdfString("Converted to PDF from a text file") );
     doc.Write( pszOutput );
 
     free( pszBuf );
