@@ -147,7 +147,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
             break;
     }
     
-    this->SetImageData( m_rRect.Width(), m_rRect.Height(), 8 , szBuffer, lLen ); // 8 bits per component
+    this->SetImageData( (unsigned int)m_rRect.Width(), (unsigned int)m_rRect.Height(), 8 , szBuffer, lLen ); // 8 bits per component
 
     (void) jpeg_destroy_decompress(&cinfo);
 

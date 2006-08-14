@@ -81,6 +81,7 @@ void PdfParserObject::ReadObjectNumber()
         number = GetNextNumberFromFile();
         m_reference.SetGenerationNumber( number );
     } catch( PdfError & e ) {
+		std::string	errStr( e.what() );	// avoid compiler warning and in case we need it...
         RAISE_ERROR_INFO( ePdfError_NoObject, "object and generation number cannot be read." );
     }
 

@@ -304,6 +304,7 @@ void PdfParser::HasLinearizationDict()
         }
         
     } catch( PdfError & e ) {
+		std::string	errStr( e.what() );	// avoid compiler warning and in case we need it...
         delete m_pLinearization;
         m_pLinearization = NULL;
         return;

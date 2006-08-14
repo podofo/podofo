@@ -60,7 +60,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
     pPainter->SetFont( pFont );
     pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y + pFont->FontMetrics()->LineSpacing(), "Grayscale Colorspace" );
-    pPainter->DrawRect( 120000 * CONVERSION_CONSTANT , y + pFont->FontMetrics()->LineSpacing(), w, -h );
+    pPainter->DrawRect( 120000 * CONVERSION_CONSTANT , y + pFont->FontMetrics()->LineSpacing(), w, -1*(long)h );
 
     // Draw 10 lines in gray scale
     for( int i = 0; i < 10; i++ )

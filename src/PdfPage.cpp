@@ -147,7 +147,7 @@ const int PdfPage::GetNumAnnots() const
     {
         pObj = m_pObject->GetIndirectKey( "Annots" );
         if( pObj && pObj->IsArray() )
-            return pObj->GetArray().size();
+            return (int)(pObj->GetArray().size());
     }
 
     return numAnnots;

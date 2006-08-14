@@ -80,7 +80,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
         return NULL;
     
     PdfArray	kidsArray = pObj->GetArray();
-    int	        numKids = kidsArray.size(),
+    size_t	    numKids = kidsArray.size(),
     kidsCount = pPagesObject->GetDictionary().GetKeyAsLong( "Count", 0 );
 
     // the pages tree node represented by pPagesObject has only page nodes in its kids array,
@@ -110,7 +110,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
     } 
     else 
     {
-        for( int i = 0 ; i < numKids ; i++ )
+        for( unsigned int i = 0 ; i < numKids ; i++ )
         {
             PdfVariant	kidsVar = kidsArray[ i ];
             
@@ -178,7 +178,7 @@ PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
 {
     PdfObject* pObj;
     PdfArray   array;
-    int        last = m_deqPageObjs.size();
+    size_t     last = m_deqPageObjs.size();
     PdfPage*  pPage = new PdfPage( rSize, m_pObject->GetParent() );
 
     // TODO: 
