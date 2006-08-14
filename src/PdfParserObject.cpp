@@ -35,10 +35,12 @@ static const int s_nLenEndObj    = 6; // strlen("endobj");
 static const int s_nLenStream    = 6; // strlen("stream");
 static const int s_nLenEndStream = 9; // strlen("endstream");
 
-PdfParserObject::PdfParserObject( PdfParser* pParser, const PdfRefCountedFile & rFile, char* szBuffer, long lBufferSize, long lOffset )
+PdfParserObject::PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedFile & rFile, char* szBuffer, long lBufferSize, long lOffset )
 //    : PdfObject( 0, 0, NULL), PdfParserBase( rFile, szBuffer, lBufferSize ), m_pParser( pParser )
-    : PdfObject( 0, 0, NULL), PdfParserBase( rFile, NULL, 0 ), m_pParser( pParser )
+    : PdfObject( 0, 0, NULL), PdfParserBase( rFile, NULL, 0 )
 {
+    m_pParent = pParent;
+
     Init();
 
     m_lOffset = lOffset == -1 ? ftell( m_file.Handle() ) : lOffset;
@@ -46,7 +48,7 @@ PdfParserObject::PdfParserObject( PdfParser* pParser, const PdfRefCountedFile & 
 
 PdfParserObject::PdfParserObject( char* szBuffer, long lBufferSize )
 //    : PdfObject( 0, 0, NULL), PdfParserBase( PdfRefCountedFile(), szBuffer, lBufferSize), m_pParser( NULL )
-    : PdfObject( 0, 0, NULL), PdfParserBase( PdfRefCountedFile(), NULL, 0 ), m_pParser( NULL )
+    : PdfObject( 0, 0, NULL), PdfParserBase( PdfRefCountedFile(), NULL, 0 )
 {
     Init();
 }
@@ -91,7 +93,7 @@ void PdfParserObject::ReadObjectNumber()
 
 void PdfParserObject::ParseFile( bool bIsTrailer )
 {
-    if( !m_file.Handle() || !m_pParser )
+    if( !m_file.Handle() )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -354,7 +356,7 @@ void PdfParserObject::ParseStream()
     int          c;
     PdfReference ref;
 
-    if( !m_file.Handle() || !m_pParser )
+    if( !m_file.Handle() || !m_pParent )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -390,7 +392,7 @@ void PdfParserObject::ParseStream()
     }
     else if( pObj && pObj->IsReference() )
     {
-        pObj = m_pParser->GetObjects().GetObject( pObj->GetReference() );
+        pObj = m_pParent->GetObject( pObj->GetReference() );
         if( !pObj )
         {
             RAISE_ERROR( ePdfError_InvalidHandle );

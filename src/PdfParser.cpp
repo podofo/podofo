@@ -291,7 +291,7 @@ void PdfParser::HasLinearizationDict()
         --pszObj;
 
     fseek( m_file.Handle(), pszObj - m_szBuffer + 3, SEEK_SET );
-    m_pLinearization = new PdfParserObject( this, m_file, this->GetBuffer(), this->GetBufferSize() );
+    m_pLinearization = new PdfParserObject( &m_vecObjects, m_file, this->GetBuffer(), this->GetBufferSize() );
 
     try {
         static_cast<PdfParserObject*>(m_pLinearization)->ParseFile();
@@ -392,7 +392,7 @@ void PdfParser::ReadNextTrailer()
     // ReadXRefcontents has read the first 't' from "trailer" so just check for "railer"
     if( strcmp( m_szBuffer, "railer" ) == 0 )
     {
-        PdfParserObject trailer( this, m_file, this->GetBuffer(), this->GetBufferSize() );
+        PdfParserObject trailer( &m_vecObjects, m_file, this->GetBuffer(), this->GetBufferSize() );
         try {
             trailer.ParseFile( true );
         } catch( PdfError & e ) {
@@ -486,7 +486,7 @@ void PdfParser::ReadTrailer()
         RAISE_ERROR( ePdfError_NoTrailer );
     }
 
-    m_pTrailer = new PdfParserObject( this, m_file, this->GetBuffer(), this->GetBufferSize() );
+    m_pTrailer = new PdfParserObject( &m_vecObjects, m_file, this->GetBuffer(), this->GetBufferSize() );
     try {
         static_cast<PdfParserObject*>(m_pTrailer)->ParseFile( true );
     } catch( PdfError & e ) {
@@ -688,7 +688,7 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
         RAISE_ERROR( ePdfError_NoXRef );
     }
 
-    PdfParserObject xrefObject( this, m_file, m_szBuffer, this->GetBufferSize() );
+    PdfParserObject xrefObject( &m_vecObjects, m_file, m_szBuffer, this->GetBufferSize() );
     xrefObject.ParseFile();
 
 
@@ -704,7 +704,7 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
     } 
 
     if( !m_pTrailer )    
-        m_pTrailer = new PdfParserObject( this, m_file, this->GetBuffer(), this->GetBufferSize() );
+        m_pTrailer = new PdfParserObject( &m_vecObjects, m_file, this->GetBuffer(), this->GetBufferSize() );
 
     MergeTrailer( &xrefObject );
 
@@ -851,7 +851,7 @@ void PdfParser::ReadObjects()
         {
             if( m_ppOffsets[i]->cUsed == 'n'  )
             {
-                pObject = new PdfParserObject( this, m_file, m_szBuffer, this->GetBufferSize(), m_ppOffsets[i]->lOffset );
+                pObject = new PdfParserObject( &m_vecObjects, m_file, m_szBuffer, this->GetBufferSize(), m_ppOffsets[i]->lOffset );
                 pObject->SetLoadOnDemand( m_bLoadOnDemand );
                 try {
                     pObject->ParseFile();

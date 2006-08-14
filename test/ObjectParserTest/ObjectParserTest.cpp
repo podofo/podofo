@@ -35,7 +35,7 @@ void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo
     unsigned long lObjLen;
     std::string   sLen;
     std::string   str;
-    PdfParser     parser;
+    PdfVecObjects parser;
 
     PdfRefCountedFile file( pszFilename, "w" );
     if( !file.Handle() )
@@ -105,7 +105,7 @@ void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo
 
 void TestObject( const char* pszFilename, const char* pszData, long lObjNo, long lGenNo )
 {
-    PdfParser         parser;
+    PdfVecObjects     parser;
     PdfRefCountedFile file( pszFilename, "w" );
 
     if( !file.Handle() )
