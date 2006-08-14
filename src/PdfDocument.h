@@ -77,6 +77,11 @@ class PdfDocument {
      */
     virtual ~PdfDocument();
 
+    /** Load a PdfDocument from a file
+     *  \param pszFilename filename of the file which is going to be parsed/opened
+     */
+    void Load( const char* pszFilename );
+
     /** Writes the complete document to a file
      *
      *  \param pszFilename filename of the document 
@@ -259,6 +264,10 @@ class PdfDocument {
     /** Initialize freetype and fontconfig
      */
     void InitFonts();
+
+    /** Clear all internal variables
+     */
+    void Clear();
 
     /** Get a value from the info dictionary as name
      *  \para rName the key to fetch from the info dictionary

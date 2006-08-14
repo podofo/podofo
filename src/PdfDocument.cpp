@@ -75,11 +75,7 @@ PdfDocument::PdfDocument()
 PdfDocument::PdfDocument( const char* pszFilename )
     : m_pPagesTree( NULL ), m_pTrailer( NULL ), m_ftLibrary( NULL )
 {
-    PdfParser parser( pszFilename, true );
-
-    InitFromParser( &parser );
-    InitPagesTree();
-    InitFonts();
+    this->Load( pszFilename );
 }
 
 PdfDocument::PdfDocument( PdfParser* pParser )
@@ -91,6 +87,21 @@ PdfDocument::PdfDocument( PdfParser* pParser )
 }
 
 PdfDocument::~PdfDocument()
+{
+    this->Clear();
+
+#ifndef _WIN32
+    FcConfigDestroy( (FcConfig*)m_pFcConfig );
+#endif
+
+    if( m_ftLibrary ) 
+    {
+        FT_Done_FreeType( m_ftLibrary );
+        m_ftLibrary = NULL;
+    }
+}
+
+void PdfDocument::Clear() 
 {
     TIVecObjects     it     = m_vecObjects.begin();
     TISortedFontList itFont = m_vecFonts.begin();
@@ -120,16 +131,6 @@ PdfDocument::~PdfDocument()
     {
         delete m_pTrailer;
         m_pTrailer = NULL;
-    }
-
-#ifndef _WIN32
-    FcConfigDestroy( (FcConfig*)m_pFcConfig );
-#endif
-
-    if( m_ftLibrary ) 
-    {
-        FT_Done_FreeType( m_ftLibrary );
-        m_ftLibrary = NULL;
     }
 }
 
@@ -178,6 +179,17 @@ void PdfDocument::InitPagesTree()
         m_pPagesTree = new PdfPagesTree( &m_vecObjects );
         m_pCatalog->GetDictionary().AddKey( "Pages", m_pPagesTree->Object()->Reference() );
     }
+}
+
+void PdfDocument::Load( const char* pszFilename )
+{
+    PdfParser parser( pszFilename, true );
+
+    this->Clear();
+
+    InitFromParser( &parser );
+    InitPagesTree();
+    InitFonts();
 }
 
 void PdfDocument::Write( const char* pszFilename )
