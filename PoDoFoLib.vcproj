@@ -124,6 +124,12 @@
 				RelativePath=".\src\PdfDocument.cpp">
 			</File>
 			<File
+				RelativePath=".\src\PdfElement.cpp">
+			</File>
+			<File
+				RelativePath=".\src\PdfElement.h">
+			</File>
+			<File
 				RelativePath=".\src\PdfError.cpp">
 			</File>
 			<File
@@ -151,6 +157,9 @@
 				RelativePath=".\src\PdfPage.cpp">
 			</File>
 			<File
+				RelativePath=".\src\PdfPagesTree.cpp">
+			</File>
+			<File
 				RelativePath=".\src\PdfPainter.cpp">
 			</File>
 			<File
@@ -166,10 +175,10 @@
 				RelativePath=".\src\PdfRect.cpp">
 			</File>
 			<File
-				RelativePath=".\src\PdfReference.cpp">
+				RelativePath=".\src\PdfRefCountedFile.cpp">
 			</File>
 			<File
-				RelativePath=".\src\PdfSimpleWriter.cpp">
+				RelativePath=".\src\PdfReference.cpp">
 			</File>
 			<File
 				RelativePath=".\src\PdfStream.cpp">
@@ -249,6 +258,9 @@
 				RelativePath=".\src\PdfPage.h">
 			</File>
 			<File
+				RelativePath=".\src\PdfPagesTree.h">
+			</File>
+			<File
 				RelativePath=".\src\PdfPainter.h">
 			</File>
 			<File
@@ -264,10 +276,10 @@
 				RelativePath=".\src\PdfRect.h">
 			</File>
 			<File
-				RelativePath=".\src\PdfReference.h">
+				RelativePath=".\src\PdfRefCountedFile.h">
 			</File>
 			<File
-				RelativePath=".\src\PdfSimpleWriter.h">
+				RelativePath=".\src\PdfReference.h">
 			</File>
 			<File
 				RelativePath=".\src\PdfStream.h">

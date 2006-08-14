@@ -74,6 +74,8 @@ const PdfRefCountedFile & PdfRefCountedFile::operator=( const PdfRefCountedFile 
     m_pFile = rhs.m_pFile;
     if( m_pFile )
         m_pFile->m_lRefCount++;
+
+	return *this;
 }
 
 
