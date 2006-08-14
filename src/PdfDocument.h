@@ -161,11 +161,14 @@ class PdfDocument {
      */
     int GetPageCount() const;
 
-    /** Get the PdfObject for a specific page in a document
+    /** Get the PdfPage for a specific page in a document
+     *  The returned page is owned by the PdfDocument
+     *  and will get deleted along with it!
+     *
      *  \param nIndex which page (0-based)
-     *  \returns PdfPage for the Page
+     *  \returns a pointer to a PdfPage for the requested page
      */
-    PdfPage GetPage( int nIndex ) const;
+    PdfPage* GetPage( int nIndex ) const;
 
     /** Creates a PdfFont object
      *  \param pszFontName name of the font as it is known to the system
@@ -177,11 +180,13 @@ class PdfDocument {
 
     /** Creates a new page object and inserts it into the internal
      *  page tree. 
+     *  The returned page is owned by the PdfDocument
+     *  and will get deleted along with it!
      *
      *  \param rSize a PdfRect spezifying the size of the page (i.e the /MediaBox key) in 1/1000th mm
-     *  \returns a PdfPage object
+     *  \returns a pointer to a PdfPage object
      */
-    PdfPage CreatePage( const PdfRect & rSize );
+    PdfPage* CreatePage( const PdfRect & rSize );
 
     /** Set the author of the document.
      *  \param sAuthor author

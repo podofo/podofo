@@ -319,8 +319,8 @@ void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 int main( int argc, char* argv[] ) 
 {
     PdfDocument writer;
-    PdfPage         page;
-    PdfPainter      painter;
+    PdfPage*    pPage;
+    PdfPainter  painter;
 
     if( argc != 2 )
     {
@@ -332,35 +332,35 @@ int main( int argc, char* argv[] )
     printf("It creates a new PdfFile from scratch.\n");
     printf("---\n");
 
-    page = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    painter.SetPage( &page );
+    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+    painter.SetPage( pPage );
 
     printf("Drawing the first page with various lines.\n");
-    TEST_SAFE_OP( LineTest( &painter, &page, &writer ) );
+    TEST_SAFE_OP( LineTest( &painter, pPage, &writer ) );
 
-    page = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_Letter ) );
-    painter.SetPage( &page );
+    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_Letter ) );
+    painter.SetPage( pPage );
 
     printf("Drawing the second page with various rectangle and triangles.\n");
-    TEST_SAFE_OP( RectTest( &painter, &page, &writer ) );
+    TEST_SAFE_OP( RectTest( &painter, pPage, &writer ) );
 
-    page = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    painter.SetPage( &page );
+    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+    painter.SetPage( pPage );
 
     printf("Drawing some text.\n");
-    TEST_SAFE_OP( TextTest( &painter, &page, &writer ) );
+    TEST_SAFE_OP( TextTest( &painter, pPage, &writer ) );
 
-    page = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    painter.SetPage( &page );
+    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+    painter.SetPage( pPage );
 
     printf("Drawing some images.\n");
-    TEST_SAFE_OP( ImageTest( &painter, &page, &writer ) );
+    TEST_SAFE_OP( ImageTest( &painter, pPage, &writer ) );
 
-    page = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    painter.SetPage( &page );
+    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+    painter.SetPage( pPage );
 
     printf("Drawing some circles and ellipsis.\n");
-    TEST_SAFE_OP( EllipseTest( &painter, &page, &writer ) );
+    TEST_SAFE_OP( EllipseTest( &painter, pPage, &writer ) );
 
 
     printf("Setting document informations.\n\n");

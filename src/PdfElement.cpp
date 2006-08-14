@@ -26,12 +26,6 @@
 
 namespace PoDoFo {
 
-PdfElement::PdfElement()
-    : m_pObject( NULL )
-{
-
-}
-
 PdfElement::PdfElement( const char* pszType, PdfVecObjects* pParent )
 {
     m_pObject = pParent->CreateObject( pszType );
@@ -57,20 +51,8 @@ PdfElement::PdfElement( const char* pszType, PdfObject* pObject )
     }
 }
 
-PdfElement::PdfElement( const PdfElement & rhs )
-{
-    this->operator=( rhs );
-}
-
 PdfElement::~PdfElement()
 {
-}
-
-const PdfElement & PdfElement::operator=( const PdfElement & rhs )
-{
-    m_pObject = rhs.m_pObject;
-
-    return *this;
 }
 
 const char* PdfElement::TypeNameForIndex( int i, const char** ppTypes, long lLen ) const

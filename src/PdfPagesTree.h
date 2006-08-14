@@ -27,8 +27,10 @@
 namespace PoDoFo {
 
 class PdfObject;
+class PdfPage;
+class PdfRect;
 
-typedef std::deque< PdfObject* >	PdfPageObjects;
+typedef std::deque< PdfPage* >	PdfPageObjects;
 
 /** Class for managing the tree of Pages in a PDF document
  *  Don't use this class directly. Use PdfDocument instead.
@@ -56,16 +58,24 @@ class PdfPagesTree : public PdfElement
      */
     int GetTotalNumberOfPages() const;
     
-    /** Return a PdfObject* for the specified Page index
+    /** Return a PdfPage for the specified Page index
+     *  The returned page is owned by the pages tree and
+     *  deleted along with it.
+     *
      *  \param nIndex page index, 0-based
-     *  \returns a PDFObject* for the given page
+     *  \returns a pointer to the requested page
      */
-    PdfObject* GetPage( int nIndex );
+    PdfPage* GetPage( int nIndex );
 
-    /** Inserts a PdfObject in the pages tree
-     *  \param pObject pointer to a pdf page object
+    /** Creates a new page object and inserts it into the internal
+     *  page tree. 
+     *  The returned page is owned by the pages tree
+     *  and will get deleted along with it!
+     *
+     *  \param rSize a PdfRect spezifying the size of the page (i.e the /MediaBox key) in 1/1000th mm
+     *  \returns a pointer to a PdfPage object
      */
-    void InsertPage( PdfObject* pObject );
+    PdfPage* CreatePage( const PdfRect & rSize );
 
  private:
     PdfPagesTree();	// don't allow construction from nothing!

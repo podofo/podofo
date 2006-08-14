@@ -73,6 +73,7 @@ void PdfInfo::OutputInfoDict( std::ostream& sOutStream )
 
 void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
 {
+    PdfPage*    curPage;
     PdfVariant  var;
     std::string str;
 
@@ -81,13 +82,13 @@ void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
     {
         sOutStream << "Page " << pg << ":" << std::endl;
         
-        PdfPage	curPage = mDoc->GetPage( pg );
+        curPage = mDoc->GetPage( pg );
         
-        curPage.GetMediaBox().ToVariant( var );
+        curPage->GetMediaBox().ToVariant( var );
         var.ToString( str );
 
         sOutStream << "\tMediaBox: " << str << std::endl;
-        sOutStream << "\tRotation: " << curPage.GetRotation() << std::endl;
-        sOutStream << "\t# of Annotations: " << curPage.GetNumAnnots() << std::endl;
+        sOutStream << "\tRotation: " << curPage->GetRotation() << std::endl;
+        sOutStream << "\t# of Annotations: " << curPage->GetNumAnnots() << std::endl;
     }
 }

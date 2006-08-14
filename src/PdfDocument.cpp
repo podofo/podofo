@@ -147,8 +147,6 @@ void PdfDocument::InitFonts()
 
 void PdfDocument::InitFromParser( PdfParser* pParser )
 {
-    PdfObject* pRoot;
-
     m_vecObjects   = pParser->GetObjects();
     m_eVersion     = pParser->GetPdfVersion();
     m_bLinearized  = pParser->IsLinearized();
@@ -214,20 +212,14 @@ int PdfDocument::GetPageCount() const
     return m_pPagesTree->GetTotalNumberOfPages();
 }
 
-PdfPage PdfDocument::GetPage( int nIndex ) const
+PdfPage* PdfDocument::GetPage( int nIndex ) const
 {
     if( nIndex < 0 || nIndex > m_pPagesTree->GetTotalNumberOfPages() )
     {
         RAISE_ERROR( ePdfError_ValueOutOfRange );
     }
 
-    PdfObject*	pgObj = m_pPagesTree->GetPage( nIndex );
-    if ( !pgObj ) 
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    return PdfPage( pgObj );
+    return m_pPagesTree->GetPage( nIndex );
 }
 
 PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bEmbedd )
@@ -273,13 +265,9 @@ PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bEmbedd )
     return pFont;
 }
 
-PdfPage PdfDocument::CreatePage( const PdfRect & rSize )
+PdfPage* PdfDocument::CreatePage( const PdfRect & rSize )
 {
-    PdfPage page( rSize, &m_vecObjects );
-
-    m_pPagesTree->InsertPage( page.Object() );
-
-    return page;
+    return m_pPagesTree->CreatePage( rSize );
 }
 
 const PdfString & PdfDocument::GetStringFromInfoDict( const PdfName & rName ) const

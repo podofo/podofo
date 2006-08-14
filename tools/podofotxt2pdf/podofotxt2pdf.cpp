@@ -43,7 +43,7 @@ void print_help()
 
 void draw( char* pszBuffer, PdfDocument* pDocument )
 {
-    PdfPage         page;
+    PdfPage*        pPage;
     PdfPainter      painter;
     PdfFont*        pFont;
     PdfRect         size;
@@ -55,7 +55,7 @@ void draw( char* pszBuffer, PdfDocument* pDocument )
 
     size            = PdfPage::CreateStandardPageSize( ePdfPageSize_A4 );
     pFont = pDocument->CreateFont( "Arial" );
-    page = pDocument->CreatePage( size );
+    pPage = pDocument->CreatePage( size );
 
     if( !pFont )
     {
@@ -63,7 +63,7 @@ void draw( char* pszBuffer, PdfDocument* pDocument )
     }
     pFont->SetFontSize( FONT_SIZE );
     
-    painter.SetPage( &page );
+    painter.SetPage( pPage );
     painter.SetFont( pFont );
 
     while( *pszBuffer )
@@ -77,8 +77,8 @@ void draw( char* pszBuffer, PdfDocument* pDocument )
             dY += pFont->FontMetrics()->LineSpacing();
             if( dY > (size.Height() -  BORDER_TOP) )
             {
-                page = pDocument->CreatePage( size );
-                painter.SetPage( &page );
+                pPage = pDocument->CreatePage( size );
+                painter.SetPage( pPage );
                 dY       = BORDER_TOP;
             }
         }

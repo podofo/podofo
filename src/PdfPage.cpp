@@ -28,11 +28,6 @@
 
 namespace PoDoFo {
 
-PdfPage::PdfPage()
-    : PdfElement(), m_pContents( NULL ), m_pResources( NULL )
-{
-}
-
 PdfPage::PdfPage( const PdfRect & rSize, PdfVecObjects* pParent )
     : PdfElement( "Page", pParent ), PdfCanvas()
 {
@@ -57,24 +52,8 @@ PdfPage::PdfPage( PdfObject* pObject )
     m_pContents = m_pObject->GetIndirectKey( "Contents" );
 }
 
-PdfPage::PdfPage( const PdfPage & rhs )
-    : PdfElement( rhs )
-{
-    this->operator=( rhs );
-}
-
 PdfPage::~PdfPage()
 {
-}
-
-const PdfPage & PdfPage::operator=( const PdfPage & rhs )
-{
-    PdfElement::operator=( rhs );
-
-    m_pContents  = rhs.m_pContents;
-    m_pResources = rhs.m_pResources;
-
-    return *this;
 }
 
 PdfRect PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize )

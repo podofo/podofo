@@ -23,6 +23,7 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfObject.h"
+#include "PdfPage.h"
 #include "PdfVecObjects.h"
 
 namespace PoDoFo {
@@ -48,7 +49,15 @@ PdfPagesTree::PdfPagesTree( PdfObject* pPagesRoot )
 
 PdfPagesTree::~PdfPagesTree() 
 {
-    // at the moment, nothing to do...
+    PdfPageObjects::iterator it = m_deqPageObjs.begin();
+
+    while( it != m_deqPageObjs.end() )
+    {
+        delete (*it);
+        ++it;
+    }
+        
+    m_deqPageObjs.clear();
 }
 
 int PdfPagesTree::GetTotalNumberOfPages() const
@@ -139,8 +148,11 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
     return NULL;
 }
 
-PdfObject* PdfPagesTree::GetPage( int nIndex )
+PdfPage* PdfPagesTree::GetPage( int nIndex )
 {
+    PdfObject* pObj;
+    PdfPage*   pPage;
+
     // if you try to get a page past the end, return NULL
     // we use >= since nIndex is 0 based
     if ( nIndex >= GetTotalNumberOfPages() )
@@ -148,33 +160,43 @@ PdfObject* PdfPagesTree::GetPage( int nIndex )
     
     // if we already have the page in our list, return it
     // otherwise, we need to find it, add it and return it
-    PdfObject*	pObject = m_deqPageObjs[ nIndex ];
-    if ( !pObject ) 
+    pPage = m_deqPageObjs[ nIndex ];
+    if ( !pPage ) 
     {
-        pObject = GetPageNode( nIndex, m_pObject );
-        if ( pObject )
-            m_deqPageObjs[ nIndex ] = pObject;
+        pObj = GetPageNode( nIndex, m_pObject );
+        if ( pObj )
+        {
+            pPage = new PdfPage( pObj );
+            m_deqPageObjs[ nIndex ] = pPage;
+        }
     }
     
-    return pObject;
+    return pPage;
 }
 
-void PdfPagesTree::InsertPage( PdfObject* pObject )
+PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
 {
-    // TODO: DS: insert objects into a balanced tree
     PdfObject* pObj;
     PdfArray   array;
     int        last = m_deqPageObjs.size();
+    PdfPage*  pPage = new PdfPage( rSize, m_pObject->GetParent() );
 
+    // TODO: 
+    // --- buggy old code to insert into the page tree
+    // --- will not work for trees but only for arrays
+    // --- START BUGGY
     pObj = m_pObject->GetDictionary().GetKey( "Kids" );
     if( pObj && pObj->IsArray() )
         array = pObj->GetArray();
     
-    array.push_back( pObject->Reference() );
+    array.push_back( pPage->Object()->Reference() );
     m_pObject->GetDictionary().AddKey( "Kids", array );
 
-    m_deqPageObjs[last] = pObject;
+    m_deqPageObjs[last] = pPage;
     m_pObject->GetDictionary().AddKey( "Count", PdfObject( (long)GetTotalNumberOfPages() + 1) );
+    // -- END BUGGY
+    
+    return pPage;
 }
 
 };
