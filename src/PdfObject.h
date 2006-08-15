@@ -65,6 +65,14 @@ class PdfObject : public PdfVariant {
      */
     PdfObject( unsigned long objectno, unsigned long generationno, const char* pszType = NULL );
 
+    /** Construct a new PDF object.
+     *  \param objectno the object number
+     *  \param generationno the generation number which is almost ever 0
+     *  \param rVariant the value of the PdfObject
+     *  \see SetDirect
+     */
+    PdfObject( unsigned long objectno, unsigned long generationno, const PdfVariant & rVariant );
+
     /** Create a PDF object with object and generation number -1
      *  and the value of the passed variant.
      *

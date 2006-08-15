@@ -27,6 +27,7 @@
 namespace PoDoFo {
 
 class PdfObject;
+class PdfVariant;
 
 /** A STL vector of PdfObjects. I.e. a list of PdfObject classes.
  *  The PdfParser will read the PdfFile into memory and create 
@@ -97,15 +98,6 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      */
     PdfObject* RemoveObject( const PdfReference & ref );
 
-    /** Create a PdfObject of type T which must be a subclasss of PdfObject
-     *  and it does not need a parameter for pszType.
-     *  This function assigns the next free object number to the PdfObject
-     *  and add is to the internal vector.
-     *
-     *  \returns a new PdfObject subclasss
-     */
-    template <class T> T* CreateObject();
-
     /** Creates a new object and inserts it into the vector.
      *  This function assigns the next free object number to the PdfObject.
      *
@@ -113,6 +105,14 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      *  \returns PdfObject pointer to the new PdfObject
      */
     PdfObject* CreateObject( const char* pszType = NULL );
+
+    /** Creates a new object and inserts it into the vector.
+     *  This function assigns the next free object number to the PdfObject.
+     *
+     *  \param rVariant value of the PdfObject
+     *  \returns PdfObject pointer to the new PdfObject
+     */
+    PdfObject* CreateObject( const PdfVariant & rVariant );
 
     /** Insert a object into this vector.
      *  Overwritten from std::vector so that 
@@ -141,25 +141,6 @@ void PdfVecObjects::SetAutoDelete( bool bAutoDelete )
 bool PdfVecObjects::AutoDelete() const
 {
     return m_bAutoDelete;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-template <class T>
-T* PdfVecObjects::CreateObject()
-{
-    T*         pTemplate = new T( m_nObjectCount, 0 );
-    PdfObject* pObject   = dynamic_cast<PdfObject*>(pTemplate);
-
-    if( !pObject )
-    {
-        delete pTemplate;
-        return NULL;
-    }
-
-    this->push_back( pObject );
-    return pTemplate;
 }
 
 typedef PdfVecObjects                TVecObjects;

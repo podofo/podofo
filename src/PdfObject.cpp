@@ -49,6 +49,12 @@ PdfObject::PdfObject( unsigned long objectno, unsigned long generationno, const 
         this->GetDictionary().AddKey( PdfName::KeyType, PdfName( pszType ) );
 }
 
+PdfObject::PdfObject( unsigned long objectno, unsigned long generationno, const PdfVariant & rVariant )
+    : PdfVariant( rVariant ), m_reference( objectno, generationno )
+{
+    Init( true );
+}
+
 PdfObject::PdfObject( const PdfVariant & var )
     : PdfVariant( var ), m_reference( (unsigned long)-1, (unsigned long)-1 )
 {
