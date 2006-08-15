@@ -31,7 +31,9 @@ namespace PoDoFo {
 PdfPagesTree::PdfPagesTree( PdfVecObjects* pParent )
     : PdfElement( "Pages", pParent )
 {
-
+	PdfObject* kids = pParent->CreateObject( 0 );
+	Object()->GetDictionary().AddKey( "Kids", kids );
+	Object()->GetDictionary().AddKey( "Count", PdfObject( (long) 0 ) );
 }
 
 PdfPagesTree::PdfPagesTree( PdfObject* pPagesRoot )
@@ -62,8 +64,26 @@ PdfPagesTree::~PdfPagesTree()
 
 int PdfPagesTree::GetTotalNumberOfPages() const
 {
-    return ((m_pObject->GetDictionary().HasKey( "Count" ) ) ?
-            m_pObject->GetDictionary().GetKeyAsLong( "Count", 0 ) : 0);
+    return ( ( m_pObject->GetDictionary().HasKey( "Count" ) ) ?
+				m_pObject->GetDictionary().GetKeyAsLong( "Count", 0 ) : 0 );
+}
+
+PdfObject* PdfPagesTree::GetPageFromKidArray( PdfArray& inArray, int inIndex )
+{
+	PdfVariant	kidsVar = inArray[ inIndex ];
+
+#ifdef _DEBUG
+	std::string str;
+	kidsVar.ToString( str );
+#endif
+
+	// is the kid a Pages tree node or a Page object?
+	if ( !kidsVar.IsReference() )  {
+		return NULL;	// can't handle inline pages just yet...
+	}
+
+	PdfObject* pgObject = GetRoot()->GetParent()->GetObject( kidsVar.GetReference() );
+	return pgObject;
 }
 
 PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
@@ -75,11 +95,11 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
     if( !pPagesObject->GetDictionary().HasKey( "Kids" ) )
         return NULL;
 
-    pObj = pPagesObject->GetDictionary().GetKey( "Kids" );
-    if( !pObj->IsArray() )
-        return NULL;
+	pObj = pPagesObject->GetDictionary().GetKey( "Kids" );
+	if( !pObj->IsArray() )
+		return NULL;
     
-    PdfArray	kidsArray = pObj->GetArray();
+    PdfArray&	kidsArray = pObj->GetArray();
     size_t	    numKids = kidsArray.size(),
     kidsCount = pPagesObject->GetDictionary().GetKeyAsLong( "Count", 0 );
 
@@ -88,14 +108,12 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
     if ( numKids == kidsCount )
     {
         PdfVariant pgVar = kidsArray[ nPageNum ];
-        std::string str;
-        pgVar.ToString( str );
         while ( true ) 
         {
             if ( !pgVar.IsReference() ) 
                 return NULL;	// can't handle inline pages just yet...
 
-            PdfObject* pgObject = m_pObject->GetParent()->GetObject( pgVar.GetReference() );
+            PdfObject* pgObject = GetRoot()->GetParent()->GetObject( pgVar.GetReference() );
 
             // make sure the object is a /Page and not a /Pages with a single kid
             if ( pgObject->GetDictionary().GetKeyAsName( PdfName( "Type" ) ) == PdfName( "Page" ) )
@@ -112,6 +130,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
     {
         for( unsigned int i = 0 ; i < numKids ; i++ )
         {
+#if 0
             PdfVariant	kidsVar = kidsArray[ i ];
             
             // is the kid a Pages tree node or a Page object?
@@ -120,7 +139,10 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
                 return NULL;	// can't handle inline pages just yet...
             }
 
-            PdfObject* pgObject = m_pObject->GetParent()->GetObject( kidsVar.GetReference() );
+            PdfObject* pgObject = GetRoot()->GetParent()->GetObject( kidsVar.GetReference() );
+#else
+			PdfObject* pgObject = GetPageFromKidArray( kidsArray, i );
+#endif
             
             // if it's a Page, then is it the right page??
             // otherwise, it's a Pages, and we need to recurse
@@ -163,7 +185,7 @@ PdfPage* PdfPagesTree::GetPage( int nIndex )
     pPage = m_deqPageObjs[ nIndex ];
     if ( !pPage ) 
     {
-        pObj = GetPageNode( nIndex, m_pObject );
+        pObj = GetPageNode( nIndex, GetRoot() );
         if ( pObj )
         {
             pPage = new PdfPage( pObj );
@@ -174,28 +196,116 @@ PdfPage* PdfPagesTree::GetPage( int nIndex )
     return pPage;
 }
 
+PdfObject* PdfPagesTree::GetParent( PdfObject* inObject )
+{
+	PdfObject *pObj = inObject->GetDictionary().GetKey( "Parent" );
+	if( !pObj || !pObj->IsDictionary() )
+		return NULL;
+	else
+		return pObj;
+}
+
+PdfObject* PdfPagesTree::GetKids( PdfObject* inPagesDict )
+{
+	PdfObject *pObj = inPagesDict->GetDictionary().GetKey( "Kids" );
+	if( !pObj || !pObj->IsArray() )
+		return NULL;
+	else
+		return pObj;
+}
+
+int PdfPagesTree::GetPosInKids( PdfObject* inPageObj )
+{
+	// given a page or pages dictionary, return the index into its parents Kids array:
+	PdfObject* parentObj = PdfPagesTree::GetParent( inPageObj ) ;
+
+	// if inPageDict has no Parent, return -1; this would be the case when inserting a new page
+	if( parentObj == NULL )
+		return -1 ;
+
+	// find inPageObj in parentObj
+	PdfObject* theKids = PdfPagesTree::GetKids( parentObj ) ;
+	PdfArray&	kidsArray = theKids->GetArray();
+	size_t kidsLen = kidsArray.size();
+	int kidsIndex;
+	bool foundKid = false ;
+	for( kidsIndex = 0 ; ( !foundKid ) && ( kidsIndex < kidsLen ) ; kidsIndex++ )
+	{
+		PdfObject* kidObj = GetPageFromKidArray( kidsArray, kidsIndex );
+		if( inPageObj == kidObj || *kidObj == *inPageObj ) {
+			foundKid = true ;
+			break ;
+		}
+	}
+
+	return (int)kidsIndex ;
+}
+
+void PdfPagesTree::InsertPage( int inAfterPageNumber, PdfPage* inPage )
+{
+	PdfObject*	parentObj = ( PdfObject* )NULL ;
+	PdfObject*	afterPageObj = ( PdfObject* )NULL ;
+
+	if( PageInsertBeforeFirstPage == inAfterPageNumber ) {
+		parentObj = GetRoot() ;
+	} else {
+		// get the page dictionary that we want to insert after, and get its parent pages dictionary
+		afterPageObj = GetPageNode( inAfterPageNumber, GetRoot() ) ;
+		parentObj = PdfPagesTree::GetParent( afterPageObj ) ;
+	}
+
+	// find afterPageObj's position in its parent's Kids array
+	int kidsIndex ;
+	if( PageInsertBeforeFirstPage == inAfterPageNumber )
+		kidsIndex = -1 ;
+	else
+		kidsIndex = PdfPagesTree::GetPosInKids( afterPageObj ) ;
+
+	// insert our page into the tree
+	InsertPages( kidsIndex, inPage->Object(), parentObj, 1 ) ;
+}
+
+int PdfPagesTree::ChangePagesCount( PdfObject* inPageObj, int inDelta )
+{
+	// Increment or decrement inPagesDict's Count by inDelta, and return the new count.
+	// Simply return the current count if inDelta is 0.
+	int	cnt = inPageObj->GetDictionary().GetKey( "Count" )->GetNumber();
+	if( 0 != inDelta ) {
+		cnt += inDelta ;
+		inPageObj->GetDictionary().AddKey( "Count", PdfVariant( (long)cnt ) );
+	}
+	return cnt ;
+}
+
+void PdfPagesTree::InsertPages( int inAfterIndex, 
+							    PdfObject* inPageOrPagesObj, 
+								PdfObject* inParentObj, 
+								int inNumPages )
+{
+	// insert inPageOrPagesDict in the parent's Kids array, and set inPageOrPagesDict's Parent
+	int	insIdx = inAfterIndex + 1;
+
+	PdfObject*	kidsArrObj = PdfPagesTree::GetKids( inParentObj ) ;
+	PdfArray&	kidsArray = kidsArrObj->GetArray();
+	kidsArray.insert( kidsArray.begin() + insIdx, inPageOrPagesObj->Reference() );
+	inPageOrPagesObj->GetDictionary().AddKey( "Parent", inParentObj ) ;
+
+	// increment the pages count of all of the parent page nodes, walking up the tree
+	PdfObject* tempParent = inParentObj ;
+	while( NULL != tempParent ) {
+		int theCount = this->ChangePagesCount( tempParent, inNumPages ) ;
+		tempParent = PdfPagesTree::GetParent( tempParent ) ;
+	}
+}
+
 PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
 {
-    PdfObject* pObj;
-    PdfArray   array;
-    size_t     last = m_deqPageObjs.size();
-    PdfPage*  pPage = new PdfPage( rSize, m_pObject->GetParent() );
-
-    // TODO: 
-    // --- buggy old code to insert into the page tree
-    // --- will not work for trees but only for arrays
-    // --- START BUGGY
-    pObj = m_pObject->GetDictionary().GetKey( "Kids" );
-    if( pObj && pObj->IsArray() )
-        array = pObj->GetArray();
+    int			last = m_deqPageObjs.size()-1;
+    PdfPage*	pPage = new PdfPage( rSize, GetRoot()->GetParent() );
     
-    array.push_back( pPage->Object()->Reference() );
-    m_pObject->GetDictionary().AddKey( "Kids", array );
+	InsertPage( last, pPage );
+	m_deqPageObjs.push_back( pPage );	// might as well add it here too...
 
-    m_deqPageObjs[last] = pPage;
-    m_pObject->GetDictionary().AddKey( "Count", PdfObject( (long)GetTotalNumberOfPages() + 1) );
-    // -- END BUGGY
-    
     return pPage;
 }
 

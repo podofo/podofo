@@ -175,6 +175,9 @@
 				RelativePath=".\src\PdfRect.cpp">
 			</File>
 			<File
+				RelativePath=".\src\PdfRefCountedBuffer.cpp">
+			</File>
+			<File
 				RelativePath=".\src\PdfRefCountedFile.cpp">
 			</File>
 			<File
@@ -264,6 +267,9 @@
 				RelativePath=".\src\PdfPainter.h">
 			</File>
 			<File
+				RelativePath=".\src\PdfPainterMM.h">
+			</File>
+			<File
 				RelativePath=".\src\PdfParser.h">
 			</File>
 			<File
@@ -274,6 +280,9 @@
 			</File>
 			<File
 				RelativePath=".\src\PdfRect.h">
+			</File>
+			<File
+				RelativePath=".\src\PdfRefCountedBuffer.h">
 			</File>
 			<File
 				RelativePath=".\src\PdfRefCountedFile.h">

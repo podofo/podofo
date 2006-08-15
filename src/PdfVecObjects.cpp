@@ -119,6 +119,15 @@ PdfObject* PdfVecObjects::CreateObject( const char* pszType )
     return pObj;
 }
 
+PdfObject* PdfVecObjects::CreateObject( int numElems )
+{
+	PdfObject* pObj = new PdfObject( m_nObjectCount, 0, numElems );
+
+	this->push_back( pObj );
+
+	return pObj;
+}
+
 PdfObject* PdfVecObjects::CreateObject( const PdfVariant & rVariant )
 {
     PdfObject* pObj = new PdfObject( m_nObjectCount, 0, rVariant );

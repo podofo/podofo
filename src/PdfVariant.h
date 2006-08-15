@@ -225,6 +225,11 @@ class PdfVariant {
      */
     inline const PdfArray & GetArray() const;
 
+    /** Returns the value of the object as array
+     *  \returns a array
+     */
+    inline PdfArray & GetArray();
+
     /** Returns the dictionary value of this object
      *  \returns a PdfDictionary
      */
@@ -422,6 +427,18 @@ const PdfArray & PdfVariant::GetArray() const
     }
 
     return *((PdfArray*)(m_pData));
+}
+
+PdfArray & PdfVariant::GetArray()
+{
+	DelayedLoad();
+
+	if( !IsArray() )
+	{
+		RAISE_ERROR( ePdfError_InvalidDataType );
+	}
+
+	return *((PdfArray*)(m_pData));
 }
 
 // -----------------------------------------------------

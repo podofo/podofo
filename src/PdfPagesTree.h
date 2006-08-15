@@ -21,6 +21,7 @@
 #ifndef _PDF_PAGES_TREE_H_
 #define _PDF_PAGES_TREE_H_
 
+#include "PdfArray.h"
 #include "PdfDefines.h"
 #include "PdfElement.h"
 
@@ -31,6 +32,14 @@ class PdfPage;
 class PdfRect;
 
 typedef std::deque< PdfPage* >	PdfPageObjects;
+
+typedef enum {
+	PageInsertBeforeFirstPage	= -1,
+	PageInsertLastPage			= -2,
+	PageInsertAllPages			= -3,
+	PageInsertOddPagesOnly		= -4,
+	PageInsertEvenPagesOnly		= -5
+} PageInsertionPoints;
 
 /** Class for managing the tree of Pages in a PDF document
  *  Don't use this class directly. Use PdfDocument instead.
@@ -67,12 +76,23 @@ class PdfPagesTree : public PdfElement
      */
     PdfPage* GetPage( int nIndex );
 
-    /** Creates a new page object and inserts it into the internal
+    /** Inserts an existing page object into the internal page tree. 
+	 *	after the specified page number
+     *  The returned page is owned by the pages tree
+     *  and will get deleted along with it!
+     *
+     *  \param inAfterPageNumber an integer specifying after what page - may be one of the special values
+	 *  \param inPage a PdfPage to be inserted
+     *  \returns a pointer to a PdfPage object
+     */
+	void InsertPage( int inAfterPageNumber, PdfPage* inPage );
+
+   /** Creates a new page object and inserts it into the internal
      *  page tree. 
      *  The returned page is owned by the pages tree
      *  and will get deleted along with it!
      *
-     *  \param rSize a PdfRect spezifying the size of the page (i.e the /MediaBox key) in 1/1000th mm
+     *  \param rSize a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
      *  \returns a pointer to a PdfPage object
      */
     PdfPage* CreatePage( const PdfRect & rSize );
@@ -83,8 +103,36 @@ class PdfPagesTree : public PdfElement
     /** Private method for actually traversing the /Pages tree
      */
     PdfObject* GetPageNode( int nPageNum, PdfObject* pPagesObject );
+
+	/** Private method to access the Root of the tree using a logical name
+	 */
+	PdfObject* GetRoot()	{ return m_pObject; }
     
- private:
+    /** Private method for getting the Parent of a node in the /Pages tree
+     */
+	static PdfObject* GetParent( PdfObject* inObject );
+
+    /** Private method for getting the Kids of a node in the /Pages tree
+     */
+	static PdfObject* GetKids( PdfObject* inObject );
+
+    /** Private method for determining where a page is in the /Pages tree
+     */
+	int GetPosInKids( PdfObject* inPageObj );
+
+	/** Private method for adjusting the page count in a tree
+	 */
+	int ChangePagesCount( PdfObject* inPageObj, int inDelta );
+
+	/** Private method for cleaning up after an insertion
+	 */
+	void InsertPages( int inAfterIndex, PdfObject* inPageOrPagesObj, PdfObject* inParentObj, int inNumPages );
+
+	/** Private method for getting the PdfObject* for a Page from a specific /Kids array
+	 */
+	PdfObject* GetPageFromKidArray( PdfArray& inArray, int inIndex );
+
+  private:
     PdfPageObjects    m_deqPageObjs;
     
 };

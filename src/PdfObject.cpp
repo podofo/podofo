@@ -20,6 +20,7 @@
 
 #include "PdfObject.h"
 
+#include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfOutputDevice.h"
 #include "PdfStream.h"
@@ -47,6 +48,17 @@ PdfObject::PdfObject( unsigned long objectno, unsigned long generationno, const 
 
     if( pszType )
         this->GetDictionary().AddKey( PdfName::KeyType, PdfName( pszType ) );
+}
+
+PdfObject::PdfObject( unsigned long objectno, unsigned long generationno, int numElems )
+: PdfVariant( PdfArray() ), m_reference( objectno, generationno )
+{
+	Init( true );
+
+	if( numElems ) {
+		PdfArray arr = this->GetArray();
+		arr.resize( numElems );
+	}
 }
 
 PdfObject::PdfObject( unsigned long objectno, unsigned long generationno, const PdfVariant & rVariant )

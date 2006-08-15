@@ -106,13 +106,21 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      */
     PdfObject* CreateObject( const char* pszType = NULL );
 
-    /** Creates a new object and inserts it into the vector.
+    /** Creates a new object (of type PdfDictionary) and inserts it into the vector.
      *  This function assigns the next free object number to the PdfObject.
      *
      *  \param rVariant value of the PdfObject
      *  \returns PdfObject pointer to the new PdfObject
      */
     PdfObject* CreateObject( const PdfVariant & rVariant );
+
+    /** Creates a new object (of type PdfArray) and inserts it into the vector.
+     *  This function assigns the next free object number to the PdfObject.
+     *
+     *  \param numElems pre-allocates/reserves that many elements in the array
+     *  \returns PdfObject pointer to the new PdfObject
+     */
+    PdfObject* CreateObject( int numElems );
 
     /** Insert a object into this vector.
      *  Overwritten from std::vector so that 

@@ -29,7 +29,7 @@
 namespace PoDoFo {
 
 PdfPage::PdfPage( const PdfRect & rSize, PdfVecObjects* pParent )
-    : PdfElement( "Page", pParent ), PdfCanvas()
+    : PdfElement( "Page", pParent->CreateObject( "Page" ) ), PdfCanvas()
 {
     PdfVariant mediabox;
     rSize.ToVariant( mediabox );
