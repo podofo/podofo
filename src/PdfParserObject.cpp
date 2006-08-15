@@ -36,7 +36,7 @@ static const int s_nLenStream    = 6; // strlen("stream");
 static const int s_nLenEndStream = 9; // strlen("endstream");
 
 PdfParserObject::PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedFile & rFile, const PdfRefCountedBuffer & rBuffer, long lOffset )
-    : PdfObject( 0, 0, NULL), PdfParserBase( rFile, rBuffer )
+    : PdfObject( 0, 0, (const char*)NULL), PdfParserBase( rFile, rBuffer )
 {
     m_pParent = pParent;
 
@@ -46,7 +46,7 @@ PdfParserObject::PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedFil
 }
 
 PdfParserObject::PdfParserObject( const PdfRefCountedBuffer & rBuffer )
-    : PdfObject( 0, 0, NULL), PdfParserBase( PdfRefCountedFile(), rBuffer )
+    : PdfObject( 0, 0, (const char*)NULL), PdfParserBase( PdfRefCountedFile(), rBuffer )
 {
     Init();
 }
@@ -258,7 +258,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     }
     else
     {
-        this->Parse( szData );
+        this->Parse( szData, counter );
     }
 
     if( bOwnBuffer )
