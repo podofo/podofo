@@ -84,7 +84,12 @@ void PdfString::SetHexData( const char* pszHex, long lLen )
 
 void PdfString::Write ( PdfOutputDevice* pDevice ) const
 {
-    pDevice->Print( m_bHex ? "<%s>" : "(%s)", m_pszData );
+    // Strings in PDF documents may contain \0 especially if they are encrypted
+    // this case has to be handled!
+
+    pDevice->Print( m_bHex ? "<" : "(" );
+    pDevice->Write( m_pszData, m_lLen-1 );
+    pDevice->Print( m_bHex ? ">" : ")" );
 }
 
 const PdfString & PdfString::operator=( const PdfString & rhs )

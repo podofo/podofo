@@ -1,21 +1,12 @@
 NOW:
 	- PdfPainter should make sure that a stream is decompressed before
 	drawing so that it can work on any PdfPage object (even existing ones)
-	- PdfSharedBuffer and a 4096 byte buffer for the parser shared with
-	all PdfParserObjects to make parsing faster (also use this buffer in PdfStreams)	
-	
-
 
 PoDoFo 0.3 
        - PdfWebWriter who creates linearized PDF files
        - Some more drawing routines (tiles, save and rstore?)
        - PdfWriter should be able to write objects immediately
          and not keep all in memory first.
-       - PdfParser should return more information (i.e. vector of all pages
-       and a reference to the PageTree)
-       - introduce PdfArray and PdfDictionary classes
        - Add configure checks for zlib, freetype and fontconfig
-       - PdfPage should use PdfObject::GetParent instead of having an own one
-       - PdfVecObject should be able to have a PdfDocument as parent so that
-       PdfPage does not need to keep a PdfDocument pointer.
+
 

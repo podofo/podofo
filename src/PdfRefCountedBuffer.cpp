@@ -31,17 +31,20 @@ PdfRefCountedBuffer::PdfRefCountedBuffer()
 PdfRefCountedBuffer::PdfRefCountedBuffer( long lSize )
     : m_pBuffer( NULL )
 {
-    m_pBuffer = new TRefCountedBuffer();
-    m_pBuffer->m_lRefCount = 1;
-    m_pBuffer->m_pBuffer   = (char*)malloc( sizeof(char)*lSize );
-    m_pBuffer->m_lSize     = lSize;
-
-    if( !m_pBuffer->m_pBuffer ) 
+    if( lSize ) 
     {
-        delete m_pBuffer;
-        m_pBuffer = NULL;
+        m_pBuffer = new TRefCountedBuffer();
+        m_pBuffer->m_lRefCount = 1;
+        m_pBuffer->m_pBuffer   = (char*)malloc( sizeof(char)*lSize );
+        m_pBuffer->m_lSize     = lSize;
+        
+        if( !m_pBuffer->m_pBuffer ) 
+        {
+            delete m_pBuffer;
+            m_pBuffer = NULL;
 
-        RAISE_ERROR( ePdfError_OutOfMemory );
+            RAISE_ERROR( ePdfError_OutOfMemory );
+        }
     }
 }
 
