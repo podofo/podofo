@@ -106,6 +106,7 @@ int main()
 
     // testing arrays
     TEST_SAFE_OP_IGNORE( Test( "[]", ePdfDataType_Array ) );  // this test may fail as the formating is different
+    TEST_SAFE_OP( Test( "[ ]", ePdfDataType_Array ) );
     TEST_SAFE_OP( Test( "[ 1 2 3 4 ]", ePdfDataType_Array ) );
     TEST_SAFE_OP_IGNORE( Test( "[1 2 3 4]", ePdfDataType_Array ) ); // this test may fail as the formating is different
     TEST_SAFE_OP( Test( "[ 2 (Hallo Welt!) 3.5 /FMC ]", ePdfDataType_Array ) );
