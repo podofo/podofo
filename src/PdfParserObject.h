@@ -42,13 +42,12 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
      *  \param pParent pointer to a parent to resolve object references
      *  \param rFile  an open reference counted file handle which is positioned in
      *                front of the object which is going to be parsed.
-     *  \param szBuffer buffer to use for parsing to avoid reallocations
-     *  \param lBufferSize size of the buffer
+     *  \param rBuffer buffer to use for parsing to avoid reallocations
      *  \param lOffset the position in the file from which the object shall be read
      *                 if lOffset = -1, the object will be read from the current 
      *                 position in the file.
      */
-    PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedFile & rFile, char* szBuffer, long lBufferSize, long lOffset = -1 );
+    PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedFile & rFile, const PdfRefCountedBuffer & rBuffer, long lOffset = -1 );
 
     /** Parse the object data for an internal object.
      *  You have to call ParseDictionaryKeys as next function call.
@@ -58,10 +57,9 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
      *
      *  This constructor is for internal usage only!
      *
-     *  \param szBuffer buffer to use for parsing to avoid reallocations
-     *  \param lBufferSize size of the buffer
+     *  \param rBuffer buffer to use for parsing to avoid reallocations
      */
-    PdfParserObject( char* szBuffer, long lBufferSize );
+    PdfParserObject( const PdfRefCountedBuffer & rBuffer );
 
     virtual ~PdfParserObject();
 

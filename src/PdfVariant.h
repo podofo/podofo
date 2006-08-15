@@ -24,6 +24,7 @@
 #include <cmath>
 
 #include "PdfDefines.h"
+#include "PdfRefCountedBuffer.h"
 
 namespace PoDoFo {
 
@@ -292,6 +293,11 @@ class PdfVariant {
      *  to this length
      */
     int         m_nPadding;
+
+    /** This buffer is always used
+     *  to parse dictionary keys.
+     */
+    static PdfRefCountedBuffer m_sBuffer;
 };
 
 // -----------------------------------------------------

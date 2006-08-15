@@ -22,47 +22,20 @@
 
 namespace PoDoFo {
 
-PdfParserBase::PdfParserBase()
-{
-    m_bFreeBuffer = true;
-    m_lBufferSize = PDF_BUFFER;
-    m_szBuffer    = (char*)malloc( PDF_BUFFER * sizeof( char  ) );
+#define PDF_BUFFER             4096
 
-    if( !m_szBuffer ) 
-    {
-        RAISE_ERROR( ePdfError_OutOfMemory );
-    }
+PdfParserBase::PdfParserBase()
+    : m_buffer( PDF_BUFFER )
+{
 }
 
-PdfParserBase::PdfParserBase( const PdfRefCountedFile & rFile, char* szBuffer, long lBufferSize )
-    : m_file( rFile )
+PdfParserBase::PdfParserBase( const PdfRefCountedFile & rFile, const PdfRefCountedBuffer & rBuffer )
+    : m_file( rFile ), m_buffer( rBuffer )
 {
-    if( szBuffer )
-    {
-        m_szBuffer    = szBuffer;
-        m_lBufferSize = lBufferSize;
-        m_bFreeBuffer = false;
-    }
-    else
-    {
-        m_bFreeBuffer = true;
-        m_lBufferSize = PDF_BUFFER;
-        m_szBuffer    = (char*)malloc( PDF_BUFFER * sizeof( char  ) );
-
-        if( !m_szBuffer ) 
-        {
-            RAISE_ERROR( ePdfError_OutOfMemory );
-        }
-    }
 }
 
 PdfParserBase::~PdfParserBase()
 {
-    if( m_bFreeBuffer )
-    {
-        free( m_szBuffer );
-        m_szBuffer = NULL;
-    }
 }
 
 bool PdfParserBase::IsDelimiter( const char c )
@@ -99,28 +72,28 @@ long PdfParserBase::GetNextNumberFromFile()
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    while( (c = fgetc( m_file.Handle() )) != EOF && counter < PDF_BUFFER )
+    while( (c = fgetc( m_file.Handle() )) != EOF && counter < m_buffer.Size() )
     {
         if( !counter && IsWhitespace( c ) )
             continue;
         else if( c >= '0' && c <= '9' )
         {
-            m_szBuffer[counter] = c;
+            m_buffer.Buffer()[counter] = c;
             ++counter;
         }
         else
             break;
     }
 
-    m_szBuffer[counter] = '\0';
+    m_buffer.Buffer()[counter] = '\0';
 
     if( c == EOF && !counter )
     {
         RAISE_ERROR( ePdfError_UnexpectedEOF );
     }
 
-    l = strtol( m_szBuffer, &end, 10 );
-    if( end == m_szBuffer )
+    l = strtol( m_buffer.Buffer(), &end, 10 );
+    if( end == m_buffer.Buffer() )
     {
         RAISE_ERROR( ePdfError_NoNumber );
     }
@@ -138,7 +111,7 @@ const char* PdfParserBase::GetNextStringFromFile()
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    while( (c = fgetc( m_file.Handle() )) != EOF && counter < PDF_BUFFER )
+    while( (c = fgetc( m_file.Handle() )) != EOF && counter < m_buffer.Size() )
     {
         if( !counter && IsWhitespace( c ) )
             continue;
@@ -150,19 +123,19 @@ const char* PdfParserBase::GetNextStringFromFile()
         }
         else
         {
-            m_szBuffer[counter] = c;
+            m_buffer.Buffer()[counter] = c;
             ++counter;
         }
     }
 
-    m_szBuffer[counter] = '\0';
+    m_buffer.Buffer()[counter] = '\0';
 
     if( c == EOF && !counter )
     {
         RAISE_ERROR( ePdfError_UnexpectedEOF );
     }
 
-    return m_szBuffer;
+    return m_buffer.Buffer();
 }
 
 };

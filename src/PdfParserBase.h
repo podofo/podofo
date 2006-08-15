@@ -22,9 +22,9 @@
 #define _PDF_PARSER_BASE_H_
 
 #include "PdfDefines.h"
+#include "PdfRefCountedBuffer.h"
 #include "PdfRefCountedFile.h"
 
-#define PDF_BUFFER             1024
 // PDF_XREF_BUF is used in PdfParser.cpp
 // to find the startxref line and has to be smaller
 // than PDF_BUFFER
@@ -39,7 +39,7 @@ namespace PoDoFo {
 class PdfParserBase {
  public:
     PdfParserBase();
-    PdfParserBase( const PdfRefCountedFile & rFile, char* szBuffer = NULL , long lBufferSize = 0 );
+    PdfParserBase( const PdfRefCountedFile & rFile, const PdfRefCountedBuffer & rBuffer );
     virtual ~PdfParserBase();
 
     /** Set the internal file handle
@@ -95,21 +95,18 @@ class PdfParserBase {
     inline long GetBufferSize() const;
 
  protected:
-    PdfRefCountedFile m_file;
-
-    char*             m_szBuffer;
-    long              m_lBufferSize;
-    bool              m_bFreeBuffer;
+    PdfRefCountedFile   m_file;
+    PdfRefCountedBuffer m_buffer;
 };
 
 char* PdfParserBase::GetBuffer() const
 {
-    return m_szBuffer;
+    return m_buffer.Buffer();
 }
 
 long PdfParserBase::GetBufferSize() const
 {
-    return m_lBufferSize;
+    return m_buffer.Size();
 }
 
 };

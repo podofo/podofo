@@ -18,62 +18,63 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "PdfRefCountedFile.h"
+#include "PdfRefCountedBuffer.h"
 
 namespace PoDoFo {
 
-PdfRefCountedFile::PdfRefCountedFile()
-    : m_pFile( NULL )
+PdfRefCountedBuffer::PdfRefCountedBuffer()
+    : m_pBuffer( NULL )
 {
 
 }
 
-PdfRefCountedFile::PdfRefCountedFile( const char* pszFilename, const char* pszMode )
-    : m_pFile( NULL )
+PdfRefCountedBuffer::PdfRefCountedBuffer( long lSize )
+    : m_pBuffer( NULL )
 {
-    m_pFile = new TRefCountedFile();
-    m_pFile->m_lRefCount = 1;
-    m_pFile->m_hFile     = fopen( pszFilename, pszMode );
+    m_pBuffer = new TRefCountedBuffer();
+    m_pBuffer->m_lRefCount = 1;
+    m_pBuffer->m_pBuffer   = (char*)malloc( sizeof(char)*lSize );
+    m_pBuffer->m_lSize     = lSize;
 
-    if( !m_pFile->m_hFile ) 
+    if( !m_pBuffer->m_pBuffer ) 
     {
-        delete m_pFile;
-        m_pFile = NULL;
+        delete m_pBuffer;
+        m_pBuffer = NULL;
 
-        RAISE_ERROR( ePdfError_FileNotFound );
+        RAISE_ERROR( ePdfError_OutOfMemory );
     }
 }
 
-PdfRefCountedFile::PdfRefCountedFile( const PdfRefCountedFile & rhs )
-    : m_pFile( NULL )
+PdfRefCountedBuffer::PdfRefCountedBuffer( const PdfRefCountedBuffer & rhs )
+    : m_pBuffer( NULL )
 {
     this->operator=( rhs );
 }
 
-PdfRefCountedFile::~PdfRefCountedFile()
+PdfRefCountedBuffer::~PdfRefCountedBuffer()
 {
     Detach();
 }
 
-void PdfRefCountedFile::Detach()
+void PdfRefCountedBuffer::Detach()
 {
-    if( m_pFile && !--m_pFile->m_lRefCount ) 
+    if( m_pBuffer && !--m_pBuffer->m_lRefCount ) 
     {
         // last owner of the file!
-        fclose( m_pFile->m_hFile );
-        delete m_pFile;
-        m_pFile = NULL;
+        free( m_pBuffer->m_pBuffer );
+        delete m_pBuffer;
+        m_pBuffer = NULL;
     }
 
 }
 
-const PdfRefCountedFile & PdfRefCountedFile::operator=( const PdfRefCountedFile & rhs )
+const PdfRefCountedBuffer & PdfRefCountedBuffer::operator=( const PdfRefCountedBuffer & rhs )
 {
     Detach();
 
-    m_pFile = rhs.m_pFile;
-    if( m_pFile )
-        m_pFile->m_lRefCount++;
+    m_pBuffer = rhs.m_pBuffer;
+    if( m_pBuffer )
+        m_pBuffer->m_lRefCount++;
 
     return *this;
 }

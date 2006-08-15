@@ -35,6 +35,9 @@ namespace PoDoFo {
 
 using namespace std;
 
+#define PDF_PARSER_BUFFER_SIZE 4096
+PdfRefCountedBuffer PdfVariant::m_sBuffer( PDF_PARSER_BUFFER_SIZE );
+
 PdfVariant PdfVariant::NullValue;
 
 PdfVariant::PdfVariant()
@@ -241,7 +244,7 @@ void PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
     }
     else if( m_eDataType == ePdfDataType_Dictionary )
     {
-        PdfParserObject parser( NULL, 0 );
+        PdfParserObject parser( m_sBuffer );
         parser.ParseDictionaryKeys( pszBuf, nLen - (pszBuf - pszData), &lArrayLen );
         pszBuf += lArrayLen;
         m_pData = new PdfDictionary( parser.GetDictionary() );

@@ -35,9 +35,8 @@ static const int s_nLenEndObj    = 6; // strlen("endobj");
 static const int s_nLenStream    = 6; // strlen("stream");
 static const int s_nLenEndStream = 9; // strlen("endstream");
 
-PdfParserObject::PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedFile & rFile, char* szBuffer, long lBufferSize, long lOffset )
-//    : PdfObject( 0, 0, NULL), PdfParserBase( rFile, szBuffer, lBufferSize ), m_pParser( pParser )
-    : PdfObject( 0, 0, NULL), PdfParserBase( rFile, NULL, 0 )
+PdfParserObject::PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedFile & rFile, const PdfRefCountedBuffer & rBuffer, long lOffset )
+    : PdfObject( 0, 0, NULL), PdfParserBase( rFile, rBuffer )
 {
     m_pParent = pParent;
 
@@ -46,9 +45,8 @@ PdfParserObject::PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedFil
     m_lOffset = lOffset == -1 ? ftell( m_file.Handle() ) : lOffset;
 }
 
-PdfParserObject::PdfParserObject( char* szBuffer, long lBufferSize )
-//    : PdfObject( 0, 0, NULL), PdfParserBase( PdfRefCountedFile(), szBuffer, lBufferSize), m_pParser( NULL )
-    : PdfObject( 0, 0, NULL), PdfParserBase( PdfRefCountedFile(), NULL, 0 )
+PdfParserObject::PdfParserObject( const PdfRefCountedBuffer & rBuffer )
+    : PdfObject( 0, 0, NULL), PdfParserBase( PdfRefCountedFile(), rBuffer )
 {
     Init();
 }
@@ -86,7 +84,7 @@ void PdfParserObject::ReadObjectNumber()
     }
 
     GetNextStringFromFile( );
-    if( strncmp( m_szBuffer, "obj", 3 ) != 0 )
+    if( strncmp( m_buffer.Buffer(), "obj", 3 ) != 0 )
     {
         RAISE_ERROR( ePdfError_NoObject );
     }
@@ -122,7 +120,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     int          c;
     int          counter         = 0;
     int          nObjCount       = 0;
-    char*        szData          = m_szBuffer;
+    char*        szData          = m_buffer.Buffer();
     long         lDataLen        = this->GetBufferSize();
     bool         bOwnBuffer      = false;
     bool         bStringMode     = false;
@@ -139,7 +137,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     {
         if( !IsWhitespace( c ) )
         {
-            m_szBuffer[counter] = c;
+            m_buffer.Buffer()[counter] = c;
             ++counter;
             break;
         }
@@ -157,7 +155,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
             else
             {
                 szData = (char*)malloc( lDataLen * sizeof(char) );
-                memcpy( szData, m_szBuffer, lDataLen >> 1 );
+                memcpy( szData, m_buffer.Buffer(), lDataLen >> 1 );
                 bOwnBuffer = true;
             }
 
@@ -269,9 +267,9 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     if( !bIsTrailer && eDataType != ePdfDataType_Unknown )
     {
         GetNextStringFromFile( );
-        if( strncmp( m_szBuffer, "endobj", s_nLenEndObj ) == 0 )
+        if( strncmp( m_buffer.Buffer(), "endobj", s_nLenEndObj ) == 0 )
             ; // nothing to do, just validate that the PDF is correct
-        else if ( strncmp( m_szBuffer, "stream", s_nLenStream ) == 0 )
+        else if ( strncmp( m_buffer.Buffer(), "stream", s_nLenStream ) == 0 )
         {
             m_bStream = true;
             m_lStreamOffset = ftell( m_file.Handle() );
@@ -433,7 +431,7 @@ void PdfParserObject::ParseStream()
 
     /*
     SAFE_OP( GetNextStringFromFile( ) );
-    if( strncmp( m_szBuffer, "endstream", s_nLenEndStream ) != 0 )
+    if( strncmp( m_buffer.Buffer(), "endstream", s_nLenEndStream ) != 0 )
         return ERROR_PDF_MISSING_ENDSTREAM;
     */
 }
@@ -461,8 +459,8 @@ void PdfParserObject::GetDataType( char c, int* counter, EPdfDataType* eDataType
             if( eDataType )
                 *eDataType = ePdfDataType_HexString;
                     
-            m_szBuffer[*counter] = fgetc( m_file.Handle() );
-            if( m_szBuffer[*counter] == '<' )
+            m_buffer.Buffer()[*counter] = fgetc( m_file.Handle() );
+            if( m_buffer.Buffer()[*counter] == '<' )
             {
                 if( eDataType )
                     *eDataType = ePdfDataType_Dictionary;
