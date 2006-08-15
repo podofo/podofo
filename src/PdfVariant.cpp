@@ -146,6 +146,9 @@ void PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
     if( !nLen )
         nLen = strlen( pszData );
 
+    if( !nLen )
+        return;
+
     GetDataType( pszData, nLen, &m_eDataType, &lLen );
 
     if( m_eDataType == ePdfDataType_HexString )
@@ -215,6 +218,8 @@ void PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
     {
         ++pszBuf; // skip '['
 
+        m_pData = new PdfArray();
+
         while( *pszBuf != ']' && pszBuf - pszData < nLen )
         {
             while( PdfParserBase::IsWhitespace( *pszBuf ) && pszBuf - pszData < nLen )
@@ -229,10 +234,6 @@ void PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
             vVar.Parse( pszBuf, (pszData+nLen)-pszBuf, &lArrayLen );
 
             pszBuf += lArrayLen;
-
-            if( !m_pData )
-                m_pData = new PdfArray();
-
             static_cast<PdfArray*>(m_pData)->push_back( vVar );
         }
 
@@ -334,7 +335,9 @@ void PdfVariant::GetDataType( const char* pszData, long nLen, EPdfDataType* eDat
         ref.SetObjectNumber( lRef );
 
         if( pszStart == pszData )
+        {
             eCode.SetError( ePdfError_InvalidDataType, __FILE__, __LINE__ );
+        }
 
         if( !eCode.IsError() )
         {
