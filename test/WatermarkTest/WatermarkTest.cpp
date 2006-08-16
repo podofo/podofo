@@ -75,8 +75,15 @@ int main( int argc, char* argv[] )
     printf("It opens an existing PDF and draws an X on each page.\n");
     printf("---\n");
 
-	printf("Watermarking....\n");
-	WatermarkFile( argv[1], argv[2] );
+    printf("Watermarking....\n");
+    try {
+        WatermarkFile( argv[1], argv[2] );
+    } 
+    catch( const PdfError & e ) 
+    {
+        e.PrintErrorMsg();
+        return e.Error();
+    }
 
     return 0;
 }
