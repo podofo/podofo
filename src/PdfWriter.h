@@ -121,7 +121,7 @@ class PdfWriter {
      *  \param ref a reference to the object to remove
      *  \returns The removed object.
      */
-    PdfObject* RemoveObject( const PdfReference & ref );
+    //PdfObject* RemoveObject( const PdfReference & ref );
 
     /** Get access to the internal Catalog dictionary
      *  or root object.
@@ -129,7 +129,7 @@ class PdfWriter {
      *  \returns PdfObject the documents catalog or NULL 
      *                     if no catalog is available
      */
-    PdfObject* GetCatalog() const { return m_pCatalog; }
+    //PdfObject* GetCatalog() const { return m_pCatalog; }
     
     /** Set wether all streams in the pdf document should
      *  be compress using the FlateDecode algorithm.
@@ -153,13 +153,13 @@ class PdfWriter {
     /** Get a reference to the sorted internal objects vector.
      *  \returns the internal objects vector.
      */
-    const PdfVecObjects & GetObjects() const { return m_vecObjects; }
+    //const PdfVecObjects & GetObjects() const { return m_vecObjects; }
 
     /** Get a reference to the sorted internal objects vector.
      *  This is an overloaded function for your convinience.
      *  \returns the internal objects vector.
      */
-    PdfVecObjects & GetObjects() { return m_vecObjects; }
+    //PdfVecObjects & GetObjects() { return m_vecObjects; }
 
     /** Calculate the byte offset of the object pObject in the PDF file
      *  if the file was written to disk at the moment of calling this function.
@@ -232,16 +232,12 @@ class PdfWriter {
     void WriteTrailerKey( PdfOutputDevice* pDevice, const PdfObject* pTrailer, const PdfName & key );
 
  protected:
-    // TODO: Only use a pointer and do NOT own the vector of objects
-    //       because we get otherwise problems with the parents vector
-    PdfVecObjects   m_vecObjects;
+    PdfVecObjects*  m_vecObjects;
 
  private:
     EPdfVersion     m_eVersion;
 
     TVecXRefTable   m_vecXRef;
-
-    PdfObject*      m_pCatalog;
     PdfObject*      m_pTrailer;
 
     bool            m_bCompress;

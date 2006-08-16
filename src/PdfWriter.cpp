@@ -34,7 +34,7 @@
 namespace PoDoFo {
 
 PdfWriter::PdfWriter()
-    : m_pTrailer( NULL )
+    : m_vecObjects( NULL ), m_pTrailer( NULL )
 {
     Clear();
 }
@@ -46,34 +46,13 @@ PdfWriter::~PdfWriter()
 
 void PdfWriter::Clear() 
 {
-    TIVecObjects it = m_vecObjects.begin();
-
-    while( it != m_vecObjects.end() )
-    {
-        delete (*it);
-        ++it;
-    }
-
-    m_vecObjects.clear();
-
     delete m_pTrailer;
     m_pTrailer     = NULL;
+    m_vecObjects   = NULL;
+
     m_eVersion     = ePdfVersion_1_3;
 
-    m_pCatalog     = NULL;
-
     m_bCompress    = true;
-}
-
-void PdfWriter::Init()
-{
-    // clear everything - so that calling Init twice will work
-    Clear();
-
-    m_pTrailer = new PdfObject();
-    m_pCatalog = m_vecObjects.CreateObject( "Catalog" );
-
-    m_pTrailer->GetDictionary().AddKey( "Root", m_pCatalog->Reference() );
 }
 
 void PdfWriter::Init( PdfParser* pParser )
@@ -85,11 +64,6 @@ void PdfWriter::Init( PdfParser* pParser )
 
     m_eVersion     = pParser->GetPdfVersion();
     this->Init( &(pParser->m_vecObjects), pParser->GetTrailer() );
-
-    // clear the parsers object value
-    // other PdfWriter and PdfParser
-    // would delete the same objects
-    pParser->m_vecObjects.clear();
 }
 
 void PdfWriter::Init( PdfDocument* pDocument )
@@ -101,18 +75,11 @@ void PdfWriter::Init( PdfDocument* pDocument )
 
     m_eVersion     = pDocument->GetPdfVersion();
     this->Init( &(pDocument->m_vecObjects), pDocument->GetTrailer() );
-
-    // clear the parsers object value
-    // other PdfWriter and PdfParser
-    // would delete the same objects
-    pDocument->m_vecObjects.clear();
 }
 
 
 void PdfWriter::Init( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
 {
-    const PdfObject* pObj;
-
     // clear everything - so that calling Init twice will work
     Clear();
 
@@ -122,21 +89,7 @@ void PdfWriter::Init( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
     }
 
     m_pTrailer     = new PdfObject( *pTrailer );
-    m_vecObjects   = *pVecObjects;
-
-    // load the Catalog/Root object
-    pObj = m_pTrailer->GetDictionary().GetKey( "Root" );
-    if( !(pObj && pObj->IsReference() ) )
-    {
-        RAISE_ERROR( ePdfError_InvalidDataType );
-    }
-
-    PdfError::DebugMessage("/Catalog ref=%s\n", pObj->GetReference().ToString().c_str());
-    m_pCatalog = m_vecObjects.GetObject( pObj->GetReference() );
-    if( !m_pCatalog )
-    {
-        RAISE_ERROR_INFO( ePdfError_InvalidHandle, "No catalog dictionary found in the trailer." );
-    }
+    m_vecObjects   = pVecObjects;
 }
 
 void PdfWriter::Write( const char* pszFilename )
@@ -157,7 +110,7 @@ void PdfWriter::Write( PdfOutputDevice* pDevice )
     }
 
     WritePdfHeader( pDevice );
-    WritePdfObjects( pDevice, m_vecObjects );
+    WritePdfObjects( pDevice, *m_vecObjects );
     WritePdfTableOfContents( pDevice );
 }
 
@@ -193,7 +146,6 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& ve
     tXRef .nCount      = 0;
 
     this->CompressObjects( vecObjects );
-
     while( itObjects != vecObjects.end() )
     {
         tEntry.lOffset     = (*itObjects)->IsEmptyEntry() ? 0 : pDevice->Length();
@@ -287,16 +239,10 @@ void PdfWriter::WriteTrailerKey( PdfOutputDevice* pDevice, const PdfObject* pTra
         pDevice->Print( "\n" );
     }
 }
- 
-PdfObject* PdfWriter::RemoveObject( const PdfReference & ref )
-{
-    return m_vecObjects.RemoveObject( ref );
-}
 
 void PdfWriter::GetByteOffset( PdfObject* pObject, unsigned long* pulOffset )
 {
-    TVecObjects     vecObj = this->GetObjects();
-    TCIVecObjects   it     = vecObj.begin();
+    TCIVecObjects   it     = m_vecObjects->begin();
     PdfOutputDevice deviceHeader;
 
     if( !pObject || !pulOffset )
@@ -308,7 +254,7 @@ void PdfWriter::GetByteOffset( PdfObject* pObject, unsigned long* pulOffset )
 
     *pulOffset = deviceHeader.Length();
 
-    while( it != vecObj.end() )
+    while( it != m_vecObjects->end() )
     {
         if( (*it) == pObject )
             break;
