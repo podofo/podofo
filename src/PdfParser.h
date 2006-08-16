@@ -51,14 +51,16 @@ class PdfParser : public PdfParserBase {
  public:
     /** Create a new PdfParser object
      *  You have to open a PDF file using ParseFile later.
+     *  \param pVecObjects vector to write the parsed PdfObjects to
      *
      *  \see ParseFile  
      */
-    PdfParser();
+    PdfParser( PdfVecObjects* pVecObjects );
 
     /** Create a new PdfParser object and open a PDF file and parse
      *  it into memory.
      *
+     *  \param pVecObjects vector to write the parsed PdfObjects to
      *  \param pszFilename filename of the file which is going to be parsed
      *  \param bLoadOnDemand If true all objects will be read from the file at
      *                       the time they are accesed first.
@@ -66,7 +68,7 @@ class PdfParser : public PdfParserBase {
      *                       This is faster if you do not need the complete PDF 
      *                       file in memory.
      */
-    PdfParser( const char* pszFilename, bool bLoadOnDemand = true );
+    PdfParser( PdfVecObjects* pVecObjects, const char* pszFilename, bool bLoadOnDemand = true );
 
     /** Delete the PdfParser and all PdfObjects
      */
@@ -217,7 +219,7 @@ class PdfParser : public PdfParserBase {
     size_t       m_nFileSize;
 
     TXRefEntry** m_ppOffsets;
-    TVecObjects  m_vecObjects;
+    TVecObjects* m_vecObjects;
 
     PdfObject*   m_pTrailer;
     PdfObject*   m_pLinearization;
@@ -237,7 +239,7 @@ EPdfVersion PdfParser::GetPdfVersion() const
 
 const PdfVecObjects & PdfParser::GetObjects() const
 {
-    return m_vecObjects;
+    return *m_vecObjects;
 }
 
 const PdfObject* PdfParser::GetTrailer() const

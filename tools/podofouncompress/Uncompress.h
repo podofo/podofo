@@ -36,8 +36,7 @@ class UnCompress {
     void UncompressObjects();
 
  private:
-    PdfParser* m_pParser;
-    PdfWriter* m_pWriter;
+    PdfDocument* m_pDocument;
 
 };
 

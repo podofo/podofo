@@ -64,6 +64,8 @@ class PdfVecObjects : public std::vector<PdfObject*> {
     const PdfVecObjects & operator=( const PdfVecObjects & rhs );
 
     /** Enable/disable auto deletion.
+     *  By default auto deletion is disabled.
+     *
      *  \param bAutoDelete if true all objects will be deleted when the PdfVecObjects is 
      *         deleted.
      */

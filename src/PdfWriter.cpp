@@ -63,7 +63,7 @@ void PdfWriter::Init( PdfParser* pParser )
     }
 
     m_eVersion     = pParser->GetPdfVersion();
-    this->Init( &(pParser->m_vecObjects), pParser->GetTrailer() );
+    this->Init( pParser->m_vecObjects, pParser->GetTrailer() );
 }
 
 void PdfWriter::Init( PdfDocument* pDocument )

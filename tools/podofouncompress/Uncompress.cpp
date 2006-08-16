@@ -21,49 +21,41 @@
 #include "Uncompress.h"
 
 UnCompress::UnCompress()
+    : m_pDocument( NULL )
 {
-    m_pParser = NULL;
-    m_pWriter = new PdfWriter();
 }
 
 UnCompress::~UnCompress()
 {
-    delete m_pParser;
-    delete m_pWriter;
+    delete m_pDocument;
 }
 
 void UnCompress::Init( const char* pszInput, const char* pszOutput )
 {
-    if( m_pParser )
-        delete m_pParser;
+    PdfWriter writer;
 
-    m_pParser = new PdfParser( pszInput, false );
+    if( m_pDocument )
+        delete m_pDocument;
+
+    m_pDocument = new PdfDocument( pszInput );
 
     this->UncompressObjects();
 
-    m_pWriter->Init( m_pParser );
-
-    m_pWriter->SetPdfCompression( false );
-
-    m_pWriter->Write( pszOutput );
+    writer.Init( m_pDocument );
+    writer.SetPdfCompression( false );
+    writer.Write( pszOutput );
 }
 
 void UnCompress::UncompressObjects()
 {
-    TVecObjects  vecObj = m_pParser->GetObjects();
+    TVecObjects  vecObj = m_pDocument->GetObjects();
     TIVecObjects it     = vecObj.begin();
-
-    long         lLen;
-    char*        pBuffer;
 
     while( it != vecObj.end() )
     {
         if( (*it)->HasStream() )
         {
-            (*it)->Stream()->GetFilteredCopy( &pBuffer, &lLen );
-            (*it)->Stream()->Set( pBuffer, lLen );
-
-            (*it)->GetDictionary().RemoveKey( "Filter" );            
+            (*it)->Stream()->Uncompress();
         }
 
         ++it;

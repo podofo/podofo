@@ -26,9 +26,12 @@ using namespace PoDoFo;
 
 int main( int argc, char*  argv[] )
 {
-    PdfParser parser;
-    PdfWriter writer;
+    PdfVecObjects objects;
+    PdfParser     parser( &objects );
+    PdfWriter     writer;
     
+    objects.SetAutoDelete( true );
+
     if( argc != 3 )
     {
         printf("Usage: ParserTest [input_filename] [output_filename]\n");

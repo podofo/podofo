@@ -40,14 +40,14 @@ bool ObjectLittle( PdfObject* p1, PdfObject* p2 )
     return *p1 < *p2;
 }
 
-PdfParser::PdfParser()
-    : PdfParserBase()
+PdfParser::PdfParser( PdfVecObjects* pVecObjects )
+    : PdfParserBase(), m_vecObjects( pVecObjects )
 {
     this->Init();
 }
 
-PdfParser::PdfParser( const char* pszFilename, bool bLoadOnDemand )
-    : PdfParserBase()
+PdfParser::PdfParser( PdfVecObjects* pVecObjects, const char* pszFilename, bool bLoadOnDemand )
+    : PdfParserBase(), m_vecObjects( pVecObjects )
 {
     this->Init();
     this->ParseFile( pszFilename, bLoadOnDemand );
@@ -107,22 +107,17 @@ void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
     }
 
     // Now sort the list of objects
-    std::sort( m_vecObjects.begin(), m_vecObjects.end(), ObjectLittle );
+    std::sort( m_vecObjects->begin(), m_vecObjects->end(), ObjectLittle );
 }
 
 void PdfParser::Clear()
 {
     int          i         = 0;
-    TIVecObjects itObjects = m_vecObjects.begin();
     TIMapObjects itMapObjects;
     TIMapObjectStreamCache itCache = m_mapStreamCache.begin();
 
-    while( itObjects != m_vecObjects.end() )
-    {
-        delete (*itObjects);
-        ++itObjects;
-    }
-
+    // TODO: DS not allowed to delete this objects:
+    /*
     while( itCache != m_mapStreamCache.end() )
     {
         itMapObjects = (*itCache).second.begin();
@@ -131,7 +126,7 @@ void PdfParser::Clear()
         {
             if( (*itMapObjects).second )
             {
-                delete (*itMapObjects).second;
+                //delete (*itMapObjects).second;
             }
 
             ++itMapObjects;
@@ -139,8 +134,9 @@ void PdfParser::Clear()
 
         ++itCache;
     }
+    */
 
-    m_vecObjects.clear();
+    m_vecObjects->clear();
     m_mapStreamCache.clear();
 
     if( m_ppOffsets )
@@ -291,7 +287,7 @@ void PdfParser::HasLinearizationDict()
         --pszObj;
 
     fseek( m_file.Handle(), pszObj - m_buffer.Buffer() + 3, SEEK_SET );
-    m_pLinearization = new PdfParserObject( &m_vecObjects, m_file, m_buffer );
+    m_pLinearization = new PdfParserObject( m_vecObjects, m_file, m_buffer );
 
     try {
         static_cast<PdfParserObject*>(m_pLinearization)->ParseFile();
@@ -393,7 +389,7 @@ void PdfParser::ReadNextTrailer()
     // ReadXRefcontents has read the first 't' from "trailer" so just check for "railer"
     if( strcmp( m_buffer.Buffer(), "railer" ) == 0 )
     {
-        PdfParserObject trailer( &m_vecObjects, m_file, m_buffer );
+        PdfParserObject trailer( m_vecObjects, m_file, m_buffer );
         try {
             trailer.ParseFile( true );
         } catch( PdfError & e ) {
@@ -487,7 +483,7 @@ void PdfParser::ReadTrailer()
         RAISE_ERROR( ePdfError_NoTrailer );
     }
 
-    m_pTrailer = new PdfParserObject( &m_vecObjects, m_file, m_buffer );
+    m_pTrailer = new PdfParserObject( m_vecObjects, m_file, m_buffer );
     try {
         static_cast<PdfParserObject*>(m_pTrailer)->ParseFile( true );
     } catch( PdfError & e ) {
@@ -689,7 +685,7 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
         RAISE_ERROR( ePdfError_NoXRef );
     }
 
-    PdfParserObject xrefObject( &m_vecObjects, m_file, m_buffer );
+    PdfParserObject xrefObject( m_vecObjects, m_file, m_buffer );
     xrefObject.ParseFile();
 
 
@@ -705,7 +701,7 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
     } 
 
     if( !m_pTrailer )    
-        m_pTrailer = new PdfParserObject( &m_vecObjects, m_file, m_buffer );
+        m_pTrailer = new PdfParserObject( m_vecObjects, m_file, m_buffer );
 
     MergeTrailer( &xrefObject );
 
@@ -844,7 +840,7 @@ void PdfParser::ReadObjects()
     PdfParserObject* pObject    = NULL;
     TCIVecObjects    itObjects;
 
-    m_vecObjects.reserve( m_nNumObjects );
+    m_vecObjects->reserve( m_nNumObjects );
 
     for( ; i < m_nNumObjects; i++ )
     {
@@ -852,7 +848,7 @@ void PdfParser::ReadObjects()
         {
             if( m_ppOffsets[i]->cUsed == 'n'  )
             {
-                pObject = new PdfParserObject( &m_vecObjects, m_file, m_buffer, m_ppOffsets[i]->lOffset );
+                pObject = new PdfParserObject( m_vecObjects, m_file, m_buffer, m_ppOffsets[i]->lOffset );
                 pObject->SetLoadOnDemand( m_bLoadOnDemand );
                 try {
                     pObject->ParseFile();
@@ -869,7 +865,7 @@ void PdfParser::ReadObjects()
                     throw e;
                 }
 
-                m_vecObjects.push_back( pObject );
+                m_vecObjects->push_back( pObject );
             }
         }
         else
@@ -900,8 +896,8 @@ void PdfParser::ReadObjects()
 
     if( !m_bLoadOnDemand )
     {
-        itObjects = m_vecObjects.begin();
-        while( itObjects != m_vecObjects.end() )
+        itObjects = m_vecObjects->begin();
+        while( itObjects != m_vecObjects->end() )
         {
             pObject = dynamic_cast<PdfParserObject*>(*itObjects);
             // only parse streams for objects that have not yet parsed
@@ -932,7 +928,7 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
     int              i       = 0;
 
     // generation number of object streams is always 0
-    pStream = dynamic_cast<PdfParserObject*>(m_vecObjects.GetObject( PdfReference( nObjNo, 0 ) ) );
+    pStream = dynamic_cast<PdfParserObject*>(m_vecObjects->GetObject( PdfReference( nObjNo, 0 ) ) );
     if( !pStream )
     {
         RAISE_ERROR( ePdfError_NoObject );
@@ -968,7 +964,7 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
 
             // TODO: remove cache
             m_mapStreamCache[nObjNo][nIndex] = pObj;
-            m_vecObjects.push_back( pObj );
+            m_vecObjects->push_back( pObj );
             m_mapStreamCache[nObjNo][nIndex] = NULL;
             ++i;
         }
@@ -978,7 +974,7 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
         pTmp = m_mapStreamCache[nObjNo][nIndex];
         if( pTmp )
         {
-            m_vecObjects.push_back( pTmp );
+            m_vecObjects->push_back( pTmp );
             // set to NULL afterwards to allow deletion of spare objects
             // in the desctructor
             m_mapStreamCache[nObjNo][nIndex] = NULL;
