@@ -32,8 +32,8 @@ namespace PoDoFo {
  */
 class PdfRefCountedBuffer {
  public:
-    /** Created an empty reference counted file object
-     *  The file handle will be initialize to NULL
+    /** Created an empty reference counted buffer
+     *  The buffer will be initialize to NULL
      */
     PdfRefCountedBuffer();
 

@@ -26,7 +26,8 @@
 #include <stdio.h>
 #include <sstream>
 
-#define HEADER_LEN 15
+#define HEADER_LEN    15
+#define BUFFER_SIZE 4096
 
 using namespace PoDoFo;
 
@@ -37,7 +38,8 @@ void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo
     std::string   str;
     PdfVecObjects parser;
 
-    PdfRefCountedFile file( pszFilename, "w" );
+    PdfRefCountedBuffer buffer( BUFFER_SIZE );
+    PdfRefCountedFile   file( pszFilename, "w" );
     if( !file.Handle() )
     {
         fprintf( stderr, "Cannot open %s for writing.\n", pszFilename );
@@ -55,7 +57,7 @@ void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo
 
     printf("Parsing Object: %li %li\n", lObjNo, lGenNo );
 
-    PdfParserObject obj( &parser, file, NULL, 0 );
+    PdfParserObject obj( &parser, file, buffer );
     try {
         obj.ParseFile( false );
     } catch( PdfError & e ) {
@@ -105,8 +107,9 @@ void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo
 
 void TestObject( const char* pszFilename, const char* pszData, long lObjNo, long lGenNo )
 {
-    PdfVecObjects     parser;
-    PdfRefCountedFile file( pszFilename, "w" );
+    PdfVecObjects       parser;
+    PdfRefCountedFile   file( pszFilename, "w" );
+    PdfRefCountedBuffer buffer( BUFFER_SIZE );
 
     if( !file.Handle() )
     {
@@ -126,7 +129,7 @@ void TestObject( const char* pszFilename, const char* pszData, long lObjNo, long
 
     printf("Parsing Object: %li %li\n", lObjNo, lGenNo );
 
-    PdfParserObject obj( &parser, file, NULL, 0 );
+    PdfParserObject obj( &parser, file, buffer );
     try {
         obj.ParseFile( false );
     } catch( PdfError & e ) {
