@@ -64,15 +64,6 @@ class PdfDocument {
      */
     PdfDocument( const char* pszFilename );
 
-    /** Construct a PdfDocument from a PdfParser object.
-     *
-     *  The objects will be removed from the parser and are now
-     *  owned by the PdfDocument.
-     *
-     *  \param pParser pointer to a PdfParser
-     */
-    PdfDocument( PdfParser* pParser );
-
     /** Close down/destruct the PdfDocument
      */
     virtual ~PdfDocument();
