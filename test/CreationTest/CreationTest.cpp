@@ -401,7 +401,6 @@ int main( int argc, char* argv[] )
     TEST_SAFE_OP( writer.SetKeywords( PdfString("Test;PDF;") ) );
 
     TEST_SAFE_OP( writer.Write( argv[1] ) );
-    TEST_SAFE_OP( WatermarkFile( argv[1] ) );
 
 #ifdef TEST_MEM_BUFFER
     // ---
