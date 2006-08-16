@@ -316,35 +316,6 @@ void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->FillEllipse( dX, dY, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
 }
 
-void WatermarkFile( const char* pszFilename )
-{
-    printf("Running watermark test\n");
-
-    PdfDocument doc( pszFilename );
-    PdfPainter  painter;
-    PdfPage*    pPage;
-    PdfRect     rect;
-    int         i;
-
-    for(i=0;i<doc.GetPageCount();i++)
-    {
-        pPage = doc.GetPage( i );
-        if( !pPage ) 
-        {
-            RAISE_ERROR( ePdfError_InvalidHandle );
-        }
-        
-        rect = pPage->PageSize();
-
-        painter.SetPage( pPage );
-        painter.SetStrokingColor( 1.0, 1.0, 1.0 );
-        painter.DrawLine( 0.0, 0.0, rect.Width(), rect.Height() );
-    }
-
-    printf("writing document back\n");
-    doc.Write( pszFilename );
-}
-
 int main( int argc, char* argv[] ) 
 {
     PdfDocument writer;
