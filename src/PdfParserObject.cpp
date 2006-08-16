@@ -422,7 +422,8 @@ void PdfParserObject::ParseStream()
         RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
-    if( fread( szBuf, lLen, sizeof( char ), m_file.Handle() ) != 1 )
+	size_t frRet = fread( szBuf, lLen, sizeof( char ), m_file.Handle() );
+    if( frRet != 1 )
     {
         RAISE_ERROR( ePdfError_InvalidStreamLength );
     }

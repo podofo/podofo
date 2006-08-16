@@ -198,7 +198,7 @@ void PdfDocument::Write( const char* pszFilename )
     PdfWriter       writer;
     
     writer.Init( this );
-    writer.Write( pszFilename );    
+    writer.Write( &device );    
 }
 
 PdfObject* PdfDocument::GetNamedObjectFromCatalog( const char* pszName ) const 
