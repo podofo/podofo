@@ -44,6 +44,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CreationTest", "test\Creati
 		{B14127D8-AC76-4492-8C31-0AA62FC4ACF7} = {B14127D8-AC76-4492-8C31-0AA62FC4ACF7}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WatermarkTest", "test\WatermarkTest\WatermarkTest.vcproj", "{76E51E53-633D-41E8-AC94-AB6584C107D8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C110CB09-10F9-460E-8055-F53AF55911AB} = {C110CB09-10F9-460E-8055-F53AF55911AB}
+		{6C9D2F98-D323-487C-8B82-592BA6F95BE5} = {6C9D2F98-D323-487C-8B82-592BA6F95BE5}
+		{B14127D8-AC76-4492-8C31-0AA62FC4ACF7} = {B14127D8-AC76-4492-8C31-0AA62FC4ACF7}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
@@ -99,6 +106,12 @@ Global
 		{6746FF36-7E3A-42A8-AF5C-5F677A8DB491}.PDFEnhancer Debug.Build.0 = Debug|Win32
 		{6746FF36-7E3A-42A8-AF5C-5F677A8DB491}.Release.ActiveCfg = Release|Win32
 		{6746FF36-7E3A-42A8-AF5C-5F677A8DB491}.Release.Build.0 = Release|Win32
+		{76E51E53-633D-41E8-AC94-AB6584C107D8}.Debug.ActiveCfg = Debug|Win32
+		{76E51E53-633D-41E8-AC94-AB6584C107D8}.Debug.Build.0 = Debug|Win32
+		{76E51E53-633D-41E8-AC94-AB6584C107D8}.PDFEnhancer Debug.ActiveCfg = Debug|Win32
+		{76E51E53-633D-41E8-AC94-AB6584C107D8}.PDFEnhancer Debug.Build.0 = Debug|Win32
+		{76E51E53-633D-41E8-AC94-AB6584C107D8}.Release.ActiveCfg = Release|Win32
+		{76E51E53-633D-41E8-AC94-AB6584C107D8}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection
