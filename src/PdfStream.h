@@ -156,6 +156,10 @@ class PdfStream {
      */
     void FlateDecode();
 
+    /** This method removes all filters from the stream
+     */
+    void Uncompress();
+
     /** Create a copy of a PdfStream object
      *  \param rhs the object to clone
      *  \returns a reference to this object

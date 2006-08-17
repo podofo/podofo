@@ -121,6 +121,9 @@ void PdfStream::Append( const char* pszString, long lLen )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
+    // only append to uncommpressed streams
+    this->Uncompress();
+
     // Detach from implicitly shared data
     Detach();
 
@@ -370,6 +373,23 @@ void PdfStream::FlateDecode()
     {
         m_pParent->GetDictionary().AddKey( "Filter", PdfName( "FlateDecode" ) );
         FlateDecodeStreamData();
+    }
+}
+
+void PdfStream::Uncompress()
+{
+    long         lLen;
+    char*        pBuffer;
+
+    if( m_pParent && m_pParent->IsDictionary() && m_pParent->GetDictionary().HasKey( "Filter" ) )
+    {
+        this->GetFilteredCopy( &pBuffer, &lLen );
+        this->Set( pBuffer, lLen );
+        m_pParent->GetDictionary().RemoveKey( "Filter" ); 
+        
+        // TODO: DS:
+        // If there is a decode params dictionary it might
+        // be necessary to remove it
     }
 }
 
