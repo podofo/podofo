@@ -354,12 +354,12 @@ class PdfPainter {
      *
      *  \param inPrec write this many decimal places
      */
-	inline void SetPrecision( unsigned short inPrec );
+    inline void SetPrecision( unsigned short inPrec );
 
     /** Get the currently set floating point precision
      *  \returns how many decimal places will be written out for any floating point value
      */
-	inline unsigned short Precision() const;
+    inline unsigned short Precision() const;
 
  protected:
     /** Sets the color that was last set by the user as the current stroking color.
@@ -403,9 +403,9 @@ class PdfPainter {
      */
     double m_curColor1, m_curColor2, m_curColor3, m_curColor4;
 
-	/** floating point precision for values written to the content stream
-	 */
-	unsigned short	m_fPrec;
+    /** floating point precision for values written to the content stream
+     */
+    unsigned short	m_fPrec;
 };
 
 // -----------------------------------------------------
