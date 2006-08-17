@@ -169,9 +169,9 @@ void PdfDocument::InitPagesTree()
 
 void PdfDocument::Load( const char* pszFilename )
 {
-	this->Clear();
+    this->Clear();
 
-	PdfParser parser( &m_vecObjects, pszFilename, true );
+    PdfParser parser( &m_vecObjects, pszFilename, true );
     InitFromParser( &parser );
     InitPagesTree();
     InitFonts();
@@ -182,6 +182,16 @@ void PdfDocument::Write( const char* pszFilename )
     PdfOutputDevice device( pszFilename );
     PdfWriter       writer;
     
+    /** TODO:
+     *  We will get problems here on linux,
+     *  if we write to the same filename we read the 
+     *  document from.
+     *  Because the PdfParserObjects will read there streams 
+     *  data from the file while we are writing it.
+     *  The problem is that the stream data won't exist at this time
+     *  as we truncated the file already to zero length by opening
+     *  it writeable.
+     */
     writer.Init( this );
     writer.Write( &device );    
 }

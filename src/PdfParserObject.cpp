@@ -383,7 +383,8 @@ void PdfParserObject::ParseStream()
             ungetc( c, m_file.Handle() );
         }
     }
-	int	fLoc = ftell( m_file.Handle() );	// we need to save this, since loading the Length key could disturb it!
+    
+    long fLoc = ftell( m_file.Handle() );	// we need to save this, since loading the Length key could disturb it!
 
     PdfObject* pObj = this->GetDictionary().GetKey( PdfName::KeyLength );  
     if( pObj && pObj->IsNumber() )
@@ -423,8 +424,8 @@ void PdfParserObject::ParseStream()
         RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
-	fseek( m_file.Handle(), fLoc, SEEK_SET );	// reset it before reading!
-	size_t frRet = fread( szBuf, lLen, sizeof( char ), m_file.Handle() );
+    fseek( m_file.Handle(), fLoc, SEEK_SET );	// reset it before reading!
+    size_t frRet = fread( szBuf, lLen, sizeof( char ), m_file.Handle() );
     if( frRet != 1 )
     {
         RAISE_ERROR( ePdfError_InvalidStreamLength );
