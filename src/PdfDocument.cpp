@@ -78,14 +78,6 @@ PdfDocument::PdfDocument( const char* pszFilename )
     this->Load( pszFilename );
 }
 
-PdfDocument::PdfDocument( PdfParser* pParser )
-    : m_pPagesTree( NULL ), m_pTrailer( NULL )
-{
-    InitFromParser( pParser );
-    InitPagesTree();
-    InitFonts();
-}
-
 PdfDocument::~PdfDocument()
 {
     this->Clear();
@@ -148,14 +140,9 @@ void PdfDocument::InitFonts()
 
 void PdfDocument::InitFromParser( PdfParser* pParser )
 {
-    m_vecObjects   = pParser->GetObjects();
     m_eVersion     = pParser->GetPdfVersion();
     m_bLinearized  = pParser->IsLinearized();
 
-    // clear the parsers object value
-    // other PdfWriter and PdfParser
-    // would delete the same objects
-    pParser->m_vecObjects.clear();
 
     m_pTrailer = new PdfObject( *(pParser->GetTrailer()) );
     m_pTrailer->SetParent( &m_vecObjects );
@@ -183,7 +170,7 @@ void PdfDocument::InitPagesTree()
 
 void PdfDocument::Load( const char* pszFilename )
 {
-    PdfParser parser( pszFilename, true );
+    PdfParser parser( &m_vecObjects, pszFilename, true );
 
     this->Clear();
 
