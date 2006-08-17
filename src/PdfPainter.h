@@ -350,6 +350,17 @@ class PdfPainter {
      */
     inline unsigned short TabWidth() const;
 
+    /** Set the floating point precision.
+     *
+     *  \param inPrec write this many decimal places
+     */
+	inline void SetPrecision( unsigned short inPrec );
+
+    /** Get the currently set floating point precision
+     *  \returns how many decimal places will be written out for any floating point value
+     */
+	inline unsigned short Precision() const;
+
  protected:
     /** Sets the color that was last set by the user as the current stroking color.
      *  You should always enclose this function by Save() and Restore()
@@ -391,6 +402,10 @@ class PdfPainter {
     /** Save the current color
      */
     double m_curColor1, m_curColor2, m_curColor3, m_curColor4;
+
+	/** floating point precision for values written to the content stream
+	 */
+	unsigned short	m_fPrec;
 };
 
 // -----------------------------------------------------
@@ -425,6 +440,21 @@ unsigned short PdfPainter::TabWidth() const
     return m_nTabWidth;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfPainter::SetPrecision( unsigned short inPrec )
+{
+    m_fPrec = inPrec;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+unsigned short PdfPainter::Precision() const
+{
+    return m_fPrec;
+}
 };
 
 #endif // _PDF_PAINTER_H_

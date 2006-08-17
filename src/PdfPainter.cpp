@@ -18,6 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <sstream>
+#include <iomanip>
+
 #include "PdfPainter.h"
 
 #include "PdfCanvas.h"
@@ -36,17 +39,20 @@
 
 namespace PoDoFo {
 
-PdfPainter::PdfPainter()
+static inline void CheckDoubleRange( double val, double min, double max )
 {
-    m_pCanvas = NULL;
-    m_pFont   = NULL;
+	if( val < min || val > max )
+	{
+		RAISE_ERROR( ePdfError_ValueOutOfRange );
+	}
+}
 
-    m_curColor1 = 
-        m_curColor2 = 
-        m_curColor3 = 
-        m_curColor4 = 0.0;
-
-    m_eCurColorSpace = ePdfColorSpace_DeviceRGB;
+PdfPainter::PdfPainter()
+: m_pCanvas( NULL ), m_pPage( NULL ), m_pFont( NULL ), m_nTabWidth( 4 ),
+  m_eCurColorSpace( ePdfColorSpace_DeviceRGB ), 
+  m_curColor1( 0.0 ), m_curColor2( 0.0 ), m_curColor3( 0.0 ), m_curColor4( 0.0 ), 
+  m_fPrec( 3 )
+{
 }
 
 PdfPainter::~PdfPainter()
@@ -55,8 +61,18 @@ PdfPainter::~PdfPainter()
 
 void PdfPainter::SetPage( PdfCanvas* pPage )
 {
+	m_pPage   = pPage;
+
     m_pCanvas = pPage ? pPage->Contents()->Stream() : NULL;
-    m_pPage   = pPage;
+	if ( m_pCanvas ) {
+		if ( m_pCanvas->Length() ) {	
+			// there is already content here - so let's assume we are appending
+			// as such, we MUST put in a "space" to separate whatever we do.
+			m_pCanvas->Append( " " );
+		}
+	} else {
+		RAISE_ERROR( ePdfError_InvalidHandle );
+	}
 }
 
 void PdfPainter::SetStrokingGray( double g )
@@ -66,29 +82,27 @@ void PdfPainter::SetStrokingGray( double g )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    if( g < 0.0 || g > 1.0 )
-    {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
-    }
+	CheckDoubleRange( g, 0.0, 1.0 );
 
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%f G\n", g );
-    m_pCanvas->Append( m_szBuffer );
+// 	snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%f G\n", g );
+//     m_pCanvas->Append( m_szBuffer );
+	std::ostringstream	oss;
+	oss << std::setprecision( m_fPrec ) << g << " G" << std::endl;
+	m_pCanvas->Append( oss.str() );
 }
 
 void PdfPainter::SetGray( double g )
 {
-    if( !m_pCanvas )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+	if( !m_pCanvas )
+	{
+		RAISE_ERROR( ePdfError_InvalidHandle );
+	}
 
-    if( g < 0.0 || g > 1.0 )
-    {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
-    }
+	CheckDoubleRange( g, 0.0, 1.0 );
 
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%f G\n", g );
-    m_pCanvas->Append( m_szBuffer );
+	std::ostringstream	oss;
+	oss << std::setprecision( m_fPrec ) << g << " g" << std::endl;
+	m_pCanvas->Append( oss.str() );
 
     m_curColor1      = g;
     m_eCurColorSpace = ePdfColorSpace_DeviceGray;
@@ -101,49 +115,36 @@ void PdfPainter::SetStrokingColor( double r, double g, double b )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    if( r < 0.0 || r > 1.0 )
-    {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
-    }
+	CheckDoubleRange( r, 0.0, 1.0 );
+	CheckDoubleRange( g, 0.0, 1.0 );
+	CheckDoubleRange( b, 0.0, 1.0 );
 
-    if( g < 0.0 || g > 1.0 )
-    {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
-    }
-
-    if( b < 0.0 || b > 1.0 )
-    {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
-    }
-
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%f %f %f RG\n", r, g, b );
-    m_pCanvas->Append( m_szBuffer );
+//     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%f %f %f RG\n", r, g, b );
+//     m_pCanvas->Append( m_szBuffer );
+	std::ostringstream	oss;
+	oss << std::setprecision( m_fPrec ) << r << " "
+		<< std::setprecision( m_fPrec ) << g << " "
+		<< std::setprecision( m_fPrec ) << b 
+		<< " RG" << std::endl;
+	m_pCanvas->Append( oss.str() );
 }
 
 void PdfPainter::SetColor( double r, double g, double b )
 {
-    if( !m_pCanvas )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+	if( !m_pCanvas )
+	{
+		RAISE_ERROR( ePdfError_InvalidHandle );
+	}
 
-    if( r < 0.0 || r > 1.0 )
-    {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
-    }
+	CheckDoubleRange( r, 0.0, 1.0 );
+	CheckDoubleRange( g, 0.0, 1.0 );
+	CheckDoubleRange( b, 0.0, 1.0 );
 
-    if( g < 0.0 || g > 1.0 )
-    {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
-    }
-
-    if( b < 0.0 || b > 1.0 )
-    {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
-    }
-
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%f %f %f rg\n", r, g, b );
-    m_pCanvas->Append( m_szBuffer );
+	std::ostringstream	oss;
+	oss << std::setprecision( m_fPrec ) << r << " " 
+		<< std::setprecision( m_fPrec ) << g << " " 
+		<< std::setprecision( m_fPrec ) << b 
+		<< " rg" << std::endl;
 
     m_curColor1      = r;
     m_curColor2      = g;
@@ -158,59 +159,41 @@ void PdfPainter::SetStrokingColorCMYK( double c, double m, double y, double k )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    if( c < 0.0 || c > 1.0 )
-    {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
-    }
+	CheckDoubleRange( c, 0.0, 1.0 );
+	CheckDoubleRange( m, 0.0, 1.0 );
+	CheckDoubleRange( y, 0.0, 1.0 );
+	CheckDoubleRange( k, 0.0, 1.0 );
 
-    if( m < 0.0 || m > 1.0 )
-    {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
-    }
-
-    if( y < 0.0 || y > 1.0 )
-    {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
-    }
-
-    if( k < 0.0 || k > 1.0 )
-    {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
-    }
-
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%f %f %f %f K\n", c, m, y, k );
-    m_pCanvas->Append( m_szBuffer );
+//     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%f %f %f %f K\n", c, m, y, k );
+//     m_pCanvas->Append( m_szBuffer );
+	std::ostringstream	oss;
+	oss << std::setprecision( m_fPrec ) << c << " " 
+		<< std::setprecision( m_fPrec ) << m << " " 
+		<< std::setprecision( m_fPrec ) << y << " " 
+		<< std::setprecision( m_fPrec ) << k 
+		<< " K" << std::endl;
+	m_pCanvas->Append( oss.str() );
 }
 
 void PdfPainter::SetColorCMYK( double c, double m, double y, double k )
 {
-    if( !m_pCanvas )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+	if( !m_pCanvas )
+	{
+		RAISE_ERROR( ePdfError_InvalidHandle );
+	}
 
-    if( c < 0.0 || c > 1.0 )
-    {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
-    }
+	CheckDoubleRange( c, 0.0, 1.0 );
+	CheckDoubleRange( m, 0.0, 1.0 );
+	CheckDoubleRange( y, 0.0, 1.0 );
+	CheckDoubleRange( k, 0.0, 1.0 );
 
-    if( m < 0.0 || m > 1.0 )
-    {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
-    }
-
-    if( y < 0.0 || y > 1.0 )
-    {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
-    }
-
-    if( k < 0.0 || k > 1.0 )
-    {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
-    }
-
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%f %f %f %f k\n", c, m, y, k );
-    m_pCanvas->Append( m_szBuffer );
+	std::ostringstream	oss;
+	oss << std::setprecision( m_fPrec ) << c << " " 
+		<< std::setprecision( m_fPrec ) << m << " " 
+		<< std::setprecision( m_fPrec ) << y << " " 
+		<< std::setprecision( m_fPrec ) << k 
+		<< " k" << std::endl;
+	m_pCanvas->Append( oss.str() );
 
     m_curColor1      = c;
     m_curColor2      = m;
@@ -226,8 +209,11 @@ void PdfPainter::SetStrokeWidth( double dWidth )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f w\n", dWidth );
-    m_pCanvas->Append( m_szBuffer );
+//     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f w\n", dWidth );
+//     m_pCanvas->Append( m_szBuffer );
+	std::ostringstream	oss;
+	oss << std::setprecision( m_fPrec ) << dWidth << " w" << std::endl;
+	m_pCanvas->Append( oss.str() );
 }
 
 void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom )
@@ -271,8 +257,11 @@ void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom )
         RAISE_ERROR( ePdfError_InvalidStrokeStyle );
     }
     
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%s d\n", pszCurStroke );
-    m_pCanvas->Append( m_szBuffer );
+//     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%s d\n", pszCurStroke );
+//     m_pCanvas->Append( m_szBuffer );
+	std::ostringstream	oss;
+	oss << pszCurStroke << " d" << std::endl;
+	m_pCanvas->Append( oss.str() );
 }
 
 void PdfPainter::SetLineCapStyle( EPdfLineCapStyle eCapStyle )
@@ -314,12 +303,20 @@ void PdfPainter::DrawLine( double dStartX, double dStartY, double dEndX, double 
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f m %.3f %.3f l S\n", 
-              dStartX,
-              m_pPage->PageSize().Height() - dStartY,
-              dEndX,
-              m_pPage->PageSize().Height() - dEndY );
-    m_pCanvas->Append( m_szBuffer );
+//     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f m %.3f %.3f l S\n", 
+//               dStartX,
+//               dStartY,
+//               dEndX,
+//               dEndY );
+//     m_pCanvas->Append( m_szBuffer );
+	std::ostringstream	oss;
+	oss << std::setprecision( m_fPrec ) << dStartX << " "
+		<< std::setprecision( m_fPrec ) << dStartY
+		<< " m "
+		<< std::setprecision( m_fPrec ) << dEndX << " "
+		<< std::setprecision( m_fPrec ) << dEndY		
+		<< " l S" << std::endl;
+	m_pCanvas->Append( oss.str() );
 }
 
 void PdfPainter::DrawRect( double dX, double dY, double dWidth, double dHeight )
@@ -329,14 +326,21 @@ void PdfPainter::DrawRect( double dX, double dY, double dWidth, double dHeight )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
-    dHeight *= -1;
+//     dHeight *= -1;
 
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f %.3f %.3f re S\n", 
-              dX,
-              m_pPage->PageSize().Height() - dY,
-              dWidth,
-              dHeight );
-    m_pCanvas->Append( m_szBuffer );
+//     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f %.3f %.3f re S\n", 
+//               dX,
+//               dY,
+//               dWidth,
+//               dHeight );
+//     m_pCanvas->Append( m_szBuffer );
+	std::ostringstream	oss;
+	oss << std::setprecision( m_fPrec ) << dX << " "
+		<< std::setprecision( m_fPrec ) << dY << " "
+		<< std::setprecision( m_fPrec ) << dWidth << " "
+		<< std::setprecision( m_fPrec ) << dHeight		
+		<< " re S" << std::endl;
+	m_pCanvas->Append( oss.str() );
 }
 
 void PdfPainter::FillRect( double dX, double dY, double dWidth, double dHeight )
@@ -346,14 +350,21 @@ void PdfPainter::FillRect( double dX, double dY, double dWidth, double dHeight )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    dHeight *= -1;
+//    dHeight *= -1;
    
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f %.3f %.3f re f\n", 
-              dX,
-              m_pPage->PageSize().Height() - dY,
-              dWidth,
-              dHeight );
-    m_pCanvas->Append( m_szBuffer );
+//     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f %.3f %.3f re f\n", 
+//               dX,
+//               m_pPage->PageSize().Height() - dY,
+//               dWidth,
+//               dHeight );
+//     m_pCanvas->Append( m_szBuffer );
+	std::ostringstream	oss;
+	oss << std::setprecision( m_fPrec ) << dX << " "
+		<< std::setprecision( m_fPrec ) << dY << " "
+		<< std::setprecision( m_fPrec ) << dWidth << " "
+		<< std::setprecision( m_fPrec ) << dHeight		
+		<< " re f" << std::endl;
+	m_pCanvas->Append( oss.str() );
 }
 
 void PdfPainter::DrawEllipse( double dX, double dY, double dWidth, double dHeight )
@@ -367,29 +378,43 @@ void PdfPainter::DrawEllipse( double dX, double dY, double dWidth, double dHeigh
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    dHeight *= -1;
-    dY       = m_pPage->PageSize().Height() - dY;
+// 	dHeight *= -1;
+//     dY       = m_pPage->PageSize().Height() - dY;
 
     ConvertRectToBezier( dX, dY, dWidth, dHeight, dPointX, dPointY );
 
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f m\n",
-              dPointX[0],
-              dPointY[0] 
-        );
-    m_pCanvas->Append( m_szBuffer );              
+//     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f m\n",
+//               dPointX[0],
+//               dPointY[0] 
+//         );
+//     m_pCanvas->Append( m_szBuffer );              
+	std::ostringstream	oss;
+	oss << std::setprecision( m_fPrec ) << dPointX[0] << " "
+		<< std::setprecision( m_fPrec ) << dPointY[0]
+		<< " m" << std::endl;
+	m_pCanvas->Append( oss.str() );
 
     for( i=1;i<BEZIER_POINTS; i+=3 )
     {
-        snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f %.3f %.3f %.3f %.3f c\n", 
-                  dPointX[i],
-                  dPointY[i],
-                  dPointX[i+1],
-                  dPointY[i+1],
-                  dPointX[i+2],
-                  dPointY[i+2]);
-        m_pCanvas->Append( m_szBuffer );
-    }
-    m_pCanvas->Append( "s\n" );
+//         snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f %.3f %.3f %.3f %.3f c\n", 
+//                   dPointX[i],
+//                   dPointY[i],
+//                   dPointX[i+1],
+//                   dPointY[i+1],
+//                   dPointX[i+2],
+//                   dPointY[i+2]);
+//         m_pCanvas->Append( m_szBuffer );
+		std::ostringstream	oss;
+		oss << std::setprecision( m_fPrec ) << dPointX[i] << " "
+			<< std::setprecision( m_fPrec ) << dPointY[i] << " "
+			<< std::setprecision( m_fPrec ) << dPointX[i+1] << " "
+			<< std::setprecision( m_fPrec ) << dPointY[i+1] << " "
+			<< std::setprecision( m_fPrec ) << dPointX[i+2] << " "
+			<< std::setprecision( m_fPrec ) << dPointY[i+2]	
+			<< " c" << std::endl;
+		m_pCanvas->Append( oss.str() );
+   }
+    m_pCanvas->Append( "S\n" );
 }
 
 void PdfPainter::FillEllipse( double dX, double dY, double dWidth, double dHeight )
@@ -403,26 +428,40 @@ void PdfPainter::FillEllipse( double dX, double dY, double dWidth, double dHeigh
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    dHeight *= -1;
-    dY       = (m_pPage->PageSize().Height() - dY);
+//     dHeight *= -1;
+//     dY       = (m_pPage->PageSize().Height() - dY);
 
     ConvertRectToBezier( dX, dY, dWidth, dHeight, dPointX, dPointY );
 
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f m\n",
-              dPointX[0],
-              dPointY[0]);
-    m_pCanvas->Append( m_szBuffer );              
+//     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f m\n",
+//               dPointX[0],
+//               dPointY[0]);
+//     m_pCanvas->Append( m_szBuffer );              
+	std::ostringstream	oss;
+	oss << std::setprecision( m_fPrec ) << dPointX[0] << " "
+		<< std::setprecision( m_fPrec ) << dPointY[0]
+		<< " m" << std::endl;
+	m_pCanvas->Append( oss.str() );
 
     for( i=1;i<BEZIER_POINTS; i+=3 )
     {
-        snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f %.3f %.3f %.3f %.3f c\n", 
-                  dPointX[i],
-                  dPointY[i],
-                  dPointX[i+1],
-                  dPointY[i+1],
-                  dPointX[i+2],
-                  dPointY[i+2]);
-        m_pCanvas->Append( m_szBuffer );
+//         snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f %.3f %.3f %.3f %.3f c\n", 
+//                   dPointX[i],
+//                   dPointY[i],
+//                   dPointX[i+1],
+//                   dPointY[i+1],
+//                   dPointX[i+2],
+//                   dPointY[i+2]);
+//         m_pCanvas->Append( m_szBuffer );
+		std::ostringstream	oss;
+		oss << std::setprecision( m_fPrec ) << dPointX[i] << " "
+			<< std::setprecision( m_fPrec ) << dPointY[i] << " "
+			<< std::setprecision( m_fPrec ) << dPointX[i+1] << " "
+			<< std::setprecision( m_fPrec ) << dPointY[i+1] << " "
+			<< std::setprecision( m_fPrec ) << dPointX[i+2] << " "
+			<< std::setprecision( m_fPrec ) << dPointY[i+2]	
+			<< " c" << std::endl;
+		m_pCanvas->Append( oss.str() );
     }
     m_pCanvas->Append( "f\n" );
 }
@@ -546,7 +585,7 @@ void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double 
               pObject->PageSize().Width() * dScaleX,
               pObject->PageSize().Height() * dScaleY,
               dX,
-              m_pPage->PageSize().Height() - dY,
+              dY,
               pObject->Identifier().Name().c_str() );
     m_pCanvas->Append( m_szBuffer );
 }
@@ -568,10 +607,15 @@ void PdfPainter::LineTo( double dX, double dY )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f l\n", 
-              dX,
-              m_pPage->PageSize().Height() - dY );
-    m_pCanvas->Append( m_szBuffer );
+//     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f l\n", 
+//               dX,
+//               dY );
+//     m_pCanvas->Append( m_szBuffer );
+	std::ostringstream	oss;
+	oss << std::setprecision( m_fPrec ) << dX << " "
+		<< std::setprecision( m_fPrec ) << dY
+		<< " l" << std::endl;
+	m_pCanvas->Append( oss.str() );
 }
 
 void PdfPainter::MoveTo( double dX, double dY )
@@ -581,10 +625,15 @@ void PdfPainter::MoveTo( double dX, double dY )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f m\n", 
-              dX,
-              m_pPage->PageSize().Height() - dY );
-    m_pCanvas->Append( m_szBuffer );
+//     snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%.3f %.3f m\n", 
+//               dX,
+//               dY );
+//     m_pCanvas->Append( m_szBuffer );
+	std::ostringstream	oss;
+	oss << std::setprecision( m_fPrec ) << dX << " "
+		<< std::setprecision( m_fPrec ) << dY
+		<< " l" << std::endl;
+	m_pCanvas->Append( oss.str() );
 }
 
 void PdfPainter::Stroke()
