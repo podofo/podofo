@@ -77,10 +77,10 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
 
     m_pObject->GetDictionary().AddKey( PdfName::KeyRect, rect );
     this->AddReferenceToKey( pPage->Object(), "Annots", m_pObject->Reference() );
-    
+
     rRect.ToVariant( rect );
     date.ToString( sDate );
-
+    
     m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, name );
     m_pObject->GetDictionary().AddKey( PdfName::KeyRect, rect );
     m_pObject->GetDictionary().AddKey( "P", pPage->Object()->Reference() );

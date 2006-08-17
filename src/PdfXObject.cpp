@@ -79,7 +79,7 @@ PdfXObject::PdfXObject( PdfObject* pObject )
     
     m_pResources = pObject->GetIndirectKey( "Resources" );
     m_Identifier = PdfName( out.str().c_str() );
-    m_rRect      = PdfRect( m_pObject->GetDictionary().GetKey( "BBox" )->GetArray() );
+    m_rRect      = PdfRect( m_pObject->GetIndirectKey( "BBox" )->GetArray() );
 }
 
 PdfXObject::PdfXObject( const char* pszSubType, PdfVecObjects* pParent )

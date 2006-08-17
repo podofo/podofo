@@ -259,11 +259,9 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
     PdfImage image( &(pDocument->GetObjects()) );
 
-	// TODO: These values need to be replaced with PDF unit-based ones where second value is BOTTOM not top!
-    PdfRect        rect( 0, 0, 3000 * CONVERSION_CONSTANT, 4000 * CONVERSION_CONSTANT );
+    PdfRect        rect( 0, 0, 50000 * CONVERSION_CONSTANT, 50000 * CONVERSION_CONSTANT );
     PdfRect        rect1( 80000 * CONVERSION_CONSTANT, 180000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
-    PdfRect        rect2( 80000 * CONVERSION_CONSTANT, 120000 * CONVERSION_CONSTANT, 10000 * CONVERSION_CONSTANT, 10000 * CONVERSION_CONSTANT );
-
+    PdfRect        rect2( 40000 * CONVERSION_CONSTANT, y, 50000 * CONVERSION_CONSTANT, 50000 * CONVERSION_CONSTANT );
     PdfXObject     xObj( rect, &(pDocument->GetObjects()) );
     PdfPainter     pnt;    // XObject painter
 
@@ -276,17 +274,19 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pnt.Font()->SetFontSize( 8.0 );
     pnt.SetStrokingColor( 1.0, 1.0, 1.0 );
     pnt.SetColor( 1.0, 0.0, 0.0 );
-    pnt.FillRect( 0, 0, xObj.PageSize().Width(), xObj.PageSize().Height() );
+    pnt.FillRect( 0, xObj.PageSize().Height(), xObj.PageSize().Width(), xObj.PageSize().Height()  );
     pnt.SetColor( 0.0, 0.0, 0.0 );
     pnt.DrawRect( 0, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT );
     pnt.DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am a XObject." );
 
     printf("Drawing on the page!\n");
     // Draw onto the page 
+
     pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y, &image, 0.3, 0.3 );
     pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y - (100000 * CONVERSION_CONSTANT), &image, 0.2, 0.5 );
     pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y - (200000 * CONVERSION_CONSTANT), &image, 0.3, 0.3 );
-    pPainter->DrawXObject( 120000 * CONVERSION_CONSTANT, y - (15000 * CONVERSION_CONSTANT), &xObj, 0.2, 0.2 );
+
+    pPainter->DrawXObject( 120000 * CONVERSION_CONSTANT, y - (15000 * CONVERSION_CONSTANT), &xObj, 0.01, 0.01 );
 
     PdfAnnotation annot1( pPage, ePdfAnnotation_Widget, rect1, &(pDocument->GetObjects()) );
     PdfAnnotation annot2( pPage, ePdfAnnotation_Link, rect2, &(pDocument->GetObjects()) );

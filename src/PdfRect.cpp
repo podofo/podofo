@@ -35,12 +35,12 @@ PdfRect::PdfRect()
     m_dBottom = m_dLeft = m_dWidth = m_dHeight = 0;
 }
 
-PdfRect::PdfRect( double lLeft, double lBottom, double lWidth, double lHeight )
+PdfRect::PdfRect( double dLeft, double dBottom, double dWidth, double dHeight )
 {
-    m_dBottom = lBottom;
-    m_dLeft   = lLeft;
-    m_dWidth  = lWidth;
-    m_dHeight = lHeight;
+    m_dBottom = dBottom;
+    m_dLeft   = dLeft;
+    m_dWidth  = dWidth;
+    m_dHeight = dHeight;
 }
 
 PdfRect::PdfRect( const PdfArray& inArray )
@@ -60,22 +60,31 @@ void PdfRect::ToVariant( PdfVariant & var ) const
     
     array.push_back( PdfVariant( m_dLeft ) );
     array.push_back( PdfVariant( m_dBottom ) );
-    array.push_back( PdfVariant( (m_dWidth-m_dLeft) ) );
-    array.push_back( PdfVariant( (m_dBottom+m_dHeight) ) );
+    array.push_back( PdfVariant( (m_dWidth+m_dLeft) ) );
+    array.push_back( PdfVariant( (m_dHeight+m_dBottom) ) );
 
     var = array;
 }
 
 std::string PdfRect::ToString() const
 {
-	std::ostringstream	oStr;
-	oStr << "[ ";
-	oStr << std::setprecision( 3 ) << m_dLeft << " ";
-	oStr << std::setprecision( 3 ) << m_dBottom << " ";
-	oStr << std::setprecision( 3 ) << m_dWidth + m_dLeft << " ";
-	oStr << std::setprecision( 3 ) << m_dHeight - m_dBottom << " ]";
+    PdfVariant  var;
+    std::string str;
+    this->ToVariant( var );
+    var.ToString( str );
 
-	return oStr.str();
+    return str;
+
+    /*
+    std::ostringstream	oStr;
+    oStr << "[ ";
+    oStr << std::setprecision( 3 ) << m_dLeft << " ";
+    oStr << std::setprecision( 3 ) << m_dBottom << " ";
+    oStr << std::setprecision( 3 ) << m_dWidth + m_dLeft << " ";
+    oStr << std::setprecision( 3 ) << m_dHeight - m_dBottom << " ]";
+    
+    return oStr.str();
+    */
 }
 
 void PdfRect::FromArray( const PdfArray& inArray )
