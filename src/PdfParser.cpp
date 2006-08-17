@@ -626,17 +626,23 @@ void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
     {
         m_buffer.Buffer()[PDF_XREF_ENTRY_SIZE] = '\0';
 
-        if( nFirstObject + count >= m_nNumObjects )
+		int	objID = nFirstObject + count;
+        if( objID >= m_nNumObjects )
         {
             RAISE_ERROR( ePdfError_InvalidXRef );
         }
 
-        if( !m_ppOffsets[nFirstObject + count] )
+        if( !m_ppOffsets[objID] )
         {
-            m_ppOffsets[nFirstObject + count] = (TXRefEntry*)malloc( sizeof( TXRefEntry ) );
+            m_ppOffsets[objID] = (TXRefEntry*)malloc( sizeof( TXRefEntry ) );
             sscanf( m_buffer.Buffer(), "%10ld %5ld %c \n", 
-                    &(m_ppOffsets[nFirstObject + count]->lOffset), 
-                    &(m_ppOffsets[nFirstObject + count]->lGeneration), &(m_ppOffsets[nFirstObject + count]->cUsed) );
+                    &(m_ppOffsets[objID]->lOffset), 
+                    &(m_ppOffsets[objID]->lGeneration), &(m_ppOffsets[objID]->cUsed) );
+
+#ifdef _DEBUG
+			PdfError::DebugMessage( "Object:%d (Gen:%d) at Offset:%d\n", 
+									objID, m_ppOffsets[objID]->lGeneration, m_ppOffsets[objID]->lOffset );
+#endif // _DEBUG 
         }
 
         ++count;
