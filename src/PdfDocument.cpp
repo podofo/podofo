@@ -170,9 +170,9 @@ void PdfDocument::InitPagesTree()
 
 void PdfDocument::Load( const char* pszFilename )
 {
-    PdfParser parser( &m_vecObjects, pszFilename, true );
-
     this->Clear();
+
+    PdfParser parser( &m_vecObjects, pszFilename, true );
 
     InitFromParser( &parser );
     InitPagesTree();
