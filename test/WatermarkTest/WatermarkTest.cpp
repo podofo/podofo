@@ -56,7 +56,9 @@ void WatermarkFile( const char* pszInFilename, const char* pszOutFilename )
 
         painter.SetPage( pPage );
         painter.SetStrokingColor( 1.0, 0.0, 0.0 );
+		painter.SetStrokeWidth( 5 );
         painter.DrawLine( 0.0, 0.0, rect.Width(), rect.Height() );
+		painter.DrawLine( 0, rect.Height(), rect.Width(), 0.0 );
     }
 
     printf("writing document back\n");
