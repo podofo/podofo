@@ -85,6 +85,10 @@ PdfObject* PdfVecObjects::GetObject( const PdfReference & ref ) const
 {
     TCIVecObjects it;
 
+#ifdef _DEBUG
+	size_t	vs = this->size();
+#endif
+
     it = std::find_if( this->begin(), this->end(), ObjectsComperator( ref ) );
     
     if( it != this->end() )

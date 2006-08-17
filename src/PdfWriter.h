@@ -111,26 +111,6 @@ class PdfWriter {
      */
     const char* GetPdfVersionString() const { return s_szPdfVersionNums[(int)m_eVersion]; }
 
-    /** Remove the object with the given object and generation number from the list
-     *  of objects.
-     *  The object is returned if it was found. Otherwise NULL is returned.
-     *  The caller has to delte the object by hisself.
-     *
-     *  Internal objects canot be removed.
-     *
-     *  \param ref a reference to the object to remove
-     *  \returns The removed object.
-     */
-    //PdfObject* RemoveObject( const PdfReference & ref );
-
-    /** Get access to the internal Catalog dictionary
-     *  or root object.
-     *  
-     *  \returns PdfObject the documents catalog or NULL 
-     *                     if no catalog is available
-     */
-    //PdfObject* GetCatalog() const { return m_pCatalog; }
-    
     /** Set wether all streams in the pdf document should
      *  be compress using the FlateDecode algorithm.
      *  Only streams that are already JPEG compressed are not affected
@@ -149,17 +129,6 @@ class PdfWriter {
      *           the FlateDecode algorithm.
      */
     bool GetPdfCompression() const { return m_bCompress; }
-
-    /** Get a reference to the sorted internal objects vector.
-     *  \returns the internal objects vector.
-     */
-    //const PdfVecObjects & GetObjects() const { return m_vecObjects; }
-
-    /** Get a reference to the sorted internal objects vector.
-     *  This is an overloaded function for your convinience.
-     *  \returns the internal objects vector.
-     */
-    //PdfVecObjects & GetObjects() { return m_vecObjects; }
 
     /** Calculate the byte offset of the object pObject in the PDF file
      *  if the file was written to disk at the moment of calling this function.

@@ -88,7 +88,7 @@ class PdfParser : public PdfParserBase {
     /** Get a reference to the sorted internal objects vector.
      *  \returns the internal objects vector.
      */
-    inline const PdfVecObjects & GetObjects() const;
+    inline const PdfVecObjects* GetObjects() const;
 
     /** Get the file format version of the pdf
      *  \returns the file format version as enum
@@ -237,9 +237,9 @@ EPdfVersion PdfParser::GetPdfVersion() const
     return m_ePdfVersion;
 }
 
-const PdfVecObjects & PdfParser::GetObjects() const
+const PdfVecObjects* PdfParser::GetObjects() const
 {
-    return *m_vecObjects;
+    return m_vecObjects;
 }
 
 const PdfObject* PdfParser::GetTrailer() const

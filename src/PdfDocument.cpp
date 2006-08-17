@@ -143,7 +143,6 @@ void PdfDocument::InitFromParser( PdfParser* pParser )
     m_eVersion     = pParser->GetPdfVersion();
     m_bLinearized  = pParser->IsLinearized();
 
-
     m_pTrailer = new PdfObject( *(pParser->GetTrailer()) );
     m_pTrailer->SetParent( &m_vecObjects );
 
@@ -170,10 +169,9 @@ void PdfDocument::InitPagesTree()
 
 void PdfDocument::Load( const char* pszFilename )
 {
-    this->Clear();
+	this->Clear();
 
-    PdfParser parser( &m_vecObjects, pszFilename, true );
-
+	PdfParser parser( &m_vecObjects, pszFilename, true );
     InitFromParser( &parser );
     InitPagesTree();
     InitFonts();

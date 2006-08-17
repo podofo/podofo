@@ -136,7 +136,6 @@ void PdfParser::Clear()
     }
     */
 
-    m_vecObjects->clear();
     m_mapStreamCache.clear();
 
     if( m_ppOffsets )
