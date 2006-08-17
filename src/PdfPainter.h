@@ -23,7 +23,7 @@
 
 #include "PdfDefines.h"
 
-#define PDF_PAINTER_BUFFER 512
+#include <sstream>
 
 namespace PoDoFo {
 
@@ -381,11 +381,6 @@ class PdfPainter {
      */
     PdfCanvas* m_pPage;
 
-    /** The internal buffer which is used to create the strings for the
-     *  drawing operations which are added to the stream later
-     */
-    char m_szBuffer[PDF_PAINTER_BUFFER];
-
     /** Font for all drawing operations
      */
     PdfFont* m_pFont;
@@ -406,6 +401,10 @@ class PdfPainter {
     /** floating point precision for values written to the content stream
      */
     unsigned short	m_fPrec;
+
+    /** temporary stream buffer 
+     */
+    std::ostringstream  m_oss;
 };
 
 // -----------------------------------------------------

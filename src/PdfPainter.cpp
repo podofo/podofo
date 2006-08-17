@@ -18,7 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <sstream>
 #include <iomanip>
 
 #include "PdfPainter.h"
@@ -88,9 +87,9 @@ void PdfPainter::SetStrokingGray( double g )
 
     CheckDoubleRange( g, 0.0, 1.0 );
 
-    std::ostringstream oss;
-    oss << std::setprecision( m_fPrec ) << g << " G" << std::endl;
-    m_pCanvas->Append( oss.str() );
+    m_oss.str("");
+    m_oss << std::setprecision( m_fPrec ) << g << " G" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
 }
 
 void PdfPainter::SetGray( double g )
@@ -102,9 +101,9 @@ void PdfPainter::SetGray( double g )
     
     CheckDoubleRange( g, 0.0, 1.0 );
     
-    std::ostringstream	oss;
-    oss << std::setprecision( m_fPrec ) << g << " g" << std::endl;
-    m_pCanvas->Append( oss.str() );
+    m_oss.str("");
+    m_oss << std::setprecision( m_fPrec ) << g << " g" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
         
     m_curColor1      = g;
     m_eCurColorSpace = ePdfColorSpace_DeviceGray;
@@ -121,12 +120,12 @@ void PdfPainter::SetStrokingColor( double r, double g, double b )
     CheckDoubleRange( g, 0.0, 1.0 );
     CheckDoubleRange( b, 0.0, 1.0 );
 
-    std::ostringstream	oss;
-    oss << std::setprecision( m_fPrec ) << r << " "
-        << std::setprecision( m_fPrec ) << g << " "
-        << std::setprecision( m_fPrec ) << b 
-        << " RG" << std::endl;
-    m_pCanvas->Append( oss.str() );
+    m_oss.str("");
+    m_oss << std::setprecision( m_fPrec ) << r << " "
+          << std::setprecision( m_fPrec ) << g << " "
+          << std::setprecision( m_fPrec ) << b 
+          << " RG" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
 }
 
 void PdfPainter::SetColor( double r, double g, double b )
@@ -140,12 +139,12 @@ void PdfPainter::SetColor( double r, double g, double b )
     CheckDoubleRange( g, 0.0, 1.0 );
     CheckDoubleRange( b, 0.0, 1.0 );
     
-    std::ostringstream	oss;
-    oss << std::setprecision( m_fPrec ) << r << " " 
-        << std::setprecision( m_fPrec ) << g << " " 
-        << std::setprecision( m_fPrec ) << b 
-        << " rg" << std::endl;
-    m_pCanvas->Append( oss.str() );
+    m_oss.str("");
+    m_oss << std::setprecision( m_fPrec ) << r << " " 
+          << std::setprecision( m_fPrec ) << g << " " 
+          << std::setprecision( m_fPrec ) << b 
+          << " rg" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
 
     m_curColor1      = r;
     m_curColor2      = g;
@@ -165,13 +164,13 @@ void PdfPainter::SetStrokingColorCMYK( double c, double m, double y, double k )
     CheckDoubleRange( y, 0.0, 1.0 );
     CheckDoubleRange( k, 0.0, 1.0 );
 
-    std::ostringstream	oss;
-    oss << std::setprecision( m_fPrec ) << c << " " 
-        << std::setprecision( m_fPrec ) << m << " " 
-        << std::setprecision( m_fPrec ) << y << " " 
-        << std::setprecision( m_fPrec ) << k 
-        << " K" << std::endl;
-    m_pCanvas->Append( oss.str() );
+    m_oss.str("");
+    m_oss << std::setprecision( m_fPrec ) << c << " " 
+          << std::setprecision( m_fPrec ) << m << " " 
+          << std::setprecision( m_fPrec ) << y << " " 
+          << std::setprecision( m_fPrec ) << k 
+          << " K" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
 }
 
 void PdfPainter::SetColorCMYK( double c, double m, double y, double k )
@@ -186,13 +185,13 @@ void PdfPainter::SetColorCMYK( double c, double m, double y, double k )
     CheckDoubleRange( y, 0.0, 1.0 );
     CheckDoubleRange( k, 0.0, 1.0 );
     
-    std::ostringstream	oss;
-    oss << std::setprecision( m_fPrec ) << c << " " 
-        << std::setprecision( m_fPrec ) << m << " " 
-        << std::setprecision( m_fPrec ) << y << " " 
-        << std::setprecision( m_fPrec ) << k 
-        << " k" << std::endl;
-    m_pCanvas->Append( oss.str() );
+    m_oss.str("");
+    m_oss << std::setprecision( m_fPrec ) << c << " " 
+          << std::setprecision( m_fPrec ) << m << " " 
+          << std::setprecision( m_fPrec ) << y << " " 
+          << std::setprecision( m_fPrec ) << k 
+          << " k" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
     
     m_curColor1      = c;
     m_curColor2      = m;
@@ -208,9 +207,9 @@ void PdfPainter::SetStrokeWidth( double dWidth )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    std::ostringstream	oss;
-    oss << std::setprecision( m_fPrec ) << dWidth << " w" << std::endl;
-    m_pCanvas->Append( oss.str() );
+    m_oss.str("");
+    m_oss << std::setprecision( m_fPrec ) << dWidth << " w" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
 }
 
 void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom )
@@ -254,9 +253,9 @@ void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom )
         RAISE_ERROR( ePdfError_InvalidStrokeStyle );
     }
     
-    std::ostringstream	oss;
-    oss << pszCurStroke << " d" << std::endl;
-    m_pCanvas->Append( oss.str() );
+    m_oss.str("");
+    m_oss << pszCurStroke << " d" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
 }
 
 void PdfPainter::SetLineCapStyle( EPdfLineCapStyle eCapStyle )
@@ -266,8 +265,9 @@ void PdfPainter::SetLineCapStyle( EPdfLineCapStyle eCapStyle )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%i J\n", (int)eCapStyle );
-    m_pCanvas->Append( m_szBuffer );
+    m_oss.str("");
+    m_oss << (int)eCapStyle << "J" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
 }
 
 void PdfPainter::SetLineJoinStyle( EPdfLineJoinStyle eJoinStyle )
@@ -277,8 +277,9 @@ void PdfPainter::SetLineJoinStyle( EPdfLineJoinStyle eJoinStyle )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    snprintf( m_szBuffer, PDF_PAINTER_BUFFER, "%i j\n", (int)eJoinStyle );
-    m_pCanvas->Append( m_szBuffer );
+    m_oss.str("");
+    m_oss << (int)eJoinStyle << "j" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
 }
 
 void PdfPainter::SetFont( PdfFont* pFont )
@@ -298,14 +299,14 @@ void PdfPainter::DrawLine( double dStartX, double dStartY, double dEndX, double 
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    std::ostringstream	oss;
-    oss << std::setprecision( m_fPrec ) << dStartX << " "
-        << std::setprecision( m_fPrec ) << dStartY
-        << " m "
-        << std::setprecision( m_fPrec ) << dEndX << " "
-        << std::setprecision( m_fPrec ) << dEndY		
-        << " l S" << std::endl;
-    m_pCanvas->Append( oss.str() );
+    m_oss.str("");
+    m_oss << std::setprecision( m_fPrec ) << dStartX << " "
+          << std::setprecision( m_fPrec ) << dStartY
+          << " m "
+          << std::setprecision( m_fPrec ) << dEndX << " "
+          << std::setprecision( m_fPrec ) << dEndY		
+          << " l S" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
 }
 
 void PdfPainter::DrawRect( double dX, double dY, double dWidth, double dHeight )
@@ -315,13 +316,13 @@ void PdfPainter::DrawRect( double dX, double dY, double dWidth, double dHeight )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
-    std::ostringstream	oss;
-    oss << std::setprecision( m_fPrec ) << dX << " "
-        << std::setprecision( m_fPrec ) << dY << " "
-        << std::setprecision( m_fPrec ) << dWidth << " "
-        << std::setprecision( m_fPrec ) << -dHeight		
-        << " re S" << std::endl;
-    m_pCanvas->Append( oss.str() );
+    m_oss.str("");
+    m_oss << std::setprecision( m_fPrec ) << dX << " "
+          << std::setprecision( m_fPrec ) << dY << " "
+          << std::setprecision( m_fPrec ) << dWidth << " "
+          << std::setprecision( m_fPrec ) << -dHeight		
+          << " re S" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
 }
 
 void PdfPainter::FillRect( double dX, double dY, double dWidth, double dHeight )
@@ -331,13 +332,13 @@ void PdfPainter::FillRect( double dX, double dY, double dWidth, double dHeight )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    std::ostringstream	oss;
-    oss << std::setprecision( m_fPrec ) << dX << " "
-        << std::setprecision( m_fPrec ) << dY << " "
-        << std::setprecision( m_fPrec ) << dWidth << " "
-        << std::setprecision( m_fPrec ) << -dHeight		
-        << " re f" << std::endl;
-    m_pCanvas->Append( oss.str() );
+    m_oss.str("");
+    m_oss << std::setprecision( m_fPrec ) << dX << " "
+          << std::setprecision( m_fPrec ) << dY << " "
+          << std::setprecision( m_fPrec ) << dWidth << " "
+          << std::setprecision( m_fPrec ) << -dHeight		
+          << " re f" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
 }
 
 void PdfPainter::DrawEllipse( double dX, double dY, double dWidth, double dHeight )
@@ -354,23 +355,23 @@ void PdfPainter::DrawEllipse( double dX, double dY, double dWidth, double dHeigh
     ConvertRectToBezier( dX, dY, dWidth, dHeight, dPointX, dPointY );
 
 
-    std::ostringstream	oss;
-    oss << std::setprecision( m_fPrec ) << dPointX[0] << " "
-        << std::setprecision( m_fPrec ) << dPointY[0]
-        << " m" << std::endl;
+    m_oss.str("");
+    m_oss << std::setprecision( m_fPrec ) << dPointX[0] << " "
+          << std::setprecision( m_fPrec ) << dPointY[0]
+          << " m" << std::endl;
 
     for( i=1;i<BEZIER_POINTS; i+=3 )
     {
-        oss << std::setprecision( m_fPrec ) << dPointX[i] << " "
-            << std::setprecision( m_fPrec ) << dPointY[i] << " "
-            << std::setprecision( m_fPrec ) << dPointX[i+1] << " "
-            << std::setprecision( m_fPrec ) << dPointY[i+1] << " "
-            << std::setprecision( m_fPrec ) << dPointX[i+2] << " "
-            << std::setprecision( m_fPrec ) << dPointY[i+2]	
-            << " c" << std::endl;
+        m_oss << std::setprecision( m_fPrec ) << dPointX[i] << " "
+              << std::setprecision( m_fPrec ) << dPointY[i] << " "
+              << std::setprecision( m_fPrec ) << dPointX[i+1] << " "
+              << std::setprecision( m_fPrec ) << dPointY[i+1] << " "
+              << std::setprecision( m_fPrec ) << dPointX[i+2] << " "
+              << std::setprecision( m_fPrec ) << dPointY[i+2]	
+              << " c" << std::endl;
     }
 
-    m_pCanvas->Append( oss.str() );
+    m_pCanvas->Append( m_oss.str() );
     m_pCanvas->Append( "S\n" );
 }
 
@@ -387,23 +388,23 @@ void PdfPainter::FillEllipse( double dX, double dY, double dWidth, double dHeigh
 
     ConvertRectToBezier( dX, dY, dWidth, dHeight, dPointX, dPointY );
 
-    std::ostringstream	oss;
-    oss << std::setprecision( m_fPrec ) << dPointX[0] << " "
-        << std::setprecision( m_fPrec ) << dPointY[0]
-        << " m" << std::endl;
+    m_oss.str("");
+    m_oss << std::setprecision( m_fPrec ) << dPointX[0] << " "
+          << std::setprecision( m_fPrec ) << dPointY[0]
+          << " m" << std::endl;
 
     for( i=1;i<BEZIER_POINTS; i+=3 )
     {
-        oss << std::setprecision( m_fPrec ) << dPointX[i] << " "
-            << std::setprecision( m_fPrec ) << dPointY[i] << " "
-            << std::setprecision( m_fPrec ) << dPointX[i+1] << " "
-            << std::setprecision( m_fPrec ) << dPointY[i+1] << " "
-            << std::setprecision( m_fPrec ) << dPointX[i+2] << " "
-            << std::setprecision( m_fPrec ) << dPointY[i+2]	
-            << " c" << std::endl;
+        m_oss << std::setprecision( m_fPrec ) << dPointX[i] << " "
+              << std::setprecision( m_fPrec ) << dPointY[i] << " "
+              << std::setprecision( m_fPrec ) << dPointX[i+1] << " "
+              << std::setprecision( m_fPrec ) << dPointY[i+1] << " "
+              << std::setprecision( m_fPrec ) << dPointX[i+2] << " "
+              << std::setprecision( m_fPrec ) << dPointY[i+2]	
+              << " c" << std::endl;
     }
 
-    m_pCanvas->Append( oss.str() );
+    m_pCanvas->Append( m_oss.str() );
     m_pCanvas->Append( "f\n" );
 }
 
@@ -492,14 +493,14 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
         pFilter->Encode( pszTab, lStringLen, &pBuffer, &lLen );
     }
 
-    std::ostringstream	oss;
-    oss << "BT" << std::endl << "/" << m_pFont->Identifier().Name().c_str()
-        << " " << std::setprecision( m_fPrec ) << m_pFont->FontSize()
-        << " Tf" << std::endl
-        << std::setprecision( m_fPrec ) << dX << std::endl
-        << std::setprecision( m_fPrec ) << dY << std::endl << " Td <";
+    m_oss.str("");
+    m_oss << "BT" << std::endl << "/" << m_pFont->Identifier().Name().c_str()
+          << " " << std::setprecision( m_fPrec ) << m_pFont->FontSize()
+          << " Tf" << std::endl
+          << std::setprecision( m_fPrec ) << dX << std::endl
+          << std::setprecision( m_fPrec ) << dY << std::endl << " Td <";
 
-    m_pCanvas->Append( oss.str() );
+    m_pCanvas->Append( m_oss.str() );
 
     if( !sText.IsHex() )
     {
@@ -524,15 +525,15 @@ void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double 
 
     this->AddToPageResources( pObject->Identifier(), pObject->Object()->Reference(), "XObject" );
 
-    std::ostringstream	oss;
-    oss << "q" << std::endl
-        << std::setprecision( m_fPrec ) << pObject->PageSize().Width() * dScaleX << " 0 0 "
-        << std::setprecision( m_fPrec ) << pObject->PageSize().Height() * dScaleY << " "
-        << std::setprecision( m_fPrec ) << dX << " " 
-        << std::setprecision( m_fPrec ) << dY << " cm" << std::endl
-        << "/" << pObject->Identifier().Name().c_str() << " Do" << std::endl << "Q" << std::endl;
-
-    m_pCanvas->Append( oss.str() );
+    m_oss.str("");
+    m_oss << "q" << std::endl
+          << std::setprecision( m_fPrec ) << pObject->PageSize().Width() * dScaleX << " 0 0 "
+          << std::setprecision( m_fPrec ) << pObject->PageSize().Height() * dScaleY << " "
+          << std::setprecision( m_fPrec ) << dX << " " 
+          << std::setprecision( m_fPrec ) << dY << " cm" << std::endl
+          << "/" << pObject->Identifier().Name().c_str() << " Do" << std::endl << "Q" << std::endl;
+    
+    m_pCanvas->Append( m_oss.str() );
 }
 
 void PdfPainter::ClosePath()
@@ -552,11 +553,11 @@ void PdfPainter::LineTo( double dX, double dY )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
-    std::ostringstream	oss;
-    oss << std::setprecision( m_fPrec ) << dX << " "
-        << std::setprecision( m_fPrec ) << dY
-        << " l" << std::endl;
-    m_pCanvas->Append( oss.str() );
+    m_oss.str("");
+    m_oss << std::setprecision( m_fPrec ) << dX << " "
+          << std::setprecision( m_fPrec ) << dY
+          << " l" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
 }
 
 void PdfPainter::MoveTo( double dX, double dY )
@@ -566,11 +567,11 @@ void PdfPainter::MoveTo( double dX, double dY )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
-    std::ostringstream	oss;
-    oss << std::setprecision( m_fPrec ) << dX << " "
-        << std::setprecision( m_fPrec ) << dY
-        << " m" << std::endl;
-    m_pCanvas->Append( oss.str() );
+    m_oss.str("");
+    m_oss << std::setprecision( m_fPrec ) << dX << " "
+          << std::setprecision( m_fPrec ) << dY
+          << " m" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
 }
 
 void PdfPainter::Stroke()
