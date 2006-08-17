@@ -114,6 +114,12 @@ class PdfStream {
      */
     void Append( const char* pszString, long lLen ); 
 
+    /** Append to the current stream contents. 
+     *  \param sString a std::string containing ASCII text data
+     *  \returns ErrOk on sucess
+     */
+	inline void Append( const std::string& sString ); 
+
     /** Get a malloced buffer of the current stream.
      *  No filters will be applied to the buffer.
      *  The caller has to free the buffer.
@@ -240,6 +246,13 @@ long PdfStream::Size() const
     return m_pData ? m_pData->m_lSize : 0;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfStream::Append( const std::string& sString ) 
+{
+    Append( sString.c_str(), sString.length() );
+}
 };
 
 #endif // _PDF_STREAM_H_
