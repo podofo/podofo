@@ -71,7 +71,7 @@ class PdfObject : public PdfVariant {
      *  \param numElems the number of elements in the array to init it to
      *  \see SetDirect
      */
-	PdfObject( unsigned long objectno, unsigned long generationno, int numElems );
+    PdfObject( unsigned long objectno, unsigned long generationno, int numElems );
 
     /** Construct a new PDF object.
      *  \param objectno the object number

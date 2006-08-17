@@ -37,7 +37,7 @@ PdfPage::PdfPage( const PdfRect & rSize, PdfVecObjects* pParent )
     // The PDF specification suggests that we send all available PDF Procedure sets
     m_pObject->GetDictionary().AddKey( "Resources", PdfObject( PdfDictionary() ) );
 
-    m_pResources = m_pObject->GetDictionary().GetKey( "Resources" );
+    m_pResources = m_pObject->GetIndirectKey( "Resources" );
     m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::ProcSet() );
 
     m_pContents = pParent->CreateObject();
@@ -48,7 +48,7 @@ PdfPage::PdfPage( const PdfRect & rSize, PdfVecObjects* pParent )
 PdfPage::PdfPage( PdfObject* pObject )
     : PdfElement( "Page", pObject ), PdfCanvas()
 {
-    m_pResources = m_pObject->GetDictionary().GetKey( "Resources" );
+    m_pResources = m_pObject->GetIndirectKey( "Resources" );
     m_pContents = m_pObject->GetIndirectKey( "Contents" );
 }
 

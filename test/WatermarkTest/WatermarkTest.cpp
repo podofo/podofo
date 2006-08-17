@@ -78,6 +78,7 @@ int main( int argc, char* argv[] )
     printf("---\n");
 
     printf("Watermarking....\n");
+
     try {
         WatermarkFile( argv[1], argv[2] );
     } 

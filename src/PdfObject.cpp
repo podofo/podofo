@@ -53,12 +53,10 @@ PdfObject::PdfObject( unsigned long objectno, unsigned long generationno, const 
 PdfObject::PdfObject( unsigned long objectno, unsigned long generationno, int numElems )
 : PdfVariant( PdfArray() ), m_reference( objectno, generationno )
 {
-	Init( true );
+    Init( true );
 
-	if( numElems ) {
-		PdfArray arr = this->GetArray();
-		arr.resize( numElems );
-	}
+    if( numElems )
+        this->GetArray().resize( numElems );
 }
 
 PdfObject::PdfObject( unsigned long objectno, unsigned long generationno, const PdfVariant & rVariant )
