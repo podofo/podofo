@@ -1,6 +1,15 @@
 Version 0.3
     TOTAL revamp of PdfObject & PdfVariant to enable clean/consistent object handling;
     	Added new PdfDocument object - new high level object for reading & writing a PDF doc;
+	TOTAL revamp of the PdfDocument, PdfWriter & PdfParser relationship
+		PdfDocument is now hub for both reading and writing a document
+		it holds the PdfVecObjects - the others just reference them.
+	TOTAL revamp of PdfPainter
+		now uses PDF coordinates - UserUnits from bottom/left
+			added PdfPainterMM for mm-based coords
+		supports user-specified float precision
+			and writes out floats in an optimal manner
+		supports "appending" mode for drawing on existing documents
 	Improved handling of the /Info dict for both reading and writing PDFs;
 	Added new test app - podofopdfinfo, which will be used to dump metadata, etc. from a PDF;
 	Added PdfError::DebugMessage() as the official way to write out debugging info;
@@ -39,6 +48,9 @@ Version 0.3
 	Fixed podofoimageextract, podofotxt2pdf and podofopdfinfo;
 	Removed PdfSimpleWriter in favour of PdfDocument;
 	Headers are now installed in includedir/podofo/;
+	Added a new WatermarkTest
+		demonstrates how to read an existing PDF and draw on each page
+	
 	
 Version 0.2
 	Improved Documentation;
