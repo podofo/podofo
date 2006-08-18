@@ -288,10 +288,14 @@ class PdfObject : public PdfVariant {
     void Clear();
 
     /**
+     * Dynamically load the contents of this object from a PDF file.
+     * For objects complete created in memory this function does nothing.
      */
     inline virtual void DelayedLoad() const;
 
     /**
+     * Dynamically load the steam of this object from a PDF file.
+     * For objects complete created in memory this function does nothing.
      */
     inline void DelayedStreamLoad() const;
 

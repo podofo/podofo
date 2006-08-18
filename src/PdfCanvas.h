@@ -50,7 +50,7 @@ class PdfCanvas {
     virtual PdfObject* Resources() const = 0;
 
     /** Get the current page size in PDF Units
-     *  \returns the page size
+     *  \returns a PdfRect containing the page size available for drawing
      */
     virtual const PdfRect PageSize() const = 0;
 

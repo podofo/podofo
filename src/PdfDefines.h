@@ -300,8 +300,7 @@ static const char s_cDelimiters[] = {
  * keys easily. It is very useful if you want to look on the internal structure
  * of PDF files.
  * 
- * As of now <b>PoDoFo</b> is only available for Unix platforms. But the code is
- * portable C++ and a Windows version will be available soon.
+ * As of now <b>PoDoFo</b> is available for Unix and Windows platforms. 
  *
  * More information can be found at: http://podofo.sourceforge.net
  *

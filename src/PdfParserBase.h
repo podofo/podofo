@@ -38,14 +38,19 @@ namespace PoDoFo {
  */
 class PdfParserBase {
  public:
+    /**
+     * Create a new PdfParserBase with a buffer of its own
+     */
     PdfParserBase();
+
+    /** 
+     * Create a new PdfParserBase that reads from a file and uses a shared buffer
+     * \param rFile a reference counted file to read from
+     * \param rBuffer a shared buffer to use temporarily during parsing
+     */
     PdfParserBase( const PdfRefCountedFile & rFile, const PdfRefCountedBuffer & rBuffer );
     virtual ~PdfParserBase();
 
-    /** Set the internal file handle
-     *  \param hFile a file handle
-     */
-    //inline void SetFileHandle( FILE* hFile );
 
     /** Returns true if the given character is a delimiter
      *  according to the pdf reference
@@ -99,12 +104,18 @@ class PdfParserBase {
     PdfRefCountedBuffer m_buffer;
 };
 
-char* PdfParserBase::GetBuffer() const
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline char* PdfParserBase::GetBuffer() const
 {
     return m_buffer.Buffer();
 }
 
-long PdfParserBase::GetBufferSize() const
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline long PdfParserBase::GetBufferSize() const
 {
     return m_buffer.Size();
 }

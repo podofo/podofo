@@ -54,7 +54,7 @@ class PdfPage : public PdfElement, public PdfCanvas {
     virtual ~PdfPage();
 
     /** Get the current page size in PDF Units
-     *  \returns the page size
+     *  \returns a PdfRect containing the page size available for drawing
      */
     inline virtual const PdfRect PageSize() const;
 

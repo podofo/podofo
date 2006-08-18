@@ -109,7 +109,7 @@ class PdfAnnotation : public PdfElement {
      *  \param pPage the parent page of this annotation
      *  \param eAnnot type of the annotation
      *  \param rRect the rectangle in which the annotation will appear on the page
-     *  \param pParent parent of this annotation
+     *  \param pObject an annotation object
      */
     PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfObject* pObject );
     
@@ -173,7 +173,10 @@ class PdfAnnotation : public PdfElement {
     EPdfAnnotation m_eAnnotation;
 };
 
-EPdfAnnotation PdfAnnotation::type() const
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline EPdfAnnotation PdfAnnotation::type() const
 {
     return m_eAnnotation;
 }

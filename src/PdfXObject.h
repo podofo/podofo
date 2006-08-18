@@ -75,7 +75,7 @@ class PdfXObject : public PdfElement, public PdfCanvas {
     inline virtual PdfObject* Resources() const;
 
     /** Get the current page size in PDF Units
-     *  \param rRect store the page size in this rect
+     *  \returns a PdfRect containing the page size available for drawing
      */
     inline virtual const PdfRect PageSize() const;
 

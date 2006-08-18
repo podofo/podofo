@@ -158,8 +158,8 @@ class PdfPainterMM {
     /** Begin a new path. Matches the PDF 'm' operator. 
      *  This function is useful to construct an own path
      *  for drawing or clipping.
-     *  \param dX x position
-     *  \param dY y position
+     *  \param lX x position
+     *  \param lY y position
      */
     inline void MoveTo( long lX, long lY );
 
