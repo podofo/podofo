@@ -27,10 +27,12 @@ The PoDoFo tools are simple tools build around the PoDoFo library. These tools
 are first of all examples on how to use the PoDoFo library in your own
 projects. But secondly they offer also features for working with PDF
 files. More tools will come with future release and the existing tools will
-gain more features. Currently there are two tools: podofoimgextract (which
-extracts all jpeg images from a given PDF file) and podofouncompress (which
-removes all compression filters from a PDF file - this is useful for debugging
+gain more features. The following tools are currently available: 
+* podofoimgextract (which extracts all jpeg images from a given PDF file) 
+* podofouncompress (which removes all compression filters from a PDF file - this is useful for debugging
 existing PDF files).
+* podofopdfinfo (provides some basic info about a PDF - metadata, page details, etc.)
+* podofotxt2pdf (converts a text file to a PDF)
 
 Additionally there is the external tool PoDoFoBrowser which is not included in
 this package, but can be downloaded from the PoDoFo webpage. PoDoFoBrowser is
@@ -48,10 +50,10 @@ PoDoFo is available on the internet: podofo.sf.net
 3. Requirements
 ===============
 
-To build PoDoFo lib you need besides a working GNU toolchain and a c++
-compiler as well as the following libraries:
+To build PoDoFo lib you need besides a working GNU toolchain (Unix) and a c++
+compiler or Visual Studio 7.x (Windows) as well as the following libraries:
 
-- fontconfig
+- fontconfig (Unix only)
 - freetype2
 - zlib
 - libjpeg
@@ -65,6 +67,9 @@ Installation should be done on any Unix system with the following commands:
 make
 su
 make install
+
+On Windows, use the provided Visual Studio Solution/Project files after
+placing the other libraries in a directory inside of the podofo directory.
 
 5. Contact
 ==========
