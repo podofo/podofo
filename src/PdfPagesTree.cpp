@@ -202,18 +202,11 @@ PdfPage* PdfPagesTree::GetPage( int nIndex )
 
 PdfObject* PdfPagesTree::GetParent( PdfObject* inObject )
 {
-    PdfObject *pObj = inObject->GetDictionary().GetKey( "Parent" );
-    if( !pObj || !pObj->IsDictionary() )
-        return NULL;
-    else
-        return pObj;
-/*
-    PdfObject *pObj = inObject->GetDictionary().( "Parent" );
+    PdfObject *pObj = inObject->GetIndirectKey( "Parent" );
     if( pObj && pObj->IsDictionary() )
         return pObj;
     else
         return NULL;
-*/
 }
 
 PdfObject* PdfPagesTree::GetKids( PdfObject* inPagesDict )
@@ -317,7 +310,7 @@ void PdfPagesTree::InsertPages( int inAfterIndex,
     PdfArray&	kidsArray = kidsArrObj->GetArray();
 
     kidsArray.insert( kidsArray.begin() + insIdx, inPageOrPagesObj->Reference() );
-    inPageOrPagesObj->GetDictionary().AddKey( "Parent", inParentObj ) ;
+    inPageOrPagesObj->GetDictionary().AddKey( "Parent", inParentObj->Reference() ) ;
 
     // increment the pages count of all of the parent page nodes, walking up the tree
     PdfObject* tempParent = inParentObj ;
