@@ -38,7 +38,7 @@ namespace PoDoFo {
 PdfObject::PdfObject()
     : PdfVariant( PdfDictionary() ), m_reference( (unsigned long)-1, (unsigned long)-1 )
 {
-    Init( false );
+    Init( true );
 }
 
 PdfObject::PdfObject( unsigned long objectno, unsigned long generationno, const char* pszType )
@@ -50,15 +50,6 @@ PdfObject::PdfObject( unsigned long objectno, unsigned long generationno, const 
         this->GetDictionary().AddKey( PdfName::KeyType, PdfName( pszType ) );
 }
 
-PdfObject::PdfObject( unsigned long objectno, unsigned long generationno, int numElems )
-: PdfVariant( PdfArray() ), m_reference( objectno, generationno )
-{
-    Init( true );
-
-    if( numElems )
-        this->GetArray().resize( numElems );
-}
-
 PdfObject::PdfObject( unsigned long objectno, unsigned long generationno, const PdfVariant & rVariant )
     : PdfVariant( rVariant ), m_reference( objectno, generationno )
 {
@@ -68,7 +59,7 @@ PdfObject::PdfObject( unsigned long objectno, unsigned long generationno, const 
 PdfObject::PdfObject( const PdfVariant & var )
     : PdfVariant( var ), m_reference( (unsigned long)-1, (unsigned long)-1 )
 {
-    Init( false );
+    Init( true );
 }
 
 PdfObject::PdfObject( bool b )

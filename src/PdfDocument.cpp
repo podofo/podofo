@@ -30,6 +30,7 @@
 #include "PdfObject.h"
 #include "PdfPage.h"
 #include "PdfPagesTree.h"
+#include "PdfStream.h"
 #include "PdfVecObjects.h"
 
 #ifndef _WIN32
@@ -324,6 +325,76 @@ void PdfDocument::SetSubject( const PdfString & sSubject )
 void PdfDocument::SetTitle( const PdfString & sTitle )
 {
     this->GetInfo( true )->GetDictionary().AddKey( "Title", sTitle );
+}
+
+const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc )
+{
+    TCIVecObjects it;
+    PdfObject*    pObj;
+    PdfPage*      pPage;
+    PdfReference  ref;
+    int           difference = m_vecObjects.size();
+    
+    // append all objects first and fix their references
+    it = rDoc.GetObjects().begin();
+    while( it != rDoc.GetObjects().end() )
+    {
+        pObj  = m_vecObjects.CreateObject( (const PdfVariant &)*(*it) );
+        if( (*it)->HasStream() )
+            *(pObj->Stream()) = *((*it)->Stream());
+        
+        FixObjectReferences( pObj, difference );
+
+        ++it;
+    }
+    
+    // append all pages now to our page tree
+    for(int i=0;i<rDoc.GetPageCount();i++ )
+    {
+        pPage = rDoc.GetPage( i );
+        printf("pPage=%p Was object: %i 0 R\n", pPage, pPage->Object()->Reference().ObjectNumber() );
+        pObj  = m_vecObjects.GetObject( PdfReference( pPage->Object()->Reference().ObjectNumber() + difference, 0 ) );
+        if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Parent" ) )
+            pObj->GetDictionary().RemoveKey( "Parent" );
+
+        printf("pObj =%p Should be page: %i 0 R\n", pObj, pObj->Reference().ObjectNumber() );
+        m_pPagesTree->InsertPage( this->GetPageCount(), pObj );
+    }
+
+    return *this;
+}
+
+void PdfDocument::FixObjectReferences( PdfObject* pObject, int difference )
+{
+    if( !pObject ) 
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    if( pObject->IsReference() )
+    {
+        pObject->GetReference().SetObjectNumber( pObject->GetReference().ObjectNumber() + difference );
+    }
+    else if( pObject->IsDictionary() )
+    {
+        TKeyMap::iterator it = pObject->GetDictionary().GetKeys().begin();
+
+        while( it != pObject->GetDictionary().GetKeys().end() )
+        {
+            FixObjectReferences( (*it).second, difference );
+            ++it;
+        }
+    }
+    else if( pObject->IsArray() )
+    {
+        PdfArray::iterator it = pObject->GetArray().begin();
+
+        while( it != pObject->GetArray().end() )
+        {
+            FixObjectReferences( &(*it), difference );
+            ++it;
+        }
+    }
 }
 
 };

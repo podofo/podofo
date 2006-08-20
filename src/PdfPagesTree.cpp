@@ -23,16 +23,17 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfObject.h"
+#include "PdfOutputDevice.h"
 #include "PdfPage.h"
 #include "PdfVecObjects.h"
 
+#include <iostream>
 namespace PoDoFo {
 
 PdfPagesTree::PdfPagesTree( PdfVecObjects* pParent )
     : PdfElement( "Pages", pParent )
 {
-    PdfObject* kids = pParent->CreateObject( PdfArray() );
-    Object()->GetDictionary().AddKey( "Kids", kids );
+    Object()->GetDictionary().AddKey( "Kids", PdfArray() );
     Object()->GetDictionary().AddKey( "Count", PdfObject( (long) 0 ) );
 }
 
@@ -70,20 +71,21 @@ int PdfPagesTree::GetTotalNumberOfPages() const
 
 PdfObject* PdfPagesTree::GetPageFromKidArray( PdfArray& inArray, int inIndex )
 {
-	PdfVariant	kidsVar = inArray[ inIndex ];
+    PdfVariant & kidsVar = inArray[ inIndex ];
 
 #ifdef _DEBUG
-	std::string str;
-	kidsVar.ToString( str );
+    std::string str;
+    kidsVar.ToString( str );
 #endif
 
-	// is the kid a Pages tree node or a Page object?
-	if ( !kidsVar.IsReference() )  {
-		return NULL;	// can't handle inline pages just yet...
-	}
-
-	PdfObject* pgObject = GetRoot()->GetParent()->GetObject( kidsVar.GetReference() );
-	return pgObject;
+    // is the kid a Pages tree node or a Page object?
+    if ( !kidsVar.IsReference() )  
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+        //return NULL;	// can't handle inline pages just yet...
+    }
+    
+    return GetRoot()->GetParent()->GetObject( kidsVar.GetReference() );
 }
 
 PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
@@ -98,10 +100,13 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
     pObj = pPagesObject->GetDictionary().GetKey( "Kids" );
     if( !pObj->IsArray() )
         return NULL;
-    
+
     PdfArray&	kidsArray = pObj->GetArray();
-    size_t	    numKids = kidsArray.size(),
-    kidsCount = pPagesObject->GetDictionary().GetKeyAsLong( "Count", 0 );
+    size_t	numKids   = kidsArray.size();
+    size_t      kidsCount = pPagesObject->GetDictionary().GetKeyAsLong( "Count", 0 );
+
+    std::string str;
+    PdfVariant( kidsArray ).ToString( str );
 
     // the pages tree node represented by pPagesObject has only page nodes in its kids array,
     // or pages nodes with a kid count of 1, so we can speed things up by going straight to the desired node
@@ -114,7 +119,6 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
                 return NULL;	// can't handle inline pages just yet...
 
             PdfObject* pgObject = GetRoot()->GetParent()->GetObject( pgVar.GetReference() );
-
             // make sure the object is a /Page and not a /Pages with a single kid
             if ( pgObject->GetDictionary().GetKeyAsName( PdfName( "Type" ) ) == PdfName( "Page" ) )
                 return pgObject;
@@ -141,7 +145,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
 
             PdfObject* pgObject = GetRoot()->GetParent()->GetObject( kidsVar.GetReference() );
 #else
-			PdfObject* pgObject = GetPageFromKidArray( kidsArray, i );
+            PdfObject* pgObject = GetPageFromKidArray( kidsArray, i );
 #endif
             
             // if it's a Page, then is it the right page??
@@ -198,71 +202,93 @@ PdfPage* PdfPagesTree::GetPage( int nIndex )
 
 PdfObject* PdfPagesTree::GetParent( PdfObject* inObject )
 {
-	PdfObject *pObj = inObject->GetDictionary().GetKey( "Parent" );
-	if( !pObj || !pObj->IsDictionary() )
-		return NULL;
-	else
-		return pObj;
+    PdfObject *pObj = inObject->GetDictionary().GetKey( "Parent" );
+    if( !pObj || !pObj->IsDictionary() )
+        return NULL;
+    else
+        return pObj;
+/*
+    PdfObject *pObj = inObject->GetDictionary().( "Parent" );
+    if( pObj && pObj->IsDictionary() )
+        return pObj;
+    else
+        return NULL;
+*/
 }
 
 PdfObject* PdfPagesTree::GetKids( PdfObject* inPagesDict )
 {
-	PdfObject *pObj = inPagesDict->GetDictionary().GetKey( "Kids" );
-	if( !pObj || !pObj->IsArray() )
-		return NULL;
-	else
-		return pObj;
+    PdfObject *pObj = inPagesDict->GetIndirectKey( "Kids" );
+    if( pObj && pObj->IsArray() )
+        return pObj;
+    else
+        return NULL;
 }
 
 int PdfPagesTree::GetPosInKids( PdfObject* inPageObj )
 {
-	// given a page or pages dictionary, return the index into its parents Kids array:
-	PdfObject* parentObj = PdfPagesTree::GetParent( inPageObj ) ;
-
-	// if inPageDict has no Parent, return -1; this would be the case when inserting a new page
-	if( parentObj == NULL )
-		return -1 ;
-
-	// find inPageObj in parentObj
-	PdfObject* theKids = PdfPagesTree::GetKids( parentObj ) ;
-	PdfArray&	kidsArray = theKids->GetArray();
-	size_t kidsLen = kidsArray.size();
-	int kidsIndex;
-	bool foundKid = false ;
-	for( kidsIndex = 0 ; ( !foundKid ) && ( kidsIndex < kidsLen ) ; kidsIndex++ )
-	{
-		PdfObject* kidObj = GetPageFromKidArray( kidsArray, kidsIndex );
-		if( inPageObj == kidObj || *kidObj == *inPageObj ) {
-			foundKid = true ;
-			break ;
-		}
-	}
-
-	return (int)kidsIndex ;
+    // given a page or pages dictionary, return the index into its parents Kids array:
+    PdfObject* parentObj = PdfPagesTree::GetParent( inPageObj ) ;
+    
+    // if inPageDict has no Parent, return -1; this would be the case when inserting a new page
+    if( parentObj == NULL )
+        return -1;
+    
+    // find inPageObj in parentObj
+    PdfObject* theKids = PdfPagesTree::GetKids( parentObj ) ;
+    PdfArray&	kidsArray = theKids->GetArray();
+    size_t kidsLen = kidsArray.size();
+    int kidsIndex;
+    bool foundKid = false ;
+    for( kidsIndex = 0 ; ( !foundKid ) && ( kidsIndex < kidsLen ) ; kidsIndex++ )
+    {
+        PdfObject* kidObj = GetPageFromKidArray( kidsArray, kidsIndex );
+        if( inPageObj == kidObj || *kidObj == *inPageObj ) {
+            foundKid = true ;
+            break ;
+        }
+    }
+    
+    return (int)kidsIndex ;
 }
 
 void PdfPagesTree::InsertPage( int inAfterPageNumber, PdfPage* inPage )
 {
-    PdfObject*	parentObj = ( PdfObject* )NULL ;
-    PdfObject*	afterPageObj = ( PdfObject* )NULL ;
+    this->InsertPage( inAfterPageNumber, inPage->Object() );
+}
 
-    if( PageInsertBeforeFirstPage == inAfterPageNumber ) {
-        parentObj = GetRoot() ;
-    } else {
+void PdfPagesTree::InsertPage( int inAfterPageNumber, PdfObject* pPage )
+{
+    PdfObject*	parentObj    = GetRoot();
+    PdfObject*	afterPageObj = ( PdfObject* )NULL;
+
+    if( PageInsertBeforeFirstPage != inAfterPageNumber )
+    {
         // get the page dictionary that we want to insert after, and get its parent pages dictionary
         afterPageObj = GetPageNode( inAfterPageNumber, GetRoot() ) ;
+        if( !afterPageObj )
+        {
+            RAISE_ERROR( ePdfError_InvalidHandle );
+        }
+     
         parentObj = PdfPagesTree::GetParent( afterPageObj );
     }
     
     // find afterPageObj's position in its parent's Kids array
-    int kidsIndex ;
+    int kidsIndex;
     if( PageInsertBeforeFirstPage == inAfterPageNumber )
         kidsIndex = -1 ;
     else
         kidsIndex = PdfPagesTree::GetPosInKids( afterPageObj ) ;
 
     // insert our page into the tree
-    InsertPages( kidsIndex, inPage->Object(), parentObj, 1 ) ;
+
+    // TODO:
+    // Passing parentObj instead of GetRoot() caused a crash that took me ours to fix.
+    // Don't know wether I broke this with a change of mine before or not.
+    // Maybe this fix is incorrect, too (I think though)
+    // At least creation test works now again.
+    InsertPages( kidsIndex, pPage, GetRoot(), 1 ); //parentObj, 1 ) ;
 }
 
 int PdfPagesTree::ChangePagesCount( PdfObject* inPageObj, int inDelta )
@@ -270,10 +296,12 @@ int PdfPagesTree::ChangePagesCount( PdfObject* inPageObj, int inDelta )
     // Increment or decrement inPagesDict's Count by inDelta, and return the new count.
     // Simply return the current count if inDelta is 0.
     int	cnt = inPageObj->GetDictionary().GetKey( "Count" )->GetNumber();
-    if( 0 != inDelta ) {
+    if( 0 != inDelta ) 
+    {
         cnt += inDelta ;
         inPageObj->GetDictionary().AddKey( "Count", PdfVariant( (long)cnt ) );
     }
+
     return cnt ;
 }
 
@@ -287,6 +315,7 @@ void PdfPagesTree::InsertPages( int inAfterIndex,
     
     PdfObject*	kidsArrObj = PdfPagesTree::GetKids( inParentObj ) ;
     PdfArray&	kidsArray = kidsArrObj->GetArray();
+
     kidsArray.insert( kidsArray.begin() + insIdx, inPageOrPagesObj->Reference() );
     inPageOrPagesObj->GetDictionary().AddKey( "Parent", inParentObj ) ;
 
@@ -302,7 +331,7 @@ PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
 {
     int		last  = m_deqPageObjs.size()-1;
     PdfPage*	pPage = new PdfPage( rSize, GetRoot()->GetParent() );
-    
+
     InsertPage( last, pPage );
     m_deqPageObjs.push_back( pPage );	// might as well add it here too...
 

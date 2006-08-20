@@ -136,6 +136,11 @@ class PdfDictionary : public PdfDataType {
      */
     inline const TKeyMap & GetKeys() const;
 
+    /** Get access to the internal map of keys.
+     *  \returns all keys of this dictionary
+     */
+    inline TKeyMap & GetKeys();
+
  private:
     TKeyMap      m_mapKeys;
 };
@@ -148,6 +153,14 @@ typedef TVecDictionaries::const_iterator TCIVecDictionaries;
 // 
 // -----------------------------------------------------
 const TKeyMap & PdfDictionary::GetKeys() const
+{
+    return m_mapKeys;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+TKeyMap & PdfDictionary::GetKeys()
 {
     return m_mapKeys;
 }

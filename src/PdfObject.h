@@ -65,14 +65,6 @@ class PdfObject : public PdfVariant {
      */
     PdfObject( unsigned long objectno, unsigned long generationno, const char* pszType = NULL );
 
-    /** Construct a new PDF object of type PdfArray
-     *  \param objectno the object number
-     *  \param generationno the generation number which is almost ever 0
-     *  \param numElems the number of elements in the array to init it to
-     *  \see SetDirect
-     */
-    PdfObject( unsigned long objectno, unsigned long generationno, int numElems );
-
     /** Construct a new PDF object.
      *  \param objectno the object number
      *  \param generationno the generation number which is almost ever 0

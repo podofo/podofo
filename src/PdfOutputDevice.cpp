@@ -95,13 +95,14 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    va_start( args, pszFormat );
     if( m_hFile )
     {
+        va_start( args, pszFormat );
         if( (lBytes = vfprintf( m_hFile, pszFormat, args )) < 0 )
         {
             RAISE_ERROR( ePdfError_UnexpectedEOF );
         }
+        va_end( args );
     }
     else
     {
@@ -109,6 +110,8 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
         lBytes = vsnprintf( NULL, 0, pszFormat, args );
         va_end( args );
     }
+
+    va_start( args, pszFormat );
 
     if( m_pBuffer )
     {

@@ -78,8 +78,15 @@ class PdfPagesTree : public PdfElement
 
     /** Inserts an existing page object into the internal page tree. 
      *	after the specified page number
-     *  The returned page is owned by the pages tree
-     *  and will get deleted along with it!
+     *
+     *  \param inAfterPageNumber an integer specifying after what page - may be one of the special values
+     *  \param pPage musst be a PdfObject with type /Page
+     *  \returns a pointer to a PdfPage object
+     */
+    void InsertPage( int inAfterPageNumber, PdfObject* pPage );
+
+    /** Inserts an existing page object into the internal page tree. 
+     *	after the specified page number
      *
      *  \param inAfterPageNumber an integer specifying after what page - may be one of the special values
      *  \param inPage a PdfPage to be inserted

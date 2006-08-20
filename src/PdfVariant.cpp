@@ -468,6 +468,8 @@ const PdfVariant & PdfVariant::operator=( const PdfVariant & rhs )
 {
     Clear();
 
+    rhs.DelayedLoad();
+
     m_eDataType      = rhs.m_eDataType;
     m_Data           = rhs.m_Data;
     m_nPadding       = rhs.m_nPadding;

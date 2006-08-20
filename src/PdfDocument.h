@@ -235,6 +235,12 @@ class PdfDocument {
      */
     inline const PdfString & Title() const;
 
+    /** Appends another PdfDocument to this document
+     *  \param rDoc the document to append
+     *  \returns this document
+     */
+    const PdfDocument & Append( const PdfDocument & rDoc );
+
  private:
     /** Get a dictioary from the catalog dictionary by its name.
      *  \param pszName will be converted into a PdfName
@@ -265,6 +271,15 @@ class PdfDocument {
      *  \return a value from the info dictionary
      */
     const PdfString & GetStringFromInfoDict( const PdfName & rName ) const;
+
+    /** Recursively changes every PdfReference in the PdfObject and in any child
+     *  that is either an PdfArray or a direct object.
+     *  The reference is changed so that difference is added to the object number
+     *  if the reference.
+     *  \param pObject object to change
+     *  \param difference add this value to every reference that is encountered
+     */
+    void FixObjectReferences( PdfObject* pObject, int difference );
 
  private:
     bool            m_bLinearized;

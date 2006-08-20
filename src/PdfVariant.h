@@ -245,6 +245,11 @@ class PdfVariant {
      */
     inline const PdfReference & GetReference() const;
 
+    /** Get the reference values of this object.
+     *  \returns a PdfReference
+     */
+    inline PdfReference & GetReference();
+
     /** Assign the values of another PdfVariant to this one.
      *  \param rhs an existing variant which is copied.
      */
@@ -262,8 +267,6 @@ class PdfVariant {
 
     /**
      *  For subclasses that implement loading on demand
-     *
-     *  \returns ErrOk on sucess
      */
     inline virtual void DelayedLoad() const {};
 
@@ -424,16 +427,19 @@ const PdfArray & PdfVariant::GetArray() const
     return *((PdfArray*)(m_pData));
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 PdfArray & PdfVariant::GetArray()
 {
-	DelayedLoad();
+    DelayedLoad();
 
-	if( !IsArray() )
-	{
-		RAISE_ERROR( ePdfError_InvalidDataType );
-	}
-
-	return *((PdfArray*)(m_pData));
+    if( !IsArray() )
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+    
+    return *((PdfArray*)(m_pData));
 }
 
 // -----------------------------------------------------
@@ -470,6 +476,21 @@ PdfDictionary & PdfVariant::GetDictionary()
 // 
 // -----------------------------------------------------
 const PdfReference & PdfVariant::GetReference() const
+{
+    DelayedLoad();
+
+    if( !IsReference() )
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
+    return *((PdfReference*)(m_pData));
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfReference & PdfVariant::GetReference()
 {
     DelayedLoad();
 
