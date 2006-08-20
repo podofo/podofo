@@ -283,10 +283,6 @@ class PdfObject : public PdfVariant {
      */
     void Init( bool bLoadOnDemandDone );
 
-    /** Clear all internal structures and free alocated memory
-     */
-    void Clear();
-
     /**
      * Dynamically load the contents of this object from a PDF file.
      * For objects complete created in memory this function does nothing.

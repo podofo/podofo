@@ -64,7 +64,8 @@ PdfName::~PdfName()
 
 void PdfName::Write( PdfOutputDevice* pDevice ) const
 {
-    pDevice->Print( "/%s", m_Data.c_str() );
+    pDevice->Print( "/" );
+    pDevice->Write( m_Data.c_str(), m_Data.length() );
 }
 
 const PdfName& PdfName::operator=( const PdfName & rhs )

@@ -128,7 +128,8 @@ PdfObject::PdfObject( const PdfObject & rhs )
 
 PdfObject::~PdfObject()
 {
-    Clear();
+    delete m_pStream;
+    m_pStream = NULL;
 }
 
 void PdfObject::Init( bool bLoadOnDemandDone )
@@ -139,14 +140,6 @@ void PdfObject::Init( bool bLoadOnDemandDone )
 
     m_bLoadOnDemandDone       = bLoadOnDemandDone;
     m_bLoadStreamOnDemandDone = bLoadOnDemandDone;
-}
-
-void PdfObject::Clear()
-{
-    PdfVariant::Clear();
-
-    delete m_pStream;
-    m_pStream = NULL;
 }
 
 void PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
@@ -238,7 +231,8 @@ void PdfObject::FlateDecodeStream()
 
 const PdfObject & PdfObject::operator=( const PdfObject & rhs )
 {
-    Clear();
+    delete m_pStream;
+
     Init( true );
 
     if( !rhs.m_bLoadOnDemandDone || !rhs.m_bLoadStreamOnDemandDone ) 
