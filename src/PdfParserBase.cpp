@@ -40,6 +40,17 @@ PdfParserBase::~PdfParserBase()
 
 bool PdfParserBase::IsDelimiter( const char c )
 {
+/*
+    char* p = s_cDelimiters;
+
+    while( p )
+    {
+        if( c == *p )
+            return true;
+        ++p;
+    }
+*/
+
     int i;
     
     for( i=0; i<s_nNumDelimiters; i++ )

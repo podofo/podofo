@@ -269,7 +269,6 @@ void PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
 
 void PdfVariant::GetDataType( const char* pszData, long nLen, EPdfDataType* eDataType, long* pLen )
 {
-    PdfError     eCode;
     PdfReference ref;
     char         c     = pszData[0];
     char*        pszStart;
@@ -323,80 +322,65 @@ void PdfVariant::GetDataType( const char* pszData, long nLen, EPdfDataType* eDat
             *eDataType = ePdfDataType_Name;
             break;
         default:
-            eCode.SetError( ePdfError_InvalidDataType, __FILE__, __LINE__ );
+            *eDataType = ePdfDataType_Unknown;
             break;
     }
 
-    if( eCode == ePdfError_InvalidDataType )
+    if( *eDataType != ePdfDataType_Unknown )
+        return;
+
+    lRef = strtol( pszData, &pszStart, 10 );
+    ref.SetObjectNumber( lRef );
+
+    if( pszStart != pszData )
     {
-        eCode.SetError( ePdfError_ErrOk );
+        // skip whitespaces
+        while( PdfParserBase::IsWhitespace( *pszStart ) && pszStart - pszData < nLen )
+            ++pszStart;
 
-        lRef = strtol( pszData, &pszStart, 10 );
-        ref.SetObjectNumber( lRef );
+        pszRefStart = pszStart;
+        lRef = strtol( pszRefStart, &pszStart, 10 );
+        ref.SetGenerationNumber( lRef );
 
-        if( pszStart == pszData )
+        if( pszStart != pszRefStart )
         {
-            eCode.SetError( ePdfError_InvalidDataType, __FILE__, __LINE__ );
-        }
-
-        if( !eCode.IsError() )
-        {
-            // skip whitespaces
             while( PdfParserBase::IsWhitespace( *pszStart ) && pszStart - pszData < nLen )
                 ++pszStart;
-
-            pszRefStart = pszStart;
-            lRef = strtol( pszRefStart, &pszStart, 10 );
-            ref.SetGenerationNumber( lRef );
-
-            if( pszStart == pszRefStart )
-                eCode.SetError( ePdfError_InvalidDataType, __FILE__, __LINE__ );
-
-            if( !eCode.IsError() )
+            
+            if( *pszStart == 'R' )
             {
-                while( PdfParserBase::IsWhitespace( *pszStart ) && pszStart - pszData < nLen )
-                    ++pszStart;
-
-                if( *pszStart == 'R' )
-                {
-                    *eDataType = ePdfDataType_Reference;
-                    m_pData    = new PdfReference( ref );
-                    if( pLen )
-                        *pLen = pszStart - pszData + 1;
-                }
-                else
-                {
-                    eCode.SetError( ePdfError_InvalidDataType, __FILE__, __LINE__ );
-                }
-            }
-        }
-        
-        // check for numbers last
-        if( eCode == ePdfError_InvalidDataType && (isdigit( c ) || c == '-' || c == '+' ) )
-        {
-            *eDataType = ePdfDataType_Number;
-            eCode = ePdfError_ErrOk;            
-
-            char*   pszBuf    = (char*)pszData;
-
-            ++pszBuf;
-
-            // check if it is an real
-            while( pszBuf && *pszBuf )
-            {
-                if( *pszBuf == '.' )
-                    *eDataType = ePdfDataType_Real;
-
-                if( !isdigit( *pszBuf ) )
-                    break;
-
-                ++pszBuf;
+                *eDataType = ePdfDataType_Reference;
+                m_pData    = new PdfReference( ref );
+                if( pLen )
+                    *pLen = pszStart - pszData + 1;
+                return;
             }
         }
     }
+        
+    // check for numbers last
+    if( (isdigit( c ) || c == '-' || c == '+' ) )
+    {
+        *eDataType   = ePdfDataType_Number;
+        char* pszBuf = (char*)pszData;
+        
+        ++pszBuf;
+        
+        // check if it is an real
+        while( pszBuf && *pszBuf )
+        {
+            if( *pszBuf == '.' )
+                *eDataType = ePdfDataType_Real;
+            
+            if( !isdigit( *pszBuf ) )
+                break;
+            
+            ++pszBuf;
+        }
+        return;
+    }
 
-    if( eCode.IsError() )
-        throw eCode;
+    RAISE_ERROR( ePdfError_InvalidDataType );
 }
 
 void PdfVariant::Clear()

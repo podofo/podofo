@@ -48,11 +48,11 @@ AM_INIT_AUTOMAKE([ -Wall -Werror ]) dnl
 AC_PROG_LIBTOOL
 
 dnl Enable profiling, optimization level 2 and full debugging support
-CXXFLAGS="-pg -O2 -g3 -Wall"
+CXXFLAGS="-O2 -g3 -Wall"
 
 AC_PROG_CXX
 AC_HAVE_HEADERS(string.h stdio.h)
-
+			 
 dnl checking for required libraries
 AC_CHECK_LIB(z, deflate,, ZLIBMISSING=true)
 AC_CHECK_LIB(jpeg, jpeg_write_raw_data,, JPEGLIBMISSING=true)

@@ -230,7 +230,8 @@ static const char s_cWhiteSpaces[] = {
     0x0A, // Line Feed
     0x0C, // Form Feed
     0x0D, // Carriage Return
-    0x20   // White Space
+    0x20, // White Space
+    0x00  // end marker
 };
 
 static const int s_nNumDelimiters = 10;
@@ -244,7 +245,8 @@ static const char s_cDelimiters[] = {
     '{',
     '}',
     '/',
-    '%'
+    '%',
+    '\0' // end marker
 };
 
 };

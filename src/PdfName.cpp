@@ -100,19 +100,7 @@ bool PdfName::operator==( const char* rhs ) const
 
 bool PdfName::operator<( const PdfName & rhs ) const
 {
-    if( m_Data.length() == rhs.m_Data.length() )
-    {
-        if( m_Data.empty() && rhs.m_Data.empty() )
-            return false;
-        else if( m_Data.empty() && !rhs.m_Data.empty() )
-            return false;
-        else if( !m_Data.empty() && rhs.m_Data.empty() )
-            return true;
-        else
-            return ( m_Data < rhs.m_Data );
-    }
-    else
-        return m_Data.length() < rhs.m_Data.length();
+    return m_Data < rhs.m_Data;
 }
 
 };
