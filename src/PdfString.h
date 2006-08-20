@@ -23,8 +23,11 @@
 
 #include "PdfDefines.h"
 #include "PdfDataType.h"
+#include "PdfRefCountedBuffer.h"
 
 namespace PoDoFo {
+
+#define PDF_STRING_BUFFER_SIZE 24
 
 class PdfOutputDevice;
 
@@ -127,11 +130,17 @@ class PdfString : public PdfDataType{
     static const PdfString StringNull;
 
  private:
-    /** allocate m_lLen data for m_pszData
-     *  and output a warning if not successfull.
-     *  \returns true if successfuly.
+    /** Allocate m_lLen data for m_pszData if data
+     *  does not fit into m_pBuffer.
+     *  Otherwise m_pszData is set to point to 
+     *  m_pBuffer.
      */
-    bool Allocate();
+    void Allocate();
+
+    /** Frees the internal buffer
+     *  if it was allocated using malloc
+     */
+    void FreeBuffer();
 
     /** Construct a new PdfString from a 0 terminated
      *  string. 
@@ -145,15 +154,14 @@ class PdfString : public PdfDataType{
     void Init( const char* pszString, long lLen );
 
  private:
-    char* m_pszData;
-    long  m_lLen;
+    PdfRefCountedBuffer m_buffer;
 
-    bool  m_bHex;
+    bool                m_bHex;
 };
 
 bool PdfString::IsValid() const
 {
-    return (m_pszData != NULL);
+    return (m_buffer.Buffer() != NULL);
 }
 
 bool PdfString::IsHex () const
@@ -163,17 +171,17 @@ bool PdfString::IsHex () const
 
 const char* PdfString::String() const
 {
-    return m_pszData;
+    return m_buffer.Buffer();
 }
 
 long PdfString::Length() const
 {
-    return m_lLen-1;
+    return m_buffer.Size()-1;
 }
 
 long PdfString::Size() const
 {
-    return m_lLen;
+    return m_buffer.Size();;
 }
 
 };

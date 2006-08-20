@@ -24,6 +24,7 @@
 #include "PdfDefines.h"
 
 #include "PdfDictionary.h"
+#include "PdfRefCountedBuffer.h"
 
 namespace PoDoFo {
 
@@ -33,32 +34,6 @@ typedef TVecFilters::const_iterator        TCIVecFilters;
 
 class PdfName;
 class PdfObject;
-
-class PdfStreamPrivate {
- public:
-    PdfStreamPrivate() 
-        {
-            m_szStream     = NULL;
-            m_lLength      = 0;
-            m_lSize        = 0;
-            m_bOwnedBuffer = true;
-
-            m_lRefCount    = 0;
-        }
-
-    ~PdfStreamPrivate()
-        {
-            if( m_szStream && m_lLength && m_bOwnedBuffer )
-                free( m_szStream );
-        }
-
-    char*        m_szStream;
-    long         m_lLength;
-    long         m_lSize;
-    bool	 m_bOwnedBuffer;
-
-    int          m_lRefCount;
-};
 
 /** A PDF stream can be appended to any PdfObject
  *  and can contain abitrary data.
@@ -118,7 +93,7 @@ class PdfStream {
      *  \param sString a std::string containing ASCII text data
      *  \returns ErrOk on sucess
      */
-	inline void Append( const std::string& sString ); 
+    inline void Append( const std::string& sString ); 
 
     /** Get a malloced buffer of the current stream.
      *  No filters will be applied to the buffer.
@@ -213,13 +188,11 @@ class PdfStream {
      */
     void FreeDecodeParms( TVecDictionaries* pParams ) const;
 
-    /** Detach the implicitly shared data
-     */
-    void Detach();
-
  private:
-    PdfObject*        m_pParent;
-    PdfStreamPrivate* m_pData;
+    PdfObject*          m_pParent;
+
+    PdfRefCountedBuffer m_buffer;
+    long                m_lLength;
 };
 
 // -----------------------------------------------------
@@ -227,7 +200,7 @@ class PdfStream {
 // -----------------------------------------------------
 const char* PdfStream::Get() const
 {
-    return m_pData ? m_pData->m_szStream : NULL;
+    return m_buffer.Buffer();
 }
 
 // -----------------------------------------------------
@@ -235,7 +208,7 @@ const char* PdfStream::Get() const
 // -----------------------------------------------------
 long PdfStream::Length() const
 {
-    return m_pData ? m_pData->m_lLength : 0;
+    return m_buffer.Size();
 }
 
 // -----------------------------------------------------
@@ -243,7 +216,7 @@ long PdfStream::Length() const
 // -----------------------------------------------------
 long PdfStream::Size() const
 {
-    return m_pData ? m_pData->m_lSize : 0;
+    return m_buffer.Size();
 }
 
 // -----------------------------------------------------

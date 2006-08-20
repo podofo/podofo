@@ -28,58 +28,48 @@ namespace PoDoFo {
 const PdfString PdfString::StringNull      = PdfString();
 
 PdfString::PdfString()
-    : m_pszData( NULL ), m_lLen( 0 ), m_bHex( false )
+    : m_bHex( false )
 {
 }
 
 PdfString::PdfString( const char* pszString )
-    : m_pszData( NULL ), m_lLen( 0 ), m_bHex( false )
+    : m_bHex( false )
 {
     if( pszString )
         Init( pszString, strlen( pszString ) );
 }
 
 PdfString::PdfString( const char* pszString, long lLen, bool bHex )
-    : m_pszData( NULL ), m_lLen( 0 ), m_bHex( bHex )
+    : m_bHex( bHex )
 {
     Init( pszString, lLen );
 }
 
 PdfString::PdfString( const PdfString & rhs )
-    : m_pszData( NULL ), m_lLen( 0 ), m_bHex( false )
+    : m_bHex( false )
 {
     this->operator=( rhs );
 }
 
 PdfString::~PdfString()
 {
-    free( m_pszData );
 }
 
 void PdfString::SetHexData( const char* pszHex, long lLen )
 {
-
     if( !pszHex ) 
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    if( m_pszData )
-    {
-        free( m_pszData );
-        m_pszData = NULL;
-    }
-
     if( lLen == -1 )
         lLen = strlen( pszHex );
 
-    m_lLen    = lLen + 1;
-    m_bHex    = true;
-    
-    if( Allocate() )
-        memcpy( m_pszData, pszHex, lLen );
+    m_bHex   = true;
+    m_buffer = PdfRefCountedBuffer( lLen + 1);
 
-    m_pszData[m_lLen-1] = '\0';
+    memcpy( m_buffer.Buffer(), pszHex, lLen );
+    m_buffer.Buffer()[lLen] = '\0';
 }
 
 void PdfString::Write ( PdfOutputDevice* pDevice ) const
@@ -88,49 +78,25 @@ void PdfString::Write ( PdfOutputDevice* pDevice ) const
     // this case has to be handled!
 
     pDevice->Print( m_bHex ? "<" : "(" );
-    pDevice->Write( m_pszData, m_lLen-1 );
+    pDevice->Write( m_buffer.Buffer(), m_buffer.Size()-1 );
     pDevice->Print( m_bHex ? ">" : ")" );
 }
 
 const PdfString & PdfString::operator=( const PdfString & rhs )
 {
-    if( m_pszData )
-        free( m_pszData );
-
-    this->m_lLen    = rhs.m_lLen;
     this->m_bHex    = rhs.m_bHex;
-    
-    if( Allocate() )
-        memcpy( m_pszData, rhs.m_pszData, m_lLen );
+    this->m_buffer  = rhs.m_buffer;
 
     return *this;
 }
 
-bool PdfString::Allocate()
-{
-    m_pszData = (char*)malloc( sizeof(char) * m_lLen );
-
-    if( !m_pszData )
-    {
-        PdfError::LogMessage( eLogSeverity_Error, "PdfString: Cannot allocate memory for string of size %i\n", m_lLen );
-        m_lLen = 0;
-        return false;
-    }
-
-    return true;
-}
-
 void PdfString::Init( const char* pszString, long lLen )
 {
-    PdfError         eCode;
     const PdfFilter* pFilter;
+    char* pBuf;
+    long  lBufLen;
 
     // TODO: escape characters inside of strings!
-    if( m_pszData )
-    {
-        free( m_pszData );
-        m_pszData = NULL;
-    }
 
     if( pszString ) 
     {
@@ -138,7 +104,10 @@ void PdfString::Init( const char* pszString, long lLen )
         {
             pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
             if( pFilter ) 
-                pFilter->Encode( pszString, lLen, &m_pszData, &m_lLen );
+            {
+                pFilter->Encode( pszString, lLen, &pBuf, &lBufLen );
+                m_buffer = PdfRefCountedBuffer( pBuf, lBufLen );
+            }
             else
             {
                 RAISE_ERROR( ePdfError_UnsupportedFilter );
@@ -146,12 +115,9 @@ void PdfString::Init( const char* pszString, long lLen )
         }
         else
         {
-            m_lLen = lLen + 1;
-            if( !Allocate() )
-                return;
-            
-            strncpy( m_pszData, pszString, lLen );
-            m_pszData[m_lLen-1] = '\0';
+            m_buffer = PdfRefCountedBuffer( lLen + 1);
+            memcpy( m_buffer.Buffer(), pszString, lLen );
+            m_buffer.Buffer()[lLen] = '\0';
         }
     }
 }

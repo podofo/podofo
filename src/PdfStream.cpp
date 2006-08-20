@@ -30,59 +30,34 @@ namespace PoDoFo {
 #define STREAM_SIZE_INCREASE 1024
 
 PdfStream::PdfStream( PdfObject* pParent )
-    :m_pParent( pParent ), m_pData( NULL )
+    : m_pParent( pParent ), m_lLength( 0 )
 {
-/*
-    m_szStream = NULL;
-    m_lLength  = 0;
-    m_lSize    = 0;
-    m_bOwnedBuffer = true;
-*/
 }
 
 PdfStream::PdfStream( const PdfStream & rhs )
-    :m_pParent( NULL ) , m_pData( NULL )
+    : m_pParent( NULL ), m_lLength( 0 )
 {
-/*
-    m_szStream = NULL;
-    m_lLength  = 0;
-    m_lSize    = 0;
-    m_bOwnedBuffer = true;
-*/
     operator=(rhs);
 }
 
 PdfStream::~PdfStream()
 {
-    if( m_pData && !--m_pData->m_lRefCount )
-    {
-        delete m_pData;
-        m_pData = NULL;
-    }
 }
 
 void PdfStream::Set( char* szBuffer, long lLen, bool takePossession )
 {
-    if( m_pData && !--m_pData->m_lRefCount )
-    {
-        delete m_pData;
-        m_pData = NULL;
-    }
+    PdfRefCountedBuffer tmp( szBuffer, lLen );
 
     if( !szBuffer )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    m_pData                 = new PdfStreamPrivate();
-    m_pData->m_szStream     = szBuffer;
-    m_pData->m_lLength      = lLen;
-    m_pData->m_lSize        = lLen;
-    m_pData->m_bOwnedBuffer = takePossession;
+    m_buffer = tmp;
+    m_buffer.SetTakePossesion( takePossession );
 
     if( m_pParent )
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)m_pData->m_lLength ) );
-
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)m_buffer.Size() ) );
 }
 
 void PdfStream::Set( const char* pszString )
@@ -92,13 +67,10 @@ void PdfStream::Set( const char* pszString )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    if( m_pData && !--m_pData->m_lRefCount )
-    {
-        delete m_pData;
-        m_pData = NULL;
-    }
+    // clear the buffer
+    m_buffer = PdfRefCountedBuffer();
 
-    Append( pszString );
+    this->Append( pszString );
 }
 
 void PdfStream::Append( const char* pszString )
@@ -113,9 +85,6 @@ void PdfStream::Append( const char* pszString )
 
 void PdfStream::Append( const char* pszString, long lLen )
 {
-    long     lSize;
-    char*    pBuf;
-
     if( !pszString )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -124,54 +93,28 @@ void PdfStream::Append( const char* pszString, long lLen )
     // only append to uncommpressed streams
     this->Uncompress();
 
-    // Detach from implicitly shared data
-    Detach();
-
-    if( m_pData->m_lSize < m_pData->m_lLength + lLen )
-    {
-        // TODO: increase the size as in a vector
-        lSize = (((m_pData->m_lLength + lLen) / STREAM_SIZE_INCREASE) + 1) * STREAM_SIZE_INCREASE;
-        pBuf = (char*)malloc( sizeof( char ) * lSize );
-        if( !pBuf )
-        {
-            RAISE_ERROR( ePdfError_OutOfMemory );
-        }
-
-        memcpy( pBuf, m_pData->m_szStream, m_pData->m_lLength );
-        memcpy( pBuf+m_pData->m_lLength, pszString, lLen );
-        
-        free( m_pData->m_szStream );
-        m_pData->m_szStream = pBuf;
-
-        m_pData->m_lLength += lLen;
-        m_pData->m_lSize    = lSize;
-    }
-    else
-    {
-        memcpy( m_pData->m_szStream+m_pData->m_lLength, pszString, lLen );
-        m_pData->m_lLength += lLen;
-    }
+    m_buffer.Append( pszString, lLen );
 
     if( m_pParent )
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)m_pData->m_lLength ) );
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)m_buffer.Size() ) );
 }
 
 void PdfStream::GetCopy( char** pBuffer, long* lLen ) const
 {
-    if( !m_pData || !pBuffer || !lLen )
+    if( !pBuffer || !lLen )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    *pBuffer = (char*)malloc( sizeof( char ) * m_pData->m_lLength );
-    *lLen = m_pData->m_lLength;
+    *pBuffer = (char*)malloc( sizeof( char ) * m_buffer.Size() );
+    *lLen = m_buffer.Size();
     
     if( !*pBuffer )
     {
         RAISE_ERROR( ePdfError_OutOfMemory );
     }
     
-    memcpy( *pBuffer, m_pData->m_szStream, m_pData->m_lLength );
+    memcpy( *pBuffer, m_buffer.Buffer(), m_buffer.Size() );
 }
 
 void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
@@ -194,11 +137,11 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
     *ppBuffer = NULL;
     *lLen     = 0;
 
-    if( !m_pData ) 
+    if( !m_buffer.Size() )
         return;
 
-    pInBuf = m_pData->m_szStream;
-    lInLen = m_pData->m_lLength;
+    pInBuf = m_buffer.Buffer();
+    lInLen = m_buffer.Size();
 
     FillFilterList( vecFilters );
     GetDecodeParms( &tDecodeParams );
@@ -231,7 +174,7 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
             } catch( PdfError & e ) {
                 e.AddToCallstack( __FILE__, __LINE__ );
 
-                if( pInBuf != m_pData->m_szStream ) 
+                if( pInBuf != m_buffer.Buffer() )
                 {
                     // the input buffer was malloc'ed by another filter before
                     // so free it and let it point to the output buffer
@@ -244,7 +187,7 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
                 throw e;
             }
   
-            if( pInBuf != m_pData->m_szStream ) 
+            if( pInBuf != m_buffer.Buffer() )
             {
                 // the input buffer was malloc'ed by another filter before
                 // so free it and let it point to the output buffer
@@ -261,15 +204,7 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
     }
     else
     {
-        *ppBuffer = (char*)malloc( sizeof( char ) * m_pData->m_lLength );
-        *lLen = m_pData->m_lLength;
-
-        if( !*ppBuffer )
-        {
-            RAISE_ERROR( ePdfError_OutOfMemory );
-        }
-                
-        memcpy( *ppBuffer, m_pData->m_szStream, m_pData->m_lLength );
+        GetCopy( ppBuffer, lLen );
     }
 
     FreeDecodeParms( &tDecodeParams );
@@ -285,7 +220,7 @@ void PdfStream::FlateDecode()
 
     PdfArray::const_iterator tciFilters;
     
-    if( !m_pData || !m_pData->m_szStream )
+    if( !m_buffer.Size() )
         return; // ePdfError_ErrOk
 
     if( m_pParent->GetDictionary().HasKey( "Filter" ) )
@@ -413,23 +348,14 @@ void PdfStream::FlateDecodeStreamData()
     char*            pBuffer;
     long             lLen;
 
-    if( !m_pData ) 
+    if( !m_buffer.Size() ) 
         return;
-
-    Detach();
 
     pFilter = PdfFilterFactory::Create( ePdfFilter_FlateDecode );
     if( pFilter ) 
     {
-        pFilter->Encode( m_pData->m_szStream, m_pData->m_lLength, &pBuffer, &lLen );
-        free( m_pData->m_szStream );
-
-        m_pData->m_szStream  = pBuffer;
-        m_pData->m_lSize     = lLen;
-        m_pData->m_lLength   = lLen;
-
-        if( m_pParent )
-            m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)m_pData->m_lLength ) );
+        pFilter->Encode( m_buffer.Buffer(), m_buffer.Size(), &pBuffer, &lLen );
+        this->Set( pBuffer, lLen );
     }
     else
     {
@@ -514,17 +440,10 @@ EPdfFilter PdfStream::FilterNameToType( const PdfName & name )
 
 const PdfStream & PdfStream::operator=( const PdfStream & rhs )
 {
-    // Clear any existing old data
-    if( m_pData && !--m_pData->m_lRefCount )
-        delete m_pData;
-
-
-    m_pData = rhs.m_pData;
-    if( m_pData )
-        m_pData->m_lRefCount++;
+    m_buffer = rhs.m_buffer;
 
     if( m_pParent ) 
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)(m_pData ? m_pData->m_lLength : 0 ) ) );
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)(m_buffer.Size()) ) );
 
     return *this;
 }
@@ -630,30 +549,5 @@ void PdfStream::SetDecodeParms( TVecDictionaries* pParams )
             m_pParent->GetDictionary().AddKey( "DecodeParms", *((*pParams)[0] ) );
     }
 }
-
-void PdfStream::Detach() 
-{
-    if( m_pData && m_pData->m_lRefCount )
-    {
-        PdfStreamPrivate* p = new PdfStreamPrivate();
-        p->m_lLength        = m_pData->m_lLength;
-        p->m_lSize          = p->m_lLength;
-        p->m_bOwnedBuffer    = true;
-        p->m_szStream = (char*)malloc( p->m_lLength * sizeof(char) );
-
-        if( !p->m_szStream ) 
-        {
-            RAISE_ERROR( ePdfError_OutOfMemory );
-        }
-        
-        memcpy( p->m_szStream, m_pData->m_szStream, m_pData->m_lLength );
-
-        m_pData->m_lRefCount--;
-        m_pData = p;
-    }
-
-    if( !m_pData )
-        m_pData = new PdfStreamPrivate();
-}    
 
 };

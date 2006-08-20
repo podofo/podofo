@@ -37,6 +37,16 @@ class PdfRefCountedBuffer {
      */
     PdfRefCountedBuffer();
 
+    /** Created an reference counted buffer and use an exiting buffer
+     *  The buffer will be owned by this object.
+     *
+     *  \param pBuffer a pointer to an allocated buffer
+     *  \param lSize   size of the allocated buffer
+     *
+     *  \see SetTakePossesion
+     */
+    PdfRefCountedBuffer( char* pBuffer, long lSize );
+
     /** Create a new PdfRefCountedBuffer. 
      *  \param lSize buffer size
      */
@@ -52,6 +62,17 @@ class PdfRefCountedBuffer {
      *  if this is the last owner
      */
     ~PdfRefCountedBuffer();
+    
+    /** Append to the current buffers contents. 
+     *  If the buffer is referenced by another PdfRefCountedBuffer
+     *  this object detaches from this buffer and allocates an own
+     *  buffer. Otherwise the internal buffer is used and resized if
+     *  necessary.
+     *
+     *  \param pszString a buffer
+     *  \param lLen length of the buffer
+     */
+    void Append( const char* pszString, long lLen ); 
 
     /** Get access to the buffer
      *  \returns the buffer
@@ -70,6 +91,20 @@ class PdfRefCountedBuffer {
      */
     const PdfRefCountedBuffer & operator=( const PdfRefCountedBuffer & rhs );
 
+    /** If the PdfRefCountedBuffer has no possesion on its buffer,
+     *  it won't delete the buffer. By default the buffer is owned
+     *  and deleted by the PdfRefCountedBuffer object.
+     *
+     *  \param bTakePossession if false the buffer will not be deleted.
+     */
+    inline void SetTakePossesion( bool bTakePossession );
+
+    /** 
+     * \returns true if the buffer is owned by the PdfRefCountedBuffer
+     *               and is deleted along with it.
+     */
+    inline bool TakePossesion() const;
+
  private:
     /** Detach from the reference counted buffer
      */
@@ -79,7 +114,9 @@ class PdfRefCountedBuffer {
     typedef struct TRefCountedBuffer {
         char* m_pBuffer;
         long  m_lSize;
+        long  m_lInternalSize;
         long  m_lRefCount;
+        bool  m_bPossesion;
     };
 
     TRefCountedBuffer* m_pBuffer;
@@ -99,6 +136,23 @@ inline char* PdfRefCountedBuffer::Buffer() const
 inline long PdfRefCountedBuffer::Size() const
 {
     return m_pBuffer ? m_pBuffer->m_lSize : 0;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfRefCountedBuffer::SetTakePossesion( bool bTakePossession )
+{
+    if( m_pBuffer )
+        m_pBuffer->m_bPossesion = bTakePossession;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline bool PdfRefCountedBuffer::TakePossesion() const
+{
+    return m_pBuffer ? m_pBuffer->m_bPossesion : false;
 }
 
 };

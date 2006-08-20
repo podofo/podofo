@@ -22,10 +22,26 @@
 
 namespace PoDoFo {
 
+#define STREAM_SIZE_INCREASE 1024
+
 PdfRefCountedBuffer::PdfRefCountedBuffer()
     : m_pBuffer( NULL )
 {
 
+}
+
+PdfRefCountedBuffer::PdfRefCountedBuffer( char* pBuffer, long lSize )
+    : m_pBuffer( NULL )
+{
+    if( pBuffer && lSize ) 
+    {
+        m_pBuffer = new TRefCountedBuffer();
+        m_pBuffer->m_lRefCount     = 1;
+        m_pBuffer->m_pBuffer       = pBuffer;
+        m_pBuffer->m_lSize         = lSize;
+        m_pBuffer->m_lInternalSize = lSize;
+        m_pBuffer->m_bPossesion    = true;
+    }
 }
 
 PdfRefCountedBuffer::PdfRefCountedBuffer( long lSize )
@@ -34,9 +50,11 @@ PdfRefCountedBuffer::PdfRefCountedBuffer( long lSize )
     if( lSize ) 
     {
         m_pBuffer = new TRefCountedBuffer();
-        m_pBuffer->m_lRefCount = 1;
-        m_pBuffer->m_pBuffer   = (char*)malloc( sizeof(char)*lSize );
-        m_pBuffer->m_lSize     = lSize;
+        m_pBuffer->m_lRefCount     = 1;
+        m_pBuffer->m_pBuffer       = (char*)malloc( sizeof(char)*lSize );
+        m_pBuffer->m_lSize         = lSize;
+        m_pBuffer->m_lInternalSize = lSize;
+        m_pBuffer->m_bPossesion    = true;
         
         if( !m_pBuffer->m_pBuffer ) 
         {
@@ -64,11 +82,58 @@ void PdfRefCountedBuffer::Detach()
     if( m_pBuffer && !--m_pBuffer->m_lRefCount ) 
     {
         // last owner of the file!
-        free( m_pBuffer->m_pBuffer );
+        if( m_pBuffer->m_bPossesion )
+            free( m_pBuffer->m_pBuffer );
         delete m_pBuffer;
         m_pBuffer = NULL;
     }
 
+}
+
+void PdfRefCountedBuffer::Append( const char* pszString, long lLen )
+{
+    char* pBuffer;
+
+    if( m_pBuffer )
+    {
+        if( m_pBuffer->m_lRefCount == 1 ) 
+        {
+            // it is our buffer, 
+            // we can simply resize it and use it
+            if( m_pBuffer->m_lSize + lLen < m_pBuffer->m_lInternalSize )
+            {
+                memcpy( m_pBuffer->m_pBuffer + m_pBuffer->m_lSize, pszString, lLen );
+                m_pBuffer->m_lSize += lLen;
+            }
+            else
+            {
+                // TODO: increase the size as in a vector
+                m_pBuffer->m_lInternalSize = (((m_pBuffer->m_lSize + lLen) / STREAM_SIZE_INCREASE) + 1) * STREAM_SIZE_INCREASE;
+                pBuffer = (char*)malloc( sizeof(char) * m_pBuffer->m_lInternalSize );
+                memcpy( pBuffer, m_pBuffer->m_pBuffer, m_pBuffer->m_lSize );
+                memcpy( pBuffer + m_pBuffer->m_lSize, pszString, lLen );
+
+                m_pBuffer->m_lSize += lLen;
+                if( m_pBuffer->m_bPossesion )
+                    free( m_pBuffer->m_pBuffer );
+                m_pBuffer->m_pBuffer = pBuffer;
+            }
+        }
+        else
+        {
+            // allocate a new buffer
+            PdfRefCountedBuffer buffer( this->Size() + lLen );
+            memcpy( buffer.Buffer(), this->Buffer(), this->Size() );
+            memcpy( buffer.Buffer() + this->Size(), pszString, lLen );
+        }
+    }
+    else
+    {
+        // Allocate a completely new buffer
+        PdfRefCountedBuffer buffer( lLen );
+        memcpy( buffer.Buffer(), pszString, lLen );
+        *this = buffer;
+    }
 }
 
 const PdfRefCountedBuffer & PdfRefCountedBuffer::operator=( const PdfRefCountedBuffer & rhs )
