@@ -35,12 +35,22 @@ PdfDictionary::PdfDictionary( const PdfDictionary & rhs )
 
 PdfDictionary::~PdfDictionary()
 {
+    this->Clear();
 }
 
 const PdfDictionary & PdfDictionary::operator=( const PdfDictionary & rhs )
 {
-    m_mapKeys = rhs.m_mapKeys;
+    TCIKeyMap it;
 
+    this->Clear();
+
+    it = rhs.m_mapKeys.begin();
+    while( it != rhs.m_mapKeys.end() )
+    {
+        m_mapKeys[(*it).first] = new PdfObject( *(*it).second );
+        ++it;
+    }
+    
     return *this;
 }
 

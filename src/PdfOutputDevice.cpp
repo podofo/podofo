@@ -96,18 +96,21 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
     }
 
     va_start( args, pszFormat );
-    lBytes = vsnprintf( NULL, 0, pszFormat, args );
-    va_end( args );
-
-    va_start( args, pszFormat );
     if( m_hFile )
     {
-        if( vfprintf( m_hFile, pszFormat, args ) != lBytes )
+        if( (lBytes = vfprintf( m_hFile, pszFormat, args )) < 0 )
         {
             RAISE_ERROR( ePdfError_UnexpectedEOF );
         }
     }
-    else if( m_pBuffer )
+    else
+    {
+        va_start( args, pszFormat );
+        lBytes = vsnprintf( NULL, 0, pszFormat, args );
+        va_end( args );
+    }
+
+    if( m_pBuffer )
     {
         if( m_ulLength + lBytes <= m_lBufferLen )
         {

@@ -385,7 +385,8 @@ void PdfVariant::GetDataType( const char* pszData, long nLen, EPdfDataType* eDat
 
 void PdfVariant::Clear()
 {
-    delete m_pData;
+    if( m_pData )
+        delete m_pData;
 
     m_nPadding   = 0;
     m_eDataType  = ePdfDataType_Null;
