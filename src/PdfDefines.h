@@ -194,6 +194,7 @@ struct TXRefEntry {
     long lOffset;
     long lGeneration;
     char cUsed;
+    bool bParsed;
 };
 
 typedef std::vector<TXRefEntry>      TVecOffsets;

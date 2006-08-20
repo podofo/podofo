@@ -65,7 +65,7 @@ void PdfParser::Init()
     m_file            = PdfRefCountedFile();
     m_pTrailer        = NULL;
     m_pLinearization  = NULL;
-    m_ppOffsets       = NULL;
+    m_pOffsets        = NULL;
 
     m_ePdfVersion     = ePdfVersion_Unknown;
 
@@ -112,38 +112,10 @@ void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
 
 void PdfParser::Clear()
 {
-    int          i         = 0;
-    TIMapObjects itMapObjects;
-    TIMapObjectStreamCache itCache = m_mapStreamCache.begin();
-
-    // TODO: DS not allowed to delete this objects:
-    /*
-    while( itCache != m_mapStreamCache.end() )
-    {
-        itMapObjects = (*itCache).second.begin();
-
-        while( itMapObjects != (*itCache).second.end() )
-        {
-            if( (*itMapObjects).second )
-            {
-                //delete (*itMapObjects).second;
-            }
-
-            ++itMapObjects;
-        }
-
-        ++itCache;
-    }
-    */
-
     m_mapStreamCache.clear();
 
-    if( m_ppOffsets )
-    {
-        for( ; i < m_nNumObjects; i++ )
-            free( m_ppOffsets[i] );
-        free( m_ppOffsets );
-    }
+    if( m_pOffsets )
+        free( m_pOffsets );
 
     m_file = PdfRefCountedFile();
 
@@ -205,8 +177,8 @@ void PdfParser::ReadDocumentStructure()
     PdfError::DebugMessage("Allocating for %i objects\n", m_nNumObjects );
 #endif // _DEBUG
 
-    m_ppOffsets = (TXRefEntry**)malloc( sizeof( TXRefEntry* ) * (m_nNumObjects+1)  );
-    memset( m_ppOffsets, 0, sizeof( TXRefEntry* ) * m_nNumObjects );
+    m_pOffsets = (TXRefEntry*)malloc( sizeof( TXRefEntry ) * (m_nNumObjects+1)  );
+    memset( m_pOffsets, 0, sizeof( TXRefEntry ) * m_nNumObjects );
 
 #ifdef _DEBUG
     PdfError::DebugMessage("Linearized Offset: %i Pointer: %p\n", m_nXRefLinearizedOffset, m_pLinearization );
@@ -626,23 +598,18 @@ void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
     {
         m_buffer.Buffer()[PDF_XREF_ENTRY_SIZE] = '\0';
 
-		int	objID = nFirstObject + count;
+        int objID = nFirstObject + count;
         if( objID >= m_nNumObjects )
         {
             RAISE_ERROR( ePdfError_InvalidXRef );
         }
 
-        if( !m_ppOffsets[objID] )
+        if( !m_pOffsets[objID].bParsed )
         {
-            m_ppOffsets[objID] = (TXRefEntry*)malloc( sizeof( TXRefEntry ) );
+            m_pOffsets[objID].bParsed = true;
             sscanf( m_buffer.Buffer(), "%10ld %5ld %c \n", 
-                    &(m_ppOffsets[objID]->lOffset), 
-                    &(m_ppOffsets[objID]->lGeneration), &(m_ppOffsets[objID]->cUsed) );
-
-#ifdef _DEBUG
-			PdfError::DebugMessage( "Object:%d (Gen:%d) at Offset:%d\n", 
-									objID, m_ppOffsets[objID]->lGeneration, m_ppOffsets[objID]->lOffset );
-#endif // _DEBUG 
+                    &(m_pOffsets[objID].lOffset), 
+                    &(m_pOffsets[objID].lGeneration), &(m_pOffsets[objID].cUsed) );
         }
 
         ++count;
@@ -809,28 +776,27 @@ void PdfParser::ReadXRefStreamEntry( char* pBuffer, long lLen, long lW[W_ARRAY_S
         }
     }
 
-    if( !m_ppOffsets[nObjNo] )
-        m_ppOffsets[nObjNo] = (TXRefEntry*)malloc( sizeof( TXRefEntry ) );
+    m_pOffsets[nObjNo].bParsed = true;
 
     switch( nData[0] ) // nData[0] contains the type information of this entry
     {
         case 0:
             // a free object
-            m_ppOffsets[nObjNo]->lOffset     = 0;
-            m_ppOffsets[nObjNo]->lGeneration = nData[2];
-            m_ppOffsets[nObjNo]->cUsed       = 'f';
+            m_pOffsets[nObjNo].lOffset     = 0;
+            m_pOffsets[nObjNo].lGeneration = nData[2];
+            m_pOffsets[nObjNo].cUsed       = 'f';
             break;
         case 1:
             // normal uncompressed object
-            m_ppOffsets[nObjNo]->lOffset     = nData[1];
-            m_ppOffsets[nObjNo]->lGeneration = nData[2];
-            m_ppOffsets[nObjNo]->cUsed       = 'n';
+            m_pOffsets[nObjNo].lOffset     = nData[1];
+            m_pOffsets[nObjNo].lGeneration = nData[2];
+            m_pOffsets[nObjNo].cUsed       = 'n';
             break;
         case 2:
             // object that is part of an object stream
-            m_ppOffsets[nObjNo]->lOffset     = nData[2]; // index in the object stream
-            m_ppOffsets[nObjNo]->lGeneration = nData[1]; // object number of the stream
-            m_ppOffsets[nObjNo]->cUsed       = 's';      // mark as stream
+            m_pOffsets[nObjNo].lOffset     = nData[2]; // index in the object stream
+            m_pOffsets[nObjNo].lGeneration = nData[1]; // object number of the stream
+            m_pOffsets[nObjNo].cUsed       = 's';      // mark as stream
             break;
         default:
         {
@@ -849,29 +815,26 @@ void PdfParser::ReadObjects()
 
     for( ; i < m_nNumObjects; i++ )
     {
-        if( m_ppOffsets[i] )
+        if( m_pOffsets[i].bParsed && m_pOffsets[i].cUsed == 'n' )
         {
-            if( m_ppOffsets[i]->cUsed == 'n'  )
-            {
-                pObject = new PdfParserObject( m_vecObjects, m_file, m_buffer, m_ppOffsets[i]->lOffset );
-                pObject->SetLoadOnDemand( m_bLoadOnDemand );
-                try {
-                    pObject->ParseFile();
-
-                    // final pdf should not contain a linerization dictionary as it contents are invalid 
-                    // as we change some objects and the final xref table
-                    if( m_pLinearization && pObject->ObjectNumber() == m_pLinearization->ObjectNumber() )
-                    {
-                        pObject->SetEmptyEntry( true );                    
-                    }
-                } catch( PdfError & e ) {
-                    delete pObject;
-                    e.AddToCallstack( __FILE__, __LINE__ );
-                    throw e;
+            pObject = new PdfParserObject( m_vecObjects, m_file, m_buffer, m_pOffsets[i].lOffset );
+            pObject->SetLoadOnDemand( m_bLoadOnDemand );
+            try {
+                pObject->ParseFile();
+                
+                // final pdf should not contain a linerization dictionary as it contents are invalid 
+                // as we change some objects and the final xref table
+                if( m_pLinearization && pObject->ObjectNumber() == m_pLinearization->ObjectNumber() )
+                {
+                    pObject->SetEmptyEntry( true );                    
                 }
-
-                m_vecObjects->push_back( pObject );
+            } catch( PdfError & e ) {
+                delete pObject;
+                e.AddToCallstack( __FILE__, __LINE__ );
+                throw e;
             }
+            
+            m_vecObjects->push_back( pObject );
         }
         else
         {
@@ -893,8 +856,8 @@ void PdfParser::ReadObjects()
     // we can parse the object streams now savely
     for( i = 0; i < m_nNumObjects; i++ )
     {
-        if( m_ppOffsets[i] && m_ppOffsets[i]->cUsed == 's' ) // we have an object stream
-            ReadObjectFromStream( m_ppOffsets[i]->lGeneration, m_ppOffsets[i]->lOffset );
+        if( m_pOffsets[i].bParsed && m_pOffsets[i].cUsed == 's' ) // we have an object stream
+            ReadObjectFromStream( m_pOffsets[i].lGeneration, m_pOffsets[i].lOffset );
     }
 
     m_mapStreamCache.clear();

@@ -218,7 +218,7 @@ class PdfParser : public PdfParserBase {
     long         m_nXRefLinearizedOffset;
     size_t       m_nFileSize;
 
-    TXRefEntry** m_ppOffsets;
+    TXRefEntry*  m_pOffsets;
     TVecObjects* m_vecObjects;
 
     PdfObject*   m_pTrailer;
