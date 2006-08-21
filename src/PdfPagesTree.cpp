@@ -33,7 +33,8 @@ namespace PoDoFo {
 PdfPagesTree::PdfPagesTree( PdfVecObjects* pParent )
     : PdfElement( "Pages", pParent )
 {
-    Object()->GetDictionary().AddKey( "Kids", PdfArray() );
+    // PdfObject* kids = pParent->CreateObject( PdfArray() );
+    Object()->GetDictionary().AddKey( "Kids", PdfArray() ); // kids->Reference() 
     Object()->GetDictionary().AddKey( "Count", PdfObject( (long) 0 ) );
 }
 
@@ -105,13 +106,19 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
     size_t	numKids   = kidsArray.size();
     size_t      kidsCount = pPagesObject->GetDictionary().GetKeyAsLong( "Count", 0 );
 
-    std::string str;
-    PdfVariant( kidsArray ).ToString( str );
-
     // the pages tree node represented by pPagesObject has only page nodes in its kids array,
     // or pages nodes with a kid count of 1, so we can speed things up by going straight to the desired node
     if ( numKids == kidsCount )
     {
+        if( nPageNum >= kidsArray.size() )
+        {
+            PdfError::LogMessage( eLogSeverity_Critical, "Requesting page index %i from array of size %i\n", nPageNum, kidsArray.size() );
+            /*
+            RAISE_ERROR( ePdfError_ValueOutOfRange );
+            */
+            nPageNum--;
+        }
+
         PdfVariant pgVar = kidsArray[ nPageNum ];
         while ( true ) 
         {
