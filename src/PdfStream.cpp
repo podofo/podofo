@@ -210,7 +210,7 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
     FreeDecodeParms( &tDecodeParams );
 }
 
-void PdfStream::FlateDecode()
+void PdfStream::FlateCompress()
 {
     PdfObject*        pObj;
     PdfVariant        vFilter( PdfName("FlateDecode" ) );
@@ -295,7 +295,7 @@ void PdfStream::FlateDecode()
                 SetDecodeParms( &tDecodeParams ); // throws an exception on error
             }
             
-            FlateDecodeStreamData(); // throws an exception on error
+            FlateCompressStreamData(); // throws an exception on error
         } catch( PdfError & e ) {
             e.AddToCallstack( __FILE__, __LINE__ );
 
@@ -307,7 +307,7 @@ void PdfStream::FlateDecode()
     else
     {
         m_pParent->GetDictionary().AddKey( "Filter", PdfName( "FlateDecode" ) );
-        FlateDecodeStreamData();
+        FlateCompressStreamData();
     }
 }
 
@@ -342,7 +342,7 @@ void PdfStream::FreeDecodeParms( TVecDictionaries* pParams ) const
     pParams->clear();
 }
 
-void PdfStream::FlateDecodeStreamData()
+void PdfStream::FlateCompressStreamData()
 {
     const PdfFilter* pFilter;
     char*            pBuffer;

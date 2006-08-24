@@ -1,3 +1,8 @@
+Version 0.4
+	PdfImage now supports creating an image stream from a "raw bitmap"
+		which can also be optionally Flate compressed
+
+	
 Version 0.3
     TOTAL revamp of PdfObject & PdfVariant to enable clean/consistent object handling;
     	Added new PdfDocument object - new high level object for reading & writing a PDF doc;

@@ -61,15 +61,23 @@ class PdfImage : public PdfXObject {
      */
     void SetImageColorSpace( EPdfColorSpace eColorSpace );
 
-    /** Set the actual image data which has to be JPEG encoded from a in memory buffer.
+   /** Set the compression filter of this image. The default value is "" (uncompressed)
+     *  \param inName one of "FlateDecode" (ZIP) or "DCTDecode" (JPEG) currently
+     */
+	void SetImageFilter( PdfName& inName );
+
+    /** Set the actual image data from an in memory buffer.
+	 *     IF you wish your data to compressed correctly, you MUST call 
+	 *     SetImageFilter before calling this method
      *  \param nWidth width of the image in pixels
      *  \param nHeight height of the image in pixels
      *  \param nBitsPerComponent bits per color component of the image (depends on the image colorspace you have set
      *                           but is 8 in most cases)
-     *  \param szBuffer the jpeg encoded image data
+     *  \param szBuffer the EITHER jpeg encoded OR raw image data
      *  \param lLen length the of the image data buffer.
      */
-    void SetImageData( unsigned int nWidth, unsigned int nHeight, unsigned int nBitsPerComponent, char* szBuffer, long lLen );
+    void SetImageData( unsigned int nWidth, unsigned int nHeight, unsigned int nBitsPerComponent, 
+					   char* szBuffer, long lLen );
 
     /** Load the image data from a JPEG file
      *  \param pszFilename

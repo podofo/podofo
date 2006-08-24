@@ -249,7 +249,7 @@ class PdfObject : public PdfVariant {
      *  will not be compressed again using this function.
      *  Entries to the filter dictionary will be added if necessary.
      */
-    void FlateDecodeStream();
+    void FlateCompressStream();
 
     /** Calculate the byte offset of the key pszKey from the start of the object
      *  if the object was written to disk at the moment of calling this function.

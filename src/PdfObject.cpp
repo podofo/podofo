@@ -212,12 +212,12 @@ const PdfStream* PdfObject::Stream() const
     return m_pStream;
 }
 
-void PdfObject::FlateDecodeStream() 
+void PdfObject::FlateCompressStream() 
 {
     DelayedStreamLoad();
 
     if( m_pStream )
-        m_pStream->FlateDecode();
+        m_pStream->FlateCompress();
 }
 
 const PdfObject & PdfObject::operator=( const PdfObject & rhs )

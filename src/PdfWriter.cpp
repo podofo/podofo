@@ -114,7 +114,7 @@ void PdfWriter::CompressObjects( const TVecObjects& vecObjects )
     {
         // make sure that all objects are FlateDecoded if compression is enabled
         if( m_bCompress )
-            (*itObjects)->FlateDecodeStream();
+            (*itObjects)->FlateCompressStream();
 
         ++itObjects;
     }

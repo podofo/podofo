@@ -131,11 +131,11 @@ class PdfStream {
     inline long Size() const;
 
     /** This function compresses any currently set stream
-     *  using the FlateDecode algorithm. JPEG compressed streams
+     *  using the FlateDecode(ZIP) algorithm. JPEG compressed streams
      *  will not be compressed again using this function.
      *  Entries to the filter dictionary will be added if necessary.
      */
-    void FlateDecode();
+    void FlateCompress();
 
     /** This method removes all filters from the stream
      */
@@ -161,11 +161,11 @@ class PdfStream {
      */
     static EPdfFilter FilterNameToType( const PdfName & name );
 
-    /** Compress the current data using the FlateDecode algorithm
+    /** Compress the current data using the FlateDecode(ZIP) algorithm
      *  Expects that all filters are setup correctly.
      *  \returns ErrOk on success
      */
-    void FlateDecodeStreamData();
+    void FlateCompressStreamData();
 
     /** Get a list of extra decode parameters for this dictionary.
      *  The list contains copies of the objects and has to be deleted by the caller! 

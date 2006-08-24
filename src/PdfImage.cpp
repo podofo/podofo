@@ -58,7 +58,14 @@ void PdfImage::SetImageColorSpace( EPdfColorSpace eColorSpace )
     m_pObject->GetDictionary().AddKey( "ColorSpace", PdfName( ColorspaceToName( eColorSpace ) ) );
 }
 
-void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight, unsigned int nBitsPerComponent, char* szBuffer, long lLen )
+void PdfImage::SetImageFilter( PdfName& inName )
+{
+	m_pObject->GetDictionary().AddKey( "Filter", inName );
+}
+
+void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight, 
+							 unsigned int nBitsPerComponent, 
+							 char* szBuffer, long lLen )
 {
     m_rRect.SetWidth( nWidth );
     m_rRect.SetHeight( nHeight );
@@ -66,9 +73,12 @@ void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight, unsigned
     m_pObject->GetDictionary().AddKey( "Width", PdfVariant( (long)nWidth ) );
     m_pObject->GetDictionary().AddKey( "Height", PdfVariant( (long)nHeight ) );
     m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( (long)nBitsPerComponent ) );
-    m_pObject->GetDictionary().AddKey( "Filter", PdfName("DCTDecode") );
 
     m_pObject->Stream()->Set( szBuffer, lLen );
+	if ( m_pObject->GetDictionary().GetKey( "Filter" )->GetName() == "FlateDecode" ) {
+		// compress any stream that has been marked as using FlateDecode
+		m_pObject->Stream()->FlateCompress();
+	}
 }
 
 void PdfImage::LoadFromFile( const char* pszFilename )
@@ -147,6 +157,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
             break;
     }
     
+	this->SetImageFilter( PdfName("DCTDecode") );	// DCTDecode == JPEG
     this->SetImageData( (unsigned int)m_rRect.Width(), (unsigned int)m_rRect.Height(), 8 , szBuffer, lLen ); // 8 bits per component
 
     (void) jpeg_destroy_decompress(&cinfo);
