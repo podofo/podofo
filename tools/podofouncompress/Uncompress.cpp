@@ -32,8 +32,6 @@ UnCompress::~UnCompress()
 
 void UnCompress::Init( const char* pszInput, const char* pszOutput )
 {
-    PdfWriter writer;
-
     if( m_pDocument )
         delete m_pDocument;
 
@@ -41,7 +39,7 @@ void UnCompress::Init( const char* pszInput, const char* pszOutput )
 
     this->UncompressObjects();
 
-    writer.Init( m_pDocument );
+    PdfWriter writer( m_pDocument );
     writer.SetPdfCompression( false );
     writer.Write( pszOutput );
 }

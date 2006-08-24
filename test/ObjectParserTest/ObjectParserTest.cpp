@@ -197,7 +197,6 @@ int main()
 {
     PdfError      eCode;
     const char*   pszTmp  = "/tmp/pdfobjectparsertest";
-    PdfWriter     writer;
 
     printf("This test tests the PdfParserObject class.\n");
     printf("---\n");

@@ -24,11 +24,18 @@
 
 using namespace PoDoFo;
 
+void write_back( PdfParser* pParser, const char* pszFilename )
+{
+    PdfWriter writer( pParser );
+
+    writer.SetPdfCompression( true );
+    writer.Write( pszFilename );
+}
+
 int main( int argc, char*  argv[] )
 {
     PdfVecObjects objects;
     PdfParser     parser( &objects );
-    PdfWriter     writer;
     
     objects.SetAutoDelete( true );
 
@@ -47,11 +54,8 @@ int main( int argc, char*  argv[] )
 
         printf("PdfVersion=%i\n", (int)parser.GetPdfVersion() );
         printf("PdfVersionString=%s\n", parser.GetPdfVersionString() );
-
-        writer.SetPdfCompression( false );
-
-        writer.Init( &parser );
-        writer.Write( argv[2] );
+        
+        write_back( &parser, argv[2] );
     } catch( PdfError & e ) {
         e.PrintErrorMsg();
         return e.Error();

@@ -181,8 +181,7 @@ void PdfDocument::Load( const char* pszFilename )
 void PdfDocument::Write( const char* pszFilename )
 {
     PdfOutputDevice device( pszFilename );
-    PdfWriter       writer;
-    
+
     /** TODO:
      *  We will get problems here on linux,
      *  if we write to the same filename we read the 
@@ -193,7 +192,8 @@ void PdfDocument::Write( const char* pszFilename )
      *  as we truncated the file already to zero length by opening
      *  it writeable.
      */
-    writer.Init( this );
+    PdfWriter       writer( this );
+
     writer.Write( &device );    
 }
 

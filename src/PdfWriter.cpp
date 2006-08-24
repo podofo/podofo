@@ -33,29 +33,8 @@
 
 namespace PoDoFo {
 
-PdfWriter::PdfWriter()
-    : m_vecObjects( NULL ), m_pTrailer( NULL )
-{
-    Clear();
-}
-
-PdfWriter::~PdfWriter()
-{
-    Clear();
-}
-
-void PdfWriter::Clear() 
-{
-    delete m_pTrailer;
-    m_pTrailer     = NULL;
-    m_vecObjects   = NULL;
-
-    m_eVersion     = ePdfVersion_1_3;
-
-    m_bCompress    = true;
-}
-
-void PdfWriter::Init( PdfParser* pParser )
+PdfWriter::PdfWriter( PdfParser* pParser )
+    : m_bCompress( true )
 {
     if( !pParser )
     {
@@ -63,10 +42,12 @@ void PdfWriter::Init( PdfParser* pParser )
     }
 
     m_eVersion     = pParser->GetPdfVersion();
-    this->Init( pParser->m_vecObjects, pParser->GetTrailer() );
+    m_pTrailer     = new PdfObject( *(pParser->GetTrailer() ) );
+    m_vecObjects   = pParser->m_vecObjects;
 }
 
-void PdfWriter::Init( PdfDocument* pDocument )
+PdfWriter::PdfWriter( PdfDocument* pDocument )
+    : m_bCompress( true )
 {
     if( !pDocument )
     {
@@ -74,22 +55,28 @@ void PdfWriter::Init( PdfDocument* pDocument )
     }
 
     m_eVersion     = pDocument->GetPdfVersion();
-    this->Init( &(pDocument->m_vecObjects), pDocument->GetTrailer() );
+    m_pTrailer     = new PdfObject( *(pDocument->GetTrailer() ) );
+    m_vecObjects   = &(pDocument->m_vecObjects);
 }
 
-
-void PdfWriter::Init( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
+PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
+    : m_bCompress( true )
 {
-    // clear everything - so that calling Init twice will work
-    Clear();
-
     if( !pVecObjects || !pTrailer )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
+    m_eVersion     = ePdfVersion_1_3;
     m_pTrailer     = new PdfObject( *pTrailer );
     m_vecObjects   = pVecObjects;
+}
+
+PdfWriter::~PdfWriter()
+{
+    delete m_pTrailer;
+    m_pTrailer     = NULL;
+    m_vecObjects   = NULL;
 }
 
 void PdfWriter::Write( const char* pszFilename )

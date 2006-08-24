@@ -56,32 +56,24 @@ typedef TVecXRefTable::const_iterator TCIVecXRefTable;
  */
 class PdfWriter {
  public:
-    /** Create a PdfWriter object
-     *  \see Init()
+    /** Create a PdfWriter object from a PdfParser object
+     *  \param pParser a pdf parser object
      */
-    PdfWriter();
-    virtual ~PdfWriter();
-
-    /** Create a new pdf file, based on an existing pdf file.
-     *  \param pParser     a pdf parser object
-     */
-    void Init( PdfParser* pParser );
+    PdfWriter( PdfParser* pParser );
 
     /** Create a new pdf file, based on an existing pdf file.
      *  \param pDocument a PdfDocument
      */
-    void Init( PdfDocument* pDocument );
+    PdfWriter( PdfDocument* pDocument ); 
 
     /** Create a new pdf file, from an vector of PdfObjects
      *  and a trailer object.
      *  \param pVecObjects the vector of objects
      *  \param pTrailer a valid trailer object
      */
-    void Init( PdfVecObjects* pVecObjects, const PdfObject* pTrailer );
+    PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer );
 
-    /** Create a new pdf file from scratch.
-     */
-    void Init();
+    virtual ~PdfWriter();
 
     /** Writes the complete document to a PDF file.
      *
@@ -161,13 +153,6 @@ class PdfWriter {
     void WriteToBuffer( char** ppBuffer, unsigned long* pulLen );
 
  private:
-    /** Delete all internal structures and free allocated memory.
-     *  This function is called from the destructor and from
-     *  Init(), so that calling Init() twice does not 
-     *  cause a memory leak.
-     */
-    void Clear();
-
     /** Writes the pdf header to the current file.
      *  \param pDevice write to this output device
      */       
