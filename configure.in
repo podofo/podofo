@@ -81,5 +81,5 @@ AC_SUBST(FREETYPE_CFLAGS)
 
 AC_CHECK_HEADERS(zlib.h jpeglib.h)
 
-AC_OUTPUT( [Makefile src/Makefile test/Makefile test/FilterTest/Makefile test/ObjectParserTest/Makefile test/ParserTest/Makefile test/VariantTest/Makefile test/CreationTest/Makefile test/WatermarkTest/Makefile tools/Makefile tools/podofoimgextract/Makefile tools/podofouncompress/Makefile tools/podofotxt2pdf/Makefile tools/podofopdfinfo/Makefile  ] )
+AC_OUTPUT( [Makefile src/Makefile test/Makefile test/FilterTest/Makefile test/ObjectParserTest/Makefile test/ParserTest/Makefile test/VariantTest/Makefile test/CreationTest/Makefile test/WatermarkTest/Makefile tools/Makefile tools/podofoimgextract/Makefile tools/podofouncompress/Makefile tools/podofotxt2pdf/Makefile tools/podofopdfinfo/Makefile tools/podofomerge/Makefile ] )
 
