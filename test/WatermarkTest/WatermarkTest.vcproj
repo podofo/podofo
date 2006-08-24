@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\src;D:\ApagoDev\src\misc\freetype\include;d:\ApagoDev\src\misc\spdf\zlib;d:\ApagoDev\src\misc\jpeg"
+				AdditionalIncludeDirectories="..\..\src;..\..\freetype\include;..\..\zlib;..\..\jpeg"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
