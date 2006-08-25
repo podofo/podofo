@@ -337,12 +337,10 @@ const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc )
     for(int i=0;i<rDoc.GetPageCount();i++ )
     {
         pPage = rDoc.GetPage( i );
-        printf("pPage=%p Was object: %i 0 R\n", pPage, pPage->Object()->Reference().ObjectNumber() );
         pObj  = m_vecObjects.GetObject( PdfReference( pPage->Object()->Reference().ObjectNumber() + difference, 0 ) );
         if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Parent" ) )
             pObj->GetDictionary().RemoveKey( "Parent" );
 
-        printf("pObj =%p Should be page: %i 0 R\n", pObj, pObj->Reference().ObjectNumber() );
         m_pPagesTree->InsertPage( this->GetPageCount(), pObj );
     }
 
@@ -384,81 +382,80 @@ void PdfDocument::FixObjectReferences( PdfObject* pObject, int difference )
 
 void PdfDocument::DeletePages( int inFirstPage, int inNumPages )
 {
-	for( int i = 0 ; i < inNumPages ; i++ )
-	{
-		m_pPagesTree->DeletePage( inFirstPage ) ;
-	}
+    for( int i = 0 ; i < inNumPages ; i++ )
+    {
+        m_pPagesTree->DeletePage( inFirstPage ) ;
+    }
 }
 
 const PdfDocument & PdfDocument::InsertPages( const PdfDocument & rDoc, int inFirstPage, int inNumPages )
 {
-	/*
-		This function works a bit different than one might expect. 
-		Rather than copying one page at a time - we copy the ENTIRE document
-		and then delete the pages we aren't interested in.
+    /*
+      This function works a bit different than one might expect. 
+      Rather than copying one page at a time - we copy the ENTIRE document
+      and then delete the pages we aren't interested in.
+      
+      We do this because 
+      1) SIGNIFICANTLY simplifies the process
+      2) Guarantees that shared objects aren't copied multiple times
+      3) offers MUCH faster performance for the common cases
+      
+      HOWEVER: because PoDoFo doesn't currently do any sort of "object garbage collection" during
+      a Write() - we will end up with larger documents, since the data from unused pages
+      will also be in there.
+    */
 
-		We do this because 
-		1) SIGNIFICANTLY simplifies the process
-		2) Guarantees that shared objects aren't copied multiple times
-		3) offers MUCH faster performance for the common cases
+    // calculate preliminary "left" and "right" page ranges to delete
+    // then offset them based on where the pages were inserted
+    // NOTE: some of this will change if/when we support insertion at locations
+    //       OTHER than the end of the document!
+    int leftStartPage = 0 ;
+    int leftCount = inFirstPage ;
+    int rightStartPage = inFirstPage + inNumPages ;
+    int rightCount = rDoc.GetPageCount() - rightStartPage ;
+    int pageOffset = this->GetPageCount();	
 
-		HOWEVER: because PoDoFo doesn't currently do any sort of "object garbage collection" during
-		         a Write() - we will end up with larger documents, since the data from unused pages
-				 will also be in there.
-	*/
+    leftStartPage += pageOffset ;
+    rightStartPage += pageOffset ;
+    
+    // append in the whole document
+    this->Append( rDoc );
 
-	// calculate preliminary "left" and "right" page ranges to delete
-	// then offset them based on where the pages were inserted
-	// NOTE: some of this will change if/when we support insertion at locations
-	//       OTHER than the end of the document!
-	int leftStartPage = 0 ;
-	int leftCount = inFirstPage ;
-	int rightStartPage = inFirstPage + inNumPages ;
-	int rightCount = rDoc.GetPageCount() - rightStartPage ;
-	int pageOffset = this->GetPageCount();	
-
-	leftStartPage += pageOffset ;
-	rightStartPage += pageOffset ;
-
-	// append in the whole document
-	this->Append( rDoc );
-
-	// delete
-	if( rightCount > 0 )
-		this->DeletePages( rightStartPage, rightCount ) ;
-	if( leftCount > 0 )
-		this->DeletePages( leftStartPage, leftCount ) ;
-
-
-	return *this;
+    // delete
+    if( rightCount > 0 )
+        this->DeletePages( rightStartPage, rightCount ) ;
+    if( leftCount > 0 )
+        this->DeletePages( leftStartPage, leftCount ) ;
+    
+    return *this;
 }
 
 EPdfPageMode PdfDocument::GetPageMode( void ) const
 {
-	// PageMode is optional; the default value is UseNone
-	EPdfPageMode thePageMode = ePdfPageModeUseNone;
-
-	PdfObject* pageModeObj = GetCatalog()->GetIndirectKey( PdfName( "PageMode" ) );
-	if ( pageModeObj != NULL ) {
-		PdfName pmName = pageModeObj->GetName();
-
-		if( PdfName( "UseNone" ) == pmName )
-			thePageMode = ePdfPageModeUseNone ;
-		else if( PdfName( "UseThumbs" ) == pmName )
-			thePageMode = ePdfPageModeUseThumbs ;
-		else if( PdfName( "UseOutlines" ) == pmName )
-			thePageMode = ePdfPageModeUseBookmarks ;
-		else if( PdfName( "FullScreen" ) == pmName )
-			thePageMode = ePdfPageModeFullScreen ;
-		else if( PdfName( "UseOC" ) == pmName )
-			thePageMode = ePdfPageModeUseOC ;
-		else if( PdfName( "UseAttachments" ) == pmName )
-			thePageMode = ePdfPageModeUseAttachments ;
-		else
-			RAISE_ERROR( ePdfError_InvalidName );
-	}
-
-	return thePageMode ;
+    // PageMode is optional; the default value is UseNone
+    EPdfPageMode thePageMode = ePdfPageModeUseNone;
+    
+    PdfObject* pageModeObj = GetCatalog()->GetIndirectKey( PdfName( "PageMode" ) );
+    if ( pageModeObj != NULL ) {
+        PdfName pmName = pageModeObj->GetName();
+        
+        if( PdfName( "UseNone" ) == pmName )
+            thePageMode = ePdfPageModeUseNone ;
+        else if( PdfName( "UseThumbs" ) == pmName )
+            thePageMode = ePdfPageModeUseThumbs ;
+        else if( PdfName( "UseOutlines" ) == pmName )
+            thePageMode = ePdfPageModeUseBookmarks ;
+        else if( PdfName( "FullScreen" ) == pmName )
+            thePageMode = ePdfPageModeFullScreen ;
+        else if( PdfName( "UseOC" ) == pmName )
+            thePageMode = ePdfPageModeUseOC ;
+        else if( PdfName( "UseAttachments" ) == pmName )
+            thePageMode = ePdfPageModeUseAttachments ;
+        else
+            RAISE_ERROR( ePdfError_InvalidName );
+    }
+    
+    return thePageMode ;
 }
 
 void PdfDocument::SetPageMode( EPdfPageMode inMode ) const
@@ -501,15 +498,13 @@ void PdfDocument::SetUseFullScreen( void ) const
     EPdfPageMode	curMode = GetPageMode();
     
     // if current mode is anything but "don't care", we need to move that to non-full-screen
-    if ( curMode != ePdfPageModeDontCare )  {
-        PdfObject* pageModeObj = new PdfObject( *(GetCatalog()->GetIndirectKey( PdfName( "PageMode" ) )) );	// copy it!
-        SetViewerPreference( PdfName( "NonFullScreenPageMode" ), pageModeObj );
-    }
+    if ( curMode != ePdfPageModeDontCare )
+        SetViewerPreference( PdfName( "NonFullScreenPageMode" ), PdfObject( *(GetCatalog()->GetIndirectKey( PdfName( "PageMode" ) )) ) );
     
     SetPageMode( ePdfPageModeFullScreen );
 }
 
-void PdfDocument::SetViewerPreference( const PdfName& whichPref, PdfObject* valueObj ) const
+void PdfDocument::SetViewerPreference( const PdfName& whichPref, const PdfObject & valueObj ) const
 {
     PdfObject* prefsObj = GetCatalog()->GetIndirectKey( PdfName( "ViewerPreferences" ) );
     if ( prefsObj == NULL ) {
@@ -517,8 +512,7 @@ void PdfDocument::SetViewerPreference( const PdfName& whichPref, PdfObject* valu
         PdfDictionary	vpDict;
         vpDict.AddKey( whichPref, valueObj );
         
-        prefsObj = new PdfObject( vpDict );
-        GetCatalog()->GetDictionary().AddKey( PdfName( "ViewerPreferences" ), prefsObj );
+        GetCatalog()->GetDictionary().AddKey( PdfName( "ViewerPreferences" ), PdfObject( vpDict ) );
     } else {
         // modify the existing one
         prefsObj->GetDictionary().AddKey( whichPref, valueObj );
@@ -527,7 +521,7 @@ void PdfDocument::SetViewerPreference( const PdfName& whichPref, PdfObject* valu
 
 void PdfDocument::SetViewerPreference( const PdfName& whichPref, bool inValue ) const
 {
-    SetViewerPreference( whichPref, new PdfObject( inValue ) );
+    SetViewerPreference( whichPref, PdfObject( inValue ) );
 }
 
 void PdfDocument::SetHideToolbar( void )
@@ -537,77 +531,77 @@ void PdfDocument::SetHideToolbar( void )
 
 void PdfDocument::SetHideMenubar( void )
 {
-	SetViewerPreference( PdfName( "HideMenubar" ), true );
+    SetViewerPreference( PdfName( "HideMenubar" ), true );
 }
 
 void PdfDocument::SetHideWindowUI( void )
 {
-	SetViewerPreference( PdfName( "HideWindowUI" ), true );
+    SetViewerPreference( PdfName( "HideWindowUI" ), true );
 }
 
 void PdfDocument::SetFitWindow( void )
 {
-	SetViewerPreference( PdfName( "FitWindow" ), true );
+    SetViewerPreference( PdfName( "FitWindow" ), true );
 }
 
 void PdfDocument::SetCenterWindow( void )
 {
-	SetViewerPreference( PdfName( "CenterWindow" ), true );
+    SetViewerPreference( PdfName( "CenterWindow" ), true );
 }
 
 void PdfDocument::SetDisplayDocTitle( void )
 {
-	SetViewerPreference( PdfName( "DisplayDocTitle" ), true );
+    SetViewerPreference( PdfName( "DisplayDocTitle" ), true );
 }
 
 void PdfDocument::SetPrintScaling( PdfName& inScalingType )
 {
-	SetViewerPreference( PdfName( "PrintScaling" ), &inScalingType );
+    SetViewerPreference( PdfName( "PrintScaling" ), &inScalingType );
 }
 
 void PdfDocument::SetBaseURI( const std::string& inBaseURI )
 {
-	PdfDictionary	uriDict;
-	uriDict.AddKey( PdfName( "Base" ), new PdfObject( PdfString( inBaseURI ) ) );
-	GetCatalog()->GetDictionary().AddKey( PdfName( "URI" ), new PdfObject( uriDict ) );
+    PdfDictionary	uriDict;
+    uriDict.AddKey( PdfName( "Base" ), new PdfObject( PdfString( inBaseURI ) ) );
+    GetCatalog()->GetDictionary().AddKey( PdfName( "URI" ), new PdfObject( uriDict ) );
 }
 
 void PdfDocument::SetLanguage( const std::string& inLanguage )
 {
-	GetCatalog()->GetDictionary().AddKey( PdfName( "Lang" ), new PdfObject( PdfString( inLanguage ) ) );
+    GetCatalog()->GetDictionary().AddKey( PdfName( "Lang" ), new PdfObject( PdfString( inLanguage ) ) );
 }
 
 void PdfDocument::SetBindingDirection( PdfName& inDirection )
 {
-	SetViewerPreference( PdfName( "Direction" ), &inDirection );
+    SetViewerPreference( PdfName( "Direction" ), &inDirection );
 }
 
 void PdfDocument::SetPageLayout( EPdfPageLayout inLayout )
 {
-	switch ( inLayout ) {
-		case ePdfPageLayoutIgnore:			break;	// means do nothing
-		case ePdfPageLayoutDefault:			
-			GetCatalog()->GetDictionary().RemoveKey( PdfName( "PageLayout" ) );
-			break;
-		case ePdfPageLayoutSinglePage:		
-			GetCatalog()->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "SinglePage" ) );
-			break;
-		case ePdfPageLayoutOneColumn:		
-			GetCatalog()->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "OneColumn" ) );
-			break;
-		case ePdfPageLayoutTwoColumnLeft:	
-			GetCatalog()->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "TwoColumnLeft" ) );
-			break;
-		case ePdfPageLayoutTwoColumnRight: 	
-			GetCatalog()->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "TwoColumnRight" ) );
-			break;
-		case ePdfPageLayoutTwoPageLeft: 	
-			GetCatalog()->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "TwoPageLeft" ) );
-			break;
-		case ePdfPageLayoutTwoPageRight: 	
-			GetCatalog()->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "TwoPageRight" ) );
-			break;
-	}
+    switch ( inLayout ) {
+        case ePdfPageLayoutIgnore:			break;	// means do nothing
+        case ePdfPageLayoutDefault:			
+            GetCatalog()->GetDictionary().RemoveKey( PdfName( "PageLayout" ) );
+            break;
+        case ePdfPageLayoutSinglePage:		
+            GetCatalog()->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "SinglePage" ) );
+            break;
+        case ePdfPageLayoutOneColumn:		
+            GetCatalog()->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "OneColumn" ) );
+            break;
+        case ePdfPageLayoutTwoColumnLeft:	
+            GetCatalog()->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "TwoColumnLeft" ) );
+            break;
+        case ePdfPageLayoutTwoColumnRight: 	
+            GetCatalog()->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "TwoColumnRight" ) );
+            break;
+        case ePdfPageLayoutTwoPageLeft: 	
+            GetCatalog()->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "TwoPageLeft" ) );
+            break;
+        case ePdfPageLayoutTwoPageRight: 	
+            GetCatalog()->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "TwoPageRight" ) );
+            break;
+    }
 }
 
 };

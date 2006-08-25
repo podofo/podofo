@@ -332,9 +332,8 @@ class PdfDocument {
      *  \param whichPrefs the dictionary key to set
      *  \param the object to be set
      */
-    void SetViewerPreference( const PdfName& whichPref, PdfObject* valueObj ) const;
+    void SetViewerPreference( const PdfName& whichPref, const PdfObject & valueObj ) const;
     void SetViewerPreference( const PdfName& whichPref, bool inValue ) const;
-
 
  private:
     bool            m_bLinearized;
