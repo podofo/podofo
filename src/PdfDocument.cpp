@@ -287,41 +287,26 @@ const PdfString & PdfDocument::GetStringFromInfoDict( const PdfName & rName ) co
     return pObj && pObj->IsString() ? pObj->GetString() : PdfString::StringNull;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 void PdfDocument::SetAuthor( const PdfString & sAuthor )
 {
     this->GetInfo( true )->GetDictionary().AddKey( "Author", sAuthor );
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 void PdfDocument::SetCreator( const PdfString & sCreator )
 {
     this->GetInfo( true )->GetDictionary().AddKey( "Creator", sCreator );
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 void PdfDocument::SetKeywords( const PdfString & sKeywords )
 {
     this->GetInfo( true )->GetDictionary().AddKey( "Keywords", sKeywords );
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 void PdfDocument::SetSubject( const PdfString & sSubject )
 {
     this->GetInfo( true )->GetDictionary().AddKey( "Subject", sSubject );
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 void PdfDocument::SetTitle( const PdfString & sTitle )
 {
     this->GetInfo( true )->GetDictionary().AddKey( "Title", sTitle );
@@ -395,6 +380,57 @@ void PdfDocument::FixObjectReferences( PdfObject* pObject, int difference )
             ++it;
         }
     }
+}
+
+void PdfDocument::DeletePages( int inFirstPage, int inNumPages )
+{
+	for( int i = 0 ; i < inNumPages ; i++ )
+	{
+		m_pPagesTree->DeletePage( inFirstPage ) ;
+	}
+}
+
+const PdfDocument & PdfDocument::InsertPages( const PdfDocument & rDoc, int inFirstPage, int inNumPages )
+{
+	/*
+		This function works a bit different than one might expect. 
+		Rather than copying one page at a time - we copy the ENTIRE document
+		and then delete the pages we aren't interested in.
+
+		We do this because 
+		1) SIGNIFICANTLY simplifies the process
+		2) Guarantees that shared objects aren't copied multiple times
+		3) offers MUCH faster performance for the common cases
+
+		HOWEVER: because PoDoFo doesn't currently do any sort of "object garbage collection" during
+		         a Write() - we will end up with larger documents, since the data from unused pages
+				 will also be in there.
+	*/
+
+	// calculate preliminary "left" and "right" page ranges to delete
+	// then offset them based on where the pages were inserted
+	// NOTE: some of this will change if/when we support insertion at locations
+	//       OTHER than the end of the document!
+	int leftStartPage = 0 ;
+	int leftCount = inFirstPage ;
+	int rightStartPage = inFirstPage + inNumPages ;
+	int rightCount = rDoc.GetPageCount() - rightStartPage ;
+	int pageOffset = this->GetPageCount();	
+
+	leftStartPage += pageOffset ;
+	rightStartPage += pageOffset ;
+
+	// append in the whole document
+	this->Append( rDoc );
+
+	// delete
+	if( rightCount > 0 )
+		this->DeletePages( rightStartPage, rightCount ) ;
+	if( leftCount > 0 )
+		this->DeletePages( leftStartPage, leftCount ) ;
+
+
+	return *this;
 }
 
 };

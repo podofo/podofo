@@ -38,7 +38,13 @@ void merge( const char* pszInput1, const char* pszInput2, const char* pszOutput 
     PdfDocument input1( pszInput1 );
     PdfDocument input2( pszInput2 );
 
+// #define TEST_ONLY_SOME_PAGES
+#ifdef TEST_ONLY_SOME_PAGES
+	input1.InsertPages( input2, 1, 2 );
+#else
     input1.Append( input2 );
+#endif
+
     input1.Write( pszOutput );
 }
 

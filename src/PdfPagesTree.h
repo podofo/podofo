@@ -81,7 +81,6 @@ class PdfPagesTree : public PdfElement
      *
      *  \param inAfterPageNumber an integer specifying after what page - may be one of the special values
      *  \param pPage musst be a PdfObject with type /Page
-     *  \returns a pointer to a PdfPage object
      */
     void InsertPage( int inAfterPageNumber, PdfObject* pPage );
 
@@ -90,7 +89,6 @@ class PdfPagesTree : public PdfElement
      *
      *  \param inAfterPageNumber an integer specifying after what page - may be one of the special values
      *  \param inPage a PdfPage to be inserted
-     *  \returns a pointer to a PdfPage object
      */
     void InsertPage( int inAfterPageNumber, PdfPage* inPage );
 
@@ -103,6 +101,13 @@ class PdfPagesTree : public PdfElement
      *  \returns a pointer to a PdfPage object
      */
     PdfPage* CreatePage( const PdfRect & rSize );
+
+   /**  Delete the specified page object from the internal pages tree.
+     *    It does NOT remove anything from memory - just the reference from the tree
+     *
+     *  \param inPageNumber the page number (0-based) to be removed
+     */
+	void DeletePage( int inPageNumber );
 
  private:
     PdfPagesTree();	// don't allow construction from nothing!

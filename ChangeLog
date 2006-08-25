@@ -1,7 +1,12 @@
 Version 0.4
 	PdfImage now supports creating an image stream from a "raw bitmap"
 		which can also be optionally Flate compressed
-
+	Added some new Page-related methods to PdfDocument 
+		Append - append one document to another
+		InsertPages - insert a range of pages from one document to another
+		DeletePages - delete a range of pages
+	Added new tool podofomerge for merging two PDFs together
+	
 	
 Version 0.3
     TOTAL revamp of PdfObject & PdfVariant to enable clean/consistent object handling;

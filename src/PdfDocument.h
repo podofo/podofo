@@ -241,6 +241,22 @@ class PdfDocument {
      */
     const PdfDocument & Append( const PdfDocument & rDoc );
 
+    /** Copies one or more pages from another PdfDocument to this document
+     *  \param rDoc the document to append
+	 *  \param inFirstPage the first page number to copy (0-based)
+	 *  \param inNumPages the number of pages to copy
+     *  \returns this document
+     */
+	const PdfDocument & InsertPages( const PdfDocument & rDoc, int inFirstPage, int inNumPages );
+
+    /** Deletes one or more pages from this document
+	 *  \param inFirstPage the first page number to delete (0-based)
+	 *  \param inNumPages the number of pages to delete
+     *  \returns this document
+     */
+	void DeletePages( int inFirstPage, int inNumPages );
+
+
  private:
     /** Get a dictioary from the catalog dictionary by its name.
      *  \param pszName will be converted into a PdfName
