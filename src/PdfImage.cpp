@@ -58,7 +58,7 @@ void PdfImage::SetImageColorSpace( EPdfColorSpace eColorSpace )
     m_pObject->GetDictionary().AddKey( "ColorSpace", PdfName( ColorspaceToName( eColorSpace ) ) );
 }
 
-void PdfImage::SetImageFilter( PdfName& inName )
+void PdfImage::SetImageFilter( const PdfName & inName )
 {
 	m_pObject->GetDictionary().AddKey( "Filter", inName );
 }

@@ -463,78 +463,76 @@ EPdfPageMode PdfDocument::GetPageMode( void ) const
 
 void PdfDocument::SetPageMode( EPdfPageMode inMode ) const
 {
-	switch ( inMode ) {
-		case ePdfPageModeDontCare:	
-			// GetCatalog()->RemoveKey( PdfName( "PageMode" ) );
-			// this value means leave it alone!
-			break;
-
-		case ePdfPageModeUseNone:
-			GetCatalog()->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseNone" ) );
-			break;
-
-		case ePdfPageModeUseThumbs:
-			GetCatalog()->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseThumbs" ) );
-			break;
-
-		case ePdfPageModeUseBookmarks:
-			GetCatalog()->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseOutlines" ) );
-			break;
-
-		case ePdfPageModeFullScreen:
-			GetCatalog()->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "FullScreen" ) );
-			break;
-
-		case ePdfPageModeUseOC:
-			GetCatalog()->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseOC" ) );
-			break;
-
-		case ePdfPageModeUseAttachments:
-			GetCatalog()->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseAttachments" ) );
-			break;
-
-
-	}
+    switch ( inMode ) {
+        case ePdfPageModeDontCare:	
+            // GetCatalog()->RemoveKey( PdfName( "PageMode" ) );
+            // this value means leave it alone!
+            break;
+            
+        case ePdfPageModeUseNone:
+            GetCatalog()->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseNone" ) );
+            break;
+            
+        case ePdfPageModeUseThumbs:
+            GetCatalog()->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseThumbs" ) );
+            break;
+            
+        case ePdfPageModeUseBookmarks:
+            GetCatalog()->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseOutlines" ) );
+            break;
+            
+        case ePdfPageModeFullScreen:
+            GetCatalog()->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "FullScreen" ) );
+            break;
+            
+        case ePdfPageModeUseOC:
+            GetCatalog()->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseOC" ) );
+            break;
+            
+        case ePdfPageModeUseAttachments:
+            GetCatalog()->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseAttachments" ) );
+            break;
+    }
 }
 
 void PdfDocument::SetUseFullScreen( void ) const
 {
-	// first, we get the current mode
-	EPdfPageMode	curMode = GetPageMode();
-
-	// if current mode is anything but "don't care", we need to move that to non-full-screen
-	if ( curMode != ePdfPageModeDontCare )  {
-		PdfObject* pageModeObj = new PdfObject( *(GetCatalog()->GetIndirectKey( PdfName( "PageMode" ) )) );	// copy it!
-		SetViewerPreference( PdfName( "NonFullScreenPageMode" ), pageModeObj );
-	}
-
-	SetPageMode( ePdfPageModeFullScreen );
+    // first, we get the current mode
+    EPdfPageMode	curMode = GetPageMode();
+    
+    // if current mode is anything but "don't care", we need to move that to non-full-screen
+    if ( curMode != ePdfPageModeDontCare )  {
+        PdfObject* pageModeObj = new PdfObject( *(GetCatalog()->GetIndirectKey( PdfName( "PageMode" ) )) );	// copy it!
+        SetViewerPreference( PdfName( "NonFullScreenPageMode" ), pageModeObj );
+    }
+    
+    SetPageMode( ePdfPageModeFullScreen );
 }
 
-void PdfDocument::SetViewerPreference( PdfName& whichPref, PdfObject* valueObj ) const
+void PdfDocument::SetViewerPreference( const PdfName& whichPref, PdfObject* valueObj ) const
 {
-	PdfObject* prefsObj = GetCatalog()->GetIndirectKey( PdfName( "ViewerPreferences" ) );
-	if ( prefsObj == NULL ) {
-		// make me a new one and add it
-		PdfDictionary	vpDict;
-		vpDict.AddKey( whichPref, valueObj );
-
-		prefsObj = new PdfObject( vpDict );
-		GetCatalog()->GetDictionary().AddKey( PdfName( "ViewerPreferences" ), prefsObj );
-	} else {
-		// modify the existing one
-		prefsObj->GetDictionary().AddKey( whichPref, valueObj );
-	}
+    PdfObject* prefsObj = GetCatalog()->GetIndirectKey( PdfName( "ViewerPreferences" ) );
+    if ( prefsObj == NULL ) {
+        // make me a new one and add it
+        PdfDictionary	vpDict;
+        vpDict.AddKey( whichPref, valueObj );
+        
+        prefsObj = new PdfObject( vpDict );
+        GetCatalog()->GetDictionary().AddKey( PdfName( "ViewerPreferences" ), prefsObj );
+    } else {
+        // modify the existing one
+        prefsObj->GetDictionary().AddKey( whichPref, valueObj );
+    }
 }
 
-void PdfDocument::SetViewerPreference( PdfName& whichPref, bool inValue ) const
+void PdfDocument::SetViewerPreference( const PdfName& whichPref, bool inValue ) const
 {
-	SetViewerPreference( whichPref, new PdfObject( inValue ) );
+    SetViewerPreference( whichPref, new PdfObject( inValue ) );
 }
 
 void PdfDocument::SetHideToolbar( void )
 {
-	SetViewerPreference( PdfName( "HideToolbar" ), true );
+    SetViewerPreference( PdfName( "HideToolbar" ), true );
 }
 
 void PdfDocument::SetHideMenubar( void )
