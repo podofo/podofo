@@ -43,6 +43,13 @@ class PdfString : public PdfDataType{
      */
     PdfString();
 
+   /** Construct a new PdfString from a std::string. 
+     *  The input string will be copied.
+     *
+     *  \param sString the string to copy
+     */
+	PdfString( const std::string& sString );
+
     /** Construct a new PdfString from a 0 terminated
      *  string. 
      *  The input string will be copied.

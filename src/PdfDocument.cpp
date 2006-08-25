@@ -433,5 +433,184 @@ const PdfDocument & PdfDocument::InsertPages( const PdfDocument & rDoc, int inFi
 	return *this;
 }
 
+EPdfPageMode PdfDocument::GetPageMode( void ) const
+{
+	// PageMode is optional; the default value is UseNone
+	EPdfPageMode thePageMode = ePdfPageModeUseNone;
+
+	PdfObject* pageModeObj = GetCatalog()->GetIndirectKey( PdfName( "PageMode" ) );
+	if ( pageModeObj != NULL ) {
+		PdfName pmName = pageModeObj->GetName();
+
+		if( PdfName( "UseNone" ) == pmName )
+			thePageMode = ePdfPageModeUseNone ;
+		else if( PdfName( "UseThumbs" ) == pmName )
+			thePageMode = ePdfPageModeUseThumbs ;
+		else if( PdfName( "UseOutlines" ) == pmName )
+			thePageMode = ePdfPageModeUseBookmarks ;
+		else if( PdfName( "FullScreen" ) == pmName )
+			thePageMode = ePdfPageModeFullScreen ;
+		else if( PdfName( "UseOC" ) == pmName )
+			thePageMode = ePdfPageModeUseOC ;
+		else if( PdfName( "UseAttachments" ) == pmName )
+			thePageMode = ePdfPageModeUseAttachments ;
+		else
+			RAISE_ERROR( ePdfError_InvalidName );
+	}
+
+	return thePageMode ;
+}
+
+void PdfDocument::SetPageMode( EPdfPageMode inMode ) const
+{
+	switch ( inMode ) {
+		case ePdfPageModeDontCare:	
+			// GetCatalog()->RemoveKey( PdfName( "PageMode" ) );
+			// this value means leave it alone!
+			break;
+
+		case ePdfPageModeUseNone:
+			GetCatalog()->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseNone" ) );
+			break;
+
+		case ePdfPageModeUseThumbs:
+			GetCatalog()->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseThumbs" ) );
+			break;
+
+		case ePdfPageModeUseBookmarks:
+			GetCatalog()->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseOutlines" ) );
+			break;
+
+		case ePdfPageModeFullScreen:
+			GetCatalog()->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "FullScreen" ) );
+			break;
+
+		case ePdfPageModeUseOC:
+			GetCatalog()->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseOC" ) );
+			break;
+
+		case ePdfPageModeUseAttachments:
+			GetCatalog()->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseAttachments" ) );
+			break;
+
+
+	}
+}
+
+void PdfDocument::SetUseFullScreen( void ) const
+{
+	// first, we get the current mode
+	EPdfPageMode	curMode = GetPageMode();
+
+	// if current mode is anything but "don't care", we need to move that to non-full-screen
+	if ( curMode != ePdfPageModeDontCare )  {
+		PdfObject* pageModeObj = new PdfObject( *(GetCatalog()->GetIndirectKey( PdfName( "PageMode" ) )) );	// copy it!
+		SetViewerPreference( PdfName( "NonFullScreenPageMode" ), pageModeObj );
+	}
+
+	SetPageMode( ePdfPageModeFullScreen );
+}
+
+void PdfDocument::SetViewerPreference( PdfName& whichPref, PdfObject* valueObj ) const
+{
+	PdfObject* prefsObj = GetCatalog()->GetIndirectKey( PdfName( "ViewerPreferences" ) );
+	if ( prefsObj == NULL ) {
+		// make me a new one and add it
+		PdfDictionary	vpDict;
+		vpDict.AddKey( whichPref, valueObj );
+
+		prefsObj = new PdfObject( vpDict );
+		GetCatalog()->GetDictionary().AddKey( PdfName( "ViewerPreferences" ), prefsObj );
+	} else {
+		// modify the existing one
+		prefsObj->GetDictionary().AddKey( whichPref, valueObj );
+	}
+}
+
+void PdfDocument::SetViewerPreference( PdfName& whichPref, bool inValue ) const
+{
+	SetViewerPreference( whichPref, new PdfObject( inValue ) );
+}
+
+void PdfDocument::SetHideToolbar( void )
+{
+	SetViewerPreference( PdfName( "HideToolbar" ), true );
+}
+
+void PdfDocument::SetHideMenubar( void )
+{
+	SetViewerPreference( PdfName( "HideMenubar" ), true );
+}
+
+void PdfDocument::SetHideWindowUI( void )
+{
+	SetViewerPreference( PdfName( "HideWindowUI" ), true );
+}
+
+void PdfDocument::SetFitWindow( void )
+{
+	SetViewerPreference( PdfName( "FitWindow" ), true );
+}
+
+void PdfDocument::SetCenterWindow( void )
+{
+	SetViewerPreference( PdfName( "CenterWindow" ), true );
+}
+
+void PdfDocument::SetDisplayDocTitle( void )
+{
+	SetViewerPreference( PdfName( "DisplayDocTitle" ), true );
+}
+
+void PdfDocument::SetPrintScaling( PdfName& inScalingType )
+{
+	SetViewerPreference( PdfName( "PrintScaling" ), &inScalingType );
+}
+
+void PdfDocument::SetBaseURI( const std::string& inBaseURI )
+{
+	PdfDictionary	uriDict;
+	uriDict.AddKey( PdfName( "Base" ), new PdfObject( PdfString( inBaseURI ) ) );
+	GetCatalog()->GetDictionary().AddKey( PdfName( "URI" ), new PdfObject( uriDict ) );
+}
+
+void PdfDocument::SetLanguage( const std::string& inLanguage )
+{
+	GetCatalog()->GetDictionary().AddKey( PdfName( "Lang" ), new PdfObject( PdfString( inLanguage ) ) );
+}
+
+void PdfDocument::SetBindingDirection( PdfName& inDirection )
+{
+	SetViewerPreference( PdfName( "Direction" ), &inDirection );
+}
+
+void PdfDocument::SetPageLayout( EPdfPageLayout inLayout )
+{
+	switch ( inLayout ) {
+		case ePdfPageLayoutIgnore:			break;	// means do nothing
+		case ePdfPageLayoutDefault:			
+			GetCatalog()->GetDictionary().RemoveKey( PdfName( "PageLayout" ) );
+			break;
+		case ePdfPageLayoutSinglePage:		
+			GetCatalog()->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "SinglePage" ) );
+			break;
+		case ePdfPageLayoutOneColumn:		
+			GetCatalog()->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "OneColumn" ) );
+			break;
+		case ePdfPageLayoutTwoColumnLeft:	
+			GetCatalog()->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "TwoColumnLeft" ) );
+			break;
+		case ePdfPageLayoutTwoColumnRight: 	
+			GetCatalog()->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "TwoColumnRight" ) );
+			break;
+		case ePdfPageLayoutTwoPageLeft: 	
+			GetCatalog()->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "TwoPageLeft" ) );
+			break;
+		case ePdfPageLayoutTwoPageRight: 	
+			GetCatalog()->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "TwoPageRight" ) );
+			break;
+	}
+}
+
 };
 

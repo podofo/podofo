@@ -189,6 +189,41 @@ typedef enum EPdfPageSize {
     ePdfPageSize_Unknown = 0xff
 };
 
+/**
+ * Enum holding the supported of types of "PageModes"
+ * that define which (if any) of the "panels" are opened
+ * in Acrobat when the document is opened.
+ *
+ * \see PdfDocument
+ */
+typedef enum EPdfPageMode {
+	ePdfPageModeDontCare,
+	ePdfPageModeUseNone,
+	ePdfPageModeUseThumbs,
+	ePdfPageModeUseBookmarks,
+	ePdfPageModeFullScreen,
+	ePdfPageModeUseOC,
+	ePdfPageModeUseAttachments
+};
+
+/**
+ * Enum holding the supported of types of "PageLayouts"
+ * that define how Acrobat will display the pages in
+ * relation to each other
+ *
+ * \see PdfDocument
+ */
+typedef enum EPdfPageLayout {
+	ePdfPageLayoutIgnore,
+	ePdfPageLayoutDefault,
+	ePdfPageLayoutSinglePage,
+	ePdfPageLayoutOneColumn,
+	ePdfPageLayoutTwoColumnLeft,
+	ePdfPageLayoutTwoColumnRight,
+	ePdfPageLayoutTwoPageLeft,
+	ePdfPageLayoutTwoPageRight
+};
+
 // data structures
 struct TXRefEntry {
     long lOffset;

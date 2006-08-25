@@ -45,6 +45,14 @@ void merge( const char* pszInput1, const char* pszInput2, const char* pszOutput 
     input1.Append( input2 );
 #endif
 
+#ifdef TEST_FULL_SCREEN
+	input1.SetUseFullScreen();
+#else
+	input1.SetPageMode( ePdfPageModeUseThumbs );
+	input1.SetHideToolbar();
+	input1.SetPageLayout( ePdfPageLayoutTwoColumnLeft );
+#endif
+
     input1.Write( pszOutput );
 }
 

@@ -32,11 +32,18 @@ PdfString::PdfString()
 {
 }
 
-PdfString::PdfString( const char* pszString )
+PdfString::PdfString( const std::string& sString )
     : m_bHex( false )
 {
-    if( pszString )
-        Init( pszString, strlen( pszString ) );
+    if( sString.length() )
+        Init( sString.c_str(), sString.length() );
+}
+
+PdfString::PdfString( const char* pszString )
+: m_bHex( false )
+{
+	if( pszString )
+		Init( pszString, strlen( pszString ) );
 }
 
 PdfString::PdfString( const char* pszString, long lLen, bool bHex )

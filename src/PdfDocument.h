@@ -256,6 +256,37 @@ class PdfDocument {
      */
 	void DeletePages( int inFirstPage, int inNumPages );
 
+	/** Sets the opening mode for a document
+	 *  \param inMode which mode to set
+	*/
+	void SetPageMode( EPdfPageMode inMode ) const;
+
+	/** Gets the opening mode for a document
+	 *  \returns which mode is set
+	*/
+	EPdfPageMode GetPageMode( void ) const;
+
+	/** Sets the opening mode for a document to be in full screen
+	*/
+	void SetUseFullScreen( void ) const;
+
+	/** Sets the page layout for a document
+	*/
+	void SetPageLayout( EPdfPageLayout inLayout );
+
+	/** Variety of methods to set the document's Viewer Preferences
+	 */
+	void SetHideToolbar( void );
+	void SetHideMenubar( void );
+	void SetHideWindowUI( void );
+	void SetFitWindow( void );
+	void SetCenterWindow( void );
+	void SetDisplayDocTitle( void );
+	void SetPrintScaling( PdfName& inScalingType );
+	void SetBaseURI( const std::string& inBaseURI );
+	void SetLanguage( const std::string& inLanguage );
+	void SetBindingDirection( PdfName& inDirection );
+
 
  private:
     /** Get a dictioary from the catalog dictionary by its name.
@@ -296,6 +327,14 @@ class PdfDocument {
      *  \param difference add this value to every reference that is encountered
      */
     void FixObjectReferences( PdfObject* pObject, int difference );
+
+	/** Low level APIs for setting a viewer preference
+	*  \param whichPrefs the dictionary key to set
+	*  \param the object to be set
+	*/
+	void SetViewerPreference( PdfName& whichPref, PdfObject* valueObj ) const;
+	void SetViewerPreference( PdfName& whichPref, bool inValue ) const;
+
 
  private:
     bool            m_bLinearized;
