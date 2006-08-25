@@ -274,19 +274,58 @@ class PdfDocument {
      */
     void SetPageLayout( EPdfPageLayout inLayout );
     
-    /** Variety of methods to set the document's Viewer Preferences
+    /** Set the document's Viewer Preferences:
+     *  Hide the toolbar in the viewer
      */
     void SetHideToolbar( void );
+
+    /** Set the document's Viewer Preferences:
+     *  Hide the menubar in the viewer
+     */
     void SetHideMenubar( void );
+
+    /** Set the document's Viewer Preferences:
+     *  Show only the documents contents and no controll
+     *  elements such as buttons and scrollbars in the viewer
+     */
     void SetHideWindowUI( void );
+
+    /** Set the document's Viewer Preferences:
+     *  Fit the document in the viewers window
+     */
     void SetFitWindow( void );
+
+    /** Set the document's Viewer Preferences:
+     *  Center the document in the viewers window
+     */
     void SetCenterWindow( void );
+
+    /** Set the document's Viewer Preferences:
+     *  Display the title from the document information
+     *  in the title of the viewer.
+     * 
+     *  \see SetTitle
+     */
     void SetDisplayDocTitle( void );
+
+    /** Set the document's Viewer Preferences:
+     *  Set the default print scaling of the document
+     */   
     void SetPrintScaling( PdfName& inScalingType );
+
+    /** Set the document's Viewer Preferences:
+     *  Set the base URI of the document
+     */
     void SetBaseURI( const std::string& inBaseURI );
+
+    /** Set the document's Viewer Preferences:
+     *  Set the language of the document
+     */    
     void SetLanguage( const std::string& inLanguage );
+
+    /** Set the document's Viewer Preferences:
+     */    
     void SetBindingDirection( PdfName& inDirection );
-        
 
  private:
     /** Get a dictioary from the catalog dictionary by its name.
