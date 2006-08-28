@@ -58,17 +58,17 @@ class PdfXObject;
  *
  * \see PdfPainter 
  */
-class PdfPainterMM {
+class PdfPainterMM : public PdfPainter {
  public:
-	 /** Create a new PdfPainterMM object.
-	 */
-	 PdfPainterMM() {}
-	 virtual ~PdfPainterMM() {}
-
-	 /** Set the line width for all stroking operations.
+    /** Create a new PdfPainterMM object.
+     */
+    PdfPainterMM() {}
+    virtual ~PdfPainterMM() {}
+    
+    /** Set the line width for all stroking operations.
      *  \param lWidth in 1/1000th mm
      */
-    inline void SetStrokeWidth( long lWidth );
+    inline void SetStrokeWidthMM( long lWidth );
 
     /** Draw a line with the current color and line settings.
      *  \param lStartX x coordinate of the starting point
@@ -76,7 +76,7 @@ class PdfPainterMM {
      *  \param lEndX x coordinate of the ending point
      *  \param lEndY y coordinate of the ending point
      */
-    inline void DrawLine( long lStartX, long lStartY, long lEndX, long lEndY );
+    inline void DrawLineMM( long lStartX, long lStartY, long lEndX, long lEndY );
 
     /** Draw a rectangle with the current stroking settings
      *  \param lX x coordinate of the rectangle
@@ -84,7 +84,7 @@ class PdfPainterMM {
      *  \param lWidth width of the rectangle
      *  \param lHeight absolute height of the rectangle
      */
-    inline void DrawRect( long lX, long lY, long lWidth, long lHeight );
+    inline void DrawRectMM( long lX, long lY, long lWidth, long lHeight );
 
     /** Fill a rectangle with the current fill settings
      *  \param lX x coordinate of the rectangle
@@ -92,7 +92,7 @@ class PdfPainterMM {
      *  \param lWidth width of the rectangle 
      *  \param lHeight absolute height of the rectangle
      */
-    inline void FillRect( long lX, long lY, long lWidth, long lHeight );
+    inline void FillRectMM( long lX, long lY, long lWidth, long lHeight );
 
     /** Draw an ellipse with the current stroking settings
      *  \param lX x coordinate of the ellipse (left coordinate)
@@ -100,7 +100,7 @@ class PdfPainterMM {
      *  \param lWidth width of the ellipse
      *  \param lHeight absolute height of the ellipse
      */
-    inline void DrawEllipse( long lX, long lY, long lWidth, long lHeight ); 
+    inline void DrawEllipseMM( long lX, long lY, long lWidth, long lHeight ); 
 
     /** Fill an ellipse with the current fill settings
      *  \param lX x coordinate of the ellipse (left coordinate)
@@ -108,7 +108,7 @@ class PdfPainterMM {
      *  \param lWidth width of the ellipse 
      *  \param lHeight absolute height of the ellipse
      */
-    inline void FillEllipse( long lX, long lY, long lWidth, long lHeight ); 
+    inline void FillEllipseMM( long lX, long lY, long lWidth, long lHeight ); 
 
     /** Draw a text string on a page using a given font object.
      *  You have to call SetFont before calling this function.
@@ -118,7 +118,7 @@ class PdfPainterMM {
      *
      *  \see PdfPainter::SetFont()
      */
-    inline void DrawText( long lX, long lY, const PdfString & sText);
+    inline void DrawTextMM( long lX, long lY, const PdfString & sText);
 
     /** Draw a text string on a page using a given font object.
      *  You have to call SetFont before calling this function.
@@ -129,7 +129,7 @@ class PdfPainterMM {
      *
      *  \see PdfPainter::SetFont()
      */
-    inline void DrawText( long lX, long lY, const PdfString & sText, long lLen );
+    inline void DrawTextMM( long lX, long lY, const PdfString & sText, long lLen );
 
     /** Draw an image on the current page.
      *  \param lX the x coordinate (bottom left position of the image)
@@ -138,7 +138,7 @@ class PdfPainterMM {
      *  \param dScaleX option scaling factor in x direction
      *  \param dScaleY option scaling factor in y direction
      */
-    inline void DrawImage( long lX, long lY, PdfImage* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
+    inline void DrawImageMM( long lX, long lY, PdfImage* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
 
     /** Draw an XObject on the current page.
      *  \param lX the x coordinate (bottom left position of the XObject)
@@ -147,7 +147,7 @@ class PdfPainterMM {
      *  \param dScaleX option scaling factor in x direction
      *  \param dScaleY option scaling factor in y direction
      */
-    inline void DrawXObject( long lX, long lY, PdfXObject* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
+    inline void DrawXObjectMM( long lX, long lY, PdfXObject* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
 
     /** Append a line segment to the current path. Matches the PDF 'l' operator.
      *  This function is useful to construct an own path
@@ -155,7 +155,7 @@ class PdfPainterMM {
      *  \param lX x position
      *  \param lY y position
      */
-    inline void LineTo( long lX, long lY );
+    inline void LineToMM( long lX, long lY );
 
     /** Begin a new path. Matches the PDF 'm' operator. 
      *  This function is useful to construct an own path
@@ -163,27 +163,23 @@ class PdfPainterMM {
      *  \param lX x position
      *  \param lY y position
      */
-    inline void MoveTo( long lX, long lY );
-
-private:
-
-	PdfPainter	mPainter;
+    inline void MoveToMM( long lX, long lY );
 };
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfPainterMM::SetStrokeWidth( long lWidth )
+inline void PdfPainterMM::SetStrokeWidthMM( long lWidth )
 {
-    mPainter.SetStrokeWidth( (double)lWidth * CONVERSION_CONSTANT );
+    this->SetStrokeWidth( (double)lWidth * CONVERSION_CONSTANT );
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfPainterMM::DrawLine( long lStartX, long lStartY, long lEndX, long lEndY )
+inline void PdfPainterMM::DrawLineMM( long lStartX, long lStartY, long lEndX, long lEndY )
 {
-    mPainter.DrawLine( (double)lStartX * CONVERSION_CONSTANT,
+    this->DrawLine( (double)lStartX * CONVERSION_CONSTANT,
                        (double)lStartY * CONVERSION_CONSTANT,
                        (double)lEndX   * CONVERSION_CONSTANT,
                        (double)lEndY   * CONVERSION_CONSTANT );
@@ -192,9 +188,9 @@ inline void PdfPainterMM::DrawLine( long lStartX, long lStartY, long lEndX, long
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfPainterMM::DrawRect( long lX, long lY, long lWidth, long lHeight )
+inline void PdfPainterMM::DrawRectMM( long lX, long lY, long lWidth, long lHeight )
 {
-    mPainter.DrawRect( (double)lX      * CONVERSION_CONSTANT,
+    this->DrawRect( (double)lX      * CONVERSION_CONSTANT,
                        (double)lY      * CONVERSION_CONSTANT,
                        (double)lWidth  * CONVERSION_CONSTANT,
                        (double)lHeight * CONVERSION_CONSTANT );
@@ -203,9 +199,9 @@ inline void PdfPainterMM::DrawRect( long lX, long lY, long lWidth, long lHeight 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfPainterMM::FillRect( long lX, long lY, long lWidth, long lHeight )
+inline void PdfPainterMM::FillRectMM( long lX, long lY, long lWidth, long lHeight )
 {
-    mPainter.FillRect( (double)lX      * CONVERSION_CONSTANT,
+    this->FillRect( (double)lX      * CONVERSION_CONSTANT,
                        (double)lY      * CONVERSION_CONSTANT,
                        (double)lWidth  * CONVERSION_CONSTANT,
                        (double)lHeight * CONVERSION_CONSTANT );
@@ -214,9 +210,9 @@ inline void PdfPainterMM::FillRect( long lX, long lY, long lWidth, long lHeight 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfPainterMM::DrawEllipse( long lX, long lY, long lWidth, long lHeight )
+inline void PdfPainterMM::DrawEllipseMM( long lX, long lY, long lWidth, long lHeight )
 {
-    mPainter.DrawEllipse( (double)lX      * CONVERSION_CONSTANT,
+    this->DrawEllipse( (double)lX      * CONVERSION_CONSTANT,
                           (double)lY      * CONVERSION_CONSTANT,
                           (double)lWidth  * CONVERSION_CONSTANT,
                           (double)lHeight * CONVERSION_CONSTANT );
@@ -225,9 +221,9 @@ inline void PdfPainterMM::DrawEllipse( long lX, long lY, long lWidth, long lHeig
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfPainterMM::FillEllipse( long lX, long lY, long lWidth, long lHeight )
+inline void PdfPainterMM::FillEllipseMM( long lX, long lY, long lWidth, long lHeight )
 {
-    mPainter.FillEllipse( (double)lX      * CONVERSION_CONSTANT,
+    this->FillEllipse( (double)lX      * CONVERSION_CONSTANT,
                           (double)lY      * CONVERSION_CONSTANT,
                           (double)lWidth  * CONVERSION_CONSTANT,
                           (double)lHeight * CONVERSION_CONSTANT );
@@ -236,9 +232,9 @@ inline void PdfPainterMM::FillEllipse( long lX, long lY, long lWidth, long lHeig
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfPainterMM::DrawText( long lX, long lY, const PdfString & sText)
+inline void PdfPainterMM::DrawTextMM( long lX, long lY, const PdfString & sText)
 {
-    mPainter.DrawText( (double)lX * CONVERSION_CONSTANT,
+    this->DrawText( (double)lX * CONVERSION_CONSTANT,
                        (double)lY * CONVERSION_CONSTANT,
                        sText );
 }
@@ -246,9 +242,9 @@ inline void PdfPainterMM::DrawText( long lX, long lY, const PdfString & sText)
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfPainterMM::DrawText( long lX, long lY, const PdfString & sText, long lLen )
+inline void PdfPainterMM::DrawTextMM( long lX, long lY, const PdfString & sText, long lLen )
 {
-   mPainter.DrawText( (double)lX * CONVERSION_CONSTANT,
+   this->DrawText( (double)lX * CONVERSION_CONSTANT,
                       (double)lY * CONVERSION_CONSTANT,
                       sText, lLen );
 }
@@ -256,9 +252,9 @@ inline void PdfPainterMM::DrawText( long lX, long lY, const PdfString & sText, l
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfPainterMM::DrawImage( long lX, long lY, PdfImage* pObject, double dScaleX, double dScaleY )
+inline void PdfPainterMM::DrawImageMM( long lX, long lY, PdfImage* pObject, double dScaleX, double dScaleY )
 {
-   mPainter.DrawImage( (double)lX * CONVERSION_CONSTANT,
+   this->DrawImage( (double)lX * CONVERSION_CONSTANT,
                        (double)lY * CONVERSION_CONSTANT,
                        pObject, dScaleX, dScaleY );
 }
@@ -266,9 +262,9 @@ inline void PdfPainterMM::DrawImage( long lX, long lY, PdfImage* pObject, double
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfPainterMM::DrawXObject( long lX, long lY, PdfXObject* pObject, double dScaleX, double dScaleY )
+inline void PdfPainterMM::DrawXObjectMM( long lX, long lY, PdfXObject* pObject, double dScaleX, double dScaleY )
 {
-   mPainter.DrawXObject( (double)lX * CONVERSION_CONSTANT,
+   this->DrawXObject( (double)lX * CONVERSION_CONSTANT,
                          (double)lY * CONVERSION_CONSTANT,
                          pObject, dScaleX, dScaleY );
 }
@@ -276,18 +272,18 @@ inline void PdfPainterMM::DrawXObject( long lX, long lY, PdfXObject* pObject, do
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfPainterMM::LineTo( long lX, long lY )
+inline void PdfPainterMM::LineToMM( long lX, long lY )
 {
-    mPainter.LineTo( (double)lX * CONVERSION_CONSTANT,
+    this->LineTo( (double)lX * CONVERSION_CONSTANT,
                      (double)lY * CONVERSION_CONSTANT );
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfPainterMM::MoveTo( long lX, long lY )
+inline void PdfPainterMM::MoveToMM( long lX, long lY )
 {
-    mPainter.MoveTo( (double)lX * CONVERSION_CONSTANT,
+    this->MoveTo( (double)lX * CONVERSION_CONSTANT,
                      (double)lY * CONVERSION_CONSTANT );
 }
 
