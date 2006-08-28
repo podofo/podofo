@@ -257,26 +257,11 @@ void PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
         ++it;
     }
 
-    // write the trailer dictionary, see Reference manual: p. 73
-    pDevice->Print( "trailer\n<<\n/Size %u\n", nSize );
+    m_pTrailer->GetDictionary().AddKey( PdfName::KeySize, (long)nSize );
 
-    this->WriteTrailerKey( pDevice, m_pTrailer, "Root" );
-    this->WriteTrailerKey( pDevice, m_pTrailer, "Encrypt" );
-    this->WriteTrailerKey( pDevice, m_pTrailer, "Info" );
-    this->WriteTrailerKey( pDevice, m_pTrailer, "ID" );
-
-    pDevice->Print( ">>\nstartxref\n%li\n%%%%EOF\n", lXRef );
-}
-
-void PdfWriter::WriteTrailerKey( PdfOutputDevice* pDevice, const PdfObject* pTrailer, const PdfName & key ) 
-{
-    if( pTrailer->GetDictionary().HasKey( key ) ) 
-    {
-        key.Write( pDevice );
-        pDevice->Print( " " );
-        pTrailer->GetDictionary().GetKey( key )->Write( pDevice );
-        pDevice->Print( "\n" );
-    }
+    pDevice->Print("trailer\n");
+    m_pTrailer->WriteObject( pDevice );
+    pDevice->Print( "startxref\n%li\n%%%%EOF\n", lXRef );
 }
 
 void PdfWriter::GetByteOffset( PdfObject* pObject, unsigned long* pulOffset )
@@ -367,19 +352,19 @@ PdfObject* PdfWriter::CreateLinearizationDictionary()
 
 void PdfWriter::WriteXRefStream( PdfOutputDevice* pDevice )
 {
-    long              lXRef;
-    unsigned int      nSize     = 0;
-    TCIVecXRefTable   it;
-    TCIVecOffsets     itOffsets;
-    size_t            bufferLen = 2 + sizeof( STREAM_OFFSET_TYPE );
-    char              buffer[bufferLen];
-    bool              bLittle   = podofo_is_little_endian();
+    long                lXRef;
+    unsigned int        nSize     = 0;
+    TCIVecXRefTable     it;
+    TCIVecOffsets       itOffsets;
+    size_t              bufferLen = 2 + sizeof( STREAM_OFFSET_TYPE );
+    char                buffer[bufferLen];
+    bool                bLittle   = podofo_is_little_endian();
 
-    STREAM_OFFSET_TYPE* pValue  = (STREAM_OFFSET_TYPE*)(buffer+1);
+    STREAM_OFFSET_TYPE* pValue    = (STREAM_OFFSET_TYPE*)(buffer+1);
 
-    PdfObject         object( m_vecObjects->m_nObjectCount + 1, 0, "XRef" );
-    PdfArray          indeces;
-    PdfArray          w;
+    PdfObject           object( m_vecObjects->m_nObjectCount, 0, "XRef" );
+    PdfArray            indeces;
+    PdfArray            w;
 
     w.push_back( (long)1 );
     w.push_back( (long)sizeof(STREAM_OFFSET_TYPE) );
@@ -407,7 +392,7 @@ void PdfWriter::WriteXRefStream( PdfOutputDevice* pDevice )
                 buffer[bufferLen] = (char)1;
             }
 
-            *pValue           = (STREAM_OFFSET_TYPE)(*itOffsets).lOffset;
+            *pValue = (STREAM_OFFSET_TYPE)(*itOffsets).lOffset;
                 
             if( bLittle )
                 *pValue = htonl( *pValue );
@@ -419,7 +404,7 @@ void PdfWriter::WriteXRefStream( PdfOutputDevice* pDevice )
         ++it;
     }
 
-    object.GetDictionary().AddKey( "Size", (long)nSize );
+    object.GetDictionary().AddKey( PdfName::KeySize, (long)nSize );
     object.GetDictionary().AddKey( "Index", indeces );
     object.GetDictionary().AddKey( "W", w );
 
@@ -436,7 +421,7 @@ void PdfWriter::WriteXRefStream( PdfOutputDevice* pDevice )
 
     lXRef = pDevice->Length();
     object.WriteObject( pDevice );
-    pDevice->Print( ">>\nstartxref\n%li\n%%%%EOF\n", lXRef );
+    pDevice->Print( "startxref\n%li\n%%%%EOF\n", lXRef );
 }
 
 };
