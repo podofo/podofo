@@ -125,8 +125,6 @@ PdfObject::~PdfObject()
 
 void PdfObject::Init( bool bLoadOnDemandDone )
 {
-    m_bEmptyEntry             = false;
-
     m_pStream                 = NULL;
 
     m_bLoadOnDemandDone       = bLoadOnDemandDone;
@@ -136,10 +134,6 @@ void PdfObject::Init( bool bLoadOnDemandDone )
 void PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
 {
     bool          bIndirect = ( (long)m_reference.ObjectNumber() != -1  && (long)m_reference.GenerationNumber() != -1 );
-
-    // do not write empty objects to disc
-    if( m_bEmptyEntry )
-        return;
 
     DelayedStreamLoad();
 
@@ -233,7 +227,6 @@ const PdfObject & PdfObject::operator=( const PdfObject & rhs )
     }
 
     m_reference     = rhs.m_reference;
-    m_bEmptyEntry   = rhs.m_bEmptyEntry;
 
     PdfVariant::operator=( rhs );
 

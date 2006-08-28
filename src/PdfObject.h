@@ -289,7 +289,6 @@ class PdfObject : public PdfVariant {
 
  protected:
     PdfReference   m_reference;
-    bool           m_bEmptyEntry;
     
     bool           m_bLoadOnDemandDone;
     bool           m_bLoadStreamOnDemandDone;
@@ -298,22 +297,6 @@ class PdfObject : public PdfVariant {
     PdfVecObjects* m_pParent;
 };
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-/* void PdfObject::SetEmptyEntry( bool empty ) */
-/* { */
-/*     m_bEmptyEntry = empty; */
-/* } */
-
-/* // ----------------------------------------------------- */
-/* //  */
-/* // ----------------------------------------------------- */
-/* bool PdfObject::IsEmptyEntry() const */
-/* { */
-/*     return m_bEmptyEntry; */
-/* } */
- 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
