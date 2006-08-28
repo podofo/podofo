@@ -34,10 +34,6 @@ typedef std::map<int,PdfObject*>    TMapObjects;
 typedef TMapObjects::iterator       TIMapObjects;
 typedef TMapObjects::const_iterator TCIMapObjects;
 
-typedef std::map<int,TMapObjects>              TMapObjectStreamCache;
-typedef TMapObjectStreamCache::iterator        TIMapObjectStreamCache;
-typedef TMapObjectStreamCache::const_iterator  TCIMapObjectStreamCache;
-
 /**
  * PdfParser reads a PDF file into memory. 
  * The file can be modified in memory and written back using
@@ -181,6 +177,10 @@ class PdfParser : public PdfParserBase {
     /** Read the object with index nIndex from the object stream nObjNo
      *  and push it on the objects vector m_vecOffsets.
      *
+     *  All objects are read from this stream and the stream object
+     *  is free'd from memory. Further calls who try to read from the
+     *  same stream simply do nothing.
+     *
      *  \param nObjNo object number of the stream object
      *  \param nIndex index of the object which should be parsed
      *
@@ -208,23 +208,23 @@ class PdfParser : public PdfParserBase {
     void         Init();
 
  private:
-    EPdfVersion  m_ePdfVersion;
+    EPdfVersion   m_ePdfVersion;
 
-    bool         m_bLoadOnDemand;
+    bool          m_bLoadOnDemand;
 
-    long         m_nXRefOffset;
-    long         m_nFirstObject;
-    long         m_nNumObjects;
-    long         m_nXRefLinearizedOffset;
-    size_t       m_nFileSize;
+    long          m_nXRefOffset;
+    long          m_nFirstObject;
+    long          m_nNumObjects;
+    long          m_nXRefLinearizedOffset;
+    size_t        m_nFileSize;
 
-    TXRefEntry*  m_pOffsets;
-    TVecObjects* m_vecObjects;
+    TXRefEntry*   m_pOffsets;
+    TVecObjects*  m_vecObjects;
 
-    PdfObject*   m_pTrailer;
-    PdfObject*   m_pLinearization;
+    PdfObject*    m_pTrailer;
+    PdfObject*    m_pLinearization;
 
-    TMapObjectStreamCache m_mapStreamCache;
+    std::set<int> m_setObjectStreams;
 };
 
 bool PdfParser::LoadOnDemand() const

@@ -62,6 +62,14 @@ const PdfReference & PdfReference::operator=( const PdfReference & rhs )
     return *this;
 }
 
+bool PdfReference::operator<( const PdfReference & rhs ) const
+{
+    if( m_nObjectNo == rhs.m_nObjectNo )
+        return m_nGenerationNo < rhs.m_nGenerationNo;
+    else
+        return m_nObjectNo < rhs.m_nObjectNo;
+}
+
 bool PdfReference::operator==( const PdfReference & rhs ) const
 {
     return ( m_nObjectNo == rhs.m_nObjectNo && m_nGenerationNo == rhs.m_nGenerationNo);

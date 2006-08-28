@@ -31,6 +31,7 @@ class PdfDictionary;
 class PdfDocument;
 class PdfName;
 class PdfObject;
+class PdfPagesTree;
 class PdfParser;
 class PdfVecObjects;
 
@@ -98,6 +99,29 @@ class PdfWriter {
      */
     EPdfVersion GetPdfVersion() const { return m_eVersion; }
 
+    /** Enabled linearization for this document.
+     *  I.e. optimize it for web usage. Default is false.
+     *  \param bLinearize if true create a web optimized PDF file
+     */
+    inline void SetLinearized( bool bLinearize );
+
+    /**
+     *  \returns true if this PDF file is web optimized.
+     */
+    inline bool GetLinearized() const;
+
+    /** Create a XRef stream which is in some case
+     *  more compact but requires at least PDF 1.5
+     *  Default is false.
+     *  \param bStream if true a XRef stream object will be created
+     */
+    inline void SetUseXRefStream( bool bStream );
+
+    /** 
+     *  \returns wether a XRef stream is used or not
+     */
+    inline bool GetUseXRefStream() const;
+
     /** Get the file format version of the pdf
      *  \returns the file format version as string
      */
@@ -158,6 +182,13 @@ class PdfWriter {
      */       
     void WritePdfHeader( PdfOutputDevice* pDevice );
 
+    /** Create a linearization dictionary for the current
+     *  document and return a pointer to it after inserting
+     *  it into the vector of PdfObjects
+     *  \returns a pointe to the linearization dictionary
+     */
+    PdfObject* CreateLinearizationDictionary();
+
     /** Write pdf objects to file
      *  \param pDevice write to this output device
      *  \param vecObjects write all objects in this vector to the file
@@ -176,6 +207,11 @@ class PdfWriter {
      */
     void WritePdfTableOfContents( PdfOutputDevice* pDevice );
 
+    /** Writes the xref table as xref stream.
+     *  \param pDevice write to this output device
+     */
+    void WriteXRefStream( PdfOutputDevice* pDevice );
+
     /** Copies a key and value from a trailer PdfObject into a trailer dictionary that is immediately written
      *  to a PdfOutputDevice. The key is only copied if it exists in pTrailer
      * 
@@ -193,9 +229,47 @@ class PdfWriter {
 
     TVecXRefTable   m_vecXRef;
     PdfObject*      m_pTrailer;
+    PdfPagesTree*   m_pPagesTree;
 
     bool            m_bCompress;
+    bool            m_bLinearized;
+    bool            m_bXRefStream;
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfWriter::SetLinearized( bool bLinearize )
+{
+    m_bLinearized = true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfWriter::GetLinearized() const
+{
+    return m_bLinearized;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfWriter::SetUseXRefStream( bool bStream )
+{
+    if( bStream && this->GetPdfVersion() < ePdfVersion_1_5 )
+        this->SetPdfVersion( ePdfVersion_1_5 );
+    m_bXRefStream = bStream;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfWriter::GetUseXRefStream() const
+{
+    return m_bXRefStream;
+}
+
 
 };
 

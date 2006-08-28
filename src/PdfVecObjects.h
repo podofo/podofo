@@ -24,10 +24,18 @@
 #include "PdfDefines.h"
 #include "PdfReference.h"
 
+#include <list>
+
 namespace PoDoFo {
 
 class PdfObject;
 class PdfVariant;
+
+// slist would be better, but it is not support by default gcc :-(
+
+typedef std::list<PdfReference>           TPdfReferenceList;
+typedef TPdfReferenceList::iterator       TIPdfReferenceList;
+typedef TPdfReferenceList::const_iterator TCIPdfReferenceList;
 
 /** A STL vector of PdfObjects. I.e. a list of PdfObject classes.
  *  The PdfParser will read the PdfFile into memory and create 
@@ -41,6 +49,8 @@ class PdfVariant;
  *  in a PdfVecObject. 
  */
 class PdfVecObjects : public std::vector<PdfObject*> {
+    friend class PdfWriter;
+
  public:
     /** Default constuctor 
      */
@@ -93,7 +103,7 @@ class PdfVecObjects : public std::vector<PdfObject*> {
     /** Remove the object with the given object and generation number from the list
      *  of objects.
      *  The object is returned if it was found. Otherwise NULL is returned.
-     *  The caller has to delte the object by hisself.
+     *  The caller has to delete the object by hisself.
      *
      *  \param ref the object to be found
      *  \returns The removed object.
@@ -116,6 +126,15 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      */
     PdfObject* CreateObject( const PdfVariant & rVariant );
 
+    /** Mark a reference as unused so that it can be reused for new objects.
+     *  \param rReference the reference to reuse
+     */
+    void AddFreeObject( const PdfReference & rReference );
+
+    /** \returns a list of free references in this vector
+     */
+    inline const TPdfReferenceList & GetFreeObjects() const;
+
     /** Insert a object into this vector.
      *  Overwritten from std::vector so that 
      *  m_bObjectCount can be increased for each object.
@@ -124,9 +143,25 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      */
     void push_back( PdfObject* pObj );
 
+    /** This function is for internal usage only.
+     *  The PdfVecObjects does not become owner of the 
+     *  object and does not increase the m_nObjectCount
+     *
+     *  \param pObj pointer to the object you want to insert
+     */
+    void push_back_and_do_not_own( PdfObject* pObj );
+
  private:
-    bool     m_bAutoDelete;
-    size_t   m_nObjectCount;
+    /** 
+     * \returns the next free object reference
+     */
+    PdfReference GetNextFreeObject();
+
+ private:
+    bool                m_bAutoDelete;
+    size_t              m_nObjectCount;
+
+     TPdfReferenceList  m_lstFreeObjects;
 };
 
 // -----------------------------------------------------
@@ -143,6 +178,14 @@ void PdfVecObjects::SetAutoDelete( bool bAutoDelete )
 bool PdfVecObjects::AutoDelete() const
 {
     return m_bAutoDelete;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline const TPdfReferenceList & PdfVecObjects::GetFreeObjects() const
+{
+    return m_lstFreeObjects;
 }
 
 typedef PdfVecObjects                TVecObjects;

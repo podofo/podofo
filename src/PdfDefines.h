@@ -34,6 +34,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <set>
 
 /** \def _DEBUG
  *  Debug define. Enable it, if you need

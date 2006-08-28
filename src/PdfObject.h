@@ -149,13 +149,13 @@ class PdfObject : public PdfVariant {
      *  entry for this object in the XRef table.
      *  \param empty  true or false
      */
-    inline void SetEmptyEntry( bool empty );
+    //inline void SetEmptyEntry( bool empty );
 
     /** Returns if this is object will be an empty
      *  xref entry when it is written to disc by the PDF writer
      *  \returns true or false
      */
-    inline bool IsEmptyEntry() const;
+    //inline bool IsEmptyEntry() const;
 
     /** Get the keys value out of the dictionary. If the key is a reference, 
      *  the reference is resolved and the object pointed to by the reference is returned.
@@ -301,19 +301,19 @@ class PdfObject : public PdfVariant {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfObject::SetEmptyEntry( bool empty )
-{
-    m_bEmptyEntry = empty;
-}
+/* void PdfObject::SetEmptyEntry( bool empty ) */
+/* { */
+/*     m_bEmptyEntry = empty; */
+/* } */
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfObject::IsEmptyEntry() const
-{
-    return m_bEmptyEntry;
-}
-
+/* // ----------------------------------------------------- */
+/* //  */
+/* // ----------------------------------------------------- */
+/* bool PdfObject::IsEmptyEntry() const */
+/* { */
+/*     return m_bEmptyEntry; */
+/* } */
+ 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
@@ -359,10 +359,7 @@ inline PdfVecObjects* PdfObject::GetParent() const
 // -----------------------------------------------------
 bool PdfObject::operator<( const PdfObject & rhs )
 {
-    if( ObjectNumber() == rhs.ObjectNumber() )
-        return GenerationNumber() < rhs.GenerationNumber();
-    else
-        return ObjectNumber() < rhs.ObjectNumber();
+    return m_reference < rhs.m_reference;
 }
 
 // -----------------------------------------------------

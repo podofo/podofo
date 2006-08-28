@@ -85,10 +85,6 @@ PdfObject* PdfVecObjects::GetObject( const PdfReference & ref ) const
 {
     TCIVecObjects it;
 
-#ifdef _DEBUG
-	size_t	vs = this->size();
-#endif
-
     it = std::find_if( this->begin(), this->end(), ObjectsComperator( ref ) );
     
     if( it != this->end() )
@@ -108,15 +104,30 @@ PdfObject* PdfVecObjects::RemoveObject( const PdfReference & ref )
     {
         pObj = *it;
         this->erase( it );
+        this->AddFreeObject( pObj->Reference() );
         return pObj;
     }
 
     return NULL;
 }
 
+PdfReference PdfVecObjects::GetNextFreeObject()
+{
+    PdfReference ref( m_nObjectCount, 0 );
+
+    if( m_lstFreeObjects.size() )
+    {
+        ref = m_lstFreeObjects.front();
+        m_lstFreeObjects.pop_front();
+    }
+
+    return ref;
+}
+
 PdfObject* PdfVecObjects::CreateObject( const char* pszType )
 {
-    PdfObject* pObj = new PdfObject( m_nObjectCount, 0, pszType );
+    PdfReference ref = this->GetNextFreeObject();
+    PdfObject*  pObj = new PdfObject( ref.ObjectNumber(), ref.GenerationNumber(), pszType );
     pObj->SetParent( this );
 
     this->push_back( pObj );
@@ -126,18 +137,32 @@ PdfObject* PdfVecObjects::CreateObject( const char* pszType )
 
 PdfObject* PdfVecObjects::CreateObject( const PdfVariant & rVariant )
 {
-    PdfObject* pObj = new PdfObject( m_nObjectCount, 0, rVariant );
+    PdfReference ref = this->GetNextFreeObject();
+    PdfObject*  pObj = new PdfObject( ref.ObjectNumber(), ref.GenerationNumber(), rVariant );
+    pObj->SetParent( this );    
 
     this->push_back( pObj );
 
     return pObj;
 }
 
+void PdfVecObjects::AddFreeObject( const PdfReference & rReference )
+{
+    m_lstFreeObjects.push_front( rReference );
+    m_lstFreeObjects.sort();
+}
+
 void PdfVecObjects::push_back( PdfObject* pObj )
 {
-    ++m_nObjectCount;
+    if( pObj->ObjectNumber() >= m_nObjectCount )
+        ++m_nObjectCount;
 
     pObj->SetParent( this );
+    std::vector<PdfObject*>::push_back( pObj );
+}
+
+void PdfVecObjects::push_back_and_do_not_own( PdfObject* pObj )
+{
     std::vector<PdfObject*>::push_back( pObj );
 }
 

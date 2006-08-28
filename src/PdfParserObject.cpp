@@ -411,7 +411,7 @@ void PdfParserObject::ParseStream()
         }
 
         // we do not use indirect references for the length of the document
-        pObj->SetEmptyEntry( true );
+        delete m_pParent->RemoveObject( pObj->Reference() );
     }
     else
     {

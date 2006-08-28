@@ -88,6 +88,12 @@ class PdfReference : public PdfDataType {
      */
     bool operator==( const PdfReference & rhs ) const;
 
+    /** 
+     * Compare to PdfReference objects.
+     * \returns true if this reference has a smaller object and generation number
+     */
+    bool operator<( const PdfReference & rhs ) const;
+
     /** Set the object number of this object
      *  \param o the new object number
      */

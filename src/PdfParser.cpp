@@ -30,6 +30,9 @@
 #include <cstring>
 #include <cstdlib>
 
+#include <PdfOutputDevice.h>
+#include <iostream>
+
 #define PDF_MAGIC_LEN       8
 #define PDF_XREF_ENTRY_SIZE 20
 
@@ -112,7 +115,7 @@ void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
 
 void PdfParser::Clear()
 {
-    m_mapStreamCache.clear();
+    m_setObjectStreams.clear();
 
     if( m_pOffsets )
         free( m_pOffsets );
@@ -446,7 +449,16 @@ void PdfParser::ReadTrailer()
         // in the crossreference stream object
         // and a trailer dictionary is not required
         if( !pszStart )
+        {
+            if( fseek( m_file.Handle(), m_nXRefOffset, SEEK_SET ) != 0 )
+            {
+                RAISE_ERROR( ePdfError_NoXRef );
+            }
+            
+            m_pTrailer = new PdfParserObject( m_vecObjects, m_file, m_buffer );
+            static_cast<PdfParserObject*>(m_pTrailer)->ParseFile( false );
             return;
+        }
     }
 
     if( fseek( m_file.Handle(), (pszStart - m_buffer.Buffer() + TRAILER_LEN), SEEK_CUR ) != 0 )
@@ -782,7 +794,7 @@ void PdfParser::ReadXRefStreamEntry( char* pBuffer, long lLen, long lW[W_ARRAY_S
     {
         case 0:
             // a free object
-            m_pOffsets[nObjNo].lOffset     = 0;
+            m_pOffsets[nObjNo].lOffset     = nData[1];
             m_pOffsets[nObjNo].lGeneration = nData[2];
             m_pOffsets[nObjNo].cUsed       = 'f';
             break;
@@ -808,6 +820,7 @@ void PdfParser::ReadXRefStreamEntry( char* pBuffer, long lLen, long lW[W_ARRAY_S
 void PdfParser::ReadObjects()
 {
     int              i          = 0;
+    int              nLast      = 0;
     PdfParserObject* pObject    = NULL;
     TCIVecObjects    itObjects;
 
@@ -821,34 +834,26 @@ void PdfParser::ReadObjects()
             pObject->SetLoadOnDemand( m_bLoadOnDemand );
             try {
                 pObject->ParseFile();
+                nLast = pObject->ObjectNumber();
                 
                 // final pdf should not contain a linerization dictionary as it contents are invalid 
                 // as we change some objects and the final xref table
-                if( m_pLinearization && pObject->ObjectNumber() == m_pLinearization->ObjectNumber() )
+                if( m_pLinearization && nLast == m_pLinearization->ObjectNumber() )
                 {
-                    pObject->SetEmptyEntry( true );                    
+                    m_vecObjects->AddFreeObject( pObject->Reference() );
+                    delete pObject;
                 }
+                else
+                    m_vecObjects->push_back( pObject );
             } catch( PdfError & e ) {
                 delete pObject;
                 e.AddToCallstack( __FILE__, __LINE__ );
                 throw e;
             }
-            
-            m_vecObjects->push_back( pObject );
         }
-        else
+        else if( m_pOffsets[i].bParsed && m_pOffsets[i].cUsed == 'f' && m_pOffsets[i].lOffset )
         {
-            /*
-            // TODO: should not be necessary anymore, remove to save some ram
-            
-            // add an empty object to the vector
-            // so that the XRef table we write out 
-            // stays compatible to the object number
-            // in the following objects.
-            pObj = new PdfObject( i, 0, NULL );
-            pObj->SetEmptyEntry( true );
-            m_vecObjects.push_back( pObj );
-            */
+            m_vecObjects->AddFreeObject( PdfReference( m_pOffsets[i].lOffset, 1 ) ); // TODO: do not hard code
         }
     }
 
@@ -859,8 +864,6 @@ void PdfParser::ReadObjects()
         if( m_pOffsets[i].bParsed && m_pOffsets[i].cUsed == 's' ) // we have an object stream
             ReadObjectFromStream( m_pOffsets[i].lGeneration, m_pOffsets[i].lOffset );
     }
-
-    m_mapStreamCache.clear();
 
     if( !m_bLoadOnDemand )
     {
@@ -883,9 +886,8 @@ void PdfParser::ReadObjects()
 
 void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
 {
-    PdfParserObject* pStream;
+    PdfParserObject* pStream = NULL;
     PdfParserObject* pObj;
-    PdfObject*       pTmp;
     char*            pBuffer;
     char*            pNumbers;
     long             lBufferLen;
@@ -895,59 +897,53 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
     long             lOff;
     int              i       = 0;
 
+    // check if we already have read all objects
+    // from this stream
+    if( m_setObjectStreams.find( nObjNo ) != m_setObjectStreams.end() )
+    {
+        return;
+    }
+    else
+        m_setObjectStreams.insert( nObjNo );
+
     // generation number of object streams is always 0
     pStream = dynamic_cast<PdfParserObject*>(m_vecObjects->GetObject( PdfReference( nObjNo, 0 ) ) );
     if( !pStream )
     {
         RAISE_ERROR( ePdfError_NoObject );
     }
-
+    
     lNum   = pStream->GetDictionary().GetKeyAsLong( "N", 0 );
     lFirst = pStream->GetDictionary().GetKeyAsLong( "First", 0 );
-
-    if( m_mapStreamCache.find( nObjNo ) == m_mapStreamCache.end() )
+    
+    // the objects stream might not yet be parsed, make sure
+    // that this is done now!
+    if( pStream->HasStreamToParse() && !pStream->HasStream() )
     {
-        // the objects stream might not yet be parsed, make sure
-        // that this is done now!
-        if( pStream->HasStreamToParse() && !pStream->HasStream() )
-        {
-            pStream->ParseStream();
-        }
-        
-        pStream->Stream()->GetFilteredCopy( &pBuffer, &lBufferLen );
-        
-        // the object stream is not needed anymore in the final PDF
-        pStream->SetEmptyEntry( true );
-
-        pNumbers = pBuffer;
-        while( i < lNum )
-        {
-            lObj = strtol( pNumbers, &pNumbers, 10 );
-            lOff = strtol( pNumbers, &pNumbers, 10 );
-        
-            pObj = new PdfParserObject( m_buffer );
-            pObj->ParseDictionaryKeys( (char*)(pBuffer+lFirst+lOff), lBufferLen-lFirst-lOff, NULL );
-
-            pObj->SetObjectNumber( lObj );
-
-            // TODO: remove cache
-            m_mapStreamCache[nObjNo][nIndex] = pObj;
-            m_vecObjects->push_back( pObj );
-            m_mapStreamCache[nObjNo][nIndex] = NULL;
-            ++i;
-        }
+        pStream->ParseStream();
     }
-    else
+    
+    pStream->Stream()->GetFilteredCopy( &pBuffer, &lBufferLen );
+    
+    // the object stream is not needed anymore in the final PDF
+    delete m_vecObjects->RemoveObject( pStream->Reference() );
+    
+    pNumbers = pBuffer;
+    while( i < lNum )
     {
-        pTmp = m_mapStreamCache[nObjNo][nIndex];
-        if( pTmp )
-        {
-            m_vecObjects->push_back( pTmp );
-            // set to NULL afterwards to allow deletion of spare objects
-            // in the desctructor
-            m_mapStreamCache[nObjNo][nIndex] = NULL;
-        }
+        lObj = strtol( pNumbers, &pNumbers, 10 );
+        lOff = strtol( pNumbers, &pNumbers, 10 );
+        
+        pObj = new PdfParserObject( m_buffer );
+        pObj->ParseDictionaryKeys( (char*)(pBuffer+lFirst+lOff), lBufferLen-lFirst-lOff, NULL );
+        
+        pObj->SetObjectNumber( lObj );
+        
+        m_vecObjects->push_back( pObj );
+        ++i;
     }
+    
+    free( pBuffer );
 }
 
 const char* PdfParser::GetPdfVersionString() const
