@@ -29,6 +29,10 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#ifndef CONVERSION_CONSTANT
+#define CONVERSION_CONSTANT 0.002834645669291339
+#endif // CONVERSION_CONSTANT
+
 namespace PoDoFo {
 
 class PdfArray;
@@ -66,36 +70,67 @@ class PdfFontMetrics {
      */
     void GetBoundingBox( PdfArray & array ) const;
 
+    /** Retrieve the width of a given text string in PDF units when
+     *  drawn with the current font
+     *  \param pszText a text string of which the width should be calculated
+     *  \param nLength if != 0 only the width of the nLength first characters is calculated
+     *  \returns the width in PDF units
+     */
+    double StringWidth( const char* pszText, unsigned int nLength = 0 ) const;
+
     /** Retrieve the width of a given text string in 1/1000th mm when
      *  drawn with the current font
      *  \param pszText a text string of which the width should be calculated
      *  \param nLength if != 0 only the width of the nLength first characters is calculated
      *  \returns the width in 1/1000th mm
      */
-    unsigned long StringWidth( const char* pszText, unsigned int nLength = 0 ) const;
+    unsigned long StringWidthMM( const char* pszText, unsigned int nLength = 0 ) const;
+
+    /** Retrieve the width of the given character in PDF units in the current font
+     *  \param c character
+     *  \returns the width in PDF units
+     */
+    double CharWidth( char c ) const;
 
     /** Retrieve the width of the given character in 1/1000th mm in the current font
      *  \param c character
      *  \returns the width in 1/1000th mm
      */
-    unsigned long CharWidth( char c ) const;
+    unsigned long CharWidthMM( char c ) const;
+
+    /** Retrieve the line spacing for this font
+     *  \returns the linespacing in PDF units
+     */
+    inline double LineSpacing() const;
 
     /** Retrieve the line spacing for this font
      *  \returns the linespacing in 1/1000th mm
      */
-    inline unsigned long LineSpacing() const;
+    inline unsigned long LineSpacingMM() const;
+
+    /** Get the width of the underline for the current 
+     *  font size in PDF units
+     *  \returns the thickness of the underline in PDF units
+     */
+    inline double UnderlineThickness() const;
 
     /** Get the width of the underline for the current 
      *  font size in 1/1000th mm
      *  \returns the thickness of the underline in 1/1000th mm
      */
-    inline unsigned long UnderlineThickness() const;
+    inline unsigned long UnderlineThicknessMM() const;
+
+    /** Return the position of the underline for the current font
+     *  size in PDF units
+     *  \returns the underline position in PDF units
+     */
+    inline double UnderlinePosition() const;
 
     /** Return the position of the underline for the current font
      *  size in 1/1000th mm
      *  \returns the underline position in 1/1000th mm
      */
-    inline long UnderlinePosition() const;
+    inline long UnderlinePositionMM() const;
 
     /** Get a pointer to the path of the font file.
      *  \returns a zero terminated string containing the filename of the font file
@@ -196,9 +231,9 @@ class PdfFontMetrics {
     double        m_dAscent;
     double        m_dDescent;
 
-    unsigned long m_lLineSpacing;
-    unsigned long m_lUnderlineThickness;
-    long          m_lUnderlinePosition;
+    double        m_dLineSpacing;
+    double        m_dUnderlineThickness;
+    double        m_dUnderlinePosition;
 
     std::string   m_sFilename;
     char*	  m_pFontData;
@@ -208,25 +243,49 @@ class PdfFontMetrics {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned long PdfFontMetrics::LineSpacing() const
+double PdfFontMetrics::LineSpacing() const
 {
-    return m_lLineSpacing;
+    return m_dLineSpacing;
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-long PdfFontMetrics::UnderlinePosition() const
+unsigned long PdfFontMetrics::LineSpacingMM() const
 {
-    return m_lUnderlinePosition;
+    return (unsigned long)(m_dLineSpacing / CONVERSION_CONSTANT);
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned long PdfFontMetrics::UnderlineThickness() const
+double PdfFontMetrics::UnderlinePosition() const
 {
-    return m_lUnderlineThickness;
+    return m_dUnderlinePosition;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+long PdfFontMetrics::UnderlinePositionMM() const
+{
+    return (long)(m_dUnderlinePosition /  CONVERSION_CONSTANT);
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+double PdfFontMetrics::UnderlineThickness() const
+{
+    return m_dUnderlineThickness;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+unsigned long PdfFontMetrics::UnderlineThicknessMM() const
+{
+    return (unsigned long)(m_dUnderlineThickness / CONVERSION_CONSTANT);
 }
 
 // -----------------------------------------------------

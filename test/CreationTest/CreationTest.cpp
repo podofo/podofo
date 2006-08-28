@@ -44,7 +44,8 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     PdfFont* pFont;
 
     const double dLineLength = 50000 * CONVERSION_CONSTANT; // 5cm
-    unsigned long h,w;
+    double h;
+    double w;
 
     pFont = pDocument->CreateFont( "Arial" );
     if( !pFont )

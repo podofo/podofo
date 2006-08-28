@@ -102,9 +102,9 @@ void PdfFontMetrics::InitFromFace()
 {
     m_nWeight             = 500;
     m_nItalicAngle        = 0;
-    m_lLineSpacing        = 0;
-    m_lUnderlineThickness = 0;
-    m_lUnderlinePosition  = 0;
+    m_dLineSpacing        = 0.0;
+    m_dUnderlineThickness = 0.0;
+    m_dUnderlinePosition  = 0.0;
     
     if ( m_face )
     {	// better be, but just in case...
@@ -298,7 +298,7 @@ std::string PdfFontMetrics::GetFilenameForFont( FcConfig* pConfig, const char* p
 }
 #endif
 
-unsigned long PdfFontMetrics::CharWidth( char c ) const
+double PdfFontMetrics::CharWidth( char c ) const
 {
     FT_Error       ftErr;
     unsigned long lWidth = 0;
@@ -309,35 +309,36 @@ unsigned long PdfFontMetrics::CharWidth( char c ) const
 
     lWidth = m_face->glyph->advance.x;
 
-    return (unsigned long)((double)lWidth/64.0);
+    return (double)lWidth/64.0;
 }
 
-unsigned long PdfFontMetrics::StringWidth( const char* pszText, unsigned int nLength ) const
+unsigned long PdfFontMetrics::CharWidthMM( char c ) const
 {
-    unsigned long lWidth = 0;
+    return (unsigned long)(this->CharWidth( c ) / CONVERSION_CONSTANT);
+}
+
+double PdfFontMetrics::StringWidth( const char* pszText, unsigned int nLength ) const
+{
+    double dWidth = 0.0;
 
     if( !pszText )
-        return lWidth;
+        return dWidth;
 
     if( !nLength )
         nLength = (unsigned int)strlen( pszText );
 
-#if 0
-    while( nLength-- && *pszText )
-    {
-        lWidth += CharWidth( *pszText );
-
-        ++pszText;
+    const char *localText = pszText;
+    for ( int i=0; i<nLength; i++ ) {
+        dWidth += CharWidth( *localText );
+        localText++;
     }
-#else
-	const char *localText = pszText;
-	for ( int i=0; i<nLength; i++ ) {
-		lWidth += CharWidth( *localText );
-		localText++;
-	}
-#endif
 
-    return lWidth;
+    return dWidth;
+}
+
+unsigned long PdfFontMetrics::StringWidthMM( const char* pszText, unsigned int nLength ) const
+{
+    return (unsigned long)(this->StringWidth( pszText, nLength ) / CONVERSION_CONSTANT);
 }
 
 void PdfFontMetrics::SetFontSize( float fSize )
@@ -347,10 +348,10 @@ void PdfFontMetrics::SetFontSize( float fSize )
     ftErr = FT_Set_Char_Size( m_face, (int)(fSize*64.0), 0, 72, 72 );
 
     // calculate the line spacing now, as it changes only with the font size
-    m_lLineSpacing        = (unsigned long)((double)(m_face->ascender + abs(m_face->descender)) * fSize / m_face->units_per_EM);
+    m_dLineSpacing        = ((double)(m_face->ascender + abs(m_face->descender)) * fSize / m_face->units_per_EM);
 
-    m_lUnderlineThickness = (unsigned long)((double)m_face->underline_thickness * fSize  / m_face->units_per_EM);
-    m_lUnderlinePosition  = (long)((double)m_face->underline_position * fSize  / m_face->units_per_EM);
+    m_dUnderlineThickness = ((double)m_face->underline_thickness * fSize / m_face->units_per_EM);
+    m_dUnderlinePosition  = ((double)m_face->underline_position * fSize  / m_face->units_per_EM);
 }
 
 };

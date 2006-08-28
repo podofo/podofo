@@ -36,11 +36,13 @@ class PdfStream;
 class PdfString;
 class PdfXObject;
 
+#ifndef CONVERSION_CONSTANT
 /** \def CONVERSION_CONSTANT
  *  Conversation constant to convert 1/1000th mm to 1/72 inch
  *  Internal use only.
  */
 #define CONVERSION_CONSTANT 0.002834645669291339
+#endif // CONVERSION_CONSTANT
 
 /**
  * This class provides an easy to use painter object which allows you to draw on a PDF page
@@ -182,9 +184,9 @@ inline void PdfPainterMM::SetStrokeWidth( long lWidth )
 inline void PdfPainterMM::DrawLine( long lStartX, long lStartY, long lEndX, long lEndY )
 {
     mPainter.DrawLine( (double)lStartX * CONVERSION_CONSTANT,
-                    (double)lStartY * CONVERSION_CONSTANT,
-                    (double)lEndX   * CONVERSION_CONSTANT,
-                    (double)lEndY   * CONVERSION_CONSTANT );
+                       (double)lStartY * CONVERSION_CONSTANT,
+                       (double)lEndX   * CONVERSION_CONSTANT,
+                       (double)lEndY   * CONVERSION_CONSTANT );
 }
 
 // -----------------------------------------------------
@@ -193,9 +195,9 @@ inline void PdfPainterMM::DrawLine( long lStartX, long lStartY, long lEndX, long
 inline void PdfPainterMM::DrawRect( long lX, long lY, long lWidth, long lHeight )
 {
     mPainter.DrawRect( (double)lX      * CONVERSION_CONSTANT,
-                    (double)lY      * CONVERSION_CONSTANT,
-                    (double)lWidth  * CONVERSION_CONSTANT,
-                    (double)lHeight * CONVERSION_CONSTANT );
+                       (double)lY      * CONVERSION_CONSTANT,
+                       (double)lWidth  * CONVERSION_CONSTANT,
+                       (double)lHeight * CONVERSION_CONSTANT );
 }
 
 // -----------------------------------------------------
@@ -204,9 +206,9 @@ inline void PdfPainterMM::DrawRect( long lX, long lY, long lWidth, long lHeight 
 inline void PdfPainterMM::FillRect( long lX, long lY, long lWidth, long lHeight )
 {
     mPainter.FillRect( (double)lX      * CONVERSION_CONSTANT,
-                    (double)lY      * CONVERSION_CONSTANT,
-                    (double)lWidth  * CONVERSION_CONSTANT,
-                    (double)lHeight * CONVERSION_CONSTANT );
+                       (double)lY      * CONVERSION_CONSTANT,
+                       (double)lWidth  * CONVERSION_CONSTANT,
+                       (double)lHeight * CONVERSION_CONSTANT );
 }
 
 // -----------------------------------------------------
@@ -215,9 +217,9 @@ inline void PdfPainterMM::FillRect( long lX, long lY, long lWidth, long lHeight 
 inline void PdfPainterMM::DrawEllipse( long lX, long lY, long lWidth, long lHeight )
 {
     mPainter.DrawEllipse( (double)lX      * CONVERSION_CONSTANT,
-                       (double)lY      * CONVERSION_CONSTANT,
-                       (double)lWidth  * CONVERSION_CONSTANT,
-                       (double)lHeight * CONVERSION_CONSTANT );
+                          (double)lY      * CONVERSION_CONSTANT,
+                          (double)lWidth  * CONVERSION_CONSTANT,
+                          (double)lHeight * CONVERSION_CONSTANT );
 }
 
 // -----------------------------------------------------
@@ -226,9 +228,9 @@ inline void PdfPainterMM::DrawEllipse( long lX, long lY, long lWidth, long lHeig
 inline void PdfPainterMM::FillEllipse( long lX, long lY, long lWidth, long lHeight )
 {
     mPainter.FillEllipse( (double)lX      * CONVERSION_CONSTANT,
-                       (double)lY      * CONVERSION_CONSTANT,
-                       (double)lWidth  * CONVERSION_CONSTANT,
-                       (double)lHeight * CONVERSION_CONSTANT );
+                          (double)lY      * CONVERSION_CONSTANT,
+                          (double)lWidth  * CONVERSION_CONSTANT,
+                          (double)lHeight * CONVERSION_CONSTANT );
 }
 
 // -----------------------------------------------------
@@ -237,8 +239,8 @@ inline void PdfPainterMM::FillEllipse( long lX, long lY, long lWidth, long lHeig
 inline void PdfPainterMM::DrawText( long lX, long lY, const PdfString & sText)
 {
     mPainter.DrawText( (double)lX * CONVERSION_CONSTANT,
-                    (double)lY * CONVERSION_CONSTANT,
-                    sText );
+                       (double)lY * CONVERSION_CONSTANT,
+                       sText );
 }
 
 // -----------------------------------------------------
@@ -247,8 +249,8 @@ inline void PdfPainterMM::DrawText( long lX, long lY, const PdfString & sText)
 inline void PdfPainterMM::DrawText( long lX, long lY, const PdfString & sText, long lLen )
 {
    mPainter.DrawText( (double)lX * CONVERSION_CONSTANT,
-                    (double)lY * CONVERSION_CONSTANT,
-                    sText, lLen );
+                      (double)lY * CONVERSION_CONSTANT,
+                      sText, lLen );
 }
 
 // -----------------------------------------------------
@@ -257,8 +259,8 @@ inline void PdfPainterMM::DrawText( long lX, long lY, const PdfString & sText, l
 inline void PdfPainterMM::DrawImage( long lX, long lY, PdfImage* pObject, double dScaleX, double dScaleY )
 {
    mPainter.DrawImage( (double)lX * CONVERSION_CONSTANT,
-                    (double)lY * CONVERSION_CONSTANT,
-                    pObject, dScaleX, dScaleY );
+                       (double)lY * CONVERSION_CONSTANT,
+                       pObject, dScaleX, dScaleY );
 }
 
 // -----------------------------------------------------
@@ -267,8 +269,8 @@ inline void PdfPainterMM::DrawImage( long lX, long lY, PdfImage* pObject, double
 inline void PdfPainterMM::DrawXObject( long lX, long lY, PdfXObject* pObject, double dScaleX, double dScaleY )
 {
    mPainter.DrawXObject( (double)lX * CONVERSION_CONSTANT,
-                      (double)lY * CONVERSION_CONSTANT,
-                      pObject, dScaleX, dScaleY );
+                         (double)lY * CONVERSION_CONSTANT,
+                         pObject, dScaleX, dScaleY );
 }
 
 // -----------------------------------------------------
@@ -277,7 +279,7 @@ inline void PdfPainterMM::DrawXObject( long lX, long lY, PdfXObject* pObject, do
 inline void PdfPainterMM::LineTo( long lX, long lY )
 {
     mPainter.LineTo( (double)lX * CONVERSION_CONSTANT,
-                  (double)lY * CONVERSION_CONSTANT );
+                     (double)lY * CONVERSION_CONSTANT );
 }
 
 // -----------------------------------------------------
@@ -286,7 +288,7 @@ inline void PdfPainterMM::LineTo( long lX, long lY )
 inline void PdfPainterMM::MoveTo( long lX, long lY )
 {
     mPainter.MoveTo( (double)lX * CONVERSION_CONSTANT,
-                  (double)lY * CONVERSION_CONSTANT );
+                     (double)lY * CONVERSION_CONSTANT );
 }
 
 
