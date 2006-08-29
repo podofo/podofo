@@ -10,6 +10,8 @@ Version 0.4
 	Added methods to set a document's FullScreen mode
 	Added methods to set all the various ViewerPreferences for a document
 	Added methods to set the document's PageLayout
+	Added Outline support
+	Added a PdfDestination class
 	
 	
 Version 0.3

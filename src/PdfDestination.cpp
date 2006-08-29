@@ -18,61 +18,61 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "PdfElement.h"
+#include "PdfDestination.h"
 
+#include "PdfAction.h"
 #include "PdfDictionary.h"
-#include "PdfObject.h"
-#include "PdfVecObjects.h"
+#include "PdfPage.h"
 
 namespace PoDoFo {
 
-PdfElement::PdfElement( const char* pszType, PdfVecObjects* pParent )
+PdfDestination::PdfDestination()
+    : m_bIsAction( false ),
+      m_bIsEmpty( true )
 {
-    m_pObject = pParent->CreateObject( pszType );
 }
 
-PdfElement::PdfElement( const char* pszType, PdfObject* pObject )
+PdfDestination::PdfDestination( const PdfPage* pPage )
+    : m_bIsAction( false ),
+      m_bIsEmpty( false )
 {
-    if( !pObject )         
+    m_array.push_back( pPage->Object()->Reference() );
+    m_array.push_back( PdfName( "Fit" ) );
+}
+
+PdfDestination::PdfDestination( const PdfAction* pAction )
+    : m_bIsAction( true ),
+      m_bIsEmpty( false )
+{
+    m_action = pAction->Object()->Reference();
+}
+
+PdfDestination::PdfDestination( const PdfDestination & rhs )
+{
+    this->operator=( rhs );
+}
+
+const PdfDestination & PdfDestination::operator=( const PdfDestination & rhs )
+{
+    m_bIsAction = rhs.m_bIsAction;
+    m_action    = rhs.m_action;
+    m_array     = rhs.m_array;
+
+    return *this;
+}
+
+void PdfDestination::AddToDictionary( PdfDictionary & dictionary ) const
+{
+    dictionary.RemoveKey( "Dest" );
+    dictionary.RemoveKey( "A" );
+
+    if( !m_bIsEmpty ) 
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    m_pObject = pObject;
-
-    if( !m_pObject->IsDictionary() ) 
-    {
-        RAISE_ERROR( ePdfError_InvalidDataType );
-    }
-
-    if( pszType && m_pObject->GetDictionary().GetKeyAsName( PdfName::KeyType ) != pszType ) 
-    {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        if( m_bIsAction ) 
+            dictionary.AddKey( "A", m_action );
+        else
+            dictionary.AddKey( "Dest", m_array );
     }
 }
-
-PdfElement::~PdfElement()
-{
-}
-
-const char* PdfElement::TypeNameForIndex( int i, const char** ppTypes, long lLen ) const
-{
-    return ( i >= lLen ? NULL : ppTypes[i] );
-}
-
-int PdfElement::TypeNameToIndex( const char* pszType, const char** ppTypes, long lLen ) const
-{
-    int i;
-
-    if( !pszType )
-        return --lLen;
-
-    for( i=0; i<lLen; i++ )
-        if( strcmp( pszType, ppTypes[i] ) == 0 )
-            return i;
-
-    return --lLen;
-}
-
 
 };

@@ -20,12 +20,15 @@
 
 #include "PdfAction.h"
 #include "PdfAnnotation.h"
+#include "PdfDestination.h"
 #include "PdfDocument.h"
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
 #include "PdfImage.h"
+#include "PdfOutlines.h"
 #include "PdfPage.h"
 #include "PdfPainter.h"
+#include "PdfPainterMM.h"
 #include "PdfRect.h"
 #include "PdfString.h"
 #include "PdfXObject.h"
@@ -317,12 +320,28 @@ void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->FillEllipse( dX, dY, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
 }
 
+void MMTest( PdfPainterMM* pPainter, PdfPage* pPage, PdfDocument* pDocument )
+{
+    long        lX     = 10000;
+    long        lY     = (long)(pPage->PageSize().Height()/CONVERSION_CONSTANT) - 40000;
+
+    pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
+    pPainter->DrawEllipseMM( lX, lY, 20000, 20000 );
+
+    lY -= 30000;
+
+    pPainter->SetColor( 1.0, 0.0, 0.0 );
+    pPainter->FillEllipseMM( lX, lY, 20000, 20000 );
+}
+
 int main( int argc, char* argv[] ) 
 {
-    PdfDocument writer;
-    PdfPage*    pPage;
-    PdfPainter  painter;
-
+    PdfDocument     writer;
+    PdfPage*        pPage;
+    PdfPainter      painter;
+    PdfPainterMM    painterMM;
+    PdfOutlines*    outlines;
+    PdfOutlineItem* pRoot;
     if( argc != 2 )
     {
         printf("Usage: CreationTest [output_filename]\n");
@@ -333,36 +352,50 @@ int main( int argc, char* argv[] )
     printf("It creates a new PdfFile from scratch.\n");
     printf("---\n");
 
+    outlines = writer.GetOutlines();
+    pRoot = outlines->CreateRoot("PoDoFo Test Document" );
+
     pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
     painter.SetPage( pPage );
+    pRoot->CreateChild( "Line Test", PdfDestination( pPage ) );
 
     printf("Drawing the first page with various lines.\n");
     TEST_SAFE_OP( LineTest( &painter, pPage, &writer ) );
 
     pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_Letter ) );
     painter.SetPage( pPage );
+    pRoot->Last()->CreateNext( "Rectangles Test", PdfDestination( pPage ) );
 
     printf("Drawing the second page with various rectangle and triangles.\n");
     TEST_SAFE_OP( RectTest( &painter, pPage, &writer ) );
 
     pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
     painter.SetPage( pPage );
+    pRoot->Last()->CreateNext( "Text Test", PdfDestination( pPage ) );
 
     printf("Drawing some text.\n");
     TEST_SAFE_OP( TextTest( &painter, pPage, &writer ) );
 
     pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
     painter.SetPage( pPage );
+    pRoot->Last()->CreateNext( "Image Test", PdfDestination( pPage ) );
 
     printf("Drawing some images.\n");
     TEST_SAFE_OP( ImageTest( &painter, pPage, &writer ) );
 
     pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
     painter.SetPage( pPage );
+    pRoot->Last()->CreateNext( "Circle Test", PdfDestination( pPage ) );
 
     printf("Drawing some circles and ellipsis.\n");
     TEST_SAFE_OP( EllipseTest( &painter, pPage, &writer ) );
 
+    printf("Drawing using PdfPainterMM.\n");
+    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+    painterMM.SetPage( pPage );
+    pRoot->Last()->CreateNext( "MM Test", PdfDestination( pPage ) );
+
+    TEST_SAFE_OP( MMTest( &painterMM, pPage, &writer ) );
 
     printf("Setting document informations.\n\n");
     // Setup the document information dictionary

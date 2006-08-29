@@ -33,6 +33,7 @@ namespace PoDoFo {
 
 class PdfDictionary;
 class PdfFont;
+class PdfOutlines;
 class PdfPage;
 class PdfPagesTree;
 class PdfRect;
@@ -143,9 +144,11 @@ class PdfDocument {
     PdfObject* GetMetadata() const { return GetNamedObjectFromCatalog( "Metadata" ); }
 
     /** Get access to the Outlines (Bookmarks) dictionary
-     *  \returns PdfObject the Outlines/Bookmarks dictionary
+     *  The returned outlines object is owned by the PdfDocument.
+     * 
+     *  \returns the Outlines/Bookmarks dictionary
      */
-    PdfObject* GetOutlines() const { return GetNamedObjectFromCatalog( "Outlines" ); }
+    PdfOutlines* GetOutlines();
 
     /** Get access to the AcroForm dictionary
      *  \returns PdfObject the AcroForm dictionary
@@ -379,6 +382,7 @@ class PdfDocument {
 
     PdfVecObjects   m_vecObjects;
 
+    PdfOutlines*    m_pOutlines;
     PdfPagesTree*   m_pPagesTree;
     PdfObject*      m_pTrailer;
     PdfObject*      m_pCatalog;

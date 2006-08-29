@@ -64,7 +64,8 @@ am_libpodofo_la_OBJECTS = PdfObject.lo PdfParser.lo PdfParserObject.lo \
 	PdfAction.lo PdfError.lo PdfString.lo PdfName.lo PdfFilter.lo \
 	PdfReference.lo PdfDocument.lo PdfArray.lo PdfDictionary.lo \
 	PdfDataType.lo PdfElement.lo PdfPagesTree.lo \
-	PdfRefCountedFile.lo PdfRefCountedBuffer.lo
+	PdfRefCountedFile.lo PdfRefCountedBuffer.lo PdfOutlines.lo \
+	PdfDestination.lo
 libpodofo_la_OBJECTS = $(am_libpodofo_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -202,7 +203,7 @@ include_HEADERS = podofo.h PdfDefines.h PdfObject.h PdfParser.h PdfParserObject.
 	PdfCanvas.h PdfOutputDevice.h PdfAction.h PdfError.h PdfString.h PdfName.h \
 	PdfFilter.h PdfReference.h PdfDocument.h PdfArray.h PdfDictionary.h \
 	PdfDataType.h PdfElement.h PdfPainterMM.h PdfPagesTree.h PdfRefCountedFile.h \
-	PdfRefCountedBuffer.h
+	PdfRefCountedBuffer.h PdfOutlines.h PdfDestination.h
 
 
 # PdfSimpleWriter.cpp # PdfSimpleWriter.h
@@ -213,7 +214,7 @@ libpodofo_la_SOURCES = PdfObject.cpp PdfParser.cpp PdfParserObject.cpp \
 	PdfCanvas.cpp PdfOutputDevice.cpp PdfAction.cpp PdfError.cpp PdfString.cpp PdfName.cpp \
 	PdfFilter.cpp PdfReference.cpp PdfDocument.cpp PdfArray.cpp PdfDictionary.cpp \
 	PdfDataType.cpp PdfElement.cpp PdfPagesTree.cpp PdfRefCountedFile.cpp \
-	PdfRefCountedBuffer.cpp
+	PdfRefCountedBuffer.cpp PdfOutlines.cpp PdfDestination.cpp
 
 all: all-am
 
@@ -290,6 +291,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfCanvas.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfDataType.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfDate.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfDestination.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfDictionary.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfDocument.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfElement.Plo@am__quote@
@@ -300,6 +302,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfImage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfName.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfObject.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfOutlines.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfOutputDevice.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfPage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfPagesTree.Plo@am__quote@

@@ -28,6 +28,7 @@
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
 #include "PdfObject.h"
+#include "PdfOutlines.h"
 #include "PdfPage.h"
 #include "PdfPagesTree.h"
 #include "PdfStream.h"
@@ -58,7 +59,7 @@ private:
 
 
 PdfDocument::PdfDocument()
-    : m_pPagesTree( NULL ), m_pTrailer( NULL ), m_ftLibrary( NULL )
+    : m_pOutlines( NULL ), m_pPagesTree( NULL ), m_pTrailer( NULL ), m_ftLibrary( NULL )
 {
     m_eVersion    = ePdfVersion_1_3;
     m_bLinearized = false;
@@ -74,7 +75,7 @@ PdfDocument::PdfDocument()
 }
 
 PdfDocument::PdfDocument( const char* pszFilename )
-    : m_pPagesTree( NULL ), m_pTrailer( NULL ), m_ftLibrary( NULL )
+    : m_pOutlines( NULL ), m_pPagesTree( NULL ), m_pTrailer( NULL ), m_ftLibrary( NULL )
 {
     this->Load( pszFilename );
 }
@@ -118,6 +119,12 @@ void PdfDocument::Clear()
     {
         delete m_pPagesTree;
         m_pPagesTree = NULL;
+    }
+
+    if( m_pOutlines ) 
+    {
+        delete m_pOutlines;
+        m_pOutlines = NULL;
     }
 
     if ( m_pTrailer ) 
@@ -604,5 +611,24 @@ void PdfDocument::SetPageLayout( EPdfPageLayout inLayout )
     }
 }
 
+PdfOutlines* PdfDocument::GetOutlines()
+{
+    PdfObject* pObj;
+
+    if( !m_pOutlines )
+    {
+        pObj = GetNamedObjectFromCatalog( "Outlines" );
+        if( !pObj ) 
+        {
+            m_pOutlines = new PdfOutlines( &m_vecObjects );
+            m_pCatalog->GetDictionary().AddKey( "Outlines", m_pOutlines->Object()->Reference() );
+        }
+        else
+            m_pOutlines = new PdfOutlines( pObj );
+    }        
+
+    return m_pOutlines;
+}
+ 
 };
 

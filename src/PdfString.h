@@ -48,7 +48,7 @@ class PdfString : public PdfDataType{
      *
      *  \param sString the string to copy
      */
-	PdfString( const std::string& sString );
+    PdfString( const std::string& sString );
 
     /** Construct a new PdfString from a 0 terminated
      *  string. 
@@ -68,6 +68,13 @@ class PdfString : public PdfDataType{
      */
     PdfString( const char* pszString, long lLen, bool bHex = false );
 
+    /** Copy an existing PdfString 
+     *  \param rhs another PdfString to copy
+     */
+    PdfString( const PdfString & rhs );
+
+    ~PdfString();
+
     /** Set hex encoded data as the strings data. 
      *  \param pszHex must be hex encoded data.
      *  \param lLen   length of the hex encoded data.
@@ -76,13 +83,6 @@ class PdfString : public PdfDataType{
      *                pszHex has to be zero terminated in this case.
      */
     void SetHexData( const char* pszHex, long lLen = -1 );
-
-    /** Copy an existing PdfString 
-     *  \param rhs another PdfString to copy
-     */
-    PdfString( const PdfString & rhs );
-
-    ~PdfString();
 
     /** The string is valid if no error in the constructor has occurred.
      *  If it is valid it is safe to call all the other member functions.
