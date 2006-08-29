@@ -416,10 +416,6 @@ class PdfPainter {
      */
     double m_curColor1, m_curColor2, m_curColor3, m_curColor4;
 
-    /** floating point precision for values written to the content stream
-     */
-    unsigned short	m_fPrec;
-
     /** temporary stream buffer 
      */
     std::ostringstream  m_oss;
@@ -462,7 +458,7 @@ unsigned short PdfPainter::TabWidth() const
 // -----------------------------------------------------
 void PdfPainter::SetPrecision( unsigned short inPrec )
 {
-    m_fPrec = inPrec;
+    m_oss.precision( inPrec );
 }
 
 // -----------------------------------------------------
@@ -470,7 +466,7 @@ void PdfPainter::SetPrecision( unsigned short inPrec )
 // -----------------------------------------------------
 unsigned short PdfPainter::Precision() const
 {
-    return m_fPrec;
+    return m_oss.precision();
 }
 };
 
