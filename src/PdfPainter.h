@@ -304,32 +304,23 @@ class PdfPainter {
      */
     void Restore();
 
- private:
-    /** Register an object in the resource dictionary of this page
-     *  so that it can be used for any following drawing operations.
-     *  
-     *  \param rIdentifier identifier of this object, e.g. /Ft0
-     *  \param rRef reference to the object you want to register
-     *  \param rName register under this key in the resource dictionary
-     */
-    void AddToPageResources( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName );
-
-    /** Coverts a rectangle to an array of points which can be used 
-     *  to draw an ellipse using 4 bezier curves.
-     * 
-     *  The arrays plPointX and plPointY need space for at least 12 longs 
-     *  to be stored.
+    /** Set the transformation matrix for the current coordinate system
+     *  See the operator 'cm' in PDF.
      *
-     *  \param dX x position of the bounding rectangle
-     *  \param dY y position of the bounding rectangle
-     *  \param dWidth width of the bounding rectangle
-     *  \param dHeight height of the bounding rectangle
-     *  \param pdPointX pointer to an array were the x coordinates 
-     *                  of the resulting points will be stored
-     *  \param pdPointY pointer to an array were the y coordinates 
-     *                  of the resulting points will be stored
+     *  The six parameters are a standard 3x3 transformation matrix
+     *  where the 3 left parameters are 0 0 1.
+     *
+     *  \param a scale in x direction
+     *  \param b rotation
+     *  \param c roation
+     *  \param d scale in y direction
+     *  \param e translate in x direction
+     *  \param f translate in y direction
+     * 
+     *  \see Save()
+     *  \see Restore()
      */
-    void ConvertRectToBezier( double dX, double dY, double dWidth, double dHeight, double pdPointX[], double pdPointY[] );
+    void SetTransformationMatrix( double a, double b, double c, double d, double e, double f );
 
     /** Set the tab width for the DrawText operation.
      *  Every tab '\\t' is replaced with nTabWidth 
@@ -360,6 +351,33 @@ class PdfPainter {
      *  \returns how many decimal places will be written out for any floating point value
      */
     inline unsigned short Precision() const;
+
+ private:
+    /** Register an object in the resource dictionary of this page
+     *  so that it can be used for any following drawing operations.
+     *  
+     *  \param rIdentifier identifier of this object, e.g. /Ft0
+     *  \param rRef reference to the object you want to register
+     *  \param rName register under this key in the resource dictionary
+     */
+    void AddToPageResources( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName );
+
+    /** Coverts a rectangle to an array of points which can be used 
+     *  to draw an ellipse using 4 bezier curves.
+     * 
+     *  The arrays plPointX and plPointY need space for at least 12 longs 
+     *  to be stored.
+     *
+     *  \param dX x position of the bounding rectangle
+     *  \param dY y position of the bounding rectangle
+     *  \param dWidth width of the bounding rectangle
+     *  \param dHeight height of the bounding rectangle
+     *  \param pdPointX pointer to an array were the x coordinates 
+     *                  of the resulting points will be stored
+     *  \param pdPointY pointer to an array were the y coordinates 
+     *                  of the resulting points will be stored
+     */
+    void ConvertRectToBezier( double dX, double dY, double dWidth, double dHeight, double pdPointX[], double pdPointY[] );
 
  protected:
     /** Sets the color that was last set by the user as the current stroking color.

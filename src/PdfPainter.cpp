@@ -702,5 +702,19 @@ void PdfPainter::SetCurrentStrokingColor()
     }
 }
 
+void PdfPainter::SetTransformationMatrix( double a, double b, double c, double d, double e, double f )
+{
+    m_oss.str("");
+    m_oss << std::setprecision( m_fPrec ) << a << " "
+          << std::setprecision( m_fPrec ) << b << " "
+          << std::setprecision( m_fPrec ) << c << " "
+          << std::setprecision( m_fPrec ) << d << " "
+          << std::setprecision( m_fPrec ) << e << " "
+          << std::setprecision( m_fPrec ) << f 
+          << " cm" << std::endl;
+
+    m_pCanvas->Append( m_oss.str() );
+}
+
 };
 
