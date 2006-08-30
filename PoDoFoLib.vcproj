@@ -118,6 +118,9 @@
 				RelativePath=".\src\PdfDate.cpp">
 			</File>
 			<File
+				RelativePath=".\src\PdfDestination.cpp">
+			</File>
+			<File
 				RelativePath=".\src\PdfDictionary.cpp">
 			</File>
 			<File
@@ -149,6 +152,9 @@
 			</File>
 			<File
 				RelativePath=".\src\PdfObject.cpp">
+			</File>
+			<File
+				RelativePath=".\src\PdfOutlines.cpp">
 			</File>
 			<File
 				RelativePath=".\src\PdfOutputDevice.cpp">
@@ -228,6 +234,9 @@
 				RelativePath=".\src\PdfDefines.h">
 			</File>
 			<File
+				RelativePath=".\src\PdfDestination.h">
+			</File>
+			<File
 				RelativePath=".\src\PdfDictionary.h">
 			</File>
 			<File
@@ -253,6 +262,9 @@
 			</File>
 			<File
 				RelativePath=".\src\PdfObject.h">
+			</File>
+			<File
+				RelativePath=".\src\PdfOutlines.h">
 			</File>
 			<File
 				RelativePath=".\src\PdfOutputDevice.h">

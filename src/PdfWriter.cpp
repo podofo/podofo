@@ -38,6 +38,7 @@
 // for htonl
 #ifdef _WIN32
 #include <winsock2.h>
+#undef GetObject
 #else 
 #include <arpa/inet.h>
 #endif // _WIN32
@@ -348,6 +349,15 @@ PdfObject* PdfWriter::CreateLinearizationDictionary()
     return pLinearize;
 }
 
+#ifdef WIN32
+typedef signed char 	int8_t;
+typedef unsigned char 	uint8_t;
+typedef signed short 	int16_t;
+typedef unsigned short 	uint16_t;
+typedef signed int 		int32_t;
+typedef unsigned int 	uint32_t;
+#endif
+
 #define STREAM_OFFSET_TYPE uint32_t
 
 void PdfWriter::WriteXRefStream( PdfOutputDevice* pDevice )
@@ -356,7 +366,7 @@ void PdfWriter::WriteXRefStream( PdfOutputDevice* pDevice )
     unsigned int        nSize     = 0;
     TCIVecXRefTable     it;
     TCIVecOffsets       itOffsets;
-    size_t              bufferLen = 2 + sizeof( STREAM_OFFSET_TYPE );
+    const size_t        bufferLen = 2 + sizeof( STREAM_OFFSET_TYPE );
     char                buffer[bufferLen];
     bool                bLittle   = podofo_is_little_endian();
 

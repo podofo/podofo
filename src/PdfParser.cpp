@@ -22,6 +22,7 @@
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
+#include "PdfOutputDevice.h"
 #include "PdfParserObject.h"
 #include "PdfStream.h"
 #include "PdfVariant.h"
@@ -30,7 +31,6 @@
 #include <cstring>
 #include <cstdlib>
 
-#include <PdfOutputDevice.h>
 #include <iostream>
 
 #define PDF_MAGIC_LEN       8

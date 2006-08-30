@@ -33,6 +33,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="wsock32.lib"
 				OutputFile="$(OutDir)/podofouncompress.exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="TRUE"
