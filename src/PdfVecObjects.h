@@ -118,7 +118,7 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      */
     PdfObject* CreateObject( const char* pszType = NULL );
 
-    /** Creates a new object (of type PdfDictionary) and inserts it into the vector.
+    /** Creates a new object (of type rVariants) and inserts it into the vector.
      *  This function assigns the next free object number to the PdfObject.
      *
      *  \param rVariant value of the PdfObject

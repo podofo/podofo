@@ -112,6 +112,9 @@
 				RelativePath=".\src\PdfCanvas.cpp">
 			</File>
 			<File
+				RelativePath=".\src\PdfContents.cpp">
+			</File>
+			<File
 				RelativePath=".\src\PdfDataType.cpp">
 			</File>
 			<File
@@ -128,9 +131,6 @@
 			</File>
 			<File
 				RelativePath=".\src\PdfElement.cpp">
-			</File>
-			<File
-				RelativePath=".\src\PdfElement.h">
 			</File>
 			<File
 				RelativePath=".\src\PdfError.cpp">
@@ -225,6 +225,9 @@
 				RelativePath=".\src\PdfCanvas.h">
 			</File>
 			<File
+				RelativePath=".\src\PdfContents.h">
+			</File>
+			<File
 				RelativePath=".\src\PdfDataType.h">
 			</File>
 			<File
@@ -241,6 +244,9 @@
 			</File>
 			<File
 				RelativePath=".\src\PdfDocument.h">
+			</File>
+			<File
+				RelativePath=".\src\PdfElement.h">
 			</File>
 			<File
 				RelativePath=".\src\PdfError.h">

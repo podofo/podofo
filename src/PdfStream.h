@@ -87,7 +87,7 @@ class PdfStream {
      *  \param lLen length of the buffer
      *  \returns ErrOk on sucess
      */
-    void Append( const char* pszString, long lLen ); 
+    void Append( const char* pszString, size_t lLen ); 
 
     /** Append to the current stream contents. 
      *  \param sString a std::string containing ASCII text data

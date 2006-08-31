@@ -18,66 +18,49 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PDF_CANVAS_H_
-#define _PDF_CANVAS_H_
+#ifndef _PDF_CONTENTS_H_
+#define _PDF_CONTENTS_H_
 
 #include "PdfDefines.h"
 
 #include "PdfArray.h"
+#include "PdfObject.h"
 
 namespace PoDoFo {
 
-class PdfDictionary;
-class PdfObject;
-class PdfRect;
-
-/** A interface that provides the necessary features 
- *  for a painter to draw onto a PdfObject.
+/** A interface that provides a wrapper around "PDF content" -
+	the instructions that are used to draw on the PDF "canvas".
  */
-class PdfCanvas {
+class PdfContents {
  public:
-    /** Virtual destructor
-     *  to avoid compiler warnings
-     */
-    virtual ~PdfCanvas() {};
 
-    /** Get access to the contents object of this page.
-     *  If you want to draw onto the page, you have to add 
-     *  drawing commands to the stream of the Contents object.
+    /** Construct a new/empty set of contents in the owning objects
+     */
+	 PdfContents( PdfVecObjects* pParent );
+
+    /** Construct the contents from an existing PdfObject
+     */
+	 PdfContents( PdfObject* inObj );
+
+    /** Virtual destructor - because ALL destructors should be...
+     */
+    virtual ~PdfContents() {};
+
+    /** Get access to the raw contents object.
+     *  It will either be a PdfStream or a PdfArray
      *  \returns a contents object
      */
-    virtual PdfObject* Contents() const = 0;
+	virtual PdfObject* Contents() const { return mContObj; }
 
-	/** Get access an object that you can use to ADD drawing to.
-	*  If you want to draw onto the page, you have to add 
-	*  drawing commands to the stream of the Contents object.
-	*  \returns a contents object
-	*/
-	virtual PdfObject* ContentsForAppending() const = 0;
-
-   /** Get access to the resources object of this page.
-     *  This is most likely an internal object.
-     *  \returns a resources object
-     */
-    virtual PdfObject* Resources() const = 0;
-
-    /** Get the current page size in PDF Units
-     *  \returns a PdfRect containing the page size available for drawing
-     */
-    virtual const PdfRect PageSize() const = 0;
-
-    /** Get a reference to a static procset PdfArray.
-     *  \returns a reference to a static procset PdfArray
-     */
-    static const PdfArray & ProcSet();
+	/** Get access to an object into which you can add contents
+		at the end of the "stream".
+	 */
+	virtual PdfObject* ContentsForAppending() const;
 
  private:
-    /** The procset is the same for all 
-     *  PdfContents objects
-     */
-    static PdfArray s_procset;
+	PdfObject*	mContObj;
 };
 
 };
 
-#endif /* _PDF_CANVAS_H_ */
+#endif /* _PDF_CONTENTS_H_ */

@@ -23,7 +23,7 @@
 
 #include "PdfPainter.h"
 
-#include "PdfCanvas.h"
+#include "PdfContents.h"
 #include "PdfDictionary.h"
 #include "PdfFilter.h"
 #include "PdfFont.h"
@@ -64,7 +64,7 @@ void PdfPainter::SetPage( PdfCanvas* pPage )
 {
     m_pPage   = pPage;
 
-    m_pCanvas = pPage ? pPage->Contents()->Stream() : NULL;
+    m_pCanvas = pPage ? pPage->ContentsForAppending()->Stream() : NULL;
     if ( m_pCanvas ) 
     {
         if ( m_pCanvas->Length() ) 

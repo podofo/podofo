@@ -83,7 +83,7 @@ void PdfStream::Append( const char* pszString )
     this->Append( pszString, strlen( pszString ) );
 }
 
-void PdfStream::Append( const char* pszString, long lLen )
+void PdfStream::Append( const char* pszString, size_t lLen )
 {
     if( !pszString )
     {

@@ -68,6 +68,16 @@ class PdfXObject : public PdfElement, public PdfCanvas {
      */
     inline virtual PdfObject* Contents() const;
 
+   /** Get access to the contents object of this page.
+     *  If you want to draw onto the page, you have to add 
+     *  drawing commands to the stream of the Contents object.
+     * 
+     *  The contents object is a this pointer in this case.
+     *
+     *  \returns a contents object
+     */
+	inline virtual PdfObject* ContentsForAppending() const { return Contents(); }
+
     /** Get access to the resources object of this page.
      *  This is most likely an internal object.
      *  \returns a resources object

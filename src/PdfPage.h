@@ -25,6 +25,7 @@
 
 #include "PdfArray.h"
 #include "PdfCanvas.h"
+#include "PdfContents.h"
 #include "PdfElement.h"
 #include "PdfRect.h"
 
@@ -71,7 +72,14 @@ class PdfPage : public PdfElement, public PdfCanvas {
      *  drawing commands to the stream of the Contents object.
      *  \returns a contents object
      */
-    virtual PdfObject* Contents() const { return m_pContents; }
+    virtual PdfObject* Contents() const { return m_pContents->Contents(); }
+
+    /** Get access an object that you can use to ADD drawing to.
+     *  If you want to draw onto the page, you have to add 
+     *  drawing commands to the stream of the Contents object.
+     *  \returns a contents object
+     */
+    virtual PdfObject* ContentsForAppending() const { return m_pContents->ContentsForAppending(); }
 
     /** Get access to the resources object of this page.
      *  This is most likely an internal object.
@@ -127,7 +135,7 @@ class PdfPage : public PdfElement, public PdfCanvas {
     PdfObject* GetInheritedKeyFromObject( const char* inKey, PdfObject* inObject ) const; 
 
  private:
-    PdfObject*     m_pContents;
+    PdfContents*   m_pContents;
     PdfObject*     m_pResources;
 };
 

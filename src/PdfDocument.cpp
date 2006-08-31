@@ -563,7 +563,7 @@ void PdfDocument::SetDisplayDocTitle( void )
 
 void PdfDocument::SetPrintScaling( PdfName& inScalingType )
 {
-    SetViewerPreference( PdfName( "PrintScaling" ), &inScalingType );
+    SetViewerPreference( PdfName( "PrintScaling" ), inScalingType );
 }
 
 void PdfDocument::SetBaseURI( const std::string& inBaseURI )
@@ -580,7 +580,7 @@ void PdfDocument::SetLanguage( const std::string& inLanguage )
 
 void PdfDocument::SetBindingDirection( PdfName& inDirection )
 {
-    SetViewerPreference( PdfName( "Direction" ), &inDirection );
+    SetViewerPreference( PdfName( "Direction" ), inDirection );
 }
 
 void PdfDocument::SetPageLayout( EPdfPageLayout inLayout )
