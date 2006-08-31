@@ -24,7 +24,6 @@
 
 namespace PoDoFo {
 
-
 const long  PdfAction::s_lNumActions = 19;
 const char* PdfAction::s_names[] = {
     "GoTo",

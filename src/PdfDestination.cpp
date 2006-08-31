@@ -26,23 +26,87 @@
 
 namespace PoDoFo {
 
+const long  PdfDestination::s_lNumDestinations = 19;
+const char* PdfDestination::s_names[] = {
+    "Fit",
+    "FitH",
+    "FitV",
+    "FitB",
+    "FitBH",
+    "FitBV",
+    NULL
+};
+
 PdfDestination::PdfDestination()
-    : m_bIsAction( false ),
-      m_bIsEmpty( true )
+    : m_bIsAction( false )
 {
 }
 
-PdfDestination::PdfDestination( const PdfPage* pPage )
-    : m_bIsAction( false ),
-      m_bIsEmpty( false )
+PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit )
+    : m_bIsAction( false )
+{
+    PdfName type;
+
+    if( eFit == ePdfDestinationFit_Fit )
+        type = PdfName("Fit");
+    else if( eFit == ePdfDestinationFit_FitB )
+        type = PdfName("FitB");
+    else
+    {
+        RAISE_ERROR( ePdfError_InvalidKey );
+    }
+
+    m_array.push_back( pPage->Object()->Reference() );
+    m_array.push_back( type );
+}
+
+PdfDestination::PdfDestination( const PdfPage* pPage, const PdfRect & rRect )
+    : m_bIsAction( false )
+{
+    PdfVariant var;
+
+    rRect.ToVariant( var );
+
+    m_array.push_back( pPage->Object()->Reference() );
+    m_array.push_back( PdfName("FitR") );
+    m_array.insert( m_array.end(), var.GetArray().begin(), var.GetArray().end() );
+}
+
+PdfDestination::PdfDestination( const PdfPage* pPage, double dLeft, double dTop, double dZoom )
+    : m_bIsAction( false )
 {
     m_array.push_back( pPage->Object()->Reference() );
-    m_array.push_back( PdfName( "Fit" ) );
+    m_array.push_back( PdfName("XYZ") );
+    m_array.push_back( dLeft );
+    m_array.push_back( dTop );
+    m_array.push_back( dZoom );
+}
+
+PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit, double dValue )
+    : m_bIsAction( false )
+{
+    PdfName type;
+
+    if( eFit == ePdfDestinationFit_FitH )
+        type = PdfName("FitH");
+    else if( eFit == ePdfDestinationFit_FitV )
+        type = PdfName("FitV");
+    else if( eFit == ePdfDestinationFit_FitBH )
+        type = PdfName("FitBH");
+    else if( eFit == ePdfDestinationFit_FitBV )
+        type = PdfName("FitBV");
+    else
+    {
+        RAISE_ERROR( ePdfError_InvalidKey );
+    }
+
+    m_array.push_back( pPage->Object()->Reference() );
+    m_array.push_back( type );
+    m_array.push_back( dValue );
 }
 
 PdfDestination::PdfDestination( const PdfAction* pAction )
-    : m_bIsAction( true ),
-      m_bIsEmpty( false )
+    : m_bIsAction( true )
 {
     m_action = pAction->Object()->Reference();
 }
@@ -66,13 +130,14 @@ void PdfDestination::AddToDictionary( PdfDictionary & dictionary ) const
     dictionary.RemoveKey( "Dest" );
     dictionary.RemoveKey( "A" );
 
-    if( !m_bIsEmpty ) 
+    if( m_bIsAction ) 
+        dictionary.AddKey( "A", m_action );
+    else
     {
-        if( m_bIsAction ) 
-            dictionary.AddKey( "A", m_action );
-        else
+        if( m_array.size() )
             dictionary.AddKey( "Dest", m_array );
     }
+
 }
 
 };

@@ -92,3 +92,25 @@ void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
         sOutStream << "\t# of Annotations: " << curPage->GetNumAnnots() << std::endl;
     }
 }
+
+void PdfInfo::OutputOutlines( std::ostream& sOutStream, PdfOutlineItem* pItem, int level )
+{
+    PdfOutlines* pOutlines;
+    int          i;
+
+    if( !pItem ) 
+    {
+        pOutlines = mDoc->GetOutlines();
+        pItem     = pOutlines->First();
+    }
+
+    for( i=0;i<level;i++ )
+        sOutStream << "-";
+
+    sOutStream << ">" << pItem->GetTitle().String() << std::endl;
+    if( pItem->First() )
+        this->OutputOutlines( sOutStream, pItem->First(), level+1 );
+    
+    if( pItem->Next() )
+        this->OutputOutlines( sOutStream, pItem->Next(), level );
+}

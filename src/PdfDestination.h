@@ -30,6 +30,18 @@ namespace PoDoFo {
 
 class PdfAction;
 class PdfPage;
+class PdfRect;
+
+typedef enum EPdfDestinationFit {
+    ePdfDestinationFit_Fit,
+    ePdfDestinationFit_FitH,
+    ePdfDestinationFit_FitV,
+    ePdfDestinationFit_FitB,
+    ePdfDestinationFit_FitBH,
+    ePdfDestinationFit_FitBV,
+
+    ePdfDestinationFit_Unknown = 0xFF
+};
 
 /** A destination in a PDF file.
  *  A destination can either be a page or an action.
@@ -46,8 +58,32 @@ class PdfDestination {
 
     /** Create a new PdfDestination with a page as destination
      *  \param pPage a page which is the destination 
+     *  \param eFit fit mode for the page. Must be ePdfDestinationFit_Fit or ePdfDestinationFit_FitB
      */
-    PdfDestination( const PdfPage* pPage );
+    PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit = ePdfDestinationFit_Fit );
+
+    /** Create a destination to a page with its contents magnified to fit into the given rectangle
+     *  \param pPage a page which is the destination 
+     *  \param rRect magnify the page so that the contents of the rectangle are visible
+     */
+    PdfDestination( const PdfPage* pPage, const PdfRect & rRect );
+
+    /** Create a new destination to a page with specified left 
+     *  and top coordinates and a zoom factor.
+     *  \param pPage a page which is the destination 
+     *  \param dLeft left coordinate
+     *  \param dTop  top coordinate
+     *  \param dZoom zoom factor in the viewer
+     */
+    PdfDestination( const PdfPage* pPage, double dLeft, double dTop, double dZoom );
+
+    /** Create a new destination to a page.
+     *  \param pPage a page which is the destination 
+     *  \param eFit fit mode for the Page. Allowed values are ePdfDestinationFit_FitH,
+     *              ePdfDestinationFit_FitV, ePdfDestinationFit_FitBH, ePdfDestinationFit_FitBV
+     *  \param top or left value to focus
+     */
+    PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit, double dValue );
 
     /** Create a new PdfDestination which triggers an action
      *  \param pAction an action
@@ -74,8 +110,11 @@ class PdfDestination {
     void AddToDictionary( PdfDictionary & dictionary ) const;
 
  private:
-    bool         m_bIsEmpty;
+    static const long  s_lNumDestinations;
+    static const char* s_names[];
+
     bool         m_bIsAction;
+
     PdfArray     m_array;
     PdfReference m_action;
 };

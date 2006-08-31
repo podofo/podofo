@@ -28,7 +28,7 @@
 namespace PoDoFo {
 
 PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfDestination & rDest, PdfOutlineItem* pParentOutline, PdfVecObjects* pParent )
-    : PdfElement( NULL, pParent ), m_pParentOutline( pParentOutline ), m_pPrev( NULL ), m_pNext( NULL )
+    : PdfElement( NULL, pParent ), m_pParentOutline( pParentOutline ), m_pPrev( NULL ), m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL )
 {
     m_pObject->GetDictionary().AddKey( "Parent", pParentOutline->Object()->Reference() );
 
@@ -36,44 +36,59 @@ PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfDestination &
     this->SetDestination( rDest );
 }
 
-PdfOutlineItem::PdfOutlineItem( PdfObject* pObject )
-    : PdfElement( NULL,pObject )
+PdfOutlineItem::PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutline, PdfOutlineItem* pPrevious )
+    : PdfElement( NULL, pObject ), m_pParentOutline( pParentOutline ), m_pPrev( pPrevious ), m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL )
 {
-    m_pParentOutline = NULL;
+    PdfReference first, next;
+
+    if( m_pObject->GetDictionary().HasKey( "First" ) )
+    {
+        first    = m_pObject->GetDictionary().GetKey("First")->GetReference();
+        m_pFirst = new PdfOutlineItem( pObject->GetParent()->GetObject( first ), this, NULL );
+    }
+
+    if( m_pObject->GetDictionary().HasKey( "Next" ) )
+    {
+        next     = m_pObject->GetDictionary().GetKey("Next")->GetReference();
+        m_pNext  = new PdfOutlineItem( pObject->GetParent()->GetObject( next ), NULL, this );
+    }
+    else
+    {
+        // if there is no next key,
+        // we have to set ourself as the last item of the parent
+        if( m_pParentOutline )
+            m_pParentOutline->SetLast( this );
+    }
 }
 
 PdfOutlineItem::PdfOutlineItem( PdfVecObjects* pParent )
-    : PdfElement( "Outlines", pParent ), m_pParentOutline( NULL ), m_pPrev( NULL ), m_pNext( NULL )
+    : PdfElement( "Outlines", pParent ), m_pParentOutline( NULL ), m_pPrev( NULL ), m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL )
 {
-
 }
 
 PdfOutlineItem::~PdfOutlineItem()
 {
-    TIOutlineItemList it = m_lstItems.begin();
-
-    while( it != m_lstItems.end() )
-    {
-        delete (*it);
-        ++it;
-    }
+    delete m_pNext;
+    delete m_pFirst;
 }
 
 PdfOutlineItem* PdfOutlineItem::CreateChild( const PdfString & sTitle, const PdfDestination & rDest )
 {
     PdfOutlineItem* pItem = new PdfOutlineItem( sTitle, rDest, this, m_pObject->GetParent() );
-    PdfOutlineItem* pLast = this->Last();
 
-    if( pLast )
+    if( m_pLast )
     {
-        pLast->SetNext( pItem );
-        pItem->SetPrevious( pLast );
+        m_pLast->SetNext( pItem );
+        pItem->SetPrevious( m_pLast );
     }
 
-    m_lstItems.push_back( pItem );
+    m_pLast = pItem;
 
-    m_pObject->GetDictionary().AddKey( "First", this->First()->Object()->Reference() );
-    m_pObject->GetDictionary().AddKey( "Last", this->Last()->Object()->Reference() );
+    if( !m_pFirst )
+        m_pFirst = m_pLast;
+
+    m_pObject->GetDictionary().AddKey( "First", m_pFirst->Object()->Reference() );
+    m_pObject->GetDictionary().AddKey( "Last",  m_pLast->Object()->Reference() );
 
     return pItem;
 }
@@ -93,8 +108,8 @@ PdfOutlineItem* PdfOutlineItem::CreateNext ( const PdfString & sTitle, const Pdf
 
     m_pObject->GetDictionary().AddKey( "Next", m_pNext->Object()->Reference() );
 
-    if( m_pParentOutline ) 
-        m_pParentOutline->AppendChild( this, m_pNext );
+    if( m_pParentOutline && !m_pNext->Next() ) 
+        m_pParentOutline->SetLast( m_pNext );
 
     return m_pNext;
 }
@@ -108,25 +123,50 @@ void PdfOutlineItem::SetPrevious( PdfOutlineItem* pItem )
 void PdfOutlineItem::SetNext( PdfOutlineItem* pItem )
 {
     m_pNext = pItem;
-    m_pObject->GetDictionary().AddKey( "Next", m_pPrev->Object()->Reference() );
+    m_pObject->GetDictionary().AddKey( "Next", m_pNext->Object()->Reference() );
 }
 
-void PdfOutlineItem::AppendChild( PdfOutlineItem* pItem, PdfOutlineItem* pChild )
+void PdfOutlineItem::SetLast( PdfOutlineItem* pItem )
 {
-    TIOutlineItemList it = std::find( m_lstItems.begin(), m_lstItems.end(), pItem );
-        
-    if( it == m_lstItems.end() )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-    
-    ++it;
-    if( it != m_lstItems.end() )
-        m_lstItems.insert( ++it, pChild );
-    else
-        m_lstItems.push_back( pChild );
+    m_pLast = pItem;
+    if( m_pLast )
+        m_pObject->GetDictionary().AddKey( "Last",  m_pLast->Object()->Reference() );
+    else 
+        m_pObject->GetDictionary().RemoveKey( "Last" );
+}
 
-    m_pObject->GetDictionary().AddKey( "Last", this->Last()->Object()->Reference() );
+void PdfOutlineItem::SetFirst( PdfOutlineItem* pItem )
+{
+    m_pFirst = pItem;
+    if( m_pFirst )
+        m_pObject->GetDictionary().AddKey( "First",  m_pFirst->Object()->Reference() );
+    else 
+        m_pObject->GetDictionary().RemoveKey( "First" );
+}
+
+void PdfOutlineItem::Erase()
+{
+    while( m_pFirst )
+    {
+        // erase will set a new first
+        // if it has a next item
+        m_pFirst->Erase();
+    }
+
+    if( m_pPrev && m_pNext ) 
+    {
+        m_pPrev->SetNext    ( m_pNext );
+        m_pNext->SetPrevious( m_pPrev );
+    }
+
+    if( !m_pPrev && m_pParentOutline )
+        m_pParentOutline->SetFirst( m_pNext );
+
+    if( !m_pNext && m_pParentOutline )
+        m_pParentOutline->SetLast( m_pPrev );
+
+    m_pNext = NULL;
+    delete this;
 }
 
 void PdfOutlineItem::SetDestination( const PdfDestination & rDest )
@@ -192,13 +232,9 @@ double PdfOutlineItem::GetTextColorBlue() const
     return 0.0;
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
+// PdfOutlines
 ///////////////////////////////////////////////////////////////////////////////////
 
 PdfOutlines::PdfOutlines( PdfVecObjects* pParent )
@@ -207,7 +243,7 @@ PdfOutlines::PdfOutlines( PdfVecObjects* pParent )
 }
 
 PdfOutlines::PdfOutlines( PdfObject* pObject )
-    : PdfOutlineItem( (PdfVecObjects*)NULL )
+    : PdfOutlineItem( pObject, NULL, NULL )
 {
 }
 

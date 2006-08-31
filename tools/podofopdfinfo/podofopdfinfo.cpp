@@ -65,6 +65,11 @@ int main( int argc, char* argv[] )
       std::cout << "Page Info" << std::endl;
       std::cout << "---------" << std::endl;
       myInfo.OutputPageInfo( std::cout );
+
+      std::cout << "Outlines" << std::endl;
+      std::cout << "--------" << std::endl;
+      myInfo.OutputOutlines( std::cout );
+
     } catch( PdfError & e ) {
       fprintf( stderr, "Error: An error %i ocurred during uncompressing the pdf file.\n", e.Error() );
       e.PrintErrorMsg();

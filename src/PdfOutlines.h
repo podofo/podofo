@@ -24,8 +24,6 @@
 #include "PdfDefines.h"
 #include "PdfElement.h"
 
-#include <list>
-
 namespace PoDoFo {
 
 class PdfDestination;
@@ -33,10 +31,6 @@ class PdfObject;
 class PdfOutlineItem;
 class PdfString;
 class PdfVecObjects;
-
-typedef std::list<PdfOutlineItem*>       TOutlineItemList;
-typedef TOutlineItemList::iterator       TIOutlineItemList;
-typedef TOutlineItemList::const_iterator TCIOutlineItemList;
 
 /**
  * The title of an outline item can be displayed
@@ -51,24 +45,64 @@ typedef enum EPdfOutlineFormat {
     ePdfOutlineFormat_Unknown    = 0xFF
 };
 
+/**
+ * A PDF outline item has an title and a destination.
+ * It is an element in the documents outline which shows
+ * its hierarchical structure.
+ *
+ * \see PdfDocument
+ * \see PdfOutlines
+ * \see PdfDestination
+ */
 class PdfOutlineItem : public PdfElement {
  public:
-    PdfOutlineItem( const PdfString & sTitle, const PdfDestination & rDest, PdfOutlineItem* pParentOutline, PdfVecObjects* pParent );
-
-    PdfOutlineItem( PdfObject* pObject );
-
     virtual ~PdfOutlineItem();
 
+    /** Create a PdfOutlineItem that is a child of this item
+     *  \param sTitle title of this item
+     *  \param rDest destination of this item
+     */
     PdfOutlineItem* CreateChild( const PdfString & sTitle, const PdfDestination & rDest );
+
+    /** Create a PdfOutlineItem that is on the same level and follows the current item.
+     *  \param sTitle title of this item
+     *  \param rDest destination of this item
+     */
     PdfOutlineItem* CreateNext ( const PdfString & sTitle, const PdfDestination & rDest );
 
+    /** 
+     * \returns the previous item or NULL if this is the first on the current level
+     */
     inline PdfOutlineItem* Prev() const;
+
+    /** 
+     * \returns the next item or NULL if this is the last on the current level
+     */
     inline PdfOutlineItem* Next() const;
 
+    /** 
+     * \returns the first outline item that is a child of this item
+     */
     inline PdfOutlineItem* First() const;
+
+    /** 
+     * \returns the last outline item that is a child of this item
+     */
     inline PdfOutlineItem* Last() const;
 
+    /**
+     * \returns the parent item of this item or NULL if it is
+     *          the top level outlines dictionary
+     */
     inline PdfOutlineItem* ParentOutline() const;
+
+    /** Deletes this outline item and all its children from 
+     *  the outline hierarchy and removes all objects from
+     *  the list of PdfObjects
+     *  All pointers to this item will be invalid after this function
+     *  call.
+     */
+    void Erase();
 
     /** Set the destination of this outline.
      *  \param rDest the destination
@@ -133,10 +167,29 @@ class PdfOutlineItem : public PdfElement {
  private:
     void SetPrevious( PdfOutlineItem* pItem );
     void SetNext    ( PdfOutlineItem* pItem );
-    void AppendChild( PdfOutlineItem* pItem, PdfOutlineItem* pChild );
+    void SetLast    ( PdfOutlineItem* pItem );
+    void SetFirst   ( PdfOutlineItem* pItem );
 
  protected:
+    /** Create a new PdfOutlineItem dictionary
+     *  \param pParent parent vector of objects
+     */
     PdfOutlineItem( PdfVecObjects* pParent );
+
+    /** Create a new PdfOutlineItem from scratch
+     *  \param sTitle title of this item
+     *  \param rDest destination of this item
+     *  \param pParentOutline parent of this outline item 
+     *                        in the outline item hierarchie
+     *  \param pParent parent vector of objects which is required
+     *                 to create new objects
+     */
+    PdfOutlineItem( const PdfString & sTitle, const PdfDestination & rDest, PdfOutlineItem* pParentOutline, PdfVecObjects* pParent );
+
+    /** Create a PdfOutlineItem from an existing PdfObject
+     *  \param pObject an existing outline item
+     */
+    PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutline, PdfOutlineItem* pPrevious );
 
  private:
     PdfOutlineItem*    m_pParentOutline;
@@ -144,7 +197,8 @@ class PdfOutlineItem : public PdfElement {
     PdfOutlineItem*    m_pPrev;
     PdfOutlineItem*    m_pNext;
 
-    TOutlineItemList   m_lstItems;
+    PdfOutlineItem*    m_pFirst;
+    PdfOutlineItem*    m_pLast;
 };
 
 // -----------------------------------------------------
@@ -160,7 +214,7 @@ inline PdfOutlineItem* PdfOutlineItem::ParentOutline() const
 // -----------------------------------------------------
 inline PdfOutlineItem* PdfOutlineItem::First() const
 {
-    return m_lstItems.size() ? m_lstItems.front() : NULL;
+    return m_pFirst;
 }
 
 // -----------------------------------------------------
@@ -168,7 +222,7 @@ inline PdfOutlineItem* PdfOutlineItem::First() const
 // -----------------------------------------------------
 inline PdfOutlineItem* PdfOutlineItem::Last() const
 {
-    return m_lstItems.size() ? m_lstItems.back() : NULL;
+    return m_pLast;
 }
 
 // -----------------------------------------------------
@@ -188,16 +242,24 @@ inline PdfOutlineItem* PdfOutlineItem::Next() const
 }
 
 
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-
+/** The main PDF outlines dictionary.
+ *  
+ *  Do not create it by yourself but 
+ *  use PdfDocument::GetOutlines() instead.
+ *
+ *  \see PdfDocument
+ */
 class PdfOutlines : public PdfOutlineItem {
  public:
-    
+   
+    /** Create a new PDF outlines dictionary
+     *  \param pParent parent vector of objects
+     */
     PdfOutlines( PdfVecObjects* pParent );
 
+    /** Create a PDF outlines object from an existing dictionary
+     *  \param pObject an existing outlines dictionary
+     */
     PdfOutlines( PdfObject* pObject );
 
     /** Create the root node of the 
