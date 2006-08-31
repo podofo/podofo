@@ -134,15 +134,16 @@ void PdfObject::Init( bool bLoadOnDemandDone )
 void PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
 {
     bool          bIndirect = ( (long)m_reference.ObjectNumber() != -1  && (long)m_reference.GenerationNumber() != -1 );
+	bool          bIsTrailer = ( (long)m_reference.ObjectNumber() == 0  && (long)m_reference.GenerationNumber() == 0 );
 
-    DelayedStreamLoad();
+	DelayedStreamLoad();
 
     if( !pDevice )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    if( bIndirect )
+    if( bIndirect && !bIsTrailer )
         pDevice->Print( "%i %i obj\n", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
 
     this->Write( pDevice, keyStop );
