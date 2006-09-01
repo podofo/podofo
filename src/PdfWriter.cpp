@@ -183,7 +183,7 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& ve
     this->CompressObjects( vecObjects );
 
     // add the first free object
-    tEntry.lOffset     = (itFree == vecObjects.GetFreeObjects().end() ? 0 : (*itFree).ObjectNumber());
+    tEntry.lOffset     = 0 /*(itFree == vecObjects.GetFreeObjects().end() ? 0 : (*itFree).ObjectNumber())*/;
     tEntry.lGeneration = EMPTY_OBJECT_OFFSET;
     tEntry.cUsed       = 'f';
     tXRef.vecOffsets.push_back( tEntry );

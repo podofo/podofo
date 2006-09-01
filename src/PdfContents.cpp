@@ -33,12 +33,17 @@ PdfContents::PdfContents( PdfVecObjects* pParent )
 PdfContents::PdfContents( PdfObject* inObj )
 : mContObj( inObj )
 {
-
+	if ( mContObj->GetDataType() == ePdfDataType_Reference ) {
+		mContObj = inObj->GetParent()->GetObject( inObj->GetReference() );
+	} else if ( mContObj->GetDataType() == ePdfDataType_Dictionary ) {
+		mContObj->Stream();	// should make it a valid stream..
+	}
 }
 
 PdfObject* PdfContents::ContentsForAppending() const
 {
-	if ( mContObj->GetDataType() == ePdfDataType_Stream ) {
+	if ( mContObj->GetDataType() == ePdfDataType_Stream || 
+		 mContObj->GetDataType() == ePdfDataType_Dictionary ) {
 		return mContObj;	// just return the stream itself
 	} else if ( mContObj->GetDataType() == ePdfDataType_Array ) {
 		/*

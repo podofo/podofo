@@ -273,6 +273,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
         {
             m_bStream = true;
             m_lStreamOffset = ftell( m_file.Handle() );	// NOTE: whitespace after "stream" handle in stream parser!
+			eDataType = ePdfDataType_Stream;	// reset the object type to stream!
         }
         else
         {        
