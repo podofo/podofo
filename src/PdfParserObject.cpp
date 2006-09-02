@@ -273,7 +273,15 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
         {
             m_bStream = true;
             m_lStreamOffset = ftell( m_file.Handle() );	// NOTE: whitespace after "stream" handle in stream parser!
-			eDataType = ePdfDataType_Stream;	// reset the object type to stream!
+
+            // Most of the code relies on PdfObjects that are dictionaries
+            // to have the datatype ePdfDataType_Dictionary and not Stream.
+            // Please use PdfObject::HasStream to check wether it has a stream.
+            //
+            // Commenting this out is right now easier than fixing all code to check
+            // either for ePdfDataType_Stream or ePdfDataType_Dictionary
+            //
+	    //eDataType = ePdfDataType_Stream;	// reset the object type to stream!
         }
         else
         {        

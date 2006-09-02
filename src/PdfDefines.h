@@ -97,7 +97,7 @@ typedef enum EPdfDataType {
     ePdfDataType_Name,                  /**< Name datatype. Names are used as keys in dictionary to reference values. \see PdfName */
     ePdfDataType_Array,                 /**< An array of other PDF data types. */
     ePdfDataType_Dictionary,            /**< A dictionary associates keys with values. A key can have another dictionary as value. */
-    ePdfDataType_Stream,                /**< A stream can be attached to a dictionary and contain additional data. \see PdfStream */
+    //ePdfDataType_Stream,                /**< A stream can be attached to a dictionary and contain additional data. \see PdfStream */
     ePdfDataType_Null,                  /**< The null datatype is always null. */
     ePdfDataType_Reference,             /**< The reference datatype contains references to PDF objects in the PDF file of the form 4 0 R. \see PdfObject */
 

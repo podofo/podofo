@@ -166,7 +166,7 @@ class PdfVariant {
 
     /** \returns true if this variant is a stream (i.e. GetDataType() == ePdfDataType_Stream)
      */
-    inline bool IsStream() const { DelayedLoad(); return GetDataType() == ePdfDataType_Stream; }
+    //inline bool IsStream() const { DelayedLoad(); return GetDataType() == ePdfDataType_Stream; }
 
     /** \returns true if this variant is null (i.e. GetDataType() == ePdfDataType_Null)
      */

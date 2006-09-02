@@ -27,7 +27,6 @@
 #include "PdfStream.h"
 #include "PdfVariant.h"
 
-#include <algorithm>
 #include <cstring>
 #include <cstdlib>
 
@@ -37,11 +36,7 @@
 #define PDF_XREF_ENTRY_SIZE 20
 
 namespace PoDoFo {
-
-bool ObjectLittle( PdfObject* p1, PdfObject* p2 )
-{
-    return *p1 < *p2;
-}
+#include <algorithm>
 
 PdfParser::PdfParser( PdfVecObjects* pVecObjects )
     : PdfParserBase(), m_vecObjects( pVecObjects )
@@ -110,7 +105,7 @@ void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
     }
 
     // Now sort the list of objects
-    std::sort( m_vecObjects->begin(), m_vecObjects->end(), ObjectLittle );
+    m_vecObjects->Sort();
 }
 
 void PdfParser::Clear()

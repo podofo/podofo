@@ -49,6 +49,8 @@ class PdfVecObjects;
  * \see Write()
  */
 class PdfObject : public PdfVariant {
+    friend class PdfVecObjects;
+
  public:
 
     /** Create a PDF object with object and generation number -1

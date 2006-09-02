@@ -32,10 +32,21 @@ class PdfObject;
 class PdfVariant;
 
 // slist would be better, but it is not support by default gcc :-(
-
 typedef std::list<PdfReference>           TPdfReferenceList;
 typedef TPdfReferenceList::iterator       TIPdfReferenceList;
 typedef TPdfReferenceList::const_iterator TCIPdfReferenceList;
+
+typedef std::list<PdfReference*>                 TReferencePointerList;
+typedef TReferencePointerList::iterator          TIReferencePointerList;
+typedef TReferencePointerList::const_iterator    TCIReferencePointerList;
+
+typedef std::vector<TReferencePointerList  >     TVecReferencePointerList;
+typedef TVecReferencePointerList::iterator       TIVecReferencePointerList;
+typedef TVecReferencePointerList::const_iterator TCIVecReferencePointerList;
+
+typedef std::map<PdfReference,int>         TMapReferenceCache;
+typedef TMapReferenceCache::iterator       TIMapReferenceCache;
+typedef TMapReferenceCache::const_iterator TCIMapReferenceCache;
 
 /** A STL vector of PdfObjects. I.e. a list of PdfObject classes.
  *  The PdfParser will read the PdfFile into memory and create 
@@ -135,6 +146,13 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      */
     inline const TPdfReferenceList & GetFreeObjects() const;
 
+    /** 
+     *  Renumbers all objects according to there current position in the vector.
+     *  All references remain intact.
+     *  Warning! This function is _very_ calculation intensive.
+     */
+    void RenumberObjects( PdfObject* pTrailer );
+
     /** Insert a object into this vector.
      *  Overwritten from std::vector so that 
      *  m_bObjectCount can be increased for each object.
@@ -151,11 +169,26 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      */
     void push_back_and_do_not_own( PdfObject* pObj );
 
+    /** 
+     * Sort the objects in the vector based on their object and generation numbers
+     */
+    void Sort();
+
  private:
     /** 
      * \returns the next free object reference
      */
     PdfReference GetNextFreeObject();
+    
+    /** 
+     * Create a list of all references that point to the object
+     * for each object in this vector.
+     * \param pList write all references to this list
+     */
+    void BuildReferenceCountVector( TVecReferencePointerList* pList ) const;
+    void InsertReferencesIntoVector( const PdfObject* pObj, TVecReferencePointerList* pList ) const;
+
+    void GarbageCollection( TVecReferencePointerList* pList, PdfObject* pTrailer );
 
  private:
     bool                m_bAutoDelete;

@@ -20,11 +20,19 @@
 
 #include "PdfVecObjects.h"
 
+#include "PdfArray.h"
+#include "PdfDictionary.h"
 #include "PdfObject.h"
+#include "PdfReference.h"
 
 #include <algorithm>
 
 namespace PoDoFo {
+
+bool ObjectLittle( PdfObject* p1, PdfObject* p2 )
+{
+    return *p1 < *p2;
+}
 
 class ObjectsComperator { 
 public:
@@ -68,8 +76,9 @@ const PdfVecObjects & PdfVecObjects::operator=( const PdfVecObjects & rhs )
     TIVecObjects it;
     std::vector<PdfObject*>::operator=( rhs );
 
-    m_bAutoDelete  = rhs.m_bAutoDelete;
-    m_nObjectCount = rhs.m_nObjectCount;
+    m_bAutoDelete    = rhs.m_bAutoDelete;
+    m_nObjectCount   = rhs.m_nObjectCount;
+    m_lstFreeObjects = rhs.m_lstFreeObjects;
 
     it = this->begin();
     while( it != this->end() )
@@ -164,6 +173,145 @@ void PdfVecObjects::push_back( PdfObject* pObj )
 void PdfVecObjects::push_back_and_do_not_own( PdfObject* pObj )
 {
     std::vector<PdfObject*>::push_back( pObj );
+}
+
+void PdfVecObjects::RenumberObjects( PdfObject* pTrailer )
+{
+    TVecReferencePointerList  list;
+    TIVecReferencePointerList it;
+    TIReferencePointerList    itList;
+    TIVecObjects              itObjects;
+    int                       i = 0;
+
+    m_lstFreeObjects.clear();
+
+    BuildReferenceCountVector( &list );
+    InsertReferencesIntoVector( pTrailer, &list );
+
+    GarbageCollection( &list, pTrailer );
+
+    // TODO: handle trailer correctly
+
+    it = list.begin();
+    while( it != list.end() )
+    {
+        PdfReference ref( i+1, 0 );
+#ifdef _DEBUG
+        if( (*this)[i] ) 
+            PdfError::DebugMessage("RefCount of %i %i R = %i\n", (*this)[i-1]->Reference().ObjectNumber(), 
+                                   (*this)[i-1]->Reference().GenerationNumber(), (*it).size() );
+#endif // _DEBUG
+
+        (*this)[i]->m_reference = ref;
+
+        if( (*it).size() )
+        {
+            itList = (*it).begin();
+            while( itList != (*it).end() )
+            {
+                *(*itList) = ref;
+                
+                ++itList;
+            }
+            ++i;
+        }
+                
+        ++it;
+    }
+}
+
+void PdfVecObjects::InsertReferencesIntoVector( const PdfObject* pObj, TVecReferencePointerList* pList ) const
+{
+    PdfArray::const_iterator   itArray;
+    TCIKeyMap                  itKeys;
+    TCIVecObjects              it;
+    int                        index;
+  
+    if( pObj->IsReference() )
+    {
+        it = std::find_if( this->begin(), this->end(), ObjectsComperator( pObj->GetReference() ) );
+
+        if( it == this->end() )
+        {
+            RAISE_ERROR( ePdfError_NoObject );
+        }
+
+        index = (it - this->begin());
+        
+        (*pList)[index].push_back( const_cast<PdfReference*>(&(pObj->GetReference() )) );
+    }
+    else if( pObj->IsArray() )
+    {
+        itArray = pObj->GetArray().begin(); 
+        while( itArray != pObj->GetArray().end() )
+        {
+            if( (*itArray).IsArray() ||
+                (*itArray).IsDictionary() ||
+                (*itArray).IsReference() )
+                InsertReferencesIntoVector( &(*itArray), pList );
+
+            ++itArray;
+        }
+    }
+    else if( pObj->IsDictionary() )
+    {
+        itKeys = pObj->GetDictionary().GetKeys().begin();
+        while( itKeys != pObj->GetDictionary().GetKeys().end() )
+        {
+            // optimization as this is really slow:
+            // Call only for dictionaries, references and arrays
+            if( (*itKeys).second->IsArray() ||
+                (*itKeys).second->IsDictionary() ||
+                (*itKeys).second->IsReference() )
+                InsertReferencesIntoVector( (*itKeys).second, pList );
+            
+            ++itKeys;
+        }
+    }
+}
+
+void PdfVecObjects::BuildReferenceCountVector( TVecReferencePointerList* pList ) const
+{
+    TCIVecObjects      it      = this->begin();
+
+    pList->clear();
+    pList->resize( this->size() );
+
+    while( it != this->end() )
+    {
+        // optimization as this is really slow:
+        // Call only for dictionaries, references and arrays
+        if( (*it)->IsArray() ||
+            (*it)->IsDictionary() ||
+            (*it)->IsReference() )
+            InsertReferencesIntoVector( *it, pList );
+
+        ++it;
+    }
+}
+
+void PdfVecObjects::Sort()
+{
+    std::sort( this->begin(), this->end(), ObjectLittle );
+}
+
+void PdfVecObjects::GarbageCollection( TVecReferencePointerList* pList, PdfObject* pTrailer )
+{
+    TIVecReferencePointerList it  = pList->begin();
+    int                       pos = 0;
+
+    while( it != pList->end() )
+    {
+        if( !(*it).size() && pTrailer != (*this)[pos] )
+        {
+            this->erase( this->begin() + pos );
+        }
+        
+        ++pos;
+        ++it;
+    }
+
+    m_nObjectCount = ++pos;
 }
 
 };

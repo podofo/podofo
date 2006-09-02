@@ -20,6 +20,7 @@
 
 #include "PdfError.h"
 #include "PdfParser.h"
+#include "PdfVecObjects.h"
 #include "PdfWriter.h"
 
 using namespace PoDoFo;
@@ -28,7 +29,7 @@ void write_back( PdfParser* pParser, const char* pszFilename )
 {
     PdfWriter writer( pParser );
 
-    writer.SetUseXRefStream( true );
+    //writer.SetUseXRefStream( true );
     //writer.SetLinearized( true );
     writer.SetPdfCompression( true );
     writer.Write( pszFilename );
@@ -56,7 +57,16 @@ int main( int argc, char*  argv[] )
 
         printf("PdfVersion=%i\n", (int)parser.GetPdfVersion() );
         printf("PdfVersionString=%s\n", parser.GetPdfVersionString() );
-        
+
+        /*
+        printf("=============\n");
+        PdfObject* pCheat = objects.CreateObject( "Cheat" );
+        std::reverse( objects.begin(), objects.end() );
+        objects.RenumberObjects( const_cast<PdfObject*>(parser.GetTrailer()) );
+        pCheat = objects.CreateObject("LastObject");
+        printf("=============\n");
+        */
+
         write_back( &parser, argv[2] );
     } catch( PdfError & e ) {
         e.PrintErrorMsg();

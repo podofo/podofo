@@ -27,38 +27,44 @@ namespace PoDoFo {
 PdfContents::PdfContents( PdfVecObjects* pParent )
 : mContObj( pParent->CreateObject() )
 {
-	mContObj->Stream();	// this will force it to be a Stream instead of just a Dictionary
+    mContObj->Stream();	// this will force it to be a Stream instead of just a Dictionary
 }
 
 PdfContents::PdfContents( PdfObject* inObj )
 : mContObj( inObj )
 {
-	if ( mContObj->GetDataType() == ePdfDataType_Reference ) {
-		mContObj = inObj->GetParent()->GetObject( inObj->GetReference() );
-	} else if ( mContObj->GetDataType() == ePdfDataType_Dictionary ) {
-		mContObj->Stream();	// should make it a valid stream..
-	}
+    if ( mContObj->GetDataType() == ePdfDataType_Reference ) {
+        mContObj = inObj->GetParent()->GetObject( inObj->GetReference() );
+    } else if ( mContObj->GetDataType() == ePdfDataType_Dictionary ) {
+        mContObj->Stream();	// should make it a valid stream..
+    }
 }
 
 PdfObject* PdfContents::ContentsForAppending() const
 {
-	if ( mContObj->GetDataType() == ePdfDataType_Stream || 
-		 mContObj->GetDataType() == ePdfDataType_Dictionary ) {
-		return mContObj;	// just return the stream itself
-	} else if ( mContObj->GetDataType() == ePdfDataType_Array ) {
-		/*
-			Create a new stream, add it to the array, return it
-		*/
-		PdfObject*	newStm = mContObj->GetParent()->CreateObject();
-		newStm->Stream();
-		PdfReference	pdfr( newStm->ObjectNumber(), newStm->GenerationNumber() );
+//    if ( mContObj->GetDataType() == ePdfDataType_Stream || 
+//         mContObj->GetDataType() == ePdfDataType_Dictionary ) {
 
-		PdfArray&	cArr = mContObj->GetArray();
-		cArr.push_back( pdfr );
-		return newStm;
-	} else {
-		RAISE_ERROR( ePdfError_InvalidDataType );
-	}
+    // Use PdfObject::HasStream() instead of the datatype ePdfDataType_Stream
+    // as large parts of the code rely on all PdfObjects having the datatype
+    // ePdfDataType_Dictionary wether they have a stream or not
+    if( mContObj->GetDataType() == ePdfDataType_Dictionary && 
+        mContObj->HasStream() ) {
+        return mContObj;	// just return the stream itself
+    } else if ( mContObj->GetDataType() == ePdfDataType_Array ) {
+        /*
+          Create a new stream, add it to the array, return it
+        */
+        PdfObject*	newStm = mContObj->GetParent()->CreateObject();
+        newStm->Stream();
+        PdfReference	pdfr( newStm->ObjectNumber(), newStm->GenerationNumber() );
+        
+        PdfArray&	cArr = mContObj->GetArray();
+        cArr.push_back( pdfr );
+        return newStm;
+    } else {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
 }
 
 };
