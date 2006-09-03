@@ -33,6 +33,7 @@ namespace PoDoFo {
 
 class PdfDictionary;
 class PdfFont;
+class PdfNamesTree;
 class PdfOutlines;
 class PdfPage;
 class PdfPagesTree;
@@ -149,6 +150,13 @@ class PdfDocument {
      *  \returns the Outlines/Bookmarks dictionary
      */
     PdfOutlines* GetOutlines();
+
+    /** Get access to the Names dictionary (where all the named objects are stored)
+     *  The returned PdfNamesTree object is owned by the PdfDocument.
+     * 
+     *  \returns the Names dictionary
+     */
+	PdfNamesTree* GetNamesTree();
 
     /** Get access to the AcroForm dictionary
      *  \returns PdfObject the AcroForm dictionary
@@ -383,6 +391,8 @@ class PdfDocument {
     PdfVecObjects   m_vecObjects;
 
     PdfOutlines*    m_pOutlines;
+	PdfNamesTree*   m_pNamesTree;
+
     PdfPagesTree*   m_pPagesTree;
     PdfObject*      m_pTrailer;
     PdfObject*      m_pCatalog;

@@ -27,6 +27,7 @@
 #include "PdfDocument.h"
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
+#include "PdfNamesTree.h"
 #include "PdfObject.h"
 #include "PdfOutlines.h"
 #include "PdfPage.h"
@@ -622,13 +623,34 @@ PdfOutlines* PdfDocument::GetOutlines()
         {
             m_pOutlines = new PdfOutlines( &m_vecObjects );
             m_pCatalog->GetDictionary().AddKey( "Outlines", m_pOutlines->Object()->Reference() );
-        }
-        else
+		} else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
+			RAISE_ERROR( ePdfError_InvalidDataType );
+		} else
             m_pOutlines = new PdfOutlines( pObj );
     }        
 
     return m_pOutlines;
 }
- 
+
+PdfNamesTree* PdfDocument::GetNamesTree()
+{
+	PdfObject* pObj;
+
+	if( !m_pNamesTree )
+	{
+		pObj = GetNamedObjectFromCatalog( "Names" );
+		if( !pObj ) 
+		{
+			m_pNamesTree = new PdfNamesTree( &m_vecObjects );
+			m_pCatalog->GetDictionary().AddKey( "Names", m_pNamesTree->Object()->Reference() );
+		} else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
+			RAISE_ERROR( ePdfError_InvalidDataType );
+		} else
+			m_pNamesTree = new PdfNamesTree( pObj );
+	}        
+
+	return m_pNamesTree;
+}
+
 };
 
