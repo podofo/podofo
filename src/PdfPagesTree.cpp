@@ -313,6 +313,12 @@ void PdfPagesTree::InsertPages( int inAfterIndex,
         int theCount = this->ChangePagesCount( tempParent, inNumPages ) ;
         tempParent = PdfPagesTree::GetParent( tempParent ) ;
     }
+
+	// put the newly added pages into the cache
+	for ( int i=insIdx; i<insIdx+inNumPages; i++ ) {
+		m_deqPageObjs[i] = NULL;			// clear it
+		m_deqPageObjs[i] = GetPage( i );	// and now fill it
+	}
 }
 
 PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )

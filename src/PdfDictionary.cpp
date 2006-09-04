@@ -84,7 +84,7 @@ void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObjec
         m_mapKeys.erase( identifier );
     }
 
-    m_mapKeys[identifier] = new PdfObject( rObject );
+	m_mapKeys[identifier] = new PdfObject( rObject );
 }
 
 void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject* pObject )

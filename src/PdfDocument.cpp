@@ -323,17 +323,13 @@ void PdfDocument::SetTitle( const PdfString & sTitle )
 
 const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc )
 {
-    TCIVecObjects it;
-    PdfObject*    pObj;
-    PdfPage*      pPage;
-    PdfReference  ref;
     int           difference = m_vecObjects.size();
     
     // append all objects first and fix their references
-    it = rDoc.GetObjects().begin();
+    TCIVecObjects it = rDoc.GetObjects().begin();
     while( it != rDoc.GetObjects().end() )
     {
-        pObj  = m_vecObjects.CreateObject( (const PdfVariant &)*(*it) );
+        PdfObject*    pObj  = m_vecObjects.CreateObject( /*(const PdfVariant &)*/*(*it) );
         if( (*it)->HasStream() )
             *(pObj->Stream()) = *((*it)->Stream());
         
@@ -345,8 +341,8 @@ const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc )
     // append all pages now to our page tree
     for(int i=0;i<rDoc.GetPageCount();i++ )
     {
-        pPage = rDoc.GetPage( i );
-        pObj  = m_vecObjects.GetObject( PdfReference( pPage->Object()->Reference().ObjectNumber() + difference, 0 ) );
+        PdfPage*      pPage = rDoc.GetPage( i );
+        PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->Object()->Reference().ObjectNumber() + difference, 0 ) );
         if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Parent" ) )
             pObj->GetDictionary().RemoveKey( "Parent" );
 
@@ -673,14 +669,17 @@ bool PdfDocument::AddNamedDestination( PdfDestination& inDest, const std::string
 				if ( destArray.ContainsString( inName ) ) {
 					return false;	// not replacing, but already exists!
 				} else {
+					destArray.push_back( PdfString( inName ) );
 					destArray.push_back( *inDest.Object() );
 				}
 			} else {	// are replacing
 				size_t idx = destArray.GetStringIndex( inName );
 				if ( idx == -1 ) {	// not found, so put it at the end
+					destArray.push_back( PdfString( inName ) );
 					destArray.push_back( *inDest.Object() );
 				} else {
-					destArray[idx] = *inDest.Object();
+					destArray[idx] = PdfString( inName );
+					destArray[idx+1] = *inDest.Object();
 				}
 			}
 		}

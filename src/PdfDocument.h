@@ -275,7 +275,7 @@ class PdfDocument {
 	 *  \param bReplace replace existing destinations
 	 *  \returns if adding was successful
 	 */
-	bool AddNamedDestination( PdfDestination& inDest, const std::string& inName, bool bReplace );
+	bool AddNamedDestination( PdfDestination& inDest, const std::string& inName, bool bReplace = true );
 
     /** Sets the opening mode for a document
      *  \param inMode which mode to set
