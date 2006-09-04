@@ -70,6 +70,10 @@ int main( int argc, char* argv[] )
       std::cout << "--------" << std::endl;
       myInfo.OutputOutlines( std::cout );
 
+	  std::cout << "Names" << std::endl;
+	  std::cout << "-----" << std::endl;
+	  myInfo.OutputNames( std::cout );
+
     } catch( PdfError & e ) {
       fprintf( stderr, "Error: An error %i ocurred during uncompressing the pdf file.\n", e.Error() );
       e.PrintErrorMsg();

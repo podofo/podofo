@@ -1,13 +1,13 @@
 PoDoFo 0.3 
        - PdfWebWriter who creates linearized PDF files
        - Support for reading & writing encrypted PDFs
-       - Page copying & deletion
        - Some more drawing routines (tiles, save and rstore?)
        		also finish cleanup the existing ones
        		revamp color support to be more general & support more types
        - PdfWriter should be able to write objects immediately
          and not keep all in memory first.
        - Add configure checks for zlib, freetype and fontconfig
+       - PdfString needs to handle (optionally?) encoding & decoding of Unicode strings
        
 FUTURE
 	- Garbage Collected save (renumber objects to remove unused ones)

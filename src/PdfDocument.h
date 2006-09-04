@@ -149,14 +149,14 @@ class PdfDocument {
      * 
      *  \returns the Outlines/Bookmarks dictionary
      */
-    PdfOutlines* GetOutlines();
+    PdfOutlines* GetOutlines( bool bCreate = ePdfCreateObject );
 
     /** Get access to the Names dictionary (where all the named objects are stored)
      *  The returned PdfNamesTree object is owned by the PdfDocument.
      * 
      *  \returns the Names dictionary
      */
-	PdfNamesTree* GetNamesTree();
+	PdfNamesTree* GetNamesTree( bool bCreate = ePdfCreateObject );
 
     /** Get access to the AcroForm dictionary
      *  \returns PdfObject the AcroForm dictionary

@@ -36,9 +36,13 @@ public:
 	void OutputInfoDict( std::ostream& sOutStream );
 	void OutputPageInfo( std::ostream& sOutStream );
 	void OutputOutlines( std::ostream& sOutStream, PdfOutlineItem* pFirst = NULL, int level = 0 );
+	void OutputNames( std::ostream& sOutStream );
 
 private:
 	PdfDocument*	mDoc;
+
+	void OutputOneName( std::ostream& sOutStream, PdfNamesTree* inTreeObj, 
+		                const std::string& inTitle, const std::string& inKey );
 };
 
 

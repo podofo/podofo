@@ -19,7 +19,7 @@
 ***************************************************************************/
 
 #include "pdfinfo.h"
-
+#include "PdfNamesTree.h"
 
 PdfInfo::PdfInfo( const std::string& inPathname )
 {
@@ -100,7 +100,11 @@ void PdfInfo::OutputOutlines( std::ostream& sOutStream, PdfOutlineItem* pItem, i
 
     if( !pItem ) 
     {
-        pOutlines = mDoc->GetOutlines();
+        pOutlines = mDoc->GetOutlines( ePdfDontCreateObject );
+		if ( !pOutlines ) {
+			sOutStream << "\tNone Found" << std::endl;
+			return;
+		}
         pItem     = pOutlines->First();
     }
 
@@ -113,4 +117,38 @@ void PdfInfo::OutputOutlines( std::ostream& sOutStream, PdfOutlineItem* pItem, i
     
     if( pItem->Next() )
         this->OutputOutlines( sOutStream, pItem->Next(), level );
+}
+
+void PdfInfo::OutputOneName( std::ostream& sOutStream, PdfNamesTree* inTreeObj, 
+							 const std::string& inTitle, const std::string& inKey )
+{
+	sOutStream << "\t" << inTitle << std::endl;
+	PdfObject* arrObj = inTreeObj->GetOneArrayOfNames( PdfName( inKey ), ePdfDontCreateObject );
+	if ( arrObj ) {
+		PdfArray&	arr = arrObj->GetArray();
+		
+		// a names array is a set of PdfString/PdfObject pairs
+		// so we loop in sets of two - getting each pair
+		for ( int i=0; i<arr.size(); i+=2 ) {	
+			const PdfString&	theName = arr[i].GetString();
+			const PdfObject&	theVal = arr[i+1];
+
+			sOutStream << "\t\t" << theName.String() << std::endl;
+		}
+	} else {
+		sOutStream << "\t\tNone Found" << std::endl;
+	}
+
+}
+
+void PdfInfo::OutputNames( std::ostream& sOutStream )
+{
+	PdfNamesTree*	namesObj = mDoc->GetNamesTree( ePdfDontCreateObject );
+	if ( namesObj ) {
+		OutputOneName( sOutStream, namesObj, "Destinations", "Dests" );
+		OutputOneName( sOutStream, namesObj, "JavaScripts", "JavaScript" );
+		OutputOneName( sOutStream, namesObj, "Embedded Files", "EmbeddedFiles" );
+	} else {
+		sOutStream << "\t\tNone Found" << std::endl;
+	}
 }

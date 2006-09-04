@@ -36,15 +36,15 @@ class PdfName;
 class PdfNamesTree : public PdfElement {
  public:
     /** Create a new PdfNamesTree object
-     *  \param eAction type of this action
      *  \param pParent parent of this action
      */
     PdfNamesTree( PdfVecObjects* pParent );
 
-    /** Create a PdfNamesTree object from an existing 
-     *  PdfObject
+    /** Create a PdfNamesTree object from an existing PdfObject
+	 *	\param pObject the object to create from
+	 *  \param pCatalog the Catalog dictionary of the owning PDF
      */
-    PdfNamesTree( PdfObject* pObject );
+    PdfNamesTree( PdfObject* pObject, PdfObject* pCatalog );
 
     /** Returns a PdfObject of type PdfArray consisting of the list of 
 	 *  named objects of the specified type (inWhichName).  If no such
@@ -55,6 +55,10 @@ class PdfNamesTree : public PdfElement {
 	 *  \returns PdfObject of the list
      */
 	PdfObject* GetOneArrayOfNames( PdfName& inWhichName, bool bCreate=true );
+
+private:
+
+	PdfObject*	m_pCatalog;
 };
 
 

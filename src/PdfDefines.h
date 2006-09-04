@@ -225,6 +225,11 @@ typedef enum EPdfPageLayout {
 	ePdfPageLayoutTwoPageRight
 };
 
+/**
+ */
+const bool ePdfCreateObject = true;
+const bool ePdfDontCreateObject = false;
+
 // data structures
 struct TXRefEntry {
     long lOffset;

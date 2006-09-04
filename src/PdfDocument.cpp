@@ -60,7 +60,7 @@ private:
 
 
 PdfDocument::PdfDocument()
-    : m_pOutlines( NULL ), m_pPagesTree( NULL ), m_pTrailer( NULL ), m_ftLibrary( NULL )
+    : m_pOutlines( NULL ), m_pNamesTree( NULL ), m_pPagesTree( NULL ), m_pTrailer( NULL ), m_ftLibrary( NULL )
 {
     m_eVersion    = ePdfVersion_1_3;
     m_bLinearized = false;
@@ -76,7 +76,7 @@ PdfDocument::PdfDocument()
 }
 
 PdfDocument::PdfDocument( const char* pszFilename )
-    : m_pOutlines( NULL ), m_pPagesTree( NULL ), m_pTrailer( NULL ), m_ftLibrary( NULL )
+    : m_pOutlines( NULL ), m_pNamesTree( NULL ), m_pPagesTree( NULL ), m_pTrailer( NULL ), m_ftLibrary( NULL )
 {
     this->Load( pszFilename );
 }
@@ -612,7 +612,7 @@ void PdfDocument::SetPageLayout( EPdfPageLayout inLayout )
     }
 }
 
-PdfOutlines* PdfDocument::GetOutlines()
+PdfOutlines* PdfDocument::GetOutlines( bool bCreate )
 {
     PdfObject* pObj;
 
@@ -621,6 +621,8 @@ PdfOutlines* PdfDocument::GetOutlines()
         pObj = GetNamedObjectFromCatalog( "Outlines" );
         if( !pObj ) 
         {
+			if ( !bCreate )	return NULL;
+
             m_pOutlines = new PdfOutlines( &m_vecObjects );
             m_pCatalog->GetDictionary().AddKey( "Outlines", m_pOutlines->Object()->Reference() );
 		} else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
@@ -632,7 +634,7 @@ PdfOutlines* PdfDocument::GetOutlines()
     return m_pOutlines;
 }
 
-PdfNamesTree* PdfDocument::GetNamesTree()
+PdfNamesTree* PdfDocument::GetNamesTree( bool bCreate )
 {
 	PdfObject* pObj;
 
@@ -641,12 +643,16 @@ PdfNamesTree* PdfDocument::GetNamesTree()
 		pObj = GetNamedObjectFromCatalog( "Names" );
 		if( !pObj ) 
 		{
-			m_pNamesTree = new PdfNamesTree( &m_vecObjects );
-			m_pCatalog->GetDictionary().AddKey( "Names", m_pNamesTree->Object()->Reference() );
+			if ( !bCreate )	return NULL;
+
+			PdfNamesTree* tmpTree = new PdfNamesTree( &m_vecObjects );
+			pObj = tmpTree->Object();
+			m_pCatalog->GetDictionary().AddKey( "Names", pObj->Reference() );
+			m_pNamesTree = new PdfNamesTree( pObj, m_pCatalog );
 		} else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
 			RAISE_ERROR( ePdfError_InvalidDataType );
 		} else
-			m_pNamesTree = new PdfNamesTree( pObj );
+			m_pNamesTree = new PdfNamesTree( pObj, m_pCatalog );
 	}        
 
 	return m_pNamesTree;

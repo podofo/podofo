@@ -20,17 +20,22 @@
 
 #include "PdfNamesTree.h"
 
+#include "PdfArray.h"
 #include "PdfDictionary.h"
 
 namespace PoDoFo {
 
+/*
+	We use NULL for the PdfElement name, since the NamesTree dict
+	does NOT have a /Type key!
+*/
 PdfNamesTree::PdfNamesTree( PdfVecObjects* pParent )
-    : PdfElement( "Names", pParent )
+    : PdfElement( NULL, pParent ), m_pCatalog( NULL )
 {
 }
 
-PdfNamesTree::PdfNamesTree( PdfObject* pObject )
-    : PdfElement( "Names", pObject )
+PdfNamesTree::PdfNamesTree( PdfObject* pObject, PdfObject* pCatalog )
+    : PdfElement( NULL, pObject ), m_pCatalog( pCatalog )
 {
 }
 
@@ -40,8 +45,9 @@ PdfObject* PdfNamesTree::GetOneArrayOfNames( PdfName& inWhichName, bool bCreate 
 
 	PdfObject*	nameDict = Object()->GetIndirectKey( inWhichName );
 	if ( !nameDict ) {
-		if ( bCreate ) {
-			// make new Dict and add it
+		if ( bCreate && m_pCatalog ) {
+			nameDict = Object()->GetParent()->CreateObject( inWhichName );
+			m_pCatalog->GetDictionary().AddKey( "Names", nameDict );
 		} else 
 			return NULL;
 	} else if ( nameDict->GetDataType() != ePdfDataType_Dictionary ) {
@@ -51,6 +57,9 @@ PdfObject* PdfNamesTree::GetOneArrayOfNames( PdfName& inWhichName, bool bCreate 
 	nameArrObj = nameDict->GetIndirectKey( PdfName( "Names" ) );
 	if ( !nameArrObj && bCreate ) {
 		// make new Array and add it
+		PdfArray	arr;
+		nameArrObj = Object()->GetParent()->CreateObject( PdfVariant( arr ) );
+		nameDict->GetDictionary().AddKey( "Names", nameArrObj );
 	}
 
 	return nameArrObj;

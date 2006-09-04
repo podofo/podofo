@@ -11,7 +11,10 @@ Version 0.4
 	Added methods to set all the various ViewerPreferences for a document
 	Added methods to set the document's PageLayout
 	Added Outline support
+		modified podofoinfo to display them, if present	
 	Added a PdfDestination class
+	Added PdfNamesTree class for handling the global named objects
+		modified podofoinfo to display them, if present
 	
 	
 Version 0.3

@@ -133,6 +133,9 @@
 				RelativePath=".\src\PdfElement.cpp">
 			</File>
 			<File
+				RelativePath=".\src\PdfEncrypt.cpp">
+			</File>
+			<File
 				RelativePath=".\src\PdfError.cpp">
 			</File>
 			<File
@@ -149,6 +152,9 @@
 			</File>
 			<File
 				RelativePath=".\src\PdfName.cpp">
+			</File>
+			<File
+				RelativePath=".\src\PdfNamesTree.cpp">
 			</File>
 			<File
 				RelativePath=".\src\PdfObject.cpp">
@@ -249,6 +255,9 @@
 				RelativePath=".\src\PdfElement.h">
 			</File>
 			<File
+				RelativePath=".\src\PdfEncrypt.h">
+			</File>
+			<File
 				RelativePath=".\src\PdfError.h">
 			</File>
 			<File
@@ -265,6 +274,9 @@
 			</File>
 			<File
 				RelativePath=".\src\PdfName.h">
+			</File>
+			<File
+				RelativePath=".\src\PdfNamesTree.h">
 			</File>
 			<File
 				RelativePath=".\src\PdfObject.h">
