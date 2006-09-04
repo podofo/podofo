@@ -23,6 +23,7 @@
 #include <iostream>
 
 #include "PdfArray.h"
+#include "PdfDestination.h"
 #include "PdfDictionary.h"
 #include "PdfDocument.h"
 #include "PdfFont.h"
@@ -656,6 +657,37 @@ PdfNamesTree* PdfDocument::GetNamesTree( bool bCreate )
 	}        
 
 	return m_pNamesTree;
+}
+
+bool PdfDocument::AddNamedDestination( PdfDestination& inDest, const std::string& inName, bool bReplace )
+{
+	bool bRtn = false;
+
+	PdfNamesTree*	nameTree = GetNamesTree();
+	if ( nameTree ) {
+		PdfObject* destsObj = nameTree->GetOneArrayOfNames( PdfName( "Dests" ) );
+		if ( destsObj ) {
+			PdfArray&	destArray = destsObj->GetArray();
+			
+			if ( !bReplace ) {
+				if ( destArray.ContainsString( inName ) ) {
+					return false;	// not replacing, but already exists!
+				} else {
+					destArray.push_back( *inDest.Object() );
+				}
+			} else {	// are replacing
+				size_t idx = destArray.GetStringIndex( inName );
+				if ( idx == -1 ) {	// not found, so put it at the end
+					destArray.push_back( *inDest.Object() );
+				} else {
+					destArray[idx] = *inDest.Object();
+				}
+			}
+		}
+	}
+
+
+	return bRtn;
 }
 
 };

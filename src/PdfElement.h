@@ -49,12 +49,12 @@ class PdfElement {
 
     virtual ~PdfElement();
 
-    /** Get access to the interna object
+    /** Get access to the internal object
      *  \returns the internal PdfObject
      */
     inline PdfObject* Object();
 
-    /** Get access to the interna object
+    /** Get access to the internal object
      *  This is an overloaded member function.
      *
      *  \returns the internal PdfObject

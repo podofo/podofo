@@ -37,13 +37,12 @@ const char* PdfDestination::s_names[] = {
     NULL
 };
 
-PdfDestination::PdfDestination()
-    : m_bIsAction( false )
+PdfDestination::PdfDestination( PdfVecObjects* pParent )
 {
+	m_pObject = pParent->CreateObject( m_array );
 }
 
 PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit )
-    : m_bIsAction( false )
 {
     PdfName type;
 
@@ -58,10 +57,10 @@ PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit )
 
     m_array.push_back( pPage->Object()->Reference() );
     m_array.push_back( type );
+	m_pObject = pPage->Object()->GetParent()->CreateObject( m_array );
 }
 
 PdfDestination::PdfDestination( const PdfPage* pPage, const PdfRect & rRect )
-    : m_bIsAction( false )
 {
     PdfVariant var;
 
@@ -70,20 +69,20 @@ PdfDestination::PdfDestination( const PdfPage* pPage, const PdfRect & rRect )
     m_array.push_back( pPage->Object()->Reference() );
     m_array.push_back( PdfName("FitR") );
     m_array.insert( m_array.end(), var.GetArray().begin(), var.GetArray().end() );
+	m_pObject = pPage->Object()->GetParent()->CreateObject( m_array );
 }
 
 PdfDestination::PdfDestination( const PdfPage* pPage, double dLeft, double dTop, double dZoom )
-    : m_bIsAction( false )
 {
     m_array.push_back( pPage->Object()->Reference() );
     m_array.push_back( PdfName("XYZ") );
     m_array.push_back( dLeft );
     m_array.push_back( dTop );
     m_array.push_back( dZoom );
+	m_pObject = pPage->Object()->GetParent()->CreateObject( m_array );
 }
 
 PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit, double dValue )
-    : m_bIsAction( false )
 {
     PdfName type;
 
@@ -103,12 +102,7 @@ PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit, d
     m_array.push_back( pPage->Object()->Reference() );
     m_array.push_back( type );
     m_array.push_back( dValue );
-}
-
-PdfDestination::PdfDestination( const PdfAction* pAction )
-    : m_bIsAction( true )
-{
-    m_action = pAction->Object()->Reference();
+	m_pObject = pPage->Object()->GetParent()->CreateObject( m_array );
 }
 
 PdfDestination::PdfDestination( const PdfDestination & rhs )
@@ -118,26 +112,21 @@ PdfDestination::PdfDestination( const PdfDestination & rhs )
 
 const PdfDestination & PdfDestination::operator=( const PdfDestination & rhs )
 {
-    m_bIsAction = rhs.m_bIsAction;
-    m_action    = rhs.m_action;
     m_array     = rhs.m_array;
+	m_pObject	= rhs.m_pObject;
 
     return *this;
 }
 
 void PdfDestination::AddToDictionary( PdfDictionary & dictionary ) const
 {
+	// since we can only have EITHER a Dest OR an Action
+	// we check for an Action, and if already present, we throw
+	if ( dictionary.HasKey( PdfName( "A" ) ) )
+		RAISE_ERROR( ePdfError_ActionAlreadyPresent	 );
+
     dictionary.RemoveKey( "Dest" );
-    dictionary.RemoveKey( "A" );
-
-    if( m_bIsAction ) 
-        dictionary.AddKey( "A", m_action );
-    else
-    {
-        if( m_array.size() )
-            dictionary.AddKey( "Dest", m_array );
-    }
-
+    dictionary.AddKey( "Dest", m_pObject );
 }
 
 };

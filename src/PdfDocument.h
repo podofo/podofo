@@ -31,6 +31,7 @@
 
 namespace PoDoFo {
 
+class PdfDestination;
 class PdfDictionary;
 class PdfFont;
 class PdfNamesTree;
@@ -266,6 +267,15 @@ class PdfDocument {
      *  \returns this document
      */
     void DeletePages( int inFirstPage, int inNumPages );
+
+	/** Adds a PdfDestination into the global Names tree
+	 *  with the specified name, optionally replacing one of the same name
+	 *  \param inDest the destination to be assigned
+	 *  \param inName the name for the destination
+	 *  \param bReplace replace existing destinations
+	 *  \returns if adding was successful
+	 */
+	bool AddNamedDestination( PdfDestination& inDest, const std::string& inName, bool bReplace );
 
     /** Sets the opening mode for a document
      *  \param inMode which mode to set

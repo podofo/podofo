@@ -62,6 +62,22 @@ class PdfArray : public std::vector<PdfObject>, public PdfDataType {
      *  \param pDevice write the object to this device
      */
     void Write( PdfOutputDevice* pDevice ) const;
+
+	/** Utility method to determine if the array contains
+	 *  contains any objects of ePdfDataType_String whose
+	 *  value is the passed string.
+	 *  \param cmpString the string to compare against
+	 *  \returns true if success, false if not
+	 */
+	bool ContainsString( const std::string& cmpString ) const;
+
+	/** Utility method to return the actual index in the
+	 *  array which contains an object of ePdfDataType_String whose
+	 *  value is the passed string.
+	 *  \param cmpString the string to compare against
+	 *  \returns true if success, false if not
+	 */
+	size_t GetStringIndex( const std::string& cmpString ) const;
 };
 
 // -----------------------------------------------------

@@ -46,15 +46,14 @@ typedef enum EPdfDestinationFit {
 /** A destination in a PDF file.
  *  A destination can either be a page or an action.
  *
- *  \see PdfOutlineItem \see PdfAnnotation 
+ *  \see PdfOutlineItem \see PdfAnnotation \see PdfDocument
  */
 class PdfDestination {
  public:
 
-    /** Create an empty destination
-     *  i.e. an destination, pointing to nowhere
-     */
-    PdfDestination();
+	 /** Create an empty destination - points to nowhere
+	 */
+	 PdfDestination( PdfVecObjects* pParent );
 
     /** Create a new PdfDestination with a page as destination
      *  \param pPage a page which is the destination 
@@ -84,11 +83,6 @@ class PdfDestination {
      *  \param top or left value to focus
      */
     PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit, double dValue );
-
-    /** Create a new PdfDestination which triggers an action
-     *  \param pAction an action
-     */
-    PdfDestination( const PdfAction* pAction );
     
     /** Copy an existing PdfDestination
      *  \param rhs copy this PdfDestination
@@ -101,9 +95,20 @@ class PdfDestination {
      */
     const PdfDestination & operator=( const PdfDestination & rhs );
 
+	/** Get access to the internal object
+	*  \returns the internal PdfObject
+	*/
+	inline PdfObject* Object();
+
+	/** Get access to the internal object
+	*  This is an overloaded member function.
+	*
+	*  \returns the internal PdfObject
+	*/
+	inline const PdfObject* Object() const;
+
     /** Adds this destination to an dictionary.
-     *  This method handles the internal difference of actions and pages
-     *  in the PDF file format correctly.
+     *  This method handles the all the complexities of making sure it's added correctly
      *
      *  \param dictionary the destination will be added to this dictionary
      */
@@ -113,11 +118,30 @@ class PdfDestination {
     static const long  s_lNumDestinations;
     static const char* s_names[];
 
-    bool         m_bIsAction;
+	PdfArray	m_array;
+    PdfObject*	m_pObject;
 
-    PdfArray     m_array;
-    PdfReference m_action;
+	/** Create an empty destination - NOT ALLOWED
+	*/
+	PdfDestination();
+
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfObject* PdfDestination::Object()
+{
+	return m_pObject;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline const PdfObject* PdfDestination::Object() const
+{
+	return m_pObject;
+}
 
 };
 

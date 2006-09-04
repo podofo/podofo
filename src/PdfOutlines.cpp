@@ -249,7 +249,7 @@ PdfOutlines::PdfOutlines( PdfObject* pObject )
 
 PdfOutlineItem* PdfOutlines::CreateRoot( const PdfString & sTitle )
 {
-    return this->CreateChild( sTitle, PdfDestination() );
+    return this->CreateChild( sTitle, PdfDestination( Object()->GetParent() ) );
 }
 
 };
