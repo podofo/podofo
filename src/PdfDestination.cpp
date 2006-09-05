@@ -42,6 +42,16 @@ PdfDestination::PdfDestination( PdfVecObjects* pParent )
 	m_pObject = pParent->CreateObject( m_array );
 }
 
+PdfDestination::PdfDestination( PdfObject* pObject )
+{
+	if ( pObject->GetDataType() != ePdfDataType_Array ) {
+		RAISE_ERROR( ePdfError_InvalidDataType );
+	}
+
+	m_pObject = pObject;
+	m_array = pObject->GetArray();
+}
+
 PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit )
 {
     PdfName type;
@@ -127,6 +137,18 @@ void PdfDestination::AddToDictionary( PdfDictionary & dictionary ) const
 
     dictionary.RemoveKey( "Dest" );
     dictionary.AddKey( "Dest", m_pObject );
+}
+
+PdfPage* PdfDestination::GetPage()
+{
+	// first entry in the array is the page - so just make a new page from it!
+	PdfObject* pObj = m_pObject->GetParent()->GetObject( m_array[0].Reference() );
+	if ( pObj ) {
+		PdfPage* pPage = new PdfPage( pObj );
+		return pPage;
+	}
+
+	return NULL;
 }
 
 };

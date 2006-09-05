@@ -174,6 +174,17 @@ void PdfOutlineItem::SetDestination( const PdfDestination & rDest )
     rDest.AddToDictionary( m_pObject->GetDictionary() );
 }
 
+PdfDestination* PdfOutlineItem::GetDestination( void )
+{
+	PdfObject*	dObj = m_pObject->GetIndirectKey( "Dest" );
+	if ( !dObj ) {
+		return NULL;
+	} 
+
+	PdfDestination* destObj = new PdfDestination( dObj );
+	return destObj;
+}
+
 void PdfOutlineItem::SetTitle( const PdfString & sTitle )
 {
     m_pObject->GetDictionary().AddKey( "Title", sTitle );

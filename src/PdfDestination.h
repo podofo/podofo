@@ -55,6 +55,11 @@ class PdfDestination {
 	 */
 	 PdfDestination( PdfVecObjects* pParent );
 
+    /** Create a new PdfDestination from an existing PdfObject (such as loaded from a doc)
+     *  \param pObject the object to construct from 
+     */
+	 PdfDestination( PdfObject* pObject );
+
     /** Create a new PdfDestination with a page as destination
      *  \param pPage a page which is the destination 
      *  \param eFit fit mode for the page. Must be ePdfDestinationFit_Fit or ePdfDestinationFit_FitB
@@ -94,6 +99,11 @@ class PdfDestination {
      *  \returns this object
      */
     const PdfDestination & operator=( const PdfDestination & rhs );
+
+	/** Get the page that this destination points to
+	*  \returns the referenced PdfPage
+	*/
+	PdfPage* GetPage();
 
 	/** Get access to the internal object
 	*  \returns the internal PdfObject

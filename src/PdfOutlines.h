@@ -109,6 +109,11 @@ class PdfOutlineItem : public PdfElement {
      */
     void SetDestination( const PdfDestination & rDest );
 
+    /** Get the destination of this outline.
+     *  \returns the destination, if there is one, or NULL
+     */
+    PdfDestination* GetDestination( void );
+
     /** Set the title of this outline item
      *  \param sTitle the title to use
      */

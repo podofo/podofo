@@ -111,7 +111,16 @@ void PdfInfo::OutputOutlines( std::ostream& sOutStream, PdfOutlineItem* pItem, i
     for( i=0;i<level;i++ )
         sOutStream << "-";
 
-    sOutStream << ">" << pItem->GetTitle().String() << std::endl;
+    sOutStream << ">" << pItem->GetTitle().String();
+	PdfDestination* pDest = pItem->GetDestination();
+	if ( pDest ) {	// then it's a destination
+		PdfPage* pPage = pDest->GetPage();
+		sOutStream << "\tDestination: Page #" << "???";
+	} else {		// then it's one or more actions
+		sOutStream << "\tAction: " << "???";
+	}
+	sOutStream << std::endl;
+
     if( pItem->First() )
         this->OutputOutlines( sOutStream, pItem->First(), level+1 );
     
