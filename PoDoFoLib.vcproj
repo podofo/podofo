@@ -151,6 +151,9 @@
 				RelativePath=".\src\PdfImage.cpp">
 			</File>
 			<File
+				RelativePath=".\src\PdfInputDevice.cpp">
+			</File>
+			<File
 				RelativePath=".\src\PdfName.cpp">
 			</File>
 			<File
@@ -271,6 +274,9 @@
 			</File>
 			<File
 				RelativePath=".\src\PdfImage.h">
+			</File>
+			<File
+				RelativePath=".\src\PdfInputDevice.h">
 			</File>
 			<File
 				RelativePath=".\src\PdfName.h">
