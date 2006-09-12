@@ -50,6 +50,7 @@
 #include "PdfFontMetrics.h"
 #include "PdfImage.h"
 #include "PdfName.h"
+#include "PdfNamesTree.h"
 #include "PdfObject.h"
 #include "PdfOutlines.h"
 #include "PdfOutputDevice.h"

@@ -41,24 +41,23 @@ class PdfNamesTree : public PdfElement {
     PdfNamesTree( PdfVecObjects* pParent );
 
     /** Create a PdfNamesTree object from an existing PdfObject
-	 *	\param pObject the object to create from
-	 *  \param pCatalog the Catalog dictionary of the owning PDF
+     *	\param pObject the object to create from
+     *  \param pCatalog the Catalog dictionary of the owning PDF
      */
     PdfNamesTree( PdfObject* pObject, PdfObject* pCatalog );
 
     /** Returns a PdfObject of type PdfArray consisting of the list of 
-	 *  named objects of the specified type (inWhichName).  If no such
-	 *  list exists, and bCreate is true, it will create an empty list
-	 *  otherwise it returns NULL.
-	 *  \param inWhichName which of the object types to retrieve
-	 *  \param bCreate create the necessary structures if missing
-	 *  \returns PdfObject of the list
+     *  named objects of the specified type (inWhichName).  If no such
+     *  list exists, and bCreate is true, it will create an empty list
+     *  otherwise it returns NULL.
+     *  \param inWhichName which of the object types to retrieve
+     *  \param bCreate create the necessary structures if missing
+     *  \returns PdfObject of the list
      */
-	PdfObject* GetOneArrayOfNames( PdfName& inWhichName, bool bCreate=true );
+    PdfObject* GetOneArrayOfNames( const PdfName& inWhichName, bool bCreate = true );
 
-private:
-
-	PdfObject*	m_pCatalog;
+ private:
+    PdfObject*	m_pCatalog;
 };
 
 

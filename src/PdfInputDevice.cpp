@@ -42,41 +42,41 @@ PdfInputDevice::PdfInputDevice( const char* pszFilename )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-	try {
-		m_pStream = static_cast< std::istream* >( new std::ifstream( pszFilename, std::ios::binary ) );
-		if( !m_pStream )
-		{
-			RAISE_ERROR( ePdfError_FileNotFound );
-		}
-		m_StreamOwned = true;
-	}
-	catch(...) {
-		// should probably check the exact error, but for now it's a good error
-		RAISE_ERROR( ePdfError_FileNotFound );
-	}
+    try {
+        m_pStream = static_cast< std::istream* >( new std::ifstream( pszFilename, std::ios::binary ) );
+        if( !m_pStream )
+        {
+            RAISE_ERROR( ePdfError_FileNotFound );
+        }
+        m_StreamOwned = true;
+    }
+    catch(...) {
+        // should probably check the exact error, but for now it's a good error
+        RAISE_ERROR( ePdfError_FileNotFound );
+    }
 }
 
 PdfInputDevice::PdfInputDevice( const char* pBuffer, long lLen )
 {
-	this->Init();
-
-	if( !pBuffer || !lLen ) 
-	{
-		RAISE_ERROR( ePdfError_InvalidHandle );
-	}
-
-	try {
-		m_pStream = static_cast< std::istream* >( new std::istringstream( std::string( pBuffer, lLen), std::ios::binary ) );
-		if( !m_pStream )
-		{
-			RAISE_ERROR( ePdfError_FileNotFound );
-		}
-		m_StreamOwned = true;
-	}
-	catch(...) {
-		// should probably check the exact error, but for now it's a good error
-		RAISE_ERROR( ePdfError_FileNotFound );
-	}
+    this->Init();
+    
+    if( !pBuffer || !lLen ) 
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+    
+    try {
+        m_pStream = static_cast< std::istream* >( new std::istringstream( std::string( pBuffer, lLen), std::ios::binary ) );
+        if( !m_pStream )
+        {
+            RAISE_ERROR( ePdfError_FileNotFound );
+        }
+        m_StreamOwned = true;
+    }
+    catch(...) {
+        // should probably check the exact error, but for now it's a good error
+        RAISE_ERROR( ePdfError_FileNotFound );
+    }
 }
 
 PdfInputDevice::PdfInputDevice( const std::istream* pInStream )
@@ -88,40 +88,40 @@ PdfInputDevice::PdfInputDevice( const std::istream* pInStream )
 
 PdfInputDevice::~PdfInputDevice()
 {
-	if ( m_StreamOwned ) {
-		delete m_pStream;
-	}
+    if ( m_StreamOwned ) {
+        delete m_pStream;
+    }
 }
 
 void PdfInputDevice::Init()
 {
     m_pStream    = NULL;
-	m_StreamOwned = false;
+    m_StreamOwned = false;
 }
 
 int PdfInputDevice::getc() const
 {
-	return m_pStream->get();	
+    return m_pStream->get();	
 }
 
 int PdfInputDevice::look() const 
 {
-	return m_pStream->peek();
+    return m_pStream->peek();
 }
 
 int PdfInputDevice::tell() const  
 {
-	return m_pStream->tellg();
+    return m_pStream->tellg();
 }
 
 void PdfInputDevice::seek( std::streamoff off, std::ios_base::seekdir dir )  const
 {
-	m_pStream->seekg( off, dir );
+    m_pStream->seekg( off, dir );
 }
 
 void PdfInputDevice::read( char* outData, std::streamsize inNumBytes ) const
 {
-	m_pStream->read( outData, inNumBytes );
+    m_pStream->read( outData, inNumBytes );
 }
 
 };

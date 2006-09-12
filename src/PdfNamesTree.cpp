@@ -26,8 +26,8 @@
 namespace PoDoFo {
 
 /*
-	We use NULL for the PdfElement name, since the NamesTree dict
-	does NOT have a /Type key!
+  We use NULL for the PdfElement name, since the NamesTree dict
+  does NOT have a /Type key!
 */
 PdfNamesTree::PdfNamesTree( PdfVecObjects* pParent )
     : PdfElement( NULL, pParent ), m_pCatalog( NULL )
@@ -39,29 +39,29 @@ PdfNamesTree::PdfNamesTree( PdfObject* pObject, PdfObject* pCatalog )
 {
 }
 
-PdfObject* PdfNamesTree::GetOneArrayOfNames( PdfName& inWhichName, bool bCreate )
+PdfObject* PdfNamesTree::GetOneArrayOfNames( const PdfName& inWhichName, bool bCreate )
 {
-	PdfObject*	nameArrObj = NULL;
+    PdfObject*	nameArrObj = NULL;
 
-	PdfObject*	nameDict = Object()->GetIndirectKey( inWhichName );
-	if ( !nameDict ) {
-		if ( bCreate && m_pCatalog ) {
-			nameDict = Object()->GetParent()->CreateObject( PdfDictionary() );
-			Object()->GetDictionary().AddKey( inWhichName, nameDict->Reference() );
-		} else 
-			return NULL;
-	} else if ( nameDict->GetDataType() != ePdfDataType_Dictionary ) {
-		RAISE_ERROR( ePdfError_InvalidDataType );
-	}
-
-	nameArrObj = nameDict->GetIndirectKey( PdfName( "Names" ) );
-	if ( !nameArrObj && bCreate ) {
-		// make new Array and add it
-		nameArrObj = Object()->GetParent()->CreateObject( PdfArray() );
-		nameDict->GetDictionary().AddKey( "Names", nameArrObj->Reference() );
-	}
-
-	return nameArrObj;
+    PdfObject*	nameDict = Object()->GetIndirectKey( inWhichName );
+    if ( !nameDict ) {
+        if ( bCreate && m_pCatalog ) {
+            nameDict = Object()->GetParent()->CreateObject( PdfDictionary() );
+            Object()->GetDictionary().AddKey( inWhichName, nameDict->Reference() );
+        } else 
+            return NULL;
+    } else if ( nameDict->GetDataType() != ePdfDataType_Dictionary ) {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+    
+    nameArrObj = nameDict->GetIndirectKey( PdfName( "Names" ) );
+    if ( !nameArrObj && bCreate ) {
+        // make new Array and add it
+        nameArrObj = Object()->GetParent()->CreateObject( PdfArray() );
+        nameDict->GetDictionary().AddKey( "Names", nameArrObj->Reference() );
+    }
+    
+    return nameArrObj;
 }
 
 };

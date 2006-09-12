@@ -618,75 +618,75 @@ PdfOutlines* PdfDocument::GetOutlines( bool bCreate )
         pObj = GetNamedObjectFromCatalog( "Outlines" );
         if( !pObj ) 
         {
-			if ( !bCreate )	return NULL;
-
+            if ( !bCreate )	return NULL;
+            
             m_pOutlines = new PdfOutlines( &m_vecObjects );
             m_pCatalog->GetDictionary().AddKey( "Outlines", m_pOutlines->Object()->Reference() );
-		} else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
-			RAISE_ERROR( ePdfError_InvalidDataType );
-		} else
+        } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
+            RAISE_ERROR( ePdfError_InvalidDataType );
+        } else
             m_pOutlines = new PdfOutlines( pObj );
     }        
-
+    
     return m_pOutlines;
 }
 
 PdfNamesTree* PdfDocument::GetNamesTree( bool bCreate )
 {
-	PdfObject* pObj;
+    PdfObject* pObj;
 
-	if( !m_pNamesTree )
-	{
-		pObj = GetNamedObjectFromCatalog( "Names" );
-		if( !pObj ) 
-		{
-			if ( !bCreate )	return NULL;
+    if( !m_pNamesTree )
+    {
+        pObj = GetNamedObjectFromCatalog( "Names" );
+        if( !pObj ) 
+        {
+            if ( !bCreate )	return NULL;
 
-			PdfNamesTree* tmpTree = new PdfNamesTree( &m_vecObjects );
-			pObj = tmpTree->Object();
-			m_pCatalog->GetDictionary().AddKey( "Names", pObj->Reference() );
-			m_pNamesTree = new PdfNamesTree( pObj, m_pCatalog );
-		} else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
-			RAISE_ERROR( ePdfError_InvalidDataType );
-		} else
-			m_pNamesTree = new PdfNamesTree( pObj, m_pCatalog );
-	}        
-
-	return m_pNamesTree;
+            PdfNamesTree* tmpTree = new PdfNamesTree( &m_vecObjects );
+            pObj = tmpTree->Object();
+            m_pCatalog->GetDictionary().AddKey( "Names", pObj->Reference() );
+            m_pNamesTree = new PdfNamesTree( pObj, m_pCatalog );
+        } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
+            RAISE_ERROR( ePdfError_InvalidDataType );
+        } else
+            m_pNamesTree = new PdfNamesTree( pObj, m_pCatalog );
+    }        
+    
+    return m_pNamesTree;
 }
 
 bool PdfDocument::AddNamedDestination( PdfDestination& inDest, const std::string& inName, bool bReplace )
 {
-	bool bRtn = false;
+    bool          bRtn     = false;
 
-	PdfNamesTree*	nameTree = GetNamesTree();
-	if ( nameTree ) {
-		PdfObject* destsObj = nameTree->GetOneArrayOfNames( PdfName( "Dests" ) );
-		if ( destsObj ) {
-			PdfArray&	destArray = destsObj->GetArray();
-			
-			if ( !bReplace ) {
-				if ( destArray.ContainsString( inName ) ) {
-					return false;	// not replacing, but already exists!
-				} else {
-					destArray.push_back( PdfString( inName ) );
-					destArray.push_back( *inDest.Object() );
-				}
-			} else {	// are replacing
-				size_t idx = destArray.GetStringIndex( inName );
-				if ( idx == -1 ) {	// not found, so put it at the end
-					destArray.push_back( PdfString( inName ) );
-					destArray.push_back( *inDest.Object() );
-				} else {
-					destArray[idx] = PdfString( inName );
-					destArray[idx+1] = *inDest.Object();
-				}
-			}
-		}
-	}
+    PdfNamesTree* nameTree = GetNamesTree();
 
+    if ( nameTree ) {
+        PdfObject* destsObj = nameTree->GetOneArrayOfNames( PdfName( "Dests" ), true );
+        if ( destsObj ) {
+            PdfArray& destArray = destsObj->GetArray();
+            
+            if ( !bReplace ) {
+                if ( destArray.ContainsString( inName ) ) {
+                    return false;	// not replacing, but already exists!
+                } else {
+                    destArray.push_back( PdfString( inName ) );
+                    destArray.push_back( *inDest.Object() );
+                }
+            } else {	// are replacing
+                size_t idx = destArray.GetStringIndex( inName );
+                if ( idx == -1 ) {	// not found, so put it at the end
+                    destArray.push_back( PdfString( inName ) );
+                    destArray.push_back( *inDest.Object() );
+                } else {
+                    destArray[idx] = PdfString( inName );
+                    destArray[idx+1] = *inDest.Object();
+                }
+            }
+        }
+    }
 
-	return bRtn;
+    return bRtn;
 }
 
 };

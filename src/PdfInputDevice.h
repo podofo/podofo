@@ -40,13 +40,13 @@ class PdfInputDevice {
      */
     PdfInputDevice( const char* pszFilename );
 
-	/** Construct a new PdfInputDevice that reads all data from a memory buffer.
-	*  The buffer will not be owned by this object - it is COPIED.
-	*
-	*  \param pBuffer a buffer in memory
-	*  \param lLen the length of the buffer in memory
-	*/
-	PdfInputDevice( const char* pBuffer, long lLen );
+    /** Construct a new PdfInputDevice that reads all data from a memory buffer.
+     *  The buffer will not be owned by this object - it is COPIED.
+     *
+     *  \param pBuffer a buffer in memory
+     *  \param lLen the length of the buffer in memory
+     */
+    PdfInputDevice( const char* pBuffer, long lLen );
 
     /** Construct a new PdfInputDevice that reads all data from a std::istream.
      *
@@ -58,45 +58,45 @@ class PdfInputDevice {
      */
     virtual ~PdfInputDevice();
 
-	/** Get next char from stream.
-	 *  \returns the next character from the stream
-	 */
-	virtual int getc() const ;
-
-	/** Peek at next char in stream.
-	 *  /returns the next char in the stream
+    /** Get next char from stream.
+     *  \returns the next character from the stream
      */
-	virtual int look() const ;
+    virtual int getc() const ;
 
-	/** Get current position in file.
-	 *  /returns the current position in the file
-	 */
-	virtual int tell() const ;
-	virtual int getPos() const { return tell(); }
+    /** Peek at next char in stream.
+     *  /returns the next char in the stream
+     */
+    virtual int look() const ;
 
-	/** Go to a position in the stream.  If <dir> is negative, the
-	 * position is from the end of the file; otherwise the position is
-	 * from the start of the file.
-	 * /param off the offset from the dir
-	 * /param dir where to start (start, pos, end)
-	 */
-	virtual void seek( std::streamoff off, std::ios_base::seekdir dir = 0 ) const;
-	virtual void setPos( std::streamoff off, std::ios_base::seekdir dir = 0 ) const { seek( off, dir ); }
-
-	/** read a certain number of bytes from the stream
-	 *  /param outData the data that is read
-	 *  /param inNumBytes the number of bytes to read
-	 */
-	virtual void read( char* outData, std::streamsize inNumBytes ) const;
-
-	/** read a certain number of objects from the stream
-	 *  /param outData the data that is read
-	 *  /param inNumObjs the number of objects to read
-	 *  /param inObjSize the size of each object
-	 */
-	virtual void read( char* outData, std::streamsize inNumObjs, int inObjSize ) 
+    /** Get current position in file.
+     *  /returns the current position in the file
+     */
+    virtual int tell() const ;
+    virtual int getPos() const { return tell(); }
+        
+    /** Go to a position in the stream.  If <dir> is negative, the
+     * position is from the end of the file; otherwise the position is
+     * from the start of the file.
+     * /param off the offset from the dir
+     * /param dir where to start (start, pos, end)
+     */
+    virtual void seek( std::streamoff off, std::ios_base::seekdir dir = 0 ) const;
+    virtual void setPos( std::streamoff off, std::ios_base::seekdir dir = 0 ) const { seek( off, dir ); }
+    
+    /** read a certain number of bytes from the stream
+     *  /param outData the data that is read
+     *  /param inNumBytes the number of bytes to read
+     */
+    virtual void read( char* outData, std::streamsize inNumBytes ) const;
+    
+    /** read a certain number of objects from the stream
+     *  /param outData the data that is read
+     *  /param inNumObjs the number of objects to read
+     *  /param inObjSize the size of each object
+     */
+    virtual void read( char* outData, std::streamsize inNumObjs, int inObjSize ) 
 	{
-		read( outData, inNumObjs * inObjSize );
+            read( outData, inNumObjs * inObjSize );
 	}
 
  private: 
@@ -104,15 +104,15 @@ class PdfInputDevice {
      */
     void Init();
 
-	/** CAN NOT Construct a new PdfInputDevice without an input source. 
-	*
-	*/
-	PdfInputDevice();
+    /** CAN NOT Construct a new PdfInputDevice without an input source. 
+     *
+     */
+    PdfInputDevice();
 
 
  private:
     std::istream*  m_pStream;
-	bool           m_StreamOwned;
+    bool           m_StreamOwned;
 };
 
 
