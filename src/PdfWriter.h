@@ -212,6 +212,12 @@ class PdfWriter {
      */
     void WriteXRefStream( PdfOutputDevice* pDevice );
 
+    /** Add required keys to a trailer object
+     *  \param pTrailer add keys to this object
+     *  \param lSize number of objects in the PDF file
+     */
+    void FillTrailerObject( PdfObject* pTrailer, long lSize );
+
  protected:
     PdfVecObjects*  m_vecObjects;
 

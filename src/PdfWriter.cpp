@@ -241,6 +241,7 @@ void PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
     long              lXRef;
     unsigned int      nSize     = 0;
     TCIVecXRefTable   it;
+    PdfObject         trailer;
 
     lXRef = pDevice->Length();
     pDevice->Print( "xref\n" );
@@ -258,10 +259,10 @@ void PdfWriter::WritePdfTableOfContents( PdfOutputDevice* pDevice )
         ++it;
     }
 
-    m_pTrailer->GetDictionary().AddKey( PdfName::KeySize, (long)nSize );
+    FillTrailerObject( &trailer, nSize );
 
     pDevice->Print("trailer\n");
-    m_pTrailer->WriteObject( pDevice );
+    trailer.WriteObject( pDevice );
     pDevice->Print( "startxref\n%li\n%%%%EOF\n", lXRef );
 }
 
@@ -414,24 +415,29 @@ void PdfWriter::WriteXRefStream( PdfOutputDevice* pDevice )
         ++it;
     }
 
-    object.GetDictionary().AddKey( PdfName::KeySize, (long)nSize );
+    FillTrailerObject( &object, nSize );
+
     object.GetDictionary().AddKey( "Index", indeces );
     object.GetDictionary().AddKey( "W", w );
-
-    if( m_pTrailer->GetDictionary().HasKey( "Root" ) )
-        object.GetDictionary().AddKey( "Root", m_pTrailer->GetDictionary().GetKey( "Root" ) );
-    if( m_pTrailer->GetDictionary().HasKey( "Encrypt" ) )
-        object.GetDictionary().AddKey( "Encrypt", m_pTrailer->GetDictionary().GetKey( "Encrypt" ) );
-    if( m_pTrailer->GetDictionary().HasKey( "Info" ) )
-        object.GetDictionary().AddKey( "Info", m_pTrailer->GetDictionary().GetKey( "Info" ) );
-    if( m_pTrailer->GetDictionary().HasKey( "ID" ) )
-        object.GetDictionary().AddKey( "ID", m_pTrailer->GetDictionary().GetKey( "ID" ) );
-
     object.FlateCompressStream();
 
     lXRef = pDevice->Length();
     object.WriteObject( pDevice );
     pDevice->Print( "startxref\n%li\n%%%%EOF\n", lXRef );
+}
+
+void PdfWriter::FillTrailerObject( PdfObject* pTrailer, long lSize )
+{
+    pTrailer->GetDictionary().AddKey( PdfName::KeySize, lSize );
+
+    if( m_pTrailer->GetDictionary().HasKey( "Root" ) )
+        pTrailer->GetDictionary().AddKey( "Root", m_pTrailer->GetDictionary().GetKey( "Root" ) );
+    if( m_pTrailer->GetDictionary().HasKey( "Encrypt" ) )
+        pTrailer->GetDictionary().AddKey( "Encrypt", m_pTrailer->GetDictionary().GetKey( "Encrypt" ) );
+    if( m_pTrailer->GetDictionary().HasKey( "Info" ) )
+        pTrailer->GetDictionary().AddKey( "Info", m_pTrailer->GetDictionary().GetKey( "Info" ) );
+    if( m_pTrailer->GetDictionary().HasKey( "ID" ) )
+        pTrailer->GetDictionary().AddKey( "ID", m_pTrailer->GetDictionary().GetKey( "ID" ) );
 }
 
 };

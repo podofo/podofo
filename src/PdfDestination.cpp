@@ -39,17 +39,26 @@ const char* PdfDestination::s_names[] = {
 
 PdfDestination::PdfDestination( PdfVecObjects* pParent )
 {
-	m_pObject = pParent->CreateObject( m_array );
+    m_pObject = pParent->CreateObject( m_array );
 }
 
 PdfDestination::PdfDestination( PdfObject* pObject )
 {
-	if ( pObject->GetDataType() != ePdfDataType_Array ) {
-		RAISE_ERROR( ePdfError_InvalidDataType );
-	}
+    if ( pObject->GetDataType() == ePdfDataType_Array ) 
+    {
+        m_array = pObject->GetArray();
+    }
+    else if( pObject->GetDataType() == ePdfDataType_String ) 
+    {
+        // TODO: named destinations!
+    }
+    else 
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
 
-	m_pObject = pObject;
-	m_array = pObject->GetArray();
+    m_pObject = pObject;
+
 }
 
 PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit )
@@ -141,14 +150,19 @@ void PdfDestination::AddToDictionary( PdfDictionary & dictionary ) const
 
 PdfPage* PdfDestination::GetPage()
 {
-	// first entry in the array is the page - so just make a new page from it!
-	PdfObject* pObj = m_pObject->GetParent()->GetObject( m_array[0].Reference() );
-	if ( pObj ) {
-		PdfPage* pPage = new PdfPage( pObj );
-		return pPage;
-	}
+    // TODO: remove check once we support named destinations
+    if( !m_array.size() )
+        return NULL;
 
-	return NULL;
+    // first entry in the array is the page - so just make a new page from it!
+    PdfObject* pObj = m_pObject->GetParent()->GetObject( m_array[0].Reference() );
+    if ( pObj ) 
+    {
+        PdfPage* pPage = new PdfPage( pObj );
+        return pPage;
+    }
+    
+    return NULL;
 }
 
 };
