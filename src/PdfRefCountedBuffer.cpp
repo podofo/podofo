@@ -147,5 +147,27 @@ const PdfRefCountedBuffer & PdfRefCountedBuffer::operator=( const PdfRefCountedB
     return *this;
 }
 
+bool PdfRefCountedBuffer::operator==( const PdfRefCountedBuffer & rhs ) const
+{
+    if( m_pBuffer != rhs.m_pBuffer )
+    {
+        if( m_pBuffer && rhs.m_pBuffer ) 
+        {
+            /*
+              char* m_pBuffer;
+              long  m_lSize;
+              long  m_lInternalSize;
+              long  m_lRefCount;
+              bool  m_bPossesion;
+            */
+            
+            return (memcmp( m_pBuffer->m_pBuffer, rhs.m_pBuffer->m_pBuffer, PDF_MIN( m_pBuffer->m_lSize, rhs.m_pBuffer->m_lSize ) ) == 0 );
+        }
+        else 
+            return false;
+    }
+
+    return true;
+}
 
 };

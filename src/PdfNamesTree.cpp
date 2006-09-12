@@ -64,5 +64,25 @@ PdfObject* PdfNamesTree::GetOneArrayOfNames( const PdfName& inWhichName, bool bC
     return nameArrObj;
 }
 
+PdfObject* PdfNamesTree::GetValue( const PdfName & dictionary, const PdfString & key ) const 
+{
+    PdfObject* pObject = const_cast<PdfNamesTree*>(this)->GetOneArrayOfNames( dictionary, false );
+
+    if( pObject ) 
+    {
+        const PdfArray& arr = pObject->GetArray();
+
+        // a names array is a set of PdfString/PdfObject pairs
+        // so we loop in sets of two - getting each pair
+        for ( unsigned int i=0; i<arr.size(); i+=2 ) 
+            if( arr[i].GetString() == key ) 
+            {
+                return m_pObject->GetParent()->GetObject( arr[i+1].GetReference() );
+            }
+    }
+
+    return NULL;
+}
+
 };
 

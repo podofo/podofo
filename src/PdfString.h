@@ -134,6 +134,12 @@ class PdfString : public PdfDataType{
      */
     const PdfString & operator=( const PdfString & rhs );
 
+    /** Comparison operator
+     *  \param rhs compare to this string object
+     *  \returns true if both strings have the same contents
+     */
+    bool operator==( const PdfString & rhs ) const;
+
     static const PdfString StringNull;
 
  private:

@@ -56,6 +56,14 @@ class PdfNamesTree : public PdfElement {
      */
     PdfObject* GetOneArrayOfNames( const PdfName& inWhichName, bool bCreate = true );
 
+    /** Get the object referenced by a string key in one of the dictionaries
+     *  of the name tree.
+     *  \param dictionary the name of the dictionary to search in.
+     *  \param key the key to search for
+     *  \returns the value of the key or NULL if the key was not found
+     */
+    PdfObject* GetValue( const PdfName & dictionary, const PdfString & key ) const;
+
  private:
     PdfObject*	m_pCatalog;
 };

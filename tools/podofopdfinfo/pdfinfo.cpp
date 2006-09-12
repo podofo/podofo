@@ -138,7 +138,7 @@ void PdfInfo::OutputOneName( std::ostream& sOutStream, PdfNamesTree* inTreeObj,
         
         // a names array is a set of PdfString/PdfObject pairs
         // so we loop in sets of two - getting each pair
-        for ( int i=0; i<arr.size(); i+=2 ) {	
+        for ( unsigned int i=0; i<arr.size(); i+=2 ) {	
             const PdfString&	theName = arr[i].GetString();
             const PdfObject&	theVal = arr[i+1];
             

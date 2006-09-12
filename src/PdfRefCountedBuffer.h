@@ -105,6 +105,12 @@ class PdfRefCountedBuffer {
      */
     inline bool TakePossesion() const;
 
+    /** Compare to buffers.
+     *  \param rhs compare to this buffer
+     *  \returns true if both buffers contain the same contents
+     */
+    bool operator==( const PdfRefCountedBuffer & rhs ) const;
+
  private:
     /** Detach from the reference counted buffer
      */

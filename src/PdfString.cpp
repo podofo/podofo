@@ -97,6 +97,11 @@ const PdfString & PdfString::operator=( const PdfString & rhs )
     return *this;
 }
 
+bool PdfString::operator==( const PdfString & rhs ) const
+{
+    return (m_bHex == rhs.m_bHex && m_buffer == rhs.m_buffer);
+}
+
 void PdfString::Init( const char* pszString, long lLen )
 {
     const PdfFilter* pFilter;
