@@ -80,8 +80,8 @@ class PdfInputDevice {
      * /param off the offset from the dir
      * /param dir where to start (start, pos, end)
      */
-    virtual void seek( std::streamoff off, std::ios_base::seekdir dir = 0 ) const;
-    virtual void setPos( std::streamoff off, std::ios_base::seekdir dir = 0 ) const { seek( off, dir ); }
+    virtual void seek( std::streamoff off, std::ios_base::seekdir dir = std::ios_base::beg ) const;
+    virtual void setPos( std::streamoff off, std::ios_base::seekdir dir = std::ios_base::beg ) const { seek( off, dir ); }
     
     /** read a certain number of bytes from the stream
      *  /param outData the data that is read
