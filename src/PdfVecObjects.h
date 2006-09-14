@@ -32,9 +32,13 @@ class PdfObject;
 class PdfVariant;
 
 // slist would be better, but it is not support by default gcc :-(
-typedef std::list<PdfReference>           TPdfReferenceList;
-typedef TPdfReferenceList::iterator       TIPdfReferenceList;
-typedef TPdfReferenceList::const_iterator TCIPdfReferenceList;
+typedef std::list<PdfReference>                  TPdfReferenceList;
+typedef TPdfReferenceList::iterator              TIPdfReferenceList;
+typedef TPdfReferenceList::const_iterator        TCIPdfReferenceList;
+
+typedef std::set<PdfReference>                   TPdfReferenceSet;
+typedef TPdfReferenceSet::iterator               TIPdfReferenceSet;
+typedef TPdfReferenceSet::const_iterator         TCIPdfReferenceSet;
 
 typedef std::list<PdfReference*>                 TReferencePointerList;
 typedef TReferencePointerList::iterator          TIReferencePointerList;
@@ -44,9 +48,9 @@ typedef std::vector<TReferencePointerList  >     TVecReferencePointerList;
 typedef TVecReferencePointerList::iterator       TIVecReferencePointerList;
 typedef TVecReferencePointerList::const_iterator TCIVecReferencePointerList;
 
-typedef std::map<PdfReference,int>         TMapReferenceCache;
-typedef TMapReferenceCache::iterator       TIMapReferenceCache;
-typedef TMapReferenceCache::const_iterator TCIMapReferenceCache;
+typedef std::map<PdfReference,int>               TMapReferenceCache;
+typedef TMapReferenceCache::iterator             TIMapReferenceCache;
+typedef TMapReferenceCache::const_iterator       TCIMapReferenceCache;
 
 /** A STL vector of PdfObjects. I.e. a list of PdfObject classes.
  *  The PdfParser will read the PdfFile into memory and create 
@@ -103,13 +107,19 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      */
     size_t GetObjectCount() const { return m_nObjectCount; }
 
-    /** Finds the object with object no lObject and generation
-     *  np lGeneration in m_vecOffsets and returns a pointer to it
-     *  if it is found.
+    /** Finds the object with the given reference in m_vecOffsets 
+     *  and returns a pointer to it if it is found.
      *  \param ref the object to be found
      *  \returns the found object or NULL if no object was found.
      */
     PdfObject* GetObject( const PdfReference & ref ) const;
+
+    /** Finds the object with the given reference in m_vecOffsets 
+     *  and returns the index to it.
+     *  \param ref the object to be found
+     *  \returns the found object or NULL if no object was found.
+     */
+    unsigned int GetIndex( const PdfReference & ref ) const;
 
     /** Remove the object with the given object and generation number from the list
      *  of objects.
@@ -150,8 +160,11 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      *  Renumbers all objects according to there current position in the vector.
      *  All references remain intact.
      *  Warning! This function is _very_ calculation intensive.
+     *
+     *  \param pTrailer the trailer object
+     *  \param pNotDelete a list of object which must not be deleted
      */
-    void RenumberObjects( PdfObject* pTrailer );
+    void RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNotDelete = NULL );
 
     /** Insert a object into this vector.
      *  Overwritten from std::vector so that 
@@ -174,6 +187,14 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      */
     void Sort();
 
+    /** Get a set with all references of objects that the passed object
+     *  depends on.
+     *  \param pObj the object to calculate all dependencies for
+     *  \param pSet write the list of dependencies to this set
+     *     
+     */
+    void GetObjectDependencies( const PdfObject* pObj, TPdfReferenceSet* pSet ) const;
+
  private:
     /** 
      * \returns the next free object reference
@@ -188,7 +209,13 @@ class PdfVecObjects : public std::vector<PdfObject*> {
     void BuildReferenceCountVector( TVecReferencePointerList* pList ) const;
     void InsertReferencesIntoVector( const PdfObject* pObj, TVecReferencePointerList* pList ) const;
 
-    void GarbageCollection( TVecReferencePointerList* pList, PdfObject* pTrailer );
+    /** Delete all objects from the vector which do not have references to them selves
+     *  \param pList must be a list created by BuildReferenceCountVector
+     *  \param pTrailer must be the trailer object so that it is not deleted
+     *  \param pNotDelete a list of object which must not be deleted
+     *  \see BuildReferenceCountVector
+     */
+    void GarbageCollection( TVecReferencePointerList* pList, PdfObject* pTrailer, TPdfReferenceSet* pNotDelete = NULL );
 
  private:
     bool                m_bAutoDelete;

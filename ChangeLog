@@ -15,6 +15,7 @@ Version 0.4
 	Added a PdfDestination class
 	Added PdfNamesTree class for handling the global named objects
 		modified podofoinfo to display them, if present
+	PdfPainter can draw bezier curves
 	
 	
 Version 0.3

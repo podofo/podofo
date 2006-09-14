@@ -31,6 +31,7 @@ class PdfDictionary;
 class PdfDocument;
 class PdfName;
 class PdfObject;
+class PdfPage;
 class PdfPagesTree;
 class PdfParser;
 class PdfVecObjects;
@@ -39,7 +40,7 @@ struct TXRefTable{
     unsigned int nFirst;
     unsigned int nCount;
 
-    TVecOffsets  vecOffsets;    
+    TVecOffsets  vecOffsets;   
 };
 
 typedef std::vector<TXRefTable>       TVecXRefTable;
@@ -185,9 +186,20 @@ class PdfWriter {
     /** Create a linearization dictionary for the current
      *  document and return a pointer to it after inserting
      *  it into the vector of PdfObjects
+     *  
+     *  \param pPage the page that is displayed first when opening the document
+     *
      *  \returns a pointe to the linearization dictionary
      */
-    PdfObject* CreateLinearizationDictionary();
+    PdfObject* CreateLinearizationDictionary( PdfPage* pPage );
+
+    /** Reorder and renumber all object as required for linearized PDF files.
+     *  This function is very slow.
+     *
+     *  \param pLinearize linearization dictionary
+     *  \param pPage first page to display in the document
+     */
+    void ReorderObjectsLinearized( PdfObject* pLinearize, PdfPage* pPage);
 
     /** Write pdf objects to file
      *  \param pDevice write to this output device
@@ -217,6 +229,15 @@ class PdfWriter {
      *  \param lSize number of objects in the PDF file
      */
     void FillTrailerObject( PdfObject* pTrailer, long lSize );
+
+    /** Initialize m_pPagesTree with its correct value
+     *  Always call this function befre accessing the pages tree.
+     */
+    void FetchPagesTree();
+
+    /** Find dependencies required for creating a linearized PDF of the catalog dictionary.
+     */
+    void FindCatalogDependencies( PdfObject* pCatalog, const PdfName & rName, TPdfReferenceSet* pSet, bool bWithDependencies );
 
  protected:
     PdfVecObjects*  m_vecObjects;

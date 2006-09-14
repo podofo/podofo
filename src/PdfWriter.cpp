@@ -52,7 +52,7 @@ bool podofo_is_little_endian()
 }
 
 PdfWriter::PdfWriter( PdfParser* pParser )
-    : m_pPagesTree( NULL ), m_bCompress( true ), m_bXRefStream( false )
+    : m_pPagesTree( NULL ), m_bCompress( true ), m_bLinearized( false ), m_bXRefStream( false )
 {
     if( !pParser )
     {
@@ -65,7 +65,7 @@ PdfWriter::PdfWriter( PdfParser* pParser )
 }
 
 PdfWriter::PdfWriter( PdfDocument* pDocument )
-    : m_pPagesTree( NULL ), m_bCompress( true ), m_bXRefStream( false )
+    : m_pPagesTree( NULL ), m_bCompress( true ), m_bLinearized( false ), m_bXRefStream( false )
 {
     if( !pDocument )
     {
@@ -79,7 +79,7 @@ PdfWriter::PdfWriter( PdfDocument* pDocument )
 }
 
 PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
-    : m_pPagesTree( NULL ), m_bCompress( true ), m_bXRefStream( false )
+    : m_pPagesTree( NULL ), m_bCompress( true ), m_bLinearized( false ), m_bXRefStream( false )
 {
     if( !pVecObjects || !pTrailer )
     {
@@ -108,8 +108,9 @@ void PdfWriter::Write( const char* pszFilename )
 
 void PdfWriter::Write( PdfOutputDevice* pDevice )
 {
-    //PdfObject*     pLinearize  = NULL;
+    PdfObject*     pLinearize  = NULL;
     PdfVecObjects  linearized;
+    PdfPage*       pPage;
 
     // Start with an empty XRefTable
     m_vecXRef.clear();
@@ -119,15 +120,20 @@ void PdfWriter::Write( PdfOutputDevice* pDevice )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    /*
+    // Might change the version of the PDF.
+    // As a reason we have to create it before writing
+    // the PDF header.
     if( m_bLinearized )
-        pLinearize = CreateLinearizationDictionary();
-    */
+    {
+        this->FetchPagesTree();
+        pPage = m_pPagesTree->GetPage( 0 );
+        pLinearize = CreateLinearizationDictionary( pPage );
+        this->ReorderObjectsLinearized( pLinearize, pPage );
+    }
 
     WritePdfHeader( pDevice );
     
-    /*
-    if( m_bLinearized )
+    if( false ) // m_bLinearized )
     {
         // cast to stl::vector so that the linearized PdfVecObjects
         // does not take owner ship of the linearization dictionary
@@ -135,12 +141,11 @@ void PdfWriter::Write( PdfOutputDevice* pDevice )
 
         printf("linearized count=%i\n", linearized.size() );
         WritePdfObjects( pDevice, linearized );
-        // write the table of conetns for the firs page
+        // write the table of contents for the first page
         WritePdfTableOfContents( pDevice );
         // WritePdfObjects fills the XRef table which we do not need right now
         m_vecXRef.clear();
     }
-    */
 
     WritePdfObjects( pDevice, *m_vecObjects );
     if( m_bXRefStream )
@@ -172,49 +177,47 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& ve
 {
     TCIPdfReferenceList itFree     = vecObjects.GetFreeObjects().begin();
     TCIVecObjects       itObjects  = vecObjects.begin();
-
-    TXRefEntry          tEntry; 
+    int                 index;
     TXRefTable          tXRef;
-
-    tEntry.lGeneration = 0;
-    tXRef .nFirst      = 0;
-    tXRef .nCount      = 0;
 
     this->CompressObjects( vecObjects );
 
+    tXRef.vecOffsets.resize( vecObjects.size() + vecObjects.GetFreeObjects().size() + 1 );
+    tXRef.nFirst = 0;
+    tXRef.nCount = tXRef.vecOffsets.size();
+
     // add the first free object
-    tEntry.lOffset     = (itFree == vecObjects.GetFreeObjects().end() ? 0 : (*itFree).ObjectNumber());
-    tEntry.lGeneration = EMPTY_OBJECT_OFFSET;
-    tEntry.cUsed       = 'f';
-    tXRef.vecOffsets.push_back( tEntry );
-    tXRef.nCount++;
+    tXRef.vecOffsets[0].lOffset     = (itFree == vecObjects.GetFreeObjects().end() ? 0 : (*itFree).ObjectNumber());
+    tXRef.vecOffsets[0].lGeneration = EMPTY_OBJECT_OFFSET;
+    tXRef.vecOffsets[0].cUsed       = 'f';
 
     while( itObjects != vecObjects.end() )
     {
-        while( itFree != vecObjects.GetFreeObjects().end() && (*itFree).ObjectNumber() < (*itObjects)->ObjectNumber() )
-        {
-            ++itFree;
-    
-            // write empty entries into the table
-            tEntry.lOffset     = (itFree == vecObjects.GetFreeObjects().end() ? 0 : (*itFree).ObjectNumber());
-            tEntry.lGeneration = (itFree == vecObjects.GetFreeObjects().end() ? 1 : 0);
-            tEntry.cUsed       = 'f';
+        index = (*itObjects)->ObjectNumber();
 
-            tXRef.vecOffsets.push_back( tEntry );
-            tXRef.nCount++;
-        }
+        tXRef.vecOffsets[index].lOffset     = pDevice->Length();
+        tXRef.vecOffsets[index].lGeneration = (*itObjects)->GenerationNumber();
+        tXRef.vecOffsets[index].cUsed       = 'n';
 
-        tEntry.lOffset     = pDevice->Length();
-        tEntry.lGeneration = (*itObjects)->GenerationNumber();
-        tEntry.cUsed       = 'n';
-        
-        tXRef.vecOffsets.push_back( tEntry );
-        tXRef.nCount++;
-        
         if( !bFillXRefOnly )
             (*itObjects)->WriteObject( pDevice );
 
         ++itObjects;
+    }
+
+    while( itFree != vecObjects.GetFreeObjects().end() )
+    {
+        index = (*itFree).ObjectNumber();
+
+        ++itFree;
+
+        if( index < tXRef.vecOffsets.size() )
+        {
+            // write empty entries into the table
+            tXRef.vecOffsets[index].lOffset     = (itFree == vecObjects.GetFreeObjects().end() ? 0 : (*itFree).ObjectNumber());
+            tXRef.vecOffsets[index].lGeneration = (itFree == vecObjects.GetFreeObjects().end() ? 1 : 0);
+            tXRef.vecOffsets[index].cUsed       = 'f';
+        }
     }
 
     m_vecXRef.push_back( tXRef );
@@ -313,29 +316,13 @@ void PdfWriter::WriteToBuffer( char** ppBuffer, unsigned long* pulLen )
     this->Write( &memDevice );
 }
 
-PdfObject* PdfWriter::CreateLinearizationDictionary()
+PdfObject* PdfWriter::CreateLinearizationDictionary( PdfPage* pPage )
 {
-    PdfObject* pLinearize  = m_vecObjects->CreateObject();
-    PdfPage*   pPage;
+    PdfObject*       pLinearize        = m_vecObjects->CreateObject();
 
     PdfVariant place_holder( (long)0 );
     place_holder.SetPaddingLength( LINEARIZATION_PADDING );
 
-    if( !m_pPagesTree )
-    {
-        // try to find the pages tree
-        PdfObject* pRoot = m_pTrailer->GetDictionary().GetKey( "Root" );
-        if( !pRoot || !pRoot->IsReference() )
-        {
-            RAISE_ERROR( ePdfError_InvalidDataType );
-        }
-
-        pRoot            = m_vecObjects->GetObject( pRoot->GetReference() );
-        m_pPagesTree     = new PdfPagesTree( pRoot->GetIndirectKey( "Pages" ) );
-    }
-
-    pPage = m_pPagesTree->GetPage( 0 );
-    
     pLinearize->GetDictionary().AddKey( "Linearized", 1.0 );  // Version
     pLinearize->GetDictionary().AddKey( "L", place_holder );  // File length
     pLinearize->GetDictionary().AddKey( "H", place_holder );  // Hint stream offset and length as PdfArray
@@ -348,6 +335,73 @@ PdfObject* PdfWriter::CreateLinearizationDictionary()
     pLinearize->GetDictionary().AddKey( "T", place_holder );  // Offset of first entry in main cross reference table
 
     return pLinearize;
+}
+
+void PdfWriter::ReorderObjectsLinearized( PdfObject* pLinearize, PdfPage* pPage ) 
+{
+    TPdfReferenceSet   setLinearizedGroup;
+    TCIPdfReferenceSet it;
+    PdfObject*         pObj;
+    PdfObject*         pTmp;
+    unsigned int       index, i;
+
+    setLinearizedGroup.insert( pLinearize->Reference() );
+    m_vecObjects->GetObjectDependencies( pPage->Object(), &setLinearizedGroup );
+
+    pObj = m_vecObjects->GetObject( m_pTrailer->GetDictionary().GetKey( "Root" )->GetReference() );
+    setLinearizedGroup.insert( pObj->Reference() );
+
+    this->FindCatalogDependencies( pObj, "ViewerPreferences", &setLinearizedGroup, true );
+    this->FindCatalogDependencies( pObj, "PageMode", &setLinearizedGroup, true );
+    this->FindCatalogDependencies( pObj, "Threads", &setLinearizedGroup, false );
+    this->FindCatalogDependencies( pObj, "OpenAction", &setLinearizedGroup, true );
+    this->FindCatalogDependencies( pObj, "AcroForm", &setLinearizedGroup, false );
+    this->FindCatalogDependencies( pObj, "Encrypt", &setLinearizedGroup, true );
+
+    i  = m_vecObjects->size()-1;
+    it = setLinearizedGroup.begin();
+
+    while( it != setLinearizedGroup.end() )
+    {
+        index = m_vecObjects->GetIndex( *it );
+
+        if( index < i ) 
+        {
+            pTmp                   = (*m_vecObjects)[index];
+            (*m_vecObjects)[index] = (*m_vecObjects)[i];
+            (*m_vecObjects)[i]     = pTmp;
+        }
+
+        i--;
+        ++it;
+    }
+
+    m_vecObjects->RenumberObjects( m_pTrailer, &setLinearizedGroup );
+
+    // reorder the objects in the file
+    i  = setLinearizedGroup.size();
+
+    while( i )
+    {
+        index                  = m_vecObjects->size()-i;
+
+        pTmp                   = (*m_vecObjects)[index];
+        (*m_vecObjects)[index] = (*m_vecObjects)[setLinearizedGroup.size()-i];
+        (*m_vecObjects)[setLinearizedGroup.size()-i] = pTmp;
+
+        i--;
+    }
+}
+
+void PdfWriter::FindCatalogDependencies( PdfObject* pCatalog, const PdfName & rName, TPdfReferenceSet* pSet, bool bWithDependencies )
+{
+    if( pCatalog->GetDictionary().HasKey( rName ) && pCatalog->GetDictionary().GetKey( rName )->IsReference() )
+    {
+        if( bWithDependencies )
+            m_vecObjects->GetObjectDependencies( pCatalog->GetIndirectKey( rName ), pSet );
+        else
+            pSet->insert( pCatalog->GetIndirectKey( rName )->Reference() );
+    }
 }
 
 #ifdef WIN32
@@ -438,6 +492,22 @@ void PdfWriter::FillTrailerObject( PdfObject* pTrailer, long lSize )
         pTrailer->GetDictionary().AddKey( "Info", m_pTrailer->GetDictionary().GetKey( "Info" ) );
     if( m_pTrailer->GetDictionary().HasKey( "ID" ) )
         pTrailer->GetDictionary().AddKey( "ID", m_pTrailer->GetDictionary().GetKey( "ID" ) );
+}
+
+void PdfWriter::FetchPagesTree() 
+{
+    if( !m_pPagesTree )
+    {
+        // try to find the pages tree
+        PdfObject* pRoot = m_pTrailer->GetDictionary().GetKey( "Root" );
+        if( !pRoot || !pRoot->IsReference() )
+        {
+            RAISE_ERROR( ePdfError_InvalidDataType );
+        }
+
+        pRoot            = m_vecObjects->GetObject( pRoot->GetReference() );
+        m_pPagesTree     = new PdfPagesTree( pRoot->GetIndirectKey( "Pages" ) );
+    }
 }
 
 };
