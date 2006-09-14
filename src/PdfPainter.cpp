@@ -576,6 +576,24 @@ void PdfPainter::MoveTo( double dX, double dY )
     m_pCanvas->Append( m_oss.str() );
 }
 
+void PdfPainter::CubicBezierTo( double dX1, double dY1, double dX2, double dY2, double dX3, double dY3 )
+{
+    if( !m_pCanvas )
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    m_oss.str("");
+    m_oss << dX1 << " "
+          << dY1 << " "
+          << dX2 << " "
+          << dY2 << " "
+          << dX3 << " "
+          << dY3 
+          << " c" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
+}
+
 void PdfPainter::Stroke()
 {
     if( !m_pCanvas )

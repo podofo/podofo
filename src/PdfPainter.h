@@ -274,6 +274,18 @@ class PdfPainter {
      */
     void MoveTo( double dX, double dY );
 
+    /** Append a cubic bezier curve to the current path
+     *  Matches the PDF 'c' operator.
+     *
+     *  \param dX1 x coordinate of the first controll point
+     *  \param dY1 y coordinate of the first controll point
+     *  \param dX2 x coordinate of the second controll point
+     *  \param dY2 y coordinate of the second controll point
+     *  \param dX3 x coordinate of the end point, which is the new current point
+     *  \param dY3 y coordinate of the end point, which is the new current point
+     */
+    void CubicBezierTo( double dX1, double dY1, double dX2, double dY2, double dX3, double dY3 );
+
     /** Stroke the current path. Matches the PDF 'S' operator.
      *  This function is useful to construct an own path
      *  for drawing or clipping.
