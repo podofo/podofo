@@ -38,6 +38,10 @@ struct TFlatePredictorParams;
  */
 class PdfFilter {
  public:
+    /** All classes with virtual functions need a virtual destructor
+     */
+    virtual ~PdfFilter() {};
+
     /** Encodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
      *  
@@ -92,6 +96,8 @@ class PdfFilterFactory {
  */
 class PdfHexFilter : public PdfFilter {
  public:
+    virtual ~PdfHexFilter() {}
+
     /** Encodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
      *  
@@ -131,6 +137,8 @@ EPdfFilter PdfHexFilter::type() const
  */
 class PdfAscii85Filter : public PdfFilter {
  public:
+    virtual ~PdfAscii85Filter() {}
+
     /** Encodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
      *  
@@ -176,6 +184,8 @@ EPdfFilter PdfAscii85Filter::type() const
  */
 class PdfFlateFilter : public PdfFilter {
  public:
+    virtual ~PdfFlateFilter() {}
+
     /** Encodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
      *  
@@ -217,6 +227,8 @@ EPdfFilter PdfFlateFilter::type() const
  */
 class PdfRLEFilter : public PdfFilter {
  public:
+    virtual ~PdfRLEFilter() {}
+
     /** Encodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
      *  
@@ -265,6 +277,8 @@ typedef TLzwTable::const_iterator TCILzwTable;
  */
 class PdfLZWFilter : public PdfFilter {
  public:
+    virtual ~PdfLZWFilter() {}
+
     /** Encodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
      *  
