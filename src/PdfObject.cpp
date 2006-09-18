@@ -187,7 +187,7 @@ unsigned long PdfObject::GetObjectLength()
 {
     PdfOutputDevice device;
 
-    this->Write( &device );
+    this->WriteObject( &device );
 
     return device.Length();
 }

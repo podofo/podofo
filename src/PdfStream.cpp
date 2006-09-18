@@ -30,18 +30,26 @@ namespace PoDoFo {
 #define STREAM_SIZE_INCREASE 1024
 
 PdfStream::PdfStream( PdfObject* pParent )
-    : m_pParent( pParent ), m_lLength( 0 )
+    : m_pParent( pParent )
 {
 }
 
 PdfStream::PdfStream( const PdfStream & rhs )
-    : m_pParent( NULL ), m_lLength( 0 )
+    : m_pParent( NULL )
 {
     operator=(rhs);
 }
 
 PdfStream::~PdfStream()
 {
+}
+
+void PdfStream::Empty()
+{
+    m_buffer = PdfRefCountedBuffer();
+
+    if( m_pParent )
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)m_buffer.Size() ) );
 }
 
 void PdfStream::Set( char* szBuffer, long lLen, bool takePossession )
@@ -68,7 +76,7 @@ void PdfStream::Set( const char* pszString )
     }
 
     // clear the buffer
-    m_buffer = PdfRefCountedBuffer();
+    this->Empty();
 
     this->Append( pszString );
 }
@@ -316,7 +324,7 @@ void PdfStream::Uncompress()
     long         lLen;
     char*        pBuffer;
 
-    if( m_pParent && m_pParent->IsDictionary() && m_pParent->GetDictionary().HasKey( "Filter" ) )
+    if( m_pParent && m_pParent->IsDictionary() && m_pParent->GetDictionary().HasKey( "Filter" ) && m_buffer.Size() )
     {
         this->GetFilteredCopy( &pBuffer, &lLen );
         this->Set( pBuffer, lLen );

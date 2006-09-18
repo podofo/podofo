@@ -190,10 +190,38 @@ class PdfVecObjects : public std::vector<PdfObject*> {
     /** Get a set with all references of objects that the passed object
      *  depends on.
      *  \param pObj the object to calculate all dependencies for
-     *  \param pSet write the list of dependencies to this set
+     *  \param pList write the list of dependencies to this list
      *     
      */
-    void GetObjectDependencies( const PdfObject* pObj, TPdfReferenceSet* pSet ) const;
+    void GetObjectDependencies( const PdfObject* pObj, TPdfReferenceList* pList ) const;
+
+    /** \returns true if this PdfVecObjects has a valid linearization dictionary
+     *           and the correct order of objects. 
+     *           This property is reset to false as soon as an object is added
+     *           or deleted.
+     *           
+     *           \see SetLinearizationDirty();
+     *           \see SetLinearizationClean()
+     */
+    inline bool IsLinearizationClean() const;
+
+    /** Set the property IsLinearizationClean() to true.
+     *  The meaning is that this PdfVecObjects has a valid linearization 
+     *  dictionary and a valid order of objects for linearization.
+     *
+     *  \see IsLinearizationClean()
+     *  \see SetLinearizationDirty()
+     */
+    inline void SetLinearizationClean();
+
+    /** Set the property IsLinearizationClean() to false.
+     *  The meaning is that this PdfVecObjects has no valid linearization 
+     *  dictionary and no valid order of objects for linearization.
+     *
+     *  \see IsLinearizationClean()
+     *  \see SetLinearizationClean()
+     */
+    inline void SetLinearizationDirty();
 
  private:
     /** 
@@ -219,6 +247,7 @@ class PdfVecObjects : public std::vector<PdfObject*> {
 
  private:
     bool                m_bAutoDelete;
+    bool                m_bLinearizationClean;
     size_t              m_nObjectCount;
 
      TPdfReferenceList  m_lstFreeObjects;
@@ -246,6 +275,30 @@ bool PdfVecObjects::AutoDelete() const
 inline const TPdfReferenceList & PdfVecObjects::GetFreeObjects() const
 {
     return m_lstFreeObjects;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline bool PdfVecObjects::IsLinearizationClean() const
+{
+    return m_bLinearizationClean;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfVecObjects::SetLinearizationClean()
+{
+    m_bLinearizationClean = true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfVecObjects::SetLinearizationDirty()
+{
+    m_bLinearizationClean = false;
 }
 
 typedef PdfVecObjects                TVecObjects;

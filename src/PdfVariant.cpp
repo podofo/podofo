@@ -402,6 +402,9 @@ void PdfVariant::Write( PdfOutputDevice* pDevice ) const
 
 void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
 {
+    unsigned long lLen = pDevice->Length();
+    int           nPad = 0;
+ 
     DelayedLoad(); 
 
     /* Check all handles first 
@@ -447,9 +450,10 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) cons
         }
     };
 
-    if( m_nPadding && (int)pDevice->Length() < m_nPadding )
+    nPad = (int)(pDevice->Length() - lLen);
+    if( m_nPadding && nPad < m_nPadding )
     {
-        std::string str( m_nPadding - pDevice->Length(), ' ' ); 
+        std::string str( m_nPadding - nPad, ' ' ); 
         pDevice->Print( str.c_str() );
     }
 }

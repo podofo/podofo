@@ -18,69 +18,46 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PODOFO_H_
-#define _PODOFO_H_
-
-/** This file can be used in client applications to include
- *  all files required by PoDoFo at once.
- *
- */
+#ifndef _PDF_HINT_STREAM_H_
+#define _PDF_HINT_STREAM_H_
 
 #include "PdfDefines.h"
-
-/**
- * Version number of this release
- */
-#define PODOFO_MAJOR 0
-#define PODOFO_MINOR 3
-#define PODOFO_REVISION 0
-
-#include "PdfAction.h"
-#include "PdfAnnotation.h"
-#include "PdfArray.h"
-#include "PdfCanvas.h"
-#include "PdfDataType.h"
-#include "PdfDate.h"
-#include "PdfDestination.h"
-#include "PdfDocument.h"
 #include "PdfElement.h"
-#include "PdfError.h"
-#include "PdfFilter.h"
-#include "PdfFont.h"
-#include "PdfFontMetrics.h"
-
-// Not considereed to be part of the public API
-#include "PdfHintStream.h"
-// --
-
-#include "PdfImage.h"
-#include "PdfName.h"
-#include "PdfNamesTree.h"
-#include "PdfObject.h"
-#include "PdfOutlines.h"
-#include "PdfOutputDevice.h"
-#include "PdfPage.h"
-#include "PdfPagesTree.h"
-#include "PdfPainter.h"
-#include "PdfPainterMM.h"
-#include "PdfParser.h"
-#include "PdfParserBase.h"
-#include "PdfParserObject.h"
-#include "PdfRect.h"
-#include "PdfRefCountedFile.h"
-#include "PdfStream.h"
-#include "PdfString.h"
-#include "PdfVariant.h"
-#include "PdfVecObjects.h"
 #include "PdfWriter.h"
-#include "PdfXObject.h"
 
-#if 0
-#ifndef _PODOFO_NO_NAMESPACE_
-using namespace PoDoFo;
-#endif /* _PODOFO_NO_NAMESPACE_ */
-#endif
+namespace PoDoFo {
 
-#endif /* _PODOFO_H_ */
+class PdfPagesTree;
 
+class PdfHintStream : public PdfElement {
+ public:
+    PdfHintStream( PdfVecObjects* pParent, PdfPagesTree* pPagesTree );
+    ~PdfHintStream();
 
+    /** Create the hint stream 
+     *  \param pXRef pointer to a valid XREF table structure
+     */
+    void Create( TVecXRefTable* pXRef );
+
+    /** Write a pdf_uint16 to the stream in big endian format.
+     *  \param val the value to write to the stream
+     */
+    void WriteUInt16( pdf_uint16 val );
+
+    /** Write a pdf_uint32 to the stream in big endian format.
+     *  \param val the value to write to the stream
+     */
+    void WriteUInt32( pdf_uint32 );
+
+ private:
+    void CreatePageHintTable( TVecXRefTable* pXRef );
+
+ private:
+    PdfPagesTree* m_pPagesTree;
+
+    bool          m_bLittleEndian;
+};
+
+};
+
+#endif /* _PDF_HINT_STREAM_H_ */

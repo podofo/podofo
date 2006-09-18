@@ -197,15 +197,30 @@ class PdfVariant {
      */
     void ToString( std::string & rsData ) const;
 
+    /** Set the value of this object as bool
+     *  \param b the value as bool.
+     */
+    inline void SetBool( bool b );
+
     /** Get the value if this object is a bool.
      *  \returns the bool value.
      */
     inline bool GetBool() const;
 
+    /** Set the value of this object as long
+     *  \param l the value as long.
+     */
+    inline void SetNumber( long l );
+
     /** Get the value of the object as long.
      *  \return the value of the number
      */
     inline long GetNumber() const;
+
+    /** Set the value of this object as double
+     *  \param d the value as double.
+     */
+    inline void SetReal( double d );
 
     /** Get the value of the object as double.
      *  \return the value of the number
@@ -334,6 +349,21 @@ void PdfVariant::SetPaddingLength( long lLength )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
+void PdfVariant::SetBool( bool b )
+{
+    DelayedLoad();
+
+    if( !IsBool() )
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
+    m_Data.bBoolValue = b;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfVariant::GetBool() const
 {
     DelayedLoad();
@@ -344,6 +374,24 @@ bool PdfVariant::GetBool() const
     }
 
     return m_Data.bBoolValue;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfVariant::SetNumber( long l ) 
+{
+    DelayedLoad();
+
+    if( !IsReal() && !IsNumber() )
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
+    if ( IsReal() )
+        m_Data.dNumber = (double)l;
+    else
+        m_Data.nNumber = l;
 }
 
 // -----------------------------------------------------
@@ -362,6 +410,24 @@ long PdfVariant::GetNumber() const
         return (long)floor( m_Data.dNumber );
     else
         return m_Data.nNumber;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfVariant::SetReal( double d ) 
+{
+    DelayedLoad();
+
+    if( !IsReal() && !IsNumber() )
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
+    if ( IsReal() )
+        m_Data.dNumber = d;
+    else
+        m_Data.nNumber = (long)floor( d );
 }
 
 // -----------------------------------------------------

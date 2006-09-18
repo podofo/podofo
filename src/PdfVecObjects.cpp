@@ -50,7 +50,7 @@ private:
 };
 
 PdfVecObjects::PdfVecObjects()
-    : m_bAutoDelete( false ), m_nObjectCount( 1 )
+    : m_bAutoDelete( false ), m_bLinearizationClean( false ), m_nObjectCount( 1 )
 {
 }
 
@@ -77,9 +77,10 @@ const PdfVecObjects & PdfVecObjects::operator=( const PdfVecObjects & rhs )
     TIVecObjects it;
     std::vector<PdfObject*>::operator=( rhs );
 
-    m_bAutoDelete    = rhs.m_bAutoDelete;
-    m_nObjectCount   = rhs.m_nObjectCount;
-    m_lstFreeObjects = rhs.m_lstFreeObjects;
+    m_bAutoDelete         = rhs.m_bAutoDelete;
+    m_bLinearizationClean = rhs.m_bLinearizationClean;
+    m_nObjectCount        = rhs.m_nObjectCount;
+    m_lstFreeObjects      = rhs.m_lstFreeObjects;
 
     it = this->begin();
     while( it != this->end() )
@@ -126,6 +127,7 @@ PdfObject* PdfVecObjects::RemoveObject( const PdfReference & ref )
     if( it != this->end() )
     {
         pObj = *it;
+        this->SetLinearizationDirty();
         this->erase( it );
         this->AddFreeObject( pObj->Reference() );
         return pObj;
@@ -171,6 +173,7 @@ PdfObject* PdfVecObjects::CreateObject( const PdfVariant & rVariant )
 
 void PdfVecObjects::AddFreeObject( const PdfReference & rReference )
 {
+    this->SetLinearizationDirty();
     m_lstFreeObjects.push_front( rReference );
     m_lstFreeObjects.sort();
 }
@@ -180,12 +183,14 @@ void PdfVecObjects::push_back( PdfObject* pObj )
     if( pObj->ObjectNumber() >= m_nObjectCount )
         ++m_nObjectCount;
 
+    this->SetLinearizationDirty();
     pObj->SetParent( this );
     std::vector<PdfObject*>::push_back( pObj );
 }
 
 void PdfVecObjects::push_back_and_do_not_own( PdfObject* pObj )
 {
+    this->SetLinearizationDirty();
     std::vector<PdfObject*>::push_back( pObj );
 }
 
@@ -198,6 +203,7 @@ void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNot
     int                       i = 0;
 
     m_lstFreeObjects.clear();
+    this->SetLinearizationDirty();
 
     BuildReferenceCountVector( &list );
     InsertReferencesIntoVector( pTrailer, &list );
@@ -284,14 +290,15 @@ void PdfVecObjects::InsertReferencesIntoVector( const PdfObject* pObj, TVecRefer
     }
 }
 
-void PdfVecObjects::GetObjectDependencies( const PdfObject* pObj, TPdfReferenceSet* pSet ) const
+void PdfVecObjects::GetObjectDependencies( const PdfObject* pObj, TPdfReferenceList* pList ) const
 {
     PdfArray::const_iterator   itArray;
     TCIKeyMap                  itKeys;
   
     if( pObj->IsReference() )
     {
-        pSet->insert( pObj->GetReference() );
+        if( std::find( pList->begin(), pList->end(), pObj->GetReference() ) == pList->end() )
+            pList->push_back( pObj->GetReference() );
     }
     else if( pObj->IsArray() )
     {
@@ -301,7 +308,7 @@ void PdfVecObjects::GetObjectDependencies( const PdfObject* pObj, TPdfReferenceS
             if( (*itArray).IsArray() ||
                 (*itArray).IsDictionary() ||
                 (*itArray).IsReference() )
-                GetObjectDependencies( &(*itArray), pSet );
+                GetObjectDependencies( &(*itArray), pList );
 
             ++itArray;
         }
@@ -316,7 +323,7 @@ void PdfVecObjects::GetObjectDependencies( const PdfObject* pObj, TPdfReferenceS
             if( (*itKeys).second->IsArray() ||
                 (*itKeys).second->IsDictionary() ||
                 (*itKeys).second->IsReference() )
-                GetObjectDependencies( (*itKeys).second, pSet );
+                GetObjectDependencies( (*itKeys).second, pList );
             
             ++itKeys;
         }
@@ -345,6 +352,7 @@ void PdfVecObjects::BuildReferenceCountVector( TVecReferencePointerList* pList )
 
 void PdfVecObjects::Sort()
 {
+    this->SetLinearizationDirty();
     std::sort( this->begin(), this->end(), ObjectLittle );
 }
 
@@ -353,6 +361,8 @@ void PdfVecObjects::GarbageCollection( TVecReferencePointerList* pList, PdfObjec
     TIVecReferencePointerList it        = pList->begin();
     int                       pos       = 0;
     bool                      bContains = false;
+
+    this->SetLinearizationDirty();
     while( it != pList->end() )
     {
         bContains = pNotDelete ? ( pNotDelete->find( (*this)[pos]->Reference() ) != pNotDelete->end() ) : false;

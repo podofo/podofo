@@ -1,0 +1,265 @@
+/***************************************************************************
+ *   Copyright (C) 2006 by Dominik Seichter                                *
+ *   domseichter@web.de                                                    *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Library General Public License as       *
+ *   published by the Free Software Foundation; either version 2 of the    *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+#include "PdfHintStream.h"
+
+#include "PdfDictionary.h"
+#include "PdfPage.h"
+#include "PdfPagesTree.h"
+#include "PdfStream.h"
+#include "PdfVariant.h"
+#include "PdfVecObjects.h"
+
+// for htonl
+#ifdef _WIN32
+#include <winsock2.h>
+#undef GetObject
+#else 
+#include <arpa/inet.h>
+#endif // _WIN32
+
+namespace PoDoFo {
+
+// Imported from PdfWriter.cpp
+extern bool podofo_is_little_endian();
+
+// See PdfWriter.cpp
+#define LINEARIZATION_PADDING 10
+
+
+#define PAGE_OFFSET_HEADER 38
+
+class PdfPageOffsetEntry {
+public:
+    PdfPageOffsetEntry()
+        : nObjectsPerPage( 0 ) 
+    {
+    }
+
+    pdf_uint32 nObjectsPerPage;
+    pdf_uint32 nPageLength;
+    pdf_uint16 nSharedObjects;
+
+    // item4:
+
+    // item5:
+
+    pdf_uint16 nContentsOffset;
+    pdf_uint16 nContentsLength;
+};
+
+class PdfPageOffsetHeader {
+public:
+    PdfPageOffsetHeader()
+        : nLeastNumberOfObjects( 0 ),
+          nFirstPageObject( 0 ),
+          nBitsPageObject( 0 ),
+          nLeastPageLength( 0 ),
+          nBitsPageLength( 0 ),
+          nOffsetContentStream( 0 ),
+          nBitsContentStream( 0 ),
+          nLeastContentStreamLength( 0 ),
+          nBitsLeastContentStreamLength( 0 ),
+          nBitsNumSharedObjects( 0 ),
+          nBitsGreatestSharedObject( 0 ),
+          nItem12( 0 ),
+          nItem13( 0 )
+    {
+
+    }
+
+    // item1: The least number of objects in a page including the page itself
+    pdf_uint32 nLeastNumberOfObjects;
+    // item2: The location of the first pages page object
+    pdf_uint32 nFirstPageObject; // (*pXRef)[0].vecOffsets[ m_pPagesTree->GetPage( 0 )->Object()->Reference().ObjectNumber() ].lOffset;
+    // item3: The number of bits needed to represent the difference between the 
+    //        greatest and least number of objects in a page
+    pdf_uint16 nBitsPageObject; // (pdf_uint16)ceil( logb( (double)(max-least) ) );
+    // item4: The least length of a page in bytes
+    pdf_uint32 nLeastPageLength;
+    // item5: The number of bits needed to represent the greatest difference 
+    //        between the greatest and the least length of a page in bytes
+    pdf_uint16 nBitsPageLength;
+    // item6: The least offset of the start of a content stream, relative
+    //        to the beginning of a file. 
+    // --> Always set to 0 by acrobat
+    pdf_uint32 nOffsetContentStream;
+    // item7: The number of bits needed to represent the greatest difference 
+    //        between the greatest and the least offset of a the start of a content
+    //        stream relative to the beginning of a file
+    // --> Always set to 0 by acrobat
+    pdf_uint16 nBitsContentStream;
+    // item8: The least content stream length
+    pdf_uint32 nLeastContentStreamLength;
+    // item9: The number of bits needed to represent the greatest difference 
+    //        between the greatest and the least length of a content stream
+    pdf_uint16 nBitsLeastContentStreamLength;
+    // item10: The number of bits needed to represent the greatest number
+    //         of shared object references.
+    pdf_uint16 nBitsNumSharedObjects;
+    // item11: The number of bits needed to represent the nummerically 
+    //         greatest shared object identifyer used by pages
+    pdf_uint16 nBitsGreatestSharedObject;
+    // item12: 
+    pdf_uint16 nItem12;
+    // item13:
+    pdf_uint16 nItem13;
+
+    void Write( PdfHintStream* pHint )
+    {
+        pHint->WriteUInt32( nLeastNumberOfObjects );
+        pHint->WriteUInt32( nFirstPageObject );
+        pHint->WriteUInt16( nBitsPageObject );
+        pHint->WriteUInt32( nLeastPageLength );
+        pHint->WriteUInt16( nBitsPageLength );
+        pHint->WriteUInt32( nOffsetContentStream );
+        pHint->WriteUInt16( nBitsContentStream );
+        pHint->WriteUInt32( nLeastContentStreamLength );
+        pHint->WriteUInt16( nBitsLeastContentStreamLength );
+        pHint->WriteUInt16( nBitsNumSharedObjects );
+        pHint->WriteUInt16( nBitsGreatestSharedObject );
+        pHint->WriteUInt16( nItem12 );
+        pHint->WriteUInt16( nItem13 );
+    }
+
+private:
+    
+};
+
+
+PdfHintStream::PdfHintStream( PdfVecObjects* pParent, PdfPagesTree* pPagesTree )
+    : PdfElement( NULL, pParent ), m_pPagesTree( pPagesTree )
+{
+    PdfVariant place_holder( (long)0 );
+
+    m_bLittleEndian = podofo_is_little_endian();
+
+    place_holder.SetPaddingLength( LINEARIZATION_PADDING );
+
+    m_pObject->GetDictionary().AddKey( "S", place_holder ); // shared object hint table
+
+}
+
+PdfHintStream::~PdfHintStream()
+{
+
+}
+
+void PdfHintStream::Create( TVecXRefTable* pXRef )
+{
+    this->CreatePageHintTable( pXRef );
+}
+
+void PdfHintStream::CreatePageHintTable( TVecXRefTable* pXRef )
+{
+    TPdfReferenceList   lstPages;
+    TCIPdfReferenceList it;
+    int                 i;
+    int                 nPageCount = m_pPagesTree->GetTotalNumberOfPages();
+
+    PdfPageOffsetHeader header;
+    PdfPageOffsetEntry  vecPages[nPageCount];
+
+    pdf_uint32        least = 0;
+    pdf_uint32        max   = 0;
+    pdf_uint32        value;
+    PdfReference      maxRef;
+
+    for( i=0;i<nPageCount;i++ )
+    {
+        lstPages.clear();
+
+        m_pObject->GetParent()->GetObjectDependencies( m_pPagesTree->GetPage( i )->Object(), &lstPages );
+        vecPages[i].nObjectsPerPage = lstPages.size();
+
+        it    = lstPages.begin();
+        least = 0;
+        max   = 0;
+        while( it != lstPages.end() ) 
+        {
+            value = (*pXRef)[0].vecOffsets[ (*it).ObjectNumber() ].lOffset;
+            printf("Value=%i\n", value );
+
+            if( !least || least > value )
+                least = value;
+
+            if( !max || max < value )
+            {
+                max    = value;
+                maxRef = *it;
+            }
+
+            ++it;
+        }
+
+        max += m_pObject->GetParent()->GetObject( maxRef )->GetObjectLength();
+
+        vecPages[i].nPageLength     = max - least;
+        vecPages[i].nSharedObjects  = 0;
+        vecPages[i].nContentsOffset = 0;
+        vecPages[i].nContentsLength = 0;
+    }
+
+
+    ++least;
+    ++max;
+
+    header.nLeastNumberOfObjects         = least;
+    header.nFirstPageObject              = (*pXRef)[0].vecOffsets[ m_pPagesTree->GetPage( 0 )->Object()->Reference().ObjectNumber() ].lOffset;
+    header.nBitsPageObject               = (pdf_uint16)ceil( logb( (double)(max-least) ) );
+    header.nLeastPageLength              = 0;
+    header.nBitsPageLength               = 0;
+    header.nOffsetContentStream          = 0;
+    header.nBitsContentStream            = 0;
+    header.nLeastContentStreamLength     = 0;
+    header.nBitsLeastContentStreamLength = 0;
+    header.nBitsNumSharedObjects         = 0;
+    header.nBitsGreatestSharedObject     = 0;
+    header.nItem12                       = 0;
+    header.nItem13                       = 0;
+
+    header.Write( this );
+}
+
+void PdfHintStream::WriteUInt16( pdf_uint16 val )
+{
+    printf("Writing uint16\n");
+    if( m_bLittleEndian ) 
+    {
+        val = (pdf_uint16)htons( (uint16_t)val );
+    }
+
+    m_pObject->Stream()->Append( (char*)&val, 2 );
+}
+
+void PdfHintStream::WriteUInt32( pdf_uint32 val )
+{
+    printf("Writing uint32\n");
+    if( m_bLittleEndian ) 
+    {
+       val = (pdf_uint32)htonl( (uint32_t)val );
+    }
+
+    m_pObject->Stream()->Append( (char*)&val, 4 );
+    printf("DONE\n");
+}
+
+};
+

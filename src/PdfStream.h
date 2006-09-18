@@ -64,7 +64,7 @@ class PdfStream {
      *  not with new, as free is used instead of delete for freeing the memory.
      *  \param szBuffer buffer containing the stream data
      *  \param lLen length of the buffer
-	 *  \param takePossession does the stream now own this buffer...
+     *  \param takePossession does the stream now own this buffer...
      *  \returns ErrOk
      */
     void Set( char* szBuffer, long lLen, bool takePossession = true );
@@ -140,6 +140,10 @@ class PdfStream {
     /** This method removes all filters from the stream
      */
     void Uncompress();
+
+    /** Empty's the stream and set the streams buffer size to 0
+     */
+    void Empty();
 
     /** Create a copy of a PdfStream object
      *  \param rhs the object to clone

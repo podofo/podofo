@@ -19,7 +19,7 @@ include_HEADERS = podofo.h PdfDefines.h PdfObject.h PdfParser.h PdfParserObject.
 	PdfFilter.h PdfReference.h PdfDocument.h PdfArray.h PdfDictionary.h \
 	PdfDataType.h PdfElement.h PdfPainterMM.h PdfPagesTree.h PdfRefCountedFile.h \
 	PdfRefCountedBuffer.h PdfOutlines.h PdfDestination.h PdfContents.h \
-	PdfEncrypt.h PdfNamesTree.h PdfInputDevice.h
+	PdfEncrypt.h PdfNamesTree.h PdfInputDevice.h PdfHintStream.h
 
 # PdfSimpleWriter.cpp # PdfSimpleWriter.h
 libpodofo_la_SOURCES = PdfObject.cpp PdfParser.cpp PdfParserObject.cpp \
@@ -30,7 +30,7 @@ libpodofo_la_SOURCES = PdfObject.cpp PdfParser.cpp PdfParserObject.cpp \
 	PdfFilter.cpp PdfReference.cpp PdfDocument.cpp PdfArray.cpp PdfDictionary.cpp \
 	PdfDataType.cpp PdfElement.cpp PdfPagesTree.cpp PdfRefCountedFile.cpp \
 	PdfRefCountedBuffer.cpp PdfOutlines.cpp PdfDestination.cpp PdfContents.cpp \
-	PdfEncrypt.cpp PdfNamesTree.cpp PdfInputDevice.cpp
+	PdfEncrypt.cpp PdfNamesTree.cpp PdfInputDevice.cpp PdfHintStream.cpp
 
 # 
 # Build a static library

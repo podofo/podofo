@@ -62,7 +62,8 @@ namespace PoDoFo {
 /**
  * unsigned int which is defined to be 32 bits wide.
  */
-typedef unsigned int pdf_uint32;
+typedef unsigned int   pdf_uint32;
+typedef unsigned short pdf_uint16;
 
 
 // Enums

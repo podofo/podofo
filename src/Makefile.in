@@ -66,7 +66,7 @@ am_libpodofo_la_OBJECTS = PdfObject.lo PdfParser.lo PdfParserObject.lo \
 	PdfDataType.lo PdfElement.lo PdfPagesTree.lo \
 	PdfRefCountedFile.lo PdfRefCountedBuffer.lo PdfOutlines.lo \
 	PdfDestination.lo PdfContents.lo PdfEncrypt.lo PdfNamesTree.lo \
-	PdfInputDevice.lo
+	PdfInputDevice.lo PdfHintStream.lo
 libpodofo_la_OBJECTS = $(am_libpodofo_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -205,7 +205,7 @@ include_HEADERS = podofo.h PdfDefines.h PdfObject.h PdfParser.h PdfParserObject.
 	PdfFilter.h PdfReference.h PdfDocument.h PdfArray.h PdfDictionary.h \
 	PdfDataType.h PdfElement.h PdfPainterMM.h PdfPagesTree.h PdfRefCountedFile.h \
 	PdfRefCountedBuffer.h PdfOutlines.h PdfDestination.h PdfContents.h \
-	PdfEncrypt.h PdfNamesTree.h PdfInputDevice.h
+	PdfEncrypt.h PdfNamesTree.h PdfInputDevice.h PdfHintStream.h
 
 
 # PdfSimpleWriter.cpp # PdfSimpleWriter.h
@@ -217,7 +217,7 @@ libpodofo_la_SOURCES = PdfObject.cpp PdfParser.cpp PdfParserObject.cpp \
 	PdfFilter.cpp PdfReference.cpp PdfDocument.cpp PdfArray.cpp PdfDictionary.cpp \
 	PdfDataType.cpp PdfElement.cpp PdfPagesTree.cpp PdfRefCountedFile.cpp \
 	PdfRefCountedBuffer.cpp PdfOutlines.cpp PdfDestination.cpp PdfContents.cpp \
-	PdfEncrypt.cpp PdfNamesTree.cpp PdfInputDevice.cpp
+	PdfEncrypt.cpp PdfNamesTree.cpp PdfInputDevice.cpp PdfHintStream.cpp
 
 all: all-am
 
@@ -304,6 +304,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfFilter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfFont.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfFontMetrics.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfHintStream.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfImage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfInputDevice.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfName.Plo@am__quote@
