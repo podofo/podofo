@@ -16,6 +16,8 @@ Version 0.4
 	Added PdfNamesTree class for handling the global named objects
 		modified podofoinfo to display them, if present
 	PdfPainter can draw bezier curves
+	Added XCode project for building on Mac OS X
+		fixed up conditionals in font code to enable building on MacOSX - but no font loading, YET
 	
 	
 Version 0.3

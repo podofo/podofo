@@ -148,6 +148,9 @@
 				RelativePath=".\src\PdfFontMetrics.cpp">
 			</File>
 			<File
+				RelativePath=".\src\PdfHintStream.cpp">
+			</File>
+			<File
 				RelativePath=".\src\PdfImage.cpp">
 			</File>
 			<File
@@ -271,6 +274,9 @@
 			</File>
 			<File
 				RelativePath=".\src\PdfFontMetrics.h">
+			</File>
+			<File
+				RelativePath=".\src\PdfHintStream.h">
 			</File>
 			<File
 				RelativePath=".\src\PdfImage.h">

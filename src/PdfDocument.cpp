@@ -36,7 +36,7 @@
 #include "PdfStream.h"
 #include "PdfVecObjects.h"
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__APPLE_CC__)
 #include <fontconfig.h>
 #endif
 
@@ -86,7 +86,7 @@ PdfDocument::~PdfDocument()
 {
     this->Clear();
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__APPLE_CC__)
     FcConfigDestroy( (FcConfig*)m_pFcConfig );
 #endif
 
@@ -138,7 +138,7 @@ void PdfDocument::Clear()
 
 void PdfDocument::InitFonts()
 {
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__APPLE_CC__)
     m_pFcConfig     = (void*)FcInitLoadConfigAndFonts();
 #endif
 
@@ -241,7 +241,7 @@ PdfPage* PdfDocument::GetPage( int nIndex ) const
 
 PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bEmbedd )
 {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__APPLE_CC__)
     std::string       sPath = PdfFontMetrics::GetFilenameForFont( pszFontName );
 #else
     std::string       sPath = PdfFontMetrics::GetFilenameForFont( (FcConfig*)m_pFcConfig, pszFontName );

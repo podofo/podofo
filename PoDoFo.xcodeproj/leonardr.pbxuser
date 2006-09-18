@@ -1,0 +1,349 @@
+// !$*UTF8*$!
+{
+	08FB7793FE84155DC02AAC07 /* Project object */ = {
+		activeBuildConfigurationName = Debug;
+		activeBuildStyle = 014CEA520018CE5811CA2923 /* Debug */;
+		activeTarget = D2AAC045055464E500DB518D /* PoDoFo */;
+		addToTargets = (
+			D2AAC045055464E500DB518D /* PoDoFo */,
+		);
+		breakpointsGroup = 5F590DD70ABF4A8A005255A0 /* XCBreakpointsBucket */;
+		codeSenseManager = 5F590D270ABF46CC005255A0 /* Code sense */;
+		perUserDictionary = {
+			PBXConfiguration.PBXFileTableDataSource3.PBXErrorsWarningsDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXErrorsWarningsDataSource_LocationID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					355,
+					196,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXErrorsWarningsDataSource_TypeID,
+					PBXErrorsWarningsDataSource_MessageID,
+					PBXErrorsWarningsDataSource_LocationID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXFileTableDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					361,
+					20,
+					48,
+					43,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXPerProjectTemplateStateSaveDate = 180307628;
+			PBXWorkspaceStateSaveDate = 180307628;
+		};
+		perUserProjectItems = {
+			5F590DEE0ABF4CAC005255A0 /* PBXTextBookmark */ = 5F590DEE0ABF4CAC005255A0 /* PBXTextBookmark */;
+			5F590DF10ABF4CB5005255A0 /* PBXTextBookmark */ = 5F590DF10ABF4CB5005255A0 /* PBXTextBookmark */;
+			5F590DFB0ABF4E29005255A0 /* PBXTextBookmark */ = 5F590DFB0ABF4E29005255A0 /* PBXTextBookmark */;
+			5F590DFE0ABF4F17005255A0 /* PBXTextBookmark */ = 5F590DFE0ABF4F17005255A0 /* PBXTextBookmark */;
+			5F590E030ABF4F29005255A0 /* PBXTextBookmark */ = 5F590E030ABF4F29005255A0 /* PBXTextBookmark */;
+			5F590E120ABF4FC5005255A0 /* PBXTextBookmark */ = 5F590E120ABF4FC5005255A0 /* PBXTextBookmark */;
+			5F590E130ABF4FC5005255A0 /* PBXTextBookmark */ = 5F590E130ABF4FC5005255A0 /* PBXTextBookmark */;
+			5F590E140ABF51F9005255A0 /* PBXTextBookmark */ = 5F590E140ABF51F9005255A0 /* PBXTextBookmark */;
+			5F590E150ABF51F9005255A0 /* PBXTextBookmark */ = 5F590E150ABF51F9005255A0 /* PBXTextBookmark */;
+			5F590E170ABF5319005255A0 /* PBXTextBookmark */ = 5F590E170ABF5319005255A0 /* PBXTextBookmark */;
+			5F590E1D0ABF537C005255A0 /* PBXTextBookmark */ = 5F590E1D0ABF537C005255A0 /* PBXTextBookmark */;
+			5F590E1E0ABF537C005255A0 /* PBXTextBookmark */ = 5F590E1E0ABF537C005255A0 /* PBXTextBookmark */;
+			5F590E1F0ABF537C005255A0 /* PBXTextBookmark */ = 5F590E1F0ABF537C005255A0 /* PBXTextBookmark */;
+			5F590E210ABF5390005255A0 /* PBXTextBookmark */ = 5F590E210ABF5390005255A0 /* PBXTextBookmark */;
+			5F590E220ABF5390005255A0 /* PBXTextBookmark */ = 5F590E220ABF5390005255A0 /* PBXTextBookmark */;
+			5F590E230ABF5390005255A0 /* PBXTextBookmark */ = 5F590E230ABF5390005255A0 /* PBXTextBookmark */;
+			5F590E240ABF539E005255A0 /* PBXTextBookmark */ = 5F590E240ABF539E005255A0 /* PBXTextBookmark */;
+			5F590E250ABF539E005255A0 /* PBXTextBookmark */ = 5F590E250ABF539E005255A0 /* PBXTextBookmark */;
+			5F590E260ABF539E005255A0 /* PBXTextBookmark */ = 5F590E260ABF539E005255A0 /* PBXTextBookmark */;
+			5F590E280ABF5463005255A0 /* PBXTextBookmark */ = 5F590E280ABF5463005255A0 /* PBXTextBookmark */;
+			5F590E290ABF5463005255A0 /* PBXTextBookmark */ = 5F590E290ABF5463005255A0 /* PBXTextBookmark */;
+			5F590E2A0ABF5463005255A0 /* PBXTextBookmark */ = 5F590E2A0ABF5463005255A0 /* PBXTextBookmark */;
+		};
+		sourceControlManager = 5F590D260ABF46CC005255A0 /* Source Control */;
+		userBuildSettings = {
+		};
+	};
+	5F590D260ABF46CC005255A0 /* Source Control */ = {
+		isa = PBXSourceControlManager;
+		fallbackIsa = XCSourceControlManager;
+		isSCMEnabled = 1;
+		scmConfiguration = {
+			SubversionToolPath = /usr/local/bin/svn;
+		};
+		scmType = scm.subversion;
+	};
+	5F590D270ABF46CC005255A0 /* Code sense */ = {
+		isa = PBXCodeSenseManager;
+		indexTemplatePath = "";
+	};
+	5F590D3B0ABF46D9005255A0 /* PdfDocument.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {842, 9716}}";
+			sepNavSelRange = "{1880, 6}";
+			sepNavVisRect = "{{0, 325}, {711, 429}}";
+		};
+	};
+	5F590D3C0ABF46D9005255A0 /* PdfDocument.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {644, 6468}}";
+			sepNavSelRange = "{1620, 23}";
+			sepNavVisRect = "{{0, 273}, {635, 252}}";
+		};
+	};
+	5F590D430ABF46D9005255A0 /* PdfFilter.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {944, 11802}}";
+			sepNavSelRange = "{11041, 58}";
+			sepNavVisRect = "{{0, 5411}, {635, 252}}";
+		};
+	};
+	5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {722, 5040}}";
+			sepNavSelRange = "{7871, 0}";
+			sepNavVisRect = "{{0, 3986}, {711, 429}}";
+		};
+	};
+	5F590D480ABF46D9005255A0 /* PdfFontMetrics.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {711, 4914}}";
+			sepNavSelRange = "{8587, 0}";
+			sepNavVisRect = "{{0, 2789}, {711, 429}}";
+		};
+	};
+	5F590DD70ABF4A8A005255A0 /* XCBreakpointsBucket */ = {
+		isa = XCBreakpointsBucket;
+		name = "Project Breakpoints";
+		objects = (
+		);
+	};
+	5F590DEE0ABF4CAC005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		comments = "fontconfig.h: No such file or directory";
+		fRef = 5F590D480ABF46D9005255A0 /* PdfFontMetrics.h */;
+		rLen = 1;
+		rLoc = 25;
+		rType = 1;
+	};
+	5F590DF10ABF4CB5005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D480ABF46D9005255A0 /* PdfFontMetrics.h */;
+		name = macintosh;
+		rLen = 12;
+		rLoc = 1581;
+		rType = 0;
+		vrLen = 1670;
+		vrLoc = 0;
+	};
+	5F590DFB0ABF4E29005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D480ABF46D9005255A0 /* PdfFontMetrics.h */;
+		name = "PdfFontMetrics.h: 25";
+		rLen = 0;
+		rLoc = 1593;
+		rType = 0;
+		vrLen = 1673;
+		vrLoc = 0;
+	};
+	5F590DFE0ABF4F17005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		comments = "error: `FcConfig' was not declared in this scope";
+		fRef = 5F590D480ABF46D9005255A0 /* PdfFontMetrics.h */;
+		rLen = 1;
+		rLoc = 214;
+		rType = 1;
+	};
+	5F590E030ABF4F29005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		comments = "error: `FcConfig' undeclared (first use this function)";
+		fRef = 5F590D3B0ABF46D9005255A0 /* PdfDocument.cpp */;
+		rLen = 1;
+		rLoc = 89;
+		rType = 1;
+	};
+	5F590E120ABF4FC5005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D3B0ABF46D9005255A0 /* PdfDocument.cpp */;
+		name = _WIN32;
+		rLen = 6;
+		rLoc = 1880;
+		rType = 0;
+		vrLen = 648;
+		vrLoc = 1528;
+	};
+	5F590E130ABF4FC5005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D480ABF46D9005255A0 /* PdfFontMetrics.h */;
+		name = "PdfFontMetrics.h: 214";
+		rLen = 0;
+		rLoc = 8587;
+		rType = 0;
+		vrLen = 1097;
+		vrLoc = 7864;
+	};
+	5F590E140ABF51F9005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D3B0ABF46D9005255A0 /* PdfDocument.cpp */;
+		name = _WIN32;
+		rLen = 6;
+		rLoc = 1880;
+		rType = 0;
+		vrLen = 648;
+		vrLoc = 1528;
+	};
+	5F590E150ABF51F9005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D480ABF46D9005255A0 /* PdfFontMetrics.h */;
+		name = "PdfFontMetrics.h: 214";
+		rLen = 0;
+		rLoc = 8587;
+		rType = 0;
+		vrLen = 1097;
+		vrLoc = 7864;
+	};
+	5F590E170ABF5319005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		comments = "error: `FcPatternGet' undeclared (first use this function)";
+		fRef = 5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */;
+		rLen = 1;
+		rLoc = 286;
+		rType = 1;
+	};
+	5F590E1D0ABF537C005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */;
+		name = "PdfFontMetrics.cpp: 264";
+		rLen = 0;
+		rLoc = 7871;
+		rType = 0;
+		vrLen = 678;
+		vrLoc = 8409;
+	};
+	5F590E1E0ABF537C005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D3B0ABF46D9005255A0 /* PdfDocument.cpp */;
+		name = _WIN32;
+		rLen = 6;
+		rLoc = 1880;
+		rType = 0;
+		vrLen = 648;
+		vrLoc = 1528;
+	};
+	5F590E1F0ABF537C005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D480ABF46D9005255A0 /* PdfFontMetrics.h */;
+		name = "PdfFontMetrics.h: 214";
+		rLen = 0;
+		rLoc = 8587;
+		rType = 0;
+		vrLen = 1097;
+		vrLoc = 7864;
+	};
+	5F590E210ABF5390005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */;
+		name = "PdfFontMetrics.cpp: 264";
+		rLen = 0;
+		rLoc = 7871;
+		rType = 0;
+		vrLen = 678;
+		vrLoc = 8409;
+	};
+	5F590E220ABF5390005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D3B0ABF46D9005255A0 /* PdfDocument.cpp */;
+		name = _WIN32;
+		rLen = 6;
+		rLoc = 1880;
+		rType = 0;
+		vrLen = 648;
+		vrLoc = 1528;
+	};
+	5F590E230ABF5390005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D480ABF46D9005255A0 /* PdfFontMetrics.h */;
+		name = "PdfFontMetrics.h: 214";
+		rLen = 0;
+		rLoc = 8587;
+		rType = 0;
+		vrLen = 1097;
+		vrLoc = 7864;
+	};
+	5F590E240ABF539E005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */;
+		name = "PdfFontMetrics.cpp: 264";
+		rLen = 0;
+		rLoc = 7871;
+		rType = 0;
+		vrLen = 678;
+		vrLoc = 8409;
+	};
+	5F590E250ABF539E005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D3B0ABF46D9005255A0 /* PdfDocument.cpp */;
+		name = _WIN32;
+		rLen = 6;
+		rLoc = 1880;
+		rType = 0;
+		vrLen = 648;
+		vrLoc = 1528;
+	};
+	5F590E260ABF539E005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D480ABF46D9005255A0 /* PdfFontMetrics.h */;
+		name = "PdfFontMetrics.h: 214";
+		rLen = 0;
+		rLoc = 8587;
+		rType = 0;
+		vrLen = 1097;
+		vrLoc = 7864;
+	};
+	5F590E280ABF5463005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */;
+		name = "PdfFontMetrics.cpp: 264";
+		rLen = 0;
+		rLoc = 7871;
+		rType = 0;
+		vrLen = 678;
+		vrLoc = 8409;
+	};
+	5F590E290ABF5463005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D3B0ABF46D9005255A0 /* PdfDocument.cpp */;
+		name = _WIN32;
+		rLen = 6;
+		rLoc = 1880;
+		rType = 0;
+		vrLen = 648;
+		vrLoc = 1528;
+	};
+	5F590E2A0ABF5463005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D480ABF46D9005255A0 /* PdfFontMetrics.h */;
+		name = "PdfFontMetrics.h: 214";
+		rLen = 0;
+		rLoc = 8587;
+		rType = 0;
+		vrLen = 1097;
+		vrLoc = 7864;
+	};
+	D2AAC045055464E500DB518D /* PoDoFo */ = {
+		activeExec = 0;
+	};
+}

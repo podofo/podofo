@@ -1,0 +1,556 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 42;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		5F590D790ABF46DA005255A0 /* PdfAction.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D280ABF46D8005255A0 /* PdfAction.cpp */; };
+		5F590D7A0ABF46DA005255A0 /* PdfAction.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D290ABF46D9005255A0 /* PdfAction.h */; };
+		5F590D7B0ABF46DA005255A0 /* PdfAnnotation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D2A0ABF46D9005255A0 /* PdfAnnotation.cpp */; };
+		5F590D7C0ABF46DA005255A0 /* PdfAnnotation.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D2B0ABF46D9005255A0 /* PdfAnnotation.h */; };
+		5F590D7D0ABF46DA005255A0 /* PdfArray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D2C0ABF46D9005255A0 /* PdfArray.cpp */; };
+		5F590D7E0ABF46DA005255A0 /* PdfArray.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D2D0ABF46D9005255A0 /* PdfArray.h */; };
+		5F590D7F0ABF46DA005255A0 /* PdfCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D2E0ABF46D9005255A0 /* PdfCanvas.cpp */; };
+		5F590D800ABF46DA005255A0 /* PdfCanvas.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D2F0ABF46D9005255A0 /* PdfCanvas.h */; };
+		5F590D810ABF46DA005255A0 /* PdfContents.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D300ABF46D9005255A0 /* PdfContents.cpp */; };
+		5F590D820ABF46DA005255A0 /* PdfContents.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D310ABF46D9005255A0 /* PdfContents.h */; };
+		5F590D830ABF46DA005255A0 /* PdfDataType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D320ABF46D9005255A0 /* PdfDataType.cpp */; };
+		5F590D840ABF46DA005255A0 /* PdfDataType.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D330ABF46D9005255A0 /* PdfDataType.h */; };
+		5F590D850ABF46DA005255A0 /* PdfDate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D340ABF46D9005255A0 /* PdfDate.cpp */; };
+		5F590D860ABF46DA005255A0 /* PdfDate.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D350ABF46D9005255A0 /* PdfDate.h */; };
+		5F590D870ABF46DA005255A0 /* PdfDefines.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D360ABF46D9005255A0 /* PdfDefines.h */; };
+		5F590D880ABF46DA005255A0 /* PdfDestination.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D370ABF46D9005255A0 /* PdfDestination.cpp */; };
+		5F590D890ABF46DA005255A0 /* PdfDestination.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D380ABF46D9005255A0 /* PdfDestination.h */; };
+		5F590D8A0ABF46DA005255A0 /* PdfDictionary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D390ABF46D9005255A0 /* PdfDictionary.cpp */; };
+		5F590D8B0ABF46DA005255A0 /* PdfDictionary.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D3A0ABF46D9005255A0 /* PdfDictionary.h */; };
+		5F590D8C0ABF46DA005255A0 /* PdfDocument.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D3B0ABF46D9005255A0 /* PdfDocument.cpp */; };
+		5F590D8D0ABF46DA005255A0 /* PdfDocument.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D3C0ABF46D9005255A0 /* PdfDocument.h */; };
+		5F590D8E0ABF46DA005255A0 /* PdfElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D3D0ABF46D9005255A0 /* PdfElement.cpp */; };
+		5F590D8F0ABF46DA005255A0 /* PdfElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D3E0ABF46D9005255A0 /* PdfElement.h */; };
+		5F590D900ABF46DA005255A0 /* PdfEncrypt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D3F0ABF46D9005255A0 /* PdfEncrypt.cpp */; };
+		5F590D910ABF46DA005255A0 /* PdfEncrypt.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D400ABF46D9005255A0 /* PdfEncrypt.h */; };
+		5F590D920ABF46DA005255A0 /* PdfError.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D410ABF46D9005255A0 /* PdfError.cpp */; };
+		5F590D930ABF46DA005255A0 /* PdfError.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D420ABF46D9005255A0 /* PdfError.h */; };
+		5F590D940ABF46DA005255A0 /* PdfFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D430ABF46D9005255A0 /* PdfFilter.cpp */; };
+		5F590D950ABF46DA005255A0 /* PdfFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D440ABF46D9005255A0 /* PdfFilter.h */; };
+		5F590D960ABF46DA005255A0 /* PdfFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D450ABF46D9005255A0 /* PdfFont.cpp */; };
+		5F590D970ABF46DA005255A0 /* PdfFont.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D460ABF46D9005255A0 /* PdfFont.h */; };
+		5F590D980ABF46DA005255A0 /* PdfFontMetrics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */; };
+		5F590D990ABF46DA005255A0 /* PdfFontMetrics.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D480ABF46D9005255A0 /* PdfFontMetrics.h */; };
+		5F590D9A0ABF46DA005255A0 /* PdfImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D490ABF46D9005255A0 /* PdfImage.cpp */; };
+		5F590D9B0ABF46DA005255A0 /* PdfImage.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D4A0ABF46D9005255A0 /* PdfImage.h */; };
+		5F590D9C0ABF46DA005255A0 /* PdfInputDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D4B0ABF46D9005255A0 /* PdfInputDevice.cpp */; };
+		5F590D9D0ABF46DA005255A0 /* PdfInputDevice.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D4C0ABF46D9005255A0 /* PdfInputDevice.h */; };
+		5F590D9E0ABF46DA005255A0 /* PdfName.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D4D0ABF46D9005255A0 /* PdfName.cpp */; };
+		5F590D9F0ABF46DA005255A0 /* PdfName.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D4E0ABF46D9005255A0 /* PdfName.h */; };
+		5F590DA00ABF46DA005255A0 /* PdfNamesTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D4F0ABF46D9005255A0 /* PdfNamesTree.cpp */; };
+		5F590DA10ABF46DA005255A0 /* PdfNamesTree.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D500ABF46D9005255A0 /* PdfNamesTree.h */; };
+		5F590DA20ABF46DA005255A0 /* PdfObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D510ABF46D9005255A0 /* PdfObject.cpp */; };
+		5F590DA30ABF46DA005255A0 /* PdfObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D520ABF46D9005255A0 /* PdfObject.h */; };
+		5F590DA40ABF46DA005255A0 /* PdfOutlines.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D530ABF46D9005255A0 /* PdfOutlines.cpp */; };
+		5F590DA50ABF46DA005255A0 /* PdfOutlines.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D540ABF46D9005255A0 /* PdfOutlines.h */; };
+		5F590DA60ABF46DA005255A0 /* PdfOutputDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D550ABF46D9005255A0 /* PdfOutputDevice.cpp */; };
+		5F590DA70ABF46DA005255A0 /* PdfOutputDevice.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D560ABF46D9005255A0 /* PdfOutputDevice.h */; };
+		5F590DA80ABF46DA005255A0 /* PdfPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D570ABF46D9005255A0 /* PdfPage.cpp */; };
+		5F590DA90ABF46DA005255A0 /* PdfPage.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D580ABF46D9005255A0 /* PdfPage.h */; };
+		5F590DAA0ABF46DA005255A0 /* PdfPagesTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D590ABF46D9005255A0 /* PdfPagesTree.cpp */; };
+		5F590DAB0ABF46DA005255A0 /* PdfPagesTree.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D5A0ABF46D9005255A0 /* PdfPagesTree.h */; };
+		5F590DAC0ABF46DA005255A0 /* PdfPainter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D5B0ABF46D9005255A0 /* PdfPainter.cpp */; };
+		5F590DAD0ABF46DA005255A0 /* PdfPainter.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D5C0ABF46D9005255A0 /* PdfPainter.h */; };
+		5F590DAE0ABF46DA005255A0 /* PdfPainterMM.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D5D0ABF46D9005255A0 /* PdfPainterMM.h */; };
+		5F590DAF0ABF46DA005255A0 /* PdfParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D5E0ABF46D9005255A0 /* PdfParser.cpp */; };
+		5F590DB00ABF46DA005255A0 /* PdfParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D5F0ABF46D9005255A0 /* PdfParser.h */; };
+		5F590DB10ABF46DA005255A0 /* PdfParserBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D600ABF46D9005255A0 /* PdfParserBase.cpp */; };
+		5F590DB20ABF46DA005255A0 /* PdfParserBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D610ABF46D9005255A0 /* PdfParserBase.h */; };
+		5F590DB30ABF46DA005255A0 /* PdfParserObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D620ABF46D9005255A0 /* PdfParserObject.cpp */; };
+		5F590DB40ABF46DA005255A0 /* PdfParserObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D630ABF46DA005255A0 /* PdfParserObject.h */; };
+		5F590DB50ABF46DA005255A0 /* PdfRect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D640ABF46DA005255A0 /* PdfRect.cpp */; };
+		5F590DB60ABF46DA005255A0 /* PdfRect.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D650ABF46DA005255A0 /* PdfRect.h */; };
+		5F590DB70ABF46DA005255A0 /* PdfRefCountedBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D660ABF46DA005255A0 /* PdfRefCountedBuffer.cpp */; };
+		5F590DB80ABF46DA005255A0 /* PdfRefCountedBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D670ABF46DA005255A0 /* PdfRefCountedBuffer.h */; };
+		5F590DB90ABF46DA005255A0 /* PdfRefCountedFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D680ABF46DA005255A0 /* PdfRefCountedFile.cpp */; };
+		5F590DBA0ABF46DA005255A0 /* PdfRefCountedFile.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D690ABF46DA005255A0 /* PdfRefCountedFile.h */; };
+		5F590DBB0ABF46DA005255A0 /* PdfReference.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D6A0ABF46DA005255A0 /* PdfReference.cpp */; };
+		5F590DBC0ABF46DA005255A0 /* PdfReference.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D6B0ABF46DA005255A0 /* PdfReference.h */; };
+		5F590DBD0ABF46DA005255A0 /* PdfStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D6C0ABF46DA005255A0 /* PdfStream.cpp */; };
+		5F590DBE0ABF46DA005255A0 /* PdfStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D6D0ABF46DA005255A0 /* PdfStream.h */; };
+		5F590DBF0ABF46DA005255A0 /* PdfString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D6E0ABF46DA005255A0 /* PdfString.cpp */; };
+		5F590DC00ABF46DA005255A0 /* PdfString.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D6F0ABF46DA005255A0 /* PdfString.h */; };
+		5F590DC10ABF46DA005255A0 /* PdfVariant.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D700ABF46DA005255A0 /* PdfVariant.cpp */; };
+		5F590DC20ABF46DA005255A0 /* PdfVariant.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D710ABF46DA005255A0 /* PdfVariant.h */; };
+		5F590DC30ABF46DA005255A0 /* PdfVecObjects.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D720ABF46DA005255A0 /* PdfVecObjects.cpp */; };
+		5F590DC40ABF46DA005255A0 /* PdfVecObjects.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D730ABF46DA005255A0 /* PdfVecObjects.h */; };
+		5F590DC50ABF46DA005255A0 /* PdfWriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D740ABF46DA005255A0 /* PdfWriter.cpp */; };
+		5F590DC60ABF46DA005255A0 /* PdfWriter.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D750ABF46DA005255A0 /* PdfWriter.h */; };
+		5F590DC70ABF46DA005255A0 /* PdfXObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590D760ABF46DA005255A0 /* PdfXObject.cpp */; };
+		5F590DC80ABF46DA005255A0 /* PdfXObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D770ABF46DA005255A0 /* PdfXObject.h */; };
+		5F590DC90ABF46DA005255A0 /* podofo.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590D780ABF46DA005255A0 /* podofo.h */; };
+		5F590DCC0ABF47B2005255A0 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F590DCB0ABF47B2005255A0 /* ApplicationServices.framework */; };
+		5F590E0B0ABF4F81005255A0 /* PdfHintStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590E090ABF4F81005255A0 /* PdfHintStream.cpp */; };
+		5F590E0C0ABF4F81005255A0 /* PdfHintStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590E0A0ABF4F81005255A0 /* PdfHintStream.h */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXBuildStyle section */
+		014CEA520018CE5811CA2923 /* Debug */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		014CEA530018CE5811CA2923 /* Release */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+			};
+			name = Release;
+		};
+/* End PBXBuildStyle section */
+
+/* Begin PBXFileReference section */
+		5F590D280ABF46D8005255A0 /* PdfAction.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfAction.cpp; path = src/PdfAction.cpp; sourceTree = "<group>"; };
+		5F590D290ABF46D9005255A0 /* PdfAction.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfAction.h; path = src/PdfAction.h; sourceTree = "<group>"; };
+		5F590D2A0ABF46D9005255A0 /* PdfAnnotation.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfAnnotation.cpp; path = src/PdfAnnotation.cpp; sourceTree = "<group>"; };
+		5F590D2B0ABF46D9005255A0 /* PdfAnnotation.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfAnnotation.h; path = src/PdfAnnotation.h; sourceTree = "<group>"; };
+		5F590D2C0ABF46D9005255A0 /* PdfArray.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfArray.cpp; path = src/PdfArray.cpp; sourceTree = "<group>"; };
+		5F590D2D0ABF46D9005255A0 /* PdfArray.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfArray.h; path = src/PdfArray.h; sourceTree = "<group>"; };
+		5F590D2E0ABF46D9005255A0 /* PdfCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfCanvas.cpp; path = src/PdfCanvas.cpp; sourceTree = "<group>"; };
+		5F590D2F0ABF46D9005255A0 /* PdfCanvas.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfCanvas.h; path = src/PdfCanvas.h; sourceTree = "<group>"; };
+		5F590D300ABF46D9005255A0 /* PdfContents.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfContents.cpp; path = src/PdfContents.cpp; sourceTree = "<group>"; };
+		5F590D310ABF46D9005255A0 /* PdfContents.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfContents.h; path = src/PdfContents.h; sourceTree = "<group>"; };
+		5F590D320ABF46D9005255A0 /* PdfDataType.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfDataType.cpp; path = src/PdfDataType.cpp; sourceTree = "<group>"; };
+		5F590D330ABF46D9005255A0 /* PdfDataType.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfDataType.h; path = src/PdfDataType.h; sourceTree = "<group>"; };
+		5F590D340ABF46D9005255A0 /* PdfDate.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfDate.cpp; path = src/PdfDate.cpp; sourceTree = "<group>"; };
+		5F590D350ABF46D9005255A0 /* PdfDate.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfDate.h; path = src/PdfDate.h; sourceTree = "<group>"; };
+		5F590D360ABF46D9005255A0 /* PdfDefines.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfDefines.h; path = src/PdfDefines.h; sourceTree = "<group>"; };
+		5F590D370ABF46D9005255A0 /* PdfDestination.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfDestination.cpp; path = src/PdfDestination.cpp; sourceTree = "<group>"; };
+		5F590D380ABF46D9005255A0 /* PdfDestination.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfDestination.h; path = src/PdfDestination.h; sourceTree = "<group>"; };
+		5F590D390ABF46D9005255A0 /* PdfDictionary.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfDictionary.cpp; path = src/PdfDictionary.cpp; sourceTree = "<group>"; };
+		5F590D3A0ABF46D9005255A0 /* PdfDictionary.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfDictionary.h; path = src/PdfDictionary.h; sourceTree = "<group>"; };
+		5F590D3B0ABF46D9005255A0 /* PdfDocument.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfDocument.cpp; path = src/PdfDocument.cpp; sourceTree = "<group>"; };
+		5F590D3C0ABF46D9005255A0 /* PdfDocument.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfDocument.h; path = src/PdfDocument.h; sourceTree = "<group>"; };
+		5F590D3D0ABF46D9005255A0 /* PdfElement.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfElement.cpp; path = src/PdfElement.cpp; sourceTree = "<group>"; };
+		5F590D3E0ABF46D9005255A0 /* PdfElement.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfElement.h; path = src/PdfElement.h; sourceTree = "<group>"; };
+		5F590D3F0ABF46D9005255A0 /* PdfEncrypt.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfEncrypt.cpp; path = src/PdfEncrypt.cpp; sourceTree = "<group>"; };
+		5F590D400ABF46D9005255A0 /* PdfEncrypt.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfEncrypt.h; path = src/PdfEncrypt.h; sourceTree = "<group>"; };
+		5F590D410ABF46D9005255A0 /* PdfError.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfError.cpp; path = src/PdfError.cpp; sourceTree = "<group>"; };
+		5F590D420ABF46D9005255A0 /* PdfError.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfError.h; path = src/PdfError.h; sourceTree = "<group>"; };
+		5F590D430ABF46D9005255A0 /* PdfFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfFilter.cpp; path = src/PdfFilter.cpp; sourceTree = "<group>"; };
+		5F590D440ABF46D9005255A0 /* PdfFilter.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfFilter.h; path = src/PdfFilter.h; sourceTree = "<group>"; };
+		5F590D450ABF46D9005255A0 /* PdfFont.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfFont.cpp; path = src/PdfFont.cpp; sourceTree = "<group>"; };
+		5F590D460ABF46D9005255A0 /* PdfFont.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfFont.h; path = src/PdfFont.h; sourceTree = "<group>"; };
+		5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfFontMetrics.cpp; path = src/PdfFontMetrics.cpp; sourceTree = "<group>"; };
+		5F590D480ABF46D9005255A0 /* PdfFontMetrics.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfFontMetrics.h; path = src/PdfFontMetrics.h; sourceTree = "<group>"; };
+		5F590D490ABF46D9005255A0 /* PdfImage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfImage.cpp; path = src/PdfImage.cpp; sourceTree = "<group>"; };
+		5F590D4A0ABF46D9005255A0 /* PdfImage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfImage.h; path = src/PdfImage.h; sourceTree = "<group>"; };
+		5F590D4B0ABF46D9005255A0 /* PdfInputDevice.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfInputDevice.cpp; path = src/PdfInputDevice.cpp; sourceTree = "<group>"; };
+		5F590D4C0ABF46D9005255A0 /* PdfInputDevice.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfInputDevice.h; path = src/PdfInputDevice.h; sourceTree = "<group>"; };
+		5F590D4D0ABF46D9005255A0 /* PdfName.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfName.cpp; path = src/PdfName.cpp; sourceTree = "<group>"; };
+		5F590D4E0ABF46D9005255A0 /* PdfName.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfName.h; path = src/PdfName.h; sourceTree = "<group>"; };
+		5F590D4F0ABF46D9005255A0 /* PdfNamesTree.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfNamesTree.cpp; path = src/PdfNamesTree.cpp; sourceTree = "<group>"; };
+		5F590D500ABF46D9005255A0 /* PdfNamesTree.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfNamesTree.h; path = src/PdfNamesTree.h; sourceTree = "<group>"; };
+		5F590D510ABF46D9005255A0 /* PdfObject.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfObject.cpp; path = src/PdfObject.cpp; sourceTree = "<group>"; };
+		5F590D520ABF46D9005255A0 /* PdfObject.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfObject.h; path = src/PdfObject.h; sourceTree = "<group>"; };
+		5F590D530ABF46D9005255A0 /* PdfOutlines.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfOutlines.cpp; path = src/PdfOutlines.cpp; sourceTree = "<group>"; };
+		5F590D540ABF46D9005255A0 /* PdfOutlines.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfOutlines.h; path = src/PdfOutlines.h; sourceTree = "<group>"; };
+		5F590D550ABF46D9005255A0 /* PdfOutputDevice.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfOutputDevice.cpp; path = src/PdfOutputDevice.cpp; sourceTree = "<group>"; };
+		5F590D560ABF46D9005255A0 /* PdfOutputDevice.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfOutputDevice.h; path = src/PdfOutputDevice.h; sourceTree = "<group>"; };
+		5F590D570ABF46D9005255A0 /* PdfPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfPage.cpp; path = src/PdfPage.cpp; sourceTree = "<group>"; };
+		5F590D580ABF46D9005255A0 /* PdfPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfPage.h; path = src/PdfPage.h; sourceTree = "<group>"; };
+		5F590D590ABF46D9005255A0 /* PdfPagesTree.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfPagesTree.cpp; path = src/PdfPagesTree.cpp; sourceTree = "<group>"; };
+		5F590D5A0ABF46D9005255A0 /* PdfPagesTree.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfPagesTree.h; path = src/PdfPagesTree.h; sourceTree = "<group>"; };
+		5F590D5B0ABF46D9005255A0 /* PdfPainter.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfPainter.cpp; path = src/PdfPainter.cpp; sourceTree = "<group>"; };
+		5F590D5C0ABF46D9005255A0 /* PdfPainter.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfPainter.h; path = src/PdfPainter.h; sourceTree = "<group>"; };
+		5F590D5D0ABF46D9005255A0 /* PdfPainterMM.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfPainterMM.h; path = src/PdfPainterMM.h; sourceTree = "<group>"; };
+		5F590D5E0ABF46D9005255A0 /* PdfParser.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfParser.cpp; path = src/PdfParser.cpp; sourceTree = "<group>"; };
+		5F590D5F0ABF46D9005255A0 /* PdfParser.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfParser.h; path = src/PdfParser.h; sourceTree = "<group>"; };
+		5F590D600ABF46D9005255A0 /* PdfParserBase.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfParserBase.cpp; path = src/PdfParserBase.cpp; sourceTree = "<group>"; };
+		5F590D610ABF46D9005255A0 /* PdfParserBase.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfParserBase.h; path = src/PdfParserBase.h; sourceTree = "<group>"; };
+		5F590D620ABF46D9005255A0 /* PdfParserObject.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfParserObject.cpp; path = src/PdfParserObject.cpp; sourceTree = "<group>"; };
+		5F590D630ABF46DA005255A0 /* PdfParserObject.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfParserObject.h; path = src/PdfParserObject.h; sourceTree = "<group>"; };
+		5F590D640ABF46DA005255A0 /* PdfRect.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfRect.cpp; path = src/PdfRect.cpp; sourceTree = "<group>"; };
+		5F590D650ABF46DA005255A0 /* PdfRect.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfRect.h; path = src/PdfRect.h; sourceTree = "<group>"; };
+		5F590D660ABF46DA005255A0 /* PdfRefCountedBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfRefCountedBuffer.cpp; path = src/PdfRefCountedBuffer.cpp; sourceTree = "<group>"; };
+		5F590D670ABF46DA005255A0 /* PdfRefCountedBuffer.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfRefCountedBuffer.h; path = src/PdfRefCountedBuffer.h; sourceTree = "<group>"; };
+		5F590D680ABF46DA005255A0 /* PdfRefCountedFile.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfRefCountedFile.cpp; path = src/PdfRefCountedFile.cpp; sourceTree = "<group>"; };
+		5F590D690ABF46DA005255A0 /* PdfRefCountedFile.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfRefCountedFile.h; path = src/PdfRefCountedFile.h; sourceTree = "<group>"; };
+		5F590D6A0ABF46DA005255A0 /* PdfReference.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfReference.cpp; path = src/PdfReference.cpp; sourceTree = "<group>"; };
+		5F590D6B0ABF46DA005255A0 /* PdfReference.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfReference.h; path = src/PdfReference.h; sourceTree = "<group>"; };
+		5F590D6C0ABF46DA005255A0 /* PdfStream.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfStream.cpp; path = src/PdfStream.cpp; sourceTree = "<group>"; };
+		5F590D6D0ABF46DA005255A0 /* PdfStream.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfStream.h; path = src/PdfStream.h; sourceTree = "<group>"; };
+		5F590D6E0ABF46DA005255A0 /* PdfString.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfString.cpp; path = src/PdfString.cpp; sourceTree = "<group>"; };
+		5F590D6F0ABF46DA005255A0 /* PdfString.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfString.h; path = src/PdfString.h; sourceTree = "<group>"; };
+		5F590D700ABF46DA005255A0 /* PdfVariant.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfVariant.cpp; path = src/PdfVariant.cpp; sourceTree = "<group>"; };
+		5F590D710ABF46DA005255A0 /* PdfVariant.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfVariant.h; path = src/PdfVariant.h; sourceTree = "<group>"; };
+		5F590D720ABF46DA005255A0 /* PdfVecObjects.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfVecObjects.cpp; path = src/PdfVecObjects.cpp; sourceTree = "<group>"; };
+		5F590D730ABF46DA005255A0 /* PdfVecObjects.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfVecObjects.h; path = src/PdfVecObjects.h; sourceTree = "<group>"; };
+		5F590D740ABF46DA005255A0 /* PdfWriter.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfWriter.cpp; path = src/PdfWriter.cpp; sourceTree = "<group>"; };
+		5F590D750ABF46DA005255A0 /* PdfWriter.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfWriter.h; path = src/PdfWriter.h; sourceTree = "<group>"; };
+		5F590D760ABF46DA005255A0 /* PdfXObject.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfXObject.cpp; path = src/PdfXObject.cpp; sourceTree = "<group>"; };
+		5F590D770ABF46DA005255A0 /* PdfXObject.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfXObject.h; path = src/PdfXObject.h; sourceTree = "<group>"; };
+		5F590D780ABF46DA005255A0 /* podofo.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = podofo.h; path = src/podofo.h; sourceTree = "<group>"; };
+		5F590DCB0ABF47B2005255A0 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
+		5F590E090ABF4F81005255A0 /* PdfHintStream.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfHintStream.cpp; path = src/PdfHintStream.cpp; sourceTree = "<group>"; };
+		5F590E0A0ABF4F81005255A0 /* PdfHintStream.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfHintStream.h; path = src/PdfHintStream.h; sourceTree = "<group>"; };
+		D2AAC046055464E500DB518D /* libPoDoFo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPoDoFo.a; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D289987405E68DCB004EDB86 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F590DCC0ABF47B2005255A0 /* ApplicationServices.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		08FB7794FE84155DC02AAC07 /* PoDoFo */ = {
+			isa = PBXGroup;
+			children = (
+				5F590DCB0ABF47B2005255A0 /* ApplicationServices.framework */,
+				08FB7795FE84155DC02AAC07 /* Source */,
+				C6A0FF2B0290797F04C91782 /* Documentation */,
+				1AB674ADFE9D54B511CA2CBB /* Products */,
+			);
+			name = PoDoFo;
+			sourceTree = "<group>";
+		};
+		08FB7795FE84155DC02AAC07 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				5F590D280ABF46D8005255A0 /* PdfAction.cpp */,
+				5F590D290ABF46D9005255A0 /* PdfAction.h */,
+				5F590D2A0ABF46D9005255A0 /* PdfAnnotation.cpp */,
+				5F590D2B0ABF46D9005255A0 /* PdfAnnotation.h */,
+				5F590D2C0ABF46D9005255A0 /* PdfArray.cpp */,
+				5F590D2D0ABF46D9005255A0 /* PdfArray.h */,
+				5F590D2E0ABF46D9005255A0 /* PdfCanvas.cpp */,
+				5F590D2F0ABF46D9005255A0 /* PdfCanvas.h */,
+				5F590D300ABF46D9005255A0 /* PdfContents.cpp */,
+				5F590D310ABF46D9005255A0 /* PdfContents.h */,
+				5F590D320ABF46D9005255A0 /* PdfDataType.cpp */,
+				5F590D330ABF46D9005255A0 /* PdfDataType.h */,
+				5F590D340ABF46D9005255A0 /* PdfDate.cpp */,
+				5F590D350ABF46D9005255A0 /* PdfDate.h */,
+				5F590D360ABF46D9005255A0 /* PdfDefines.h */,
+				5F590D370ABF46D9005255A0 /* PdfDestination.cpp */,
+				5F590D380ABF46D9005255A0 /* PdfDestination.h */,
+				5F590D390ABF46D9005255A0 /* PdfDictionary.cpp */,
+				5F590D3A0ABF46D9005255A0 /* PdfDictionary.h */,
+				5F590D3B0ABF46D9005255A0 /* PdfDocument.cpp */,
+				5F590D3C0ABF46D9005255A0 /* PdfDocument.h */,
+				5F590D3D0ABF46D9005255A0 /* PdfElement.cpp */,
+				5F590D3E0ABF46D9005255A0 /* PdfElement.h */,
+				5F590D3F0ABF46D9005255A0 /* PdfEncrypt.cpp */,
+				5F590D400ABF46D9005255A0 /* PdfEncrypt.h */,
+				5F590D410ABF46D9005255A0 /* PdfError.cpp */,
+				5F590D420ABF46D9005255A0 /* PdfError.h */,
+				5F590D430ABF46D9005255A0 /* PdfFilter.cpp */,
+				5F590D440ABF46D9005255A0 /* PdfFilter.h */,
+				5F590D450ABF46D9005255A0 /* PdfFont.cpp */,
+				5F590D460ABF46D9005255A0 /* PdfFont.h */,
+				5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */,
+				5F590D480ABF46D9005255A0 /* PdfFontMetrics.h */,
+				5F590E090ABF4F81005255A0 /* PdfHintStream.cpp */,
+				5F590E0A0ABF4F81005255A0 /* PdfHintStream.h */,
+				5F590D490ABF46D9005255A0 /* PdfImage.cpp */,
+				5F590D4A0ABF46D9005255A0 /* PdfImage.h */,
+				5F590D4B0ABF46D9005255A0 /* PdfInputDevice.cpp */,
+				5F590D4C0ABF46D9005255A0 /* PdfInputDevice.h */,
+				5F590D4D0ABF46D9005255A0 /* PdfName.cpp */,
+				5F590D4E0ABF46D9005255A0 /* PdfName.h */,
+				5F590D4F0ABF46D9005255A0 /* PdfNamesTree.cpp */,
+				5F590D500ABF46D9005255A0 /* PdfNamesTree.h */,
+				5F590D510ABF46D9005255A0 /* PdfObject.cpp */,
+				5F590D520ABF46D9005255A0 /* PdfObject.h */,
+				5F590D530ABF46D9005255A0 /* PdfOutlines.cpp */,
+				5F590D540ABF46D9005255A0 /* PdfOutlines.h */,
+				5F590D550ABF46D9005255A0 /* PdfOutputDevice.cpp */,
+				5F590D560ABF46D9005255A0 /* PdfOutputDevice.h */,
+				5F590D570ABF46D9005255A0 /* PdfPage.cpp */,
+				5F590D580ABF46D9005255A0 /* PdfPage.h */,
+				5F590D590ABF46D9005255A0 /* PdfPagesTree.cpp */,
+				5F590D5A0ABF46D9005255A0 /* PdfPagesTree.h */,
+				5F590D5B0ABF46D9005255A0 /* PdfPainter.cpp */,
+				5F590D5C0ABF46D9005255A0 /* PdfPainter.h */,
+				5F590D5D0ABF46D9005255A0 /* PdfPainterMM.h */,
+				5F590D5E0ABF46D9005255A0 /* PdfParser.cpp */,
+				5F590D5F0ABF46D9005255A0 /* PdfParser.h */,
+				5F590D600ABF46D9005255A0 /* PdfParserBase.cpp */,
+				5F590D610ABF46D9005255A0 /* PdfParserBase.h */,
+				5F590D620ABF46D9005255A0 /* PdfParserObject.cpp */,
+				5F590D630ABF46DA005255A0 /* PdfParserObject.h */,
+				5F590D640ABF46DA005255A0 /* PdfRect.cpp */,
+				5F590D650ABF46DA005255A0 /* PdfRect.h */,
+				5F590D660ABF46DA005255A0 /* PdfRefCountedBuffer.cpp */,
+				5F590D670ABF46DA005255A0 /* PdfRefCountedBuffer.h */,
+				5F590D680ABF46DA005255A0 /* PdfRefCountedFile.cpp */,
+				5F590D690ABF46DA005255A0 /* PdfRefCountedFile.h */,
+				5F590D6A0ABF46DA005255A0 /* PdfReference.cpp */,
+				5F590D6B0ABF46DA005255A0 /* PdfReference.h */,
+				5F590D6C0ABF46DA005255A0 /* PdfStream.cpp */,
+				5F590D6D0ABF46DA005255A0 /* PdfStream.h */,
+				5F590D6E0ABF46DA005255A0 /* PdfString.cpp */,
+				5F590D6F0ABF46DA005255A0 /* PdfString.h */,
+				5F590D700ABF46DA005255A0 /* PdfVariant.cpp */,
+				5F590D710ABF46DA005255A0 /* PdfVariant.h */,
+				5F590D720ABF46DA005255A0 /* PdfVecObjects.cpp */,
+				5F590D730ABF46DA005255A0 /* PdfVecObjects.h */,
+				5F590D740ABF46DA005255A0 /* PdfWriter.cpp */,
+				5F590D750ABF46DA005255A0 /* PdfWriter.h */,
+				5F590D760ABF46DA005255A0 /* PdfXObject.cpp */,
+				5F590D770ABF46DA005255A0 /* PdfXObject.h */,
+				5F590D780ABF46DA005255A0 /* podofo.h */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		1AB674ADFE9D54B511CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D2AAC046055464E500DB518D /* libPoDoFo.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C6A0FF2B0290797F04C91782 /* Documentation */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Documentation;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		D2AAC043055464E500DB518D /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F590D7A0ABF46DA005255A0 /* PdfAction.h in Headers */,
+				5F590D7C0ABF46DA005255A0 /* PdfAnnotation.h in Headers */,
+				5F590D7E0ABF46DA005255A0 /* PdfArray.h in Headers */,
+				5F590D800ABF46DA005255A0 /* PdfCanvas.h in Headers */,
+				5F590D820ABF46DA005255A0 /* PdfContents.h in Headers */,
+				5F590D840ABF46DA005255A0 /* PdfDataType.h in Headers */,
+				5F590D860ABF46DA005255A0 /* PdfDate.h in Headers */,
+				5F590D870ABF46DA005255A0 /* PdfDefines.h in Headers */,
+				5F590D890ABF46DA005255A0 /* PdfDestination.h in Headers */,
+				5F590D8B0ABF46DA005255A0 /* PdfDictionary.h in Headers */,
+				5F590D8D0ABF46DA005255A0 /* PdfDocument.h in Headers */,
+				5F590D8F0ABF46DA005255A0 /* PdfElement.h in Headers */,
+				5F590D910ABF46DA005255A0 /* PdfEncrypt.h in Headers */,
+				5F590D930ABF46DA005255A0 /* PdfError.h in Headers */,
+				5F590D950ABF46DA005255A0 /* PdfFilter.h in Headers */,
+				5F590D970ABF46DA005255A0 /* PdfFont.h in Headers */,
+				5F590D990ABF46DA005255A0 /* PdfFontMetrics.h in Headers */,
+				5F590D9B0ABF46DA005255A0 /* PdfImage.h in Headers */,
+				5F590D9D0ABF46DA005255A0 /* PdfInputDevice.h in Headers */,
+				5F590D9F0ABF46DA005255A0 /* PdfName.h in Headers */,
+				5F590DA10ABF46DA005255A0 /* PdfNamesTree.h in Headers */,
+				5F590DA30ABF46DA005255A0 /* PdfObject.h in Headers */,
+				5F590DA50ABF46DA005255A0 /* PdfOutlines.h in Headers */,
+				5F590DA70ABF46DA005255A0 /* PdfOutputDevice.h in Headers */,
+				5F590DA90ABF46DA005255A0 /* PdfPage.h in Headers */,
+				5F590DAB0ABF46DA005255A0 /* PdfPagesTree.h in Headers */,
+				5F590DAD0ABF46DA005255A0 /* PdfPainter.h in Headers */,
+				5F590DAE0ABF46DA005255A0 /* PdfPainterMM.h in Headers */,
+				5F590DB00ABF46DA005255A0 /* PdfParser.h in Headers */,
+				5F590DB20ABF46DA005255A0 /* PdfParserBase.h in Headers */,
+				5F590DB40ABF46DA005255A0 /* PdfParserObject.h in Headers */,
+				5F590DB60ABF46DA005255A0 /* PdfRect.h in Headers */,
+				5F590DB80ABF46DA005255A0 /* PdfRefCountedBuffer.h in Headers */,
+				5F590DBA0ABF46DA005255A0 /* PdfRefCountedFile.h in Headers */,
+				5F590DBC0ABF46DA005255A0 /* PdfReference.h in Headers */,
+				5F590DBE0ABF46DA005255A0 /* PdfStream.h in Headers */,
+				5F590DC00ABF46DA005255A0 /* PdfString.h in Headers */,
+				5F590DC20ABF46DA005255A0 /* PdfVariant.h in Headers */,
+				5F590DC40ABF46DA005255A0 /* PdfVecObjects.h in Headers */,
+				5F590DC60ABF46DA005255A0 /* PdfWriter.h in Headers */,
+				5F590DC80ABF46DA005255A0 /* PdfXObject.h in Headers */,
+				5F590DC90ABF46DA005255A0 /* podofo.h in Headers */,
+				5F590E0C0ABF4F81005255A0 /* PdfHintStream.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		D2AAC045055464E500DB518D /* PoDoFo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1DEB91EB08733DB70010E9CD /* Build configuration list for PBXNativeTarget "PoDoFo" */;
+			buildPhases = (
+				D2AAC043055464E500DB518D /* Headers */,
+				D2AAC044055464E500DB518D /* Sources */,
+				D289987405E68DCB004EDB86 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			buildSettings = {
+			};
+			dependencies = (
+			);
+			name = PoDoFo;
+			productName = PoDoFo;
+			productReference = D2AAC046055464E500DB518D /* libPoDoFo.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		08FB7793FE84155DC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 1DEB91EF08733DB70010E9CD /* Build configuration list for PBXProject "PoDoFo" */;
+			buildSettings = {
+			};
+			buildStyles = (
+				014CEA520018CE5811CA2923 /* Debug */,
+				014CEA530018CE5811CA2923 /* Release */,
+			);
+			hasScannedForEncodings = 1;
+			mainGroup = 08FB7794FE84155DC02AAC07 /* PoDoFo */;
+			projectDirPath = "";
+			targets = (
+				D2AAC045055464E500DB518D /* PoDoFo */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D2AAC044055464E500DB518D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F590D790ABF46DA005255A0 /* PdfAction.cpp in Sources */,
+				5F590D7B0ABF46DA005255A0 /* PdfAnnotation.cpp in Sources */,
+				5F590D7D0ABF46DA005255A0 /* PdfArray.cpp in Sources */,
+				5F590D7F0ABF46DA005255A0 /* PdfCanvas.cpp in Sources */,
+				5F590D810ABF46DA005255A0 /* PdfContents.cpp in Sources */,
+				5F590D830ABF46DA005255A0 /* PdfDataType.cpp in Sources */,
+				5F590D850ABF46DA005255A0 /* PdfDate.cpp in Sources */,
+				5F590D880ABF46DA005255A0 /* PdfDestination.cpp in Sources */,
+				5F590D8A0ABF46DA005255A0 /* PdfDictionary.cpp in Sources */,
+				5F590D8C0ABF46DA005255A0 /* PdfDocument.cpp in Sources */,
+				5F590D8E0ABF46DA005255A0 /* PdfElement.cpp in Sources */,
+				5F590D900ABF46DA005255A0 /* PdfEncrypt.cpp in Sources */,
+				5F590D920ABF46DA005255A0 /* PdfError.cpp in Sources */,
+				5F590D940ABF46DA005255A0 /* PdfFilter.cpp in Sources */,
+				5F590D960ABF46DA005255A0 /* PdfFont.cpp in Sources */,
+				5F590D980ABF46DA005255A0 /* PdfFontMetrics.cpp in Sources */,
+				5F590D9A0ABF46DA005255A0 /* PdfImage.cpp in Sources */,
+				5F590D9C0ABF46DA005255A0 /* PdfInputDevice.cpp in Sources */,
+				5F590D9E0ABF46DA005255A0 /* PdfName.cpp in Sources */,
+				5F590DA00ABF46DA005255A0 /* PdfNamesTree.cpp in Sources */,
+				5F590DA20ABF46DA005255A0 /* PdfObject.cpp in Sources */,
+				5F590DA40ABF46DA005255A0 /* PdfOutlines.cpp in Sources */,
+				5F590DA60ABF46DA005255A0 /* PdfOutputDevice.cpp in Sources */,
+				5F590DA80ABF46DA005255A0 /* PdfPage.cpp in Sources */,
+				5F590DAA0ABF46DA005255A0 /* PdfPagesTree.cpp in Sources */,
+				5F590DAC0ABF46DA005255A0 /* PdfPainter.cpp in Sources */,
+				5F590DAF0ABF46DA005255A0 /* PdfParser.cpp in Sources */,
+				5F590DB10ABF46DA005255A0 /* PdfParserBase.cpp in Sources */,
+				5F590DB30ABF46DA005255A0 /* PdfParserObject.cpp in Sources */,
+				5F590DB50ABF46DA005255A0 /* PdfRect.cpp in Sources */,
+				5F590DB70ABF46DA005255A0 /* PdfRefCountedBuffer.cpp in Sources */,
+				5F590DB90ABF46DA005255A0 /* PdfRefCountedFile.cpp in Sources */,
+				5F590DBB0ABF46DA005255A0 /* PdfReference.cpp in Sources */,
+				5F590DBD0ABF46DA005255A0 /* PdfStream.cpp in Sources */,
+				5F590DBF0ABF46DA005255A0 /* PdfString.cpp in Sources */,
+				5F590DC10ABF46DA005255A0 /* PdfVariant.cpp in Sources */,
+				5F590DC30ABF46DA005255A0 /* PdfVecObjects.cpp in Sources */,
+				5F590DC50ABF46DA005255A0 /* PdfWriter.cpp in Sources */,
+				5F590DC70ABF46DA005255A0 /* PdfXObject.cpp in Sources */,
+				5F590E0B0ABF4F81005255A0 /* PdfHintStream.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1DEB91EC08733DB70010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/lib;
+				PRODUCT_NAME = PoDoFo;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		1DEB91ED08733DB70010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (
+					ppc,
+					i386,
+				);
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/lib;
+				PRODUCT_NAME = PoDoFo;
+			};
+			name = Release;
+		};
+		1DEB91F008733DB70010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					ZLib,
+					"./freetype/**",
+					"jpeg/**",
+				);
+				PREBINDING = NO;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+			};
+			name = Debug;
+		};
+		1DEB91F108733DB70010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					ZLib,
+					"./freetype/**",
+					"jpeg/**",
+				);
+				PREBINDING = NO;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1DEB91EB08733DB70010E9CD /* Build configuration list for PBXNativeTarget "PoDoFo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB91EC08733DB70010E9CD /* Debug */,
+				1DEB91ED08733DB70010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1DEB91EF08733DB70010E9CD /* Build configuration list for PBXProject "PoDoFo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB91F008733DB70010E9CD /* Debug */,
+				1DEB91F108733DB70010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 08FB7793FE84155DC02AAC07 /* Project object */;
+}

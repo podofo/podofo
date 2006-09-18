@@ -165,7 +165,7 @@ void PdfFontMetrics::GetBoundingBox( PdfArray & array ) const
 
 std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
 {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__APPLE_CC__)
 	return std::string( pszFontname );	// return the name...
 #else
     FcConfig* pConfig = FcInitLoadConfigAndFonts();
@@ -260,6 +260,8 @@ static bool GetWin32HostFont( const std::string& inFontName, char** outFontBuffe
 	return GetDataFromLPFONT( &lf, outFontBuffer, outFontBufferLen );
 }
 
+#elif defined(__APPLE_CC__)
+	// do Mac stuff here...
 #else
 
 std::string PdfFontMetrics::GetFilenameForFont( FcConfig* pConfig, const char* pszFontname )

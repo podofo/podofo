@@ -22,7 +22,7 @@
 #define _PDF_FONT_METRICS_H_
 
 #include "PdfDefines.h"
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__APPLE_CC__)
 #include <fontconfig.h>
 #endif
 
@@ -210,7 +210,7 @@ class PdfFontMetrics {
      *  \returns the compelte absolute path to a matching font file or NULL
      *           if none was found.
      */
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__APPLE_CC__)
 #else
     static std::string GetFilenameForFont( FcConfig* pConfig, const char* pszFontname );
 #endif

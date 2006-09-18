@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <cmath>
+
 #include "PdfHintStream.h"
 
 #include "PdfDictionary.h"
@@ -31,6 +33,7 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #undef GetObject
+#define logb log
 #else 
 #include <arpa/inet.h>
 #endif // _WIN32
@@ -64,6 +67,7 @@ public:
     pdf_uint16 nContentsOffset;
     pdf_uint16 nContentsLength;
 };
+typedef std::vector< PdfPageOffsetEntry >	PdfPOEVec;
 
 class PdfPageOffsetHeader {
 public:
@@ -175,7 +179,8 @@ void PdfHintStream::CreatePageHintTable( TVecXRefTable* pXRef )
     int                 nPageCount = m_pPagesTree->GetTotalNumberOfPages();
 
     PdfPageOffsetHeader header;
-    PdfPageOffsetEntry  vecPages[nPageCount];
+    PdfPOEVec  vecPages;
+	vecPages.reserve( nPageCount );
 
     pdf_uint32        least = 0;
     pdf_uint32        max   = 0;
@@ -223,7 +228,7 @@ void PdfHintStream::CreatePageHintTable( TVecXRefTable* pXRef )
 
     header.nLeastNumberOfObjects         = least;
     header.nFirstPageObject              = (*pXRef)[0].vecOffsets[ m_pPagesTree->GetPage( 0 )->Object()->Reference().ObjectNumber() ].lOffset;
-    header.nBitsPageObject               = (pdf_uint16)ceil( logb( (double)(max-least) ) );
+	header.nBitsPageObject               = (pdf_uint16)ceil( logb( (double)(max-least) ) );
     header.nLeastPageLength              = 0;
     header.nBitsPageLength               = 0;
     header.nOffsetContentStream          = 0;
@@ -243,7 +248,7 @@ void PdfHintStream::WriteUInt16( pdf_uint16 val )
     printf("Writing uint16\n");
     if( m_bLittleEndian ) 
     {
-        val = (pdf_uint16)htons( (uint16_t)val );
+        val = (pdf_uint16)htons( (u_short)val );
     }
 
     m_pObject->Stream()->Append( (char*)&val, 2 );
@@ -254,7 +259,7 @@ void PdfHintStream::WriteUInt32( pdf_uint32 val )
     printf("Writing uint32\n");
     if( m_bLittleEndian ) 
     {
-       val = (pdf_uint32)htonl( (uint32_t)val );
+		val = (pdf_uint32)htonl( (unsigned int)val );
     }
 
     m_pObject->Stream()->Append( (char*)&val, 4 );
