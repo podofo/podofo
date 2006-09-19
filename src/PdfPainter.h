@@ -185,8 +185,11 @@ class PdfPainter {
      *  \param dY y coordinate of the rectangle
      *  \param dWidth width of the rectangle
      *  \param dHeight absolute height of the rectangle
-     */
-    void DrawRect( double dX, double dY, double dWidth, double dHeight );
+     *  \param dRoundX rounding factor, x direction
+     *  \param dRoundY rounding factor, y direction
+    */
+    void DrawRect( double dX, double dY, double dWidth, double dHeight,
+		           double dRoundX=0, double dRoundY=0 );
 
     /** Fill a rectangle with the current fill settings
      *  \param dX x coordinate of the rectangle
@@ -194,7 +197,8 @@ class PdfPainter {
      *  \param dWidth width of the rectangle 
      *  \param dHeight absolute height of the rectangle
      */
-    void FillRect( double dX, double dY, double dWidth, double dHeight );
+    void FillRect( double dX, double dY, double dWidth, double dHeight,
+		           double dRoundX=0, double dRoundY=0 );
 
     /** Draw an ellipse with the current stroking settings
      *  \param dX x coordinate of the ellipse (left coordinate)
@@ -211,6 +215,20 @@ class PdfPainter {
      *  \param dHeight absolute height of the ellipse
      */
     void FillEllipse( double dX, double dY, double dWidth, double dHeight ); 
+
+    /** Draw a circle with the current stroking settings
+     *  \param dX x center coordinate of the circle
+     *  \param dY y coordinate of the circle
+     *  \param dRadius radius of the circle
+     */
+	void DrawCircle( double dX, double dY, double dRadius );
+
+    /** Fill a Circle with the current fill settings
+     *  \param dX x center coordinate of the circle
+     *  \param dY y coordinate of the circle
+     *  \param dRadius radius of the circle
+     */
+	void FillCircle( double dX, double dY, double dRadius );
 
     /** Draw a text string on a page using a given font object.
      *  You have to call SetFont before calling this function.
@@ -277,16 +295,76 @@ class PdfPainter {
     /** Append a cubic bezier curve to the current path
      *  Matches the PDF 'c' operator.
      *
-     *  \param dX1 x coordinate of the first controll point
-     *  \param dY1 y coordinate of the first controll point
-     *  \param dX2 x coordinate of the second controll point
-     *  \param dY2 y coordinate of the second controll point
+     *  \param dX1 x coordinate of the first control point
+     *  \param dY1 y coordinate of the first control point
+     *  \param dX2 x coordinate of the second control point
+     *  \param dY2 y coordinate of the second control point
      *  \param dX3 x coordinate of the end point, which is the new current point
      *  \param dY3 y coordinate of the end point, which is the new current point
      */
     void CubicBezierTo( double dX1, double dY1, double dX2, double dY2, double dX3, double dY3 );
 
-    /** Stroke the current path. Matches the PDF 'S' operator.
+    /** Append a horizontal line to the current path
+     *  Matches the SVG 'H' operator
+     *
+     *  \param dX x coordinate to draw the line to
+	 */
+	void HorizonalLineTo( double dX );
+
+    /** Append a vertical line to the current path
+     *  Matches the SVG 'V' operator
+     *
+     *  \param dY y coordinate to draw the line to
+	 */
+	void VerticalLineTo( double dY );
+
+    /** Append a smooth bezier curve to the current path
+     *  Matches the SVG 'S' operator.
+     *
+     *  \param dX2 x coordinate of the second control point
+     *  \param dY2 y coordinate of the second control point
+     *  \param dX3 x coordinate of the end point, which is the new current point
+     *  \param dY3 y coordinate of the end point, which is the new current point
+     */
+	void SmoothCurveTo( double dX2, double dY2, double dX3, double dY3 );
+
+    /** Append a quadratic bezier curve to the current path
+     *  Matches the SVG 'Q' operator.
+     *
+     *  \param dX1 x coordinate of the first control point
+     *  \param dY1 y coordinate of the first control point
+     *  \param dX3 x coordinate of the end point, which is the new current point
+     *  \param dY3 y coordinate of the end point, which is the new current point
+     */
+	void QuadCurveTo( double dX1, double dY1, double dX3, double dY3 );
+
+    /** Append a smooth quadratic bezier curve to the current path
+     *  Matches the SVG 'T' operator.
+     *
+     *  \param dX3 x coordinate of the end point, which is the new current point
+     *  \param dY3 y coordinate of the end point, which is the new current point
+     */
+	void SmoothQuadCurveTo( double dX3, double dY3 );
+
+    /** Append a Arc to the current path
+     *  Matches the SVG 'A' operator.
+     *
+     *  \param dX x coordinate of the start point
+     *  \param dY y coordinate of the start point
+     *  \param dRadiusX x coordinate of the end point, which is the new current point
+     *  \param dRadiusY y coordinate of the end point, which is the new current point
+	 *	\param dRotation degree of rotation in radians
+	 *	\param bLarge large or small portion of the arc
+	 *	\param bSweep sweep?
+     */
+	void ArcTo( double dX, double dY, double dRadiusX, double dRadiusY,
+				double	dRotation, bool bLarge, bool bSweep);
+
+	/** Close the current path. Matches the PDF 'h' operator.
+     */
+    void Close();
+
+	/** Stroke the current path. Matches the PDF 'S' operator.
      *  This function is useful to construct an own path
      *  for drawing or clipping.
      */
@@ -431,6 +509,10 @@ class PdfPainter {
     /** temporary stream buffer 
      */
     std::ostringstream  m_oss;
+
+	double		lpx, lpy, lpx2, lpy2, lpx3, lpy3, 	// points for this operation
+				lcx, lcy, 							// last "current" point
+				lrx, lry;							// "reflect points"
 };
 
 // -----------------------------------------------------

@@ -37,6 +37,10 @@
 
 #define BEZIER_POINTS 13
 
+/* 4/3 * (1-cos 45ƒ)/sin 45ƒ = 4/3 * sqrt(2) - 1 */
+#define ARC_MAGIC	((double) 0.552284749)
+#define PI			((double)3.141592654)
+
 namespace PoDoFo {
 
 static inline void CheckDoubleRange( double val, double min, double max )
@@ -311,23 +315,44 @@ void PdfPainter::DrawLine( double dStartX, double dStartY, double dEndX, double 
     m_pCanvas->Append( m_oss.str() );
 }
 
-void PdfPainter::DrawRect( double dX, double dY, double dWidth, double dHeight )
+void PdfPainter::DrawRect( double dX, double dY, double dWidth, double dHeight,
+		                   double dRoundX, double dRoundY )
 { 
     if( !m_pCanvas )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
-    m_oss.str("");
-    m_oss << dX << " "
-          << dY << " "
-          << dWidth << " "
-          << -dHeight		
-          << " re S" << std::endl;
-    m_pCanvas->Append( m_oss.str() );
+
+	if ( dRoundX || dRoundY ) {
+ 		double	x = dX, y = dY, 
+				w = dWidth, h = dHeight,
+				rx = dRoundX, ry = dRoundY;
+		double b = 0.4477f;
+
+        MoveTo(x + rx, y);
+        LineTo(x + w - rx, y);
+        CubicBezierTo(x + w - rx * b, y, x + w, y + ry * b, x + w, y + ry);
+        LineTo(x + w, y + h - ry);
+        CubicBezierTo(x + w, y + h - ry * b, x + w - rx * b, y + h, x + w - rx, y + h);
+        LineTo(x + rx, y + h);
+        CubicBezierTo(x + rx * b, y + h, x, y + h - ry * b, x, y + h - ry);
+        LineTo(x, y + ry);
+        CubicBezierTo(x, y + ry * b, x + rx * b, y, x + rx, y);
+		m_pCanvas->Append( "S\n" );
+	} else {
+		m_oss.str("");
+		m_oss << dX << " "
+			<< dY << " "
+			<< dWidth << " "
+			<< -dHeight		
+			<< " re S" << std::endl;
+		m_pCanvas->Append( m_oss.str() );
+	}
 }
 
-void PdfPainter::FillRect( double dX, double dY, double dWidth, double dHeight )
+void PdfPainter::FillRect( double dX, double dY, double dWidth, double dHeight,
+		                   double dRoundX, double dRoundY )
 {
     if( !m_pCanvas )
     {
@@ -335,11 +360,31 @@ void PdfPainter::FillRect( double dX, double dY, double dWidth, double dHeight )
     }
 
     m_oss.str("");
-    m_oss << dX << " "
-          << dY << " "
-          << dWidth << " "
-          << -dHeight		
-          << " re f" << std::endl;
+
+	if ( dRoundX || dRoundY ) {
+ 		double	x = dX, y = dY, 
+				w = dWidth, h = dHeight,
+				rx = dRoundX, ry = dRoundY;
+		double b = 0.4477f;
+
+        MoveTo(x + rx, y);
+        LineTo(x + w - rx, y);
+        CubicBezierTo(x + w - rx * b, y, x + w, y + ry * b, x + w, y + ry);
+        LineTo(x + w, y + h - ry);
+        CubicBezierTo(x + w, y + h - ry * b, x + w - rx * b, y + h, x + w - rx, y + h);
+        LineTo(x + rx, y + h);
+        CubicBezierTo(x + rx * b, y + h, x, y + h - ry * b, x, y + h - ry);
+        LineTo(x, y + ry);
+        CubicBezierTo(x, y + ry * b, x + rx * b, y, x + rx, y);
+		m_pCanvas->Append( "f\n" );
+	} else {
+		m_oss << dX << " "
+			<< dY << " "
+			<< dWidth << " "
+			<< -dHeight		
+			<< " re f" << std::endl;
+	}
+
     m_pCanvas->Append( m_oss.str() );
 }
 
@@ -408,6 +453,58 @@ void PdfPainter::FillEllipse( double dX, double dY, double dWidth, double dHeigh
 
     m_pCanvas->Append( m_oss.str() );
     m_pCanvas->Append( "f\n" );
+}
+
+void PdfPainter::FillCircle( double dX, double dY, double dRadius )
+{
+    if( !m_pCanvas )
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    /* draw four Bezier curves to approximate a circle */
+    MoveTo( dX + dRadius, dY );
+    CubicBezierTo( dX + dRadius, dY + dRadius*ARC_MAGIC, 
+			 dX + dRadius*ARC_MAGIC, dY + dRadius, 
+			 dX, dY + dRadius );
+    CubicBezierTo( dX - dRadius*ARC_MAGIC, dY + dRadius, 
+			dX - dRadius, dY + dRadius*ARC_MAGIC, 
+			dX - dRadius, dY );
+    CubicBezierTo( dX - dRadius, dY - dRadius*ARC_MAGIC, 
+			dX - dRadius*ARC_MAGIC, dY - dRadius, 
+			dX, dY - dRadius );
+    CubicBezierTo( dX + dRadius*ARC_MAGIC, dY - dRadius, 
+			dX + dRadius, dY - dRadius*ARC_MAGIC, 
+			dX + dRadius, dY );
+    Close();
+
+    m_pCanvas->Append( "f\n" );
+}
+
+void PdfPainter::DrawCircle( double dX, double dY, double dRadius )
+{
+    if( !m_pCanvas )
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    /* draw four Bezier curves to approximate a circle */
+    MoveTo( dX + dRadius, dY );
+    CubicBezierTo( dX + dRadius, dY + dRadius*ARC_MAGIC, 
+			 dX + dRadius*ARC_MAGIC, dY + dRadius, 
+			 dX, dY + dRadius );
+    CubicBezierTo( dX - dRadius*ARC_MAGIC, dY + dRadius, 
+			dX - dRadius, dY + dRadius*ARC_MAGIC, 
+			dX - dRadius, dY );
+    CubicBezierTo( dX - dRadius, dY - dRadius*ARC_MAGIC, 
+			dX - dRadius*ARC_MAGIC, dY - dRadius, 
+			dX, dY - dRadius );
+    CubicBezierTo( dX + dRadius*ARC_MAGIC, dY - dRadius, 
+			dX + dRadius, dY - dRadius*ARC_MAGIC, 
+			dX + dRadius, dY );
+    Close();
+
+    m_pCanvas->Append( "S\n" );
 }
 
 void PdfPainter::DrawText( double dX, double dY, const PdfString & sText )
@@ -592,6 +689,169 @@ void PdfPainter::CubicBezierTo( double dX1, double dY1, double dX2, double dY2, 
           << dY3 
           << " c" << std::endl;
     m_pCanvas->Append( m_oss.str() );
+}
+
+void PdfPainter::HorizonalLineTo( double inX )
+{
+	LineTo( inX, lpy3 );
+}
+
+void PdfPainter::VerticalLineTo( double inY )
+{
+	LineTo( lpx3, inY );
+}
+
+void PdfPainter::SmoothCurveTo( double inX2, double inY2, double inX3, double inY3 )
+{
+	double	px, py, px2 = inX2, 
+			py2 = inY2, 
+			px3 = inX3, py3 = inY3;
+
+	// compute the reflective points (thanks Raph!)
+	px = 2 * lcx - lrx;
+	py = 2 * lcy - lry;
+
+	lpx = px; lpy = py; lpx2 = px2; lpy2 = py2; lpx3 = px3; lpy3 = py3;
+	lcx = px3;	lcy = py3;	lrx = px2;	lry = py2;	// thanks Raph!
+
+	CubicBezierTo( px, py, px2, py2, px3, py3 );
+}
+
+void PdfPainter::QuadCurveTo( double inX1, double inY1, double inX3, double inY3 )
+{
+	double	px = inX1, py = inY1, 
+			px2, py2, 
+			px3 = inX3, py3 = inY3;
+
+	/* raise quadratic bezier to cubic	- thanks Raph!
+		http://www.icce.rug.nl/erikjan/bluefuzz/beziers/beziers/beziers.html
+	*/
+	px = (lcx + 2 * px) * (1.0 / 3.0);
+	py = (lcy + 2 * py) * (1.0 / 3.0);
+	px2 = (px3 + 2 * px) * (1.0 / 3.0);
+	py2 = (py3 + 2 * py) * (1.0 / 3.0);
+
+	lpx = px; lpy = py; lpx2 = px2; lpy2 = py2; lpx3 = px3; lpy3 = py3;
+	lcx = px3;	lcy = py3;	lrx = px2;	lry = py2;	// thanks Raph!
+
+	CubicBezierTo( px, py, px2, py2, px3, py3 );
+}
+
+void PdfPainter::SmoothQuadCurveTo( double inX3, double inY3 )
+{
+	double	px, py, px2, py2, 
+			px3 = inX3, py3 = inY3;
+
+	double xc, yc; /* quadratic control point */
+	xc = 2 * lcx - lrx;
+	yc = 2 * lcy - lry;
+
+	/* generate a quadratic bezier with control point = xc, yc */
+	px = (lcx + 2 * xc) * (1.0 / 3.0);
+	py = (lcy + 2 * yc) * (1.0 / 3.0);
+	px2 = (px3 + 2 * xc) * (1.0 / 3.0);
+	py2 = (py3 + 2 * yc) * (1.0 / 3.0);
+
+	lpx = px; lpy = py; lpx2 = px2; lpy2 = py2; lpx3 = px3; lpy3 = py3;
+	lcx = px3;	lcy = py3;	lrx = xc;	lry = yc;	// thanks Raph!
+
+	CubicBezierTo( px, py, px2, py2, px3, py3 );
+}
+
+void PdfPainter::ArcTo( double inX, double inY, double inRadiusX, double inRadiusY,
+					   double	inRotation, bool inLarge, bool inSweep)
+{
+	double	px = inX, py = inY;
+	double rx = inRadiusX, ry = inRadiusY, rot = inRotation;
+	int		large = ( inLarge ? 1 : 0 ),
+			sweep = ( inSweep ? 1 : 0 );
+
+	double sin_th, cos_th;
+	double a00, a01, a10, a11;
+	double x0, y0, x1, y1, xc, yc;
+	double d, sfactor, sfactor_sq;
+	double th0, th1, th_arc;
+	int i, n_segs;
+
+	sin_th 	= sin (rot * (PI / 180.0));
+	cos_th 	= cos (rot * (PI / 180.0));
+	a00 	= cos_th / rx;
+	a01 	= sin_th / rx;
+	a10 	= -sin_th / ry;
+	a11 	= cos_th / ry;
+	x0 		= a00 * lcx + a01 * lcy;
+	y0 		= a10 * lcx + a11 * lcy;
+	x1 		= a00 * px + a01 * py;
+	y1 		= a10 * px + a11 * py;
+	/* (x0, y0) is current point in transformed coordinate space.
+	 (x1, y1) is new point in transformed coordinate space.
+
+	 The arc fits a unit-radius circle in this space.
+	*/
+	d = (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0);
+	sfactor_sq = 1.0 / d - 0.25;
+	if (sfactor_sq < 0) sfactor_sq = 0;
+	sfactor = sqrt (sfactor_sq);
+	if (sweep == large) sfactor = -sfactor;
+	xc = 0.5 * (x0 + x1) - sfactor * (y1 - y0);
+	yc = 0.5 * (y0 + y1) + sfactor * (x1 - x0);
+	/* (xc, yc) is center of the circle. */
+
+	th0 = atan2 (y0 - yc, x0 - xc);
+	th1 = atan2 (y1 - yc, x1 - xc);
+
+	th_arc = th1 - th0;
+	if (th_arc < 0 && sweep)		th_arc += 2 * PI;
+	else if (th_arc > 0 && !sweep)	th_arc -= 2 * PI;
+
+	n_segs = (int) ceil (fabs (th_arc / (PI * 0.5 + 0.001)));
+
+	for (i = 0; i < n_segs; i++) {
+		double nth0 = th0 + (double)i * th_arc / n_segs,
+				nth1 = th0 + (double)(i + 1) * th_arc / n_segs;
+		double nsin_th, ncos_th;
+		double na00, na01, na10, na11;
+		double nx1, ny1, nx2, ny2, nx3, ny3;
+		double t;
+		double th_half;
+
+		nsin_th = sin (rot * (PI / 180.0));
+		ncos_th = cos (rot * (PI / 180.0)); 
+		/* inverse transform compared with rsvg_path_arc */
+		na00 = ncos_th * rx;
+		na01 = -nsin_th * ry;
+		na10 = nsin_th * rx;
+		na11 = ncos_th * ry;
+
+		th_half = 0.5 * (nth1 - nth0);
+		t = (8.0 / 3.0) * sin (th_half * 0.5) * sin (th_half * 0.5) / sin (th_half);
+		nx1 = xc + cos (nth0) - t * sin (nth0);
+		ny1 = yc + sin (nth0) + t * cos (nth0);
+		nx3 = xc + cos (nth1);
+		ny3 = yc + sin (nth1);
+		nx2 = nx3 + t * sin (nth1);
+		ny2 = ny3 - t * cos (nth1);
+		nx1 = na00 * nx1 + na01 * ny1;
+		ny1 = na10 * nx1 + na11 * ny1;
+		nx2 = na00 * nx2 + na01 * ny2;
+		ny2 = na10 * nx2 + na11 * ny2;
+		nx3 = na00 * nx3 + na01 * ny3;
+		ny3 = na10 * nx3 + na11 * ny3;
+		CubicBezierTo( nx1, ny1, nx2, ny2, nx3, ny3 );
+	}
+
+	lpx = lpx2 = lpx3 = px; lpy = lpy2 = lpy3 = py;
+	lcx = px;	lcy = py;	lrx = px;	lry = py;	// thanks Raph!
+}
+
+void PdfPainter::Close()
+{
+    if( !m_pCanvas )
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+    
+    m_pCanvas->Append( "h\n" );
 }
 
 void PdfPainter::Stroke()
