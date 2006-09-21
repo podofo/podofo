@@ -42,8 +42,8 @@ PdfString::PdfString( const std::string& sString )
 PdfString::PdfString( const char* pszString )
 : m_bHex( false )
 {
-	if( pszString )
-		Init( pszString, strlen( pszString ) );
+    if( pszString )
+        Init( pszString, strlen( pszString ) );
 }
 
 PdfString::PdfString( const char* pszString, long lLen, bool bHex )
@@ -99,7 +99,31 @@ const PdfString & PdfString::operator=( const PdfString & rhs )
 
 bool PdfString::operator==( const PdfString & rhs ) const
 {
-    return (m_bHex == rhs.m_bHex && m_buffer == rhs.m_buffer);
+    char*            pBuffer;
+    long             lLen;
+    bool             bEqual;
+    const PdfFilter* pFilter;
+
+    if( m_bHex == rhs.m_bHex ) 
+    {
+        bEqual = (m_buffer == rhs.m_buffer);
+    }
+    else if( !m_bHex ) 
+    {
+        pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+        pFilter->Encode( m_buffer.Buffer(), m_buffer.Size(), &pBuffer, &lLen );
+
+        bEqual = ( PdfRefCountedBuffer( pBuffer, lLen ) == rhs.m_buffer );
+    }
+    else if( !rhs.m_bHex ) 
+    {
+        pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+        pFilter->Encode( rhs.m_buffer.Buffer(), rhs.m_buffer.Size(), &pBuffer, &lLen );
+
+        bEqual = ( m_buffer == PdfRefCountedBuffer( pBuffer, lLen ) );
+    }
+        
+    return bEqual;
 }
 
 void PdfString::Init( const char* pszString, long lLen )
