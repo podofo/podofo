@@ -237,8 +237,8 @@ void PdfParser::HasLinearizationDict()
     int       i          = 0;
     char*     pszObj     = NULL;
     long      lXRef      = -1;
-    const int XREF_LEN = 4; // strlen( "xref" );
-    char*    pszStart   = NULL;
+    const int XREF_LEN    = 4; // strlen( "xref" );
+    char*     pszStart   = NULL;
 
     fseek( m_file.Handle(), 0, SEEK_SET );
     // look for a linearization dictionary in the first 1024 bytes
@@ -255,8 +255,7 @@ void PdfParser::HasLinearizationDict()
     while( *pszObj && (IsWhitespace( *pszObj ) || (*pszObj >= '0' && *pszObj <= '9')) )
         --pszObj;
 
-    fseek( m_file.Handle(), pszObj - m_buffer.Buffer() + 3, SEEK_SET );
-    m_pLinearization = new PdfParserObject( m_vecObjects, m_file, m_buffer );
+    m_pLinearization = new PdfParserObject( m_vecObjects, m_file, m_buffer, pszObj - m_buffer.Buffer() + 2 );
 
     try {
         static_cast<PdfParserObject*>(m_pLinearization)->ParseFile();
@@ -267,11 +266,11 @@ void PdfParser::HasLinearizationDict()
             m_pLinearization = NULL;
             return;
         }
-        
     } catch( PdfError & e ) {
-		std::string	errStr( e.what() );	// avoid compiler warning and in case we need it...
+        PdfError::LogMessage( eLogSeverity_Warning, e.what() );
         delete m_pLinearization;
         m_pLinearization = NULL;
+        throw e;
         return;
     }
     
@@ -355,6 +354,7 @@ void PdfParser::MergeTrailer( const PdfObject* pTrailer )
 void PdfParser::ReadNextTrailer()
 {
     GetNextStringFromFile();
+
     // ReadXRefcontents has read the first 't' from "trailer" so just check for "railer"
     if( strcmp( m_buffer.Buffer(), "railer" ) == 0 )
     {

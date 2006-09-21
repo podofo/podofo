@@ -36,6 +36,8 @@
 #define XREF_ENTRY_SIZE       20
 #define LINEARIZATION_PADDING 10
 
+#include <iostream>
+
 // for htonl
 #ifdef _WIN32
 #include <winsock2.h>
@@ -511,8 +513,12 @@ void PdfWriter::FetchPagesTree()
     {
         // try to find the pages tree
         PdfObject* pRoot = m_pTrailer->GetDictionary().GetKey( "Root" );
+        PdfOutputDevice device( &(std::cout) );
+        m_pTrailer->WriteObject( &device );
+
         if( !pRoot || !pRoot->IsReference() )
         {
+            printf("pRoot=%p\n", pRoot );
             RAISE_ERROR( ePdfError_InvalidDataType );
         }
 
@@ -524,6 +530,7 @@ void PdfWriter::FetchPagesTree()
 void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfHintStream* pHint, PdfPage* pPage, PdfObject* pLast )
 {
     PdfOutputDevice device;
+    PdfOutputDevice device2;
     PdfVariant      value( (long)0 );
     PdfArray        hints;
     unsigned long   lPageOffset;
@@ -532,7 +539,7 @@ void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfHintStrea
     pLinearize->GetDictionary().AddKey( "O", (long)pPage->Object()->ObjectNumber() );             
 
     // fill the hint stream now
-    this->Write( &device );
+    this->Write( &device2 );
     pHint->Create( &m_vecXRef );
     m_vecXRef.clear(); // clean after writing
 

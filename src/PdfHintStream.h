@@ -51,7 +51,8 @@ class PdfHintStream : public PdfElement {
 
  private:
     void CreatePageHintTable( TVecXRefTable* pXRef );
-
+    void CreateSharedObjectHintTable();
+ 
  private:
     PdfPagesTree* m_pPagesTree;
 

@@ -161,6 +161,9 @@ void PdfDocument::InitFromParser( PdfParser* pParser )
     {
         RAISE_ERROR( ePdfError_NoObject );
     }
+
+    PdfOutputDevice device( &(std::cout) );
+    m_pCatalog->WriteObject( &device );
 }
 
 void PdfDocument::InitPagesTree()
