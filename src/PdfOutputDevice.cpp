@@ -176,4 +176,28 @@ void PdfOutputDevice::Write( const char* pBuffer, long lLen )
     m_ulLength += lLen;
 }
 
+void PdfOutputDevice::Seek( size_t offset )
+{
+    if( m_hFile )
+    {
+        if( fseek( m_hFile, offset, SEEK_SET ) == -1 )
+        {
+            RAISE_ERROR( ePdfError_ValueOutOfRange );
+        }
+    }
+    else if( m_pBuffer )
+    {
+        if( offset >= m_lBufferLen )
+        {
+            RAISE_ERROR( ePdfError_ValueOutOfRange );
+        }
+    }
+    else if( m_pStream )
+    {
+        m_pStream->seekp( offset, std::ios_base::beg );
+    }
+
+    m_ulLength = offset;
+}
+
 };

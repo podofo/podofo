@@ -92,6 +92,11 @@ class PdfOutputDevice {
      */
     void Write( const char* pBuffer, long lLen );
 
+    /** Seek the device to the position offset from the begining
+     *  \param offset from the beginning of the file
+     */
+    void Seek( size_t offset );
+
  private: 
     /** Initialize all private members
      */

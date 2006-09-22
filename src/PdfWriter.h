@@ -206,9 +206,9 @@ class PdfWriter {
     /** Write pdf objects to file
      *  \param pDevice write to this output device
      *  \param vecObjects write all objects in this vector to the file
-     *  \param bFillXRefOnly only fille the m_vecXRef vector and do not write the objects
+     *  \param pVecXRef add all written objects to this XRefTable
      */ 
-    void WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, bool bFillXRefOnly = false );
+    void WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, TVecXRefTable* pVecXRef );
 
     /** Writes a list of xref entries to the current file
      *  \param pDevice write to this output device
@@ -217,20 +217,27 @@ class PdfWriter {
     void WriteXRefEntries( PdfOutputDevice* pDevice, const TVecOffsets & vecOffsets );
 
     /** Writes the xref table.
+     *  \param pVecXRef write this XRef table
      *  \param pDevice write to this output device
+     *  \param bDummyOffset write a dummy startxref offset for linearized PDF files
+     *  \param bShortTrailer write only the size key in the trailer
      */
-    void WritePdfTableOfContents( PdfOutputDevice* pDevice );
+    void WritePdfTableOfContents( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, bool bDummyOffset = false, bool bShortTrailer = true );
 
     /** Writes the xref table as xref stream.
+     *  \param pVecXRef write this XRef table
      *  \param pDevice write to this output device
+     *  \param bDummyOffset write a dummy startxref offset for linearized PDF files
      */
-    void WriteXRefStream( PdfOutputDevice* pDevice );
+    void WriteXRefStream( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, bool bDummyOffset = false );
 
     /** Add required keys to a trailer object
      *  \param pTrailer add keys to this object
      *  \param lSize number of objects in the PDF file
+     *  \param bPrevEntry if true a prev entry is added to the trailer object with a value of 0
+     *  \param bOnlySizeKey write only the size key
      */
-    void FillTrailerObject( PdfObject* pTrailer, long lSize );
+    void FillTrailerObject( PdfObject* pTrailer, long lSize, bool bPrevEntry, bool bOnlySizeKey );
 
     /** Initialize m_pPagesTree with its correct value
      *  Always call this function befre accessing the pages tree.
@@ -247,7 +254,7 @@ class PdfWriter {
      *  \param pPage the first page in the linerarized PDF file
      *  \param pLast pointer of the last object belonging to the first page
      */
-    void FillLinearizationDictionary( PdfObject* pLinearize, PdfHintStream* pHint, PdfPage* pPage, PdfObject* pLast );
+    void FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, PdfHintStream* pHint );
 
  protected:
     PdfVecObjects*  m_vecObjects;
@@ -255,7 +262,6 @@ class PdfWriter {
  private:
     EPdfVersion     m_eVersion;
 
-    TVecXRefTable   m_vecXRef;
     PdfObject*      m_pTrailer;
     PdfPagesTree*   m_pPagesTree;
 
@@ -271,6 +277,12 @@ class PdfWriter {
      * section.
      */
     long            m_lFirstInXRef;
+    long            m_lLinearizedOffset;
+    long            m_lLinearizedLastOffset;
+    long            m_lTrailerOffset;
+    long            m_lPrevOffset;
+    long            m_lFirstXRef;
+    PdfVecObjects   m_vecLinearized;
 };
 
 // -----------------------------------------------------

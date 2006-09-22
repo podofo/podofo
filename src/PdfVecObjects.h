@@ -26,6 +26,24 @@
 
 #include <list>
 
+#ifdef _WIN32
+#define FASTEST_MAP std::map
+#else
+
+#include <ext/hash_map>
+#define FASTEST_MAP __gnu_cxx::hash_map
+
+namespace __gnu_cxx
+{
+        template<> struct hash< PoDoFo::PdfReference >
+        {
+                size_t operator()( const PoDoFo::PdfReference& ref ) const
+                {
+                        return hash< int >()( ref.ObjectNumber() );
+                }
+        };
+}
+#endif // _WIN32
 namespace PoDoFo {
 
 class PdfObject;
@@ -48,7 +66,7 @@ typedef std::vector<TReferencePointerList  >     TVecReferencePointerList;
 typedef TVecReferencePointerList::iterator       TIVecReferencePointerList;
 typedef TVecReferencePointerList::const_iterator TCIVecReferencePointerList;
 
-typedef std::map<PdfReference,int>               TMapReferenceCache;
+typedef FASTEST_MAP<PdfReference,int>               TMapReferenceCache;
 typedef TMapReferenceCache::iterator             TIMapReferenceCache;
 typedef TMapReferenceCache::const_iterator       TCIMapReferenceCache;
 
@@ -234,8 +252,9 @@ class PdfVecObjects : public std::vector<PdfObject*> {
      * for each object in this vector.
      * \param pList write all references to this list
      */
-    void BuildReferenceCountVector( TVecReferencePointerList* pList ) const;
-    void InsertReferencesIntoVector( const PdfObject* pObj, TVecReferencePointerList* pList ) const;
+    void BuildReferenceCountVector( TVecReferencePointerList* pList );
+    void InsertReferencesIntoVector( const PdfObject* pObj, TVecReferencePointerList* pList );
+    inline void InsertOneReferenceIntoVector( const PdfObject* pObj, TVecReferencePointerList* pList );
 
     /** Delete all objects from the vector which do not have references to them selves
      *  \param pList must be a list created by BuildReferenceCountVector
@@ -250,7 +269,8 @@ class PdfVecObjects : public std::vector<PdfObject*> {
     bool                m_bLinearizationClean;
     size_t              m_nObjectCount;
 
-     TPdfReferenceList  m_lstFreeObjects;
+    TPdfReferenceList   m_lstFreeObjects;
+    TMapReferenceCache  m_refCache;
 };
 
 // -----------------------------------------------------
