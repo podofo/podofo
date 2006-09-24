@@ -41,8 +41,8 @@ PdfObject::PdfObject()
     Init( true );
 }
 
-PdfObject::PdfObject( unsigned long objectno, unsigned long generationno, const char* pszType )
-    : PdfVariant( PdfDictionary() ), m_reference( objectno, generationno )
+PdfObject::PdfObject( const PdfReference & rRef, const char* pszType )
+    : PdfVariant( PdfDictionary() ), m_reference( rRef )
 {
     Init( true );
 
@@ -50,8 +50,8 @@ PdfObject::PdfObject( unsigned long objectno, unsigned long generationno, const 
         this->GetDictionary().AddKey( PdfName::KeyType, PdfName( pszType ) );
 }
 
-PdfObject::PdfObject( unsigned long objectno, unsigned long generationno, const PdfVariant & rVariant )
-    : PdfVariant( rVariant ), m_reference( objectno, generationno )
+PdfObject::PdfObject( const PdfReference & rRef, const PdfVariant & rVariant )
+    : PdfVariant( rVariant ), m_reference( rRef )
 {
     Init( true );
 }
@@ -134,9 +134,9 @@ void PdfObject::Init( bool bLoadOnDemandDone )
 void PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
 {
     bool          bIndirect = ( (long)m_reference.ObjectNumber() != -1  && (long)m_reference.GenerationNumber() != -1 );
-	bool          bIsTrailer = ( (long)m_reference.ObjectNumber() == 0  && (long)m_reference.GenerationNumber() == 0 );
+    bool          bIsTrailer = ( (long)m_reference.ObjectNumber() == 0  && (long)m_reference.GenerationNumber() == 0 );
 
-	DelayedStreamLoad();
+    DelayedStreamLoad();
 
     if( !pDevice )
     {
@@ -175,9 +175,9 @@ PdfObject* PdfObject::GetIndirectKey( const PdfName & key )
                 RAISE_ERROR( ePdfError_InvalidHandle );
             }
             pObj = m_pParent->GetObject( pObj->GetReference() );
-		} else {
-			pObj->SetParent( GetParent() );	// even directs might want a parent...
-		}
+        }
+        else
+            pObj->SetParent( GetParent() );	// even directs might want a parent...
     }
 
     return pObj;

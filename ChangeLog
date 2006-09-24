@@ -14,11 +14,14 @@ Version 0.4
 		modified podofoinfo to display them, if present	
 	Added a PdfDestination class
 	Added PdfNamesTree class for handling the global named objects
-		modified podofoinfo to display them, if present
+	        modified podofoinfo to display them, if present
 	PdfPainter can draw bezier curves
 	Added XCode project for building on Mac OS X
-		fixed up conditionals in font code to enable building on MacOSX - but no font loading, YET
-	
+	        fixed up conditionals in font code to enable building on
+		MacOSX - but no font loading, YET
+	Added support for writing linearized PDF
+	Added support for garbage collection of unused objects
+	Simplified PdfObject constructor
 	
 Version 0.3
     TOTAL revamp of PdfObject & PdfVariant to enable clean/consistent object handling;

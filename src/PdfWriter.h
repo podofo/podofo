@@ -48,6 +48,10 @@ typedef std::vector<TXRefTable>       TVecXRefTable;
 typedef TVecXRefTable::iterator       TIVecXRefTable;
 typedef TVecXRefTable::const_iterator TCIVecXRefTable;
 
+typedef std::vector<long>              TVecXRefOffset;
+typedef TVecXRefOffset::iterator       TIVecXRefOffset;
+typedef TVecXRefOffset::const_iterator TCIVecXRefOffset;
+
 
 /** The PdfWriter class writes a list of PdfObjects as PDF file.
  *  The XRef section (which is the required table of contents for any
@@ -179,6 +183,11 @@ class PdfWriter {
     void WriteToBuffer( char** ppBuffer, unsigned long* pulLen );
 
  private:
+    /** Writes a linearized PDF file
+     *  \param pDevice write to this output device
+     */       
+    void WriteLinearized( PdfOutputDevice* pDevice );
+
     /** Writes the pdf header to the current file.
      *  \param pDevice write to this output device
      */       
@@ -219,10 +228,11 @@ class PdfWriter {
     /** Writes the xref table.
      *  \param pVecXRef write this XRef table
      *  \param pDevice write to this output device
+     *  \param pVecXRefOffset add the offset of this XRef table to this vector
      *  \param bDummyOffset write a dummy startxref offset for linearized PDF files
      *  \param bShortTrailer write only the size key in the trailer
      */
-    void WritePdfTableOfContents( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, bool bDummyOffset = false, bool bShortTrailer = true );
+    void WritePdfTableOfContents( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, TVecXRefOffset* pVecXRefOffset, bool bDummyOffset = false, bool bShortTrailer = true );
 
     /** Writes the xref table as xref stream.
      *  \param pVecXRef write this XRef table
@@ -253,8 +263,9 @@ class PdfWriter {
      *  \param pHint the hint stream
      *  \param pPage the first page in the linerarized PDF file
      *  \param pLast pointer of the last object belonging to the first page
+     *  \param pVecXRefOffset xref table entries for previous entry
      */
-    void FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, PdfHintStream* pHint );
+    void FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset );
 
  protected:
     PdfVecObjects*  m_vecObjects;
@@ -280,8 +291,6 @@ class PdfWriter {
     long            m_lLinearizedOffset;
     long            m_lLinearizedLastOffset;
     long            m_lTrailerOffset;
-    long            m_lPrevOffset;
-    long            m_lFirstXRef;
     PdfVecObjects   m_vecLinearized;
 };
 

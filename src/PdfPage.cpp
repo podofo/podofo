@@ -42,7 +42,7 @@ PdfPage::PdfPage( const PdfRect & rSize, PdfVecObjects* pParent )
     m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::ProcSet() );
 
     m_pContents = new PdfContents( pParent );
-    m_pObject->GetDictionary().AddKey( PdfName::KeyContents, m_pContents->Contents()->Reference() );
+    m_pObject->GetDictionary().AddKey( PdfName::KeyContents, m_pContents->Contents()->Reference());
 }
 
 PdfPage::PdfPage( PdfObject* pObject )

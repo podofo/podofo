@@ -114,79 +114,98 @@ void PdfWriter::Write( const char* pszFilename )
 
 void PdfWriter::Write( PdfOutputDevice* pDevice )
 {
-    PdfObject*      pLinearize  = NULL;
-    PdfPage*        pPage;
-    PdfObject*      pLast;
-    PdfHintStream*  pHint;
-    PdfOutputDevice length;
-    PdfOutputDevice xrefLen;
     TVecXRefTable   vecXRef;
+    TVecXRefOffset  vecXRefOffset;
 
     if( !pDevice )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    // Might change the version of the PDF.
-    // As a reason we have to create it before writing
-    // the PDF header.
-    if( m_bLinearized && !m_vecObjects->IsLinearizationClean() )
+    if( m_bLinearized ) 
     {
-        this->FetchPagesTree();
-        pPage = m_pPagesTree->GetPage( 0 );
-
-        pLinearize = CreateLinearizationDictionary();
-        pHint      = new PdfHintStream( m_vecObjects, m_pPagesTree );
-
-        this->ReorderObjectsLinearized( pLinearize, pHint, pPage, &pLast );
+        this->WriteLinearized( pDevice );
     }
+    else
+    {
+        WritePdfHeader  ( pDevice );
+        WritePdfObjects ( pDevice, *m_vecObjects, &vecXRef );
 
-    WritePdfHeader( pDevice );
+        if( m_bXRefStream )
+            WriteXRefStream( &vecXRef, pDevice );
+        else
+            WritePdfTableOfContents( &vecXRef, pDevice, &vecXRefOffset, false, m_bLinearized );
+    }
+}
+
+void PdfWriter::WriteLinearized( PdfOutputDevice* pDevice )
+{
+    PdfObject*      pLinearize  = NULL;
+    PdfPage*        pPage;
+    PdfObject*      pLast;
+    PdfHintStream*  pHint;
+    PdfOutputDevice length;
+    TVecXRefTable   vecXRef;
+    TVecXRefOffset  vecXRefOffset;
+    TIVecOffsets    it;
+
+    // prepare the document for linearization
+    this->FetchPagesTree();
+    pPage = m_pPagesTree->GetPage( 0 );
     
-    if( m_bLinearized )
+    pLinearize = CreateLinearizationDictionary();
+    pHint      = new PdfHintStream( m_vecObjects, m_pPagesTree );
+    
+    this->ReorderObjectsLinearized( pLinearize, pHint, pPage, &pLast );
+
+    // The file is prepared for linearization,
+    // so write it now.
+    WritePdfHeader( pDevice );
+
+    m_lLinearizedOffset = pDevice->Length();
+    pLinearize->WriteObject( pDevice );
+
+    // fill the XRef table with the objects
+    WritePdfObjects( &PdfOutputDevice(), m_vecLinearized, &vecXRef );
+
+    // prepend the linearization dictionary to the XRef table
+    TXRefEntry entry;
+    entry.lOffset     = m_lLinearizedOffset;
+    entry.lGeneration = pLinearize->Reference().GenerationNumber();
+    entry.cUsed       = 'n';
+    
+    vecXRef[0].nCount++;
+    vecXRef[0].nFirst--; 
+    vecXRef[0].vecOffsets.insert( vecXRef[0].vecOffsets.begin(), entry );
+
+    // Calculate the length of the xref table
+    WritePdfTableOfContents( &vecXRef, &length, &vecXRefOffset, true, false );
+    
+    it = vecXRef[0].vecOffsets.begin(); 
+    it++; // skip the linearization dictionary, as it was written before the XRef table
+          // and does already have a correct offset
+    while( it != vecXRef[0].vecOffsets.end() )
     {
-        PdfVecObjects vecFirstObjects;
-        TVecXRefTable vecFirstXRef;
-        TIVecOffsets  it;
-
-        vecFirstObjects.push_back_and_do_not_own( pLinearize );
-
-        m_lLinearizedOffset = pDevice->Length();
-        WritePdfObjects( pDevice, vecFirstObjects, &vecFirstXRef );
-        WritePdfObjects( &length, m_vecLinearized, &vecXRef );
-
-        vecFirstXRef[0].nCount     += vecXRef[0].nCount;
-        vecFirstXRef[0].vecOffsets.insert( vecFirstXRef[0].vecOffsets.end(),
-                                           vecXRef[0].vecOffsets.begin(), vecXRef[0].vecOffsets.end() );
-        
-
-        WritePdfTableOfContents( &vecFirstXRef, &xrefLen, true, false );
-
-        it = vecFirstXRef[0].vecOffsets.begin();
-        it += 1; // skip linearization and hint dictionary
-        while( it != vecFirstXRef[0].vecOffsets.end() )
-        {
-            (*it).lOffset += pDevice->Length() + xrefLen.Length();
-            m_lLinearizedLastOffset = (*it).lOffset;
-            ++it;
-        }
-        WritePdfTableOfContents( &vecFirstXRef, pDevice, true, false );
-
-        vecXRef.clear();
-        WritePdfObjects( pDevice, m_vecLinearized, &vecXRef );
-        vecXRef.clear();
+        (*it).lOffset += pDevice->Length() + length.Length();
+        m_lLinearizedLastOffset = (*it).lOffset;
+        ++it;
     }
+    
+    vecXRefOffset.clear();
+    WritePdfTableOfContents( &vecXRef, pDevice, &vecXRefOffset, true, false );
+    vecXRef.clear();
+
+    WritePdfObjects( pDevice, m_vecLinearized, &vecXRef );
+    vecXRef.clear();
 
     WritePdfObjects( pDevice, *m_vecObjects, &vecXRef );
+
     if( m_bXRefStream )
         WriteXRefStream( &vecXRef, pDevice );
     else
-        WritePdfTableOfContents( &vecXRef, pDevice, false, m_bLinearized );
+        WritePdfTableOfContents( &vecXRef, pDevice, &vecXRefOffset, false, m_bLinearized );
 
-    if( m_bLinearized )
-    {
-        this->FillLinearizationDictionary( pLinearize, pDevice, pPage, pLast, pHint );
-    }
+    this->FillLinearizationDictionary( pLinearize, pDevice, pPage, pLast, pHint, &vecXRefOffset );
 }
 
 void PdfWriter::WritePdfHeader( PdfOutputDevice* pDevice )
@@ -291,23 +310,12 @@ void PdfWriter::WriteXRefEntries( PdfOutputDevice* pDevice, const TVecOffsets & 
     }
 }
 
-void PdfWriter::WritePdfTableOfContents( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, bool bDummyOffset, bool bShortTrailer )
+void PdfWriter::WritePdfTableOfContents( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, TVecXRefOffset* pVecXRefOffset, bool bDummyOffset, bool bShortTrailer )
 {
     long              lXRef     = pDevice->Length();;
     unsigned int      nSize     = 0;
     TCIVecXRefTable   it;
     PdfObject         trailer;
-
-    if( bDummyOffset )
-    {
-        m_lFirstXRef = lXRef;
-        lXRef        = 0;
-    }
-    else
-    {
-        m_lPrevOffset = lXRef;
-        lXRef         = m_lFirstXRef;
-    }
 
     pDevice->Print( "xref\n" );
 
@@ -335,7 +343,8 @@ void PdfWriter::WritePdfTableOfContents( TVecXRefTable* pVecXRef, PdfOutputDevic
         m_lTrailerOffset = pDevice->Length();
 
     trailer.WriteObject( pDevice );
-    pDevice->Print( "startxref\n%li\n%%%%EOF\n", lXRef  );
+    pDevice->Print( "startxref\n%li\n%%%%EOF\n",  pVecXRefOffset->size() ? pVecXRefOffset->back() : (bDummyOffset ? 0 : lXRef)  );
+    pVecXRefOffset->push_back( lXRef );
 }
 
 void PdfWriter::GetByteOffset( PdfObject* pObject, unsigned long* pulOffset )
@@ -508,7 +517,7 @@ void PdfWriter::WriteXRefStream( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevi
 
     STREAM_OFFSET_TYPE* pValue    = (STREAM_OFFSET_TYPE*)(buffer+1);
 
-    PdfObject           object( m_vecObjects->m_nObjectCount, 0, "XRef" );
+    PdfObject           object( PdfReference( m_vecObjects->m_nObjectCount, 0 ), "XRef" );
     PdfArray            indeces;
     PdfArray            w;
 
@@ -612,7 +621,7 @@ void PdfWriter::FetchPagesTree()
     }
 }
 
-void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, PdfHintStream* pHint )
+void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset )
 {
     long            lFileSize        = pDevice->Length();
     PdfVariant      value( (long)0 );
@@ -640,7 +649,7 @@ void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDev
     pLinearize->WriteObject( pDevice );
     pDevice->Seek( lFileSize );
 
-    value.SetNumber( m_lPrevOffset );
+    value.SetNumber( pVecXRefOffset->back() );
     FillTrailerObject( &trailer, pLast->ObjectNumber()+1, true, false );
     trailer.GetDictionary().AddKey("Prev", value );
 

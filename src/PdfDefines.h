@@ -199,13 +199,15 @@ typedef enum EPdfPageSize {
  * \see PdfDocument
  */
 typedef enum EPdfPageMode {
-	ePdfPageModeDontCare,
-	ePdfPageModeUseNone,
-	ePdfPageModeUseThumbs,
-	ePdfPageModeUseBookmarks,
-	ePdfPageModeFullScreen,
-	ePdfPageModeUseOC,
-	ePdfPageModeUseAttachments
+    ePdfPageModeDontCare,
+    ePdfPageModeUseNone,
+    ePdfPageModeUseThumbs,
+    ePdfPageModeUseBookmarks,
+    ePdfPageModeFullScreen,
+    ePdfPageModeUseOC,
+    ePdfPageModeUseAttachments,
+
+    ePdfPageModeUnknown = 0xff
 };
 
 /**
@@ -216,14 +218,16 @@ typedef enum EPdfPageMode {
  * \see PdfDocument
  */
 typedef enum EPdfPageLayout {
-	ePdfPageLayoutIgnore,
-	ePdfPageLayoutDefault,
-	ePdfPageLayoutSinglePage,
-	ePdfPageLayoutOneColumn,
-	ePdfPageLayoutTwoColumnLeft,
-	ePdfPageLayoutTwoColumnRight,
-	ePdfPageLayoutTwoPageLeft,
-	ePdfPageLayoutTwoPageRight
+    ePdfPageLayoutIgnore,
+    ePdfPageLayoutDefault,
+    ePdfPageLayoutSinglePage,
+    ePdfPageLayoutOneColumn,
+    ePdfPageLayoutTwoColumnLeft,
+    ePdfPageLayoutTwoColumnRight,
+    ePdfPageLayoutTwoPageLeft,
+    ePdfPageLayoutTwoPageRight,
+
+    ePdfPageLayoutUnknown = 0xff
 };
 
 /**

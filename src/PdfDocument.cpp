@@ -469,6 +469,7 @@ EPdfPageMode PdfDocument::GetPageMode( void ) const
 void PdfDocument::SetPageMode( EPdfPageMode inMode ) const
 {
     switch ( inMode ) {
+        default:
         case ePdfPageModeDontCare:	
             // GetCatalog()->RemoveKey( PdfName( "PageMode" ) );
             // this value means leave it alone!

@@ -50,7 +50,7 @@ private:
 };
 
 PdfVecObjects::PdfVecObjects()
-    : m_bAutoDelete( false ), m_bLinearizationClean( false ), m_nObjectCount( 1 )
+    : m_bAutoDelete( false ), m_nObjectCount( 1 )
 {
 }
 
@@ -78,7 +78,6 @@ const PdfVecObjects & PdfVecObjects::operator=( const PdfVecObjects & rhs )
     std::vector<PdfObject*>::operator=( rhs );
 
     m_bAutoDelete         = rhs.m_bAutoDelete;
-    m_bLinearizationClean = rhs.m_bLinearizationClean;
     m_nObjectCount        = rhs.m_nObjectCount;
     m_lstFreeObjects      = rhs.m_lstFreeObjects;
 
@@ -127,7 +126,6 @@ PdfObject* PdfVecObjects::RemoveObject( const PdfReference & ref )
     if( it != this->end() )
     {
         pObj = *it;
-        this->SetLinearizationDirty();
         this->erase( it );
         this->AddFreeObject( pObj->Reference() );
         return pObj;
@@ -152,7 +150,7 @@ PdfReference PdfVecObjects::GetNextFreeObject()
 PdfObject* PdfVecObjects::CreateObject( const char* pszType )
 {
     PdfReference ref = this->GetNextFreeObject();
-    PdfObject*  pObj = new PdfObject( ref.ObjectNumber(), ref.GenerationNumber(), pszType );
+    PdfObject*  pObj = new PdfObject( ref, pszType );
     pObj->SetParent( this );
 
     this->push_back( pObj );
@@ -163,7 +161,7 @@ PdfObject* PdfVecObjects::CreateObject( const char* pszType )
 PdfObject* PdfVecObjects::CreateObject( const PdfVariant & rVariant )
 {
     PdfReference ref = this->GetNextFreeObject();
-    PdfObject*  pObj = new PdfObject( ref.ObjectNumber(), ref.GenerationNumber(), rVariant );
+    PdfObject*  pObj = new PdfObject( ref, rVariant );
     pObj->SetParent( this );    
 
     this->push_back( pObj );
@@ -173,7 +171,6 @@ PdfObject* PdfVecObjects::CreateObject( const PdfVariant & rVariant )
 
 void PdfVecObjects::AddFreeObject( const PdfReference & rReference )
 {
-    this->SetLinearizationDirty();
     m_lstFreeObjects.push_front( rReference );
     m_lstFreeObjects.sort();
 }
@@ -183,14 +180,12 @@ void PdfVecObjects::push_back( PdfObject* pObj )
     if( pObj->ObjectNumber() >= m_nObjectCount )
         ++m_nObjectCount;
 
-    this->SetLinearizationDirty();
     pObj->SetParent( this );
     std::vector<PdfObject*>::push_back( pObj );
 }
 
 void PdfVecObjects::push_back_and_do_not_own( PdfObject* pObj )
 {
-    this->SetLinearizationDirty();
     std::vector<PdfObject*>::push_back( pObj );
 }
 
@@ -203,7 +198,6 @@ void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNot
     int                       i = 0;
 
     m_lstFreeObjects.clear();
-    this->SetLinearizationDirty();
 
     m_refCache.clear();
     printf("BuildingRefCoutnVector\n");
@@ -369,7 +363,6 @@ void PdfVecObjects::BuildReferenceCountVector( TVecReferencePointerList* pList )
 
 void PdfVecObjects::Sort()
 {
-    this->SetLinearizationDirty();
     std::sort( this->begin(), this->end(), ObjectLittle );
 }
 
@@ -379,7 +372,6 @@ void PdfVecObjects::GarbageCollection( TVecReferencePointerList* pList, PdfObjec
     int                       pos       = 0;
     bool                      bContains = false;
 
-    this->SetLinearizationDirty();
     while( it != pList->end() )
     {
         bContains = pNotDelete ? ( pNotDelete->find( (*this)[pos]->Reference() ) != pNotDelete->end() ) : false;

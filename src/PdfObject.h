@@ -59,21 +59,19 @@ class PdfObject : public PdfVariant {
     PdfObject();
 
     /** Construct a new PDF object of type PdfDictionary
-     *  \param objectno the object number
-     *  \param generationno the generation number which is almost ever 0
+     *  \param rRef reference of this object
      *  \param pszType if type is not null a key "/Type" will be added to the dictionary with
      *                 the value of type.
      *  \see SetDirect
      */
-    PdfObject( unsigned long objectno, unsigned long generationno, const char* pszType = NULL );
+    PdfObject( const PdfReference & rRef, const char* pszType );
 
     /** Construct a new PDF object.
-     *  \param objectno the object number
-     *  \param generationno the generation number which is almost ever 0
+     *  \param rRef reference of this object
      *  \param rVariant the value of the PdfObject
      *  \see SetDirect
      */
-    PdfObject( unsigned long objectno, unsigned long generationno, const PdfVariant & rVariant );
+    PdfObject( const PdfReference & rRef, const PdfVariant & rVariant );
 
     /** Create a PDF object with object and generation number -1
      *  and the value of the passed variant.
@@ -180,7 +178,7 @@ class PdfObject : public PdfVariant {
     /** Get the length of the object in bytes if it was written to disk now.
      *  \returns  the length of the object
      */
-     unsigned long GetObjectLength();
+    unsigned long GetObjectLength();
 
     /** Get a indirect reference to this object
      *  \returns a PdfReference pointing to this object.
