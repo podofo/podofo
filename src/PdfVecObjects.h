@@ -26,24 +26,6 @@
 
 #include <list>
 
-#ifdef _WIN32
-#define FASTEST_MAP std::map
-#else
-
-#include <ext/hash_map>
-#define FASTEST_MAP __gnu_cxx::hash_map
-
-namespace __gnu_cxx
-{
-        template<> struct hash< PoDoFo::PdfReference >
-        {
-                size_t operator()( const PoDoFo::PdfReference& ref ) const
-                {
-                        return hash< int >()( ref.ObjectNumber() );
-                }
-        };
-}
-#endif // _WIN32
 namespace PoDoFo {
 
 class PdfObject;
@@ -65,10 +47,6 @@ typedef TReferencePointerList::const_iterator    TCIReferencePointerList;
 typedef std::vector<TReferencePointerList  >     TVecReferencePointerList;
 typedef TVecReferencePointerList::iterator       TIVecReferencePointerList;
 typedef TVecReferencePointerList::const_iterator TCIVecReferencePointerList;
-
-typedef FASTEST_MAP<PdfReference,int>               TMapReferenceCache;
-typedef TMapReferenceCache::iterator             TIMapReferenceCache;
-typedef TMapReferenceCache::const_iterator       TCIMapReferenceCache;
 
 /** A STL vector of PdfObjects. I.e. a list of PdfObject classes.
  *  The PdfParser will read the PdfFile into memory and create 
@@ -241,7 +219,6 @@ class PdfVecObjects : public std::vector<PdfObject*> {
     size_t              m_nObjectCount;
 
     TPdfReferenceList   m_lstFreeObjects;
-    TMapReferenceCache  m_refCache;
 };
 
 // -----------------------------------------------------

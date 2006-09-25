@@ -38,18 +38,19 @@ void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo
     std::string   str;
     PdfVecObjects parser;
 
-    PdfRefCountedBuffer buffer( BUFFER_SIZE );
-    PdfRefCountedFile   file( pszFilename, "w" );
-    if( !file.Handle() )
+    PdfRefCountedBuffer      buffer( BUFFER_SIZE );
+    FILE*                    hFile = fopen( pszFilename, "w" );
+    if( !hFile )
     {
         fprintf( stderr, "Cannot open %s for writing.\n", pszFilename );
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    fprintf( file.Handle(), pszData );
+    fprintf( hFile, pszData );
+    fclose( hFile );
 
-    file = PdfRefCountedFile( pszFilename, "r" );
-    if( !file.Handle() )
+    PdfRefCountedInputDevice device( pszFilename, "r" );
+    if( !device.Device() )
     {
         fprintf( stderr, "Cannot open %s for reading.\n", pszFilename );
         RAISE_ERROR( ePdfError_TestFailed );
@@ -57,20 +58,20 @@ void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo
 
     printf("Parsing Object: %li %li\n", lObjNo, lGenNo );
 
-    PdfParserObject obj( &parser, file, buffer );
+    PdfParserObject obj( &parser, device, buffer );
     try {
         obj.ParseFile( false );
     } catch( PdfError & e ) {
         fprintf( stderr, "Error during test: %i\n", e.Error() );
         e.PrintErrorMsg();
-        file = PdfRefCountedFile();
+        device = PdfRefCountedInputDevice();
         unlink( pszFilename ); // do not care for unlink errors in this case
 
         e.AddToCallstack( __FILE__, __LINE__ );
         throw e;
     }
 
-    file = PdfRefCountedFile();
+    device = PdfRefCountedInputDevice();
     unlink( pszFilename );
 
     printf("  -> Object Number: %u Generation Number: %u\n", obj.ObjectNumber(), obj.GenerationNumber() );
@@ -107,21 +108,22 @@ void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo
 
 void TestObject( const char* pszFilename, const char* pszData, long lObjNo, long lGenNo )
 {
-    PdfVecObjects       parser;
-    PdfRefCountedFile   file( pszFilename, "w" );
+    PdfVecObjects              parser;
+    FILE*                      hFile;
     PdfRefCountedBuffer buffer( BUFFER_SIZE );
 
-    if( !file.Handle() )
+    hFile = fopen( pszFilename, "w" );
+    if( !hFile )
     {
         fprintf( stderr, "Cannot open %s for writing.\n", pszFilename );
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    fprintf( file.Handle(), pszData );
-    file = PdfRefCountedFile();
+    fprintf( hFile, pszData );
+    fclose( hFile );
 
-    file = PdfRefCountedFile( pszFilename, "r" );
-    if( !file.Handle() )
+    PdfRefCountedInputDevice device( pszFilename, "r" );
+    if( !device.Device() )
     {
         fprintf( stderr, "Cannot open %s for reading.\n", pszFilename );
         RAISE_ERROR( ePdfError_TestFailed );
@@ -129,20 +131,20 @@ void TestObject( const char* pszFilename, const char* pszData, long lObjNo, long
 
     printf("Parsing Object: %li %li\n", lObjNo, lGenNo );
 
-    PdfParserObject obj( &parser, file, buffer );
+    PdfParserObject obj( &parser, device, buffer );
     try {
         obj.ParseFile( false );
     } catch( PdfError & e ) {
         fprintf( stderr, "Error during test: %i\n", e.Error() );
         e.PrintErrorMsg();
-        file = PdfRefCountedFile();
+        device = PdfRefCountedInputDevice();
         unlink( pszFilename ); // do not care for unlink errors in this case
 
         e.AddToCallstack( __FILE__, __LINE__  );
         throw e;
     }
 
-    file = PdfRefCountedFile();
+    device = PdfRefCountedInputDevice();
     unlink( pszFilename );
 
     printf("  -> Object Number: %u Generation Number: %u\n", obj.ObjectNumber(), obj.GenerationNumber() );

@@ -110,9 +110,11 @@ unsigned int PdfVecObjects::GetIndex( const PdfReference & ref ) const
     it = std::find_if( this->begin(), this->end(), ObjectsComperator( ref ) );
     
     if( it != this->end() )
-        return (it - this->begin());
+    {
+        RAISE_ERROR( ePdfError_NoObject );
+    }
 
-    return 0;
+    return (it - this->begin());
 }
 
 
@@ -199,21 +201,13 @@ void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNot
 
     m_lstFreeObjects.clear();
 
-    m_refCache.clear();
-    printf("BuildingRefCoutnVector\n");
+    // The following call slows everything down
+    // optimization welcome
     BuildReferenceCountVector( &list );
-    printf("BuildingRefCoutnVector DONE\n");
     InsertReferencesIntoVector( pTrailer, &list );
-    m_refCache.clear();
 
-    printf("Garbarge Collection\n");
-    GarbageCollection( &list, pTrailer, pNotDelete );
-    printf("Garbarge Collection DONE\n");
+    //GarbageCollection( &list, pTrailer, pNotDelete );
 
-    printf("Renumbering\n");
-
-    printf("list.size() = %i\n", list.size() );
-    printf("this.size() = %i\n", this->size() );
     it = list.begin();
     while( it != list.end() )
     {
@@ -231,7 +225,6 @@ void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNot
         ++i;
         ++it;
     }
-    printf("Renumbering DONE\n");
 }
 
 void PdfVecObjects::InsertOneReferenceIntoVector( const PdfObject* pObj, TVecReferencePointerList* pList )  
@@ -242,20 +235,14 @@ void PdfVecObjects::InsertOneReferenceIntoVector( const PdfObject* pObj, TVecRef
 
     // we asume that pObj is a reference - no checking here because of speed
     ref   = pObj->GetReference();
-    index = m_refCache[ref];
-    if( !index ) 
+    it    = std::find_if( this->begin(), this->end(), ObjectsComperator( ref ) );
+        
+    if( it == this->end() )
     {
-        it      = std::find_if( this->begin(), this->end(), ObjectsComperator( ref ) );
-        
-        if( it == this->end() )
-        {
-            RAISE_ERROR( ePdfError_NoObject );
-        }
-        
-        index = (it - this->begin());
-        m_refCache.insert( TMapReferenceCache::value_type( ref, index ) );
+        RAISE_ERROR( ePdfError_NoObject );
     }
     
+    index = (it - this->begin());
     (*pList)[index].push_back( const_cast<PdfReference*>(&(pObj->GetReference() )) );
 }
 

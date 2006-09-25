@@ -20,6 +20,8 @@
 
 #include "PdfParserBase.h"
 
+#include "PdfInputDevice.h"
+
 namespace PoDoFo {
 
 #define PDF_BUFFER             4096
@@ -29,8 +31,8 @@ PdfParserBase::PdfParserBase()
 {
 }
 
-PdfParserBase::PdfParserBase( const PdfRefCountedFile & rFile, const PdfRefCountedBuffer & rBuffer )
-    : m_file( rFile ), m_buffer( rBuffer )
+PdfParserBase::PdfParserBase( const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer )
+    : m_device( rDevice ), m_buffer( rBuffer )
 {
 }
 
@@ -67,12 +69,12 @@ long PdfParserBase::GetNextNumberFromFile()
     int   counter = 0;
     char* end;
 
-    if( !m_file.Handle() )
+    if( !m_device.Device() )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    while( (c = fgetc( m_file.Handle() )) != EOF && counter < m_buffer.Size() )
+    while( (c = m_device.Device()->GetChar()) != EOF && counter < m_buffer.Size() )
     {
         if( !counter && IsWhitespace( c ) )
             continue;
@@ -106,23 +108,28 @@ const char* PdfParserBase::GetNextStringFromFile()
     int c; 
     int counter = 0;
 
-    if( !m_file.Handle() )
+    if( !m_device.Device() )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    while( (c = fgetc( m_file.Handle() )) != EOF && counter < m_buffer.Size() )
+    while( (c = m_device.Device()->Look()) != EOF && counter < m_buffer.Size() )
     {
         if( !counter && IsWhitespace( c ) )
+        {
+            // retrieve c really from stream
+            c = m_device.Device()->GetChar();
             continue;
+        }
         else if( counter && (IsWhitespace( c ) || IsDelimiter( c )) )
         {
-            // push c back onto the stream
-            ungetc( c, m_file.Handle() );
+            // do nothing
             break;
         }
         else
         {
+            // retrieve c really from stream
+            c = m_device.Device()->GetChar();
             m_buffer.Buffer()[counter] = c;
             ++counter;
         }

@@ -18,62 +18,57 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "PdfRefCountedFile.h"
+#include "PdfRefCountedInputDevice.h"  
+
+#include "PdfInputDevice.h"
 
 namespace PoDoFo {
 
-PdfRefCountedFile::PdfRefCountedFile()
-    : m_pFile( NULL )
+PdfRefCountedInputDevice::PdfRefCountedInputDevice()
+    : m_pDevice( NULL )
 {
 
 }
 
-PdfRefCountedFile::PdfRefCountedFile( const char* pszFilename, const char* pszMode )
-    : m_pFile( NULL )
+PdfRefCountedInputDevice::PdfRefCountedInputDevice( const char* pszFilename, const char* pszMode )
+    : m_pDevice( NULL )
 {
-    m_pFile = new TRefCountedFile();
-    m_pFile->m_lRefCount = 1;
-    m_pFile->m_hFile     = fopen( pszFilename, pszMode );
-
-    if( !m_pFile->m_hFile ) 
-    {
-        delete m_pFile;
-        m_pFile = NULL;
-
-        RAISE_ERROR( ePdfError_FileNotFound );
-    }
+    m_pDevice              = new TRefCountedInputDevice();
+    m_pDevice->m_lRefCount = 1;
+    m_pDevice->m_pDevice   = new PdfInputDevice( pszFilename );
 }
 
-PdfRefCountedFile::PdfRefCountedFile( const PdfRefCountedFile & rhs )
-    : m_pFile( NULL )
+PdfRefCountedInputDevice::PdfRefCountedInputDevice( const PdfRefCountedInputDevice & rhs )
+    : m_pDevice( NULL )
 {
     this->operator=( rhs );
 }
 
-PdfRefCountedFile::~PdfRefCountedFile()
+PdfRefCountedInputDevice::~PdfRefCountedInputDevice()
 {
     Detach();
 }
 
-void PdfRefCountedFile::Detach()
+void PdfRefCountedInputDevice::Detach()
 {
-    if( m_pFile && !--m_pFile->m_lRefCount ) 
+    if( m_pDevice && !--m_pDevice->m_lRefCount ) 
     {
         // last owner of the file!
-        fclose( m_pFile->m_hFile );
-        delete m_pFile;
-        m_pFile = NULL;
+        m_pDevice->m_pDevice->Close();
+        delete m_pDevice->m_pDevice;
+        delete m_pDevice;
+        m_pDevice = NULL;
     }
 
 }
 
-const PdfRefCountedFile & PdfRefCountedFile::operator=( const PdfRefCountedFile & rhs )
+const PdfRefCountedInputDevice & PdfRefCountedInputDevice::operator=( const PdfRefCountedInputDevice & rhs )
 {
     Detach();
 
-    m_pFile = rhs.m_pFile;
-    if( m_pFile )
-        m_pFile->m_lRefCount++;
+    m_pDevice = rhs.m_pDevice;
+    if( m_pDevice )
+        m_pDevice->m_lRefCount++;
 
     return *this;
 }

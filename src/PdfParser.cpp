@@ -22,6 +22,7 @@
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
+#include "PdfInputDevice.h"
 #include "PdfOutputDevice.h"
 #include "PdfParserObject.h"
 #include "PdfStream.h"
@@ -60,7 +61,7 @@ void PdfParser::Init()
 {
     m_bLoadOnDemand   = false;
 
-    m_file            = PdfRefCountedFile();
+    m_device          = PdfRefCountedInputDevice();
     m_pTrailer        = NULL;
     m_pLinearization  = NULL;
     m_pOffsets        = NULL;
@@ -85,8 +86,8 @@ void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
 
     m_bLoadOnDemand = bLoadOnDemand;
 
-    m_file           = PdfRefCountedFile( pszFilename, "rb" );
-    if( !m_file.Handle() )
+    m_device           = PdfRefCountedInputDevice( pszFilename, "rb" );
+    if( !m_device.Device() )
     {
         RAISE_ERROR( ePdfError_FileNotFound );
     }
@@ -115,7 +116,7 @@ void PdfParser::Clear()
     if( m_pOffsets )
         free( m_pOffsets );
 
-    m_file = PdfRefCountedFile();
+    m_device = PdfRefCountedInputDevice();
 
     delete m_pTrailer;
     delete m_pLinearization;
@@ -128,8 +129,8 @@ void PdfParser::ReadDocumentStructure()
     HasLinearizationDict();
     
     // position at the end of the file to search the xref table.
-    fseek( m_file.Handle(), 0, SEEK_END );
-    m_nFileSize = ftell( m_file.Handle() );
+    m_device.Device()->Seek( 0, std::ios_base::end );
+    m_nFileSize = m_device.Device()->Tell();
 
     try {
         ReadXRef( &m_nXRefOffset );
@@ -215,7 +216,7 @@ bool PdfParser::IsPdfFile()
     const char* szPdfMagicStart = "%PDF-";
     int i;
 
-    if( fread( m_buffer.Buffer(), PDF_MAGIC_LEN, sizeof(char), m_file.Handle() ) != 1 )
+    if( m_device.Device()->Read( m_buffer.Buffer(), PDF_MAGIC_LEN ) != PDF_MAGIC_LEN )
         return false;
 
      if( strncmp( m_buffer.Buffer(), szPdfMagicStart, strlen( szPdfMagicStart ) ) != 0 )
@@ -240,9 +241,9 @@ void PdfParser::HasLinearizationDict()
     const int XREF_LEN    = 4; // strlen( "xref" );
     char*     pszStart   = NULL;
 
-    fseek( m_file.Handle(), 0, SEEK_SET );
+    m_device.Device()->Seek( 0 );
     // look for a linearization dictionary in the first 1024 bytes
-    if( fread( m_buffer.Buffer(), m_buffer.Size(), sizeof(char), m_file.Handle() ) != 1 )
+    if( m_device.Device()->Read( m_buffer.Buffer(), m_buffer.Size() ) != m_buffer.Size() )
         return; // Ignore Error Code: ERROR_PDF_NO_TRAILER;
 
     pszObj = strstr( m_buffer.Buffer(), "obj" );
@@ -255,7 +256,7 @@ void PdfParser::HasLinearizationDict()
     while( *pszObj && (IsWhitespace( *pszObj ) || (*pszObj >= '0' && *pszObj <= '9')) )
         --pszObj;
 
-    m_pLinearization = new PdfParserObject( m_vecObjects, m_file, m_buffer, pszObj - m_buffer.Buffer() + 2 );
+    m_pLinearization = new PdfParserObject( m_vecObjects, m_device, m_buffer, pszObj - m_buffer.Buffer() + 2 );
 
     try {
         static_cast<PdfParserObject*>(m_pLinearization)->ParseFile();
@@ -281,14 +282,10 @@ void PdfParser::HasLinearizationDict()
     }
 
     // avoid moving to a negative file position here
-    if( fseek( m_file.Handle(), (lXRef-PDF_XREF_BUF > 0 ? lXRef-PDF_XREF_BUF : PDF_XREF_BUF), SEEK_SET ) != 0 )
-    {
-        RAISE_ERROR( ePdfError_InvalidLinearization );
-    }
+    m_device.Device()->Seek( (lXRef-PDF_XREF_BUF > 0 ? lXRef-PDF_XREF_BUF : PDF_XREF_BUF) );
+    m_nXRefLinearizedOffset = m_device.Device()->Tell();
 
-    m_nXRefLinearizedOffset = ftell( m_file.Handle() );
-
-    if( fread( m_buffer.Buffer(), PDF_XREF_BUF, sizeof(char), m_file.Handle() ) != 1 )
+    if( m_device.Device()->Read( m_buffer.Buffer(), PDF_XREF_BUF ) != PDF_XREF_BUF )
     {
         RAISE_ERROR( ePdfError_InvalidLinearization );
     }
@@ -358,7 +355,7 @@ void PdfParser::ReadNextTrailer()
     // ReadXRefcontents has read the first 't' from "trailer" so just check for "railer"
     if( strcmp( m_buffer.Buffer(), "railer" ) == 0 )
     {
-        PdfParserObject trailer( m_vecObjects, m_file, m_buffer );
+        PdfParserObject trailer( m_vecObjects, m_device, m_buffer );
         try {
             trailer.ParseFile( true );
         } catch( PdfError & e ) {
@@ -394,8 +391,8 @@ void PdfParser::ReadTrailer()
     const int  TRAILER_LEN  = 7; // strlen( "trailer" )
     long       lXRefBuf;
 
-    fseek( m_file.Handle(), 0, SEEK_END );
-    nEof = ftell( m_file.Handle() );
+    m_device.Device()->Seek( 0, std::ios_base::end );
+    nEof = m_device.Device()->Tell();
     lXRefBuf = PDF_MIN( nEof, PDF_XREF_BUF );
 
     do {
@@ -403,20 +400,15 @@ void PdfParser::ReadTrailer()
         // e.g. the first search block starts with "ailer" whereas the second one
         // ends with "tr". trailer cannot be found in this case
 
-        if( fseek( m_file.Handle(), -lXRefBuf, SEEK_CUR ) != 0 )
+        m_device.Device()->Seek( -lXRefBuf, std::ios_base::cur );
+        //RAISE_ERROR( ePdfError_NoTrailer );
+
+        if( m_device.Device()->Read( m_buffer.Buffer(), lXRefBuf ) != lXRefBuf )
         {
             RAISE_ERROR( ePdfError_NoTrailer );
         }
 
-        if( fread( m_buffer.Buffer(), lXRefBuf, sizeof(char), m_file.Handle() ) != 1 )
-        {
-            RAISE_ERROR( ePdfError_NoTrailer );
-        }
-
-        if( fseek( m_file.Handle(), -lXRefBuf, SEEK_CUR ) != 0 )
-        {
-            RAISE_ERROR( ePdfError_NoTrailer );
-        }
+        m_device.Device()->Seek( -lXRefBuf, std::ios_base::cur );
         
         m_buffer.Buffer()[lXRefBuf] = '\0';
         // search backwards in the buffer in case the buffer contains null bytes
@@ -445,23 +437,17 @@ void PdfParser::ReadTrailer()
         // and a trailer dictionary is not required
         if( !pszStart )
         {
-            if( fseek( m_file.Handle(), m_nXRefOffset, SEEK_SET ) != 0 )
-            {
-                RAISE_ERROR( ePdfError_NoXRef );
-            }
-            
-            m_pTrailer = new PdfParserObject( m_vecObjects, m_file, m_buffer );
+            m_device.Device()->Seek( m_nXRefOffset );
+
+            m_pTrailer = new PdfParserObject( m_vecObjects, m_device, m_buffer );
             static_cast<PdfParserObject*>(m_pTrailer)->ParseFile( false );
             return;
         }
     }
 
-    if( fseek( m_file.Handle(), (pszStart - m_buffer.Buffer() + TRAILER_LEN), SEEK_CUR ) != 0 )
-    {
-        RAISE_ERROR( ePdfError_NoTrailer );
-    }
+    m_device.Device()->Seek( (pszStart - m_buffer.Buffer() + TRAILER_LEN), std::ios_base::cur );
 
-    m_pTrailer = new PdfParserObject( m_vecObjects, m_file, m_buffer );
+    m_pTrailer = new PdfParserObject( m_vecObjects, m_device, m_buffer );
     try {
         static_cast<PdfParserObject*>(m_pTrailer)->ParseFile( true );
     } catch( PdfError & e ) {
@@ -481,15 +467,11 @@ void PdfParser::ReadXRef( long* pXRefOffset )
     int         i;
     long        lXRefBuf, lFileSize;
 
-    lFileSize = ftell( m_file.Handle() );
-    lXRefBuf = PDF_MIN( lFileSize, PDF_XREF_BUF );
+    lFileSize = m_device.Device()->Tell();
+    lXRefBuf  = PDF_MIN( lFileSize, PDF_XREF_BUF );
 
-    if( fseek( m_file.Handle(), -lXRefBuf, SEEK_CUR ) != 0 )
-    {
-        RAISE_ERROR( ePdfError_NoXRef );
-    }
-
-    if( fread( m_buffer.Buffer(), lXRefBuf, sizeof(char), m_file.Handle() ) != 1 )
+    m_device.Device()->Seek( -lXRefBuf, std::ios_base::cur );
+    if( m_device.Device()->Read( m_buffer.Buffer(), lXRefBuf ) != lXRefBuf )
     {
         RAISE_ERROR( ePdfError_NoXRef );
     }
@@ -534,10 +516,7 @@ void PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
     long        nFirstObject = 0;
     long        nNumObjects  = 0;
 
-    if( fseek( m_file.Handle(), lOffset, SEEK_SET ) != 0 )
-    {
-        RAISE_ERROR( ePdfError_NoXRef );
-    }
+    m_device.Device()->Seek( lOffset );
     
     GetNextStringFromFile( );
     if( strncmp( m_buffer.Buffer(), "xref", 4 ) != 0 )
@@ -566,7 +545,7 @@ void PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
 
             if( bPositionAtEnd )
             {
-                fseek( m_file.Handle(), nNumObjects* PDF_XREF_ENTRY_SIZE, SEEK_CUR );
+                m_device.Device()->Seek( nNumObjects* PDF_XREF_ENTRY_SIZE, std::ios_base::cur );
             }
             else
                 ReadXRefSubsection( nFirstObject, nNumObjects );
@@ -601,7 +580,7 @@ void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
     PdfError::DebugMessage("Reading XRef Section: %i with %i Objects\n", nFirstObject, nNumObjects );
 #endif // _DEBUG 
 
-    while( count < nNumObjects && fread( m_buffer.Buffer(), PDF_XREF_ENTRY_SIZE, sizeof(char), m_file.Handle() ) == 1 )
+    while( count < nNumObjects && m_device.Device()->Read( m_buffer.Buffer(), PDF_XREF_ENTRY_SIZE ) == PDF_XREF_ENTRY_SIZE )
     {
         m_buffer.Buffer()[PDF_XREF_ENTRY_SIZE] = '\0';
 
@@ -659,12 +638,9 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
     long        nW[W_ARRAY_SIZE] = { 0, 0, 0 };
     int         i;
 
-    if( fseek( m_file.Handle(), lOffset, SEEK_SET ) != 0 )
-    {
-        RAISE_ERROR( ePdfError_NoXRef );
-    }
+    m_device.Device()->Seek( lOffset );
 
-    PdfParserObject xrefObject( m_vecObjects, m_file, m_buffer );
+    PdfParserObject xrefObject( m_vecObjects, m_device, m_buffer );
     xrefObject.ParseFile();
 
 
@@ -680,7 +656,7 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
     } 
 
     if( !m_pTrailer )    
-        m_pTrailer = new PdfParserObject( m_vecObjects, m_file, m_buffer );
+        m_pTrailer = new PdfParserObject( m_vecObjects, m_device, m_buffer );
 
     MergeTrailer( &xrefObject );
 
@@ -825,7 +801,7 @@ void PdfParser::ReadObjects()
     {
         if( m_pOffsets[i].bParsed && m_pOffsets[i].cUsed == 'n' )
         {
-            pObject = new PdfParserObject( m_vecObjects, m_file, m_buffer, m_pOffsets[i].lOffset );
+            pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, m_pOffsets[i].lOffset );
             pObject->SetLoadOnDemand( m_bLoadOnDemand );
             try {
                 pObject->ParseFile();
@@ -833,7 +809,7 @@ void PdfParser::ReadObjects()
                 
                 // final pdf should not contain a linerization dictionary as it contents are invalid 
                 // as we change some objects and the final xref table
-                if( m_pLinearization && nLast == m_pLinearization->ObjectNumber() )
+                if( m_pLinearization && nLast == (int)m_pLinearization->ObjectNumber() )
                 {
                     m_vecObjects->AddFreeObject( pObject->Reference() );
                     delete pObject;

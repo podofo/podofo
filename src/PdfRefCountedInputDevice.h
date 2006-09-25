@@ -18,54 +18,56 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PDF_REF_COUNTED_FILE_H_
-#define _PDF_REF_COUNTED_FILE_H_
+#ifndef _PDF_REF_COUNTED_INPUT_DEVICE_H_
+#define _PDF_REF_COUNTED_INPUT_DEVICE_H_
 
 #include "PdfDefines.h"
 
 namespace PoDoFo {
 
+class PdfInputDevice;
+
 /** 
- * A reference counted file object
+ * A reference counted input device object
  * which is closed as soon as the last
- * object having access to it is delteted.
+ * object having access to it is deleted.
  */
-class PdfRefCountedFile {
+class PdfRefCountedInputDevice {
  public:
-    /** Created an empty reference counted file object
-     *  The file handle will be initialize to NULL
+    /** Created an empty reference counted input device object
+     *  The input device will be initialize to NULL
      */
-    PdfRefCountedFile();
+    PdfRefCountedInputDevice();
 
     /** Create a new PdfRefCountedFile. 
      *  The file is opened using fopen()
      *  \param pszFilename a filename to be passed to fopen
      *  \param pszMode a mode string that can be passed to fopen
      */
-    PdfRefCountedFile( const char* pszFilename, const char* pszMode );
+    PdfRefCountedInputDevice( const char* pszFilename, const char* pszMode );
 
     /** Copy an existing PdfRefCountedFile and increase
      *  the reference count
      *  \param rhs the PdfRefCountedFile to copy
      */
-    PdfRefCountedFile( const PdfRefCountedFile & rhs );
+    PdfRefCountedInputDevice( const PdfRefCountedInputDevice & rhs );
 
     /** Decrease the reference count and close the file
      *  if this is the last owner
      */
-    ~PdfRefCountedFile();
+    ~PdfRefCountedInputDevice();
 
     /** Get access to the file handle
      *  \returns the file handle
      */
-    inline FILE* Handle() const;
+    inline PdfInputDevice* Device() const;
 
     /** Copy an existing PdfRefCountedFile and increase
      *  the reference count
      *  \param rhs the PdfRefCountedFile to copy
      *  \returns the copied object
      */
-    const PdfRefCountedFile & operator=( const PdfRefCountedFile & rhs );
+    const PdfRefCountedInputDevice & operator=( const PdfRefCountedInputDevice & rhs );
 
  private:
     /** Detach from the reference counted file
@@ -73,23 +75,23 @@ class PdfRefCountedFile {
     void Detach();
 
  private:
-    typedef struct TRefCountedFile {
-        FILE* m_hFile;
-        long  m_lRefCount;
+    typedef struct TRefCountedInputDevice {
+        PdfInputDevice* m_pDevice;
+        long            m_lRefCount;
     };
 
-    TRefCountedFile* m_pFile;
+    TRefCountedInputDevice* m_pDevice;
 };
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline FILE* PdfRefCountedFile::Handle() const
+inline PdfInputDevice* PdfRefCountedInputDevice::Device() const
 {
-    return m_pFile ? m_pFile->m_hFile : NULL;
+    return m_pDevice ? m_pDevice->m_pDevice : NULL;
 }
 
 };
 
-#endif // _PDF_REF_COUNTED_FILE_H_
+#endif // _PDF_REF_COUNTED_INPUT_DEVICE_H_
 

@@ -54,6 +54,7 @@
 // --
 
 #include "PdfImage.h"
+#include "PdfInputDevice.h"
 #include "PdfName.h"
 #include "PdfNamesTree.h"
 #include "PdfObject.h"
@@ -67,7 +68,8 @@
 #include "PdfParserBase.h"
 #include "PdfParserObject.h"
 #include "PdfRect.h"
-#include "PdfRefCountedFile.h"
+#include "PdfRefCountedBuffer.h"
+#include "PdfRefCountedInputDevice.h"
 #include "PdfStream.h"
 #include "PdfString.h"
 #include "PdfVariant.h"

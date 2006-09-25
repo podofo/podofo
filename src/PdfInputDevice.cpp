@@ -27,7 +27,6 @@
 
 namespace PoDoFo {
 
-
 PdfInputDevice::PdfInputDevice()
 {
     this->Init();
@@ -88,40 +87,48 @@ PdfInputDevice::PdfInputDevice( const std::istream* pInStream )
 
 PdfInputDevice::~PdfInputDevice()
 {
-    if ( m_StreamOwned ) {
+    this->Close();
+
+    if ( m_StreamOwned ) 
+    {
         delete m_pStream;
     }
 }
 
 void PdfInputDevice::Init()
 {
-    m_pStream    = NULL;
+    m_pStream     = NULL;
     m_StreamOwned = false;
 }
 
-int PdfInputDevice::getc() const
+void PdfInputDevice::Close()
+{
+    // nothing to do here, but maybe necessary for inheriting classes
+}
+
+int PdfInputDevice::GetChar() const
 {
     return m_pStream->get();	
 }
 
-int PdfInputDevice::look() const 
+int PdfInputDevice::Look() const 
 {
     return m_pStream->peek();
 }
 
-int PdfInputDevice::tell() const  
+int PdfInputDevice::Tell() const  
 {
     return m_pStream->tellg();
 }
 
-void PdfInputDevice::seek( std::streamoff off, std::ios_base::seekdir dir )  const
+void PdfInputDevice::Seek( size_t off, std::ios_base::seekdir dir )
 {
     m_pStream->seekg( off, dir );
 }
 
-void PdfInputDevice::read( char* outData, std::streamsize inNumBytes ) const
+long PdfInputDevice::Read( char* pBuffer, long lLen )
 {
-    m_pStream->read( outData, inNumBytes );
+    (long)m_pStream->readsome( pBuffer, lLen );
 }
 
 };

@@ -21,6 +21,7 @@
 #include "PdfParserObject.h"
 
 #include "PdfDictionary.h"
+#include "PdfInputDevice.h"
 #include "PdfParser.h"
 #include "PdfStream.h"
 #include "PdfVariant.h"
@@ -35,18 +36,18 @@ static const int s_nLenEndObj    = 6; // strlen("endobj");
 static const int s_nLenStream    = 6; // strlen("stream");
 static const int s_nLenEndStream = 9; // strlen("endstream");
 
-PdfParserObject::PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedFile & rFile, const PdfRefCountedBuffer & rBuffer, long lOffset )
-    : PdfObject( PdfReference( 0, 0 ), (const char*)NULL), PdfParserBase( rFile, rBuffer )
+PdfParserObject::PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer, long lOffset )
+    : PdfObject( PdfReference( 0, 0 ), (const char*)NULL), PdfParserBase( rDevice, rBuffer )
 {
     m_pParent = pParent;
 
     Init();
 
-    m_lOffset = lOffset == -1 ? ftell( m_file.Handle() ) : lOffset;
+    m_lOffset = lOffset == -1 ? m_device.Device()->Tell() : lOffset;
 }
 
 PdfParserObject::PdfParserObject( const PdfRefCountedBuffer & rBuffer )
-    : PdfObject( PdfReference( 0, 0 ), (const char*)NULL), PdfParserBase( PdfRefCountedFile(), rBuffer )
+    : PdfObject( PdfReference( 0, 0 ), (const char*)NULL), PdfParserBase( PdfRefCountedInputDevice(), rBuffer )
 {
     Init();
 }
@@ -92,18 +93,18 @@ void PdfParserObject::ReadObjectNumber()
 
 void PdfParserObject::ParseFile( bool bIsTrailer )
 {
-    if( !m_file.Handle() )
+    if( !m_device.Device() )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     if( m_lOffset > -1 )
-        fseek( m_file.Handle(), m_lOffset, SEEK_SET );
+        m_device.Device()->Seek( m_lOffset );
 
     if( !bIsTrailer )
         ReadObjectNumber();
 
-    m_lOffset    = ftell( m_file.Handle() );
+    m_lOffset    = m_device.Device()->Tell();
     m_bIsTrailer = bIsTrailer;
 
     if( !m_bLoadOnDemand )
@@ -128,12 +129,12 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     bool         bIgnoreNextChar = false;    
     EPdfDataType eDataType       = ePdfDataType_Unknown;
 
-    fseek( m_file.Handle(), m_lOffset, SEEK_SET );
+    m_device.Device()->Seek( m_lOffset );
 
 //#error " TODO: PdfParserBase::SkipWhiteSpace();"
 
     // skip all whitespace
-    while( (c = fgetc( m_file.Handle() )) != EOF )
+    while( (c = m_device.Device()->GetChar()) != EOF )
     {
         if( !IsWhitespace( c ) )
         {
@@ -144,7 +145,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     }
 
     GetDataType( c, &counter, &eDataType, NULL );
-    while( (c = fgetc( m_file.Handle() )) != EOF )
+    while( (c = m_device.Device()->GetChar()) != EOF )
     {
         if( counter == lDataLen )
         {
@@ -196,7 +197,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
         {
             if( c == '<' && !bStringMode && !bHexStringMode )
             {
-                szData[counter] = fgetc( m_file.Handle() );            
+                szData[counter] = m_device.Device()->GetChar();
                 if( szData[counter] == '<' )
                     ++nObjCount;
                 else 
@@ -209,7 +210,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
                     bHexStringMode = false;
                 else
                 {
-                    szData[counter] = fgetc( m_file.Handle() );            
+                    szData[counter] = m_device.Device()->GetChar();
                     if( szData[counter] == '>' )
                     {
                         ++counter;
@@ -272,7 +273,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
         else if ( strncmp( m_buffer.Buffer(), "stream", s_nLenStream ) == 0 )
         {
             m_bStream = true;
-            m_lStreamOffset = ftell( m_file.Handle() );	// NOTE: whitespace after "stream" handle in stream parser!
+            m_lStreamOffset = m_device.Device()->Tell(); // NOTE: whitespace after "stream" handle in stream parser!
 
             // Most of the code relies on PdfObjects that are dictionaries
             // to have the datatype ePdfDataType_Dictionary and not Stream.
@@ -364,36 +365,34 @@ void PdfParserObject::ParseStream()
     int          c;
     PdfReference ref;
 
-    if( !m_file.Handle() || !m_pParent )
+    if( !m_device.Device() || !m_pParent )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    if( fseek( m_file.Handle(), m_lStreamOffset, SEEK_SET ) != 0 )
-    {
-        RAISE_ERROR( ePdfError_InvalidStream );
-    }
+    m_device.Device()->Seek( m_lStreamOffset );
 
     // From the PDF Reference manual
     // The keyword stream that follows
     // the stream dictionary should be followed by an end-of-line marker consisting of
     // either a carriage return and a line feed or just a line feed, and not by a carriage re-
     // turn alone.
-    c = fgetc( m_file.Handle() );
-    if( !IsWhitespace( c ) )
+    c = m_device.Device()->Look();
+    if( IsWhitespace( c ) )
     {
-        ungetc( c, m_file.Handle() );
-    } 
-    else if( c == '\r' )
-    {
-        c = fgetc( m_file.Handle() );
-        if( c != '\n' )
-        {   ungetc( '\r', m_file.Handle() );
-            ungetc( c, m_file.Handle() );
+        c = m_device.Device()->GetChar();
+
+        if( c == '\r' )
+        {
+            c = m_device.Device()->Look();
+            if( c == '\n' )
+            {
+                c = m_device.Device()->GetChar();
+            }
         }
-    }
+    } 
     
-    long fLoc = ftell( m_file.Handle() );	// we need to save this, since loading the Length key could disturb it!
+    long fLoc = m_device.Device()->Tell();	// we need to save this, since loading the Length key could disturb it!
 
     PdfObject* pObj = this->GetDictionary().GetKey( PdfName::KeyLength );  
     if( pObj && pObj->IsNumber() )
@@ -433,9 +432,8 @@ void PdfParserObject::ParseStream()
         RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
-    fseek( m_file.Handle(), fLoc, SEEK_SET );	// reset it before reading!
-    size_t frRet = fread( szBuf, lLen, sizeof( char ), m_file.Handle() );
-    if( frRet != 1 )
+    m_device.Device()->Seek( fLoc );	// reset it before reading!
+    if( m_device.Device()->Read( szBuf, lLen ) != lLen )
     {
         RAISE_ERROR( ePdfError_InvalidStreamLength );
     }
@@ -472,7 +470,7 @@ void PdfParserObject::GetDataType( char c, int* counter, EPdfDataType* eDataType
             if( eDataType )
                 *eDataType = ePdfDataType_HexString;
                     
-            m_buffer.Buffer()[*counter] = fgetc( m_file.Handle() );
+            m_buffer.Buffer()[*counter] = m_device.Device()->GetChar();
             if( m_buffer.Buffer()[*counter] == '<' )
             {
                 if( eDataType )

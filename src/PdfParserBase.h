@@ -23,7 +23,7 @@
 
 #include "PdfDefines.h"
 #include "PdfRefCountedBuffer.h"
-#include "PdfRefCountedFile.h"
+#include "PdfRefCountedInputDevice.h"
 
 // PDF_XREF_BUF is used in PdfParser.cpp
 // to find the startxref line and has to be smaller
@@ -45,10 +45,10 @@ class PdfParserBase {
 
     /** 
      * Create a new PdfParserBase that reads from a file and uses a shared buffer
-     * \param rFile a reference counted file to read from
+     * \param rDevice a reference counted input device to read from
      * \param rBuffer a shared buffer to use temporarily during parsing
      */
-    PdfParserBase( const PdfRefCountedFile & rFile, const PdfRefCountedBuffer & rBuffer );
+    PdfParserBase( const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer );
     virtual ~PdfParserBase();
 
 
@@ -100,8 +100,8 @@ class PdfParserBase {
     inline long GetBufferSize() const;
 
  protected:
-    PdfRefCountedFile   m_file;
-    PdfRefCountedBuffer m_buffer;
+    PdfRefCountedInputDevice m_device;
+    PdfRefCountedBuffer      m_buffer;
 };
 
 // -----------------------------------------------------

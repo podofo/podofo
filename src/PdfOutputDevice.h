@@ -30,6 +30,10 @@ namespace PoDoFo {
 /** This class provides an output device which operates 
  *  either on a file or on a buffer in memory.
  *  Additionally it can count the bytes written to the device.
+ *
+ *  This class is suitable for inheritance to provide output 
+ *  devices of your own for PoDoFo.
+ *  Just overide the required virtual methods.
  */
 class PdfOutputDevice {
  public:
@@ -70,7 +74,7 @@ class PdfOutputDevice {
      *  
      *  \see Init
      */
-    inline unsigned long Length() const;
+    virtual inline unsigned long Length() const;
 
     /** Write to the PdfOutputDevice. Usage is as the usage of printf.
      * 
@@ -79,7 +83,7 @@ class PdfOutputDevice {
      *
      *  \see Write
      */
-    void Print( const char* pszFormat, ... );
+    virtual void Print( const char* pszFormat, ... );
 
     /** Write data to the buffer. Use this call instead of Print if you 
      *  want to write binary data to the PdfOutputDevice.
@@ -90,21 +94,27 @@ class PdfOutputDevice {
      * 
      *  \see Print
      */
-    void Write( const char* pBuffer, long lLen );
+    virtual void Write( const char* pBuffer, long lLen );
 
     /** Seek the device to the position offset from the begining
      *  \param offset from the beginning of the file
      */
-    void Seek( size_t offset );
+    virtual void Seek( size_t offset );
+
+    /** Flush the output files buffer to disk if this devices
+     *  operates on a disk.
+     */
+    virtual void Flush();
 
  private: 
     /** Initialize all private members
      */
     void Init();
 
- private:
+ protected:
     unsigned long m_ulLength;
 
+ private:
     FILE*         m_hFile;
     char*         m_pBuffer;
     unsigned long m_lBufferLen;

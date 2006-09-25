@@ -29,14 +29,19 @@ namespace PoDoFo {
 
 /** This class provides an Input device which operates 
  *  either on a file, a buffer in memory or any arbitrary std::istream
+ *
+ *  This class is suitable for inheritance to provide input 
+ *  devices of your own for PoDoFo.
+ *  Just overide the required virtual methods.
  */
 class PdfInputDevice {
  public:
 
-     /** Construct a new PdfInputDevice that reads all data from a file.
+    /** Construct a new PdfInputDevice that reads all data from a file.
      *
      *  \param pszFilename path to a file that will be opened and all data
      *                     is read from this file.
+     *  \param pszMode mode to open the file
      */
     PdfInputDevice( const char* pszFilename );
 
@@ -58,46 +63,43 @@ class PdfInputDevice {
      */
     virtual ~PdfInputDevice();
 
+    /** Close the input device.
+     *  No further operations may be performed on this device
+     *  after calling this function.
+     */
+    virtual void Close();
+
+    /** Get the current position in file.
+     *  /returns the current position in the file
+     */
+    virtual int Tell() const;
+
     /** Get next char from stream.
      *  \returns the next character from the stream
      */
-    virtual int getc() const ;
+    virtual int GetChar() const;
 
     /** Peek at next char in stream.
      *  /returns the next char in the stream
      */
-    virtual int look() const ;
+    virtual int Look() const;
 
-    /** Get current position in file.
-     *  /returns the current position in the file
+    /** Seek the device to the position offset from the begining
+     *  \param offset from the beginning of the file
+     *  \param dir where to start (start, cur, end)
      */
-    virtual int tell() const ;
-    virtual int getPos() const { return tell(); }
-        
-    /** Go to a position in the stream.  If <dir> is negative, the
-     * position is from the end of the file; otherwise the position is
-     * from the start of the file.
-     * /param off the offset from the dir
-     * /param dir where to start (start, pos, end)
+    virtual void Seek( size_t offset, std::ios_base::seekdir dir = std::ios_base::beg );
+
+    /** Read a certain number of bytes from the input device.
+     *  
+     *  \param pBuffer store bytes in this buffer.
+     *                 The buffer has to be large enough.
+     *  \param lLen    number of bytes to read.
+     *  \returns the number of bytes that have been read.
+     *           If reading was successfull the number of read bytes
+     *           is equal to lLen.
      */
-    virtual void seek( std::streamoff off, std::ios_base::seekdir dir = std::ios_base::beg ) const;
-    virtual void setPos( std::streamoff off, std::ios_base::seekdir dir = std::ios_base::beg ) const { seek( off, dir ); }
-    
-    /** read a certain number of bytes from the stream
-     *  /param outData the data that is read
-     *  /param inNumBytes the number of bytes to read
-     */
-    virtual void read( char* outData, std::streamsize inNumBytes ) const;
-    
-    /** read a certain number of objects from the stream
-     *  /param outData the data that is read
-     *  /param inNumObjs the number of objects to read
-     *  /param inObjSize the size of each object
-     */
-    virtual void read( char* outData, std::streamsize inNumObjs, int inObjSize ) 
-	{
-            read( outData, inNumObjs * inObjSize );
-	}
+    virtual long Read( char* pBuffer, long lLen );
 
  private: 
     /** Initialize all private members

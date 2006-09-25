@@ -40,14 +40,14 @@ class PdfParserObject : public PdfObject, public PdfParserBase {
     /** Parse the object data from the given file handle starting at
      *  the current position.
      *  \param pParent pointer to a parent to resolve object references
-     *  \param rFile  an open reference counted file handle which is positioned in
-     *                front of the object which is going to be parsed.
+     *  \param rDevice an open reference counted input device which is positioned in
+     *                 front of the object which is going to be parsed.
      *  \param rBuffer buffer to use for parsing to avoid reallocations
-     *  \param lOffset the position in the file from which the object shall be read
+     *  \param lOffset the position in the device from which the object shall be read
      *                 if lOffset = -1, the object will be read from the current 
      *                 position in the file.
      */
-    PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedFile & rFile, const PdfRefCountedBuffer & rBuffer, long lOffset = -1 );
+    PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer, long lOffset = -1 );
 
     /** Parse the object data for an internal object.
      *  You have to call ParseDictionaryKeys as next function call.

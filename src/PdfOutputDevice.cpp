@@ -200,4 +200,20 @@ void PdfOutputDevice::Seek( size_t offset )
     m_ulLength = offset;
 }
 
+void PdfOutputDevice::Flush()
+{
+    if( m_hFile )
+    {
+        if( !fflush( m_hFile ) )
+        {
+            RAISE_ERROR( ePdfError_InvalidHandle );
+        }
+    }
+    else if( m_pStream )
+    {
+        m_pStream->flush();
+    }
+}
+
+
 };
