@@ -36,11 +36,11 @@ class PdfContents {
 
     /** Construct a new/empty set of contents in the owning objects
      */
-	 PdfContents( PdfVecObjects* pParent );
+    PdfContents( PdfVecObjects* pParent );
 
     /** Construct the contents from an existing PdfObject
      */
-	 PdfContents( PdfObject* inObj );
+    PdfContents( PdfObject* inObj );
 
     /** Virtual destructor - because ALL destructors should be...
      */
@@ -50,12 +50,12 @@ class PdfContents {
      *  It will either be a PdfStream or a PdfArray
      *  \returns a contents object
      */
-	virtual PdfObject* Contents() const { return mContObj; }
+    virtual PdfObject* GetContents() const { return mContObj; }
 
-	/** Get access to an object into which you can add contents
-		at the end of the "stream".
-	 */
-	virtual PdfObject* ContentsForAppending() const;
+    /** Get access to an object into which you can add contents
+     *   at the end of the "stream".
+     */
+    virtual PdfObject* GetContentsForAppending() const;
 
  private:
 	PdfObject*	mContObj;

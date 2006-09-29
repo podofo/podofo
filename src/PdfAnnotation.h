@@ -112,7 +112,9 @@ class PdfAnnotation : public PdfElement {
      *  \param pObject an annotation object
      */
     PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfObject* pObject );
-    
+
+    PdfAnnotation( PdfPage* pPage, PdfObject* pObject );
+
     /** Set an appearance stream for this object
      *  to specify its visual appearance
      *  \param pObject an XObject
@@ -155,7 +157,7 @@ class PdfAnnotation : public PdfElement {
     /** Get the type of this annotation
      *  \returns the annotation type
      */
-    inline EPdfAnnotation type() const;
+    inline EPdfAnnotation GetType() const;
 
  private:
     /** Convert an annotation enum to its string representation
@@ -176,7 +178,7 @@ class PdfAnnotation : public PdfElement {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline EPdfAnnotation PdfAnnotation::type() const
+inline EPdfAnnotation PdfAnnotation::GetType() const
 {
     return m_eAnnotation;
 }

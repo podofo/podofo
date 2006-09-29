@@ -43,7 +43,7 @@ using namespace PoDoFo;
 void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
     double     x     = 10000 * CONVERSION_CONSTANT;
-    double     y     = pPage->PageSize().Height() - 10000 * CONVERSION_CONSTANT;
+    double     y     = pPage->GetPageSize().Height() - 10000 * CONVERSION_CONSTANT;
     PdfFont* pFont;
 
     const double dLineLength = 50000 * CONVERSION_CONSTANT; // 5cm
@@ -142,7 +142,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
     double     x     = 10000 * CONVERSION_CONSTANT;
-    double     y     = pPage->PageSize().Height() - 10000 * CONVERSION_CONSTANT;
+    double     y     = pPage->GetPageSize().Height() - 10000 * CONVERSION_CONSTANT;
     PdfFont* pFont;
 
     const double dWidth  = 50000 * CONVERSION_CONSTANT; // 5cm
@@ -231,7 +231,7 @@ void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 void TextTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
     double x = 10000 * CONVERSION_CONSTANT;
-    double y = pPage->PageSize().Height() - 10000 * CONVERSION_CONSTANT;
+    double y = pPage->GetPageSize().Height() - 10000 * CONVERSION_CONSTANT;
 
     pPainter->SetFont( pDocument->CreateFont( "Times New Roman" ) );
     pPainter->Font()->SetFontSize( 24.0 );
@@ -259,7 +259,7 @@ void TextTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
 void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
-    double        y      = pPage->PageSize().Height() - 60000 * CONVERSION_CONSTANT;
+    double        y      = pPage->GetPageSize().Height() - 60000 * CONVERSION_CONSTANT;
 
     PdfImage image( &(pDocument->GetObjects()) );
 
@@ -278,7 +278,7 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pnt.Font()->SetFontSize( 8.0 );
     pnt.SetStrokingColor( 1.0, 1.0, 1.0 );
     pnt.SetColor( 1.0, 0.0, 0.0 );
-    pnt.FillRect( 0, xObj.PageSize().Height(), xObj.PageSize().Width(), xObj.PageSize().Height()  );
+    pnt.FillRect( 0, xObj.GetPageSize().Height(), xObj.GetPageSize().Width(), xObj.GetPageSize().Height()  );
     pnt.SetColor( 0.0, 0.0, 0.0 );
     pnt.DrawRect( 0, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT );
     pnt.DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am a XObject." );
@@ -310,7 +310,7 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
     double        dX     = 10000 * CONVERSION_CONSTANT;
-    double        dY     = pPage->PageSize().Height() - 40000 * CONVERSION_CONSTANT;
+    double        dY     = pPage->GetPageSize().Height() - 40000 * CONVERSION_CONSTANT;
 
     pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
     pPainter->DrawEllipse( dX, dY, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
@@ -323,7 +323,7 @@ void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 void MMTest( PdfPainterMM* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
     long        lX     = 10000;
-    long        lY     = (long)(pPage->PageSize().Height()/CONVERSION_CONSTANT) - 40000;
+    long        lY     = (long)(pPage->GetPageSize().Height()/CONVERSION_CONSTANT) - 40000;
 
     pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
     pPainter->DrawEllipseMM( lX, lY, 20000, 20000 );

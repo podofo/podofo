@@ -89,7 +89,7 @@ class PdfDate {
     /** \returns the date and time of this PdfDate in 
      *  seconds since epoch.
      */
-    inline const time_t & Time() const;
+    inline const time_t & GetTime() const;
 
     /** The value returned by this function can be used in any PdfObject
      *  where a date is needed.
@@ -111,8 +111,7 @@ class PdfDate {
     bool   m_bValid;
 };
 
-
-const time_t & PdfDate::Time() const
+const time_t & PdfDate::GetTime() const
 {
     return m_time;
 }

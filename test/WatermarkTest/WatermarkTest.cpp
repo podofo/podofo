@@ -52,7 +52,7 @@ void WatermarkFile( const char* pszInFilename, const char* pszOutFilename )
             RAISE_ERROR( ePdfError_InvalidHandle );
         }
         
-        rect = pPage->PageSize();
+        rect = pPage->GetPageSize();
 
         painter.SetPage( pPage );
         painter.SetStrokingColor( 1.0, 0.0, 0.0 );

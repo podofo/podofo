@@ -675,16 +675,16 @@ bool PdfDocument::AddNamedDestination( PdfDestination& inDest, const std::string
                     return false;	// not replacing, but already exists!
                 } else {
                     destArray.push_back( PdfString( inName ) );
-                    destArray.push_back( *inDest.Object() );
+                    destArray.push_back( *inDest.GetObject() );
                 }
             } else {	// are replacing
                 size_t idx = destArray.GetStringIndex( inName );
                 if ( idx == -1 ) {	// not found, so put it at the end
                     destArray.push_back( PdfString( inName ) );
-                    destArray.push_back( *inDest.Object() );
+                    destArray.push_back( *inDest.GetObject() );
                 } else {
                     destArray[idx] = PdfString( inName );
-                    destArray[idx+1] = *inDest.Object();
+                    destArray[idx+1] = *inDest.GetObject();
                 }
             }
         }

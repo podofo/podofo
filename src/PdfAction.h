@@ -85,7 +85,7 @@ class PdfAction : public PdfElement {
     /** Get the type of this action
      *  \returns the type of this action
      */
-    inline const EPdfAction Type() const;
+    inline const EPdfAction GetType() const;
 
  private:
 
@@ -99,7 +99,7 @@ class PdfAction : public PdfElement {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline const EPdfAction PdfAction::Type() const
+inline const EPdfAction PdfAction::GetType() const
 {
     return m_eType;
 }

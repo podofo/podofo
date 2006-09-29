@@ -68,7 +68,7 @@ void PdfPainter::SetPage( PdfCanvas* pPage )
 {
     m_pPage   = pPage;
 
-    m_pCanvas = pPage ? pPage->ContentsForAppending()->Stream() : NULL;
+    m_pCanvas = pPage ? pPage->GetContentsForAppending()->Stream() : NULL;
     if ( m_pCanvas ) 
     {
         if ( m_pCanvas->Length() ) 
@@ -622,15 +622,15 @@ void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double 
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    this->AddToPageResources( pObject->Identifier(), pObject->Object()->Reference(), "XObject" );
+    this->AddToPageResources( pObject->GetIdentifier(), pObject->Object()->Reference(), "XObject" );
 
     m_oss.str("");
     m_oss << "q" << std::endl
-          << pObject->PageSize().Width() * dScaleX << " 0 0 "
-          << pObject->PageSize().Height() * dScaleY << " "
+          << pObject->GetPageSize().Width() * dScaleX << " 0 0 "
+          << pObject->GetPageSize().Height() * dScaleY << " "
           << dX << " " 
           << dY << " cm" << std::endl
-          << "/" << pObject->Identifier().Name().c_str() << " Do" << std::endl << "Q" << std::endl;
+          << "/" << pObject->GetIdentifier().Name().c_str() << " Do" << std::endl << "Q" << std::endl;
     
     m_pCanvas->Append( m_oss.str() );
 }
@@ -901,7 +901,7 @@ void PdfPainter::AddToPageResources( const PdfName & rIdentifier, const PdfRefer
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    PdfObject* pResource = m_pPage->Resources();
+    PdfObject* pResource = m_pPage->GetResources();
     
     if( !pResource )
     {

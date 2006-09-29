@@ -57,7 +57,7 @@ class PdfPage : public PdfElement, public PdfCanvas {
     /** Get the current page size in PDF Units
      *  \returns a PdfRect containing the page size available for drawing
      */
-    inline virtual const PdfRect PageSize() const;
+    inline virtual const PdfRect GetPageSize() const;
 
     /** Creates a PdfRect with the page size as values which is needed to create a PdfPage object
      *  from an enum which are defined for a few standard page sizes.
@@ -72,20 +72,20 @@ class PdfPage : public PdfElement, public PdfCanvas {
      *  drawing commands to the stream of the Contents object.
      *  \returns a contents object
      */
-    virtual PdfObject* Contents() const { return m_pContents->Contents(); }
+    virtual PdfObject* GetContents() const { return m_pContents->GetContents(); }
 
     /** Get access an object that you can use to ADD drawing to.
      *  If you want to draw onto the page, you have to add 
      *  drawing commands to the stream of the Contents object.
      *  \returns a contents object
      */
-    virtual PdfObject* ContentsForAppending() const { return m_pContents->ContentsForAppending(); }
+    virtual PdfObject* GetContentsForAppending() const { return m_pContents->GetContentsForAppending(); }
 
     /** Get access to the resources object of this page.
      *  This is most likely an internal object.
      *  \returns a resources object
      */
-    inline virtual PdfObject* Resources() const;
+    inline virtual PdfObject* GetResources() const;
 
     /** Get the current MediaBox (physical page size) in PDF units.
      *  \returns PdfRect the page box
@@ -122,6 +122,15 @@ class PdfPage : public PdfElement, public PdfCanvas {
      */
     virtual const int GetNumAnnots() const;
 
+    /** Get the annotation with index index of the current page.
+     *  \param index the index of the annotation to retrieve
+     *
+     *  \returns a annotation object
+     *
+     *  \see GetNumAnnots
+     */
+    //virtual PdfAnnotation GetAnnotation( int index );
+
  private:
    /** Get the bounds of a specified page box in PDF units.
      * This function is internal, since there are wrappers for all standard boxes
@@ -142,7 +151,7 @@ class PdfPage : public PdfElement, public PdfCanvas {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline PdfObject* PdfPage::Resources() const
+inline PdfObject* PdfPage::GetResources() const
 {
     return m_pResources;
 }
@@ -150,7 +159,7 @@ inline PdfObject* PdfPage::Resources() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline const PdfRect PdfPage::PageSize() const
+inline const PdfRect PdfPage::GetPageSize() const
 {
     return this->GetMediaBox();
 }

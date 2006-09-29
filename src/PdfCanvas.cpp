@@ -26,7 +26,7 @@ namespace PoDoFo {
 
 PdfArray PdfCanvas::s_procset;
 
-const PdfArray & PdfCanvas::ProcSet()
+const PdfArray & PdfCanvas::GetProcSet()
 {
     if( s_procset.empty() ) 
     {

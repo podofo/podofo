@@ -40,7 +40,7 @@ PdfContents::PdfContents( PdfObject* inObj )
     }
 }
 
-PdfObject* PdfContents::ContentsForAppending() const
+PdfObject* PdfContents::GetContentsForAppending() const
 {
 //    if ( mContObj->GetDataType() == ePdfDataType_Stream || 
 //         mContObj->GetDataType() == ePdfDataType_Dictionary ) {

@@ -46,30 +46,30 @@ class PdfCanvas {
      *  drawing commands to the stream of the Contents object.
      *  \returns a contents object
      */
-    virtual PdfObject* Contents() const = 0;
+    virtual PdfObject* GetContents() const = 0;
 
-	/** Get access an object that you can use to ADD drawing to.
-	*  If you want to draw onto the page, you have to add 
-	*  drawing commands to the stream of the Contents object.
-	*  \returns a contents object
-	*/
-	virtual PdfObject* ContentsForAppending() const = 0;
+    /** Get access an object that you can use to ADD drawing to.
+     *  If you want to draw onto the page, you have to add 
+     *  drawing commands to the stream of the Contents object.
+     *  \returns a contents object
+     */
+    virtual PdfObject* GetContentsForAppending() const = 0;
 
-   /** Get access to the resources object of this page.
+    /** Get access to the resources object of this page.
      *  This is most likely an internal object.
      *  \returns a resources object
      */
-    virtual PdfObject* Resources() const = 0;
+    virtual PdfObject* GetResources() const = 0;
 
     /** Get the current page size in PDF Units
      *  \returns a PdfRect containing the page size available for drawing
      */
-    virtual const PdfRect PageSize() const = 0;
+    virtual const PdfRect GetPageSize() const = 0;
 
     /** Get a reference to a static procset PdfArray.
      *  \returns a reference to a static procset PdfArray
      */
-    static const PdfArray & ProcSet();
+    static const PdfArray & GetProcSet();
 
  private:
     /** The procset is the same for all 

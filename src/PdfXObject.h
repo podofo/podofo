@@ -66,7 +66,7 @@ class PdfXObject : public PdfElement, public PdfCanvas {
      *
      *  \returns a contents object
      */
-    inline virtual PdfObject* Contents() const;
+    inline virtual PdfObject* GetContents() const;
 
    /** Get access to the contents object of this page.
      *  If you want to draw onto the page, you have to add 
@@ -76,23 +76,23 @@ class PdfXObject : public PdfElement, public PdfCanvas {
      *
      *  \returns a contents object
      */
-	inline virtual PdfObject* ContentsForAppending() const { return Contents(); }
+    inline virtual PdfObject* GetContentsForAppending() const { return GetContents(); }
 
     /** Get access to the resources object of this page.
      *  This is most likely an internal object.
      *  \returns a resources object
      */
-    inline virtual PdfObject* Resources() const;
+    inline virtual PdfObject* GetResources() const;
 
     /** Get the current page size in PDF Units
      *  \returns a PdfRect containing the page size available for drawing
      */
-    inline virtual const PdfRect PageSize() const;
+    inline virtual const PdfRect GetPageSize() const;
 
     /** Get the identifier used for drawig this object
      *  \returns identifier
      */
-    inline const PdfName & Identifier() const;
+    inline const PdfName & GetIdentifier() const;
 
  protected:
     PdfXObject( const char* pszSubType, PdfVecObjects* pParent );
@@ -112,7 +112,7 @@ class PdfXObject : public PdfElement, public PdfCanvas {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline PdfObject* PdfXObject::Contents() const
+inline PdfObject* PdfXObject::GetContents() const
 {
     return m_pObject;
 }
@@ -120,7 +120,7 @@ inline PdfObject* PdfXObject::Contents() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline PdfObject* PdfXObject::Resources() const
+inline PdfObject* PdfXObject::GetResources() const
 {
     return m_pResources;
 }
@@ -128,7 +128,7 @@ inline PdfObject* PdfXObject::Resources() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline const PdfRect PdfXObject::PageSize() const
+inline const PdfRect PdfXObject::GetPageSize() const
 {
     return m_rRect;
 }
@@ -136,7 +136,7 @@ inline const PdfRect PdfXObject::PageSize() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline const PdfName & PdfXObject::Identifier() const
+inline const PdfName & PdfXObject::GetIdentifier() const
 {
     return m_Identifier;
 }

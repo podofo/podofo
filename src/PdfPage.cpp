@@ -33,16 +33,16 @@ PdfPage::PdfPage( const PdfRect & rSize, PdfVecObjects* pParent )
 {
     PdfVariant mediabox;
     rSize.ToVariant( mediabox );
-	m_pObject->GetDictionary().AddKey( "MediaBox", mediabox );
+    m_pObject->GetDictionary().AddKey( "MediaBox", mediabox );
 
     // The PDF specification suggests that we send all available PDF Procedure sets
     m_pObject->GetDictionary().AddKey( "Resources", PdfObject( PdfDictionary() ) );
 
     m_pResources = m_pObject->GetIndirectKey( "Resources" );
-    m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::ProcSet() );
+    m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::GetProcSet() );
 
     m_pContents = new PdfContents( pParent );
-    m_pObject->GetDictionary().AddKey( PdfName::KeyContents, m_pContents->Contents()->Reference());
+    m_pObject->GetDictionary().AddKey( PdfName::KeyContents, m_pContents->GetContents()->Reference());
 }
 
 PdfPage::PdfPage( PdfObject* pObject )
@@ -54,7 +54,7 @@ PdfPage::PdfPage( PdfObject* pObject )
 
 PdfPage::~PdfPage()
 {
-	delete m_pContents;	// just clears the C++ object from memory, NOT the PdfObject
+    delete m_pContents;	// just clears the C++ object from memory, NOT the PdfObject
 }
 
 PdfRect PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize )
@@ -141,8 +141,8 @@ const int PdfPage::GetRotation() const
 
 const int PdfPage::GetNumAnnots() const
 {
-    int	       numAnnots = 0;
     PdfObject* pObj;
+
     // check for it in the object itself
     if ( m_pObject->GetDictionary().HasKey( "Annots" ) ) 
     {
@@ -151,7 +151,40 @@ const int PdfPage::GetNumAnnots() const
             return (int)(pObj->GetArray().size());
     }
 
-    return numAnnots;
+    return 0;
 }
+
+/*
+PdfAnnotation PdfPage::GetAnnotation( int index )
+{
+    PdfObject* pObj;
+
+    // check for it in the object itself
+    if ( !m_pObject->GetDictionary().HasKey( "Annots" ) ) 
+    {
+        RAISE_ERROR( ePdfError_InvalidKey );
+    }
+
+    
+    pObj = m_pObject->GetIndirectKey( "Annots" );
+    if( !pObj || !pObj->IsArray() )
+    {
+        RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
+    if( index < 0 && index >= pObj->GetArray().size() )
+    {
+        RAISE_ERROR( ePdfError_ValueOutOfRange );
+    }
+
+    pObj = m_pObject->GetParent()->GetObject( pObj->GetArray()[index] );
+    if( !pObj )
+    {
+        RAISE_ERROR( ePdfError_NoObject );
+    }
+
+    return PdfAnnotation( this, pObj );
+}
+*/
 
 };

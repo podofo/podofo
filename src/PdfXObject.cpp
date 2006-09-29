@@ -60,7 +60,7 @@ PdfXObject::PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent )
     // The PDF specification suggests that we send all available PDF Procedure sets
     m_pObject->GetDictionary().AddKey( "Resources", PdfObject( PdfDictionary() ) );
     m_pResources = m_pObject->GetDictionary().GetKey( "Resources" );
-    m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::ProcSet() );
+    m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::GetProcSet() );
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.

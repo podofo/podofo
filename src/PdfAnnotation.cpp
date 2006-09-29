@@ -94,6 +94,15 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
     m_eAnnotation = (EPdfAnnotation)TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).Name().c_str(), s_names, s_lNumActions );
 }
 
+PdfAnnotation::PdfAnnotation( PdfPage* pPage, PdfObject* pObject )
+    : PdfElement( "Annot", pObject ), m_eAnnotation( ePdfAnnotation_Unknown )
+{
+    m_eAnnotation = (EPdfAnnotation)TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).Name().c_str(), s_names, s_lNumActions );
+
+    
+}
+
+
 void PdfAnnotation::AddReferenceToKey( PdfObject* pObject, const PdfName & keyName, const PdfReference & rRef )
 {
     PdfObject*    pObj;

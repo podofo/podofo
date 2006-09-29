@@ -51,14 +51,14 @@ typedef enum EPdfDestinationFit {
 class PdfDestination {
  public:
 
-	 /** Create an empty destination - points to nowhere
-	 */
-	 PdfDestination( PdfVecObjects* pParent );
+    /** Create an empty destination - points to nowhere
+     */
+    PdfDestination( PdfVecObjects* pParent );
 
     /** Create a new PdfDestination from an existing PdfObject (such as loaded from a doc)
      *  \param pObject the object to construct from 
      */
-	 PdfDestination( PdfObject* pObject );
+    PdfDestination( PdfObject* pObject );
 
     /** Create a new PdfDestination with a page as destination
      *  \param pPage a page which is the destination 
@@ -100,23 +100,23 @@ class PdfDestination {
      */
     const PdfDestination & operator=( const PdfDestination & rhs );
 
-	/** Get the page that this destination points to
-	*  \returns the referenced PdfPage
-	*/
-	PdfPage* GetPage();
-
-	/** Get access to the internal object
-	*  \returns the internal PdfObject
-	*/
-	inline PdfObject* Object();
-
-	/** Get access to the internal object
-	*  This is an overloaded member function.
-	*
-	*  \returns the internal PdfObject
-	*/
-	inline const PdfObject* Object() const;
-
+    /** Get the page that this destination points to
+     *  \returns the referenced PdfPage
+     */
+    PdfPage* GetPage();
+    
+    /** Get access to the internal object
+     *  \returns the internal PdfObject
+     */
+    inline PdfObject* GetObject();
+    
+    /** Get access to the internal object
+     *  This is an overloaded member function.
+     *
+     *  \returns the internal PdfObject
+     */
+    inline const PdfObject* GetObject() const;
+    
     /** Adds this destination to an dictionary.
      *  This method handles the all the complexities of making sure it's added correctly
      *
@@ -128,29 +128,29 @@ class PdfDestination {
     static const long  s_lNumDestinations;
     static const char* s_names[];
 
-	PdfArray	m_array;
+    PdfArray	m_array;
     PdfObject*	m_pObject;
 
-	/** Create an empty destination - NOT ALLOWED
-	*/
-	PdfDestination();
-
+    /** Create an empty destination - NOT ALLOWED
+     */
+    PdfDestination();
+    
 };
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline PdfObject* PdfDestination::Object()
+inline PdfObject* PdfDestination::GetObject()
 {
-	return m_pObject;
+    return m_pObject;
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline const PdfObject* PdfDestination::Object() const
+inline const PdfObject* PdfDestination::GetObject() const
 {
-	return m_pObject;
+    return m_pObject;
 }
 
 };
