@@ -101,7 +101,7 @@ bool PdfString::operator==( const PdfString & rhs ) const
 {
     char*            pBuffer;
     long             lLen;
-    bool             bEqual;
+    bool             bEqual   = false; // avoid a compiler warning
     const PdfFilter* pFilter;
 
     if( m_bHex == rhs.m_bHex ) 

@@ -427,12 +427,12 @@ void PdfWriter::ReorderObjectsLinearized( PdfObject* pLinearize, PdfHintStream* 
     PdfObject*          pTmp = NULL;
     unsigned int        index, i;
 
-    m_vecObjects->GetObjectDependencies( pPage->Object(), &lstLinearizedGroup );
+    m_vecObjects->GetObjectDependencies( pPage->GetObject(), &lstLinearizedGroup );
     printf("FIRST PAGElstLinearizedGroup.size() = %i\n", lstLinearizedGroup.size() );
 
     pObj = m_vecObjects->GetObject( m_pTrailer->GetDictionary().GetKey( "Root" )->GetReference() );
     lstLinearizedGroup.push_back( pObj->Reference() );
-    lstLinearizedGroup.push_back( pPage->Object()->Reference() );
+    lstLinearizedGroup.push_back( pPage->GetObject()->Reference() );
 
     this->FindCatalogDependencies( pObj, "ViewerPreferences", &lstLinearizedGroup, true );
     this->FindCatalogDependencies( pObj, "PageMode", &lstLinearizedGroup, true );
@@ -441,7 +441,7 @@ void PdfWriter::ReorderObjectsLinearized( PdfObject* pLinearize, PdfHintStream* 
     this->FindCatalogDependencies( pObj, "AcroForm", &lstLinearizedGroup, false );
     this->FindCatalogDependencies( pObj, "Encrypt", &lstLinearizedGroup, true );
 
-    lstLinearizedGroup.push_back( pHint->Object()->Reference() );
+    lstLinearizedGroup.push_back( pHint->GetObject()->Reference() );
     lstLinearizedGroup.push_back( pLinearize->Reference() );
 
     i  = m_vecObjects->size()-1;
@@ -632,7 +632,7 @@ void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDev
 
     value.SetNumber( lFileSize );
     pLinearize->GetDictionary().AddKey( "L", value );
-    value.SetNumber( pPage->Object()->ObjectNumber() );
+    value.SetNumber( pPage->GetObject()->ObjectNumber() );
     pLinearize->GetDictionary().AddKey( "O", value );
     value.SetNumber( m_lFirstInXRef );
     pLinearize->GetDictionary().AddKey( "T", value );
@@ -641,7 +641,7 @@ void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDev
 
     value.SetNumber( m_lLinearizedOffset + pLinearize->GetObjectLength() );
     hints.push_back( value );
-    value.SetNumber( pHint->Object()->GetObjectLength() );
+    value.SetNumber( pHint->GetObject()->GetObjectLength() );
     hints.push_back( value );
     pLinearize->GetDictionary().AddKey( "H", hints );
 

@@ -63,11 +63,11 @@ void PdfInfo::OutputInfoDict( std::ostream& sOutStream )
         sOutStream << "No info dictionary in this PDF file!" << std::endl;
     else
     {
-        sOutStream << "\tAuthor: "   << ( mDoc->Author().String()   ? mDoc->Author().String()  : "" ) << std::endl;
-        sOutStream << "\tCreator: "  << ( mDoc->Creator().String()  ? mDoc->Creator().String() : "" ) << std::endl;
-        sOutStream << "\tSubject: "  << ( mDoc->Subject().String()  ? mDoc->Subject().String() : "" ) << std::endl;
-        sOutStream << "\tTitle: "    << ( mDoc->Title().String()    ? mDoc->Title().String()  : "" ) << std::endl;
-        sOutStream << "\tKeywords: " << ( mDoc->Keywords().String() ? mDoc->Keywords().String()  : "" ) << std::endl;
+        sOutStream << "\tAuthor: "   << ( mDoc->GetAuthor().String()   ? mDoc->GetAuthor().String()  : "" ) << std::endl;
+        sOutStream << "\tCreator: "  << ( mDoc->GetCreator().String()  ? mDoc->GetCreator().String() : "" ) << std::endl;
+        sOutStream << "\tSubject: "  << ( mDoc->GetSubject().String()  ? mDoc->GetSubject().String() : "" ) << std::endl;
+        sOutStream << "\tTitle: "    << ( mDoc->GetTitle().String()    ? mDoc->GetTitle().String()  : "" ) << std::endl;
+        sOutStream << "\tKeywords: " << ( mDoc->GetKeywords().String() ? mDoc->GetKeywords().String()  : "" ) << std::endl;
     }
 }
 

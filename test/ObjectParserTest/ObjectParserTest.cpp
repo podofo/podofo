@@ -62,7 +62,7 @@ void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo
     try {
         obj.ParseFile( false );
     } catch( PdfError & e ) {
-        fprintf( stderr, "Error during test: %i\n", e.Error() );
+        fprintf( stderr, "Error during test: %i\n", e.GetError() );
         e.PrintErrorMsg();
         device = PdfRefCountedInputDevice();
         unlink( pszFilename ); // do not care for unlink errors in this case
@@ -135,7 +135,7 @@ void TestObject( const char* pszFilename, const char* pszData, long lObjNo, long
     try {
         obj.ParseFile( false );
     } catch( PdfError & e ) {
-        fprintf( stderr, "Error during test: %i\n", e.Error() );
+        fprintf( stderr, "Error during test: %i\n", e.GetError() );
         e.PrintErrorMsg();
         device = PdfRefCountedInputDevice();
         unlink( pszFilename ); // do not care for unlink errors in this case
@@ -228,7 +228,7 @@ int main()
         printf("All tests sucessful!\n");
     } catch( PdfError & e ) {
         e.PrintErrorMsg();
-        return e.Error();
+        return e.GetError();
     }
 
     return 0;

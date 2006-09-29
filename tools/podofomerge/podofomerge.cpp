@@ -91,9 +91,9 @@ int main( int argc, char* argv[] )
   try {
       merge( pszInput1, pszInput2, pszOutput );
   } catch( PdfError & e ) {
-      fprintf( stderr, "Error %i occurred!\n", e.Error() );
+      fprintf( stderr, "Error %i occurred!\n", e.GetError() );
       e.PrintErrorMsg();
-      return e.Error();
+      return e.GetError();
   }
 
   return 0;

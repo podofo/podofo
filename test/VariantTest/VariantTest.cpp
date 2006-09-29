@@ -171,6 +171,6 @@ int main()
     printf("Decoded Buffer: (%s)\n", pszHex );
     free( pszResult );
 
-    printf("Test completed with error code: %i\n", eCode.Error() );
-    return eCode.Error();
+    printf("Test completed with error code: %i\n", eCode.GetError() );
+    return eCode.GetError();
 }

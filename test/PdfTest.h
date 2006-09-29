@@ -6,7 +6,7 @@
 #define TEST_SAFE_OP( x ) try {  x; } catch( PdfError & e ) { \
                        e.AddToCallstack( __FILE__, __LINE__, NULL ); \
                        e.PrintErrorMsg();\
-                       return e.Error();\
+                       return e.GetError();\
                      }
 
 

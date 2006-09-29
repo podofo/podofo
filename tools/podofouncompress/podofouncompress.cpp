@@ -54,9 +54,9 @@ int main( int argc, char* argv[] )
   try {
       unc.Init( pszInput, pszOutput );
   } catch( PdfError & e ) {
-      fprintf( stderr, "Error: An error %i ocurred during uncompressing the pdf file.\n", e.Error() );
+      fprintf( stderr, "Error: An error %i ocurred during uncompressing the pdf file.\n", e.GetError() );
       e.PrintErrorMsg();
-      return e.Error();
+      return e.GetError();
   }
 
 

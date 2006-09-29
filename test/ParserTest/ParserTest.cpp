@@ -70,7 +70,7 @@ int main( int argc, char*  argv[] )
         write_back( &parser, argv[2] );
     } catch( PdfError & e ) {
         e.PrintErrorMsg();
-        return e.Error();
+        return e.GetError();
     }
 
     printf("Parsed and wrote successfully\n");

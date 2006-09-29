@@ -129,11 +129,11 @@ void PdfError::PrintErrorMsg() const
 
     while( it != m_callStack.end() )
     {
-        if( !(*it).Filename().empty() )
-            PdfError::LogMessage( eLogSeverity_Error, "\t#%i Error Source: %s:%i\n", i, (*it).Filename().c_str(), (*it).Line() );
+        if( !(*it).GetFilename().empty() )
+            PdfError::LogMessage( eLogSeverity_Error, "\t#%i Error Source: %s:%i\n", i, (*it).GetFilename().c_str(), (*it).GetLine() );
 
-        if( !(*it).Information().empty() )
-            PdfError::LogMessage( eLogSeverity_Error, "\t\tInformation: %s\n", (*it).Information().c_str() );
+        if( !(*it).GetInformation().empty() )
+            PdfError::LogMessage( eLogSeverity_Error, "\t\tInformation: %s\n", (*it).GetInformation().c_str() );
         
         ++i;
         ++it;

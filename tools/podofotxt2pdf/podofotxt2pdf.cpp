@@ -74,7 +74,7 @@ void draw( char* pszBuffer, PdfDocument* pDocument )
     
             pszStart = (++pszBuffer);            
 
-            dY += pFont->FontMetrics()->LineSpacing();
+            dY += pFont->GetFontMetrics()->GetLineSpacing();
             if( dY > (size.Height() -  BORDER_TOP) )
             {
                 pPage = pDocument->CreatePage( size );
@@ -152,9 +152,9 @@ int main( int argc, char* argv[] )
   try {
       init( pszInput, pszOutput );
   } catch( PdfError & e ) {
-      fprintf( stderr, "Error %i occurred!\n", e.Error() );
+      fprintf( stderr, "Error %i occurred!\n", e.GetError() );
       e.PrintErrorMsg();
-      return e.Error();
+      return e.GetError();
   }
 
   return 0;

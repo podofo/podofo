@@ -30,7 +30,7 @@ namespace PoDoFo {
 PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfDestination & rDest, PdfOutlineItem* pParentOutline, PdfVecObjects* pParent )
     : PdfElement( NULL, pParent ), m_pParentOutline( pParentOutline ), m_pPrev( NULL ), m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL )
 {
-    m_pObject->GetDictionary().AddKey( "Parent", pParentOutline->Object()->Reference() );
+    m_pObject->GetDictionary().AddKey( "Parent", pParentOutline->GetObject()->Reference() );
 
     this->SetTitle( sTitle );
     this->SetDestination( rDest );
@@ -87,8 +87,8 @@ PdfOutlineItem* PdfOutlineItem::CreateChild( const PdfString & sTitle, const Pdf
     if( !m_pFirst )
         m_pFirst = m_pLast;
 
-    m_pObject->GetDictionary().AddKey( "First", m_pFirst->Object()->Reference() );
-    m_pObject->GetDictionary().AddKey( "Last",  m_pLast->Object()->Reference() );
+    m_pObject->GetDictionary().AddKey( "First", m_pFirst->GetObject()->Reference() );
+    m_pObject->GetDictionary().AddKey( "Last",  m_pLast->GetObject()->Reference() );
 
     return pItem;
 }
@@ -106,7 +106,7 @@ PdfOutlineItem* PdfOutlineItem::CreateNext ( const PdfString & sTitle, const Pdf
     m_pNext = pItem;
     m_pNext->SetPrevious( this );
 
-    m_pObject->GetDictionary().AddKey( "Next", m_pNext->Object()->Reference() );
+    m_pObject->GetDictionary().AddKey( "Next", m_pNext->GetObject()->Reference() );
 
     if( m_pParentOutline && !m_pNext->Next() ) 
         m_pParentOutline->SetLast( m_pNext );
@@ -117,20 +117,20 @@ PdfOutlineItem* PdfOutlineItem::CreateNext ( const PdfString & sTitle, const Pdf
 void PdfOutlineItem::SetPrevious( PdfOutlineItem* pItem )
 {
     m_pPrev = pItem;
-    m_pObject->GetDictionary().AddKey( "Prev", m_pPrev->Object()->Reference() );
+    m_pObject->GetDictionary().AddKey( "Prev", m_pPrev->GetObject()->Reference() );
 }
 
 void PdfOutlineItem::SetNext( PdfOutlineItem* pItem )
 {
     m_pNext = pItem;
-    m_pObject->GetDictionary().AddKey( "Next", m_pNext->Object()->Reference() );
+    m_pObject->GetDictionary().AddKey( "Next", m_pNext->GetObject()->Reference() );
 }
 
 void PdfOutlineItem::SetLast( PdfOutlineItem* pItem )
 {
     m_pLast = pItem;
     if( m_pLast )
-        m_pObject->GetDictionary().AddKey( "Last",  m_pLast->Object()->Reference() );
+        m_pObject->GetDictionary().AddKey( "Last",  m_pLast->GetObject()->Reference() );
     else 
         m_pObject->GetDictionary().RemoveKey( "Last" );
 }
@@ -139,7 +139,7 @@ void PdfOutlineItem::SetFirst( PdfOutlineItem* pItem )
 {
     m_pFirst = pItem;
     if( m_pFirst )
-        m_pObject->GetDictionary().AddKey( "First",  m_pFirst->Object()->Reference() );
+        m_pObject->GetDictionary().AddKey( "First",  m_pFirst->GetObject()->Reference() );
     else 
         m_pObject->GetDictionary().RemoveKey( "First" );
 }
@@ -260,7 +260,7 @@ PdfOutlines::PdfOutlines( PdfObject* pObject )
 
 PdfOutlineItem* PdfOutlines::CreateRoot( const PdfString & sTitle )
 {
-    return this->CreateChild( sTitle, PdfDestination( Object()->GetParent() ) );
+    return this->CreateChild( sTitle, PdfDestination( GetObject()->GetParent() ) );
 }
 
 };

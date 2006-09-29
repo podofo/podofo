@@ -51,9 +51,9 @@ int main( int argc, char* argv[] )
   try {
       extractor.Init( pszInput, pszOutput, &nNum );
   } catch( PdfError & e ) {
-      fprintf( stderr, "Error: An error %i ocurred during processing the pdf file.\n", e.Error() );
+      fprintf( stderr, "Error: An error %i ocurred during processing the pdf file.\n", e.GetError() );
       e.PrintErrorMsg();
-      return e.Error();
+      return e.GetError();
   }
 
   printf("Extracted %i images sucessfully from the PDF file.\n", nNum );

@@ -74,9 +74,9 @@ PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit )
         RAISE_ERROR( ePdfError_InvalidKey );
     }
 
-    m_array.push_back( pPage->Object()->Reference() );
+    m_array.push_back( pPage->GetObject()->Reference() );
     m_array.push_back( type );
-	m_pObject = pPage->Object()->GetParent()->CreateObject( m_array );
+    m_pObject = pPage->GetObject()->GetParent()->CreateObject( m_array );
 }
 
 PdfDestination::PdfDestination( const PdfPage* pPage, const PdfRect & rRect )
@@ -85,20 +85,20 @@ PdfDestination::PdfDestination( const PdfPage* pPage, const PdfRect & rRect )
 
     rRect.ToVariant( var );
 
-    m_array.push_back( pPage->Object()->Reference() );
+    m_array.push_back( pPage->GetObject()->Reference() );
     m_array.push_back( PdfName("FitR") );
     m_array.insert( m_array.end(), var.GetArray().begin(), var.GetArray().end() );
-	m_pObject = pPage->Object()->GetParent()->CreateObject( m_array );
+    m_pObject = pPage->GetObject()->GetParent()->CreateObject( m_array );
 }
 
 PdfDestination::PdfDestination( const PdfPage* pPage, double dLeft, double dTop, double dZoom )
 {
-    m_array.push_back( pPage->Object()->Reference() );
+    m_array.push_back( pPage->GetObject()->Reference() );
     m_array.push_back( PdfName("XYZ") );
     m_array.push_back( dLeft );
     m_array.push_back( dTop );
     m_array.push_back( dZoom );
-	m_pObject = pPage->Object()->GetParent()->CreateObject( m_array );
+    m_pObject = pPage->GetObject()->GetParent()->CreateObject( m_array );
 }
 
 PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit, double dValue )
@@ -118,10 +118,10 @@ PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit, d
         RAISE_ERROR( ePdfError_InvalidKey );
     }
 
-    m_array.push_back( pPage->Object()->Reference() );
+    m_array.push_back( pPage->GetObject()->Reference() );
     m_array.push_back( type );
     m_array.push_back( dValue );
-	m_pObject = pPage->Object()->GetParent()->CreateObject( m_array );
+    m_pObject = pPage->GetObject()->GetParent()->CreateObject( m_array );
 }
 
 PdfDestination::PdfDestination( const PdfDestination & rhs )

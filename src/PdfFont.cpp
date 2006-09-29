@@ -71,7 +71,7 @@ void PdfFont::Init( bool bEmbedd )
 
     // replace all spaces in the base font name as suggested in 
     // the PDF reference section 5.5.2
-    sTmp = m_pMetrics->Fontname();
+    sTmp = m_pMetrics->GetFontname();
     for(i = 0; i < sTmp.size(); i++)
     {
         if(sTmp[i] != ' ')
@@ -109,10 +109,10 @@ void PdfFont::Init( bool bEmbedd )
     //pDescriptor->GetDictionary().AddKey( "FontWeight", (long)m_pMetrics->Weight() );
     pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( (long)32 ) ); // TODO: 0 ????
     pDescriptor->GetDictionary().AddKey( "FontBBox", array );
-    pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( (long)m_pMetrics->ItalicAngle() ) );
-    pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->Ascent() );
-    pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->Descent() );
-    pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->Ascent() ); // //m_pMetrics->CapHeight() );
+    pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( (long)m_pMetrics->GetItalicAngle() ) );
+    pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetAscent() );
+    pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetDescent() );
+    pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetAscent() ); // //m_pMetrics->CapHeight() );
     pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( (long)1 ) ); //m_pMetrics->StemV() );
 
     if( bEmbedd )
@@ -138,11 +138,14 @@ void PdfFont::EmbeddFont( PdfObject* pDescriptor )
 
     // if the data was loaded from memory - use it from there
     // otherwise, load from disk
-    if ( m_pMetrics->FontDataLen() && m_pMetrics->FontData() ) {
-        pBuffer = const_cast<char*>( m_pMetrics->FontData() );
-        lSize = m_pMetrics->FontDataLen();
-    } else {
-        hFile = fopen( m_pMetrics->Filename(), "rb" );
+    if ( m_pMetrics->GetFontDataLen() && m_pMetrics->GetFontData() ) 
+    {
+        pBuffer = const_cast<char*>( m_pMetrics->GetFontData() );
+        lSize = m_pMetrics->GetFontDataLen();
+    } 
+    else 
+    {
+        hFile = fopen( m_pMetrics->GetFilename(), "rb" );
         if( !hFile )
         {
             RAISE_ERROR( ePdfError_FileNotFound );
@@ -159,7 +162,7 @@ void PdfFont::EmbeddFont( PdfObject* pDescriptor )
     }
     
     pContents->GetDictionary().AddKey( "Length1", PdfVariant( lSize ) );
-    pContents->Stream()->Set( pBuffer, lSize, !m_pMetrics->FontDataLen() );	// if we loaded from memory, DO NOT let Stream take possession
+    pContents->Stream()->Set( pBuffer, lSize, !m_pMetrics->GetFontDataLen() );	// if we loaded from memory, DO NOT let Stream take possession
 }
 
 void PdfFont::SetFontSize( float fSize )

@@ -52,14 +52,14 @@ class PdfElement {
     /** Get access to the internal object
      *  \returns the internal PdfObject
      */
-    inline PdfObject* Object();
+    inline PdfObject* GetObject();
 
     /** Get access to the internal object
      *  This is an overloaded member function.
      *
      *  \returns the internal PdfObject
      */
-    inline const PdfObject* Object() const;
+    inline const PdfObject* GetObject() const;
 
  protected:
     /** Creates a new PdfElement 
@@ -117,7 +117,7 @@ class PdfElement {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline PdfObject* PdfElement::Object()
+inline PdfObject* PdfElement::GetObject()
 {
     return m_pObject;
 }
@@ -125,7 +125,7 @@ inline PdfObject* PdfElement::Object()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline const PdfObject* PdfElement::Object() const
+inline const PdfObject* PdfElement::GetObject() const
 {
     return m_pObject;
 }

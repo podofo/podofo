@@ -59,11 +59,11 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pFont->SetFontSize( 16.0 );
 
 
-    h = pFont->FontMetrics()->LineSpacing();
-    w = pFont->FontMetrics()->StringWidth( "Grayscale Colorspace" );
+    h = pFont->GetFontMetrics()->GetLineSpacing();
+    w = pFont->GetFontMetrics()->StringWidth( "Grayscale Colorspace" );
 
     pPainter->SetFont( pFont );
-    pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y - pFont->FontMetrics()->LineSpacing(), "Grayscale Colorspace" );
+    pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y - pFont->GetFontMetrics()->GetLineSpacing(), "Grayscale Colorspace" );
     pPainter->DrawRect( 120000 * CONVERSION_CONSTANT , y, w, h );
 
     // Draw 10 lines in gray scale
@@ -80,7 +80,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     y -= dLineLength;
     y -= (10000 * CONVERSION_CONSTANT);
 
-    pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y - pFont->FontMetrics()->LineSpacing(), "RGB Colorspace" );
+    pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y - pFont->GetFontMetrics()->GetLineSpacing(), "RGB Colorspace" );
 
     // Draw 10 lines in rgb
     for( int i = 0; i < 10; i++ )
@@ -96,7 +96,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     y -= dLineLength;
     y -= (10000 * CONVERSION_CONSTANT);
 
-    pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y - pFont->FontMetrics()->LineSpacing(), "CMYK Colorspace" );
+    pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y - pFont->GetFontMetrics()->GetLineSpacing(), "CMYK Colorspace" );
 
     // Draw 10 lines in cmyk
     for( int i = 0; i < 10; i++ )
@@ -157,7 +157,7 @@ void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pFont->SetFontSize( 16.0 );
     pPainter->SetFont( pFont );
 
-    pPainter->DrawText( 125000 * CONVERSION_CONSTANT, y - pFont->FontMetrics()->LineSpacing(), "Rectangles" );
+    pPainter->DrawText( 125000 * CONVERSION_CONSTANT, y - pFont->GetFontMetrics()->GetLineSpacing(), "Rectangles" );
 
     pPainter->SetStrokeWidth( 100 * CONVERSION_CONSTANT );
     pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
@@ -206,7 +206,7 @@ void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     y -= 10000 * CONVERSION_CONSTANT;
     x = (10000 * CONVERSION_CONSTANT) + dWidth;
 
-    pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y - pFont->FontMetrics()->LineSpacing(), "Triangles" );
+    pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y - pFont->GetFontMetrics()->GetLineSpacing(), "Triangles" );
 
     // Draw a triangle at the current position
     pPainter->SetColor( 0.0, 1.0, 1.0 );
@@ -235,20 +235,20 @@ void TextTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
     pPainter->SetFont( pDocument->CreateFont( "Times New Roman" ) );
     pPainter->Font()->SetFontSize( 24.0 );
-    y -= pPainter->Font()->FontMetrics()->LineSpacing();
+    y -= pPainter->Font()->GetFontMetrics()->GetLineSpacing();
 
     pPainter->SetColor( 0.0, 0.0, 0.0 );
     pPainter->DrawText( x, y, "Hallo Welt!" );
     
-    y -= pPainter->Font()->FontMetrics()->LineSpacing();
+    y -= pPainter->Font()->GetFontMetrics()->GetLineSpacing();
     pPainter->Font()->SetUnderlined( true );
     pPainter->SetStrokingColor( 1.0, 0.0, 0.0 );
     pPainter->DrawText( x, y, "Underlined text in the same font!" );
 
     pPainter->Font()->SetUnderlined( false );
-    y -= pPainter->Font()->FontMetrics()->LineSpacing();
+    y -= pPainter->Font()->GetFontMetrics()->GetLineSpacing();
     pPainter->DrawText( x, y, "Disabled the underline again..." );
-    y -= pPainter->Font()->FontMetrics()->LineSpacing();
+    y -= pPainter->Font()->GetFontMetrics()->GetLineSpacing();
     
     PdfFont* pFont = pDocument->CreateFont( "Arial" );
     pFont->SetFontSize( 12.0 );

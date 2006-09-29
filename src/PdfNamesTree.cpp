@@ -43,11 +43,11 @@ PdfObject* PdfNamesTree::GetOneArrayOfNames( const PdfName& inWhichName, bool bC
 {
     PdfObject*	nameArrObj = NULL;
 
-    PdfObject*	nameDict = Object()->GetIndirectKey( inWhichName );
+    PdfObject*	nameDict = GetObject()->GetIndirectKey( inWhichName );
     if ( !nameDict ) {
         if ( bCreate && m_pCatalog ) {
-            nameDict = Object()->GetParent()->CreateObject( PdfDictionary() );
-            Object()->GetDictionary().AddKey( inWhichName, nameDict->Reference() );
+            nameDict = GetObject()->GetParent()->CreateObject( PdfDictionary() );
+            GetObject()->GetDictionary().AddKey( inWhichName, nameDict->Reference() );
         } else 
             return NULL;
     } else if ( nameDict->GetDataType() != ePdfDataType_Dictionary ) {
@@ -57,7 +57,7 @@ PdfObject* PdfNamesTree::GetOneArrayOfNames( const PdfName& inWhichName, bool bC
     nameArrObj = nameDict->GetIndirectKey( PdfName( "Names" ) );
     if ( !nameArrObj && bCreate ) {
         // make new Array and add it
-        nameArrObj = Object()->GetParent()->CreateObject( PdfArray() );
+        nameArrObj = GetObject()->GetParent()->CreateObject( PdfArray() );
         nameDict->GetDictionary().AddKey( "Names", nameArrObj->Reference() );
     }
     

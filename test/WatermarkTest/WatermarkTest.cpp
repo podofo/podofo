@@ -85,7 +85,7 @@ int main( int argc, char* argv[] )
     catch( const PdfError & e ) 
     {
         e.PrintErrorMsg();
-        return e.Error();
+        return e.GetError();
     }
 
     return 0;

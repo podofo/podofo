@@ -101,56 +101,56 @@ class PdfFontMetrics {
     /** Retrieve the line spacing for this font
      *  \returns the linespacing in PDF units
      */
-    inline double LineSpacing() const;
+    inline double GetLineSpacing() const;
 
     /** Retrieve the line spacing for this font
      *  \returns the linespacing in 1/1000th mm
      */
-    inline unsigned long LineSpacingMM() const;
+    inline unsigned long GetLineSpacingMM() const;
 
     /** Get the width of the underline for the current 
      *  font size in PDF units
      *  \returns the thickness of the underline in PDF units
      */
-    inline double UnderlineThickness() const;
+    inline double GetUnderlineThickness() const;
 
     /** Get the width of the underline for the current 
      *  font size in 1/1000th mm
      *  \returns the thickness of the underline in 1/1000th mm
      */
-    inline unsigned long UnderlineThicknessMM() const;
+    inline unsigned long GetUnderlineThicknessMM() const;
 
     /** Return the position of the underline for the current font
      *  size in PDF units
      *  \returns the underline position in PDF units
      */
-    inline double UnderlinePosition() const;
+    inline double GetUnderlinePosition() const;
 
     /** Return the position of the underline for the current font
      *  size in 1/1000th mm
      *  \returns the underline position in 1/1000th mm
      */
-    inline long UnderlinePositionMM() const;
+    inline long GetUnderlinePositionMM() const;
 
     /** Get a pointer to the path of the font file.
      *  \returns a zero terminated string containing the filename of the font file
      */
-    inline const char* Filename() const;
+    inline const char* GetFilename() const;
 
     /** Get a pointer to the actual font data - if it was loaded from memory.
      *  \returns a binary buffer of data containing the font data
      */
-    inline const char* FontData() const;
+    inline const char* GetFontData() const;
 
     /** Get the length of the actual font data - if it was loaded from memory.
      *  \returns a the length of the font data
      */
-    inline unsigned int FontDataLen() const;
+    inline unsigned int GetFontDataLen() const;
 
     /** Get a string with the postscript name of the font.
      *  \returns the postscript name of the font or NULL string if no postscript name is available.
      */
-    const char* Fontname() const;
+    const char* GetFontname() const;
 
      /** Get a string with the postscript name of the font.
      *  \returns the postscript name of the font or empty string if no postscript name is available.
@@ -161,25 +161,25 @@ class PdfFontMetrics {
      *  Used to build the font dictionay
      *  \returns the weight of this font (500 is normal).
      */
-    inline unsigned int Weight() const;
+    inline unsigned int GetWeight() const;
 
     /** Get the ascent of this font
      *  Used to build the font dictionay
      *  \returns the ascender for this font
      */
-    inline double Ascent() const;
+    inline double GetAscent() const;
 
     /** Get the descent of this font
      *  Used to build the font dictionay
      *  \returns the descender for this font
      */
-    inline double Descent() const;
+    inline double GetDescent() const;
 
     /** Get the italic angle of this font.
      *  Used to build the font dictionay
      *  \returns the italic angle of this font.
      */
-    inline int ItalicAngle() const;
+    inline int GetItalicAngle() const;
 
     /** Set the font size of this metrics object for width and height
      *  calculations.
@@ -243,7 +243,7 @@ class PdfFontMetrics {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-double PdfFontMetrics::LineSpacing() const
+double PdfFontMetrics::GetLineSpacing() const
 {
     return m_dLineSpacing;
 }
@@ -251,7 +251,7 @@ double PdfFontMetrics::LineSpacing() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned long PdfFontMetrics::LineSpacingMM() const
+unsigned long PdfFontMetrics::GetLineSpacingMM() const
 {
     return (unsigned long)(m_dLineSpacing / CONVERSION_CONSTANT);
 }
@@ -259,7 +259,7 @@ unsigned long PdfFontMetrics::LineSpacingMM() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-double PdfFontMetrics::UnderlinePosition() const
+double PdfFontMetrics::GetUnderlinePosition() const
 {
     return m_dUnderlinePosition;
 }
@@ -267,7 +267,7 @@ double PdfFontMetrics::UnderlinePosition() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-long PdfFontMetrics::UnderlinePositionMM() const
+long PdfFontMetrics::GetUnderlinePositionMM() const
 {
     return (long)(m_dUnderlinePosition /  CONVERSION_CONSTANT);
 }
@@ -275,7 +275,7 @@ long PdfFontMetrics::UnderlinePositionMM() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-double PdfFontMetrics::UnderlineThickness() const
+double PdfFontMetrics::GetUnderlineThickness() const
 {
     return m_dUnderlineThickness;
 }
@@ -283,7 +283,7 @@ double PdfFontMetrics::UnderlineThickness() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned long PdfFontMetrics::UnderlineThicknessMM() const
+unsigned long PdfFontMetrics::GetUnderlineThicknessMM() const
 {
     return (unsigned long)(m_dUnderlineThickness / CONVERSION_CONSTANT);
 }
@@ -291,7 +291,7 @@ unsigned long PdfFontMetrics::UnderlineThicknessMM() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const char* PdfFontMetrics::Filename() const
+const char* PdfFontMetrics::GetFilename() const
 {
     return m_sFilename.c_str();
 }
@@ -299,7 +299,7 @@ const char* PdfFontMetrics::Filename() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const char* PdfFontMetrics::FontData() const
+const char* PdfFontMetrics::GetFontData() const
 {
     return m_pFontData;
 }
@@ -307,7 +307,7 @@ const char* PdfFontMetrics::FontData() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned int PdfFontMetrics::FontDataLen() const
+unsigned int PdfFontMetrics::GetFontDataLen() const
 {
     return m_nFontDataLen;
 }  
@@ -315,7 +315,7 @@ unsigned int PdfFontMetrics::FontDataLen() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned int PdfFontMetrics::Weight() const
+unsigned int PdfFontMetrics::GetWeight() const
 {
     return m_nWeight;
 }  
@@ -323,7 +323,7 @@ unsigned int PdfFontMetrics::Weight() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-double PdfFontMetrics::Ascent() const
+double PdfFontMetrics::GetAscent() const
 {
     return m_dAscent;
 }
@@ -331,7 +331,7 @@ double PdfFontMetrics::Ascent() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-double PdfFontMetrics::Descent() const
+double PdfFontMetrics::GetDescent() const
 {
     return m_dDescent;
 }
@@ -339,7 +339,7 @@ double PdfFontMetrics::Descent() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-int PdfFontMetrics::ItalicAngle() const
+int PdfFontMetrics::GetItalicAngle() const
 {
     return m_nItalicAngle;
 }

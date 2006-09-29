@@ -58,7 +58,7 @@ class PdfContents {
     virtual PdfObject* GetContentsForAppending() const;
 
  private:
-	PdfObject*	mContObj;
+    PdfObject*	mContObj;
 };
 
 };

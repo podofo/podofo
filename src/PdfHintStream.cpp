@@ -267,7 +267,7 @@ void PdfHintStream::CreatePageHintTable( TVecXRefTable* pXRef )
     {
         lstPages.clear();
 
-        m_pObject->GetParent()->GetObjectDependencies( m_pPagesTree->GetPage( i )->Object(), &lstPages );
+        m_pObject->GetParent()->GetObjectDependencies( m_pPagesTree->GetPage( i )->GetObject(), &lstPages );
         vecPages[i].nObjectsPerPage = lstPages.size();
 
         if( !header.nLeastNumberOfObjects || header.nLeastNumberOfObjects > lstPages.size() )
@@ -310,7 +310,7 @@ void PdfHintStream::CreatePageHintTable( TVecXRefTable* pXRef )
         vecPages[i].nContentsLength = 0;
     }
 
-    header.nFirstPageObject              = (*pXRef)[0].vecOffsets[ m_pPagesTree->GetPage( 0 )->Object()->Reference().ObjectNumber() ].lOffset;
+    header.nFirstPageObject              = (*pXRef)[0].vecOffsets[ m_pPagesTree->GetPage( 0 )->GetObject()->Reference().ObjectNumber() ].lOffset;
     header.nBitsPageObject               = (pdf_uint16)ceil( logb( (double)(maxNumberOfObjects-header.nLeastNumberOfObjects) ) );
     header.nBitsPageLength               = (pdf_uint16)ceil( logb( (double)(maxPageLength - header.nLeastPageLength) ) );
     header.nOffsetContentStream          = 0; // acrobat sets this to 0 and ignores it

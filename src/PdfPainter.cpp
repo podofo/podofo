@@ -572,17 +572,17 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
         // so this cast is ok
         pszTab = const_cast<char*>(sText.String());
 
-    this->AddToPageResources( m_pFont->Identifier(), m_pFont->Object()->Reference(), PdfName("Font") );
+    this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->Reference(), PdfName("Font") );
 
     if( m_pFont->IsUnderlined() )
     {
         this->Save();
         this->SetCurrentStrokingColor();
-        this->SetStrokeWidth( m_pFont->FontMetrics()->UnderlineThickness() );
+        this->SetStrokeWidth( m_pFont->GetFontMetrics()->GetUnderlineThickness() );
         this->DrawLine( dX, 
-                        dY + m_pFont->FontMetrics()->UnderlinePosition(), 
-                        dX + m_pFont->FontMetrics()->StringWidth( pszTab ),
-                        dY + m_pFont->FontMetrics()->UnderlinePosition() );
+                        dY + m_pFont->GetFontMetrics()->GetUnderlinePosition(), 
+                        dX + m_pFont->GetFontMetrics()->StringWidth( pszTab ),
+                        dY + m_pFont->GetFontMetrics()->GetUnderlinePosition() );
         this->Restore();
     }
 
@@ -593,8 +593,8 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
     }
 
     m_oss.str("");
-    m_oss << "BT" << std::endl << "/" << m_pFont->Identifier().Name().c_str()
-          << " "  << m_pFont->FontSize()
+    m_oss << "BT" << std::endl << "/" << m_pFont->GetIdentifier().Name().c_str()
+          << " "  << m_pFont->GetFontSize()
           << " Tf" << std::endl
           << dX << std::endl
           << dY << std::endl << " Td <";
@@ -622,7 +622,7 @@ void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double 
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    this->AddToPageResources( pObject->GetIdentifier(), pObject->Object()->Reference(), "XObject" );
+    this->AddToPageResources( pObject->GetIdentifier(), pObject->GetObject()->Reference(), "XObject" );
 
     m_oss.str("");
     m_oss << "q" << std::endl

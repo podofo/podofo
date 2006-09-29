@@ -45,7 +45,7 @@ class PdfFont : public PdfElement {
     /** Retrieve the current font size of this font object
      *  \returns the current font size
      */
-    inline float FontSize() const;
+    inline float GetFontSize() const;
 
     /** Set the underlined property of the font
      *  \param bUnder if true any text drawn with this font
@@ -62,14 +62,14 @@ class PdfFont : public PdfElement {
      *  in the pages resource dictionary.
      *  \returns PdfName containing the identifier (e.g. /Ft13)
      */
-    inline const PdfName & Identifier() const;
+    inline const PdfName & GetIdentifier() const;
 
     /** Returns a handle to the fontmetrics object of this font.
      *  This can be used for size calculations of text strings when
      *  drawn using this font.
      *  \returns a handle to the font metrics object
      */
-    inline const PdfFontMetrics* FontMetrics() const;
+    inline const PdfFontMetrics* GetFontMetrics() const;
 
  private:
     /** Embedd the font file directly into the PDF file.
@@ -95,17 +95,17 @@ class PdfFont : public PdfElement {
     PdfFontMetrics* m_pMetrics;
 };
 
-const PdfName & PdfFont::Identifier() const
+const PdfName & PdfFont::GetIdentifier() const
 {
     return m_Identifier;
 }
 
-float PdfFont::FontSize() const
+float PdfFont::GetFontSize() const
 {
     return m_fFontSize;
 }
 
-const PdfFontMetrics* PdfFont::FontMetrics() const
+const PdfFontMetrics* PdfFont::GetFontMetrics() const
 {
     return m_pMetrics;
 }

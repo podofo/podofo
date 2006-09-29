@@ -119,9 +119,9 @@ class PdfErrorInfo {
 
     const PdfErrorInfo & operator=( const PdfErrorInfo & rhs );
 
-    inline int Line() const { return m_nLine; }
-    inline const std::string & Filename() const { return m_sFile; }
-    inline const std::string & Information() const { return m_sInfo; }
+    inline int GetLine() const { return m_nLine; }
+    inline const std::string & GetFilename() const { return m_sFile; }
+    inline const std::string & GetInformation() const { return m_sInfo; }
 
     inline void SetInformation( const char* pszInfo ) { m_sInfo = pszInfo ? pszInfo : ""; }
 
@@ -208,12 +208,12 @@ class PdfError : public std::exception {
     /** Return the error code of this object
      *  \returns the error code of this object
      */
-    inline EPdfError Error() const;
+    inline EPdfError GetError() const;
 
     /** Get access to the internal callstack of this error
      *  \return the callstack
      */
-    inline const TDequeErrorInfo & Callstack() const;
+    inline const TDequeErrorInfo & GetCallstack() const;
 
     /** Set the error code of this object.
      *  \param eCode the error code of this object
@@ -309,7 +309,7 @@ class PdfError : public std::exception {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-EPdfError PdfError::Error() const
+EPdfError PdfError::GetError() const
 {
     return m_error;
 }
@@ -317,7 +317,7 @@ EPdfError PdfError::Error() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const TDequeErrorInfo & PdfError::Callstack() const
+const TDequeErrorInfo & PdfError::GetCallstack() const
 {
     return m_callStack;
 }

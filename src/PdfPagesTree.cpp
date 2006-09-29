@@ -34,8 +34,8 @@ PdfPagesTree::PdfPagesTree( PdfVecObjects* pParent )
     : PdfElement( "Pages", pParent )
 {
     // PdfObject* kids = pParent->CreateObject( PdfArray() );
-    Object()->GetDictionary().AddKey( "Kids", PdfArray() ); // kids->Reference() 
-    Object()->GetDictionary().AddKey( "Count", PdfObject( (long) 0 ) );
+    GetObject()->GetDictionary().AddKey( "Kids", PdfArray() ); // kids->Reference() 
+    GetObject()->GetDictionary().AddKey( "Count", PdfObject( (long) 0 ) );
 }
 
 PdfPagesTree::PdfPagesTree( PdfObject* pPagesRoot )
@@ -242,7 +242,7 @@ int PdfPagesTree::GetPosInKids( PdfObject* inPageObj )
 
 void PdfPagesTree::InsertPage( int inAfterPageNumber, PdfPage* inPage )
 {
-    this->InsertPage( inAfterPageNumber, inPage->Object() );
+    this->InsertPage( inAfterPageNumber, inPage->GetObject() );
 }
 
 void PdfPagesTree::InsertPage( int inAfterPageNumber, PdfObject* pPage )
@@ -334,58 +334,58 @@ PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
 
 void PdfPagesTree::DeletePage( int inPageNumber )
 {
-	PdfObject* thePageObj = this->GetPageNode( inPageNumber, GetRoot() ) ;
-	bool isPageALeaf = true ;
-	int theParentCount = 0, theCount = 0 ;
+    PdfObject* thePageObj = this->GetPageNode( inPageNumber, GetRoot() ) ;
+    bool isPageALeaf = true ;
+    int theParentCount = 0, theCount = 0 ;
+    
+    while( true )
+    {
+        PdfObject* theParentPagesDict = this->GetParent( thePageObj ) ;
+        
+        // if we have reached the root pages tree node, we're done
+        if( NULL == theParentPagesDict )
+            break ;
+        
+        // our count is whatever the parent count was the last time through
+        if( !isPageALeaf )
+            theCount = theParentCount ;
+        
+        // decrement theParentPagesDict Count
+        theParentCount = this->ChangePagesCount( theParentPagesDict, -1 ) ;
 
-	while( true )
-	{
-		PdfObject* theParentPagesDict = this->GetParent( thePageObj ) ;
-
-		// if we have reached the root pages tree node, we're done
-		if( NULL == theParentPagesDict )
-			break ;
-
-		// our count is whatever the parent count was the last time through
-		if( !isPageALeaf )
-			theCount = theParentCount ;
-
-		// decrement theParentPagesDict Count
-		theParentCount = this->ChangePagesCount( theParentPagesDict, -1 ) ;
-
-		// remove thePageObj from the parent's Kids array
-		bool removeThisPage = isPageALeaf || ( !isPageALeaf && ( 0 == theCount ) ) ;
-
-		if( removeThisPage )
-		{
-			// get the index into the parent's Kids array, and remove thePageObj's reference to that Parent
-			int theIndexInKidsArray = GetPosInKids( thePageObj ) ;
-			thePageObj->GetDictionary().RemoveKey( PdfName( "Parent" ) );
-
-			PdfObject* theKidsArray = GetKids( theParentPagesDict ) ;
-			PdfArray& kArr = theKidsArray->GetArray();
-			kArr.erase( kArr.begin() + theIndexInKidsArray );
+        // remove thePageObj from the parent's Kids array
+        bool removeThisPage = isPageALeaf || ( !isPageALeaf && ( 0 == theCount ) ) ;
+        
+        if( removeThisPage )
+        {
+            // get the index into the parent's Kids array, and remove thePageObj's reference to that Parent
+            int theIndexInKidsArray = GetPosInKids( thePageObj ) ;
+            thePageObj->GetDictionary().RemoveKey( PdfName( "Parent" ) );
+            
+            PdfObject* theKidsArray = GetKids( theParentPagesDict ) ;
+            PdfArray& kArr = theKidsArray->GetArray();
+            kArr.erase( kArr.begin() + theIndexInKidsArray );
+        }
+        else if( !isPageALeaf )
+        {
+            // if we have only one immediate kid, we are an unnecessary intermediate node
+            PdfObject* thePagesKidsArray = this->GetKids( thePageObj ) ;
+            PdfArray& kArr = thePagesKidsArray->GetArray();
+            if( 1 == kArr.size() )
+            {
+                PdfObject& oneChild = kArr[0];
+                int	indexInKArr = GetPosInKids( thePageObj );
+                PdfObject* theKidsArray = GetKids( theParentPagesDict );
+                oneChild.GetDictionary().AddKey( PdfName( "Parent" ), theParentPagesDict );
+                theKidsArray->GetArray()[ indexInKArr ] = oneChild;
+            }
 		}
-		else if( !isPageALeaf )
-		{
-			// if we have only one immediate kid, we are an unnecessary intermediate node
-			PdfObject* thePagesKidsArray = this->GetKids( thePageObj ) ;
-			PdfArray& kArr = thePagesKidsArray->GetArray();
-			if( 1 == kArr.size() )
-			{
-				PdfObject& oneChild = kArr[0];
-				int	indexInKArr = GetPosInKids( thePageObj );
-				PdfObject* theKidsArray = GetKids( theParentPagesDict );
-				oneChild.GetDictionary().AddKey( PdfName( "Parent" ), theParentPagesDict );
-				theKidsArray->GetArray()[ indexInKArr ] = oneChild;
-			}
-		}
-
-		// if theParentPagesDict has no children, then repeat this loop, removing theParentPagesDict from its
-		// parent, and thereby pruning the tree of empty Pages nodes
-		thePageObj = theParentPagesDict ;
-		isPageALeaf = false ;
-	}
+        
+        // if theParentPagesDict has no children, then repeat this loop, removing theParentPagesDict from its
+        // parent, and thereby pruning the tree of empty Pages nodes
+        thePageObj = theParentPagesDict ;
+        isPageALeaf = false ;
+    }
 }
 
 };

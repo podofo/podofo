@@ -80,7 +80,7 @@ int main( int argc, char* argv[] )
         }
     } catch( const PdfError & eCode ) {
         eCode.PrintErrorMsg();
-        return eCode.Error();
+        return eCode.GetError();
     }
     
     printf("\nTest successfull!\n");

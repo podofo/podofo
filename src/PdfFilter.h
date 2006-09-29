@@ -69,20 +69,20 @@ class PdfFilter {
     /** Type of this filter.
      *  \returns the type of this filter
      */
-    virtual EPdfFilter type() const = 0;
+    virtual EPdfFilter GetType() const = 0;
 };
 
-/** A factory to create a filter object for a filter type from the EPdfFilter enum.
+/** A factory to create a filter object for a filter GetType from the EPdfFilter enum.
  */
 class PdfFilterFactory {
  public:
     /** Create a filter from an enum. 
      *  The filter is cached and may not be delted!
      *
-     *  \param eFilter the type of filter that should be created.
+     *  \param eFilter the GetType of filter that should be created.
      *
      *  \returns a new PdfFilter allocated using new or NULL if no 
-     *           filter is available for this type.
+     *           filter is available for this GetType.
      */
     static const PdfFilter* Create( const EPdfFilter eFilter );
 
@@ -122,13 +122,13 @@ class PdfHexFilter : public PdfFilter {
      */
     virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
 
-    /** Type of this filter.
-     *  \returns the type of this filter
+    /** GetType of this filter.
+     *  \returns the GetType of this filter
      */
-    inline virtual EPdfFilter type() const;
+    inline virtual EPdfFilter GetType() const;
 };
 
-EPdfFilter PdfHexFilter::type() const
+EPdfFilter PdfHexFilter::GetType() const
 {
     return ePdfFilter_ASCIIHexDecode;
 }
@@ -163,10 +163,10 @@ class PdfAscii85Filter : public PdfFilter {
      */
     virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
 
-    /** Type of this filter.
-     *  \returns the type of this filter
+    /** GetType of this filter.
+     *  \returns the GetType of this filter
      */
-    inline virtual EPdfFilter type() const;
+    inline virtual EPdfFilter GetType() const;
 
  private:
     void Encode ( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes ) const;
@@ -175,7 +175,7 @@ class PdfAscii85Filter : public PdfFilter {
     static unsigned long sPowers85[];
 };
 
-EPdfFilter PdfAscii85Filter::type() const
+EPdfFilter PdfAscii85Filter::GetType() const
 {
     return ePdfFilter_ASCII85Decode;
 }
@@ -210,15 +210,15 @@ class PdfFlateFilter : public PdfFilter {
      */
     virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
 
-    /** Type of this filter.
-     *  \returns the type of this filter
+    /** GetType of this filter.
+     *  \returns the GetType of this filter
      */
-    inline virtual EPdfFilter type() const;
+    inline virtual EPdfFilter GetType() const;
 
     void RevertPredictor( const TFlatePredictorParams* pParams, const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
 };
 
-EPdfFilter PdfFlateFilter::type() const
+EPdfFilter PdfFlateFilter::GetType() const
 {
     return ePdfFilter_FlateDecode;
 }
@@ -253,13 +253,13 @@ class PdfRLEFilter : public PdfFilter {
      */
     virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
 
-    /** Type of this filter.
-     *  \returns the type of this filter
+    /** GetType of this filter.
+     *  \returns the GetType of this filter
      */
-    inline virtual EPdfFilter type() const;
+    inline virtual EPdfFilter GetType() const;
 };
 
-EPdfFilter PdfRLEFilter::type() const
+EPdfFilter PdfRLEFilter::GetType() const
 {
     return ePdfFilter_RunLengthDecode;
 }
@@ -303,10 +303,10 @@ class PdfLZWFilter : public PdfFilter {
      */
     virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
 
-    /** Type of this filter.
-     *  \returns the type of this filter
+    /** GetType of this filter.
+     *  \returns the GetType of this filter
      */
-    inline virtual EPdfFilter type() const;
+    inline virtual EPdfFilter GetType() const;
 
  private:
     /** Initialize an lzw table.
@@ -320,7 +320,7 @@ class PdfLZWFilter : public PdfFilter {
     static const unsigned short s_eod;
 };
 
-EPdfFilter PdfLZWFilter::type() const
+EPdfFilter PdfLZWFilter::GetType() const
 {
     return ePdfFilter_LZWDecode;
 }

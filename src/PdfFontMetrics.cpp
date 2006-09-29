@@ -113,7 +113,7 @@ void PdfFontMetrics::InitFromFace()
     }
 }
 
-const char* PdfFontMetrics::Fontname() const
+const char* PdfFontMetrics::GetFontname() const
 {
     const char*	s = FT_Get_Postscript_Name( m_face );
     return s ? s : "";
@@ -330,7 +330,8 @@ double PdfFontMetrics::StringWidth( const char* pszText, unsigned int nLength ) 
         nLength = (unsigned int)strlen( pszText );
 
     const char *localText = pszText;
-    for ( int i=0; i<nLength; i++ ) {
+    for ( unsigned int i=0; i<nLength; i++ ) 
+    {
         dWidth += CharWidth( *localText );
         localText++;
     }

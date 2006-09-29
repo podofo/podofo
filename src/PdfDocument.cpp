@@ -53,7 +53,7 @@ public:
     
     bool operator()(const PdfFont* pFont) 
         { 
-            return (m_sPath == pFont->FontMetrics()->Filename());
+            return (m_sPath == pFont->GetFontMetrics()->GetFilename());
         }
 private:
     string m_sPath;
@@ -176,7 +176,7 @@ void PdfDocument::InitPagesTree()
     else
     {
         m_pPagesTree = new PdfPagesTree( &m_vecObjects );
-        m_pCatalog->GetDictionary().AddKey( "Pages", m_pPagesTree->Object()->Reference() );
+        m_pCatalog->GetDictionary().AddKey( "Pages", m_pPagesTree->GetObject()->Reference() );
     }
 }
 
@@ -345,7 +345,7 @@ const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc )
     for(int i=0;i<rDoc.GetPageCount();i++ )
     {
         PdfPage*      pPage = rDoc.GetPage( i );
-        PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->Object()->Reference().ObjectNumber() + difference, 0 ) );
+        PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, 0 ) );
         if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Parent" ) )
             pObj->GetDictionary().RemoveKey( "Parent" );
 
@@ -625,7 +625,7 @@ PdfOutlines* PdfDocument::GetOutlines( bool bCreate )
             if ( !bCreate )	return NULL;
             
             m_pOutlines = new PdfOutlines( &m_vecObjects );
-            m_pCatalog->GetDictionary().AddKey( "Outlines", m_pOutlines->Object()->Reference() );
+            m_pCatalog->GetDictionary().AddKey( "Outlines", m_pOutlines->GetObject()->Reference() );
         } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
             RAISE_ERROR( ePdfError_InvalidDataType );
         } else
@@ -647,7 +647,7 @@ PdfNamesTree* PdfDocument::GetNamesTree( bool bCreate )
             if ( !bCreate )	return NULL;
 
             PdfNamesTree* tmpTree = new PdfNamesTree( &m_vecObjects );
-            pObj = tmpTree->Object();
+            pObj = tmpTree->GetObject();
             m_pCatalog->GetDictionary().AddKey( "Names", pObj->Reference() );
             m_pNamesTree = new PdfNamesTree( pObj, m_pCatalog );
         } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {

@@ -157,7 +157,7 @@ class PdfDocument {
      * 
      *  \returns the Names dictionary
      */
-	PdfNamesTree* GetNamesTree( bool bCreate = ePdfCreateObject );
+    PdfNamesTree* GetNamesTree( bool bCreate = ePdfCreateObject );
 
     /** Get access to the AcroForm dictionary
      *  \returns PdfObject the AcroForm dictionary
@@ -204,7 +204,7 @@ class PdfDocument {
     /** Get the author of the document
      *  \returns the author
      */
-    inline const PdfString & Author() const;
+    inline const PdfString & GetAuthor() const;
 
     /** Set the creator of the document.
      *  Typically the name of the application using the library.
@@ -215,7 +215,7 @@ class PdfDocument {
     /** Get the creator of the document
      *  \returns the creator
      */
-    inline const PdfString & Creator() const;
+    inline const PdfString & GetCreator() const;
 
     /** Set keywords for this document
      *  \param sKeywords a list of keywords
@@ -225,7 +225,7 @@ class PdfDocument {
     /** Get the keywords of the document
      *  \returns the keywords
      */
-    inline const PdfString & Keywords() const;
+    inline const PdfString & GetKeywords() const;
 
     /** Set the subject of the document.
      *  \param sSubject subject
@@ -235,7 +235,7 @@ class PdfDocument {
     /** Get the subject of the document
      *  \returns the subject
      */
-    inline const PdfString & Subject() const;
+    inline const PdfString & GetSubject() const;
 
     /** Set the title of the document.
      *  \param sTitle title
@@ -245,7 +245,7 @@ class PdfDocument {
     /** Get the title of the document
      *  \returns the title
      */
-    inline const PdfString & Title() const;
+    inline const PdfString & GetTitle() const;
 
     /** Appends another PdfDocument to this document
      *  \param rDoc the document to append
@@ -268,14 +268,14 @@ class PdfDocument {
      */
     void DeletePages( int inFirstPage, int inNumPages );
 
-	/** Adds a PdfDestination into the global Names tree
-	 *  with the specified name, optionally replacing one of the same name
-	 *  \param inDest the destination to be assigned
-	 *  \param inName the name for the destination
-	 *  \param bReplace replace existing destinations
-	 *  \returns if adding was successful
-	 */
-	bool AddNamedDestination( PdfDestination& inDest, const std::string& inName, bool bReplace = true );
+    /** Adds a PdfDestination into the global Names tree
+     *  with the specified name, optionally replacing one of the same name
+     *  \param inDest the destination to be assigned
+     *  \param inName the name for the destination
+     *  \param bReplace replace existing destinations
+     *  \returns if adding was successful
+     */
+    bool AddNamedDestination( PdfDestination& inDest, const std::string& inName, bool bReplace = true );
 
     /** Sets the opening mode for a document
      *  \param inMode which mode to set
@@ -418,7 +418,7 @@ class PdfDocument {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const PdfString & PdfDocument::Author() const
+const PdfString & PdfDocument::GetAuthor() const
 {
     return this->GetStringFromInfoDict( PdfName("Author") );
 }
@@ -426,7 +426,7 @@ const PdfString & PdfDocument::Author() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const PdfString & PdfDocument::Creator() const
+const PdfString & PdfDocument::GetCreator() const
 {
     return this->GetStringFromInfoDict( PdfName("Creator") );
 }
@@ -434,7 +434,7 @@ const PdfString & PdfDocument::Creator() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const PdfString & PdfDocument::Keywords() const
+const PdfString & PdfDocument::GetKeywords() const
 {
     return this->GetStringFromInfoDict( PdfName("Keywords") );
 }
@@ -442,7 +442,7 @@ const PdfString & PdfDocument::Keywords() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const PdfString & PdfDocument::Subject() const
+const PdfString & PdfDocument::GetSubject() const
 {
     return this->GetStringFromInfoDict( PdfName("Subject") );
 }
@@ -450,7 +450,7 @@ const PdfString & PdfDocument::Subject() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const PdfString & PdfDocument::Title() const
+const PdfString & PdfDocument::GetTitle() const
 {
     return this->GetStringFromInfoDict( PdfName("Title") );
 }

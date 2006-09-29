@@ -92,7 +92,7 @@ void test_filter( EPdfFilter eFilter )
     printf("\t-> Encoded  Data Length: %li\n", lEncoded );
     printf("\t-> Decoded  Data Length: %li\n", lDecoded );
 
-    if( lTestLength != lDecoded ) 
+    if( (long)lTestLength != lDecoded ) 
     {
         fprintf( stderr, "Error: Decoded Length != Original Length\n");
         RAISE_ERROR( ePdfError_TestFailed );
@@ -135,7 +135,7 @@ int main( int argc, char* argv[] )
             test_filter( (EPdfFilter)i );
     } catch( PdfError & e ) {
         e.PrintErrorMsg();
-        return e.Error();
+        return e.GetError();
     }
 
     return 0;
