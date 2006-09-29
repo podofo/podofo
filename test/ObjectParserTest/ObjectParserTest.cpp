@@ -74,8 +74,8 @@ void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo
     device = PdfRefCountedInputDevice();
     unlink( pszFilename );
 
-    printf("  -> Object Number: %u Generation Number: %u\n", obj.ObjectNumber(), obj.GenerationNumber() );
-    if( lObjNo != obj.ObjectNumber() || lGenNo != obj.GenerationNumber() )
+    printf("  -> Object Number: %u Generation Number: %u\n", obj.Reference().ObjectNumber(), obj.Reference().GenerationNumber() );
+    if( lObjNo != obj.Reference().ObjectNumber() || lGenNo != obj.Reference().GenerationNumber() )
     {
         RAISE_ERROR( ePdfError_TestFailed );
     }
@@ -147,8 +147,8 @@ void TestObject( const char* pszFilename, const char* pszData, long lObjNo, long
     device = PdfRefCountedInputDevice();
     unlink( pszFilename );
 
-    printf("  -> Object Number: %u Generation Number: %u\n", obj.ObjectNumber(), obj.GenerationNumber() );
-    if( lObjNo != obj.ObjectNumber() || lGenNo != obj.GenerationNumber() )
+    printf("  -> Object Number: %u Generation Number: %u\n", obj.Reference().ObjectNumber(), obj.Reference().GenerationNumber() );
+    if( lObjNo != obj.Reference().ObjectNumber() || lGenNo != obj.Reference().GenerationNumber() )
     {
         RAISE_ERROR( ePdfError_TestFailed );
     }

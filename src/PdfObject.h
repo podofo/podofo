@@ -190,14 +190,14 @@ class PdfObject : public PdfVariant {
      *  one will be created.
      *  \returns a PdfStream object
      */
-    PdfStream* Stream();
+    PdfStream* GetStream();
 
     /** Get a handle to a const PDF stream object
      *  If the PDF object does not have a stream,
      *  null is returned
      *  \returns a PdfStream object or null
      */
-    const PdfStream* Stream() const;
+    const PdfStream* GetStream() const;
 
     /** Check if this object has a PdfStream object
      *  appended.
@@ -205,16 +205,6 @@ class PdfObject : public PdfVariant {
      *  \returns true if the object has a stream
      */
     inline bool HasStream() const;
-
-    /** Get the object number of this object
-     *  \returns the object number
-     */
-    inline unsigned int ObjectNumber() const;
-
-    /** Get the generation number of this object
-     *  \returns the generation number
-     */
-    inline unsigned int GenerationNumber() const;
 
     /** This operator is required for sorting a list of 
      *  PdfObjects. It compares the objectnumber. If objectnumbers
@@ -296,22 +286,6 @@ class PdfObject : public PdfVariant {
     PdfStream*     m_pStream;
     PdfVecObjects* m_pParent;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-unsigned int PdfObject::ObjectNumber() const
-{ 
-    return m_reference.ObjectNumber(); 
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-unsigned int PdfObject::GenerationNumber() const 
-{ 
-    return m_reference.GenerationNumber(); 
-}
 
 // -----------------------------------------------------
 // 

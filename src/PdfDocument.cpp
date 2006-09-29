@@ -334,7 +334,7 @@ const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc )
     {
         PdfObject*    pObj  = m_vecObjects.CreateObject( /*(const PdfVariant &)*/*(*it) );
         if( (*it)->HasStream() )
-            *(pObj->Stream()) = *((*it)->Stream());
+            *(pObj->GetStream()) = *((*it)->GetStream());
         
         FixObjectReferences( pObj, difference );
 

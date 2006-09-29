@@ -64,7 +64,7 @@ PdfXObject::PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent )
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
-    out << "XOb" << m_pObject->ObjectNumber();
+    out << "XOb" << m_pObject->Reference().ObjectNumber();
     m_Identifier = PdfName( out.str().c_str() );
 }
 
@@ -74,7 +74,7 @@ PdfXObject::PdfXObject( PdfObject* pObject )
     ostringstream out;
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
-    out << "XOb" << m_pObject->ObjectNumber();
+    out << "XOb" << m_pObject->Reference().ObjectNumber();
 
     
     m_pResources = pObject->GetIndirectKey( "Resources" );
@@ -88,7 +88,7 @@ PdfXObject::PdfXObject( const char* pszSubType, PdfVecObjects* pParent )
     ostringstream out;
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
-    out << "XOb" << m_pObject->ObjectNumber();
+    out << "XOb" << m_pObject->Reference().ObjectNumber();
 
     m_Identifier = PdfName( out.str().c_str() );
 
@@ -107,7 +107,7 @@ PdfXObject::PdfXObject( const char* pszSubType, PdfObject* pObject )
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
-    out << "XOb" << m_pObject->ObjectNumber();
+    out << "XOb" << m_pObject->Reference().ObjectNumber();
 
     m_Identifier = PdfName( out.str().c_str() );
 }

@@ -334,7 +334,7 @@ void PdfHintStream::CreatePageHintTable( TVecXRefTable* pXRef )
 
 void PdfHintStream::CreateSharedObjectHintTable()
 {
-    PdfVariant offset( (long)m_pObject->Stream()->Length() );
+    PdfVariant offset( (long)m_pObject->GetStream()->Length() );
     offset.SetPaddingLength( LINEARIZATION_PADDING );
 
     m_pObject->GetDictionary().AddKey( "S", offset ); // shared object hint table
@@ -349,7 +349,7 @@ void PdfHintStream::WriteUInt16( pdf_uint16 val )
         val = (pdf_uint16)htons( (u_short)val );
     }
 
-    m_pObject->Stream()->Append( (char*)&val, 2 );
+    m_pObject->GetStream()->Append( (char*)&val, 2 );
 }
 
 void PdfHintStream::WriteUInt32( pdf_uint32 val )
@@ -359,7 +359,7 @@ void PdfHintStream::WriteUInt32( pdf_uint32 val )
         val = (pdf_uint32)htonl( (unsigned int)val );
     }
 
-    m_pObject->Stream()->Append( (char*)&val, 4 );
+    m_pObject->GetStream()->Append( (char*)&val, 4 );
 }
 
 };

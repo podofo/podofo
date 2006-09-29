@@ -74,11 +74,12 @@ void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight,
     m_pObject->GetDictionary().AddKey( "Height", PdfVariant( (long)nHeight ) );
     m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( (long)nBitsPerComponent ) );
 
-    m_pObject->Stream()->Set( szBuffer, lLen );
-	if ( m_pObject->GetDictionary().GetKey( "Filter" )->GetName() == "FlateDecode" ) {
-		// compress any stream that has been marked as using FlateDecode
-		m_pObject->Stream()->FlateCompress();
-	}
+    m_pObject->GetStream()->Set( szBuffer, lLen );
+    if ( m_pObject->GetDictionary().GetKey( "Filter" )->GetName() == "FlateDecode" ) 
+    {
+        // compress any stream that has been marked as using FlateDecode
+        m_pObject->GetStream()->FlateCompress();
+    }
 }
 
 void PdfImage::LoadFromFile( const char* pszFilename )

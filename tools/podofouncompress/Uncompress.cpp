@@ -53,7 +53,7 @@ void UnCompress::UncompressObjects()
     {
         if( (*it)->HasStream() )
         {
-            (*it)->Stream()->Uncompress();
+            (*it)->GetStream()->Uncompress();
         }
 
         ++it;

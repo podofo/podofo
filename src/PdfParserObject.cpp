@@ -438,7 +438,7 @@ void PdfParserObject::ParseStream()
         RAISE_ERROR( ePdfError_InvalidStreamLength );
     }
 
-    this->Stream()->Set( szBuf, lLen );
+    this->GetStream()->Set( szBuf, lLen );
 
     /*
     SAFE_OP( GetNextStringFromFile( ) );

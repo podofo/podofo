@@ -429,7 +429,7 @@ EPdfFilter PdfStream::FilterNameToType( const PdfName & name )
 
     int i = 0;
 
-    if( !name.Length() )
+    if( !name.GetLength() )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }

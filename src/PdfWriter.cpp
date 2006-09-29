@@ -236,7 +236,7 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& ve
 
     this->CompressObjects( vecObjects );
 
-    tXRef.nFirst = (*itObjects)->ObjectNumber();
+    tXRef.nFirst = (*itObjects)->Reference().ObjectNumber();
 
     index = vecObjects.size() + vecObjects.GetFreeObjects().size();
     if( tXRef.nFirst == 1 )
@@ -258,10 +258,10 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& ve
 
     while( itObjects != vecObjects.end() )
     {
-        index = (*itObjects)->ObjectNumber() - tXRef.nFirst;
+        index = (*itObjects)->Reference().ObjectNumber() - tXRef.nFirst;
 
         tXRef.vecOffsets[index].lOffset     = pDevice->Length();
-        tXRef.vecOffsets[index].lGeneration = (*itObjects)->GenerationNumber();
+        tXRef.vecOffsets[index].lGeneration = (*itObjects)->Reference().GenerationNumber();
         tXRef.vecOffsets[index].cUsed       = 'n';
 
         (*itObjects)->WriteObject( pDevice );
@@ -554,7 +554,7 @@ void PdfWriter::WriteXRefStream( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevi
             if( bLittle )
                 *pValue = htonl( *pValue );
 
-            object.Stream()->Append( buffer, bufferLen );
+            object.GetStream()->Append( buffer, bufferLen );
             ++itOffsets;
         }
         
@@ -632,7 +632,7 @@ void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDev
 
     value.SetNumber( lFileSize );
     pLinearize->GetDictionary().AddKey( "L", value );
-    value.SetNumber( pPage->GetObject()->ObjectNumber() );
+    value.SetNumber( pPage->GetObject()->Reference().ObjectNumber() );
     pLinearize->GetDictionary().AddKey( "O", value );
     value.SetNumber( m_lFirstInXRef );
     pLinearize->GetDictionary().AddKey( "T", value );
@@ -650,7 +650,7 @@ void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDev
     pDevice->Seek( lFileSize );
 
     value.SetNumber( pVecXRefOffset->back() );
-    FillTrailerObject( &trailer, pLast->ObjectNumber()+1, true, false );
+    FillTrailerObject( &trailer, pLast->Reference().ObjectNumber()+1, true, false );
     trailer.GetDictionary().AddKey("Prev", value );
 
     pDevice->Seek( m_lTrailerOffset );

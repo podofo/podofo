@@ -68,7 +68,7 @@ void PdfPainter::SetPage( PdfCanvas* pPage )
 {
     m_pPage   = pPage;
 
-    m_pCanvas = pPage ? pPage->GetContentsForAppending()->Stream() : NULL;
+    m_pCanvas = pPage ? pPage->GetContentsForAppending()->GetStream() : NULL;
     if ( m_pCanvas ) 
     {
         if ( m_pCanvas->Length() ) 
@@ -593,7 +593,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
     }
 
     m_oss.str("");
-    m_oss << "BT" << std::endl << "/" << m_pFont->GetIdentifier().Name().c_str()
+    m_oss << "BT" << std::endl << "/" << m_pFont->GetIdentifier().GetName().c_str()
           << " "  << m_pFont->GetFontSize()
           << " Tf" << std::endl
           << dX << std::endl
@@ -630,7 +630,7 @@ void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double 
           << pObject->GetPageSize().Height() * dScaleY << " "
           << dX << " " 
           << dY << " cm" << std::endl
-          << "/" << pObject->GetIdentifier().Name().c_str() << " Do" << std::endl << "Q" << std::endl;
+          << "/" << pObject->GetIdentifier().GetName().c_str() << " Do" << std::endl << "Q" << std::endl;
     
     m_pCanvas->Append( m_oss.str() );
 }
@@ -896,7 +896,7 @@ void PdfPainter::Restore()
 
 void PdfPainter::AddToPageResources( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName )
 {
-    if( !m_pPage || !rName.Length() || !rIdentifier.Length() )
+    if( !m_pPage || !rName.GetLength() || !rIdentifier.GetLength() )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }

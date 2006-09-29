@@ -81,12 +81,12 @@ class PdfName : public PdfDataType {
     /** \returns the value of this name object
      *           without the leading slash
      */
-    inline const std::string& Name() const;
+    inline const std::string& GetName() const;
 
     /** \returns the length of this
      *           name object
      */
-    inline size_t Length() const;
+    inline size_t GetLength() const;
 
     /** Assign anotehr name to this object
      *  \param rhs another PdfName object
@@ -144,7 +144,7 @@ class PdfName : public PdfDataType {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const std::string & PdfName::Name() const
+const std::string & PdfName::GetName() const
 {
     return m_Data;
 }
@@ -152,7 +152,7 @@ const std::string & PdfName::Name() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-size_t PdfName::Length() const
+size_t PdfName::GetLength() const
 {
     return m_Data.length();
 }

@@ -68,7 +68,7 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
     PdfString     sDate;
     const PdfName name( TypeNameForIndex( eAnnot, s_names, s_lNumActions ) );
 
-    if( !name.Length() )
+    if( !name.GetLength() )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -91,13 +91,13 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
 PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfObject* pObject )
     : PdfElement( "Annot", pObject ), m_eAnnotation( ePdfAnnotation_Unknown )
 {
-    m_eAnnotation = (EPdfAnnotation)TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).Name().c_str(), s_names, s_lNumActions );
+    m_eAnnotation = (EPdfAnnotation)TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions );
 }
 
 PdfAnnotation::PdfAnnotation( PdfPage* pPage, PdfObject* pObject )
     : PdfElement( "Annot", pObject ), m_eAnnotation( ePdfAnnotation_Unknown )
 {
-    m_eAnnotation = (EPdfAnnotation)TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).Name().c_str(), s_names, s_lNumActions );
+    m_eAnnotation = (EPdfAnnotation)TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions );
 
     
 }

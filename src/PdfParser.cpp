@@ -650,7 +650,7 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
     } 
 
     pObj = xrefObject.GetDictionary().GetKey( PdfName::KeyType );
-    if( !pObj->IsName() || ( pObj->GetName().Name() != "XRef" ) )
+    if( !pObj->IsName() || ( pObj->GetName().GetName() != "XRef" ) )
     {
         RAISE_ERROR( ePdfError_NoXRef );
     } 
@@ -719,7 +719,7 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
     }
 
     xrefObject.ParseStream();
-    xrefObject.Stream()->GetFilteredCopy( &pBuffer, &lBufferLen );
+    xrefObject.GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
 
     pStart = pBuffer;
     while( pBuffer - pStart < lBufferLen )
@@ -805,11 +805,11 @@ void PdfParser::ReadObjects()
             pObject->SetLoadOnDemand( m_bLoadOnDemand );
             try {
                 pObject->ParseFile();
-                nLast = pObject->ObjectNumber();
+                nLast = pObject->Reference().ObjectNumber();
                 
                 // final pdf should not contain a linerization dictionary as it contents are invalid 
                 // as we change some objects and the final xref table
-                if( m_pLinearization && nLast == (int)m_pLinearization->ObjectNumber() )
+                if( m_pLinearization && nLast == (int)m_pLinearization->Reference().ObjectNumber() )
                 {
                     m_vecObjects->AddFreeObject( pObject->Reference() );
                     delete pObject;
@@ -894,7 +894,7 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
         pStream->ParseStream();
     }
     
-    pStream->Stream()->GetFilteredCopy( &pBuffer, &lBufferLen );
+    pStream->GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
     
     // the object stream is not needed anymore in the final PDF
     delete m_vecObjects->RemoveObject( pStream->Reference() );

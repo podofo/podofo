@@ -73,7 +73,7 @@ void PdfDictionary::Clear()
 
 void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObject )
 {
-    if( !identifier.Length() )
+    if( !identifier.GetLength() )
     {
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
@@ -157,7 +157,7 @@ PdfName PdfDictionary::GetKeyAsName( const PdfName & key ) const
 
 bool PdfDictionary::HasKey( const PdfName & key ) const
 {
-    if( !key.Length() )
+    if( !key.GetLength() )
         return false;
     
     return ( m_mapKeys.find( key ) != m_mapKeys.end() );
@@ -184,7 +184,7 @@ void PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) c
 
     itKeys     = m_mapKeys.begin();
 
-    if( keyStop != PdfName::KeyNull && keyStop.Length() && keyStop == PdfName::KeyType )
+    if( keyStop != PdfName::KeyNull && keyStop.GetLength() && keyStop == PdfName::KeyType )
         return;
 
     if( this->HasKey( PdfName::KeyType ) ) 
@@ -199,10 +199,10 @@ void PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) c
     {
         if( (*itKeys).first != PdfName::KeyType )
         {
-            if( keyStop != PdfName::KeyNull && keyStop.Length() && (*itKeys).first == keyStop )
+            if( keyStop != PdfName::KeyNull && keyStop.GetLength() && (*itKeys).first == keyStop )
                 return;
 
-            pDevice->Print( "/%s ", (*itKeys).first.Name().c_str() );
+            pDevice->Print( "/%s ", (*itKeys).first.GetName().c_str() );
             (*itKeys).second->Write( pDevice );
             pDevice->Print("\n");
         }

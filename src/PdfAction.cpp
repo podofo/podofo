@@ -52,7 +52,7 @@ PdfAction::PdfAction( EPdfAction eAction, PdfVecObjects* pParent )
 {
     const PdfName type = PdfName( TypeNameForIndex( eAction, s_names, s_lNumActions ) );
 
-    if( !type.Length() )
+    if( !type.GetLength() )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -63,7 +63,7 @@ PdfAction::PdfAction( EPdfAction eAction, PdfVecObjects* pParent )
 PdfAction::PdfAction( PdfObject* pObject )
     : PdfElement( "Action", pObject )
 {
-    m_eType = (EPdfAction)TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).Name().c_str(), s_names, s_lNumActions );
+    m_eType = (EPdfAction)TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions );
 }
 
 void PdfAction::SetURI( const PdfString & sUri )

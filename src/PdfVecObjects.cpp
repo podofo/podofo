@@ -179,7 +179,7 @@ void PdfVecObjects::AddFreeObject( const PdfReference & rReference )
 
 void PdfVecObjects::push_back( PdfObject* pObj )
 {
-    if( pObj->ObjectNumber() >= m_nObjectCount )
+    if( pObj->Reference().ObjectNumber() >= m_nObjectCount )
         ++m_nObjectCount;
 
     pObj->SetParent( this );

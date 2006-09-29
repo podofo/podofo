@@ -58,13 +58,13 @@ void ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnN
         if( (*it)->IsDictionary() )
         {            
             pObj = (*it)->GetDictionary().GetKey( PdfName::KeyType );
-            if( pObj && pObj->IsName() && ( pObj->GetName().Name() == "XObject" ) )
+            if( pObj && pObj->IsName() && ( pObj->GetName().GetName() == "XObject" ) )
             {
                 pObj = (*it)->GetDictionary().GetKey( PdfName::KeySubtype );
-                if( pObj && pObj->IsName() && ( pObj->GetName().Name() == "Image" ) )
+                if( pObj && pObj->IsName() && ( pObj->GetName().GetName() == "Image" ) )
                 {
                     pObj = (*it)->GetDictionary().GetKey( PdfName::KeyFilter );
-                    if( pObj && pObj->IsName() && ( pObj->GetName().Name() == "DCTDecode" ) )
+                    if( pObj && pObj->IsName() && ( pObj->GetName().GetName() == "DCTDecode" ) )
                     {	
                         // ONLY images with filter of DCTDecode can be extracted out as JPEG this way!
                         
@@ -98,7 +98,7 @@ void ImageExtractor::ExtractImage( PdfObject* pObject )
 
     printf("-> Writing image object %s to the file: %s\n", pObject->Reference().ToString().c_str(), m_szBuffer);
 
-    fwrite( pObject->Stream()->Get(), pObject->Stream()->Length(), sizeof(char), hFile );
+    fwrite( pObject->GetStream()->Get(), pObject->GetStream()->Length(), sizeof(char), hFile );
     fclose( hFile );
 }
 

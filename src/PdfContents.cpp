@@ -27,17 +27,16 @@ namespace PoDoFo {
 PdfContents::PdfContents( PdfVecObjects* pParent )
 : mContObj( pParent->CreateObject() )
 {
-    mContObj->Stream();	// this will force it to be a Stream instead of just a Dictionary
+    mContObj->GetStream();	// this will force it to be a Stream instead of just a Dictionary
 }
 
 PdfContents::PdfContents( PdfObject* inObj )
 : mContObj( inObj )
 {
-    if ( mContObj->GetDataType() == ePdfDataType_Reference ) {
+    if ( mContObj->GetDataType() == ePdfDataType_Reference )
         mContObj = inObj->GetParent()->GetObject( inObj->GetReference() );
-    } else if ( mContObj->GetDataType() == ePdfDataType_Dictionary ) {
-        mContObj->Stream();	// should make it a valid stream..
-    }
+    else if ( mContObj->GetDataType() == ePdfDataType_Dictionary )
+        mContObj->GetStream();	// should make it a valid stream..
 }
 
 PdfObject* PdfContents::GetContentsForAppending() const
@@ -56,8 +55,8 @@ PdfObject* PdfContents::GetContentsForAppending() const
           Create a new stream, add it to the array, return it
         */
         PdfObject*	newStm = mContObj->GetParent()->CreateObject();
-        newStm->Stream();
-        PdfReference	pdfr( newStm->ObjectNumber(), newStm->GenerationNumber() );
+        newStm->GetStream();
+        PdfReference	pdfr( newStm->Reference().ObjectNumber(), newStm->Reference().GenerationNumber() );
         
         PdfArray&	cArr = mContObj->GetArray();
         cArr.push_back( pdfr );

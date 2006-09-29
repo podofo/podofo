@@ -48,7 +48,7 @@ PdfFont::PdfFont( PdfFontMetrics* pMetrics, bool bEmbedd, PdfVecObjects* pParent
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "Ft" << m_pObject->ObjectNumber();
+    out << "Ft" << m_pObject->Reference().ObjectNumber();
     m_Identifier = PdfName( out.str().c_str() );
 
     this->Init( bEmbedd );
@@ -162,7 +162,7 @@ void PdfFont::EmbeddFont( PdfObject* pDescriptor )
     }
     
     pContents->GetDictionary().AddKey( "Length1", PdfVariant( lSize ) );
-    pContents->Stream()->Set( pBuffer, lSize, !m_pMetrics->GetFontDataLen() );	// if we loaded from memory, DO NOT let Stream take possession
+    pContents->GetStream()->Set( pBuffer, lSize, !m_pMetrics->GetFontDataLen() );	// if we loaded from memory, DO NOT let Stream take possession
 }
 
 void PdfFont::SetFontSize( float fSize )

@@ -192,7 +192,7 @@ unsigned long PdfObject::GetObjectLength()
     return device.Length();
 }
 
-PdfStream* PdfObject::Stream()
+PdfStream* PdfObject::GetStream()
 {
     DelayedStreamLoad();
 
@@ -202,7 +202,7 @@ PdfStream* PdfObject::Stream()
     return m_pStream;
 }
 
-const PdfStream* PdfObject::Stream() const
+const PdfStream* PdfObject::GetStream() const
 {
     DelayedStreamLoad();
 
