@@ -109,19 +109,19 @@ class PdfString : public PdfDataType{
      *  \returns the strings contents
      *  \see IsHex
      */
-    inline const char* String() const;
+    inline const char* GetString() const;
 
     /** The length of the string data returned by String()
      *  \returns the length of the string. 
      */
-    inline long Length() const;
+    inline long GetLength() const;
 
     /** The size of the string data returned by String()
      *  \returns the size of the string in bytes. Typically
      *           Length() + 1
      *  \see Length
      */
-    inline long Size() const;
+    inline long GetSize() const;
     
     /** Write this PdfString in PDF format to a PdfOutputDevice 
      *  \param pDevice the output device.
@@ -182,17 +182,17 @@ bool PdfString::IsHex () const
     return m_bHex;
 }
 
-const char* PdfString::String() const
+const char* PdfString::GetString() const
 {
     return m_buffer.GetBuffer();
 }
 
-long PdfString::Length() const
+long PdfString::GetLength() const
 {
     return m_buffer.GetSize()-1;
 }
 
-long PdfString::Size() const
+long PdfString::GetSize() const
 {
     return m_buffer.GetSize();;
 }

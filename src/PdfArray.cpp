@@ -56,40 +56,41 @@ void PdfArray::Write( PdfOutputDevice* pDevice ) const
 
 bool PdfArray::ContainsString( const std::string& cmpString ) const
 {
-	bool foundIt = false;
+    bool foundIt = false;
 
-	TCIVariantList it = this->begin();
-	while( it != this->end() )
-	{
-		if( (*it).GetDataType() == ePdfDataType_String )
-		{
-			if ( (*it).GetString().String() == cmpString ) {
-				foundIt = true;
-				break;
-			}
-		}
-
-		++it;
-	}
-
-	return foundIt;
+    TCIVariantList it = this->begin();
+    while( it != this->end() )
+    {
+        if( (*it).GetDataType() == ePdfDataType_String )
+        {
+            if ( (*it).GetString().GetString() == cmpString ) {
+                foundIt = true;
+                break;
+            }
+        }
+        
+        ++it;
+    }
+    
+    return foundIt;
 }
 
 size_t PdfArray::GetStringIndex( const std::string& cmpString ) const
 {
-	size_t foundIdx = -1;
-
-	for ( size_t i=0; i<this->size(); i++ ) {
-		if( (*this)[i].GetDataType() == ePdfDataType_String )
-		{
-			if ( (*this)[i].GetString().String() == cmpString ) {
-				foundIdx = i;
-				break;
-			}
-		}
-	}
-
-	return foundIdx;
+    size_t foundIdx = -1;
+    
+    for ( size_t i=0; i<this->size(); i++ ) {
+        if( (*this)[i].GetDataType() == ePdfDataType_String )
+        {
+            if ( (*this)[i].GetString().GetString() == cmpString ) 
+            {
+                foundIdx = i;
+                break;
+            }
+        }
+    }
+    
+    return foundIdx;
 }
 
 };

@@ -63,11 +63,11 @@ void PdfInfo::OutputInfoDict( std::ostream& sOutStream )
         sOutStream << "No info dictionary in this PDF file!" << std::endl;
     else
     {
-        sOutStream << "\tAuthor: "   << ( mDoc->GetAuthor().String()   ? mDoc->GetAuthor().String()  : "" ) << std::endl;
-        sOutStream << "\tCreator: "  << ( mDoc->GetCreator().String()  ? mDoc->GetCreator().String() : "" ) << std::endl;
-        sOutStream << "\tSubject: "  << ( mDoc->GetSubject().String()  ? mDoc->GetSubject().String() : "" ) << std::endl;
-        sOutStream << "\tTitle: "    << ( mDoc->GetTitle().String()    ? mDoc->GetTitle().String()  : "" ) << std::endl;
-        sOutStream << "\tKeywords: " << ( mDoc->GetKeywords().String() ? mDoc->GetKeywords().String()  : "" ) << std::endl;
+        sOutStream << "\tAuthor: "   << ( mDoc->GetAuthor().GetString()   ? mDoc->GetAuthor().GetString()  : "" ) << std::endl;
+        sOutStream << "\tCreator: "  << ( mDoc->GetCreator().GetString()  ? mDoc->GetCreator().GetString() : "" ) << std::endl;
+        sOutStream << "\tSubject: "  << ( mDoc->GetSubject().GetString()  ? mDoc->GetSubject().GetString() : "" ) << std::endl;
+        sOutStream << "\tTitle: "    << ( mDoc->GetTitle().GetString()    ? mDoc->GetTitle().GetString()  : "" ) << std::endl;
+        sOutStream << "\tKeywords: " << ( mDoc->GetKeywords().GetString() ? mDoc->GetKeywords().GetString()  : "" ) << std::endl;
     }
 }
 
@@ -111,7 +111,7 @@ void PdfInfo::OutputOutlines( std::ostream& sOutStream, PdfOutlineItem* pItem, i
     for( i=0;i<level;i++ )
         sOutStream << "-";
 
-    sOutStream << ">" << pItem->GetTitle().String();
+    sOutStream << ">" << pItem->GetTitle().GetString();
 	PdfDestination* pDest = pItem->GetDestination();
 	if ( pDest ) {	// then it's a destination
 		PdfPage* pPage = pDest->GetPage();
@@ -142,7 +142,7 @@ void PdfInfo::OutputOneName( std::ostream& sOutStream, PdfNamesTree* inTreeObj,
             const PdfString&	theName = arr[i].GetString();
             const PdfObject&	theVal = arr[i+1];
             
-            sOutStream << "\t\t" << theName.String() << std::endl;
+            sOutStream << "\t\t" << theName.GetString() << std::endl;
         }
     } else {
         sOutStream << "\t\tNone Found" << std::endl;

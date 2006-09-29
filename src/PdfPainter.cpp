@@ -71,7 +71,7 @@ void PdfPainter::SetPage( PdfCanvas* pPage )
     m_pCanvas = pPage ? pPage->GetContentsForAppending()->GetStream() : NULL;
     if ( m_pCanvas ) 
     {
-        if ( m_pCanvas->Length() ) 
+        if ( m_pCanvas->GetLength() ) 
         {	
             // there is already content here - so let's assume we are appending
             // as such, we MUST put in a "space" to separate whatever we do.
@@ -514,7 +514,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    this->DrawText( dX, dY, sText, sText.Length() );
+    this->DrawText( dX, dY, sText, sText.GetLength() );
 }
 
 void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long lStringLen )
@@ -534,12 +534,12 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
     // replace anytabs in pszText by enough spaces
     if( !sText.IsHex() )
         for( i=0;i<=lStringLen;i++ )
-            if( sText.String()[i] == '\t' )
+            if( sText.GetString()[i] == '\t' )
                 ++nTabCnt;
 
     if( nTabCnt )
     {
-        pszText = sText.String();
+        pszText = sText.GetString();
         lLen    = lStringLen + nTabCnt*(m_nTabWidth-1) + 1;
 
         pszTab = (char*)malloc( sizeof( char ) * lLen );
@@ -570,7 +570,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
     else 
         // pszTab is accessed only readonly beyond this point
         // so this cast is ok
-        pszTab = const_cast<char*>(sText.String());
+        pszTab = const_cast<char*>(sText.GetString());
 
     this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->Reference(), PdfName("Font") );
 
@@ -607,7 +607,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
         free( pBuffer );
     }
     else
-        m_pCanvas->Append( sText.String(), sText.Length() );
+        m_pCanvas->Append( sText.GetString(), sText.GetLength() );
 
     m_pCanvas->Append( ">Tj\nET\n" );
 

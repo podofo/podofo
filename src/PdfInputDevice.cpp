@@ -128,7 +128,7 @@ void PdfInputDevice::Seek( size_t off, std::ios_base::seekdir dir )
 
 long PdfInputDevice::Read( char* pBuffer, long lLen )
 {
-    (long)m_pStream->readsome( pBuffer, lLen );
+    return (long)m_pStream->readsome( pBuffer, lLen );
 }
 
 };

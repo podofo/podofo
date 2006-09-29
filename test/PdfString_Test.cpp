@@ -33,27 +33,27 @@ int main( int argc, char* argv[] )
         PdfString hex( binary, 8, true );
         //PdfString hexPad( binary, 8, true, 30 );
         
-        if( strcmp( string.String(), "Hello World!") != 0 )
+        if( strcmp( string.GetString(), "Hello World!") != 0 )
         {
             RAISE_ERROR( ePdfError_TestFailed );
         }
         
-        printf("string.String()=%s\n", string.String() );
-        printf("string.Size()=%li\n", string.Size() );
-        if( string.Size() != 13 )
+        printf("string.String()=%s\n", string.GetString() );
+        printf("string.Size()=%li\n", string.GetSize() );
+        if( string.GetSize() != 13 )
         {
             RAISE_ERROR( ePdfError_TestFailed );
         }
          
         
-        printf("hex.String()=%s\n", hex.String() );
-        printf("hex.Size()=%li\n", hex.Size() );
-        if( strcmp( hex.String(), "0AEFB06965F73145" ) != 0 )
+        printf("hex.String()=%s\n", hex.GetString() );
+        printf("hex.Size()=%li\n", hex.GetSize() );
+        if( strcmp( hex.GetString(), "0AEFB06965F73145" ) != 0 )
         {
             RAISE_ERROR( ePdfError_TestFailed );
         }
         
-        if( hex.Size() != 16 )
+        if( hex.GetSize() != 16 )
         {
             RAISE_ERROR( ePdfError_TestFailed );
         }
@@ -73,8 +73,8 @@ int main( int argc, char* argv[] )
         PdfString hexa(" ", 2, true );
         if( !(normal == hexa) ) 
         {
-            printf("String normal: %s\n", normal.String() );
-            printf("String hexa  : %s\n", hexa.String() );
+            printf("String normal: %s\n", normal.GetString() );
+            printf("String hexa  : %s\n", hexa.GetString() );
             printf("Comparison failed!\n");
             RAISE_ERROR( ePdfError_TestFailed );
         }

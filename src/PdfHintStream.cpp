@@ -334,7 +334,7 @@ void PdfHintStream::CreatePageHintTable( TVecXRefTable* pXRef )
 
 void PdfHintStream::CreateSharedObjectHintTable()
 {
-    PdfVariant offset( (long)m_pObject->GetStream()->Length() );
+    PdfVariant offset( (long)m_pObject->GetStream()->GetLength() );
     offset.SetPaddingLength( LINEARIZATION_PADDING );
 
     m_pObject->GetDictionary().AddKey( "S", offset ); // shared object hint table

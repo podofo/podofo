@@ -98,7 +98,7 @@ void ImageExtractor::ExtractImage( PdfObject* pObject )
 
     printf("-> Writing image object %s to the file: %s\n", pObject->Reference().ToString().c_str(), m_szBuffer);
 
-    fwrite( pObject->GetStream()->Get(), pObject->GetStream()->Length(), sizeof(char), hFile );
+    fwrite( pObject->GetStream()->Get(), pObject->GetStream()->GetLength(), sizeof(char), hFile );
     fclose( hFile );
 }
 

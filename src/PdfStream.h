@@ -122,13 +122,13 @@ class PdfStream {
      *  \returns the length of the internal buffer
      *  \see Get()
      */
-    inline long Length() const;
+    inline long GetLength() const;
 
     /** Get the allocated size of the internal buffer
      *  \returns the size of the internal buffer which is normally larger
      *           than the length of the current buffer.
      */
-    inline long Size() const;
+    inline long GetSize() const;
 
     /** This function compresses any currently set stream
      *  using the FlateDecode(ZIP) algorithm. JPEG compressed streams
@@ -210,7 +210,7 @@ const char* PdfStream::Get() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-long PdfStream::Length() const
+long PdfStream::GetLength() const
 {
     return m_buffer.GetSize();
 }
@@ -218,7 +218,7 @@ long PdfStream::Length() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-long PdfStream::Size() const
+long PdfStream::GetSize() const
 {
     return m_buffer.GetSize();
 }

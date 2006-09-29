@@ -153,7 +153,7 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop )
     if( m_pStream )
     {
         pDevice->Print( "stream\n" );
-        pDevice->Write( m_pStream->Get(), m_pStream->Length() );
+        pDevice->Write( m_pStream->Get(), m_pStream->GetLength() );
         pDevice->Print( "\nendstream\n" );
     }
 
