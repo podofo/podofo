@@ -109,7 +109,7 @@ class PdfParserBase {
 // -----------------------------------------------------
 inline char* PdfParserBase::GetBuffer() const
 {
-    return m_buffer.Buffer();
+    return m_buffer.GetBuffer();
 }
 
 // -----------------------------------------------------
@@ -117,7 +117,7 @@ inline char* PdfParserBase::GetBuffer() const
 // -----------------------------------------------------
 inline long PdfParserBase::GetBufferSize() const
 {
-    return m_buffer.Size();
+    return m_buffer.GetSize();
 }
 
 };

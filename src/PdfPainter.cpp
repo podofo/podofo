@@ -626,8 +626,8 @@ void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double 
 
     m_oss.str("");
     m_oss << "q" << std::endl
-          << pObject->GetPageSize().Width() * dScaleX << " 0 0 "
-          << pObject->GetPageSize().Height() * dScaleY << " "
+          << pObject->GetPageSize().GetWidth() * dScaleX << " 0 0 "
+          << pObject->GetPageSize().GetHeight() * dScaleY << " "
           << dX << " " 
           << dY << " cm" << std::endl
           << "/" << pObject->GetIdentifier().GetName().c_str() << " Do" << std::endl << "Q" << std::endl;

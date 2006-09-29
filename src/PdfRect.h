@@ -72,7 +72,7 @@ class PdfRect {
     /** Get the bottom coordinate of the rectangle
      *  \returns bottom
      */
-    inline double Bottom() const;
+    inline double GetBottom() const;
 
     /** Set the bottom coordinate of the rectangle
      *  \param dBottom
@@ -82,7 +82,7 @@ class PdfRect {
     /** Get the left coordinate of the rectangle
      *  \returns left in PDF units
      */
-    inline double Left() const;
+    inline double GetLeft() const;
 
     /** Set the left coordinate of the rectangle
      *  \param lLeft in PDF units
@@ -92,7 +92,7 @@ class PdfRect {
     /** Get the width of the rectangle
      *  \returns width in PDF units
      */
-    inline double Width() const;
+    inline double GetWidth() const;
 
     /** Set the width of the rectangle
      *  \param lWidth in PDF units
@@ -102,7 +102,7 @@ class PdfRect {
     /** Get the height of the rectangle
      *  \returns height in PDF units
      */
-    inline double Height() const;
+    inline double GetHeight() const;
 
     /** Set the height of the rectangle
      *  \param lHeight in PDF units
@@ -121,7 +121,7 @@ class PdfRect {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-double PdfRect::Bottom() const
+double PdfRect::GetBottom() const
 {
     return m_dBottom;
 }
@@ -137,7 +137,7 @@ void PdfRect::SetBottom( double dBottom )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-double PdfRect::Left() const
+double PdfRect::GetLeft() const
 {
     return m_dLeft;
 }
@@ -153,7 +153,7 @@ void PdfRect::SetLeft( double dLeft )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-double PdfRect::Width() const
+double PdfRect::GetWidth() const
 {
     return m_dWidth;
 }
@@ -169,7 +169,7 @@ void PdfRect::SetWidth( double dWidth )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-double PdfRect::Height() const
+double PdfRect::GetHeight() const
 {
     return m_dHeight;
 }

@@ -75,7 +75,7 @@ void draw( char* pszBuffer, PdfDocument* pDocument )
             pszStart = (++pszBuffer);            
 
             dY += pFont->GetFontMetrics()->GetLineSpacing();
-            if( dY > (size.Height() -  BORDER_TOP) )
+            if( dY > (size.GetHeight() -  BORDER_TOP) )
             {
                 pPage = pDocument->CreatePage( size );
                 painter.SetPage( pPage );

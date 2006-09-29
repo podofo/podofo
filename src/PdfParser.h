@@ -106,7 +106,7 @@ class PdfParser : public PdfParserBase {
      *                The default is to load all object immediately.
      *                In this case false is returned.
      */
-    inline bool LoadOnDemand() const;
+    inline bool GetLoadOnDemand() const;
 
     /** \returns whether the parsed document contains linearization tables
      */
@@ -114,7 +114,7 @@ class PdfParser : public PdfParserBase {
 
     /** \returns the length of the file
      */
-    size_t FileSize() const { return m_nFileSize; }
+    size_t GetFileSize() const { return m_nFileSize; }
 
  protected:
     /** Reads the xref sections and the trailers of the file
@@ -227,21 +227,33 @@ class PdfParser : public PdfParserBase {
     std::set<int> m_setObjectStreams;
 };
 
-bool PdfParser::LoadOnDemand() const
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfParser::GetLoadOnDemand() const
 {
     return m_bLoadOnDemand;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 EPdfVersion PdfParser::GetPdfVersion() const
 {
     return m_ePdfVersion;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 const PdfVecObjects* PdfParser::GetObjects() const
 {
     return m_vecObjects;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 const PdfObject* PdfParser::GetTrailer() const
 {
     return m_pTrailer;

@@ -122,16 +122,16 @@ void PdfRefCountedBuffer::Append( const char* pszString, long lLen )
         else
         {
             // allocate a new buffer
-            PdfRefCountedBuffer buffer( this->Size() + lLen );
-            memcpy( buffer.Buffer(), this->Buffer(), this->Size() );
-            memcpy( buffer.Buffer() + this->Size(), pszString, lLen );
+            PdfRefCountedBuffer buffer( this->GetSize() + lLen );
+            memcpy( buffer.GetBuffer(), this->GetBuffer(), this->GetSize() );
+            memcpy( buffer.GetBuffer() + this->GetSize(), pszString, lLen );
         }
     }
     else
     {
         // Allocate a completely new buffer
         PdfRefCountedBuffer buffer( lLen );
-        memcpy( buffer.Buffer(), pszString, lLen );
+        memcpy( buffer.GetBuffer(), pszString, lLen );
         *this = buffer;
     }
 }

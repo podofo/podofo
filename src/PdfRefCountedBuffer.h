@@ -77,12 +77,12 @@ class PdfRefCountedBuffer {
     /** Get access to the buffer
      *  \returns the buffer
      */
-    inline char* Buffer() const;
+    inline char* GetBuffer() const;
 
     /** Return the buffer size
      *  \returns the buffer size
      */
-    inline long Size() const;
+    inline long GetSize() const;
 
     /** Copy an existing PdfRefCountedBuffer and increase
      *  the reference count
@@ -131,7 +131,7 @@ class PdfRefCountedBuffer {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline char* PdfRefCountedBuffer::Buffer() const
+inline char* PdfRefCountedBuffer::GetBuffer() const
 {
     return m_pBuffer ? m_pBuffer->m_pBuffer : NULL;
 }
@@ -139,7 +139,7 @@ inline char* PdfRefCountedBuffer::Buffer() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline long PdfRefCountedBuffer::Size() const
+inline long PdfRefCountedBuffer::GetSize() const
 {
     return m_pBuffer ? m_pBuffer->m_lSize : 0;
 }

@@ -162,7 +162,7 @@ void PdfWriter::WriteLinearized( PdfOutputDevice* pDevice )
     // so write it now.
     WritePdfHeader( pDevice );
 
-    m_lLinearizedOffset = pDevice->Length();
+    m_lLinearizedOffset = pDevice->GetLength();
     pLinearize->WriteObject( pDevice );
 
     // fill the XRef table with the objects
@@ -186,7 +186,7 @@ void PdfWriter::WriteLinearized( PdfOutputDevice* pDevice )
           // and does already have a correct offset
     while( it != vecXRef[0].vecOffsets.end() )
     {
-        (*it).lOffset += pDevice->Length() + length.Length();
+        (*it).lOffset += pDevice->GetLength() + length.GetLength();
         m_lLinearizedLastOffset = (*it).lOffset;
         ++it;
     }
@@ -260,7 +260,7 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& ve
     {
         index = (*itObjects)->Reference().ObjectNumber() - tXRef.nFirst;
 
-        tXRef.vecOffsets[index].lOffset     = pDevice->Length();
+        tXRef.vecOffsets[index].lOffset     = pDevice->GetLength();
         tXRef.vecOffsets[index].lGeneration = (*itObjects)->Reference().GenerationNumber();
         tXRef.vecOffsets[index].cUsed       = 'n';
 
@@ -312,7 +312,7 @@ void PdfWriter::WriteXRefEntries( PdfOutputDevice* pDevice, const TVecOffsets & 
 
 void PdfWriter::WritePdfTableOfContents( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, TVecXRefOffset* pVecXRefOffset, bool bDummyOffset, bool bShortTrailer )
 {
-    long              lXRef     = pDevice->Length();;
+    long              lXRef     = pDevice->GetLength();;
     unsigned int      nSize     = 0;
     TCIVecXRefTable   it;
     PdfObject         trailer;
@@ -328,7 +328,7 @@ void PdfWriter::WritePdfTableOfContents( TVecXRefTable* pVecXRef, PdfOutputDevic
         pDevice->Print( "%u %u\n", (*it).nFirst, (*it).nCount );
         
         if( it == pVecXRef->begin() )
-            m_lFirstInXRef = pDevice->Length();
+            m_lFirstInXRef = pDevice->GetLength();
 
         WriteXRefEntries( pDevice, (*it).vecOffsets );
         
@@ -340,7 +340,7 @@ void PdfWriter::WritePdfTableOfContents( TVecXRefTable* pVecXRef, PdfOutputDevic
     
     pDevice->Print("trailer\n");
     if( bDummyOffset )
-        m_lTrailerOffset = pDevice->Length();
+        m_lTrailerOffset = pDevice->GetLength();
 
     trailer.WriteObject( pDevice );
     pDevice->Print( "startxref\n%li\n%%%%EOF\n",  pVecXRefOffset->size() ? pVecXRefOffset->back() : (bDummyOffset ? 0 : lXRef)  );
@@ -359,7 +359,7 @@ void PdfWriter::GetByteOffset( PdfObject* pObject, unsigned long* pulOffset )
 
     this->WritePdfHeader( &deviceHeader );
 
-    *pulOffset = deviceHeader.Length();
+    *pulOffset = deviceHeader.GetLength();
 
     while( it != m_vecObjects->end() )
     {
@@ -383,7 +383,7 @@ void PdfWriter::WriteToBuffer( char** ppBuffer, unsigned long* pulLen )
 
     this->Write( &device );
 
-    *pulLen = device.Length();
+    *pulLen = device.GetLength();
     *ppBuffer = (char*)malloc( *pulLen * sizeof(char) );
     if( !*ppBuffer )
     {
@@ -567,7 +567,7 @@ void PdfWriter::WriteXRefStream( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevi
     object.GetDictionary().AddKey( "W", w );
     object.FlateCompressStream();
 
-    lXRef = bDummyOffset ? 0 : pDevice->Length();
+    lXRef = bDummyOffset ? 0 : pDevice->GetLength();
     object.WriteObject( pDevice );
     pDevice->Print( "startxref\n%li\n%%%%EOF\n", lXRef );
 }
@@ -609,8 +609,8 @@ void PdfWriter::FetchPagesTree()
             RAISE_ERROR( ePdfError_InvalidDataType );
         }
 
-        printf("Fetching: %i\n", pRoot->GetReference().ObjectNumber() );
-        printf("Size    : %i\n", m_vecObjects->size() );
+        printf("Fetching: %lu\n", pRoot->GetReference().ObjectNumber() );
+        printf("Size    : %i\n", (int)m_vecObjects->size() );
         pRoot            = m_vecObjects->GetObject( pRoot->GetReference() );
         if( !pRoot ) 
         {
@@ -623,7 +623,7 @@ void PdfWriter::FetchPagesTree()
 
 void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset )
 {
-    long            lFileSize        = pDevice->Length();
+    long            lFileSize        = pDevice->GetLength();
     PdfVariant      value( (long)0 );
     PdfArray        hints;
     PdfObject       trailer;

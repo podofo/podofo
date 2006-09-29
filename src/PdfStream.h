@@ -204,7 +204,7 @@ class PdfStream {
 // -----------------------------------------------------
 const char* PdfStream::Get() const
 {
-    return m_buffer.Buffer();
+    return m_buffer.GetBuffer();
 }
 
 // -----------------------------------------------------
@@ -212,7 +212,7 @@ const char* PdfStream::Get() const
 // -----------------------------------------------------
 long PdfStream::Length() const
 {
-    return m_buffer.Size();
+    return m_buffer.GetSize();
 }
 
 // -----------------------------------------------------
@@ -220,7 +220,7 @@ long PdfStream::Length() const
 // -----------------------------------------------------
 long PdfStream::Size() const
 {
-    return m_buffer.Size();
+    return m_buffer.GetSize();
 }
 
 // -----------------------------------------------------

@@ -74,28 +74,28 @@ long PdfParserBase::GetNextNumberFromFile()
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    while( (c = m_device.Device()->GetChar()) != EOF && counter < m_buffer.Size() )
+    while( (c = m_device.Device()->GetChar()) != EOF && counter < m_buffer.GetSize() )
     {
         if( !counter && IsWhitespace( c ) )
             continue;
         else if( c >= '0' && c <= '9' )
         {
-            m_buffer.Buffer()[counter] = c;
+            m_buffer.GetBuffer()[counter] = c;
             ++counter;
         }
         else
             break;
     }
 
-    m_buffer.Buffer()[counter] = '\0';
+    m_buffer.GetBuffer()[counter] = '\0';
 
     if( c == EOF && !counter )
     {
         RAISE_ERROR( ePdfError_UnexpectedEOF );
     }
 
-    l = strtol( m_buffer.Buffer(), &end, 10 );
-    if( end == m_buffer.Buffer() )
+    l = strtol( m_buffer.GetBuffer(), &end, 10 );
+    if( end == m_buffer.GetBuffer() )
     {
         RAISE_ERROR( ePdfError_NoNumber );
     }
@@ -113,7 +113,7 @@ const char* PdfParserBase::GetNextStringFromFile()
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    while( (c = m_device.Device()->Look()) != EOF && counter < m_buffer.Size() )
+    while( (c = m_device.Device()->Look()) != EOF && counter < m_buffer.GetSize() )
     {
         if( !counter && IsWhitespace( c ) )
         {
@@ -130,19 +130,19 @@ const char* PdfParserBase::GetNextStringFromFile()
         {
             // retrieve c really from stream
             c = m_device.Device()->GetChar();
-            m_buffer.Buffer()[counter] = c;
+            m_buffer.GetBuffer()[counter] = c;
             ++counter;
         }
     }
 
-    m_buffer.Buffer()[counter] = '\0';
+    m_buffer.GetBuffer()[counter] = '\0';
 
     if( c == EOF && !counter )
     {
         RAISE_ERROR( ePdfError_UnexpectedEOF );
     }
 
-    return m_buffer.Buffer();
+    return m_buffer.GetBuffer();
 }
 
 };

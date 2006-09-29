@@ -174,7 +174,7 @@ class PdfString : public PdfDataType{
 
 bool PdfString::IsValid() const
 {
-    return (m_buffer.Buffer() != NULL);
+    return (m_buffer.GetBuffer() != NULL);
 }
 
 bool PdfString::IsHex () const
@@ -184,17 +184,17 @@ bool PdfString::IsHex () const
 
 const char* PdfString::String() const
 {
-    return m_buffer.Buffer();
+    return m_buffer.GetBuffer();
 }
 
 long PdfString::Length() const
 {
-    return m_buffer.Size()-1;
+    return m_buffer.GetSize()-1;
 }
 
 long PdfString::Size() const
 {
-    return m_buffer.Size();;
+    return m_buffer.GetSize();;
 }
 
 };

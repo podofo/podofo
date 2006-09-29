@@ -170,7 +170,7 @@ class PdfPainter {
     /** Get the current font:
      *  \returns a font object or NULL if no font was set.
      */
-    inline PdfFont* Font() const;
+    inline PdfFont* GetFont() const;
 
     /** Draw a line with the current color and line settings.
      *  \param dStartX x coordinate of the starting point
@@ -221,14 +221,14 @@ class PdfPainter {
      *  \param dY y coordinate of the circle
      *  \param dRadius radius of the circle
      */
-	void DrawCircle( double dX, double dY, double dRadius );
+    void DrawCircle( double dX, double dY, double dRadius );
 
     /** Fill a Circle with the current fill settings
      *  \param dX x center coordinate of the circle
      *  \param dY y coordinate of the circle
      *  \param dRadius radius of the circle
      */
-	void FillCircle( double dX, double dY, double dRadius );
+    void FillCircle( double dX, double dY, double dRadius );
 
     /** Draw a text string on a page using a given font object.
      *  You have to call SetFont before calling this function.
@@ -308,16 +308,16 @@ class PdfPainter {
      *  Matches the SVG 'H' operator
      *
      *  \param dX x coordinate to draw the line to
-	 */
-	void HorizonalLineTo( double dX );
+     */
+    void HorizonalLineTo( double dX );
 
     /** Append a vertical line to the current path
      *  Matches the SVG 'V' operator
      *
      *  \param dY y coordinate to draw the line to
-	 */
-	void VerticalLineTo( double dY );
-
+     */
+    void VerticalLineTo( double dY );
+    
     /** Append a smooth bezier curve to the current path
      *  Matches the SVG 'S' operator.
      *
@@ -326,7 +326,7 @@ class PdfPainter {
      *  \param dX3 x coordinate of the end point, which is the new current point
      *  \param dY3 y coordinate of the end point, which is the new current point
      */
-	void SmoothCurveTo( double dX2, double dY2, double dX3, double dY3 );
+    void SmoothCurveTo( double dX2, double dY2, double dX3, double dY3 );
 
     /** Append a quadratic bezier curve to the current path
      *  Matches the SVG 'Q' operator.
@@ -336,7 +336,7 @@ class PdfPainter {
      *  \param dX3 x coordinate of the end point, which is the new current point
      *  \param dY3 y coordinate of the end point, which is the new current point
      */
-	void QuadCurveTo( double dX1, double dY1, double dX3, double dY3 );
+    void QuadCurveTo( double dX1, double dY1, double dX3, double dY3 );
 
     /** Append a smooth quadratic bezier curve to the current path
      *  Matches the SVG 'T' operator.
@@ -344,7 +344,7 @@ class PdfPainter {
      *  \param dX3 x coordinate of the end point, which is the new current point
      *  \param dY3 y coordinate of the end point, which is the new current point
      */
-	void SmoothQuadCurveTo( double dX3, double dY3 );
+    void SmoothQuadCurveTo( double dX3, double dY3 );
 
     /** Append a Arc to the current path
      *  Matches the SVG 'A' operator.
@@ -353,18 +353,18 @@ class PdfPainter {
      *  \param dY y coordinate of the start point
      *  \param dRadiusX x coordinate of the end point, which is the new current point
      *  \param dRadiusY y coordinate of the end point, which is the new current point
-	 *	\param dRotation degree of rotation in radians
-	 *	\param bLarge large or small portion of the arc
-	 *	\param bSweep sweep?
+     *	\param dRotation degree of rotation in radians
+     *	\param bLarge large or small portion of the arc
+     *	\param bSweep sweep?
      */
-	void ArcTo( double dX, double dY, double dRadiusX, double dRadiusY,
-				double	dRotation, bool bLarge, bool bSweep);
-
-	/** Close the current path. Matches the PDF 'h' operator.
+    void ArcTo( double dX, double dY, double dRadiusX, double dRadiusY,
+                double	dRotation, bool bLarge, bool bSweep);
+    
+    /** Close the current path. Matches the PDF 'h' operator.
      */
     void Close();
 
-	/** Stroke the current path. Matches the PDF 'S' operator.
+    /** Stroke the current path. Matches the PDF 'S' operator.
      *  This function is useful to construct an own path
      *  for drawing or clipping.
      */
@@ -429,7 +429,7 @@ class PdfPainter {
      *  \see DrawText
      *  \see TabWidth
      */
-    inline unsigned short TabWidth() const;
+    inline unsigned short GetTabWidth() const;
 
     /** Set the floating point precision.
      *
@@ -440,7 +440,7 @@ class PdfPainter {
     /** Get the currently set floating point precision
      *  \returns how many decimal places will be written out for any floating point value
      */
-    inline unsigned short Precision() const;
+    inline unsigned short GetPrecision() const;
 
  private:
     /** Register an object in the resource dictionary of this page
@@ -510,9 +510,9 @@ class PdfPainter {
      */
     std::ostringstream  m_oss;
 
-	double		lpx, lpy, lpx2, lpy2, lpx3, lpy3, 	// points for this operation
-				lcx, lcy, 							// last "current" point
-				lrx, lry;							// "reflect points"
+    double		lpx, lpy, lpx2, lpy2, lpx3, lpy3, 	// points for this operation
+        lcx, lcy, 							// last "current" point
+        lrx, lry;							// "reflect points"
 };
 
 // -----------------------------------------------------
@@ -526,7 +526,7 @@ void PdfPainter::DrawImage( double dX, double dY, PdfImage* pObject, double dSca
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-PdfFont* PdfPainter::Font() const
+PdfFont* PdfPainter::GetFont() const
 {
     return m_pFont;
 }
@@ -542,7 +542,7 @@ void PdfPainter::SetTabWidth( unsigned short nTabWidth )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned short PdfPainter::TabWidth() const
+unsigned short PdfPainter::GetTabWidth() const
 {
     return m_nTabWidth;
 }
@@ -558,7 +558,7 @@ void PdfPainter::SetPrecision( unsigned short inPrec )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned short PdfPainter::Precision() const
+unsigned short PdfPainter::GetPrecision() const
 {
     return m_oss.precision();
 }

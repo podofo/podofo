@@ -49,7 +49,7 @@ void PdfStream::Empty()
     m_buffer = PdfRefCountedBuffer();
 
     if( m_pParent )
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)m_buffer.Size() ) );
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)m_buffer.GetSize() ) );
 }
 
 void PdfStream::Set( char* szBuffer, long lLen, bool takePossession )
@@ -65,7 +65,7 @@ void PdfStream::Set( char* szBuffer, long lLen, bool takePossession )
     m_buffer.SetTakePossesion( takePossession );
 
     if( m_pParent )
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)m_buffer.Size() ) );
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)m_buffer.GetSize() ) );
 }
 
 void PdfStream::Set( const char* pszString )
@@ -104,7 +104,7 @@ void PdfStream::Append( const char* pszString, size_t lLen )
     m_buffer.Append( pszString, lLen );
 
     if( m_pParent )
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)m_buffer.Size() ) );
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)m_buffer.GetSize() ) );
 }
 
 void PdfStream::GetCopy( char** pBuffer, long* lLen ) const
@@ -114,15 +114,15 @@ void PdfStream::GetCopy( char** pBuffer, long* lLen ) const
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    *pBuffer = (char*)malloc( sizeof( char ) * m_buffer.Size() );
-    *lLen = m_buffer.Size();
+    *pBuffer = (char*)malloc( sizeof( char ) * m_buffer.GetSize() );
+    *lLen = m_buffer.GetSize();
     
     if( !*pBuffer )
     {
         RAISE_ERROR( ePdfError_OutOfMemory );
     }
     
-    memcpy( *pBuffer, m_buffer.Buffer(), m_buffer.Size() );
+    memcpy( *pBuffer, m_buffer.GetBuffer(), m_buffer.GetSize() );
 }
 
 void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
@@ -145,11 +145,11 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
     *ppBuffer = NULL;
     *lLen     = 0;
 
-    if( !m_buffer.Size() )
+    if( !m_buffer.GetSize() )
         return;
 
-    pInBuf = m_buffer.Buffer();
-    lInLen = m_buffer.Size();
+    pInBuf = m_buffer.GetBuffer();
+    lInLen = m_buffer.GetSize();
 
     FillFilterList( vecFilters );
     GetDecodeParms( &tDecodeParams );
@@ -182,7 +182,7 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
             } catch( PdfError & e ) {
                 e.AddToCallstack( __FILE__, __LINE__ );
 
-                if( pInBuf != m_buffer.Buffer() )
+                if( pInBuf != m_buffer.GetBuffer() )
                 {
                     // the input buffer was malloc'ed by another filter before
                     // so free it and let it point to the output buffer
@@ -195,7 +195,7 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
                 throw e;
             }
   
-            if( pInBuf != m_buffer.Buffer() )
+            if( pInBuf != m_buffer.GetBuffer() )
             {
                 // the input buffer was malloc'ed by another filter before
                 // so free it and let it point to the output buffer
@@ -228,7 +228,7 @@ void PdfStream::FlateCompress()
 
     PdfArray::const_iterator tciFilters;
     
-    if( !m_buffer.Size() )
+    if( !m_buffer.GetSize() )
         return; // ePdfError_ErrOk
 
     if( m_pParent->GetDictionary().HasKey( "Filter" ) )
@@ -324,7 +324,7 @@ void PdfStream::Uncompress()
     long         lLen;
     char*        pBuffer;
 
-    if( m_pParent && m_pParent->IsDictionary() && m_pParent->GetDictionary().HasKey( "Filter" ) && m_buffer.Size() )
+    if( m_pParent && m_pParent->IsDictionary() && m_pParent->GetDictionary().HasKey( "Filter" ) && m_buffer.GetSize() )
     {
         this->GetFilteredCopy( &pBuffer, &lLen );
         this->Set( pBuffer, lLen );
@@ -356,13 +356,13 @@ void PdfStream::FlateCompressStreamData()
     char*            pBuffer;
     long             lLen;
 
-    if( !m_buffer.Size() ) 
+    if( !m_buffer.GetSize() ) 
         return;
 
     pFilter = PdfFilterFactory::Create( ePdfFilter_FlateDecode );
     if( pFilter ) 
     {
-        pFilter->Encode( m_buffer.Buffer(), m_buffer.Size(), &pBuffer, &lLen );
+        pFilter->Encode( m_buffer.GetBuffer(), m_buffer.GetSize(), &pBuffer, &lLen );
         this->Set( pBuffer, lLen );
     }
     else
@@ -451,7 +451,7 @@ const PdfStream & PdfStream::operator=( const PdfStream & rhs )
     m_buffer = rhs.m_buffer;
 
     if( m_pParent ) 
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)(m_buffer.Size()) ) );
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)(m_buffer.GetSize()) ) );
 
     return *this;
 }

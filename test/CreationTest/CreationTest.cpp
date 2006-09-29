@@ -43,7 +43,7 @@ using namespace PoDoFo;
 void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
     double     x     = 10000 * CONVERSION_CONSTANT;
-    double     y     = pPage->GetPageSize().Height() - 10000 * CONVERSION_CONSTANT;
+    double     y     = pPage->GetPageSize().GetHeight() - 10000 * CONVERSION_CONSTANT;
     PdfFont* pFont;
 
     const double dLineLength = 50000 * CONVERSION_CONSTANT; // 5cm
@@ -142,7 +142,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
     double     x     = 10000 * CONVERSION_CONSTANT;
-    double     y     = pPage->GetPageSize().Height() - 10000 * CONVERSION_CONSTANT;
+    double     y     = pPage->GetPageSize().GetHeight() - 10000 * CONVERSION_CONSTANT;
     PdfFont* pFont;
 
     const double dWidth  = 50000 * CONVERSION_CONSTANT; // 5cm
@@ -231,24 +231,24 @@ void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 void TextTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
     double x = 10000 * CONVERSION_CONSTANT;
-    double y = pPage->GetPageSize().Height() - 10000 * CONVERSION_CONSTANT;
+    double y = pPage->GetPageSize().GetHeight() - 10000 * CONVERSION_CONSTANT;
 
     pPainter->SetFont( pDocument->CreateFont( "Times New Roman" ) );
-    pPainter->Font()->SetFontSize( 24.0 );
-    y -= pPainter->Font()->GetFontMetrics()->GetLineSpacing();
+    pPainter->GetFont()->SetFontSize( 24.0 );
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
 
     pPainter->SetColor( 0.0, 0.0, 0.0 );
     pPainter->DrawText( x, y, "Hallo Welt!" );
     
-    y -= pPainter->Font()->GetFontMetrics()->GetLineSpacing();
-    pPainter->Font()->SetUnderlined( true );
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+    pPainter->GetFont()->SetUnderlined( true );
     pPainter->SetStrokingColor( 1.0, 0.0, 0.0 );
     pPainter->DrawText( x, y, "Underlined text in the same font!" );
 
-    pPainter->Font()->SetUnderlined( false );
-    y -= pPainter->Font()->GetFontMetrics()->GetLineSpacing();
+    pPainter->GetFont()->SetUnderlined( false );
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
     pPainter->DrawText( x, y, "Disabled the underline again..." );
-    y -= pPainter->Font()->GetFontMetrics()->GetLineSpacing();
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
     
     PdfFont* pFont = pDocument->CreateFont( "Arial" );
     pFont->SetFontSize( 12.0 );
@@ -259,7 +259,7 @@ void TextTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
 void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
-    double        y      = pPage->GetPageSize().Height() - 60000 * CONVERSION_CONSTANT;
+    double        y      = pPage->GetPageSize().GetHeight() - 60000 * CONVERSION_CONSTANT;
 
     PdfImage image( &(pDocument->GetObjects()) );
 
@@ -275,10 +275,10 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     // Draw onto the XObject
     pnt.SetFont( pDocument->CreateFont( "Comic Sans MS" ) );
 
-    pnt.Font()->SetFontSize( 8.0 );
+    pnt.GetFont()->SetFontSize( 8.0 );
     pnt.SetStrokingColor( 1.0, 1.0, 1.0 );
     pnt.SetColor( 1.0, 0.0, 0.0 );
-    pnt.FillRect( 0, xObj.GetPageSize().Height(), xObj.GetPageSize().Width(), xObj.GetPageSize().Height()  );
+    pnt.FillRect( 0, xObj.GetPageSize().GetHeight(), xObj.GetPageSize().GetWidth(), xObj.GetPageSize().GetHeight()  );
     pnt.SetColor( 0.0, 0.0, 0.0 );
     pnt.DrawRect( 0, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT );
     pnt.DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am a XObject." );
@@ -310,7 +310,7 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
     double        dX     = 10000 * CONVERSION_CONSTANT;
-    double        dY     = pPage->GetPageSize().Height() - 40000 * CONVERSION_CONSTANT;
+    double        dY     = pPage->GetPageSize().GetHeight() - 40000 * CONVERSION_CONSTANT;
 
     pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
     pPainter->DrawEllipse( dX, dY, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
@@ -323,7 +323,7 @@ void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 void MMTest( PdfPainterMM* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
     long        lX     = 10000;
-    long        lY     = (long)(pPage->GetPageSize().Height()/CONVERSION_CONSTANT) - 40000;
+    long        lY     = (long)(pPage->GetPageSize().GetHeight()/CONVERSION_CONSTANT) - 40000;
 
     pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
     pPainter->DrawEllipseMM( lX, lY, 20000, 20000 );

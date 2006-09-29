@@ -92,7 +92,7 @@ class PdfPagesTree : public PdfElement
      */
     void InsertPage( int inAfterPageNumber, PdfPage* inPage );
 
-   /** Creates a new page object and inserts it into the internal
+    /** Creates a new page object and inserts it into the internal
      *  page tree. 
      *  The returned page is owned by the pages tree
      *  and will get deleted along with it!
@@ -101,13 +101,13 @@ class PdfPagesTree : public PdfElement
      *  \returns a pointer to a PdfPage object
      */
     PdfPage* CreatePage( const PdfRect & rSize );
-
-   /**  Delete the specified page object from the internal pages tree.
+    
+    /**  Delete the specified page object from the internal pages tree.
      *    It does NOT remove anything from memory - just the reference from the tree
      *
      *  \param inPageNumber the page number (0-based) to be removed
      */
-	void DeletePage( int inPageNumber );
+    void DeletePage( int inPageNumber );
 
  private:
     PdfPagesTree();	// don't allow construction from nothing!

@@ -85,7 +85,7 @@ void PdfParserObject::ReadObjectNumber()
     }
 
     GetNextStringFromFile( );
-    if( strncmp( m_buffer.Buffer(), "obj", 3 ) != 0 )
+    if( strncmp( m_buffer.GetBuffer(), "obj", 3 ) != 0 )
     {
         RAISE_ERROR( ePdfError_NoObject );
     }
@@ -121,7 +121,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     int          c;
     int          counter         = 0;
     int          nObjCount       = 0;
-    char*        szData          = m_buffer.Buffer();
+    char*        szData          = m_buffer.GetBuffer();
     long         lDataLen        = this->GetBufferSize();
     bool         bOwnBuffer      = false;
     bool         bStringMode     = false;
@@ -138,7 +138,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     {
         if( !IsWhitespace( c ) )
         {
-            m_buffer.Buffer()[counter] = c;
+            m_buffer.GetBuffer()[counter] = c;
             ++counter;
             break;
         }
@@ -156,7 +156,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
             else
             {
                 szData = (char*)malloc( lDataLen * sizeof(char) );
-                memcpy( szData, m_buffer.Buffer(), lDataLen >> 1 );
+                memcpy( szData, m_buffer.GetBuffer(), lDataLen >> 1 );
                 bOwnBuffer = true;
             }
 
@@ -268,9 +268,9 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     if( !bIsTrailer && eDataType != ePdfDataType_Unknown )
     {
         GetNextStringFromFile( );
-        if( strncmp( m_buffer.Buffer(), "endobj", s_nLenEndObj ) == 0 )
+        if( strncmp( m_buffer.GetBuffer(), "endobj", s_nLenEndObj ) == 0 )
             ; // nothing to do, just validate that the PDF is correct
-        else if ( strncmp( m_buffer.Buffer(), "stream", s_nLenStream ) == 0 )
+        else if ( strncmp( m_buffer.GetBuffer(), "stream", s_nLenStream ) == 0 )
         {
             m_bStream = true;
             m_lStreamOffset = m_device.Device()->Tell(); // NOTE: whitespace after "stream" handle in stream parser!
@@ -470,8 +470,8 @@ void PdfParserObject::GetDataType( char c, int* counter, EPdfDataType* eDataType
             if( eDataType )
                 *eDataType = ePdfDataType_HexString;
                     
-            m_buffer.Buffer()[*counter] = m_device.Device()->GetChar();
-            if( m_buffer.Buffer()[*counter] == '<' )
+            m_buffer.GetBuffer()[*counter] = m_device.Device()->GetChar();
+            if( m_buffer.GetBuffer()[*counter] == '<' )
             {
                 if( eDataType )
                     *eDataType = ePdfDataType_Dictionary;

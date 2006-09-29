@@ -189,7 +189,7 @@ unsigned long PdfObject::GetObjectLength()
 
     this->WriteObject( &device );
 
-    return device.Length();
+    return device.GetLength();
 }
 
 PdfStream* PdfObject::GetStream()
@@ -258,7 +258,7 @@ unsigned long PdfObject::GetByteOffset( const char* pszKey )
 
     this->Write( &device, pszKey );
     
-    return device.Length();
+    return device.GetLength();
 }
 
 };

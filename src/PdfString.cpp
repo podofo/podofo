@@ -75,8 +75,8 @@ void PdfString::SetHexData( const char* pszHex, long lLen )
     m_bHex   = true;
     m_buffer = PdfRefCountedBuffer( lLen + 1);
 
-    memcpy( m_buffer.Buffer(), pszHex, lLen );
-    m_buffer.Buffer()[lLen] = '\0';
+    memcpy( m_buffer.GetBuffer(), pszHex, lLen );
+    m_buffer.GetBuffer()[lLen] = '\0';
 }
 
 void PdfString::Write ( PdfOutputDevice* pDevice ) const
@@ -85,7 +85,7 @@ void PdfString::Write ( PdfOutputDevice* pDevice ) const
     // this case has to be handled!
 
     pDevice->Print( m_bHex ? "<" : "(" );
-    pDevice->Write( m_buffer.Buffer(), m_buffer.Size()-1 );
+    pDevice->Write( m_buffer.GetBuffer(), m_buffer.GetSize()-1 );
     pDevice->Print( m_bHex ? ">" : ")" );
 }
 
@@ -111,14 +111,14 @@ bool PdfString::operator==( const PdfString & rhs ) const
     else if( !m_bHex ) 
     {
         pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
-        pFilter->Encode( m_buffer.Buffer(), m_buffer.Size(), &pBuffer, &lLen );
+        pFilter->Encode( m_buffer.GetBuffer(), m_buffer.GetSize(), &pBuffer, &lLen );
 
         bEqual = ( PdfRefCountedBuffer( pBuffer, lLen ) == rhs.m_buffer );
     }
     else if( !rhs.m_bHex ) 
     {
         pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
-        pFilter->Encode( rhs.m_buffer.Buffer(), rhs.m_buffer.Size(), &pBuffer, &lLen );
+        pFilter->Encode( rhs.m_buffer.GetBuffer(), rhs.m_buffer.GetSize(), &pBuffer, &lLen );
 
         bEqual = ( m_buffer == PdfRefCountedBuffer( pBuffer, lLen ) );
     }
@@ -152,8 +152,8 @@ void PdfString::Init( const char* pszString, long lLen )
         else
         {
             m_buffer = PdfRefCountedBuffer( lLen + 1);
-            memcpy( m_buffer.Buffer(), pszString, lLen );
-            m_buffer.Buffer()[lLen] = '\0';
+            memcpy( m_buffer.GetBuffer(), pszString, lLen );
+            m_buffer.GetBuffer()[lLen] = '\0';
         }
     }
 }

@@ -159,7 +159,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
     }
     
 	this->SetImageFilter( PdfName("DCTDecode") );	// DCTDecode == JPEG
-    this->SetImageData( (unsigned int)m_rRect.Width(), (unsigned int)m_rRect.Height(), 8 , szBuffer, lLen ); // 8 bits per component
+        this->SetImageData( (unsigned int)m_rRect.GetWidth(), (unsigned int)m_rRect.GetHeight(), 8 , szBuffer, lLen ); // 8 bits per component
 
     (void) jpeg_destroy_decompress(&cinfo);
 

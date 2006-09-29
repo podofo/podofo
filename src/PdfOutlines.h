@@ -94,7 +94,7 @@ class PdfOutlineItem : public PdfElement {
      * \returns the parent item of this item or NULL if it is
      *          the top level outlines dictionary
      */
-    inline PdfOutlineItem* ParentOutline() const;
+    inline PdfOutlineItem* GetParentOutline() const;
 
     /** Deletes this outline item and all its children from 
      *  the outline hierarchy and removes all objects from
@@ -209,7 +209,7 @@ class PdfOutlineItem : public PdfElement {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline PdfOutlineItem* PdfOutlineItem::ParentOutline() const
+inline PdfOutlineItem* PdfOutlineItem::GetParentOutline() const
 {
     return m_pParentOutline;
 }

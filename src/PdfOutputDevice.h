@@ -74,7 +74,7 @@ class PdfOutputDevice {
      *  
      *  \see Init
      */
-    virtual inline unsigned long Length() const;
+    virtual inline unsigned long GetLength() const;
 
     /** Write to the PdfOutputDevice. Usage is as the usage of printf.
      * 
@@ -122,7 +122,7 @@ class PdfOutputDevice {
     std::ostream*  m_pStream;
 };
 
-unsigned long PdfOutputDevice::Length() const
+unsigned long PdfOutputDevice::GetLength() const
 {
     return m_ulLength;
 }

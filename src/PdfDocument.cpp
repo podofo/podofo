@@ -588,7 +588,9 @@ void PdfDocument::SetBindingDirection( PdfName& inDirection )
 void PdfDocument::SetPageLayout( EPdfPageLayout inLayout )
 {
     switch ( inLayout ) {
-        case ePdfPageLayoutIgnore:			break;	// means do nothing
+        default:
+        case ePdfPageLayoutIgnore:
+            break;	// means do nothing
         case ePdfPageLayoutDefault:			
             GetCatalog()->GetDictionary().RemoveKey( PdfName( "PageLayout" ) );
             break;
