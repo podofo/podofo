@@ -54,6 +54,15 @@ PdfPage::PdfPage( PdfObject* pObject )
 
 PdfPage::~PdfPage()
 {
+    TIMapAnnotation it = m_vecAnnotations.begin();
+
+    while( it != m_vecAnnotations.end() )
+    {
+        delete (*it).second;
+
+        ++it;
+    }
+
     delete m_pContents;	// just clears the C++ object from memory, NOT the PdfObject
 }
 
@@ -139,7 +148,7 @@ const int PdfPage::GetRotation() const
     return rot;
 }
 
-const int PdfPage::GetNumAnnots() const
+PdfObject* PdfPage::GetAnnotationsArray( bool bCreate ) const
 {
     PdfObject* pObj;
 
@@ -148,43 +157,85 @@ const int PdfPage::GetNumAnnots() const
     {
         pObj = m_pObject->GetIndirectKey( "Annots" );
         if( pObj && pObj->IsArray() )
-            return (int)(pObj->GetArray().size());
+            return pObj;
+    }
+    else if( bCreate ) 
+    {
+        PdfArray array;
+        const_cast<PdfPage*>(this)->m_pObject->GetDictionary().AddKey( "Annots", array );
+        return m_pObject->GetDictionary().GetKey( "Annots" );
     }
 
-    return 0;
+    return NULL;
 }
 
-/*
-PdfAnnotation PdfPage::GetAnnotation( int index )
+const int PdfPage::GetNumAnnots() const
 {
-    PdfObject* pObj;
+    PdfObject* pObj = this->GetAnnotationsArray();
+
+    return pObj ? (int)(pObj->GetArray().size()) : 0;
+}
+
+PdfAnnotation* PdfPage::CreateAnnotation( EPdfAnnotation eType, const PdfRect & rRect )
+{
+    PdfAnnotation* pAnnot = new PdfAnnotation( this, eType, rRect, m_pObject->GetParent() );
+    PdfObject*     pObj   = this->GetAnnotationsArray( true );
+    PdfReference   ref    = pAnnot->GetObject()->Reference();
+
+    pObj->GetArray().push_back( ref );
+    m_vecAnnotations[ref] = pAnnot;
+
+    return pAnnot;
+}
+
+PdfAnnotation* PdfPage::GetAnnotation( int index )
+{
+    PdfObject*     pObj;
+    PdfAnnotation* pAnnot;
+    PdfReference   ref;
 
     // check for it in the object itself
     if ( !m_pObject->GetDictionary().HasKey( "Annots" ) ) 
     {
         RAISE_ERROR( ePdfError_InvalidKey );
     }
-
     
     pObj = m_pObject->GetIndirectKey( "Annots" );
     if( !pObj || !pObj->IsArray() )
     {
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
-
+    
     if( index < 0 && index >= pObj->GetArray().size() )
     {
         RAISE_ERROR( ePdfError_ValueOutOfRange );
     }
 
-    pObj = m_pObject->GetParent()->GetObject( pObj->GetArray()[index] );
-    if( !pObj )
+    ref    = pObj->GetArray()[index].GetReference();
+    pAnnot = m_vecAnnotations[ref];
+    if( !pAnnot )
     {
-        RAISE_ERROR( ePdfError_NoObject );
+        pObj = m_pObject->GetParent()->GetObject( ref );
+        if( !pObj )
+        {
+            RAISE_ERROR( ePdfError_NoObject );
+        }
+     
+        pAnnot = new PdfAnnotation( this, pObj );
+        m_vecAnnotations[ref] = pAnnot;
     }
 
-    return PdfAnnotation( this, pObj );
+    return pAnnot;
 }
-*/
+
+void PdfPage::DeleteAnnotation( int index )
+{
+
+}
+
+void PdfPage::DeleteAnnotation( const PdfReference & ref )
+{
+
+}
 
 };

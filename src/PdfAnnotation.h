@@ -22,11 +22,13 @@
 #define _PDF_ANNOTATION_H_
 
 #include "PdfDefines.h"
+
+#include "PdfAction.h"
+#include "PdfDestination.h"
 #include "PdfElement.h"
 
 namespace PoDoFo {
 
-class PdfAction;
 class PdfName;
 class PdfPage;
 class PdfRect;
@@ -45,7 +47,7 @@ class PdfXObject;
  */
 typedef enum EPdfAnnotation {
     ePdfAnnotation_Text = 0,                   // - supported
-    ePdfAnnotation_Link,
+    ePdfAnnotation_Link,                       // - supported
     ePdfAnnotation_FreeText,       // PDF 1.3  // - supported
     ePdfAnnotation_Line,           // PDF 1.3  // - supported
     ePdfAnnotation_Square,         // PDF 1.3
@@ -59,7 +61,7 @@ typedef enum EPdfAnnotation {
     ePdfAnnotation_Stamp,          // PDF 1.3
     ePdfAnnotation_Caret,          // PDF 1.5
     ePdfAnnotation_Ink,            // PDF 1.3
-    ePdfAnnotation_Popup,          // PDF 1.3
+    ePdfAnnotation_Popup,          // PDF 1.3  // - supported
     ePdfAnnotation_FileAttachement,// PDF 1.3
     ePdfAnnotation_Sound,          // PDF 1.2
     ePdfAnnotation_Movie,          // PDF 1.2
@@ -92,6 +94,9 @@ typedef enum EPdfAnnotationFlags {
 };
 
 /** An annotation to a PdfPage 
+ *  To create an annotation use PdfPage::CreateAnnotation
+ * 
+ *  \see PdfPage::CreateAnnotation
  */
 class PdfAnnotation : public PdfElement {
  public:
@@ -101,19 +106,14 @@ class PdfAnnotation : public PdfElement {
      *  \param eAnnot type of the annotation
      *  \param rRect the rectangle in which the annotation will appear on the page
      *  \param pParent parent of this annotation
+     *
+     *  \see PdfPage::CreateAnnotation
      */
     PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfVecObjects* pParent );
 
-    /** Create a PdfAnnotation from an existing PdfObject
-     *
-     *  \param pPage the parent page of this annotation
-     *  \param eAnnot type of the annotation
-     *  \param rRect the rectangle in which the annotation will appear on the page
-     *  \param pObject an annotation object
-     */
-    PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfObject* pObject );
-
     PdfAnnotation( PdfPage* pPage, PdfObject* pObject );
+
+    ~PdfAnnotation();
 
     /** Set an appearance stream for this object
      *  to specify its visual appearance
@@ -121,38 +121,106 @@ class PdfAnnotation : public PdfElement {
      */
     void SetAppearanceStream( PdfXObject* pObject );
 
+    /** Get the rectangle of this annotation
+     *  \returns a rectangle
+     */
+    PdfRect GetRect() const;
+
     /** Set the flags of this annotation.
      *  \param uiFlags is an unsigned 32bit integer with different 
      *                 EPdfAnnotationFlags OR'ed together.
+     *  \see GetFlags
      */
     void SetFlags( pdf_uint32 uiFlags );
 
+    /** Get the flags of this annotation.
+     *  \returns the flags which is an unsigned 32bit integer with different
+     *           EPdfAnnotationFlags OR'ed together.
+     *
+     *  \see SetFlags
+     */
+    pdf_uint32 GetFlags() const;
+
     /** Set the title of this annotation.
      *  \param sTitle title of the annoation as string in PDF format
+     *
+     *  \see GetTitle
      */
     void SetTitle( const PdfString & sTitle );
 
+    /** Get the title of this annotation
+     *
+     *  \returns the title of this annotation
+     *
+     *  \see SetTitle
+     */
+    PdfString GetTitle() const;
+
     /** Set the text of this annotation.
-     *  Use this if type() == ePdfAnnotation_Text
+     *
      *  \param sContents text of the annoation as string in PDF format
+     *
+     *  \see GetContents
      */
     void SetContents( const PdfString & sContents );
 
-    /** Set the destination for Link annotations
-     *  \param pPage target of the link
+    /** Get the text of this annotation
+     *
+     *  \returns the contents of this annotation
+     *
+     *  \see SetContents
      */
-    void SetDestination( const PdfPage* pPage );
+    PdfString GetContents() const;
 
-    /** Set the destination for Link annotations
-     *  \param rReference must be an indirect reference to an page object
+    /** Set the destination for link annotations
+     *  \param rDestination target of the link
+     *
+     *  \see GetDestination
      */
-    void SetDestination( const PdfReference & rReference );
+    void SetDestination( const PdfDestination & rDestination );
 
-    /** Set the destination for Link annotations
-     *  Perform an action when clicking on this action.
-     *  \param pAction a PdfAction
+    /** Get the destination of a link annotations
+     *  \returns a destination object
+     * 
+     *  \see SetDestination
      */
-    void SetDestination( const PdfAction* pAction );
+    PdfDestination GetDestination() const;
+
+    /** 
+     *  \returns true if this annotation has an destination
+     */
+    bool HasDestination() const;
+
+    /** Set the action that is executed for this annotation
+     *  \param rAction an action object
+     *
+     *  \see GetAction 
+     */
+    void SetAction( const PdfAction & rAction );
+
+    /** Get the action that is executed for this annotation
+     *  \returns an action object
+     *
+     *  \see SetAction 
+     */
+    PdfAction* GetAction() const;
+
+    /** 
+     *  \returns true if this annotation has an action
+     */
+    bool HasAction() const;
+
+    /** Sets wether this annotation is initialy open.
+     *  You should always set this true for popup annotations.
+     *  \param b if true open it
+     */
+    void SetOpen( bool b );
+
+    /** 
+     * \returns true if this annotation should be opened immediately
+     *          by the viewer
+     */
+    bool GetOpen() const;
 
     /** Get the type of this annotation
      *  \returns the annotation type
@@ -166,13 +234,13 @@ class PdfAnnotation : public PdfElement {
      */
     const char* AnnotationKey( EPdfAnnotation eAnnot );
 
-    void AddReferenceToKey( PdfObject* pObject, const PdfName & keyName, const PdfReference & rRef );
-
     static const long  s_lNumActions;
     static const char* s_names[];
 
  private:
     EPdfAnnotation m_eAnnotation;
+
+    PdfAction*     m_pAction;
 };
 
 // -----------------------------------------------------

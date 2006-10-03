@@ -21,6 +21,7 @@
 #include "pdfinfo.h"
 #include "PdfNamesTree.h"
 
+
 PdfInfo::PdfInfo( const std::string& inPathname )
 {
     mDoc = new PdfDocument( inPathname.c_str() );
@@ -73,10 +74,13 @@ void PdfInfo::OutputInfoDict( std::ostream& sOutStream )
 
 void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
 {
-    PdfPage*    curPage;
+    PdfPage*       curPage;
+    PdfAnnotation* curAnnot;
+
     PdfVariant  var;
     std::string str;
 
+    int annotCount;
     int	pgCount = mDoc->GetPageCount();
     for ( int pg=0; pg<pgCount; pg++ ) 
     {
@@ -87,9 +91,34 @@ void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
         curPage->GetMediaBox().ToVariant( var );
         var.ToString( str );
 
+        annotCount = curPage->GetNumAnnots();
         sOutStream << "\tMediaBox: " << str << std::endl;
         sOutStream << "\tRotation: " << curPage->GetRotation() << std::endl;
-        sOutStream << "\t# of Annotations: " << curPage->GetNumAnnots() << std::endl;
+        sOutStream << "\t# of Annotations: " << annotCount << std::endl;
+
+        for( int i=0; i < annotCount; i++ ) 
+        {
+            curAnnot = curPage->GetAnnotation( i );
+
+            curAnnot->GetRect().ToVariant( var );
+            var.ToString( str );
+
+            sOutStream << std::endl;
+            sOutStream << "\tAnnotation "  << i << std::endl;
+            sOutStream << "\t\tType: "     << curAnnot->GetType() << std::endl;
+            sOutStream << "\t\tContents: " << (curAnnot->GetContents().GetString() ? curAnnot->GetContents().GetString() : "") << std::endl;
+            sOutStream << "\t\tTitle: "    << (curAnnot->GetTitle().GetString()    ? curAnnot->GetTitle().GetString() : "") << std::endl;
+            sOutStream << "\t\tFlags: "    << curAnnot->GetFlags() << std::endl;
+            sOutStream << "\t\tRect: "     << str << std::endl;
+            sOutStream << "\t\tOpen: "     << (curAnnot->GetOpen() ? "true" : "false" ) << std::endl;
+
+            if( curAnnot->GetType() == ePdfAnnotation_Link ) 
+            {
+                sOutStream << "\t\tLink Target: " << curAnnot->GetType() << std::endl;
+                if( curAnnot->HasAction() && curAnnot->GetAction()->HasURI() )
+                    sOutStream << "\t\tAction URI: " << curAnnot->GetAction()->GetURI().GetString() << std::endl;
+            }
+        }        
     }
 }
 

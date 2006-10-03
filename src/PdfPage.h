@@ -24,6 +24,7 @@
 #include "PdfDefines.h"
 
 #include "PdfArray.h"
+#include "PdfAnnotation.h"
 #include "PdfCanvas.h"
 #include "PdfContents.h"
 #include "PdfElement.h"
@@ -34,6 +35,10 @@ namespace PoDoFo {
 class PdfDocument;
 class PdfDictionary;
 class PdfVecObjects;
+
+typedef std::map<PdfReference,PdfAnnotation*> TMapAnnotation;
+typedef TMapAnnotation::iterator              TIMapAnnotation;
+typedef TMapAnnotation::const_iterator        TCIMapAnnotation;
 
 /** PdfPage is one page in the pdf document. 
  *  It is possible to draw on a page using a PdfPainter object.
@@ -122,14 +127,36 @@ class PdfPage : public PdfElement, public PdfCanvas {
      */
     virtual const int GetNumAnnots() const;
 
+    /** Create a new annotation to this page.
+     *  \param eType the type of the annotation
+     *  \param rRect rectangle of the annotation on the page
+     *
+     *  \returns the annotation object which is owned by the PdfPage
+     */
+    PdfAnnotation* CreateAnnotation( EPdfAnnotation eType, const PdfRect & rRect );
+
     /** Get the annotation with index index of the current page.
      *  \param index the index of the annotation to retrieve
      *
-     *  \returns a annotation object
+     *  \returns a annotation object. The annotation object is owned by the PdfPage.
      *
      *  \see GetNumAnnots
      */
-    //virtual PdfAnnotation GetAnnotation( int index );
+    PdfAnnotation* GetAnnotation( int index );
+
+    /** Delete the annotation with index index from this page.
+     *  \param index the index of the annotation to delete
+     *
+     *  \see GetNumAnnots
+     */
+    void DeleteAnnotation( int index );
+
+    /** Delete the annotation object with reference ref from this page.
+     *  \param ref the reference of an annotation object of this page.
+     *
+     *  \see GetNumAnnots
+     */
+    void DeleteAnnotation( const PdfReference & ref );
 
  private:
    /** Get the bounds of a specified page box in PDF units.
@@ -143,9 +170,18 @@ class PdfPage : public PdfElement, public PdfCanvas {
      */
     PdfObject* GetInheritedKeyFromObject( const char* inKey, PdfObject* inObject ) const; 
 
+    /** Get the annotations array.
+     *  \param bCreate if true the annotations array is created 
+     *                 if it does not exist.
+     *  \returns the annotations array or NULL if none exists.
+     */
+    PdfObject* GetAnnotationsArray( bool bCreate = false ) const;
+
  private:
     PdfContents*   m_pContents;
     PdfObject*     m_pResources;
+
+    TMapAnnotation m_vecAnnotations;
 };
 
 // -----------------------------------------------------

@@ -61,7 +61,7 @@ const char* PdfAnnotation::s_names[] = {
 };
 
 PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfVecObjects* pParent )
-    : PdfElement( "Annot", pParent ), m_eAnnotation( eAnnot )
+    : PdfElement( "Annot", pParent ), m_eAnnotation( eAnnot ), m_pAction( NULL )
 {
     PdfVariant    rect;
     PdfDate       date;
@@ -76,7 +76,6 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
     rRect.ToVariant( rect );
 
     m_pObject->GetDictionary().AddKey( PdfName::KeyRect, rect );
-    this->AddReferenceToKey( pPage->GetObject(), "Annots", m_pObject->Reference() );
 
     rRect.ToVariant( rect );
     date.ToString( sDate );
@@ -85,43 +84,25 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
     m_pObject->GetDictionary().AddKey( PdfName::KeyRect, rect );
     m_pObject->GetDictionary().AddKey( "P", pPage->GetObject()->Reference() );
     m_pObject->GetDictionary().AddKey( "M", sDate );
-
-}
-
-PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfObject* pObject )
-    : PdfElement( "Annot", pObject ), m_eAnnotation( ePdfAnnotation_Unknown )
-{
-    m_eAnnotation = (EPdfAnnotation)TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions );
 }
 
 PdfAnnotation::PdfAnnotation( PdfPage* pPage, PdfObject* pObject )
-    : PdfElement( "Annot", pObject ), m_eAnnotation( ePdfAnnotation_Unknown )
+    : PdfElement( "Annot", pObject ), m_eAnnotation( ePdfAnnotation_Unknown ), m_pAction( NULL )
 {
-    m_eAnnotation = (EPdfAnnotation)TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions );
-
-    
+    m_eAnnotation = (EPdfAnnotation)TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( PdfName::KeySubtype ).GetName().c_str(), s_names, s_lNumActions );
 }
 
-
-void PdfAnnotation::AddReferenceToKey( PdfObject* pObject, const PdfName & keyName, const PdfReference & rRef )
+PdfAnnotation::~PdfAnnotation()
 {
-    PdfObject*    pObj;
-    PdfArray      list;
+    delete m_pAction;
+}
 
-    if( pObject->GetDictionary().HasKey( keyName ) )
-    {
-        pObj = pObject->GetIndirectKey( keyName );
-        if( !(pObj && pObj->IsArray()) )
-        {
-            RAISE_ERROR( ePdfError_InvalidDataType );
-        }
+PdfRect PdfAnnotation::GetRect() const
+{
+   if( m_pObject->GetDictionary().HasKey( PdfName::KeyRect ) )
+        return PdfRect( m_pObject->GetDictionary().GetKey( PdfName::KeyRect )->GetArray() );
 
-        list = pObj->GetArray();
-    }
-
-    list.push_back( PdfVariant( rRef ) );
-
-    pObject->GetDictionary().AddKey( keyName, PdfVariant( list ) );
+   return PdfRect();
 }
 
 void PdfAnnotation::SetAppearanceStream( PdfXObject* pObject )
@@ -143,39 +124,86 @@ void PdfAnnotation::SetFlags( pdf_uint32 uiFlags )
     m_pObject->GetDictionary().AddKey( "F", PdfVariant( (long)uiFlags ) );
 }
 
+pdf_uint32 PdfAnnotation::GetFlags() const
+{
+    if( m_pObject->GetDictionary().HasKey( "F" ) )
+        return (pdf_uint32)m_pObject->GetDictionary().GetKey( "F" )->GetNumber();
+
+    return (pdf_uint32)0;
+}
+
 void PdfAnnotation::SetTitle( const PdfString & sTitle )
 {
     m_pObject->GetDictionary().AddKey( "T", sTitle );
 }
+
+PdfString PdfAnnotation::GetTitle() const
+{
+    if( m_pObject->GetDictionary().HasKey( "T" ) )
+        return m_pObject->GetDictionary().GetKey( "T" )->GetString();
+
+    return PdfString();
+}
+
 
 void PdfAnnotation::SetContents( const PdfString & sContents )
 {
     m_pObject->GetDictionary().AddKey( "Contents", sContents );
 }
 
-void PdfAnnotation::SetDestination( const PdfPage* pPage )
+PdfString PdfAnnotation::GetContents() const
 {
-    this->SetDestination( pPage->GetObject()->Reference() );
+    if( m_pObject->GetDictionary().HasKey( "Contents" ) )
+        return m_pObject->GetDictionary().GetKey( "Contents" )->GetString();
+
+    return PdfString();
 }
 
-void PdfAnnotation::SetDestination( const PdfReference & rReference )
+void PdfAnnotation::SetDestination( const PdfDestination & rDestination )
 {
-    PdfArray list;
+    rDestination.AddToDictionary( m_pObject->GetDictionary() );
+}
 
-    list.push_back( rReference );
-    list.push_back( PdfName( "Fit" ) );
-
-    m_pObject->GetDictionary().AddKey( "Dest", list );
- }
-
-void PdfAnnotation::SetDestination( const PdfAction* pAction )
+PdfDestination PdfAnnotation::GetDestination() const
 {
-    if( !pAction )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    return PdfDestination( m_pObject->GetDictionary().GetKey( "Dest" ) );
+}
 
-    m_pObject->GetDictionary().AddKey( "A", pAction->GetObject()->Reference() );
+bool PdfAnnotation::HasDestination() const
+{
+    return m_pObject->GetDictionary().HasKey( "Dest" );
+}
+
+void PdfAnnotation::SetAction( const PdfAction & rAction )
+{
+    m_pAction = new PdfAction( rAction );
+    m_pObject->GetDictionary().AddKey( "A", m_pAction->GetObject()->Reference() );
+}
+
+PdfAction* PdfAnnotation::GetAction() const
+{
+    if( !m_pAction && HasAction() )
+        const_cast<PdfAnnotation*>(this)->m_pAction = new PdfAction( m_pObject->GetIndirectKey( "A" ) );
+
+    return m_pAction;
+}
+
+bool PdfAnnotation::HasAction() const
+{
+    return m_pObject->GetDictionary().HasKey( "A" );
+}
+
+void PdfAnnotation::SetOpen( bool b )
+{
+    m_pObject->GetDictionary().AddKey( "Open", b );
+}
+
+bool PdfAnnotation::GetOpen() const
+{
+    if( m_pObject->GetDictionary().HasKey( "Open" ) )
+        return m_pObject->GetDictionary().GetKey( "Open" )->GetBool();
+
+    return false;
 }
 
 const char* PdfAnnotation::AnnotationKey( EPdfAnnotation eAnnot )
@@ -190,6 +218,8 @@ const char* PdfAnnotation::AnnotationKey( EPdfAnnotation eAnnot )
             pszKey = "Link"; break;
         case ePdfAnnotation_FreeText:
             pszKey = "FreeText"; break;
+        case ePdfAnnotation_Popup:
+            pszKey = "Popup"; break;
         case ePdfAnnotation_Widget:
             pszKey = "Widget"; break;
         case ePdfAnnotation_Unknown:

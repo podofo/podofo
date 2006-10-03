@@ -22,6 +22,7 @@ Version 0.4
 	Added support for writing linearized PDF
 	Added support for garbage collection of unused objects
 	Simplified PdfObject constructor
+	Improved annotation support
 	
 Version 0.3
     TOTAL revamp of PdfObject & PdfVariant to enable clean/consistent object handling;

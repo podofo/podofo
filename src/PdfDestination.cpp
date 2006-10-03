@@ -58,7 +58,6 @@ PdfDestination::PdfDestination( PdfObject* pObject )
     }
 
     m_pObject = pObject;
-
 }
 
 PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit )
@@ -132,17 +131,17 @@ PdfDestination::PdfDestination( const PdfDestination & rhs )
 const PdfDestination & PdfDestination::operator=( const PdfDestination & rhs )
 {
     m_array     = rhs.m_array;
-	m_pObject	= rhs.m_pObject;
+    m_pObject	= rhs.m_pObject;
 
     return *this;
 }
 
 void PdfDestination::AddToDictionary( PdfDictionary & dictionary ) const
 {
-	// since we can only have EITHER a Dest OR an Action
-	// we check for an Action, and if already present, we throw
-	if ( dictionary.HasKey( PdfName( "A" ) ) )
-		RAISE_ERROR( ePdfError_ActionAlreadyPresent	 );
+    // since we can only have EITHER a Dest OR an Action
+    // we check for an Action, and if already present, we throw
+    if ( dictionary.HasKey( PdfName( "A" ) ) )
+        RAISE_ERROR( ePdfError_ActionAlreadyPresent );
 
     dictionary.RemoveKey( "Dest" );
     dictionary.AddKey( "Dest", m_pObject );

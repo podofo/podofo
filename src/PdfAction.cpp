@@ -66,10 +66,28 @@ PdfAction::PdfAction( PdfObject* pObject )
     m_eType = (EPdfAction)TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions );
 }
 
+PdfAction::PdfAction( const PdfAction & rhs )
+    : PdfElement( "Action", rhs.m_pObject )
+{
+    m_eType = (EPdfAction)TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions );
+}
+
 void PdfAction::SetURI( const PdfString & sUri )
 {
     m_pObject->GetDictionary().AddKey( "URI", sUri );
 }
+
+PdfString PdfAction::GetURI() const
+{
+    return m_pObject->GetDictionary().GetKey( "URI" )->GetString();
+}
+
+bool PdfAction::HasURI() const
+{
+    return m_pObject->GetDictionary().HasKey( "URI" );
+}
+
+
 
 };
 

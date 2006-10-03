@@ -21,6 +21,7 @@
 #include "PdfAction.h"
 #include "PdfAnnotation.h"
 #include "PdfDestination.h"
+#include "PdfDictionary.h"
 #include "PdfDocument.h"
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
@@ -264,7 +265,7 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     PdfImage image( &(pDocument->GetObjects()) );
 
     PdfRect        rect( 0, 0, 50000 * CONVERSION_CONSTANT, 50000 * CONVERSION_CONSTANT );
-    PdfRect        rect1( 80000 * CONVERSION_CONSTANT, 180000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
+    PdfRect        rect1( 80000 * CONVERSION_CONSTANT, 3000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
     PdfRect        rect2( 40000 * CONVERSION_CONSTANT, y, 50000 * CONVERSION_CONSTANT, 50000 * CONVERSION_CONSTANT );
     PdfXObject     xObj( rect, &(pDocument->GetObjects()) );
     PdfPainter     pnt;    // XObject painter
@@ -292,19 +293,31 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
     pPainter->DrawXObject( 120000 * CONVERSION_CONSTANT, y - (15000 * CONVERSION_CONSTANT), &xObj, 0.01, 0.01 );
 
-    PdfAnnotation annot1( pPage, ePdfAnnotation_Widget, rect1, &(pDocument->GetObjects()) );
-    PdfAnnotation annot2( pPage, ePdfAnnotation_Link, rect2, &(pDocument->GetObjects()) );
 
-    annot1.SetTitle( PdfString("Author: Dominik Seichter") );
-    annot1.SetContents( PdfString("Hallo Welt!") );
-    annot1.SetAppearanceStream( &xObj );
+    PdfAnnotation* pAnnot1 = pPage->CreateAnnotation( ePdfAnnotation_Widget, rect1 );
+    PdfAnnotation* pAnnot2 = pPage->CreateAnnotation( ePdfAnnotation_Link, rect2 );
+    PdfAnnotation* pAnnot3 = pPage->CreateAnnotation( ePdfAnnotation_Text, PdfRect( 20.0, 20.0, 20.0, 20.0 ) );
+    PdfAnnotation* pAnnot4 = pPage->CreateAnnotation( ePdfAnnotation_FreeText, PdfRect( 70.0, 20.0, 250.0, 50.0 ) );
+    PdfAnnotation* pAnnot5 = pPage->CreateAnnotation( ePdfAnnotation_Popup, PdfRect( 300.0, 20.0, 250.0, 50.0 ) );
+
+    pAnnot1->SetTitle( PdfString("Author: Dominik Seichter") );
+    pAnnot1->SetContents( PdfString("Hallo Welt!") );
+    pAnnot1->SetAppearanceStream( &xObj );
 
     PdfAction action( ePdfAction_URI, &(pDocument->GetObjects()) );
     action.SetURI( PdfString("http://podofo.sf.net") );
 
     //pAnnot2->SetDestination( pPage );
-    annot2.SetDestination( &action );
-    annot2.SetFlags( ePdfAnnotationFlags_NoZoom );
+    pAnnot2->SetAction( action );
+    pAnnot2->SetFlags( ePdfAnnotationFlags_NoZoom );
+
+    pAnnot3->SetTitle( "A text annotation" );
+    pAnnot3->SetContents( "Lorum ipsum dolor..." );
+
+    pAnnot4->SetContents( "An annotation of type ePdfAnnotation_FreeText." );
+
+    pAnnot5->SetContents( "A popup annotation." );
+    pAnnot5->SetOpen( true );
 }
 
 void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )

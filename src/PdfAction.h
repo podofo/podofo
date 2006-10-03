@@ -65,6 +65,9 @@ typedef enum EPdfAction {
 /** An action that can be performed in a PDF document
  */
 class PdfAction : public PdfElement {
+
+    friend class PdfAnnotation;
+
  public:
     /** Create a new PdfAction object
      *  \param eAction type of this action
@@ -82,10 +85,23 @@ class PdfAction : public PdfElement {
      */
     void SetURI( const PdfString & sUri );
 
+    /** Get the URI of an ePdfAction_URI
+     *  \returns an URI
+     */
+    PdfString GetURI() const;
+
+    /** 
+     *  \returns true if this action has an URI
+     */
+    bool HasURI() const;
+
     /** Get the type of this action
      *  \returns the type of this action
      */
     inline const EPdfAction GetType() const;
+
+ private:
+    PdfAction( const PdfAction & rhs );
 
  private:
 
