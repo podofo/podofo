@@ -367,7 +367,6 @@ void PdfWriter::GetByteOffset( PdfObject* pObject, unsigned long* pulOffset )
             break;
 
         *pulOffset += (*it)->GetObjectLength();
-        printf("Offset = %lu\n", *pulOffset );
         ++it;
     }
 }
@@ -423,31 +422,44 @@ void PdfWriter::ReorderObjectsLinearized( PdfObject* pLinearize, PdfHintStream* 
     TPdfReferenceSet    setLinearizedGroup;
     TCIPdfReferenceList it;
     TIVecObjects        itObjects;
-    PdfObject*          pObj;
+    PdfObject*          pRoot;
     PdfObject*          pTmp = NULL;
     unsigned int        index, i;
 
+    // get the dependend objects that are required to display
+    // the first page. I.e. get all objects that have to be written
+    // at the start of the file.
+    // Add all depencies to lstLinearizedGroup
     m_vecObjects->GetObjectDependencies( pPage->GetObject(), &lstLinearizedGroup );
-    printf("FIRST PAGElstLinearizedGroup.size() = %i\n", lstLinearizedGroup.size() );
 
-    pObj = m_vecObjects->GetObject( m_pTrailer->GetDictionary().GetKey( "Root" )->GetReference() );
-    lstLinearizedGroup.push_back( pObj->Reference() );
+    // get the root dictionary, it has to be written at the top of the file too.
+    pRoot = m_vecObjects->GetObject( m_pTrailer->GetDictionary().GetKey( "Root" )->GetReference() );
+    // add the root dictionary
+    lstLinearizedGroup.push_back( pRoot->Reference() );
+    // add the first page itself
     lstLinearizedGroup.push_back( pPage->GetObject()->Reference() );
 
-    this->FindCatalogDependencies( pObj, "ViewerPreferences", &lstLinearizedGroup, true );
-    this->FindCatalogDependencies( pObj, "PageMode", &lstLinearizedGroup, true );
-    this->FindCatalogDependencies( pObj, "Threads", &lstLinearizedGroup, false );
-    this->FindCatalogDependencies( pObj, "OpenAction", &lstLinearizedGroup, true );
-    this->FindCatalogDependencies( pObj, "AcroForm", &lstLinearizedGroup, false );
-    this->FindCatalogDependencies( pObj, "Encrypt", &lstLinearizedGroup, true );
+    // add several dependencies of the root dictionary
+    this->FindCatalogDependencies( pRoot, "ViewerPreferences", &lstLinearizedGroup, true );
+    this->FindCatalogDependencies( pRoot, "PageMode", &lstLinearizedGroup, true );
+    this->FindCatalogDependencies( pRoot, "Threads", &lstLinearizedGroup, false );
+    this->FindCatalogDependencies( pRoot, "OpenAction", &lstLinearizedGroup, true );
+    this->FindCatalogDependencies( pRoot, "AcroForm", &lstLinearizedGroup, false );
+    this->FindCatalogDependencies( pRoot, "Encrypt", &lstLinearizedGroup, true );
 
+    // add the hint stream
     lstLinearizedGroup.push_back( pHint->GetObject()->Reference() );
+    // add the linearization dictionary
     lstLinearizedGroup.push_back( pLinearize->Reference() );
 
+
+    // move all objects which are required to display the first page
+    // at the front of the vector of objects.
+    // We only swap objects inside of the vector to avoid reallocations.
+    // This is a fast operation therefore
     i  = m_vecObjects->size()-1;
     it = lstLinearizedGroup.begin();
 
-    printf("lstLinearizedGroup.size() = %i\n", lstLinearizedGroup.size() );
     while( it != lstLinearizedGroup.end() )
     {
         index = m_vecObjects->GetIndex( *it );
@@ -463,11 +475,11 @@ void PdfWriter::ReorderObjectsLinearized( PdfObject* pLinearize, PdfHintStream* 
         ++it;
     }
 
+    // Renumber all objects according to their position in the vector.
+    // This is the slowest (only slow) operation when creating a 
+    // linearized PDF file. Garbage collection goes along with this step.
     std::copy( lstLinearizedGroup.begin(), lstLinearizedGroup.end(), std::inserter(setLinearizedGroup, setLinearizedGroup.begin()) );
-
-    printf("RenumberObjects\n");
     m_vecObjects->RenumberObjects( m_pTrailer, &setLinearizedGroup );
-    printf("RenumberObjects DONE\n");
 
     // reorder the objects in the file
     itObjects = m_vecObjects->begin();
@@ -621,7 +633,8 @@ void PdfWriter::FetchPagesTree()
     }
 }
 
-void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset )
+void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, 
+                                             PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset )
 {
     long            lFileSize        = pDevice->GetLength();
     PdfVariant      value( (long)0 );

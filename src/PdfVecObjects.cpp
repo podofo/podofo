@@ -109,7 +109,7 @@ unsigned int PdfVecObjects::GetIndex( const PdfReference & ref ) const
 
     it = std::find_if( this->begin(), this->end(), ObjectsComperator( ref ) );
     
-    if( it != this->end() )
+    if( it == this->end() )
     {
         RAISE_ERROR( ePdfError_NoObject );
     }
@@ -239,7 +239,9 @@ void PdfVecObjects::InsertOneReferenceIntoVector( const PdfObject* pObj, TVecRef
         
     if( it == this->end() )
     {
-        RAISE_ERROR( ePdfError_NoObject );
+        // ignore this reference
+        return;
+        //RAISE_ERROR( ePdfError_NoObject );
     }
     
     index = (it - this->begin());
