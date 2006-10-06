@@ -23,6 +23,7 @@ Version 0.4
 	Added support for garbage collection of unused objects
 	Simplified PdfObject constructor
 	Improved annotation support
+	Added support to encode names and various name testcases
 	
 Version 0.3
     TOTAL revamp of PdfObject & PdfVariant to enable clean/consistent object handling;

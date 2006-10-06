@@ -189,16 +189,18 @@ class PdfPainter {
      *  \param dRoundY rounding factor, y direction
     */
     void DrawRect( double dX, double dY, double dWidth, double dHeight,
-		           double dRoundX=0, double dRoundY=0 );
+		           double dRoundX=0.0, double dRoundY=0.0 );
 
     /** Fill a rectangle with the current fill settings
      *  \param dX x coordinate of the rectangle
      *  \param dY y coordinate of the rectangle
      *  \param dWidth width of the rectangle 
      *  \param dHeight absolute height of the rectangle
+     *  \param dRoundX rounding factor, x direction
+     *  \param dRoundY rounding factor, y direction
      */
     void FillRect( double dX, double dY, double dWidth, double dHeight,
-		           double dRoundX=0, double dRoundY=0 );
+		           double dRoundX=0.0, double dRoundY=0.0 );
 
     /** Draw an ellipse with the current stroking settings
      *  \param dX x coordinate of the ellipse (left coordinate)

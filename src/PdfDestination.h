@@ -85,7 +85,7 @@ class PdfDestination {
      *  \param pPage a page which is the destination 
      *  \param eFit fit mode for the Page. Allowed values are ePdfDestinationFit_FitH,
      *              ePdfDestinationFit_FitV, ePdfDestinationFit_FitBH, ePdfDestinationFit_FitBV
-     *  \param top or left value to focus
+     *  \param dValue value which is a required argument for the selected fit mode
      */
     PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit, double dValue );
     

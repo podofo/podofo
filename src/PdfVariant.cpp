@@ -196,7 +196,10 @@ void PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
         while( pszBuf && !PdfParserBase::IsDelimiter( *pszBuf ) && !PdfParserBase::IsWhitespace( *pszBuf ) )
             ++pszBuf;
 
-        m_pData = new PdfName( (pszData+1), pszBuf - (pszData+1) );        
+        // if we read data from a PDF file we assume that it has been encoded
+        // already correctly by the application that created the PDF.
+        // For performance reasons PdfName won't encode the data again!
+        m_pData = new PdfName( (pszData+1), pszBuf - (pszData+1), true );        
     }
     else if( m_eDataType == ePdfDataType_Number )
     {

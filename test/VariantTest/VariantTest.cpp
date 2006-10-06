@@ -22,14 +22,33 @@
 #include "../PdfTest.h"
 
 #include "PdfFilter.h"
+#include "PdfName.h"
 
 using namespace PoDoFo;
 
-void Test( const char* pszString, EPdfDataType eDataType )
+void TestName( const char* pszString, const char* pszExpected ) 
+{
+    printf("Testing name: %s\n", pszString );
+
+    PdfName name( pszString );
+    printf("   -> Expected Value: %s\n", pszExpected );
+    printf("   -> Got      Value: %s\n", name.GetName().c_str() );
+    printf("   -> Escaped  Value: %s\n", name.GetUnescapedName().c_str() );
+
+    if( strcmp( pszExpected, name.GetName().c_str() ) != 0 ) 
+    {
+        RAISE_ERROR( ePdfError_TestFailed );
+    }
+}
+
+void Test( const char* pszString, EPdfDataType eDataType, const char* pszExpected = NULL )
 {
     PdfVariant  variant;
     std::string ret;
     long lLen           = 0;
+
+    if( !pszExpected )
+        pszExpected = pszString;
 
     printf("Testing with value: %s\n", pszString );
     variant.Parse( pszString, strlen( pszString ), &lLen );
@@ -43,13 +62,13 @@ void Test( const char* pszString, EPdfDataType eDataType )
 
     variant.ToString( ret );
     printf("   -> Convert To String: %s\n", ret.c_str() );
-    if( strcmp( pszString, ret.c_str() ) != 0 )
+    if( strcmp( pszExpected, ret.c_str() ) != 0 )
     {
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    printf("   -> Parsed Length    : %li (%i)\n", lLen, strlen(pszString) );
-    if( lLen != strlen( pszString ) )
+    printf("   -> Parsed Length    : %li (%i)\n", lLen, strlen(pszExpected) );
+    if( lLen != strlen( pszExpected ) )
     {
         RAISE_ERROR( ePdfError_TestFailed );
     }
@@ -102,6 +121,12 @@ int main()
     // testing names
     TEST_SAFE_OP( Test( "/Type", ePdfDataType_Name ) );
     TEST_SAFE_OP( Test( "/Length", ePdfDataType_Name ) );
+    TEST_SAFE_OP( Test( "/Adobe#20Green", ePdfDataType_Name ) );
+    TEST_SAFE_OP( Test( "/$$", ePdfDataType_Name ) );
+    TEST_SAFE_OP( Test( "/1.2", ePdfDataType_Name ) );
+    TEST_SAFE_OP( Test( "/.notdef", ePdfDataType_Name ) );
+    TEST_SAFE_OP( Test( "/@pattern", ePdfDataType_Name ) );
+    TEST_SAFE_OP( Test( "/A;Name_With-Various***Characters?", ePdfDataType_Name ) );
     printf("---\n");
 
     // testing arrays
@@ -114,6 +139,13 @@ int main()
     TEST_SAFE_OP_IGNORE( Test( "[/ImageA/ImageB/ImageC]", ePdfDataType_Array ) ); // this test may fail as the formating is different
     TEST_SAFE_OP_IGNORE( Test( "[<530464995927cef8aaf46eb953b93373><530464995927cef8aaf46eb953b93373>]", ePdfDataType_Array ) );
     TEST_SAFE_OP_IGNORE( Test( "[ 2 0 R (Test Data) 4 << /Key /Data >> 5 0 R ]", ePdfDataType_Array ) );
+    printf("---\n");
+
+    // testing some PDF names
+    TEST_SAFE_OP( TestName( "Length With Spaces", "Length#20With#20Spaces" ) );
+    TEST_SAFE_OP( TestName( "Length\001\002\003Spaces\177", "Length#01#02#03Spaces#7F" ) );
+    TEST_SAFE_OP( TestName( "Length#01#02#03Spaces#7F", "Length#01#02#03Spaces#7F" ) );
+    TEST_SAFE_OP( TestName( "Tab\tTest", "Tab#09Test" ) );
     printf("---\n");
 
 

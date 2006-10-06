@@ -41,7 +41,6 @@ class PdfInputDevice {
      *
      *  \param pszFilename path to a file that will be opened and all data
      *                     is read from this file.
-     *  \param pszMode mode to open the file
      */
     PdfInputDevice( const char* pszFilename );
 

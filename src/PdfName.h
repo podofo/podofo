@@ -60,9 +60,12 @@ class PdfName : public PdfDataType {
     /** Create a new PdfName object.
      *  \param pszName the value of this name. Please specify
      *                 the name without the leading '/'.
-     *  \param lLen    length of the name               
+     *  \param lLen    length of the name
+     *  \param bCorrectlyEncoded if true the data is assumed 
+     *                           to be correctly encoded and 
+     *                           PdfName will not check the data.
      */
-    PdfName( const char* pszName, long lLen );
+    PdfName( const char* pszName, long lLen, bool bCorrectlyEncoded = false );
 
     /** Create a copy of an existing PdfName object.
      *  \param rhs another PdfName object
@@ -82,6 +85,12 @@ class PdfName : public PdfDataType {
      *           without the leading slash
      */
     inline const std::string& GetName() const;
+
+    /** \returns the value of this name object
+     *           without the leading slash and all 
+     *           escape characters translated.
+     */
+    const std::string& GetUnescapedName() const;
 
     /** \returns the length of this
      *           name object
@@ -136,6 +145,14 @@ class PdfName : public PdfDataType {
     static const PdfName KeySubtype;
     static const PdfName KeyType;
     static const PdfName KeyFilter;
+
+ private:
+    /** Escape the data stored in m_Data and write it 
+     *  back to m_Data.
+     *  Check also the length of m_Data (PDF strings should
+     *  not be longer than 127 characters).
+     */
+    void EscapeData();
 
  private:
     std::string	m_Data;

@@ -39,18 +39,27 @@ PdfName::PdfName() : m_Data( "" ) {}
 PdfName::PdfName( const std::string& sName )
 {
     m_Data = sName;
+    EscapeData();
 }
 
 PdfName::PdfName( const char* pszName )
 {
     if( pszName )
+    {
         m_Data.assign( pszName );
+        EscapeData();
+    }
 }
 
-PdfName::PdfName( const char* pszName, long lLen )
+PdfName::PdfName( const char* pszName, long lLen, bool bCorrectlyEncoded )
 {
     if( pszName )
+    {
         m_Data.assign( pszName, lLen );
+
+        if( !bCorrectlyEncoded )
+            EscapeData();
+    }
 }
 
 PdfName::PdfName( const PdfName & rhs )
@@ -66,6 +75,52 @@ void PdfName::Write( PdfOutputDevice* pDevice ) const
 {
     pDevice->Print( "/" );
     pDevice->Write( m_Data.c_str(), m_Data.length() );
+}
+
+void PdfName::EscapeData() 
+{
+    const int hexdata_size   = 3;
+    char hexdata[hexdata_size];
+    
+    hexdata[0] = '#';
+    for( int i=0;i<m_Data.length();i++ ) 
+    {
+        if( m_Data[i] < 33 || m_Data[i] > 126 )
+        {
+            // convert to hex
+            hexdata[1]  = (m_Data[i] & 0xF0) >> 4;
+            hexdata[1] += (hexdata[1] > 9 ? 'A' - 10 : '0');
+            hexdata[2]  = (m_Data[i] & 0x0F);
+            hexdata[2] += (hexdata[2] > 9 ? 'A' - 10 : '0');
+
+            m_Data.replace( i, 1, hexdata, hexdata_size );
+            i += 2;
+        }
+    }
+}
+
+const std::string& PdfName::GetUnescapedName() const
+{
+    char        hi, low;
+    std::string str = m_Data;
+
+    for( int i=0;i<str.length();i++ ) 
+    {
+        if( str[i] == '#' )
+        {
+            hi  = str[i+1];
+            low = str[i+2];
+
+            hi  -= ( hi  < 'A' ? '0' : 'A'-10 );
+            low -= ( low < 'A' ? '0' : 'A'-10 );
+
+            hi = (hi << 4) | (low & 0x0F);
+
+            str.replace( i, 3, &hi, 1 );
+        }
+    }
+
+    return str;
 }
 
 const PdfName& PdfName::operator=( const PdfName & rhs )

@@ -189,10 +189,14 @@ class PdfOutlineItem : public PdfElement {
      *  \param pParent parent vector of objects which is required
      *                 to create new objects
      */
-    PdfOutlineItem( const PdfString & sTitle, const PdfDestination & rDest, PdfOutlineItem* pParentOutline, PdfVecObjects* pParent );
+    PdfOutlineItem( const PdfString & sTitle, const PdfDestination & rDest, 
+                    PdfOutlineItem* pParentOutline, PdfVecObjects* pParent );
 
     /** Create a PdfOutlineItem from an existing PdfObject
      *  \param pObject an existing outline item
+     *  \param pParentOutline parent of this outline item 
+     *                        in the outline item hierarchie
+     *  \param pPrevious previous item of this item
      */
     PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutline, PdfOutlineItem* pPrevious );
 
