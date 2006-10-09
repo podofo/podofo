@@ -110,9 +110,9 @@ void PdfFont::Init( bool bEmbedd )
     pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( (long)32 ) ); // TODO: 0 ????
     pDescriptor->GetDictionary().AddKey( "FontBBox", array );
     pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( (long)m_pMetrics->GetItalicAngle() ) );
-    pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetAscent() );
-    pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetDescent() );
-    pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetAscent() ); // //m_pMetrics->CapHeight() );
+    pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetPdfAscent() );
+    pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetPdfDescent() );
+    pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetPdfAscent() ); // //m_pMetrics->CapHeight() );
     pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( (long)1 ) ); //m_pMetrics->StemV() );
 
     if( bEmbedd )

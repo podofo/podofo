@@ -67,7 +67,7 @@ PdfPagesTree::~PdfPagesTree()
 int PdfPagesTree::GetTotalNumberOfPages() const
 {
     return ( ( m_pObject->GetDictionary().HasKey( "Count" ) ) ?
-				m_pObject->GetDictionary().GetKeyAsLong( "Count", 0 ) : 0 );
+             m_pObject->GetDictionary().GetKeyAsLong( "Count", 0 ) : 0 );
 }
 
 PdfObject* PdfPagesTree::GetPageFromKidArray( PdfArray& inArray, int inIndex )

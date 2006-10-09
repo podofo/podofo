@@ -39,7 +39,7 @@ static bool GetWin32HostFont( const std::string& inFontName, char** outFontBuffe
 
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename )
-    : m_pLibrary( pLibrary ), m_sFilename( pszFilename ), m_pFontData( NULL	), m_nFontDataLen( 0 )
+    : m_pLibrary( pLibrary ), m_sFilename( pszFilename ), m_pFontData( NULL ), m_nFontDataLen( 0 )
 {
     m_face                = NULL;
 
@@ -108,8 +108,8 @@ void PdfFontMetrics::InitFromFace()
     
     if ( m_face )
     {	// better be, but just in case...
-        m_dAscent  = m_face->ascender  * 1000.0 / m_face->units_per_EM;
-        m_dDescent = m_face->descender * 1000.0 / m_face->units_per_EM;
+        m_dPdfAscent  = m_face->ascender  * 1000.0 / m_face->units_per_EM;
+        m_dPdfDescent = m_face->descender * 1000.0 / m_face->units_per_EM;
     }
 }
 
@@ -354,7 +354,10 @@ void PdfFontMetrics::SetFontSize( float fSize )
     m_dLineSpacing        = ((double)(m_face->ascender + abs(m_face->descender)) * fSize / m_face->units_per_EM);
 
     m_dUnderlineThickness = ((double)m_face->underline_thickness * fSize / m_face->units_per_EM);
-    m_dUnderlinePosition  = ((double)m_face->underline_position * fSize  / m_face->units_per_EM);
+    m_dUnderlinePosition  = ((double)m_face->underline_position  * fSize  / m_face->units_per_EM);
+
+    m_dAscent  = (double)m_face->ascender  * fSize / m_face->units_per_EM;
+    m_dDescent = (double)m_face->descender * fSize / m_face->units_per_EM;
 }
 
 };

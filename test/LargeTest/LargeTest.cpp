@@ -34,14 +34,21 @@ void AddPage( PdfDocument* pDoc, const char* pszFontName, const char* pszImagePa
     const char* pszText = "The red brown fox jumps over the lazy dog!";
     double     dX       = rect.GetLeft() + 20.0;
     double     dY       = rect.GetBottom() + rect.GetHeight() - 20.0;
+    double     dW, dH;
 
-    pFont->SetFontSize( 24.0 );
+    pFont->SetFontSize( 16.0 );
     pArial->SetFontSize( 24.0 );
 
     painter.SetPage( pPage );
     painter.SetFont( pFont );
 
-    painter.DrawRect( dX, dY, pFont->GetFontMetrics()->StringWidth( pszText ), 2 * pFont->GetFontMetrics()->GetLineSpacing() );
+    dW = pFont->GetFontMetrics()->StringWidth( pszText );
+    dH = -pFont->GetFontMetrics()->GetDescent(); // GetDescent is usually negative!
+
+    pFont->SetFontSize( 24.0 );
+    dH += pFont->GetFontMetrics()->GetLineSpacing() * 2.0;
+
+    painter.DrawRect( dX, dY, dW, dH );
 
     dY -= pFont->GetFontMetrics()->GetLineSpacing();
     painter.DrawText( dX, dY, "Hello World!" );
@@ -60,6 +67,7 @@ void AddPage( PdfDocument* pDoc, const char* pszFontName, const char* pszImagePa
     dY -= (img.GetHeight() * 0.5);
     dX = ((rect.GetWidth() - (img.GetWidth()*0.5))/2.0);
     painter.DrawImage( dX, dY, &img, 0.5, 0.5 );
+
 }
 
 void CreateLargePdf( const char* pszFilename )

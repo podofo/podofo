@@ -163,17 +163,40 @@ class PdfFontMetrics {
      */
     inline unsigned int GetWeight() const;
 
+    /** Get the ascent of this font in PDF
+     *  units for the current font size.
+     *
+     *  \returns the ascender for this font
+     *  
+     *  \see GetPdfAscent
+     */
+    inline double GetAscent() const;
+
     /** Get the ascent of this font
      *  Used to build the font dictionay
      *  \returns the ascender for this font
+     *  
+     *  \see GetAscent
      */
-    inline double GetAscent() const;
+    inline double GetPdfAscent() const;
+
+    /** Get the descent of this font in PDF 
+     *  units for the current font size.
+     *  This value is usually negative!
+     *
+     *  \returns the descender for this font
+     *
+     *  \see GetPdfDescent
+     */
+    inline double GetDescent() const;
 
     /** Get the descent of this font
      *  Used to build the font dictionay
      *  \returns the descender for this font
+     *
+     *  \see GetDescent
      */
-    inline double GetDescent() const;
+    inline double GetPdfDescent() const;
 
     /** Get the italic angle of this font.
      *  Used to build the font dictionay
@@ -229,7 +252,9 @@ class PdfFontMetrics {
     int           m_nItalicAngle;
 
     double        m_dAscent;
+    double        m_dPdfAscent;
     double        m_dDescent;
+    double        m_dPdfDescent;
 
     double        m_dLineSpacing;
     double        m_dUnderlineThickness;
@@ -331,9 +356,25 @@ double PdfFontMetrics::GetAscent() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
+double PdfFontMetrics::GetPdfAscent() const
+{
+    return m_dPdfAscent;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 double PdfFontMetrics::GetDescent() const
 {
     return m_dDescent;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+double PdfFontMetrics::GetPdfDescent() const
+{
+    return m_dPdfDescent;
 }
 
 // -----------------------------------------------------
