@@ -1,5 +1,5 @@
 
-SUBDIRS = FilterTest ObjectParserTest ParserTest VariantTest CreationTest WatermarkTest
+SUBDIRS = FilterTest ObjectParserTest ParserTest VariantTest CreationTest WatermarkTest LargeTest
 
 noinst_HEADERS = PdfTest.h
 

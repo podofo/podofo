@@ -26,6 +26,7 @@
 
 namespace PoDoFo {
 
+class PdfDocument;
 class PdfObject;
 class PdfVecObjects;
 
@@ -45,6 +46,13 @@ class PdfImage : public PdfXObject {
      *  \param pParent parent vector of this image
      */
     PdfImage( PdfVecObjects* pParent );
+
+    /** Constuct a new PdfImage object
+     *  This is an overloaded constructor.
+     *
+     *  \param pParent parent document
+     */
+    PdfImage( PdfDocument* pParent );
 
     /** Construct an image from an existing PdfObject
      *  
@@ -77,12 +85,22 @@ class PdfImage : public PdfXObject {
      *  \param lLen length the of the image data buffer.
      */
     void SetImageData( unsigned int nWidth, unsigned int nHeight, unsigned int nBitsPerComponent, 
-					   char* szBuffer, long lLen );
+                       char* szBuffer, long lLen );
 
     /** Load the image data from a JPEG file
      *  \param pszFilename
      */
     void LoadFromFile( const char* pszFilename );
+
+    /** Get the width of the image when drawn in PDF units
+     *  \returns the width in PDF units
+     */
+    inline double GetWidth() const;
+
+    /** Get the height of the image when drawn in PDF units
+     *  \returns the height in PDF units
+     */
+    inline double GetHeight() const;
 
  private:
     /** Converts a EPdfColorSpace enum to a name key which can be used in a
@@ -91,7 +109,25 @@ class PdfImage : public PdfXObject {
      *  \returns a valid key for this colorspace.
      */
     static const char* ColorspaceToName( EPdfColorSpace eColorSpace );
+
+ private:
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline double PdfImage::GetWidth() const
+{
+    return this->GetPageSize().GetWidth();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline double PdfImage::GetHeight() const
+{
+    return this->GetPageSize().GetHeight();
+}
 
 };
 

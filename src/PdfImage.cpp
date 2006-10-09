@@ -20,6 +20,7 @@
 
 #include "PdfImage.h"
 
+#include "PdfDocument.h"
 #include "PdfStream.h"
 
 #include <stdio.h>
@@ -35,6 +36,14 @@ namespace PoDoFo {
 
 PdfImage::PdfImage( PdfVecObjects* pParent )
     : PdfXObject( "Image", pParent )
+{
+    m_rRect = PdfRect();
+
+    this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
+}
+
+PdfImage::PdfImage( PdfDocument* pParent )
+    : PdfXObject( "Image", &(pParent->GetObjects()) )
 {
     m_rRect = PdfRect();
 
