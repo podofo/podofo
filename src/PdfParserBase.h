@@ -51,21 +51,6 @@ class PdfParserBase {
     PdfParserBase( const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer );
     virtual ~PdfParserBase();
 
-
-    /** Returns true if the given character is a delimiter
-     *  according to the pdf reference
-     *
-     *  \returns true if it is a delimiter character otherwise false
-     */
-    static bool IsDelimiter( const char c );
-
-    /** Returns true if the given character is a whitespace 
-     *  according to the pdf reference
-     *
-     *  \returns true if it is a whitespace character otherwise false
-     */
-    static bool IsWhitespace( const char c );
-
     /** Reads the next number from the current file position
      *  until the next whitespace is readched.
      *
@@ -99,10 +84,65 @@ class PdfParserBase {
      */
     inline long GetBufferSize() const;
 
+    /** Returns true if the given character is a whitespace 
+     *  according to the pdf reference
+     *
+     *  \returns true if it is a whitespace character otherwise false
+     */
+    inline static bool IsWhitespace(const char ch) throw();
+
+    /** Returns true if the given character is a delimiter
+     *  according to the pdf reference
+     *
+     *  \returns true if it is a delimiter character otherwise false
+     */
+    inline static bool IsDelimiter(const char ch) throw();
+
+    /**
+     * True if the passed character is a regular character according to the PDF
+     * reference (Section 3.1.1, Character Set); ie it is neither a white-space
+     * nor a delimeter character.
+     */
+    inline static bool IsRegular(const char ch) throw();
+
+    /**
+     * True iff the passed character is within the generally accepted "printable"
+     * ASCII range.
+     */
+    inline static bool IsPrintable(const char ch) throw();
+
+
  protected:
     PdfRefCountedInputDevice m_device;
     PdfRefCountedBuffer      m_buffer;
+
+ private:
+    // 256-byte array mapping character ordinal values to a truth value
+    // indicating whether or not they are whitespace according to the PDF
+    // standard.
+    static const char * m_delimiterMap;
+    static const char * m_whitespaceMap;
 };
+
+inline bool PdfParserBase::IsWhitespace(const char ch) throw()
+{
+    return m_whitespaceMap[ch];
+}
+
+inline bool PdfParserBase::IsDelimiter(const char ch) throw()
+{
+    return m_delimiterMap[ch];
+}
+
+inline bool PdfParserBase::IsRegular(const char ch) throw()
+{
+    return !IsWhitespace(ch) && !IsDelimiter(ch);
+}
+
+inline bool PdfParserBase::IsPrintable(const char ch) throw()
+{
+    return ch > 32 && ch < 125;
+}
 
 // -----------------------------------------------------
 // 

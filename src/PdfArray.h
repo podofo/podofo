@@ -43,11 +43,14 @@ class PdfArray : public std::vector<PdfObject>, public PdfDataType {
     PdfArray();
 
     /** Create an array and add one value to it.
+     *  The value is copied.
+     *
      *  \param var add this object to the array.
      */
     PdfArray( const PdfObject & var );
 
-    /** Copy an existing PdfArray
+    /** Deep copy an existing PdfArray
+     *
      *  \param rhs the array to copy
      */
     PdfArray( const PdfArray & rhs );

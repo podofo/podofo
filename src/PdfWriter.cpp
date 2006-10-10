@@ -169,7 +169,12 @@ void PdfWriter::WriteLinearized( PdfOutputDevice* pDevice )
     pLinearize->WriteObject( pDevice );
 
     // fill the XRef table with the objects
-    WritePdfObjects( &PdfOutputDevice(), m_vecLinearized, &vecXRef );
+    {
+        // Use nested scope and stack local for PdfOutputDevice
+        // rather than using a temporary to stop gcc's whining.
+        PdfOutputDevice o;
+        WritePdfObjects(&o, m_vecLinearized, &vecXRef );
+    }
 
     // prepend the linearization dictionary to the XRef table
     TXRefEntry entry;

@@ -593,7 +593,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
     }
 
     m_oss.str("");
-    m_oss << "BT" << std::endl << "/" << m_pFont->GetIdentifier().GetName().c_str()
+    m_oss << "BT" << std::endl << "/" << m_pFont->GetIdentifier().GetName()
           << " "  << m_pFont->GetFontSize()
           << " Tf" << std::endl
           << dX << std::endl
@@ -630,7 +630,7 @@ void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double 
           << pObject->GetPageSize().GetHeight() * dScaleY << " "
           << dX << " " 
           << dY << " cm" << std::endl
-          << "/" << pObject->GetIdentifier().GetName().c_str() << " Do" << std::endl << "Q" << std::endl;
+          << "/" << pObject->GetIdentifier().GetName() << " Do" << std::endl << "Q" << std::endl;
     
     m_pCanvas->Append( m_oss.str() );
 }

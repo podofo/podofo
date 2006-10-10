@@ -62,7 +62,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
 
     h = pFont->GetFontMetrics()->GetLineSpacing();
-    w = pFont->GetFontMetrics()->StringWidth( "Grayscale Colorspace" );
+    w = pFont->GetFontMetrics()->StringWidth( "Grayscale - Colorspace" );
 
     pPainter->SetFont( pFont );
     pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y - pFont->GetFontMetrics()->GetLineSpacing(), "Grayscale Colorspace" );

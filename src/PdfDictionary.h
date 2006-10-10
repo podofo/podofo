@@ -41,7 +41,7 @@ class PdfDictionary : public PdfDataType {
      */
     PdfDictionary();
 
-    /** Copy a dictionary
+    /** Deep copy a dictionary
      *  \param rhs the PdfDictionary to copy
      */
     PdfDictionary( const PdfDictionary & rhs );
@@ -51,7 +51,9 @@ class PdfDictionary : public PdfDataType {
     virtual ~PdfDictionary();
 
     /** Asignment operator.
-     *  Asign another PdfDictionary to this dictionary.
+     *  Asign another PdfDictionary to this dictionary. This is a deep copy;
+     *  all elements of the source dictionary are duplicated.
+     *
      *  \param rhs the PdfDictionary to copy.
      *
      *  \return this PdfDictionary
@@ -65,7 +67,7 @@ class PdfDictionary : public PdfDataType {
     /** Add a key to the dictionary. 
      *
      *  \param identifier the key is identified by this name in the dictionary
-     *  \param rObject a variant object containing the data.
+     *  \param rObject a variant object containing the data. The object is copied.
      */
     void AddKey( const PdfName & identifier, const PdfObject & rObject );
 
@@ -73,24 +75,31 @@ class PdfDictionary : public PdfDataType {
      *  This is an overloaded member function.
      *
      *  \param identifier the key is identified by this name in the dictionary
-     *  \param rObject a variant object containing the data.
+     *  \param rObject a variant object containing the data. The object is copied.
      */
     void AddKey( const PdfName & identifier, const PdfObject* pObject );
 
     /** Get the keys value out of the dictionary.
      *
+     * The returned value is a pointer to the internal object in the dictionary
+     * so it MUST not be deleted.
+     *
      *  \param key look for the key names pszKey in the dictionary
      * 
-     *  \returns the found value of an empty PdfVariant if the key was not found
+     *  \returns pointer to the found value or 0 if the key was not found.
      */
     const PdfObject* GetKey( const PdfName & key ) const;
 
-    /** Get the keys value out of the dictionary.
-     *  This is an overloaded member function.
+    /** Get the keys value out of the dictionary.  This is an overloaded member
+     * function.
+     *
+     * The returned value is a pointer to the internal object in the dictionary.
+     * It may be modified but is still owned by the dictionary so it MUST not
+     * be deleted.
      *
      *  \param key look for the key named key in the dictionary
      * 
-     *  \returns the found value of an empty PdfVariant if the key was not found
+     *  \returns the found value or 0 if the key was not found.
      */
     PdfObject* GetKey( const PdfName & key );
 
@@ -100,78 +109,68 @@ class PdfDictionary : public PdfDataType {
 
     PdfName GetKeyAsName( const PdfName & key ) const;
 
-    /** Allows to check if a dictionary contains a certain key.
-     *  \param key look for the key named key.Name() in the dictionary
+    /** Allows to check if a dictionary contains a certain key.  \param key
+     * look for the key named key.Name() in the dictionary
      *
      *  \returns true if the key is part of the dictionary, otherwise false.
      */
     bool  HasKey( const PdfName & key  ) const;
 
-    /** Remove a key from this dictionary.
-     *  If the key does not exists, this function does nothing.
+    /** Remove a key from this dictionary.  If the key does not exists, this
+     * function does nothing.
      *
      *  \param identifier the name of the key to delete
      * 
-     *  \returns true if the key was found in the object and was removed
-     *           if there was is no key with this name, false is returned.
+     *  \returns true if the key was found in the object and was removed if
+     *  there was is no key with this name, false is returned.
      */
     bool RemoveKey( const PdfName & identifier );
 
-    /** Write the complete dictionary to a file.
-     *  \param pDevice write the object to this device
-     *  \returns ErrOk on success
+    /** Write the complete dictionary to a file.  \param pDevice write the
+     * object to this device \returns ErrOk on success
      */
     inline void Write( PdfOutputDevice* pDevice ) const;
 
-    /** Write the complete dictionary to a file.
-     *  \param pDevice write the object to this device
-     *  \param keyStop if not KeyNull and a key == keyStop is found
-     *                 writing will stop right before this key!
-     *  \returns ErrOk on success
+    /** Write the complete dictionary to a file.  \param pDevice write the
+     * object to this device \param keyStop if not KeyNull and a key == keyStop
+     * is found writing will stop right before this key!  \returns ErrOk on
+     * success
      */
-    void Write( PdfOutputDevice* pDevice, const PdfName & keyStop = PdfName::KeyNull ) const;
+    void Write( PdfOutputDevice* pDevice, const PdfName & keyStop =
+		    PdfName::KeyNull ) const;
 
     /** Get access to the internal map of keys.
-     *  \returns all keys of this dictionary
+     *
+     * \returns all keys of this dictionary
      */
     inline const TKeyMap & GetKeys() const;
 
-    /** Get access to the internal map of keys.
-     *  \returns all keys of this dictionary
+    /** Get access to the internal map of keys.  \returns all keys of this
+     * dictionary
      */
     inline TKeyMap & GetKeys();
 
- private:
-    TKeyMap      m_mapKeys;
-};
+ private: TKeyMap      m_mapKeys; };
 
-typedef std::vector<PdfDictionary*>      TVecDictionaries;
-typedef TVecDictionaries::iterator       TIVecDictionaries;
-typedef TVecDictionaries::const_iterator TCIVecDictionaries;
+typedef std::vector<PdfDictionary*>      TVecDictionaries; typedef
+	TVecDictionaries::iterator       TIVecDictionaries; typedef
+	TVecDictionaries::const_iterator TCIVecDictionaries;
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const TKeyMap & PdfDictionary::GetKeys() const
-{
-    return m_mapKeys;
-}
+const TKeyMap & PdfDictionary::GetKeys() const { return m_mapKeys; }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-TKeyMap & PdfDictionary::GetKeys()
-{
-    return m_mapKeys;
-}
+TKeyMap & PdfDictionary::GetKeys() { return m_mapKeys; }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfDictionary::Write( PdfOutputDevice* pDevice ) const
-{
-    return this->Write( pDevice, PdfName::KeyNull );
-}
+void PdfDictionary::Write( PdfOutputDevice* pDevice ) const { return
+	this->Write( pDevice, PdfName::KeyNull ); }
 
 };
 

@@ -58,10 +58,11 @@ class PdfStream {
 
     ~PdfStream();
 
-    /** Set a binary buffer as stream data
-     *  The stream will be owned by the PdfObject and will be free'd 
-     *  with it. The stream should be allocated using malloc and 
-     *  not with new, as free is used instead of delete for freeing the memory.
+    /** Set a binary buffer as stream data, optionally taking ownership of the buffer.
+     *
+     *  \warning If takePossession is true, the stream must be allocated using
+     *           malloc, as free() will be used to release it.
+     *
      *  \param szBuffer buffer containing the stream data
      *  \param lLen length of the buffer
      *  \param takePossession does the stream now own this buffer...

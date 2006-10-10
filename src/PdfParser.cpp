@@ -253,7 +253,7 @@ void PdfParser::HasLinearizationDict()
         return;
 
     --pszObj; // *pszObj == 'o', so the while would fail without decrement
-    while( *pszObj && (IsWhitespace( *pszObj ) || (*pszObj >= '0' && *pszObj <= '9')) )
+    while( *pszObj && (PdfParserBase::IsWhitespace( *pszObj ) || (*pszObj >= '0' && *pszObj <= '9')) )
         --pszObj;
 
     m_pLinearization = new PdfParserObject( m_vecObjects, m_device, m_buffer, pszObj - m_buffer.GetBuffer() + 2 );
@@ -501,7 +501,7 @@ void PdfParser::ReadXRef( long* pXRefOffset )
         RAISE_ERROR( ePdfError_NoXRef );
     }
 
-    while( IsWhitespace( *pszEnd ) )
+    while( PdfParserBase::IsWhitespace( *pszEnd ) )
         ++pszEnd;
 
     // just to make sure, compare pszEnd to %%EOF
@@ -650,7 +650,7 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
     } 
 
     pObj = xrefObject.GetDictionary().GetKey( PdfName::KeyType );
-    if( !pObj->IsName() || ( pObj->GetName().GetName() != "XRef" ) )
+    if( !pObj->IsName() || ( pObj->GetName() != "XRef" ) )
     {
         RAISE_ERROR( ePdfError_NoXRef );
     } 

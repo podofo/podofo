@@ -45,27 +45,47 @@ class PdfName : public PdfDataType {
     PdfName();
 
     /** Create a new PdfName object.
-     *  \param sName the value of this name. Please specify
+     *  \param sName the unescaped value of this name. Please specify
      *                 the name without the leading '/'.
      */
     PdfName( const std::string& sName );
 
     /** Create a new PdfName object.
-     *  \param pszName the value of this name. Please specify
+     *  \param pszName the unescaped value of this name. Please specify
      *                 the name without the leading '/'.
      *                 Has to be a zero terminated string.
      */
     PdfName( const char* pszName );
 
     /** Create a new PdfName object.
-     *  \param pszName the value of this name. Please specify
+     *  \param pszName the unescaped value of this name. Please specify
      *                 the name without the leading '/'.
      *  \param lLen    length of the name
-     *  \param bCorrectlyEncoded if true the data is assumed 
-     *                           to be correctly encoded and 
-     *                           PdfName will not check the data.
      */
-    PdfName( const char* pszName, long lLen, bool bCorrectlyEncoded = false );
+    PdfName( const char* pszName, long lLen );
+
+    /** Create a new PdfName object from a string containing an escaped
+     *  name string without the leading / .
+     *
+     *  \param name A string containing the escaped name
+     *  \return A new PdfName
+     */
+    static PdfName FromEscaped( const std::string& sName );
+
+    /** Create a new PdfName object from a string containing an escaped
+     *  name string without the leading / .
+     *  \param name A string containing the escaped name
+     *  \return A new PdfName
+     */
+    static PdfName FromEscaped( const char * pszName, int ilength );
+
+    /** \return an escaped representation of this name
+     *          without the leading / .
+     *
+     *  There is no corresponding GetEscapedLength(), since
+     *  generating the return value is somewhat expensive.
+     */
+    std::string GetEscapedName() const;
 
     /** Create a copy of an existing PdfName object.
      *  \param rhs another PdfName object
@@ -81,23 +101,17 @@ class PdfName : public PdfDataType {
      */
     void Write( PdfOutputDevice* pDevice ) const;
 
-    /** \returns the value of this name object
+    /** \returns the unescaped value of this name object
      *           without the leading slash
      */
-    inline const std::string& GetName() const;
+    inline const std::string& GetName() const throw();
 
-    /** \returns the value of this name object
-     *           without the leading slash and all 
-     *           escape characters translated.
-     */
-    const std::string& GetUnescapedName() const;
-
-    /** \returns the length of this
+    /** \returns the unescaped length of this
      *           name object
      */
-    inline size_t GetLength() const;
+    inline size_t GetLength() const throw();
 
-    /** Assign anotehr name to this object
+    /** Assign another name to this object
      *  \param rhs another PdfName object
      */
     const PdfName& operator=( const PdfName & rhs );
@@ -108,12 +122,18 @@ class PdfName : public PdfDataType {
     bool operator==( const PdfName & rhs ) const;
 
     /** overloaded operator for convinience
+     *
+     * The string argument is treated as an unescaped name.
+     *
      *  \param rhs a name
      *  \returns true if this objects name is equal to pszName
      */
     bool operator==( const char* rhs ) const;
 
     /** overloaded operator for convinience
+     *
+     * The string argument is treated as an unescaped name.
+     *
      *  \param rhs a name
      *  \returns true if this objects name is equal to pszName
      */
@@ -125,6 +145,9 @@ class PdfName : public PdfDataType {
     inline bool operator!=( const PdfName & rhs ) const;
 
     /** overloaded operator for convinience
+     *
+     * The string argument is treated as an unescaped name.
+     *
      *  \param rhs a name
      *  \returns true if this objects name is not equal to pszName
      */
@@ -147,21 +170,14 @@ class PdfName : public PdfDataType {
     static const PdfName KeyFilter;
 
  private:
-    /** Escape the data stored in m_Data and write it 
-     *  back to m_Data.
-     *  Check also the length of m_Data (PDF strings should
-     *  not be longer than 127 characters).
-     */
-    void EscapeData();
-
- private:
+    // The _unescaped_ name, without leading /
     std::string	m_Data;
 };
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const std::string & PdfName::GetName() const
+const std::string & PdfName::GetName() const throw()
 {
     return m_Data;
 }
@@ -169,7 +185,7 @@ const std::string & PdfName::GetName() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-size_t PdfName::GetLength() const
+size_t PdfName::GetLength() const throw()
 {
     return m_Data.length();
 }

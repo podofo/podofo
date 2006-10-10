@@ -21,6 +21,114 @@
 #include "PdfName.h"
 
 #include "PdfOutputDevice.h"
+#include "PdfParserBase.h"
+
+using namespace std;
+
+namespace {
+
+/**
+ * This function writes a hex encoded representation of the character
+ * `ch' to `buf', advancing the iterator by two steps.
+ *
+ * \warning no buffer length checking is performed, so MAKE SURE
+ *          you have enough room for the two characters that
+ *          will be written to the buffer.
+ *
+ * \param ch The character to write a hex representation of
+ * \param buf An iterator (eg a char* or std::string::iterator) to write the
+ *            characters to.  Must support the postfix ++, operator=(char) and
+ *            dereference operators.
+ */
+template<typename T>
+inline void hexchr(const char ch, T & it)
+{
+    *(it++) = "0123456789ABCDEF"[ch / 16];
+    *(it++) = "0123456789ABCDEF"[ch % 16];
+}
+
+/** Escape the input string according to the PDF name
+ *  escaping rules and return the result.
+ *
+ *  \param it Iterator referring to the start of the input string
+ *            ( eg a `const char *' or a `std::string::iterator' )
+ *  \param length Length of input string
+ *  \returns Escaped string
+ */
+template<typename T>
+static std::string EscapeName(T it, size_t length)
+{
+    // Scan the input string once to find out how much memory we need
+    // to reserve for the encoded result string. We could do this in one
+    // pass using a std::ostringstream instead, but it's a LOT slower.
+    T it2(it);
+    unsigned int outchars = 0;
+    for (size_t i = 0; i < length; ++i)
+    {
+        // Null chars are illegal in names, even escaped
+        if (*it2 == '\0')
+            throw std::exception();
+        else 
+            // Leave room for either just the char, or a #xx escape of it.
+            outchars += (::PoDoFo::PdfParserBase::IsRegular(*it2) && ::PoDoFo::PdfParserBase::IsPrintable(*it2) && (*it2 != '#')) ? 1 : 3;
+        ++it2;
+    }
+    // Reserve it. We can't use reserve() because the GNU STL doesn't seem to
+    // do it correctly; the memory never seems to get allocated.
+    std::string buf;
+    buf.resize(outchars);
+    // and generate the encoded string
+    std::string::iterator bufIt(buf.begin());
+    for (size_t i = 0; i < length; ++i)
+    {
+        if (::PoDoFo::PdfParserBase::IsRegular(*it) && ::PoDoFo::PdfParserBase::IsPrintable(*it) && (*it != '#') )
+            *(bufIt++) = *it;
+        else
+        {
+            *(bufIt++) = '#';
+            hexchr(*it, bufIt);
+        }
+        ++it;
+    }
+    return buf;
+}
+
+/** Interpret the passed string as an escaped PDF name
+ *  and return the unescaped form.
+ *
+ *  \param it Iterator referring to the start of the input string
+ *            ( eg a `const char *' or a `std::string::iterator' )
+ *  \param length Length of input string
+ *  \returns Unescaped string
+ */
+template<typename T>
+static std::string UnescapeName(T it, size_t length)
+{
+    // We know the decoded string can be AT MOST
+    // the same length as the encoded one, so:
+    std::string buf;
+    buf.resize(length);
+    unsigned int incount = 0, outcount = 0;
+    while (incount++ < length)
+    {
+        if (*it == '#')
+        {
+            char hi = *(++it); ++incount;
+            char low = *(++it); ++incount;
+            hi  -= ( hi  < 'A' ? '0' : 'A'-10 );
+            low -= ( low < 'A' ? '0' : 'A'-10 );
+            buf[outcount++] = (hi << 4) | (low & 0x0F);
+        }
+        else
+            buf[outcount++] = *it;
+        ++it;
+    }
+    // Chop buffer off at number of decoded bytes
+    buf.resize(outcount);
+    return buf;
+}
+
+}; // End anonymous namespace
 
 namespace PoDoFo {
 
@@ -39,7 +147,6 @@ PdfName::PdfName() : m_Data( "" ) {}
 PdfName::PdfName( const std::string& sName )
 {
     m_Data = sName;
-    EscapeData();
 }
 
 PdfName::PdfName( const char* pszName )
@@ -47,19 +154,25 @@ PdfName::PdfName( const char* pszName )
     if( pszName )
     {
         m_Data.assign( pszName );
-        EscapeData();
     }
 }
 
-PdfName::PdfName( const char* pszName, long lLen, bool bCorrectlyEncoded )
+PdfName::PdfName( const char* pszName, long lLen )
 {
     if( pszName )
     {
         m_Data.assign( pszName, lLen );
-
-        if( !bCorrectlyEncoded )
-            EscapeData();
     }
+}
+
+PdfName PdfName::FromEscaped( const string & sName )
+{
+    return PdfName(UnescapeName(sName.begin(), sName.length()));
+}
+
+PdfName PdfName::FromEscaped( const char * pszName, int ilen )
+{
+    return PdfName(UnescapeName(pszName, ilen));
 }
 
 PdfName::PdfName( const PdfName & rhs )
@@ -74,53 +187,13 @@ PdfName::~PdfName()
 void PdfName::Write( PdfOutputDevice* pDevice ) const
 {
     pDevice->Print( "/" );
-    pDevice->Write( m_Data.c_str(), m_Data.length() );
+    string escaped( EscapeName(m_Data.begin(), m_Data.length()) );
+    pDevice->Write( escaped.c_str(), escaped.length() );
 }
 
-void PdfName::EscapeData() 
+string PdfName::GetEscapedName() const
 {
-    const int hexdata_size   = 3;
-    char hexdata[hexdata_size];
-    
-    hexdata[0] = '#';
-    for( int i=0;i<m_Data.length();i++ ) 
-    {
-        if( m_Data[i] < 33 || m_Data[i] > 126 )
-        {
-            // convert to hex
-            hexdata[1]  = (m_Data[i] & 0xF0) >> 4;
-            hexdata[1] += (hexdata[1] > 9 ? 'A' - 10 : '0');
-            hexdata[2]  = (m_Data[i] & 0x0F);
-            hexdata[2] += (hexdata[2] > 9 ? 'A' - 10 : '0');
-
-            m_Data.replace( i, 1, hexdata, hexdata_size );
-            i += 2;
-        }
-    }
-}
-
-const std::string& PdfName::GetUnescapedName() const
-{
-    char        hi, low;
-    std::string str = m_Data;
-
-    for( int i=0;i<str.length();i++ ) 
-    {
-        if( str[i] == '#' )
-        {
-            hi  = str[i+1];
-            low = str[i+2];
-
-            hi  -= ( hi  < 'A' ? '0' : 'A'-10 );
-            low -= ( low < 'A' ? '0' : 'A'-10 );
-
-            hi = (hi << 4) | (low & 0x0F);
-
-            str.replace( i, 3, &hi, 1 );
-        }
-    }
-
-    return str;
+    return EscapeName(m_Data.begin(), m_Data.length());
 }
 
 const PdfName& PdfName::operator=( const PdfName & rhs )

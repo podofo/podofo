@@ -136,7 +136,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     // skip all whitespace
     while( (c = m_device.Device()->GetChar()) != EOF )
     {
-        if( !IsWhitespace( c ) )
+        if( !PdfParserBase::IsWhitespace( c ) )
         {
             m_buffer.GetBuffer()[counter] = c;
             ++counter;
@@ -325,7 +325,7 @@ void PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, long
             
             cName = cVariant.GetName();
 
-            while( *szBuffer && IsWhitespace( *szBuffer ) )
+            while( *szBuffer && PdfParserBase::IsWhitespace( *szBuffer ) )
                 ++szBuffer;
 
             try {
@@ -378,7 +378,7 @@ void PdfParserObject::ParseStream()
     // either a carriage return and a line feed or just a line feed, and not by a carriage re-
     // turn alone.
     c = m_device.Device()->Look();
-    if( IsWhitespace( c ) )
+    if( PdfParserBase::IsWhitespace( c ) )
     {
         c = m_device.Device()->GetChar();
 

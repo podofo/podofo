@@ -19,10 +19,19 @@
  ***************************************************************************/
 
 #include "PdfParserBase.h"
-
 #include "PdfInputDevice.h"
 
+namespace {
+
+const char * genDelMap();
+const char * genWsMap();
+
+}
+
 namespace PoDoFo {
+
+const char * PdfParserBase::m_delimiterMap = genDelMap();
+const char * PdfParserBase::m_whitespaceMap = genWsMap();
 
 #define PDF_BUFFER             4096
 
@@ -38,28 +47,6 @@ PdfParserBase::PdfParserBase( const PdfRefCountedInputDevice & rDevice, const Pd
 
 PdfParserBase::~PdfParserBase()
 {
-}
-
-bool PdfParserBase::IsDelimiter( const char c )
-{
-    int i;
-    
-    for( i=0; i<s_nNumDelimiters; i++ )
-        if( c == s_cDelimiters[i] )
-            return true;
-
-    return false;
-}
-
-bool PdfParserBase::IsWhitespace( const char c )
-{
-    int i;
-    
-    for( i=0; i<s_nNumWhiteSpaces; i++ )
-        if( c == s_cWhiteSpaces[i] )
-            return true;
-
-    return false;
 }
 
 long PdfParserBase::GetNextNumberFromFile()
@@ -147,4 +134,32 @@ const char* PdfParserBase::GetNextStringFromFile()
 
 };
 
+namespace {
 
+// Generate the delimiter character map at runtime
+// so that it can be derived from the more easily
+// maintainable structures in PdfDefines.h
+const char * genDelMap()
+{
+    char * map = static_cast<char*>(malloc(256));
+    for (int i = 0; i < 256; i++)
+        map[i] = '\0';
+    for (int i = 0; i < PoDoFo::s_nNumDelimiters; ++i)
+        map[PoDoFo::s_cDelimiters[i]] = 1;
+    return map;
+}
+
+// Generate the whitespace character map at runtime
+// so that it can be derived from the more easily
+// maintainable structures in PdfDefines.h
+const char * genWsMap()
+{
+    char * map = static_cast<char*>(malloc(256));
+    for (int i = 0; i < 256; i++)
+        map[i] = '\0';
+    for (int i = 0; i < PoDoFo::s_nNumWhiteSpaces; ++i)
+        map[PoDoFo::s_cWhiteSpaces[i]] = 1;
+    return map;
+}
+
+};

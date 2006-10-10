@@ -250,7 +250,9 @@ typedef TVecOffsets::const_iterator  TCIVecOffsets;
 // character constants
 #define MAX_PDF_VERSION_STRING_INDEX  6
 
-static const char* s_szPdfVersions[] = {
+// We use fixed bounds two dimensional arrays here so that
+// they go into the const data section of the library.
+static const char s_szPdfVersions[][9] = {
     "%PDF-1.0",
     "%PDF-1.1",
     "%PDF-1.2",
@@ -260,16 +262,17 @@ static const char* s_szPdfVersions[] = {
     "%PDF-1.6"
 };
 
-static const char* s_szPdfVersionNums[] = {
-	"1.0",
-	"1.1",
-	"1.2",
-	"1.3",
-	"1.4",
-	"1.5",
-	"1.6"
+static const char s_szPdfVersionNums[][4] = {
+    "1.0",
+    "1.1",
+    "1.2",
+    "1.3",
+    "1.4",
+    "1.5",
+    "1.6"
 };
 
+/// PDF Reference, Section 3.1.1, Table 3.1, White-space characters
 static const int s_nNumWhiteSpaces = 6;
 static const char s_cWhiteSpaces[] = {
     0x00, // NULL
@@ -281,6 +284,7 @@ static const char s_cWhiteSpaces[] = {
     0x00  // end marker
 };
 
+/// PDF Reference, Section 3.1.1, Character Set
 static const int s_nNumDelimiters = 10;
 static const char s_cDelimiters[] = {
     '(',
