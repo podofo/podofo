@@ -20,8 +20,10 @@
 
 #include "PdfWriter.h"
 
+#include "PdfDate.h"
 #include "PdfDictionary.h"
 #include "PdfDocument.h"
+#include "PdfEncrypt.h"
 #include "PdfHintStream.h"
 #include "PdfObject.h"
 #include "PdfPage.h"
@@ -599,9 +601,10 @@ void PdfWriter::FillTrailerObject( PdfObject* pTrailer, long lSize, bool bPrevEn
             pTrailer->GetDictionary().AddKey( "Encrypt", m_pTrailer->GetDictionary().GetKey( "Encrypt" ) );
         if( m_pTrailer->GetDictionary().HasKey( "Info" ) )
             pTrailer->GetDictionary().AddKey( "Info", m_pTrailer->GetDictionary().GetKey( "Info" ) );
-        if( m_pTrailer->GetDictionary().HasKey( "ID" ) )
-            pTrailer->GetDictionary().AddKey( "ID", m_pTrailer->GetDictionary().GetKey( "ID" ) );
-        
+
+        // maybe only call this function if bPrevEntry is false
+        CreateFileIdentifier( pTrailer );
+
         if( bPrevEntry )
         {
             pTrailer->GetDictionary().AddKey( "Prev", place_holder );
@@ -669,6 +672,61 @@ void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDev
     pDevice->Seek( m_lTrailerOffset );
     trailer.WriteObject( pDevice );
     pDevice->Seek( lFileSize );
+}
+
+void PdfWriter::CreateFileIdentifier( PdfObject* pTrailer )
+{
+    PdfOutputDevice length;
+    PdfString       identifier;
+    PdfArray        array;
+    PdfObject*      pInfo;
+    char*           pBuffer;
+    
+    // create a dictionary with some unique information.
+    // This dictionary is based on the PDF files information
+    // dictionary if it exists.
+    if( pTrailer->GetDictionary().HasKey("Info") )
+    {
+        pInfo = new PdfObject( *(m_vecObjects->GetObject( pTrailer->GetDictionary().GetKey( "Info" )->GetReference() ) ) );
+    }
+    else 
+    {
+        PdfDate   date;
+        PdfString dateString;
+
+        date.ToString( dateString );
+
+        pInfo = new PdfObject();
+        pInfo->GetDictionary().AddKey( "CreationDate", dateString );
+        pInfo->GetDictionary().AddKey( "Creator", "PoDoFo" );
+        pInfo->GetDictionary().AddKey( "Producer", "PoDoFo" );
+    }
+    
+    pInfo->GetDictionary().AddKey( "Location", PdfString("SOMEFILENAME") );
+
+    pInfo->WriteObject( &length );
+
+    pBuffer = (char*)malloc( sizeof(char) * length.GetLength() );
+    if( !pBuffer )
+    {
+        delete pInfo;
+        RAISE_ERROR( ePdfError_OutOfMemory );
+    }
+
+    PdfOutputDevice device( pBuffer, length.GetLength() );
+    pInfo->WriteObject( &device );
+
+    // calculate the MD5 Sum
+    identifier = PdfEncrypt::GetMD5String( (unsigned char*)pBuffer, length.GetLength() );
+    free( pBuffer );
+
+    // The ID is the same unless the PDF was incrementally updated
+    array.push_back( identifier );
+    array.push_back( identifier );
+    
+    // finally add the key to the trailer dictionary
+    pTrailer->GetDictionary().AddKey( "ID", array );
+    delete pInfo;
 }
 
 };

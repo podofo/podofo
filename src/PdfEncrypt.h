@@ -22,6 +22,9 @@
 #define _PDFENCRYPT_H_
 
 #include <string>
+#include "PdfString.h"
+
+namespace PoDoFo {
 
 /// Class representing PDF encryption methods. (For internal use only)
 class PdfEncrypt
@@ -50,6 +53,14 @@ public:
   /// Encrypt a character string
   void Encrypt(int n, unsigned char* str, int len);
 
+  /** Create a PdfString of MD5 data generated from a buffer in memory.
+   *  \param pBuffer the buffer of which to calculate the MD5 sum
+   *  \param nLength the length of the buffer
+   * 
+   *  \returns an MD5 sum as PdfString
+   */
+  static PdfString GetMD5String( const unsigned char* pBuffer, int nLength );
+
 protected:
   /// Pad a password to 32 characters
   void PadPassword(const std::string& password, unsigned char pswd[32]);
@@ -60,7 +71,7 @@ protected:
            unsigned char* textout);
 
   /// Calculate the binary MD5 message digest of the given data
-  void GetMD5Binary(const unsigned char* data, int length, unsigned char* digest);
+  static void GetMD5Binary(const unsigned char* data, int length, unsigned char* digest);
 
 private:
   unsigned char m_Uvalue[32];         ///< U entry in pdf document
@@ -69,6 +80,8 @@ private:
   unsigned char m_encryptionKey[5];   ///< Encryption key
   unsigned char m_rc4key[5];          ///< last RC4 key
   unsigned char m_rc4last[256];       ///< last RC4 state table
+};
+
 };
 
 #endif

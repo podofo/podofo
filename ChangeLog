@@ -26,6 +26,8 @@ Version 0.4
 	Added support to encode names and various name testcases
 	Fixed ascent and descent of fonts
 	Improved PdfImage API
+	Added support for the creation of file identifiers which makes
+		PoDoFo created PDF files work in more different PDF workflows
 	
 Version 0.3
     TOTAL revamp of PdfObject & PdfVariant to enable clean/consistent object handling;

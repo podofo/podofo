@@ -266,6 +266,14 @@ class PdfWriter {
      *  \param pVecXRefOffset xref table entries for previous entry
      */
     void FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset );
+    /** Creates a file identifier which is required in several
+     *  PDF workflows. 
+     *  All values from the files document information dictionary are
+     *  used to create a unique MD5 key which is added to the trailer dictionary.
+     *
+     *  \param pTrailer add the file identifier to this trailer dictionary
+     */
+    void CreateFileIdentifier( PdfObject* pTrailer );
 
  protected:
     PdfVecObjects*  m_vecObjects;

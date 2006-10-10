@@ -244,10 +244,11 @@ class PdfFontMetrics {
      */
     void InitFromFace();
 
- private:
+ protected:
     FT_Face       m_face;
     FT_Library*   m_pLibrary;
 
+ private:
     unsigned int  m_nWeight;
     int           m_nItalicAngle;
 

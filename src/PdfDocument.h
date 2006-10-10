@@ -401,7 +401,7 @@ class PdfDocument {
     PdfVecObjects   m_vecObjects;
 
     PdfOutlines*    m_pOutlines;
-	PdfNamesTree*   m_pNamesTree;
+    PdfNamesTree*   m_pNamesTree;
 
     PdfPagesTree*   m_pPagesTree;
     PdfObject*      m_pTrailer;

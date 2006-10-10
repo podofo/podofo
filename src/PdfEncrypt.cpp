@@ -25,6 +25,8 @@
 // includes
 #include "PdfEncrypt.h"
 
+namespace PoDoFo {
+
 // ----------------
 // MD5 by RSA
 // ----------------
@@ -81,7 +83,7 @@ static char* MD5End(MD5_CTX *ctx, char *buf)
  * Final wrapup - pad to 64-byte boundary with the bit pattern
  * 1 0* (64-bit count of bits processed, MSB-first)
  */
-static void MD5Final(unsigned char digest[16], MD5_CTX *ctx)
+static void MD5Final(unsigned char digest[MD5_HASHBYTES], MD5_CTX *ctx)
 {
   unsigned count;
   unsigned char *p;
@@ -118,7 +120,7 @@ static void MD5Final(unsigned char digest[16], MD5_CTX *ctx)
   ((unsigned int *) ctx->in)[15] = ctx->bits[1];
 
   MD5Transform(ctx->buf, (unsigned int *) ctx->in);
-  memcpy(digest, ctx->buf, 16);
+  memcpy(digest, ctx->buf, MD5_HASHBYTES);
   memset((char *) ctx, 0, sizeof(ctx));       /* In case it's sensitive */
 }
 
@@ -474,11 +476,23 @@ PdfEncrypt::RC4(unsigned char* key, int keylen,
   }
 }
 
-void
-PdfEncrypt::GetMD5Binary(const unsigned char* data, int length, unsigned char* digest)
+PdfString PdfEncrypt::GetMD5String( const unsigned char* pBuffer, int nLength )
+{
+    char data[MD5_HASHBYTES];
+
+    PdfEncrypt::GetMD5Binary( pBuffer, nLength, (unsigned char*)data );
+
+    return PdfString( data, MD5_HASHBYTES, true );
+}
+
+void PdfEncrypt::GetMD5Binary(const unsigned char* data, int length, unsigned char* digest)
 {
   MD5_CTX ctx;
   MD5Init(&ctx);
   MD5Update(&ctx, data, length);
   MD5Final(digest,&ctx);
 }
+
+};
+
+
