@@ -27,7 +27,9 @@ Version 0.4
 	Fixed ascent and descent of fonts
 	Improved PdfImage API
 	Added support for the creation of file identifiers which makes
-		PoDoFo created PDF files work in more different PDF workflows
+		PoDoFo created PDF files work in more different PDF
+		workflows
+	PdfImage optionally takes ownership of buffers
 	
 Version 0.3
     TOTAL revamp of PdfObject & PdfVariant to enable clean/consistent object handling;

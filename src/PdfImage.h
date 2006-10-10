@@ -83,9 +83,10 @@ class PdfImage : public PdfXObject {
      *                           but is 8 in most cases)
      *  \param szBuffer the EITHER jpeg encoded OR raw image data
      *  \param lLen length the of the image data buffer.
+     *  \param bTakeOwnership if true the buffer will be owned by the PdfImage object
      */
     void SetImageData( unsigned int nWidth, unsigned int nHeight, unsigned int nBitsPerComponent, 
-                       char* szBuffer, long lLen );
+                       char* szBuffer, long lLen, bool bTakeOwnership = false );
 
     /** Load the image data from a JPEG file
      *  \param pszFilename

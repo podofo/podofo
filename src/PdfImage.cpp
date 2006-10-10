@@ -73,8 +73,8 @@ void PdfImage::SetImageFilter( const PdfName & inName )
 }
 
 void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight, 
-							 unsigned int nBitsPerComponent, 
-							 char* szBuffer, long lLen )
+                             unsigned int nBitsPerComponent, 
+                             char* szBuffer, long lLen, bool bTakeOwnership )
 {
     m_rRect.SetWidth( nWidth );
     m_rRect.SetHeight( nHeight );
@@ -83,7 +83,7 @@ void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight,
     m_pObject->GetDictionary().AddKey( "Height", PdfVariant( (long)nHeight ) );
     m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( (long)nBitsPerComponent ) );
 
-    m_pObject->GetStream()->Set( szBuffer, lLen );
+    m_pObject->GetStream()->Set( szBuffer, lLen, bTakeOwnership );
     if ( m_pObject->GetDictionary().GetKey( "Filter" )->GetName() == "FlateDecode" ) 
     {
         // compress any stream that has been marked as using FlateDecode
