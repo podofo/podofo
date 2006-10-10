@@ -54,6 +54,7 @@
 // --
 
 #include "PdfImage.h"
+#include "PdfInfo.h"
 #include "PdfInputDevice.h"
 #include "PdfName.h"
 #include "PdfNamesTree.h"

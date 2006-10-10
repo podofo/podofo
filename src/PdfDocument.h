@@ -34,6 +34,7 @@ namespace PoDoFo {
 class PdfDestination;
 class PdfDictionary;
 class PdfFont;
+class PdfInfo;
 class PdfNamesTree;
 class PdfOutlines;
 class PdfPage;
@@ -124,16 +125,12 @@ class PdfDocument {
     const PdfObject* GetTrailer() const { return m_pTrailer; }
     
     /** Get access to the internal Info dictionary
-     *  \param bCreate if true the dictionary will
-     *         be created if it does not exist
-     *  \returns PdfObject the info dictionary
+     *  You can set the author, title etc. of the
+     *  document using the info dictionary.
+     *
+     *  \returns the info dictionary
      */
-    PdfObject* GetInfo( bool bCreate );
-
-    /** Get access to the internal Info dictionary
-     *  \returns PdfObject the info dictionary
-     */
-    PdfObject* GetInfo() const { return m_pTrailer->GetIndirectKey( PdfName( "Info" ) ); };
+    PdfInfo* GetInfo() const { return m_pInfo; }
 
     /** Get access to the StructTreeRoot dictionary
      *  \returns PdfObject the StructTreeRoot dictionary
@@ -195,57 +192,6 @@ class PdfDocument {
      *  \returns a pointer to a PdfPage object
      */
     PdfPage* CreatePage( const PdfRect & rSize );
-
-    /** Set the author of the document.
-     *  \param sAuthor author
-     */
-    void SetAuthor( const PdfString & sAuthor );
-
-    /** Get the author of the document
-     *  \returns the author
-     */
-    inline const PdfString & GetAuthor() const;
-
-    /** Set the creator of the document.
-     *  Typically the name of the application using the library.
-     *  \param sCreator creator
-     */
-    void SetCreator( const PdfString & sCreator );
-
-    /** Get the creator of the document
-     *  \returns the creator
-     */
-    inline const PdfString & GetCreator() const;
-
-    /** Set keywords for this document
-     *  \param sKeywords a list of keywords
-     */
-    void SetKeywords( const PdfString & sKeywords );
-
-    /** Get the keywords of the document
-     *  \returns the keywords
-     */
-    inline const PdfString & GetKeywords() const;
-
-    /** Set the subject of the document.
-     *  \param sSubject subject
-     */
-    void SetSubject( const PdfString & sSubject );
-
-    /** Get the subject of the document
-     *  \returns the subject
-     */
-    inline const PdfString & GetSubject() const;
-
-    /** Set the title of the document.
-     *  \param sTitle title
-     */
-    void SetTitle( const PdfString & sTitle );
-
-    /** Get the title of the document
-     *  \returns the title
-     */
-    inline const PdfString & GetTitle() const;
 
     /** Appends another PdfDocument to this document
      *  \param rDoc the document to append
@@ -373,12 +319,6 @@ class PdfDocument {
      */
     void Clear();
 
-    /** Get a value from the info dictionary as name
-     *  \para rName the key to fetch from the info dictionary
-     *  \return a value from the info dictionary
-     */
-    const PdfString & GetStringFromInfoDict( const PdfName & rName ) const;
-
     /** Recursively changes every PdfReference in the PdfObject and in any child
      *  that is either an PdfArray or a direct object.
      *  The reference is changed so that difference is added to the object number
@@ -400,10 +340,11 @@ class PdfDocument {
 
     PdfVecObjects   m_vecObjects;
 
+    PdfInfo*        m_pInfo;
     PdfOutlines*    m_pOutlines;
     PdfNamesTree*   m_pNamesTree;
-
     PdfPagesTree*   m_pPagesTree;
+
     PdfObject*      m_pTrailer;
     PdfObject*      m_pCatalog;
 
@@ -414,46 +355,6 @@ class PdfDocument {
     void*           m_pFcConfig; // (FcConfig*)
     FT_Library      m_ftLibrary;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfString & PdfDocument::GetAuthor() const
-{
-    return this->GetStringFromInfoDict( PdfName("Author") );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfString & PdfDocument::GetCreator() const
-{
-    return this->GetStringFromInfoDict( PdfName("Creator") );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfString & PdfDocument::GetKeywords() const
-{
-    return this->GetStringFromInfoDict( PdfName("Keywords") );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfString & PdfDocument::GetSubject() const
-{
-    return this->GetStringFromInfoDict( PdfName("Subject") );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfString & PdfDocument::GetTitle() const
-{
-    return this->GetStringFromInfoDict( PdfName("Title") );
-}
 
 };
 

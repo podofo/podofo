@@ -24,9 +24,6 @@
 #include <ostream>
 #include <podofo.h>
 
-using namespace PoDoFo;
-
-
 class PdfInfo {
 public:
 	PdfInfo( const std::string& inPathname );
@@ -35,14 +32,14 @@ public:
 	void OutputDocumentInfo( std::ostream& sOutStream );
 	void OutputInfoDict( std::ostream& sOutStream );
 	void OutputPageInfo( std::ostream& sOutStream );
-	void OutputOutlines( std::ostream& sOutStream, PdfOutlineItem* pFirst = NULL, int level = 0 );
+	void OutputOutlines( std::ostream& sOutStream, PoDoFo::PdfOutlineItem* pFirst = NULL, int level = 0 );
 	void OutputNames( std::ostream& sOutStream );
 
 private:
-	PdfDocument*	mDoc;
+	PoDoFo::PdfDocument*	mDoc;
 
-	void OutputOneName( std::ostream& sOutStream, PdfNamesTree* inTreeObj, 
-		                const std::string& inTitle, const std::string& inKey );
+	void OutputOneName( std::ostream& sOutStream, PoDoFo::PdfNamesTree* inTreeObj, 
+                            const std::string& inTitle, const std::string& inKey );
 };
 
 

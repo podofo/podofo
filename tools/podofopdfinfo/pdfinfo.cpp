@@ -24,7 +24,7 @@
 
 PdfInfo::PdfInfo( const std::string& inPathname )
 {
-    mDoc = new PdfDocument( inPathname.c_str() );
+    mDoc = new PoDoFo::PdfDocument( inPathname.c_str() );
 }
 
 PdfInfo::~PdfInfo()
@@ -37,7 +37,7 @@ PdfInfo::~PdfInfo()
 
 void PdfInfo::OutputDocumentInfo( std::ostream& sOutStream )
 {
-    sOutStream << "PDF Version: " << s_szPdfVersionNums[(int)mDoc->GetPdfVersion()] << std::endl;
+    sOutStream << "PDF Version: " << PoDoFo::s_szPdfVersionNums[(int)mDoc->GetPdfVersion()] << std::endl;
     sOutStream << "Page Count: " << mDoc->GetPageCount() << std::endl;
     sOutStream << std::endl;
     sOutStream << "Fast Web View Enabled: " << (mDoc->IsLinearized() ? "Yes" : "No") << std::endl;
@@ -64,20 +64,20 @@ void PdfInfo::OutputInfoDict( std::ostream& sOutStream )
         sOutStream << "No info dictionary in this PDF file!" << std::endl;
     else
     {
-        sOutStream << "\tAuthor: "   << ( mDoc->GetAuthor().GetString()   ? mDoc->GetAuthor().GetString()  : "" ) << std::endl;
-        sOutStream << "\tCreator: "  << ( mDoc->GetCreator().GetString()  ? mDoc->GetCreator().GetString() : "" ) << std::endl;
-        sOutStream << "\tSubject: "  << ( mDoc->GetSubject().GetString()  ? mDoc->GetSubject().GetString() : "" ) << std::endl;
-        sOutStream << "\tTitle: "    << ( mDoc->GetTitle().GetString()    ? mDoc->GetTitle().GetString()  : "" ) << std::endl;
-        sOutStream << "\tKeywords: " << ( mDoc->GetKeywords().GetString() ? mDoc->GetKeywords().GetString()  : "" ) << std::endl;
+        sOutStream << "\tAuthor: "   << ( mDoc->GetInfo()->GetAuthor().GetString()   ? mDoc->GetInfo()->GetAuthor().GetString()  : "" ) << std::endl;
+        sOutStream << "\tCreator: "  << ( mDoc->GetInfo()->GetCreator().GetString()  ? mDoc->GetInfo()->GetCreator().GetString() : "" ) << std::endl;
+        sOutStream << "\tSubject: "  << ( mDoc->GetInfo()->GetSubject().GetString()  ? mDoc->GetInfo()->GetSubject().GetString() : "" ) << std::endl;
+        sOutStream << "\tTitle: "    << ( mDoc->GetInfo()->GetTitle().GetString()    ? mDoc->GetInfo()->GetTitle().GetString()  : "" ) << std::endl;
+        sOutStream << "\tKeywords: " << ( mDoc->GetInfo()->GetKeywords().GetString() ? mDoc->GetInfo()->GetKeywords().GetString()  : "" ) << std::endl;
     }
 }
 
 void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
 {
-    PdfPage*       curPage;
-    PdfAnnotation* curAnnot;
+    PoDoFo::PdfPage*       curPage;
+    PoDoFo::PdfAnnotation* curAnnot;
 
-    PdfVariant  var;
+    PoDoFo::PdfVariant  var;
     std::string str;
 
     int annotCount;
@@ -112,7 +112,7 @@ void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
             sOutStream << "\t\tRect: "     << str << std::endl;
             sOutStream << "\t\tOpen: "     << (curAnnot->GetOpen() ? "true" : "false" ) << std::endl;
 
-            if( curAnnot->GetType() == ePdfAnnotation_Link ) 
+            if( curAnnot->GetType() == PoDoFo::ePdfAnnotation_Link ) 
             {
                 sOutStream << "\t\tLink Target: " << curAnnot->GetType() << std::endl;
                 if( curAnnot->HasAction() && curAnnot->GetAction()->HasURI() )
@@ -122,18 +122,18 @@ void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
     }
 }
 
-void PdfInfo::OutputOutlines( std::ostream& sOutStream, PdfOutlineItem* pItem, int level )
+void PdfInfo::OutputOutlines( std::ostream& sOutStream, PoDoFo::PdfOutlineItem* pItem, int level )
 {
-    PdfOutlines* pOutlines;
+    PoDoFo::PdfOutlines* pOutlines;
     int          i;
 
     if( !pItem ) 
     {
-        pOutlines = mDoc->GetOutlines( ePdfDontCreateObject );
-		if ( !pOutlines ) {
-			sOutStream << "\tNone Found" << std::endl;
-			return;
-		}
+        pOutlines = mDoc->GetOutlines( PoDoFo::ePdfDontCreateObject );
+        if ( !pOutlines ) {
+            sOutStream << "\tNone Found" << std::endl;
+            return;
+        }
         pItem     = pOutlines->First();
     }
 
@@ -141,14 +141,14 @@ void PdfInfo::OutputOutlines( std::ostream& sOutStream, PdfOutlineItem* pItem, i
         sOutStream << "-";
 
     sOutStream << ">" << pItem->GetTitle().GetString();
-	PdfDestination* pDest = pItem->GetDestination();
-	if ( pDest ) {	// then it's a destination
-		PdfPage* pPage = pDest->GetPage();
-		sOutStream << "\tDestination: Page #" << "???";
-	} else {		// then it's one or more actions
-		sOutStream << "\tAction: " << "???";
-	}
-	sOutStream << std::endl;
+    PoDoFo::PdfDestination* pDest = pItem->GetDestination();
+    if ( pDest ) {	// then it's a destination
+        PoDoFo::PdfPage* pPage = pDest->GetPage();
+        sOutStream << "\tDestination: Page #" << "???";
+    } else {		// then it's one or more actions
+        sOutStream << "\tAction: " << "???";
+    }
+    sOutStream << std::endl;
 
     if( pItem->First() )
         this->OutputOutlines( sOutStream, pItem->First(), level+1 );
@@ -157,19 +157,19 @@ void PdfInfo::OutputOutlines( std::ostream& sOutStream, PdfOutlineItem* pItem, i
         this->OutputOutlines( sOutStream, pItem->Next(), level );
 }
 
-void PdfInfo::OutputOneName( std::ostream& sOutStream, PdfNamesTree* inTreeObj, 
+void PdfInfo::OutputOneName( std::ostream& sOutStream, PoDoFo::PdfNamesTree* inTreeObj, 
 							 const std::string& inTitle, const std::string& inKey )
 {
     sOutStream << "\t" << inTitle << std::endl;
-    PdfObject* arrObj = inTreeObj->GetOneArrayOfNames( PdfName( inKey ), ePdfDontCreateObject );
+    PoDoFo::PdfObject* arrObj = inTreeObj->GetOneArrayOfNames( PoDoFo::PdfName( inKey ), PoDoFo::ePdfDontCreateObject );
     if ( arrObj ) {
-        PdfArray&	arr = arrObj->GetArray();
+        PoDoFo::PdfArray&	arr = arrObj->GetArray();
         
         // a names array is a set of PdfString/PdfObject pairs
         // so we loop in sets of two - getting each pair
         for ( unsigned int i=0; i<arr.size(); i+=2 ) {	
-            const PdfString&	theName = arr[i].GetString();
-            const PdfObject&	theVal = arr[i+1];
+            const PoDoFo::PdfString&	theName = arr[i].GetString();
+            const PoDoFo::PdfObject&	theVal = arr[i+1];
             
             sOutStream << "\t\t" << theName.GetString() << std::endl;
         }
@@ -180,7 +180,7 @@ void PdfInfo::OutputOneName( std::ostream& sOutStream, PdfNamesTree* inTreeObj,
 
 void PdfInfo::OutputNames( std::ostream& sOutStream )
 {
-    PdfNamesTree*	namesObj = mDoc->GetNamesTree( ePdfDontCreateObject );
+    PoDoFo::PdfNamesTree*	namesObj = mDoc->GetNamesTree( PoDoFo::ePdfDontCreateObject );
     if ( namesObj ) {
         OutputOneName( sOutStream, namesObj, "Destinations", "Dests" );
         OutputOneName( sOutStream, namesObj, "JavaScripts", "JavaScript" );

@@ -22,8 +22,6 @@
 #include <PdfDefines.h>
 #include "pdfinfo.h"
 
-using namespace PoDoFo;
-
 #ifdef _HAVE_CONFIG
 #include <config.h>
 #endif // _HAVE_CONFIG
@@ -37,7 +35,7 @@ void print_help()
 int main( int argc, char* argv[] )
 {
 #if 1
-  PdfError::EnableDebug( false );	// turn it off to better view the output from this app!
+  PoDoFo::PdfError::EnableDebug( false );	// turn it off to better view the output from this app!
 #endif
 
   if( argc != 2 )
@@ -74,7 +72,7 @@ int main( int argc, char* argv[] )
       std::cout << "-----" << std::endl;
       myInfo.OutputNames( std::cout );
 
-    } catch( PdfError & e ) {
+    } catch( PoDoFo::PdfError & e ) {
       fprintf( stderr, "Error: An error %i ocurred during uncompressing the pdf file.\n", e.GetError() );
       e.PrintErrorMsg();
       return e.GetError();

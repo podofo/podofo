@@ -28,6 +28,7 @@
 #include "PdfDocument.h"
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
+#include "PdfInfo.h"
 #include "PdfNamesTree.h"
 #include "PdfObject.h"
 #include "PdfOutlines.h"
@@ -70,14 +71,17 @@ PdfDocument::PdfDocument()
     m_pTrailer->SetParent( &m_vecObjects );
     m_pCatalog = m_vecObjects.CreateObject( "Catalog" );
 
+    m_pInfo = new PdfInfo( &m_vecObjects );
+
     m_pTrailer->GetDictionary().AddKey( "Root", m_pCatalog->Reference() );
+    m_pTrailer->GetDictionary().AddKey( "Info", m_pInfo->GetObject()->Reference() );
 
     InitPagesTree();
     InitFonts();
 }
 
 PdfDocument::PdfDocument( const char* pszFilename )
-    : m_pOutlines( NULL ), m_pNamesTree( NULL ), m_pPagesTree( NULL ), m_pTrailer( NULL ), m_ftLibrary( NULL )
+    : m_pInfo( NULL ), m_pOutlines( NULL ), m_pNamesTree( NULL ), m_pPagesTree( NULL ), m_pTrailer( NULL ), m_ftLibrary( NULL )
 {
     this->Load( pszFilename );
 }
@@ -117,7 +121,19 @@ void PdfDocument::Clear()
     m_vecObjects.clear();
     m_vecFonts.clear();
 
-    if ( m_pPagesTree ) 
+    if( m_pInfo ) 
+    {
+        delete m_pInfo;
+        m_pInfo = NULL;
+    }
+
+    if( m_pNamesTree ) 
+    {
+        delete m_pNamesTree;
+        m_pNamesTree = NULL;
+    }
+
+    if( m_pPagesTree ) 
     {
         delete m_pPagesTree;
         m_pPagesTree = NULL;
@@ -150,6 +166,8 @@ void PdfDocument::InitFonts()
 
 void PdfDocument::InitFromParser( PdfParser* pParser )
 {
+    PdfObject* pInfo;
+
     m_eVersion     = pParser->GetPdfVersion();
     m_bLinearized  = pParser->IsLinearized();
 
@@ -162,6 +180,15 @@ void PdfDocument::InitFromParser( PdfParser* pParser )
         RAISE_ERROR( ePdfError_NoObject );
     }
 
+    pInfo = m_pTrailer->GetIndirectKey( "Info" );
+    if( !pInfo ) 
+    {
+        m_pInfo = new PdfInfo( &m_vecObjects );
+        m_pTrailer->GetDictionary().AddKey( "Info", m_pInfo->GetObject()->Reference() );
+    }
+    else 
+        m_pInfo = new PdfInfo( pInfo );
+    
     PdfOutputDevice device( &(std::cout) );
     m_pCatalog->WriteObject( &device );
 }
@@ -212,19 +239,6 @@ void PdfDocument::Write( const char* pszFilename )
 PdfObject* PdfDocument::GetNamedObjectFromCatalog( const char* pszName ) const 
 {
     return m_pCatalog->GetIndirectKey( PdfName( pszName ) );
-}
-
-PdfObject* PdfDocument::GetInfo( bool bCreate )
-{ 
-    PdfObject* pObj = m_pTrailer->GetIndirectKey( PdfName( "Info" ) );
-
-    if( !pObj && bCreate ) 
-    {
-        pObj = m_vecObjects.CreateObject( "Info" );
-        m_pTrailer->GetDictionary().AddKey( PdfName( "Info" ), pObj->Reference() );
-    }
-
-    return pObj; 
 }
 
 int PdfDocument::GetPageCount() const
@@ -288,40 +302,6 @@ PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bEmbedd )
 PdfPage* PdfDocument::CreatePage( const PdfRect & rSize )
 {
     return m_pPagesTree->CreatePage( rSize );
-}
-
-const PdfString & PdfDocument::GetStringFromInfoDict( const PdfName & rName ) const
-{
-    PdfObject* pObj = this->GetInfo();
-    if( pObj )
-        pObj = pObj->GetDictionary().GetKey( rName );
-    
-    return pObj && pObj->IsString() ? pObj->GetString() : PdfString::StringNull;
-}
-
-void PdfDocument::SetAuthor( const PdfString & sAuthor )
-{
-    this->GetInfo( true )->GetDictionary().AddKey( "Author", sAuthor );
-}
-
-void PdfDocument::SetCreator( const PdfString & sCreator )
-{
-    this->GetInfo( true )->GetDictionary().AddKey( "Creator", sCreator );
-}
-
-void PdfDocument::SetKeywords( const PdfString & sKeywords )
-{
-    this->GetInfo( true )->GetDictionary().AddKey( "Keywords", sKeywords );
-}
-
-void PdfDocument::SetSubject( const PdfString & sSubject )
-{
-    this->GetInfo( true )->GetDictionary().AddKey( "Subject", sSubject );
-}
-
-void PdfDocument::SetTitle( const PdfString & sTitle )
-{
-    this->GetInfo( true )->GetDictionary().AddKey( "Title", sTitle );
 }
 
 const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc )

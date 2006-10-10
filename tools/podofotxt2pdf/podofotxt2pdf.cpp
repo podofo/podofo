@@ -23,6 +23,7 @@
 #include <PdfDocument.h>
 #include <PdfFont.h>
 #include <PdfFontMetrics.h>
+#include <PdfInfo.h>
 #include <PdfPage.h>
 #include <PdfPainterMM.h>
 
@@ -128,8 +129,8 @@ void init( const char* pszInput, const char* pszOutput )
 
     draw( pszBuf, &doc );
 
-    doc.SetCreator( PdfString("podofotxt2pdf") );
-    doc.SetTitle( PdfString("Converted to PDF from a text file") );
+    doc.GetInfo()->SetCreator( PdfString("podofotxt2pdf") );
+    doc.GetInfo()->SetTitle( PdfString("Converted to PDF from a text file") );
     doc.Write( pszOutput );
 
     free( pszBuf );

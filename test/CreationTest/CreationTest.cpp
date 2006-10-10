@@ -26,6 +26,7 @@
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
 #include "PdfImage.h"
+#include "PdfInfo.h"
 #include "PdfOutlines.h"
 #include "PdfPage.h"
 #include "PdfPainter.h"
@@ -412,11 +413,11 @@ int main( int argc, char* argv[] )
 
     printf("Setting document informations.\n\n");
     // Setup the document information dictionary
-    TEST_SAFE_OP( writer.SetCreator ( PdfString("CreationTest - A simple test application") ) );
-    TEST_SAFE_OP( writer.SetAuthor  ( PdfString("Dominik Seichter") ) );
-    TEST_SAFE_OP( writer.SetTitle   ( PdfString("Test Document") ) );
-    TEST_SAFE_OP( writer.SetSubject ( PdfString("Testing the PDF Library") ) );
-    TEST_SAFE_OP( writer.SetKeywords( PdfString("Test;PDF;") ) );
+    TEST_SAFE_OP( writer.GetInfo()->SetCreator ( PdfString("CreationTest - A simple test application") ) );
+    TEST_SAFE_OP( writer.GetInfo()->SetAuthor  ( PdfString("Dominik Seichter") ) );
+    TEST_SAFE_OP( writer.GetInfo()->SetTitle   ( PdfString("Test Document") ) );
+    TEST_SAFE_OP( writer.GetInfo()->SetSubject ( PdfString("Testing the PDF Library") ) );
+    TEST_SAFE_OP( writer.GetInfo()->SetKeywords( PdfString("Test;PDF;") ) );
 
     TEST_SAFE_OP( writer.Write( argv[1] ) );
 

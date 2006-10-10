@@ -25,6 +25,7 @@
 #include "PdfDocument.h"
 #include "PdfEncrypt.h"
 #include "PdfHintStream.h"
+#include "PdfInfo.h"
 #include "PdfObject.h"
 #include "PdfPage.h"
 #include "PdfPagesTree.h"

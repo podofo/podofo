@@ -66,7 +66,7 @@ am_libpodofo_la_OBJECTS = PdfObject.lo PdfParser.lo PdfParserObject.lo \
 	PdfDataType.lo PdfElement.lo PdfPagesTree.lo \
 	PdfRefCountedBuffer.lo PdfOutlines.lo PdfDestination.lo \
 	PdfContents.lo PdfEncrypt.lo PdfNamesTree.lo PdfInputDevice.lo \
-	PdfHintStream.lo PdfRefCountedInputDevice.lo
+	PdfHintStream.lo PdfRefCountedInputDevice.lo PdfInfo.lo
 libpodofo_la_OBJECTS = $(am_libpodofo_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -206,7 +206,7 @@ include_HEADERS = podofo.h PdfDefines.h PdfObject.h PdfParser.h PdfParserObject.
 	PdfDataType.h PdfElement.h PdfPainterMM.h PdfPagesTree.h \
 	PdfRefCountedBuffer.h PdfOutlines.h PdfDestination.h PdfContents.h \
 	PdfEncrypt.h PdfNamesTree.h PdfInputDevice.h PdfHintStream.h \
-	PdfRefCountedInputDevice.h
+	PdfRefCountedInputDevice.h PdfInfo.h
 
 
 # PdfSimpleWriter.cpp # PdfSimpleWriter.h
@@ -219,7 +219,7 @@ libpodofo_la_SOURCES = PdfObject.cpp PdfParser.cpp PdfParserObject.cpp \
 	PdfDataType.cpp PdfElement.cpp PdfPagesTree.cpp \
 	PdfRefCountedBuffer.cpp PdfOutlines.cpp PdfDestination.cpp PdfContents.cpp \
 	PdfEncrypt.cpp PdfNamesTree.cpp PdfInputDevice.cpp PdfHintStream.cpp \
-	PdfRefCountedInputDevice.cpp
+	PdfRefCountedInputDevice.cpp PdfInfo.cpp
 
 all: all-am
 
@@ -308,6 +308,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfFontMetrics.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfHintStream.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfImage.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfInfo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfInputDevice.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfName.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PdfNamesTree.Plo@am__quote@
