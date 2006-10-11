@@ -21,6 +21,7 @@
 #ifndef _PDF_OUTPUT_DEVICE_H_
 #define _PDF_OUTPUT_DEVICE_H_
 
+#include <cstdarg>
 #include <ostream>
 
 #include "PdfDefines.h"

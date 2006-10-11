@@ -126,12 +126,12 @@ class PdfParserBase {
 
 inline bool PdfParserBase::IsWhitespace(const char ch) throw()
 {
-    return m_whitespaceMap[ch];
+    return ( m_whitespaceMap[ch] != 0 );
 }
 
 inline bool PdfParserBase::IsDelimiter(const char ch) throw()
 {
-    return m_delimiterMap[ch];
+    return ( m_delimiterMap[ch] != 0 );
 }
 
 inline bool PdfParserBase::IsRegular(const char ch) throw()

@@ -251,10 +251,17 @@ void PdfHintStream::CreatePageHintTable( TVecXRefTable* pXRef )
     int                 nPageCount = m_pPagesTree->GetTotalNumberOfPages();
 
     PdfPageOffsetHeader header;
+#if 1
+	// this will init/construct each of the objects in the vector
+	// AND it compiles on all platforms - where the below code
+	// isn't 100% valid for all C++ compilers
+	std::vector< PdfPageOffsetEntry >	vecPages( nPageCount );
+#else
     // use an array instead of an vector,
     // to make sure the constructors are called,
-    // which they are aparently not when using vector.resize
+    // which they are apparently not when using vector.resize
     PdfPageOffsetEntry  vecPages[nPageCount];
+#endif
 
     pdf_uint32        max;
     pdf_uint32        least = 0;

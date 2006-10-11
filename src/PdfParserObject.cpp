@@ -339,7 +339,7 @@ void PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, long
 
 #ifdef _DEBUG
             cVariant.ToString( sValue );
-            PdfError::DebugMessage("Key: (%s) Got Value: (%s) %i belongs to: %s\n", cName.Name().c_str(), sValue.c_str(), (int)cVariant.GetDataType(), this->Reference().ToString().c_str() );
+            PdfError::DebugMessage("Key: (%s) Got Value: (%s) %i belongs to: %s\n", cName.GetName().c_str(), sValue.c_str(), (int)cVariant.GetDataType(), this->Reference().ToString().c_str() );
 
 #endif // _DEBUG
             this->GetDictionary().AddKey( cName, cVariant );

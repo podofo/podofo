@@ -21,7 +21,6 @@
 #include "PdfOutputDevice.h"
 
 #include <cstdio>
-#include <cstdarg>
 #include <fstream>
 #include <sstream>
 
