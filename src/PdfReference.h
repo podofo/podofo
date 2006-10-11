@@ -42,7 +42,10 @@ class PdfReference : public PdfDataType {
      * Create a PdfReference with object number and generation number
      * initialized to 0.
      */
-    PdfReference();
+    PdfReference()
+        : m_nObjectNo( 0 ), m_nGenerationNo( 0 )
+    {
+    }
 
     /**
      * Create a PdfReference to an object with a given object and generation number.
@@ -50,16 +53,22 @@ class PdfReference : public PdfDataType {
      * \param nObjectNo the object number
      * \param nGenerationNo the generation number
      */
-    PdfReference( unsigned long nObjectNo, unsigned long nGenerationNo );
+    PdfReference( unsigned long nObjectNo, unsigned long nGenerationNo )
+        : m_nObjectNo( nObjectNo ), m_nGenerationNo( nGenerationNo ) 
+    {
+    }
 
     /**
      * Create a copy of an existing PdfReference.
      * 
      * \param rhs the object to copy
      */
-    PdfReference( const PdfReference & rhs );
+    PdfReference( const PdfReference & rhs )
+    {
+        this->operator=( rhs );
+    }
 
-    virtual ~PdfReference() {};
+    virtual ~PdfReference() throw() { }
 
     /** Convert the reference to a string.
      *  \returns a string representation of the object.
@@ -73,7 +82,7 @@ class PdfReference : public PdfDataType {
      *
      * \param rhs the object to copy
      */
-    const PdfReference & operator=( const PdfReference & rhs );
+    inline const PdfReference & operator=( const PdfReference & rhs ) throw();
 
     /** Write the complete variant to an output device.
      *  This is an overloaded member function.
@@ -86,43 +95,63 @@ class PdfReference : public PdfDataType {
      * Compare to PdfReference objects.
      * \returns true if both reference the same object
      */
-    bool operator==( const PdfReference & rhs ) const;
+    inline bool operator==( const PdfReference & rhs ) const throw();
 
     /** 
      * Compare to PdfReference objects.
      * \returns true if this reference has a smaller object and generation number
      */
-    bool operator<( const PdfReference & rhs ) const;
+    inline bool operator<( const PdfReference & rhs ) const throw();
 
     /** Set the object number of this object
      *  \param o the new object number
      */
-    inline void SetObjectNumber( unsigned long o );
+    inline void SetObjectNumber( unsigned long o ) throw();
 
     /** Get the object number.
      *  \returns the object number of this PdfReference
      */
-    inline unsigned long ObjectNumber() const;
+    inline unsigned long ObjectNumber() const throw();
 
     /** Set the generation number of this object
      *  \param g the new generation number
      */
-    inline void SetGenerationNumber( unsigned long g );
+    inline void SetGenerationNumber( unsigned long g ) throw();
 
     /** Get the generation number.
      *  \returns the generation number of this PdfReference
      */
-    inline unsigned long GenerationNumber() const;
+    inline unsigned long GenerationNumber() const throw();
 
  private:
     unsigned long m_nObjectNo;
     unsigned long m_nGenerationNo;
 };
 
+const PdfReference & PdfReference::operator=( const PdfReference & rhs ) throw()
+{
+    m_nObjectNo     = rhs.m_nObjectNo;
+    m_nGenerationNo = rhs.m_nGenerationNo;
+    return *this;
+}
+
+bool PdfReference::operator<( const PdfReference & rhs ) const throw()
+{
+    if( m_nObjectNo == rhs.m_nObjectNo )
+        return m_nGenerationNo < rhs.m_nGenerationNo;
+    else
+        return m_nObjectNo < rhs.m_nObjectNo;
+}
+
+bool PdfReference::operator==( const PdfReference & rhs ) const throw()
+{
+    return ( m_nObjectNo == rhs.m_nObjectNo && m_nGenerationNo == rhs.m_nGenerationNo);
+}
+
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfReference::SetObjectNumber( unsigned long o )
+void PdfReference::SetObjectNumber( unsigned long o ) throw()
 {
     m_nObjectNo = o;
 }
@@ -130,7 +159,7 @@ void PdfReference::SetObjectNumber( unsigned long o )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned long PdfReference::ObjectNumber() const
+unsigned long PdfReference::ObjectNumber() const throw()
 {
     return m_nObjectNo;
 }
@@ -138,7 +167,7 @@ unsigned long PdfReference::ObjectNumber() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfReference::SetGenerationNumber( unsigned long g )
+void PdfReference::SetGenerationNumber( unsigned long g ) throw()
 {
     m_nGenerationNo = g;
 }
@@ -146,7 +175,7 @@ void PdfReference::SetGenerationNumber( unsigned long g )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned long PdfReference::GenerationNumber() const
+unsigned long PdfReference::GenerationNumber() const throw()
 {
     return m_nGenerationNo;
 }

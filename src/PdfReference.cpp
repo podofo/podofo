@@ -26,23 +26,6 @@
 
 namespace PoDoFo {
 
-PdfReference::PdfReference()
-    : m_nObjectNo( 0 ), m_nGenerationNo( 0 ) 
-{
-
-}
-
-PdfReference::PdfReference( unsigned long nObjectNo, unsigned long nGenerationNo )
-    : m_nObjectNo( nObjectNo ), m_nGenerationNo( nGenerationNo ) 
-{
-
-}
-
-PdfReference::PdfReference( const PdfReference & rhs )
-{
-    this->operator=( rhs );
-}
-
 void PdfReference::Write( PdfOutputDevice* pDevice ) const
 {
     pDevice->Print( "%i %i R", m_nObjectNo, m_nGenerationNo );
@@ -55,26 +38,4 @@ const std::string PdfReference::ToString() const
     return out.str();
 }
 
-const PdfReference & PdfReference::operator=( const PdfReference & rhs )
-{
-    m_nObjectNo     = rhs.m_nObjectNo;
-    m_nGenerationNo = rhs.m_nGenerationNo;
-    return *this;
-}
-
-bool PdfReference::operator<( const PdfReference & rhs ) const
-{
-    if( m_nObjectNo == rhs.m_nObjectNo )
-        return m_nGenerationNo < rhs.m_nGenerationNo;
-    else
-        return m_nObjectNo < rhs.m_nObjectNo;
-}
-
-bool PdfReference::operator==( const PdfReference & rhs ) const
-{
-    return ( m_nObjectNo == rhs.m_nObjectNo && m_nGenerationNo == rhs.m_nGenerationNo);
-}
-
 };
-
-
