@@ -52,6 +52,29 @@ CXXFLAGS="-O2 -g3 -Wall"
 
 AC_PROG_CXX
 AC_HAVE_HEADERS(string.h stdio.h)
+
+# Check for portability requirements reported by
+# autoscan
+AC_CHECK_FUNCS([floor])
+AC_CHECK_FUNCS([memset])
+AC_CHECK_FUNCS([sqrt])
+AC_CHECK_FUNCS([strstr])
+AC_CHECK_FUNCS([strtol])
+AC_CHECK_HEADERS([arpa/inet.h])
+AC_C_CONST
+AC_C_INLINE
+AC_FUNC_MALLOC
+AC_FUNC_MEMCMP
+AC_FUNC_REALLOC
+AC_FUNC_STAT
+AC_FUNC_STRFTIME
+AC_FUNC_STRTOD
+AC_FUNC_VPRINTF
+AC_HEADER_STDBOOL
+AC_PROG_RANLIB
+AC_STRUCT_TM
+AC_TYPE_SIZE_T
+
 			 
 dnl checking for required libraries
 AC_CHECK_LIB(z, deflate,, ZLIBMISSING=true)
@@ -81,5 +104,23 @@ AC_SUBST(FREETYPE_CFLAGS)
 
 AC_CHECK_HEADERS(zlib.h jpeglib.h)
 
-AC_OUTPUT( [Makefile src/Makefile test/Makefile test/FilterTest/Makefile test/ObjectParserTest/Makefile test/ParserTest/Makefile test/VariantTest/Makefile test/CreationTest/Makefile test/WatermarkTest/Makefile test/LargeTest/Makefile tools/Makefile tools/podofoimgextract/Makefile tools/podofouncompress/Makefile tools/podofotxt2pdf/Makefile tools/podofopdfinfo/Makefile tools/podofomerge/Makefile ] )
+AC_OUTPUT( [
+	   Makefile
+	   src/Makefile
+	   test/Makefile
+	   test/FilterTest/Makefile 
+	   test/ObjectParserTest/Makefile 
+	   test/ParserTest/Makefile 
+	   test/VariantTest/Makefile 
+	   test/CreationTest/Makefile 
+	   test/WatermarkTest/Makefile 
+	   test/LargeTest/Makefile 
+	   tools/Makefile 
+	   tools/podofoimgextract/Makefile 
+	   tools/podofouncompress/Makefile 
+	   tools/podofotxt2pdf/Makefile 
+	   tools/podofopdfinfo/Makefile 
+	   tools/podofomerge/Makefile 
+	   ] )
+
 
