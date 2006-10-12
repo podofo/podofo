@@ -69,7 +69,7 @@ case "$enable_debug" in
 		CXXFLAGS="${CXXFLAGS} -O2 $base_warnings"
 	;;
 	yes)
-		CXXFLAGS="${CXXFLAGS} -O2 -g3 -Winline $base_warnings"
+		CXXFLAGS="${CXXFLAGS} -O2 -g3 $base_warnings"
 	;;
 	full)
 		CXXFLAGS="${CXXFLAGS} -O -g3 -fno-inline -DPODOFO_CHECKED=1 $base_warnings"
@@ -78,6 +78,16 @@ case "$enable_debug" in
 		AC_MSG_ERROR( [ Unsupported argument --enable-debug=$enable_debug . See $0 --help ] )
 	;;
 esac
+
+# Suggested extra warnings that might be useful in some situations:
+#
+#  -Winline
+#      Warn when functions can not be inlined
+#
+#  -Weffc++
+#      (gcc >= 4) Some higher level styilistic warnings based on the book
+#      Effective C++
+
 
 # Check for portability requirements reported by
 # autoscan
