@@ -461,14 +461,13 @@ void PdfParser::ReadTrailer()
 
 void PdfParser::ReadXRef( long* pXRefOffset )
 {
-    const int   STARTXREF_LEN = 9; // strlen( "startxref" )
-    char*       pszStart = NULL;
-    char*       pszEnd = NULL;
-    int         i;
-    long        lXRefBuf, lFileSize;
+    const int       STARTXREF_LEN = 9; // strlen( "startxref" )
+    char*           pszStart = NULL;
+    char*           pszEnd = NULL;
+    int             i;
 
-    lFileSize = m_device.Device()->Tell();
-    lXRefBuf  = PDF_MIN( lFileSize, PDF_XREF_BUF );
+    std::streamoff nFileSize = m_device.Device()->Tell();
+    long lXRefBuf = PDF_MIN( nFileSize, PDF_XREF_BUF );
 
     m_device.Device()->Seek( -lXRefBuf, std::ios_base::cur );
     if( m_device.Device()->Read( m_buffer.GetBuffer(), lXRefBuf ) != lXRefBuf )
@@ -486,7 +485,7 @@ void PdfParser::ReadXRef( long* pXRefOffset )
             pszStart = m_buffer.GetBuffer()+i;
             break;
         }
-    
+
     if( !pszStart )
     {
         RAISE_ERROR( ePdfError_NoXRef );

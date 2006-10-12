@@ -71,7 +71,7 @@ class PdfInputDevice {
     /** Get the current position in file.
      *  /returns the current position in the file
      */
-    virtual int Tell() const;
+    virtual std::streamoff Tell() const;
 
     /** Get next char from stream.
      *  \returns the next character from the stream
@@ -87,7 +87,7 @@ class PdfInputDevice {
      *  \param offset from the beginning of the file
      *  \param dir where to start (start, cur, end)
      */
-    virtual void Seek( size_t offset, std::ios_base::seekdir dir = std::ios_base::beg );
+    virtual void Seek( std::streamoff off, std::ios_base::seekdir dir = std::ios_base::beg );
 
     /** Read a certain number of bytes from the input device.
      *  
@@ -98,7 +98,7 @@ class PdfInputDevice {
      *           If reading was successfull the number of read bytes
      *           is equal to lLen.
      */
-    virtual long Read( char* pBuffer, long lLen );
+    virtual std::streamoff Read( char* pBuffer, std::streamsize lLen );
 
  private: 
     /** Initialize all private members
@@ -110,7 +110,6 @@ class PdfInputDevice {
      */
     PdfInputDevice();
 
-
  private:
     std::istream*  m_pStream;
     bool           m_StreamOwned;
@@ -120,4 +119,3 @@ class PdfInputDevice {
 };
 
 #endif // _PDF_INPUT_DEVICE_H_
-

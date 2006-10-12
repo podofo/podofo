@@ -108,7 +108,7 @@ void PdfInputDevice::Close()
 
 int PdfInputDevice::GetChar() const
 {
-    return m_pStream->get();	
+    return m_pStream->get();
 }
 
 int PdfInputDevice::Look() const 
@@ -116,19 +116,19 @@ int PdfInputDevice::Look() const
     return m_pStream->peek();
 }
 
-int PdfInputDevice::Tell() const  
+std::streamoff PdfInputDevice::Tell() const
 {
     return m_pStream->tellg();
 }
 
-void PdfInputDevice::Seek( size_t off, std::ios_base::seekdir dir )
+void PdfInputDevice::Seek( std::streamoff off, std::ios_base::seekdir dir )
 {
     m_pStream->seekg( off, dir );
 }
 
-long PdfInputDevice::Read( char* pBuffer, long lLen )
+std::streamoff PdfInputDevice::Read( char* pBuffer, std::streamsize lLen )
 {
-    long lPos = this->Tell();
+    std::streamoff lPos = this->Tell();
 
     m_pStream->read( pBuffer, lLen );
     return (this->Tell() - lPos);
