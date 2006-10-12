@@ -53,7 +53,12 @@ void UnCompress::UncompressObjects()
     {
         if( (*it)->HasStream() )
         {
-            (*it)->GetStream()->Uncompress();
+            try {
+                (*it)->GetStream()->Uncompress();
+            } catch( const PdfError & e ) {
+                if( e.GetError() != ePdfError_UnsupportedFilter )
+                    throw e;
+            }
         }
 
         ++it;

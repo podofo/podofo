@@ -189,6 +189,7 @@ int main()
     TEST_SAFE_OP_IGNORE( Test( "[/ImageA/ImageB/ImageC]", ePdfDataType_Array ) ); // this test may fail as the formating is different
     TEST_SAFE_OP_IGNORE( Test( "[<530464995927cef8aaf46eb953b93373><530464995927cef8aaf46eb953b93373>]", ePdfDataType_Array ) );
     TEST_SAFE_OP_IGNORE( Test( "[ 2 0 R (Test Data) 4 << /Key /Data >> 5 0 R ]", ePdfDataType_Array ) );
+    TEST_SAFE_OP_IGNORE( Test( "[<</key/name>>2 0 R]", ePdfDataType_Array ) );
     printf("---\n");
 
     // Test some names. The first argument is the unencoded representation, the second
