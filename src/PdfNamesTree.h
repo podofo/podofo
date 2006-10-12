@@ -46,6 +46,8 @@ class PdfNamesTree : public PdfElement {
      */
     PdfNamesTree( PdfObject* pObject, PdfObject* pCatalog );
 
+    virtual ~PdfNamesTree() { }
+
     /** Returns a PdfObject of type PdfArray consisting of the list of 
      *  named objects of the specified type (inWhichName).  If no such
      *  list exists, and bCreate is true, it will create an empty list

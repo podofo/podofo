@@ -142,27 +142,8 @@ const PdfName PdfName::KeySubtype   = PdfName( "Subtype" );
 const PdfName PdfName::KeyType      = PdfName( "Type" );
 const PdfName PdfName::KeyFilter    = PdfName( "Filter" );
 
-PdfName::PdfName() : m_Data( "" ) {}
-
-PdfName::PdfName( const std::string& sName )
+PdfName::~PdfName()
 {
-    m_Data = sName;
-}
-
-PdfName::PdfName( const char* pszName )
-{
-    if( pszName )
-    {
-        m_Data.assign( pszName );
-    }
-}
-
-PdfName::PdfName( const char* pszName, long lLen )
-{
-    if( pszName )
-    {
-        m_Data.assign( pszName, lLen );
-    }
 }
 
 PdfName PdfName::FromEscaped( const string & sName )
@@ -175,15 +156,6 @@ PdfName PdfName::FromEscaped( const char * pszName, int ilen )
     return PdfName(UnescapeName(pszName, ilen));
 }
 
-PdfName::PdfName( const PdfName & rhs )
-{
-    this->operator=( rhs );
-}
-
-PdfName::~PdfName()
-{
-}
-
 void PdfName::Write( PdfOutputDevice* pDevice ) const
 {
     pDevice->Print( "/" );
@@ -194,22 +166,6 @@ void PdfName::Write( PdfOutputDevice* pDevice ) const
 string PdfName::GetEscapedName() const
 {
     return EscapeName(m_Data.begin(), m_Data.length());
-}
-
-const PdfName& PdfName::operator=( const PdfName & rhs )
-{
-    m_Data = rhs.m_Data;
-    return *this;
-}
-
-bool PdfName::operator==( const PdfName & rhs ) const
-{
-    return ( m_Data == rhs.m_Data );
-}
-
-bool PdfName::operator==( const std::string & rhs ) const
-{
-    return ( m_Data == rhs );
 }
 
 bool PdfName::operator==( const char* rhs ) const
@@ -225,11 +181,6 @@ bool PdfName::operator==( const char* rhs ) const
         return false;
     else
         return ( m_Data == std::string( rhs ) );
-}
-
-bool PdfName::operator<( const PdfName & rhs ) const
-{
-    return m_Data < rhs.m_Data;
 }
 
 };

@@ -27,12 +27,16 @@
 
 #include <algorithm>
 
-namespace PoDoFo {
+namespace {
 
-bool ObjectLittle( PdfObject* p1, PdfObject* p2 )
+inline bool ObjectLittle( PoDoFo::PdfObject* p1, PoDoFo::PdfObject* p2 )
 {
     return *p1 < *p2;
 }
+
+};
+
+namespace PoDoFo {
 
 class ObjectsComperator { 
 public:
@@ -55,6 +59,7 @@ PdfVecObjects::PdfVecObjects()
 }
 
 PdfVecObjects::PdfVecObjects( const PdfVecObjects & rhs )
+    : std::vector<PoDoFo::PdfObject*>()
 {
     this->operator=( rhs );
 }

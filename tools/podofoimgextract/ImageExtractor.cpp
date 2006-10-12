@@ -43,9 +43,8 @@ void ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnN
 
 
     PdfDocument document( pszInput );
-    int numPages = document.GetPageCount();
 
-    m_pszOutputDirectory = (char*)pszOutput;
+    m_pszOutputDirectory = const_cast<char*>(pszOutput);
 
     const TVecObjects&  vecObjects = document.GetObjects();
     TCIVecObjects it = vecObjects.begin();

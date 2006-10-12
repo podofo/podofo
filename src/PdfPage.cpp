@@ -173,7 +173,7 @@ const int PdfPage::GetNumAnnots() const
 {
     PdfObject* pObj = this->GetAnnotationsArray();
 
-    return pObj ? (int)(pObj->GetArray().size()) : 0;
+    return pObj ? static_cast<int>(pObj->GetArray().size()) : 0;
 }
 
 PdfAnnotation* PdfPage::CreateAnnotation( EPdfAnnotation eType, const PdfRect & rRect )

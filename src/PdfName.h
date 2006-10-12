@@ -42,27 +42,41 @@ class PdfName : public PdfDataType {
     /** Constructor to create NULL strings.
      *  use PdfName::KeyNull instead of this constructor
      */
-    PdfName();
+    PdfName()
+        : PdfDataType(), m_Data("")
+    {
+    }
 
     /** Create a new PdfName object.
      *  \param sName the unescaped value of this name. Please specify
      *                 the name without the leading '/'.
      */
-    PdfName( const std::string& sName );
+    PdfName( const std::string& sName )
+        : PdfDataType(), m_Data(sName)
+    {
+    }
 
     /** Create a new PdfName object.
      *  \param pszName the unescaped value of this name. Please specify
      *                 the name without the leading '/'.
      *                 Has to be a zero terminated string.
      */
-    PdfName( const char* pszName );
+    PdfName( const char* pszName )
+        : PdfDataType()
+    {
+        if (pszName) m_Data.assign( pszName );
+    }
 
     /** Create a new PdfName object.
      *  \param pszName the unescaped value of this name. Please specify
      *                 the name without the leading '/'.
      *  \param lLen    length of the name
      */
-    PdfName( const char* pszName, long lLen );
+    PdfName( const char* pszName, long lLen )
+        : PdfDataType()
+    {
+        if( pszName ) m_Data.assign( pszName, lLen );
+    }
 
     /** Create a new PdfName object from a string containing an escaped
      *  name string without the leading / .
@@ -90,7 +104,10 @@ class PdfName : public PdfDataType {
     /** Create a copy of an existing PdfName object.
      *  \param rhs another PdfName object
      */
-    PdfName( const PdfName & rhs );
+    PdfName( const PdfName & rhs )
+        : PdfDataType(), m_Data(rhs.m_Data)
+    {
+    }
 
     virtual ~PdfName();
 
@@ -114,12 +131,12 @@ class PdfName : public PdfDataType {
     /** Assign another name to this object
      *  \param rhs another PdfName object
      */
-    const PdfName& operator=( const PdfName & rhs );
+    inline const PdfName& operator=( const PdfName & rhs ) throw();
 
     /** compare to PdfName objects.
      *  \returns true if both PdfNames have the same value.
      */
-    bool operator==( const PdfName & rhs ) const;
+    inline bool operator==( const PdfName & rhs ) const throw();
 
     /** overloaded operator for convinience
      *
@@ -137,12 +154,12 @@ class PdfName : public PdfDataType {
      *  \param rhs a name
      *  \returns true if this objects name is equal to pszName
      */
-    bool operator==( const std::string& rhs ) const;
+    inline bool operator==( const std::string& rhs ) const throw();
 
     /** compare two PdfName objects.
      *  \returns true if both PdfNames have different values.
      */
-    inline bool operator!=( const PdfName & rhs ) const;
+    inline bool operator!=( const PdfName & rhs ) const throw();
 
     /** overloaded operator for convinience
      *
@@ -157,7 +174,7 @@ class PdfName : public PdfDataType {
      *  Used for sorting in lists
      *  \returns true if this object is smaller than rhs
      */
-    bool operator<( const PdfName & rhs ) const;
+    inline bool operator<( const PdfName & rhs ) const throw();
 
     static const PdfName KeyContents;
     static const PdfName KeyFlags;
@@ -193,7 +210,7 @@ size_t PdfName::GetLength() const throw()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-bool PdfName::operator!=( const PdfName & rhs ) const
+bool PdfName::operator!=( const PdfName & rhs ) const throw()
 {
     return !this->operator==( rhs );
 }
@@ -205,6 +222,28 @@ bool PdfName::operator!=( const char* rhs ) const
 {
     return !this->operator==( rhs );
 }
+
+bool PdfName::operator<( const PdfName & rhs ) const throw()
+{
+    return m_Data < rhs.m_Data;
+}
+
+bool PdfName::operator==( const PdfName & rhs ) const throw()
+{
+    return ( m_Data == rhs.m_Data );
+}
+
+bool PdfName::operator==( const std::string & rhs ) const throw()
+{
+    return ( m_Data == rhs );
+}
+
+const PdfName& PdfName::operator=( const PdfName & rhs ) throw()
+{
+    m_Data = rhs.m_Data;
+    return *this;
+}
+
 
 };
 

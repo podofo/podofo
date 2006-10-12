@@ -127,7 +127,7 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
     {
         ++lBytes;
         std::string str;
-        char* data = (char*)malloc( lBytes * sizeof(char) );
+        char* data = static_cast<char*>(malloc( lBytes * sizeof(char) ));
         if( !data )
         {
             RAISE_ERROR( ePdfError_OutOfMemory );

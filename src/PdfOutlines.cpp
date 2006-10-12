@@ -197,13 +197,13 @@ const PdfString & PdfOutlineItem::GetTitle() const
 
 void PdfOutlineItem::SetTextFormat( EPdfOutlineFormat eFormat )
 {
-    m_pObject->GetDictionary().AddKey( "F", (long)eFormat );
+    m_pObject->GetDictionary().AddKey( "F", static_cast<long>(eFormat) );
 }
 
 EPdfOutlineFormat PdfOutlineItem::GetTextFormat() const
 {
     if( m_pObject->GetDictionary().HasKey( "F" ) )
-        return (EPdfOutlineFormat)m_pObject->GetIndirectKey( "F" )->GetNumber();
+        return static_cast<EPdfOutlineFormat>(m_pObject->GetIndirectKey( "F" )->GetNumber());
 
     return ePdfOutlineFormat_Default;
 }

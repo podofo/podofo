@@ -75,6 +75,8 @@ class PdfAction : public PdfElement {
      */
     PdfAction( EPdfAction eAction, PdfVecObjects* pParent );
 
+    virtual ~PdfAction() { }
+
     /** Create a PdfAction object from an existing 
      *  PdfObject
      */

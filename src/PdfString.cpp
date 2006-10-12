@@ -53,7 +53,7 @@ PdfString::PdfString( const char* pszString, long lLen, bool bHex )
 }
 
 PdfString::PdfString( const PdfString & rhs )
-    : m_bHex( false )
+    : PdfDataType(), m_bHex( false )
 {
     this->operator=( rhs );
 }

@@ -35,7 +35,7 @@ PdfPagesTree::PdfPagesTree( PdfVecObjects* pParent )
 {
     // PdfObject* kids = pParent->CreateObject( PdfArray() );
     GetObject()->GetDictionary().AddKey( "Kids", PdfArray() ); // kids->Reference() 
-    GetObject()->GetDictionary().AddKey( "Count", PdfObject( (long) 0 ) );
+    GetObject()->GetDictionary().AddKey( "Count", PdfObject( 0l ) );
 }
 
 PdfPagesTree::PdfPagesTree( PdfObject* pPagesRoot )
@@ -237,7 +237,7 @@ int PdfPagesTree::GetPosInKids( PdfObject* inPageObj )
         }
     }
     
-    return (int)kidsIndex ;
+    return static_cast<int>(kidsIndex) ;
 }
 
 void PdfPagesTree::InsertPage( int inAfterPageNumber, PdfPage* inPage )
@@ -248,7 +248,7 @@ void PdfPagesTree::InsertPage( int inAfterPageNumber, PdfPage* inPage )
 void PdfPagesTree::InsertPage( int inAfterPageNumber, PdfObject* pPage )
 {
     PdfObject*	parentObj    = GetRoot();
-    PdfObject*	afterPageObj = ( PdfObject* )NULL;
+    PdfObject*	afterPageObj = static_cast<PdfObject*>(NULL);
 
     if( PageInsertBeforeFirstPage != inAfterPageNumber )
     {
@@ -287,7 +287,7 @@ int PdfPagesTree::ChangePagesCount( PdfObject* inPageObj, int inDelta )
     if( 0 != inDelta ) 
     {
         cnt += inDelta ;
-        inPageObj->GetDictionary().AddKey( "Count", PdfVariant( (long)cnt ) );
+        inPageObj->GetDictionary().AddKey( "Count", PdfVariant( static_cast<long>(cnt) ) );
     }
 
     return cnt ;

@@ -37,7 +37,7 @@ PdfInfo::~PdfInfo()
 
 void PdfInfo::OutputDocumentInfo( std::ostream& sOutStream )
 {
-    sOutStream << "PDF Version: " << PoDoFo::s_szPdfVersionNums[(int)mDoc->GetPdfVersion()] << std::endl;
+    sOutStream << "PDF Version: " << PoDoFo::s_szPdfVersionNums[static_cast<int>(mDoc->GetPdfVersion())] << std::endl;
     sOutStream << "Page Count: " << mDoc->GetPageCount() << std::endl;
     sOutStream << std::endl;
     sOutStream << "Fast Web View Enabled: " << (mDoc->IsLinearized() ? "Yes" : "No") << std::endl;

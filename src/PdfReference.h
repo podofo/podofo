@@ -63,7 +63,7 @@ class PdfReference : public PdfDataType {
      * 
      * \param rhs the object to copy
      */
-    PdfReference( const PdfReference & rhs )
+    PdfReference( const PdfReference & rhs ) : PdfDataType()
     {
         this->operator=( rhs );
     }

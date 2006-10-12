@@ -1102,7 +1102,7 @@ std::string PdfFontMetrics::GetFilenameForFont( FcConfig* pConfig, const char* p
     FcValue v;
     std::string sPath;
 
-    pattern = FcPatternBuild (0, FC_FAMILY, FcTypeString, pszFontname, (char *) 0);
+    pattern = FcPatternBuild (0, FC_FAMILY, FcTypeString, pszFontname, static_cast<char*>(0));
     FcDefaultSubstitute( pattern );
 
     if( !FcConfigSubstitute( pConfig, pattern, FcMatchFont ) )
@@ -1135,18 +1135,18 @@ double PdfFontMetrics::CharWidth( char c ) const
     FT_Error       ftErr;
     unsigned long lWidth = 0;
 
-    ftErr = FT_Load_Char( m_face, (FT_UInt)c, FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING );
+    ftErr = FT_Load_Char( m_face, static_cast<FT_UInt>(c), FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING );
     if( ftErr )
         return lWidth;
 
     lWidth = m_face->glyph->advance.x;
 
-    return (double)lWidth/64.0;
+    return static_cast<double>(lWidth/64.0);
 }
 
 unsigned long PdfFontMetrics::CharWidthMM( char c ) const
 {
-    return (unsigned long)(this->CharWidth( c ) / CONVERSION_CONSTANT);
+    return static_cast<unsigned long>(this->CharWidth( c ) / CONVERSION_CONSTANT);
 }
 
 double PdfFontMetrics::StringWidth( const char* pszText, unsigned int nLength ) const
@@ -1157,7 +1157,7 @@ double PdfFontMetrics::StringWidth( const char* pszText, unsigned int nLength ) 
         return dWidth;
 
     if( !nLength )
-        nLength = (unsigned int)strlen( pszText );
+        nLength = static_cast<unsigned int>(strlen( pszText ));
 
     const char *localText = pszText;
     for ( unsigned int i=0; i<nLength; i++ ) 
@@ -1171,23 +1171,23 @@ double PdfFontMetrics::StringWidth( const char* pszText, unsigned int nLength ) 
 
 unsigned long PdfFontMetrics::StringWidthMM( const char* pszText, unsigned int nLength ) const
 {
-    return (unsigned long)(this->StringWidth( pszText, nLength ) / CONVERSION_CONSTANT);
+    return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / CONVERSION_CONSTANT);
 }
 
 void PdfFontMetrics::SetFontSize( float fSize )
 {
     FT_Error ftErr;
 
-    ftErr = FT_Set_Char_Size( m_face, (int)(fSize*64.0), 0, 72, 72 );
+    ftErr = FT_Set_Char_Size( m_face, static_cast<int>(fSize*64.0), 0, 72, 72 );
 
     // calculate the line spacing now, as it changes only with the font size
-    m_dLineSpacing        = ((double)(m_face->ascender + abs(m_face->descender)) * fSize / m_face->units_per_EM);
+    m_dLineSpacing        = (static_cast<double>(m_face->ascender + abs(m_face->descender)) * fSize / m_face->units_per_EM);
 
-    m_dUnderlineThickness = ((double)m_face->underline_thickness * fSize / m_face->units_per_EM);
-    m_dUnderlinePosition  = ((double)m_face->underline_position  * fSize  / m_face->units_per_EM);
+    m_dUnderlineThickness = (static_cast<double>(m_face->underline_thickness) * fSize / m_face->units_per_EM);
+    m_dUnderlinePosition  = (static_cast<double>(m_face->underline_position)  * fSize  / m_face->units_per_EM);
 
-    m_dAscent  = (double)m_face->ascender  * fSize / m_face->units_per_EM;
-    m_dDescent = (double)m_face->descender * fSize / m_face->units_per_EM;
+    m_dAscent  = static_cast<double>(m_face->ascender)  * fSize / m_face->units_per_EM;
+    m_dDescent = static_cast<double>(m_face->descender) * fSize / m_face->units_per_EM;
 }
 
 };

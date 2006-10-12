@@ -218,7 +218,7 @@ void PdfWriter::WriteLinearized( PdfOutputDevice* pDevice )
 
 void PdfWriter::WritePdfHeader( PdfOutputDevice* pDevice )
 {
-    pDevice->Print( "%s\n%%%s", s_szPdfVersions[(int)m_eVersion], PDF_MAGIC );
+    pDevice->Print( "%s\n%%%s", s_szPdfVersions[static_cast<int>(m_eVersion)], PDF_MAGIC );
 }
 
 void PdfWriter::CompressObjects( const TVecObjects& vecObjects ) 
@@ -290,7 +290,7 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& ve
 
         ++itFree;
 
-        if( index < (int)tXRef.vecOffsets.size() )
+        if( index < static_cast<int>(tXRef.vecOffsets.size()) )
         {
             // write empty entries into the table
             tXRef.vecOffsets[index].lOffset     = (itFree == vecObjects.GetFreeObjects().end() ? 0 : (*itFree).ObjectNumber());
@@ -391,7 +391,7 @@ void PdfWriter::WriteToBuffer( char** ppBuffer, unsigned long* pulLen )
     this->Write( &device );
 
     *pulLen = device.GetLength();
-    *ppBuffer = (char*)malloc( *pulLen * sizeof(char) );
+    *ppBuffer = static_cast<char*>(malloc( *pulLen * sizeof(char) ));
     if( !*ppBuffer )
     {
         RAISE_ERROR( ePdfError_OutOfMemory );
@@ -405,7 +405,7 @@ PdfObject* PdfWriter::CreateLinearizationDictionary()
 {
     PdfObject*       pLinearize        = m_vecObjects->CreateObject();
 
-    PdfVariant place_holder( (long)0 );
+    PdfVariant place_holder( 0l );
     place_holder.SetPaddingLength( LINEARIZATION_PADDING );
 
     PdfArray array;
@@ -417,7 +417,7 @@ PdfObject* PdfWriter::CreateLinearizationDictionary()
     pLinearize->GetDictionary().AddKey( "H", array );         // Hint stream offset and length as PdfArray
     pLinearize->GetDictionary().AddKey( "E", place_holder );  // Offset of end of first page
     pLinearize->GetDictionary().AddKey( "N",                  // Number of pages in the document 
-                                        (long)m_pPagesTree->GetTotalNumberOfPages() );             
+                                        static_cast<long>(m_pPagesTree->GetTotalNumberOfPages()) );             
     pLinearize->GetDictionary().AddKey( "O", place_holder );  // Object number of the first page
     pLinearize->GetDictionary().AddKey( "T", place_holder );  // Offset of first entry in main cross reference table
 
@@ -543,30 +543,30 @@ void PdfWriter::WriteXRefStream( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevi
 
     m_lFirstInXRef =    0;
 
-    w.push_back( (long)1 );
-    w.push_back( (long)sizeof(STREAM_OFFSET_TYPE) );
-    w.push_back( (long)1 );
+    w.push_back( 1l );
+    w.push_back( static_cast<long>(sizeof(STREAM_OFFSET_TYPE)) );
+    w.push_back( 1l );
 
     it = pVecXRef->begin();
     while( it != pVecXRef->end() )
     {
         nSize = ( nSize > (*it).nFirst + (*it).nCount ? nSize : (*it).nFirst + (*it).nCount );
 
-        indeces.push_back( (long)(*it).nFirst );
-        indeces.push_back( (long)(*it).nCount );
+        indeces.push_back( static_cast<long>((*it).nFirst) );
+        indeces.push_back( static_cast<long>((*it).nCount) );
 
         itOffsets = (*it).vecOffsets.begin();
         while( itOffsets != (*it).vecOffsets.end() )
         {
             if( (*itOffsets).cUsed == 'n' )
             {
-                buffer[0]         = (char)1;
-                buffer[bufferLen] = (char)0;
+                buffer[0]         = static_cast<char>(1);
+                buffer[bufferLen] = static_cast<char>(0);
             }
             else if( (*itOffsets).cUsed == 'f' )
             {
-                buffer[0]         = (char)0;
-                buffer[bufferLen] = (char)1;
+                buffer[0]         = static_cast<char>(0);
+                buffer[bufferLen] = static_cast<char>(1);
             }
 
             *pValue = (STREAM_OFFSET_TYPE)((*itOffsets).lOffset );
@@ -594,7 +594,7 @@ void PdfWriter::WriteXRefStream( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevi
 
 void PdfWriter::FillTrailerObject( PdfObject* pTrailer, long lSize, bool bPrevEntry, bool bOnlySizeKey )
 {
-    PdfVariant place_holder( (long)0 );
+    PdfVariant place_holder( 0l );
     place_holder.SetPaddingLength( LINEARIZATION_PADDING );
 
     pTrailer->GetDictionary().AddKey( PdfName::KeySize, lSize );
@@ -631,7 +631,7 @@ void PdfWriter::FetchPagesTree()
         }
 
         printf("Fetching: %lu\n", pRoot->GetReference().ObjectNumber() );
-        printf("Size    : %i\n", (int)m_vecObjects->size() );
+        printf("Size    : %i\n", static_cast<int>(m_vecObjects->size()) );
         pRoot            = m_vecObjects->GetObject( pRoot->GetReference() );
         if( !pRoot ) 
         {
@@ -646,7 +646,7 @@ void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDev
                                              PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset )
 {
     long            lFileSize        = pDevice->GetLength();
-    PdfVariant      value( (long)0 );
+    PdfVariant      value( 0l );
     PdfArray        hints;
     PdfObject       trailer;
 
@@ -712,7 +712,7 @@ void PdfWriter::CreateFileIdentifier( PdfObject* pTrailer )
 
     pInfo->WriteObject( &length );
 
-    pBuffer = (char*)malloc( sizeof(char) * length.GetLength() );
+    pBuffer = static_cast<char*>(malloc( sizeof(char) * length.GetLength() ));
     if( !pBuffer )
     {
         delete pInfo;

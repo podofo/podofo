@@ -67,6 +67,7 @@ PdfError::PdfError( const EPdfError & eCode, const char* pszFile, int line, cons
 }
 
 PdfError::PdfError( const PdfError & rhs )
+    : std::exception()
 {
     this->operator=( rhs );
 }

@@ -47,11 +47,37 @@ dnl ==========================================================================
 AM_INIT_AUTOMAKE([ -Wall -Werror ]) dnl
 AC_PROG_LIBTOOL
 
-dnl Enable profiling, optimization level 2 and full debugging support
-CXXFLAGS="-O2 -g3 -Wall"
 
 AC_PROG_CXX
 AC_HAVE_HEADERS(string.h stdio.h)
+
+AC_ARG_ENABLE( debug,
+              [  --enable-debug=no|yes|full (default: yes)
+                 no:      Build a fast and small executable with no debug symbols
+                 yes:     Build a fast but big executable with debug symbols
+                 full:    Build a big slow executable with more complete debugging
+                          and sanity checking ],
+              [ enable_debug=$enableval ], [ enable_debug=yes ] )
+
+base_warnings="-W -Wall -Wold-style-cast -Woverloaded-virtual -Wswitch-enum -Wfloat-equal -Wcast-qual -Wwrite-strings -Wredundant-decls"
+# TODO: Detect gcc4 and enable
+#   -Wextra -Wstrict-null-sentinel -Wmissing-include-dirs -Winit-self
+# as well.
+
+case "$enable_debug" in
+	no)
+		CXXFLAGS="${CXXFLAGS} -O2 $base_warnings"
+	;;
+	yes)
+		CXXFLAGS="${CXXFLAGS} -O2 -g3 -Winline $base_warnings"
+	;;
+	full)
+		CXXFLAGS="${CXXFLAGS} -O -g3 -fno-inline -DPODOFO_CHECKED=1 $base_warnings"
+	;;
+	*)
+		AC_MSG_ERROR( [ Unsupported argument --enable-debug=$enable_debug . See $0 --help ] )
+	;;
+esac
 
 # Check for portability requirements reported by
 # autoscan
@@ -74,7 +100,6 @@ AC_HEADER_STDBOOL
 AC_STRUCT_TM
 AC_TYPE_SIZE_T
 
-			 
 dnl checking for required libraries
 AC_CHECK_LIB(z, deflate,, ZLIBMISSING=true)
 AC_CHECK_LIB(jpeg, jpeg_write_raw_data,, JPEGLIBMISSING=true)
@@ -121,5 +146,3 @@ AC_OUTPUT( [
 	   tools/podofopdfinfo/Makefile 
 	   tools/podofomerge/Makefile 
 	   ] )
-
-

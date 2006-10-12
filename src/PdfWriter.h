@@ -131,7 +131,7 @@ class PdfWriter {
     /** Get the file format version of the pdf
      *  \returns the file format version as string
      */
-    const char* GetPdfVersionString() const { return s_szPdfVersionNums[(int)m_eVersion]; }
+    const char* GetPdfVersionString() const { return s_szPdfVersionNums[static_cast<int>(m_eVersion)]; }
 
     /** Set wether all streams in the pdf document should
      *  be compress using the FlateDecode algorithm.

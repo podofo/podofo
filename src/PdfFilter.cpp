@@ -114,7 +114,7 @@ void PdfHexFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffe
     }
 
     *plOutLen = (lInLen << 1);
-    *ppOutBuffer = (char*)malloc( *plOutLen * sizeof(char) );
+    *ppOutBuffer = static_cast<char*>(malloc( *plOutLen * sizeof(char) ));
     if( !*ppOutBuffer )
     {
         RAISE_ERROR( ePdfError_OutOfMemory );
@@ -148,7 +148,7 @@ void PdfHexFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffe
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    *ppOutBuffer = (char*)malloc( sizeof(char) * (lInLen >> 1) );
+    *ppOutBuffer = static_cast<char*>(malloc( sizeof(char) * (lInLen >> 1) ));
     pStart       = *ppOutBuffer;
 
     if( !pStart )
@@ -201,8 +201,8 @@ void PdfAscii85Filter::Encode( const char* pInBuffer, long lInLen, char** ppOutB
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    *plOutLen = (int)(lInLen/4) * 6;
-    *ppOutBuffer = (char*)malloc( *plOutLen * sizeof(char) );
+    *plOutLen = static_cast<int>(lInLen/4) * 6;
+    *ppOutBuffer = static_cast<char*>(malloc( *plOutLen * sizeof(char) ));
    
     if( !*ppOutBuffer )
     {
@@ -267,7 +267,7 @@ void PdfAscii85Filter::Encode( char* pBuffer, int* bufferPos, long lBufferLen, u
         {
             RAISE_ERROR( ePdfError_OutOfMemory );
         }
-        pBuffer[(*bufferPos)++] = (unsigned char)(*--start) + '!';
+        pBuffer[(*bufferPos)++] = static_cast<unsigned char>(*--start) + '!';
     } 
     while (i-- > 0);
 }
@@ -284,7 +284,7 @@ void PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutB
     }
 
     *plOutLen    = lInLen;
-    *ppOutBuffer = (char*)malloc( *plOutLen * sizeof(char) );
+    *ppOutBuffer = static_cast<char*>(malloc( *plOutLen * sizeof(char) ));
    
     if( !*ppOutBuffer )
     {
@@ -353,22 +353,22 @@ void PdfAscii85Filter::WidePut( char* pBuffer, int* bufferPos, long lBufferLen, 
 
     switch (bytes) {
 	case 4:
-            pBuffer[ (*bufferPos)++ ] = (char)(tuple >> 24);
-            pBuffer[ (*bufferPos)++ ] = (char)(tuple >> 16);
-            pBuffer[ (*bufferPos)++ ] = (char)(tuple >>  8);
-            pBuffer[ (*bufferPos)++ ] = (char)(tuple);
+            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple >> 24);
+            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple >> 16);
+            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple >>  8);
+            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple);
             break;
 	case 3:
-            pBuffer[ (*bufferPos)++ ] = (char)(tuple >> 24);
-            pBuffer[ (*bufferPos)++ ] = (char)(tuple >> 16);
-            pBuffer[ (*bufferPos)++ ] = (char)(tuple >>  8);
+            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple >> 24);
+            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple >> 16);
+            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple >>  8);
             break;
 	case 2:
-            pBuffer[ (*bufferPos)++ ] = (char)(tuple >> 24);
-            pBuffer[ (*bufferPos)++ ] = (char)(tuple >> 16);
+            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple >> 24);
+            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple >> 16);
             break;
 	case 1:
-            pBuffer[ (*bufferPos)++ ] = (char)(tuple >> 24);
+            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple >> 24);
             break;
     }
 }
@@ -403,7 +403,7 @@ void PdfFlateFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuf
 #else
     lBufLen = deflateBound( &d_stream, lInLen );
 #endif
-    buf = (char*)malloc( sizeof( char ) * lBufLen );
+    buf = static_cast<char*>(malloc( sizeof( char ) * lBufLen ));
     if( !buf )
     {
         RAISE_ERROR( ePdfError_OutOfMemory );
@@ -476,9 +476,9 @@ void PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuf
         have = CHUNK - strm.avail_out;
 
         if( pBuf )
-            pBuf = (char*)realloc( pBuf, sizeof( char ) * (lBufSize + have) );
+            pBuf = static_cast<char*>(realloc( pBuf, sizeof( char ) * (lBufSize + have) ));
         else
-            pBuf = (char*)malloc( sizeof( char ) * (lBufSize + have) );
+            pBuf = static_cast<char*>(malloc( sizeof( char ) * (lBufSize + have) ));
 
         if( !pBuf )
         {
@@ -540,7 +540,7 @@ void PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, cons
 
     nRows = (pParams->nColumns * pParams->nBPC) >> 3; 
 
-    pPrev = (unsigned char*)malloc( sizeof(char) * nRows );
+    pPrev = static_cast<unsigned char*>(malloc( sizeof(char) * nRows ));
     if( !pPrev )
     {
         RAISE_ERROR( ePdfError_OutOfMemory );
@@ -552,7 +552,7 @@ void PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, cons
     PdfError::DebugMessage("Alloc: %i\n", (lInLen / (pParams->nColumns + 1)) * pParams->nColumns );
 #endif // _DEBUG
 
-    *ppOutBuffer = (char*)malloc( sizeof(char) * (lInLen / (pParams->nColumns + 1)) * pParams->nColumns );
+    *ppOutBuffer = static_cast<char*>(malloc( sizeof(char) * (lInLen / (pParams->nColumns + 1)) * pParams->nColumns ));
     pOutBufStart = *ppOutBuffer;
 
     if( !*ppOutBuffer )
@@ -577,7 +577,7 @@ void PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, cons
                 case 10: // png none
                 case 11: // png sub
                 case 12: // png up
-                    *pOutBufStart = (unsigned char)(pPrev[i] + (unsigned char)*pBuffer);
+                    *pOutBufStart = static_cast<unsigned char>(pPrev[i] + (unsigned char)*pBuffer);
                     break;
                 case 13: // png average
                 case 14: // png paeth
@@ -626,7 +626,7 @@ void PdfRLEFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffe
 
     lCur  = 0;
     lSize = lInLen;
-    pBuf  = (char*)malloc( sizeof(char)*lSize );
+    pBuf  = static_cast<char*>(malloc( sizeof(char)*lSize ));
     if( !pBuf )
     {
         RAISE_ERROR( ePdfError_OutOfMemory );
@@ -646,7 +646,7 @@ void PdfRLEFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffe
             {
                 // buffer to small, do a realloc
                 lSize = PDF_MAX( lCur + cLen+1, lSize << 1 );
-                pBuf  = (char*)realloc( pBuf, lSize  );
+                pBuf  = static_cast<char*>(realloc( pBuf, lSize  ));
                 if( !pBuf )
                 {
                     RAISE_ERROR( ePdfError_OutOfMemory );
@@ -666,7 +666,7 @@ void PdfRLEFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffe
             {
                 // buffer to small, do a realloc
                 lSize = PDF_MAX( lCur + cLen, lSize << 1 );
-                pBuf  = (char*)realloc( pBuf, lSize  );
+                pBuf  = static_cast<char*>(realloc( pBuf, lSize ));
                 if( !pBuf )
                 {
                     RAISE_ERROR( ePdfError_OutOfMemory );
@@ -804,7 +804,7 @@ void PdfLZWFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffe
         }
     }
 
-    *ppOutBuffer = (char*)malloc( sizeof(char) * output.size() );
+    *ppOutBuffer = static_cast<char*>(malloc( sizeof(char) * output.size() ));
     if( !*ppOutBuffer ) 
     {
         RAISE_ERROR( ePdfError_OutOfMemory );

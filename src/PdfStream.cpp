@@ -49,7 +49,7 @@ void PdfStream::Empty()
     m_buffer = PdfRefCountedBuffer();
 
     if( m_pParent )
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)m_buffer.GetSize() ) );
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( static_cast<long>(m_buffer.GetSize()) ) );
 }
 
 void PdfStream::Set( char* szBuffer, long lLen, bool takePossession )
@@ -65,7 +65,7 @@ void PdfStream::Set( char* szBuffer, long lLen, bool takePossession )
     m_buffer.SetTakePossesion( takePossession );
 
     if( m_pParent )
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)m_buffer.GetSize() ) );
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( static_cast<long>(m_buffer.GetSize()) ) );
 }
 
 void PdfStream::Set( const char* pszString )
@@ -104,7 +104,7 @@ void PdfStream::Append( const char* pszString, size_t lLen )
     m_buffer.Append( pszString, lLen );
 
     if( m_pParent )
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)m_buffer.GetSize() ) );
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( static_cast<long>(m_buffer.GetSize()) ) );
 }
 
 void PdfStream::GetCopy( char** pBuffer, long* lLen ) const
@@ -114,7 +114,7 @@ void PdfStream::GetCopy( char** pBuffer, long* lLen ) const
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    *pBuffer = (char*)malloc( sizeof( char ) * m_buffer.GetSize() );
+    *pBuffer = static_cast<char*>(malloc( sizeof( char ) * m_buffer.GetSize() ));
     *lLen = m_buffer.GetSize();
     
     if( !*pBuffer )
@@ -437,7 +437,7 @@ EPdfFilter PdfStream::FilterNameToType( const PdfName & name )
     while( aszFilters[i] )
     {
         if( name == aszFilters[i] )
-            return (EPdfFilter)i;
+            return static_cast<EPdfFilter>(i);
         
         ++i;
     }
@@ -451,7 +451,7 @@ const PdfStream & PdfStream::operator=( const PdfStream & rhs )
     m_buffer = rhs.m_buffer;
 
     if( m_pParent ) 
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( (long)(m_buffer.GetSize()) ) );
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( static_cast<long>(m_buffer.GetSize()) ) );
 
     return *this;
 }

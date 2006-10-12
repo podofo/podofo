@@ -51,7 +51,7 @@ PdfRefCountedBuffer::PdfRefCountedBuffer( long lSize )
     {
         m_pBuffer = new TRefCountedBuffer();
         m_pBuffer->m_lRefCount     = 1;
-        m_pBuffer->m_pBuffer       = (char*)malloc( sizeof(char)*lSize );
+        m_pBuffer->m_pBuffer       = static_cast<char*>(malloc( sizeof(char)*lSize ));
         m_pBuffer->m_lSize         = lSize;
         m_pBuffer->m_lInternalSize = lSize;
         m_pBuffer->m_bPossesion    = true;
@@ -109,7 +109,7 @@ void PdfRefCountedBuffer::Append( const char* pszString, long lLen )
             {
                 // TODO: increase the size as in a vector
                 m_pBuffer->m_lInternalSize = (((m_pBuffer->m_lSize + lLen) / STREAM_SIZE_INCREASE) + 1) * STREAM_SIZE_INCREASE;
-                pBuffer = (char*)malloc( sizeof(char) * m_pBuffer->m_lInternalSize );
+                pBuffer = static_cast<char*>(malloc( sizeof(char) * m_pBuffer->m_lInternalSize ));
                 memcpy( pBuffer, m_pBuffer->m_pBuffer, m_pBuffer->m_lSize );
                 memcpy( pBuffer + m_pBuffer->m_lSize, pszString, lLen );
 

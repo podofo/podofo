@@ -61,7 +61,7 @@ static char* MD5End(MD5_CTX *ctx, char *buf)
 
   if (!buf)
   {
-    buf = (char *)malloc(33);
+    buf = static_cast<char*>(malloc(33));
   }
     
   if (!buf)
@@ -104,7 +104,7 @@ static void MD5Final(unsigned char digest[MD5_HASHBYTES], MD5_CTX *ctx)
   {
     /* Two lots of padding:  Pad the first block to 64 bytes */
     memset(p, 0, count);
-    MD5Transform(ctx->buf, (unsigned int *) ctx->in);
+    MD5Transform(ctx->buf, reinterpret_cast<unsigned int *>(ctx->in));
 
     /* Now fill the next block with 56 bytes */
     memset(ctx->in, 0, 56);
@@ -116,10 +116,10 @@ static void MD5Final(unsigned char digest[MD5_HASHBYTES], MD5_CTX *ctx)
   }
 
   /* Append length in bits and transform */
-  ((unsigned int *) ctx->in)[14] = ctx->bits[0];
-  ((unsigned int *) ctx->in)[15] = ctx->bits[1];
+  reinterpret_cast<unsigned int *>(ctx->in)[14] = ctx->bits[0];
+  reinterpret_cast<unsigned int *>(ctx->in)[15] = ctx->bits[1];
 
-  MD5Transform(ctx->buf, (unsigned int *) ctx->in);
+  MD5Transform(ctx->buf, reinterpret_cast<unsigned int *>(ctx->in));
   memcpy(digest, ctx->buf, MD5_HASHBYTES);
   memset((char *) ctx, 0, sizeof(ctx));       /* In case it's sensitive */
 }
@@ -142,7 +142,7 @@ static void MD5Update(MD5_CTX *ctx, unsigned char const *buf, unsigned len)
   /* Update bitcount */
 
   t = ctx->bits[0];
-  if ((ctx->bits[0] = t + ((unsigned int) len << 3)) < t)
+  if ((ctx->bits[0] = t + ( static_cast<unsigned int>(len) << 3)) < t)
   {
         ctx->bits[1]++;         /* Carry from low to high */
   }
@@ -154,7 +154,7 @@ static void MD5Update(MD5_CTX *ctx, unsigned char const *buf, unsigned len)
 
   if (t)
   {
-    unsigned char *p = (unsigned char *) ctx->in + t;
+    unsigned char *p = static_cast<unsigned char *>(ctx->in) + t;
 
     t = 64 - t;
     if (len < t)
@@ -163,7 +163,7 @@ static void MD5Update(MD5_CTX *ctx, unsigned char const *buf, unsigned len)
       return;
     }
     memcpy(p, buf, t);
-    MD5Transform(ctx->buf, (unsigned int *) ctx->in);
+    MD5Transform(ctx->buf, reinterpret_cast<unsigned int *>(ctx->in));
     buf += t;
     len -= t;
   }
@@ -172,7 +172,7 @@ static void MD5Update(MD5_CTX *ctx, unsigned char const *buf, unsigned len)
   while (len >= 64)
   {
     memcpy(ctx->in, buf, 64);
-    MD5Transform(ctx->buf, (unsigned int *) ctx->in);
+    MD5Transform(ctx->buf, reinterpret_cast<unsigned int *>(ctx->in));
     buf += 64;
     len -= 64;
   }

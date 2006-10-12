@@ -51,7 +51,6 @@ void draw( char* pszBuffer, PdfDocument* pDocument )
 
     double dX       = BORDER_LEFT;
     double dY       = BORDER_TOP;
-    double w        = 0;
     char*  pszStart = pszBuffer;
 
     size            = PdfPage::CreateStandardPageSize( ePdfPageSize_A4 );
@@ -106,7 +105,7 @@ void init( const char* pszInput, const char* pszOutput )
     fseek( hFile, 0x00, SEEK_END );
     lSize  = ftell( hFile );
 
-    pszBuf = (char*)malloc( sizeof( char ) * (lSize+1) );
+    pszBuf = static_cast<char*>(malloc( sizeof( char ) * (lSize+1) ));
     fseek( hFile, 0x00, SEEK_SET );
     if( !pszBuf )
     {

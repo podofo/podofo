@@ -29,6 +29,7 @@ PdfDictionary::PdfDictionary()
 }
 
 PdfDictionary::PdfDictionary( const PdfDictionary & rhs )
+    : PdfDataType()
 {
     this->operator=( rhs );
 }

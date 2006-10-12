@@ -522,7 +522,9 @@ class PdfPainter {
 // -----------------------------------------------------
 void PdfPainter::DrawImage( double dX, double dY, PdfImage* pObject, double dScaleX, double dScaleY )
 {
-    this->DrawXObject( dX, dY, (PdfXObject*)pObject, dScaleX, dScaleY );
+    // we know pObject is a PdfXObject, but the compiler doesn't
+    // so we must use a reinterpret_cast here.
+    this->DrawXObject( dX, dY, reinterpret_cast<PdfXObject*>(pObject), dScaleX, dScaleY );
 }
 
 // -----------------------------------------------------

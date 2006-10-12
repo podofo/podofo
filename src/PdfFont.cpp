@@ -97,8 +97,8 @@ void PdfFont::Init( bool bEmbedd )
 
     m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("TrueType") );
     m_pObject->GetDictionary().AddKey("BaseFont", m_BaseFont );
-    m_pObject->GetDictionary().AddKey("FirstChar", PdfVariant( (long)FIRST_CHAR ) );
-    m_pObject->GetDictionary().AddKey("LastChar", PdfVariant( (long)LAST_CHAR ) );
+    m_pObject->GetDictionary().AddKey("FirstChar", PdfVariant( static_cast<long>(FIRST_CHAR) ) );
+    m_pObject->GetDictionary().AddKey("LastChar", PdfVariant( static_cast<long>(LAST_CHAR) ) );
     m_pObject->GetDictionary().AddKey("Encoding", PdfName("WinAnsiEncoding") );
     m_pObject->GetDictionary().AddKey("Widths", pWidth->Reference() );
     m_pObject->GetDictionary().AddKey( "FontDescriptor", pDescriptor->Reference() );
@@ -107,13 +107,13 @@ void PdfFont::Init( bool bEmbedd )
 
     pDescriptor->GetDictionary().AddKey( "FontName", m_BaseFont );
     //pDescriptor->GetDictionary().AddKey( "FontWeight", (long)m_pMetrics->Weight() );
-    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( (long)32 ) ); // TODO: 0 ????
+    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( 32l ) ); // TODO: 0 ????
     pDescriptor->GetDictionary().AddKey( "FontBBox", array );
-    pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( (long)m_pMetrics->GetItalicAngle() ) );
+    pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<long>(m_pMetrics->GetItalicAngle()) ) );
     pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetPdfAscent() );
     pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetPdfDescent() );
     pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetPdfAscent() ); // //m_pMetrics->CapHeight() );
-    pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( (long)1 ) ); //m_pMetrics->StemV() );
+    pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( 1l ) ); //m_pMetrics->StemV() );
 
     if( bEmbedd )
     {
@@ -140,6 +140,7 @@ void PdfFont::EmbeddFont( PdfObject* pDescriptor )
     // otherwise, load from disk
     if ( m_pMetrics->GetFontDataLen() && m_pMetrics->GetFontData() ) 
     {
+        // FIXME const_cast<char*> is dangerous if string literals may ever be passed
         pBuffer = const_cast<char*>( m_pMetrics->GetFontData() );
         lSize = m_pMetrics->GetFontDataLen();
     } 
@@ -155,7 +156,7 @@ void PdfFont::EmbeddFont( PdfObject* pDescriptor )
         lSize = ftell( hFile );
         fseek( hFile, 0, SEEK_SET );
         
-        pBuffer = (char*)malloc( sizeof(char) * lSize );
+        pBuffer = static_cast<char*>(malloc( sizeof(char) * lSize ));
         fread( pBuffer, lSize, sizeof(char), hFile ); 
         
         fclose( hFile );

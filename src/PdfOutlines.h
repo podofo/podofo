@@ -271,6 +271,8 @@ class PdfOutlines : public PdfOutlineItem {
      */
     PdfOutlines( PdfObject* pObject );
 
+    virtual ~PdfOutlines() { }
+
     /** Create the root node of the 
      *  outline item tree.
      *

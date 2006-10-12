@@ -36,7 +36,7 @@ using namespace std;
 namespace PoDoFo {
 
 PdfObject::PdfObject()
-    : PdfVariant( PdfDictionary() ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+    : PdfVariant( PdfDictionary() ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
     Init( true );
 }
@@ -57,60 +57,60 @@ PdfObject::PdfObject( const PdfReference & rRef, const PdfVariant & rVariant )
 }
 
 PdfObject::PdfObject( const PdfVariant & var )
-    : PdfVariant( var ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+    : PdfVariant( var ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
     Init( true );
 }
 
 PdfObject::PdfObject( bool b )
-    : PdfVariant( b ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+    : PdfVariant( b ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
     Init( false );
 }
 
 PdfObject::PdfObject( long l )
-    : PdfVariant( l ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+    : PdfVariant( l ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
     Init( false );
 }
 
 PdfObject::PdfObject( double d )
-    : PdfVariant( d ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+    : PdfVariant( d ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
     Init( false );
 }
 
 PdfObject::PdfObject( const PdfString & rsString )
-    : PdfVariant( rsString ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+    : PdfVariant( rsString ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
     Init( false );
 }
 
 PdfObject::PdfObject( const PdfName & rName )
-    : PdfVariant( rName ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+    : PdfVariant( rName ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
     Init( false );
 }
 
 PdfObject::PdfObject( const PdfReference & rRef )
-    : PdfVariant( rRef ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+    : PdfVariant( rRef ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
     Init( false );
 }
 
 PdfObject::PdfObject( const PdfArray & tList )
-    : PdfVariant( tList ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+    : PdfVariant( tList ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
     Init( false );
 }
 
 PdfObject::PdfObject( const PdfDictionary & rDict )
-    : PdfVariant( rDict ), m_reference( (unsigned long)-1, (unsigned long)-1 )
+    : PdfVariant( rDict ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
     Init( false );
 }
 
-PdfObject::PdfObject( const PdfObject & rhs )
+PdfObject::PdfObject( const PdfObject & rhs ) : PdfVariant()
 {
     Init( false );
 
@@ -133,8 +133,8 @@ void PdfObject::Init( bool bLoadOnDemandDone )
 
 void PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
 {
-    bool          bIndirect = ( (long)m_reference.ObjectNumber() != -1  && (long)m_reference.GenerationNumber() != -1 );
-    bool          bIsTrailer = ( (long)m_reference.ObjectNumber() == 0  && (long)m_reference.GenerationNumber() == 0 );
+    bool          bIndirect = ( static_cast<long>(m_reference.ObjectNumber()) != -1  && static_cast<long>(m_reference.GenerationNumber()) != -1 );
+    bool          bIsTrailer = ( static_cast<long>(m_reference.ObjectNumber()) == 0  && static_cast<long>(m_reference.GenerationNumber()) == 0 );
 
     DelayedStreamLoad();
 

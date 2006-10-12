@@ -176,7 +176,7 @@ void PdfParser::ReadDocumentStructure()
     PdfError::DebugMessage("Allocating for %i objects\n", m_nNumObjects );
 #endif // _DEBUG
 
-    m_pOffsets = (TXRefEntry*)malloc( sizeof( TXRefEntry ) * (m_nNumObjects+1)  );
+    m_pOffsets = static_cast<TXRefEntry*>(malloc( sizeof( TXRefEntry ) * (m_nNumObjects+1)  ));
     memset( m_pOffsets, 0, sizeof( TXRefEntry ) * m_nNumObjects );
 
 #ifdef _DEBUG
@@ -226,7 +226,7 @@ bool PdfParser::IsPdfFile()
     for( i=0;i<=MAX_PDF_VERSION_STRING_INDEX;i++ )
         if( strncmp( m_buffer.GetBuffer(), s_szPdfVersions[i], PDF_MAGIC_LEN ) == 0 )
         {
-            m_ePdfVersion = (EPdfVersion)i;
+            m_ePdfVersion = static_cast<EPdfVersion>(i);
             break;
         }
 
@@ -309,7 +309,7 @@ void PdfParser::HasLinearizationDict()
         {
             PdfError::LogMessage( eLogSeverity_Warning, 
                                   "Linearization dictionaries are only supported with PDF version 1.5. This is 1.%i. Trying to continue.\n", 
-                                  (int)m_ePdfVersion );
+                                  static_cast<int>(m_ePdfVersion) );
             // RAISE_ERROR( ePdfError_InvalidLinearization );
         }
 
@@ -809,7 +809,7 @@ void PdfParser::ReadObjects()
                 
                 // final pdf should not contain a linerization dictionary as it contents are invalid 
                 // as we change some objects and the final xref table
-                if( m_pLinearization && nLast == (int)m_pLinearization->Reference().ObjectNumber() )
+                if( m_pLinearization && nLast == static_cast<int>(m_pLinearization->Reference().ObjectNumber()) )
                 {
                     m_vecObjects->AddFreeObject( pObject->Reference() );
                     delete pObject;
@@ -906,7 +906,7 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
         lOff = strtol( pNumbers, &pNumbers, 10 );
         
         pObj = new PdfParserObject( m_buffer );
-        pObj->ParseDictionaryKeys( (char*)(pBuffer+lFirst+lOff), lBufferLen-lFirst-lOff, NULL );
+        pObj->ParseDictionaryKeys( static_cast<char*>((pBuffer+lFirst+lOff)), lBufferLen-lFirst-lOff, NULL );
         
         pObj->SetObjectNumber( lObj );
         
@@ -919,7 +919,7 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
 
 const char* PdfParser::GetPdfVersionString() const
 {
-    return s_szPdfVersions[(int)m_ePdfVersion];
+    return s_szPdfVersions[static_cast<int>(m_ePdfVersion)];
 }
 
 };

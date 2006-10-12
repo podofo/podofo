@@ -82,32 +82,34 @@ public:
     pdf_uint16 nContentsLength;
 
 public:
-    void Write( PdfHintStream* pHint )
-    {
-        TCIVecPageEntrySharedObjectInfo it;
-
-        pHint->WriteUInt16( nObjectsPerPage );
-        pHint->WriteUInt16( nPageLength );
-        pHint->WriteUInt16( nSharedObjects );
-
-        it = vecSharedObjects.begin();
-        while( it != vecSharedObjects.end() )
-        {
-            pHint->WriteUInt16( (*it).nIndex );
-            ++it;
-        }
-
-        it = vecSharedObjects.begin();
-        while( it != vecSharedObjects.end() )
-        {
-            pHint->WriteUInt16( (*it).nNumerator );
-            ++it;
-        }
-
-        pHint->WriteUInt16( nContentsOffset );
-        pHint->WriteUInt16( nContentsLength );
-    }
+    void Write( PdfHintStream* pHint );
 };
+
+void PdfPageOffsetEntry::Write( PdfHintStream* pHint )
+{
+    TCIVecPageEntrySharedObjectInfo it;
+
+    pHint->WriteUInt16( nObjectsPerPage );
+    pHint->WriteUInt16( nPageLength );
+    pHint->WriteUInt16( nSharedObjects );
+
+    it = vecSharedObjects.begin();
+    while( it != vecSharedObjects.end() )
+    {
+        pHint->WriteUInt16( (*it).nIndex );
+        ++it;
+    }
+
+    it = vecSharedObjects.begin();
+    while( it != vecSharedObjects.end() )
+    {
+        pHint->WriteUInt16( (*it).nNumerator );
+        ++it;
+    }
+
+    pHint->WriteUInt16( nContentsOffset );
+    pHint->WriteUInt16( nContentsLength );
+}
 
 class PdfPageOffsetHeader {
 public:
@@ -222,7 +224,7 @@ public:
 PdfHintStream::PdfHintStream( PdfVecObjects* pParent, PdfPagesTree* pPagesTree )
     : PdfElement( NULL, pParent ), m_pPagesTree( pPagesTree )
 {
-    PdfVariant place_holder( (long)0 );
+    PdfVariant place_holder( 0l );
 
     m_bLittleEndian = podofo_is_little_endian();
 
@@ -318,8 +320,8 @@ void PdfHintStream::CreatePageHintTable( TVecXRefTable* pXRef )
     }
 
     header.nFirstPageObject              = (*pXRef)[0].vecOffsets[ m_pPagesTree->GetPage( 0 )->GetObject()->Reference().ObjectNumber() ].lOffset;
-    header.nBitsPageObject               = (pdf_uint16)ceil( logb( (double)(maxNumberOfObjects-header.nLeastNumberOfObjects) ) );
-    header.nBitsPageLength               = (pdf_uint16)ceil( logb( (double)(maxPageLength - header.nLeastPageLength) ) );
+    header.nBitsPageObject               = (pdf_uint16)ceil( logb( static_cast<double>(maxNumberOfObjects-header.nLeastNumberOfObjects) ) );
+    header.nBitsPageLength               = (pdf_uint16)ceil( logb( static_cast<double>(maxPageLength - header.nLeastPageLength) ) );
     header.nOffsetContentStream          = 0; // acrobat sets this to 0 and ignores it
     header.nBitsContentStream            = 0; // acrobat sets this to 0 and ignores it
     header.nLeastContentStreamLength     = 0; // acrobat sets this to 0 and ignores it
@@ -341,7 +343,7 @@ void PdfHintStream::CreatePageHintTable( TVecXRefTable* pXRef )
 
 void PdfHintStream::CreateSharedObjectHintTable()
 {
-    PdfVariant offset( (long)m_pObject->GetStream()->GetLength() );
+    PdfVariant offset( static_cast<long>(m_pObject->GetStream()->GetLength()) );
     offset.SetPaddingLength( LINEARIZATION_PADDING );
 
     m_pObject->GetDictionary().AddKey( "S", offset ); // shared object hint table
@@ -353,7 +355,7 @@ void PdfHintStream::WriteUInt16( pdf_uint16 val )
 {
     if( m_bLittleEndian ) 
     {
-        val = (pdf_uint16)htons( (u_short)val );
+        val = static_cast<pdf_uint16>(htons( static_cast<u_short>(val) ));
     }
 
     m_pObject->GetStream()->Append( (char*)&val, 2 );

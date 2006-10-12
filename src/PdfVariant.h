@@ -389,7 +389,7 @@ void PdfVariant::SetNumber( long l )
     }
 
     if ( IsReal() )
-        m_Data.dNumber = (double)l;
+        m_Data.dNumber = static_cast<double>(l);
     else
         m_Data.nNumber = l;
 }
@@ -407,7 +407,7 @@ long PdfVariant::GetNumber() const
     }
 
     if ( IsReal() )
-        return (long)floor( m_Data.dNumber );
+        return static_cast<long>(floor( m_Data.dNumber ));
     else
         return m_Data.nNumber;
 }
@@ -427,7 +427,7 @@ void PdfVariant::SetReal( double d )
     if ( IsReal() )
         m_Data.dNumber = d;
     else
-        m_Data.nNumber = (long)floor( d );
+        m_Data.nNumber = static_cast<long>(floor( d ));
 }
 
 // -----------------------------------------------------
@@ -445,7 +445,7 @@ double PdfVariant::GetReal() const
     if ( IsReal() )
         return m_Data.dNumber;
     else
-        return (double)m_Data.nNumber;
+        return static_cast<double>(m_Data.nNumber);
 }
 
 // -----------------------------------------------------
@@ -460,7 +460,7 @@ const PdfString & PdfVariant::GetString() const
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *((PdfString*)(m_pData));
+    return *(reinterpret_cast<PdfString* const>(m_pData));
 }
 
 // -----------------------------------------------------
@@ -475,7 +475,7 @@ const PdfName & PdfVariant::GetName() const
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *((PdfName*)(m_pData));
+    return *(reinterpret_cast<PdfName*>(m_pData));
 }
 
 // -----------------------------------------------------
@@ -490,7 +490,7 @@ const PdfArray & PdfVariant::GetArray() const
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *((PdfArray*)(m_pData));
+    return *(reinterpret_cast<PdfArray* const>(m_pData));
 }
 
 // -----------------------------------------------------
@@ -505,7 +505,7 @@ PdfArray & PdfVariant::GetArray()
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
     
-    return *((PdfArray*)(m_pData));
+    return *(reinterpret_cast<PdfArray* const>(m_pData));
 }
 
 // -----------------------------------------------------
@@ -520,7 +520,7 @@ const PdfDictionary & PdfVariant::GetDictionary() const
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *((PdfDictionary*)(m_pData));
+    return *(reinterpret_cast<PdfDictionary* const>(m_pData));
 }
 
 // -----------------------------------------------------
@@ -535,7 +535,7 @@ PdfDictionary & PdfVariant::GetDictionary()
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *((PdfDictionary*)(m_pData));
+    return *(reinterpret_cast<PdfDictionary* const>(m_pData));
 }
 
 // -----------------------------------------------------
@@ -550,7 +550,7 @@ const PdfReference & PdfVariant::GetReference() const
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *((PdfReference*)(m_pData));
+    return *(reinterpret_cast<PdfReference* const>(m_pData));
 }
 
 // -----------------------------------------------------
@@ -565,7 +565,7 @@ inline PdfReference & PdfVariant::GetReference()
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *((PdfReference*)(m_pData));
+    return *(reinterpret_cast<PdfReference* const>(m_pData));
 }
 
 };

@@ -34,6 +34,7 @@ PdfArray::PdfArray( const PdfObject & var )
 }
 
 PdfArray::PdfArray( const PdfArray & rhs )
+    : std::vector<PoDoFo::PdfObject>(), PdfDataType()
 {
     this->operator=( rhs );
 }

@@ -63,13 +63,13 @@ PdfAction::PdfAction( EPdfAction eAction, PdfVecObjects* pParent )
 PdfAction::PdfAction( PdfObject* pObject )
     : PdfElement( "Action", pObject )
 {
-    m_eType = (EPdfAction)TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions );
+    m_eType = static_cast<EPdfAction>(TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions ));
 }
 
 PdfAction::PdfAction( const PdfAction & rhs )
     : PdfElement( "Action", rhs.m_pObject )
 {
-    m_eType = (EPdfAction)TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions );
+    m_eType = static_cast<EPdfAction>(TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions ));
 }
 
 void PdfAction::SetURI( const PdfString & sUri )

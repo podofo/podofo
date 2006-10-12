@@ -130,7 +130,8 @@ PdfVariant::~PdfVariant()
 
 void PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
 {
-    char*    pszBuf    = (char*)pszData;
+    // FIXME const_cast<char*> where string literals may be passed VERY dangerous
+    char*    pszBuf    = const_cast<char*>(pszData);
     long     lLen      = 0;
     long     lArrayLen;
 
@@ -362,7 +363,8 @@ void PdfVariant::GetDataType( const char* pszData, long nLen, EPdfDataType* eDat
     if( (isdigit( c ) || c == '-' || c == '+' ) )
     {
         *eDataType   = ePdfDataType_Number;
-        char* pszBuf = (char*)pszData;
+        // FIXME const_cast<char*> where string literals may be passed VERY dangerous
+        char* pszBuf = const_cast<char*>(pszData);
         
         ++pszBuf;
         
@@ -450,7 +452,7 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) cons
         }
     };
 
-    nPad = (int)(pDevice->GetLength() - lLen);
+    nPad = static_cast<int>(pDevice->GetLength() - lLen);
     if( m_nPadding && nPad < m_nPadding )
     {
         std::string str( m_nPadding - nPad, ' ' ); 

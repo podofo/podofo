@@ -55,6 +55,8 @@ class PdfArray : public std::vector<PdfObject>, public PdfDataType {
      */
     PdfArray( const PdfArray & rhs );
 
+    virtual ~PdfArray() { }
+
     /** Remove all elements from the array
      */
     inline void Clear();

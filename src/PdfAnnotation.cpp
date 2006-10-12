@@ -89,7 +89,7 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
 PdfAnnotation::PdfAnnotation( PdfPage* pPage, PdfObject* pObject )
     : PdfElement( "Annot", pObject ), m_eAnnotation( ePdfAnnotation_Unknown ), m_pAction( NULL )
 {
-    m_eAnnotation = (EPdfAnnotation)TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( PdfName::KeySubtype ).GetName().c_str(), s_names, s_lNumActions );
+    m_eAnnotation = static_cast<EPdfAnnotation>(TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( PdfName::KeySubtype ).GetName().c_str(), s_names, s_lNumActions ));
 }
 
 PdfAnnotation::~PdfAnnotation()
@@ -121,15 +121,15 @@ void PdfAnnotation::SetAppearanceStream( PdfXObject* pObject )
 
 void PdfAnnotation::SetFlags( pdf_uint32 uiFlags )
 {
-    m_pObject->GetDictionary().AddKey( "F", PdfVariant( (long)uiFlags ) );
+    m_pObject->GetDictionary().AddKey( "F", PdfVariant( static_cast<long>(uiFlags) ) );
 }
 
 pdf_uint32 PdfAnnotation::GetFlags() const
 {
     if( m_pObject->GetDictionary().HasKey( "F" ) )
-        return (pdf_uint32)m_pObject->GetDictionary().GetKey( "F" )->GetNumber();
+        return static_cast<pdf_uint32>(m_pObject->GetDictionary().GetKey( "F" )->GetNumber());
 
-    return (pdf_uint32)0;
+    return static_cast<pdf_uint32>(0);
 }
 
 void PdfAnnotation::SetTitle( const PdfString & sTitle )

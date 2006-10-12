@@ -37,7 +37,7 @@ static const int s_nLenStream    = 6; // strlen("stream");
 static const int s_nLenEndStream = 9; // strlen("endstream");
 
 PdfParserObject::PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer, long lOffset )
-    : PdfObject( PdfReference( 0, 0 ), (const char*)NULL), PdfParserBase( rDevice, rBuffer )
+    : PdfObject( PdfReference( 0, 0 ), static_cast<const char*>(NULL)), PdfParserBase( rDevice, rBuffer )
 {
     m_pParent = pParent;
 
@@ -47,7 +47,7 @@ PdfParserObject::PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedInp
 }
 
 PdfParserObject::PdfParserObject( const PdfRefCountedBuffer & rBuffer )
-    : PdfObject( PdfReference( 0, 0 ), (const char*)NULL), PdfParserBase( PdfRefCountedInputDevice(), rBuffer )
+    : PdfObject( PdfReference( 0, 0 ), static_cast<const char*>(NULL)), PdfParserBase( PdfRefCountedInputDevice(), rBuffer )
 {
     Init();
 }
@@ -152,10 +152,10 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
             lDataLen = lDataLen << 1; // lDataLen *= 2
 
             if( bOwnBuffer )
-                szData = (char*)realloc( szData, lDataLen * sizeof(char) );
+                szData = static_cast<char*>(realloc( szData, lDataLen * sizeof(char) ));
             else
             {
-                szData = (char*)malloc( lDataLen * sizeof(char) );
+                szData = static_cast<char*>(malloc( lDataLen * sizeof(char) ));
                 memcpy( szData, m_buffer.GetBuffer(), lDataLen >> 1 );
                 bOwnBuffer = true;
             }
@@ -426,7 +426,7 @@ void PdfParserObject::ParseStream()
         RAISE_ERROR( ePdfError_InvalidStreamLength );
     }
 
-    szBuf = (char*)malloc( lLen * sizeof(char) );
+    szBuf = static_cast<char*>(malloc( lLen * sizeof(char) ));
     if( !szBuf ) 
     {
         RAISE_ERROR( ePdfError_OutOfMemory );

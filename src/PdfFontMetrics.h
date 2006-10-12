@@ -279,7 +279,7 @@ double PdfFontMetrics::GetLineSpacing() const
 // -----------------------------------------------------
 unsigned long PdfFontMetrics::GetLineSpacingMM() const
 {
-    return (unsigned long)(m_dLineSpacing / CONVERSION_CONSTANT);
+    return static_cast<unsigned long>(m_dLineSpacing / CONVERSION_CONSTANT);
 }
 
 // -----------------------------------------------------
@@ -295,7 +295,7 @@ double PdfFontMetrics::GetUnderlinePosition() const
 // -----------------------------------------------------
 long PdfFontMetrics::GetUnderlinePositionMM() const
 {
-    return (long)(m_dUnderlinePosition /  CONVERSION_CONSTANT);
+    return static_cast<long>(m_dUnderlinePosition /  CONVERSION_CONSTANT);
 }
 
 // -----------------------------------------------------
@@ -311,7 +311,7 @@ double PdfFontMetrics::GetUnderlineThickness() const
 // -----------------------------------------------------
 unsigned long PdfFontMetrics::GetUnderlineThicknessMM() const
 {
-    return (unsigned long)(m_dUnderlineThickness / CONVERSION_CONSTANT);
+    return static_cast<unsigned long>(m_dUnderlineThickness / CONVERSION_CONSTANT);
 }
 
 // -----------------------------------------------------

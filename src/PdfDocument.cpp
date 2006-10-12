@@ -91,7 +91,7 @@ PdfDocument::~PdfDocument()
     this->Clear();
 
 #if !defined(_WIN32) && !defined(__APPLE_CC__)
-    FcConfigDestroy( (FcConfig*)m_pFcConfig );
+    FcConfigDestroy( static_cast<FcConfig*>(m_pFcConfig) );
 #endif
 
     if( m_ftLibrary ) 
@@ -155,7 +155,7 @@ void PdfDocument::Clear()
 void PdfDocument::InitFonts()
 {
 #if !defined(_WIN32) && !defined(__APPLE_CC__)
-    m_pFcConfig     = (void*)FcInitLoadConfigAndFonts();
+    m_pFcConfig     = static_cast<void*>(FcInitLoadConfigAndFonts());
 #endif
 
     if( FT_Init_FreeType( &m_ftLibrary ) )
@@ -261,7 +261,7 @@ PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bEmbedd )
 #if defined(_WIN32) || defined(__APPLE_CC__)
     std::string       sPath = PdfFontMetrics::GetFilenameForFont( pszFontName );
 #else
-    std::string       sPath = PdfFontMetrics::GetFilenameForFont( (FcConfig*)m_pFcConfig, pszFontName );
+    std::string       sPath = PdfFontMetrics::GetFilenameForFont( static_cast<FcConfig*>(m_pFcConfig), pszFontName );
 #endif
     PdfFont*          pFont;
     PdfFontMetrics*   pMetrics;

@@ -79,9 +79,9 @@ void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight,
     m_rRect.SetWidth( nWidth );
     m_rRect.SetHeight( nHeight );
 
-    m_pObject->GetDictionary().AddKey( "Width", PdfVariant( (long)nWidth ) );
-    m_pObject->GetDictionary().AddKey( "Height", PdfVariant( (long)nHeight ) );
-    m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( (long)nBitsPerComponent ) );
+    m_pObject->GetDictionary().AddKey( "Width", PdfVariant( static_cast<long>(nWidth) ) );
+    m_pObject->GetDictionary().AddKey( "Height", PdfVariant( static_cast<long>(nHeight) ) );
+    m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<long>(nBitsPerComponent) ) );
 
     m_pObject->GetStream()->Set( szBuffer, lLen, bTakeOwnership );
     if ( m_pObject->GetDictionary().GetKey( "Filter" )->GetName() == "FlateDecode" ) 
@@ -129,7 +129,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
     lLen = ftell( hInfile );
     fseek( hInfile, 0, SEEK_SET );
 
-    szBuffer = (char*)malloc( lLen * sizeof(char) );
+    szBuffer = static_cast<char*>(malloc( lLen * sizeof(char) ));
     if( !szBuffer )
     {
         fclose( hInfile );
@@ -168,7 +168,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
     }
     
 	this->SetImageFilter( PdfName("DCTDecode") );	// DCTDecode == JPEG
-        this->SetImageData( (unsigned int)m_rRect.GetWidth(), (unsigned int)m_rRect.GetHeight(), 8 , szBuffer, lLen ); // 8 bits per component
+        this->SetImageData( static_cast<unsigned int>(m_rRect.GetWidth()), static_cast<unsigned int>(m_rRect.GetHeight()), 8 , szBuffer, lLen ); // 8 bits per component
 
     (void) jpeg_destroy_decompress(&cinfo);
 
