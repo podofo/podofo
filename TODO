@@ -3,7 +3,6 @@ PoDoFo 0.3
 
 FUTURE
     - PdfString needs to handle (optionally?) encoding & decoding of Unicode strings
-    - Garbage Collected save (renumber objects to remove unused ones)
     - More filters (read & write)
     - Content stream parsing
     - Support for attaching an ICC profile to an image or content stream
@@ -13,7 +12,7 @@ FUTURE
     - Deferred and possibly progressive stream loading during document-write
       out to save memory (ie deferred writing)
     - Support for reading & writing encrypted PDFs
-    - PdfWebWriter who creates linearized PDF files
     - Some more drawing routines (tiles, save and rstore?) also finish cleanup
       the existing ones revamp color support to be more general & support more
       types
+    - Interactive forms support
