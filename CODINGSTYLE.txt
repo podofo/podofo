@@ -30,9 +30,9 @@ simple editor settings.
 
     Brackets always start in a new line of their own. The only exception are
     class and struct declarations and try and catch blocks.
-    
+
     Example:
-    
+
     if( true ) 
     {
          // do something
@@ -55,7 +55,6 @@ simple editor settings.
     They are implemented in the header file after the class definition.  
     The author may choose to either implement them directly at the same location
     as the declaration or may place them at the end of the header file (preferred).
-
 
 2. Naming
 =========
@@ -98,10 +97,10 @@ simple editor settings.
     class MyClass {
 
     private:
-	bool m_bMemberVar;
+    bool m_bMemberVar;
 
     };
-    
+
 2.3 Methods
 
     All methods start with an uppercase letter and every new word is
@@ -123,7 +122,18 @@ simple editor settings.
     PdfDocument::IsLinearized();
 
 2.4 NULL-Pointers
-    
-    NULL Pointers are initialized in the code with the constant NULL. Please
-    do not use 0 or 0L but use NULL. 
 
+    NULL Pointers are initialized in the code with the constant NULL. Please
+    do not use 0 or 0L but use NULL.
+
+2.5 Casting
+
+    C++ style casting is strongly preferred, and the use of C-style casts will
+    generate warnings on gcc builds. Use, as appropriate,
+        static_cast<>
+        const_cast<>
+        reinterpret_cast<>
+    Dynamic casting and typeid are not presently used in PoDoFo.
+
+    const_cast<> should be avoided unless it is absolutely required, especially
+    for `const char *' variables that might ever take a string literal value.
