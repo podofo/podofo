@@ -63,6 +63,7 @@ compiler or Visual Studio 7.x (Windows) as well as the following libraries:
 
 Installation should be done on any Unix system with the following commands:
 
+make -f Makefile.svn  (only required when building from svn)
 ./configure
 make
 su
@@ -70,6 +71,8 @@ make install
 
 On Windows, use the provided Visual Studio Solution/Project files after
 placing the other libraries in a directory inside of the podofo directory.
+
+An XCode project is provided for Mac OS X users.
 
 5. Contact
 ==========
