@@ -357,7 +357,8 @@ static const char s_cDelimiters[] = {
  *
  * More information can be found at: http://podofo.sourceforge.net
  *
- * <b>PoDoFo</b> is created by Dominik Seichter <domseichter@web.de>
+ * <b>PoDoFo</b> is created by Dominik Seichter <domseichter@web.de>, 
+ * Leonard Rosenthol <leonardr@pdfsages.com> and Craig Ringer <craig@postnewspapers.com.au>
  *
  * \page Codingstyle (Codingstyle)
  * \verbinclude CODINGSTYLE.txt
