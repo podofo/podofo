@@ -337,11 +337,11 @@ void PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, long
 
             szBuffer+=lLen;
 
-#ifdef _DEBUG
+#ifdef PODOFO_VERBOSE_DEBUG
             cVariant.ToString( sValue );
             PdfError::DebugMessage("Key: (%s) Got Value: (%s) %i belongs to: %s\n", cName.GetName().c_str(), sValue.c_str(), (int)cVariant.GetDataType(), this->Reference().ToString().c_str() );
 
-#endif // _DEBUG
+#endif // PODOFO_VERBOSE_DEBUG
             this->GetDictionary().AddKey( cName, cVariant );
         }
         else if( *szBuffer == '>' )

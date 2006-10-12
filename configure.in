@@ -55,8 +55,8 @@ AC_ARG_ENABLE( debug,
               [  --enable-debug=no|yes|full (default: yes)
                  no:      Build a fast and small executable with no debug symbols
                  yes:     Build a fast but big executable with debug symbols
-                 full:    Build a big slow executable with more complete debugging
-                          and sanity checking ],
+                 full:    Build a big REALLY slow executable with more complete debugging
+                          and sanity checking plus lots of debug output ],
               [ enable_debug=$enableval ], [ enable_debug=yes ] )
 
 base_warnings="-std=c++98 -W -Wall -Wold-style-cast -Woverloaded-virtual -Wswitch-enum -Wfloat-equal -Wcast-qual -Wwrite-strings -Wredundant-decls"
@@ -72,7 +72,7 @@ case "$enable_debug" in
 		CXXFLAGS="${CXXFLAGS} -O2 -g3 $base_warnings"
 	;;
 	full)
-		CXXFLAGS="${CXXFLAGS} -O -g3 -fno-inline -DPODOFO_CHECKED=1 $base_warnings"
+		CXXFLAGS="${CXXFLAGS} -O -g3 -fno-inline -DPODOFO_CHECKED=1 -DPODOFO_VERBOSE_DEBUG=1 $base_warnings"
 	;;
 	*)
 		AC_MSG_ERROR( [ Unsupported argument --enable-debug=$enable_debug . See $0 --help ] )

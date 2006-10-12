@@ -74,7 +74,7 @@ PdfObject* PdfPagesTree::GetPageFromKidArray( PdfArray& inArray, int inIndex )
 {
     PdfVariant & kidsVar = inArray[ inIndex ];
 
-#ifdef _DEBUG
+#ifdef PODOFO_VERBOSE_DEBUG
     std::string str;
     kidsVar.ToString( str );
 #endif

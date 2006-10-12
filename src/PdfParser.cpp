@@ -172,16 +172,16 @@ void PdfParser::ReadDocumentStructure()
 
     m_nNumObjects = m_pTrailer->GetDictionary().GetKeyAsLong( PdfName::KeySize );
 
-#ifdef _DEBUG
+#ifdef PODOFO_VERBOSE_DEBUG
     PdfError::DebugMessage("Allocating for %i objects\n", m_nNumObjects );
-#endif // _DEBUG
+#endif // PODOFO_VERBOSE_DEBUG
 
     m_pOffsets = static_cast<TXRefEntry*>(malloc( sizeof( TXRefEntry ) * (m_nNumObjects+1)  ));
     memset( m_pOffsets, 0, sizeof( TXRefEntry ) * m_nNumObjects );
 
-#ifdef _DEBUG
+#ifdef PODOFO_VERBOSE_DEBUG
     PdfError::DebugMessage("Linearized Offset: %i Pointer: %p\n", m_nXRefLinearizedOffset, m_pLinearization );
-#endif // _DEBUG
+#endif // PODOFO_VERBOSE_DEBUG
 
     if( m_pLinearization )
     {
@@ -454,9 +454,9 @@ void PdfParser::ReadTrailer()
         e.AddToCallstack( __FILE__, __LINE__, "The trailer was found in the file, but contains errors." );
         throw e;
     }
-#ifdef _DEBUG
+#ifdef PODOFO_VERBOSE_DEBUG
     PdfError::DebugMessage("Size=%li\n", m_pTrailer->GetDictionary().GetKeyAsLong( PdfName::KeySize, 0 ) );
-#endif // _DEBUG
+#endif // PODOFO_VERBOSE_DEBUG
 }
 
 void PdfParser::ReadXRef( long* pXRefOffset )
@@ -538,9 +538,9 @@ void PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
             nFirstObject = GetNextNumberFromFile();
             nNumObjects  = GetNextNumberFromFile();
 
-#ifdef _DEBUG
+#ifdef PODOFO_VERBOSE_DEBUG
             PdfError::DebugMessage("Reading numbers: %i %i\n", nFirstObject, nNumObjects );
-#endif // _DEBUG
+#endif // PODOFO_VERBOSE_DEBUG
 
             if( bPositionAtEnd )
             {
@@ -575,9 +575,9 @@ void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
 {
     int         count        = 0;
 
-#ifdef _DEBUG
+#ifdef PODOFO_VERBOSE_DEBUG
     PdfError::DebugMessage("Reading XRef Section: %i with %i Objects\n", nFirstObject, nNumObjects );
-#endif // _DEBUG 
+#endif // PODOFO_VERBOSE_DEBUG 
 
     while( count < nNumObjects && m_device.Device()->Read( m_buffer.GetBuffer(), PDF_XREF_ENTRY_SIZE ) == PDF_XREF_ENTRY_SIZE )
     {

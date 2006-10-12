@@ -530,10 +530,10 @@ void PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, cons
     const char*   pBuffer = pInBuffer;
     int     nPredictor;
 
-#ifdef _DEBUG
+#ifdef PODOFO_VERBOSE_DEBUG
     PdfError::DebugMessage("Applying Predictor %i to buffer of size %i\n", pParams->nPredictor, lInLen );
     PdfError::DebugMessage("Cols: %i Modulo: %i Comps: %i\n", pParams->nColumns, lInLen % (pParams->nColumns +1), pParams->nBPC );
-#endif // _DEBUG
+#endif // PODOFO_VERBOSE_DEBUG
 
     if( pParams->nPredictor == 1 )  // No Predictor
         return;
@@ -548,9 +548,9 @@ void PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, cons
 
     memset( pPrev, 0, sizeof(char) * nRows );
 
-#ifdef _DEBUG
+#ifdef PODOFO_VERBOSE_DEBUG
     PdfError::DebugMessage("Alloc: %i\n", (lInLen / (pParams->nColumns + 1)) * pParams->nColumns );
-#endif // _DEBUG
+#endif // PODOFO_VERBOSE_DEBUG
 
     *ppOutBuffer = static_cast<char*>(malloc( sizeof(char) * (lInLen / (pParams->nColumns + 1)) * pParams->nColumns ));
     pOutBufStart = *ppOutBuffer;

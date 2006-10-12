@@ -36,11 +36,15 @@
 #include <vector>
 #include <set>
 
-/** \def _DEBUG
+/** \def PODOFO_VERBOSE_DEBUG
  *  Debug define. Enable it, if you need
  *  more debuf output to the commandline from PoDoFo
+ *
+ *  Setting PDF_VERBOSE_DEBUG will make PoDoFo
+ *  EXTREMELY slow and verbose, so it's not practical
+ *  even for regular debuggin.
  */
-// #define _DEBUG
+// #define PODOFO_VERBOSE_DEBUG
 
 // Error Handling Defines
 #include "PdfError.h"
