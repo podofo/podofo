@@ -89,27 +89,27 @@ class PdfParserBase {
      *
      *  \returns true if it is a whitespace character otherwise false
      */
-    inline static bool IsWhitespace(const char ch) throw();
+    inline static bool IsWhitespace(const unsigned char ch) throw();
 
     /** Returns true if the given character is a delimiter
      *  according to the pdf reference
      *
      *  \returns true if it is a delimiter character otherwise false
      */
-    inline static bool IsDelimiter(const char ch) throw();
+    inline static bool IsDelimiter(const unsigned char ch) throw();
 
     /**
      * True if the passed character is a regular character according to the PDF
      * reference (Section 3.1.1, Character Set); ie it is neither a white-space
      * nor a delimeter character.
      */
-    inline static bool IsRegular(const char ch) throw();
+    inline static bool IsRegular(const unsigned char ch) throw();
 
     /**
      * True iff the passed character is within the generally accepted "printable"
      * ASCII range.
      */
-    inline static bool IsPrintable(const char ch) throw();
+    inline static bool IsPrintable(const unsigned char ch) throw();
 
 
  protected:
@@ -120,26 +120,26 @@ class PdfParserBase {
     // 256-byte array mapping character ordinal values to a truth value
     // indicating whether or not they are whitespace according to the PDF
     // standard.
-    static const char * m_delimiterMap;
-    static const char * m_whitespaceMap;
+    static const char * const m_delimiterMap;
+    static const char * const m_whitespaceMap;
 };
 
-inline bool PdfParserBase::IsWhitespace(const char ch) throw()
+inline bool PdfParserBase::IsWhitespace(const unsigned char ch) throw()
 {
     return ( m_whitespaceMap[ch] != 0 );
 }
 
-inline bool PdfParserBase::IsDelimiter(const char ch) throw()
+inline bool PdfParserBase::IsDelimiter(const unsigned char ch) throw()
 {
     return ( m_delimiterMap[ch] != 0 );
 }
 
-inline bool PdfParserBase::IsRegular(const char ch) throw()
+inline bool PdfParserBase::IsRegular(const unsigned char ch) throw()
 {
     return !IsWhitespace(ch) && !IsDelimiter(ch);
 }
 
-inline bool PdfParserBase::IsPrintable(const char ch) throw()
+inline bool PdfParserBase::IsPrintable(const unsigned char ch) throw()
 {
     return ch > 32 && ch < 125;
 }

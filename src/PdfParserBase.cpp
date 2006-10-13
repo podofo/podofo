@@ -30,8 +30,8 @@ const char * genWsMap();
 
 namespace PoDoFo {
 
-const char * PdfParserBase::m_delimiterMap = genDelMap();
-const char * PdfParserBase::m_whitespaceMap = genWsMap();
+const char * const PdfParserBase::m_delimiterMap = genDelMap();
+const char * const PdfParserBase::m_whitespaceMap = genWsMap();
 
 #define PDF_BUFFER             4096
 
