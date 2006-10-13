@@ -47,9 +47,9 @@ int main( int argc, char*  argv[] )
     
     objects.SetAutoDelete( true );
 
-    if( argc != 3 )
+    if( argc < 2 || argc > 3 )
     {
-        cerr << "Usage: ParserTest [input_filename] [output_filename]" << endl;
+        cerr << "Usage: ParserTest <input_filename> [<output_filename>]" << endl;
         return 0;
     }
 
@@ -74,15 +74,21 @@ int main( int argc, char*  argv[] )
         cerr << "=============\n");
         */
 
-        cerr << "Writing..." << flush;
-        write_back( &parser, argv[2] );
-        cerr << " done" << endl;
+        if (argc == 3)
+        {
+            cerr << "Writing..." << flush;
+            write_back( &parser, argv[2] );
+            cerr << " done" << endl;
+        }
     } catch( PdfError & e ) {
         e.PrintErrorMsg();
         return e.GetError();
     }
 
-    cerr << "Parsed and wrote successfully" << endl;
+    if (argc == 3)
+        cerr << "Parsed and wrote successfully" << endl;
+    else
+        cerr << "Parsed successfully" << endl;
 
     return 0;
 }
