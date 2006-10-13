@@ -23,6 +23,11 @@
 #include "PdfVecObjects.h"
 #include "PdfWriter.h"
 
+#include <iostream>
+using std::cerr;
+using std::flush;
+using std::endl;
+
 using namespace PoDoFo;
 
 void write_back( PdfParser* pParser, const char* pszFilename )
@@ -44,36 +49,40 @@ int main( int argc, char*  argv[] )
 
     if( argc != 3 )
     {
-        printf("Usage: ParserTest [input_filename] [output_filename]\n");
+        cerr << "Usage: ParserTest [input_filename] [output_filename]" << endl;
         return 0;
     }
 
-    printf("This test reads a PDF file from disc and writes it to a new pdf file.\n");
-    printf("The PDF file should look unmodified in any viewer\n");
-    printf("---\n");
+    cerr << "This test reads a PDF file from disc and writes it to a new pdf file." << endl;
+    cerr << "The PDF file should look unmodified in any viewer" << endl;
+    cerr << "---" << endl;
 
     try {
+        cerr << "Parsing..." << flush;
         parser.ParseFile( argv[1], false );
+        cerr << " done" << endl;
 
-        printf("PdfVersion=%i\n", (int)parser.GetPdfVersion() );
-        printf("PdfVersionString=%s\n", parser.GetPdfVersionString() );
+        cerr << "PdfVersion=" << parser.GetPdfVersion() << endl;
+        cerr << "PdfVersionString=" << parser.GetPdfVersionString() << endl;
 
         /*
-        printf("=============\n");
+        cerr << "=============\n");
         PdfObject* pCheat = objects.CreateObject( "Cheat" );
         std::reverse( objects.begin(), objects.end() );
         objects.RenumberObjects( const_cast<PdfObject*>(parser.GetTrailer()) );
         pCheat = objects.CreateObject("LastObject");
-        printf("=============\n");
+        cerr << "=============\n");
         */
 
+        cerr << "Writing..." << flush;
         write_back( &parser, argv[2] );
+        cerr << " done" << endl;
     } catch( PdfError & e ) {
         e.PrintErrorMsg();
         return e.GetError();
     }
 
-    printf("Parsed and wrote successfully\n");
+    cerr << "Parsed and wrote successfully" << endl;
 
     return 0;
 }
