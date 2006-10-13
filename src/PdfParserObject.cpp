@@ -244,7 +244,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
         }
         else 
         {
-            if( strncmp( (szData + counter - s_nLenEndObj), "endobj", s_nLenEndObj ) == 0 )
+            if( (counter >= s_nLenEndObj) && strncmp( (szData + counter - s_nLenEndObj), "endobj", s_nLenEndObj ) == 0 )
             {
                 counter -= s_nLenEndObj;
                 break;
@@ -305,7 +305,8 @@ void PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, long
     while( *szBuffer && *szBuffer == '<' )
         ++szBuffer;
 
-    while( *szBuffer )
+    // We can't assume the buffer is 0-terminated, so check length
+    while( (szBuffer-szInitial) < lBufferLen && *szBuffer )
     {
         if( *szBuffer == '/' )
         {
