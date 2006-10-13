@@ -86,7 +86,7 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
     m_pObject->GetDictionary().AddKey( "M", sDate );
 }
 
-PdfAnnotation::PdfAnnotation( PdfPage* pPage, PdfObject* pObject )
+PdfAnnotation::PdfAnnotation( PdfObject* pObject )
     : PdfElement( "Annot", pObject ), m_eAnnotation( ePdfAnnotation_Unknown ), m_pAction( NULL )
 {
     m_eAnnotation = static_cast<EPdfAnnotation>(TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( PdfName::KeySubtype ).GetName().c_str(), s_names, s_lNumActions ));
@@ -208,7 +208,7 @@ bool PdfAnnotation::GetOpen() const
 
 const char* PdfAnnotation::AnnotationKey( EPdfAnnotation eAnnot )
 {
-    char* pszKey;
+    const char* pszKey;
 
     switch( eAnnot ) 
     {

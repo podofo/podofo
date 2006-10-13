@@ -111,7 +111,7 @@ class PdfAnnotation : public PdfElement {
      */
     PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfVecObjects* pParent );
 
-    PdfAnnotation( PdfPage* pPage, PdfObject* pObject );
+    PdfAnnotation( PdfObject* pObject );
 
     ~PdfAnnotation();
 

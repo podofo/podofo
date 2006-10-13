@@ -221,7 +221,7 @@ PdfAnnotation* PdfPage::GetAnnotation( int index )
             RAISE_ERROR( ePdfError_NoObject );
         }
      
-        pAnnot = new PdfAnnotation( this, pObj );
+        pAnnot = new PdfAnnotation( pObj );
         m_vecAnnotations[ref] = pAnnot;
     }
 
