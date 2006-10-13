@@ -24,7 +24,7 @@
 #include "PdfFilter.h"
 #include "PdfName.h"
 
-#include <iostream> //XXX
+#include <iostream>
 
 using namespace PoDoFo;
 
@@ -216,48 +216,46 @@ int main()
     printf("---\n");
 
     // TODO: Move to AlgorithmTest
-    char* pszHex = (char*)malloc( sizeof(char) * 256 );
-    char* pszResult;
+    char* pszHex = static_cast<char*>(malloc( sizeof(char) * 256 ));
+    memset(pszHex, 0, 256);
     strcpy( pszHex, "Hallo Du schoene Welt!" );
     long lLen = strlen( pszHex );
-    long lRes;
+    char* pszResult = NULL;
+    long lRes = -1;
+    std::string out;
 
     TEST_SAFE_OP( pFilter->Encode( pszHex, lLen, &pszResult, &lRes ) );
     free( pszHex );
     pszHex = pszResult;
     lLen = lRes;
-    //pszHex[lLen] = '\0';
-    pszHex[lLen-1] = '\0';
-    printf("Encoded Buffer: (%s)\n", pszHex );
+    out.assign(pszHex, lLen);
+    std::cerr << "Encoded buffer: (" << out << ')' << std::endl;
 
     TEST_SAFE_OP( pFilter->Decode( pszHex, lLen, &pszResult, &lRes ) );
     free( pszHex );
     pszHex = pszResult;
     lLen = lRes;
-    //pszHex[lLen] = '\0';
-    pszHex[lLen-1] = '\0';
-    printf("Decoded Buffer: (%s)\n", pszHex );
+    out.assign(pszHex, lLen);
+    std::cerr << "Encoded buffer: (" << out << ')' << std::endl;
 
     TEST_SAFE_OP( pFilter->Encode( pszHex, lLen, &pszResult, &lRes ) );
     free( pszHex );
     pszHex = pszResult;
     lLen = lRes;
-    //pszHex[lLen] = '\0';
-    pszHex[lLen-1] = '\0';
-    printf("Encoded Buffer: (%s)\n", pszHex );
+    out.assign(pszHex, lLen);
+    std::cerr << "Encoded buffer: (" << out << ')' << std::endl;
 
     TEST_SAFE_OP( pFilter->Decode( pszHex, lLen, &pszResult, &lRes  ) );
     free( pszHex );
     pszHex = pszResult;
     lLen = lRes;
-    //pszHex[lLen] = '\0';
-    pszHex[lLen-1] = '\0';
-    printf("Decoded Buffer: (%s)\n", pszHex );
+    out.assign(pszHex, lLen);
+    std::cerr << "Encoded buffer: (" << out << ')' << std::endl;
     free( pszHex );
 
 
     // test a hex string containing a whitespace character
-    pszHex = (char*)malloc( sizeof(char) * 256 );
+    pszHex = static_cast<char*>(malloc( sizeof(char) * 256 ));
     strcpy( pszHex, "48616C6C6F2044\n75207363686F656E652057656C7421");
     lLen = strlen( pszHex );
 
@@ -265,8 +263,8 @@ int main()
     free( pszHex );
     pszHex = pszResult;
     lLen = lRes;
-    pszHex[lLen] = '\0';
-    printf("Decoded Buffer: (%s)\n", pszHex );
+    out.assign(pszHex, lLen);
+    std::cerr << "Encoded buffer: (" << out << ')' << std::endl;
     free( pszResult );
 
     printf("Test completed with error code: %i\n", eCode.GetError() );
