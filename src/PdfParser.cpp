@@ -753,7 +753,7 @@ void PdfParser::ReadXRefStreamEntry( char* pBuffer, long lLen, long lW[W_ARRAY_S
         nData[i] = 0;
         for( z=W_MAX_BYTES-lW[i];z<W_MAX_BYTES;z++ )
         {
-            nData[i] = (nData[i] << 8) + (unsigned char)*pBuffer;
+            nData[i] = (nData[i] << 8) + static_cast<unsigned char>(*pBuffer);
             ++pBuffer;
         }
     }
@@ -857,7 +857,7 @@ void PdfParser::ReadObjects()
 void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
 {
     PdfParserObject* pStream = NULL;
-    PdfParserObject* pObj;
+    PdfVariant       var;
     char*            pBuffer;
     char*            pNumbers;
     long             lBufferLen;
@@ -894,7 +894,7 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
     }
     
     pStream->GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
-    
+
     // the object stream is not needed anymore in the final PDF
     delete m_vecObjects->RemoveObject( pStream->Reference() );
     
@@ -903,13 +903,11 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
     {
         lObj = strtol( pNumbers, &pNumbers, 10 );
         lOff = strtol( pNumbers, &pNumbers, 10 );
-        
-        pObj = new PdfParserObject( m_buffer );
-        pObj->ParseDictionaryKeys( static_cast<char*>((pBuffer+lFirst+lOff)), lBufferLen-lFirst-lOff, NULL );
-        
-        pObj->SetObjectNumber( lObj );
-        
-        m_vecObjects->push_back( pObj );
+
+        var.Parse( static_cast<char*>((pBuffer+lFirst+lOff)), lBufferLen-lFirst-lOff, NULL );
+
+        m_vecObjects->push_back( new PdfObject( PdfReference( lObj, 0 ), var ) );
+
         ++i;
     }
     

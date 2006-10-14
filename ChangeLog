@@ -30,6 +30,8 @@ Version 0.4
 		PoDoFo created PDF files work in more different PDF
 		workflows
 	PdfImage optionally takes ownership of buffers
+	Fixed a major parser bug: The parser expected all objects in
+		object streams to be of type dictionary.
 	
 Version 0.3
     TOTAL revamp of PdfObject & PdfVariant to enable clean/consistent object handling;

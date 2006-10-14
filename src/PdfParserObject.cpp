@@ -76,6 +76,7 @@ void PdfParserObject::ReadObjectNumber()
 
     try {
         number = GetNextNumberFromFile();
+
         m_reference.SetObjectNumber( number );
         number = GetNextNumberFromFile();
         m_reference.SetGenerationNumber( number );

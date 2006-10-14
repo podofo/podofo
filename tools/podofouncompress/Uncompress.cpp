@@ -49,12 +49,37 @@ void UnCompress::UncompressObjects()
     TVecObjects  vecObj = m_pDocument->GetObjects();
     TIVecObjects it     = vecObj.begin();
 
+    const char* pszSearch = "38666";
+    char* pBuffer;
+    long  lLen;
+
     while( it != vecObj.end() )
     {
         if( (*it)->HasStream() )
         {
             try {
                 (*it)->GetStream()->Uncompress();
+
+                // -----
+
+                pBuffer = NULL;
+                lLen    = 0;
+
+                (*it)->GetStream()->GetCopy( &pBuffer, &lLen );
+                if( pBuffer ) 
+                {
+                    pBuffer[lLen-1] = '\0';
+                    if( strstr(pBuffer, pszSearch ) ) 
+                    {
+                        printf("Found %s in object: %i %i\n", pszSearch, (*it)->Reference().ObjectNumber(), (*it)->Reference().GenerationNumber() );
+                        printf("===============\n");
+                        printf("%s", pBuffer );
+                        printf("\n===============\n");
+                    }
+
+                    free( pBuffer );
+                }
+                
             } catch( const PdfError & e ) {
                 if( e.GetError() != ePdfError_UnsupportedFilter )
                     throw e;
