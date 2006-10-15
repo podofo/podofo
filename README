@@ -40,7 +40,7 @@ a Qt application for browsing the objects in a PDF file and modifying their
 keys easily. It is very useful if you want to look on the internal structure
 of PDF files.
 
-As of now PoDoFo is only available for Unix and Windows platforms. 
+As of now PoDoFo is available for Unix, Mac OS X and Windows platforms. 
 
 2. Where can I can get it?
 ==========================
@@ -77,9 +77,9 @@ An XCode project is provided for Mac OS X users.
 5. Contact
 ==========
 
-If you have questions on PoDoFo or bug reports, feature requests you email the
-author:
-	Dominik Seichter <domseichter@web.de>
+If you have questions on PoDoFo or bug reports, feature requests you can email
+our mailinglist <podofo-users@lists.sf.net>
+	
 
 6. Licensing
 ============

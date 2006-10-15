@@ -44,7 +44,13 @@
  *  EXTREMELY slow and verbose, so it's not practical
  *  even for regular debuggin.
  */
-// #define PODOFO_VERBOSE_DEBUG
+#define PODOFO_VERBOSE_DEBUG
+
+// undefined it again. Defining it first
+// and undefining it later avoids a Doxygen error.
+#ifdef PODOFO_VERBOSE_DEBUG
+#undef PODOFO_VERBOSE_DEBUG
+#endif //PODOFO_VERBOSE_DEBUG
 
 // Error Handling Defines
 #include "PdfError.h"
@@ -357,7 +363,7 @@ static const char s_cDelimiters[] = {
  * keys easily. It is very useful if you want to look on the internal structure
  * of PDF files.
  * 
- * As of now <b>PoDoFo</b> is available for Unix and Windows platforms. 
+ * As of now <b>PoDoFo</b> is available for Unix, Mac OS X and Windows platforms. 
  *
  * More information can be found at: http://podofo.sourceforge.net
  *

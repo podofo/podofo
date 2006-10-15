@@ -84,7 +84,7 @@ class PdfInputDevice {
     virtual int Look() const;
 
     /** Seek the device to the position offset from the begining
-     *  \param offset from the beginning of the file
+     *  \param off from the beginning of the file
      *  \param dir where to start (start, cur, end)
      */
     virtual void Seek( std::streamoff off, std::ios_base::seekdir dir = std::ios_base::beg );

@@ -153,6 +153,9 @@ PdfName PdfName::FromEscaped( const string & sName )
 
 PdfName PdfName::FromEscaped( const char * pszName, int ilen )
 {
+    if( !ilen && pszName )
+        ilen = strlen( pszName );
+
     return PdfName(UnescapeName(pszName, ilen));
 }
 

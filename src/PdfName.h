@@ -81,17 +81,20 @@ class PdfName : public PdfDataType {
     /** Create a new PdfName object from a string containing an escaped
      *  name string without the leading / .
      *
-     *  \param name A string containing the escaped name
+     *  \param sName A string containing the escaped name
      *  \return A new PdfName
      */
     static PdfName FromEscaped( const std::string& sName );
 
     /** Create a new PdfName object from a string containing an escaped
      *  name string without the leading / .
-     *  \param name A string containing the escaped name
+     *  \param pszName A string containing the escaped name
+     *  \param ilength length of the escaped string data. If a length
+     *                 of 0 is passed, the string data is expected to 
+     *                 be a zero terminated string.
      *  \return A new PdfName
      */
-    static PdfName FromEscaped( const char * pszName, int ilength );
+    static PdfName FromEscaped( const char * pszName, int ilength = 0 );
 
     /** \return an escaped representation of this name
      *          without the leading / .

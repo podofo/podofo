@@ -188,9 +188,6 @@ void PdfDocument::InitFromParser( PdfParser* pParser )
     }
     else 
         m_pInfo = new PdfInfo( pInfo );
-    
-    PdfOutputDevice device( &(std::cout) );
-    m_pCatalog->WriteObject( &device );
 }
 
 void PdfDocument::InitPagesTree()
