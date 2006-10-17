@@ -23,12 +23,19 @@
 #include "PdfWriter.h"
 #include "../PdfTest.h"
 
-#include <stdio.h>
+#ifdef _WIN32
+// Get access to the POSIX unlink() function
+#include <io.h>
+#define unlink _unlink
+#endif
+
+#include <cstdio>
 #include <sstream>
 
 #define HEADER_LEN    15
 #define BUFFER_SIZE 4096
 
+using namespace std;
 using namespace PoDoFo;
 
 void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo, long lGenNo, const char* pszExpectedValue )
