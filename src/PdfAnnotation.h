@@ -29,6 +29,7 @@
 
 namespace PoDoFo {
 
+class PdfFileSpec;
 class PdfName;
 class PdfPage;
 class PdfRect;
@@ -199,7 +200,8 @@ class PdfAnnotation : public PdfElement {
     void SetAction( const PdfAction & rAction );
 
     /** Get the action that is executed for this annotation
-     *  \returns an action object
+     *  \returns an action object. The action object is owned
+     *           by the PdfAnnotation.
      *
      *  \see SetAction 
      */
@@ -222,6 +224,28 @@ class PdfAnnotation : public PdfElement {
      */
     bool GetOpen() const;
 
+    /**
+     * \returns true if this annotation has a file attachement
+     */
+     bool HasFileAttachement() const;
+
+    /** Set a file attachment for this annotation.
+     *  The type of this annotation has to be
+     *  ePdfAnnotation_FileAttachement for file 
+     *  attachements to work.
+     *
+     *  \param rFileSpec a file specification
+     */
+    void SetFileAttachement( const PdfFileSpec & rFileSpec );
+
+    /** Get a file attachement of this annotation.
+     *  \returns a file specification object. The file specification object is owned
+     *           by the PdfAnnotation.
+     *
+     *  \see SetFileAttachement 
+     */
+    PdfFileSpec* GetFileAttachement() const;
+
     /** Get the type of this annotation
      *  \returns the annotation type
      */
@@ -232,7 +256,6 @@ class PdfAnnotation : public PdfElement {
      *  which can be written to the PDF file.
      *  \returns the string representation or NULL for unsupported annotation types
      */
-    const char* AnnotationKey( EPdfAnnotation eAnnot );
 
     static const long  s_lNumActions;
     static const char* s_names[];
@@ -241,6 +264,7 @@ class PdfAnnotation : public PdfElement {
     EPdfAnnotation m_eAnnotation;
 
     PdfAction*     m_pAction;
+    PdfFileSpec*   m_pFileSpec;
 };
 
 // -----------------------------------------------------

@@ -23,6 +23,7 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfDate.h"
+#include "PdfFileSpec.h"
 #include "PdfPage.h"
 #include "PdfRect.h"
 #include "PdfVariant.h"
@@ -61,7 +62,7 @@ const char* PdfAnnotation::s_names[] = {
 };
 
 PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfVecObjects* pParent )
-    : PdfElement( "Annot", pParent ), m_eAnnotation( eAnnot ), m_pAction( NULL )
+    : PdfElement( "Annot", pParent ), m_eAnnotation( eAnnot ), m_pAction( NULL ), m_pFileSpec( NULL )
 {
     PdfVariant    rect;
     PdfDate       date;
@@ -87,7 +88,7 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
 }
 
 PdfAnnotation::PdfAnnotation( PdfObject* pObject )
-    : PdfElement( "Annot", pObject ), m_eAnnotation( ePdfAnnotation_Unknown ), m_pAction( NULL )
+    : PdfElement( "Annot", pObject ), m_eAnnotation( ePdfAnnotation_Unknown ), m_pAction( NULL ), m_pFileSpec( NULL )
 {
     m_eAnnotation = static_cast<EPdfAnnotation>(TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( PdfName::KeySubtype ).GetName().c_str(), s_names, s_lNumActions ));
 }
@@ -95,6 +96,7 @@ PdfAnnotation::PdfAnnotation( PdfObject* pObject )
 PdfAnnotation::~PdfAnnotation()
 {
     delete m_pAction;
+    delete m_pFileSpec;
 }
 
 PdfRect PdfAnnotation::GetRect() const
@@ -176,6 +178,9 @@ bool PdfAnnotation::HasDestination() const
 
 void PdfAnnotation::SetAction( const PdfAction & rAction )
 {
+    if( m_pAction )
+        delete m_pAction;
+
     m_pAction = new PdfAction( rAction );
     m_pObject->GetDictionary().AddKey( "A", m_pAction->GetObject()->Reference() );
 }
@@ -206,28 +211,26 @@ bool PdfAnnotation::GetOpen() const
     return false;
 }
 
-const char* PdfAnnotation::AnnotationKey( EPdfAnnotation eAnnot )
+bool PdfAnnotation::HasFileAttachement() const
 {
-    const char* pszKey;
+    return m_pObject->GetDictionary().HasKey( "FS" );
+}
 
-    switch( eAnnot ) 
-    {
-        case ePdfAnnotation_Text:
-            pszKey = "Text"; break;
-        case ePdfAnnotation_Link:
-            pszKey = "Link"; break;
-        case ePdfAnnotation_FreeText:
-            pszKey = "FreeText"; break;
-        case ePdfAnnotation_Popup:
-            pszKey = "Popup"; break;
-        case ePdfAnnotation_Widget:
-            pszKey = "Widget"; break;
-        case ePdfAnnotation_Unknown:
-        default:
-            pszKey = NULL; break;
-    }
+void PdfAnnotation::SetFileAttachement( const PdfFileSpec & rFileSpec )
+{
+    if( m_pFileSpec )
+        delete m_pFileSpec;
 
-    return pszKey;
+    m_pFileSpec = new PdfFileSpec( rFileSpec );
+    m_pObject->GetDictionary().AddKey( "FS", m_pFileSpec->GetObject()->Reference() );
+}
+
+PdfFileSpec* PdfAnnotation::GetFileAttachement() const
+{
+    if( !m_pFileSpec && HasFileAttachement() )
+        const_cast<PdfAnnotation*>(this)->m_pFileSpec = new PdfFileSpec( m_pObject->GetIndirectKey( "FS" ) );
+
+    return m_pFileSpec;
 }
 
 };

@@ -18,73 +18,46 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PODOFO_H_
-#define _PODOFO_H_
-
-/** This file can be used in client applications to include
- *  all files required by PoDoFo at once.
- *
- */
+#ifndef _PDF_FILE_SPEC_H_
+#define _PDF_FILE_SPEC_H_
 
 #include "PdfDefines.h"
 
-/**
- * Version number of this release
- */
-#define PODOFO_MAJOR 0
-#define PODOFO_MINOR 4
-#define PODOFO_REVISION 0
-
-#include "PdfAction.h"
-#include "PdfAnnotation.h"
-#include "PdfArray.h"
-#include "PdfCanvas.h"
-#include "PdfDataType.h"
-#include "PdfDate.h"
-#include "PdfDestination.h"
-#include "PdfDocument.h"
 #include "PdfElement.h"
-#include "PdfError.h"
-#include "PdfFileSpec.h"
-#include "PdfFilter.h"
-#include "PdfFont.h"
-#include "PdfFontMetrics.h"
 
-// Not considereed to be part of the public API
-#include "PdfHintStream.h"
-// --
-
-#include "PdfImage.h"
-#include "PdfInfo.h"
-#include "PdfInputDevice.h"
-#include "PdfName.h"
-#include "PdfNamesTree.h"
-#include "PdfObject.h"
-#include "PdfOutlines.h"
-#include "PdfOutputDevice.h"
-#include "PdfPage.h"
-#include "PdfPagesTree.h"
-#include "PdfPainter.h"
-#include "PdfPainterMM.h"
-#include "PdfParser.h"
-#include "PdfParserBase.h"
-#include "PdfParserObject.h"
-#include "PdfRect.h"
-#include "PdfRefCountedBuffer.h"
-#include "PdfRefCountedInputDevice.h"
-#include "PdfStream.h"
 #include "PdfString.h"
-#include "PdfVariant.h"
-#include "PdfVecObjects.h"
-#include "PdfWriter.h"
-#include "PdfXObject.h"
 
-#if 0
-#ifndef _PODOFO_NO_NAMESPACE_
-using namespace PoDoFo;
-#endif /* _PODOFO_NO_NAMESPACE_ */
-#endif
+namespace PoDoFo {
 
-#endif /* _PODOFO_H_ */
+class PdfStream;
 
+/**
+ *  A file specification is used in the PDF file to referr to another file.
+ *  The other file can be a file outside of the PDF or can be embedded into
+ *  the PDF file itself.
+ */
+class PdfFileSpec : public PdfElement {
+ public:
+    PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfVecObjects* pParent );
+
+    PdfFileSpec( PdfObject* pObject );
+
+ private:
+
+    /** Create a file specification string from a filename
+     *  \param pszFilename filename 
+     *  \returns a file specification string
+     */
+    PdfString CreateFileSpecification( const char* pszFilename ) const;
+
+    /** Embedd a file into a stream object
+     *  \param pStream write the file to this stream
+     *  \param pszFilename the file to embedd
+     */
+    void EmbeddFile( PdfStream* pStream, const char* pszFilename ) const;
+};
+
+};
+
+#endif // _PDF_FILE_SPEC_H_
 

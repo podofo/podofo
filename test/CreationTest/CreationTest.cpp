@@ -23,6 +23,7 @@
 #include "PdfDestination.h"
 #include "PdfDictionary.h"
 #include "PdfDocument.h"
+#include "PdfFileSpec.h"
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
 #include "PdfImage.h"
@@ -323,6 +324,8 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
 void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
+    PdfAnnotation* pFileAnnotation;
+
     double        dX     = 10000 * CONVERSION_CONSTANT;
     double        dY     = pPage->GetPageSize().GetHeight() - 40000 * CONVERSION_CONSTANT;
 
@@ -332,6 +335,12 @@ void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     dY -= 30000 * CONVERSION_CONSTANT;
     pPainter->SetColor( 1.0, 0.0, 0.0 );
     pPainter->FillEllipse( dX, dY, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
+
+    PdfFileSpec file( "lena.jpg", true, &(pDocument->GetObjects()) );
+    //PdfFileSpec file( "/home/dominik/Desktop/Documentation/journal-design.pdf", true, &(pDocument->GetObjects()) );
+    pFileAnnotation =  pPage->CreateAnnotation( ePdfAnnotation_FileAttachement, PdfRect( 300.0, 400.0, 250.0, 50.0 ) );
+    pFileAnnotation->SetContents( "A JPEG image of Lena" );
+    pFileAnnotation->SetFileAttachement( file );
 }
 
 void MMTest( PdfPainterMM* pPainter, PdfPage* pPage, PdfDocument* pDocument )
