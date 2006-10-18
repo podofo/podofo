@@ -420,6 +420,13 @@ class PdfPainter {
 	 */
 	void SetExtGState( PdfExtGState* inGState );
 
+	/** Sets a specific rendering intent
+	 *	\param intent the specific intent to set
+	 */
+	void SetRenderingIntent( char* intent );
+
+
+
     /** Set the tab width for the DrawText operation.
      *  Every tab '\\t' is replaced with nTabWidth 
      *  spaces before drawing text. Default is a value of 4

@@ -59,5 +59,35 @@ namespace PoDoFo {
 		m_pObject->GetDictionary().AddKey( "CA", PdfVariant( opac ) );
 	}
 
+	void PdfExtGState::SetBlendMode( char* blendMode )
+	{
+		m_pObject->GetDictionary().AddKey( "BM", PdfVariant( PdfName( blendMode ) ) );
+	}
+
+	void PdfExtGState::SetOverprint( bool enable )
+	{
+		m_pObject->GetDictionary().AddKey( "OP", PdfVariant( enable ) );
+	}
+
+	void PdfExtGState::SetFillOverprint( bool enable )
+	{
+		m_pObject->GetDictionary().AddKey( "op", PdfVariant( enable ) );
+	}
+
+	void PdfExtGState::SetStrokeOverprint( bool enable )
+	{
+		m_pObject->GetDictionary().AddKey( "OP", PdfVariant( enable ) );
+	}
+
+	void PdfExtGState::SetNonZeroOverprint( bool enable )
+	{
+		m_pObject->GetDictionary().AddKey( "OPM", PdfVariant( (enable ? 1L : 0L) ) );
+	}
+
+	void PdfExtGState::SetRenderingIntent( char* intent )
+	{
+		m_pObject->GetDictionary().AddKey( "RI", PdfVariant( PdfName( intent ) ) );
+	}
+
 
 }	// end namespace

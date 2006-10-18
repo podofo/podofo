@@ -186,6 +186,34 @@ typedef enum EPdfLineJoinStyle {
 };
 
 /**
+ * List of defined Rendering intents
+ */
+#define ePdfRenderingIntent_AbsoluteColorimetric	"AbsoluteColorimetric"
+#define ePdfRenderingIntent_RelativeColorimetric	"RelativeColorimetric"
+#define ePdfRenderingIntent_Perceptual				"Perceptual"
+#define ePdfRenderingIntent_Saturation				"Saturation"
+
+/**
+ * List of defined transparency blending modes
+ */
+#define ePdfBlendMode_Normal		"Normal"
+#define ePdfBlendMode_Multiply		"Multiply"
+#define ePdfBlendMode_Screen		"Screen"
+#define ePdfBlendMode_Overlay		"Overlay"
+#define ePdfBlendMode_Darken		"Darken"
+#define ePdfBlendMode_Lighten		"Lighten"
+#define ePdfBlendMode_ColorDodge	"ColorDodge"
+#define ePdfBlendMode_ColorBurn		"ColorBurn"
+#define ePdfBlendMode_HardLight		"HardLight"
+#define ePdfBlendMode_SoftLight		"SoftLight"
+#define ePdfBlendMode_Difference	"Difference"
+#define ePdfBlendMode_Exclusion		"Exclusion"
+#define ePdfBlendMode_Hue			"Hue"
+#define ePdfBlendMode_Saturation	"Saturation"
+#define ePdfBlendMode_Color			"Color"
+#define ePdfBlendMode_Luminosity	"Luminosity"
+
+/**
  * Enum holding the supported page sizes by PoDoFo.
  * Can be used to construct a PdfRect structure with 
  * measurements of a page object.

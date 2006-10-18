@@ -1006,5 +1006,13 @@ void PdfPainter::SetExtGState( PdfExtGState* inGState )
 	m_pCanvas->Append( m_oss.str() );
 }
 
+void PdfPainter::SetRenderingIntent( char* intent )
+{
+	m_oss.str("");
+	m_oss << "/" << intent
+		<< " ri" << std::endl;
+	m_pCanvas->Append( m_oss.str() );
+}
+
 }
 

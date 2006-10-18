@@ -44,6 +44,36 @@ namespace PoDoFo {
 		*/
 		void SetStrokeOpacity( float opac );
 
+		/** Sets the transparency blend mode
+		 *  \param blendMode one of the predefined blending modes (see Podofo.h)
+		*/
+		void SetBlendMode( char* blendMode );
+
+		/** Enables/Disables overprinting for both Fill & Stroke
+		 *  \param enable enable or disable
+		*/
+		void SetOverprint( bool enable=true );
+
+		/** Enables/Disables overprinting for Fill operations
+		*  \param enable enable or disable
+		*/
+		void SetFillOverprint( bool enable=true );
+
+		/** Enables/Disables overprinting for Stroke operations
+		*  \param enable enable or disable
+		*/
+		void SetStrokeOverprint( bool enable=true );
+
+		/** Enables/Disables non-zero overprint mode
+		*  \param enable enable or disable
+		*/
+		void SetNonZeroOverprint( bool enable=true );
+
+		/** Set the Rendering Intent
+		*  \param intent one of the predefined intents (see Podofo.h)
+		*/
+		void SetRenderingIntent( char* intent );
+
 	private:
 		/** Initialize the object
 		*/
