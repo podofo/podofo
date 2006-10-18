@@ -91,6 +91,12 @@
 		5F590DCC0ABF47B2005255A0 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F590DCB0ABF47B2005255A0 /* ApplicationServices.framework */; };
 		5F590E0B0ABF4F81005255A0 /* PdfHintStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590E090ABF4F81005255A0 /* PdfHintStream.cpp */; };
 		5F590E0C0ABF4F81005255A0 /* PdfHintStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F590E0A0ABF4F81005255A0 /* PdfHintStream.h */; };
+		5F590E3E0AC36BF3005255A0 /* CreationTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F590E3D0AC36BF3005255A0 /* CreationTest.cpp */; };
+		5F590E450AC36D8D005255A0 /* libPoDoFo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libPoDoFo.a */; };
+		5F590E490AC36E29005255A0 /* libfreetype.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F590E480AC36E29005255A0 /* libfreetype.a */; };
+		5F590E4B0AC36F1D005255A0 /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F590E4A0AC36F1D005255A0 /* libz.a */; };
+		5F590E4D0AC370A0005255A0 /* libjpeg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F590E4C0AC370A0005255A0 /* libjpeg.a */; };
+		5F590F1C0AC371ED005255A0 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F590DCB0ABF47B2005255A0 /* ApplicationServices.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildStyle section */
@@ -107,6 +113,16 @@
 			name = Release;
 		};
 /* End PBXBuildStyle section */
+
+/* Begin PBXContainerItemProxy section */
+		5F590E390AC36B80005255A0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D /* PoDoFo */;
+			remoteInfo = PoDoFo;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		5F590D280ABF46D8005255A0 /* PdfAction.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfAction.cpp; path = src/PdfAction.cpp; sourceTree = "<group>"; };
@@ -193,10 +209,27 @@
 		5F590DCB0ABF47B2005255A0 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		5F590E090ABF4F81005255A0 /* PdfHintStream.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PdfHintStream.cpp; path = src/PdfHintStream.cpp; sourceTree = "<group>"; };
 		5F590E0A0ABF4F81005255A0 /* PdfHintStream.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PdfHintStream.h; path = src/PdfHintStream.h; sourceTree = "<group>"; };
+		5F590E340AC36B46005255A0 /* CreationTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CreationTest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5F590E3D0AC36BF3005255A0 /* CreationTest.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = CreationTest.cpp; path = test/CreationTest/CreationTest.cpp; sourceTree = "<group>"; };
+		5F590E480AC36E29005255A0 /* libfreetype.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfreetype.a; path = freetype/objs/libfreetype.a; sourceTree = "<group>"; };
+		5F590E4A0AC36F1D005255A0 /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = Zlib/libz.a; sourceTree = "<group>"; };
+		5F590E4C0AC370A0005255A0 /* libjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjpeg.a; path = jpeg/libjpeg.a; sourceTree = "<group>"; };
 		D2AAC046055464E500DB518D /* libPoDoFo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPoDoFo.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		5F590E320AC36B45005255A0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F590E450AC36D8D005255A0 /* libPoDoFo.a in Frameworks */,
+				5F590E490AC36E29005255A0 /* libfreetype.a in Frameworks */,
+				5F590E4B0AC36F1D005255A0 /* libz.a in Frameworks */,
+				5F590E4D0AC370A0005255A0 /* libjpeg.a in Frameworks */,
+				5F590F1C0AC371ED005255A0 /* ApplicationServices.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D289987405E68DCB004EDB86 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -213,6 +246,7 @@
 			children = (
 				5F590DCB0ABF47B2005255A0 /* ApplicationServices.framework */,
 				08FB7795FE84155DC02AAC07 /* Source */,
+				5F590E470AC36DEB005255A0 /* Libraries */,
 				C6A0FF2B0290797F04C91782 /* Documentation */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
 			);
@@ -220,6 +254,25 @@
 			sourceTree = "<group>";
 		};
 		08FB7795FE84155DC02AAC07 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				5F590E3C0AC36BC8005255A0 /* CreationTest */,
+				5F590E3B0AC36B91005255A0 /* PoDoFoLib */,
+				5F590D780ABF46DA005255A0 /* podofo.h */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		1AB674ADFE9D54B511CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D2AAC046055464E500DB518D /* libPoDoFo.a */,
+				5F590E340AC36B46005255A0 /* CreationTest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5F590E3B0AC36B91005255A0 /* PoDoFoLib */ = {
 			isa = PBXGroup;
 			children = (
 				5F590D280ABF46D8005255A0 /* PdfAction.cpp */,
@@ -304,17 +357,26 @@
 				5F590D750ABF46DA005255A0 /* PdfWriter.h */,
 				5F590D760ABF46DA005255A0 /* PdfXObject.cpp */,
 				5F590D770ABF46DA005255A0 /* PdfXObject.h */,
-				5F590D780ABF46DA005255A0 /* podofo.h */,
 			);
-			name = Source;
+			name = PoDoFoLib;
 			sourceTree = "<group>";
 		};
-		1AB674ADFE9D54B511CA2CBB /* Products */ = {
+		5F590E3C0AC36BC8005255A0 /* CreationTest */ = {
 			isa = PBXGroup;
 			children = (
-				D2AAC046055464E500DB518D /* libPoDoFo.a */,
+				5F590E3D0AC36BF3005255A0 /* CreationTest.cpp */,
 			);
-			name = Products;
+			name = CreationTest;
+			sourceTree = "<group>";
+		};
+		5F590E470AC36DEB005255A0 /* Libraries */ = {
+			isa = PBXGroup;
+			children = (
+				5F590E4C0AC370A0005255A0 /* libjpeg.a */,
+				5F590E4A0AC36F1D005255A0 /* libz.a */,
+				5F590E480AC36E29005255A0 /* libfreetype.a */,
+			);
+			name = Libraries;
 			sourceTree = "<group>";
 		};
 		C6A0FF2B0290797F04C91782 /* Documentation */ = {
@@ -380,6 +442,31 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		5F590E330AC36B45005255A0 /* CreationTest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5F590E360AC36B69005255A0 /* Build configuration list for PBXNativeTarget "CreationTest" */;
+			buildPhases = (
+				5F590E310AC36B45005255A0 /* Sources */,
+				5F590E320AC36B45005255A0 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			buildSettings = {
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = "$(HOME)/bin";
+				PREBINDING = NO;
+				PRODUCT_NAME = CreationTest;
+				ZERO_LINK = YES;
+			};
+			dependencies = (
+				5F590E3A0AC36B80005255A0 /* PBXTargetDependency */,
+			);
+			name = CreationTest;
+			productName = CreationTest;
+			productReference = 5F590E340AC36B46005255A0 /* CreationTest */;
+			productType = "com.apple.product-type.tool";
+		};
 		D2AAC045055464E500DB518D /* PoDoFo */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1DEB91EB08733DB70010E9CD /* Build configuration list for PBXNativeTarget "PoDoFo" */;
@@ -416,11 +503,20 @@
 			projectDirPath = "";
 			targets = (
 				D2AAC045055464E500DB518D /* PoDoFo */,
+				5F590E330AC36B45005255A0 /* CreationTest */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		5F590E310AC36B45005255A0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F590E3E0AC36BF3005255A0 /* CreationTest.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D2AAC044055464E500DB518D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -469,6 +565,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5F590E3A0AC36B80005255A0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* PoDoFo */;
+			targetProxy = 5F590E390AC36B80005255A0 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1DEB91EC08733DB70010E9CD /* Debug */ = {
@@ -529,6 +633,48 @@
 			};
 			name = Release;
 		};
+		5F590E370AC36B69005255A0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = "$(HOME)/bin";
+				LIBRARY_SEARCH_PATHS = (
+					"$(LIBRARY_SEARCH_PATHS)",
+					"$(SRCROOT)/freetype/objs",
+					"$(SRCROOT)/Zlib",
+					"$(SRCROOT)/jpeg",
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = CreationTest;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		5F590E380AC36B69005255A0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = "$(HOME)/bin";
+				LIBRARY_SEARCH_PATHS = (
+					"$(LIBRARY_SEARCH_PATHS)",
+					"$(SRCROOT)/freetype/objs",
+					"$(SRCROOT)/Zlib",
+					"$(SRCROOT)/jpeg",
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = CreationTest;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -546,6 +692,15 @@
 			buildConfigurations = (
 				1DEB91F008733DB70010E9CD /* Debug */,
 				1DEB91F108733DB70010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5F590E360AC36B69005255A0 /* Build configuration list for PBXNativeTarget "CreationTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5F590E370AC36B69005255A0 /* Debug */,
+				5F590E380AC36B69005255A0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

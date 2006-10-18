@@ -3,12 +3,16 @@
 	08FB7793FE84155DC02AAC07 /* Project object */ = {
 		activeBuildConfigurationName = Debug;
 		activeBuildStyle = 014CEA520018CE5811CA2923 /* Debug */;
-		activeTarget = D2AAC045055464E500DB518D /* PoDoFo */;
+		activeExecutable = 5F590E350AC36B46005255A0 /* CreationTest */;
+		activeTarget = 5F590E330AC36B45005255A0 /* CreationTest */;
 		addToTargets = (
-			D2AAC045055464E500DB518D /* PoDoFo */,
+			5F590E330AC36B45005255A0 /* CreationTest */,
 		);
 		breakpointsGroup = 5F590DD70ABF4A8A005255A0 /* XCBreakpointsBucket */;
 		codeSenseManager = 5F590D270ABF46CC005255A0 /* Code sense */;
+		executables = (
+			5F590E350AC36B46005255A0 /* CreationTest */,
+		);
 		perUserDictionary = {
 			PBXConfiguration.PBXFileTableDataSource3.PBXErrorsWarningsDataSource = {
 				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
@@ -22,6 +26,20 @@
 					PBXErrorsWarningsDataSource_TypeID,
 					PBXErrorsWarningsDataSource_MessageID,
 					PBXErrorsWarningsDataSource_LocationID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXExecutablesDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXExecutablesDataSource_NameID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					22,
+					300,
+					249,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXExecutablesDataSource_ActiveFlagID,
+					PBXExecutablesDataSource_NameID,
+					PBXExecutablesDataSource_CommentsID,
 				);
 			};
 			PBXConfiguration.PBXFileTableDataSource3.PBXFileTableDataSource = {
@@ -44,6 +62,28 @@
 					PBXFileDataSource_Errors_ColumnID,
 					PBXFileDataSource_Warnings_ColumnID,
 					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXConfiguration.PBXTargetDataSource.PBXTargetDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					200,
+					181,
+					20,
+					48,
+					43,
+					43,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXTargetDataSource_PrimaryAttribute,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
 				);
 			};
 			PBXPerProjectTemplateStateSaveDate = 180307628;
@@ -72,6 +112,15 @@
 			5F590E280ABF5463005255A0 /* PBXTextBookmark */ = 5F590E280ABF5463005255A0 /* PBXTextBookmark */;
 			5F590E290ABF5463005255A0 /* PBXTextBookmark */ = 5F590E290ABF5463005255A0 /* PBXTextBookmark */;
 			5F590E2A0ABF5463005255A0 /* PBXTextBookmark */ = 5F590E2A0ABF5463005255A0 /* PBXTextBookmark */;
+			5F590E2B0ABF5C4B005255A0 /* PBXTextBookmark */ = 5F590E2B0ABF5C4B005255A0 /* PBXTextBookmark */;
+			5F590E2C0ABF5C4B005255A0 /* PBXTextBookmark */ = 5F590E2C0ABF5C4B005255A0 /* PBXTextBookmark */;
+			5F590E2D0ABF5C4B005255A0 /* PBXTextBookmark */ = 5F590E2D0ABF5C4B005255A0 /* PBXTextBookmark */;
+			5F590E400AC36C15005255A0 /* PBXBookmark */ = 5F590E400AC36C15005255A0 /* PBXBookmark */;
+			5F590F1E0AC3FAF5005255A0 /* PBXBookmark */ = 5F590F1E0AC3FAF5005255A0 /* PBXBookmark */;
+			5F590F230AC3FD6F005255A0 /* PBXTextBookmark */ = 5F590F230AC3FD6F005255A0 /* PBXTextBookmark */;
+			5F590F260AC3FD6F005255A0 /* PBXTextBookmark */ = 5F590F260AC3FD6F005255A0 /* PBXTextBookmark */;
+			5F590F2E0AC3FF69005255A0 /* PBXTextBookmark */ = 5F590F2E0AC3FF69005255A0 /* PBXTextBookmark */;
+			5F590F2F0AC3FF69005255A0 /* PBXTextBookmark */ = 5F590F2F0AC3FF69005255A0 /* PBXTextBookmark */;
 		};
 		sourceControlManager = 5F590D260ABF46CC005255A0 /* Source Control */;
 		userBuildSettings = {
@@ -80,7 +129,7 @@
 	5F590D260ABF46CC005255A0 /* Source Control */ = {
 		isa = PBXSourceControlManager;
 		fallbackIsa = XCSourceControlManager;
-		isSCMEnabled = 1;
+		isSCMEnabled = 0;
 		scmConfiguration = {
 			SubversionToolPath = /usr/local/bin/svn;
 		};
@@ -93,8 +142,9 @@
 	5F590D3B0ABF46D9005255A0 /* PdfDocument.cpp */ = {
 		uiCtxt = {
 			sepNavIntBoundsRect = "{{0, 0}, {842, 9716}}";
-			sepNavSelRange = "{1880, 6}";
+			sepNavSelRange = "{21912, 0}";
 			sepNavVisRect = "{{0, 325}, {711, 429}}";
+			sepNavWindowFrame = "{{176, 292}, {750, 558}}";
 		};
 	};
 	5F590D3C0ABF46D9005255A0 /* PdfDocument.h */ = {
@@ -113,9 +163,10 @@
 	};
 	5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {722, 5040}}";
-			sepNavSelRange = "{7871, 0}";
-			sepNavVisRect = "{{0, 3986}, {711, 429}}";
+			sepNavIntBoundsRect = "{{0, 0}, {956, 16632}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {714, 607}}";
+			sepNavWindowFrame = "{{199, 271}, {750, 558}}";
 		};
 	};
 	5F590D480ABF46D9005255A0 /* PdfFontMetrics.h */ = {
@@ -123,6 +174,7 @@
 			sepNavIntBoundsRect = "{{0, 0}, {711, 4914}}";
 			sepNavSelRange = "{8587, 0}";
 			sepNavVisRect = "{{0, 2789}, {711, 429}}";
+			sepNavWindowFrame = "{{84, 376}, {750, 558}}";
 		};
 	};
 	5F590DD70ABF4A8A005255A0 /* XCBreakpointsBucket */ = {
@@ -220,7 +272,7 @@
 		comments = "error: `FcPatternGet' undeclared (first use this function)";
 		fRef = 5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */;
 		rLen = 1;
-		rLoc = 286;
+		rLoc = 1118;
 		rType = 1;
 	};
 	5F590E1D0ABF537C005255A0 /* PBXTextBookmark */ = {
@@ -228,7 +280,7 @@
 		fRef = 5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */;
 		name = "PdfFontMetrics.cpp: 264";
 		rLen = 0;
-		rLoc = 7871;
+		rLoc = 7910;
 		rType = 0;
 		vrLen = 678;
 		vrLoc = 8409;
@@ -258,7 +310,7 @@
 		fRef = 5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */;
 		name = "PdfFontMetrics.cpp: 264";
 		rLen = 0;
-		rLoc = 7871;
+		rLoc = 7910;
 		rType = 0;
 		vrLen = 678;
 		vrLoc = 8409;
@@ -288,7 +340,7 @@
 		fRef = 5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */;
 		name = "PdfFontMetrics.cpp: 264";
 		rLen = 0;
-		rLoc = 7871;
+		rLoc = 7910;
 		rType = 0;
 		vrLen = 678;
 		vrLoc = 8409;
@@ -318,7 +370,7 @@
 		fRef = 5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */;
 		name = "PdfFontMetrics.cpp: 264";
 		rLen = 0;
-		rLoc = 7871;
+		rLoc = 7910;
 		rType = 0;
 		vrLen = 678;
 		vrLoc = 8409;
@@ -342,6 +394,123 @@
 		rType = 0;
 		vrLen = 1097;
 		vrLoc = 7864;
+	};
+	5F590E2B0ABF5C4B005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */;
+		name = "PdfFontMetrics.cpp: 264";
+		rLen = 0;
+		rLoc = 7910;
+		rType = 0;
+		vrLen = 678;
+		vrLoc = 8409;
+	};
+	5F590E2C0ABF5C4B005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D3B0ABF46D9005255A0 /* PdfDocument.cpp */;
+		name = "PdfDocument.cpp: 695";
+		rLen = 0;
+		rLoc = 21912;
+		rType = 0;
+		vrLen = 648;
+		vrLoc = 1528;
+	};
+	5F590E2D0ABF5C4B005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D480ABF46D9005255A0 /* PdfFontMetrics.h */;
+		name = "PdfFontMetrics.h: 214";
+		rLen = 0;
+		rLoc = 8587;
+		rType = 0;
+		vrLen = 1097;
+		vrLoc = 7864;
+	};
+	5F590E330AC36B45005255A0 /* CreationTest */ = {
+		activeExec = 0;
+		executables = (
+			5F590E350AC36B46005255A0 /* CreationTest */,
+		);
+	};
+	5F590E350AC36B46005255A0 /* CreationTest */ = {
+		isa = PBXExecutable;
+		activeArgIndex = 0;
+		activeArgIndices = (
+			YES,
+		);
+		argumentStrings = (
+			"~/Desktop/creation.pdf",
+		);
+		autoAttachOnCrash = 1;
+		configStateDict = {
+		};
+		customDataFormattersEnabled = 1;
+		debuggerPlugin = GDBDebugging;
+		disassemblyDisplayState = 0;
+		dylibVariantSuffix = "";
+		enableDebugStr = 1;
+		environmentEntries = (
+		);
+		executableSystemSymbolLevel = 0;
+		executableUserSymbolLevel = 0;
+		libgmallocEnabled = 0;
+		name = CreationTest;
+		sourceDirectories = (
+		);
+	};
+	5F590E3D0AC36BF3005255A0 /* CreationTest.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {884, 6090}}";
+			sepNavSelRange = "{2234, 0}";
+			sepNavVisRect = "{{0, 662}, {711, 429}}";
+		};
+	};
+	5F590E400AC36C15005255A0 /* PBXBookmark */ = {
+		isa = PBXBookmark;
+		fRef = 5F590E3D0AC36BF3005255A0 /* CreationTest.cpp */;
+	};
+	5F590F1E0AC3FAF5005255A0 /* PBXBookmark */ = {
+		isa = PBXBookmark;
+		fRef = 5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */;
+	};
+	5F590F230AC3FD6F005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */;
+		name = "PdfFontMetrics.cpp: 933";
+		rLen = 0;
+		rLoc = 26535;
+		rType = 0;
+		vrLen = 1188;
+		vrLoc = 25812;
+	};
+	5F590F260AC3FD6F005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590E3D0AC36BF3005255A0 /* CreationTest.cpp */;
+		name = "CreationTest.cpp: 52";
+		rLen = 0;
+		rLoc = 2234;
+		rType = 0;
+		vrLen = 894;
+		vrLoc = 2138;
+	};
+	5F590F2E0AC3FF69005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590D470ABF46D9005255A0 /* PdfFontMetrics.cpp */;
+		name = "PdfFontMetrics.cpp: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 2024;
+		vrLoc = 0;
+	};
+	5F590F2F0AC3FF69005255A0 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 5F590E3D0AC36BF3005255A0 /* CreationTest.cpp */;
+		name = "CreationTest.cpp: 52";
+		rLen = 0;
+		rLoc = 2234;
+		rType = 0;
+		vrLen = 894;
+		vrLoc = 2138;
 	};
 	D2AAC045055464E500DB518D /* PoDoFo */ = {
 		activeExec = 0;
