@@ -30,6 +30,24 @@ namespace PoDoFo {
 class PdfEncrypt
 {
 public:
+	typedef enum {
+		PdfKeyLength40 = 40,
+		PdfKeyLength56 = 56,
+		PdfKeyLength80 = 80
+	} PdfKeyLength;
+
+	typedef enum {
+		PdfPermPrint		= 0x00000004,
+		PdfPermEdit			= 0x00000008,
+		PdfPermCopy			= 0x00000010,
+		PdfPermEditNotes	= 0x00000020,
+		PdfPermFillAndSign	= 0x00000100,
+		PdfPermAccessible	= 0x00000200,
+		PdfPermDocAssembly	= 0x00000400,
+		PdfPermHighPrint	= 0x00000800
+	} PdfPerms;
+
+public:
   /// Default constructor
   PdfEncrypt();
 
@@ -39,6 +57,7 @@ public:
   /// Generate encryption key from user and owner passwords and protection key
   void GenerateEncryptionKey(const std::string& userPassword,
                              const std::string& ownerPassword,
+							 PdfKeyLength inKeyLength,
                              int protection);
 
   /// Get the U object value (user)

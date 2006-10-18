@@ -45,6 +45,7 @@
 #include "PdfDocument.h"
 #include "PdfElement.h"
 #include "PdfError.h"
+#include "PdfExtGState.h"
 #include "PdfFileSpec.h"
 #include "PdfFilter.h"
 #include "PdfFont.h"

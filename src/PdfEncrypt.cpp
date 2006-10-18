@@ -366,6 +366,7 @@ PdfEncrypt::PadPassword(const std::string& password, unsigned char pswd[32])
 void
 PdfEncrypt::GenerateEncryptionKey(const std::string& userPassword,
                                     const std::string& ownerPassword,
+									PdfKeyLength inKeyLength,
                                     int protection)
 {
   int j;

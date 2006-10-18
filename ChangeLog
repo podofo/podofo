@@ -1,3 +1,8 @@
+Version 0.5
+    Added support for Embedded Files (annotations & named objects)
+    Added support for ExtGStates when drawing
+		initially only supports basic transparency
+
 Version 0.4
 	PdfImage now supports creating an image stream from a "raw bitmap"
 		which can also be optionally Flate compressed

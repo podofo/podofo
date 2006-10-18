@@ -139,6 +139,9 @@
 				RelativePath=".\src\PdfError.cpp">
 			</File>
 			<File
+				RelativePath=".\src\PdfExtGState.cpp">
+			</File>
+			<File
 				RelativePath=".\src\PdfFileSpec.cpp">
 			</File>
 			<File
@@ -277,6 +280,9 @@
 			</File>
 			<File
 				RelativePath=".\src\PdfError.h">
+			</File>
+			<File
+				RelativePath=".\src\PdfExtGState.h">
 			</File>
 			<File
 				RelativePath=".\src\PdfFileSpec.h">

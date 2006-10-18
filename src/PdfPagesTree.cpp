@@ -316,7 +316,7 @@ void PdfPagesTree::InsertPages( int inAfterIndex,
 
 	// put the newly added pages into the cache
 	for ( int i=insIdx; i<insIdx+inNumPages; i++ ) {
-		m_deqPageObjs[i] = NULL;			// clear it
+		m_deqPageObjs.push_back( NULL );			// clear it
 		m_deqPageObjs[i] = GetPage( i );	// and now fill it
 	}
 }
@@ -327,7 +327,7 @@ PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
     PdfPage*	pPage = new PdfPage( rSize, GetRoot()->GetParent() );
 
     InsertPage( last, pPage );
-    m_deqPageObjs.push_back( pPage );	// might as well add it here too...
+//    m_deqPageObjs.push_back( pPage );	// might as well add it here too...
 
     return pPage;
 }

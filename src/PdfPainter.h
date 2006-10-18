@@ -28,6 +28,7 @@
 namespace PoDoFo {
 
 class PdfCanvas;
+class PdfExtGState;
 class PdfFont;
 class PdfImage;
 class PdfName;
@@ -404,7 +405,7 @@ class PdfPainter {
      *
      *  \param a scale in x direction
      *  \param b rotation
-     *  \param c roation
+     *  \param c rotation
      *  \param d scale in y direction
      *  \param e translate in x direction
      *  \param f translate in y direction
@@ -413,6 +414,11 @@ class PdfPainter {
      *  \see Restore()
      */
     void SetTransformationMatrix( double a, double b, double c, double d, double e, double f );
+
+	/** Sets a specific PdfExtGState as being active
+	 *	\param inGState the specific ExtGState to set
+	 */
+	void SetExtGState( PdfExtGState* inGState );
 
     /** Set the tab width for the DrawText operation.
      *  Every tab '\\t' is replaced with nTabWidth 

@@ -23,6 +23,7 @@
 #include "PdfDestination.h"
 #include "PdfDictionary.h"
 #include "PdfDocument.h"
+#include "PdfExtGState.h"
 #include "PdfFileSpec.h"
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
@@ -355,6 +356,19 @@ void MMTest( PdfPainterMM* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
     pPainter->SetColor( 1.0, 0.0, 0.0 );
     pPainter->FillEllipseMM( lX, lY, 20000, 20000 );
+
+	lY -= 60000;
+
+	// let's test out the opacity features
+	PdfExtGState	trans( &(pDocument->GetObjects()) );
+	trans.SetFillOpacity( 0.5 );
+	pPainter->SetExtGState( &trans );
+	pPainter->SetColor( 1.0, 0.0, 0.0 );
+	pPainter->FillEllipseMM( lX, lY, 20000, 20000 );
+	pPainter->SetColor( 0.0, 1.0, 0.0 );
+	pPainter->FillEllipseMM( lX+20000, lY, 20000, 20000 );
+	pPainter->SetColor( 0.0, 0.0, 1.0 );
+	pPainter->FillEllipseMM( lX+10000, lY-10000, 20000, 20000 );
 }
 
 int main( int argc, char* argv[] ) 
