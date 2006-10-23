@@ -6,21 +6,35 @@ INCLUDE(UsePkgConfig)
 # [CMAKE 2.5 ONLY]
 #INCLUDE(CheckCXXCompilerFlag)
 
+# By default and if nothing else prevents us,
+# build both shared and static libraries.
 IF(NOT DEFINED PODOFO_BUILD_SHARED)
     SET(PODOFO_BUILD_SHARED TRUE)
 ENDIF(NOT DEFINED PODOFO_BUILD_SHARED)
-
 IF(NOT DEFINED PODOFO_BUILD_STATIC)
     SET(PODOFO_BUILD_STATIC TRUE)
 ENDIF(NOT DEFINED PODOFO_BUILD_STATIC)
+
+# CMake 2.5 added the CLEAN_DIRECT_OUTPUT property that we require
+# to generate both a shared and static library in the same directory.
+# On older versons we can can build EITHER a shared OR static library
+# only.
+IF(CMAKE_MAJOR_VERSION EQUAL "2" AND CMAKE_MINOR_VERSION LESS "5")
+    IF(PODOFO_BUILD_SHARED AND PODOFO_BUILD_STATIC)
+         MESSAGE("Both PODOFO_BUILD_SHARED and PODOFO_BUILD_STATIC set")
+         MESSAGE("  so disabling static library generation (CMake version < 2.5)")
+         SET(PODOFO_BUILD_STATIC FALSE)
+    ENDIF(PODOFO_BUILD_SHARED AND PODOFO_BUILD_STATIC)
+    
+ENDIF(CMAKE_MAJOR_VERSION EQUAL "2" AND CMAKE_MINOR_VERSION LESS "5")
 
 IF(WIN32)
     # On win32 we support EITHER shared OR static builds.
     # If both are enabled (default), turn off generation of the
     # static library.
     IF(PODOFO_BUILD_SHARED AND PODOFO_BUILD_STATIC)
-         MESSAGE("Win32: Both PODOFO_BUILD_SHARED and PODOFO_BUILD_STATIC set")
-         MESSAGE("Win32: Disabling static library generation.")
+         MESSAGE("Both PODOFO_BUILD_SHARED and PODOFO_BUILD_STATIC set")
+         MESSAGE("  so disabling static library generation (win32)")
          SET(PODOFO_BUILD_STATIC FALSE)
     ENDIF(PODOFO_BUILD_SHARED AND PODOFO_BUILD_STATIC)
     # We must explicitly link to the core win32 libraries, and we need winsock2

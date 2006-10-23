@@ -79,10 +79,9 @@ IF(PODOFO_BUILD_SHARED)
         SOVERSION "0.4.0"
         CLEAN_DIRECT_OUTPUT 1
         OUTPUT_NAME "podofo"
-        COMPILE_FLAGS -DCOMPILING_SHARED_PODOFO
         )
-    # Since we're building a shared podofo, prefer to depend on this one for tests
-    # and tools over the static library (if built).
+    # Since we're building a shared podofo, prefer to depend on this one for
+    # tests and tools over the static library (if built).
     SET(PODOFO_DEPEND_TARGET podofo_shared
         CACHE INTERNAL "Which PoDoFo library variant to depend on")
     SET(USING_SHARED_PODOFO TRUE)

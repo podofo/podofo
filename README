@@ -91,8 +91,19 @@ successful and feedback is good. As the use of CMake will simplify build system
 maintainance considerably, comments, problem reports, etc would be strongly
 appreciated.
 
+You can use the CMake variable CMAKE_BUILD_TYPE to control the type of
+build. The main values supported are DEBUG and RELEASE. The default is
+DEBUG. Set the build type with the CMake argument:
+	-DCMAKE_BUILD_TYPE=DEBUG
+		or
+	-DCMAKE_BUILD_TYPE=RELEASE
+as appropriate.
+
 All instructons below use out-of-tree builds (recommended). To clean up an
 out-of-tree build, just delete the build directory.
+
+On all Makefile-style builds, set the VERBOSE flag to 1 on the make command
+line to see all compiler commands etc.
 
 4.1.1 CMake builds on Linux/UNIX
 ================================
@@ -105,6 +116,12 @@ mkdir ../podofo-build
 cd ../podofo-build
 cmake -G "UNIX Makefiles" ../podofo-src
 make
+
+To see detailed compiler output, use:
+
+make VERBOSE=1
+
+instead of just "make".
 
 [The experimental CMake builds do not yet support "make install"]
 
@@ -125,7 +142,9 @@ cmake -G "UNIX Makefiles" ../podofo-src \
 	-DPODOFO_BUILD_SHARED=TRUE \
 	-DPODOFO_BUILD_STATIC=FALSE
 
-By default, all supported library types will be built.
+By default, all supported library types will be built where possible (with older
+CMake versions you might need to build either the static or shared library,
+not both).
 
 Note that the instructions above run an out-of-tree build. CMake does support
 in-tree builds, but the use of out-of-tree builds is very strongly recommended.
@@ -152,8 +171,6 @@ want a static library, just disable generation of the shared library with the
 extra argument to cmake:
 
 	-DPODOFO_BUILD_SHARED=FALSE
-
-TODO CR: document debug vs release builds
 
 4.1.2.1 CMake builds on Windows with MinGW
 ==========================================
