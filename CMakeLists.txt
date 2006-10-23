@@ -1,10 +1,13 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 1.5)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
 PROJECT(PoDoFo)
 INCLUDE(CheckIncludeFile)
 INCLUDE(CheckLibraryExists)
 INCLUDE(UsePkgConfig)
 # [CMAKE 2.5 ONLY]
 #INCLUDE(CheckCXXCompilerFlag)
+
+# Load modules from our source tree too
+SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 # By default and if nothing else prevents us,
 # build both shared and static libraries.
@@ -90,53 +93,24 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
     #ENDIF(HAVE_GCC4_FLAG_VISIBILITY)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
-FIND_PATH(LIBZ_H NAMES zlib.h)
-FIND_LIBRARY(LIBZ_LIB NAMES z zlib libz)
+FIND_PACKAGE(ZLIB REQUIRED)
 MESSAGE("Found zlib headers in ${LIBZ_H}, library at ${LIBZ_LIB}")
 
-FIND_PATH(LIBJPEG_H NAMES jpeglib.h)
-FIND_LIBRARY(LIBJPEG_LIB NAMES jpeg libjpeg jpeglib)
+FIND_PACKAGE(LIBJPEG REQUIRED)
 MESSAGE("Found libjpeg headers in ${LIBJPEG_H}, library at ${LIBJPEG_LIB}")
 
-# Freetype puts its headers in stupid places and expects you to run a
-# non-portable shell script to find them.  Find ft2build.h and try to determine
-# where freetype.h is relative to it.
-# TODO: use pkg-config and/or freetype-config to find freetype when possible
-FIND_PATH(LIBFREETYPE_FT2BUILD_H NAMES ft2build.h)
-MESSAGE("Found ft2build.h in ${LIBFREETYPE_FT2BUILD_H}")
-# Now try to find the corresponding freetype.h
-FIND_PATH(LIBFREETYPE_FREETYPE_H
-    NAMES freetype/freetype.h
-    PATHS
-    ${LIBFREETYPE_FT2BUILD_H}/freetype2
-    ${LIBFREETYPE_FT2BUILD_H}/freetype
-    )
-MESSAGE("Found freetype.h in ${LIBFREETYPE_FREETYPE_H}")
-# At least the library will be somewhere sensible
-FIND_LIBRARY(LIBFREETYPE_LIB NAMES freetype libfreetype)
+FIND_PACKAGE(LIBFREETYPE REQUIRED)
 MESSAGE("Found freetype library at ${LIBFREETYPE_LIB}")
 
 IF(WANT_FONTCONFIG)
-    # fontconfig often lives in a subdir off the include path
-    # called just `fontconfig'
-    FIND_PATH(LIBFONTCONFIG_INCLUDEPATH NAMES fontconfig.h)
-    IF(LIBFONTCONFIG_INCLUDEPATH)
-        MESSAGE("Found fontconfig.h at ${LIBFONTCONFIG_H}/fontconfig.h}")
-        SET(LIBFONTCONFIG_H ${LIBFONTCONFIG_INCLUDEPATH})
-    ELSE(LIBFONTCONFIG_INCLUDEPATH)
-        FIND_PATH(LIBFONTCONFIG_INCLUDEPATH_PARENTDIR NAMES fontconfig/fontconfig.h)
-        MESSAGE("Found fontconfig.h at ${LIBFONTCONFIG_INCLUDEPATH_PARENTDIR}/fontconfig/fontconfig.h")
-        SET(LIBFONTCONFIG_H ${LIBFONTCONFIG_INCLUDEPATH_PARENTDIR}/fontconfig)
-    ENDIF(LIBFONTCONFIG_INCLUDEPATH)
-    # The fontconfig library is generally easy to find
-    FIND_LIBRARY(LIBFONTCONFIG_LIB NAMES fontconfig)
-    MESSAGE("Found fontconfig library at ${LIBFONTCONFIG_LIB}")
-    SET(PODOFO_LIB_FONTCONFIG:STRING fontconfig)
-    ADD_DEFINITIONS(-DHAVE_FONTCONFIG)
+	FIND_PACKAGE(LIBFONTCONFIG REQUIRED)
+	ADD_DEFINITIONS(-DHAVE_FONTCONFIG)
+	SET(PODOFO_LIB_FONTCONFIG:STRING fontconfig)
 ELSE(WANT_FONTCONFIG)
-    SET(PODOFO_LIB_FONTCONFIG:STRING)
-    SET(LIBFONTCONFIG_H:PATH)
-    SET(LIBFONTCONFIG_LIB:PATH)
+	# Might as well look for it anyway. This also sets the appropriate
+	# variables to empty values.
+	FIND_PACKAGE(LIBFONTCONFIG)
+	SET(PODOFO_LIB_FONTCONFIG:STRING)
 ENDIF(WANT_FONTCONFIG)
 
 INCLUDE_DIRECTORIES(
@@ -145,7 +119,6 @@ INCLUDE_DIRECTORIES(
     ${LIBFREETYPE_FREETYPE_H}
     ${LIBZ_H}
     ${LIBJPEG_H}
-    ${LIBFONTCONFIG_H}
     ${EXTRA_INCLUDES}
     )
 LINK_DIRECTORIES(
@@ -162,15 +135,43 @@ SET(PODOFO_LIB_DEPENDS
     ${LIBZ_LIB}
     ${LIBFREETYPE_LIB}
     ${LIBJPEG_LIB}
-    ${LIBFONTCONFIG_LIB}
     ${PLATFORM_SYSTEM_LIBRARIES}
     )
+
+IF(LIBFONTCONFIG_FOUND AND WANT_FONTCONFIG)
+	SET(PODOFO_LIB_DEPENDS ${LIBFONTCONFIG_LIB} ${PODOFO_LIB_DEPENDS})
+	INCLUDE_DIRECTORIES(${LIBFONTCONFIG_H})
+ENDIF(LIBFONTCONFIG_FOUND AND WANT_FONTCONFIG)
+
 
 SET(PODOFO_LIB
     podofo
     ${PODOFO_LIB_DEPENDS}
     )
 
+# Create the config file. It'll be appended to as the subdirs run though
+# then dependency information will be written to it at the end of the
+# build.
+FILE(WRITE
+     "${PoDoFo_BINARY_DIR}/PoDoFoConfig.cmake"
+     "# CMake module for PoDoFo\n"
+     )
+FILE(APPEND 
+     "${PoDoFo_BINARY_DIR}/PoDoFoConfig.cmake"
+     "SET(PODOFO_INCLUDES ${PoDoFo_SOURCE_DIR}/src)\n"
+     )
+
 ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(test)
 ADD_SUBDIRECTORY(tools)
+
+# Export some variables into the config file so it's easier for others
+# to build and link against PoDoFo
+
+
+# To use these dependencies set PODOFO_DIR to the podofo BUILD directory in
+# your build (eg -DPODOFO_DIR=/path/to/podofo when running cmake to configure
+# the app that'll use podofo). See: FIND_PACKAGE(...) in the cmake docs.
+EXPORT_LIBRARY_DEPENDENCIES(
+	"${CMAKE_CURRENT_BINARY_DIR}/PoDoFoConfig.cmake"
+	APPEND)

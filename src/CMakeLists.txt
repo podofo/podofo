@@ -98,3 +98,13 @@ IF(WIN32 AND USING_SHARED_PODOFO)
 ELSE(WIN32 AND USING_SHARED_PODOFO)
     SET(PODOFO_CFLAGS "" CACHE INTERNAL "Extra flags required when linking to PoDoFo")
 ENDIF(WIN32 AND USING_SHARED_PODOFO)
+
+# Write the cflags and depend target to the config file
+FILE(APPEND 
+     "${PoDoFo_BINARY_DIR}/PoDoFoConfig.cmake"
+     "SET(PODOFO_CFLAGS ${PODOFO_CFLAGS})\n"
+     )
+FILE(APPEND
+     "${PoDoFo_BINARY_DIR}/PoDoFoConfig.cmake"
+     "SET(PODOFO_DEPEND_TARGET ${PODOFO_DEPEND_TARGET})\n"
+     )
