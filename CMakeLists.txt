@@ -111,7 +111,7 @@ FIND_PATH(LIBFREETYPE_FREETYPE_H
     ${LIBFREETYPE_FT2BUILD_H}/freetype2
     ${LIBFREETYPE_FT2BUILD_H}/freetype
     )
-MESSAGE("Found freetypt.h in ${LIBFREETYPE_FREETYPE_H}")
+MESSAGE("Found freetype.h in ${LIBFREETYPE_FREETYPE_H}")
 # At least the library will be somewhere sensible
 FIND_LIBRARY(LIBFREETYPE_LIB NAMES freetype libfreetype)
 MESSAGE("Found freetype library at ${LIBFREETYPE_LIB}")
