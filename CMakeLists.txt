@@ -53,7 +53,6 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
     # than with most other compilers.
     ADD_DEFINITIONS(
         -std=c++98
-        -O2
         -Wall
         -Wold-style-cast
         -Woverloaded-virtual
