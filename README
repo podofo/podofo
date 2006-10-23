@@ -187,6 +187,9 @@ cd ..\podofo-debug
 cmake -G "MinGW Makefiles" ..\podofo-src -DCMAKE_INCLUDE_PATH=c:\progra~1\gnuwin32\include -DCMAKE_LIBRARY_PATH=c:\progra~1\gnuwin32\lib
 mingw32-make
 
+One of the easiest ways to get MinGW is as part of the Qt4 package from
+Trolltech.
+
 4.1.2.1 CMake builds on Windows with Visual Studio
 ==================================================
 
@@ -204,6 +207,9 @@ podofo.sln
 
 Note that CMake should automatically find your Visual Studio install, so you
 shouldn't need any special settings unless you have an unusual setup.
+
+You can get the Visual C++ Express Edition from
+http://msdn.microsoft.com/vstudio/express/ .
 
 4.1.2.1 CMake builds on Windows with NMake
 ==========================================
