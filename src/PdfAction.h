@@ -64,7 +64,7 @@ typedef enum EPdfAction {
 
 /** An action that can be performed in a PDF document
  */
-class PdfAction : public PdfElement {
+class PODOFO_API PdfAction : public PdfElement {
 
     friend class PdfAnnotation;
 

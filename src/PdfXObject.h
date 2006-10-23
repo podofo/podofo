@@ -41,7 +41,7 @@ class PdfObject;
  * 
  *  \see PdfPainter
  */
-class PdfXObject : public PdfElement, public PdfCanvas {
+class PODOFO_API PdfXObject : public PdfElement, public PdfCanvas {
  public:
     /** Create a new XObject with a specified dimension
      *  in a given vector of PdfObjects

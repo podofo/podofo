@@ -19,7 +19,7 @@ class PdfWriter;
  *  You will use PdfSimpleWriter::CreateFont most of the time
  *  to create a new font object.
  */
-class PdfFont : public PdfElement {
+class PODOFO_API PdfFont : public PdfElement {
  public:
     /** Create a new PdfFont object which will introduce itself
      *  automatically to every page object it is used on.

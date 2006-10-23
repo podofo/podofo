@@ -33,7 +33,7 @@ class PdfParser;
  * A PdfParserObject constructs a PdfObject from a PDF file.
  * Parsing starts always at the current file position.
  */
-class PdfParserObject : public PdfObject, public PdfParserBase {
+class PODOFO_API PdfParserObject : public PdfObject, public PdfParserBase {
     friend class PdfParser;
 
  public:

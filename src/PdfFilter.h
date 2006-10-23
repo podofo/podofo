@@ -22,7 +22,6 @@
 #define _PDF_FILTER_H_
 
 #include "PdfDefines.h"
-#include <map>
 
 namespace PoDoFo {
 
@@ -36,7 +35,7 @@ struct TFlatePredictorParams;
  *  The output buffers are malloc'ed in the functions and have
  *  to be free'd by the caller.
  */
-class PdfFilter {
+class PODOFO_API PdfFilter {
  public:
     /** All classes with virtual functions need a virtual destructor
      */
@@ -74,7 +73,7 @@ class PdfFilter {
 
 /** A factory to create a filter object for a filter GetType from the EPdfFilter enum.
  */
-class PdfFilterFactory {
+class PODOFO_API PdfFilterFactory {
  public:
     /** Create a filter from an enum. 
      *  The filter is cached and may not be delted!
@@ -94,7 +93,9 @@ class PdfFilterFactory {
 
 /** The ascii hex filter.
  */
-class PdfHexFilter : public PdfFilter {
+// FIXME CR: Should filter implementations be part of the API, given that they're created
+// by the FilterFactory ?
+class PODOFO_API PdfHexFilter : public PdfFilter {
  public:
     virtual ~PdfHexFilter() {}
 
@@ -135,7 +136,9 @@ EPdfFilter PdfHexFilter::GetType() const
 
 /** The Ascii85 filter.
  */
-class PdfAscii85Filter : public PdfFilter {
+// FIXME CR: Should filter implementations be part of the API, given that they're created
+// by the FilterFactory ?
+class PODOFO_API PdfAscii85Filter : public PdfFilter {
  public:
     virtual ~PdfAscii85Filter() {}
 
@@ -182,7 +185,9 @@ EPdfFilter PdfAscii85Filter::GetType() const
 
 /** The flate filter.
  */
-class PdfFlateFilter : public PdfFilter {
+// FIXME CR: Should filter implementations be part of the API, given that they're created
+// by the FilterFactory ?
+class PODOFO_API PdfFlateFilter : public PdfFilter {
  public:
     virtual ~PdfFlateFilter() {}
 
@@ -225,7 +230,9 @@ EPdfFilter PdfFlateFilter::GetType() const
 
 /** The RLE filter.
  */
-class PdfRLEFilter : public PdfFilter {
+// FIXME CR: Should filter implementations be part of the API, given that they're created
+// by the FilterFactory ?
+class PODOFO_API PdfRLEFilter : public PdfFilter {
  public:
     virtual ~PdfRLEFilter() {}
 
@@ -265,7 +272,8 @@ EPdfFilter PdfRLEFilter::GetType() const
 }
 
 
-struct TLzwItem {
+// FIXME CR: Should this be part of the exported API?
+struct PODOFO_API TLzwItem {
     std::vector<unsigned char> value;
 };
 
@@ -275,7 +283,9 @@ typedef TLzwTable::const_iterator TCILzwTable;
 
 /** The LZW filter.
  */
-class PdfLZWFilter : public PdfFilter {
+// FIXME CR: Should filter implementations be part of the API, given that they're created
+// by the FilterFactory ?
+class PODOFO_API PdfLZWFilter : public PdfFilter {
  public:
     virtual ~PdfLZWFilter() {}
 

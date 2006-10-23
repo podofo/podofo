@@ -29,7 +29,8 @@ namespace PoDoFo {
 
 class PdfPagesTree;
 
-class PdfHintStream : public PdfElement {
+// FIXME CR: Should PdfHintStream be part of the public API?
+class PODOFO_API PdfHintStream : public PdfElement {
  public:
     PdfHintStream( PdfVecObjects* pParent, PdfPagesTree* pPagesTree );
     ~PdfHintStream();

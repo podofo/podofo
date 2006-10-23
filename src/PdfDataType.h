@@ -33,7 +33,7 @@ class PdfOutputDevice;
  *  \see PdfName \see PdfArray \see PdfReference 
  *  \see PdfVariant \see PdfDictionary \see PdfString
  */
-class PdfDataType {
+class PODOFO_API PdfDataType {
 
  protected:
     /** Create a new PdfDataType.
@@ -50,8 +50,7 @@ class PdfDataType {
     virtual void Write( PdfOutputDevice* pDevice ) const = 0;
 };
 
-};
-
+}; // namespace PoDoFo
 
 #endif /* _PDF_DATATYPE_H_ */
 

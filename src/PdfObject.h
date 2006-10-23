@@ -48,7 +48,7 @@ class PdfVecObjects;
  *
  * \see Write()
  */
-class PdfObject : public PdfVariant {
+class PODOFO_API PdfObject : public PdfVariant {
     friend class PdfVecObjects;
 
  public:

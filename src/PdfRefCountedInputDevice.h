@@ -32,7 +32,7 @@ class PdfInputDevice;
  * which is closed as soon as the last
  * object having access to it is deleted.
  */
-class PdfRefCountedInputDevice {
+class PODOFO_API PdfRefCountedInputDevice {
  public:
     /** Created an empty reference counted input device object
      *  The input device will be initialize to NULL

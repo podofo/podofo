@@ -32,7 +32,7 @@ class PdfVariant;
    
 /** A rectangle as defined by the PDF reference
  */
-class PdfRect {
+class PODOFO_API PdfRect {
  public:
     /** Create an empty rectangle with bottom=left=with=height=0
      */

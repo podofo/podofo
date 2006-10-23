@@ -30,7 +30,7 @@ namespace PoDoFo {
  * which is deleted as soon as the last
  * object having access to it is delteted.
  */
-class PdfRefCountedBuffer {
+class PODOFO_API PdfRefCountedBuffer {
  public:
     /** Created an empty reference counted buffer
      *  The buffer will be initialize to NULL

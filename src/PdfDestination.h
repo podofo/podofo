@@ -48,7 +48,7 @@ typedef enum EPdfDestinationFit {
  *
  *  \see PdfOutlineItem \see PdfAnnotation \see PdfDocument
  */
-class PdfDestination {
+class PODOFO_API PdfDestination {
  public:
 
     /** Create an empty destination - points to nowhere

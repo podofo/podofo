@@ -70,9 +70,135 @@ su
 make install
 
 On Windows, use the provided Visual Studio Solution/Project files after
-placing the other libraries in a directory inside of the podofo directory.
+placing the other libraries in a directory inside of the podofo directory,
+though support for generating project files with CMake is now available
+(see below).
 
 An XCode project is provided for Mac OS X users.
+
+4.1 Installation with CMake
+===========================
+
+PoDoFo now has experimental support for builds using CMake on all supported
+platforms. The CMake build has been tested on:
+
+	- Visual C++ 8 Express Edition [Win32] ("Visual Studio 8 2005" target)
+	- MinGW with GCC 3.4.2 [Win32] ("MinGW Makefiles" target)
+	- gcc 3.3.5 [Linux: Debian 3.1] ("Unix Makefiles" target)
+
+The CMake build system may become the primary/only build system if testing is
+successful and feedback is good. As the use of CMake will simplify build system
+maintainance considerably, comments, problem reports, etc would be strongly
+appreciated.
+
+All instructons below use out-of-tree builds (recommended). To clean up an
+out-of-tree build, just delete the build directory.
+
+4.1.1 CMake builds on Linux/UNIX
+================================
+
+Linux and UNIX users should be able to build PoDoFo by cd'ing into the PoDoFo
+checkout or unpacked tarball directory (here assumed to be named "podofo-src")
+and:
+
+mkdir ../podofo-build
+cd ../podofo-build
+cmake -G "UNIX Makefiles" ../podofo-src
+make
+
+[The experimental CMake builds do not yet support "make install"]
+
+If you need to specify additional paths to search for libraries, set the
+CMAKE_INCLUDE_PATH and CMAKE_LIBRARY_PATH environment variables or set them on
+the command line:
+
+cmake -G "UNIX Makefiles" ../podofo-src \
+	-DCMAKE_INCLUDE_PATH=/usr/sfw/include \
+	-DCMAKE_LIBRARY_PATH=/usr/sfw/lib
+
+If you wish to generate only a static library or only a shared library, set the
+PODOFO_BUILD_SHARED and/or PODOFO_BUILD_STATIC flags:
+
+cmake -G "UNIX Makefiles" ../podofo-src \
+	-DCMAKE_INCLUDE_PATH=/usr/sfw/include \
+	-DCMAKE_LIBRARY_PATH=/usr/sfw/lib \
+	-DPODOFO_BUILD_SHARED=TRUE \
+	-DPODOFO_BUILD_STATIC=FALSE
+
+By default, all supported library types will be built.
+
+Note that the instructions above run an out-of-tree build. CMake does support
+in-tree builds, but the use of out-of-tree builds is very strongly recommended.
+
+4.1.2 CMake builds on Windows
+=============================
+
+Building CMake on Windows can be done using MinGW (a minimalist gcc-based
+compliler environment for Windows) or Visual Studio. Other methods may work but
+have not been tested.
+
+Because the C++ ABIs of most of the win32 compilers are incompatible, you must
+build PoDoFo with the same compiler and version that you will use to build the
+programs linked to PoDoFo. Failure to follow this restriction will result in
+link errors at best, and bizarre runtime failures at worst.
+
+On Windows, if you are linking against a shared (DLL) build of PoDoFo you
+MUST define the preprocessor macro USING_SHARED_PODOFO when including any
+podofo headers. Failure to do so will result in link time and/or runtime errors.
+
+On Windows, PoDoFo may be built as either a shared or static library. Building
+both is not supported. By default only the shared library will be built. If you
+want a static library, just disable generation of the shared library with the
+extra argument to cmake:
+
+	-DPODOFO_BUILD_SHARED=FALSE
+
+TODO CR: document debug vs release builds
+
+4.1.2.1 CMake builds on Windows with MinGW
+==========================================
+
+MinGW builds are essentially the same as the UNIX instructions above, but
+Windows-style paths should be used. Make sure that the MinGW "bin"
+directory is on your PATH, and be sure to set CMAKE_INCLUDE_PATH and
+CMAKE_LIBRARY_PATH such that CMake can find the headers and libraries that
+PoDoFo requires. The GnuWin32 library packages from http://gnuwin32.sf.net/
+are known to work.
+
+md ..\podofo-debug
+cd ..\podofo-debug
+cmake -G "MinGW Makefiles" ..\podofo-src -DCMAKE_INCLUDE_PATH=c:\progra~1\gnuwin32\include -DCMAKE_LIBRARY_PATH=c:\progra~1\gnuwin32\lib
+mingw32-make
+
+4.1.2.1 CMake builds on Windows with Visual Studio
+==================================================
+
+A Visual Studio build requires that Microsoft Visual Studio be installed.
+Visual Studio 8 2005 Express Edition is known to work, and is a free download
+from Microsoft. The visual studio build has two stages - first, CMake is used
+to generate a Visual Studio solution:
+
+md ..\podofo-debug
+cd ..\podofo-debug
+cmake -G "Visual Studio 8 2005" ..\podofo-src -DCMAKE_INCLUDE_PATH=c:\progra~1\gnuwin32\include -DCMAKE_LIBRARY_PATH=c:\progra~1\gnuwin32\lib
+podofo.sln
+
+... and build the solution when it opens in Visual Studio.
+
+Note that CMake should automatically find your Visual Studio install, so you
+shouldn't need any special settings unless you have an unusual setup.
+
+4.1.2.1 CMake builds on Windows with NMake
+==========================================
+
+PoDoFo can also be built with NMake. The build procedure is essentially the same
+as described for MinGW or Visual Studio, but you must use the target name
+"NMake Makefiles" and run "nmake" after CMake completes.
+
+Getting your environment set up correctly for NMake can be tricky. The author of
+this section is no expert, but has had success running the Windows 2003 SDK
+environment file first, followed by the Visual Studio vcvars.bat file. If something
+goes wrong clean your build directory before trying again.
 
 5. Contact
 ==========

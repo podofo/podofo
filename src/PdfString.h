@@ -36,7 +36,7 @@ class PdfOutputDevice;
  *  converted into a hex string, otherwise a normal PDF 
  *  string is written to the document.
  */
-class PdfString : public PdfDataType{
+class PODOFO_API PdfString : public PdfDataType{
  public:
 
     /** Create an empty and invalid string 

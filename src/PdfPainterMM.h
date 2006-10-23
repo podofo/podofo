@@ -58,12 +58,13 @@ class PdfXObject;
  *
  * \see PdfPainter 
  */
-class PdfPainterMM : public PdfPainter {
+class PODOFO_API PdfPainterMM : public PdfPainter {
  public:
     /** Create a new PdfPainterMM object.
      */
     PdfPainterMM() {}
-    virtual ~PdfPainterMM() {}
+
+    virtual ~PdfPainterMM();
     
     /** Set the line width for all stroking operations.
      *  \param lWidth in 1/1000th mm

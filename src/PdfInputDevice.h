@@ -34,7 +34,7 @@ namespace PoDoFo {
  *  devices of your own for PoDoFo.
  *  Just overide the required virtual methods.
  */
-class PdfInputDevice {
+class PODOFO_API PdfInputDevice {
  public:
 
     /** Construct a new PdfInputDevice that reads all data from a file.

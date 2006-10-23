@@ -37,7 +37,8 @@ class PdfPagesTree;
 class PdfParser;
 class PdfVecObjects;
 
-struct TXRefTable {    
+// FIXME CR: Should this be part of the exported API?
+struct PODOFO_API TXRefTable {    
     unsigned int nFirst;
     unsigned int nCount;
 
@@ -61,7 +62,7 @@ typedef TVecXRefOffset::const_iterator TCIVecXRefOffset;
  *
  *  Most users will want to use PdfSimpleWriter.
  */
-class PdfWriter {
+class PODOFO_API PdfWriter {
  public:
     /** Create a PdfWriter object from a PdfParser object
      *  \param pParser a pdf parser object
@@ -186,12 +187,12 @@ class PdfWriter {
     /** Writes a linearized PDF file
      *  \param pDevice write to this output device
      */       
-    void WriteLinearized( PdfOutputDevice* pDevice );
+    void PODOFO_LOCAL WriteLinearized( PdfOutputDevice* pDevice );
 
     /** Writes the pdf header to the current file.
      *  \param pDevice write to this output device
      */       
-    void WritePdfHeader( PdfOutputDevice* pDevice );
+    void PODOFO_LOCAL WritePdfHeader( PdfOutputDevice* pDevice );
 
     /** Create a linearization dictionary for the current
      *  document and return a pointer to it after inserting
@@ -199,7 +200,7 @@ class PdfWriter {
      *
      *  \returns a pointer to the linearization dictionary
      */
-    PdfObject* CreateLinearizationDictionary();
+    PdfObject* PODOFO_LOCAL CreateLinearizationDictionary();
 
     /** Reorder and renumber all object as required for linearized PDF files.
      *  This function is very slow.
@@ -210,20 +211,20 @@ class PdfWriter {
      *  \param ppLast the pointer will be initialized to the last object
      *         belonging to the first page
      */
-    void ReorderObjectsLinearized( PdfObject* pLinearize, PdfHintStream* pHint, PdfPage* pPage, PdfObject** ppLast );
+    void PODOFO_LOCAL ReorderObjectsLinearized( PdfObject* pLinearize, PdfHintStream* pHint, PdfPage* pPage, PdfObject** ppLast );
 
     /** Write pdf objects to file
      *  \param pDevice write to this output device
      *  \param vecObjects write all objects in this vector to the file
      *  \param pVecXRef add all written objects to this XRefTable
      */ 
-    void WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, TVecXRefTable* pVecXRef );
+    void PODOFO_LOCAL WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, TVecXRefTable* pVecXRef );
 
     /** Writes a list of xref entries to the current file
      *  \param pDevice write to this output device
      *  \param vecOffsets list of objects which will be written
      */
-    void WriteXRefEntries( PdfOutputDevice* pDevice, const TVecOffsets & vecOffsets );
+    void PODOFO_LOCAL WriteXRefEntries( PdfOutputDevice* pDevice, const TVecOffsets & vecOffsets );
 
     /** Writes the xref table.
      *  \param pVecXRef write this XRef table
@@ -232,14 +233,14 @@ class PdfWriter {
      *  \param bDummyOffset write a dummy startxref offset for linearized PDF files
      *  \param bShortTrailer write only the size key in the trailer
      */
-    void WritePdfTableOfContents( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, TVecXRefOffset* pVecXRefOffset, bool bDummyOffset = false, bool bShortTrailer = true );
+    void PODOFO_LOCAL WritePdfTableOfContents( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, TVecXRefOffset* pVecXRefOffset, bool bDummyOffset = false, bool bShortTrailer = true );
 
     /** Writes the xref table as xref stream.
      *  \param pVecXRef write this XRef table
      *  \param pDevice write to this output device
      *  \param bDummyOffset write a dummy startxref offset for linearized PDF files
      */
-    void WriteXRefStream( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, bool bDummyOffset = false );
+    void PODOFO_LOCAL WriteXRefStream( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, bool bDummyOffset = false );
 
     /** Add required keys to a trailer object
      *  \param pTrailer add keys to this object
@@ -247,16 +248,16 @@ class PdfWriter {
      *  \param bPrevEntry if true a prev entry is added to the trailer object with a value of 0
      *  \param bOnlySizeKey write only the size key
      */
-    void FillTrailerObject( PdfObject* pTrailer, long lSize, bool bPrevEntry, bool bOnlySizeKey );
+    void PODOFO_LOCAL FillTrailerObject( PdfObject* pTrailer, long lSize, bool bPrevEntry, bool bOnlySizeKey );
 
     /** Initialize m_pPagesTree with its correct value
      *  Always call this function befre accessing the pages tree.
      */
-    void FetchPagesTree();
+    void PODOFO_LOCAL FetchPagesTree();
 
     /** Find dependencies required for creating a linearized PDF of the catalog dictionary.
      */
-    void FindCatalogDependencies( PdfObject* pCatalog, const PdfName & rName, TPdfReferenceList* pList, bool bWithDependencies );
+    void PODOFO_LOCAL FindCatalogDependencies( PdfObject* pCatalog, const PdfName & rName, TPdfReferenceList* pList, bool bWithDependencies );
 
     /** Fill all keys in the linearization dictionary with their values
      *  \param pLinearize a linearization dictionary
@@ -265,7 +266,7 @@ class PdfWriter {
      *  \param pLast pointer of the last object belonging to the first page
      *  \param pVecXRefOffset xref table entries for previous entry
      */
-    void FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset );
+    void PODOFO_LOCAL FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset );
     /** Creates a file identifier which is required in several
      *  PDF workflows. 
      *  All values from the files document information dictionary are
@@ -273,7 +274,7 @@ class PdfWriter {
      *
      *  \param pTrailer add the file identifier to this trailer dictionary
      */
-    void CreateFileIdentifier( PdfObject* pTrailer );
+    void PODOFO_LOCAL CreateFileIdentifier( PdfObject* pTrailer );
 
  protected:
     PdfVecObjects*  m_vecObjects;

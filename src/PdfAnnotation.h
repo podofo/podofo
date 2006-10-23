@@ -22,7 +22,6 @@
 #define _PDF_ANNOTATION_H_
 
 #include "PdfDefines.h"
-
 #include "PdfAction.h"
 #include "PdfDestination.h"
 #include "PdfElement.h"
@@ -99,7 +98,7 @@ typedef enum EPdfAnnotationFlags {
  * 
  *  \see PdfPage::CreateAnnotation
  */
-class PdfAnnotation : public PdfElement {
+class PODOFO_API PdfAnnotation : public PdfElement {
  public:
     /** Create a new annotation object
      *

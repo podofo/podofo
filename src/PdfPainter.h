@@ -48,11 +48,12 @@ class PdfXObject;
  * All functions that take coordinates expect these to be in PDF User Units. Keep in mind that PDF has
  * its coordinate system origin at the bottom left corner.
  */
-class PdfPainter {
+class PODOFO_API PdfPainter {
  public:
     /** Create a new PdfPainter object.
      */
     PdfPainter();
+
     virtual ~PdfPainter();
 
     /** Set the page on which the painter should draw.

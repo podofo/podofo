@@ -1,0 +1,4 @@
+ADD_EXECUTABLE(podofopdfinfo pdfinfo.cpp podofopdfinfo.cpp)
+TARGET_LINK_LIBRARIES(podofopdfinfo ${PODOFO_LIB})
+SET_TARGET_PROPERTIES(podofopdfinfo PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
+ADD_DEPENDENCIES(podofopdfinfo ${PODOFO_DEPEND_TARGET})

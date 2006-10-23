@@ -46,7 +46,7 @@ typedef enum {
  *  
  *  \see PdfDocument
  */
-class PdfPagesTree : public PdfElement
+class PODOFO_API PdfPagesTree : public PdfElement
 {
  public:
     /** Construct a new PdfPagesTree

@@ -1,0 +1,8 @@
+IF(NOT WIN32)
+# We don't build LargeTest on win32 since it depends on
+# fontconfig to operate
+ADD_EXECUTABLE(LargeTest LargeTest.cpp)
+TARGET_LINK_LIBRARIES(LargeTest ${PODOFO_LIB})
+SET_TARGET_PROPERTIES(LargeTest PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
+ADD_DEPENDENCIES(LargeTest ${PODOFO_DEPEND_TARGET})
+ENDIF(NOT WIN32)

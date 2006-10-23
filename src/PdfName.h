@@ -37,7 +37,7 @@ class PdfOutputDevice;
  *
  *  \see PdfObject \see PdfVariant
  */
-class PdfName : public PdfDataType {
+class PODOFO_API PdfName : public PdfDataType {
  public:
     /** Constructor to create NULL strings.
      *  use PdfName::KeyNull instead of this constructor

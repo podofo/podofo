@@ -33,7 +33,7 @@ class PdfName;
 
 /** An action that can be performed in a PDF document
  */
-class PdfNamesTree : public PdfElement {
+class PODOFO_API PdfNamesTree : public PdfElement {
  public:
     /** Create a new PdfNamesTree object
      *  \param pParent parent of this action

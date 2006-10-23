@@ -45,7 +45,7 @@ namespace PoDoFo {
  *  A date is a string of the form
  *  (D:YYYYMMDDHHmmSSOHH'mm')
  */
-class PdfDate {
+class PODOFO_API PdfDate {
  public:
     /** Create a PdfDate object with the current date and time.
      */

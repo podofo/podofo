@@ -59,7 +59,7 @@ typedef TVecReferencePointerList::const_iterator TCIVecReferencePointerList;
  *  These class contains also advanced funtions for searching of PdfObject's
  *  in a PdfVecObject. 
  */
-class PdfVecObjects : public std::vector<PdfObject*> {
+class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
     friend class PdfWriter;
 
  public:

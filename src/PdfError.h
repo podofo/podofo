@@ -21,7 +21,11 @@
 #ifndef _PDF_ERROR_H_
 #define _PDF_ERROR_H_
 
-#include "PdfDefines.h"
+// PdfError.h should not include PdfDefines.h, since it is included by it.
+// It should avoid depending on anything defined in PdfDefines.h .
+
+#include "podofoapi.h"
+#include <string>
 #include <queue>
 
 /** \file PdfError.h
@@ -111,7 +115,7 @@ typedef enum ELogSeverity {
  */
 #define RAISE_ERROR_INFO( x, y ) throw PdfError( x, __FILE__, __LINE__, y );
 
-class PdfErrorInfo {
+class PODOFO_API PdfErrorInfo {
  public:
     PdfErrorInfo();
     PdfErrorInfo( int line, const char* pszFile, const char* pszInfo );
@@ -132,7 +136,7 @@ class PdfErrorInfo {
 };
 
 
-typedef std::deque<PdfErrorInfo>        TDequeErrorInfo;
+typedef std::deque<PdfErrorInfo> PODOFO_API TDequeErrorInfo;
 typedef TDequeErrorInfo::iterator       TIDequeErrorInfo;
 typedef TDequeErrorInfo::const_iterator TCIDequeErrorInfo;
 
@@ -146,7 +150,7 @@ typedef TDequeErrorInfo::const_iterator TCIDequeErrorInfo;
  *  This class provides also meaningfull
  *  error descriptions.
  */
-class PdfError : public std::exception {
+class PODOFO_EXCEPTION_API(PODOFO_API) PdfError : public std::exception {
  public:
     /** Create a PdfError object initialized to ErrOk
      */

@@ -36,7 +36,7 @@ namespace PoDoFo {
  *  devices of your own for PoDoFo.
  *  Just overide the required virtual methods.
  */
-class PdfOutputDevice {
+class PODOFO_API PdfOutputDevice {
  public:
 
     /** Construct a new PdfOutputDevice that does not write any data. Only the length

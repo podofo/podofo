@@ -22,7 +22,6 @@
 #define _PDF_CONTENTS_H_
 
 #include "PdfDefines.h"
-
 #include "PdfArray.h"
 #include "PdfObject.h"
 
@@ -31,7 +30,7 @@ namespace PoDoFo {
 /** A interface that provides a wrapper around "PDF content" -
 	the instructions that are used to draw on the PDF "canvas".
  */
-class PdfContents {
+class PODOFO_API PdfContents {
  public:
 
     /** Construct a new/empty set of contents in the owning objects

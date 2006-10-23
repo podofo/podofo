@@ -43,7 +43,7 @@ class PdfReference;
  *
  * TODO: domseichter: Make this class implicitly shared
  */
-class PdfVariant {
+class PODOFO_API PdfVariant {
  public:
 
     static PdfVariant NullValue;

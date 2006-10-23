@@ -39,7 +39,7 @@ class PdfVecObjects;
  *  \see GetImageReference
  *  \see PdfPainter::DrawImage
  */
-class PdfImage : public PdfXObject {
+class PODOFO_API PdfImage : public PdfXObject {
  public:
     /** Constuct a new PdfImage object
      *

@@ -40,7 +40,7 @@ typedef TMapObjects::const_iterator TCIMapObjects;
  * the PdfWriter class.
  * Most PDF features are supported
  */
-class PdfParser : public PdfParserBase {
+class PODOFO_API PdfParser : public PdfParserBase {
     friend class PdfDocument;
     friend class PdfWriter;
 

@@ -35,7 +35,7 @@ typedef TKeyMap::const_iterator           TCIKeyMap;
 
 class PdfOutputDevice;
 
-class PdfDictionary : public PdfDataType {
+class PODOFO_API PdfDictionary : public PdfDataType {
  public:
     /** Create a new, empty dictionary
      */

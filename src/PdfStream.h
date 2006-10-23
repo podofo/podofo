@@ -42,7 +42,7 @@ class PdfObject;
  *
  *  A PdfStream is implicitly shared and can be copied very fast therefore.
  */
-class PdfStream {
+class PODOFO_API PdfStream {
  public:
     /** Create a new PdfStream object which has a parent PdfObject.
      *  The stream will be deleted along with the parent.

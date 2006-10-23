@@ -22,7 +22,6 @@
 #define _PDF_CANVAS_H_
 
 #include "PdfDefines.h"
-
 #include "PdfArray.h"
 
 namespace PoDoFo {
@@ -34,7 +33,7 @@ class PdfRect;
 /** A interface that provides the necessary features 
  *  for a painter to draw onto a PdfObject.
  */
-class PdfCanvas {
+class PODOFO_API PdfCanvas {
  public:
     /** Virtual destructor
      *  to avoid compiler warnings

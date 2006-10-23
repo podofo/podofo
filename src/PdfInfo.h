@@ -33,7 +33,7 @@ class PdfString;
  *  info dictionary, which provides information
  *  about the PDF document.
  */
-class PdfInfo : public PdfElement {
+class PODOFO_API PdfInfo : public PdfElement {
  public:
     /** Create a new PdfInfo object
      *  \param pParent the parent of this object

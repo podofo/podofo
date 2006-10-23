@@ -54,7 +54,7 @@ typedef TSortedFontList::const_iterator TCISortedFontList;
  *  \see PdfParser
  *  \see PdfWriter
  */
-class PdfDocument {
+class PODOFO_API PdfDocument {
     friend class PdfWriter;
 
  public:

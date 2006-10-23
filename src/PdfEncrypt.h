@@ -21,13 +21,13 @@
 #ifndef _PDFENCRYPT_H_
 #define _PDFENCRYPT_H_
 
-#include <string>
+#include "PdfDefines.h"
 #include "PdfString.h"
 
 namespace PoDoFo {
 
 /// Class representing PDF encryption methods. (For internal use only)
-class PdfEncrypt
+class PODOFO_API PdfEncrypt
 {
 public:
 	typedef enum {

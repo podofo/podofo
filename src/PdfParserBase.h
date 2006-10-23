@@ -36,7 +36,7 @@ namespace PoDoFo {
  * A simple class which collects helper functions which are 
  * required to parse a PDF file.
  */
-class PdfParserBase {
+class PODOFO_API PdfParserBase {
  public:
     /**
      * Create a new PdfParserBase with a buffer of its own

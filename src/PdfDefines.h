@@ -22,9 +22,10 @@
 #define _PDF_DEFINES_H_
 
 /** \file PdfDefines.h
- *        This file should be included as first file in every header
- *        of PoDoFo lib. It includes all standard files, defines some useful macros, some datatypes and 
- *        all important enumeration types.
+ *        This file should be included as the FIRST file in every header of
+ *        PoDoFo lib. It includes all standard files, defines some useful
+ *        macros, some datatypes and all important enumeration types. On
+ *        supporting platforms it will be precompiled to speed compilation.
  */ 
 
 // Include common system files
@@ -54,6 +55,9 @@
 
 // Error Handling Defines
 #include "PdfError.h"
+
+// Include API macro definitions
+#include "podofoapi.h"
 
 /**
  * \namespace PoDoFo
@@ -311,8 +315,8 @@ static const char s_szPdfVersionNums[][4] = {
 };
 
 /// PDF Reference, Section 3.1.1, Table 3.1, White-space characters
-static const int s_nNumWhiteSpaces = 6;
-static const char s_cWhiteSpaces[] = {
+const int s_nNumWhiteSpaces = 6;
+const char s_cWhiteSpaces[] = {
     0x00, // NULL
     0x09, // TAB
     0x0A, // Line Feed
