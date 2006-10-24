@@ -38,7 +38,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo, long lGenNo, const char* pszExpectedValue )
+void TestSingleObject( const char* pszFilename, const char* pszData, unsigned long lObjNo, unsigned long lGenNo, const char* pszExpectedValue )
 {
     unsigned long lObjLen;
     std::string   sLen;
@@ -81,7 +81,7 @@ void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo
     device = PdfRefCountedInputDevice();
     unlink( pszFilename );
 
-    printf("  -> Object Number: %u Generation Number: %u\n", obj.Reference().ObjectNumber(), obj.Reference().GenerationNumber() );
+    printf("  -> Object Number: %lu Generation Number: %lu\n", obj.Reference().ObjectNumber(), obj.Reference().GenerationNumber() );
     if( lObjNo != obj.Reference().ObjectNumber() || lGenNo != obj.Reference().GenerationNumber() )
     {
         RAISE_ERROR( ePdfError_TestFailed );
@@ -108,7 +108,7 @@ void TestSingleObject( const char* pszFilename, const char* pszData, long lObjNo
 
     if( lObjLen != sLen.length() )
     {
-        fprintf( stderr, "Object length does not macht! Object Length: %li String Length: %i\n", lObjLen, sLen.length() );
+        fprintf( stderr, "Object length does not macht! Object Length: %lu String Length: %i\n", lObjLen, static_cast<int>(sLen.length()) );
         RAISE_ERROR( ePdfError_TestFailed );
     }
 }
@@ -154,7 +154,7 @@ void TestObject( const char* pszFilename, const char* pszData, long lObjNo, long
     device = PdfRefCountedInputDevice();
     unlink( pszFilename );
 
-    printf("  -> Object Number: %u Generation Number: %u\n", obj.Reference().ObjectNumber(), obj.Reference().GenerationNumber() );
+    printf("  -> Object Number: %lu Generation Number: %lu\n", obj.Reference().ObjectNumber(), obj.Reference().GenerationNumber() );
     if( lObjNo != obj.Reference().ObjectNumber() || lGenNo != obj.Reference().GenerationNumber() )
     {
         RAISE_ERROR( ePdfError_TestFailed );

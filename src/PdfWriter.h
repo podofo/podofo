@@ -308,7 +308,7 @@ class PODOFO_API PdfWriter {
 // -----------------------------------------------------
 void PdfWriter::SetLinearized( bool bLinearize )
 {
-    m_bLinearized = true;
+    m_bLinearized = bLinearize;
 }
 
 // -----------------------------------------------------

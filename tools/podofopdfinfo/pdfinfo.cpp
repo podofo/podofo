@@ -171,7 +171,7 @@ void PdfInfo::OutputOneName( std::ostream& sOutStream, PoDoFo::PdfNamesTree* inT
             const PoDoFo::PdfString&	theName = arr[i].GetString();
             const PoDoFo::PdfObject&	theVal = arr[i+1];
             
-            sOutStream << "\t\t" << theName.GetString() << std::endl;
+            sOutStream << "\t\t" << theName.GetString() << "=" << theVal.Reference().ToString() << std::endl;
         }
     } else {
         sOutStream << "\t\tNone Found" << std::endl;

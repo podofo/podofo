@@ -94,7 +94,7 @@ void init( const char* pszInput, const char* pszOutput )
     PdfDocument doc;
 
     char*  pszBuf;
-    long   lSize;
+    size_t lSize;
 
     hFile = fopen( pszInput, "rb" );	// read it as binary if we are going to compare sizes!
     if( !hFile )
