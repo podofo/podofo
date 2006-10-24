@@ -39,8 +39,8 @@
 #define BEZIER_POINTS 13
 
 /* 4/3 * (1-cos 45ƒ)/sin 45ƒ = 4/3 * sqrt(2) - 1 */
-#define ARC_MAGIC    ((double) 0.552284749)
-#define PI            ((double)3.141592654)
+#define ARC_MAGIC    0.552284749f
+#define PI           3.141592654f
 
 namespace PoDoFo {
 
@@ -326,9 +326,9 @@ void PdfPainter::DrawRect( double dX, double dY, double dWidth, double dHeight,
     
 
     if ( dRoundX || dRoundY ) {
-         double    x = dX, y = dY, 
-                w = dWidth, h = dHeight,
-                rx = dRoundX, ry = dRoundY;
+        double x = dX, y = dY, 
+               w = dWidth, h = dHeight,
+               rx = dRoundX, ry = dRoundY;
         double b = 0.4477f;
 
         MoveTo(x + rx, y);
@@ -543,7 +543,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
         pszText = sText.GetString();
         lLen    = lStringLen + nTabCnt*(m_nTabWidth-1) + 1;
 
-        pszTab = (char*)malloc( sizeof( char ) * lLen );
+        pszTab = static_cast<char*>(malloc( sizeof( char ) * lLen ));
         if( !pszTab )
         {
             RAISE_ERROR( ePdfError_OutOfMemory );
@@ -805,7 +805,7 @@ void PdfPainter::ArcTo( double inX, double inY, double inRadiusX, double inRadiu
     if (th_arc < 0 && sweep)        th_arc += 2 * PI;
     else if (th_arc > 0 && !sweep)    th_arc -= 2 * PI;
 
-    n_segs = (int) ceil (fabs (th_arc / (PI * 0.5 + 0.001)));
+    n_segs = static_cast<int>(ceil (fabs (th_arc / (PI * 0.5 + 0.001))));
 
     for (i = 0; i < n_segs; i++) {
         double nth0 = th0 + static_cast<double>(i) * th_arc / n_segs,

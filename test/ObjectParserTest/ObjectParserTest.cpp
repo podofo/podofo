@@ -113,7 +113,7 @@ void TestSingleObject( const char* pszFilename, const char* pszData, unsigned lo
     }
 }
 
-void TestObject( const char* pszFilename, const char* pszData, long lObjNo, long lGenNo )
+void TestObject( const char* pszFilename, const char* pszData, unsigned long lObjNo, unsigned long lGenNo )
 {
     PdfVecObjects              parser;
     FILE*                      hFile;

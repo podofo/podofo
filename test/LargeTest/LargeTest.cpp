@@ -84,8 +84,8 @@ void CreateLargePdf( const char* pszFilename )
     }
 
     pPattern   = FcPatternCreate();
-    pObjectSet = FcObjectSetBuild( FC_FAMILY, FC_STYLE, (char *)0 );
-    pFontSet    = FcFontList( 0, pPattern, pObjectSet );
+    pObjectSet = FcObjectSetBuild( FC_FAMILY, FC_STYLE, NULL );
+    pFontSet   = FcFontList( 0, pPattern, pObjectSet );
 
     FcObjectSetDestroy( pObjectSet );
     FcPatternDestroy( pPattern );
@@ -99,8 +99,8 @@ void CreateLargePdf( const char* pszFilename )
             //FcPatternPrint( pFontSet->fonts[i] );
             FcPatternGet( pFontSet->fonts[i], FC_FAMILY, 0, &v );
 	    //font = FcNameUnparse( pFontSet->fonts[i] );
-            printf(" -> Drawing with font: %s\n", (const char*)(v.u.s) );
-            AddPage( &doc, (const char*)(v.u.s), "../CreationTest/lena.jpg" );
+            printf(" -> Drawing with font: %s\n", reinterpret_cast<const char*>(v.u.s) );
+            AddPage( &doc, reinterpret_cast<const char*>(v.u.s), "../CreationTest/lena.jpg" );
 	}
 
 	FcFontSetDestroy( pFontSet );

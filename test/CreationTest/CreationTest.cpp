@@ -76,7 +76,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
         x += (10000 * CONVERSION_CONSTANT);
 
         pPainter->SetStrokeWidth( (i*1000) * CONVERSION_CONSTANT );
-        pPainter->SetStrokingGray( (double)i/10.0 );
+        pPainter->SetStrokingGray( static_cast<double>(i)/10.0 );
         pPainter->DrawLine( x, y, x, y - dLineLength );
     }
 
@@ -92,7 +92,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
         x += (10000 * CONVERSION_CONSTANT);
 
         pPainter->SetStrokeWidth( (i*1000) * CONVERSION_CONSTANT );
-        pPainter->SetStrokingColor( (double)i/10.0, 0.0, (double)(10-i)/10.0 );
+        pPainter->SetStrokingColor( static_cast<double>(i)/10.0, 0.0, static_cast<double>(10-i)/10.0 );
         pPainter->DrawLine( x, y, x, y - dLineLength );
     }
 
@@ -108,7 +108,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
         x += (10000 * CONVERSION_CONSTANT);
 
         pPainter->SetStrokeWidth( (i*1000) * CONVERSION_CONSTANT );
-        pPainter->SetStrokingColorCMYK( (double)i/10.0, 0.0, (double)(10-i)/10.0, 0.0 );
+        pPainter->SetStrokingColorCMYK( static_cast<double>(i)/10.0, 0.0, static_cast<double>(10-i)/10.0, 0.0 );
         pPainter->DrawLine( x, y, x, y - dLineLength );
     }
 
@@ -347,7 +347,7 @@ void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 void MMTest( PdfPainterMM* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
     long        lX     = 10000;
-    long        lY     = (long)(pPage->GetPageSize().GetHeight()/CONVERSION_CONSTANT) - 40000;
+    long        lY     = static_cast<long>(pPage->GetPageSize().GetHeight()/CONVERSION_CONSTANT) - 40000;
 
     pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
     pPainter->DrawEllipseMM( lX, lY, 20000, 20000 );

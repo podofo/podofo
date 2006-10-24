@@ -227,8 +227,14 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_InvalidKey:
             pszMsg = "ePdfError_InvalidKey";
             break;
+        case ePdfError_InvalidName:
+            pszMsg = "ePdfError_InvalidName";
+            break;
         case ePdfError_UnsupportedFilter:
             pszMsg = "ePdfError_UnsupportedFilter"; 
+            break;
+        case ePdfError_ActionAlreadyPresent:
+            pszMsg = "ePdfError_ActionAlreadyPresent"; 
             break;
         case ePdfError_MissingEndStream:
             pszMsg = "ePdfError_MissingEndStream"; 
@@ -241,6 +247,9 @@ const char* PdfError::ErrorName( EPdfError eCode )
             break;
         case ePdfError_FreeType:
             pszMsg = "ePdfError_FreeType"; 
+            break;
+        case ePdfError_SignatureError:
+            pszMsg = "ePdfError_SignatureError";
             break;
         case ePdfError_Unknown:
             pszMsg = "ePdfError_Unknown"; 
@@ -307,8 +316,10 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
         case ePdfError_InvalidStream:
         case ePdfError_InvalidStreamLength:
         case ePdfError_InvalidKey:
+        case ePdfError_InvalidName:
 
         case ePdfError_UnsupportedFilter:
+        case ePdfError_ActionAlreadyPresent:
 
         case ePdfError_MissingEndStream:
         case ePdfError_Date:
@@ -318,6 +329,9 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
             break;
         case ePdfError_FreeType:
             pszMsg = "FreeType returned an error.";
+            break;
+        case ePdfError_SignatureError:
+            pszMsg = "The signature contains an error.";
             break;
 
         case ePdfError_Unknown:
@@ -329,11 +343,12 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
     return pszMsg;
 }
 
-
-void PdfError::LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... )
+// ELogSeverity is currently not used
+void PdfError::LogMessage( ELogSeverity, const char* pszMsg, ... )
 {
     const char* pszPrefix = NULL;
 
+    /*
     switch( eLogSeverity ) 
     {
         case eLogSeverity_Error:
@@ -345,6 +360,7 @@ void PdfError::LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... )
         default:
             break;
     }
+    */
 
     va_list  args;
     va_start( args, pszMsg );

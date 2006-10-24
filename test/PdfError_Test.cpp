@@ -49,7 +49,7 @@ void function3()
     }
 }
 
-int main( int argc, char* argv[] ) 
+int main()
 {
     printf("Creating an error callstack.\n");
     try {

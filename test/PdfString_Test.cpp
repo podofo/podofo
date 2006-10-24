@@ -24,7 +24,7 @@
 
 using namespace PoDoFo;
 
-int main( int argc, char* argv[] ) 
+int main()
 {
     try {
         char        binary[] = { 0x0a, 0xef, 0xb0, 0x69, 0x65,0xf7, 0x31, 0x45 };

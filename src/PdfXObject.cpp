@@ -100,7 +100,7 @@ PdfXObject::PdfXObject( const char* pszSubType, PdfObject* pObject )
 {
     ostringstream out;
 
-    if( m_pObject->GetDictionary().GetKeyAsName( PdfName::KeySubtype ) != "Image" ) 
+    if( m_pObject->GetDictionary().GetKeyAsName( PdfName::KeySubtype ) != pszSubType ) 
     {
         RAISE_ERROR( ePdfError_InvalidDataType );
     }

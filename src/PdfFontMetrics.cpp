@@ -45,11 +45,11 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename )
 {
     m_face                = NULL;
 
-    // TODO: Handle errors here
     FT_Error err = FT_New_Face( *pLibrary, pszFilename, 0, &m_face );
-#ifdef _WIN32
     if ( err )
-    {	// try to load from the OS by name
+    {	
+#ifdef _WIN32
+        // try to load from the OS by name
         char*	     fontBuf = NULL;
         unsigned int fontBufLen = 0;
         if ( GetWin32HostFont( m_sFilename, &fontBuf, fontBufLen ) ) 
@@ -58,8 +58,13 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename )
             m_pFontData = fontBuf;
             m_nFontDataLen = fontBufLen;
         }
-    }
+#else
+        // throw an exception
+        PdfError::LogMessage( eLogSeverity_Critical, "FreeType returned the error %i when calling FT_New_Face for font %s.", err, pszFilename );
+        RAISE_ERROR( ePdfError_FreeType );
 #endif
+    }
+    
 
     InitFromFace();
 }
@@ -69,24 +74,16 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsig
 {
     m_face                = NULL;
 
-    // TODO: handle errors here
-    FT_Error	error = FT_New_Memory_Face( *pLibrary, (unsigned char*)pBuffer, nBufLen, 0, &m_face );
-    
+    FT_Error error = FT_New_Memory_Face( *pLibrary, reinterpret_cast<const unsigned char*>(pBuffer), nBufLen, 0, &m_face );
+
+    if( error ) 
+    {
+        PdfError::LogMessage( eLogSeverity_Critical, "FreeType return edthe error %i when calling FT_New_Face for a buffered font.", error );
+        RAISE_ERROR( ePdfError_FreeType );
+    }
+
     InitFromFace();
 }
-
-/*
-PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen )
-	: m_pLibrary( pLibrary ), m_sFilename( "" ), m_pFontData( const_cast<char*>(pBuffer) ), m_nFontDataLen( nBufLen )
-{
-	m_face                = NULL;
-
-	// TODO: handle errors here
-	FT_Error	error = FT_New_Memory_Face( *pLibrary, (unsigned char*)pBuffer, nBufLen, 0, &m_face );
-
-	InitFromFace();
-}
-*/
 
 PdfFontMetrics::~PdfFontMetrics()
 {
@@ -1115,7 +1112,7 @@ std::string PdfFontMetrics::GetFilenameForFont( FcConfig* pConfig, const char* p
     if( result != FcResultNoMatch )
     {
         result = FcPatternGet( matched, FC_FILE, 0, &v );
-        sPath = (char*)(v.u.s);
+        sPath = reinterpret_cast<const char*>(v.u.s);
     }
     else
     {

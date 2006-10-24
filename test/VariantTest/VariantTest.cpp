@@ -117,8 +117,8 @@ void Test( const char* pszString, EPdfDataType eDataType, const char* pszExpecte
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    printf("   -> Parsed Length    : %li (%i)\n", lLen, strlen(pszExpected) );
-    if( lLen != strlen( pszExpected ) )
+    printf("   -> Parsed Length    : %li (%i)\n", lLen, static_cast<int>(strlen(pszExpected)) );
+    if( lLen != static_cast<int>(strlen( pszExpected )) )
     {
         RAISE_ERROR( ePdfError_TestFailed );
     }

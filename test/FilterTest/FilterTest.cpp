@@ -51,18 +51,18 @@ void test_filter( EPdfFilter eFilter )
     pFilter = PdfFilterFactory::Create( eFilter );
     if( !pFilter )
     {
-        printf("!!! Filter %i not implemented.\n", (int)eFilter);
+        printf("!!! Filter %i not implemented.\n", eFilter);
         return;
     }
 
-    printf("Testing Algorithm %i:\n", (int)eFilter);
+    printf("Testing Algorithm %i:\n", eFilter);
     printf("\t-> Testing Encoding\n");
     try {
         pFilter->Encode( pTestBuffer, lTestLength, &pEncoded, &lEncoded );
     } catch( PdfError & e ) {
         if( e == ePdfError_UnsupportedFilter ) 
         {
-            printf("\t-> Encoding not supported for filter %i.\n", (int)eFilter );
+            printf("\t-> Encoding not supported for filter %i.\n", eFilter );
             return;
         }
         else
@@ -78,7 +78,7 @@ void test_filter( EPdfFilter eFilter )
     } catch( PdfError & e ) {
         if( e == ePdfError_UnsupportedFilter ) 
         {
-            printf("\t-> Decoding not supported for filter %i.\n", (int)eFilter);
+            printf("\t-> Decoding not supported for filter %i.\n", eFilter);
             return;
         }
         else
@@ -92,7 +92,7 @@ void test_filter( EPdfFilter eFilter )
     printf("\t-> Encoded  Data Length: %li\n", lEncoded );
     printf("\t-> Decoded  Data Length: %li\n", lDecoded );
 
-    if( (long)lTestLength != lDecoded ) 
+    if( static_cast<long>(lTestLength) != lDecoded ) 
     {
         fprintf( stderr, "Error: Decoded Length != Original Length\n");
         RAISE_ERROR( ePdfError_TestFailed );
@@ -112,7 +112,7 @@ void test_filter( EPdfFilter eFilter )
 }
 
 
-int main( int argc, char* argv[] ) 
+int main() 
 {
     int             i;
 
@@ -132,7 +132,7 @@ int main( int argc, char* argv[] )
 
     try {
         for( i=0;i<=ePdfFilter_Crypt;i++ )
-            test_filter( (EPdfFilter)i );
+            test_filter( static_cast<EPdfFilter>(i) );
     } catch( PdfError & e ) {
         e.PrintErrorMsg();
         return e.GetError();

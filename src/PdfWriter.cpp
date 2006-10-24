@@ -54,7 +54,7 @@ namespace PoDoFo {
 bool podofo_is_little_endian()
 { 
     int _p = 1;
-    return (((char*)&_p)[0] == 1);
+    return ((reinterpret_cast<char*>(&_p))[0] == 1);
 }
 
 PdfWriter::PdfWriter( PdfParser* pParser )
@@ -535,7 +535,7 @@ void PdfWriter::WriteXRefStream( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevi
     char                buffer[bufferLen];
     bool                bLittle   = podofo_is_little_endian();
 
-    STREAM_OFFSET_TYPE* pValue    = (STREAM_OFFSET_TYPE*)(buffer+1);
+    STREAM_OFFSET_TYPE* pValue    = reinterpret_cast<STREAM_OFFSET_TYPE*>(buffer+1);
 
     PdfObject           object( PdfReference( m_vecObjects->m_nObjectCount, 0 ), "XRef" );
     PdfArray            indeces;
@@ -569,7 +569,7 @@ void PdfWriter::WriteXRefStream( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevi
                 buffer[bufferLen] = static_cast<char>(1);
             }
 
-            *pValue = (STREAM_OFFSET_TYPE)((*itOffsets).lOffset );
+            *pValue = static_cast<STREAM_OFFSET_TYPE>((*itOffsets).lOffset );
                 
             if( bLittle )
                 *pValue = htonl( *pValue );
@@ -723,7 +723,7 @@ void PdfWriter::CreateFileIdentifier( PdfObject* pTrailer )
     pInfo->WriteObject( &device );
 
     // calculate the MD5 Sum
-    identifier = PdfEncrypt::GetMD5String( (unsigned char*)pBuffer, length.GetLength() );
+    identifier = PdfEncrypt::GetMD5String( reinterpret_cast<unsigned char*>(pBuffer), length.GetLength() );
     free( pBuffer );
 
     // The ID is the same unless the PDF was incrementally updated

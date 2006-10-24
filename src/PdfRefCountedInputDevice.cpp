@@ -30,7 +30,7 @@ PdfRefCountedInputDevice::PdfRefCountedInputDevice()
 
 }
 
-PdfRefCountedInputDevice::PdfRefCountedInputDevice( const char* pszFilename, const char* pszMode )
+PdfRefCountedInputDevice::PdfRefCountedInputDevice( const char* pszFilename, const char* )
     : m_pDevice( NULL )
 {
     m_pDevice              = new TRefCountedInputDevice();
