@@ -168,7 +168,6 @@ ADD_SUBDIRECTORY(tools)
 # Export some variables into the config file so it's easier for others
 # to build and link against PoDoFo
 
-
 # To use these dependencies set PODOFO_DIR to the podofo BUILD directory in
 # your build (eg -DPODOFO_DIR=/path/to/podofo when running cmake to configure
 # the app that'll use podofo). See: FIND_PACKAGE(...) in the cmake docs.

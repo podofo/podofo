@@ -45,6 +45,60 @@ SET(PODOFO_SOURCES
     PdfXObject.cpp
 )
 
+SET(PODOFO_HEADERS
+	PdfAction.h
+	PdfAnnotation.h
+	PdfArray.h
+	PdfCanvas.h
+	PdfContents.h
+	PdfDataType.h
+	PdfDate.h
+	PdfDefines.h
+	PdfDestination.h
+	PdfDictionary.h
+	PdfDocument.h
+	PdfElement.h
+	PdfEncrypt.h
+	PdfError.h
+	PdfExtGState.h
+	PdfFileSpec.h
+	PdfFilter.h
+	PdfFont.h
+	PdfFontMetrics.h
+	PdfHintStream.h
+	PdfImage.h
+	PdfInfo.h
+	PdfInputDevice.h
+	PdfName.h
+	PdfNamesTree.h
+	PdfObject.h
+	PdfOutlines.h
+	PdfOutputDevice.h
+	PdfPage.h
+	PdfPagesTree.h
+	PdfPainter.h
+	PdfPainterMM.h
+	PdfParser.h
+	PdfParserBase.h
+	PdfParserObject.h
+	PdfRect.h
+	PdfRefCountedBuffer.h
+	PdfRefCountedInputDevice.h
+	PdfReference.h
+	PdfStream.h
+	PdfString.h
+	PdfVariant.h
+	PdfVecObjects.h
+	PdfWriter.h
+	PdfXObject.h
+	podofo.h
+	podofoapi.h
+)
+
+INSTALL(FILES ${PODOFO_HEADERS}
+	DESTINATION "include/podofo"
+	)
+
 IF(NOT PODOFO_BUILD_SHARED AND NOT PODOFO_BUILD_STATIC)
     MESSAGE(FATAL_ERROR "At least one of PODOFO_BUILD_SHARED and PODOF_BUILD_STATIC must be set")
 ENDIF(NOT PODOFO_BUILD_SHARED AND NOT PODOFO_BUILD_STATIC)
@@ -65,6 +119,11 @@ IF(PODOFO_BUILD_STATIC)
     SET(PODOFO_DEPEND_TARGET podofo_static
         CACHE INTERNAL "Which PoDoFo library variant to depend on")
     SET(USING_SHARED_PODOFO FALSE)
+    INSTALL(TARGETS podofo_static
+	    RUNTIME DESTINATION "bin"
+	    LIBRARY DESTINATION "lib"
+	    ARCHIVE DESTINATION "lib"
+	    )
 ENDIF(PODOFO_BUILD_STATIC)
 
 IF(PODOFO_BUILD_SHARED)
@@ -85,6 +144,11 @@ IF(PODOFO_BUILD_SHARED)
     SET(PODOFO_DEPEND_TARGET podofo_shared
         CACHE INTERNAL "Which PoDoFo library variant to depend on")
     SET(USING_SHARED_PODOFO TRUE)
+    INSTALL(TARGETS podofo_shared
+	    RUNTIME DESTINATION "bin"
+	    LIBRARY DESTINATION "lib"
+	    ARCHIVE DESTINATION "lib"
+	    )
 ENDIF(PODOFO_BUILD_SHARED)
 
 MESSAGE("PDEBUG: USING_SHARED_PODOFO: ${USING_SHARED_PODOFO}")
