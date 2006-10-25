@@ -145,7 +145,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
         }
     }
 
-    GetDataType( c, &counter, &eDataType, NULL );
+    DetermineDataType( c, &counter, &eDataType, NULL );
     while( (c = m_device.Device()->GetChar()) != EOF )
     {
         if( counter == lDataLen )
@@ -449,9 +449,10 @@ void PdfParserObject::ParseStream()
     */
 }
 
-void PdfParserObject::GetDataType( char c, int* counter, EPdfDataType* eDataType, bool* bType ) const
+void PdfParserObject::DetermineDataType( char c, int* counter, EPdfDataType* eDataType, bool* bType ) const
 {
     // TODO: Allow for hexadecimal encoded strings: reference: p. 54
+    // TODO: See if this can use PdfVariant::DetermineDataType
     switch( c )
     {
         case '[':

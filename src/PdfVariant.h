@@ -286,7 +286,7 @@ class PODOFO_API PdfVariant {
     inline virtual void DelayedLoad() const {};
 
  private:
-    void GetDataType( const char* pszData, long nLen, EPdfDataType* eDataType, long* pLen = NULL );
+    void DetermineDataType( const char* pszData, long nLen, EPdfDataType* eDataType, long* pLen = NULL );
 
  private:
     /** To reduce memory usage of this very often used class,

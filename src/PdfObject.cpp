@@ -198,7 +198,7 @@ PdfStream* PdfObject::GetStream()
 
     if( !m_pStream )
         m_pStream = new PdfStream( this );
-    
+
     return m_pStream;
 }
 
@@ -211,6 +211,7 @@ const PdfStream* PdfObject::GetStream() const
 
 void PdfObject::FlateCompressStream() 
 {
+    // TODO: If the stream isn't already in memory, defer loading and compression until first read of the stream to save some memory.
     DelayedStreamLoad();
 
     if( m_pStream )

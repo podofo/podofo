@@ -261,7 +261,7 @@ class PODOFO_API PdfObject : public PdfVariant {
 
  protected:
     /** Initialize all private members with their default values
-     *  \param bLoadOnDemandDone wether loading on demand is supported
+     *  \param bLoadOnDemandDone false if loading on demand is supported
      */
     void Init( bool bLoadOnDemandDone );
 

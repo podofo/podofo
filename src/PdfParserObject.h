@@ -135,7 +135,7 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfParserBase {
     void ParseFileComplete( bool bIsTrailer );
 
     void ParseValue( char** szBuffer, std::string & sKey, std::string & sValue  );
-    void GetDataType( char c, int* counter, EPdfDataType* eDataType, bool* bType ) const;
+    void DetermineDataType( char c, int* counter, EPdfDataType* eDataType, bool* bType ) const;
     void ReadObjectNumber();
 
  private:

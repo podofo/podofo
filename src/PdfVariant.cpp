@@ -150,7 +150,7 @@ void PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
     if( !nLen )
         return;
 
-    GetDataType( pszData, nLen, &m_eDataType, &lLen );
+    DetermineDataType( pszData, nLen, &m_eDataType, &lLen );
 
     if( m_eDataType == ePdfDataType_HexString )
     {
@@ -268,7 +268,7 @@ void PdfVariant::Parse( const char* pszData, int nLen, long* pLen )
     }
 }
 
-void PdfVariant::GetDataType( const char* pszData, long nLen, EPdfDataType* eDataType, long* pLen )
+void PdfVariant::DetermineDataType( const char* pszData, long nLen, EPdfDataType* eDataType, long* pLen )
 {
     PdfReference ref;
     char         c     = pszData[0];
