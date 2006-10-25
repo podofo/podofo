@@ -1,0 +1,2 @@
+- This sample object has an invalid LZW decode dictionary and produces
+  bad results.

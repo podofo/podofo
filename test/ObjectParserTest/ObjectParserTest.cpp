@@ -18,22 +18,62 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "PdfParserBase.h"
 #include "PdfParserObject.h"
 #include "PdfOutputDevice.h"
 #include "PdfWriter.h"
+#include "PdfStream.h"
 #include "../PdfTest.h"
 
 #include <stdio.h>
+#include <iostream>
 #include <sstream>
 #include <string>
+#include <cassert>
 
 #define HEADER_LEN    15
 #define BUFFER_SIZE 4096
 
-static const bool KeepTempFiles = false;
 
 using namespace PoDoFo;
 using namespace std;
+
+static const string sTmp("/tmp/pdfobjectparsertest");
+static const bool KeepTempFiles = true;
+
+// Print out an object in a human readable form.
+void PrintObject( const std::string & objectData, ostream & s, bool escapeNewlines, bool wrap )
+{
+    int wrapCtr = 0;
+    for (string::const_iterator it = objectData.begin();
+         it != objectData.end();
+         ++it)
+    {
+        ++wrapCtr;
+        char ch = *it;
+        if (
+                ch != '\\'
+                && (
+                    ( !escapeNewlines && (ch == '\r' || ch == '\n') )
+                    || ch == ' '
+                    || PdfParserBase::IsPrintable(ch)
+                )
+           )
+            cerr << ch;
+        else
+        {
+            static const char hx[17] = "0123456789ABCDEF";
+            cerr << '\\' << 'x' << hx[ch / 16] << hx[ch % 16];
+            wrapCtr += 3;
+        }
+        if (wrap && wrapCtr > 72)
+        {
+            wrapCtr = 0;
+            cerr << endl;
+        }
+    }
+}
+
 
 string WriteTempFile( string sFilename, const char * pszData, long lObjNo, long lGenNo )
 {
@@ -44,7 +84,7 @@ string WriteTempFile( string sFilename, const char * pszData, long lObjNo, long 
     FILE*                    hFile = fopen( sFilename.c_str(), "w" );
     if( !hFile )
     {
-        fprintf( stderr, "Cannot open %s for writing.\n", sFilename.c_str() );
+        cerr << "Cannot open " << sFilename << " for writing" << endl;
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
@@ -53,119 +93,185 @@ string WriteTempFile( string sFilename, const char * pszData, long lObjNo, long 
     return sFilename;
 }
 
-void TestSingleObject( string sFilename, const char * const pszData, long lObjNo, long lGenNo, const char* pszExpectedValue )
+string ReadFile( string sFilename )
 {
-    unsigned long lObjLen;
-    std::string   sLen;
-    std::string   str;
-    PdfVecObjects parser;
+    FILE * f = fopen(sFilename.c_str(), "r");
+    fseek(f, 0L, SEEK_END);
+    size_t bytes = ftell(f);
+    fseek(f, 0L, SEEK_SET);
+    char* buf = new char[bytes];
+    size_t bytesRead = fread(buf, 1, bytes, f);
+    if (bytesRead != bytes)
+    {
+        cerr << "Failed to read file " << sFilename <<endl;
+        RAISE_ERROR( ePdfError_TestFailed );
+    }
+    fclose(f);
+    return string(buf, bytesRead);
+}
 
-    // If pszData is unset, the data's already in the file. If it's set
-    // we need to write it to a new temp file ourselves.
-    if (pszData)
-        sFilename = WriteTempFile(sFilename, pszData, lObjNo, lGenNo);
+// Parameters:
+//
+//    sFileName: Path to a file containing `sData'
+//    lObjNo: object number in data
+//    lGenNo: Generation number in data
+//    pTestExpected: Should we test against sExpectedData?
+//    sExpectedData: Parsed & written object's expected data
+//
+//    You'll probably want to call this with a wrapper that creates
+//    the input temp file when working with small amounts of data, and
+//    one that reads the expected results file for larger amounts of data.
+//
+void TestObject( const string & sFilename,
+                       long lObjNo, long lGenNo,
+                       bool pTestExpected,
+                       const string & sExpectedData,
+                       bool pHasStream
+                       )
+{
+    // We end up re-reading a temp file we just wrote sometimes,
+    // but this isn't exactly perf critical code.
+    const string sOrigData = ReadFile(sFilename);
+
+    PdfVecObjects parser;
 
     PdfRefCountedInputDevice device( sFilename.c_str(), "r" );
     if( !device.Device() )
     {
-        fprintf( stderr, "Cannot open %s for reading.\n", sFilename.c_str() );
+        cerr << "Cannot open " << sFilename << " for reading." << endl;
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    fprintf(stderr, "Parsing Object: %li %li\n", lObjNo, lGenNo );
+    cerr << "Parsing Object: " << lObjNo << ' ' << lGenNo << endl;
 
     PdfRefCountedBuffer      buffer( BUFFER_SIZE );
     PdfParserObject obj( &parser, device, buffer );
     try {
         obj.ParseFile( false );
     } catch( PdfError & e ) {
-        fprintf( stderr, "Error during test: %i\n", e.GetError() );
+        cerr << "Error during test: " << e.GetError() << endl;
         e.PrintErrorMsg();
         device = PdfRefCountedInputDevice();
-        if (pszData && !KeepTempFiles) unlink( sFilename.c_str() ); // do not care for unlink errors in this case
 
         e.AddToCallstack( __FILE__, __LINE__ );
         throw e;
     }
 
     device = PdfRefCountedInputDevice();
-    if (pszData && !KeepTempFiles) unlink( sFilename.c_str() );
 
-    fprintf(stderr, "  -> Object Number: %u Generation Number: %u\n", obj.Reference().ObjectNumber(), obj.Reference().GenerationNumber() );
+    cerr << "  -> Object Number: " << obj.Reference().ObjectNumber()
+         << " Generation Number: " << obj.Reference().GenerationNumber() << endl;
     if( lObjNo != obj.Reference().ObjectNumber() || lGenNo != obj.Reference().GenerationNumber() )
     {
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    obj.ToString( str );
-    fprintf(stderr, "  -> Expected value of this object: (%s)\n", pszExpectedValue );
-    fprintf(stderr, "  -> Value in this object         : (%s)\n", str.c_str() );
-    if( strcmp( str.c_str(), pszExpectedValue ) != 0 )
+    if (pHasStream != obj.HasStream())
     {
+        cerr << "ERROR: This object should've had an associated stream, but none was loaded" << endl;
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    lObjLen = obj.GetObjectLength();
-    fprintf(stderr, "  -> Object Length: %li\n", lObjLen );
+    if (pHasStream)
+    {
+        cerr << "  -> Has Stream, loading ... " << flush;
+        PdfStream * const ps = obj.GetStream();
+        assert(ps);
+        cerr << " ok, length: " << ps->GetLength() << endl;
+    }
+
+    string str;
+    obj.ToString( str );
+
+    {
+        size_t objOff = sOrigData.find(" obj")+5;
+        if (sOrigData[objOff] == '\r' || sOrigData[objOff] == '\n')
+            objOff++;
+        const size_t endobjOff = sOrigData.rfind(string("endobj"));
+        const string sOrigData_Base(sOrigData, objOff, endobjOff-objOff-1);
+        cerr << "  -> Input object data              (";
+        PrintObject(sOrigData_Base, cerr, true, false);
+        cerr << ")\n";
+    }
+
+    cerr << "  -> Parsed Value in this object  : (";
+    PrintObject(str, cerr, true, false);
+    cerr << ')' << endl;
+
+    // TODO: ensure comparison correct after nulls
+    if (pTestExpected)
+    {
+        cerr << "  -> Expected value of this object: (";
+        PrintObject(sExpectedData, cerr, true, false);
+        cerr << ')' << endl;
+
+        if( str != sExpectedData )
+        {
+            RAISE_ERROR( ePdfError_TestFailed );
+        }
+    }
+
+    const unsigned long lObjLen = obj.GetObjectLength();
+    cerr << "  -> Object Length: " << lObjLen << endl;
 
     std::ostringstream os;
     PdfOutputDevice deviceTest( &os );
-    obj.Write( &deviceTest );
+    obj.WriteObject( &deviceTest );
 
-    sLen = os.str();
-    fprintf(stderr, "  -> Object String: %s\n", sLen.c_str() );
-    fprintf(stderr, "  -> Object String Length: %li\n", sLen.length() );
+    string sLen = os.str();
+    cerr << "  -> Object String Length: " << sLen.length() << endl;
 
     if( lObjLen != sLen.length() )
     {
-        fprintf( stderr, "Object length does not macht! Object Length: %li String Length: %i\n", lObjLen, sLen.length() );
+        cerr << "Object length does not match! Object Length: " << lObjLen
+             << " String Length: " << sLen.length() << endl;
+
+        cerr << "  -> Object String begins\n"
+             << "----------- begin " << lObjNo << ' ' << lGenNo << " --------------" << endl;
+        PrintObject(sLen, cerr, false, false);
+        cerr << "------------ end " << lObjNo << ' ' << lGenNo << " ---------------\n\n" << flush;
+
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    fprintf(stderr,"  -> Parsed OK");
+    cerr << "\n\n";
 }
 
-void TestObject( string sFilename, const char* pszData, long lObjNo, long lGenNo )
+// Test an object passed as a string against the expected value, also a string.
+void TestObject_String( const string & sData,
+                        long lObjNo, long lGenNo,
+                        bool pTestExpected = false, const string & sExpectedData = string(),
+                        bool pHasStream = false)
 {
-    PdfVecObjects              parser;
-    FILE*                      hFile;
-
-    // If pszData is unset, the data's already in the file. If it's set
-    // we need to write it to a new temp file ourselves.
-    if (pszData)
-        sFilename = WriteTempFile(sFilename, pszData, lObjNo, lGenNo);
-
-    PdfRefCountedInputDevice device( sFilename.c_str(), "r" );
-    if( !device.Device() )
-    {
-        fprintf( stderr, "Cannot open %s for reading.\n", sFilename.c_str() );
-        RAISE_ERROR( ePdfError_TestFailed );
-    }
-
-    fprintf(stderr,"Parsing Object: %li %li\n", lObjNo, lGenNo );
-
-    PdfRefCountedBuffer buffer( BUFFER_SIZE );
-    PdfParserObject obj( &parser, device, buffer );
+    string sTempFile = WriteTempFile(sTmp, sData.c_str(), lObjNo, lGenNo);
     try {
-        obj.ParseFile( false );
-    } catch( PdfError & e ) {
-        fprintf( stderr, "Error during test: %i\n", e.GetError() );
-        e.PrintErrorMsg();
-        device = PdfRefCountedInputDevice();
-        if (pszData && !KeepTempFiles) unlink( sFilename.c_str() ); // do not care for unlink errors in this case
-
+        TestObject(sTempFile, lObjNo, lGenNo, pTestExpected, sExpectedData, pHasStream);
+        if (!KeepTempFiles) unlink(sTempFile.c_str());
+    } catch (PdfError & e) {
+        if (!KeepTempFiles) unlink(sTempFile.c_str());
         e.AddToCallstack( __FILE__, __LINE__  );
         throw e;
     }
+}
 
-    device = PdfRefCountedInputDevice();
-    if (pszData && !KeepTempFiles) unlink( sFilename.c_str() );
+// overload of TestObject_String that takes a `const char*' expected data argument that may be null.
+// This may only be used for objects without associated streams.
+void TestObject_String( const string & sData, long lObjNo, long lGenNo, const char * expectedData )
+{
+    TestObject_String(sData, lObjNo, lGenNo, expectedData != NULL, string(expectedData), false);
+}
 
-    fprintf(stderr,"  -> Object Number: %u Generation Number: %u\n", obj.Reference().ObjectNumber(), obj.Reference().GenerationNumber() );
-    if( lObjNo != obj.Reference().ObjectNumber() || lGenNo != obj.Reference().GenerationNumber() )
-    {
-        RAISE_ERROR( ePdfError_TestFailed );
-    }
+// Test an object stored in a file against the expected value, also a file (if provided).
+// Also ensures an object has a stream if set.
+void TestObject_File( const string & sFilename,
+                      long lObjNo, long lGenNo,
+                      bool pTestExpected = false, const string & sExpectedFile = string(),
+                      bool pHasStream = false )
+{
+    string sExpectedData;
+    if (pTestExpected)
+        sExpectedData = ReadFile(sExpectedFile);
+    TestObject(sFilename, lObjNo, lGenNo, pTestExpected, sExpectedData, pHasStream);
 }
 
 const char* pszSimpleObjectBoolean = "1 0 obj\ntrue\nendobj\n";
@@ -278,40 +384,40 @@ int main()
     int tests = 0, tests_error = 0, tests_ok=0;
 
     PdfError      eCode;
-    std::string   pszTmp("/tmp/pdfobjectparsertest");
 
     fprintf(stderr,"This test tests the PdfParserObject class.\n");
     fprintf(stderr,"---\n");
 
-    TRY_TEST(TestSingleObject( pszTmp, pszSimpleObjectBoolean, 1, 0, "true" );)
-    TRY_TEST(TestSingleObject( pszTmp, pszSimpleObjectNumber , 2, 1, "23" );)
-    TRY_TEST(TestSingleObject( pszTmp, pszSimpleObjectReal   , 3, 0, "3.14" );)
-    TRY_TEST(TestSingleObject( pszTmp, pszSimpleObjectString , 4, 0, "(Hallo Welt!)" );)
-    TRY_TEST(TestSingleObject( pszTmp, pszSimpleObjectString2, 5, 0, "(Hallo \\(schöne\\) Welt!)" );)
-    TRY_TEST(TestSingleObject( pszTmp, pszSimpleObjectHex    , 6, 0, "<48656C6C6F20576F726C64>" );)
-    TRY_TEST(TestSingleObject( pszTmp, pszSimpleObjectRef    , 7, 0, "6 0 R" );)
-    TRY_TEST(TestSingleObject( pszTmp, pszSimpleObjectArray  , 8, 0, "[ 100 200 300 400 500 ]" );)
-    TRY_TEST(TestSingleObject( pszTmp, pszSimpleObjectArray2 , 9, 0, "[ 100 (Hallo Welt) 3.14 400 500 ]" );)
-    TRY_TEST(TestSingleObject( pszTmp, pszSimpleObjectArray3 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.14 400 500 ]" );)
-    TRY_TEST(TestSingleObject( pszTmp, pszSimpleObjectArray4 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.14 400 500 /Dict <<\n/A (Hallo)\n/B [ 21 22 ]\n>>\n /Wert /Farbe ]" );)
-    TRY_TEST(TestSingleObject( pszTmp, pszSimpleObjectArray5 , 1, 2, "[ 123 0 R ]" );)
+    TRY_TEST(TestObject_String( pszSimpleObjectBoolean, 1, 0, "true" );)
+    TRY_TEST(TestObject_String( pszSimpleObjectNumber , 2, 1, "23" );)
+    TRY_TEST(TestObject_String( pszSimpleObjectReal   , 3, 0, "3.14" );)
+    TRY_TEST(TestObject_String( pszSimpleObjectString , 4, 0, "(Hallo Welt!)" );)
+    TRY_TEST(TestObject_String( pszSimpleObjectString2, 5, 0, "(Hallo \\(schöne\\) Welt!)" );)
+    TRY_TEST(TestObject_String( pszSimpleObjectHex    , 6, 0, "<48656C6C6F20576F726C64>" );)
+    TRY_TEST(TestObject_String( pszSimpleObjectRef    , 7, 0, "6 0 R" );)
+    TRY_TEST(TestObject_String( pszSimpleObjectArray  , 8, 0, "[ 100 200 300 400 500 ]" );)
+    TRY_TEST(TestObject_String( pszSimpleObjectArray2 , 9, 0, "[ 100 (Hallo Welt) 3.14 400 500 ]" );)
+    TRY_TEST(TestObject_String( pszSimpleObjectArray3 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.14 400 500 ]" );)
+    TRY_TEST(TestObject_String( pszSimpleObjectArray4 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.14 400 500 /Dict <<\n/A (Hallo)\n/B [ 21 22 ]\n>>\n /Wert /Farbe ]" );)
+    TRY_TEST(TestObject_String( pszSimpleObjectArray5 , 1, 2, "[ 123 0 R ]" );)
 
     fprintf(stderr,"---\n");
 
-    TRY_TEST(TestObject( pszTmp, pszObject, 10, 0 );)
-    TRY_TEST(TestObject( pszTmp, pszObject2, 11, 0 );)
-    TRY_TEST(TestObject( pszTmp, pszObject3, 12, 0 );)
-    TRY_TEST(TestObject( pszTmp, pszObject4, 271, 0 );)
-    TRY_TEST(TestObject( pszTmp, pszObject5, 32, 0 );)
-    TRY_TEST(TestObject( pszTmp, pszObject6, 33, 0 );)
-    TRY_TEST(TestObject( "objects/27_0_R", NULL, 27, 0);)
+    TRY_TEST(TestObject_String( pszObject, 10, 0 );)
+    TRY_TEST(TestObject_String( pszObject2, 11, 0 );)
+    TRY_TEST(TestObject_String( pszObject3, 12, 0 );)
+    TRY_TEST(TestObject_String( pszObject4, 271, 0 );)
+    // These ones have attached streams
+    TRY_TEST(TestObject_String( pszObject5, 32, 0, false, string(), true);)
+    TRY_TEST(TestObject_String( pszObject6, 33, 0, false, string(), true);)
+    TRY_TEST(TestObject_File( "objects/27_0_R.obj", 27, 0, false, string(), true );)
 
-    fprintf(stderr, "---\n");
+    cerr << "---\n" << flush;
 
     if (!tests_error)
-        fprintf(stderr, "All %i tests sucesseeded!\n", tests);
+        cerr << "All " << tests << " tests succeeded!" << endl;
     else
-        fprintf(stderr, "%i of %i tests failed, %i succeeded\n", tests_error, tests, tests_ok);
+        cerr << tests_error << " of " << tests << " tests failed, " << tests_ok << " succeeded" << endl;
 
     return tests_error;
 }
