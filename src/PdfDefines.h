@@ -102,6 +102,8 @@ typedef enum EPdfVersion {
  * is referenced by an own enum (e.g. Bool or String).
  *
  * \see PdfVariant
+ *
+ * Remember to update PdfVariant::GetDataTypeString() when adding members here.
  */
 typedef enum EPdfDataType {
     ePdfDataType_Bool,                  /**< Boolean datatype: Accepts the values "true" and "false" */

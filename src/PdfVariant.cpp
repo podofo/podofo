@@ -508,5 +508,23 @@ const PdfVariant & PdfVariant::operator=( const PdfVariant & rhs )
     return (*this);
 }
 
+const char * PdfVariant::GetDataTypeString() const
+{
+    switch(GetDataType())
+    {
+        case ePdfDataType_Bool: return "Bool";
+        case ePdfDataType_Number: return "Number";
+        case ePdfDataType_Real: return "Real";
+        case ePdfDataType_String: return "String";
+        case ePdfDataType_HexString: return "HexString";
+        case ePdfDataType_Name: return "Name";
+        case ePdfDataType_Array: return "Array";
+        case ePdfDataType_Dictionary: return "Dictionary";
+        case ePdfDataType_Null: return "Null";
+        case ePdfDataType_Reference: return "Reference";
+        case ePdfDataType_Unknown: return "Unknown";
+    }
+}
+
 };
 

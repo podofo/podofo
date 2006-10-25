@@ -132,6 +132,11 @@ class PODOFO_API PdfVariant {
      */
     inline const EPdfDataType GetDataType() const;
 
+    /** \returns a human readable string representation of GetDataType()
+     *  The returned string must not be free'd.
+     */
+    const char * GetDataTypeString() const;
+
     /** \returns true if this variant is a bool (i.e. GetDataType() == ePdfDataType_Bool)
      */
     inline bool IsBool() const { DelayedLoad(); return GetDataType() == ePdfDataType_Bool; }
