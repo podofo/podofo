@@ -60,6 +60,10 @@ void PrintObject( const std::string & objectData, ostream & s, bool escapeNewlin
                 )
            )
             cerr << ch;
+        else if (ch == '\r')
+            cerr << "\\r";
+        else if (ch == '\n')
+            cerr << "\\n";
         else
         {
             static const char hx[17] = "0123456789ABCDEF";
