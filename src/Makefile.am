@@ -29,7 +29,7 @@ libpodofo_la_SOURCES = PdfObject.cpp PdfParser.cpp PdfParserObject.cpp \
 	PdfVecObjects.cpp PdfDate.cpp PdfAnnotation.cpp PdfRect.cpp PdfXObject.cpp \
 	PdfCanvas.cpp PdfOutputDevice.cpp PdfAction.cpp PdfError.cpp PdfString.cpp PdfName.cpp \
 	PdfFilter.cpp PdfReference.cpp PdfDocument.cpp PdfArray.cpp PdfDictionary.cpp \
-	PdfDataType.cpp PdfElement.cpp PdfPagesTree.cpp \
+	PdfDataType.cpp PdfElement.cpp PdfPainterMM.cpp PdfPagesTree.cpp \
 	PdfRefCountedBuffer.cpp PdfOutlines.cpp PdfDestination.cpp PdfContents.cpp \
 	PdfEncrypt.cpp PdfNamesTree.cpp PdfInputDevice.cpp PdfHintStream.cpp \
 	PdfRefCountedInputDevice.cpp PdfInfo.cpp PdfFileSpec.cpp PdfExtGState.cpp
