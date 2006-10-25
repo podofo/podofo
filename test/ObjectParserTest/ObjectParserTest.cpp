@@ -35,18 +35,12 @@ static const bool KeepTempFiles = false;
 using namespace PoDoFo;
 using namespace std;
 
-void TestSingleObject( string sFilename, const char* pszData, long lObjNo, long lGenNo, const char* pszExpectedValue )
+string WriteTempFile( string sFilename, const char * pszData, long lObjNo, long lGenNo )
 {
-    unsigned long lObjLen;
-    std::string   sLen;
-    std::string   str;
-    PdfVecObjects parser;
-
     std::ostringstream ss;
     ss << sFilename << '_' << lObjNo << '_' << lGenNo;
     sFilename = ss.str();
 
-    PdfRefCountedBuffer      buffer( BUFFER_SIZE );
     FILE*                    hFile = fopen( sFilename.c_str(), "w" );
     if( !hFile )
     {
@@ -56,6 +50,20 @@ void TestSingleObject( string sFilename, const char* pszData, long lObjNo, long 
 
     fprintf( hFile, pszData );
     fclose( hFile );
+    return sFilename;
+}
+
+void TestSingleObject( string sFilename, const char * const pszData, long lObjNo, long lGenNo, const char* pszExpectedValue )
+{
+    unsigned long lObjLen;
+    std::string   sLen;
+    std::string   str;
+    PdfVecObjects parser;
+
+    // If pszData is unset, the data's already in the file. If it's set
+    // we need to write it to a new temp file ourselves.
+    if (pszData)
+        sFilename = WriteTempFile(sFilename, pszData, lObjNo, lGenNo);
 
     PdfRefCountedInputDevice device( sFilename.c_str(), "r" );
     if( !device.Device() )
@@ -64,8 +72,9 @@ void TestSingleObject( string sFilename, const char* pszData, long lObjNo, long 
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    printf("Parsing Object: %li %li\n", lObjNo, lGenNo );
+    fprintf(stderr, "Parsing Object: %li %li\n", lObjNo, lGenNo );
 
+    PdfRefCountedBuffer      buffer( BUFFER_SIZE );
     PdfParserObject obj( &parser, device, buffer );
     try {
         obj.ParseFile( false );
@@ -73,66 +82,58 @@ void TestSingleObject( string sFilename, const char* pszData, long lObjNo, long 
         fprintf( stderr, "Error during test: %i\n", e.GetError() );
         e.PrintErrorMsg();
         device = PdfRefCountedInputDevice();
-        if (!KeepTempFiles) unlink( sFilename.c_str() ); // do not care for unlink errors in this case
+        if (pszData && !KeepTempFiles) unlink( sFilename.c_str() ); // do not care for unlink errors in this case
 
         e.AddToCallstack( __FILE__, __LINE__ );
         throw e;
     }
 
     device = PdfRefCountedInputDevice();
-    if (!KeepTempFiles) unlink( sFilename.c_str() );
+    if (pszData && !KeepTempFiles) unlink( sFilename.c_str() );
 
-    printf("  -> Object Number: %u Generation Number: %u\n", obj.Reference().ObjectNumber(), obj.Reference().GenerationNumber() );
+    fprintf(stderr, "  -> Object Number: %u Generation Number: %u\n", obj.Reference().ObjectNumber(), obj.Reference().GenerationNumber() );
     if( lObjNo != obj.Reference().ObjectNumber() || lGenNo != obj.Reference().GenerationNumber() )
     {
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
     obj.ToString( str );
-    printf("  -> Expected value of this object: (%s)\n", pszExpectedValue );
-    printf("  -> Value in this object         : (%s)\n", str.c_str() );
+    fprintf(stderr, "  -> Expected value of this object: (%s)\n", pszExpectedValue );
+    fprintf(stderr, "  -> Value in this object         : (%s)\n", str.c_str() );
     if( strcmp( str.c_str(), pszExpectedValue ) != 0 )
     {
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
     lObjLen = obj.GetObjectLength();
-    printf("  -> Object Length: %li\n", lObjLen );
+    fprintf(stderr, "  -> Object Length: %li\n", lObjLen );
 
     std::ostringstream os;
     PdfOutputDevice deviceTest( &os );
     obj.Write( &deviceTest );
 
     sLen = os.str();
-    printf("  -> Object String: %s\n", sLen.c_str() );
-    printf("  -> Object String Length: %li\n", sLen.length() );
+    fprintf(stderr, "  -> Object String: %s\n", sLen.c_str() );
+    fprintf(stderr, "  -> Object String Length: %li\n", sLen.length() );
 
     if( lObjLen != sLen.length() )
     {
         fprintf( stderr, "Object length does not macht! Object Length: %li String Length: %i\n", lObjLen, sLen.length() );
         RAISE_ERROR( ePdfError_TestFailed );
     }
+
+    fprintf(stderr,"  -> Parsed OK");
 }
 
 void TestObject( string sFilename, const char* pszData, long lObjNo, long lGenNo )
 {
     PdfVecObjects              parser;
     FILE*                      hFile;
-    PdfRefCountedBuffer buffer( BUFFER_SIZE );
 
-    std::ostringstream ss;
-    ss << sFilename << '_' << lObjNo << '_' << lGenNo;
-    sFilename = ss.str();
-
-    hFile = fopen( sFilename.c_str(), "w" );
-    if( !hFile )
-    {
-        fprintf( stderr, "Cannot open %s for writing.\n", sFilename.c_str() );
-        RAISE_ERROR( ePdfError_TestFailed );
-    }
-
-    fprintf( hFile, pszData );
-    fclose( hFile );
+    // If pszData is unset, the data's already in the file. If it's set
+    // we need to write it to a new temp file ourselves.
+    if (pszData)
+        sFilename = WriteTempFile(sFilename, pszData, lObjNo, lGenNo);
 
     PdfRefCountedInputDevice device( sFilename.c_str(), "r" );
     if( !device.Device() )
@@ -141,8 +142,9 @@ void TestObject( string sFilename, const char* pszData, long lObjNo, long lGenNo
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    printf("Parsing Object: %li %li\n", lObjNo, lGenNo );
+    fprintf(stderr,"Parsing Object: %li %li\n", lObjNo, lGenNo );
 
+    PdfRefCountedBuffer buffer( BUFFER_SIZE );
     PdfParserObject obj( &parser, device, buffer );
     try {
         obj.ParseFile( false );
@@ -150,16 +152,16 @@ void TestObject( string sFilename, const char* pszData, long lObjNo, long lGenNo
         fprintf( stderr, "Error during test: %i\n", e.GetError() );
         e.PrintErrorMsg();
         device = PdfRefCountedInputDevice();
-        if (!KeepTempFiles) unlink( sFilename.c_str() ); // do not care for unlink errors in this case
+        if (pszData && !KeepTempFiles) unlink( sFilename.c_str() ); // do not care for unlink errors in this case
 
         e.AddToCallstack( __FILE__, __LINE__  );
         throw e;
     }
 
     device = PdfRefCountedInputDevice();
-    if (!KeepTempFiles) unlink( sFilename.c_str() );
+    if (pszData && !KeepTempFiles) unlink( sFilename.c_str() );
 
-    printf("  -> Object Number: %u Generation Number: %u\n", obj.Reference().ObjectNumber(), obj.Reference().GenerationNumber() );
+    fprintf(stderr,"  -> Object Number: %u Generation Number: %u\n", obj.Reference().ObjectNumber(), obj.Reference().GenerationNumber() );
     if( lObjNo != obj.Reference().ObjectNumber() || lGenNo != obj.Reference().GenerationNumber() )
     {
         RAISE_ERROR( ePdfError_TestFailed );
@@ -278,8 +280,8 @@ int main()
     PdfError      eCode;
     std::string   pszTmp("/tmp/pdfobjectparsertest");
 
-    printf("This test tests the PdfParserObject class.\n");
-    printf("---\n");
+    fprintf(stderr,"This test tests the PdfParserObject class.\n");
+    fprintf(stderr,"---\n");
 
     TRY_TEST(TestSingleObject( pszTmp, pszSimpleObjectBoolean, 1, 0, "true" );)
     TRY_TEST(TestSingleObject( pszTmp, pszSimpleObjectNumber , 2, 1, "23" );)
@@ -293,21 +295,23 @@ int main()
     TRY_TEST(TestSingleObject( pszTmp, pszSimpleObjectArray3 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.14 400 500 ]" );)
     TRY_TEST(TestSingleObject( pszTmp, pszSimpleObjectArray4 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.14 400 500 /Dict <<\n/A (Hallo)\n/B [ 21 22 ]\n>>\n /Wert /Farbe ]" );)
     TRY_TEST(TestSingleObject( pszTmp, pszSimpleObjectArray5 , 1, 2, "[ 123 0 R ]" );)
-    TRY_TEST(printf("---\n");)
 
-    TRY_TEST(TestObject( pszTmp, pszObject5, 32, 0 );)
-    TRY_TEST(TestObject( pszTmp, pszObject6, 33, 0 );)
+    fprintf(stderr,"---\n");
+
     TRY_TEST(TestObject( pszTmp, pszObject, 10, 0 );)
     TRY_TEST(TestObject( pszTmp, pszObject2, 11, 0 );)
     TRY_TEST(TestObject( pszTmp, pszObject3, 12, 0 );)
     TRY_TEST(TestObject( pszTmp, pszObject4, 271, 0 );)
+    TRY_TEST(TestObject( pszTmp, pszObject5, 32, 0 );)
+    TRY_TEST(TestObject( pszTmp, pszObject6, 33, 0 );)
+    TRY_TEST(TestObject( "objects/27_0_R", NULL, 27, 0);)
 
-    printf("---\n");
+    fprintf(stderr, "---\n");
 
     if (!tests_error)
-        printf("All %i tests sucesseeded!\n", tests);
+        fprintf(stderr, "All %i tests sucesseeded!\n", tests);
     else
-        printf("%i of %i tests failed, %i succeeded\n", tests_error, tests, tests_ok);
+        fprintf(stderr, "%i of %i tests failed, %i succeeded\n", tests_error, tests, tests_ok);
 
     return tests_error;
 }
