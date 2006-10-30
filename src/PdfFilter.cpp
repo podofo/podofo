@@ -300,7 +300,7 @@ void PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutB
                 {
                     RAISE_ERROR( ePdfError_ValueOutOfRange );
                 }
-                
+
                 tuple += ( *pInBuffer - '!') * PdfAscii85Filter::sPowers85[count++];
                 if (count == 5) 
                 {
@@ -324,6 +324,14 @@ void PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutB
                 (*ppOutBuffer)[ pos++ ] = 0;
                 (*ppOutBuffer)[ pos++ ] = 0;
                 (*ppOutBuffer)[ pos++ ] = 0;
+                break;
+            case '~':
+                ++pInBuffer; 
+                if( *pInBuffer != '>' ) 
+                {
+                    RAISE_ERROR( ePdfError_ValueOutOfRange );
+                }
+
                 break;
             case '\n': case '\r': case '\t': case ' ':
             case '\0': case '\f': case '\b': case 0177:
