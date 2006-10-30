@@ -89,6 +89,7 @@ const PdfFilter* PdfFilterFactory::Create( const EPdfFilter eFilter )
             case ePdfFilter_DCTDecode:
             case ePdfFilter_JPXDecode:
             case ePdfFilter_Crypt:
+            case ePdfFilter_Unknown:
             default:
                 break;
         }
@@ -136,7 +137,7 @@ void PdfHexFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffe
     }
 }
 
-void PdfHexFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
+void PdfHexFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* ) const
 {
     PdfError eCode;
     int      i      = 0;
@@ -272,7 +273,7 @@ void PdfAscii85Filter::Encode( char* pBuffer, int* bufferPos, long lBufferLen, u
     while (i-- > 0);
 }
 
-void PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
+void PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* ) const
 {
     unsigned long tuple = 0;
     int           count = 0;
@@ -419,7 +420,7 @@ void PdfFlateFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuf
     }
 
     d_stream.avail_out = lBufLen;
-    d_stream.next_out  = (Bytef*)buf;
+    d_stream.next_out  = (Bytef*)(buf);
     
     if( deflate( &d_stream, Z_FINISH ) != Z_STREAM_END )
     {
@@ -462,11 +463,11 @@ void PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuf
     }
 
     strm.avail_in = lInLen;
-    strm.next_in  = (Bytef*)pInBuffer;
+    strm.next_in  = (Bytef*)(pInBuffer);
 
     do {
         strm.avail_out = CHUNK;
-        strm.next_out  = (Bytef*)out;
+        strm.next_out  = (Bytef*)(out);
 
         switch ( (flateErr = inflate(&strm, Z_NO_FLUSH)) ) {
             case Z_NEED_DICT:
@@ -586,7 +587,7 @@ void PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, cons
                 case 10: // png none
                 case 11: // png sub
                 case 12: // png up
-                    *pOutBufStart = static_cast<unsigned char>(pPrev[i] + (unsigned char)*pBuffer);
+                    *pOutBufStart = static_cast<unsigned char>(pPrev[i] + static_cast<unsigned char>(*pBuffer));
                     break;
                 case 13: // png average
                 case 14: // png paeth
@@ -615,12 +616,12 @@ void PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, cons
 // -------------------------------------------------------
 // RLE
 // -------------------------------------------------------
-void PdfRLEFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
+void PdfRLEFilter::Encode( const char*, long, char**, long* ) const
 {
     RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
-void PdfRLEFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
+void PdfRLEFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* ) const
 {
     char*                 pBuf;
     long                  lCur;
@@ -709,7 +710,7 @@ const unsigned short PdfLZWFilter::s_masks[] = { 0x01FF,
 const unsigned short PdfLZWFilter::s_clear  = 0x0100;      // clear table
 const unsigned short PdfLZWFilter::s_eod    = 0x0101;      // end of data
 
-void PdfLZWFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
+void PdfLZWFilter::Encode( const char*, long, char**, long* ) const
 {
     RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
@@ -727,7 +728,7 @@ void PdfLZWFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffe
     unsigned int code_len         = 9;
     unsigned char character       = 0;
 
-    pdf_uint32   old              = 0xffffffff;
+    pdf_uint32   old              = 0;
     pdf_uint32   code             = 0;
     pdf_uint32   buffer           = 0;
 
@@ -746,7 +747,7 @@ void PdfLZWFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffe
         while( buffer_size <= (buffer_max-8) )
         {
             buffer <<= 8;
-            buffer |= (pdf_uint32)((unsigned char)*pInBuffer);
+            buffer |= static_cast<pdf_uint32>(static_cast<unsigned char>(*pInBuffer));
             buffer_size += 8;
 
             ++pInBuffer;

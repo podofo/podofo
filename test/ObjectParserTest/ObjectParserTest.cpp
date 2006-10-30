@@ -428,7 +428,7 @@ int main()
     // These ones have attached streams
     TRY_TEST(TestObject_String( pszObject5, 32, 0, false, string(), true);)
     TRY_TEST(TestObject_String( pszObject6, 33, 0, false, string(), true);)
-        //TRY_TEST(TestObject_File( "objects/27_0_R.obj", 27, 0, false, string(), true );)
+    TRY_TEST(TestObject_File( "objects/27_0_R.obj", 27, 0, false, string(), true );)
     TRY_TEST(TestObject_File( "objects/613_0_R.obj", 613, 0, false, string(), true );)
 
     cerr << "---\n" << flush;
