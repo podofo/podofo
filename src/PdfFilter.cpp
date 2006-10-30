@@ -291,6 +291,7 @@ void PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutB
         RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
+    --lInLen;
     while( lInLen ) 
     {
         switch ( *pInBuffer ) 
