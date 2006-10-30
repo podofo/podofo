@@ -128,9 +128,9 @@ string ReadFile( string sFilename )
 //
 void TestObject( const string & sFilename,
                        long lObjNo, long lGenNo,
-                       bool pTestExpected,
+                       bool bTestExpected,
                        const string & sExpectedData,
-                       bool pHasStream
+                       bool bHasStream
                        )
 {
     // We end up re-reading a temp file we just wrote sometimes,
@@ -152,6 +152,10 @@ void TestObject( const string & sFilename,
     PdfParserObject obj( &parser, device, buffer );
     try {
         obj.ParseFile( false );
+
+        if( obj.HasStreamToParse() )
+            obj.ParseStream();
+
     } catch( PdfError & e ) {
         cerr << "Error during test: " << e.GetError() << endl;
         e.PrintErrorMsg();
@@ -170,13 +174,13 @@ void TestObject( const string & sFilename,
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    if (pHasStream != obj.HasStream())
+    if (bHasStream != obj.HasStream())
     {
         cerr << "ERROR: This object should've had an associated stream, but none was loaded" << endl;
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    if (pHasStream)
+    if (bHasStream)
     {
         cerr << "  -> Has Stream, loading ... " << flush;
         PdfStream * const ps = obj.GetStream();
@@ -203,7 +207,7 @@ void TestObject( const string & sFilename,
     cerr << ')' << endl;
 
     // TODO: ensure comparison correct after nulls
-    if (pTestExpected)
+    if (bTestExpected)
     {
         cerr << "  -> Expected value of this object: (";
         PrintObject(sExpectedData, cerr, true, false);
@@ -244,12 +248,12 @@ void TestObject( const string & sFilename,
 // Test an object passed as a string against the expected value, also a string.
 void TestObject_String( const string & sData,
                         long lObjNo, long lGenNo,
-                        bool pTestExpected = false, const string & sExpectedData = string(),
-                        bool pHasStream = false)
+                        bool bTestExpected = false, const string & sExpectedData = string(),
+                        bool bHasStream = false)
 {
     string sTempFile = WriteTempFile(sTmp, sData.c_str(), lObjNo, lGenNo);
     try {
-        TestObject(sTempFile, lObjNo, lGenNo, pTestExpected, sExpectedData, pHasStream);
+        TestObject(sTempFile, lObjNo, lGenNo, bTestExpected, sExpectedData, bHasStream);
         if (!KeepTempFiles) unlink(sTempFile.c_str());
     } catch (PdfError & e) {
         if (!KeepTempFiles) unlink(sTempFile.c_str());
@@ -269,13 +273,13 @@ void TestObject_String( const string & sData, long lObjNo, long lGenNo, const ch
 // Also ensures an object has a stream if set.
 void TestObject_File( const string & sFilename,
                       long lObjNo, long lGenNo,
-                      bool pTestExpected = false, const string & sExpectedFile = string(),
-                      bool pHasStream = false )
+                      bool bTestExpected = false, const string & sExpectedFile = string(),
+                      bool bHasStream = false )
 {
     string sExpectedData;
-    if (pTestExpected)
+    if (bTestExpected)
         sExpectedData = ReadFile(sExpectedFile);
-    TestObject(sFilename, lObjNo, lGenNo, pTestExpected, sExpectedData, pHasStream);
+    TestObject(sFilename, lObjNo, lGenNo, bTestExpected, sExpectedData, bHasStream);
 }
 
 const char* pszSimpleObjectBoolean = "1 0 obj\ntrue\nendobj\n";
@@ -415,6 +419,7 @@ int main()
     TRY_TEST(TestObject_String( pszObject5, 32, 0, false, string(), true);)
     TRY_TEST(TestObject_String( pszObject6, 33, 0, false, string(), true);)
     TRY_TEST(TestObject_File( "objects/27_0_R.obj", 27, 0, false, string(), true );)
+    TRY_TEST(TestObject_File( "objects/613_0_R.obj", 613, 0, false, string(), true );)
 
     cerr << "---\n" << flush;
 
