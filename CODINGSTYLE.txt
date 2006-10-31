@@ -74,7 +74,7 @@ simple editor settings.
     pointer		  should start with a			p
     strings		  should start with a			s
     c-strings		  should start with			psz
-			  (pointer zero terminated)
+(pointer zero terminated)
     numbers		  should start with a			n
     long's		  should start with a			l
     bool's		  should start with a			b
@@ -85,8 +85,7 @@ simple editor settings.
     bool  bDecision;
     long  lValue;
     char* pszString;
-    int   nNumber;    
-
+    int   nNumber;
 
 2.2 Member variables
 
@@ -126,7 +125,10 @@ simple editor settings.
     NULL Pointers are initialized in the code with the constant NULL. Please
     do not use 0 or 0L but use NULL.
 
-2.5 Casting
+3. General Guidelines
+===================
+
+3.1 Casting
 
     C++ style casting is strongly preferred, and the use of C-style casts will
     generate warnings on gcc builds. Use, as appropriate,
@@ -137,3 +139,83 @@ simple editor settings.
 
     const_cast<> should be avoided unless it is absolutely required, especially
     for `const char *' variables that might ever take a string literal value.
+
+3.2 Initializing objects
+
+    Prefer:
+
+    string s("argument");
+
+    to
+
+    string s = "argument";
+
+    or
+
+    string s = string("argument");
+
+    as the latter two forms may invoke the ctor and copy ctor of the class
+    rather than just the base ctor.
+
+3.3 Local variable declaration
+
+    Local variables should always be declared closest to their point of use,
+    and should be declared `const' wherever possible.
+
+    For example:
+
+    Thing f()
+    {
+       Thing ret;
+       // blah blah blah
+       ret = DoSomething();
+       // blah blah blah
+       return ret;
+    }
+
+    would be better written as:
+
+    Thing f()
+    {
+       // blah blah blah
+       Thing ret ( DoSomething() );
+       // blah blah blah
+       return ret;
+    }
+
+    Remember your const pointers:
+
+    char * x;               Pointer to char
+    const char * x;         Pointer to const char
+    char * const x;         Const pointer to char
+    const char * const x;   Const pointer to const char
+
+3.4 Static arrays
+
+    Static data should be declared as an array of const char rather than a
+    pointer to const char whereever possible. This will help the compiler put
+    it in the static read only data section of the compiled object, resulting
+    in a smaller memory footprint, faster load times, and hardware protection
+    against accidental writes to the data.
+
+    char myStaticData[] = "This is the right way".
+    char * myStaticData = "Avoid this way".
+
+    Two dimensional arrays may be specified in a similar way - see
+    s_szPdfVersions in PdfDefines.{cpp,h} .
+
+3.5 Use of temporary objects
+
+    Where possible, it can be better to use a temporary rather than
+    storing a named object, eg:
+
+    DoSomething( PdfName("blah") );
+
+    rather than
+
+    PdfName n("blah");
+    DoSomething( n );
+
+    as this makes it easier for the compiler to optimise the call, may reduce
+    the stack size of the function, etc. Don't forget to consider the lifetime
+    of the temporary, however.
