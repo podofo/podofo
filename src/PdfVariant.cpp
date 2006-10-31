@@ -500,6 +500,12 @@ const PdfVariant & PdfVariant::operator=( const PdfVariant & rhs )
             case ePdfDataType_HexString:
                 m_pData = new PdfString( *(static_cast<PdfString*>(rhs.m_pData)) );
                 break;
+
+            case ePdfDataType_Bool:
+            case ePdfDataType_Null:
+            case ePdfDataType_Number:
+            case ePdfDataType_Real:
+            case ePdfDataType_Unknown:
             default:
                 break;
         };
@@ -524,6 +530,8 @@ const char * PdfVariant::GetDataTypeString() const
         case ePdfDataType_Reference: return "Reference";
         case ePdfDataType_Unknown: return "Unknown";
     }
+
+    return NULL;
 }
 
 };

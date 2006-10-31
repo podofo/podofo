@@ -658,7 +658,7 @@ bool PdfDocument::AddNamedDestination( PdfDestination& inDest, const std::string
                 }
             } else {	// are replacing
                 size_t idx = destArray.GetStringIndex( inName );
-                if ( idx == -1 ) {	// not found, so put it at the end
+                if ( static_cast<int>(idx) == -1 ) {	// not found, so put it at the end
                     destArray.push_back( PdfString( inName ) );
                     destArray.push_back( *inDest.GetObject() );
                 } else {

@@ -181,7 +181,7 @@ class PODOFO_API PdfPage : public PdfElement, public PdfCanvas {
     PdfContents*   m_pContents;
     PdfObject*     m_pResources;
 
-    TMapAnnotation m_vecAnnotations;
+    TMapAnnotation m_mapAnnotations;
 };
 
 // -----------------------------------------------------
