@@ -140,7 +140,40 @@ simple editor settings.
     const_cast<> should be avoided unless it is absolutely required, especially
     for `const char *' variables that might ever take a string literal value.
 
-3.2 Static arrays
+3.2 Local variable declaration
+
+    Local variables should always be declared closest to their point of use,
+    and should be declared `const' wherever possible.
+
+    For example:
+
+    Thing f()
+    {
+       Thing ret;
+       // blah blah blah
+       ret = DoSomething();
+       // blah blah blah
+       return ret;
+    }
+
+    would be better written as:
+
+    Thing f()
+    {
+       // blah blah blah
+       Thing ret ( DoSomething() );
+       // blah blah blah
+       return ret;
+    }
+
+    Remember your const pointers:
+
+    char * x;               Pointer to char
+    const char * x;         Pointer to const char
+    char * const x;         Const pointer to char
+    const char * const x;   Const pointer to const char
+
+3.3 Static arrays
 
     Static data should be declared as an array of const char rather than a
     pointer to const char whereever possible. This will help the compiler put
@@ -154,7 +187,7 @@ simple editor settings.
     Two dimensional arrays may be specified in a similar way - see
     s_szPdfVersions in PdfDefines.{cpp,h} .
 
-3.3 Use of temporary objects
+3.4 Use of temporary objects
 
     Where possible, it can be better to use a temporary rather than
     storing a named object, eg:
