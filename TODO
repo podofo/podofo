@@ -16,3 +16,6 @@ FUTURE
       the existing ones revamp color support to be more general & support more
       types
     - Interactive forms support
+    - PNG predictor functions in filters
+    - CMYK image handling for podofoimgextract, images in different colour
+      spaces in general.
