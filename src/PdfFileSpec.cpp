@@ -40,12 +40,10 @@ PdfFileSpec::PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfVecObjects* 
         PdfDictionary ef;
 
         pEmbeddedStream = pParent->CreateObject( "EmbeddedFile" );
-        this->EmbeddFile( pEmbeddedStream->GetStream(), pszFilename );
+        this->EmbeddFile( pEmbeddedStream, pszFilename );
 
-        ef.AddKey( "DOS",  pEmbeddedStream->Reference() );
-        ef.AddKey( "Mac",  pEmbeddedStream->Reference() );
-        ef.AddKey( "Unix", pEmbeddedStream->Reference() );
-            
+        ef.AddKey( "F",  pEmbeddedStream->Reference() );
+
         m_pObject->GetDictionary().AddKey( "EF", ef );
     }
 }
@@ -74,10 +72,8 @@ PdfString PdfFileSpec::CreateFileSpecification( const char* pszFilename ) const
     return PdfString( str.str() );
 }
 
-void PdfFileSpec::EmbeddFile( PdfStream* pStream, const char* pszFilename ) const
+void PdfFileSpec::EmbeddFile( PdfObject* pStream, const char* pszFilename ) const
 {
-    long  lLen;
-    char* pBuf;
     FILE* hFile = fopen( pszFilename, "rb" );
 
     if( !hFile ) 
@@ -86,19 +82,25 @@ void PdfFileSpec::EmbeddFile( PdfStream* pStream, const char* pszFilename ) cons
     }
 
     fseek( hFile, 0L, SEEK_END );
-    lLen = ftell( hFile );
+    long lLen = ftell( hFile );
     fseek( hFile, 0L, SEEK_SET );
 
-    pBuf = static_cast<char*>(malloc( sizeof(char) * lLen ));
+    char* pBuf = static_cast<char*>(malloc( sizeof(char) * lLen ));
     if( !pBuf ) 
     {
         RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
-    pStream->Set( pBuf, lLen, true );
-
+    fread( pBuf, lLen, sizeof(char), hFile );
     fclose( hFile );
 
+    pStream->GetStream()->Set( pBuf, lLen, true );
+
+    // Add additional information about the embedded file to the stream
+    PdfDictionary params;
+    params.AddKey( "Size", lLen );
+    // TODO: CreationDate and ModDate
+    pStream->GetDictionary().AddKey("Params", params );
 }
 
 };

@@ -338,7 +338,6 @@ void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->FillEllipse( dX, dY, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
 
     PdfFileSpec file( "lena.jpg", true, &(pDocument->GetObjects()) );
-    //PdfFileSpec file( "/home/dominik/Desktop/Documentation/journal-design.pdf", true, &(pDocument->GetObjects()) );
     pFileAnnotation =  pPage->CreateAnnotation( ePdfAnnotation_FileAttachement, PdfRect( 300.0, 400.0, 250.0, 50.0 ) );
     pFileAnnotation->SetContents( "A JPEG image of Lena" );
     pFileAnnotation->SetFileAttachement( file );

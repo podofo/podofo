@@ -29,8 +29,6 @@
 
 namespace PoDoFo {
 
-class PdfStream;
-
 /**
  *  A file specification is used in the PDF file to referr to another file.
  *  The other file can be a file outside of the PDF or can be embedded into
@@ -51,10 +49,10 @@ class PODOFO_API PdfFileSpec : public PdfElement {
     PdfString CreateFileSpecification( const char* pszFilename ) const;
 
     /** Embedd a file into a stream object
-     *  \param pStream write the file to this stream
+     *  \param pStream write the file to this objects stream
      *  \param pszFilename the file to embedd
      */
-    void EmbeddFile( PdfStream* pStream, const char* pszFilename ) const;
+    void EmbeddFile( PdfObject* pStream, const char* pszFilename ) const;
 };
 
 };

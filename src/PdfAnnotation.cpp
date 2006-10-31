@@ -49,7 +49,7 @@ const char* PdfAnnotation::s_names[] = {
     "Caret",          // PDF 1.5
     "Ink",            // PDF 1.3
     "Popup",          // PDF 1.3
-    "FileAttachement",// PDF 1.3
+    "FileAttachment", // PDF 1.3
     "Sound",          // PDF 1.2
     "Movie",          // PDF 1.2
     "Widget",         // PDF 1.2  // - supported
