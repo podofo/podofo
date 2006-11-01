@@ -99,6 +99,12 @@ class PODOFO_API PdfReference : public PdfDataType {
 
     /** 
      * Compare to PdfReference objects.
+     * \returns false if both reference the same object
+     */
+    inline bool operator!=( const PdfReference & rhs ) const throw();
+
+    /** 
+     * Compare to PdfReference objects.
      * \returns true if this reference has a smaller object and generation number
      */
     inline bool operator<( const PdfReference & rhs ) const throw();
@@ -128,6 +134,9 @@ class PODOFO_API PdfReference : public PdfDataType {
     unsigned long m_nGenerationNo;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 const PdfReference & PdfReference::operator=( const PdfReference & rhs ) throw()
 {
     m_nObjectNo     = rhs.m_nObjectNo;
@@ -135,6 +144,9 @@ const PdfReference & PdfReference::operator=( const PdfReference & rhs ) throw()
     return *this;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfReference::operator<( const PdfReference & rhs ) const throw()
 {
     if( m_nObjectNo == rhs.m_nObjectNo )
@@ -143,9 +155,20 @@ bool PdfReference::operator<( const PdfReference & rhs ) const throw()
         return m_nObjectNo < rhs.m_nObjectNo;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfReference::operator==( const PdfReference & rhs ) const throw()
 {
     return ( m_nObjectNo == rhs.m_nObjectNo && m_nGenerationNo == rhs.m_nGenerationNo);
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline bool PdfReference::operator!=( const PdfReference & rhs ) const throw()
+{
+    return !this->operator==( rhs );
 }
 
 // -----------------------------------------------------

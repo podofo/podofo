@@ -290,4 +290,37 @@ void PdfPage::DeleteAnnotation( const PdfReference & ref )
     delete m_pObject->GetParent()->RemoveObject( ref );
 }
 
+unsigned int PdfPage::GetPageNumber() const
+{
+    unsigned int        nPageNumber = 0;
+    PdfObject*          pParent     = m_pObject->GetIndirectKey( "Parent" );
+    PdfReference ref                = m_pObject->Reference();
+
+    while( pParent ) 
+    {
+        const PdfArray& kids        = pParent->GetIndirectKey( "Kids" )->GetArray();
+        PdfArray::const_iterator it = kids.begin();
+
+        while( it != kids.end() && (*it).GetReference() != ref )
+        {
+            PdfObject* pNode = m_pObject->GetParent()->GetObject( (*it).GetReference() );
+
+            if( pNode->GetDictionary().GetKey( PdfName::KeyType )->GetName() == PdfName( "Pages" ) )
+                nPageNumber += pNode->GetDictionary().GetKey( "Count" )->GetNumber();
+            else 
+                // if we do not have a page tree node, 
+                // we most likely have a page object:
+                // so the page count is 1
+                ++nPageNumber;
+
+            ++it;
+        }
+
+        ref     = pParent->Reference();
+        pParent = pParent->GetIndirectKey( "Parent" );
+    }
+
+    return ++nPageNumber;
+}
+
 };

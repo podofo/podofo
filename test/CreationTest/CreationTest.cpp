@@ -441,6 +441,8 @@ int main( int argc, char* argv[] )
     TEST_SAFE_OP( writer.GetInfo()->SetSubject ( PdfString("Testing the PDF Library") ) );
     TEST_SAFE_OP( writer.GetInfo()->SetKeywords( PdfString("Test;PDF;") ) );
 
+    TEST_SAFE_OP( writer.AttachFile( PdfFileSpec("CreationTest.cpp", true, &(writer.GetObjects()) ) ) );
+
     TEST_SAFE_OP( writer.Write( argv[1] ) );
 
 #ifdef TEST_MEM_BUFFER

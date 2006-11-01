@@ -22,7 +22,10 @@
 
 #include "PdfAction.h"
 #include "PdfDictionary.h"
+#include "PdfDocument.h"
+#include "PdfNamesTree.h"
 #include "PdfPage.h"
+#include "PdfPagesTree.h"
 
 namespace PoDoFo {
 
@@ -50,7 +53,26 @@ PdfDestination::PdfDestination( PdfObject* pObject )
     }
     else if( pObject->GetDataType() == ePdfDataType_String ) 
     {
-        // TODO: named destinations!
+        PdfDocument* pDoc = pObject->GetParent()->GetParentDocument();
+        if( pDoc ) 
+        {
+            PdfNamesTree* pNames = pDoc->GetNamesTree( ePdfDontCreateObject );
+            if( !pNames ) 
+            {
+                RAISE_ERROR( ePdfError_NoObject );
+            }
+            
+            PdfObject* pValue = pNames->GetValue( "Dests", pObject->GetString() );
+            if( !pValue ) 
+            {
+                RAISE_ERROR( ePdfError_InvalidName );
+            }
+
+            if( pValue->IsArray() ) 
+                m_array = pValue->GetArray();
+            else if( pValue->IsDictionary() )
+                m_array = pValue->GetDictionary().GetKey( "D" )->GetArray();
+        }
     }
     else 
     {
@@ -149,19 +171,15 @@ void PdfDestination::AddToDictionary( PdfDictionary & dictionary ) const
 
 PdfPage* PdfDestination::GetPage()
 {
-    // TODO: remove check once we support named destinations
     if( !m_array.size() )
         return NULL;
 
+    PdfDocument* pDoc = m_pObject->GetParent()->GetParentDocument();
+    if( !pDoc ) 
+        return NULL;
+
     // first entry in the array is the page - so just make a new page from it!
-    PdfObject* pObj = m_pObject->GetParent()->GetObject( m_array[0].Reference() );
-    if ( pObj ) 
-    {
-        PdfPage* pPage = new PdfPage( pObj );
-        return pPage;
-    }
-    
-    return NULL;
+    return pDoc->GetPagesTree()->GetPage( m_array[0].GetReference() );
 }
 
 };

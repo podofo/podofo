@@ -54,7 +54,7 @@ private:
 };
 
 PdfVecObjects::PdfVecObjects()
-    : m_bAutoDelete( false ), m_nObjectCount( 1 )
+    : m_bAutoDelete( false ), m_nObjectCount( 1 ), m_pDocument( NULL )
 {
 }
 
@@ -85,6 +85,7 @@ const PdfVecObjects & PdfVecObjects::operator=( const PdfVecObjects & rhs )
     m_bAutoDelete         = rhs.m_bAutoDelete;
     m_nObjectCount        = rhs.m_nObjectCount;
     m_lstFreeObjects      = rhs.m_lstFreeObjects;
+    m_pDocument           = rhs.m_pDocument;
 
     it = this->begin();
     while( it != this->end() )

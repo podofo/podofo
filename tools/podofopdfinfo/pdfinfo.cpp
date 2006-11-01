@@ -87,6 +87,7 @@ void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
         sOutStream << "Page " << pg << ":" << std::endl;
         
         curPage = mDoc->GetPage( pg );
+        sOutStream << "->Internal Number:" << curPage->GetPageNumber() << std::endl;
         
         curPage->GetMediaBox().ToVariant( var );
         var.ToString( str );
@@ -143,8 +144,13 @@ void PdfInfo::OutputOutlines( std::ostream& sOutStream, PoDoFo::PdfOutlineItem* 
     sOutStream << ">" << pItem->GetTitle().GetString();
     PoDoFo::PdfDestination* pDest = pItem->GetDestination();
     if ( pDest ) {	// then it's a destination
+
         PoDoFo::PdfPage* pPage = pDest->GetPage();
-        sOutStream << "\tDestination: Page #" << "???";
+        if( pPage ) 
+            sOutStream << "\tDestination: Page #" << pPage->GetPageNumber();
+        else
+            sOutStream << "\tDestination: Page #" << "???";
+
     } else {		// then it's one or more actions
         sOutStream << "\tAction: " << "???";
     }

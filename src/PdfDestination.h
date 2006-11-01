@@ -101,6 +101,9 @@ class PODOFO_API PdfDestination {
     const PdfDestination & operator=( const PdfDestination & rhs );
 
     /** Get the page that this destination points to
+     *  Requires that this PdfDestination was somehow
+     *  created by or from a PdfDocument. Won't work otherwise.
+     * 
      *  \returns the referenced PdfPage
      */
     PdfPage* GetPage();

@@ -61,7 +61,8 @@ PdfAction::PdfAction( EPdfAction eAction, PdfVecObjects* pParent )
 }
 
 PdfAction::PdfAction( PdfObject* pObject )
-    : PdfElement( "Action", pObject )
+    // The typename /Action is optional for PdfActions
+    : PdfElement( NULL, pObject )
 {
     m_eType = static_cast<EPdfAction>(TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions ));
 }

@@ -138,7 +138,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
         RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
-    if( fread( szBuffer, sizeof( char ), lLen, hInfile ) != lLen )
+    if( static_cast<long>(fread( szBuffer, sizeof( char ), lLen, hInfile )) != lLen )
     {
         fclose( hInfile );
         free( szBuffer );

@@ -76,6 +76,15 @@ class PODOFO_API PdfPagesTree : public PdfElement
      */
     PdfPage* GetPage( int nIndex );
 
+    /** Return a PdfPage for the specified Page reference.
+     *  The returned page is owned by the pages tree and
+     *  deleted along with it.
+     *
+     *  \param ref the reference of the pages object
+     *  \returns a pointer to the requested page
+     */
+    PdfPage* GetPage( const PdfReference & ref );
+
     /** Inserts an existing page object into the internal page tree. 
      *	after the specified page number
      *

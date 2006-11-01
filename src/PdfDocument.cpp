@@ -66,6 +66,7 @@ PdfDocument::PdfDocument()
 {
     m_eVersion    = ePdfVersion_1_3;
     m_bLinearized = false;
+    m_vecObjects.SetParentDocument( this );
 
     m_pTrailer = new PdfObject();
     m_pTrailer->SetParent( &m_vecObjects );
@@ -83,6 +84,8 @@ PdfDocument::PdfDocument()
 PdfDocument::PdfDocument( const char* pszFilename )
     : m_pInfo( NULL ), m_pOutlines( NULL ), m_pNamesTree( NULL ), m_pPagesTree( NULL ), m_pTrailer( NULL ), m_ftLibrary( NULL )
 {
+    m_vecObjects.SetParentDocument( this );
+
     this->Load( pszFilename );
 }
 
@@ -670,6 +673,18 @@ bool PdfDocument::AddNamedDestination( PdfDestination& inDest, const std::string
     }
 
     return bRtn;
+}
+
+void PdfDocument::AttachFile( const PdfFileSpec & rFileSpec )
+{
+    PdfNamesTree* pNames = this->GetNamesTree( true );
+
+    if( !pNames ) 
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+
 }
 
 };

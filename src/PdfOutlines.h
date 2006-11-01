@@ -208,6 +208,8 @@ class PODOFO_API PdfOutlineItem : public PdfElement {
 
     PdfOutlineItem*    m_pFirst;
     PdfOutlineItem*    m_pLast;
+
+    PdfDestination*    m_pDestination;
 };
 
 // -----------------------------------------------------

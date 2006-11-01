@@ -62,9 +62,38 @@ class PODOFO_API PdfNamesTree : public PdfElement {
      *  of the name tree.
      *  \param dictionary the name of the dictionary to search in.
      *  \param key the key to search for
-     *  \returns the value of the key or NULL if the key was not found
+     *  \returns the value of the key or NULL if the key was not found.
+     *           if the value is a reference, the object referenced by 
+     *           this reference is returned.
      */
     PdfObject* GetValue( const PdfName & dictionary, const PdfString & key ) const;
+
+ private:
+    /** Get a PdfNameTrees root node for a certain name.
+     *  \param name that identifies a specific name tree.
+     *         Valid names are:
+     *            - Dests
+     *            - AP
+     *            - JavaScript
+     *            - Pages
+     *            - Templates
+     *            - IDS
+     *            - URLS
+     *            - EmbeddedFiles
+     *            - AlternatePresentations
+     *            - Renditions
+     *
+     *  \param bCreate if true the root node is create if it does not exists.
+     *  \returns the root node of the tree or NULL if it does not exists
+     */
+    PdfObject* GetRootNode( const PdfName & name, bool bCreate = false ) const;
+
+    /** Recursively walk through the name tree and find the value for key.
+     *  \param pObj the name tree 
+     *  \param key the key to find a value for
+     *  \return the value for the key or NULL if it was not found
+     */
+    PdfObject* GetKeyValue( PdfObject* pObj, const PdfString & key ) const;
 
  private:
     PdfObject*	m_pCatalog;

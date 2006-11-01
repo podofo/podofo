@@ -78,6 +78,20 @@ int main()
             printf("Comparison failed!\n");
             RAISE_ERROR( ePdfError_TestFailed );
         }
+
+        PdfString a("aaaaa");
+        PdfString b("b");
+
+        if( !(a < b) )
+        {
+            printf("Comparison failed a < b !\n");
+        }
+
+        if( !(b > a) )
+        {
+            printf("Comparison failed b > a !\n");
+        }
+
     } catch( const PdfError & eCode ) {
         eCode.PrintErrorMsg();
         return eCode.GetError();

@@ -64,6 +64,16 @@ class PODOFO_API PdfPage : public PdfElement, public PdfCanvas {
      */
     inline virtual const PdfRect GetPageSize() const;
 
+    /** Page number inside of the document. The  first page
+     *  has the number 1, the last page has the number 
+     *  PdfPagesTree:GetTotalNumberOfPages()
+     *
+     *  \returns the number of the page inside of the document
+     *
+     *  \see PdfPagesTree:GetTotalNumberOfPages()
+     */
+    unsigned int GetPageNumber() const;
+
     /** Creates a PdfRect with the page size as values which is needed to create a PdfPage object
      *  from an enum which are defined for a few standard page sizes.
      *

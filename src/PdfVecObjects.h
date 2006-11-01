@@ -28,6 +28,7 @@
 
 namespace PoDoFo {
 
+class PdfDocument;
 class PdfObject;
 class PdfVariant;
 
@@ -83,6 +84,17 @@ class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
      *  \returns this object
      */
     const PdfVecObjects & operator=( const PdfVecObjects & rhs );
+
+    /** \returns a pointer to a PdfDocument that is the 
+     *           parent of this vector.
+     *           Might be NULL if the vector has no parent.
+     */
+    inline PdfDocument* GetParentDocument() const;
+
+    /** Sets a parent document of this vector
+     *  \param pDocument the parent of this vector
+     */
+    inline void SetParentDocument( PdfDocument* pDocument );
 
     /** Enable/disable auto deletion.
      *  By default auto deletion is disabled.
@@ -219,7 +231,25 @@ class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
     size_t              m_nObjectCount;
 
     TPdfReferenceList   m_lstFreeObjects;
+
+    PdfDocument*        m_pDocument;
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfDocument* PdfVecObjects::GetParentDocument() const
+{
+    return m_pDocument;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfVecObjects::SetParentDocument( PdfDocument* pDocument )
+{
+    m_pDocument = pDocument;
+}
 
 // -----------------------------------------------------
 // 

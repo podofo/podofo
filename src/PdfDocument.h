@@ -33,6 +33,7 @@ namespace PoDoFo {
 
 class PdfDestination;
 class PdfDictionary;
+class PdfFileSpec;
 class PdfFont;
 class PdfInfo;
 class PdfNamesTree;
@@ -161,6 +162,12 @@ class PODOFO_API PdfDocument {
      */
     PdfObject* GetAcroForm() const { return GetNamedObjectFromCatalog( "AcroForm" ); }
 
+    /** Get access to the pages tree.
+     *  Better use GetPage and CreatePage methods.
+     *  \returns the PdfPagesTree of this document.
+     */
+    inline PdfPagesTree* GetPagesTree() const;
+
     /** Get the total number of pages in a document
      *  \returns int number of pages
      */
@@ -198,6 +205,11 @@ class PODOFO_API PdfDocument {
      *  \returns this document
      */
     const PdfDocument & Append( const PdfDocument & rDoc );
+
+    /** Attach a file to the document.
+     *  \param rFileSpec a file specification
+     */
+    void AttachFile( const PdfFileSpec & rFileSpec );
 
     /** Copies one or more pages from another PdfDocument to this document
      *  \param rDoc the document to append
@@ -355,6 +367,14 @@ class PODOFO_API PdfDocument {
     void*           m_pFcConfig; // (FcConfig*)
     FT_Library      m_ftLibrary;
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfPagesTree* PdfDocument::GetPagesTree() const
+{
+    return m_pPagesTree;
+}
 
 };
 

@@ -47,6 +47,9 @@ PdfElement::PdfElement( const char* pszType, PdfObject* pObject )
 
     if( pszType && m_pObject->GetDictionary().GetKeyAsName( PdfName::KeyType ) != pszType ) 
     {
+        PdfError::LogMessage( eLogSeverity_Debug, "Expected key %s but got key %s.", 
+                              pszType, m_pObject->GetDictionary().GetKeyAsName( PdfName::KeyType ).GetName().c_str() );
+
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
 }

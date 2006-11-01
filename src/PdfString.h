@@ -134,6 +134,18 @@ class PODOFO_API PdfString : public PdfDataType{
      */
     const PdfString & operator=( const PdfString & rhs );
 
+    /** Compare two PdfString objects
+     *  \param rhs another PdfString to compare
+     *  \returns this object
+     */
+    bool operator>( const PdfString & rhs ) const;
+
+    /** Compare two PdfString objects
+     *  \param rhs another PdfString to compare
+     *  \returns this object
+     */
+    bool operator<( const PdfString & rhs ) const;
+
     /** Comparison operator
      *  \param rhs compare to this string object
      *  \returns true if both strings have the same contents

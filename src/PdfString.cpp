@@ -89,6 +89,64 @@ void PdfString::Write ( PdfOutputDevice* pDevice ) const
     pDevice->Print( m_bHex ? ">" : ")" );
 }
 
+bool PdfString::operator>( const PdfString & rhs ) const
+{
+    char*            pBuffer;
+    long             lLen;
+    bool             bGreater   = false; // avoid a compiler warning
+    const PdfFilter* pFilter;
+
+    if( m_bHex == rhs.m_bHex ) 
+    {
+        bGreater = (m_buffer > rhs.m_buffer);
+    }
+    else if( !m_bHex ) 
+    {
+        pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+        pFilter->Encode( m_buffer.GetBuffer(), m_buffer.GetSize(), &pBuffer, &lLen );
+
+        bGreater = ( PdfRefCountedBuffer( pBuffer, lLen ) > rhs.m_buffer );
+    }
+    else if( !rhs.m_bHex ) 
+    {
+        pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+        pFilter->Encode( rhs.m_buffer.GetBuffer(), rhs.m_buffer.GetSize(), &pBuffer, &lLen );
+
+        bGreater = ( m_buffer > PdfRefCountedBuffer( pBuffer, lLen ) );
+    }
+        
+    return bGreater;    
+}
+
+bool PdfString::operator<( const PdfString & rhs ) const
+{
+    char*            pBuffer;
+    long             lLen;
+    bool             bLittle   = false; // avoid a compiler warning
+    const PdfFilter* pFilter;
+
+    if( m_bHex == rhs.m_bHex ) 
+    {
+        bLittle = (m_buffer < rhs.m_buffer);
+    }
+    else if( !m_bHex ) 
+    {
+        pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+        pFilter->Encode( m_buffer.GetBuffer(), m_buffer.GetSize(), &pBuffer, &lLen );
+
+        bLittle = ( PdfRefCountedBuffer( pBuffer, lLen ) < rhs.m_buffer );
+    }
+    else if( !rhs.m_bHex ) 
+    {
+        pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+        pFilter->Encode( rhs.m_buffer.GetBuffer(), rhs.m_buffer.GetSize(), &pBuffer, &lLen );
+
+        bLittle = ( m_buffer < PdfRefCountedBuffer( pBuffer, lLen ) );
+    }
+        
+    return bLittle;
+}
+
 const PdfString & PdfString::operator=( const PdfString & rhs )
 {
     this->m_bHex    = rhs.m_bHex;

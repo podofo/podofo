@@ -170,4 +170,37 @@ bool PdfRefCountedBuffer::operator==( const PdfRefCountedBuffer & rhs ) const
     return true;
 }
 
+bool PdfRefCountedBuffer::operator<( const PdfRefCountedBuffer & rhs ) const
+{
+    // equal buffers are neither smaller nor greater
+    if( m_pBuffer == rhs.m_pBuffer )
+        return false;
+
+    if( !m_pBuffer && rhs.m_pBuffer ) 
+        return true;
+    else if( m_pBuffer && !rhs.m_pBuffer ) 
+        return false;
+    else
+        return (memcmp( m_pBuffer->m_pBuffer, rhs.m_pBuffer->m_pBuffer, PDF_MIN( m_pBuffer->m_lSize, rhs.m_pBuffer->m_lSize ) ) < 0 );
+
+    return false;
+}
+
+bool PdfRefCountedBuffer::operator>( const PdfRefCountedBuffer & rhs ) const
+{
+    // equal buffers are neither smaller nor greater
+    if( m_pBuffer == rhs.m_pBuffer )
+        return false;
+
+    if( !m_pBuffer && rhs.m_pBuffer ) 
+        return false;
+    else if( m_pBuffer && !rhs.m_pBuffer ) 
+        return true;
+    else
+        return (memcmp( m_pBuffer->m_pBuffer, rhs.m_pBuffer->m_pBuffer, PDF_MIN( m_pBuffer->m_lSize, rhs.m_pBuffer->m_lSize ) ) > 0 );
+
+    return false;
+}
+
+
 };

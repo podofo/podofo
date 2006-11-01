@@ -111,6 +111,18 @@ class PODOFO_API PdfRefCountedBuffer {
      */
     bool operator==( const PdfRefCountedBuffer & rhs ) const;
 
+    /** Compare to buffers.
+     *  \param rhs compare to this buffer
+     *  \returns true if this buffer is lexically littler than rhs
+     */
+    bool operator<( const PdfRefCountedBuffer & rhs ) const;
+
+    /** Compare to buffers.
+     *  \param rhs compare to this buffer
+     *  \returns true if this buffer is lexically greater than rhs
+     */
+    bool operator>( const PdfRefCountedBuffer & rhs ) const;
+
  private:
     /** Detach from the reference counted buffer
      */

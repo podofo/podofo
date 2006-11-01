@@ -2,6 +2,11 @@ Version 0.5
     Added support for Embedded Files (annotations & named objects)
     Added support for ExtGStates when drawing
 		initially only supports basic transparency
+    Fixed reading values from nametrees
+    Added support for named destinations
+    Fixed a memory leak in PdfDestination::GetPage
+    Pages do not know their page number inside of the document
+    Fixed reading PdfActions from PDF files
 
 Version 0.4
 	PdfImage now supports creating an image stream from a "raw bitmap"

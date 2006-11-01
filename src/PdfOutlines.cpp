@@ -28,7 +28,7 @@
 namespace PoDoFo {
 
 PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfDestination & rDest, PdfOutlineItem* pParentOutline, PdfVecObjects* pParent )
-    : PdfElement( NULL, pParent ), m_pParentOutline( pParentOutline ), m_pPrev( NULL ), m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL )
+    : PdfElement( NULL, pParent ), m_pParentOutline( pParentOutline ), m_pPrev( NULL ), m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL )
 {
     m_pObject->GetDictionary().AddKey( "Parent", pParentOutline->GetObject()->Reference() );
 
@@ -37,7 +37,7 @@ PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfDestination &
 }
 
 PdfOutlineItem::PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutline, PdfOutlineItem* pPrevious )
-    : PdfElement( NULL, pObject ), m_pParentOutline( pParentOutline ), m_pPrev( pPrevious ), m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL )
+    : PdfElement( NULL, pObject ), m_pParentOutline( pParentOutline ), m_pPrev( pPrevious ), m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL )
 {
     PdfReference first, next;
 
@@ -62,7 +62,7 @@ PdfOutlineItem::PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutli
 }
 
 PdfOutlineItem::PdfOutlineItem( PdfVecObjects* pParent )
-    : PdfElement( "Outlines", pParent ), m_pParentOutline( NULL ), m_pPrev( NULL ), m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL )
+    : PdfElement( "Outlines", pParent ), m_pParentOutline( NULL ), m_pPrev( NULL ), m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL )
 {
 }
 
@@ -171,18 +171,24 @@ void PdfOutlineItem::Erase()
 
 void PdfOutlineItem::SetDestination( const PdfDestination & rDest )
 {
+    delete m_pDestination;
+    m_pDestination = NULL;
+
     rDest.AddToDictionary( m_pObject->GetDictionary() );
 }
 
 PdfDestination* PdfOutlineItem::GetDestination( void )
 {
-	PdfObject*	dObj = m_pObject->GetIndirectKey( "Dest" );
-	if ( !dObj ) {
-		return NULL;
-	} 
+    if( !m_pDestination )
+    {
+        PdfObject*	dObj = m_pObject->GetIndirectKey( "Dest" );
+        if ( !dObj ) 
+            return NULL;
+    
+        m_pDestination = new PdfDestination( dObj );
+    }
 
-	PdfDestination* destObj = new PdfDestination( dObj );
-	return destObj;
+    return m_pDestination;
 }
 
 void PdfOutlineItem::SetTitle( const PdfString & sTitle )

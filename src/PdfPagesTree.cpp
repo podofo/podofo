@@ -110,7 +110,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
     // or pages nodes with a kid count of 1, so we can speed things up by going straight to the desired node
     if ( numKids == kidsCount )
     {
-        if( nPageNum >= kidsArray.size() )
+        if( nPageNum >= static_cast<int>(kidsArray.size()) )
         {
             PdfError::LogMessage( eLogSeverity_Critical, "Requesting page index %i from array of size %i\n", nPageNum, kidsArray.size() );
             /*
@@ -192,6 +192,13 @@ PdfPage* PdfPagesTree::GetPage( int nIndex )
         }
     }
     
+    return pPage;
+}
+
+PdfPage* PdfPagesTree::GetPage( const PdfReference & ref )
+{
+    PdfPage* pPage  = new PdfPage( m_pObject->GetParent()->GetObject( ref ) );
+    m_deqPageObjs[ pPage->GetPageNumber() - 1 ] = pPage;
     return pPage;
 }
 
@@ -310,7 +317,8 @@ void PdfPagesTree::InsertPages( int inAfterIndex,
     // increment the pages count of all of the parent page nodes, walking up the tree
     PdfObject* tempParent = inParentObj ;
     while( NULL != tempParent ) {
-        int theCount = this->ChangePagesCount( tempParent, inNumPages ) ;
+        //int theCount = this->ChangePagesCount( tempParent, inNumPages ) ;
+        (void)this->ChangePagesCount( tempParent, inNumPages ) ;
         tempParent = PdfPagesTree::GetParent( tempParent ) ;
     }
 
