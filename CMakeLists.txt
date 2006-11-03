@@ -85,12 +85,13 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
     IF(NOT WIN32)
         ADD_DEFINITIONS(-W)
     ENDIF(NOT WIN32)
-    # gcc 4:
-    # [CMAKE 2.5 ONLY]
-    #CHECK_CXX_COMPILER_FLAG("-fvisibility=hidden" HAVE_GCC4_FLAG_VISIBILITY)
-    #IF(HAVE_GCC4_FLAG_VISIBILITY)
-    #    ADD_DEFINITIONS("-fvisibility=hidden")
-    #ENDIF(HAVE_GCC4_FLAG_VISIBILITY)
+    # If they've enabled the use of gcc4 symbol visibility, use it.
+    IF(PODOFO_USE_VISIBILITY)
+        ADD_DEFINITIONS(
+            -DHAVE_GCC_SYMBOL_VISIBILITY
+            -fvisibility=hidden
+            )
+    ENDIF(PODOFO_USE_VISIBILITY)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 FIND_PACKAGE(ZLIB REQUIRED)

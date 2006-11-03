@@ -202,3 +202,38 @@ simple editor settings.
     as this makes it easier for the compiler to optimise the call, may reduce
     the stack size of the function, etc. Don't forget to consider the lifetime
     of the temporary, however.
+
+3.5 Exported API
+
+    PoDoFo draws a distinction between exported and private API on some
+    platforms (currently Windows DLL builds and gcc 4 with
+    PODOFO_USE_VISIBILITY). To do this it uses some macros defined in
+    podofoapi.h to tell the compiler what's public API that should appear
+    in the DLL/shared library's symbol table. The rest is not exported.
+
+    This may have several positive effects depending on the particular
+    platform and compiler. It can result in a smaller binary, better link
+    times, help the compiler optimise better, and ensure that API intended to
+    be private to PoDoFo _cannot_ be called from outside it.
+
+    If you add new classes to PoDoFo, annotate them with PODOFO_API
+    as shown in podofoapi.h if they're intended as public API. If an outside
+    user will ever need to reference those symbols directly (by constructing
+    the class, calling its methods, etc) they're public.
+
+    Note that classes that only inherit and implement an abstract interface
+    (adding no other public methods intended for use outside PoDoFo) that're
+    only constructed through a factory or through other PoDoFo classes need
+    not be exported.
+
+    If you have a class that needs to be exported as public API, but it has
+    quite a few methods that do not need to be externally visible (private
+    helper methods etc), you can annotate those with the PODOFO_LOCAL macro as
+    shown in podofoapi.h . This omits just those methods from the symbol
+    table. Note that if the methods are accessed via public or protected
+    inline functions it is not safe to make them private.
+
+    If in doubt, ask for help on podofo-users. It also helps to build PoDoFo
+    as a DLL (Windows) or, on UNIX platforms, use gcc4 and enable visibility
+    support. This will help catch cases where you forgot to export required
+    API.

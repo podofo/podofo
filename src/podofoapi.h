@@ -33,9 +33,18 @@
  * to omit some members from the symbol table on supporting platforms. This
  * helps keep the exported API cleaner and the symbol table smaller.
  *
+ * To hide a given method in an otherwise exported class:
+ *
+ * class PODOFO_API Myclass
+ * {
+ *     // blah blah
+ * private:
+ *     void privateHelper() PODOFO_LOCAL;
+ * };
+ *
  * For information on the gcc visibility support see:
- *	http://gcc.gnu.org/wiki/Visibility
- *	http://people.redhat.com/drepper/dsohowto.pdf
+ *     http://gcc.gnu.org/wiki/Visibility
+ *     http://people.redhat.com/drepper/dsohowto.pdf
  *
  */
 

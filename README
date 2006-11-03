@@ -149,6 +149,10 @@ not both).
 Note that the instructions above run an out-of-tree build. CMake does support
 in-tree builds, but the use of out-of-tree builds is very strongly recommended.
 
+If your system has gcc 4, consider adding the argument
+-DPODOFO_USE_VISIBILITY=1 . This will enable gcc4's limited symbol visibility
+support, reducing the PoDoFo binary size dramatically and improve link times.
+
 4.1.2 CMake builds on Windows
 =============================
 
