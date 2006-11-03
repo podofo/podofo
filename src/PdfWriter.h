@@ -200,7 +200,7 @@ class PODOFO_API PdfWriter {
      *
      *  \returns a pointer to the linearization dictionary
      */
-    PdfObject* PODOFO_LOCAL CreateLinearizationDictionary();
+    PdfObject* CreateLinearizationDictionary() PODOFO_LOCAL;
 
     /** Reorder and renumber all object as required for linearized PDF files.
      *  This function is very slow.
@@ -211,20 +211,20 @@ class PODOFO_API PdfWriter {
      *  \param ppLast the pointer will be initialized to the last object
      *         belonging to the first page
      */
-    void PODOFO_LOCAL ReorderObjectsLinearized( PdfObject* pLinearize, PdfHintStream* pHint, PdfPage* pPage, PdfObject** ppLast );
+    void ReorderObjectsLinearized( PdfObject* pLinearize, PdfHintStream* pHint, PdfPage* pPage, PdfObject** ppLast ) PODOFO_LOCAL;
 
     /** Write pdf objects to file
      *  \param pDevice write to this output device
      *  \param vecObjects write all objects in this vector to the file
      *  \param pVecXRef add all written objects to this XRefTable
      */ 
-    void PODOFO_LOCAL WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, TVecXRefTable* pVecXRef );
+    void WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, TVecXRefTable* pVecXRef ) PODOFO_LOCAL;
 
     /** Writes a list of xref entries to the current file
      *  \param pDevice write to this output device
      *  \param vecOffsets list of objects which will be written
      */
-    void PODOFO_LOCAL WriteXRefEntries( PdfOutputDevice* pDevice, const TVecOffsets & vecOffsets );
+    void WriteXRefEntries( PdfOutputDevice* pDevice, const TVecOffsets & vecOffsets ) PODOFO_LOCAL;
 
     /** Writes the xref table.
      *  \param pVecXRef write this XRef table
@@ -233,14 +233,14 @@ class PODOFO_API PdfWriter {
      *  \param bDummyOffset write a dummy startxref offset for linearized PDF files
      *  \param bShortTrailer write only the size key in the trailer
      */
-    void PODOFO_LOCAL WritePdfTableOfContents( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, TVecXRefOffset* pVecXRefOffset, bool bDummyOffset = false, bool bShortTrailer = true );
+    void WritePdfTableOfContents( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, TVecXRefOffset* pVecXRefOffset, bool bDummyOffset = false, bool bShortTrailer = true ) PODOFO_LOCAL;
 
     /** Writes the xref table as xref stream.
      *  \param pVecXRef write this XRef table
      *  \param pDevice write to this output device
      *  \param bDummyOffset write a dummy startxref offset for linearized PDF files
      */
-    void PODOFO_LOCAL WriteXRefStream( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, bool bDummyOffset = false );
+    void WriteXRefStream( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, bool bDummyOffset = false ) PODOFO_LOCAL;
 
     /** Add required keys to a trailer object
      *  \param pTrailer add keys to this object
@@ -248,16 +248,16 @@ class PODOFO_API PdfWriter {
      *  \param bPrevEntry if true a prev entry is added to the trailer object with a value of 0
      *  \param bOnlySizeKey write only the size key
      */
-    void PODOFO_LOCAL FillTrailerObject( PdfObject* pTrailer, long lSize, bool bPrevEntry, bool bOnlySizeKey );
+    void FillTrailerObject( PdfObject* pTrailer, long lSize, bool bPrevEntry, bool bOnlySizeKey ) PODOFO_LOCAL;
 
     /** Initialize m_pPagesTree with its correct value
      *  Always call this function befre accessing the pages tree.
      */
-    void PODOFO_LOCAL FetchPagesTree();
+    void FetchPagesTree();
 
     /** Find dependencies required for creating a linearized PDF of the catalog dictionary.
      */
-    void PODOFO_LOCAL FindCatalogDependencies( PdfObject* pCatalog, const PdfName & rName, TPdfReferenceList* pList, bool bWithDependencies );
+    void FindCatalogDependencies( PdfObject* pCatalog, const PdfName & rName, TPdfReferenceList* pList, bool bWithDependencies ) PODOFO_LOCAL;
 
     /** Fill all keys in the linearization dictionary with their values
      *  \param pLinearize a linearization dictionary
@@ -266,7 +266,7 @@ class PODOFO_API PdfWriter {
      *  \param pLast pointer of the last object belonging to the first page
      *  \param pVecXRefOffset xref table entries for previous entry
      */
-    void PODOFO_LOCAL FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset );
+    void FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset ) PODOFO_LOCAL;
     /** Creates a file identifier which is required in several
      *  PDF workflows. 
      *  All values from the files document information dictionary are
@@ -274,7 +274,7 @@ class PODOFO_API PdfWriter {
      *
      *  \param pTrailer add the file identifier to this trailer dictionary
      */
-    void PODOFO_LOCAL CreateFileIdentifier( PdfObject* pTrailer );
+    void CreateFileIdentifier( PdfObject* pTrailer ) PODOFO_LOCAL;
 
  protected:
     PdfVecObjects*  m_vecObjects;

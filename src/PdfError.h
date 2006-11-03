@@ -138,7 +138,7 @@ class PODOFO_API PdfErrorInfo {
 };
 
 
-typedef std::deque<PdfErrorInfo> PODOFO_API TDequeErrorInfo;
+typedef std::deque<PdfErrorInfo>        TDequeErrorInfo;
 typedef TDequeErrorInfo::iterator       TIDequeErrorInfo;
 typedef TDequeErrorInfo::const_iterator TCIDequeErrorInfo;
 
