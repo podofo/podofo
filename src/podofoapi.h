@@ -46,6 +46,20 @@
  *     http://gcc.gnu.org/wiki/Visibility
  *     http://people.redhat.com/drepper/dsohowto.pdf
  *
+ *
+ *
+ *
+ * Note that gcc has some other useful attributes:
+ *     http://gcc.gnu.org/onlinedocs/gcc-4.0.0/gcc/Function-Attributes.html
+ *     http://gcc.gnu.org/onlinedocs/gcc-4.0.0/gcc/Variable-Attributes.html
+ *     http://gcc.gnu.org/onlinedocs/gcc-4.0.0/gcc/Type-Attributes.html
+ *
+ * including __attribute__((deprecated)) for deprecating old interfaces.
+ *           (available as PODOFO_DEPRECATED)
+ *
+ *           __attribute__((pure)) for functions w/o side effects
+ *           (available as PODOFO_PURE_FUNCTION)
+ *
  */
 
 /* Automatically defined by CMake when building a shared library */
@@ -81,12 +95,17 @@
         /* Forces inclusion of a symbol in the symbol table, so
            software outside the current library can use it. */
         #define PODOFO_API __attribute__ ((visibility("default")))
-        /* Within a section exported with SCRIBUS_API, forces a symbol to be
+        /* Within a section exported with PODOFO_API, forces a symbol to be
            private to the library / app. Good for private members. */
         #define PODOFO_LOCAL __attribute__ ((visibility("hidden")))
+        /* Forces even stricter hiding of methods/functions. The function must
+         * absolutely never be called from outside the module even via a function
+         * pointer.*/
+        #define PODOFO_INTERNAL __attribute__ ((visibility("internal")))
     #else
         #define PODOFO_API
         #define PODOFO_LOCAL
+        #define PODOFO_INTERNAL
     #endif
 #endif
 
@@ -101,4 +120,16 @@
   #define PODOFO_EXCEPTION_API(api)
 #endif
 
+
+#if defined(__GNUC__)
+    /* gcc will issue a warning if a function or variable so annotated is used */
+    #define PODOFO_DEPRECATED       __attribute__((deprecated))
+    /* gcc can do some additional optimisations on functions annotated as pure.
+     * See the documentation on __attribute__((pure)) in the gcc docs. */
+    #define PODOFO_PURE_FUNCTION    __attribute__((pure))
+#else
+    #define PODOFO_DEPRECATED
+    #define PODOFO_PURE_FUNCTION
 #endif
+
+#endif // PODOFO_API_H
