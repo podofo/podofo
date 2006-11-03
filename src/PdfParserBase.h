@@ -76,7 +76,7 @@ class PODOFO_API PdfParserBase {
      *  \returns the internal buffer
      *  \see GetBufferSize
      */
-    inline char* GetBuffer() const;
+    inline const char* GetBuffer() const;
 
     /** Size of the internal buffer
      *  
@@ -147,7 +147,7 @@ inline bool PdfParserBase::IsPrintable(const unsigned char ch) throw()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline char* PdfParserBase::GetBuffer() const
+inline const char* PdfParserBase::GetBuffer() const
 {
     return m_buffer.GetBuffer();
 }

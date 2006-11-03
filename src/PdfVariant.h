@@ -41,6 +41,10 @@ class PdfReference;
  * The data can be parsed directly from a string or set by one of the members.
  * One can also convert the variant back to a string after setting the values.
  *
+ * \warning All methods not marked otherwise may trigger a deferred load. This means
+ *          that they are unsafe to call while a deferred load is already in progress
+ *          (as recursion will occurr).
+ *
  * TODO: domseichter: Make this class implicitly shared
  */
 class PODOFO_API PdfVariant {
@@ -114,7 +118,7 @@ class PODOFO_API PdfVariant {
      *              parsed is returned in this parameter
      *  \returns ErrOk on success
      */
-    void Parse( const char* pszData, int nLen = 0, long* pLen = NULL );
+    void Parse( const char * const pszData, int nLen = 0, long* pLen = NULL );
 
     /** \returns true if this PdfVariant is empty.
      *           i.e. m_eDataType == ePdfDataType_Null
@@ -139,47 +143,47 @@ class PODOFO_API PdfVariant {
 
     /** \returns true if this variant is a bool (i.e. GetDataType() == ePdfDataType_Bool)
      */
-    inline bool IsBool() const { DelayedLoad(); return GetDataType() == ePdfDataType_Bool; }
+    inline bool IsBool() const { return GetDataType() == ePdfDataType_Bool; }
 
     /** \returns true if this variant is a number (i.e. GetDataType() == ePdfDataType_Number)
      */
-    inline bool IsNumber() const { DelayedLoad(); return GetDataType() == ePdfDataType_Number; }
+    inline bool IsNumber() const { return GetDataType() == ePdfDataType_Number; }
 
     /** \returns true if this variant is a real (i.e. GetDataType() == ePdfDataType_Real)
      */
-    inline bool IsReal() const { DelayedLoad(); return GetDataType() == ePdfDataType_Real; }
+    inline bool IsReal() const { return GetDataType() == ePdfDataType_Real; }
 
     /** \returns true if this variant is a string (i.e. GetDataType() == ePdfDataType_String)
      */
-    inline bool IsString() const { DelayedLoad(); return GetDataType() == ePdfDataType_String; }
+    inline bool IsString() const { return GetDataType() == ePdfDataType_String; }
 
     /** \returns true if this variant is a hex-string (i.e. GetDataType() == ePdfDataType_HexString)
      */
-    inline bool IsHexString() const { DelayedLoad(); return GetDataType() == ePdfDataType_HexString; }
+    inline bool IsHexString() const { return GetDataType() == ePdfDataType_HexString; }
 
     /** \returns true if this variant is a name (i.e. GetDataType() == ePdfDataType_Name)
      */
-    inline bool IsName() const { DelayedLoad(); return GetDataType() == ePdfDataType_Name; }
+    inline bool IsName() const { return GetDataType() == ePdfDataType_Name; }
 
     /** \returns true if this variant is an array (i.e. GetDataType() == ePdfDataType_Array)
      */
-    inline bool IsArray() const { DelayedLoad(); return GetDataType() == ePdfDataType_Array; }
+    inline bool IsArray() const { return GetDataType() == ePdfDataType_Array; }
 
     /** \returns true if this variant is a dictionary (i.e. GetDataType() == ePdfDataType_Dictionary)
      */
-    inline bool IsDictionary() const { DelayedLoad(); return GetDataType() == ePdfDataType_Dictionary; }
+    inline bool IsDictionary() const { return GetDataType() == ePdfDataType_Dictionary; }
 
     /** \returns true if this variant is a stream (i.e. GetDataType() == ePdfDataType_Stream)
      */
-    //inline bool IsStream() const { DelayedLoad(); return GetDataType() == ePdfDataType_Stream; }
+    //inline bool IsStream() const { return GetDataType() == ePdfDataType_Stream; }
 
     /** \returns true if this variant is null (i.e. GetDataType() == ePdfDataType_Null)
      */
-    inline bool IsNull() const { DelayedLoad(); return GetDataType() == ePdfDataType_Null; }
+    inline bool IsNull() const { return GetDataType() == ePdfDataType_Null; }
 
     /** \returns true if this variant is a reference (i.e. GetDataType() == ePdfDataType_Reference)
      */
-    inline bool IsReference() const { DelayedLoad(); return GetDataType() == ePdfDataType_Reference; }
+    inline bool IsReference() const { return GetDataType() == ePdfDataType_Reference; }
        
     /** Write the complete variant to an output device.
      *  This is an overloaded member function.
@@ -283,12 +287,77 @@ class PODOFO_API PdfVariant {
      */
     inline void SetPaddingLength( long lLength );
 
+
  protected:
 
     /**
-     *  For subclasses that implement loading on demand
+     * Dynamically load the contents of this object from a PDF file by calling
+     * the virtual method DelayedLoadImpl() if the object is not already loaded.
+     *
+     * For objects complete created in memory and those that do not support
+     * deferred loading this function does nothing, since deferred loading
+     * will not be enabled.
      */
-    inline virtual void DelayedLoad() const {};
+    inline void DelayedLoad() const;
+
+    /** Flag the object  incompletely loaded.  DelayedLoad() will be called
+     *  when any method that requires more information than is currently
+     *  available is loaded.
+     *
+     *  All constructors initialize a PdfVariant with delayed loading disabled .
+     *  If you want delayed loading you must ask for it. If you do so, call
+     *  this method early in your ctor and be sure to override DelayedLoadImpl().
+     */
+    inline void EnableDelayedLoading();
+
+    /** Load all data of the object if delayed loading is enabled.
+     *
+     * Never call this method directly; use DelayedLoad() instead.
+     *
+     * You should override this to control deferred loading in your subclass.
+     * Note that this method should not load any associated streams, just the
+     * base object.
+     *
+     * The default implementation throws. It should never be called, since
+     * objects that do not support delayed loading should not enable it.
+     *
+     * While this method is not `const' it may be called from a const context,
+     * so be careful what you mess with.
+     */
+    inline virtual void DelayedLoadImpl();
+
+    /**
+     * Returns true if delayed loading is disabled, or if it is enabled
+     * and loading has completed. External callers should never need to
+     * see this, it's an internal state flag only.
+     */
+    inline bool DelayedLoadDone() const throw();
+
+    // Rather than having deferred load triggering disabled while deferred
+    // loading is in progress, causing public methods to potentially return
+    // invalid data, we provide special methods that won't trigger a deferred
+    // load for use during deferred loading. They're not for general use and
+    // not available for use except by subclasses.
+    //
+    /** Version of GetDictionary() that doesn't trigger a delayed load
+     *  \returns a PdfDictionary
+     */
+    inline const PdfDictionary & GetDictionary_NoDL() const; 
+
+    /** Version of GetDictionary() that doesn't trigger a delayed load
+     *  \returns a PdfDictionary
+     */
+    inline PdfDictionary & GetDictionary_NoDL(); 
+
+    /** Version of GetArray() that doesn't trigger a delayed load
+     *  \returns a array
+     */
+    inline const PdfArray & GetArray_NoDL() const;
+
+    /** Version of GetArray() that doesn't trigger a delayed load.
+     *  \returns a array
+     */
+    inline PdfArray & GetArray_NoDL();
 
  private:
     void DetermineDataType( const char* pszData, long nLen, EPdfDataType* eDataType, long* pLen = NULL );
@@ -321,7 +390,48 @@ class PODOFO_API PdfVariant {
      *  to this length
      */
     int         m_nPadding;
+
+    // No touchy. Only for use by PdfVariant's internal tracking of the delayed
+    // loading state. Use DelayedLoadDone() to test this if you need to.
+    mutable bool m_bDelayedLoadDone;
+
+    // Helper for ctor
+    void Init() throw();
+
+#if defined(PODOFO_EXTRA_CHECKS)
+protected:
+    bool DelayedLoadInProgress() const throw() { return m_bDelayedLoadInProgress; }
+private:
+    mutable bool m_bDelayedLoadInProgress;
+#endif
 };
+
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfVariant::DelayedLoad() const
+{
+#if defined(PODOFO_EXTRA_CHECKS)
+    // Whoops! Delayed loading triggered during delayed loading. Someone probably
+    // used a public method that calls DelayedLoad() from a delayed load.
+    if (m_bDelayedLoadInProgress)
+        RAISE_ERROR_INFO( ePdfError_InternalLogic, "Recursive DelayedLoad() detected" );
+#endif
+    if( !m_bDelayedLoadDone)
+    {
+#if defined(PODOFO_EXTRA_CHECKS)
+        m_bDelayedLoadInProgress = true;
+#endif
+        const_cast<PdfVariant*>(this)->DelayedLoadImpl();
+        // Nothing was thrown, so if the implementer of DelayedLoadImpl()
+        // following the rules we're done.
+        m_bDelayedLoadDone = true;
+#if defined(PODOFO_EXTRA_CHECKS)
+        m_bDelayedLoadInProgress = false;
+#endif
+    }
+}
 
 // -----------------------------------------------------
 // 
@@ -489,8 +599,15 @@ const PdfName & PdfVariant::GetName() const
 const PdfArray & PdfVariant::GetArray() const
 {
     DelayedLoad();
+    return GetArray_NoDL();
+}
 
-    if( !IsArray() )
+const PdfArray & PdfVariant::GetArray_NoDL() const
+{
+    // Test against eDataType directly not GetDataType() since
+    // we don't want to trigger a delayed load (and if required one has
+    // already been triggered).
+    if( m_eDataType != ePdfDataType_Array )
     {
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
@@ -504,12 +621,19 @@ const PdfArray & PdfVariant::GetArray() const
 PdfArray & PdfVariant::GetArray()
 {
     DelayedLoad();
+    return GetArray_NoDL();
+}
 
-    if( !IsArray() )
+PdfArray & PdfVariant::GetArray_NoDL()
+{
+    // Test against eDataType directly not GetDataType() since
+    // we don't want to trigger a delayed load (and if required one has
+    // already been triggered).
+    if( m_eDataType != ePdfDataType_Array )
     {
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
-    
+
     return *(reinterpret_cast<PdfArray* const>(m_pData));
 }
 
@@ -519,8 +643,15 @@ PdfArray & PdfVariant::GetArray()
 const PdfDictionary & PdfVariant::GetDictionary() const
 {
     DelayedLoad();
+    return GetDictionary_NoDL();
+}
 
-    if( !IsDictionary() )
+const PdfDictionary & PdfVariant::GetDictionary_NoDL() const
+{
+    // Test against eDataType directly not GetDataType() since
+    // we don't want to trigger a delayed load (and if required one has
+    // already been triggered).
+    if( m_eDataType != ePdfDataType_Dictionary )
     {
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
@@ -534,8 +665,15 @@ const PdfDictionary & PdfVariant::GetDictionary() const
 PdfDictionary & PdfVariant::GetDictionary()
 {
     DelayedLoad();
+    return GetDictionary_NoDL();
+}
 
-    if( !IsDictionary() )
+PdfDictionary & PdfVariant::GetDictionary_NoDL()
+{
+    // Test against eDataType directly not GetDataType() since
+    // we don't want to trigger a delayed load (and if required one has
+    // already been triggered).
+    if( m_eDataType != ePdfDataType_Dictionary )
     {
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
@@ -571,6 +709,23 @@ inline PdfReference & PdfVariant::GetReference()
     }
 
     return *(reinterpret_cast<PdfReference* const>(m_pData));
+}
+
+bool PdfVariant::DelayedLoadDone() const throw()
+{
+    return m_bDelayedLoadDone;
+}
+
+void PdfVariant::EnableDelayedLoading()
+{
+    m_bDelayedLoadDone = false;
+}
+
+void PdfVariant::DelayedLoadImpl()
+{
+    // Default implementation of virtual void DelayedLoadImpl() throws, since delayed
+    // loading should not be enabled except by types that support it.
+    RAISE_ERROR( ePdfError_InternalLogic );
 }
 
 };

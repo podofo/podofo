@@ -38,11 +38,10 @@ class PdfVecObjects;
 /**
  * This class represents a PDF Object into the memory
  * 
- * It allows to get or set key values. To check for existing keys
- * and to manipulate the optional stream which can be appended to 
- * the object.
- * It is uniquely identified by an object number and a gerneration number
- * which has to be passed to the constructor.
+ * It allows to get or set key values. To check for existing keys and to
+ * manipulate the optional stream which can be appended to the object.  It is
+ * uniquely identified by an object number and a gerneration number which has
+ * to be passed to the constructor.
  *
  * The object can be written to a file easily using the Write() function.
  *
@@ -58,17 +57,18 @@ class PODOFO_API PdfObject : public PdfVariant {
      */
     PdfObject();
 
-    /** Construct a new PDF object of type PdfDictionary
+    /** Construct a new PDF object of type PdfDictionary.
+     *
      *  \param rRef reference of this object
      *  \param pszType if type is not null a key "/Type" will be added to the dictionary with
      *                 the value of type.
      *  \see SetDirect
      */
-    PdfObject( const PdfReference & rRef, const char* pszType );
+    PdfObject( const PdfReference & rRef, const char* pszType);
 
     /** Construct a new PDF object.
      *  \param rRef reference of this object
-     *  \param rVariant the value of the PdfObject
+     *  \param rVariant the value of the PdfObject (which is copied)
      *  \see SetDirect
      */
     PdfObject( const PdfReference & rRef, const PdfVariant & rVariant );
@@ -251,41 +251,86 @@ class PODOFO_API PdfObject : public PdfVariant {
      */
     unsigned long GetByteOffset( const char* pszKey );
 
-    /** Load all data of the object if load object on demand is enabled
-     */
-    inline virtual void LoadOnDemand();
-
-    /** Load the stream of the object if it has one and if loading on demand is enabled
-     */
-    inline virtual void LoadStreamOnDemand();
-
- protected:
-    /** Initialize all private members with their default values
-     *  \param bLoadOnDemandDone false if loading on demand is supported
-     */
-    void Init( bool bLoadOnDemandDone );
-
     /**
-     * Dynamically load the contents of this object from a PDF file.
-     * For objects complete created in memory this function does nothing.
-     */
-    inline virtual void DelayedLoad() const;
-
-    /**
-     * Dynamically load the steam of this object from a PDF file.
+     * Dynamically load this object and any associated steam from a PDF file
+     * by calling the virtual method DelayedStreamLoadImpl if the stream  is not
+     * already loaded. Will call DelayedLoad() first if it is required.
+     *
+     * Call graph:
+     *
+     *    DelayedStreamLoad ---> DelayedLoad() --> DelayedLoadImpl()
+     *                       |
+     *                       --> DelayedStreamLoadImpl()
+     *
      * For objects complete created in memory this function does nothing.
      */
     inline void DelayedStreamLoad() const;
 
  protected:
+    /** Flag any stream associated with the object as incompletely loaded,
+     *  so that DelayedStreamLoad() will be called when needed.
+     *
+     *  All constructors initialize a PdfObject with delayed loading of streams
+     *  disabled .  If you want delayed loading of streams you must ask for it.
+     *  If you do so, call this method early in your ctor and be sure to
+     *  override DelayedStreamLoadImpl()
+     *
+     *  Note that it is quite possible to have a PdfObject that requires a
+     *  delayed-load of its stream but does an immediate load of the PdfVariant
+     *  base. If you want to delay loading of that too, make sure to call
+     *  EnableDelayedLoading().
+     */
+    inline void EnableDelayedStreamLoading();
+
+    /** Load the stream of the object if it has one and if delayed loading is enabled.
+     *
+     * You should override this to control deferred stream loading in your subclass.
+     *
+     * Never call this method directly; use DelayedStreamLoad() instead.
+     */
+    inline virtual void DelayedStreamLoadImpl();
+
+    /** Same as GetStream() but won't trigger a delayed load, so it's safe
+     *  for use while a delayed load is in progress.
+     */
+    PdfStream* GetStream_NoDL();
+
+ protected:
     PdfReference   m_reference;
-    
-    bool           m_bLoadOnDemandDone;
-    bool           m_bLoadStreamOnDemandDone;
     
     PdfStream*     m_pStream;
     PdfVecObjects* m_pParent;
+
+    inline bool DelayedStreamLoadDone() const throw();
+
+ private:
+
+    // Shared initialization between all the ctors
+    void InitPdfObject();
+
+    // No touchy. Only for manipulation by PdfObject private routines.
+    // Tracks whether deferred loading is still pending (in which case it'll be
+    // false). If true, deferred loading is not requried or has been completed.
+    mutable bool m_bDelayedStreamLoadDone;
+
+#if defined(PODOFO_EXTRA_CHECKS)
+protected:
+    bool DelayedStreamLoadInProgress() const throw() { return m_bDelayedStreamLoadInProgress; }
+private:
+    mutable bool m_bDelayedStreamLoadInProgress;
+#endif
 };
+
+bool PdfObject::DelayedStreamLoadDone() const throw()
+{
+    return m_bDelayedStreamLoadDone;
+}
+
+void PdfObject::EnableDelayedStreamLoading()
+{
+    m_bDelayedStreamLoadDone = false;
+}
+
 
 // -----------------------------------------------------
 // 
@@ -340,51 +385,40 @@ inline bool PdfObject::HasStream() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfObject::LoadOnDemand()
+// Default implementation of virtual void DelayedStreamLoadImpl()
+// throws, since delayed loading of steams should not be enabled
+// except by types that support it.
+inline void PdfObject::DelayedStreamLoadImpl()
 {
-    m_bLoadOnDemandDone = true;
+   RAISE_ERROR( ePdfError_InternalLogic );
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfObject::LoadStreamOnDemand()
-{
-    DelayedLoad();
-    m_bLoadStreamOnDemandDone = true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfObject::DelayedLoad() const
-{
-    if( !m_bLoadOnDemandDone ) 
-    {
-        PdfObject* p = const_cast<PdfObject*>(this);
-        p->LoadOnDemand();
-    }
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 inline void PdfObject::DelayedStreamLoad() const
 {
-    if( !m_bLoadOnDemandDone ) 
-    {
-        PdfObject* p = const_cast<PdfObject*>(this);
-        p->LoadOnDemand();
-    }
+    DelayedLoad();
 
-    if( !m_bLoadStreamOnDemandDone ) 
+#if defined(PODOFO_EXTRA_CHECKS)
+    if( m_bDelayedStreamLoadInProgress )
+        RAISE_ERROR_INFO( ePdfError_InternalLogic, "Recursive DelayedStreamLoad() detected" );
+#endif
+
+    if( !m_bDelayedStreamLoadDone )
     {
-        PdfObject* p = const_cast<PdfObject*>(this);
-        p->LoadStreamOnDemand();
+#if defined(PODOFO_EXTRA_CHECKS)
+        m_bDelayedStreamLoadInProgress = true;
+#endif
+        const_cast<PdfObject*>(this)->DelayedStreamLoadImpl();
+        // Nothing was thrown, so if the implementer of DelayedstreamLoadImpl() is
+        // following the rules we're done.
+        m_bDelayedStreamLoadDone = true;
+#if defined(PODOFO_EXTRA_CHECKS)
+        m_bDelayedStreamLoadInProgress = false;
+#endif
     }
 }
 
 };
 
 #endif // _PDF_OBJECT_H_
+
 

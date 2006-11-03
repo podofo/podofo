@@ -32,6 +32,9 @@
 #include <cstdlib>
 
 #include <iostream>
+using std::cerr;
+using std::endl;
+using std::flush;
 
 #define PDF_MAGIC_LEN       8
 #define PDF_XREF_ENTRY_SIZE 20
@@ -717,7 +720,6 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
         RAISE_ERROR( ePdfError_NoXRef );
     }
 
-    xrefObject.ParseStream();
     xrefObject.GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
 
     pStart = pBuffer;
@@ -792,7 +794,6 @@ void PdfParser::ReadObjects()
     int              i          = 0;
     int              nLast      = 0;
     PdfParserObject* pObject    = NULL;
-    TCIVecObjects    itObjects;
 
     m_vecObjects->reserve( m_nNumObjects );
 
@@ -805,7 +806,7 @@ void PdfParser::ReadObjects()
             try {
                 pObject->ParseFile();
                 nLast = pObject->Reference().ObjectNumber();
-                
+
                 // final pdf should not contain a linerization dictionary as it contents are invalid 
                 // as we change some objects and the final xref table
                 if( m_pLinearization && nLast == static_cast<int>(m_pLinearization->Reference().ObjectNumber()) )
@@ -828,45 +829,43 @@ void PdfParser::ReadObjects()
     }
 
     // all normal objects including object streams are available now,
-    // we can parse the object streams now savely
+    // we can parse the object streams safely now.
+    //
+    // Note that even if demand loading is enabled we still currently read all
+    // objects from the stream into memory then free the stream.
+    //
     for( i = 0; i < m_nNumObjects; i++ )
     {
         if( m_pOffsets[i].bParsed && m_pOffsets[i].cUsed == 's' ) // we have an object stream
+        {
+#if defined(PODOFO_VERBOSE_DEBUG)
+            if (m_bLoadOnDemand) cerr << "Demand loading on, but can't demand-load found object stream." << endl;
+#endif
             ReadObjectFromStream( m_pOffsets[i].lGeneration, m_pOffsets[i].lOffset );
+        }
     }
 
     if( !m_bLoadOnDemand )
     {
-        itObjects = m_vecObjects->begin();
-        while( itObjects != m_vecObjects->end() )
+        // Force loading of streams. We can't do this during the initial
+        // run that populates m_vecObjects because a stream might have a /Length
+        // key that references an object we haven't yet read. So we must do it here
+        // in a second pass, or (if demand loading is enabled) defer it for later.
+        for (TCIVecObjects itObjects = m_vecObjects->begin();
+             itObjects != m_vecObjects->end();
+             ++itObjects)
         {
             pObject = dynamic_cast<PdfParserObject*>(*itObjects);
             // only parse streams for objects that have not yet parsed
-            // their streams 
+            // their streams
             if( pObject && pObject->HasStreamToParse() && !pObject->HasStream() )
-            {
-                pObject->ParseStream();
-            }
-            
-            ++itObjects;
+                pObject->GetStream();
         }
-        
     }
 }
 
 void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
 {
-    PdfParserObject* pStream = NULL;
-    PdfVariant       var;
-    char*            pBuffer;
-    char*            pNumbers;
-    long             lBufferLen;
-    long             lFirst;
-    long             lNum;
-    long             lObj;
-    long             lOff;
-    int              i       = 0;
-
     // check if we already have read all objects
     // from this stream
     if( m_setObjectStreams.find( nObjNo ) != m_setObjectStreams.end() )
@@ -877,32 +876,29 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
         m_setObjectStreams.insert( nObjNo );
 
     // generation number of object streams is always 0
-    pStream = dynamic_cast<PdfParserObject*>(m_vecObjects->GetObject( PdfReference( nObjNo, 0 ) ) );
+    PdfParserObject * const pStream = dynamic_cast<PdfParserObject*>(m_vecObjects->GetObject( PdfReference( nObjNo, 0 ) ) );
     if( !pStream )
     {
         RAISE_ERROR( ePdfError_NoObject );
     }
     
-    lNum   = pStream->GetDictionary().GetKeyAsLong( "N", 0 );
-    lFirst = pStream->GetDictionary().GetKeyAsLong( "First", 0 );
+    long lNum   = pStream->GetDictionary().GetKeyAsLong( "N", 0 );
+    long lFirst = pStream->GetDictionary().GetKeyAsLong( "First", 0 );
     
-    // the objects stream might not yet be parsed, make sure
-    // that this is done now!
-    if( pStream->HasStreamToParse() && !pStream->HasStream() )
-    {
-        pStream->ParseStream();
-    }
-    
+    char * pBuffer;
+    long lBufferLen;
     pStream->GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
 
     // the object stream is not needed anymore in the final PDF
     delete m_vecObjects->RemoveObject( pStream->Reference() );
     
-    pNumbers = pBuffer;
+    PdfVariant var;
+    char * pNumbers = pBuffer;
+    int i = 0;
     while( i < lNum )
     {
-        lObj = strtol( pNumbers, &pNumbers, 10 );
-        lOff = strtol( pNumbers, &pNumbers, 10 );
+        const long lObj = strtol( pNumbers, &pNumbers, 10 );
+        const long lOff = strtol( pNumbers, &pNumbers, 10 );
 
         var.Parse( static_cast<char*>((pBuffer+lFirst+lOff)), lBufferLen-lFirst-lOff, NULL );
 
@@ -920,5 +916,6 @@ const char* PdfParser::GetPdfVersionString() const
 }
 
 };
+
 
 

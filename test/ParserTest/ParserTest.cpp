@@ -24,9 +24,11 @@
 #include "PdfWriter.h"
 
 #include <iostream>
+#include <string>
 using std::cerr;
 using std::flush;
 using std::endl;
+using std::string;
 
 using namespace PoDoFo;
 
@@ -47,19 +49,37 @@ int main( int argc, char*  argv[] )
     
     objects.SetAutoDelete( true );
 
+    bool useDemandLoading = false;
+    if ( argc >= 2 )
+    {
+        if (argv[1][0] == '-')
+        {
+            if (string("-d") == argv[1])
+            {
+                useDemandLoading = true;
+                ++argv;
+                --argc;
+            }
+        }
+    }
+
     if( argc < 2 || argc > 3 )
     {
-        cerr << "Usage: ParserTest <input_filename> [<output_filename>]" << endl;
+        cerr << "Usage: ParserTest [-d] <input_filename> [<output_filename>]\n"
+             << "    -d       Enable demand loading of objects\n"
+             << flush;
         return 0;
     }
 
-    cerr << "This test reads a PDF file from disc and writes it to a new pdf file." << endl;
+    cerr << "This test reads a PDF file from disk and writes it to a new pdf file." << endl;
     cerr << "The PDF file should look unmodified in any viewer" << endl;
     cerr << "---" << endl;
 
     try {
-        cerr << "Parsing..." << flush;
-        parser.ParseFile( argv[1], false );
+        cerr << "Parsing  " << argv[1] << " with demand loading "
+             << (useDemandLoading ? "on" : "off")
+             << " ..." << flush;
+        parser.ParseFile( argv[1], useDemandLoading );
         cerr << " done" << endl;
 
         cerr << "PdfVersion=" << parser.GetPdfVersion() << endl;

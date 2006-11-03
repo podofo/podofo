@@ -99,6 +99,7 @@ void PdfInputDevice::Init()
 {
     m_pStream     = NULL;
     m_StreamOwned = false;
+    m_bIsSeekable = true;
 }
 
 void PdfInputDevice::Close()
@@ -123,7 +124,10 @@ std::streamoff PdfInputDevice::Tell() const
 
 void PdfInputDevice::Seek( std::streamoff off, std::ios_base::seekdir dir )
 {
-    m_pStream->seekg( off, dir );
+    if (m_bIsSeekable)
+        m_pStream->seekg( off, dir );
+    else
+        RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Tried to seek an unseekable input device" );
 }
 
 std::streamoff PdfInputDevice::Read( char* pBuffer, std::streamsize lLen )
@@ -134,4 +138,4 @@ std::streamoff PdfInputDevice::Read( char* pBuffer, std::streamsize lLen )
     return (this->Tell() - lPos);
 }
 
-};
+}; // namespace PoDoFo

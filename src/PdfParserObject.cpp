@@ -26,6 +26,9 @@
 #include "PdfStream.h"
 #include "PdfVariant.h"
 
+#include <cassert>
+#include <iostream>
+
 #define KEY_BUFFER 128
 
 namespace PoDoFo {
@@ -41,7 +44,7 @@ PdfParserObject::PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedInp
 {
     m_pParent = pParent;
 
-    Init();
+    InitPdfParserObject();
 
     m_lOffset = lOffset == -1 ? m_device.Device()->Tell() : lOffset;
 }
@@ -49,7 +52,7 @@ PdfParserObject::PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedInp
 PdfParserObject::PdfParserObject( const PdfRefCountedBuffer & rBuffer )
     : PdfObject( PdfReference( 0, 0 ), static_cast<const char*>(NULL)), PdfParserBase( PdfRefCountedInputDevice(), rBuffer )
 {
-    Init();
+    InitPdfParserObject();
 }
 
 PdfParserObject::~PdfParserObject()
@@ -57,17 +60,25 @@ PdfParserObject::~PdfParserObject()
 
 }
 
-void PdfParserObject::Init()
+void PdfParserObject::InitPdfParserObject()
 {
     m_bIsTrailer        = false;
 
+    // Whether or not demand loading is disabled we still don't load
+    // anything in the ctor. This just controls whether ::ParseFile(...)
+    // forces an immediate demand load, or lets it genuinely happen
+    // on demand.
     m_bLoadOnDemand     = false;
+
+    // We rely heavily on the demand loading infrastructure whether or not
+    // we *actually* delay loading.
+    EnableDelayedLoading();
+    EnableDelayedStreamLoading();
+
     m_lOffset           = -1;
 
     m_bStream           = false;
     m_lStreamOffset     = 0;
-
-    PdfObject::Init( false );
 }
 
 void PdfParserObject::ReadObjectNumber()
@@ -105,20 +116,51 @@ void PdfParserObject::ParseFile( bool bIsTrailer )
     if( !bIsTrailer )
         ReadObjectNumber();
 
+#if defined(PODOFO_VERBOSE_DEBUG)
+    std::cerr << "Parsing object number: " << m_reference.ObjectNumber()
+              << " " << m_reference.GenerationNumber() << " obj"
+              << " (DL: " << ( m_bLoadOnDemand ? "on" : "off" ) << ")"
+              << endl;
+#endif // PODOFO_VERBOSE_DEBUG
+
     m_lOffset    = m_device.Device()->Tell();
     m_bIsTrailer = bIsTrailer;
 
     if( !m_bLoadOnDemand )
     {
-        ParseFileComplete( m_bIsTrailer );
+        // Force immediate loading of the object.  We need to do this through
+        // the deferred loading machinery to avoid getting the object into an
+        // inconsistent state.
+        // We can't do a full DelayedStreamLoad() because the stream might use
+        // an indirect /Length or /Length1 key that hasn't been read yet.
+        DelayedLoad();
 
-        m_bLoadOnDemandDone       = true;
-        m_bLoadStreamOnDemandDone = true;
+        // TODO: support immediate loading of the stream here too. For that, we need
+        // to be able to trigger the reading of not-yet-parsed indirect objects
+        // such as might appear in a /Length key with an indirect reference.
+
+#if defined(PODOFO_EXTRA_CHECKS)
+        // Sanity check - the variant base must be fully loaded now
+        if (!DelayedLoadDone() )
+        {
+            // We don't know what went wrong, but the internal state is
+            // broken or the API rules aren't being followed and we
+            // can't carry on.
+            RAISE_ERROR( ePdfError_InternalLogic );
+        }
+#endif // PODOF_EXTRA_CHECKS
     }
 }
 
+// Only called via the demand loading mechanism
+// Be very careful to avoid recursive demand loads via PdfVariant
+// or PdfObject method calls here.
 void PdfParserObject::ParseFileComplete( bool bIsTrailer )
 {
+#if defined(PODOFO_EXTRA_CHECKS)
+    assert(DelayedLoadInProgress());
+    assert(!DelayedLoadDone());
+#endif
     int          c;
     int          counter         = 0;
     int          nObjCount       = 0;
@@ -145,7 +187,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
         }
     }
 
-    DetermineDataType( c, &counter, &eDataType, NULL );
+    DetermineDataType( c, counter, eDataType );
     while( (c = m_device.Device()->GetChar()) != EOF )
     {
         if( counter == lDataLen )
@@ -271,7 +313,8 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
         GetNextStringFromFile( );
         if( strncmp( m_buffer.GetBuffer(), "endobj", s_nLenEndObj ) == 0 )
             ; // nothing to do, just validate that the PDF is correct
-        else if ( strncmp( m_buffer.GetBuffer(), "stream", s_nLenStream ) == 0 )
+        // If it's a dictionary, it might have a stream, so check for that
+        else if ( eDataType == ePdfDataType_Dictionary && strncmp( m_buffer.GetBuffer(), "stream", s_nLenStream ) == 0 )
         {
             m_bStream = true;
             m_lStreamOffset = m_device.Device()->Tell(); // NOTE: whitespace after "stream" handle in stream parser!
@@ -283,26 +326,24 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
             // Commenting this out is right now easier than fixing all code to check
             // either for ePdfDataType_Stream or ePdfDataType_Dictionary
             //
-	    //eDataType = ePdfDataType_Stream;	// reset the object type to stream!
+            //eDataType = ePdfDataType_Stream;	// reset the object type to stream!
         }
         else
-        {        
+        {
             RAISE_ERROR( ePdfError_NoObject );
         }
     }
 }
 
-void PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, long* plParsedLength )
+// This method may be called during delayed loading or directly.
+void PdfParserObject::ParseDictionaryKeys( const char* szBuffer, long lBufferLen, long* plParsedLength )
 {
-    string           sValue;
-    char*            szInitial = szBuffer;
+    const char *     szInitial = szBuffer;
     PdfVariant       cVariant;
-    PdfName          cName;
     long             lLen;
 
-    sValue.reserve( KEY_BUFFER );
-
-    // skip leading <<
+    // FIXME: Testing for *szBuffer=0 when buffer need not be null-terminated
+    // skip leading << if present
     while( *szBuffer && *szBuffer == '<' )
         ++szBuffer;
 
@@ -325,7 +366,7 @@ void PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, long
                 RAISE_ERROR( ePdfError_NoObject );
             }
             
-            cName = cVariant.GetName();
+            const PdfName cName(cVariant.GetName());
 
             while( *szBuffer && PdfParserBase::IsWhitespace( *szBuffer ) )
                 ++szBuffer;
@@ -340,11 +381,13 @@ void PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, long
             szBuffer+=lLen;
 
 #ifdef PODOFO_VERBOSE_DEBUG
+            string           sValue;
+            sValue.reserve( KEY_BUFFER );
             cVariant.ToString( sValue );
             PdfError::DebugMessage("Key: (%s) Got Value: (%s) %i belongs to: %s\n", cName.GetName().c_str(), sValue.c_str(), (int)cVariant.GetDataType(), this->Reference().ToString().c_str() );
 
 #endif // PODOFO_VERBOSE_DEBUG
-            this->GetDictionary().AddKey( cName, cVariant );
+            this->GetDictionary_NoDL().AddKey( cName, cVariant );
         }
         else if( *szBuffer == '>' )
         {
@@ -360,12 +403,19 @@ void PdfParserObject::ParseDictionaryKeys( char* szBuffer, long lBufferLen, long
         *plParsedLength = szBuffer - szInitial;
 }
 
+// Only called during delayed loading. Must be careful to avoid
+// triggering recursive delay loading due to use of accessors of
+// PdfVariant or PdfObject.
 void PdfParserObject::ParseStream()
 {
+#if defined(PODOFO_EXTRA_CHECKS)
+    assert(DelayedLoadDone());
+    assert(DelayedStreamLoadInProgress());
+    assert(!DelayedStreamLoadDone());
+#endif
+
     long         lLen  = -1;
-    char*        szBuf;
     int          c;
-    PdfReference ref;
 
     if( !m_device.Device() || !m_pParent )
     {
@@ -396,7 +446,7 @@ void PdfParserObject::ParseStream()
     
     long fLoc = m_device.Device()->Tell();	// we need to save this, since loading the Length key could disturb it!
 
-    PdfObject* pObj = this->GetDictionary().GetKey( PdfName::KeyLength );  
+    PdfObject* pObj = this->GetDictionary_NoDL().GetKey( PdfName::KeyLength );  
     if( pObj && pObj->IsNumber() )
     {
         lLen = pObj->GetNumber();   
@@ -406,12 +456,12 @@ void PdfParserObject::ParseStream()
         pObj = m_pParent->GetObject( pObj->GetReference() );
         if( !pObj )
         {
-            RAISE_ERROR( ePdfError_InvalidHandle );
+            RAISE_ERROR_INFO( ePdfError_InvalidHandle, "/Length key referenced indirect object that could not be loaded" );
         }
 
         if( !pObj->IsNumber() )
         {
-            RAISE_ERROR( ePdfError_InvalidStreamLength );
+            RAISE_ERROR_INFO( ePdfError_InvalidStreamLength, "/Length key for stream referenced non-number" );
         }
 
         lLen = pObj->GetNumber();
@@ -428,7 +478,7 @@ void PdfParserObject::ParseStream()
         RAISE_ERROR( ePdfError_InvalidStreamLength );
     }
 
-    szBuf = static_cast<char*>(malloc( lLen * sizeof(char) ));
+    char * szBuf = static_cast<char*>(malloc( lLen * sizeof(char) ));
     if( !szBuf ) 
     {
         RAISE_ERROR( ePdfError_OutOfMemory );
@@ -440,7 +490,7 @@ void PdfParserObject::ParseStream()
         RAISE_ERROR( ePdfError_InvalidStreamLength );
     }
 
-    this->GetStream()->Set( szBuf, lLen );
+    this->GetStream_NoDL()->Set( szBuf, lLen );
 
     /*
     SAFE_OP( GetNextStringFromFile( ) );
@@ -449,80 +499,77 @@ void PdfParserObject::ParseStream()
     */
 }
 
-void PdfParserObject::DetermineDataType( char c, int* counter, EPdfDataType* eDataType, bool* bType ) const
+// Called as part of demand loading process. Be careful not to trigger
+// a recursive demand load via PdfObject or PdfVariant calls.
+void PdfParserObject::DetermineDataType( char c, int & counter, EPdfDataType & eDataType ) const
 {
-    // TODO: Allow for hexadecimal encoded strings: reference: p. 54
-    // TODO: See if this can use PdfVariant::DetermineDataType
+#if defined(PODOFO_EXTRA_CHECKS)
+    assert(DelayedLoadInProgress());
+    assert(!DelayedLoadDone());
+#endif
     switch( c )
     {
         case '[':
-            if( eDataType )
-                *eDataType = ePdfDataType_Array;
-            
-            if( bType )
-                *bType = false;
+            eDataType = ePdfDataType_Array;
             break;
         case '(':
-            if( eDataType )
-                *eDataType = ePdfDataType_String;
-            
-            if( bType )
-                *bType = false;
+            eDataType = ePdfDataType_String;
             break;
         case '<':
-            if( eDataType )
-                *eDataType = ePdfDataType_HexString;
-                    
-            m_buffer.GetBuffer()[*counter] = m_device.Device()->GetChar();
-            if( m_buffer.GetBuffer()[*counter] == '<' )
-            {
-                if( eDataType )
-                    *eDataType = ePdfDataType_Dictionary;
-            }
-            ++(*counter);
+            eDataType = ePdfDataType_HexString;
 
-            if( bType )
-                *bType = false;
+            m_buffer.GetBuffer()[counter] = m_device.Device()->GetChar();
+            if( m_buffer.GetBuffer()[counter] == '<' )
+                eDataType = ePdfDataType_Dictionary;
+            ++counter;
             break;
         default:
-            if( bType )
-                *bType = false;
             break;
     }
 }
 
-void PdfParserObject::LoadOnDemand()
+void PdfParserObject::DelayedLoadImpl()
 {
-    if( m_bLoadOnDemand && !m_bLoadOnDemandDone )
-    {
-        m_bLoadOnDemandDone = true;
+#if defined(PODOFO_EXTRA_CHECKS)
+    // DelayedLoadImpl() should only ever be called via DelayedLoad(),
+    // which ensures that it is never called repeatedly.
+    assert(!DelayedLoadDone());
+    assert(DelayedLoadInProgress());
+#endif
 
-        PdfError::DebugMessage( "Loading on Demand: %s\n", this->Reference().ToString().c_str() );
-        ParseFileComplete( m_bIsTrailer );
-    }
+    ParseFileComplete( m_bIsTrailer );
+
+    // If we complete without throwing DelayedLoadDone will be set
+    // for us.
 }
 
-void PdfParserObject::LoadStreamOnDemand()
+void PdfParserObject::DelayedStreamLoadImpl()
 {
-    if( m_bLoadOnDemand && !m_bLoadStreamOnDemandDone )
+#if defined(PODOFO_EXTRA_CHECKS)
+    // DelayedLoad() must've been called, either directly earlier
+    // or via DelayedStreamLoad. DelayedLoad() will throw if the load
+    // failed, so if we're being called this condition must be true.
+    assert(DelayedLoadDone());
+
+    // Similarly, we should not be being called unless the stream isn't
+    // already loaded.
+    assert(!DelayedStreamLoadDone());
+    assert(DelayedStreamLoadInProgress());
+#endif
+
+    // Note: we can't use HasStream() here because it'll call DelayedStreamLoad()
+    // causing a nasty loop. test m_pStream directly instead.
+    if( this->HasStreamToParse() && !m_pStream )
     {
-        if( !m_bLoadOnDemandDone )
-        {
-            LoadOnDemand();
-        }
-
-        m_bLoadStreamOnDemandDone = true;
-
-        if( this->HasStreamToParse() && !this->HasStream() )
-        {
-            try {
-                this->ParseStream();
-            } catch( PdfError & e ) {
-                e.AddToCallstack( __FILE__, __LINE__, "Unable to parse the objects stream." );
-                throw e;
-            }
+        try {
+            this->ParseStream();
+        } catch( PdfError & e ) {
+            e.AddToCallstack( __FILE__, __LINE__, "Unable to parse the objects' stream." );
+            throw e;
         }
     }
+
+    // If we complete without throwing the stream will be flagged as loaded.
 }
 
 };

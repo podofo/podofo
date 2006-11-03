@@ -19,3 +19,5 @@ FUTURE
     - PNG predictor functions in filters
     - CMYK image handling for podofoimgextract, images in different colour
       spaces in general.
+    - Delay resource acquisition for PdfInputDevice until required to support
+      its use as a delayed stream source without holding too many open files.

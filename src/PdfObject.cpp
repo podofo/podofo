@@ -28,6 +28,7 @@
 
 #include <sstream>
 #include <fstream>
+#include <cassert>
 
 #include <string.h>
 
@@ -38,13 +39,13 @@ namespace PoDoFo {
 PdfObject::PdfObject()
     : PdfVariant( PdfDictionary() ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
-    Init( true );
+    InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfReference & rRef, const char* pszType )
     : PdfVariant( PdfDictionary() ), m_reference( rRef )
 {
-    Init( true );
+    InitPdfObject();
 
     if( pszType )
         this->GetDictionary().AddKey( PdfName::KeyType, PdfName( pszType ) );
@@ -53,66 +54,66 @@ PdfObject::PdfObject( const PdfReference & rRef, const char* pszType )
 PdfObject::PdfObject( const PdfReference & rRef, const PdfVariant & rVariant )
     : PdfVariant( rVariant ), m_reference( rRef )
 {
-    Init( true );
+    InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfVariant & var )
     : PdfVariant( var ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
-    Init( true );
+    InitPdfObject();
 }
 
 PdfObject::PdfObject( bool b )
     : PdfVariant( b ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
-    Init( false );
+    InitPdfObject();
 }
 
 PdfObject::PdfObject( long l )
     : PdfVariant( l ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
-    Init( false );
+    InitPdfObject();
 }
 
 PdfObject::PdfObject( double d )
     : PdfVariant( d ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
-    Init( false );
+    InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfString & rsString )
     : PdfVariant( rsString ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
-    Init( false );
+    InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfName & rName )
     : PdfVariant( rName ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
-    Init( false );
+    InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfReference & rRef )
     : PdfVariant( rRef ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
-    Init( false );
+    InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfArray & tList )
     : PdfVariant( tList ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
-    Init( false );
+    InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfDictionary & rDict )
     : PdfVariant( rDict ), m_reference( static_cast<unsigned long>(-1), static_cast<unsigned long>(-1) )
 {
-    Init( false );
+    InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfObject & rhs ) : PdfVariant()
 {
-    Init( false );
+    InitPdfObject();
 
     operator=( rhs );
 }
@@ -123,12 +124,16 @@ PdfObject::~PdfObject()
     m_pStream = NULL;
 }
 
-void PdfObject::Init( bool bLoadOnDemandDone )
+void PdfObject::InitPdfObject()
 {
     m_pStream                 = NULL;
+    m_pParent                 = NULL;
 
-    m_bLoadOnDemandDone       = bLoadOnDemandDone;
-    m_bLoadStreamOnDemandDone = bLoadOnDemandDone;
+    m_bDelayedStreamLoadDone = true;
+
+#if defined(PODOFO_EXTRA_CHECKS)
+    m_bDelayedStreamLoadInProgress = false;
+#endif
 }
 
 void PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
@@ -195,7 +200,11 @@ unsigned long PdfObject::GetObjectLength()
 PdfStream* PdfObject::GetStream()
 {
     DelayedStreamLoad();
+    return GetStream_NoDL();
+}
 
+PdfStream* PdfObject::GetStream_NoDL()
+{
     if( !m_pStream )
         m_pStream = new PdfStream( this );
 
@@ -222,23 +231,22 @@ const PdfObject & PdfObject::operator=( const PdfObject & rhs )
 {
     delete m_pStream;
 
-    Init( true );
-
-    if( !rhs.m_bLoadOnDemandDone || !rhs.m_bLoadStreamOnDemandDone ) 
-    {
-        PdfObject* p = const_cast<PdfObject*>(&rhs);
-        p->LoadStreamOnDemand();
-    }
+    const_cast<PdfObject*>(&rhs)->DelayedStreamLoad();
 
     m_reference     = rhs.m_reference;
 
     PdfVariant::operator=( rhs );
 
-    m_bLoadOnDemandDone       = true;
-    m_bLoadStreamOnDemandDone = true;
+    m_bDelayedStreamLoadDone = rhs.DelayedStreamLoadDone();
 
     if( rhs.m_pStream )
-        m_pStream = new PdfStream( *(rhs.m_pStream) ); 
+        m_pStream = new PdfStream( *(rhs.m_pStream) );
+
+#if defined(PODOFO_EXTRA_CHECKS)
+    // Must've been demand loaded or already done
+    assert(DelayedLoadDone());
+    assert(DelayedStreamLoadDone());
+#endif
 
     return *this;
 }

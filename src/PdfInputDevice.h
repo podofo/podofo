@@ -86,6 +86,8 @@ class PODOFO_API PdfInputDevice {
     /** Seek the device to the position offset from the begining
      *  \param off from the beginning of the file
      *  \param dir where to start (start, cur, end)
+     *
+     *  A non-seekable input device will throw an InvalidDeviceOperation.
      */
     virtual void Seek( std::streamoff off, std::ios_base::seekdir dir = std::ios_base::beg );
 
@@ -100,21 +102,63 @@ class PODOFO_API PdfInputDevice {
      */
     virtual std::streamoff Read( char* pBuffer, std::streamsize lLen );
 
+    /**
+     * \return True if the stream is at EOF
+     */
+    inline virtual bool Eof() const throw();
+
+    /**
+     * \return True if there was an error in an I/O operation
+     */
+    inline virtual bool Bad() const throw();
+
+    /**
+     * \return True if the stream is seekable. Subclasses can control
+     * this value with SetIsSeekable(bool) .
+     */
+    inline bool IsSeekable() const throw();
+ protected:
+    /**
+     * Control whether or or not this stream is flagged
+     * seekable.
+     */
+    inline void SetSeekable(bool bIsSeekable) throw();
+
+    /** CAN NOT Construct a new PdfInputDevice without an input source. 
+     *  However subclasses may well need to do just that.
+     */
+    PdfInputDevice();
+
  private: 
     /** Initialize all private members
      */
     void Init();
 
-    /** CAN NOT Construct a new PdfInputDevice without an input source. 
-     *
-     */
-    PdfInputDevice();
-
  private:
     std::istream*  m_pStream;
     bool           m_StreamOwned;
+    bool           m_bIsSeekable;
 };
 
+bool PdfInputDevice::IsSeekable() const throw()
+{
+    return m_bIsSeekable;
+}
+
+void PdfInputDevice::SetSeekable(bool bIsSeekable) throw()
+{
+    m_bIsSeekable = bIsSeekable;
+}
+
+bool PdfInputDevice::Bad() const throw()
+{
+    return m_pStream->bad();
+}
+
+bool PdfInputDevice::Eof() const throw()
+{
+    return m_pStream->eof();
+}
 
 };
 

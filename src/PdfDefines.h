@@ -45,13 +45,19 @@
  *  EXTREMELY slow and verbose, so it's not practical
  *  even for regular debuggin.
  */
-#define PODOFO_VERBOSE_DEBUG
-
-// undefined it again. Defining it first
-// and undefining it later avoids a Doxygen error.
-#ifdef PODOFO_VERBOSE_DEBUG
-#undef PODOFO_VERBOSE_DEBUG
+#ifndef PODOFO_VERBOSE_DEBUG
+//#define PODOFO_VERBOSE_DEBUG
 #endif //PODOFO_VERBOSE_DEBUG
+
+
+// Should we do lots of extra (expensive) sanity checking?  You should not
+// define this on production builds because of the runtime cost and because it
+// might cause the library to abort() if it notices something nasty.
+// It may also change the size of some objects, and is thus not binary
+// compatible.
+#ifndef PODOFO_EXTRA_CHECKS
+//#define PODOFO_EXTRA_CHECKS
+#endif //PODOFO_EXTRA_CHECKS
 
 // Error Handling Defines
 #include "PdfError.h"

@@ -25,9 +25,16 @@
 #include "PdfStream.h"
 #include "../PdfTest.h"
 
-#include <stdio.h>
+#ifdef _WIN32
+// Get access to POSIX unlink()
+#include <io.h>
+#define unlink _unlink
+#endif
+
+#include <cstdio>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <string>
 #include <cassert>
 
@@ -38,13 +45,29 @@
 using namespace PoDoFo;
 using namespace std;
 
-static const string sTmp("/tmp/pdfobjectparsertest");
+#ifdef _WIN32
+static const string sTmp("%TEMP%");
+#else
+static const string sTmp("/tmp/pdfobjectparsertest_");
+#endif
 static const bool KeepTempFiles = true;
+
+// Undefine if you want to let the tests crash when an exception
+// is thrown, so you can see the full call path.
+#ifndef CATCH_EXCEPTIONS
+#define CATCH_EXCEPTIONS
+#endif
+
+#ifdef CATCH_EXCEPTIONS
+#define TRY try
+#else
+#define TRY
+#endif
 
 // Print out an object in a human readable form.
 void PrintObject( const std::string & objectData, ostream & s, bool escapeNewlines, bool wrap )
 {
-    int wrapCtr = 0;
+    int wrapCtr = 0, numNonprintables = 0;
     for (string::const_iterator it = objectData.begin();
          it != objectData.end();
          ++it)
@@ -69,6 +92,13 @@ void PrintObject( const std::string & objectData, ostream & s, bool escapeNewlin
             static const char hx[17] = "0123456789ABCDEF";
             cerr << '\\' << 'x' << hx[ch / 16] << hx[ch % 16];
             wrapCtr += 3;
+            // If we're processing binary data, just print part of it.
+            ++numNonprintables;
+            if (numNonprintables > 72)
+            {
+                cerr << "... [snip]";
+                break;
+            }
         }
         if (wrap && wrapCtr > 72)
         {
@@ -79,22 +109,17 @@ void PrintObject( const std::string & objectData, ostream & s, bool escapeNewlin
 }
 
 
-string WriteTempFile( string sFilename, const char * pszData, long lObjNo, long lGenNo )
+string WriteTempFile( const string & sFilename, const string & sData, long lObjNo, long lGenNo )
 {
     std::ostringstream ss;
-    ss << sFilename << '_' << lObjNo << '_' << lGenNo;
-    sFilename = ss.str();
+    ss << sFilename << lObjNo << '_' << lGenNo << "_obj";
+    string sNewFileName = ss.str();
 
-    FILE*                    hFile = fopen( sFilename.c_str(), "w" );
-    if( !hFile )
-    {
-        cerr << "Cannot open " << sFilename << " for writing" << endl;
-        RAISE_ERROR( ePdfError_TestFailed );
-    }
+    ofstream f;
+    f.open( sNewFileName.c_str(), ios_base::out|ios_base::trunc|ios_base::binary );
+    f.write( sData.data(), sData.length() );
 
-    fprintf( hFile, pszData );
-    fclose( hFile );
-    return sFilename;
+    return sNewFileName;
 }
 
 string ReadFile( string sFilename )
@@ -150,19 +175,16 @@ void TestObject( const string & sFilename,
 
     PdfRefCountedBuffer      buffer( BUFFER_SIZE );
     PdfParserObject obj( &parser, device, buffer );
-    try {
+    TRY {
         obj.ParseFile( false );
-
-        if( obj.HasStreamToParse() )
-            obj.ParseStream();
-
+#ifdef CATCH_EXCEPTIONS
     } catch( PdfError & e ) {
         cerr << "Error during test: " << e.GetError() << endl;
-        e.PrintErrorMsg();
         device = PdfRefCountedInputDevice();
 
         e.AddToCallstack( __FILE__, __LINE__ );
         throw e;
+#endif
     }
 
     device = PdfRefCountedInputDevice();
@@ -262,13 +284,15 @@ void TestObject_String( const string & sData,
                         bool bHasStream = false)
 {
     string sTempFile = WriteTempFile(sTmp, sData.c_str(), lObjNo, lGenNo);
-    try {
+    TRY {
         TestObject(sTempFile, lObjNo, lGenNo, bTestExpected, sExpectedData, bHasStream);
         if (!KeepTempFiles) unlink(sTempFile.c_str());
+#ifdef CATCH_EXCEPTIONS
     } catch (PdfError & e) {
         if (!KeepTempFiles) unlink(sTempFile.c_str());
         e.AddToCallstack( __FILE__, __LINE__  );
         throw e;
+#endif
     }
 }
 
@@ -316,7 +340,7 @@ const char* pszObject2 = "11 0 obj\n"
                         "<<\n" 
                         "/Type/Test2\n"
                         "/Key /Value\n"
-                        "/Key2[100/Name(Hallo Welt)[1 2] 3.14 400 500]/Key2<AAFF>/Key4(Hallo \(Welt!)\n"
+                        "/Key2[100/Name(Hallo Welt)[1 2] 3.14 400 500]/Key2<AAFF>/Key4(Hallo (Welt!)\n"
                         "/ID[<530464995927cef8aaf46eb953b93373><530464995927cef8aaf46eb953b93373>]\n"
                         ">>\n"
                         "endobj\n";
@@ -340,7 +364,7 @@ const char* pszObject5 ="32 0 obj\n"
         "  >>\n"
         "stream\n"
         "J..)6T`?p&<!J9%_[umg\"B7/Z7KNXbN'S+,*Q/&\"OLT'F\n"
-        "LIDK#!n`$\"<Atdi`\\Vn\%b%)&'cA*VnK\\CJY(sF>c!Jnl@\n"
+        "LIDK#!n`$\"<Atdi`\\Vn%b%)&'cA*VnK\\CJY(sF>c!Jnl@\n"
         "RM]WM;jjH6Gnc75idkL5]+cPZKEBPWdR>FF(kj1_R%W_d\n"
         "&/jS!;iuad7h?[L.F$+]]0A3Ck*$I0KZ?;<)CJtqi65Xb\n"
         "Vc3\\n5ua:Q/=0$W<#N3U;H,MQKqfg1?:lUpR;6oN[C2E4\n"
@@ -350,7 +374,7 @@ const char* pszObject5 ="32 0 obj\n"
         "\":aAa'S`ViJglLb8<W9k6Yl\\0McJQkDeLWdPN?9A'jX*\n"
         "al>iG1p&i;eVoK&juJHs9%;Xomop\"5KatWRT\"JQ#qYuL,\n"
         "JD?M$0QP)lKn06l1apKDC@\\qJ4B!!(5m+j.7F790m(Vj8\n"
-        "8l8Q:_CZ(Gm1\%X\\N1&u!FKHMB~>\n"
+        "8l8Q:_CZ(Gm1%X\\N1&u!FKHMB~>\n"
         "endstream\n"
         "endobj\n";
 
@@ -384,6 +408,7 @@ const char * pszObject6 = "33 0 obj\n"
 
 // Use a FULL statement in this macro, it will not add any trailing
 // semicolons etc.
+#ifdef CATCH_EXCEPTIONS
 #define TRY_TEST(x) \
     try {\
         ++tests;\
@@ -395,6 +420,14 @@ const char * pszObject6 = "33 0 obj\n"
         e.PrintErrorMsg();\
         ++tests_error;\
     }
+#else
+#define TRY_TEST(x) \
+    {\
+        ++tests;\
+        x\
+        ++tests_ok;\
+    }
+#endif
 
                         
 int main()

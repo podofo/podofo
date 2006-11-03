@@ -48,9 +48,11 @@ typedef enum EPdfError {
 
     ePdfError_InvalidHandle,            /**< Null pointer was passed, but null pointer is not allowed. */
     ePdfError_FileNotFound,             /**< A file was not found or cannot be opened. */
+    ePdfError_InvalidDeviceOperation,	/**< Tried to do something unsupported to an I/O device like seek a non-seekable input device */
     ePdfError_UnexpectedEOF,            /**< End of file was reached but data was expected. */
     ePdfError_OutOfMemory,              /**< Not enough memory to complete an operation. */
     ePdfError_ValueOutOfRange,          /**< The specified memory is out of the allowed range. */
+    ePdfError_InternalLogic,            /**< An internal sanity check or assertion failed. */
 
     ePdfError_NoPdfFile,                /**< The file is no PDF file. */
     ePdfError_NoXRef,                   /**< The PDF file has no or an invalid XRef table. */
@@ -363,4 +365,5 @@ bool PdfError::IsError() const
 };
 
 #endif /* _PDF_ERROR_H_ */
+
 

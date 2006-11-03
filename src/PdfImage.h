@@ -75,8 +75,10 @@ class PODOFO_API PdfImage : public PdfXObject {
     void SetImageFilter( const PdfName & inName );
 
     /** Set the actual image data from an in memory buffer.
-     *     IF you wish your data to compressed correctly, you MUST call 
-     *     SetImageFilter before calling this method
+     *
+     *  If you wish your data to compressed correctly, you MUST call 
+     *  SetImageFilter before calling this method
+     *
      *  \param nWidth width of the image in pixels
      *  \param nHeight height of the image in pixels
      *  \param nBitsPerComponent bits per color component of the image (depends on the image colorspace you have set

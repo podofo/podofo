@@ -99,10 +99,8 @@ const PdfVecObjects & PdfVecObjects::operator=( const PdfVecObjects & rhs )
 
 PdfObject* PdfVecObjects::GetObject( const PdfReference & ref ) const
 {
-    TCIVecObjects it;
+    const TCIVecObjects it ( std::find_if( this->begin(), this->end(), ObjectsComperator( ref ) ) );
 
-    it = std::find_if( this->begin(), this->end(), ObjectsComperator( ref ) );
-    
     if( it != this->end() )
         return (*it);
 
@@ -383,4 +381,5 @@ void PdfVecObjects::GarbageCollection( TVecReferencePointerList* pList, PdfObjec
 }
 
 };
+
 

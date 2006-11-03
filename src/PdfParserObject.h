@@ -34,7 +34,6 @@ class PdfParser;
  * Parsing starts always at the current file position.
  */
 class PODOFO_API PdfParserObject : public PdfObject, public PdfParserBase {
-    friend class PdfParser;
 
  public:
     /** Parse the object data from the given file handle starting at
@@ -55,11 +54,11 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfParserBase {
      *  The following two parameters are used to avoid allocation of a new
      *  buffer in PdfSimpleParser.
      *
-     *  This constructor is for internal usage only!
+     *  \warning This constructor is for internal usage only!
      *
      *  \param rBuffer buffer to use for parsing to avoid reallocations
      */
-    PdfParserObject( const PdfRefCountedBuffer & rBuffer );
+    explicit PdfParserObject( const PdfRefCountedBuffer & rBuffer );
 
     virtual ~PdfParserObject();
 
@@ -78,18 +77,12 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfParserBase {
      */
     inline bool HasStreamToParse() const;
 
-    /** Starts reading at the file position m_lStreamOffset and interprets all bytes
-     *  as contents of the objects stream.
-     *  It is assumed that the dictionary has a valid /Length key already.
-     */
-    void ParseStream();
-
     /** Parse the keys of a dictionary from a zero terminated buffer
-     *  \param szBuffer  buffer containing the dictioniaries data
+     *  \param psBuffer  buffer containing the dictioniaries data
      *  \param lBufferLen length of the data buffer
      *  \param plParsedLength if non null, the length of the parsed data is returned
      */
-    void ParseDictionaryKeys( char* szBuffer, long lBufferLen, long* plParsedLength = NULL );
+    void ParseDictionaryKeys( const char* psBuffer, long lBufferLen, long* plParsedLength = NULL );
 
     /** \returns true if this PdfParser loads all objects at
      *                the time they are accessed for the first time.
@@ -114,19 +107,29 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfParserBase {
 
  protected:
     /** Load all data of the object if load object on demand is enabled.
-     *  Reimplemented from PdfObject.
+     *  Reimplemented from PdfVariant. Do not call this directly, use
+     *  DelayedLoad().
      */
-    virtual void LoadOnDemand();
+    virtual void DelayedLoadImpl();
 
     /** Load the stream of the object if it has one and if loading on demand is enabled.
-     *  Reimplemented from PdfObject.
+     *  Reimplemented from PdfObject. Do not call this directly, use
+     *  DelayedStreamLoad().
      */
-    virtual void LoadStreamOnDemand();
+    virtual void DelayedStreamLoadImpl();
+
+    /** Starts reading at the file position m_lStreamOffset and interprets all bytes
+     *  as contents of the objects stream.
+     *  It is assumed that the dictionary has a valid /Length key already.
+     *
+     *  Called from DelayedStreamLoadImpl(). Do not call directly.
+     */
+    void ParseStream();
 
  private:
     /** Initialize private members in this object with their default values
      */
-    void    Init();
+    void    InitPdfParserObject();
 
     /** Parse the object data from the given file handle 
      *  \param bIsTrailer wether this is a trailer dictionary or not.
@@ -135,13 +138,21 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfParserBase {
     void ParseFileComplete( bool bIsTrailer );
 
     void ParseValue( char** szBuffer, std::string & sKey, std::string & sValue  );
-    void DetermineDataType( char c, int* counter, EPdfDataType* eDataType, bool* bType ) const;
+    void DetermineDataType( char c, int & counter, EPdfDataType & eDataType ) const;
     void ReadObjectNumber();
 
  private:
     bool m_bIsTrailer;
 
+    // Should the object try to defer loading of its contents until needed?
+    // If false, object contents will be loaded during ParseFile(...). Note that
+    //          this still uses the delayed loading infrastructure.
+    // If true, loading will be triggered the first time the information is needed by
+    //          an external caller.
+    // Outside callers should not be able to tell the difference between the two modes
+    // of operation.
     bool m_bLoadOnDemand;
+
     long m_lOffset;
 
     bool m_bStream;
