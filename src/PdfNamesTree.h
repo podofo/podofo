@@ -48,15 +48,12 @@ class PODOFO_API PdfNamesTree : public PdfElement {
 
     virtual ~PdfNamesTree() { }
 
-    /** Returns a PdfObject of type PdfArray consisting of the list of 
-     *  named objects of the specified type (inWhichName).  If no such
-     *  list exists, and bCreate is true, it will create an empty list
-     *  otherwise it returns NULL.
-     *  \param inWhichName which of the object types to retrieve
-     *  \param bCreate create the necessary structures if missing
-     *  \returns PdfObject of the list
+    /** Insert a key and value in one of the dictionaries of the name tree.
+     *  \param dictionary the name of the dictionary to search in.
+     *  \param key the key to insert. If it exists, it will be overwritten.
+     *  \param rValue the value to insert.
      */
-    PdfObject* GetOneArrayOfNames( const PdfName& inWhichName, bool bCreate = true );
+    void AddValue( const PdfName & dictionary, const PdfString & key, const PdfObject & rValue );
 
     /** Get the object referenced by a string key in one of the dictionaries
      *  of the name tree.
@@ -67,6 +64,13 @@ class PODOFO_API PdfNamesTree : public PdfElement {
      *           this reference is returned.
      */
     PdfObject* GetValue( const PdfName & dictionary, const PdfString & key ) const;
+
+    /** Tests wether a certain nametree has a value.
+     *  \param dictionary name of the dictionary to search for the key.
+     *  \param key name of the key to look for
+     *  \returns true if the dictionary has such a key.
+     */
+    bool HasValue( const PdfName & dictionary, const PdfString & key ) const;
 
  private:
     /** Get a PdfNameTrees root node for a certain name.
@@ -94,6 +98,14 @@ class PODOFO_API PdfNamesTree : public PdfElement {
      *  \return the value for the key or NULL if it was not found
      */
     PdfObject* GetKeyValue( PdfObject* pObj, const PdfString & key ) const;
+
+    /** Inserts key into a names array if it fits into the limits.
+     *  \param pObject try this object and all its kids.
+     *  \param key write to this key
+     *  \param rValue value of the key.
+     *  \returns true if the key was inserted and false if not.
+     */
+    bool AddKeyValue( PdfObject* pObject, const PdfString & key, const PdfObject & rValue );
 
  private:
     PdfObject*	m_pCatalog;

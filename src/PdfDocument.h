@@ -228,12 +228,10 @@ class PODOFO_API PdfDocument {
 
     /** Adds a PdfDestination into the global Names tree
      *  with the specified name, optionally replacing one of the same name
-     *  \param inDest the destination to be assigned
-     *  \param inName the name for the destination
-     *  \param bReplace replace existing destinations
-     *  \returns if adding was successful
+     *  \param rDest the destination to be assigned
+     *  \param rsName the name for the destination
      */
-    bool AddNamedDestination( PdfDestination& inDest, const std::string& inName, bool bReplace = true );
+    void AddNamedDestination( const PdfDestination& rDest, const PdfString & rsName );
 
     /** Sets the opening mode for a document
      *  \param inMode which mode to set

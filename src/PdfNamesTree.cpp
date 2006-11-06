@@ -39,29 +39,109 @@ PdfNamesTree::PdfNamesTree( PdfObject* pObject, PdfObject* pCatalog )
 {
 }
 
-PdfObject* PdfNamesTree::GetOneArrayOfNames( const PdfName& inWhichName, bool bCreate )
+bool PdfNamesTree::AddKeyValue( PdfObject* pObj, const PdfString & key, const PdfObject & rValue )
 {
-    PdfObject*	nameArrObj = NULL;
+    // check the limits first
+    if( pObj->GetDictionary().HasKey("Limits") ) 
+    {
+        const PdfArray & limits = pObj->GetDictionary().GetKey("Limits")->GetArray();
 
-    PdfObject*	nameDict = GetObject()->GetIndirectKey( inWhichName );
-    if ( !nameDict ) {
-        if ( bCreate && m_pCatalog ) {
-            nameDict = GetObject()->GetParent()->CreateObject( PdfDictionary() );
-            GetObject()->GetDictionary().AddKey( inWhichName, nameDict->Reference() );
-        } else 
-            return NULL;
-    } else if ( nameDict->GetDataType() != ePdfDataType_Dictionary ) {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        if( limits[0].GetString() > key )
+            return false;
+
+        if( limits[1].GetString() < key )
+            return false;
     }
     
-    nameArrObj = nameDict->GetIndirectKey( PdfName( "Names" ) );
-    if ( !nameArrObj && bCreate ) {
-        // make new Array and add it
-        nameArrObj = GetObject()->GetParent()->CreateObject( PdfArray() );
-        nameDict->GetDictionary().AddKey( "Names", nameArrObj->Reference() );
+    if( pObj->GetDictionary().HasKey("Kids") )
+    {
+        const PdfArray & kids       = pObj->GetDictionary().GetKey("Kids")->GetArray();
+        PdfArray::const_iterator it = kids.begin();
+        PdfObject* pChild           = NULL;
+        
+        while( it != kids.end() )
+        {
+            pChild = m_pObject->GetParent()->GetObject( (*it).GetReference() );
+            if( pChild && AddKeyValue( pChild, key, rValue ) )
+                return true;
+
+            ++it;
+        }
+    }
+    else
+    {
+        PdfArray limits;
+
+        if( pObj->GetDictionary().HasKey( "Names" ) ) 
+        {
+            PdfArray& array = pObj->GetDictionary().GetKey("Names")->GetArray();
+            PdfArray::iterator it = array.begin();
+            
+            while( it != array.end() )
+            {
+                if( (*it).GetString() == key ) 
+                {
+                    // no need to write the key as it is anyways the same
+                    ++it;
+                    // write the value
+                    *it = rValue;
+                    break;
+                }
+                else if( (*it).GetString() > key ) 
+                {
+                    // insert into the vector
+                    array.insert( it, key );
+                    array.insert( it, rValue );
+                break;
+                }
+                
+                it += 2;
+            }
+
+            if( it == array.end() )
+            {
+                array.push_back( key );
+                array.push_back( rValue );
+            }
+
+            limits.push_back( (*array.begin()) );
+            limits.push_back( (*(array.end()-2)) );
+        }
+        else
+        {
+            // we create a completely new node
+            PdfArray array;
+            array.push_back( key );
+            array.push_back( rValue );
+
+            limits.push_back( key );
+            limits.push_back( key );
+
+            // create a child object
+            PdfObject* pChild = m_pObject->GetParent()->CreateObject();
+            pChild->GetDictionary().AddKey( "Names", array );
+            pChild->GetDictionary().AddKey( "Limits", limits );
+
+            PdfArray kids( pChild->Reference() );
+            pObj->GetDictionary().AddKey( "Kids", kids );
+        }
+
+        pObj->GetDictionary().AddKey( "Limits", limits );
+
+        return true;
     }
     
-    return nameArrObj;
+    return false;
+}
+
+void PdfNamesTree::AddValue( const PdfName & dictionary, const PdfString & key, const PdfObject & rValue )
+{
+   PdfObject* pObject = this->GetRootNode( dictionary, true );
+ 
+   if( !this->AddKeyValue( pObject, key, rValue ) )
+   {
+       RAISE_ERROR( ePdfError_InternalLogic );
+   }
 }
 
 PdfObject* PdfNamesTree::GetValue( const PdfName & dictionary, const PdfString & key ) const 
@@ -151,6 +231,11 @@ PdfObject* PdfNamesTree::GetRootNode( const PdfName & name, bool bCreate ) const
     }
 
     return pObj;
+}
+
+bool PdfNamesTree::HasValue( const PdfName & dictionary, const PdfString & key ) const
+{
+    return ( this->GetValue( dictionary, key) == NULL );
 }
 
 };

@@ -40,6 +40,12 @@ class PODOFO_API PdfFileSpec : public PdfElement {
 
     PdfFileSpec( PdfObject* pObject );
 
+    /** \returns the filename of this file specification.
+     *           if no general name is available 
+     *           it will try the Unix, Mac and DOS keys too.
+     */
+    const PdfString & GetFilename() const;
+
  private:
 
     /** Create a file specification string from a filename

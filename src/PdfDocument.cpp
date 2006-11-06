@@ -26,6 +26,7 @@
 #include "PdfDestination.h"
 #include "PdfDictionary.h"
 #include "PdfDocument.h"
+#include "PdfFileSpec.h"
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
 #include "PdfInfo.h"
@@ -641,38 +642,10 @@ PdfNamesTree* PdfDocument::GetNamesTree( bool bCreate )
     return m_pNamesTree;
 }
 
-bool PdfDocument::AddNamedDestination( PdfDestination& inDest, const std::string& inName, bool bReplace )
+void PdfDocument::AddNamedDestination( const PdfDestination& rDest, const PdfString & rName )
 {
-    bool          bRtn     = false;
-
     PdfNamesTree* nameTree = GetNamesTree();
-
-    if ( nameTree ) {
-        PdfObject* destsObj = nameTree->GetOneArrayOfNames( PdfName( "Dests" ), true );
-        if ( destsObj ) {
-            PdfArray& destArray = destsObj->GetArray();
-            
-            if ( !bReplace ) {
-                if ( destArray.ContainsString( inName ) ) {
-                    return false;	// not replacing, but already exists!
-                } else {
-                    destArray.push_back( PdfString( inName ) );
-                    destArray.push_back( *inDest.GetObject() );
-                }
-            } else {	// are replacing
-                size_t idx = destArray.GetStringIndex( inName );
-                if ( static_cast<int>(idx) == -1 ) {	// not found, so put it at the end
-                    destArray.push_back( PdfString( inName ) );
-                    destArray.push_back( *inDest.GetObject() );
-                } else {
-                    destArray[idx] = PdfString( inName );
-                    destArray[idx+1] = *inDest.GetObject();
-                }
-            }
-        }
-    }
-
-    return bRtn;
+    nameTree->AddValue( "Dests", rName, rDest.GetObject()->Reference() );
 }
 
 void PdfDocument::AttachFile( const PdfFileSpec & rFileSpec )
@@ -684,7 +657,7 @@ void PdfDocument::AttachFile( const PdfFileSpec & rFileSpec )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-
+    pNames->AddValue( "EmbeddedFiles", rFileSpec.GetFilename(), rFileSpec.GetObject()->Reference() );
 }
 
 };

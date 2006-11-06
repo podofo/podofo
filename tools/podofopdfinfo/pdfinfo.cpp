@@ -167,6 +167,8 @@ void PdfInfo::OutputOneName( std::ostream& sOutStream, PoDoFo::PdfNamesTree* inT
 							 const std::string& inTitle, const std::string& inKey )
 {
     sOutStream << "\t" << inTitle << std::endl;
+
+/*
     PoDoFo::PdfObject* arrObj = inTreeObj->GetOneArrayOfNames( PoDoFo::PdfName( inKey ), PoDoFo::ePdfDontCreateObject );
     if ( arrObj ) {
         PoDoFo::PdfArray&	arr = arrObj->GetArray();
@@ -182,6 +184,7 @@ void PdfInfo::OutputOneName( std::ostream& sOutStream, PoDoFo::PdfNamesTree* inT
     } else {
         sOutStream << "\t\tNone Found" << std::endl;
     }
+*/
 }
 
 void PdfInfo::OutputNames( std::ostream& sOutStream )

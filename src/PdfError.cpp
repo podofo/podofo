@@ -176,6 +176,9 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_ValueOutOfRange:
             pszMsg = "ePdfError_ValueOutOfRange"; 
             break;
+        case ePdfError_InternalLogic:
+            pszMsg = "ePdfError_InternalLogic";
+            break;
         case ePdfError_NoPdfFile:
             pszMsg = "ePdfError_NoPdfFile"; 
             break;
@@ -287,6 +290,9 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
             break;
         case ePdfError_ValueOutOfRange:
             pszMsg = "The passed value is out of range.";
+            break;
+        case ePdfError_InternalLogic:
+            pszMsg = "An internal error occurred.";
             break;
         case ePdfError_NoPdfFile:
             pszMsg = "This is not a PDF file.";

@@ -103,4 +103,13 @@ void PdfFileSpec::EmbeddFile( PdfObject* pStream, const char* pszFilename ) cons
     pStream->GetDictionary().AddKey("Params", params );
 }
 
+const PdfString & PdfFileSpec::GetFilename() const
+{
+    if( m_pObject->GetDictionary().HasKey( "F" ) )
+        return m_pObject->GetDictionary().GetKey( "F" )->GetString();
+
+    RAISE_ERROR( ePdfError_InvalidDataType );
+}
+
+
 };
