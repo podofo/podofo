@@ -776,6 +776,8 @@ void PdfLZWFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffe
             {
                 if( code >= table.size() )
                 {
+                    if (old >= table.size())
+                        RAISE_ERROR( ePdfError_ValueOutOfRange );
                     data = table[old].value;
                     data.push_back( character );
                 }
