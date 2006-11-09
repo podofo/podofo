@@ -129,7 +129,7 @@ void PdfObject::InitPdfObject()
     m_pStream                 = NULL;
     m_pParent                 = NULL;
 
-    m_bDelayedStreamLoadDone = true;
+    m_bDelayedStreamLoadDone  = true;
 
 #if defined(PODOFO_EXTRA_CHECKS)
     m_bDelayedStreamLoadInProgress = false;

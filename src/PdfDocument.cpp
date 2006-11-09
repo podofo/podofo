@@ -307,31 +307,46 @@ PdfPage* PdfDocument::CreatePage( const PdfRect & rSize )
 
 const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc )
 {
-    int           difference = m_vecObjects.size();
-    
+    int difference = m_vecObjects.size();
+
     // append all objects first and fix their references
-    TCIVecObjects it = rDoc.GetObjects().begin();
+    TCIVecObjects it           = rDoc.GetObjects().begin();
     while( it != rDoc.GetObjects().end() )
     {
-        PdfObject*    pObj  = m_vecObjects.CreateObject( /*(const PdfVariant &)*/*(*it) );
-        if( (*it)->HasStream() )
+        PdfObject* pObj = new PdfObject( PdfReference( (*it)->Reference().ObjectNumber() + difference, 0 ), *(*it) );
+        m_vecObjects.push_back( pObj );
+
+        if( (*it)->IsDictionary() && (*it)->HasStream() )
             *(pObj->GetStream()) = *((*it)->GetStream());
-        
+
         FixObjectReferences( pObj, difference );
 
         ++it;
     }
-    
+
+    // create all free objects again, to have a clean free object list
+    TCIPdfReferenceList itFree = rDoc.GetObjects().GetFreeObjects().begin();
+    while( itFree != rDoc.GetObjects().GetFreeObjects().end() )
+    {
+        int n = (*itFree).ObjectNumber() + difference;
+        if( n < m_vecObjects.size() )
+            m_vecObjects.AddFreeObject( PdfReference( n, 0 ) );
+
+        ++itFree;
+    }
+
     // append all pages now to our page tree
-    for(int i=0;i<rDoc.GetPageCount();i++ )
+    for(int i=0;i<rDoc.GetPageCount()-1;i++ )
     {
         PdfPage*      pPage = rDoc.GetPage( i );
         PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, 0 ) );
         if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Parent" ) )
             pObj->GetDictionary().RemoveKey( "Parent" );
 
-        m_pPagesTree->InsertPage( this->GetPageCount(), pObj );
+        m_pPagesTree->InsertPage( this->GetPageCount()-1, pObj );
     }
+
+    // TODO: append name tree
 
     return *this;
 }
@@ -645,7 +660,7 @@ PdfNamesTree* PdfDocument::GetNamesTree( bool bCreate )
 void PdfDocument::AddNamedDestination( const PdfDestination& rDest, const PdfString & rName )
 {
     PdfNamesTree* nameTree = GetNamesTree();
-    nameTree->AddValue( "Dests", rName, rDest.GetObject()->Reference() );
+    nameTree->AddValue( PdfName("Dests"), rName, rDest.GetObject()->Reference() );
 }
 
 void PdfDocument::AttachFile( const PdfFileSpec & rFileSpec )

@@ -143,6 +143,8 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
         {
             PdfObject* pgObject = GetPageFromKidArray( kidsArray, i );
             
+            //printf("nPagesSeenSoFar=%i %p Looking for %i\n", nPagesSeenSoFar, pgObject, nPageNum );
+            
             // if it's a Page, then is it the right page??
             // otherwise, it's a Pages, and we need to recurse
             if ( pgObject->GetDictionary().GetKeyAsName( PdfName( "Type" ) ) == PdfName( "Page" ) )
@@ -157,7 +159,9 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
             {
                 int thisKidCount = pgObject->GetDictionary().GetKeyAsLong( "Count", 0 );
                 if( ( nPagesSeenSoFar + thisKidCount ) >= nPageNum )
+                {
                     return this->GetPageNode( nPageNum - ( nPagesSeenSoFar + 1 ), pgObject ) ;
+                }
                 else
                     nPagesSeenSoFar += thisKidCount ;
             }
@@ -311,7 +315,11 @@ void PdfPagesTree::InsertPages( int inAfterIndex,
     PdfObject*	kidsArrObj = PdfPagesTree::GetKids( inParentObj ) ;
     PdfArray&	kidsArray = kidsArrObj->GetArray();
 
-    kidsArray.insert( kidsArray.begin() + insIdx, inPageOrPagesObj->Reference() );
+    if( insIdx > kidsArray.size() ) 
+        kidsArray.push_back( inPageOrPagesObj->Reference() );
+    else
+        kidsArray.insert( kidsArray.begin() + insIdx, inPageOrPagesObj->Reference() );
+
     inPageOrPagesObj->GetDictionary().AddKey( "Parent", inParentObj->Reference() ) ;
 
     // increment the pages count of all of the parent page nodes, walking up the tree
@@ -322,11 +330,11 @@ void PdfPagesTree::InsertPages( int inAfterIndex,
         tempParent = PdfPagesTree::GetParent( tempParent ) ;
     }
 
-	// put the newly added pages into the cache
-	for ( int i=insIdx; i<insIdx+inNumPages; i++ ) {
-		m_deqPageObjs.push_back( NULL );			// clear it
-		m_deqPageObjs[i] = GetPage( i );	// and now fill it
-	}
+    // put the newly added pages into the cache
+    for ( int i=insIdx; i<insIdx+inNumPages; i++ ) {
+        m_deqPageObjs.push_back( NULL );	// clear it
+        m_deqPageObjs[i] = GetPage( i );	// and now fill it
+    }
 }
 
 PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
@@ -387,7 +395,7 @@ void PdfPagesTree::DeletePage( int inPageNumber )
                 oneChild.GetDictionary().AddKey( PdfName( "Parent" ), theParentPagesDict );
                 theKidsArray->GetArray()[ indexInKArr ] = oneChild;
             }
-		}
+        }
         
         // if theParentPagesDict has no children, then repeat this loop, removing theParentPagesDict from its
         // parent, and thereby pruning the tree of empty Pages nodes

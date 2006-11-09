@@ -111,7 +111,7 @@ class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
     inline bool AutoDelete() const;
 
     /**
-     *  \returns the number of objects in the vector 
+     *  \returns the highest object number in the vector 
      */
     size_t GetObjectCount() const { return m_nObjectCount; }
 
@@ -203,12 +203,12 @@ class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
      */
     void GetObjectDependencies( const PdfObject* pObj, TPdfReferenceList* pList ) const;
 
- private:
+ private:    
     /** 
      * \returns the next free object reference
      */
     PdfReference GetNextFreeObject();
-    
+
     /** 
      * Create a list of all references that point to the object
      * for each object in this vector.

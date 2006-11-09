@@ -26,6 +26,15 @@
 namespace PoDoFo {
 
 /*
+#define BALANCE_TREE_MAX 65
+#define BALANCE_TREE_MIN 33
+*/
+
+#define BALANCE_TREE_MAX 9
+#define BALANCE_TREE_MIN 5
+
+
+/*
   We use NULL for the PdfElement name, since the NamesTree dict
   does NOT have a /Type key!
 */
@@ -39,20 +48,8 @@ PdfNamesTree::PdfNamesTree( PdfObject* pObject, PdfObject* pCatalog )
 {
 }
 
-bool PdfNamesTree::AddKeyValue( PdfObject* pObj, const PdfString & key, const PdfObject & rValue )
+bool PdfNamesTree::AddKeyValue( PdfObject* pObj, const PdfString & key, const PdfObject & rValue, PdfObject* pParent )
 {
-    // check the limits first
-    if( pObj->GetDictionary().HasKey("Limits") ) 
-    {
-        const PdfArray & limits = pObj->GetDictionary().GetKey("Limits")->GetArray();
-
-        if( limits[0].GetString() > key )
-            return false;
-
-        if( limits[1].GetString() < key )
-            return false;
-    }
-    
     if( pObj->GetDictionary().HasKey("Kids") )
     {
         const PdfArray & kids       = pObj->GetDictionary().GetKey("Kids")->GetArray();
@@ -62,11 +59,28 @@ bool PdfNamesTree::AddKeyValue( PdfObject* pObj, const PdfString & key, const Pd
         while( it != kids.end() )
         {
             pChild = m_pObject->GetParent()->GetObject( (*it).GetReference() );
-            if( pChild && AddKeyValue( pChild, key, rValue ) )
+            if( !pChild ) 
+            {
+                RAISE_ERROR( ePdfError_InvalidHandle );
+            }
+
+            if( (this->CheckLimitsBefore( pChild, key )  || 
+                 this->CheckLimitsInside( pChild, key )) &&
+                AddKeyValue( pChild, key, rValue, pObj ) )
                 return true;
 
             ++it;
         }
+
+        // not added, so add to last child
+        pChild = m_pObject->GetParent()->GetObject( kids.back().GetReference() );
+        if( !pChild ) 
+        {
+            RAISE_ERROR( ePdfError_InvalidHandle );
+        }
+
+        AddKeyValue( pChild, key, rValue, pObj );
+        return true;
     }
     else
     {
@@ -88,11 +102,10 @@ bool PdfNamesTree::AddKeyValue( PdfObject* pObj, const PdfString & key, const Pd
                     break;
                 }
                 else if( (*it).GetString() > key ) 
-                {
-                    // insert into the vector
-                    array.insert( it, key );
-                    array.insert( it, rValue );
-                break;
+                {                    
+                    it = array.insert( it, rValue ); // array.insert invalidates the iterator
+                    it = array.insert( it, key );
+                    break;
                 }
                 
                 it += 2;
@@ -128,6 +141,9 @@ bool PdfNamesTree::AddKeyValue( PdfObject* pObj, const PdfString & key, const Pd
 
         pObj->GetDictionary().AddKey( "Limits", limits );
 
+        // Rebalance node if necessary
+        this->Rebalance( pObj, pParent );
+
         return true;
     }
     
@@ -138,7 +154,8 @@ void PdfNamesTree::AddValue( const PdfName & dictionary, const PdfString & key, 
 {
    PdfObject* pObject = this->GetRootNode( dictionary, true );
  
-   if( !this->AddKeyValue( pObject, key, rValue ) )
+   //printf("adding key: %s\n", key.GetString() );
+   if( !this->AddKeyValue( pObject, key, rValue, NULL ) )
    {
        RAISE_ERROR( ePdfError_InternalLogic );
    }
@@ -163,17 +180,8 @@ PdfObject* PdfNamesTree::GetKeyValue( PdfObject* pObj, const PdfString & key ) c
 {
     PdfObject* pResult = NULL;
 
-    // check the limits first
-    if( pObj->GetDictionary().HasKey("Limits") ) 
-    {
-        const PdfArray & limits = pObj->GetDictionary().GetKey("Limits")->GetArray();
-
-        if( limits[0].GetString() > key )
-            return NULL;
-
-        if( limits[1].GetString() < key )
-            return NULL;
-    }
+    if( !this->CheckLimitsInside( pObj, key ) )
+        return false;
 
     if( pObj->GetDictionary().HasKey("Kids") )
     {
@@ -236,6 +244,128 @@ PdfObject* PdfNamesTree::GetRootNode( const PdfName & name, bool bCreate ) const
 bool PdfNamesTree::HasValue( const PdfName & dictionary, const PdfString & key ) const
 {
     return ( this->GetValue( dictionary, key) == NULL );
+}
+
+bool PdfNamesTree::CheckLimitsBefore( const PdfObject* pObj, const PdfString & key ) const 
+{
+    if( pObj->GetDictionary().HasKey("Limits") ) 
+    {
+        const PdfArray & limits = pObj->GetDictionary().GetKey("Limits")->GetArray();
+
+        if( limits[0].GetString() > key )
+            return true;
+    }
+    return false;
+}
+
+bool PdfNamesTree::CheckLimitsAfter( const PdfObject* pObj, const PdfString & key ) const 
+{
+    if( pObj->GetDictionary().HasKey("Limits") ) 
+    {
+        const PdfArray & limits = pObj->GetDictionary().GetKey("Limits")->GetArray();
+
+        if( limits[1].GetString() < key )
+            return true;
+    }
+    return false;
+}
+
+bool PdfNamesTree::CheckLimitsInside( const PdfObject* pObj, const PdfString & key ) const
+{
+    if( pObj->GetDictionary().HasKey("Limits") ) 
+    {
+        const PdfArray & limits = pObj->GetDictionary().GetKey("Limits")->GetArray();
+
+        if( limits[0].GetString() > key )
+            return false;
+
+        if( limits[1].GetString() < key )
+            return false;
+    }
+
+    return true;
+}
+
+void PdfNamesTree::Rebalance( PdfObject* pObj, PdfObject* pParent ) 
+{
+    if( pObj->GetDictionary().HasKey( "Names" ) ) 
+    {
+        PdfArray& names = pObj->GetDictionary().GetKey("Names")->GetArray();        
+        if( names.size() > BALANCE_TREE_MAX * 2 ) 
+        {
+            PdfArray first;
+            PdfArray second;
+
+            for( int i=0;i<names.size();i++ ) 
+            {
+                if( i <= BALANCE_TREE_MAX )
+                    first.push_back( names[i] );
+                else
+                    second.push_back( names[i] );
+            }
+
+            if( !pParent ) 
+            {
+                pParent = pObj;
+                pObj    = m_pObject->GetParent()->CreateObject();
+            }
+
+            printf("Created arrays of size %i and %i\n", first.size(), second.size() );
+
+            PdfObject* pChild = m_pObject->GetParent()->CreateObject();
+
+            pObj->GetDictionary().AddKey( "Names", first );
+            pChild->GetDictionary().AddKey( "Names", second );
+            
+            PdfArray kids;
+            if( pParent->GetDictionary().HasKey( "Kids" ) )
+                kids = pParent->GetDictionary().GetKey("Kids")->GetArray();
+
+            PdfArray::iterator it = kids.begin();
+            while( it != kids.end() ) 
+            {
+                if( (*it).GetReference() == pObj->Reference() )
+                {
+                    ++it;
+                    it = kids.insert( it, pChild->Reference() );
+                    break;
+                }
+                
+                ++it;
+            }
+
+            if( it == kids.end() )
+            {
+                kids.push_back( pObj->Reference() );
+                kids.push_back( pChild->Reference() );
+            }
+
+            pParent->GetDictionary().AddKey( "Kids", kids );
+            SetLimits( pParent );
+        }
+    }
+}
+
+void PdfNamesTree::SetLimits( PdfObject* pObj ) 
+{
+    PdfArray limits;
+
+    if( pObj->GetDictionary().HasKey("Kids") )
+    {
+        PdfObject* pChild = m_pObject->GetParent()->GetObject( (*pObj->GetDictionary().GetKey("Kids")->GetArray().begin()).GetReference() );
+
+        limits.push_back( (*pChild->GetDictionary().GetKey("Names")->GetArray().begin()) );
+
+        pChild = m_pObject->GetParent()->GetObject( (*(pObj->GetDictionary().GetKey("Kids")->GetArray().end()-2)).GetReference() );
+        limits.push_back( (*pChild->GetDictionary().GetKey("Names")->GetArray().begin()) );
+    }
+    else if( pObj->GetDictionary().HasKey("Names") ) 
+    {
+        limits.push_back( (*pObj->GetDictionary().GetKey("Names")->GetArray().begin()) );
+        limits.push_back( (*(pObj->GetDictionary().GetKey("Names")->GetArray().end()-2)) );
+    }
+
+    pObj->GetDictionary().AddKey("Limits", limits );
 }
 
 };

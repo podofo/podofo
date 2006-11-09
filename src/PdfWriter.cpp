@@ -237,7 +237,6 @@ void PdfWriter::CompressObjects( const TVecObjects& vecObjects )
 
 void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, TVecXRefTable* pVecXRef )
 {
-    TCIPdfReferenceList itFree     = vecObjects.GetFreeObjects().begin();
     TCIVecObjects       itObjects  = vecObjects.begin();
     int                 index;
     TXRefTable          tXRef;
@@ -254,16 +253,7 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& ve
     }
 
     tXRef.vecOffsets.resize( index );
-    tXRef.nCount = tXRef.vecOffsets.size();
-
-    // add the first free object
-    if( !tXRef.nFirst )
-    {
-        tXRef.vecOffsets[0].lOffset     = (itFree == vecObjects.GetFreeObjects().end() ? 0 : (*itFree).ObjectNumber());
-        tXRef.vecOffsets[0].lGeneration = EMPTY_OBJECT_OFFSET;
-        tXRef.vecOffsets[0].cUsed       = 'f';
-    }
-
+    
     while( itObjects != vecObjects.end() )
     {
         index = (*itObjects)->Reference().ObjectNumber() - tXRef.nFirst;
@@ -275,6 +265,16 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& ve
         (*itObjects)->WriteObject( pDevice );
 
         ++itObjects;
+    }
+
+    TCIPdfReferenceList itFree = vecObjects.GetFreeObjects().begin();
+
+    // add the first free object
+    if( !tXRef.nFirst )
+    {
+        tXRef.vecOffsets[0].lOffset     = (itFree == vecObjects.GetFreeObjects().end() ? 0 : (*itFree).ObjectNumber());
+        tXRef.vecOffsets[0].lGeneration = EMPTY_OBJECT_OFFSET;
+        tXRef.vecOffsets[0].cUsed       = 'f';
     }
 
     while( itFree != vecObjects.GetFreeObjects().end() )
@@ -298,6 +298,10 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& ve
             tXRef.vecOffsets[index].cUsed       = 'f';
         }
     }
+
+    // make sure that there are no spare objects at the end of the list
+    tXRef.vecOffsets.resize( index );
+    tXRef.nCount = tXRef.vecOffsets.size();
 
     pVecXRef->push_back( tXRef );
 }

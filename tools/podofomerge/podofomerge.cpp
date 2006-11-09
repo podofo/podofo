@@ -37,38 +37,43 @@ void print_help()
 
 void merge( const char* pszInput1, const char* pszInput2, const char* pszOutput )
 {
+    printf("Reading file: %s\n", pszInput1 );
     PdfDocument input1( pszInput1 );
+    printf("Reading file: %s\n", pszInput2 );
     PdfDocument input2( pszInput2 );
 
-	int pgCount = input1.GetPageCount();
+    int pgCount = input1.GetPageCount();
 
 // #define TEST_ONLY_SOME_PAGES
 #ifdef TEST_ONLY_SOME_PAGES
-	input1.InsertPages( input2, 1, 2 );
+    input1.InsertPages( input2, 1, 2 );
 #else
+    printf("Appending %i pages.\n", input2.GetPageCount() );
     input1.Append( input2 );
 #endif
 
-	// we are going to bookmark the insertions
-	// using destinations - also adding each as a NamedDest
-	PdfDestination	p1Dest( input1.GetPage(0) );
-	input1.AddNamedDestination( p1Dest, std::string("Input1") );
-	PdfOutlines* bMarks = input1.GetOutlines();
-	PdfOutlineItem*	bmRoot = bMarks->CreateRoot( "Merged Document" );
-	PdfOutlineItem* child1 = bmRoot->CreateChild( pszInput1, p1Dest );
-	PdfDestination	p2Dest( input1.GetPage(pgCount) );
-	input1.AddNamedDestination( p2Dest, std::string("Input2") );
-	child1->CreateNext( pszInput2, p2Dest );
-
-
+    // we are going to bookmark the insertions
+    // using destinations - also adding each as a NamedDest
+    /*
+    PdfDestination	p1Dest( input1.GetPage(0) );
+    input1.AddNamedDestination( p1Dest, std::string("Input1") );
+    PdfOutlines* bMarks = input1.GetOutlines();
+    PdfOutlineItem*	bmRoot = bMarks->CreateRoot( "Merged Document" );
+    PdfOutlineItem* child1 = bmRoot->CreateChild( pszInput1, p1Dest );
+    PdfDestination	p2Dest( input1.GetPage(pgCount) );
+    input1.AddNamedDestination( p2Dest, std::string("Input2") );
+    child1->CreateNext( pszInput2, p2Dest );
+    */
+    
 #ifdef TEST_FULL_SCREEN
-	input1.SetUseFullScreen();
+    input1.SetUseFullScreen();
 #else
-	input1.SetPageMode( ePdfPageModeUseBookmarks );
-	input1.SetHideToolbar();
-	input1.SetPageLayout( ePdfPageLayoutTwoColumnLeft );
+    input1.SetPageMode( ePdfPageModeUseBookmarks );
+    input1.SetHideToolbar();
+    input1.SetPageLayout( ePdfPageLayoutTwoColumnLeft );
 #endif
 
+    printf("Writing file: %s\n", pszOutput );
     input1.Write( pszOutput );
 }
 

@@ -103,9 +103,28 @@ class PODOFO_API PdfNamesTree : public PdfElement {
      *  \param pObject try this object and all its kids.
      *  \param key write to this key
      *  \param rValue value of the key.
+     *  \param pParent parent node of this value of NULL for root node
      *  \returns true if the key was inserted and false if not.
      */
-    bool AddKeyValue( PdfObject* pObject, const PdfString & key, const PdfObject & rValue );
+    bool AddKeyValue( PdfObject* pObject, const PdfString & key, const PdfObject & rValue, PdfObject* pParent );
+
+    /** Tests wether a key is in the range of a limits entry of a name tree node
+     *  \returns true if the key is in the range of this nametree node and false otherwise
+     */
+    bool CheckLimitsInside( const PdfObject* pObj, const PdfString & key ) const;
+
+    /** Tests wether a key is before a limits entry of a name tree node
+     *  \returns true if the key is in the range of this nametree node and false otherwise
+     */
+    bool CheckLimitsBefore( const PdfObject* pObj, const PdfString & key ) const;
+
+    /** Tests wether a key is after a limits entry of a name tree node
+     *  \returns true if the key is in the range of this nametree node and false otherwise
+     */
+    bool CheckLimitsAfter( const PdfObject* pObj, const PdfString & key ) const;
+
+    void Rebalance( PdfObject* pObj, PdfObject* pParent );
+    void SetLimits( PdfObject* pObj ) ;
 
  private:
     PdfObject*	m_pCatalog;

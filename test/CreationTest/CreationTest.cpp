@@ -30,6 +30,7 @@
 #include "PdfImage.h"
 #include "PdfInfo.h"
 #include "PdfOutlines.h"
+#include "PdfNamesTree.h"
 #include "PdfPage.h"
 #include "PdfPainter.h"
 #include "PdfPainterMM.h"
@@ -432,6 +433,16 @@ int main( int argc, char* argv[] )
     pRoot->Last()->CreateNext( "MM Test", PdfDestination( pPage ) );
 
     TEST_SAFE_OP( MMTest( &painterMM, pPage, &writer ) );
+
+    /** Create a really large name tree to test the name tree implementation
+     */
+    for( int zz=1;zz<50;zz++ ) 
+    {
+        std::ostringstream oss;
+        oss << "A" << zz;
+
+        writer.GetNamesTree()->AddValue( "TestDict", PdfString( oss.str() ), PdfVariant( (long)zz )  );
+    }
 
     printf("Setting document informations.\n\n");
     // Setup the document information dictionary
