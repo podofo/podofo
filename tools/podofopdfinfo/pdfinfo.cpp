@@ -19,6 +19,7 @@
 ***************************************************************************/
 
 #include "pdfinfo.h"
+
 #include "PdfNamesTree.h"
 
 
@@ -167,24 +168,21 @@ void PdfInfo::OutputOneName( std::ostream& sOutStream, PoDoFo::PdfNamesTree* inT
 							 const std::string& inTitle, const std::string& inKey )
 {
     sOutStream << "\t" << inTitle << std::endl;
+    PoDoFo::PdfDictionary dict;
+    inTreeObj->ToDictionary( PoDoFo::PdfName( inKey ), dict );
 
-/*
-    PoDoFo::PdfObject* arrObj = inTreeObj->GetOneArrayOfNames( PoDoFo::PdfName( inKey ), PoDoFo::ePdfDontCreateObject );
-    if ( arrObj ) {
-        PoDoFo::PdfArray&	arr = arrObj->GetArray();
-        
-        // a names array is a set of PdfString/PdfObject pairs
-        // so we loop in sets of two - getting each pair
-        for ( unsigned int i=0; i<arr.size(); i+=2 ) {	
-            const PoDoFo::PdfString&	theName = arr[i].GetString();
-            const PoDoFo::PdfObject&	theVal = arr[i+1];
-            
-            sOutStream << "\t\t" << theName.GetString() << "=" << theVal.Reference().ToString() << std::endl;
-        }
-    } else {
-        sOutStream << "\t\tNone Found" << std::endl;
+    const PoDoFo::TKeyMap& keys = dict.GetKeys();
+    PoDoFo::TCIKeyMap      it   = keys.begin();
+
+    std::string str;
+    while( it != keys.end() )
+    {
+        (*it).second->ToString( str );
+        sOutStream << "\t-> " << (*it).first.GetName().c_str() << "=" << str << std::endl;
+        ++it;
     }
-*/
+
+    sOutStream << std::endl;
 }
 
 void PdfInfo::OutputNames( std::ostream& sOutStream )

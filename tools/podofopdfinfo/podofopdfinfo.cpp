@@ -59,7 +59,7 @@ int main( int argc, char* argv[] )
       std::cout << "----------------" << std::endl;
       myInfo.OutputInfoDict( std::cout );
       std::cout << std::endl;
-      
+
       std::cout << "Page Info" << std::endl;
       std::cout << "---------" << std::endl;
       myInfo.OutputPageInfo( std::cout );
@@ -72,12 +72,15 @@ int main( int argc, char* argv[] )
       std::cout << "-----" << std::endl;
       myInfo.OutputNames( std::cout );
 
-    } catch( PoDoFo::PdfError & e ) {
+  } catch( PoDoFo::PdfError & e ) {
       fprintf( stderr, "Error: An error %i ocurred during uncompressing the pdf file.\n", e.GetError() );
       e.PrintErrorMsg();
       return e.GetError();
+
   }
   
+  std::cout << "All information written sucessfully.\n" << std::endl << std::endl;
+
   return 0;
 }
 

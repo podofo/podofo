@@ -143,8 +143,6 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
         {
             PdfObject* pgObject = GetPageFromKidArray( kidsArray, i );
             
-            //printf("nPagesSeenSoFar=%i %p Looking for %i\n", nPagesSeenSoFar, pgObject, nPageNum );
-            
             // if it's a Page, then is it the right page??
             // otherwise, it's a Pages, and we need to recurse
             if ( pgObject->GetDictionary().GetKeyAsName( PdfName( "Type" ) ) == PdfName( "Page" ) )

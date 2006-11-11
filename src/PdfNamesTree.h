@@ -26,10 +26,18 @@
 
 namespace PoDoFo {
 
+class PdfDictionary;
+class PdfName;
 class PdfObject;
 class PdfString;
 class PdfVecObjects;
-class PdfName;
+
+typedef enum EPdfNameLimits {
+    ePdfNameLimits_Before,
+    ePdfNameLimits_Inside,
+    ePdfNameLimits_After
+};
+
 
 /** An action that can be performed in a PDF document
  */
@@ -49,28 +57,50 @@ class PODOFO_API PdfNamesTree : public PdfElement {
     virtual ~PdfNamesTree() { }
 
     /** Insert a key and value in one of the dictionaries of the name tree.
-     *  \param dictionary the name of the dictionary to search in.
+     *  \param tree name of the tree to search for the key.
      *  \param key the key to insert. If it exists, it will be overwritten.
      *  \param rValue the value to insert.
      */
-    void AddValue( const PdfName & dictionary, const PdfString & key, const PdfObject & rValue );
+    void AddValue( const PdfName & tree, const PdfString & key, const PdfObject & rValue );
 
     /** Get the object referenced by a string key in one of the dictionaries
      *  of the name tree.
-     *  \param dictionary the name of the dictionary to search in.
+     *  \param tree name of the tree to search for the key.
      *  \param key the key to search for
      *  \returns the value of the key or NULL if the key was not found.
      *           if the value is a reference, the object referenced by 
      *           this reference is returned.
      */
-    PdfObject* GetValue( const PdfName & dictionary, const PdfString & key ) const;
+    PdfObject* GetValue( const PdfName & tree, const PdfString & key ) const;
 
     /** Tests wether a certain nametree has a value.
-     *  \param dictionary name of the dictionary to search for the key.
+     *
+     *  It is generally faster to use GetValue and check for NULL
+     *  as return value.
+     *  
+     *  \param tree name of the tree to search for the key.
      *  \param key name of the key to look for
      *  \returns true if the dictionary has such a key.
      */
-    bool HasValue( const PdfName & dictionary, const PdfString & key ) const;
+    bool HasValue( const PdfName & tree, const PdfString & key ) const;
+
+    /** Tests wether a key is in the range of a limits entry of a name tree node
+     *  \returns ePdfNameLimits_Inside if the key is inside of the range
+     *  \returns ePdfNameLimits_After if the key is greater than the specified range
+     *  \returns ePdfNameLimits_Before if the key is smalelr than the specified range
+     *
+     *  Internal use only.
+     */
+    static EPdfNameLimits CheckLimits( const PdfObject* pObj, const PdfString & key );
+
+    /** 
+     * Adds all keys and values from a name tree to a dictionary.
+     * Removes all keys that have been previously in the dictionary.
+     * 
+     * \param tree the name of the tree to convert into a dictionary
+     * \param rDict add all keys and values to this dictionary
+     */
+    void ToDictionary( const PdfName & dictionary, PdfDictionary& rDict );
 
  private:
     /** Get a PdfNameTrees root node for a certain name.
@@ -99,32 +129,12 @@ class PODOFO_API PdfNamesTree : public PdfElement {
      */
     PdfObject* GetKeyValue( PdfObject* pObj, const PdfString & key ) const;
 
-    /** Inserts key into a names array if it fits into the limits.
-     *  \param pObject try this object and all its kids.
-     *  \param key write to this key
-     *  \param rValue value of the key.
-     *  \param pParent parent node of this value of NULL for root node
-     *  \returns true if the key was inserted and false if not.
+    /** 
+     *  Add all keys and values from an object and its children to a dictionary.
+     *  \param pObj a pdf name tree node
+     *  \param rDict a dictionary
      */
-    bool AddKeyValue( PdfObject* pObject, const PdfString & key, const PdfObject & rValue, PdfObject* pParent );
-
-    /** Tests wether a key is in the range of a limits entry of a name tree node
-     *  \returns true if the key is in the range of this nametree node and false otherwise
-     */
-    bool CheckLimitsInside( const PdfObject* pObj, const PdfString & key ) const;
-
-    /** Tests wether a key is before a limits entry of a name tree node
-     *  \returns true if the key is in the range of this nametree node and false otherwise
-     */
-    bool CheckLimitsBefore( const PdfObject* pObj, const PdfString & key ) const;
-
-    /** Tests wether a key is after a limits entry of a name tree node
-     *  \returns true if the key is in the range of this nametree node and false otherwise
-     */
-    bool CheckLimitsAfter( const PdfObject* pObj, const PdfString & key ) const;
-
-    void Rebalance( PdfObject* pObj, PdfObject* pParent );
-    void SetLimits( PdfObject* pObj ) ;
+    void AddToDictionary( PdfObject* pObj, PdfDictionary & rDict );
 
  private:
     PdfObject*	m_pCatalog;

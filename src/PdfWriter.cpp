@@ -239,6 +239,7 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& ve
 {
     TCIVecObjects       itObjects  = vecObjects.begin();
     int                 index;
+    int                 written    = 0;
     TXRefTable          tXRef;
 
     this->CompressObjects( vecObjects );
@@ -264,6 +265,7 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& ve
 
         (*itObjects)->WriteObject( pDevice );
 
+        ++written;
         ++itObjects;
     }
 
@@ -275,6 +277,7 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& ve
         tXRef.vecOffsets[0].lOffset     = (itFree == vecObjects.GetFreeObjects().end() ? 0 : (*itFree).ObjectNumber());
         tXRef.vecOffsets[0].lGeneration = EMPTY_OBJECT_OFFSET;
         tXRef.vecOffsets[0].cUsed       = 'f';
+        ++written;
     }
 
     while( itFree != vecObjects.GetFreeObjects().end() )
@@ -285,9 +288,8 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& ve
             ++itFree;
             continue;
         }
-            
+  
         index = (*itFree).ObjectNumber() - tXRef.nFirst;
-
         ++itFree;
 
         if( index < static_cast<int>(tXRef.vecOffsets.size()) )
@@ -296,13 +298,13 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& ve
             tXRef.vecOffsets[index].lOffset     = (itFree == vecObjects.GetFreeObjects().end() ? 0 : (*itFree).ObjectNumber());
             tXRef.vecOffsets[index].lGeneration = (itFree == vecObjects.GetFreeObjects().end() ? 1 : 0);
             tXRef.vecOffsets[index].cUsed       = 'f';
+            ++written;
         }
     }
 
-    // make sure that there are no spare objects at the end of the list
-    tXRef.vecOffsets.resize( index );
+    // This is still not really correct
+    tXRef.vecOffsets.resize( written );
     tXRef.nCount = tXRef.vecOffsets.size();
-
     pVecXRef->push_back( tXRef );
 }
 
@@ -317,6 +319,15 @@ void PdfWriter::WriteXRefEntries( PdfOutputDevice* pDevice, const TVecOffsets & 
 
     while( itOffsets != vecOffsets.end() )
     {
+        if( !(*itOffsets).cUsed ) 
+        {
+            ++itOffsets;
+            continue;
+            // TODO: only here for debugging,
+            // remove as this will slow down stuff
+            //RAISE_ERROR( ePdfError_InternalLogic );
+        }
+
         pDevice->Print( "%0.10i %0.5i %c \n", (*itOffsets).lOffset, (*itOffsets).lGeneration, (*itOffsets).cUsed );
         ++itOffsets;
     }

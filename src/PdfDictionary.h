@@ -150,11 +150,13 @@ class PODOFO_API PdfDictionary : public PdfDataType {
      */
     inline TKeyMap & GetKeys();
 
- private: TKeyMap      m_mapKeys; };
+ private: 
+    TKeyMap      m_mapKeys; 
+};
 
-typedef std::vector<PdfDictionary*>      TVecDictionaries; typedef
-	TVecDictionaries::iterator       TIVecDictionaries; typedef
-	TVecDictionaries::const_iterator TCIVecDictionaries;
+typedef std::vector<PdfDictionary*>      TVecDictionaries; 
+typedef	TVecDictionaries::iterator       TIVecDictionaries; 
+typedef	TVecDictionaries::const_iterator TCIVecDictionaries;
 
 // -----------------------------------------------------
 // 

@@ -328,9 +328,7 @@ const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc )
     TCIPdfReferenceList itFree = rDoc.GetObjects().GetFreeObjects().begin();
     while( itFree != rDoc.GetObjects().GetFreeObjects().end() )
     {
-        int n = (*itFree).ObjectNumber() + difference;
-        if( n < m_vecObjects.size() )
-            m_vecObjects.AddFreeObject( PdfReference( n, 0 ) );
+        m_vecObjects.AddFreeObject( PdfReference( (*itFree).ObjectNumber() + difference, 0 ) );
 
         ++itFree;
     }

@@ -436,13 +436,15 @@ int main( int argc, char* argv[] )
 
     /** Create a really large name tree to test the name tree implementation
      */
-    for( int zz=1;zz<50;zz++ ) 
+    for( int zz=1;zz<500;zz++ ) 
     {
         std::ostringstream oss;
         oss << "A" << zz;
 
         writer.GetNamesTree()->AddValue( "TestDict", PdfString( oss.str() ), PdfVariant( (long)zz )  );
     }
+
+    writer.GetNamesTree()->AddValue( "TestDict", PdfString( "Berta" ), PdfVariant( (long)42 )  );
 
     printf("Setting document informations.\n\n");
     // Setup the document information dictionary
