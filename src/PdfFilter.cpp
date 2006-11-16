@@ -735,6 +735,8 @@ void PdfLZWFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffe
     unsigned int buffer_size      = 0;
     const unsigned int buffer_max = 24;
     
+    *ppOutBuffer = NULL;
+    *plOutLen    = 0;
 
     InitTable( &table );
 
@@ -777,7 +779,9 @@ void PdfLZWFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffe
                 if( code >= table.size() )
                 {
                     if (old >= table.size())
+                    {
                         RAISE_ERROR( ePdfError_ValueOutOfRange );
+                    }
                     data = table[old].value;
                     data.push_back( character );
                 }
