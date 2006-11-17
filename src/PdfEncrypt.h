@@ -27,6 +27,8 @@
 namespace PoDoFo {
 
 /// Class representing PDF encryption methods. (For internal use only)
+/// Based on code from Ulrich Telle: http://wxcode.sourceforge.net/components/wxpdfdoc/
+
 class PODOFO_API PdfEncrypt
 {
 public:
