@@ -120,6 +120,7 @@ class PODOFO_API PdfPainter {
      */
     void SetColorCMYK( double c, double m, double y, double k );
 
+
     /** Set the line width for all stroking operations.
      *  \param dWidth in PDF User Units.
      */
@@ -416,17 +417,15 @@ class PODOFO_API PdfPainter {
      */
     void SetTransformationMatrix( double a, double b, double c, double d, double e, double f );
 
-	/** Sets a specific PdfExtGState as being active
-	 *	\param inGState the specific ExtGState to set
-	 */
-	void SetExtGState( PdfExtGState* inGState );
-
-	/** Sets a specific rendering intent
-	 *	\param intent the specific intent to set
-	 */
-	void SetRenderingIntent( char* intent );
-
-
+    /** Sets a specific PdfExtGState as being active
+     *	\param inGState the specific ExtGState to set
+     */
+    void SetExtGState( PdfExtGState* inGState );
+    
+    /** Sets a specific rendering intent
+     *	\param intent the specific intent to set
+     */
+    void SetRenderingIntent( char* intent );
 
     /** Set the tab width for the DrawText operation.
      *  Every tab '\\t' is replaced with nTabWidth 

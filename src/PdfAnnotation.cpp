@@ -134,6 +134,25 @@ pdf_uint32 PdfAnnotation::GetFlags() const
     return static_cast<pdf_uint32>(0);
 }
 
+void PdfAnnotation::SetBorderStyle( double dHCorner, double dVCorner, double dWidth )
+{
+    this->SetBorderStyle( dHCorner, dVCorner, dWidth, PdfArray() );
+}
+
+void PdfAnnotation::SetBorderStyle( double dHCorner, double dVCorner, double dWidth, const PdfArray & rStrokeStyle )
+{
+    // TODO : Support for Border style for PDF Vers > 1.0
+    PdfArray aValues;
+
+    aValues.push_back(dHCorner);
+    aValues.push_back(dVCorner);
+    aValues.push_back(dWidth);
+    if( rStrokeStyle.size() )
+        aValues.push_back(rStrokeStyle);
+
+    m_pObject->GetDictionary().AddKey( "Border", aValues );
+}
+
 void PdfAnnotation::SetTitle( const PdfString & sTitle )
 {
     m_pObject->GetDictionary().AddKey( "T", sTitle );
@@ -146,7 +165,6 @@ PdfString PdfAnnotation::GetTitle() const
 
     return PdfString();
 }
-
 
 void PdfAnnotation::SetContents( const PdfString & sContents )
 {
