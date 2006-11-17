@@ -1,5 +1,6 @@
-PoDoFo 0.3
+PoDoFo 0.4
     - Add configure checks for zlib, freetype and fontconfig
+    - Do not inherit from PdfTokenizer
 
 FUTURE
     - PdfString needs to handle (optionally?) encoding & decoding of Unicode strings
