@@ -31,7 +31,6 @@ SET(PODOFO_SOURCES
     PdfPainter.cpp
     PdfPainterMM.cpp
     PdfParser.cpp
-    PdfParserBase.cpp
     PdfParserObject.cpp
     PdfRect.cpp
     PdfRefCountedBuffer.cpp
@@ -39,6 +38,7 @@ SET(PODOFO_SOURCES
     PdfReference.cpp
     PdfStream.cpp
     PdfString.cpp
+    PdfTokenizer.cpp
     PdfVariant.cpp
     PdfVecObjects.cpp
     PdfWriter.cpp
@@ -79,7 +79,6 @@ SET(PODOFO_HEADERS
 	PdfPainter.h
 	PdfPainterMM.h
 	PdfParser.h
-	PdfParserBase.h
 	PdfParserObject.h
 	PdfRect.h
 	PdfRefCountedBuffer.h
@@ -87,6 +86,7 @@ SET(PODOFO_HEADERS
 	PdfReference.h
 	PdfStream.h
 	PdfString.h
+	PdfTokenizer.h
 	PdfVariant.h
 	PdfVecObjects.h
 	PdfWriter.h

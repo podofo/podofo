@@ -38,6 +38,14 @@ PdfRefCountedInputDevice::PdfRefCountedInputDevice( const char* pszFilename, con
     m_pDevice->m_pDevice   = new PdfInputDevice( pszFilename );
 }
 
+PdfRefCountedInputDevice::PdfRefCountedInputDevice( const char* pBuffer, long lLen )
+    : m_pDevice( NULL )
+{
+    m_pDevice              = new TRefCountedInputDevice();
+    m_pDevice->m_lRefCount = 1;
+    m_pDevice->m_pDevice   = new PdfInputDevice( pBuffer, lLen );
+}
+
 PdfRefCountedInputDevice::PdfRefCountedInputDevice( const PdfRefCountedInputDevice & rhs )
     : m_pDevice( NULL )
 {

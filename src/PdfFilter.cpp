@@ -21,7 +21,7 @@
 #include "PdfDefines.h"
 #include "PdfFilter.h"
 
-#include "PdfParserBase.h"
+#include "PdfTokenizer.h"
 #include "PdfDictionary.h"
 
 #include <zlib.h>
@@ -159,11 +159,11 @@ void PdfHexFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffe
 
     while( i < lInLen )
     {
-        while( PdfParserBase::IsWhitespace( pInBuffer[i] ) )
+        while( PdfTokenizer::IsWhitespace( pInBuffer[i] ) )
             ++i;
         hi  = pInBuffer[i++];
 
-        while( PdfParserBase::IsWhitespace( pInBuffer[i] ) )
+        while( PdfTokenizer::IsWhitespace( pInBuffer[i] ) )
             ++i;
         low = pInBuffer[i++];
 

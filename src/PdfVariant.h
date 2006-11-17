@@ -111,15 +111,6 @@ class PODOFO_API PdfVariant {
 
     virtual ~PdfVariant();
     
-    /** Initialize a PdfVariant object from string data.
-     *  \param pszData a string that will be parsed.
-     *  \param nLen length of the buffer, if 0 the buffer is assumed to be zero terminated.
-     *  \param pLen if not null the length of the string that was 
-     *              parsed is returned in this parameter
-     *  \returns ErrOk on success
-     */
-    void Parse( const char * const pszData, int nLen = 0, long* pLen = NULL );
-
     /** \returns true if this PdfVariant is empty.
      *           i.e. m_eDataType == ePdfDataType_Null
      */
@@ -358,9 +349,6 @@ class PODOFO_API PdfVariant {
      *  \returns a array
      */
     inline PdfArray & GetArray_NoDL();
-
- private:
-    void DetermineDataType( const char* pszData, long nLen, EPdfDataType* eDataType, long* pLen = NULL );
 
  private:
     /** To reduce memory usage of this very often used class,

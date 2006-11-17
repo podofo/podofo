@@ -157,6 +157,7 @@ AC_OUTPUT( [
 	   test/CreationTest/Makefile 
 	   test/WatermarkTest/Makefile 
 	   test/LargeTest/Makefile 
+	   test/TokenizerTest/Makefile
 	   tools/Makefile 
 	   tools/podofoimgextract/Makefile 
 	   tools/podofouncompress/Makefile 

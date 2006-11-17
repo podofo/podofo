@@ -22,8 +22,8 @@
 #define _PDF_PARSER_OBJECT_H_
 
 #include "PdfDefines.h"
-#include "PdfParserBase.h"
 #include "PdfObject.h"
+#include "PdfTokenizer.h"
 
 namespace PoDoFo {
 
@@ -33,7 +33,7 @@ class PdfParser;
  * A PdfParserObject constructs a PdfObject from a PDF file.
  * Parsing starts always at the current file position.
  */
-class PODOFO_API PdfParserObject : public PdfObject, public PdfParserBase {
+class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
 
  public:
     /** Parse the object data from the given file handle starting at
@@ -76,13 +76,6 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfParserBase {
      *  \returns true if there is a stream
      */
     inline bool HasStreamToParse() const;
-
-    /** Parse the keys of a dictionary from a zero terminated buffer
-     *  \param psBuffer  buffer containing the dictioniaries data
-     *  \param lBufferLen length of the data buffer
-     *  \param plParsedLength if non null, the length of the parsed data is returned
-     */
-    void ParseDictionaryKeys( const char* psBuffer, long lBufferLen, long* plParsedLength = NULL );
 
     /** \returns true if this PdfParser loads all objects at
      *                the time they are accessed for the first time.
@@ -137,8 +130,6 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfParserBase {
      */
     void ParseFileComplete( bool bIsTrailer );
 
-    void ParseValue( char** szBuffer, std::string & sKey, std::string & sValue  );
-    void DetermineDataType( char c, int & counter, EPdfDataType & eDataType ) const;
     void ReadObjectNumber();
 
  private:

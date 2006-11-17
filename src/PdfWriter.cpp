@@ -303,7 +303,7 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& ve
     }
 
     // This is still not really correct
-    tXRef.vecOffsets.resize( written );
+    //tXRef.vecOffsets.resize( written );
     tXRef.nCount = tXRef.vecOffsets.size();
     pVecXRef->push_back( tXRef );
 }

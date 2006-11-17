@@ -23,6 +23,7 @@
 
 #include "PdfFilter.h"
 #include "PdfName.h"
+#include "PdfTokenizer.h"
 
 #include <iostream>
 
@@ -101,7 +102,9 @@ void Test( const char* pszString, EPdfDataType eDataType, const char* pszExpecte
         pszExpected = pszString;
 
     printf("Testing with value: %s\n", pszString );
-    variant.Parse( pszString, strlen( pszString ), &lLen );
+    PdfTokenizer tokenizer( pszString, strlen( pszString ) );
+
+    tokenizer.GetNextVariant( variant );
 
     printf("   -> Expected Datatype: %i\n", eDataType );
     printf("   -> Got      Datatype: %i\n", variant.GetDataType() );
@@ -113,12 +116,6 @@ void Test( const char* pszString, EPdfDataType eDataType, const char* pszExpecte
     variant.ToString( ret );
     printf("   -> Convert To String: %s\n", ret.c_str() );
     if( strcmp( pszExpected, ret.c_str() ) != 0 )
-    {
-        RAISE_ERROR( ePdfError_TestFailed );
-    }
-
-    printf("   -> Parsed Length    : %li (%i)\n", lLen, static_cast<int>(strlen(pszExpected)) );
-    if( lLen != static_cast<int>(strlen( pszExpected )) )
     {
         RAISE_ERROR( ePdfError_TestFailed );
     }

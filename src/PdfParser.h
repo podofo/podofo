@@ -22,7 +22,7 @@
 #define _PDF_PARSER_H_
 
 #include "PdfDefines.h"
-#include "PdfParserBase.h"
+#include "PdfTokenizer.h"
 #include "PdfVecObjects.h"
 
 #define W_ARRAY_SIZE 3
@@ -40,7 +40,7 @@ typedef TMapObjects::const_iterator TCIMapObjects;
  * the PdfWriter class.
  * Most PDF features are supported
  */
-class PODOFO_API PdfParser : public PdfParserBase {
+class PODOFO_API PdfParser : public PdfTokenizer {
     friend class PdfDocument;
     friend class PdfWriter;
 
@@ -117,6 +117,16 @@ class PODOFO_API PdfParser : public PdfParserBase {
     size_t GetFileSize() const { return m_nFileSize; }
 
  protected:
+    /** Searches backwards from the end of the file
+     *  and tries to find a token.
+     *  The current file is positioned right after the token.
+     * 
+     *  \param pszToken a token to find
+     *  \param lRange range in bytes in which to search
+     *                begining at the end of the file
+     */
+    void FindToken( const char* pszToken, long lRange );
+
     /** Reads the xref sections and the trailers of the file
      *  in the correct order in the memory
      *  and takes care for linearized pdf files.

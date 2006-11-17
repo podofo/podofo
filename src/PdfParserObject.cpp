@@ -40,7 +40,7 @@ static const int s_nLenStream    = 6; // strlen("stream");
 static const int s_nLenEndStream = 9; // strlen("endstream");
 
 PdfParserObject::PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer, long lOffset )
-    : PdfObject( PdfReference( 0, 0 ), static_cast<const char*>(NULL)), PdfParserBase( rDevice, rBuffer )
+    : PdfObject( PdfReference( 0, 0 ), static_cast<const char*>(NULL)), PdfTokenizer( rDevice, rBuffer )
 {
     m_pParent = pParent;
 
@@ -50,7 +50,7 @@ PdfParserObject::PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedInp
 }
 
 PdfParserObject::PdfParserObject( const PdfRefCountedBuffer & rBuffer )
-    : PdfObject( PdfReference( 0, 0 ), static_cast<const char*>(NULL)), PdfParserBase( PdfRefCountedInputDevice(), rBuffer )
+    : PdfObject( PdfReference( 0, 0 ), static_cast<const char*>(NULL)), PdfTokenizer( PdfRefCountedInputDevice(), rBuffer )
 {
     InitPdfParserObject();
 }
@@ -83,21 +83,17 @@ void PdfParserObject::InitPdfParserObject()
 
 void PdfParserObject::ReadObjectNumber()
 {
-    long number;
-
     try {
-        number = GetNextNumberFromFile();
+        long obj = this->GetNextNumber();
+        long gen = this->GetNextNumber();
 
-        m_reference.SetObjectNumber( number );
-        number = GetNextNumberFromFile();
-        m_reference.SetGenerationNumber( number );
+        m_reference = PdfReference( obj, gen );
     } catch( PdfError & e ) {
         std::string errStr( e.what() );       // avoid compiler warning and in case we need it...
         RAISE_ERROR_INFO( ePdfError_NoObject, "object and generation number cannot be read." );
     }
-
-    GetNextStringFromFile( );
-    if( strncmp( m_buffer.GetBuffer(), "obj", 3 ) != 0 )
+    
+    if( !this->IsNextToken( "obj" ))
     {
         RAISE_ERROR( ePdfError_NoObject );
     }
@@ -161,160 +157,19 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     assert(DelayedLoadInProgress());
     assert(!DelayedLoadDone());
 #endif
-    int          c;
-    int          counter         = 0;
-    int          nObjCount       = 0;
-    char*        szData          = m_buffer.GetBuffer();
-    long         lDataLen        = this->GetBufferSize();
-    bool         bOwnBuffer      = false;
-    bool         bStringMode     = false;
-    bool         bHexStringMode  = false;
-    bool         bIgnoreNextChar = false;    
-    EPdfDataType eDataType       = ePdfDataType_Unknown;
+    const char* pszToken;
 
     m_device.Device()->Seek( m_lOffset );
+    this->GetNextVariant( *this );
 
-//#error " TODO: PdfParserBase::SkipWhiteSpace();"
 
-    // skip all whitespace
-    while( (c = m_device.Device()->GetChar()) != EOF )
+    if( !bIsTrailer )
     {
-        if( !PdfParserBase::IsWhitespace( c ) )
-        {
-            m_buffer.GetBuffer()[counter] = c;
-            ++counter;
-            break;
-        }
-    }
-
-    DetermineDataType( c, counter, eDataType );
-    while( (c = m_device.Device()->GetChar()) != EOF )
-    {
-        if( counter == lDataLen )
-        {
-            lDataLen = lDataLen << 1; // lDataLen *= 2
-
-            if( bOwnBuffer )
-                szData = static_cast<char*>(realloc( szData, lDataLen * sizeof(char) ));
-            else
-            {
-                szData = static_cast<char*>(malloc( lDataLen * sizeof(char) ));
-                memcpy( szData, m_buffer.GetBuffer(), lDataLen >> 1 );
-                bOwnBuffer = true;
-            }
-
-            if( !szData )
-            {
-                RAISE_ERROR( ePdfError_OutOfMemory );
-            }
-        }
-
-        szData[counter] = c;
-        ++counter;
-
-        if( eDataType == ePdfDataType_Array )
-        {
-            if( c == '[' )
-                ++nObjCount;
-            else if( c == ']' )
-            {
-                if( !nObjCount )
-                    break;
-                --nObjCount;
-            }
-        }
-        else if( eDataType == ePdfDataType_String ) 
-        {
-            // we have to handle specialstrings like (Hallo\\) correctly
-            // as well as (Hallo\))
-            if( !bIgnoreNextChar && c == ')' )
-                break;
-
-            bIgnoreNextChar = ( c == '\\' && !bIgnoreNextChar);
-        }
-        else if( eDataType == ePdfDataType_HexString && c == '>' )
-        {
-            break;
-        }
-        else if( eDataType == ePdfDataType_Dictionary )
-        {
-            if( c == '<' && !bStringMode && !bHexStringMode )
-            {
-                szData[counter] = m_device.Device()->GetChar();
-                if( szData[counter] == '<' )
-                    ++nObjCount;
-                else 
-                    bHexStringMode = true;
-                ++counter;
-            }
-            else if( c == '>' && !bStringMode )
-            {
-                if( bHexStringMode )
-                    bHexStringMode = false;
-                else
-                {
-                    szData[counter] = m_device.Device()->GetChar();
-                    if( szData[counter] == '>' )
-                    {
-                        ++counter;
-                        if( !nObjCount )
-                            break;
-                        --nObjCount;
-                    }
-                    else
-                        ++counter;
-                }
-            }
-            else if( c == '(' && !bStringMode ) // start string mode...
-            {
-                bStringMode = true;
-            }
-            else if( c == ')' && bStringMode )
-            {
-                // we have to handle specialstrings like (Hallo\\) correctly
-                // as well as (Hallo\))
-
-                // we have to increase every value by 1 as counter has been 
-                // increased at the beginning of the loop
-                if( counter >= 3 && 
-                    szData[counter-2] == '\\' && szData[counter-3] == '\\' )
-                    bStringMode = false; 
-                else if( counter >= 2 && szData[counter-2] == '\\' )
-                    bStringMode = true; 
-                else
-                    bStringMode = false; 
-            }
-        }
-        else 
-        {
-            if( (counter >= s_nLenEndObj) && strncmp( (szData + counter - s_nLenEndObj), "endobj", s_nLenEndObj ) == 0 )
-            {
-                counter -= s_nLenEndObj;
-                break;
-            }
-        }
-    }
-    szData[counter] = '\0';
-
-    if( eDataType == ePdfDataType_Dictionary )
-    {
-        this->ParseDictionaryKeys( szData, counter );
-    }
-    else
-    {
-        this->Parse( szData, counter );
-    }
-
-    if( bOwnBuffer )
-        free( szData );
-
-    if( !bIsTrailer && eDataType != ePdfDataType_Unknown )
-    {
-        GetNextStringFromFile( );
-        if( strncmp( m_buffer.GetBuffer(), "endobj", s_nLenEndObj ) == 0 )
+        pszToken = this->GetNextToken();
+        if( strncmp( pszToken, "endobj", s_nLenEndObj ) == 0 )
             ; // nothing to do, just validate that the PDF is correct
         // If it's a dictionary, it might have a stream, so check for that
-        else if ( eDataType == ePdfDataType_Dictionary && strncmp( m_buffer.GetBuffer(), "stream", s_nLenStream ) == 0 )
+        else if( this->IsDictionary() && strncmp( pszToken, "stream", s_nLenStream ) == 0 )
         {
             m_bStream = true;
             m_lStreamOffset = m_device.Device()->Tell(); // NOTE: whitespace after "stream" handle in stream parser!
@@ -335,73 +190,6 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     }
 }
 
-// This method may be called during delayed loading or directly.
-void PdfParserObject::ParseDictionaryKeys( const char* szBuffer, long lBufferLen, long* plParsedLength )
-{
-    const char *     szInitial = szBuffer;
-    PdfVariant       cVariant;
-    long             lLen;
-
-    // FIXME: Testing for *szBuffer=0 when buffer need not be null-terminated
-    // skip leading << if present
-    while( *szBuffer && *szBuffer == '<' )
-        ++szBuffer;
-
-    // We can't assume the buffer is 0-terminated, so check length
-    while( (szBuffer-szInitial) < lBufferLen && *szBuffer )
-    {
-        if( *szBuffer == '/' )
-        {
-            try {
-                cVariant.Parse( szBuffer, lBufferLen-(szBuffer-szInitial), &lLen );
-            } catch( PdfError & e ) {
-                e.AddToCallstack( __FILE__, __LINE__, "Parsing dictionary key" );
-                throw e;
-            }
-
-            szBuffer+=lLen;
-
-            if( cVariant.GetDataType() != ePdfDataType_Name )
-            {
-                RAISE_ERROR( ePdfError_NoObject );
-            }
-            
-            const PdfName cName(cVariant.GetName());
-
-            while( *szBuffer && PdfParserBase::IsWhitespace( *szBuffer ) )
-                ++szBuffer;
-
-            try {
-                cVariant.Parse( szBuffer, lBufferLen-(szBuffer-szInitial), &lLen );
-            } catch( PdfError & e ) {
-                e.AddToCallstack( __FILE__, __LINE__, "Parsing dictionary value" );
-                throw e;
-            }
-
-            szBuffer+=lLen;
-
-#ifdef PODOFO_VERBOSE_DEBUG
-            string           sValue;
-            sValue.reserve( KEY_BUFFER );
-            cVariant.ToString( sValue );
-            PdfError::DebugMessage("Key: (%s) Got Value: (%s) %i belongs to: %s\n", cName.GetName().c_str(), sValue.c_str(), (int)cVariant.GetDataType(), this->Reference().ToString().c_str() );
-
-#endif // PODOFO_VERBOSE_DEBUG
-            this->GetDictionary_NoDL().AddKey( cName, cVariant );
-        }
-        else if( *szBuffer == '>' )
-        {
-            ++szBuffer;
-            if( *szBuffer == '>' )
-                break;
-        }
-        else
-            ++szBuffer;
-    }
-
-    if( plParsedLength )
-        *plParsedLength = szBuffer - szInitial;
-}
 
 // Only called during delayed loading. Must be careful to avoid
 // triggering recursive delay loading due to use of accessors of
@@ -430,7 +218,7 @@ void PdfParserObject::ParseStream()
     // either a carriage return and a line feed or just a line feed, and not by a carriage re-
     // turn alone.
     c = m_device.Device()->Look();
-    if( PdfParserBase::IsWhitespace( c ) )
+    if( PdfTokenizer::IsWhitespace( c ) )
     {
         c = m_device.Device()->GetChar();
 
@@ -499,34 +287,6 @@ void PdfParserObject::ParseStream()
     */
 }
 
-// Called as part of demand loading process. Be careful not to trigger
-// a recursive demand load via PdfObject or PdfVariant calls.
-void PdfParserObject::DetermineDataType( char c, int & counter, EPdfDataType & eDataType ) const
-{
-#if defined(PODOFO_EXTRA_CHECKS)
-    assert(DelayedLoadInProgress());
-    assert(!DelayedLoadDone());
-#endif
-    switch( c )
-    {
-        case '[':
-            eDataType = ePdfDataType_Array;
-            break;
-        case '(':
-            eDataType = ePdfDataType_String;
-            break;
-        case '<':
-            eDataType = ePdfDataType_HexString;
-
-            m_buffer.GetBuffer()[counter] = m_device.Device()->GetChar();
-            if( m_buffer.GetBuffer()[counter] == '<' )
-                eDataType = ePdfDataType_Dictionary;
-            ++counter;
-            break;
-        default:
-            break;
-    }
-}
 
 void PdfParserObject::DelayedLoadImpl()
 {

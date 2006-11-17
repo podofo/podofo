@@ -18,7 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "PdfParserBase.h"
 #include "PdfParserObject.h"
 #include "PdfOutputDevice.h"
 #include "PdfWriter.h"
@@ -79,7 +78,7 @@ void PrintObject( const std::string & objectData, ostream & s, bool escapeNewlin
                 && (
                     ( !escapeNewlines && (ch == '\r' || ch == '\n') )
                     || ch == ' '
-                    || PdfParserBase::IsPrintable(ch)
+                    || PdfTokenizer::IsPrintable(ch)
                 )
            )
             cerr << ch;

@@ -39,12 +39,19 @@ class PODOFO_API PdfRefCountedInputDevice {
      */
     PdfRefCountedInputDevice();
 
-    /** Create a new PdfRefCountedFile. 
+    /** Create a new PdfRefCountedInputDevice which reads from a file. 
      *  The file is opened using fopen()
      *  \param pszFilename a filename to be passed to fopen
      *  \param pszMode a mode string that can be passed to fopen
      */
     PdfRefCountedInputDevice( const char* pszFilename, const char* pszMode );
+
+    /** Create a new PdfRefCountedInputDevice which operates on a in memory buffer
+     *  
+     *  \param pBuffer pointer to the buffer
+     *  \param lLen length of the buffer
+     */
+    PdfRefCountedInputDevice( const char* pBuffer, long lLen );
 
     /** Copy an existing PdfRefCountedFile and increase
      *  the reference count

@@ -21,7 +21,7 @@
 #include "PdfName.h"
 
 #include "PdfOutputDevice.h"
-#include "PdfParserBase.h"
+#include "PdfTokenizer.h"
 
 using namespace std;
 
@@ -70,7 +70,7 @@ static std::string EscapeName(T it, size_t length)
             throw std::exception();
         else 
             // Leave room for either just the char, or a #xx escape of it.
-            outchars += (::PoDoFo::PdfParserBase::IsRegular(*it2) && ::PoDoFo::PdfParserBase::IsPrintable(*it2) && (*it2 != '#')) ? 1 : 3;
+            outchars += (::PoDoFo::PdfTokenizer::IsRegular(*it2) && ::PoDoFo::PdfTokenizer::IsPrintable(*it2) && (*it2 != '#')) ? 1 : 3;
         ++it2;
     }
     // Reserve it. We can't use reserve() because the GNU STL doesn't seem to
@@ -81,7 +81,7 @@ static std::string EscapeName(T it, size_t length)
     std::string::iterator bufIt(buf.begin());
     for (size_t i = 0; i < length; ++i)
     {
-        if (::PoDoFo::PdfParserBase::IsRegular(*it) && ::PoDoFo::PdfParserBase::IsPrintable(*it) && (*it != '#') )
+        if (::PoDoFo::PdfTokenizer::IsRegular(*it) && ::PoDoFo::PdfTokenizer::IsPrintable(*it) && (*it != '#') )
             *(bufIt++) = *it;
         else
         {
