@@ -11,8 +11,8 @@ libpodofo_la_LDFLAGS = -version-number @LT_VERSION_NUMBER@
 
 includedir = $(prefix)/include/podofo/
 
-include_HEADERS = podofo.h PdfDefines.h PdfObject.h PdfParser.h PdfParserObject.h \
-	PdfWriter.h PdfVariant.h \
+include_HEADERS = podofo.h podofoapi.h PdfDefines.h PdfObject.h PdfParser.h \
+	 PdfParserObject.h PdfWriter.h PdfVariant.h \
 	PdfPage.h PdfPainter.h PdfFont.h PdfFontMetrics.h PdfImage.h PdfStream.h \
 	PdfVecObjects.h PdfDate.h PdfAnnotation.h PdfRect.h PdfXObject.h \
 	PdfCanvas.h PdfOutputDevice.h PdfAction.h PdfError.h PdfString.h PdfName.h \
