@@ -99,6 +99,9 @@ DEBUG. Set the build type with the CMake argument:
 	-DCMAKE_BUILD_TYPE=RELEASE
 as appropriate.
 
+You can control where the files are installed with `make install' with
+	-DCMAKE_INSTALL_PREFIX=/path/to/install/dir
+
 All instructons below use out-of-tree builds (recommended). To clean up an
 out-of-tree build, just delete the build directory.
 
