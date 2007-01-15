@@ -252,7 +252,7 @@ class PODOFO_API PdfObject : public PdfVariant {
     unsigned long GetByteOffset( const char* pszKey );
 
     /**
-     * Dynamically load this object and any associated steam from a PDF file
+     * Dynamically load this object and any associated stream from a PDF file
      * by calling the virtual method DelayedStreamLoadImpl if the stream  is not
      * already loaded. Will call DelayedLoad() first if it is required.
      *

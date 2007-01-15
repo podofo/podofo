@@ -122,7 +122,7 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
  private:
     /** Initialize private members in this object with their default values
      */
-    void    InitPdfParserObject();
+    void InitPdfParserObject();
 
     /** Parse the object data from the given file handle 
      *  \param bIsTrailer wether this is a trailer dictionary or not.
