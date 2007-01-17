@@ -28,6 +28,7 @@ SET(PODOFO_SOURCES
     PdfObject.cpp
     PdfOutlines.cpp
     PdfOutputDevice.cpp
+    PdfOutputStream.cpp
     PdfPage.cpp
     PdfPagesTree.cpp
     PdfPainter.cpp
@@ -78,6 +79,7 @@ SET(PODOFO_HEADERS
 	PdfObject.h
 	PdfOutlines.h
 	PdfOutputDevice.h
+	PdfOutputStream.h
 	PdfPage.h
 	PdfPagesTree.h
 	PdfPainter.h
