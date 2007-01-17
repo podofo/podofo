@@ -26,9 +26,9 @@
 namespace PoDoFo {
 
 class PdfDictionary;
-struct TFlatePredictorParams;
 
-/** The interface that every PdfFilter has to implement.
+/** Every filter in PoDoFo has to implement this interface.
+ * 
  *  The two methods Encode and Decode have to be implemented 
  *  for every filter.
  *
@@ -41,6 +41,12 @@ class PODOFO_API PdfFilter {
      */
     virtual ~PdfFilter() {};
 
+    /** Check wether the encoding is implemented for this filter.
+     * 
+     *  \returns true if the filter is able to encode data
+     */
+    virtual bool CanEncode() const = 0; 
+
     /** Encodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
      *  
@@ -50,6 +56,18 @@ class PODOFO_API PdfFilter {
      *  \param plOutLen pointer to the length of the output buffer
      */
     virtual void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const = 0;
+
+    /*
+    virtual void StartEncode() = 0;
+    virutal void EncodeBlock( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const = 0;
+    virtual void EndEncode() = 0;
+    */
+
+    /** Check wether the decoding is implemented for this filter.
+     * 
+     *  \returns true if the filter is able to decode data
+     */
+    virtual bool CanDecode() const = 0; 
 
     /** Decodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
@@ -72,6 +90,9 @@ class PODOFO_API PdfFilter {
 };
 
 /** A factory to create a filter object for a filter GetType from the EPdfFilter enum.
+ * 
+ *  All filters should be created using this factory which does also caching of filter
+ *  instances.
  */
 class PODOFO_API PdfFilterFactory {
  public:
@@ -91,251 +112,6 @@ class PODOFO_API PdfFilterFactory {
     static std::map<EPdfFilter,PdfFilter*> s_mapFilters;
 };
 
-/** The ascii hex filter.
- */
-// FIXME CR: Should filter implementations be part of the API, given that they're created
-// by the FilterFactory ?
-class PODOFO_API PdfHexFilter : public PdfFilter {
- public:
-    virtual ~PdfHexFilter() {}
-
-    /** Encodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
-     *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the encoded data
-     *  \param plOutLen pointer to the length of the output buffer
-     */
-    virtual void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
-
-    /** Decodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
-     *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the decoded data
-     *  \param plOutLen pointer to the length of the output buffer
-     *  \param pDecodeParms optional pointer to an decode parameters dictionary
-     *                      containing additional information to decode the data.
-     *                      This pointer must be NULL if no decode parameter dictionary
-     *                      is available.
-     */
-    virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
-
-    /** GetType of this filter.
-     *  \returns the GetType of this filter
-     */
-    inline virtual EPdfFilter GetType() const;
 };
-
-EPdfFilter PdfHexFilter::GetType() const
-{
-    return ePdfFilter_ASCIIHexDecode;
-}
-
-/** The Ascii85 filter.
- */
-// FIXME CR: Should filter implementations be part of the API, given that they're created
-// by the FilterFactory ?
-class PODOFO_API PdfAscii85Filter : public PdfFilter {
- public:
-    virtual ~PdfAscii85Filter() {}
-
-    /** Encodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
-     *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the encoded data
-     *  \param plOutLen pointer to the length of the output buffer
-     */
-    virtual void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
-
-    /** Decodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
-     *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the decoded data
-     *  \param plOutLen pointer to the length of the output buffer
-     *  \param pDecodeParms optional pointer to an decode parameters dictionary
-     *                      containing additional information to decode the data.
-     *                      This pointer must be NULL if no decode parameter dictionary
-     *                      is available.
-     */
-    virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
-
-    /** GetType of this filter.
-     *  \returns the GetType of this filter
-     */
-    inline virtual EPdfFilter GetType() const;
-
- private:
-    void Encode ( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes ) const;
-    void WidePut( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes ) const;
-
-    static unsigned long sPowers85[];
-};
-
-EPdfFilter PdfAscii85Filter::GetType() const
-{
-    return ePdfFilter_ASCII85Decode;
-}
-
-/** The flate filter.
- */
-// FIXME CR: Should filter implementations be part of the API, given that they're created
-// by the FilterFactory ?
-class PODOFO_API PdfFlateFilter : public PdfFilter {
- public:
-    virtual ~PdfFlateFilter() {}
-
-    /** Encodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
-     *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the encoded data
-     *  \param plOutLen pointer to the length of the output buffer
-     */
-    virtual void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
-
-    /** Decodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
-     *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the decoded data
-     *  \param plOutLen pointer to the length of the output buffer
-     *  \param pDecodeParms optional pointer to an decode parameters dictionary
-     *                      containing additional information to decode the data.
-     *                      This pointer must be NULL if no decode parameter dictionary
-     *                      is available.
-     */
-    virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
-
-    /** GetType of this filter.
-     *  \returns the GetType of this filter
-     */
-    inline virtual EPdfFilter GetType() const;
-
-    void RevertPredictor( const TFlatePredictorParams* pParams, const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
-};
-
-EPdfFilter PdfFlateFilter::GetType() const
-{
-    return ePdfFilter_FlateDecode;
-}
-
-/** The RLE filter.
- */
-// FIXME CR: Should filter implementations be part of the API, given that they're created
-// by the FilterFactory ?
-class PODOFO_API PdfRLEFilter : public PdfFilter {
- public:
-    virtual ~PdfRLEFilter() {}
-
-    /** Encodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
-     *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the encoded data
-     *  \param plOutLen pointer to the length of the output buffer
-     */
-    virtual void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
-
-    /** Decodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
-     *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the decoded data
-     *  \param plOutLen pointer to the length of the output buffer
-     *  \param pDecodeParms optional pointer to an decode parameters dictionary
-     *                      containing additional information to decode the data.
-     *                      This pointer must be NULL if no decode parameter dictionary
-     *                      is available.
-     */
-    virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
-
-    /** GetType of this filter.
-     *  \returns the GetType of this filter
-     */
-    inline virtual EPdfFilter GetType() const;
-};
-
-EPdfFilter PdfRLEFilter::GetType() const
-{
-    return ePdfFilter_RunLengthDecode;
-}
-
-
-// FIXME CR: Should this be part of the exported API?
-struct PODOFO_API TLzwItem {
-    std::vector<unsigned char> value;
-};
-
-typedef std::vector<TLzwItem>     TLzwTable;
-typedef TLzwTable::iterator       TILzwTable;
-typedef TLzwTable::const_iterator TCILzwTable;
-
-/** The LZW filter.
- */
-// FIXME CR: Should filter implementations be part of the API, given that they're created
-// by the FilterFactory ?
-class PODOFO_API PdfLZWFilter : public PdfFilter {
- public:
-    virtual ~PdfLZWFilter() {}
-
-    /** Encodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
-     *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the encoded data
-     *  \param plOutLen pointer to the length of the output buffer
-     */
-    virtual void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
-
-    /** Decodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
-     *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the decoded data
-     *  \param plOutLen pointer to the length of the output buffer
-     *  \param pDecodeParms optional pointer to an decode parameters dictionary
-     *                      containing additional information to decode the data.
-     *                      This pointer must be NULL if no decode parameter dictionary
-     *                      is available.
-     */
-    virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
-
-    /** GetType of this filter.
-     *  \returns the GetType of this filter
-     */
-    inline virtual EPdfFilter GetType() const;
-
- private:
-    /** Initialize an lzw table.
-     *  \param pTable the lzw table to initialize
-     */
-    void InitTable( TLzwTable* pTable ) const;
-
- private:
-    static const unsigned short s_masks[4];
-    static const unsigned short s_clear;
-    static const unsigned short s_eod;
-};
-
-EPdfFilter PdfLZWFilter::GetType() const
-{
-    return ePdfFilter_LZWDecode;
-}
-
-};
-
 
 #endif /* _PDF_FILTER_H_ */

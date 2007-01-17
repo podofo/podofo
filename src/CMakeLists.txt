@@ -13,6 +13,7 @@ SET(PODOFO_SOURCES
     PdfEncrypt.cpp
     PdfError.cpp
     PdfFilter.cpp
+    PdfFiltersPrivate.cpp
     PdfFileSpec.cpp
     PdfExtGState.cpp
     PdfFont.cpp
@@ -63,6 +64,7 @@ SET(PODOFO_HEADERS
 	PdfExtGState.h
 	PdfFileSpec.h
 	PdfFilter.h
+	PdfFiltersPrivate.h
 	PdfFont.h
 	PdfFontMetrics.h
 	PdfHintStream.h

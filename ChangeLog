@@ -7,6 +7,8 @@ Version 0.5
     Fixed a memory leak in PdfDestination::GetPage
     Pages do not know their page number inside of the document
     Fixed reading PdfActions from PDF files
+    Moved filter implementations to PdfFiltersPrivate.h
+    Added PdfFilter::CanEncode and PdfFilter::CanDecode
 
 Version 0.4
 	PdfImage now supports creating an image stream from a "raw bitmap"
