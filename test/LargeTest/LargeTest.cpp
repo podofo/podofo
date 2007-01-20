@@ -70,7 +70,7 @@ void AddPage( PdfDocument* pDoc, const char* pszFontName, const char* pszImagePa
 
 }
 
-void CreateLargePdf( const char* pszFilename )
+void CreateLargePdf( const char* pszFilename, const char* pszImagePath )
 {
     PdfDocument  doc;
     FcObjectSet* pObjectSet;
@@ -100,7 +100,7 @@ void CreateLargePdf( const char* pszFilename )
             FcPatternGet( pFontSet->fonts[i], FC_FAMILY, 0, &v );
 	    //font = FcNameUnparse( pFontSet->fonts[i] );
             printf(" -> Drawing with font: %s\n", reinterpret_cast<const char*>(v.u.s) );
-            AddPage( &doc, reinterpret_cast<const char*>(v.u.s), "../CreationTest/lena.jpg" );
+            AddPage( &doc, reinterpret_cast<const char*>(v.u.s), pszImagePath );
 	}
 
 	FcFontSetDestroy( pFontSet );
@@ -111,14 +111,15 @@ void CreateLargePdf( const char* pszFilename )
 
 int main( int argc, char* argv[] ) 
 {
-    if( argc != 2 )
+    if( argc != 3 )
     {
-        printf("Usage: LargetTest [output_filename]\n");
+        printf("Usage: LargetTest [output_filename] [image_file]\n");
         return 0;
     }
 
     try {
-        CreateLargePdf( argv[1] );
+        CreateLargePdf( argv[1], argv[2] );
+
     } catch( PdfError & e ) {
         e.PrintErrorMsg();
         return e.GetError();

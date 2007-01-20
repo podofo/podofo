@@ -33,7 +33,7 @@ class PdfInputDevice;
 class PODOFO_API PdfInputStream {
  public:
 
-    virtual ~PdfInputStream();
+    virtual ~PdfInputStream() { };
 
     /** Read data from the input stream
      *  

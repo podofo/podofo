@@ -33,7 +33,7 @@ class PdfOutputDevice;
 class PODOFO_API PdfOutputStream {
  public:
 
-    virtual ~PdfOutputStream();
+    virtual ~PdfOutputStream() { };
 
     /** Write data to the output stream
      *  
