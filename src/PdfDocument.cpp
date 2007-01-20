@@ -38,32 +38,12 @@
 #include "PdfStream.h"
 #include "PdfVecObjects.h"
 
-#if !defined(_WIN32) && !defined(__APPLE_CC__)
-#include <fontconfig.h>
-#endif
-
 namespace PoDoFo {
 
 using namespace std;
 
-class FontComperator { 
-public:
-    FontComperator( const string & sPath )
-        {
-            m_sPath = sPath;
-        }
-    
-    bool operator()(const PdfFont* pFont) 
-        { 
-            return (m_sPath == pFont->GetFontMetrics()->GetFilename());
-        }
-private:
-    string m_sPath;
-};
-
-
 PdfDocument::PdfDocument()
-    : m_pOutlines( NULL ), m_pNamesTree( NULL ), m_pPagesTree( NULL ), m_pTrailer( NULL ), m_ftLibrary( NULL )
+    : m_pOutlines( NULL ), m_pNamesTree( NULL ), m_pPagesTree( NULL ), m_pTrailer( NULL ), m_fontCache( &m_vecObjects )
 {
     m_eVersion    = ePdfVersion_1_3;
     m_bLinearized = false;
@@ -79,11 +59,10 @@ PdfDocument::PdfDocument()
     m_pTrailer->GetDictionary().AddKey( "Info", m_pInfo->GetObject()->Reference() );
 
     InitPagesTree();
-    InitFonts();
 }
 
 PdfDocument::PdfDocument( const char* pszFilename )
-    : m_pInfo( NULL ), m_pOutlines( NULL ), m_pNamesTree( NULL ), m_pPagesTree( NULL ), m_pTrailer( NULL ), m_ftLibrary( NULL )
+    : m_pInfo( NULL ), m_pOutlines( NULL ), m_pNamesTree( NULL ), m_pPagesTree( NULL ), m_pTrailer( NULL ), m_fontCache( &m_vecObjects )
 {
     m_vecObjects.SetParentDocument( this );
 
@@ -93,22 +72,13 @@ PdfDocument::PdfDocument( const char* pszFilename )
 PdfDocument::~PdfDocument()
 {
     this->Clear();
-
-#if !defined(_WIN32) && !defined(__APPLE_CC__)
-    FcConfigDestroy( static_cast<FcConfig*>(m_pFcConfig) );
-#endif
-
-    if( m_ftLibrary ) 
-    {
-        FT_Done_FreeType( m_ftLibrary );
-        m_ftLibrary = NULL;
-    }
 }
 
 void PdfDocument::Clear() 
 {
     TIVecObjects     it     = m_vecObjects.begin();
-    TISortedFontList itFont = m_vecFonts.begin();
+
+    m_fontCache.EmptyCache();
 
     while( it != m_vecObjects.end() )
     {
@@ -116,14 +86,7 @@ void PdfDocument::Clear()
         ++it;
     }
 
-    while( itFont != m_vecFonts.end() )
-    {
-        delete (*itFont);
-        ++itFont;
-    }
-
     m_vecObjects.clear();
-    m_vecFonts.clear();
 
     if( m_pInfo ) 
     {
@@ -153,18 +116,6 @@ void PdfDocument::Clear()
     {
         delete m_pTrailer;
         m_pTrailer = NULL;
-    }
-}
-
-void PdfDocument::InitFonts()
-{
-#if !defined(_WIN32) && !defined(__APPLE_CC__)
-    m_pFcConfig     = static_cast<void*>(FcInitLoadConfigAndFonts());
-#endif
-
-    if( FT_Init_FreeType( &m_ftLibrary ) )
-    {
-        RAISE_ERROR( ePdfError_FreeType );
     }
 }
 
@@ -215,7 +166,6 @@ void PdfDocument::Load( const char* pszFilename )
     PdfParser parser( &m_vecObjects, pszFilename, true );
     InitFromParser( &parser );
     InitPagesTree();
-    InitFonts();
 }
 
 void PdfDocument::Write( const char* pszFilename )
@@ -274,45 +224,7 @@ PdfPage* PdfDocument::GetPage( int nIndex ) const
 
 PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bEmbedd )
 {
-#if defined(_WIN32) || defined(__APPLE_CC__)
-    std::string       sPath = PdfFontMetrics::GetFilenameForFont( pszFontName );
-#else
-    std::string       sPath = PdfFontMetrics::GetFilenameForFont( static_cast<FcConfig*>(m_pFcConfig), pszFontName );
-#endif
-    PdfFont*          pFont;
-    PdfFontMetrics*   pMetrics;
-    TCISortedFontList it;
-
-    if( sPath.empty() )
-    {
-        PdfError::LogMessage( eLogSeverity_Critical, "No path was found for the specified fontname: %s\n", pszFontName );
-        return NULL;
-    }
-
-    it = std::find_if( m_vecFonts.begin(), m_vecFonts.end(), FontComperator( sPath ) );
-
-    if( it == m_vecFonts.end() )
-    {
-        pMetrics = new PdfFontMetrics( &m_ftLibrary, sPath.c_str() );
-
-        try {
-            pFont    = new PdfFont( pMetrics, bEmbedd, &m_vecObjects );
-
-            m_vecFonts  .push_back( pFont );
-
-            // Now sort the font list
-            std::sort( m_vecFonts.begin(), m_vecFonts.end() );
-        } catch( PdfError & e ) {
-            e.AddToCallstack( __FILE__, __LINE__ );
-            e.PrintErrorMsg();
-            PdfError::LogMessage( eLogSeverity_Error, "Cannot initialize font: %s\n", pszFontName );
-            return NULL;
-        }
-    }
-    else
-        pFont = *it;
-
-    return pFont;
+    return m_fontCache.GetFont( pszFontName, bEmbedd );
 }
 
 PdfPage* PdfDocument::CreatePage( const PdfRect & rSize )
@@ -479,6 +391,7 @@ void PdfDocument::SetPageMode( EPdfPageMode inMode ) const
 {
     switch ( inMode ) {
         default:
+        case ePdfPageModeUnknown:
         case ePdfPageModeDontCare:	
             // GetCatalog()->RemoveKey( PdfName( "PageMode" ) );
             // this value means leave it alone!
@@ -599,6 +512,7 @@ void PdfDocument::SetPageLayout( EPdfPageLayout inLayout )
     switch ( inLayout ) {
         default:
         case ePdfPageLayoutIgnore:
+        case ePdfPageLayoutUnknown:
             break;	// means do nothing
         case ePdfPageLayoutDefault:			
             GetCatalog()->GetDictionary().RemoveKey( PdfName( "PageLayout" ) );

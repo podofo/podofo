@@ -22,12 +22,10 @@
 #define _PDF_DOCUMENT_H_
 
 #include "PdfDefines.h"
+#include "PdfFontCache.h"
 #include "PdfObject.h"
 #include "PdfParser.h"
 #include "PdfWriter.h"
-
-#include <ft2build.h>
-#include FT_FREETYPE_H
 
 namespace PoDoFo {
 
@@ -41,10 +39,6 @@ class PdfOutlines;
 class PdfPage;
 class PdfPagesTree;
 class PdfRect;
-
-typedef std::vector<PdfFont*>           TSortedFontList;
-typedef TSortedFontList::iterator       TISortedFontList;
-typedef TSortedFontList::const_iterator TCISortedFontList;
 
 /** PdfDocument is the core class for reading and manipulating
  *  PDF files and writing them back to disk.
@@ -332,10 +326,6 @@ class PODOFO_API PdfDocument {
      */
     void InitFromParser( PdfParser* pParser );
 
-    /** Initialize freetype and fontconfig
-     */
-    void InitFonts();
-
     /** Clear all internal variables
      */
     void Clear();
@@ -371,10 +361,7 @@ class PODOFO_API PdfDocument {
 
     EPdfVersion     m_eVersion;
 
-    // Variables for fontloading and redering
-    TSortedFontList m_vecFonts;
-    void*           m_pFcConfig; // (FcConfig*)
-    FT_Library      m_ftLibrary;
+    PdfFontCache    m_fontCache;
 };
 
 // -----------------------------------------------------

@@ -17,6 +17,7 @@ SET(PODOFO_SOURCES
     PdfFileSpec.cpp
     PdfExtGState.cpp
     PdfFont.cpp
+    PdfFontCache.cpp
     PdfFontMetrics.cpp
     PdfHintStream.cpp
     PdfImage.cpp
@@ -68,6 +69,7 @@ SET(PODOFO_HEADERS
 	PdfFilter.h
 	PdfFiltersPrivate.h
 	PdfFont.h
+	PdfFontCache.h
 	PdfFontMetrics.h
 	PdfHintStream.h
 	PdfImage.h

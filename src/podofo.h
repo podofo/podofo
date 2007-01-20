@@ -49,6 +49,7 @@
 #include "PdfFileSpec.h"
 #include "PdfFilter.h"
 #include "PdfFont.h"
+#include "PdfFontCache.h"
 #include "PdfFontMetrics.h"
 
 // Not considereed to be part of the public API
