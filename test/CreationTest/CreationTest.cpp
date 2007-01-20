@@ -441,10 +441,10 @@ int main( int argc, char* argv[] )
         std::ostringstream oss;
         oss << "A" << zz;
 
-        writer.GetNamesTree()->AddValue( "TestDict", PdfString( oss.str() ), PdfVariant( (long)zz )  );
+        writer.GetNamesTree()->AddValue( "TestDict", PdfString( oss.str() ), PdfVariant( static_cast<long>(zz) )  );
     }
 
-    writer.GetNamesTree()->AddValue( "TestDict", PdfString( "Berta" ), PdfVariant( (long)42 )  );
+    writer.GetNamesTree()->AddValue( "TestDict", PdfString( "Berta" ), PdfVariant( 42L )  );
 
     printf("Setting document informations.\n\n");
     // Setup the document information dictionary
