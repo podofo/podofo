@@ -220,8 +220,23 @@ void PdfDocument::Load( const char* pszFilename )
 
 void PdfDocument::Write( const char* pszFilename )
 {
+    /** TODO:
+     *  We will get problems here on linux,
+     *  if we write to the same filename we read the 
+     *  document from.
+     *  Because the PdfParserObjects will read there streams 
+     *  data from the file while we are writing it.
+     *  The problem is that the stream data won't exist at this time
+     *  as we truncated the file already to zero length by opening
+     *  it writeable.
+     */
     PdfOutputDevice device( pszFilename );
 
+    this->Write( &device );
+}
+
+void PdfDocument::Write( PdfOutputDevice* pDevice ) 
+{
     /** TODO:
      *  We will get problems here on linux,
      *  if we write to the same filename we read the 
@@ -234,7 +249,7 @@ void PdfDocument::Write( const char* pszFilename )
      */
     PdfWriter       writer( this );
 
-    writer.Write( &device );    
+    writer.Write( pDevice );    
 }
 
 PdfObject* PdfDocument::GetNamedObjectFromCatalog( const char* pszName ) const 

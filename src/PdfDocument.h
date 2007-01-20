@@ -74,6 +74,7 @@ class PODOFO_API PdfDocument {
     virtual ~PdfDocument();
 
     /** Load a PdfDocument from a file
+     *
      *  \param pszFilename filename of the file which is going to be parsed/opened
      */
     void Load( const char* pszFilename );
@@ -81,8 +82,18 @@ class PODOFO_API PdfDocument {
     /** Writes the complete document to a file
      *
      *  \param pszFilename filename of the document 
+     *
+     *  \see Write
+     *
+     *  This is an overloaded member function for your convinience.
      */
     void Write( const char* pszFilename );
+
+    /** Writes the complete document to an output device
+     *
+     *  \param pDevice write to this output device
+     */
+    void Write( PdfOutputDevice* pDevice );
 
     /** Set the PDF Version of the document. Has to be called before Write() to
      *  have an effect.
