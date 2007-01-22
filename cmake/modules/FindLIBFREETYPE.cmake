@@ -5,6 +5,7 @@
 FIND_PATH(LIBFREETYPE_FT2BUILD_H NAMES ft2build.h)
 MESSAGE("Found ft2build.h in ${LIBFREETYPE_FT2BUILD_H}")
 # Now try to find the corresponding freetype.h
+# TODO: avoid finding /usr/include/freetype/freetype.h from freetype1
 FIND_PATH(LIBFREETYPE_FREETYPE_H
     NAMES freetype/freetype.h
     PATHS
