@@ -31,7 +31,7 @@ struct TFlatePredictorParams;
 
 /** The ascii hex filter.
  */
-class PODOFO_API PdfHexFilter : public PdfFilter {
+class PdfHexFilter : public PdfFilter {
  public:
     virtual ~PdfHexFilter() {}
 
@@ -94,7 +94,7 @@ EPdfFilter PdfHexFilter::GetType() const
 
 /** The Ascii85 filter.
  */
-class PODOFO_API PdfAscii85Filter : public PdfFilter {
+class PdfAscii85Filter : public PdfFilter {
  public:
     virtual ~PdfAscii85Filter() {}
 
@@ -163,7 +163,7 @@ EPdfFilter PdfAscii85Filter::GetType() const
 
 /** The flate filter.
  */
-class PODOFO_API PdfFlateFilter : public PdfFilter {
+class PdfFlateFilter : public PdfFilter {
  public:
     virtual ~PdfFlateFilter() {}
 
@@ -230,7 +230,7 @@ EPdfFilter PdfFlateFilter::GetType() const
 
 /** The RLE filter.
  */
-class PODOFO_API PdfRLEFilter : public PdfFilter {
+class PdfRLEFilter : public PdfFilter {
  public:
     virtual ~PdfRLEFilter() {}
 
@@ -292,7 +292,7 @@ EPdfFilter PdfRLEFilter::GetType() const
 }
 
 
-struct PODOFO_API TLzwItem {
+struct TLzwItem {
     std::vector<unsigned char> value;
 };
 
@@ -302,7 +302,7 @@ typedef TLzwTable::const_iterator TCILzwTable;
 
 /** The LZW filter.
  */
-class PODOFO_API PdfLZWFilter : public PdfFilter {
+class PdfLZWFilter : public PdfFilter {
  public:
     virtual ~PdfLZWFilter() {}
 
