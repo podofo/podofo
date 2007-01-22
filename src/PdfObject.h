@@ -36,12 +36,12 @@ class PdfStream;
 class PdfVecObjects;
 
 /**
- * This class represents a PDF Object into the memory
+ * This class represents a PDF indirect Object in memory
  * 
- * It allows to get or set key values. To check for existing keys and to
- * manipulate the optional stream which can be appended to the object.  It is
- * uniquely identified by an object number and a gerneration number which has
- * to be passed to the constructor.
+ * It is possible to manipulate the stream which can be appended to the object
+ * (if the object is of underlying type dictionary).  A PdfObject is uniquely
+ * identified by an object number and a generation number which has to be
+ * passed to the constructor.
  *
  * The object can be written to a file easily using the Write() function.
  *
