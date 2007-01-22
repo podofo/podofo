@@ -72,7 +72,10 @@ class PODOFO_API PdfVariant {
      */    
     PdfVariant( double d );
 
-    /** Construct a PdfVariant that is a string.
+    /** Construct a PdfVariant that is a string. The argument
+     * string will be escaped where necessary, so it should be
+     * passed in unescaped form.
+     *
      *  \param rsString the value of the string
      */        
     PdfVariant( const PdfString & rsString );
