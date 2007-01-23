@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
+ *   Copyright (C) 2007 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,48 +18,54 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PDF_HINT_STREAM_H_
-#define _PDF_HINT_STREAM_H_
+#ifndef _PDF_XREF_STREAM_H_
+#define _PDF_XREF_STREAM_H_
 
 #include "PdfDefines.h"
-#include "PdfElement.h"
-#include "PdfWriter.h"
+
+#include "PdfXRef.h"
 
 namespace PoDoFo {
 
-class PdfPagesTree;
+class PdfOutputDevice;
+class PdfVecObjects;
+class PdfWriter;
 
-// FIXME CR: Should PdfHintStream be part of the public API?
-class PODOFO_API PdfHintStream : public PdfElement {
+
+/**
+ * Creates an XRef table that is a stream object.
+ * Requires at least PDF 1.5. XRef streams are more
+ * compact than normal XRef tables.
+ *
+ * This is an internal class of PoDoFo used by PdfWriter.
+ */
+class PdfXRefStream : public PdfXRef {
  public:
-    PdfHintStream( PdfVecObjects* pParent, PdfPagesTree* pPagesTree );
-    ~PdfHintStream();
-
-    /** Create the hint stream 
-     *  \param pXRef pointer to a valid XREF table structure
+    /** Create a new XRef table
+     *
+     *  \param pParent a vector of PdfObject is required
+     *                 to create a PdfObject for the XRef
+     *  \param pWriter is needed to fill the trailer directory
+     *                 correctly which is included into the XRef
      */
-    //void Create( TVecXRefTable* pXRef );
+    PdfXRefStream( PdfVecObjects* pParent, PdfWriter* pWriter );
 
-    /** Write a pdf_uint16 to the stream in big endian format.
-     *  \param val the value to write to the stream
+    /** Destruct the XRef table
      */
-    void WriteUInt16( pdf_uint16 val );
+    virtual ~PdfXRefStream();
 
-    /** Write a pdf_uint32 to the stream in big endian format.
-     *  \param val the value to write to the stream
+    /** Write the XRef table to an output device.
+     * 
+     *  \param pDevice an output device (usually a PDF file)
+     *
      */
-    void WriteUInt32( pdf_uint32 );
+    virtual void Write( PdfOutputDevice* pDevice );
 
  private:
-    //void CreatePageHintTable( TVecXRefTable* pXRef );
-    void CreateSharedObjectHintTable();
- 
- private:
-    PdfPagesTree* m_pPagesTree;
-
-    bool          m_bLittleEndian;
+    PdfVecObjects* m_pParent;
+    PdfWriter*     m_pWriter;
 };
 
 };
 
-#endif /* _PDF_HINT_STREAM_H_ */
+#endif /* _PDF_XREF_H_ */

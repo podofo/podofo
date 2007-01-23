@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
+ *   Copyright (C) 2007 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,48 +18,31 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PDF_HINT_STREAM_H_
-#define _PDF_HINT_STREAM_H_
+#ifndef _PDF_IMMEDIATE_WRITER_H_
+#define _PDF_IMMEDIATE_WRITER_H_
 
 #include "PdfDefines.h"
-#include "PdfElement.h"
 #include "PdfWriter.h"
 
 namespace PoDoFo {
 
-class PdfPagesTree;
+class PdfOutputDevice;
 
-// FIXME CR: Should PdfHintStream be part of the public API?
-class PODOFO_API PdfHintStream : public PdfElement {
+class PODOFO_API PdfImmediateWriter : private PdfWriter {
  public:
-    PdfHintStream( PdfVecObjects* pParent, PdfPagesTree* pPagesTree );
-    ~PdfHintStream();
-
-    /** Create the hint stream 
-     *  \param pXRef pointer to a valid XREF table structure
-     */
-    //void Create( TVecXRefTable* pXRef );
-
-    /** Write a pdf_uint16 to the stream in big endian format.
-     *  \param val the value to write to the stream
-     */
-    void WriteUInt16( pdf_uint16 val );
-
-    /** Write a pdf_uint32 to the stream in big endian format.
-     *  \param val the value to write to the stream
-     */
-    void WriteUInt32( pdf_uint32 );
+    PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, EPdfVersion eVersion = ePdfVersion_1_5 );
+    ~PdfImmediateWriter();
 
  private:
-    //void CreatePageHintTable( TVecXRefTable* pXRef );
-    void CreateSharedObjectHintTable();
- 
- private:
-    PdfPagesTree* m_pPagesTree;
+    void WriteOut(); 
+    void WriteObject( const PdfObject* pObject );
 
-    bool          m_bLittleEndian;
+ private:
+    PdfVecObjects*   m_pParent;
+    PdfOutputDevice* m_pDevice;
 };
 
 };
 
-#endif /* _PDF_HINT_STREAM_H_ */
+#endif /* _PDF_IMMEDIATE_WRITER_H_ */
+

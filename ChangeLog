@@ -9,7 +9,8 @@ Version 0.5
     Fixed reading PdfActions from PDF files
     Moved filter implementations to PdfFiltersPrivate.h
     Added PdfFilter::CanEncode and PdfFilter::CanDecode
-
+    Simpliefid PoDoFos handling of XRef tables
+	
 Version 0.4
 	PdfImage now supports creating an image stream from a "raw bitmap"
 		which can also be optionally Flate compressed

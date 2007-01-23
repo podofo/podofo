@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
+ *   Copyright (C) 2007 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,48 +18,47 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PDF_HINT_STREAM_H_
-#define _PDF_HINT_STREAM_H_
+#include "PdfImmediateWriter.h"
 
-#include "PdfDefines.h"
-#include "PdfElement.h"
-#include "PdfWriter.h"
+#include "PdfObject.h"
 
 namespace PoDoFo {
 
-class PdfPagesTree;
+PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, EPdfVersion eVersion )
+    : PdfWriter( pVecObjects ), m_pParent( pVecObjects ), m_pDevice( pDevice )
+{
+    // register as observer for PdfVecObjects
 
-// FIXME CR: Should PdfHintStream be part of the public API?
-class PODOFO_API PdfHintStream : public PdfElement {
- public:
-    PdfHintStream( PdfVecObjects* pParent, PdfPagesTree* pPagesTree );
-    ~PdfHintStream();
+    // start with writing the header
+    this->SetPdfVersion( eVersion );
+    this->WritePdfHeader( m_pDevice );
+}
 
-    /** Create the hint stream 
-     *  \param pXRef pointer to a valid XREF table structure
-     */
-    //void Create( TVecXRefTable* pXRef );
+PdfImmediateWriter::~PdfImmediateWriter()
+{
+    // calling here is too late, as the PdfVecObjects in PdfDocument
+    // is already cleared.
+    // 
+    this->WriteOut();
+}
 
-    /** Write a pdf_uint16 to the stream in big endian format.
-     *  \param val the value to write to the stream
-     */
-    void WriteUInt16( pdf_uint16 val );
+void PdfImmediateWriter::WriteOut()
+{
+    TCIVecObjects  itObjects  = m_pParent->begin();
 
-    /** Write a pdf_uint32 to the stream in big endian format.
-     *  \param val the value to write to the stream
-     */
-    void WriteUInt32( pdf_uint32 );
+    this->CompressObjects( *m_pParent );
 
- private:
-    //void CreatePageHintTable( TVecXRefTable* pXRef );
-    void CreateSharedObjectHintTable();
- 
- private:
-    PdfPagesTree* m_pPagesTree;
+    while( itObjects != m_pParent->end() )
+    {
+        this->WriteObject( *itObjects );
+        ++itObjects;
+    }
+}
 
-    bool          m_bLittleEndian;
+void PdfImmediateWriter::WriteObject( const PdfObject* pObject )
+{
+    pObject->WriteObject( m_pDevice );
+}
+
 };
 
-};
-
-#endif /* _PDF_HINT_STREAM_H_ */

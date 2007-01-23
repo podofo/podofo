@@ -80,6 +80,8 @@
 #include "PdfVecObjects.h"
 #include "PdfWriter.h"
 #include "PdfXObject.h"
+#include "PdfXRef.h"
+#include "PdfXRefStream.h"
 
 #if 0
 #ifndef _PODOFO_NO_NAMESPACE_

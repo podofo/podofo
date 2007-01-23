@@ -239,6 +239,7 @@ PdfHintStream::~PdfHintStream()
 
 }
 
+/*
 void PdfHintStream::Create( TVecXRefTable* pXRef )
 {
     this->CreatePageHintTable( pXRef );
@@ -350,6 +351,7 @@ void PdfHintStream::CreateSharedObjectHintTable()
 
 
 }
+*/
 
 void PdfHintStream::WriteUInt16( pdf_uint16 val )
 {

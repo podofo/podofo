@@ -115,6 +115,7 @@ void PdfParserObject::ParseFile( bool bIsTrailer )
 #if defined(PODOFO_VERBOSE_DEBUG)
     std::cerr << "Parsing object number: " << m_reference.ObjectNumber()
               << " " << m_reference.GenerationNumber() << " obj"
+              << " " << m_lOffset << " offset"
               << " (DL: " << ( m_bLoadOnDemand ? "on" : "off" ) << ")"
               << endl;
 #endif // PODOFO_VERBOSE_DEBUG

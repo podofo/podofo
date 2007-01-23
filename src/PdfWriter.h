@@ -36,22 +36,7 @@ class PdfPage;
 class PdfPagesTree;
 class PdfParser;
 class PdfVecObjects;
-
-// FIXME CR: Should this be part of the exported API?
-struct PODOFO_API TXRefTable {    
-    unsigned int nFirst;
-    unsigned int nCount;
-
-    TVecOffsets  vecOffsets;   
-};
-
-typedef std::vector<TXRefTable>       TVecXRefTable;
-typedef TVecXRefTable::iterator       TIVecXRefTable;
-typedef TVecXRefTable::const_iterator TCIVecXRefTable;
-
-typedef std::vector<long>              TVecXRefOffset;
-typedef TVecXRefOffset::iterator       TIVecXRefOffset;
-typedef TVecXRefOffset::const_iterator TCIVecXRefOffset;
+class PdfXRef;
 
 
 /** The PdfWriter class writes a list of PdfObjects as PDF file.
@@ -60,7 +45,7 @@ typedef TVecXRefOffset::const_iterator TCIVecXRefOffset;
  *
  *  It does not know about pages but only about PdfObjects.
  *
- *  Most users will want to use PdfSimpleWriter.
+ *  Most users will want to use PdfDocument.
  */
 class PODOFO_API PdfWriter {
  public:
@@ -183,16 +168,31 @@ class PODOFO_API PdfWriter {
      */
     void WriteToBuffer( char** ppBuffer, unsigned long* pulLen );
 
- private:
-    /** Writes a linearized PDF file
-     *  \param pDevice write to this output device
-     */       
-    void PODOFO_LOCAL WriteLinearized( PdfOutputDevice* pDevice );
+    /** Add required keys to a trailer object
+     *  \param pTrailer add keys to this object
+     *  \param lSize number of objects in the PDF file
+     *  \param bPrevEntry if true a prev entry is added to the trailer object with a value of 0
+     *  \param bOnlySizeKey write only the size key
+     */
+    void FillTrailerObject( PdfObject* pTrailer, long lSize, bool bPrevEntry, bool bOnlySizeKey ) const;
+
+ protected:
+    /**
+     * Create a PdfWriter from a PdfVecObjects
+     */
+    PdfWriter( PdfVecObjects* pVecObjects );
 
     /** Writes the pdf header to the current file.
      *  \param pDevice write to this output device
      */       
     void PODOFO_LOCAL WritePdfHeader( PdfOutputDevice* pDevice );
+
+
+ private:
+    /** Writes a linearized PDF file
+     *  \param pDevice write to this output device
+     */       
+    void PODOFO_LOCAL WriteLinearized( PdfOutputDevice* pDevice );
 
     /** Create a linearization dictionary for the current
      *  document and return a pointer to it after inserting
@@ -218,37 +218,7 @@ class PODOFO_API PdfWriter {
      *  \param vecObjects write all objects in this vector to the file
      *  \param pVecXRef add all written objects to this XRefTable
      */ 
-    void WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, TVecXRefTable* pVecXRef ) PODOFO_LOCAL;
-
-    /** Writes a list of xref entries to the current file
-     *  \param pDevice write to this output device
-     *  \param vecOffsets list of objects which will be written
-     */
-    void WriteXRefEntries( PdfOutputDevice* pDevice, const TVecOffsets & vecOffsets ) PODOFO_LOCAL;
-
-    /** Writes the xref table.
-     *  \param pVecXRef write this XRef table
-     *  \param pDevice write to this output device
-     *  \param pVecXRefOffset add the offset of this XRef table to this vector
-     *  \param bDummyOffset write a dummy startxref offset for linearized PDF files
-     *  \param bShortTrailer write only the size key in the trailer
-     */
-    void WritePdfTableOfContents( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, TVecXRefOffset* pVecXRefOffset, bool bDummyOffset = false, bool bShortTrailer = true ) PODOFO_LOCAL;
-
-    /** Writes the xref table as xref stream.
-     *  \param pVecXRef write this XRef table
-     *  \param pDevice write to this output device
-     *  \param bDummyOffset write a dummy startxref offset for linearized PDF files
-     */
-    void WriteXRefStream( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, bool bDummyOffset = false ) PODOFO_LOCAL;
-
-    /** Add required keys to a trailer object
-     *  \param pTrailer add keys to this object
-     *  \param lSize number of objects in the PDF file
-     *  \param bPrevEntry if true a prev entry is added to the trailer object with a value of 0
-     *  \param bOnlySizeKey write only the size key
-     */
-    void FillTrailerObject( PdfObject* pTrailer, long lSize, bool bPrevEntry, bool bOnlySizeKey ) PODOFO_LOCAL;
+    void WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, PdfXRef* pXref ) PODOFO_LOCAL;
 
     /** Initialize m_pPagesTree with its correct value
      *  Always call this function befre accessing the pages tree.
@@ -266,7 +236,7 @@ class PODOFO_API PdfWriter {
      *  \param pLast pointer of the last object belonging to the first page
      *  \param pVecXRefOffset xref table entries for previous entry
      */
-    void FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset ) PODOFO_LOCAL;
+    // void FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset ) PODOFO_LOCAL;
     /** Creates a file identifier which is required in several
      *  PDF workflows. 
      *  All values from the files document information dictionary are
@@ -274,7 +244,7 @@ class PODOFO_API PdfWriter {
      *
      *  \param pTrailer add the file identifier to this trailer dictionary
      */
-    void CreateFileIdentifier( PdfObject* pTrailer ) PODOFO_LOCAL;
+    void CreateFileIdentifier( PdfObject* pTrailer ) const PODOFO_LOCAL;
 
  protected:
     PdfVecObjects*  m_vecObjects;

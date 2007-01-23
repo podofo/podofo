@@ -357,13 +357,13 @@ static const char s_cDelimiters[] = {
  * \def PDF_MAX(x,y)
  * \returns the maximum of x and y
  */
-#define PDF_MAX(x,y) (x>y?x:y)
+#define PDF_MAX(x,y) ((x)>(y)?(x):(y))
 
 /**
  * \def PDF_MIN(x,y)
  * \returns the minimum of x and y
  */
-#define PDF_MIN(x,y) (x<y?x:y)
+#define PDF_MIN(x,y) ((x)<(y)?(x):(y))
 
 /*
 	This is needed to enable compilation with VC++ on Windows

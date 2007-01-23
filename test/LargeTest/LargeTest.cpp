@@ -90,6 +90,9 @@ void CreateLargePdf( const char* pszFilename, const char* pszImagePath )
     FcObjectSetDestroy( pObjectSet );
     FcPatternDestroy( pPattern );
 
+    PdfOutputDevice device( pszFilename );
+    doc.WriteImmediately( &device );
+
     if( pFontSet )
     {
 	for( int i=0; i<pFontSet->nfont;i++ )
@@ -106,7 +109,7 @@ void CreateLargePdf( const char* pszFilename, const char* pszImagePath )
 	FcFontSetDestroy( pFontSet );
     }
 
-    doc.Write( pszFilename );
+    //doc.Write( pszFilename );
 }
 
 int main( int argc, char* argv[] ) 

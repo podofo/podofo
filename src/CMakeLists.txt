@@ -21,6 +21,7 @@ SET(PODOFO_SOURCES
     PdfFontMetrics.cpp
     PdfHintStream.cpp
     PdfImage.cpp
+    PdfImmediateWriter.cpp
     PdfInfo.cpp
     PdfInputDevice.cpp
     PdfInputStream.cpp
@@ -47,6 +48,8 @@ SET(PODOFO_SOURCES
     PdfVecObjects.cpp
     PdfWriter.cpp
     PdfXObject.cpp
+    PdfXRef.cpp
+    PdfXRefStream.cpp
 )
 
 SET(PODOFO_HEADERS
@@ -73,6 +76,7 @@ SET(PODOFO_HEADERS
 	PdfFontMetrics.h
 	PdfHintStream.h
 	PdfImage.h
+	PdfImmediateWriter.h
 	PdfInfo.h
 	PdfInputDevice.h
 	PdfInputStream.h
@@ -99,6 +103,8 @@ SET(PODOFO_HEADERS
 	PdfVecObjects.h
 	PdfWriter.h
 	PdfXObject.h
+	PdfXRef.h
+	PdfXRefStream.h
 	podofo.h
 	podofoapi.h
 )

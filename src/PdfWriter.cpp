@@ -32,30 +32,17 @@
 #include "PdfParser.h"
 #include "PdfStream.h"
 #include "PdfVariant.h"
+#include "PdfXRef.h"
+#include "PdfXRefStream.h"
 
 //#define PDF_MAGIC "%‚„œ”\n" //"%\0x25\0xe2\0xe3\0xcf\0xd3\0x0d"
 #define PDF_MAGIC           "\xe2\xe3\xcf\xd3\n"
-#define EMPTY_OBJECT_OFFSET   65535
 #define XREF_ENTRY_SIZE       20
 #define LINEARIZATION_PADDING 10
 
 #include <iostream>
 
-// for htonl
-#ifdef _WIN32
-#include <winsock2.h>
-#undef GetObject
-#else 
-#include <arpa/inet.h>
-#endif // _WIN32
-
 namespace PoDoFo {
-
-bool podofo_is_little_endian()
-{ 
-    int _p = 1;
-    return ((reinterpret_cast<char*>(&_p))[0] == 1);
-}
 
 PdfWriter::PdfWriter( PdfParser* pParser )
     : m_pPagesTree( NULL ), m_bCompress( true ), m_bLinearized( false ), 
@@ -100,6 +87,15 @@ PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
     m_vecObjects   = pVecObjects;
 }
 
+PdfWriter::PdfWriter( PdfVecObjects* pVecObjects )
+    : m_pPagesTree( NULL ), m_bCompress( true ), m_bLinearized( false ), 
+      m_bXRefStream( false ), m_lFirstInXRef( 0 )
+{
+    m_eVersion     = ePdfVersion_1_3;
+    m_pTrailer     = NULL;
+    m_vecObjects   = pVecObjects;
+}
+
 PdfWriter::~PdfWriter()
 {
     delete m_pTrailer;
@@ -117,9 +113,6 @@ void PdfWriter::Write( const char* pszFilename )
 
 void PdfWriter::Write( PdfOutputDevice* pDevice )
 {
-    TVecXRefTable   vecXRef;
-    TVecXRefOffset  vecXRefOffset;
-
     if( !pDevice )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -131,18 +124,41 @@ void PdfWriter::Write( PdfOutputDevice* pDevice )
     }
     else
     {
-        WritePdfHeader  ( pDevice );
-        WritePdfObjects ( pDevice, *m_vecObjects, &vecXRef );
+        PdfXRef* pXRef = m_bXRefStream ? new PdfXRefStream( m_vecObjects, this ) : new PdfXRef();
 
-        if( m_bXRefStream )
-            WriteXRefStream( &vecXRef, pDevice );
-        else
-            WritePdfTableOfContents( &vecXRef, pDevice, &vecXRefOffset, false, m_bLinearized );
+        try {
+            WritePdfHeader  ( pDevice );
+            WritePdfObjects ( pDevice, *m_vecObjects, pXRef );
+
+            long lXRefOffset = pDevice->GetLength();
+            pXRef->Write( pDevice );
+            
+            // XRef streams contain the trailer in the XRef
+            if( !m_bXRefStream ) 
+            {
+                PdfObject  trailer;
+                
+                // if we have a dummy offset we write also a prev entry to the trailer
+                FillTrailerObject( &trailer, pXRef->GetSize(), false, false );
+                
+                pDevice->Print("trailer\n");
+                trailer.WriteObject( pDevice );
+            }
+            
+            pDevice->Print( "startxref\n%li\n%%%%EOF\n", lXRefOffset );
+            delete pXRef;
+        } catch( PdfError & e ) {
+            // Make sure pXRef is always deleted
+            delete pXRef;
+            e.AddToCallstack( __FILE__, __LINE__ );
+            throw e;
+        }
     }
 }
 
 void PdfWriter::WriteLinearized( PdfOutputDevice* pDevice )
 {
+    /*
     PdfObject*      pLinearize  = NULL;
     PdfPage*        pPage;
     PdfObject*      pLast;
@@ -214,6 +230,7 @@ void PdfWriter::WriteLinearized( PdfOutputDevice* pDevice )
         WritePdfTableOfContents( &vecXRef, pDevice, &vecXRefOffset, false, m_bLinearized );
 
     this->FillLinearizationDictionary( pLinearize, pDevice, pPage, pLast, pHint, &vecXRefOffset );
+    */
 }
 
 void PdfWriter::WritePdfHeader( PdfOutputDevice* pDevice )
@@ -235,139 +252,27 @@ void PdfWriter::CompressObjects( const TVecObjects& vecObjects )
     }
 }
 
-void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, TVecXRefTable* pVecXRef )
+void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, PdfXRef* pXref )
 {
     TCIVecObjects       itObjects  = vecObjects.begin();
-    int                 index;
-    int                 written    = 0;
-    TXRefTable          tXRef;
+    TCIPdfReferenceList itFree     = vecObjects.GetFreeObjects().begin();
 
     this->CompressObjects( vecObjects );
 
-    tXRef.nFirst = (*itObjects)->Reference().ObjectNumber();
 
-    index = vecObjects.size() + vecObjects.GetFreeObjects().size();
-    if( tXRef.nFirst == 1 )
-    {
-        tXRef.nFirst--;
-        index++;
-    }
-
-    tXRef.vecOffsets.resize( index );
-    
     while( itObjects != vecObjects.end() )
     {
-        index = (*itObjects)->Reference().ObjectNumber() - tXRef.nFirst;
-
-        tXRef.vecOffsets[index].lOffset     = pDevice->GetLength();
-        tXRef.vecOffsets[index].lGeneration = (*itObjects)->Reference().GenerationNumber();
-        tXRef.vecOffsets[index].cUsed       = 'n';
-
+        pXref->AddObject( (*itObjects)->Reference(), pDevice->GetLength(), true );
         (*itObjects)->WriteObject( pDevice );
 
-        ++written;
         ++itObjects;
-    }
-
-    TCIPdfReferenceList itFree = vecObjects.GetFreeObjects().begin();
-
-    // add the first free object
-    if( !tXRef.nFirst )
-    {
-        tXRef.vecOffsets[0].lOffset     = (itFree == vecObjects.GetFreeObjects().end() ? 0 : (*itFree).ObjectNumber());
-        tXRef.vecOffsets[0].lGeneration = EMPTY_OBJECT_OFFSET;
-        tXRef.vecOffsets[0].cUsed       = 'f';
-        ++written;
     }
 
     while( itFree != vecObjects.GetFreeObjects().end() )
     {
-        if( !((*itFree).ObjectNumber() > tXRef.nFirst &&
-              (*itFree).ObjectNumber() < tXRef.nFirst + tXRef.nCount ) )
-        {
-            ++itFree;
-            continue;
-        }
-  
-        index = (*itFree).ObjectNumber() - tXRef.nFirst;
+        pXref->AddObject( *itFree, 0, false );
         ++itFree;
-
-        if( index < static_cast<int>(tXRef.vecOffsets.size()) )
-        {
-            // write empty entries into the table
-            tXRef.vecOffsets[index].lOffset     = (itFree == vecObjects.GetFreeObjects().end() ? 0 : (*itFree).ObjectNumber());
-            tXRef.vecOffsets[index].lGeneration = (itFree == vecObjects.GetFreeObjects().end() ? 1 : 0);
-            tXRef.vecOffsets[index].cUsed       = 'f';
-            ++written;
-        }
     }
-
-    // This is still not really correct
-    //tXRef.vecOffsets.resize( written );
-    tXRef.nCount = tXRef.vecOffsets.size();
-    pVecXRef->push_back( tXRef );
-}
-
-void PdfWriter::WriteXRefEntries( PdfOutputDevice* pDevice, const TVecOffsets & vecOffsets )
-{
-    TCIVecOffsets     itOffsets = vecOffsets.begin();
-
-    if( !pDevice )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    while( itOffsets != vecOffsets.end() )
-    {
-        if( !(*itOffsets).cUsed ) 
-        {
-            ++itOffsets;
-            continue;
-            // TODO: only here for debugging,
-            // remove as this will slow down stuff
-            //RAISE_ERROR( ePdfError_InternalLogic );
-        }
-
-        pDevice->Print( "%0.10i %0.5i %c \n", (*itOffsets).lOffset, (*itOffsets).lGeneration, (*itOffsets).cUsed );
-        ++itOffsets;
-    }
-}
-
-void PdfWriter::WritePdfTableOfContents( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, TVecXRefOffset* pVecXRefOffset, bool bDummyOffset, bool bShortTrailer )
-{
-    long              lXRef     = pDevice->GetLength();;
-    unsigned int      nSize     = 0;
-    TCIVecXRefTable   it;
-    PdfObject         trailer;
-
-    pDevice->Print( "xref\n" );
-
-    it = pVecXRef->begin();
-    while( it != pVecXRef->end() )
-    {
-        nSize = ( nSize > (*it).nFirst + (*it).nCount ? nSize : (*it).nFirst + (*it).nCount );
-
-        // when there is only one, then we need to start with 0 and the bogus object...
-        pDevice->Print( "%u %u\n", (*it).nFirst, (*it).nCount );
-        
-        if( it == pVecXRef->begin() )
-            m_lFirstInXRef = pDevice->GetLength();
-
-        WriteXRefEntries( pDevice, (*it).vecOffsets );
-        
-        ++it;
-    }
-
-    // if we have a dummy offset we write also a prev entry to the trailer
-    FillTrailerObject( &trailer, nSize, bDummyOffset, bShortTrailer );
-    
-    pDevice->Print("trailer\n");
-    if( bDummyOffset )
-        m_lTrailerOffset = pDevice->GetLength();
-
-    trailer.WriteObject( pDevice );
-    pDevice->Print( "startxref\n%li\n%%%%EOF\n",  pVecXRefOffset->size() ? pVecXRefOffset->back() : (bDummyOffset ? 0 : lXRef)  );
-    pVecXRefOffset->push_back( lXRef );
 }
 
 void PdfWriter::GetByteOffset( PdfObject* pObject, unsigned long* pulOffset )
@@ -529,85 +434,7 @@ void PdfWriter::FindCatalogDependencies( PdfObject* pCatalog, const PdfName & rN
     }
 }
 
-#ifdef WIN32
-typedef signed char 	int8_t;
-typedef unsigned char 	uint8_t;
-typedef signed short 	int16_t;
-typedef unsigned short 	uint16_t;
-typedef signed int 	int32_t;
-typedef unsigned int 	uint32_t;
-#endif
-
-#define STREAM_OFFSET_TYPE uint32_t
-
-void PdfWriter::WriteXRefStream( TVecXRefTable* pVecXRef, PdfOutputDevice* pDevice, bool bDummyOffset )
-{
-    long                lXRef;
-    unsigned int        nSize     = 0;
-    TCIVecXRefTable     it;
-    TCIVecOffsets       itOffsets;
-    const size_t        bufferLen = 2 + sizeof( STREAM_OFFSET_TYPE );
-    char                buffer[bufferLen];
-    bool                bLittle   = podofo_is_little_endian();
-
-    STREAM_OFFSET_TYPE* pValue    = reinterpret_cast<STREAM_OFFSET_TYPE*>(buffer+1);
-
-    PdfObject           object( PdfReference( m_vecObjects->m_nObjectCount, 0 ), "XRef" );
-    PdfArray            indeces;
-    PdfArray            w;
-
-    m_lFirstInXRef =    0;
-
-    w.push_back( 1l );
-    w.push_back( static_cast<long>(sizeof(STREAM_OFFSET_TYPE)) );
-    w.push_back( 1l );
-
-    it = pVecXRef->begin();
-    while( it != pVecXRef->end() )
-    {
-        nSize = ( nSize > (*it).nFirst + (*it).nCount ? nSize : (*it).nFirst + (*it).nCount );
-
-        indeces.push_back( static_cast<long>((*it).nFirst) );
-        indeces.push_back( static_cast<long>((*it).nCount) );
-
-        itOffsets = (*it).vecOffsets.begin();
-        while( itOffsets != (*it).vecOffsets.end() )
-        {
-            if( (*itOffsets).cUsed == 'n' )
-            {
-                buffer[0]         = static_cast<char>(1);
-                buffer[bufferLen] = static_cast<char>(0);
-            }
-            else if( (*itOffsets).cUsed == 'f' )
-            {
-                buffer[0]         = static_cast<char>(0);
-                buffer[bufferLen] = static_cast<char>(1);
-            }
-
-            *pValue = static_cast<STREAM_OFFSET_TYPE>((*itOffsets).lOffset );
-                
-            if( bLittle )
-                *pValue = htonl( *pValue );
-
-            object.GetStream()->Append( buffer, bufferLen );
-            ++itOffsets;
-        }
-        
-        ++it;
-    }
-
-    FillTrailerObject( &object, nSize, false, false );
-
-    object.GetDictionary().AddKey( "Index", indeces );
-    object.GetDictionary().AddKey( "W", w );
-    object.FlateCompressStream();
-
-    lXRef = bDummyOffset ? 0 : pDevice->GetLength();
-    object.WriteObject( pDevice );
-    pDevice->Print( "startxref\n%li\n%%%%EOF\n", lXRef );
-}
-
-void PdfWriter::FillTrailerObject( PdfObject* pTrailer, long lSize, bool bPrevEntry, bool bOnlySizeKey )
+void PdfWriter::FillTrailerObject( PdfObject* pTrailer, long lSize, bool bPrevEntry, bool bOnlySizeKey ) const
 {
     PdfVariant place_holder( 0l );
     place_holder.SetPaddingLength( LINEARIZATION_PADDING );
@@ -657,6 +484,7 @@ void PdfWriter::FetchPagesTree()
     }
 }
 
+/*
 void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, 
                                              PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset )
 {
@@ -694,8 +522,9 @@ void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDev
     trailer.WriteObject( pDevice );
     pDevice->Seek( lFileSize );
 }
+*/
 
-void PdfWriter::CreateFileIdentifier( PdfObject* pTrailer )
+void PdfWriter::CreateFileIdentifier( PdfObject* pTrailer ) const
 {
     PdfOutputDevice length;
     PdfString       identifier;

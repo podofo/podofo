@@ -29,6 +29,7 @@
 #include "PdfFileSpec.h"
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
+#include "PdfImmediateWriter.h"
 #include "PdfInfo.h"
 #include "PdfNamesTree.h"
 #include "PdfObject.h"
@@ -43,7 +44,8 @@ namespace PoDoFo {
 using namespace std;
 
 PdfDocument::PdfDocument()
-    : m_pOutlines( NULL ), m_pNamesTree( NULL ), m_pPagesTree( NULL ), m_pTrailer( NULL ), m_fontCache( &m_vecObjects )
+    : m_pOutlines( NULL ), m_pNamesTree( NULL ), m_pPagesTree( NULL ), 
+      m_pTrailer( NULL ), m_fontCache( &m_vecObjects ), m_pImmediate( NULL )
 {
     m_eVersion    = ePdfVersion_1_3;
     m_bLinearized = false;
@@ -62,7 +64,8 @@ PdfDocument::PdfDocument()
 }
 
 PdfDocument::PdfDocument( const char* pszFilename )
-    : m_pInfo( NULL ), m_pOutlines( NULL ), m_pNamesTree( NULL ), m_pPagesTree( NULL ), m_pTrailer( NULL ), m_fontCache( &m_vecObjects )
+    : m_pInfo( NULL ), m_pOutlines( NULL ), m_pNamesTree( NULL ), m_pPagesTree( NULL ), 
+      m_pTrailer( NULL ), m_fontCache( &m_vecObjects ), m_pImmediate( NULL )
 {
     m_vecObjects.SetParentDocument( this );
 
@@ -116,6 +119,12 @@ void PdfDocument::Clear()
     {
         delete m_pTrailer;
         m_pTrailer = NULL;
+    }
+
+    if( m_pImmediate ) 
+    {
+        delete m_pImmediate;
+        m_pImmediate = NULL;
     }
 }
 
@@ -202,6 +211,16 @@ void PdfDocument::Write( PdfOutputDevice* pDevice )
     writer.Write( pDevice );    
 }
 
+void PdfDocument::WriteImmediately( PdfOutputDevice* pDevice )
+{
+    if( m_pImmediate ) 
+    {
+        RAISE_ERROR( ePdfError_InternalLogic );
+    }
+
+    m_pImmediate  = new PdfImmediateWriter( pDevice, &m_vecObjects );
+}
+
 PdfObject* PdfDocument::GetNamedObjectFromCatalog( const char* pszName ) const 
 {
     return m_pCatalog->GetIndirectKey( PdfName( pszName ) );
@@ -261,7 +280,7 @@ const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc )
     }
 
     // append all pages now to our page tree
-    for(int i=0;i<rDoc.GetPageCount()-1;i++ )
+    for(int i=0;i<rDoc.GetPageCount();i++ )
     {
         PdfPage*      pPage = rDoc.GetPage( i );
         PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, 0 ) );

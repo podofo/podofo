@@ -274,7 +274,7 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     PdfXObject     xObj( rect, &(pDocument->GetObjects()) );
     PdfPainter     pnt;    // XObject painter
 
-    image.LoadFromFile( "./lena.jpg" );
+    image.LoadFromFile( "../../../podofo/test/CreationTest/lena.jpg" );
 
     pnt.SetPage( &xObj );
     // Draw onto the XObject
@@ -338,7 +338,7 @@ void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->SetColor( 1.0, 0.0, 0.0 );
     pPainter->FillEllipse( dX, dY, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
 
-    PdfFileSpec file( "lena.jpg", true, &(pDocument->GetObjects()) );
+    PdfFileSpec file( "../../../podofo/test/CreationTest/lena.jpg", true, &(pDocument->GetObjects()) );
     pFileAnnotation =  pPage->CreateAnnotation( ePdfAnnotation_FileAttachement, PdfRect( 300.0, 400.0, 250.0, 50.0 ) );
     pFileAnnotation->SetContents( "A JPEG image of Lena" );
     pFileAnnotation->SetFileAttachement( file );
@@ -454,7 +454,7 @@ int main( int argc, char* argv[] )
     TEST_SAFE_OP( writer.GetInfo()->SetSubject ( PdfString("Testing the PDF Library") ) );
     TEST_SAFE_OP( writer.GetInfo()->SetKeywords( PdfString("Test;PDF;") ) );
 
-    TEST_SAFE_OP( writer.AttachFile( PdfFileSpec("CreationTest.cpp", true, &(writer.GetObjects()) ) ) );
+    TEST_SAFE_OP( writer.AttachFile( PdfFileSpec("../../../podofo/test/CreationTest/CreationTest.cpp", true, &(writer.GetObjects()) ) ) );
 
     TEST_SAFE_OP( writer.Write( argv[1] ) );
 

@@ -33,6 +33,7 @@ class PdfDestination;
 class PdfDictionary;
 class PdfFileSpec;
 class PdfFont;
+class PdfImmediateWriter;
 class PdfInfo;
 class PdfNamesTree;
 class PdfOutlines;
@@ -88,6 +89,18 @@ class PODOFO_API PdfDocument {
      *  \param pDevice write to this output device
      */
     void Write( PdfOutputDevice* pDevice );
+
+    /** Write the PDF immediately while all objects are
+     *  created. This is much faster, if you are only
+     *  creating PDF files and are not changing any objects
+     *  after they have been created.
+     *
+     *  This method may only be called once and should be 
+     *  the first method to call after constructing the PdfDocument.
+     *
+     *  \param pDevice write to this device.
+     */
+    void WriteImmediately( PdfOutputDevice* pDevice );
 
     /** Set the PDF Version of the document. Has to be called before Write() to
      *  have an effect.
@@ -362,6 +375,8 @@ class PODOFO_API PdfDocument {
     EPdfVersion     m_eVersion;
 
     PdfFontCache    m_fontCache;
+
+    PdfImmediateWriter* m_pImmediate;
 };
 
 // -----------------------------------------------------
