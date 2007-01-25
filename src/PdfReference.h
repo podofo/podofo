@@ -53,7 +53,7 @@ class PODOFO_API PdfReference : public PdfDataType {
      * \param nObjectNo the object number
      * \param nGenerationNo the generation number
      */
-    PdfReference( unsigned long nObjectNo, unsigned long nGenerationNo )
+    PdfReference( const unsigned long nObjectNo, const pdf_uint16 nGenerationNo )
         : m_nObjectNo( nObjectNo ), m_nGenerationNo( nGenerationNo ) 
     {
     }
@@ -122,16 +122,16 @@ class PODOFO_API PdfReference : public PdfDataType {
     /** Set the generation number of this object
      *  \param g the new generation number
      */
-    inline void SetGenerationNumber( unsigned long g ) throw();
+    inline void SetGenerationNumber( const pdf_uint16 g ) throw();
 
     /** Get the generation number.
      *  \returns the generation number of this PdfReference
      */
-    inline unsigned long GenerationNumber() const throw();
+    inline pdf_uint16 GenerationNumber() const throw();
 
  private:
     unsigned long m_nObjectNo;
-    unsigned long m_nGenerationNo;
+    pdf_uint16    m_nGenerationNo;
 };
 
 // -----------------------------------------------------
@@ -190,7 +190,7 @@ unsigned long PdfReference::ObjectNumber() const throw()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfReference::SetGenerationNumber( unsigned long g ) throw()
+void PdfReference::SetGenerationNumber( pdf_uint16 g ) throw()
 {
     m_nGenerationNo = g;
 }
@@ -198,7 +198,7 @@ void PdfReference::SetGenerationNumber( unsigned long g ) throw()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned long PdfReference::GenerationNumber() const throw()
+pdf_uint16 PdfReference::GenerationNumber() const throw()
 {
     return m_nGenerationNo;
 }

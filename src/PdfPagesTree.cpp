@@ -237,7 +237,7 @@ int PdfPagesTree::GetPosInKids( PdfObject* inPageObj )
     size_t kidsLen = kidsArray.size();
     int kidsIndex;
     bool foundKid = false ;
-    for( kidsIndex = 0 ; ( !foundKid ) && ( kidsIndex < kidsLen ) ; kidsIndex++ )
+    for( kidsIndex = 0 ; ( !foundKid ) && ( kidsIndex < static_cast<int>(kidsLen) ) ; kidsIndex++ )
     {
         PdfObject* kidObj = GetPageFromKidArray( kidsArray, kidsIndex );
         if( inPageObj == kidObj || *kidObj == *inPageObj ) {
@@ -313,7 +313,7 @@ void PdfPagesTree::InsertPages( int inAfterIndex,
     PdfObject*	kidsArrObj = PdfPagesTree::GetKids( inParentObj ) ;
     PdfArray&	kidsArray = kidsArrObj->GetArray();
 
-    if( insIdx > kidsArray.size() ) 
+    if( insIdx > static_cast<int>(kidsArray.size()) ) 
         kidsArray.push_back( inPageOrPagesObj->Reference() );
     else
         kidsArray.insert( kidsArray.begin() + insIdx, inPageOrPagesObj->Reference() );

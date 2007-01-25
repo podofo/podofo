@@ -156,7 +156,7 @@ void PdfWriter::Write( PdfOutputDevice* pDevice )
     }
 }
 
-void PdfWriter::WriteLinearized( PdfOutputDevice* pDevice )
+void PdfWriter::WriteLinearized( PdfOutputDevice* /* pDevice */ )
 {
     /*
     PdfObject*      pLinearize  = NULL;

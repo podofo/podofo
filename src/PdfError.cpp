@@ -167,6 +167,9 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_FileNotFound:
             pszMsg = "ePdfError_FileNotFound"; 
             break;
+        case ePdfError_InvalidDeviceOperation:
+            pszMsg = "ePdfError_InvalidDeviceOperation";
+            break;
         case ePdfError_UnexpectedEOF:
             pszMsg = "ePdfError_UnexpectedEOF"; 
             break;
@@ -281,6 +284,9 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
             break;
         case ePdfError_FileNotFound:
             pszMsg = "The specified file was not found.";
+            break;
+        case ePdfError_InvalidDeviceOperation:
+            pszMsg = "Tried to do something unsupported to an I/O device like seek a non-seekable input device";
             break;
         case ePdfError_UnexpectedEOF:
             pszMsg = "End of file was reached unxexpectedly.";
