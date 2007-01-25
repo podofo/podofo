@@ -127,7 +127,7 @@ PdfObject::~PdfObject()
 void PdfObject::InitPdfObject()
 {
     m_pStream                 = NULL;
-    m_pParent                 = NULL;
+    m_pCreator                = NULL;
 
     m_bDelayedStreamLoadDone  = true;
 
@@ -172,14 +172,14 @@ PdfObject* PdfObject::GetIndirectKey( const PdfName & key )
         pObj = this->GetDictionary().GetKey( key );
         if( pObj->IsReference() ) 
         {
-            if( !m_pParent )
+            if( !m_pCreator )
             {
                 RAISE_ERROR( ePdfError_InvalidHandle );
             }
-            pObj = m_pParent->GetObject( pObj->GetReference() );
+            pObj = m_pCreator->GetObject( pObj->GetReference() );
         }
         else
-            pObj->SetParent( GetParent() );	// even directs might want a parent...
+            pObj->SetCreator( GetCreator() );	// even directs might want a creator...
     }
 
     return pObj;

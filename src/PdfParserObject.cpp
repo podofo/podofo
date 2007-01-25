@@ -39,10 +39,10 @@ static const int s_nLenEndObj    = 6; // strlen("endobj");
 static const int s_nLenStream    = 6; // strlen("stream");
 static const int s_nLenEndStream = 9; // strlen("endstream");
 
-PdfParserObject::PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer, long lOffset )
+PdfParserObject::PdfParserObject( PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer, long lOffset )
     : PdfObject( PdfReference( 0, 0 ), static_cast<const char*>(NULL)), PdfTokenizer( rDevice, rBuffer )
 {
-    m_pParent = pParent;
+    m_pCreator = pCreator;
 
     InitPdfParserObject();
 
@@ -206,7 +206,7 @@ void PdfParserObject::ParseStream()
     long         lLen  = -1;
     int          c;
 
-    if( !m_device.Device() || !m_pParent )
+    if( !m_device.Device() || !m_pCreator )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -242,7 +242,7 @@ void PdfParserObject::ParseStream()
     }
     else if( pObj && pObj->IsReference() )
     {
-        pObj = m_pParent->GetObject( pObj->GetReference() );
+        pObj = m_pCreator->GetObject( pObj->GetReference() );
         if( !pObj )
         {
             RAISE_ERROR_INFO( ePdfError_InvalidHandle, "/Length key referenced indirect object that could not be loaded" );
@@ -260,7 +260,7 @@ void PdfParserObject::ParseStream()
         }
 
         // we do not use indirect references for the length of the document
-        delete m_pParent->RemoveObject( pObj->Reference() );
+        delete m_pCreator->RemoveObject( pObj->Reference() );
     }
     else
     {

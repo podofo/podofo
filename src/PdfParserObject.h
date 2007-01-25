@@ -38,7 +38,7 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
  public:
     /** Parse the object data from the given file handle starting at
      *  the current position.
-     *  \param pParent pointer to a parent to resolve object references
+     *  \param pCreator pointer to a PdfVecObjects to resolve object references
      *  \param rDevice an open reference counted input device which is positioned in
      *                 front of the object which is going to be parsed.
      *  \param rBuffer buffer to use for parsing to avoid reallocations
@@ -46,7 +46,7 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
      *                 if lOffset = -1, the object will be read from the current 
      *                 position in the file.
      */
-    PdfParserObject( PdfVecObjects* pParent, const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer, long lOffset = -1 );
+    PdfParserObject( PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer, long lOffset = -1 );
 
     /** Parse the object data for an internal object.
      *  You have to call ParseDictionaryKeys as next function call.

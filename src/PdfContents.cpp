@@ -34,7 +34,7 @@ PdfContents::PdfContents( PdfObject* inObj )
 : mContObj( inObj )
 {
     if ( mContObj->GetDataType() == ePdfDataType_Reference )
-        mContObj = inObj->GetParent()->GetObject( inObj->GetReference() );
+        mContObj = inObj->GetCreator()->GetObject( inObj->GetReference() );
     else if ( mContObj->GetDataType() == ePdfDataType_Dictionary )
         mContObj->GetStream();	// should make it a valid stream..
 }
@@ -54,7 +54,7 @@ PdfObject* PdfContents::GetContentsForAppending() const
         /*
           Create a new stream, add it to the array, return it
         */
-        PdfObject*	newStm = mContObj->GetParent()->CreateObject();
+        PdfObject*	newStm = mContObj->GetCreator()->CreateObject();
         newStm->GetStream();
         PdfReference	pdfr( newStm->Reference().ObjectNumber(), newStm->Reference().GenerationNumber() );
         

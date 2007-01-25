@@ -52,7 +52,7 @@ PdfDocument::PdfDocument()
     m_vecObjects.SetParentDocument( this );
 
     m_pTrailer = new PdfObject();
-    m_pTrailer->SetParent( &m_vecObjects );
+    m_pTrailer->SetCreator( &m_vecObjects );
     m_pCatalog = m_vecObjects.CreateObject( "Catalog" );
 
     m_pInfo = new PdfInfo( &m_vecObjects );
@@ -136,7 +136,7 @@ void PdfDocument::InitFromParser( PdfParser* pParser )
     m_bLinearized  = pParser->IsLinearized();
 
     m_pTrailer = new PdfObject( *(pParser->GetTrailer()) );
-    m_pTrailer->SetParent( &m_vecObjects );
+    m_pTrailer->SetCreator( &m_vecObjects );
 
     m_pCatalog  = m_pTrailer->GetIndirectKey( "Root" );
     if( !m_pCatalog )

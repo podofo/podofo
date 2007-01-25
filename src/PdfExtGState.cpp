@@ -28,66 +28,66 @@
 
 namespace PoDoFo {
 
-	PdfExtGState::PdfExtGState( PdfVecObjects* pParent )
-		: PdfElement( "ExtGState", pParent )
-	{
-		std::ostringstream out;
+PdfExtGState::PdfExtGState( PdfVecObjects* pParent )
+    : PdfElement( "ExtGState", pParent )
+{
+    std::ostringstream out;
 
-		// Implementation note: the identifier is always
-		// Prefix+ObjectNo. Prefix is /Ft for fonts.
-		out << "ExtGS" << m_pObject->Reference().ObjectNumber();
-		m_Identifier = PdfName( out.str().c_str() );
+    // Implementation note: the identifier is always
+    // Prefix+ObjectNo. Prefix is /Ft for fonts.
+    out << "ExtGS" << m_pObject->Reference().ObjectNumber();
+    m_Identifier = PdfName( out.str().c_str() );
 
-		this->Init();
-	}
+    this->Init();
+}
 
-	PdfExtGState::~PdfExtGState()
-	{
-	}
+PdfExtGState::~PdfExtGState()
+{
+}
 
-	void PdfExtGState::Init( void )
-	{
-	}
+void PdfExtGState::Init( void )
+{
+}
 
-	void PdfExtGState::SetFillOpacity( float opac )
-	{
-		m_pObject->GetDictionary().AddKey( "ca", PdfVariant( opac ) );
-	}
+void PdfExtGState::SetFillOpacity( float opac )
+{
+    m_pObject->GetDictionary().AddKey( "ca", PdfVariant( opac ) );
+}
 
-	void PdfExtGState::SetStrokeOpacity( float opac )
-	{
-		m_pObject->GetDictionary().AddKey( "CA", PdfVariant( opac ) );
-	}
+void PdfExtGState::SetStrokeOpacity( float opac )
+{
+    m_pObject->GetDictionary().AddKey( "CA", PdfVariant( opac ) );
+}
 
-	void PdfExtGState::SetBlendMode( char* blendMode )
-	{
-		m_pObject->GetDictionary().AddKey( "BM", PdfVariant( PdfName( blendMode ) ) );
-	}
+void PdfExtGState::SetBlendMode( char* blendMode )
+{
+    m_pObject->GetDictionary().AddKey( "BM", PdfVariant( PdfName( blendMode ) ) );
+}
 
-	void PdfExtGState::SetOverprint( bool enable )
-	{
-		m_pObject->GetDictionary().AddKey( "OP", PdfVariant( enable ) );
-	}
+void PdfExtGState::SetOverprint( bool enable )
+{
+    m_pObject->GetDictionary().AddKey( "OP", PdfVariant( enable ) );
+}
 
-	void PdfExtGState::SetFillOverprint( bool enable )
-	{
-		m_pObject->GetDictionary().AddKey( "op", PdfVariant( enable ) );
-	}
+void PdfExtGState::SetFillOverprint( bool enable )
+{
+    m_pObject->GetDictionary().AddKey( "op", PdfVariant( enable ) );
+}
 
-	void PdfExtGState::SetStrokeOverprint( bool enable )
-	{
-		m_pObject->GetDictionary().AddKey( "OP", PdfVariant( enable ) );
-	}
+void PdfExtGState::SetStrokeOverprint( bool enable )
+{
+    m_pObject->GetDictionary().AddKey( "OP", PdfVariant( enable ) );
+}
 
-	void PdfExtGState::SetNonZeroOverprint( bool enable )
-	{
-		m_pObject->GetDictionary().AddKey( "OPM", PdfVariant( (enable ? 1L : 0L) ) );
-	}
+void PdfExtGState::SetNonZeroOverprint( bool enable )
+{
+    m_pObject->GetDictionary().AddKey( "OPM", PdfVariant( (enable ? 1L : 0L) ) );
+}
 
-	void PdfExtGState::SetRenderingIntent( char* intent )
-	{
-		m_pObject->GetDictionary().AddKey( "RI", PdfVariant( PdfName( intent ) ) );
-	}
+void PdfExtGState::SetRenderingIntent( char* intent )
+{
+    m_pObject->GetDictionary().AddKey( "RI", PdfVariant( PdfName( intent ) ) );
+}
 
 
 }	// end namespace

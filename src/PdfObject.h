@@ -144,19 +144,6 @@ class PODOFO_API PdfObject : public PdfVariant {
 
     virtual ~PdfObject();
 
-    /** Specifies wether this is an empty dictionary.
-     *  i.e. the PdfWriter, should create an empty
-     *  entry for this object in the XRef table.
-     *  \param empty  true or false
-     */
-    //inline void SetEmptyEntry( bool empty );
-
-    /** Returns if this is object will be an empty
-     *  xref entry when it is written to disc by the PDF writer
-     *  \returns true or false
-     */
-    //inline bool IsEmptyEntry() const;
-
     /** Get the keys value out of the dictionary. If the key is a reference, 
      *  the reference is resolved and the object pointed to by the reference is returned.
      *
@@ -217,15 +204,17 @@ class PODOFO_API PdfObject : public PdfVariant {
      */
     inline bool operator==( const PdfObject & rhs );
 
-    /** Set the parent of this object
+    /** Set the creator of this object, i.e. the PdfVecObjects to which
+     *  this object belongs.
+     *
      *  \param pVecObjects a vector of pdf objects
      */
-    inline void SetParent( PdfVecObjects* pVecObjects );
+    inline void SetCreator( PdfVecObjects* pVecObjects );
 
-    /** Get the parent of this object
-     *  \return the parent of this object
+    /** Get the creator of this object.
+     *  \return the creator of this object
      */
-    inline PdfVecObjects* GetParent() const;
+    inline PdfVecObjects* GetCreator() const;
 
     /** Creates a copy of an existing PdfObject
      *  All assosiated objects and streams will be copied along with the PdfObject
@@ -299,7 +288,7 @@ class PODOFO_API PdfObject : public PdfVariant {
     PdfReference   m_reference;
     
     PdfStream*     m_pStream;
-    PdfVecObjects* m_pParent;
+    PdfVecObjects* m_pCreator;
 
     inline bool DelayedStreamLoadDone() const throw();
 
@@ -343,17 +332,17 @@ const PdfReference & PdfObject::Reference() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfObject::SetParent( PdfVecObjects* pVecObjects )
+inline void PdfObject::SetCreator( PdfVecObjects* pVecObjects )
 {
-    m_pParent = pVecObjects;
+    m_pCreator = pVecObjects;
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline PdfVecObjects* PdfObject::GetParent() const
+inline PdfVecObjects* PdfObject::GetCreator() const
 {
-    return m_pParent;
+    return m_pCreator;
 }
 
 // -----------------------------------------------------

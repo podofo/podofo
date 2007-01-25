@@ -90,7 +90,7 @@ const PdfVecObjects & PdfVecObjects::operator=( const PdfVecObjects & rhs )
     it = this->begin();
     while( it != this->end() )
     {
-        (*it)->SetParent( this );
+        (*it)->SetCreator( this );
         ++it;
     }
 
@@ -157,7 +157,7 @@ PdfObject* PdfVecObjects::CreateObject( const char* pszType )
 {
     PdfReference ref = this->GetNextFreeObject();
     PdfObject*  pObj = new PdfObject( ref, pszType );
-    pObj->SetParent( this );
+    pObj->SetCreator( this );
 
     this->push_back( pObj );
 
@@ -168,7 +168,7 @@ PdfObject* PdfVecObjects::CreateObject( const PdfVariant & rVariant )
 {
     PdfReference ref = this->GetNextFreeObject();
     PdfObject*  pObj = new PdfObject( ref, rVariant );
-    pObj->SetParent( this );    
+    pObj->SetCreator( this );    
 
     this->push_back( pObj );
 
@@ -186,7 +186,7 @@ void PdfVecObjects::push_back( PdfObject* pObj )
     if( pObj->Reference().ObjectNumber() >= m_nObjectCount )
         ++m_nObjectCount;
 
-    pObj->SetParent( this );
+    pObj->SetCreator( this );
     std::vector<PdfObject*>::push_back( pObj );
 }
 

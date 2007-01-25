@@ -81,7 +81,7 @@ void PdfFont::Init( bool bEmbedd )
     m_BaseFont = PdfName( sTmp.c_str() );
 
 
-    pWidth = m_pObject->GetParent()->CreateObject();
+    pWidth = m_pObject->GetCreator()->CreateObject();
     if( !pWidth )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -89,7 +89,7 @@ void PdfFont::Init( bool bEmbedd )
 
     m_pMetrics->GetWidthArray( *pWidth, FIRST_CHAR, LAST_CHAR );
 
-    pDescriptor = m_pObject->GetParent()->CreateObject( "FontDescriptor" );
+    pDescriptor = m_pObject->GetCreator()->CreateObject( "FontDescriptor" );
     if( !pDescriptor )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
@@ -128,7 +128,7 @@ void PdfFont::EmbeddFont( PdfObject* pDescriptor )
     char*      pBuffer = NULL;
     long       lSize = 0;
 
-    pContents = m_pObject->GetParent()->CreateObject();
+    pContents = m_pObject->GetCreator()->CreateObject();
     if( !pContents )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
