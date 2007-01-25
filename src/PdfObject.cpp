@@ -37,7 +37,7 @@ using namespace std;
 namespace PoDoFo {
 
 PdfObject::PdfObject()
-    : PdfVariant( PdfDictionary() ), m_reference( static_cast<unsigned long>(-1), static_cast<pdf_uint16>(-1) )
+    : PdfVariant( PdfDictionary() )
 {
     InitPdfObject();
 }
@@ -58,55 +58,55 @@ PdfObject::PdfObject( const PdfReference & rRef, const PdfVariant & rVariant )
 }
 
 PdfObject::PdfObject( const PdfVariant & var )
-    : PdfVariant( var ), m_reference( static_cast<unsigned long>(-1), static_cast<pdf_uint16>(-1) )
+    : PdfVariant( var )
 {
     InitPdfObject();
 }
 
 PdfObject::PdfObject( bool b )
-    : PdfVariant( b ), m_reference( static_cast<unsigned long>(-1), static_cast<pdf_uint16>(-1) )
+    : PdfVariant( b )
 {
     InitPdfObject();
 }
 
 PdfObject::PdfObject( long l )
-    : PdfVariant( l ), m_reference( static_cast<unsigned long>(-1), static_cast<pdf_uint16>(-1) )
+    : PdfVariant( l )
 {
     InitPdfObject();
 }
 
 PdfObject::PdfObject( double d )
-    : PdfVariant( d ), m_reference( static_cast<unsigned long>(-1), static_cast<pdf_uint16>(-1) )
+    : PdfVariant( d )
 {
     InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfString & rsString )
-    : PdfVariant( rsString ), m_reference( static_cast<unsigned long>(-1), static_cast<pdf_uint16>(-1) )
+    : PdfVariant( rsString )
 {
     InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfName & rName )
-    : PdfVariant( rName ), m_reference( static_cast<unsigned long>(-1), static_cast<pdf_uint16>(-1) )
+    : PdfVariant( rName )
 {
     InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfReference & rRef )
-    : PdfVariant( rRef ), m_reference( static_cast<unsigned long>(-1), static_cast<pdf_uint16>(-1) )
+    : PdfVariant( rRef )
 {
     InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfArray & tList )
-    : PdfVariant( tList ), m_reference( static_cast<unsigned long>(-1), static_cast<pdf_uint16>(-1) )
+    : PdfVariant( tList )
 {
     InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfDictionary & rDict )
-    : PdfVariant( rDict ), m_reference( static_cast<unsigned long>(-1), static_cast<pdf_uint16>(-1) )
+    : PdfVariant( rDict )
 {
     InitPdfObject();
 }
@@ -138,12 +138,6 @@ void PdfObject::InitPdfObject()
 
 void PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
 {
-    // TODO: DS this needs definitly some fixing!
-    //       bIndirect should always be false
-    //       -> Add a IsIndirect() method to PdfReference()!
-    bool          bIndirect = ( static_cast<long>(m_reference.ObjectNumber()) != -1  && static_cast<long>(m_reference.GenerationNumber()) != -1 );
-    bool          bIsTrailer = ( static_cast<long>(m_reference.ObjectNumber()) == 0  && static_cast<long>(m_reference.GenerationNumber()) == 0 );
-
     DelayedStreamLoad();
 
     if( !pDevice )
@@ -151,7 +145,7 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop )
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    if( bIndirect && !bIsTrailer )
+    if( m_reference.IsIndirect() )
         pDevice->Print( "%i %i obj\n", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
 
     this->Write( pDevice, keyStop );
@@ -165,7 +159,7 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop )
         pDevice->Print( "\nendstream\n" );
     }
 
-    if( bIndirect )
+    if( m_reference.IsIndirect() )
         pDevice->Print( "endobj\n" );
 }
 

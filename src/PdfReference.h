@@ -129,6 +129,17 @@ class PODOFO_API PdfReference : public PdfDataType {
      */
     inline pdf_uint16 GenerationNumber() const throw();
 
+    /** Allows to check if a reference points to an indirect
+     *  object.
+     *
+     *  A reference is indirect if object number and generation
+     *  number are both not equal 0.
+     *
+     *  \returns true if this reference is the reference of
+     *           an indirect object.
+     */
+    inline bool IsIndirect() const throw();
+
  private:
     unsigned long m_nObjectNo;
     pdf_uint16    m_nGenerationNo;
@@ -201,6 +212,14 @@ void PdfReference::SetGenerationNumber( pdf_uint16 g ) throw()
 pdf_uint16 PdfReference::GenerationNumber() const throw()
 {
     return m_nGenerationNo;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfReference::IsIndirect() const throw()
+{
+    return !( !m_nObjectNo && !m_nGenerationNo );
 }
 
 };
