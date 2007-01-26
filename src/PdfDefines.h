@@ -123,7 +123,7 @@ typedef enum EPdfDataType {
     //ePdfDataType_Stream,                /**< A stream can be attached to a dictionary and contain additional data. \see PdfStream */
     ePdfDataType_Null,                  /**< The null datatype is always null. */
     ePdfDataType_Reference,             /**< The reference datatype contains references to PDF objects in the PDF file of the form 4 0 R. \see PdfObject */
-
+    ePdfDataType_RawData,               /**< Raw PDF data */
     ePdfDataType_Unknown = 0xff         /**< Unknown and unsupported PDF datatype. */
 };
 

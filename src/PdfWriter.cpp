@@ -20,6 +20,7 @@
 
 #include "PdfWriter.h"
 
+#include "PdfData.h"
 #include "PdfDate.h"
 #include "PdfDictionary.h"
 #include "PdfDocument.h"
@@ -38,7 +39,8 @@
 //#define PDF_MAGIC "%‚„œ”\n" //"%\0x25\0xe2\0xe3\0xcf\0xd3\0x0d"
 #define PDF_MAGIC           "\xe2\xe3\xcf\xd3\n"
 #define XREF_ENTRY_SIZE       20
-#define LINEARIZATION_PADDING 10
+// 10 spaces
+#define LINEARIZATION_PADDING "          " 
 
 #include <iostream>
 
@@ -325,8 +327,8 @@ PdfObject* PdfWriter::CreateLinearizationDictionary()
 {
     PdfObject*       pLinearize        = m_vecObjects->CreateObject();
 
-    PdfVariant place_holder( 0l );
-    place_holder.SetPaddingLength( LINEARIZATION_PADDING );
+    // This will be overwritten later with valid data!
+    PdfVariant place_holder( PdfData( LINEARIZATION_PADDING ) );
 
     PdfArray array;
     array.push_back( place_holder );
@@ -436,8 +438,8 @@ void PdfWriter::FindCatalogDependencies( PdfObject* pCatalog, const PdfName & rN
 
 void PdfWriter::FillTrailerObject( PdfObject* pTrailer, long lSize, bool bPrevEntry, bool bOnlySizeKey ) const
 {
-    PdfVariant place_holder( 0l );
-    place_holder.SetPaddingLength( LINEARIZATION_PADDING );
+    // this will be overwritten later with valid data
+    PdfVariant place_holder( PdfData( LINEARIZATION_PADDING ) );
 
     pTrailer->GetDictionary().AddKey( PdfName::KeySize, lSize );
 

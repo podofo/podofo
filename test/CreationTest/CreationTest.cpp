@@ -389,6 +389,13 @@ int main( int argc, char* argv[] )
     printf("It creates a new PdfFile from scratch.\n");
     printf("---\n");
 
+    printf("PoDoFo DataType Size Information:\n");
+    printf("---\n");
+    printf("sizeof variant=%i\n", sizeof(PdfVariant) );
+    printf("sizeof object=%i\n", sizeof(PdfObject) );
+    printf("sizeof reference=%i\n", sizeof(PdfReference) );
+    printf("---\n\n");
+ 
     outlines = writer.GetOutlines();
     pRoot = outlines->CreateRoot("PoDoFo Test Document" );
 

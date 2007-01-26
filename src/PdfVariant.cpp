@@ -21,6 +21,7 @@
 #include "PdfVariant.h"
 
 #include "PdfArray.h"
+#include "PdfData.h"
 #include "PdfDictionary.h"
 #include "PdfOutputDevice.h"
 #include "PdfParserObject.h"
@@ -41,13 +42,13 @@ PdfVariant PdfVariant::NullValue;
 // in the Clear() method. Mostly useful for internal sanity checks.
 inline void PdfVariant::Init() throw()
 {
+    memset( &m_Data, 0, sizeof( UVariant ) );
 #if defined(PODOFO_EXTRA_CHECKS)
     m_bDelayedLoadInProgress=false;
 #endif
 }
 
 PdfVariant::PdfVariant()
-    : m_pData( NULL )
 {
     Init();
     Clear();
@@ -56,7 +57,6 @@ PdfVariant::PdfVariant()
 }
 
 PdfVariant::PdfVariant( bool b )
-    : m_pData( NULL )
 {
     Init();
     Clear();
@@ -66,7 +66,6 @@ PdfVariant::PdfVariant( bool b )
 }
 
 PdfVariant::PdfVariant( long l )
-    : m_pData( NULL )
 {
     Init();
     Clear();
@@ -76,7 +75,6 @@ PdfVariant::PdfVariant( long l )
 }
 
 PdfVariant::PdfVariant( double d )
-    : m_pData( NULL )
 {
     Init();
     Clear();
@@ -86,57 +84,60 @@ PdfVariant::PdfVariant( double d )
 }
 
 PdfVariant::PdfVariant( const PdfString & rsString )
-    : m_pData( NULL )
 {
     Init();
     Clear();
 
-    m_eDataType = rsString.IsHex() ? ePdfDataType_HexString : ePdfDataType_String;
-    m_pData     = new PdfString( rsString );
+    m_eDataType  = rsString.IsHex() ? ePdfDataType_HexString : ePdfDataType_String;
+    m_Data.pData = new PdfString( rsString );
 }
 
 PdfVariant::PdfVariant( const PdfName & rName )
-    : m_pData( NULL )
 {
     Init();
     Clear();
 
-    m_eDataType = ePdfDataType_Name;
-    m_pData     = new PdfName( rName );
+    m_eDataType  = ePdfDataType_Name;
+    m_Data.pData = new PdfName( rName );
 }
 
 PdfVariant::PdfVariant( const PdfReference & rRef )
-    : m_pData( NULL )
 {
     Init();
     Clear();
 
-    m_eDataType = ePdfDataType_Reference;
-    m_pData     = new PdfReference( rRef );
+    m_eDataType  = ePdfDataType_Reference;
+    m_Data.pData = new PdfReference( rRef );
 }
 
 PdfVariant::PdfVariant( const PdfArray & rArray )
-    : m_pData( NULL )
 {
     Init();
     Clear();
 
-    m_eDataType = ePdfDataType_Array;
-    m_pData     = new PdfArray( rArray );
+    m_eDataType  = ePdfDataType_Array;
+    m_Data.pData = new PdfArray( rArray );
 }
 
 PdfVariant::PdfVariant( const PdfDictionary & rObj )
-    : m_pData( NULL )
 {
     Init();
     Clear();
 
-    m_eDataType = ePdfDataType_Dictionary;
-    m_pData     = new PdfDictionary( rObj );
+    m_eDataType  = ePdfDataType_Dictionary;
+    m_Data.pData = new PdfDictionary( rObj );
+}
+
+PdfVariant::PdfVariant( const PdfData & rData )
+{
+    Init();
+    Clear();
+
+    m_eDataType  = ePdfDataType_RawData;
+    m_Data.pData = new PdfData( rData );
 }
 
 PdfVariant::PdfVariant( const PdfVariant & rhs )
-    : m_pData( NULL )
 {
     Init();
     this->operator=(rhs);
@@ -149,15 +150,35 @@ PdfVariant::~PdfVariant()
 
 void PdfVariant::Clear()
 {
-    if (m_pData)
-        delete m_pData;
+    switch( m_eDataType ) 
+    {
+        case ePdfDataType_Array:
+        case ePdfDataType_Reference:
+        case ePdfDataType_Dictionary:
+        case ePdfDataType_Name:
+        case ePdfDataType_String:
+        case ePdfDataType_HexString:
+        case ePdfDataType_RawData:
+        {
+            if( m_Data.pData )
+                delete m_Data.pData;
+            break;
+        }
+            
+        case ePdfDataType_Bool:
+        case ePdfDataType_Null:
+        case ePdfDataType_Number:
+        case ePdfDataType_Real:
+        case ePdfDataType_Unknown:
+        default:
+            break;
+            
+    }
 
     m_bDelayedLoadDone = true;
-    m_nPadding   = 0;
     m_eDataType  = ePdfDataType_Null;
-    m_pData      = NULL;
 
-    memset( &m_Data, sizeof( UVariant ), 0 );
+    memset( &m_Data, 0, sizeof( UVariant ) );
 }
 
 void PdfVariant::Write( PdfOutputDevice* pDevice ) const
@@ -167,9 +188,6 @@ void PdfVariant::Write( PdfOutputDevice* pDevice ) const
 
 void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
 {
-    unsigned long lLen = pDevice->GetLength();
-    int           nPad = 0;
- 
     DelayedLoad(); 
 
     /* Check all handles first 
@@ -178,7 +196,8 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) cons
          m_eDataType == ePdfDataType_String ||
          m_eDataType == ePdfDataType_Array ||
          m_eDataType == ePdfDataType_Dictionary ||
-         m_eDataType == ePdfDataType_Name) && !m_pData )
+         m_eDataType == ePdfDataType_Name || 
+         m_eDataType == ePdfDataType_RawData ) && !m_Data.pData )
     {
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -199,10 +218,11 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) cons
         case ePdfDataType_Name:
         case ePdfDataType_Array:
         case ePdfDataType_Reference:
-            m_pData->Write( pDevice );
+        case ePdfDataType_RawData:
+            m_Data.pData->Write( pDevice );
             break;
         case ePdfDataType_Dictionary:
-            static_cast<PdfDictionary*>(m_pData)->Write( pDevice, keyStop );
+            static_cast<PdfDictionary*>(m_Data.pData)->Write( pDevice, keyStop );
             break;
         case ePdfDataType_Null:
             pDevice->Print( "null" );
@@ -214,13 +234,6 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) cons
             break;
         }
     };
-
-    nPad = static_cast<int>(pDevice->GetLength() - lLen);
-    if( m_nPadding && nPad < m_nPadding )
-    {
-        std::string str( m_nPadding - nPad, ' ' ); 
-        pDevice->Print( str.c_str() );
-    }
 }
 
 void PdfVariant::ToString( std::string & rsData ) const
@@ -240,39 +253,58 @@ const PdfVariant & PdfVariant::operator=( const PdfVariant & rhs )
     rhs.DelayedLoad();
 
     m_eDataType      = rhs.m_eDataType;
-    m_Data           = rhs.m_Data;
-    m_nPadding       = rhs.m_nPadding;
     
-    if( rhs.m_pData ) 
+    switch( m_eDataType ) 
     {
-        switch( m_eDataType ) 
+        case ePdfDataType_Array:
         {
-            case ePdfDataType_Array:
-                m_pData = new PdfArray( *(static_cast<PdfArray*>(rhs.m_pData)) );
-                break;
-            case ePdfDataType_Reference:
-                m_pData = new PdfReference( *(static_cast<PdfReference*>(rhs.m_pData)) );
-                break;
-            case ePdfDataType_Dictionary:
-                m_pData = new PdfDictionary( *(static_cast<PdfDictionary*>(rhs.m_pData)) );
-                break;
-            case ePdfDataType_Name:
-                m_pData = new PdfName( *(static_cast<PdfName*>(rhs.m_pData)) );
-                break;
-            case ePdfDataType_String:
-            case ePdfDataType_HexString:
-                m_pData = new PdfString( *(static_cast<PdfString*>(rhs.m_pData)) );
-                break;
-
-            case ePdfDataType_Bool:
-            case ePdfDataType_Null:
-            case ePdfDataType_Number:
-            case ePdfDataType_Real:
-            case ePdfDataType_Unknown:
-            default:
-                break;
-        };
-    }
+            if( rhs.m_Data.pData ) 
+                m_Data.pData = new PdfArray( *(static_cast<PdfArray*>(rhs.m_Data.pData)) );
+            break;
+        }
+        case ePdfDataType_Reference:
+        {
+            if( rhs.m_Data.pData ) 
+                m_Data.pData = new PdfReference( *(static_cast<PdfReference*>(rhs.m_Data.pData)) );
+            break;
+        }
+        case ePdfDataType_Dictionary:
+        {
+            if( rhs.m_Data.pData ) 
+                m_Data.pData = new PdfDictionary( *(static_cast<PdfDictionary*>(rhs.m_Data.pData)) );
+            break;
+        }
+        case ePdfDataType_Name:
+        {
+            if( rhs.m_Data.pData ) 
+                m_Data.pData = new PdfName( *(static_cast<PdfName*>(rhs.m_Data.pData)) );
+            break;
+        }
+        case ePdfDataType_String:
+        case ePdfDataType_HexString:
+        {
+            if( rhs.m_Data.pData ) 
+                m_Data.pData = new PdfString( *(static_cast<PdfString*>(rhs.m_Data.pData)) );
+            break;
+        }
+            
+        case ePdfDataType_RawData: 
+        {
+            if( rhs.m_Data.pData ) 
+                m_Data.pData = new PdfData( *(static_cast<PdfData*>(rhs.m_Data.pData)) );
+            break;
+        }
+        case ePdfDataType_Bool:
+        case ePdfDataType_Null:
+        case ePdfDataType_Number:
+        case ePdfDataType_Real:
+            m_Data = rhs.m_Data;
+            break;
+            
+        case ePdfDataType_Unknown:
+        default:
+            break;
+    };
 
     return (*this);
 }
@@ -291,6 +323,7 @@ const char * PdfVariant::GetDataTypeString() const
         case ePdfDataType_Dictionary: return "Dictionary";
         case ePdfDataType_Null: return "Null";
         case ePdfDataType_Reference: return "Reference";
+        case ePdfDataType_RawData: return "RawData";
         case ePdfDataType_Unknown: return "Unknown";
     }
     return "INVALID_TYPE_ENUM";

@@ -29,6 +29,7 @@
 namespace PoDoFo {
 
 class PdfArray;
+class PdfData;
 class PdfDataType;
 class PdfDictionary;
 class PdfName;
@@ -106,6 +107,11 @@ class PODOFO_API PdfVariant {
      */        
     PdfVariant( const PdfDictionary & rDict );
 
+    /** Construct a PdfVariant that contains raw PDF data.
+     *  \param rData raw and valid PDF data.
+     */        
+    PdfVariant( const PdfData & rData );
+
     /** Constructs a new PdfVariant which has the same 
      *  contents as rhs.
      *  \param rhs an existing variant which is copied.
@@ -167,9 +173,9 @@ class PODOFO_API PdfVariant {
      */
     inline bool IsDictionary() const { return GetDataType() == ePdfDataType_Dictionary; }
 
-    /** \returns true if this variant is a stream (i.e. GetDataType() == ePdfDataType_Stream)
+    /** \returns true if this variant is raw data (i.e. GetDataType() == ePdfDataType_RawData
      */
-    //inline bool IsStream() const { return GetDataType() == ePdfDataType_Stream; }
+    inline bool IsRawData() const { return GetDataType() == ePdfDataType_RawData; }
 
     /** \returns true if this variant is null (i.e. GetDataType() == ePdfDataType_Null)
      */
@@ -273,15 +279,6 @@ class PODOFO_API PdfVariant {
      */
     const PdfVariant & operator=( const PdfVariant & rhs );
 
-    /** The PdfVariant object is padded with spaces to lLength
-     *  if this property is set when it is written using ToString.
-     *  
-     *  \param lLength padding length
-     *  \see ToString
-     */
-    inline void SetPaddingLength( long lLength );
-
-
  protected:
 
     /**
@@ -359,6 +356,11 @@ class PODOFO_API PdfVariant {
      *  one of those members used.
      */
     typedef union { 
+        /** Holds references, strings, 
+         *  names, dictionaries and arrays
+         */
+        PdfDataType* pData;
+
         bool       bBoolValue;
         double     dNumber;
         long       nNumber;
@@ -371,16 +373,6 @@ class PODOFO_API PdfVariant {
      *  the union UVariant.
      */
     EPdfDataType m_eDataType;
-
-    /** Holds references, strings, 
-     *  names, dictionaries and arrays
-     */
-    PdfDataType* m_pData;
-
-    /** if not 0 the object is padded with spaces
-     *  to this length
-     */
-    int         m_nPadding;
 
     // No touchy. Only for use by PdfVariant's internal tracking of the delayed
     // loading state. Use DelayedLoadDone() to test this if you need to.
@@ -442,14 +434,6 @@ const EPdfDataType PdfVariant::GetDataType() const
     DelayedLoad();
 
     return m_eDataType;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfVariant::SetPaddingLength( long lLength )
-{
-    m_nPadding = lLength;
 }
 
 // -----------------------------------------------------
@@ -566,7 +550,7 @@ const PdfString & PdfVariant::GetString() const
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *(reinterpret_cast<PdfString* const>(m_pData));
+    return *(reinterpret_cast<PdfString* const>(m_Data.pData));
 }
 
 // -----------------------------------------------------
@@ -581,7 +565,7 @@ const PdfName & PdfVariant::GetName() const
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *(reinterpret_cast<PdfName*>(m_pData));
+    return *(reinterpret_cast<PdfName*>(m_Data.pData));
 }
 
 // -----------------------------------------------------
@@ -603,7 +587,7 @@ const PdfArray & PdfVariant::GetArray_NoDL() const
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *(reinterpret_cast<PdfArray* const>(m_pData));
+    return *(reinterpret_cast<PdfArray* const>(m_Data.pData));
 }
 
 // -----------------------------------------------------
@@ -625,7 +609,7 @@ PdfArray & PdfVariant::GetArray_NoDL()
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *(reinterpret_cast<PdfArray* const>(m_pData));
+    return *(reinterpret_cast<PdfArray* const>(m_Data.pData));
 }
 
 // -----------------------------------------------------
@@ -647,7 +631,7 @@ const PdfDictionary & PdfVariant::GetDictionary_NoDL() const
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *(reinterpret_cast<PdfDictionary* const>(m_pData));
+    return *(reinterpret_cast<PdfDictionary* const>(m_Data.pData));
 }
 
 // -----------------------------------------------------
@@ -669,7 +653,7 @@ PdfDictionary & PdfVariant::GetDictionary_NoDL()
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *(reinterpret_cast<PdfDictionary* const>(m_pData));
+    return *(reinterpret_cast<PdfDictionary* const>(m_Data.pData));
 }
 
 // -----------------------------------------------------
@@ -684,7 +668,7 @@ const PdfReference & PdfVariant::GetReference() const
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *(reinterpret_cast<PdfReference* const>(m_pData));
+    return *(reinterpret_cast<PdfReference* const>(m_Data.pData));
 }
 
 // -----------------------------------------------------
@@ -699,7 +683,7 @@ inline PdfReference & PdfVariant::GetReference()
         RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *(reinterpret_cast<PdfReference* const>(m_pData));
+    return *(reinterpret_cast<PdfReference* const>(m_Data.pData));
 }
 
 bool PdfVariant::DelayedLoadDone() const throw()

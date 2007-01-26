@@ -39,6 +39,7 @@
 #include "PdfAnnotation.h"
 #include "PdfArray.h"
 #include "PdfCanvas.h"
+#include "PdfData.h"
 #include "PdfDataType.h"
 #include "PdfDate.h"
 #include "PdfDestination.h"

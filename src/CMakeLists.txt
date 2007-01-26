@@ -4,6 +4,7 @@ SET(PODOFO_SOURCES
     PdfArray.cpp
     PdfCanvas.cpp
     PdfContents.cpp
+    PdfData.cpp
     PdfDataType.cpp
     PdfDate.cpp
     PdfDestination.cpp
@@ -58,7 +59,8 @@ SET(PODOFO_HEADERS
 	PdfArray.h
 	PdfCanvas.h
 	PdfContents.h
-	PdfDataType.h
+	PdfData.h
+    	PdfDataType.h
 	PdfDate.h
 	PdfDefines.h
 	PdfDestination.h

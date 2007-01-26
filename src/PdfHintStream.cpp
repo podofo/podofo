@@ -22,6 +22,7 @@
 
 #include "PdfHintStream.h"
 
+#include "PdfData.h"
 #include "PdfDictionary.h"
 #include "PdfPage.h"
 #include "PdfPagesTree.h"
@@ -44,7 +45,7 @@ namespace PoDoFo {
 extern bool podofo_is_little_endian();
 
 // See PdfWriter.cpp
-#define LINEARIZATION_PADDING 10
+#define LINEARIZATION_PADDING "1234567890"
 
 
 #define PAGE_OFFSET_HEADER 38
@@ -224,14 +225,12 @@ public:
 PdfHintStream::PdfHintStream( PdfVecObjects* pParent, PdfPagesTree* pPagesTree )
     : PdfElement( NULL, pParent ), m_pPagesTree( pPagesTree )
 {
-    PdfVariant place_holder( 0l );
+    // This is overwritten later with valid data!
+    PdfVariant place_holder( PdfData( LINEARIZATION_PADDING ) );
 
     m_bLittleEndian = podofo_is_little_endian();
 
-    place_holder.SetPaddingLength( LINEARIZATION_PADDING );
-
     m_pObject->GetDictionary().AddKey( "S", place_holder ); // shared object hint table
-
 }
 
 PdfHintStream::~PdfHintStream()
