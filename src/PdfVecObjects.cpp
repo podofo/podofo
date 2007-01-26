@@ -132,8 +132,8 @@ PdfObject* PdfVecObjects::RemoveObject( const PdfReference & ref )
     if( it != this->end() )
     {
         pObj = *it;
-        this->erase( it );
         this->AddFreeObject( pObj->Reference() );
+        this->erase( it );
         return pObj;
     }
 
@@ -177,6 +177,14 @@ PdfObject* PdfVecObjects::CreateObject( const PdfVariant & rVariant )
 
 void PdfVecObjects::AddFreeObject( const PdfReference & rReference )
 {
+    TIVecObjects it;
+
+    it = std::find_if( this->begin(), this->end(), ObjectsComperator( rReference ) );
+   
+    // When append free objects from external doc we need plus one number objects
+    if( it == this->end() )
+        ++m_nObjectCount;
+        
     m_lstFreeObjects.push_front( rReference );
     m_lstFreeObjects.sort();
 }

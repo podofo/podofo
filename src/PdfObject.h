@@ -303,7 +303,7 @@ class PODOFO_API PdfObject : public PdfVariant {
     mutable bool m_bDelayedStreamLoadDone;
 
 #if defined(PODOFO_EXTRA_CHECKS)
-protected:
+ protected:
     bool DelayedStreamLoadInProgress() const throw() { return m_bDelayedStreamLoadInProgress; }
 private:
     mutable bool m_bDelayedStreamLoadInProgress;
