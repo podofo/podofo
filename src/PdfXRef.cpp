@@ -89,7 +89,6 @@ void PdfXRef::Write( PdfOutputDevice* pDevice )
         pDevice->Print( "%u %u\n", nFirst, nCount );
         if( !nFirst ) 
         {
-            //printf("Writing first free\n");
             pDevice->Print( "%0.10i %0.5i %c \n",
                             m_vecFreeObjects.size() ? m_vecFreeObjects.front().ObjectNumber() : 0,
                             EMPTY_OBJECT_OFFSET, 'f' );

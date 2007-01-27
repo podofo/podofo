@@ -53,7 +53,7 @@ PdfDestination::PdfDestination( PdfObject* pObject )
     }
     else if( pObject->GetDataType() == ePdfDataType_String ) 
     {
-        PdfDocument* pDoc = pObject->GetCreator()->GetParentDocument();
+        PdfDocument* pDoc = pObject->GetOwner()->GetParentDocument();
         if( pDoc ) 
         {
             PdfNamesTree* pNames = pDoc->GetNamesTree( ePdfDontCreateObject );
@@ -97,7 +97,7 @@ PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit )
 
     m_array.push_back( pPage->GetObject()->Reference() );
     m_array.push_back( type );
-    m_pObject = pPage->GetObject()->GetCreator()->CreateObject( m_array );
+    m_pObject = pPage->GetObject()->GetOwner()->CreateObject( m_array );
 }
 
 PdfDestination::PdfDestination( const PdfPage* pPage, const PdfRect & rRect )
@@ -109,7 +109,7 @@ PdfDestination::PdfDestination( const PdfPage* pPage, const PdfRect & rRect )
     m_array.push_back( pPage->GetObject()->Reference() );
     m_array.push_back( PdfName("FitR") );
     m_array.insert( m_array.end(), var.GetArray().begin(), var.GetArray().end() );
-    m_pObject = pPage->GetObject()->GetCreator()->CreateObject( m_array );
+    m_pObject = pPage->GetObject()->GetOwner()->CreateObject( m_array );
 }
 
 PdfDestination::PdfDestination( const PdfPage* pPage, double dLeft, double dTop, double dZoom )
@@ -119,7 +119,7 @@ PdfDestination::PdfDestination( const PdfPage* pPage, double dLeft, double dTop,
     m_array.push_back( dLeft );
     m_array.push_back( dTop );
     m_array.push_back( dZoom );
-    m_pObject = pPage->GetObject()->GetCreator()->CreateObject( m_array );
+    m_pObject = pPage->GetObject()->GetOwner()->CreateObject( m_array );
 }
 
 PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit, double dValue )
@@ -142,7 +142,7 @@ PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit, d
     m_array.push_back( pPage->GetObject()->Reference() );
     m_array.push_back( type );
     m_array.push_back( dValue );
-    m_pObject = pPage->GetObject()->GetCreator()->CreateObject( m_array );
+    m_pObject = pPage->GetObject()->GetOwner()->CreateObject( m_array );
 }
 
 PdfDestination::PdfDestination( const PdfDestination & rhs )
@@ -174,7 +174,7 @@ PdfPage* PdfDestination::GetPage()
     if( !m_array.size() )
         return NULL;
 
-    PdfDocument* pDoc = m_pObject->GetCreator()->GetParentDocument();
+    PdfDocument* pDoc = m_pObject->GetOwner()->GetParentDocument();
     if( !pDoc ) 
         return NULL;
 

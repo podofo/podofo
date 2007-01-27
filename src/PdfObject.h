@@ -204,17 +204,17 @@ class PODOFO_API PdfObject : public PdfVariant {
      */
     inline bool operator==( const PdfObject & rhs );
 
-    /** Set the creator of this object, i.e. the PdfVecObjects to which
+    /** Set the owner of this object, i.e. the PdfVecObjects to which
      *  this object belongs.
      *
      *  \param pVecObjects a vector of pdf objects
      */
-    inline void SetCreator( PdfVecObjects* pVecObjects );
+    inline void SetOwner( PdfVecObjects* pVecObjects );
 
-    /** Get the creator of this object.
+    /** Get the owner of this object.
      *  \return the creator of this object
      */
-    inline PdfVecObjects* GetCreator() const;
+    inline PdfVecObjects* GetOwner() const;
 
     /** Creates a copy of an existing PdfObject
      *  All assosiated objects and streams will be copied along with the PdfObject
@@ -288,7 +288,7 @@ class PODOFO_API PdfObject : public PdfVariant {
     PdfReference   m_reference;
     
     PdfStream*     m_pStream;
-    PdfVecObjects* m_pCreator;
+    PdfVecObjects* m_pOwner;
 
     inline bool DelayedStreamLoadDone() const throw();
 
@@ -332,17 +332,17 @@ const PdfReference & PdfObject::Reference() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfObject::SetCreator( PdfVecObjects* pVecObjects )
+inline void PdfObject::SetOwner( PdfVecObjects* pVecObjects )
 {
-    m_pCreator = pVecObjects;
+    m_pOwner = pVecObjects;
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline PdfVecObjects* PdfObject::GetCreator() const
+inline PdfVecObjects* PdfObject::GetOwner() const
 {
-    return m_pCreator;
+    return m_pOwner;
 }
 
 // -----------------------------------------------------

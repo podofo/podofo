@@ -86,7 +86,7 @@ PdfObject* PdfPagesTree::GetPageFromKidArray( PdfArray& inArray, int inIndex )
         //return NULL;	// can't handle inline pages just yet...
     }
     
-    return GetRoot()->GetCreator()->GetObject( kidsVar.GetReference() );
+    return GetRoot()->GetOwner()->GetObject( kidsVar.GetReference() );
 }
 
 PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
@@ -125,7 +125,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
             if ( !pgVar.IsReference() ) 
                 return NULL;	// can't handle inline pages just yet...
 
-            PdfObject* pgObject = GetRoot()->GetCreator()->GetObject( pgVar.GetReference() );
+            PdfObject* pgObject = GetRoot()->GetOwner()->GetObject( pgVar.GetReference() );
             // make sure the object is a /Page and not a /Pages with a single kid
             if ( pgObject->GetDictionary().GetKeyAsName( PdfName( "Type" ) ) == PdfName( "Page" ) )
                 return pgObject;
@@ -199,7 +199,7 @@ PdfPage* PdfPagesTree::GetPage( int nIndex )
 
 PdfPage* PdfPagesTree::GetPage( const PdfReference & ref )
 {
-    PdfPage* pPage  = new PdfPage( m_pObject->GetCreator()->GetObject( ref ) );
+    PdfPage* pPage  = new PdfPage( m_pObject->GetOwner()->GetObject( ref ) );
     m_deqPageObjs[ pPage->GetPageNumber() - 1 ] = pPage;
     return pPage;
 }
@@ -338,7 +338,7 @@ void PdfPagesTree::InsertPages( int inAfterIndex,
 PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
 {
     int		last  = m_deqPageObjs.size()-1;
-    PdfPage*	pPage = new PdfPage( rSize, GetRoot()->GetCreator() );
+    PdfPage*	pPage = new PdfPage( rSize, GetRoot()->GetOwner() );
 
     InsertPage( last, pPage );
 //    m_deqPageObjs.push_back( pPage );	// might as well add it here too...

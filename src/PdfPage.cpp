@@ -179,7 +179,7 @@ const int PdfPage::GetNumAnnots() const
 
 PdfAnnotation* PdfPage::CreateAnnotation( EPdfAnnotation eType, const PdfRect & rRect )
 {
-    PdfAnnotation* pAnnot = new PdfAnnotation( this, eType, rRect, m_pObject->GetCreator() );
+    PdfAnnotation* pAnnot = new PdfAnnotation( this, eType, rRect, m_pObject->GetOwner() );
     PdfObject*     pObj   = this->GetAnnotationsArray( true );
     PdfReference   ref    = pAnnot->GetObject()->Reference();
 
@@ -210,7 +210,7 @@ PdfAnnotation* PdfPage::GetAnnotation( int index )
     pAnnot = m_mapAnnotations[ref];
     if( !pAnnot )
     {
-        pObj = m_pObject->GetCreator()->GetObject( ref );
+        pObj = m_pObject->GetOwner()->GetObject( ref );
         if( !pObj )
         {
             RAISE_ERROR( ePdfError_NoObject );
@@ -287,7 +287,7 @@ void PdfPage::DeleteAnnotation( const PdfReference & ref )
     }
 
     // delete the PdfObject in the file
-    delete m_pObject->GetCreator()->RemoveObject( ref );
+    delete m_pObject->GetOwner()->RemoveObject( ref );
 }
 
 unsigned int PdfPage::GetPageNumber() const
@@ -303,7 +303,7 @@ unsigned int PdfPage::GetPageNumber() const
 
         while( it != kids.end() && (*it).GetReference() != ref )
         {
-            PdfObject* pNode = m_pObject->GetCreator()->GetObject( (*it).GetReference() );
+            PdfObject* pNode = m_pObject->GetOwner()->GetObject( (*it).GetReference() );
 
             if( pNode->GetDictionary().GetKey( PdfName::KeyType )->GetName() == PdfName( "Pages" ) )
                 nPageNumber += pNode->GetDictionary().GetKey( "Count" )->GetNumber();

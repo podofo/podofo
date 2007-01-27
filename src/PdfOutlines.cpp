@@ -44,13 +44,13 @@ PdfOutlineItem::PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutli
     if( m_pObject->GetDictionary().HasKey( "First" ) )
     {
         first    = m_pObject->GetDictionary().GetKey("First")->GetReference();
-        m_pFirst = new PdfOutlineItem( pObject->GetCreator()->GetObject( first ), this, NULL );
+        m_pFirst = new PdfOutlineItem( pObject->GetOwner()->GetObject( first ), this, NULL );
     }
 
     if( m_pObject->GetDictionary().HasKey( "Next" ) )
     {
         next     = m_pObject->GetDictionary().GetKey("Next")->GetReference();
-        m_pNext  = new PdfOutlineItem( pObject->GetCreator()->GetObject( next ), NULL, this );
+        m_pNext  = new PdfOutlineItem( pObject->GetOwner()->GetObject( next ), NULL, this );
     }
     else
     {
@@ -74,7 +74,7 @@ PdfOutlineItem::~PdfOutlineItem()
 
 PdfOutlineItem* PdfOutlineItem::CreateChild( const PdfString & sTitle, const PdfDestination & rDest )
 {
-    PdfOutlineItem* pItem = new PdfOutlineItem( sTitle, rDest, this, m_pObject->GetCreator() );
+    PdfOutlineItem* pItem = new PdfOutlineItem( sTitle, rDest, this, m_pObject->GetOwner() );
 
     if( m_pLast )
     {
@@ -95,7 +95,7 @@ PdfOutlineItem* PdfOutlineItem::CreateChild( const PdfString & sTitle, const Pdf
 
 PdfOutlineItem* PdfOutlineItem::CreateNext ( const PdfString & sTitle, const PdfDestination & rDest )
 {
-    PdfOutlineItem* pItem = new PdfOutlineItem( sTitle, rDest, m_pParentOutline, m_pObject->GetCreator() );
+    PdfOutlineItem* pItem = new PdfOutlineItem( sTitle, rDest, m_pParentOutline, m_pObject->GetOwner() );
 
     if( m_pNext ) 
     {
@@ -266,7 +266,7 @@ PdfOutlines::PdfOutlines( PdfObject* pObject )
 
 PdfOutlineItem* PdfOutlines::CreateRoot( const PdfString & sTitle )
 {
-    return this->CreateChild( sTitle, PdfDestination( GetObject()->GetCreator() ) );
+    return this->CreateChild( sTitle, PdfDestination( GetObject()->GetOwner() ) );
 }
 
 };
