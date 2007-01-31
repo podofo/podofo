@@ -43,6 +43,7 @@ PdfVariant PdfVariant::NullValue;
 inline void PdfVariant::Init() throw()
 {
     memset( &m_Data, 0, sizeof( UVariant ) );
+    m_eDataType = ePdfDataType_Null;
 #if defined(PODOFO_EXTRA_CHECKS)
     m_bDelayedLoadInProgress=false;
 #endif
