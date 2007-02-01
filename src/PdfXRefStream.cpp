@@ -83,6 +83,8 @@ void PdfXRefStream::Write( PdfOutputDevice* pDevice )
     int nFirst = 0;
     int nCount = 0;
 
+    object.SetOwner( m_pParent );
+
     w.push_back( 1l );
     w.push_back( static_cast<long>(sizeof(STREAM_OFFSET_TYPE)) );
     w.push_back( 1l );
@@ -99,21 +101,17 @@ void PdfXRefStream::Write( PdfOutputDevice* pDevice )
         if( !nFirst ) 
         {
             // write free object
-            buffer[0]         = static_cast<char>(0);
+            buffer[0]           = static_cast<char>(0);
             buffer[bufferLen-1] = static_cast<char>(1);
-
-            printf("1 Appending data of length %i: %x%x%x%x%x%x\n", bufferLen, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5] );
-
             // TODO: This might cause bus errors on HP-UX machines 
             //       which require integers to be alligned on byte boundaries.
             //       -> Better use memcpy here!
             *pValue           = static_cast<STREAM_OFFSET_TYPE>( m_vecFreeObjects.size() ? 
                                                                  m_vecFreeObjects.front().ObjectNumber() : 0 );
+            if( bLittle )
+                *pValue = static_cast<STREAM_OFFSET_TYPE>(htonl( *pValue ));
 
-            if( !bLittle )
-                *pValue = htonl( *pValue );
-
-            printf("2 Appending data of length %i: %x%x%x%x%x%x\n", bufferLen, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5] );
+ 
             object.GetStream()->Append( buffer, bufferLen );
         }
 
@@ -132,9 +130,9 @@ void PdfXRefStream::Write( PdfOutputDevice* pDevice )
                 buffer[0]           = static_cast<char>(0);
                 buffer[bufferLen-1] = static_cast<char>(1);
                 *pValue             = static_cast<STREAM_OFFSET_TYPE>(itFree != m_vecFreeObjects.end() ? 
-                                                                      (*itFree).ObjectNumber() : 0);
-                if( !bLittle )
-                    *pValue = htonl( *pValue );
+                                                                    (*itFree).ObjectNumber() : 0);
+                if( bLittle )
+                    *pValue = static_cast<STREAM_OFFSET_TYPE>(htonl( *pValue ));
 
                 object.GetStream()->Append( buffer, bufferLen );
                 --nCount;
@@ -143,9 +141,8 @@ void PdfXRefStream::Write( PdfOutputDevice* pDevice )
             buffer[0]           = static_cast<char>(1);
             buffer[bufferLen-1] = static_cast<char>(0);
             *pValue             = static_cast<STREAM_OFFSET_TYPE>((*it).lOffset );
-
-            if( !bLittle )
-                *pValue = htonl( *pValue );
+            if( bLittle )
+                *pValue = static_cast<STREAM_OFFSET_TYPE>(htonl( *pValue ));
 
             object.GetStream()->Append( buffer, bufferLen );
             ++it;
