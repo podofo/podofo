@@ -99,6 +99,8 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
         va_start( args, pszFormat );
         if( (lBytes = vfprintf( m_hFile, pszFormat, args )) < 0 )
         {
+            printf("lBytes=%i %i\n", lBytes, ferror( m_hFile ) );
+            perror( NULL );
             RAISE_ERROR( ePdfError_UnexpectedEOF );
         }
         va_end( args );
@@ -203,7 +205,7 @@ void PdfOutputDevice::Flush()
 {
     if( m_hFile )
     {
-        if( !fflush( m_hFile ) )
+        if( fflush( m_hFile ) )
         {
             RAISE_ERROR( ePdfError_InvalidHandle );
         }
