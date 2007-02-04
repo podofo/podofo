@@ -385,7 +385,8 @@ void PdfTokenizer::ReadDataType( EPdfDataType eDataType, PdfVariant& rVariant )
         case ePdfDataType_Real:
         case ePdfDataType_Reference:
         case ePdfDataType_Unknown:
-            
+        case ePdfDataType_RawData:
+
         default:
         {
             PdfError::LogMessage( eLogSeverity_Debug, "Got Datatype: %i\n", eDataType );

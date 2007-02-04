@@ -218,7 +218,7 @@ void PdfDocument::WriteImmediately( PdfOutputDevice* pDevice )
         RAISE_ERROR( ePdfError_InternalLogic );
     }
 
-    m_pImmediate  = new PdfImmediateWriter( pDevice, &m_vecObjects );
+    m_pImmediate  = new PdfImmediateWriter( pDevice, &m_vecObjects, m_pTrailer );
 }
 
 PdfObject* PdfDocument::GetNamedObjectFromCatalog( const char* pszName ) const 

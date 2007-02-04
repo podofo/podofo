@@ -13,10 +13,11 @@ SET(PODOFO_SOURCES
     PdfElement.cpp
     PdfEncrypt.cpp
     PdfError.cpp
+    PdfExtGState.cpp
+    PdfFileSpec.cpp
+    PdfFileStream.cpp
     PdfFilter.cpp
     PdfFiltersPrivate.cpp
-    PdfFileSpec.cpp
-    PdfExtGState.cpp
     PdfFont.cpp
     PdfFontCache.cpp
     PdfFontMetrics.cpp
@@ -26,6 +27,7 @@ SET(PODOFO_SOURCES
     PdfInfo.cpp
     PdfInputDevice.cpp
     PdfInputStream.cpp
+    PdfMemStream.cpp
     PdfName.cpp
     PdfNamesTree.cpp
     PdfObject.cpp
@@ -71,6 +73,7 @@ SET(PODOFO_HEADERS
 	PdfError.h
 	PdfExtGState.h
 	PdfFileSpec.h
+	PdfFileStream.h
 	PdfFilter.h
 	PdfFiltersPrivate.h
 	PdfFont.h
@@ -82,6 +85,7 @@ SET(PODOFO_HEADERS
 	PdfInfo.h
 	PdfInputDevice.h
 	PdfInputStream.h
+	PdfMemStream.h
 	PdfName.h
 	PdfNamesTree.h
 	PdfObject.h

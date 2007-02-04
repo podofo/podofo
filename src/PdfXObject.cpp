@@ -66,6 +66,7 @@ PdfXObject::PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent )
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
     out << "XOb" << m_pObject->Reference().ObjectNumber();
     m_Identifier = PdfName( out.str().c_str() );
+    m_Reference  = m_pObject->Reference();
 }
 
 PdfXObject::PdfXObject( PdfObject* pObject )
@@ -80,6 +81,7 @@ PdfXObject::PdfXObject( PdfObject* pObject )
     m_pResources = pObject->GetIndirectKey( "Resources" );
     m_Identifier = PdfName( out.str().c_str() );
     m_rRect      = PdfRect( m_pObject->GetIndirectKey( "BBox" )->GetArray() );
+    m_Reference  = m_pObject->Reference();
 }
 
 PdfXObject::PdfXObject( const char* pszSubType, PdfVecObjects* pParent )
@@ -91,6 +93,7 @@ PdfXObject::PdfXObject( const char* pszSubType, PdfVecObjects* pParent )
     out << "XOb" << m_pObject->Reference().ObjectNumber();
 
     m_Identifier = PdfName( out.str().c_str() );
+    m_Reference  = m_pObject->Reference();
 
     m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName( pszSubType ) );
 }
@@ -110,6 +113,7 @@ PdfXObject::PdfXObject( const char* pszSubType, PdfObject* pObject )
     out << "XOb" << m_pObject->Reference().ObjectNumber();
 
     m_Identifier = PdfName( out.str().c_str() );
+    m_Reference  = m_pObject->Reference();
 }
 
 };

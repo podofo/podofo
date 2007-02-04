@@ -211,7 +211,7 @@ void PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) c
         ++itKeys;
     }
 
-    pDevice->Print( ">>\n" );
+    pDevice->Print( ">>" );
 }
 
 };

@@ -96,6 +96,16 @@ class PODOFO_API PdfXObject : public PdfElement, public PdfCanvas {
      */
     inline const PdfName & GetIdentifier() const;
 
+    /** Get the reference to the XObject in the PDF file
+     *  without having to access the PdfObject.
+     *
+     *  This allows to work with XObjects which have been 
+     *  written to disk already.
+     *
+     *  \returns the reference of the PdfObject for this XObject
+     */
+    inline const PdfReference & GetObjectReference() const;
+
  protected:
     PdfXObject( const char* pszSubType, PdfVecObjects* pParent );
     PdfXObject( const char* pszSubType, PdfObject* pObject );
@@ -109,6 +119,7 @@ class PODOFO_API PdfXObject : public PdfElement, public PdfCanvas {
     PdfObject*       m_pResources;
 
     PdfName          m_Identifier;
+    PdfReference     m_Reference;
 };
 
 // -----------------------------------------------------
@@ -141,6 +152,14 @@ inline const PdfRect PdfXObject::GetPageSize() const
 inline const PdfName & PdfXObject::GetIdentifier() const
 {
     return m_Identifier;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline const PdfReference & PdfXObject::GetObjectReference() const
+{
+    return m_Reference;
 }
 
 };

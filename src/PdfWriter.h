@@ -187,6 +187,12 @@ class PODOFO_API PdfWriter {
      */       
     void PODOFO_LOCAL WritePdfHeader( PdfOutputDevice* pDevice );
 
+    /** Write pdf objects to file
+     *  \param pDevice write to this output device
+     *  \param vecObjects write all objects in this vector to the file
+     *  \param pVecXRef add all written objects to this XRefTable
+     */ 
+    void WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, PdfXRef* pXref ) PODOFO_LOCAL;
 
  private:
     /** Writes a linearized PDF file
@@ -212,13 +218,6 @@ class PODOFO_API PdfWriter {
      *         belonging to the first page
      */
     void ReorderObjectsLinearized( PdfObject* pLinearize, PdfHintStream* pHint, PdfPage* pPage, PdfObject** ppLast ) PODOFO_LOCAL;
-
-    /** Write pdf objects to file
-     *  \param pDevice write to this output device
-     *  \param vecObjects write all objects in this vector to the file
-     *  \param pVecXRef add all written objects to this XRefTable
-     */ 
-    void WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, PdfXRef* pXref ) PODOFO_LOCAL;
 
     /** Initialize m_pPagesTree with its correct value
      *  Always call this function befre accessing the pages tree.
@@ -248,16 +247,16 @@ class PODOFO_API PdfWriter {
 
  protected:
     PdfVecObjects*  m_vecObjects;
+    PdfObject*      m_pTrailer;
+
+    bool            m_bCompress;
+    bool            m_bXRefStream;
 
  private:
     EPdfVersion     m_eVersion;
-
-    PdfObject*      m_pTrailer;
     PdfPagesTree*   m_pPagesTree;
 
-    bool            m_bCompress;
     bool            m_bLinearized;
-    bool            m_bXRefStream;
 
     /**
      * This value is required when writing

@@ -23,9 +23,10 @@
 
 #include "PdfDefines.h"
 
+#include "PdfObject.h"
 namespace PoDoFo {
 
-class PdfObject;
+//class PdfObject;
 class PdfVecObjects;
 
 /** PdfElement is a common base class for all elements

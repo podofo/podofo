@@ -22,24 +22,57 @@
 #define _PDF_IMMEDIATE_WRITER_H_
 
 #include "PdfDefines.h"
+#include "PdfVecObjects.h"
 #include "PdfWriter.h"
 
 namespace PoDoFo {
 
 class PdfOutputDevice;
+class PdfXRef;
 
-class PODOFO_API PdfImmediateWriter : private PdfWriter {
+class PODOFO_API PdfImmediateWriter : private PdfWriter, 
+    private PdfVecObjects::Observer, 
+    private PdfVecObjects::StreamFactory {
+
  public:
-    PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, EPdfVersion eVersion = ePdfVersion_1_5 );
+    PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, PdfObject* pTrailer, EPdfVersion eVersion = ePdfVersion_1_5 );
     ~PdfImmediateWriter();
 
  private:
-    void WriteOut(); 
     void WriteObject( const PdfObject* pObject );
+
+    /** Called when the PdfVecObjects we observer is deleted.
+     */
+    void ParentDestructed();
+
+    /** Finish the PDF file.
+     *  I.e. write the XRef and close the output device.
+     */
+    void Finish();
+
+    /** Creates a stream object
+     *
+     *  \param pParent parent object
+     *
+     *  \returns a new stream object 
+     */
+    PdfStream* CreateStream( PdfObject* pParent );
+
+    /** Assume the stream for the last object has
+     *  been written complete.
+     *  Therefore close the stream of the object
+     *  now so that the next object can be written
+     *  to disk
+     */
+    void FinishLastObject();
 
  private:
     PdfVecObjects*   m_pParent;
     PdfOutputDevice* m_pDevice;
+
+    PdfXRef*         m_pXRef;
+    PdfObject*       m_pLast;
+
 };
 
 };

@@ -62,14 +62,12 @@ class PODOFO_API PdfObject : public PdfVariant {
      *  \param rRef reference of this object
      *  \param pszType if type is not null a key "/Type" will be added to the dictionary with
      *                 the value of type.
-     *  \see SetDirect
      */
     PdfObject( const PdfReference & rRef, const char* pszType);
 
     /** Construct a new PDF object.
      *  \param rRef reference of this object
      *  \param rVariant the value of the PdfObject (which is copied)
-     *  \see SetDirect
      */
     PdfObject( const PdfReference & rRef, const PdfVariant & rVariant );
 
@@ -215,6 +213,11 @@ class PODOFO_API PdfObject : public PdfVariant {
      *  \return the creator of this object
      */
     inline PdfVecObjects* GetOwner() const;
+
+    /** Get the parent of this object.
+     *  \return the parent of this object in the object hierarchie
+     */
+    inline PdfObject* GetParent() const;
 
     /** Creates a copy of an existing PdfObject
      *  All assosiated objects and streams will be copied along with the PdfObject

@@ -23,6 +23,7 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfInputDevice.h"
+#include "PdfMemStream.h"
 #include "PdfOutputDevice.h"
 #include "PdfParserObject.h"
 #include "PdfStream.h"
@@ -649,7 +650,13 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
         RAISE_ERROR( ePdfError_NoXRef );
     }
 
-    xrefObject.GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
+    PdfMemStream* pStream = dynamic_cast<PdfMemStream*>(xrefObject.GetStream());
+    if( !pStream ) 
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    pStream->GetFilteredCopy( &pBuffer, &lBufferLen );
 
     pStart = pBuffer;
     while( pBuffer - pStart < lBufferLen )
@@ -816,7 +823,14 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
     
     char * pBuffer;
     long lBufferLen;
-    pStream->GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
+
+    PdfMemStream* pMemStream = dynamic_cast<PdfMemStream*>(pStream->GetStream());
+    if( !pMemStream )
+    {
+        RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    pMemStream->GetFilteredCopy( &pBuffer, &lBufferLen );
 
     // the object stream is not needed anymore in the final PDF
     delete m_vecObjects->RemoveObject( pStream->Reference() );

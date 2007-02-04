@@ -140,7 +140,7 @@ void PdfXRefStream::Write( PdfOutputDevice* pDevice )
 
             buffer[0]           = static_cast<char>(1);
             buffer[bufferLen-1] = static_cast<char>(0);
-            *pValue             = static_cast<STREAM_OFFSET_TYPE>((*it).lOffset );
+            *pValue             = static_cast<STREAM_OFFSET_TYPE>((*it).lOffset);
             if( bLittle )
                 *pValue = static_cast<STREAM_OFFSET_TYPE>(htonl( *pValue ));
 

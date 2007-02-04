@@ -22,8 +22,10 @@
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
+#include "PdfMemStream.h"
 #include "PdfObject.h"
 #include "PdfReference.h"
+#include "PdfStream.h"
 
 #include <algorithm>
 
@@ -54,7 +56,7 @@ private:
 };
 
 PdfVecObjects::PdfVecObjects()
-    : m_bAutoDelete( false ), m_nObjectCount( 1 ), m_pDocument( NULL )
+    : m_bAutoDelete( false ), m_nObjectCount( 1 ), m_pDocument( NULL ), m_pStreamFactory( NULL )
 {
 }
 
@@ -66,6 +68,18 @@ PdfVecObjects::PdfVecObjects( const PdfVecObjects & rhs )
 
 PdfVecObjects::~PdfVecObjects()
 {
+    // always work on a copy of the vector
+    // in case a child invalidates our iterators
+    // with a call to attach or detach.
+    
+    TVecObservers copy( m_vecObservers );
+    TIVecObservers itObservers = copy.begin();
+    while( itObservers != copy.end() )
+    {
+        (*itObservers)->ParentDestructed();
+        ++itObservers;
+    }
+
     if( m_bAutoDelete ) 
     {
         TIVecObjects it = this->begin();
@@ -86,6 +100,7 @@ const PdfVecObjects & PdfVecObjects::operator=( const PdfVecObjects & rhs )
     m_nObjectCount        = rhs.m_nObjectCount;
     m_lstFreeObjects      = rhs.m_lstFreeObjects;
     m_pDocument           = rhs.m_pDocument;
+    m_pStreamFactory      = rhs.m_pStreamFactory;
 
     it = this->begin();
     while( it != this->end() )
@@ -122,7 +137,7 @@ unsigned int PdfVecObjects::GetIndex( const PdfReference & ref ) const
 }
 
 
-PdfObject* PdfVecObjects::RemoveObject( const PdfReference & ref )
+PdfObject* PdfVecObjects::RemoveObject( const PdfReference & ref, bool bMarkAsFree )
 {
     TIVecObjects it;
     PdfObject*   pObj;
@@ -132,7 +147,8 @@ PdfObject* PdfVecObjects::RemoveObject( const PdfReference & ref )
     if( it != this->end() )
     {
         pObj = *it;
-        this->AddFreeObject( pObj->Reference() );
+        if( bMarkAsFree )
+            this->AddFreeObject( pObj->Reference() );
         this->erase( it );
         return pObj;
     }
@@ -386,6 +402,59 @@ void PdfVecObjects::GarbageCollection( TVecReferencePointerList* pList, PdfObjec
     }
 
     m_nObjectCount = ++pos;
+}
+
+void PdfVecObjects::Detach( Observer* pObserver )
+{
+    TIVecObservers it = m_vecObservers.begin();
+
+    while( it != m_vecObservers.end() )
+    {
+        if( *it == pObserver ) 
+        {
+            m_vecObservers.erase( it );
+            break;
+        }
+        else
+            ++it;
+    }
+}
+
+PdfStream* PdfVecObjects::CreateStream( PdfObject* pParent )
+{
+    PdfStream* pStream = m_pStreamFactory ?
+        m_pStreamFactory->CreateStream( pParent ) :
+        new PdfMemStream( pParent );
+
+    // Tell any observers that there are new objects to write
+    TIVecObservers itObservers = m_vecObservers.begin();
+    while( itObservers != m_vecObservers.end() )
+    {
+        (*itObservers)->WriteObject( pParent );
+        ++itObservers;
+    }
+
+    return pStream;
+}
+
+PdfStream* PdfVecObjects::CreateStream( const PdfStream & rhs )
+{
+    return NULL;
+}
+
+void PdfVecObjects::Finish()
+{
+    // always work on a copy of the vector
+    // in case a child invalidates our iterators
+    // with a call to attach or detach.
+    
+    TVecObservers copy( m_vecObservers );
+    TIVecObservers itObservers = copy.begin();
+    while( itObservers != copy.end() )
+    {
+        (*itObservers)->Finish();
+        ++itObservers;
+    }
 }
 
 };

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
+ *   Copyright (C) 2007 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,22 +18,15 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PDF_STREAM_H_
-#define _PDF_STREAM_H_
+#ifndef _PDF_FILE_STREAM_H_
+#define _PDF_FILE_STREAM_H_
 
 #include "PdfDefines.h"
 
-#include "PdfDictionary.h"
-#include "PdfRefCountedBuffer.h"
+#include "PdfStream.h"
 
 namespace PoDoFo {
 
-typedef std::vector<EPdfFilter>            TVecFilters;
-typedef TVecFilters::iterator              TIVecFilters;
-typedef TVecFilters::const_iterator        TCIVecFilters;
-
-class PdfName;
-class PdfObject;
 
 /** A PDF stream can be appended to any PdfObject
  *  and can contain arbitrary data.
@@ -41,28 +34,34 @@ class PdfObject;
  *  Most of the time it will contain either drawing commands
  *  to draw onto a page or binary data like a font or an image.
  *
- *  You have to use a concrete implementation of a stream,
- *  which can be retrieved from a StreamFactory.
+ *  A PdfFileStream writes all data directly to an output device
+ *  without keeping it in memory.
+ *  PdfFileStream is used automatically when creating PDF files
+ *  using PdfImmediateWriter.
+ *
  *  \see PdfVecObjects
+ *  \see PdfStream
  *  \see PdfMemoryStream
  *  \see PdfFileStream
  */
-class PODOFO_API PdfStream {
+class PODOFO_API PdfFileStream : public PdfStream {
 
  public:
-    /** Create a new PdfStream object which has a parent PdfObject.
+    /** Create a new PdfFileStream object which has a parent PdfObject.
      *  The stream will be deleted along with the parent.
      *  This constructor will be called by PdfObject::Stream() for you.
+     *
      *  \param pParent parent object
+     *  \param pDevice output device
      */
-    PdfStream( PdfObject* pParent );
+    PdfFileStream( PdfObject* pParent, PdfOutputDevice* pDevice );
 
-    virtual ~PdfStream();
+    virtual ~PdfFileStream();
 
     /** Write the stream to an output device
      *  \param pDevice write to this outputdevice.
      */
-    virtual void Write( PdfOutputDevice* pDevice ) = 0;
+    virtual void Write( PdfOutputDevice* pDevice );
 
     /** Set a binary buffer as stream data, optionally taking ownership of the buffer.
      *
@@ -74,75 +73,37 @@ class PODOFO_API PdfStream {
      *  \param takePossession does the stream now own this buffer...
      *  \returns ErrOk
      */
-    virtual void Set( char* szBuffer, long lLen, bool takePossession = true ) = 0;
-
-    /** Set a text buffer as the streams contents.
-     *  The string will be copied into a newly allocated buffer.
-     *  \param pszString a zero terminated string buffer containing only ASCII text data
-     *  \returns ErrOk on sucess
-     */
-    inline void Set( const char* pszString );
+    virtual void Set( char* szBuffer, long lLen, bool takePossession = true );
 
     /** Append to the current stream contents. 
      *  \param pszString a buffer
      *  \param lLen length of the buffer
      *  \returns ErrOk on sucess
      */
-    virtual void Append( const char* pszString, size_t lLen ) = 0; 
-
-    /** Append to the current stream contents. 
-     *  \param pszString a zero terminated string buffer containing only ASCII text data
-     *  \returns ErrOk on sucess
-     */
-    inline void Append( const char* pszString ); 
-
-    /** Append to the current stream contents. 
-     *  \param sString a std::string containing ASCII text data
-     *  \returns ErrOk on sucess
-     */
-    inline void Append( const std::string& sString ); 
+    virtual void Append( const char* pszString, size_t lLen ); 
 
     /** Get the streams length
      *  \returns the length of the internal buffer
      */
-    virtual unsigned long GetLength() const = 0;
+    inline virtual unsigned long GetLength() const;
 
-    /** Create a copy of a PdfStream object
-     *  \param rhs the object to clone
-     *  \returns a reference to this object
-     */
-    //const PdfStream & operator=( const PdfStream & rhs );
+ private:
+    PdfOutputDevice* m_pDevice;
 
- protected:
-    PdfObject*          m_pParent;
+    unsigned long    m_lLength;
+    unsigned long    m_lOffset;
+
+    PdfObject*       m_pLength;
 };
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfStream::Set( const char* pszString )
+unsigned long PdfFileStream::GetLength() const
 {
-    if( pszString ) 
-        Set( const_cast<char*>(pszString), strlen( pszString ) );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfStream::Append( const char* pszString )
-{
-    if( pszString )
-        Append( pszString, strlen( pszString ) );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfStream::Append( const std::string& sString ) 
-{
-    Append( sString.c_str(), sString.length() );
+    return m_lLength;
 }
 
 };
 
-#endif // _PDF_STREAM_H_
+#endif // _PDF_FILE_STREAM_H_

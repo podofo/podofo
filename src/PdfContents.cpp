@@ -21,13 +21,15 @@
 #include "PdfContents.h"
 
 #include "PdfName.h"
+#include "PdfOutputDevice.h"
+
+#include <iostream>
 
 namespace PoDoFo {
 
 PdfContents::PdfContents( PdfVecObjects* pParent )
 : mContObj( pParent->CreateObject() )
 {
-    mContObj->GetStream();	// this will force it to be a Stream instead of just a Dictionary
 }
 
 PdfContents::PdfContents( PdfObject* inObj )
@@ -35,8 +37,6 @@ PdfContents::PdfContents( PdfObject* inObj )
 {
     if ( mContObj->GetDataType() == ePdfDataType_Reference )
         mContObj = inObj->GetOwner()->GetObject( inObj->GetReference() );
-    else if ( mContObj->GetDataType() == ePdfDataType_Dictionary )
-        mContObj->GetStream();	// should make it a valid stream..
 }
 
 PdfObject* PdfContents::GetContentsForAppending() const
@@ -47,8 +47,7 @@ PdfObject* PdfContents::GetContentsForAppending() const
     // Use PdfObject::HasStream() instead of the datatype ePdfDataType_Stream
     // as large parts of the code rely on all PdfObjects having the datatype
     // ePdfDataType_Dictionary wether they have a stream or not
-    if( mContObj->GetDataType() == ePdfDataType_Dictionary && 
-        mContObj->HasStream() ) {
+    if( mContObj->GetDataType() == ePdfDataType_Dictionary ) {
         return mContObj;	// just return the stream itself
     } else if ( mContObj->GetDataType() == ePdfDataType_Array ) {
         /*

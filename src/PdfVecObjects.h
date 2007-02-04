@@ -30,6 +30,7 @@ namespace PoDoFo {
 
 class PdfDocument;
 class PdfObject;
+class PdfStream;
 class PdfVariant;
 
 // slist would be better, but it is not support by default gcc :-(
@@ -62,6 +63,60 @@ typedef TVecReferencePointerList::const_iterator TCIVecReferencePointerList;
  */
 class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
     friend class PdfWriter;
+
+ public:
+    /** Every observer of PdfVecObjects has to implement this interface.
+     */
+    class Observer {
+        friend class PdfVecObjects;
+
+    public:
+        virtual ~Observer()
+            {
+            }
+
+        virtual void WriteObject( const PdfObject* pObject ) = 0;
+            
+        /**
+         * This method is called when the observed PdfVecObjects is delted. 
+         *
+         * No more method may be called on the observable
+         * after this method was called on the observer.
+         */
+        virtual void ParentDestructed() = 0;
+
+        virtual void Finish() = 0;
+    };
+
+    /** This class is used to implement stream factories in PoDoFo.
+     */
+    class StreamFactory {
+    public:
+        virtual ~StreamFactory()
+            {
+            }
+        
+        /** Creates a stream object
+         *
+         *  \param pParent parent object
+         *
+         *  \returns a new stream object 
+         */
+        virtual PdfStream* CreateStream( PdfObject* pParent ) = 0;
+    };
+
+ private:
+    typedef std::vector<Observer*>        TVecObservers;
+    typedef TVecObservers::iterator       TIVecObservers;
+    typedef TVecObservers::const_iterator TCIVecObservers;
+
+    enum EObjectState {
+        eObjectState_Object,
+        eObjectState_Free,
+        eObjectState_Written,
+
+        eObjectState_Invalid = 0xff
+    };
 
  public:
     /** Default constuctor 
@@ -135,9 +190,12 @@ class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
      *  The caller has to delete the object by hisself.
      *
      *  \param ref the object to be found
+     *  \param bMarkAsFree if true the removed object reference is marked as free object
+     *                     you will always want to have this true
+     *                     as invalid PDF files can be generated otherwise
      *  \returns The removed object.
      */
-    PdfObject* RemoveObject( const PdfReference & ref );
+    PdfObject* RemoveObject( const PdfReference & ref, bool bMarkAsFree = true );
 
     /** Creates a new object and inserts it into the vector.
      *  This function assigns the next free object number to the PdfObject.
@@ -203,6 +261,45 @@ class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
      */
     void GetObjectDependencies( const PdfObject* pObj, TPdfReferenceList* pList ) const;
 
+
+    /** Attach a new observer
+     *  \param pObserver to attach
+     */
+    inline void Attach( Observer* pObserver );
+    
+    /** Detach an observer.
+     *
+     *  \param pObserver observer to detach
+     */
+    void Detach( Observer* pObserver );
+
+    /** Sets a StreamFactory which is used whenever CreateStream is called.
+     *  
+     *  \param pFactory a stream factory or NULL to reset to the default factory
+     */
+    inline void SetStreamFactory( StreamFactory* pFactory );
+
+    /** Creates a stream object
+     *  This method is a factory for PdfStream objects.
+     *
+     *  \param pParent parent object
+     *
+     *  \returns a new stream object 
+     */
+    PdfStream* CreateStream( PdfObject* pParent );
+
+    /** Creates a stream object by copying an existing stream
+     *
+     *  \param pStream copy this stream
+     *
+     *  \returns a new stream object 
+     */
+    PdfStream* CreateStream( const PdfStream & rhs );
+
+    /** Call whenever a document is finished
+     */
+    void Finish();
+
  private:    
     /** 
      * \returns the next free object reference
@@ -230,9 +327,12 @@ class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
     bool                m_bAutoDelete;
     size_t              m_nObjectCount;
 
+    TVecObservers       m_vecObservers;
     TPdfReferenceList   m_lstFreeObjects;
 
     PdfDocument*        m_pDocument;
+
+    StreamFactory*      m_pStreamFactory;
 };
 
 // -----------------------------------------------------
@@ -273,6 +373,22 @@ bool PdfVecObjects::AutoDelete() const
 inline const TPdfReferenceList & PdfVecObjects::GetFreeObjects() const
 {
     return m_lstFreeObjects;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfVecObjects::Attach( Observer* pObserver )
+{
+    m_vecObservers.push_back( pObserver );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfVecObjects::SetStreamFactory( StreamFactory* pFactory )
+{
+    m_pStreamFactory = pFactory;
 }
 
 typedef PdfVecObjects                TVecObjects;

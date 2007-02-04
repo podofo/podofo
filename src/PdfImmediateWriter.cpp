@@ -20,44 +20,108 @@
 
 #include "PdfImmediateWriter.h"
 
+#include "PdfFileStream.h"
 #include "PdfObject.h"
+#include "PdfXRef.h"
+#include "PdfXRefStream.h"
 
 namespace PoDoFo {
 
-PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, EPdfVersion eVersion )
-    : PdfWriter( pVecObjects ), m_pParent( pVecObjects ), m_pDevice( pDevice )
+PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, 
+                                        PdfObject* pTrailer, EPdfVersion eVersion )
+    : PdfWriter( pVecObjects ), m_pParent( pVecObjects ), 
+      m_pDevice( pDevice ), m_pLast( NULL )
 {
+    m_pTrailer = new PdfObject( *pTrailer );
+
     // register as observer for PdfVecObjects
+    m_pParent->Attach( this );
+    // register as stream factory for PdfVecObjects
+    m_pParent->SetStreamFactory( this );
 
     // start with writing the header
     this->SetPdfVersion( eVersion );
     this->WritePdfHeader( m_pDevice );
+
+    m_pXRef = m_bXRefStream ? new PdfXRefStream( m_vecObjects, this ) : new PdfXRef();
 }
 
 PdfImmediateWriter::~PdfImmediateWriter()
 {
-    // calling here is too late, as the PdfVecObjects in PdfDocument
-    // is already cleared.
-    // 
-    this->WriteOut();
-}
-
-void PdfImmediateWriter::WriteOut()
-{
-    TCIVecObjects  itObjects  = m_pParent->begin();
-
-    this->CompressObjects( *m_pParent );
-
-    while( itObjects != m_pParent->end() )
-    {
-        this->WriteObject( *itObjects );
-        ++itObjects;
-    }
+    if( m_pParent ) 
+        m_pParent->Detach( this );
 }
 
 void PdfImmediateWriter::WriteObject( const PdfObject* pObject )
 {
+    const int endObjLenght = 7;
+
+    this->FinishLastObject();
+
+    m_pXRef->AddObject( pObject->Reference(), m_pDevice->GetLength(), true );
     pObject->WriteObject( m_pDevice );
+
+    // Let's cheat a bit:
+    // pObject has written an "endobj\n" as last data to the file.
+    // we simply overwrite this string with "stream\n" which 
+    // has excatly the same length.
+    m_pDevice->Seek( m_pDevice->GetLength() - endObjLenght );
+    m_pDevice->Print( "stream\n" );
+
+    m_pLast = const_cast<PdfObject*>(pObject);
+}
+
+void PdfImmediateWriter::ParentDestructed()
+{
+    m_pParent = NULL;
+}
+
+void PdfImmediateWriter::Finish()
+{
+    // write all objects which are still in RAM
+    this->FinishLastObject();
+    this->WritePdfObjects( m_pDevice, *m_pParent, m_pXRef );
+
+    // write the XRef
+    long lXRefOffset = m_pDevice->GetLength();
+    m_pXRef->Write( m_pDevice );
+            
+    // XRef streams contain the trailer in the XRef
+    if( !m_bXRefStream ) 
+    {
+        PdfObject trailer;
+        
+        // if we have a dummy offset we write also a prev entry to the trailer
+        FillTrailerObject( &trailer, m_pXRef->GetSize(), false, false );
+        
+        m_pDevice->Print("trailer\n");
+        trailer.WriteObject( m_pDevice );
+    }
+    
+    m_pDevice->Print( "startxref\n%li\n%%%%EOF\n", lXRefOffset );
+    m_pDevice->Flush();
+
+    // we are done now
+    m_pParent->Detach( this );
+    m_pParent = NULL;
+}
+
+PdfStream* PdfImmediateWriter::CreateStream( PdfObject* pParent )
+{
+    return new PdfFileStream( pParent, m_pDevice );
+}
+
+void PdfImmediateWriter::FinishLastObject()
+{
+    if( m_pLast ) 
+    {
+        m_pDevice->Print( "\nendstream\n" );
+        m_pDevice->Print( "endobj\n" );
+        
+        delete m_pParent->RemoveObject( m_pLast->Reference(), false );
+        m_pLast = NULL;
+
+    }
 }
 
 };

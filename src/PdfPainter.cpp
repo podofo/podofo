@@ -623,7 +623,9 @@ void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double 
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    this->AddToPageResources( pObject->GetIdentifier(), pObject->GetObject()->Reference(), "XObject" );
+    // use OriginalReference() as the XObject might have been written to disk
+    // already and is not in memory anymore in this case.
+    this->AddToPageResources( pObject->GetIdentifier(), pObject->GetObjectReference(), "XObject" );
 
     m_oss.str("");
     m_oss << "q" << std::endl

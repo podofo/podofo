@@ -149,15 +149,10 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop )
         pDevice->Print( "%i %i obj\n", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
 
     this->Write( pDevice, keyStop );
-    if( !this->IsDictionary() )
-        pDevice->Print( "\n" );
+    pDevice->Print( "\n" );
 
     if( m_pStream )
-    {
-        pDevice->Print( "stream\n" );
-        pDevice->Write( m_pStream->Get(), m_pStream->GetLength() );
-        pDevice->Print( "\nendstream\n" );
-    }
+        m_pStream->Write( pDevice );
 
     if( m_reference.IsIndirect() )
         pDevice->Print( "endobj\n" );
@@ -203,7 +198,14 @@ PdfStream* PdfObject::GetStream()
 PdfStream* PdfObject::GetStream_NoDL()
 {
     if( !m_pStream )
-        m_pStream = new PdfStream( this );
+    {
+        if( !m_pOwner ) 
+        {
+            RAISE_ERROR( ePdfError_InvalidHandle );
+        }
+
+        m_pStream = m_pOwner->CreateStream( this );
+    }
 
     return m_pStream;
 }
@@ -220,8 +222,10 @@ void PdfObject::FlateCompressStream()
     // TODO: If the stream isn't already in memory, defer loading and compression until first read of the stream to save some memory.
     DelayedStreamLoad();
 
+    /*
     if( m_pStream )
         m_pStream->FlateCompress();
+    */
 }
 
 const PdfObject & PdfObject::operator=( const PdfObject & rhs )
@@ -237,7 +241,7 @@ const PdfObject & PdfObject::operator=( const PdfObject & rhs )
     m_bDelayedStreamLoadDone = rhs.DelayedStreamLoadDone();
 
     if( rhs.m_pStream )
-        m_pStream = new PdfStream( *(rhs.m_pStream) );
+        m_pStream = m_pOwner->CreateStream( *(rhs.m_pStream) );
 
 #if defined(PODOFO_EXTRA_CHECKS)
     // Must've been demand loaded or already done
