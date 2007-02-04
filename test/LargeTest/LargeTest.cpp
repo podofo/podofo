@@ -22,6 +22,8 @@
 
 using namespace PoDoFo;
 
+#define MIN_PAGES 100
+
 void AddPage( PdfDocument* pDoc, const char* pszFontName, const char* pszImagePath )
 {
     PdfPainter painter;
@@ -30,6 +32,8 @@ void AddPage( PdfDocument* pDoc, const char* pszFontName, const char* pszImagePa
     PdfFont*   pArial = pDoc->CreateFont( "Arial" );
     PdfRect    rect   = pPage->GetMediaBox();
     PdfImage   img( pDoc );
+
+    img.LoadFromFile( pszImagePath );
 
     const char* pszText = "The red brown fox jumps over the lazy dog!";
     double     dX       = rect.GetLeft() + 20.0;
@@ -63,11 +67,9 @@ void AddPage( PdfDocument* pDoc, const char* pszFontName, const char* pszImagePa
     painter.DrawText( dX, dY, pszFontName );
     dY -= pArial->GetFontMetrics()->GetLineSpacing();
 
-    img.LoadFromFile( pszImagePath );
     dY -= (img.GetHeight() * 0.5);
     dX = ((rect.GetWidth() - (img.GetWidth()*0.5))/2.0);
     painter.DrawImage( dX, dY, &img, 0.5, 0.5 );
-
 }
 
 void CreateLargePdf( const char* pszFilename, const char* pszImagePath )
@@ -95,7 +97,7 @@ void CreateLargePdf( const char* pszFilename, const char* pszImagePath )
 
     if( pFontSet )
     {
-	for( int i=0; i<pFontSet->nfont;i++ )
+	for( int i=0; i< (pFontSet->nfont > MIN_PAGES ? MIN_PAGES : pFontSet->nfont );i++ )
 	{
             FcValue v;
             
@@ -109,6 +111,7 @@ void CreateLargePdf( const char* pszFilename, const char* pszImagePath )
 	FcFontSetDestroy( pFontSet );
     }
 
+    doc.GetObjects().Finish();
     //doc.Write( pszFilename );
 }
 

@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "PdfParserObject.h"
+#include "PdfMemStream.h"
 #include "PdfOutputDevice.h"
 #include "PdfWriter.h"
 #include "PdfStream.h"
@@ -207,7 +208,7 @@ void TestObject( const string & sFilename,
         long  lLen;
 
         cerr << "  -> Has Stream, loading ... " << flush;
-        PdfStream * const ps = obj.GetStream();
+        PdfMemStream * const ps = dynamic_cast<PdfMemStream*>(obj.GetStream());
         assert(ps);
         cerr << " ok, length: " << ps->GetLength() << endl;
 

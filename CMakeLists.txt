@@ -78,6 +78,7 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
         -Wcast-qual
         -Wwrite-strings
         -Wredundant-decls
+	-g3
         )
     # We add -W unless we're using gcc on win32, where it produces
     # spurious warnings about dllimport of inlines because of a dllimport

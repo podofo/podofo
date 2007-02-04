@@ -54,7 +54,8 @@ void UnCompress::UncompressObjects()
         if( (*it)->HasStream() )
         {
             try {
-                (*it)->GetStream()->Uncompress();
+                PdfMemStream* pStream = dynamic_cast<PdfMemStream*>((*it)->GetStream());
+                pStream->Uncompress();
             } catch( const PdfError & e ) {
                 if( e.GetError() != ePdfError_UnsupportedFilter )
                     throw e;
