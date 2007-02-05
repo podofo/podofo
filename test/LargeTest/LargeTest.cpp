@@ -97,18 +97,18 @@ void CreateLargePdf( const char* pszFilename, const char* pszImagePath )
 
     if( pFontSet )
     {
-	for( int i=0; i< (pFontSet->nfont > MIN_PAGES ? MIN_PAGES : pFontSet->nfont );i++ )
-	{
+        for( int i=0; i< (pFontSet->nfont > MIN_PAGES ? MIN_PAGES : pFontSet->nfont );i++ )
+        {
             FcValue v;
-            
+
             //FcPatternPrint( pFontSet->fonts[i] );
             FcPatternGet( pFontSet->fonts[i], FC_FAMILY, 0, &v );
-	    //font = FcNameUnparse( pFontSet->fonts[i] );
+            //font = FcNameUnparse( pFontSet->fonts[i] );
             printf(" -> Drawing with font: %s\n", reinterpret_cast<const char*>(v.u.s) );
             AddPage( &doc, reinterpret_cast<const char*>(v.u.s), pszImagePath );
-	}
+        }
 
-	FcFontSetDestroy( pFontSet );
+        FcFontSetDestroy( pFontSet );
     }
 
     doc.GetObjects().Finish();
