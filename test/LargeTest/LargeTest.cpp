@@ -24,6 +24,8 @@ using namespace PoDoFo;
 
 #define MIN_PAGES 100
 
+bool writeImmediately = true;
+
 void AddPage( PdfDocument* pDoc, const char* pszFontName, const char* pszImagePath )
 {
     PdfPainter painter;
@@ -93,7 +95,8 @@ void CreateLargePdf( const char* pszFilename, const char* pszImagePath )
     FcPatternDestroy( pPattern );
 
     PdfOutputDevice device( pszFilename );
-    doc.WriteImmediately( &device );
+    if (writeImmediately)
+        doc.WriteImmediately( &device );
 
     if( pFontSet )
     {
@@ -112,15 +115,50 @@ void CreateLargePdf( const char* pszFilename, const char* pszImagePath )
     }
 
     doc.GetObjects().Finish();
-    //doc.Write( pszFilename );
+    if (!writeImmediately)
+        doc.Write( pszFilename );
+}
+
+void usage()
+{
+    printf("Usage: LargetTest [-m] output_filename image_file\n"
+           "       output_filename: filename to write produced pdf to\n"
+           "       image_file:      An image to embed in the PDF file\n"
+           "Options:\n"
+           "       -m               Build entire document in memory before writing\n"
+           "\n"
+           "Note that output should be the same with and without the -m option.\n");
 }
 
 int main( int argc, char* argv[] ) 
 {
-    if( argc != 3 )
+    if( argc < 3 || argc > 4 )
     {
-        printf("Usage: LargetTest [output_filename] [image_file]\n");
-        return 0;
+        usage();
+        return 1;
+    }
+    else if ( argc == 4)
+    {
+        // Handle options
+        // Is this argument an option?
+        if (argv[1][0] != '-')
+        {
+            usage();
+            return 1;
+        }
+        // Is it a recognised option?
+        if (argv[1][1] == 'm')
+        {
+            // User wants us to build the whole doc in RAM before writing it out.
+            writeImmediately = false;
+            ++argv;
+        }
+        else
+        {
+            printf("Unrecognised argument: %s", argv[1]);
+            usage();
+            return 1;
+        }
     }
 
     try {
