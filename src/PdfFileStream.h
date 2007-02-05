@@ -82,8 +82,10 @@ class PODOFO_API PdfFileStream : public PdfStream {
      */
     virtual void Append( const char* pszString, size_t lLen ); 
 
-    /** Get the streams length
-     *  \returns the length of the internal buffer
+    /** Get the streams length with all filters applied (eg the compressed
+     *  length of a Flate compressed stream).
+     *
+     *  \returns the length of the stream with all filters applied
      */
     inline virtual unsigned long GetLength() const;
 

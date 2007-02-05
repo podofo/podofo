@@ -35,12 +35,12 @@ class PdfObject;
 /** A PDF stream can be appended to any PdfObject
  *  and can contain abitrary data.
  *
- *  A PDF memory stream is hold completely in memory.
+ *  A PDF memory stream is held completely in memory.
  *
  *  Most of the time it will contain either drawing commands
  *  to draw onto a page or binary data like a font or an image.
  *
- *  A PdfMemStream is implicitly shared and can be copied very fast therefore.
+ *  A PdfMemStream is implicitly shared and can therefore be copied very quickly.
  */
 class PODOFO_API PdfMemStream : public PdfStream {
     friend class PdfVecObjects;
@@ -54,7 +54,8 @@ class PODOFO_API PdfMemStream : public PdfStream {
      */
     PdfMemStream( PdfObject* pParent );
 
-    /** Create a copy of a PdfStream object
+    /** Create a shallow copy of a PdfStream object
+     *
      *  \param rhs the object to clone
      */
     PdfMemStream( const PdfMemStream & rhs );
@@ -86,29 +87,47 @@ class PODOFO_API PdfMemStream : public PdfStream {
     void Append( const char* pszString, size_t lLen ); 
 
     /** Get a malloced buffer of the current stream.
-     *  No filters will be applied to the buffer.
-     *  The caller has to free the buffer.
+     *  No filters will be applied to the buffer, so
+     *  if the stream is Flate compressed the compressed copy
+     *  will be returned.
+     *
+     *  The caller has to free() the buffer.
+     *
      *  \param pBuffer pointer to the buffer
      *  \param lLen    pointer to the buffer length
      *  \returns ErrOk on success.
      */
-    void GetCopy( char** pBuffer, long* lLen ) const;
+    virtual void GetCopy( char** pBuffer, long* lLen ) const;
 
     /** Get a malloced buffer of the current stream which has been
-     *  filtered by all filters as specified in the dictioniries
-     *  filter key. The caller has to free the buffer.
+     *  filtered by all filters as specified in the dictionary's
+     *  /Filter key. For example, if the stream is Flate compressed,
+     *  the buffer returned from this method will have been decompressed.
+     *
+     *  The caller has to free() the buffer.
+     *
      *  \param pBuffer pointer to the buffer
      *  \param lLen    pointer to the buffer length
      *  \returns ErrOk on success.
      */
-    void GetFilteredCopy( char** pBuffer, long* lLen ) const;
+    virtual void GetFilteredCopy( char** pBuffer, long* lLen ) const;
 
-    /** Get a read-only handle to the currenct stream data.
+    /** Get a read-only handle to the current stream data.
+     *  The data will not be filtered before being returned, so (eg) calling
+     *  Get() on a Flate compressed stream will return a pointer to the
+     *  Flate-compressed buffer.
+     *
+     *  \warning Do not retain pointers to the stream's internal buffer,
+     *           as it may be reallocated with any non-const operation.
+     *
      *  \returns a read-only handle to the streams data
      */
     inline const char* Get() const;
 
-    /** Get the streams length
+    /** Get the stream's length. The length is that of the internal
+     *  stream buffer, so (eg) for a Flate-compressed stream it will be
+     *  the length of the compressed data.
+     *
      *  \returns the length of the internal buffer
      *  \see Get()
      */
@@ -130,6 +149,7 @@ class PODOFO_API PdfMemStream : public PdfStream {
     void Empty();
 
     /** Create a copy of a PdfStream object
+     *
      *  \param rhs the object to clone
      *  \returns a reference to this object
      */

@@ -76,33 +76,38 @@ class PODOFO_API PdfStream {
      */
     virtual void Set( char* szBuffer, long lLen, bool takePossession = true ) = 0;
 
-    /** Set a text buffer as the streams contents.
+    /** Set a null-terminated char* buffer  as the streams contents.
+     *
      *  The string will be copied into a newly allocated buffer.
      *  \param pszString a zero terminated string buffer containing only ASCII text data
      *  \returns ErrOk on sucess
      */
     inline void Set( const char* pszString );
 
-    /** Append to the current stream contents. 
+    /** Append a binary buffer to the current stream contents.
      *  \param pszString a buffer
      *  \param lLen length of the buffer
      *  \returns ErrOk on sucess
      */
     virtual void Append( const char* pszString, size_t lLen ) = 0; 
 
-    /** Append to the current stream contents. 
+    /** Append a null-terminated string to the current stream contents. 
+     *
      *  \param pszString a zero terminated string buffer containing only ASCII text data
      *  \returns ErrOk on sucess
      */
     inline void Append( const char* pszString ); 
 
-    /** Append to the current stream contents. 
+    /** Append to the current stream contents.
+     *
      *  \param sString a std::string containing ASCII text data
      *  \returns ErrOk on sucess
      */
     inline void Append( const std::string& sString ); 
 
-    /** Get the streams length
+    /** Get the stream's length with all filters applied (eg if the stream is
+     * Flate compressed, the length of the compressed data stream).
+     *
      *  \returns the length of the internal buffer
      */
     virtual unsigned long GetLength() const = 0;
