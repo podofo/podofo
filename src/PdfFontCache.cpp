@@ -104,20 +104,33 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bEmbedd )
     if( it == m_vecFonts.end() )
     {
         pMetrics = new PdfFontMetrics( &m_ftLibrary, sPath.c_str() );
+        pFont    = this->CreateFont( pMetrics, bEmbedd, pszFontName );
+    }
+    else
+        pFont = *it;
 
-        try {
-            pFont    = new PdfFont( pMetrics, bEmbedd, m_pParent );
+    return pFont;
+}
 
-            m_vecFonts  .push_back( pFont );
+PdfFont* PdfFontCache::GetFont( FT_Face face, bool bEmbedd )
+{
+    PdfFont*          pFont;
+    PdfFontMetrics*   pMetrics;
+    TCISortedFontList it;
 
-            // Now sort the font list
-            std::sort( m_vecFonts.begin(), m_vecFonts.end() );
-        } catch( PdfError & e ) {
-            e.AddToCallstack( __FILE__, __LINE__ );
-            e.PrintErrorMsg();
-            PdfError::LogMessage( eLogSeverity_Error, "Cannot initialize font: %s\n", pszFontName );
-            return NULL;
-        }
+    std::string sPath = FT_Get_Postscript_Name( face );
+    if( sPath.empty() )
+    {
+        PdfError::LogMessage( eLogSeverity_Critical, "Could not retrieve fontname for font!\n" );
+        return NULL;
+    }
+
+    it = std::find_if( m_vecFonts.begin(), m_vecFonts.end(), FontComperator( sPath ) );
+
+    if( it == m_vecFonts.end() )
+    {
+        pMetrics = new PdfFontMetrics( &m_ftLibrary, face );
+        pFont    = this->CreateFont( pMetrics, bEmbedd );
     }
     else
         pFont = *it;
@@ -134,6 +147,27 @@ std::string PdfFontCache::GetFontPath( const char* pszFontName )
 #endif
 
     return sPath;
+}
+
+PdfFont* PdfFontCache::CreateFont( PdfFontMetrics* pMetrics, bool bEmbedd, const char* pszFontName ) 
+{
+    PdfFont* pFont;
+
+    try {
+        pFont    = new PdfFont( pMetrics, bEmbedd, m_pParent );
+        
+        m_vecFonts  .push_back( pFont );
+        
+        // Now sort the font list
+        std::sort( m_vecFonts.begin(), m_vecFonts.end() );
+    } catch( PdfError & e ) {
+        e.AddToCallstack( __FILE__, __LINE__ );
+        e.PrintErrorMsg();
+        PdfError::LogMessage( eLogSeverity_Error, "Cannot initialize font: %s\n", pszFontName ? pszFontName : "" );
+        return NULL;
+    }
+
+    return pFont;
 }
 
 };

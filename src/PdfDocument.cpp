@@ -246,6 +246,11 @@ PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bEmbedd )
     return m_fontCache.GetFont( pszFontName, bEmbedd );
 }
 
+PdfFont* PdfDocument::CreateFont( FT_Face face, bool bEmbedd )
+{
+    return m_fontCache.GetFont( face, bEmbedd );
+}
+
 PdfPage* PdfDocument::CreatePage( const PdfRect & rSize )
 {
     return m_pPagesTree->CreatePage( rSize );

@@ -85,6 +85,13 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsig
     InitFromFace();
 }
 
+PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, FT_Face face )
+    : m_pLibrary( pLibrary ), m_face( face ), m_sFilename( "" )
+
+{
+    InitFromFace();
+}
+
 PdfFontMetrics::~PdfFontMetrics()
 {
     if ( m_face )

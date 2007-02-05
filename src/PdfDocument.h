@@ -215,6 +215,14 @@ class PODOFO_API PdfDocument {
      */
     PdfFont* CreateFont( const char* pszFontName, bool bEmbedd = true );
 
+    /** Creates a PdfFont object
+     *  \param face a valid freetype font handle
+     *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
+     *         Embedding fonts is usually a good idea.
+     *  \returns PdfFont* a pointer to a new PdfFont object.
+     */
+    PdfFont* CreateFont( FT_Face face, bool bEmbedd = true );
+
     /** Creates a new page object and inserts it into the internal
      *  page tree. 
      *  The returned page is owned by the PdfDocument
