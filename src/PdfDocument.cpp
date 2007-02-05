@@ -253,7 +253,7 @@ PdfPage* PdfDocument::CreatePage( const PdfRect & rSize )
 
 const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc )
 {
-    int difference = m_vecObjects.size();
+    int difference = m_vecObjects.size() + m_vecObjects.GetFreeObjects().size();
 
     // append all objects first and fix their references
     TCIVecObjects it           = rDoc.GetObjects().begin();
