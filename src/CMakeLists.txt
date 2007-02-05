@@ -45,6 +45,7 @@ SET(PODOFO_SOURCES
     PdfRefCountedInputDevice.cpp
     PdfReference.cpp
     PdfStream.cpp
+    PdfStreamedDocument.cpp
     PdfString.cpp
     PdfTokenizer.cpp
     PdfVariant.cpp
@@ -103,6 +104,7 @@ SET(PODOFO_HEADERS
 	PdfRefCountedInputDevice.h
 	PdfReference.h
 	PdfStream.h
+	PdfStreamedDocument.h
 	PdfString.h
 	PdfTokenizer.h
 	PdfVariant.h

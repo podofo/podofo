@@ -99,19 +99,6 @@ class PODOFO_API PdfMemStream : public PdfStream {
      */
     virtual void GetCopy( char** pBuffer, long* lLen ) const;
 
-    /** Get a malloced buffer of the current stream which has been
-     *  filtered by all filters as specified in the dictionary's
-     *  /Filter key. For example, if the stream is Flate compressed,
-     *  the buffer returned from this method will have been decompressed.
-     *
-     *  The caller has to free() the buffer.
-     *
-     *  \param pBuffer pointer to the buffer
-     *  \param lLen    pointer to the buffer length
-     *  \returns ErrOk on success.
-     */
-    virtual void GetFilteredCopy( char** pBuffer, long* lLen ) const;
-
     /** Get a read-only handle to the current stream data.
      *  The data will not be filtered before being returned, so (eg) calling
      *  Get() on a Flate compressed stream will return a pointer to the
@@ -155,46 +142,24 @@ class PODOFO_API PdfMemStream : public PdfStream {
      */
     const PdfStream & operator=( const PdfMemStream & rhs );
 
+ protected:
+    /** Required for the GetFilteredCopy implementation
+     *  \returns a handle to the internal buffer
+     */
+    inline virtual const char* GetInternalBuffer() const;
+
+    /** Required for the GetFilteredCopy implementation
+     *  \returns the size of the internal buffer
+     */
+    inline virtual unsigned long GetInternalBufferSize() const;
+
  private:
-    /** Reads the /Filters key from the current directory
-     *  and adds every found filter to the vector.
-     *  \param vecFilters add all filters to this vector
-     *  \returns ErrOk on success
-     */
-    void FillFilterList( TVecFilters & vecFilters ) const;
-
-    /** Converts a filter name to the corresponding enum
-     *  \param name of the filter without leading
-     *  \returns the filter as enum
-     */
-    static EPdfFilter FilterNameToType( const PdfName & name );
-
     /** Compress the current data using the FlateDecode(ZIP) algorithm
      *  Expects that all filters are setup correctly.
      *  \returns ErrOk on success
      */
     void FlateCompressStreamData();
 
-    /** Get a list of extra decode parameters for this dictionary.
-     *  The list contains copies of the objects and has to be deleted by the caller! 
-     *  \returns ErrOk on success
-     */
-    void GetDecodeParms( TVecDictionaries* pParams ) const;
-
-    /** Set a list of extra decode parameters for this dictionary. Replace any old
-     *  decode paramaters with this.
-     *
-     *  This function may change pParams->SetAutoDelete!
-     *
-     *  \param pParams a list of decode parameter dictioniers, may contain null pointers
-     *  \returns ErrOk on success
-     */
-    void SetDecodeParms( TVecDictionaries* pParams );
-
-    /** Deletes all dictionaries in the vector
-     *  \param pParams delete all dictionaries in this vector
-     */
-    void FreeDecodeParms( TVecDictionaries* pParams ) const;
 
  private:
     PdfRefCountedBuffer m_buffer;
@@ -212,6 +177,22 @@ const char* PdfMemStream::Get() const
 // 
 // -----------------------------------------------------
 unsigned long PdfMemStream::GetLength() const
+{
+    return m_buffer.GetSize();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const char* PdfMemStream::GetInternalBuffer() const
+{
+    return m_buffer.GetBuffer();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+unsigned long PdfMemStream::GetInternalBufferSize() const
 {
     return m_buffer.GetSize();
 }

@@ -76,6 +76,7 @@
 #include "PdfRefCountedBuffer.h"
 #include "PdfRefCountedInputDevice.h"
 #include "PdfStream.h"
+#include "PdfStreamedDocument.h"
 #include "PdfString.h"
 #include "PdfTokenizer.h"
 #include "PdfVariant.h"

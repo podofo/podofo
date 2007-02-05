@@ -650,13 +650,7 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
         RAISE_ERROR( ePdfError_NoXRef );
     }
 
-    PdfMemStream* pStream = dynamic_cast<PdfMemStream*>(xrefObject.GetStream());
-    if( !pStream ) 
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    pStream->GetFilteredCopy( &pBuffer, &lBufferLen );
+    xrefObject.GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
 
     pStart = pBuffer;
     while( pBuffer - pStart < lBufferLen )
@@ -824,13 +818,7 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
     char * pBuffer;
     long lBufferLen;
 
-    PdfMemStream* pMemStream = dynamic_cast<PdfMemStream*>(pStream->GetStream());
-    if( !pMemStream )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    pMemStream->GetFilteredCopy( &pBuffer, &lBufferLen );
+    pStream->GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
 
     // the object stream is not needed anymore in the final PDF
     delete m_vecObjects->RemoveObject( pStream->Reference() );

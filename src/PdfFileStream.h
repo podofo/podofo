@@ -82,12 +82,39 @@ class PODOFO_API PdfFileStream : public PdfStream {
      */
     virtual void Append( const char* pszString, size_t lLen ); 
 
+    /** Get a malloced buffer of the current stream.
+     *  No filters will be applied to the buffer, so
+     *  if the stream is Flate compressed the compressed copy
+     *  will be returned.
+     *
+     *  The caller has to free() the buffer.
+     *
+     *  This is currently not implemented for PdfFileStreams 
+     *  and will raise an ePdfError_InternalLogic exception
+     *
+     *  \param pBuffer pointer to the buffer
+     *  \param lLen    pointer to the buffer length
+     *  \returns ErrOk on success.
+     */
+    virtual void GetCopy( char** pBuffer, long* lLen ) const;
+
     /** Get the streams length with all filters applied (eg the compressed
      *  length of a Flate compressed stream).
      *
      *  \returns the length of the stream with all filters applied
      */
     inline virtual unsigned long GetLength() const;
+
+ protected:
+    /** Required for the GetFilteredCopy implementation
+     *  \returns a handle to the internal buffer
+     */
+    inline virtual const char* GetInternalBuffer() const;
+
+    /** Required for the GetFilteredCopy implementation
+     *  \returns the size of the internal buffer
+     */
+    inline virtual unsigned long GetInternalBufferSize() const;
 
  private:
     PdfOutputDevice* m_pDevice;
@@ -104,6 +131,22 @@ class PODOFO_API PdfFileStream : public PdfStream {
 unsigned long PdfFileStream::GetLength() const
 {
     return m_lLength;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const char* PdfFileStream::GetInternalBuffer() const
+{
+    return NULL;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+unsigned long PdfFileStream::GetInternalBufferSize() const
+{
+    return 0;
 }
 
 };
