@@ -140,7 +140,7 @@ class PODOFO_API PdfMemStream : public PdfStream {
      *  \param rhs the object to clone
      *  \returns a reference to this object
      */
-    const PdfStream & operator=( const PdfMemStream & rhs );
+    const PdfStream & operator=( const PdfStream & rhs );
 
  protected:
     /** Required for the GetFilteredCopy implementation

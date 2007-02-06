@@ -318,5 +318,15 @@ void PdfStream::FreeDecodeParms( TVecDictionaries* pParams ) const
     pParams->clear();
 }
 
+const PdfStream & PdfStream::operator=( const PdfStream & rhs )
+{
+    this->Set( const_cast<char*>(rhs.GetInternalBuffer()), rhs.GetInternalBufferSize(), false );
+
+    if( m_pParent ) 
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, 
+                                           PdfVariant( static_cast<long>(rhs.GetInternalBufferSize()) ) );
+
+    return (*this);
+}
 
 };

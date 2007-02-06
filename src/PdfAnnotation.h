@@ -237,11 +237,11 @@ class PODOFO_API PdfAnnotation : public PdfElement {
      *          by the viewer
      */
     bool GetOpen() const;
-
+    
     /**
      * \returns true if this annotation has a file attachement
      */
-     bool HasFileAttachement() const;
+    bool HasFileAttachement() const;
 
     /** Set a file attachment for this annotation.
      *  The type of this annotation has to be

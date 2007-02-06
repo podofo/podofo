@@ -234,9 +234,13 @@ void PdfMemStream::FlateCompressStreamData()
     }
 }
 
-const PdfStream & PdfMemStream::operator=( const PdfMemStream & rhs )
+const PdfStream & PdfMemStream::operator=( const PdfStream & rhs )
 {
-    m_buffer = rhs.m_buffer;
+    const PdfMemStream* pStream = dynamic_cast<const PdfMemStream*>(&rhs);
+    if( pStream )
+        m_buffer = pStream->m_buffer;
+    else
+        return PdfStream::operator=( rhs );
 
     if( m_pParent ) 
         m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( static_cast<long>(m_buffer.GetSize()) ) );

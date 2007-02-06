@@ -70,6 +70,13 @@ class PODOFO_API PdfOutlineItem : public PdfElement {
      */
     PdfOutlineItem* CreateNext ( const PdfString & sTitle, const PdfDestination & rDest );
 
+    /** Inserts an existing PdfOutlineItem as a child
+     *  of this outline item.
+     *
+     *  \param pItem an existing outline item
+     */
+    void InsertChild( PdfOutlineItem* pItem );
+
     /** 
      * \returns the previous item or NULL if this is the first on the current level
      */

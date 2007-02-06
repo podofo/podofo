@@ -26,16 +26,31 @@ using namespace PoDoFo;
 
 bool writeImmediately = true;
 
-void AddPage( PdfDocument* pDoc, const char* pszFontName, const char* pszImagePath )
+void AddPage( PdfDocument* pDoc, PdfStreamedDocument* pStreamed, const char* pszFontName, const char* pszImagePath )
 {
     PdfPainter painter;
-    PdfPage*   pPage  = pDoc->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    PdfFont*   pFont  = pDoc->CreateFont( pszFontName );
-    PdfFont*   pArial = pDoc->CreateFont( "Arial" );
-    PdfRect    rect   = pPage->GetMediaBox();
-    PdfImage   img( pDoc );
+    PdfPage*   pPage;
+    PdfFont*   pFont;
+    PdfFont*   pArial;
+    PdfRect    rect;
+ 
+    if( pDoc ) 
+    {
+        pPage  = pDoc->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+        pFont  = pDoc->CreateFont( pszFontName );
+        pArial = pDoc->CreateFont( "Arial" );
+    }
+    else
+    {
+        pPage  = pStreamed->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+        pFont  = pStreamed->CreateFont( pszFontName );
+        pArial = pStreamed->CreateFont( "Arial" );
+    }
 
-    img.LoadFromFile( pszImagePath );
+    //PdfImage   img( pDoc );
+    //img.LoadFromFile( pszImagePath );
+
+    rect   = pPage->GetMediaBox();
 
     const char* pszText = "The red brown fox jumps over the lazy dog!";
     double     dX       = rect.GetLeft() + 20.0;
@@ -69,17 +84,18 @@ void AddPage( PdfDocument* pDoc, const char* pszFontName, const char* pszImagePa
     painter.DrawText( dX, dY, pszFontName );
     dY -= pArial->GetFontMetrics()->GetLineSpacing();
 
-    dY -= (img.GetHeight() * 0.5);
-    dX = ((rect.GetWidth() - (img.GetWidth()*0.5))/2.0);
-    painter.DrawImage( dX, dY, &img, 0.5, 0.5 );
+    //dY -= (img.GetHeight() * 0.5);
+    //dX = ((rect.GetWidth() - (img.GetWidth()*0.5))/2.0);
+    //painter.DrawImage( dX, dY, &img, 0.5, 0.5 );
 }
 
 void CreateLargePdf( const char* pszFilename, const char* pszImagePath )
 {
-    PdfDocument  doc;
-    FcObjectSet* pObjectSet;
-    FcFontSet*   pFontSet;
-    FcPattern*   pPattern;
+    PdfStreamedDocument* pStreamed = NULL;
+    PdfDocument        * pDoc = NULL;
+    FcObjectSet*         pObjectSet;
+    FcFontSet*           pFontSet;
+    FcPattern*           pPattern;
 
     if( !FcInit() ) 
     {
@@ -94,9 +110,10 @@ void CreateLargePdf( const char* pszFilename, const char* pszImagePath )
     FcObjectSetDestroy( pObjectSet );
     FcPatternDestroy( pPattern );
 
-    PdfOutputDevice device( pszFilename );
-    if (writeImmediately)
-        doc.WriteImmediately( &device );
+    if( writeImmediately ) 
+        pStreamed = new PdfStreamedDocument( pszFilename );
+    else 
+        pDoc = new PdfDocument();
 
     if( pFontSet )
     {
@@ -108,15 +125,23 @@ void CreateLargePdf( const char* pszFilename, const char* pszImagePath )
             FcPatternGet( pFontSet->fonts[i], FC_FAMILY, 0, &v );
             //font = FcNameUnparse( pFontSet->fonts[i] );
             printf(" -> Drawing with font: %s\n", reinterpret_cast<const char*>(v.u.s) );
-            AddPage( &doc, reinterpret_cast<const char*>(v.u.s), pszImagePath );
+            AddPage( pDoc, pStreamed, reinterpret_cast<const char*>(v.u.s), pszImagePath );
         }
 
         FcFontSetDestroy( pFontSet );
     }
+    
 
-    doc.GetObjects().Finish();
-    if (!writeImmediately)
-        doc.Write( pszFilename );
+    if( writeImmediately )
+    {
+        pStreamed->Close();
+        delete pStreamed;
+    }
+    else
+    {
+        pDoc->Write( pszFilename );
+        delete pDoc;
+    }
 }
 
 void usage()

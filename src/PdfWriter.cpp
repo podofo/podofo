@@ -47,8 +47,9 @@
 namespace PoDoFo {
 
 PdfWriter::PdfWriter( PdfParser* pParser )
-    : m_bCompress( true ), m_bXRefStream( false ), m_bLinearized( false ), 
-      m_pPagesTree( NULL ), m_lFirstInXRef( 0 )
+    : m_bCompress( true ), m_bXRefStream( false ), 
+      m_pPagesTree( NULL ), m_bLinearized( false ),  
+      m_lFirstInXRef( 0 )
 {
     if( !pParser )
     {
@@ -61,8 +62,9 @@ PdfWriter::PdfWriter( PdfParser* pParser )
 }
 
 PdfWriter::PdfWriter( PdfDocument* pDocument )
-    : m_bCompress( true ), m_bXRefStream( false ), m_bLinearized( false ), 
-      m_pPagesTree( NULL ), m_lFirstInXRef( 0 )
+    : m_bCompress( true ), m_bXRefStream( false ), 
+      m_pPagesTree( NULL ), m_bLinearized( false ),  
+      m_lFirstInXRef( 0 )
 {
     if( !pDocument )
     {
@@ -76,8 +78,9 @@ PdfWriter::PdfWriter( PdfDocument* pDocument )
 }
 
 PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
-    : m_bCompress( true ), m_bXRefStream( false ), m_bLinearized( false ), 
-      m_pPagesTree( NULL ), m_lFirstInXRef( 0 )
+    : m_bCompress( true ), m_bXRefStream( false ), 
+      m_pPagesTree( NULL ), m_bLinearized( false ),  
+      m_lFirstInXRef( 0 )
 {
     if( !pVecObjects || !pTrailer )
     {
@@ -90,8 +93,9 @@ PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
 }
 
 PdfWriter::PdfWriter( PdfVecObjects* pVecObjects )
-    : m_bCompress( true ), m_bXRefStream( false ), m_bLinearized( false ), 
-      m_pPagesTree( NULL ), m_lFirstInXRef( 0 )
+    : m_bCompress( true ), m_bXRefStream( false ), 
+      m_pPagesTree( NULL ), m_bLinearized( false ),  
+      m_lFirstInXRef( 0 )
 {
     m_eVersion     = ePdfVersion_1_3;
     m_pTrailer     = new PdfObject();

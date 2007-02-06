@@ -38,6 +38,8 @@ class PdfVecObjects;
  *
  *  \see GetImageReference
  *  \see PdfPainter::DrawImage
+ *
+ * TODO: Support images with PdfStreamedDocument
  */
 class PODOFO_API PdfImage : public PdfXObject {
  public:

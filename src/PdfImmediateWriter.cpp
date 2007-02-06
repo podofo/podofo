@@ -28,7 +28,7 @@
 namespace PoDoFo {
 
 PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, 
-                                        PdfObject* pTrailer, EPdfVersion eVersion )
+                                        const PdfObject* pTrailer, EPdfVersion eVersion )
     : PdfWriter( pVecObjects ), m_pParent( pVecObjects ), 
       m_pDevice( pDevice ), m_pLast( NULL )
 {

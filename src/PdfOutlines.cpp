@@ -27,10 +27,14 @@
 
 namespace PoDoFo {
 
-PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfDestination & rDest, PdfOutlineItem* pParentOutline, PdfVecObjects* pParent )
-    : PdfElement( NULL, pParent ), m_pParentOutline( pParentOutline ), m_pPrev( NULL ), m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL )
+PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfDestination & rDest, 
+                                PdfOutlineItem* pParentOutline, PdfVecObjects* pParent )
+    : PdfElement( NULL, pParent ), 
+      m_pParentOutline( pParentOutline ), m_pPrev( NULL ), m_pNext( NULL ), 
+      m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL )
 {
-    m_pObject->GetDictionary().AddKey( "Parent", pParentOutline->GetObject()->Reference() );
+    if( pParentOutline )
+        m_pObject->GetDictionary().AddKey( "Parent", pParentOutline->GetObject()->Reference() );
 
     this->SetTitle( sTitle );
     this->SetDestination( rDest );
@@ -76,6 +80,13 @@ PdfOutlineItem* PdfOutlineItem::CreateChild( const PdfString & sTitle, const Pdf
 {
     PdfOutlineItem* pItem = new PdfOutlineItem( sTitle, rDest, this, m_pObject->GetOwner() );
 
+    this->InsertChild( pItem );
+
+    return pItem;
+}
+
+void PdfOutlineItem::InsertChild( PdfOutlineItem* pItem )
+{
     if( m_pLast )
     {
         m_pLast->SetNext( pItem );
@@ -89,8 +100,6 @@ PdfOutlineItem* PdfOutlineItem::CreateChild( const PdfString & sTitle, const Pdf
 
     m_pObject->GetDictionary().AddKey( "First", m_pFirst->GetObject()->Reference() );
     m_pObject->GetDictionary().AddKey( "Last",  m_pLast->GetObject()->Reference() );
-
-    return pItem;
 }
 
 PdfOutlineItem* PdfOutlineItem::CreateNext ( const PdfString & sTitle, const PdfDestination & rDest )

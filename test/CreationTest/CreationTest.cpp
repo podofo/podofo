@@ -391,9 +391,9 @@ int main( int argc, char* argv[] )
 
     printf("PoDoFo DataType Size Information:\n");
     printf("---\n");
-    printf("sizeof variant=%i\n", sizeof(PdfVariant) );
-    printf("sizeof object=%i\n", sizeof(PdfObject) );
-    printf("sizeof reference=%i\n", sizeof(PdfReference) );
+    printf("sizeof variant=%lu\n", sizeof(PdfVariant) );
+    printf("sizeof object=%lu\n", sizeof(PdfObject) );
+    printf("sizeof reference=%lu\n", sizeof(PdfReference) );
     printf("---\n\n");
  
     outlines = writer.GetOutlines();

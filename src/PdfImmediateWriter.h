@@ -35,7 +35,7 @@ class PODOFO_API PdfImmediateWriter : private PdfWriter,
     private PdfVecObjects::StreamFactory {
 
  public:
-    PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, PdfObject* pTrailer, EPdfVersion eVersion = ePdfVersion_1_5 );
+    PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, const PdfObject* pTrailer, EPdfVersion eVersion = ePdfVersion_1_5 );
     ~PdfImmediateWriter();
 
  private:

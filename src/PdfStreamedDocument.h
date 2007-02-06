@@ -23,11 +23,13 @@
 
 #include "PdfDefines.h"
 
+#include "PdfDocument.h"
+
 namespace PoDoFo {
 
+class PdfImmediateWriter;
 class PdfOutputDevice;
 
-#if 0
 /** PdfStreamedDocument is the preferred class for 
  *  creating new PDF documents.
  * 
@@ -58,6 +60,8 @@ class PODOFO_API PdfStreamedDocument {
      */
     PdfStreamedDocument( const char* pszFilename );
 
+    ~PdfStreamedDocument();
+
     /** Close the document. The PDF file on disk is finished.
      *  No other member function of this class maybe called
      *  after calling this function.
@@ -70,19 +74,19 @@ class PODOFO_API PdfStreamedDocument {
      *
      *  \returns the info dictionary
      */
-    PdfInfo* GetInfo() const { return m_pInfo; }
+    inline PdfInfo* GetInfo() const;
 
     /** Get access to the Outlines (Bookmarks) dictionary
      *  The returned outlines object is owned by the PdfDocument.
      * 
      *  \returns the Outlines/Bookmarks dictionary
      */
-    PdfOutlines* GetOutlines( bool bCreate = ePdfCreateObject );
+    inline PdfOutlines* GetOutlines( bool bCreate = ePdfCreateObject );
 
     /** Get the total number of pages in a document
      *  \returns int number of pages
      */
-    int GetPageCount() const;
+    inline int GetPageCount() const;
 
     /** Creates a PdfFont object
      *  \param pszFontName name of the font as it is known to the system
@@ -90,7 +94,15 @@ class PODOFO_API PdfStreamedDocument {
      *         Embedding fonts is usually a good idea.
      *  \returns PdfFont* a pointer to a new PdfFont object.
      */
-    PdfFont* CreateFont( const char* pszFontName, bool bEmbedd = true );
+    inline PdfFont* CreateFont( const char* pszFontName, bool bEmbedd = true );
+
+    /** Creates a PdfFont object
+     *  \param face a valid freetype font handle
+     *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
+     *         Embedding fonts is usually a good idea.
+     *  \returns PdfFont* a pointer to a new PdfFont object.
+     */
+    inline PdfFont* CreateFont( FT_Face face, bool bEmbedd = true );
 
     /** Creates a new page object and inserts it into the internal
      *  page tree. 
@@ -100,62 +112,62 @@ class PODOFO_API PdfStreamedDocument {
      *  \param rSize a PdfRect spezifying the size of the page (i.e the /MediaBox key) in 1/1000th mm
      *  \returns a pointer to a PdfPage object
      */
-    PdfPage* CreatePage( const PdfRect & rSize );
+    inline PdfPage* CreatePage( const PdfRect & rSize );
 
     /** Appends another PdfDocument to this document
      *  \param rDoc the document to append
      *  \returns this document
      */
-    const PdfDocument & Append( const PdfDocument & rDoc );
+    inline const PdfDocument & Append( const PdfDocument & rDoc );
 
     /** Attach a file to the document.
      *  \param rFileSpec a file specification
      */
-    void AttachFile( const PdfFileSpec & rFileSpec );
+    inline void AttachFile( const PdfFileSpec & rFileSpec );
 
     /** Sets the opening mode for a document
      *  \param inMode which mode to set
      */
-    void SetPageMode( EPdfPageMode inMode ) const;
+    inline void SetPageMode( EPdfPageMode inMode ) const;
 
     /** Gets the opening mode for a document
      *  \returns which mode is set
      */
-    EPdfPageMode GetPageMode( void ) const;
+    inline EPdfPageMode GetPageMode() const;
 
     /** Sets the opening mode for a document to be in full screen
      */
-    void SetUseFullScreen( void ) const;
+    inline void SetUseFullScreen( void ) const;
     
     /** Sets the page layout for a document
      */
-    void SetPageLayout( EPdfPageLayout inLayout );
+    inline void SetPageLayout( EPdfPageLayout inLayout );
     
     /** Set the document's Viewer Preferences:
      *  Hide the toolbar in the viewer
      */
-    void SetHideToolbar( void );
+    inline void SetHideToolbar( void );
 
     /** Set the document's Viewer Preferences:
      *  Hide the menubar in the viewer
      */
-    void SetHideMenubar( void );
+    inline void SetHideMenubar( void );
 
     /** Set the document's Viewer Preferences:
      *  Show only the documents contents and no controll
      *  elements such as buttons and scrollbars in the viewer
      */
-    void SetHideWindowUI( void );
+    inline void SetHideWindowUI( void );
 
     /** Set the document's Viewer Preferences:
      *  Fit the document in the viewers window
      */
-    void SetFitWindow( void );
+    inline void SetFitWindow( void );
 
     /** Set the document's Viewer Preferences:
      *  Center the document in the viewers window
      */
-    void SetCenterWindow( void );
+    inline void SetCenterWindow( void );
 
     /** Set the document's Viewer Preferences:
      *  Display the title from the document information
@@ -163,26 +175,26 @@ class PODOFO_API PdfStreamedDocument {
      * 
      *  \see SetTitle
      */
-    void SetDisplayDocTitle( void );
+    inline void SetDisplayDocTitle( void );
 
     /** Set the document's Viewer Preferences:
      *  Set the default print scaling of the document
      */   
-    void SetPrintScaling( PdfName& inScalingType );
+    inline void SetPrintScaling( PdfName& inScalingType );
 
     /** Set the document's Viewer Preferences:
      *  Set the base URI of the document
      */
-    void SetBaseURI( const std::string& inBaseURI );
+    inline void SetBaseURI( const std::string& inBaseURI );
 
     /** Set the document's Viewer Preferences:
      *  Set the language of the document
      */    
-    void SetLanguage( const std::string& inLanguage );
+    inline void SetLanguage( const std::string& inLanguage );
 
     /** Set the document's Viewer Preferences:
      */    
-    void SetBindingDirection( PdfName& inDirection );
+    inline void SetBindingDirection( PdfName& inDirection );
 
  private:
     /** Initialize the PdfStreamedDocument with an output device
@@ -191,9 +203,189 @@ class PODOFO_API PdfStreamedDocument {
     void Init( PdfOutputDevice* pDevice );
 
  private:
+    PdfDocument         m_doc;
+    PdfImmediateWriter* m_pWriter;
+    PdfOutputDevice*    m_pDevice;
 
 };
-#endif // 0
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfInfo* PdfStreamedDocument::GetInfo() const
+{
+    return m_doc.GetInfo();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfOutlines* PdfStreamedDocument::GetOutlines( bool bCreate )
+{
+    return m_doc.GetOutlines( bCreate );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+int PdfStreamedDocument::GetPageCount() const
+{
+    return m_doc.GetPageCount();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfFont* PdfStreamedDocument::CreateFont( const char* pszFontName, bool bEmbedd )
+{
+    return m_doc.CreateFont( pszFontName, bEmbedd );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfFont* PdfStreamedDocument::CreateFont( FT_Face face, bool bEmbedd )
+{
+    return m_doc.CreateFont( face, bEmbedd );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfPage* PdfStreamedDocument::CreatePage( const PdfRect & rSize )
+{
+    return m_doc.CreatePage( rSize );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfDocument & PdfStreamedDocument::Append( const PdfDocument & rDoc )
+{
+    return m_doc.Append( rDoc );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfStreamedDocument::AttachFile( const PdfFileSpec & rFileSpec )
+{
+    m_doc.AttachFile( rFileSpec );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfStreamedDocument::SetPageMode( EPdfPageMode inMode ) const
+{
+    m_doc.SetPageMode( inMode );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+EPdfPageMode PdfStreamedDocument::GetPageMode() const
+{
+    return m_doc.GetPageMode();
+}
+
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfStreamedDocument::SetUseFullScreen( void ) const
+{
+    m_doc.SetUseFullScreen();
+}
+    
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfStreamedDocument::SetPageLayout( EPdfPageLayout inLayout )
+{
+    m_doc.SetPageLayout( inLayout );
+}
+    
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfStreamedDocument::SetHideToolbar( void )
+{
+    m_doc.SetHideToolbar();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfStreamedDocument::SetHideMenubar( void )
+{
+    m_doc.SetHideMenubar();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfStreamedDocument::SetHideWindowUI( void )
+{
+    m_doc.SetHideWindowUI();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfStreamedDocument::SetFitWindow( void )
+{
+    m_doc.SetFitWindow();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfStreamedDocument::SetCenterWindow( void )
+{
+    m_doc.SetCenterWindow();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfStreamedDocument::SetDisplayDocTitle( void )
+{
+    m_doc.SetDisplayDocTitle();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfStreamedDocument::SetPrintScaling( PdfName& inScalingType )
+{
+    m_doc.SetPrintScaling( inScalingType );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfStreamedDocument::SetBaseURI( const std::string& inBaseURI )
+{
+    m_doc.SetBaseURI( inBaseURI );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfStreamedDocument::SetLanguage( const std::string& inLanguage )
+{
+    m_doc.SetLanguage( inLanguage );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfStreamedDocument::SetBindingDirection( PdfName& inDirection )
+{
+    m_doc.SetBindingDirection( inDirection );
+}
+
 };
 
 #endif /* _PDF_STREAMED_DOCUMENT_H_ */
