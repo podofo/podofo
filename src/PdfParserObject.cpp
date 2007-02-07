@@ -261,7 +261,13 @@ void PdfParserObject::ParseStream()
         }
 
         // we do not use indirect references for the length of the document
-        delete m_pOwner->RemoveObject( pObj->Reference() );
+        // DS: Even though do not remove the length key,
+        //     as 2 or more object might use the same object for key lengths.
+        //     Deleting the length object of the first object will make
+        //     all other objects non readable.
+        //     If you want those length object to be removed,
+        //     run the garbage collection of PdfVecObjects over your PDF.
+        //delete m_pOwner->RemoveObject( pObj->Reference() );
     }
     else
     {
