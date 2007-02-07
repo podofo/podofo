@@ -28,6 +28,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <sstream>
 
 #define KEY_BUFFER 128
 
@@ -325,7 +326,12 @@ void PdfParserObject::DelayedStreamLoadImpl()
         try {
             this->ParseStream();
         } catch( PdfError & e ) {
-            e.AddToCallstack( __FILE__, __LINE__, "Unable to parse the objects' stream." );
+            // TODO: track object ptr in error info so we don't have to do this memory-intensive
+            // formatting here.
+            std::ostringstream s;
+            s << "Unable to parse the stream for object " << Reference().ObjectNumber() << ' '
+              << Reference().GenerationNumber() << " obj .";
+            e.AddToCallstack( __FILE__, __LINE__, s.str().c_str());
             throw e;
         }
     }
