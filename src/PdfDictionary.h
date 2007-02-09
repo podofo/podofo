@@ -64,14 +64,19 @@ class PODOFO_API PdfDictionary : public PdfDataType {
      */
     void Clear();
 
-    /** Add a key to the dictionary. 
+    /** Add a key to the dictionary. If an existing key of this name exists, its
+     *  value is replaced and the old value object will be deleted. The passed
+     *  object is copied.
      *
      *  \param identifier the key is identified by this name in the dictionary
      *  \param rObject a variant object containing the data. The object is copied.
      */
     void AddKey( const PdfName & identifier, const PdfObject & rObject );
 
-    /** Add a key to the dictionary. 
+    /** Add a key to the dictionary. If an existing key of this name exists,
+     *  its value is replaced and the old value object will be deleted. The
+     *  passed object is copied.
+     *
      *  This is an overloaded member function.
      *
      *  \param identifier the key is identified by this name in the dictionary

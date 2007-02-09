@@ -366,6 +366,13 @@ class PODOFO_API PdfDocument {
     void SetViewerPreference( const PdfName& whichPref, bool inValue ) const;
 
  private:
+    // Prevent use of copy constructor and assignment operator.  These methods
+    // should never be referenced (given that code referencing them outside
+    // PdfDocument won't compile), and calling them will result in a link error
+    // as they're not defined.
+    explicit PdfDocument(const PdfDocument&);
+    PdfDocument& operator=(const PdfDocument&);
+
     bool            m_bLinearized;
 
     PdfVecObjects   m_vecObjects;
