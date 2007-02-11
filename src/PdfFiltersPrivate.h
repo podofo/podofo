@@ -24,6 +24,8 @@
 #include "PdfDefines.h"
 #include "PdfFilter.h"
 
+#include <zlib.h>
+
 namespace PoDoFo {
 
 // TODO: explicit predictor handling
@@ -41,16 +43,42 @@ class PdfHexFilter : public PdfFilter {
      */
     inline virtual bool CanEncode() const; 
 
-    /** Encodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
+    /** Begin encoding data using this filter.
      *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the encoded data
-     *  \param plOutLen pointer to the length of the output buffer
+     *  \param pOutput encoded data will be written to this stream.
+     *
+     *  Call EncodeBlock() to encode blocks of data and use EndEncode
+     *  to finish the encoding process.
+     *
+     *  \see EncodeBlock
+     *  \see EndEncode
      */
-    virtual void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
+    virtual void BeginEncode( PdfOutputStream* pOutput );
 
+    /** Encode a block of data and write it to the PdfOutputStream
+     *  specified by BeginEncode.
+     *
+     *  BeginEncode() has to be called before this function.
+     *
+     *  \param pBuffer pointer to a buffer with data to encode
+     *  \param lLen length of data to encode.
+     *
+     *  Call EndEncode() after all data has been encoded
+     *
+     *
+     *  \see BeginEncode
+     *  \see EndEncode
+     */
+    virtual void EncodeBlock( const char* pBuffer, long lLen );
+
+    /**
+     *  Finish encoding of data.
+     *
+     *  \see BeginEncode
+     *  \see EncodeBlock
+     */
+    virtual void EndEncode();
+ 
     /** Check wether the decoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to decode data
@@ -104,15 +132,41 @@ class PdfAscii85Filter : public PdfFilter {
      */
     inline virtual bool CanEncode() const; 
 
-    /** Encodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
+    /** Begin encoding data using this filter.
      *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the encoded data
-     *  \param plOutLen pointer to the length of the output buffer
+     *  \param pOutput encoded data will be written to this stream.
+     *
+     *  Call EncodeBlock() to encode blocks of data and use EndEncode
+     *  to finish the encoding process.
+     *
+     *  \see EncodeBlock
+     *  \see EndEncode
      */
-    virtual void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
+    virtual void BeginEncode( PdfOutputStream* pOutput );
+
+    /** Encode a block of data and write it to the PdfOutputStream
+     *  specified by BeginEncode.
+     *
+     *  BeginEncode() has to be called before this function.
+     *
+     *  \param pBuffer pointer to a buffer with data to encode
+     *  \param lLen length of data to encode.
+     *
+     *  Call EndEncode() after all data has been encoded
+     *
+     *
+     *  \see BeginEncode
+     *  \see EndEncode
+     */
+    virtual void EncodeBlock( const char* pBuffer, long lLen );
+
+    /**
+     *  Finish encoding of data.
+     *
+     *  \see BeginEncode
+     *  \see EncodeBlock
+     */
+    virtual void EndEncode();
 
     /** Check wether the decoding is implemented for this filter.
      * 
@@ -140,10 +194,14 @@ class PdfAscii85Filter : public PdfFilter {
     inline virtual EPdfFilter GetType() const;
 
  private:
-    void Encode ( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes ) const;
+    void EncodeTuple ( unsigned long tuple, int bytes );
     void WidePut( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes ) const;
 
+ private:
     static unsigned long sPowers85[];
+
+    int           m_count;
+    unsigned long m_tuple;
 };
 
 bool PdfAscii85Filter::CanEncode() const
@@ -173,15 +231,41 @@ class PdfFlateFilter : public PdfFilter {
      */
     inline virtual bool CanEncode() const; 
 
-    /** Encodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
+    /** Begin encoding data using this filter.
      *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the encoded data
-     *  \param plOutLen pointer to the length of the output buffer
+     *  \param pOutput encoded data will be written to this stream.
+     *
+     *  Call EncodeBlock() to encode blocks of data and use EndEncode
+     *  to finish the encoding process.
+     *
+     *  \see EncodeBlock
+     *  \see EndEncode
      */
-    virtual void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
+    virtual void BeginEncode( PdfOutputStream* pOutput );
+
+    /** Encode a block of data and write it to the PdfOutputStream
+     *  specified by BeginEncode.
+     *
+     *  BeginEncode() has to be called before this function.
+     *
+     *  \param pBuffer pointer to a buffer with data to encode
+     *  \param lLen length of data to encode.
+     *
+     *  Call EndEncode() after all data has been encoded
+     *
+     *
+     *  \see BeginEncode
+     *  \see EndEncode
+     */
+    virtual void EncodeBlock( const char* pBuffer, long lLen );
+
+    /**
+     *  Finish encoding of data.
+     *
+     *  \see BeginEncode
+     *  \see EncodeBlock
+     */
+    virtual void EndEncode();
 
     /** Check wether the decoding is implemented for this filter.
      * 
@@ -210,6 +294,12 @@ class PdfFlateFilter : public PdfFilter {
 
     // FIXME: DOM: Predictors should be implemented like filters!
     void RevertPredictor( const TFlatePredictorParams* pParams, const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
+
+ private:
+    void EncodeBlockInternal( const char* pBuffer, long lLen, int nMode );
+
+ private:
+    z_stream m_stream;
 };
 
 bool PdfFlateFilter::CanEncode() const
@@ -240,15 +330,31 @@ class PdfRLEFilter : public PdfFilter {
      */
     inline virtual bool CanEncode() const; 
 
-    /** Encodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
-     *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the encoded data
-     *  \param plOutLen pointer to the length of the output buffer
+    virtual void BeginEncode( PdfOutputStream* pOutput );
+
+    /** Encode a block of data and write it to the PdfOutputStream
+     *  specified by BeginEncode.
+     *
+     *  BeginEncode() has to be called before this function.
+     *
+     *  \param pBuffer pointer to a buffer with data to encode
+     *  \param lLen length of data to encode.
+     *
+     *  Call EndEncode() after all data has been encoded
+     *
+     *
+     *  \see BeginEncode
+     *  \see EndEncode
      */
-    virtual void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
+    virtual void EncodeBlock( const char* pBuffer, long lLen );
+
+    /**
+     *  Finish encoding of data.
+     *
+     *  \see BeginEncode
+     *  \see EncodeBlock
+     */
+    virtual void EndEncode();
 
     /** Check wether the decoding is implemented for this filter.
      * 
@@ -312,15 +418,41 @@ class PdfLZWFilter : public PdfFilter {
      */
     inline virtual bool CanEncode() const; 
 
-    /** Encodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
+    /** Begin encoding data using this filter.
      *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the encoded data
-     *  \param plOutLen pointer to the length of the output buffer
+     *  \param pOutput encoded data will be written to this stream.
+     *
+     *  Call EncodeBlock() to encode blocks of data and use EndEncode
+     *  to finish the encoding process.
+     *
+     *  \see EncodeBlock
+     *  \see EndEncode
      */
-    virtual void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
+    virtual void BeginEncode( PdfOutputStream* pOutput );
+
+    /** Encode a block of data and write it to the PdfOutputStream
+     *  specified by BeginEncode.
+     *
+     *  BeginEncode() has to be called before this function.
+     *
+     *  \param pBuffer pointer to a buffer with data to encode
+     *  \param lLen length of data to encode.
+     *
+     *  Call EndEncode() after all data has been encoded
+     *
+     *
+     *  \see BeginEncode
+     *  \see EndEncode
+     */
+    virtual void EncodeBlock( const char* pBuffer, long lLen );
+
+    /**
+     *  Finish encoding of data.
+     *
+     *  \see BeginEncode
+     *  \see EncodeBlock
+     */
+    virtual void EndEncode();
 
     /** Check wether the decoding is implemented for this filter.
      * 

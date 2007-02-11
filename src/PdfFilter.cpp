@@ -23,12 +23,55 @@
 
 #include "PdfDictionary.h"
 #include "PdfFiltersPrivate.h"
+#include "PdfOutputStream.h"
 
 #include <map>
 
 namespace PoDoFo {
 
 std::map<EPdfFilter,PdfFilter*> PdfFilterFactory::s_mapFilters;
+
+PdfFilter::PdfFilter() 
+    : m_pOutputStream( NULL )
+{
+}
+
+void PdfFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
+{
+    if( !this->CanEncode() )
+    {
+        RAISE_ERROR( ePdfError_UnsupportedFilter );
+    }
+
+    PdfMemoryOutputStream stream;
+
+    const_cast<PdfFilter*>(this)->BeginEncode( &stream );
+    const_cast<PdfFilter*>(this)->EncodeBlock( pInBuffer, lInLen );
+    const_cast<PdfFilter*>(this)->EndEncode();
+
+    *ppOutBuffer = stream.TakeBuffer();
+    *plOutLen    = stream.GetLength();
+}
+
+/*
+void PdfFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, 
+                        const PdfDictionary* pDecodeParms ) const
+{
+    if( !this->CanDecode() )
+    {
+        RAISE_ERROR( ePdfError_UnsupportedFilter );
+    }
+
+    PdfMemoryOutputStream stream;
+
+    const_cast<PdfFilter*>(this)->BeginDecode( &stream );
+    const_cast<PdfFilter*>(this)->DecodeBlock( pInBuffer, lInLen );
+    const_cast<PdfFilter*>(this)->EndDecode();
+
+    *ppOutBuffer = stream.TakeBuffer();
+    *plOutLen    = stream.GetLength();
+}
+*/
 
 const PdfFilter* PdfFilterFactory::Create( const EPdfFilter eFilter ) 
 {

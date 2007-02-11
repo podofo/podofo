@@ -25,6 +25,8 @@
 
 namespace PoDoFo {
 
+#define INITIAL_SIZE 4096
+
 class PdfOutputDevice;
 
 /** An interface for writing blocks of data to 
@@ -72,17 +74,16 @@ class PODOFO_API PdfFileOutputStream : public PdfOutputStream {
 };
 
 /** An output stream that writes data to a memory buffer
+ *  If the buffer is to small, it will be enlarged automatically.
  */
 class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
  public:
     
     /** 
      *  Construct a new PdfMemoryOutputStream
-     *
-     *  \param pBuffer buffer to read from
-     *  \param lBufferLen length of the buffer
+     *  \param lInitial initial size of the buffer
      */
-    PdfMemoryOutputStream( char* pBuffer, long lBufferLen );
+    PdfMemoryOutputStream( long lInitial = INITIAL_SIZE);
     ~PdfMemoryOutputStream();
 
     /** Write data to the output stream
@@ -94,11 +95,46 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
      */
     virtual long Write( const char* pBuffer, long lLen );
 
+    /** \returns the length of the written data
+     */
+    inline unsigned long GetLength() const;
+
+    /**
+     *  \returns a handle to the internal buffer.
+     *
+     *  The internal buffer is now owned by the caller
+     *  and will not be deleted by PdfMemoryOutputStream.
+     *  Further calls to write are not allowed.
+     *
+     *  The caller has to free the returned malloc'ed buffer!
+     */
+    inline char* TakeBuffer();
+
  private:
     char* m_pBuffer;
     char* m_pCur;
-    long        m_lBufferLen;
+
+    long  m_lLen;
+    long  m_lSize;
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline unsigned long PdfMemoryOutputStream::GetLength() const
+{
+    return m_lLen;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline char* PdfMemoryOutputStream::TakeBuffer()
+{
+    char* pBuffer = m_pBuffer;
+    m_pBuffer = NULL;
+    return pBuffer;
+}
 
 /** An output stream that writes to a PdfOutputDevice
  */

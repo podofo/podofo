@@ -26,6 +26,9 @@
 namespace PoDoFo {
 
 class PdfDictionary;
+class PdfOutputStream;
+
+#define FILTER_INTERNAL_BUFFER_SIZE 4096
 
 /** Every filter in PoDoFo has to implement this interface.
  * 
@@ -37,6 +40,10 @@ class PdfDictionary;
  */
 class PODOFO_API PdfFilter {
  public:
+    /** Construct and initialize a new filter
+     */
+    PdfFilter();
+
     /** All classes with virtual functions need a virtual destructor
      */
     virtual ~PdfFilter() {};
@@ -55,13 +62,43 @@ class PODOFO_API PdfFilter {
      *  \param ppOutBuffer pointer to the buffer of the encoded data
      *  \param plOutLen pointer to the length of the output buffer
      */
-    virtual void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const = 0;
+    void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
 
-    /*
-    virtual void StartEncode() = 0;
-    virutal void EncodeBlock( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const = 0;
+    /** Begin encoding data using this filter.
+     *  
+     *  \param pOutput encoded data will be written to this stream.
+     *
+     *  Call EncodeBlock() to encode blocks of data and use EndEncode
+     *  to finish the encoding process.
+     *
+     *  \see EncodeBlock
+     *  \see EndEncode
+     */
+    virtual void BeginEncode( PdfOutputStream* pOutput ) = 0;
+
+    /** Encode a block of data and write it to the PdfOutputStream
+     *  specified by BeginEncode.
+     *
+     *  BeginEncode() has to be called before this function.
+     *
+     *  \param pBuffer pointer to a buffer with data to encode
+     *  \param lLen length of data to encode.
+     *
+     *  Call EndEncode() after all data has been encoded
+     *
+     *
+     *  \see BeginEncode
+     *  \see EndEncode
+     */
+    virtual void EncodeBlock( const char* pBuffer, long lLen ) = 0;
+
+    /**
+     *  Finish encoding of data.
+     *
+     *  \see BeginEncode
+     *  \see EncodeBlock
+     */
     virtual void EndEncode() = 0;
-    */
 
     /** Check wether the decoding is implemented for this filter.
      * 
@@ -87,6 +124,10 @@ class PODOFO_API PdfFilter {
      *  \returns the type of this filter
      */
     virtual EPdfFilter GetType() const = 0;
+
+ protected:
+    PdfOutputStream* m_pOutputStream;
+    unsigned char    m_buffer[FILTER_INTERNAL_BUFFER_SIZE];
 };
 
 /** A factory to create a filter object for a filter GetType from the EPdfFilter enum.

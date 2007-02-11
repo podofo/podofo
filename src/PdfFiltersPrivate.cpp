@@ -22,11 +22,10 @@
 #include "PdfFiltersPrivate.h"
 
 #include "PdfDictionary.h"
+#include "PdfOutputStream.h"
 #include "PdfTokenizer.h"
 
-#include <zlib.h>
-
-#define CHUNK               16384
+#define CHUNK               16384 
 #define LZW_TABLE_SIZE      4096
 
 namespace PoDoFo {
@@ -57,39 +56,51 @@ struct TFlatePredictorParams {
 // -------------------------------------------------------
 // Hex
 // -------------------------------------------------------
-void PdfHexFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
+void PdfHexFilter::BeginEncode( PdfOutputStream* pOutput )
 {
-    char*    pStart;
-    int      i      = 0;
-
-    if( !plOutLen || !pInBuffer || !ppOutBuffer )
+    if( m_pOutputStream ) 
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        RAISE_ERROR_INFO( ePdfError_InternalLogic, 
+                          "BeginEncode has already an output stream. Did you forget to call EndEncode()?" );
     }
 
-    *plOutLen = (lInLen << 1);
-    *ppOutBuffer = static_cast<char*>(malloc( *plOutLen * sizeof(char) ));
-    if( !*ppOutBuffer )
+    m_pOutputStream = pOutput;
+}
+
+void PdfHexFilter::EncodeBlock( const char* pBuffer, long lLen )
+{
+    if( !m_pOutputStream )
     {
-        RAISE_ERROR( ePdfError_OutOfMemory );
+        RAISE_ERROR_INFO( ePdfError_InternalLogic, 
+                          "BeginEncode was not yet called or EndEncode was called before this method.");
     }
 
-    pStart = *ppOutBuffer;
-    while( i < lInLen )
+    char data[2];
+    while( lLen-- )
     {
-        *pStart  = (pInBuffer[i] & 0xF0) >> 4;
-        *pStart += (*pStart > 9 ? 'A' - 10 : '0');
+        data[0]  = (*pBuffer & 0xF0) >> 4;
+        data[0] += (data[0] > 9 ? 'A' - 10 : '0');
 
-        ++pStart;
+        data[1]  = (*pBuffer & 0x0F);
+        data[1] += (data[1] > 9 ? 'A' - 10 : '0');
 
-        *pStart  = (pInBuffer[i] & 0x0F);
-        *pStart += (*pStart > 9 ? 'A' - 10 : '0');
+        m_pOutputStream->Write( data, 2 );
 
-        ++pStart;
-        ++i;
+        ++pBuffer;
     }
 }
 
+void PdfHexFilter::EndEncode()
+{
+    if( !m_pOutputStream ) 
+    {
+        RAISE_ERROR_INFO( ePdfError_InternalLogic, 
+                          "BeginEncode was not yet called or EndEncode was called before this method.");
+    }
+
+    m_pOutputStream = NULL;
+}
+ 
 void PdfHexFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* ) const
 {
     PdfError eCode;
@@ -143,68 +154,12 @@ unsigned long PdfAscii85Filter::sPowers85[] = {
     85*85*85*85, 85*85*85, 85*85, 85, 1
 };
 
-void PdfAscii85Filter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
-{
-    int           count = 0;
-    unsigned long tuple = 0;
-    int           pos   = 0;
-    unsigned int  c;
-
-    if( !plOutLen || !pInBuffer || !ppOutBuffer )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    *plOutLen = static_cast<int>(lInLen/4) * 6;
-    *ppOutBuffer = static_cast<char*>(malloc( *plOutLen * sizeof(char) ));
-   
-    if( !*ppOutBuffer )
-    {
-        RAISE_ERROR( ePdfError_OutOfMemory );
-    }
-
-    while( lInLen ) 
-    {
-        c = *pInBuffer & 0xff;
-	switch (count++) {
-            case 0: tuple |= ( c << 24); break;
-            case 1: tuple |= ( c << 16); break;
-            case 2: tuple |= ( c <<  8); break;
-            case 3:
-		tuple |= c;
-		if( 0 == tuple ) 
-                {
-                    if( pos >= *plOutLen )
-                    {
-                        RAISE_ERROR( ePdfError_OutOfMemory );
-                    }
-                    (*ppOutBuffer)[pos++] = 'z';
-		} 
-                else
-                {
-                    this->Encode( *ppOutBuffer, &pos, *plOutLen, tuple, count ); 
-                }
-
-		tuple = 0;
-		count = 0;
-		break;
-	}
-        --lInLen;
-        ++pInBuffer;
-    }
-
-    if (count > 0)
-    {
-        this->Encode( *ppOutBuffer, &pos, *plOutLen, tuple, count );
-    }
-
-    *plOutLen = pos;
-}
-
-void PdfAscii85Filter::Encode( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int count ) const
+void PdfAscii85Filter::EncodeTuple( unsigned long tuple, int count )
 {
     int      i      = 5;
+    int      z      = 0;
     char     buf[5];
+    char     out[5];
     char*    start  = buf;;
 
     do 
@@ -217,13 +172,76 @@ void PdfAscii85Filter::Encode( char* pBuffer, int* bufferPos, long lBufferLen, u
     i = count;
     do 
     {
-        if( *bufferPos >= lBufferLen )
-        {
-            RAISE_ERROR( ePdfError_OutOfMemory );
-        }
-        pBuffer[(*bufferPos)++] = static_cast<unsigned char>(*--start) + '!';
+        out[z++] = static_cast<unsigned char>(*--start) + '!';
     } 
     while (i-- > 0);
+
+    m_pOutputStream->Write( out, z );
+}
+
+void PdfAscii85Filter::BeginEncode( PdfOutputStream* pOutput )
+{
+    if( m_pOutputStream ) 
+    {
+        RAISE_ERROR_INFO( ePdfError_InternalLogic, 
+                          "BeginEncode has already an output stream. Did you forget to call EndEncode()?" );
+    }
+
+    m_count = 0;
+    m_tuple = 0;
+    m_pOutputStream = pOutput;
+}
+
+void PdfAscii85Filter::EncodeBlock( const char* pBuffer, long lLen )
+{
+    unsigned int  c;
+    const char*   z = "z";
+
+    if( !m_pOutputStream )
+    {
+        RAISE_ERROR_INFO( ePdfError_InternalLogic, 
+                          "BeginEncode was not yet called or EndEncode was called before this method.");
+    }
+
+    while( lLen ) 
+    {
+        c = *pBuffer & 0xff;
+	switch (m_count++) {
+            case 0: m_tuple |= ( c << 24); break;
+            case 1: m_tuple |= ( c << 16); break;
+            case 2: m_tuple |= ( c <<  8); break;
+            case 3:
+		m_tuple |= c;
+		if( 0 == m_tuple ) 
+                {
+                    m_pOutputStream->Write( z, 1 );
+		} 
+                else
+                {
+                    this->EncodeTuple( m_tuple, m_count ); 
+                }
+
+		m_tuple = 0;
+		m_count = 0;
+		break;
+	}
+        --lLen;
+        ++pBuffer;
+    }
+}
+
+void PdfAscii85Filter::EndEncode()
+{
+    if( !m_pOutputStream ) 
+    {
+        RAISE_ERROR_INFO( ePdfError_InternalLogic, 
+                          "BeginEncode was not yet called or EndEncode was called before this method.");
+    }
+
+    if( m_count > 0 )
+        this->EncodeTuple( m_tuple, m_count );
+
+    m_pOutputStream = NULL;
 }
 
 void PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* ) const
@@ -339,52 +357,83 @@ void PdfAscii85Filter::WidePut( char* pBuffer, int* bufferPos, long lBufferLen, 
 // -------------------------------------------------------
 // Flate
 // -------------------------------------------------------
-void PdfFlateFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
+void PdfFlateFilter::BeginEncode( PdfOutputStream* pOutput )
 {
-    z_stream d_stream; 
-    char*    buf;
-    long     lBufLen;
-
-    if( !pInBuffer || !plOutLen || !ppOutBuffer )
+    if( m_pOutputStream ) 
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        RAISE_ERROR_INFO( ePdfError_InternalLogic, 
+                          "BeginEncode has already an output stream. Did you forget to call EndEncode()?" );
     }
 
-    d_stream.zalloc   = Z_NULL;
-    d_stream.zfree    = Z_NULL;
-    d_stream.opaque   = Z_NULL;
-    d_stream.avail_in = lInLen;
-    d_stream.next_in  = (Bytef*)pInBuffer;
+    m_stream.zalloc   = Z_NULL;
+    m_stream.zfree    = Z_NULL;
+    m_stream.opaque   = Z_NULL;
     
-    if( deflateInit( &d_stream, Z_DEFAULT_COMPRESSION ) )
+    if( deflateInit( &m_stream, Z_DEFAULT_COMPRESSION ) )
     {
         RAISE_ERROR( ePdfError_Flate );
     }
 
-#ifndef deflateBound
-    lBufLen = lInLen + 1024; /* 1024=emergency extra space */
-#else
-    lBufLen = deflateBound( &d_stream, lInLen );
-#endif
-    buf = static_cast<char*>(malloc( sizeof( char ) * lBufLen ));
-    if( !buf )
-    {
-        RAISE_ERROR( ePdfError_OutOfMemory );
-    }
-
-    d_stream.avail_out = lBufLen;
-    d_stream.next_out  = (Bytef*)(buf);
-    
-    if( deflate( &d_stream, Z_FINISH ) != Z_STREAM_END )
-    {
-        RAISE_ERROR( ePdfError_Flate );
-    }
-
-    *plOutLen = lBufLen - d_stream.avail_out;
-    *ppOutBuffer = buf;
-
-    (void)deflateEnd(&d_stream);
+    m_pOutputStream = pOutput;
 }
+
+void PdfFlateFilter::EncodeBlock( const char* pBuffer, long lLen )
+{
+    if( !m_pOutputStream )
+    {
+        RAISE_ERROR_INFO( ePdfError_InternalLogic, 
+                          "BeginEncode was not yet called or EndEncode was called before this method.");
+    }
+
+    this->EncodeBlockInternal( pBuffer, lLen, Z_NO_FLUSH );
+}
+
+void PdfFlateFilter::EncodeBlockInternal( const char* pBuffer, long lLen, int nMode )
+{
+    int nWrittenData;
+
+    m_stream.avail_in = lLen;
+    m_stream.next_in  = (Bytef*)(pBuffer);
+
+    do {
+        m_stream.avail_out = FILTER_INTERNAL_BUFFER_SIZE;
+        m_stream.next_out = m_buffer;
+
+        if( deflate( &m_stream, nMode) == Z_STREAM_ERROR )
+        {
+            m_pOutputStream = NULL;
+            RAISE_ERROR( ePdfError_Flate );
+        }
+
+
+        nWrittenData = FILTER_INTERNAL_BUFFER_SIZE - m_stream.avail_out;
+        try {
+            m_pOutputStream->Write( (const char*)(m_buffer), nWrittenData );
+        } catch( PdfError & e ) {
+            // clean up after any output stream errors
+            m_pOutputStream = NULL;
+            
+            e.AddToCallstack( __FILE__, __LINE__ );
+            throw e;
+        }
+    } while( m_stream.avail_out == 0 );
+}
+
+void PdfFlateFilter::EndEncode()
+{
+    if( !m_pOutputStream )
+    {
+        RAISE_ERROR_INFO( ePdfError_InternalLogic, 
+                          "Call BeginEncode before calling EndEncode()!.");
+    }
+
+    this->EncodeBlockInternal( NULL, 0, Z_FINISH );
+    
+    deflateEnd( &m_stream );
+
+    m_pOutputStream = NULL;
+}
+
 
 void PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
 {
@@ -569,7 +618,18 @@ void PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, cons
 // -------------------------------------------------------
 // RLE
 // -------------------------------------------------------
-void PdfRLEFilter::Encode( const char*, long, char**, long* ) const
+
+void PdfRLEFilter::BeginEncode( PdfOutputStream* )
+{
+    RAISE_ERROR( ePdfError_UnsupportedFilter );
+}
+
+void PdfRLEFilter::EncodeBlock( const char*, long )
+{
+    RAISE_ERROR( ePdfError_UnsupportedFilter );
+}
+
+void PdfRLEFilter::EndEncode()
 {
     RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
@@ -663,7 +723,17 @@ const unsigned short PdfLZWFilter::s_masks[] = { 0x01FF,
 const unsigned short PdfLZWFilter::s_clear  = 0x0100;      // clear table
 const unsigned short PdfLZWFilter::s_eod    = 0x0101;      // end of data
 
-void PdfLZWFilter::Encode( const char*, long, char**, long* ) const
+void PdfLZWFilter::BeginEncode( PdfOutputStream* )
+{
+    RAISE_ERROR( ePdfError_UnsupportedFilter );
+}
+
+void PdfLZWFilter::EncodeBlock( const char*, long )
+{
+    RAISE_ERROR( ePdfError_UnsupportedFilter );
+}
+
+void PdfLZWFilter::EndEncode()
 {
     RAISE_ERROR( ePdfError_UnsupportedFilter );
 }

@@ -95,6 +95,13 @@ void test_filter( EPdfFilter eFilter )
     if( static_cast<long>(lTestLength) != lDecoded ) 
     {
         fprintf( stderr, "Error: Decoded Length != Original Length\n");
+
+        /*
+        fprintf( stderr, "Data:\n%s\n", pEncoded );
+
+        fprintf( stderr, "DecodedData:\n%s\n", pDecoded );
+        */
+
         RAISE_ERROR( ePdfError_TestFailed );
     }
 
