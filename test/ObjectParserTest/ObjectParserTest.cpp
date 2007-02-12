@@ -449,7 +449,7 @@ int main()
     TRY_TEST(TestObject_String( pszSimpleObjectArray  , 8, 0, "[ 100 200 300 400 500 ]" );)
     TRY_TEST(TestObject_String( pszSimpleObjectArray2 , 9, 0, "[ 100 (Hallo Welt) 3.14 400 500 ]" );)
     TRY_TEST(TestObject_String( pszSimpleObjectArray3 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.14 400 500 ]" );)
-    TRY_TEST(TestObject_String( pszSimpleObjectArray4 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.14 400 500 /Dict <<\n/A (Hallo)\n/B [ 21 22 ]\n>>\n /Wert /Farbe ]" );)
+    TRY_TEST(TestObject_String( pszSimpleObjectArray4 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.14 400 500 /Dict <<\n/A (Hallo)\n/B [ 21 22 ]\n>> /Wert /Farbe ]" );)
     TRY_TEST(TestObject_String( pszSimpleObjectArray5 , 1, 2, "[ 123 0 R ]" );)
 
     fprintf(stderr,"---\n");
