@@ -28,6 +28,18 @@
 #define CHUNK               16384 
 #define LZW_TABLE_SIZE      4096
 
+namespace {
+
+// Private data for PdfAscii85Filter. This will be optimised
+// by the compiler through compile-time constant expression
+// evaluation.
+const unsigned long sPowers85[] = {
+    85*85*85*85, 85*85*85, 85*85, 85, 1
+};
+
+} // end anonymous namespace
+
+
 namespace PoDoFo {
 
 /** 
@@ -122,11 +134,6 @@ void PdfHexFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffe
 // Paul Haahr - http://www.webcom.com/~haahr/
 // -------------------------------------------------------
 
-/* This will be optimized by the compiler */
-unsigned long PdfAscii85Filter::sPowers85[] = {
-    85*85*85*85, 85*85*85, 85*85, 85, 1
-};
-
 void PdfAscii85Filter::EncodeTuple( unsigned long tuple, int count )
 {
     int      i      = 5;
@@ -141,7 +148,7 @@ void PdfAscii85Filter::EncodeTuple( unsigned long tuple, int count )
         tuple /= 85;
     } 
     while (--i > 0);
-    
+
     i = count;
     do 
     {
@@ -180,7 +187,7 @@ void PdfAscii85Filter::EncodeBlockImpl( const char* pBuffer, long lLen )
                 m_tuple |= c;
                 if( 0 == m_tuple ) 
                 {
-                        GetStream()->Write( z, 1 );
+                    GetStream()->Write( z, 1 );
                 }
                 else
                 {
@@ -198,9 +205,9 @@ void PdfAscii85Filter::EncodeBlockImpl( const char* pBuffer, long lLen )
 
 void PdfAscii85Filter::EndEncodeImpl()
 {
-    // FIXME: may not handle special case for padding of end of ascii85 stream
     if( m_count > 0 )
         this->EncodeTuple( m_tuple, m_count );
+    GetStream()->Write( "~>", 2 );
 }
 
 void PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* ) const
@@ -233,7 +240,7 @@ void PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutB
                     RAISE_ERROR( ePdfError_ValueOutOfRange );
                 }
 
-                tuple += ( *pInBuffer - '!') * PdfAscii85Filter::sPowers85[count++];
+                tuple += ( *pInBuffer - '!') * sPowers85[count++];
                 if (count == 5) 
                 {
                     WidePut( *ppOutBuffer, &pos, *plOutLen, tuple, 4 );
@@ -277,7 +284,7 @@ void PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutB
     if (count > 0) 
     {
         count--;
-        tuple += PdfAscii85Filter::sPowers85[count];
+        tuple += sPowers85[count];
         WidePut( *ppOutBuffer, &pos, *plOutLen, tuple, count );
     }
 

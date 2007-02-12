@@ -24,22 +24,25 @@
 
 using namespace PoDoFo;
 
-/*
-const char pTestBuffer[]  = { 
+namespace {
+
+const char pTestBuffer1[]  = "Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure.";
+
+// We treat the buffer as _excluding_ the trailing \0
+const long lTestLength1 = strlen(pTestBuffer1);
+
+const char pTestBuffer2[]  = { 
     0x01, 0x64, 0x65, 0xFE, 0x6B, 0x80, 0x45, 0x32, 0x88, 0x12, 0x71, 0xEA, 0x01,
     0x01, 0x64, 0x65, 0xFE, 0x6B, 0x80, 0x45, 0x32, 0x88, 0x12, 0x71, 0xEA, 0x03,
     0x01, 0x64, 0x65, 0xFE, 0x6B, 0x80, 0x45, 0x32, 0x88, 0x12, 0x71, 0xEA, 0x02,
     0x01, 0x64, 0x65, 0xFE, 0x6B, 0x80, 0x45, 0x32, 0x88, 0x12, 0x71, 0xEA, 0x00,
-    0x01, 0x64, 0x65, 0xFE, 0x6B, 0x80, 0x45, 0x32, 0x88, 0x12, 0x71, 0xEA, 0x00 
+    0x01, 0x64, 0x65, 0xFE, 0x6B, 0x80, 0x45, 0x32, 0x88, 0x12, 0x71, 0xEA, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x6B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
-*/
 
-const char pTestBuffer[]  = "Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure.";
+const long lTestLength2 = 6*13;
 
-// const long lTestLength = 5*13;
-#define lTestLength strlen( pTestBuffer )
-
-void test_filter( EPdfFilter eFilter ) 
+void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const long lTestLength )
 {
     const PdfFilter* pFilter;
 
@@ -118,6 +121,7 @@ void test_filter( EPdfFilter eFilter )
     printf("\t-> Test succeeded!\n");
 }
 
+} // end anon namespace
 
 int main() 
 {
@@ -138,8 +142,11 @@ int main()
     printf("ePdfFilter_Crypt              = 9\n");
 
     try {
-        for( i=0;i<=ePdfFilter_Crypt;i++ )
-            test_filter( static_cast<EPdfFilter>(i) );
+        for( int i =0; i<=ePdfFilter_Crypt; i++ )
+        {
+            test_filter( static_cast<EPdfFilter>(i), pTestBuffer1, lTestLength1 );
+            test_filter( static_cast<EPdfFilter>(i), pTestBuffer2, lTestLength2 );
+        }
     } catch( PdfError & e ) {
         e.PrintErrorMsg();
         return e.GetError();

@@ -178,8 +178,6 @@ class PdfAscii85Filter : public PdfFilter {
     void WidePut( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes ) const;
 
  private:
-    static unsigned long sPowers85[];
-
     int           m_count;
     unsigned long m_tuple;
 };
