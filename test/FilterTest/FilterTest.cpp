@@ -44,15 +44,13 @@ const long lTestLength2 = 6*13;
 
 void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const long lTestLength )
 {
-    const PdfFilter* pFilter;
-
     char*      pEncoded;
     char*      pDecoded;
     long       lEncoded;
     long       lDecoded;
    
-    pFilter = PdfFilterFactory::Create( eFilter );
-    if( !pFilter )
+    std::auto_ptr<const PdfFilter> pFilter = PdfFilterFactory::Create( eFilter );
+    if( !pFilter.get() )
     {
         printf("!!! Filter %i not implemented.\n", eFilter);
         return;

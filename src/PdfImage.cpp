@@ -168,9 +168,12 @@ void PdfImage::LoadFromFile( const char* pszFilename )
             this->SetImageColorSpace( ePdfColorSpace_DeviceGray );
             break;
     }
-    
-	this->SetImageFilter( PdfName("DCTDecode") );	// DCTDecode == JPEG
-        this->SetImageData( static_cast<unsigned int>(m_rRect.GetWidth()), static_cast<unsigned int>(m_rRect.GetHeight()), 8 , szBuffer, lLen ); // 8 bits per component
+
+    this->SetImageFilter( PdfName("DCTDecode") );	// DCTDecode == JPEG
+    this->SetImageData(
+            static_cast<unsigned int>(m_rRect.GetWidth()),
+            static_cast<unsigned int>(m_rRect.GetHeight()),
+            8 , szBuffer, lLen, true ); // 8 bits per component
 
     (void) jpeg_destroy_decompress(&cinfo);
 

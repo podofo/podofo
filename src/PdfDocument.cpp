@@ -590,10 +590,11 @@ PdfNamesTree* PdfDocument::GetNamesTree( bool bCreate )
         pObj = GetNamedObjectFromCatalog( "Names" );
         if( !pObj ) 
         {
-            if ( !bCreate )	return NULL;
+            if ( !bCreate )
+                return NULL;
 
-            PdfNamesTree* tmpTree = new PdfNamesTree( &m_vecObjects );
-            pObj = tmpTree->GetObject();
+            PdfNamesTree tmpTree ( &m_vecObjects );
+            pObj = tmpTree.GetObject();
             m_pCatalog->GetDictionary().AddKey( "Names", pObj->Reference() );
             m_pNamesTree = new PdfNamesTree( pObj, m_pCatalog );
         } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {

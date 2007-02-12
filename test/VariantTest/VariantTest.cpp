@@ -124,12 +124,11 @@ void Test( const char* pszString, EPdfDataType eDataType, const char* pszExpecte
 int main() 
 {
     PdfError   eCode;
-    const PdfFilter* pFilter;
 
     printf("This test tests the PdfVariant class.\n");
     printf("---\n");
 
-    pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+    std::auto_ptr<const PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
 
     // testing strings
     TEST_SAFE_OP( Test( "(Hallo Welt!)", ePdfDataType_String ) );

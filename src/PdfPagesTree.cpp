@@ -337,8 +337,8 @@ void PdfPagesTree::InsertPages( int inAfterIndex,
 
 PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
 {
-    int		last  = m_deqPageObjs.size()-1;
-    PdfPage*	pPage = new PdfPage( rSize, GetRoot()->GetOwner() );
+    int last  = m_deqPageObjs.size()-1;
+    PdfPage* pPage = new PdfPage( rSize, GetRoot()->GetOwner() );
 
     InsertPage( last, pPage );
 //    m_deqPageObjs.push_back( pPage );	// might as well add it here too...

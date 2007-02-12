@@ -102,9 +102,9 @@ class PODOFO_API PdfPagesTree : public PdfElement
     void InsertPage( int inAfterPageNumber, PdfPage* inPage );
 
     /** Creates a new page object and inserts it into the internal
-     *  page tree. 
-     *  The returned page is owned by the pages tree
-     *  and will get deleted along with it!
+     *  page tree.
+     *  The returned page is owned by the pages tree and will get deleted along
+     *  with it!
      *
      *  \param rSize a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
      *  \returns a pointer to a PdfPage object
