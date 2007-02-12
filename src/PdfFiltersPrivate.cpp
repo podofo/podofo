@@ -230,7 +230,8 @@ void PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutB
     }
 
     --lInLen;
-    while( lInLen ) 
+    bool foundEndMarker = false;
+    while( lInLen && !foundEndMarker ) 
     {
         switch ( *pInBuffer ) 
         {
@@ -270,7 +271,7 @@ void PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutB
                 {
                     RAISE_ERROR( ePdfError_ValueOutOfRange );
                 }
-
+                foundEndMarker = true;
                 break;
             case '\n': case '\r': case '\t': case ' ':
             case '\0': case '\f': case '\b': case 0177:
@@ -279,6 +280,12 @@ void PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutB
 
         --lInLen;
         ++pInBuffer;
+    }
+    if (!foundEndMarker)
+    {
+        // We ran out of stream without hitting the end marker ~> .
+        // The ASCII85 encoded block is bad or incomplete.
+        RAISE_ERROR_INFO( ePdfError_ValueOutOfRange, "ASCII85 stream ended without ~> marker" );
     }
 
     if (count > 0) 
