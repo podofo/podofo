@@ -215,15 +215,14 @@ void PdfMemStream::Uncompress()
 
 void PdfMemStream::FlateCompressStreamData()
 {
-    const PdfFilter* pFilter;
     char*            pBuffer;
     long             lLen;
 
     if( !m_buffer.GetSize() ) 
         return;
 
-    pFilter = PdfFilterFactory::Create( ePdfFilter_FlateDecode );
-    if( pFilter ) 
+    std::auto_ptr<const PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_FlateDecode );
+    if( pFilter.get() )
     {
         pFilter->Encode( m_buffer.GetBuffer(), m_buffer.GetSize(), &pBuffer, &lLen );
         this->Set( pBuffer, lLen );

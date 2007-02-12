@@ -573,7 +573,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
         // so this cast is ok
         pszTab = const_cast<char*>(sText.GetString());
 
-	this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->Reference(), PdfName("Font") );
+    this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->Reference(), PdfName("Font") );
 
     if( m_pFont->IsUnderlined() )
     {
@@ -589,18 +589,18 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
 
     if( !sText.IsHex() )
     {
-        const PdfFilter* pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+        std::auto_ptr<const PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
         pFilter->Encode( pszTab, lStringLen, &pBuffer, &lLen );
     }
 
-	m_oss.str("");
+    m_oss.str("");
     m_oss << "BT" << std::endl << "/" << m_pFont->GetIdentifier().GetName()
           << " "  << m_pFont->GetFontSize()
           << " Tf" << std::endl
           << dX << std::endl
           << dY << std::endl << " Td <";
 
-	m_pCanvas->Append( m_oss.str() );
+    m_pCanvas->Append( m_oss.str() );
 
     if( !sText.IsHex() )
     {

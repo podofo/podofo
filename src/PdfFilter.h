@@ -21,6 +21,9 @@
 #ifndef _PDF_FILTER_H_
 #define _PDF_FILTER_H_
 
+#include <memory>
+#include <cassert>
+
 #include "PdfDefines.h"
 
 namespace PoDoFo {
@@ -46,7 +49,7 @@ class PODOFO_API PdfFilter {
 
     /** All classes with virtual functions need a virtual destructor
      */
-    virtual ~PdfFilter() {};
+    inline virtual ~PdfFilter();
 
     /** Check wether encoding is implemented for this filter.
      * 
@@ -230,28 +233,34 @@ void PdfFilter::FailEncode() throw()
     m_pOutputStream = NULL;
 }
 
+PdfFilter::~PdfFilter()
+{
+    // Whoops! Didn't call EndEncode() before destroying the filter!
+    // Note that we can't do this for the user, since EndEncode() might
+    // throw and we can't safely have that in a dtor. That also means
+    // we can't throw here, but must abort.
+    assert(!m_pOutputStream);
+}
+
 
 /** A factory to create a filter object for a filter GetType from the EPdfFilter enum.
  * 
- *  All filters should be created using this factory which does also caching of filter
- *  instances.
+ *  All filters should be created using this factory.
  */
 class PODOFO_API PdfFilterFactory {
  public:
-    /** Create a filter from an enum. 
-     *  The filter is cached and may not be delted!
+    /** Create a filter from an enum.
+     *
+     *  Ownership is transferred to the caller, who should let the auto_ptr the
+     *  filter is returned in take care of freeing it when they're done with
+     *  it.
      *
      *  \param eFilter the GetType of filter that should be created.
      *
-     *  \returns a new PdfFilter allocated using new or NULL if no 
+     *  \returns a new PdfFilter allocated using new or NULL if no
      *           filter is available for this GetType.
      */
-    static const PdfFilter* Create( const EPdfFilter eFilter );
-
- private:
-    /** static cache of filter objects
-     */
-    static std::map<EPdfFilter,PdfFilter*> s_mapFilters;
+    static std::auto_ptr<const PdfFilter> Create( const EPdfFilter eFilter );
 };
 
 };

@@ -113,7 +113,6 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
 {
     TVecFilters            vecFilters;
     TIVecFilters           it;
-    const PdfFilter*       pFilter;
 
     TVecDictionaries       tDecodeParams;
     TCIVecDictionaries     itDecodeParams;
@@ -151,8 +150,8 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
 
         while( it != vecFilters.end() ) 
         {
-            pFilter = PdfFilterFactory::Create( *it );
-            if( !pFilter ) 
+            std::auto_ptr<const PdfFilter> pFilter = PdfFilterFactory::Create( *it );
+            if( !pFilter.get() ) 
             {
                 FreeDecodeParms( &tDecodeParams );
 
@@ -161,7 +160,7 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
                 break;
             }
 
-            try {            
+            try {
                 pFilter->Decode( pInBuf, lInLen, ppBuffer, lLen, tDecodeParams.size() ? *itDecodeParams : NULL );
             } catch( PdfError & e ) {
                 e.AddToCallstack( __FILE__, __LINE__ );
@@ -178,7 +177,7 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
 
                 throw e;
             }
-  
+
             if( pInBuf != this->GetInternalBuffer() )
             {
                 // the input buffer was malloc'ed by another filter before

@@ -29,8 +29,6 @@
 
 namespace PoDoFo {
 
-std::map<EPdfFilter,PdfFilter*> PdfFilterFactory::s_mapFilters;
-
 PdfFilter::PdfFilter() 
     : m_pOutputStream( NULL )
 {
@@ -73,49 +71,41 @@ void PdfFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, 
 }
 */
 
-const PdfFilter* PdfFilterFactory::Create( const EPdfFilter eFilter ) 
+std::auto_ptr<const PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter ) 
 {
-    PdfFilter* pFilter = s_mapFilters[eFilter];
-
-    if( !pFilter ) 
+    PdfFilter* pFilter = NULL;
+    switch( eFilter )
     {
-        switch( eFilter ) 
-        {
-            case ePdfFilter_ASCIIHexDecode:
-                pFilter = new PdfHexFilter();
-                break;
-                
-            case ePdfFilter_ASCII85Decode:
-                pFilter = new PdfAscii85Filter();
-                break;
-                
-            case ePdfFilter_LZWDecode:
-                pFilter = new PdfLZWFilter();
-                break;
-                
-            case ePdfFilter_FlateDecode:
-                pFilter = new PdfFlateFilter();
-                break;
-                
-            case ePdfFilter_RunLengthDecode:
-                pFilter = new PdfRLEFilter();
-                break;
-                
-            case ePdfFilter_CCITTFaxDecode:
-            case ePdfFilter_JBIG2Decode:
-            case ePdfFilter_DCTDecode:
-            case ePdfFilter_JPXDecode:
-            case ePdfFilter_Crypt:
-            case ePdfFilter_Unknown:
-            default:
-                break;
-        }
-
-        if( pFilter )
-            s_mapFilters[eFilter] = pFilter;
+        case ePdfFilter_ASCIIHexDecode:
+            pFilter = new PdfHexFilter();
+            break;
+            
+        case ePdfFilter_ASCII85Decode:
+            pFilter = new PdfAscii85Filter();
+            break;
+            
+        case ePdfFilter_LZWDecode:
+            pFilter = new PdfLZWFilter();
+            break;
+            
+        case ePdfFilter_FlateDecode:
+            pFilter = new PdfFlateFilter();
+            break;
+            
+        case ePdfFilter_RunLengthDecode:
+            pFilter = new PdfRLEFilter();
+            break;
+            
+        case ePdfFilter_CCITTFaxDecode:
+        case ePdfFilter_JBIG2Decode:
+        case ePdfFilter_DCTDecode:
+        case ePdfFilter_JPXDecode:
+        case ePdfFilter_Crypt:
+        case ePdfFilter_Unknown:
+        default:
+            break;
     }
-
-    return pFilter;
+    return std::auto_ptr<const PdfFilter>(pFilter);
 }
 
 };
