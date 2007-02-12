@@ -56,25 +56,9 @@ struct TFlatePredictorParams {
 // -------------------------------------------------------
 // Hex
 // -------------------------------------------------------
-void PdfHexFilter::BeginEncode( PdfOutputStream* pOutput )
+
+void PdfHexFilter::EncodeBlockImpl( const char* pBuffer, long lLen )
 {
-    if( m_pOutputStream ) 
-    {
-        RAISE_ERROR_INFO( ePdfError_InternalLogic, 
-                          "BeginEncode has already an output stream. Did you forget to call EndEncode()?" );
-    }
-
-    m_pOutputStream = pOutput;
-}
-
-void PdfHexFilter::EncodeBlock( const char* pBuffer, long lLen )
-{
-    if( !m_pOutputStream )
-    {
-        RAISE_ERROR_INFO( ePdfError_InternalLogic, 
-                          "BeginEncode was not yet called or EndEncode was called before this method.");
-    }
-
     char data[2];
     while( lLen-- )
     {
@@ -84,23 +68,12 @@ void PdfHexFilter::EncodeBlock( const char* pBuffer, long lLen )
         data[1]  = (*pBuffer & 0x0F);
         data[1] += (data[1] > 9 ? 'A' - 10 : '0');
 
-        m_pOutputStream->Write( data, 2 );
+        GetStream()->Write( data, 2 );
 
         ++pBuffer;
     }
 }
 
-void PdfHexFilter::EndEncode()
-{
-    if( !m_pOutputStream ) 
-    {
-        RAISE_ERROR_INFO( ePdfError_InternalLogic, 
-                          "BeginEncode was not yet called or EndEncode was called before this method.");
-    }
-
-    m_pOutputStream = NULL;
-}
- 
 void PdfHexFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* ) const
 {
     PdfError eCode;
@@ -176,28 +149,21 @@ void PdfAscii85Filter::EncodeTuple( unsigned long tuple, int count )
     } 
     while (i-- > 0);
 
-    m_pOutputStream->Write( out, z );
+    GetStream()->Write( out, z );
 }
 
-void PdfAscii85Filter::BeginEncode( PdfOutputStream* pOutput )
+void PdfAscii85Filter::BeginEncodeImpl()
 {
-    if( m_pOutputStream ) 
-    {
-        RAISE_ERROR_INFO( ePdfError_InternalLogic, 
-                          "BeginEncode has already an output stream. Did you forget to call EndEncode()?" );
-    }
-
     m_count = 0;
     m_tuple = 0;
-    m_pOutputStream = pOutput;
 }
 
-void PdfAscii85Filter::EncodeBlock( const char* pBuffer, long lLen )
+void PdfAscii85Filter::EncodeBlockImpl( const char* pBuffer, long lLen )
 {
     unsigned int  c;
     const char*   z = "z";
 
-    if( !m_pOutputStream )
+    if( !GetStream() )
     {
         RAISE_ERROR_INFO( ePdfError_InternalLogic, 
                           "BeginEncode was not yet called or EndEncode was called before this method.");
@@ -206,42 +172,35 @@ void PdfAscii85Filter::EncodeBlock( const char* pBuffer, long lLen )
     while( lLen ) 
     {
         c = *pBuffer & 0xff;
-	switch (m_count++) {
+        switch (m_count++) {
             case 0: m_tuple |= ( c << 24); break;
             case 1: m_tuple |= ( c << 16); break;
             case 2: m_tuple |= ( c <<  8); break;
             case 3:
-		m_tuple |= c;
-		if( 0 == m_tuple ) 
+                m_tuple |= c;
+                if( 0 == m_tuple ) 
                 {
-                    m_pOutputStream->Write( z, 1 );
-		} 
+                        GetStream()->Write( z, 1 );
+                }
                 else
                 {
                     this->EncodeTuple( m_tuple, m_count ); 
                 }
 
-		m_tuple = 0;
-		m_count = 0;
-		break;
-	}
+                m_tuple = 0;
+                m_count = 0;
+                break;
+        }
         --lLen;
         ++pBuffer;
     }
 }
 
-void PdfAscii85Filter::EndEncode()
+void PdfAscii85Filter::EndEncodeImpl()
 {
-    if( !m_pOutputStream ) 
-    {
-        RAISE_ERROR_INFO( ePdfError_InternalLogic, 
-                          "BeginEncode was not yet called or EndEncode was called before this method.");
-    }
-
+    // FIXME: may not handle special case for padding of end of ascii85 stream
     if( m_count > 0 )
         this->EncodeTuple( m_tuple, m_count );
-
-    m_pOutputStream = NULL;
 }
 
 void PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* ) const
@@ -357,34 +316,20 @@ void PdfAscii85Filter::WidePut( char* pBuffer, int* bufferPos, long lBufferLen, 
 // -------------------------------------------------------
 // Flate
 // -------------------------------------------------------
-void PdfFlateFilter::BeginEncode( PdfOutputStream* pOutput )
+void PdfFlateFilter::BeginEncodeImpl()
 {
-    if( m_pOutputStream ) 
-    {
-        RAISE_ERROR_INFO( ePdfError_InternalLogic, 
-                          "BeginEncode has already an output stream. Did you forget to call EndEncode()?" );
-    }
-
     m_stream.zalloc   = Z_NULL;
     m_stream.zfree    = Z_NULL;
     m_stream.opaque   = Z_NULL;
-    
+
     if( deflateInit( &m_stream, Z_DEFAULT_COMPRESSION ) )
     {
         RAISE_ERROR( ePdfError_Flate );
     }
-
-    m_pOutputStream = pOutput;
 }
 
-void PdfFlateFilter::EncodeBlock( const char* pBuffer, long lLen )
+void PdfFlateFilter::EncodeBlockImpl( const char* pBuffer, long lLen )
 {
-    if( !m_pOutputStream )
-    {
-        RAISE_ERROR_INFO( ePdfError_InternalLogic, 
-                          "BeginEncode was not yet called or EndEncode was called before this method.");
-    }
-
     this->EncodeBlockInternal( pBuffer, lLen, Z_NO_FLUSH );
 }
 
@@ -401,37 +346,27 @@ void PdfFlateFilter::EncodeBlockInternal( const char* pBuffer, long lLen, int nM
 
         if( deflate( &m_stream, nMode) == Z_STREAM_ERROR )
         {
-            m_pOutputStream = NULL;
+            FailEncode();
             RAISE_ERROR( ePdfError_Flate );
         }
 
 
         nWrittenData = FILTER_INTERNAL_BUFFER_SIZE - m_stream.avail_out;
         try {
-            m_pOutputStream->Write( (const char*)(m_buffer), nWrittenData );
+            GetStream()->Write( (const char*)(m_buffer), nWrittenData );
         } catch( PdfError & e ) {
             // clean up after any output stream errors
-            m_pOutputStream = NULL;
-            
+            FailEncode();
             e.AddToCallstack( __FILE__, __LINE__ );
             throw e;
         }
     } while( m_stream.avail_out == 0 );
 }
 
-void PdfFlateFilter::EndEncode()
+void PdfFlateFilter::EndEncodeImpl()
 {
-    if( !m_pOutputStream )
-    {
-        RAISE_ERROR_INFO( ePdfError_InternalLogic, 
-                          "Call BeginEncode before calling EndEncode()!.");
-    }
-
     this->EncodeBlockInternal( NULL, 0, Z_FINISH );
-    
     deflateEnd( &m_stream );
-
-    m_pOutputStream = NULL;
 }
 
 
@@ -619,17 +554,17 @@ void PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, cons
 // RLE
 // -------------------------------------------------------
 
-void PdfRLEFilter::BeginEncode( PdfOutputStream* )
+void PdfRLEFilter::BeginEncodeImpl()
 {
     RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
-void PdfRLEFilter::EncodeBlock( const char*, long )
+void PdfRLEFilter::EncodeBlockImpl( const char*, long )
 {
     RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
-void PdfRLEFilter::EndEncode()
+void PdfRLEFilter::EndEncodeImpl()
 {
     RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
@@ -723,17 +658,17 @@ const unsigned short PdfLZWFilter::s_masks[] = { 0x01FF,
 const unsigned short PdfLZWFilter::s_clear  = 0x0100;      // clear table
 const unsigned short PdfLZWFilter::s_eod    = 0x0101;      // end of data
 
-void PdfLZWFilter::BeginEncode( PdfOutputStream* )
+void PdfLZWFilter::BeginEncodeImpl()
 {
     RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
-void PdfLZWFilter::EncodeBlock( const char*, long )
+void PdfLZWFilter::EncodeBlockImpl( const char*, long )
 {
     RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
-void PdfLZWFilter::EndEncode()
+void PdfLZWFilter::EndEncodeImpl()
 {
     RAISE_ERROR( ePdfError_UnsupportedFilter );
 }

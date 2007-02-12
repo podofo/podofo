@@ -48,7 +48,7 @@ class PODOFO_API PdfFilter {
      */
     virtual ~PdfFilter() {};
 
-    /** Check wether the encoding is implemented for this filter.
+    /** Check wether encoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to encode data
      */
@@ -56,7 +56,11 @@ class PODOFO_API PdfFilter {
 
     /** Encodes a buffer using a filter. The buffer will malloc'ed and
      *  has to be free'd by the caller.
-     *  
+     *
+     *  This function uses BeginEncode()/EncodeBlock()/EndEncode()
+     *  internally, so it's not safe to use when progressive encoding
+     *  is in progress.
+     *
      *  \param pInBuffer input buffer
      *  \param lInLen    length of the input buffer
      *  \param ppOutBuffer pointer to the buffer of the encoded data
@@ -64,8 +68,12 @@ class PODOFO_API PdfFilter {
      */
     void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
 
-    /** Begin encoding data using this filter.
-     *  
+    /** Begin progressively encoding data using this filter.
+     *
+     *  This method sets the filter's output stream and may
+     *  perform other operations defined by particular filter
+     *  implementations. It calls BeginEncodeImpl().
+     *
      *  \param pOutput encoded data will be written to this stream.
      *
      *  Call EncodeBlock() to encode blocks of data and use EndEncode
@@ -74,31 +82,38 @@ class PODOFO_API PdfFilter {
      *  \see EncodeBlock
      *  \see EndEncode
      */
-    virtual void BeginEncode( PdfOutputStream* pOutput ) = 0;
+    inline void BeginEncode( PdfOutputStream* pOutput );
 
     /** Encode a block of data and write it to the PdfOutputStream
-     *  specified by BeginEncode.
+     *  specified by BeginEncode. Ownership of the block is not taken
+     *  and remains with the caller.
      *
-     *  BeginEncode() has to be called before this function.
+     *  The filter implementation need not immediately process the buffer,
+     *  and might internally buffer some or all of it. However, if it does
+     *  this the buffer's contents will be copied, so it is guaranteed to be
+     *  safe to free the passed buffer after this call returns.
+     *
+     *  This method is a wrapper around EncodeBlockImpl().
+     *
+     *  BeginEncode() must be called before this function.
      *
      *  \param pBuffer pointer to a buffer with data to encode
      *  \param lLen length of data to encode.
      *
      *  Call EndEncode() after all data has been encoded
      *
-     *
      *  \see BeginEncode
      *  \see EndEncode
      */
-    virtual void EncodeBlock( const char* pBuffer, long lLen ) = 0;
+    inline void EncodeBlock( const char* pBuffer, long lLen );
 
     /**
-     *  Finish encoding of data.
+     *  Finish encoding of data and reset the stream's state.
      *
      *  \see BeginEncode
      *  \see EncodeBlock
      */
-    virtual void EndEncode() = 0;
+    inline void EndEncode();
 
     /** Check wether the decoding is implemented for this filter.
      * 
@@ -125,10 +140,96 @@ class PODOFO_API PdfFilter {
      */
     virtual EPdfFilter GetType() const = 0;
 
+    inline PdfOutputStream* GetStream() const throw() { return m_pOutputStream; }
+
  protected:
-    PdfOutputStream* m_pOutputStream;
+    /**
+     * Indicate that the filter has failed, and will be non-functional until BeginEncode()
+     * is next called. Call this instead of EndEncode() if something went wrong. It clears
+     * the stream output but otherwise does nothing.
+     *
+     * After this method is called futher calls to EncodeBlock() and
+     * EndEncode() before the next BeginEncode() are guaranteed to throw
+     * without calling their virtual implementations.
+     */
+    inline void FailEncode() throw();
+
+    /** Real implementation of `BeginEncode()'. NEVER call this method directly.
+     *
+     *  By default this function does nothing. If your filter needs to do setup for encoding,
+     *  you should override this method.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is called, and
+     *  that EndEncode() was called since the last BeginEncode()/EncodeBlock().
+     *
+     * \see BeginEncode */
+    virtual void BeginEncodeImpl( ) { }
+
+    /** Real implementation of `EncodeBlock()'. NEVER call this method directly.
+     *
+     *  You must override this method to encode the buffer passed by the caller.
+     *
+     *  You are not obliged to immediately process any or all of the data in
+     *  the passed buffer, but you must ensure that you have processed it and
+     *  written it out by the end of EndEncodeImpl(). You must copy the buffer
+     *  if you're going to store it, as ownership is not transferred to the
+     *  filter and the caller may free the buffer at any time.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is
+     *  called, ensures that BeginEncode() has been called, and ensures that
+     *  EndEncode() has not been called since the last BeginEncode().
+     *
+     * \see EncodeBlock */
+    virtual void EncodeBlockImpl( const char* pBuffer, long lLen ) =0;
+
+    /** Real implementation of `EndEncode()'. NEVER call this method directly.
+     *
+     * By the time this method returns, all filtered data must be written to the stream
+     * and the filter must be in a state where BeginEncode() can be safely called.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is
+     *  called, and ensures that BeginEncodeImpl() has been called.
+     *
+     * \see EndEncode */
+    virtual void EndEncodeImpl() { }
+
     unsigned char    m_buffer[FILTER_INTERNAL_BUFFER_SIZE];
+
+ private:
+    PdfOutputStream* m_pOutputStream;
 };
+
+void PdfFilter::BeginEncode( PdfOutputStream* pOutput )
+{
+    if ( m_pOutputStream )
+        // oops, user didn't call EndEncode() on previous run!
+        RAISE_ERROR( ePdfError_InternalLogic );
+    m_pOutputStream = pOutput;
+    BeginEncodeImpl();
+}
+
+void PdfFilter::EncodeBlock( const char* pBuffer, long lLen )
+{
+    if ( !m_pOutputStream )
+        // oops, user forgot to call BeginEncode() or is using a failed filter
+        RAISE_ERROR( ePdfError_InternalLogic );
+    EncodeBlockImpl(pBuffer, lLen);
+}
+
+void PdfFilter::EndEncode()
+{
+    if ( !m_pOutputStream )
+        // oops, user forgot to call BeginEncode() or is using a failed filter
+        RAISE_ERROR( ePdfError_InternalLogic );
+    EndEncodeImpl();
+    m_pOutputStream = NULL;
+}
+
+void PdfFilter::FailEncode() throw()
+{
+    m_pOutputStream = NULL;
+}
+
 
 /** A factory to create a filter object for a filter GetType from the EPdfFilter enum.
  * 
