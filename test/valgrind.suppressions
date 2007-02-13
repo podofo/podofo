@@ -1,0 +1,7 @@
+{
+   SeeZLibFAQ
+   Memcheck:Cond
+   obj:/usr/lib/libz.so.1.2.3
+   obj:/usr/lib/libz.so.1.2.3
+   fun:deflate
+}
