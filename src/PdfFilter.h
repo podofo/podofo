@@ -136,7 +136,55 @@ class PODOFO_API PdfFilter {
      *                      This pointer must be NULL if no decode parameter dictionary
      *                      is available.
      */
-    virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const = 0;
+    void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
+
+    /** Begin progressively decoding data using this filter.
+     *
+     *  This method sets the filter's output stream and may
+     *  perform other operations defined by particular filter
+     *  implementations. It calls BeginDecodeImpl().
+     *
+     *  \param pOutput decoded data will be written to this stream.
+     *  \param pDecodeParms a dictionary containing addiational information for decoding
+     *
+     *  Call DecodeBlock() to decode blocks of data and use EndDecode
+     *  to finish the decoding process.
+     *
+     *  \see DecodeBlock
+     *  \see EndDecode
+     */
+    inline void BeginDecode( PdfOutputStream* pOutput, const PdfDictionary* pDecodeParms = NULL );
+
+    /** Decode a block of data and write it to the PdfOutputStream
+     *  specified by BeginDecode. Ownership of the block is not taken
+     *  and remains with the caller.
+     *
+     *  The filter implementation need not immediately process the buffer,
+     *  and might internally buffer some or all of it. However, if it does
+     *  this the buffer's contents will be copied, so it is guaranteed to be
+     *  safe to free the passed buffer after this call returns.
+     *
+     *  This method is a wrapper around DecodeBlockImpl().
+     *
+     *  BeginDecode() must be called before this function.
+     *
+     *  \param pBuffer pointer to a buffer with data to encode
+     *  \param lLen length of data to encode.
+     *
+     *  Call EndDecode() after all data has been decoded
+     *
+     *  \see BeginDecode
+     *  \see EndDecode
+     */
+    inline void DecodeBlock( const char* pBuffer, long lLen );
+
+    /**
+     *  Finish decoding of data and reset the stream's state.
+     *
+     *  \see BeginDecode
+     *  \see DecodeBlock
+     */
+    inline void EndDecode();
 
     /** Type of this filter.
      *  \returns the type of this filter
@@ -148,14 +196,14 @@ class PODOFO_API PdfFilter {
  protected:
     /**
      * Indicate that the filter has failed, and will be non-functional until BeginEncode()
-     * is next called. Call this instead of EndEncode() if something went wrong. It clears
-     * the stream output but otherwise does nothing.
+     * or BeginDecode() is next called. Call this instead of EndEncode() or EndDecode if 
+     * something went wrong. It clears the stream output but otherwise does nothing.
      *
-     * After this method is called futher calls to EncodeBlock() and
-     * EndEncode() before the next BeginEncode() are guaranteed to throw
+     * After this method is called futher calls to EncodeBlock(), DecodeBlock(), EndDecode() and
+     * EndEncode() before the next BeginEncode() or BeginDecode() are guaranteed to throw
      * without calling their virtual implementations.
      */
-    inline void FailEncode() throw();
+    inline void FailEncodeDecode() throw();
 
     /** Real implementation of `BeginEncode()'. NEVER call this method directly.
      *
@@ -183,7 +231,7 @@ class PODOFO_API PdfFilter {
      *  EndEncode() has not been called since the last BeginEncode().
      *
      * \see EncodeBlock */
-    virtual void EncodeBlockImpl( const char* pBuffer, long lLen ) =0;
+    virtual void EncodeBlockImpl( const char* pBuffer, long lLen ) = 0;
 
     /** Real implementation of `EndEncode()'. NEVER call this method directly.
      *
@@ -196,12 +244,55 @@ class PODOFO_API PdfFilter {
      * \see EndEncode */
     virtual void EndEncodeImpl() { }
 
+    /** Real implementation of `BeginDecode()'. NEVER call this method directly.
+     *
+     *  By default this function does nothing. If your filter needs to do setup for decoding,
+     *  you should override this method.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is called, and
+     *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
+     *
+     * \see BeginDecode */
+    virtual void BeginDecodeImpl( const PdfDictionary* ) { }
+
+    /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
+     *
+     *  You must override this method to decode the buffer passed by the caller.
+     *
+     *  You are not obliged to immediately process any or all of the data in
+     *  the passed buffer, but you must ensure that you have processed it and
+     *  written it out by the end of EndDecodeImpl(). You must copy the buffer
+     *  if you're going to store it, as ownership is not transferred to the
+     *  filter and the caller may free the buffer at any time.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is
+     *  called, ensures that BeginDecode() has been called, and ensures that
+     *  EndDecode() has not been called since the last BeginDecode().
+     *
+     * \see DecodeBlock */
+    virtual void DecodeBlockImpl( const char* pBuffer, long lLen ) = 0;
+
+    /** Real implementation of `EndDecode()'. NEVER call this method directly.
+     *
+     * By the time this method returns, all filtered data must be written to the stream
+     * and the filter must be in a state where BeginDecode() can be safely called.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is
+     *  called, and ensures that BeginDecodeImpl() has been called.
+     *
+     * \see EndDecode */
+    virtual void EndDecodeImpl() { }
+
+ protected:
     unsigned char    m_buffer[FILTER_INTERNAL_BUFFER_SIZE];
 
  private:
     PdfOutputStream* m_pOutputStream;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfFilter::BeginEncode( PdfOutputStream* pOutput )
 {
     if ( m_pOutputStream )
@@ -211,6 +302,9 @@ void PdfFilter::BeginEncode( PdfOutputStream* pOutput )
     BeginEncodeImpl();
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfFilter::EncodeBlock( const char* pBuffer, long lLen )
 {
     if ( !m_pOutputStream )
@@ -219,6 +313,9 @@ void PdfFilter::EncodeBlock( const char* pBuffer, long lLen )
     EncodeBlockImpl(pBuffer, lLen);
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfFilter::EndEncode()
 {
     if ( !m_pOutputStream )
@@ -228,11 +325,53 @@ void PdfFilter::EndEncode()
     m_pOutputStream = NULL;
 }
 
-void PdfFilter::FailEncode() throw()
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfFilter::BeginDecode( PdfOutputStream* pOutput, const PdfDictionary* pDecodeParms )
+{
+    if ( m_pOutputStream )
+        // oops, user didn't call EndEncode() on previous run!
+        RAISE_ERROR( ePdfError_InternalLogic );
+
+    m_pOutputStream = pOutput;
+    BeginDecodeImpl( pDecodeParms );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfFilter::DecodeBlock( const char* pBuffer, long lLen )
+{
+    if ( !m_pOutputStream )
+        // oops, user forgot to call BeginEncode() or is using a failed filter
+        RAISE_ERROR( ePdfError_InternalLogic );
+    DecodeBlockImpl(pBuffer, lLen);
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfFilter::EndDecode()
+{
+    if ( !m_pOutputStream )
+        // oops, user forgot to call BeginEncode() or is using a failed filter
+        RAISE_ERROR( ePdfError_InternalLogic );
+    EndDecodeImpl();
+    m_pOutputStream = NULL;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfFilter::FailEncodeDecode() throw()
 {
     m_pOutputStream = NULL;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 PdfFilter::~PdfFilter()
 {
     // Whoops! Didn't call EndEncode() before destroying the filter!

@@ -86,46 +86,54 @@ void PdfHexFilter::EncodeBlockImpl( const char* pBuffer, long lLen )
     }
 }
 
-void PdfHexFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* ) const
-{
-    PdfError eCode;
-    int      i      = 0;
-    char*    pStart;
-    char     hi, low;
-
-    if( !plOutLen || !pInBuffer || !ppOutBuffer )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    *ppOutBuffer = static_cast<char*>(malloc( sizeof(char) * (lInLen >> 1) ));
-    pStart       = *ppOutBuffer;
-
-    if( !pStart )
-    {
-        RAISE_ERROR( ePdfError_OutOfMemory );
-    }
-
-    while( i < lInLen )
-    {
-        while( PdfTokenizer::IsWhitespace( pInBuffer[i] ) )
-            ++i;
-        hi  = pInBuffer[i++];
-
-        while( PdfTokenizer::IsWhitespace( pInBuffer[i] ) )
-            ++i;
-        low = pInBuffer[i++];
-
-        hi  -= ( hi  < 'A' ? '0' : 'A'-10 );
-        low -= ( low < 'A' ? '0' : 'A'-10 );
-
-        *pStart = (hi << 4) | (low & 0x0F);
-        ++pStart;
-    }
-
-    *plOutLen = (pStart - *ppOutBuffer);
-
+void PdfHexFilter::BeginDecodeImpl( const PdfDictionary* )
+{ 
+    m_cDecodedByte = 0;
+    m_bLow         = true;
 }
+
+void PdfHexFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
+{
+    char val;
+
+    while( lLen-- ) 
+    {
+        if( PdfTokenizer::IsWhitespace( *pBuffer ) )
+        {
+            ++pBuffer;
+            continue;
+        }
+
+        val  = *pBuffer;
+        val -= ( *pBuffer < 'A' ? '0' : 'A'-10 );
+
+        if( m_bLow ) 
+        {
+            m_cDecodedByte = (val & 0x0F);
+            m_bLow         = false;
+        }
+        else
+        {
+            m_cDecodedByte = ((m_cDecodedByte << 4) | val);
+            m_bLow         = true;
+
+            GetStream()->Write( &m_cDecodedByte, 1 );
+        }
+
+        ++pBuffer;
+    }
+}
+
+void PdfHexFilter::EndDecodeImpl()
+{ 
+    if( !m_bLow ) 
+    {
+        // an odd number of bytes was read,
+        // so the last byte is 0
+        GetStream()->Write( &m_cDecodedByte, 1 );
+    }
+}
+
 
 // -------------------------------------------------------
 // Ascii 85
@@ -210,64 +218,46 @@ void PdfAscii85Filter::EndEncodeImpl()
     GetStream()->Write( "~>", 2 );
 }
 
-void PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* ) const
+void PdfAscii85Filter::BeginDecodeImpl( const PdfDictionary* )
+{ 
+    m_count = 0;
+    m_tuple = 0;
+}
+
+void PdfAscii85Filter::DecodeBlockImpl( const char* pBuffer, long lLen )
 {
-    unsigned long tuple = 0;
-    int           count = 0;
-    int           pos   = 0;
-
-    if( !plOutLen || !pInBuffer || !ppOutBuffer )
-    {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    *plOutLen    = lInLen;
-    *ppOutBuffer = static_cast<char*>(malloc( *plOutLen * sizeof(char) ));
-   
-    if( !*ppOutBuffer )
-    {
-        RAISE_ERROR( ePdfError_OutOfMemory );
-    }
-
-    --lInLen;
     bool foundEndMarker = false;
-    while( lInLen && !foundEndMarker ) 
+
+    while( lLen && !foundEndMarker ) 
     {
-        switch ( *pInBuffer ) 
+        switch ( *pBuffer ) 
         {
             default:
-                if ( *pInBuffer < '!' || *pInBuffer > 'u') 
+                if ( *pBuffer < '!' || *pBuffer > 'u') 
                 {
                     RAISE_ERROR( ePdfError_ValueOutOfRange );
                 }
 
-                tuple += ( *pInBuffer - '!') * sPowers85[count++];
-                if (count == 5) 
+                m_tuple += ( *pBuffer - '!') * sPowers85[m_count++];
+                if( m_count == 5 ) 
                 {
-                    WidePut( *ppOutBuffer, &pos, *plOutLen, tuple, 4 );
-                    count = 0;
-                    tuple = 0;
+                    WidePut( m_tuple, 4 );
+                    m_count = 0;
+                    m_tuple = 0;
                 }
                 break;
             case 'z':
-                if (count != 0 ) 
+                if (m_count != 0 ) 
                 {
                     RAISE_ERROR( ePdfError_ValueOutOfRange );
                 }
 
-                if( pos + 4 >= *plOutLen )
-                {
-                    RAISE_ERROR( ePdfError_OutOfMemory );
-                }
-
-                (*ppOutBuffer)[ pos++ ] = 0;
-                (*ppOutBuffer)[ pos++ ] = 0;
-                (*ppOutBuffer)[ pos++ ] = 0;
-                (*ppOutBuffer)[ pos++ ] = 0;
+                this->WidePut( 0, 4 );
                 break;
             case '~':
-                ++pInBuffer; 
-                if( *pInBuffer != '>' ) 
+                ++pBuffer; 
+                --lLen;
+                if( *pBuffer != '>' ) 
                 {
                     RAISE_ERROR( ePdfError_ValueOutOfRange );
                 }
@@ -278,53 +268,50 @@ void PdfAscii85Filter::Decode( const char* pInBuffer, long lInLen, char** ppOutB
                 break;
         }
 
-        --lInLen;
-        ++pInBuffer;
-    }
-    if (!foundEndMarker)
-    {
-        // We ran out of stream without hitting the end marker ~> .
-        // The ASCII85 encoded block is bad or incomplete.
-        RAISE_ERROR_INFO( ePdfError_ValueOutOfRange, "ASCII85 stream ended without ~> marker" );
+        --lLen;
+        ++pBuffer;
     }
 
-    if (count > 0) 
-    {
-        count--;
-        tuple += sPowers85[count];
-        WidePut( *ppOutBuffer, &pos, *plOutLen, tuple, count );
-    }
 
-    *plOutLen = pos;
 }
 
-void PdfAscii85Filter::WidePut( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes ) const
-{
-    if( *bufferPos + bytes >= lBufferLen ) 
+void PdfAscii85Filter::EndDecodeImpl()
+{ 
+    if( m_count > 0 ) 
     {
-        RAISE_ERROR( ePdfError_OutOfMemory );
+        m_count--;
+        m_tuple += sPowers85[m_count];
+        WidePut( m_tuple, m_count );
     }
+}
 
-    switch (bytes) {
+void PdfAscii85Filter::WidePut( unsigned long tuple, int bytes ) const
+{
+    char data[4];
+
+    switch( bytes ) 
+    {
 	case 4:
-            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple >> 24);
-            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple >> 16);
-            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple >>  8);
-            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple);
+            data[0] = static_cast<char>(tuple >> 24);
+            data[1] = static_cast<char>(tuple >> 16);
+            data[2] = static_cast<char>(tuple >>  8);
+            data[3] = static_cast<char>(tuple);
             break;
 	case 3:
-            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple >> 24);
-            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple >> 16);
-            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple >>  8);
+            data[0] = static_cast<char>(tuple >> 24);
+            data[1] = static_cast<char>(tuple >> 16);
+            data[2] = static_cast<char>(tuple >>  8);
             break;
 	case 2:
-            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple >> 24);
-            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple >> 16);
+            data[0] = static_cast<char>(tuple >> 24);
+            data[1] = static_cast<char>(tuple >> 16);
             break;
 	case 1:
-            pBuffer[ (*bufferPos)++ ] = static_cast<char>(tuple >> 24);
+            data[0] = static_cast<char>(tuple >> 24);
             break;
     }
+
+    GetStream()->Write( data, bytes );
 }
 
 // -------------------------------------------------------
@@ -352,25 +339,25 @@ void PdfFlateFilter::EncodeBlockInternal( const char* pBuffer, long lLen, int nM
     int nWrittenData;
 
     m_stream.avail_in = lLen;
-    m_stream.next_in  = (Bytef*)(pBuffer);
+    m_stream.next_in  = reinterpret_cast<Bytef*>(const_cast<char*>(pBuffer));
 
     do {
         m_stream.avail_out = FILTER_INTERNAL_BUFFER_SIZE;
-        m_stream.next_out = m_buffer;
+        m_stream.next_out  = m_buffer;
 
         if( deflate( &m_stream, nMode) == Z_STREAM_ERROR )
         {
-            FailEncode();
+            FailEncodeDecode();
             RAISE_ERROR( ePdfError_Flate );
         }
 
 
         nWrittenData = FILTER_INTERNAL_BUFFER_SIZE - m_stream.avail_out;
         try {
-            GetStream()->Write( (const char*)(m_buffer), nWrittenData );
+            GetStream()->Write( reinterpret_cast<char*>(m_buffer), nWrittenData );
         } catch( PdfError & e ) {
             // clean up after any output stream errors
-            FailEncode();
+            FailEncodeDecode();
             e.AddToCallstack( __FILE__, __LINE__ );
             throw e;
         }
@@ -383,7 +370,65 @@ void PdfFlateFilter::EndEncodeImpl()
     deflateEnd( &m_stream );
 }
 
+// --
 
+void PdfFlateFilter::BeginDecodeImpl( const PdfDictionary* )
+{
+    m_stream.zalloc   = Z_NULL;
+    m_stream.zfree    = Z_NULL;
+    m_stream.opaque   = Z_NULL;
+
+    if( inflateInit( &m_stream ) != Z_OK )
+    {
+        RAISE_ERROR( ePdfError_Flate );
+    }
+}
+
+void PdfFlateFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
+{
+    int flateErr;
+    int nWrittenData;
+
+    m_stream.avail_in = lLen;
+    m_stream.next_in  = reinterpret_cast<Bytef*>(const_cast<char*>(pBuffer));
+
+    do {
+        m_stream.avail_out = FILTER_INTERNAL_BUFFER_SIZE;
+        m_stream.next_out  = m_buffer;
+
+        switch ( (flateErr = inflate(&m_stream, Z_NO_FLUSH)) ) {
+            case Z_NEED_DICT:
+            case Z_DATA_ERROR:
+            case Z_MEM_ERROR:
+            {
+                PdfError::LogMessage( eLogSeverity_Error, "Flate Decoding Error from ZLib: %i\n", flateErr );
+                (void)inflateEnd(&m_stream);
+
+                FailEncodeDecode();
+                RAISE_ERROR( ePdfError_Flate );
+            }
+            default:
+                break;
+        }
+
+        nWrittenData = FILTER_INTERNAL_BUFFER_SIZE - m_stream.avail_out;
+        try {
+            GetStream()->Write( reinterpret_cast<char*>(m_buffer), nWrittenData );
+        } catch( PdfError & e ) {
+            // clean up after any output stream errors
+            FailEncodeDecode();
+            e.AddToCallstack( __FILE__, __LINE__ );
+            throw e;
+        }
+    } while( m_stream.avail_out == 0 );
+}
+
+void PdfFlateFilter::EndDecodeImpl()
+{
+    (void)inflateEnd(&m_stream);
+}
+
+/*
 void PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
 {
     int          flateErr;
@@ -401,7 +446,7 @@ void PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuf
         RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    /* allocate inflate state */
+    // allocate inflate state
     strm.zalloc = Z_NULL;
     strm.zfree = Z_NULL;
     strm.opaque = Z_NULL;
@@ -453,7 +498,7 @@ void PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuf
         free( pTmp );
     } while (strm.avail_out == 0);
     
-    /* clean up and return */
+    // clean up and return 
     (void)inflateEnd(&strm);
 
     *ppOutBuffer = pBuf;
@@ -478,6 +523,7 @@ void PdfFlateFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuf
         free( pBuf );
     }
 }
+*/
 
 // -------------------------------------------------------
 // Flate Predictor
@@ -583,85 +629,39 @@ void PdfRLEFilter::EndEncodeImpl()
     RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
-void PdfRLEFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* ) const
+void PdfRLEFilter::BeginDecodeImpl( const PdfDictionary* )
+{ 
+    m_nCodeLen = 0;
+}
+
+void PdfRLEFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
 {
-    char*                 pBuf;
-    long                  lCur;
-    long                  lSize;
-    unsigned char         cLen;
-    int                   i;
-
-    if( !plOutLen || !pInBuffer || !ppOutBuffer )
+    while( lLen-- )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    lCur  = 0;
-    lSize = lInLen;
-    pBuf  = static_cast<char*>(malloc( sizeof(char)*lSize ));
-    if( !pBuf )
-    {
-        RAISE_ERROR( ePdfError_OutOfMemory );
-    }
-
-    while( lInLen )
-    {
-        cLen = *pInBuffer;
-        ++pInBuffer;
-
-        if( cLen == 128 )
-            // reached EOD
+        if( !m_nCodeLen )
+        {
+            m_nCodeLen = static_cast<int>(*pBuffer);
+        } else if( m_nCodeLen == 128 )
             break;
-        else if( cLen <= 127 )
+        else if( m_nCodeLen <= 127 )
         {
-            if( lCur + cLen+1 > lSize )
-            {
-                // buffer to small, do a realloc
-                lSize = PDF_MAX( lCur + cLen+1, lSize << 1 );
-                pBuf  = static_cast<char*>(realloc( pBuf, lSize  ));
-                if( !pBuf )
-                {
-                    RAISE_ERROR( ePdfError_OutOfMemory );
-                }
-            }
-                
-            memcpy( pBuf + lCur, pInBuffer, cLen+1 );
-            lCur      += (cLen + 1);
-            pInBuffer += (cLen + 1);
-            lInLen    -= (cLen + 1);
+            GetStream()->Write( pBuffer, 1 );
+            m_nCodeLen--;
         }
-        else if( cLen >= 129 )
+        else if( m_nCodeLen >= 129 )
         {
-            cLen = 257 - cLen;
+            m_nCodeLen = 257 - m_nCodeLen;
 
-            if( lCur + cLen > lSize )
-            {
-                // buffer to small, do a realloc
-                lSize = PDF_MAX( lCur + cLen, lSize << 1 );
-                pBuf  = static_cast<char*>(realloc( pBuf, lSize ));
-                if( !pBuf )
-                {
-                    RAISE_ERROR( ePdfError_OutOfMemory );
-                }
-            }
-
-            for( i=0;i<cLen;i++ )
-            {
-                *(pBuf + lCur) = *pInBuffer;
-                ++lCur;
-            }
-
-            ++pInBuffer;
-            --lInLen;
+            while( m_nCodeLen-- ) 
+                GetStream()->Write( pBuffer, 1 );
         }
+
+        ++pBuffer;
     }
-
-    *ppOutBuffer = pBuf;
-    *plOutLen    = lCur;
 }
 
 // -------------------------------------------------------
-// RLE
+// LZW
 // -------------------------------------------------------
 
 const unsigned short PdfLZWFilter::s_masks[] = { 0x01FF,
@@ -687,6 +687,112 @@ void PdfLZWFilter::EndEncodeImpl()
     RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
+void PdfLZWFilter::BeginDecodeImpl( const PdfDictionary* )
+{ 
+    m_mask      = 0;
+    m_code_len  = 9;
+    m_character = 0;
+
+    m_bFirst    = true;
+
+    InitTable();
+}
+
+void PdfLZWFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
+{
+    unsigned int       buffer_size = 0;
+    const unsigned int buffer_max  = 24;
+
+    pdf_uint32         old         = 0;
+    pdf_uint32         code        = 0;
+    pdf_uint32         buffer      = 0;
+
+    TLzwItem           item;
+
+    std::vector<unsigned char> data;
+    std::vector<unsigned char>::const_iterator it;
+
+    if( m_bFirst ) 
+    {
+        m_character = *pBuffer;
+        m_bFirst    = false;
+    }
+
+    while( lLen ) 
+    {
+        // Fill the buffer
+        while( buffer_size <= (buffer_max-8) && lLen )
+        {
+            buffer <<= 8;
+            buffer |= static_cast<pdf_uint32>(static_cast<unsigned char>(*pBuffer));
+            buffer_size += 8;
+
+            ++pBuffer;
+            lLen--;
+        }
+
+        // read from the buffer
+        while( buffer_size >= m_code_len ) 
+        {
+            code         = (buffer >> (buffer_size - m_code_len)) & PdfLZWFilter::s_masks[m_mask];
+            buffer_size -= m_code_len;
+
+            if( code == PdfLZWFilter::s_clear ) 
+            {
+                m_mask     = 0;
+                m_code_len = 9;
+
+                InitTable();
+            }
+            else if( code == PdfLZWFilter::s_eod ) 
+            {
+                lLen = 0;
+                break;
+            }
+            else 
+            {
+                if( code >= m_table.size() )
+                {
+                    if (old >= m_table.size())
+                    {
+                        RAISE_ERROR( ePdfError_ValueOutOfRange );
+                    }
+                    data = m_table[old].value;
+                    data.push_back( m_character );
+                }
+                else
+                    data = m_table[code].value;
+
+                // Write data to the output device
+                GetStream()->Write( reinterpret_cast<char*>(&(data[0])), data.size() );
+
+                m_character = data[0];
+                if( old < m_table.size() ) // fix the first loop
+                    data = m_table[old].value;
+                data.push_back( m_character );
+
+                item.value = data;
+                m_table.push_back( item );
+
+                old = code;
+
+                switch( m_table.size() ) 
+                {
+                    case 511:
+                    case 1023:
+                    case 2047:
+                    case 4095:
+                        ++m_code_len;
+                        ++m_mask;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+}
+
+/*
 void PdfLZWFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms ) const
 {
     TLzwTable table( LZW_TABLE_SIZE ); // the lzw table;
@@ -802,29 +908,29 @@ void PdfLZWFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffe
 
     memcpy( *ppOutBuffer, &(output[0]), *plOutLen );
 }
-
-void PdfLZWFilter::InitTable( TLzwTable* pTable ) const
+*/
+void PdfLZWFilter::InitTable()
 {
     int      i;
     TLzwItem item;
 
-    pTable->clear();
-    pTable->reserve( LZW_TABLE_SIZE );
+    m_table.clear();
+    m_table.reserve( LZW_TABLE_SIZE );
 
     for( i=0;i<255;i++ )
     {
         item.value.clear();
-        item.value.push_back( (unsigned char)i );
-        pTable->push_back( item );
+        item.value.push_back( static_cast<unsigned char>(i) );
+        m_table.push_back( item );
     }
 
     item.value.clear();
-    item.value.push_back( (unsigned char)s_clear );
-    pTable->push_back( item );
+    item.value.push_back( static_cast<unsigned char>(s_clear) );
+    m_table.push_back( item );
 
     item.value.clear();
-    item.value.push_back( (unsigned char)s_clear );
-    pTable->push_back( item );
+    item.value.push_back( static_cast<unsigned char>(s_clear) );
+    m_table.push_back( item );
 }
 
 };

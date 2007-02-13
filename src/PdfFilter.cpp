@@ -51,7 +51,6 @@ void PdfFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, 
     *plOutLen    = stream.GetLength();
 }
 
-/*
 void PdfFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, 
                         const PdfDictionary* pDecodeParms ) const
 {
@@ -62,14 +61,13 @@ void PdfFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, 
 
     PdfMemoryOutputStream stream;
 
-    const_cast<PdfFilter*>(this)->BeginDecode( &stream );
+    const_cast<PdfFilter*>(this)->BeginDecode( &stream, pDecodeParms );
     const_cast<PdfFilter*>(this)->DecodeBlock( pInBuffer, lInLen );
     const_cast<PdfFilter*>(this)->EndDecode();
 
     *ppOutBuffer = stream.TakeBuffer();
     *plOutLen    = stream.GetLength();
 }
-*/
 
 std::auto_ptr<const PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter ) 
 {

@@ -65,24 +65,53 @@ class PdfHexFilter : public PdfFilter {
      */
     inline virtual bool CanDecode() const; 
 
-    /** Decodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
-     *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the decoded data
-     *  \param plOutLen pointer to the length of the output buffer
-     *  \param pDecodeParms optional pointer to an decode parameters dictionary
-     *                      containing additional information to decode the data.
-     *                      This pointer must be NULL if no decode parameter dictionary
-     *                      is available.
-     */
-    virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
+    /** Real implementation of `BeginDecode()'. NEVER call this method directly.
+     *
+     *  By default this function does nothing. If your filter needs to do setup for decoding,
+     *  you should override this method.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is called, and
+     *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
+     *
+     * \see BeginDecode */
+    virtual void BeginDecodeImpl( const PdfDictionary* );
+
+    /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
+     *
+     *  You must override this method to decode the buffer passed by the caller.
+     *
+     *  You are not obliged to immediately process any or all of the data in
+     *  the passed buffer, but you must ensure that you have processed it and
+     *  written it out by the end of EndDecodeImpl(). You must copy the buffer
+     *  if you're going to store it, as ownership is not transferred to the
+     *  filter and the caller may free the buffer at any time.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is
+     *  called, ensures that BeginDecode() has been called, and ensures that
+     *  EndDecode() has not been called since the last BeginDecode().
+     *
+     * \see DecodeBlock */
+    virtual void DecodeBlockImpl( const char* pBuffer, long lLen );
+
+    /** Real implementation of `EndDecode()'. NEVER call this method directly.
+     *
+     * By the time this method returns, all filtered data must be written to the stream
+     * and the filter must be in a state where BeginDecode() can be safely called.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is
+     *  called, and ensures that BeginDecodeImpl() has been called.
+     *
+     * \see EndDecode */
+    virtual void EndDecodeImpl();
 
     /** GetType of this filter.
      *  \returns the GetType of this filter
      */
     inline virtual EPdfFilter GetType() const;
+
+ private:
+    char m_cDecodedByte;
+    bool m_bLow;
 };
 
 bool PdfHexFilter::CanEncode() const
@@ -154,19 +183,44 @@ class PdfAscii85Filter : public PdfFilter {
      */
     inline virtual bool CanDecode() const; 
 
-    /** Decodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
-     *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the decoded data
-     *  \param plOutLen pointer to the length of the output buffer
-     *  \param pDecodeParms optional pointer to an decode parameters dictionary
-     *                      containing additional information to decode the data.
-     *                      This pointer must be NULL if no decode parameter dictionary
-     *                      is available.
-     */
-    virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
+    /** Real implementation of `BeginDecode()'. NEVER call this method directly.
+     *
+     *  By default this function does nothing. If your filter needs to do setup for decoding,
+     *  you should override this method.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is called, and
+     *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
+     *
+     * \see BeginDecode */
+    virtual void BeginDecodeImpl( const PdfDictionary* );
+
+    /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
+     *
+     *  You must override this method to decode the buffer passed by the caller.
+     *
+     *  You are not obliged to immediately process any or all of the data in
+     *  the passed buffer, but you must ensure that you have processed it and
+     *  written it out by the end of EndDecodeImpl(). You must copy the buffer
+     *  if you're going to store it, as ownership is not transferred to the
+     *  filter and the caller may free the buffer at any time.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is
+     *  called, ensures that BeginDecode() has been called, and ensures that
+     *  EndDecode() has not been called since the last BeginDecode().
+     *
+     * \see DecodeBlock */
+    virtual void DecodeBlockImpl( const char* pBuffer, long lLen );
+
+    /** Real implementation of `EndDecode()'. NEVER call this method directly.
+     *
+     * By the time this method returns, all filtered data must be written to the stream
+     * and the filter must be in a state where BeginDecode() can be safely called.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is
+     *  called, and ensures that BeginDecodeImpl() has been called.
+     *
+     * \see EndDecode */
+    virtual void EndDecodeImpl();
 
     /** GetType of this filter.
      *  \returns the GetType of this filter
@@ -175,7 +229,7 @@ class PdfAscii85Filter : public PdfFilter {
 
  private:
     void EncodeTuple ( unsigned long tuple, int bytes );
-    void WidePut( char* pBuffer, int* bufferPos, long lBufferLen, unsigned long tuple, int bytes ) const;
+    void WidePut( unsigned long tuple, int bytes ) const;
 
  private:
     int           m_count;
@@ -251,19 +305,44 @@ class PdfFlateFilter : public PdfFilter {
      */
     inline virtual bool CanDecode() const; 
 
-    /** Decodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
-     *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the decoded data
-     *  \param plOutLen pointer to the length of the output buffer
-     *  \param pDecodeParms optional pointer to an decode parameters dictionary
-     *                      containing additional information to decode the data.
-     *                      This pointer must be NULL if no decode parameter dictionary
-     *                      is available.
-     */
-    virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
+    /** Real implementation of `BeginDecode()'. NEVER call this method directly.
+     *
+     *  By default this function does nothing. If your filter needs to do setup for decoding,
+     *  you should override this method.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is called, and
+     *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
+     *
+     * \see BeginDecode */
+    virtual void BeginDecodeImpl( const PdfDictionary* );
+
+    /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
+     *
+     *  You must override this method to decode the buffer passed by the caller.
+     *
+     *  You are not obliged to immediately process any or all of the data in
+     *  the passed buffer, but you must ensure that you have processed it and
+     *  written it out by the end of EndDecodeImpl(). You must copy the buffer
+     *  if you're going to store it, as ownership is not transferred to the
+     *  filter and the caller may free the buffer at any time.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is
+     *  called, ensures that BeginDecode() has been called, and ensures that
+     *  EndDecode() has not been called since the last BeginDecode().
+     *
+     * \see DecodeBlock */
+    virtual void DecodeBlockImpl( const char* pBuffer, long lLen );
+
+    /** Real implementation of `EndDecode()'. NEVER call this method directly.
+     *
+     * By the time this method returns, all filtered data must be written to the stream
+     * and the filter must be in a state where BeginDecode() can be safely called.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is
+     *  called, and ensures that BeginDecodeImpl() has been called.
+     *
+     * \see EndDecode */
+    virtual void EndDecodeImpl();
 
     /** GetType of this filter.
      *  \returns the GetType of this filter
@@ -340,24 +419,41 @@ class PdfRLEFilter : public PdfFilter {
      */
     inline virtual bool CanDecode() const; 
 
-    /** Decodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
-     *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the decoded data
-     *  \param plOutLen pointer to the length of the output buffer
-     *  \param pDecodeParms optional pointer to an decode parameters dictionary
-     *                      containing additional information to decode the data.
-     *                      This pointer must be NULL if no decode parameter dictionary
-     *                      is available.
-     */
-    virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
+    /** Real implementation of `BeginDecode()'. NEVER call this method directly.
+     *
+     *  By default this function does nothing. If your filter needs to do setup for decoding,
+     *  you should override this method.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is called, and
+     *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
+     *
+     * \see BeginDecode */
+    virtual void BeginDecodeImpl( const PdfDictionary* );
+
+    /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
+     *
+     *  You must override this method to decode the buffer passed by the caller.
+     *
+     *  You are not obliged to immediately process any or all of the data in
+     *  the passed buffer, but you must ensure that you have processed it and
+     *  written it out by the end of EndDecodeImpl(). You must copy the buffer
+     *  if you're going to store it, as ownership is not transferred to the
+     *  filter and the caller may free the buffer at any time.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is
+     *  called, ensures that BeginDecode() has been called, and ensures that
+     *  EndDecode() has not been called since the last BeginDecode().
+     *
+     * \see DecodeBlock */
+    virtual void DecodeBlockImpl( const char* pBuffer, long lLen );
 
     /** GetType of this filter.
      *  \returns the GetType of this filter
      */
     inline virtual EPdfFilter GetType() const;
+
+ private:
+    int m_nCodeLen;
 };
 
 bool PdfRLEFilter::CanEncode() const
@@ -375,18 +471,17 @@ EPdfFilter PdfRLEFilter::GetType() const
     return ePdfFilter_RunLengthDecode;
 }
 
-
-struct TLzwItem {
-    std::vector<unsigned char> value;
-};
-
-typedef std::vector<TLzwItem>     TLzwTable;
-typedef TLzwTable::iterator       TILzwTable;
-typedef TLzwTable::const_iterator TCILzwTable;
-
 /** The LZW filter.
  */
 class PdfLZWFilter : public PdfFilter {
+    struct TLzwItem {
+        std::vector<unsigned char> value;
+    };
+    
+    typedef std::vector<TLzwItem>     TLzwTable;
+    typedef TLzwTable::iterator       TILzwTable;
+    typedef TLzwTable::const_iterator TCILzwTable;
+
  public:
     virtual ~PdfLZWFilter() {}
 
@@ -438,19 +533,33 @@ class PdfLZWFilter : public PdfFilter {
      */
     inline virtual bool CanDecode() const; 
 
-    /** Decodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
-     *  
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the decoded data
-     *  \param plOutLen pointer to the length of the output buffer
-     *  \param pDecodeParms optional pointer to an decode parameters dictionary
-     *                      containing additional information to decode the data.
-     *                      This pointer must be NULL if no decode parameter dictionary
-     *                      is available.
-     */
-    virtual void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
+    /** Real implementation of `BeginDecode()'. NEVER call this method directly.
+     *
+     *  By default this function does nothing. If your filter needs to do setup for decoding,
+     *  you should override this method.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is called, and
+     *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
+     *
+     * \see BeginDecode */
+    virtual void BeginDecodeImpl( const PdfDictionary* );
+
+    /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
+     *
+     *  You must override this method to decode the buffer passed by the caller.
+     *
+     *  You are not obliged to immediately process any or all of the data in
+     *  the passed buffer, but you must ensure that you have processed it and
+     *  written it out by the end of EndDecodeImpl(). You must copy the buffer
+     *  if you're going to store it, as ownership is not transferred to the
+     *  filter and the caller may free the buffer at any time.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is
+     *  called, ensures that BeginDecode() has been called, and ensures that
+     *  EndDecode() has not been called since the last BeginDecode().
+     *
+     * \see DecodeBlock */
+    virtual void DecodeBlockImpl( const char* pBuffer, long lLen );
 
     /** GetType of this filter.
      *  \returns the GetType of this filter
@@ -459,14 +568,21 @@ class PdfLZWFilter : public PdfFilter {
 
  private:
     /** Initialize an lzw table.
-     *  \param pTable the lzw table to initialize
      */
-    void InitTable( TLzwTable* pTable ) const;
+    void InitTable();
 
  private:
     static const unsigned short s_masks[4];
     static const unsigned short s_clear;
     static const unsigned short s_eod;
+
+    TLzwTable     m_table;
+
+    unsigned int  m_mask;
+    unsigned int  m_code_len;
+    unsigned char m_character;
+
+    bool          m_bFirst;
 };
 
 bool PdfLZWFilter::CanEncode() const
