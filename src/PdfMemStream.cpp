@@ -51,7 +51,7 @@ void PdfMemStream::Set( char* szBuffer, long lLen, bool takePossession )
 
     if( !szBuffer )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_buffer = tmp;
@@ -65,7 +65,7 @@ void PdfMemStream::Append( const char* pszString, size_t lLen )
 {
     if( !pszString )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     // only append to uncommpressed streams
@@ -81,7 +81,7 @@ void PdfMemStream::GetCopy( char** pBuffer, long* lLen ) const
 {
     if( !pBuffer || !lLen )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     *pBuffer = static_cast<char*>(malloc( sizeof( char ) * m_buffer.GetSize() ));
@@ -89,7 +89,7 @@ void PdfMemStream::GetCopy( char** pBuffer, long* lLen ) const
     
     if( !*pBuffer )
     {
-        RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
     
     memcpy( *pBuffer, m_buffer.GetBuffer(), m_buffer.GetSize() );
@@ -229,7 +229,7 @@ void PdfMemStream::FlateCompressStreamData()
     }
     else
     {
-        RAISE_ERROR( ePdfError_UnsupportedFilter );
+        PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
     }
 }
 

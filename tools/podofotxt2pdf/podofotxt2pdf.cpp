@@ -59,7 +59,7 @@ void draw( char* pszBuffer, PdfDocument* pDocument )
 
     if( !pFont )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
     pFont->SetFontSize( FONT_SIZE );
     
@@ -99,7 +99,7 @@ void init( const char* pszInput, const char* pszOutput )
     hFile = fopen( pszInput, "rb" );	// read it as binary if we are going to compare sizes!
     if( !hFile )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     fseek( hFile, 0x00, SEEK_END );
@@ -109,7 +109,7 @@ void init( const char* pszInput, const char* pszOutput )
     fseek( hFile, 0x00, SEEK_SET );
     if( !pszBuf )
     {
-        RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
     // read the whole file into memory at once.
@@ -119,7 +119,7 @@ void init( const char* pszInput, const char* pszOutput )
     if( fread( pszBuf, sizeof(char), lSize, hFile ) != lSize )
     {
         free( pszBuf );
-        RAISE_ERROR( ePdfError_UnexpectedEOF );
+        PODOFO_RAISE_ERROR( ePdfError_UnexpectedEOF );
     }
 
     fclose( hFile );

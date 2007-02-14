@@ -61,7 +61,7 @@ PdfRefCountedBuffer::PdfRefCountedBuffer( long lSize )
             delete m_pBuffer;
             m_pBuffer = NULL;
 
-            RAISE_ERROR( ePdfError_OutOfMemory );
+            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
         }
     }
 }

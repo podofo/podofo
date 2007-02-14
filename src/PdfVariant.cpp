@@ -200,7 +200,7 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) cons
          m_eDataType == ePdfDataType_Name || 
          m_eDataType == ePdfDataType_RawData ) && !m_Data.pData )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     switch( m_eDataType ) 
@@ -231,7 +231,7 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) cons
         case ePdfDataType_Unknown:
         default:
         {
-            RAISE_ERROR( ePdfError_InvalidDataType );
+            PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
             break;
         }
     };

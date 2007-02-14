@@ -61,7 +61,7 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename )
 #else
         // throw an exception
         PdfError::LogMessage( eLogSeverity_Critical, "FreeType returned the error %i when calling FT_New_Face for font %s.", err, pszFilename );
-        RAISE_ERROR( ePdfError_FreeType );
+        PODOFO_RAISE_ERROR( ePdfError_FreeType );
 #endif
     }
     
@@ -79,7 +79,7 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsig
     if( error ) 
     {
         PdfError::LogMessage( eLogSeverity_Critical, "FreeType return edthe error %i when calling FT_New_Face for a buffered font.", error );
-        RAISE_ERROR( ePdfError_FreeType );
+        PODOFO_RAISE_ERROR( ePdfError_FreeType );
     }
 
     InitFromFace();
@@ -132,7 +132,7 @@ void PdfFontMetrics::GetWidthArray( PdfVariant & var, unsigned int nFirst, unsig
 
     if( !m_face ) 
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     for( i=nFirst;i<=nLast;i++ )
@@ -145,7 +145,7 @@ void PdfFontMetrics::GetWidthArray( PdfVariant & var, unsigned int nFirst, unsig
         {
             if( !FT_Load_Char( m_face, i, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP ) )  // | FT_LOAD_NO_RENDER
             {
-                //RAISE_ERROR( ePdfError_FreeType );
+                //PODOFO_RAISE_ERROR( ePdfError_FreeType );
             }
 
             list.push_back( PdfVariant( m_face->glyph->metrics.horiAdvance * 1000.0 / m_face->units_per_EM ) );
@@ -159,7 +159,7 @@ void PdfFontMetrics::GetBoundingBox( PdfArray & array ) const
 {
     if( !m_face ) 
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     array.Clear();

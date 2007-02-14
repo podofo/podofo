@@ -43,7 +43,7 @@ PdfPagesTree::PdfPagesTree( PdfObject* pPagesRoot )
 {
     if( !m_pObject ) 
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     // pre-allocate enough elements
@@ -82,7 +82,7 @@ PdfObject* PdfPagesTree::GetPageFromKidArray( PdfArray& inArray, int inIndex )
     // is the kid a Pages tree node or a Page object?
     if ( !kidsVar.IsReference() )  
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         //return NULL;	// can't handle inline pages just yet...
     }
     
@@ -114,7 +114,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
         {
             PdfError::LogMessage( eLogSeverity_Critical, "Requesting page index %i from array of size %i\n", nPageNum, kidsArray.size() );
             /*
-            RAISE_ERROR( ePdfError_ValueOutOfRange );
+            PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
             */
             nPageNum--;
         }
@@ -265,7 +265,7 @@ void PdfPagesTree::InsertPage( int inAfterPageNumber, PdfObject* pPage )
         afterPageObj = GetPageNode( inAfterPageNumber, GetRoot() ) ;
         if( !afterPageObj )
         {
-            RAISE_ERROR( ePdfError_InvalidHandle );
+            PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
         }
      
         parentObj = PdfPagesTree::GetParent( afterPageObj );

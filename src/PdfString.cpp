@@ -66,7 +66,7 @@ void PdfString::SetHexData( const char* pszHex, long lLen )
 {
     if( !pszHex ) 
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     if( lLen == -1 )
@@ -204,7 +204,7 @@ void PdfString::Init( const char* pszString, long lLen )
             }
             else
             {
-                RAISE_ERROR( ePdfError_UnsupportedFilter );
+                PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
             }
         }
         else

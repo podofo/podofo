@@ -105,7 +105,7 @@ PdfXObject::PdfXObject( const char* pszSubType, PdfObject* pObject )
 
     if( m_pObject->GetDictionary().GetKeyAsName( PdfName::KeySubtype ) != pszSubType ) 
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     // Implementation note: the identifier is always

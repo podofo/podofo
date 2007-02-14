@@ -142,7 +142,7 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop )
 
     if( !pDevice )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     if( m_reference.IsIndirect() )
@@ -169,7 +169,7 @@ PdfObject* PdfObject::GetIndirectKey( const PdfName & key )
         {
             if( !m_pOwner )
             {
-                RAISE_ERROR( ePdfError_InvalidHandle );
+                PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
             }
             pObj = m_pOwner->GetObject( pObj->GetReference() );
         }
@@ -201,7 +201,7 @@ PdfStream* PdfObject::GetStream_NoDL()
     {
         if( !m_pOwner ) 
         {
-            RAISE_ERROR( ePdfError_InvalidHandle );
+            PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
         }
 
         m_pStream = m_pOwner->CreateStream( this );
@@ -258,12 +258,12 @@ unsigned long PdfObject::GetByteOffset( const char* pszKey )
 
     if( !pszKey )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     if( !this->GetDictionary().HasKey( pszKey ) )
     {
-        RAISE_ERROR( ePdfError_InvalidKey );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidKey );
     }
 
     this->Write( &device, pszKey );

@@ -382,7 +382,7 @@ inline bool PdfObject::HasStream() const
 // except by types that support it.
 inline void PdfObject::DelayedStreamLoadImpl()
 {
-   RAISE_ERROR( ePdfError_InternalLogic );
+   PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
 }
 
 inline void PdfObject::DelayedStreamLoad() const
@@ -391,7 +391,7 @@ inline void PdfObject::DelayedStreamLoad() const
 
 #if defined(PODOFO_EXTRA_CHECKS)
     if( m_bDelayedStreamLoadInProgress )
-        RAISE_ERROR_INFO( ePdfError_InternalLogic, "Recursive DelayedStreamLoad() detected" );
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Recursive DelayedStreamLoad() detected" );
 #endif
 
     if( !m_bDelayedStreamLoadDone )

@@ -78,7 +78,7 @@ void PdfFileSpec::EmbeddFile( PdfObject* pStream, const char* pszFilename ) cons
 
     if( !hFile ) 
     {
-        RAISE_ERROR( ePdfError_FileNotFound );
+        PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
     }
 
     fseek( hFile, 0L, SEEK_END );
@@ -88,7 +88,7 @@ void PdfFileSpec::EmbeddFile( PdfObject* pStream, const char* pszFilename ) cons
     char* pBuf = static_cast<char*>(malloc( sizeof(char) * lLen ));
     if( !pBuf ) 
     {
-        RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
     fread( pBuf, lLen, sizeof(char), hFile );
@@ -108,7 +108,7 @@ const PdfString & PdfFileSpec::GetFilename() const
     if( m_pObject->GetDictionary().HasKey( "F" ) )
         return m_pObject->GetDictionary().GetKey( "F" )->GetString();
 
-    RAISE_ERROR( ePdfError_InvalidDataType );
+    PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
 }
 
 

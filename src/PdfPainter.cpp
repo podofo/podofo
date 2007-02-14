@@ -48,7 +48,7 @@ static inline void CheckDoubleRange( double val, double min, double max )
 {
     if( val < min || val > max )
     {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
+        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
     }
 }
 
@@ -81,7 +81,7 @@ void PdfPainter::SetPage( PdfCanvas* pPage )
     } 
     else 
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 }
 
@@ -89,7 +89,7 @@ void PdfPainter::SetStrokingGray( double g )
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     CheckDoubleRange( g, 0.0, 1.0 );
@@ -103,7 +103,7 @@ void PdfPainter::SetGray( double g )
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
     CheckDoubleRange( g, 0.0, 1.0 );
@@ -120,7 +120,7 @@ void PdfPainter::SetStrokingColor( double r, double g, double b )
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     CheckDoubleRange( r, 0.0, 1.0 );
@@ -139,7 +139,7 @@ void PdfPainter::SetColor( double r, double g, double b )
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
     CheckDoubleRange( r, 0.0, 1.0 );
@@ -163,7 +163,7 @@ void PdfPainter::SetStrokingColorCMYK( double c, double m, double y, double k )
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     CheckDoubleRange( c, 0.0, 1.0 );
@@ -184,7 +184,7 @@ void PdfPainter::SetColorCMYK( double c, double m, double y, double k )
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
     CheckDoubleRange( c, 0.0, 1.0 );
@@ -211,7 +211,7 @@ void PdfPainter::SetStrokeWidth( double dWidth )
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_oss.str("");
@@ -225,7 +225,7 @@ void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom )
 
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     // TODO: fix the stroking styles
@@ -251,13 +251,13 @@ void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom )
             break;
         default:
         {
-            RAISE_ERROR( ePdfError_InvalidStrokeStyle );
+            PODOFO_RAISE_ERROR( ePdfError_InvalidStrokeStyle );
         }
     }
 
     if( !pszCurStroke )
     {
-        RAISE_ERROR( ePdfError_InvalidStrokeStyle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidStrokeStyle );
     }
     
     m_oss.str("");
@@ -269,7 +269,7 @@ void PdfPainter::SetLineCapStyle( EPdfLineCapStyle eCapStyle )
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_oss.str("");
@@ -281,7 +281,7 @@ void PdfPainter::SetLineJoinStyle( EPdfLineJoinStyle eJoinStyle )
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_oss.str("");
@@ -293,7 +293,7 @@ void PdfPainter::SetFont( PdfFont* pFont )
 {
     if( !m_pCanvas || !pFont )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_pFont = pFont;
@@ -303,7 +303,7 @@ void PdfPainter::DrawLine( double dStartX, double dStartY, double dEndX, double 
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_oss.str("");
@@ -321,7 +321,7 @@ void PdfPainter::DrawRect( double dX, double dY, double dWidth, double dHeight,
 { 
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
 
@@ -357,7 +357,7 @@ void PdfPainter::FillRect( double dX, double dY, double dWidth, double dHeight,
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_oss.str("");
@@ -397,7 +397,7 @@ void PdfPainter::DrawEllipse( double dX, double dY, double dWidth, double dHeigh
 
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     ConvertRectToBezier( dX, dY, dWidth, dHeight, dPointX, dPointY );
@@ -431,7 +431,7 @@ void PdfPainter::FillEllipse( double dX, double dY, double dWidth, double dHeigh
 
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     ConvertRectToBezier( dX, dY, dWidth, dHeight, dPointX, dPointY );
@@ -460,7 +460,7 @@ void PdfPainter::FillCircle( double dX, double dY, double dRadius )
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     /* draw four Bezier curves to approximate a circle */
@@ -486,7 +486,7 @@ void PdfPainter::DrawCircle( double dX, double dY, double dRadius )
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     /* draw four Bezier curves to approximate a circle */
@@ -512,7 +512,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText )
 {
     if( !m_pFont || !m_pCanvas || !m_pPage || !sText.IsValid() )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     this->DrawText( dX, dY, sText, sText.GetLength() );
@@ -529,7 +529,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
 
     if( !m_pFont || !m_pCanvas || !m_pPage || !sText.IsValid() )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     // replace anytabs in pszText by enough spaces
@@ -546,7 +546,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
         pszTab = static_cast<char*>(malloc( sizeof( char ) * lLen ));
         if( !pszTab )
         {
-            RAISE_ERROR( ePdfError_OutOfMemory );
+            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
         }
 
         i = 0;
@@ -620,7 +620,7 @@ void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double 
 {
     if( !pObject )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     // use OriginalReference() as the XObject might have been written to disk
@@ -642,7 +642,7 @@ void PdfPainter::ClosePath()
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_pCanvas->Append( "h\n" );
@@ -652,7 +652,7 @@ void PdfPainter::LineTo( double dX, double dY )
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
     m_oss.str("");
@@ -666,7 +666,7 @@ void PdfPainter::MoveTo( double dX, double dY )
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
     m_oss.str("");
@@ -680,7 +680,7 @@ void PdfPainter::CubicBezierTo( double dX1, double dY1, double dX2, double dY2, 
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_oss.str("");
@@ -851,7 +851,7 @@ void PdfPainter::Close()
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
     m_pCanvas->Append( "h\n" );
@@ -861,7 +861,7 @@ void PdfPainter::Stroke()
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
     m_pCanvas->Append( "S\n" );
@@ -871,7 +871,7 @@ void PdfPainter::Fill()
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
     m_pCanvas->Append( "f\n" );
@@ -881,7 +881,7 @@ void PdfPainter::Save()
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_pCanvas->Append( "q\n" );
@@ -891,7 +891,7 @@ void PdfPainter::Restore()
 {
     if( !m_pCanvas )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_pCanvas->Append( "q\n" );
@@ -901,14 +901,14 @@ void PdfPainter::AddToPageResources( const PdfName & rIdentifier, const PdfRefer
 {
     if( !m_pPage || !rName.GetLength() || !rIdentifier.GetLength() )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     PdfObject* pResource = m_pPage->GetResources();
     
     if( !pResource )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     if( !pResource->GetDictionary().HasKey( rName ) )
@@ -979,7 +979,7 @@ void PdfPainter::SetCurrentStrokingColor()
         break;
         default:
         {
-            RAISE_ERROR_INFO( ePdfError_InvalidDataType, "The color space for the current text drawing operation is invalid. Please set a correct color."  ); 
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "The color space for the current text drawing operation is invalid. Please set a correct color."  ); 
         }
         break;
     }

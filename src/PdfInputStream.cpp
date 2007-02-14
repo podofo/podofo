@@ -31,7 +31,7 @@ PdfFileInputStream::PdfFileInputStream( const char* pszFilename )
     m_hFile = fopen( pszFilename, "rb" );
     if( !m_hFile ) 
     {
-        RAISE_ERROR( ePdfError_FileNotFound );
+        PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
     }
 }
 
@@ -45,7 +45,7 @@ long PdfFileInputStream::Read( char* pBuffer, long lLen )
 {
     if( !pBuffer ) 
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     // return zero if EOF is reached
@@ -72,7 +72,7 @@ long PdfMemoryInputStream::Read( char* pBuffer, long lLen )
 {
     if( !pBuffer ) 
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     long lRead = m_pCur - m_pBuffer;

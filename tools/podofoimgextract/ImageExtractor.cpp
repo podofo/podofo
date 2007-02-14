@@ -38,7 +38,7 @@ void ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnN
 
     if( !pszInput || !pszOutput )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
 
@@ -92,7 +92,7 @@ void ImageExtractor::ExtractImage( PdfObject* pObject )
     hFile = fopen( m_szBuffer, "wb" );
     if( !hFile )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     printf("-> Writing image object %s to the file: %s\n", pObject->Reference().ToString().c_str(), m_szBuffer);

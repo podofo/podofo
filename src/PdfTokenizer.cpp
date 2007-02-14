@@ -113,7 +113,7 @@ const char* PdfTokenizer::GetNextToken( EPdfTokenType* peType )
     
     if( !m_device.Device() )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     if( peType )
@@ -182,7 +182,7 @@ const char* PdfTokenizer::GetNextToken( EPdfTokenType* peType )
 
     if( c == EOF && !counter )
     {
-        RAISE_ERROR( ePdfError_UnexpectedEOF );
+        PODOFO_RAISE_ERROR( ePdfError_UnexpectedEOF );
     }
 
     return m_buffer.GetBuffer();
@@ -194,7 +194,7 @@ bool PdfTokenizer::IsNextToken( const char* pszToken )
 
     if( !pszRead || !pszToken )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     return (strcmp( pszToken, pszRead ) == 0);
@@ -209,14 +209,14 @@ long PdfTokenizer::GetNextNumber()
 
     if( !pszRead )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     l = strtol( pszRead, &end, 10 );
     if( end == pszRead )
     {
         this->QuequeToken( pszRead, eType );
-        RAISE_ERROR( ePdfError_NoNumber );
+        PODOFO_RAISE_ERROR( ePdfError_NoNumber );
     }
 
     return l;
@@ -390,7 +390,7 @@ void PdfTokenizer::ReadDataType( EPdfDataType eDataType, PdfVariant& rVariant )
         default:
         {
             PdfError::LogMessage( eLogSeverity_Debug, "Got Datatype: %i\n", eDataType );
-            RAISE_ERROR( ePdfError_InvalidDataType );
+            PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         }
     }
 }
@@ -493,7 +493,7 @@ void PdfTokenizer::ReadName( PdfVariant& rVariant )
 
     if( eType != ePdfTokenType_Token )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     rVariant = PdfName::FromEscaped( pszToken );

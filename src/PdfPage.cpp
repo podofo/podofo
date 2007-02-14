@@ -198,12 +198,12 @@ PdfAnnotation* PdfPage::GetAnnotation( int index )
 
     if( !(pObj && pObj->IsArray()) )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
     
     if( index < 0 && static_cast<unsigned int>(index) >= pObj->GetArray().size() )
     {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
+        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
     }
 
     ref    = pObj->GetArray()[index].GetReference();
@@ -213,7 +213,7 @@ PdfAnnotation* PdfPage::GetAnnotation( int index )
         pObj = m_pObject->GetOwner()->GetObject( ref );
         if( !pObj )
         {
-            RAISE_ERROR( ePdfError_NoObject );
+            PODOFO_RAISE_ERROR( ePdfError_NoObject );
         }
      
         pAnnot = new PdfAnnotation( pObj );
@@ -230,12 +230,12 @@ void PdfPage::DeleteAnnotation( int index )
     
     if( !(pObj && pObj->IsArray()) )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
     
     if( index < 0 && static_cast<unsigned int>(index) >= pObj->GetArray().size() )
     {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
+        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
     }
 
     ref    = pObj->GetArray()[index].GetReference();
@@ -254,7 +254,7 @@ void PdfPage::DeleteAnnotation( const PdfReference & ref )
 
     if( !(pObj && pObj->IsArray()) )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     it = pObj->GetArray().begin();
@@ -275,7 +275,7 @@ void PdfPage::DeleteAnnotation( const PdfReference & ref )
     // another object with this reference
     if( !bFound ) 
     {
-        RAISE_ERROR( ePdfError_NoObject );
+        PODOFO_RAISE_ERROR( ePdfError_NoObject );
     }
 
     // delete any cached PdfAnnotations

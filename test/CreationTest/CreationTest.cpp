@@ -58,7 +58,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pFont = pDocument->CreateFont( "Arial" );
     if( !pFont )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     pFont->SetFontSize( 16.0 );
@@ -156,7 +156,7 @@ void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pFont = pDocument->CreateFont( "Arial" );
     if( !pFont )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     pFont->SetFontSize( 16.0 );

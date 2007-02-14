@@ -133,7 +133,7 @@ string ReadFile( string sFilename )
     if (bytesRead != bytes)
     {
         cerr << "Failed to read file " << sFilename <<endl;
-        RAISE_ERROR( ePdfError_TestFailed );
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
     fclose(f);
     return string(buf, bytesRead);
@@ -168,7 +168,7 @@ void TestObject( const string & sFilename,
     if( !device.Device() )
     {
         cerr << "Cannot open " << sFilename << " for reading." << endl;
-        RAISE_ERROR( ePdfError_TestFailed );
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 
     cerr << "Parsing Object: " << lObjNo << ' ' << lGenNo << endl;
@@ -193,13 +193,13 @@ void TestObject( const string & sFilename,
          << " Generation Number: " << obj.Reference().GenerationNumber() << endl;
     if( lObjNo != obj.Reference().ObjectNumber() || lGenNo != obj.Reference().GenerationNumber() )
     {
-        RAISE_ERROR( ePdfError_TestFailed );
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 
     if (bHasStream != obj.HasStream())
     {
         cerr << "ERROR: This object should've had an associated stream, but none was loaded" << endl;
-        RAISE_ERROR( ePdfError_TestFailed );
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 
     if (bHasStream)
@@ -246,7 +246,7 @@ void TestObject( const string & sFilename,
 
         if( str != sExpectedData )
         {
-            RAISE_ERROR( ePdfError_TestFailed );
+            PODOFO_RAISE_ERROR( ePdfError_TestFailed );
         }
     }
 
@@ -270,7 +270,7 @@ void TestObject( const string & sFilename,
         PrintObject(sLen, cerr, false, false);
         cerr << "------------ end " << lObjNo << ' ' << lGenNo << " ---------------\n\n" << flush;
 
-        RAISE_ERROR( ePdfError_TestFailed );
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 
 

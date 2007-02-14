@@ -71,7 +71,7 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
 
     if( !name.GetLength() )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     rRect.ToVariant( rect );
@@ -113,7 +113,7 @@ void PdfAnnotation::SetAppearanceStream( PdfXObject* pObject )
 
     if( !pObject )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     dict.AddKey( "N", pObject->GetObject()->Reference() );

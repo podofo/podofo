@@ -76,7 +76,7 @@ void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObjec
 {
     if( !identifier.GetLength() )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     if( m_mapKeys.find( identifier ) != m_mapKeys.end() )

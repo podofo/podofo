@@ -38,20 +38,20 @@ PdfInputDevice::PdfInputDevice( const char* pszFilename )
 
     if( !pszFilename ) 
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     try {
         m_pStream = static_cast< std::istream* >( new std::ifstream( pszFilename, std::ios::binary ) );
         if( !m_pStream )
         {
-            RAISE_ERROR( ePdfError_FileNotFound );
+            PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
         }
         m_StreamOwned = true;
     }
     catch(...) {
         // should probably check the exact error, but for now it's a good error
-        RAISE_ERROR( ePdfError_FileNotFound );
+        PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
     }
 }
 
@@ -61,20 +61,20 @@ PdfInputDevice::PdfInputDevice( const char* pBuffer, long lLen )
     
     if( !pBuffer || !lLen ) 
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
     try {
         m_pStream = static_cast< std::istream* >( new std::istringstream( std::string( pBuffer, lLen), std::ios::binary ) );
         if( !m_pStream )
         {
-            RAISE_ERROR( ePdfError_FileNotFound );
+            PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
         }
         m_StreamOwned = true;
     }
     catch(...) {
         // should probably check the exact error, but for now it's a good error
-        RAISE_ERROR( ePdfError_FileNotFound );
+        PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
     }
 }
 
@@ -127,7 +127,7 @@ void PdfInputDevice::Seek( std::streamoff off, std::ios_base::seekdir dir )
     if (m_bIsSeekable)
         m_pStream->seekg( off, dir );
     else
-        RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Tried to seek an unseekable input device" );
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Tried to seek an unseekable input device" );
 }
 
 std::streamoff PdfInputDevice::Read( char* pBuffer, std::streamsize lLen )

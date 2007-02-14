@@ -58,7 +58,7 @@ void PdfStream::FillFilterList( TVecFilters & vecFilters ) const
             {
                 if( (*it).GetDataType() != ePdfDataType_Name )
                 {
-                    RAISE_ERROR( ePdfError_InvalidDataType );
+                    PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
                 }
 
                 eFilter = PdfStream::FilterNameToType( (*it).GetName() );
@@ -69,7 +69,7 @@ void PdfStream::FillFilterList( TVecFilters & vecFilters ) const
         }
         else
         {
-            RAISE_ERROR( ePdfError_InvalidDataType );
+            PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         }
     }
 }
@@ -94,7 +94,7 @@ EPdfFilter PdfStream::FilterNameToType( const PdfName & name )
 
     if( !name.GetLength() )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     while( aszFilters[i] )
@@ -105,7 +105,7 @@ EPdfFilter PdfStream::FilterNameToType( const PdfName & name )
         ++i;
     }
 
-    RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
     return ePdfFilter_Unknown;
 }
 
@@ -122,7 +122,7 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
 
     if( !ppBuffer || !lLen )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     *ppBuffer = NULL;
@@ -139,7 +139,7 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
 
     if( tDecodeParams.size() > 0 && tDecodeParams.size() != vecFilters.size() )
     {
-        RAISE_ERROR( ePdfError_InvalidPredictor );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidPredictor );
     }
 
     if( !vecFilters.empty() )
@@ -156,7 +156,7 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
                 FreeDecodeParms( &tDecodeParams );
 
                 PdfError::LogMessage( eLogSeverity_Error, "Error: Found an unsupported filter: %i\n", *it );
-                RAISE_ERROR( ePdfError_UnsupportedFilter );
+                PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
                 break;
             }
 
@@ -209,7 +209,7 @@ void PdfStream::GetDecodeParms( TVecDictionaries* pParams ) const
 
     if( !pParams )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     // Make sure it is empty
@@ -235,7 +235,7 @@ void PdfStream::GetDecodeParms( TVecDictionaries* pParams ) const
         array = pObj->GetArray();
     else
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     // we are sure to have an array now!
@@ -249,7 +249,7 @@ void PdfStream::GetDecodeParms( TVecDictionaries* pParams ) const
             pParams->push_back( new PdfDictionary( (*it).GetDictionary() ) );
         else
         {
-            RAISE_ERROR( ePdfError_InvalidDataType );
+            PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         }
 
         ++it;
@@ -263,7 +263,7 @@ void PdfStream::SetDecodeParms( TVecDictionaries* pParams )
 
     if( !pParams )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     // remove any existing old keys first

@@ -102,20 +102,37 @@ typedef enum ELogSeverity {
     eLogSeverity_Unknown = 0xffff     /**< Unknown log level */
 };
 
-/** \def RAISE_ERROR( x )
+/** \def PODOFO_RAISE_ERROR( x )
  *  
  *  Set the value of the variable eCode (which has to exist in the current function) to x
  *  and return the eCode.
  */
-#define RAISE_ERROR( x ) throw PdfError( x, __FILE__, __LINE__ );
+#define PODOFO_RAISE_ERROR( x ) throw PdfError( x, __FILE__, __LINE__ );
 
-/** \def RAISE_ERROR_INFO( x, y )
+/** \def PODOFO_RAISE_ERROR_INFO( x, y )
  *  
  *  Set the value of the variable eCode (which has to exist in the current function) to x
  *  and return the eCode. Additionally additional information on the error y is set. y has 
  *  to be an c-string.
  */
-#define RAISE_ERROR_INFO( x, y ) throw PdfError( x, __FILE__, __LINE__, y );
+#define PODOFO_RAISE_ERROR_INFO( x, y ) throw PdfError( x, __FILE__, __LINE__, y );
+
+/** \def PODOFO_RAISE_LOGIC_IF( x, y )
+ *
+ *  Evaluate `x' as a binary predicate and if it is true, raise a logic error with the
+ *  info string `y' .
+ *
+ *  This macro will be undefined when NDEBUG is set, so it's compiled out for release
+ *  builds. Use it for expensive or extremely frequent sanity checking.
+ *
+ *  We define it then UNDEF it to help out doxygen.
+ */
+#ifndef NDEBUG
+    // Woo for double-negatives. We define PODOFO_RAISE_LOGIC_IF unless we've been told not to by NDEBUG.
+    #define PODOFO_RAISE_LOGIC_IF( x, y ) { if (x) throw PdfError( ePdfError_InternalLogic, __FILE__, __LINE__, y ); };
+#else
+    #define PODOFO_RAISE_LOGIC_IF( x, y ) {};
+#endif
 
 class PODOFO_API PdfErrorInfo {
  public:

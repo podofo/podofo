@@ -84,7 +84,7 @@ void PdfFont::Init( bool bEmbedd )
     pWidth = m_pObject->GetOwner()->CreateObject();
     if( !pWidth )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_pMetrics->GetWidthArray( *pWidth, FIRST_CHAR, LAST_CHAR );
@@ -92,7 +92,7 @@ void PdfFont::Init( bool bEmbedd )
     pDescriptor = m_pObject->GetOwner()->CreateObject( "FontDescriptor" );
     if( !pDescriptor )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("TrueType") );
@@ -131,7 +131,7 @@ void PdfFont::EmbeddFont( PdfObject* pDescriptor )
     pContents = m_pObject->GetOwner()->CreateObject();
     if( !pContents )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->Reference() );
@@ -149,7 +149,7 @@ void PdfFont::EmbeddFont( PdfObject* pDescriptor )
         hFile = fopen( m_pMetrics->GetFilename(), "rb" );
         if( !hFile )
         {
-            RAISE_ERROR( ePdfError_FileNotFound );
+            PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
         }
 
         fseek( hFile, 0, SEEK_END );

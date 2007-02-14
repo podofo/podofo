@@ -65,7 +65,7 @@ void PdfFileStream::Append( const char* pszString, size_t lLen )
 
 void PdfFileStream::GetCopy( char**, long* ) const
 {
-    RAISE_ERROR( ePdfError_InternalLogic );
+    PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
 }
 
 };

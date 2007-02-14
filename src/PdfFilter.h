@@ -295,9 +295,7 @@ class PODOFO_API PdfFilter {
 // -----------------------------------------------------
 void PdfFilter::BeginEncode( PdfOutputStream* pOutput )
 {
-    if ( m_pOutputStream )
-        // oops, user didn't call EndEncode() on previous run!
-        RAISE_ERROR( ePdfError_InternalLogic );
+    PODOFO_RAISE_LOGIC_IF( m_pOutputStream, "BeginEncode() on failed filter or without EndEncode()" );
     m_pOutputStream = pOutput;
     BeginEncodeImpl();
 }
@@ -307,9 +305,7 @@ void PdfFilter::BeginEncode( PdfOutputStream* pOutput )
 // -----------------------------------------------------
 void PdfFilter::EncodeBlock( const char* pBuffer, long lLen )
 {
-    if ( !m_pOutputStream )
-        // oops, user forgot to call BeginEncode() or is using a failed filter
-        RAISE_ERROR( ePdfError_InternalLogic );
+    PODOFO_RAISE_LOGIC_IF( !m_pOutputStream, "EncodeBlock() without BeginEncode() or on failed filter" );
     EncodeBlockImpl(pBuffer, lLen);
 }
 
@@ -318,9 +314,7 @@ void PdfFilter::EncodeBlock( const char* pBuffer, long lLen )
 // -----------------------------------------------------
 void PdfFilter::EndEncode()
 {
-    if ( !m_pOutputStream )
-        // oops, user forgot to call BeginEncode() or is using a failed filter
-        RAISE_ERROR( ePdfError_InternalLogic );
+    PODOFO_RAISE_LOGIC_IF( !m_pOutputStream, "EndEncode() without BeginEncode() or on failed filter" );
     EndEncodeImpl();
     m_pOutputStream = NULL;
 }
@@ -330,10 +324,7 @@ void PdfFilter::EndEncode()
 // -----------------------------------------------------
 void PdfFilter::BeginDecode( PdfOutputStream* pOutput, const PdfDictionary* pDecodeParms )
 {
-    if ( m_pOutputStream )
-        // oops, user didn't call EndEncode() on previous run!
-        RAISE_ERROR( ePdfError_InternalLogic );
-
+    PODOFO_RAISE_LOGIC_IF( m_pOutputStream, "BeginDecode() on failed filter or without EndDecode()" );
     m_pOutputStream = pOutput;
     BeginDecodeImpl( pDecodeParms );
 }
@@ -343,9 +334,7 @@ void PdfFilter::BeginDecode( PdfOutputStream* pOutput, const PdfDictionary* pDec
 // -----------------------------------------------------
 void PdfFilter::DecodeBlock( const char* pBuffer, long lLen )
 {
-    if ( !m_pOutputStream )
-        // oops, user forgot to call BeginEncode() or is using a failed filter
-        RAISE_ERROR( ePdfError_InternalLogic );
+    PODOFO_RAISE_LOGIC_IF( !m_pOutputStream, "DecodeBlock() without BeginDecode() or on failed filter" )
     DecodeBlockImpl(pBuffer, lLen);
 }
 
@@ -354,9 +343,7 @@ void PdfFilter::DecodeBlock( const char* pBuffer, long lLen )
 // -----------------------------------------------------
 void PdfFilter::EndDecode()
 {
-    if ( !m_pOutputStream )
-        // oops, user forgot to call BeginEncode() or is using a failed filter
-        RAISE_ERROR( ePdfError_InternalLogic );
+    PODOFO_RAISE_LOGIC_IF( !m_pOutputStream, "EndDecode() without BeginDecode() or on failed filter" )
     EndDecodeImpl();
     m_pOutputStream = NULL;
 }

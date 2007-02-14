@@ -59,13 +59,13 @@ PdfDestination::PdfDestination( PdfObject* pObject )
             PdfNamesTree* pNames = pDoc->GetNamesTree( ePdfDontCreateObject );
             if( !pNames ) 
             {
-                RAISE_ERROR( ePdfError_NoObject );
+                PODOFO_RAISE_ERROR( ePdfError_NoObject );
             }
             
             PdfObject* pValue = pNames->GetValue( "Dests", pObject->GetString() );
             if( !pValue ) 
             {
-                RAISE_ERROR( ePdfError_InvalidName );
+                PODOFO_RAISE_ERROR( ePdfError_InvalidName );
             }
 
             if( pValue->IsArray() ) 
@@ -76,7 +76,7 @@ PdfDestination::PdfDestination( PdfObject* pObject )
     }
     else 
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     m_pObject = pObject;
@@ -92,7 +92,7 @@ PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit )
         type = PdfName("FitB");
     else
     {
-        RAISE_ERROR( ePdfError_InvalidKey );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidKey );
     }
 
     m_array.push_back( pPage->GetObject()->Reference() );
@@ -136,7 +136,7 @@ PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit, d
         type = PdfName("FitBV");
     else
     {
-        RAISE_ERROR( ePdfError_InvalidKey );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidKey );
     }
 
     m_array.push_back( pPage->GetObject()->Reference() );
@@ -163,7 +163,7 @@ void PdfDestination::AddToDictionary( PdfDictionary & dictionary ) const
     // since we can only have EITHER a Dest OR an Action
     // we check for an Action, and if already present, we throw
     if ( dictionary.HasKey( PdfName( "A" ) ) )
-        RAISE_ERROR( ePdfError_ActionAlreadyPresent );
+        PODOFO_RAISE_ERROR( ePdfError_ActionAlreadyPresent );
 
     dictionary.RemoveKey( "Dest" );
     dictionary.AddKey( "Dest", m_pObject );

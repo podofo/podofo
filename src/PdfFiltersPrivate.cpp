@@ -178,12 +178,6 @@ void PdfAscii85Filter::EncodeBlockImpl( const char* pBuffer, long lLen )
     unsigned int  c;
     const char*   z = "z";
 
-    if( !GetStream() )
-    {
-        RAISE_ERROR_INFO( ePdfError_InternalLogic, 
-                          "BeginEncode was not yet called or EndEncode was called before this method.");
-    }
-
     while( lLen ) 
     {
         c = *pBuffer & 0xff;
@@ -235,7 +229,7 @@ void PdfAscii85Filter::DecodeBlockImpl( const char* pBuffer, long lLen )
             default:
                 if ( *pBuffer < '!' || *pBuffer > 'u') 
                 {
-                    RAISE_ERROR( ePdfError_ValueOutOfRange );
+                    PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
                 }
 
                 m_tuple += ( *pBuffer - '!') * sPowers85[m_count++];
@@ -249,7 +243,7 @@ void PdfAscii85Filter::DecodeBlockImpl( const char* pBuffer, long lLen )
             case 'z':
                 if (m_count != 0 ) 
                 {
-                    RAISE_ERROR( ePdfError_ValueOutOfRange );
+                    PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
                 }
 
                 this->WidePut( 0, 4 );
@@ -259,7 +253,7 @@ void PdfAscii85Filter::DecodeBlockImpl( const char* pBuffer, long lLen )
                 --lLen;
                 if( *pBuffer != '>' ) 
                 {
-                    RAISE_ERROR( ePdfError_ValueOutOfRange );
+                    PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
                 }
                 foundEndMarker = true;
                 break;
@@ -325,7 +319,7 @@ void PdfFlateFilter::BeginEncodeImpl()
 
     if( deflateInit( &m_stream, Z_DEFAULT_COMPRESSION ) )
     {
-        RAISE_ERROR( ePdfError_Flate );
+        PODOFO_RAISE_ERROR( ePdfError_Flate );
     }
 }
 
@@ -348,7 +342,7 @@ void PdfFlateFilter::EncodeBlockInternal( const char* pBuffer, long lLen, int nM
         if( deflate( &m_stream, nMode) == Z_STREAM_ERROR )
         {
             FailEncodeDecode();
-            RAISE_ERROR( ePdfError_Flate );
+            PODOFO_RAISE_ERROR( ePdfError_Flate );
         }
 
 
@@ -380,7 +374,7 @@ void PdfFlateFilter::BeginDecodeImpl( const PdfDictionary* )
 
     if( inflateInit( &m_stream ) != Z_OK )
     {
-        RAISE_ERROR( ePdfError_Flate );
+        PODOFO_RAISE_ERROR( ePdfError_Flate );
     }
 }
 
@@ -405,7 +399,7 @@ void PdfFlateFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
                 (void)inflateEnd(&m_stream);
 
                 FailEncodeDecode();
-                RAISE_ERROR( ePdfError_Flate );
+                PODOFO_RAISE_ERROR( ePdfError_Flate );
             }
             default:
                 break;
@@ -453,7 +447,7 @@ void PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, cons
     pPrev = static_cast<unsigned char*>(malloc( sizeof(char) * nRows ));
     if( !pPrev )
     {
-        RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
     memset( pPrev, 0, sizeof(char) * nRows );
@@ -468,7 +462,7 @@ void PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, cons
     if( !*ppOutBuffer )
     {
         free( pPrev );
-        RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
     while( pBuffer < (pInBuffer + lInLen) )
@@ -497,7 +491,7 @@ void PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, cons
                 default:
                 {
                     free( pPrev );
-                    RAISE_ERROR( ePdfError_InvalidPredictor );
+                    PODOFO_RAISE_ERROR( ePdfError_InvalidPredictor );
                     break;
                 }
             }
@@ -519,17 +513,17 @@ void PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, cons
 
 void PdfRLEFilter::BeginEncodeImpl()
 {
-    RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
 void PdfRLEFilter::EncodeBlockImpl( const char*, long )
 {
-    RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
 void PdfRLEFilter::EndEncodeImpl()
 {
-    RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
 void PdfRLEFilter::BeginDecodeImpl( const PdfDictionary* )
@@ -577,17 +571,17 @@ const unsigned short PdfLZWFilter::s_eod    = 0x0101;      // end of data
 
 void PdfLZWFilter::BeginEncodeImpl()
 {
-    RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
 void PdfLZWFilter::EncodeBlockImpl( const char*, long )
 {
-    RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
 void PdfLZWFilter::EndEncodeImpl()
 {
-    RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
 void PdfLZWFilter::BeginDecodeImpl( const PdfDictionary* )
@@ -658,7 +652,7 @@ void PdfLZWFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
                 {
                     if (old >= m_table.size())
                     {
-                        RAISE_ERROR( ePdfError_ValueOutOfRange );
+                        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
                     }
                     data = m_table[old].value;
                     data.push_back( m_character );

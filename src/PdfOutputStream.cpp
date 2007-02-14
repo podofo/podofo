@@ -29,7 +29,7 @@ PdfFileOutputStream::PdfFileOutputStream( const char* pszFilename )
     m_hFile = fopen( pszFilename, "wb" );
     if( !m_hFile ) 
     {
-        RAISE_ERROR( ePdfError_FileNotFound );
+        PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
     }
 }
 
@@ -52,7 +52,7 @@ PdfMemoryOutputStream::PdfMemoryOutputStream( long lInitial )
     
     if( !m_pBuffer ) 
     {
-        RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
 }
 
@@ -65,7 +65,7 @@ long PdfMemoryOutputStream::Write( const char* pBuffer, long lLen )
 {
     if( !m_pBuffer ) 
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     if( m_lLen + lLen > m_lSize ) 
@@ -75,7 +75,7 @@ long PdfMemoryOutputStream::Write( const char* pBuffer, long lLen )
         m_pBuffer = static_cast<char*>(realloc( m_pBuffer, m_lSize ));
         if( !m_pBuffer ) 
         {
-            RAISE_ERROR( ePdfError_OutOfMemory );
+            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
         }
     }
 

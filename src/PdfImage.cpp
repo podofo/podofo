@@ -104,13 +104,13 @@ void PdfImage::LoadFromFile( const char* pszFilename )
 
     if( !pszFilename )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     hInfile = fopen(pszFilename, "rb");
     if( !hInfile )
     {
-        RAISE_ERROR( ePdfError_FileNotFound );
+        PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
     }
 
     cinfo.err = jpeg_std_error(&jerr);
@@ -122,7 +122,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
         fclose( hInfile );
         (void) jpeg_destroy_decompress(&cinfo);
 
-        RAISE_ERROR( ePdfError_UnexpectedEOF );
+        PODOFO_RAISE_ERROR( ePdfError_UnexpectedEOF );
     }
 
     jpeg_start_decompress(&cinfo);
@@ -137,7 +137,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
         fclose( hInfile );
         (void) jpeg_destroy_decompress(&cinfo);
 
-        RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
     if( static_cast<long>(fread( szBuffer, sizeof( char ), lLen, hInfile )) != lLen )
@@ -146,7 +146,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
         free( szBuffer );
         (void) jpeg_destroy_decompress(&cinfo);
 
-        RAISE_ERROR( ePdfError_UnexpectedEOF );
+        PODOFO_RAISE_ERROR( ePdfError_UnexpectedEOF );
     }
 
     m_rRect.SetWidth( cinfo.output_width );

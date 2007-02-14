@@ -35,14 +35,14 @@ int main()
         
         if( strcmp( string.GetString(), "Hello World!") != 0 )
         {
-            RAISE_ERROR( ePdfError_TestFailed );
+            PODOFO_RAISE_ERROR( ePdfError_TestFailed );
         }
         
         printf("string.String()=%s\n", string.GetString() );
         printf("string.Size()=%li\n", string.GetSize() );
         if( string.GetSize() != 13 )
         {
-            RAISE_ERROR( ePdfError_TestFailed );
+            PODOFO_RAISE_ERROR( ePdfError_TestFailed );
         }
          
         
@@ -50,12 +50,12 @@ int main()
         printf("hex.Size()=%li\n", hex.GetSize() );
         if( strcmp( hex.GetString(), "0AEFB06965F73145" ) != 0 )
         {
-            RAISE_ERROR( ePdfError_TestFailed );
+            PODOFO_RAISE_ERROR( ePdfError_TestFailed );
         }
         
         if( hex.GetSize() != 16 )
         {
-            RAISE_ERROR( ePdfError_TestFailed );
+            PODOFO_RAISE_ERROR( ePdfError_TestFailed );
         }
         
         /*
@@ -76,7 +76,7 @@ int main()
             printf("String normal: %s\n", normal.GetString() );
             printf("String hexa  : %s\n", hexa.GetString() );
             printf("Comparison failed!\n");
-            RAISE_ERROR( ePdfError_TestFailed );
+            PODOFO_RAISE_ERROR( ePdfError_TestFailed );
         }
 
         PdfString a("aaaaa");

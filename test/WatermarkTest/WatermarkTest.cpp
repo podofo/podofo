@@ -49,7 +49,7 @@ void WatermarkFile( const char* pszInFilename, const char* pszOutFilename )
         pPage = doc.GetPage( i );
         if( !pPage ) 
         {
-            RAISE_ERROR( ePdfError_InvalidHandle );
+            PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
         }
         
         rect = pPage->GetPageSize();

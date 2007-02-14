@@ -54,7 +54,7 @@ PdfAction::PdfAction( EPdfAction eAction, PdfVecObjects* pParent )
 
     if( !type.GetLength() )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_pObject->GetDictionary().AddKey( "S", type );

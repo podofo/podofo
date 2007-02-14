@@ -399,7 +399,7 @@ inline void PdfVariant::DelayedLoad() const
     // Whoops! Delayed loading triggered during delayed loading. Someone probably
     // used a public method that calls DelayedLoad() from a delayed load.
     if (m_bDelayedLoadInProgress)
-        RAISE_ERROR_INFO( ePdfError_InternalLogic, "Recursive DelayedLoad() detected" );
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Recursive DelayedLoad() detected" );
 #endif
     if( !m_bDelayedLoadDone)
     {
@@ -445,7 +445,7 @@ void PdfVariant::SetBool( bool b )
 
     if( !IsBool() )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     m_Data.bBoolValue = b;
@@ -460,7 +460,7 @@ bool PdfVariant::GetBool() const
 
     if( !IsBool() )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     return m_Data.bBoolValue;
@@ -475,7 +475,7 @@ void PdfVariant::SetNumber( long l )
 
     if( !IsReal() && !IsNumber() )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     if ( IsReal() )
@@ -493,7 +493,7 @@ long PdfVariant::GetNumber() const
 
     if( !IsReal() && !IsNumber() )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     if ( IsReal() )
@@ -511,7 +511,7 @@ void PdfVariant::SetReal( double d )
 
     if( !IsReal() && !IsNumber() )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     if ( IsReal() )
@@ -529,7 +529,7 @@ double PdfVariant::GetReal() const
 
     if( !IsReal() && !IsNumber() )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     if ( IsReal() )
@@ -547,7 +547,7 @@ const PdfString & PdfVariant::GetString() const
 
     if( !IsString() )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     return *(reinterpret_cast<PdfString* const>(m_Data.pData));
@@ -562,7 +562,7 @@ const PdfName & PdfVariant::GetName() const
 
     if( !IsName() )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     return *(reinterpret_cast<PdfName*>(m_Data.pData));
@@ -584,7 +584,7 @@ const PdfArray & PdfVariant::GetArray_NoDL() const
     // already been triggered).
     if( m_eDataType != ePdfDataType_Array )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     return *(reinterpret_cast<PdfArray* const>(m_Data.pData));
@@ -606,7 +606,7 @@ PdfArray & PdfVariant::GetArray_NoDL()
     // already been triggered).
     if( m_eDataType != ePdfDataType_Array )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     return *(reinterpret_cast<PdfArray* const>(m_Data.pData));
@@ -628,7 +628,7 @@ const PdfDictionary & PdfVariant::GetDictionary_NoDL() const
     // already been triggered).
     if( m_eDataType != ePdfDataType_Dictionary )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     return *(reinterpret_cast<PdfDictionary* const>(m_Data.pData));
@@ -650,7 +650,7 @@ PdfDictionary & PdfVariant::GetDictionary_NoDL()
     // already been triggered).
     if( m_eDataType != ePdfDataType_Dictionary )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     return *(reinterpret_cast<PdfDictionary* const>(m_Data.pData));
@@ -665,7 +665,7 @@ const PdfReference & PdfVariant::GetReference() const
 
     if( !IsReference() )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     return *(reinterpret_cast<PdfReference* const>(m_Data.pData));
@@ -680,7 +680,7 @@ inline PdfReference & PdfVariant::GetReference()
 
     if( !IsReference() )
     {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     return *(reinterpret_cast<PdfReference* const>(m_Data.pData));
@@ -700,7 +700,7 @@ void PdfVariant::DelayedLoadImpl()
 {
     // Default implementation of virtual void DelayedLoadImpl() throws, since delayed
     // loading should not be enabled except by types that support it.
-    RAISE_ERROR( ePdfError_InternalLogic );
+    PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
 }
 
 };

@@ -135,7 +135,7 @@ void PdfDocument::InitFromParser( PdfParser* pParser )
     m_pCatalog  = m_pTrailer->GetIndirectKey( "Root" );
     if( !m_pCatalog )
     {
-        RAISE_ERROR( ePdfError_NoObject );
+        PODOFO_RAISE_ERROR( ePdfError_NoObject );
     }
 
     pInfo = m_pTrailer->GetIndirectKey( "Info" );
@@ -219,7 +219,7 @@ PdfPage* PdfDocument::GetPage( int nIndex ) const
 {
     if( nIndex < 0 || nIndex > m_pPagesTree->GetTotalNumberOfPages() )
     {
-        RAISE_ERROR( ePdfError_ValueOutOfRange );
+        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
     }
 
     return m_pPagesTree->GetPage( nIndex );
@@ -301,7 +301,7 @@ void PdfDocument::FixObjectReferences( PdfObject* pObject, int difference )
 {
     if( !pObject ) 
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     if( pObject->IsReference() )
@@ -402,7 +402,7 @@ EPdfPageMode PdfDocument::GetPageMode( void ) const
         else if( PdfName( "UseAttachments" ) == pmName )
             thePageMode = ePdfPageModeUseAttachments ;
         else
-            RAISE_ERROR( ePdfError_InvalidName );
+            PODOFO_RAISE_ERROR( ePdfError_InvalidName );
     }
     
     return thePageMode ;
@@ -573,7 +573,7 @@ PdfOutlines* PdfDocument::GetOutlines( bool bCreate )
             m_pOutlines = new PdfOutlines( &m_vecObjects );
             m_pCatalog->GetDictionary().AddKey( "Outlines", m_pOutlines->GetObject()->Reference() );
         } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
-            RAISE_ERROR( ePdfError_InvalidDataType );
+            PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         } else
             m_pOutlines = new PdfOutlines( pObj );
     }        
@@ -598,7 +598,7 @@ PdfNamesTree* PdfDocument::GetNamesTree( bool bCreate )
             m_pCatalog->GetDictionary().AddKey( "Names", pObj->Reference() );
             m_pNamesTree = new PdfNamesTree( pObj, m_pCatalog );
         } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
-            RAISE_ERROR( ePdfError_InvalidDataType );
+            PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         } else
             m_pNamesTree = new PdfNamesTree( pObj, m_pCatalog );
     }        
@@ -618,7 +618,7 @@ void PdfDocument::AttachFile( const PdfFileSpec & rFileSpec )
 
     if( !pNames ) 
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     pNames->AddValue( "EmbeddedFiles", rFileSpec.GetFilename(), rFileSpec.GetObject()->Reference() );

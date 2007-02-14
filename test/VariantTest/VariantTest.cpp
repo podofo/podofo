@@ -45,14 +45,14 @@ void TestName( const char* pszString, const char* pszExpectedEncoded )
 
     if( strcmp( pszExpectedEncoded, name.GetEscapedName().c_str() ) != 0 ) 
     {
-        RAISE_ERROR( ePdfError_TestFailed );
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 
     // Ensure the encoded string compares equal to its unencoded
     // variant
     if( name != PdfName::FromEscaped(pszExpectedEncoded) )
     {
-        RAISE_ERROR( ePdfError_TestFailed );
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 }
 
@@ -66,14 +66,14 @@ void TestEncodedName( const char* pszString, const char* pszExpected )
 
     if ( strcmp( pszExpected, name.GetName().c_str() ) != 0 )
     {
-        RAISE_ERROR( ePdfError_TestFailed );
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 
     // Ensure the name compares equal with one constructed from the
     // expected unescaped form
     if ( ! (name == PdfName(pszExpected)) )
     {
-        RAISE_ERROR( ePdfError_TestFailed );
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 }
 
@@ -88,7 +88,7 @@ void TestNameEquality( const char * pszName1, const char* pszName2 )
 
     if (name1 != name2)
     {
-        RAISE_ERROR( ePdfError_TestFailed );
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 }
 
@@ -110,14 +110,14 @@ void Test( const char* pszString, EPdfDataType eDataType, const char* pszExpecte
     printf("   -> Got      Datatype: %i\n", variant.GetDataType() );
     if( variant.GetDataType() != eDataType )
     {
-        RAISE_ERROR( ePdfError_TestFailed );
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 
     variant.ToString( ret );
     printf("   -> Convert To String: %s\n", ret.c_str() );
     if( strcmp( pszExpected, ret.c_str() ) != 0 )
     {
-        RAISE_ERROR( ePdfError_TestFailed );
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 }
 

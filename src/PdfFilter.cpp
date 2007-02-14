@@ -38,7 +38,7 @@ void PdfFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, 
 {
     if( !this->CanEncode() )
     {
-        RAISE_ERROR( ePdfError_UnsupportedFilter );
+        PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
     }
 
     PdfMemoryOutputStream stream;
@@ -56,7 +56,7 @@ void PdfFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, 
 {
     if( !this->CanDecode() )
     {
-        RAISE_ERROR( ePdfError_UnsupportedFilter );
+        PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
     }
 
     PdfMemoryOutputStream stream;

@@ -103,7 +103,7 @@ void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const long lTest
         fprintf( stderr, "DecodedData:\n%s\n", pDecoded );
         */
 
-        RAISE_ERROR( ePdfError_TestFailed );
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 
     if( memcmp( pTestBuffer, pDecoded, lTestLength ) != 0 )
@@ -113,7 +113,7 @@ void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const long lTest
         printf("\t-> Decoded  Data: <%s>\n", pDecoded );
 
         fprintf( stderr, "Error: Decoded Data does not match original data.\n");
-        RAISE_ERROR( ePdfError_TestFailed );
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 
     printf("\t-> Test succeeded!\n");

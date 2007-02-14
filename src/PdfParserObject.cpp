@@ -91,12 +91,12 @@ void PdfParserObject::ReadObjectNumber()
         m_reference = PdfReference( obj, gen );
     } catch( PdfError & e ) {
         std::string errStr( e.what() );       // avoid compiler warning and in case we need it...
-        RAISE_ERROR_INFO( ePdfError_NoObject, "object and generation number cannot be read." );
+        PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, "object and generation number cannot be read." );
     }
     
     if( !this->IsNextToken( "obj" ))
     {
-        RAISE_ERROR( ePdfError_NoObject );
+        PODOFO_RAISE_ERROR( ePdfError_NoObject );
     }
 }
 
@@ -104,7 +104,7 @@ void PdfParserObject::ParseFile( bool bIsTrailer )
 {
     if( !m_device.Device() )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     if( m_lOffset > -1 )
@@ -144,7 +144,7 @@ void PdfParserObject::ParseFile( bool bIsTrailer )
             // We don't know what went wrong, but the internal state is
             // broken or the API rules aren't being followed and we
             // can't carry on.
-            RAISE_ERROR( ePdfError_InternalLogic );
+            PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
         }
 #endif // PODOF_EXTRA_CHECKS
     }
@@ -187,7 +187,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
         }
         else
         {
-            RAISE_ERROR( ePdfError_NoObject );
+            PODOFO_RAISE_ERROR( ePdfError_NoObject );
         }
     }
 }
@@ -209,7 +209,7 @@ void PdfParserObject::ParseStream()
 
     if( !m_device.Device() || !m_pOwner )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_device.Device()->Seek( m_lStreamOffset );
@@ -246,18 +246,18 @@ void PdfParserObject::ParseStream()
         pObj = m_pOwner->GetObject( pObj->GetReference() );
         if( !pObj )
         {
-            RAISE_ERROR_INFO( ePdfError_InvalidHandle, "/Length key referenced indirect object that could not be loaded" );
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "/Length key referenced indirect object that could not be loaded" );
         }
 
         if( !pObj->IsNumber() )
         {
-            RAISE_ERROR_INFO( ePdfError_InvalidStreamLength, "/Length key for stream referenced non-number" );
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidStreamLength, "/Length key for stream referenced non-number" );
         }
 
         lLen = pObj->GetNumber();
         if( !lLen )
         {
-            RAISE_ERROR( ePdfError_InvalidStreamLength );
+            PODOFO_RAISE_ERROR( ePdfError_InvalidStreamLength );
         }
 
         // we do not use indirect references for the length of the document
@@ -271,19 +271,19 @@ void PdfParserObject::ParseStream()
     }
     else
     {
-        RAISE_ERROR( ePdfError_InvalidStreamLength );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidStreamLength );
     }
 
     char * szBuf = static_cast<char*>(malloc( lLen * sizeof(char) ));
     if( !szBuf ) 
     {
-        RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
     m_device.Device()->Seek( fLoc );	// reset it before reading!
     if( m_device.Device()->Read( szBuf, lLen ) != lLen )
     {
-        RAISE_ERROR( ePdfError_InvalidStreamLength );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidStreamLength );
     }
 
     this->GetStream_NoDL()->Set( szBuf, lLen );

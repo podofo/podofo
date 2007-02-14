@@ -84,7 +84,7 @@ void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
 {
     if( !pszFilename || !pszFilename[0] )
     {
-        RAISE_ERROR( ePdfError_FileNotFound );
+        PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
     }
 
     // make sure everything is clean
@@ -95,12 +95,12 @@ void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
     m_device           = PdfRefCountedInputDevice( pszFilename, "rb" );
     if( !m_device.Device() )
     {
-        RAISE_ERROR( ePdfError_FileNotFound );
+        PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
     }
 
     if( !IsPdfFile() )
     {
-        RAISE_ERROR( ePdfError_NoPdfFile );
+        PODOFO_RAISE_ERROR( ePdfError_NoPdfFile );
     }
 
     ReadDocumentStructure();
@@ -173,7 +173,7 @@ void PdfParser::ReadDocumentStructure()
     if( !m_pTrailer->IsDictionary() || !m_pTrailer->GetDictionary().HasKey( PdfName::KeySize ) )
     {
         PdfError::LogMessage( eLogSeverity_Error, "No /Size key was specified in the trailer directory." );
-        RAISE_ERROR( ePdfError_InvalidTrailerSize );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidTrailerSize );
     }
 
     m_nNumObjects = m_pTrailer->GetDictionary().GetKeyAsLong( PdfName::KeySize );
@@ -284,7 +284,7 @@ void PdfParser::HasLinearizationDict()
     lXRef = m_pLinearization->GetDictionary().GetKeyAsLong( "T", lXRef );
     if( lXRef == -1 )
     {
-        RAISE_ERROR( ePdfError_InvalidLinearization );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidLinearization );
     }
 
     // avoid moving to a negative file position here
@@ -293,7 +293,7 @@ void PdfParser::HasLinearizationDict()
 
     if( m_device.Device()->Read( m_buffer.GetBuffer(), PDF_XREF_BUF ) != PDF_XREF_BUF )
     {
-        RAISE_ERROR( ePdfError_InvalidLinearization );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidLinearization );
     }
 
     m_buffer.GetBuffer()[PDF_XREF_BUF] = '\0';
@@ -316,7 +316,7 @@ void PdfParser::HasLinearizationDict()
             PdfError::LogMessage( eLogSeverity_Warning, 
                                   "Linearization dictionaries are only supported with PDF version 1.5. This is 1.%i. Trying to continue.\n", 
                                   static_cast<int>(m_ePdfVersion) );
-            // RAISE_ERROR( ePdfError_InvalidLinearization );
+            // PODOFO_RAISE_ERROR( ePdfError_InvalidLinearization );
         }
 
         {
@@ -335,7 +335,7 @@ void PdfParser::MergeTrailer( const PdfObject* pTrailer )
 
     if( !pTrailer || !m_pTrailer )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     if( pTrailer->GetDictionary().HasKey( PdfName::KeySize ) )
@@ -382,7 +382,7 @@ void PdfParser::ReadNextTrailer()
         }
         else
         {
-            RAISE_ERROR( ePdfError_NoTrailer );
+            PODOFO_RAISE_ERROR( ePdfError_NoTrailer );
         }
     }
 }
@@ -395,7 +395,7 @@ void PdfParser::ReadTrailer()
     {
         if( m_ePdfVersion < ePdfVersion_1_5 )
         {
-            RAISE_ERROR( ePdfError_NoTrailer );
+            PODOFO_RAISE_ERROR( ePdfError_NoTrailer );
         }
         else
         {
@@ -430,7 +430,7 @@ void PdfParser::ReadXRef( long* pXRefOffset )
 
     if( !this->IsNextToken( "startxref" ) )
     {
-        RAISE_ERROR( ePdfError_NoXRef );
+        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
     }
     
     *pXRefOffset = this->GetNextNumber();
@@ -449,7 +449,7 @@ void PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
     {
         if( m_ePdfVersion < ePdfVersion_1_5 )
         {
-            RAISE_ERROR( ePdfError_NoXRef );
+            PODOFO_RAISE_ERROR( ePdfError_NoXRef );
         }
         else
         {
@@ -519,7 +519,7 @@ void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
         int objID = nFirstObject + count;
         if( objID >= m_nNumObjects )
         {
-            RAISE_ERROR( ePdfError_InvalidXRef );
+            PODOFO_RAISE_ERROR( ePdfError_InvalidXRef );
         }
 
         if( !m_pOffsets[objID].bParsed )
@@ -535,7 +535,7 @@ void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
 
     if( count != nNumObjects )
     {
-        RAISE_ERROR( ePdfError_NoXRef );
+        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
     }
 
     // now check if there is another xref section right before the next object.
@@ -578,13 +578,13 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
 
     if( !xrefObject.GetDictionary().HasKey( PdfName::KeyType ) )
     {
-        RAISE_ERROR( ePdfError_NoXRef );
+        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
     } 
 
     pObj = xrefObject.GetDictionary().GetKey( PdfName::KeyType );
     if( !pObj->IsName() || ( pObj->GetName() != "XRef" ) )
     {
-        RAISE_ERROR( ePdfError_NoXRef );
+        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
     } 
 
     if( !m_pTrailer )    
@@ -597,7 +597,7 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
 
     if( !xrefObject.GetDictionary().HasKey( PdfName::KeySize ) || !xrefObject.GetDictionary().HasKey( "W" ) )
     {
-        RAISE_ERROR( ePdfError_NoXRef );
+        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
     }
 
     lSize   = xrefObject.GetDictionary().GetKeyAsLong( PdfName::KeySize, 0 );
@@ -607,14 +607,14 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
     // all of them have to be integeres
     if( !vWArray.IsArray() || vWArray.GetArray().size() != 3 )
     {
-        RAISE_ERROR( ePdfError_NoXRef );
+        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
     }
 
     for( i=0;i<W_ARRAY_SIZE;i++ )
     {
         if( !vWArray.GetArray()[i].IsNumber() )
         {
-            RAISE_ERROR( ePdfError_NoXRef );
+            PODOFO_RAISE_ERROR( ePdfError_NoXRef );
         }
 
         nW[i] = vWArray.GetArray()[i].GetNumber();
@@ -628,12 +628,12 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
         vWArray = *(xrefObject.GetDictionary().GetKey( "Index" ));
         if( !vWArray.IsArray() )
         {
-            RAISE_ERROR( ePdfError_NoXRef );
+            PODOFO_RAISE_ERROR( ePdfError_NoXRef );
         }
 
         if( !vWArray.GetArray()[0].IsNumber() )
         {
-            RAISE_ERROR( ePdfError_NoXRef );
+            PODOFO_RAISE_ERROR( ePdfError_NoXRef );
         }
 
         nFirstObj = vWArray.GetArray()[0].GetNumber();
@@ -641,13 +641,13 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
         // TODO: fix this
         if( vWArray.GetArray().size() != 2 )
         {
-            RAISE_ERROR( ePdfError_NoXRef );
+            PODOFO_RAISE_ERROR( ePdfError_NoXRef );
         }
     }
 
     if( !xrefObject.HasStreamToParse() )
     {
-        RAISE_ERROR( ePdfError_NoXRef );
+        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
     }
 
     xrefObject.GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
@@ -679,7 +679,7 @@ void PdfParser::ReadXRefStreamEntry( char* pBuffer, long lLen, long lW[W_ARRAY_S
         {
             PdfError::LogMessage( eLogSeverity_Error, "The XRef stream dictionary has an entry in /W of size %i.\nThe maximum supported value is %i.\n", lW[i], W_MAX_BYTES );
 
-            RAISE_ERROR( ePdfError_InvalidXRefStream );
+            PODOFO_RAISE_ERROR( ePdfError_InvalidXRefStream );
         }
         
         nData[i] = 0;
@@ -714,7 +714,7 @@ void PdfParser::ReadXRefStreamEntry( char* pBuffer, long lLen, long lW[W_ARRAY_S
             break;
         default:
         {
-            RAISE_ERROR( ePdfError_InvalidXRefType );
+            PODOFO_RAISE_ERROR( ePdfError_InvalidXRefType );
         }
     }
 }
@@ -809,7 +809,7 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
     PdfParserObject * const pStream = dynamic_cast<PdfParserObject*>(m_vecObjects->GetObject( PdfReference( nObjNo, 0 ) ) );
     if( !pStream )
     {
-        RAISE_ERROR( ePdfError_NoObject );
+        PODOFO_RAISE_ERROR( ePdfError_NoObject );
     }
     
     long lNum   = pStream->GetDictionary().GetKeyAsLong( "N", 0 );
@@ -866,7 +866,7 @@ void PdfParser::FindToken( const char* pszToken, long lRange )
     m_device.Device()->Seek( -lXRefBuf, std::ios_base::cur );
     if( m_device.Device()->Read( m_buffer.GetBuffer(), lXRefBuf ) != lXRefBuf )
     {
-        RAISE_ERROR( ePdfError_NoXRef );
+        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
     }
 
     m_buffer.GetBuffer()[lXRefBuf] = '\0';
@@ -881,7 +881,7 @@ void PdfParser::FindToken( const char* pszToken, long lRange )
 
     if( !i )
     {
-        RAISE_ERROR( ePdfError_InternalLogic );
+        PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
     }
 
     m_device.Device()->Seek( (lXRefBuf-i)*-1, std::ios_base::end );

@@ -75,7 +75,7 @@ bool PdfNameTreeNode::AddValue( const PdfString & key, const PdfObject & rValue 
             pChild = m_pObject->GetOwner()->GetObject( (*it).GetReference() );
             if( !pChild ) 
             {
-                RAISE_ERROR( ePdfError_InvalidHandle );
+                PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
             }
 
             eLimits = PdfNamesTree::CheckLimits( pChild, key );
@@ -92,7 +92,7 @@ bool PdfNameTreeNode::AddValue( const PdfString & key, const PdfObject & rValue 
             pChild = m_pObject->GetOwner()->GetObject( kids.back().GetReference() );
             if( !pChild ) 
             {
-                RAISE_ERROR( ePdfError_InvalidHandle );
+                PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
             }
 
             eLimits = ePdfNameLimits_After;
@@ -306,7 +306,7 @@ void PdfNamesTree::AddValue( const PdfName & tree, const PdfString & key, const 
     PdfNameTreeNode root( NULL, this->GetRootNode( tree, true ) );    
     if( !root.AddValue( key, rValue ) )
     {
-        RAISE_ERROR( ePdfError_InternalLogic );
+        PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
     }
 }
 

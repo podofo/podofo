@@ -130,7 +130,7 @@ unsigned int PdfVecObjects::GetIndex( const PdfReference & ref ) const
     
     if( it == this->end() )
     {
-        RAISE_ERROR( ePdfError_NoObject );
+        PODOFO_RAISE_ERROR( ePdfError_NoObject );
     }
 
     return (it - this->begin());
@@ -269,7 +269,7 @@ void PdfVecObjects::InsertOneReferenceIntoVector( const PdfObject* pObj, TVecRef
     {
         // ignore this reference
         return;
-        //RAISE_ERROR( ePdfError_NoObject );
+        //PODOFO_RAISE_ERROR( ePdfError_NoObject );
     }
     
     index = (it - this->begin());

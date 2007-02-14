@@ -54,7 +54,7 @@ PdfFontCache::PdfFontCache( PdfVecObjects* pParent )
 
     if( FT_Init_FreeType( &m_ftLibrary ) )
     {
-        RAISE_ERROR( ePdfError_FreeType );
+        PODOFO_RAISE_ERROR( ePdfError_FreeType );
     }
 }
 

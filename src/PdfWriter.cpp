@@ -53,7 +53,7 @@ PdfWriter::PdfWriter( PdfParser* pParser )
 {
     if( !pParser )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_eVersion     = pParser->GetPdfVersion();
@@ -68,7 +68,7 @@ PdfWriter::PdfWriter( PdfDocument* pDocument )
 {
     if( !pDocument )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_eVersion     = pDocument->GetPdfVersion();
@@ -84,7 +84,7 @@ PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
 {
     if( !pVecObjects || !pTrailer )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_eVersion     = ePdfVersion_1_3;
@@ -122,7 +122,7 @@ void PdfWriter::Write( PdfOutputDevice* pDevice )
 {
     if( !pDevice )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     if( m_bLinearized ) 
@@ -289,7 +289,7 @@ void PdfWriter::GetByteOffset( PdfObject* pObject, unsigned long* pulOffset )
 
     if( !pObject || !pulOffset )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     this->WritePdfHeader( &deviceHeader );
@@ -312,7 +312,7 @@ void PdfWriter::WriteToBuffer( char** ppBuffer, unsigned long* pulLen )
 
     if( !pulLen )
     {
-        RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     this->Write( &device );
@@ -321,7 +321,7 @@ void PdfWriter::WriteToBuffer( char** ppBuffer, unsigned long* pulLen )
     *ppBuffer = static_cast<char*>(malloc( *pulLen * sizeof(char) ));
     if( !*ppBuffer )
     {
-        RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
     PdfOutputDevice memDevice( *ppBuffer, *pulLen );
@@ -476,7 +476,7 @@ void PdfWriter::FetchPagesTree()
 
         if( !pRoot || !pRoot->IsReference() )
         {
-            RAISE_ERROR( ePdfError_InvalidDataType );
+            PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         }
 
         printf("Fetching: %lu\n", pRoot->GetReference().ObjectNumber() );
@@ -484,7 +484,7 @@ void PdfWriter::FetchPagesTree()
         pRoot            = m_vecObjects->GetObject( pRoot->GetReference() );
         if( !pRoot ) 
         {
-            RAISE_ERROR( ePdfError_InvalidHandle );
+            PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
         }
 
         m_pPagesTree     = new PdfPagesTree( pRoot->GetIndirectKey( "Pages" ) );
@@ -567,7 +567,7 @@ void PdfWriter::CreateFileIdentifier( PdfObject* pTrailer ) const
     if( !pBuffer )
     {
         delete pInfo;
-        RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
     PdfOutputDevice device( pBuffer, length.GetLength() );

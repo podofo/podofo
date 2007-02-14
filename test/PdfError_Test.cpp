@@ -26,7 +26,7 @@ using namespace PoDoFo;
 
 void function1()
 {
-    RAISE_ERROR( ePdfError_InvalidHandle );
+    PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
 }
 
 void function2()

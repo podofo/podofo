@@ -61,7 +61,7 @@ PdfObject* PdfContents::GetContentsForAppending() const
         cArr.push_back( pdfr );
         return newStm;
     } else {
-        RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 }
 
