@@ -589,7 +589,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
 
     if( !sText.IsHex() )
     {
-        std::auto_ptr<const PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+        std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
         pFilter->Encode( pszTab, lStringLen, &pBuffer, &lLen );
     }
 

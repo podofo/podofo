@@ -99,7 +99,6 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
         va_start( args, pszFormat );
         if( (lBytes = vfprintf( m_hFile, pszFormat, args )) < 0 )
         {
-            printf("lBytes=%i %i\n", lBytes, ferror( m_hFile ) );
             perror( NULL );
             PODOFO_RAISE_ERROR( ePdfError_UnexpectedEOF );
         }

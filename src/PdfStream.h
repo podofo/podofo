@@ -28,12 +28,9 @@
 
 namespace PoDoFo {
 
-typedef std::vector<EPdfFilter>            TVecFilters;
-typedef TVecFilters::iterator              TIVecFilters;
-typedef TVecFilters::const_iterator        TCIVecFilters;
-
 class PdfName;
 class PdfObject;
+class PdfOutputStream;
 
 /** A PDF stream can be appended to any PdfObject
  *  and can contain arbitrary data.
@@ -138,6 +135,13 @@ class PODOFO_API PdfStream {
      */
     void GetFilteredCopy( char** pBuffer, long* lLen ) const;
 
+    /** Get a filtered copy of a the stream and write it to a PdfOutputStream
+     *  
+     *  \param pStream filtered data is written to this stream.
+     */
+    void GetFilteredCopy( PdfOutputStream* pStream ) const;
+    
+
     /** Create a copy of a PdfStream object
      *  \param rhs the object to clone
      *  \returns a reference to this object
@@ -154,19 +158,6 @@ class PODOFO_API PdfStream {
      *  \returns the size of the internal buffer
      */
     virtual unsigned long GetInternalBufferSize() const = 0;
-
-    /** Reads the /Filters key from the current directory
-     *  and adds every found filter to the vector.
-     *  \param vecFilters add all filters to this vector
-     *  \returns ErrOk on success
-     */
-    void FillFilterList( TVecFilters & vecFilters ) const;
-
-    /** Converts a filter name to the corresponding enum
-     *  \param name of the filter without leading
-     *  \returns the filter as enum
-     */
-    static EPdfFilter FilterNameToType( const PdfName & name );
 
     /** Get a list of extra decode parameters for this dictionary.
      *  The list contains copies of the objects and has to be deleted by the caller! 

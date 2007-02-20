@@ -29,7 +29,13 @@
 namespace PoDoFo {
 
 class PdfDictionary;
+class PdfName;
+class PdfObject;
 class PdfOutputStream;
+
+typedef std::vector<EPdfFilter>            TVecFilters;
+typedef TVecFilters::iterator              TIVecFilters;
+typedef TVecFilters::const_iterator        TCIVecFilters;
 
 #define FILTER_INTERNAL_BUFFER_SIZE 4096
 
@@ -384,10 +390,169 @@ class PODOFO_API PdfFilterFactory {
      *  \param eFilter the GetType of filter that should be created.
      *
      *  \returns a new PdfFilter allocated using new or NULL if no
-     *           filter is available for this GetType.
+     *           filter is available for this type.
      */
-    static std::auto_ptr<const PdfFilter> Create( const EPdfFilter eFilter );
+    static std::auto_ptr<PdfFilter> Create( const EPdfFilter eFilter );
+
+    /** Create a PdfOutputStream that applies a list of filters 
+     *  on all data written to it.
+     *
+     *  \param filters a list of filters
+     *  \param pStream write all data to this PdfOutputStream after it has been encoded.
+     *  \returns a new PdfOutputStream that has to be deleted by the caller.
+     *
+     *  \see PdfFilterFactory::CreateFilterList
+     */
+    static PdfOutputStream* CreateEncodeStream( const TVecFilters & filters, PdfOutputStream* pStream );
+
+    /** Create a PdfOutputStream that applies a list of filters 
+     *  on all data written to it.
+     *
+     *  \param filters a list of filters
+     *  \param pStream write all data to this PdfOutputStream after it has been decoded.
+     *  \returns a new PdfOutputStream that has to be deleted by the caller.
+     *
+     *  \see PdfFilterFactory::CreateFilterList
+     */
+    static PdfOutputStream* CreateDecodeStream( const TVecFilters & filters, PdfOutputStream* pStream );
+
+    /** Converts a filter name to the corresponding enum
+     *  \param name of the filter without leading
+     *  \returns the filter as enum
+     */
+    static EPdfFilter FilterNameToType( const PdfName & name );
+
+    /** The passed PdfObject has to be a dictionary with a Filters key,
+     *  an array of filter names or a filter name.
+     *
+     *  \param pObject must define a list of filters.
+     *
+     *  \returns a list of filters
+     */
+    static TVecFilters CreateFilterList( const PdfObject* pObject );
 };
+
+#if 0
+/** A wrapper around PdfFilter that allows only to encode
+ *  data using this filter.
+ */
+class PODOFO_API PdfEncodeFilter {
+ public:
+
+    /** Create a new PdfEncodeFilter based on an existing filter
+     */
+    PdfEncodeFilter( std::auto_ptr<PdfFilter> filter )
+        : m_filter( filter )
+        {
+        }
+
+    /** Check wether encoding is implemented for this filter.
+     * 
+     *  \returns true if the filter is able to encode data
+     */
+    inline bool CanEncode() const; 
+
+    /** Encodes a buffer using a filter. The buffer will malloc'ed and
+     *  has to be free'd by the caller.
+     *
+     *  This function uses BeginEncode()/EncodeBlock()/EndEncode()
+     *  internally, so it's not safe to use when progressive encoding
+     *  is in progress.
+     *
+     *  \param pInBuffer input buffer
+     *  \param lInLen    length of the input buffer
+     *  \param ppOutBuffer pointer to the buffer of the encoded data
+     *  \param plOutLen pointer to the length of the output buffer
+     */
+    inline void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
+
+    /** Begin progressively encoding data using this filter.
+     *
+     *  This method sets the filter's output stream and may
+     *  perform other operations defined by particular filter
+     *  implementations. It calls BeginEncodeImpl().
+     *
+     *  \param pOutput encoded data will be written to this stream.
+     *
+     *  Call EncodeBlock() to encode blocks of data and use EndEncode
+     *  to finish the encoding process.
+     *
+     *  \see EncodeBlock
+     *  \see EndEncode
+     */
+    inline void BeginEncode( PdfOutputStream* pOutput );
+
+    /** Encode a block of data and write it to the PdfOutputStream
+     *  specified by BeginEncode. Ownership of the block is not taken
+     *  and remains with the caller.
+     *
+     *  The filter implementation need not immediately process the buffer,
+     *  and might internally buffer some or all of it. However, if it does
+     *  this the buffer's contents will be copied, so it is guaranteed to be
+     *  safe to free the passed buffer after this call returns.
+     *
+     *  This method is a wrapper around EncodeBlockImpl().
+     *
+     *  BeginEncode() must be called before this function.
+     *
+     *  \param pBuffer pointer to a buffer with data to encode
+     *  \param lLen length of data to encode.
+     *
+     *  Call EndEncode() after all data has been encoded
+     *
+     *  \see BeginEncode
+     *  \see EndEncode
+     */
+    inline void EncodeBlock( const char* pBuffer, long lLen );
+
+    /**
+     *  Finish encoding of data and reset the stream's state.
+     *
+     *  \see BeginEncode
+     *  \see EncodeBlock
+     */
+    inline void EndEncode();
+
+ private:
+    std::auto_ptr<PdfFilter> m_filter;
+
+};
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfEncodeFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
+{
+    m_filter->Encode( pInBuffer, lInLen, ppOutBuffer, plOutLen );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfEncodeFilter::BeginEncode( PdfOutputStream* pOutput )
+{
+    m_filter->BeginEncode( pOutput );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfEncodeFilter::EncodeBlock( const char* pBuffer, long lLen )
+{
+    m_filter->EncodeBlock( pBuffer, lLen );
+}
+
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfEncodeFilter::EndEncode()
+{
+    
+    m_filter->EndEncode();
+}
+
+#endif // 0
 
 };
 

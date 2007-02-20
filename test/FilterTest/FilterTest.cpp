@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "PdfFilter.h"
+#include "PdfOutputStream.h"
 
 #include "../PdfTest.h"
 
@@ -49,7 +50,7 @@ void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const long lTest
     long       lEncoded;
     long       lDecoded;
    
-    std::auto_ptr<const PdfFilter> pFilter = PdfFilterFactory::Create( eFilter );
+    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( eFilter );
     if( !pFilter.get() )
     {
         printf("!!! Filter %i not implemented.\n", eFilter);
@@ -119,12 +120,73 @@ void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const long lTest
     printf("\t-> Test succeeded!\n");
 }
 
+void test_filter_queque( const char* pBuffer, long lLen )
+{
+    char* pEncoded;
+    long  lEncoded;
+
+    char* pDecoded;
+    long  lDecoded;
+
+    TVecFilters filters;
+    filters.push_back( ePdfFilter_ASCIIHexDecode );
+    filters.push_back( ePdfFilter_ASCII85Decode );
+    filters.push_back( ePdfFilter_FlateDecode );
+
+    printf("Testing queque of filters:\n");
+    printf("\tePdfFilter_ASCIIHexDecode\n");
+    printf("\tePdfFilter_ASCII85Decode\n");
+    printf("\tePdfFilter_FlateDecode\n");
+
+    PdfMemoryOutputStream  stream;
+    PdfOutputStream*       pEncode = PdfFilterFactory::CreateEncodeStream( filters, &stream );
+    
+    pEncode->Write( pBuffer, lLen );
+
+    delete pEncode;
+
+    lEncoded = stream.GetLength();
+    pEncoded = stream.TakeBuffer();
+
+    PdfMemoryOutputStream stream2;
+    PdfOutputStream* pDecode = PdfFilterFactory::CreateDecodeStream( filters, &stream2 );
+    
+    pDecode->Write( pEncoded, lEncoded );
+
+    delete pDecode;
+
+    lDecoded = stream2.GetLength();
+    pDecoded = stream2.TakeBuffer();
+
+    printf("\t-> Original Data Length: %li\n", lLen );
+    printf("\t-> Encoded  Data Length: %li\n", lEncoded );
+    printf("\t-> Decoded  Data Length: %li\n", lDecoded );
+
+    if( lDecoded != lLen ) 
+    {
+        fprintf( stderr, "Error: Decoded data length does not match original data length.\n");
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    }
+
+    if( memcmp( pBuffer, pDecoded, lLen ) != 0 )
+    {
+        printf("\t-> Original Data: <%s>\n", pBuffer );
+        printf("\t-> Encoded  Data: \n<%s>\n", pEncoded );
+        printf("\t-> Decoded  Data: \n<%s>\n", pDecoded );
+
+        fprintf( stderr, "Error: Decoded Data does not match original data.\n");
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    }
+
+    free( pDecoded );
+    free( pEncoded );
+
+}
+
 } // end anon namespace
 
 int main() 
 {
-    int             i;
-
     printf("This test tests all filters of PoDoFo\n");
     printf("---\n");
 
@@ -144,11 +206,15 @@ int main()
         {
             test_filter( static_cast<EPdfFilter>(i), pTestBuffer1, lTestLength1 );
             test_filter( static_cast<EPdfFilter>(i), pTestBuffer2, lTestLength2 );
+
+            test_filter_queque( pTestBuffer1, lTestLength1 );
+            test_filter_queque( pTestBuffer2, lTestLength2 );
         }
     } catch( PdfError & e ) {
         e.PrintErrorMsg();
         return e.GetError();
     }
 
+    printf("All tests sucessfull!\n");
     return 0;
 }

@@ -45,7 +45,6 @@ class PODOFO_API PdfOutputStream {
      *  \returns the number of bytes written, -1 if an error ocurred
      */
     virtual long Write( const char* pBuffer, long lLen ) = 0;
-
 };
 
 /** An output stream that writes data to a file

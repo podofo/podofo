@@ -35,7 +35,7 @@ struct TFlatePredictorParams;
  */
 class PdfHexFilter : public PdfFilter {
  public:
-    virtual ~PdfHexFilter() {}
+    virtual ~PdfHexFilter() { }
 
     /** Check wether the encoding is implemented for this filter.
      * 
@@ -133,7 +133,7 @@ EPdfFilter PdfHexFilter::GetType() const
  */
 class PdfAscii85Filter : public PdfFilter {
  public:
-    virtual ~PdfAscii85Filter() {}
+    virtual ~PdfAscii85Filter() { }
 
     /** Check wether the encoding is implemented for this filter.
      * 
@@ -255,7 +255,7 @@ EPdfFilter PdfAscii85Filter::GetType() const
  */
 class PdfFlateFilter : public PdfFilter {
  public:
-    virtual ~PdfFlateFilter() {}
+    virtual ~PdfFlateFilter() { } 
 
     /** Check wether the encoding is implemented for this filter.
      * 

@@ -21,13 +21,135 @@
 #include "PdfDefines.h"
 #include "PdfFilter.h"
 
+#include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfFiltersPrivate.h"
 #include "PdfOutputStream.h"
 
-#include <map>
-
 namespace PoDoFo {
+
+/** Create a filter that is a PdfOutputStream.
+ *
+ *  All data written to this stream is encoded using a
+ *  filter and written to another PdfOutputStream.
+ *
+ *  The passed output stream is owned by this PdfOutputStream
+ *  and deleted along with it.
+ */
+class PdfFilteredEncodeStream : public PdfOutputStream{
+ public:
+    /** Create a filtered output stream.
+     *
+     *  All data written to this stream is encoded using the passed filter type
+     *  and written to the passed output stream which will be deleted 
+     *  by this PdfFilteredEncodeStream.
+     *
+     *  \param pOutputStream write all data to this output stream after encoding the data.
+     *  \param eFilter use this filter for encoding.
+     *  \param bOwnStream if true pOutputStream will be deleted along with this filter
+     */
+    PdfFilteredEncodeStream( PdfOutputStream* pOutputStream, const EPdfFilter eFilter, bool bOwnStream )
+        : m_pOutputStream( pOutputStream )
+    {
+        m_filter = PdfFilterFactory::Create( eFilter );
+
+        if( !m_filter.get() ) 
+        {
+            PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+        }
+
+        m_filter->BeginEncode( pOutputStream );
+
+        if( !bOwnStream )
+            m_pOutputStream = NULL;
+    }
+
+    virtual ~PdfFilteredEncodeStream()
+    {
+        m_filter->EndEncode();
+        delete m_pOutputStream;
+    }
+
+    /** Write data to the output stream
+     *  
+     *  \param pBuffer the data is read from this buffer
+     *  \param lLen    the size of the buffer 
+     */
+    virtual long Write( const char* pBuffer, long lLen )
+    {
+        m_filter->EncodeBlock( pBuffer, lLen );
+        return 0;
+    }
+
+private:
+    PdfOutputStream*         m_pOutputStream;
+    std::auto_ptr<PdfFilter> m_filter;
+};
+
+/** Create a filter that is a PdfOutputStream.
+ *
+ *  All data written to this stream is decoded using a
+ *  filter and written to another PdfOutputStream.
+ *
+ *  The passed output stream is owned by this PdfOutputStream
+ *  and deleted along with it.
+ */
+class PdfFilteredDecodeStream : public PdfOutputStream {
+ public:
+    /** Create a filtered output stream.
+     *
+     *  All data written to this stream is decoded using the passed filter type
+     *  and written to the passed output stream which will be deleted 
+     *  by this PdfFilteredEncodeStream.
+     *
+     *  \param pOutputStream write all data to this output stream after decoding the data.
+     *                       The PdfOutputStream is deleted along with this object.
+     *  \param eFilter use this filter for decoding.
+     *  \param bOwnStream if true pOutputStream will be deleted along with this filter
+     */
+    PdfFilteredDecodeStream( PdfOutputStream* pOutputStream, const EPdfFilter eFilter, bool bOwnStream )
+        : m_pOutputStream( pOutputStream )
+    {
+        m_filter = PdfFilterFactory::Create( eFilter );
+        if( !m_filter.get() ) 
+        {
+            PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+        }
+
+        m_filter->BeginDecode( pOutputStream );
+
+        if( !bOwnStream )
+            m_pOutputStream = NULL;
+    }
+
+    virtual ~PdfFilteredDecodeStream()
+    {
+        m_filter->EndDecode();
+
+        delete m_pOutputStream;
+    }
+
+    /** Write data to the output stream
+     *  
+     *  \param pBuffer the data is read from this buffer
+     *  \param lLen    the size of the buffer 
+     */
+    virtual long Write( const char* pBuffer, long lLen )
+    {
+        m_filter->DecodeBlock( pBuffer, lLen );
+        return 0;
+    }
+
+private:
+    PdfOutputStream*         m_pOutputStream;
+    std::auto_ptr<PdfFilter> m_filter;
+};
+
+
+// -----------------------------------------------------
+// Actual PdfFilter code
+// -----------------------------------------------------
+
 
 PdfFilter::PdfFilter() 
     : m_pOutputStream( NULL )
@@ -69,7 +191,11 @@ void PdfFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, 
     *plOutLen    = stream.GetLength();
 }
 
-std::auto_ptr<const PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter ) 
+// -----------------------------------------------------
+// PdfFilterFactory code
+// -----------------------------------------------------
+
+std::auto_ptr<PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter ) 
 {
     PdfFilter* pFilter = NULL;
     switch( eFilter )
@@ -103,7 +229,104 @@ std::auto_ptr<const PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilte
         default:
             break;
     }
-    return std::auto_ptr<const PdfFilter>(pFilter);
+    return std::auto_ptr<PdfFilter>(pFilter);
+}
+
+PdfOutputStream* PdfFilterFactory::CreateEncodeStream( const TVecFilters & filters, PdfOutputStream* pStream ) 
+{
+    TVecFilters::const_iterator it = filters.begin();
+
+    PODOFO_RAISE_LOGIC_IF( !filters.size(), "Cannot create an EncodeStream from an empty list of filters" );
+
+    PdfFilteredEncodeStream* pFilter = new PdfFilteredEncodeStream( pStream, *it, false );
+    ++it;
+
+    while( it != filters.end() ) 
+    {
+        pFilter = new PdfFilteredEncodeStream( pFilter, *it, true );
+        ++it;
+    }
+
+    return pFilter;
+}
+
+PdfOutputStream* PdfFilterFactory::CreateDecodeStream( const TVecFilters & filters, PdfOutputStream* pStream ) 
+{
+    TVecFilters::const_reverse_iterator it = filters.rbegin();
+
+    PODOFO_RAISE_LOGIC_IF( !filters.size(), "Cannot create an DecodeStream from an empty list of filters" );
+
+    PdfFilteredDecodeStream* pFilter = new PdfFilteredDecodeStream( pStream, *it, false );
+    ++it;
+
+    while( it != filters.rend() ) 
+    {
+        pFilter = new PdfFilteredDecodeStream( pFilter, *it, true );
+        ++it;
+    }
+
+    return pFilter;
+}
+
+EPdfFilter PdfFilterFactory::FilterNameToType( const PdfName & name )
+{
+    // All known filters
+    static const char* aszFilters[] = {
+        "ASCIIHexDecode",
+        "ASCII85Decode",
+        "LZWDecode",
+        "FlateDecode",
+        "RunLengthDecode",
+        "CCITTFaxDecode", 
+        "JBIG2Decode",
+        "DCTDecode",
+        "JPXDecode",
+        "Crypt",
+        NULL
+    };
+
+    int i = 0;
+
+    while( aszFilters[i] )
+    {
+        if( name == aszFilters[i] )
+            return static_cast<EPdfFilter>(i);
+        
+        ++i;
+    }
+
+    return ePdfFilter_Unknown;
+}
+
+TVecFilters PdfFilterFactory::CreateFilterList( const PdfObject* pObject )
+{
+    TVecFilters filters;
+
+    const PdfObject* pObj    = NULL;
+
+    if( pObject->IsDictionary() && pObject->GetDictionary().HasKey( "Filter" ) )
+        pObj = pObject->GetDictionary().GetKey( "Filter" );
+    else if( pObject->IsArray() )
+        pObj = pObject;
+    else if( pObject->IsName() ) 
+        pObj = pObject;
+
+
+    if( pObj->IsName() ) 
+        filters.push_back( PdfFilterFactory::FilterNameToType( pObj->GetName() ) );
+    else if( pObj->IsArray() ) 
+    {
+        TCIVariantList it = pObj->GetArray().begin();
+
+        while( it != pObj->GetArray().end() )
+        {
+            filters.push_back( PdfFilterFactory::FilterNameToType( (*it).GetName() ) );
+                
+            ++it;
+        }
+    }
+
+    return filters;
 }
 
 };

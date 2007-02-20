@@ -22,6 +22,7 @@
 
 #include "PdfArray.h"
 #include "PdfFilter.h"
+#include "PdfOutputStream.h"
 
 namespace PoDoFo {
 
@@ -34,81 +35,30 @@ PdfStream::~PdfStream()
 {
 }
 
-void PdfStream::FillFilterList( TVecFilters & vecFilters ) const
+void PdfStream::GetFilteredCopy( PdfOutputStream* pStream ) const
 {
-    PdfObject* pObj;
-    EPdfFilter eFilter = ePdfFilter_Unknown;
+    TVecFilters      vecFilters    = PdfFilterFactory::CreateFilterList( m_pParent );
+    PdfOutputStream* pDecodeStream = PdfFilterFactory::CreateDecodeStream( vecFilters, pStream );
 
-    vecFilters.clear();
+    pDecodeStream->Write( const_cast<char*>(this->GetInternalBuffer()), this->GetInternalBufferSize() );
 
-    if( m_pParent->GetDictionary().HasKey( "Filter" ) )
-    {
-        pObj = m_pParent->GetDictionary().GetKey( "Filter" );
-        if( pObj->IsName() )
-        {
-            eFilter = FilterNameToType( pObj->GetName() );
-            vecFilters.push_back( eFilter );
-        }
-        else if( pObj->IsArray() )
-        {
-            TVariantList vecVariants = pObj->GetArray();
-            TIVariantList it = vecVariants.begin();
-
-            while( it != vecVariants.end() )
-            {
-                if( (*it).GetDataType() != ePdfDataType_Name )
-                {
-                    PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
-                }
-
-                eFilter = PdfStream::FilterNameToType( (*it).GetName() );
-                vecFilters.push_back( eFilter );
-                
-                ++it;
-            }
-        }
-        else
-        {
-            PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
-        }
-    }
+    delete pDecodeStream;
 }
 
-EPdfFilter PdfStream::FilterNameToType( const PdfName & name )
+void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
 {
-    static const char* aszFilters[] = {
-        "ASCIIHexDecode",
-        "ASCII85Decode",
-        "LZWDecode",
-        "FlateDecode",
-        "RunLengthDecode",
-        "CCITTFaxDecode", 
-        "JBIG2Decode",
-        "DCTDecode",
-        "JPXDecode",
-        "Crypt",
-        NULL
-    };
+    TVecFilters            vecFilters    = PdfFilterFactory::CreateFilterList( m_pParent );
+    PdfMemoryOutputStream  stream;
+    PdfOutputStream*       pDecodeStream = PdfFilterFactory::CreateDecodeStream( vecFilters, &stream );
 
-    int i = 0;
+    pDecodeStream->Write( const_cast<char*>(this->GetInternalBuffer()), this->GetInternalBufferSize() );
+    delete pDecodeStream;
 
-    if( !name.GetLength() )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    while( aszFilters[i] )
-    {
-        if( name == aszFilters[i] )
-            return static_cast<EPdfFilter>(i);
-        
-        ++i;
-    }
-
-    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
-    return ePdfFilter_Unknown;
+    *lLen     = stream.GetLength();
+    *ppBuffer = stream.TakeBuffer();
 }
 
+/*
 void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
 {
     TVecFilters            vecFilters;
@@ -150,7 +100,7 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
 
         while( it != vecFilters.end() ) 
         {
-            std::auto_ptr<const PdfFilter> pFilter = PdfFilterFactory::Create( *it );
+            std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( *it );
             if( !pFilter.get() ) 
             {
                 FreeDecodeParms( &tDecodeParams );
@@ -200,6 +150,7 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
 
     FreeDecodeParms( &tDecodeParams );
 }
+*/
 
 void PdfStream::GetDecodeParms( TVecDictionaries* pParams ) const
 {

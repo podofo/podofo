@@ -209,7 +209,7 @@ void PdfAscii85Filter::EndEncodeImpl()
 {
     if( m_count > 0 )
         this->EncodeTuple( m_tuple, m_count );
-    GetStream()->Write( "~>", 2 );
+    //GetStream()->Write( "~>", 2 );
 }
 
 void PdfAscii85Filter::BeginDecodeImpl( const PdfDictionary* )
@@ -251,7 +251,7 @@ void PdfAscii85Filter::DecodeBlockImpl( const char* pBuffer, long lLen )
             case '~':
                 ++pBuffer; 
                 --lLen;
-                if( *pBuffer != '>' ) 
+                if( lLen && *pBuffer != '>' ) 
                 {
                     PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
                 }
@@ -265,8 +265,6 @@ void PdfAscii85Filter::DecodeBlockImpl( const char* pBuffer, long lLen )
         --lLen;
         ++pBuffer;
     }
-
-
 }
 
 void PdfAscii85Filter::EndDecodeImpl()
@@ -295,6 +293,7 @@ void PdfAscii85Filter::WidePut( unsigned long tuple, int bytes ) const
             data[0] = static_cast<char>(tuple >> 24);
             data[1] = static_cast<char>(tuple >> 16);
             data[2] = static_cast<char>(tuple >>  8);
+            printf("Writing %x %x %x\n", data[0], data[1], data[2] );
             break;
 	case 2:
             data[0] = static_cast<char>(tuple >> 24);

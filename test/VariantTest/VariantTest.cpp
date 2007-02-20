@@ -96,7 +96,6 @@ void Test( const char* pszString, EPdfDataType eDataType, const char* pszExpecte
 {
     PdfVariant  variant;
     std::string ret;
-    long lLen           = 0;
 
     if( !pszExpected )
         pszExpected = pszString;
@@ -128,7 +127,7 @@ int main()
     printf("This test tests the PdfVariant class.\n");
     printf("---\n");
 
-    std::auto_ptr<const PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
 
     // testing strings
     TEST_SAFE_OP( Test( "(Hallo Welt!)", ePdfDataType_String ) );
