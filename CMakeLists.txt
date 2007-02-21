@@ -78,8 +78,13 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
         -Wcast-qual
         -Wwrite-strings
         -Wredundant-decls
-	-g3
+        -Wreorder
         )
+    #
+    # Note that we do not need debug definitions here. Set
+    # -DCMAKE_BUILD_TYPE=debug or (if you want an optimised
+    # release build with debug info) -DCMAKE_CXX_FLAGS="-g3"
+    #
     # We add -W unless we're using gcc on win32, where it produces
     # spurious warnings about dllimport of inlines because of a dllimport
     # declaration on the whole class.
