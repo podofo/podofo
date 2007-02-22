@@ -155,6 +155,7 @@ int main()
     TEST_SAFE_OP( Test( "3.14", ePdfDataType_Real ) );
     TEST_SAFE_OP( Test( "-2.97", ePdfDataType_Real ) );
     TEST_SAFE_OP( Test( "0", ePdfDataType_Number ) );
+    TEST_SAFE_OP_IGNORE( Test( "4.", ePdfDataType_Real ) );
     printf("---\n");
 
     // testing references

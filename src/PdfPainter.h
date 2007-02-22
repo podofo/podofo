@@ -59,11 +59,21 @@ class PODOFO_API PdfPainter {
     /** Set the page on which the painter should draw.
      *  The painter will draw of course on the pages
      *  contents object.
+     *
+     *  Calls FinishPage() on the last page if it was not yet called.
+     *
      *  \param pPage a PdfCanvas object (most likely a PdfPage or PdfXObject).
      *
      *  \see PdfPage \see PdfXObject
+     *  \see FinishPage()
      */
     void SetPage( PdfCanvas* pPage );
+
+    /** Finish drawing onto a page.
+     * 
+     *  This has to be called whenever a page has been drawn complete.
+     */
+    void FinishPage();
 
     /** Set the color for all following stroking operations
      *  in grayscale colorspace. This operation used the 'G'

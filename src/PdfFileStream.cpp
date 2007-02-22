@@ -20,12 +20,15 @@
 
 #include "PdfFileStream.h"
 
+#include "PdfFilter.h"
 #include "PdfOutputDevice.h"
+#include "PdfOutputStream.h"
 
 namespace PoDoFo {
 
 PdfFileStream::PdfFileStream( PdfObject* pParent, PdfOutputDevice* pDevice )
-    : PdfStream( pParent ), m_pDevice( pDevice ), m_lLength( 0 ), m_lOffset( -1 )
+    : PdfStream( pParent ), m_pDevice( pDevice ), m_pStream( NULL ), m_pDeviceStream( NULL ),
+      m_lLenInitial( 0 ), m_lLength( 0 )
 {
     m_pLength = pParent->GetOwner()->CreateObject( PdfVariant(0L) );
     m_pParent->GetDictionary().AddKey( PdfName::KeyLength, m_pLength->Reference() );
@@ -39,27 +42,36 @@ void PdfFileStream::Write( PdfOutputDevice* )
 {
 }
 
-void PdfFileStream::Set( char* szBuffer, long lLen, bool )
+void PdfFileStream::BeginAppendImpl( const TVecFilters & vecFilters )
 {
-    if( static_cast<long>(m_lOffset) == -1L )
-        m_lOffset = m_pDevice->GetLength();
-    else
-        m_pDevice->Seek( m_lOffset );
+    m_lLenInitial = m_pDevice->GetLength();
 
-    m_pDevice->Write( szBuffer, lLen );
-    m_lLength = lLen;
-
-    m_pLength->SetNumber( m_lLength );
+    if( vecFilters.size() )
+    {
+        m_pDeviceStream = new PdfDeviceOutputStream( m_pDevice );
+        m_pStream       = PdfFilterFactory::CreateEncodeStream( vecFilters, m_pDeviceStream );
+    }
+    else 
+        m_pStream = new PdfDeviceOutputStream( m_pDevice );
 }
 
-void PdfFileStream::Append( const char* pszString, size_t lLen )
+void PdfFileStream::AppendImpl( const char* pszString, size_t lLen )
 {
-    if( static_cast<long>(m_lOffset) == -1L )
-        m_lOffset = m_pDevice->GetLength();
+    m_pStream->Write( pszString, lLen );
+}
 
-    m_pDevice->Write( pszString, lLen );
-    m_lLength += lLen;
+void PdfFileStream::EndAppendImpl()
+{
+    delete m_pStream;
+    m_pStream = NULL;
 
+    if( m_pDeviceStream ) 
+    {
+        delete m_pDeviceStream;
+        m_pDeviceStream = NULL;
+    }
+
+    m_lLength = m_pDevice->GetLength() - m_lLenInitial;
     m_pLength->SetNumber( m_lLength );
 }
 

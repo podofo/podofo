@@ -24,19 +24,52 @@
 #include "PdfFilter.h"
 #include "PdfObject.h"
 #include "PdfOutputDevice.h"
+#include "PdfOutputStream.h"
 #include "PdfVariant.h"
 
 namespace PoDoFo {
 
 #define STREAM_SIZE_INCREASE 1024
 
+/** An output stream that writes to a PdfRefCountedBuffer
+ */
+class PODOFO_API PdfBufferOutputStream : public PdfOutputStream {
+ public:
+    
+    /** 
+     *  Write to an already opened input device
+     * 
+     *  \param pDevice an output device
+     */
+    PdfBufferOutputStream( PdfRefCountedBuffer* pBuffer )
+        : m_pBuffer( pBuffer )
+    {
+    }
+    
+    /** Write data to the output stream
+     *  
+     *  \param pBuffer the data is read from this buffer
+     *  \param lLen    the size of the buffer 
+     *
+     *  \returns the number of bytes written, -1 if an error ocurred
+     */
+    virtual long Write( const char* pBuffer, long lLen )
+    {
+        m_pBuffer->Append( pBuffer, lLen );
+        return lLen;
+    }
+
+ private:
+    PdfRefCountedBuffer* m_pBuffer;
+};
+
 PdfMemStream::PdfMemStream( PdfObject* pParent )
-    : PdfStream( pParent )
+    : PdfStream( pParent ), m_pStream( NULL ), m_pBufferStream( NULL )
 {
 }
 
 PdfMemStream::PdfMemStream( const PdfMemStream & rhs )
-    : PdfStream( NULL )
+    : PdfStream( NULL ), m_pStream( NULL ), m_pBufferStream( NULL )
 {
     operator=(rhs);
 }
@@ -45,33 +78,35 @@ PdfMemStream::~PdfMemStream()
 {
 }
 
-void PdfMemStream::Set( char* szBuffer, long lLen, bool takePossession )
+void PdfMemStream::BeginAppendImpl( const TVecFilters & vecFilters )
 {
-    PdfRefCountedBuffer tmp( szBuffer, lLen );
+    m_buffer = PdfRefCountedBuffer();
 
-    if( !szBuffer )
+    if( vecFilters.size() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        m_pBufferStream = new PdfBufferOutputStream( &m_buffer );
+        m_pStream       = PdfFilterFactory::CreateEncodeStream( vecFilters, m_pBufferStream );
     }
+    else 
+        m_pStream = new PdfBufferOutputStream( &m_buffer );
 
-    m_buffer = tmp;
-    m_buffer.SetTakePossesion( takePossession );
-
-    if( m_pParent )
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( static_cast<long>(m_buffer.GetSize()) ) );
 }
 
-void PdfMemStream::Append( const char* pszString, size_t lLen )
+void PdfMemStream::AppendImpl( const char* pszString, size_t lLen )
 {
-    if( !pszString )
+    m_pStream->Write( pszString, lLen );
+}
+
+void PdfMemStream::EndAppendImpl()
+{
+    delete m_pStream;
+    m_pStream = NULL;
+
+    if( m_pBufferStream ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        delete m_pBufferStream;
+        m_pBufferStream = NULL;
     }
-
-    // only append to uncommpressed streams
-    this->Uncompress();
-
-    m_buffer.Append( pszString, lLen );
 
     if( m_pParent )
         m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( static_cast<long>(m_buffer.GetSize()) ) );

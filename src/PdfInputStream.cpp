@@ -57,6 +57,17 @@ long PdfFileInputStream::Read( char* pBuffer, long lLen )
     return fread( pBuffer, sizeof(char), lLen, m_hFile );
 }
 
+long PdfFileInputStream::GetFileLength()
+{
+    long lOffset = ftell( m_hFile );
+    long lLen;
+
+    fseek( m_hFile, 0L, SEEK_END );
+    lLen = ftell( m_hFile );
+    fseek( m_hFile, lOffset, SEEK_SET );
+
+    return lLen;
+}
 
 PdfMemoryInputStream::PdfMemoryInputStream( const char* pBuffer, long lBufferLen )
     : m_pBuffer( pBuffer ), m_pCur( pBuffer ), m_lBufferLen( lBufferLen )

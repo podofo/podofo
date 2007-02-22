@@ -24,10 +24,12 @@
 #include "PdfDefines.h"
 
 #include "PdfDictionary.h"
+#include "PdfFilter.h"
 #include "PdfRefCountedBuffer.h"
 
 namespace PoDoFo {
 
+class PdfInputStream;
 class PdfName;
 class PdfObject;
 class PdfOutputStream;
@@ -63,44 +65,105 @@ class PODOFO_API PdfStream {
 
     /** Set a binary buffer as stream data, optionally taking ownership of the buffer.
      *
-     *  \warning If takePossession is true, the stream must be allocated using
-     *           malloc, as free() will be used to release it.
+     *  \param szBuffer buffer containing the stream data
+     *  \param lLen length of the buffer
+     *  \param vecFilters a list of filters to use when appending data
+     */
+    void Set( char* szBuffer, long lLen, const TVecFilters & vecFilters );
+
+    /** Set a binary buffer as stream data, optionally taking ownership of the buffer.
+     *  All data will be flate encoded.
      *
      *  \param szBuffer buffer containing the stream data
      *  \param lLen length of the buffer
-     *  \param takePossession does the stream now own this buffer...
-     *  \returns ErrOk
      */
-    virtual void Set( char* szBuffer, long lLen, bool takePossession = true ) = 0;
+    void Set( char* szBuffer, long lLen );
+
+    /** Set a binary buffer whose contents are read from a PdfInputStream
+     *  All data will be flate encoded.
+     * 
+     *  \param pStream read stream contents from this PdfInputStream
+     */
+    void Set( PdfInputStream* pStream );
+
+    /** Set a binary buffer whose contents are read from a PdfInputStream
+     * 
+     *  \param pStream read stream contents from this PdfInputStream
+     *  \param vecFilters a list of filters to use when appending data
+     */
+    void Set( PdfInputStream* pStream, const TVecFilters & vecFilters );
 
     /** Set a null-terminated char* buffer  as the streams contents.
      *
      *  The string will be copied into a newly allocated buffer.
      *  \param pszString a zero terminated string buffer containing only ASCII text data
-     *  \returns ErrOk on sucess
      */
     inline void Set( const char* pszString );
 
+    /** Start appending data to this stream.
+     *
+     *  This method has to be called before any of the append methods.
+     *  All appended data will be flate decoded!
+     *
+     *  \param bClearExisting if true any existing stream contents will be cleared.
+     *
+     *  \see Append
+     *  \see EndAppend
+     */
+    void BeginAppend( bool bClearExisting = true );
+
+    /** Start appending data to this stream.
+     *  This method has to be called before any of the append methods.
+     *
+     *  \param vecFilters a list of filters to use when appending data
+     *  \param bClearExisting if true any existing stream contents will be cleared.
+     *
+     *  \see Append
+     *  \see EndAppend
+     */
+    void BeginAppend( const TVecFilters & vecFilters, bool bClearExisting = true );
+
     /** Append a binary buffer to the current stream contents.
+     *
+     *  Make sure BeginAppend has been called before.
+     *
      *  \param pszString a buffer
      *  \param lLen length of the buffer
-     *  \returns ErrOk on sucess
+     *
+     *  \see BeginAppend
+     *  \see EndAppend
      */
-    virtual void Append( const char* pszString, size_t lLen ) = 0; 
+    inline void Append( const char* pszString, size_t lLen ); 
 
     /** Append a null-terminated string to the current stream contents. 
      *
+     *  Make sure BeginAppend has been called before.
+     *
      *  \param pszString a zero terminated string buffer containing only ASCII text data
-     *  \returns ErrOk on sucess
+     *
+     *  \see BeginAppend
+     *  \see EndAppend
      */
     inline void Append( const char* pszString ); 
 
     /** Append to the current stream contents.
      *
+     *  Make sure BeginAppend has been called before.
+     *
      *  \param sString a std::string containing ASCII text data
-     *  \returns ErrOk on sucess
+     *
+     *  \see BeginAppend
+     *  \see EndAppend
      */
     inline void Append( const std::string& sString ); 
+
+    /** Finish appending data to this stream.
+     *  BeginAppend() has to be called before this method.
+     *
+     *  \see BeginAppend
+     *  \see Append
+     */
+    void EndAppend();
 
     /** Get the stream's length with all filters applied (eg if the stream is
      * Flate compressed, the length of the compressed data stream).
@@ -118,7 +181,6 @@ class PODOFO_API PdfStream {
      *
      *  \param pBuffer pointer to the buffer
      *  \param lLen    pointer to the buffer length
-     *  \returns ErrOk on success.
      */
     virtual void GetCopy( char** pBuffer, long* lLen ) const = 0;
 
@@ -131,7 +193,6 @@ class PODOFO_API PdfStream {
      *
      *  \param pBuffer pointer to the buffer
      *  \param lLen    pointer to the buffer length
-     *  \returns ErrOk on success.
      */
     void GetFilteredCopy( char** pBuffer, long* lLen ) const;
 
@@ -159,9 +220,30 @@ class PODOFO_API PdfStream {
      */
     virtual unsigned long GetInternalBufferSize() const = 0;
 
+    /** Begin appending data to this stream.
+     *  Clears the current stream contents.
+     *
+     *  \param vecFilters use this filters to encode any data written to the stream.
+     */
+    virtual void BeginAppendImpl( const TVecFilters & vecFilters ) = 0;
+
+    /** Append a binary buffer to the current stream contents.
+     *
+     *  \param pszString a buffer
+     *  \param lLen length of the buffer
+     *
+     *  \see BeginAppend
+     *  \see Append
+     *  \see EndAppend
+     */
+    virtual void AppendImpl( const char* pszString, size_t lLen ) = 0; 
+
+    /** Finish appending data to the stream
+     */
+    virtual void EndAppendImpl() = 0;
+
     /** Get a list of extra decode parameters for this dictionary.
      *  The list contains copies of the objects and has to be deleted by the caller! 
-     *  \returns ErrOk on success
      */
     void GetDecodeParms( TVecDictionaries* pParams ) const;
 
@@ -171,7 +253,6 @@ class PODOFO_API PdfStream {
      *  This function may change pParams->SetAutoDelete!
      *
      *  \param pParams a list of decode parameter dictioniers, may contain null pointers
-     *  \returns ErrOk on success
      */
     void SetDecodeParms( TVecDictionaries* pParams );
 
@@ -182,6 +263,8 @@ class PODOFO_API PdfStream {
 
  protected:
     PdfObject*          m_pParent;
+
+    bool                m_bAppend;
 };
 
 // -----------------------------------------------------
@@ -191,6 +274,16 @@ void PdfStream::Set( const char* pszString )
 {
     if( pszString ) 
         Set( const_cast<char*>(pszString), strlen( pszString ) );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfStream::Append( const char* pszString, size_t lLen )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_bAppend, "Append() failed because BeginAppend() was not yet called!" );
+
+    this->AppendImpl( pszString, lLen );
 }
 
 // -----------------------------------------------------

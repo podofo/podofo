@@ -69,12 +69,12 @@ void PdfImage::SetImageColorSpace( EPdfColorSpace eColorSpace )
 
 void PdfImage::SetImageFilter( const PdfName & inName )
 {
-	m_pObject->GetDictionary().AddKey( "Filter", inName );
+    m_pObject->GetDictionary().AddKey( "Filter", inName );
 }
 
 void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight, 
                              unsigned int nBitsPerComponent, 
-                             char* szBuffer, long lLen, bool bTakeOwnership )
+                             char* szBuffer, long lLen )
 {
     m_rRect.SetWidth( nWidth );
     m_rRect.SetHeight( nHeight );
@@ -83,14 +83,7 @@ void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight,
     m_pObject->GetDictionary().AddKey( "Height", PdfVariant( static_cast<long>(nHeight) ) );
     m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<long>(nBitsPerComponent) ) );
 
-    m_pObject->GetStream()->Set( szBuffer, lLen, bTakeOwnership );
-    /*
-    if ( m_pObject->GetDictionary().GetKey( "Filter" )->GetName() == "FlateDecode" ) 
-    {
-        // compress any stream that has been marked as using FlateDecode
-        m_pObject->GetStream()->FlateCompress();
-    }
-    */
+    m_pObject->GetStream()->Set( szBuffer, lLen );
 }
 
 void PdfImage::LoadFromFile( const char* pszFilename )
@@ -169,15 +162,20 @@ void PdfImage::LoadFromFile( const char* pszFilename )
             break;
     }
 
-    this->SetImageFilter( PdfName("DCTDecode") );	// DCTDecode == JPEG
-    this->SetImageData(
-            static_cast<unsigned int>(m_rRect.GetWidth()),
-            static_cast<unsigned int>(m_rRect.GetHeight()),
-            8 , szBuffer, lLen, true ); // 8 bits per component
+    m_pObject->GetDictionary().AddKey( "Width", PdfVariant( static_cast<long>(cinfo.output_width) ) );
+    m_pObject->GetDictionary().AddKey( "Height", PdfVariant( static_cast<long>(cinfo.output_height) ) );
+    m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( 8L ) );
+
+    TVecFilters filters;
+    m_pObject->GetStream()->Set( szBuffer, lLen, filters );
+
+    this->SetImageFilter( "DCTDecode" );
+
 
     (void) jpeg_destroy_decompress(&cinfo);
 
     fclose( hInfile );
+    free( szBuffer );
 }
 
 const char* PdfImage::ColorspaceToName( EPdfColorSpace eColorSpace )

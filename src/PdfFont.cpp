@@ -22,6 +22,7 @@
 
 #include "PdfArray.h"
 #include "PdfFontMetrics.h"
+#include "PdfInputStream.h"
 #include "PdfPage.h"
 #include "PdfStream.h"
 #include "PdfWriter.h"
@@ -124,8 +125,6 @@ void PdfFont::Init( bool bEmbedd )
 void PdfFont::EmbeddFont( PdfObject* pDescriptor )
 {
     PdfObject* pContents;
-    FILE*      hFile;
-    char*      pBuffer = NULL;
     long       lSize = 0;
 
     pContents = m_pObject->GetOwner()->CreateObject();
@@ -141,29 +140,20 @@ void PdfFont::EmbeddFont( PdfObject* pDescriptor )
     if ( m_pMetrics->GetFontDataLen() && m_pMetrics->GetFontData() ) 
     {
         // FIXME const_cast<char*> is dangerous if string literals may ever be passed
-        pBuffer = const_cast<char*>( m_pMetrics->GetFontData() );
+        char* pBuffer = const_cast<char*>( m_pMetrics->GetFontData() );
         lSize = m_pMetrics->GetFontDataLen();
+
+        pContents->GetStream()->Set( pBuffer, lSize );
     } 
     else 
     {
-        hFile = fopen( m_pMetrics->GetFilename(), "rb" );
-        if( !hFile )
-        {
-            PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
-        }
+        PdfFileInputStream stream( m_pMetrics->GetFilename() );
+        pContents->GetStream()->Set( &stream );
 
-        fseek( hFile, 0, SEEK_END );
-        lSize = ftell( hFile );
-        fseek( hFile, 0, SEEK_SET );
-        
-        pBuffer = static_cast<char*>(malloc( sizeof(char) * lSize ));
-        fread( pBuffer, lSize, sizeof(char), hFile ); 
-        
-        fclose( hFile );
+        lSize = stream.GetFileLength();
     }
     
     pContents->GetDictionary().AddKey( "Length1", PdfVariant( lSize ) );
-    pContents->GetStream()->Set( pBuffer, lSize, !m_pMetrics->GetFontDataLen() );	// if we loaded from memory, DO NOT let Stream take possession
 }
 
 void PdfFont::SetFontSize( float fSize )

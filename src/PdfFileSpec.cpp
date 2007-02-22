@@ -21,6 +21,7 @@
 #include "PdfFileSpec.h"
 
 #include "PdfDictionary.h"
+#include "PdfInputStream.h"
 #include "PdfObject.h"
 #include "PdfStream.h"
 
@@ -74,31 +75,12 @@ PdfString PdfFileSpec::CreateFileSpecification( const char* pszFilename ) const
 
 void PdfFileSpec::EmbeddFile( PdfObject* pStream, const char* pszFilename ) const
 {
-    FILE* hFile = fopen( pszFilename, "rb" );
-
-    if( !hFile ) 
-    {
-        PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
-    }
-
-    fseek( hFile, 0L, SEEK_END );
-    long lLen = ftell( hFile );
-    fseek( hFile, 0L, SEEK_SET );
-
-    char* pBuf = static_cast<char*>(malloc( sizeof(char) * lLen ));
-    if( !pBuf ) 
-    {
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
-    }
-
-    fread( pBuf, lLen, sizeof(char), hFile );
-    fclose( hFile );
-
-    pStream->GetStream()->Set( pBuf, lLen, true );
+    PdfFileInputStream stream( pszFilename );
+    pStream->GetStream()->Set( &stream );
 
     // Add additional information about the embedded file to the stream
     PdfDictionary params;
-    params.AddKey( "Size", lLen );
+    params.AddKey( "Size", stream.GetFileLength() );
     // TODO: CreationDate and ModDate
     pStream->GetDictionary().AddKey("Params", params );
 }

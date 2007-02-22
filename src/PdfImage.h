@@ -87,15 +87,9 @@ class PODOFO_API PdfImage : public PdfXObject {
      *                           but is 8 in most cases)
      *  \param szBuffer the EITHER jpeg encoded OR raw image data
      *  \param lLen length the of the image data buffer.
-     *  \param bTakeOwnership if true the buffer will be owned by the PdfImage object
-     *
-     *  \warning If bTakeOwnership is true, it is critical that you
-     *           allocate the passed buffer using malloc() rather than the
-     *           `new' operator or any other scheme, as the buffer will be
-     *           released by PdfImage using free().
      */
     void SetImageData( unsigned int nWidth, unsigned int nHeight, unsigned int nBitsPerComponent, 
-                       char* szBuffer, long lLen, bool bTakeOwnership = false );
+                       char* szBuffer, long lLen );
 
     /** Load the image data from a JPEG file
      *  \param pszFilename

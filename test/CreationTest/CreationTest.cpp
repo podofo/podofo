@@ -287,6 +287,7 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pnt.SetColor( 0.0, 0.0, 0.0 );
     pnt.DrawRect( 0, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT );
     pnt.DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am a XObject." );
+    pnt.FinishPage();
 
     printf("Drawing on the page!\n");
     // Draw onto the page 
@@ -433,6 +434,7 @@ int main( int argc, char* argv[] )
 
     printf("Drawing some circles and ellipsis.\n");
     TEST_SAFE_OP( EllipseTest( &painter, pPage, &writer ) );
+    painter.FinishPage();
 
     printf("Drawing using PdfPainterMM.\n");
     pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
@@ -440,6 +442,8 @@ int main( int argc, char* argv[] )
     pRoot->Last()->CreateNext( "MM Test", PdfDestination( pPage ) );
 
     TEST_SAFE_OP( MMTest( &painterMM, pPage, &writer ) );
+
+    painterMM.FinishPage();
 
     /** Create a really large name tree to test the name tree implementation
      */

@@ -422,6 +422,12 @@ class PODOFO_API PdfFilterFactory {
      */
     static EPdfFilter FilterNameToType( const PdfName & name );
 
+    /** Converts a filter type enum to the corresponding PdfName
+     *  \param eFilter a filter type
+     *  \returns the filter as name
+     */
+    static const char* FilterTypeToName( EPdfFilter eFilter );
+
     /** The passed PdfObject has to be a dictionary with a Filters key,
      *  an array of filter names or a filter name.
      *
@@ -432,127 +438,6 @@ class PODOFO_API PdfFilterFactory {
     static TVecFilters CreateFilterList( const PdfObject* pObject );
 };
 
-#if 0
-/** A wrapper around PdfFilter that allows only to encode
- *  data using this filter.
- */
-class PODOFO_API PdfEncodeFilter {
- public:
-
-    /** Create a new PdfEncodeFilter based on an existing filter
-     */
-    PdfEncodeFilter( std::auto_ptr<PdfFilter> filter )
-        : m_filter( filter )
-        {
-        }
-
-    /** Check wether encoding is implemented for this filter.
-     * 
-     *  \returns true if the filter is able to encode data
-     */
-    inline bool CanEncode() const; 
-
-    /** Encodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
-     *
-     *  This function uses BeginEncode()/EncodeBlock()/EndEncode()
-     *  internally, so it's not safe to use when progressive encoding
-     *  is in progress.
-     *
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the encoded data
-     *  \param plOutLen pointer to the length of the output buffer
-     */
-    inline void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
-
-    /** Begin progressively encoding data using this filter.
-     *
-     *  This method sets the filter's output stream and may
-     *  perform other operations defined by particular filter
-     *  implementations. It calls BeginEncodeImpl().
-     *
-     *  \param pOutput encoded data will be written to this stream.
-     *
-     *  Call EncodeBlock() to encode blocks of data and use EndEncode
-     *  to finish the encoding process.
-     *
-     *  \see EncodeBlock
-     *  \see EndEncode
-     */
-    inline void BeginEncode( PdfOutputStream* pOutput );
-
-    /** Encode a block of data and write it to the PdfOutputStream
-     *  specified by BeginEncode. Ownership of the block is not taken
-     *  and remains with the caller.
-     *
-     *  The filter implementation need not immediately process the buffer,
-     *  and might internally buffer some or all of it. However, if it does
-     *  this the buffer's contents will be copied, so it is guaranteed to be
-     *  safe to free the passed buffer after this call returns.
-     *
-     *  This method is a wrapper around EncodeBlockImpl().
-     *
-     *  BeginEncode() must be called before this function.
-     *
-     *  \param pBuffer pointer to a buffer with data to encode
-     *  \param lLen length of data to encode.
-     *
-     *  Call EndEncode() after all data has been encoded
-     *
-     *  \see BeginEncode
-     *  \see EndEncode
-     */
-    inline void EncodeBlock( const char* pBuffer, long lLen );
-
-    /**
-     *  Finish encoding of data and reset the stream's state.
-     *
-     *  \see BeginEncode
-     *  \see EncodeBlock
-     */
-    inline void EndEncode();
-
- private:
-    std::auto_ptr<PdfFilter> m_filter;
-
-};
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfEncodeFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
-{
-    m_filter->Encode( pInBuffer, lInLen, ppOutBuffer, plOutLen );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfEncodeFilter::BeginEncode( PdfOutputStream* pOutput )
-{
-    m_filter->BeginEncode( pOutput );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfEncodeFilter::EncodeBlock( const char* pBuffer, long lLen )
-{
-    m_filter->EncodeBlock( pBuffer, lLen );
-}
-
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfEncodeFilter::EndEncode()
-{
-    
-    m_filter->EndEncode();
-}
-
-#endif // 0
 
 };
 

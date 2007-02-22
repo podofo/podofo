@@ -63,15 +63,20 @@ PdfPainter::PdfPainter()
 
 PdfPainter::~PdfPainter()
 {
+    PODOFO_RAISE_LOGIC_IF( m_pCanvas, "FinishPage() has to be called after a page is completed!" );
 }
 
 void PdfPainter::SetPage( PdfCanvas* pPage )
 {
+    if( m_pCanvas )
+        m_pCanvas->EndAppend();
+
     m_pPage   = pPage;
 
     m_pCanvas = pPage ? pPage->GetContentsForAppending()->GetStream() : NULL;
     if ( m_pCanvas ) 
     {
+        m_pCanvas->BeginAppend( false );
         if ( m_pCanvas->GetLength() ) 
         {    
             // there is already content here - so let's assume we are appending
@@ -85,13 +90,18 @@ void PdfPainter::SetPage( PdfCanvas* pPage )
     }
 }
 
+void PdfPainter::FinishPage()
+{
+    if( m_pCanvas )
+        m_pCanvas->EndAppend();
+
+    m_pCanvas = NULL;
+    m_pPage   = NULL;
+}
+
 void PdfPainter::SetStrokingGray( double g )
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
     CheckDoubleRange( g, 0.0, 1.0 );
 
     m_oss.str("");
@@ -101,11 +111,7 @@ void PdfPainter::SetStrokingGray( double g )
 
 void PdfPainter::SetGray( double g )
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-    
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
     CheckDoubleRange( g, 0.0, 1.0 );
     
     m_oss.str("");
@@ -118,10 +124,7 @@ void PdfPainter::SetGray( double g )
 
 void PdfPainter::SetStrokingColor( double r, double g, double b )
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
     CheckDoubleRange( r, 0.0, 1.0 );
     CheckDoubleRange( g, 0.0, 1.0 );
@@ -137,11 +140,7 @@ void PdfPainter::SetStrokingColor( double r, double g, double b )
 
 void PdfPainter::SetColor( double r, double g, double b )
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-    
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
     CheckDoubleRange( r, 0.0, 1.0 );
     CheckDoubleRange( g, 0.0, 1.0 );
     CheckDoubleRange( b, 0.0, 1.0 );
@@ -161,11 +160,7 @@ void PdfPainter::SetColor( double r, double g, double b )
 
 void PdfPainter::SetStrokingColorCMYK( double c, double m, double y, double k )
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
     CheckDoubleRange( c, 0.0, 1.0 );
     CheckDoubleRange( m, 0.0, 1.0 );
     CheckDoubleRange( y, 0.0, 1.0 );
@@ -182,11 +177,7 @@ void PdfPainter::SetStrokingColorCMYK( double c, double m, double y, double k )
 
 void PdfPainter::SetColorCMYK( double c, double m, double y, double k )
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-    
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
     CheckDoubleRange( c, 0.0, 1.0 );
     CheckDoubleRange( m, 0.0, 1.0 );
     CheckDoubleRange( y, 0.0, 1.0 );
@@ -209,10 +200,7 @@ void PdfPainter::SetColorCMYK( double c, double m, double y, double k )
 
 void PdfPainter::SetStrokeWidth( double dWidth )
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
 
     m_oss.str("");
     m_oss << dWidth << " w" << std::endl;
@@ -223,10 +211,7 @@ void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom )
 {
     const char* pszCurStroke = NULL;
 
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
 
     // TODO: fix the stroking styles
     switch( eStyle )
@@ -249,6 +234,7 @@ void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom )
         case ePdfStrokeStyle_Custom:
             pszCurStroke = pszCustom;
             break;
+        case ePdfStrokeStyle_Unknown:
         default:
         {
             PODOFO_RAISE_ERROR( ePdfError_InvalidStrokeStyle );
@@ -267,10 +253,7 @@ void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom )
 
 void PdfPainter::SetLineCapStyle( EPdfLineCapStyle eCapStyle )
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
 
     m_oss.str("");
     m_oss << static_cast<int>(eCapStyle) << " J" << std::endl;
@@ -279,10 +262,7 @@ void PdfPainter::SetLineCapStyle( EPdfLineCapStyle eCapStyle )
 
 void PdfPainter::SetLineJoinStyle( EPdfLineJoinStyle eJoinStyle )
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
 
     m_oss.str("");
     m_oss << static_cast<int>(eJoinStyle) << "j" << std::endl;
@@ -291,7 +271,9 @@ void PdfPainter::SetLineJoinStyle( EPdfLineJoinStyle eJoinStyle )
 
 void PdfPainter::SetFont( PdfFont* pFont )
 {
-    if( !m_pCanvas || !pFont )
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
+
+    if( !pFont )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -301,10 +283,7 @@ void PdfPainter::SetFont( PdfFont* pFont )
 
 void PdfPainter::DrawLine( double dStartX, double dStartY, double dEndX, double dEndY )
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
 
     m_oss.str("");
     m_oss << dStartX << " "
@@ -319,13 +298,9 @@ void PdfPainter::DrawLine( double dStartX, double dStartY, double dEndX, double 
 void PdfPainter::DrawRect( double dX, double dY, double dWidth, double dHeight,
                            double dRoundX, double dRoundY )
 { 
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-    
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
 
-    if ( dRoundX || dRoundY ) {
+    if ( static_cast<int>(dRoundX) || static_cast<int>(dRoundY) ) {
         double x = dX, y = dY, 
                w = dWidth, h = dHeight,
                rx = dRoundX, ry = dRoundY;
@@ -355,14 +330,11 @@ void PdfPainter::DrawRect( double dX, double dY, double dWidth, double dHeight,
 void PdfPainter::FillRect( double dX, double dY, double dWidth, double dHeight,
                            double dRoundX, double dRoundY )
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
     m_oss.str("");
 
-    if ( dRoundX || dRoundY ) {
+    if ( static_cast<int>(dRoundX) || static_cast<int>(dRoundY) ) {
          double    x = dX, y = dY, 
                 w = dWidth, h = dHeight,
                 rx = dRoundX, ry = dRoundY;
@@ -395,10 +367,7 @@ void PdfPainter::DrawEllipse( double dX, double dY, double dWidth, double dHeigh
     double dPointY[BEZIER_POINTS];
     int    i;
 
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
     ConvertRectToBezier( dX, dY, dWidth, dHeight, dPointX, dPointY );
 
@@ -429,10 +398,7 @@ void PdfPainter::FillEllipse( double dX, double dY, double dWidth, double dHeigh
     double dPointY[BEZIER_POINTS];
     int    i;
 
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
     ConvertRectToBezier( dX, dY, dWidth, dHeight, dPointX, dPointY );
 
@@ -458,10 +424,7 @@ void PdfPainter::FillEllipse( double dX, double dY, double dWidth, double dHeigh
 
 void PdfPainter::FillCircle( double dX, double dY, double dRadius )
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
     /* draw four Bezier curves to approximate a circle */
     MoveTo( dX + dRadius, dY );
@@ -510,11 +473,6 @@ void PdfPainter::DrawCircle( double dX, double dY, double dRadius )
 
 void PdfPainter::DrawText( double dX, double dY, const PdfString & sText )
 {
-    if( !m_pFont || !m_pCanvas || !m_pPage || !sText.IsValid() )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
     this->DrawText( dX, dY, sText, sText.GetLength() );
 }
 
@@ -527,7 +485,9 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
     const char* pszText;
     long        lLen;
 
-    if( !m_pFont || !m_pCanvas || !m_pPage || !sText.IsValid() )
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+
+    if( !m_pFont || !m_pPage || !sText.IsValid() )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -618,6 +578,8 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
 
 void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double dScaleX, double dScaleY )
 {
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+
     if( !pObject )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
@@ -640,20 +602,14 @@ void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double 
 
 void PdfPainter::ClosePath()
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
     m_pCanvas->Append( "h\n" );
 }
 
 void PdfPainter::LineTo( double dX, double dY )
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
     
     m_oss.str("");
     m_oss << dX << " "
@@ -664,10 +620,7 @@ void PdfPainter::LineTo( double dX, double dY )
 
 void PdfPainter::MoveTo( double dX, double dY )
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
     
     m_oss.str("");
     m_oss << dX << " "
@@ -678,10 +631,7 @@ void PdfPainter::MoveTo( double dX, double dY )
 
 void PdfPainter::CubicBezierTo( double dX1, double dY1, double dX2, double dY2, double dX3, double dY3 )
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
     m_oss.str("");
     m_oss << dX1 << " "
@@ -722,9 +672,9 @@ void PdfPainter::SmoothCurveTo( double inX2, double inY2, double inX3, double in
 
 void PdfPainter::QuadCurveTo( double inX1, double inY1, double inX3, double inY3 )
 {
-    double    px = inX1, py = inY1, 
-            px2, py2, 
-            px3 = inX3, py3 = inY3;
+    double px = inX1, py = inY1, 
+           px2, py2, 
+           px3 = inX3, py3 = inY3;
 
     /* raise quadratic bezier to cubic    - thanks Raph!
         http://www.icce.rug.nl/erikjan/bluefuzz/beziers/beziers/beziers.html
@@ -742,8 +692,8 @@ void PdfPainter::QuadCurveTo( double inX1, double inY1, double inX3, double inY3
 
 void PdfPainter::SmoothQuadCurveTo( double inX3, double inY3 )
 {
-    double    px, py, px2, py2, 
-            px3 = inX3, py3 = inY3;
+    double px, py, px2, py2, 
+           px3 = inX3, py3 = inY3;
 
     double xc, yc; /* quadratic control point */
     xc = 2 * lcx - lrx;
@@ -849,50 +799,35 @@ void PdfPainter::ArcTo( double inX, double inY, double inRadiusX, double inRadiu
 
 void PdfPainter::Close()
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
     
     m_pCanvas->Append( "h\n" );
 }
 
 void PdfPainter::Stroke()
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
     
     m_pCanvas->Append( "S\n" );
 }
 
 void PdfPainter::Fill()
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
     
     m_pCanvas->Append( "f\n" );
 }
 
 void PdfPainter::Save()
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
     m_pCanvas->Append( "q\n" );
 }
 
 void PdfPainter::Restore()
 {
-    if( !m_pCanvas )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
     m_pCanvas->Append( "q\n" );
 }
@@ -977,9 +912,12 @@ void PdfPainter::SetCurrentStrokingColor()
         case ePdfColorSpace_DeviceCMYK:
             this->SetStrokingColorCMYK( m_curColor1, m_curColor2, m_curColor3, m_curColor4 );
         break;
+        case ePdfColorSpace_Unknown:
         default:
         {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "The color space for the current text drawing operation is invalid. Please set a correct color."  ); 
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, 
+                                     "The color space for the current text drawing operation is invalid. "
+                                     "Please set a correct color."  ); 
         }
         break;
     }
@@ -987,6 +925,8 @@ void PdfPainter::SetCurrentStrokingColor()
 
 void PdfPainter::SetTransformationMatrix( double a, double b, double c, double d, double e, double f )
 {
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+
     m_oss.str("");
     m_oss << a << " "
           << b << " "
@@ -1000,20 +940,24 @@ void PdfPainter::SetTransformationMatrix( double a, double b, double c, double d
 
 void PdfPainter::SetExtGState( PdfExtGState* inGState )
 {
-	this->AddToPageResources( inGState->GetIdentifier(), inGState->GetObject()->Reference(), PdfName("ExtGState") );
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
-	m_oss.str("");
-	m_oss << "/" << inGState->GetIdentifier().GetName()
-		<< " gs" << std::endl;
-	m_pCanvas->Append( m_oss.str() );
+    this->AddToPageResources( inGState->GetIdentifier(), inGState->GetObject()->Reference(), PdfName("ExtGState") );
+    
+    m_oss.str("");
+    m_oss << "/" << inGState->GetIdentifier().GetName()
+          << " gs" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
 }
 
 void PdfPainter::SetRenderingIntent( char* intent )
 {
-	m_oss.str("");
-	m_oss << "/" << intent
-		<< " ri" << std::endl;
-	m_pCanvas->Append( m_oss.str() );
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+
+    m_oss.str("");
+    m_oss << "/" << intent
+          << " ri" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
 }
 
 }

@@ -21,13 +21,14 @@
 #include "PdfStream.h"
 
 #include "PdfArray.h"
-#include "PdfFilter.h"
+#include "PdfFilter.h" 
+#include "PdfInputStream.h"
 #include "PdfOutputStream.h"
 
 namespace PoDoFo {
 
 PdfStream::PdfStream( PdfObject* pParent )
-    : m_pParent( pParent )
+    : m_pParent( pParent ), m_bAppend( false )
 {
 }
 
@@ -270,13 +271,103 @@ void PdfStream::FreeDecodeParms( TVecDictionaries* pParams ) const
 
 const PdfStream & PdfStream::operator=( const PdfStream & rhs )
 {
-    this->Set( const_cast<char*>(rhs.GetInternalBuffer()), rhs.GetInternalBufferSize(), false );
+    this->Set( const_cast<char*>(rhs.GetInternalBuffer()), rhs.GetInternalBufferSize() );
 
     if( m_pParent ) 
         m_pParent->GetDictionary().AddKey( PdfName::KeyLength, 
                                            PdfVariant( static_cast<long>(rhs.GetInternalBufferSize()) ) );
 
     return (*this);
+}
+
+void PdfStream::Set( char* szBuffer, long lLen, const TVecFilters & vecFilters )
+{
+    this->BeginAppend( vecFilters );
+    this->Append( szBuffer, lLen );
+    this->EndAppend();
+}
+
+void PdfStream::Set( char* szBuffer, long lLen )
+{
+    this->BeginAppend();
+    this->Append( szBuffer, lLen );
+    this->EndAppend();
+}
+
+void PdfStream::Set( PdfInputStream* pStream )
+{
+    TVecFilters vecFilters;
+    vecFilters.push_back( ePdfFilter_FlateDecode );
+
+    this->Set( pStream, vecFilters );
+}
+
+void PdfStream::Set( PdfInputStream* pStream, const TVecFilters & vecFilters )
+{
+    const int BUFFER_SIZE = 4096;
+    long      lLen        = 0;
+    char      buffer[BUFFER_SIZE];
+
+    this->BeginAppend( vecFilters );
+
+    do {
+        lLen = pStream->Read( buffer, BUFFER_SIZE );
+        this->Append( buffer, lLen );
+    } while( lLen == BUFFER_SIZE );
+
+    this->EndAppend();
+}
+
+void PdfStream::BeginAppend( bool bClearExisting )
+{
+    TVecFilters vecFilters;
+    vecFilters.push_back( ePdfFilter_FlateDecode );
+
+    this->BeginAppend( vecFilters, bClearExisting );
+}
+
+void PdfStream::BeginAppend( const TVecFilters & vecFilters, bool bClearExisting )
+{
+    char* pBuffer = NULL;
+    long  lLen;
+
+    PODOFO_RAISE_LOGIC_IF( m_bAppend, "BeginAppend() failed because EndAppend() was not yet called!" );
+
+    if( !bClearExisting && this->GetLength() ) 
+        this->GetFilteredCopy( &pBuffer, &lLen );
+
+    if( vecFilters.size() == 1 )
+    {
+        m_pParent->GetDictionary().AddKey( PdfName::KeyFilter, 
+                                           PdfName( PdfFilterFactory::FilterTypeToName( vecFilters.front() ) ) );
+    }
+    else if( vecFilters.size() >= 1 ) 
+    {
+        PdfArray filters;
+        TCIVecFilters it = vecFilters.begin();
+        while( it != vecFilters.end() )
+        {
+            filters.push_back( PdfName( PdfFilterFactory::FilterTypeToName( *it ) ) );
+            ++it;
+        }
+        
+        m_pParent->GetDictionary().AddKey( PdfName::KeyFilter, filters );
+    }
+    else 
+        m_pParent->GetDictionary().RemoveKey( PdfName::KeyFilter );
+
+    this->BeginAppendImpl( vecFilters );
+    m_bAppend = true;
+    if( pBuffer ) 
+        this->Append( pBuffer, lLen );
+}
+
+void PdfStream::EndAppend()
+{
+    PODOFO_RAISE_LOGIC_IF( !m_bAppend, "BeginAppend() failed because EndAppend() was not yet called!" );
+
+    m_bAppend = false;
+    this->EndAppendImpl();
 }
 
 };

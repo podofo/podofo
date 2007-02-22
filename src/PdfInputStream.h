@@ -71,6 +71,11 @@ class PODOFO_API PdfFileInputStream : public PdfInputStream {
      */
     virtual long Read( char* pBuffer, long lLen );
 
+    /** Get the length of the file.
+     *  \return the file length
+     */
+    long GetFileLength();
+
  private:
     FILE* m_hFile;
 };

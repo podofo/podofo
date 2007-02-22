@@ -28,6 +28,22 @@
 
 namespace PoDoFo {
 
+// All known filters
+static const char* aszFilters[] = {
+    "ASCIIHexDecode",
+    "ASCII85Decode",
+    "LZWDecode",
+    "FlateDecode",
+    "RunLengthDecode",
+    "CCITTFaxDecode", 
+    "JBIG2Decode",
+    "DCTDecode",
+    "JPXDecode",
+    "Crypt",
+    NULL
+};
+
+
 /** Create a filter that is a PdfOutputStream.
  *
  *  All data written to this stream is encoded using a
@@ -270,21 +286,6 @@ PdfOutputStream* PdfFilterFactory::CreateDecodeStream( const TVecFilters & filte
 
 EPdfFilter PdfFilterFactory::FilterNameToType( const PdfName & name )
 {
-    // All known filters
-    static const char* aszFilters[] = {
-        "ASCIIHexDecode",
-        "ASCII85Decode",
-        "LZWDecode",
-        "FlateDecode",
-        "RunLengthDecode",
-        "CCITTFaxDecode", 
-        "JBIG2Decode",
-        "DCTDecode",
-        "JPXDecode",
-        "Crypt",
-        NULL
-    };
-
     int i = 0;
 
     while( aszFilters[i] )
@@ -296,6 +297,11 @@ EPdfFilter PdfFilterFactory::FilterNameToType( const PdfName & name )
     }
 
     return ePdfFilter_Unknown;
+}
+
+const char* PdfFilterFactory::FilterTypeToName( EPdfFilter eFilter )
+{
+    return aszFilters[static_cast<int>(eFilter)];
 }
 
 TVecFilters PdfFilterFactory::CreateFilterList( const PdfObject* pObject )

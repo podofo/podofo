@@ -67,25 +67,6 @@ class PODOFO_API PdfMemStream : public PdfStream {
      */
     virtual void Write( PdfOutputDevice* pDevice );
 
-    /** Set a binary buffer as stream data, optionally taking ownership of the buffer.
-     *
-     *  \warning If takePossession is true, the stream must be allocated using
-     *           malloc, as free() will be used to release it.
-     *
-     *  \param szBuffer buffer containing the stream data
-     *  \param lLen length of the buffer
-     *  \param takePossession does the stream now own this buffer...
-     *  \returns ErrOk
-     */
-    virtual void Set( char* szBuffer, long lLen, bool takePossession = true );
-
-    /** Append to the current stream contents. 
-     *  \param pszString a buffer
-     *  \param lLen length of the buffer
-     *  \returns ErrOk on sucess
-     */
-    void Append( const char* pszString, size_t lLen ); 
-
     /** Get a malloced buffer of the current stream.
      *  No filters will be applied to the buffer, so
      *  if the stream is Flate compressed the compressed copy
@@ -153,6 +134,28 @@ class PODOFO_API PdfMemStream : public PdfStream {
      */
     inline virtual unsigned long GetInternalBufferSize() const;
 
+    /** Begin appending data to this stream.
+     *  Clears the current stream contents.
+     *
+     *  \param vecFilters use this filters to encode any data written to the stream.
+     */
+    virtual void BeginAppendImpl( const TVecFilters & vecFilters );
+
+    /** Append a binary buffer to the current stream contents.
+     *
+     *  \param pszString a buffer
+     *  \param lLen length of the buffer
+     *
+     *  \see BeginAppend
+     *  \see Append
+     *  \see EndAppend
+     */
+    virtual void AppendImpl( const char* pszString, size_t lLen ); 
+
+    /** Finish appending data to the stream
+     */
+    virtual void EndAppendImpl();
+
  private:
     /** Compress the current data using the FlateDecode(ZIP) algorithm
      *  Expects that all filters are setup correctly.
@@ -163,6 +166,8 @@ class PODOFO_API PdfMemStream : public PdfStream {
 
  private:
     PdfRefCountedBuffer m_buffer;
+    PdfOutputStream*    m_pStream;
+    PdfOutputStream*    m_pBufferStream;
 };
 
 // -----------------------------------------------------
