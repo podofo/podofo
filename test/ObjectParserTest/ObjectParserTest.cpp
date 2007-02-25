@@ -82,15 +82,15 @@ void PrintObject( const std::string & objectData, ostream & s, bool escapeNewlin
                     || PdfTokenizer::IsPrintable(ch)
                 )
            )
-            cerr << ch;
+            s << ch;
         else if (ch == '\r')
-            cerr << "\\r";
+            s << "\\r";
         else if (ch == '\n')
-            cerr << "\\n";
+            s << "\\n";
         else
         {
             static const char hx[17] = "0123456789ABCDEF";
-            cerr << '\\' << 'x' << hx[ch / 16] << hx[ch % 16];
+            s << '\\' << 'x' << hx[ch / 16] << hx[ch % 16];
             wrapCtr += 3;
             // If we're processing binary data, just print part of it.
             ++numNonprintables;
@@ -103,7 +103,7 @@ void PrintObject( const std::string & objectData, ostream & s, bool escapeNewlin
         if (wrap && wrapCtr > 72)
         {
             wrapCtr = 0;
-            cerr << endl;
+            s << endl;
         }
     }
 }

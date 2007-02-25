@@ -44,6 +44,8 @@ void PdfFileStream::Write( PdfOutputDevice* )
 
 void PdfFileStream::BeginAppendImpl( const TVecFilters & vecFilters )
 {
+    m_pParent->GetOwner()->WriteObject( m_pParent );
+
     m_lLenInitial = m_pDevice->GetLength();
 
     if( vecFilters.size() )

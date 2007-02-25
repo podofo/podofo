@@ -39,7 +39,6 @@ PdfStreamedDocument::PdfStreamedDocument( const char* pszFilename )
 
 PdfStreamedDocument::~PdfStreamedDocument()
 {
-    this->Close();
 
     delete m_pWriter;
     delete m_pDevice;
@@ -52,7 +51,7 @@ void PdfStreamedDocument::Init( PdfOutputDevice* pDevice )
 
 void PdfStreamedDocument::Close()
 {
-
+    m_doc.GetObjects().Finish();
 }
 
 

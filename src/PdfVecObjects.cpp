@@ -426,15 +426,18 @@ PdfStream* PdfVecObjects::CreateStream( PdfObject* pParent )
         m_pStreamFactory->CreateStream( pParent ) :
         new PdfMemStream( pParent );
 
-    // Tell any observers that there are new objects to write
+    return pStream;
+}
+
+void PdfVecObjects::WriteObject( PdfObject* pObject )
+{
+   // Tell any observers that there are new objects to write
     TIVecObservers itObservers = m_vecObservers.begin();
     while( itObservers != m_vecObservers.end() )
     {
-        (*itObservers)->WriteObject( pParent );
+        (*itObservers)->WriteObject( pObject );
         ++itObservers;
     }
-
-    return pStream;
 }
 
 PdfStream* PdfVecObjects::CreateStream( const PdfStream & rhs )

@@ -87,6 +87,8 @@ void AddPage( PdfDocument* pDoc, PdfStreamedDocument* pStreamed, const char* psz
     //dY -= (img.GetHeight() * 0.5);
     //dX = ((rect.GetWidth() - (img.GetWidth()*0.5))/2.0);
     //painter.DrawImage( dX, dY, &img, 0.5, 0.5 );
+
+    painter.FinishPage();
 }
 
 void CreateLargePdf( const char* pszFilename, const char* pszImagePath )
@@ -188,6 +190,8 @@ int main( int argc, char* argv[] )
 
     try {
         CreateLargePdf( argv[1], argv[2] );
+
+        printf("\nWrote the PDF file %s successfully\n", argv[1] ); 
 
     } catch( PdfError & e ) {
         e.PrintErrorMsg();

@@ -52,7 +52,7 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
     PdfMemoryOutputStream  stream;
     PdfOutputStream*       pDecodeStream = PdfFilterFactory::CreateDecodeStream( vecFilters, &stream );
 
-    pDecodeStream->Write( const_cast<char*>(this->GetInternalBuffer()), this->GetInternalBufferSize() );
+    pDecodeStream->Write( this->GetInternalBuffer(), this->GetInternalBufferSize() );
     delete pDecodeStream;
 
     *lLen     = stream.GetLength();

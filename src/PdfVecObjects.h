@@ -296,6 +296,12 @@ class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
      */
     PdfStream* CreateStream( const PdfStream & rhs );
 
+    /** Can be called to force objects to be written to disk.
+     * 
+     *  \param pObject a PdfObject that should be written to disk.
+     */
+    void WriteObject( PdfObject* pObject );
+
     /** Call whenever a document is finished
      */
     void Finish();
