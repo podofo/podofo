@@ -54,8 +54,12 @@ void UnCompress::UncompressObjects()
         if( (*it)->HasStream() )
         {
             try {
+                printf("-> Uncompressing object %li %i\n", 
+                       (*it)->Reference().ObjectNumber(), (*it)->Reference().GenerationNumber() );
                 PdfMemStream* pStream = dynamic_cast<PdfMemStream*>((*it)->GetStream());
+                printf("-> Original Length: %li\n", pStream->GetLength() );
                 pStream->Uncompress();
+                printf("-> Uncompressed Length: %li\n", pStream->GetLength() );
             } catch( const PdfError & e ) {
                 if( e.GetError() != ePdfError_UnsupportedFilter )
                     throw e;

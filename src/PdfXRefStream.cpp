@@ -89,6 +89,7 @@ void PdfXRefStream::Write( PdfOutputDevice* pDevice )
     w.push_back( static_cast<long>(sizeof(STREAM_OFFSET_TYPE)) );
     w.push_back( 1l );
 
+    object.GetStream()->BeginAppend();
     while( it != m_vecXRef.end() ) 
     {
         nCount = GetItemCount( it, itFree );
@@ -149,6 +150,7 @@ void PdfXRefStream::Write( PdfOutputDevice* pDevice )
         }
     }    
 
+    object.GetStream()->EndAppend();
     m_pWriter->FillTrailerObject( &object, this->GetSize(), false, false );
 
     object.GetDictionary().AddKey( "Index", indeces );

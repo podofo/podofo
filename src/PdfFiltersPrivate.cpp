@@ -48,21 +48,191 @@ namespace PoDoFo {
  * These values are normally stored in the /DecodeParams
  * key of a PDF dictionary.
  */
-struct TFlatePredictorParams {
-    TFlatePredictorParams() {
-        nPredictor   = 1;
-        nColors      = 1;
-        nBPC         = 8;
-        nColumns     = 1;
-        nEarlyChange = 1;
+class PdfPredictorDecoder {
+
+public:
+    PdfPredictorDecoder( const PdfDictionary* pDecodeParms ) {
+        m_nPredictor   = pDecodeParms->GetKeyAsLong( "Predictor", 1L );
+        m_nColors      = pDecodeParms->GetKeyAsLong( "Colors", 1L );
+        m_nBPC         = pDecodeParms->GetKeyAsLong( "BitsPerComponent", 8L );
+        m_nColumns     = pDecodeParms->GetKeyAsLong( "Columns", 1L );
+        m_nEarlyChange = pDecodeParms->GetKeyAsLong( "EarlyChange", 1L );
+
+        m_nCurPredictor = -1;
+        m_nCurRowIndex  = 0;
+        m_nRows = (m_nColumns * m_nBPC) >> 3; 
+
+        m_pPrev = static_cast<char*>(malloc( sizeof(char) * m_nRows ));
+        if( !m_pPrev )
+        {
+            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        }
+
+        memset( m_pPrev, 0, sizeof(char) * m_nRows );
     };
 
-    int nPredictor;
-    int nColors;
-    int nBPC;
-    int nColumns;
-    int nEarlyChange;
+    ~PdfPredictorDecoder() 
+    {
+        free( m_pPrev );
+    }
+
+    void Decode( const char* pBuffer, long lLen, PdfOutputStream* pStream ) 
+    {
+        if( m_nPredictor == 1 )
+        {
+            pStream->Write( pBuffer, lLen );
+            return;
+        }
+
+        if( m_nCurPredictor == -1 ) 
+        {
+            m_nCurPredictor = m_nPredictor >= 10 ? *pBuffer + 10 : *pBuffer;
+            ++m_nCurRowIndex;
+            ++pBuffer;
+            --lLen;
+        }
+
+        while( lLen-- ) 
+        {
+            if( m_nCurRowIndex > m_nRows ) 
+            {
+                m_nCurRowIndex  = 0;
+                m_nCurPredictor = m_nPredictor >= 10 ? *pBuffer + 10 : *pBuffer;
+            }
+            else
+            {
+                switch( m_nCurPredictor )
+                {
+                    case 2: // Tiff Predictor
+                        // TODO: implement tiff predictor
+                        break;
+                    case 10: // png none
+                    case 11: // png sub
+                    case 12: // png up
+                        m_pPrev[m_nCurRowIndex] += *pBuffer;
+                        pStream->Write( &m_pPrev[m_nCurRowIndex], 1 );
+                        break;
+                    case 13: // png average
+                    case 14: // png paeth
+                    case 15: // png optimum
+                        break;
+                        
+                    default:
+                    {
+                        printf("Got predictor: %i\n", m_nCurPredictor );
+                        PODOFO_RAISE_ERROR( ePdfError_InvalidPredictor );
+                        break;
+                    }
+                }
+            }
+
+            ++m_nCurRowIndex;
+            ++pBuffer;
+        }
+    }
+
+
+private:
+    int m_nPredictor;
+    int m_nColors;
+    int m_nBPC;
+    int m_nColumns;
+    int m_nEarlyChange;
+
+    int m_nCurPredictor;
+    int m_nCurRowIndex;
+    int m_nRows;
+
+    char* m_pPrev;
 };
+
+// -------------------------------------------------------
+// Flate Predictor
+// -------------------------------------------------------
+#if 0
+void PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
+{
+    unsigned char*   pPrev;
+    int     nRows;
+    int     i;
+    char*   pOutBufStart;
+    const char*   pBuffer = pInBuffer;
+    int     nPredictor;
+
+#ifdef PODOFO_VERBOSE_DEBUG
+    PdfError::DebugMessage("Applying Predictor %i to buffer of size %i\n", pParams->nPredictor, lInLen );
+    PdfError::DebugMessage("Cols: %i Modulo: %i Comps: %i\n", pParams->nColumns, lInLen % (pParams->nColumns +1), pParams->nBPC );
+#endif // PODOFO_VERBOSE_DEBUG
+
+    if( pParams->nPredictor == 1 )  // No Predictor
+        return;
+
+    nRows = (pParams->nColumns * pParams->nBPC) >> 3; 
+
+    pPrev = static_cast<unsigned char*>(malloc( sizeof(char) * nRows ));
+    if( !pPrev )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+    }
+
+    memset( pPrev, 0, sizeof(char) * nRows );
+
+#ifdef PODOFO_VERBOSE_DEBUG
+    PdfError::DebugMessage("Alloc: %i\n", (lInLen / (pParams->nColumns + 1)) * pParams->nColumns );
+#endif // PODOFO_VERBOSE_DEBUG
+
+    *ppOutBuffer = static_cast<char*>(malloc( sizeof(char) * (lInLen / (pParams->nColumns + 1)) * pParams->nColumns ));
+    pOutBufStart = *ppOutBuffer;
+
+    if( !*ppOutBuffer )
+    {
+        free( pPrev );
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+    }
+
+    while( pBuffer < (pInBuffer + lInLen) )
+    {
+        nPredictor = pParams->nPredictor >= 10 ? *pBuffer + 10 : *pBuffer;
+        ++pBuffer;
+
+        for( i=0;i<nRows;i++ )
+        {
+            switch( nPredictor )
+            {
+                case 2: // Tiff Predictor
+                    // TODO: implement tiff predictor
+                    
+                    break;
+                case 10: // png none
+                case 11: // png sub
+                case 12: // png up
+                    *pOutBufStart = static_cast<unsigned char>(pPrev[i] + static_cast<unsigned char>(*pBuffer));
+                    break;
+                case 13: // png average
+                case 14: // png paeth
+                case 15: // png optimum
+                    break;
+                
+                default:
+                {
+                    free( pPrev );
+                    PODOFO_RAISE_ERROR( ePdfError_InvalidPredictor );
+                    break;
+                }
+            }
+  
+            pPrev[i] = *pOutBufStart;          
+            ++pOutBufStart;
+            ++pBuffer;
+        }
+    }
+
+    *plOutLen = (pOutBufStart - *ppOutBuffer);
+
+    free( pPrev );
+}
+#endif // 0
+
 
 
 // -------------------------------------------------------
@@ -335,7 +505,7 @@ void PdfFlateFilter::EncodeBlockInternal( const char* pBuffer, long lLen, int nM
     m_stream.next_in  = reinterpret_cast<Bytef*>(const_cast<char*>(pBuffer));
 
     do {
-        m_stream.avail_out = FILTER_INTERNAL_BUFFER_SIZE;
+        m_stream.avail_out = PODOFO_FILTER_INTERNAL_BUFFER_SIZE;
         m_stream.next_out  = m_buffer;
 
         if( deflate( &m_stream, nMode) == Z_STREAM_ERROR )
@@ -345,7 +515,7 @@ void PdfFlateFilter::EncodeBlockInternal( const char* pBuffer, long lLen, int nM
         }
 
 
-        nWrittenData = FILTER_INTERNAL_BUFFER_SIZE - m_stream.avail_out;
+        nWrittenData = PODOFO_FILTER_INTERNAL_BUFFER_SIZE - m_stream.avail_out;
         try {
             GetStream()->Write( reinterpret_cast<char*>(m_buffer), nWrittenData );
         } catch( PdfError & e ) {
@@ -365,11 +535,13 @@ void PdfFlateFilter::EndEncodeImpl()
 
 // --
 
-void PdfFlateFilter::BeginDecodeImpl( const PdfDictionary* )
+void PdfFlateFilter::BeginDecodeImpl( const PdfDictionary* pDecodeParms )
 {
     m_stream.zalloc   = Z_NULL;
     m_stream.zfree    = Z_NULL;
     m_stream.opaque   = Z_NULL;
+
+    m_pPredictor = pDecodeParms ? new PdfPredictorDecoder( pDecodeParms ) : NULL;
 
     if( inflateInit( &m_stream ) != Z_OK )
     {
@@ -386,10 +558,10 @@ void PdfFlateFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
     m_stream.next_in  = reinterpret_cast<Bytef*>(const_cast<char*>(pBuffer));
 
     do {
-        m_stream.avail_out = FILTER_INTERNAL_BUFFER_SIZE;
+        m_stream.avail_out = PODOFO_FILTER_INTERNAL_BUFFER_SIZE;
         m_stream.next_out  = m_buffer;
 
-        switch ( (flateErr = inflate(&m_stream, Z_NO_FLUSH)) ) {
+        switch( (flateErr = inflate(&m_stream, Z_NO_FLUSH)) ) {
             case Z_NEED_DICT:
             case Z_DATA_ERROR:
             case Z_MEM_ERROR:
@@ -404,9 +576,12 @@ void PdfFlateFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
                 break;
         }
 
-        nWrittenData = FILTER_INTERNAL_BUFFER_SIZE - m_stream.avail_out;
+        nWrittenData = PODOFO_FILTER_INTERNAL_BUFFER_SIZE - m_stream.avail_out;
         try {
-            GetStream()->Write( reinterpret_cast<char*>(m_buffer), nWrittenData );
+            if( m_pPredictor ) 
+                m_pPredictor->Decode( reinterpret_cast<char*>(m_buffer), nWrittenData, GetStream() );
+            else
+                GetStream()->Write( reinterpret_cast<char*>(m_buffer), nWrittenData );
         } catch( PdfError & e ) {
             // clean up after any output stream errors
             FailEncodeDecode();
@@ -418,92 +593,9 @@ void PdfFlateFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
 
 void PdfFlateFilter::EndDecodeImpl()
 {
+    delete m_pPredictor;
+
     (void)inflateEnd(&m_stream);
-}
-
-// -------------------------------------------------------
-// Flate Predictor
-// -------------------------------------------------------
-void PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
-{
-    unsigned char*   pPrev;
-    int     nRows;
-    int     i;
-    char*   pOutBufStart;
-    const char*   pBuffer = pInBuffer;
-    int     nPredictor;
-
-#ifdef PODOFO_VERBOSE_DEBUG
-    PdfError::DebugMessage("Applying Predictor %i to buffer of size %i\n", pParams->nPredictor, lInLen );
-    PdfError::DebugMessage("Cols: %i Modulo: %i Comps: %i\n", pParams->nColumns, lInLen % (pParams->nColumns +1), pParams->nBPC );
-#endif // PODOFO_VERBOSE_DEBUG
-
-    if( pParams->nPredictor == 1 )  // No Predictor
-        return;
-
-    nRows = (pParams->nColumns * pParams->nBPC) >> 3; 
-
-    pPrev = static_cast<unsigned char*>(malloc( sizeof(char) * nRows ));
-    if( !pPrev )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
-    }
-
-    memset( pPrev, 0, sizeof(char) * nRows );
-
-#ifdef PODOFO_VERBOSE_DEBUG
-    PdfError::DebugMessage("Alloc: %i\n", (lInLen / (pParams->nColumns + 1)) * pParams->nColumns );
-#endif // PODOFO_VERBOSE_DEBUG
-
-    *ppOutBuffer = static_cast<char*>(malloc( sizeof(char) * (lInLen / (pParams->nColumns + 1)) * pParams->nColumns ));
-    pOutBufStart = *ppOutBuffer;
-
-    if( !*ppOutBuffer )
-    {
-        free( pPrev );
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
-    }
-
-    while( pBuffer < (pInBuffer + lInLen) )
-    {
-        nPredictor = pParams->nPredictor >= 10 ? *pBuffer + 10 : *pBuffer;
-        ++pBuffer;
-
-        for( i=0;i<nRows;i++ )
-        {
-            switch( nPredictor )
-            {
-                case 2: // Tiff Predictor
-                    // TODO: implement tiff predictor
-                    
-                    break;
-                case 10: // png none
-                case 11: // png sub
-                case 12: // png up
-                    *pOutBufStart = static_cast<unsigned char>(pPrev[i] + static_cast<unsigned char>(*pBuffer));
-                    break;
-                case 13: // png average
-                case 14: // png paeth
-                case 15: // png optimum
-                    break;
-                
-                default:
-                {
-                    free( pPrev );
-                    PODOFO_RAISE_ERROR( ePdfError_InvalidPredictor );
-                    break;
-                }
-            }
-  
-            pPrev[i] = *pOutBufStart;          
-            ++pOutBufStart;
-            ++pBuffer;
-        }
-    }
-
-    *plOutLen = (pOutBufStart - *ppOutBuffer);
-
-    free( pPrev );
 }
 
 // -------------------------------------------------------

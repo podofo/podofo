@@ -122,8 +122,10 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
      *                       The PdfOutputStream is deleted along with this object.
      *  \param eFilter use this filter for decoding.
      *  \param bOwnStream if true pOutputStream will be deleted along with this filter
+     *  \param pDecodeParms additional parameters for decoding
      */
-    PdfFilteredDecodeStream( PdfOutputStream* pOutputStream, const EPdfFilter eFilter, bool bOwnStream )
+    PdfFilteredDecodeStream( PdfOutputStream* pOutputStream, const EPdfFilter eFilter, bool bOwnStream,
+                             const PdfDictionary* pDecodeParms = NULL )
         : m_pOutputStream( pOutputStream )
     {
         m_filter = PdfFilterFactory::Create( eFilter );
@@ -132,7 +134,7 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
             PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
         }
 
-        m_filter->BeginDecode( pOutputStream );
+        m_filter->BeginDecode( pOutputStream, pDecodeParms );
 
         if( !bOwnStream )
             m_pOutputStream = NULL;
@@ -266,18 +268,23 @@ PdfOutputStream* PdfFilterFactory::CreateEncodeStream( const TVecFilters & filte
     return pFilter;
 }
 
-PdfOutputStream* PdfFilterFactory::CreateDecodeStream( const TVecFilters & filters, PdfOutputStream* pStream ) 
+PdfOutputStream* PdfFilterFactory::CreateDecodeStream( const TVecFilters & filters, PdfOutputStream* pStream,
+                                                       const PdfDictionary* pDictionary ) 
 {
     TVecFilters::const_reverse_iterator it = filters.rbegin();
 
     PODOFO_RAISE_LOGIC_IF( !filters.size(), "Cannot create an DecodeStream from an empty list of filters" );
 
-    PdfFilteredDecodeStream* pFilter = new PdfFilteredDecodeStream( pStream, *it, false );
+    // TODO: support arrays and indirect objects here and the short name /DP
+    if( pDictionary && pDictionary->HasKey( "DecodeParms" ) && pDictionary->GetKey( "DecodeParms" )->IsDictionary() )
+        pDictionary = &(pDictionary->GetKey( "DecodeParms" )->GetDictionary());
+
+    PdfFilteredDecodeStream* pFilter = new PdfFilteredDecodeStream( pStream, *it, false, pDictionary );
     ++it;
 
     while( it != filters.rend() ) 
     {
-        pFilter = new PdfFilteredDecodeStream( pFilter, *it, true );
+        pFilter = new PdfFilteredDecodeStream( pFilter, *it, true, pDictionary );
         ++it;
     }
 

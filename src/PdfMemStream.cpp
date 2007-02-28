@@ -236,10 +236,12 @@ void PdfMemStream::Uncompress()
     long         lLen;
     char*        pBuffer;
     
+    TVecFilters  vecEmpty;
+
     if( m_pParent && m_pParent->IsDictionary() && m_pParent->GetDictionary().HasKey( "Filter" ) && m_buffer.GetSize() )
     {
         this->GetFilteredCopy( &pBuffer, &lLen );
-        this->Set( pBuffer, lLen );
+        this->Set( pBuffer, lLen, vecEmpty );
         m_pParent->GetDictionary().RemoveKey( "Filter" ); 
         
         // TODO: DS:

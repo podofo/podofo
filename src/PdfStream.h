@@ -100,6 +100,16 @@ class PODOFO_API PdfStream {
      */
     inline void Set( const char* pszString );
 
+    /** Sets raw data for this filter which is read from an input stream.
+     *  This method does neither encode nor decode the read data.
+     *  The filters of the object are not modified and the data is expected to be
+     *  encoded as stated by the /Filters key in the streams object.
+     *
+     *  \param pStream read data from this input stream
+     *  \param lLen    read excactly lLen bytes from the input stream
+     */
+    void SetRawData( PdfInputStream* pStream, long lLen );
+
     /** Start appending data to this stream.
      *
      *  This method has to be called before any of the append methods.

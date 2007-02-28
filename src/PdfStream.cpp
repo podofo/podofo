@@ -39,7 +39,9 @@ PdfStream::~PdfStream()
 void PdfStream::GetFilteredCopy( PdfOutputStream* pStream ) const
 {
     TVecFilters      vecFilters    = PdfFilterFactory::CreateFilterList( m_pParent );
-    PdfOutputStream* pDecodeStream = PdfFilterFactory::CreateDecodeStream( vecFilters, pStream );
+    PdfOutputStream* pDecodeStream = PdfFilterFactory::CreateDecodeStream( vecFilters, pStream, 
+                                                                           m_pParent ? 
+                                                                           &(m_pParent->GetDictionary()) : NULL  );
 
     pDecodeStream->Write( const_cast<char*>(this->GetInternalBuffer()), this->GetInternalBufferSize() );
 
@@ -50,7 +52,9 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
 {
     TVecFilters            vecFilters    = PdfFilterFactory::CreateFilterList( m_pParent );
     PdfMemoryOutputStream  stream;
-    PdfOutputStream*       pDecodeStream = PdfFilterFactory::CreateDecodeStream( vecFilters, &stream );
+    PdfOutputStream*       pDecodeStream = PdfFilterFactory::CreateDecodeStream( vecFilters, &stream, 
+                                                                           m_pParent ? 
+                                                                           &(m_pParent->GetDictionary()) : NULL  );
 
     pDecodeStream->Write( this->GetInternalBuffer(), this->GetInternalBufferSize() );
     delete pDecodeStream;
@@ -318,6 +322,34 @@ void PdfStream::Set( PdfInputStream* pStream, const TVecFilters & vecFilters )
     this->EndAppend();
 }
 
+void PdfStream::SetRawData( PdfInputStream* pStream, long lLen )
+{
+    const int BUFFER_SIZE = 4096;
+    char      buffer[BUFFER_SIZE];
+    long      lRead;
+
+    TVecFilters vecEmpty;
+    PdfObject   filters;
+    bool        bHasFilters = m_pParent && m_pParent->GetDictionary().HasKey( PdfName::KeyFilter );
+   
+    if( bHasFilters ) 
+        filters = *(m_pParent->GetDictionary().GetKey( PdfName::KeyFilter ) );
+
+    // TODO: DS, give begin append a size hint so that it knows
+    //       how many data has to be allocated
+    this->BeginAppend( vecEmpty );
+    do {
+        lRead = pStream->Read( buffer, PDF_MIN( BUFFER_SIZE, lLen ) );
+        lLen -= lRead;
+        this->Append( buffer, lRead );
+    } while( lLen && lRead > 0 );
+
+    this->EndAppend();
+
+    if( bHasFilters )
+        m_pParent->GetDictionary().AddKey( PdfName::KeyFilter, filters );
+}
+
 void PdfStream::BeginAppend( bool bClearExisting )
 {
     TVecFilters vecFilters;
@@ -336,12 +368,16 @@ void PdfStream::BeginAppend( const TVecFilters & vecFilters, bool bClearExisting
     if( !bClearExisting && this->GetLength() ) 
         this->GetFilteredCopy( &pBuffer, &lLen );
 
+    if( !vecFilters.size() )
+    {
+        m_pParent->GetDictionary().RemoveKey( PdfName::KeyFilter );
+    }
     if( vecFilters.size() == 1 )
     {
         m_pParent->GetDictionary().AddKey( PdfName::KeyFilter, 
                                            PdfName( PdfFilterFactory::FilterTypeToName( vecFilters.front() ) ) );
     }
-    else if( vecFilters.size() >= 1 ) 
+    else
     {
         PdfArray filters;
         TCIVecFilters it = vecFilters.begin();
@@ -353,13 +389,14 @@ void PdfStream::BeginAppend( const TVecFilters & vecFilters, bool bClearExisting
         
         m_pParent->GetDictionary().AddKey( PdfName::KeyFilter, filters );
     }
-    else 
-        m_pParent->GetDictionary().RemoveKey( PdfName::KeyFilter );
 
     this->BeginAppendImpl( vecFilters );
     m_bAppend = true;
     if( pBuffer ) 
+    {
         this->Append( pBuffer, lLen );
+        free( pBuffer );
+    }
 }
 
 void PdfStream::EndAppend()

@@ -19,7 +19,9 @@
  ***************************************************************************/
 
 #include "PdfFilter.h"
-#include "PdfOutputStream.h"
+#include "PdfObject.h"
+#include "PdfOutputStream.h" 
+#include "PdfMemStream.h"
 
 #include "../PdfTest.h"
 
@@ -183,6 +185,43 @@ void test_filter_queque( const char* pBuffer, long lLen )
 
 }
 
+void test_stream( const char* pBuffer, long lLen )
+{
+    char* pDecoded;
+    long  lDecoded;
+
+    PdfObject    object;
+    PdfMemStream stream( &object );
+
+    printf("Testing PdfStream:\n");
+
+    stream.Set( const_cast<char*>(pBuffer), lLen );
+    stream.GetFilteredCopy( &pDecoded, &lDecoded );
+
+    printf("\t-> Original Data Length: %li\n", lLen );
+    printf("\t-> Encoded  Data Length: %lu\n", stream.GetLength() );
+    printf("\t-> Decoded  Data Length: %li\n", lDecoded );
+
+    if( lDecoded != lLen ) 
+    {
+        fprintf( stderr, "Error: Decoded data length does not match original data length.\n");
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    }
+
+    if( memcmp( pBuffer, pDecoded, lLen ) != 0 )
+    {
+        printf("\t-> Original Data: <%s>\n", pBuffer );
+        printf("\t-> Decoded  Data: \n<%s>\n", pDecoded );
+
+        fprintf( stderr, "Error: Decoded Data does not match original data.\n");
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    }
+
+    free( pDecoded );
+    
+    
+}
+
 } // end anon namespace
 
 int main() 
@@ -206,10 +245,15 @@ int main()
         {
             test_filter( static_cast<EPdfFilter>(i), pTestBuffer1, lTestLength1 );
             test_filter( static_cast<EPdfFilter>(i), pTestBuffer2, lTestLength2 );
-
-            test_filter_queque( pTestBuffer1, lTestLength1 );
-            test_filter_queque( pTestBuffer2, lTestLength2 );
         }
+
+
+        test_filter_queque( pTestBuffer1, lTestLength1 );
+        test_filter_queque( pTestBuffer2, lTestLength2 );
+        
+        test_stream( pTestBuffer1, lTestLength1 );
+        test_stream( pTestBuffer2, lTestLength2 );
+
     } catch( PdfError & e ) {
         e.PrintErrorMsg();
         return e.GetError();

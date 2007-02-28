@@ -37,8 +37,6 @@ typedef std::vector<EPdfFilter>            TVecFilters;
 typedef TVecFilters::iterator              TIVecFilters;
 typedef TVecFilters::const_iterator        TCIVecFilters;
 
-#define FILTER_INTERNAL_BUFFER_SIZE 4096
-
 /** Every filter in PoDoFo has to implement this interface.
  * 
  *  The two methods Encode and Decode have to be implemented 
@@ -289,9 +287,6 @@ class PODOFO_API PdfFilter {
      * \see EndDecode */
     virtual void EndDecodeImpl() { }
 
- protected:
-    unsigned char    m_buffer[FILTER_INTERNAL_BUFFER_SIZE];
-
  private:
     PdfOutputStream* m_pOutputStream;
 };
@@ -410,11 +405,17 @@ class PODOFO_API PdfFilterFactory {
      *
      *  \param filters a list of filters
      *  \param pStream write all data to this PdfOutputStream after it has been decoded.
+     *  \param pDictionary pointer to a dictionary that might contain additional parameters
+     *                     for decoding the stream.
+     *                     CreateDecodeStream will look for a key named DecodeParms in this dictionary
+     *                     and pass the information found in this dictionary to the filters.
+     *
      *  \returns a new PdfOutputStream that has to be deleted by the caller.
      *
      *  \see PdfFilterFactory::CreateFilterList
      */
-    static PdfOutputStream* CreateDecodeStream( const TVecFilters & filters, PdfOutputStream* pStream );
+    static PdfOutputStream* CreateDecodeStream( const TVecFilters & filters, PdfOutputStream* pStream, 
+                                                const PdfDictionary* pDictionary = NULL );
 
     /** Converts a filter name to the corresponding enum
      *  \param name of the filter without leading

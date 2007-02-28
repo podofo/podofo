@@ -28,8 +28,9 @@
 
 namespace PoDoFo {
 
-// TODO: explicit predictor handling
-struct TFlatePredictorParams;
+#define PODOFO_FILTER_INTERNAL_BUFFER_SIZE 4096
+
+class PdfPredictorDecoder;
 
 /** The ascii hex filter.
  */
@@ -313,8 +314,11 @@ class PdfFlateFilter : public PdfFilter {
      *  PdfFilter ensures that a valid stream is available when this method is called, and
      *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
      *
-     * \see BeginDecode */
-    virtual void BeginDecodeImpl( const PdfDictionary* );
+     *  \param pDecodeParms additional parameters for decoding data
+     *
+     * \see BeginDecode 
+     */
+    virtual void BeginDecodeImpl( const PdfDictionary* pDecodeParms );
 
     /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
      *
@@ -350,13 +354,16 @@ class PdfFlateFilter : public PdfFilter {
     inline virtual EPdfFilter GetType() const;
 
     // FIXME: DOM: Predictors should be implemented like filters!
-    void RevertPredictor( const TFlatePredictorParams* pParams, const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
+    //void RevertPredictor( const TFlatePredictorParams* pParams, const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
 
  private:
     void EncodeBlockInternal( const char* pBuffer, long lLen, int nMode );
 
  private:
-    z_stream m_stream;
+    unsigned char        m_buffer[PODOFO_FILTER_INTERNAL_BUFFER_SIZE];
+
+    z_stream             m_stream;
+    PdfPredictorDecoder* m_pPredictor;
 };
 
 bool PdfFlateFilter::CanEncode() const

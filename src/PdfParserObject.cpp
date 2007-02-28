@@ -22,6 +22,7 @@
 
 #include "PdfDictionary.h"
 #include "PdfInputDevice.h"
+#include "PdfInputStream.h"
 #include "PdfParser.h"
 #include "PdfStream.h"
 #include "PdfVariant.h"
@@ -274,19 +275,9 @@ void PdfParserObject::ParseStream()
         PODOFO_RAISE_ERROR( ePdfError_InvalidStreamLength );
     }
 
-    char * szBuf = static_cast<char*>(malloc( lLen * sizeof(char) ));
-    if( !szBuf ) 
-    {
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
-    }
-
     m_device.Device()->Seek( fLoc );	// reset it before reading!
-    if( m_device.Device()->Read( szBuf, lLen ) != lLen )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidStreamLength );
-    }
-
-    this->GetStream_NoDL()->Set( szBuf, lLen );
+    PdfDeviceInputStream reader( m_device.Device() );
+    this->GetStream_NoDL()->SetRawData( &reader, lLen );
 
     /*
     SAFE_OP( GetNextStringFromFile( ) );
