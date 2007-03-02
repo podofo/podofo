@@ -256,7 +256,8 @@ EPdfFilter PdfAscii85Filter::GetType() const
  */
 class PdfFlateFilter : public PdfFilter {
  public:
-    virtual ~PdfFlateFilter() { } 
+    PdfFlateFilter();
+    virtual ~PdfFlateFilter();
 
     /** Check wether the encoding is implemented for this filter.
      * 
@@ -352,9 +353,6 @@ class PdfFlateFilter : public PdfFilter {
      *  \returns the GetType of this filter
      */
     inline virtual EPdfFilter GetType() const;
-
-    // FIXME: DOM: Predictors should be implemented like filters!
-    //void RevertPredictor( const TFlatePredictorParams* pParams, const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
 
  private:
     void EncodeBlockInternal( const char* pBuffer, long lLen, int nMode );
@@ -490,7 +488,9 @@ class PdfLZWFilter : public PdfFilter {
     typedef TLzwTable::const_iterator TCILzwTable;
 
  public:
-    virtual ~PdfLZWFilter() {}
+    PdfLZWFilter();
+
+    virtual ~PdfLZWFilter();
 
     /** Check wether the encoding is implemented for this filter.
      * 
@@ -568,6 +568,17 @@ class PdfLZWFilter : public PdfFilter {
      * \see DecodeBlock */
     virtual void DecodeBlockImpl( const char* pBuffer, long lLen );
 
+    /** Real implementation of `EndDecode()'. NEVER call this method directly.
+     *
+     * By the time this method returns, all filtered data must be written to the stream
+     * and the filter must be in a state where BeginDecode() can be safely called.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is
+     *  called, and ensures that BeginDecodeImpl() has been called.
+     *
+     * \see EndDecode */
+    virtual void EndDecodeImpl();
+
     /** GetType of this filter.
      *  \returns the GetType of this filter
      */
@@ -590,6 +601,8 @@ class PdfLZWFilter : public PdfFilter {
     unsigned char m_character;
 
     bool          m_bFirst;
+
+    PdfPredictorDecoder* m_pPredictor;
 };
 
 bool PdfLZWFilter::CanEncode() const

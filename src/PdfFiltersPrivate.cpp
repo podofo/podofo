@@ -71,7 +71,7 @@ public:
         memset( m_pPrev, 0, sizeof(char) * m_nRows );
     };
 
-    ~PdfPredictorDecoder() 
+    ~PdfPredictorDecoder()
     {
         free( m_pPrev );
     }
@@ -145,94 +145,6 @@ private:
 
     char* m_pPrev;
 };
-
-// -------------------------------------------------------
-// Flate Predictor
-// -------------------------------------------------------
-#if 0
-void PdfFlateFilter::RevertPredictor( const TFlatePredictorParams* pParams, const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
-{
-    unsigned char*   pPrev;
-    int     nRows;
-    int     i;
-    char*   pOutBufStart;
-    const char*   pBuffer = pInBuffer;
-    int     nPredictor;
-
-#ifdef PODOFO_VERBOSE_DEBUG
-    PdfError::DebugMessage("Applying Predictor %i to buffer of size %i\n", pParams->nPredictor, lInLen );
-    PdfError::DebugMessage("Cols: %i Modulo: %i Comps: %i\n", pParams->nColumns, lInLen % (pParams->nColumns +1), pParams->nBPC );
-#endif // PODOFO_VERBOSE_DEBUG
-
-    if( pParams->nPredictor == 1 )  // No Predictor
-        return;
-
-    nRows = (pParams->nColumns * pParams->nBPC) >> 3; 
-
-    pPrev = static_cast<unsigned char*>(malloc( sizeof(char) * nRows ));
-    if( !pPrev )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
-    }
-
-    memset( pPrev, 0, sizeof(char) * nRows );
-
-#ifdef PODOFO_VERBOSE_DEBUG
-    PdfError::DebugMessage("Alloc: %i\n", (lInLen / (pParams->nColumns + 1)) * pParams->nColumns );
-#endif // PODOFO_VERBOSE_DEBUG
-
-    *ppOutBuffer = static_cast<char*>(malloc( sizeof(char) * (lInLen / (pParams->nColumns + 1)) * pParams->nColumns ));
-    pOutBufStart = *ppOutBuffer;
-
-    if( !*ppOutBuffer )
-    {
-        free( pPrev );
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
-    }
-
-    while( pBuffer < (pInBuffer + lInLen) )
-    {
-        nPredictor = pParams->nPredictor >= 10 ? *pBuffer + 10 : *pBuffer;
-        ++pBuffer;
-
-        for( i=0;i<nRows;i++ )
-        {
-            switch( nPredictor )
-            {
-                case 2: // Tiff Predictor
-                    // TODO: implement tiff predictor
-                    
-                    break;
-                case 10: // png none
-                case 11: // png sub
-                case 12: // png up
-                    *pOutBufStart = static_cast<unsigned char>(pPrev[i] + static_cast<unsigned char>(*pBuffer));
-                    break;
-                case 13: // png average
-                case 14: // png paeth
-                case 15: // png optimum
-                    break;
-                
-                default:
-                {
-                    free( pPrev );
-                    PODOFO_RAISE_ERROR( ePdfError_InvalidPredictor );
-                    break;
-                }
-            }
-  
-            pPrev[i] = *pOutBufStart;          
-            ++pOutBufStart;
-            ++pBuffer;
-        }
-    }
-
-    *plOutLen = (pOutBufStart - *ppOutBuffer);
-
-    free( pPrev );
-}
-#endif // 0
-
 
 
 // -------------------------------------------------------
@@ -480,6 +392,16 @@ void PdfAscii85Filter::WidePut( unsigned long tuple, int bytes ) const
 // -------------------------------------------------------
 // Flate
 // -------------------------------------------------------
+PdfFlateFilter::PdfFlateFilter()
+    : m_pPredictor( 0 )
+{
+}
+
+PdfFlateFilter::~PdfFlateFilter()
+{
+    delete m_pPredictor;
+}
+
 void PdfFlateFilter::BeginEncodeImpl()
 {
     m_stream.zalloc   = Z_NULL;
@@ -594,6 +516,7 @@ void PdfFlateFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
 void PdfFlateFilter::EndDecodeImpl()
 {
     delete m_pPredictor;
+    m_pPredictor = NULL;
 
     (void)inflateEnd(&m_stream);
 }
@@ -660,6 +583,16 @@ const unsigned short PdfLZWFilter::s_masks[] = { 0x01FF,
 const unsigned short PdfLZWFilter::s_clear  = 0x0100;      // clear table
 const unsigned short PdfLZWFilter::s_eod    = 0x0101;      // end of data
 
+PdfLZWFilter::PdfLZWFilter()
+    : m_pPredictor( 0 )
+{
+}
+
+PdfLZWFilter::~PdfLZWFilter()
+{
+    delete m_pPredictor;
+}
+
 void PdfLZWFilter::BeginEncodeImpl()
 {
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
@@ -675,13 +608,15 @@ void PdfLZWFilter::EndEncodeImpl()
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
-void PdfLZWFilter::BeginDecodeImpl( const PdfDictionary* )
+void PdfLZWFilter::BeginDecodeImpl( const PdfDictionary* pDecodeParms )
 { 
-    m_mask      = 0;
-    m_code_len  = 9;
-    m_character = 0;
+    m_mask       = 0;
+    m_code_len   = 9;
+    m_character  = 0;
 
-    m_bFirst    = true;
+    m_bFirst     = true;
+
+    m_pPredictor = pDecodeParms ? new PdfPredictorDecoder( pDecodeParms ) : NULL;
 
     InitTable();
 }
@@ -752,7 +687,10 @@ void PdfLZWFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
                     data = m_table[code].value;
 
                 // Write data to the output device
-                GetStream()->Write( reinterpret_cast<char*>(&(data[0])), data.size() );
+                if( m_pPredictor ) 
+                    m_pPredictor->Decode( reinterpret_cast<char*>(&(data[0])), data.size(), GetStream() );
+                else
+                    GetStream()->Write( reinterpret_cast<char*>(&(data[0])), data.size());
 
                 m_character = data[0];
                 if( old < m_table.size() ) // fix the first loop
@@ -778,6 +716,12 @@ void PdfLZWFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
             }
         }
     }
+}
+
+void PdfLZWFilter::EndDecodeImpl()
+{
+    delete m_pPredictor;
+    m_pPredictor = NULL;
 }
 
 void PdfLZWFilter::InitTable()
