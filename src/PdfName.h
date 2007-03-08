@@ -124,22 +124,22 @@ class PODOFO_API PdfName : public PdfDataType {
     /** \returns the unescaped value of this name object
      *           without the leading slash
      */
-    inline const std::string& GetName() const throw();
+    PODOFO_NOTHROW inline const std::string& GetName() const;
 
     /** \returns the unescaped length of this
      *           name object
      */
-    inline size_t GetLength() const throw();
+    PODOFO_NOTHROW inline size_t GetLength() const;
 
     /** Assign another name to this object
      *  \param rhs another PdfName object
      */
-    inline const PdfName& operator=( const PdfName & rhs ) throw();
+    PODOFO_NOTHROW inline const PdfName& operator=( const PdfName & rhs );
 
     /** compare to PdfName objects.
      *  \returns true if both PdfNames have the same value.
      */
-    inline bool operator==( const PdfName & rhs ) const throw();
+    PODOFO_NOTHROW inline bool operator==( const PdfName & rhs ) const;
 
     /** overloaded operator for convinience
      *
@@ -157,12 +157,12 @@ class PODOFO_API PdfName : public PdfDataType {
      *  \param rhs a name
      *  \returns true if this objects name is equal to pszName
      */
-    inline bool operator==( const std::string& rhs ) const throw();
+    PODOFO_NOTHROW inline bool operator==( const std::string& rhs ) const;
 
     /** compare two PdfName objects.
      *  \returns true if both PdfNames have different values.
      */
-    inline bool operator!=( const PdfName & rhs ) const throw();
+    PODOFO_NOTHROW inline bool operator!=( const PdfName & rhs ) const;
 
     /** overloaded operator for convinience
      *
@@ -177,7 +177,7 @@ class PODOFO_API PdfName : public PdfDataType {
      *  Used for sorting in lists
      *  \returns true if this object is smaller than rhs
      */
-    inline bool operator<( const PdfName & rhs ) const throw();
+    PODOFO_NOTHROW inline bool operator<( const PdfName & rhs ) const;
 
     static const PdfName KeyContents;
     static const PdfName KeyFlags;
@@ -197,7 +197,7 @@ class PODOFO_API PdfName : public PdfDataType {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const std::string & PdfName::GetName() const throw()
+const std::string & PdfName::GetName() const
 {
     return m_Data;
 }
@@ -205,7 +205,7 @@ const std::string & PdfName::GetName() const throw()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-size_t PdfName::GetLength() const throw()
+size_t PdfName::GetLength() const
 {
     return m_Data.length();
 }
@@ -213,7 +213,7 @@ size_t PdfName::GetLength() const throw()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-bool PdfName::operator!=( const PdfName & rhs ) const throw()
+bool PdfName::operator!=( const PdfName & rhs ) const
 {
     return !this->operator==( rhs );
 }
@@ -226,22 +226,22 @@ bool PdfName::operator!=( const char* rhs ) const
     return !this->operator==( rhs );
 }
 
-bool PdfName::operator<( const PdfName & rhs ) const throw()
+bool PdfName::operator<( const PdfName & rhs ) const
 {
     return m_Data < rhs.m_Data;
 }
 
-bool PdfName::operator==( const PdfName & rhs ) const throw()
+bool PdfName::operator==( const PdfName & rhs ) const
 {
     return ( m_Data == rhs.m_Data );
 }
 
-bool PdfName::operator==( const std::string & rhs ) const throw()
+bool PdfName::operator==( const std::string & rhs ) const
 {
     return ( m_Data == rhs );
 }
 
-const PdfName& PdfName::operator=( const PdfName & rhs ) throw()
+const PdfName& PdfName::operator=( const PdfName & rhs )
 {
     m_Data = rhs.m_Data;
     return *this;

@@ -120,6 +120,7 @@
   #define PODOFO_EXCEPTION_API(api)
 #endif
 
+/* Set up some other compiler-specific but not platform-specific macros */
 
 #if defined(__GNUC__)
     /* gcc will issue a warning if a function or variable so annotated is used */
@@ -127,9 +128,15 @@
     /* gcc can do some additional optimisations on functions annotated as pure.
      * See the documentation on __attribute__((pure)) in the gcc docs. */
     #define PODOFO_PURE_FUNCTION    __attribute__((pure))
+    /* PODOFO_NOTHROW can be used to tell the compiler the annotated function is
+     * guaranteed not to throw. If it does throw, undefined behaviour will result,
+     * so be VERY careful with this. This is NOT the same as the PODOFO_NOTHROW qualifier
+     * (see CODINGSTYLE.txt) .*/
+    #define PODOFO_NOTHROW          __attribute__((nothrow))
 #else
     #define PODOFO_DEPRECATED
     #define PODOFO_PURE_FUNCTION
+    #define PODOFO_NOTHROW          __declspec(nothrow)
 #endif
 
 #endif // PODOFO_API_H

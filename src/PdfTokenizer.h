@@ -103,27 +103,27 @@ class PODOFO_API PdfTokenizer {
      *
      *  \returns true if it is a whitespace character otherwise false
      */
-    inline static bool IsWhitespace(const unsigned char ch) throw();
+    PODOFO_NOTHROW inline static bool IsWhitespace(const unsigned char ch);
 
     /** Returns true if the given character is a delimiter
      *  according to the pdf reference
      *
      *  \returns true if it is a delimiter character otherwise false
      */
-    inline static bool IsDelimiter(const unsigned char ch) throw();
+    PODOFO_NOTHROW inline static bool IsDelimiter(const unsigned char ch);
 
     /**
      * True if the passed character is a regular character according to the PDF
      * reference (Section 3.1.1, Character Set); ie it is neither a white-space
      * nor a delimeter character.
      */
-    inline static bool IsRegular(const unsigned char ch) throw();
+    PODOFO_NOTHROW inline static bool IsRegular(const unsigned char ch);
 
     /**
      * True iff the passed character is within the generally accepted "printable"
      * ASCII range.
      */
-    inline static bool IsPrintable(const unsigned char ch) throw();
+    PODOFO_NOTHROW inline static bool IsPrintable(const unsigned char ch);
 
 
  private:
@@ -206,7 +206,7 @@ class PODOFO_API PdfTokenizer {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline bool PdfTokenizer::IsWhitespace(const unsigned char ch) throw()
+inline bool PdfTokenizer::IsWhitespace(const unsigned char ch)
 {
     return ( PdfTokenizer::m_whitespaceMap[ch] != 0 );
 }
@@ -214,7 +214,7 @@ inline bool PdfTokenizer::IsWhitespace(const unsigned char ch) throw()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline bool PdfTokenizer::IsDelimiter(const unsigned char ch) throw()
+inline bool PdfTokenizer::IsDelimiter(const unsigned char ch)
 {
     return ( PdfTokenizer::m_delimiterMap[ch] != 0 );
 }
@@ -222,7 +222,7 @@ inline bool PdfTokenizer::IsDelimiter(const unsigned char ch) throw()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline bool PdfTokenizer::IsRegular(const unsigned char ch) throw()
+inline bool PdfTokenizer::IsRegular(const unsigned char ch)
 {
     return !IsWhitespace(ch) && !IsDelimiter(ch);
 }
@@ -230,7 +230,7 @@ inline bool PdfTokenizer::IsRegular(const unsigned char ch) throw()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline bool PdfTokenizer::IsPrintable(const unsigned char ch) throw()
+inline bool PdfTokenizer::IsPrintable(const unsigned char ch)
 {
     return ch > 32 && ch < 125;
 }

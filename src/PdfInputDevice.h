@@ -105,24 +105,24 @@ class PODOFO_API PdfInputDevice {
     /**
      * \return True if the stream is at EOF
      */
-    inline virtual bool Eof() const throw();
+    PODOFO_NOTHROW inline virtual bool Eof() const;
 
     /**
      * \return True if there was an error in an I/O operation
      */
-    inline virtual bool Bad() const throw();
+    PODOFO_NOTHROW inline virtual bool Bad() const;
 
     /**
      * \return True if the stream is seekable. Subclasses can control
      * this value with SetIsSeekable(bool) .
      */
-    inline bool IsSeekable() const throw();
+    PODOFO_NOTHROW inline bool IsSeekable() const;
  protected:
     /**
      * Control whether or or not this stream is flagged
      * seekable.
      */
-    inline void SetSeekable(bool bIsSeekable) throw();
+    PODOFO_NOTHROW inline void SetSeekable(bool bIsSeekable);
 
     /** CAN NOT Construct a new PdfInputDevice without an input source. 
      *  However subclasses may well need to do just that.
@@ -140,22 +140,22 @@ class PODOFO_API PdfInputDevice {
     bool           m_bIsSeekable;
 };
 
-bool PdfInputDevice::IsSeekable() const throw()
+bool PdfInputDevice::IsSeekable() const
 {
     return m_bIsSeekable;
 }
 
-void PdfInputDevice::SetSeekable(bool bIsSeekable) throw()
+void PdfInputDevice::SetSeekable(bool bIsSeekable)
 {
     m_bIsSeekable = bIsSeekable;
 }
 
-bool PdfInputDevice::Bad() const throw()
+bool PdfInputDevice::Bad() const
 {
     return m_pStream->bad();
 }
 
-bool PdfInputDevice::Eof() const throw()
+bool PdfInputDevice::Eof() const
 {
     return m_pStream->eof();
 }

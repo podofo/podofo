@@ -293,7 +293,7 @@ class PODOFO_API PdfObject : public PdfVariant {
     PdfStream*     m_pStream;
     PdfVecObjects* m_pOwner;
 
-    inline bool DelayedStreamLoadDone() const throw();
+    PODOFO_NOTHROW inline bool DelayedStreamLoadDone() const;
 
  private:
 
@@ -307,13 +307,13 @@ class PODOFO_API PdfObject : public PdfVariant {
 
 #if defined(PODOFO_EXTRA_CHECKS)
  protected:
-    bool DelayedStreamLoadInProgress() const throw() { return m_bDelayedStreamLoadInProgress; }
+    PODOFO_NOTHROW bool DelayedStreamLoadInProgress() const { return m_bDelayedStreamLoadInProgress; }
 private:
     mutable bool m_bDelayedStreamLoadInProgress;
 #endif
 };
 
-bool PdfObject::DelayedStreamLoadDone() const throw()
+bool PdfObject::DelayedStreamLoadDone() const
 {
     return m_bDelayedStreamLoadDone;
 }
@@ -412,5 +412,6 @@ inline void PdfObject::DelayedStreamLoad() const
 };
 
 #endif // _PDF_OBJECT_H_
+
 
 

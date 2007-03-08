@@ -40,7 +40,7 @@ PdfVariant PdfVariant::NullValue;
 
 // Do one-off initialization that should not be repeated
 // in the Clear() method. Mostly useful for internal sanity checks.
-inline void PdfVariant::Init() throw()
+inline void PdfVariant::Init()
 {
     memset( &m_Data, 0, sizeof( UVariant ) );
     m_eDataType = ePdfDataType_Null;
@@ -331,5 +331,6 @@ const char * PdfVariant::GetDataTypeString() const
 }
 
 };
+
 
 

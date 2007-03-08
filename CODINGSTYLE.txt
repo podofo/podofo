@@ -115,10 +115,12 @@ simple editor settings.
     long MyClass::GetProperty() const;
 
     Additionally, please use the prefixes "Has" and "Is" when appropriate.
-    E.g. 
+    E.g.
 
     PdfDictionary::HasKey();
     PdfDocument::IsLinearized();
+
+    Avoid the throw() qualifier (see 3.5).
 
 2.4 NULL-Pointers
 
@@ -203,7 +205,22 @@ simple editor settings.
     the stack size of the function, etc. Don't forget to consider the lifetime
     of the temporary, however.
 
-3.5 Exported API
+3.5 The `throw' qualifier
+
+    Under no circumstances use exception specifiers, even the empty exception
+    specifier `throw()'. C++ checked exceptions - when implemented according
+    to the standard - are essentially useless and may actually be costly. If
+    you want to tell the compiler a method will not throw (as an optimisation)
+    use a macro for __declspec(nothrow) instead. podofoapi provides
+    appropriate macros for use in podofo. (Note that VC++ treats throw() as
+    __declspec(nothrow) in violation of the standard, but that's all the more
+    reason to just use __declspec(nothrow)).
+
+    see:
+    http://msdn2.microsoft.com/en-us/library/49147z04.aspx
+    http://gcc.gnu.org/onlinedocs/gcc-3.3.1/gcc/Function-Attributes.html
+
+3.6 Exported API
 
     PoDoFo draws a distinction between exported and private API on some
     platforms (currently Windows DLL builds and gcc 4 with

@@ -68,7 +68,7 @@ class PODOFO_API PdfReference : public PdfDataType {
         this->operator=( rhs );
     }
 
-    virtual ~PdfReference() throw() { }
+    PODOFO_NOTHROW virtual ~PdfReference() { }
 
     /** Convert the reference to a string.
      *  \returns a string representation of the object.
@@ -82,7 +82,7 @@ class PODOFO_API PdfReference : public PdfDataType {
      *
      * \param rhs the object to copy
      */
-    inline const PdfReference & operator=( const PdfReference & rhs ) throw();
+    PODOFO_NOTHROW inline const PdfReference & operator=( const PdfReference & rhs );
 
     /** Write the complete variant to an output device.
      *  This is an overloaded member function.
@@ -95,39 +95,39 @@ class PODOFO_API PdfReference : public PdfDataType {
      * Compare to PdfReference objects.
      * \returns true if both reference the same object
      */
-    inline bool operator==( const PdfReference & rhs ) const throw();
+    PODOFO_NOTHROW inline bool operator==( const PdfReference & rhs ) const;
 
     /** 
      * Compare to PdfReference objects.
      * \returns false if both reference the same object
      */
-    inline bool operator!=( const PdfReference & rhs ) const throw();
+    PODOFO_NOTHROW inline bool operator!=( const PdfReference & rhs ) const;
 
     /** 
      * Compare to PdfReference objects.
      * \returns true if this reference has a smaller object and generation number
      */
-    inline bool operator<( const PdfReference & rhs ) const throw();
+    PODOFO_NOTHROW inline bool operator<( const PdfReference & rhs ) const;
 
     /** Set the object number of this object
      *  \param o the new object number
      */
-    inline void SetObjectNumber( unsigned long o ) throw();
+    PODOFO_NOTHROW inline void SetObjectNumber( unsigned long o );
 
     /** Get the object number.
      *  \returns the object number of this PdfReference
      */
-    inline unsigned long ObjectNumber() const throw();
+    PODOFO_NOTHROW inline unsigned long ObjectNumber() const;
 
     /** Set the generation number of this object
      *  \param g the new generation number
      */
-    inline void SetGenerationNumber( const pdf_uint16 g ) throw();
+    PODOFO_NOTHROW inline void SetGenerationNumber( const pdf_uint16 g );
 
     /** Get the generation number.
      *  \returns the generation number of this PdfReference
      */
-    inline pdf_uint16 GenerationNumber() const throw();
+    PODOFO_NOTHROW inline pdf_uint16 GenerationNumber() const;
 
     /** Allows to check if a reference points to an indirect
      *  object.
@@ -138,7 +138,7 @@ class PODOFO_API PdfReference : public PdfDataType {
      *  \returns true if this reference is the reference of
      *           an indirect object.
      */
-    inline bool IsIndirect() const throw();
+    PODOFO_NOTHROW inline bool IsIndirect() const;
 
  private:
     unsigned long m_nObjectNo;
@@ -148,7 +148,7 @@ class PODOFO_API PdfReference : public PdfDataType {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const PdfReference & PdfReference::operator=( const PdfReference & rhs ) throw()
+const PdfReference & PdfReference::operator=( const PdfReference & rhs )
 {
     m_nObjectNo     = rhs.m_nObjectNo;
     m_nGenerationNo = rhs.m_nGenerationNo;
@@ -158,7 +158,7 @@ const PdfReference & PdfReference::operator=( const PdfReference & rhs ) throw()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-bool PdfReference::operator<( const PdfReference & rhs ) const throw()
+bool PdfReference::operator<( const PdfReference & rhs ) const
 {
     if( m_nObjectNo == rhs.m_nObjectNo )
         return m_nGenerationNo < rhs.m_nGenerationNo;
@@ -169,7 +169,7 @@ bool PdfReference::operator<( const PdfReference & rhs ) const throw()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-bool PdfReference::operator==( const PdfReference & rhs ) const throw()
+bool PdfReference::operator==( const PdfReference & rhs ) const
 {
     return ( m_nObjectNo == rhs.m_nObjectNo && m_nGenerationNo == rhs.m_nGenerationNo);
 }
@@ -177,7 +177,7 @@ bool PdfReference::operator==( const PdfReference & rhs ) const throw()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline bool PdfReference::operator!=( const PdfReference & rhs ) const throw()
+inline bool PdfReference::operator!=( const PdfReference & rhs ) const
 {
     return !this->operator==( rhs );
 }
@@ -185,7 +185,7 @@ inline bool PdfReference::operator!=( const PdfReference & rhs ) const throw()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfReference::SetObjectNumber( unsigned long o ) throw()
+void PdfReference::SetObjectNumber( unsigned long o )
 {
     m_nObjectNo = o;
 }
@@ -193,7 +193,7 @@ void PdfReference::SetObjectNumber( unsigned long o ) throw()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned long PdfReference::ObjectNumber() const throw()
+unsigned long PdfReference::ObjectNumber() const
 {
     return m_nObjectNo;
 }
@@ -201,7 +201,7 @@ unsigned long PdfReference::ObjectNumber() const throw()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfReference::SetGenerationNumber( pdf_uint16 g ) throw()
+void PdfReference::SetGenerationNumber( pdf_uint16 g )
 {
     m_nGenerationNo = g;
 }
@@ -209,7 +209,7 @@ void PdfReference::SetGenerationNumber( pdf_uint16 g ) throw()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-pdf_uint16 PdfReference::GenerationNumber() const throw()
+pdf_uint16 PdfReference::GenerationNumber() const
 {
     return m_nGenerationNo;
 }
@@ -217,7 +217,7 @@ pdf_uint16 PdfReference::GenerationNumber() const throw()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-bool PdfReference::IsIndirect() const throw()
+bool PdfReference::IsIndirect() const
 {
     return !( !m_nObjectNo && !m_nGenerationNo );
 }
@@ -225,4 +225,5 @@ bool PdfReference::IsIndirect() const throw()
 };
 
 #endif // _PDF_REFERENCE_H_
+
 

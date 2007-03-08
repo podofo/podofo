@@ -285,6 +285,7 @@ class PODOFO_EXCEPTION_API(PODOFO_API) PdfError : public std::exception {
 
     /** Reimplemented from std::exception.
      *  \returns a c string describing the error.
+     *  Annotated throw() in defiance of CODINGSTYLE.txt because we can't discard qualifiers on override.
      */
     virtual const char* what() const throw();
     
@@ -292,7 +293,7 @@ class PODOFO_EXCEPTION_API(PODOFO_API) PdfError : public std::exception {
      *  \returns the name or NULL if no name for the specified
      *           error code is available.
      */
-    static const char* ErrorName( EPdfError eCode );
+    PODOFO_NOTHROW static const char* ErrorName( EPdfError eCode );
 
     /** Get the error message for a certain error code.
      *  \returns the error message or NULL if no error
@@ -382,5 +383,6 @@ bool PdfError::IsError() const
 };
 
 #endif /* _PDF_ERROR_H_ */
+
 
 

@@ -322,7 +322,7 @@ class PODOFO_API PdfVariant {
      * and loading has completed. External callers should never need to
      * see this, it's an internal state flag only.
      */
-    inline bool DelayedLoadDone() const throw();
+    PODOFO_NOTHROW inline bool DelayedLoadDone() const;
 
     // Rather than having deferred load triggering disabled while deferred
     // loading is in progress, causing public methods to potentially return
@@ -379,11 +379,11 @@ class PODOFO_API PdfVariant {
     mutable bool m_bDelayedLoadDone;
 
     // Helper for ctor
-    void Init() throw();
+    PODOFO_NOTHROW void Init();
 
 #if defined(PODOFO_EXTRA_CHECKS)
 protected:
-    bool DelayedLoadInProgress() const throw() { return m_bDelayedLoadInProgress; }
+    PODOFO_NOTHROW bool DelayedLoadInProgress() const { return m_bDelayedLoadInProgress; }
 private:
     mutable bool m_bDelayedLoadInProgress;
 #endif
@@ -686,7 +686,7 @@ inline PdfReference & PdfVariant::GetReference()
     return *(reinterpret_cast<PdfReference* const>(m_Data.pData));
 }
 
-bool PdfVariant::DelayedLoadDone() const throw()
+bool PdfVariant::DelayedLoadDone() const
 {
     return m_bDelayedLoadDone;
 }
