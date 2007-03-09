@@ -136,19 +136,15 @@ void PdfMemStream::FlateCompress()
     PdfVariant        vFilter( PdfName("FlateDecode" ) );
     PdfVariant        vFilterList;
     PdfArray          tFilters;
-    TVecDictionaries  tDecodeParams;
 
     PdfArray::const_iterator tciFilters;
     
     if( !m_buffer.GetSize() )
         return; // ePdfError_ErrOk
 
+    // TODO: Handle DecodeParms
     if( m_pParent->GetDictionary().HasKey( "Filter" ) )
     {
-        // DecodeParms dictionaries of already used filters
-        // have to be handled.
-        GetDecodeParms( &tDecodeParams );
-
         pObj = m_pParent->GetIndirectKey( "Filter" );
 
         if( pObj->IsName() )
@@ -157,12 +153,6 @@ void PdfMemStream::FlateCompress()
             {
                 tFilters.push_back( vFilter );
                 tFilters.push_back( *pObj );
-            }
-            else
-            {
-                FreeDecodeParms( &tDecodeParams );
-                // do not compress DCTDecoded are already FlateDecoded streams again
-                return;
             }
         }
         else if( pObj->IsArray() )
@@ -176,7 +166,6 @@ void PdfMemStream::FlateCompress()
                     // do not compress DCTDecoded are already FlateDecoded streams again
                     if( (*tciFilters).GetName() == "DCTDecode" || (*tciFilters).GetName() == "FlateDecode" )
                     {
-                        FreeDecodeParms( &tDecodeParams );
                         return;
                     }
                 }
@@ -196,33 +185,12 @@ void PdfMemStream::FlateCompress()
             }
         }
         else
-        {
-            FreeDecodeParms( &tDecodeParams );
-            // TODO: handle other cases
             return;
-        }
 
         vFilterList = PdfVariant( tFilters );
         m_pParent->GetDictionary().AddKey( "Filter", vFilterList );
 
-        try {
-            // add an empty DecodeParams dictionary to the list of DecodeParams,
-            // but only if another DecodeParams dictionary does exist.
-            if( tDecodeParams.size() ) 
-            {
-                tDecodeParams.insert( tDecodeParams.begin(), NULL );
-                // Write the decode params back to the file
-                SetDecodeParms( &tDecodeParams ); // throws an exception on error
-            }
-            
-            FlateCompressStreamData(); // throws an exception on error
-        } catch( PdfError & e ) {
-            e.AddToCallstack( __FILE__, __LINE__ );
-
-            FreeDecodeParms( &tDecodeParams );
-
-            throw e;
-        }
+        FlateCompressStreamData(); // throws an exception on error
     }
     else
     {

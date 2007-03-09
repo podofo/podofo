@@ -252,25 +252,6 @@ class PODOFO_API PdfStream {
      */
     virtual void EndAppendImpl() = 0;
 
-    /** Get a list of extra decode parameters for this dictionary.
-     *  The list contains copies of the objects and has to be deleted by the caller! 
-     */
-    void GetDecodeParms( TVecDictionaries* pParams ) const;
-
-    /** Set a list of extra decode parameters for this dictionary. Replace any old
-     *  decode paramaters with this.
-     *
-     *  This function may change pParams->SetAutoDelete!
-     *
-     *  \param pParams a list of decode parameter dictioniers, may contain null pointers
-     */
-    void SetDecodeParms( TVecDictionaries* pParams );
-
-    /** Deletes all dictionaries in the vector
-     *  \param pParams delete all dictionaries in this vector
-     */
-    void FreeDecodeParms( TVecDictionaries* pParams ) const;
-
  protected:
     PdfObject*          m_pParent;
 
