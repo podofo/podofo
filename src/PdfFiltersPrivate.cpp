@@ -187,7 +187,9 @@ void PdfHexFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
         }
 
         val  = *pBuffer;
-        val -= ( *pBuffer < 'A' ? '0' : 'A'-10 );
+        if( val >= 'a' && val <= 'f' )
+            val -= 32; // convert lower case to uppercase
+        val -= ( val < 'A' ? '0' : 'A'-10 );
 
         if( m_bLow ) 
         {
