@@ -59,6 +59,10 @@ class PODOFO_API PdfBufferOutputStream : public PdfOutputStream {
         return lLen;
     }
 
+    virtual void Close() 
+    {
+    }
+
  private:
     PdfRefCountedBuffer* m_pBuffer;
 };
@@ -99,11 +103,16 @@ void PdfMemStream::AppendImpl( const char* pszString, size_t lLen )
 
 void PdfMemStream::EndAppendImpl()
 {
-    delete m_pStream;
-    m_pStream = NULL;
+    if( m_pStream ) 
+    {
+        m_pStream->Close();
+        delete m_pStream;
+        m_pStream = NULL;
+    }
 
     if( m_pBufferStream ) 
     {
+        m_pBufferStream->Close();
         delete m_pBufferStream;
         m_pBufferStream = NULL;
     }

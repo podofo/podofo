@@ -266,7 +266,9 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
     double        y      = pPage->GetPageSize().GetHeight() - 60000 * CONVERSION_CONSTANT;
 
+#ifdef PODOFO_HAVE_JPEG_LIB
     PdfImage image( &(pDocument->GetObjects()) );
+#endif // PODOFO_HAVE_JPEG_LIB
 
     PdfRect        rect( 0, 0, 50000 * CONVERSION_CONSTANT, 50000 * CONVERSION_CONSTANT );
     PdfRect        rect1( 80000 * CONVERSION_CONSTANT, 3000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
@@ -274,7 +276,9 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     PdfXObject     xObj( rect, &(pDocument->GetObjects()) );
     PdfPainter     pnt;    // XObject painter
 
+#ifdef PODOFO_HAVE_JPEG_LIB
     image.LoadFromFile( "../../../podofo/test/CreationTest/lena.jpg" );
+#endif // PODOFO_HAVE_JPEG_LIB
 
     pnt.SetPage( &xObj );
     // Draw onto the XObject
@@ -292,9 +296,11 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     printf("Drawing on the page!\n");
     // Draw onto the page 
 
+#ifdef PODOFO_HAVE_JPEG_LIB
     pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y, &image, 0.3, 0.3 );
     pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y - (100000 * CONVERSION_CONSTANT), &image, 0.2, 0.5 );
     pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y - (200000 * CONVERSION_CONSTANT), &image, 0.3, 0.3 );
+#endif // PODOFO_HAVE_JPEG_LIB
 
     pPainter->DrawXObject( 120000 * CONVERSION_CONSTANT, y - (15000 * CONVERSION_CONSTANT), &xObj, 0.01, 0.01 );
 

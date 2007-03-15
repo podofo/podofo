@@ -91,10 +91,13 @@ class PODOFO_API PdfImage : public PdfXObject {
     void SetImageData( unsigned int nWidth, unsigned int nHeight, unsigned int nBitsPerComponent, 
                        char* szBuffer, long lLen );
 
+
+#ifdef PODOFO_HAVE_JPEG_LIB
     /** Load the image data from a JPEG file
      *  \param pszFilename
      */
     void LoadFromFile( const char* pszFilename );
+#endif // PODOFO_HAVE_JPEG_LIB
 
     /** Get the width of the image when drawn in PDF units
      *  \returns the width in PDF units

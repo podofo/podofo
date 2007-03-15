@@ -26,9 +26,11 @@
 #include <stdio.h>
 #include <sstream>
 
+#ifdef PODOFO_HAVE_JPEG_LIB
 extern "C" {
 #include "jpeglib.h"
 }
+#endif // PODOFO_HAVE_JPEG_LIB
 
 using namespace std;
 
@@ -86,6 +88,7 @@ void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight,
     m_pObject->GetStream()->Set( szBuffer, lLen );
 }
 
+#ifdef PODOFO_HAVE_JPEG_LIB
 void PdfImage::LoadFromFile( const char* pszFilename )
 {
     FILE*    hInfile;    
@@ -177,6 +180,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
     fclose( hInfile );
     free( szBuffer );
 }
+#endif // PODOFO_HAVE_JPEG_LIB
 
 const char* PdfImage::ColorspaceToName( EPdfColorSpace eColorSpace )
 {

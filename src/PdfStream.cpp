@@ -46,7 +46,8 @@ void PdfStream::GetFilteredCopy( PdfOutputStream* pStream ) const
                                                                                &(m_pParent->GetDictionary()) : NULL  );
         
         pDecodeStream->Write( const_cast<char*>(this->GetInternalBuffer()), this->GetInternalBufferSize() );
-        
+        pDecodeStream->Close();
+
         delete pDecodeStream;
     }
     else
@@ -65,11 +66,16 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
                                                                            &(m_pParent->GetDictionary()) : NULL  );
 
         pDecodeStream->Write( this->GetInternalBuffer(), this->GetInternalBufferSize() );
+        pDecodeStream->Close();
+
         delete pDecodeStream;
     }
     else
+    {
         // Also work on unencoded streams
         stream.Write( const_cast<char*>(this->GetInternalBuffer()), this->GetInternalBufferSize() );
+        stream.Close();
+    }
 
     *lLen     = stream.GetLength();
     *ppBuffer = stream.TakeBuffer();

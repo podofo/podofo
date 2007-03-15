@@ -33,15 +33,15 @@ PdfFileOutputStream::PdfFileOutputStream( const char* pszFilename )
     }
 }
 
-PdfFileOutputStream::~PdfFileOutputStream()
-{
-    if( m_hFile ) 
-        fclose( m_hFile );
-}
-
 long PdfFileOutputStream::Write( const char* pBuffer, long lLen )
 {
     return fwrite( pBuffer, sizeof(char), lLen, m_hFile );
+}
+
+void PdfFileOutputStream::Close() 
+{
+    if( m_hFile ) 
+        fclose( m_hFile );
 }
 
 PdfMemoryOutputStream::PdfMemoryOutputStream( long lInitial )
@@ -87,10 +87,6 @@ long PdfMemoryOutputStream::Write( const char* pBuffer, long lLen )
 
 PdfDeviceOutputStream::PdfDeviceOutputStream( PdfOutputDevice* pDevice )
     : m_pDevice( pDevice )
-{
-}
-
-PdfDeviceOutputStream::~PdfDeviceOutputStream()
 {
 }
 

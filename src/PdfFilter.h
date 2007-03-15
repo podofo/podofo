@@ -26,6 +26,9 @@
 
 #include "PdfDefines.h"
 
+#include "PdfInputStream.h"
+#include "PdfOutputStream.h"
+
 namespace PoDoFo {
 
 class PdfDictionary;
@@ -317,6 +320,8 @@ void PdfFilter::EndEncode()
 {
     PODOFO_RAISE_LOGIC_IF( !m_pOutputStream, "EndEncode() without BeginEncode() or on failed filter" );
     EndEncodeImpl();
+
+    m_pOutputStream->Close();
     m_pOutputStream = NULL;
 }
 
@@ -346,6 +351,8 @@ void PdfFilter::EndDecode()
 {
     PODOFO_RAISE_LOGIC_IF( !m_pOutputStream, "EndDecode() without BeginDecode() or on failed filter" )
     EndDecodeImpl();
+
+    m_pOutputStream->Close();
     m_pOutputStream = NULL;
 }
 
@@ -354,6 +361,7 @@ void PdfFilter::EndDecode()
 // -----------------------------------------------------
 void PdfFilter::FailEncodeDecode()
 {
+    m_pOutputStream->Close();
     m_pOutputStream = NULL;
 }
 

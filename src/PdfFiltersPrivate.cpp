@@ -680,7 +680,6 @@ void PdfLZWFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
                 {
                     if (old >= m_table.size())
                     {
-                        printf("old=%i code=%i m_table=%i\n", old, code, m_table.size() );
                         PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
                     }
                     data = m_table[old].value;

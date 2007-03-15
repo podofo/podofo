@@ -45,6 +45,15 @@ class PODOFO_API PdfOutputStream {
      *  \returns the number of bytes written, -1 if an error ocurred
      */
     virtual long Write( const char* pBuffer, long lLen ) = 0;
+
+    /** Close the PdfOutputStream.
+     *  This method may throw exceptions and has to be called 
+     *  before the descructor to end writing.
+     *
+     *  No more data may be written to the output device
+     *  after calling close.
+     */
+    virtual void Close() = 0;
 };
 
 /** An output stream that writes data to a file
@@ -57,7 +66,6 @@ class PODOFO_API PdfFileOutputStream : public PdfOutputStream {
      *  \param pszFilename the filename of the file to read
      */
     PdfFileOutputStream( const char* pszFilename );
-    ~PdfFileOutputStream();
 
     /** Write data to the output stream
      *  
@@ -67,6 +75,15 @@ class PODOFO_API PdfFileOutputStream : public PdfOutputStream {
      *  \returns the number of bytes written, -1 if an error ocurred
      */
     virtual long Write( const char* pBuffer, long lLen );
+
+    /** Close the PdfOutputStream.
+     *  This method may throw exceptions and has to be called 
+     *  before the descructor to end writing.
+     *
+     *  No more data may be written to the output device
+     *  after calling close.
+     */
+    virtual void Close();
 
  private:
     FILE* m_hFile;
@@ -93,6 +110,15 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
      *  \returns the number of bytes written, -1 if an error ocurred
      */
     virtual long Write( const char* pBuffer, long lLen );
+
+    /** Close the PdfOutputStream.
+     *  This method may throw exceptions and has to be called 
+     *  before the descructor to end writing.
+     *
+     *  No more data may be written to the output device
+     *  after calling close.
+     */
+    virtual void Close() { }
 
     /** \returns the length of the written data
      */
@@ -146,7 +172,6 @@ class PODOFO_API PdfDeviceOutputStream : public PdfOutputStream {
      *  \param pDevice an output device
      */
     PdfDeviceOutputStream( PdfOutputDevice* pDevice );
-    ~PdfDeviceOutputStream();
 
     /** Write data to the output stream
      *  
@@ -156,6 +181,15 @@ class PODOFO_API PdfDeviceOutputStream : public PdfOutputStream {
      *  \returns the number of bytes written, -1 if an error ocurred
      */
     virtual long Write( const char* pBuffer, long lLen );
+
+    /** Close the PdfOutputStream.
+     *  This method may throw exceptions and has to be called 
+     *  before the descructor to end writing.
+     *
+     *  No more data may be written to the output device
+     *  after calling close.
+     */
+    virtual void Close() {}
 
  private:
     PdfOutputDevice* m_pDevice;

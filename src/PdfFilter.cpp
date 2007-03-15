@@ -82,7 +82,6 @@ class PdfFilteredEncodeStream : public PdfOutputStream{
 
     virtual ~PdfFilteredEncodeStream()
     {
-        m_filter->EndEncode();
         delete m_pOutputStream;
     }
 
@@ -95,6 +94,11 @@ class PdfFilteredEncodeStream : public PdfOutputStream{
     {
         m_filter->EncodeBlock( pBuffer, lLen );
         return 0;
+    }
+
+    virtual void Close() 
+    {
+        m_filter->EndEncode();
     }
 
 private:
@@ -142,8 +146,6 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
 
     virtual ~PdfFilteredDecodeStream()
     {
-        m_filter->EndDecode();
-
         delete m_pOutputStream;
     }
 
@@ -156,6 +158,11 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
     {
         m_filter->DecodeBlock( pBuffer, lLen );
         return 0;
+    }
+
+    virtual void Close() 
+    {
+        m_filter->EndDecode();
     }
 
 private:
