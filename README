@@ -61,7 +61,7 @@ compiler or Visual Studio 7.x (Windows) as well as the following libraries:
 4. Installation
 ===============
 
-Installation should be done on any Unix system with the following commands:
+Installation can be done on any Unix system with the following commands:
 
 make -f Makefile.svn  (only required when building from svn)
 ./configure
@@ -69,12 +69,19 @@ make
 su
 make install
 
-On Windows, use the provided Visual Studio Solution/Project files after
-placing the other libraries in a directory inside of the podofo directory,
-though support for generating project files with CMake is now available
-(see below).
+Alternately, you can use CMake to generate the build environment (see
+"Installation with CMake"). This is increasingly better supported than the
+autotools build.
 
-An XCode project is provided for Mac OS X users.
+On Windows, it is recommended that you use CMake to generate Visual Studio
+project files appropriate for your VS version and your libraries. You can also
+generate NMake builds or MinGW Makefiles (see "Installation with CMake").
+Alternately, Windows users can use the provided Visual Studio Solution/Project
+files after placing the other libraries in a directory inside of the podofo
+directory.
+
+An XCode project is provided for Mac OS X users, or you can generate one to fit
+your local configuration and libraries using CMake.
 
 4.1 Installation with CMake
 ===========================
@@ -83,12 +90,13 @@ PoDoFo now has experimental support for builds using CMake on all supported
 platforms. The CMake build has been tested on:
 
 	- Visual C++ 8 Express Edition [Win32] ("Visual Studio 8 2005" target)
+	- Visual C++ 8 Express +NMake [Win32] ("NMake Makefiles" target)
 	- MinGW with GCC 3.4.2 [Win32] ("MinGW Makefiles" target)
 	- gcc 3.3.5 [Linux: Debian 3.1] ("Unix Makefiles" target)
 
 The CMake build system may become the primary/only build system if testing is
 successful and feedback is good. As the use of CMake will simplify build system
-maintainance considerably, comments, problem reports, etc would be strongly
+maintainance considerably, comments, problem reports, etc would be greatly
 appreciated.
 
 You can use the CMake variable CMAKE_BUILD_TYPE to control the type of
@@ -103,30 +111,35 @@ You can control where the files are installed with `make install' with
 	-DCMAKE_INSTALL_PREFIX=/path/to/install/dir
 
 All instructons below use out-of-tree builds (recommended). To clean up an
-out-of-tree build, just delete the build directory.
+out-of-tree build, just delete the build directory, as no files are touched
+within the source directory.
 
 On all Makefile-style builds, set the VERBOSE flag to 1 on the make command
-line to see all compiler commands etc.
+line to see all compiler commands etc, eg:
 
 4.1.1 CMake builds on Linux/UNIX
 ================================
 
 Linux and UNIX users should be able to build PoDoFo by cd'ing into the PoDoFo
 checkout or unpacked tarball directory (here assumed to be named "podofo-src")
-and:
+then running the build commands shown below. The CMake command below will
+install into $HOME/podofo to avoid needing root priveleges for installation,
+but you can change the destination to wherever you want or remove the install
+prefix setting to use the default.
+
+To build and install:
 
 mkdir ../podofo-build
 cd ../podofo-build
-cmake -G "UNIX Makefiles" ../podofo-src
+cmake -G "UNIX Makefiles" -DCMAKE_INSTALL_PREFIX="$HOME/podofo" ../podofo-src
 make
+make install
 
 To see detailed compiler output, use:
 
 make VERBOSE=1
 
 instead of just "make".
-
-[The experimental CMake builds do not yet support "make install"]
 
 If you need to specify additional paths to search for libraries, set the
 CMAKE_INCLUDE_PATH and CMAKE_LIBRARY_PATH environment variables or set them on
@@ -155,6 +168,9 @@ in-tree builds, but the use of out-of-tree builds is very strongly recommended.
 If your system has gcc 4, consider adding the argument
 -DPODOFO_USE_VISIBILITY=1 . This will enable gcc4's limited symbol visibility
 support, reducing the PoDoFo binary size dramatically and improve link times.
+PoDoFo developers will also find this useful, as it will cause some mistakes
+to be reported as link errors that would otherwise go undetected and break
+the win32 builds.
 
 4.1.2 CMake builds on Windows
 =============================
@@ -168,9 +184,10 @@ build PoDoFo with the same compiler and version that you will use to build the
 programs linked to PoDoFo. Failure to follow this restriction will result in
 link errors at best, and bizarre runtime failures at worst.
 
-On Windows, if you are linking against a shared (DLL) build of PoDoFo you
-MUST define the preprocessor macro USING_SHARED_PODOFO when including any
-podofo headers. Failure to do so will result in link time and/or runtime errors.
+On Windows, if you are linking against a shared (DLL) build of PoDoFo you MUST
+define the preprocessor macro USING_SHARED_PODOFO when including any podofo
+headers. Failure to do so will result in link time and/or runtime errors.
+Similarly, defining it when linking with a static PoDoFo can cause problems.
 
 On Windows, PoDoFo may be built as either a shared or static library. Building
 both is not supported. By default only the shared library will be built. If you
@@ -197,6 +214,15 @@ mingw32-make
 One of the easiest ways to get MinGW is as part of the Qt4 package from
 Trolltech.
 
+It is extremely strongly recommended that you build PoDoFo only as a static
+library if you are using MinGW. libstdc++ on MinGW at the time of writing was
+not a shared library, causing serious issues with memory allocation and
+deallocation when C++ objects are passed by value across DLL boundaries or are
+otherwise deleted in a different DLL to where they were allocated. Of course,
+this will cause you problems if you intend to use PoDoFo across DLL boundaries,
+but until libstd++ is made shared on MinGW there's not much to be done. VC++
+does not suffer from this issue.
+
 4.1.2.1 CMake builds on Windows with Visual Studio
 ==================================================
 
@@ -213,10 +239,13 @@ podofo.sln
 ... and build the solution when it opens in Visual Studio.
 
 Note that CMake should automatically find your Visual Studio install, so you
-shouldn't need any special settings unless you have an unusual setup.
+shouldn't need any special settings unless you have an unusual setup or more
+than one version of Visual Studio installed.
 
 You can get the Visual C++ Express Edition from
 http://msdn.microsoft.com/vstudio/express/ .
+You will need to install the Win32 SDK if using the Express Edition, since it
+is not bundled.
 
 4.1.2.1 CMake builds on Windows with NMake
 ==========================================
@@ -225,10 +254,11 @@ PoDoFo can also be built with NMake. The build procedure is essentially the same
 as described for MinGW or Visual Studio, but you must use the target name
 "NMake Makefiles" and run "nmake" after CMake completes.
 
-Getting your environment set up correctly for NMake can be tricky. The author of
-this section is no expert, but has had success running the Windows 2003 SDK
-environment file first, followed by the Visual Studio vcvars.bat file. If something
-goes wrong clean your build directory before trying again.
+Getting your environment set up correctly for NMake can be tricky in some
+environments. The author of this section is a bit of a newbie with these tools,
+but has had success running the Windows 2003 SDK environment file first,
+followed by the Visual Studio vcvars.bat file. If something goes wrong clean
+your build directory before trying again.
 
 5. Contact
 ==========
@@ -243,4 +273,5 @@ our mailinglist <podofo-users@lists.sf.net>
 The library is licensed under the LGPL (i.e. you may even use the shared
 library in closed sourced applications). The tests and tools which are
 included in PoDoFo are licensed under the GPL. See the files COPYING and
-COPYING.LIB for details.
+COPYING.LIB for details. More detailed explanations are in the FAQ on the
+website, but the licenses have the final say.
