@@ -63,7 +63,11 @@ class PODOFO_API PdfStream {
      */
     virtual void Write( PdfOutputDevice* pDevice ) = 0;
 
-    /** Set a binary buffer as stream data, optionally taking ownership of the buffer.
+    /** Set a binary buffer as stream data, optionally taking ownership of the
+     * buffer.
+     *
+     * Use PdfFilterFactory::CreateFilterList if you want to use the contents
+     * of the stream dictionary's existing filter key.
      *
      *  \param szBuffer buffer containing the stream data
      *  \param lLen length of the buffer
@@ -88,6 +92,9 @@ class PODOFO_API PdfStream {
 
     /** Set a binary buffer whose contents are read from a PdfInputStream
      * 
+     * Use PdfFilterFactory::CreateFilterList if you want to use the contents
+     * of the stream dictionary's existing filter key.
+     *
      *  \param pStream read stream contents from this PdfInputStream
      *  \param vecFilters a list of filters to use when appending data
      */
@@ -115,7 +122,8 @@ class PODOFO_API PdfStream {
      *  This method has to be called before any of the append methods.
      *  All appended data will be flate decoded!
      *
-     *  \param bClearExisting if true any existing stream contents will be cleared.
+     *  \param bClearExisting if true any existing stream contents will be
+     *         cleared.
      *
      *  \see Append
      *  \see EndAppend
@@ -124,6 +132,9 @@ class PODOFO_API PdfStream {
 
     /** Start appending data to this stream.
      *  This method has to be called before any of the append methods.
+     *
+     * Use PdfFilterFactory::CreateFilterList if you want to use the contents
+     * of the stream dictionary's existing filter key.
      *
      *  \param vecFilters a list of filters to use when appending data
      *  \param bClearExisting if true any existing stream contents will be cleared.
@@ -232,6 +243,9 @@ class PODOFO_API PdfStream {
 
     /** Begin appending data to this stream.
      *  Clears the current stream contents.
+     *
+     * Use PdfFilterFactory::CreateFilterList if you want to use the contents
+     * of the stream dictionary's existing filter key.
      *
      *  \param vecFilters use this filters to encode any data written to the stream.
      */
