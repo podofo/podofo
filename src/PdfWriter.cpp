@@ -555,8 +555,8 @@ void PdfWriter::CreateFileIdentifier( PdfObject* pTrailer ) const
 
         pInfo = new PdfObject();
         pInfo->GetDictionary().AddKey( "CreationDate", dateString );
-        pInfo->GetDictionary().AddKey( "Creator", "PoDoFo" );
-        pInfo->GetDictionary().AddKey( "Producer", "PoDoFo" );
+        pInfo->GetDictionary().AddKey( "Creator", PdfString("PoDoFo") );
+        pInfo->GetDictionary().AddKey( "Producer", PdfString("PoDoFo") );
     }
     
     pInfo->GetDictionary().AddKey( "Location", PdfString("SOMEFILENAME") );

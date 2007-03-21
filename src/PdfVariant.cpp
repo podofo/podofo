@@ -184,7 +184,7 @@ void PdfVariant::Clear()
 
 void PdfVariant::Write( PdfOutputDevice* pDevice ) const
 {
-    return this->Write( pDevice, PdfName::KeyNull );
+    this->Write( pDevice, PdfName::KeyNull );
 }
 
 void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) const

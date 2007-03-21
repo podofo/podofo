@@ -686,16 +686,25 @@ inline PdfReference & PdfVariant::GetReference()
     return *(reinterpret_cast<PdfReference* const>(m_Data.pData));
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfVariant::DelayedLoadDone() const
 {
     return m_bDelayedLoadDone;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfVariant::EnableDelayedLoading()
 {
     m_bDelayedLoadDone = false;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfVariant::DelayedLoadImpl()
 {
     // Default implementation of virtual void DelayedLoadImpl() throws, since delayed

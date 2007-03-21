@@ -71,11 +71,16 @@ void PdfDate::CreateStringRepresentation()
 
     struct tm* stm = localtime( &m_time );
 
+#ifdef _MSC_VER	// strftime with %z returns verbose string in MS-VC !!
+    _tzset();
+    snprintf( szZone, ZONE_STRING_SIZE, "%+03d", _timezone/3600 );
+#else
     if( strftime( szZone, ZONE_STRING_SIZE, "%z", stm ) == 0 )
     {
         strcpy( m_szDate, INVALIDDATE );
         return;
     }
+#endif
 
     // only the first 3 characters are important for the pdf date representation
     // e.g. +01 instead off +0100

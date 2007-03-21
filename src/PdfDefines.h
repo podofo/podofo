@@ -28,6 +28,10 @@
  *        supporting platforms it will be precompiled to speed compilation.
  */ 
 
+#ifdef _MSC_VER
+#pragma warning(disable: 4786)
+#endif
+
 // Include common system files
 #include <cstdio>
 

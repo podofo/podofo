@@ -94,7 +94,7 @@ PdfVecObjects::~PdfVecObjects()
 const PdfVecObjects & PdfVecObjects::operator=( const PdfVecObjects & rhs )
 {
     TIVecObjects it;
-    std::vector<PdfObject*>::operator=( rhs );
+    static_cast< std::vector<PdfObject*> * >(this)->operator=( rhs );
 
     m_bAutoDelete         = rhs.m_bAutoDelete;
     m_nObjectCount        = rhs.m_nObjectCount;
@@ -216,7 +216,7 @@ void PdfVecObjects::push_back( PdfObject* pObj )
 
 void PdfVecObjects::push_back_and_do_not_own( PdfObject* pObj )
 {
-    std::vector<PdfObject*>::push_back( pObj );
+    static_cast< std::vector<PdfObject*> * >(this)->push_back( pObj );
 }
 
 void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNotDelete )

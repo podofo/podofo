@@ -107,7 +107,18 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
     else
     {
         va_start( args, pszFormat );
+#ifdef _MSC_VER	// vsnprintf without buffer does not work with MS-VC
+        int len = 1024;
+        do
+        {
+            char * temp = new char[len];
+            lBytes = vsnprintf( temp, len+1, pszFormat, args );
+            delete[] temp;
+            len *= 2;
+        } while (lBytes < 0 );
+#else
         lBytes = vsnprintf( NULL, 0, pszFormat, args );
+#endif
         va_end( args );
     }
 

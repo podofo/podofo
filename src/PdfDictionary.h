@@ -166,18 +166,26 @@ typedef	TVecDictionaries::const_iterator TCIVecDictionaries;
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const TKeyMap & PdfDictionary::GetKeys() const { return m_mapKeys; }
+const TKeyMap & PdfDictionary::GetKeys() const 
+{ 
+    return m_mapKeys; 
+}
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-TKeyMap & PdfDictionary::GetKeys() { return m_mapKeys; }
+TKeyMap & PdfDictionary::GetKeys() 
+{ 
+    return m_mapKeys; 
+}
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfDictionary::Write( PdfOutputDevice* pDevice ) const { return
-	this->Write( pDevice, PdfName::KeyNull ); }
+void PdfDictionary::Write( PdfOutputDevice* pDevice ) const 
+{ 
+    this->Write( pDevice, PdfName::KeyNull ); 
+}
 
 };
 

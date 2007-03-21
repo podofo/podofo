@@ -50,7 +50,7 @@ extern bool podofo_is_little_endian();
 
 #define PAGE_OFFSET_HEADER 38
 
-typedef struct TPageEntrySharedObjectInfo {
+struct TPageEntrySharedObjectInfo {
     pdf_uint16 nIndex;
     pdf_uint16 nNumerator;
 };

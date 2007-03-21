@@ -70,7 +70,8 @@ static std::string EscapeName(T it, size_t length)
             throw std::exception();
         else 
             // Leave room for either just the char, or a #xx escape of it.
-            outchars += (::PoDoFo::PdfTokenizer::IsRegular(*it2) && ::PoDoFo::PdfTokenizer::IsPrintable(*it2) && (*it2 != '#')) ? 1 : 3;
+            outchars += (::PoDoFo::PdfTokenizer::IsRegular(*it2) && 
+                         ::PoDoFo::PdfTokenizer::IsPrintable(*it2) && (*it2 != '#')) ? 1 : 3;
         ++it2;
     }
     // Reserve it. We can't use reserve() because the GNU STL doesn't seem to
@@ -79,7 +80,7 @@ static std::string EscapeName(T it, size_t length)
     buf.resize(outchars);
     // and generate the encoded string
     std::string::iterator bufIt(buf.begin());
-    for (size_t i = 0; i < length; ++i)
+    for (size_t z = 0; z < length; ++z)
     {
         if (::PoDoFo::PdfTokenizer::IsRegular(*it) && ::PoDoFo::PdfTokenizer::IsPrintable(*it) && (*it != '#') )
             *(bufIt++) = *it;
