@@ -64,11 +64,16 @@ void PdfFileStream::AppendImpl( const char* pszString, size_t lLen )
 
 void PdfFileStream::EndAppendImpl()
 {
-    delete m_pStream;
-    m_pStream = NULL;
+    if( m_pStream ) 
+    {
+        m_pStream->Close();
+        delete m_pStream;
+        m_pStream = NULL;
+    }
 
     if( m_pDeviceStream ) 
     {
+        m_pDeviceStream->Close();
         delete m_pDeviceStream;
         m_pDeviceStream = NULL;
     }
