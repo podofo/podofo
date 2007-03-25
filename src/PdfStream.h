@@ -114,8 +114,9 @@ class PODOFO_API PdfStream {
      *
      *  \param pStream read data from this input stream
      *  \param lLen    read excactly lLen bytes from the input stream
+     *                 if lLen = -1 read until the end of the input stream was reached.
      */
-    void SetRawData( PdfInputStream* pStream, long lLen );
+    void SetRawData( PdfInputStream* pStream, long lLen = -1 );
 
     /** Start appending data to this stream.
      *
@@ -138,11 +139,13 @@ class PODOFO_API PdfStream {
      *
      *  \param vecFilters a list of filters to use when appending data
      *  \param bClearExisting if true any existing stream contents will be cleared.
+     *  \param bDeleteFilters if true existing filter keys are deleted if an
+     *                        empty list of filters is passed (required for SetRawData)
      *
      *  \see Append
      *  \see EndAppend
      */
-    void BeginAppend( const TVecFilters & vecFilters, bool bClearExisting = true );
+    void BeginAppend( const TVecFilters & vecFilters, bool bClearExisting = true, bool bDeleteFilters = true );
 
     /** Append a binary buffer to the current stream contents.
      *
@@ -223,12 +226,11 @@ class PODOFO_API PdfStream {
      */
     void GetFilteredCopy( PdfOutputStream* pStream ) const;
     
-
     /** Create a copy of a PdfStream object
      *  \param rhs the object to clone
      *  \returns a reference to this object
      */
-    virtual const PdfStream & operator=( const PdfStream & rhs );
+    const PdfStream & operator=( const PdfStream & rhs );
 
  protected:
     /** Required for the GetFilteredCopy implementation

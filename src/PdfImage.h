@@ -22,12 +22,15 @@
 #define _PDF_IMAGE_H_
 
 #include "PdfDefines.h"
+#include "PdfFilter.h"
 #include "PdfXObject.h"
 
 namespace PoDoFo {
 
 class PdfDocument;
+class PdfInputStream;
 class PdfObject;
+class PdfStreamedDocument;
 class PdfVecObjects;
 
 /** A PdfImage object is needed when ever you want to embedd an image
@@ -39,7 +42,7 @@ class PdfVecObjects;
  *  \see GetImageReference
  *  \see PdfPainter::DrawImage
  *
- * TODO: Support images with PdfStreamedDocument
+ *  \see SetImageData
  */
 class PODOFO_API PdfImage : public PdfXObject {
  public:
@@ -56,6 +59,13 @@ class PODOFO_API PdfImage : public PdfXObject {
      */
     PdfImage( PdfDocument* pParent );
 
+    /** Constuct a new PdfImage object
+     *  This is an overloaded constructor.
+     *
+     *  \param pParent parent document
+     */
+    PdfImage( PdfStreamedDocument* pParent );
+
     /** Construct an image from an existing PdfObject
      *  
      *  \param pObject a PdfObject that has to be an image
@@ -71,33 +81,9 @@ class PODOFO_API PdfImage : public PdfXObject {
      */
     void SetImageColorSpace( EPdfColorSpace eColorSpace );
 
-   /** Set the compression filter of this image. The default value is "" (uncompressed)
-     *  \param inName one of "FlateDecode" (ZIP) or "DCTDecode" (JPEG) currently
-     */
-    void SetImageFilter( const PdfName & inName );
 
-    /** Set the actual image data from an in memory buffer.
-     *
-     *  If you wish your data to compressed correctly, you MUST call 
-     *  SetImageFilter before calling this method
-     *
-     *  \param nWidth width of the image in pixels
-     *  \param nHeight height of the image in pixels
-     *  \param nBitsPerComponent bits per color component of the image (depends on the image colorspace you have set
-     *                           but is 8 in most cases)
-     *  \param szBuffer the EITHER jpeg encoded OR raw image data
-     *  \param lLen length the of the image data buffer.
-     */
-    void SetImageData( unsigned int nWidth, unsigned int nHeight, unsigned int nBitsPerComponent, 
-                       char* szBuffer, long lLen );
+    //EPdfColorSpace GetImageColorSpace() const;
 
-
-#ifdef PODOFO_HAVE_JPEG_LIB
-    /** Load the image data from a JPEG file
-     *  \param pszFilename
-     */
-    void LoadFromFile( const char* pszFilename );
-#endif // PODOFO_HAVE_JPEG_LIB
 
     /** Get the width of the image when drawn in PDF units
      *  \returns the width in PDF units
@@ -109,7 +95,57 @@ class PODOFO_API PdfImage : public PdfXObject {
      */
     inline double GetHeight() const;
 
+    /** Set the actual image data from an input stream
+     *  
+     *  The image data will be flater compressed.
+     *  If you want no compression or another filter to be applied
+     *  use the overload of SetImageData which takes a TVecFilters
+     *  as argument.
+     *  
+     *  \param nWidth width of the image in pixels
+     *  \param nHeight height of the image in pixels
+     *  \param nBitsPerComponent bits per color component of the image (depends on the image colorspace you have set
+     *                           but is 8 in most cases)
+     *  \param pStream stream supplieding raw image data
+     *
+     *  \see SetImageData
+     */
+    void SetImageData( unsigned int nWidth, unsigned int nHeight, 
+                       unsigned int nBitsPerComponent, PdfInputStream* pStream );
+
+    /** Set the actual image data from an input stream
+     *  
+     *  \param nWidth width of the image in pixels
+     *  \param nHeight height of the image in pixels
+     *  \param nBitsPerComponent bits per color component of the image (depends on the image colorspace you have set
+     *                           but is 8 in most cases)
+     *  \param pStream stream supplieding raw image data
+     *  \param vecFilters these filters will be applied to compress the image data
+     */
+    void SetImageData( unsigned int nWidth, unsigned int nHeight, 
+                       unsigned int nBitsPerComponent, PdfInputStream* pStream, const TVecFilters & vecFilters );
+
+#ifdef PODOFO_HAVE_JPEG_LIB
+    /** Load the image data from a JPEG file
+     *  \param pszFilename
+     */
+    void LoadFromFile( const char* pszFilename );
+#endif // PODOFO_HAVE_JPEG_LIB
+
  private:
+    /** Set the actual image data from an input stream.
+     *  The data has to be encoded already and an appropriate
+     *  filters key entry has to be set manually before!
+     *  
+     *  \param nWidth width of the image in pixels
+     *  \param nHeight height of the image in pixels
+     *  \param nBitsPerComponent bits per color component of the image (depends on the image colorspace you have set
+     *                           but is 8 in most cases)
+     *  \param pStream stream supplieding raw image data
+     */
+    void SetImageDataRaw( unsigned int nWidth, unsigned int nHeight, 
+                          unsigned int nBitsPerComponent, PdfInputStream* pStream );
+
     /** Converts a EPdfColorSpace enum to a name key which can be used in a
      *  PDF dictionary.
      *  \param eColorSpace a valid colorspace

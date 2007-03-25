@@ -431,7 +431,7 @@ PdfStream* PdfVecObjects::CreateStream( PdfObject* pParent )
 
 void PdfVecObjects::WriteObject( PdfObject* pObject )
 {
-   // Tell any observers that there are new objects to write
+    // Tell any observers that there are new objects to write
     TIVecObservers itObservers = m_vecObservers.begin();
     while( itObservers != m_vecObservers.end() )
     {
@@ -456,6 +456,26 @@ void PdfVecObjects::Finish()
     while( itObservers != copy.end() )
     {
         (*itObservers)->Finish();
+        ++itObservers;
+    }
+}
+
+void PdfVecObjects::BeginAppendStream( const PdfStream* pStream )
+{
+    TIVecObservers itObservers = m_vecObservers.begin();
+    while( itObservers != m_vecObservers.end() )
+    {
+        (*itObservers)->BeginAppendStream( pStream );
+        ++itObservers;
+    }
+}
+    
+void PdfVecObjects::EndAppendStream( const PdfStream* pStream )
+{
+    TIVecObservers itObservers = m_vecObservers.begin();
+    while( itObservers != m_vecObservers.end() )
+    {
+        (*itObservers)->EndAppendStream( pStream );
         ++itObservers;
     }
 }

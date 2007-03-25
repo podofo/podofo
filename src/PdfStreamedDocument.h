@@ -44,6 +44,8 @@ class PdfOutputDevice;
  *  \see PdfDocument
  */
 class PODOFO_API PdfStreamedDocument {
+    friend class PdfImage;
+
  public:
     /** Create a new PdfStreamedDocument.
      *  All data is written to an output device

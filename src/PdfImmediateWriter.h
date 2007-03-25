@@ -50,6 +50,16 @@ class PODOFO_API PdfImmediateWriter : private PdfWriter,
      */
     void Finish();
 
+    /** Called whenever appending to a stream is started.
+     *  \param pStream the stream object the user currently writes to.
+     */
+    void BeginAppendStream( const PdfStream* pStream );
+    
+    /** Called whenever appending to a stream has ended.
+     *  \param pStream the stream object the user currently writes to.
+     */
+    void EndAppendStream( const PdfStream* pStream );
+
     /** Creates a stream object
      *
      *  \param pParent parent object
@@ -73,6 +83,7 @@ class PODOFO_API PdfImmediateWriter : private PdfWriter,
     PdfXRef*         m_pXRef;
     PdfObject*       m_pLast;
 
+    bool             m_bOpenStream;
 };
 
 };

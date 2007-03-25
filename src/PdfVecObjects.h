@@ -84,6 +84,16 @@ class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
          * after this method was called on the observer.
          */
         virtual void ParentDestructed() = 0;
+        
+        /** Called whenever appending to a stream is started.
+         *  \param pStream the stream object the user currently writes to.
+         */
+        virtual void BeginAppendStream( const PdfStream* pStream ) = 0;
+
+        /** Called whenever appending to a stream has ended.
+         *  \param pStream the stream object the user currently writes to.
+         */
+        virtual void EndAppendStream( const PdfStream* pStream ) = 0;
 
         virtual void Finish() = 0;
     };
@@ -305,6 +315,16 @@ class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
     /** Call whenever a document is finished
      */
     void Finish();
+
+    /** Every stream implementation has to call this in BeginAppend
+     *  \param pStream the stream object that is calling
+     */
+    void BeginAppendStream( const PdfStream* pStream );
+    
+    /** Every stream implementation has to call this in EndAppend
+     *  \param pStream the stream object that is calling
+     */
+    void EndAppendStream( const PdfStream* pStream );
 
  private:    
     /** 

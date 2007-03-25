@@ -25,6 +25,10 @@
 #include "PdfInputStream.h"
 #include "PdfOutputStream.h"
 
+#include "PdfOutputDevice.h"
+#include <iostream>
+using namespace std;
+
 namespace PoDoFo {
 
 PdfStream::PdfStream( PdfObject* pParent )
@@ -132,30 +136,31 @@ void PdfStream::Set( PdfInputStream* pStream, const TVecFilters & vecFilters )
 
 void PdfStream::SetRawData( PdfInputStream* pStream, long lLen )
 {
-    const int BUFFER_SIZE = 4096;
-    char      buffer[BUFFER_SIZE];
-    long      lRead;
-
+    const int   BUFFER_SIZE = 4096;
+    char        buffer[BUFFER_SIZE];
+    long        lRead;
     TVecFilters vecEmpty;
-    PdfObject   filters;
-    bool        bHasFilters = m_pParent && m_pParent->GetDictionary().HasKey( PdfName::KeyFilter );
-   
-    if( bHasFilters ) 
-        filters = *(m_pParent->GetDictionary().GetKey( PdfName::KeyFilter ) );
 
     // TODO: DS, give begin append a size hint so that it knows
     //       how many data has to be allocated
-    this->BeginAppend( vecEmpty );
-    do {
-        lRead = pStream->Read( buffer, PDF_MIN( BUFFER_SIZE, lLen ) );
-        lLen -= lRead;
-        this->Append( buffer, lRead );
-    } while( lLen && lRead > 0 );
+    this->BeginAppend( vecEmpty, true, false );
+    if( lLen == -1 ) 
+    {
+        do {
+            lRead = pStream->Read( buffer, BUFFER_SIZE );
+            this->Append( buffer, lRead );
+        } while( lRead > 0 );
+    }
+    else
+    {
+        do {
+            lRead = pStream->Read( buffer, PDF_MIN( BUFFER_SIZE, lLen ) );
+            lLen -= lRead;
+            this->Append( buffer, lRead );
+        } while( lLen && lRead > 0 );
+    }
 
     this->EndAppend();
-
-    if( bHasFilters )
-        m_pParent->GetDictionary().AddKey( PdfName::KeyFilter, filters );
 }
 
 void PdfStream::BeginAppend( bool bClearExisting )
@@ -166,26 +171,28 @@ void PdfStream::BeginAppend( bool bClearExisting )
     this->BeginAppend( vecFilters, bClearExisting );
 }
 
-void PdfStream::BeginAppend( const TVecFilters & vecFilters, bool bClearExisting )
+void PdfStream::BeginAppend( const TVecFilters & vecFilters, bool bClearExisting, bool bDeleteFilters )
 {
     char* pBuffer = NULL;
     long  lLen;
 
     PODOFO_RAISE_LOGIC_IF( m_bAppend, "BeginAppend() failed because EndAppend() was not yet called!" );
 
+    m_pParent->GetOwner()->BeginAppendStream( this );
+
     if( !bClearExisting && this->GetLength() ) 
         this->GetFilteredCopy( &pBuffer, &lLen );
 
-    if( !vecFilters.size() )
+    if( !vecFilters.size() && bDeleteFilters )
     {
-        m_pParent->GetDictionary().RemoveKey( PdfName::KeyFilter );
+            m_pParent->GetDictionary().RemoveKey( PdfName::KeyFilter );
     }
     if( vecFilters.size() == 1 )
     {
         m_pParent->GetDictionary().AddKey( PdfName::KeyFilter, 
                                            PdfName( PdfFilterFactory::FilterTypeToName( vecFilters.front() ) ) );
     }
-    else
+    else if( vecFilters.size() > 1 )
     {
         PdfArray filters;
         TCIVecFilters it = vecFilters.begin();
@@ -213,6 +220,8 @@ void PdfStream::EndAppend()
 
     m_bAppend = false;
     this->EndAppendImpl();
+
+    m_pParent->GetOwner()->EndAppendStream( this );
 }
 
 };

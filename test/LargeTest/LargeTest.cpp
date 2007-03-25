@@ -32,6 +32,7 @@ void AddPage( PdfDocument* pDoc, PdfStreamedDocument* pStreamed, const char* psz
     PdfPage*   pPage;
     PdfFont*   pFont;
     PdfFont*   pArial;
+    PdfImage*  pImage;
     PdfRect    rect;
  
     if( pDoc ) 
@@ -39,16 +40,15 @@ void AddPage( PdfDocument* pDoc, PdfStreamedDocument* pStreamed, const char* psz
         pPage  = pDoc->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
         pFont  = pDoc->CreateFont( pszFontName );
         pArial = pDoc->CreateFont( "Arial" );
+        pImage = new PdfImage( pDoc );
     }
     else
     {
         pPage  = pStreamed->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
         pFont  = pStreamed->CreateFont( pszFontName );
         pArial = pStreamed->CreateFont( "Arial" );
+        pImage = new PdfImage( pStreamed );
     }
-
-    //PdfImage   img( pDoc );
-    //img.LoadFromFile( pszImagePath );
 
     rect   = pPage->GetMediaBox();
 
@@ -84,11 +84,15 @@ void AddPage( PdfDocument* pDoc, PdfStreamedDocument* pStreamed, const char* psz
     painter.DrawText( dX, dY, pszFontName );
     dY -= pArial->GetFontMetrics()->GetLineSpacing();
 
-    //dY -= (img.GetHeight() * 0.5);
-    //dX = ((rect.GetWidth() - (img.GetWidth()*0.5))/2.0);
-    //painter.DrawImage( dX, dY, &img, 0.5, 0.5 );
+    pImage->LoadFromFile( pszImagePath );
+
+    dY -= (pImage->GetHeight() * 0.5);
+    dX = ((rect.GetWidth() - (pImage->GetWidth()*0.5))/2.0);
+    painter.DrawImage( dX, dY, pImage, 0.5, 0.5 );
+    delete pImage; // delete image right after drawing
 
     painter.FinishPage();
+
 }
 
 void CreateLargePdf( const char* pszFilename, const char* pszImagePath )

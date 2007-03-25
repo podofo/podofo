@@ -21,6 +21,7 @@
 #include "PdfImmediateWriter.h"
 
 #include "PdfFileStream.h"
+#include "PdfMemStream.h"
 #include "PdfObject.h"
 #include "PdfXRef.h"
 #include "PdfXRefStream.h"
@@ -30,7 +31,7 @@ namespace PoDoFo {
 PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, 
                                         const PdfObject* pTrailer, EPdfVersion eVersion )
     : PdfWriter( pVecObjects ), m_pParent( pVecObjects ), 
-      m_pDevice( pDevice ), m_pLast( NULL )
+      m_pDevice( pDevice ), m_pLast( NULL ), m_bOpenStream( false )
 {
     m_pTrailer = new PdfObject( *pTrailer );
 
@@ -108,7 +109,9 @@ void PdfImmediateWriter::Finish()
 
 PdfStream* PdfImmediateWriter::CreateStream( PdfObject* pParent )
 {
-    return new PdfFileStream( pParent, m_pDevice );
+    return m_bOpenStream ? 
+        static_cast<PdfStream*>(new PdfMemStream( pParent )) :
+        static_cast<PdfStream*>(new PdfFileStream( pParent, m_pDevice ));
 }
 
 void PdfImmediateWriter::FinishLastObject()
@@ -121,6 +124,28 @@ void PdfImmediateWriter::FinishLastObject()
         delete m_pParent->RemoveObject( m_pLast->Reference(), false );
         m_pLast = NULL;
 
+    }
+}
+
+void PdfImmediateWriter::BeginAppendStream( const PdfStream* pStream )
+{
+    const PdfFileStream* pFileStream = dynamic_cast<const PdfFileStream*>(pStream );
+    if( pFileStream ) 
+    {
+        // Only one open file stream is allowed at a time
+        assert( !m_bOpenStream );
+        m_bOpenStream = true;
+    }
+}
+    
+void PdfImmediateWriter::EndAppendStream( const PdfStream* pStream )
+{
+    const PdfFileStream* pFileStream = dynamic_cast<const PdfFileStream*>(pStream );
+    if( pFileStream ) 
+    {
+        // A PdfFileStream has to be opened before
+        assert( m_bOpenStream );
+        m_bOpenStream = false;
     }
 }
 

@@ -22,6 +22,7 @@
 
 #include "PdfDocument.h"
 #include "PdfStream.h"
+#include "PdfStreamedDocument.h"
 
 #include <stdio.h>
 #include <sstream>
@@ -52,6 +53,14 @@ PdfImage::PdfImage( PdfDocument* pParent )
     this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
 }
 
+PdfImage::PdfImage( PdfStreamedDocument* pParent )
+    : PdfXObject( "Image", &(pParent->m_doc.GetObjects()) )
+{
+    m_rRect = PdfRect();
+
+    this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
+}
+
 PdfImage::PdfImage( PdfObject* pObject )
     : PdfXObject( "Image", pObject )
 {
@@ -69,34 +78,48 @@ void PdfImage::SetImageColorSpace( EPdfColorSpace eColorSpace )
     m_pObject->GetDictionary().AddKey( "ColorSpace", PdfName( ColorspaceToName( eColorSpace ) ) );
 }
 
-void PdfImage::SetImageFilter( const PdfName & inName )
+void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight, 
+                             unsigned int nBitsPerComponent, PdfInputStream* pStream )
 {
-    m_pObject->GetDictionary().AddKey( "Filter", inName );
+    TVecFilters vecFlate;
+    vecFlate.push_back( ePdfFilter_FlateDecode );
+
+    this->SetImageData( nWidth, nHeight, nBitsPerComponent, pStream, vecFlate );
 }
 
 void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight, 
-                             unsigned int nBitsPerComponent, 
-                             char* szBuffer, long lLen )
+                             unsigned int nBitsPerComponent, PdfInputStream* pStream, 
+                             const TVecFilters & vecFilters )
 {
     m_rRect.SetWidth( nWidth );
     m_rRect.SetHeight( nHeight );
 
-    m_pObject->GetDictionary().AddKey( "Width", PdfVariant( static_cast<long>(nWidth) ) );
+    m_pObject->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<long>(nWidth) ) );
     m_pObject->GetDictionary().AddKey( "Height", PdfVariant( static_cast<long>(nHeight) ) );
     m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<long>(nBitsPerComponent) ) );
 
-    m_pObject->GetStream()->Set( szBuffer, lLen );
+    m_pObject->GetStream()->Set( pStream, vecFilters );
+}
+
+void PdfImage::SetImageDataRaw( unsigned int nWidth, unsigned int nHeight, 
+                                unsigned int nBitsPerComponent, PdfInputStream* pStream )
+{
+    m_rRect.SetWidth( nWidth );
+    m_rRect.SetHeight( nHeight );
+
+    m_pObject->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<long>(nWidth) ) );
+    m_pObject->GetDictionary().AddKey( "Height", PdfVariant( static_cast<long>(nHeight) ) );
+    m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<long>(nBitsPerComponent) ) );
+
+    m_pObject->GetStream()->SetRawData( pStream, -1 );
 }
 
 #ifdef PODOFO_HAVE_JPEG_LIB
 void PdfImage::LoadFromFile( const char* pszFilename )
 {
-    FILE*    hInfile;    
-    long     lLen;
-    char*    szBuffer;
-
+    FILE*                         hInfile;    
     struct jpeg_decompress_struct cinfo;
-    struct jpeg_error_mgr jerr;
+    struct jpeg_error_mgr         jerr;
 
     if( !pszFilename )
     {
@@ -122,28 +145,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
     }
 
     jpeg_start_decompress(&cinfo);
-
-    fseek( hInfile, 0, SEEK_END );
-    lLen = ftell( hInfile );
-    fseek( hInfile, 0, SEEK_SET );
-
-    szBuffer = static_cast<char*>(malloc( lLen * sizeof(char) ));
-    if( !szBuffer )
-    {
-        fclose( hInfile );
-        (void) jpeg_destroy_decompress(&cinfo);
-
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
-    }
-
-    if( static_cast<long>(fread( szBuffer, sizeof( char ), lLen, hInfile )) != lLen )
-    {
-        fclose( hInfile );
-        free( szBuffer );
-        (void) jpeg_destroy_decompress(&cinfo);
-
-        PODOFO_RAISE_ERROR( ePdfError_UnexpectedEOF );
-    }
+    fclose( hInfile );
 
     m_rRect.SetWidth( cinfo.output_width );
     m_rRect.SetHeight( cinfo.output_height );
@@ -165,20 +167,13 @@ void PdfImage::LoadFromFile( const char* pszFilename )
             break;
     }
 
-    m_pObject->GetDictionary().AddKey( "Width", PdfVariant( static_cast<long>(cinfo.output_width) ) );
-    m_pObject->GetDictionary().AddKey( "Height", PdfVariant( static_cast<long>(cinfo.output_height) ) );
-    m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( 8L ) );
-
-    TVecFilters filters;
-    m_pObject->GetStream()->Set( szBuffer, lLen, filters );
-
-    this->SetImageFilter( "DCTDecode" );
-
-
+    PdfFileInputStream stream( pszFilename );
+    // Set the filters key to DCTDecode
+    m_pObject->GetDictionary().AddKey( PdfName::KeyFilter, PdfName( "DCTDecode" ) );
+    // Do not apply any filters as JPEG data is already DCT encoded.
+    this->SetImageDataRaw( cinfo.output_width, cinfo.output_height, 8, &stream );
+    
     (void) jpeg_destroy_decompress(&cinfo);
-
-    fclose( hInfile );
-    free( szBuffer );
 }
 #endif // PODOFO_HAVE_JPEG_LIB
 
