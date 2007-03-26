@@ -829,7 +829,7 @@ void PdfPainter::Restore()
 {
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
-    m_pCanvas->Append( "q\n" );
+    m_pCanvas->Append( "Q\n" );
 }
 
 void PdfPainter::AddToPageResources( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName )
