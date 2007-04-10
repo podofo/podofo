@@ -113,6 +113,12 @@ class PODOFO_API PdfInputDevice {
     PODOFO_NOTHROW inline virtual bool Bad() const;
 
     /**
+     * Set the stream error state. By default, clears badbit, eofbit
+     * and failbit.
+     */
+    PODOFO_NOTHROW inline virtual void Clear( std::ios_base::iostate state = std::ios_base::goodbit) const;
+
+    /**
      * \return True if the stream is seekable. Subclasses can control
      * this value with SetIsSeekable(bool) .
      */
@@ -158,6 +164,11 @@ bool PdfInputDevice::Bad() const
 bool PdfInputDevice::Eof() const
 {
     return m_pStream->eof();
+}
+
+void PdfInputDevice::Clear(std::ios_base::iostate state) const
+{
+    m_pStream->clear(state);
 }
 
 };

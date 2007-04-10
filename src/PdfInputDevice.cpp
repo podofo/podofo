@@ -43,7 +43,7 @@ PdfInputDevice::PdfInputDevice( const char* pszFilename )
 
     try {
         m_pStream = static_cast< std::istream* >( new std::ifstream( pszFilename, std::ios::binary ) );
-        if( !m_pStream )
+        if( !m_pStream || !m_pStream->good() )
         {
             PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
         }
@@ -66,7 +66,7 @@ PdfInputDevice::PdfInputDevice( const char* pBuffer, long lLen )
     
     try {
         m_pStream = static_cast< std::istream* >( new std::istringstream( std::string( pBuffer, lLen), std::ios::binary ) );
-        if( !m_pStream )
+        if( !m_pStream || !m_pStream->good() )
         {
             PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
         }
@@ -83,6 +83,10 @@ PdfInputDevice::PdfInputDevice( const std::istream* pInStream )
     this->Init();
 
     m_pStream = const_cast< std::istream* >( pInStream );
+    if( !m_pStream->good() )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
+    }
 }
 
 PdfInputDevice::~PdfInputDevice()

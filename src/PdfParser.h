@@ -125,7 +125,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *  \param lRange range in bytes in which to search
      *                begining at the end of the file
      */
-    void FindToken( const char* pszToken, long lRange );
+    void FindToken( const char* pszToken, const long lRange );
 
     /** Reads the xref sections and the trailers of the file
      *  in the correct order in the memory

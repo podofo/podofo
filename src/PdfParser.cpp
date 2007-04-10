@@ -250,7 +250,11 @@ void PdfParser::HasLinearizationDict()
     m_device.Device()->Seek( 0 );
     // look for a linearization dictionary in the first 1024 bytes
     if( m_device.Device()->Read( m_buffer.GetBuffer(), m_buffer.GetSize() ) != m_buffer.GetSize() )
+    {
+        // Clear the error state from the bad read
+        m_device.Device()->Clear();
         return; // Ignore Error Code: ERROR_PDF_NO_TRAILER;
+    }
 
     pszObj = strstr( m_buffer.GetBuffer(), "obj" );
     if( !pszObj )
@@ -854,17 +858,24 @@ const char* PdfParser::GetPdfVersionString() const
     return s_szPdfVersions[static_cast<int>(m_ePdfVersion)];
 }
 
-void PdfParser::FindToken( const char* pszToken, long lRange )
+void PdfParser::FindToken( const char* pszToken, const long lRange )
 {
     m_device.Device()->Seek( 0, std::ios_base::end );
 
     std::streamoff nFileSize = m_device.Device()->Tell();
+    if (nFileSize == -1)
+    {
+        PODOFO_RAISE_ERROR_INFO(
+                ePdfError_NoXRef,
+                "Failed to seek to EOF when looking for xref");
+    }
+
     long           lXRefBuf  = PDF_MIN( nFileSize, lRange );
     const int      nTokenLen = strlen( pszToken );
     int            i;
 
     m_device.Device()->Seek( -lXRefBuf, std::ios_base::cur );
-    if( m_device.Device()->Read( m_buffer.GetBuffer(), lXRefBuf ) != lXRefBuf )
+    if( m_device.Device()->Read( m_buffer.GetBuffer(), lXRefBuf ) != lXRefBuf && !m_device.Device()->Eof() )
     {
         PODOFO_RAISE_ERROR( ePdfError_NoXRef );
     }
