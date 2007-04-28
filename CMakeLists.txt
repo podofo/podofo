@@ -71,7 +71,6 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(
         -std=c++98
         -Wall
-        -Wold-style-cast
         -Woverloaded-virtual
         -Wswitch-enum
         -Wfloat-equal
@@ -80,6 +79,11 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
         -Wredundant-decls
         -Wreorder
         )
+    # STLPort uses old style casts extensively, so if we're building against it
+    # we'd best disable the warning.
+    IF(NOT USE_STLPORT)
+        ADD_DEFINITIONS(-Wold-style-cast)
+    ENDIF(NOT USE_STLPORT)
     #
     # Note that we do not need debug definitions here. Set
     # -DCMAKE_BUILD_TYPE=debug or (if you want an optimised
@@ -115,6 +119,17 @@ ENDIF(LIBJPEG_FOUND)
 
 FIND_PACKAGE(LIBFREETYPE REQUIRED)
 MESSAGE("Found freetype library at ${LIBFREETYPE_LIB}")
+
+FIND_PACKAGE(LIBSTLPORT)
+IF(USE_STLPORT)
+	IF(LIBSTLPORT_FOUND)
+		MESSAGE("Using STLPort")
+		INCLUDE_DIRECTORIES(${LIBSTLPORT_HEADERS})
+		LINK_DIRECTORIES(${LIBSTLPORT_LIB})
+	ELSE(LIBSTLPORT_FOUND)
+		MESSAGE(FATAL_ERROR "STLPort use requested, but STLPort not found.")
+	ENDIF(LIBSTLPORT_FOUND)
+ENDIF(USE_STLPORT)
 
 IF(WANT_FONTCONFIG)
 	FIND_PACKAGE(LIBFONTCONFIG REQUIRED)

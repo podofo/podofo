@@ -22,6 +22,7 @@
 
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
+#include <algorithm>
 
 using namespace std;
 
