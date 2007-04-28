@@ -31,8 +31,9 @@
 
 #include <cstring>
 #include <cstdlib>
-
+#include <algorithm>
 #include <iostream>
+
 using std::cerr;
 using std::endl;
 using std::flush;
@@ -43,7 +44,6 @@ using std::flush;
 
 
 namespace PoDoFo {
-#include <algorithm>
 
 PdfParser::PdfParser( PdfVecObjects* pVecObjects )
     : PdfTokenizer(), m_vecObjects( pVecObjects )
