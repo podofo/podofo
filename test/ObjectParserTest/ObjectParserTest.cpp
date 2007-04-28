@@ -29,6 +29,8 @@
 // Get access to POSIX unlink()
 #include <io.h>
 #define unlink _unlink
+#else
+#include <unistd.h>
 #endif
 
 #include <cstdio>
