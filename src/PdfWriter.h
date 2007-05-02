@@ -155,7 +155,7 @@ class PODOFO_API PdfWriter {
      *
      *  \param vecObjects compress all objects in this vector
      */
-    void CompressObjects( const TVecObjects& vecObjects );
+    void CompressObjects( const PdfVecObjects& vecObjects );
 
     /** Write the whole document to a buffer in memory.
      *  
@@ -192,7 +192,7 @@ class PODOFO_API PdfWriter {
      *  \param vecObjects write all objects in this vector to the file
      *  \param pVecXRef add all written objects to this XRefTable
      */ 
-    void WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, PdfXRef* pXref ) PODOFO_LOCAL;
+    void WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& vecObjects, PdfXRef* pXref ) PODOFO_LOCAL;
 
  private:
     /** Writes a linearized PDF file

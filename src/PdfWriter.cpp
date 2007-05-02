@@ -245,7 +245,7 @@ void PdfWriter::WritePdfHeader( PdfOutputDevice* pDevice )
     pDevice->Print( "%s\n%%%s", s_szPdfVersions[static_cast<int>(m_eVersion)], PDF_MAGIC );
 }
 
-void PdfWriter::CompressObjects( const TVecObjects& vecObjects ) 
+void PdfWriter::CompressObjects( const PdfVecObjects& vecObjects ) 
 {
     TCIVecObjects itObjects  = vecObjects.begin();
 
@@ -259,7 +259,7 @@ void PdfWriter::CompressObjects( const TVecObjects& vecObjects )
     }
 }
 
-void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const TVecObjects& vecObjects, PdfXRef* pXref )
+void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& vecObjects, PdfXRef* pXref )
 {
     TCIVecObjects       itObjects  = vecObjects.begin();
     TCIPdfReferenceList itFree     = vecObjects.GetFreeObjects().begin();
@@ -392,7 +392,7 @@ void PdfWriter::ReorderObjectsLinearized( PdfObject* pLinearize, PdfHintStream* 
     // at the front of the vector of objects.
     // We only swap objects inside of the vector to avoid reallocations.
     // This is a fast operation therefore
-    i  = m_vecObjects->size()-1;
+    i  = m_vecObjects->GetSize()-1;
     it = lstLinearizedGroup.begin();
 
     while( it != lstLinearizedGroup.end() )
@@ -418,16 +418,16 @@ void PdfWriter::ReorderObjectsLinearized( PdfObject* pLinearize, PdfHintStream* 
 
     // reorder the objects in the file
     itObjects = m_vecObjects->begin();
-    itObjects += m_vecObjects->size() - setLinearizedGroup.size();
-    m_vecObjects->erase( itObjects );
+    itObjects += m_vecObjects->GetSize() - setLinearizedGroup.size();
+    m_vecObjects->RemoveObject( itObjects );
 
     while( itObjects != m_vecObjects->end() )
     {
         m_vecLinearized.push_back_and_do_not_own( *itObjects );
-        m_vecObjects->erase( itObjects ); 
+        m_vecObjects->RemoveObject( itObjects ); 
     }
     
-    *ppLast = m_vecLinearized.back();
+    *ppLast = m_vecLinearized.GetBack();
 }
 
 void PdfWriter::FindCatalogDependencies( PdfObject* pCatalog, const PdfName & rName, TPdfReferenceList* pList, bool bWithDependencies )
@@ -479,8 +479,10 @@ void PdfWriter::FetchPagesTree()
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         }
 
+        /*
         printf("Fetching: %lu\n", pRoot->GetReference().ObjectNumber() );
-        printf("Size    : %i\n", static_cast<int>(m_vecObjects->size()) );
+        printf("Size    : %i\n", static_cast<int>(m_vecObjects->GetSize()) );
+        */
         pRoot            = m_vecObjects->GetObject( pRoot->GetReference() );
         if( !pRoot ) 
         {

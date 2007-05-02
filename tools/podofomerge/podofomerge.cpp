@@ -93,8 +93,10 @@ int main( int argc, char* argv[] )
   pszInput2 = argv[2];
   pszOutput = argv[3];
 
+  merge( pszInput1, pszInput2, pszOutput );
+  
   try {
-      merge( pszInput1, pszInput2, pszOutput );
+      //merge( pszInput1, pszInput2, pszOutput );
   } catch( PdfError & e ) {
       fprintf( stderr, "Error %i occurred!\n", e.GetError() );
       e.PrintErrorMsg();

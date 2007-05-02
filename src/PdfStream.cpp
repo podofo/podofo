@@ -87,7 +87,8 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
 
 const PdfStream & PdfStream::operator=( const PdfStream & rhs )
 {
-    this->Set( const_cast<char*>(rhs.GetInternalBuffer()), rhs.GetInternalBufferSize() );
+    PdfMemoryInputStream stream( rhs.GetInternalBuffer(), rhs.GetInternalBufferSize() );
+    this->SetRawData( &stream );
 
     if( m_pParent ) 
         m_pParent->GetDictionary().AddKey( PdfName::KeyLength, 

@@ -93,7 +93,7 @@ void PdfDocument::Clear()
         ++it;
     }
 
-    m_vecObjects.clear();
+    m_vecObjects.Clear();
 
     if( m_pInfo ) 
     {
@@ -246,7 +246,7 @@ PdfPage* PdfDocument::CreatePage( const PdfRect & rSize )
 
 const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc )
 {
-    int difference = m_vecObjects.size() + m_vecObjects.GetFreeObjects().size();
+    int difference = m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size();
 
     // append all objects first and fix their references
     TCIVecObjects it           = rDoc.GetObjects().begin();
@@ -292,6 +292,8 @@ const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc )
         while( pRoot && pRoot->Next() ) 
             pRoot = pRoot->Next();
 
+        printf("Reached last node difference=%i\n", difference);
+        printf("First: %li 0 R\n", pAppendRoot->First()->GetObject()->Reference().ObjectNumber() );
         PdfReference ref( pAppendRoot->First()->GetObject()->Reference().ObjectNumber() + difference, 0 );
         pRoot->InsertChild( new PdfOutlines( m_vecObjects.GetObject( ref ) ) );
     }

@@ -197,6 +197,7 @@ FILE(APPEND
 ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(test)
 ADD_SUBDIRECTORY(tools)
+ADD_SUBDIRECTORY(examples)
 
 # Export some variables into the config file so it's easier for others
 # to build and link against PoDoFo

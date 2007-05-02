@@ -228,8 +228,8 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     long          m_nXRefLinearizedOffset;
     size_t        m_nFileSize;
 
-    TXRefEntry*   m_pOffsets;
-    TVecObjects*  m_vecObjects;
+    TXRefEntry*    m_pOffsets;
+    PdfVecObjects* m_vecObjects;
 
     PdfObject*    m_pTrailer;
     PdfObject*    m_pLinearization;

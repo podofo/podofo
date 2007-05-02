@@ -50,6 +50,18 @@ typedef std::vector<TReferencePointerList  >     TVecReferencePointerList;
 typedef TVecReferencePointerList::iterator       TIVecReferencePointerList;
 typedef TVecReferencePointerList::const_iterator TCIVecReferencePointerList;
 
+/*
+typedef std::vector<PdfObject*>      TVecObjects;
+typedef TVecObjects::iterator        TIVecObjects;
+typedef TVecObjects::const_iterator  TCIVecObjects;
+*/
+
+typedef std::vector<PdfObject*>      TVecObjects;
+typedef TVecObjects::iterator        TIVecObjects;
+typedef TVecObjects::const_iterator  TCIVecObjects;
+
+
+
 /** A STL vector of PdfObjects. I.e. a list of PdfObject classes.
  *  The PdfParser will read the PdfFile into memory and create 
  *  a PdfVecObjects of all dictionaries found in the PDF file.
@@ -61,7 +73,7 @@ typedef TVecReferencePointerList::const_iterator TCIVecReferencePointerList;
  *  These class contains also advanced funtions for searching of PdfObject's
  *  in a PdfVecObject. 
  */
-class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
+class PODOFO_API PdfVecObjects {
     friend class PdfWriter;
 
  public:
@@ -175,6 +187,22 @@ class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
      */
     inline bool AutoDelete() const;
 
+    /** Removes all objects from the vector
+     *  and resets it to the default state.
+     *
+     *  If SetAutoDelete is true all objects are deleted.
+     *  All observers are removed from the vector.
+     *
+     *  \see SetAutoDelete
+     *  \see AutoDelete
+     */
+    void Clear();
+
+    /** 
+     *  \returns the size of the internal vector
+     */
+    inline size_t GetSize() const;
+
     /**
      *  \returns the highest object number in the vector 
      */
@@ -206,6 +234,12 @@ class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
      *  \returns The removed object.
      */
     PdfObject* RemoveObject( const PdfReference & ref, bool bMarkAsFree = true );
+
+    /** Remove the object with the iterator it from the vector and return it
+     *  \param it the object to remove
+     *  \returns the removed object
+     */
+    PdfObject* RemoveObject( const TIVecObjects & it );
 
     /** Creates a new object and inserts it into the vector.
      *  This function assigns the next free object number to the PdfObject.
@@ -262,6 +296,12 @@ class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
      * Sort the objects in the vector based on their object and generation numbers
      */
     void Sort();
+
+    /** 
+     * Causes the internal vector to reserve space for size elements.
+     * \param size reserve space for that much elements in the internal vector
+     */
+    inline void Reserve( size_t size );
 
     /** Get a set with all references of objects that the passed object
      *  depends on.
@@ -326,6 +366,31 @@ class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
      */
     void EndAppendStream( const PdfStream* pStream );
 
+    /** Iterator pointing at the begining of the vector
+     *  \returns beginning iterator
+     */
+    inline TIVecObjects begin();
+
+    /** Iterator pointing at the begining of the vector
+     *  \returns beginning iterator
+     */
+    inline TCIVecObjects begin() const;
+
+    /** Iterator pointing at the end of the vector
+     *  \returns ending iterator
+     */
+    inline TIVecObjects end();
+
+    /** Iterator pointing at the end of the vector
+     *  \returns ending iterator
+     */
+    inline TCIVecObjects end() const;
+
+    inline PdfObject*& operator[](int index);
+    //inline PdfObject const*& operator[](int index) const;
+
+    inline PdfObject* GetBack();
+    
  private:    
     /** 
      * \returns the next free object reference
@@ -339,7 +404,10 @@ class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
      */
     void BuildReferenceCountVector( TVecReferencePointerList* pList );
     void InsertReferencesIntoVector( const PdfObject* pObj, TVecReferencePointerList* pList );
-    inline void InsertOneReferenceIntoVector( const PdfObject* pObj, TVecReferencePointerList* pList );
+
+    /** Assumes that the PdfVecObjects is sorted
+     */
+    void InsertOneReferenceIntoVector( const PdfObject* pObj, TVecReferencePointerList* pList );
 
     /** Delete all objects from the vector which do not have references to them selves
      *  \param pList must be a list created by BuildReferenceCountVector
@@ -352,6 +420,9 @@ class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
  private:
     bool                m_bAutoDelete;
     size_t              m_nObjectCount;
+    bool                m_bSorted;
+    TVecObjects         m_vector;
+
 
     TVecObservers       m_vecObservers;
     TPdfReferenceList   m_lstFreeObjects;
@@ -361,10 +432,27 @@ class PODOFO_API PdfVecObjects : public std::vector<PdfObject*> {
     StreamFactory*      m_pStreamFactory;
 };
 
+
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-PdfDocument* PdfVecObjects::GetParentDocument() const
+inline size_t PdfVecObjects::GetSize() const
+{
+    return m_vector.size();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfVecObjects::Reserve( size_t size )
+{
+    return m_vector.reserve( size );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfDocument* PdfVecObjects::GetParentDocument() const
 {
     return m_pDocument;
 }
@@ -372,7 +460,7 @@ PdfDocument* PdfVecObjects::GetParentDocument() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfVecObjects::SetParentDocument( PdfDocument* pDocument )
+inline void PdfVecObjects::SetParentDocument( PdfDocument* pDocument )
 {
     m_pDocument = pDocument;
 }
@@ -380,7 +468,7 @@ void PdfVecObjects::SetParentDocument( PdfDocument* pDocument )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfVecObjects::SetAutoDelete( bool bAutoDelete ) 
+inline void PdfVecObjects::SetAutoDelete( bool bAutoDelete ) 
 {
     m_bAutoDelete = bAutoDelete;
 }
@@ -388,7 +476,7 @@ void PdfVecObjects::SetAutoDelete( bool bAutoDelete )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-bool PdfVecObjects::AutoDelete() const
+inline bool PdfVecObjects::AutoDelete() const
 {
     return m_bAutoDelete;
 }
@@ -417,9 +505,44 @@ inline void PdfVecObjects::SetStreamFactory( StreamFactory* pFactory )
     m_pStreamFactory = pFactory;
 }
 
-typedef PdfVecObjects                TVecObjects;
-typedef TVecObjects::iterator        TIVecObjects;
-typedef TVecObjects::const_iterator  TCIVecObjects;
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline TIVecObjects PdfVecObjects::begin()
+{
+    return m_vector.begin();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline TCIVecObjects PdfVecObjects::begin() const
+{
+    return m_vector.begin();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline TIVecObjects PdfVecObjects::end()
+{
+    return m_vector.end();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline TCIVecObjects PdfVecObjects::end() const
+{
+    return m_vector.end();
+}
+
+inline PdfObject*& PdfVecObjects::operator[](int index) { return m_vector[index]; }
+
+//inline PdfObject const * & PdfVecObjects::operator[](int index) const { return m_vector[index]; }
+
+inline PdfObject* PdfVecObjects::GetBack() { return m_vector.back(); }
+
 
 };
 

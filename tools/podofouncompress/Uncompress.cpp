@@ -46,10 +46,9 @@ void UnCompress::Init( const char* pszInput, const char* pszOutput )
 
 void UnCompress::UncompressObjects()
 {
-    TVecObjects  vecObj = m_pDocument->GetObjects();
-    TIVecObjects it     = vecObj.begin();
+    TIVecObjects it     = m_pDocument->GetObjects().begin();
 
-    while( it != vecObj.end() )
+    while( it != m_pDocument->GetObjects().end() )
     {
         if( (*it)->HasStream() )
         {

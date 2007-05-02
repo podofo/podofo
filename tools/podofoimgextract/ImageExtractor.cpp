@@ -46,13 +46,12 @@ void ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnN
 
     m_pszOutputDirectory = const_cast<char*>(pszOutput);
 
-    const TVecObjects&  vecObjects = document.GetObjects();
-    TCIVecObjects it = vecObjects.begin();
+    TCIVecObjects it = document.GetObjects().begin();
 
     if( pnNum )
         *pnNum = 0;
 
-    while( it != vecObjects.end() )
+    while( it != document.GetObjects().end() )
     {
         if( (*it)->IsDictionary() )
         {            

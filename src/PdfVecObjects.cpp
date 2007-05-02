@@ -40,6 +40,13 @@ inline bool ObjectLittle( PoDoFo::PdfObject* p1, PoDoFo::PdfObject* p2 )
 
 namespace PoDoFo {
 
+struct ObjectComparatorPredicate {
+public:
+    inline bool operator()( PdfObject* const & pObj, const PdfReference & ref ) const { return pObj->Reference() < ref;  }
+    inline bool operator()( const PdfReference & ref, PdfObject* const & pObj ) const { return ref < pObj->Reference();  }
+};
+
+
 class ObjectsComperator { 
 public:
     ObjectsComperator( const PdfReference & ref )
@@ -56,17 +63,43 @@ private:
 };
 
 PdfVecObjects::PdfVecObjects()
-    : m_bAutoDelete( false ), m_nObjectCount( 1 ), m_pDocument( NULL ), m_pStreamFactory( NULL )
+    : m_bAutoDelete( false ), m_nObjectCount( 1 ), m_bSorted( true ), m_pDocument( NULL ), m_pStreamFactory( NULL )
 {
 }
 
 PdfVecObjects::PdfVecObjects( const PdfVecObjects & rhs )
-    : std::vector<PoDoFo::PdfObject*>()
 {
     this->operator=( rhs );
 }
 
 PdfVecObjects::~PdfVecObjects()
+{
+    this->Clear();
+}
+
+const PdfVecObjects & PdfVecObjects::operator=( const PdfVecObjects & rhs )
+{
+    TIVecObjects it;
+
+    m_vector              = rhs.m_vector;
+    m_bAutoDelete         = rhs.m_bAutoDelete;
+    m_nObjectCount        = rhs.m_nObjectCount;
+    m_bSorted             = rhs.m_bSorted;
+    m_lstFreeObjects      = rhs.m_lstFreeObjects;
+    m_pDocument           = rhs.m_pDocument;
+    m_pStreamFactory      = rhs.m_pStreamFactory;
+
+    it = this->begin();
+    while( it != this->end() )
+    {
+        (*it)->SetOwner( this );
+        ++it;
+    }
+
+    return *this;
+}
+
+void PdfVecObjects::Clear()
 {
     // always work on a copy of the vector
     // in case a child invalidates our iterators
@@ -89,71 +122,79 @@ PdfVecObjects::~PdfVecObjects()
             ++it;
         }
     }
-}
 
-const PdfVecObjects & PdfVecObjects::operator=( const PdfVecObjects & rhs )
-{
-    TIVecObjects it;
-    static_cast< std::vector<PdfObject*> * >(this)->operator=( rhs );
+    m_vector.clear();
 
-    m_bAutoDelete         = rhs.m_bAutoDelete;
-    m_nObjectCount        = rhs.m_nObjectCount;
-    m_lstFreeObjects      = rhs.m_lstFreeObjects;
-    m_pDocument           = rhs.m_pDocument;
-    m_pStreamFactory      = rhs.m_pStreamFactory;
-
-    it = this->begin();
-    while( it != this->end() )
-    {
-        (*it)->SetOwner( this );
-        ++it;
-    }
-
-    return *this;
+    m_bAutoDelete    = false;
+    m_nObjectCount   = 1;
+    m_bSorted        = true; // an emtpy vector is sorted
+    m_pDocument      = NULL;
+    m_pStreamFactory = NULL;
 }
 
 PdfObject* PdfVecObjects::GetObject( const PdfReference & ref ) const
 {
-    const TCIVecObjects it ( std::find_if( this->begin(), this->end(), ObjectsComperator( ref ) ) );
+    if( !m_bSorted )
+        const_cast<PdfVecObjects*>(this)->Sort();
 
+    std::pair<TCIVecObjects,TCIVecObjects> it = 
+        std::equal_range( m_vector.begin(), m_vector.end(), ref, ObjectComparatorPredicate() );
+
+    if( it.first != it.second )
+        return *(it.first);
+
+    /*
+    const TCIVecObjects it ( std::find_if( this->begin(), this->end(), ObjectsComperator( ref ) ) );
     if( it != this->end() )
         return (*it);
+    */
 
     return NULL;
 }
 
 unsigned int PdfVecObjects::GetIndex( const PdfReference & ref ) const
 {
-    TCIVecObjects it;
+    if( !m_bSorted )
+        const_cast<PdfVecObjects*>(this)->Sort();
 
-    it = std::find_if( this->begin(), this->end(), ObjectsComperator( ref ) );
-    
-    if( it == this->end() )
+    std::pair<TCIVecObjects,TCIVecObjects> it = 
+        std::equal_range( m_vector.begin(), m_vector.end(), ref, ObjectComparatorPredicate() );
+
+    if( it.first == it.second )
     {
         PODOFO_RAISE_ERROR( ePdfError_NoObject );
     }
 
-    return (it - this->begin());
+    return (it.first - this->begin());
 }
-
 
 PdfObject* PdfVecObjects::RemoveObject( const PdfReference & ref, bool bMarkAsFree )
 {
-    TIVecObjects it;
-    PdfObject*   pObj;
+    if( !m_bSorted )
+        this->Sort();
 
-    it = std::find_if( this->begin(), this->end(), ObjectsComperator( ref ) );
-    
-    if( it != this->end() )
+
+    PdfObject*         pObj;
+    std::pair<TIVecObjects,TIVecObjects> it = 
+        std::equal_range( m_vector.begin(), m_vector.end(), ref, ObjectComparatorPredicate() );
+
+    if( it.first != it.second )
     {
-        pObj = *it;
+        pObj = *(it.first);
         if( bMarkAsFree )
             this->AddFreeObject( pObj->Reference() );
-        this->erase( it );
+        m_vector.erase( it.first );
         return pObj;
     }
-
+    
     return NULL;
+}
+
+PdfObject* PdfVecObjects::RemoveObject( const TIVecObjects & it )
+{
+    PdfObject* pObj = *it;
+    m_vector.erase( it );
+    return pObj;
 }
 
 PdfReference PdfVecObjects::GetNextFreeObject()
@@ -210,13 +251,19 @@ void PdfVecObjects::push_back( PdfObject* pObj )
     if( pObj->Reference().ObjectNumber() >= m_nObjectCount )
         ++m_nObjectCount;
 
+    if( m_vector.size() && m_vector.back()->Reference() < pObj->Reference() )
+        m_bSorted = false;
+
     pObj->SetOwner( this );
-    std::vector<PdfObject*>::push_back( pObj );
+    m_vector.push_back( pObj );
 }
 
 void PdfVecObjects::push_back_and_do_not_own( PdfObject* pObj )
 {
-    static_cast< std::vector<PdfObject*> * >(this)->push_back( pObj );
+    if( m_vector.size() && m_vector.back()->Reference() < pObj->Reference() )
+        m_bSorted = false;
+
+    m_vector.push_back( pObj );
 }
 
 void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNotDelete )
@@ -229,6 +276,9 @@ void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNot
 
     m_lstFreeObjects.clear();
 
+    if( !m_bSorted )
+        const_cast<PdfVecObjects*>(this)->Sort();
+
     // The following call slows everything down
     // optimization welcome
     BuildReferenceCountVector( &list );
@@ -240,7 +290,7 @@ void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNot
     while( it != list.end() )
     {
         PdfReference ref( i+1, 0 );
-        (*this)[i]->m_reference = ref;
+        m_vector[i]->m_reference = ref;
 
         itList = (*it).begin();
         while( itList != (*it).end() )
@@ -257,22 +307,23 @@ void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNot
 
 void PdfVecObjects::InsertOneReferenceIntoVector( const PdfObject* pObj, TVecReferencePointerList* pList )  
 {
-    TCIVecObjects              it;
     int                        index;
-    PdfReference               ref;
 
+    PODOFO_RAISE_LOGIC_IF( !m_bSorted, 
+                           "PdfVecObjects must be sorted before calling PdfVecObjects::InsertOneReferenceIntoVector!" );
+    
     // we asume that pObj is a reference - no checking here because of speed
-    ref   = pObj->GetReference();
-    it    = std::find_if( this->begin(), this->end(), ObjectsComperator( ref ) );
-        
-    if( it == this->end() )
+    std::pair<TCIVecObjects,TCIVecObjects> it = 
+        std::equal_range( m_vector.begin(), m_vector.end(), pObj->GetReference(), ObjectComparatorPredicate() );
+
+    if( it.first != it.second )
     {
         // ignore this reference
         return;
         //PODOFO_RAISE_ERROR( ePdfError_NoObject );
     }
     
-    index = (it - this->begin());
+    index = (it.first - this->begin());
     (*pList)[index].push_back( const_cast<PdfReference*>(&(pObj->GetReference() )) );
 }
 
@@ -362,7 +413,7 @@ void PdfVecObjects::BuildReferenceCountVector( TVecReferencePointerList* pList )
     TCIVecObjects      it      = this->begin();
 
     pList->clear();
-    pList->resize( this->size() );
+    pList->resize( m_vector.size() );
 
     while( it != this->end() )
     {
@@ -381,6 +432,7 @@ void PdfVecObjects::BuildReferenceCountVector( TVecReferencePointerList* pList )
 void PdfVecObjects::Sort()
 {
     std::sort( this->begin(), this->end(), ObjectLittle );
+    m_bSorted = true;
 }
 
 void PdfVecObjects::GarbageCollection( TVecReferencePointerList* pList, PdfObject* pTrailer, TPdfReferenceSet* pNotDelete )
@@ -391,10 +443,10 @@ void PdfVecObjects::GarbageCollection( TVecReferencePointerList* pList, PdfObjec
 
     while( it != pList->end() )
     {
-        bContains = pNotDelete ? ( pNotDelete->find( (*this)[pos]->Reference() ) != pNotDelete->end() ) : false;
+        bContains = pNotDelete ? ( pNotDelete->find( m_vector[pos]->Reference() ) != pNotDelete->end() ) : false;
         if( !(*it).size() && !bContains )
         {
-            this->erase( this->begin() + pos );
+            m_vector.erase( this->begin() + pos );
         }
         
         ++pos;
@@ -440,7 +492,7 @@ void PdfVecObjects::WriteObject( PdfObject* pObject )
     }
 }
 
-PdfStream* PdfVecObjects::CreateStream( const PdfStream & rhs )
+PdfStream* PdfVecObjects::CreateStream( const PdfStream & )
 {
     return NULL;
 }

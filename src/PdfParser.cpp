@@ -31,6 +31,7 @@
 
 #include <cstring>
 #include <cstdlib>
+#include <sstream>
 #include <algorithm>
 #include <iostream>
 
@@ -729,7 +730,7 @@ void PdfParser::ReadObjects()
     int              nLast      = 0;
     PdfParserObject* pObject    = NULL;
 
-    m_vecObjects->reserve( m_nNumObjects );
+    m_vecObjects->Reserve( m_nNumObjects );
 
     for( ; i < m_nNumObjects; i++ )
     {
@@ -813,7 +814,10 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
     PdfParserObject * const pStream = dynamic_cast<PdfParserObject*>(m_vecObjects->GetObject( PdfReference( nObjNo, 0 ) ) );
     if( !pStream )
     {
-        PODOFO_RAISE_ERROR( ePdfError_NoObject );
+        std::ostringstream oss;
+        oss << "Loading of object " << nObjNo << " 0 R failed!" << std::endl;
+
+        PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, oss.str().c_str() );
     }
     
     long lNum   = pStream->GetDictionary().GetKeyAsLong( "N", 0 );

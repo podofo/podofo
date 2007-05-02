@@ -181,9 +181,11 @@ class PODOFO_EXCEPTION_API(PODOFO_API) PdfError : public std::exception {
      *         Use the compiler macro __FILE__ to initialize the field.
      *  \param line the line in which the error has occured.
      *         Use the compiler macro __LINE__ to initialize the field.
-     *  \param pszInformation additional information on this error
+     *  \param pszInformation additional information on this error which mayy
+     *                        be formatted like printf
      */
-    PdfError( const EPdfError & eCode, const char* pszFile = NULL, int line = 0, const char* pszInformation = NULL );
+    PdfError( const EPdfError & eCode, const char* pszFile = NULL, int line = 0, 
+              const char* pszInformation = NULL );
 
     /** Copy constructor
      *  \param rhs copy the contents of rhs into this object

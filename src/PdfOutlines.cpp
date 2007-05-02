@@ -41,7 +41,8 @@ PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfDestination &
 }
 
 PdfOutlineItem::PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutline, PdfOutlineItem* pPrevious )
-    : PdfElement( NULL, pObject ), m_pParentOutline( pParentOutline ), m_pPrev( pPrevious ), m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL )
+    : PdfElement( NULL, pObject ), m_pParentOutline( pParentOutline ), m_pPrev( pPrevious ), 
+      m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL )
 {
     PdfReference first, next;
 
@@ -54,7 +55,11 @@ PdfOutlineItem::PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutli
     if( m_pObject->GetDictionary().HasKey( "Next" ) )
     {
         next     = m_pObject->GetDictionary().GetKey("Next")->GetReference();
-        m_pNext  = new PdfOutlineItem( pObject->GetOwner()->GetObject( next ), NULL, this );
+        PdfObject* pObj = pObject->GetOwner()->GetObject( next );
+        if( !pObj )
+            printf("Trying to find %i 0 R = %p\n", next.ObjectNumber(), pObj );
+
+        m_pNext  = new PdfOutlineItem( pObj, NULL, this );
     }
     else
     {
