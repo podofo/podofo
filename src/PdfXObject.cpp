@@ -24,6 +24,7 @@
 #include "PdfImage.h"
 #include "PdfRect.h"
 #include "PdfVariant.h"
+#include "PdfLocale.h"
 
 #include <sstream>
 
@@ -38,6 +39,7 @@ PdfXObject::PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent )
 {
     PdfVariant    var;
     ostringstream out;
+    PdfLocaleImbue(out);
 
     // Initialize static data
     if( s_matrix.empty() )
@@ -73,6 +75,7 @@ PdfXObject::PdfXObject( PdfObject* pObject )
     : PdfElement( "XObject", pObject ), PdfCanvas()
 {
     ostringstream out;
+    PdfLocaleImbue(out);
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
     out << "XOb" << m_pObject->Reference().ObjectNumber();
@@ -88,6 +91,7 @@ PdfXObject::PdfXObject( const char* pszSubType, PdfVecObjects* pParent )
     : PdfElement( "XObject", pParent ) 
 {
     ostringstream out;
+    PdfLocaleImbue(out);
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
     out << "XOb" << m_pObject->Reference().ObjectNumber();
@@ -102,6 +106,7 @@ PdfXObject::PdfXObject( const char* pszSubType, PdfObject* pObject )
     : PdfElement( "XObject", pObject ) 
 {
     ostringstream out;
+    PdfLocaleImbue(out);
 
     if( m_pObject->GetDictionary().GetKeyAsName( PdfName::KeySubtype ) != pszSubType ) 
     {

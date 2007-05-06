@@ -69,6 +69,16 @@
 // Include API macro definitions
 #include "podofoapi.h"
 
+// By default, PoDoFo will use C++ locale support to ensure that
+// it doesn't write bad PDF data - particularly floating point numbers.
+// If your standard library does not support locales this won't work, but
+// your STL probably writes all data in a POSIX-like way irrespective of
+// locale. If you set this to 0, you MUST use some other method to ensure
+// that streams used by PoDoFo will write data in a POSIX locale like manner.
+#ifndef USE_CXX_LOCALE
+#define USE_CXX_LOCALE 1
+#endif
+
 /**
  * \namespace PoDoFo
  * 

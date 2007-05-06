@@ -66,6 +66,7 @@ PdfOutputDevice::PdfOutputDevice( const std::ostream* pOutStream )
     this->Init();
 
     m_pStream = const_cast< std::ostream* >( pOutStream );
+    PdfLocaleImbue(*m_pStream);
 }
 
 PdfOutputDevice::~PdfOutputDevice()
@@ -225,6 +226,5 @@ void PdfOutputDevice::Flush()
         m_pStream->flush();
     }
 }
-
 
 };

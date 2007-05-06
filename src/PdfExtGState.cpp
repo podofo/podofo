@@ -23,6 +23,7 @@
 #include "PdfDictionary.h"
 #include "PdfPage.h"
 #include "PdfWriter.h"
+#include "PdfLocale.h"
 
 #include <sstream>
 
@@ -32,6 +33,9 @@ PdfExtGState::PdfExtGState( PdfVecObjects* pParent )
     : PdfElement( "ExtGState", pParent )
 {
     std::ostringstream out;
+    // We probably aren't doing anything locale sensitive here, but it's
+    // best to be sure.
+    PdfLocaleImbue(out);
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.

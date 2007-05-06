@@ -27,6 +27,7 @@ SET(PODOFO_SOURCES
     PdfInfo.cpp
     PdfInputDevice.cpp
     PdfInputStream.cpp
+    PdfLocale.cpp
     PdfMemStream.cpp
     PdfName.cpp
     PdfNamesTree.cpp
@@ -86,6 +87,7 @@ SET(PODOFO_HEADERS
 	PdfInfo.h
 	PdfInputDevice.h
 	PdfInputStream.h
+	PdfLocale.h
 	PdfMemStream.h
 	PdfName.h
 	PdfNamesTree.h

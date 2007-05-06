@@ -246,6 +246,8 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) cons
 void PdfVariant::ToString( std::string & rsData ) const
 {
     ostringstream   out;
+    // We don't need to this stream with the safe PDF locale because
+    // PdfOutputDevice will do so for us.
     PdfOutputDevice device( &out );
 
     this->Write( &device );

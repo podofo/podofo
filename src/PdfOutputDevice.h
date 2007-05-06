@@ -25,6 +25,7 @@
 #include <ostream>
 
 #include "PdfDefines.h"
+#include "PdfLocale.h"
 
 namespace PoDoFo {
 

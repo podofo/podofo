@@ -35,6 +35,7 @@
 #include "PdfStream.h"
 #include "PdfString.h"
 #include "PdfXObject.h"
+#include "PdfLocale.h"
 
 #define BEZIER_POINTS 13
 
@@ -59,6 +60,7 @@ PdfPainter::PdfPainter()
 {
     m_oss.flags( std::ios_base::fixed );
     m_oss.precision( 3 );
+    PdfLocaleImbue(m_oss);
 }
 
 PdfPainter::~PdfPainter()

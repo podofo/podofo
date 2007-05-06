@@ -53,6 +53,7 @@ PdfInputDevice::PdfInputDevice( const char* pszFilename )
         // should probably check the exact error, but for now it's a good error
         PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
     }
+    PdfLocaleImbue(*m_pStream);
 }
 
 PdfInputDevice::PdfInputDevice( const char* pBuffer, long lLen )
@@ -76,6 +77,7 @@ PdfInputDevice::PdfInputDevice( const char* pBuffer, long lLen )
         // should probably check the exact error, but for now it's a good error
         PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
     }
+    PdfLocaleImbue(*m_pStream);
 }
 
 PdfInputDevice::PdfInputDevice( const std::istream* pInStream )
@@ -87,6 +89,7 @@ PdfInputDevice::PdfInputDevice( const std::istream* pInStream )
     {
         PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
     }
+    PdfLocaleImbue(*m_pStream);
 }
 
 PdfInputDevice::~PdfInputDevice()

@@ -26,6 +26,7 @@
 #include "PdfPage.h"
 #include "PdfStream.h"
 #include "PdfWriter.h"
+#include "PdfLocale.h"
 
 #include <sstream>
 
@@ -40,6 +41,7 @@ PdfFont::PdfFont( PdfFontMetrics* pMetrics, bool bEmbedd, PdfVecObjects* pParent
     : PdfElement( "Font", pParent ), m_pMetrics( pMetrics )
 {
     ostringstream out;
+    PdfLocaleImbue(out);
 
     m_fFontSize   = 12.0;
 
