@@ -145,22 +145,7 @@ class PODOFO_API PdfVecObjects {
      */
     PdfVecObjects();
 
-    /** Copy constructor
-     *  \param rhs the object to copy
-     */
-    PdfVecObjects( const PdfVecObjects & rhs );
-
     virtual ~PdfVecObjects();
-
-    /** Assign another PdfVecObjects to this PdfVecObjects
-     *
-     *  Warning: This will change the parent of all objects in
-     *           the vector.
-     *
-     *  \param rhs the object to copy
-     *  \returns this object
-     */
-    //const PdfVecObjects & operator=( const PdfVecObjects & rhs );
 
     /** \returns a pointer to a PdfDocument that is the 
      *           parent of this vector.

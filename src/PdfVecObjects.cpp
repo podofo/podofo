@@ -67,39 +67,10 @@ PdfVecObjects::PdfVecObjects()
 {
 }
 
-PdfVecObjects::PdfVecObjects( const PdfVecObjects & rhs )
-{
-    this->operator=( rhs );
-}
-
 PdfVecObjects::~PdfVecObjects()
 {
     this->Clear();
 }
-
-/*
-const PdfVecObjects & PdfVecObjects::operator=( const PdfVecObjects & rhs )
-{
-    TIVecObjects it;
-
-    m_vector              = rhs.m_vector;
-    m_bAutoDelete         = rhs.m_bAutoDelete;
-    m_nObjectCount        = rhs.m_nObjectCount;
-    m_bSorted             = rhs.m_bSorted;
-    m_lstFreeObjects      = rhs.m_lstFreeObjects;
-    m_pDocument           = rhs.m_pDocument;
-    m_pStreamFactory      = rhs.m_pStreamFactory;
-
-    it = this->begin();
-    while( it != this->end() )
-    {
-        (*it)->SetOwner( this );
-        ++it;
-    }
-
-    return *this;
-}
-*/
 
 void PdfVecObjects::Clear()
 {
