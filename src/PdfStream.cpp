@@ -179,7 +179,8 @@ void PdfStream::BeginAppend( const TVecFilters & vecFilters, bool bClearExisting
 
     PODOFO_RAISE_LOGIC_IF( m_bAppend, "BeginAppend() failed because EndAppend() was not yet called!" );
 
-    m_pParent->GetOwner()->BeginAppendStream( this );
+    if( m_pParent && m_pParent->GetOwner() )
+        m_pParent->GetOwner()->BeginAppendStream( this );
 
     if( !bClearExisting && this->GetLength() ) 
         this->GetFilteredCopy( &pBuffer, &lLen );
@@ -222,7 +223,8 @@ void PdfStream::EndAppend()
     m_bAppend = false;
     this->EndAppendImpl();
 
-    m_pParent->GetOwner()->EndAppendStream( this );
+    if( m_pParent && m_pParent->GetOwner() )
+        m_pParent->GetOwner()->EndAppendStream( this );
 }
 
 };

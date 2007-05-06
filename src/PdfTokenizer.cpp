@@ -45,10 +45,11 @@ namespace PdfTokenizerNameSpace{
 // maintainable structures in PdfDefines.h
 const char * genDelMap()
 {
-    char * map = static_cast<char*>(malloc(256));
-    for (int i = 0; i < 256; i++)
+    int    i;
+    char* map = static_cast<char*>(malloc(256));
+    for (i = 0; i < 256; i++)
         map[i] = '\0';
-    for (int i = 0; i < PoDoFo::s_nNumDelimiters; ++i)
+    for (i = 0; i < PoDoFo::s_nNumDelimiters; ++i)
         map[PoDoFo::s_cDelimiters[i]] = 1;
     return map;
 }
@@ -58,10 +59,11 @@ const char * genDelMap()
 // maintainable structures in PdfDefines.h
 const char * genWsMap()
 {
-    char * map = static_cast<char*>(malloc(256));
-    for (int i = 0; i < 256; i++)
+    int   i;
+    char* map = static_cast<char*>(malloc(256));
+    for (i = 0; i < 256; i++)
         map[i] = '\0';
-    for (int i = 0; i < PoDoFo::s_nNumWhiteSpaces; ++i)
+    for (i = 0; i < PoDoFo::s_nNumWhiteSpaces; ++i)
         map[PoDoFo::s_cWhiteSpaces[i]] = 1;
     return map;
 }
@@ -452,7 +454,11 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant )
             break;
         
         bIgnore = (c == '\\') && !bIgnore;
+#ifdef _MSC_VER
+        str += c;
+#else
         str.push_back( c );
+#endif
     }
 
     rVariant = PdfString( str.c_str(), str.length() );
@@ -473,12 +479,20 @@ void PdfTokenizer::ReadHexString( PdfVariant& rVariant )
         if( isdigit( c ) || 
             ( c >= 'A' && c <= 'F') ||
             ( c >= 'a' && c <= 'f'))
+#ifdef _MSC_VER
+            str += c;
+#else
             str.push_back( c );
+#endif
     }
 
     // pad to an even length if necessary
     if( str.length() % 2 )
-        str.push_back( '0' );
+#ifdef _MSC_VER
+        str += c;
+#else
+        str.push_back( c );
+#endif
 
     PdfString string;
     string.SetHexData( str.c_str(), str.length() );

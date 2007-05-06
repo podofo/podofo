@@ -742,11 +742,13 @@ void PdfLZWFilter::InitTable()
     }
 
     item.value.clear();
-    item.value.push_back( static_cast<unsigned char>(s_clear) );
+    item.value.push_back( static_cast<unsigned char>((s_clear >> 1) & 0xff) );
+    item.value.push_back( static_cast<unsigned char>(s_clear & 0xff) );
     m_table.push_back( item );
-
+    
     item.value.clear();
-    item.value.push_back( static_cast<unsigned char>(s_clear) );
+    item.value.push_back( static_cast<unsigned char>((s_eod >> 1)& 0xff) );
+    item.value.push_back( static_cast<unsigned char>(s_eod & 0xff) );
     m_table.push_back( item );
 }
 

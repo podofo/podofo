@@ -54,6 +54,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     const double dLineLength = 50000 * CONVERSION_CONSTANT; // 5cm
     double h;
     double w;
+    int    i;
 
     pFont = pDocument->CreateFont( "Arial" );
     if( !pFont )
@@ -72,7 +73,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->DrawRect( 120000 * CONVERSION_CONSTANT , y, w, h );
 
     // Draw 10 lines in gray scale
-    for( int i = 0; i < 10; i++ )
+    for( i = 0; i < 10; i++ )
     {
         x += (10000 * CONVERSION_CONSTANT);
 
@@ -88,7 +89,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y - pFont->GetFontMetrics()->GetLineSpacing(), "RGB Colorspace" );
 
     // Draw 10 lines in rgb
-    for( int i = 0; i < 10; i++ )
+    for( i = 0; i < 10; i++ )
     {
         x += (10000 * CONVERSION_CONSTANT);
 
@@ -104,7 +105,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y - pFont->GetFontMetrics()->GetLineSpacing(), "CMYK Colorspace" );
 
     // Draw 10 lines in cmyk
-    for( int i = 0; i < 10; i++ )
+    for( i = 0; i < 10; i++ )
     {
         x += (10000 * CONVERSION_CONSTANT);
 

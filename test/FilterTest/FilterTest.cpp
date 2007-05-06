@@ -144,6 +144,7 @@ void test_filter_queque( const char* pBuffer, long lLen )
     PdfOutputStream*       pEncode = PdfFilterFactory::CreateEncodeStream( filters, &stream );
     
     pEncode->Write( pBuffer, lLen );
+    pEncode->Close();
 
     delete pEncode;
 
@@ -154,7 +155,8 @@ void test_filter_queque( const char* pBuffer, long lLen )
     PdfOutputStream* pDecode = PdfFilterFactory::CreateDecodeStream( filters, &stream2 );
     
     pDecode->Write( pEncoded, lEncoded );
-
+    pDecode->Close();
+    
     delete pDecode;
 
     lDecoded = stream2.GetLength();
@@ -239,19 +241,6 @@ int main()
     printf("ePdfFilter_DCTDecode          = 7\n");
     printf("ePdfFilter_JPXDecode          = 8\n");
     printf("ePdfFilter_Crypt              = 9\n");
-
-    char data[619];
-    FILE* fHandle = fopen( "/home/dominik/lzw_data_test", "rb" );
-    fread( data, 619, sizeof(char), fHandle );
-    fclose( fHandle );
-
-    printf("first=%x\n", *data );
-    std::auto_ptr<PdfFilter> filter = PdfFilterFactory::Create( ePdfFilter_LZWDecode );
-
-    char* pOut;
-    long  lOut;
-
-    filter->Decode( data, 619, &pOut, &lOut );
 
     try {
         for( int i =0; i<=ePdfFilter_Crypt; i++ )

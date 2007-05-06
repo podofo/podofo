@@ -20,7 +20,8 @@
 
 #include "PdfXRef.h"
 
-#include <PdfOutputDevice.h>
+#include "PdfOutputDevice.h"
+
 #include <algorithm>
 
 namespace PoDoFo {

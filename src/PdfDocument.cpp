@@ -139,7 +139,7 @@ void PdfDocument::InitFromParser( PdfParser* pParser )
     m_pCatalog  = m_pTrailer->GetIndirectKey( "Root" );
     if( !m_pCatalog )
     {
-        PODOFO_RAISE_ERROR( ePdfError_NoObject );
+        PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, "Catalog object not found!" );
     }
 
     pInfo = m_pTrailer->GetIndirectKey( "Info" );
