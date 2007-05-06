@@ -74,21 +74,25 @@ void PdfXRef::Write( PdfOutputDevice* pDevice )
     PdfXRef::TCIVecXRefItems  it     = m_vecXRef.begin();
     PdfXRef::TCIVecReferences itFree = m_vecFreeObjects.begin();
 
-    int nFirst = 0;
-    int nCount = 0;
+    int nFirst       = 0;
+    int nCount       = 0;
 
     pDevice->Print( "xref\n" );
     while( it != m_vecXRef.end() ) 
     {
-        nCount = GetItemCount( it, itFree );
-        nFirst = PDF_MIN( it != m_vecXRef.end() ? (*it).reference.ObjectNumber() : EMPTY_OBJECT_OFFSET,
-                          itFree != m_vecFreeObjects.end() ? (*itFree).ObjectNumber() : EMPTY_OBJECT_OFFSET );
+        nCount       = GetItemCount( it, itFree );
+        nFirst       = (*it).reference.ObjectNumber();
+
+        if( itFree != m_vecFreeObjects.end() )
+            nFirst = PDF_MIN( nFirst, (*itFree).ObjectNumber() );
 
         if( nFirst == 1 )
             --nFirst;
 
         // when there is only one, then we need to start with 0 and the bogus object...
+        //printf("XRef section: %u %u\n", nFirst, nCount );
         pDevice->Print( "%u %u\n", nFirst, nCount );
+
         if( !nFirst ) 
         {
             pDevice->Print( "%0.10i %0.5i %c \n",
@@ -96,15 +100,14 @@ void PdfXRef::Write( PdfOutputDevice* pDevice )
                             EMPTY_OBJECT_OFFSET, 'f' );
         }
 
-        while( --nCount && it != m_vecXRef.end() ) 
+        while( --nCount > 0 && it != m_vecXRef.end() ) 
         {
             while( itFree != m_vecFreeObjects.end() &&
                    *itFree < (*it).reference && nCount )
             {
                 int nGen = (*itFree).GenerationNumber();
-                //printf("Writing free %i\n", (*itFree).ObjectNumber() );
                 ++itFree;
-
+                
                 // write free object
                 pDevice->Print( "%0.10i %0.5i f \n", 
                                 itFree != m_vecFreeObjects.end() ? (*itFree).ObjectNumber() : 0,
@@ -117,6 +120,8 @@ void PdfXRef::Write( PdfOutputDevice* pDevice )
             ++it;
         }
     }    
+
+    PODOFO_RAISE_LOGIC_IF( nCount != 0, "PdfXRef::Write() nCount != 0" );
 }
 
 int PdfXRef::GetItemCount( PdfXRef::TCIVecXRefItems it, PdfXRef::TCIVecReferences itFree ) const
@@ -124,11 +129,19 @@ int PdfXRef::GetItemCount( PdfXRef::TCIVecXRefItems it, PdfXRef::TCIVecReference
     unsigned int nCur = (*it).reference.ObjectNumber();
     unsigned int nCnt = 1;
 
-    ++it;
+    if( itFree != m_vecFreeObjects.end() && (*itFree).ObjectNumber() < (*it).reference.ObjectNumber())
+    {
+        nCur = (*itFree).ObjectNumber();
+        ++itFree;
+    }
+    else
+        ++it;
+
     while( it != m_vecXRef.end() )
     {
         while( itFree != m_vecFreeObjects.end() &&
-               *itFree < (*it).reference )
+               *itFree < (*it).reference && 
+               !((*it).reference.ObjectNumber() >= nCur))
         {
             ++itFree;
             ++nCnt;

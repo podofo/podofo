@@ -93,8 +93,10 @@ void PdfXRefStream::Write( PdfOutputDevice* pDevice )
     while( it != m_vecXRef.end() ) 
     {
         nCount = GetItemCount( it, itFree );
-        nFirst = PDF_MIN( it != m_vecXRef.end() ? (*it).reference.ObjectNumber() : EMPTY_OBJECT_OFFSET,
-                          itFree != m_vecFreeObjects.end() ? (*itFree).ObjectNumber() : EMPTY_OBJECT_OFFSET );
+        nFirst       = (*it).reference.ObjectNumber();
+
+        if( itFree != m_vecFreeObjects.end() )
+            nFirst = PDF_MIN( nFirst, (*itFree).ObjectNumber() );
 
         if( nFirst == 1 )
             --nFirst;
@@ -119,7 +121,7 @@ void PdfXRefStream::Write( PdfOutputDevice* pDevice )
         indeces.push_back( static_cast<long>(nFirst) );
         indeces.push_back( static_cast<long>(nCount) );
 
-        while( --nCount && it != m_vecXRef.end() ) 
+        while( --nCount > 0 && it != m_vecXRef.end() ) 
         {
             while( itFree != m_vecFreeObjects.end() &&
                    *itFree < (*it).reference && nCount )
