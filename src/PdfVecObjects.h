@@ -160,7 +160,7 @@ class PODOFO_API PdfVecObjects {
      *  \param rhs the object to copy
      *  \returns this object
      */
-    const PdfVecObjects & operator=( const PdfVecObjects & rhs );
+    //const PdfVecObjects & operator=( const PdfVecObjects & rhs );
 
     /** \returns a pointer to a PdfDocument that is the 
      *           parent of this vector.
@@ -284,14 +284,6 @@ class PODOFO_API PdfVecObjects {
      */
     void push_back( PdfObject* pObj );
 
-    /** This function is for internal usage only.
-     *  The PdfVecObjects does not become owner of the 
-     *  object and does not increase the m_nObjectCount
-     *
-     *  \param pObj pointer to the object you want to insert
-     */
-    void push_back_and_do_not_own( PdfObject* pObj );
-
     /** 
      * Sort the objects in the vector based on their object and generation numbers
      */
@@ -387,8 +379,11 @@ class PODOFO_API PdfVecObjects {
     inline TCIVecObjects end() const;
 
     inline PdfObject*& operator[](int index);
-    //inline PdfObject const*& operator[](int index) const;
 
+    /** Get the last object in the vector
+     *  \returns the last object in the vector or NULL 
+     *           if the vector is emtpy.
+     */
     inline PdfObject* GetBack();
     
  private:    
@@ -537,11 +532,18 @@ inline TCIVecObjects PdfVecObjects::end() const
     return m_vector.end();
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfObject* PdfVecObjects::GetBack() 
+{ 
+    return m_vector.back(); 
+}
+
 inline PdfObject*& PdfVecObjects::operator[](int index) { return m_vector[index]; }
 
 //inline PdfObject const * & PdfVecObjects::operator[](int index) const { return m_vector[index]; }
 
-inline PdfObject* PdfVecObjects::GetBack() { return m_vector.back(); }
 
 
 };

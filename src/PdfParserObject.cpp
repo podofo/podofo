@@ -92,12 +92,15 @@ void PdfParserObject::ReadObjectNumber()
         m_reference = PdfReference( obj, gen );
     } catch( PdfError & e ) {
         std::string errStr( e.what() );       // avoid compiler warning and in case we need it...
-        PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, "object and generation number cannot be read." );
+        PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, "Object and generation number cannot be read." );
     }
     
     if( !this->IsNextToken( "obj" ))
     {
-        PODOFO_RAISE_ERROR( ePdfError_NoObject );
+        std::ostringstream oss;
+        oss << "Error while reading object " << m_reference.ObjectNumber() << " " 
+            << m_reference.GenerationNumber() << ": Next token is not 'obj'." << std::endl; 
+        PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, oss.str().c_str() );
     }
 }
 

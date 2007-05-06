@@ -752,8 +752,15 @@ void PdfParser::ReadObjects()
                 else
                     m_vecObjects->push_back( pObject );
             } catch( PdfError & e ) {
-                delete pObject;
-                e.AddToCallstack( __FILE__, __LINE__ );
+                std::ostringstream oss;
+                if( pObject )
+                {
+                    oss << "Error while loading object " << pObject->Reference().ObjectNumber() << " " 
+                        << pObject->Reference().GenerationNumber() << std::endl;
+                    delete pObject;
+                }
+
+                e.AddToCallstack( __FILE__, __LINE__, oss.str().c_str() );
                 throw e;
             }
         }

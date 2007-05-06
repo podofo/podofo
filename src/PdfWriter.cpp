@@ -423,7 +423,9 @@ void PdfWriter::ReorderObjectsLinearized( PdfObject* pLinearize, PdfHintStream* 
 
     while( itObjects != m_vecObjects->end() )
     {
-        m_vecLinearized.push_back_and_do_not_own( *itObjects );
+        m_vecLinearized.push_back( *itObjects );
+        // reset the owner
+        (*itObjects)->SetOwner( m_vecObjects );
         m_vecObjects->RemoveObject( itObjects ); 
     }
     

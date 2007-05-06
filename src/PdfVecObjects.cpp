@@ -77,6 +77,7 @@ PdfVecObjects::~PdfVecObjects()
     this->Clear();
 }
 
+/*
 const PdfVecObjects & PdfVecObjects::operator=( const PdfVecObjects & rhs )
 {
     TIVecObjects it;
@@ -98,6 +99,7 @@ const PdfVecObjects & PdfVecObjects::operator=( const PdfVecObjects & rhs )
 
     return *this;
 }
+*/
 
 void PdfVecObjects::Clear()
 {
@@ -255,14 +257,6 @@ void PdfVecObjects::push_back( PdfObject* pObj )
         m_bSorted = false;
 
     pObj->SetOwner( this );
-    m_vector.push_back( pObj );
-}
-
-void PdfVecObjects::push_back_and_do_not_own( PdfObject* pObj )
-{
-    if( m_vector.size() && m_vector.back()->Reference() < pObj->Reference() )
-        m_bSorted = false;
-
     m_vector.push_back( pObj );
 }
 
@@ -431,8 +425,11 @@ void PdfVecObjects::BuildReferenceCountVector( TVecReferencePointerList* pList )
 
 void PdfVecObjects::Sort()
 {
-    std::sort( this->begin(), this->end(), ObjectLittle );
-    m_bSorted = true;
+    if( !m_bSorted )
+    {
+        std::sort( this->begin(), this->end(), ObjectLittle );
+        m_bSorted = true;
+    }
 }
 
 void PdfVecObjects::GarbageCollection( TVecReferencePointerList* pList, PdfObject* pTrailer, TPdfReferenceSet* pNotDelete )
