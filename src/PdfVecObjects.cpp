@@ -42,8 +42,14 @@ namespace PoDoFo {
 
 struct ObjectComparatorPredicate {
 public:
+    inline bool operator()( const PdfObject* const & pObj, const PdfObject* const & pObj2 ) const { 
+        return pObj->Reference() < pObj2->Reference();  
+    }
+    
+    /*
     inline bool operator()( PdfObject* const & pObj, const PdfReference & ref ) const { return pObj->Reference() < ref;  }
     inline bool operator()( const PdfReference & ref, PdfObject* const & pObj ) const { return ref < pObj->Reference();  }
+    */
 };
 
 
@@ -110,8 +116,9 @@ PdfObject* PdfVecObjects::GetObject( const PdfReference & ref ) const
     if( !m_bSorted )
         const_cast<PdfVecObjects*>(this)->Sort();
 
+    PdfObject refObj( ref, NULL );
     std::pair<TCIVecObjects,TCIVecObjects> it = 
-        std::equal_range( m_vector.begin(), m_vector.end(), ref, ObjectComparatorPredicate() );
+        std::equal_range( m_vector.begin(), m_vector.end(), &refObj, ObjectComparatorPredicate() );
 
     if( it.first != it.second )
         return *(it.first);
@@ -130,8 +137,9 @@ unsigned int PdfVecObjects::GetIndex( const PdfReference & ref ) const
     if( !m_bSorted )
         const_cast<PdfVecObjects*>(this)->Sort();
 
+    PdfObject refObj( ref, NULL );
     std::pair<TCIVecObjects,TCIVecObjects> it = 
-        std::equal_range( m_vector.begin(), m_vector.end(), ref, ObjectComparatorPredicate() );
+        std::equal_range( m_vector.begin(), m_vector.end(), &refObj, ObjectComparatorPredicate() );
 
     if( it.first == it.second )
     {
@@ -148,8 +156,9 @@ PdfObject* PdfVecObjects::RemoveObject( const PdfReference & ref, bool bMarkAsFr
 
 
     PdfObject*         pObj;
+    PdfObject refObj( ref, NULL );
     std::pair<TIVecObjects,TIVecObjects> it = 
-        std::equal_range( m_vector.begin(), m_vector.end(), ref, ObjectComparatorPredicate() );
+        std::equal_range( m_vector.begin(), m_vector.end(), &refObj, ObjectComparatorPredicate() );
 
     if( it.first != it.second )
     {
@@ -278,7 +287,7 @@ void PdfVecObjects::InsertOneReferenceIntoVector( const PdfObject* pObj, TVecRef
     
     // we asume that pObj is a reference - no checking here because of speed
     std::pair<TCIVecObjects,TCIVecObjects> it = 
-        std::equal_range( m_vector.begin(), m_vector.end(), pObj->GetReference(), ObjectComparatorPredicate() );
+        std::equal_range( m_vector.begin(), m_vector.end(), pObj, ObjectComparatorPredicate() );
 
     if( it.first != it.second )
     {
