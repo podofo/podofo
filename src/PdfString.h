@@ -45,6 +45,8 @@ class PODOFO_API PdfString : public PdfDataType{
 
    /** Construct a new PdfString from a std::string. 
      *  The input string will be copied.
+     *  If the first to bytes of the string are 0xFE and 0xFF
+     *  this string is treated as UTF-16BE encoded unicode string.
      *
      *  \param sString the string to copy
      */
@@ -60,6 +62,8 @@ class PODOFO_API PdfString : public PdfDataType{
 
     /** Construct a new PdfString from a string. 
      *  The input string will be copied.
+     *  If the first to bytes of the string are 0xFE and 0xFF
+     *  this string is treated as UTF-16BE encoded unicode string.
      *
      *  \param pszString the string to copy
      *  \param lLen length of the string data to encode
@@ -88,7 +92,7 @@ class PODOFO_API PdfString : public PdfDataType{
      *  If it is valid it is safe to call all the other member functions.
      *  \returns true if this is a valid initialized PdfString
      */
-    inline bool       IsValid() const;
+    inline bool IsValid() const;
 
     /** Check if this is a hex string or a text string.
      *  
@@ -99,7 +103,17 @@ class PODOFO_API PdfString : public PdfDataType{
      *  \returns true if this is a hex string.
      *  \see String() \see PdfAlgorithm::HexDecode
      */
-    inline bool        IsHex () const;
+    inline bool IsHex () const;
+
+    /**
+     * PdfStrings are either Latin1 encoded or UTF-16BE
+     * encoded unicode strings.
+     * This functions returns true if this is a unicode
+     * string object.
+     *
+     * \returns true if this is a unicode string.
+     */
+    inline bool IsUnicode () const;
 
     /** The contents of the strings can be read
      *  by this function.
@@ -178,10 +192,14 @@ class PODOFO_API PdfString : public PdfDataType{
      */
     void Init( const char* pszString, long lLen );
 
+    static const int  s_nUnicodeMarkerLen = 2;
+    static const char s_pszUnicodeMarker[s_nUnicodeMarkerLen];
+
  private:
     PdfRefCountedBuffer m_buffer;
 
     bool                m_bHex;
+    bool                m_bUnicode;
 };
 
 bool PdfString::IsValid() const
@@ -192,6 +210,11 @@ bool PdfString::IsValid() const
 bool PdfString::IsHex () const
 {
     return m_bHex;
+}
+
+bool PdfString::IsUnicode () const
+{
+    return m_bUnicode;
 }
 
 const char* PdfString::GetString() const

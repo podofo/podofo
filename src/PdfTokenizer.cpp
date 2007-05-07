@@ -443,9 +443,11 @@ void PdfTokenizer::ReadArray( PdfVariant& rVariant )
 
 void PdfTokenizer::ReadString( PdfVariant& rVariant )
 {
-    int        c;
-    std::string str; 
-    bool        bIgnore = false;
+    int               c;
+    std::vector<char> vec; // we use a vector instead of a string
+                           // because we might read a unicode
+                           // string which is allowed to contain 0 bytes.
+    bool              bIgnore = false;
 
     while( (c = m_device.Device()->GetChar()) != EOF )
     {
@@ -454,14 +456,10 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant )
             break;
         
         bIgnore = (c == '\\') && !bIgnore;
-#ifdef _MSC_VER
-        str += c;
-#else
-        str.push_back( c );
-#endif
+        vec.push_back( static_cast<char>(c) );
     }
 
-    rVariant = PdfString( str.c_str(), str.length() );
+    rVariant = PdfString( &(vec[0]), vec.size() );
 }
 
 void PdfTokenizer::ReadHexString( PdfVariant& rVariant )

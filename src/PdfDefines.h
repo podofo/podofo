@@ -99,6 +99,7 @@ namespace PoDoFo {
 typedef unsigned int   pdf_uint32;
 typedef unsigned short pdf_uint16;
 
+typedef wchar_t        pdf_utf16be;
 
 // Enums
 

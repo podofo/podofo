@@ -25,35 +25,36 @@
 
 namespace PoDoFo {
 
-const PdfString PdfString::StringNull      = PdfString();
+const PdfString PdfString::StringNull = PdfString();
+const char PdfString::s_pszUnicodeMarker[PdfString::s_nUnicodeMarkerLen] = { 0xFE, 0xFF };
 
 PdfString::PdfString()
-    : m_bHex( false )
+    : m_bHex( false ), m_bUnicode( false )
 {
 }
 
 PdfString::PdfString( const std::string& sString )
-    : m_bHex( false )
+    : m_bHex( false ), m_bUnicode( false )
 {
     if( sString.length() )
         Init( sString.c_str(), sString.length() );
 }
 
 PdfString::PdfString( const char* pszString )
-: m_bHex( false )
+    : m_bHex( false ), m_bUnicode( false )
 {
     if( pszString )
         Init( pszString, strlen( pszString ) );
 }
 
 PdfString::PdfString( const char* pszString, long lLen, bool bHex )
-    : m_bHex( bHex )
+    : m_bHex( bHex ), m_bUnicode( false )
 {
     Init( pszString, lLen );
 }
 
 PdfString::PdfString( const PdfString & rhs )
-    : PdfDataType(), m_bHex( false )
+    : PdfDataType(), m_bHex( false ), m_bUnicode( false )
 {
     this->operator=( rhs );
 }
@@ -85,6 +86,9 @@ void PdfString::Write ( PdfOutputDevice* pDevice ) const
     // this case has to be handled!
 
     pDevice->Print( m_bHex ? "<" : "(" );
+    if( m_bUnicode ) 
+        pDevice->Write( PdfString::s_pszUnicodeMarker, PdfString::s_nUnicodeMarkerLen );
+
     pDevice->Write( m_buffer.GetBuffer(), m_buffer.GetSize()-1 );
     pDevice->Print( m_bHex ? ">" : ")" );
 }
@@ -157,8 +161,9 @@ bool PdfString::operator<( const PdfString & rhs ) const
 
 const PdfString & PdfString::operator=( const PdfString & rhs )
 {
-    this->m_bHex    = rhs.m_bHex;
-    this->m_buffer  = rhs.m_buffer;
+    this->m_bHex     = rhs.m_bHex;
+    this->m_bUnicode = rhs.m_bUnicode;
+    this->m_buffer   = rhs.m_buffer;
 
     return *this;
 }
@@ -225,6 +230,20 @@ void PdfString::Init( const char* pszString, long lLen )
         }
         else
         {
+            // check if it is a unicode string (UTF-16BE)
+            // UTF-16BE strings have to start with 0xFE 0xFF
+            m_bUnicode = lLen >= 2 && 
+                pszString[0] == PdfString::s_pszUnicodeMarker[0] && 
+                pszString[1] == PdfString::s_pszUnicodeMarker[1];
+
+            // skip the first two bytes 
+            if( m_bUnicode )
+            {
+                printf("Got Unicode String\n");
+                lLen      -= 2;
+                pszString += 2;
+            }
+
             m_buffer = PdfRefCountedBuffer( lLen + 1);
             memcpy( m_buffer.GetBuffer(), pszString, lLen );
             m_buffer.GetBuffer()[lLen] = '\0';
