@@ -94,7 +94,11 @@ bool PdfString::operator>( const PdfString & rhs ) const
     char*            pBuffer;
     long             lLen;
     bool             bGreater   = false; // avoid a compiler warning
+#ifdef _MSC_VER
+    std::auto_ptr<PdfFilter> pFilter;
+#else
     std::auto_ptr<const PdfFilter> pFilter;
+#endif
 
     if( m_bHex == rhs.m_bHex ) 
     {
@@ -123,7 +127,11 @@ bool PdfString::operator<( const PdfString & rhs ) const
     char*            pBuffer;
     long             lLen;
     bool             bLittle   = false; // avoid a compiler warning
+#ifdef _MSC_VER
+    std::auto_ptr<PdfFilter> pFilter;
+#else
     std::auto_ptr<const PdfFilter> pFilter;
+#endif
 
     if( m_bHex == rhs.m_bHex ) 
     {
@@ -160,7 +168,11 @@ bool PdfString::operator==( const PdfString & rhs ) const
     char*            pBuffer;
     long             lLen;
     bool             bEqual   = false; // avoid a compiler warning
+#ifdef _MSC_VER
+    std::auto_ptr<PdfFilter> pFilter;
+#else
     std::auto_ptr<const PdfFilter> pFilter;
+#endif
 
     if( m_bHex == rhs.m_bHex ) 
     {
@@ -186,7 +198,11 @@ bool PdfString::operator==( const PdfString & rhs ) const
 
 void PdfString::Init( const char* pszString, long lLen )
 {
+#ifdef _MSC_VER
+    std::auto_ptr<PdfFilter> pFilter;
+#else
     std::auto_ptr<const PdfFilter> pFilter;
+#endif
     char* pBuf;
     long  lBufLen;
 

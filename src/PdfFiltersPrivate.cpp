@@ -635,7 +635,6 @@ void PdfLZWFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
     TLzwItem           item;
 
     std::vector<unsigned char> data;
-    std::vector<unsigned char>::const_iterator it;
 
     if( m_bFirst ) 
     {

@@ -236,7 +236,6 @@ void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNot
     TVecReferencePointerList  list;
     TIVecReferencePointerList it;
     TIReferencePointerList    itList;
-    TIVecObjects              itObjects;
     int                       i = 0;
 
     m_lstFreeObjects.clear();

@@ -426,7 +426,7 @@ inline size_t PdfVecObjects::GetSize() const
 // -----------------------------------------------------
 inline void PdfVecObjects::Reserve( size_t size )
 {
-    return m_vector.reserve( size );
+    m_vector.reserve( size );
 }
 
 // -----------------------------------------------------
