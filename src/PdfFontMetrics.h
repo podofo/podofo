@@ -270,6 +270,9 @@ class PODOFO_API PdfFontMetrics {
     std::string   m_sFilename;
     char*	  m_pFontData;
     unsigned int  m_nFontDataLen;
+    float         m_fFontSize;
+
+    std::vector<double> m_vecWidth;
 };
 
 // -----------------------------------------------------

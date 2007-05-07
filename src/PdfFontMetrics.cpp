@@ -29,7 +29,8 @@
 #include <sstream>
 
 
-#define FIRST_READABLE 31
+#define PODOFO_FIRST_READABLE 31
+#define PODOFO_WIDTH_CACHE_SIZE 256
 
 namespace PoDoFo {
 
@@ -41,7 +42,8 @@ static bool GetWin32HostFont( const std::string& inFontName, char** outFontBuffe
 #endif
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename )
-    : m_pLibrary( pLibrary ), m_sFilename( pszFilename ), m_pFontData( NULL ), m_nFontDataLen( 0 )
+    : m_pLibrary( pLibrary ), m_sFilename( pszFilename ), m_pFontData( NULL ), 
+      m_nFontDataLen( 0 ), m_fFontSize( 0.0f )
 {
     m_face                = NULL;
 
@@ -70,7 +72,8 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename )
 }
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen )
-	: m_pLibrary( pLibrary ), m_sFilename( "" ), m_pFontData( const_cast<char*>(pBuffer) ), m_nFontDataLen( nBufLen )
+	: m_pLibrary( pLibrary ), m_sFilename( "" ), m_pFontData( const_cast<char*>(pBuffer) ), 
+          m_nFontDataLen( nBufLen ), m_fFontSize( 0.0f )
 {
     m_face                = NULL;
 
@@ -86,7 +89,7 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsig
 }
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, FT_Face face )
-    : m_face( face ), m_pLibrary( pLibrary ), m_sFilename( "" )
+    : m_face( face ), m_pLibrary( pLibrary ), m_sFilename( "" ), m_fFontSize( 0.0f )
 
 {
     InitFromFace();
@@ -111,11 +114,31 @@ void PdfFontMetrics::InitFromFace()
     m_dLineSpacing        = 0.0;
     m_dUnderlineThickness = 0.0;
     m_dUnderlinePosition  = 0.0;
-    
+    m_fFontSize           = 0.0f;
+
     if ( m_face )
     {	// better be, but just in case...
         m_dPdfAscent  = m_face->ascender  * 1000.0 / m_face->units_per_EM;
         m_dPdfDescent = m_face->descender * 1000.0 / m_face->units_per_EM;
+    }
+
+    // we cache the 256 first widht entries as they 
+    // are most likely needed quite often
+    m_vecWidth.clear();
+    m_vecWidth.reserve( PODOFO_WIDTH_CACHE_SIZE );
+    for( unsigned int i=0;i<PODOFO_WIDTH_CACHE_SIZE;i++ )
+    {
+        if( i < PODOFO_FIRST_READABLE )
+            m_vecWidth.push_back( 0.0  );
+        else
+        {
+            if( !FT_Load_Char( m_face, i, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP ) )  // | FT_LOAD_NO_RENDER
+            {
+                //m_vecWidth.push_back( 0.0  );
+                //continue;
+            }
+            m_vecWidth.push_back( static_cast<double>(m_face->glyph->metrics.horiAdvance) * 1000.0 / m_face->units_per_EM );
+        }
     }
 }
 
@@ -137,15 +160,15 @@ void PdfFontMetrics::GetWidthArray( PdfVariant & var, unsigned int nFirst, unsig
 
     for( i=nFirst;i<=nLast;i++ )
     {
-        if( i < FIRST_READABLE )
-        {
-            list.push_back( PdfVariant( 0.0 ) );
-        }
+        if( i < PODOFO_WIDTH_CACHE_SIZE )
+            list.push_back( PdfVariant( m_vecWidth[i] ) );
         else
         {
             if( !FT_Load_Char( m_face, i, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP ) )  // | FT_LOAD_NO_RENDER
             {
                 //PODOFO_RAISE_ERROR( ePdfError_FreeType );
+                list.push_back( PdfVariant( 0.0 ) );
+                continue;
             }
 
             list.push_back( PdfVariant( m_face->glyph->metrics.horiAdvance * 1000.0 / m_face->units_per_EM ) );
@@ -1136,16 +1159,24 @@ std::string PdfFontMetrics::GetFilenameForFont( FcConfig* pConfig, const char* p
 
 double PdfFontMetrics::CharWidth( char c ) const
 {
-    FT_Error       ftErr;
-    unsigned long lWidth = 0;
+    FT_Error ftErr;
+    double   dWidth = 0.0;
 
-    ftErr = FT_Load_Char( m_face, static_cast<FT_UInt>(c), FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING );
-    if( ftErr )
-        return lWidth;
 
-    lWidth = m_face->glyph->advance.x;
+    if( static_cast<int>(c) < PODOFO_WIDTH_CACHE_SIZE ) 
+    {
+        dWidth = m_vecWidth[static_cast<int>(c)];
+    }
+    else
+    {
+        ftErr = FT_Load_Char( m_face, static_cast<FT_UInt>(c), FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP );
+        if( ftErr )
+            return dWidth;
 
-    return static_cast<double>(lWidth/64.0);
+        dWidth = m_face->glyph->metrics.horiAdvance * 1000.0 / m_face->units_per_EM;
+    }
+
+    return dWidth * static_cast<double>(m_fFontSize) / 1000.0;
 }
 
 unsigned long PdfFontMetrics::CharWidthMM( char c ) const
@@ -1192,6 +1223,8 @@ void PdfFontMetrics::SetFontSize( float fSize )
 
     m_dAscent  = static_cast<double>(m_face->ascender)  * fSize / m_face->units_per_EM;
     m_dDescent = static_cast<double>(m_face->descender) * fSize / m_face->units_per_EM;
+
+    m_fFontSize = fSize;
 }
 
 };

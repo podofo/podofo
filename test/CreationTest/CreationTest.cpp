@@ -65,11 +65,12 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pFont->SetFontSize( 16.0 );
 
 
+    const char* msg = "Grayscale - Colorspace";
     h = pFont->GetFontMetrics()->GetLineSpacing();
-    w = pFont->GetFontMetrics()->StringWidth( "Grayscale - Colorspace" );
+    w = pFont->GetFontMetrics()->StringWidth( msg );
 
     pPainter->SetFont( pFont );
-    pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y - pFont->GetFontMetrics()->GetLineSpacing(), "Grayscale Colorspace" );
+    pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y - pFont->GetFontMetrics()->GetLineSpacing(), msg );
     pPainter->DrawRect( 120000 * CONVERSION_CONSTANT , y, w, h );
 
     // Draw 10 lines in gray scale
