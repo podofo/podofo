@@ -72,7 +72,7 @@ typedef enum EPdfError {
     ePdfError_InvalidStream,            /**< The stream is invalid */
     ePdfError_InvalidStreamLength,      /**< The stream length is invlaid */
     ePdfError_InvalidKey,               /**< The specified key is invalid */
-    ePdfError_InvalidName,               /**< The specified Name is not valid in this context */
+    ePdfError_InvalidName,              /**< The specified Name is not valid in this context */
 
     ePdfError_UnsupportedFilter,        /**< The requested filter is not yet implemented. */
     ePdfError_ActionAlreadyPresent,     /**< An Action was already present when trying to add a Destination */

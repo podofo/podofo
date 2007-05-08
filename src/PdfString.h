@@ -31,10 +31,28 @@ namespace PoDoFo {
 
 class PdfOutputDevice;
 
+typedef enum EPdfStringConversion {
+    ePdfStringConversion_Strict,
+    ePdfStringConversion_Lenient
+};
+
+
 /** A string that can be written to a PDF document.
  *  If it contains binary data it is automatically 
  *  converted into a hex string, otherwise a normal PDF 
  *  string is written to the document.
+ *
+ *  PdfStrings representing text are either ISO Latin1
+ *  encoded or UTF-16BE encoded.
+ *
+ *  PoDoFo contains methods to convert between these 
+ *  encodings. For convinience conversion to UTF-8
+ *  is possible to. Please not that strings are
+ *  always stored as UTF-16BE or ISO Latin1 (PdfDocEncoding)
+ *  in the PDF file.
+ *
+ *  UTF-16BE strings have to start with the byts 0xFE 0xFF
+ *  to be recognized by PoDoFo as unicode strings.
  */
 class PODOFO_API PdfString : public PdfDataType{
  public:
@@ -44,12 +62,12 @@ class PODOFO_API PdfString : public PdfDataType{
     PdfString();
 
    /** Construct a new PdfString from a std::string. 
-     *  The input string will be copied.
-     *  If the first to bytes of the string are 0xFE and 0xFF
-     *  this string is treated as UTF-16BE encoded unicode string.
-     *
-     *  \param sString the string to copy
-     */
+    *  The input string will be copied.
+    *  If the first to bytes of the string are 0xFE and 0xFF
+    *  this string is treated as UTF-16BE encoded unicode string.
+    *
+    *  \param sString the string to copy
+    */
     PdfString( const std::string& sString );
 
     /** Construct a new PdfString from a 0 terminated
@@ -119,9 +137,14 @@ class PODOFO_API PdfString : public PdfDataType{
      *  by this function.
      *  If IsHex() returns true the returned data is 
      *  hex encoded.
+     *  if IsUnicode() returns true, the return value
+     *  points to a UTF-16BE string buffer with Length()
+     *  characters.
      * 
      *  \returns the strings contents
      *  \see IsHex
+     *  \see IsUnicode
+     *  \see Length
      */
     inline const char* GetString() const;
 
@@ -167,6 +190,16 @@ class PODOFO_API PdfString : public PdfDataType{
     bool operator==( const PdfString & rhs ) const;
 
     static const PdfString StringNull;
+
+    static long ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_utf16be* pszUtf16, long lLenUtf16 );
+    static long ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, long lLenUtf8, 
+                                    pdf_utf16be* pszUtf16, long lLenUtf16, 
+                                    EPdfStringConversion eConversion = ePdfStringConversion_Strict  );
+
+    static long ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_utf8* pszUtf8, long lLenUtf8 );
+    static long ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, long lLenUtf16, 
+                                    pdf_utf8* pszUtf8, long lLenUtf8, 
+                                    EPdfStringConversion eConversion = ePdfStringConversion_Strict );
 
  private:
     /** Allocate m_lLen data for m_pszData if data

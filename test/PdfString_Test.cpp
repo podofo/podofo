@@ -24,6 +24,40 @@
 
 using namespace PoDoFo;
 
+void testUnicode() 
+{
+    long            lBufferLen;
+    const pdf_utf8* pszString  = reinterpret_cast<const pdf_utf8*>("Hallo Welt äääöööö mit Ümlaut!");
+    
+    long        lUtf16BufferLen = 128;
+    pdf_utf16be pUtf16Buffer[lUtf16BufferLen];
+
+    long     lUtf8BufferLen = 128;
+    pdf_utf8 pUtf8Buffer[lUtf8BufferLen];
+
+    lBufferLen = strlen( reinterpret_cast<const char*>(pszString) );
+
+    printf("Converting UTF8 -> UTF16\n");
+    lUtf16BufferLen = PdfString::ConvertUTF8toUTF16( pszString, lBufferLen, pUtf16Buffer, lUtf16BufferLen );
+
+    printf("Converting UTF16 -> UTF8\n");
+    lUtf8BufferLen = PdfString::ConvertUTF16toUTF8( pUtf16Buffer, lUtf16BufferLen, pUtf8Buffer, lUtf8BufferLen  );
+
+    printf("Original Length: %li\n", lBufferLen );
+    printf("UTF16 Length   : %li\n", lUtf16BufferLen );
+    printf("UTF8  Length   : %li\n", lUtf8BufferLen );
+
+    if( strcmp( reinterpret_cast<const char*>(pszString), reinterpret_cast<const char*>(pUtf8Buffer) ) != 0 ) 
+    {
+        printf("Error during comparing\n");
+        printf("Original : %s\n", pszString );
+        printf("Converted: %s\n", reinterpret_cast<const char*>(pUtf8Buffer) );
+
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+
+    }
+}
+
 int main()
 {
     try {
@@ -91,6 +125,8 @@ int main()
         {
             printf("Comparison failed b > a !\n");
         }
+
+        testUnicode();
 
     } catch( const PdfError & eCode ) {
         eCode.PrintErrorMsg();
