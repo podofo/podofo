@@ -470,13 +470,14 @@ int main( int argc, char* argv[] )
     TEST_SAFE_OP( writer.GetInfo()->SetCreator ( PdfString("CreationTest - A simple test application") ) );
     TEST_SAFE_OP( writer.GetInfo()->SetAuthor  ( PdfString("Dominik Seichter") ) );
     TEST_SAFE_OP( writer.GetInfo()->SetTitle   ( PdfString("Test Document") ) );
-    TEST_SAFE_OP( writer.GetInfo()->SetSubject ( PdfString("Testing the PDF Library") ) );
+    //TEST_SAFE_OP( writer.GetInfo()->SetSubject ( PdfString("Testing the PDF Library") ) );
+    TEST_SAFE_OP( writer.GetInfo()->SetSubject ( 
+                      PdfString(reinterpret_cast<const pdf_utf8*>("「PoDoFo」は今から日本語も話せます。") ) ) );
     TEST_SAFE_OP( writer.GetInfo()->SetKeywords( PdfString("Test;PDF;") ) );
 
     TEST_SAFE_OP( writer.AttachFile( PdfFileSpec("../../../podofo/test/CreationTest/CreationTest.cpp", true, &(writer.GetObjects()) ) ) );
 
     TEST_SAFE_OP( writer.Write( argv[1] ) );
-
 #ifdef TEST_MEM_BUFFER
     // ---
     const char*   pszMemFile = "/home/dominik/mem_out.pdf";

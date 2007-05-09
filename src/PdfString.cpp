@@ -25,6 +25,8 @@
 
 namespace PoDoFo {
 
+extern bool podofo_is_little_endian();
+
 const PdfString PdfString::StringNull = PdfString();
 const char PdfString::s_pszUnicodeMarker[PdfString::s_nUnicodeMarkerLen] = { 0xFE, 0xFF };
 
@@ -51,6 +53,18 @@ PdfString::PdfString( const char* pszString, long lLen, bool bHex )
     : m_bHex( bHex ), m_bUnicode( false )
 {
     Init( pszString, lLen );
+}
+
+PdfString::PdfString( const pdf_utf8* pszStringUtf8 )
+    : m_bHex( false ), m_bUnicode( true )
+{
+    InitFromUtf8( pszStringUtf8, strlen( reinterpret_cast<const char*>(pszStringUtf8) ) );
+}
+
+PdfString::PdfString( const pdf_utf8* pszStringUtf8, long lLen )
+    : m_bHex( false ), m_bUnicode( true )
+{
+    InitFromUtf8( pszStringUtf8, lLen );
 }
 
 PdfString::PdfString( const PdfString & rhs )
@@ -265,23 +279,39 @@ void PdfString::Init( const char* pszString, long lLen )
             // convert it to UTF-16BE
             if( bUft16LE ) 
             {
-                char  cSwap;
-                char* pBuf = m_buffer.GetBuffer();
-                while( lLen > 1 )
-                {
-                    cSwap     = *pBuf;
-                    *pBuf     = *(pBuf+1);
-                    *(++pBuf) = cSwap;
-
-                    ++pBuf;
-                    lLen -= 2;
-                }
+                SwapBytes( m_buffer.GetBuffer(), lLen );
             }
         }
     }
 }
 
+void PdfString::InitFromUtf8( const pdf_utf8* pszStringUtf8, long lLen )
+{
+    long        lBufLen = lLen << 1;
+    pdf_utf16be pBuffer[lBufLen]; // twice as large buffer should always be enough
 
+    lBufLen = PdfString::ConvertUTF8toUTF16( pszStringUtf8, lLen, pBuffer, lBufLen );
+
+    lBufLen = lBufLen << 1; // lBufLen is the number of characters, we need the number of bytes now!
+    m_buffer = PdfRefCountedBuffer( lBufLen + 2 );
+    memcpy( m_buffer.GetBuffer(), reinterpret_cast<const char*>(pBuffer), lBufLen );
+    m_buffer.GetBuffer()[lBufLen] = '\0';
+    m_buffer.GetBuffer()[lBufLen+1] = '\0';
+}
+
+void PdfString::SwapBytes( char* pBuf, long lLen ) 
+{
+    char  cSwap;
+    while( lLen > 1 )
+    {
+        cSwap     = *pBuf;
+        *pBuf     = *(pBuf+1);
+        *(++pBuf) = cSwap;
+        
+        ++pBuf;
+        lLen -= 2;
+    }
+}
 /*
  * The disclaimer below applies to the Unicode conversion
  * functions below. The functions where adapted for use in PoDoFo.
@@ -448,7 +478,7 @@ long PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, long lLenUtf8,
                                     EPdfStringConversion eConversion )
 {
     const pdf_utf8* source    = pszUtf8;
-    const pdf_utf8* sourceEnd = pszUtf8 + lLenUtf8;
+    const pdf_utf8* sourceEnd = pszUtf8 + lLenUtf8 + 1; // point after the last element
     pdf_utf16be*    target    = pszUtf16;
     pdf_utf16be*    targetEnd = pszUtf16 + lLenUtf16;
 
@@ -517,14 +547,23 @@ long PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, long lLenUtf8,
 	}
     }
 
+    // swap to UTF-16be on LE systems
+    if( podofo_is_little_endian() )
+        PdfString::SwapBytes( reinterpret_cast<char*>(pszUtf16), static_cast<long>(target - pszUtf16) << 1 );
+
     // return characters written
     return target - pszUtf16;
 }
 
 long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_utf8* pszUtf8, long lLenUtf8 )
 {
-    // TODO: not yet implemented
-    return -1;
+    long               lLen      = 0;
+    const pdf_utf16be* pszStart = pszUtf16;
+
+    while( *pszStart )
+        ++lLen;
+
+    return ConvertUTF16toUTF8( pszUtf16, lLen, pszUtf8, lLenUtf8 );
 }
 
 long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, long lLenUtf16, 
@@ -532,10 +571,12 @@ long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, long lLenUtf16,
                                     EPdfStringConversion eConversion  )
 {
     const pdf_utf16be* source    = pszUtf16;
-    const pdf_utf16be* sourceEnd = pszUtf16 + lLenUtf16;
+    const pdf_utf16be* sourceEnd = pszUtf16 + lLenUtf16 + 1; // point after the last element
     
     pdf_utf8* target    = pszUtf8;
     pdf_utf8* targetEnd = pszUtf8 + lLenUtf8;
+
+    // TODO: Convert to little endian on le systems here!!!!
 
     while (source < sourceEnd) {
 	unsigned long  ch;
@@ -591,7 +632,6 @@ long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, long lLenUtf16,
 	if (target > targetEnd) {
 	    source = oldSource; /* Back up source pointer! */
 	    target -= bytesToWrite; 
-            printf("target - targetEnd=%i\n", target - targetEnd );
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
             break;
 	}

@@ -90,6 +90,23 @@ class PODOFO_API PdfString : public PdfDataType{
      */
     PdfString( const char* pszString, long lLen, bool bHex = false );
 
+    /** Construct a new PdfString from an UTF-8 encoded string.
+     *  
+     *  The string is converted to UTF-16BE internally.
+     *
+     *  \param pszStringUtf8 a UTF-8 encoded string.
+     */
+    PdfString( const pdf_utf8* pszStringUtf8 );
+
+    /** Construct a new PdfString from an UTF-8 encoded string.
+     *  
+     *  The string is converted to UTF-16BE internally.
+     *
+     *  \param pszStringUtf8 a UTF-8 encoded string.
+     *  \param lLen number of bytes to convert
+     */
+    PdfString( const pdf_utf8* pszStringUtf8, long lLen );
+
     /** Copy an existing PdfString 
      *  \param rhs another PdfString to copy
      */
@@ -224,6 +241,22 @@ class PODOFO_API PdfString : public PdfDataType{
      *  
      */
     void Init( const char* pszString, long lLen );
+
+    /** Construct a new PdfString from a UTF8
+     *  string. 
+     *  The input string will be copied and converted to UTF-16be.
+     *
+     *  \param pszStringUtf8 the string to copy
+     *  \param lLen number of bytes of the string data to copy
+     *  
+     */
+    void InitFromUtf8( const pdf_utf8* pszStringUtf8, long lLen );
+
+    /** Swap the bytes in the buffer (UTF16be -> UTF16le)
+     *  \param pBuf buffer
+     *  \param lLen length of buffer
+     */
+    static void SwapBytes( char* pBuf, long lLen ); 
 
     static const int  s_nUnicodeMarkerLen = 2;
     static const char s_pszUnicodeMarker[s_nUnicodeMarkerLen];

@@ -24,28 +24,29 @@
 
 using namespace PoDoFo;
 
-void testUnicode() 
+void testUnicodeString( const pdf_utf8* pszString, long lBufferLen )
 {
-    long            lBufferLen;
-    const pdf_utf8* pszString  = reinterpret_cast<const pdf_utf8*>("Hallo Welt äääöööö mit Ümlaut!");
     
-    long        lUtf16BufferLen = 128;
+    long        lUtf16BufferLen = 256;
     pdf_utf16be pUtf16Buffer[lUtf16BufferLen];
 
-    long     lUtf8BufferLen = 128;
+    long     lUtf8BufferLen = 256;
     pdf_utf8 pUtf8Buffer[lUtf8BufferLen];
 
     lBufferLen = strlen( reinterpret_cast<const char*>(pszString) );
 
-    printf("Converting UTF8 -> UTF16\n");
+    printf("Converting UTF8 -> UTF16: lBufferLen=%i\n", lBufferLen);
     lUtf16BufferLen = PdfString::ConvertUTF8toUTF16( pszString, lBufferLen, pUtf16Buffer, lUtf16BufferLen );
 
-    printf("Converting UTF16 -> UTF8\n");
+    printf("Converting UTF16 -> UTF8: lBufferLen=%i\n", lBufferLen);
     lUtf8BufferLen = PdfString::ConvertUTF16toUTF8( pUtf16Buffer, lUtf16BufferLen, pUtf8Buffer, lUtf8BufferLen  );
 
     printf("Original Length: %li\n", lBufferLen );
     printf("UTF16 Length   : %li\n", lUtf16BufferLen );
     printf("UTF8  Length   : %li\n", lUtf8BufferLen );
+    printf("Original String: %s\n", reinterpret_cast<const char*>(pszString) );
+    //wprintf(L"UTF16 String   : %s\n", reinterpret_cast<const wchar_t*>(pUtf16Buffer) );
+    printf("UTF8  String   : %s\n", reinterpret_cast<const char*>(pUtf8Buffer) );
 
     if( strcmp( reinterpret_cast<const char*>(pszString), reinterpret_cast<const char*>(pUtf8Buffer) ) != 0 ) 
     {
@@ -56,6 +57,14 @@ void testUnicode()
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
 
     }
+}
+
+void testUnicode() 
+{
+    const char* pszString = "String with German Umlauts: Hallo schöne Welt: üäöÄÖÜß\n";
+    
+    testUnicodeString( reinterpret_cast<const pdf_utf8*>(pszString), strlen( pszString ) );
+
 }
 
 int main()
