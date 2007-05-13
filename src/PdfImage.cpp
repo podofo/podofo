@@ -129,7 +129,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
     hInfile = fopen(pszFilename, "rb");
     if( !hInfile )
     {
-        PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
+        PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
     }
 
     cinfo.err = jpeg_std_error(&jerr);

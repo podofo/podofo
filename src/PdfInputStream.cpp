@@ -31,7 +31,7 @@ PdfFileInputStream::PdfFileInputStream( const char* pszFilename )
     m_hFile = fopen( pszFilename, "rb" );
     if( !m_hFile ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
+        PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
     }
 }
 

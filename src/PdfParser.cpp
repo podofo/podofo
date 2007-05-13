@@ -85,7 +85,7 @@ void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
 {
     if( !pszFilename || !pszFilename[0] )
     {
-        PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     // make sure everything is clean
@@ -96,7 +96,7 @@ void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
     m_device           = PdfRefCountedInputDevice( pszFilename, "rb" );
     if( !m_device.Device() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
+        PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
     }
 
     if( !IsPdfFile() )
