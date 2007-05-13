@@ -193,12 +193,19 @@ class PODOFO_API PdfString : public PdfDataType{
     inline const pdf_utf16be* GetUnicode() const;
 
     /** The length of the string data returned by GetString() 
-     *  including the terminating zero (or two terminating zeros
-     *  for unicode strings)
+     *  in bytes including the terminating zero (or two 
+     *  terminating zeros for unicode strings)
      *
      *  \returns the length of the string. 
      */
     inline long GetLength() const;
+
+    /** The length of the string data returned by GetUnicode() 
+     *  in characters including the terminating zero 
+     *
+     *  \returns the length of the string. 
+     */
+    inline long GetUnicodeLength() const;
 
     /** Write this PdfString in PDF format to a PdfOutputDevice 
      *  \param pDevice the output device.
@@ -354,6 +361,11 @@ const pdf_utf16be* PdfString::GetUnicode() const
 long PdfString::GetLength() const
 {
     return m_buffer.GetSize();
+}
+
+long PdfString::GetUnicodeLength() const
+{
+    return m_buffer.GetSize() / sizeof(pdf_utf16be);
 }
 
 };

@@ -67,10 +67,18 @@ void testUnicode()
     
     testUnicodeString( reinterpret_cast<const pdf_utf8*>(pszString), strlen( pszString ) );
 
-
     const char* pszStringJap = "「PoDoFo」は今から日本語も話せます。";
     testUnicodeString( reinterpret_cast<const pdf_utf8*>(pszStringJap), strlen( pszStringJap ) );
 
+
+    PdfString simple("Hallo World");
+    PdfString unicode = simple.ToUnicode();
+
+    long     lUtf8BufferLen = 256;
+    pdf_utf8 pUtf8Buffer[lUtf8BufferLen];
+    lUtf8BufferLen = PdfString::ConvertUTF16toUTF8( unicode.GetUnicode(), unicode.GetUnicodeLength(), 
+                                                    pUtf8Buffer, lUtf8BufferLen  );
+    printf("Utf8: %s\n", pUtf8Buffer );
 
 }
 

@@ -30,6 +30,7 @@ extern bool podofo_is_little_endian();
 const PdfString PdfString::StringNull = PdfString();
 const char PdfString::s_pszUnicodeMarker[PdfString::s_nUnicodeMarkerLen] = { 0xFE, 0xFF };
 
+// Conversion table from PDFDocEncoding (almost Latin1) to UTF16
 const pdf_utf16be PdfString::s_cPdfDocEncoding[256] = {
     0x0000,
     0x0001,
@@ -289,10 +290,6 @@ const pdf_utf16be PdfString::s_cPdfDocEncoding[256] = {
     0x00FF
 };
 
-
-
-
-
 PdfString::PdfString()
     : m_bHex( false ), m_bUnicode( false )
 {
@@ -381,41 +378,80 @@ const PdfString & PdfString::operator=( const PdfString & rhs )
 
 bool PdfString::operator>( const PdfString & rhs ) const
 {
+    PdfString str1 = *this;
+    PdfString str2 = rhs;
+
     if( m_bHex || rhs.m_bHex )
     {
-        PdfString str1 = this->HexDecode();
-        PdfString str2 = rhs.HexDecode();
-
-        return str1 > str2;
+        // one or both strings are hex:
+        // we can only compare non hex strings
+        // so decode them.
+        str1 = str1.HexDecode();
+        str2 = str2.HexDecode();
     }
-    else
-        return m_buffer > rhs.m_buffer;
+
+    if( m_bUnicode || rhs.m_bUnicode )
+    {
+        // one or both strings are unicode:
+        // make sure both are unicode so that 
+        // we do not loose information
+        str1 = str1.ToUnicode();
+        str2 = str2.ToUnicode();
+    }
+
+    return str1.m_buffer > str2.m_buffer;
 }
 
 bool PdfString::operator<( const PdfString & rhs ) const
 {
+    PdfString str1 = *this;
+    PdfString str2 = rhs;
+
     if( m_bHex || rhs.m_bHex )
     {
-        PdfString str1 = this->HexDecode();
-        PdfString str2 = rhs.HexDecode();
-
-        return str1 < str2;
+        // one or both strings are hex:
+        // we can only compare non hex strings
+        // so decode them.
+        str1 = str1.HexDecode();
+        str2 = str2.HexDecode();
     }
-    else
-        return m_buffer < rhs.m_buffer;
+
+    if( m_bUnicode || rhs.m_bUnicode )
+    {
+        // one or both strings are unicode:
+        // make sure both are unicode so that 
+        // we do not loose information
+        str1 = str1.ToUnicode();
+        str2 = str2.ToUnicode();
+    }
+
+    return str1.m_buffer < str2.m_buffer;
 }
 
 bool PdfString::operator==( const PdfString & rhs ) const
 {
+    PdfString str1 = *this;
+    PdfString str2 = rhs;
+
     if( m_bHex || rhs.m_bHex )
     {
-        PdfString str1 = this->HexDecode();
-        PdfString str2 = rhs.HexDecode();
-
-        return str1 == str2;
+        // one or both strings are hex:
+        // we can only compare non hex strings
+        // so decode them.
+        str1 = str1.HexDecode();
+        str2 = str2.HexDecode();
     }
-    else
-        return m_buffer == rhs.m_buffer;
+
+    if( m_bUnicode || rhs.m_bUnicode )
+    {
+        // one or both strings are unicode:
+        // make sure both are unicode so that 
+        // we do not loose information
+        str1 = str1.ToUnicode();
+        str2 = str2.ToUnicode();
+    }
+
+    return str1.m_buffer == str2.m_buffer;
 }
 
 void PdfString::Init( const char* pszString, long lLen )
@@ -564,13 +600,22 @@ PdfString PdfString::ToUnicode() const
         if( this->IsHex() )
             src = this->HexDecode();
 
-        long                  lLen = src.m_buffer.GetSize() * sizeof(pdf_utf16be);
+        long                  lLen = src.GetLength() * sizeof(pdf_utf16be);
         PdfString             str;
         PdfRefCountedBuffer   buffer( lLen );
         pdf_utf16be*          pString = reinterpret_cast<pdf_utf16be*>(buffer.GetBuffer());
 
-        for( int i=0;i<lLen;i++ )
+        printf("lLen = %i\n", lLen );
+        printf("src  = %i\n", src.GetLength() );
+        for( int i=0;i<src.GetLength();i++ )
             pString[i] = s_cPdfDocEncoding[static_cast<int>(src.m_buffer.GetBuffer()[i])];
+
+        //make sure the buffer is 0 terminated
+        pString[lLen] = 0;
+
+        // convert to UTF-16be on little endian systems
+        if( podofo_is_little_endian() )
+            PdfString::SwapBytes( buffer.GetBuffer(), lLen );
 
         str.m_buffer   = buffer;
         str.m_bHex     = false;
