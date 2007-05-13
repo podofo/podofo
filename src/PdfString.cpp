@@ -456,70 +456,51 @@ bool PdfString::operator==( const PdfString & rhs ) const
 
 void PdfString::Init( const char* pszString, long lLen )
 {
-#ifdef _MSC_VER
-    std::auto_ptr<PdfFilter> pFilter;
-#else
-    std::auto_ptr<const PdfFilter> pFilter;
-#endif
-    char* pBuf;
-    long  lBufLen;
-
     // TODO: escape characters inside of strings!
-
     if( pszString ) 
     {
-        if( m_bHex ) 
+        bool bUft16LE = false;
+        // check if it is a unicode string (UTF-16BE)
+        // UTF-16BE strings have to start with 0xFE 0xFF
+        if( lLen >= 2 ) 
         {
-            pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
-            if( pFilter.get() ) 
+            m_bUnicode = (pszString[0] == PdfString::s_pszUnicodeMarker[0] && 
+                          pszString[1] == PdfString::s_pszUnicodeMarker[1]);
+
+            // Check also for UTF-16LE
+            if( !m_bUnicode && (pszString[0] == PdfString::s_pszUnicodeMarker[1] && 
+                                pszString[1] == PdfString::s_pszUnicodeMarker[0]) )
             {
-                pFilter->Encode( pszString, lLen, &pBuf, &lBufLen );
-                m_buffer = PdfRefCountedBuffer( pBuf, lBufLen );
-            }
-            else
-            {
-                PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+                bUft16LE = true;
             }
         }
-        else
+
+        // skip the first two bytes 
+        if( m_bUnicode )
         {
-            bool bUft16LE = false;
-            // check if it is a unicode string (UTF-16BE)
-            // UTF-16BE strings have to start with 0xFE 0xFF
-            if( lLen >= 2 ) 
-            {
-                m_bUnicode = (pszString[0] == PdfString::s_pszUnicodeMarker[0] && 
-                              pszString[1] == PdfString::s_pszUnicodeMarker[1]);
+            lLen      -= 2;
+            pszString += 2;
+        }
 
-                // Check also for UTF-16LE
-                if( !m_bUnicode && (pszString[0] == PdfString::s_pszUnicodeMarker[1] && 
-                                    pszString[1] == PdfString::s_pszUnicodeMarker[0]) )
-                {
-                    bUft16LE = true;
-                }
-            }
-
-            // skip the first two bytes 
-            if( m_bUnicode )
-            {
-                lLen      -= 2;
-                pszString += 2;
-            }
-
-            m_buffer = PdfRefCountedBuffer( m_bUnicode ? lLen + 2 : lLen + 1);
-            memcpy( m_buffer.GetBuffer(), pszString, lLen );
-            m_buffer.GetBuffer()[lLen] = '\0';
-            // terminate unicode strings with \0\0
-            if( m_bUnicode )
-                m_buffer.GetBuffer()[lLen+1] = '\0';
+        m_buffer = PdfRefCountedBuffer( m_bUnicode ? lLen + 2 : lLen + 1);
+        memcpy( m_buffer.GetBuffer(), pszString, lLen );
+        m_buffer.GetBuffer()[lLen] = '\0';
+        // terminate unicode strings with \0\0
+        if( m_bUnicode )
+            m_buffer.GetBuffer()[lLen+1] = '\0';
                 
 
-            // if the buffer is a UTF-16LE string
-            // convert it to UTF-16BE
-            if( bUft16LE ) 
-            {
-                SwapBytes( m_buffer.GetBuffer(), lLen );
-            }
+        // if the buffer is a UTF-16LE string
+        // convert it to UTF-16BE
+        if( bUft16LE ) 
+        {
+            SwapBytes( m_buffer.GetBuffer(), lLen );
+        }
+
+        if( m_bHex )
+        {
+            m_bHex = false;
+            *this  = this->HexEncode();
         }
     }
 }

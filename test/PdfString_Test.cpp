@@ -80,6 +80,16 @@ void testUnicode()
                                                     pUtf8Buffer, lUtf8BufferLen  );
     printf("Utf8: %s\n", pUtf8Buffer );
 
+
+    char* pBuffer = static_cast<char*>(malloc( unicode.GetLength() + 2 ));
+    pBuffer[0] = 0xFE;
+    pBuffer[1] = 0xFF;
+    memcpy( pBuffer+2, unicode.GetString(), unicode.GetLength() );
+
+    PdfString unicodeHex( pBuffer, unicode.GetLength() + 2, true );
+    printf("Hexdata: %s\n", unicodeHex.GetString() );
+    printf("IsUnicode: %i\n", unicodeHex.IsUnicode() );
+    free( pBuffer );
 }
 
 
