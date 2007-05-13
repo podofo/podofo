@@ -30,6 +30,269 @@ extern bool podofo_is_little_endian();
 const PdfString PdfString::StringNull = PdfString();
 const char PdfString::s_pszUnicodeMarker[PdfString::s_nUnicodeMarkerLen] = { 0xFE, 0xFF };
 
+const pdf_utf16be PdfString::s_cPdfDocEncoding[256] = {
+    0x0000,
+    0x0001,
+    0x0002,
+    0x0003,
+    0x0004,
+    0x0005,
+    0x0006,
+    0x0007,
+    0x0008,
+    0x0009,
+    0x000A,
+    0x000B,
+    0x000C,
+    0x000D,
+    0x000E,
+    0x000F,
+    0x0010,
+    0x0011,
+    0x0012,
+    0x0013,
+    0x0014,
+    0x0015,
+    0x0017,
+    0x0017,
+    0x02D8,
+    0x02C7, // dec 25
+    0x02C6,
+    0x02D9,
+    0x02DD,
+    0x02DB,
+    0x02DA,
+    0x02DC,
+    0x0020,
+    0x0021,
+    0x0022,
+    0x0023,
+    0x0024,
+    0x0025,
+    0x0026,
+    0x0027,
+    0x0028,
+    0x0029,
+    0x002A,
+    0x002B,
+    0x002C,
+    0x002D,
+    0x002E,
+    0x002F,
+    0x0030,
+    0x0031,
+    0x0032,
+    0x0033,
+    0x0034,
+    0x0035,
+    0x0036,
+    0x0037,
+    0x0038,
+    0x0039, // dec 57 
+    0x003A,
+    0x003B,
+    0x003C,
+    0x003D,
+    0x003E,
+    0x003F,
+    0x0040,
+    0x0041,
+    0x0042,
+    0x0043,
+    0x0044,
+    0x0045,
+    0x0046,
+    0x0047,
+    0x0048,
+    0x0049,
+    0x004A,
+    0x004B,
+    0x004C,
+    0x004D,
+    0x004E,
+    0x004F,
+    0x0050,
+    0x0051,
+    0x0052,
+    0x0053,
+    0x0054,
+    0x0055,
+    0x0056,
+    0x0057,
+    0x0058,
+    0x0059, // 89
+    0x005A,
+    0x005B,
+    0x005C,
+    0x005D,
+    0x005E,
+    0x005F,
+    0x0060,
+    0x0061,
+    0x0062,
+    0x0063,
+    0x0064,
+    0x0065,
+    0x0066,
+    0x0067,
+    0x0068,
+    0x0069,
+    0x006A,
+    0x006B,
+    0x006C,
+    0x006D,
+    0x006E,
+    0x006F,
+    0x0070,
+    0x0071,
+    0x0072,
+    0x0073,
+    0x0074,
+    0x0075,
+    0x0076,
+    0x0077,
+    0x0078,
+    0x0079, //121 
+    0x007A,
+    0x007B,
+    0x007C,
+    0x007D,
+    0x007E,
+    0x0000, // Undefined
+    0x2022,
+    0x2020,
+    0x2021,
+    0x2026,
+    0x2014,
+    0x2013,
+    0x0192,
+    0x2044,
+    0x2039,
+    0x203A,
+    0x2212,
+    0x2030,
+    0x201E,
+    0x201C,
+    0x201D,
+    0x2018,
+    0x2019,
+    0x201A,
+    0x2122,
+    0xFB01, // dec147 
+    0xFB02,
+    0x0141,
+    0x0152,
+    0x0160,
+    0x0178,
+    0x017D,
+    0x0131,
+    0x0142,
+    0x0153,
+    0x0161,
+    0x017E,
+    0x0000, // Undefined
+    0x20AC,
+    0x00A1,
+    0x00A2,
+    0x00A3,
+    0x00A4,
+    0x00A5,
+    0x00A6,
+    0x00A7,
+    0x00A8,
+    0x00A9,
+    0x00AA,
+    0x00AB,
+    0x00AC,
+    0x0000, // Undefined
+    0x00AE,
+    0x00AF,
+    0x00B0,
+    0x00B1,
+    0x00B2,
+    0x00B3,
+    0x00B4,
+    0x00B5,
+    0x00B6,
+    0x00B7,
+    0x00B8,
+    0x00B9,
+    0x00BA,
+    0x00BB,
+    0x00BC,
+    0x00BD,
+    0x00BE,
+    0x00BF,
+    0x00C0,
+    0x00C1,
+    0x00C2,
+    0x00C3,
+    0x00C4,
+    0x00C5,
+    0x00C6,
+    0x00C7,
+    0x00C8,
+    0x00C9,
+    0x00CA,
+    0x00CB,
+    0x00CC,
+    0x00CD,
+    0x00CE,
+    0x00CF,
+    0x00D0,
+    0x00D1,
+    0x00D2,
+    0x00D3,
+    0x00D4,
+    0x00D5,
+    0x00D6,
+    0x00D7,
+    0x00D8,
+    0x00D9,
+    0x00DA,
+    0x00DB,
+    0x00DC,
+    0x00DD,
+    0x00DE,
+    0x00DF,
+    0x00E0,
+    0x00E1,
+    0x00E2,
+    0x00E3,
+    0x00E4,
+    0x00E5,
+    0x00E6,
+    0x00E7,
+    0x00E8,
+    0x00E9,
+    0x00EA,
+    0x00EB,
+    0x00EC,
+    0x00ED,
+    0x00EE,
+    0x00EF,
+    0x00F0,
+    0x00F1,
+    0x00F2,
+    0x00F3,
+    0x00F4,
+    0x00F5,
+    0x00F6,
+    0x00F7,
+    0x00F8,
+    0x00F9,
+    0x00FA,
+    0x00FB,
+    0x00FC,
+    0x00FD,
+    0x00FE,
+    0x00FF
+};
+
+
+
+
+
 PdfString::PdfString()
     : m_bHex( false ), m_bUnicode( false )
 {
@@ -107,72 +370,6 @@ void PdfString::Write ( PdfOutputDevice* pDevice ) const
     pDevice->Print( m_bHex ? ">" : ")" );
 }
 
-bool PdfString::operator>( const PdfString & rhs ) const
-{
-    char*            pBuffer;
-    long             lLen;
-    bool             bGreater   = false; // avoid a compiler warning
-#ifdef _MSC_VER
-    std::auto_ptr<PdfFilter> pFilter;
-#else
-    std::auto_ptr<const PdfFilter> pFilter;
-#endif
-
-    if( m_bHex == rhs.m_bHex ) 
-    {
-        bGreater = (m_buffer > rhs.m_buffer);
-    }
-    else if( !m_bHex ) 
-    {
-        pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
-        pFilter->Encode( m_buffer.GetBuffer(), m_buffer.GetSize(), &pBuffer, &lLen );
-
-        bGreater = ( PdfRefCountedBuffer( pBuffer, lLen ) > rhs.m_buffer );
-    }
-    else if( !rhs.m_bHex ) 
-    {
-        pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
-        pFilter->Encode( rhs.m_buffer.GetBuffer(), rhs.m_buffer.GetSize(), &pBuffer, &lLen );
-
-        bGreater = ( m_buffer > PdfRefCountedBuffer( pBuffer, lLen ) );
-    }
-
-    return bGreater;
-}
-
-bool PdfString::operator<( const PdfString & rhs ) const
-{
-    char*            pBuffer;
-    long             lLen;
-    bool             bLittle   = false; // avoid a compiler warning
-#ifdef _MSC_VER
-    std::auto_ptr<PdfFilter> pFilter;
-#else
-    std::auto_ptr<const PdfFilter> pFilter;
-#endif
-
-    if( m_bHex == rhs.m_bHex ) 
-    {
-        bLittle = (m_buffer < rhs.m_buffer);
-    }
-    else if( !m_bHex ) 
-    {
-        pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
-        pFilter->Encode( m_buffer.GetBuffer(), m_buffer.GetSize(), &pBuffer, &lLen );
-
-        bLittle = ( PdfRefCountedBuffer( pBuffer, lLen ) < rhs.m_buffer );
-    }
-    else if( !rhs.m_bHex )
-    {
-        pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
-        pFilter->Encode( rhs.m_buffer.GetBuffer(), rhs.m_buffer.GetSize(), &pBuffer, &lLen );
-
-        bLittle = ( m_buffer < PdfRefCountedBuffer( pBuffer, lLen ) );
-    }
-        
-    return bLittle;
-}
-
 const PdfString & PdfString::operator=( const PdfString & rhs )
 {
     this->m_bHex     = rhs.m_bHex;
@@ -182,37 +379,43 @@ const PdfString & PdfString::operator=( const PdfString & rhs )
     return *this;
 }
 
+bool PdfString::operator>( const PdfString & rhs ) const
+{
+    if( m_bHex || rhs.m_bHex )
+    {
+        PdfString str1 = this->HexDecode();
+        PdfString str2 = rhs.HexDecode();
+
+        return str1 > str2;
+    }
+    else
+        return m_buffer > rhs.m_buffer;
+}
+
+bool PdfString::operator<( const PdfString & rhs ) const
+{
+    if( m_bHex || rhs.m_bHex )
+    {
+        PdfString str1 = this->HexDecode();
+        PdfString str2 = rhs.HexDecode();
+
+        return str1 < str2;
+    }
+    else
+        return m_buffer < rhs.m_buffer;
+}
+
 bool PdfString::operator==( const PdfString & rhs ) const
 {
-    char*            pBuffer;
-    long             lLen;
-    bool             bEqual   = false; // avoid a compiler warning
-#ifdef _MSC_VER
-    std::auto_ptr<PdfFilter> pFilter;
-#else
-    std::auto_ptr<const PdfFilter> pFilter;
-#endif
-
-    if( m_bHex == rhs.m_bHex ) 
+    if( m_bHex || rhs.m_bHex )
     {
-        bEqual = (m_buffer == rhs.m_buffer);
-    }
-    else if( !m_bHex ) 
-    {
-        pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
-        pFilter->Encode( m_buffer.GetBuffer(), m_buffer.GetSize(), &pBuffer, &lLen );
+        PdfString str1 = this->HexDecode();
+        PdfString str2 = rhs.HexDecode();
 
-        bEqual = ( PdfRefCountedBuffer( pBuffer, lLen ) == rhs.m_buffer );
+        return str1 == str2;
     }
-    else if( !rhs.m_bHex ) 
-    {
-        pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
-        pFilter->Encode( rhs.m_buffer.GetBuffer(), rhs.m_buffer.GetSize(), &pBuffer, &lLen );
-
-        bEqual = ( m_buffer == PdfRefCountedBuffer( pBuffer, lLen ) );
-    }
-        
-    return bEqual;
+    else
+        return m_buffer == rhs.m_buffer;
 }
 
 void PdfString::Init( const char* pszString, long lLen )
@@ -297,6 +500,83 @@ void PdfString::InitFromUtf8( const pdf_utf8* pszStringUtf8, long lLen )
     memcpy( m_buffer.GetBuffer(), reinterpret_cast<const char*>(pBuffer), lBufLen );
     m_buffer.GetBuffer()[lBufLen] = '\0';
     m_buffer.GetBuffer()[lBufLen+1] = '\0';
+}
+
+PdfString PdfString::HexEncode() const
+{
+    if( this->IsHex() )
+        return *this;
+    else
+    {
+        std::auto_ptr<PdfFilter> pFilter;
+
+        long                  lLen = m_buffer.GetSize() << 1;
+        PdfString             str;
+        PdfRefCountedBuffer   buffer( lLen );
+        PdfMemoryOutputStream stream( buffer.GetBuffer(), lLen );
+
+        pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+        pFilter->BeginEncode( &stream );
+        pFilter->EncodeBlock( m_buffer.GetBuffer(), m_buffer.GetSize() );
+        pFilter->EndEncode();
+
+        str.m_buffer   = buffer;
+        str.m_bHex     = true;
+        str.m_bUnicode = m_bUnicode;
+
+        return str;
+    }
+} 
+
+PdfString PdfString::HexDecode() const
+{
+    if( !this->IsHex() )
+        return *this;
+    else
+    {
+        std::auto_ptr<PdfFilter> pFilter;
+
+        long                  lLen = m_buffer.GetSize() >> 1;
+        PdfString             str;
+        PdfRefCountedBuffer   buffer( lLen );
+        PdfMemoryOutputStream stream( buffer.GetBuffer(), lLen );
+
+        pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+        pFilter->BeginDecode( &stream );
+        pFilter->DecodeBlock( m_buffer.GetBuffer(), m_buffer.GetSize() );
+        pFilter->EndDecode();
+
+        str.m_buffer   = buffer;
+        str.m_bHex     = false;
+        str.m_bUnicode = m_bUnicode;
+
+        return str;
+    }
+} 
+
+PdfString PdfString::ToUnicode() const
+{
+    if( this->IsUnicode() )
+        return *this;
+    else
+    {
+        PdfString src = *this;
+        if( this->IsHex() )
+            src = this->HexDecode();
+
+        long                  lLen = src.m_buffer.GetSize() * sizeof(pdf_utf16be);
+        PdfString             str;
+        PdfRefCountedBuffer   buffer( lLen );
+        pdf_utf16be*          pString = reinterpret_cast<pdf_utf16be*>(buffer.GetBuffer());
+
+        for( int i=0;i<lLen;i++ )
+            pString[i] = s_cPdfDocEncoding[static_cast<int>(src.m_buffer.GetBuffer()[i])];
+
+        str.m_buffer   = buffer;
+        str.m_bHex     = false;
+        str.m_bUnicode = true;
+        return str;
+    }
 }
 
 void PdfString::SwapBytes( char* pBuf, long lLen ) 
@@ -570,80 +850,108 @@ long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, long lLenUtf16,
                                     pdf_utf8* pszUtf8, long lLenUtf8, 
                                     EPdfStringConversion eConversion  )
 {
+    bool               bOwnBuf   = false;
     const pdf_utf16be* source    = pszUtf16;
     const pdf_utf16be* sourceEnd = pszUtf16 + lLenUtf16 + 1; // point after the last element
     
     pdf_utf8* target    = pszUtf8;
     pdf_utf8* targetEnd = pszUtf8 + lLenUtf8;
 
-    // TODO: Convert to little endian on le systems here!!!!
-
-    while (source < sourceEnd) {
-	unsigned long  ch;
-	unsigned short bytesToWrite = 0;
-	const unsigned long byteMask = 0xBF;
-	const unsigned long byteMark = 0x80; 
-	const pdf_utf16be* oldSource = source; /* In case we have to back up because of target overflow. */
-	ch = *source++;
-
-	/* If we have a surrogate pair, convert to UTF32 first. */
-	if (ch >= UNI_SUR_HIGH_START && ch <= UNI_SUR_HIGH_END) {
-	    /* If the 16 bits following the high surrogate are in the source buffer... */
-	    if (source < sourceEnd) {
-		unsigned long ch2 = *source;
-		/* If it's a low surrogate, convert to UTF32. */
-		if (ch2 >= UNI_SUR_LOW_START && ch2 <= UNI_SUR_LOW_END) {
-		    ch = ((ch - UNI_SUR_HIGH_START) << halfShift)
-			+ (ch2 - UNI_SUR_LOW_START) + halfBase;
-		    ++source;
-		} else if (eConversion == ePdfStringConversion_Strict) { /* it's an unpaired high surrogate */
-		    --source; /* return to the illegal value itself */
-                    PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
-		    break;
-		}
-	    } else { /* We don't have the 16 bits following the high surrogate. */
-		--source; /* return to the high surrogate */
-                PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
-		break;
-	    }
-	} else if (eConversion == ePdfStringConversion_Strict) {
-	    /* UTF-16 surrogate values are illegal in UTF-32 */
-	    if (ch >= UNI_SUR_LOW_START && ch <= UNI_SUR_LOW_END) {
-		--source; /* return to the illegal value itself */
-                PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
-		break;
-	    }
-	}
-	/* Figure out how many bytes the result will require */
-	if (ch < static_cast<unsigned long>(0x80)) {	     
-            bytesToWrite = 1;
-	} else if (ch < static_cast<unsigned long>(0x800)) {     
-            bytesToWrite = 2;
-	} else if (ch < static_cast<unsigned long>(0x10000)) {   
-            bytesToWrite = 3;
-	} else if (ch < static_cast<unsigned long>(0x110000)) {  
-            bytesToWrite = 4;
-	} else {			    
-            bytesToWrite = 3;
-            ch = UNI_REPLACEMENT_CHAR;
-	}
-
-	target += bytesToWrite;
-	if (target > targetEnd) {
-	    source = oldSource; /* Back up source pointer! */
-	    target -= bytesToWrite; 
+    // swap to UTF-16be on LE systems
+    if( podofo_is_little_endian() )
+    {
+        bOwnBuf = true;
+        source  = new pdf_utf16be[lLenUtf16];
+        if( !source )
+        {
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
-            break;
-	}
-        
-	switch (bytesToWrite) { /* note: everything falls through. */
-	    case 4: *--target = static_cast<pdf_utf8>((ch | byteMark) & byteMask); ch >>= 6;
-	    case 3: *--target = static_cast<pdf_utf8>((ch | byteMark) & byteMask); ch >>= 6;
-	    case 2: *--target = static_cast<pdf_utf8>((ch | byteMark) & byteMask); ch >>= 6;
-	    case 1: *--target = static_cast<pdf_utf8>(ch | firstByteMark[bytesToWrite]);
-	}
-	target += bytesToWrite;
+        }
+
+        memcpy( const_cast<pdf_utf16be*>(source), pszUtf16, lLenUtf16 * sizeof(pdf_utf16be) );
+
+        PdfString::SwapBytes( reinterpret_cast<char*>(const_cast<pdf_utf16be*>(source)), lLenUtf16 * sizeof(pdf_utf16be) );
+        pszUtf16  = source;
+        sourceEnd = pszUtf16 + lLenUtf16 + 1; // point after the last element
     }
+
+    try {
+        while (source < sourceEnd) {
+            unsigned long  ch;
+            unsigned short bytesToWrite = 0;
+            const unsigned long byteMask = 0xBF;
+            const unsigned long byteMark = 0x80; 
+            const pdf_utf16be* oldSource = source; /* In case we have to back up because of target overflow. */
+            ch = *source++;
+
+            /* If we have a surrogate pair, convert to UTF32 first. */
+            if (ch >= UNI_SUR_HIGH_START && ch <= UNI_SUR_HIGH_END) {
+                /* If the 16 bits following the high surrogate are in the source buffer... */
+                if (source < sourceEnd) {
+                    unsigned long ch2 = *source;
+                    /* If it's a low surrogate, convert to UTF32. */
+                    if (ch2 >= UNI_SUR_LOW_START && ch2 <= UNI_SUR_LOW_END) {
+                        ch = ((ch - UNI_SUR_HIGH_START) << halfShift)
+                            + (ch2 - UNI_SUR_LOW_START) + halfBase;
+                        ++source;
+                    } else if (eConversion == ePdfStringConversion_Strict) { /* it's an unpaired high surrogate */
+                        --source; /* return to the illegal value itself */
+                        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+                        break;
+                    }
+                } else { /* We don't have the 16 bits following the high surrogate. */
+                    --source; /* return to the high surrogate */
+                    PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+                    break;
+                }
+            } else if (eConversion == ePdfStringConversion_Strict) {
+                /* UTF-16 surrogate values are illegal in UTF-32 */
+                if (ch >= UNI_SUR_LOW_START && ch <= UNI_SUR_LOW_END) {
+                    --source; /* return to the illegal value itself */
+                    PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+                    break;
+                }
+            }
+            /* Figure out how many bytes the result will require */
+            if (ch < static_cast<unsigned long>(0x80)) {	     
+                bytesToWrite = 1;
+            } else if (ch < static_cast<unsigned long>(0x800)) {     
+                bytesToWrite = 2;
+            } else if (ch < static_cast<unsigned long>(0x10000)) {   
+                bytesToWrite = 3;
+            } else if (ch < static_cast<unsigned long>(0x110000)) {  
+                bytesToWrite = 4;
+            } else {			    
+                bytesToWrite = 3;
+                ch = UNI_REPLACEMENT_CHAR;
+            }
+
+            target += bytesToWrite;
+            if (target > targetEnd) {
+                source = oldSource; /* Back up source pointer! */
+                target -= bytesToWrite; 
+                PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+                break;
+            }
+        
+            switch (bytesToWrite) { /* note: everything falls through. */
+                case 4: *--target = static_cast<pdf_utf8>((ch | byteMark) & byteMask); ch >>= 6;
+                case 3: *--target = static_cast<pdf_utf8>((ch | byteMark) & byteMask); ch >>= 6;
+                case 2: *--target = static_cast<pdf_utf8>((ch | byteMark) & byteMask); ch >>= 6;
+                case 1: *--target = static_cast<pdf_utf8>(ch | firstByteMark[bytesToWrite]);
+            }
+            target += bytesToWrite;
+        }
+    }
+    catch( const PdfError & e ) 
+    {
+        if( bOwnBuf )
+            delete[] pszUtf16;
+
+        throw e;
+    }
+
+    if( bOwnBuf )
+        delete[] pszUtf16;
 
     // return bytes written
     return target - pszUtf8;

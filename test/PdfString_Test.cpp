@@ -61,81 +61,78 @@ void testUnicodeString( const pdf_utf8* pszString, long lBufferLen )
 
 void testUnicode() 
 {
-    const char* pszString = "String with German Umlauts: Hallo schöne Welt: üäöÄÖÜß\n";
+    printf("\nUnicode conversion tests:\n\n");
+
+    const char* pszString = "String with German Umlauts: Hallo schöne Welt: äöüÄÖÜß€\n";
     
     testUnicodeString( reinterpret_cast<const pdf_utf8*>(pszString), strlen( pszString ) );
 
+
+    const char* pszStringJap = "「PoDoFo」は今から日本語も話せます。";
+    testUnicodeString( reinterpret_cast<const pdf_utf8*>(pszStringJap), strlen( pszStringJap ) );
+
+
+}
+
+
+void testString( const char* pszString, const PdfString & str, const PdfString & hex ) 
+{
+    printf("\t->Got string: %s\n", pszString );
+    printf("\t->    length: %i\n", strlen( pszString ) );
+
+    if( strcmp( str.GetString(), pszString ) != 0 )
+    {
+        printf("Strings are not equal!\n");
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    }
+    
+
+    if( str.GetLength() != strlen( pszString ) + 1 ) 
+    {
+        printf("Strings length is not equal!\n");
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    }        
+
+    PdfString hex2 = str.HexEncode();
+    PdfString str2 = hex.HexDecode();
+
+    if( !(hex2 == str) )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    }
+
+    if( !(hex == str2) )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    }
+
+    if( hex2 < str || hex2 > str ) 
+    {
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    }
+
+    if( hex < str2 || hex > str2 ) 
+    {
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    }
+}
+
+void testHexEncodeDecode() 
+{
+    printf("\nHex conversion tests:\n\n");
+
+    char      helloBar[] = { 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21 };
+    PdfString helloStr("Hello World!");
+    PdfString helloBin( helloBar, 12, true );
+
+    testString( "Hello World!", helloStr, helloBin );
 }
 
 int main()
 {
     try {
-        char        binary[] = { 0x0a, 0xef, 0xb0, 0x69, 0x65,0xf7, 0x31, 0x45 };
-
-        PdfString string( "Hello World!");
-        PdfString hex( binary, 8, true );
-        //PdfString hexPad( binary, 8, true, 30 );
-        
-        if( strcmp( string.GetString(), "Hello World!") != 0 )
-        {
-            PODOFO_RAISE_ERROR( ePdfError_TestFailed );
-        }
-        
-        printf("string.String()=%s\n", string.GetString() );
-        printf("string.Size()=%li\n", string.GetSize() );
-        if( string.GetSize() != 13 )
-        {
-            PODOFO_RAISE_ERROR( ePdfError_TestFailed );
-        }
-         
-        
-        printf("hex.String()=%s\n", hex.GetString() );
-        printf("hex.Size()=%li\n", hex.GetSize() );
-        if( strcmp( hex.GetString(), "0AEFB06965F73145" ) != 0 )
-        {
-            PODOFO_RAISE_ERROR( ePdfError_TestFailed );
-        }
-        
-        if( hex.GetSize() != 16 )
-        {
-            PODOFO_RAISE_ERROR( ePdfError_TestFailed );
-        }
-        
-        /*
-          printf("hexPad.String()=%s\n", hexPad.String() );
-          printf("hexPad.Size()=%i\n", hexPad.Size() );
-          if( strcmp( hexPad.String(), "0AEFB06965F7314500000000000000" ) != 0 )
-          eCode.SetError( ePdfError_TestFailed, __FILE__, __LINE__  );
-          
-          if( hexPad.Size() != 31 )
-          eCode.SetError( ePdfError_TestFailed, __FILE__, __LINE__ );
-        */
-        
-        printf("Comparing hex and normal string\n");
-        PdfString normal( " " );
-        PdfString hexa(" ", 2, true );
-        if( !(normal == hexa) ) 
-        {
-            printf("String normal: %s\n", normal.GetString() );
-            printf("String hexa  : %s\n", hexa.GetString() );
-            printf("Comparison failed!\n");
-            PODOFO_RAISE_ERROR( ePdfError_TestFailed );
-        }
-
-        PdfString a("aaaaa");
-        PdfString b("b");
-
-        if( !(a < b) )
-        {
-            printf("Comparison failed a < b !\n");
-        }
-
-        if( !(b > a) )
-        {
-            printf("Comparison failed b > a !\n");
-        }
-
         testUnicode();
+        testHexEncodeDecode();
 
     } catch( const PdfError & eCode ) {
         eCode.PrintErrorMsg();

@@ -45,7 +45,7 @@ void PdfFileOutputStream::Close()
 }
 
 PdfMemoryOutputStream::PdfMemoryOutputStream( long lInitial )
-    : m_lLen( 0 )
+    : m_lLen( 0 ), m_bOwnBuffer( true )
 {
     m_lSize   = lInitial;
     m_pBuffer = static_cast<char*>(malloc( m_lSize * sizeof(char) ));
@@ -56,9 +56,18 @@ PdfMemoryOutputStream::PdfMemoryOutputStream( long lInitial )
     }
 }
 
+PdfMemoryOutputStream::PdfMemoryOutputStream( char* pBuffer, long lLen )
+    : m_lLen( 0 ), m_bOwnBuffer( false )
+{
+    m_lSize   = lLen;
+    m_pBuffer = pBuffer;
+}
+
+
 PdfMemoryOutputStream::~PdfMemoryOutputStream()
 {
-    free( m_pBuffer );
+    if( m_bOwnBuffer )
+        free( m_pBuffer );
 }
 
 long PdfMemoryOutputStream::Write( const char* pBuffer, long lLen )
@@ -70,10 +79,17 @@ long PdfMemoryOutputStream::Write( const char* pBuffer, long lLen )
 
     if( m_lLen + lLen > m_lSize ) 
     {
-        // a reallocation is required
-        m_lSize = PDF_MAX( (m_lLen + lLen), (m_lSize << 1 ) );
-        m_pBuffer = static_cast<char*>(realloc( m_pBuffer, m_lSize ));
-        if( !m_pBuffer ) 
+        if( m_bOwnBuffer )
+        {
+            // a reallocation is required
+            m_lSize = PDF_MAX( (m_lLen + lLen), (m_lSize << 1 ) );
+            m_pBuffer = static_cast<char*>(realloc( m_pBuffer, m_lSize ));
+            if( !m_pBuffer ) 
+            {
+                PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+            }
+        }
+        else
         {
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
         }

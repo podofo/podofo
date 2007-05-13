@@ -100,6 +100,14 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
      *  \param lInitial initial size of the buffer
      */
     PdfMemoryOutputStream( long lInitial = INITIAL_SIZE);
+
+    /**
+     * Construct a new PdfMemoryOutputStream that writes to an existing buffer
+     * \param pBuffer handle to the buffer
+     * \param lLen length of the buffer
+     */
+    PdfMemoryOutputStream( char* pBuffer, long lLen );
+
     ~PdfMemoryOutputStream();
 
     /** Write data to the output stream
@@ -141,6 +149,8 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
 
     long  m_lLen;
     long  m_lSize;
+
+    bool  m_bOwnBuffer;
 };
 
 // -----------------------------------------------------
