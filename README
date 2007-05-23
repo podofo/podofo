@@ -61,17 +61,9 @@ compiler or Visual Studio 7.x (Windows) as well as the following libraries:
 4. Installation
 ===============
 
-Installation can be done on any Unix system with the following commands:
-
-make -f Makefile.svn  (only required when building from svn)
-./configure
-make
-su
-make install
-
-Alternately, you can use CMake to generate the build environment (see
-"Installation with CMake"). This is increasingly better supported than the
-autotools build.
+PoDoFo can be installed and build using CMake. The autotools build was dropped
+as maintaining two build systems consumes a lot of resources which
+can be spend better on improving PoDoFo itself.
 
 On Windows, it is recommended that you use CMake to generate Visual Studio
 project files appropriate for your VS version and your libraries. You can also
@@ -86,18 +78,13 @@ your local configuration and libraries using CMake.
 4.1 Installation with CMake
 ===========================
 
-PoDoFo now has experimental support for builds using CMake on all supported
+PoDoFo has support for builds using CMake on all supported
 platforms. The CMake build has been tested on:
 
 	- Visual C++ 8 Express Edition [Win32] ("Visual Studio 8 2005" target)
 	- Visual C++ 8 Express +NMake [Win32] ("NMake Makefiles" target)
 	- MinGW with GCC 3.4.2 [Win32] ("MinGW Makefiles" target)
 	- gcc 3.3.5 [Linux: Debian 3.1] ("Unix Makefiles" target)
-
-The CMake build system may become the primary/only build system if testing is
-successful and feedback is good. As the use of CMake will simplify build system
-maintainance considerably, comments, problem reports, etc would be greatly
-appreciated.
 
 You can use the CMake variable CMAKE_BUILD_TYPE to control the type of
 build. The main values supported are DEBUG and RELEASE. The default is
@@ -145,14 +132,14 @@ If you need to specify additional paths to search for libraries, set the
 CMAKE_INCLUDE_PATH and CMAKE_LIBRARY_PATH environment variables or set them on
 the command line:
 
-cmake -G "UNIX Makefiles" ../podofo-src \
+cmake -G "Unix Makefiles" ../podofo-src \
 	-DCMAKE_INCLUDE_PATH=/usr/sfw/include \
 	-DCMAKE_LIBRARY_PATH=/usr/sfw/lib
 
 If you wish to generate only a static library or only a shared library, set the
 PODOFO_BUILD_SHARED and/or PODOFO_BUILD_STATIC flags:
 
-cmake -G "UNIX Makefiles" ../podofo-src \
+cmake -G "Unix Makefiles" ../podofo-src \
 	-DCMAKE_INCLUDE_PATH=/usr/sfw/include \
 	-DCMAKE_LIBRARY_PATH=/usr/sfw/lib \
 	-DPODOFO_BUILD_SHARED=TRUE \
