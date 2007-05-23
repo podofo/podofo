@@ -131,7 +131,7 @@ To build and install:
 
 mkdir ../podofo-build
 cd ../podofo-build
-cmake -G "UNIX Makefiles" -DCMAKE_INSTALL_PREFIX="$HOME/podofo" ../podofo-src
+cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$HOME/podofo" ../podofo-src
 make
 make install
 
