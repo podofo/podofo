@@ -84,12 +84,14 @@ void AddPage( PdfDocument* pDoc, PdfStreamedDocument* pStreamed, const char* psz
     painter.DrawText( dX, dY, pszFontName );
     dY -= pArial->GetFontMetrics()->GetLineSpacing();
 
+#ifdef PODOFO_HAVE_JPEG_LIB
     pImage->LoadFromFile( pszImagePath );
 
     dY -= (pImage->GetHeight() * 0.5);
     dX = ((rect.GetWidth() - (pImage->GetWidth()*0.5))/2.0);
     painter.DrawImage( dX, dY, pImage, 0.5, 0.5 );
     delete pImage; // delete image right after drawing
+#endif
 
     painter.FinishPage();
 
