@@ -77,6 +77,12 @@ class PODOFO_API PdfVecObjects {
     friend class PdfWriter;
 
  public:
+    // An incomplete set of container typedefs, just enough to handle
+    // the begin() and end() methods we wrap from the internal vector.
+    // TODO: proper wrapper iterator class.
+    typedef TVecObjects::iterator iterator;
+    typedef TVecObjects::const_iterator const_iterator;
+
     /** Every observer of PdfVecObjects has to implement this interface.
      */
     class Observer {
