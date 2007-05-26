@@ -351,6 +351,32 @@ class PODOFO_API PdfVariant {
     inline PdfArray & GetArray_NoDL();
 
  private:
+    /**
+     * It's an easy mistake to pass a pointer to a PdfVariant when trying to
+     * copy a PdfVariant, especially with heap allocators like `new'. This can
+     * produce confusing and unexpected results like getting a PdfVariant(bool).
+     *
+     * A similar issue can arise when the user passes a `char*' and expects a PdfName
+     * or PdfString based variant to be created. We can't know which they wanted, so
+     * we should fail, especially since the compiler tends to convert pointers to bool
+     * for extra confusion value.
+     *
+     * We provide this overload so that such attempts will fail with an error about
+     * a private ctor. If you're reading this, you wrote:
+     *
+     *  PdfVariant( my_ptr_to_something )
+     *
+     *... not ...
+     * 
+     *  PdfVariant( *my_ptr_to_something )
+     *
+     * If you need to modify PdfVariant to legitimately take a pointer in the future,
+     * you can do so by providing a template specialization, or by removing this check
+     * and replacing it with a couple of overloads specific to PdfObject*, PdfVariant*,
+     * and char* (at least).
+     */
+    template<typename T> PdfVariant(T*);
+
     /** To reduce memory usage of this very often used class,
      *  we use a union here, as there is always only
      *  one of those members used.
