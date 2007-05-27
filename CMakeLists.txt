@@ -68,8 +68,16 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
     MESSAGE("Using gcc specific compiler options")
     # We can be more specific about what we want out of g++
     # than with most other compilers.
+
+    # We can't request C++98 compliance on win32, because mingw
+    # will hide _tzset() and _timezone, which we need for PdfDate.
+    # At least until that code is replaced with something better,
+    # just don't enable it on win32.
+    IF(NOT WIN32)
+        ADD_DEFINITIONS(-std=c++98)
+    ENDIF(NOT WIN32)
+
     ADD_DEFINITIONS(
-        -std=c++98
         -Wall
         -Woverloaded-virtual
         -Wswitch-enum

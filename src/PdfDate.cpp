@@ -19,7 +19,11 @@
  ***************************************************************************/
 
 #include <time.h>
+#include <sstream>
+
 #include "PdfDate.h"
+
+
 
 namespace PoDoFo {
 
@@ -64,19 +68,26 @@ PdfDate::~PdfDate()
 void PdfDate::CreateStringRepresentation()
 {
     const int   ZONE_STRING_SIZE = 6;
-    const char* INVALIDDATE     = "(INVALIDDATE)";
+    const char* INVALIDDATE     = "INVALIDDATE";
 
     char szZone[ZONE_STRING_SIZE];
     char szDate[PDF_DATE_BUFFER_SIZE];
 
     struct tm* stm = localtime( &m_time );
 
-#ifdef _MSC_VER	// strftime with %z returns verbose string in MS-VC !!
+#ifdef _WIN32
+    // On win32, strftime with %z returns a verbose time zone name
+    // like "W. Australia Standard time". We use tzset and timezone
+    // instead.
     _tzset();
     snprintf( szZone, ZONE_STRING_SIZE, "%+03d", _timezone/3600 );
 #else
     if( strftime( szZone, ZONE_STRING_SIZE, "%z", stm ) == 0 )
     {
+        std::ostringstream ss;
+	ss << "Generated invalid date from time_t value " << m_time
+           << " (couldn't determine time zone)\n";
+	PdfError::DebugMessage( ss.str().c_str() );
         strcpy( m_szDate, INVALIDDATE );
         return;
     }
@@ -88,6 +99,10 @@ void PdfDate::CreateStringRepresentation()
    
     if( strftime( szDate, PDF_DATE_BUFFER_SIZE, "D:%Y%m%d%H%M%S", stm ) == 0 )
     {
+        std::ostringstream ss;
+	ss << "Generated invalid date from time_t value " << m_time
+           << "\n";
+	PdfError::DebugMessage( ss.str().c_str() );
         strcpy( m_szDate, INVALIDDATE );
         return;
     }

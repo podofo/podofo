@@ -28,6 +28,8 @@
 #include "PdfReference.h"
 #include "PdfVariant.h"
 
+#include <sstream>
+
 #define PDF_BUFFER 4096
 
 #define DICT_SEP_LENGTH 2
@@ -355,6 +357,15 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
         else if( pszToken[0] == '/' )
             return ePdfDataType_Name;
     }
+
+    std::ostringstream ss;
+    ss << "Got unexpected PDF data in" << __FUNCTION__
+       << ": \""
+       << pszToken
+       << "\". Current read offset is "
+       << m_device.Device()->Tell()
+       << " which should be around the problem.\n";
+    PdfError::DebugMessage(ss.str().c_str());
 
     return ePdfDataType_Unknown;
 }
