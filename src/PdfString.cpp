@@ -363,7 +363,8 @@ void PdfString::Write ( PdfOutputDevice* pDevice ) const
     if( m_bUnicode ) 
         pDevice->Write( PdfString::s_pszUnicodeMarker, PdfString::s_nUnicodeMarkerLen );
 
-    pDevice->Write( m_buffer.GetBuffer(), m_buffer.GetSize()-1 );
+    if( m_buffer.GetSize() )
+        pDevice->Write( m_buffer.GetBuffer(), m_buffer.GetSize()-1 );
     pDevice->Print( m_bHex ? ">" : ")" );
 }
 
