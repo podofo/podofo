@@ -23,6 +23,7 @@
 
 #include "PdfDefines.h"
 
+#include "PdfArray.h"
 #include "PdfXRef.h"
 
 namespace PoDoFo {
@@ -54,16 +55,52 @@ class PdfXRefStream : public PdfXRef {
      */
     virtual ~PdfXRefStream();
 
-    /** Write the XRef table to an output device.
-     * 
-     *  \param pDevice an output device (usually a PDF file)
+ protected:
+    /** Called at the start of writing the XRef table.
+     *  This method can be overwritten in subclasses
+     *  to write a general header for the XRef table.
      *
+     *  @param pDevice the output device to which the XRef table 
+     *                 should be written.
      */
-    virtual void Write( PdfOutputDevice* pDevice );
+    virtual void BeginWrite( PdfOutputDevice* pDevice );
+
+    /** Begin an XRef subsection.
+     *  All following calls of WriteXRefEntry belong to this XRef subsection.
+     *
+     *  @param pDevice the output device to which the XRef table 
+     *                 should be written.
+     *  @param nFirst the object number of the first object in this subsection
+     *  @param nCount the number of entries in this subsection
+     */
+    virtual void WriteSubSection( PdfOutputDevice* pDevice, unsigned int nFirst, unsigned int nCount );
+
+    /** Write a single entry to the XRef table
+     *  
+     *  @param pDevice the output device to which the XRef table 
+     *                 should be written.
+     *  @param lOffset the offset of the object
+     *  @param lGeneration the generation number
+     *  @param cMode the mode 'n' for object and 'f' for free objects
+     */
+    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, unsigned long lOffset, unsigned long lGeneration, char cMode );
+
+    /** Called at the end of writing the XRef table.
+     *  Sub classes can overload this method to finish a XRef table.
+     *
+     *  @param pDevice the output device to which the XRef table 
+     *                 should be written.
+     */
+    virtual void EndWrite( PdfOutputDevice* );
 
  private:
     PdfVecObjects* m_pParent;
     PdfWriter*     m_pWriter;
+    PdfObject*     m_pObject;
+    PdfArray       m_indeces;
+
+    bool           m_bLittle;    ///< Wether we run on a little or big endian machine
+    size_t         m_lBufferLen; ///< The length of the internal buffer for one XRef entry
 };
 
 };

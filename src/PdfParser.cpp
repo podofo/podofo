@@ -563,8 +563,6 @@ void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
 
 void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
 {
-    int         count     = 0;
-    long        nFirstObj = 0;
     char*       pBuffer;
     char*       pStart;
     long        lBufferLen;
@@ -625,6 +623,7 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
         nW[i] = vWArray.GetArray()[i].GetNumber();
     }
 
+    std::vector<int> vecIndeces;
     // get the first object number in this crossref stream.
     // it is not required to have an index key though.
     if( xrefObject.GetDictionary().HasKey( "Index" ) )
@@ -636,18 +635,22 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
             PODOFO_RAISE_ERROR( ePdfError_NoXRef );
         }
 
-        if( !vWArray.GetArray()[0].IsNumber() )
+        TCIVariantList it = vWArray.GetArray().begin();
+        while ( it != vWArray.GetArray().end() )
         {
-            PODOFO_RAISE_ERROR( ePdfError_NoXRef );
+            vecIndeces.push_back( (*it).GetNumber() );
+            ++it;
         }
+    }
+    else
+    {
+        vecIndeces.push_back( 0 );
+        vecIndeces.push_back( lSize );
+    }
 
-        nFirstObj = vWArray.GetArray()[0].GetNumber();
-
-        // TODO: fix this
-        if( vWArray.GetArray().size() != 2 )
-        {
-            PODOFO_RAISE_ERROR( ePdfError_NoXRef );
-        }
+    if( vecIndeces.size() % 2 )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
     }
 
     if( !xrefObject.HasStreamToParse() )
@@ -657,12 +660,22 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
 
     xrefObject.GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
 
-    pStart = pBuffer;
-    while( pBuffer - pStart < lBufferLen )
+    pStart        = pBuffer;
+    int nCurIndex = 0;
+    while( nCurIndex < vecIndeces.size() && pBuffer - pStart < lBufferLen )
     {
-        ReadXRefStreamEntry( pBuffer, lBufferLen, nW, nFirstObj + count++ );
+        long nFirstObj = vecIndeces[nCurIndex];
+        long nCount    = vecIndeces[nCurIndex+1];
 
-        pBuffer += (nW[0] + nW[1] + nW[2]);
+        PdfError::DebugMessage( "Reading Subrefsection: %li %li\n", nFirstObj, nCount );
+
+        while( nCount-- && pBuffer - pStart < lBufferLen ) 
+        {
+            ReadXRefStreamEntry( pBuffer, lBufferLen, nW, nFirstObj++ );
+            pBuffer += (nW[0] + nW[1] + nW[2]);
+        }
+
+        nCurIndex += 2;
     }
     free( pStart );
 

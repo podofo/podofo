@@ -20,7 +20,6 @@
 
 #include "PdfXRefStream.h"
 
-#include "PdfArray.h"
 #include "PdfObject.h"
 #include "PdfStream.h"
 #include "PdfWriter.h"
@@ -53,112 +52,71 @@ bool podofo_is_little_endian()
 }
 
 PdfXRefStream::PdfXRefStream( PdfVecObjects* pParent, PdfWriter* pWriter )
-    : m_pParent( pParent ), m_pWriter( pWriter )
+    : m_pParent( pParent ), m_pWriter( pWriter ), m_pObject( NULL )
 {
-
+    m_bLittle    = podofo_is_little_endian();
+    m_lBufferLen = 2 + sizeof( STREAM_OFFSET_TYPE );
 }
 
 PdfXRefStream::~PdfXRefStream()
 {
-
+    PODOFO_RAISE_LOGIC_IF( m_pObject, "m_pObject still initialized in PdfXRefStream destructor!" );
+    delete m_pObject;
 }
 
-void PdfXRefStream::Write( PdfOutputDevice* pDevice )
+void PdfXRefStream::BeginWrite( PdfOutputDevice* ) 
 {
-    const size_t        bufferLen = 2 + sizeof( STREAM_OFFSET_TYPE );
-    char                buffer[bufferLen];
-    bool                bLittle   = podofo_is_little_endian();
+    PdfReference        reference( this->GetSize() + 1, 0 );
+    m_pObject    = new PdfObject( reference, "XRef" );
 
+    m_pObject->SetOwner( m_pParent );
+    m_pObject->GetStream()->BeginAppend();
+}
+
+void PdfXRefStream::WriteSubSection( PdfOutputDevice*, unsigned int nFirst, unsigned int nCount )
+{
+    PdfError::DebugMessage("Writing XRef section: %u %u\n", nFirst, nCount );
+
+    m_indeces.push_back( static_cast<long>(nFirst) );
+    m_indeces.push_back( static_cast<long>(nCount) );
+}
+
+void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, unsigned long lOffset, unsigned long, char cMode ) 
+{
+    char                buffer[m_lBufferLen];
     STREAM_OFFSET_TYPE* pValue    = reinterpret_cast<STREAM_OFFSET_TYPE*>(buffer+1);
 
-    // Make sure to not crash even for empty documents.
-    PdfReference        reference( m_vecXRef.size() ? m_vecXRef.back().reference.ObjectNumber() + 1 : 0, 0 );
-    PdfObject           object( reference, "XRef" );
-    PdfArray            indeces;
-    PdfArray            w;
+    buffer[0]           = static_cast<char>( cMode == 'n' ? 1 : 0 );
+    buffer[m_lBufferLen-1] = static_cast<char>( cMode == 'n' ? 0 : 1 );
+    // TODO: This might cause bus errors on HP-UX machines 
+    //       which require integers to be alligned on byte boundaries.
+    //       -> Better use memcpy here!
+    *pValue             = static_cast<STREAM_OFFSET_TYPE>(lOffset);
+    if( m_bLittle )
+        *pValue = static_cast<STREAM_OFFSET_TYPE>(htonl( *pValue ));
+    
+    m_pObject->GetStream()->Append( buffer, m_lBufferLen );
+}
 
-    PdfXRef::TCIVecXRefItems  it     = m_vecXRef.begin();
-    PdfXRef::TCIVecReferences itFree = m_vecFreeObjects.begin();
-
-    int nFirst = 0;
-    int nCount = 0;
-
-    object.SetOwner( m_pParent );
+void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice ) 
+{
+    PdfArray w;
 
     w.push_back( 1l );
     w.push_back( static_cast<long>(sizeof(STREAM_OFFSET_TYPE)) );
     w.push_back( 1l );
 
-    object.GetStream()->BeginAppend();
-    while( it != m_vecXRef.end() ) 
-    {
-        nCount = GetItemCount( it, itFree );
-        nFirst       = (*it).reference.ObjectNumber();
+    m_pObject->GetStream()->EndAppend();
+    m_pWriter->FillTrailerObject( m_pObject, m_pObject->Reference().ObjectNumber(), false, false );
 
-        if( itFree != m_vecFreeObjects.end() )
-            nFirst = PDF_MIN( nFirst, (*itFree).ObjectNumber() );
+    m_pObject->GetDictionary().AddKey( "Index", m_indeces );
+    m_pObject->GetDictionary().AddKey( "W", w );
 
-        if( nFirst == 1 )
-            --nFirst;
+    m_pObject->WriteObject( pDevice );
 
-        if( !nFirst ) 
-        {
-            // write free object
-            buffer[0]           = static_cast<char>(0);
-            buffer[bufferLen-1] = static_cast<char>(1);
-            // TODO: This might cause bus errors on HP-UX machines 
-            //       which require integers to be alligned on byte boundaries.
-            //       -> Better use memcpy here!
-            *pValue           = static_cast<STREAM_OFFSET_TYPE>( m_vecFreeObjects.size() ? 
-                                                                 m_vecFreeObjects.front().ObjectNumber() : 0 );
-            if( bLittle )
-                *pValue = static_cast<STREAM_OFFSET_TYPE>(htonl( *pValue ));
-
- 
-            object.GetStream()->Append( buffer, bufferLen );
-        }
-
-        indeces.push_back( static_cast<long>(nFirst) );
-        indeces.push_back( static_cast<long>(nCount) );
-
-        while( --nCount > 0 && it != m_vecXRef.end() ) 
-        {
-            while( itFree != m_vecFreeObjects.end() &&
-                   *itFree < (*it).reference && nCount )
-            {
-
-                ++itFree;
-
-                // write free object
-                buffer[0]           = static_cast<char>(0);
-                buffer[bufferLen-1] = static_cast<char>(1);
-                *pValue             = static_cast<STREAM_OFFSET_TYPE>(itFree != m_vecFreeObjects.end() ? 
-                                                                    (*itFree).ObjectNumber() : 0);
-                if( bLittle )
-                    *pValue = static_cast<STREAM_OFFSET_TYPE>(htonl( *pValue ));
-
-                object.GetStream()->Append( buffer, bufferLen );
-                --nCount;
-            }
-
-            buffer[0]           = static_cast<char>(1);
-            buffer[bufferLen-1] = static_cast<char>(0);
-            *pValue             = static_cast<STREAM_OFFSET_TYPE>((*it).lOffset);
-            if( bLittle )
-                *pValue = static_cast<STREAM_OFFSET_TYPE>(htonl( *pValue ));
-
-            object.GetStream()->Append( buffer, bufferLen );
-            ++it;
-        }
-    }    
-
-    object.GetStream()->EndAppend();
-    m_pWriter->FillTrailerObject( &object, this->GetSize(), false, false );
-
-    object.GetDictionary().AddKey( "Index", indeces );
-    object.GetDictionary().AddKey( "W", w );
-    //object.FlateCompressStream();
-    object.WriteObject( pDevice );
+    delete m_pObject;
+    m_pObject = NULL;
+    m_indeces.clear();
 }
 
 };

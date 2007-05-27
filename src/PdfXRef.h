@@ -39,6 +39,11 @@ class PdfOutputDevice;
 class PdfXRef {
  protected:
     typedef struct TXRefItem {
+        TXRefItem( const PdfReference & rRef, const long & rlOff ) 
+            : reference( rRef ), lOffset( rlOff )
+            {
+            }
+
         PdfReference reference;
         long         lOffset;
 
@@ -47,7 +52,7 @@ class PdfXRef {
             return this->reference < rhs.reference;
         }
     };
-    
+
     typedef std::vector<TXRefItem>         TVecXRefItems;
     typedef TVecXRefItems::iterator        TIVecXRefItems;
     typedef TVecXRefItems::const_iterator  TCIVecXRefItems;
@@ -55,6 +60,31 @@ class PdfXRef {
     typedef std::vector<PdfReference>      TVecReferences;
     typedef TVecReferences::iterator       TIVecReferences;
     typedef TVecReferences::const_iterator TCIVecReferences;
+
+    class PdfXRefBlock {
+    public:
+        PdfXRefBlock() 
+            : m_nFirst( 0 ), m_nCount( 0 )
+        {
+        }
+        
+        bool InsertItem( const TXRefItem & rItem, bool bUsed );
+
+        bool operator<( const PdfXRefBlock & rhs ) const
+        {
+            return m_nFirst < rhs.m_nFirst;
+        }
+
+        unsigned long m_nFirst;
+        unsigned long m_nCount;
+        
+        TVecXRefItems items;
+        TVecReferences freeItems;
+    };
+    
+    typedef std::vector<PdfXRefBlock>      TVecXRefBlock;
+    typedef TVecXRefBlock::iterator        TIVecXRefBlock;
+    typedef TVecXRefBlock::const_iterator  TCIVecXRefBlock;
 
  public:
     /** Create a new XRef table
@@ -81,7 +111,7 @@ class PdfXRef {
      *  \param pDevice an output device (usually a PDF file)
      *
      */
-    virtual void Write( PdfOutputDevice* pDevice );
+    void Write( PdfOutputDevice* pDevice );
 
     /** Get the size of the XRef table.
      *  I.e. the highest object number + 1.
@@ -91,11 +121,57 @@ class PdfXRef {
     unsigned int GetSize() const;
 
  protected:
-    int GetItemCount( PdfXRef::TCIVecXRefItems it, PdfXRef::TCIVecReferences itFree ) const;
+    /** Called at the start of writing the XRef table.
+     *  This method can be overwritten in subclasses
+     *  to write a general header for the XRef table.
+     *
+     *  @param pDevice the output device to which the XRef table 
+     *                 should be written.
+     */
+    virtual void BeginWrite( PdfOutputDevice* pDevice );
+
+    /** Begin an XRef subsection.
+     *  All following calls of WriteXRefEntry belong to this XRef subsection.
+     *
+     *  @param pDevice the output device to which the XRef table 
+     *                 should be written.
+     *  @param nFirst the object number of the first object in this subsection
+     *  @param nCount the number of entries in this subsection
+     */
+    virtual void WriteSubSection( PdfOutputDevice* pDevice, unsigned int nFirst, unsigned int nCount );
+
+    /** Write a single entry to the XRef table
+     *  
+     *  @param pDevice the output device to which the XRef table 
+     *                 should be written.
+     *  @param lOffset the offset of the object
+     *  @param lGeneration the generation number
+     *  @param cMode the mode 'n' for object and 'f' for free objects
+     */
+    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, unsigned long lOffset, unsigned long lGeneration, char cMode );
+
+    /** Called at the end of writing the XRef table.
+     *  Sub classes can overload this method to finish a XRef table.
+     *
+     *  @param pDevice the output device to which the XRef table 
+     *                 should be written.
+     */
+    virtual void EndWrite( PdfOutputDevice* );
+
+ private:
+    const PdfReference* GetFirstFreeObject( PdfXRef::TCIVecXRefBlock itBlock, PdfXRef::TCIVecReferences itFree ) const;
+    const PdfReference* GetNextFreeObject( PdfXRef::TCIVecXRefBlock itBlock, PdfXRef::TCIVecReferences itFree ) const;
+
+    /** Merge all xref blocks that follow immediately after each other
+     *  into a single block.
+     *
+     *  This results in slitely smaller PDF files which are easier to parse
+     *  for other applications.
+     */
+    void MergeBlocks();
 
  protected:
-    TVecXRefItems  m_vecXRef;
-    TVecReferences m_vecFreeObjects;
+    TVecXRefBlock  m_vecBlocks;
 };
 
 };
