@@ -31,6 +31,7 @@
 #else 
 #include <arpa/inet.h>
 #endif // _WIN32
+#include <malloc.h>
 
 namespace PoDoFo {
 
@@ -83,7 +84,7 @@ void PdfXRefStream::WriteSubSection( PdfOutputDevice*, unsigned int nFirst, unsi
 
 void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, unsigned long lOffset, unsigned long, char cMode ) 
 {
-    char                buffer[m_lBufferLen];
+    char *              buffer = (char *) alloca(m_lBufferLen);
     STREAM_OFFSET_TYPE* pValue    = reinterpret_cast<STREAM_OFFSET_TYPE*>(buffer+1);
 
     buffer[0]           = static_cast<char>( cMode == 'n' ? 1 : 0 );

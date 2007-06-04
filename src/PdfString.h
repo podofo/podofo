@@ -322,8 +322,7 @@ class PODOFO_API PdfString : public PdfDataType{
     static void SwapBytes( char* pBuf, long lLen ); 
 
  private:
-    static const int         s_nUnicodeMarkerLen = 2;
-    static const char        s_pszUnicodeMarker[s_nUnicodeMarkerLen];
+    static const char        s_pszUnicodeMarker[];
     static const pdf_utf16be s_cPdfDocEncoding[256]; ///< conversion table from PDFDocEncoding to UTF16
 
  private:
@@ -369,5 +368,6 @@ long PdfString::GetUnicodeLength() const
 }
 
 };
+
 
 #endif // _PDF_STRING_H_

@@ -23,12 +23,13 @@
 #include "PdfFilter.h"
 #include "PdfOutputDevice.h"
 
+#include <malloc.h>
 namespace PoDoFo {
 
 extern bool podofo_is_little_endian();
 
 const PdfString PdfString::StringNull = PdfString();
-const char PdfString::s_pszUnicodeMarker[PdfString::s_nUnicodeMarkerLen] = { 0xFE, 0xFF };
+const char PdfString::s_pszUnicodeMarker[] = { (char) 0xFE, (char) 0xFF };
 
 // Conversion table from PDFDocEncoding (almost Latin1) to UTF16
 const pdf_utf16be PdfString::s_cPdfDocEncoding[256] = {
@@ -361,7 +362,7 @@ void PdfString::Write ( PdfOutputDevice* pDevice ) const
 
     pDevice->Print( m_bHex ? "<" : "(" );
     if( m_bUnicode ) 
-        pDevice->Write( PdfString::s_pszUnicodeMarker, PdfString::s_nUnicodeMarkerLen );
+        pDevice->Write( PdfString::s_pszUnicodeMarker, sizeof( PdfString::s_pszUnicodeMarker ) );
 
     if( m_buffer.GetSize() )
         pDevice->Write( m_buffer.GetBuffer(), m_buffer.GetSize()-1 );
@@ -509,7 +510,7 @@ void PdfString::Init( const char* pszString, long lLen )
 void PdfString::InitFromUtf8( const pdf_utf8* pszStringUtf8, long lLen )
 {
     long        lBufLen = lLen << 1;
-    pdf_utf16be pBuffer[lBufLen]; // twice as large buffer should always be enough
+    pdf_utf16be *pBuffer = (pdf_utf16be *) alloca(lBufLen); // twice as large buffer should always be enough
 
     lBufLen = PdfString::ConvertUTF8toUTF16( pszStringUtf8, lLen, pBuffer, lBufLen );
 
@@ -972,13 +973,13 @@ long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, long lLenUtf16,
     catch( const PdfError & e ) 
     {
         if( bOwnBuf )
-            delete[] pszUtf16;
+            delete[] const_cast<pdf_utf16be *>(pszUtf16);
 
         throw e;
     }
 
     if( bOwnBuf )
-        delete[] pszUtf16;
+        delete[] const_cast<pdf_utf16be *>(pszUtf16);
 
     // return bytes written
     return target - pszUtf8;
