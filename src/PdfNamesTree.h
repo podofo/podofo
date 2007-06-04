@@ -39,8 +39,6 @@ typedef enum EPdfNameLimits {
 };
 
 
-/** An action that can be performed in a PDF document
- */
 class PODOFO_API PdfNamesTree : public PdfElement {
  public:
     /** Create a new PdfNamesTree object

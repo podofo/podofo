@@ -77,6 +77,22 @@ class PODOFO_API PdfFont : public PdfElement {
      */
     void EmbeddFont( PdfObject* pDescriptor );
 
+    /** Embedd the font file directly into the PDF file.
+     *
+     *  The font file is a true type file.
+     *
+     *  \param pDescriptor font descriptor object
+     */
+    void EmbeddTrueTypeFont( PdfObject* pDescriptor ); 
+
+    /** Embedd the font file directly into the PDF file.
+     *
+     *  The font file is a true type file.
+     *
+     *  \param pDescriptor font descriptor object
+     */
+    void EmbeddType1Font( PdfObject* pDescriptor ); 
+
     /** Initialize the object
      *  \param bEmbedd if true the font will be embeded into the PDF 
      */

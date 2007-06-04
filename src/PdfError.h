@@ -75,6 +75,7 @@ typedef enum EPdfError {
     ePdfError_InvalidName,              /**< The specified Name is not valid in this context */
 
     ePdfError_UnsupportedFilter,        /**< The requested filter is not yet implemented. */
+    ePdfError_UnsupportedFontFormat,    /**< This font format is not supported by PoDoFO. */
     ePdfError_ActionAlreadyPresent,     /**< An Action was already present when trying to add a Destination */
 
     ePdfError_MissingEndStream,         /**< The required token endstream was not found. */

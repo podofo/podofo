@@ -126,17 +126,36 @@ void PdfFont::Init( bool bEmbedd )
 
 void PdfFont::EmbeddFont( PdfObject* pDescriptor )
 {
+    EPdfFontType eType = m_pMetrics->GetFontType();
+
+    switch( eType ) 
+    {
+        case ePdfFontType_TrueType:
+            EmbeddTrueTypeFont( pDescriptor );
+            break;
+        case ePdfFontType_Type1Pfa:
+        case ePdfFontType_Type1Pfb:
+            EmbeddType1Font( pDescriptor );
+            break;
+        case ePdfFontType_Unknown:
+        default:
+            PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFontFormat, m_pMetrics->GetFilename() );
+    }
+}
+
+void PdfFont::EmbeddTrueTypeFont( PdfObject* pDescriptor )
+{
     PdfObject* pContents;
     long       lSize = 0;
-
+        
     pContents = m_pObject->GetOwner()->CreateObject();
     if( !pContents )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
-
+        
     pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->Reference() );
-
+        
     // if the data was loaded from memory - use it from there
     // otherwise, load from disk
     if ( m_pMetrics->GetFontDataLen() && m_pMetrics->GetFontData() ) 
@@ -144,18 +163,53 @@ void PdfFont::EmbeddFont( PdfObject* pDescriptor )
         // FIXME const_cast<char*> is dangerous if string literals may ever be passed
         char* pBuffer = const_cast<char*>( m_pMetrics->GetFontData() );
         lSize = m_pMetrics->GetFontDataLen();
-
+            
         pContents->GetStream()->Set( pBuffer, lSize );
     } 
     else 
     {
         PdfFileInputStream stream( m_pMetrics->GetFilename() );
         pContents->GetStream()->Set( &stream );
-
+            
         lSize = stream.GetFileLength();
     }
-    
+        
     pContents->GetDictionary().AddKey( "Length1", PdfVariant( lSize ) );
+}
+
+void PdfFont::EmbeddType1Font( PdfObject* pDescriptor )
+{
+    PdfObject* pContents;
+    long       lSize = 0;
+        
+    pContents = m_pObject->GetOwner()->CreateObject();
+    if( !pContents )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+        
+    pDescriptor->GetDictionary().AddKey( "FontFile", pContents->Reference() );
+        
+    // if the data was loaded from memory - use it from there
+    // otherwise, load from disk
+    if ( m_pMetrics->GetFontDataLen() && m_pMetrics->GetFontData() ) 
+    {
+        // FIXME const_cast<char*> is dangerous if string literals may ever be passed
+        char* pBuffer = const_cast<char*>( m_pMetrics->GetFontData() );
+        lSize = m_pMetrics->GetFontDataLen();
+            
+        pContents->GetStream()->Set( pBuffer, lSize );
+    } 
+    else 
+    {
+        PdfFileInputStream stream( m_pMetrics->GetFilename() );
+        pContents->GetStream()->Set( &stream );
+            
+        lSize = stream.GetFileLength();
+    }
+        
+    pContents->GetDictionary().AddKey( "Length1", PdfVariant( lSize ) );
+    // TODO: Length2, Length3
 }
 
 void PdfFont::SetFontSize( float fSize )

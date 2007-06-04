@@ -29,6 +29,7 @@
 
 namespace PoDoFo {
 
+class PdfAcroForm;
 class PdfDestination;
 class PdfDictionary;
 class PdfFileSpec;
@@ -172,7 +173,7 @@ class PODOFO_API PdfDocument {
     /** Get access to the AcroForm dictionary
      *  \returns PdfObject the AcroForm dictionary
      */
-    PdfObject* GetAcroForm() const { return GetNamedObjectFromCatalog( "AcroForm" ); }
+    PdfAcroForm* GetAcroForm( bool bCreate = ePdfCreateObject );
 
     /** Get access to the pages tree.
      *  Better use GetPage and CreatePage methods.
@@ -381,6 +382,7 @@ class PODOFO_API PdfDocument {
     PdfOutlines*    m_pOutlines;
     PdfNamesTree*   m_pNamesTree;
     PdfPagesTree*   m_pPagesTree;
+    PdfAcroForm*    m_pAcroForms;
 
     PdfObject*      m_pTrailer;
     PdfObject*      m_pCatalog;

@@ -121,6 +121,11 @@ class PODOFO_API PdfAnnotation : public PdfElement {
      */
     void SetAppearanceStream( PdfXObject* pObject );
 
+    /** 
+     * \returns true if this annotation has an appearance stream
+     */
+    bool HasAppearanceStream() const;
+
     /** Get the rectangle of this annotation
      *  \returns a rectangle
      */

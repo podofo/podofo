@@ -19,11 +19,13 @@
  ***************************************************************************/
 
 #include "PdfAction.h"
+#include "PdfAcroForm.h"
 #include "PdfAnnotation.h"
 #include "PdfDestination.h"
 #include "PdfDictionary.h"
 #include "PdfDocument.h"
 #include "PdfExtGState.h"
+#include "PdfField.h"
 #include "PdfFileSpec.h"
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
@@ -144,6 +146,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->SetStrokeStyle( ePdfStrokeStyle_Custom, "[7 9 2] 4" );
     pPainter->DrawLine( x, y, x + (100000 * CONVERSION_CONSTANT), y );
     y -= (10000 * CONVERSION_CONSTANT);
+    
 }
 
 void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
@@ -378,6 +381,8 @@ void MMTest( PdfPainterMM* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->FillEllipseMM( lX+20000, lY, 20000, 20000 );
     pPainter->SetColor( 0.0, 0.0, 1.0 );
     pPainter->FillEllipseMM( lX+10000, lY-10000, 20000, 20000 );
+
+
 }
 
 int main( int argc, char* argv[] ) 
@@ -464,6 +469,9 @@ int main( int argc, char* argv[] )
     }
 
     writer.GetNamesTree()->AddValue( "TestDict", PdfString( "Berta" ), PdfVariant( 42L )  );
+
+    PdfAcroForm* pAcroForm = writer.GetAcroForm();
+    printf("Form fields count: %i\n", pAcroForm->GetCount());
 
     printf("Setting document informations.\n\n");
     // Setup the document information dictionary

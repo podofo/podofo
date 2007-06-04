@@ -38,6 +38,18 @@ namespace PoDoFo {
 class PdfArray;
 class PdfVariant;
 
+/**
+ * Enum for the different font formats supported by PoDoFo
+ */
+typedef enum EPdfFontType {
+    ePdfFontType_TrueType,
+    ePdfFontType_Type1Pfa,
+    ePdfFontType_Type1Pfb,
+
+    ePdfFontType_Unknown = 0xff
+};
+
+
 class PODOFO_API PdfFontMetrics {
  public:
     /** Create a font metrics object for a given true type file
@@ -243,6 +255,11 @@ class PODOFO_API PdfFontMetrics {
 #else
     static std::string GetFilenameForFont( FcConfig* pConfig, const char* pszFontname );
 #endif
+
+    /** 
+     *  \returns the fonttype of the loaded font
+     */
+    EPdfFontType GetFontType() const;
 
  private:
     /** Load the metric data from the FTFace data

@@ -110,16 +110,27 @@ PdfRect PdfAnnotation::GetRect() const
 void PdfAnnotation::SetAppearanceStream( PdfXObject* pObject )
 {
     PdfDictionary dict;
+    PdfDictionary internal;
 
     if( !pObject )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    dict.AddKey( "N", pObject->GetObject()->Reference() );
+    internal.AddKey( "On", pObject->GetObject()->Reference() );
+    internal.AddKey( "Off", pObject->GetObject()->Reference() );
+
+    dict.AddKey( "N", internal );
 
     m_pObject->GetDictionary().AddKey( "AP", dict );
+    m_pObject->GetDictionary().AddKey( "AS", PdfName("On") );
 }
+
+bool PdfAnnotation::HasAppearanceStream() const
+{
+    return m_pObject->GetDictionary().HasKey( "AP" );
+}
+
 
 void PdfAnnotation::SetFlags( pdf_uint32 uiFlags )
 {

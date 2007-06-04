@@ -26,10 +26,13 @@
 #include <deque>
 #include <iostream>
 
+
+#include "PdfDocument.h"
+
+#include "PdfAcroForm.h"
 #include "PdfArray.h"
 #include "PdfDestination.h"
 #include "PdfDictionary.h"
-#include "PdfDocument.h"
 #include "PdfFileSpec.h"
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
@@ -43,13 +46,13 @@
 #include "PdfStream.h"
 #include "PdfVecObjects.h"
 
-namespace PoDoFo {
-
 using namespace std;
+
+namespace PoDoFo {
 
 PdfDocument::PdfDocument()
     : m_pOutlines( NULL ), m_pNamesTree( NULL ), m_pPagesTree( NULL ), 
-      m_pTrailer( NULL ), m_fontCache( &m_vecObjects )
+      m_pAcroForms( NULL ), m_pTrailer( NULL ), m_fontCache( &m_vecObjects )
 {
     m_eVersion    = ePdfVersion_1_3;
     m_bLinearized = false;
@@ -69,7 +72,7 @@ PdfDocument::PdfDocument()
 
 PdfDocument::PdfDocument( const char* pszFilename )
     : m_pInfo( NULL ), m_pOutlines( NULL ), m_pNamesTree( NULL ), m_pPagesTree( NULL ), 
-      m_pTrailer( NULL ), m_fontCache( &m_vecObjects )
+      m_pAcroForms( NULL ), m_pTrailer( NULL ), m_fontCache( &m_vecObjects )
 {
     m_vecObjects.SetParentDocument( this );
 
@@ -117,6 +120,12 @@ void PdfDocument::Clear()
     {
         delete m_pOutlines;
         m_pOutlines = NULL;
+    }
+
+    if( m_pAcroForms ) 
+    {
+        delete m_pAcroForms;
+        m_pAcroForms = NULL;
     }
 
     if ( m_pTrailer ) 
@@ -610,6 +619,28 @@ PdfNamesTree* PdfDocument::GetNamesTree( bool bCreate )
     }        
     
     return m_pNamesTree;
+}
+
+PdfAcroForm* PdfDocument::GetAcroForm( bool bCreate )
+{
+    PdfObject* pObj;
+
+    if( !m_pAcroForms )
+    {
+        pObj = GetNamedObjectFromCatalog( "AcroForm" );
+        if( !pObj ) 
+        {
+            if ( !bCreate )	return NULL;
+            
+            m_pAcroForms = new PdfAcroForm( &m_vecObjects );
+            m_pCatalog->GetDictionary().AddKey( "AcroForm", m_pAcroForms->GetObject()->Reference() );
+        } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
+            PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+        } else
+            m_pAcroForms = new PdfAcroForm( pObj, m_pCatalog );
+    }        
+    
+    return m_pAcroForms;
 }
 
 void PdfDocument::AddNamedDestination( const PdfDestination& rDest, const PdfString & rName )

@@ -36,6 +36,7 @@
 #define PODOFO_REVISION 0
 
 #include "PdfAction.h"
+#include "PdfAcroForm.h"
 #include "PdfAnnotation.h"
 #include "PdfArray.h"
 #include "PdfCanvas.h"
@@ -47,6 +48,7 @@
 #include "PdfElement.h"
 #include "PdfError.h"
 #include "PdfExtGState.h"
+#include "PdfField.h"
 #include "PdfFileSpec.h"
 #include "PdfFilter.h"
 #include "PdfFont.h"

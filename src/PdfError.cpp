@@ -240,6 +240,9 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_UnsupportedFilter:
             pszMsg = "ePdfError_UnsupportedFilter"; 
             break;
+        case ePdfError_UnsupportedFontFormat:    /**< This font format is not supported by PoDoFO. */
+            pszMsg = "ePdfError_UnsupportedFontFormat";
+            break;
         case ePdfError_ActionAlreadyPresent:
             pszMsg = "ePdfError_ActionAlreadyPresent"; 
             break;
@@ -332,6 +335,10 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
         case ePdfError_InvalidName:
 
         case ePdfError_UnsupportedFilter:
+            break;
+        case ePdfError_UnsupportedFontFormat:
+            pszMsg = "This font format is not supported by PoDoFO.";
+            break;
         case ePdfError_ActionAlreadyPresent:
 
         case ePdfError_MissingEndStream:

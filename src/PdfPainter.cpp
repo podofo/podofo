@@ -475,7 +475,7 @@ void PdfPainter::DrawCircle( double dX, double dY, double dRadius )
 
 void PdfPainter::DrawText( double dX, double dY, const PdfString & sText )
 {
-    this->DrawText( dX, dY, sText, sText.GetLength() );
+    this->DrawText( dX, dY, sText, sText.GetLength() - 1 );
 }
 
 void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long lStringLen )

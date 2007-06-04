@@ -97,6 +97,12 @@ class PODOFO_API PdfAction : public PdfElement {
      */
     bool HasURI() const;
 
+    void SetScript( const PdfString & sScript );
+
+    PdfString GetScript() const;
+
+    bool HasScript() const;
+
     /** Get the type of this action
      *  \returns the type of this action
      */

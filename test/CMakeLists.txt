@@ -1,6 +1,7 @@
 SUBDIRS(
 	CreationTest
 	FilterTest
+	FormTest
 	LargeTest
 	ObjectParserTest
 	ParserTest

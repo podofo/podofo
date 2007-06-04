@@ -1017,105 +1017,107 @@ std::string	Std2AltFontName( const std::string& inStdName )
 
 std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
 {
+    // TODO: Use FT_GetFile_From_Mac_ATS_Name
+
     FSSpec  fSpec;
     FT_Long fIndex = 0;
-	FT_Error    error = My_FT_GetFile_From_Mac_ATS_Name( const_cast<char*>(pszFontname), &fSpec, &fIndex );
-	if ( error ) {
-		// try use the alternate name...
-		std::string	altName = Std2AltFontName( pszFontname );
-		// mLog.Debug( boost::format("Unable to locate - trying alternate '%s'\n") % altName.c_str() );
-		error = My_FT_GetFile_From_Mac_ATS_Name( const_cast<char*>(altName.c_str()), &fSpec, &fIndex );
-		if ( error ) {
-		    // mLog.Debug( boost::format("Unable to locate - trying as Postscript\n") );
-
-		    // see if this is a Postscript name...
-		    CFStringRef    cstr = CFStringCreateWithCString( NULL, pszFontname, kCFStringEncodingUTF8 );
-		    if ( cstr != NULL ) {
-			ATSFontRef  fontRef = ATSFontFindFromPostScriptName( cstr, kATSOptionFlagsDefault );
-			if ( fontRef != kATSFontRefUnspecified ) {
-			    // mLog.Debug( "**Found it!\n" );
-			    error = ATSFontGetFileSpecification( fontRef, &fSpec );
-			} else {
-			    // mLog.Debug( boost::format("*Unable to locate as Postscript - giving up!\n") );
-			}
-			CFRelease( cstr );
-		    }
-		}
-	}
-
-	if ( !error ) {
-        FSRef	 	ref;
-	    OSErr   err = FSpMakeFSRef( &fSpec, &ref );
-	    if ( !err ) {
-		CFURLRef    url = CFURLCreateFromFSRef( kCFAllocatorDefault, &ref );
-		CFStringRef pathRef = CFURLCopyFileSystemPath( url, kCFURLPOSIXPathStyle );
-		CFIndex     length = CFStringGetLength( pathRef ) + 0x02;
-		char*       path = (char *)calloc( length, sizeof( *path ) );
-		if ( CFStringGetCString( pathRef, path, length, kCFStringEncodingUTF8 ) ) {
-		    std::string fontPath( path );
-		    if ( (fontPath.find( ".ttf" ) != fontPath.npos) || (fontPath.find( ".otf" ) != fontPath.npos) ) {
-				// mLog.Debug( boost::format("Found matching TTF/OTF font for '%s', index %d\n") % pszFontname % fIndex );
-#if 1	//def FILE_BASED
-				CPDFFTFont*	ftFont = new CPDFFTFont( *this, fontPath, fIndex );
-#else
-				std::string	fontBufStr;
-				StringUtils::ReadFileIntoString( fontPath, fontBufStr );
-				ASInt32	fontBufferLen = fontBufStr.length();
-				if (fontBufferLen == 0) {
-				  CFRelease( pathRef );
-				  CFRelease( url );
-				  free(path);
-				  return NULL;
-				}
-				char*	fontBuffer = (char*)ASmalloc( fontBufferLen );
-				memcpy( fontBuffer, fontBufStr.c_str(), fontBufferLen );
-
-				CPDFFTFont*	ftFont = new CPDFFTFont( *this, fontBuffer, fontBufferLen, fIndex );
-#endif
-				retFont = reinterpret_cast< CPDFFont* >( ftFont );
-		    } else if ( fontPath.find( ".dfont" ) != fontPath.npos ) {
-				char*	fontBuffer = NULL;
-				ASInt32	fontBufferLen = 0;
-	
-				// mLog.Debug( boost::format("Found a matching .dfont for '%s', index %d\n") % pszFontname % fIndex );
-				FT_Error dfErr = LoadFontFromDFont( mLog, ref, fSpec, pszFontname, fIndex, &fontBuffer, fontBufferLen );
-				if ( !dfErr ) {
-				    CPDFFTFont*	ftFont = new CPDFFTFont( *this, fontBuffer, fontBufferLen, fIndex );
-				    retFont = reinterpret_cast< CPDFFont* >( ftFont );
-				}
-		    } else {
-				char*	fontBuffer = NULL;
-				ASInt32	fontBufferLen = 0;
-	
-				fSpec.name[ fSpec.name[0]+1 ] = 0;	// zero term for C func
-				// mLog.Debug( boost::format("Found a matching CLASSIC font for '%s' at '%s', index %d\n") % pszFontname % &fSpec.name[1] % fIndex );
-				FT_Error dfErr = 0;
-				OSType file_type = get_file_type( &fSpec );
-				if ( file_type == 'LWFN' ) {
-					// mLog.Debug( "Loading from LWFN...\n" );
-					if ( fIndex > 0 ) fIndex = 0;	// don't need it anymore...
-					dfErr = LoadFontFromLWFN( mLog, ref, fSpec, pszFontname, fIndex, &fontBuffer, fontBufferLen );
-				} else {
-					// mLog.Debug( "Loading from Suitcase...\n" );
-					dfErr = LoadFontFromDFont( mLog, ref, fSpec, pszFontname, fIndex, &fontBuffer, fontBufferLen );
-				}
-				if ( !dfErr ) {
-				    CPDFFTFont*	ftFont = new CPDFFTFont( *this, fontBuffer, fontBufferLen, fIndex );
-				    retFont = reinterpret_cast< CPDFFont* >( ftFont );
-				} else {
-					// mLog.Debug( boost::format("FTError: '%d'\n") % dfErr );
-				}
+    FT_Error    error = My_FT_GetFile_From_Mac_ATS_Name( const_cast<char*>(pszFontname), &fSpec, &fIndex );
+    if ( error ) {
+        // try use the alternate name...
+        std::string	altName = Std2AltFontName( pszFontname );
+        // mLog.Debug( boost::format("Unable to locate - trying alternate '%s'\n") % altName.c_str() );
+        error = My_FT_GetFile_From_Mac_ATS_Name( const_cast<char*>(altName.c_str()), &fSpec, &fIndex );
+        if ( error ) {
+            // mLog.Debug( boost::format("Unable to locate - trying as Postscript\n") );
+            
+            // see if this is a Postscript name...
+            CFStringRef    cstr = CFStringCreateWithCString( NULL, pszFontname, kCFStringEncodingUTF8 );
+            if ( cstr != NULL ) {
+                ATSFontRef  fontRef = ATSFontFindFromPostScriptName( cstr, kATSOptionFlagsDefault );
+                if ( fontRef != kATSFontRefUnspecified ) {
+                    // mLog.Debug( "**Found it!\n" );
+                    error = ATSFontGetFileSpecification( fontRef, &fSpec );
+                } else {
+                    // mLog.Debug( boost::format("*Unable to locate as Postscript - giving up!\n") );
+                }
+                CFRelease( cstr );
             }
-		} else {
-	    	// mLog.Debug( boost::format("Unable to locate a matching font for '%s'\n") % pszFontname );
         }
+    }
+    
+    if ( !error ) {
+        FSRef	 	ref;
+        OSErr   err = FSpMakeFSRef( &fSpec, &ref );
+        if ( !err ) {
+            CFURLRef    url = CFURLCreateFromFSRef( kCFAllocatorDefault, &ref );
+            CFStringRef pathRef = CFURLCopyFileSystemPath( url, kCFURLPOSIXPathStyle );
+            CFIndex     length = CFStringGetLength( pathRef ) + 0x02;
+            char*       path = (char *)calloc( length, sizeof( *path ) );
+            if ( CFStringGetCString( pathRef, path, length, kCFStringEncodingUTF8 ) ) {
+                std::string fontPath( path );
+                if ( (fontPath.find( ".ttf" ) != fontPath.npos) || (fontPath.find( ".otf" ) != fontPath.npos) ) {
+                    // mLog.Debug( boost::format("Found matching TTF/OTF font for '%s', index %d\n") % pszFontname % fIndex );
+#if 1	//def FILE_BASED
+                    CPDFFTFont*	ftFont = new CPDFFTFont( *this, fontPath, fIndex );
+#else
+                    std::string	fontBufStr;
+                    StringUtils::ReadFileIntoString( fontPath, fontBufStr );
+                    ASInt32	fontBufferLen = fontBufStr.length();
+                    if (fontBufferLen == 0) {
+                        CFRelease( pathRef );
+                        CFRelease( url );
+                        free(path);
+                        return NULL;
+                    }
+                    char*	fontBuffer = (char*)ASmalloc( fontBufferLen );
+                    memcpy( fontBuffer, fontBufStr.c_str(), fontBufferLen );
+                    
+                    CPDFFTFont*	ftFont = new CPDFFTFont( *this, fontBuffer, fontBufferLen, fIndex );
+#endif
+                    retFont = reinterpret_cast< CPDFFont* >( ftFont );
+                } else if ( fontPath.find( ".dfont" ) != fontPath.npos ) {
+                    char*	fontBuffer = NULL;
+                    ASInt32	fontBufferLen = 0;
+                    
+                    // mLog.Debug( boost::format("Found a matching .dfont for '%s', index %d\n") % pszFontname % fIndex );
+                    FT_Error dfErr = LoadFontFromDFont( mLog, ref, fSpec, pszFontname, fIndex, &fontBuffer, fontBufferLen );
+                    if ( !dfErr ) {
+                        CPDFFTFont*	ftFont = new CPDFFTFont( *this, fontBuffer, fontBufferLen, fIndex );
+                        retFont = reinterpret_cast< CPDFFont* >( ftFont );
+                    }
+                } else {
+                    char*	fontBuffer = NULL;
+                    ASInt32	fontBufferLen = 0;
+	
+                    fSpec.name[ fSpec.name[0]+1 ] = 0;	// zero term for C func
+                    // mLog.Debug( boost::format("Found a matching CLASSIC font for '%s' at '%s', index %d\n") % pszFontname % &fSpec.name[1] % fIndex );
+                    FT_Error dfErr = 0;
+                    OSType file_type = get_file_type( &fSpec );
+                    if ( file_type == 'LWFN' ) {
+                        // mLog.Debug( "Loading from LWFN...\n" );
+                        if ( fIndex > 0 ) fIndex = 0;	// don't need it anymore...
+                        dfErr = LoadFontFromLWFN( mLog, ref, fSpec, pszFontname, fIndex, &fontBuffer, fontBufferLen );
+                    } else {
+                        // mLog.Debug( "Loading from Suitcase...\n" );
+                        dfErr = LoadFontFromDFont( mLog, ref, fSpec, pszFontname, fIndex, &fontBuffer, fontBufferLen );
+                    }
+                    if ( !dfErr ) {
+                        CPDFFTFont*	ftFont = new CPDFFTFont( *this, fontBuffer, fontBufferLen, fIndex );
+                        retFont = reinterpret_cast< CPDFFont* >( ftFont );
+                    } else {
+                        // mLog.Debug( boost::format("FTError: '%d'\n") % dfErr );
+                    }
+                }
+            } else {
+	    	// mLog.Debug( boost::format("Unable to locate a matching font for '%s'\n") % pszFontname );
+            }
 
-		free( path );
-		CFRelease( pathRef );
-		CFRelease( url );
+            free( path );
+            CFRelease( pathRef );
+            CFRelease( url );
         }
     } else {
-		// mLog.Debug( boost::format("Unable to locate a matching font for '%s'\n") % pszFontname );
+        // mLog.Debug( boost::format("Unable to locate a matching font for '%s'\n") % pszFontname );
     }
 }
 
@@ -1225,6 +1227,52 @@ void PdfFontMetrics::SetFontSize( float fSize )
     m_dDescent = static_cast<double>(m_face->descender) * fSize / m_face->units_per_EM;
 
     m_fFontSize = fSize;
+}
+
+EPdfFontType PdfFontMetrics::GetFontType() const
+{
+    /*
+    long lBufferLen = 1024;
+    char buffer[lBufferLen];
+
+    if( m_pFontData ) 
+    {
+        lBufferLen = PDF_MIN( m_nFontDataLen, lBufferLen );
+        memcpy( buffer, m_pFontData, lBufferLen );
+    }
+    else
+    {
+        FILE* hFile = fopen( m_sFilename.c_str(), "rb" );
+        if( !hFile ) 
+            return ePdfFontType_Unknown;
+
+        fread( buffer, sizeof(char), lBufferLen, hFile );
+        fclose( hFile );
+    }
+
+    // TODO: check with magic number
+    */
+
+    // We check by file extension right now
+    // which is not quite correct, but still better than before
+
+    if( !m_sFilename.empty() && m_sFilename.length() > 3 )
+    {
+        const char* pszExtension = m_sFilename.c_str() + m_sFilename.length() - 3;
+        if( strncasecmp( pszExtension, "ttf", 3 ) == 0 )
+            return ePdfFontType_TrueType;
+        else if( strncasecmp( pszExtension, "pfa", 3 ) == 0 )
+            return ePdfFontType_Type1Pfa;
+        else if( strncasecmp( pszExtension, "pfb", 3 ) == 0 )
+            return ePdfFontType_Type1Pfb;
+    }
+    else
+    {
+        // assume true type
+        return ePdfFontType_TrueType;
+    }
+    
+    return ePdfFontType_Unknown;
 }
 
 };

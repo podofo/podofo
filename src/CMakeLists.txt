@@ -1,5 +1,6 @@
 SET(PODOFO_SOURCES
     PdfAction.cpp
+    PdfAcroForm.cpp
     PdfAnnotation.cpp
     PdfArray.cpp
     PdfCanvas.cpp
@@ -14,6 +15,7 @@ SET(PODOFO_SOURCES
     PdfEncrypt.cpp
     PdfError.cpp
     PdfExtGState.cpp
+    PdfField.cpp
     PdfFileSpec.cpp
     PdfFileStream.cpp
     PdfFilter.cpp
@@ -59,6 +61,7 @@ SET(PODOFO_SOURCES
 
 SET(PODOFO_HEADERS
 	PdfAction.h
+	PdfAcroForm.h
 	PdfAnnotation.h
 	PdfArray.h
 	PdfCanvas.h
@@ -74,6 +77,7 @@ SET(PODOFO_HEADERS
 	PdfEncrypt.h
 	PdfError.h
 	PdfExtGState.h
+	PdfField.h
 	PdfFileSpec.h
 	PdfFileStream.h
 	PdfFilter.h

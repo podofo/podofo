@@ -88,6 +88,24 @@ bool PdfAction::HasURI() const
     return m_pObject->GetDictionary().HasKey( "URI" );
 }
 
+void PdfAction::SetScript( const PdfString & sScript )
+{
+    m_pObject->GetDictionary().AddKey( "JS", sScript );
+
+}
+
+PdfString PdfAction::GetScript() const
+{
+    return m_pObject->GetDictionary().GetKey( "JS" )->GetString();
+
+}
+
+bool PdfAction::HasScript() const
+{
+    return m_pObject->GetDictionary().HasKey( "JS" );
+}
+
+
 
 
 };
