@@ -160,7 +160,6 @@ INCLUDE_DIRECTORIES(
     ${LIBFREETYPE_FREETYPE_H}
     ${LIBZ_H}
     ${EXTRA_INCLUDES}
-    /usr/include/freetype2
      )
 LINK_DIRECTORIES(
     ${PoDoFo_BINARY_DIR}/src
