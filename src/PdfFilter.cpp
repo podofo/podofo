@@ -332,6 +332,10 @@ TVecFilters PdfFilterFactory::CreateFilterList( const PdfObject* pObject )
         pObj = pObject;
 
 
+    if (!pObj)
+	// Object had no /Filter key . Return a null filter list.
+	return filters;
+
     if( pObj->IsName() ) 
         filters.push_back( PdfFilterFactory::FilterNameToType( pObj->GetName() ) );
     else if( pObj->IsArray() ) 
