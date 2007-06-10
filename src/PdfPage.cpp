@@ -216,7 +216,7 @@ PdfAnnotation* PdfPage::GetAnnotation( int index )
             PODOFO_RAISE_ERROR( ePdfError_NoObject );
         }
      
-        pAnnot = new PdfAnnotation( pObj );
+        pAnnot = new PdfAnnotation( pObj, this );
         m_mapAnnotations[ref] = pAnnot;
     }
 

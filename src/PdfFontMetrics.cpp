@@ -43,7 +43,7 @@ static bool GetWin32HostFont( const std::string& inFontName, char** outFontBuffe
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename )
     : m_pLibrary( pLibrary ), m_sFilename( pszFilename ), m_pFontData( NULL ), 
-      m_nFontDataLen( 0 ), m_fFontSize( 0.0f )
+      m_nFontDataLen( 0 ), m_fFontSize( 0.0f ), m_eFontType( ePdfFontType_Unknown )
 {
     m_face                = NULL;
 
@@ -56,9 +56,10 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename )
         unsigned int fontBufLen = 0;
         if ( GetWin32HostFont( m_sFilename, &fontBuf, fontBufLen ) ) 
         {
-            err = FT_New_Memory_Face( *pLibrary, (unsigned char*)fontBuf, fontBufLen, 0, &m_face );
-            m_pFontData = fontBuf;
+            err            = FT_New_Memory_Face( *pLibrary, (unsigned char*)fontBuf, fontBufLen, 0, &m_face );
+            m_pFontData    = fontBuf;
             m_nFontDataLen = fontBufLen;
+            m_eFontType    = ePdfFontType_TrueType;
         }
 #else
         // throw an exception
@@ -66,14 +67,17 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename )
         PODOFO_RAISE_ERROR( ePdfError_FreeType );
 #endif
     }
+    else
+    {
+        SetFontTypeFromFilename( m_sFilename.c_str() );
+    }
     
-
     InitFromFace();
 }
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen )
 	: m_pLibrary( pLibrary ), m_sFilename( "" ), m_pFontData( const_cast<char*>(pBuffer) ), 
-          m_nFontDataLen( nBufLen ), m_fFontSize( 0.0f )
+          m_nFontDataLen( nBufLen ), m_fFontSize( 0.0f ), m_eFontType( ePdfFontType_Unknown )
 {
     m_face                = NULL;
 
@@ -84,14 +88,22 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsig
         PdfError::LogMessage( eLogSeverity_Critical, "FreeType return edthe error %i when calling FT_New_Face for a buffered font.", error );
         PODOFO_RAISE_ERROR( ePdfError_FreeType );
     }
+    else
+    {
+        // asume true type
+        m_eFontType = ePdfFontType_TrueType;
+    }
 
     InitFromFace();
 }
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, FT_Face face )
-    : m_face( face ), m_pLibrary( pLibrary ), m_sFilename( "" ), m_fFontSize( 0.0f )
+    : m_face( face ), m_pLibrary( pLibrary ), m_sFilename( "" ), m_fFontSize( 0.0f ), m_eFontType( ePdfFontType_Unknown )
 
 {
+    // asume true type
+    m_eFontType = ePdfFontType_TrueType;
+    
     InitFromFace();
 }
 
@@ -1229,50 +1241,26 @@ void PdfFontMetrics::SetFontSize( float fSize )
     m_fFontSize = fSize;
 }
 
-EPdfFontType PdfFontMetrics::GetFontType() const
+void PdfFontMetrics::SetFontTypeFromFilename( const char* pszFilename )
 {
-    /*
-    long lBufferLen = 1024;
-    char buffer[lBufferLen];
-
-    if( m_pFontData ) 
-    {
-        lBufferLen = PDF_MIN( m_nFontDataLen, lBufferLen );
-        memcpy( buffer, m_pFontData, lBufferLen );
-    }
-    else
-    {
-        FILE* hFile = fopen( m_sFilename.c_str(), "rb" );
-        if( !hFile ) 
-            return ePdfFontType_Unknown;
-
-        fread( buffer, sizeof(char), lBufferLen, hFile );
-        fclose( hFile );
-    }
-
-    // TODO: check with magic number
-    */
-
     // We check by file extension right now
     // which is not quite correct, but still better than before
 
-    if( !m_sFilename.empty() && m_sFilename.length() > 3 )
+    if( pszFilename && strlen( pszFilename ) > 3 )
     {
-        const char* pszExtension = m_sFilename.c_str() + m_sFilename.length() - 3;
+        const char* pszExtension = pszFilename + strlen( pszFilename ) - 3;
         if( strncasecmp( pszExtension, "ttf", 3 ) == 0 )
-            return ePdfFontType_TrueType;
+            m_eFontType = ePdfFontType_TrueType;
         else if( strncasecmp( pszExtension, "pfa", 3 ) == 0 )
-            return ePdfFontType_Type1Pfa;
+            m_eFontType = ePdfFontType_Type1Pfa;
         else if( strncasecmp( pszExtension, "pfb", 3 ) == 0 )
-            return ePdfFontType_Type1Pfb;
+            m_eFontType = ePdfFontType_Type1Pfb;
     }
     else
-    {
-        // assume true type
-        return ePdfFontType_TrueType;
-    }
-    
-    return ePdfFontType_Unknown;
+        m_eFontType = ePdfFontType_Unknown;
+
+    if( m_eFontType == ePdfFontType_Unknown )
+        PdfError::DebugMessage( "Warning: Unrecognized FontFormat: %s\n", m_sFilename.c_str() );
 }
 
 };

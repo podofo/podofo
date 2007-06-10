@@ -26,18 +26,20 @@
 
 namespace PoDoFo {
 
+class PdfDocument;
+
 class PODOFO_API PdfAcroForm : public PdfElement {
  public:
     /** Create a new PdfAcroForm dictionary object
      *  \param pParent parent of this action
      */
-    PdfAcroForm( PdfVecObjects* pParent );
+    PdfAcroForm( PdfDocument* pDoc );
 
     /** Create a PdfAcroForm dictionary object from an existing PdfObject
      *	\param pObject the object to create from
      *  \param pCatalog the Catalog dictionary of the owning PDF
      */
-    PdfAcroForm( PdfObject* pObject, PdfObject* pCatalog );
+    PdfAcroForm( PdfDocument* pDoc, PdfObject* pObject );
 
     virtual ~PdfAcroForm() { }
 
@@ -45,10 +47,30 @@ class PODOFO_API PdfAcroForm : public PdfElement {
     int GetCount();
     PdfObject* GetField( int nIndex );
 
+    /** Get the document that is associated with this 
+     *  acro forms dictionary.
+     *
+     *  \returns a valid pointer to the parent document
+     */
+    inline PdfDocument* GetDocument(); 
+
  private:
-    PdfObject*	m_pCatalog;
+    /** Initialize this object
+     *  with a default appearance
+     */
+    void Init();
+
+ private:
+    PdfDocument* m_pDocument;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfDocument* PdfAcroForm::GetDocument()
+{
+    return m_pDocument;
+}
 
 };
 

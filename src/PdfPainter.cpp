@@ -836,25 +836,12 @@ void PdfPainter::Restore()
 
 void PdfPainter::AddToPageResources( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName )
 {
-    if( !m_pPage || !rName.GetLength() || !rIdentifier.GetLength() )
+    if( !m_pPage )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    PdfObject* pResource = m_pPage->GetResources();
-    
-    if( !pResource )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    if( !pResource->GetDictionary().HasKey( rName ) )
-    {
-        pResource->GetDictionary().AddKey( rName, PdfDictionary() );
-    }
-
-    if( !pResource->GetDictionary().GetKey( rName )->GetDictionary().HasKey( rIdentifier ) )
-        pResource->GetDictionary().GetKey( rName )->GetDictionary().AddKey( rIdentifier, rRef );
+    m_pPage->AddResource( rIdentifier, rRef, rName );
 }
 
 void PdfPainter::ConvertRectToBezier( double dX, double dY, double dWidth, double dHeight, double pdPointX[], double pdPointY[] )

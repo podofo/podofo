@@ -632,12 +632,12 @@ PdfAcroForm* PdfDocument::GetAcroForm( bool bCreate )
         {
             if ( !bCreate )	return NULL;
             
-            m_pAcroForms = new PdfAcroForm( &m_vecObjects );
+            m_pAcroForms = new PdfAcroForm( this );
             m_pCatalog->GetDictionary().AddKey( "AcroForm", m_pAcroForms->GetObject()->Reference() );
         } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         } else
-            m_pAcroForms = new PdfAcroForm( pObj, m_pCatalog );
+            m_pAcroForms = new PdfAcroForm( this, pObj );
     }        
     
     return m_pAcroForms;

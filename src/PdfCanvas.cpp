@@ -20,6 +20,7 @@
 
 #include "PdfCanvas.h"
 
+#include "PdfDictionary.h"
 #include "PdfName.h"
 
 namespace PoDoFo {
@@ -38,6 +39,29 @@ const PdfArray & PdfCanvas::GetProcSet()
     }
 
     return s_procset;
+}
+
+void PdfCanvas::AddResource( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName )
+{
+    if( !rName.GetLength() || !rIdentifier.GetLength() )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    PdfObject* pResource = this->GetResources();
+    
+    if( !pResource )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    if( !pResource->GetDictionary().HasKey( rName ) )
+    {
+        pResource->GetDictionary().AddKey( rName, PdfDictionary() );
+    }
+
+    if( !pResource->GetDictionary().GetKey( rName )->GetDictionary().HasKey( rIdentifier ) )
+        pResource->GetDictionary().GetKey( rName )->GetDictionary().AddKey( rIdentifier, rRef );
 }
 
 };

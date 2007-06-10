@@ -22,7 +22,6 @@
 
 #include "PdfAcroForm.h"
 
-#include "PdfAnnotation.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfDocument.h"
@@ -94,8 +93,7 @@ void PdfField::Init( PdfAcroForm* pParent )
         break;
     }
 
-    // Add default appearance: black text, 12pt times 
-    m_pObject->GetDictionary().AddKey( PdfName("DA"), PdfString("0 0 0 rg /Ti 12 Tf") );
+    m_pWidget->SetBorderStyle( 0.0, 0.0, 5.0 );
 }
 
 PdfField::PdfField( PdfObject* pObject )
@@ -172,20 +170,37 @@ void PdfField::AddAlternativeAction( const PdfName & rsName, const PdfAction & r
 
 /////////////////////////////////////////////////////////////////////////////
 
-PdfPushButton::PdfPushButton( PdfAnnotation* pWidget, PdfAcroForm* pParent )
+PdfButton::PdfButton( PdfAnnotation* pWidget, PdfAcroForm* pParent )
     : PdfField( ePdfField_Button, pWidget, pParent )
+{
+}
+
+PdfButton::PdfButton( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent )
+    : PdfField( ePdfField_Button, pPage, rRect, pParent )
+{
+}
+
+PdfButton::PdfButton( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
+    : PdfField( ePdfField_Button, pPage, rRect, pDoc )
+{
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+PdfPushButton::PdfPushButton( PdfAnnotation* pWidget, PdfAcroForm* pParent )
+    : PdfButton( pWidget, pParent )
 {
     Init();
 }
 
 PdfPushButton::PdfPushButton( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent )
-    : PdfField( ePdfField_Button, pPage, rRect, pParent )
+    : PdfButton( pPage, rRect, pParent )
 {
     Init();
 }
 
 PdfPushButton::PdfPushButton( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
-    : PdfField( ePdfField_Button, pPage, rRect, pDoc )
+    : PdfButton( pPage, rRect, pDoc )
 {
     Init();
 }
@@ -194,11 +209,11 @@ PdfPushButton::PdfPushButton( PdfPage* pPage, const PdfRect & rRect, PdfDocument
 void PdfPushButton::Init() 
 {
     // make a push button
-    //m_pObject->GetDictionary().AddKey( PdfName("Ff"), 131072L );
-    //m_pObject->GetDictionary().AddKey( PdfName("Ff"), 4L );
+    this->SetFieldFlag( static_cast<int>(ePdfButton_PushButton), true );
+    //m_pWidget->SetFlags( 4 );
 
-    m_pWidget->SetFlags( 4 );
-
+    m_pObject->GetDictionary().AddKey( PdfName("H"), PdfName("I") );
+    /*
     if( !m_pWidget->HasAppearanceStream() )
     {
         // Create the default appearance stream
@@ -231,6 +246,7 @@ void PdfPushButton::Init()
 
         //pWidget->SetAppearanceStream( &xObj );
    }
+    */
 }
 
 void PdfPushButton::SetText( const PdfString & rsText )
@@ -245,6 +261,8 @@ void PdfPushButton::SetText( const PdfString & rsText )
 
     pMK = m_pObject->GetDictionary().GetKey( PdfName("MK") );
     pMK->GetDictionary().AddKey( PdfName("CA"), rsText );
+    pMK->GetDictionary().AddKey( PdfName("AC"), rsText );
+    pMK->GetDictionary().AddKey( PdfName("RC"), rsText );
 
     PdfArray color;
     color.push_back( 0.0 );
@@ -252,6 +270,14 @@ void PdfPushButton::SetText( const PdfString & rsText )
     color.push_back( 0.0 );
 
     pMK->GetDictionary().AddKey( PdfName("BG"), color );
+
+    PdfArray color2;
+    color.push_back( 0.0 );
+    color.push_back( 0.0 );
+    color.push_back( 0.0 );
+
+    pMK->GetDictionary().AddKey( PdfName("BC"), color2 );
+
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -276,11 +302,6 @@ PdfTextField::PdfTextField( PdfPage* pPage, const PdfRect & rRect, PdfDocument* 
 
 void PdfTextField::Init()
 {
-    m_pWidget->SetBorderStyle( 0.0, 0.0, 10.0 );
-    m_pObject->GetDictionary().AddKey( PdfName("Ff"), 8192L ); // Pasword
-    m_pObject->GetDictionary().AddKey( PdfName("Ff"), 4096L ); // Multiline
-
-
     this->SetText("PoDoFo Text Field");
 }
 
@@ -308,6 +329,209 @@ int PdfTextField::GetMaxLen() const
 {
     return m_pObject->GetDictionary().HasKey( PdfName("MaxLen") ) ? 
         m_pObject->GetDictionary().GetKey( PdfName("MaxLen") )->GetNumber() : -1;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+PdfListField::PdfListField( PdfAnnotation* pWidget, PdfAcroForm* pParent )
+    : PdfField( ePdfField_Choice, pWidget, pParent )
+{
+
+}
+
+PdfListField::PdfListField( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent )
+    : PdfField( ePdfField_Choice, pPage, rRect, pParent )
+{
+
+}
+
+PdfListField::PdfListField( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
+    : PdfField( ePdfField_Choice, pPage, rRect, pDoc )
+{
+
+}
+
+void PdfListField::InsertItem( const PdfString & rsValue, const PdfString & rsDisplayName )
+{
+    PdfVariant var;
+    PdfArray   opt;
+
+    if( rsDisplayName == PdfString::StringNull ) 
+        var = rsValue;
+    else
+    {
+        PdfArray array;
+        array.push_back( rsValue );
+        array.push_back( rsDisplayName );
+
+        var = array;
+    }
+
+    if( m_pObject->GetDictionary().HasKey( PdfName("Opt") ) )
+        opt = m_pObject->GetDictionary().GetKey( PdfName("Opt") )->GetArray();
+
+    // TODO: Sorting
+    opt.push_back( var );
+    m_pObject->GetDictionary().AddKey( PdfName("Opt"), opt );
+
+    /*
+    m_pObject->GetDictionary().AddKey( PdfName("V"), rsValue );
+
+    PdfArray array;
+    array.push_back( 0L );
+    m_pObject->GetDictionary().AddKey( PdfName("I"), array );
+    */
+}
+
+void PdfListField::RemoveItem( int nIndex )
+{
+    PdfArray   opt;
+
+    if( m_pObject->GetDictionary().HasKey( PdfName("Opt") ) )
+        opt = m_pObject->GetDictionary().GetKey( PdfName("Opt") )->GetArray();
+    
+    if( nIndex < 0 || nIndex > static_cast<int>(opt.size()) )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+    }
+
+    opt.erase( opt.begin() + nIndex );
+    m_pObject->GetDictionary().AddKey( PdfName("Opt"), opt );
+}
+
+const PdfString & PdfListField::GetItem( int nIndex ) const
+{
+    PdfArray   opt;
+    
+    if( m_pObject->GetDictionary().HasKey( PdfName("Opt") ) )
+        opt = m_pObject->GetDictionary().GetKey( PdfName("Opt") )->GetArray();
+    
+    if( nIndex < 0 || nIndex > static_cast<int>(opt.size()) )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+    }
+
+    PdfVariant var = opt[nIndex];
+    if( var.IsArray() ) 
+    {
+        if( var.GetArray().size() < 2 ) 
+        {
+            PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+        }
+        else
+            return var.GetArray()[0].GetString();
+    }
+
+    return var.GetString();
+}
+
+const PdfString & PdfListField::GetItemDisplayText( int nIndex ) const
+{
+    PdfArray   opt;
+    
+    if( m_pObject->GetDictionary().HasKey( PdfName("Opt") ) )
+        opt = m_pObject->GetDictionary().GetKey( PdfName("Opt") )->GetArray();
+    
+    if( nIndex < 0 || nIndex > static_cast<int>(opt.size()) )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+    }
+
+    PdfVariant var = opt[nIndex];
+    if( var.IsArray() ) 
+    {
+        if( var.GetArray().size() < 2 ) 
+        {
+            PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+        }
+        else
+            return var.GetArray()[1].GetString();
+    }
+
+    return var.GetString();
+}
+
+int PdfListField::GetItemCount() const
+{
+    PdfArray   opt;
+    
+    if( m_pObject->GetDictionary().HasKey( PdfName("Opt") ) )
+        opt = m_pObject->GetDictionary().GetKey( PdfName("Opt") )->GetArray();
+    
+    return opt.size();
+}
+
+void PdfListField::SetSelectedItem( int nIndex )
+{
+    PdfString selected = this->GetItem( nIndex );
+
+    m_pObject->GetDictionary().AddKey( PdfName("V"), selected );
+}
+
+int PdfListField::GetSelectedItem() const
+{
+    if( m_pObject->GetDictionary().HasKey( PdfName("V") ) )
+    {
+        PdfObject* pValue = m_pObject->GetDictionary().GetKey( PdfName("V") );
+        if( pValue->IsString() )
+        {
+            PdfString value = pValue->GetString();
+            for( int i=0;i<this->GetItemCount();i++ ) 
+            {
+                if( this->GetItem( i ) == value )
+                    return i;
+            }
+        }
+    }
+
+    return -1;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+
+PdfComboBox::PdfComboBox( PdfAnnotation* pWidget, PdfAcroForm* pParent )
+    : PdfListField( pWidget, pParent )
+{
+    this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), true );        
+    m_pWidget->SetBorderStyle( 0.0, 0.0, 1.0 );
+}
+
+PdfComboBox::PdfComboBox( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent )
+    : PdfListField( pPage, rRect, pParent )
+{
+    this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), true );        
+    m_pWidget->SetBorderStyle( 0.0, 0.0, 1.0 );
+}
+
+PdfComboBox::PdfComboBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
+    : PdfListField( pPage, rRect, pDoc )
+{
+    this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), true );        
+    m_pWidget->SetBorderStyle( 0.0, 0.0, 1.0 );
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+PdfListBox::PdfListBox( PdfAnnotation* pWidget, PdfAcroForm* pParent )
+    : PdfListField( pWidget, pParent )
+{
+    this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), false );        
+    m_pWidget->SetBorderStyle( 0.0, 0.0, 1.0 );
+}
+
+PdfListBox::PdfListBox( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent )
+    : PdfListField( pPage, rRect, pParent )
+{
+    this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), false );        
+    m_pWidget->SetBorderStyle( 0.0, 0.0, 1.0 );
+}
+
+PdfListBox::PdfListBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
+    : PdfListField( pPage, rRect, pDoc )
+{
+    this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), false );        
+    m_pWidget->SetBorderStyle( 0.0, 0.0, 1.0 );
 }
 
 };

@@ -70,6 +70,16 @@ class PODOFO_API PdfCanvas {
      */
     static const PdfArray & GetProcSet();
 
+
+    /** Register an object in the resource dictionary of this page or XObbject
+     *  so that it can be used for any following drawing operations.
+     *  
+     *  \param rIdentifier identifier of this object, e.g. /Ft0
+     *  \param rRef reference to the object you want to register
+     *  \param rName register under this key in the resource dictionary
+     */
+    void AddResource( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName );
+
  private:
     /** The procset is the same for all 
      *  PdfContents objects

@@ -37,7 +37,7 @@ using namespace std;
 
 namespace PoDoFo {
 
-PdfFont::PdfFont( PdfFontMetrics* pMetrics, bool bEmbedd, PdfVecObjects* pParent )
+PdfFont::PdfFont( PdfFontMetrics* pMetrics, bool bEmbed, PdfVecObjects* pParent )
     : PdfElement( "Font", pParent ), m_pMetrics( pMetrics )
 {
     ostringstream out;
@@ -54,7 +54,7 @@ PdfFont::PdfFont( PdfFontMetrics* pMetrics, bool bEmbedd, PdfVecObjects* pParent
     out << "Ft" << m_pObject->Reference().ObjectNumber();
     m_Identifier = PdfName( out.str().c_str() );
 
-    this->Init( bEmbedd );
+    this->Init( bEmbed );
 }
     
 PdfFont::~PdfFont()
@@ -62,7 +62,7 @@ PdfFont::~PdfFont()
     delete m_pMetrics;
 }
 
-void PdfFont::Init( bool bEmbedd )
+void PdfFont::Init( bool bEmbed )
 {
     unsigned int  i;
     int           curPos = 0;
@@ -118,24 +118,24 @@ void PdfFont::Init( bool bEmbedd )
     pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetPdfAscent() ); // //m_pMetrics->CapHeight() );
     pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( 1l ) ); //m_pMetrics->StemV() );
 
-    if( bEmbedd )
+    if( bEmbed )
     {
-        EmbeddFont( pDescriptor );
+        EmbedFont( pDescriptor );
     }
 }
 
-void PdfFont::EmbeddFont( PdfObject* pDescriptor )
+void PdfFont::EmbedFont( PdfObject* pDescriptor )
 {
     EPdfFontType eType = m_pMetrics->GetFontType();
 
     switch( eType ) 
     {
         case ePdfFontType_TrueType:
-            EmbeddTrueTypeFont( pDescriptor );
+            EmbedTrueTypeFont( pDescriptor );
             break;
         case ePdfFontType_Type1Pfa:
         case ePdfFontType_Type1Pfb:
-            EmbeddType1Font( pDescriptor );
+            EmbedType1Font( pDescriptor );
             break;
         case ePdfFontType_Unknown:
         default:
@@ -143,7 +143,7 @@ void PdfFont::EmbeddFont( PdfObject* pDescriptor )
     }
 }
 
-void PdfFont::EmbeddTrueTypeFont( PdfObject* pDescriptor )
+void PdfFont::EmbedTrueTypeFont( PdfObject* pDescriptor )
 {
     PdfObject* pContents;
     long       lSize = 0;
@@ -177,7 +177,7 @@ void PdfFont::EmbeddTrueTypeFont( PdfObject* pDescriptor )
     pContents->GetDictionary().AddKey( "Length1", PdfVariant( lSize ) );
 }
 
-void PdfFont::EmbeddType1Font( PdfObject* pDescriptor )
+void PdfFont::EmbedType1Font( PdfObject* pDescriptor )
 {
     PdfObject* pContents;
     long       lSize = 0;

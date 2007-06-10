@@ -63,6 +63,32 @@ void CreateSimpleForm( PdfPage* pPage, PdfDocument* pDoc )
 
     text.SetFileField( true );
     printf("Text IsMultiLine: %i\n", text.IsMultiLine() );
+
+    PdfComboBox combo( pPage, PdfRect( 10000 * CONVERSION_CONSTANT, 250000 * CONVERSION_CONSTANT,
+                                         50000 * CONVERSION_CONSTANT, 10000 * CONVERSION_CONSTANT ), pDoc );
+
+    combo.SetFieldName("ComboFieldName");
+    combo.InsertItem( "Value1" );
+    combo.InsertItem( "Value2" );
+    combo.InsertItem( "Value3" );
+    combo.InsertItem( "XXXX", "Displayed Text" );
+    combo.SetEditable( true );
+    combo.SetSelectedItem( 1 );
+
+    printf("IsComboBox: %i\n", combo.IsComboBox() );
+    printf("Count     : %i\n", combo.GetItemCount() );
+    printf("Selected  : %i\n", combo.GetSelectedItem() );
+
+    PdfListBox listBox( pPage, PdfRect( 70000 * CONVERSION_CONSTANT, 200000 * CONVERSION_CONSTANT,
+                                        50000 * CONVERSION_CONSTANT, 50000 * CONVERSION_CONSTANT ), pDoc );
+
+    listBox.SetFieldName("ListBoxFieldName");
+    listBox.InsertItem( "Value1", "Display 1" );
+    listBox.InsertItem( "Value2", "Display 2" );
+    listBox.InsertItem( "Value3", "Display 3" );
+    //listBox.InsertItem( "XXXX", "Displayed Text" );
+    listBox.SetMultiSelect( true );
+    listBox.SetSelectedItem( 2 );
 }
 
 int main( int argc, char* argv[] ) 

@@ -22,6 +22,10 @@
 
 #include "PdfArray.h" 
 #include "PdfDictionary.h"
+#include "PdfDocument.h"
+#include "PdfFont.h"
+
+#include <sstream>
 
 namespace PoDoFo {
 
@@ -29,17 +33,55 @@ namespace PoDoFo {
   We use NULL for the PdfElement name, since the AcroForm dict
   does NOT have a /Type key!
 */
-PdfAcroForm::PdfAcroForm( PdfVecObjects* pParent )
-    : PdfElement( NULL, pParent ), m_pCatalog( NULL )
+PdfAcroForm::PdfAcroForm( PdfDocument* pDoc )
+    : PdfElement( NULL, &(pDoc->GetObjects()) ), m_pDocument( pDoc )
 {
     // Initialize with an empty fields array
     m_pObject->GetDictionary().AddKey( PdfName("Fields"), PdfArray() );
+
+    Init();
 }
 
-PdfAcroForm::PdfAcroForm( PdfObject* pObject, PdfObject* pCatalog )
-    : PdfElement( NULL, pObject ), m_pCatalog( pCatalog )
+PdfAcroForm::PdfAcroForm( PdfDocument* pDoc, PdfObject* pObject )
+    : PdfElement( NULL, pObject ), m_pDocument( pDoc )
 {
+    Init();
+}
 
+void PdfAcroForm::Init( )
+{
+    // Add default appearance: black text, 12pt times 
+    // -> only if we do not have a DA key yet
+
+    m_pObject->GetDictionary().AddKey( PdfName("NeedAppearances"), true );
+
+    if( !m_pObject->GetDictionary().HasKey("DA") )
+    {
+        //PdfFont* pFont = pParent->GetDocument()->CreateFont( "Helvetica", false );
+        
+        // TODO: It is no good idea to always embedd arial
+        //       but handling of non embedded helvetica is currently broken
+        PdfFont*   pFont     = m_pDocument->CreateFont( "Arial", true );
+        PdfObject* pResource;
+        PdfObject* pFontDict;
+        
+        // Create DR key
+        if( !m_pObject->GetDictionary().HasKey( PdfName("DR") ) )
+            m_pObject->GetDictionary().AddKey( PdfName("DR"), PdfDictionary() );
+        pResource = m_pObject->GetDictionary().GetKey( PdfName("DR") );
+        
+        if( !pResource->GetDictionary().HasKey( PdfName("Font") ) )
+            pResource->GetDictionary().AddKey( PdfName("Font"), PdfDictionary() );
+        pFontDict = pResource->GetDictionary().GetKey( PdfName("Font") );
+        
+        pFontDict->GetDictionary().AddKey( pFont->GetIdentifier(), pFont->GetObject()->Reference() );
+        
+        // Create DA key
+        std::ostringstream oss;
+        PdfLocaleImbue(oss);
+        oss << "0 0 0 rg /" << pFont->GetIdentifier().GetName() << " 12 Tf";
+        m_pObject->GetDictionary().AddKey( PdfName("DA"), PdfString( oss.str() ) );
+    }
 }
 
 int PdfAcroForm::GetCount()

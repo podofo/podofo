@@ -29,12 +29,12 @@ class PODOFO_API PdfFont : public PdfElement {
      *  \param pMetrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object is 
      *         deleted along with the font.
-     *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
+     *  \param bEmbed specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
      *  \param pParent parent of the font object
      *  
      */
-    PdfFont( PdfFontMetrics* pMetrics, bool bEmbedd, PdfVecObjects* pParent );
+    PdfFont( PdfFontMetrics* pMetrics, bool bEmbed, PdfVecObjects* pParent );
     virtual ~PdfFont();
 
     /** Set the font size before drawing with this font.
@@ -72,31 +72,31 @@ class PODOFO_API PdfFont : public PdfElement {
     inline const PdfFontMetrics* GetFontMetrics() const;
 
  private:
-    /** Embedd the font file directly into the PDF file.
+    /** Embed the font file directly into the PDF file.
      *  \param pDescriptor font descriptor object
      */
-    void EmbeddFont( PdfObject* pDescriptor );
+    void EmbedFont( PdfObject* pDescriptor );
 
-    /** Embedd the font file directly into the PDF file.
+    /** Embed the font file directly into the PDF file.
      *
      *  The font file is a true type file.
      *
      *  \param pDescriptor font descriptor object
      */
-    void EmbeddTrueTypeFont( PdfObject* pDescriptor ); 
+    void EmbedTrueTypeFont( PdfObject* pDescriptor ); 
 
-    /** Embedd the font file directly into the PDF file.
+    /** Embed the font file directly into the PDF file.
      *
      *  The font file is a true type file.
      *
      *  \param pDescriptor font descriptor object
      */
-    void EmbeddType1Font( PdfObject* pDescriptor ); 
+    void EmbedType1Font( PdfObject* pDescriptor ); 
 
     /** Initialize the object
-     *  \param bEmbedd if true the font will be embeded into the PDF 
+     *  \param bEmbed if true the font will be embeded into the PDF 
      */
-    void Init( bool bEmbedd );
+    void Init( bool bEmbed );
 
  private: 
     float m_fFontSize;

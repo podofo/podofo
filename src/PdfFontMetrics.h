@@ -259,13 +259,22 @@ class PODOFO_API PdfFontMetrics {
     /** 
      *  \returns the fonttype of the loaded font
      */
-    EPdfFontType GetFontType() const;
+    inline EPdfFontType GetFontType() const;
 
  private:
     /** Load the metric data from the FTFace data
      *		Called internally by the constructors
      */
     void InitFromFace();
+
+    /** Try to detect the internal fonttype from
+     *  the file extension of a fontfile.
+     *
+     *  This function will set the member m_eFontType.
+     *
+     *  \param pszFilename must be the filename of a font file
+     */
+    void SetFontTypeFromFilename( const char* pszFilename );
 
  protected:
     FT_Face       m_face;
@@ -290,6 +299,8 @@ class PODOFO_API PdfFontMetrics {
     float         m_fFontSize;
 
     std::vector<double> m_vecWidth;
+
+    EPdfFontType  m_eFontType;
 };
 
 // -----------------------------------------------------
@@ -410,6 +421,14 @@ double PdfFontMetrics::GetPdfDescent() const
 int PdfFontMetrics::GetItalicAngle() const
 {
     return m_nItalicAngle;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+EPdfFontType PdfFontMetrics::GetFontType() const
+{
+    return m_eFontType;
 }
    
 };

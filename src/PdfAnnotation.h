@@ -111,7 +111,12 @@ class PODOFO_API PdfAnnotation : public PdfElement {
      */
     PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfVecObjects* pParent );
 
-    PdfAnnotation( PdfObject* pObject );
+    /** Create a PdfAnnotation from an existing object
+     *
+     *  \param pObject the annotations object
+     *  \param pPage the page of the annotation
+     */
+    PdfAnnotation( PdfObject* pObject, PdfPage* pPage );
 
     ~PdfAnnotation();
 
@@ -270,6 +275,12 @@ class PODOFO_API PdfAnnotation : public PdfElement {
      */
     inline EPdfAnnotation GetType() const;
 
+    /** Get the page of this PdfField
+     *
+     *  \returns the page of this PdfField
+     */
+    inline PdfPage* GetPage() const;
+
  private:
     /** Convert an annotation enum to its string representation
      *  which can be written to the PDF file.
@@ -284,6 +295,8 @@ class PODOFO_API PdfAnnotation : public PdfElement {
 
     PdfAction*     m_pAction;
     PdfFileSpec*   m_pFileSpec;
+
+    PdfPage*       m_pPage;
 };
 
 // -----------------------------------------------------
@@ -292,6 +305,14 @@ class PODOFO_API PdfAnnotation : public PdfElement {
 inline EPdfAnnotation PdfAnnotation::GetType() const
 {
     return m_eAnnotation;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfPage* PdfAnnotation::GetPage() const
+{
+    return m_pPage;
 }
 
 };
