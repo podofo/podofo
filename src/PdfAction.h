@@ -102,7 +102,7 @@ class PODOFO_API PdfAction : public PdfElement {
     PdfString GetScript() const;
 
     bool HasScript() const;
-
+    
     /** Get the type of this action
      *  \returns the type of this action
      */

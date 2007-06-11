@@ -112,6 +112,21 @@ PdfField::PdfField( PdfObject* pObject )
         m_eField = ePdfField_Signature;
 }
 
+PdfObject* PdfField::GetAppearanceCharacteristics( bool bCreate ) const
+{
+    PdfObject* pMK = NULL;
+
+    if( !m_pObject->GetDictionary().HasKey( PdfName("MK") ) && bCreate )
+    {
+        PdfDictionary dictionary;
+        const_cast<PdfField*>(this)->m_pObject->GetDictionary().AddKey( PdfName("MK"), dictionary );
+    }
+
+    pMK = m_pObject->GetDictionary().GetKey( PdfName("MK") );
+
+    return pMK;
+}
+
 void PdfField::SetFieldFlag( long lValue, bool bSet )
 {
     long lCur = 0;
@@ -144,9 +159,144 @@ bool PdfField::GetFieldFlag( long lValue, bool bDefault ) const
     return bDefault;
 }
 
+void PdfField::SetHighlightingMode( EPdfHighlightingMode eMode )
+{
+    PdfName value;
+
+    switch( eMode ) 
+    {
+        case ePdfHighlightingMode_None:
+            value = PdfName("N");
+            break;
+        case ePdfHighlightingMode_Invert:
+            value = PdfName("I");
+            break;
+        case ePdfHighlightingMode_InvertOutline:
+            value = PdfName("O");
+            break;
+        case ePdfHighlightingMode_Push:
+            value = PdfName("P");
+            break;
+        case ePdfHighlightingMode_Unknown:
+        default:
+            PODOFO_RAISE_ERROR( ePdfError_InvalidName );
+            break;
+    }
+
+    m_pObject->GetDictionary().AddKey( PdfName("H"), value );
+}
+
+EPdfHighlightingMode PdfField::GetHighlightingMode() const
+{
+    EPdfHighlightingMode eMode = ePdfHighlightingMode_Invert;
+
+    if( m_pObject->GetDictionary().HasKey( PdfName("H") ) )
+    {
+        PdfName value = m_pObject->GetDictionary().GetKey( PdfName("H") )->GetName();
+        if( value == PdfName("N") )
+            return ePdfHighlightingMode_None;
+        else if( value == PdfName("I") )
+            return ePdfHighlightingMode_Invert;
+        else if( value == PdfName("O") )
+            return ePdfHighlightingMode_InvertOutline;
+        else if( value == PdfName("P") )
+            return ePdfHighlightingMode_Push;
+    }
+
+    return eMode;
+}
+
+void PdfField::SetBorderColorTransparent()
+{
+    PdfArray array;
+
+    PdfObject* pMK = this->GetAppearanceCharacteristics( true );
+    pMK->GetDictionary().AddKey( PdfName("BC"), array );
+}
+
+void PdfField::SetBorderColor( double dGray )
+{
+    PdfArray array;
+    array.push_back( dGray );
+
+    PdfObject* pMK = this->GetAppearanceCharacteristics( true );
+    pMK->GetDictionary().AddKey( PdfName("BC"), array );
+}
+
+void PdfField::SetBorderColor( double dRed, double dGreen, double dBlue )
+{
+    PdfArray array;
+    array.push_back( dRed );
+    array.push_back( dGreen );
+    array.push_back( dBlue );
+
+    PdfObject* pMK = this->GetAppearanceCharacteristics( true );
+    pMK->GetDictionary().AddKey( PdfName("BC"), array );
+}
+
+void PdfField::SetBorderColor( double dCyan, double dMagenta, double dYellow, double dBlack )
+{
+    PdfArray array;
+    array.push_back( dCyan );
+    array.push_back( dMagenta );
+    array.push_back( dYellow );
+    array.push_back( dBlack );
+
+    PdfObject* pMK = this->GetAppearanceCharacteristics( true );
+    pMK->GetDictionary().AddKey( PdfName("BC"), array );
+}
+
+void PdfField::SetBackgroundColorTransparent()
+{
+    PdfArray array;
+
+    PdfObject* pMK = this->GetAppearanceCharacteristics( true );
+    pMK->GetDictionary().AddKey( PdfName("BG"), array );
+}
+
+void PdfField::SetBackgroundColor( double dGray )
+{
+    PdfArray array;
+    array.push_back( dGray );
+
+    PdfObject* pMK = this->GetAppearanceCharacteristics( true );
+    pMK->GetDictionary().AddKey( PdfName("BG"), array );
+}
+
+void PdfField::SetBackgroundColor( double dRed, double dGreen, double dBlue )
+{
+    PdfArray array;
+    array.push_back( dRed );
+    array.push_back( dGreen );
+    array.push_back( dBlue );
+
+    PdfObject* pMK = this->GetAppearanceCharacteristics( true );
+    pMK->GetDictionary().AddKey( PdfName("BG"), array );
+}
+
+void PdfField::SetBackgroundColor( double dCyan, double dMagenta, double dYellow, double dBlack )
+{
+    PdfArray array;
+    array.push_back( dCyan );
+    array.push_back( dMagenta );
+    array.push_back( dYellow );
+    array.push_back( dBlack );
+
+    PdfObject* pMK = this->GetAppearanceCharacteristics( true );
+    pMK->GetDictionary().AddKey( PdfName("BG"), array );
+}
+
 void PdfField::SetFieldName( const PdfString & rsName )
 {
     m_pObject->GetDictionary().AddKey( PdfName("T"), rsName );
+}
+
+PdfString PdfField::GetFieldName() const
+{
+    if( m_pObject->GetDictionary().HasKey( PdfName("T" ) ) )
+        return m_pObject->GetDictionary().GetKey( PdfName("T" ) )->GetString();
+
+    return PdfString::StringNull;
 }
 
 void PdfField::SetAlternateName( const PdfString & rsName )
@@ -154,11 +304,26 @@ void PdfField::SetAlternateName( const PdfString & rsName )
     m_pObject->GetDictionary().AddKey( PdfName("TU"), rsName );
 }
 
+PdfString PdfField::GetAlternateName() const
+{
+    if( m_pObject->GetDictionary().HasKey( PdfName("TU" ) ) )
+        return m_pObject->GetDictionary().GetKey( PdfName("TU" ) )->GetString();
+
+    return PdfString::StringNull;
+}
+
 void PdfField::SetMappingName( const PdfString & rsName )
 {
     m_pObject->GetDictionary().AddKey( PdfName("TM"), rsName );
 }
 
+PdfString PdfField::GetMappingName() const
+{
+    if( m_pObject->GetDictionary().HasKey( PdfName("TM" ) ) )
+        return m_pObject->GetDictionary().GetKey( PdfName("TM" ) )->GetString();
+
+    return PdfString::StringNull;
+}
 void PdfField::AddAlternativeAction( const PdfName & rsName, const PdfAction & rAction ) 
 {
     if( !m_pObject->GetDictionary().HasKey( PdfName("AA") ) ) 
@@ -183,6 +348,22 @@ PdfButton::PdfButton( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParen
 PdfButton::PdfButton( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
     : PdfField( ePdfField_Button, pPage, rRect, pDoc )
 {
+}
+
+void PdfButton::SetCaption( const PdfString & rsText )
+{
+    PdfObject* pMK = this->GetAppearanceCharacteristics( true );
+    pMK->GetDictionary().AddKey( PdfName("CA"), rsText );
+}
+
+const PdfString PdfButton::GetCaption() const
+{
+    PdfObject* pMK = this->GetAppearanceCharacteristics( false );
+    
+    if( pMK && pMK->GetDictionary().HasKey( PdfName("CA") ) )
+        return pMK->GetDictionary().GetKey( PdfName("CA") )->GetString();
+
+    return PdfString::StringNull;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -212,8 +393,8 @@ void PdfPushButton::Init()
     this->SetFieldFlag( static_cast<int>(ePdfButton_PushButton), true );
     //m_pWidget->SetFlags( 4 );
 
-    m_pObject->GetDictionary().AddKey( PdfName("H"), PdfName("I") );
     /*
+    m_pObject->GetDictionary().AddKey( PdfName("H"), PdfName("I") );
     if( !m_pWidget->HasAppearanceStream() )
     {
         // Create the default appearance stream
@@ -249,34 +430,61 @@ void PdfPushButton::Init()
     */
 }
 
-void PdfPushButton::SetText( const PdfString & rsText )
+void PdfPushButton::SetRolloverCaption( const PdfString & rsText )
 {
-    PdfObject* pMK = NULL;
-
-    if( !m_pObject->GetDictionary().HasKey( PdfName("MK") ) )
-    {
-        PdfDictionary dictionary;
-        m_pObject->GetDictionary().AddKey( PdfName("MK"), dictionary );
-    }
-
-    pMK = m_pObject->GetDictionary().GetKey( PdfName("MK") );
-    pMK->GetDictionary().AddKey( PdfName("CA"), rsText );
-    pMK->GetDictionary().AddKey( PdfName("AC"), rsText );
+    PdfObject* pMK = this->GetAppearanceCharacteristics( true );
     pMK->GetDictionary().AddKey( PdfName("RC"), rsText );
+}
 
-    PdfArray color;
-    color.push_back( 0.0 );
-    color.push_back( 1.0 );
-    color.push_back( 0.0 );
+const PdfString PdfPushButton::GetRolloverCaption() const
+{
+    PdfObject* pMK = this->GetAppearanceCharacteristics( false );
+    
+    if( pMK && pMK->GetDictionary().HasKey( PdfName("RC") ) )
+        return pMK->GetDictionary().GetKey( PdfName("RC") )->GetString();
 
-    pMK->GetDictionary().AddKey( PdfName("BG"), color );
+    return PdfString::StringNull;
+}
 
-    PdfArray color2;
-    color.push_back( 0.0 );
-    color.push_back( 0.0 );
-    color.push_back( 0.0 );
+void PdfPushButton::SetAlternateCaption( const PdfString & rsText )
+{
+    PdfObject* pMK = this->GetAppearanceCharacteristics( true );
+    pMK->GetDictionary().AddKey( PdfName("AC"), rsText );
 
-    pMK->GetDictionary().AddKey( PdfName("BC"), color2 );
+}
+
+const PdfString PdfPushButton::GetAlternateCaption() const
+{
+    PdfObject* pMK = this->GetAppearanceCharacteristics( false );
+    
+    if( pMK && pMK->GetDictionary().HasKey( PdfName("AC") ) )
+        return pMK->GetDictionary().GetKey( PdfName("AC") )->GetString();
+
+    return PdfString::StringNull;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+PdfCheckBox::PdfCheckBox( PdfAnnotation* pWidget, PdfAcroForm* pParent )
+    : PdfButton( pWidget, pParent )
+{
+    Init();
+}
+
+PdfCheckBox::PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent )
+    : PdfButton( pPage, rRect, pParent )
+{
+    Init();
+}
+
+PdfCheckBox::PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
+    : PdfButton( pPage, rRect, pDoc )
+{
+    Init();
+}
+
+void PdfCheckBox::Init()
+{
 
 }
 
@@ -302,7 +510,6 @@ PdfTextField::PdfTextField( PdfPage* pPage, const PdfRect & rRect, PdfDocument* 
 
 void PdfTextField::Init()
 {
-    this->SetText("PoDoFo Text Field");
 }
 
 void PdfTextField::SetText( const PdfString & rsText )

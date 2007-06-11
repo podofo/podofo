@@ -43,10 +43,6 @@ class PODOFO_API PdfAcroForm : public PdfElement {
 
     virtual ~PdfAcroForm() { }
 
-
-    int GetCount();
-    PdfObject* GetField( int nIndex );
-
     /** Get the document that is associated with this 
      *  acro forms dictionary.
      *

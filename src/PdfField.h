@@ -49,6 +49,22 @@ typedef enum EPdfField {
     ePdfField_Unknown = 0xff
 };
 
+/** The possible highlighting modes
+ *  for a PdfField. I.e the visual effect
+ *  that is to be used when the mouse 
+ *  button is pressed.
+ *
+ *  The default value is 
+ *  ePdfHighlightingMode_Invert
+ */
+typedef enum EPdfHighlightingMode {
+    ePdfHighlightingMode_None,           ///< Do no highlighting
+    ePdfHighlightingMode_Invert,         ///< Invert the PdfField
+    ePdfHighlightingMode_InvertOutline,  ///< Invert the fields border
+    ePdfHighlightingMode_Push,           ///< Display the fields down appearance (requires an additional appearance stream to be set)
+
+    ePdfHighlightingMode_Unknown = 0xff
+};
 
 class PODOFO_API PdfField {
  protected:
@@ -82,6 +98,14 @@ class PODOFO_API PdfField {
      */
     bool GetFieldFlag( long lValue, bool bDefault ) const;
 
+    /**
+     * \param bCreate create the dictionary if it does not exist
+     *
+     * \returns a pointer to the appearance characteristics dictionary
+     *          of this object or NULL if it does not exists.
+     */
+    PdfObject* GetAppearanceCharacteristics( bool bCreate ) const;
+
  public:
     /** Create a PdfAcroForm dictionary object from an existing PdfObject
      *	\param pObject the object to create from
@@ -96,12 +120,120 @@ class PODOFO_API PdfField {
      */
     inline PdfPage* GetPage() const;
 
+    /** Set the highlighting mode which should be used when the user
+     *  presses the mouse button over this widget.
+     *
+     *  \param eMode the highliting mode
+     *
+     *  The default value is ePdfHighlightingMode_Invert
+     */
+    void SetHighlightingMode( EPdfHighlightingMode eMode );
+
+    /** 
+     * \returns the highlighting mode to be used when the user
+     *          presses the mouse button over this widget
+     */
+    EPdfHighlightingMode GetHighlightingMode() const;
+   
+    /**
+     * Sets the border color of the field to be transparent
+     */
+    void SetBorderColorTransparent();
+
+    /**
+     * Sets the border color of the field
+     *
+     * \param dGray gray value of the color
+     */
+    void SetBorderColor( double dGray );
+
+    /**
+     * Sets the border color of the field
+     *
+     * \param dRed red
+     * \param dGreen green
+     * \param dBlue blue
+     */
+    void SetBorderColor( double dRed, double dGreen, double dBlue );
+
+    /**
+     * Sets the border color of the field
+     *
+     * \param dCyan cyan
+     * \param dMagenta magenta
+     * \param dYellow yellow
+     * \param dBlack black
+     */
+    void SetBorderColor( double dCyan, double dMagenta, double dYellow, double dBlack );
+
+    /**
+     * Sets the background color of the field to be transparent
+     */
+    void SetBackgroundColorTransparent();
+
+    /**
+     * Sets the background color of the field
+     *
+     * \param dGray gray value of the color
+     */
+    void SetBackgroundColor( double dGray );
+
+    /**
+     * Sets the background color of the field
+     *
+     * \param dRed red
+     * \param dGreen green
+     * \param dBlue blue
+     */
+    void SetBackgroundColor( double dRed, double dGreen, double dBlue );
+
+    /**
+     * Sets the background color of the field
+     *
+     * \param dCyan cyan
+     * \param dMagenta magenta
+     * \param dYellow yellow
+     * \param dBlack black
+     */
+    void SetBackgroundColor( double dCyan, double dMagenta, double dYellow, double dBlack );
+
+    /** Sets the field name of this PdfField
+     *
+     *  PdfFields require a field name to work correctly in acrobat reader!
+     *  This name can be used to access the field in JavaScript actions.
+     *  
+     *  \param rsName the field name of this pdf field
+     */
     void SetFieldName( const PdfString & rsName );
 
+    /** \returns the field name of this PdfField
+     */
+    PdfString GetFieldName() const;
+
+    /**
+     * Set the alternate name of this field which 
+     * is used to display the fields name to the user
+     * (e.g. in error messages).
+     *
+     * \param rsName a name that can be displayed to the user
+     */
     void SetAlternateName( const PdfString & rsName );
 
+    /** \returns the fields alternate name
+     */
+    PdfString GetAlternateName() const;
+
+    /**
+     * Sets the fields mapping name which is used when exporting
+     * the fields data
+     *
+     * \param rsName the mapping name of this PdfField
+     */
     void SetMappingName( const PdfString & rsName ); 
 
+    /** \returns the mapping name of this field
+     */
+    PdfString GetMappingName() const;
 
     inline void SetMouseEnterAction( const PdfAction & rAction );
     inline void SetMouseLeaveAction( const PdfAction & rAction );
@@ -273,6 +405,18 @@ class PODOFO_API PdfButton : public PdfField {
      * \returns true if this is a radiobutton
      */
     inline bool IsRadioButton() const;
+
+    /** Set the normal caption of this button
+     *
+     *  \param rsText the caption
+     */
+    void SetCaption( const PdfString & rsText );
+
+    /** 
+     *  \returns the caption of this button
+     */
+    const PdfString GetCaption() const;
+
 };
 
 // -----------------------------------------------------
@@ -318,12 +462,57 @@ class PODOFO_API PdfPushButton : public PdfButton {
      */
     PdfPushButton( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
 
+    /** Set the rollover caption of this button
+     *  which is displayed when the cursor enters the field
+     *  without the mouse button being pressed
+     *
+     *  \param rsText the caption
+     */
+    void SetRolloverCaption( const PdfString & rsText );
 
-    void SetText( const PdfString & rsText );
+    /** 
+     *  \returns the rollover caption of this button
+     */
+    const PdfString GetRolloverCaption() const;
+
+    /** Set the alternate caption of this button
+     *  which is displayed when the button is pressed.
+     *
+     *  \param rsText the caption
+     */
+    void SetAlternateCaption( const PdfString & rsText );
+
+    /** 
+     *  \returns the rollover caption of this button
+     */
+    const PdfString GetAlternateCaption() const;
 
  private:
     void Init();
 };
+
+/** A checkbox can be checked or unchecked by the user
+ *  TODO: DominikS: Checkboxes need appearance states!!!
+ */
+class PODOFO_API PdfCheckBox : public PdfButton {
+ public:
+    /** Create a new PdfCheckBo
+     */
+    PdfCheckBox( PdfAnnotation* pWidget, PdfAcroForm* pParent );
+
+    /** Create a new PdfCheckBox
+     */
+    PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent );
+
+    /** Create a new PdfCheckBox
+     */
+    PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
+
+ private:
+    void Init();
+};
+
+// TODO: Dominiks PdfRadioButton
 
 /** A textfield in a PDF file.
  *  

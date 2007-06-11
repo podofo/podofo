@@ -26,6 +26,112 @@ using namespace PoDoFo;
 
 #define CONVERSION_CONSTANT 0.002834645669291339
 
+void CreateComplexForm( PdfPage* pPage, PdfDocument* pDoc )
+{
+    PdfRect rect = pPage->GetPageSize();
+
+    PdfPainter painter;
+    PdfFont*   pFont = pDoc->CreateFont( "Courier", false );
+
+    painter.SetPage( pPage );
+    painter.SetFont( pFont );
+
+    const char* pszTitle = "PoDoFo Sample Feedback Form";
+    pFont->SetFontSize( 18.0 );
+
+    double x = (rect.GetWidth() - pFont->GetFontMetrics()->StringWidth( pszTitle )) / 2.0;
+    double y = rect.GetHeight() - (20000.0 * CONVERSION_CONSTANT);
+
+    painter.DrawText( x, y, pszTitle );
+    pFont->SetFontSize( 10.0 );
+
+    y -= 10000.0 * CONVERSION_CONSTANT;
+    x  = 10000.0 * CONVERSION_CONSTANT;
+
+    double h = 10000.0 * CONVERSION_CONSTANT;
+    // Name
+    y -= 10000.0 * CONVERSION_CONSTANT;
+    painter.DrawText( x, y, "Your Name:" );
+    PdfTextField textName( pPage, PdfRect( 80000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT, 
+                                           80000.0 * CONVERSION_CONSTANT, h ), pDoc );
+    textName.SetFieldName("field_name");
+    textName.SetBorderColor( 1.0 );
+
+    // E-Mail
+    y -= 10000.0 * CONVERSION_CONSTANT;
+    painter.DrawText( x, y, "E-Mail Address:" );
+    PdfTextField textMail( pPage, PdfRect( 80000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT, 
+                                           80000.0 * CONVERSION_CONSTANT, h ), pDoc );
+    textMail.SetFieldName("field_mail");
+    textMail.SetBorderColor( 1.0 );
+    
+    // Interest
+    y -= 10000.0 * CONVERSION_CONSTANT;
+    painter.DrawText( x, y, "Job:" );
+
+    PdfComboBox comboJob( pPage, PdfRect( 80000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT, 
+                                          80000.0 * CONVERSION_CONSTANT, h ), pDoc );
+    comboJob.SetFieldName("field_combo");
+    comboJob.SetBorderColor( 1.0 );
+
+    comboJob.InsertItem( "Software Engineer" );
+    comboJob.InsertItem( "Student" );
+    comboJob.InsertItem( "Publisher" );
+    comboJob.InsertItem( "Other" );
+
+    // Open Source
+    y -= 10000.0 * CONVERSION_CONSTANT;
+    painter.DrawText( x, y, "I wan't to use PoDoFo in an Open Source application" );
+    PdfCheckBox checkOpenSource( pPage, PdfRect( 120000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT, 
+                                                 40000.0 * CONVERSION_CONSTANT, h ), pDoc );
+    checkOpenSource.SetFieldName("field_check_oss");
+
+    // Commercial
+    y -= 10000.0 * CONVERSION_CONSTANT;
+    painter.DrawText( x, y, "I wan't to use PoDoFo in a commercial application" );
+    PdfCheckBox checkCom( pPage, PdfRect( 120000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT, 
+                                          40000.0 * CONVERSION_CONSTANT, h ), pDoc );
+    checkCom.SetFieldName("field_check_com");
+
+    y -= 10000.0 * CONVERSION_CONSTANT;
+    painter.DrawText( x, y, "Some comments you want to send to the PoDoFo developers:" );
+    PdfTextField textComment( pPage, PdfRect( 20000.0 * CONVERSION_CONSTANT, y - 120000.0 * CONVERSION_CONSTANT,
+                                              160000.0 * CONVERSION_CONSTANT, 100000.0 * CONVERSION_CONSTANT ), pDoc );
+    textComment.SetFieldName("field_comment");
+    textComment.SetMultiLine( true );
+    textComment.SetRichText( true );
+
+    PdfPushButton buttonSend( pPage, PdfRect( 10000 * CONVERSION_CONSTANT, 10000 * CONVERSION_CONSTANT,
+                                              25000 * CONVERSION_CONSTANT, 25000 * CONVERSION_CONSTANT ), pDoc );
+    buttonSend.SetFieldName("field_send");
+    buttonSend.SetCaption("Send");
+    buttonSend.SetBackgroundColor( 0.5 );
+
+    PdfPushButton buttonClear( pPage, PdfRect( 40000 * CONVERSION_CONSTANT, 10000 * CONVERSION_CONSTANT,
+                                               25000 * CONVERSION_CONSTANT, 25000 * CONVERSION_CONSTANT ), pDoc );
+    buttonClear.SetFieldName("field_clear");
+    buttonClear.SetCaption("Clear");
+    buttonClear.SetBackgroundColor( 0.5 );
+
+    PdfAction actionClear( ePdfAction_JavaScript, &(pDoc->GetObjects()) );
+    actionClear.SetScript( 
+        PdfString("this.getField(\"field_name\").value = \"\";" \
+                  "this.getField(\"field_mail\").value = \"\";" \
+                  "this.getField(\"field_combo\").value = \"\";" 
+                  "this.getField(\"field_check_oss.\").checkThisBox( 0, false );" \
+                  "this.getField(\"field_check_com.\").checkThisBox( 0, false );" \
+                  "this.getField(\"field_comment\").value = \"\";" ) );
+
+
+    buttonClear.SetMouseDownAction( actionClear );
+                  
+    PdfAction actionSubmit( ePdfAction_SubmitForm, &(pDoc->GetObjects()) );
+
+    buttonSend.SetMouseDownAction( actionSubmit );
+    
+    painter.FinishPage();
+}
+
 void CreateSimpleForm( PdfPage* pPage, PdfDocument* pDoc )
 {
     PdfPainter painter;
@@ -42,7 +148,7 @@ void CreateSimpleForm( PdfPage* pPage, PdfDocument* pDoc )
     button.SetFieldName("ButtonFieldName");
     button.SetAlternateName("ButtonAlternateName");
     button.SetMappingName("ButtonMappingName");
-    button.SetText("Hallo Welt");
+    button.SetCaption("Hallo Welt");
 
 
     PdfAction action( ePdfAction_JavaScript, &(pDoc->GetObjects()) );
@@ -101,6 +207,9 @@ int main( int argc, char* argv[] )
         printf("Usage: FormTest [output_filename]\n");
         return 0;
     }
+
+    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+    TEST_SAFE_OP( CreateComplexForm( pPage, &writer ) );
 
     pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
     TEST_SAFE_OP( CreateSimpleForm( pPage, &writer ) );

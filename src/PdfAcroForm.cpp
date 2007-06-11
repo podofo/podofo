@@ -84,6 +84,7 @@ void PdfAcroForm::Init( )
     }
 }
 
+/*
 int PdfAcroForm::GetCount()
 {
     PdfObject* pFields = m_pObject->GetDictionary().GetKey( PdfName("Fields") );
@@ -96,10 +97,6 @@ int PdfAcroForm::GetCount()
         PODOFO_RAISE_ERROR( ePdfError_NoObject );
     }
 }
-
-PdfObject* PdfAcroForm::GetField( int nIndex )
-{
-
-}
+*/
 
 };

@@ -19,13 +19,11 @@
  ***************************************************************************/
 
 #include "PdfAction.h"
-#include "PdfAcroForm.h"
 #include "PdfAnnotation.h"
 #include "PdfDestination.h"
 #include "PdfDictionary.h"
 #include "PdfDocument.h"
 #include "PdfExtGState.h"
-#include "PdfField.h"
 #include "PdfFileSpec.h"
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
@@ -469,9 +467,6 @@ int main( int argc, char* argv[] )
     }
 
     writer.GetNamesTree()->AddValue( "TestDict", PdfString( "Berta" ), PdfVariant( 42L )  );
-
-    PdfAcroForm* pAcroForm = writer.GetAcroForm();
-    printf("Form fields count: %i\n", pAcroForm->GetCount());
 
     printf("Setting document informations.\n\n");
     // Setup the document information dictionary
