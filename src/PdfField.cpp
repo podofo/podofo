@@ -29,6 +29,8 @@
 #include "PdfPage.h"
 #include "PdfXObject.h"
 
+#include <sstream>
+
 namespace PoDoFo {
 
 PdfField::PdfField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pParent )
@@ -93,7 +95,13 @@ void PdfField::Init( PdfAcroForm* pParent )
         break;
     }
 
+
     m_pWidget->SetBorderStyle( 0.0, 0.0, 5.0 );
+
+    // Create a unique fieldname, because Acrobat Reader crashes if the field has no field name 
+    std::ostringstream out;
+    PdfLocaleImbue(out);
+    out << "podofo_field_" << m_pObject->Reference().ObjectNumber();
 }
 
 PdfField::PdfField( PdfObject* pObject )
