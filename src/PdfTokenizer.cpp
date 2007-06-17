@@ -462,15 +462,22 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant )
     std::vector<char> vec; // we use a vector instead of a string
                            // because we might read a unicode
                            // string which is allowed to contain 0 bytes.
-    bool              bIgnore = false;
+    bool              bIgnore       = false;
+    int               nBalanceCount = 0; // Balanced parathesis do not have to be escaped in strings
 
     while( (c = m_device.Device()->GetChar()) != EOF )
     {
         // end of stream reached
-        if( !bIgnore && c == ')' )
+        if( !bIgnore && !nBalanceCount && c == ')' )
             break;
         
         bIgnore = (c == '\\') && !bIgnore;
+
+        if( !bIgnore && c == '(' )
+            ++nBalanceCount;
+        else if( !bIgnore && c == ')' )
+            --nBalanceCount;
+
         vec.push_back( static_cast<char>(c) );
     }
 
