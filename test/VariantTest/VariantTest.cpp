@@ -132,6 +132,7 @@ int main()
     // testing strings
     TEST_SAFE_OP( Test( "(Hallo Welt!)", ePdfDataType_String ) );
     TEST_SAFE_OP( Test( "(Hallo \\(schöne\\) Welt!)", ePdfDataType_String ) );
+    TEST_SAFE_OP( Test( "(Balanced () brackets are (ok ()) in PDF Strings)", ePdfDataType_String ) );
     TEST_SAFE_OP( Test( "()", ePdfDataType_String ) );
     printf("---\n");
 
@@ -152,8 +153,8 @@ int main()
     // testing numbers
     TEST_SAFE_OP( Test( "145", ePdfDataType_Number ) );
     TEST_SAFE_OP( Test( "-12", ePdfDataType_Number ) );    
-    TEST_SAFE_OP( Test( "3.14", ePdfDataType_Real ) );
-    TEST_SAFE_OP( Test( "-2.97", ePdfDataType_Real ) );
+    TEST_SAFE_OP( Test( "3.140000", ePdfDataType_Real ) );
+    TEST_SAFE_OP( Test( "-2.970000", ePdfDataType_Real ) );
     TEST_SAFE_OP( Test( "0", ePdfDataType_Number ) );
     TEST_SAFE_OP_IGNORE( Test( "4.", ePdfDataType_Real ) );
     printf("---\n");
@@ -180,8 +181,8 @@ int main()
     TEST_SAFE_OP( Test( "[ ]", ePdfDataType_Array ) );
     TEST_SAFE_OP( Test( "[ 1 2 3 4 ]", ePdfDataType_Array ) );
     TEST_SAFE_OP_IGNORE( Test( "[1 2 3 4]", ePdfDataType_Array ) ); // this test may fail as the formating is different
-    TEST_SAFE_OP( Test( "[ 2 (Hallo Welt!) 3.5 /FMC ]", ePdfDataType_Array ) );
-    TEST_SAFE_OP( Test( "[ [ 1 2 ] (Hallo Welt!) 3.5 /FMC ]", ePdfDataType_Array ) );
+    TEST_SAFE_OP( Test( "[ 2 (Hallo Welt!) 3.500000 /FMC ]", ePdfDataType_Array ) );
+    TEST_SAFE_OP( Test( "[ [ 1 2 ] (Hallo Welt!) 3.500000 /FMC ]", ePdfDataType_Array ) );
     TEST_SAFE_OP_IGNORE( Test( "[/ImageA/ImageB/ImageC]", ePdfDataType_Array ) ); // this test may fail as the formating is different
     TEST_SAFE_OP_IGNORE( Test( "[<530464995927cef8aaf46eb953b93373><530464995927cef8aaf46eb953b93373>]", ePdfDataType_Array ) );
     TEST_SAFE_OP_IGNORE( Test( "[ 2 0 R (Test Data) 4 << /Key /Data >> 5 0 R ]", ePdfDataType_Array ) );
