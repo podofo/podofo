@@ -194,8 +194,8 @@ class PODOFO_API PdfPainter {
     void DrawLine( double dStartX, double dStartY, double dEndX, double dEndY );
 
     /** Draw a rectangle with the current stroking settings
-     *  \param dX x coordinate of the rectangle
-     *  \param dY y coordinate of the rectangle
+     *  \param dX x coordinate of the rectangle (left coordinate)
+     *  \param dY y coordinate of the rectangle (bottom coordinate)
      *  \param dWidth width of the rectangle
      *  \param dHeight absolute height of the rectangle
      *  \param dRoundX rounding factor, x direction
@@ -205,8 +205,8 @@ class PODOFO_API PdfPainter {
 		           double dRoundX=0.0, double dRoundY=0.0 );
 
     /** Fill a rectangle with the current fill settings
-     *  \param dX x coordinate of the rectangle
-     *  \param dY y coordinate of the rectangle
+     *  \param dX x coordinate of the rectangle (left coordinate)
+     *  \param dY y coordinate of the rectangle (bottom coordinate) 
      *  \param dWidth width of the rectangle 
      *  \param dHeight absolute height of the rectangle
      *  \param dRoundX rounding factor, x direction

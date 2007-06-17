@@ -28,6 +28,7 @@
 #include "PdfCanvas.h"
 #include "PdfContents.h"
 #include "PdfElement.h"
+#include "PdfField.h"
 #include "PdfRect.h"
 
 namespace PoDoFo {
@@ -167,6 +168,29 @@ class PODOFO_API PdfPage : public PdfElement, public PdfCanvas {
      *  \see GetNumAnnots
      */
     void DeleteAnnotation( const PdfReference & ref );
+
+    /** 
+     * \returns the number of PdfFields on this page.
+     */
+    const int GetNumFields() const;
+
+    /** Get a PdfField with a certain index.
+     *  \param index of the PdfField (must be smaller than GetNumFields() )
+     *
+     *  \see GetNumFields
+     *
+     *  \returns a PdfField
+     */
+    PdfField GetField( int index );
+
+    /** Get a PdfField with a certain index.
+     *  \param index of the PdfField (must be smaller than GetNumFields() )
+     *
+     *  \see GetNumFields
+     *
+     *  \returns a const PdfField
+     */
+    const PdfField GetField( int index ) const;
 
  private:
    /** Get the bounds of a specified page box in PDF units.

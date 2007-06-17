@@ -36,14 +36,17 @@ class PdfDocument;
 class PdfObject;
 class PdfPage;
 class PdfRect;
-
+class PdfReference;
 
 /** The type of PDF field
  */
 typedef enum EPdfField {
-    ePdfField_Button, 
-    ePdfField_Text,
-    ePdfField_Choice,
+    ePdfField_PushButton, 
+    ePdfField_CheckBox,
+    ePdfField_RadioButton,
+    ePdfField_TextField,
+    ePdfField_ComboBox,
+    ePdfField_ListBox,
     ePdfField_Signature,
 
     ePdfField_Unknown = 0xff
@@ -67,6 +70,11 @@ typedef enum EPdfHighlightingMode {
 };
 
 class PODOFO_API PdfField {
+    enum { ePdfField_ReadOnly       = 0x0001,
+           ePdfField_Required       = 0x0002,
+           ePdfField_NoExport       = 0x0004
+    };
+
  protected:
     /** Create a new PdfAcroForm dictionary object
      *  \param pParent parent of this action
@@ -76,6 +84,15 @@ class PODOFO_API PdfField {
     PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent );
 
     PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
+
+    /** Create a copy of a PdfField object.
+     *  Not the field on the page is copied - only the PdfField
+     *  object referring to the field on the page is copied!
+     *
+     *  \param rhs the field to copy
+     *  \returns this field
+     */
+    //inline virtual const PdfField & operator=( const PdfField & rhs );
 
     /** 
      *  Set a bit in the field flags value of the fields dictionary.
@@ -109,8 +126,17 @@ class PODOFO_API PdfField {
  public:
     /** Create a PdfAcroForm dictionary object from an existing PdfObject
      *	\param pObject the object to create from
+     *  \param pWidget the widget annotation of this field
      */
-    PdfField( PdfObject* pObject );
+    PdfField( PdfObject* pObject, PdfAnnotation* pWidget );
+
+    /** Create a copy of a PdfField object.
+     *  Not the field on the page is copied - only the PdfField
+     *  object referring to the field on the page is copied!
+     *
+     *  \param rhs the field to copy
+     */
+    PdfField( const PdfField & rhs );
 
     virtual ~PdfField() { }
 
@@ -235,6 +261,52 @@ class PODOFO_API PdfField {
      */
     PdfString GetMappingName() const;
 
+    /** Set this field to be readonly.
+     *  I.e. it will not interact with the user
+     *  and respond to mouse button events.
+     *
+     *  This is useful for fields that are pure calculated.
+     *
+     *  \param bReadOnly specifies if this field is read-only.
+     */
+    inline void SetReadOnly( bool bReadOnly );
+
+    /** 
+     * \returns true if this field is read-only
+     *
+     * \see SetReadOnly
+     */
+    inline bool IsReadOnly() const;
+
+    /** Required fields must have a value
+     *  at the time the value is exported by a submit action
+     * 
+     *  \param bRequired if true this field requires a value for submit actions
+     */
+    inline void SetRequired( bool bRequired );
+
+    /** 
+     * \returns true if this field is required for submit actions
+     *
+     * \see SetRequired
+     */
+    inline bool IsRequired() const;
+
+    /** Sets if this field can be exported by a submit action
+     *
+     *  Fields can be exported by default.
+     *
+     *  \param bExport if false this field cannot be exported by submit actions
+     */
+    inline void SetExport( bool bExport );
+
+    /** 
+     * \returns true if this field can be exported by submit actions
+     *
+     * \see SetExport
+     */
+    inline bool IsExport() const;
+
     inline void SetMouseEnterAction( const PdfAction & rAction );
     inline void SetMouseLeaveAction( const PdfAction & rAction );
     inline void SetMouseDownAction( const PdfAction & rAction );
@@ -272,6 +344,72 @@ class PODOFO_API PdfField {
  private:
     EPdfField  m_eField;
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+/*
+inline const PdfField & PdfField::operator=( const PdfField & rhs )
+{
+    // DominikS: Reference counted vectors could be nice here. In case
+    //           the PdfField handling makes sense the way it is now,
+    //           we could discuss using reference counted vectors
+    //           and implement PdfAction, PdfAnnotation ... similar to PdfField
+    m_pObject = rhs.m_pObject;
+    m_pWidget = rhs.m_pWidget;
+    m_eField  = rhs.m_eField;
+
+    return *this;
+}
+*/
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfField::SetReadOnly( bool bReadOnly )
+{
+    this->SetFieldFlag( static_cast<int>(ePdfField_ReadOnly), bReadOnly );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline bool PdfField::IsReadOnly() const
+{
+    return this->GetFieldFlag( static_cast<int>(ePdfField_ReadOnly), false );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfField::SetRequired( bool bRequired )
+{
+    this->SetFieldFlag( static_cast<int>(ePdfField_Required), bRequired );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline bool PdfField::IsRequired() const
+{
+    return this->GetFieldFlag( static_cast<int>(ePdfField_Required), false );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfField::SetExport( bool bExport )
+{
+    this->SetFieldFlag( static_cast<int>(ePdfField_NoExport), bExport );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline bool PdfField::IsExport() const
+{
+    return this->GetFieldFlag( static_cast<int>(ePdfField_NoExport), true );
+}
 
 // -----------------------------------------------------
 // 
@@ -379,17 +517,24 @@ class PODOFO_API PdfButton : public PdfField {
 
     /** Create a new PdfButton
      */
-    PdfButton( PdfAnnotation* pWidget, PdfAcroForm* pParent );
+    PdfButton( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pParent );
 
     /** Create a new PdfButton
      */
-    PdfButton( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent );
+    PdfButton( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent );
 
     /** Create a new PdfButton
      */
-    PdfButton( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
+    PdfButton( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
 
  public:
+
+    /** Create a PdfButton from a PdfField 
+     *  \param rhs a PdfField that is a button
+     *
+     *  Internal usage only.
+     */
+    PdfButton( const PdfField & rhs );
 
     /**
      * \returns true if this is a pushbutton
@@ -492,11 +637,10 @@ class PODOFO_API PdfPushButton : public PdfButton {
 };
 
 /** A checkbox can be checked or unchecked by the user
- *  TODO: DominikS: Checkboxes need appearance states!!!
  */
 class PODOFO_API PdfCheckBox : public PdfButton {
  public:
-    /** Create a new PdfCheckBo
+    /** Create a new PdfCheckBox
      */
     PdfCheckBox( PdfAnnotation* pWidget, PdfAcroForm* pParent );
 
@@ -508,8 +652,40 @@ class PODOFO_API PdfCheckBox : public PdfButton {
      */
     PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
 
+    /** Set the appearance stream which is displayed when the checkbox
+     *  is checked.
+     *
+     *  \param rXObject an xobject which contains the drawing commands for a checked checkbox
+     */
+    void SetAppearanceChecked( const PdfXObject & rXObject );
+
+    /** Set the appearance stream which is displayed when the checkbox
+     *  is unchecked.
+     *
+     *  \param rXObject an xobject which contains the drawing commands for an unchecked checkbox
+     */
+    void SetAppearanceUnchecked( const PdfXObject & rXObject );
+
+    /** Sets the state of this checkbox
+     *
+     *  \param bChecked if true the checkbox will be checked
+     */
+    void SetChecked( bool bChecked );
+
+    /**
+     * \returns true if the checkbox is checked
+     */
+    bool IsChecked() const;
+
  private:
     void Init();
+
+    /** Add a appearance stream to this checkbox
+     *
+     *  \param rName name of the appearance stream
+     *  \param rReference reference to the XObject containing the appearance stream
+     */
+    void AddAppearanceStream( const PdfName & rName, const PdfReference & rReference );
 };
 
 // TODO: Dominiks PdfRadioButton
@@ -544,6 +720,14 @@ class PODOFO_API PdfTextField : public PdfField {
     /** Create a new PdfTextField
      */
     PdfTextField( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
+
+    /** Create a PdfTextField from a PdfField
+     * 
+     *  \param rhs a PdfField that is a PdfTextField
+     *
+     *  Raises an error if PdfField::GetType() != ePdfField_TextField
+     */
+    PdfTextField( const PdfField & rhs );
 
     /** Sets the text contents of this text field.
      *
@@ -650,7 +834,6 @@ class PODOFO_API PdfTextField : public PdfField {
      *  property to be set.
      *
      *  \see SetMaxLen
-     *  TODO: DominikS MaxLen
      */
     inline void SetCombs( bool bCombs );
 
@@ -808,17 +991,24 @@ class PODOFO_API PdfListField : public PdfField {
 
     /** Create a new PdfTextField
      */
-    PdfListField( PdfAnnotation* pWidget, PdfAcroForm* pParent );
+    PdfListField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pParent );
 
     /** Create a new PdfTextField
      */
-    PdfListField( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent );
+    PdfListField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent );
 
     /** Create a new PdfTextField
      */
-    PdfListField( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
+    PdfListField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
 
  public:
+
+    /** Create a PdfListField from a PdfField 
+     *  \param rhs a PdfField that is a list field
+     *
+     *  Internal usage only.
+     */
+    PdfListField( const PdfField & rhs );
 
     //const PdfString & GetSelectedItem(); /// ???
 
@@ -1022,6 +1212,14 @@ class PODOFO_API PdfComboBox : public PdfListField {
      */
     PdfComboBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
 
+    /** Create a PdfComboBox from a PdfField
+     * 
+     *  \param rhs a PdfField that is a PdfComboBox
+     *
+     *  Raises an error if PdfField::GetType() != ePdfField_ComboBox
+     */
+    PdfComboBox( const PdfField & rhs );
+
     /**
      * Sets the combobox to be editable
      *
@@ -1069,6 +1267,14 @@ class PODOFO_API PdfListBox : public PdfListField {
     /** Create a new PdfTextField
      */
     PdfListBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
+
+    /** Create a PdfListBox from a PdfField
+     * 
+     *  \param rhs a PdfField that is a PdfComboBox
+     *
+     *  Raises an error if PdfField::GetType() != ePdfField_ListBox
+     */
+    PdfListBox( const PdfField & rhs );
 
 };
 

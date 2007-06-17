@@ -213,6 +213,7 @@ PdfAnnotation* PdfPage::GetAnnotation( int index )
         pObj = m_pObject->GetOwner()->GetObject( ref );
         if( !pObj )
         {
+            PdfError::DebugMessage( "Error looking up object %i %i R\n", ref.ObjectNumber(), ref.GenerationNumber() );
             PODOFO_RAISE_ERROR( ePdfError_NoObject );
         }
      
@@ -321,6 +322,53 @@ unsigned int PdfPage::GetPageNumber() const
     }
 
     return ++nPageNumber;
+}
+
+const int PdfPage::GetNumFields() const
+{
+    int                  nCount  = 0;
+    int                  nAnnots = this->GetNumAnnots();
+    const PdfAnnotation* pAnnot  = NULL;
+    for( int i=0;i<nAnnots;i++ )
+    {
+        pAnnot = const_cast<PdfPage*>(this)->GetAnnotation( i );
+        // Count every widget annotation with a FieldType as PdfField
+        if( pAnnot->GetType() == ePdfAnnotation_Widget && 
+            pAnnot->GetObject()->GetDictionary().HasKey( PdfName("FT") ) )
+            ++nCount;
+    }
+
+    return nCount;
+}
+
+PdfField PdfPage::GetField( int index )
+{
+    int            nCount  = 0;
+    int            nAnnots = this->GetNumAnnots();
+    PdfAnnotation* pAnnot  = NULL;
+    for( int i=0;i<nAnnots;i++ )
+    {
+        pAnnot = this->GetAnnotation( i );
+        // Count every widget annotation with a FieldType as PdfField
+        if( pAnnot->GetType() == ePdfAnnotation_Widget && 
+            pAnnot->GetObject()->GetDictionary().HasKey( PdfName("FT") ) )
+        {
+            if( nCount == index )
+            {
+                return PdfField( pAnnot->GetObject(), pAnnot );
+            }
+            else
+                ++nCount;
+        }
+    }
+
+    PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+}
+
+const PdfField PdfPage::GetField( int index ) const
+{
+    PdfField field = const_cast<PdfPage*>(this)->GetField( index );
+    return field;
 }
 
 };
