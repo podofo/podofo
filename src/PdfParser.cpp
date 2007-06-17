@@ -184,7 +184,7 @@ void PdfParser::ReadDocumentStructure()
 #endif // PODOFO_VERBOSE_DEBUG
 
     m_pOffsets = static_cast<TXRefEntry*>(malloc( sizeof( TXRefEntry ) * (m_nNumObjects+1)  ));
-    memset( m_pOffsets, 0, sizeof( TXRefEntry ) * m_nNumObjects );
+    memset( m_pOffsets, 0, sizeof( TXRefEntry ) * (m_nNumObjects+1) );
 
 #ifdef PODOFO_VERBOSE_DEBUG
     PdfError::DebugMessage("Linearized Offset: %i Pointer: %p\n", m_nXRefLinearizedOffset, m_pLinearization );
@@ -496,7 +496,6 @@ void PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
     }
 
     try {
-        printf("Reading next trailer\n");
         ReadNextTrailer();
     } catch( PdfError & e ) {
         if( e != ePdfError_NoTrailer ) 
@@ -505,8 +504,6 @@ void PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
             throw e;
         }
     }
-    printf("DONE\n");
-
 }
 
 void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
@@ -526,14 +523,14 @@ void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
         {
             PODOFO_RAISE_ERROR( ePdfError_InvalidXRef );
         }
-
+ 
         if( !m_pOffsets[objID].bParsed )
         {
             m_pOffsets[objID].bParsed = true;
             sscanf( m_buffer.GetBuffer(), "%10ld %5ld %c \n", 
                     &(m_pOffsets[objID].lOffset), 
                     &(m_pOffsets[objID].lGeneration), &(m_pOffsets[objID].cUsed) );
-        }
+       }
 
         ++count;
     }
@@ -745,7 +742,7 @@ void PdfParser::ReadObjects()
 
     m_vecObjects->Reserve( m_nNumObjects );
 
-    for( ; i < m_nNumObjects; i++ )
+    for( ; i <= m_nNumObjects; i++ )
     {
         if( m_pOffsets[i].bParsed && m_pOffsets[i].cUsed == 'n' )
         {

@@ -272,7 +272,8 @@ unsigned int PdfXRef::GetSize() const
 
     int max      =  PDF_MAX( highObj, highFree );
 
-    return max;
+    // From the PdfReference: /Size's value is 1 greater than the highes object number used in the file.
+    return max+1;
 }
 
 void PdfXRef::MergeBlocks() 
