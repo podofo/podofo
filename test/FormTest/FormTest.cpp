@@ -22,6 +22,8 @@
 
 #include "../PdfTest.h"
 
+#include <iostream>
+
 using namespace PoDoFo;
 
 #define CONVERSION_CONSTANT 0.002834645669291339
@@ -80,17 +82,17 @@ void CreateComplexForm( PdfPage* pPage, PdfDocument* pDoc )
     comboJob.InsertItem( "Other" );
 
     // Open Source
-    y -= 10000.0 * CONVERSION_CONSTANT;
+    y -= 11000.0 * CONVERSION_CONSTANT;
     painter.DrawText( x, y, "I wan't to use PoDoFo in an Open Source application" );
     PdfCheckBox checkOpenSource( pPage, PdfRect( 120000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT, 
-                                                 40000.0 * CONVERSION_CONSTANT, h ), pDoc );
+                                                 h, h ), pDoc );
     checkOpenSource.SetFieldName("field_check_oss");
 
     // Commercial
-    y -= 10000.0 * CONVERSION_CONSTANT;
+    y -= 11000.0 * CONVERSION_CONSTANT;
     painter.DrawText( x, y, "I wan't to use PoDoFo in a commercial application" );
     PdfCheckBox checkCom( pPage, PdfRect( 120000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT, 
-                                          40000.0 * CONVERSION_CONSTANT, h ), pDoc );
+                                          h, h ), pDoc );
     checkCom.SetFieldName("field_check_com");
 
     y -= 10000.0 * CONVERSION_CONSTANT;
@@ -100,6 +102,7 @@ void CreateComplexForm( PdfPage* pPage, PdfDocument* pDoc )
     textComment.SetFieldName("field_comment");
     textComment.SetMultiLine( true );
     textComment.SetRichText( true );
+    textComment.SetText( "<?xml version=\"1.0\"?><body xmlns=\"http://www.w3.org/1999/xtml\" xmlns:xfa=\"http://www.xfa.org/schema/xfa-data/1.0/\" xfa:contentType=\"text/html\" xfa:APIVersion=\"Acrobat:8.0.0\" xfa:spec=\"2.4\"><p style=\"text-align:left\"><b><i>Here is some bold italic text</i></b></p><p style=\"font-size:16pt\">This text uses default text state parameters but changes the font size to 16.</p></body>");
 
     PdfPushButton buttonSend( pPage, PdfRect( 10000 * CONVERSION_CONSTANT, 10000 * CONVERSION_CONSTANT,
                                               25000 * CONVERSION_CONSTANT, 25000 * CONVERSION_CONSTANT ), pDoc );
@@ -197,24 +200,140 @@ void CreateSimpleForm( PdfPage* pPage, PdfDocument* pDoc )
     listBox.SetSelectedItem( 2 );
 }
 
+void FillTextField( PdfTextField & rField ) 
+{
+    const char* pszCur = rField.GetText().GetString();
+    std::cout << "  Current value:" << (pszCur ? pszCur : "") << std::endl;
+
+    std::string value;
+    std::cout << "  Enter new value (if empty value is unchanged):" << std::endl;
+    getline( std::cin, value );
+
+    if( value.length() )
+    {
+        rField.SetText( value );
+    }
+}
+
+void FillListField( PdfListField & rField ) 
+{
+    const char* pszCur = ( rField.GetSelectedItem() == -1 ? NULL : 
+                           rField.GetItemDisplayText( rField.GetSelectedItem() ).GetString() );
+    std::cout << "  Current value:" << (pszCur ? pszCur : "") << std::endl;
+    std::cout << "  Values:" << std::endl;
+    
+    for( int i=0;i<rField.GetItemCount();i++ )
+    {
+        pszCur = rField.GetItemDisplayText( i ).GetString();
+        std::cout << "     " << i << " " << (pszCur ? pszCur : "") << std::endl;
+    }
+
+    int nValue;
+    std::cout << "  Enter index of new value:" << std::endl;
+    std::cin >> nValue;
+
+    if( nValue >= 0 && nValue < rField.GetItemCount() )
+        rField.SetSelectedItem( nValue );
+}
+
+void FillForm( const char* pszFilename, const char* pszOutput ) 
+{
+    PdfDocument doc( pszFilename );
+    PdfPage*    pPage;
+    int         nPageCount = doc.GetPageCount();
+    int         nFieldCount;
+
+    for( int i=0;i<nPageCount;i++ )
+    {
+        pPage       = doc.GetPage( i );
+        nFieldCount = pPage->GetNumFields();
+
+        std::cout << "Page " << i + 1 << " contains " << nFieldCount << " fields." << std::endl;
+
+        for( int n=0;n<nFieldCount;n++ )
+        {
+            PdfField  field = pPage->GetField( n );
+            EPdfField eType = field.GetType();
+
+            std::cout << "  Field: " << field.GetFieldName().GetString() << std::endl;
+            std::cout << "  Type : ";
+
+            switch( eType )
+            {
+                case ePdfField_PushButton:
+                    std::cout << "PushButton" << std::endl;
+                    break;
+                case ePdfField_CheckBox:
+                    std::cout << "CheckBox" << std::endl;
+                    break;
+                case ePdfField_RadioButton:
+                    std::cout << "RadioButton" << std::endl;
+                    break;
+                case ePdfField_TextField:
+                {
+                    std::cout << "TextField" << std::endl;
+                    PdfTextField text( field ); 
+                    FillTextField( text );
+                    break;
+                }
+                case ePdfField_ComboBox:
+                {
+                    std::cout << "ComboBox" << std::endl;
+                    PdfListField lst( field );
+                    FillListField( lst ); 
+                    break;
+                }
+                case ePdfField_ListBox:
+                {
+                    std::cout << "ListBox" << std::endl;
+                    PdfListField lst( field );
+                    FillListField( lst ); 
+                    break;
+                }
+                case ePdfField_Signature:
+                    std::cout << "Signature" << std::endl;
+                    break;
+                case ePdfField_Unknown:
+                default:
+                    std::cout << "Unknown" << std::endl;
+                    break;
+            }
+
+            std::cout << std::endl;
+        }
+    }
+
+    doc.Write( pszOutput );
+}
+
 int main( int argc, char* argv[] ) 
 {
     PdfDocument     writer;
     PdfPage*        pPage;
 
-    if( argc != 2 )
+    if( argc != 2 && argc != 3 )
     {
         printf("Usage: FormTest [output_filename]\n");
+        printf("       - Create a new example PDF form\n");
+        printf("       Formtest [input_filename] [output_filename]\n"); 
+        printf("       - Fill out an existing form and save it to a PDF file\n");
         return 0;
     }
 
-    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    TEST_SAFE_OP( CreateComplexForm( pPage, &writer ) );
+    if( argc == 3 )
+    {
+        TEST_SAFE_OP( FillForm( argv[1], argv[2] ) );
+    }
+    else
+    {
+        pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+        TEST_SAFE_OP( CreateComplexForm( pPage, &writer ) );
 
-    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    TEST_SAFE_OP( CreateSimpleForm( pPage, &writer ) );
+        pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+        TEST_SAFE_OP( CreateSimpleForm( pPage, &writer ) );
 
-    TEST_SAFE_OP( writer.Write( argv[1] ) );
+        TEST_SAFE_OP( writer.Write( argv[1] ) );
+    }
 
     return 0;
 }

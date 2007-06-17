@@ -500,19 +500,19 @@ const PdfString PdfPushButton::GetAlternateCaption() const
 /////////////////////////////////////////////////////////////////////////////
 
 PdfCheckBox::PdfCheckBox( PdfAnnotation* pWidget, PdfAcroForm* pParent )
-    : PdfButton( ePdfField_ComboBox, pWidget, pParent )
+    : PdfButton( ePdfField_CheckBox, pWidget, pParent )
 {
     Init();
 }
 
 PdfCheckBox::PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent )
-    : PdfButton( ePdfField_ComboBox, pPage, rRect, pParent )
+    : PdfButton( ePdfField_CheckBox, pPage, rRect, pParent )
 {
     Init();
 }
 
 PdfCheckBox::PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
-    : PdfButton( ePdfField_ComboBox, pPage, rRect, pDoc )
+    : PdfButton( ePdfField_CheckBox, pPage, rRect, pDoc )
 {
     Init();
 }
