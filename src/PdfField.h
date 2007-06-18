@@ -607,6 +607,13 @@ class PODOFO_API PdfPushButton : public PdfButton {
      */
     PdfPushButton( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
 
+    /** Create a PdfPushButton from a PdfField 
+     *  \param rhs a PdfField that is a push button button
+     *
+     *  Raises an error if PdfField::GetType() != ePdfField_PushButton
+     */
+    PdfPushButton( const PdfField & rhs );
+
     /** Set the rollover caption of this button
      *  which is displayed when the cursor enters the field
      *  without the mouse button being pressed
@@ -651,6 +658,13 @@ class PODOFO_API PdfCheckBox : public PdfButton {
     /** Create a new PdfCheckBox
      */
     PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
+
+    /** Create a PdfCheckBox from a PdfField 
+     *  \param rhs a PdfField that is a check box
+     *
+     *  Raises an error if PdfField::GetType() != ePdfField_CheckBox
+     */
+    PdfCheckBox( const PdfField & rhs );
 
     /** Set the appearance stream which is displayed when the checkbox
      *  is checked.

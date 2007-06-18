@@ -420,6 +420,14 @@ PdfPushButton::PdfPushButton( PdfPage* pPage, const PdfRect & rRect, PdfDocument
     Init();
 }
 
+PdfPushButton::PdfPushButton( const PdfField & rhs )
+    : PdfButton( rhs )
+{
+    if( this->GetType() != ePdfField_CheckBox )
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Field cannot be converted into a PdfPushButton" );
+    }
+}
 
 void PdfPushButton::Init() 
 {
@@ -515,6 +523,15 @@ PdfCheckBox::PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pD
     : PdfButton( ePdfField_CheckBox, pPage, rRect, pDoc )
 {
     Init();
+}
+
+PdfCheckBox::PdfCheckBox( const PdfField & rhs )
+    : PdfButton( rhs )
+{
+    if( this->GetType() != ePdfField_CheckBox )
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Field cannot be converted into a PdfCheckBox" );
+    }
 }
 
 void PdfCheckBox::Init()
