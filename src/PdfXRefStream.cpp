@@ -57,20 +57,17 @@ PdfXRefStream::PdfXRefStream( PdfVecObjects* pParent, PdfWriter* pWriter )
 {
     m_bLittle    = podofo_is_little_endian();
     m_lBufferLen = 2 + sizeof( STREAM_OFFSET_TYPE );
+
+    m_pObject    = pParent->CreateObject( "XRef" );
+    m_lOffset    = 0;
 }
 
 PdfXRefStream::~PdfXRefStream()
 {
-    PODOFO_RAISE_LOGIC_IF( m_pObject, "m_pObject still initialized in PdfXRefStream destructor!" );
-    delete m_pObject;
 }
 
 void PdfXRefStream::BeginWrite( PdfOutputDevice* ) 
 {
-    PdfReference        reference( this->GetSize() + 1, 0 );
-    m_pObject    = new PdfObject( reference, "XRef" );
-
-    m_pObject->SetOwner( m_pParent );
     m_pObject->GetStream()->BeginAppend();
 }
 
@@ -82,13 +79,17 @@ void PdfXRefStream::WriteSubSection( PdfOutputDevice*, unsigned int nFirst, unsi
     m_indeces.push_back( static_cast<long>(nCount) );
 }
 
-void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, unsigned long lOffset, unsigned long, char cMode ) 
+void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, unsigned long lOffset, unsigned long lGeneration, 
+                                    char cMode, unsigned long lObjectNumber ) 
 {
-    char *              buffer = (char *) alloca(m_lBufferLen);
-    STREAM_OFFSET_TYPE* pValue    = reinterpret_cast<STREAM_OFFSET_TYPE*>(buffer+1);
+    char *              buffer = reinterpret_cast<char*>(alloca(m_lBufferLen));
+    STREAM_OFFSET_TYPE* pValue = reinterpret_cast<STREAM_OFFSET_TYPE*>(buffer+1);
 
-    buffer[0]           = static_cast<char>( cMode == 'n' ? 1 : 0 );
-    buffer[m_lBufferLen-1] = static_cast<char>( cMode == 'n' ? 0 : 1 );
+    if( cMode == 'n' && lObjectNumber == m_pObject->Reference().ObjectNumber() )
+        m_lOffset = lOffset;
+    
+    buffer[0]              = static_cast<char>( cMode == 'n' ? 1 : 0 );
+    buffer[m_lBufferLen-1] = static_cast<char>( cMode == 'n' ? 0 : lGeneration );
     // TODO: This might cause bus errors on HP-UX machines 
     //       which require integers to be alligned on byte boundaries.
     //       -> Better use memcpy here!
@@ -107,16 +108,17 @@ void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
     w.push_back( static_cast<long>(sizeof(STREAM_OFFSET_TYPE)) );
     w.push_back( 1l );
 
+    // Add our self to the XRef table
+    this->WriteXRefEntry( pDevice, pDevice->GetLength(), 0, 'n' );
+
     m_pObject->GetStream()->EndAppend();
-    m_pWriter->FillTrailerObject( m_pObject, m_pObject->Reference().ObjectNumber(), false, false );
+    m_pWriter->FillTrailerObject( m_pObject, this->GetSize(), false, false );
 
     m_pObject->GetDictionary().AddKey( "Index", m_indeces );
     m_pObject->GetDictionary().AddKey( "W", w );
 
+    pDevice->Seek( m_lOffset );
     m_pObject->WriteObject( pDevice );
-
-    delete m_pObject;
-    m_pObject = NULL;
     m_indeces.clear();
 }
 

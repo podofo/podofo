@@ -137,7 +137,6 @@ void PdfWriter::Write( PdfOutputDevice* pDevice )
             WritePdfHeader  ( pDevice );
             WritePdfObjects ( pDevice, *m_vecObjects, pXRef );
 
-            long lXRefOffset = pDevice->GetLength();
             pXRef->Write( pDevice );
             
             // XRef streams contain the trailer in the XRef
@@ -152,7 +151,7 @@ void PdfWriter::Write( PdfOutputDevice* pDevice )
                 trailer.WriteObject( pDevice );
             }
             
-            pDevice->Print( "startxref\n%li\n%%%%EOF\n", lXRefOffset );
+            pDevice->Print( "startxref\n%li\n%%%%EOF\n", pXRef->GetOffset() );
             delete pXRef;
         } catch( PdfError & e ) {
             // Make sure pXRef is always deleted

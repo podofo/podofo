@@ -120,6 +120,12 @@ class PdfXRef {
      */
     unsigned int GetSize() const;
 
+    /**
+     * \returns the offset in the file at which the XRef table
+     *          starts after it was written
+     */
+    inline virtual size_t GetOffset() const;
+
  protected:
     /** Called at the start of writing the XRef table.
      *  This method can be overwritten in subclasses
@@ -147,8 +153,11 @@ class PdfXRef {
      *  @param lOffset the offset of the object
      *  @param lGeneration the generation number
      *  @param cMode the mode 'n' for object and 'f' for free objects
+     *  @param lObjectNumber the object number of the currently written object if cMode = 'n' 
+     *                       otherwise undefined
      */
-    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, unsigned long lOffset, unsigned long lGeneration, char cMode );
+    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, unsigned long lOffset, unsigned long lGeneration, 
+                                 char cMode, unsigned long lObjectNumber = 0 );
 
     /** Called at the end of writing the XRef table.
      *  Sub classes can overload this method to finish a XRef table.
@@ -170,9 +179,20 @@ class PdfXRef {
      */
     void MergeBlocks();
 
+ private:
+    long m_lOffset;
+
  protected:
     TVecXRefBlock  m_vecBlocks;
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline size_t PdfXRef::GetOffset() const
+{
+    return m_lOffset;
+}
 
 };
 

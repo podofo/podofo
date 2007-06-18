@@ -132,6 +132,7 @@ void PdfXRef::Write( PdfOutputDevice* pDevice )
 
     MergeBlocks();
 
+    m_lOffset = pDevice->GetLength();
     this->BeginWrite( pDevice );
     while( it != m_vecBlocks.end() )
     {
@@ -171,7 +172,8 @@ void PdfXRef::Write( PdfOutputDevice* pDevice )
                 ++itFree;
             }
 
-            this->WriteXRefEntry( pDevice, (*itItems).lOffset, (*itItems).reference.GenerationNumber(), 'n' );
+            this->WriteXRefEntry( pDevice, (*itItems).lOffset, (*itItems).reference.GenerationNumber(), 'n', 
+                                  (*itItems).reference.ObjectNumber()  );
             ++itItems;
         }
 
@@ -313,7 +315,7 @@ void PdfXRef::WriteSubSection( PdfOutputDevice* pDevice, unsigned int nFirst, un
     pDevice->Print( "%u %u\n", nFirst, nCount );
 }
 
-void PdfXRef::WriteXRefEntry( PdfOutputDevice* pDevice, unsigned long lOffset, unsigned long lGeneration, char cMode ) 
+void PdfXRef::WriteXRefEntry( PdfOutputDevice* pDevice, unsigned long lOffset, unsigned long lGeneration, char cMode, unsigned long ) 
 {
     pDevice->Print( "%0.10i %0.5i %c \n", lOffset, lGeneration, cMode );
 }
