@@ -190,7 +190,7 @@ class PODOFO_API PdfWriter {
     /** Write pdf objects to file
      *  \param pDevice write to this output device
      *  \param vecObjects write all objects in this vector to the file
-     *  \param pVecXRef add all written objects to this XRefTable
+     *  \param pXref add all written objects to this XRefTable
      */ 
     void WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& vecObjects, PdfXRef* pXref ) PODOFO_LOCAL;
 

@@ -152,16 +152,16 @@ class PODOFO_API PdfAnnotation : public PdfElement {
     pdf_uint32 GetFlags() const;
 
     /** Set the annotations border style.
-     *  \param hcorner horitzontal corner radius 
-     *  \param vcorner vertical corner radius 
-     *  \param width width of border
+     *  \param dHCorner horitzontal corner radius 
+     *  \param dVCorner vertical corner radius 
+     *  \param dWidth width of border
      */
     void SetBorderStyle( double dHCorner, double dVCorner, double dWidth );
 
     /** Set the annotations border style.
-     *  \param hcorner horitzontal corner radius 
-     *  \param vcorner vertical corner radius 
-     *  \param width width of border
+     *  \param dHCorner horitzontal corner radius 
+     *  \param dVCorner vertical corner radius 
+     *  \param dWidth width of border
      *  \param rStrokeStyle a custom stroke style pattern
      */
     void SetBorderStyle( double dHCorner, double dVCorner, double dWidth, const PdfArray & rStrokeStyle );

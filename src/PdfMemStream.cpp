@@ -39,7 +39,7 @@ class PODOFO_API PdfBufferOutputStream : public PdfOutputStream {
     /** 
      *  Write to an already opened input device
      * 
-     *  \param pDevice an output device
+     *  \param pBuffer data is written to this buffer
      */
     PdfBufferOutputStream( PdfRefCountedBuffer* pBuffer )
         : m_pBuffer( pBuffer )

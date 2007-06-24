@@ -142,15 +142,11 @@ class PdfAscii85Filter : public PdfFilter {
      */
     inline virtual bool CanEncode() const; 
 
-    /** Begin encoding data using this filter.
-     *  
-     *  \param pOutput encoded data will be written to this stream.
-     *
-     *  Call EncodeBlockImpl() to encode blocks of data and use EndEncodeImpl
-     *  to finish the encoding process.
+    /** Begin encoding data using this filter. Called by PdfFilter::BeginEncode.
      *
      *  \see EncodeBlockImpl
      *  \see EndEncodeImpl
+     *  \see PdfFilter::BeginEncode
      */
     virtual void BeginEncodeImpl();
 
@@ -265,15 +261,11 @@ class PdfFlateFilter : public PdfFilter {
      */
     inline virtual bool CanEncode() const; 
 
-    /** Begin encoding data using this filter.
-     *  
-     *  \param pOutput encoded data will be written to this stream.
-     *
-     *  Call EncodeBlockImpl() to encode blocks of data and use EndEncodeImpl
-     *  to finish the encoding process.
+    /** Begin encoding data using this filter. Called by PdfFilter::BeginEncode.
      *
      *  \see EncodeBlockImpl
      *  \see EndEncodeImpl
+     *  \see PdfFilter::BeginEncode
      */
     virtual void BeginEncodeImpl();
 
@@ -498,15 +490,11 @@ class PdfLZWFilter : public PdfFilter {
      */
     inline virtual bool CanEncode() const; 
 
-    /** Begin encoding data using this filter.
-     *  
-     *  \param pOutput encoded data will be written to this stream.
-     *
-     *  Call EncodeBlockImpl() to encode blocks of data and use EndEncodeImpl
-     *  to finish the encoding process.
+    /** Begin encoding data using this filter. Called by PdfFilter::BeginEncode.
      *
      *  \see EncodeBlockImpl
      *  \see EndEncodeImpl
+     *  \see PdfFilter::BeginEncode
      */
     virtual void BeginEncodeImpl();
 

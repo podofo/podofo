@@ -100,7 +100,7 @@ class PdfXRefStream : public PdfXRef {
      *  @param pDevice the output device to which the XRef table 
      *                 should be written.
      */
-    virtual void EndWrite( PdfOutputDevice* );
+    virtual void EndWrite( PdfOutputDevice* pDevice );
 
  private:
     PdfVecObjects* m_pParent;

@@ -323,7 +323,7 @@ class PODOFO_API PdfVecObjects {
 
     /** Creates a stream object by copying an existing stream
      *
-     *  \param pStream copy this stream
+     *  \param rhs copy this stream
      *
      *  \returns a new stream object 
      */

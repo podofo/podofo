@@ -160,6 +160,11 @@ typedef std::deque<PdfErrorInfo>        TDequeErrorInfo;
 typedef TDequeErrorInfo::iterator       TIDequeErrorInfo;
 typedef TDequeErrorInfo::const_iterator TCIDequeErrorInfo;
 
+
+// This is required to generate the documentation with Doxygen.
+// Without this define doxygen thinks we have a class called PODOFO_EXCEPTION_API(PODOFO_API) ...
+#define PODOFO_EXCEPTION_API_DOXYGEN PODOFO_EXCEPTION_API(PODOFO_API)
+
 /** The error handling class of PoDoFo lib.
  *  Whenever a function encounters an error
  *  a PdfError object is returned.
@@ -170,8 +175,9 @@ typedef TDequeErrorInfo::const_iterator TCIDequeErrorInfo;
  *  This class provides also meaningfull
  *  error descriptions.
  */
-class PODOFO_EXCEPTION_API(PODOFO_API) PdfError : public std::exception {
+class PODOFO_EXCEPTION_API_DOXYGEN PdfError : public std::exception {
  public:
+
     /** Create a PdfError object initialized to ErrOk
      */
     PdfError();
