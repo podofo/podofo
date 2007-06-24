@@ -56,8 +56,6 @@ PdfOutlineItem::PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutli
     {
         next     = m_pObject->GetDictionary().GetKey("Next")->GetReference();
         PdfObject* pObj = pObject->GetOwner()->GetObject( next );
-        if( !pObj )
-            printf("Trying to find %i 0 R = %p\n", next.ObjectNumber(), pObj );
 
         m_pNext  = new PdfOutlineItem( pObj, NULL, this );
     }

@@ -342,7 +342,7 @@ const char* pszObject2 = "11 0 obj\n"
                         "<<\n" 
                         "/Type/Test2\n"
                         "/Key /Value\n"
-                        "/Key2[100/Name(Hallo Welt)[1 2] 3.14 400 500]/Key2<AAFF>/Key4(Hallo (Welt!)\n"
+                        "/Key2[100/Name(Hallo Welt)[1 2] 3.14 400 500]/Key2<AAFF>/Key4(Hallo \\(Welt!)\n"
                         "/ID[<530464995927cef8aaf46eb953b93373><530464995927cef8aaf46eb953b93373>]\n"
                         ">>\n"
                         "endobj\n";
@@ -443,15 +443,15 @@ int main()
 
     TRY_TEST(TestObject_String( pszSimpleObjectBoolean, 1, 0, "true" );)
     TRY_TEST(TestObject_String( pszSimpleObjectNumber , 2, 1, "23" );)
-    TRY_TEST(TestObject_String( pszSimpleObjectReal   , 3, 0, "3.14" );)
+    TRY_TEST(TestObject_String( pszSimpleObjectReal   , 3, 0, "3.140000" );)
     TRY_TEST(TestObject_String( pszSimpleObjectString , 4, 0, "(Hallo Welt!)" );)
     TRY_TEST(TestObject_String( pszSimpleObjectString2, 5, 0, "(Hallo \\(schöne\\) Welt!)" );)
     TRY_TEST(TestObject_String( pszSimpleObjectHex    , 6, 0, "<48656C6C6F20576F726C64>" );)
     TRY_TEST(TestObject_String( pszSimpleObjectRef    , 7, 0, "6 0 R" );)
     TRY_TEST(TestObject_String( pszSimpleObjectArray  , 8, 0, "[ 100 200 300 400 500 ]" );)
-    TRY_TEST(TestObject_String( pszSimpleObjectArray2 , 9, 0, "[ 100 (Hallo Welt) 3.14 400 500 ]" );)
-    TRY_TEST(TestObject_String( pszSimpleObjectArray3 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.14 400 500 ]" );)
-    TRY_TEST(TestObject_String( pszSimpleObjectArray4 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.14 400 500 /Dict <<\n/A (Hallo)\n/B [ 21 22 ]\n>> /Wert /Farbe ]" );)
+    TRY_TEST(TestObject_String( pszSimpleObjectArray2 , 9, 0, "[ 100 (Hallo Welt) 3.140000 400 500 ]" );)
+    TRY_TEST(TestObject_String( pszSimpleObjectArray3 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.140000 400 500 ]" );)
+    TRY_TEST(TestObject_String( pszSimpleObjectArray4 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.140000 400 500 /Dict <<\n/A (Hallo)\n/B [ 21 22 ]\n>> /Wert /Farbe ]" );)
     TRY_TEST(TestObject_String( pszSimpleObjectArray5 , 1, 2, "[ 123 0 R ]" );)
 
     fprintf(stderr,"---\n");

@@ -240,7 +240,7 @@ void PdfVecObjects::push_back( PdfObject* pObj )
     m_vector.push_back( pObj );
 }
 
-void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNotDelete )
+void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* )
 {
     TVecReferencePointerList  list;
     TIVecReferencePointerList it;
@@ -411,7 +411,7 @@ void PdfVecObjects::Sort()
     }
 }
 
-void PdfVecObjects::GarbageCollection( TVecReferencePointerList* pList, PdfObject* pTrailer, TPdfReferenceSet* pNotDelete )
+void PdfVecObjects::GarbageCollection( TVecReferencePointerList* pList, PdfObject*, TPdfReferenceSet* pNotDelete )
 {
     TIVecReferencePointerList it        = pList->begin();
     int                       pos       = 0;

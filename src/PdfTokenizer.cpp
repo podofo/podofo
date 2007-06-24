@@ -232,6 +232,9 @@ void PdfTokenizer::GetNextVariant( PdfVariant& rVariant )
    const char*   pszRead = this->GetNextToken( &eTokenType );
 
    this->GetNextVariant( pszRead, eTokenType, rVariant );
+
+   std::string str;
+   rVariant.ToString( str );
 }
 
 void PdfTokenizer::GetNextVariant( const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant )
@@ -470,13 +473,13 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant )
         // end of stream reached
         if( !bIgnore && !nBalanceCount && c == ')' )
             break;
-        
-        bIgnore = (c == '\\') && !bIgnore;
 
         if( !bIgnore && c == '(' )
             ++nBalanceCount;
         else if( !bIgnore && c == ')' )
             --nBalanceCount;
+        
+        bIgnore = (c == '\\') && !bIgnore;
 
         vec.push_back( static_cast<char>(c) );
     }
