@@ -32,7 +32,7 @@
  * Version number of this release
  */
 #define PODOFO_MAJOR 0
-#define PODOFO_MINOR 4
+#define PODOFO_MINOR 5
 #define PODOFO_REVISION 0
 
 #include "PdfAction.h"

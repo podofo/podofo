@@ -118,7 +118,8 @@ void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
             {
                 sOutStream << "\t\tLink Target: " << curAnnot->GetType() << std::endl;
                 if( curAnnot->HasAction() && curAnnot->GetAction()->HasURI() )
-                    sOutStream << "\t\tAction URI: " << curAnnot->GetAction()->GetURI().GetString() << std::endl;
+                    sOutStream << "\t\tAction URI: " << (curAnnot->GetAction()->GetURI().GetString() ? 
+                                                         curAnnot->GetAction()->GetURI().GetString() : "") << std::endl;
             }
         }        
     }
