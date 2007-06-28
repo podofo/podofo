@@ -60,6 +60,19 @@ PdfAction::PdfAction( EPdfAction eAction, PdfVecObjects* pParent )
     m_pObject->GetDictionary().AddKey( "S", type );
 }
 
+PdfAction::PdfAction( EPdfAction eAction, PdfStreamedDocument* pParent )
+    : PdfElement( "Action", pParent ), m_eType( eAction )
+{
+    const PdfName type = PdfName( TypeNameForIndex( eAction, s_names, s_lNumActions ) );
+
+    if( !type.GetLength() )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    m_pObject->GetDictionary().AddKey( "S", type );
+}
+
 PdfAction::PdfAction( PdfObject* pObject )
     // The typename /Action is optional for PdfActions
     : PdfElement( NULL, pObject )

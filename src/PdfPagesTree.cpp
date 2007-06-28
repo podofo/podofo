@@ -265,6 +265,7 @@ void PdfPagesTree::InsertPage( int inAfterPageNumber, PdfObject* pPage )
         afterPageObj = GetPageNode( inAfterPageNumber, GetRoot() ) ;
         if( !afterPageObj )
         {
+            PdfError::DebugMessage( "Cannot find page node: %i\n", inAfterPageNumber );
             PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
         }
      
@@ -278,6 +279,7 @@ void PdfPagesTree::InsertPage( int inAfterPageNumber, PdfObject* pPage )
     else
         kidsIndex = PdfPagesTree::GetPosInKids( afterPageObj ) ;
 
+    PdfError::DebugMessage("kidsIndex=%i\n", kidsIndex );
     // insert our page into the tree
 
     // TODO:
@@ -296,6 +298,7 @@ int PdfPagesTree::ChangePagesCount( PdfObject* inPageObj, int inDelta )
     if( 0 != inDelta ) 
     {
         cnt += inDelta ;
+        PdfError::DebugMessage("New pages count:%i\n", cnt );
         inPageObj->GetDictionary().AddKey( "Count", PdfVariant( static_cast<long>(cnt) ) );
     }
 

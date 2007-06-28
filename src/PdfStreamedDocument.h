@@ -45,6 +45,7 @@ class PdfOutputDevice;
  */
 class PODOFO_API PdfStreamedDocument {
     friend class PdfImage;
+    friend class PdfElement;
 
  public:
     /** Create a new PdfStreamedDocument.
@@ -197,6 +198,11 @@ class PODOFO_API PdfStreamedDocument {
     /** Set the document's Viewer Preferences:
      */    
     inline void SetBindingDirection( PdfName& inDirection );
+
+    /** Get access to the AcroForm dictionary
+     *  \returns PdfObject the AcroForm dictionary
+     */
+    inline PdfAcroForm* GetAcroForm( bool bCreate = ePdfCreateObject );
 
  private:
     /** Initialize the PdfStreamedDocument with an output device
@@ -386,6 +392,14 @@ void PdfStreamedDocument::SetLanguage( const std::string& inLanguage )
 void PdfStreamedDocument::SetBindingDirection( PdfName& inDirection )
 {
     m_doc.SetBindingDirection( inDirection );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfAcroForm* PdfStreamedDocument::GetAcroForm( bool bCreate )
+{
+    return m_doc.GetAcroForm( bCreate );
 }
 
 };

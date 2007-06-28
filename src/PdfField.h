@@ -37,6 +37,7 @@ class PdfObject;
 class PdfPage;
 class PdfRect;
 class PdfReference;
+class PdfStreamedDocument;
 
 /** The type of PDF field
  */
@@ -84,6 +85,8 @@ class PODOFO_API PdfField {
     PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent );
 
     PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
+
+    PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc );
 
     /** Create a copy of a PdfField object.
      *  Not the field on the page is copied - only the PdfField
@@ -527,6 +530,10 @@ class PODOFO_API PdfButton : public PdfField {
      */
     PdfButton( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
 
+    /** Create a new PdfButton
+     */
+    PdfButton( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc );
+
  public:
 
     /** Create a PdfButton from a PdfField 
@@ -607,6 +614,10 @@ class PODOFO_API PdfPushButton : public PdfButton {
      */
     PdfPushButton( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
 
+    /** Create a new PdfPushButton
+     */
+    PdfPushButton( PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc );
+
     /** Create a PdfPushButton from a PdfField 
      *  \param rhs a PdfField that is a push button button
      *
@@ -658,6 +669,10 @@ class PODOFO_API PdfCheckBox : public PdfButton {
     /** Create a new PdfCheckBox
      */
     PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
+
+    /** Create a new PdfCheckBox
+     */
+    PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc );
 
     /** Create a PdfCheckBox from a PdfField 
      *  \param rhs a PdfField that is a check box
@@ -734,6 +749,10 @@ class PODOFO_API PdfTextField : public PdfField {
     /** Create a new PdfTextField
      */
     PdfTextField( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
+
+    /** Create a new PdfTextField
+     */
+    PdfTextField( PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc );
 
     /** Create a PdfTextField from a PdfField
      * 
@@ -1015,6 +1034,10 @@ class PODOFO_API PdfListField : public PdfField {
      */
     PdfListField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
 
+    /** Create a new PdfTextField
+     */
+    PdfListField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc );
+
  public:
 
     /** Create a PdfListField from a PdfField 
@@ -1226,6 +1249,10 @@ class PODOFO_API PdfComboBox : public PdfListField {
      */
     PdfComboBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
 
+    /** Create a new PdfTextField
+     */
+    PdfComboBox( PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc );
+
     /** Create a PdfComboBox from a PdfField
      * 
      *  \param rhs a PdfField that is a PdfComboBox
@@ -1281,6 +1308,10 @@ class PODOFO_API PdfListBox : public PdfListField {
     /** Create a new PdfTextField
      */
     PdfListBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
+
+    /** Create a new PdfTextField
+     */
+    PdfListBox( PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc );
 
     /** Create a PdfListBox from a PdfField
      * 

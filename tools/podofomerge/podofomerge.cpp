@@ -42,20 +42,18 @@ void merge( const char* pszInput1, const char* pszInput2, const char* pszOutput 
     printf("Reading file: %s\n", pszInput2 );
     PdfDocument input2( pszInput2 );
 
-    int pgCount = input1.GetPageCount();
-
 // #define TEST_ONLY_SOME_PAGES
 #ifdef TEST_ONLY_SOME_PAGES
     input1.InsertPages( input2, 1, 2 );
 #else
-    printf("Appending %i pages.\n", input2.GetPageCount() );
+    printf("Appending %i pages on a document with %i pages.\n", input2.GetPageCount(), input1.GetPageCount() );
     input1.Append( input2 );
 #endif
 
     // we are going to bookmark the insertions
     // using destinations - also adding each as a NamedDest
     /*
-    PdfDestination	p1Dest( input1.GetPage(0) );
+      PdfDestination	p1Dest( input1.GetPage(0) );
     input1.AddNamedDestination( p1Dest, std::string("Input1") );
     PdfOutlines* bMarks = input1.GetOutlines();
     PdfOutlineItem*	bmRoot = bMarks->CreateRoot( "Merged Document" );

@@ -28,6 +28,7 @@ namespace PoDoFo {
 
 class PdfObject;
 class PdfString;
+class PdfStreamedDocument;
 class PdfVecObjects;
 
 /** The type of the action.
@@ -74,6 +75,12 @@ class PODOFO_API PdfAction : public PdfElement {
      *  \param pParent parent of this action
      */
     PdfAction( EPdfAction eAction, PdfVecObjects* pParent );
+
+    /** Create a new PdfAction object
+     *  \param eAction type of this action
+     *  \param pParent parent of this action
+     */
+    PdfAction( EPdfAction eAction, PdfStreamedDocument* pParent );
 
     virtual ~PdfAction() { }
 

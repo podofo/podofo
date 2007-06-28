@@ -27,6 +27,7 @@
 #include "PdfDocument.h"
 #include "PdfPainter.h"
 #include "PdfPage.h"
+#include "PdfStreamedDocument.h"
 #include "PdfXObject.h"
 
 #include <sstream>
@@ -50,6 +51,15 @@ PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, Pdf
 
 PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
     : m_eField( eField )    
+{
+    m_pWidget = pPage->CreateAnnotation( ePdfAnnotation_Widget, rRect );
+    m_pObject = m_pWidget->GetObject();
+
+    Init( pDoc->GetAcroForm() );
+}
+
+PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc )
+    : m_eField( eField )
 {
     m_pWidget = pPage->CreateAnnotation( ePdfAnnotation_Widget, rRect );
     m_pObject = m_pWidget->GetObject();
@@ -379,6 +389,11 @@ PdfButton::PdfButton( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, P
 {
 }
 
+PdfButton::PdfButton( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc )
+    : PdfField( eField, pPage, rRect, pDoc )
+{
+}
+
 PdfButton::PdfButton( const PdfField & rhs )
     : PdfField( rhs )
 {
@@ -415,6 +430,12 @@ PdfPushButton::PdfPushButton( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm
 }
 
 PdfPushButton::PdfPushButton( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
+    : PdfButton( ePdfField_PushButton, pPage, rRect, pDoc )
+{
+    Init();
+}
+
+PdfPushButton::PdfPushButton( PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc )
     : PdfButton( ePdfField_PushButton, pPage, rRect, pDoc )
 {
     Init();
@@ -525,6 +546,12 @@ PdfCheckBox::PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pD
     Init();
 }
 
+PdfCheckBox::PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc )
+    : PdfButton( ePdfField_CheckBox, pPage, rRect, pDoc )
+{
+    Init();
+}
+
 PdfCheckBox::PdfCheckBox( const PdfField & rhs )
     : PdfButton( rhs )
 {
@@ -628,6 +655,12 @@ PdfTextField::PdfTextField( PdfPage* pPage, const PdfRect & rRect, PdfDocument* 
     Init();
 }
 
+PdfTextField::PdfTextField( PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc )
+    : PdfField( ePdfField_TextField, pPage, rRect, pDoc )
+{
+    Init();
+}
+
 PdfTextField::PdfTextField( const PdfField & rhs )
     : PdfField( rhs )
 {
@@ -692,6 +725,12 @@ PdfListField::PdfListField( EPdfField eField, PdfPage* pPage, const PdfRect & rR
 }
 
 PdfListField::PdfListField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
+    : PdfField( eField, pPage, rRect, pDoc )
+{
+
+}
+
+PdfListField::PdfListField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc )
     : PdfField( eField, pPage, rRect, pDoc )
 {
 
@@ -862,6 +901,13 @@ PdfComboBox::PdfComboBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pD
     m_pWidget->SetBorderStyle( 0.0, 0.0, 1.0 );
 }
 
+PdfComboBox::PdfComboBox( PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc )
+    : PdfListField( ePdfField_ComboBox, pPage, rRect, pDoc )
+{
+    this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), true );        
+    m_pWidget->SetBorderStyle( 0.0, 0.0, 1.0 );
+}
+
 PdfComboBox::PdfComboBox( const PdfField & rhs )
     : PdfListField( rhs )
 {
@@ -888,6 +934,13 @@ PdfListBox::PdfListBox( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pPar
 }
 
 PdfListBox::PdfListBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
+    : PdfListField( ePdfField_ListBox, pPage, rRect, pDoc )
+{
+    this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), false );        
+    m_pWidget->SetBorderStyle( 0.0, 0.0, 1.0 );
+}
+
+PdfListBox::PdfListBox( PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc )
     : PdfListField( ePdfField_ListBox, pPage, rRect, pDoc )
 {
     this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), false );        

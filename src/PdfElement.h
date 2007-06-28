@@ -26,6 +26,7 @@
 #include "PdfObject.h"
 namespace PoDoFo {
 
+class PdfStreamedDocument;
 class PdfVecObjects;
 
 /** PdfElement is a common base class for all elements
@@ -68,6 +69,13 @@ class PODOFO_API PdfElement {
      *                 Add a newly created object to this vector.
      */
     PdfElement( const char* pszType, PdfVecObjects* pParent );
+
+    /** Creates a new PdfElement 
+     *  \param pszType type entry of the elements object
+     *  \param pParent parent PdfStreamedDocument.
+     *                 Add a newly created object to this vector.
+     */
+    PdfElement( const char* pszType, PdfStreamedDocument* pParent );
 
     /** Create a PdfElement from an existing PdfObject
      *  \param pszType type entry of the elements object.

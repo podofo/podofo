@@ -289,6 +289,7 @@ const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc )
         if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Parent" ) )
             pObj->GetDictionary().RemoveKey( "Parent" );
 
+        printf("Inserting at: %i\n", this->GetPageCount()-1 );
         m_pPagesTree->InsertPage( this->GetPageCount()-1, pObj );
     }
 

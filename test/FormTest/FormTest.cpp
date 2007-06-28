@@ -28,7 +28,7 @@ using namespace PoDoFo;
 
 #define CONVERSION_CONSTANT 0.002834645669291339
 
-void CreateComplexForm( PdfPage* pPage, PdfDocument* pDoc )
+void CreateComplexForm( PdfPage* pPage, PdfStreamedDocument* pDoc )
 {
     PdfRect rect = pPage->GetPageSize();
 
@@ -116,7 +116,7 @@ void CreateComplexForm( PdfPage* pPage, PdfDocument* pDoc )
     buttonClear.SetCaption("Clear");
     buttonClear.SetBackgroundColor( 0.5 );
 
-    PdfAction actionClear( ePdfAction_JavaScript, &(pDoc->GetObjects()) );
+    PdfAction actionClear( ePdfAction_JavaScript, pDoc );
     actionClear.SetScript( 
         PdfString("this.getField(\"field_name\").value = \"\";" \
                   "this.getField(\"field_mail\").value = \"\";" \
@@ -128,14 +128,14 @@ void CreateComplexForm( PdfPage* pPage, PdfDocument* pDoc )
 
     buttonClear.SetMouseDownAction( actionClear );
                   
-    PdfAction actionSubmit( ePdfAction_SubmitForm, &(pDoc->GetObjects()) );
+    PdfAction actionSubmit( ePdfAction_SubmitForm, pDoc );
 
     buttonSend.SetMouseDownAction( actionSubmit );
     
     painter.FinishPage();
 }
 
-void CreateSimpleForm( PdfPage* pPage, PdfDocument* pDoc )
+void CreateSimpleForm( PdfPage* pPage, PdfStreamedDocument* pDoc )
 {
     PdfPainter painter;
     PdfFont*   pFont = pDoc->CreateFont( "Courier", false );
@@ -154,7 +154,7 @@ void CreateSimpleForm( PdfPage* pPage, PdfDocument* pDoc )
     button.SetCaption("Hallo Welt");
 
 
-    PdfAction action( ePdfAction_JavaScript, &(pDoc->GetObjects()) );
+    PdfAction action( ePdfAction_JavaScript, pDoc );
     action.SetScript( 
         PdfString("var str = this.getField(\"TextFieldName\").value;" \
                   "var j = 4*5;" \
@@ -308,8 +308,7 @@ void FillForm( const char* pszFilename, const char* pszOutput )
 
 int main( int argc, char* argv[] ) 
 {
-    PdfDocument     writer;
-    PdfPage*        pPage;
+    PdfPage*            pPage;
 
     if( argc != 2 && argc != 3 )
     {
@@ -326,13 +325,15 @@ int main( int argc, char* argv[] )
     }
     else
     {
+        PdfStreamedDocument writer( argv[1] );
+
         pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
         TEST_SAFE_OP( CreateComplexForm( pPage, &writer ) );
 
         pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
         TEST_SAFE_OP( CreateSimpleForm( pPage, &writer ) );
 
-        TEST_SAFE_OP( writer.Write( argv[1] ) );
+        TEST_SAFE_OP( writer.Close() );
     }
 
     return 0;

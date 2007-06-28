@@ -22,6 +22,7 @@
 
 #include "PdfDictionary.h"
 #include "PdfObject.h"
+#include "PdfStreamedDocument.h"
 #include "PdfVecObjects.h"
 
 namespace PoDoFo {
@@ -29,6 +30,11 @@ namespace PoDoFo {
 PdfElement::PdfElement( const char* pszType, PdfVecObjects* pParent )
 {
     m_pObject = pParent->CreateObject( pszType );
+}
+
+PdfElement::PdfElement( const char* pszType, PdfStreamedDocument* pParent )
+{
+    m_pObject = pParent->m_doc.GetObjects().CreateObject( pszType );
 }
 
 PdfElement::PdfElement( const char* pszType, PdfObject* pObject )
