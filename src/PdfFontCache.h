@@ -22,9 +22,7 @@
 #define _PDF_FONT_CACHE_H_
 
 #include "PdfDefines.h"
-
-#include <ft2build.h>
-#include FT_FREETYPE_H
+#include "Pdf3rdPtyForwardDecl.h"
 
 namespace PoDoFo {
 
@@ -113,10 +111,8 @@ class PODOFO_API PdfFontCache {
     FT_Library      m_ftLibrary;
 
 #if !defined(_WIN32) && !defined(__APPLE_CC__)
-    // Actually a pointer to FcConfig* but we don't want to expose
-    // FontConfig's headers unncessarily to users of the library.
-    void*       m_pFcConfig;
-#endif   
+    FcConfig*       m_pFcConfig;
+#endif
 
     PdfVecObjects*  m_pParent; 
 };

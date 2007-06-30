@@ -28,6 +28,9 @@
 #include "PdfVariant.h"
 #include <sstream>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 #if !defined(_WIN32) && !defined(__APPLE_CC__)
 #include <fontconfig/fontconfig.h>
 #endif
@@ -1139,9 +1142,8 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
 
 #else
 
-std::string PdfFontMetrics::GetFilenameForFont( void* pvConfig, const char* pszFontname )
+std::string PdfFontMetrics::GetFilenameForFont( FcConfig* pConfig, const char* pszFontname )
 {
-    FcConfig * const pConfig = static_cast<FcConfig*>(pvConfig);
     FcPattern* pattern;
     FcPattern* matched;
     FcResult result = FcResultMatch;

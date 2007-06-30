@@ -22,9 +22,7 @@
 #define _PDF_FONT_METRICS_H_
 
 #include "PdfDefines.h"
-
-#include <ft2build.h>
-#include FT_FREETYPE_H
+#include "Pdf3rdPtyForwardDecl.h"
 
 #ifndef CONVERSION_CONSTANT
 #define CONVERSION_CONSTANT 0.002834645669291339
@@ -250,9 +248,7 @@ class PODOFO_API PdfFontMetrics {
      */
 #if defined(_WIN32) || defined(__APPLE_CC__)
 #else
-    // You can pass a FcConfig* to pConfig; however, since we want to avoid exposing
-    // fontconfig's headers to our users we're forced to use a void pointer here.
-    static std::string GetFilenameForFont( void* pConfig, const char* pszFontname );
+    static std::string GetFilenameForFont( FcConfig* pConfig, const char* pszFontname );
 #endif
 
     /** 
