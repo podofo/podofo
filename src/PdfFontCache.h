@@ -27,7 +27,7 @@
 #include FT_FREETYPE_H
 
 #if !defined(_WIN32) && !defined(__APPLE_CC__)
-#include <fontconfig.h>
+#include <fontconfig/fontconfig.h>
 #endif
 
 namespace PoDoFo {

@@ -23,7 +23,7 @@
 
 #include "PdfDefines.h"
 #if !defined(_WIN32) && !defined(__APPLE_CC__)
-#include <fontconfig.h>
+#include <fontconfig/fontconfig.h>
 #endif
 
 #include <ft2build.h>
