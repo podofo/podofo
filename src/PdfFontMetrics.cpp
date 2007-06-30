@@ -28,6 +28,10 @@
 #include "PdfVariant.h"
 #include <sstream>
 
+#if !defined(_WIN32) && !defined(__APPLE_CC__)
+#include <fontconfig/fontconfig.h>
+#endif
+
 
 #define PODOFO_FIRST_READABLE 31
 #define PODOFO_WIDTH_CACHE_SIZE 256
@@ -1135,8 +1139,9 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
 
 #else
 
-std::string PdfFontMetrics::GetFilenameForFont( FcConfig* pConfig, const char* pszFontname )
+std::string PdfFontMetrics::GetFilenameForFont( void* pvConfig, const char* pszFontname )
 {
+    FcConfig * const pConfig = static_cast<FcConfig*>(pvConfig);
     FcPattern* pattern;
     FcPattern* matched;
     FcResult result = FcResultMatch;

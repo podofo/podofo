@@ -22,7 +22,12 @@
 
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
+
 #include <algorithm>
+
+#if !defined(_WIN32) && !defined(__APPLE_CC__)
+#include <fontconfig/fontconfig.h>
+#endif
 
 using namespace std;
 

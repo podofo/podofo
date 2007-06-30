@@ -26,10 +26,6 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#if !defined(_WIN32) && !defined(__APPLE_CC__)
-#include <fontconfig/fontconfig.h>
-#endif
-
 namespace PoDoFo {
 
 class PdfFont;
@@ -117,7 +113,9 @@ class PODOFO_API PdfFontCache {
     FT_Library      m_ftLibrary;
 
 #if !defined(_WIN32) && !defined(__APPLE_CC__)
-    FcConfig*       m_pFcConfig;
+    // Actually a pointer to FcConfig* but we don't want to expose
+    // FontConfig's headers unncessarily to users of the library.
+    void*       m_pFcConfig;
 #endif   
 
     PdfVecObjects*  m_pParent; 

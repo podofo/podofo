@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include <podofo.h>
+#include <fontconfig/fontconfig.h>
 
 using namespace PoDoFo;
 
