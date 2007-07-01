@@ -98,7 +98,21 @@ void PdfFont::Init( bool bEmbed )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("TrueType") );
+    EPdfFontType eType = m_pMetrics->GetFontType();
+    switch( eType ) 
+    {
+        case ePdfFontType_TrueType:
+            m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("TrueType") );
+            break;
+        case ePdfFontType_Type1Pfa:
+        case ePdfFontType_Type1Pfb:
+            m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Type1") );
+            break;
+        case ePdfFontType_Unknown:
+        default:
+            PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFontFormat, m_pMetrics->GetFilename() );
+    }
+
     m_pObject->GetDictionary().AddKey("BaseFont", m_BaseFont );
     m_pObject->GetDictionary().AddKey("FirstChar", PdfVariant( static_cast<long>(FIRST_CHAR) ) );
     m_pObject->GetDictionary().AddKey("LastChar", PdfVariant( static_cast<long>(LAST_CHAR) ) );
@@ -209,7 +223,9 @@ void PdfFont::EmbedType1Font( PdfObject* pDescriptor )
     }
         
     pContents->GetDictionary().AddKey( "Length1", PdfVariant( lSize ) );
-    // TODO: Length2, Length3
+    // TODO: Compute Length2, Length3, must at least be set to 0L for Type1-Fonts
+    pContents->GetDictionary().AddKey( "Length2", PdfVariant( 0L ) );
+    pContents->GetDictionary().AddKey( "Length3", PdfVariant( 0L ) );
 }
 
 void PdfFont::SetFontSize( float fSize )

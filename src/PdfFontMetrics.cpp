@@ -1256,12 +1256,21 @@ void PdfFontMetrics::SetFontTypeFromFilename( const char* pszFilename )
     if( pszFilename && strlen( pszFilename ) > 3 )
     {
         const char* pszExtension = pszFilename + strlen( pszFilename ) - 3;
+#ifdef _MSC_VER
+        if( _strnicmp( pszExtension, "ttf", 3 ) == 0 )
+            m_eFontType = ePdfFontType_TrueType;
+        else if( _strnicmp( pszExtension, "pfa", 3 ) == 0 )
+            m_eFontType = ePdfFontType_Type1Pfa;
+        else if( _strnicmp( pszExtension, "pfb", 3 ) == 0 )
+            m_eFontType = ePdfFontType_Type1Pfb;
+#else
         if( strncasecmp( pszExtension, "ttf", 3 ) == 0 )
             m_eFontType = ePdfFontType_TrueType;
         else if( strncasecmp( pszExtension, "pfa", 3 ) == 0 )
             m_eFontType = ePdfFontType_Type1Pfa;
         else if( strncasecmp( pszExtension, "pfb", 3 ) == 0 )
             m_eFontType = ePdfFontType_Type1Pfb;
+#endif
     }
     else
         m_eFontType = ePdfFontType_Unknown;
