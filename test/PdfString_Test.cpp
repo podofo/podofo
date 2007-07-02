@@ -27,23 +27,25 @@ using namespace PoDoFo;
 void testUnicodeString( const pdf_utf8* pszString, long lBufferLen )
 {
     
-    long        lUtf16BufferLen = 256;
+    const long        lUtf16BufferLen = 256;
     pdf_utf16be pUtf16Buffer[lUtf16BufferLen];
 
-    long     lUtf8BufferLen = 256;
+    const long     lUtf8BufferLen = 256;
     pdf_utf8 pUtf8Buffer[lUtf8BufferLen];
 
     lBufferLen = strlen( reinterpret_cast<const char*>(pszString) );
 
     printf("Converting UTF8 -> UTF16: lBufferLen=%i\n", lBufferLen);
-    lUtf16BufferLen = PdfString::ConvertUTF8toUTF16( pszString, lBufferLen, pUtf16Buffer, lUtf16BufferLen );
+    const long lUtf16BufferLenUsed = 
+		PdfString::ConvertUTF8toUTF16( pszString, lBufferLen, pUtf16Buffer, lUtf16BufferLen );
 
     printf("Converting UTF16 -> UTF8: lBufferLen=%i\n", lBufferLen);
-    lUtf8BufferLen = PdfString::ConvertUTF16toUTF8( pUtf16Buffer, lUtf16BufferLen, pUtf8Buffer, lUtf8BufferLen  );
+    const long lUtf8BufferLenUsed =
+		PdfString::ConvertUTF16toUTF8( pUtf16Buffer, lUtf16BufferLen, pUtf8Buffer, lUtf8BufferLen  );
 
     printf("Original Length: %li\n", lBufferLen );
-    printf("UTF16 Length   : %li\n", lUtf16BufferLen );
-    printf("UTF8  Length   : %li\n", lUtf8BufferLen );
+    printf("UTF16 Length   : %li\n", lUtf16BufferLenUsed );
+    printf("UTF8  Length   : %li\n", lUtf8BufferLenUsed );
     printf("Original String: %s\n", reinterpret_cast<const char*>(pszString) );
     //wprintf(L"UTF16 String   : %s\n", reinterpret_cast<const wchar_t*>(pUtf16Buffer) );
     printf("UTF8  String   : %s\n", reinterpret_cast<const char*>(pUtf8Buffer) );
@@ -74,9 +76,10 @@ void testUnicode()
     PdfString simple("Hallo World");
     PdfString unicode = simple.ToUnicode();
 
-    long     lUtf8BufferLen = 256;
+    const long     lUtf8BufferLen = 256;
     pdf_utf8 pUtf8Buffer[lUtf8BufferLen];
-    lUtf8BufferLen = PdfString::ConvertUTF16toUTF8( unicode.GetUnicode(), unicode.GetUnicodeLength(), 
+    const long lUtf8BufferLenUsed =
+		PdfString::ConvertUTF16toUTF8( unicode.GetUnicode(), unicode.GetUnicodeLength(), 
                                                     pUtf8Buffer, lUtf8BufferLen  );
     printf("Utf8: %s\n", pUtf8Buffer );
 
