@@ -60,6 +60,7 @@ SET(PODOFO_SOURCES
 )
 
 SET(PODOFO_HEADERS
+	Pdf3rdPtyForwardDecl.h
 	PdfAction.h
 	PdfAcroForm.h
 	PdfAnnotation.h
