@@ -56,7 +56,7 @@ PdfXObject::PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent )
     rRect.ToVariant( var );
     m_pObject->GetDictionary().AddKey( "BBox", var );
     m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Form") );
-    m_pObject->GetDictionary().AddKey( "FormType", PdfVariant( 1l ) ); // only 1 is only defined in the specification.
+    m_pObject->GetDictionary().AddKey( "FormType", PdfVariant( 1L ) ); // only 1 is only defined in the specification.
     m_pObject->GetDictionary().AddKey( "Matrix", s_matrix );
 
     // The PDF specification suggests that we send all available PDF Procedure sets

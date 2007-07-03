@@ -35,7 +35,7 @@ PdfPagesTree::PdfPagesTree( PdfVecObjects* pParent )
 {
     // PdfObject* kids = pParent->CreateObject( PdfArray() );
     GetObject()->GetDictionary().AddKey( "Kids", PdfArray() ); // kids->Reference() 
-    GetObject()->GetDictionary().AddKey( "Count", PdfObject( 0l ) );
+    GetObject()->GetDictionary().AddKey( "Count", PdfObject( 0L ) );
 }
 
 PdfPagesTree::PdfPagesTree( PdfObject* pPagesRoot )

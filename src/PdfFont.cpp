@@ -43,7 +43,9 @@ PdfFont::PdfFont( PdfFontMetrics* pMetrics, bool bEmbed, PdfVecObjects* pParent 
     ostringstream out;
     PdfLocaleImbue(out);
 
-    m_fFontSize   = 12.0;
+    m_pMetrics->SetFontSize( 12.0 );
+    m_pMetrics->SetFontScale( 100.0 );
+    m_pMetrics->SetFontCharSpace( 0.0 );
 
     m_bBold       = false;
     m_bItalic     = false;
@@ -124,13 +126,13 @@ void PdfFont::Init( bool bEmbed )
 
     pDescriptor->GetDictionary().AddKey( "FontName", m_BaseFont );
     //pDescriptor->GetDictionary().AddKey( "FontWeight", (long)m_pMetrics->Weight() );
-    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( 32l ) ); // TODO: 0 ????
+    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( 32L ) ); // TODO: 0 ????
     pDescriptor->GetDictionary().AddKey( "FontBBox", array );
     pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<long>(m_pMetrics->GetItalicAngle()) ) );
     pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetPdfAscent() );
     pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetPdfDescent() );
     pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetPdfAscent() ); // //m_pMetrics->CapHeight() );
-    pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( 1l ) ); //m_pMetrics->StemV() );
+    pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( 1L ) ); //m_pMetrics->StemV() );
 
     if( bEmbed )
     {
@@ -231,10 +233,17 @@ void PdfFont::EmbedType1Font( PdfObject* pDescriptor )
 void PdfFont::SetFontSize( float fSize )
 {
     m_pMetrics->SetFontSize( fSize );
-
-    m_fFontSize = fSize;
 }
 
+void PdfFont::SetFontScale( float fScale )
+{
+    m_pMetrics->SetFontScale( fScale );
+}
+
+void PdfFont::SetFontCharSpace( float fCharSpace )
+{
+    m_pMetrics->SetFontCharSpace( fCharSpace );
+}
 
 };
 

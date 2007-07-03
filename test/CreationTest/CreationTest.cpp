@@ -260,8 +260,80 @@ void TextTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     
     PdfFont* pFont = pDocument->CreateFont( "Arial" );
     pFont->SetFontSize( 12.0 );
-
+    
     pPainter->SetFont( pFont );
+
+    pPainter->DrawText( x, y, "Normal" );
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+
+    pPainter->GetFont()->SetUnderlined( true );
+    pPainter->DrawText( x, y, "Normal+underlinded" );
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+
+    pPainter->GetFont()->SetUnderlined( false );
+    pFont->SetFontCharSpace( 100.0 );
+    pPainter->DrawText( x, y, "Mormal+spaced" );
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+	
+    pPainter->GetFont()->SetUnderlined( true );
+    pPainter->DrawText( x, y, "Normal+underlined+spaced" );
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+    pPainter->GetFont()->SetUnderlined( false );
+    pFont->SetFontCharSpace( 0.0 );
+
+
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+
+
+    pFont->SetFontScale( 50.0 );
+    pPainter->DrawText( x, y, "Condensed" );
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+
+    pFont->SetFontCharSpace( 0.0 );
+    pPainter->GetFont()->SetUnderlined( true );
+    pPainter->DrawText( x, y, "Condensed+underlinded" );
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+
+    pPainter->GetFont()->SetUnderlined( false );
+    pFont->SetFontCharSpace( 100.0 );
+    pPainter->DrawText( x, y, "Condensed+spaced" );
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+
+    
+    pPainter->GetFont()->SetUnderlined( true );
+    pPainter->DrawText( x, y, "Condensed+underlined+spaced" );
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+    pPainter->GetFont()->SetUnderlined( false );
+    pFont->SetFontCharSpace( 0.0 );
+
+
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+
+    pFont->SetFontScale( 200.0 );
+    pPainter->DrawText( x, y, "Expanded" );
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+
+    pPainter->GetFont()->SetUnderlined( true );
+    pPainter->DrawText( x, y, "Expanded+underlinded" );
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+    
+    pPainter->GetFont()->SetUnderlined( false );
+    pFont->SetFontCharSpace( 100.0 );
+    pPainter->DrawText( x, y, "Expanded+spaced" );
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+
+    pPainter->GetFont()->SetUnderlined( true );
+    pPainter->DrawText( x, y, "Expanded+underlined+spaced" );
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+    pPainter->GetFont()->SetUnderlined( false );
+    pFont->SetFontCharSpace( 0.0 );
+   	pFont->SetFontScale( 100.0 );
+
+
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+
+
     pPainter->DrawText( x, y, "PoDoFo rocks!" );
 }
 

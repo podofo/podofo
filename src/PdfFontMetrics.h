@@ -225,6 +225,33 @@ class PODOFO_API PdfFontMetrics {
      */
     void SetFontSize( float fSize );
 
+    /** Retrieve the current font size of this metrics object 
+     *  \returns the current font size
+     */
+    inline float GetFontSize() const;
+
+    /** Set the horizontal scaling of the font for compressing (< 100) and expanding (>100)
+     *  This is typically called from PdfFont for you.
+     *
+     *  \param fScale scaling in percent
+     */
+    void SetFontScale( float fScale );
+
+    /** Retrieve the current horizontal scaling of this metrics object
+     *  \returns the current font scaling
+     */
+	inline float GetFontScale() const;
+
+    /** Set the character spacing of this metrics object
+     *  \param fCharSpace character spacing in percent
+     */
+    void SetFontCharSpace( float fCharSpace );
+
+    /** Retrieve the current character spacing of this metrics object
+     *  \returns the current font character spacing
+     */
+	inline float GetFontCharSpace() const;
+
     /** Get the filename where a font is located on the system
      *  On Unix systems the FontConfig library is used to find fonts.
      * 
@@ -292,6 +319,8 @@ class PODOFO_API PdfFontMetrics {
     char*	  m_pFontData;
     unsigned int  m_nFontDataLen;
     float         m_fFontSize;
+    float         m_fFontScale;
+    float         m_fFontCharSpace;
 
     std::vector<double> m_vecWidth;
 
@@ -425,7 +454,31 @@ EPdfFontType PdfFontMetrics::GetFontType() const
 {
     return m_eFontType;
 }
-   
+  
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+float PdfFontMetrics::GetFontSize() const
+{
+    return m_fFontSize;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+float PdfFontMetrics::GetFontScale() const
+{
+    return m_fFontScale;
+}
+ 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+float PdfFontMetrics::GetFontCharSpace() const
+{
+    return m_fFontCharSpace;
+}
+ 
 };
 
 #endif // _PDF_FONT_METRICS_H_

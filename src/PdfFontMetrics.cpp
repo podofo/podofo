@@ -50,7 +50,9 @@ static bool GetWin32HostFont( const std::string& inFontName, char** outFontBuffe
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename )
     : m_pLibrary( pLibrary ), m_sFilename( pszFilename ), m_pFontData( NULL ), 
-      m_nFontDataLen( 0 ), m_fFontSize( 0.0f ), m_eFontType( ePdfFontType_Unknown )
+      m_nFontDataLen( 0 ), m_fFontSize( 0.0f ), 
+      m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
+      m_eFontType( ePdfFontType_Unknown )
 {
     m_face                = NULL;
 
@@ -83,8 +85,10 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename )
 }
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen )
-	: m_pLibrary( pLibrary ), m_sFilename( "" ), m_pFontData( const_cast<char*>(pBuffer) ), 
-          m_nFontDataLen( nBufLen ), m_fFontSize( 0.0f ), m_eFontType( ePdfFontType_Unknown )
+    : m_pLibrary( pLibrary ), m_sFilename( "" ), m_pFontData( const_cast<char*>(pBuffer) ), 
+      m_nFontDataLen( nBufLen ), m_fFontSize( 0.0f ),
+      m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
+      m_eFontType( ePdfFontType_Unknown )
 {
     m_face                = NULL;
 
@@ -105,7 +109,10 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsig
 }
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, FT_Face face )
-    : m_face( face ), m_pLibrary( pLibrary ), m_sFilename( "" ), m_fFontSize( 0.0f ), m_eFontType( ePdfFontType_Unknown )
+    : m_face( face ), m_pLibrary( pLibrary ), m_sFilename( "" ), 
+      m_fFontSize( 0.0f ), 
+      m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
+      m_eFontType( ePdfFontType_Unknown )
 
 {
     // asume true type
@@ -140,6 +147,20 @@ void PdfFontMetrics::InitFromFace()
         m_dPdfAscent  = m_face->ascender  * 1000.0 / m_face->units_per_EM;
         m_dPdfDescent = m_face->descender * 1000.0 / m_face->units_per_EM;
     }
+
+    /*
+      //Debug code to output font map information which will be useful while fixing font support
+    printf("face: %s\n", m_face->family_name );
+    printf("num : %i\n", m_face->num_charmaps );
+    for( int i=0;i<m_face->num_charmaps;i++ ) 
+    {
+        printf("Charmap: %c%c%c%c\n", 
+               (m_face->charmaps[i]->encoding >> 24) & 0xff,
+               (m_face->charmaps[i]->encoding >> 16) & 0xff,
+               (m_face->charmaps[i]->encoding >> 8) & 0xff,
+               m_face->charmaps[i]->encoding & 0xff );
+    }
+    */
 
     // we cache the 256 first widht entries as they 
     // are most likely needed quite often
@@ -1164,6 +1185,8 @@ std::string PdfFontMetrics::GetFilenameForFont( FcConfig* pConfig, const char* p
     {
         result = FcPatternGet( matched, FC_FILE, 0, &v );
         sPath = reinterpret_cast<const char*>(v.u.s);
+
+        printf("Got Font %s for for %s\n", sPath.c_str(), pszFontname );
     }
     else
     {
@@ -1197,7 +1220,8 @@ double PdfFontMetrics::CharWidth( char c ) const
         dWidth = m_face->glyph->metrics.horiAdvance * 1000.0 / m_face->units_per_EM;
     }
 
-    return dWidth * static_cast<double>(m_fFontSize) / 1000.0;
+    return dWidth * static_cast<double>(m_fFontSize * m_fFontScale / 100.0) / 1000.0 +
+		   static_cast<double>( m_fFontSize * m_fFontScale / 100.0 * m_fFontCharSpace / 100.0);
 }
 
 unsigned long PdfFontMetrics::CharWidthMM( char c ) const
@@ -1234,6 +1258,11 @@ void PdfFontMetrics::SetFontSize( float fSize )
 {
     FT_Error ftErr;
 
+    if( !m_face )
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "Cannot set font size on invalid font!" );
+    }
+ 
     ftErr = FT_Set_Char_Size( m_face, static_cast<int>(fSize*64.0), 0, 72, 72 );
 
     // calculate the line spacing now, as it changes only with the font size
@@ -1246,6 +1275,16 @@ void PdfFontMetrics::SetFontSize( float fSize )
     m_dDescent = static_cast<double>(m_face->descender) * fSize / m_face->units_per_EM;
 
     m_fFontSize = fSize;
+}
+
+void PdfFontMetrics::SetFontScale( float fScale )
+{
+    m_fFontScale = fScale;
+}
+
+void PdfFontMetrics::SetFontCharSpace( float fCharSpace )
+{
+    m_fFontCharSpace = fCharSpace;
 }
 
 void PdfFontMetrics::SetFontTypeFromFilename( const char* pszFilename )

@@ -104,9 +104,9 @@ void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
 {
     PdfArray w;
 
-    w.push_back( 1l );
+    w.push_back( 1L );
     w.push_back( static_cast<long>(sizeof(STREAM_OFFSET_TYPE)) );
-    w.push_back( 1l );
+    w.push_back( 1L );
 
     // Add our self to the XRef table
     this->WriteXRefEntry( pDevice, pDevice->GetLength(), 0, 'n' );

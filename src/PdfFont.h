@@ -5,10 +5,10 @@
 #include "PdfDefines.h"
 #include "PdfName.h"
 #include "PdfElement.h"
+#include "PdfFontMetrics.h"
 
 namespace PoDoFo {
 
-class PdfFontMetrics;
 class PdfObject;
 class PdfPage;
 class PdfWriter;
@@ -46,6 +46,26 @@ class PODOFO_API PdfFont : public PdfElement {
      *  \returns the current font size
      */
     inline float GetFontSize() const;
+
+    /** Set the horizontal scaling of the font for compressing (< 100) and expanding (>100)
+     *  \param fScale scaling in percent
+     */
+    void SetFontScale( float fScale );
+
+    /** Retrieve the current horizontal scaling of this font object
+     *  \returns the current font scaling
+     */
+	inline float GetFontScale() const;
+
+    /** Set the character spacing of the font
+     *  \param fCharSpace character spacing in percent
+     */
+    void SetFontCharSpace( float fCharSpace );
+
+    /** Retrieve the current character spacing of this font object
+     *  \returns the current font character spacing
+     */
+	inline float GetFontCharSpace() const;
 
     /** Set the underlined property of the font
      *  \param bUnder if true any text drawn with this font
@@ -99,7 +119,6 @@ class PODOFO_API PdfFont : public PdfElement {
     void Init( bool bEmbed );
 
  private: 
-    float m_fFontSize;
 
     bool  m_bBold;
     bool  m_bItalic;
@@ -118,7 +137,17 @@ const PdfName & PdfFont::GetIdentifier() const
 
 float PdfFont::GetFontSize() const
 {
-    return m_fFontSize;
+    return m_pMetrics->GetFontSize();
+}
+
+float PdfFont::GetFontScale() const
+{
+    return m_pMetrics->GetFontScale();
+}
+
+float PdfFont::GetFontCharSpace() const
+{
+    return m_pMetrics->GetFontCharSpace();
 }
 
 const PdfFontMetrics* PdfFont::GetFontMetrics() const
