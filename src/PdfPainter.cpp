@@ -560,11 +560,11 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
           << " "  << m_pFont->GetFontSize()
           << " Tf" << std::endl;
 
-    if( m_pFont->GetFontScale() != 100.0F )
-        m_oss << m_pFont->GetFontScale() << " Tz" << std::endl;
+    //if( m_pFont->GetFontScale() != 100.0F ) - this value is kept between text blocks
+    m_oss << m_pFont->GetFontScale() << " Tz" << std::endl;
 
-    if( m_pFont->GetFontCharSpace() != 0.0F )
-        m_oss << m_pFont->GetFontCharSpace() * m_pFont->GetFontSize() / 100.0 << " Tc" << std::endl;
+    //if( m_pFont->GetFontCharSpace() != 0.0F )  - this value is kept between text blocks
+    m_oss << m_pFont->GetFontCharSpace() * m_pFont->GetFontSize() / 100.0 << " Tc" << std::endl;
 
     m_oss << dX << std::endl
           << dY << std::endl << " Td <";
