@@ -152,12 +152,16 @@ not both).
 Note that the instructions above run an out-of-tree build. CMake does support
 in-tree builds, but the use of out-of-tree builds is very strongly recommended.
 
-If your system has gcc 4, consider adding the argument
--DPODOFO_USE_VISIBILITY=1 . This will enable gcc4's limited symbol visibility
-support, reducing the PoDoFo binary size dramatically and improve link times.
-PoDoFo developers will also find this useful, as it will cause some mistakes
-to be reported as link errors that would otherwise go undetected and break
-the win32 builds.
+If your system has gcc 4, PoDoFo will tell gcc to make symbols hidden by
+default using the -fvisibility=hidden flag to gcc. Only symbols explicitly
+exported by PoDoFo will be exported. You can explicitly enable or disable this
+behaviour with the boolean flag:
+    -DPODOFO_USE_VISIBILITY=1 (or 0 for off).
+Enabling default hidden visibility reduces the PoDoFo binary size dramatically
+and improves link times. It also helps prevent accidental use of symbols that
+are not part of PoDoFo's public API. PoDoFo developers will also find this
+useful, as it will cause some mistakes to be reported as link errors that would
+otherwise go undetected and break the win32 builds.
 
 4.1.2 CMake builds on Windows
 =============================

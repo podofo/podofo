@@ -69,6 +69,23 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
     # We can be more specific about what we want out of g++
     # than with most other compilers.
 
+    # Attempt to detect the gcc version. You must not rely on
+    # this; use the detected version as a guide only.
+    EXEC_PROGRAM(gcc ARGS --version OUTPUT_VARIABLE GCC_VERSION)
+    IF(GCC_VERSION MATCHES ".*\\(GCC\\) 4\\.[0-9].*")
+        MESSAGE("Have gcc 4.x")
+        SET(HAVE_GCC4 1)
+    ELSE(GCC_VERSION MATCHES ".*\\(GCC\\) 4\\.[0-9].*")
+        SET(HAVE_GCC4 0)
+    ENDIF(GCC_VERSION MATCHES ".*\\(GCC\\) 4\\.[0-9].*")
+
+    # If the user hasn't specifically said whether they want
+    # -fvisibility=hidden or not, turn it on for gcc4 and off
+    # for other gcc versions.
+    IF(NOT DEFINED PODOFO_USE_VISIBILITY)
+        SET(PODOFO_USE_VISIBILITY ${HAVE_GCC4})
+    ENDIF(NOT DEFINED PODOFO_USE_VISIBILITY)
+
     # We can't request C++98 compliance on win32, because mingw
     # will hide _tzset() and _timezone, which we need for PdfDate.
     # At least until that code is replaced with something better,
