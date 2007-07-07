@@ -70,11 +70,13 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename )
             m_nFontDataLen = fontBufLen;
             m_eFontType    = ePdfFontType_TrueType;
         }
-#else
-        // throw an exception
-        PdfError::LogMessage( eLogSeverity_Critical, "FreeType returned the error %i when calling FT_New_Face for font %s.", err, pszFilename );
-        PODOFO_RAISE_ERROR( ePdfError_FreeType );
+		else
 #endif
+		{
+	        // throw an exception
+	        PdfError::LogMessage( eLogSeverity_Critical, "FreeType returned the error %i when calling FT_New_Face for font %s.", err, pszFilename );
+	        PODOFO_RAISE_ERROR( ePdfError_FreeType );
+		}
     }
     else
     {
