@@ -80,7 +80,7 @@ class PODOFO_API PdfAction : public PdfElement {
      *  \param eAction type of this action
      *  \param pParent parent of this action
      */
-    PdfAction( EPdfAction eAction, PdfStreamedDocument* pParent );
+    PdfAction( EPdfAction eAction, PdfDocument* pParent );
 
     virtual ~PdfAction() { }
 

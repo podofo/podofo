@@ -29,6 +29,26 @@
 
 namespace PoDoFo {
 
+PdfFileSpec::PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfDocument* pParent )
+    : PdfElement( "Filespec", pParent )
+{
+    PdfObject* pEmbeddedStream;
+
+    m_pObject->GetDictionary().AddKey( "F", this->CreateFileSpecification( pszFilename ) );
+
+    if( bEmbedd ) 
+    {
+        PdfDictionary ef;
+
+        pEmbeddedStream = this->CreateObject( "EmbeddedFile" );
+        this->EmbeddFile( pEmbeddedStream, pszFilename );
+
+        ef.AddKey( "F",  pEmbeddedStream->Reference() );
+
+        m_pObject->GetDictionary().AddKey( "EF", ef );
+    }
+}
+
 PdfFileSpec::PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfVecObjects* pParent )
     : PdfElement( "Filespec", pParent )
 {
@@ -40,7 +60,7 @@ PdfFileSpec::PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfVecObjects* 
     {
         PdfDictionary ef;
 
-        pEmbeddedStream = pParent->CreateObject( "EmbeddedFile" );
+        pEmbeddedStream = this->CreateObject( "EmbeddedFile" );
         this->EmbeddFile( pEmbeddedStream, pszFilename );
 
         ef.AddKey( "F",  pEmbeddedStream->Reference() );

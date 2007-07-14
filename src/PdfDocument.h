@@ -23,6 +23,7 @@
 
 #include "PdfDefines.h"
 #include "PdfFontCache.h"
+#include "PdfInfo.h"
 #include "PdfObject.h"
 #include "PdfParser.h"
 #include "PdfWriter.h"
@@ -35,108 +36,50 @@ class PdfDictionary;
 class PdfFileSpec;
 class PdfFont;
 class PdfInfo;
+class PdfMemDocument;
 class PdfNamesTree;
 class PdfOutlines;
 class PdfPage;
 class PdfPagesTree;
 class PdfRect;
 
-/** PdfDocument is the core class for reading and manipulating
- *  PDF files and writing them back to disk.
+/** PdfDocument is the core interface for working with PDF documents.
  *
  *  PdfDocument provides easy access to the individual pages
  *  in the PDF file and to certain special dictionaries.
  *
- *  PdfDocument should be used whenever you want to change
- *  the object structure of a PDF file.
+ *  PdfDocument cannot be used directly.
+ *  Use PdfMemDocument whenever you want to change the object structure
+ *  of a PDF file. 
  *
  *  When you are only creating PDF files, please use PdfStreamedDocument
  *  which is usually faster for creating PDFs.
  *
  *  \see PdfStreamedDocument
- *  \see PdfParser
- *  \see PdfWriter
+ *  \see PdfMemDocument
  */
 class PODOFO_API PdfDocument {
     friend class PdfWriter;
+    // TODO: Remove these later
+    friend class PdfAcroForm;    
+    friend class PdfElement;
+    friend class PdfImage;
 
  public:
-
-    /** Construct a new (empty) PdfDocument
-     */
-    PdfDocument();
-    
-    /** Construct a PdfDocument from an existing PDF (on disk)
-     *  \param pszFilename filename of the file which is going to be parsed/opened
-     */
-    PdfDocument( const char* pszFilename );
-
     /** Close down/destruct the PdfDocument
      */
     virtual ~PdfDocument();
 
-    /** Load a PdfDocument from a file
-     *
-     *  \param pszFilename filename of the file which is going to be parsed/opened
-     */
-    void Load( const char* pszFilename );
-
-    /** Writes the complete document to a file
-     *
-     *  \param pszFilename filename of the document 
-     *
-     *  \see Write
-     *
-     *  This is an overloaded member function for your convinience.
-     */
-    void Write( const char* pszFilename );
-
-    /** Writes the complete document to an output device
-     *
-     *  \param pDevice write to this output device
-     */
-    void Write( PdfOutputDevice* pDevice );
-
-    /** Set the PDF Version of the document. Has to be called before Write() to
-     *  have an effect.
-     *  \param eVersion  version of the pdf document
-     */
-    void SetPdfVersion( EPdfVersion eVersion ) { m_eVersion = eVersion;}
-
     /** Get the PDF version of the document
      *  \returns EPdfVersion version of the pdf document
      */
-    EPdfVersion GetPdfVersion() const { return m_eVersion; }
+    virtual EPdfVersion GetPdfVersion() const = 0;
 
     /** Returns wether this PDF document is linearized, aka
      *  weboptimized
      *  \returns true if the PDF document is linearized
      */
-    bool IsLinearized() const { return m_bLinearized; }
-    
-    /** Get a reference to the sorted internal objects vector.
-     *  \returns the internal objects vector.
-     */
-    const PdfVecObjects & GetObjects() const { return m_vecObjects; }
-
-    /** Get a reference to the sorted internal objects vector.
-     *  This is an overloaded function for your convinience.
-     *  \returns the internal objects vector.
-     */
-    PdfVecObjects & GetObjects() { return m_vecObjects; }
-
-    /** Get access to the internal Catalog dictionary
-     *  or root object.
-     *  
-     *  \returns PdfObject the documents catalog or NULL 
-     *                     if no catalog is available
-     */
-    PdfObject* GetCatalog() const { return m_pCatalog; }
-
-    /** Get the trailer dictionary
-     *  which can be written unmodified to a pdf file.
-     */
-    const PdfObject* GetTrailer() const { return m_pTrailer; }
+    virtual bool IsLinearized() const = 0;
     
     /** Get access to the internal Info dictionary
      *  You can set the author, title etc. of the
@@ -145,16 +88,6 @@ class PODOFO_API PdfDocument {
      *  \returns the info dictionary
      */
     PdfInfo* GetInfo() const { return m_pInfo; }
-
-    /** Get access to the StructTreeRoot dictionary
-     *  \returns PdfObject the StructTreeRoot dictionary
-     */
-    PdfObject* GetStructTreeRoot() const { return GetNamedObjectFromCatalog( "StructTreeRoot" ); }
-
-    /** Get access to the Metadata stream
-     *  \returns PdfObject the Metadata stream (should be in XML, using XMP grammar)
-     */
-    PdfObject* GetMetadata() const { return GetNamedObjectFromCatalog( "Metadata" ); }
 
     /** Get access to the Outlines (Bookmarks) dictionary
      *  The returned outlines object is owned by the PdfDocument.
@@ -225,27 +158,12 @@ class PODOFO_API PdfDocument {
      *  \param rDoc the document to append
      *  \returns this document
      */
-    const PdfDocument & Append( const PdfDocument & rDoc );
+    const PdfDocument & Append( const PdfMemDocument & rDoc );
 
     /** Attach a file to the document.
      *  \param rFileSpec a file specification
      */
     void AttachFile( const PdfFileSpec & rFileSpec );
-
-    /** Copies one or more pages from another PdfDocument to this document
-     *  \param rDoc the document to append
-     *  \param inFirstPage the first page number to copy (0-based)
-     *  \param inNumPages the number of pages to copy
-     *  \returns this document
-     */
-    const PdfDocument & InsertPages( const PdfDocument & rDoc, int inFirstPage, int inNumPages );
-
-    /** Deletes one or more pages from this document
-     *  \param inFirstPage the first page number to delete (0-based)
-     *  \param inNumPages the number of pages to delete
-     *  \returns this document
-     */
-    void DeletePages( int inFirstPage, int inNumPages );
 
     /** Adds a PdfDestination into the global Names tree
      *  with the specified name, optionally replacing one of the same name
@@ -257,7 +175,7 @@ class PODOFO_API PdfDocument {
     /** Sets the opening mode for a document
      *  \param inMode which mode to set
      */
-    void SetPageMode( EPdfPageMode inMode ) const;
+    void SetPageMode( EPdfPageMode inMode );
 
     /** Gets the opening mode for a document
      *  \returns which mode is set
@@ -266,7 +184,7 @@ class PODOFO_API PdfDocument {
 
     /** Sets the opening mode for a document to be in full screen
      */
-    void SetUseFullScreen( void ) const;
+    void SetUseFullScreen( void );
     
     /** Sets the page layout for a document
      */
@@ -329,7 +247,76 @@ class PODOFO_API PdfDocument {
      */    
     void SetBindingDirection( PdfName& inDirection );
 
- private:
+ protected:
+    /** Construct a new (empty) PdfDocument
+     */
+    PdfDocument();
+
+    /** Set the info object containing meta information.
+     *  Deletes any old info object.
+     *
+     *  @param pInfo the new info object (will be owned by PdfDocument)
+     */
+    void SetInfo( PdfInfo* pInfo );
+
+    /** Get access to the internal Catalog dictionary
+     *  or root object.
+     *  
+     *  \returns PdfObject the documents catalog
+     */
+    inline PdfObject* GetCatalog();
+
+    /** Get access to the internal Catalog dictionary
+     *  or root object.
+     *  
+     *  \returns PdfObject the documents catalog
+     */
+    inline const PdfObject* GetCatalog() const;
+
+    /** Set the catalog of this PdfDocument
+     *  deleting the old one.
+     *
+     *  @param pObject the new catalog object
+     *         It will be owned by PdfDocument.
+     */
+    inline void SetCatalog( PdfObject* pObject );
+
+    /** Get access to the internal trailer dictionary
+     *  or root object.
+     *  
+     *  \returns PdfObject the documents catalog
+     */
+    inline PdfObject* GetTrailer();
+
+    /** Get access to the internal trailer dictionary
+     *  or root object.
+     *  
+     *  \returns PdfObject the documents catalog
+     */
+    inline const PdfObject* GetTrailer() const;
+
+    /** Set the trailer of this PdfDocument
+     *  deleting the old one.
+     *
+     *  @param pObject the new trailer object
+     *         It will be owned by PdfDocument.
+     */
+    inline void SetTrailer( PdfObject* pObject );
+
+    /** Get access to the internal vector of objects
+     *  or root object.
+     *  
+     *  \returns the vector of objects
+     */
+    inline PdfVecObjects* GetObjects();
+
+    /** Get access to the internal vector of objects
+     *  or root object.
+     *  
+     *  \returns the vector of objects
+     */
+    inline const PdfVecObjects* GetObjects() const;
+
     /** Get a dictioary from the catalog dictionary by its name.
      *  \param pszName will be converted into a PdfName
      *  \returns the dictionary if it was found or NULL
@@ -339,16 +326,6 @@ class PODOFO_API PdfDocument {
     /** Internal method for initializing the pages tree for this document
      */
     void InitPagesTree();
-
-    /** Internal method to load all objects from a PdfParser object.
-     *  The objects will be removed from the parser and are now
-     *  owned by the PdfDocument.
-     */
-    void InitFromParser( PdfParser* pParser );
-
-    /** Clear all internal variables
-     */
-    void Clear();
 
     /** Recursively changes every PdfReference in the PdfObject and in any child
      *  that is either an PdfArray or a direct object.
@@ -363,8 +340,13 @@ class PODOFO_API PdfDocument {
      *  \param whichPrefs the dictionary key to set
      *  \param the object to be set
      */
-    void SetViewerPreference( const PdfName& whichPref, const PdfObject & valueObj ) const;
-    void SetViewerPreference( const PdfName& whichPref, bool inValue ) const;
+    void SetViewerPreference( const PdfName& whichPref, const PdfObject & valueObj );
+    void SetViewerPreference( const PdfName& whichPref, bool inValue );
+
+    /** Clear all internal variables
+     *  And reset PdfDocument to an intial state
+     */
+    void Clear();
 
  private:
     // Prevent use of copy constructor and assignment operator.  These methods
@@ -374,9 +356,10 @@ class PODOFO_API PdfDocument {
     explicit PdfDocument(const PdfDocument&);
     PdfDocument& operator=(const PdfDocument&);
 
-    bool            m_bLinearized;
-
     PdfVecObjects   m_vecObjects;
+
+    PdfObject*      m_pTrailer;
+    PdfObject*      m_pCatalog;
 
     PdfInfo*        m_pInfo;
     PdfOutlines*    m_pOutlines;
@@ -384,11 +367,7 @@ class PODOFO_API PdfDocument {
     PdfPagesTree*   m_pPagesTree;
     PdfAcroForm*    m_pAcroForms;
 
-    PdfObject*      m_pTrailer;
-    PdfObject*      m_pCatalog;
-
     EPdfVersion     m_eVersion;
-
     PdfFontCache    m_fontCache;
 };
 
@@ -398,6 +377,83 @@ class PODOFO_API PdfDocument {
 inline PdfPagesTree* PdfDocument::GetPagesTree() const
 {
     return m_pPagesTree;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfDocument::SetInfo( PdfInfo* pInfo )
+{
+    delete m_pInfo;
+    m_pInfo = pInfo;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfObject* PdfDocument::GetCatalog()
+{
+    return m_pCatalog;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline const PdfObject* PdfDocument::GetCatalog() const
+{
+    return m_pCatalog;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfDocument::SetCatalog( PdfObject* pObject ) 
+{
+    m_pCatalog = pObject; // m_pCatalog does not need to 
+                          // be reowned as it should
+                          // alread by part of m_vecObjects
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfObject* PdfDocument::GetTrailer()
+{
+    return m_pTrailer;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline const PdfObject* PdfDocument::GetTrailer() const
+{
+    return m_pTrailer;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfDocument::SetTrailer( PdfObject* pObject ) 
+{
+    delete m_pTrailer;
+    m_pTrailer = pObject;
+    m_pTrailer->SetOwner( &m_vecObjects );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfVecObjects* PdfDocument::GetObjects()
+{
+    return &m_vecObjects;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline const PdfVecObjects* PdfDocument::GetObjects() const
+{
+    return &m_vecObjects;
 }
 
 };

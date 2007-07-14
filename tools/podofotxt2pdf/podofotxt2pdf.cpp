@@ -20,7 +20,7 @@
 
 #include <PdfDefines.h>
 
-#include <PdfDocument.h>
+#include <PdfStreamedDocument.h>
 #include <PdfFont.h>
 #include <PdfFontMetrics.h>
 #include <PdfInfo.h>
@@ -85,13 +85,15 @@ void draw( char* pszBuffer, PdfDocument* pDocument )
         else
             ++pszBuffer;
     }
+
+    painter.FinishPage();
 }
 
 void init( const char* pszInput, const char* pszOutput )
 {
     FILE*   hFile;
 
-    PdfDocument doc;
+    PdfStreamedDocument doc( pszOutput );
 
     char*  pszBuf;
     size_t lSize;
@@ -130,7 +132,7 @@ void init( const char* pszInput, const char* pszOutput )
 
     doc.GetInfo()->SetCreator( PdfString("podofotxt2pdf") );
     doc.GetInfo()->SetTitle( PdfString("Converted to PDF from a text file") );
-    doc.Write( pszOutput );
+    doc.Close();
 
     free( pszBuf );
 }

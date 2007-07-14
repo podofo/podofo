@@ -45,6 +45,22 @@ PdfExtGState::PdfExtGState( PdfVecObjects* pParent )
     this->Init();
 }
 
+PdfExtGState::PdfExtGState( PdfDocument* pParent )
+    : PdfElement( "ExtGState", pParent )
+{
+    std::ostringstream out;
+    // We probably aren't doing anything locale sensitive here, but it's
+    // best to be sure.
+    PdfLocaleImbue(out);
+
+    // Implementation note: the identifier is always
+    // Prefix+ObjectNo. Prefix is /Ft for fonts.
+    out << "ExtGS" << m_pObject->Reference().ObjectNumber();
+    m_Identifier = PdfName( out.str().c_str() );
+
+    this->Init();
+}
+
 PdfExtGState::~PdfExtGState()
 {
 }

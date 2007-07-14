@@ -29,6 +29,8 @@
 
 namespace PoDoFo {
 
+class PdfDocument;
+
 /**
  *  A file specification is used in the PDF file to referr to another file.
  *  The other file can be a file outside of the PDF or can be embedded into
@@ -36,6 +38,8 @@ namespace PoDoFo {
  */
 class PODOFO_API PdfFileSpec : public PdfElement {
  public:
+    PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfDocument* pParent );
+
     PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfVecObjects* pParent );
 
     PdfFileSpec( PdfObject* pObject );

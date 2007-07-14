@@ -35,8 +35,31 @@ class PODOFO_API PdfImmediateWriter : private PdfWriter,
     private PdfVecObjects::StreamFactory {
 
  public:
-    PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, const PdfObject* pTrailer, EPdfVersion eVersion = ePdfVersion_1_5 );
+    /** Create a new PdfWriter that writes objects with streams immediately to a PdfOutputDevice
+     *
+     *  This has the advantage that large documents can be created without
+     *  having to keep the whole document in memory.
+     *
+     *  @param pDevice all stream streams are immediately written to this output device
+     *                 while the document is created.
+     *  @param pVecObjects a vector of objects containing the objects which are written to disk
+     *  @param pTrailer the trailer object
+     *  @param eVersion the PDF version of the document to write.
+     *                      The PDF version can only be set in the constructor
+     *                      as it is the first item written to the document on disk.
+     */
+    PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, const PdfObject* pTrailer, 
+                        EPdfVersion eVersion = ePdfVersion_1_5 );
+
     ~PdfImmediateWriter();
+
+    /** Get the PDF version of the document
+     *  The PDF version can only be set in the constructor
+     *  as it is the first item written to the document on disk
+     *
+     *  \returns EPdfVersion version of the pdf document
+     */
+    inline EPdfVersion GetPdfVersion() const;
 
  private:
     void WriteObject( const PdfObject* pObject );
@@ -85,6 +108,11 @@ class PODOFO_API PdfImmediateWriter : private PdfWriter,
 
     bool             m_bOpenStream;
 };
+
+inline EPdfVersion PdfImmediateWriter::GetPdfVersion() const
+{
+    return PdfWriter::GetPdfVersion();
+}
 
 };
 

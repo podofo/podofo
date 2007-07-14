@@ -62,6 +62,7 @@
 #include "PdfImage.h"
 #include "PdfInfo.h"
 #include "PdfInputDevice.h"
+#include "PdfMemDocument.h"
 #include "PdfMemStream.h"
 #include "PdfName.h"
 #include "PdfNamesTree.h"

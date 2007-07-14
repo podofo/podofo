@@ -35,7 +35,7 @@ void UnCompress::Init( const char* pszInput, const char* pszOutput )
     if( m_pDocument )
         delete m_pDocument;
 
-    m_pDocument = new PdfDocument( pszInput );
+    m_pDocument = new PdfMemDocument( pszInput );
 
     this->UncompressObjects();
 

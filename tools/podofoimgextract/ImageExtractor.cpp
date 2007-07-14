@@ -42,7 +42,7 @@ void ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnN
     }
 
 
-    PdfDocument document( pszInput );
+    PdfMemDocument document( pszInput );
 
     m_pszOutputDirectory = const_cast<char*>(pszOutput);
 

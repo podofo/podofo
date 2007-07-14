@@ -38,6 +38,7 @@
 #include "PdfFontMetrics.h"
 #include "PdfImmediateWriter.h"
 #include "PdfInfo.h"
+#include "PdfMemDocument.h"
 #include "PdfNamesTree.h"
 #include "PdfObject.h"
 #include "PdfOutlines.h"
@@ -52,13 +53,11 @@ namespace PoDoFo {
 
 PdfDocument::PdfDocument()
     : m_pOutlines( NULL ), m_pNamesTree( NULL ), m_pPagesTree( NULL ), 
-      m_pAcroForms( NULL ), m_pTrailer( NULL ), m_fontCache( &m_vecObjects )
+      m_pAcroForms( NULL ), m_fontCache( &m_vecObjects )
 {
-    m_eVersion    = ePdfVersion_1_3;
-    m_bLinearized = false;
     m_vecObjects.SetParentDocument( this );
 
-    m_pTrailer = new PdfObject();
+    m_pTrailer = new PdfObject(); // The trailer is NO part of the vector of objects
     m_pTrailer->SetOwner( &m_vecObjects );
     m_pCatalog = m_vecObjects.CreateObject( "Catalog" );
 
@@ -68,15 +67,6 @@ PdfDocument::PdfDocument()
     m_pTrailer->GetDictionary().AddKey( "Info", m_pInfo->GetObject()->Reference() );
 
     InitPagesTree();
-}
-
-PdfDocument::PdfDocument( const char* pszFilename )
-    : m_pInfo( NULL ), m_pOutlines( NULL ), m_pNamesTree( NULL ), m_pPagesTree( NULL ), 
-      m_pAcroForms( NULL ), m_pTrailer( NULL ), m_fontCache( &m_vecObjects )
-{
-    m_vecObjects.SetParentDocument( this );
-
-    this->Load( pszFilename );
 }
 
 PdfDocument::~PdfDocument()
@@ -128,42 +118,12 @@ void PdfDocument::Clear()
         m_pAcroForms = NULL;
     }
 
-    if ( m_pTrailer ) 
-    {
-        delete m_pTrailer;
-        m_pTrailer = NULL;
-    }
-}
-
-void PdfDocument::InitFromParser( PdfParser* pParser )
-{
-    PdfObject* pInfo;
-
-    m_eVersion     = pParser->GetPdfVersion();
-    m_bLinearized  = pParser->IsLinearized();
-
-    m_pTrailer = new PdfObject( *(pParser->GetTrailer()) );
-    m_pTrailer->SetOwner( &m_vecObjects );
-
-    m_pCatalog  = m_pTrailer->GetIndirectKey( "Root" );
-    if( !m_pCatalog )
-    {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, "Catalog object not found!" );
-    }
-
-    pInfo = m_pTrailer->GetIndirectKey( "Info" );
-    if( !pInfo ) 
-    {
-        m_pInfo = new PdfInfo( &m_vecObjects );
-        m_pTrailer->GetDictionary().AddKey( "Info", m_pInfo->GetObject()->Reference() );
-    }
-    else 
-        m_pInfo = new PdfInfo( pInfo );
+    m_pCatalog = NULL;
 }
 
 void PdfDocument::InitPagesTree()
 {
-    PdfObject* pagesRootObj = m_pCatalog->GetIndirectKey( PdfName( "Pages" ) );
+    PdfObject* pagesRootObj = this->GetCatalog()->GetIndirectKey( PdfName( "Pages" ) );
     if ( pagesRootObj ) 
     {
         m_pPagesTree = new PdfPagesTree( pagesRootObj );
@@ -173,49 +133,6 @@ void PdfDocument::InitPagesTree()
         m_pPagesTree = new PdfPagesTree( &m_vecObjects );
         m_pCatalog->GetDictionary().AddKey( "Pages", m_pPagesTree->GetObject()->Reference() );
     }
-}
-
-void PdfDocument::Load( const char* pszFilename )
-{
-    this->Clear();
-
-    PdfParser parser( &m_vecObjects, pszFilename, true );
-    InitFromParser( &parser );
-    InitPagesTree();
-}
-
-void PdfDocument::Write( const char* pszFilename )
-{
-    /** TODO:
-     *  We will get problems here on linux,
-     *  if we write to the same filename we read the 
-     *  document from.
-     *  Because the PdfParserObjects will read there streams 
-     *  data from the file while we are writing it.
-     *  The problem is that the stream data won't exist at this time
-     *  as we truncated the file already to zero length by opening
-     *  it writeable.
-     */
-    PdfOutputDevice device( pszFilename );
-
-    this->Write( &device );
-}
-
-void PdfDocument::Write( PdfOutputDevice* pDevice ) 
-{
-    /** TODO:
-     *  We will get problems here on linux,
-     *  if we write to the same filename we read the 
-     *  document from.
-     *  Because the PdfParserObjects will read there streams 
-     *  data from the file while we are writing it.
-     *  The problem is that the stream data won't exist at this time
-     *  as we truncated the file already to zero length by opening
-     *  it writeable.
-     */
-    PdfWriter       writer( this );
-
-    writer.Write( pDevice );    
 }
 
 PdfObject* PdfDocument::GetNamedObjectFromCatalog( const char* pszName ) const 
@@ -253,7 +170,7 @@ PdfPage* PdfDocument::CreatePage( const PdfRect & rSize )
     return m_pPagesTree->CreatePage( rSize );
 }
 
-const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc )
+const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc )
 {
     int difference = m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size();
 
@@ -295,7 +212,7 @@ const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc )
 
     // append all outlines
     PdfOutlineItem* pRoot       = this->GetOutlines();
-    PdfOutlines*    pAppendRoot = const_cast<PdfDocument&>(rDoc).GetOutlines( PoDoFo::ePdfDontCreateObject );
+    PdfOutlines*    pAppendRoot = const_cast<PdfMemDocument&>(rDoc).GetOutlines( PoDoFo::ePdfDontCreateObject );
     if( pAppendRoot && pAppendRoot->First() ) 
     {
         // only append outlines if appended document has outlines
@@ -346,56 +263,6 @@ void PdfDocument::FixObjectReferences( PdfObject* pObject, int difference )
     }
 }
 
-void PdfDocument::DeletePages( int inFirstPage, int inNumPages )
-{
-    for( int i = 0 ; i < inNumPages ; i++ )
-    {
-        m_pPagesTree->DeletePage( inFirstPage ) ;
-    }
-}
-
-const PdfDocument & PdfDocument::InsertPages( const PdfDocument & rDoc, int inFirstPage, int inNumPages )
-{
-    /*
-      This function works a bit different than one might expect. 
-      Rather than copying one page at a time - we copy the ENTIRE document
-      and then delete the pages we aren't interested in.
-      
-      We do this because 
-      1) SIGNIFICANTLY simplifies the process
-      2) Guarantees that shared objects aren't copied multiple times
-      3) offers MUCH faster performance for the common cases
-      
-      HOWEVER: because PoDoFo doesn't currently do any sort of "object garbage collection" during
-      a Write() - we will end up with larger documents, since the data from unused pages
-      will also be in there.
-    */
-
-    // calculate preliminary "left" and "right" page ranges to delete
-    // then offset them based on where the pages were inserted
-    // NOTE: some of this will change if/when we support insertion at locations
-    //       OTHER than the end of the document!
-    int leftStartPage = 0 ;
-    int leftCount = inFirstPage ;
-    int rightStartPage = inFirstPage + inNumPages ;
-    int rightCount = rDoc.GetPageCount() - rightStartPage ;
-    int pageOffset = this->GetPageCount();	
-
-    leftStartPage += pageOffset ;
-    rightStartPage += pageOffset ;
-    
-    // append in the whole document
-    this->Append( rDoc );
-
-    // delete
-    if( rightCount > 0 )
-        this->DeletePages( rightStartPage, rightCount ) ;
-    if( leftCount > 0 )
-        this->DeletePages( leftStartPage, leftCount ) ;
-    
-    return *this;
-}
-
 EPdfPageMode PdfDocument::GetPageMode( void ) const
 {
     // PageMode is optional; the default value is UseNone
@@ -424,7 +291,7 @@ EPdfPageMode PdfDocument::GetPageMode( void ) const
     return thePageMode ;
 }
 
-void PdfDocument::SetPageMode( EPdfPageMode inMode ) const
+void PdfDocument::SetPageMode( EPdfPageMode inMode )
 {
     switch ( inMode ) {
         default:
@@ -460,7 +327,7 @@ void PdfDocument::SetPageMode( EPdfPageMode inMode ) const
     }
 }
 
-void PdfDocument::SetUseFullScreen( void ) const
+void PdfDocument::SetUseFullScreen( void )
 {
     // first, we get the current mode
     EPdfPageMode	curMode = GetPageMode();
@@ -472,7 +339,7 @@ void PdfDocument::SetUseFullScreen( void ) const
     SetPageMode( ePdfPageModeFullScreen );
 }
 
-void PdfDocument::SetViewerPreference( const PdfName& whichPref, const PdfObject & valueObj ) const
+void PdfDocument::SetViewerPreference( const PdfName& whichPref, const PdfObject & valueObj )
 {
     PdfObject* prefsObj = GetCatalog()->GetIndirectKey( PdfName( "ViewerPreferences" ) );
     if ( prefsObj == NULL ) {
@@ -487,7 +354,7 @@ void PdfDocument::SetViewerPreference( const PdfName& whichPref, const PdfObject
     }
 }
 
-void PdfDocument::SetViewerPreference( const PdfName& whichPref, bool inValue ) const
+void PdfDocument::SetViewerPreference( const PdfName& whichPref, bool inValue )
 {
     SetViewerPreference( whichPref, PdfObject( inValue ) );
 }
@@ -587,7 +454,7 @@ PdfOutlines* PdfDocument::GetOutlines( bool bCreate )
             if ( !bCreate )	return NULL;
             
             m_pOutlines = new PdfOutlines( &m_vecObjects );
-            m_pCatalog->GetDictionary().AddKey( "Outlines", m_pOutlines->GetObject()->Reference() );
+            this->GetCatalog()->GetDictionary().AddKey( "Outlines", m_pOutlines->GetObject()->Reference() );
         } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         } else
@@ -611,12 +478,12 @@ PdfNamesTree* PdfDocument::GetNamesTree( bool bCreate )
 
             PdfNamesTree tmpTree ( &m_vecObjects );
             pObj = tmpTree.GetObject();
-            m_pCatalog->GetDictionary().AddKey( "Names", pObj->Reference() );
-            m_pNamesTree = new PdfNamesTree( pObj, m_pCatalog );
+            this->GetCatalog()->GetDictionary().AddKey( "Names", pObj->Reference() );
+            m_pNamesTree = new PdfNamesTree( pObj, this->GetCatalog() );
         } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         } else
-            m_pNamesTree = new PdfNamesTree( pObj, m_pCatalog );
+            m_pNamesTree = new PdfNamesTree( pObj, this->GetCatalog() );
     }        
     
     return m_pNamesTree;
@@ -634,7 +501,7 @@ PdfAcroForm* PdfDocument::GetAcroForm( bool bCreate )
             if ( !bCreate )	return NULL;
             
             m_pAcroForms = new PdfAcroForm( this );
-            m_pCatalog->GetDictionary().AddKey( "AcroForm", m_pAcroForms->GetObject()->Reference() );
+            this->GetCatalog()->GetDictionary().AddKey( "AcroForm", m_pAcroForms->GetObject()->Reference() );
         } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         } else

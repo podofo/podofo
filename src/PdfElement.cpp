@@ -32,9 +32,9 @@ PdfElement::PdfElement( const char* pszType, PdfVecObjects* pParent )
     m_pObject = pParent->CreateObject( pszType );
 }
 
-PdfElement::PdfElement( const char* pszType, PdfStreamedDocument* pParent )
+PdfElement::PdfElement( const char* pszType, PdfDocument* pParent )
 {
-    m_pObject = pParent->m_doc.GetObjects().CreateObject( pszType );
+    m_pObject = pParent->m_vecObjects.CreateObject( pszType );
 }
 
 PdfElement::PdfElement( const char* pszType, PdfObject* pObject )
@@ -81,6 +81,10 @@ int PdfElement::TypeNameToIndex( const char* pszType, const char** ppTypes, long
             return i;
 
     return --lLen;
+}
+PdfObject* PdfElement::CreateObject( const char* pszType )
+{
+    return m_pObject->GetOwner()->CreateObject( pszType );
 }
 
 

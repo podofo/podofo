@@ -23,6 +23,8 @@
 #include "PdfDestination.h"
 #include "PdfDictionary.h"
 #include "PdfDocument.h"
+#include "PdfMemDocument.h"
+#include "PdfStreamedDocument.h"
 #include "PdfExtGState.h"
 #include "PdfFileSpec.h"
 #include "PdfFont.h"
@@ -342,13 +344,13 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     double        y      = pPage->GetPageSize().GetHeight() - 60000 * CONVERSION_CONSTANT;
 
 #ifdef PODOFO_HAVE_JPEG_LIB
-    PdfImage image( &(pDocument->GetObjects()) );
+    PdfImage image( pDocument );
 #endif // PODOFO_HAVE_JPEG_LIB
 
     PdfRect        rect( 0, 0, 50000 * CONVERSION_CONSTANT, 50000 * CONVERSION_CONSTANT );
     PdfRect        rect1( 80000 * CONVERSION_CONSTANT, 3000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
     PdfRect        rect2( 40000 * CONVERSION_CONSTANT, y, 50000 * CONVERSION_CONSTANT, 50000 * CONVERSION_CONSTANT );
-    PdfXObject     xObj( rect, &(pDocument->GetObjects()) );
+    PdfXObject     xObj( rect, pDocument );
     PdfPainter     pnt;    // XObject painter
 
 #ifdef PODOFO_HAVE_JPEG_LIB
@@ -390,7 +392,7 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pAnnot1->SetContents( PdfString("Hallo Welt!") );
     pAnnot1->SetAppearanceStream( &xObj );
 
-    PdfAction action( ePdfAction_URI, &(pDocument->GetObjects()) );
+    PdfAction action( ePdfAction_URI, pDocument );
     action.SetURI( PdfString("http://podofo.sf.net") );
 
     //pAnnot2->SetDestination( pPage );
@@ -420,7 +422,7 @@ void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->SetColor( 1.0, 0.0, 0.0 );
     pPainter->FillEllipse( dX, dY, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
 
-    PdfFileSpec file( "../../../podofo/test/CreationTest/lena.jpg", true, &(pDocument->GetObjects()) );
+    PdfFileSpec file( "../../../podofo/test/CreationTest/lena.jpg", true, pDocument );
     pFileAnnotation =  pPage->CreateAnnotation( ePdfAnnotation_FileAttachement, PdfRect( 300.0, 400.0, 250.0, 50.0 ) );
     pFileAnnotation->SetContents( "A JPEG image of Lena" );
     pFileAnnotation->SetFileAttachement( file );
@@ -442,7 +444,7 @@ void MMTest( PdfPainterMM* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     lY -= 60000;
 
     // let's test out the opacity features
-    PdfExtGState	trans( &(pDocument->GetObjects()) );
+    PdfExtGState	trans( pDocument );
     trans.SetFillOpacity( 0.5 );
     pPainter->SetExtGState( &trans );
     pPainter->SetColor( 1.0, 0.0, 0.0 );
@@ -457,7 +459,8 @@ void MMTest( PdfPainterMM* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
 int main( int argc, char* argv[] ) 
 {
-    PdfDocument     writer;
+    PdfMemDocument  writer;
+    //PdfStreamedDocument  writer ( argv[1] );
     PdfPage*        pPage;
     PdfPainter      painter;
     PdfPainterMM    painterMM;
@@ -550,9 +553,12 @@ int main( int argc, char* argv[] )
                       PdfString(reinterpret_cast<const pdf_utf8*>("「PoDoFo」は今から日本語も話せます。") ) ) );
     TEST_SAFE_OP( writer.GetInfo()->SetKeywords( PdfString("Test;PDF;") ) );
 
-    TEST_SAFE_OP( writer.AttachFile( PdfFileSpec("../../../podofo/test/CreationTest/CreationTest.cpp", true, &(writer.GetObjects()) ) ) );
+    TEST_SAFE_OP( writer.AttachFile( PdfFileSpec("../../../podofo/test/CreationTest/CreationTest.cpp", true, &writer ) ) );
 
     TEST_SAFE_OP( writer.Write( argv[1] ) );
+    //TEST_SAFE_OP( writer.Close() );
+
+
 #ifdef TEST_MEM_BUFFER
     // ---
     const char*   pszMemFile = "/home/dominik/mem_out.pdf";

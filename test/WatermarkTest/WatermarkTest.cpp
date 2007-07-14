@@ -20,7 +20,7 @@
 
 #include "PdfAction.h"
 #include "PdfAnnotation.h"
-#include "PdfDocument.h"
+#include "PdfMemDocument.h"
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
 #include "PdfImage.h"
@@ -38,11 +38,11 @@ void WatermarkFile( const char* pszInFilename, const char* pszOutFilename )
 {
     printf("Running watermark test\n");
 
-    PdfDocument doc( pszInFilename );
-    PdfPainter  painter;
-    PdfPage*    pPage;
-    PdfRect     rect;
-    int         i;
+    PdfMemDocument doc( pszInFilename );
+    PdfPainter     painter;
+    PdfPage*       pPage;
+    PdfRect        rect;
+    int            i;
 
     for(i=0;i<doc.GetPageCount();i++)
     {

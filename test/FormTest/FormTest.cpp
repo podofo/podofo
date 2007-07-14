@@ -238,10 +238,10 @@ void FillListField( PdfListField & rField )
 
 void FillForm( const char* pszFilename, const char* pszOutput ) 
 {
-    PdfDocument doc( pszFilename );
-    PdfPage*    pPage;
-    int         nPageCount = doc.GetPageCount();
-    int         nFieldCount;
+    PdfMemDocument doc( pszFilename );
+    PdfPage*       pPage;
+    int            nPageCount = doc.GetPageCount();
+    int            nFieldCount;
 
     for( int i=0;i<nPageCount;i++ )
     {

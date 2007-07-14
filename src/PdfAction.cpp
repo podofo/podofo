@@ -60,7 +60,7 @@ PdfAction::PdfAction( EPdfAction eAction, PdfVecObjects* pParent )
     m_pObject->GetDictionary().AddKey( "S", type );
 }
 
-PdfAction::PdfAction( EPdfAction eAction, PdfStreamedDocument* pParent )
+PdfAction::PdfAction( EPdfAction eAction, PdfDocument* pParent )
     : PdfElement( "Action", pParent ), m_eType( eAction )
 {
     const PdfName type = PdfName( TypeNameForIndex( eAction, s_names, s_lNumActions ) );

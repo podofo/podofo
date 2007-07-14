@@ -34,6 +34,43 @@ namespace PoDoFo {
 
 PdfArray PdfXObject::s_matrix;
 
+PdfXObject::PdfXObject( const PdfRect & rRect, PdfDocument* pParent )
+    : PdfElement( "XObject", pParent ), PdfCanvas(), m_rRect( rRect )
+{
+    PdfVariant    var;
+    ostringstream out;
+    PdfLocaleImbue(out);
+
+    // Initialize static data
+    if( s_matrix.empty() )
+    {
+        // This matrix is the same for all PdfXObjects so cache it
+        s_matrix.push_back( PdfVariant( 1L ) );
+        s_matrix.push_back( PdfVariant( 0L ) );
+        s_matrix.push_back( PdfVariant( 0L ) );
+        s_matrix.push_back( PdfVariant( 1L ) );
+        s_matrix.push_back( PdfVariant( 0L ) );
+        s_matrix.push_back( PdfVariant( 0L ) );
+    }
+
+    rRect.ToVariant( var );
+    m_pObject->GetDictionary().AddKey( "BBox", var );
+    m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Form") );
+    m_pObject->GetDictionary().AddKey( "FormType", PdfVariant( 1L ) ); // only 1 is only defined in the specification.
+    m_pObject->GetDictionary().AddKey( "Matrix", s_matrix );
+
+    // The PDF specification suggests that we send all available PDF Procedure sets
+    m_pObject->GetDictionary().AddKey( "Resources", PdfObject( PdfDictionary() ) );
+    m_pResources = m_pObject->GetDictionary().GetKey( "Resources" );
+    m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::GetProcSet() );
+
+    // Implementation note: the identifier is always
+    // Prefix+ObjectNo. Prefix is /XOb for XObject.
+    out << "XOb" << m_pObject->Reference().ObjectNumber();
+    m_Identifier = PdfName( out.str().c_str() );
+    m_Reference  = m_pObject->Reference();
+}
+
 PdfXObject::PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent )
     : PdfElement( "XObject", pParent ), PdfCanvas(), m_rRect( rRect )
 {

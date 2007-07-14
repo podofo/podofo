@@ -30,7 +30,6 @@ namespace PoDoFo {
 class PdfDocument;
 class PdfInputStream;
 class PdfObject;
-class PdfStreamedDocument;
 class PdfVecObjects;
 
 /** A PdfImage object is needed when ever you want to embedd an image
@@ -58,13 +57,6 @@ class PODOFO_API PdfImage : public PdfXObject {
      *  \param pParent parent document
      */
     PdfImage( PdfDocument* pParent );
-
-    /** Constuct a new PdfImage object
-     *  This is an overloaded constructor.
-     *
-     *  \param pParent parent document
-     */
-    PdfImage( PdfStreamedDocument* pParent );
 
     /** Construct an image from an existing PdfObject
      *  

@@ -30,6 +30,7 @@ SET(PODOFO_SOURCES
     PdfInputDevice.cpp
     PdfInputStream.cpp
     PdfLocale.cpp
+    PdfMemDocument.cpp
     PdfMemStream.cpp
     PdfName.cpp
     PdfNamesTree.cpp

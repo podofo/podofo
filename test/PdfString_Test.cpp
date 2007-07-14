@@ -151,6 +151,9 @@ void testHexEncodeDecode()
 
 int main()
 {
+    const char* pszStringJap = "「PoDoFo」は今から日本語も話せます。";
+    printf("Jap: %s\n", pszStringJap );
+
     try {
         testUnicode();
         testHexEncodeDecode();

@@ -72,10 +72,10 @@ class PODOFO_API PdfElement {
 
     /** Creates a new PdfElement 
      *  \param pszType type entry of the elements object
-     *  \param pParent parent PdfStreamedDocument.
+     *  \param pParent parent PdfDocument.
      *                 Add a newly created object to this vector.
      */
-    PdfElement( const char* pszType, PdfStreamedDocument* pParent );
+    PdfElement( const char* pszType, PdfDocument* pParent );
 
     /** Create a PdfElement from an existing PdfObject
      *  \param pszType type entry of the elements object.
@@ -117,6 +117,19 @@ class PODOFO_API PdfElement {
      *  \returns the index of the string in the array
      */
     int TypeNameToIndex( const char* pszType, const char** ppTypes, long lLen ) const;
+
+    /** Create a PdfObject in the parent of this PdfElement which
+     *  might either be a PdfStreamedDocument, a PdfDocument or
+     *  a PdfVecObjects
+     *
+     *  Use this function in an own subclass of PdfElement to create new
+     *  PdfObjects.
+     *
+     *  \param pszType an optional /Type key of the created object
+     *
+     *  \returns a PdfObject which is owned by the parent
+     */
+    PdfObject* CreateObject( const char* pszType = NULL );
 
  protected:
     PdfObject* m_pObject;

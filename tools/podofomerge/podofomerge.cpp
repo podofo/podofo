@@ -21,7 +21,7 @@
 #include <PdfDefines.h>
 
 #include <PdfDestination.h>
-#include <PdfDocument.h>
+#include <PdfMemDocument.h>
 #include <PdfOutlines.h>
 
 using namespace PoDoFo;
@@ -38,9 +38,9 @@ void print_help()
 void merge( const char* pszInput1, const char* pszInput2, const char* pszOutput )
 {
     printf("Reading file: %s\n", pszInput1 );
-    PdfDocument input1( pszInput1 );
+    PdfMemDocument input1( pszInput1 );
     printf("Reading file: %s\n", pszInput2 );
-    PdfDocument input2( pszInput2 );
+    PdfMemDocument input2( pszInput2 );
 
 // #define TEST_ONLY_SOME_PAGES
 #ifdef TEST_ONLY_SOME_PAGES

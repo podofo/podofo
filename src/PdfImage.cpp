@@ -22,7 +22,6 @@
 
 #include "PdfDocument.h"
 #include "PdfStream.h"
-#include "PdfStreamedDocument.h"
 
 #include <stdio.h>
 #include <sstream>
@@ -46,15 +45,7 @@ PdfImage::PdfImage( PdfVecObjects* pParent )
 }
 
 PdfImage::PdfImage( PdfDocument* pParent )
-    : PdfXObject( "Image", &(pParent->GetObjects()) )
-{
-    m_rRect = PdfRect();
-
-    this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
-}
-
-PdfImage::PdfImage( PdfStreamedDocument* pParent )
-    : PdfXObject( "Image", &(pParent->m_doc.GetObjects()) )
+    : PdfXObject( "Image", &(pParent->m_vecObjects) )
 {
     m_rRect = PdfRect();
 

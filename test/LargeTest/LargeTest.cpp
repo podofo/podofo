@@ -27,7 +27,7 @@ using namespace PoDoFo;
 
 bool writeImmediately = true;
 
-void AddPage( PdfDocument* pDoc, PdfStreamedDocument* pStreamed, const char* pszFontName, const char* pszImagePath )
+void AddPage( PdfDocument* pDoc, const char* pszFontName, const char* pszImagePath )
 {
     PdfPainter painter;
     PdfPage*   pPage;
@@ -36,20 +36,10 @@ void AddPage( PdfDocument* pDoc, PdfStreamedDocument* pStreamed, const char* psz
     PdfImage*  pImage;
     PdfRect    rect;
  
-    if( pDoc ) 
-    {
-        pPage  = pDoc->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-        pFont  = pDoc->CreateFont( pszFontName );
-        pArial = pDoc->CreateFont( "Arial" );
-        pImage = new PdfImage( pDoc );
-    }
-    else
-    {
-        pPage  = pStreamed->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-        pFont  = pStreamed->CreateFont( pszFontName );
-        pArial = pStreamed->CreateFont( "Arial" );
-        pImage = new PdfImage( pStreamed );
-    }
+    pPage  = pDoc->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+    pFont  = pDoc->CreateFont( pszFontName );
+    pArial = pDoc->CreateFont( "Arial" );
+    pImage = new PdfImage( pDoc );
 
     rect   = pPage->GetMediaBox();
 
@@ -100,8 +90,7 @@ void AddPage( PdfDocument* pDoc, PdfStreamedDocument* pStreamed, const char* psz
 
 void CreateLargePdf( const char* pszFilename, const char* pszImagePath )
 {
-    PdfStreamedDocument* pStreamed = NULL;
-    PdfDocument        * pDoc = NULL;
+    PdfDocument*         pDoc = NULL;
     FcObjectSet*         pObjectSet;
     FcFontSet*           pFontSet;
     FcPattern*           pPattern;
@@ -120,9 +109,9 @@ void CreateLargePdf( const char* pszFilename, const char* pszImagePath )
     FcPatternDestroy( pPattern );
 
     if( writeImmediately ) 
-        pStreamed = new PdfStreamedDocument( pszFilename );
+        pDoc = new PdfStreamedDocument( pszFilename );
     else 
-        pDoc = new PdfDocument();
+        pDoc = new PdfMemDocument();
 
     if( pFontSet )
     {
@@ -134,7 +123,7 @@ void CreateLargePdf( const char* pszFilename, const char* pszImagePath )
             FcPatternGet( pFontSet->fonts[i], FC_FAMILY, 0, &v );
             //font = FcNameUnparse( pFontSet->fonts[i] );
             printf(" -> Drawing with font: %s\n", reinterpret_cast<const char*>(v.u.s) );
-            AddPage( pDoc, pStreamed, reinterpret_cast<const char*>(v.u.s), pszImagePath );
+            AddPage( pDoc, reinterpret_cast<const char*>(v.u.s), pszImagePath );
         }
 
         FcFontSetDestroy( pFontSet );
@@ -142,15 +131,10 @@ void CreateLargePdf( const char* pszFilename, const char* pszImagePath )
     
 
     if( writeImmediately )
-    {
-        pStreamed->Close();
-        delete pStreamed;
-    }
+        static_cast<PdfStreamedDocument*>(pDoc)->Close();
     else
-    {
-        pDoc->Write( pszFilename );
-        delete pDoc;
-    }
+        static_cast<PdfMemDocument*>(pDoc)->Write( pszFilename );
+    delete pDoc;
 }
 
 void usage()

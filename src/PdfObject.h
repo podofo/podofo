@@ -151,7 +151,7 @@ class PODOFO_API PdfObject : public PdfVariant {
      *  \returns the found value or NULL if the value is not in the 
      *           dictionary or if this object is no dictionary
      */
-    PdfObject* GetIndirectKey( const PdfName & key );
+    PdfObject* GetIndirectKey( const PdfName & key ) const;
 
     /** Write the complete object to a file.
      *  \param pDevice write the object to this device

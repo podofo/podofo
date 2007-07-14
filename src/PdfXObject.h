@@ -44,6 +44,14 @@ class PdfObject;
 class PODOFO_API PdfXObject : public PdfElement, public PdfCanvas {
  public:
     /** Create a new XObject with a specified dimension
+     *  in a given document
+     * 
+     *  \param rRect the size of the XObject
+     *  \param pParent the parent document of the XObject
+     */
+    PdfXObject( const PdfRect & rRect, PdfDocument* pParent );
+
+    /** Create a new XObject with a specified dimension
      *  in a given vector of PdfObjects
      * 
      *  \param rRect the size of the XObject

@@ -158,9 +158,9 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop )
         pDevice->Print( "endobj\n" );
 }
 
-PdfObject* PdfObject::GetIndirectKey( const PdfName & key )
+PdfObject* PdfObject::GetIndirectKey( const PdfName & key ) const
 {
-    PdfObject* pObj = NULL;
+    const PdfObject* pObj = NULL;
 
     if( this->IsDictionary() && this->GetDictionary().HasKey( key ) )
     {
@@ -169,15 +169,16 @@ PdfObject* PdfObject::GetIndirectKey( const PdfName & key )
         {
             if( !m_pOwner )
             {
-                PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "Object is a reference but does not have an owner!" );
             }
             pObj = m_pOwner->GetObject( pObj->GetReference() );
         }
         else
-            pObj->SetOwner( GetOwner() );// even directs might want an owner...
+            const_cast<PdfObject*>(pObj)->SetOwner( GetOwner() );// even directs might want an owner...
     }
 
-    return pObj;
+    // DominikS: TODO Remove const on GetIndirectKey
+    return const_cast<PdfObject*>(pObj);
 }
 
 unsigned long PdfObject::GetObjectLength()

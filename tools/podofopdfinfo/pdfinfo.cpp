@@ -25,7 +25,7 @@
 
 PdfInfo::PdfInfo( const std::string& inPathname )
 {
-    mDoc = new PoDoFo::PdfDocument( inPathname.c_str() );
+    mDoc = new PoDoFo::PdfMemDocument( inPathname.c_str() );
 }
 
 PdfInfo::~PdfInfo()
@@ -42,7 +42,7 @@ void PdfInfo::OutputDocumentInfo( std::ostream& sOutStream )
     sOutStream << "Page Count: " << mDoc->GetPageCount() << std::endl;
     sOutStream << std::endl;
     sOutStream << "Fast Web View Enabled: " << (mDoc->IsLinearized() ? "Yes" : "No") << std::endl;
-    sOutStream << "Tagged: " << (mDoc->GetStructTreeRoot() != NULL ? "Yes" : "No") << std::endl;
+    sOutStream << "Tagged: " << (static_cast<PoDoFo::PdfMemDocument*>(mDoc)->GetStructTreeRoot() != NULL ? "Yes" : "No") << std::endl;
 
 /*
 // print encryption info
@@ -133,7 +133,7 @@ void PdfInfo::OutputOutlines( std::ostream& sOutStream, PoDoFo::PdfOutlineItem* 
     if( !pItem ) 
     {
         pOutlines = mDoc->GetOutlines( PoDoFo::ePdfDontCreateObject );
-        if ( !pOutlines ) {
+        if ( !pOutlines || !pOutlines->First() ) {
             sOutStream << "\tNone Found" << std::endl;
             return;
         }

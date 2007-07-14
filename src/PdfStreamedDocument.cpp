@@ -20,8 +20,6 @@
 
 #include "PdfStreamedDocument.h"
 
-#include "PdfImmediateWriter.h"
-
 namespace PoDoFo {
 
 PdfStreamedDocument::PdfStreamedDocument( PdfOutputDevice* pDevice )
@@ -39,19 +37,18 @@ PdfStreamedDocument::PdfStreamedDocument( const char* pszFilename )
 
 PdfStreamedDocument::~PdfStreamedDocument()
 {
-
     delete m_pWriter;
     delete m_pDevice;
 }
 
 void PdfStreamedDocument::Init( PdfOutputDevice* pDevice )
 {
-    m_pWriter = new PdfImmediateWriter( pDevice, &(m_doc.GetObjects()), m_doc.GetTrailer() );
+    m_pWriter = new PdfImmediateWriter( pDevice, this->GetObjects() , this->GetTrailer() );
 }
 
 void PdfStreamedDocument::Close()
 {
-    m_doc.GetObjects().Finish();
+    this->GetObjects()->Finish();
 }
 
 
