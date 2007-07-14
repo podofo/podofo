@@ -34,7 +34,7 @@ namespace PoDoFo {
   does NOT have a /Type key!
 */
 PdfAcroForm::PdfAcroForm( PdfDocument* pDoc )
-    : PdfElement( NULL, &(pDoc->m_vecObjects) ), m_pDocument( pDoc )
+    : PdfElement( NULL, pDoc ), m_pDocument( pDoc )
 {
     // Initialize with an empty fields array
     m_pObject->GetDictionary().AddKey( PdfName("Fields"), PdfArray() );

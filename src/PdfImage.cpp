@@ -45,7 +45,7 @@ PdfImage::PdfImage( PdfVecObjects* pParent )
 }
 
 PdfImage::PdfImage( PdfDocument* pParent )
-    : PdfXObject( "Image", &(pParent->m_vecObjects) )
+    : PdfXObject( "Image", pParent )
 {
     m_rRect = PdfRect();
 

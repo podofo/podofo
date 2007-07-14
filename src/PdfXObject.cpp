@@ -124,6 +124,21 @@ PdfXObject::PdfXObject( PdfObject* pObject )
     m_Reference  = m_pObject->Reference();
 }
 
+PdfXObject::PdfXObject( const char* pszSubType, PdfDocument* pParent )
+    : PdfElement( "XObject", pParent ) 
+{
+    ostringstream out;
+    PdfLocaleImbue(out);
+    // Implementation note: the identifier is always
+    // Prefix+ObjectNo. Prefix is /XOb for XObject.
+    out << "XOb" << m_pObject->Reference().ObjectNumber();
+
+    m_Identifier = PdfName( out.str().c_str() );
+    m_Reference  = m_pObject->Reference();
+
+    m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName( pszSubType ) );
+}
+
 PdfXObject::PdfXObject( const char* pszSubType, PdfVecObjects* pParent )
     : PdfElement( "XObject", pParent ) 
 {

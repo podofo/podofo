@@ -60,10 +60,7 @@ class PdfRect;
  */
 class PODOFO_API PdfDocument {
     friend class PdfWriter;
-    // TODO: Remove these later
-    friend class PdfAcroForm;    
     friend class PdfElement;
-    friend class PdfImage;
 
  public:
     /** Close down/destruct the PdfDocument
