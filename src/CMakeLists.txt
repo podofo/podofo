@@ -69,7 +69,7 @@ SET(PODOFO_HEADERS
 	PdfCanvas.h
 	PdfContents.h
 	PdfData.h
-    	PdfDataType.h
+	PdfDataType.h
 	PdfDate.h
 	PdfDefines.h
 	PdfDestination.h
@@ -94,6 +94,7 @@ SET(PODOFO_HEADERS
 	PdfInputDevice.h
 	PdfInputStream.h
 	PdfLocale.h
+	PdfMemDocument.h
 	PdfMemStream.h
 	PdfName.h
 	PdfNamesTree.h
