@@ -85,6 +85,9 @@ platforms. The CMake build has been tested on:
 	- Visual C++ 8 Express +NMake [Win32] ("NMake Makefiles" target)
 	- MinGW with GCC 3.4.2 [Win32] ("MinGW Makefiles" target)
 	- gcc 3.3.5 [Linux: Debian 3.1] ("Unix Makefiles" target)
+	- gcc 4.0 [Linux: Debian 4.0] ("Unix Makefiles" target)
+	- gcc 4.1 [Linux: Debian 4.0] ("Unix Makefiles" target)
+	- gcc 4.0 [Mac OS X 10.4.10] ("Unix Makefiles" target)
 
 You can use the CMake variable CMAKE_BUILD_TYPE to control the type of
 build. The main values supported are DEBUG and RELEASE. The default is
@@ -163,7 +166,76 @@ are not part of PoDoFo's public API. PoDoFo developers will also find this
 useful, as it will cause some mistakes to be reported as link errors that would
 otherwise go undetected and break the win32 builds.
 
-4.1.2 CMake builds on Windows
+4.1.2 CMake builds on Mac OS X
+==============================
+
+Mac OS X users can build PoDoFo using CMake either by generating conventional
+UNIX Makefiles (the  "Unix Makefiles" CMake target) or generating an XCode
+project (the "Xcode" target). In either case the following applies.
+
+You will need freetype and fontconfig. It's possible to omit the use of
+libjpeg (see the platform-independent documentation) but by default libjpeg
+will also be required. If you have these libraries already (say, from fink
+or DarwinPorts) you can skip the following section and update the
+CMAKE_INCLUDE_PATH and CMAKE_LIBRARY_PATH arguments appropriately.
+
+ Dependencies
+ -----------
+
+I'll assume you're installing podofo and any required libraries into $HOME/libs
+. Adjust to taste, but keep it consistent.
+
+You can get libjpeg from:
+	http://www.ijg.org/files/jpegsrc.v6b.tar.gz
+Unpack the tarball and cd into the resulting directory in the Terminal, then run:
+	cp /usr/share/libtool/config.{sub,guess} .
+to update the configure files. Now run:
+	./configure --enable-shared --prefix $HOME/libs
+	make
+	make install
+
+You might have to run:
+	mkdir -p $HOME/libs/{bin,lib,man/man1,include}
+to get install to work.
+
+Next: freetype. You can get the latest freetype sources from freetype.org. Download
+them and unpack the tarball, then cd into it in Terminal and run:
+	./configure --prefix=$HOME/libs
+	make 
+	make install
+
+fontconfig is a little trickier. It requires the expat library. Get it from
+	http://sf.net/projects/expat
+then unpack the source tarball and cd into it in Terminal. Run:
+	./configure --prefix=$HOME/libs
+	make 
+	make install
+	
+Now we build fontconfig its self. Get the current fontconfig sources from:
+	http://freedesktop.org/fontconfig/release/
+and then unpack the source tarball and cd into it in Terminal. Run:
+	./configure --prefix=$HOME/libs --with-freetype-config=/Users/post/libs/bin/freetype-config --with-expat=$HOME/libs
+	make
+	make install
+
+ PoDoFo its self
+ ---------------
+
+You should be able to configure and install podofo on Mac OS X using:
+
+	cmake -G "Unix Makefiles" \
+		-DWANT_FONTCONFIG:BOOL=TRUE \
+		-DCMAKE_INSTALL_PREFIX=$HOME/libs \
+		-DCMAKE_INCLUDE_PATH=/Users/post/libs/include/ \
+		-DCMAKE_LIBRARY_PATH=/Users/post/libs/lib \
+		../podofo
+	make
+	make install
+
+change "Unix Makefiles" to "Xcode" if you want to build an XCode project instead, then
+instead of running `make' and `make install' just open the project file and work as normal
+
+4.1.3 CMake builds on Windows
 =============================
 
 Building CMake on Windows can be done using MinGW (a minimalist gcc-based
@@ -187,7 +259,7 @@ extra argument to cmake:
 
 	-DPODOFO_BUILD_SHARED=FALSE
 
-4.1.2.1 CMake builds on Windows with MinGW
+4.1.3.1 CMake builds on Windows with MinGW
 ==========================================
 
 MinGW builds are essentially the same as the UNIX instructions above, but
@@ -214,7 +286,7 @@ this will cause you problems if you intend to use PoDoFo across DLL boundaries,
 but until libstd++ is made shared on MinGW there's not much to be done. VC++
 does not suffer from this issue.
 
-4.1.2.1 CMake builds on Windows with Visual Studio
+4.1.3.1 CMake builds on Windows with Visual Studio
 ==================================================
 
 A Visual Studio build requires that Microsoft Visual Studio be installed.
@@ -238,7 +310,7 @@ http://msdn.microsoft.com/vstudio/express/ .
 You will need to install the Win32 SDK if using the Express Edition, since it
 is not bundled.
 
-4.1.2.1 CMake builds on Windows with NMake
+4.1.3.1 CMake builds on Windows with NMake
 ==========================================
 
 PoDoFo can also be built with NMake. The build procedure is essentially the same
