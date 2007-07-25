@@ -110,7 +110,7 @@ class PODOFO_API PdfFontCache {
     TSortedFontList m_vecFonts;
     FT_Library      m_ftLibrary;
 
-#if !defined(_WIN32) && !defined(__APPLE_CC__)
+#if defined(HAVE_FONTCONFIG)
     FcConfig*       m_pFcConfig;
 #endif
 

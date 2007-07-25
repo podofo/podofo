@@ -30,7 +30,7 @@ typedef struct FT_LibraryRec_  *FT_Library;
 struct FT_FaceRec_;
 typedef struct FT_FaceRec_*  FT_Face;
 
-#if !defined(_WIN32) && !defined(__APPLE_CC__)
+#if defined(HAVE_FONTCONFIG)
 // Fontconfig
 struct _FcConfig;
 typedef struct _FcConfig    FcConfig;

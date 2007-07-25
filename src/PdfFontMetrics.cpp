@@ -31,7 +31,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#if !defined(_WIN32) && !defined(__APPLE_CC__)
+#if defined(HAVE_FONTCONFIG)
 #include <fontconfig/fontconfig.h>
 #endif
 
@@ -44,7 +44,7 @@ namespace PoDoFo {
 #ifdef _WIN32
 static bool GetWin32HostFont( const std::string& inFontName, char** outFontBuffer, unsigned int& outFontBufferLen );
 #endif
-#ifdef __APPLE_CC__
+#ifdef __APPLE_CC__ && !defined(HAVE_FONTCONFIG)
 #include <Carbon/Carbon.h>
 #endif
 
@@ -234,7 +234,7 @@ void PdfFontMetrics::GetBoundingBox( PdfArray & array ) const
     array.push_back( PdfVariant( m_face->bbox.yMax  * 1000.0 / m_face->units_per_EM ) );
 }
 
-#if !defined(__APPLE_CC__)
+#if defined(HAVE_FONTCONFIG) || defined(_WIN32)
 std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
 {
 #if defined(_WIN32)
@@ -333,7 +333,7 @@ static bool GetWin32HostFont( const std::string& inFontName, char** outFontBuffe
 	return GetDataFromLPFONT( &lf, outFontBuffer, outFontBufferLen );
 }
 
-#elif defined(__APPLE_CC__)
+#elif defined(__APPLE_CC__) && !defined(HAVE_FONTCONFIG)
 FT_Error
 My_FT_GetFile_From_Mac_ATS_Name( const char*  fontName,
 								 FSSpec*  pathSpec, FT_Long*     face_index )

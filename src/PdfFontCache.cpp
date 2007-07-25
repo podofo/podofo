@@ -28,7 +28,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#if !defined(_WIN32) && !defined(__APPLE_CC__)
+#if defined(HAVE_FONTCONFIG)
 #include <fontconfig/fontconfig.h>
 #endif
 
@@ -57,7 +57,7 @@ PdfFontCache::PdfFontCache( PdfVecObjects* pParent )
 {
     // Initialize all the fonts stuff
 
-#if !defined(_WIN32) && !defined(__APPLE_CC__)
+#if defined(HAVE_FONTCONFIG)
     m_pFcConfig     = FcInitLoadConfigAndFonts();
 #endif
 
@@ -71,7 +71,7 @@ PdfFontCache::~PdfFontCache()
 {
     this->EmptyCache();
 
-#if !defined(_WIN32) && !defined(__APPLE_CC__)
+#if defined(HAVE_FONTCONFIG)
     FcConfigDestroy( m_pFcConfig );
 #endif
 
@@ -149,10 +149,10 @@ PdfFont* PdfFontCache::GetFont( FT_Face face, bool bEmbedd )
 
 std::string PdfFontCache::GetFontPath( const char* pszFontName )
 {
-#if defined(_WIN32) || defined(__APPLE_CC__)
-    std::string sPath = PdfFontMetrics::GetFilenameForFont( pszFontName );
-#else
+#if defined(HAVE_FONTCONFIG)
     std::string sPath = PdfFontMetrics::GetFilenameForFont( m_pFcConfig, pszFontName );
+#else
+    std::string sPath = PdfFontMetrics::GetFilenameForFont( pszFontName );
 #endif
 
     return sPath;

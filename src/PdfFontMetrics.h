@@ -273,8 +273,7 @@ class PODOFO_API PdfFontMetrics {
      *  \returns the compelte absolute path to a matching font file or NULL
      *           if none was found.
      */
-#if defined(_WIN32) || defined(__APPLE_CC__)
-#else
+#if defined(HAVE_FONTCONFIG)
     static std::string GetFilenameForFont( FcConfig* pConfig, const char* pszFontname );
 #endif
 

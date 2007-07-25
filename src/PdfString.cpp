@@ -23,7 +23,7 @@
 #include "PdfFilter.h"
 #include "PdfOutputDevice.h"
 
-#include <malloc.h>
+#include <cstdlib>
 namespace PoDoFo {
 
 extern bool podofo_is_little_endian();

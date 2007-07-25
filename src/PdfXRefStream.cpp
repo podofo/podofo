@@ -31,7 +31,7 @@
 #else 
 #include <arpa/inet.h>
 #endif // _WIN32
-#include <malloc.h>
+#include <cstdlib>
 
 namespace PoDoFo {
 
