@@ -61,19 +61,21 @@ compiler or Visual Studio 7.x (Windows) as well as the following libraries:
 4. Installation
 ===============
 
-PoDoFo can be installed and build using CMake. The autotools build was dropped
-as maintaining two build systems consumes a lot of resources which
-can be spend better on improving PoDoFo itself.
+PoDoFo can be installed and build using CMake. The autotools build, Visual
+Studio project and XCode project were dropped as maintaining three unrelated
+and incompatible build systems that are exclusive to three different platforms
+consumes a lot of resources which can be spend better on improving PoDoFo
+itself.
+
+Unix users should generate Unix Makefiles with CMake, though it's also possible to produce a KDevelop project.
 
 On Windows, it is recommended that you use CMake to generate Visual Studio
 project files appropriate for your VS version and your libraries. You can also
 generate NMake builds or MinGW Makefiles (see "Installation with CMake").
-Alternately, Windows users can use the provided Visual Studio Solution/Project
-files after placing the other libraries in a directory inside of the podofo
-directory.
 
-An XCode project is provided for Mac OS X users, or you can generate one to fit
-your local configuration and libraries using CMake.
+Mac OS X users will need to use CMake to generate a conventional UNIX build
+with Makefiles, or may generate an XCode project with CMake. See the Mac OS X
+section below.
 
 4.1 Installation with CMake
 ===========================
