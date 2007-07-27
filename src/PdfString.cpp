@@ -23,7 +23,14 @@
 #include "PdfFilter.h"
 #include "PdfOutputDevice.h"
 
+// alloca() is defined only in <cstdlib> on Mac OS X,
+// only in <malloc.h> on win32, and in both on Linux.
+#if defined(_WIN32)
+#include <malloc.h>
+#else
 #include <cstdlib>
+#endif
+
 namespace PoDoFo {
 
 extern bool podofo_is_little_endian();

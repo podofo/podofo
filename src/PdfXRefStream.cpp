@@ -31,7 +31,14 @@
 #else 
 #include <arpa/inet.h>
 #endif // _WIN32
+
+// alloca() is defined only in <cstdlib> on Mac OS X,
+// only in <malloc.h> on win32, and in both on Linux.
+#if defined(_WIN32)
+#include <malloc.h>
+#else
 #include <cstdlib>
+#endif
 
 namespace PoDoFo {
 
