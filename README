@@ -6,8 +6,10 @@ PoDoFo
 2. Where can I can get it?
 3. Requirements
 4. Installation
-5. Contact
-6. Licensing
+5. Using PoDoFo in Your Application
+5.1. UNSTABLE API (IMPORTANT)
+6. Contact
+7. Licensing
 
 1. What is PoDoFo?
 ==================
@@ -76,6 +78,8 @@ the following libraries:
 
 See section 4.1 ("Installation with CMake") for a list of tested platforms and
 compilers. In general, any reasonably well behaved C++ compiler should work.
+
+See also "5. Using PoDoFo".
 
 4. Installation
 ===============
@@ -365,13 +369,62 @@ but has had success running the Windows 2003 SDK environment file first,
 followed by the Visual Studio vcvars.bat file. If something goes wrong clean
 your build directory before trying again.
 
-5. Contact
+5. Using PoDoFo in Your Application
+===================================
+
+A simple example that uses PoDoFo can be found in examples/helloworld . You
+will also find the tests and tools shipped with PoDoFo informative when
+learning to use the library. Reading the documentation on PdfMemDocument,
+PdfStreamedDocument, PdfObject and PdfVariant may also be useful.
+
+5.1 UNSTABLE API (IMPORTANT)
+----------------------------
+
+It is very important to understand that PoDoFo's 0.x's API is not stable from
+release to release. As such, rather than relying on a particular version of
+PoDoFo being shipped by the OS/distro that you are targeting, consider building
+and linking to your own private copy of PoDoFo. (Win32 developers will do this
+anyway). For example, between PoDoFo 0.5.0 and early PoDoFo 0.6.0svn, PdfDocument
+changed from being a concrete class to an abstract parent of PdfMemDocument and
+PdfStreamedDocument, thus breaking code that instantiates PdfDocument .
+
+A good way to handle maintaining your own private copy if you use Subversion
+for your project is to use the svn:externals mechanism to automatically
+reference a specific revision of PoDoFo from podofo svn, or a particular tag .
+This permits you to control when you update to a new version and lets you make
+sure your code is updated for any API changes, without forcing users to go and
+find a specific version of PoDoFo. Alternately, you can just check the tree
+into your own revision control system and do periodic code drops. Have a look
+at PoDoFoBrowser for an example of the svn:externals approach.
+
+If you statically link to podofo, that'll prevent any unexpected problems with
+linker paths. Another option on most platforms is to use rpath linking to
+ensure that a specific copy of the podofo library is preferred by the linker.
+CMake takes care of this automatically if you're using it for your project.
+
+When PoDoFo reaches 1.x versions it is expected that API changes will be
+less frequent. At this point, though, they're an unavoidable part of
+improving and completing the library.
+
+5.2 Compiling and Linking Against PoDoFo
+----------------------------------------
+
+PoDoFo's headers are designed to avoid exposing its library dependencies, so
+you do not need dependency headers on the include path. However, you MUST link
+your application to podofo's required libraries on most platforms, eg on UNIX:
+
+    -lpodofo -lfreetype -lfontconfig -ljpeg -lz
+
+is generally appropriate. Win32 users must also ensure that they link to
+gdi32 and ws_win32.
+
+6. Contact
 ==========
 
 If you have questions on PoDoFo or bug reports, feature requests you can email
 our mailinglist <podofo-users@lists.sf.net>
 
-6. Licensing
+7. Licensing
 ============
 
 The library is licensed under the LGPL (i.e. you may even use the shared
