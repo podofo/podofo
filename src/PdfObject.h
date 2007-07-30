@@ -145,13 +145,23 @@ class PODOFO_API PdfObject : public PdfVariant {
     /** Get the keys value out of the dictionary. If the key is a reference, 
      *  the reference is resolved and the object pointed to by the reference is returned.
      *
-     *
      *  \param key look for the key named key in the dictionary
      * 
      *  \returns the found value or NULL if the value is not in the 
      *           dictionary or if this object is no dictionary
      */
     PdfObject* GetIndirectKey( const PdfName & key ) const;
+    
+    /**
+     * MustGetIndirectKey() wraps GetIndirectKey to throw on null return.
+     * This makes it MUCH more readable to look up deep chains of linked keys
+     * with the cost that it's not easy to tell at which point a missing key/object
+     * was encountered.
+     *
+     * \returns the found value, which is never null
+     * \throws PdfError(ePdfError_NoObject) .
+     */
+    inline PdfObject* MustGetIndirectKey( const PdfName & key ) const;
 
     /** Write the complete object to a file.
      *  \param pDevice write the object to this device
@@ -372,6 +382,17 @@ inline bool PdfObject::HasStream() const
     DelayedStreamLoad();
 
     return ( m_pStream != NULL );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfObject* PdfObject::MustGetIndirectKey( const PdfName & key ) const
+{
+    PdfObject* obj = GetIndirectKey(key);
+    if (!obj)
+        PODOFO_RAISE_ERROR( ePdfError_NoObject );
+    return obj;
 }
 
 // -----------------------------------------------------
