@@ -183,11 +183,15 @@ simple editor settings.
     in a smaller memory footprint, faster load times, and hardware protection
     against accidental writes to the data.
 
-    char myStaticData[] = "This is the right way".
-    char * myStaticData = "Avoid this way".
+    const char myStaticData[] = "This is the right way".
+    const char * myStaticData = "Avoid this way".
 
     Two dimensional arrays may be specified in a similar way - see
-    s_szPdfVersions in PdfDefines.{cpp,h} .
+    s_szPdfVersions in PdfDefines.{cpp,h} . It's usually better to waste a few
+    bytes by padding the array to the length of the longest member and get it
+    into the readonly data section of the executable than it is to use an array
+    of pointers to char and save a few bytes. Which is best is, however, dependent
+    on what "a few bytes" is in a given situation.
 
 3.4 Use of temporary objects
 

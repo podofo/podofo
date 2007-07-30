@@ -28,8 +28,15 @@ IF(CMAKE_MAJOR_VERSION EQUAL "2" AND CMAKE_MINOR_VERSION LESS "5")
          MESSAGE("  so disabling static library generation (CMake version < 2.5)")
          SET(PODOFO_BUILD_STATIC FALSE)
     ENDIF(PODOFO_BUILD_SHARED AND PODOFO_BUILD_STATIC)
-    
 ENDIF(CMAKE_MAJOR_VERSION EQUAL "2" AND CMAKE_MINOR_VERSION LESS "5")
+
+# Linux packagers want an uninstall target.
+CONFIGURE_FILE(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    IMMEDIATE @ONLY)
+ADD_CUSTOM_TARGET(uninstall "${CMAKE_COMMAND}"
+    -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
 
 IF(WIN32)
     # On win32 we support EITHER shared OR static builds.

@@ -13,34 +13,50 @@ PoDoFo
 ==================
 
 PoDoFo is a library to work with the PDF file format and includes also a few
-tools. The name comes from the first letter of PDF (Portable Document
-Format). 
+tools. The name comes from the first two letters of PDF (Portable Document
+Format).
 
-The PoDoFo library is a free portable C++ library which includes
-classes to parse a PDF file and modify its contents into memory. The changes
-can be written back to disk easily. The parser could also be used to write a
-PDF viewer. Besides parsing PoDoFo includes also very simple classes to create
-your own PDF files. All classes are documented so it is easy to start writing
-your own application using PoDoFo.
+The PoDoFo library is a free portable C++ library which includes classes to
+parse a PDF file and modify its contents into memory. The changes can be
+written back to disk easily. PoDoFo is designed to avoid loading large PDF
+objects into memory until they are required and can write large streams
+immediately to disk, so it is possible to manipulate quite large files with it.
+PoDoFo uses and relies on exceptions, so it must be built with them enabled.
+
+Besides PDF parsing and writing PoDoFo includes also very simple classes to
+create your own PDF files. All classes are documented so it is easy to start
+writing your own application using PoDoFo.
+
+PoDoFo is primarily useful for applications that wish to do lower level
+manipulation of PDF, such as extracting content or merging files. It's also
+useful if your application has specific requirements for it's PDF output that
+more general output-oriented libraries like Cairo cannot satisfy.
+Canvas/drawing support is currently very limited in PoDoFo, so for pure output
+tasks a library like Cairo will be more suitable. PoDoFo cannot render PDF,
+so you should look at a library like Poppler for that.
+See:
+	http://cairographics.org/
+	http://poppler.freedesktop.org/
 
 The PoDoFo tools are simple tools build around the PoDoFo library. These tools
 are first of all examples on how to use the PoDoFo library in your own
-projects. But secondly they offer also features for working with PDF
-files. More tools will come with future release and the existing tools will
-gain more features. The following tools are currently available: 
-* podofoimgextract (which extracts all jpeg images from a given PDF file) 
-* podofouncompress (which removes all compression filters from a PDF file - this is useful for debugging
-existing PDF files).
+projects. But secondly they offer also features for working with PDF files.
+More tools will come with future release and the existing tools will gain more
+features. The following tools are currently available:
+* podofoimgextract (which extracts all jpeg images from a given PDF file)
+* podofouncompress (which removes all compression filters from a PDF file -
+                    this is useful for debugging existing PDF files).
 * podofopdfinfo (provides some basic info about a PDF - metadata, page details, etc.)
 * podofotxt2pdf (converts a text file to a PDF)
 
 Additionally there is the external tool PoDoFoBrowser which is not included in
-this package, but can be downloaded from the PoDoFo webpage. PoDoFoBrowser is
-a Qt application for browsing the objects in a PDF file and modifying their
-keys easily. It is very useful if you want to look on the internal structure
-of PDF files.
+this package, but can be downloaded from the PoDoFo webpage. PoDoFoBrowser is a
+Qt application for browsing and modifying the objects in a PDF file, examining
+the structure of PDF files, and manipulating PDF streams. It is very useful if
+you want to look on the internal structure of PDF files.
 
-As of now PoDoFo is available for Unix, Mac OS X and Windows platforms. 
+As of version 0.5.99 (ie pre-0.6.0 svn trunk) PoDoFo is available for Unix, Mac
+OS X and Windows platforms.
 
 2. Where can I can get it?
 ==========================
@@ -50,24 +66,34 @@ PoDoFo is available on the internet: podofo.sf.net
 3. Requirements
 ===============
 
-To build PoDoFo lib you need besides a working GNU toolchain (Unix) and a c++
-compiler or Visual Studio 7.x (Windows) as well as the following libraries:
+To build PoDoFo lib you need a working toolchain and a c++ compiler as well as
+the following libraries:
 
-- fontconfig (Unix only)
-- freetype2
 - zlib
-- libjpeg
+- freetype2
+- fontconfig (Unix & Mac OS X only)
+- libjpeg (optional)
+
+See section 4.1 ("Installation with CMake") for a list of tested platforms and
+compilers. In general, any reasonably well behaved C++ compiler should work.
 
 4. Installation
 ===============
 
-PoDoFo can be installed and build using CMake. The autotools build, Visual
-Studio project and XCode project were dropped as maintaining three unrelated
-and incompatible build systems that are exclusive to three different platforms
+Rather than using binary packages, you should usually build PoDoFo yourself.
+This ensures that it will be built with the same compiler and settings as your
+program. Because most platforms have no consistent C++ ABI or runtime
+libraries, this is important to ensure that you get a compatible STL, correct
+memory management between podofo and your app, etc.
+
+PoDoFo is built and installed using CMake. The autotools build, Visual Studio
+project and XCode project were dropped as maintaining three unrelated and
+incompatible build systems that are exclusive to three different platforms
 consumes a lot of resources which can be spend better on improving PoDoFo
 itself.
 
-Unix users should generate Unix Makefiles with CMake, though it's also possible to produce a KDevelop project.
+Unix users should generate Unix Makefiles with CMake, though it's also possible
+to produce a KDevelop project.
 
 On Windows, it is recommended that you use CMake to generate Visual Studio
 project files appropriate for your VS version and your libraries. You can also
@@ -76,6 +102,20 @@ generate NMake builds or MinGW Makefiles (see "Installation with CMake").
 Mac OS X users will need to use CMake to generate a conventional UNIX build
 with Makefiles, or may generate an XCode project with CMake. See the Mac OS X
 section below.
+
+4.1 STLPort support
+-------------------
+
+Don't know what STLPort is? Ignore it and skip this section. Packagers should
+not enable STLPort.
+
+If your project uses STLPort rather than your platform/toolset's native STL,
+you must configure PoDoFo to use STLPort as well. Use the -DUSE_STLPORT=1
+argument to configure. Do not enable STLPort for podofo unless you use it in
+your project; you will get an incompatible C++ STL leading to link errors,
+runtime crashes, or other problems. It is unnecessary and unwise to build
+PoDoFo against STLPort on any current major platform unless you have a specific
+reason to do so.
 
 4.1 Installation with CMake
 ===========================
@@ -330,7 +370,6 @@ your build directory before trying again.
 
 If you have questions on PoDoFo or bug reports, feature requests you can email
 our mailinglist <podofo-users@lists.sf.net>
-	
 
 6. Licensing
 ============

@@ -61,74 +61,74 @@ SET(PODOFO_SOURCES
 )
 
 SET(PODOFO_HEADERS
-	Pdf3rdPtyForwardDecl.h
-	PdfAction.h
-	PdfAcroForm.h
-	PdfAnnotation.h
-	PdfArray.h
-	PdfCanvas.h
-	PdfContents.h
-	PdfData.h
-	PdfDataType.h
-	PdfDate.h
-	PdfDefines.h
-	PdfDestination.h
-	PdfDictionary.h
-	PdfDocument.h
-	PdfElement.h
-	PdfEncrypt.h
-	PdfError.h
-	PdfExtGState.h
-	PdfField.h
-	PdfFileSpec.h
-	PdfFileStream.h
-	PdfFilter.h
-	PdfFiltersPrivate.h
-	PdfFont.h
-	PdfFontCache.h
-	PdfFontMetrics.h
-	PdfHintStream.h
-	PdfImage.h
-	PdfImmediateWriter.h
-	PdfInfo.h
-	PdfInputDevice.h
-	PdfInputStream.h
-	PdfLocale.h
-	PdfMemDocument.h
-	PdfMemStream.h
-	PdfName.h
-	PdfNamesTree.h
-	PdfObject.h
-	PdfOutlines.h
-	PdfOutputDevice.h
-	PdfOutputStream.h
-	PdfPage.h
-	PdfPagesTree.h
-	PdfPainter.h
-	PdfPainterMM.h
-	PdfParser.h
-	PdfParserObject.h
-	PdfRect.h
-	PdfRefCountedBuffer.h
-	PdfRefCountedInputDevice.h
-	PdfReference.h
-	PdfStream.h
-	PdfStreamedDocument.h
-	PdfString.h
-	PdfTokenizer.h
-	PdfVariant.h
-	PdfVecObjects.h
-	PdfWriter.h
-	PdfXObject.h
-	PdfXRef.h
-	PdfXRefStream.h
-	podofo.h
-	podofoapi.h
+    Pdf3rdPtyForwardDecl.h
+    PdfAction.h
+    PdfAcroForm.h
+    PdfAnnotation.h
+    PdfArray.h
+    PdfCanvas.h
+    PdfContents.h
+    PdfData.h
+    PdfDataType.h
+    PdfDate.h
+    PdfDefines.h
+    PdfDestination.h
+    PdfDictionary.h
+    PdfDocument.h
+    PdfElement.h
+    PdfEncrypt.h
+    PdfError.h
+    PdfExtGState.h
+    PdfField.h
+    PdfFileSpec.h
+    PdfFileStream.h
+    PdfFilter.h
+    PdfFiltersPrivate.h
+    PdfFont.h
+    PdfFontCache.h
+    PdfFontMetrics.h
+    PdfHintStream.h
+    PdfImage.h
+    PdfImmediateWriter.h
+    PdfInfo.h
+    PdfInputDevice.h
+    PdfInputStream.h
+    PdfLocale.h
+    PdfMemDocument.h
+    PdfMemStream.h
+    PdfName.h
+    PdfNamesTree.h
+    PdfObject.h
+    PdfOutlines.h
+    PdfOutputDevice.h
+    PdfOutputStream.h
+    PdfPage.h
+    PdfPagesTree.h
+    PdfPainter.h
+    PdfPainterMM.h
+    PdfParser.h
+    PdfParserObject.h
+    PdfRect.h
+    PdfRefCountedBuffer.h
+    PdfRefCountedInputDevice.h
+    PdfReference.h
+    PdfStream.h
+    PdfStreamedDocument.h
+    PdfString.h
+    PdfTokenizer.h
+    PdfVariant.h
+    PdfVecObjects.h
+    PdfWriter.h
+    PdfXObject.h
+    PdfXRef.h
+    PdfXRefStream.h
+    podofo.h
+    podofoapi.h
 )
 
 INSTALL(FILES ${PODOFO_HEADERS}
-	DESTINATION "include/podofo"
-	)
+    DESTINATION "include/podofo"
+    )
 
 IF(NOT PODOFO_BUILD_SHARED AND NOT PODOFO_BUILD_STATIC)
     MESSAGE(FATAL_ERROR "At least one of PODOFO_BUILD_SHARED and PODOF_BUILD_STATIC must be set")
@@ -142,8 +142,8 @@ IF(PODOFO_BUILD_STATIC)
     ADD_LIBRARY(podofo_static STATIC ${PODOFO_SOURCES})
     TARGET_LINK_LIBRARIES(podofo_static ${PODOFO_LIB_DEPENDS})
     SET_TARGET_PROPERTIES(podofo_static PROPERTIES
-        VERSION "0.5.0"
-        SOVERSION "0.5.0"
+        VERSION "0.5.99"
+        SOVERSION "0.5.99"
         CLEAN_DIRECT_OUTPUT 1
         OUTPUT_NAME "podofo"
         )
@@ -151,10 +151,10 @@ IF(PODOFO_BUILD_STATIC)
         CACHE INTERNAL "Which PoDoFo library variant to depend on")
     SET(USING_SHARED_PODOFO FALSE)
     INSTALL(TARGETS podofo_static
-	    RUNTIME DESTINATION "bin"
-	    LIBRARY DESTINATION "lib"
-	    ARCHIVE DESTINATION "lib"
-	    )
+        RUNTIME DESTINATION "bin"
+        LIBRARY DESTINATION "lib"
+        ARCHIVE DESTINATION "lib"
+        )
 ENDIF(PODOFO_BUILD_STATIC)
 
 IF(PODOFO_BUILD_SHARED)
@@ -165,8 +165,8 @@ IF(PODOFO_BUILD_SHARED)
     # Visual Studio, since it produces invalid warnings about STL
     # use.
     SET_TARGET_PROPERTIES(podofo_shared PROPERTIES
-        VERSION "0.5.0"
-        SOVERSION "0.5.0"
+        VERSION "0.5.99"
+        SOVERSION "0.5.99"
         CLEAN_DIRECT_OUTPUT 1
         OUTPUT_NAME "podofo"
         )
@@ -176,10 +176,10 @@ IF(PODOFO_BUILD_SHARED)
         CACHE INTERNAL "Which PoDoFo library variant to depend on")
     SET(USING_SHARED_PODOFO TRUE)
     INSTALL(TARGETS podofo_shared
-	    RUNTIME DESTINATION "bin"
-	    LIBRARY DESTINATION "lib"
-	    ARCHIVE DESTINATION "lib"
-	    )
+        RUNTIME DESTINATION "bin"
+        LIBRARY DESTINATION "lib"
+        ARCHIVE DESTINATION "lib"
+        )
 ENDIF(PODOFO_BUILD_SHARED)
 
 MESSAGE("PDEBUG: USING_SHARED_PODOFO: ${USING_SHARED_PODOFO}")
