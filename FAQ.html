@@ -100,7 +100,10 @@
 		a snapshot of PoDoFo or a particular release. An in-tree copy of
 		the library is not an unreasonable option, though care must be
 		taken to ensure that your copy doesn't end up as an increasingly
-		unmaintainable fork.</p>
+		unmaintainable fork. The <a href="http://svnbook.red-bean.com/en/1.0/ch07s03.html">svn:externals</a> mechanism
+		is probably ideal for projects that use svn, since it lets you specify
+		a particular tag or revision that's versioned along with your project. See
+		PoDoFoBrowser for an example of this.</p>
 
 		<p>The PoDoFo developers are interested in offering a stable, maintained
 		release at some point, but the library is not yet at a point where that is
