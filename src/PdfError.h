@@ -108,7 +108,7 @@ typedef enum ELogSeverity {
  *  Set the value of the variable eCode (which has to exist in the current function) to x
  *  and return the eCode.
  */
-#define PODOFO_RAISE_ERROR( x ) throw PdfError( x, __FILE__, __LINE__ );
+#define PODOFO_RAISE_ERROR( x ) throw ::PoDoFo::PdfError( x, __FILE__, __LINE__ );
 
 /** \def PODOFO_RAISE_ERROR_INFO( x, y )
  *  
@@ -116,7 +116,7 @@ typedef enum ELogSeverity {
  *  and return the eCode. Additionally additional information on the error y is set. y has 
  *  to be an c-string.
  */
-#define PODOFO_RAISE_ERROR_INFO( x, y ) throw PdfError( x, __FILE__, __LINE__, y );
+#define PODOFO_RAISE_ERROR_INFO( x, y ) throw ::PoDoFo::PdfError( x, __FILE__, __LINE__, y );
 
 /** \def PODOFO_RAISE_LOGIC_IF( x, y )
  *
@@ -130,7 +130,7 @@ typedef enum ELogSeverity {
  */
 #ifndef NDEBUG
     // Woo for double-negatives. We define PODOFO_RAISE_LOGIC_IF unless we've been told not to by NDEBUG.
-    #define PODOFO_RAISE_LOGIC_IF( x, y ) { if (x) throw PdfError( ePdfError_InternalLogic, __FILE__, __LINE__, y ); };
+    #define PODOFO_RAISE_LOGIC_IF( x, y ) { if (x) throw ::PoDoFo::PdfError( ePdfError_InternalLogic, __FILE__, __LINE__, y ); };
 #else
     #define PODOFO_RAISE_LOGIC_IF( x, y ) {};
 #endif
