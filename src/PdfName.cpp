@@ -67,7 +67,7 @@ static std::string EscapeName(T it, size_t length)
     {
         // Null chars are illegal in names, even escaped
         if (*it2 == '\0')
-            throw std::exception();
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidName, "Null byte in PDF name is illegal");
         else 
             // Leave room for either just the char, or a #xx escape of it.
             outchars += (::PoDoFo::PdfTokenizer::IsRegular(*it2) && 

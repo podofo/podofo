@@ -379,6 +379,24 @@ will also find the tests and tools shipped with PoDoFo informative when
 learning to use the library. Reading the documentation on PdfMemDocument,
 PdfStreamedDocument, PdfObject and PdfVariant may also be useful.
 
+When working with PoDoFo it is important to remember that the library makes use
+of exceptions.  Your code must be built with exception support and must be
+exception safe in areas that call PoDoFo.  gcc users may not build with
+-fno-exceptions.  If you have non-exception-safe code or code (such as pure C
+code) that cannot propagate exceptions your podofo-using code must catch all
+exceptions before they propagate to such unsafe sections.  PoDoFo will throw a
+PdfError& for PoDoFo-specific exceptions.  It may also propagate STL/runtime
+generated exceptions like std::bad_alloc, though it'll never throw them
+directly. PoDoFo cannot be built without exceptions.
+
+If you're writing, say, a plugin for a C application, you can still use PoDoFo.
+You must write your plugin in C++ but export all interfaces visible to the
+application using:
+	extern "C"
+and you must catch ALL exceptions before they could propagate through to the
+calling C code.
+
+
 5.1 UNSTABLE API (IMPORTANT)
 ----------------------------
 
