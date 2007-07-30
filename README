@@ -175,7 +175,8 @@ To see detailed compiler output, use:
 
 make VERBOSE=1
 
-instead of just "make".
+i If you're working on a 64 bit linux that has a /usr/lib64 directory, add
+-DWANT_LIB64:BOOL=TRUE to the CMake command line.
 
 If you need to specify additional paths to search for libraries, set the
 CMAKE_INCLUDE_PATH and CMAKE_LIBRARY_PATH environment variables or set them on
@@ -191,12 +192,13 @@ PODOFO_BUILD_SHARED and/or PODOFO_BUILD_STATIC flags:
 cmake -G "Unix Makefiles" ../podofo-src \
 	-DCMAKE_INCLUDE_PATH=/usr/sfw/include \
 	-DCMAKE_LIBRARY_PATH=/usr/sfw/lib \
-	-DPODOFO_BUILD_SHARED=TRUE \
-	-DPODOFO_BUILD_STATIC=FALSE
+	-DPODOFO_BUILD_SHARED:BOOL=TRUE \
+	-DPODOFO_BUILD_STATIC:BOOL=FALSE
 
-By default, all supported library types will be built where possible (with older
-CMake versions you might need to build either the static or shared library,
-not both).
+By default, with CMake 2.5.x all supported library types will be built where
+possible. Only the shared library will be built by default using 2.4.x because
+of a CMake limitation; you can build a static library instead with
+-DPODOFO_BUILD_STATIC:BOOL=TRUE, or upgrade to CMake 2.5.x .
 
 Note that the instructions above run an out-of-tree build. CMake does support
 in-tree builds, but the use of out-of-tree builds is very strongly recommended.

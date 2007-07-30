@@ -18,6 +18,21 @@ IF(NOT DEFINED PODOFO_BUILD_STATIC)
     SET(PODOFO_BUILD_STATIC TRUE)
 ENDIF(NOT DEFINED PODOFO_BUILD_STATIC)
 
+# Some 64 bit linux distros use /usr/lib64 for 64 bit libraries.
+# on these platforms we must
+IF(NOT DEFINED WANT_LIB64)
+	# TODO: detect 64-bit build and existance of /usr/lib64 and set to TRUE.
+	MESSAGE("WANT_LIB64 unset; assuming normal library directory names")
+	SET(WANT_LIB64 FALSE)
+ENDIF(NOT DEFINED WANT_LIB64)
+
+IF(WANT_LIB64)
+	SET(LIBDIRNAME "lib64")
+ELSE(WANT_LIB64)
+	SET(LIBDIRNAME "lib")
+ENDIF(WANT_LIB64)
+MESSAGE("Will install libraries to ${CMAKE_INSTALL_PREFIX}/${LIBDIRNAME}")
+
 # CMake 2.5 added the CLEAN_DIRECT_OUTPUT property that we require
 # to generate both a shared and static library in the same directory.
 # On older versons we can can build EITHER a shared OR static library
