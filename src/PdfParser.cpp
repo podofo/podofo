@@ -242,11 +242,11 @@ bool PdfParser::IsPdfFile()
 
 void PdfParser::HasLinearizationDict()
 {
-    int       i          = 0;
-    char*     pszObj     = NULL;
-    long      lXRef      = -1;
-    const int XREF_LEN    = 4; // strlen( "xref" );
-    char*     pszStart   = NULL;
+    if (m_pLinearization)
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic,
+                "HasLinarizationDict() called twice on one object");
+    }
 
     m_device.Device()->Seek( 0 );
     // look for a linearization dictionary in the first 1024 bytes
@@ -257,7 +257,7 @@ void PdfParser::HasLinearizationDict()
         return; // Ignore Error Code: ERROR_PDF_NO_TRAILER;
     }
 
-    pszObj = strstr( m_buffer.GetBuffer(), "obj" );
+    char * pszObj = strstr( m_buffer.GetBuffer(), "obj" );
     if( !pszObj )
         // strange that there is no obj in the first 1024 bytes,
         // but ignore it
@@ -271,8 +271,8 @@ void PdfParser::HasLinearizationDict()
 
     try {
         static_cast<PdfParserObject*>(m_pLinearization)->ParseFile();
-
-        if( !m_pLinearization->GetDictionary().HasKey( "Linearized" ) )
+        if (! (m_pLinearization->IsDictionary() &&
+               m_pLinearization->GetDictionary().HasKey( "Linearized" ) ) )
         {
             delete m_pLinearization;
             m_pLinearization = NULL;
@@ -282,10 +282,10 @@ void PdfParser::HasLinearizationDict()
         PdfError::LogMessage( eLogSeverity_Warning, e.what() );
         delete m_pLinearization;
         m_pLinearization = NULL;
-        throw e;
         return;
     }
     
+    long      lXRef      = -1;
     lXRef = m_pLinearization->GetDictionary().GetKeyAsLong( "T", lXRef );
     if( lXRef == -1 )
     {
@@ -305,6 +305,9 @@ void PdfParser::HasLinearizationDict()
 
     // search backwards in the buffer in case the buffer contains null bytes
     // because it is right after a stream (can't use strstr for this reason)
+    const int XREF_LEN    = 4; // strlen( "xref" );
+    int       i          = 0;
+    char*     pszStart   = NULL;
     for( i = PDF_XREF_BUF - XREF_LEN; i >= 0; i-- )
         if( strncmp( m_buffer.GetBuffer()+i, "xref", XREF_LEN ) == 0 )
         {
