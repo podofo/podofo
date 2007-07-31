@@ -72,15 +72,21 @@ class PODOFO_API PdfStreamedDocument : public PdfDocument {
      *  immediately.
      *
      *  \param pDevice an output device
+     *  \param eVersion the PDF version of the document to write.
+     *                  The PDF version can only be set in the constructor
+     *                  as it is the first item written to the document on disk.
      */
-    PdfStreamedDocument( PdfOutputDevice* pDevice );
+    PdfStreamedDocument( PdfOutputDevice* pDevice, EPdfVersion eVersion = ePdfVersion_1_5 );
 
     /** Create a new PdfStreamedDocument.
      *  All data is written to a file immediately.
      *
      *  \param pszFilename resulting PDF file
+     *  \param eVersion the PDF version of the document to write.
+     *                  The PDF version can only be set in the constructor
+     *                  as it is the first item written to the document on disk.
      */
-    PdfStreamedDocument( const char* pszFilename );
+    PdfStreamedDocument( const char* pszFilename, EPdfVersion eVersion = ePdfVersion_1_5 );
 
     ~PdfStreamedDocument();
 
@@ -105,8 +111,11 @@ class PODOFO_API PdfStreamedDocument : public PdfDocument {
  private:
     /** Initialize the PdfStreamedDocument with an output device
      *  \param pDevice write to this device
+     *  \param eVersion the PDF version of the document to write.
+     *                  The PDF version can only be set in the constructor
+     *                  as it is the first item written to the document on disk.
      */
-    void Init( PdfOutputDevice* pDevice );
+    void Init( PdfOutputDevice* pDevice, EPdfVersion eVersion = ePdfVersion_1_5 );
 
  private:
     PdfImmediateWriter* m_pWriter;
