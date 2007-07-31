@@ -44,7 +44,7 @@ namespace PoDoFo {
 #ifdef _WIN32
 static bool GetWin32HostFont( const std::string& inFontName, char** outFontBuffer, unsigned int& outFontBufferLen );
 #endif
-#ifdef __APPLE_CC__ && !defined(HAVE_FONTCONFIG)
+#if defined(__APPLE_CC__) && !defined(HAVE_FONTCONFIG)
 #include <Carbon/Carbon.h>
 #endif
 

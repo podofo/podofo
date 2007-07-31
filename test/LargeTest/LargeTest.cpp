@@ -75,8 +75,14 @@ void AddPage( PdfDocument* pDoc, const char* pszFontName, const char* pszImagePa
     painter.DrawText( dX, dY, pszFontName );
     dY -= pArial->GetFontMetrics()->GetLineSpacing();
 
-#ifdef PODOFO_HAVE_JPEG_LIB
-    pImage->LoadFromFile( pszImagePath );
+#if defined PODOFO_HAVE_JPEG_LIB || defined PODOFO_HAVE_TIFF_LIB
+    try {
+        pImage->LoadFromFile( pszImagePath );
+    }
+    catch( const PdfError & e ) 
+    {
+        e.PrintErrorMsg();
+    }
 
     dY -= (pImage->GetHeight() * 0.5);
     dX = ((rect.GetWidth() - (pImage->GetWidth()*0.5))/2.0);
@@ -85,7 +91,6 @@ void AddPage( PdfDocument* pDoc, const char* pszFontName, const char* pszImagePa
 #endif
 
     painter.FinishPage();
-
 }
 
 void CreateLargePdf( const char* pszFilename, const char* pszImagePath )

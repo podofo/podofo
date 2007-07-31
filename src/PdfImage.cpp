@@ -26,11 +26,22 @@
 #include <stdio.h>
 #include <sstream>
 
+#ifdef PODOFO_HAVE_TIFF_LIB
+extern "C" {
+#include "tiffio.h"
+#ifdef WIN32		// Collision between tiff and jpeg-headers
+#define XMD_H
+#undef FAR
+#endif
+}
+#endif // PODOFO_HAVE_TIFF_LIB
+
 #ifdef PODOFO_HAVE_JPEG_LIB
 extern "C" {
 #include "jpeglib.h"
 }
 #endif // PODOFO_HAVE_JPEG_LIB
+
 
 using namespace std;
 
@@ -105,8 +116,41 @@ void PdfImage::SetImageDataRaw( unsigned int nWidth, unsigned int nHeight,
     m_pObject->GetStream()->SetRawData( pStream, -1 );
 }
 
-#ifdef PODOFO_HAVE_JPEG_LIB
 void PdfImage::LoadFromFile( const char* pszFilename )
+{
+    if( pszFilename && strlen( pszFilename ) > 3 )
+    {
+        const char* pszExtension = pszFilename + strlen( pszFilename ) - 3;
+
+#ifdef PODOFO_HAVE_TIFF_LIB
+#ifdef _MSC_VER
+        if( _strnicmp( pszExtension, "tif", 3 ) == 0 )
+#else
+        if( strncasecmp( pszExtension, "tif", 3 ) == 0 )
+#endif
+        {
+            LoadFromTiff( pszFilename );
+            return;
+		}
+#endif
+
+#ifdef PODOFO_HAVE_JPEG_LIB
+#ifdef _MSC_VER
+        if( _strnicmp( pszExtension, "jpg", 3 ) == 0 )
+#else
+		if( strncasecmp( pszExtension, "jpg", 3 ) == 0 )
+#endif
+        {
+            LoadFromJpeg( pszFilename );
+			return;
+		}
+#endif
+	}
+	PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+}
+
+#ifdef PODOFO_HAVE_JPEG_LIB
+void PdfImage::LoadFromJpeg( const char* pszFilename )
 {
     FILE*                         hInfile;    
     struct jpeg_decompress_struct cinfo;
@@ -167,6 +211,124 @@ void PdfImage::LoadFromFile( const char* pszFilename )
     (void) jpeg_destroy_decompress(&cinfo);
 }
 #endif // PODOFO_HAVE_JPEG_LIB
+
+#ifdef PODOFO_HAVE_TIFF_LIB
+static void TIFFErrorWarningHandler(const char* module, const char* fmt, va_list ap)
+{
+}
+
+void PdfImage::LoadFromTiff( const char* pszFilename )
+{
+    TIFFSetErrorHandler(TIFFErrorWarningHandler);
+    TIFFSetWarningHandler(TIFFErrorWarningHandler);
+    
+    if( !pszFilename )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    TIFF* hInfile = TIFFOpen(pszFilename, "rb");
+
+    if( !hInfile )
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
+    }
+
+    int32 row, width, height;
+    uint16 samplesPerPixel, bitsPerSample;
+    uint16* sampleInfo;
+    uint16 extraSamples;
+    uint16 planarConfig, photoMetric, orientation;
+    int32 resolutionUnit;
+
+    TIFFGetField(hInfile,	   TIFFTAG_IMAGEWIDTH,		&width);
+    TIFFGetField(hInfile,	   TIFFTAG_IMAGELENGTH,		&height);
+    TIFFGetFieldDefaulted(hInfile, TIFFTAG_BITSPERSAMPLE,	&bitsPerSample);
+    TIFFGetFieldDefaulted(hInfile, TIFFTAG_SAMPLESPERPIXEL,     &samplesPerPixel);
+    TIFFGetFieldDefaulted(hInfile, TIFFTAG_PLANARCONFIG,	&planarConfig);
+    TIFFGetFieldDefaulted(hInfile, TIFFTAG_PHOTOMETRIC,		&photoMetric);
+    TIFFGetFieldDefaulted(hInfile, TIFFTAG_EXTRASAMPLES,	&extraSamples, &sampleInfo);
+    TIFFGetFieldDefaulted(hInfile, TIFFTAG_ORIENTATION,		&orientation);
+	
+    resolutionUnit = 0;
+    float resX;
+    float resY;
+    TIFFGetFieldDefaulted(hInfile, TIFFTAG_XRESOLUTION,		&resX);
+    TIFFGetFieldDefaulted(hInfile, TIFFTAG_YRESOLUTION,		&resY);
+    TIFFGetFieldDefaulted(hInfile, TIFFTAG_RESOLUTIONUNIT,	&resolutionUnit);
+
+    int colorChannels = samplesPerPixel - extraSamples;
+
+    int numColors = 0;
+    int bitsPixel = bitsPerSample * samplesPerPixel;
+
+    // TODO: implement special cases
+    if( TIFFIsTiled(hInfile) )
+    {
+        TIFFClose(hInfile);
+        PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+    }
+		
+    if( bitsPixel != 8 && bitsPixel != 24 && bitsPixel != 32)
+    {
+        TIFFClose(hInfile);
+        PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+    }
+
+    if ( planarConfig != PLANARCONFIG_CONTIG && colorChannels != 1 )
+    {
+        TIFFClose(hInfile);
+        PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+    }
+
+    if ( photoMetric == PHOTOMETRIC_PALETTE )
+    {
+        TIFFClose(hInfile);
+        PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+    }
+
+    int32 scanlineSize = TIFFScanlineSize(hInfile);
+    int32 bufferSize = scanlineSize * height;
+    char *buffer = new char[bufferSize];
+    PdfMemoryInputStream stream(buffer, bufferSize);
+
+    switch(bitsPixel)
+    {
+        case 8:
+            SetImageColorSpace(ePdfColorSpace_DeviceGray);
+            break;
+        case 24:
+            SetImageColorSpace(ePdfColorSpace_DeviceRGB);
+            break;
+        case 32:
+            SetImageColorSpace(ePdfColorSpace_DeviceCMYK);
+            break;
+        default:
+            SetImageColorSpace(ePdfColorSpace_Unknown);
+            break;
+    }
+
+    for(row = 0; row < height; row++)
+    {
+        if(TIFFReadScanline(hInfile,
+                            &buffer[row * scanlineSize],
+                            row) == (-1))
+        {
+            TIFFClose(hInfile);
+            PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+        }
+    }
+
+    SetImageData((unsigned int) width, 
+                 (unsigned int) height,
+                 (unsigned int) bitsPerSample, 
+                 &stream);
+
+    delete buffer;
+
+    TIFFClose(hInfile);
+}
+#endif // PODOFO_HAVE_TIFF_LIB
 
 const char* PdfImage::ColorspaceToName( EPdfColorSpace eColorSpace )
 {

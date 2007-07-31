@@ -164,6 +164,16 @@ ELSE(LIBJPEG_FOUND)
   MESSAGE("Libjpeg not found. JPEG support will be disabled")
 ENDIF(LIBJPEG_FOUND)
 
+FIND_PACKAGE(TIFF)
+
+IF(TIFF_FOUND)
+  MESSAGE("Found libtiff headers in ${LIBTIFF_H}, library at ${TIFF_LIBRARIES}")
+  ADD_DEFINITIONS(-DPODOFO_HAVE_TIFF_LIB)
+  INCLUDE_DIRECTORIES(${TIFF_INCLUDE_DIR})
+ELSE(TIFF_FOUND)
+  MESSAGE("Libtiff not found. TIFF support will be disabled")
+ENDIF(TIFF_FOUND)
+
 FIND_PACKAGE(LIBFREETYPE REQUIRED)
 MESSAGE("Found freetype library at ${LIBFREETYPE_LIB}")
 
@@ -214,6 +224,7 @@ SET(PODOFO_LIB_DEPENDS
     ${LIBZ_LIB}
     ${LIBFREETYPE_LIB}
     ${LIBJPEG_LIB}
+    ${TIFF_LIBRARIES}
     ${PLATFORM_SYSTEM_LIBRARIES}
     ${stlport_libraries_if_use_stlport}
     )

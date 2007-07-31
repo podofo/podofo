@@ -83,7 +83,9 @@ typedef enum EPdfError {
     ePdfError_Flate,                    /**< Error in zlib */
     ePdfError_FreeType,                 /**< Error in FreeType */
     ePdfError_SignatureError,           /**< Error in signature */
-  
+
+    ePdfError_UnsupportedImageFormat,   /**< This image format is not supported by PoDoFO. */
+
     ePdfError_Unknown = 0xffff          /**< Unknown error */
 };
 

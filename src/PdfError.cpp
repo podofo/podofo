@@ -261,6 +261,9 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_SignatureError:
             pszMsg = "ePdfError_SignatureError";
             break;
+        case ePdfError_UnsupportedImageFormat:    /**< This image format is not supported by PoDoFO. */
+            pszMsg = "ePdfError_UnsupportedImageFormat";
+            break;
         case ePdfError_Unknown:
             pszMsg = "ePdfError_Unknown"; 
             break;
@@ -352,6 +355,9 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
             break;
         case ePdfError_SignatureError:
             pszMsg = "The signature contains an error.";
+            break;
+        case ePdfError_UnsupportedImageFormat:
+            pszMsg = "This image format is not supported by PoDoFO.";
             break;
 
         case ePdfError_Unknown:

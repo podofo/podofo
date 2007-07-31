@@ -117,12 +117,22 @@ class PODOFO_API PdfImage : public PdfXObject {
     void SetImageData( unsigned int nWidth, unsigned int nHeight, 
                        unsigned int nBitsPerComponent, PdfInputStream* pStream, const TVecFilters & vecFilters );
 
+    /** Load the image data from a file
+     *  \param pszFilename
+     */
+    void LoadFromFile( const char* pszFilename );
 #ifdef PODOFO_HAVE_JPEG_LIB
     /** Load the image data from a JPEG file
      *  \param pszFilename
      */
-    void LoadFromFile( const char* pszFilename );
+    void LoadFromJpeg( const char* pszFilename );
 #endif // PODOFO_HAVE_JPEG_LIB
+#ifdef PODOFO_HAVE_TIFF_LIB
+    /** Load the image data from a TIFF file
+     *  \param pszFilename
+     */
+    void LoadFromTiff( const char* pszFilename );
+#endif // PODOFO_HAVE_TIFF_LIB
 
  private:
     /** Set the actual image data from an input stream.
