@@ -124,9 +124,11 @@ void PdfImage::LoadFromFile( const char* pszFilename )
 
 #ifdef PODOFO_HAVE_TIFF_LIB
 #ifdef _MSC_VER
-        if( _strnicmp( pszExtension, "tif", 3 ) == 0 )
+        if( _strnicmp( pszExtension, "tif", 3 ) == 0 || 
+            _strnicmp( pszExtension, "iff", 3 ) == 0 ) // "tiff"
 #else
-        if( strncasecmp( pszExtension, "tif", 3 ) == 0 )
+        if( strncasecmp( pszExtension, "tif", 3 ) == 0 ||
+            strncasecmp( pszExtension, "iff", 3 ) == 0 ) // "tiff"
 #endif
         {
             LoadFromTiff( pszFilename );
