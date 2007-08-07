@@ -118,6 +118,17 @@ class PODOFO_API PdfFont : public PdfElement {
      */
     void Init( bool bEmbed );
 
+    /** A custom helper function for Type1 fontembeeding.
+     *  Searched a string in a binary buffer and returns the offset it was found at.
+     *
+     *  \param pszNeedle the string to search
+     *  \param pszHaystack the buffer in which we search
+     *  \param lLen the length of the buffer
+     *
+     *  \returns the offset of the found string or -1 if the string was not found
+     */
+    long FindInBuffer( const char* pszNeedle, const char* pszHaystack, long lLen );
+
  private: 
 
     bool  m_bBold;
