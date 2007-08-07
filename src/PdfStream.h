@@ -63,8 +63,7 @@ class PODOFO_API PdfStream {
      */
     virtual void Write( PdfOutputDevice* pDevice ) = 0;
 
-    /** Set a binary buffer as stream data, optionally taking ownership of the
-     * buffer.
+    /** Set a binary buffer as stream data.
      *
      * Use PdfFilterFactory::CreateFilterList if you want to use the contents
      * of the stream dictionary's existing filter key.
@@ -73,15 +72,15 @@ class PODOFO_API PdfStream {
      *  \param lLen length of the buffer
      *  \param vecFilters a list of filters to use when appending data
      */
-    void Set( char* szBuffer, long lLen, const TVecFilters & vecFilters );
+    void Set( const char* szBuffer, long lLen, const TVecFilters & vecFilters );
 
-    /** Set a binary buffer as stream data, optionally taking ownership of the buffer.
+    /** Set a binary buffer as stream data.
      *  All data will be flate encoded.
      *
      *  \param szBuffer buffer containing the stream data
      *  \param lLen length of the buffer
      */
-    void Set( char* szBuffer, long lLen );
+    void Set( const char* szBuffer, long lLen );
 
     /** Set a binary buffer whose contents are read from a PdfInputStream
      *  All data will be flate encoded.

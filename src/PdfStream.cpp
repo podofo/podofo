@@ -97,14 +97,14 @@ const PdfStream & PdfStream::operator=( const PdfStream & rhs )
     return (*this);
 }
 
-void PdfStream::Set( char* szBuffer, long lLen, const TVecFilters & vecFilters )
+void PdfStream::Set( const char* szBuffer, long lLen, const TVecFilters & vecFilters )
 {
     this->BeginAppend( vecFilters );
     this->Append( szBuffer, lLen );
     this->EndAppend();
 }
 
-void PdfStream::Set( char* szBuffer, long lLen )
+void PdfStream::Set( const char* szBuffer, long lLen )
 {
     this->BeginAppend();
     this->Append( szBuffer, lLen );
