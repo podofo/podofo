@@ -302,10 +302,11 @@ void PdfPainter::DrawRect( double dX, double dY, double dWidth, double dHeight,
 { 
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
 
-    if ( static_cast<int>(dRoundX) || static_cast<int>(dRoundY) ) {
+    if ( static_cast<int>(dRoundX) || static_cast<int>(dRoundY) ) 
+    {
         double x = dX, y = dY, 
                w = dWidth, h = dHeight,
-               rx = dRoundX, ry = dRoundY;
+               rx= dRoundX, ry = dRoundY;
         double b = 0.4477f;
 
         MoveTo(x + rx, y);
@@ -318,13 +319,15 @@ void PdfPainter::DrawRect( double dX, double dY, double dWidth, double dHeight,
         LineTo(x, y + ry);
         CubicBezierTo(x, y + ry * b, x + rx * b, y, x + rx, y);
         m_pCanvas->Append( "S\n" );
-    } else {
+    } 
+    else 
+    {
         m_oss.str("");
         m_oss << dX << " "
-            << dY << " "
-            << dWidth << " "
-            << -dHeight        
-            << " re S" << std::endl;
+              << dY << " "
+              << dWidth << " "
+              << -dHeight        
+              << " re S" << std::endl;
         m_pCanvas->Append( m_oss.str() );
     }
 }
@@ -585,6 +588,13 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
         free( pszTab );
 }
 
+void PdfPainter::DrawImage( double dX, double dY, PdfImage* pObject, double dScaleX, double dScaleY )
+{
+    this->DrawXObject( dX, dY, reinterpret_cast<PdfXObject*>(pObject), 
+                       dScaleX * pObject->GetPageSize().GetWidth(), 
+                       dScaleY * pObject->GetPageSize().GetHeight() );
+}
+
 void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double dScaleX, double dScaleY )
 {
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
@@ -600,8 +610,8 @@ void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double 
 
     m_oss.str("");
     m_oss << "q" << std::endl
-          << pObject->GetPageSize().GetWidth() * dScaleX << " 0 0 "
-          << pObject->GetPageSize().GetHeight() * dScaleY << " "
+          << dScaleX << " 0 0 "
+          << dScaleY << " "
           << dX << " " 
           << dY << " cm" << std::endl
           << "/" << pObject->GetIdentifier().GetName() << " Do" << std::endl << "Q" << std::endl;

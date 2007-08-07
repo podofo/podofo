@@ -76,7 +76,6 @@ class PODOFO_API PdfImage : public PdfXObject {
 
     //EPdfColorSpace GetImageColorSpace() const;
 
-
     /** Get the width of the image when drawn in PDF units
      *  \returns the width in PDF units
      */

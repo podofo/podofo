@@ -363,7 +363,7 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
     pnt.GetFont()->SetFontSize( 8.0 );
     pnt.SetStrokingColor( 1.0, 1.0, 1.0 );
-    pnt.SetColor( 1.0, 0.0, 0.0 );
+    pnt.SetColor( 1.0, 1.0, 0.0 );
     pnt.FillRect( 0, xObj.GetPageSize().GetHeight(), xObj.GetPageSize().GetWidth(), xObj.GetPageSize().GetHeight()  );
     pnt.SetColor( 0.0, 0.0, 0.0 );
     pnt.DrawRect( 0, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT );
@@ -379,8 +379,7 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y - (200000 * CONVERSION_CONSTANT), &image, 0.3, 0.3 );
 #endif // PODOFO_HAVE_JPEG_LIB
 
-    pPainter->DrawXObject( 120000 * CONVERSION_CONSTANT, y - (15000 * CONVERSION_CONSTANT), &xObj, 0.01, 0.01 );
-
+    pPainter->DrawXObject( 120000 * CONVERSION_CONSTANT, y - (50000 * CONVERSION_CONSTANT), &xObj );
 
     PdfAnnotation* pAnnot1 = pPage->CreateAnnotation( ePdfAnnotation_Widget, rect1 );
     PdfAnnotation* pAnnot2 = pPage->CreateAnnotation( ePdfAnnotation_Link, rect2 );

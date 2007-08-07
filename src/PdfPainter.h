@@ -273,14 +273,17 @@ class PODOFO_API PdfPainter {
      *  \param dScaleX option scaling factor in x direction
      *  \param dScaleY option scaling factor in y direction
      */
-    inline void DrawImage( double dX, double dY, PdfImage* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
+    void DrawImage( double dX, double dY, PdfImage* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
 
-    /** Draw an XObject on the current page.
+    /** Draw an XObject on the current page. For PdfImage use DrawImage.
+     *
      *  \param dX the x coordinate (bottom left position of the XObject)
      *  \param dY the y coordinate (bottom position of the XObject)
      *  \param pObject an PdfXObject
      *  \param dScaleX option scaling factor in x direction
      *  \param dScaleY option scaling factor in y direction
+     *
+     *  \see DrawImage
      */
     void DrawXObject( double dX, double dY, PdfXObject* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
 
@@ -539,16 +542,6 @@ class PODOFO_API PdfPainter {
         lcx, lcy, 							// last "current" point
         lrx, lry;							// "reflect points"
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfPainter::DrawImage( double dX, double dY, PdfImage* pObject, double dScaleX, double dScaleY )
-{
-    // we know pObject is a PdfXObject, but the compiler doesn't
-    // so we must use a reinterpret_cast here.
-    this->DrawXObject( dX, dY, reinterpret_cast<PdfXObject*>(pObject), dScaleX, dScaleY );
-}
 
 // -----------------------------------------------------
 // 

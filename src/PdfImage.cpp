@@ -100,6 +100,10 @@ void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight,
     m_pObject->GetDictionary().AddKey( "Height", PdfVariant( static_cast<long>(nHeight) ) );
     m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<long>(nBitsPerComponent) ) );
 
+    PdfVariant var;
+    m_rRect.ToVariant( var );
+    m_pObject->GetDictionary().AddKey( "BBox", var );
+
     m_pObject->GetStream()->Set( pStream, vecFilters );
 }
 
@@ -112,6 +116,10 @@ void PdfImage::SetImageDataRaw( unsigned int nWidth, unsigned int nHeight,
     m_pObject->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<long>(nWidth) ) );
     m_pObject->GetDictionary().AddKey( "Height", PdfVariant( static_cast<long>(nHeight) ) );
     m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<long>(nBitsPerComponent) ) );
+
+    PdfVariant var;
+    m_rRect.ToVariant( var );
+    m_pObject->GetDictionary().AddKey( "BBox", var );
 
     m_pObject->GetStream()->SetRawData( pStream, -1 );
 }
@@ -215,8 +223,9 @@ void PdfImage::LoadFromJpeg( const char* pszFilename )
 #endif // PODOFO_HAVE_JPEG_LIB
 
 #ifdef PODOFO_HAVE_TIFF_LIB
-static void TIFFErrorWarningHandler(const char* module, const char* fmt, va_list ap)
+static void TIFFErrorWarningHandler(const char*, const char*, va_list)
 {
+    
 }
 
 void PdfImage::LoadFromTiff( const char* pszFilename )
@@ -261,7 +270,6 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
 
     int colorChannels = samplesPerPixel - extraSamples;
 
-    int numColors = 0;
     int bitsPixel = bitsPerSample * samplesPerPixel;
 
     // TODO: implement special cases
@@ -321,9 +329,9 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
         }
     }
 
-    SetImageData((unsigned int) width, 
-                 (unsigned int) height,
-                 (unsigned int) bitsPerSample, 
+    SetImageData(static_cast<unsigned int>(width), 
+                 static_cast<unsigned int>(height),
+                 static_cast<unsigned int>(bitsPerSample), 
                  &stream);
 
     delete buffer;
