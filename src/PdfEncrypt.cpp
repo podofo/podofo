@@ -410,7 +410,7 @@ PdfEncrypt::GenerateEncryptionKey(const std::string& userPassword,
 }
 
 void
-PdfEncrypt::Encrypt(int n, unsigned char* str, int len)
+PdfEncrypt::Encrypt(unsigned char* str, int len)
 {
   unsigned char objkey[MD5_HASHBYTES];
   unsigned char nkey[10];
@@ -419,11 +419,19 @@ PdfEncrypt::Encrypt(int n, unsigned char* str, int len)
   {
     nkey[j] = m_encryptionKey[j];
   }
+  /*
   nkey[5] = 0xff &  n;
   nkey[6] = 0xff & (n >> 8);
   nkey[7] = 0xff & (n >> 16);
   nkey[8] = 0;
   nkey[9] = 0;
+  */
+  nkey[5] = 0xff &  m_curReference.ObjectNumber();
+  nkey[6] = 0xff & (m_curReference.ObjectNumber() >> 8);
+  nkey[7] = 0xff & (m_curReference.ObjectNumber() >> 16);
+  nkey[8] = 0xff &  m_curReference.GenerationNumber();
+  nkey[9] = 0xff & (m_curReference.GenerationNumber() >> 8);
+
   GetMD5Binary(nkey, 10, objkey);
   RC4(objkey, 10, str, len, str);
 }

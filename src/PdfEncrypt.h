@@ -23,6 +23,8 @@
 
 #include "PdfDefines.h"
 #include "PdfString.h"
+#include "PdfReference.h"
+
 
 namespace PoDoFo {
 
@@ -59,20 +61,20 @@ public:
   /// Generate encryption key from user and owner passwords and protection key
   void GenerateEncryptionKey(const std::string& userPassword,
                              const std::string& ownerPassword,
-							 PdfKeyLength inKeyLength,
+                             PdfKeyLength inKeyLength,
                              int protection);
 
   /// Get the U object value (user)
-  unsigned char* GetUvalue() { return m_Uvalue; }
+  const unsigned char* GetUvalue() const { return m_Uvalue; }
 
   /// Get the O object value (owner)
-  unsigned char* GetOvalue() { return m_Ovalue; }
+  const unsigned char* GetOvalue() const { return m_Ovalue; }
 
   /// Get the P object value (protection)
-  int GetPvalue() { return m_Pvalue; }
+  int GetPvalue() const { return m_Pvalue; }
 
-  /// Encrypt a character string
-  void Encrypt(int n, unsigned char* str, int len);
+  /// Encrypt a character string ( with the currently set Reference)
+  void Encrypt(unsigned char* str, int len);
 
   /** Create a PdfString of MD5 data generated from a buffer in memory.
    *  \param pBuffer the buffer of which to calculate the MD5 sum
@@ -81,6 +83,15 @@ public:
    *  \returns an MD5 sum as PdfString
    */
   static PdfString GetMD5String( const unsigned char* pBuffer, int nLength );
+
+  /** Set the reference of the object that is currently encrypted.
+   *
+   *  This value will be used in following calls of Encrypt
+   *  to encrypt the object.
+   *
+   *  \see Encrypt 
+   */
+  inline void SetCurrentReference( const PdfReference & rRef );
 
 protected:
   /// Pad a password to 32 characters
@@ -101,7 +112,15 @@ private:
   unsigned char m_encryptionKey[5];   ///< Encryption key
   unsigned char m_rc4key[5];          ///< last RC4 key
   unsigned char m_rc4last[256];       ///< last RC4 state table
+
+  PdfReference  m_curReference;       ///< The reference of the current object
+
 };
+
+void PdfEncrypt::SetCurrentReference( const PdfReference & rRef )
+{
+    m_curReference = rRef;
+}
 
 };
 
