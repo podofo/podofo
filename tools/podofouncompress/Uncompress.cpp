@@ -40,7 +40,6 @@ void UnCompress::Init( const char* pszInput, const char* pszOutput )
     this->UncompressObjects();
 
     PdfWriter writer( m_pDocument );
-    writer.SetPdfCompression( false );
     writer.Write( pszOutput );
 }
 

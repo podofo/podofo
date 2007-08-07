@@ -38,7 +38,6 @@ void write_back( PdfParser* pParser, const char* pszFilename )
 
     writer.SetUseXRefStream( true );
     //writer.SetLinearized( true );
-    writer.SetPdfCompression( true );
     writer.Write( pszFilename );
 }
 

@@ -25,6 +25,8 @@
 #include "PdfOutputDevice.h"
 #include "PdfVecObjects.h"
 
+#include "PdfEncrypt.h"
+
 namespace PoDoFo {
 
 class PdfDictionary;
@@ -118,25 +120,17 @@ class PODOFO_API PdfWriter {
      *  \returns the file format version as string
      */
     const char* GetPdfVersionString() const { return s_szPdfVersionNums[static_cast<int>(m_eVersion)]; }
-
-    /** Set wether all streams in the pdf document should
-     *  be compress using the FlateDecode algorithm.
-     *  Only streams that are already JPEG compressed are not affected
-     *  by this flag.
-     *  By default all streams are compressed using FlateDecode.
-     *  You can set this value to false if you want to disable
-     *  compression, for example for debugging purposes.
+    
+    /** Sets this PdfWriter to write an encrypted PDF file.
      *
-     *  \param bCompress enable/disable compression
+     *  \param bEncrypt if true all strings and streams will be encrypted before writing
      */
-    void SetPdfCompression( bool bCompress ) { m_bCompress = bCompress; }
+    void SetEncrypted( bool bEncrypt ) { m_bEncrypt = bEncrypt; }
 
-    /** Get wether PDF compression is enabled.
-     *  \see SetPdfCompression
-     *  \returns true if all streams will be compressed using
-     *           the FlateDecode algorithm.
+    /** 
+     * \returns true if this PdfWriter creates an encrypted PDF file
      */
-    bool GetPdfCompression() const { return m_bCompress; }
+    bool GetEncrypted() const { return m_bEncrypt; }
 
     /** Calculate the byte offset of the object pObject in the PDF file
      *  if the file was written to disk at the moment of calling this function.
@@ -148,14 +142,6 @@ class PODOFO_API PdfWriter {
      *  \param pulOffset pointer to an unsigned long to save the offset
      */
     void GetByteOffset( PdfObject* pObject, unsigned long* pulOffset );
-
-    /** Make sure the all objects are flate decoded if the user enabled flate decoding
-     *  This might be necessary to call before calculating the length of objects.
-     *  It is called automatically before writing.
-     *
-     *  \param vecObjects compress all objects in this vector
-     */
-    void CompressObjects( const PdfVecObjects& vecObjects );
 
     /** Write the whole document to a buffer in memory.
      *  
@@ -249,15 +235,17 @@ class PODOFO_API PdfWriter {
     PdfVecObjects*  m_vecObjects;
     PdfObject*      m_pTrailer;
 
-    bool            m_bCompress;
+    bool            m_bEncrypt;      ///< If true encrypt all strings and streams and create an encryption dictionary in the trailer
     bool            m_bXRefStream;
+
+    PdfEncrypt      m_encrypt;
 
  private:
     EPdfVersion     m_eVersion;
     PdfPagesTree*   m_pPagesTree;
 
     bool            m_bLinearized;
-
+ 
     /**
      * This value is required when writing
      * a linearized PDF file.

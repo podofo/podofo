@@ -24,7 +24,6 @@
 #include "PdfDate.h"
 #include "PdfDictionary.h"
 #include "PdfDocument.h"
-#include "PdfEncrypt.h"
 #include "PdfHintStream.h"
 #include "PdfInfo.h"
 #include "PdfObject.h"
@@ -47,7 +46,7 @@
 namespace PoDoFo {
 
 PdfWriter::PdfWriter( PdfParser* pParser )
-    : m_bCompress( true ), m_bXRefStream( false ), 
+    : m_bEncrypt( false ), m_bXRefStream( false ), 
       m_pPagesTree( NULL ), m_bLinearized( false ),  
       m_lFirstInXRef( 0 )
 {
@@ -62,7 +61,7 @@ PdfWriter::PdfWriter( PdfParser* pParser )
 }
 
 PdfWriter::PdfWriter( PdfDocument* pDocument )
-    : m_bCompress( true ), m_bXRefStream( false ), 
+    : m_bEncrypt( false ), m_bXRefStream( false ), 
       m_pPagesTree( NULL ), m_bLinearized( false ),  
       m_lFirstInXRef( 0 )
 {
@@ -78,7 +77,7 @@ PdfWriter::PdfWriter( PdfDocument* pDocument )
 }
 
 PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
-    : m_bCompress( true ), m_bXRefStream( false ), 
+    : m_bEncrypt( false ), m_bXRefStream( false ), 
       m_pPagesTree( NULL ), m_bLinearized( false ),  
       m_lFirstInXRef( 0 )
 {
@@ -93,7 +92,7 @@ PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
 }
 
 PdfWriter::PdfWriter( PdfVecObjects* pVecObjects )
-    : m_bCompress( true ), m_bXRefStream( false ), 
+    : m_bEncrypt( false ), m_bXRefStream( false ), 
       m_pPagesTree( NULL ), m_bLinearized( false ),  
       m_lFirstInXRef( 0 )
 {
@@ -125,6 +124,10 @@ void PdfWriter::Write( PdfOutputDevice* pDevice )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
+    // setup encrypt dictionary
+    if( m_bEncrypt )
+        m_encrypt.GenerateEncryptionKey( "", "podofo", PdfEncrypt::PdfKeyLength40, 0 );
+
     if( m_bLinearized ) 
     {
         this->WriteLinearized( pDevice );
@@ -148,7 +151,7 @@ void PdfWriter::Write( PdfOutputDevice* pDevice )
                 FillTrailerObject( &trailer, pXRef->GetSize(), false, false );
                 
                 pDevice->Print("trailer\n");
-                trailer.WriteObject( pDevice );
+                trailer.WriteObject( pDevice, NULL );
             }
             
             pDevice->Print( "startxref\n%li\n%%%%EOF\n", pXRef->GetOffset() );
@@ -244,31 +247,15 @@ void PdfWriter::WritePdfHeader( PdfOutputDevice* pDevice )
     pDevice->Print( "%s\n%%%s", s_szPdfVersions[static_cast<int>(m_eVersion)], PDF_MAGIC );
 }
 
-void PdfWriter::CompressObjects( const PdfVecObjects& vecObjects ) 
-{
-    TCIVecObjects itObjects  = vecObjects.begin();
-
-    while( itObjects != vecObjects.end() )
-    {
-        // make sure that all objects are FlateDecoded if compression is enabled
-        if( m_bCompress )
-            (*itObjects)->FlateCompressStream();
-
-        ++itObjects;
-    }
-}
-
 void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& vecObjects, PdfXRef* pXref )
 {
     TCIVecObjects       itObjects  = vecObjects.begin();
     TCIPdfReferenceList itFree     = vecObjects.GetFreeObjects().begin();
 
-    this->CompressObjects( vecObjects );
-
-
     while( itObjects != vecObjects.end() )
     {
         pXref->AddObject( (*itObjects)->Reference(), pDevice->GetLength(), true );
+        //(*itObjects)->WriteObject( pDevice, m_bEncrypt ? &m_encrypt : NULL );
         (*itObjects)->WriteObject( pDevice );
 
         ++itObjects;
@@ -458,6 +445,23 @@ void PdfWriter::FillTrailerObject( PdfObject* pTrailer, long lSize, bool bPrevEn
         if( m_pTrailer->GetDictionary().HasKey( "Info" ) )
             pTrailer->GetDictionary().AddKey( "Info", m_pTrailer->GetDictionary().GetKey( "Info" ) );
 
+
+        if( m_bEncrypt ) 
+        {
+            // Add our own Encryption dictionary
+            PdfDictionary dict;
+            dict.AddKey( PdfName("Filter"), PdfName("Standard") );
+            dict.AddKey( PdfName("V"), PdfVariant( 1L ) );
+            dict.AddKey( PdfName("Length"), PdfVariant( 40L ) );
+
+            dict.AddKey( PdfName("R"), PdfVariant( 2L ) );
+            dict.AddKey( PdfName("O"), PdfString( reinterpret_cast<const char*>(m_encrypt.GetOvalue()), 32 ) );
+            dict.AddKey( PdfName("U"), PdfString( reinterpret_cast<const char*>(m_encrypt.GetUvalue()), 32 ) );
+            dict.AddKey( PdfName("P"), PdfVariant( static_cast<long>(m_encrypt.GetPvalue()) ) );
+
+            pTrailer->GetDictionary().AddKey( PdfName("Encrypt"), dict );
+        }
+
         // maybe only call this function if bPrevEntry is false
         CreateFileIdentifier( pTrailer );
 
@@ -564,7 +568,7 @@ void PdfWriter::CreateFileIdentifier( PdfObject* pTrailer ) const
     
     pInfo->GetDictionary().AddKey( "Location", PdfString("SOMEFILENAME") );
 
-    pInfo->WriteObject( &length );
+    pInfo->WriteObject( &length, NULL );
 
     pBuffer = static_cast<char*>(malloc( sizeof(char) * length.GetLength() ));
     if( !pBuffer )
@@ -574,7 +578,7 @@ void PdfWriter::CreateFileIdentifier( PdfObject* pTrailer ) const
     }
 
     PdfOutputDevice device( pBuffer, length.GetLength() );
-    pInfo->WriteObject( &device );
+    pInfo->WriteObject( &device, NULL );
 
     // calculate the MD5 Sum
     identifier = PdfEncrypt::GetMD5String( reinterpret_cast<unsigned char*>(pBuffer), length.GetLength() );
