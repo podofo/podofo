@@ -116,6 +116,7 @@ typedef enum EPdfVersion {
     ePdfVersion_1_4,           /**< PDF 1.4 */
     ePdfVersion_1_5,           /**< PDF 1.5 */
     ePdfVersion_1_6,           /**< PDF 1.6 */ 
+    ePdfVersion_1_7,           /**< PDF 1.7 */ 
 
     ePdfVersion_Unknown = 0xff /**< Unknown PDF version */
 };
