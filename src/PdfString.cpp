@@ -36,7 +36,7 @@ namespace PoDoFo {
 extern bool podofo_is_little_endian();
 
 const PdfString PdfString::StringNull = PdfString();
-const char PdfString::s_pszUnicodeMarker[] = { (char) 0xFE, (char) 0xFF };
+const char PdfString::s_pszUnicodeMarker[] = { static_cast<char>(0xFE), static_cast<char>(0xFF) };
 
 // Conversion table from PDFDocEncoding (almost Latin1) to UTF16
 const pdf_utf16be PdfString::s_cPdfDocEncoding[256] = {
@@ -372,7 +372,26 @@ void PdfString::Write ( PdfOutputDevice* pDevice ) const
         pDevice->Write( PdfString::s_pszUnicodeMarker, sizeof( PdfString::s_pszUnicodeMarker ) );
 
     if( m_buffer.GetSize() )
-        pDevice->Write( m_buffer.GetBuffer(), m_buffer.GetSize()-1 );
+    {
+        if( m_bUnicode ) 
+            pDevice->Write( m_buffer.GetBuffer(), m_buffer.GetSize()-1 );
+        else
+        {
+            // iterator over the string buffer and escape characters as necessary
+            char* pBuf = m_buffer.GetBuffer();
+            long  lLen = m_buffer.GetSize(); // do not care for the terminating 0
+            while( --lLen ) 
+            {
+                if( *pBuf == '\\' ||
+                    *pBuf == '(' ||
+                    *pBuf == ')' )
+                    pDevice->Write( "\\", 1 );
+                          
+                pDevice->Write( &*pBuf++, 1 );
+            }
+        }
+    }
+
     pDevice->Print( m_bHex ? ">" : ")" );
 }
 
@@ -491,13 +510,13 @@ void PdfString::Init( const char* pszString, long lLen )
             pszString += 2;
         }
 
-        m_buffer = PdfRefCountedBuffer( m_bUnicode ? lLen + 2 : lLen + 1);
+
+        m_buffer = PdfRefCountedBuffer( m_bUnicode ? lLen + 2 : lLen + 1 );
         memcpy( m_buffer.GetBuffer(), pszString, lLen );
         m_buffer.GetBuffer()[lLen] = '\0';
         // terminate unicode strings with \0\0
         if( m_bUnicode )
             m_buffer.GetBuffer()[lLen+1] = '\0';
-                
 
         // if the buffer is a UTF-16LE string
         // convert it to UTF-16BE
@@ -517,7 +536,7 @@ void PdfString::Init( const char* pszString, long lLen )
 void PdfString::InitFromUtf8( const pdf_utf8* pszStringUtf8, long lLen )
 {
     long        lBufLen = lLen << 1;
-    pdf_utf16be *pBuffer = (pdf_utf16be *) alloca(lBufLen); // twice as large buffer should always be enough
+    pdf_utf16be *pBuffer = static_cast<pdf_utf16be *>(alloca(lBufLen)); // twice as large buffer should always be enough
 
     lBufLen = PdfString::ConvertUTF8toUTF16( pszStringUtf8, lLen, pBuffer, lBufLen );
 
@@ -595,8 +614,6 @@ PdfString PdfString::ToUnicode() const
         PdfRefCountedBuffer   buffer( lLen );
         pdf_utf16be*          pString = reinterpret_cast<pdf_utf16be*>(buffer.GetBuffer());
 
-        printf("lLen = %i\n", lLen );
-        printf("src  = %i\n", src.GetLength() );
         for( int i=0;i<src.GetLength();i++ )
             pString[i] = s_cPdfDocEncoding[static_cast<int>(src.m_buffer.GetBuffer()[i])];
 

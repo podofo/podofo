@@ -132,9 +132,14 @@ int main()
     // testing strings
     TEST_SAFE_OP( Test( "(Hallo Welt!)", ePdfDataType_String ) );
     TEST_SAFE_OP( Test( "(Hallo \\(schöne\\) Welt!)", ePdfDataType_String ) );
-    TEST_SAFE_OP( Test( "(Balanced () brackets are (ok ()) in PDF Strings)", ePdfDataType_String ) );
+    TEST_SAFE_OP( Test( "(Balanced () brackets are (ok ()) in PDF Strings)", ePdfDataType_String,
+                        "(Balanced \\(\\) brackets are \\(ok \\(\\)\\) in PDF Strings)" ) );
     TEST_SAFE_OP( Test( "()", ePdfDataType_String ) );
+    TEST_SAFE_OP( Test( "(Test: \\064)", ePdfDataType_String, "(Test: \064)" ) );
+    TEST_SAFE_OP( Test( "(Test: \\0645)", ePdfDataType_String, "(Test: 45)" ) );
+    TEST_SAFE_OP( Test( "(Test: \\478)", ePdfDataType_String, "(Test: '8)" ) );
     printf("---\n");
+
 
     // testing HEX Strings
     TEST_SAFE_OP( Test( "<FFEB0400A0CC>", ePdfDataType_HexString ) );

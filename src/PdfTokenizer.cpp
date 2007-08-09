@@ -73,8 +73,37 @@ const char * genWsMap()
 
 };
 
-const char * const PdfTokenizer::m_delimiterMap = PdfTokenizerNameSpace::genDelMap();
+const char * const PdfTokenizer::m_delimiterMap  = PdfTokenizerNameSpace::genDelMap();
 const char * const PdfTokenizer::m_whitespaceMap = PdfTokenizerNameSpace::genWsMap();
+const char PdfTokenizer::m_octMap[]        = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+    1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0
+};
+
 
 PdfTokenizer::PdfTokenizer()
     : m_buffer( PDF_BUFFER )
@@ -462,11 +491,14 @@ void PdfTokenizer::ReadArray( PdfVariant& rVariant )
 void PdfTokenizer::ReadString( PdfVariant& rVariant )
 {
     int               c;
-    std::vector<char> vec; // we use a vector instead of a string
-                           // because we might read a unicode
-                           // string which is allowed to contain 0 bytes.
+
     bool              bIgnore       = false;
+    bool              bOctEscape    = false;
+    int               nOctCount     = 0;
+    char              cOctValue     = 0;
     int               nBalanceCount = 0; // Balanced parathesis do not have to be escaped in strings
+
+    m_vecBuffer.clear();
 
     while( (c = m_device.Device()->GetChar()) != EOF )
     {
@@ -478,19 +510,46 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant )
             ++nBalanceCount;
         else if( !bIgnore && c == ')' )
             --nBalanceCount;
-        
-        bIgnore = (c == '\\') && !bIgnore;
 
-        vec.push_back( static_cast<char>(c) );
+        if( bIgnore && isdigit( c ) )
+            // The last character we have read was a '\\',
+            // so we check now for a digit to find stuff like \005
+            bOctEscape = true;
+
+        if( bOctEscape ) 
+        {
+            if( !m_octMap[c] || nOctCount > 2 )
+            {
+                m_vecBuffer.push_back ( cOctValue );
+                bOctEscape = false;
+                nOctCount  = 0;
+                cOctValue  = 0;
+            } 
+            else
+            {
+                cOctValue <<= 3;
+                cOctValue  |= (c-'0' & 0x07);
+                ++nOctCount;
+            }
+        }
+
+        bIgnore = (c == '\\') && !bIgnore;
+        if( !bIgnore && !bOctEscape ) 
+            m_vecBuffer.push_back( static_cast<char>(c) );
     }
 
-    rVariant = PdfString( &(vec[0]), vec.size() );
+    // In case the string ends with a octal escape sequence
+    if( bOctEscape )
+        m_vecBuffer.push_back ( cOctValue );
+
+    rVariant = PdfString( &(m_vecBuffer[0]), m_vecBuffer.size() );
 }
 
 void PdfTokenizer::ReadHexString( PdfVariant& rVariant )
 {
     int        c;
-    std::string str; 
+
+    m_vecBuffer.clear();
 
     while( (c = m_device.Device()->GetChar()) != EOF )
     {
@@ -502,23 +561,15 @@ void PdfTokenizer::ReadHexString( PdfVariant& rVariant )
         if( isdigit( c ) || 
             ( c >= 'A' && c <= 'F') ||
             ( c >= 'a' && c <= 'f'))
-#ifdef _MSC_VER
-            str += c;
-#else
-            str.push_back( c );
-#endif
+            m_vecBuffer.push_back( c );
     }
 
     // pad to an even length if necessary
-    if( str.length() % 2 )
-#ifdef _MSC_VER
-        str += c;
-#else
-        str.push_back( c );
-#endif
+    if( m_vecBuffer.size() % 2 )
+        m_vecBuffer.push_back( c );
 
     PdfString string;
-    string.SetHexData( str.c_str(), str.length() );
+    string.SetHexData( m_vecBuffer.size() ? &(m_vecBuffer[0]) : "", m_vecBuffer.size() );
 
     rVariant = string;
 }

@@ -198,9 +198,17 @@ class PODOFO_API PdfTokenizer {
     // standard.
     static const char * const m_delimiterMap;
     static const char * const m_whitespaceMap;
+    static const char m_octMap[];
 
 
     TTokenizerQueque m_deqQueque;
+
+    // A vector which is used as a buffer to read strings.
+    // It is a member of the class to avoid reallocations while parsing.
+    std::vector<char> m_vecBuffer; // we use a vector instead of a string
+                                   // because we might read a unicode
+                                   // string which is allowed to contain 0 bytes.
+
 };
 
 // -----------------------------------------------------

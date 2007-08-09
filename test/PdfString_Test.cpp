@@ -21,6 +21,10 @@
 #include "PdfTest.h"
 
 #include "PdfString.h"
+#include "PdfOutputDevice.h"
+
+#include <ostream>
+#include <sstream>
 
 using namespace PoDoFo;
 
@@ -35,13 +39,13 @@ void testUnicodeString( const pdf_utf8* pszString, long lBufferLen )
 
     lBufferLen = strlen( reinterpret_cast<const char*>(pszString) );
 
-    printf("Converting UTF8 -> UTF16: lBufferLen=%i\n", lBufferLen);
+    printf("Converting UTF8 -> UTF16: lBufferLen=%li\n", lBufferLen);
     const long lUtf16BufferLenUsed = 
 		PdfString::ConvertUTF8toUTF16( pszString, lBufferLen, pUtf16Buffer, lUtf16BufferLen );
 
-    printf("Converting UTF16 -> UTF8: lBufferLen=%i\n", lBufferLen);
+    printf("Converting UTF16 -> UTF8: lBufferLen=%li\n", lBufferLen);
     const long lUtf8BufferLenUsed =
-		PdfString::ConvertUTF16toUTF8( pUtf16Buffer, lUtf16BufferLen, pUtf8Buffer, lUtf8BufferLen  );
+		PdfString::ConvertUTF16toUTF8( pUtf16Buffer, lUtf16BufferLenUsed, pUtf8Buffer, lUtf8BufferLen  );
 
     printf("Original Length: %li\n", lBufferLen );
     printf("UTF16 Length   : %li\n", lUtf16BufferLenUsed );
@@ -79,8 +83,8 @@ void testUnicode()
     const long     lUtf8BufferLen = 256;
     pdf_utf8 pUtf8Buffer[lUtf8BufferLen];
     const long lUtf8BufferLenUsed =
-		PdfString::ConvertUTF16toUTF8( unicode.GetUnicode(), unicode.GetUnicodeLength(), 
-                                                    pUtf8Buffer, lUtf8BufferLen  );
+        PdfString::ConvertUTF16toUTF8( unicode.GetUnicode(), unicode.GetUnicodeLength(), 
+                                       pUtf8Buffer, lUtf8BufferLen  );
     printf("Utf8: %s\n", pUtf8Buffer );
 
 
@@ -99,7 +103,7 @@ void testUnicode()
 void testString( const char* pszString, const PdfString & str, const PdfString & hex ) 
 {
     printf("\t->Got string: %s\n", pszString );
-    printf("\t->    length: %i\n", strlen( pszString ) );
+    printf("\t->    length: %li\n", strlen( pszString ) );
 
     if( strcmp( str.GetString(), pszString ) != 0 )
     {
@@ -108,7 +112,7 @@ void testString( const char* pszString, const PdfString & str, const PdfString &
     }
     
 
-    if( str.GetLength() != strlen( pszString ) + 1 ) 
+    if( static_cast<size_t>(str.GetLength()) != strlen( pszString ) + 1 ) 
     {
         printf("Strings length is not equal!\n");
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
@@ -149,6 +153,39 @@ void testHexEncodeDecode()
     testString( "Hello World!", helloStr, helloBin );
 }
 
+void testEscape() 
+{
+    printf("\nEscaping tests:\n\n");
+
+    std::ostringstream oss;
+    PdfOutputDevice    out( &oss);
+
+    PdfString str( "Hello (cruel) World" );
+    const char* pszExpected = "(Hello \\(cruel\\) World)";
+    out.Seek( 0 );
+    str.Write( &out );
+    if( strcmp( oss.str().c_str(), pszExpected ) != 0 ) 
+    {
+        printf( "Expected: %s\n", pszExpected );
+        printf( "Got     : %s\n", oss.str().c_str() );
+
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    }
+
+    str         = PdfString( "Path: C:\\Temp\\out.pdf" );
+    pszExpected = "(Path: C:\\\\Temp\\\\out.pdf)";
+    out.Seek( 0 );
+    str.Write( &out );
+    
+    if( strcmp( oss.str().c_str(), pszExpected ) != 0 ) 
+    {
+        printf( "Expected: %s\n", pszExpected );
+        printf( "Got     : %s\n", oss.str().c_str() );
+
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    }
+}
+
 int main()
 {
     const char* pszStringJap = "「PoDoFo」は今から日本語も話せます。";
@@ -157,6 +194,7 @@ int main()
     try {
         testUnicode();
         testHexEncodeDecode();
+        testEscape();
 
     } catch( const PdfError & eCode ) {
         eCode.PrintErrorMsg();
