@@ -207,7 +207,8 @@ const PdfReference* PdfXRef::GetFirstFreeObject( PdfXRef::TCIVecXRefBlock itBloc
             break; // got a free object
         
         ++itBlock;
-        itFree = (*itBlock).freeItems.begin();
+        if(itBlock != m_vecBlocks.end())
+            itFree = (*itBlock).freeItems.begin();
     }
 
     // if there is another free object, return it
