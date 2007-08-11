@@ -21,6 +21,7 @@
 #include "PdfMemStream.h"
 
 #include "PdfArray.h"
+#include "PdfEncrypt.h"
 #include "PdfFilter.h"
 #include "PdfObject.h"
 #include "PdfOutputDevice.h"
@@ -261,10 +262,24 @@ const PdfStream & PdfMemStream::operator=( const PdfStream & rhs )
     return *this;
 }
 
-void PdfMemStream::Write( PdfOutputDevice* pDevice ) 
+void PdfMemStream::Write( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt ) 
 {
     pDevice->Print( "stream\n" );
-    pDevice->Write( this->Get(), this->GetLength() );
+    if( pEncrypt ) 
+    {
+        char* pBuffer;
+        long  lLen;
+        this->GetCopy( &pBuffer, &lLen );
+
+        pEncrypt->Encrypt( reinterpret_cast<unsigned char*>(pBuffer), lLen );
+        pDevice->Write( pBuffer, this->GetLength() );
+
+        free( pBuffer );                               
+    }
+    else
+    {
+        pDevice->Write( this->Get(), this->GetLength() );
+    }
     pDevice->Print( "\nendstream\n" );
 }
 

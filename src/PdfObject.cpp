@@ -157,21 +157,7 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt, con
 
     if( m_pStream )
     {
-        if( pEncrypt ) 
-        {
-            char* pBuffer;
-            long  lLen;
-            m_pStream->GetCopy( &pBuffer, &lLen );
-
-            pEncrypt->Encrypt( reinterpret_cast<unsigned char*>(pBuffer), lLen );
-
-            pDevice->Print( "stream\n" );
-            pDevice->Write( pBuffer, m_pStream->GetLength() );
-            pDevice->Print( "\nendstream\n" );
-            free( pBuffer );                               
-        }
-        else
-            m_pStream->Write( pDevice );
+        m_pStream->Write( pDevice, pEncrypt );
     }
 
     if( m_reference.IsIndirect() )

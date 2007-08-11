@@ -48,6 +48,12 @@ class PdfRijndael;
 /** A class that is used to encrypt a PDF file and 
  *  set document permisions on the PDF file.
  *
+ *  As a user of this class, you have only to instanciate a
+ *  object of this class and pass it to PdfWriter, PdfMemDocument,
+ *  PdfStreamedDocument or PdfImmediateWriter.
+ *  You do not have to call any other method of this class. The above
+ *  classes know how to handle encryption using Pdfencrypt.
+ *
  */
 class PODOFO_API PdfEncrypt
 {
@@ -113,9 +119,21 @@ public:
                 EPdfEncryptAlgorithm eAlgorithm = ePdfEncryptAlgorithm_RC4V1, 
                 EPdfKeyLength eKeyLength = ePdfKeyLength_40 );
 
+    /** Copy constructor
+     *
+     *  \param rhs another PdfEncrypt object which is copied
+     */
+    PdfEncrypt( const PdfEncrypt & rhs );
+
     /** Destruct the PdfEncrypt object
      */
     virtual ~PdfEncrypt();
+
+    /** Assignment operator
+     *
+     *  \param rhs another PdfEncrypt object which is copied
+     */
+    const PdfEncrypt & operator=( const PdfEncrypt & rhs );
 
     /** Generate encryption key from user and owner passwords and protection key
      *  
@@ -132,6 +150,7 @@ public:
      */
     void CreateEncryptionDictionary( PdfDictionary & rDictionary ) const;
     
+
 
   bool Authenticate(const std::string & documentID, const std::string & password,
                     const std::string & uValue, const std::string & oValue,

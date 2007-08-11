@@ -374,12 +374,50 @@ PdfEncrypt::PdfEncrypt( const std::string & userPassword, const std::string & ow
     m_pValue = -((protection ^ 255) + 1);
 }
 
+PdfEncrypt::PdfEncrypt( const PdfEncrypt & rhs )
+    : m_aes( NULL )
+{
+    this->operator=( rhs );
+}
+
 PdfEncrypt::~PdfEncrypt()
 {
     if (m_rValue == 4)
     {
         delete m_aes;
     }
+}
+
+const PdfEncrypt & PdfEncrypt::operator=( const PdfEncrypt & rhs )
+{
+    m_eAlgorithm = rhs.m_eAlgorithm;
+    m_eKeyLength = rhs.m_eKeyLength;
+
+    memcpy( m_uValue, rhs.m_uValue, sizeof(unsigned char) * 32 );
+    memcpy( m_oValue, rhs.m_oValue, sizeof(unsigned char) * 32 );
+
+    m_pValue = rhs.m_pValue;
+    m_rValue = rhs.m_rValue;
+
+    memcpy( m_encryptionKey, rhs.m_encryptionKey, sizeof(unsigned char) * 16 );
+
+    m_keyLength = rhs.m_keyLength;
+
+    memcpy( m_rc4key, rhs.m_rc4key, sizeof(unsigned char) * 16 );
+    memcpy( m_rc4last, rhs.m_rc4last, sizeof(unsigned char) * 256 );
+
+    if( m_aes )
+        delete m_aes;
+
+    if( rhs.m_aes )
+        m_aes = new PdfRijndael();
+
+    m_curReference = rhs.m_curReference;
+    m_documentId   = rhs.m_documentId;
+    m_userPass     = rhs.m_userPass;
+    m_ownerPass    = rhs.m_ownerPass;
+
+    return *this;
 }
 
 void PdfEncrypt::CreateEncryptionDictionary( PdfDictionary & rDictionary ) const

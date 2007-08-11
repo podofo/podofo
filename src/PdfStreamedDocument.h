@@ -75,8 +75,11 @@ class PODOFO_API PdfStreamedDocument : public PdfDocument {
      *  \param eVersion the PDF version of the document to write.
      *                  The PDF version can only be set in the constructor
      *                  as it is the first item written to the document on disk.
+     *  \param pEncrypt pointer to an encryption object or NULL. If not NULL
+     *                  the PdfEncrypt object will be copied and used to encrypt the
+     *                  created document.
      */
-    PdfStreamedDocument( PdfOutputDevice* pDevice, EPdfVersion eVersion = ePdfVersion_1_5 );
+    PdfStreamedDocument( PdfOutputDevice* pDevice, EPdfVersion eVersion = ePdfVersion_1_5, PdfEncrypt* pEncrypt = NULL );
 
     /** Create a new PdfStreamedDocument.
      *  All data is written to a file immediately.
@@ -85,8 +88,11 @@ class PODOFO_API PdfStreamedDocument : public PdfDocument {
      *  \param eVersion the PDF version of the document to write.
      *                  The PDF version can only be set in the constructor
      *                  as it is the first item written to the document on disk.
+     *  \param pEncrypt pointer to an encryption object or NULL. If not NULL
+     *                  the PdfEncrypt object will be copied and used to encrypt the
+     *                  created document.
      */
-    PdfStreamedDocument( const char* pszFilename, EPdfVersion eVersion = ePdfVersion_1_5 );
+    PdfStreamedDocument( const char* pszFilename, EPdfVersion eVersion = ePdfVersion_1_5, PdfEncrypt* pEncrypt = NULL );
 
     ~PdfStreamedDocument();
 
@@ -114,8 +120,11 @@ class PODOFO_API PdfStreamedDocument : public PdfDocument {
      *  \param eVersion the PDF version of the document to write.
      *                  The PDF version can only be set in the constructor
      *                  as it is the first item written to the document on disk.
+     *  \param pEncrypt pointer to an encryption object or NULL. If not NULL
+     *                  the PdfEncrypt object will be copied and used to encrypt the
+     *                  created document.
      */
-    void Init( PdfOutputDevice* pDevice, EPdfVersion eVersion = ePdfVersion_1_5 );
+    void Init( PdfOutputDevice* pDevice, EPdfVersion eVersion = ePdfVersion_1_5, PdfEncrypt* pEncrypt = NULL );
 
  private:
     PdfImmediateWriter* m_pWriter;

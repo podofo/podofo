@@ -29,7 +29,7 @@
 namespace PoDoFo {
 
 PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, 
-                                        const PdfObject* pTrailer, EPdfVersion eVersion )
+                                        const PdfObject* pTrailer, EPdfVersion eVersion, PdfEncrypt* pEncrypt )
     : PdfWriter( pVecObjects ), m_pParent( pVecObjects ), 
       m_pDevice( pDevice ), m_pLast( NULL ), m_bOpenStream( false )
 {
@@ -40,13 +40,17 @@ PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects*
     // register as stream factory for PdfVecObjects
     m_pParent->SetStreamFactory( this );
 
+    this->CreateFileIdentifier( m_identifier, m_pTrailer );
+    // setup encryption
+    if( pEncrypt )
+        this->SetEncrypted( *pEncrypt );
+
     // start with writing the header
     this->SetPdfVersion( eVersion );
     this->WritePdfHeader( m_pDevice );
 
     m_pXRef = m_bXRefStream ? new PdfXRefStream( m_vecObjects, this ) : new PdfXRef();
 
-    this->CreateFileIdentifier( m_identifier, m_pTrailer );
 }
 
 PdfImmediateWriter::~PdfImmediateWriter()
@@ -83,6 +87,18 @@ void PdfImmediateWriter::Finish()
 {
     // write all objects which are still in RAM
     this->FinishLastObject();
+
+    // setup encrypt dictionary
+    if( m_pEncrypt )
+    {
+        m_pEncrypt->GenerateEncryptionKey( m_identifier );
+
+        // Add our own Encryption dictionary
+        m_pEncryptObj = m_vecObjects->CreateObject();
+        m_pEncrypt->CreateEncryptionDictionary( m_pEncryptObj->GetDictionary() );
+    }
+
+
     this->WritePdfObjects( m_pDevice, *m_pParent, m_pXRef );
 
     // write the XRef

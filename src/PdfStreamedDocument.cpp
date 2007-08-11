@@ -22,17 +22,17 @@
 
 namespace PoDoFo {
 
-PdfStreamedDocument::PdfStreamedDocument( PdfOutputDevice* pDevice, EPdfVersion eVersion )
+PdfStreamedDocument::PdfStreamedDocument( PdfOutputDevice* pDevice, EPdfVersion eVersion, PdfEncrypt* pEncrypt )
     : m_pWriter( NULL ), m_pDevice( NULL )
 {
-    Init( pDevice, eVersion );
+    Init( pDevice, eVersion, pEncrypt );
 }
 
-PdfStreamedDocument::PdfStreamedDocument( const char* pszFilename, EPdfVersion eVersion )
+PdfStreamedDocument::PdfStreamedDocument( const char* pszFilename, EPdfVersion eVersion, PdfEncrypt* pEncrypt )
     : m_pWriter( NULL )
 {
     m_pDevice = new PdfOutputDevice( pszFilename );
-    Init( m_pDevice, eVersion );
+    Init( m_pDevice, eVersion, pEncrypt );
 }
 
 PdfStreamedDocument::~PdfStreamedDocument()
@@ -41,9 +41,9 @@ PdfStreamedDocument::~PdfStreamedDocument()
     delete m_pDevice;
 }
 
-void PdfStreamedDocument::Init( PdfOutputDevice* pDevice, EPdfVersion eVersion )
+void PdfStreamedDocument::Init( PdfOutputDevice* pDevice, EPdfVersion eVersion, PdfEncrypt* pEncrypt )
 {
-    m_pWriter = new PdfImmediateWriter( pDevice, this->GetObjects(), this->GetTrailer(), eVersion );
+    m_pWriter = new PdfImmediateWriter( pDevice, this->GetObjects(), this->GetTrailer(), eVersion, pEncrypt );
 }
 
 void PdfStreamedDocument::Close()

@@ -459,7 +459,7 @@ void MMTest( PdfPainterMM* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 int main( int argc, char* argv[] ) 
 {
     PdfMemDocument  writer;
-    //PdfStreamedDocument  writer ( argv[1] );
+    //PdfStreamedDocument  writer ( argv[1], ePdfVersion_1_5, &PdfEncrypt( "dominik", "owner" ) );
     PdfPage*        pPage;
     PdfPainter      painter;
     PdfPainterMM    painterMM;

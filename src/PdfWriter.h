@@ -123,11 +123,9 @@ class PODOFO_API PdfWriter {
     
     /** Set the written document to be encrypted using a PdfEncrypt object
      *
-     *  \param pEncrypt if NULL no encryption will be used
-     *         otherwise the encryption object will be owned
-     *         and deleted by the PdfWriter.
+     *  \param rEncrypt an encryption object which is used to encrypt the written PDF file
      */
-    void SetEncrypted( PdfEncrypt* pEncrypt ) { if( m_pEncrypt ) delete m_pEncrypt; m_pEncrypt = pEncrypt; };
+    void SetEncrypted( const PdfEncrypt & rEncrypt ) { if( m_pEncrypt ) delete m_pEncrypt; m_pEncrypt = new PdfEncrypt( rEncrypt ); };
 
     /** 
      * \returns true if this PdfWriter creates an encrypted PDF file
@@ -241,14 +239,14 @@ class PODOFO_API PdfWriter {
 
     bool            m_bXRefStream;
 
-    PdfEncrypt*     m_pEncrypt;   ///< If not NULL encrypt all strings and streams and create an encryption dictionary in the trailer
+    PdfEncrypt*     m_pEncrypt;    ///< If not NULL encrypt all strings and streams and create an encryption dictionary in the trailer
+    PdfObject*      m_pEncryptObj; ///< Used to temporarly store the encryption dictionary
+
     PdfString       m_identifier;
 
  private:
     EPdfVersion     m_eVersion;
     PdfPagesTree*   m_pPagesTree;
-
-    PdfObject*      m_pEncryptObj; ///< Used to temporarly store the encryption dictionary
 
     bool            m_bLinearized;
  

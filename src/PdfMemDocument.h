@@ -34,6 +34,7 @@ namespace PoDoFo {
 class PdfAcroForm;
 class PdfDestination;
 class PdfDictionary;
+class PdfEncrypt;
 class PdfFileSpec;
 class PdfFont;
 class PdfInfo;
@@ -110,6 +111,43 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
      *  \returns EPdfVersion version of the pdf document
      */
     EPdfVersion GetPdfVersion() const { return m_eVersion; }
+
+    /** Encrypt the document during writing.
+     *
+     *  \param userPassword the user password (if empty the user does not have 
+     *                      to enter a password to open the document)
+     *  \param ownerPassword the owner password
+     *  \param protection several EPdfPermissions values or'ed together to set 
+     *                    the users permissions for this document
+     *  \param eRevision the revision of the encryption algorithm to be used
+     *  \param eKeyLength the length of the encryption key ranging from 40 to 128 bits 
+     *                    (only used if eAlgorithm == ePdfEncryptAlgorithm_RC4V2)
+     *
+     *  \see PdfEncrypt
+     */
+    void SetEncrypted( const std::string & userPassword,
+                       const std::string & ownerPassword, 
+                       int protection = PdfEncrypt::ePdfPermissions_Print | 
+                                        PdfEncrypt::ePdfPermissions_Edit |
+                                        PdfEncrypt::ePdfPermissions_Copy |
+                                        PdfEncrypt::ePdfPermissions_EditNotes | 
+                                        PdfEncrypt::ePdfPermissions_FillAndSign |
+                                        PdfEncrypt::ePdfPermissions_Accessible |
+                                        PdfEncrypt::ePdfPermissions_DocAssembly |
+                                        PdfEncrypt::ePdfPermissions_HighPrint,
+                       PdfEncrypt::EPdfEncryptAlgorithm eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_RC4V1, 
+                       PdfEncrypt::EPdfKeyLength eKeyLength = PdfEncrypt::ePdfKeyLength_40 );
+
+    /** Encrypt the document during writing using a PdfEncrypt object
+     *
+     *  \param pEncrypt an encryption object that will be owned by PdfMemDocument
+     */
+    void SetEncrypted( const PdfEncrypt & pEncrypt );
+
+    /** 
+     * \returns true if this PdfMemDocument creates an encrypted PDF file
+     */
+    bool GetEncrypted() const { return (m_pEncrypt != NULL); }
 
     /** Returns wether this PDF document is linearized, aka
      *  weboptimized
@@ -209,6 +247,8 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
 
     bool            m_bLinearized;
     EPdfVersion     m_eVersion;
+
+    PdfEncrypt*     m_pEncrypt;
 };
 
 };

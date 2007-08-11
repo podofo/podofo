@@ -51,14 +51,14 @@ using namespace std;
 namespace PoDoFo {
 
 PdfMemDocument::PdfMemDocument()
-    : PdfDocument()
+    : PdfDocument(), m_pEncrypt( NULL )
 {
     m_eVersion    = ePdfVersion_1_3;
     m_bLinearized = false;
 }
 
 PdfMemDocument::PdfMemDocument( const char* pszFilename )
-    : PdfDocument()
+    : PdfDocument(), m_pEncrypt( NULL )
 {
     this->Load( pszFilename );
 }
@@ -70,6 +70,12 @@ PdfMemDocument::~PdfMemDocument()
 
 void PdfMemDocument::Clear() 
 {
+    if( m_pEncrypt ) 
+    {
+        delete m_pEncrypt;
+        m_pEncrypt = NULL;
+    }
+
     PdfDocument::Clear();
 }
 
@@ -143,6 +149,9 @@ void PdfMemDocument::Write( PdfOutputDevice* pDevice )
      *  it writeable.
      */
     PdfWriter       writer( this );
+
+    if( m_pEncrypt ) 
+        writer.SetEncrypted( *m_pEncrypt );
 
     writer.Write( pDevice );    
 }
@@ -233,6 +242,20 @@ const PdfMemDocument & PdfMemDocument::InsertPages( const PdfMemDocument & rDoc,
         this->DeletePages( leftStartPage, leftCount ) ;
     
     return *this;
+}
+
+void PdfMemDocument::SetEncrypted( const std::string & userPassword, const std::string & ownerPassword, 
+                                   int protection, PdfEncrypt::EPdfEncryptAlgorithm eAlgorithm,
+                                   PdfEncrypt::EPdfKeyLength eKeyLength )
+{
+    delete m_pEncrypt;
+    m_pEncrypt = new PdfEncrypt( userPassword, ownerPassword, protection, eAlgorithm, eKeyLength );
+}
+
+void PdfMemDocument::SetEncrypted( const PdfEncrypt & pEncrypt )
+{
+    delete m_pEncrypt;
+    m_pEncrypt = new PdfEncrypt( pEncrypt );
 }
 
 };

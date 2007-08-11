@@ -61,8 +61,9 @@ class PODOFO_API PdfFileStream : public PdfStream {
 
     /** Write the stream to an output device
      *  \param pDevice write to this outputdevice.
+     *  \param pEncrypt encrypt stream data using this object
      */
-    virtual void Write( PdfOutputDevice* pDevice );
+    virtual void Write( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt = NULL );
 
     /** Get a malloced buffer of the current stream.
      *  No filters will be applied to the buffer, so
@@ -130,6 +131,8 @@ class PODOFO_API PdfFileStream : public PdfStream {
     
 
     PdfObject*       m_pLength;
+
+    PdfEncrypt*      m_pCurEncrypt;
 };
 
 // -----------------------------------------------------

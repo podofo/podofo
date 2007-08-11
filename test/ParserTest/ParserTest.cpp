@@ -64,13 +64,13 @@ void write_back( PdfParser* pParser, const char* pszFilename )
     enc_test();
 
     PdfWriter writer( pParser );
-    PdfEncrypt* pEncrypt = new PdfEncrypt( "user", "podofo", 0,
-                                           PdfEncrypt::ePdfEncryptAlgorithm_RC4V2, PdfEncrypt::ePdfKeyLength_128 );
+    PdfEncrypt encrypt( "user", "podofo", 0,
+                        PdfEncrypt::ePdfEncryptAlgorithm_RC4V2, PdfEncrypt::ePdfKeyLength_128 );
 
     //writer.SetUseXRefStream( true );
     //writer.SetLinearized( true );
     writer.SetPdfVersion( ePdfVersion_1_6 );
-    writer.SetEncrypted( pEncrypt );
+    writer.SetEncrypted( encrypt );
     writer.Write( pszFilename );
 }
 

@@ -28,7 +28,7 @@ namespace PoDoFo {
 
 PdfFileStream::PdfFileStream( PdfObject* pParent, PdfOutputDevice* pDevice )
     : PdfStream( pParent ), m_pDevice( pDevice ), m_pStream( NULL ), m_pDeviceStream( NULL ),
-      m_lLenInitial( 0 ), m_lLength( 0 )
+      m_lLenInitial( 0 ), m_lLength( 0 ), m_pCurEncrypt( NULL )
 {
     m_pLength = pParent->GetOwner()->CreateObject( PdfVariant(0L) );
     m_pParent->GetDictionary().AddKey( PdfName::KeyLength, m_pLength->Reference() );
@@ -38,8 +38,9 @@ PdfFileStream::~PdfFileStream()
 {
 }
 
-void PdfFileStream::Write( PdfOutputDevice* )
+void PdfFileStream::Write( PdfOutputDevice*, PdfEncrypt* pEncrypt )
 {
+    m_pCurEncrypt = pEncrypt;
 }
 
 void PdfFileStream::BeginAppendImpl( const TVecFilters & vecFilters )

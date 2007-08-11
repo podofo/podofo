@@ -27,6 +27,7 @@
 
 namespace PoDoFo {
 
+class PdfEncrypt;
 class PdfOutputDevice;
 class PdfXRef;
 
@@ -47,9 +48,12 @@ class PODOFO_API PdfImmediateWriter : private PdfWriter,
      *  @param eVersion the PDF version of the document to write.
      *                      The PDF version can only be set in the constructor
      *                      as it is the first item written to the document on disk.
+     *  @param pEncrypt pointer to an encryption object or NULL. If not NULL
+     *                  the PdfEncrypt object will be copied and used to encrypt the
+     *                  created document.
      */
     PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, const PdfObject* pTrailer, 
-                        EPdfVersion eVersion = ePdfVersion_1_5 );
+                        EPdfVersion eVersion = ePdfVersion_1_5, PdfEncrypt* pEncrypt = NULL );
 
     ~PdfImmediateWriter();
 

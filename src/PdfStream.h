@@ -60,8 +60,9 @@ class PODOFO_API PdfStream {
 
     /** Write the stream to an output device
      *  \param pDevice write to this outputdevice.
+     *  \param pEncrypt encrypt stream data using this object
      */
-    virtual void Write( PdfOutputDevice* pDevice ) = 0;
+    virtual void Write( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt = NULL ) = 0;
 
     /** Set a binary buffer as stream data.
      *
