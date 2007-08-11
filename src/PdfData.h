@@ -63,7 +63,7 @@ class PODOFO_API PdfData : public PdfDataType {
     /** Write the complete datatype to a file.
      *  \param pDevice write the object to this device
      */
-    void Write( PdfOutputDevice* pDevice ) const;
+    void Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt = NULL ) const;
 
     /** Copy an existing PdfData 
      *  \param rhs another PdfData to copy

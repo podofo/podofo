@@ -182,12 +182,12 @@ void PdfVariant::Clear()
     memset( &m_Data, 0, sizeof( UVariant ) );
 }
 
-void PdfVariant::Write( PdfOutputDevice* pDevice ) const
+void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) const
 {
-    this->Write( pDevice, PdfName::KeyNull );
+    this->Write( pDevice, pEncrypt, PdfName::KeyNull );
 }
 
-void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
+void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt, const PdfName & keyStop ) const
 {
     DelayedLoad(); 
 
@@ -226,10 +226,10 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) cons
         case ePdfDataType_Array:
         case ePdfDataType_Reference:
         case ePdfDataType_RawData:
-            m_Data.pData->Write( pDevice );
+            m_Data.pData->Write( pDevice, pEncrypt );
             break;
         case ePdfDataType_Dictionary:
-            static_cast<PdfDictionary*>(m_Data.pData)->Write( pDevice, keyStop );
+            static_cast<PdfDictionary*>(m_Data.pData)->Write( pDevice, pEncrypt, keyStop );
             break;
         case ePdfDataType_Null:
             pDevice->Print( "null" );
@@ -250,7 +250,7 @@ void PdfVariant::ToString( std::string & rsData ) const
     // PdfOutputDevice will do so for us.
     PdfOutputDevice device( &out );
 
-    this->Write( &device );
+    this->Write( &device, NULL );
     
     rsData = out.str();
 }

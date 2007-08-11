@@ -22,6 +22,7 @@
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
+#include "PdfEncrypt.h"
 #include "PdfOutputDevice.h"
 #include "PdfStream.h"
 #include "PdfVariant.h"
@@ -136,7 +137,7 @@ void PdfObject::InitPdfObject()
 #endif
 }
 
-void PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
+void PdfObject::WriteObject( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt, const PdfName & keyStop ) const
 {
     DelayedStreamLoad();
 
@@ -148,11 +149,30 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop )
     if( m_reference.IsIndirect() )
         pDevice->Print( "%i %i obj\n", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
 
-    this->Write( pDevice, keyStop );
+    if( pEncrypt ) 
+        pEncrypt->SetCurrentReference( m_reference );
+
+    this->Write( pDevice, pEncrypt, keyStop );
     pDevice->Print( "\n" );
 
     if( m_pStream )
-        m_pStream->Write( pDevice );
+    {
+        if( pEncrypt ) 
+        {
+            char* pBuffer;
+            long  lLen;
+            m_pStream->GetCopy( &pBuffer, &lLen );
+
+            pEncrypt->Encrypt( reinterpret_cast<unsigned char*>(pBuffer), lLen );
+
+            pDevice->Print( "stream\n" );
+            pDevice->Write( pBuffer, m_pStream->GetLength() );
+            pDevice->Print( "\nendstream\n" );
+            free( pBuffer );                               
+        }
+        else
+            m_pStream->Write( pDevice );
+    }
 
     if( m_reference.IsIndirect() )
         pDevice->Print( "endobj\n" );
@@ -185,7 +205,7 @@ unsigned long PdfObject::GetObjectLength()
 {
     PdfOutputDevice device;
 
-    this->WriteObject( &device );
+    this->WriteObject( &device, NULL );
 
     return device.GetLength();
 }
@@ -267,7 +287,7 @@ unsigned long PdfObject::GetByteOffset( const char* pszKey )
         PODOFO_RAISE_ERROR( ePdfError_InvalidKey );
     }
 
-    this->Write( &device, pszKey );
+    this->Write( &device, NULL, pszKey );
     
     return device.GetLength();
 }

@@ -46,9 +46,9 @@
 namespace PoDoFo {
 
 PdfWriter::PdfWriter( PdfParser* pParser )
-    : m_bEncrypt( false ), m_bXRefStream( false ), 
-      m_pPagesTree( NULL ), m_bLinearized( false ),  
-      m_lFirstInXRef( 0 )
+    : m_bXRefStream( false ), m_pEncrypt( NULL ), 
+      m_pPagesTree( NULL ), m_pEncryptObj(NULL ), 
+      m_bLinearized( false ), m_lFirstInXRef( 0 )
 {
     if( !pParser )
     {
@@ -61,9 +61,9 @@ PdfWriter::PdfWriter( PdfParser* pParser )
 }
 
 PdfWriter::PdfWriter( PdfDocument* pDocument )
-    : m_bEncrypt( false ), m_bXRefStream( false ), 
-      m_pPagesTree( NULL ), m_bLinearized( false ),  
-      m_lFirstInXRef( 0 )
+    : m_bXRefStream( false ), m_pEncrypt( NULL ), 
+      m_pPagesTree( NULL ), m_pEncryptObj(NULL ),
+      m_bLinearized( false ), m_lFirstInXRef( 0 )
 {
     if( !pDocument )
     {
@@ -77,9 +77,9 @@ PdfWriter::PdfWriter( PdfDocument* pDocument )
 }
 
 PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
-    : m_bEncrypt( false ), m_bXRefStream( false ), 
-      m_pPagesTree( NULL ), m_bLinearized( false ),  
-      m_lFirstInXRef( 0 )
+    : m_bXRefStream( false ), m_pEncrypt( NULL ), 
+      m_pPagesTree( NULL ), m_pEncryptObj(NULL ),
+      m_bLinearized( false ), m_lFirstInXRef( 0 )
 {
     if( !pVecObjects || !pTrailer )
     {
@@ -92,7 +92,7 @@ PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
 }
 
 PdfWriter::PdfWriter( PdfVecObjects* pVecObjects )
-    : m_bEncrypt( false ), m_bXRefStream( false ), 
+    : m_bXRefStream( false ), m_pEncrypt( NULL ), 
       m_pPagesTree( NULL ), m_bLinearized( false ),  
       m_lFirstInXRef( 0 )
 {
@@ -104,6 +104,7 @@ PdfWriter::PdfWriter( PdfVecObjects* pVecObjects )
 PdfWriter::~PdfWriter()
 {
     delete m_pTrailer;
+    delete m_pEncrypt;
 
     m_pTrailer     = NULL;
     m_vecObjects   = NULL;
@@ -119,14 +120,22 @@ void PdfWriter::Write( const char* pszFilename )
 
 void PdfWriter::Write( PdfOutputDevice* pDevice )
 {
+    CreateFileIdentifier( m_identifier, m_pTrailer );
+
     if( !pDevice )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     // setup encrypt dictionary
-    if( m_bEncrypt )
-        m_encrypt.GenerateEncryptionKey( "", "podofo", PdfEncrypt::PdfKeyLength40, 0 );
+    if( m_pEncrypt )
+    {
+        m_pEncrypt->GenerateEncryptionKey( m_identifier );
+
+        // Add our own Encryption dictionary
+        m_pEncryptObj = m_vecObjects->CreateObject();
+        m_pEncrypt->CreateEncryptionDictionary( m_pEncryptObj->GetDictionary() );
+    }
 
     if( m_bLinearized ) 
     {
@@ -151,7 +160,7 @@ void PdfWriter::Write( PdfOutputDevice* pDevice )
                 FillTrailerObject( &trailer, pXRef->GetSize(), false, false );
                 
                 pDevice->Print("trailer\n");
-                trailer.WriteObject( pDevice, NULL );
+                trailer.WriteObject( pDevice, NULL ); // Do not encrypt the trailer dicionary!!!
             }
             
             pDevice->Print( "startxref\n%li\n%%%%EOF\n", pXRef->GetOffset() );
@@ -255,8 +264,8 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& 
     while( itObjects != vecObjects.end() )
     {
         pXref->AddObject( (*itObjects)->Reference(), pDevice->GetLength(), true );
-        //(*itObjects)->WriteObject( pDevice, m_bEncrypt ? &m_encrypt : NULL );
-        (*itObjects)->WriteObject( pDevice );
+        // Make sure that we do not encrypt the encryption dictionary!
+        (*itObjects)->WriteObject( pDevice, ((*itObjects) == m_pEncryptObj ? NULL : m_pEncrypt) );
 
         ++itObjects;
     }
@@ -446,24 +455,17 @@ void PdfWriter::FillTrailerObject( PdfObject* pTrailer, long lSize, bool bPrevEn
             pTrailer->GetDictionary().AddKey( "Info", m_pTrailer->GetDictionary().GetKey( "Info" ) );
 
 
-        if( m_bEncrypt ) 
-        {
-            // Add our own Encryption dictionary
-            PdfDictionary dict;
-            dict.AddKey( PdfName("Filter"), PdfName("Standard") );
-            dict.AddKey( PdfName("V"), PdfVariant( 1L ) );
-            dict.AddKey( PdfName("Length"), PdfVariant( 40L ) );
-
-            dict.AddKey( PdfName("R"), PdfVariant( 2L ) );
-            dict.AddKey( PdfName("O"), PdfString( reinterpret_cast<const char*>(m_encrypt.GetOvalue()), 32 ) );
-            dict.AddKey( PdfName("U"), PdfString( reinterpret_cast<const char*>(m_encrypt.GetUvalue()), 32 ) );
-            dict.AddKey( PdfName("P"), PdfVariant( static_cast<long>(m_encrypt.GetPvalue()) ) );
-
-            pTrailer->GetDictionary().AddKey( PdfName("Encrypt"), dict );
-        }
+        if( m_pEncryptObj ) 
+            pTrailer->GetDictionary().AddKey( PdfName("Encrypt"), m_pEncryptObj->Reference() );
 
         // maybe only call this function if bPrevEntry is false
-        CreateFileIdentifier( pTrailer );
+        PdfArray array;
+        // The ID is the same unless the PDF was incrementally updated
+        array.push_back( m_identifier );
+        array.push_back( m_identifier );
+
+        // finally add the key to the trailer dictionary
+        pTrailer->GetDictionary().AddKey( "ID", array );
 
         if( bPrevEntry )
         {
@@ -538,11 +540,9 @@ void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDev
 }
 */
 
-void PdfWriter::CreateFileIdentifier( PdfObject* pTrailer ) const
+void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* pTrailer ) const
 {
     PdfOutputDevice length;
-    PdfString       identifier;
-    PdfArray        array;
     PdfObject*      pInfo;
     char*           pBuffer;
     
@@ -584,12 +584,6 @@ void PdfWriter::CreateFileIdentifier( PdfObject* pTrailer ) const
     identifier = PdfEncrypt::GetMD5String( reinterpret_cast<unsigned char*>(pBuffer), length.GetLength() );
     free( pBuffer );
 
-    // The ID is the same unless the PDF was incrementally updated
-    array.push_back( identifier );
-    array.push_back( identifier );
-    
-    // finally add the key to the trailer dictionary
-    pTrailer->GetDictionary().AddKey( "ID", array );
     delete pInfo;
 }
 

@@ -26,7 +26,7 @@
 
 namespace PoDoFo {
 
-void PdfReference::Write( PdfOutputDevice* pDevice ) const
+void PdfReference::Write( PdfOutputDevice* pDevice, const PdfEncrypt* ) const
 {
     pDevice->Print( "%i %i R", m_nObjectNo, m_nGenerationNo );
 }

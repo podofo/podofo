@@ -30,6 +30,7 @@
 
 namespace PoDoFo {
 
+class PdfEncrypt;
 class PdfObject;
 class PdfOutputDevice;
 class PdfStream;
@@ -43,9 +44,9 @@ class PdfVecObjects;
  * identified by an object number and a generation number which has to be
  * passed to the constructor.
  *
- * The object can be written to a file easily using the Write() function.
+ * The object can be written to a file easily using the WriteObject() function.
  *
- * \see Write()
+ * \see WriteObject()
  */
 class PODOFO_API PdfObject : public PdfVariant {
     friend class PdfVecObjects;
@@ -165,10 +166,12 @@ class PODOFO_API PdfObject : public PdfVariant {
 
     /** Write the complete object to a file.
      *  \param pDevice write the object to this device
+     *  \param pEncrypt an encryption object which is used to encrypt this object
+     *                  or NULL to not encrypt this object
      *  \param keyStop if not KeyNull and a key == keyStop is found
      *                 writing will stop right before this key!
      */
-    void WriteObject( PdfOutputDevice* pDevice, const PdfName & keyStop = PdfName::KeyNull ) const;
+    void WriteObject( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt, const PdfName & keyStop = PdfName::KeyNull ) const;
 
     /** Get the length of the object in bytes if it was written to disk now.
      *  \returns  the length of the object

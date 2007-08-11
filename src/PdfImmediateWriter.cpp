@@ -45,6 +45,8 @@ PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects*
     this->WritePdfHeader( m_pDevice );
 
     m_pXRef = m_bXRefStream ? new PdfXRefStream( m_vecObjects, this ) : new PdfXRef();
+
+    this->CreateFileIdentifier( m_identifier, m_pTrailer );
 }
 
 PdfImmediateWriter::~PdfImmediateWriter()
@@ -60,7 +62,7 @@ void PdfImmediateWriter::WriteObject( const PdfObject* pObject )
     this->FinishLastObject();
 
     m_pXRef->AddObject( pObject->Reference(), m_pDevice->GetLength(), true );
-    pObject->WriteObject( m_pDevice );
+    pObject->WriteObject( m_pDevice, m_pEncrypt );
 
     // Let's cheat a bit:
     // pObject has written an "endobj\n" as last data to the file.
@@ -96,7 +98,7 @@ void PdfImmediateWriter::Finish()
         FillTrailerObject( &trailer, m_pXRef->GetSize(), false, false );
         
         m_pDevice->Print("trailer\n");
-        trailer.WriteObject( m_pDevice );
+        trailer.WriteObject( m_pDevice, NULL );
     }
     
     m_pDevice->Print( "startxref\n%li\n%%%%EOF\n", lXRefOffset );

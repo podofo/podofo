@@ -64,8 +64,10 @@ class PODOFO_API PdfArray : public std::vector<PdfObject>, public PdfDataType {
      *  This is an overloaded member function.
      *
      *  \param pDevice write the object to this device
+     *  \param pEncrypt an encryption object which is used to encrypt this object
+     *                  or NULL to not encrypt this object
      */
-    void Write( PdfOutputDevice* pDevice ) const;
+    void Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt = NULL ) const;
 
     /** Utility method to determine if the array contains
      *  contains any objects of ePdfDataType_String whose

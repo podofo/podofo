@@ -67,12 +67,29 @@ class PdfXRef {
             : m_nFirst( 0 ), m_nCount( 0 )
         {
         }
+
+        PdfXRefBlock( const PdfXRefBlock & rhs )
+            : m_nFirst( 0 ), m_nCount( 0 )
+        {
+            this->operator=( rhs );
+        }
         
         bool InsertItem( const TXRefItem & rItem, bool bUsed );
 
         bool operator<( const PdfXRefBlock & rhs ) const
         {
             return m_nFirst < rhs.m_nFirst;
+        }
+
+        const PdfXRefBlock & operator=( const PdfXRefBlock & rhs )
+        {
+            m_nFirst  = rhs.m_nFirst;
+            m_nCount  = rhs.m_nCount;
+            
+            items     = rhs.items;
+            freeItems = rhs.freeItems;
+
+            return *this;
         }
 
         unsigned long m_nFirst;

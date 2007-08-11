@@ -46,6 +46,7 @@
 #include "PdfDestination.h"
 #include "PdfDocument.h"
 #include "PdfElement.h"
+#include "PdfEncrypt.h"
 #include "PdfError.h"
 #include "PdfExtGState.h"
 #include "PdfField.h"

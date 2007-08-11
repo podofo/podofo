@@ -20,6 +20,7 @@
 
 #include "PdfString.h"
 
+#include "PdfEncrypt.h"
 #include "PdfFilter.h"
 #include "PdfOutputDevice.h"
 
@@ -362,10 +363,35 @@ void PdfString::SetHexData( const char* pszHex, long lLen )
     m_buffer.GetBuffer()[lLen] = '\0';
 }
 
-void PdfString::Write ( PdfOutputDevice* pDevice ) const
+void PdfString::Write ( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) const
 {
     // Strings in PDF documents may contain \0 especially if they are encrypted
     // this case has to be handled!
+    if( pEncrypt ) 
+    {
+        std::string enc;
+        if( this->IsHex() )
+        {
+            PdfString str = this->HexDecode();
+            enc = std::string( str.GetString(), str.GetLength() );
+        }
+        else
+            enc = std::string( this->GetString(), this->GetLength() );
+
+        if( m_bUnicode )
+        {
+            std::string tmp( reinterpret_cast<const char*>(&PdfString::s_pszUnicodeMarker), 2 );
+            tmp += enc;
+
+            enc = tmp;
+        }
+
+        pEncrypt->Encrypt( enc );
+
+        PdfString str( enc.c_str(), enc.length(), true );
+        str.Write( pDevice, NULL );
+        return;
+    }
 
     pDevice->Print( m_bHex ? "<" : "(" );
     if( m_bUnicode ) 
@@ -484,7 +510,6 @@ bool PdfString::operator==( const PdfString & rhs ) const
 
 void PdfString::Init( const char* pszString, long lLen )
 {
-    // TODO: escape characters inside of strings!
     if( pszString ) 
     {
         bool bUft16LE = false;
@@ -555,15 +580,17 @@ PdfString PdfString::HexEncode() const
     {
         std::auto_ptr<PdfFilter> pFilter;
 
-        long                  lLen = m_buffer.GetSize() << 1;
+        long                  lLen  = (m_buffer.GetSize() - 1) << 1;
         PdfString             str;
-        PdfRefCountedBuffer   buffer( lLen );
+        PdfRefCountedBuffer   buffer( lLen + 1 );
         PdfMemoryOutputStream stream( buffer.GetBuffer(), lLen );
 
         pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
         pFilter->BeginEncode( &stream );
-        pFilter->EncodeBlock( m_buffer.GetBuffer(), m_buffer.GetSize() );
+        pFilter->EncodeBlock( m_buffer.GetBuffer(), (m_buffer.GetSize() - 1) );
         pFilter->EndEncode();
+
+        buffer.GetBuffer()[buffer.GetSize()-1] = '\0';
 
         str.m_buffer   = buffer;
         str.m_bHex     = true;

@@ -32,12 +32,45 @@ using std::string;
 
 using namespace PoDoFo;
 
+void enc_test() 
+{
+    PdfString documentId;
+    documentId.SetHexData( "BF37541A9083A51619AD5924ECF156DF", 32 );
+
+    PdfEncrypt enc( "user", "podofo", 0 );
+    enc.GenerateEncryptionKey( documentId );
+
+    printf("\n\nTrying authentication!\n");
+
+    PdfString documentIdAscii = documentId.HexDecode();
+    std::string documentIdStr( documentIdAscii.GetString(), documentIdAscii.GetLength() );
+    std::string password = "user";
+    std::string uValue( reinterpret_cast<const char*>(enc.GetUValue()), 32 );
+    std::string oValue( reinterpret_cast<const char*>(enc.GetOValue()), 32 );
+
+    if( enc.Authenticate(documentIdStr, password,
+                         uValue, oValue,
+                         enc.GetPValue(), 40, 2) )
+    {
+
+        printf("Successfull\n");
+    }
+    else
+        printf("FAILED\n");
+}
+
 void write_back( PdfParser* pParser, const char* pszFilename )
 {
-    PdfWriter writer( pParser );
+    enc_test();
 
-    writer.SetUseXRefStream( true );
+    PdfWriter writer( pParser );
+    PdfEncrypt* pEncrypt = new PdfEncrypt( "user", "podofo", 0,
+                                           PdfEncrypt::ePdfEncryptAlgorithm_RC4V2, PdfEncrypt::ePdfKeyLength_128 );
+
+    //writer.SetUseXRefStream( true );
     //writer.SetLinearized( true );
+    writer.SetPdfVersion( ePdfVersion_1_6 );
+    writer.SetEncrypted( pEncrypt );
     writer.Write( pszFilename );
 }
 

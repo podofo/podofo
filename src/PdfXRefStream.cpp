@@ -125,7 +125,7 @@ void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
     m_pObject->GetDictionary().AddKey( "W", w );
 
     pDevice->Seek( m_lOffset );
-    m_pObject->WriteObject( pDevice );
+    m_pObject->WriteObject( pDevice, NULL ); // DominikS: Requires encryption info??
     m_indeces.clear();
 }
 

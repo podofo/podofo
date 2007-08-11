@@ -133,16 +133,22 @@ class PODOFO_API PdfDictionary : public PdfDataType {
 
     /** Write the complete dictionary to a file.  \param pDevice write the
      * object to this device \returns ErrOk on success
+     *
+     *  \param pEncrypt an encryption object which is used to encrypt this object
+     *                  or NULL to not encrypt this object
      */
-    inline void Write( PdfOutputDevice* pDevice ) const;
+    inline void Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt = NULL ) const;
 
     /** Write the complete dictionary to a file.  \param pDevice write the
      * object to this device \param keyStop if not KeyNull and a key == keyStop
      * is found writing will stop right before this key!  \returns ErrOk on
      * success
+     *
+     *  \param pEncrypt an encryption object which is used to encrypt this object
+     *                  or NULL to not encrypt this object
      */
-    void Write( PdfOutputDevice* pDevice, const PdfName & keyStop =
-		    PdfName::KeyNull ) const;
+    void Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt, const PdfName & keyStop =
+                PdfName::KeyNull ) const;
 
     /** Get access to the internal map of keys.
      *
@@ -182,9 +188,9 @@ TKeyMap & PdfDictionary::GetKeys()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfDictionary::Write( PdfOutputDevice* pDevice ) const 
+void PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) const 
 { 
-    this->Write( pDevice, PdfName::KeyNull ); 
+    this->Write( pDevice, pEncrypt, PdfName::KeyNull ); 
 }
 
 };

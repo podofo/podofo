@@ -121,16 +121,18 @@ class PODOFO_API PdfWriter {
      */
     const char* GetPdfVersionString() const { return s_szPdfVersionNums[static_cast<int>(m_eVersion)]; }
     
-    /** Sets this PdfWriter to write an encrypted PDF file.
+    /** Set the written document to be encrypted using a PdfEncrypt object
      *
-     *  \param bEncrypt if true all strings and streams will be encrypted before writing
+     *  \param pEncrypt if NULL no encryption will be used
+     *         otherwise the encryption object will be owned
+     *         and deleted by the PdfWriter.
      */
-    void SetEncrypted( bool bEncrypt ) { m_bEncrypt = bEncrypt; }
+    void SetEncrypted( PdfEncrypt* pEncrypt ) { if( m_pEncrypt ) delete m_pEncrypt; m_pEncrypt = pEncrypt; };
 
     /** 
      * \returns true if this PdfWriter creates an encrypted PDF file
      */
-    bool GetEncrypted() const { return m_bEncrypt; }
+    bool GetEncrypted() const { return (m_pEncrypt != NULL); }
 
     /** Calculate the byte offset of the object pObject in the PDF file
      *  if the file was written to disk at the moment of calling this function.
@@ -180,6 +182,16 @@ class PODOFO_API PdfWriter {
      */ 
     void WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& vecObjects, PdfXRef* pXref ) PODOFO_LOCAL;
 
+    /** Creates a file identifier which is required in several
+     *  PDF workflows. 
+     *  All values from the files document information dictionary are
+     *  used to create a unique MD5 key which is added to the trailer dictionary.
+     *
+     *  \param identifier write the identifier to this string
+     *  \param pTrailer trailer object
+     */
+    void CreateFileIdentifier( PdfString & identifier, const PdfObject* pTrailer ) const PODOFO_LOCAL;
+
  private:
     /** Writes a linearized PDF file
      *  \param pDevice write to this output device
@@ -222,27 +234,21 @@ class PODOFO_API PdfWriter {
      *  \param pVecXRefOffset xref table entries for previous entry
      */
     // void FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset ) PODOFO_LOCAL;
-    /** Creates a file identifier which is required in several
-     *  PDF workflows. 
-     *  All values from the files document information dictionary are
-     *  used to create a unique MD5 key which is added to the trailer dictionary.
-     *
-     *  \param pTrailer add the file identifier to this trailer dictionary
-     */
-    void CreateFileIdentifier( PdfObject* pTrailer ) const PODOFO_LOCAL;
 
  protected:
     PdfVecObjects*  m_vecObjects;
     PdfObject*      m_pTrailer;
 
-    bool            m_bEncrypt;      ///< If true encrypt all strings and streams and create an encryption dictionary in the trailer
     bool            m_bXRefStream;
 
-    PdfEncrypt      m_encrypt;
+    PdfEncrypt*     m_pEncrypt;   ///< If not NULL encrypt all strings and streams and create an encryption dictionary in the trailer
+    PdfString       m_identifier;
 
  private:
     EPdfVersion     m_eVersion;
     PdfPagesTree*   m_pPagesTree;
+
+    PdfObject*      m_pEncryptObj; ///< Used to temporarly store the encryption dictionary
 
     bool            m_bLinearized;
  

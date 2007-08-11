@@ -119,7 +119,7 @@ class PODOFO_API PdfName : public PdfDataType {
      *
      *  \param pDevice write the object to this device
      */
-    void Write( PdfOutputDevice* pDevice ) const;
+    void Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt = NULL) const;
 
     /** \returns the unescaped value of this name object
      *           without the leading slash

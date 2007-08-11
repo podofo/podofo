@@ -177,6 +177,7 @@ void PdfOutputDevice::Write( const char* pBuffer, long lLen )
         }
         else
         {
+            printf("m_lBufferLen=%li, m_ulLength + lLen=%li lLen=%li\n", m_lBufferLen, m_ulLength + lLen, lLen );
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
         }
     }

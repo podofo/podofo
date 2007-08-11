@@ -89,7 +89,7 @@ class PODOFO_API PdfReference : public PdfDataType {
      *
      *  \param pDevice write the object to this device
      */
-    void Write( PdfOutputDevice* pDevice ) const;
+    void Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt = NULL) const;
 
     /** 
      * Compare to PdfReference objects.

@@ -25,6 +25,9 @@
 // includes
 #include "PdfEncrypt.h"
 
+#include "PdfDictionary.h"
+#include "PdfRijndael.h"
+
 namespace PoDoFo {
 
 // ----------------
@@ -121,7 +124,7 @@ static void MD5Final(unsigned char digest[MD5_HASHBYTES], MD5_CTX *ctx)
 
   MD5Transform(ctx->buf, reinterpret_cast<unsigned int *>(ctx->in));
   memcpy(digest, ctx->buf, MD5_HASHBYTES);
-  memset((char *) ctx, 0, sizeof(ctx));       /* In case it's sensitive */
+  memset( reinterpret_cast<char *>(ctx), 0, sizeof(ctx));       /* In case it's sensitive */
 }
 
 static void MD5Init(MD5_CTX *ctx)
@@ -330,34 +333,107 @@ static void byteReverse(unsigned char *buf, unsigned longs)
 // Based on code from Ulrich Telle: http://wxcode.sourceforge.net/components/wxpdfdoc/
 // ---------------------------
 
-
 static unsigned char padding[] =
   "\x28\xBF\x4E\x5E\x4E\x75\x8A\x41\x64\x00\x4E\x56\xFF\xFA\x01\x08\x2E\x2E\x00\xB6\xD0\x68\x3E\x80\x2F\x0C\xA9\xFE\x64\x53\x69\x7A";
 
-PdfEncrypt::PdfEncrypt()
+PdfEncrypt::PdfEncrypt( const std::string & userPassword, const std::string & ownerPassword, int protection, 
+                        EPdfEncryptAlgorithm eAlgorithm, EPdfKeyLength eKeyLength )
+    : m_eAlgorithm( eAlgorithm ), m_eKeyLength( eKeyLength ), m_aes( NULL ), 
+      m_userPass( userPassword ), m_ownerPass( ownerPassword )
 {
-  int j;
-  for (j = 0; j < 5; j++)
-  {
-    m_rc4key[j] = 0;
-  }
+    // setup object
+    int keyLength = static_cast<int>(eKeyLength);
+
+    switch (eAlgorithm)
+    {
+        case ePdfEncryptAlgorithm_AESV2:
+            m_rValue = 4;
+            m_keyLength = 128 / 8;
+            m_aes = new PdfRijndael();
+            break;
+        case ePdfEncryptAlgorithm_RC4V2:
+            keyLength = keyLength - keyLength % 8;
+            keyLength = (keyLength >= 40) ? ((keyLength <= 128) ? keyLength : 128) : 40;
+            m_rValue = 3;
+            m_keyLength = keyLength / 8;
+            break;
+        case ePdfEncryptAlgorithm_RC4V1:
+        default:
+            m_rValue = 2;
+            m_keyLength = 40 / 8;
+            break;
+    }
+    
+    int j;
+    for (j = 0; j < 16; j++)
+    {
+        m_rc4key[j] = 0;
+    }
+
+    // Compute P value
+    m_pValue = -((protection ^ 255) + 1);
 }
 
 PdfEncrypt::~PdfEncrypt()
 {
+    if (m_rValue == 4)
+    {
+        delete m_aes;
+    }
 }
+
+void PdfEncrypt::CreateEncryptionDictionary( PdfDictionary & rDictionary ) const
+{
+    rDictionary.AddKey( PdfName("Filter"), PdfName("Standard") );
+
+    switch( m_eAlgorithm ) 
+    {
+        default:
+        case ePdfEncryptAlgorithm_RC4V1:
+            rDictionary.AddKey( PdfName("V"), 1L );
+            rDictionary.AddKey( PdfName("R"), 2L );
+            break;
+        case ePdfEncryptAlgorithm_RC4V2:
+            rDictionary.AddKey( PdfName("V"), 2L );
+            rDictionary.AddKey( PdfName("R"), 3L );
+            rDictionary.AddKey( PdfName("Length"), PdfVariant( static_cast<long>(m_eKeyLength) ) );
+            break;
+        case ePdfEncryptAlgorithm_AESV2:
+            rDictionary.AddKey( PdfName("V"), 4L );
+            rDictionary.AddKey( PdfName("R"), 4L );
+            rDictionary.AddKey( PdfName("Length"), 128L );
+
+            PdfDictionary cf;
+            PdfDictionary stdCf;
+            stdCf.AddKey( PdfName("CFM"), PdfName("AESV2") );
+            stdCf.AddKey( PdfName("Length"), 16L );
+            stdCf.AddKey( PdfName("AuthEvent"), PdfName("DocOpen") );
+            cf.AddKey( PdfName("StdCF"), stdCf );
+
+            rDictionary.AddKey( PdfName("CF"), cf );
+            rDictionary.AddKey( PdfName("StrF"), PdfName("StdCF") );
+            rDictionary.AddKey( PdfName("StmF"), PdfName("StdCF") );
+            break;
+    }
+
+    rDictionary.AddKey( PdfName("O"), PdfString( reinterpret_cast<const char*>(this->GetOValue()), 32, true ) );
+    rDictionary.AddKey( PdfName("U"), PdfString( reinterpret_cast<const char*>(this->GetUValue()), 32, true ) );
+    rDictionary.AddKey( PdfName("P"), PdfVariant( static_cast<long>(this->GetPValue()) ) );
+}
+
 
 void
 PdfEncrypt::PadPassword(const std::string& password, unsigned char pswd[32])
 {
   int m = password.length();
+
   if (m > 32) m = 32;
 
   int j;
   int p = 0;
   for (j = 0; j < m; j++)
   {
-    pswd[p++] = (unsigned char) password[j];
+      pswd[p++] = static_cast<unsigned char>( password[j] );
   }
   for (j = 0; p < 32 && j < 32; j++)
   {
@@ -366,74 +442,275 @@ PdfEncrypt::PadPassword(const std::string& password, unsigned char pswd[32])
 }
 
 void
-PdfEncrypt::GenerateEncryptionKey(const std::string& userPassword,
-                                    const std::string& ownerPassword,
-									PdfKeyLength inKeyLength,
-                                    int protection)
+PdfEncrypt::GenerateEncryptionKey(const PdfString & documentId)
 {
-  int j;
   unsigned char userpswd[32];
   unsigned char ownerpswd[32];
-  unsigned char digest[MD5_HASHBYTES];
 
   // Pad passwords
-  PadPassword(userPassword, userpswd);
-  PadPassword(ownerPassword, ownerpswd);
+  PadPassword( m_userPass,  userpswd  );
+  PadPassword( m_ownerPass, ownerpswd );
 
   // Compute O value
-  GetMD5Binary(ownerpswd, 32, digest);
-  RC4(digest, 5, userpswd, 32, m_Ovalue);
+  ComputeOwnerKey(userpswd, ownerpswd, m_keyLength*8, m_rValue, false, m_oValue);
 
-  // Compute encryption key
-  const int buflen = 32 + 32 + 4;
-  unsigned char buffer[buflen];
+  // Compute encryption key and U value
+  if( documentId.IsHex() ) 
+  {
+      PdfString id = documentId.HexDecode();
+      m_documentId = std::string( id.GetString(), id.GetLength() );
+  }
+  else 
+      m_documentId = std::string( documentId.GetString(), documentId.GetLength() );
+
+  ComputeEncryptionKey(m_documentId, userpswd,
+                       m_oValue, m_pValue, m_keyLength*8, m_rValue, m_uValue);
+}
+
+bool
+PdfEncrypt::Authenticate(const std::string& documentID, const std::string& password,
+                         const std::string& uValue, const std::string& oValue,
+                         int pValue, int lengthValue, int rValue)
+{
+  unsigned char userKey[32];
+  bool ok = false;
+  int j;
   for (j = 0; j < 32; j++)
   {
-    buffer[j]    = userpswd[j];
-    buffer[j+32] = m_Ovalue[j];
+      m_uValue[j] = static_cast<unsigned char>( uValue[j] );
+      m_oValue[j] = static_cast<unsigned char>( oValue[j] );
   }
-  buffer[64+0] = protection & 0xff;
-  buffer[64+1] = 0xff;
-  buffer[64+2] = 0xff;
-  buffer[64+3] = 0xff;
-  GetMD5Binary(buffer, buflen, digest);
-  for (j = 0; j < 5; j++)
+  m_pValue = pValue;
+  m_keyLength = lengthValue / 8;
+
+  // Pad password
+  unsigned char pswd[32];
+  PadPassword(password, pswd);
+
+  // Check password: 1) as user password, 2) as owner password
+  ComputeEncryptionKey(documentID, pswd, m_oValue, pValue, lengthValue, rValue, userKey);
+  ok = CheckKey(userKey, m_uValue);
+  if (!ok)
   {
-    m_encryptionKey[j] = digest[j];
+    unsigned char userpswd[32];
+    ComputeOwnerKey(m_oValue, pswd, lengthValue, rValue, true, userpswd);
+    ComputeEncryptionKey(documentID, userpswd, m_oValue, pValue, lengthValue, rValue, userKey);
+    ok = CheckKey(userKey, m_uValue);
   }
-
-  // Compute U value
-  RC4(m_encryptionKey, 5, padding, 32, m_Uvalue);
-
-  // Compute P value
-  m_Pvalue = -((protection ^ 255) + 1);
+  return ok;
 }
 
 void
-PdfEncrypt::Encrypt(unsigned char* str, int len)
+PdfEncrypt::ComputeOwnerKey(unsigned char userPad[32], unsigned char ownerPad[32],
+                              int keyLength, int revision, bool authenticate,
+                              unsigned char ownerKey[32])
 {
-  unsigned char objkey[MD5_HASHBYTES];
-  unsigned char nkey[10];
+  unsigned char mkey[MD5_HASHBYTES];
+  unsigned char digest[MD5_HASHBYTES];
+  int length = keyLength / 8;
+
+  MD5_CTX ctx;
+  MD5Init(&ctx);
+  MD5Update(&ctx, ownerPad, 32);
+  MD5Final(digest,&ctx);
+
+  if (revision == 3 || revision == 4)
+  {
+    // only use for the input as many bit as the key consists of
+    int k;
+    for (k = 0; k < 50; ++k)
+    {
+      MD5Init(&ctx);
+      MD5Update(&ctx, digest, length);
+      MD5Final(digest,&ctx);
+    }
+    memcpy(ownerKey, userPad, 32);
+    int i;
+    int j;
+    for (i = 0; i < 20; ++i)
+    {
+      for (j = 0; j < length ; ++j)
+      {
+        if (authenticate)
+        {
+          mkey[j] = (digest[j] ^ (19-i));
+        }
+        else
+        {
+          mkey[j] = (digest[j] ^ i);
+        }
+      }
+      RC4(mkey, length, ownerKey, 32, ownerKey);
+    }
+  }
+  else
+  {
+    RC4(digest, 5, userPad, 32, ownerKey);
+  }
+}
+
+void
+PdfEncrypt::ComputeEncryptionKey(const std::string& documentId,
+                                   unsigned char userPad[32], unsigned char ownerKey[32],
+                                   int pValue, int keyLength, int revision,
+                                   unsigned char userKey[32])
+{
   int j;
-  for (j = 0; j < 5; j++)
+  int k;
+  m_keyLength = keyLength / 8;
+
+  MD5_CTX ctx;
+  MD5Init(&ctx);
+  MD5Update(&ctx, userPad, 32);
+  MD5Update(&ctx, ownerKey, 32);
+
+  unsigned char ext[4];
+  ext[0] = static_cast<unsigned char> ( pValue        & 0xff);
+  ext[1] = static_cast<unsigned char> ((pValue >>  8) & 0xff);
+  ext[2] = static_cast<unsigned char> ((pValue >> 16) & 0xff);
+  ext[3] = static_cast<unsigned char> ((pValue >> 24) & 0xff);
+  MD5Update(&ctx, ext, 4);
+
+  size_t docIdLength = documentId.length();
+  unsigned char* docId = NULL;
+  if (docIdLength > 0)
+  {
+    docId = new unsigned char[docIdLength];
+    size_t j;
+    for (j = 0; j < docIdLength; j++)
+    {
+      docId[j] = static_cast<unsigned char>( documentId[j] );
+    }
+    MD5Update(&ctx, docId, docIdLength);
+  }
+  
+  // TODO: (Revision 3 or greater) If document metadata is not being encrypted,
+  //       pass 4 bytes with the value 0xFFFFFFFF to the MD5 hash function.
+
+  unsigned char digest[MD5_HASHBYTES];
+  MD5Final(digest,&ctx);
+
+  // only use the really needed bits as input for the hash
+  if (revision == 3 || revision == 4)
+  {
+    for (k = 0; k < 50; ++k)
+    {
+      MD5Init(&ctx);
+      MD5Update(&ctx, digest, m_keyLength);
+      MD5Final(digest, &ctx);
+    }
+  }
+
+  memcpy(m_encryptionKey, digest, m_keyLength);
+
+  // Setup user key
+  if (revision == 3 || revision == 4)
+  {
+    MD5Init(&ctx);
+    MD5Update(&ctx, padding, 32);
+    if (docId != NULL)
+    {
+      MD5Update(&ctx, docId, docIdLength);
+    }
+    MD5Final(digest, &ctx);
+    memcpy(userKey, digest, 16);
+    for (k = 16; k < 32; ++k)
+    {
+      userKey[k] = 0;
+    }
+    for (k = 0; k < 20; k++)
+    {
+      for (j = 0; j < m_keyLength; ++j)
+      {
+        digest[j] = static_cast<unsigned char>(m_encryptionKey[j] ^ k);
+      }
+      RC4(digest, m_keyLength, userKey, 16, userKey);
+    }
+  }
+  else
+  {
+    RC4(m_encryptionKey, m_keyLength, padding, 32, userKey);
+  }
+  if (docId != NULL)
+  {
+    delete [] docId;
+  }
+}
+
+bool
+PdfEncrypt::CheckKey(unsigned char key1[32], unsigned char key2[32])
+{
+  // Check whether the right password had been given
+  bool ok = true;
+  int k;
+  int kmax = (m_rValue == 3) ? 16 : 32;
+  for (k = 0; ok && k < kmax; k++)
+  {
+    ok = ok && (key1[k] == key2[k]);
+  }
+  return ok;
+}
+
+void
+PdfEncrypt::Encrypt(std::string& str) const
+{
+  size_t len = str.length();
+  unsigned char* data = new unsigned char[len];
+  size_t j;
+  for (j = 0; j < len; j++)
+  {
+    data[j] = static_cast<unsigned char> ( str[j] );
+  }
+  Encrypt(data, len);
+  for (j = 0; j < len; j++)
+  {
+    str[j] = data[j];
+  }
+  delete [] data;
+}
+
+void
+PdfEncrypt::Encrypt(unsigned char* str, int len) const
+{
+  int n = m_curReference.ObjectNumber();
+  int g = m_curReference.GenerationNumber();
+  unsigned char objkey[MD5_HASHBYTES];
+  unsigned char nkey[MD5_HASHBYTES+5+4];
+  int nkeylen = m_keyLength + 5;
+  int j;
+  for (j = 0; j < m_keyLength; j++)
   {
     nkey[j] = m_encryptionKey[j];
   }
-  /*
-  nkey[5] = 0xff &  n;
-  nkey[6] = 0xff & (n >> 8);
-  nkey[7] = 0xff & (n >> 16);
-  nkey[8] = 0;
-  nkey[9] = 0;
-  */
-  nkey[5] = 0xff &  m_curReference.ObjectNumber();
-  nkey[6] = 0xff & (m_curReference.ObjectNumber() >> 8);
-  nkey[7] = 0xff & (m_curReference.ObjectNumber() >> 16);
-  nkey[8] = 0xff &  m_curReference.GenerationNumber();
-  nkey[9] = 0xff & (m_curReference.GenerationNumber() >> 8);
+  nkey[m_keyLength+0] = 0xff &  n;
+  nkey[m_keyLength+1] = 0xff & (n >> 8);
+  nkey[m_keyLength+2] = 0xff & (n >> 16);
+  nkey[m_keyLength+3] = 0xff &  g;
+  nkey[m_keyLength+4] = 0xff & (g >> 8);
 
-  GetMD5Binary(nkey, 10, objkey);
-  RC4(objkey, 10, str, len, str);
+  if (m_rValue == 4)
+  {
+    // AES encryption needs some 'salt'
+    nkeylen += 4;
+    nkey[m_keyLength+5] = 0x73;
+    nkey[m_keyLength+6] = 0x41;
+    nkey[m_keyLength+7] = 0x6c;
+    nkey[m_keyLength+8] = 0x54;
+  }
+
+  GetMD5Binary(nkey, nkeylen, objkey);
+  int keylen = (m_keyLength <= 11) ? m_keyLength+5 : 16;
+  switch (m_rValue)
+  {
+    case 4:
+      const_cast<PdfEncrypt*>(this)->AES(objkey, keylen, str, len, str);
+      break;
+    case 3:
+    case 2:
+    default:
+      const_cast<PdfEncrypt*>(this)->RC4(objkey, keylen, str, len, str);
+      break;
+  }
 }
 
 /**
@@ -442,8 +719,8 @@ PdfEncrypt::Encrypt(unsigned char* str, int len)
 
 void
 PdfEncrypt::RC4(unsigned char* key, int keylen,
-                  unsigned char* textin, int textlen,
-                  unsigned char* textout)
+                unsigned char* textin, int textlen,
+                unsigned char* textout)
 {
   int i;
   int j;
@@ -487,21 +764,71 @@ PdfEncrypt::RC4(unsigned char* key, int keylen,
   }
 }
 
-PdfString PdfEncrypt::GetMD5String( const unsigned char* pBuffer, int nLength )
-{
-    char data[MD5_HASHBYTES];
-
-    PdfEncrypt::GetMD5Binary( pBuffer, nLength, (unsigned char*)data );
-
-    return PdfString( data, MD5_HASHBYTES, true );
-}
-
-void PdfEncrypt::GetMD5Binary(const unsigned char* data, int length, unsigned char* digest)
+void
+PdfEncrypt::GetMD5Binary(const unsigned char* data, int length, unsigned char* digest)
 {
   MD5_CTX ctx;
   MD5Init(&ctx);
   MD5Update(&ctx, data, length);
   MD5Final(digest,&ctx);
+}
+
+void
+PdfEncrypt::AES(unsigned char* key, int,
+                unsigned char* textin, int textlen,
+                unsigned char* textout)
+{
+  GenerateInitialVector(textout);
+  m_aes->init( PdfRijndael::CBC, PdfRijndael::Encrypt, key, PdfRijndael::Key16Bytes, textout);
+  int offset = CalculateStreamOffset();
+  int len = m_aes->padEncrypt(&textin[offset], textlen, &textout[offset]);
+  
+  // It is a good idea to check the error code
+  if (len < 0)
+  {
+    PdfError::DebugMessage( "PdfEncrypt::AES: Error on encrypting." );
+  }
+}
+
+void PdfEncrypt::GenerateInitialVector(unsigned char iv[16])
+{
+    GetMD5Binary(reinterpret_cast<const unsigned char*>(m_documentId.c_str()), m_documentId.length(), iv);
+}
+
+int
+PdfEncrypt::CalculateStreamLength(int length)
+{
+  int realLength = length;
+  if (m_rValue == 4)
+  {
+//    realLength = (length % 0x7ffffff0) + 32;
+    realLength = ((length + 15) & ~15) + 16;
+    if (length % 16 == 0)
+    {
+      realLength += 16;
+    }
+  }
+  return realLength;
+}
+
+int
+PdfEncrypt::CalculateStreamOffset()
+{
+  int offset = 0;
+  if (m_rValue == 4)
+  {
+    offset = 16;
+  }
+  return offset;
+}
+
+PdfString PdfEncrypt::GetMD5String( const unsigned char* pBuffer, int nLength )
+{
+    char data[MD5_HASHBYTES];
+
+    PdfEncrypt::GetMD5Binary( pBuffer, nLength, reinterpret_cast<unsigned char*>(data) );
+
+    return PdfString( data, MD5_HASHBYTES, true );
 }
 
 };

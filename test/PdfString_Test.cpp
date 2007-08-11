@@ -163,7 +163,7 @@ void testEscape()
     PdfString str( "Hello (cruel) World" );
     const char* pszExpected = "(Hello \\(cruel\\) World)";
     out.Seek( 0 );
-    str.Write( &out );
+    str.Write( &out, NULL );
     if( strcmp( oss.str().c_str(), pszExpected ) != 0 ) 
     {
         printf( "Expected: %s\n", pszExpected );
@@ -175,7 +175,7 @@ void testEscape()
     str         = PdfString( "Path: C:\\Temp\\out.pdf" );
     pszExpected = "(Path: C:\\\\Temp\\\\out.pdf)";
     out.Seek( 0 );
-    str.Write( &out );
+    str.Write( &out, NULL );
     
     if( strcmp( oss.str().c_str(), pszExpected ) != 0 ) 
     {

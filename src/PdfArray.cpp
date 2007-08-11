@@ -45,14 +45,14 @@ PdfArray::PdfArray( const PdfArray & rhs )
     this->operator=( rhs );
 }
 
-void PdfArray::Write( PdfOutputDevice* pDevice ) const
+void PdfArray::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) const
 {
     PdfArray::const_iterator it = this->begin();
 
     pDevice->Print( "[ " );
     while( it != this->end() )
     {
-        (*it).Write( pDevice );
+        (*it).Write( pDevice, pEncrypt );
         pDevice->Print( " " );
 
         ++it;

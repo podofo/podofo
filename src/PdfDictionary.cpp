@@ -177,7 +177,7 @@ bool PdfDictionary::RemoveKey( const PdfName & identifier )
     return false;
 }
 
-void PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) const
+void PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt, const PdfName & keyStop ) const
 {
     TCIKeyMap     itKeys;
 
@@ -192,7 +192,7 @@ void PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) c
     {
         // Type has to be the first key in any dictionary
         pDevice->Print( "/Type " );
-        this->GetKey( PdfName::KeyType )->Write( pDevice );
+        this->GetKey( PdfName::KeyType )->Write( pDevice, pEncrypt );
         pDevice->Print( "\n" );
     }
 
@@ -204,7 +204,7 @@ void PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfName & keyStop ) c
                 return;
 
             pDevice->Print( "/%s ", (*itKeys).first.GetName().c_str() );
-            (*itKeys).second->Write( pDevice );
+            (*itKeys).second->Write( pDevice, pEncrypt );
             pDevice->Print("\n");
         }
         

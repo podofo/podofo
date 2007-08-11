@@ -48,6 +48,7 @@ SET(PODOFO_SOURCES
     PdfRefCountedBuffer.cpp
     PdfRefCountedInputDevice.cpp
     PdfReference.cpp
+    PdfRijndael.cpp
     PdfStream.cpp
     PdfStreamedDocument.cpp
     PdfString.cpp
@@ -112,6 +113,7 @@ SET(PODOFO_HEADERS
     PdfRefCountedBuffer.h
     PdfRefCountedInputDevice.h
     PdfReference.h
+    PdfRijndael.h
     PdfStream.h
     PdfStreamedDocument.h
     PdfString.h
