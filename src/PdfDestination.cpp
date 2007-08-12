@@ -160,6 +160,10 @@ const PdfDestination & PdfDestination::operator=( const PdfDestination & rhs )
 
 void PdfDestination::AddToDictionary( PdfDictionary & dictionary ) const
 {
+    // Do not add empty destinations
+    if( !m_array.size() )
+        return;
+
     // since we can only have EITHER a Dest OR an Action
     // we check for an Action, and if already present, we throw
     if ( dictionary.HasKey( PdfName( "A" ) ) )

@@ -123,6 +123,8 @@ class PODOFO_API PdfDestination {
     /** Adds this destination to an dictionary.
      *  This method handles the all the complexities of making sure it's added correctly
      *
+     *  If this destination is empty. Nothing will be added.
+     *
      *  \param dictionary the destination will be added to this dictionary
      */
     void AddToDictionary( PdfDictionary & dictionary ) const;
