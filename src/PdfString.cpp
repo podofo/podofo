@@ -203,7 +203,7 @@ const pdf_utf16be PdfString::s_cPdfDocEncoding[256] = {
     0x0161,
     0x017E,
     0x0000, // Undefined
-    0x20AC,
+    0x20AC, // Euro
     0x00A1,
     0x00A2,
     0x00A3,
@@ -673,7 +673,7 @@ PdfString PdfString::ToUnicode() const
         pdf_utf16be*          pString = reinterpret_cast<pdf_utf16be*>(buffer.GetBuffer());
 
         for( int i=0;i<this->GetLength();i++ )
-            pString[i] = s_cPdfDocEncoding[static_cast<int>(m_buffer.GetBuffer()[i])];
+            pString[i] = s_cPdfDocEncoding[ static_cast<unsigned char>(m_buffer.GetBuffer()[i]) ];
 
         //make sure the buffer is 0 terminated
         pString[lLen-1] = 0;

@@ -232,8 +232,13 @@ class PODOFO_API PdfString : public PdfDataType{
     bool operator<( const PdfString & rhs ) const;
 
     /** Comparison operator
+     *
+     *  UTF-8 and UTF-16BE encoded strings of the same data compare equal. Whether
+     *  the string will be written out as hex is not considered - only the real "text"
+     *  is tested for equality.
+     *
      *  \param rhs compare to this string object
-     *  \returns true if both strings have the same contents
+     *  \returns true if both strings have the same contents 
      */
     bool operator==( const PdfString & rhs ) const;
 
@@ -241,7 +246,7 @@ class PODOFO_API PdfString : public PdfDataType{
      *  \param rhs compare to this string object
      *  \returns true if strings have different contents
      */
-    bool operator!=(const PdfString& rhs) const { return !(*this==rhs); }
+    bool operator!=(const PdfString& rhs) const { return !operator==(rhs); }
 
     /** Converts this string to a hex encoded string.
      *  

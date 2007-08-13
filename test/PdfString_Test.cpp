@@ -28,6 +28,31 @@
 
 using namespace PoDoFo;
 
+// The same string as a NULL-terminated UTF-8 string
+const char* pszStringJapUtf8 = "「PoDoFo」は今から日本語も話せます。";
+// and a UTF-16 BE encoded char array w/o NULL terminator
+const char psStringJapUtf16BE[44] = { 0xfe, 0xff, 0x30, 0x0c, 0x00, 0x50, 0x00,
+    0x6f, 0x00, 0x44, 0x00, 0x6f, 0x00, 0x46, 0x00, 0x6f, 0x30, 0xd0, 0x30,
+    0x6f, 0x4e, 0xca, 0x30, 0x4b, 0x30, 0x89, 0x65, 0xe5, 0x67, 0x2c, 0x8a,
+    0x9e, 0x30, 0x82, 0x8a, 0x71, 0x30, 0x5b, 0x30, 0x7e, 0x30, 0x59, 0x30,
+    0x02 };
+
+// Some accented chars within the latin-1-with-euro range (UTF-8 encoded)
+const char* pszStringUmlUtf8 = "String with German Umlauts: Hallo schöne Welt: äöüÄÖÜß€\n";
+// The same string in PdfDoc encoding - see PDF Reference Section D.1 Latin Character Set and Encodings
+const char* pszStringUmlPdfDoc = "String with German Umlauts: Hallo sch\366ne Welt: \344\366\374\304\326\334\337\240\n";
+// and the same string in UTF-16 BE
+const char psStringUmlUtf16BE[114] = { 0xfe, 0xff, 0x00, 0x53, 0x00, 0x74,
+    0x00, 0x72, 0x00, 0x69, 0x00, 0x6e, 0x00, 0x67, 0x00, 0x20, 0x00, 0x77,
+    0x00, 0x69, 0x00, 0x74, 0x00, 0x68, 0x00, 0x20, 0x00, 0x47, 0x00, 0x65,
+    0x00, 0x72, 0x00, 0x6d, 0x00, 0x61, 0x00, 0x6e, 0x00, 0x20, 0x00, 0x55,
+    0x00, 0x6d, 0x00, 0x6c, 0x00, 0x61, 0x00, 0x75, 0x00, 0x74, 0x00, 0x73,
+    0x00, 0x3a, 0x00, 0x20, 0x00, 0x48, 0x00, 0x61, 0x00, 0x6c, 0x00, 0x6c,
+    0x00, 0x6f, 0x00, 0x20, 0x00, 0x73, 0x00, 0x63, 0x00, 0x68, 0x00, 0xf6,
+    0x00, 0x6e, 0x00, 0x65, 0x00, 0x20, 0x00, 0x57, 0x00, 0x65, 0x00, 0x6c,
+    0x00, 0x74, 0x00, 0x3a, 0x00, 0x20, 0x00, 0xe4, 0x00, 0xf6, 0x00, 0xfc,
+    0x00, 0xc4, 0x00, 0xd6, 0x00, 0xdc, 0x00, 0xdf, 0x20, 0xac, 0x00, 0x0a};
+
 void testUnicodeString( const pdf_utf8* pszString, long lBufferLen )
 {
     
@@ -69,15 +94,8 @@ void testUnicode()
 {
     printf("\nUnicode conversion tests:\n\n");
 
-    // UTF-8 encoded data; make sure your editor is set up correctly!
-    const char* pszString = "String with German Umlauts: Hallo schöne Welt: äöüÄÖÜß€\n";
-    
-    testUnicodeString( reinterpret_cast<const pdf_utf8*>(pszString), strlen( pszString ) );
-
-    // UTF-8 encoded Japanese; make sure your editor is set up correctly and you have suitable fonts!
-    const char* pszStringJap = "「PoDoFo」は今から日本語も話せます。";
-    testUnicodeString( reinterpret_cast<const pdf_utf8*>(pszStringJap), strlen( pszStringJap ) );
-
+    testUnicodeString( reinterpret_cast<const pdf_utf8*>(pszStringUmlUtf8), strlen( pszStringUmlUtf8 ) );
+    testUnicodeString( reinterpret_cast<const pdf_utf8*>(pszStringJapUtf8), strlen( pszStringJapUtf8 ) );
 
     PdfString simple("Hallo World");
     PdfString unicode = simple.ToUnicode();
@@ -99,6 +117,26 @@ void testUnicode()
     printf("Hexdata: %s\n", unicodeHex.GetString() );
     printf("IsUnicode: %i\n", unicodeHex.IsUnicode() );
     free( pBuffer );
+
+    // Test automatic UTF16BE encoding detection
+    PdfString fromUml16BE( psStringUmlUtf16BE, sizeof(psStringUmlUtf16BE), false );
+    if (!fromUml16BE.IsUnicode())
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    // Make sure PdfDoc strings are not interpreted as UTF16BE
+    PdfString fromUmlPdfDoc( pszStringUmlPdfDoc, strlen(pszStringUmlPdfDoc), false);
+    if (fromUmlPdfDoc.IsUnicode())
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    // and ensure that the two representations of the same thing compare equal
+    if (fromUml16BE != fromUmlPdfDoc)
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    // TODO: ensure exact char count match
+
+    // Also make sure that another UTF16BE string is detected correctly.
+    // We can't compare against PdfDoc strings for this since there is no
+    // equivalent PdfDoc string.
+    PdfString fromJap16BE( psStringJapUtf16BE, sizeof(psStringJapUtf16BE), false);
+    if (!fromJap16BE.IsUnicode())
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
 }
 
 
@@ -160,20 +198,23 @@ void testString( const char* pszString, const PdfString & str, const PdfString &
 
 void testHexEncodeDecode() 
 {
-    printf("\nHex conversion tests:\n\n");
+    printf("\nHex conversion tests:\n");
+    printf("ASCII input:\n");
 
-    char      helloBar[] = { 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21 };
+    char      helloBar[12] = { 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21 }; // "Hello World!" sans null terminator
     PdfString helloStr("Hello World!");
     PdfString helloBin( helloBar, 12, true );
 
     testString( "Hello World!", helloStr, helloBin );
 
-
+    printf("Hex input:\n");
     PdfString helloHex;
     helloHex.SetHexData( "48656c6c6f 20576f726c6421" );
 
     testString( "Hello World!", helloStr, helloHex );
 
+    if ( PdfString("fred", 4, false) != PdfString("fred", 4, true) )
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
 }
 
 void testEscape() 
@@ -207,15 +248,15 @@ void testEscape()
 
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
+
+    printf("Escaping tests done\n");
 }
 
 int main()
 {
-    // The following text is encoded as UTF-8 literals. Your editor must be configured
-    // to treat this file as UTF-8, and must have a suitable Japanese font, to correctly
-    // display the following.
-    const char* pszStringJap = "「PoDoFo」は今から日本語も話せます。";
-    printf("Jap: %s\n", pszStringJap );
+    // The following will only print correctly if your output device
+    // is expecting UTF-8 encoded data.
+    printf("UTF-8 Jap: %s\n", pszStringJapUtf8 );
 
     try {
         testUnicode();
