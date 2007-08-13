@@ -69,7 +69,8 @@ PdfOutlineItem::PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutli
 }
 
 PdfOutlineItem::PdfOutlineItem( PdfVecObjects* pParent )
-    : PdfElement( "Outlines", pParent ), m_pParentOutline( NULL ), m_pPrev( NULL ), m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL )
+    : PdfElement( "Outlines", pParent ), m_pParentOutline( NULL ), m_pPrev( NULL ), 
+      m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL )
 {
 }
 

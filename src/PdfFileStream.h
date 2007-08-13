@@ -59,6 +59,13 @@ class PODOFO_API PdfFileStream : public PdfStream {
 
     virtual ~PdfFileStream();
 
+    /** Set an encryption object which is used to encrypt
+     *  all data written to this stream.
+     *
+     *  \param pEncrypt an encryption object or NULL if no encryption should be done
+     */
+    void SetEncrypted( PdfEncrypt* pEncrypt ); 
+
     /** Write the stream to an output device
      *  \param pDevice write to this outputdevice.
      *  \param pEncrypt encrypt stream data using this object
@@ -125,6 +132,7 @@ class PODOFO_API PdfFileStream : public PdfStream {
     PdfOutputDevice* m_pDevice;
     PdfOutputStream* m_pStream;
     PdfOutputStream* m_pDeviceStream;
+    PdfOutputStream* m_pEncryptStream;
 
     unsigned long    m_lLenInitial;
     unsigned long    m_lLength;

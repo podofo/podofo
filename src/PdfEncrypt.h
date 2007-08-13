@@ -30,6 +30,7 @@ namespace PoDoFo {
 
 class PdfDictionary;
 class PdfRijndael;
+class PdfOutputStream;
 
 /// Class representing PDF encryption methods. (For internal use only)
 /// Based on code from Ulrich Telle: http://wxcode.sourceforge.net/components/wxpdfdoc/
@@ -150,6 +151,17 @@ public:
      */
     void CreateEncryptionDictionary( PdfDictionary & rDictionary ) const;
     
+    /** Create a PdfOutputStream that encrypts all data written to 
+     *  it using the current settings of the PdfEncrypt object.
+     *
+     *  Warning: Currently only RC4 based encryption is supported using output streams!
+     *  
+     *  \param pOutputStream the created PdfOutputStream writes all encrypted
+     *         data to this output stream.
+     *
+     *  \returns a PdfOutputStream that encryts all data.
+     */
+    PdfOutputStream* CreateEncryptionStream( PdfOutputStream* pOutputStream );
 
 
   bool Authenticate(const std::string & documentID, const std::string & password,
@@ -233,6 +245,13 @@ protected:
 
   /// Generate initial vector
   void GenerateInitialVector(unsigned char iv[16]);
+
+  /** Create the encryption key for the current object.
+   *
+   *  \param pObjkey pointer to an array of at least MD5_HASHBYTES (=16) bytes length
+   *  \param pnKeyLen pointer to an integer where the actual keylength is stored.
+   */
+  void CreateObjKey( unsigned char objkey[16], int* pnKeyLen ) const;
 
 private:
   EPdfEncryptAlgorithm m_eAlgorithm;    ///< The used encryption algorithm

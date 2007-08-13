@@ -43,7 +43,10 @@ PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects*
     this->CreateFileIdentifier( m_identifier, m_pTrailer );
     // setup encryption
     if( pEncrypt )
+    {
         this->SetEncrypted( *pEncrypt );
+        m_pEncrypt->GenerateEncryptionKey( m_identifier );
+    }
 
     // start with writing the header
     this->SetPdfVersion( eVersion );
@@ -91,8 +94,6 @@ void PdfImmediateWriter::Finish()
     // setup encrypt dictionary
     if( m_pEncrypt )
     {
-        m_pEncrypt->GenerateEncryptionKey( m_identifier );
-
         // Add our own Encryption dictionary
         m_pEncryptObj = m_vecObjects->CreateObject();
         m_pEncrypt->CreateEncryptionDictionary( m_pEncryptObj->GetDictionary() );
@@ -153,6 +154,9 @@ void PdfImmediateWriter::BeginAppendStream( const PdfStream* pStream )
         // Only one open file stream is allowed at a time
         assert( !m_bOpenStream );
         m_bOpenStream = true;
+
+        if( m_pEncrypt )
+            const_cast<PdfFileStream*>(pFileStream)->SetEncrypted( m_pEncrypt );
     }
 }
     

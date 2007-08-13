@@ -93,6 +93,7 @@ class PdfFilteredEncodeStream : public PdfOutputStream{
     virtual long Write( const char* pBuffer, long lLen )
     {
         m_filter->EncodeBlock( pBuffer, lLen );
+        
         return 0;
     }
 

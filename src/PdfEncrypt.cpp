@@ -26,9 +26,102 @@
 #include "PdfEncrypt.h"
 
 #include "PdfDictionary.h"
+#include "PdfFilter.h"
 #include "PdfRijndael.h"
 
 namespace PoDoFo {
+
+
+/** A PdfOutputStream that encrypts all data written to it
+ *  using the RC4 encryption algorithm
+ */
+class PdfRC4Stream : public PdfOutputStream {
+public:
+    PdfRC4Stream( PdfOutputStream* pOutputStream, unsigned char rc4key[256], unsigned char rc4last[256], unsigned char* key, int keylen )
+        : m_pOutputStream( pOutputStream ), m_a( 0 ), m_b( 0 )
+    {
+        int i;
+        int j;
+        int t;
+
+        if (memcmp(key,rc4key,keylen) != 0)
+        {
+            for (i = 0; i < 256; i++)
+                m_rc4[i] = i;
+
+            j = 0;
+            for (i = 0; i < 256; i++)
+            {
+                t = m_rc4[i];
+                j = (j + t + key[i % keylen]) % 256;
+                m_rc4[i] = m_rc4[j];
+                m_rc4[j] = t;
+            }
+
+            memcpy(rc4key, key, keylen);
+            memcpy(rc4last, m_rc4, 256);
+        }
+        else
+        {
+            memcpy(m_rc4, rc4last, 256);
+        }
+    }
+
+    ~PdfRC4Stream()
+    {
+    }
+
+    /** Write data to the output stream
+     *  
+     *  \param pBuffer the data is read from this buffer
+     *  \param lLen    the size of the buffer 
+     */
+    virtual long Write( const char* pBuffer, long lLen )
+    {
+        unsigned char k;
+        int t, i;
+
+        // Do not encode data with no length
+        if( !lLen )
+            return lLen;
+
+        char* pOutputBuffer = static_cast<char*>(malloc( sizeof(char) * lLen ));
+        if( !pOutputBuffer )
+        {
+            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        }
+
+        for (i = 0; i < lLen; i++ )
+        {
+            m_a = (m_a + 1) % 256;
+            t   = m_rc4[m_a];
+            m_b = (m_b + t) % 256;
+
+            m_rc4[m_a] = m_rc4[m_b];
+            m_rc4[m_b] = t;
+
+            k = m_rc4[(m_rc4[m_a] + m_rc4[m_b]) % 256];
+            pOutputBuffer[i] = pBuffer[i] ^ k;
+        }
+
+        m_pOutputStream->Write( pOutputBuffer, lLen );
+
+        free( pOutputBuffer );
+        return lLen;
+    }
+
+    virtual void Close() 
+    {
+    }
+
+private:
+    PdfOutputStream* m_pOutputStream;
+    unsigned char m_rc4[256];
+
+    int           m_a;
+    int           m_b;
+
+};
 
 // ----------------
 // MD5 by RSA
@@ -494,7 +587,6 @@ PdfEncrypt::GenerateEncryptionKey(const PdfString & documentId)
 
   // Compute encryption key and U value
   m_documentId = std::string( documentId.GetString(), documentId.GetLength() );
-
   ComputeEncryptionKey(m_documentId, userpswd,
                        m_oValue, m_pValue, m_keyLength*8, m_rValue, m_uValue);
 }
@@ -701,12 +793,11 @@ PdfEncrypt::Encrypt(std::string& str) const
   delete [] data;
 }
 
-void
-PdfEncrypt::Encrypt(unsigned char* str, int len) const
+void PdfEncrypt::CreateObjKey( unsigned char objkey[16], int* pnKeyLen ) const
 {
   int n = m_curReference.ObjectNumber();
   int g = m_curReference.GenerationNumber();
-  unsigned char objkey[MD5_HASHBYTES];
+
   unsigned char nkey[MD5_HASHBYTES+5+4];
   int nkeylen = m_keyLength + 5;
   int j;
@@ -731,7 +822,17 @@ PdfEncrypt::Encrypt(unsigned char* str, int len) const
   }
 
   GetMD5Binary(nkey, nkeylen, objkey);
-  int keylen = (m_keyLength <= 11) ? m_keyLength+5 : 16;
+  *pnKeyLen = (m_keyLength <= 11) ? m_keyLength+5 : 16;
+}
+
+void
+PdfEncrypt::Encrypt(unsigned char* str, int len) const
+{
+  unsigned char objkey[MD5_HASHBYTES];
+  int keylen;
+
+  this->CreateObjKey( objkey, &keylen );
+
   switch (m_rValue)
   {
     case 4:
@@ -743,6 +844,28 @@ PdfEncrypt::Encrypt(unsigned char* str, int len) const
       const_cast<PdfEncrypt*>(this)->RC4(objkey, keylen, str, len, str);
       break;
   }
+}
+
+PdfOutputStream* PdfEncrypt::CreateEncryptionStream( PdfOutputStream* pOutputStream )
+{
+  unsigned char objkey[MD5_HASHBYTES];
+  int keylen;
+
+  this->CreateObjKey( objkey, &keylen );
+
+  switch (m_rValue)
+  {
+    case 4:
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "CreateEncryptionStream does not yet support AES" );
+      break;
+    case 3:
+    case 2:
+    default:
+        return new PdfRC4Stream( pOutputStream, m_rc4key, m_rc4last, objkey, keylen );
+      break;
+  }
+
+  return NULL;
 }
 
 /**

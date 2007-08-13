@@ -20,6 +20,7 @@
 
 #include "PdfFileStream.h"
 
+#include "PdfEncrypt.h"
 #include "PdfFilter.h"
 #include "PdfOutputDevice.h"
 #include "PdfOutputStream.h"
@@ -28,7 +29,7 @@ namespace PoDoFo {
 
 PdfFileStream::PdfFileStream( PdfObject* pParent, PdfOutputDevice* pDevice )
     : PdfStream( pParent ), m_pDevice( pDevice ), m_pStream( NULL ), m_pDeviceStream( NULL ),
-      m_lLenInitial( 0 ), m_lLength( 0 ), m_pCurEncrypt( NULL )
+      m_pEncryptStream( NULL ), m_lLenInitial( 0 ), m_lLength( 0 ), m_pCurEncrypt( NULL )
 {
     m_pLength = pParent->GetOwner()->CreateObject( PdfVariant(0L) );
     m_pParent->GetDictionary().AddKey( PdfName::KeyLength, m_pLength->Reference() );
@@ -38,9 +39,8 @@ PdfFileStream::~PdfFileStream()
 {
 }
 
-void PdfFileStream::Write( PdfOutputDevice*, PdfEncrypt* pEncrypt )
+void PdfFileStream::Write( PdfOutputDevice*, PdfEncrypt* )
 {
-    m_pCurEncrypt = pEncrypt;
 }
 
 void PdfFileStream::BeginAppendImpl( const TVecFilters & vecFilters )
@@ -52,15 +52,29 @@ void PdfFileStream::BeginAppendImpl( const TVecFilters & vecFilters )
     if( vecFilters.size() )
     {
         m_pDeviceStream = new PdfDeviceOutputStream( m_pDevice );
-        m_pStream       = PdfFilterFactory::CreateEncodeStream( vecFilters, m_pDeviceStream );
+        if( m_pCurEncrypt ) 
+        {
+            m_pEncryptStream = m_pCurEncrypt->CreateEncryptionStream( m_pDeviceStream );
+            m_pStream        = PdfFilterFactory::CreateEncodeStream( vecFilters, m_pEncryptStream );
+        }
+        else
+            m_pStream        = PdfFilterFactory::CreateEncodeStream( vecFilters, m_pDeviceStream );
     }
     else 
-        m_pStream = new PdfDeviceOutputStream( m_pDevice );
+    {
+        if( m_pCurEncrypt ) 
+        {
+            m_pDeviceStream = new PdfDeviceOutputStream( m_pDevice );
+            m_pStream       = m_pCurEncrypt->CreateEncryptionStream( m_pDeviceStream );
+        }
+        else
+            m_pStream = new PdfDeviceOutputStream( m_pDevice );
+    }
 }
 
 void PdfFileStream::AppendImpl( const char* pszString, size_t lLen )
 {
-    m_pStream->Write( pszString, lLen );
+    m_pStream->Write( pszString, static_cast<long>(lLen) );
 }
 
 void PdfFileStream::EndAppendImpl()
@@ -70,6 +84,13 @@ void PdfFileStream::EndAppendImpl()
         m_pStream->Close();
         delete m_pStream;
         m_pStream = NULL;
+    }
+
+    if( m_pEncryptStream ) 
+    {
+        m_pEncryptStream->Close();
+        delete m_pEncryptStream;
+        m_pEncryptStream = NULL;
     }
 
     if( m_pDeviceStream ) 
@@ -86,6 +107,13 @@ void PdfFileStream::EndAppendImpl()
 void PdfFileStream::GetCopy( char**, long* ) const
 {
     PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+}
+
+void PdfFileStream::SetEncrypted( PdfEncrypt* pEncrypt ) 
+{
+    m_pCurEncrypt = pEncrypt;
+    if( m_pCurEncrypt )
+        m_pCurEncrypt->SetCurrentReference( m_pParent->Reference() );
 }
 
 };

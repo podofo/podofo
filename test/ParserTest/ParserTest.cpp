@@ -20,6 +20,7 @@
 
 #include "PdfError.h"
 #include "PdfParser.h"
+#include "PdfOutputStream.h"
 #include "PdfVecObjects.h"
 #include "PdfWriter.h"
 
@@ -60,6 +61,32 @@ void enc_test()
     }
     else
         printf("FAILED\n");
+
+    enc.SetCurrentReference( PdfReference( 7, 0 ) );
+    const char* pBuffer1 = "Somekind of drawing \001 buffer that possibly \003 could contain PDF drawing commands";
+    const char* pBuffer2 = " possibly could contain PDF drawing\003  commands";
+    long        lLen    = strlen( pBuffer1 ) + 2 * strlen( pBuffer2 );
+
+
+    char* pEncBuffer = (char*)malloc( sizeof(char) * lLen );
+    memcpy( pEncBuffer, pBuffer1, strlen( pBuffer1 ) * sizeof(char) );
+    memcpy( pEncBuffer + strlen(pBuffer1), pBuffer2, strlen( pBuffer2 ) );
+    memcpy( pEncBuffer + strlen(pBuffer1) + strlen( pBuffer2 ), pBuffer2, strlen( pBuffer2 ) );
+
+    enc.Encrypt( reinterpret_cast<unsigned char*>(pEncBuffer), lLen );
+
+    PdfMemoryOutputStream mem( lLen );
+    PdfOutputStream* pStream = enc.CreateEncryptionStream( &mem ); 
+    pStream->Write( pBuffer1, strlen( pBuffer1 ) );
+    pStream->Write( pBuffer2, strlen( pBuffer2 ) );
+    pStream->Write( pBuffer2, strlen( pBuffer2 ) );
+    pStream->Close();
+
+    printf("Result: %i \n", memcmp( pEncBuffer, mem.TakeBuffer(), lLen ) );
+
+
+    enc.Encrypt( reinterpret_cast<unsigned char*>(pEncBuffer), lLen );
+    printf("Decrypted buffer: %s\n", pEncBuffer );
 }
 
 void write_back( PdfParser* pParser, const char* pszFilename )

@@ -478,7 +478,7 @@ void PdfPainter::DrawCircle( double dX, double dY, double dRadius )
 
 void PdfPainter::DrawText( double dX, double dY, const PdfString & sText )
 {
-    this->DrawText( dX, dY, sText, sText.GetLength() - 1 );
+    this->DrawText( dX, dY, sText, sText.GetLength() );
 }
 
 void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long lStringLen )
@@ -498,10 +498,9 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
     }
 
     // replace anytabs in pszText by enough spaces
-    if( !sText.IsHex() )
-        for( i=0;i<=lStringLen;i++ )
-            if( sText.GetString()[i] == '\t' )
-                ++nTabCnt;
+    for( i=0;i<=lStringLen;i++ )
+        if( sText.GetString()[i] == '\t' )
+            ++nTabCnt;
 
     if( nTabCnt )
     {
@@ -552,11 +551,8 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
         this->Restore();
     }
 
-    if( !sText.IsHex() )
-    {
-        std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
-        pFilter->Encode( pszTab, lStringLen, &pBuffer, &lLen );
-    }
+    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+    pFilter->Encode( pszTab, lStringLen, &pBuffer, &lLen );
 
     m_oss.str("");
     m_oss << "BT" << std::endl << "/" << m_pFont->GetIdentifier().GetName()
@@ -570,17 +566,11 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
     m_oss << m_pFont->GetFontCharSpace() * m_pFont->GetFontSize() / 100.0 << " Tc" << std::endl;
 
     m_oss << dX << std::endl
-          << dY << std::endl << " Td <";
+          << dY << std::endl << "Td <";
 
     m_pCanvas->Append( m_oss.str() );
-
-    if( !sText.IsHex() )
-    {
-        m_pCanvas->Append( pBuffer, lLen );
-        free( pBuffer );
-    }
-    else
-        m_pCanvas->Append( sText.GetString(), sText.GetLength() );
+    m_pCanvas->Append( pBuffer, lLen );
+    free( pBuffer );
 
     m_pCanvas->Append( ">Tj\nET\n" );
 

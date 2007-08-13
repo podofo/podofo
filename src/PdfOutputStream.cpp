@@ -97,7 +97,7 @@ long PdfMemoryOutputStream::Write( const char* pBuffer, long lLen )
 
     memcpy( m_pBuffer + m_lLen, pBuffer, lLen );
     m_lLen += lLen;
-    
+
     return lLen;
 }
 
