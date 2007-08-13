@@ -237,6 +237,12 @@ class PODOFO_API PdfString : public PdfDataType{
      */
     bool operator==( const PdfString & rhs ) const;
 
+    /** Comparison operator
+     *  \param rhs compare to this string object
+     *  \returns true if strings have different contents
+     */
+    bool operator!=(const PdfString& rhs) const { return !(*this==rhs); }
+
     /** Converts this string to a hex encoded string.
      *  
      *  If IsHex returns true, a copy of this string is returned

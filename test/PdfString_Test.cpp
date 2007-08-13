@@ -69,10 +69,12 @@ void testUnicode()
 {
     printf("\nUnicode conversion tests:\n\n");
 
+    // UTF-8 encoded data; make sure your editor is set up correctly!
     const char* pszString = "String with German Umlauts: Hallo schöne Welt: äöüÄÖÜß€\n";
     
     testUnicodeString( reinterpret_cast<const pdf_utf8*>(pszString), strlen( pszString ) );
 
+    // UTF-8 encoded Japanese; make sure your editor is set up correctly and you have suitable fonts!
     const char* pszStringJap = "「PoDoFo」は今から日本語も話せます。";
     testUnicodeString( reinterpret_cast<const pdf_utf8*>(pszStringJap), strlen( pszStringJap ) );
 
@@ -102,21 +104,29 @@ void testUnicode()
 
 void testString( const char* pszString, const PdfString & str, const PdfString & hex ) 
 {
-    printf("\t->Got string: %s\n", pszString );
-    printf("\t->    length: %li\n", strlen( pszString ) );
+    printf("\t->    Got string: %s\n", pszString );
+    printf("\t-> ... of length: %li\n", strlen( pszString ) );
+    printf("\t-> Got PdfString: %S\n", str.GetString() );
+    printf("\t-> ... of length: %li\n", str.GetLength() );
+    printf("\t-> Got hexstring: %S\n", hex.GetString() );
+    printf("\t-> ... of length: %li\n", hex.GetLength() );
 
     if( strcmp( str.GetString(), pszString ) != 0 )
     {
         printf("Strings are not equal!\n");
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
-    
 
     if( static_cast<size_t>(str.GetLength()) != strlen( pszString ) + 1 ) 
     {
         printf("Strings length is not equal!\n");
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
-    }        
+    }
+
+    if ( str.GetLength() != hex.GetLength() )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    }
 
     if( strcmp( str.GetString(), hex.GetString() ) != 0 ) 
     {
@@ -135,6 +145,17 @@ void testString( const char* pszString, const PdfString & str, const PdfString &
     {
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
+
+    if ( ! (hex == str) )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    }
+
+    if ( hex != str )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    }
+
 }
 
 void testHexEncodeDecode() 
@@ -190,6 +211,9 @@ void testEscape()
 
 int main()
 {
+    // The following text is encoded as UTF-8 literals. Your editor must be configured
+    // to treat this file as UTF-8, and must have a suitable Japanese font, to correctly
+    // display the following.
     const char* pszStringJap = "「PoDoFo」は今から日本語も話せます。";
     printf("Jap: %s\n", pszStringJap );
 
