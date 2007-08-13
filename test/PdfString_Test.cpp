@@ -106,9 +106,9 @@ void testString( const char* pszString, const PdfString & str, const PdfString &
 {
     printf("\t->    Got string: %s\n", pszString );
     printf("\t-> ... of length: %li\n", strlen( pszString ) );
-    printf("\t-> Got PdfString: %S\n", str.GetString() );
+    printf("\t-> Got PdfString: %s\n", str.GetString() );
     printf("\t-> ... of length: %li\n", str.GetLength() );
-    printf("\t-> Got hexstring: %S\n", hex.GetString() );
+    printf("\t-> Got hexstring: %s\n", hex.GetString() );
     printf("\t-> ... of length: %li\n", hex.GetLength() );
 
     if( strcmp( str.GetString(), pszString ) != 0 )
