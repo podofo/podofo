@@ -117,9 +117,9 @@ void testString( const char* pszString, const PdfString & str, const PdfString &
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    if( static_cast<size_t>(str.GetLength()) != strlen( pszString ) + 1 ) 
+    if( static_cast<size_t>(str.GetLength()) != strlen( pszString ) ) 
     {
-        printf("Strings length is not equal!\n");
+        printf("Strings length is not equal: %li vs %li!\n", str.GetLength(), strlen( pszString ) );
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 
@@ -227,7 +227,7 @@ int main()
         return eCode.GetError();
     }
     
-    printf("\nTest successfull!\n");
+    printf("\nTests successful!\n");
 
     return 0;
 }
