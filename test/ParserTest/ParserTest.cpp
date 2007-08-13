@@ -42,8 +42,11 @@ void enc_test()
 
     printf("\n\nTrying authentication!\n");
 
-    PdfString documentIdAscii = documentId.HexDecode();
-    std::string documentIdStr( documentIdAscii.GetString(), documentIdAscii.GetLength() );
+    PdfOutputDevice debug( &(std::cout) );
+    printf("Debug: ");
+    documentId.Write( &debug );
+    printf("\n\n");
+    std::string documentIdStr( documentId.GetString(), documentId.GetLength() );
     std::string password = "user";
     std::string uValue( reinterpret_cast<const char*>(enc.GetUValue()), 32 );
     std::string oValue( reinterpret_cast<const char*>(enc.GetOValue()), 32 );

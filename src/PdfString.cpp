@@ -22,6 +22,7 @@
 
 #include "PdfEncrypt.h"
 #include "PdfFilter.h"
+#include "PdfTokenizer.h"
 #include "PdfOutputDevice.h"
 
 // alloca() is defined only in <cstdlib> on Mac OS X,
@@ -36,8 +37,9 @@ namespace PoDoFo {
 
 extern bool podofo_is_little_endian();
 
-const PdfString PdfString::StringNull = PdfString();
-const char PdfString::s_pszUnicodeMarker[] = { static_cast<char>(0xFE), static_cast<char>(0xFF) };
+const PdfString PdfString::StringNull        = PdfString();
+const char  PdfString::s_pszUnicodeMarker[]  = { static_cast<char>(0xFE), static_cast<char>(0xFF) };
+const char* PdfString::s_pszUnicodeMarkerHex = "FEFF"; 
 
 // Conversion table from PDFDocEncoding (almost Latin1) to UTF16
 const pdf_utf16be PdfString::s_cPdfDocEncoding[256] = {
@@ -356,11 +358,62 @@ void PdfString::SetHexData( const char* pszHex, long lLen )
     if( lLen == -1 )
         lLen = strlen( pszHex );
 
+    // Allocate a buffer large enough for the hex decoded data
+    // and the 2 terminating zeros
+    m_buffer = PdfRefCountedBuffer( lLen % 2 ? ((lLen + 1) >> 1) + 2 : (lLen >> 1) + 2 );
     m_bHex   = true;
-    m_buffer = PdfRefCountedBuffer( lLen + 1);
+    char* pBuffer = m_buffer.GetBuffer();
+    char val;
+    char cDecodedByte;
+    bool bLow = true;
 
-    memcpy( m_buffer.GetBuffer(), pszHex, lLen );
-    m_buffer.GetBuffer()[lLen] = '\0';
+    while( lLen-- ) 
+    {
+        if( PdfTokenizer::IsWhitespace( *pszHex ) )
+        {
+            ++pszHex;
+            continue;
+        }
+
+        val  = *pszHex;
+        if( val >= 'a' && val <= 'f' )
+            val -= 32; // convert lower case to uppercase
+        val -= ( val < 'A' ? '0' : 'A'-10 );
+
+        if( bLow ) 
+        {
+            cDecodedByte = (val & 0x0F);
+            bLow         = false;
+        }
+        else
+        {
+            cDecodedByte = ((cDecodedByte << 4) | val);
+            bLow         = true;
+
+            *pBuffer++ = cDecodedByte;
+        }
+
+        ++pszHex;
+    }
+
+    if( !bLow ) 
+        // an odd number of bytes was read,
+        // so the last byte is 0
+        *pBuffer++ = cDecodedByte;
+
+    // zero terminate the buffer
+    *pBuffer++ = '\0';
+    *pBuffer++ = '\0';
+
+    // If the allocated internal buffer is to big (e.g. because of whitespaces in the data)
+    // copy to a smaller buffer so that PdfString::GetLength() will be correct
+    lLen = pBuffer - m_buffer.GetBuffer();
+    if( lLen != m_buffer.GetSize() )
+    {
+        PdfRefCountedBuffer temp( lLen );
+        memcpy( temp.GetBuffer(), m_buffer.GetBuffer(), lLen );
+        m_buffer = temp;
+    }
 }
 
 void PdfString::Write ( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) const
@@ -369,15 +422,7 @@ void PdfString::Write ( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) c
     // this case has to be handled!
     if( pEncrypt ) 
     {
-        std::string enc;
-        if( this->IsHex() )
-        {
-            PdfString str = this->HexDecode();
-            enc = std::string( str.GetString(), str.GetLength() );
-        }
-        else
-            enc = std::string( this->GetString(), this->GetLength() );
-
+        std::string enc = std::string( this->GetString(), this->GetLength() );
         if( m_bUnicode )
         {
             std::string tmp( reinterpret_cast<const char*>(&PdfString::s_pszUnicodeMarker), 2 );
@@ -394,26 +439,48 @@ void PdfString::Write ( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) c
     }
 
     pDevice->Print( m_bHex ? "<" : "(" );
-    if( m_bUnicode ) 
-        pDevice->Write( PdfString::s_pszUnicodeMarker, sizeof( PdfString::s_pszUnicodeMarker ) );
-
     if( m_buffer.GetSize() )
     {
-        if( m_bUnicode ) 
-            pDevice->Write( m_buffer.GetBuffer(), m_buffer.GetSize()-1 );
+        char* pBuf = m_buffer.GetBuffer();
+        long  lLen = m_buffer.GetSize() - 2;
+
+        if( m_bHex ) 
+        {
+            if( m_bUnicode )
+                pDevice->Write( PdfString::s_pszUnicodeMarkerHex, 4 );
+
+            char data[2];
+            while( lLen-- )
+            {
+                data[0]  = (*pBuf & 0xF0) >> 4;
+                data[0] += (data[0] > 9 ? 'A' - 10 : '0');
+                
+                data[1]  = (*pBuf & 0x0F);
+                data[1] += (data[1] > 9 ? 'A' - 10 : '0');
+                
+                pDevice->Write( data, 2 );
+                
+                ++pBuf;
+            }
+        }
         else
         {
-            // iterator over the string buffer and escape characters as necessary
-            char* pBuf = m_buffer.GetBuffer();
-            long  lLen = m_buffer.GetSize(); // do not care for the terminating 0
-            while( --lLen ) 
+            if( m_bUnicode ) 
             {
-                if( *pBuf == '\\' ||
-                    *pBuf == '(' ||
-                    *pBuf == ')' )
-                    pDevice->Write( "\\", 1 );
-                          
-                pDevice->Write( &*pBuf++, 1 );
+                pDevice->Write( PdfString::s_pszUnicodeMarker, sizeof( PdfString::s_pszUnicodeMarker ) );
+                pDevice->Write( m_buffer.GetBuffer(), lLen );
+            }
+            else
+            {
+                while( lLen-- ) 
+                {
+                    if( *pBuf == '\\' ||
+                        *pBuf == '(' ||
+                        *pBuf == ')' )
+                        pDevice->Write( "\\", 1 );
+                    
+                    pDevice->Write( &*pBuf++, 1 );
+                }
             }
         }
     }
@@ -435,15 +502,6 @@ bool PdfString::operator>( const PdfString & rhs ) const
     PdfString str1 = *this;
     PdfString str2 = rhs;
 
-    if( m_bHex || rhs.m_bHex )
-    {
-        // one or both strings are hex:
-        // we can only compare non hex strings
-        // so decode them.
-        str1 = str1.HexDecode();
-        str2 = str2.HexDecode();
-    }
-
     if( m_bUnicode || rhs.m_bUnicode )
     {
         // one or both strings are unicode:
@@ -461,15 +519,6 @@ bool PdfString::operator<( const PdfString & rhs ) const
     PdfString str1 = *this;
     PdfString str2 = rhs;
 
-    if( m_bHex || rhs.m_bHex )
-    {
-        // one or both strings are hex:
-        // we can only compare non hex strings
-        // so decode them.
-        str1 = str1.HexDecode();
-        str2 = str2.HexDecode();
-    }
-
     if( m_bUnicode || rhs.m_bUnicode )
     {
         // one or both strings are unicode:
@@ -486,15 +535,6 @@ bool PdfString::operator==( const PdfString & rhs ) const
 {
     PdfString str1 = *this;
     PdfString str2 = rhs;
-
-    if( m_bHex || rhs.m_bHex )
-    {
-        // one or both strings are hex:
-        // we can only compare non hex strings
-        // so decode them.
-        str1 = str1.HexDecode();
-        str2 = str2.HexDecode();
-    }
 
     if( m_bUnicode || rhs.m_bUnicode )
     {
@@ -536,24 +576,16 @@ void PdfString::Init( const char* pszString, long lLen )
         }
 
 
-        m_buffer = PdfRefCountedBuffer( m_bUnicode ? lLen + 2 : lLen + 1 );
+        m_buffer = PdfRefCountedBuffer( lLen + 2 );
         memcpy( m_buffer.GetBuffer(), pszString, lLen );
         m_buffer.GetBuffer()[lLen] = '\0';
-        // terminate unicode strings with \0\0
-        if( m_bUnicode )
-            m_buffer.GetBuffer()[lLen+1] = '\0';
+        m_buffer.GetBuffer()[lLen+1] = '\0';
 
         // if the buffer is a UTF-16LE string
         // convert it to UTF-16BE
         if( bUft16LE ) 
         {
             SwapBytes( m_buffer.GetBuffer(), lLen );
-        }
-
-        if( m_bHex )
-        {
-            m_bHex = false;
-            *this  = this->HexEncode();
         }
     }
 }
@@ -572,6 +604,7 @@ void PdfString::InitFromUtf8( const pdf_utf8* pszStringUtf8, long lLen )
     m_buffer.GetBuffer()[lBufLen+1] = '\0';
 }
 
+/*
 PdfString PdfString::HexEncode() const
 {
     if( this->IsHex() )
@@ -600,6 +633,7 @@ PdfString PdfString::HexEncode() const
     }
 } 
 
+// TODO: REMOVE
 PdfString PdfString::HexDecode() const
 {
     if( !this->IsHex() )
@@ -625,6 +659,7 @@ PdfString PdfString::HexDecode() const
         return str;
     }
 } 
+*/
 
 PdfString PdfString::ToUnicode() const
 {
@@ -632,19 +667,16 @@ PdfString PdfString::ToUnicode() const
         return *this;
     else
     {
-        PdfString src = *this;
-        if( this->IsHex() )
-            src = this->HexDecode();
-
-        long                  lLen = src.GetLength() * sizeof(pdf_utf16be);
+        long                  lLen = (this->GetLength() + 2) * sizeof(pdf_utf16be);
         PdfString             str;
         PdfRefCountedBuffer   buffer( lLen );
         pdf_utf16be*          pString = reinterpret_cast<pdf_utf16be*>(buffer.GetBuffer());
 
-        for( int i=0;i<src.GetLength();i++ )
-            pString[i] = s_cPdfDocEncoding[static_cast<int>(src.m_buffer.GetBuffer()[i])];
+        for( int i=0;i<this->GetLength();i++ )
+            pString[i] = s_cPdfDocEncoding[static_cast<int>(m_buffer.GetBuffer()[i])];
 
         //make sure the buffer is 0 terminated
+        pString[lLen-1] = 0;
         pString[lLen] = 0;
 
         // convert to UTF-16be on little endian systems

@@ -58,6 +58,8 @@ typedef enum EPdfStringConversion {
  *  PdfStrings is an implicitly shared class. As a reason
  *  it is very fast to copy PdfString objects.
  *
+ *  The internal string buffer is guaranteed to be always terminated 
+ *  by 2 zeros.
  */
 class PODOFO_API PdfString : public PdfDataType{
  public:
@@ -91,7 +93,7 @@ class PODOFO_API PdfString : public PdfDataType{
      *  \param pszString the string to copy
      *  \param lLen length of the string data to encode
      *  \param bHex if true the data will be 
-     *              hex encoded and IsHex() will return true.
+     *              hex encoded during writeout of the string and IsHex() will return true.
      */
     PdfString( const char* pszString, long lLen, bool bHex = false );
 
@@ -134,15 +136,13 @@ class PODOFO_API PdfString : public PdfDataType{
      */
     inline bool IsValid() const;
 
-    /** Check if this is a hex string or a text string.
+    /** Check if this is a hex string.
      *  
-     *  If true the data returned by GetString() will be hexencoded.
-     *  You to decode the hex data by yourself or you can use
-     *  HexDecode().
+     *  If true the data will be hex encoded when the string is written to
+     *  a PDF file.
      *
      *  \returns true if this is a hex string.
-     *  \see GetString() 
-     *  \see HexDecode
+     *  \see GetString() will return the raw string contents (not hex encoded)
      */
     inline bool IsHex () const;
 
@@ -159,33 +159,32 @@ class PODOFO_API PdfString : public PdfDataType{
     /** The contents of the strings can be read
      *  by this function.
      *
-     *  If IsHex() returns true the returned data is 
-     *  hex encoded. You can converted it to plain text
-     *  using HexDecode()
+     *  The returned data is never hex encoded any maycontain 0 bytes.
      *
      *  if IsUnicode() returns true, the return value
      *  points to a UTF-16BE string buffer with Length()
      *  characters. Better use GetUnicode() in this case.
      * 
-     *  \returns the strings contents
+     *  \returns the strings contents which is guaranteed to be zero terminated
+     *           but might also contain 0 bytes in the string.
      *  \see IsHex
      *  \see IsUnicode
      *  \see Length
-     *  \see HexDecode
      */
     inline const char* GetString() const;
 
     /** The contents of the strings can be read
      *  by this function.
      *
-     *  If IsHex() returns true the returned data is 
-     *  hex encoded.
+     *  The returned data is never hex encoded any maycontain 0 bytes.
      *
      *  if IsUnicode() returns true, the return value
      *  points to a UTF-16BE string buffer with Length()
      *  characters. Better use GetUnicode() in this case.
      * 
-     *  \returns the strings contents
+     *  \returns the strings contents which is guaranteed to be zero terminated
+     *           but might also contain 0 bytes in the string.
+     *
      *  \see IsHex
      *  \see IsUnicode
      *  \see Length
@@ -193,21 +192,21 @@ class PODOFO_API PdfString : public PdfDataType{
     inline const pdf_utf16be* GetUnicode() const;
 
     /** The length of the string data returned by GetString() 
-     *  in bytes including the terminating zero (or two 
-     *  terminating zeros for unicode strings)
+     *  in bytes not including terminating zeros.
      *
      *  \returns the length of the string. 
      */
     inline long GetLength() const;
 
     /** The length of the string data returned by GetUnicode() 
-     *  in characters including the terminating zero 
+     *  in characters not including the terminating zero 
      *
      *  \returns the length of the string. 
      */
     inline long GetUnicodeLength() const;
 
     /** Write this PdfString in PDF format to a PdfOutputDevice 
+     *  
      *  \param pDevice the output device.
      *  \param pEncrypt an encryption object which is used to encrypt this object
      *                  or NULL to not encrypt this object
@@ -248,7 +247,7 @@ class PODOFO_API PdfString : public PdfDataType{
      *
      *  \see IsHex
      */
-    PdfString HexEncode() const; 
+    //PdfString HexEncode() const; 
 
     /** Converts this string to a ascii string (not hex encoded)
      *  
@@ -260,7 +259,7 @@ class PODOFO_API PdfString : public PdfDataType{
      *
      *  \see IsHex
      */
-    PdfString HexDecode() const; 
+    //PdfString HexDecode() const; 
 
     /** Converts this string to a unicode string
      *  
@@ -324,14 +323,15 @@ class PODOFO_API PdfString : public PdfDataType{
     static void SwapBytes( char* pBuf, long lLen ); 
 
  private:
-    static const char        s_pszUnicodeMarker[];
+    static const char        s_pszUnicodeMarker[];   ///< The unicode marker used to indicate unicode strings in PDF
+    static const char*       s_pszUnicodeMarkerHex;  ///< The unicode marker converted to HEX
     static const pdf_utf16be s_cPdfDocEncoding[256]; ///< conversion table from PDFDocEncoding to UTF16
 
  private:
-    PdfRefCountedBuffer m_buffer;
+    PdfRefCountedBuffer m_buffer;                    ///< String data (always binary), may contain 0 bytes
 
-    bool                m_bHex;
-    bool                m_bUnicode;
+    bool                m_bHex;                      ///< This string is converted to hex during write out
+    bool                m_bUnicode;                  ///< This string contains unicode data
 };
 
 bool PdfString::IsValid() const
@@ -361,12 +361,12 @@ const pdf_utf16be* PdfString::GetUnicode() const
 
 long PdfString::GetLength() const
 {
-    return m_buffer.GetSize();
+    return m_buffer.GetSize() - 2;
 }
 
 long PdfString::GetUnicodeLength() const
 {
-    return m_buffer.GetSize() / sizeof(pdf_utf16be);
+    return (m_buffer.GetSize() / sizeof(pdf_utf16be)) - 2 * sizeof(pdf_utf16be);
 }
 
 };

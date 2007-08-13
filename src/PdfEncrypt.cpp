@@ -493,13 +493,7 @@ PdfEncrypt::GenerateEncryptionKey(const PdfString & documentId)
   ComputeOwnerKey(userpswd, ownerpswd, m_keyLength*8, m_rValue, false, m_oValue);
 
   // Compute encryption key and U value
-  if( documentId.IsHex() ) 
-  {
-      PdfString id = documentId.HexDecode();
-      m_documentId = std::string( id.GetString(), id.GetLength() );
-  }
-  else 
-      m_documentId = std::string( documentId.GetString(), documentId.GetLength() );
+  m_documentId = std::string( documentId.GetString(), documentId.GetLength() );
 
   ComputeEncryptionKey(m_documentId, userpswd,
                        m_oValue, m_pValue, m_keyLength*8, m_rValue, m_uValue);

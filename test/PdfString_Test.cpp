@@ -118,25 +118,20 @@ void testString( const char* pszString, const PdfString & str, const PdfString &
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }        
 
-    PdfString hex2 = str.HexEncode();
-    PdfString str2 = hex.HexDecode();
+    if( strcmp( str.GetString(), hex.GetString() ) != 0 ) 
+    {
+        printf("Str: %s\n", str.GetString() );
+        printf("Hex: %s\n", hex.GetString() );
 
-    if( !(hex2 == str) )
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    }
+
+    if( hex < str || hex > str ) 
     {
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    if( !(hex == str2) )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
-    }
-
-    if( hex2 < str || hex2 > str ) 
-    {
-        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
-    }
-
-    if( hex < str2 || hex > str2 ) 
+    if( hex < str || hex > str ) 
     {
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
@@ -151,6 +146,13 @@ void testHexEncodeDecode()
     PdfString helloBin( helloBar, 12, true );
 
     testString( "Hello World!", helloStr, helloBin );
+
+
+    PdfString helloHex;
+    helloHex.SetHexData( "48656c6c6f 20576f726c6421" );
+
+    testString( "Hello World!", helloStr, helloHex );
+
 }
 
 void testEscape() 

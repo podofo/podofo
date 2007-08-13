@@ -143,6 +143,7 @@ int main()
 
     // testing HEX Strings
     TEST_SAFE_OP( Test( "<FFEB0400A0CC>", ePdfDataType_HexString ) );
+    TEST_SAFE_OP( Test( "<FFEB0400A0C>", ePdfDataType_HexString, "<FFEB0400A0C0>" ) );
     TEST_SAFE_OP( Test( "<>", ePdfDataType_HexString ) );
     printf("---\n");
 

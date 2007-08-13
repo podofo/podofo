@@ -566,7 +566,7 @@ void PdfTokenizer::ReadHexString( PdfVariant& rVariant )
 
     // pad to an even length if necessary
     if( m_vecBuffer.size() % 2 )
-        m_vecBuffer.push_back( c );
+        m_vecBuffer.push_back( '0' );
 
     PdfString string;
     string.SetHexData( m_vecBuffer.size() ? &(m_vecBuffer[0]) : "", m_vecBuffer.size() );
