@@ -252,6 +252,22 @@ void testEscape()
     printf("Escaping tests done\n");
 }
 
+void testLengthCompare()
+{
+    char ps1[8] = {'f','r','e','d','f','r','e','d'};
+    PdfString s1(ps1,8,false);
+    PdfString s2(ps1,4,false);
+    if (s1 == s2)
+        // whoops - prefix equality test!
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+
+    PdfString us1( s1.ToUnicode() );
+    PdfString us2( s2.ToUnicode() );
+    if (us1 == us2)
+        // whoops - prefix equality test!
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+}
+
 int main()
 {
     // The following will only print correctly if your output device
@@ -262,6 +278,7 @@ int main()
         testUnicode();
         testHexEncodeDecode();
         testEscape();
+        testLengthCompare();
 
     } catch( const PdfError & eCode ) {
         eCode.PrintErrorMsg();
