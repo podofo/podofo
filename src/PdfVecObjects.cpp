@@ -31,7 +31,7 @@
 
 namespace {
 
-inline bool ObjectLittle( PoDoFo::PdfObject* p1, PoDoFo::PdfObject* p2 )
+inline bool ObjectLittle( const PoDoFo::PdfObject* p1, const PoDoFo::PdfObject* p2 )
 {
     return *p1 < *p2;
 }
