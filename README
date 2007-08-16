@@ -430,8 +430,9 @@ improving and completing the library.
 ----------------------------------------
 
 PoDoFo's headers are designed to avoid exposing its library dependencies, so
-you do not need dependency headers on the include path. However, you MUST link
-your application to podofo's required libraries on most platforms, eg on UNIX:
+you do not need the headers for Freetype etc on the include path. However, you
+MUST link your application to podofo's required libraries on most platforms, eg
+on UNIX:
 
     -lpodofo -lfreetype -lfontconfig -ljpeg -lz
 

@@ -21,9 +21,14 @@
 #ifndef _PODOFO_H_
 #define _PODOFO_H_
 
-/** This file can be used in client applications to include
- *  all files required by PoDoFo at once.
+/**
+ * This file can be used in client applications to include
+ * all files required by PoDoFo at once.
  *
+ * Some symbols may be declared in the PoDoFo::NonPublic namespace.
+ * Client applications must never rely on or use these symbols directly.
+ * On supporting platforms they will be excluded from the DLL interface,
+ * and they are not guaranteed to continue to exist.
  */
 
 #include "PdfDefines.h"
@@ -55,11 +60,6 @@
 #include "PdfFont.h"
 #include "PdfFontCache.h"
 #include "PdfFontMetrics.h"
-
-// Not considereed to be part of the public API
-#include "PdfHintStream.h"
-// --
-
 #include "PdfImage.h"
 #include "PdfInfo.h"
 #include "PdfInputDevice.h"

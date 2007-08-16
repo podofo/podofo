@@ -29,8 +29,12 @@ namespace PoDoFo {
 
 class PdfPagesTree;
 
-// FIXME CR: Should PdfHintStream be part of the public API?
-class PODOFO_API PdfHintStream : public PdfElement {
+namespace NonPublic {
+
+// PdfHintStream is not part of the public API and is NOT exported as part of
+// the DLL/shared library interface. Do not rely on it.
+
+class PdfHintStream : public PdfElement {
  public:
     PdfHintStream( PdfVecObjects* pParent, PdfPagesTree* pPagesTree );
     ~PdfHintStream();
@@ -60,6 +64,8 @@ class PODOFO_API PdfHintStream : public PdfElement {
     bool          m_bLittleEndian;
 };
 
-};
+}; // end namespace NonPublic
+
+}; // end namespace PoDoFo
 
 #endif /* _PDF_HINT_STREAM_H_ */

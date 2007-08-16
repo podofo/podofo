@@ -39,16 +39,17 @@
 #include <arpa/inet.h>
 #endif // _WIN32
 
-namespace PoDoFo {
-
-// Imported from PdfWriter.cpp
-extern bool podofo_is_little_endian();
-
 // See PdfWriter.cpp
 #define LINEARIZATION_PADDING "1234567890"
 
-
 #define PAGE_OFFSET_HEADER 38
+
+// Imported from PdfWriter.cpp
+namespace PoDoFo { extern bool podofo_is_little_endian(); };
+
+using namespace PoDoFo;
+
+namespace {
 
 struct TPageEntrySharedObjectInfo {
     pdf_uint16 nIndex;
@@ -83,10 +84,10 @@ public:
     pdf_uint16 nContentsLength;
 
 public:
-    void Write( PdfHintStream* pHint );
+    void Write( PoDoFo::NonPublic::PdfHintStream* pHint );
 };
 
-void PdfPageOffsetEntry::Write( PdfHintStream* pHint )
+void PdfPageOffsetEntry::Write( PoDoFo::NonPublic::PdfHintStream* pHint )
 {
     TCIVecPageEntrySharedObjectInfo it;
 
@@ -169,7 +170,7 @@ public:
     // item13:
     pdf_uint16 nItem13;
 
-    void Write( PdfHintStream* pHint )
+    void Write( PoDoFo::NonPublic::PdfHintStream* pHint )
     {
         pHint->WriteUInt32( nLeastNumberOfObjects );
         pHint->WriteUInt32( nFirstPageObject );
@@ -210,7 +211,7 @@ public:
     pdf_uint16 nNumBitsLengthDifference;
 
 public:
-    void Write( PdfHintStream* pHint )
+    void Write( PoDoFo::NonPublic::PdfHintStream* pHint )
     {
         pHint->WriteUInt32( nFirstObjectNumber );
         pHint->WriteUInt32( nFirstObjectLocation );
@@ -221,6 +222,11 @@ public:
         pHint->WriteUInt16( nNumBitsLengthDifference );
     }
 };
+
+}; // end anon namespace
+
+namespace PoDoFo {
+namespace NonPublic {
 
 PdfHintStream::PdfHintStream( PdfVecObjects* pParent, PdfPagesTree* pPagesTree )
     : PdfElement( NULL, pParent ), m_pPagesTree( pPagesTree )
@@ -372,5 +378,5 @@ void PdfHintStream::WriteUInt32( pdf_uint32 val )
     m_pObject->GetStream()->Append( (char*)&val, 4 );
 }
 
-};
-
+}; // end namespace PoDoFo::NonPublic
+}; // end namespace PoDoFo

@@ -180,7 +180,7 @@ void PdfWriter::WriteLinearized( PdfOutputDevice* /* pDevice */ )
     PdfObject*      pLinearize  = NULL;
     PdfPage*        pPage;
     PdfObject*      pLast;
-    PdfHintStream*  pHint;
+    NonPublic::PdfHintStream*  pHint;
     PdfOutputDevice length;
     TVecXRefTable   vecXRef;
     TVecXRefOffset  vecXRefOffset;
@@ -191,7 +191,7 @@ void PdfWriter::WriteLinearized( PdfOutputDevice* /* pDevice */ )
     pPage = m_pPagesTree->GetPage( 0 );
     
     pLinearize = CreateLinearizationDictionary();
-    pHint      = new PdfHintStream( m_vecObjects, m_pPagesTree );
+    pHint      = new NonPublic::PdfHintStream( m_vecObjects, m_pPagesTree );
     
     this->ReorderObjectsLinearized( pLinearize, pHint, pPage, &pLast );
 
@@ -346,7 +346,7 @@ PdfObject* PdfWriter::CreateLinearizationDictionary()
     return pLinearize;
 }
 
-void PdfWriter::ReorderObjectsLinearized( PdfObject* pLinearize, PdfHintStream* pHint, PdfPage* pPage, PdfObject** ppLast ) 
+void PdfWriter::ReorderObjectsLinearized( PdfObject* pLinearize, NonPublic::PdfHintStream* pHint, PdfPage* pPage, PdfObject** ppLast ) 
 {
     TPdfReferenceList   lstLinearizedGroup;
     TPdfReferenceSet    setLinearizedGroup;
@@ -502,7 +502,7 @@ void PdfWriter::FetchPagesTree()
 
 /*
 void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, 
-                                             PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset )
+NonPublic::PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset )
 {
     long            lFileSize        = pDevice->GetLength();
     PdfVariant      value( 0l );

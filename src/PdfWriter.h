@@ -31,7 +31,6 @@ namespace PoDoFo {
 
 class PdfDictionary;
 class PdfDocument;
-class PdfHintStream;
 class PdfName;
 class PdfObject;
 class PdfPage;
@@ -40,6 +39,7 @@ class PdfParser;
 class PdfVecObjects;
 class PdfXRef;
 
+namespace NonPublic { class PdfHintStream; }
 
 /** The PdfWriter class writes a list of PdfObjects as PDF file.
  *  The XRef section (which is the required table of contents for any
@@ -213,7 +213,7 @@ class PODOFO_API PdfWriter {
      *  \param ppLast the pointer will be initialized to the last object
      *         belonging to the first page
      */
-    void ReorderObjectsLinearized( PdfObject* pLinearize, PdfHintStream* pHint, PdfPage* pPage, PdfObject** ppLast ) PODOFO_LOCAL;
+    void ReorderObjectsLinearized( PdfObject* pLinearize, NonPublic::PdfHintStream* pHint, PdfPage* pPage, PdfObject** ppLast ) PODOFO_LOCAL;
 
     /** Initialize m_pPagesTree with its correct value
      *  Always call this function befre accessing the pages tree.
@@ -231,7 +231,7 @@ class PODOFO_API PdfWriter {
      *  \param pLast pointer of the last object belonging to the first page
      *  \param pVecXRefOffset xref table entries for previous entry
      */
-    // void FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset ) PODOFO_LOCAL;
+    // void FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, NonPublic::PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset ) PODOFO_LOCAL;
 
  protected:
     PdfVecObjects*  m_vecObjects;
