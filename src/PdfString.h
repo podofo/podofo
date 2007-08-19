@@ -195,6 +195,8 @@ class PODOFO_API PdfString : public PdfDataType{
      *  in bytes not including terminating zeros.
      *
      *  \returns the length of the string. 
+     *
+     *  \see GetCharacterLength to determine the number of characters in the string
      */
     inline long GetLength() const;
 
@@ -202,8 +204,22 @@ class PODOFO_API PdfString : public PdfDataType{
      *  in characters not including the terminating zero 
      *
      *  \returns the length of the string. 
+     *
+     *  \see GetCharacterLength to determine the number of characters in the string
      */
     inline long GetUnicodeLength() const;
+
+    /** Get the number of characters in the string.
+     *  
+     *  This function returns the correct number of characters in the string
+     *  for unicode and ansi strings. Always use this method if you want to 
+     *  know the number of characters in the string
+     *  as GetLength() will returns the number of bytes used for unicode strings!
+     *
+     * 
+     *  \returngs the number of characters in the string
+     */
+    inline long GetCharacterLength() const;
 
     /** Write this PdfString in PDF format to a PdfOutputDevice 
      *  
@@ -373,6 +389,11 @@ const pdf_utf16be* PdfString::GetUnicode() const
 long PdfString::GetLength() const
 {
     return m_buffer.GetSize() - 2;
+}
+
+long PdfString::GetCharacterLength() const 
+{
+    return this->IsUnicode() ? this->GetUnicodeLength() : this->GetLength();
 }
 
 long PdfString::GetUnicodeLength() const
