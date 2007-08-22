@@ -237,6 +237,9 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_InvalidName:
             pszMsg = "ePdfError_InvalidName";
             break;
+        case ePdfError_InvalidEncryptionDict:
+            pszMsg = "ePdfError_InvalidEncryptionDict";    /**< The encryption dictionary is invalid or misses a required key */
+            break;
         case ePdfError_UnsupportedFilter:
             pszMsg = "ePdfError_UnsupportedFilter"; 
             break;
@@ -336,7 +339,10 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
         case ePdfError_InvalidStreamLength:
         case ePdfError_InvalidKey:
         case ePdfError_InvalidName:
-
+            break;
+        case ePdfError_InvalidEncryptionDict:
+            pszMsg = "The encryption dictionary is invalid or misses a required key.";
+            break;
         case ePdfError_UnsupportedFilter:
             break;
         case ePdfError_UnsupportedFontFormat:

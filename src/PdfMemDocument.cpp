@@ -90,6 +90,9 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
                                    // and GetIndirectKey will work
 
 
+    PdfOutputDevice debug( &(std::cout) );
+    pTrailer->Write( &debug );
+
     PdfObject* pCatalog = pTrailer->GetIndirectKey( "Root" );
     if( !pCatalog )
     {
@@ -106,6 +109,9 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
     }
     else 
         pInfoObj = new PdfInfo( pInfo );
+
+    if( pParser->GetEncrypted() )
+        this->SetEncrypted( *(pParser->GetEncrypt()) );
 
     this->SetCatalog ( pCatalog );
     this->SetInfo    ( pInfoObj );

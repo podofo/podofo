@@ -127,8 +127,9 @@ class PODOFO_API PdfString : public PdfDataType{
      *                if lLen == -1 then strlen( pszHex ) will
      *                be used as length of the hex data. 
      *                pszHex has to be zero terminated in this case.
+     *  \param pEncrypt if !NULL assume the hex data is encrypted and should be decrypted after hexdecoding 
      */
-    void SetHexData( const char* pszHex, long lLen = -1 );
+    void SetHexData( const char* pszHex, long lLen = -1, PdfEncrypt* pEncrypt = NULL );
 
     /** The string is valid if no error in the constructor has occurred.
      *  If it is valid it is safe to call all the other member functions.

@@ -29,7 +29,9 @@
 namespace PoDoFo {
 
 class PdfDictionary;
+class PdfInputStream;
 class PdfRijndael;
+class PdfObject;
 class PdfOutputStream;
 
 /// Class representing PDF encryption methods. (For internal use only)
@@ -120,6 +122,15 @@ public:
                 EPdfEncryptAlgorithm eAlgorithm = ePdfEncryptAlgorithm_RC4V1, 
                 EPdfKeyLength eKeyLength = ePdfKeyLength_40 );
 
+    /** Initialize a PdfEncrypt object from an encryption dictionary in a PDF file.
+     *
+     *  This is required for encrypting a PDF file, but handled internally in PdfParser
+     *  for you.
+     *
+     *  \param pObject a PDF encryption dictionary
+     */ 
+    PdfEncrypt( const PdfObject* pObject );
+
     /** Copy constructor
      *
      *  \param rhs another PdfEncrypt object which is copied
@@ -161,7 +172,101 @@ public:
      *
      *  \returns a PdfOutputStream that encryts all data.
      */
-    PdfOutputStream* CreateEncryptionStream( PdfOutputStream* pOutputStream );
+    PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream );
+
+    /** Create a PdfInputStream that decrypts all data read from 
+     *  it using the current settings of the PdfEncrypt object.
+     *
+     *  Warning: Currently only RC4 based encryption is supported using output streams!
+     *  
+     *  \param pInputStream the created PdfInputStream reads all decrypted
+     *         data to this input stream.
+     *
+     *  \returns a PdfInputStream that decrypts all data.
+     */
+    PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream );
+
+    /**
+     * Tries to authenticate a user using either the user or owner password
+     * 
+     * \param password owner or user password
+     * \param documentId the documentId of the PDF file
+     *  
+     * \returns true if either the owner or user password matches password
+     */
+    bool Authenticate( const std::string & password, const PdfString & documentId );
+
+    /** Checks if printing this document is allowed.
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to print this document
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline bool IsPrintAllowed() const; 
+
+    /** Checks if modifiying this document (besides annotations, form fields or changing pages) is allowed.
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to modfiy this document
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline bool IsEditAllowed() const;
+
+    /** Checks if text and graphics extraction is allowed.
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to extract text and graphics from this document
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline bool IsCopyAllowed() const;
+
+    /** Checks if it is allowed to add or modify annotations or form fields
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to add or modify annotations or form fields
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline bool IsEditNotesAllowed() const;
+
+    /** Checks if it is allowed to fill in existing form or signature fields
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to fill in existing form or signature fields
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline bool IsFillAndSignAllowed() const;
+
+    /** Checks if it is allowed to extract text and graphics to support users with disabillities
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to extract text and graphics to support users with disabillities
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline bool IsAccessibilityAllowed() const;
+
+    /** Checks if it is allowed to insert, create, rotate, delete pages or add bookmarks
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed  to insert, create, rotate, delete pages or add bookmarks
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline bool IsDocAssemblyAllowed() const;
+
+    /** Checks if it is allowed to print a high quality version of this document 
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to print a high quality version of this document 
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline bool IsHighPrintAllowed() const;
 
 
   bool Authenticate(const std::string & documentID, const std::string & password,
@@ -274,9 +379,77 @@ private:
   std::string    m_ownerPass;          ///< Owner password
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfEncrypt::SetCurrentReference( const PdfReference & rRef )
 {
     m_curReference = rRef;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfEncrypt::IsPrintAllowed() const
+{
+    // TODO: Check is this is correct (+/- 1 required ???)
+    return (m_pValue & ePdfPermissions_Print) == ePdfPermissions_Print;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfEncrypt::IsEditAllowed() const
+{
+    return (m_pValue & ePdfPermissions_Edit) == ePdfPermissions_Edit;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfEncrypt::IsCopyAllowed() const
+{
+    return (m_pValue & ePdfPermissions_Copy) == ePdfPermissions_Copy;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfEncrypt::IsEditNotesAllowed() const
+{
+    return (m_pValue & ePdfPermissions_EditNotes) == ePdfPermissions_EditNotes;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfEncrypt::IsFillAndSignAllowed() const
+{
+    return (m_pValue & ePdfPermissions_FillAndSign) == ePdfPermissions_FillAndSign;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfEncrypt::IsAccessibilityAllowed() const
+{
+    return (m_pValue & ePdfPermissions_Accessible) == ePdfPermissions_Accessible;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfEncrypt::IsDocAssemblyAllowed() const
+{
+    return (m_pValue & ePdfPermissions_DocAssembly) == ePdfPermissions_DocAssembly;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfEncrypt::IsHighPrintAllowed() const
+{
+    return (m_pValue & ePdfPermissions_HighPrint) == ePdfPermissions_HighPrint;
 }
 
 };

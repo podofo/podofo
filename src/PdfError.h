@@ -73,6 +73,7 @@ typedef enum EPdfError {
     ePdfError_InvalidStreamLength,      /**< The stream length is invlaid */
     ePdfError_InvalidKey,               /**< The specified key is invalid */
     ePdfError_InvalidName,              /**< The specified Name is not valid in this context */
+    ePdfError_InvalidEncryptionDict,    /**< The encryption dictionary is invalid or misses a required key */
 
     ePdfError_UnsupportedFilter,        /**< The requested filter is not yet implemented. */
     ePdfError_UnsupportedFontFormat,    /**< This font format is not supported by PoDoFO. */

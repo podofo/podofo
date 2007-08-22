@@ -29,16 +29,19 @@
 #include "PdfFilter.h"
 #include "PdfRijndael.h"
 
+#include <sstream>
+
 namespace PoDoFo {
 
 
-/** A PdfOutputStream that encrypts all data written to it
- *  using the RC4 encryption algorithm
+/** A class that can encrypt/decrpyt streamed data block wise
+ *  This is used in the input and output stream encryption implementation.
+ *  Only the RC4 encryption algorithm is supported
  */
-class PdfRC4Stream : public PdfOutputStream {
+class PdfRC4Stream {
 public:
-    PdfRC4Stream( PdfOutputStream* pOutputStream, unsigned char rc4key[256], unsigned char rc4last[256], unsigned char* key, int keylen )
-        : m_pOutputStream( pOutputStream ), m_a( 0 ), m_b( 0 )
+    PdfRC4Stream( unsigned char rc4key[256], unsigned char rc4last[256], unsigned char* key, int keylen )
+        : m_a( 0 ), m_b( 0 )
     {
         int i;
         int j;
@@ -71,12 +74,12 @@ public:
     {
     }
 
-    /** Write data to the output stream
+    /** Encrypt or decrypt a block
      *  
-     *  \param pBuffer the data is read from this buffer
+     *  \param pBuffer the input/output buffer. Data is read from this buffer and also stored here
      *  \param lLen    the size of the buffer 
      */
-    virtual long Write( const char* pBuffer, long lLen )
+    long Encrypt( char* pBuffer, long lLen )
     {
         unsigned char k;
         int t, i;
@@ -84,12 +87,6 @@ public:
         // Do not encode data with no length
         if( !lLen )
             return lLen;
-
-        char* pOutputBuffer = static_cast<char*>(malloc( sizeof(char) * lLen ));
-        if( !pOutputBuffer )
-        {
-            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
-        }
 
         for (i = 0; i < lLen; i++ )
         {
@@ -101,27 +98,116 @@ public:
             m_rc4[m_b] = t;
 
             k = m_rc4[(m_rc4[m_a] + m_rc4[m_b]) % 256];
-            pOutputBuffer[i] = pBuffer[i] ^ k;
+            pBuffer[i] = pBuffer[i] ^ k;
         }
 
-        m_pOutputStream->Write( pOutputBuffer, lLen );
-
-        free( pOutputBuffer );
         return lLen;
     }
 
-    virtual void Close() 
-    {
-    }
-
 private:
-    PdfOutputStream* m_pOutputStream;
     unsigned char m_rc4[256];
 
     int           m_a;
     int           m_b;
 
 };
+
+/** A PdfOutputStream that encrypt all data written
+ *  using the RC4 encryption algorithm
+ */
+class PdfRC4OutputStream : public PdfOutputStream {
+public:
+    PdfRC4OutputStream( PdfOutputStream* pOutputStream, unsigned char rc4key[256], unsigned char rc4last[256], unsigned char* key, int keylen )
+        : m_pOutputStream( pOutputStream ), m_stream( rc4key, rc4last, key, keylen )
+    {
+    }
+
+    virtual ~PdfRC4OutputStream()
+    {
+    }
+
+    /** Write data to the output stream
+     *  
+     *  \param pBuffer the data is read from this buffer
+     *  \param lLen    the size of the buffer 
+     */
+    virtual long Write( const char* pBuffer, long lLen )
+    {
+        // Do not encode data with no length
+        if( !lLen )
+            return lLen;
+
+        char* pOutputBuffer = static_cast<char*>(malloc( sizeof(char) * lLen ));
+        if( !pOutputBuffer )
+        {
+            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        }
+
+        memcpy( pOutputBuffer, pBuffer, lLen );
+        m_stream.Encrypt( pOutputBuffer, lLen );
+        m_pOutputStream->Write( pOutputBuffer, lLen );
+
+        free( pOutputBuffer );
+        return lLen;
+    }
+
+    /** Close the PdfOutputStream.
+     *  This method may throw exceptions and has to be called 
+     *  before the descructor to end writing.
+     *
+     *  No more data may be written to the output device
+     *  after calling close.
+     */
+    virtual void Close() 
+    {
+    }
+
+private:
+    PdfOutputStream* m_pOutputStream;
+    PdfRC4Stream     m_stream;
+};
+
+/** A PdfInputStream that decrypts all data read
+ *  using the RC4 encryption algorithm
+ */
+class PdfRC4InputStream : public PdfInputStream {
+public:
+    PdfRC4InputStream( PdfInputStream* pInputStream, unsigned char rc4key[256], unsigned char rc4last[256], 
+                       unsigned char* key, int keylen )
+        : m_pInputStream( pInputStream ), m_stream( rc4key, rc4last, key, keylen )
+    {
+    }
+
+    virtual ~PdfRC4InputStream() 
+    {
+    }
+
+    /** Read data from the input stream
+     *  
+     *  \param pBuffer the data will be stored into this buffer
+     *  \param lLen    the size of the buffer and number of bytes
+     *                 that will be read
+     *
+     *  \returns the number of bytes read, -1 if an error ocurred
+     *           and zero if no more bytes are available for reading.
+     */
+    virtual long Read( char* pBuffer, long lLen )
+    {
+        // Do not encode data with no length
+        if( !lLen )
+            return lLen;
+
+        m_pInputStream->Read( pBuffer, lLen );
+        m_stream.Encrypt( pBuffer, lLen );
+
+        return lLen;
+    }
+
+private:
+    PdfInputStream* m_pInputStream;
+    PdfRC4Stream    m_stream;
+};
+
 
 // ----------------
 // MD5 by RSA
@@ -467,6 +553,68 @@ PdfEncrypt::PdfEncrypt( const std::string & userPassword, const std::string & ow
     m_pValue = -((protection ^ 255) + 1);
 }
 
+PdfEncrypt::PdfEncrypt( const PdfObject* pObject )
+    : m_aes( NULL )
+{
+    if( !pObject->GetDictionary().HasKey( PdfName("Filter") ) ||
+        pObject->GetDictionary().GetKey( PdfName("Filter" ) )->GetName() != PdfName("Standard") )
+    {
+        std::ostringstream oss;
+        oss << "Unsupported encryption filter: " << pObject->GetDictionary().GetKey( PdfName("Filter" ) )->GetName().GetName();
+        PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFilter, oss.str().c_str() );
+    }
+        
+    long lV;
+    long lLength;
+
+    try {
+        PdfString sTmp;
+
+        lV           = pObject->GetDictionary().GetKey( PdfName("V") )->GetNumber();
+        m_rValue     = pObject->GetDictionary().GetKey( PdfName("R") )->GetNumber();
+
+        m_pValue     = pObject->GetDictionary().GetKey( PdfName("P") )->GetNumber();
+        sTmp         = pObject->GetDictionary().GetKey( PdfName("O") )->GetString();
+        memcpy( m_oValue, sTmp.GetString(), 32 );
+     
+        sTmp         = pObject->GetDictionary().GetKey( PdfName("U") )->GetString();
+        memcpy( m_uValue, sTmp.GetString(), 32 );
+
+        if( pObject->GetDictionary().HasKey( PdfName("Length") ) )
+            lLength = pObject->GetDictionary().GetKey( PdfName("Length") )->GetNumber();
+
+    } catch( PdfError & e ) {
+        e.AddToCallstack( __FILE__, __LINE__, "Invalid key in encryption dictionary" );
+        throw e;
+    }
+
+    if( lV == 1L && m_rValue == 2L ) 
+    {
+        m_eAlgorithm = ePdfEncryptAlgorithm_RC4V1;
+        m_eKeyLength = ePdfKeyLength_40;
+        m_keyLength  = 40/8;
+    }
+    else if( lV == 2L && m_rValue == 3L ) 
+    {
+        m_eAlgorithm = ePdfEncryptAlgorithm_RC4V2;
+        m_eKeyLength = static_cast<EPdfKeyLength>(lLength);
+        m_keyLength  = lLength/8;
+    }
+    else if( lV == 4L && m_rValue == 4L ) 
+    {
+        m_eAlgorithm = ePdfEncryptAlgorithm_AESV2;
+        m_eKeyLength = ePdfKeyLength_128;
+        m_keyLength  = 128 / 8;
+        m_aes        = new PdfRijndael();
+    }
+    else
+    {
+        std::ostringstream oss;
+        oss << "Unsupported encryption method Version=" << lV << " Revision=" << m_rValue;
+        PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFilter, oss.str().c_str() );
+    }
+}
+
 PdfEncrypt::PdfEncrypt( const PdfEncrypt & rhs )
     : m_aes( NULL )
 {
@@ -575,20 +723,51 @@ PdfEncrypt::PadPassword(const std::string& password, unsigned char pswd[32])
 void
 PdfEncrypt::GenerateEncryptionKey(const PdfString & documentId)
 {
-  unsigned char userpswd[32];
-  unsigned char ownerpswd[32];
+    unsigned char userpswd[32];
+    unsigned char ownerpswd[32];
 
-  // Pad passwords
-  PadPassword( m_userPass,  userpswd  );
-  PadPassword( m_ownerPass, ownerpswd );
+    // Pad passwords
+    PadPassword( m_userPass,  userpswd  );
+    PadPassword( m_ownerPass, ownerpswd );
+    
+    // Compute O value
+    ComputeOwnerKey(userpswd, ownerpswd, m_keyLength*8, m_rValue, false, m_oValue);
+    
+    // Compute encryption key and U value
+    m_documentId = std::string( documentId.GetString(), documentId.GetLength() );
+    ComputeEncryptionKey(m_documentId, userpswd,
+                         m_oValue, m_pValue, m_keyLength*8, m_rValue, m_uValue);
+}
 
-  // Compute O value
-  ComputeOwnerKey(userpswd, ownerpswd, m_keyLength*8, m_rValue, false, m_oValue);
+bool PdfEncrypt::Authenticate( const std::string & password, const PdfString & documentId )
+{
+    bool ok = false;
 
-  // Compute encryption key and U value
-  m_documentId = std::string( documentId.GetString(), documentId.GetLength() );
-  ComputeEncryptionKey(m_documentId, userpswd,
-                       m_oValue, m_pValue, m_keyLength*8, m_rValue, m_uValue);
+    m_documentId = std::string( documentId.GetString(), documentId.GetLength() );
+
+    // Pad password
+    unsigned char userKey[32];
+    unsigned char pswd[32];
+    PadPassword( password, pswd );
+
+    // Check password: 1) as user password, 2) as owner password
+    ComputeEncryptionKey(m_documentId, pswd, m_oValue, m_pValue, m_keyLength*8, m_rValue, userKey);
+
+    ok = CheckKey(userKey, m_uValue);
+    if (!ok)
+    {
+        unsigned char userpswd[32];
+        ComputeOwnerKey( m_oValue, pswd, m_keyLength*8, m_rValue, true, userpswd );
+        ComputeEncryptionKey( m_documentId, userpswd, m_oValue, m_pValue, m_keyLength*8, m_rValue, userKey );
+        ok = CheckKey( userKey, m_oValue );
+
+        if( ok ) 
+            m_ownerPass = password;
+    }
+    else
+        m_userPass = password;
+
+    return ok;
 }
 
 bool
@@ -846,7 +1025,7 @@ PdfEncrypt::Encrypt(unsigned char* str, int len) const
   }
 }
 
-PdfOutputStream* PdfEncrypt::CreateEncryptionStream( PdfOutputStream* pOutputStream )
+PdfOutputStream* PdfEncrypt::CreateEncryptionOutputStream( PdfOutputStream* pOutputStream )
 {
   unsigned char objkey[MD5_HASHBYTES];
   int keylen;
@@ -856,12 +1035,34 @@ PdfOutputStream* PdfEncrypt::CreateEncryptionStream( PdfOutputStream* pOutputStr
   switch (m_rValue)
   {
     case 4:
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "CreateEncryptionStream does not yet support AES" );
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "CreateEncryptionOutputStream does not yet support AES" );
       break;
     case 3:
     case 2:
     default:
-        return new PdfRC4Stream( pOutputStream, m_rc4key, m_rc4last, objkey, keylen );
+        return new PdfRC4OutputStream( pOutputStream, m_rc4key, m_rc4last, objkey, keylen );
+      break;
+  }
+
+  return NULL;
+}
+
+PdfInputStream* PdfEncrypt::CreateEncryptionInputStream( PdfInputStream* pInputStream )
+{
+  unsigned char objkey[MD5_HASHBYTES];
+  int keylen;
+
+  this->CreateObjKey( objkey, &keylen );
+
+  switch (m_rValue)
+  {
+    case 4:
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "CreateEncryptionInputStream does not yet support AES" );
+      break;
+    case 3:
+    case 2:
+    default:
+        return new PdfRC4InputStream( pInputStream, m_rc4key, m_rc4last, objkey, keylen );
       break;
   }
 

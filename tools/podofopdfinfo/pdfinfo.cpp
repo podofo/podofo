@@ -43,20 +43,14 @@ void PdfInfo::OutputDocumentInfo( std::ostream& sOutStream )
     sOutStream << std::endl;
     sOutStream << "Fast Web View Enabled: " << (mDoc->IsLinearized() ? "Yes" : "No") << std::endl;
     sOutStream << "Tagged: " << (static_cast<PoDoFo::PdfMemDocument*>(mDoc)->GetStructTreeRoot() != NULL ? "Yes" : "No") << std::endl;
-
-/*
-// print encryption info
-printf("Encrypted:      ");
-if (doc->isEncrypted()) {
-printf("yes (print:%s copy:%s change:%s addNotes:%s)\n",
-doc->okToPrint(gTrue) ? "yes" : "no",
-doc->okToCopy(gTrue) ? "yes" : "no",
-doc->okToChange(gTrue) ? "yes" : "no",
-doc->okToAddNotes(gTrue) ? "yes" : "no");
-} else {
-printf("no\n");
-}
-*/
+    sOutStream << "Printing Allowed: "  << (mDoc->IsPrintAllowed() ? "Yes" : "No") << std::endl;
+    sOutStream << "Modification Allowed: "  << (mDoc->IsEditAllowed() ? "Yes" : "No") << std::endl;
+    sOutStream << "Copy&Paste Allowed: "  << (mDoc->IsCopyAllowed() ? "Yes" : "No") << std::endl;
+    sOutStream << "Add/Modify Annotations Allowed: "  << (mDoc->IsEditNotesAllowed() ? "Yes" : "No") << std::endl;
+    sOutStream << "Fill&Sign Allowed: "  << (mDoc->IsFillAndSignAllowed() ? "Yes" : "No") << std::endl;
+    sOutStream << "Accessibility Allowed: "  << (mDoc->IsAccessibilityAllowed() ? "Yes" : "No") << std::endl;
+    sOutStream << "Document Assembly Allowed: "  << (mDoc->IsDocAssemblyAllowed() ? "Yes" : "No") << std::endl;
+    sOutStream << "High Quality Print Allowed: "  << (mDoc->IsHighPrintAllowed() ? "Yes" : "No") << std::endl;
 }
 
 void PdfInfo::OutputInfoDict( std::ostream& sOutStream )

@@ -27,6 +27,7 @@
 
 namespace PoDoFo {
 
+class PdfEncrypt;
 class PdfParser;
 
 /**
@@ -66,10 +67,13 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
      *  If delayed loading is enabled, only the object and generation number
      *  is read now and everything else is read later.
      *
+     *  \param pEncrypt an encryption dictionary which is used to decrypt 
+     *                  strings and streams during parsing or NULL if the PDF
+     *                  file was not encrypted
      *  \param bIsTrailer wether this is a trailer dictionary or not.
      *                    trailer dictionaries do not have a object number etc.
      */
-    void ParseFile( bool bIsTrailer = false );
+    void ParseFile( PdfEncrypt* pEncrypt, bool bIsTrailer = false );
 
     /** Returns if this object has a stream object appended.
      *  which has to be parsed.
@@ -133,7 +137,8 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
     void ReadObjectNumber();
 
  private:
-    bool m_bIsTrailer;
+    PdfEncrypt* m_pEncrypt;
+    bool        m_bIsTrailer;
 
     // Should the object try to defer loading of its contents until needed?
     // If false, object contents will be loaded during ParseFile(...). Note that

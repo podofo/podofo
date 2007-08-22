@@ -34,6 +34,8 @@ typedef std::map<int,PdfObject*>    TMapObjects;
 typedef TMapObjects::iterator       TIMapObjects;
 typedef TMapObjects::const_iterator TCIMapObjects;
 
+class PdfEncrypt;
+
 /**
  * PdfParser reads a PDF file into memory. 
  * The file can be modified in memory and written back using
@@ -115,6 +117,16 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     /** \returns the length of the file
      */
     size_t GetFileSize() const { return m_nFileSize; }
+
+    /** 
+     * \returns true if this PdfWriter creates an encrypted PDF file
+     */
+    bool GetEncrypted() const { return (m_pEncrypt != NULL); }
+
+    /** 
+     * \returns the parsers encryption object or NULL if the read PDF file was not encrypted
+     */
+    const PdfEncrypt* GetEncrypt() const { return m_pEncrypt; }
 
  protected:
     /** Searches backwards from the end of the file
@@ -233,6 +245,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
 
     PdfObject*    m_pTrailer;
     PdfObject*    m_pLinearization;
+    PdfEncrypt*   m_pEncrypt;
 
     std::set<int> m_setObjectStreams;
 };

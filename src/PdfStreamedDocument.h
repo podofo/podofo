@@ -114,6 +114,78 @@ class PODOFO_API PdfStreamedDocument : public PdfDocument {
      */
     inline virtual bool IsLinearized() const;
 
+    /** Checks if printing this document is allowed.
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to print this document
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline virtual bool IsPrintAllowed() const; 
+
+    /** Checks if modifiying this document (besides annotations, form fields or changing pages) is allowed.
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to modfiy this document
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline virtual bool IsEditAllowed() const;
+
+    /** Checks if text and graphics extraction is allowed.
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to extract text and graphics from this document
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline virtual bool IsCopyAllowed() const;
+
+    /** Checks if it is allowed to add or modify annotations or form fields
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to add or modify annotations or form fields
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline virtual bool IsEditNotesAllowed() const;
+
+    /** Checks if it is allowed to fill in existing form or signature fields
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to fill in existing form or signature fields
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline virtual bool IsFillAndSignAllowed() const;
+
+    /** Checks if it is allowed to extract text and graphics to support users with disabillities
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to extract text and graphics to support users with disabillities
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline virtual bool IsAccessibilityAllowed() const;
+
+    /** Checks if it is allowed to insert, create, rotate, delete pages or add bookmarks
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed  to insert, create, rotate, delete pages or add bookmarks
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline virtual bool IsDocAssemblyAllowed() const;
+
+    /** Checks if it is allowed to print a high quality version of this document 
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to print a high quality version of this document 
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline virtual bool IsHighPrintAllowed() const;
+
  private:
     /** Initialize the PdfStreamedDocument with an output device
      *  \param pDevice write to this device
@@ -130,12 +202,13 @@ class PODOFO_API PdfStreamedDocument : public PdfDocument {
     PdfImmediateWriter* m_pWriter;
     PdfOutputDevice*    m_pDevice;
 
+    PdfEncrypt*         m_pEncrypt;
 };
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline EPdfVersion PdfStreamedDocument::GetPdfVersion() const
+EPdfVersion PdfStreamedDocument::GetPdfVersion() const
 {
     return m_pWriter->GetPdfVersion();
 }
@@ -143,10 +216,74 @@ inline EPdfVersion PdfStreamedDocument::GetPdfVersion() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline bool PdfStreamedDocument::IsLinearized() const
+bool PdfStreamedDocument::IsLinearized() const
 {
     // Linearization is currently not supported by PdfStreamedDocument
     return false;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfStreamedDocument::IsPrintAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsPrintAllowed() : true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfStreamedDocument::IsEditAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsEditAllowed() : true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfStreamedDocument::IsCopyAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsCopyAllowed() : true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfStreamedDocument::IsEditNotesAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsEditNotesAllowed() : true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfStreamedDocument::IsFillAndSignAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsFillAndSignAllowed() : true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfStreamedDocument::IsAccessibilityAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsAccessibilityAllowed() : true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfStreamedDocument::IsDocAssemblyAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsDocAssemblyAllowed() : true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfStreamedDocument::IsHighPrintAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsHighPrintAllowed() : true;
 }
 
 };

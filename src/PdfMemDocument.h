@@ -204,6 +204,78 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
      */
     void DeletePages( int inFirstPage, int inNumPages );
 
+    /** Checks if printing this document is allowed.
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to print this document
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline virtual bool IsPrintAllowed() const; 
+
+    /** Checks if modifiying this document (besides annotations, form fields or changing pages) is allowed.
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to modfiy this document
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline virtual bool IsEditAllowed() const;
+
+    /** Checks if text and graphics extraction is allowed.
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to extract text and graphics from this document
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline virtual bool IsCopyAllowed() const;
+
+    /** Checks if it is allowed to add or modify annotations or form fields
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to add or modify annotations or form fields
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline virtual bool IsEditNotesAllowed() const;
+
+    /** Checks if it is allowed to fill in existing form or signature fields
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to fill in existing form or signature fields
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline virtual bool IsFillAndSignAllowed() const;
+
+    /** Checks if it is allowed to extract text and graphics to support users with disabillities
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to extract text and graphics to support users with disabillities
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline virtual bool IsAccessibilityAllowed() const;
+
+    /** Checks if it is allowed to insert, create, rotate, delete pages or add bookmarks
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed  to insert, create, rotate, delete pages or add bookmarks
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline virtual bool IsDocAssemblyAllowed() const;
+
+    /** Checks if it is allowed to print a high quality version of this document 
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to print a high quality version of this document 
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline virtual bool IsHighPrintAllowed() const;
+
  private:
     /** Get a dictioary from the catalog dictionary by its name.
      *  \param pszName will be converted into a PdfName
@@ -250,6 +322,70 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
 
     PdfEncrypt*     m_pEncrypt;
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfMemDocument::IsPrintAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsPrintAllowed() : true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfMemDocument::IsEditAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsEditAllowed() : true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfMemDocument::IsCopyAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsCopyAllowed() : true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfMemDocument::IsEditNotesAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsEditNotesAllowed() : true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfMemDocument::IsFillAndSignAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsFillAndSignAllowed() : true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfMemDocument::IsAccessibilityAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsAccessibilityAllowed() : true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfMemDocument::IsDocAssemblyAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsDocAssemblyAllowed() : true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfMemDocument::IsHighPrintAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsHighPrintAllowed() : true;
+}
 
 };
 

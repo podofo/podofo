@@ -22,6 +22,7 @@
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
+#include "PdfEncrypt.h"
 #include "PdfInputDevice.h"
 #include "PdfName.h"
 #include "PdfString.h"
@@ -255,18 +256,18 @@ long PdfTokenizer::GetNextNumber()
     return l;
 }
 
-void PdfTokenizer::GetNextVariant( PdfVariant& rVariant )
+void PdfTokenizer::GetNextVariant( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 {
    EPdfTokenType eTokenType;
    const char*   pszRead = this->GetNextToken( &eTokenType );
 
-   this->GetNextVariant( pszRead, eTokenType, rVariant );
+   this->GetNextVariant( pszRead, eTokenType, rVariant, pEncrypt );
 
    std::string str;
    rVariant.ToString( str );
 }
 
-void PdfTokenizer::GetNextVariant( const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant )
+void PdfTokenizer::GetNextVariant( const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 {
     EPdfDataType eDataType = this->DetermineDataType( pszToken, eType, rVariant );
     
@@ -280,8 +281,7 @@ void PdfTokenizer::GetNextVariant( const char* pszToken, EPdfTokenType eType, Pd
         return;
     }
 
-    this->ReadDataType( eDataType, rVariant );
-
+    this->ReadDataType( eDataType, rVariant, pEncrypt );
 }
 
 EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenType eTokenType, PdfVariant& rVariant )
@@ -406,21 +406,21 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
     return ePdfDataType_Unknown;
 }
 
-void PdfTokenizer::ReadDataType( EPdfDataType eDataType, PdfVariant& rVariant )
+void PdfTokenizer::ReadDataType( EPdfDataType eDataType, PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 {
     switch( eDataType ) 
     {
         case ePdfDataType_Dictionary:
-            this->ReadDictionary( rVariant );
+            this->ReadDictionary( rVariant, pEncrypt );
             break;
         case ePdfDataType_Array:
-            this->ReadArray( rVariant );
+            this->ReadArray( rVariant, pEncrypt );
             break;
         case ePdfDataType_String:
-            this->ReadString( rVariant );
+            this->ReadString( rVariant, pEncrypt );
             break;
         case ePdfDataType_HexString:
-            this->ReadHexString( rVariant );
+            this->ReadHexString( rVariant, pEncrypt );
             break;
         case ePdfDataType_Name:
             this->ReadName( rVariant );
@@ -444,7 +444,7 @@ void PdfTokenizer::ReadDataType( EPdfDataType eDataType, PdfVariant& rVariant )
     }
 }
 
-void PdfTokenizer::ReadDictionary( PdfVariant& rVariant )
+void PdfTokenizer::ReadDictionary( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 {
     const char*   pszToken;
     EPdfTokenType eType;
@@ -458,9 +458,9 @@ void PdfTokenizer::ReadDictionary( PdfVariant& rVariant )
         if( eType == ePdfTokenType_Delimiter && strncmp( ">>", pszToken, DICT_SEP_LENGTH ) == 0 )
             break;
 
-        this->GetNextVariant( pszToken, eType, val );
+        this->GetNextVariant( pszToken, eType, val, pEncrypt );
         key = val.GetName(); // will raise error ePdfError_InvalidDataType if val is no name!
-        this->GetNextVariant( val );
+        this->GetNextVariant( val, pEncrypt );
 
         dict.AddKey( key, val );
     }
@@ -468,7 +468,7 @@ void PdfTokenizer::ReadDictionary( PdfVariant& rVariant )
     rVariant = dict;
 }
 
-void PdfTokenizer::ReadArray( PdfVariant& rVariant )
+void PdfTokenizer::ReadArray( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 {
     const char*   pszToken;
     EPdfTokenType eType;
@@ -481,14 +481,14 @@ void PdfTokenizer::ReadArray( PdfVariant& rVariant )
         if( eType == ePdfTokenType_Delimiter && pszToken[0] == ']' )
             break;
 
-        this->GetNextVariant( pszToken, eType, var );
+        this->GetNextVariant( pszToken, eType, var, pEncrypt );
         array.push_back( var );
     }
 
     rVariant = array;
 }
 
-void PdfTokenizer::ReadString( PdfVariant& rVariant )
+void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 {
     int               c;
 
@@ -542,10 +542,13 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant )
     if( bOctEscape )
         m_vecBuffer.push_back ( cOctValue );
 
+    if( pEncrypt )
+        pEncrypt->Encrypt( reinterpret_cast<unsigned char*>(&(m_vecBuffer[0])), m_vecBuffer.size() );
+
     rVariant = PdfString( &(m_vecBuffer[0]), m_vecBuffer.size() );
 }
 
-void PdfTokenizer::ReadHexString( PdfVariant& rVariant )
+void PdfTokenizer::ReadHexString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 {
     int        c;
 
@@ -569,7 +572,7 @@ void PdfTokenizer::ReadHexString( PdfVariant& rVariant )
         m_vecBuffer.push_back( '0' );
 
     PdfString string;
-    string.SetHexData( m_vecBuffer.size() ? &(m_vecBuffer[0]) : "", m_vecBuffer.size() );
+    string.SetHexData( m_vecBuffer.size() ? &(m_vecBuffer[0]) : "", m_vecBuffer.size(), pEncrypt );
 
     rVariant = string;
 }

@@ -21,6 +21,7 @@
 #include "PdfParserObject.h"
 
 #include "PdfDictionary.h"
+#include "PdfEncrypt.h"
 #include "PdfInputDevice.h"
 #include "PdfInputStream.h"
 #include "PdfParser.h"
@@ -41,8 +42,9 @@ static const int s_nLenEndObj    = 6; // strlen("endobj");
 static const int s_nLenStream    = 6; // strlen("stream");
 static const int s_nLenEndStream = 9; // strlen("endstream");
 
-PdfParserObject::PdfParserObject( PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer, long lOffset )
-    : PdfObject( PdfReference( 0, 0 ), static_cast<const char*>(NULL)), PdfTokenizer( rDevice, rBuffer )
+PdfParserObject::PdfParserObject( PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, 
+                                  const PdfRefCountedBuffer & rBuffer, long lOffset )
+    : PdfObject( PdfReference( 0, 0 ), static_cast<const char*>(NULL)), PdfTokenizer( rDevice, rBuffer ), m_pEncrypt( NULL )
 {
     m_pOwner = pCreator;
 
@@ -52,7 +54,8 @@ PdfParserObject::PdfParserObject( PdfVecObjects* pCreator, const PdfRefCountedIn
 }
 
 PdfParserObject::PdfParserObject( const PdfRefCountedBuffer & rBuffer )
-    : PdfObject( PdfReference( 0, 0 ), static_cast<const char*>(NULL)), PdfTokenizer( PdfRefCountedInputDevice(), rBuffer )
+    : PdfObject( PdfReference( 0, 0 ), static_cast<const char*>(NULL)), PdfTokenizer( PdfRefCountedInputDevice(), rBuffer ), 
+      m_pEncrypt( NULL )
 {
     InitPdfParserObject();
 }
@@ -104,7 +107,7 @@ void PdfParserObject::ReadObjectNumber()
     }
 }
 
-void PdfParserObject::ParseFile( bool bIsTrailer )
+void PdfParserObject::ParseFile( PdfEncrypt* pEncrypt, bool bIsTrailer )
 {
     if( !m_device.Device() )
     {
@@ -126,6 +129,7 @@ void PdfParserObject::ParseFile( bool bIsTrailer )
 #endif // PODOFO_VERBOSE_DEBUG
 
     m_lOffset    = m_device.Device()->Tell();
+    m_pEncrypt   = pEncrypt;
     m_bIsTrailer = bIsTrailer;
 
     if( !m_bLoadOnDemand )
@@ -166,7 +170,9 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     const char* pszToken;
 
     m_device.Device()->Seek( m_lOffset );
-    this->GetNextVariant( *this );
+    if( m_pEncrypt )
+        m_pEncrypt->SetCurrentReference( m_reference );
+    this->GetNextVariant( *this, m_pEncrypt );
 
 
     if( !bIsTrailer )
@@ -280,7 +286,15 @@ void PdfParserObject::ParseStream()
 
     m_device.Device()->Seek( fLoc );	// reset it before reading!
     PdfDeviceInputStream reader( m_device.Device() );
-    this->GetStream_NoDL()->SetRawData( &reader, lLen );
+    if( m_pEncrypt )
+    {
+        m_pEncrypt->SetCurrentReference( m_reference );
+        PdfInputStream* pInput = m_pEncrypt->CreateEncryptionInputStream( &reader );
+        this->GetStream_NoDL()->SetRawData( pInput, lLen );
+        delete pInput;
+    }
+    else
+        this->GetStream_NoDL()->SetRawData( &reader, lLen );
 
     /*
     SAFE_OP( GetNextStringFromFile( ) );

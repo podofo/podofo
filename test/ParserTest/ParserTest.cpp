@@ -76,7 +76,7 @@ void enc_test()
     enc.Encrypt( reinterpret_cast<unsigned char*>(pEncBuffer), lLen );
 
     PdfMemoryOutputStream mem( lLen );
-    PdfOutputStream* pStream = enc.CreateEncryptionStream( &mem ); 
+    PdfOutputStream* pStream = enc.CreateEncryptionOutputStream( &mem ); 
     pStream->Write( pBuffer1, strlen( pBuffer1 ) );
     pStream->Write( pBuffer2, strlen( pBuffer2 ) );
     pStream->Write( pBuffer2, strlen( pBuffer2 ) );
@@ -100,7 +100,7 @@ void write_back( PdfParser* pParser, const char* pszFilename )
     //writer.SetUseXRefStream( true );
     //writer.SetLinearized( true );
     writer.SetPdfVersion( ePdfVersion_1_6 );
-    writer.SetEncrypted( encrypt );
+    //writer.SetEncrypted( encrypt );
     writer.Write( pszFilename );
 }
 

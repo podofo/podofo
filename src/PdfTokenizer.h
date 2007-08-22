@@ -29,6 +29,7 @@
 
 namespace PoDoFo {
 
+class PdfEncrypt;
 class PdfVariant;
 
 typedef enum EPdfTokenType {
@@ -95,8 +96,9 @@ class PODOFO_API PdfTokenizer {
      *  Raises an exception if there is no variant left in the file.
      *
      *  \param rVariant write the read variant to this value
+     *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void GetNextVariant( PdfVariant& rVariant );
+    void GetNextVariant( PdfVariant& rVariant, PdfEncrypt* pEncrypt );
 
     /** Returns true if the given character is a whitespace 
      *  according to the pdf reference
@@ -135,40 +137,45 @@ class PODOFO_API PdfTokenizer {
      *  \param pszToken a token that has already been read
      *  \param eType type of the passed token
      *  \param rVariant write the read variant to this value
+     *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void GetNextVariant( const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant );
+    void GetNextVariant( const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
 
     EPdfDataType DetermineDataType( const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant );
 
-    void ReadDataType( EPdfDataType eDataType, PdfVariant& rVariant );
+    void ReadDataType( EPdfDataType eDataType, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
 
     /** Read a dictionary from the input device
      *  and store it into a variant.
      * 
      *  \param rVariant store the dictionary into this variable
+     *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadDictionary( PdfVariant& rVariant );
+    void ReadDictionary( PdfVariant& rVariant, PdfEncrypt* pEncrypt );
 
     /** Read an array from the input device
      *  and store it into a variant.
      * 
      *  \param rVariant store the array into this variable
+     *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadArray( PdfVariant& rVariant );
+    void ReadArray( PdfVariant& rVariant, PdfEncrypt* pEncrypt );
 
     /** Read a string from the input device
      *  and store it into a variant.
      * 
      *  \param rVariant store the string into this variable
+     *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadString( PdfVariant& rVariant );
+    void ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt );
 
     /** Read a hex string from the input device
      *  and store it into a variant.
      * 
      *  \param rVariant store the hex string into this variable
+     *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadHexString( PdfVariant& rVariant );
+    void ReadHexString( PdfVariant& rVariant, PdfEncrypt* pEncrypt );
 
     /** Read a name from the input device
      *  and store it into a variant.

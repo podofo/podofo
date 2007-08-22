@@ -26,6 +26,8 @@
 #include "PdfDefines.h"
 #include "PdfRefCountedBuffer.h"
 
+#include "PdfString.h"
+
 namespace PoDoFo {
 
 class PdfArray;
@@ -576,7 +578,7 @@ const PdfString & PdfVariant::GetString() const
 {
     DelayedLoad();
 
-    if( !IsString() )
+    if( !IsString() && !IsHexString() )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }

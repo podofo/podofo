@@ -449,8 +449,12 @@ void PdfWriter::FillTrailerObject( PdfObject* pTrailer, long lSize, bool bPrevEn
     {
         if( m_pTrailer->GetDictionary().HasKey( "Root" ) )
             pTrailer->GetDictionary().AddKey( "Root", m_pTrailer->GetDictionary().GetKey( "Root" ) );
+        /*
+          DominikS: It makes no sense to simple copy an encryption key
+                    Either we have no encryption or we encrypt again by ourselves
         if( m_pTrailer->GetDictionary().HasKey( "Encrypt" ) )
             pTrailer->GetDictionary().AddKey( "Encrypt", m_pTrailer->GetDictionary().GetKey( "Encrypt" ) );
+        */
         if( m_pTrailer->GetDictionary().HasKey( "Info" ) )
             pTrailer->GetDictionary().AddKey( "Info", m_pTrailer->GetDictionary().GetKey( "Info" ) );
 

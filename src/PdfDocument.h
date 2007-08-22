@@ -244,6 +244,78 @@ class PODOFO_API PdfDocument {
      */    
     void SetBindingDirection( PdfName& inDirection );
 
+    /** Checks if printing this document is allowed.
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to print this document
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    virtual bool IsPrintAllowed() const = 0; 
+
+    /** Checks if modifiying this document (besides annotations, form fields or changing pages) is allowed.
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to modfiy this document
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    virtual bool IsEditAllowed() const = 0;
+
+    /** Checks if text and graphics extraction is allowed.
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to extract text and graphics from this document
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    virtual bool IsCopyAllowed() const = 0;
+
+    /** Checks if it is allowed to add or modify annotations or form fields
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to add or modify annotations or form fields
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    virtual bool IsEditNotesAllowed() const = 0;
+
+    /** Checks if it is allowed to fill in existing form or signature fields
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to fill in existing form or signature fields
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    virtual bool IsFillAndSignAllowed() const = 0;
+
+    /** Checks if it is allowed to extract text and graphics to support users with disabillities
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to extract text and graphics to support users with disabillities
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    virtual bool IsAccessibilityAllowed() const = 0;
+
+    /** Checks if it is allowed to insert, create, rotate, delete pages or add bookmarks
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed  to insert, create, rotate, delete pages or add bookmarks
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    virtual bool IsDocAssemblyAllowed() const = 0;
+
+    /** Checks if it is allowed to print a high quality version of this document 
+     *  Every PDF consuming applications has to adhere this value!
+     *
+     *  \returns true if you are allowed to print a high quality version of this document 
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    virtual bool IsHighPrintAllowed() const = 0;
+
  protected:
     /** Construct a new (empty) PdfDocument
      */

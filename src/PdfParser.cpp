@@ -22,6 +22,7 @@
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
+#include "PdfEncrypt.h"
 #include "PdfInputDevice.h"
 #include "PdfMemStream.h"
 #include "PdfOutputDevice.h"
@@ -72,6 +73,7 @@ void PdfParser::Init()
     m_pTrailer        = NULL;
     m_pLinearization  = NULL;
     m_pOffsets        = NULL;
+    m_pEncrypt        = NULL;
 
     m_ePdfVersion     = ePdfVersion_Unknown;
 
@@ -127,6 +129,7 @@ void PdfParser::Clear()
 
     delete m_pTrailer;
     delete m_pLinearization;
+    delete m_pEncrypt;
 
     this->Init();
 }
@@ -270,7 +273,9 @@ void PdfParser::HasLinearizationDict()
     m_pLinearization = new PdfParserObject( m_vecObjects, m_device, m_buffer, pszObj - m_buffer.GetBuffer() + 2 );
 
     try {
-        static_cast<PdfParserObject*>(m_pLinearization)->ParseFile();
+        // Do not care for encryption here, as the linearization dictionary does not contain strings or streams
+        // ... hint streams do, but we do not load the hintstream.
+        static_cast<PdfParserObject*>(m_pLinearization)->ParseFile( NULL );
         if (! (m_pLinearization->IsDictionary() &&
                m_pLinearization->GetDictionary().HasKey( "Linearized" ) ) )
         {
@@ -370,7 +375,8 @@ void PdfParser::ReadNextTrailer()
     {
         PdfParserObject trailer( m_vecObjects, m_device, m_buffer );
         try {
-            trailer.ParseFile( true );
+            // Ignore the encryption in the trailer as the trailer may not be encrypted
+            trailer.ParseFile( NULL, true );
         } catch( PdfError & e ) {
             e.AddToCallstack( __FILE__, __LINE__, "The linearized trailer was found in the file, but contains errors." );
             throw e;
@@ -421,7 +427,8 @@ void PdfParser::ReadTrailer()
     {
         m_pTrailer = new PdfParserObject( m_vecObjects, m_device, m_buffer );
         try {
-            static_cast<PdfParserObject*>(m_pTrailer)->ParseFile( true );
+            // Ignore the encryption in the trailer as the trailer may not be encrypted
+            static_cast<PdfParserObject*>(m_pTrailer)->ParseFile( NULL, true );
         } catch( PdfError & e ) {
             e.AddToCallstack( __FILE__, __LINE__, "The trailer was found in the file, but contains errors." );
             throw e;
@@ -576,8 +583,8 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
     m_device.Device()->Seek( lOffset );
 
     PdfParserObject xrefObject( m_vecObjects, m_device, m_buffer );
-    xrefObject.ParseFile();
-
+    // Ignore the encryption in the XREF as the XREF stream must no be encrypted (see PDF Reference 3.4.7)
+    xrefObject.ParseFile( NULL );
 
     if( !xrefObject.GetDictionary().HasKey( PdfName::KeyType ) )
     {
@@ -662,7 +669,7 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
 
     pStart        = pBuffer;
     int nCurIndex = 0;
-    while( nCurIndex < vecIndeces.size() && pBuffer - pStart < lBufferLen )
+    while( nCurIndex < static_cast<int>(vecIndeces.size()) && pBuffer - pStart < lBufferLen )
     {
         long nFirstObj = vecIndeces[nCurIndex];
         long nCount    = vecIndeces[nCurIndex+1];
@@ -686,7 +693,7 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
     }
 }
 
-void PdfParser::ReadXRefStreamEntry( char* pBuffer, long lLen, long lW[W_ARRAY_SIZE], int nObjNo )
+void PdfParser::ReadXRefStreamEntry( char* pBuffer, long, long lW[W_ARRAY_SIZE], int nObjNo )
 {
     int              i, z;
     unsigned long    nData[W_ARRAY_SIZE];
@@ -745,14 +752,81 @@ void PdfParser::ReadObjects()
 
     m_vecObjects->Reserve( m_nNumObjects );
 
-    for( ; i <= m_nNumObjects; i++ )
+    // Check for encryption and make sure that the encryption object
+    // is loaded before all other objects
+    if( m_pTrailer->GetDictionary().HasKey( PdfName("Encrypt") ) )
+    {
+#ifdef PODOFO_VERBOSE_DEBUG
+        PdfError::DebugMessage("The PDF file is encrypted.\n" );
+#endif // PODOFO_VERBOSE_DEBUG
+
+        PdfObject* pEncrypt = m_pTrailer->GetDictionary().GetKey( PdfName("Encrypt") );
+        if( pEncrypt->IsReference() ) 
+        {
+            i = pEncrypt->GetReference().ObjectNumber();
+
+            pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, m_pOffsets[i].lOffset );
+            pObject->SetLoadOnDemand( m_bLoadOnDemand );
+            try {
+                pObject->ParseFile( NULL ); // The encryption dictionary is not encrypted :)
+                m_vecObjects->push_back( pObject );
+                m_pOffsets[i].bParsed = false;
+                m_pEncrypt = new PdfEncrypt( pObject );
+            } catch( PdfError & e ) {
+                std::ostringstream oss;
+                if( pObject )
+                {
+                    oss << "Error while loading object " << pObject->Reference().ObjectNumber() << " " 
+                        << pObject->Reference().GenerationNumber() << std::endl;
+                    delete pObject;
+                }
+
+                e.AddToCallstack( __FILE__, __LINE__, oss.str().c_str() );
+                throw e;
+            }
+        }
+        else if( pEncrypt->IsDictionary() ) 
+            m_pEncrypt = new PdfEncrypt( pEncrypt );
+        else
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidEncryptionDict, 
+                                     "The encryption entry in the trailer is neither an object nor a reference." ); 
+        }
+        
+        // Generate encryption keys
+        PdfString documentId;
+        if( m_pTrailer->GetDictionary().HasKey( PdfName("ID") ) )
+            documentId = m_pTrailer->GetDictionary().GetKey( PdfName("ID") )->GetArray()[0].GetString();
+        else
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidEncryptionDict, "NO ID");
+        }
+
+        // Set user password, try first with an empty password
+        bool bAuthenticate = m_pEncrypt->Authenticate( "", documentId );
+#ifdef PODOFO_VERBOSE_DEBUG
+        PdfError::DebugMessage("Authentication with empty password: %i.\n", bAuthenticate );
+#endif // PODOFO_VERBOSE_DEBUG
+        if( !bAuthenticate ) 
+        {
+            // try a user defined password
+            // TODO: User cannot set a password from the outside!!!
+            bAuthenticate = m_pEncrypt->Authenticate( "user", documentId );
+#ifdef PODOFO_VERBOSE_DEBUG
+            PdfError::DebugMessage("Authentication with user defined password: %i.\n", bAuthenticate );
+#endif // PODOFO_VERBOSE_DEBUG
+        }
+    }
+
+    // Read objects
+    for( i=0; i <= m_nNumObjects; i++ )
     {
         if( m_pOffsets[i].bParsed && m_pOffsets[i].cUsed == 'n' )
         {
             pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, m_pOffsets[i].lOffset );
             pObject->SetLoadOnDemand( m_bLoadOnDemand );
             try {
-                pObject->ParseFile();
+                pObject->ParseFile( m_pEncrypt );
                 nLast = pObject->Reference().ObjectNumber();
 
                 // final pdf should not contain a linerization dictionary as it contents are invalid 
@@ -819,7 +893,7 @@ void PdfParser::ReadObjects()
     }
 }
 
-void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
+void PdfParser::ReadObjectFromStream( int nObjNo, int )
 {
     // check if we already have read all objects
     // from this stream
@@ -865,7 +939,7 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int nIndex )
         // move to the position of the object in the stream
         device.Device()->Seek( lFirst + lOff );
 
-        tokenizer.GetNextVariant( var );
+        tokenizer.GetNextVariant( var, m_pEncrypt );
         m_vecObjects->push_back( new PdfObject( PdfReference( lObj, 0 ), var ) );
 
         // move back to the position inside of the table of contents

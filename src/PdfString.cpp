@@ -348,7 +348,7 @@ PdfString::~PdfString()
 {
 }
 
-void PdfString::SetHexData( const char* pszHex, long lLen )
+void PdfString::SetHexData( const char* pszHex, long lLen, PdfEncrypt* pEncrypt )
 {
     if( !pszHex ) 
     {
@@ -364,7 +364,7 @@ void PdfString::SetHexData( const char* pszHex, long lLen )
     m_bHex   = true;
     char* pBuffer = m_buffer.GetBuffer();
     char val;
-    char cDecodedByte;
+    char cDecodedByte = 0;
     bool bLow = true;
 
     while( lLen-- ) 
@@ -414,6 +414,9 @@ void PdfString::SetHexData( const char* pszHex, long lLen )
         memcpy( temp.GetBuffer(), m_buffer.GetBuffer(), lLen );
         m_buffer = temp;
     }
+
+    if( pEncrypt )
+        pEncrypt->Encrypt( reinterpret_cast<unsigned char*>(m_buffer.GetBuffer()), m_buffer.GetSize()-2 );
 }
 
 void PdfString::Write ( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) const

@@ -54,7 +54,7 @@ void PdfFileStream::BeginAppendImpl( const TVecFilters & vecFilters )
         m_pDeviceStream = new PdfDeviceOutputStream( m_pDevice );
         if( m_pCurEncrypt ) 
         {
-            m_pEncryptStream = m_pCurEncrypt->CreateEncryptionStream( m_pDeviceStream );
+            m_pEncryptStream = m_pCurEncrypt->CreateEncryptionOutputStream( m_pDeviceStream );
             m_pStream        = PdfFilterFactory::CreateEncodeStream( vecFilters, m_pEncryptStream );
         }
         else
@@ -65,7 +65,7 @@ void PdfFileStream::BeginAppendImpl( const TVecFilters & vecFilters )
         if( m_pCurEncrypt ) 
         {
             m_pDeviceStream = new PdfDeviceOutputStream( m_pDevice );
-            m_pStream       = m_pCurEncrypt->CreateEncryptionStream( m_pDeviceStream );
+            m_pStream       = m_pCurEncrypt->CreateEncryptionOutputStream( m_pDeviceStream );
         }
         else
             m_pStream = new PdfDeviceOutputStream( m_pDevice );

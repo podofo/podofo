@@ -21,6 +21,7 @@
 #include "PdfVariant.h"
 #include "../PdfTest.h"
 
+#include "PdfArray.h"
 #include "PdfFilter.h"
 #include "PdfName.h"
 #include "PdfTokenizer.h"
@@ -103,7 +104,7 @@ void Test( const char* pszString, EPdfDataType eDataType, const char* pszExpecte
     printf("Testing with value: %s\n", pszString );
     PdfTokenizer tokenizer( pszString, strlen( pszString ) );
 
-    tokenizer.GetNextVariant( variant );
+    tokenizer.GetNextVariant( variant, NULL );
 
     printf("   -> Expected Datatype: %i\n", eDataType );
     printf("   -> Got      Datatype: %i\n", variant.GetDataType() );
