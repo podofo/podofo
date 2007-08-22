@@ -62,14 +62,34 @@ void ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnN
                 if( pObj && pObj->IsName() && ( pObj->GetName().GetName() == "Image" ) )
                 {
                     pObj = (*it)->GetDictionary().GetKey( PdfName::KeyFilter );
-                    if( pObj && pObj->IsName() && ( pObj->GetName().GetName() == "DCTDecode" ) )
+                    if( pObj )
                     {	
-                        // ONLY images with filter of DCTDecode can be extracted out as JPEG this way!
-                        
-                        ExtractImage( *it );
-                    
-                        if( pnNum )
-                            ++(*pnNum);
+                        if (pObj->IsName() && ( pObj->GetName().GetName() == "DCTDecode" ))
+                        {
+                            // ONLY images with filter of DCTDecode can be extracted out as JPEG this way!
+                            ExtractImage( *it );
+
+                            if( pnNum )
+                                ++(*pnNum);
+                        }
+                        else if (pObj->IsArray())
+                        {
+                            PdfArray filts = pObj->GetArray();
+                            PdfArray::const_iterator filt_it = filts.begin();
+                            while (filt_it != filts.end())
+                            {
+                                if( (*filt_it).GetDataType() == ePdfDataType_Name )
+                                {
+                                    if ( (*filt_it).GetName() == "DCTDecode" )
+                                    {
+                                        ExtractImage( *it );
+                                        if( pnNum )
+                                            ++(*pnNum);
+                                    }
+                                }
+                                ++filt_it;
+                            }
+                        }
                     }
                 }
             }
