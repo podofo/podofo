@@ -118,6 +118,12 @@ void PdfDocument::Clear()
         m_pAcroForms = NULL;
     }
 
+    if( m_pTrailer ) 
+    {
+        delete m_pTrailer;
+        m_pTrailer = NULL;
+    }
+
     m_pCatalog = NULL;
 }
 

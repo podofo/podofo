@@ -506,6 +506,7 @@ inline void PdfDocument::SetTrailer( PdfObject* pObject )
 {
     delete m_pTrailer;
     m_pTrailer = pObject;
+    // Set owner so that GetIndirectKey will work
     m_pTrailer->SetOwner( &m_vecObjects );
 }
 
