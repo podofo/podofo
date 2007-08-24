@@ -72,6 +72,12 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
     
     /** Construct a PdfMemDocument from an existing PDF (on disk)
      *  \param pszFilename filename of the file which is going to be parsed/opened
+     *
+     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  if a password is required to read this PDF.
+     *  Call SetPassword with the correct password in this case.
+     *  
+     *  \see SetPassword
      */
     PdfMemDocument( const char* pszFilename );
 
@@ -82,6 +88,12 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
     /** Load a PdfMemDocument from a file
      *
      *  \param pszFilename filename of the file which is going to be parsed/opened
+     *
+     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  if a password is required to read this PDF.
+     *  Call SetPassword with the correct password in this case.
+     *  
+     *  \see SetPassword
      */
     void Load( const char* pszFilename );
 
@@ -111,6 +123,23 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
      *  \returns EPdfVersion version of the pdf document
      */
     EPdfVersion GetPdfVersion() const { return m_eVersion; }
+
+    /** If you try to open an encrypted PDF file, which requires
+     *  a password to open, PoDoFo will throw a PdfError( ePdfError_InvalidPassword ) 
+     *  exception. 
+     *  
+     *  If you got such an exception, you have to set a password
+     *  which should be used for opening the PDF.
+     *
+     *  The usual way will be to ask the user for the password
+     *  and set the password using this method.
+     *
+     *  PdfParser will immediately continue to read the PDF file.
+     *
+     *  \param sPassword a user or owner password which can be used to open an encrypted PDF file
+     *                   If the password is invalid, a PdfError( ePdfError_InvalidPassword ) exception is thrown!
+     */
+    void SetPassword( const std::string & sPassword );
 
     /** Encrypt the document during writing.
      *
@@ -321,6 +350,8 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
     EPdfVersion     m_eVersion;
 
     PdfEncrypt*     m_pEncrypt;
+
+    PdfParser*      m_pParser; ///< This will be temporarily initialized to a PdfParser object so that SetPassword can work
 };
 
 // -----------------------------------------------------

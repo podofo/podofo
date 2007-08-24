@@ -35,6 +35,7 @@ typedef TMapObjects::iterator       TIMapObjects;
 typedef TMapObjects::const_iterator TCIMapObjects;
 
 class PdfEncrypt;
+class PdfString;
 
 /**
  * PdfParser reads a PDF file into memory. 
@@ -65,6 +66,12 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *                       If false all objects will be read immediately.
      *                       This is faster if you do not need the complete PDF 
      *                       file in memory.
+     *
+     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  if a password is required to read this PDF.
+     *  Call SetPassword with the correct password in this case.
+     *  
+     *  \see SetPassword
      */
     PdfParser( PdfVecObjects* pVecObjects, const char* pszFilename, bool bLoadOnDemand = true );
 
@@ -80,6 +87,13 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *                       If false all objects will be read immediately.
      *                       This is faster if you do not need the complete PDF 
      *                       file in memory.
+     *
+     *
+     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  if a password is required to read this PDF.
+     *  Call SetPassword with the correct password in this case.
+     *  
+     *  \see SetPassword
      */
     void ParseFile( const char* pszFilename, bool bLoadOnDemand = true );
 
@@ -127,6 +141,23 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      * \returns the parsers encryption object or NULL if the read PDF file was not encrypted
      */
     const PdfEncrypt* GetEncrypt() const { return m_pEncrypt; }
+
+    /** If you try to open an encrypted PDF file, which requires
+     *  a password to open, PoDoFo will throw a PdfError( ePdfError_InvalidPassword ) 
+     *  exception. 
+     *  
+     *  If you got such an exception, you have to set a password
+     *  which should be used for opening the PDF.
+     *
+     *  The usual way will be to ask the user for the password
+     *  and set the password using this method.
+     *
+     *  PdfParser will immediately continue to read the PDF file.
+     *
+     *  \param sPassword a user or owner password which can be used to open an encrypted PDF file
+     *                   If the password is invalid, a PdfError( ePdfError_InvalidPassword ) exception is thrown!
+     */
+    void SetPassword( const std::string & sPassword );
 
  protected:
     /** Searches backwards from the end of the file
@@ -193,8 +224,28 @@ class PODOFO_API PdfParser : public PdfTokenizer {
 
     /** Reads all objects from the pdf into memory
      *  from the offsets listed in m_vecOffsets.
+     *
+     *  If required an encryption object is setup first.
+     *
+     *  The actual reading happens in ReadObjectsInternal()
+     *  either if no encryption is required or a correct
+     *  encryption object was initialized from SetPassword.
      */
     void ReadObjects();
+
+    /** Reads all objects from the pdf into memory
+     *  from the offsets listed in m_vecOffsets.
+     *
+     *  Requires a correctly setup PdfEncrypt object
+     *  with correct password.
+     *
+     *  This method is called from ReadObjects
+     *  or SetPassword.
+     *
+     *  \see ReadObjects
+     *  \see SetPassword
+     */
+    void ReadObjectsInternal();
 
     /** Read the object with index nIndex from the object stream nObjNo
      *  and push it on the objects vector m_vecOffsets.
@@ -228,6 +279,12 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *  with their initial values.
      */
     void         Init();
+
+    /** Small helper method to retrieve the document id from the trailer
+     *
+     *  \returns the document id of this PDF document
+     */
+    const PdfString & GetDocumentId();
 
  private:
     EPdfVersion   m_ePdfVersion;

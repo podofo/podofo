@@ -74,6 +74,7 @@ typedef enum EPdfError {
     ePdfError_InvalidKey,               /**< The specified key is invalid */
     ePdfError_InvalidName,              /**< The specified Name is not valid in this context */
     ePdfError_InvalidEncryptionDict,    /**< The encryption dictionary is invalid or misses a required key */
+    ePdfError_InvalidPassword,          /**< The password used to open the PDF file was invalid */
 
     ePdfError_UnsupportedFilter,        /**< The requested filter is not yet implemented. */
     ePdfError_UnsupportedFontFormat,    /**< This font format is not supported by PoDoFO. */

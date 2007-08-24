@@ -27,6 +27,8 @@
 #include <iostream>
 #include <string>
 using std::cerr;
+using std::cout;
+using std::cin;
 using std::flush;
 using std::endl;
 using std::string;
@@ -141,7 +143,32 @@ int main( int argc, char*  argv[] )
         cerr << "Parsing  " << argv[1] << " with demand loading "
              << (useDemandLoading ? "on" : "off")
              << " ..." << flush;
-        parser.ParseFile( argv[1], useDemandLoading );
+
+        bool bIncorrectPw = false;
+        std::string pw;
+        do {
+            try {
+                if( !bIncorrectPw ) 
+                    parser.ParseFile( argv[1], useDemandLoading );
+                else 
+                    parser.SetPassword( pw );
+                
+                bIncorrectPw = false;
+            } catch( const PdfError & e ) {
+                if( e.GetError() == ePdfError_InvalidPassword ) 
+                {
+                    cout << endl << "Password :";
+                    std::getline( cin, pw );
+                    cout << endl;
+                    
+                    // try to continue with the new password
+                    bIncorrectPw = true;
+                }
+                else
+                    throw e;
+            }
+        } while( bIncorrectPw );
+
         cerr << " done" << endl;
 
         cerr << "PdfVersion=" << parser.GetPdfVersion() << endl;

@@ -240,6 +240,9 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_InvalidEncryptionDict:
             pszMsg = "ePdfError_InvalidEncryptionDict";    /**< The encryption dictionary is invalid or misses a required key */
             break;
+        case ePdfError_InvalidPassword:                    /**< The password used to open the PDF file was invalid */
+            pszMsg = "ePdfError_InvalidPassword";
+            break;
         case ePdfError_UnsupportedFilter:
             pszMsg = "ePdfError_UnsupportedFilter"; 
             break;
@@ -342,6 +345,9 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
             break;
         case ePdfError_InvalidEncryptionDict:
             pszMsg = "The encryption dictionary is invalid or misses a required key.";
+            break;
+        case ePdfError_InvalidPassword:
+            pszMsg = "The password used to open the PDF file was invalid.";
             break;
         case ePdfError_UnsupportedFilter:
             break;

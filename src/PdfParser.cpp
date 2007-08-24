@@ -747,7 +747,6 @@ void PdfParser::ReadXRefStreamEntry( char* pBuffer, long, long lW[W_ARRAY_SIZE],
 void PdfParser::ReadObjects()
 {
     int              i          = 0;
-    int              nLast      = 0;
     PdfParserObject* pObject    = NULL;
 
     m_vecObjects->Reserve( m_nNumObjects );
@@ -794,29 +793,28 @@ void PdfParser::ReadObjects()
         }
         
         // Generate encryption keys
-        PdfString documentId;
-        if( m_pTrailer->GetDictionary().HasKey( PdfName("ID") ) )
-            documentId = m_pTrailer->GetDictionary().GetKey( PdfName("ID") )->GetArray()[0].GetString();
-        else
-        {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidEncryptionDict, "NO ID");
-        }
-
         // Set user password, try first with an empty password
-        bool bAuthenticate = m_pEncrypt->Authenticate( "", documentId );
+        bool bAuthenticate = m_pEncrypt->Authenticate( "", this->GetDocumentId() );
 #ifdef PODOFO_VERBOSE_DEBUG
         PdfError::DebugMessage("Authentication with empty password: %i.\n", bAuthenticate );
 #endif // PODOFO_VERBOSE_DEBUG
         if( !bAuthenticate ) 
         {
-            // try a user defined password
-            // TODO: User cannot set a password from the outside!!!
-            bAuthenticate = m_pEncrypt->Authenticate( "user", documentId );
-#ifdef PODOFO_VERBOSE_DEBUG
-            PdfError::DebugMessage("Authentication with user defined password: %i.\n", bAuthenticate );
-#endif // PODOFO_VERBOSE_DEBUG
+            // authentication failed so we need a password from the user.
+            // The user can set the password using PdfParser::SetPassword
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidPassword, "A password is required to read this PDF file.");
         }
+
     }
+
+    ReadObjectsInternal();
+}
+
+void PdfParser::ReadObjectsInternal() 
+{
+    int              i          = 0;
+    int              nLast      = 0;
+    PdfParserObject* pObject    = NULL;
 
     // Read objects
     for( i=0; i <= m_nNumObjects; i++ )
@@ -891,6 +889,25 @@ void PdfParser::ReadObjects()
                 pObject->GetStream();
         }
     }
+}
+
+void PdfParser::SetPassword( const std::string & sPassword )
+{
+    if( !m_pEncrypt ) 
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Cannot set password for unencrypted PDF." );
+    } 
+
+    bool bAuthenticate = m_pEncrypt->Authenticate( sPassword, this->GetDocumentId() ); 
+    if( !bAuthenticate ) 
+    {
+#ifdef PODOFO_VERBOSE_DEBUG
+        PdfError::DebugMessage("Authentication with user password failed\n" );
+#endif // PODOFO_VERBOSE_DEBUG
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidPassword, "Authentication with user specified password failed.");
+    }
+    
+    ReadObjectsInternal();
 }
 
 void PdfParser::ReadObjectFromStream( int nObjNo, int )
@@ -996,6 +1013,15 @@ void PdfParser::FindToken( const char* pszToken, const long lRange )
     m_device.Device()->Seek( (lXRefBuf-i)*-1, std::ios_base::end );
 }
 
+const PdfString & PdfParser::GetDocumentId() 
+{
+    if( !m_pTrailer->GetDictionary().HasKey( PdfName("ID") ) )
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidEncryptionDict, "No document ID found in trailer.");
+    }
+
+    return m_pTrailer->GetDictionary().GetKey( PdfName("ID") )->GetArray()[0].GetString();
+}
 
 };
 

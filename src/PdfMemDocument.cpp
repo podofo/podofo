@@ -51,14 +51,14 @@ using namespace std;
 namespace PoDoFo {
 
 PdfMemDocument::PdfMemDocument()
-    : PdfDocument(), m_pEncrypt( NULL )
+    : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL )
 {
     m_eVersion    = ePdfVersion_1_3;
     m_bLinearized = false;
 }
 
 PdfMemDocument::PdfMemDocument( const char* pszFilename )
-    : PdfDocument(), m_pEncrypt( NULL )
+    : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL )
 {
     this->Load( pszFilename );
 }
@@ -120,9 +120,21 @@ void PdfMemDocument::Load( const char* pszFilename )
 {
     this->Clear();
 
-    PdfParser parser( PdfDocument::GetObjects(), pszFilename, true );
-    InitFromParser( &parser );
+    m_pParser = new PdfParser( PdfDocument::GetObjects(), pszFilename, true );
+    InitFromParser( m_pParser );
     InitPagesTree();
+
+    // Delete the temporary pdfparser object.
+    // It is only set to m_pParser so that SetPassword can work
+    delete m_pParser;
+    m_pParser = NULL;
+}
+
+void PdfMemDocument::SetPassword( const std::string & sPassword )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pParser, "SetPassword called without reading a PDF file." );
+
+    m_pParser->SetPassword( sPassword );
 }
 
 void PdfMemDocument::Write( const char* pszFilename )
