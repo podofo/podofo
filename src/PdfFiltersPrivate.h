@@ -23,8 +23,16 @@
 
 #include "PdfDefines.h"
 #include "PdfFilter.h"
+#include "PdfRefCountedBuffer.h"
 
 #include <zlib.h>
+
+#ifdef PODOFO_HAVE_JPEG_LIB
+extern "C" {
+#include "jpeglib.h"
+}
+#endif // PODOFO_HAVE_JPEG_LIB
+
 
 namespace PoDoFo {
 
@@ -115,16 +123,25 @@ class PdfHexFilter : public PdfFilter {
     bool m_bLow;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfHexFilter::CanEncode() const
 {
     return true;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfHexFilter::CanDecode() const
 {
     return true;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 EPdfFilter PdfHexFilter::GetType() const
 {
     return ePdfFilter_ASCIIHexDecode;
@@ -233,16 +250,25 @@ class PdfAscii85Filter : public PdfFilter {
     unsigned long m_tuple;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfAscii85Filter::CanEncode() const
 {
     return true;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfAscii85Filter::CanDecode() const
 {
     return true;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 EPdfFilter PdfAscii85Filter::GetType() const
 {
     return ePdfFilter_ASCII85Decode;
@@ -356,16 +382,25 @@ class PdfFlateFilter : public PdfFilter {
     PdfPredictorDecoder* m_pPredictor;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfFlateFilter::CanEncode() const
 {
     return true;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfFlateFilter::CanDecode() const
 {
     return true;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 EPdfFilter PdfFlateFilter::GetType() const
 {
     return ePdfFilter_FlateDecode;
@@ -453,16 +488,25 @@ class PdfRLEFilter : public PdfFilter {
     int m_nCodeLen;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfRLEFilter::CanEncode() const
 {
     return false;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfRLEFilter::CanDecode() const
 {
     return true;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 EPdfFilter PdfRLEFilter::GetType() const
 {
     return ePdfFilter_RunLengthDecode;
@@ -593,20 +637,161 @@ class PdfLZWFilter : public PdfFilter {
     PdfPredictorDecoder* m_pPredictor;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfLZWFilter::CanEncode() const
 {
     return false;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfLZWFilter::CanDecode() const
 {
     return true;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 EPdfFilter PdfLZWFilter::GetType() const
 {
     return ePdfFilter_LZWDecode;
 }
+
+
+#ifdef PODOFO_HAVE_JPEG_LIB
+/** The DCT filter can decoded JPEG compressed data.
+ *  
+ *  This filter requires JPEG lib to be available
+ */
+class PdfDCTFilter : public PdfFilter {
+ public:
+    PdfDCTFilter();
+
+    virtual ~PdfDCTFilter();
+
+    /** Check wether the encoding is implemented for this filter.
+     * 
+     *  \returns true if the filter is able to encode data
+     */
+    inline virtual bool CanEncode() const; 
+
+    /** Begin encoding data using this filter. Called by PdfFilter::BeginEncode.
+     *
+     *  \see EncodeBlockImpl
+     *  \see EndEncodeImpl
+     *  \see PdfFilter::BeginEncode
+     */
+    virtual void BeginEncodeImpl();
+
+    /** Encode a block of data and write it to the PdfOutputStream
+     *  specified by BeginEncodeImpl.
+     *
+     *  BeginEncodeImpl() has to be called before this function.
+     *
+     *  \param pBuffer pointer to a buffer with data to encode
+     *  \param lLen length of data to encode.
+     *
+     *  Call EndEncodeImpl() after all data has been encoded
+     *
+     *
+     *  \see BeginEncodeImpl
+     *  \see EndEncodeImpl
+     */
+    virtual void EncodeBlockImpl( const char* pBuffer, long lLen );
+
+    /**
+     *  Finish encoding of data.
+     *
+     *  \see BeginEncodeImpl
+     *  \see EncodeBlockImpl
+     */
+    virtual void EndEncodeImpl();
+
+    /** Check wether the decoding is implemented for this filter.
+     * 
+     *  \returns true if the filter is able to decode data
+     */
+    inline virtual bool CanDecode() const; 
+
+    /** Real implementation of `BeginDecode()'. NEVER call this method directly.
+     *
+     *  By default this function does nothing. If your filter needs to do setup for decoding,
+     *  you should override this method.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is called, and
+     *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
+     *
+     * \see BeginDecode */
+    virtual void BeginDecodeImpl( const PdfDictionary* );
+
+    /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
+     *
+     *  You must override this method to decode the buffer passed by the caller.
+     *
+     *  You are not obliged to immediately process any or all of the data in
+     *  the passed buffer, but you must ensure that you have processed it and
+     *  written it out by the end of EndDecodeImpl(). You must copy the buffer
+     *  if you're going to store it, as ownership is not transferred to the
+     *  filter and the caller may free the buffer at any time.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is
+     *  called, ensures that BeginDecode() has been called, and ensures that
+     *  EndDecode() has not been called since the last BeginDecode().
+     *
+     * \see DecodeBlock */
+    virtual void DecodeBlockImpl( const char* pBuffer, long lLen );
+
+    /** Real implementation of `EndDecode()'. NEVER call this method directly.
+     *
+     * By the time this method returns, all filtered data must be written to the stream
+     * and the filter must be in a state where BeginDecode() can be safely called.
+     *
+     *  PdfFilter ensures that a valid stream is available when this method is
+     *  called, and ensures that BeginDecodeImpl() has been called.
+     *
+     * \see EndDecode */
+    virtual void EndDecodeImpl();
+
+    /** GetType of this filter.
+     *  \returns the GetType of this filter
+     */
+    inline virtual EPdfFilter GetType() const;
+
+ private:
+    struct jpeg_decompress_struct m_cinfo;
+    struct jpeg_error_mgr         m_jerr;
+
+    PdfRefCountedBuffer           m_buffer;
+};
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfDCTFilter::CanEncode() const
+{
+    return false;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfDCTFilter::CanDecode() const
+{
+    return true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+EPdfFilter PdfDCTFilter::GetType() const
+{
+    return ePdfFilter_DCTDecode;
+}
+#endif // PODOFO_HAVE_JPEG_LIB
 
 };
 

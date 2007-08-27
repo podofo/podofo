@@ -167,12 +167,10 @@ int main( int argc, char* argv[] )
       {
           if( !pszInput )
           {
-              printf("INPUT=%s\n", argv[i] );
               pszInput = argv[i];
           }
           else if( !pszOutput )
           {
-              printf("OUTPUT=%s\n", argv[i] );
               pszOutput = argv[i];
           }
           else

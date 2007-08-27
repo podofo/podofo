@@ -49,9 +49,10 @@ class ImageExtractor {
     /** Extracts the image form the given PdfObject
      *  which has to be an XObject with Subtype "Image"
      *  \param pObject a handle to a PDF object
+     *  \param bJpeg if true extract as a jpeg, otherwise create a ppm
      *  \returns ErrOk on success
      */
-    void ExtractImage( PoDoFo::PdfObject* pObject );
+    void ExtractImage( PoDoFo::PdfObject* pObject, bool bJpeg );
 
     /** This function checks wether a file with the 
      *  given filename does exist.

@@ -246,15 +246,23 @@ std::auto_ptr<PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter )
             pFilter = new PdfRLEFilter();
             break;
             
+        case ePdfFilter_DCTDecode:
+#ifdef PODOFO_HAVE_JPEG_LIB
+            pFilter = new PdfDCTFilter();
+            break;
+#else
+            break;
+#endif // PODOFO_HAVE_JPEG_LIB
+
         case ePdfFilter_CCITTFaxDecode:
         case ePdfFilter_JBIG2Decode:
-        case ePdfFilter_DCTDecode:
         case ePdfFilter_JPXDecode:
         case ePdfFilter_Crypt:
         case ePdfFilter_Unknown:
         default:
             break;
     }
+
     return std::auto_ptr<PdfFilter>(pFilter);
 }
 

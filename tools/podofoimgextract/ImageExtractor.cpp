@@ -62,34 +62,20 @@ void ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnN
                 if( pObj && pObj->IsName() && ( pObj->GetName().GetName() == "Image" ) )
                 {
                     pObj = (*it)->GetDictionary().GetKey( PdfName::KeyFilter );
-                    if( pObj )
-                    {	
-                        if (pObj->IsName() && ( pObj->GetName().GetName() == "DCTDecode" ))
-                        {
-                            // ONLY images with filter of DCTDecode can be extracted out as JPEG this way!
-                            ExtractImage( *it );
-
-                            if( pnNum )
-                                ++(*pnNum);
-                        }
-                        else if (pObj->IsArray())
-                        {
-                            PdfArray filts = pObj->GetArray();
-                            PdfArray::const_iterator filt_it = filts.begin();
-                            while (filt_it != filts.end())
-                            {
-                                if( (*filt_it).GetDataType() == ePdfDataType_Name )
-                                {
-                                    if ( (*filt_it).GetName() == "DCTDecode" )
-                                    {
-                                        ExtractImage( *it );
-                                        if( pnNum )
-                                            ++(*pnNum);
-                                    }
-                                }
-                                ++filt_it;
-                            }
-                        }
+                    if( pObj->IsName() && ( pObj->GetName().GetName() == "DCTDecode" ) )
+                    {
+                        // The only filter is JPEG -> create a JPEG file
+                        ExtractImage( *it, true );
+                    }
+                    else if( pObj->IsArray() && pObj->GetArray().GetSize() == 1 && 
+                             pObj->GetArray()[0].IsName() && (pObj->GetArray()[0].GetName().GetName() == "DCTDecode") )
+                    {
+                        // The only filter is JPEG -> create a JPEG file
+                        ExtractImage( *it, true );
+                    }
+                    else
+                    {
+                        ExtractImage( *it, false );
                     }
                 }
             }
@@ -99,13 +85,14 @@ void ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnN
     }
 }
 
-void ImageExtractor::ExtractImage( PdfObject* pObject )
+void ImageExtractor::ExtractImage( PdfObject* pObject, bool bJpeg )
 {
-    FILE*    hFile = NULL;
+    FILE*       hFile        = NULL;
+    const char* pszExtension = bJpeg ? "jpg" : "ppm"; 
 
     // Do not overwrite existing files:
     do {
-        snprintf( m_szBuffer, MAX_PATH, "%s/pdfimage_%i.jpg", m_pszOutputDirectory, m_nCount++ );
+        snprintf( m_szBuffer, MAX_PATH, "%s/pdfimage_%04i.%s", m_pszOutputDirectory, m_nCount++, pszExtension );
     } while( FileExists( m_szBuffer ) );
 
     hFile = fopen( m_szBuffer, "wb" );
@@ -116,9 +103,32 @@ void ImageExtractor::ExtractImage( PdfObject* pObject )
 
     printf("-> Writing image object %s to the file: %s\n", pObject->Reference().ToString().c_str(), m_szBuffer);
 
-    PdfMemStream* pStream = dynamic_cast<PdfMemStream*>(pObject->GetStream());
-    
-    fwrite( pStream->Get(), pStream->GetLength(), sizeof(char), hFile );
+    if( bJpeg ) 
+    {
+        PdfMemStream* pStream = dynamic_cast<PdfMemStream*>(pObject->GetStream());
+        fwrite( pStream->Get(), pStream->GetLength(), sizeof(char), hFile );
+    }
+    else
+    {
+        long lBitsPerComponent = pObject->GetDictionary().GetKey( PdfName("BitsPerComponent" ) )->GetNumber();
+        // TODO: Handle colorspaces
+
+        // Create a ppm image
+        const char* pszPpmHeader = "P6\n# Image extracted by PoDoFo\n%li %li\n%li\n";
+        
+        
+        fprintf( hFile, pszPpmHeader, 
+                 pObject->GetDictionary().GetKey( PdfName("Width" ) )->GetNumber(),
+                 pObject->GetDictionary().GetKey( PdfName("Height" ) )->GetNumber(),
+                 255 );
+                 
+        char* pBuffer;
+        long  lLen;
+        pObject->GetStream()->GetFilteredCopy( &pBuffer, &lLen );
+        fwrite( pBuffer, lLen, sizeof(char), hFile );
+        free( pBuffer );
+    }
+
     fclose( hFile );
 }
 
@@ -126,9 +136,9 @@ bool ImageExtractor::FileExists( const char* pszFilename )
 {
     bool result = true;
     
-	// if there is an error, it's probably because the file doesn't yet exist
-	struct	stat	stBuf;
-	if ( stat( pszFilename, &stBuf ) == -1 )	result = false;
+    // if there is an error, it's probably because the file doesn't yet exist
+    struct stat	stBuf;
+    if ( stat( pszFilename, &stBuf ) == -1 )	result = false;
 
     return result;
 }
