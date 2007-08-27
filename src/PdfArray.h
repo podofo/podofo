@@ -56,6 +56,11 @@ class PODOFO_API PdfArray : public std::vector<PdfObject>, public PdfDataType {
 
     virtual ~PdfArray();
 
+    /** 
+     *  \returns the size of the array
+     */
+    inline size_t GetSize() const;
+
     /** Remove all elements from the array
      */
     inline void Clear();
@@ -92,6 +97,14 @@ class PODOFO_API PdfArray : public std::vector<PdfObject>, public PdfDataType {
 void PdfArray::Clear() 
 {
     this->clear();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+size_t PdfArray::GetSize() const
+{
+    return this->size();
 }
 
 typedef PdfArray                 TVariantList;
