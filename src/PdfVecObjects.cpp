@@ -116,7 +116,6 @@ PdfObject* PdfVecObjects::GetObject( const PdfReference & ref ) const
     if( !m_bSorted )
         const_cast<PdfVecObjects*>(this)->Sort();
 
-    printf("vecsize: %i\n", m_vector.size());
     PdfObject refObj( ref, NULL );
     std::pair<TCIVecObjects,TCIVecObjects> it = 
         std::equal_range( m_vector.begin(), m_vector.end(), &refObj, ObjectComparatorPredicate() );
