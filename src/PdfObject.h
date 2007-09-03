@@ -326,11 +326,17 @@ private:
 #endif
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfObject::DelayedStreamLoadDone() const
 {
     return m_bDelayedStreamLoadDone;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfObject::EnableDelayedStreamLoading()
 {
     m_bDelayedStreamLoadDone = false;

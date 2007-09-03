@@ -53,6 +53,7 @@ SET(PODOFO_SOURCES
     PdfStreamedDocument.cpp
     PdfString.cpp
     PdfTokenizer.cpp
+    PdfTTFWriter.cpp
     PdfVariant.cpp
     PdfVecObjects.cpp
     PdfWriter.cpp
@@ -118,6 +119,7 @@ SET(PODOFO_HEADERS
     PdfStreamedDocument.h
     PdfString.h
     PdfTokenizer.h
+    PdfTTFWriter.h
     PdfVariant.h
     PdfVecObjects.h
     PdfWriter.h

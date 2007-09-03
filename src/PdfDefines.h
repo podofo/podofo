@@ -98,6 +98,7 @@ namespace PoDoFo {
  */
 typedef unsigned int   pdf_uint32;
 typedef unsigned short pdf_uint16;
+typedef signed short   pdf_int16;
 
 typedef pdf_uint16     pdf_utf16be;
 typedef unsigned char  pdf_utf8;

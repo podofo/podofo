@@ -177,9 +177,8 @@ PdfObject* PdfObject::GetIndirectKey( const PdfName & key ) const
             {
                 PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "Object is a reference but does not have an owner!" );
             }
-            printf("Reading object: %i 0 R\n", pObj->GetReference().ObjectNumber()) ;
+
             pObj = m_pOwner->GetObject( pObj->GetReference() );
-            printf("got %p\n", pObj );
         }
         else
             const_cast<PdfObject*>(pObj)->SetOwner( GetOwner() );// even directs might want an owner...
