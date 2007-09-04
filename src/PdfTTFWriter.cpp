@@ -116,6 +116,10 @@ void PdfTTFWriter::Read( PdfInputDevice* pDevice )
     pDevice->Seek( lMaxp );
     this->ReadMaxpTable( pDevice );
 
+    // Read loca table
+    pDevice->Seek( lLoca );
+    this->ReadLocaTable( pDevice );
+
     // read the remaining data tables
     TIVecTableDirectoryEntries it = vecTables.begin(); 
     while( it != vecTables.end() ) 
@@ -135,9 +139,10 @@ void PdfTTFWriter::Read( PdfInputDevice* pDevice )
             pDevice->Read( table.data, (*it).length ); 
             
             m_vecTableData.push_back( table );
-            
-            ++it;
         }
+
+            
+        ++it;
     }
 }
     
@@ -212,10 +217,21 @@ void PdfTTFWriter::ReadHeadTable( PdfInputDevice* pDevice )
         SwapHeadTable();
 }
  
-void PdfTTFWriter::WriteHeadTable( PdfOutputDevice* pDevice )
+void PdfTTFWriter::WriteHeadTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc )
 {
+    // We always write the long loca format
+    m_tHead.indexToLocForm = 1;
+
     if( podofo_is_little_endian() ) 
         SwapHeadTable();
+
+    TTableDirectoryEntry entry;
+    entry.tag      = this->CreateTag( 'h', 'e', 'a', 'd' );
+    entry.checkSum = this->CalculateChecksum( reinterpret_cast<const pdf_ttf_ulong*>(&m_tHead), sizeof(THead) );
+    entry.offset   = pDevice->GetLength();
+    entry.length   = sizeof(THead);
+
+    rToc.push_back( entry );
 
     pDevice->Write( reinterpret_cast<char*>(&m_tHead), sizeof(THead) );
 }
@@ -242,10 +258,18 @@ void PdfTTFWriter::ReadMaxpTable( PdfInputDevice* pDevice )
         SwapMaxpTable();
 }
 
-void PdfTTFWriter::WriteMaxpTable( PdfOutputDevice* pDevice )
+void PdfTTFWriter::WriteMaxpTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc )
 {
     if( podofo_is_little_endian() )
         SwapMaxpTable();
+
+    TTableDirectoryEntry entry;
+    entry.tag      = this->CreateTag( 'm', 'a', 'x', 'p' );
+    entry.checkSum = this->CalculateChecksum( reinterpret_cast<const pdf_ttf_ulong*>(&m_tMaxp), sizeof(TMaxP) );
+    entry.offset   = pDevice->GetLength();
+    entry.length   = sizeof(TMaxP);
+
+    rToc.push_back( entry );
 
     pDevice->Write( reinterpret_cast<char*>(&m_tMaxp), sizeof(TMaxP) );
 }
@@ -268,6 +292,76 @@ void PdfTTFWriter::SwapMaxpTable()
     SwapUShort( &m_tMaxp.maxComponentDepth );
 }
 
+void PdfTTFWriter::ReadLocaTable( PdfInputDevice* pDevice )
+{
+    int           n      = m_tMaxp.numGlyphs + 1;
+    pdf_ttf_ulong lValue;
+
+    if( m_tHead.indexToLocForm == 0 )
+    {
+        // short offsets
+        pdf_ttf_ushort value;
+        while( n-- ) 
+        {
+            pDevice->Read( reinterpret_cast<char*>(&value), sizeof(pdf_ttf_ushort) );
+            this->SwapUShort( &value );
+
+            lValue = value;
+
+            m_tLoca.push_back( lValue );
+        }
+            
+    }
+    else if( m_tHead.indexToLocForm == 1 )
+    {
+        // long offsets
+        while( n-- ) 
+        {
+            pDevice->Read( reinterpret_cast<char*>(&lValue), sizeof(pdf_ttf_ulong) );
+            this->SwapULong( &lValue );
+
+            m_tLoca.push_back( lValue );
+        }
+    }
+    else
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidFontFile, "Format of loca table not recognized." );
+    }
+}
+
+void PdfTTFWriter::WriteLocaTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc )
+{
+    TCIVecLoca    it = m_tLoca.begin();
+    pdf_ttf_ulong lValue;
+
+    TTableDirectoryEntry entry;
+    entry.tag      = this->CreateTag( 'l', 'o', 'c', 'a' );
+    entry.checkSum = 0;
+    entry.offset   = pDevice->GetLength();
+    entry.length   = sizeof(pdf_ttf_ulong) * m_tLoca.size();
+
+    while( it != m_tLoca.end() )
+    {
+        lValue = (*it);
+
+        // create the checksum for the table of contents entry
+        entry.checkSum += lValue;
+
+        this->SwapULong( &lValue );
+        pDevice->Write( reinterpret_cast<const char*>(&lValue), sizeof(pdf_ttf_ulong) );
+
+        ++it;
+    }
+
+
+    rToc.push_back( entry );
+}
+
+void PdfTTFWriter::WriteGlyfTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc )
+{
+
+}
+
 void PdfTTFWriter::Subset()
 {
 
@@ -275,18 +369,23 @@ void PdfTTFWriter::Subset()
 
 void PdfTTFWriter::Write( PdfOutputDevice* pDevice )
 {
-    TTableDirectoryEntry entry;
-    const long           lTableOffset = sizeof(TTableDirectory);
+    TTableDirectoryEntry      entry;
+    TVecTableDirectoryEntries vecToc;
+    const long                lTableOffset = sizeof(TTableDirectory);
+    const long                lNumTables   = m_tTableDirectory.numTables;
 
     this->WriteTableDirectory( pDevice );
     
     // write dummy table of contents
     memset( &entry, 0, sizeof(TTableDirectoryEntry) );
-    for( unsigned int i=0; i<m_vecTableData.size(); i++ )  
+    for( unsigned int i=0; i<static_cast<unsigned int>(lNumTables); i++ )  
         pDevice->Write( reinterpret_cast<const char*>(&entry), sizeof(TTableDirectoryEntry) );
 
     // write contents
-    TVecTableDirectoryEntries vecToc;
+    this->WriteMaxpTable( pDevice, vecToc );
+    this->WriteHeadTable( pDevice, vecToc );
+    this->WriteLocaTable( pDevice, vecToc );
+    this->WriteGlyfTable( pDevice, vecToc );
 
     TCIVecTable it = m_vecTableData.begin();
     while( it != m_vecTableData.end() ) 

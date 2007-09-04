@@ -136,6 +136,18 @@ class PODOFO_API PdfTTFWriter {
 
     };
 
+    struct TGlyphHeader {
+        pdf_ttf_short  numberOfContours;     ///< If greater or equal 0, this is a single glyph, if negative it is a composite
+        pdf_ttf_fword  xMin;
+        pdf_ttf_fword  yMin;
+        pdf_ttf_fword  xMax;
+        pdf_ttf_fword  yMax;
+    };
+
+    typedef std::vector<pdf_ttf_ulong> TVecLoca;
+    typedef TVecLoca::iterator         TIVecLoca;
+    typedef TVecLoca::const_iterator   TCIVecLoca;
+
  public:
     /** Create a PdfTTFWriter object.
      *
@@ -256,10 +268,11 @@ class PODOFO_API PdfTTFWriter {
      *  conversion from big to little endian.
      *
      *  \param pDevice write at the current position of this device.
+     *  \param rToc add the written maxp table to this table of contents
      *
      *  \see m_tHead
      */
-    void WriteHeadTable( PdfOutputDevice* pDevice );
+    void WriteHeadTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
 
     /** Swap the endianess of the head table.
      *  \see m_tHead
@@ -281,10 +294,15 @@ class PODOFO_API PdfTTFWriter {
      *  conversion from big to little endian.
      *
      *  \param pDevice write at the current position of this device.
+     *  \param rToc add the written maxp table to this table of contents
      *
      *  \see m_tMaxp
      */
-    void WriteMaxpTable( PdfOutputDevice* pDevice );
+    void WriteMaxpTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
+
+    void ReadLocaTable( PdfInputDevice* pDevice );
+    void WriteLocaTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
+    void WriteGlyfTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
 
     /** Swap the endianess of the maxp table.
      *  \see m_tMaxp
@@ -298,6 +316,8 @@ class PODOFO_API PdfTTFWriter {
     TVecTable                 m_vecTableData;    ///< The actual data of the tables
     TMaxP                     m_tMaxp;           ///< The maximum memory requirements of this font
     THead                     m_tHead;           ///< The head table 
+
+    TVecLoca                  m_tLoca;           ///< The loca table in long format
 };
 
 

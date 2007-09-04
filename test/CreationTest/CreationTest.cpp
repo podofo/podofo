@@ -42,10 +42,32 @@
 
 #include "../PdfTest.h"
 
+#include "PdfInputDevice.h"
+#include "PdfTTFWriter.h"
+
 using namespace PoDoFo;
 
 #define CONVERSION_CONSTANT 0.002834645669291339
 
+
+void tmp()
+{
+    if( access( "/home/dominik/out.ttf", F_OK ) == 0 ) 
+    {
+        printf("Reading old created file!!\n\n");
+        NonPublic::PdfTTFWriter tmp;
+        PdfInputDevice old ( "/home/dominik/out.ttf" ); 
+        tmp.Read( &old );
+    }
+
+    printf("Reading font\n\n\n");
+    NonPublic::PdfTTFWriter writer;
+    PdfInputDevice device( "/home/dominik/.fonts/arial.ttf" ); 
+    PdfOutputDevice outDev( "/home/dominik/out.ttf" ); 
+
+    writer.Read( &device );
+    writer.Write( &outDev );
+}
 
 void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
@@ -556,6 +578,8 @@ int main( int argc, char* argv[] )
 
     TEST_SAFE_OP( writer.Write( argv[1] ) );
     //TEST_SAFE_OP( writer.Close() );
+
+    tmp();
 
 
 #ifdef TEST_MEM_BUFFER
