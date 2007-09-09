@@ -38,19 +38,21 @@ namespace NonPublic {
  *  The usual way to use this class is:
  *
  *  PdfTTFWriter writer;
- *  writer.Read( [an input device] );   // read the font from a device
- *  writer.Subset();                    // do the subsetting
- *  writer.Write( [an output device] ); // write the font back to a device
+ *  writer.Read   ( [an input device]  ); // read the font from a device
+ *  writer.Subset (                    ); // do the subsetting
+ *  writer.Write  ( [an output device] ); // write the font back to a device
  */
 class PODOFO_API PdfTTFWriter {
 
-    // Some common datatypes
+    // Some common datatypes used in TTF files
     typedef pdf_uint32       pdf_ttf_fixed;
     typedef pdf_uint16       pdf_ttf_ushort;
     typedef pdf_uint32       pdf_ttf_ulong;
     typedef pdf_int16        pdf_ttf_fword;
     typedef pdf_int16        pdf_ttf_short;
+    typedef pdf_int16        pdf_ttf_f2dot14;
 
+#pragma pack(1)
     /** The table dictionary is the starting point when reading 
      *  or writing a TTF file.
      */
@@ -118,7 +120,7 @@ class PODOFO_API PdfTTFWriter {
     struct THead {
         pdf_ttf_fixed  version;              ///< The table versions 0x00010000 for version 1.0
         pdf_ttf_fixed  revision;             ///< The revision set by the font manufacturer
-        pdf_ttf_ulong  checkSumAdjustment;   ///< To compute: set it to 0, sum the ntire font as ULONG, then store 0xB1B0AFBA - sum
+        pdf_ttf_ulong  checkSumAdjustment;   ///< To compute: set it to 0, sum the entire font as ULONG, then store 0xB1B0AFBA - sum
         pdf_ttf_ulong  magicNumber;          ///< Set to 0x5F0F3CF5
         pdf_ttf_ushort flags;                ///< Font flags
         pdf_ttf_ushort unitsPerEm;
@@ -136,6 +138,16 @@ class PODOFO_API PdfTTFWriter {
 
     };
 
+    struct TCMapEntry {
+        pdf_ttf_ushort platformId;
+        pdf_ttf_ushort encodingId;
+        
+        pdf_ttf_ulong  offset;
+    };
+
+    /**
+     * Header of a single glyph in the glyf table
+     */
     struct TGlyphHeader {
         pdf_ttf_short  numberOfContours;     ///< If greater or equal 0, this is a single glyph, if negative it is a composite
         pdf_ttf_fword  xMin;
@@ -143,10 +155,166 @@ class PODOFO_API PdfTTFWriter {
         pdf_ttf_fword  xMax;
         pdf_ttf_fword  yMax;
     };
+#pragma pack()
+
+    class PdfTTFGlyph {
+    public:
+        /** Create a new glyph object.
+         *
+         *  \param nIndex glyph index.
+         *  \param bComposite if true, this is a composite glyph
+         *                    otherwise this object is simple glyph
+         */
+        PdfTTFGlyph( bool nIndex )
+            : m_nPosition( 0 ), m_nIndex( nIndex ), m_bComposite( false ), 
+              m_nInstructionLength( 0 ), m_pInstructions( NULL )
+            {
+
+            }
+
+        PdfTTFGlyph( const PdfTTFGlyph & rhs ) 
+            {
+                operator=( rhs );
+            }
+
+        const PdfTTFGlyph & operator=( const PdfTTFGlyph & rhs ) 
+            {
+                m_nIndex             = rhs.m_nIndex;
+                m_bComposite         = rhs.m_bComposite;
+                m_tHeader            = rhs.m_tHeader;
+
+                m_nInstructionLength = rhs.m_nInstructionLength;
+                m_pInstructions      = rhs.m_pInstructions;
+
+                // simple
+                vecEndPoints       = rhs.vecEndPoints;
+                vecXCoordinates    = rhs.vecXCoordinates;
+                vecYCoordinates    = rhs.vecYCoordinates;
+                vecFlags           = rhs.vecFlags;
+
+                // composite
+                arg1      = rhs.arg1;
+                arg2      = rhs.arg2;
+                
+                xx        = rhs.xx;
+                yy        = rhs.yy;
+                xy        = rhs.xy;
+                yx        = rhs.yx;  
+
+                return *this;
+            }
+
+        inline bool IsComposite() const { return m_bComposite; }
+        inline void SetComposite( bool b ) { m_bComposite = b; }
+        inline int  GetIndex()    const { return m_nIndex; }
+        inline int  GetPosition() const { return m_nPosition; }
+        inline void SetPosition( int nPos ) { m_nPosition = nPos; }
+        inline pdf_ttf_ushort GetInstrunctionLength() const { return m_nInstructionLength; };
+        inline const char*    GetInstrunctions() const { return m_pInstructions; }
+
+    public: // TODO: add accessors
+        int  m_nPosition;
+
+        // common
+        int  m_nIndex;
+        bool m_bComposite;
+
+        TGlyphHeader m_tHeader;
+
+        pdf_ttf_ushort m_nInstructionLength;
+        char*          m_pInstructions;
+
+        // simple glyph
+        std::vector<pdf_ttf_ushort> vecEndPoints;
+        std::vector<pdf_ttf_short>  vecXCoordinates;
+        std::vector<pdf_ttf_short>  vecYCoordinates;
+        std::vector<char>           vecFlags;
+
+
+        // composite
+        pdf_ttf_short  arg1;
+        pdf_ttf_short  arg2;
+
+        pdf_ttf_short xx;
+        pdf_ttf_short yy;
+        pdf_ttf_short xy;
+        pdf_ttf_short yx;  
+    };
+
+    struct TCMapFormat4 {
+        pdf_ttf_ushort format;
+        pdf_ttf_ushort length;
+        pdf_ttf_ushort version;
+        pdf_ttf_ushort segCountX2;    ///< 2 x segCount
+        pdf_ttf_ushort searchRange;   ///< 2 x (2**floor(log2(segCount)))
+        pdf_ttf_ushort entrySelector; ///< log2(searchRange/2)
+        pdf_ttf_ushort rangeShift;    ///< 2 x segCount - searchRange
+    };
+
+
+    struct TCMapRange {
+
+        pdf_ttf_ushort nStart;
+        pdf_ttf_ushort nEnd;
+        pdf_ttf_short  nDelta;
+        pdf_ttf_ushort nOffset;
+
+        TCMapRange() 
+        {
+        }
+
+        TCMapRange( const TCMapRange & rhs ) 
+        {
+            this->operator=( rhs );
+        }
+
+        const TCMapRange & operator=( const TCMapRange & rhs ) 
+        {
+            nStart  = rhs.nStart;
+            nEnd    = rhs.nEnd;
+            nDelta  = rhs.nDelta;
+            nOffset = rhs.nOffset;
+
+            return *this;
+        }
+
+        bool operator<( const TCMapRange & rhs ) const {
+            return nStart < rhs.nStart;
+        }
+    };
+
+
+    typedef std::vector<PdfTTFGlyph>   TVecGlyphs;
+    typedef TVecGlyphs::iterator       TIVecGlyphs;
+    typedef TVecGlyphs::const_iterator TCIVecGlyphs;
+
+// todo: os2 table
 
     typedef std::vector<pdf_ttf_ulong> TVecLoca;
     typedef TVecLoca::iterator         TIVecLoca;
     typedef TVecLoca::const_iterator   TCIVecLoca;
+
+    struct THHea {
+        pdf_ttf_fixed  version;            ///< version 0x00010000
+        pdf_ttf_fword  ascender;
+        pdf_ttf_fword  descender;
+        pdf_ttf_fword  linegap;
+        pdf_ttf_fword  advanceWidthMax;    ///< maximum advance width value in "hmtx" table
+        pdf_ttf_fword  minLeftSideBearing; ///< minimum left side bearing in hmtx table
+        pdf_ttf_fword  minRightSideBearing;///< minimum right side bearing in hmtx table
+        pdf_ttf_fword  xMaxExtent;         ///< Max( lsb + (xMax - xMin) );
+
+        pdf_ttf_short  caretSlopeRise;
+        pdf_ttf_short  caretSlopeRun;
+        pdf_ttf_short  reserved1;
+        pdf_ttf_short  reserved2;
+        pdf_ttf_short  reserved3;
+        pdf_ttf_short  reserved4;
+        pdf_ttf_short  reserved5;
+
+        pdf_ttf_short  metricDataFormat;
+        pdf_ttf_ushort numberOfHMetrics;  ///< Number of entries in the hmtx table
+    };
 
  public:
     /** Create a PdfTTFWriter object.
@@ -208,6 +376,12 @@ class PODOFO_API PdfTTFWriter {
      *  \param pShort a value to swap
      */
     inline void SwapShort( pdf_ttf_short* pShort ) const;
+
+    /** Convert a pdf_ttf_fword between big and little endian
+     *
+     *  \param pFword a value to swap
+     */
+    inline void SwapFWord( pdf_ttf_fword* pFword ) const;
 
     /** Convert a pdf_ttf_ulong between big and little endian
      *
@@ -301,23 +475,73 @@ class PODOFO_API PdfTTFWriter {
     void WriteMaxpTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
 
     void ReadLocaTable( PdfInputDevice* pDevice );
+    void ReadHHeaTable( PdfInputDevice* pDevice );
+    void ReadCmapTable( PdfInputDevice* pDevice );
+    void ReadGlyfTable( PdfInputDevice* pDevice );
+
+    void WriteHHeaTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
     void WriteLocaTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
+    void WriteCMapTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
     void WriteGlyfTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
+
+    void SwapGlyfHeader( TGlyphHeader* pHeader ); 
 
     /** Swap the endianess of the maxp table.
      *  \see m_tMaxp
      */
     void SwapMaxpTable();
+    void SwapHHeaTable();
 
+    /** Read the glyph coordinates from an input device.
+     *
+     *  \param pDevice read from this device
+     *  \param rvecFlags a vector of flags describing the coordinates to load
+     *         For each flag ONE coordinate is read. Not more, not less.
+     *  \param rvecCoordinates store all coordinates in this vector
+     *  \param nFlag the flag to use (0x10 for x coordinates and 0x20 for y coordinates)
+     */
+    void ReadSimpleGlyfCoordinates( PdfInputDevice* pDevice, const std::vector<char> & rvecFlags, 
+                                    std::vector<pdf_ttf_short> & rvecCoordinates, int nFlag );
+
+    void WriteSimpleGlyfCoordinates( PdfOutputDevice* pDevice, const std::vector<char> & rvecFlags, 
+                                     std::vector<pdf_ttf_short> & rvecCoordinates, int nFlag );
+
+    /** Get the offset to the location of the glyphs data.
+     *
+     *  \param nIndex unicode index of the glyph to load
+     *  \param plLength pointer to an address where the length of the glyphdata can be stored
+     *  \param pDevice an input device which can be used to read the CMap table which is required for certain glyphs
+     *
+     *  \return the offset to the glyph data or -1 if the glyph does not exist
+     */
+    long GetGlyphDataLocation( unsigned int nIndex, long* plLength, PdfInputDevice* pDevice ) const;
+
+    /** Load a glyph from an input device at a certain offset
+     *
+     *  \param nIndex the index of the glyph to load
+     *  \param lOffset the offset at which the glyph is located in the file
+     *  \param pDevice the input device to read from
+     *
+     */
+    void LoadGlyph( int nIndex, long lOffset, PdfInputDevice* pDevice );
+ 
  private:
+    long                      m_lGlyphDataOffset; ///< Offset to the glyph data table
+    long                      m_lCMapOffset;      ///< Offset to the cmap table
+    std::vector<int>          m_vecGlyphIndeces;  ///< List of glyph indeces we would like to embedd
 
-    TTableDirectory           m_tTableDirectory; ///< The TTF header
+    TTableDirectory           m_tTableDirectory;  ///< The TTF header
 
-    TVecTable                 m_vecTableData;    ///< The actual data of the tables
-    TMaxP                     m_tMaxp;           ///< The maximum memory requirements of this font
-    THead                     m_tHead;           ///< The head table 
+    TVecTable                 m_vecTableData;     ///< The actual data of the tables
+    TMaxP                     m_tMaxp;            ///< The maximum memory requirements of this font
+    THead                     m_tHead;            ///< The head table 
+    THHea                     m_tHHea;            ///< The hhea table
 
-    TVecLoca                  m_tLoca;           ///< The loca table in long format
+    TVecLoca                  m_tLoca;            ///< The loca table in long format which is read in
+    TVecLoca                  m_vecLoca;          ///< The loca table in long format which is written out
+    TVecGlyphs                m_vecGlyphs;        ///< All glyphs including their outlines
+    std::vector<TCMapRange>   m_ranges;           ///< CMap ranges
+ 
 };
 
 
@@ -343,6 +567,14 @@ inline void PdfTTFWriter::SwapUShort( pdf_ttf_ushort* pShort ) const
 inline void PdfTTFWriter::SwapShort( pdf_ttf_short* pShort ) const
 {
     *pShort = ((*pShort << 8) & 0xFF00) | ((*pShort >> 8) & 0x00FF);
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfTTFWriter::SwapFWord( pdf_ttf_fword* pFword ) const
+{
+    *pFword = ((*pFword << 8) & 0xFF00) | ((*pFword >> 8) & 0x00FF);
 }
 
 // -----------------------------------------------------
