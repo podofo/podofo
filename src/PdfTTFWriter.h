@@ -241,6 +241,7 @@ class PODOFO_API PdfTTFWriter {
         pdf_ttf_short yx;  
     };
 
+#pragma pack(1)
     struct TCMapFormat4 {
         pdf_ttf_ushort format;
         pdf_ttf_ushort length;
@@ -288,8 +289,6 @@ class PODOFO_API PdfTTFWriter {
     typedef TVecGlyphs::iterator       TIVecGlyphs;
     typedef TVecGlyphs::const_iterator TCIVecGlyphs;
 
-// todo: os2 table
-
     typedef std::vector<pdf_ttf_ulong> TVecLoca;
     typedef TVecLoca::iterator         TIVecLoca;
     typedef TVecLoca::const_iterator   TCIVecLoca;
@@ -315,6 +314,42 @@ class PODOFO_API PdfTTFWriter {
         pdf_ttf_short  metricDataFormat;
         pdf_ttf_ushort numberOfHMetrics;  ///< Number of entries in the hmtx table
     };
+
+    struct TOs2 {
+        pdf_ttf_ushort version;           ///< version 0x00010000
+        pdf_ttf_short  xAvgCharWidth;    
+        pdf_ttf_ushort usWeightClass;
+        pdf_ttf_ushort usWidthClass;
+        pdf_ttf_short  fsType;
+        pdf_ttf_short  ySubscriptXSize;
+        pdf_ttf_short  ySubscriptYSize;
+        pdf_ttf_short  ySubscriptXOffset;
+        pdf_ttf_short  ySubscriptYOffset;
+        pdf_ttf_short  ySuperscriptXSize;
+        pdf_ttf_short  ySuperscriptYSize;
+        pdf_ttf_short  ySuperscriptXOffset;
+        pdf_ttf_short  ySuperscriptYOffset;
+        pdf_ttf_short  yStrikeoutSize;
+        pdf_ttf_short  yStrikeoutPosition;
+        pdf_ttf_short  sFamilyClass;
+        char           panose[10];       ///< Panose information
+        pdf_ttf_ulong  ulUnicodeRange1;
+        pdf_ttf_ulong  ulUnicodeRange2;
+        pdf_ttf_ulong  ulUnicodeRange3;
+        pdf_ttf_ulong  ulUnicodeRange4;
+        char           achVendID[4];
+        pdf_ttf_ushort fsSelection;
+        pdf_ttf_ushort usFirstCharIndex; ///< The minimum unicode char index in this font
+        pdf_ttf_ushort usLastCharIndex;  ///< The maximum unicode char index in this font
+        pdf_ttf_ushort sTypoAscender;
+        pdf_ttf_ushort sTypoDescender;
+        pdf_ttf_ushort sTypoLineGap;
+        pdf_ttf_ushort usWinAscent;
+        pdf_ttf_ushort usWinDescent;
+        pdf_ttf_ulong ulCodePageRange1;
+        pdf_ttf_ulong ulCodePageRange2;
+    };
+#pragma pack()
 
  public:
     /** Create a PdfTTFWriter object.
@@ -478,11 +513,13 @@ class PODOFO_API PdfTTFWriter {
     void ReadHHeaTable( PdfInputDevice* pDevice );
     void ReadCmapTable( PdfInputDevice* pDevice );
     void ReadGlyfTable( PdfInputDevice* pDevice );
+    void ReadOs2Table ( PdfInputDevice* pDevice );
 
     void WriteHHeaTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
     void WriteLocaTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
     void WriteCMapTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
     void WriteGlyfTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
+    void WriteOs2Table ( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
 
     void SwapGlyfHeader( TGlyphHeader* pHeader ); 
 
@@ -491,6 +528,7 @@ class PODOFO_API PdfTTFWriter {
      */
     void SwapMaxpTable();
     void SwapHHeaTable();
+    void SwapOs2Table();
 
     /** Read the glyph coordinates from an input device.
      *
@@ -536,6 +574,7 @@ class PODOFO_API PdfTTFWriter {
     TMaxP                     m_tMaxp;            ///< The maximum memory requirements of this font
     THead                     m_tHead;            ///< The head table 
     THHea                     m_tHHea;            ///< The hhea table
+    TOs2                      m_tOs2;             ///< The OS/2 table
 
     TVecLoca                  m_tLoca;            ///< The loca table in long format which is read in
     TVecLoca                  m_vecLoca;          ///< The loca table in long format which is written out

@@ -68,7 +68,7 @@ namespace NonPublic {
  *   glyf glyph data                                 CHK
  *   head font header                                CHK
  *   hhea horizontal header             
- *   hmtx horizontal metrics
+ *   hmtx horizontal metrics                         CHK
  *   loca index to location                          CHK
  *   maxp maximum profile                            CHK
  *   name naming table                               
@@ -91,6 +91,8 @@ PdfTTFWriter::PdfTTFWriter()
     m_vecGlyphIndeces.push_back( static_cast<int>('!') );
     // Composites do not work yet:
     // m_vecGlyphIndeces.push_back( 0x00E4 ); // A dieresis
+
+    std::sort( m_vecGlyphIndeces.begin(), m_vecGlyphIndeces.end() );
 }
 
 PdfTTFWriter::~PdfTTFWriter()
@@ -114,6 +116,7 @@ void PdfTTFWriter::Read( PdfInputDevice* pDevice )
     long lHHea = -1;
     long lLoca = -1;
     long lMaxp = -1;
+    long lOs2  = -1;
 
     // Read the table directory
     this->ReadTableDirectory( pDevice );
@@ -139,6 +142,8 @@ void PdfTTFWriter::Read( PdfInputDevice* pDevice )
             m_lCMapOffset = entry.offset;
         else if( entry.tag == this->CreateTag( 'h', 'h', 'e', 'a' ) )
             lHHea = entry.offset;
+        else if( entry.tag == this->CreateTag( 'O', 'S', '/', '2' ) )
+            lOs2 = entry.offset;
 
         vecTables.push_back( entry );
     }
@@ -168,6 +173,10 @@ void PdfTTFWriter::Read( PdfInputDevice* pDevice )
     {
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidFontFile, "Table 'hhea' not found." ); 
     }
+    else if( lOs2 == -1 ) 
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidFontFile, "Table 'OS/2' not found." ); 
+    }
 
     // Read head table
     pDevice->Seek( lHead );
@@ -193,6 +202,10 @@ void PdfTTFWriter::Read( PdfInputDevice* pDevice )
     pDevice->Seek( m_lGlyphDataOffset );
     this->ReadGlyfTable( pDevice );
 
+    // Read OS/2 table
+    pDevice->Seek( lOs2 );
+    this->ReadOs2Table( pDevice );
+
     // read the remaining data tables
     TIVecTableDirectoryEntries it = vecTables.begin(); 
     while( it != vecTables.end() ) 
@@ -203,7 +216,8 @@ void PdfTTFWriter::Read( PdfInputDevice* pDevice )
             (*it).tag != this->CreateTag( 'l', 'o', 'c', 'a' ) &&
             (*it).tag != this->CreateTag( 'm', 'a', 'x', 'p' ) &&
             (*it).tag != this->CreateTag( 'h', 'h', 'e', 'a' ) &&
-            (*it).tag != this->CreateTag( 'c', 'm', 'a', 'p' ) )
+            (*it).tag != this->CreateTag( 'c', 'm', 'a', 'p' ) &&
+            (*it).tag != this->CreateTag( 'O', 'S', '/', '2' ) )
         {
             TTable table;
             table.tag    = (*it).tag;
@@ -282,6 +296,66 @@ void PdfTTFWriter::WriteTableDirectoryEntry( PdfOutputDevice* pDevice, TTableDir
     }
 
     pDevice->Write( reinterpret_cast<char*>(pEntry), sizeof(TTableDirectoryEntry) );
+}
+
+void PdfTTFWriter::ReadOs2Table( PdfInputDevice* pDevice )
+{
+   pDevice->Read( reinterpret_cast<char*>(&m_tOs2), sizeof(TOs2) );
+
+    if( podofo_is_little_endian() ) 
+        SwapOs2Table();
+}
+
+void PdfTTFWriter::WriteOs2Table( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc )
+{
+    // We always write the long loca format
+
+    if( podofo_is_little_endian() ) 
+        SwapOs2Table();
+
+    TTableDirectoryEntry entry;
+    entry.tag      = this->CreateTag( 'O', 'S', '/', '2' );
+    entry.checkSum = this->CalculateChecksum( reinterpret_cast<const pdf_ttf_ulong*>(&m_tOs2), sizeof(TOs2) );
+    entry.offset   = pDevice->GetLength();
+    entry.length   = sizeof(TOs2);
+
+    rToc.push_back( entry );
+
+    pDevice->Write( reinterpret_cast<char*>(&m_tOs2), sizeof(TOs2) );
+}
+
+void PdfTTFWriter::SwapOs2Table() 
+{
+    SwapUShort ( &m_tOs2.version );
+    SwapShort  ( &m_tOs2.xAvgCharWidth );
+    SwapUShort ( &m_tOs2.usWeightClass );
+    SwapUShort ( &m_tOs2.usWidthClass );
+    SwapShort  ( &m_tOs2.fsType );
+    SwapShort  ( &m_tOs2.ySubscriptXSize );
+    SwapShort  ( &m_tOs2.ySubscriptYSize );
+    SwapShort  ( &m_tOs2.ySubscriptXOffset );
+    SwapShort  ( &m_tOs2.ySubscriptYOffset );
+    SwapShort  ( &m_tOs2.ySuperscriptXSize );
+    SwapShort  ( &m_tOs2.ySuperscriptYSize );
+    SwapShort  ( &m_tOs2.ySuperscriptXOffset );
+    SwapShort  ( &m_tOs2.ySuperscriptYOffset );
+    SwapShort  ( &m_tOs2.yStrikeoutSize );
+    SwapShort  ( &m_tOs2.yStrikeoutPosition );
+    SwapShort  ( &m_tOs2.sFamilyClass );
+    SwapULong  ( &m_tOs2.ulUnicodeRange1 );
+    SwapULong  ( &m_tOs2.ulUnicodeRange2 );
+    SwapULong  ( &m_tOs2.ulUnicodeRange3 );
+    SwapULong  ( &m_tOs2.ulUnicodeRange4 );
+    SwapUShort ( &m_tOs2.fsSelection );
+    SwapUShort ( &m_tOs2.usFirstCharIndex );
+    SwapUShort ( &m_tOs2.usLastCharIndex );
+    SwapUShort ( &m_tOs2.sTypoAscender );
+    SwapUShort ( &m_tOs2.sTypoDescender );
+    SwapUShort ( &m_tOs2.sTypoLineGap );
+    SwapUShort ( &m_tOs2.usWinAscent );
+    SwapUShort ( &m_tOs2.usWinDescent );
+    SwapULong  ( &m_tOs2.ulCodePageRange1 );
+    SwapULong  ( &m_tOs2.ulCodePageRange2 );
 }
 
 void PdfTTFWriter::ReadHeadTable( PdfInputDevice* pDevice )
@@ -1093,6 +1167,7 @@ void PdfTTFWriter::Write( PdfOutputDevice* pDevice )
     this->WriteLocaTable( pDevice, vecToc );
     this->WriteCMapTable( pDevice, vecToc );
     this->WriteHHeaTable( pDevice, vecToc );
+    this->WriteOs2Table ( pDevice, vecToc );
 
     TCIVecTable it = m_vecTableData.begin();
     while( it != m_vecTableData.end() ) 
