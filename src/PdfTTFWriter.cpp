@@ -217,7 +217,8 @@ void PdfTTFWriter::Read( PdfInputDevice* pDevice )
             (*it).tag != this->CreateTag( 'm', 'a', 'x', 'p' ) &&
             (*it).tag != this->CreateTag( 'h', 'h', 'e', 'a' ) &&
             (*it).tag != this->CreateTag( 'c', 'm', 'a', 'p' ) &&
-            (*it).tag != this->CreateTag( 'O', 'S', '/', '2' ) )
+            (*it).tag != this->CreateTag( 'O', 'S', '/', '2' ) &&
+            (*it).tag != this->CreateTag( 'n', 'a', 'm', 'e' ) )
         {
             TTable table;
             table.tag    = (*it).tag;
@@ -423,6 +424,63 @@ void PdfTTFWriter::WriteMaxpTable( PdfOutputDevice* pDevice, TVecTableDirectoryE
     rToc.push_back( entry );
 
     pDevice->Write( reinterpret_cast<char*>(&m_tMaxp), sizeof(TMaxP) );
+}
+
+void PdfTTFWriter::WriteNameTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc )
+{
+    const char* pszFontName = "Po"; 
+    long  lLen              = strlen( pszFontName );
+
+    // Create a custom nametable
+    struct {
+        // header
+        pdf_ttf_ushort format;      ///< 0 
+        pdf_ttf_ushort numRecords;  ///< 1
+        pdf_ttf_ushort offset;      ///< 6
+        
+        // body
+        pdf_ttf_ushort platformId;  ///< 3      (Microsoft)
+        pdf_ttf_ushort encodingId;  ///< 1      (Unicode)
+        pdf_ttf_ushort languageId;  ///< 0x0809 (british English)
+        pdf_ttf_ushort nameId;      ///< 1      (font family name)
+        pdf_ttf_ushort stringLength;
+        pdf_ttf_ushort stringOffset;///< 0
+    } tNameTable;
+    // fontdata has to immediately follow the structure on the stack!!!
+    char szFontData[] = { 0x00, 'P', 0x00, 'o', 0x00, 0x00 };
+    /*
+    wchar_t* szFontData = static_cast<wchar_t*>(alloca( sizeof(wchar_t) * (lLen+1) ));
+    mbstowcs( szFontData, pszFontName, lLen+1 );
+    */
+    tNameTable.format       = 0;
+    tNameTable.numRecords   = 1;
+    tNameTable.offset       = 6;
+    tNameTable.platformId   = 3;
+    tNameTable.languageId   = 0x0809;
+    tNameTable.nameId       = 1;
+    tNameTable.stringLength = lLen;
+    tNameTable.stringOffset = 0;
+    
+    SwapUShort( &tNameTable.format );
+    SwapUShort( &tNameTable.numRecords );
+    SwapUShort( &tNameTable.offset );
+    SwapUShort( &tNameTable.platformId );
+    SwapUShort( &tNameTable.languageId );
+    SwapUShort( &tNameTable.nameId );
+    SwapUShort( &tNameTable.stringLength );
+    SwapUShort( &tNameTable.stringOffset );
+
+    long lStructureLen = sizeof(tNameTable) + ((lLen + 1)* sizeof(wchar_t));
+
+    TTableDirectoryEntry entry;
+    entry.tag      = this->CreateTag( 'n', 'a', 'm', 'e' );
+    entry.checkSum = this->CalculateChecksum( reinterpret_cast<const pdf_ttf_ulong*>(&tNameTable), lStructureLen );
+    entry.offset   = pDevice->GetLength();
+    entry.length   = lStructureLen;
+
+    pDevice->Write( reinterpret_cast<char*>(&tNameTable), lStructureLen );
+
+    rToc.push_back( entry );
 }
 
 void PdfTTFWriter::SwapMaxpTable() 
@@ -1168,6 +1226,7 @@ void PdfTTFWriter::Write( PdfOutputDevice* pDevice )
     this->WriteCMapTable( pDevice, vecToc );
     this->WriteHHeaTable( pDevice, vecToc );
     this->WriteOs2Table ( pDevice, vecToc );
+    this->WriteNameTable( pDevice, vecToc );
 
     TCIVecTable it = m_vecTableData.begin();
     while( it != m_vecTableData.end() ) 

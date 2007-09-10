@@ -520,6 +520,7 @@ class PODOFO_API PdfTTFWriter {
     void WriteCMapTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
     void WriteGlyfTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
     void WriteOs2Table ( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
+    void WriteNameTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
 
     void SwapGlyfHeader( TGlyphHeader* pHeader ); 
 
