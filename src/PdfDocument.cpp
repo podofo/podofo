@@ -46,6 +46,7 @@
 #include "PdfPagesTree.h"
 #include "PdfStream.h"
 #include "PdfVecObjects.h"
+#include "PdfXObject.h"
 
 using namespace std;
 
@@ -176,7 +177,7 @@ PdfPage* PdfDocument::CreatePage( const PdfRect & rSize )
     return m_pPagesTree->CreatePage( rSize );
 }
 
-const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc )
+const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bPagesOnly )
 {
     int difference = m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size();
 
@@ -204,36 +205,127 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc )
         ++itFree;
     }
 
-    // append all pages now to our page tree
-    for(int i=0;i<rDoc.GetPageCount();i++ )
+    if( !bPagesOnly )
     {
-        PdfPage*      pPage = rDoc.GetPage( i );
-        PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, 0 ) );
-        if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Parent" ) )
-            pObj->GetDictionary().RemoveKey( "Parent" );
-
-        printf("Inserting at: %i\n", this->GetPageCount()-1 );
-        m_pPagesTree->InsertPage( this->GetPageCount()-1, pObj );
+        // append all pages now to our page tree
+        for(int i=0;i<rDoc.GetPageCount();i++ )
+        {
+            PdfPage*      pPage = rDoc.GetPage( i );
+            PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, 0 ) );
+            if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Parent" ) )
+                pObj->GetDictionary().RemoveKey( "Parent" );
+            
+            printf("Inserting at: %i\n", this->GetPageCount()-1 );
+            m_pPagesTree->InsertPage( this->GetPageCount()-1, pObj );
+        }
+        
+        // append all outlines
+        PdfOutlineItem* pRoot       = this->GetOutlines();
+        PdfOutlines*    pAppendRoot = const_cast<PdfMemDocument&>(rDoc).GetOutlines( PoDoFo::ePdfDontCreateObject );
+        if( pAppendRoot && pAppendRoot->First() ) 
+        {
+            // only append outlines if appended document has outlines
+            while( pRoot && pRoot->Next() ) 
+                pRoot = pRoot->Next();
+            
+            printf("Reached last node difference=%i\n", difference);
+            printf("First: %li 0 R\n", pAppendRoot->First()->GetObject()->Reference().ObjectNumber() );
+            PdfReference ref( pAppendRoot->First()->GetObject()->Reference().ObjectNumber() + difference, 0 );
+            pRoot->InsertChild( new PdfOutlines( m_vecObjects.GetObject( ref ) ) );
+        }
     }
-
-    // append all outlines
-    PdfOutlineItem* pRoot       = this->GetOutlines();
-    PdfOutlines*    pAppendRoot = const_cast<PdfMemDocument&>(rDoc).GetOutlines( PoDoFo::ePdfDontCreateObject );
-    if( pAppendRoot && pAppendRoot->First() ) 
-    {
-        // only append outlines if appended document has outlines
-        while( pRoot && pRoot->Next() ) 
-            pRoot = pRoot->Next();
-
-        printf("Reached last node difference=%i\n", difference);
-        printf("First: %li 0 R\n", pAppendRoot->First()->GetObject()->Reference().ObjectNumber() );
-        PdfReference ref( pAppendRoot->First()->GetObject()->Reference().ObjectNumber() + difference, 0 );
-        pRoot->InsertChild( new PdfOutlines( m_vecObjects.GetObject( ref ) ) );
-    }
-
+    
     // TODO: merge name trees
     // ToDictionary -> then iteratate over all keys and add them to the new one
     return *this;
+}
+
+PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfMemDocument & rDoc, int nPage )
+{
+    int difference = m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size();
+
+	Append( rDoc, false );
+
+    // TODO: remove unused objects: page, ...
+
+    PdfPage*      pPage = rDoc.GetPage( nPage );
+    PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, 0 ) );
+    PdfRect		  box  = pPage->GetMediaBox();
+
+	// link resources from external doc to x-object
+    if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Resources" ) )
+        pXObj->GetContentsForAppending()->GetDictionary().AddKey( "Resources" , pObj->GetDictionary().GetKey( "Resources" ) );
+
+	// copy top-level content from external doc to x-object
+    if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Contents" ) )
+    {
+		// get direct pointer to contents
+        PdfObject* pContents;
+        if( pObj->GetDictionary().GetKey( "Contents" )->IsReference() )
+            pContents = m_vecObjects.GetObject( pObj->GetDictionary().GetKey( "Contents" )->GetReference() );
+        else
+            pContents = pObj->GetDictionary().GetKey( "Contents" );
+
+        if( pContents->IsArray() )
+        {
+			// copy array as one stream to xobject
+            PdfArray pArray = pContents->GetArray();
+
+            PdfObject*  pObj = pXObj->GetContentsForAppending();
+            PdfStream*  pObjStream = pObj->GetStream();
+
+            TVecFilters vFilters;
+            vFilters.clear();
+            pObjStream->BeginAppend( vFilters );
+
+			TIVariantList it;
+            for(it = pArray.begin(); it != pArray.end(); it++)
+            {
+				if ( it->IsReference() )
+				{
+					// TODO: not very efficient !!
+					PdfObject*  pObj = GetObjects()->GetObject( it->GetReference() );
+
+		            PdfStream*  pcontStream = pObj->GetStream();
+
+		            char*       pcontStreamBuffer;
+			        long        pcontStreamLength;
+		            pcontStream->GetFilteredCopy( &pcontStreamBuffer, &pcontStreamLength );
+		    
+					pObjStream->Append( pcontStreamBuffer, pcontStreamLength );
+				}
+				else
+				{
+					string str;
+	                it->ToString( str );
+	                pObjStream->Append( str );
+	                pObjStream->Append( " " );
+				}
+			}
+            pObjStream->EndAppend();
+        }
+		else if( pContents->HasStream() )
+        {
+			// copy stream to xobject
+            PdfObject*  pObj = pXObj->GetContentsForAppending();
+            PdfStream*  pObjStream = pObj->GetStream();
+            PdfStream*  pcontStream = pContents->GetStream();
+            char*       pcontStreamBuffer;
+            long        pcontStreamLength;
+
+            TVecFilters vFilters;
+            vFilters.clear();
+            pObjStream->BeginAppend( vFilters );
+            pcontStream->GetFilteredCopy( &pcontStreamBuffer, &pcontStreamLength );
+            pObjStream->Append( pcontStreamBuffer, pcontStreamLength );
+            free( pcontStreamBuffer );
+            pObjStream->EndAppend();
+        }
+		else
+	        PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+    }
+
+    return box;
 }
 
 void PdfDocument::FixObjectReferences( PdfObject* pObject, int difference )

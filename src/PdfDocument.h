@@ -42,6 +42,8 @@ class PdfOutlines;
 class PdfPage;
 class PdfPagesTree;
 class PdfRect;
+class PdfXObject;
+
 
 /** PdfDocument is the core interface for working with PDF documents.
  *
@@ -153,9 +155,18 @@ class PODOFO_API PdfDocument {
 
     /** Appends another PdfDocument to this document
      *  \param rDoc the document to append
+     *  \param bPagesOnly append only pages to the document, leaving out nametrees etc ...
      *  \returns this document
      */
-    const PdfDocument & Append( const PdfMemDocument & rDoc );
+    const PdfDocument & Append( const PdfMemDocument & rDoc, bool bPagesOnly = false  );
+
+    /** Fill an existing empty XObject from a page of another document
+     *  \param pXObj pointer to the XOject
+     *  \param rDoc the document to embedd into XObject
+     *  \param nPage page-number to embedd into XObject
+     *  \returns the bounding box
+     */
+    PdfRect FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfMemDocument & rDoc, int nPage );
 
     /** Attach a file to the document.
      *  \param rFileSpec a file specification

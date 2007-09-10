@@ -38,7 +38,11 @@ namespace PoDoFo {
 extern bool podofo_is_little_endian();
 
 const PdfString PdfString::StringNull        = PdfString();
+#ifdef _MSC_VER
+const char  PdfString::s_pszUnicodeMarker[]  = { (char) 0xFE, (char) 0xFF };
+#else
 const char  PdfString::s_pszUnicodeMarker[]  = { static_cast<char>(0xFE), static_cast<char>(0xFF) };
+#endif
 const char* PdfString::s_pszUnicodeMarkerHex = "FEFF"; 
 
 // Conversion table from PDFDocEncoding (almost Latin1) to UTF16

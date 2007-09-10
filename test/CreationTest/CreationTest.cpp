@@ -402,6 +402,7 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 #endif // PODOFO_HAVE_JPEG_LIB
 
     pPainter->DrawXObject( 120000 * CONVERSION_CONSTANT, y - (50000 * CONVERSION_CONSTANT), &xObj );
+	pPainter->FillRect( 120000 * CONVERSION_CONSTANT, y - (50000 * CONVERSION_CONSTANT), 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT ); 
 
     PdfAnnotation* pAnnot1 = pPage->CreateAnnotation( ePdfAnnotation_Widget, rect1 );
     PdfAnnotation* pAnnot2 = pPage->CreateAnnotation( ePdfAnnotation_Link, rect2 );
@@ -447,6 +448,80 @@ void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pFileAnnotation =  pPage->CreateAnnotation( ePdfAnnotation_FileAttachement, PdfRect( 300.0, 400.0, 250.0, 50.0 ) );
     pFileAnnotation->SetContents( "A JPEG image of Lena" );
     pFileAnnotation->SetFileAttachement( file );
+}
+
+void XObjectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
+{
+    double     x     = 10000 * CONVERSION_CONSTANT;
+    double     y     = pPage->GetPageSize().GetHeight() - 10000 * CONVERSION_CONSTANT;
+    const double dWidth  = 180000 * CONVERSION_CONSTANT; // 18cm
+    const double dHeight = 270000 * CONVERSION_CONSTANT; // 27cm
+
+	pPainter->SetColor( 1.0, 0.8, 0.8 );
+    pPainter->FillRect( x, y, dWidth, dHeight );
+
+	// Das funktioniert immer
+	PdfXObject xObj1( "../../../podofo/test/CreationTest/Illust.pdf", 0, pDocument );
+	pPainter->DrawXObject( x + 90000 * CONVERSION_CONSTANT, 
+						   y - dHeight,
+						   &xObj1 );
+	pPainter->SetColor( 1.0, 0.0, 0.0 );
+	pPainter->FillRect( x + 90000 * CONVERSION_CONSTANT, 
+						y - dHeight,
+						1000 * CONVERSION_CONSTANT,
+						1000 * CONVERSION_CONSTANT );
+
+	// Das interferiert mit NamesTree !!!
+	PdfXObject xObj2( "../../../podofo/test/CreationTest/00psh.pdf", 0, pDocument );
+	pPainter->DrawXObject( x, 
+						   y - dHeight, 
+						   &xObj2,
+						   0.33,
+						   0.33 );
+	pPainter->FillRect( x, 
+						y - dHeight,
+						1000 * CONVERSION_CONSTANT,
+						1000 * CONVERSION_CONSTANT );
+
+
+	// Test XObject in XObject
+    PdfRect        rectX( 0, 0, 50000 * CONVERSION_CONSTANT, 50000 * CONVERSION_CONSTANT );
+    PdfXObject     xObj3( rectX, pDocument );
+	PdfXObject     xObj4( rectX, pDocument );
+
+    // Draw text onto the XObject3
+	pPainter->SetPage( &xObj3 );
+	pPainter->SetColor( 0.0, 1.0, 0.0 );
+	pPainter->FillRect( 0.0, rectX.GetHeight(), rectX.GetWidth(), rectX.GetHeight() );
+    pPainter->SetFont( pDocument->CreateFont( "Comic Sans MS" ) );
+	pPainter->SetColor( 0.0, 0.0, 0.0 );
+	pPainter->DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am XObject 3." );
+	pPainter->FinishPage();
+
+    // Draw text and pdf onto the XObject4
+	pPainter->SetPage( &xObj4 );
+	pPainter->SetColor( 0.0, 1.0, 0.0 );
+	pPainter->FillRect( 0.0, rectX.GetHeight(), rectX.GetWidth(), rectX.GetHeight() );
+    pPainter->SetFont( pDocument->CreateFont( "Comic Sans MS" ) );
+	pPainter->SetColor( 0.0, 0.0, 0.0 );
+	pPainter->DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am XObject 4." );
+	PdfXObject xObj5( "../../../podofo/test/CreationTest/TestJob.pdf", 0, pDocument );
+	pPainter->DrawXObject( 5000 * CONVERSION_CONSTANT, 
+						   5000 * CONVERSION_CONSTANT, 
+						   &xObj5, 
+						   0.1, 
+						   0.1 );
+	pPainter->FinishPage();
+
+
+	// Switch back to page and draw Xobject 3+4
+	pPainter->SetPage( pPage );
+	pPainter->DrawXObject( 20000 * CONVERSION_CONSTANT, 
+						   y - 60000 * CONVERSION_CONSTANT, 
+						   &xObj3 );
+	pPainter->DrawXObject( 120000 * CONVERSION_CONSTANT, 
+						   y - 60000 * CONVERSION_CONSTANT, 
+						   &xObj4 );
 }
 
 void MMTest( PdfPainterMM* pPainter, PdfPage* pPage, PdfDocument* pDocument )
@@ -543,6 +618,12 @@ int main( int argc, char* argv[] )
     TEST_SAFE_OP( EllipseTest( &painter, pPage, &writer ) );
     painter.FinishPage();
 
+    printf("Drawing some XObject's.\n");
+    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+    painter.SetPage( pPage );
+    TEST_SAFE_OP( XObjectTest( &painter, pPage, &writer ) );
+    painter.FinishPage();
+
     printf("Drawing using PdfPainterMM.\n");
     pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
     painterMM.SetPage( pPage );
@@ -552,6 +633,7 @@ int main( int argc, char* argv[] )
 
     painterMM.FinishPage();
 
+#if 0
     /** Create a really large name tree to test the name tree implementation
      */
     for( int zz=1;zz<500;zz++ ) 
@@ -563,6 +645,7 @@ int main( int argc, char* argv[] )
     }
 
     writer.GetNamesTree()->AddValue( "TestDict", PdfString( "Berta" ), PdfVariant( 42L )  );
+#endif
 
     printf("Setting document informations.\n\n");
     // Setup the document information dictionary

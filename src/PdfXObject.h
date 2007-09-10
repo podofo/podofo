@@ -32,6 +32,7 @@ namespace PoDoFo {
 class PdfDictionary;
 class PdfImageRef;
 class PdfObject;
+class PdfMemDocument;
 
 /** A XObject is a content stream with several drawing commands and data
  *  which can be used throughout a PDF document.
@@ -59,6 +60,15 @@ class PODOFO_API PdfXObject : public PdfElement, public PdfCanvas {
      */
     PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent );
     
+    /** Create a new XObject from a page of another document
+     *  in a given document
+     * 
+     *  \param rDoc the document to create the XObject from
+     *  \param nPage the page-number in rDoc to create the XObject from
+     *  \param pParent the parent document of the XObject
+     */
+    PdfXObject( const PdfMemDocument & rSourceDoc, int nPage, PdfDocument* pParent );
+
     /** Create a XObject from an existing PdfObject
      *  
      *  \param pObject an existing object which has to be
@@ -115,6 +125,8 @@ class PODOFO_API PdfXObject : public PdfElement, public PdfCanvas {
     inline const PdfReference & GetObjectReference() const;
 
  protected:
+    void InitXObject( const PdfRect & rRect );
+
     PdfXObject( const char* pszSubType, PdfDocument* pParent );
     PdfXObject( const char* pszSubType, PdfVecObjects* pParent );
     PdfXObject( const char* pszSubType, PdfObject* pObject );
