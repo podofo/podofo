@@ -177,7 +177,7 @@ PdfPage* PdfDocument::CreatePage( const PdfRect & rSize )
     return m_pPagesTree->CreatePage( rSize );
 }
 
-const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bPagesOnly )
+const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppendAll )
 {
     int difference = m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size();
 
@@ -205,7 +205,7 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bPage
         ++itFree;
     }
 
-    if( !bPagesOnly )
+    if( bAppendAll )
     {
         // append all pages now to our page tree
         for(int i=0;i<rDoc.GetPageCount();i++ )

@@ -155,10 +155,10 @@ class PODOFO_API PdfDocument {
 
     /** Appends another PdfDocument to this document
      *  \param rDoc the document to append
-     *  \param bPagesOnly append only pages to the document, leaving out nametrees etc ...
+     *  \param bAppendAll specifies whether pages and outlines are appended too
      *  \returns this document
      */
-    const PdfDocument & Append( const PdfMemDocument & rDoc, bool bPagesOnly = false  );
+    const PdfDocument & Append( const PdfMemDocument & rDoc, bool bAppendAll = true  );
 
     /** Fill an existing empty XObject from a page of another document
      *  \param pXObj pointer to the XOject

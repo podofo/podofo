@@ -67,8 +67,8 @@ namespace NonPublic {
  *   cmap character to glyph mapping                 CHK
  *   glyf glyph data                                 CHK
  *   head font header                                CHK
- *   hhea horizontal header             
- *   hmtx horizontal metrics                         CHK
+ *   hhea horizontal header                          CHK
+ *   hmtx horizontal metrics                         
  *   loca index to location                          CHK
  *   maxp maximum profile                            CHK
  *   name naming table                               
@@ -1228,6 +1228,9 @@ void PdfTTFWriter::Write( PdfOutputDevice* pDevice )
     this->WriteOs2Table ( pDevice, vecToc );
     this->WriteNameTable( pDevice, vecToc );
 
+    this->WriteTable( pDevice, vecToc, 
+                      this->CreateTag( 'h', 'm', 't', 'x' ), &PdfTTFWriter::WriteHmtxTable );
+
     TCIVecTable it = m_vecTableData.begin();
     while( it != m_vecTableData.end() ) 
     {
@@ -1318,6 +1321,26 @@ long PdfTTFWriter::GetGlyphDataLocation( unsigned int nIndex, long* plLength, Pd
 
     return m_lGlyphDataOffset + m_tLoca[nIndex];
 }
+
+void PdfTTFWriter::WriteHmtxTable( PdfOutputDevice* pDevice )
+{
+    printf("WriteHmtxTable!!!\n");
+}
+
+void PdfTTFWriter::WriteTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc, 
+                               pdf_ttf_ulong tag, void (PdfTTFWriter::*WriteTableFunc)( PdfOutputDevice* ) )
+{
+    TTableDirectoryEntry entry;
+    entry.tag      = tag;
+    entry.checkSum = 0;
+    entry.length   = 0;
+    entry.offset   = pDevice->GetLength();
+
+    (this->*WriteTableFunc)( pDevice );
+
+    rToc.push_back( entry );
+}
+
 
 };
 

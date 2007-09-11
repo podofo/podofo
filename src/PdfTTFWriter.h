@@ -47,9 +47,10 @@ class PODOFO_API PdfTTFWriter {
     // Some common datatypes used in TTF files
     typedef pdf_uint32       pdf_ttf_fixed;
     typedef pdf_uint16       pdf_ttf_ushort;
+    typedef pdf_int16        pdf_ttf_short;
     typedef pdf_uint32       pdf_ttf_ulong;
     typedef pdf_int16        pdf_ttf_fword;
-    typedef pdf_int16        pdf_ttf_short;
+    typedef pdf_int16        pdf_ttf_ufword;
     typedef pdf_int16        pdf_ttf_f2dot14;
 
 #pragma pack(1)
@@ -349,6 +350,12 @@ class PODOFO_API PdfTTFWriter {
         pdf_ttf_ulong ulCodePageRange1;
         pdf_ttf_ulong ulCodePageRange2;
     };
+
+    struct TLongHorMetric {
+        pdf_ttf_ufword advanceWidth;
+        pdf_ttf_fword  leftSideBearing;
+    };
+
 #pragma pack()
 
  public:
@@ -521,6 +528,22 @@ class PODOFO_API PdfTTFWriter {
     void WriteGlyfTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
     void WriteOs2Table ( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
     void WriteNameTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
+
+    void WriteHmtxTable( PdfOutputDevice* pDevice );
+
+    /** 
+     *  Write a table to an output device and create a table directory for it
+     *  with a correctly calculated checksum.
+     *
+     *  \param pDevice the output device on which the table should be written
+     *  \param rToc add a table directory entry to this table directory.
+     *  \param tag the tag of the table (e.g. 'name' or 'os/2').
+     *  \param WriteTableFunc a member function pointer to the function that actually write the data
+     *
+     *  \see CreateTag
+     */
+    void WriteTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc, 
+                     pdf_ttf_ulong tag, void (PdfTTFWriter::*WriteTableFunc)( PdfOutputDevice* ) );
 
     void SwapGlyfHeader( TGlyphHeader* pHeader ); 
 
