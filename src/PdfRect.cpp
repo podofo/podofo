@@ -94,7 +94,7 @@ void PdfRect::FromArray( const PdfArray& inArray )
         m_dLeft   = inArray[0].GetReal();
         m_dBottom = inArray[1].GetReal();
         m_dWidth  = inArray[2].GetReal() - m_dLeft;
-        m_dHeight = inArray[3].GetReal() + m_dBottom;
+        m_dHeight = inArray[3].GetReal() - m_dBottom;
     }
     else 
     {
