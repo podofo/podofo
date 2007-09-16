@@ -70,7 +70,7 @@ void enc_test()
     long        lLen    = strlen( pBuffer1 ) + 2 * strlen( pBuffer2 );
 
 
-    char* pEncBuffer = (char*)malloc( sizeof(char) * lLen );
+    char* pEncBuffer = static_cast<char*>(malloc( sizeof(char) * lLen ));
     memcpy( pEncBuffer, pBuffer1, strlen( pBuffer1 ) * sizeof(char) );
     memcpy( pEncBuffer + strlen(pBuffer1), pBuffer2, strlen( pBuffer2 ) );
     memcpy( pEncBuffer + strlen(pBuffer1) + strlen( pBuffer2 ), pBuffer2, strlen( pBuffer2 ) );
@@ -96,9 +96,10 @@ void write_back( PdfParser* pParser, const char* pszFilename )
     enc_test();
 
     PdfWriter writer( pParser );
+    /*
     PdfEncrypt encrypt( "user", "podofo", 0,
                         PdfEncrypt::ePdfEncryptAlgorithm_RC4V2, PdfEncrypt::ePdfKeyLength_128 );
-
+    */
     //writer.SetUseXRefStream( true );
     //writer.SetLinearized( true );
     writer.SetPdfVersion( ePdfVersion_1_6 );

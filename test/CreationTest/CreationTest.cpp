@@ -265,8 +265,11 @@ void TextTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     double x = 10000 * CONVERSION_CONSTANT;
     double y = pPage->GetPageSize().GetHeight() - 10000 * CONVERSION_CONSTANT;
 
+    printf("Embedding Font\n");
+    printf("!!!!!!!!!!!!!!!\n");
     pPainter->SetFont( pDocument->CreateFont( "Times New Roman" ) );
     pPainter->GetFont()->SetFontSize( 24.0 );
+    printf("!!!!!!!!!!!!!!!\n");
     y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
 
     pPainter->SetColor( 0.0, 0.0, 0.0 );
@@ -457,71 +460,60 @@ void XObjectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     const double dWidth  = 180000 * CONVERSION_CONSTANT; // 18cm
     const double dHeight = 270000 * CONVERSION_CONSTANT; // 27cm
 
-	pPainter->SetColor( 1.0, 0.8, 0.8 );
+    pPainter->SetColor( 1.0, 0.8, 0.8 );
     pPainter->FillRect( x, y, dWidth, dHeight );
-
-	// Das funktioniert immer
-	PdfXObject xObj1( "../../../podofo/test/CreationTest/Illust.pdf", 0, pDocument );
-	pPainter->DrawXObject( x + 90000 * CONVERSION_CONSTANT, 
-						   y - dHeight,
+    
+    // Das funktioniert immer
+    PdfXObject xObj1( "../../../podofo/test/CreationTest/Illust.pdf", 0, pDocument );
+    pPainter->DrawXObject( x + 90000 * CONVERSION_CONSTANT, 
+                           y - dHeight,
 						   &xObj1 );
-	pPainter->SetColor( 1.0, 0.0, 0.0 );
-	pPainter->FillRect( x + 90000 * CONVERSION_CONSTANT, 
-						y - dHeight,
-						1000 * CONVERSION_CONSTANT,
-						1000 * CONVERSION_CONSTANT );
+    pPainter->SetColor( 1.0, 0.0, 0.0 );
+    pPainter->FillRect( x + 90000 * CONVERSION_CONSTANT, 
+                        y - dHeight,
+                        1000 * CONVERSION_CONSTANT,
+                        1000 * CONVERSION_CONSTANT );
+    
+    
 
-	// Das interferiert mit NamesTree !!!
-	PdfXObject xObj2( "../../../podofo/test/CreationTest/00psh.pdf", 0, pDocument );
-	pPainter->DrawXObject( x, 
-						   y - dHeight, 
-						   &xObj2,
-						   0.33,
-						   0.33 );
-	pPainter->FillRect( x, 
-						y - dHeight,
-						1000 * CONVERSION_CONSTANT,
-						1000 * CONVERSION_CONSTANT );
-
-
-	// Test XObject in XObject
+    // Test XObject in XObject
     PdfRect        rectX( 0, 0, 50000 * CONVERSION_CONSTANT, 50000 * CONVERSION_CONSTANT );
     PdfXObject     xObj3( rectX, pDocument );
-	PdfXObject     xObj4( rectX, pDocument );
-
+    PdfXObject     xObj4( rectX, pDocument );
+    
     // Draw text onto the XObject3
-	pPainter->SetPage( &xObj3 );
-	pPainter->SetColor( 0.0, 1.0, 0.0 );
-	pPainter->FillRect( 0.0, rectX.GetHeight(), rectX.GetWidth(), rectX.GetHeight() );
+    pPainter->SetPage( &xObj3 );
+    pPainter->SetColor( 0.0, 1.0, 0.0 );
+    pPainter->FillRect( 0.0, rectX.GetHeight(), rectX.GetWidth(), rectX.GetHeight() );
     pPainter->SetFont( pDocument->CreateFont( "Comic Sans MS" ) );
-	pPainter->SetColor( 0.0, 0.0, 0.0 );
-	pPainter->DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am XObject 3." );
-	pPainter->FinishPage();
-
+    pPainter->SetColor( 0.0, 0.0, 0.0 );
+    pPainter->DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am XObject 3." );
+    pPainter->FinishPage();
+    
     // Draw text and pdf onto the XObject4
-	pPainter->SetPage( &xObj4 );
-	pPainter->SetColor( 0.0, 1.0, 0.0 );
-	pPainter->FillRect( 0.0, rectX.GetHeight(), rectX.GetWidth(), rectX.GetHeight() );
+    pPainter->SetPage( &xObj4 );
+    pPainter->SetColor( 0.0, 1.0, 0.0 );
+    pPainter->FillRect( 0.0, rectX.GetHeight(), rectX.GetWidth(), rectX.GetHeight() );
     pPainter->SetFont( pDocument->CreateFont( "Comic Sans MS" ) );
-	pPainter->SetColor( 0.0, 0.0, 0.0 );
-	pPainter->DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am XObject 4." );
-	PdfXObject xObj5( "../../../podofo/test/CreationTest/TestJob.pdf", 0, pDocument );
-	pPainter->DrawXObject( 5000 * CONVERSION_CONSTANT, 
-						   5000 * CONVERSION_CONSTANT, 
-						   &xObj5, 
-						   0.1, 
-						   0.1 );
-	pPainter->FinishPage();
-
-
-	// Switch back to page and draw Xobject 3+4
-	pPainter->SetPage( pPage );
-	pPainter->DrawXObject( 20000 * CONVERSION_CONSTANT, 
+    pPainter->SetColor( 0.0, 0.0, 0.0 );
+    pPainter->DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am XObject 4." );
+    PdfXObject xObj5( "../../../podofo/test/CreationTest/Illust.pdf", 0, pDocument );
+    pPainter->DrawXObject( 5000 * CONVERSION_CONSTANT, 
+                           5000 * CONVERSION_CONSTANT, 
+                           &xObj5, 
+                           0.1, 
+                           0.1 );
+    pPainter->FinishPage();
+    
+    
+    // Switch back to page and draw Xobject 3+4
+    pPainter->SetPage( pPage );
+    pPainter->DrawXObject( 20000 * CONVERSION_CONSTANT, 
+                           y - 60000 * CONVERSION_CONSTANT, 
+                           &xObj3 );
+    pPainter->DrawXObject( 120000 * CONVERSION_CONSTANT, 
 						   y - 60000 * CONVERSION_CONSTANT, 
-						   &xObj3 );
-	pPainter->DrawXObject( 120000 * CONVERSION_CONSTANT, 
-						   y - 60000 * CONVERSION_CONSTANT, 
-						   &xObj4 );
+                           &xObj4 );
 }
 
 void MMTest( PdfPainterMM* pPainter, PdfPage* pPage, PdfDocument* pDocument )
@@ -662,18 +654,17 @@ int main( int argc, char* argv[] )
     TEST_SAFE_OP( writer.Write( argv[1] ) );
     //TEST_SAFE_OP( writer.Close() );
 
-    tmp();
-
+    //tmp();
 
 #ifdef TEST_MEM_BUFFER
     // ---
-    const char*   pszMemFile = "/home/dominik/mem_out.pdf";
-    char*         pBuffer;
-    unsigned long lBufferLen;
+    const char*   pszMemFile = "./mem_out.pdf";
     FILE*         hFile;
 
+    PdfRefCountedBuffer buffer;
+    PdfOutputDevice device( &buffer );
     printf("Writing document from a memory buffer to: %s\n", pszMemFile );
-    TEST_SAFE_OP( writer.WriteToBuffer( &pBuffer, &lBufferLen ) );
+    TEST_SAFE_OP( writer.Write( &device ) );
 
     hFile = fopen( pszMemFile, "wb" );
     if( !hFile )
@@ -682,10 +673,10 @@ int main( int argc, char* argv[] )
         return ePdfError_InvalidHandle;
     }
 
+    long lBufferLen = device.GetLength();
     printf("lBufferLen=%li\n", lBufferLen );
-    printf("Wrote=%i\n", (int)fwrite( pBuffer, lBufferLen, sizeof( char ), hFile ) );
+    printf("Wrote=%i\n", static_cast<int>(fwrite( buffer.GetBuffer(), lBufferLen, sizeof( char ), hFile )) );
     fclose( hFile );
-    free( pBuffer );
 #endif
 
     return 0;

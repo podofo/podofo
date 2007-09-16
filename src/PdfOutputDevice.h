@@ -135,6 +135,7 @@ class PODOFO_API PdfOutputDevice {
 
     std::ostream*        m_pStream;
     PdfRefCountedBuffer* m_pRefCountedBuffer;
+    unsigned long        m_ulPosition;
 
 };
 

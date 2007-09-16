@@ -22,6 +22,7 @@
 #include "PdfFiltersPrivate.h"
 
 #include "PdfDictionary.h"
+#include "PdfOutputDevice.h"
 #include "PdfOutputStream.h"
 #include "PdfTokenizer.h"
 
@@ -772,6 +773,7 @@ void jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufs
  * The actual filter implementation
  */
 PdfDCTFilter::PdfDCTFilter()
+    : m_pDevice( NULL )
 {
 }
 
@@ -800,15 +802,20 @@ void PdfDCTFilter::BeginDecodeImpl( const PdfDictionary* )
     m_cinfo.err = jpeg_std_error( &m_jerr );
 
     jpeg_create_decompress( &m_cinfo );
+
+    m_pDevice = new PdfOutputDevice( &m_buffer );
 }
 
 void PdfDCTFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
 {
-    m_buffer.Append( pBuffer, lLen );
+    m_pDevice->Write( pBuffer, lLen );
 }
 
 void PdfDCTFilter::EndDecodeImpl()
 {
+    delete m_pDevice;
+    m_pDevice = NULL;
+
     jpeg_memory_src ( &m_cinfo, reinterpret_cast<JOCTET*>(m_buffer.GetBuffer()), m_buffer.GetSize() );
 
     if( jpeg_read_header(&m_cinfo, TRUE) <= 0 )

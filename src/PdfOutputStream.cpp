@@ -21,6 +21,7 @@
 #include "PdfOutputStream.h"
 
 #include "PdfOutputDevice.h"
+#include "PdfRefCountedBuffer.h"
 
 namespace PoDoFo {
 
@@ -111,6 +112,18 @@ long PdfDeviceOutputStream::Write( const char* pBuffer, long lLen )
     long lTell = m_pDevice->GetLength();
     m_pDevice->Write( pBuffer, lLen );
     return m_pDevice->GetLength() - lTell;
+}
+
+
+long PdfBufferOutputStream::Write( const char* pBuffer, long lLen )
+{
+    if( m_lLength + lLen >= m_pBuffer->GetSize() ) 
+        m_pBuffer->Resize( m_lLength + lLen );
+
+    memcpy( m_pBuffer->GetBuffer() + m_lLength, pBuffer, lLen );
+    m_lLength += lLen;
+    
+    return lLen;
 }
 
 };

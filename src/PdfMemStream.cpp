@@ -32,49 +32,13 @@ namespace PoDoFo {
 
 #define STREAM_SIZE_INCREASE 1024
 
-/** An output stream that writes to a PdfRefCountedBuffer
- */
-class PODOFO_API PdfBufferOutputStream : public PdfOutputStream {
- public:
-    
-    /** 
-     *  Write to an already opened input device
-     * 
-     *  \param pBuffer data is written to this buffer
-     */
-    PdfBufferOutputStream( PdfRefCountedBuffer* pBuffer )
-        : m_pBuffer( pBuffer )
-    {
-    }
-    
-    /** Write data to the output stream
-     *  
-     *  \param pBuffer the data is read from this buffer
-     *  \param lLen    the size of the buffer 
-     *
-     *  \returns the number of bytes written, -1 if an error ocurred
-     */
-    virtual long Write( const char* pBuffer, long lLen )
-    {
-        m_pBuffer->Append( pBuffer, lLen );
-        return lLen;
-    }
-
-    virtual void Close() 
-    {
-    }
-
- private:
-    PdfRefCountedBuffer* m_pBuffer;
-};
-
 PdfMemStream::PdfMemStream( PdfObject* pParent )
-    : PdfStream( pParent ), m_pStream( NULL ), m_pBufferStream( NULL )
+    : PdfStream( pParent ), m_pStream( NULL ), m_pBufferStream( NULL ), m_lLength( 0 )
 {
 }
 
 PdfMemStream::PdfMemStream( const PdfMemStream & rhs )
-    : PdfStream( NULL ), m_pStream( NULL ), m_pBufferStream( NULL )
+    : PdfStream( NULL ), m_pStream( NULL ), m_pBufferStream( NULL ), m_lLength( 0 )
 {
     operator=(rhs);
 }
@@ -85,7 +49,8 @@ PdfMemStream::~PdfMemStream()
 
 void PdfMemStream::BeginAppendImpl( const TVecFilters & vecFilters )
 {
-    m_buffer = PdfRefCountedBuffer();
+    m_lLength = 0;
+    m_buffer  = PdfRefCountedBuffer();
 
     if( vecFilters.size() )
     {
@@ -107,6 +72,10 @@ void PdfMemStream::EndAppendImpl()
     if( m_pStream ) 
     {
         m_pStream->Close();
+
+        if( !m_pBufferStream ) 
+            m_lLength = dynamic_cast<PdfBufferOutputStream*>(m_pStream)->GetLength();
+
         delete m_pStream;
         m_pStream = NULL;
     }
@@ -114,12 +83,13 @@ void PdfMemStream::EndAppendImpl()
     if( m_pBufferStream ) 
     {
         m_pBufferStream->Close();
+        m_lLength = m_pBufferStream->GetLength();
         delete m_pBufferStream;
         m_pBufferStream = NULL;
     }
 
     if( m_pParent )
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( static_cast<long>(m_buffer.GetSize()) ) );
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( m_lLength ) );
 }
 
 void PdfMemStream::GetCopy( char** pBuffer, long* lLen ) const
@@ -129,15 +99,15 @@ void PdfMemStream::GetCopy( char** pBuffer, long* lLen ) const
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    *pBuffer = static_cast<char*>(malloc( sizeof( char ) * m_buffer.GetSize() ));
-    *lLen = m_buffer.GetSize();
+    *pBuffer = static_cast<char*>(malloc( sizeof( char ) * m_lLength ));
+    *lLen    = m_lLength;
     
     if( !*pBuffer )
     {
         PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
     
-    memcpy( *pBuffer, m_buffer.GetBuffer(), m_buffer.GetSize() );
+    memcpy( *pBuffer, m_buffer.GetBuffer(), m_lLength );
 }
 
 void PdfMemStream::FlateCompress()
@@ -149,7 +119,7 @@ void PdfMemStream::FlateCompress()
 
     PdfArray::const_iterator tciFilters;
     
-    if( !m_buffer.GetSize() )
+    if( !m_lLength );
         return; // ePdfError_ErrOk
 
     // TODO: Handle DecodeParms
@@ -216,7 +186,7 @@ void PdfMemStream::Uncompress()
     
     TVecFilters  vecEmpty;
 
-    if( m_pParent && m_pParent->IsDictionary() && m_pParent->GetDictionary().HasKey( "Filter" ) && m_buffer.GetSize() )
+    if( m_pParent && m_pParent->IsDictionary() && m_pParent->GetDictionary().HasKey( "Filter" ) && m_lLength )
     {
         this->GetFilteredCopy( &pBuffer, &lLen );
         this->Set( pBuffer, lLen, vecEmpty );
@@ -233,7 +203,7 @@ void PdfMemStream::FlateCompressStreamData()
     char*            pBuffer;
     long             lLen;
 
-    if( !m_buffer.GetSize() ) 
+    if( !m_lLength )
         return;
 
     std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_FlateDecode );
@@ -256,8 +226,9 @@ const PdfStream & PdfMemStream::operator=( const PdfStream & rhs )
     else
         return PdfStream::operator=( rhs );
 
+    m_lLength = rhs.GetLength();
     if( m_pParent ) 
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( static_cast<long>(m_buffer.GetSize()) ) );
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( m_lLength ) );
 
     return *this;
 }

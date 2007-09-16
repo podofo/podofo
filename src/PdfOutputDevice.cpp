@@ -92,12 +92,13 @@ void PdfOutputDevice::Init()
     m_pStream           = NULL;
     m_pRefCountedBuffer = NULL;
     m_lBufferLen        = 0;
+    m_ulPosition        = 0;
 }
 
 void PdfOutputDevice::Print( const char* pszFormat, ... )
 {
-    va_list  args;
-    long     lBytes;
+    va_list args;
+    long    lBytes;
 
     if( !pszFormat )
     {
@@ -136,9 +137,9 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
 
     if( m_pBuffer )
     {
-        if( m_ulLength + lBytes <= m_lBufferLen )
+        if( m_ulPosition + lBytes <= m_lBufferLen )
         {
-            vsnprintf( m_pBuffer + m_ulLength, m_lBufferLen - m_ulLength, pszFormat, args );
+            vsnprintf( m_pBuffer + m_ulPosition, m_lBufferLen - m_ulPosition, pszFormat, args );
         }
         else
         {
@@ -166,7 +167,11 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
         }
         else // if( m_pRefCountedBuffer ) 
         {
-            m_pRefCountedBuffer->Append( data, lBytes );
+            if( m_ulPosition + lBytes > static_cast<unsigned long>(m_pRefCountedBuffer->GetSize()) )
+                m_pRefCountedBuffer->Resize( m_ulPosition + lBytes );
+
+            memcpy( m_pRefCountedBuffer->GetBuffer() + m_ulPosition, data, lBytes );
+            m_ulPosition += lBytes;
         }
 
         free( data );
@@ -187,9 +192,9 @@ void PdfOutputDevice::Write( const char* pBuffer, long lLen )
     }
     else if( m_pBuffer )
     {
-        if( m_ulLength + lLen <= m_lBufferLen )
+        if( m_ulPosition + lLen <= m_lBufferLen )
         {
-            memcpy( m_pBuffer + m_ulLength, pBuffer, lLen );
+            memcpy( m_pBuffer + m_ulPosition, pBuffer, lLen );
         }
         else
         {
@@ -202,10 +207,14 @@ void PdfOutputDevice::Write( const char* pBuffer, long lLen )
     }
     else if( m_pRefCountedBuffer ) 
     {
-        m_pRefCountedBuffer->Append( pBuffer, lLen );
+        if( m_ulPosition + lLen > static_cast<unsigned long>(m_pRefCountedBuffer->GetSize()) )
+            m_pRefCountedBuffer->Resize( m_ulPosition + lLen );
+
+        memcpy( m_pRefCountedBuffer->GetBuffer() + m_ulPosition, pBuffer, lLen );
     }
 
-    m_ulLength += lLen;
+    m_ulLength   += lLen;
+    m_ulPosition += lLen;
 }
 
 void PdfOutputDevice::Seek( size_t offset )
@@ -228,8 +237,13 @@ void PdfOutputDevice::Seek( size_t offset )
     {
         m_pStream->seekp( offset, std::ios_base::beg );
     }
+    else if( m_pRefCountedBuffer ) 
+    {
+        m_ulPosition = offset;
+    }
 
-    m_ulLength = offset;
+    // Seek should not change the length of the device
+    // m_ulLength = offset;
 }
 
 void PdfOutputDevice::Flush()

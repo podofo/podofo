@@ -29,6 +29,7 @@
 
 namespace PoDoFo {
 
+class PdfBufferOutputStream;
 class PdfName;
 class PdfObject;
 
@@ -166,9 +167,11 @@ class PODOFO_API PdfMemStream : public PdfStream {
 
 
  private:
-    PdfRefCountedBuffer m_buffer;
-    PdfOutputStream*    m_pStream;
-    PdfOutputStream*    m_pBufferStream;
+    PdfRefCountedBuffer    m_buffer;
+    PdfOutputStream*       m_pStream;
+    PdfBufferOutputStream* m_pBufferStream;
+
+    long                   m_lLength;
 };
 
 // -----------------------------------------------------
@@ -184,7 +187,7 @@ const char* PdfMemStream::Get() const
 // -----------------------------------------------------
 unsigned long PdfMemStream::GetLength() const
 {
-    return m_buffer.GetSize();
+    return m_lLength;
 }
 
 // -----------------------------------------------------
@@ -200,7 +203,7 @@ const char* PdfMemStream::GetInternalBuffer() const
 // -----------------------------------------------------
 unsigned long PdfMemStream::GetInternalBufferSize() const
 {
-    return m_buffer.GetSize();
+    return m_lLength;
 }
 
 };

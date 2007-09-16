@@ -39,6 +39,7 @@ namespace PoDoFo {
 #define PODOFO_FILTER_INTERNAL_BUFFER_SIZE 4096
 
 class PdfPredictorDecoder;
+class PdfOutputDevice;
 
 /** The ascii hex filter.
  */
@@ -766,6 +767,7 @@ class PdfDCTFilter : public PdfFilter {
     struct jpeg_error_mgr         m_jerr;
 
     PdfRefCountedBuffer           m_buffer;
+    PdfOutputDevice*              m_pDevice;
 };
 
 // -----------------------------------------------------

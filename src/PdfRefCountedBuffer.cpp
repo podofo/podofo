@@ -39,7 +39,6 @@ PdfRefCountedBuffer::PdfRefCountedBuffer( char* pBuffer, long lSize )
         m_pBuffer->m_lRefCount     = 1;
         m_pBuffer->m_pBuffer       = pBuffer;
         m_pBuffer->m_lSize         = 0;
-        m_pBuffer->m_lInternalSize = lSize;
         m_pBuffer->m_bPossesion    = true;
     }
 }
@@ -84,12 +83,11 @@ void PdfRefCountedBuffer::Detach( long lExtraLen )
         }
         else
         {
-            long lSize                 = m_pBuffer->m_lInternalSize + lExtraLen; 
+            long lSize                 = m_pBuffer->m_lSize + lExtraLen; 
             TRefCountedBuffer* pBuffer = new TRefCountedBuffer();
             pBuffer->m_lRefCount       = 1;
             pBuffer->m_pBuffer         = static_cast<char*>(malloc( sizeof(char)*lSize ));
-            pBuffer->m_lSize           = m_pBuffer->m_lSize;
-            pBuffer->m_lInternalSize   = lSize;
+            pBuffer->m_lSize           = lSize;
             pBuffer->m_bPossesion      = true;
         
             if( !pBuffer->m_pBuffer ) 
@@ -112,18 +110,18 @@ void PdfRefCountedBuffer::Resize( size_t lSize )
 {
     if( m_pBuffer ) 
     {
-        this->Detach( m_pBuffer->m_lInternalSize < lSize ? lSize - m_pBuffer->m_lInternalSize : 0 );
-        if( m_pBuffer->m_lInternalSize < lSize )
+        this->Detach( static_cast<size_t>(m_pBuffer->m_lSize) < lSize ? lSize - static_cast<size_t>(m_pBuffer->m_lSize) : 0 );
+        if( static_cast<size_t>(m_pBuffer->m_lSize) < lSize )
         {
-            m_pBuffer->m_lInternalSize = PDF_MAX(lSize,m_pBuffer->m_lInternalSize << 1 );
-
-            char* pBuffer = static_cast<char*>(malloc( sizeof(char) * m_pBuffer->m_lInternalSize ));
+            lSize         = PDF_MAX(lSize,static_cast<size_t>(m_pBuffer->m_lSize) << 1 );
+            char* pBuffer = static_cast<char*>(malloc( sizeof(char) * lSize ));
             if( !pBuffer ) 
             {
                 PODOFO_RAISE_ERROR_INFO( ePdfError_OutOfMemory, "PdfRefCountedBuffer::Resize failed!" );
             }
             memcpy( pBuffer, m_pBuffer->m_pBuffer, m_pBuffer->m_lSize );
-            
+            m_pBuffer->m_lSize = lSize;
+
             if( m_pBuffer->m_bPossesion )
                 free( m_pBuffer->m_pBuffer );
             m_pBuffer->m_pBuffer = pBuffer;
@@ -139,8 +137,7 @@ void PdfRefCountedBuffer::Resize( size_t lSize )
         m_pBuffer = new TRefCountedBuffer();
         m_pBuffer->m_lRefCount     = 1;
         m_pBuffer->m_pBuffer       = static_cast<char*>(malloc( sizeof(char)*lSize ));
-        m_pBuffer->m_lSize         = 0;
-        m_pBuffer->m_lInternalSize = lSize;
+        m_pBuffer->m_lSize         = lSize;
         m_pBuffer->m_bPossesion    = true;
         
         if( !m_pBuffer->m_pBuffer ) 
@@ -153,6 +150,7 @@ void PdfRefCountedBuffer::Resize( size_t lSize )
     }
 }
 
+/*
 void PdfRefCountedBuffer::Append( const char* pszString, long lLen )
 {
     if( m_pBuffer )
@@ -171,7 +169,7 @@ void PdfRefCountedBuffer::Append( const char* pszString, long lLen )
         *this = buffer;
     }
 }
-
+*/
 const PdfRefCountedBuffer & PdfRefCountedBuffer::operator=( const PdfRefCountedBuffer & rhs )
 {
     FreeBuffer();
@@ -189,14 +187,6 @@ bool PdfRefCountedBuffer::operator==( const PdfRefCountedBuffer & rhs ) const
     {
         if( m_pBuffer && rhs.m_pBuffer ) 
         {
-            /*
-              char* m_pBuffer;
-              long  m_lSize;
-              long  m_lInternalSize;
-              long  m_lRefCount;
-              bool  m_bPossesion;
-            */
-            
             return (memcmp( m_pBuffer->m_pBuffer, rhs.m_pBuffer->m_pBuffer, PDF_MIN( m_pBuffer->m_lSize, rhs.m_pBuffer->m_lSize ) ) == 0 );
         }
         else 

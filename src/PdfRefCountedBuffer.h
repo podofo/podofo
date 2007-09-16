@@ -29,6 +29,8 @@ namespace PoDoFo {
  * A reference counted buffer object
  * which is deleted as soon as the last
  * object having access to it is delteted.
+ *
+ * The attached memory object can be resized.
  */
 class PODOFO_API PdfRefCountedBuffer {
  public:
@@ -72,7 +74,7 @@ class PODOFO_API PdfRefCountedBuffer {
      *  \param pszString a buffer
      *  \param lLen length of the buffer
      */
-    void Append( const char* pszString, long lLen ); 
+    //void Append( const char* pszString, long lLen ); 
 
     /** Get access to the buffer
      *  \returns the buffer
@@ -80,8 +82,6 @@ class PODOFO_API PdfRefCountedBuffer {
     inline char* GetBuffer() const;
 
     /** Return the buffer size.
-     *  The returned size is the size of the contents of the buffer
-     *  and not necessarily the internal size of the buffer.
      *
      *  \returns the buffer size
      */
@@ -155,7 +155,6 @@ class PODOFO_API PdfRefCountedBuffer {
     typedef struct TRefCountedBuffer {
         char* m_pBuffer;
         long  m_lSize;
-        long  m_lInternalSize;
         long  m_lRefCount;
         bool  m_bPossesion;
     };

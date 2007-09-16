@@ -28,6 +28,7 @@ namespace PoDoFo {
 #define INITIAL_SIZE 4096
 
 class PdfOutputDevice;
+class PdfRefCountedBuffer;
 
 /** An interface for writing blocks of data to 
  *  a data source.
@@ -91,6 +92,8 @@ class PODOFO_API PdfFileOutputStream : public PdfOutputStream {
 
 /** An output stream that writes data to a memory buffer
  *  If the buffer is to small, it will be enlarged automatically.
+ *
+ *  DS: TODO: remove in favour of PdfBufferOutputStream.
  */
 class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
  public:
@@ -203,6 +206,50 @@ class PODOFO_API PdfDeviceOutputStream : public PdfOutputStream {
 
  private:
     PdfOutputDevice* m_pDevice;
+};
+
+/** An output stream that writes to a PdfRefCountedBuffer.
+ * 
+ *  The PdfRefCountedBuffer is resized automatically if necessary.
+ */
+class PODOFO_API PdfBufferOutputStream : public PdfOutputStream {
+ public:
+    
+    /** 
+     *  Write to an already opened input device
+     * 
+     *  \param pBuffer data is written to this buffer
+     */
+    PdfBufferOutputStream( PdfRefCountedBuffer* pBuffer )
+        : m_pBuffer( pBuffer ), m_lLength( 0 )
+    {
+    }
+    
+    /** Write data to the output stream
+     *  
+     *  \param pBuffer the data is read from this buffer
+     *  \param lLen    the size of the buffer 
+     *
+     *  \returns the number of bytes written, -1 if an error ocurred
+     */
+    virtual long Write( const char* pBuffer, long lLen );
+
+    virtual void Close() 
+    {
+    }
+
+    /** 
+     * \returns the length of the buffers contents
+     */
+    inline long GetLength() const 
+    {
+        return m_lLength;
+    }
+
+ private:
+    PdfRefCountedBuffer* m_pBuffer;
+
+    long                 m_lLength;
 };
 
 };

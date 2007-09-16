@@ -21,6 +21,7 @@
 #include "../PdfTest.h"
 
 #include "PdfRefCountedBuffer.h"
+#include "PdfOutputStream.h"
 
 #include <stdio.h>
 #define BUFFER_SIZE 4096
@@ -37,7 +38,9 @@ void RefCountedBufferTest()
 
     // test simple append 
     printf("\t -> Appending\n");
-    buffer1.Append( pszTestString, lLen );
+    PdfBufferOutputStream stream1( &buffer1 );
+    stream1.Write( pszTestString, lLen );
+    stream1.Close();
     if( buffer1.GetSize() != lLen ) 
     {
         fprintf( stderr, "Buffer size does not match! Size=%i should be %i\n", buffer1.GetSize(), lLen );
@@ -67,7 +70,9 @@ void RefCountedBufferTest()
 
     // test detach
     printf("\t -> Detaching\n");
-    buffer2.Append( pszTestString, lLen );
+    PdfBufferOutputStream stream( &buffer2 );
+    stream.Write( pszTestString, lLen );
+    stream.Close();
     if( buffer2.GetSize() != lLen * 2 ) 
     {
         fprintf( stderr, "Buffer size after detach does not match! Size=%i should be %i\n", buffer2.GetSize(), lLen * 2 );
@@ -87,10 +92,12 @@ void RefCountedBufferTest()
     }
         
     // large appends
+    PdfBufferOutputStream streamLarge( &buffer1 );
     for( int i=0;i<100;i++ ) 
     {
-        buffer1.Append( pszTestString, lLen );
+        streamLarge.Write( pszTestString, lLen );
     }
+    streamLarge.Close();
 
     if( buffer1.GetSize() != (lLen * 100 + lLen) ) 
     {
