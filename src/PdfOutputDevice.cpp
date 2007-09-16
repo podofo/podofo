@@ -24,6 +24,8 @@
 #include <fstream>
 #include <sstream>
 
+#include "PdfRefCountedBuffer.h"
+
 namespace PoDoFo {
 
 
@@ -69,6 +71,12 @@ PdfOutputDevice::PdfOutputDevice( const std::ostream* pOutStream )
     PdfLocaleImbue(*m_pStream);
 }
 
+PdfOutputDevice::PdfOutputDevice( PdfRefCountedBuffer* pOutBuffer )
+{
+    this->Init();
+    m_pRefCountedBuffer = pOutBuffer;
+}
+
 PdfOutputDevice::~PdfOutputDevice()
 {
     if( m_hFile )
@@ -77,12 +85,13 @@ PdfOutputDevice::~PdfOutputDevice()
 
 void PdfOutputDevice::Init()
 {
-    m_ulLength   = 0;
+    m_ulLength          = 0;
 
-    m_hFile      = NULL;
-    m_pBuffer    = NULL;
-    m_pStream    = NULL;
-    m_lBufferLen = 0;
+    m_hFile             = NULL;
+    m_pBuffer           = NULL;
+    m_pStream           = NULL;
+    m_pRefCountedBuffer = NULL;
+    m_lBufferLen        = 0;
 }
 
 void PdfOutputDevice::Print( const char* pszFormat, ... )
@@ -136,10 +145,9 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
         }
     }
-    else if( m_pStream )
+    else if( m_pStream || m_pRefCountedBuffer )
     {
         ++lBytes;
-        std::string str;
         char* data = static_cast<char*>(malloc( lBytes * sizeof(char) ));
         if( !data )
         {
@@ -150,11 +158,19 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
         if( lBytes )
             --lBytes;
 
-        str.assign( data, lBytes );
-        *m_pStream << str;
+        if( m_pStream ) 
+        {
+            std::string str;
+            str.assign( data, lBytes );
+            *m_pStream << str;
+        }
+        else // if( m_pRefCountedBuffer ) 
+        {
+            m_pRefCountedBuffer->Append( data, lBytes );
+        }
+
         free( data );
     }
-
     va_end( args );
 
     m_ulLength += lBytes;
@@ -177,13 +193,16 @@ void PdfOutputDevice::Write( const char* pBuffer, long lLen )
         }
         else
         {
-            printf("m_lBufferLen=%li, m_ulLength + lLen=%li lLen=%li\n", m_lBufferLen, m_ulLength + lLen, lLen );
-            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+            PODOFO_RAISE_ERROR_INFO( ePdfError_OutOfMemory, "Allocated buffer to small for PdfOutputDevice. Cannot write!"  );
         }
     }
     else if( m_pStream )
     {
         m_pStream->write( pBuffer, lLen );
+    }
+    else if( m_pRefCountedBuffer ) 
+    {
+        m_pRefCountedBuffer->Append( pBuffer, lLen );
     }
 
     m_ulLength += lLen;

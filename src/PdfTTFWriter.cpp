@@ -1177,6 +1177,9 @@ void PdfTTFWriter::Subset()
 
 }
 
+// -----------------------------------------------------
+// Writing out a TTF file from memory
+// -----------------------------------------------------
 void PdfTTFWriter::Write( PdfOutputDevice* pDevice )
 {
     TTableDirectoryEntry      entry;
@@ -1257,17 +1260,6 @@ void PdfTTFWriter::Write( PdfOutputDevice* pDevice )
     }
 }
 
-PdfTTFWriter::pdf_ttf_ulong PdfTTFWriter::CalculateChecksum( const pdf_ttf_ulong* pTable, pdf_ttf_ulong lLength ) const
-{
-    // This code is taken from the TTF specification
-    pdf_ttf_ulong        lSum = 0L;
-    const pdf_ttf_ulong* pEnd = pTable + ((lLength+3) & ~3) / sizeof(pdf_ttf_ulong);
-    while( pTable < pEnd ) 
-        lSum += *pTable++;
-
-    return lSum;
-}
-
 long PdfTTFWriter::GetGlyphDataLocation( unsigned int nIndex, long* plLength, PdfInputDevice* pDevice ) const
 {
     // find the correct cmap range
@@ -1327,9 +1319,32 @@ void PdfTTFWriter::WriteHmtxTable( PdfOutputDevice* pDevice )
     printf("WriteHmtxTable!!!\n");
 }
 
+// -----------------------------------------------------
+// Helper functions
+// -----------------------------------------------------
+PdfTTFWriter::pdf_ttf_ulong PdfTTFWriter::CalculateChecksum( const pdf_ttf_ulong* pTable, pdf_ttf_ulong lLength ) const
+{
+    // This code is taken from the TTF specification
+    pdf_ttf_ulong        lSum = 0L;
+    const pdf_ttf_ulong* pEnd = pTable + ((lLength+3) & ~3) / sizeof(pdf_ttf_ulong);
+    while( pTable < pEnd ) 
+        lSum += *pTable++;
+
+    return lSum;
+}
+
 void PdfTTFWriter::WriteTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc, 
                                pdf_ttf_ulong tag, void (PdfTTFWriter::*WriteTableFunc)( PdfOutputDevice* ) )
 {
+    const long l4MB = 4 * 1024 * 1024; 
+    char* pBuffer   = static_cast<char*>(malloc(sizeof(char)*l4MB));
+    if( !pBuffer ) 
+    {
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+    }
+
+    PdfOutputDevice* pMemDevice = new PdfOutputDevice( pBuffer, l4MB );
+
     TTableDirectoryEntry entry;
     entry.tag      = tag;
     entry.checkSum = 0;
@@ -1338,9 +1353,15 @@ void PdfTTFWriter::WriteTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntri
 
     (this->*WriteTableFunc)( pDevice );
 
-    rToc.push_back( entry );
-}
+    // create toc entry
+    entry.checkSum = this->CalculateChecksum( reinterpret_cast<pdf_ttf_ulong*>(pBuffer), pMemDevice->GetLength() );;
+    entry.length   = pMemDevice->GetLength();
 
+    rToc.push_back( entry );
+
+    free( pBuffer );
+    delete pMemDevice;
+}
 
 };
 

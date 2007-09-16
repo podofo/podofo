@@ -29,6 +29,8 @@
 
 namespace PoDoFo {
 
+class PdfRefCountedBuffer;
+
 /** This class provides an output device which operates 
  *  either on a file or on a buffer in memory.
  *  Additionally it can count the bytes written to the device.
@@ -66,6 +68,16 @@ class PODOFO_API PdfOutputDevice {
      *  \param pOutStream write to this std::ostream
      */
     PdfOutputDevice( const std::ostream* pOutStream );
+
+    /** Construct a new PdfOutputDevice that writes all data to a PdfRefCountedBuffer.
+     *  This output device has the advantage that the PdfRefCountedBuffer will resize itself
+     *  if more memory is needed to hold all data.
+     *
+     *  \param pOutBuffer write to this PdfRefCountedBuffer
+     *
+     *  \see PdfRefCountedBuffer
+     */
+    PdfOutputDevice( PdfRefCountedBuffer* pOutBuffer );
 
     /** Destruct the PdfOutputDevice object and close any open files.
      */
@@ -114,14 +126,16 @@ class PODOFO_API PdfOutputDevice {
     void Init();
 
  protected:
-    unsigned long m_ulLength;
+    unsigned long        m_ulLength;
 
  private:
-    FILE*         m_hFile;
-    char*         m_pBuffer;
-    unsigned long m_lBufferLen;
+    FILE*                m_hFile;
+    char*                m_pBuffer;
+    unsigned long        m_lBufferLen;
 
-    std::ostream*  m_pStream;
+    std::ostream*        m_pStream;
+    PdfRefCountedBuffer* m_pRefCountedBuffer;
+
 };
 
 unsigned long PdfOutputDevice::GetLength() const

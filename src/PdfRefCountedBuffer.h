@@ -79,10 +79,22 @@ class PODOFO_API PdfRefCountedBuffer {
      */
     inline char* GetBuffer() const;
 
-    /** Return the buffer size
+    /** Return the buffer size.
+     *  The returned size is the size of the contents of the buffer
+     *  and not necessarily the internal size of the buffer.
+     *
      *  \returns the buffer size
      */
     inline long GetSize() const;
+
+    /** Resize the buffer to hold at least
+     *  lSize bytes.
+     *
+     *  \param lSize the size of bytes the buffer can at least hold
+     *         
+     *  If the buffer is larger no operation is performed.
+     */
+    void Resize( size_t lSize );
 
     /** Copy an existing PdfRefCountedBuffer and increase
      *  the reference count
@@ -124,9 +136,20 @@ class PODOFO_API PdfRefCountedBuffer {
     bool operator>( const PdfRefCountedBuffer & rhs ) const;
 
  private:
-    /** Detach from the reference counted buffer
+    /** Free the internal buffer or decrease reference count of buffer
+     *  if another PdfRefCountedBuffer is attached to the same buffer.
      */
-    void Detach();
+    void FreeBuffer();
+
+    /** Detach from a shared buffer or do nothing if we are the only 
+     *  one referencing the buffer.
+     *
+     *  Call this function before any operation modifiying the buffer!
+     *
+     *  \param lLen an additional parameter specifiying extra bytes
+     *              to be allocated to optimize allocations of a new buffer.
+     */
+    void Detach( long lExtraLen = 0);
 
  private:
     typedef struct TRefCountedBuffer {
