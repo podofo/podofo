@@ -70,9 +70,21 @@ class PODOFO_API PdfImage : public PdfXObject {
      *  ePdfColorSpace_DeviceRGB.
      *  \param eColorSpace one of ePdfColorSpace_DeviceGray, ePdfColorSpace_DeviceRGB and
      *                     ePdfColorSpace_DeviceCMYK
+     *
+     *  \see SetImageICCProfile to set an ICC profile instead of a simple colorspace
      */
     void SetImageColorSpace( EPdfColorSpace eColorSpace );
 
+    /** Set an ICC profile for this image.
+     *
+     *  \param pStream an input stream from which the ICC profiles data can be read
+     *  \param lColorComponents the number of colorcomponents of the ICC profile
+     *  \param eAlternateColorSpace an alternate colorspace to use if the ICC profile cannot be used
+     *
+     *  \see SetImageColorSpace to set an colorspace instead of an ICC profile for this image
+     */
+    void SetImageICCProfile( PdfInputStream* pStream, long lColorComponents, 
+                             EPdfColorSpace eAlternateColorSpace = ePdfColorSpace_DeviceRGB );
 
     //EPdfColorSpace GetImageColorSpace() const;
 

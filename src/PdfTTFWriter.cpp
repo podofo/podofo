@@ -22,6 +22,7 @@
 
 #include "PdfInputDevice.h"
 #include "PdfOutputDevice.h"
+#include "PdfRefCountedBuffer.h"
 
 #include <math.h>
 
@@ -78,7 +79,7 @@ namespace NonPublic {
  */
 
 PdfTTFWriter::PdfTTFWriter()
-    : m_lGlyphDataOffset( -1L ), m_lCMapOffset( -1L )
+    : m_lGlyphDataOffset( -1L ), m_lCMapOffset( -1L ), m_pRefBuffer( NULL )
 {
     m_vecGlyphIndeces.push_back( static_cast<int>('H') );
     m_vecGlyphIndeces.push_back( static_cast<int>('a') );
@@ -97,7 +98,7 @@ PdfTTFWriter::PdfTTFWriter()
 
 PdfTTFWriter::~PdfTTFWriter()
 {
-
+    delete m_pRefBuffer;
 }
 
 void PdfTTFWriter::Read( PdfInputDevice* pDevice )
@@ -117,6 +118,7 @@ void PdfTTFWriter::Read( PdfInputDevice* pDevice )
     long lLoca = -1;
     long lMaxp = -1;
     long lOs2  = -1;
+    long lHmtx = -1;
 
     // Read the table directory
     this->ReadTableDirectory( pDevice );
@@ -144,6 +146,8 @@ void PdfTTFWriter::Read( PdfInputDevice* pDevice )
             lHHea = entry.offset;
         else if( entry.tag == this->CreateTag( 'O', 'S', '/', '2' ) )
             lOs2 = entry.offset;
+        else if( entry.tag == this->CreateTag( 'h', 'm', 't', 'x' ) )
+            lHmtx = entry.offset;
 
         vecTables.push_back( entry );
     }
@@ -177,6 +181,10 @@ void PdfTTFWriter::Read( PdfInputDevice* pDevice )
     {
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidFontFile, "Table 'OS/2' not found." ); 
     }
+    else if( lHmtx == -1 ) 
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidFontFile, "Table 'hmtx' not found." ); 
+    }
 
     // Read head table
     pDevice->Seek( lHead );
@@ -205,6 +213,10 @@ void PdfTTFWriter::Read( PdfInputDevice* pDevice )
     // Read OS/2 table
     pDevice->Seek( lOs2 );
     this->ReadOs2Table( pDevice );
+
+    // Read hmtx table
+    pDevice->Seek( lHmtx );
+    this->ReadHmtxTable( pDevice );
 
     // read the remaining data tables
     TIVecTableDirectoryEntries it = vecTables.begin(); 
@@ -286,19 +298,6 @@ void PdfTTFWriter::ReadTableDirectoryEntry( PdfInputDevice* pDevice, TTableDirec
            pEntry->length );
 }
 
-void PdfTTFWriter::WriteTableDirectoryEntry( PdfOutputDevice* pDevice, TTableDirectoryEntry* pEntry )
-{
-    if( podofo_is_little_endian() )
-    {
-        SwapULong( &pEntry->tag );
-        SwapULong( &pEntry->checkSum );
-        SwapULong( &pEntry->offset );
-        SwapULong( &pEntry->length );
-    }
-
-    pDevice->Write( reinterpret_cast<char*>(pEntry), sizeof(TTableDirectoryEntry) );
-}
-
 void PdfTTFWriter::ReadOs2Table( PdfInputDevice* pDevice )
 {
    pDevice->Read( reinterpret_cast<char*>(&m_tOs2), sizeof(TOs2) );
@@ -307,22 +306,30 @@ void PdfTTFWriter::ReadOs2Table( PdfInputDevice* pDevice )
         SwapOs2Table();
 }
 
-void PdfTTFWriter::WriteOs2Table( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc )
+void PdfTTFWriter::ReadHmtxTable( PdfInputDevice* pDevice )
 {
-    // We always write the long loca format
+    // read numOfHMetrics long values
+    TLongHorMetric longValue;
+    int            n            = m_tHHea.numberOfHMetrics;
 
-    if( podofo_is_little_endian() ) 
-        SwapOs2Table();
+    printf("!!!HMTX Reading %i long values\n", n);
+    while( n-- ) 
+    {
+        READ_TTF_USHORT( longValue.advanceWidth );
+        READ_TTF_SHORT ( longValue.leftSideBearing );
 
-    TTableDirectoryEntry entry;
-    entry.tag      = this->CreateTag( 'O', 'S', '/', '2' );
-    entry.checkSum = this->CalculateChecksum( reinterpret_cast<const pdf_ttf_ulong*>(&m_tOs2), sizeof(TOs2) );
-    entry.offset   = pDevice->GetLength();
-    entry.length   = sizeof(TOs2);
+        m_vecHmtx.push_back( longValue );
+    }
 
-    rToc.push_back( entry );
-
-    pDevice->Write( reinterpret_cast<char*>(&m_tOs2), sizeof(TOs2) );
+    // read numGlyphs - numOfHMetrics short values
+    n = m_tHHea.numberOfHMetrics - m_tMaxp.numGlyphs;
+    printf("!!!HMTX Reading %i short values\n", n);
+    while( n-- ) 
+    {
+        // advanceWidth stays the same as in the last read long value
+        READ_TTF_SHORT ( longValue.leftSideBearing );
+        m_vecHmtx.push_back( longValue );
+    }
 }
 
 void PdfTTFWriter::SwapOs2Table() 
@@ -366,25 +373,6 @@ void PdfTTFWriter::ReadHeadTable( PdfInputDevice* pDevice )
     if( podofo_is_little_endian() ) 
         SwapHeadTable();
 }
- 
-void PdfTTFWriter::WriteHeadTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc )
-{
-    // We always write the long loca format
-    m_tHead.indexToLocForm = 1;
-
-    if( podofo_is_little_endian() ) 
-        SwapHeadTable();
-
-    TTableDirectoryEntry entry;
-    entry.tag      = this->CreateTag( 'h', 'e', 'a', 'd' );
-    entry.checkSum = this->CalculateChecksum( reinterpret_cast<const pdf_ttf_ulong*>(&m_tHead), sizeof(THead) );
-    entry.offset   = pDevice->GetLength();
-    entry.length   = sizeof(THead);
-
-    rToc.push_back( entry );
-
-    pDevice->Write( reinterpret_cast<char*>(&m_tHead), sizeof(THead) );
-}
    
 void PdfTTFWriter::SwapHeadTable() 
 {
@@ -406,81 +394,6 @@ void PdfTTFWriter::ReadMaxpTable( PdfInputDevice* pDevice )
 
     if( podofo_is_little_endian() )
         SwapMaxpTable();
-}
-
-void PdfTTFWriter::WriteMaxpTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc )
-{
-    m_tMaxp.numGlyphs = m_vecGlyphs.size();
-
-    if( podofo_is_little_endian() )
-        SwapMaxpTable();
-
-    TTableDirectoryEntry entry;
-    entry.tag      = this->CreateTag( 'm', 'a', 'x', 'p' );
-    entry.checkSum = this->CalculateChecksum( reinterpret_cast<const pdf_ttf_ulong*>(&m_tMaxp), sizeof(TMaxP) );
-    entry.offset   = pDevice->GetLength();
-    entry.length   = sizeof(TMaxP);
-
-    rToc.push_back( entry );
-
-    pDevice->Write( reinterpret_cast<char*>(&m_tMaxp), sizeof(TMaxP) );
-}
-
-void PdfTTFWriter::WriteNameTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc )
-{
-    const char* pszFontName = "Po"; 
-    long  lLen              = strlen( pszFontName );
-
-    // Create a custom nametable
-    struct {
-        // header
-        pdf_ttf_ushort format;      ///< 0 
-        pdf_ttf_ushort numRecords;  ///< 1
-        pdf_ttf_ushort offset;      ///< 6
-        
-        // body
-        pdf_ttf_ushort platformId;  ///< 3      (Microsoft)
-        pdf_ttf_ushort encodingId;  ///< 1      (Unicode)
-        pdf_ttf_ushort languageId;  ///< 0x0809 (british English)
-        pdf_ttf_ushort nameId;      ///< 1      (font family name)
-        pdf_ttf_ushort stringLength;
-        pdf_ttf_ushort stringOffset;///< 0
-    } tNameTable;
-    // fontdata has to immediately follow the structure on the stack!!!
-    char szFontData[] = { 0x00, 'P', 0x00, 'o', 0x00, 0x00 };
-    /*
-    wchar_t* szFontData = static_cast<wchar_t*>(alloca( sizeof(wchar_t) * (lLen+1) ));
-    mbstowcs( szFontData, pszFontName, lLen+1 );
-    */
-    tNameTable.format       = 0;
-    tNameTable.numRecords   = 1;
-    tNameTable.offset       = 6;
-    tNameTable.platformId   = 3;
-    tNameTable.languageId   = 0x0809;
-    tNameTable.nameId       = 1;
-    tNameTable.stringLength = lLen;
-    tNameTable.stringOffset = 0;
-    
-    SwapUShort( &tNameTable.format );
-    SwapUShort( &tNameTable.numRecords );
-    SwapUShort( &tNameTable.offset );
-    SwapUShort( &tNameTable.platformId );
-    SwapUShort( &tNameTable.languageId );
-    SwapUShort( &tNameTable.nameId );
-    SwapUShort( &tNameTable.stringLength );
-    SwapUShort( &tNameTable.stringOffset );
-
-    long lStructureLen = sizeof(tNameTable) + ((lLen + 1)* sizeof(wchar_t));
-
-    TTableDirectoryEntry entry;
-    entry.tag      = this->CreateTag( 'n', 'a', 'm', 'e' );
-    entry.checkSum = this->CalculateChecksum( reinterpret_cast<const pdf_ttf_ulong*>(&tNameTable), lStructureLen );
-    entry.offset   = pDevice->GetLength();
-    entry.length   = lStructureLen;
-
-    pDevice->Write( reinterpret_cast<char*>(&tNameTable), lStructureLen );
-
-    rToc.push_back( entry );
 }
 
 void PdfTTFWriter::SwapMaxpTable() 
@@ -516,25 +429,6 @@ void PdfTTFWriter::SwapHHeaTable()
     SwapFWord  ( &m_tHHea.minRightSideBearing );
     SwapFWord  ( &m_tHHea.xMaxExtent );
     SwapUShort ( &m_tHHea.numberOfHMetrics );
-}
-
-void PdfTTFWriter::WriteHHeaTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc )
-{
-    // We always write the long loca format
-    m_tHHea.numberOfHMetrics = m_vecGlyphs.size();
-
-    if( podofo_is_little_endian() ) 
-        SwapHHeaTable();
-
-    TTableDirectoryEntry entry;
-    entry.tag      = this->CreateTag( 'h', 'h', 'e', 'a' );
-    entry.checkSum = this->CalculateChecksum( reinterpret_cast<const pdf_ttf_ulong*>(&m_tHHea), sizeof(THHea) );
-    entry.offset   = pDevice->GetLength();
-    entry.length   = sizeof(THHea);
-
-    rToc.push_back( entry );
-
-    pDevice->Write( reinterpret_cast<char*>(&m_tHHea), sizeof(THHea) );
 }
 
 void PdfTTFWriter::ReadLocaTable( PdfInputDevice* pDevice )
@@ -878,127 +772,141 @@ void PdfTTFWriter::LoadGlyph( int nIndex, long lOffset, PdfInputDevice* pDevice 
     m_vecGlyphs.push_back( glyph );
 }
 
-void PdfTTFWriter::ReadSimpleGlyfCoordinates( PdfInputDevice* pDevice, const std::vector<char> & rvecFlags, 
-                                              std::vector<pdf_ttf_short> & rvecCoordinates, int nFlag )
-{
-    pdf_ttf_short longCoordinate;
-    char          shortCoordinate;
 
-    std::vector<char>::const_iterator itFlags = rvecFlags.begin();
-    while( itFlags != rvecFlags.end() )
+void PdfTTFWriter::Subset()
+{
+
+}
+
+// -----------------------------------------------------
+// Writing out a TTF file from memory
+// -----------------------------------------------------
+void PdfTTFWriter::Write( PdfOutputDevice* pDevice )
+{
+    TTableDirectoryEntry      entry;
+    TVecTableDirectoryEntries vecToc;
+    const long                lTableOffset = sizeof(TTableDirectory);
+    const long                lNumTables   = m_tTableDirectory.numTables;
+
+    this->WriteTableDirectory( pDevice );
+    
+    // write dummy table of contents
+    memset( &entry, 0, sizeof(TTableDirectoryEntry) );
+    for( unsigned int i=0; i<static_cast<unsigned int>(lNumTables); i++ )  
+        pDevice->Write( reinterpret_cast<const char*>(&entry), sizeof(TTableDirectoryEntry) );
+
+    // write contents
+
+    this->WriteTable( pDevice, vecToc, 
+                      this->CreateTag( 'm', 'a', 'x', 'p' ), &PdfTTFWriter::WriteMaxpTable );
+    this->WriteTable( pDevice, vecToc, 
+                      this->CreateTag( 'h', 'e', 'a', 'd' ), &PdfTTFWriter::WriteHeadTable );
+    this->WriteTable( pDevice, vecToc, 
+                      this->CreateTag( 'g', 'l', 'y', 'f' ), &PdfTTFWriter::WriteGlyfTable );
+    this->WriteTable( pDevice, vecToc, 
+                      this->CreateTag( 'c', 'm', 'a', 'p' ), &PdfTTFWriter::WriteCMapTable );
+    this->WriteTable( pDevice, vecToc, 
+                      this->CreateTag( 'l', 'o', 'c', 'a' ), &PdfTTFWriter::WriteLocaTable );
+    this->WriteTable( pDevice, vecToc, 
+                      this->CreateTag( 'h', 'h', 'e', 'a' ), &PdfTTFWriter::WriteHHeaTable );
+    this->WriteTable( pDevice, vecToc, 
+                      this->CreateTag( 'O', 'S', '/', '2' ), &PdfTTFWriter::WriteOs2Table );
+    this->WriteTable( pDevice, vecToc, 
+                      this->CreateTag( 'n', 'a', 'm', 'e' ), &PdfTTFWriter::WriteNameTable );
+    this->WriteTable( pDevice, vecToc, 
+                      this->CreateTag( 'h', 'm', 't', 'x' ), &PdfTTFWriter::WriteHmtxTable );
+    
+    /*
+    TCIVecTable it = m_vecTableData.begin();
+    while( it != m_vecTableData.end() ) 
     {
-        if( *itFlags & 0x02 == 0x02 ) 
-        {
-            // read a 1 byte long coordinate
-            pDevice->Read( &shortCoordinate, sizeof(char) );
-            longCoordinate = static_cast<pdf_ttf_short>(shortCoordinate);
-            if( *itFlags & nFlag == nFlag )
-                longCoordinate = -longCoordinate;
-        }
-        else 
-        {
-            // read a 2 byte long coordinate
-            if( *itFlags & nFlag == nFlag )
-            {
-                // DO NOTHING
-                // the value of longCoordinate is the same as the last value
-                // so simply reuse the old value
-            }
-            else
-            {
-                pdf_ttf_short coordinate;
-                pDevice->Read( reinterpret_cast<char*>(&coordinate), sizeof(pdf_ttf_short) );
-                if( podofo_is_little_endian() )
-                    this->SwapShort( &coordinate );
-                
-                longCoordinate += coordinate;
-            }
-        }
+        TTableDirectoryEntry entry;
+        entry.tag      = (*it).tag;
+        entry.checkSum = this->CalculateChecksum( reinterpret_cast<const pdf_ttf_ulong*>(&(*it).data), (*it).length );
+        entry.offset   = pDevice->GetLength();
+        entry.length   = (*it).length;
         
-        rvecCoordinates.push_back( longCoordinate );
-        ++itFlags;
-    }
-    
-}
+        vecToc.push_back( entry );
 
-void PdfTTFWriter::WriteSimpleGlyfCoordinates( PdfOutputDevice* pDevice, const std::vector<char> & rvecFlags, 
-                                               std::vector<pdf_ttf_short> & rvecCoordinates, int nFlag )
-{
-    pdf_ttf_short longCoordinate;
-    pdf_ttf_short lastCoordinate;
-    char          shortCoordinate;
-    
-    std::vector<char>::const_iterator    itFlags       = rvecFlags.begin();
-    std::vector<pdf_ttf_short>::iterator itCoordinates = rvecCoordinates.begin(); 
-    while( itFlags != rvecFlags.end() )
+        pDevice->Write( (*it).data, (*it).length );
+        free( (*it).data );
+        ++it;
+    }
+    */
+
+    // write actual table of contents
+    pDevice->Seek( lTableOffset );
+    TIVecTableDirectoryEntries itToc = vecToc.begin(); 
+    while( itToc != vecToc.end() ) 
     {
-        longCoordinate = (*itCoordinates)++;
-
-        if( *itFlags & 0x02 == 0x02 ) 
-        {
-            // read a 1 byte long coordinate
-            if( *itFlags & nFlag == nFlag )
-                longCoordinate = -longCoordinate;
-
-            shortCoordinate = static_cast<char>(longCoordinate);
-            pDevice->Write( &shortCoordinate, sizeof(char) );
-
-            lastCoordinate  = longCoordinate; // TODO: check if it is ok to assign a negative value here
-        }
-        else 
-        {
-            // read a 2 byte long coordinate
-            if( *itFlags & nFlag == nFlag )
-            {
-                // DO NOTHING
-                // the value of longCoordinate is the same as the last value
-                // so simply reuse the old value
-            }
-            else
-            {
-                longCoordinate = longCoordinate - lastCoordinate;
-                lastCoordinate = longCoordinate;
-
-                if( podofo_is_little_endian() )
-                    this->SwapShort( &longCoordinate );
-                pDevice->Write( reinterpret_cast<char*>(&longCoordinate), sizeof(pdf_ttf_short) );
-           }
-        }
-
-        ++itFlags;
+        this->WriteTableDirectoryEntry( pDevice, &(*itToc) );
+        ++itToc;
     }
- 
 }
 
-void PdfTTFWriter::WriteLocaTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc )
+void PdfTTFWriter::WriteTableDirectoryEntry( PdfOutputDevice* pDevice, TTableDirectoryEntry* pEntry )
 {
-    TCIVecLoca    it = m_vecLoca.begin();
+    if( podofo_is_little_endian() )
+    {
+        SwapULong( &pEntry->tag );
+        SwapULong( &pEntry->checkSum );
+        SwapULong( &pEntry->offset );
+        SwapULong( &pEntry->length );
+    }
+
+    pDevice->Write( reinterpret_cast<char*>(pEntry), sizeof(TTableDirectoryEntry) );
+}
+
+void PdfTTFWriter::WriteGlyfTable( PdfOutputDevice* pDevice )
+{
     pdf_ttf_ulong lValue;
+    TIVecGlyphs it = m_vecGlyphs.begin();
+    int nPosition  = 0;
 
-    TTableDirectoryEntry entry;
-    entry.tag      = this->CreateTag( 'l', 'o', 'c', 'a' );
-    entry.checkSum = 0;
-    entry.offset   = pDevice->GetLength();
-    entry.length   = sizeof(pdf_ttf_ulong) * m_vecLoca.size();
-
-    while( it != m_vecLoca.end() )
+    while( it != m_vecGlyphs.end() )
     {
-        lValue = (*it);
+        // set the position of the glyph so that a cmap can be generated
+        (*it).SetPosition( nPosition++ );
 
-        // create the checksum for the table of contents entry
-        entry.checkSum += lValue;
+        // add value to new loca table so that it can be created correctly
+        m_vecLoca.push_back( pDevice->GetLength() ); 
 
-        this->SwapULong( &lValue );
-        pDevice->Write( reinterpret_cast<const char*>(&lValue), sizeof(pdf_ttf_ulong) );
+        if( podofo_is_little_endian() )
+            SwapGlyfHeader( &(*it).m_tHeader );
+        pDevice->Write( reinterpret_cast<char*>(&(*it).m_tHeader), sizeof(TGlyphHeader) );
+
+        if( (*it).IsComposite() ) 
+        {
+            // TODO: Write a composite glyph
+
+        }
+        else
+        {
+            // Write a simple glyph
+            std::vector<pdf_ttf_ushort>::iterator itEndPoints = (*it).vecEndPoints.begin();
+            while( itEndPoints != (*it).vecEndPoints.end() )
+            {
+                WRITE_TTF_USHORT( *itEndPoints );
+                ++itEndPoints;
+            }
+
+            pdf_ttf_ushort nLength = (*it).GetInstrunctionLength();
+            WRITE_TTF_USHORT( nLength );
+            pDevice->Write( (*it).GetInstrunctions(), (*it).GetInstrunctionLength() );
+            pDevice->Write( &(*it).vecFlags[0], sizeof(char) * (*it).vecFlags.size() );
+
+            WriteSimpleGlyfCoordinates( pDevice, (*it).vecFlags, (*it).vecXCoordinates, 0x10 );
+            WriteSimpleGlyfCoordinates( pDevice, (*it).vecFlags, (*it).vecYCoordinates, 0x20 );
+        }
 
         ++it;
     }
-
-
-    rToc.push_back( entry );
+    
+    // add an additional entry to loca so that the length of the last character can be determined
+    m_vecLoca.push_back( pDevice->GetLength() ); 
 }
 
-void PdfTTFWriter::WriteCMapTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc )
+void PdfTTFWriter::WriteCMapTable( PdfOutputDevice* pDevice )
 {
     pdf_ttf_ushort nValue = 0;
     pdf_ttf_ulong  lValue = 12;
@@ -1096,169 +1004,255 @@ void PdfTTFWriter::WriteCMapTable( PdfOutputDevice* pDevice, TVecTableDirectoryE
     }
 }
 
-void PdfTTFWriter::WriteGlyfTable( PdfOutputDevice* pRealDevice, TVecTableDirectoryEntries & rToc )
+void PdfTTFWriter::WriteHHeaTable( PdfOutputDevice* pDevice )
 {
+    // We always write the long loca format
+    // numberOfHMetrics has to be equal to numGlyphs so
+    // that we have only to write LongHorMetric values to Hmtx and no short values
+    m_tHHea.numberOfHMetrics = m_vecGlyphs.size();
+
+    if( podofo_is_little_endian() ) 
+        SwapHHeaTable();
+
+    pDevice->Write( reinterpret_cast<char*>(&m_tHHea), sizeof(THHea) );
+}
+
+void PdfTTFWriter::WriteHmtxTable( PdfOutputDevice* pDevice )
+{
+    TLongHorMetric entry;
+    std::vector<TLongHorMetric> vecLongHorMetric;
+
+    
+}
+
+void PdfTTFWriter::WriteLocaTable( PdfOutputDevice* pDevice )
+{
+    TCIVecLoca    it    = m_vecLoca.begin();
     pdf_ttf_ulong lValue;
-    TIVecGlyphs it = m_vecGlyphs.begin();
-    int nPosition  = 0;
+    while( it != m_vecLoca.end() )
+    {
+        lValue = (*it);
+        this->SwapULong( &lValue );
+        pDevice->Write( reinterpret_cast<const char*>(&lValue), sizeof(pdf_ttf_ulong) );
+
+        ++it;
+    }
+}
+
+void PdfTTFWriter::WriteMaxpTable( PdfOutputDevice* pDevice )
+{
+    m_tMaxp.numGlyphs = m_vecGlyphs.size();
+
+    if( podofo_is_little_endian() )
+        SwapMaxpTable();
+
+    pDevice->Write( reinterpret_cast<char*>(&m_tMaxp), sizeof(TMaxP) );
+}
+
+
+void PdfTTFWriter::WriteNameTable( PdfOutputDevice* pDevice )
+{
+    const char* pszFontName = "Po"; 
+    long  lLen              = strlen( pszFontName );
+
+    // Create a custom nametable
+    struct {
+        // header
+        pdf_ttf_ushort format;      ///< 0 
+        pdf_ttf_ushort numRecords;  ///< 1
+        pdf_ttf_ushort offset;      ///< 6
+        
+        // body
+        pdf_ttf_ushort platformId;  ///< 3      (Microsoft)
+        pdf_ttf_ushort encodingId;  ///< 1      (Unicode)
+        pdf_ttf_ushort languageId;  ///< 0x0809 (british English)
+        pdf_ttf_ushort nameId;      ///< 1      (font family name)
+        pdf_ttf_ushort stringLength;
+        pdf_ttf_ushort stringOffset;///< 0
+    } tNameTable;
+    // fontdata has to immediately follow the structure on the stack!!!
+    char szFontData[] = { 0x00, 'P', 0x00, 'o', 0x00, 0x00 };
+    /*
+    wchar_t* szFontData = static_cast<wchar_t*>(alloca( sizeof(wchar_t) * (lLen+1) ));
+    mbstowcs( szFontData, pszFontName, lLen+1 );
+    */
+    tNameTable.format       = 0;
+    tNameTable.numRecords   = 1;
+    tNameTable.offset       = 6;
+    tNameTable.platformId   = 3;
+    tNameTable.languageId   = 0x0809;
+    tNameTable.nameId       = 1;
+    tNameTable.stringLength = lLen;
+    tNameTable.stringOffset = 0;
+    
+    SwapUShort( &tNameTable.format );
+    SwapUShort( &tNameTable.numRecords );
+    SwapUShort( &tNameTable.offset );
+    SwapUShort( &tNameTable.platformId );
+    SwapUShort( &tNameTable.languageId );
+    SwapUShort( &tNameTable.nameId );
+    SwapUShort( &tNameTable.stringLength );
+    SwapUShort( &tNameTable.stringOffset );
+
+    long lStructureLen = sizeof(tNameTable) + ((lLen + 1)* sizeof(wchar_t));
+    pDevice->Write( reinterpret_cast<char*>(&tNameTable), lStructureLen );
+}
+
+void PdfTTFWriter::WriteOs2Table( PdfOutputDevice* pDevice )
+{
+    // We always write the long loca format
+    if( podofo_is_little_endian() ) 
+        SwapOs2Table();
+
+    pDevice->Write( reinterpret_cast<char*>(&m_tOs2), sizeof(TOs2) );
+}
+ 
+void PdfTTFWriter::WriteHeadTable( PdfOutputDevice* pDevice )
+{
+    // We always write the long loca format
+    m_tHead.indexToLocForm = 1;
+
+    if( podofo_is_little_endian() ) 
+        SwapHeadTable();
+
+    pDevice->Write( reinterpret_cast<char*>(&m_tHead), sizeof(THead) );
+}
+
+// -----------------------------------------------------
+// Helper functions
+// -----------------------------------------------------
+PdfTTFWriter::pdf_ttf_ulong PdfTTFWriter::CalculateChecksum( const pdf_ttf_ulong* pTable, pdf_ttf_ulong lLength ) const
+{
+    // This code is taken from the TTF specification
+    pdf_ttf_ulong        lSum = 0L;
+    const pdf_ttf_ulong* pEnd = pTable + ((lLength+3) & ~3) / sizeof(pdf_ttf_ulong);
+    while( pTable < pEnd ) 
+        lSum += *pTable++;
+
+    return lSum;
+}
+
+void PdfTTFWriter::WriteTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc, 
+                               pdf_ttf_ulong tag, void (PdfTTFWriter::*WriteTableFunc)( PdfOutputDevice* ) )
+{
+    if( !m_pRefBuffer ) 
+    {
+        // start with a 4MB buffer
+        const long l4MB = 4 * 1024 * 1024; 
+        m_pRefBuffer = new PdfRefCountedBuffer( l4MB );
+    }
+
+    PdfOutputDevice memDevice( m_pRefBuffer );
 
     TTableDirectoryEntry entry;
-    entry.tag      = this->CreateTag( 'g', 'l', 'y', 'f' );
+    entry.tag      = tag;
     entry.checkSum = 0;
     entry.length   = 0;
-    entry.offset   = pRealDevice->GetLength();
+    entry.offset   = pDevice->GetLength();
 
-    // we write to a memory buffer first so that we can calculate the checksum easily
-    // works for fonts < 4MB
-    const long l4MB = sizeof(char) * 4 * 1024 * 1024;
-    char* pBuffer   = static_cast<char*>(malloc( l4MB ) );
-    
-    PdfOutputDevice* pDevice = new PdfOutputDevice( pBuffer, l4MB );
-
-    while( it != m_vecGlyphs.end() )
-    {
-        // set the position of the glyph so that a cmap can be generated
-        (*it).SetPosition( nPosition++ );
-
-        // add value to new loca table so that it can be created correctly
-        m_vecLoca.push_back( pDevice->GetLength() ); 
-
-        if( podofo_is_little_endian() )
-            SwapGlyfHeader( &(*it).m_tHeader );
-        pDevice->Write( reinterpret_cast<char*>(&(*it).m_tHeader), sizeof(TGlyphHeader) );
-
-        if( (*it).IsComposite() ) 
-        {
-            // TODO: Write a composite glyph
-
-        }
-        else
-        {
-            // Write a simple glyph
-            std::vector<pdf_ttf_ushort>::iterator itEndPoints = (*it).vecEndPoints.begin();
-            while( itEndPoints != (*it).vecEndPoints.end() )
-            {
-                WRITE_TTF_USHORT( *itEndPoints );
-                ++itEndPoints;
-
-                entry.length += sizeof(pdf_ttf_ushort);
-            }
-
-            pdf_ttf_ushort nLength = (*it).GetInstrunctionLength();
-            WRITE_TTF_USHORT( nLength );
-            pDevice->Write( (*it).GetInstrunctions(), (*it).GetInstrunctionLength() );
-            pDevice->Write( &(*it).vecFlags[0], sizeof(char) * (*it).vecFlags.size() );
-
-            WriteSimpleGlyfCoordinates( pDevice, (*it).vecFlags, (*it).vecXCoordinates, 0x10 );
-            WriteSimpleGlyfCoordinates( pDevice, (*it).vecFlags, (*it).vecYCoordinates, 0x20 );
-        }
-
-        ++it;
-    }
-    
-    // add an additional entry to loca so that the length of the last character can be determined
-    m_vecLoca.push_back( pDevice->GetLength() ); 
-
-
-    pRealDevice->Write( pBuffer, pDevice->GetLength() );
+    (this->*WriteTableFunc)( &memDevice );
 
     // create toc entry
-    entry.checkSum = this->CalculateChecksum( reinterpret_cast<pdf_ttf_ulong*>(pBuffer), pDevice->GetLength() );;
-    entry.length   = pDevice->GetLength();
+    entry.checkSum = this->CalculateChecksum( reinterpret_cast<pdf_ttf_ulong*>(m_pRefBuffer->GetBuffer()), memDevice.GetLength() );;
+    entry.length   = memDevice.GetLength();
     rToc.push_back( entry );
 
-    // free memory
-    delete pDevice;
-    free( pBuffer );
+    // write data to the real device
+    pDevice->Write( m_pRefBuffer->GetBuffer(), memDevice.GetLength() );
 }
 
-void PdfTTFWriter::Subset()
+void PdfTTFWriter::ReadSimpleGlyfCoordinates( PdfInputDevice* pDevice, const std::vector<char> & rvecFlags, 
+                                              std::vector<pdf_ttf_short> & rvecCoordinates, int nFlag )
 {
+    pdf_ttf_short longCoordinate;
+    char          shortCoordinate;
 
-}
-
-// -----------------------------------------------------
-// Writing out a TTF file from memory
-// -----------------------------------------------------
-void PdfTTFWriter::Write( PdfOutputDevice* pDevice )
-{
-    TTableDirectoryEntry      entry;
-    TVecTableDirectoryEntries vecToc;
-    const long                lTableOffset = sizeof(TTableDirectory);
-    const long                lNumTables   = m_tTableDirectory.numTables;
-
-    this->WriteTableDirectory( pDevice );
-    
-    // write dummy table of contents
-    memset( &entry, 0, sizeof(TTableDirectoryEntry) );
-    for( unsigned int i=0; i<static_cast<unsigned int>(lNumTables); i++ )  
-        pDevice->Write( reinterpret_cast<const char*>(&entry), sizeof(TTableDirectoryEntry) );
-
-    // write contents
-
-    // maxp table
-    this->WriteMaxpTable( pDevice, vecToc );
-    this->WriteHeadTable( pDevice, vecToc );
-    this->WriteGlyfTable( pDevice, vecToc );
-
+    std::vector<char>::const_iterator itFlags = rvecFlags.begin();
+    while( itFlags != rvecFlags.end() )
     {
-        long  l4MB     = 4 * 1024 * 1024; 
-        char* pBuffer  = static_cast<char*>(malloc( sizeof(char) * l4MB ) );
-        PdfOutputDevice* pMemDevice = new PdfOutputDevice( pBuffer, l4MB );
-
-        TTableDirectoryEntry entry;
-        entry.tag      = this->CreateTag( 'c', 'm', 'a', 'p' );
-        entry.checkSum = 0;
-        entry.offset   = pDevice->GetLength();
-        entry.length   = 0;
-
-        this->WriteCMapTable( pMemDevice, vecToc );
-
-        pDevice->Write( pBuffer, pMemDevice->GetLength() );
-
-        // create toc entry
-        entry.checkSum = this->CalculateChecksum( reinterpret_cast<pdf_ttf_ulong*>(pBuffer), pMemDevice->GetLength() );;
-        entry.length   = pMemDevice->GetLength();
-        vecToc.push_back( entry );
-
-        free( pBuffer );
-        delete pMemDevice;
-    }
-
-    this->WriteLocaTable( pDevice, vecToc );
-    this->WriteCMapTable( pDevice, vecToc );
-    this->WriteHHeaTable( pDevice, vecToc );
-    this->WriteOs2Table ( pDevice, vecToc );
-    this->WriteNameTable( pDevice, vecToc );
-
-    this->WriteTable( pDevice, vecToc, 
-                      this->CreateTag( 'h', 'm', 't', 'x' ), &PdfTTFWriter::WriteHmtxTable );
-
-    TCIVecTable it = m_vecTableData.begin();
-    while( it != m_vecTableData.end() ) 
-    {
-        TTableDirectoryEntry entry;
-        entry.tag      = (*it).tag;
-        entry.checkSum = this->CalculateChecksum( reinterpret_cast<const pdf_ttf_ulong*>(&(*it).data), (*it).length );
-        entry.offset   = pDevice->GetLength();
-        entry.length   = (*it).length;
+        if( *itFlags & 0x02 == 0x02 ) 
+        {
+            // read a 1 byte long coordinate
+            pDevice->Read( &shortCoordinate, sizeof(char) );
+            longCoordinate = static_cast<pdf_ttf_short>(shortCoordinate);
+            if( *itFlags & nFlag == nFlag )
+                longCoordinate = -longCoordinate;
+        }
+        else 
+        {
+            // read a 2 byte long coordinate
+            if( *itFlags & nFlag == nFlag )
+            {
+                // DO NOTHING
+                // the value of longCoordinate is the same as the last value
+                // so simply reuse the old value
+            }
+            else
+            {
+                pdf_ttf_short coordinate;
+                pDevice->Read( reinterpret_cast<char*>(&coordinate), sizeof(pdf_ttf_short) );
+                if( podofo_is_little_endian() )
+                    this->SwapShort( &coordinate );
+                
+                longCoordinate += coordinate;
+            }
+        }
         
-        vecToc.push_back( entry );
-
-        pDevice->Write( (*it).data, (*it).length );
-        free( (*it).data );
-        ++it;
+        rvecCoordinates.push_back( longCoordinate );
+        ++itFlags;
     }
-
-    // write actual table of contents
-    pDevice->Seek( lTableOffset );
-    TIVecTableDirectoryEntries itToc = vecToc.begin(); 
-    while( itToc != vecToc.end() ) 
-    {
-        this->WriteTableDirectoryEntry( pDevice, &(*itToc) );
-        ++itToc;
-    }
+    
 }
+
+void PdfTTFWriter::WriteSimpleGlyfCoordinates( PdfOutputDevice* pDevice, const std::vector<char> & rvecFlags, 
+                                               std::vector<pdf_ttf_short> & rvecCoordinates, int nFlag )
+{
+    pdf_ttf_short longCoordinate;
+    pdf_ttf_short lastCoordinate;
+    char          shortCoordinate;
+    
+    std::vector<char>::const_iterator    itFlags       = rvecFlags.begin();
+    std::vector<pdf_ttf_short>::iterator itCoordinates = rvecCoordinates.begin(); 
+    while( itFlags != rvecFlags.end() )
+    {
+        longCoordinate = (*itCoordinates)++;
+
+        if( *itFlags & 0x02 == 0x02 ) 
+        {
+            // read a 1 byte long coordinate
+            if( *itFlags & nFlag == nFlag )
+                longCoordinate = -longCoordinate;
+
+            shortCoordinate = static_cast<char>(longCoordinate);
+            pDevice->Write( &shortCoordinate, sizeof(char) );
+
+            lastCoordinate  = longCoordinate; // TODO: check if it is ok to assign a negative value here
+        }
+        else 
+        {
+            // read a 2 byte long coordinate
+            if( *itFlags & nFlag == nFlag )
+            {
+                // DO NOTHING
+                // the value of longCoordinate is the same as the last value
+                // so simply reuse the old value
+            }
+            else
+            {
+                longCoordinate = longCoordinate - lastCoordinate;
+                lastCoordinate = longCoordinate;
+
+                if( podofo_is_little_endian() )
+                    this->SwapShort( &longCoordinate );
+                pDevice->Write( reinterpret_cast<char*>(&longCoordinate), sizeof(pdf_ttf_short) );
+           }
+        }
+
+        ++itFlags;
+    }
+ 
+}
+
 
 long PdfTTFWriter::GetGlyphDataLocation( unsigned int nIndex, long* plLength, PdfInputDevice* pDevice ) const
 {
@@ -1312,55 +1306,6 @@ long PdfTTFWriter::GetGlyphDataLocation( unsigned int nIndex, long* plLength, Pd
 
 
     return m_lGlyphDataOffset + m_tLoca[nIndex];
-}
-
-void PdfTTFWriter::WriteHmtxTable( PdfOutputDevice* pDevice )
-{
-    printf("WriteHmtxTable!!!\n");
-}
-
-// -----------------------------------------------------
-// Helper functions
-// -----------------------------------------------------
-PdfTTFWriter::pdf_ttf_ulong PdfTTFWriter::CalculateChecksum( const pdf_ttf_ulong* pTable, pdf_ttf_ulong lLength ) const
-{
-    // This code is taken from the TTF specification
-    pdf_ttf_ulong        lSum = 0L;
-    const pdf_ttf_ulong* pEnd = pTable + ((lLength+3) & ~3) / sizeof(pdf_ttf_ulong);
-    while( pTable < pEnd ) 
-        lSum += *pTable++;
-
-    return lSum;
-}
-
-void PdfTTFWriter::WriteTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc, 
-                               pdf_ttf_ulong tag, void (PdfTTFWriter::*WriteTableFunc)( PdfOutputDevice* ) )
-{
-    const long l4MB = 4 * 1024 * 1024; 
-    char* pBuffer   = static_cast<char*>(malloc(sizeof(char)*l4MB));
-    if( !pBuffer ) 
-    {
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
-    }
-
-    PdfOutputDevice* pMemDevice = new PdfOutputDevice( pBuffer, l4MB );
-
-    TTableDirectoryEntry entry;
-    entry.tag      = tag;
-    entry.checkSum = 0;
-    entry.length   = 0;
-    entry.offset   = pDevice->GetLength();
-
-    (this->*WriteTableFunc)( pDevice );
-
-    // create toc entry
-    entry.checkSum = this->CalculateChecksum( reinterpret_cast<pdf_ttf_ulong*>(pBuffer), pMemDevice->GetLength() );;
-    entry.length   = pMemDevice->GetLength();
-
-    rToc.push_back( entry );
-
-    free( pBuffer );
-    delete pMemDevice;
 }
 
 };

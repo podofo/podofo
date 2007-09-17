@@ -654,7 +654,7 @@ int main( int argc, char* argv[] )
     TEST_SAFE_OP( writer.Write( argv[1] ) );
     //TEST_SAFE_OP( writer.Close() );
 
-    //tmp();
+    tmp();
 
 #ifdef TEST_MEM_BUFFER
     // ---

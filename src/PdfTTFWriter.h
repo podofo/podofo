@@ -27,6 +27,7 @@ namespace PoDoFo {
 
 class PdfInputDevice;
 class PdfOutputDevice;
+class PdfRefCountedBuffer;
 
 namespace NonPublic {
 
@@ -50,7 +51,7 @@ class PODOFO_API PdfTTFWriter {
     typedef pdf_int16        pdf_ttf_short;
     typedef pdf_uint32       pdf_ttf_ulong;
     typedef pdf_int16        pdf_ttf_fword;
-    typedef pdf_int16        pdf_ttf_ufword;
+    typedef pdf_uint16       pdf_ttf_ufword;
     typedef pdf_int16        pdf_ttf_f2dot14;
 
 #pragma pack(1)
@@ -441,16 +442,6 @@ class PODOFO_API PdfTTFWriter {
      */
     void ReadTableDirectory( PdfInputDevice* pDevice );
 
-    /** Writes the table directory at the current position
-     *  of the output device, handling any necessary
-     *  conversion from big to little endian.
-     *
-     *  \param pDevice write at the current position of this device.
-     *
-     *  \see m_tTableDirectory 
-     */
-    void WriteTableDirectory( PdfOutputDevice* pDevice );
-
     /** Reads a table directory entry from the current position
      *  of the input device, handling any necessary
      *  conversion from big to little endian.
@@ -479,56 +470,57 @@ class PODOFO_API PdfTTFWriter {
      */
     void ReadHeadTable( PdfInputDevice* pDevice );
 
-    /** Writes the head table at the current position
-     *  of the output device, handling any necessary
-     *  conversion from big to little endian.
-     *
-     *  \param pDevice write at the current position of this device.
-     *  \param rToc add the written maxp table to this table of contents
-     *
-     *  \see m_tHead
-     */
-    void WriteHeadTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
 
     /** Swap the endianess of the head table.
      *  \see m_tHead
      */
     void SwapHeadTable();
     
-    /** Reads the maxp table from the current position of 
-     *  the input device, handling any necessary conversion 
-     *  from big to little endian.
-     *
-     *  \param pDevice read from the current position of this device.
-     *
-     *  \see m_tMaxp 
-     */
     void ReadMaxpTable( PdfInputDevice* pDevice );
+    void ReadLocaTable( PdfInputDevice* pDevice );
+    void ReadHHeaTable( PdfInputDevice* pDevice );
+    void ReadCmapTable( PdfInputDevice* pDevice );
+    void ReadGlyfTable( PdfInputDevice* pDevice );
+    void ReadOs2Table ( PdfInputDevice* pDevice );
+    void ReadHmtxTable( PdfInputDevice* pDevice );
+
+
+
+    /** Writes the table directory at the current position
+     *  of the output device, handling any necessary
+     *  conversion from big to little endian.
+     *
+     *  \param pDevice write at the current position of this device.
+     *
+     *  \see m_tTableDirectory 
+     */
+    void WriteTableDirectory( PdfOutputDevice* pDevice );
+
+    /** Writes the head table at the current position
+     *  of the output device, handling any necessary
+     *  conversion from big to little endian.
+     *
+     *  \param pDevice write at the current position of this device.
+     *
+     *  \see m_tHead
+     */
+    void WriteHeadTable( PdfOutputDevice* pDevice );
 
     /** Writes the maxp table at the current position
      *  of the output device, handling any necessary
      *  conversion from big to little endian.
      *
      *  \param pDevice write at the current position of this device.
-     *  \param rToc add the written maxp table to this table of contents
      *
      *  \see m_tMaxp
      */
-    void WriteMaxpTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
-
-    void ReadLocaTable( PdfInputDevice* pDevice );
-    void ReadHHeaTable( PdfInputDevice* pDevice );
-    void ReadCmapTable( PdfInputDevice* pDevice );
-    void ReadGlyfTable( PdfInputDevice* pDevice );
-    void ReadOs2Table ( PdfInputDevice* pDevice );
-
-    void WriteHHeaTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
-    void WriteLocaTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
-    void WriteCMapTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
-    void WriteGlyfTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
-    void WriteOs2Table ( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
-    void WriteNameTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntries & rToc );
-
+    void WriteMaxpTable( PdfOutputDevice* pDevice );
+    void WriteHHeaTable( PdfOutputDevice* pDevice );
+    void WriteLocaTable( PdfOutputDevice* pDevice );
+    void WriteCMapTable( PdfOutputDevice* pDevice );
+    void WriteGlyfTable( PdfOutputDevice* pDevice );
+    void WriteOs2Table ( PdfOutputDevice* pDevice );
+    void WriteNameTable( PdfOutputDevice* pDevice );
     void WriteHmtxTable( PdfOutputDevice* pDevice );
 
     /** 
@@ -604,7 +596,9 @@ class PODOFO_API PdfTTFWriter {
     TVecLoca                  m_vecLoca;          ///< The loca table in long format which is written out
     TVecGlyphs                m_vecGlyphs;        ///< All glyphs including their outlines
     std::vector<TCMapRange>   m_ranges;           ///< CMap ranges
- 
+    std::vector<TLongHorMetric> m_vecHmtx;        ///< Hmtx table in long format
+
+    PdfRefCountedBuffer*      m_pRefBuffer;       ///< A temporary buffer which is used during writing a TTF file
 };
 
 

@@ -77,7 +77,30 @@ PdfImage::~PdfImage()
 
 void PdfImage::SetImageColorSpace( EPdfColorSpace eColorSpace )
 {
-    m_pObject->GetDictionary().AddKey( "ColorSpace", PdfName( ColorspaceToName( eColorSpace ) ) );
+    m_pObject->GetDictionary().AddKey( PdfName("ColorSpace"), PdfName( ColorspaceToName( eColorSpace ) ) );
+}
+
+void PdfImage::SetImageICCProfile( PdfInputStream* pStream, long lColorComponents, EPdfColorSpace eAlternateColorSpace ) 
+{
+    // Check lColorComponents for a valid value
+    if( lColorComponents != 1 &&
+        lColorComponents != 3 &&  
+        lColorComponents != 4 )
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange, "SetImageICCProfile lColorComponents must be 1,3 or 4!" );
+    }
+
+    // Create a colorspace object
+    PdfObject* pIccObject = this->GetObject()->GetOwner()->CreateObject();
+    pIccObject->GetDictionary().AddKey( PdfName("Alternate"), PdfName( ColorspaceToName( eAlternateColorSpace ) ) );
+    pIccObject->GetDictionary().AddKey( PdfName("N"), lColorComponents );
+    pIccObject->GetStream()->Set( pStream );
+    
+    // Add the colorspace to our image
+    PdfArray array;
+    array.push_back( PdfName("ICCBased") );
+    array.push_back( pIccObject->Reference() );
+    this->GetObject()->GetDictionary().AddKey( PdfName("ColorSpace"), array );
 }
 
 void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight, 
