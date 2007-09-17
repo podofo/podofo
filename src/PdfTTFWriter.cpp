@@ -23,6 +23,7 @@
 #include "PdfInputDevice.h"
 #include "PdfOutputDevice.h"
 #include "PdfRefCountedBuffer.h"
+#include "PdfString.h"
 
 #include <math.h>
 
@@ -69,10 +70,10 @@ namespace NonPublic {
  *   glyf glyph data                                 CHK
  *   head font header                                CHK
  *   hhea horizontal header                          CHK
- *   hmtx horizontal metrics                         
+ *   hmtx horizontal metrics                         CHK
  *   loca index to location                          CHK
  *   maxp maximum profile                            CHK
- *   name naming table                               
+ *   name naming table                               CHK                     
  *   post PostScript information
  *   OS/2 OS/2 and Windows specific metrics          CHK
  *
@@ -592,6 +593,7 @@ void PdfTTFWriter::ReadGlyfTable( PdfInputDevice* pDevice )
 
 void PdfTTFWriter::LoadGlyph( int nIndex, long lOffset, PdfInputDevice* pDevice )
 {
+    printf("!!!! Loading glyph %i\n", nIndex );
     PdfTTFGlyph glyph( nIndex );
 
     pDevice->Seek( lOffset );
@@ -783,6 +785,8 @@ void PdfTTFWriter::Subset()
 // -----------------------------------------------------
 void PdfTTFWriter::Write( PdfOutputDevice* pDevice )
 {
+    m_tTableDirectory.numTables = 9; // DS TMP
+
     TTableDirectoryEntry      entry;
     TVecTableDirectoryEntries vecToc;
     const long                lTableOffset = sizeof(TTableDirectory);
@@ -796,7 +800,6 @@ void PdfTTFWriter::Write( PdfOutputDevice* pDevice )
         pDevice->Write( reinterpret_cast<const char*>(&entry), sizeof(TTableDirectoryEntry) );
 
     // write contents
-
     this->WriteTable( pDevice, vecToc, 
                       this->CreateTag( 'm', 'a', 'x', 'p' ), &PdfTTFWriter::WriteMaxpTable );
     this->WriteTable( pDevice, vecToc, 
@@ -932,9 +935,12 @@ void PdfTTFWriter::WriteCMapTable( PdfOutputDevice* pDevice )
             if( it != m_vecGlyphs.begin() )
                 vecRanges.push_back( current );
 
+            printf("Start index = %i\n", (*it).GetIndex() );
+            printf("Position    = %i\n", (*it).GetPosition() );
             current.nStart  = (*it).GetIndex();
             current.nEnd    = (*it).GetIndex();
-            current.nDelta  = (*it).GetIndex() - (*it).GetPosition();
+            current.nDelta  = -((*it).GetIndex() - (*it).GetPosition());
+            printf("Delta = %i\n",current.nDelta );
             current.nOffset = 0;
             bReset          = false;
             ++it;
@@ -948,6 +954,7 @@ void PdfTTFWriter::WriteCMapTable( PdfOutputDevice* pDevice )
             }
             else
             {
+                printf("End index = %i\n", current.nEnd );
                 bReset = true;
             }
         }
@@ -1020,9 +1027,17 @@ void PdfTTFWriter::WriteHHeaTable( PdfOutputDevice* pDevice )
 void PdfTTFWriter::WriteHmtxTable( PdfOutputDevice* pDevice )
 {
     TLongHorMetric entry;
-    std::vector<TLongHorMetric> vecLongHorMetric;
+    TCIVecGlyphs   it = m_vecGlyphs.begin();
 
-    
+    while( it != m_vecGlyphs.end() )
+    {
+        entry = m_vecHmtx[(*it).GetIndex()];
+        
+        WRITE_TTF_USHORT( entry.advanceWidth    );
+        WRITE_TTF_SHORT ( entry.leftSideBearing );
+
+        ++it;
+    }
 }
 
 void PdfTTFWriter::WriteLocaTable( PdfOutputDevice* pDevice )
@@ -1049,53 +1064,38 @@ void PdfTTFWriter::WriteMaxpTable( PdfOutputDevice* pDevice )
     pDevice->Write( reinterpret_cast<char*>(&m_tMaxp), sizeof(TMaxP) );
 }
 
-
 void PdfTTFWriter::WriteNameTable( PdfOutputDevice* pDevice )
 {
-    const char* pszFontName = "Po"; 
-    long  lLen              = strlen( pszFontName );
+    const char* pszFontName = "PoDoFo"; 
+    PdfString   unicodeName = PdfString( pszFontName ).ToUnicode();
+    long  lLen              = unicodeName.GetLength();
 
     // Create a custom nametable
-    struct {
-        // header
-        pdf_ttf_ushort format;      ///< 0 
-        pdf_ttf_ushort numRecords;  ///< 1
-        pdf_ttf_ushort offset;      ///< 6
-        
-        // body
-        pdf_ttf_ushort platformId;  ///< 3      (Microsoft)
-        pdf_ttf_ushort encodingId;  ///< 1      (Unicode)
-        pdf_ttf_ushort languageId;  ///< 0x0809 (british English)
-        pdf_ttf_ushort nameId;      ///< 1      (font family name)
-        pdf_ttf_ushort stringLength;
-        pdf_ttf_ushort stringOffset;///< 0
-    } tNameTable;
-    // fontdata has to immediately follow the structure on the stack!!!
-    char szFontData[] = { 0x00, 'P', 0x00, 'o', 0x00, 0x00 };
-    /*
-    wchar_t* szFontData = static_cast<wchar_t*>(alloca( sizeof(wchar_t) * (lLen+1) ));
-    mbstowcs( szFontData, pszFontName, lLen+1 );
-    */
+    TNameTable tNameTable;
+
     tNameTable.format       = 0;
     tNameTable.numRecords   = 1;
     tNameTable.offset       = 6;
-    tNameTable.platformId   = 3;
+    tNameTable.platformId   = 0;
+    tNameTable.encodingId   = 3;
     tNameTable.languageId   = 0x0809;
     tNameTable.nameId       = 1;
     tNameTable.stringLength = lLen;
-    tNameTable.stringOffset = 0;
+    tNameTable.stringOffset = 12;
     
     SwapUShort( &tNameTable.format );
     SwapUShort( &tNameTable.numRecords );
     SwapUShort( &tNameTable.offset );
     SwapUShort( &tNameTable.platformId );
+    SwapUShort( &tNameTable.encodingId );
     SwapUShort( &tNameTable.languageId );
     SwapUShort( &tNameTable.nameId );
     SwapUShort( &tNameTable.stringLength );
     SwapUShort( &tNameTable.stringOffset );
 
-    long lStructureLen = sizeof(tNameTable) + ((lLen + 1)* sizeof(wchar_t));
-    pDevice->Write( reinterpret_cast<char*>(&tNameTable), lStructureLen );
+    pDevice->Write( reinterpret_cast<char*>(&tNameTable), sizeof(TNameTable) );
+    pDevice->Write( unicodeName.GetString(), lLen );
+
 }
 
 void PdfTTFWriter::WriteOs2Table( PdfOutputDevice* pDevice )

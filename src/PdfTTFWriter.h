@@ -167,11 +167,11 @@ class PODOFO_API PdfTTFWriter {
          *  \param bComposite if true, this is a composite glyph
          *                    otherwise this object is simple glyph
          */
-        PdfTTFGlyph( bool nIndex )
+        PdfTTFGlyph( int nIndex )
             : m_nPosition( 0 ), m_nIndex( nIndex ), m_bComposite( false ), 
               m_nInstructionLength( 0 ), m_pInstructions( NULL )
             {
-
+                printf("m_nIndex=%i\n", m_nIndex );
             }
 
         PdfTTFGlyph( const PdfTTFGlyph & rhs ) 
@@ -184,6 +184,7 @@ class PODOFO_API PdfTTFWriter {
                 m_nIndex             = rhs.m_nIndex;
                 m_bComposite         = rhs.m_bComposite;
                 m_tHeader            = rhs.m_tHeader;
+                m_nPosition          = rhs.m_nPosition;
 
                 m_nInstructionLength = rhs.m_nInstructionLength;
                 m_pInstructions      = rhs.m_pInstructions;
@@ -357,6 +358,20 @@ class PODOFO_API PdfTTFWriter {
         pdf_ttf_fword  leftSideBearing;
     };
 
+    struct TNameTable {
+        // header
+        pdf_ttf_ushort format;      ///< 0 
+        pdf_ttf_ushort numRecords;  ///< 1
+        pdf_ttf_ushort offset;      ///< 6
+        
+        // body
+        pdf_ttf_ushort platformId;  ///< 3      (Microsoft)
+        pdf_ttf_ushort encodingId;  ///< 1      (Unicode)
+        pdf_ttf_ushort languageId;  ///< 0x0809 (british English)
+        pdf_ttf_ushort nameId;      ///< 1      (font family name)
+        pdf_ttf_ushort stringLength;
+        pdf_ttf_ushort stringOffset;///< 0
+    };
 #pragma pack()
 
  public:
