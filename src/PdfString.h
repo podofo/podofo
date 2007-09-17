@@ -399,7 +399,7 @@ long PdfString::GetCharacterLength() const
 
 long PdfString::GetUnicodeLength() const
 {
-    return (m_buffer.GetSize() / sizeof(pdf_utf16be)) - 2 * sizeof(pdf_utf16be);
+    return (m_buffer.GetSize() / sizeof(pdf_utf16be)) - 1;
 }
 
 };
