@@ -683,7 +683,7 @@ PdfString PdfString::ToUnicode() const
             pString[i] = s_cPdfDocEncoding[ static_cast<unsigned char>(m_buffer.GetBuffer()[i]) ];
 
         //make sure the buffer is 0 terminated
-        pString[lLen>>1] = 0;
+        pString[(lLen>>1)-1] = 0;
 
         // convert to UTF-16be on little endian systems
         if( podofo_is_little_endian() )
