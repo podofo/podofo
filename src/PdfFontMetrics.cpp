@@ -170,7 +170,7 @@ void PdfFontMetrics::InitFromFace()
     m_vecWidth.reserve( PODOFO_WIDTH_CACHE_SIZE );
     for( unsigned int i=0;i<PODOFO_WIDTH_CACHE_SIZE;i++ )
     {
-        if( i < PODOFO_FIRST_READABLE )
+        if( i < PODOFO_FIRST_READABLE || !m_face )
             m_vecWidth.push_back( 0.0  );
         else
         {
