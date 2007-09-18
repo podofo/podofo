@@ -5,4 +5,5 @@ SUBDIRS(
 	podofopdfinfo
 	podofotxt2pdf
 	podofouncompress
+	podofoimpose
 	)
