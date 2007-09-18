@@ -66,15 +66,45 @@ PdfPage::~PdfPage()
     delete m_pContents;	// just clears the C++ object from memory, NOT the PdfObject
 }
 
-PdfRect PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize )
+PdfRect PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize, bool bLandscape )
 {
     PdfRect rect;
 
     switch( ePageSize ) 
     {
+        case ePdfPageSize_A0:
+            rect.SetWidth( 2384.0 );
+            rect.SetHeight( 3370.0 );
+            break;
+
+        case ePdfPageSize_A1:
+            rect.SetWidth( 1684.0 );
+            rect.SetHeight( 2384.0 );
+            break;
+
+        case ePdfPageSize_A2:
+            rect.SetWidth( 1191.0 );
+            rect.SetHeight( 1684.0 );
+            break;
+            
+        case ePdfPageSize_A3:
+            rect.SetWidth( 842.0 );
+            rect.SetHeight( 1190.0 );
+            break;
+
         case ePdfPageSize_A4:
             rect.SetWidth( 595.0 );
             rect.SetHeight( 842.0 );
+            break;
+
+        case ePdfPageSize_A5:
+            rect.SetWidth( 420.0 );
+            rect.SetHeight( 595.0 );
+            break;
+
+        case ePdfPageSize_A6:
+            rect.SetWidth( 297.0 );
+            rect.SetHeight( 420.0 );
             break;
 
         case ePdfPageSize_Letter:
@@ -86,15 +116,22 @@ PdfRect PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize )
             rect.SetWidth( 612.0 );
             rect.SetHeight( 1008.0 );
             break;
-            
-        case ePdfPageSize_A3:
-            rect.SetWidth( 842.0 );
-            rect.SetHeight( 1190.0 );
+
+        case ePdfPageSize_Tabloid:
+            rect.SetWidth( 792.0 );
+            rect.SetHeight( 1224.0 );
             break;
 
         case ePdfPageSize_Unknown:
         default:
             break;
+    }
+
+    if( bLandscape ) 
+    {
+        double dTmp = rect.GetWidth();
+        rect.SetWidth ( rect.GetHeight() );
+        rect.SetHeight(  dTmp );
     }
 
     return rect;

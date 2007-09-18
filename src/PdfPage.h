@@ -79,9 +79,10 @@ class PODOFO_API PdfPage : public PdfElement, public PdfCanvas {
      *  from an enum which are defined for a few standard page sizes.
      *
      *  \param ePageSize the page size you want
+     *  \param bLandscape create a landscape pagesize instead of portrait (by exchanging width and height)
      *  \returns a PdfRect object which can be passed to the PdfPage constructor
      */
-    static PdfRect CreateStandardPageSize( const EPdfPageSize ePageSize );
+    static PdfRect CreateStandardPageSize( const EPdfPageSize ePageSize, bool bLandscape = false );
 
     /** Get access to the contents object of this page.
      *  If you want to draw onto the page, you have to add 
