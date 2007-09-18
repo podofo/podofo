@@ -252,10 +252,17 @@ typedef enum EPdfLineJoinStyle {
  * \see PdfPage
  */
 typedef enum EPdfPageSize {
-    ePdfPageSize_A4,              /**< DIN A4 */
-    ePdfPageSize_Letter,          /**< Letter */
-    ePdfPageSize_Legal,           /**< Legal */
-    ePdfPageSize_A3,              /**< A3 */
+    ePdfPageSize_A0,              /**< DIN A0  */
+    ePdfPageSize_A1,              /**< DIN A1  */
+    ePdfPageSize_A2,              /**< DIN A2  */
+    ePdfPageSize_A3,              /**< DIN A3  */
+    ePdfPageSize_A4,              /**< DIN A4  */
+    ePdfPageSize_A5,              /**< DIN A5  */
+    ePdfPageSize_A6,              /**< DIN A6  */
+    ePdfPageSize_Letter,          /**< Letter  */
+    ePdfPageSize_Legal,           /**< Legal   */
+    ePdfPageSize_Tabloid,         /**< Tabloid */
+
 
     ePdfPageSize_Unknown = 0xff
 };
