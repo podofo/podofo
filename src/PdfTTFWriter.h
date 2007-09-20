@@ -194,6 +194,7 @@ class PODOFO_API PdfTTFWriter {
                 vecXCoordinates    = rhs.vecXCoordinates;
                 vecYCoordinates    = rhs.vecYCoordinates;
                 vecFlags           = rhs.vecFlags;
+                vecFlagsOrig       = rhs.vecFlagsOrig;
 
                 // composite
                 arg1      = rhs.arg1;
@@ -231,7 +232,8 @@ class PODOFO_API PdfTTFWriter {
         std::vector<pdf_ttf_ushort> vecEndPoints;
         std::vector<pdf_ttf_short>  vecXCoordinates;
         std::vector<pdf_ttf_short>  vecYCoordinates;
-        std::vector<char>           vecFlags;
+        std::vector<unsigned char>  vecFlags;     ///< Parsed font flags which are used to read glyf coordinates
+        std::vector<unsigned char>  vecFlagsOrig; ///< Compressed files can be written out 1to1 to disk
 
 
         // composite
@@ -567,13 +569,14 @@ class PODOFO_API PdfTTFWriter {
      *  \param rvecFlags a vector of flags describing the coordinates to load
      *         For each flag ONE coordinate is read. Not more, not less.
      *  \param rvecCoordinates store all coordinates in this vector
+     *  \param nFlagShort the flag to use for x and y coordinates which determines a short coordinate
      *  \param nFlag the flag to use (0x10 for x coordinates and 0x20 for y coordinates)
      */
-    void ReadSimpleGlyfCoordinates( PdfInputDevice* pDevice, const std::vector<char> & rvecFlags, 
-                                    std::vector<pdf_ttf_short> & rvecCoordinates, int nFlag );
+    void ReadSimpleGlyfCoordinates( PdfInputDevice* pDevice, const std::vector<unsigned char> & rvecFlags, 
+                                    std::vector<pdf_ttf_short> & rvecCoordinates, int nFlagShort, int nFlag );
 
-    void WriteSimpleGlyfCoordinates( PdfOutputDevice* pDevice, const std::vector<char> & rvecFlags, 
-                                     std::vector<pdf_ttf_short> & rvecCoordinates, int nFlag );
+    void WriteSimpleGlyfCoordinates( PdfOutputDevice* pDevice, const std::vector<unsigned char> & rvecFlags, 
+                                     std::vector<pdf_ttf_short> & rvecCoordinates, int nFlagShort, int nFlag );
 
     /** Get the offset to the location of the glyphs data.
      *

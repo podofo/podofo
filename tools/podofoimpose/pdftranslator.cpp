@@ -85,8 +85,60 @@ PdfTranslator::PdfTranslator(double sp)
 
 void PdfTranslator::setSource ( const std::string & source )
 {
-    inFilePath = source;
-    sourceDoc = new PdfMemDocument ( inFilePath.c_str() ); // must succeed or throw
+	ifstream in ( source.c_str(), ifstream::in );
+	if (!in.good())
+		throw runtime_error("setSource() failed to open input file");
+	
+	char *magicBuffer = new char [5];
+	in.read(magicBuffer, 5);
+	std::string magic( magicBuffer , 5 );
+	
+	if(magic.find("%PDF") < 5)//it is a PDF file (I hope)
+	{
+		in.close();
+    		inFilePath = source;
+    		sourceDoc = new PdfMemDocument ( inFilePath.c_str() ); // must succeed or throw
+	}
+	else // it has to be a list of PDF files
+	{
+		in.seekg(0);
+		std::vector<std::string> fileList;
+		char *filenameBuffer = new char[1000];
+		do
+		{
+			in.getline (filenameBuffer, 1000 );
+			fileList.push_back(std::string(filenameBuffer, in.gcount() ) );
+		}
+		while ( !in.eof() );
+		in.close();
+		bool first = true;
+		for(std::vector<std::string>::const_iterator ms = fileList.begin(); ms != fileList.end(); ++ms)
+		{
+			if(first)
+			{
+				inFilePath = *ms;
+				sourceDoc = new PdfMemDocument ( inFilePath.c_str() );
+				first = false;
+			}
+			else
+			{
+			PdfMemDocument mdoc((*ms).c_str());
+			targetDoc->InsertPages( mdoc, 0, mdoc.GetPageCount());
+			multiSource.push_back(*ms);
+			}
+		}
+	}
+}
+
+void PdfTranslator::addToSource( const std::string & source )
+{
+	if( !sourceDoc )
+		return;
+	
+	PdfMemDocument extraDoc(source.c_str());
+	sourceDoc->InsertPages( extraDoc, 0,  extraDoc.GetPageCount() );
+	multiSource.push_back(source);
+	
 }
 
 void PdfTranslator::setTarget ( const std::string & target )
@@ -96,6 +148,14 @@ void PdfTranslator::setTarget ( const std::string & target )
 
     // DOCUMENT: Setting `targetDoc' to the input path will be confusing when reading the code.
     targetDoc = new PdfMemDocument ( inFilePath.c_str() );
+    if(!multiSource.empty())
+    {
+	    for(std::vector<std::string>::const_iterator ms = multiSource.begin(); ms != multiSource.end(); ++ms)
+	    {
+		    PdfMemDocument mdoc((*ms).c_str());
+		    targetDoc->InsertPages( mdoc, 0, mdoc.GetPageCount());
+	    }
+    }
     outFilePath  = target;
     pcount = targetDoc->GetPageCount();
 
@@ -201,6 +261,120 @@ void PdfTranslator::loadPlan ( const std::string & plan )
         pagesIndex[p.sourcePage] = planImposition.size() - 1;
     }
     while ( !in.eof() );
+}
+
+//returns the number of processed pages.
+int PdfTranslator::pageRange(int plan, int sheet, int pagesInBooklet, int numBooklet)
+{
+	double pw = sourceDoc->GetPage(0)->GetMediaBox().GetWidth();
+	double ph = sourceDoc->GetPage(0)->GetMediaBox().GetHeight();
+	if(plan == 4) // For now, it is the only "well known" plan ;-)
+	{
+		destWidth = pw * 2;
+		destHeight = ph * 2;
+		int firstpage = (plan * (sheet - 1) ) + 1 + ((numBooklet - 1) * pagesInBooklet);
+		int lastpage = (numBooklet * pagesInBooklet) - ((sheet-1) * plan);
+		{
+			PageRecord p;
+			//recto
+			p.sourcePage = firstpage;
+			p.destPage = sheet * 2 - 1;
+			p.rotate = 0;
+			p.transX = 1.0 * pw;
+			p.transY = 0.0;
+			planImposition.push_back(p);
+			
+			p.sourcePage = firstpage + 3;
+			p.destPage = sheet * 2- 1;
+			p.rotate = 180.0;
+			p.transX = 2.0 * pw;
+			p.transY = 2.0 * ph;
+			planImposition.push_back(p);
+			
+			p.sourcePage = lastpage - 3;
+			p.destPage = sheet * 2- 1;
+			p.rotate = 180.0;
+			p.transX = 1.0 * pw;
+			p.transY = 2.0 * ph;
+			planImposition.push_back(p);
+			
+			p.sourcePage = lastpage;
+			p.destPage = sheet * 2- 1;
+			p.rotate = 0.0;
+			p.transX = 0.0;
+			p.transY = 0.0;
+			planImposition.push_back(p);
+			
+			//verso
+			p.sourcePage = firstpage + 1;
+			p.destPage = sheet * 2 ;
+			p.rotate = 0;
+			p.transX = 0.0 ;
+			p.transY = 0.0;
+			planImposition.push_back(p);
+			
+			p.sourcePage = firstpage + 2;
+			p.destPage = sheet * 2 ;
+			p.rotate = 180.0;
+			p.transX = 1.0 * pw;
+			p.transY = 2.0 * ph;
+			planImposition.push_back(p);
+			
+			p.sourcePage = lastpage - 2;
+			p.destPage = sheet * 2;
+			p.rotate = 180.0;
+			p.transX = 2.0 * pw;
+			p.transY = 2.0 * ph;
+			planImposition.push_back(p);
+			
+			p.sourcePage = lastpage - 1;
+			p.destPage = sheet * 2 ;
+			p.rotate = 0.0;
+			p.transX = 1.0 * pw;
+			p.transY = 0.0;
+			planImposition.push_back(p);
+			
+			return 8;
+		} 
+	}
+}
+
+void PdfTranslator::computePlan(int wellKnownPlan, int sheetsPerBooklet)
+{
+	std::cerr << " computePlan(" <<  wellKnownPlan << ", "<<sheetsPerBooklet <<")";
+	
+// 	if(wellKnownPlan < 2 || sheetsPerBooklet < 1 || !sourceDoc);
+// 	{
+// 		return;
+// 	}
+	
+	int groupSize = wellKnownPlan * 2;
+	int pagesPerBooklet = groupSize * sheetsPerBooklet;
+	int bookletCount = sourceDoc->GetPageCount() / pagesPerBooklet;
+//### 	have to deal with padding
+	int processedPages = 0;
+	int numBooklet = 1;
+	int nextBooklet = pagesPerBooklet;
+	int s = 1;
+	int p = 0;
+	while(processedPages < sourceDoc->GetPageCount() )
+	{
+		p = pageRange(wellKnownPlan, s, pagesPerBooklet, numBooklet);
+		std::cerr << p << " pages processed";
+		++s;
+		processedPages += p;
+		if(processedPages > nextBooklet)
+		{
+			nextBooklet += pagesPerBooklet;
+			++numBooklet;
+		}
+	}  
+	
+	//planImposition is filed, no duplicated pages here.
+	for(int i = 0; i < planImposition.size(); ++i)
+	{
+		pagesIndex[planImposition[i].sourcePage] = i ;
+	}
 }
 
 void PdfTranslator::impose()

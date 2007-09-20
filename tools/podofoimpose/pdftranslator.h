@@ -28,7 +28,7 @@
 #include <sstream>
 #include <istream>
 
-class QByteArray ;
+
 
 using namespace PoDoFo;
 
@@ -61,8 +61,10 @@ class PdfTranslator
         PdfMemDocument *targetDoc;
 
         void setSource ( const std::string & source );
+	void addToSource ( const std::string & source );
         void setTarget ( const std::string & target );
         void loadPlan ( const std::string & plan );
+	void computePlan(int wellKnownPlan, int sheetsPerBooklet);//well known plans are in-folio = 2, in-quatro = 4 etc. except in-28
         void impose();
 
     private:
@@ -85,10 +87,15 @@ class PdfTranslator
 
         void drawLine(double x, double y, double xx, double yy, std::ostringstream & a );
         void signature(double x , double y, int sheet, const std::vector<int> & pages, std::ostringstream & a );
+	int pageRange(int plan, int sheet , int pagesInBooklet, int numBooklet); // much more a macro !
 
         std::string useFont;
         PdfReference useFontRef;
         double extraSpace;
+	
+	std::vector<std::string> multiSource;
+	
+	
 };
 
 #endif

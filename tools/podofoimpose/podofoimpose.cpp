@@ -40,7 +40,7 @@ struct _params {
 void usage()
 {
      cerr << "Usage : " << params.executablePath << " input output plan sheetMargin" << endl;
-     cerr << "\tinput is a PDF file" << endl;
+     cerr << "\tinput is a PDF file or a file which contains a list of PDF files" << endl;
      cerr << "\toutput will be a PDF file" << endl;
      cerr << "\tplan is an imposition plan file.\n\tFormat is simple, the first line indicates width and height of final page size (MediaBox), and follows a list of records of form :\n\tsourcePage destinationPage rotation(counterclokwise & with axis 0.0) Xcoordinate Ycoordinate" << endl;
      cerr << "\tsheetMargin is the size of the margins where cut marks will be drawn" << endl;
@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
         translator->setSource(params.inFilePath);
         translator->setTarget(params.outFilePath);
         translator->loadPlan(params.planFilePath);
+// 	translator->computePlan(4,2);
         translator->impose();
     }
     catch ( PoDoFo::PdfError & e )
