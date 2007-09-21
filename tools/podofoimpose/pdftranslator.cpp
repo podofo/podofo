@@ -103,42 +103,38 @@ void PdfTranslator::setSource ( const std::string & source )
 	
 	if(checkIsPDF(source))
 	{
-    		inFilePath = source;
-    		sourceDoc = new PdfMemDocument ( inFilePath.c_str() ); // must succeed or throw
+		multiSource.push_back(source);
 	}
-	else // it has to be a list of PDF files
+	else 
 	{
 		
 		ifstream in ( source.c_str(), ifstream::in );
 		if (!in.good())
 			throw runtime_error("setSource() failed to open input file");
 		
-		std::vector<std::string> fileList;
+		
 		char *filenameBuffer = new char[1000];
 		do
 		{
 			in.getline (filenameBuffer, 1000 );
-			fileList.push_back(std::string(filenameBuffer, in.gcount() ) );
+			multiSource.push_back(std::string(filenameBuffer, in.gcount() ) );
 		}
 		while ( !in.eof() );
 		in.close();
-		bool first = true;
-		for(std::vector<std::string>::const_iterator ms = fileList.begin(); ms != fileList.end(); ++ms)
+		delete filenameBuffer;
+	}
+	
+	for(std::vector<std::string>::const_iterator ms = multiSource.begin(); ms != multiSource.end(); ++ms)
+	{
+		if(ms == multiSource.begin())
 		{
-			if(first)
-			{
-				inFilePath = *ms;
-				sourceDoc = new PdfMemDocument ( inFilePath.c_str() );
-				first = false;
-			}
-			else
-			{
+			sourceDoc = new PdfMemDocument ( (*ms).c_str() );
+		}
+		else
+		{
 			PdfMemDocument mdoc((*ms).c_str());
 			targetDoc->InsertPages( mdoc, 0, mdoc.GetPageCount());
-			multiSource.push_back(*ms);
-			}
 		}
-		delete filenameBuffer;
 	}
 }
 
@@ -153,21 +149,50 @@ void PdfTranslator::addToSource( const std::string & source )
 	
 }
 
+PdfObject* PdfTranslator::getInheritedResources(PdfPage* page)
+{
+	PdfObject *res = new PdfObject; 
+	PdfObject *rparent = page->GetObject();
+	while ( rparent && rparent->IsDictionary())
+	{
+		PdfObject *curRes = rparent->GetDictionary().GetKey( PdfName ("Resources"));
+		if(curRes)
+		{
+			if(curRes->IsDictionary())
+			{
+				TKeyMap resmap = curRes->GetDictionary().GetKeys();
+				TCIKeyMap itres;
+				for(itres = resmap.begin(); itres != resmap.end(); ++itres)
+				{
+					res->GetDictionary().AddKey((*itres).first, (*itres).second);
+				}
+			}
+			else if(curRes->IsReference())
+			{
+				curRes = targetDoc->GetObjects().GetObject(  curRes->GetReference() );
+				TKeyMap resmap = curRes->GetDictionary().GetKeys();
+				TCIKeyMap itres;
+				for(itres = resmap.begin(); itres != resmap.end(); ++itres)
+				{
+					res->GetDictionary().AddKey((*itres).first, (*itres).second);
+				}
+			}
+		}
+		rparent = rparent->GetIndirectKey( "Parent" );
+	}
+	return res;
+	
+}
+
 void PdfTranslator::setTarget ( const std::string & target )
 {
     if ( !sourceDoc )
         throw std::logic_error("setTarget() called before setSource()");
 
     // DOCUMENT: Setting `targetDoc' to the input path will be confusing when reading the code.
-    targetDoc = new PdfMemDocument ( inFilePath.c_str() );
-    if(!multiSource.empty())
-    {
-	    for(std::vector<std::string>::const_iterator ms = multiSource.begin(); ms != multiSource.end(); ++ms)
-	    {
-		    PdfMemDocument mdoc((*ms).c_str());
-		    targetDoc->InsertPages( mdoc, 0, mdoc.GetPageCount());
-	    }
-    }
+    // I guess, but appending new content to a duplicated source doc rather than rebuild a brand new PDF file is far more easy. 
+    // But it seems we don't need to duplicate & can do all job on source doc ! I try it now. (pm)
+    targetDoc = sourceDoc;
     outFilePath  = target;
     pcount = targetDoc->GetPageCount();
 
@@ -183,33 +208,7 @@ void PdfTranslator::setTarget ( const std::string & target )
         PdfMemoryInputStream inStream ( outMemStream.TakeBuffer(),outMemStream.GetLength() );
         xobj->GetContents()->GetStream()->Set ( &inStream );
 
-        // I should get /Ressource dict...
-
-        // Getting resources from Pages node this way is suitable for Scribus PDF, that's it.
-        PdfObject *rparent = page->GetObject()->GetDictionary().GetKey ( PdfName ( "Parent" ) );
-        if ( rparent )
-        {
-            PdfReference ref = rparent->GetReference();
-            //qDebug() << "has Parent ref";
-            PdfVecObjects objs = targetDoc->GetObjects();
-            //qDebug() << "get obj Parent";
-            PdfObject *parent = objs.GetObject ( ref );
-            PdfObject *gres = parent->GetDictionary().GetKey ( "Resources" );
-            if(gres)
-                globalResRef = gres->GetReference();
-        }
-        else
-        {
-            //qDebug() << "This page has no parent ?";
-            TKeyMap rkeys = page->GetObject()->GetDictionary().GetKeys();
-            TCIKeyMap itk = rkeys.begin();
-            while ( itk != rkeys.end() )
-            {
-                //qDebug() << itk->first.GetName().c_str() ;
-                ++itk;
-            }
-        }
-
+	resources[i+1] = getInheritedResources( page );
         xobjects[i+1] = xobj;
         trimRect[i+1] = page->GetTrimBox();
         bleedRect[i+1] = page->GetBleedBox();
@@ -218,18 +217,12 @@ void PdfTranslator::setTarget ( const std::string & target )
 
 void PdfTranslator::loadPlan ( const std::string & plan )
 {
-    // headline must be :
-    // "target page width" "target page height"
-    // pagerecord must be :
-    // "source page" "dest page" "rotation" "horiz. translation" "vert. translation"
-    // ex.: 1 2 90 500 0 <newline>
-
     ifstream in ( plan.c_str(), ifstream::in );
     if (!in.good())
         throw runtime_error("Failed to open plan file");
 
     bool first = true;
-    int dup = 40000;
+    int dup = 40000; // So, we can't process a file that have more than 40000 pages, feel free to increase it if you need.
     std::string line;
     do
     {
@@ -262,7 +255,8 @@ void PdfTranslator::loadPlan ( const std::string & plan )
             PdfMemoryInputStream inStream ( outMemStream.TakeBuffer(),outMemStream.GetLength() );
             xobj->GetContents()->GetStream()->Set(&inStream);
 
-            xobjects[dup] = xobj;
+	    xobjects[dup] = xobj;
+	    resources[dup] = getInheritedResources( targetDoc->GetPage(p.sourcePage - 1));
             trimRect[dup] = targetDoc->GetPage(p.sourcePage - 1)->GetTrimBox();
             bleedRect[dup] = targetDoc->GetPage(p.sourcePage - 1)->GetBleedBox();
             p.sourcePage = dup;
@@ -365,7 +359,7 @@ void PdfTranslator::computePlan(int wellKnownPlan, int sheetsPerBooklet)
 	
 	int groupSize = wellKnownPlan * 2;
 	int pagesPerBooklet = groupSize * sheetsPerBooklet;
-	int bookletCount = sourceDoc->GetPageCount() / pagesPerBooklet;
+//gcc says I don't use it, it must be right	int bookletCount = sourceDoc->GetPageCount() / pagesPerBooklet;
 //### 	have to deal with padding
 	int processedPages = 0;
 	int numBooklet = 1;
@@ -417,27 +411,19 @@ void PdfTranslator::impose()
     const groups_t::const_iterator gitEnd = groups.end();
     while ( git != gitEnd )
     {
-        //qDebug() << "Perform destination page " << git.key() << git.value();
         PdfPage * newpage = targetDoc->CreatePage ( PdfRect ( 0.0, 0.0, pw, ph ) );
         newpage->GetObject()->GetDictionary().AddKey( PdfName("TrimBox"), trimbox);
         PdfDictionary xdict;
 
         ostringstream buffer;
         vector<int> pages;
-        for ( int i = 0; i < (*git).second.size(); ++i )
+        for ( unsigned int i = 0; i < (*git).second.size(); ++i )
         {
 
             int curPage = (*git).second[i]; 
-            // 			int rec = curPage;
-            // 			if( curPage > 39999)
-            // 			{
-            // 				curPage =  virtualMap.value(git.value()[i]) ;
-            // 			}
 
             int index = pagesIndex[curPage];
             PdfRect rect = trimRect[curPage];
-            PdfRect bleed = bleedRect[curPage];
-            //qDebug() << "Perform source page " << curPage << index;
 
             PdfArray matrix;
 
@@ -454,38 +440,40 @@ void PdfTranslator::impose()
             matrix.insert ( matrix.end(), PdfObject ( ty ) );
 
 
-            PdfName mname ( "Matrix" );
             PdfXObject *xo = xobjects[curPage];
             ostringstream op;
             op << "OriginalPage" << curPage;
-            PdfName xname ( op.str() );
-            xdict.AddKey ( xname, xo->GetObjectReference() );
-            xo->GetContents()->GetDictionary().AddKey ( mname, PdfObject ( matrix ) );
-            xo->GetContents()->GetDictionary().AddKey ( PdfName ( "Resources" ), globalResRef );
-            pages.push_back( curPage );
+	    xdict.AddKey (  PdfName ( op.str() ) , xo->GetObjectReference() );
+            xo->GetContents()->GetDictionary().AddKey (  PdfName ( "Matrix" ), PdfObject ( matrix ) );
+	    
+	    if(resources[curPage])
+	    {
+		TKeyMap resmap = resources[curPage]->GetDictionary().GetKeys();
+		TCIKeyMap itres;
+		for(itres = resmap.begin(); itres != resmap.end(); ++itres)
+		{
+			xo->GetResources()->GetDictionary().AddKey((*itres).first, (*itres).second);
+		}
+	    }
+	    pages.push_back( curPage );
 
             double top = rect.GetHeight() + rect.GetBottom() + ty ;
             double bottom = rect.GetBottom() + ty;
             double left = rect.GetLeft() + tx;
             double right = rect.GetWidth() + rect.GetLeft() + tx;
+	    double markSize = extraSpace * 0.9;
+	    
+            drawLine(0.0,top ,markSize, top , buffer);
+            drawLine(0.0, bottom , markSize, bottom, buffer);
 
-            double btop = bleed.GetHeight() + bleed.GetBottom() + ty ;
-            double bbottom = bleed.GetBottom() + ty;
-            double bleft = bleed.GetLeft() + tx;
-            double bright = bleed.GetWidth() + bleed.GetLeft() + tx;
+            drawLine(pw , top , pw - markSize , top, buffer);
+            drawLine(pw, bottom , pw - markSize ,bottom, buffer);
 
+            drawLine(left,0.0, left , markSize,  buffer);
+            drawLine(right, 0.0,right, markSize, buffer);
 
-            drawLine(0,top ,bleft, top , buffer);
-            drawLine(0, bottom , bleft, bottom, buffer);
-
-            drawLine(pw , top , bright , top, buffer);
-            drawLine(pw, bottom , bright ,bottom, buffer);
-
-            drawLine(left,0, left , bbottom,  buffer);
-            drawLine(right, 0 ,right, bbottom, buffer);
-
-            drawLine(left , ph ,left ,btop, buffer);
-            drawLine(right, ph ,right, btop, buffer);
+            drawLine(left , ph ,left ,ph - markSize, buffer);
+            drawLine(right, ph ,right, ph - markSize, buffer);
         }
 
 
@@ -494,12 +482,10 @@ void PdfTranslator::impose()
             buffer << "/OriginalPage" << *it << " Do\n";
         string bufStr = buffer.str();
         newpage->GetContentsForAppending()->GetStream()->Set ( bufStr.data(), bufStr.size() );
-        PdfName dname ( "XObject" );
-        newpage->GetResources()->GetDictionary().AddKey ( dname, xdict );
+        newpage->GetResources()->GetDictionary().AddKey ( PdfName ( "XObject" ), xdict );
         ++git;
     }
     targetDoc->DeletePages ( 0,pcount );
-    //qDebug() << outFilePath <<" has " << targetDoc->GetPageCount() << " pages.";
     targetDoc->Write ( outFilePath.c_str() );
 
 }
