@@ -73,6 +73,24 @@ bool PageRecord::isValid() const
     return true;
 }
 
+bool PdfTranslator::checkIsPDF(std::string path)
+{
+	ifstream in ( path.c_str(), ifstream::in );
+	if (!in.good())
+		throw runtime_error("setSource() failed to open input file");
+	
+	const int magicBufferLen = 5;
+	char magicBuffer[magicBufferLen ];
+	in.read(magicBuffer, magicBufferLen );
+	std::string magic( magicBuffer , magicBufferLen  );
+	
+	in.close();
+	if(magic.find("%PDF") < 5)
+		return true;
+	
+	return false;
+}
+
 PdfTranslator::PdfTranslator(double sp)
 {
     sourceDoc = 0;
@@ -82,24 +100,19 @@ PdfTranslator::PdfTranslator(double sp)
 
 void PdfTranslator::setSource ( const std::string & source )
 {
-	ifstream in ( source.c_str(), ifstream::in );
-	if (!in.good())
-		throw runtime_error("setSource() failed to open input file");
 	
-        const int magicBufferLen = 5;
-        char magicBuffer[magicBufferLen ];
-        in.read(magicBuffer, magicBufferLen );
-        std::string magic( magicBuffer , magicBufferLen  );
-	
-	if(magic.find("%PDF") < 5)//it is a PDF file (I hope)
+	if(checkIsPDF(source))
 	{
-		in.close();
     		inFilePath = source;
     		sourceDoc = new PdfMemDocument ( inFilePath.c_str() ); // must succeed or throw
 	}
 	else // it has to be a list of PDF files
 	{
-		in.seekg(0);
+		
+		ifstream in ( source.c_str(), ifstream::in );
+		if (!in.good())
+			throw runtime_error("setSource() failed to open input file");
+		
 		std::vector<std::string> fileList;
 		char *filenameBuffer = new char[1000];
 		do
@@ -125,6 +138,7 @@ void PdfTranslator::setSource ( const std::string & source )
 			multiSource.push_back(*ms);
 			}
 		}
+		delete filenameBuffer;
 	}
 }
 

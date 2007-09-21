@@ -50,9 +50,24 @@ struct PageRecord
     friend std::ostream & operator << (std::ostream&, const PageRecord&);
 };
 
+
+/**
+PdfTranslator create a new PDF file which is the imposed version, following the imposition
+plan provided by the user, of the source PDF file.
+Usage is something like :
+p = new PdfTranslator(25.0);
+p->setSource("mydoc.pdf");
+p->setTarget("myimposeddoc.pdf");
+p->loadPlan("in4-32p-4b.plan");
+p->impose();
+p->mailItToMyPrinterShop("job@proprint.com");//Would be great, doesn't it ? 
+*/
 class PdfTranslator
 {
     public:
+	    /**
+	    Constructor takes just  1 arg, the sheet margin expressed in point.
+	    */
         PdfTranslator(double sp);
 
         ~PdfTranslator() { }
@@ -60,11 +75,42 @@ class PdfTranslator
         PdfMemDocument *sourceDoc;
         PdfMemDocument *targetDoc;
 
+	/**
+	Set the source document(s) to be imposed.
+	Argument source is the path of the PDF file, or the path of a file containing a list of paths of PDF files... 
+	*/
         void setSource ( const std::string & source );
+	
+	/**
+	Another way to set many files as source document.
+	Note that a source must be set before you call addToSource().
+	*/
 	void addToSource ( const std::string & source );
+	
+	/**
+	Set the path of the file where the imposed PDF doc will be save.
+	*/
         void setTarget ( const std::string & target );
+	
+	/**
+	Load an imposition plan file of form:
+	widthOfSheet heightOfSheet
+	sourcePage destPage rotation translationX translationY
+	...        ...      ...      ...          ...
+	*/
         void loadPlan ( const std::string & plan );
-	void computePlan(int wellKnownPlan, int sheetsPerBooklet);//well known plans are in-folio = 2, in-quatro = 4 etc. except in-28
+	
+	/**
+	An experimental method (don't use it) intended to perform basic imposition such In-n.
+	Well known plans are : in-folio = 2; in-quatro = 4; etc. But for now, there is just in-4 (feel free to write support for more plans!).
+	Later there will be a way to know what plans are available.
+	sheets per booklet is sheets per booklet
+	*/
+	void computePlan(int wellKnownPlan, int sheetsPerBooklet);
+	
+	/**
+	When all is prepared, call it to do the job.
+	*/
         void impose();
 
     private:
@@ -85,6 +131,7 @@ class PdfTranslator
         double destHeight;
         int maxPageDest;
 
+	bool checkIsPDF(std::string path);
         void drawLine(double x, double y, double xx, double yy, std::ostringstream & a );
         void signature(double x , double y, int sheet, const std::vector<int> & pages, std::ostringstream & a );
 	int pageRange(int plan, int sheet , int pagesInBooklet, int numBooklet); // much more a macro !
