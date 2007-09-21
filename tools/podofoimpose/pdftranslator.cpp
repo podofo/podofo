@@ -73,9 +73,6 @@ bool PageRecord::isValid() const
     return true;
 }
 
-
-
-
 PdfTranslator::PdfTranslator(double sp)
 {
     sourceDoc = 0;
@@ -89,9 +86,10 @@ void PdfTranslator::setSource ( const std::string & source )
 	if (!in.good())
 		throw runtime_error("setSource() failed to open input file");
 	
-	char *magicBuffer = new char [5];
-	in.read(magicBuffer, 5);
-	std::string magic( magicBuffer , 5 );
+        const int magicBufferLen = 5;
+        char magicBuffer[magicBufferLen ];
+        in.read(magicBuffer, magicBufferLen );
+        std::string magic( magicBuffer , magicBufferLen  );
 	
 	if(magic.find("%PDF") < 5)//it is a PDF file (I hope)
 	{
@@ -230,7 +228,6 @@ void PdfTranslator::loadPlan ( const std::string & plan )
             first = false;
             continue;
         }
-        int sourcePage;
 
         PageRecord p;
         in >> p;
@@ -337,6 +334,10 @@ int PdfTranslator::pageRange(int plan, int sheet, int pagesInBooklet, int numBoo
 			return 8;
 		} 
 	}
+
+        // Fix a gcc warning,
+        // this return should never be reached though
+        return 0;
 }
 
 void PdfTranslator::computePlan(int wellKnownPlan, int sheetsPerBooklet)
@@ -371,9 +372,9 @@ void PdfTranslator::computePlan(int wellKnownPlan, int sheetsPerBooklet)
 	}  
 	
 	//planImposition is filed, no duplicated pages here.
-	for(int i = 0; i < planImposition.size(); ++i)
+	for(unsigned int i = 0; i < planImposition.size(); ++i)
 	{
-		pagesIndex[planImposition[i].sourcePage] = i ;
+            pagesIndex[planImposition[i].sourcePage] = i ;
 	}
 }
 
@@ -393,7 +394,7 @@ void PdfTranslator::impose()
 
     typedef map<int, vector<int> > groups_t;
     groups_t groups;
-    for ( int i = 0; i < planImposition.size(); ++i )
+    for ( unsigned int i = 0; i < planImposition.size(); ++i )
     {
         groups[planImposition[i].destPage].push_back ( planImposition[i].sourcePage );
     }
