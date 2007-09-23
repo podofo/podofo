@@ -82,6 +82,7 @@
 #include "PdfStream.h"
 #include "PdfStreamedDocument.h"
 #include "PdfString.h"
+#include "PdfTable.h"
 #include "PdfTokenizer.h"
 #include "PdfVariant.h"
 #include "PdfVecObjects.h"

@@ -52,6 +52,7 @@ SET(PODOFO_SOURCES
     PdfStream.cpp
     PdfStreamedDocument.cpp
     PdfString.cpp
+    PdfTable.cpp
     PdfTokenizer.cpp
     PdfTTFWriter.cpp
     PdfVariant.cpp

@@ -1228,7 +1228,7 @@ double PdfFontMetrics::CharWidth( char c ) const
 
 unsigned long PdfFontMetrics::CharWidthMM( char c ) const
 {
-    return static_cast<unsigned long>(this->CharWidth( c ) / CONVERSION_CONSTANT);
+    return static_cast<unsigned long>(this->CharWidth( c ) / PODOFO_CONVERSION_CONSTANT);
 }
 
 double PdfFontMetrics::StringWidth( const char* pszText, unsigned int nLength ) const
@@ -1253,7 +1253,7 @@ double PdfFontMetrics::StringWidth( const char* pszText, unsigned int nLength ) 
 
 unsigned long PdfFontMetrics::StringWidthMM( const char* pszText, unsigned int nLength ) const
 {
-    return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / CONVERSION_CONSTANT);
+    return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / PODOFO_CONVERSION_CONSTANT);
 }
 
 void PdfFontMetrics::SetFontSize( float fSize )

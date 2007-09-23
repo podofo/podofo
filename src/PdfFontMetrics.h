@@ -23,10 +23,11 @@
 
 #include "PdfDefines.h"
 #include "Pdf3rdPtyForwardDecl.h"
+#include "PdfString.h"
 
-#ifndef CONVERSION_CONSTANT
-#define CONVERSION_CONSTANT 0.002834645669291339
-#endif // CONVERSION_CONSTANT
+#ifndef PODOFO_CONVERSION_CONSTANT
+#define PODOFO_CONVERSION_CONSTANT 0.002834645669291339
+#endif // PODOFO_CONVERSION_CONSTANT
 
 namespace PoDoFo {
 
@@ -82,6 +83,15 @@ class PODOFO_API PdfFontMetrics {
      *  \param array write the bounding box to this array.
      */
     void GetBoundingBox( PdfArray & array ) const;
+
+    /** Retrieve the width of a given text string in PDF units when
+     *  drawn with the current font
+     *  \param rsString a PdfString from which the width shall be calculated
+     *  \returns the width in PDF units
+     *
+     *  This is an overloaded method for your convinience!
+     */
+    inline double StringWidth( const PdfString & rsString ) const;
 
     /** Retrieve the width of a given text string in PDF units when
      *  drawn with the current font
@@ -329,6 +339,14 @@ class PODOFO_API PdfFontMetrics {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
+double PdfFontMetrics::StringWidth( const PdfString & rsString ) const
+{
+    return this->StringWidth( rsString.GetString() );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 double PdfFontMetrics::GetLineSpacing() const
 {
     return m_dLineSpacing;
@@ -339,7 +357,7 @@ double PdfFontMetrics::GetLineSpacing() const
 // -----------------------------------------------------
 unsigned long PdfFontMetrics::GetLineSpacingMM() const
 {
-    return static_cast<unsigned long>(m_dLineSpacing / CONVERSION_CONSTANT);
+    return static_cast<unsigned long>(m_dLineSpacing / PODOFO_CONVERSION_CONSTANT);
 }
 
 // -----------------------------------------------------
@@ -355,7 +373,7 @@ double PdfFontMetrics::GetUnderlinePosition() const
 // -----------------------------------------------------
 long PdfFontMetrics::GetUnderlinePositionMM() const
 {
-    return static_cast<long>(m_dUnderlinePosition /  CONVERSION_CONSTANT);
+    return static_cast<long>(m_dUnderlinePosition /  PODOFO_CONVERSION_CONSTANT);
 }
 
 // -----------------------------------------------------
@@ -371,7 +389,7 @@ double PdfFontMetrics::GetUnderlineThickness() const
 // -----------------------------------------------------
 unsigned long PdfFontMetrics::GetUnderlineThicknessMM() const
 {
-    return static_cast<unsigned long>(m_dUnderlineThickness / CONVERSION_CONSTANT);
+    return static_cast<unsigned long>(m_dUnderlineThickness / PODOFO_CONVERSION_CONSTANT);
 }
 
 // -----------------------------------------------------

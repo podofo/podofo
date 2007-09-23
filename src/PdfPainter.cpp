@@ -283,6 +283,19 @@ void PdfPainter::SetFont( PdfFont* pFont )
     m_pFont = pFont;
 }
 
+void PdfPainter::SetClipRect( double dX, double dY, double dWidth, double dHeight )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
+
+    m_oss.str("");
+    m_oss << dX << " "
+          << dY << " "
+          << dWidth << " "
+          << -dHeight        
+          << " re W n" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
+}
+
 void PdfPainter::DrawLine( double dStartX, double dStartY, double dEndX, double dEndY )
 {
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    

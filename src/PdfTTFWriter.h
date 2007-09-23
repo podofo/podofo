@@ -22,12 +22,12 @@
 #define _PDF_TTF_WRITER_H_
 
 #include "PdfDefines.h"
+#include "PdfRefCountedBuffer.h"
 
 namespace PoDoFo {
 
 class PdfInputDevice;
 class PdfOutputDevice;
-class PdfRefCountedBuffer;
 
 namespace NonPublic {
 
@@ -205,6 +205,8 @@ class PODOFO_API PdfTTFWriter {
                 xy        = rhs.xy;
                 yx        = rhs.yx;  
 
+                m_buffer  = rhs.m_buffer;
+
                 return *this;
             }
 
@@ -218,6 +220,7 @@ class PODOFO_API PdfTTFWriter {
 
     public: // TODO: add accessors
         int  m_nPosition;
+        PdfRefCountedBuffer m_buffer;
 
         // common
         int  m_nIndex;
@@ -614,6 +617,9 @@ class PODOFO_API PdfTTFWriter {
     TVecLoca                  m_vecLoca;          ///< The loca table in long format which is written out
     TVecGlyphs                m_vecGlyphs;        ///< All glyphs including their outlines
     std::vector<TCMapRange>   m_ranges;           ///< CMap ranges
+    TCMapFormat4 format4;
+    std::vector<pdf_ttf_short> m_vecGlyphIds;
+
     std::vector<TLongHorMetric> m_vecHmtx;        ///< Hmtx table in long format
 
     PdfRefCountedBuffer*      m_pRefBuffer;       ///< A temporary buffer which is used during writing a TTF file

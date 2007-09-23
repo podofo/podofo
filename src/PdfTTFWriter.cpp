@@ -104,7 +104,7 @@ PdfTTFWriter::PdfTTFWriter()
     m_vecGlyphIndeces.push_back( static_cast<int>('d') );
     m_vecGlyphIndeces.push_back( static_cast<int>('!') );
     // Composites do not work yet:
-    // m_vecGlyphIndeces.push_back( 0x00E4 ); // A dieresis
+    m_vecGlyphIndeces.push_back( 0x00E4 ); // A dieresis
 
     std::sort( m_vecGlyphIndeces.begin(), m_vecGlyphIndeces.end() );
 }
@@ -503,8 +503,6 @@ void PdfTTFWriter::ReadCmapTable( PdfInputDevice* pDevice )
     m_lCMapOffset += cmap[nUnicodeIndex].offset; // Reset current cmap offset to actual cmap offset
     pDevice->Seek( m_lCMapOffset );
     
-    TCMapFormat4 format4;
-
     READ_TTF_USHORT( format4.format );
     READ_TTF_USHORT( format4.length );
     READ_TTF_USHORT( format4.version );
@@ -518,7 +516,7 @@ void PdfTTFWriter::ReadCmapTable( PdfInputDevice* pDevice )
     printf("Length: %i\n", format4.length );
     printf("SegCountX2: %i\n", format4.segCountX2 );
     printf("Range Shift: %i\n", format4.rangeShift );
-    */
+    *    */
     int            i;
     const int      nSegCount = format4.segCountX2 >> 1;
     pdf_ttf_ushort nReservedPad;
@@ -537,8 +535,61 @@ void PdfTTFWriter::ReadCmapTable( PdfInputDevice* pDevice )
         READ_TTF_SHORT( m_ranges[i].nDelta );
 
     for( i=0;i<nSegCount;i++ )
+    {
+        long lPos = pDevice->Tell();
         READ_TTF_USHORT( m_ranges[i].nOffset );
-    
+        /*
+        if( m_ranges[i].nOffset ) 
+        {
+            printf("BEFORE=%i\n", m_ranges[i].nOffset );
+            m_ranges[i].nOffset -= ((nSegCount - i) * 2);
+            printf("AFTER =%i\n", static_cast<pdf_ttf_short>(m_ranges[i].nOffset) );
+        }
+        */
+
+#if 0
+        if( m_ranges[i].nOffset )
+        {
+            if( m_ranges[i].nStart == 160 ) 
+            {
+                /*
+         if(theLowByte >= firstCode && theLowByte < (firstCode + Int16FromMOTA(subHeader2s[k].entryCount))) {
+             return *((&(subHeader2s[0].idRangeOffset))
+                      + (Int16FromMOTA(subHeader2s[0].idRangeOffset)/2)
+                      + theLowByte                                     
+                      - Int16FromMOTA(subHeader2s[0].firstCode)
+                      );
+            */
+
+                int c = 228;
+                printf("OFFSET1 = %i\n", m_ranges[i].nOffset );
+                printf("OFFSET2 = %i\n", (c - m_ranges[i].nStart) );
+                printf("POS     = %i\n", lPos );
+
+                //long lAddress = (m_ranges[i].nOffset/2 +  (c - m_ranges[i].nStart) + lPos );
+                long lAddress = lPos + m_ranges[i].nOffset/2 + (c - m_ranges[i].nStart);
+                printf("GOT ADDRESS: %x\n", lAddress - m_lCMapOffset );
+                pDevice->Seek( lAddress );
+                pdf_ttf_ushort u;
+                READ_TTF_USHORT( u );
+                printf("Index=%u\n", u );
+                pDevice->Seek( lPos + sizeof(pdf_ttf_ushort) );
+            }
+        }
+#endif // 0
+    }
+
+    m_lCMapOffset  = (pDevice->Tell() - m_lCMapOffset);
+    long           lGlyphIdArrayLen = (format4.length - m_lCMapOffset) / sizeof(pdf_ttf_ushort); 
+    pdf_ttf_ushort glyphId;
+
+    m_vecGlyphIds.reserve( lGlyphIdArrayLen );
+    while( lGlyphIdArrayLen-- ) 
+    {
+        READ_TTF_USHORT( glyphId );
+        m_vecGlyphIds.push_back( glyphId );
+    }
+
     // in case of broken TTF we have to sort this table
     std::sort( m_ranges.begin(), m_ranges.end() );
     
@@ -581,8 +632,19 @@ void PdfTTFWriter::ReadGlyfTable( PdfInputDevice* pDevice )
     while( it != m_vecGlyphIndeces.end() )
     {
         lOffset = this->GetGlyphDataLocation( *it, &lLength, pDevice );
-        if( lOffset != -1 ) 
-            this->LoadGlyph( *it, lOffset, pDevice );
+        if( lOffset != -1 )
+        { 
+            PdfRefCountedBuffer buffer( lLength );
+
+            pDevice->Seek( lOffset );
+            pDevice->Read( buffer.GetBuffer(), lLength );
+
+            PdfTTFGlyph glyph( *it );
+            glyph.m_buffer = buffer;
+            m_vecGlyphs.push_back( glyph );
+
+            //this->LoadGlyph( *it, lOffset, pDevice );
+        }
         else
         {
             PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidFontFile, "Charnotfound" );
@@ -644,7 +706,7 @@ void PdfTTFWriter::LoadGlyph( int nIndex, long lOffset, PdfInputDevice* pDevice 
 
         // read flags
         printf("Reading flags: %i\n", nPoints );
-        while( nPoints-- >= 0 ) 
+        while( --nPoints >= 0 ) 
         {
             pDevice->Read( reinterpret_cast<char*>(&flag), sizeof(char) );
             glyph.vecFlagsOrig.push_back( flag );
@@ -652,19 +714,25 @@ void PdfTTFWriter::LoadGlyph( int nIndex, long lOffset, PdfInputDevice* pDevice 
             {
                 pDevice->Read( reinterpret_cast<char*>(&repeat), sizeof(char) );
                 glyph.vecFlagsOrig.push_back( repeat );
-
+                /*
                 while( repeat-- )
                     glyph.vecFlags.push_back( flag );
+                */
             }
         };
-        
+
+
+        printf("!!!XXXXXXX\n");
         ReadSimpleGlyfCoordinates( pDevice, glyph.vecFlags, glyph.vecXCoordinates, 0x02, 0x10 );
+        printf("!!!YYYYYYY\n");
         ReadSimpleGlyfCoordinates( pDevice, glyph.vecFlags, glyph.vecYCoordinates, 0x04, 0x20 );
 
+        /*
         for( int z=0;z<glyph.vecXCoordinates.size();z++ ) 
         {
             printf("Coordinate %i %i\n", glyph.vecXCoordinates[z], glyph.vecYCoordinates[z] );
         }
+        */
     }
     else
     {
@@ -875,8 +943,12 @@ void PdfTTFWriter::WriteGlyfTable( PdfOutputDevice* pDevice )
         // set the position of the glyph so that a cmap can be generated
         (*it).SetPosition( nPosition++ );
 
+        pDevice->Write( (*it).m_buffer.GetBuffer(), (*it).m_buffer.GetSize() );
+
         // add value to new loca table so that it can be created correctly
         m_vecLoca.push_back( pDevice->GetLength() ); 
+
+#if 0
 
         if( podofo_is_little_endian() )
             SwapGlyfHeader( &(*it).m_tHeader );
@@ -906,7 +978,7 @@ void PdfTTFWriter::WriteGlyfTable( PdfOutputDevice* pDevice )
             WriteSimpleGlyfCoordinates( pDevice, (*it).vecFlags, (*it).vecXCoordinates, 0x02, 0x10 );
             WriteSimpleGlyfCoordinates( pDevice, (*it).vecFlags, (*it).vecYCoordinates, 0x04, 0x20 );
         }
-
+#endif // 0
         ++it;
     }
     
@@ -958,6 +1030,9 @@ void PdfTTFWriter::WriteCMapTable( PdfOutputDevice* pDevice )
                 bReset = true;
         }
     }
+
+    if( !bReset )
+        vecRanges.push_back( current );
 
     // create the ending section
     current.nStart  = 0xFFFF;
@@ -1164,15 +1239,18 @@ void PdfTTFWriter::ReadSimpleGlyfCoordinates( PdfInputDevice* pDevice, const std
                                               std::vector<pdf_ttf_short> & rvecCoordinates, int nFlagShort, int nFlag )
 {
     pdf_ttf_short longCoordinate;
-    char          shortCoordinate;
+    unsigned char shortCoordinate;
 
+    printf("~~~~~~~~~~~\n");
+    printf("FLAGS: %i\n", rvecFlags.size() );
     std::vector<unsigned char>::const_iterator itFlags = rvecFlags.begin();
     while( itFlags != rvecFlags.end() )
     {
         if( *itFlags & nFlagShort == nFlagShort ) 
         {
             // read a 1 byte long coordinate
-            pDevice->Read( &shortCoordinate, sizeof(char) );
+            pDevice->Read( reinterpret_cast<char*>(&shortCoordinate), sizeof(char) );
+            printf("Got short: %i\n", shortCoordinate );
             longCoordinate = static_cast<pdf_ttf_short>(shortCoordinate);
             if( *itFlags & nFlag == nFlag )
                 longCoordinate = -longCoordinate;
@@ -1189,14 +1267,13 @@ void PdfTTFWriter::ReadSimpleGlyfCoordinates( PdfInputDevice* pDevice, const std
             else
             {
                 pdf_ttf_short coordinate;
-                pDevice->Read( reinterpret_cast<char*>(&coordinate), sizeof(pdf_ttf_short) );
-                if( podofo_is_little_endian() )
-                    this->SwapShort( &coordinate );
-                
+                READ_TTF_SHORT( coordinate );
+                printf("Got long: %i\n", longCoordinate );
                 longCoordinate += coordinate;
             }
         }
-        
+
+        printf("Pushing: %i\n", longCoordinate );
         rvecCoordinates.push_back( longCoordinate );
         ++itFlags;
     }
@@ -1269,6 +1346,20 @@ long PdfTTFWriter::GetGlyphDataLocation( unsigned int nIndex, long* plLength, Pd
             
             if( (*it).nOffset )
             {
+                const int nSegCount = format4.segCountX2 >> 1;
+                
+                int j = (*it).nOffset - (nSegCount - (it-m_ranges.begin())*2);
+                printf("j1 = %i\n", j );
+                j = (nIndex - (*it).nStart) + j/2;
+                printf("j2 = %i\n", j );
+                nIndex = m_vecGlyphIds[j];
+                printf("nIndex=%i\n", nIndex );
+
+                
+                // 81 ??? 
+                // 1314
+
+                /*
                 long lAddress = (*it).nOffset/2 + (nIndex - (*it).nStart) + (*it).nOffset;
                 pDevice->Seek( lAddress + m_lCMapOffset );
 
@@ -1279,6 +1370,9 @@ long PdfTTFWriter::GetGlyphDataLocation( unsigned int nIndex, long* plLength, Pd
                 printf("lAddress=%lx\n", lAddress + m_lCMapOffset );
                 nIndex = glyph;
                 printf("glyph=%u\n", glyph );
+                */
+                //nIndex   = 108;
+                //lAddress = 0x858a;
                 //nIndex = *lAddress nach Seek
             }
 
@@ -1293,6 +1387,7 @@ long PdfTTFWriter::GetGlyphDataLocation( unsigned int nIndex, long* plLength, Pd
     if( it == m_ranges.end() ) // go to "missing glyph" if no glyph was found
         nIndex = 0;
 
+    printf("INDEX: %i RANGE(0 - %i)\n", nIndex, m_tLoca.size() );
     // check if the glyph index is in our current range
     if( nIndex < 0 || nIndex > m_tLoca.size() )
         return -1;

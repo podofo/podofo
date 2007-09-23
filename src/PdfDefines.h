@@ -217,6 +217,29 @@ typedef enum EPdfLineJoinStyle {
 };
 
 /**
+ * Enum for vertical text alignment
+ */
+typedef enum EPdfVerticalAlignment {
+    ePdfVerticalAlignment_Top    = 0,
+    ePdfVerticalAlignment_Center = 1,
+    ePdfVerticalAlignment_Bottom  = 2,
+
+    ePdfVerticalAlignment_Unknown = 0xff,
+};
+
+/**
+ * Enum for text alignment
+ */
+typedef enum EPdfAlignment {
+    ePdfAlignment_Left    = 0,
+    ePdfAlignment_Center  = 1,
+    ePdfAlignment_Right   = 2,
+
+    ePdfAlignment_Unknown = 0xff,
+};
+
+
+/**
  * List of defined Rendering intents
  */
 #define ePdfRenderingIntent_AbsoluteColorimetric	"AbsoluteColorimetric"

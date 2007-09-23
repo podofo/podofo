@@ -66,8 +66,15 @@ class PODOFO_API PdfPainter {
      *
      *  \see PdfPage \see PdfXObject
      *  \see FinishPage()
+     *  \see GetPage()
      */
     void SetPage( PdfCanvas* pPage );
+
+    /** Return the current page that is that on the painter.
+     *
+     *  \returns the current page of the painter or NULL if none is set
+     */
+    inline const PdfCanvas* GetPage() const;
 
     /** Finish drawing onto a page.
      * 
@@ -185,6 +192,15 @@ class PODOFO_API PdfPainter {
      */
     inline PdfFont* GetFont() const;
 
+    /** Set a clipping rectangle
+     *
+     *  \param dX x coordinate of the rectangle (left coordinate)
+     *  \param dY y coordinate of the rectangle (bottom coordinate)
+     *  \param dWidth width of the rectangle
+     *  \param dHeight absolute height of the rectangle
+     */
+    void SetClipRect( double dX, double dY, double dWidth, double dHeight );
+
     /** Draw a line with the current color and line settings.
      *  \param dStartX x coordinate of the starting point
      *  \param dStartY y coordinate of the starting point
@@ -202,7 +218,7 @@ class PODOFO_API PdfPainter {
      *  \param dRoundY rounding factor, y direction
     */
     void DrawRect( double dX, double dY, double dWidth, double dHeight,
-		           double dRoundX=0.0, double dRoundY=0.0 );
+                   double dRoundX=0.0, double dRoundY=0.0 );
 
     /** Fill a rectangle with the current fill settings
      *  \param dX x coordinate of the rectangle (left coordinate)
@@ -213,7 +229,7 @@ class PODOFO_API PdfPainter {
      *  \param dRoundY rounding factor, y direction
      */
     void FillRect( double dX, double dY, double dWidth, double dHeight,
-		           double dRoundX=0.0, double dRoundY=0.0 );
+                   double dRoundX=0.0, double dRoundY=0.0 );
 
     /** Draw an ellipse with the current stroking settings
      *  \param dX x coordinate of the ellipse (left coordinate)
@@ -542,6 +558,14 @@ class PODOFO_API PdfPainter {
         lcx, lcy, 							// last "current" point
         lrx, lry;							// "reflect points"
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfCanvas* PdfPainter::GetPage() const
+{
+    return m_pPage;
+}
 
 // -----------------------------------------------------
 // 

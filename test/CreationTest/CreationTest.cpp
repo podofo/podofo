@@ -38,6 +38,7 @@
 #include "PdfPainterMM.h"
 #include "PdfRect.h"
 #include "PdfString.h"
+#include "PdfTable.h"
 #include "PdfXObject.h"
 
 #include "../PdfTest.h"
@@ -52,6 +53,7 @@ using namespace PoDoFo;
 
 void tmp()
 {
+    /*
     if( access( "/home/dominik/out.ttf", F_OK ) == 0 ) 
     {
         printf("Reading old created file!!\n\n");
@@ -67,6 +69,7 @@ void tmp()
 
     writer.Read( &device );
     writer.Write( &outDev );
+    */
 }
 
 void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
@@ -545,6 +548,30 @@ void MMTest( PdfPainterMM* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
 }
 
+void TableTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
+{
+    double        dX     = 10000 * CONVERSION_CONSTANT;
+    double        dY     = (pPage->GetPageSize().GetHeight() - 40000 * CONVERSION_CONSTANT);
+
+    PdfFont* pFont = pDocument->CreateFont( "Comic Sans MS" );
+    pFont->SetFontSize( 12.0f );
+    pPainter->SetFont( pFont );
+
+
+    PdfSimpleTableModel model;
+    PdfTable table1( 3, 10 );
+    table1.SetTableWidth ( 80000 * CONVERSION_CONSTANT );
+    table1.SetTableHeight( 120000 * CONVERSION_CONSTANT );
+    table1.SetModel( &model );
+    table1.Draw( dX, dY, pPainter );
+
+    dY = pPage->GetPageSize().GetHeight()/2.0 - 30000 * CONVERSION_CONSTANT;
+    dX = 2000.0 * CONVERSION_CONSTANT;
+    PdfTable table2( 5, 4 );
+    table2.Draw( dX, dY, pPainter );
+
+}
+
 int main( int argc, char* argv[] ) 
 {
     PdfMemDocument  writer;
@@ -614,6 +641,13 @@ int main( int argc, char* argv[] )
     pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
     painter.SetPage( pPage );
     TEST_SAFE_OP( XObjectTest( &painter, pPage, &writer ) );
+    painter.FinishPage();
+
+    printf("Drawing using PdfTable.\n");
+    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+    painter.SetPage( pPage );
+    pRoot->Last()->CreateNext( "PdfTable Test", PdfDestination( pPage ) );
+    TEST_SAFE_OP( TableTest( &painter, pPage, &writer ) );
     painter.FinishPage();
 
     printf("Drawing using PdfPainterMM.\n");
