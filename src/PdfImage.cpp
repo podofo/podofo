@@ -189,6 +189,10 @@ void PdfImage::LoadFromFile( const char* pszFilename )
 }
 
 #ifdef PODOFO_HAVE_JPEG_LIB
+#ifdef _WIN32
+void jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize);
+#endif // _WIN32
+
 void PdfImage::LoadFromJpeg( const char* pszFilename )
 {
     FILE*                         hInfile;    
@@ -208,7 +212,22 @@ void PdfImage::LoadFromJpeg( const char* pszFilename )
 
     cinfo.err = jpeg_std_error(&jerr);
     jpeg_create_decompress(&cinfo);
-    jpeg_stdio_src(&cinfo, hInfile);
+
+#ifdef _WIN32
+	const long lSize = 1024;
+	PdfRefCountedBuffer buffer( lSize );
+	fread( buffer.GetBuffer(), sizeof(char), lSize, hInfile );
+
+	// On WIN32, you can only pass a FILE Handle to DLLs which where compiled using the same
+	// C library. This is usually not the case with LibJpeg on WIN32. 
+	// As a reason we use a memory buffer to determine the header information.
+	//
+	// If you are sure that libJpeg is compiled against the same C library as your application
+	// you can removed this ifdef.
+	jpeg_memory_src ( &cinfo, reinterpret_cast<JOCTET*>(buffer.GetBuffer()), buffer.GetSize() );
+#else
+	jpeg_stdio_src(&cinfo, hInfile);
+#endif // _WIN32
 
     if( jpeg_read_header(&cinfo, TRUE) <= 0 )
     {
