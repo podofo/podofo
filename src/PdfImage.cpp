@@ -42,6 +42,12 @@ extern "C" {
 }
 #endif // PODOFO_HAVE_JPEG_LIB
 
+// <windows.h> defines an annoying GetObject macro that changes uses of GetObject to
+// GetObjectA . Since macros aren't scope and namespace aware that breaks our code.
+// Since we won't be using the Win32 resource manager API here, just undefine it.
+#if defined(GetObject)
+#undef GetObject
+#endif
 
 using namespace std;
 

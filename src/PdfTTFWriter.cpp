@@ -25,10 +25,22 @@
 #include "PdfRefCountedBuffer.h"
 #include "PdfString.h"
 
-#include <math.h>
+#include <cmath>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+
+namespace {
+// MSVC++ does not provide the c99 exp2(..) and log2(..) in <cmath> since they
+// are not required by C++ . Use the gcc ones if we're on gcc.
+#if defined(__GNUC__)
+inline double PdfLog2(double x) { return log2(x); }
+inline double PdfExp2(double x) { return exp2(x); }
+#else
+inline double PdfLog2(double x) { return log(x)/log(2.0f); }
+inline double PdfExp2(double x) { return pow(2,x); }
+#endif
+}
 
 namespace PoDoFo {
 
@@ -855,7 +867,6 @@ void PdfTTFWriter::WriteTableDirectoryEntry( PdfOutputDevice* pDevice, TTableDir
 
 void PdfTTFWriter::WriteGlyfTable( PdfOutputDevice* pDevice )
 {
-    pdf_ttf_ulong lValue;
     TIVecGlyphs it = m_vecGlyphs.begin();
     int nPosition  = 0;
 
@@ -957,7 +968,7 @@ void PdfTTFWriter::WriteCMapTable( PdfOutputDevice* pDevice )
     vecRanges.push_back( current );
 
     int            i;
-    pdf_ttf_ushort nSearchRange = 2 * ( exp2( floor( log2( vecRanges.size() ) ) ) );
+    pdf_ttf_ushort nSearchRange = 2 * ( PdfExp2( floor( PdfLog2( vecRanges.size() ) ) ) );
 
     // write the actual cmap table
     nValue = 4; 
@@ -970,7 +981,7 @@ void PdfTTFWriter::WriteCMapTable( PdfOutputDevice* pDevice )
     WRITE_TTF_USHORT( nValue ); // seg count * 2
     nValue = nSearchRange;
     WRITE_TTF_USHORT( nValue ); // search range
-    nValue = log2( vecRanges.size() >> 1 );
+    nValue = PdfLog2( vecRanges.size() >> 1 );
     WRITE_TTF_USHORT( nValue ); // entry selector
     nValue = 2 * vecRanges.size() - nSearchRange;
     WRITE_TTF_USHORT( nValue ); // range shift
