@@ -22,6 +22,8 @@
 #define _PDF_TABLE_H_
 
 #include "PdfDefines.h"
+
+#include "PdfColor.h"
 #include "PdfString.h"
 
 namespace PoDoFo {
@@ -86,6 +88,14 @@ class PODOFO_API PdfTableModel {
      */
     virtual bool HasBackgroundColor( int col, int row ) const = 0;
 
+    /** 
+     * \param col the column of the table cell
+     * \param row the row of the table cell
+     *
+     * \returns the background color of the specified cell
+     */
+    virtual PdfColor GetBackgroundColor( int col, int row ) const = 0;
+
     //virtual PdfColor  GetColor( int col, int row ) = 0;
     // TODO: alignment, wordwrap, background ....??? 
 };
@@ -102,6 +112,19 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
      *  Using this model will result in drawing an empty table!
      */
     PdfSimpleTableModel();
+
+    /** Creates an empty PdfSimpleTableModel 
+     *  that does not contain any data.
+     *
+     *  Using this model will result in drawing an empty table!
+     *
+     *  \param nCols number of columns of the data in this table model (must match the PdfTable object)
+     *  \param nRows number of rows of the data in this table model (must match the PdfTable object)
+     *
+     *  You can set the tables data using SetText.
+     *  \see SetText
+     */
+    PdfSimpleTableModel( int nCols, int nRows );
 
     virtual ~PdfSimpleTableModel();
 
@@ -123,13 +146,33 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
      */
     inline void SetAlignment( EPdfVerticalAlignment eAlignment );
 
+    /** Set the background color of the table cells
+     *
+     *  \param rColor the background color
+     */
+    inline void SetBackgroundColor( const PdfColor & rColor );
+
+    /** Sets wether all cells have a background color or not
+     *
+     *  \param bEnable if true all cells have a background color
+     */
+    inline void SetBackgroundEnabled( bool bEnable );
+
+    /** Sets the contents of a specific cell
+     *
+     * \param col the column of the table cell
+     * \param row the row of the table cell
+     * \param rsString the contents of this cell
+     */
+    inline void SetText( int col, int row, const PdfString & rsString );
+
     /** 
      * \param col the column of the table cell
      * \param row the row of the table cell
      *
      * \returns the contents string of this table cell
      */
-    virtual PdfString GetText ( int col, int row ) const;
+    inline virtual PdfString GetText ( int col, int row ) const;
 
     /** 
      * \param col the column of the table cell
@@ -163,11 +206,27 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
      */
     inline virtual bool HasBackgroundColor( int col, int row ) const;
 
+    /** 
+     * \param col the column of the table cell
+     * \param row the row of the table cell
+     *
+     * \returns the background color of the specified cell
+     */
+    inline virtual PdfColor GetBackgroundColor( int col, int row ) const;
+
  private:
     PdfFont*              m_pFont;
 
     EPdfAlignment         m_eAlignment;
     EPdfVerticalAlignment m_eVerticalAlignment;
+    
+    bool                  m_bBackground;
+    PdfColor              m_clBackground;
+
+    PdfString**           m_ppData;
+
+    int                   m_nCols;
+    int                   m_nRows;
 };
 
 // -----------------------------------------------------
@@ -198,6 +257,46 @@ void PdfSimpleTableModel::SetAlignment( EPdfVerticalAlignment eAlignment )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
+void PdfSimpleTableModel::SetBackgroundEnabled( bool bEnable )
+{
+    m_bBackground = bEnable;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfSimpleTableModel::SetBackgroundColor( const PdfColor & rColor )
+{
+    m_clBackground = rColor;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfSimpleTableModel::SetText( int col, int row, const PdfString & rsString ) 
+{
+    if( !m_ppData || row >= m_nRows || col >= m_nCols )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    m_ppData[row][col] = rsString;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfString PdfSimpleTableModel::GetText ( int col, int row ) const
+{
+    if( !m_ppData || row >= m_nRows || col >= m_nCols )
+        return PdfString();
+    else
+        return m_ppData[row][col].IsValid() ? m_ppData[row][col] : PdfString("");
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 EPdfAlignment PdfSimpleTableModel::GetAlignment ( int, int ) const
 {
     return m_eAlignment;
@@ -216,7 +315,7 @@ EPdfVerticalAlignment PdfSimpleTableModel::GetVerticalAlignment ( int, int ) con
 // -----------------------------------------------------
 PdfFont* PdfSimpleTableModel::GetFont ( int, int ) const
 {
-    return NULL;
+    return m_pFont;
 }
 
 // -----------------------------------------------------
@@ -224,7 +323,15 @@ PdfFont* PdfSimpleTableModel::GetFont ( int, int ) const
 // -----------------------------------------------------
 bool PdfSimpleTableModel::HasBackgroundColor ( int, int ) const
 {
-    return false;
+    return m_bBackground;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfColor PdfSimpleTableModel::GetBackgroundColor ( int, int ) const
+{
+    return m_clBackground;
 }
 
  
@@ -254,6 +361,24 @@ class PODOFO_API PdfTable {
      *  \param pPainter the painter to draw on. The painter has to have a page set currently.
      */
     virtual void Draw( double dX, double dY, PdfPainter* pPainter );
+
+    /** Get the width of the table when drawn with the current settings at a certain position.
+     *  \param dX x coordinate of top left of the table
+     *  \param dY y coordinate of top left of the table
+     *  \param pPage the page on which the table will be drawn
+     *
+     *  \returns the width of the table
+     */
+    virtual double GetWidth( double dX, double dY, PdfCanvas* pPage ) const;
+
+    /** Get the width of the table when drawn with the current settings at a certain position.
+     *  \param dX x coordinate of top left of the table
+     *  \param dY y coordinate of top left of the table
+     *  \param pPage the page on which the table will be drawn
+     *
+     *  \returns the width of the table
+     */
+    virtual double GetHeight( double dX, double dY, PdfCanvas* pPage ) const;
 
     /** Set the PdfTableModel that will supply all
      *  contents and formatting informations to the table.

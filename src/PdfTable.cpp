@@ -29,24 +29,39 @@ namespace PoDoFo {
 
 PdfSimpleTableModel::PdfSimpleTableModel()
     : m_pFont( NULL ), m_eAlignment( ePdfAlignment_Left ),
-      m_eVerticalAlignment( ePdfVerticalAlignment_Center )
+      m_eVerticalAlignment( ePdfVerticalAlignment_Center ),
+      m_bBackground( false ), m_clBackground( 0.0 ),
+      m_ppData( NULL ), m_nCols( 0 ), m_nRows( 0 )
 {
 
+}
+
+PdfSimpleTableModel::PdfSimpleTableModel( int nCols, int nRows )
+    : m_pFont( NULL ), m_eAlignment( ePdfAlignment_Left ),
+      m_eVerticalAlignment( ePdfVerticalAlignment_Center ),
+      m_bBackground( false ), m_clBackground( 0.0 ),
+      m_nCols( nCols ), m_nRows( nRows )
+{
+    m_ppData = static_cast<PdfString**>(malloc( sizeof(PdfString*) * nRows ));
+    if( !m_ppData )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+    }
+
+    for( int i=0;i<nRows;i++ ) 
+        m_ppData[i] = new PdfString[nCols];
 }
 
 PdfSimpleTableModel::~PdfSimpleTableModel()
 {
+    if( m_ppData ) 
+    {
+        for( int i=0;i<m_nRows;i++ ) 
+            delete [] m_ppData[i];
 
+        free( m_ppData );
+    }
 }
-
-PdfString PdfSimpleTableModel::GetText ( int col, int row ) const
-{
-    std::ostringstream oss;
-    oss << "Cell: " << col << " " << row;
-
-    return PdfString( oss.str().c_str() );
-}
-
 
 PdfTable::PdfTable( int nCols, int nRows ) 
     : m_pModel( NULL ),
@@ -109,15 +124,13 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter )
                 pPainter->SetClipRect( dX + dCurX, dY - dCurY, pdColWidths[i], pdRowHeights[j] );
 
                 // Draw background
-                pPainter->Save();
-                if( i % 2 )
-                    pPainter->SetColor( 1.0, 0.0, 0.0 );
-                else
-                    pPainter->SetColor( 0.0, 0.0, 1.0 );
-
-                if( j % 2 )
+                if( m_pModel->HasBackgroundColor( i, j ) ) 
+                {
+                    pPainter->Save();
+                    pPainter->SetColor( m_pModel->GetBackgroundColor( i, j ) );
                     pPainter->FillRect( dX + dCurX, dY - dCurY, pdColWidths[i], pdRowHeights[j] );
-                pPainter->Restore();
+                    pPainter->Restore();
+                }
 
                 // Set the correct font
                 pFont = m_pModel->GetFont( i, j );
@@ -167,25 +180,63 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter )
 
     // draw borders
     dCurY = 0.0;
-    for( i=0;i<=m_nRows;i++ )
+    for( i=0;i<m_nRows;i++ )
     {
         pPainter->DrawLine( dX, dY - dCurY, dX + dWidth, dY - dCurY);
         dCurY += pdRowHeights[i];
     }
+    pPainter->DrawLine( dX, dY - dCurY, dX + dWidth, dY - dCurY);
 
     dCurX = 0.0;
-    for( i=0;i<=m_nCols;i++ ) 
+    for( i=0;i<m_nCols;i++ ) 
     {
 
         pPainter->DrawLine( dX + dCurX, dY, dX + dCurX, dY - dHeight );
         dCurX += pdColWidths[i];
     }
+    pPainter->DrawLine( dX + dCurX, dY, dX + dCurX, dY - dHeight );
 
     pPainter->Restore();
 
     // Free allocated memory
     delete [] pdColWidths;
     delete [] pdRowHeights;
+}
+
+double PdfTable::GetWidth( double dX, double dY, PdfCanvas* pPage ) const
+{
+    double  dWidth;
+    double  dHeight;
+    double* pdColWidths  = new double[this->GetCols()];
+    double* pdRowHeights = new double[this->GetRows()];
+
+    // Calculate all necessary sizes
+    this->CalculateTableSize( dX, dY, pPage,
+                              pdColWidths, pdRowHeights,
+                              &dWidth, &dHeight );
+
+    delete [] pdColWidths;
+    delete [] pdRowHeights;
+
+    return dWidth;
+}
+
+double PdfTable::GetHeight( double dX, double dY, PdfCanvas* pPage ) const
+{
+    double  dWidth;
+    double  dHeight;
+    double* pdColWidths  = new double[this->GetCols()];
+    double* pdRowHeights = new double[this->GetRows()];
+
+    // Calculate all necessary sizes
+    this->CalculateTableSize( dX, dY, pPage,
+                              pdColWidths, pdRowHeights,
+                              &dWidth, &dHeight );
+
+    delete [] pdColWidths;
+    delete [] pdRowHeights;
+
+    return dHeight;
 }
 
 void PdfTable::CalculateTableSize( const double dX, const double dY, const PdfCanvas* pCanvas, 

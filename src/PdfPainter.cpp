@@ -23,6 +23,7 @@
 
 #include "PdfPainter.h"
 
+#include "PdfColor.h"
 #include "PdfContents.h"
 #include "PdfDictionary.h"
 #include "PdfExtGState.h"
@@ -106,22 +107,15 @@ void PdfPainter::SetStrokingGray( double g )
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
     CheckDoubleRange( g, 0.0, 1.0 );
 
-    m_oss.str("");
-    m_oss << g << " G" << std::endl;
-    m_pCanvas->Append( m_oss.str() );
+    this->SetStrokingColor( PdfColor( g ) );
 }
 
 void PdfPainter::SetGray( double g )
 {
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
     CheckDoubleRange( g, 0.0, 1.0 );
-    
-    m_oss.str("");
-    m_oss << g << " g" << std::endl;
-    m_pCanvas->Append( m_oss.str() );
-        
-    m_curColor1      = g;
-    m_eCurColorSpace = ePdfColorSpace_DeviceGray;
+
+    this->SetColor( PdfColor( g ) );
 }
 
 void PdfPainter::SetStrokingColor( double r, double g, double b )
@@ -132,12 +126,7 @@ void PdfPainter::SetStrokingColor( double r, double g, double b )
     CheckDoubleRange( g, 0.0, 1.0 );
     CheckDoubleRange( b, 0.0, 1.0 );
 
-    m_oss.str("");
-    m_oss << r << " "
-          << g << " "
-          << b 
-          << " RG" << std::endl;
-    m_pCanvas->Append( m_oss.str() );
+    this->SetStrokingColor( PdfColor( r, g, b ) );
 }
 
 void PdfPainter::SetColor( double r, double g, double b )
@@ -146,18 +135,8 @@ void PdfPainter::SetColor( double r, double g, double b )
     CheckDoubleRange( r, 0.0, 1.0 );
     CheckDoubleRange( g, 0.0, 1.0 );
     CheckDoubleRange( b, 0.0, 1.0 );
-    
-    m_oss.str("");
-    m_oss << r << " " 
-          << g << " " 
-          << b 
-          << " rg" << std::endl;
-    m_pCanvas->Append( m_oss.str() );
 
-    m_curColor1      = r;
-    m_curColor2      = g;
-    m_curColor3      = b;
-    m_eCurColorSpace = ePdfColorSpace_DeviceRGB;
+    this->SetColor( PdfColor( r, g, b ) );
 }
 
 void PdfPainter::SetStrokingColorCMYK( double c, double m, double y, double k )
@@ -168,13 +147,7 @@ void PdfPainter::SetStrokingColorCMYK( double c, double m, double y, double k )
     CheckDoubleRange( y, 0.0, 1.0 );
     CheckDoubleRange( k, 0.0, 1.0 );
 
-    m_oss.str("");
-    m_oss << c << " " 
-          << m << " " 
-          << y << " " 
-          << k 
-          << " K" << std::endl;
-    m_pCanvas->Append( m_oss.str() );
+    this->SetStrokingColor( PdfColor( c, m, y, k ) );
 }
 
 void PdfPainter::SetColorCMYK( double c, double m, double y, double k )
@@ -184,20 +157,82 @@ void PdfPainter::SetColorCMYK( double c, double m, double y, double k )
     CheckDoubleRange( m, 0.0, 1.0 );
     CheckDoubleRange( y, 0.0, 1.0 );
     CheckDoubleRange( k, 0.0, 1.0 );
-    
+
+    this->SetColor( PdfColor( c, m, y, k ) );
+}
+
+void PdfPainter::SetStrokingColor( const PdfColor & rColor )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
+
     m_oss.str("");
-    m_oss << c << " " 
-          << m << " " 
-          << y << " " 
-          << k 
-          << " k" << std::endl;
+
+    switch( rColor.GetColorSpace() ) 
+    {
+        default: 
+        case ePdfColorSpace_DeviceRGB:
+            m_oss << rColor.GetRed()   << " "
+                  << rColor.GetGreen() << " "
+                  << rColor.GetBlue() 
+                  << " RG" << std::endl;
+            break;
+        case ePdfColorSpace_DeviceCMYK:
+            m_oss << rColor.GetCyan()    << " " 
+                  << rColor.GetMagenta() << " " 
+                  << rColor.GetYellow()  << " " 
+                  << rColor.GetBlack() 
+                  << " K" << std::endl;
+            break;
+        case ePdfColorSpace_DeviceGray:
+            m_oss << rColor.GetGrayScale() << " G" << std::endl;
+            break;
+    }
+
     m_pCanvas->Append( m_oss.str() );
-    
-    m_curColor1      = c;
-    m_curColor2      = m;
-    m_curColor3      = y;
-    m_curColor4      = k;
-    m_eCurColorSpace = ePdfColorSpace_DeviceCMYK;
+}
+
+void PdfPainter::SetColor( const PdfColor & rColor )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
+
+    m_oss.str("");
+
+    switch( rColor.GetColorSpace() ) 
+    {
+        default: 
+        case ePdfColorSpace_DeviceRGB:
+            m_eCurColorSpace = ePdfColorSpace_DeviceRGB;
+            m_curColor1      = rColor.GetRed();
+            m_curColor2      = rColor.GetGreen();
+            m_curColor3      = rColor.GetBlue();
+
+            m_oss << rColor.GetRed()   << " "
+                  << rColor.GetGreen() << " "
+                  << rColor.GetBlue() 
+                  << " rg" << std::endl;
+            break;
+        case ePdfColorSpace_DeviceCMYK:
+            m_eCurColorSpace = ePdfColorSpace_DeviceCMYK;
+            m_curColor1      = rColor.GetCyan();
+            m_curColor2      = rColor.GetMagenta();
+            m_curColor3      = rColor.GetYellow();
+            m_curColor4      = rColor.GetBlack();
+
+            m_oss << rColor.GetCyan()    << " " 
+                  << rColor.GetMagenta() << " " 
+                  << rColor.GetYellow()  << " " 
+                  << rColor.GetBlack() 
+                  << " k" << std::endl;
+            break;
+        case ePdfColorSpace_DeviceGray:
+            m_eCurColorSpace = ePdfColorSpace_DeviceGray;
+            m_curColor1      = rColor.GetGrayScale();
+
+            m_oss << rColor.GetGrayScale() << " g" << std::endl;
+            break;
+    }
+
+    m_pCanvas->Append( m_oss.str() );
 }
 
 void PdfPainter::SetStrokeWidth( double dWidth )

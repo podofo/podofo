@@ -550,6 +550,7 @@ void MMTest( PdfPainterMM* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
 void TableTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
+    int i,z;
     double        dX     = 10000 * CONVERSION_CONSTANT;
     double        dY     = (pPage->GetPageSize().GetHeight() - 40000 * CONVERSION_CONSTANT);
 
@@ -557,9 +558,18 @@ void TableTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pFont->SetFontSize( 12.0f );
     pPainter->SetFont( pFont );
 
+    const int nCols = 3;
+    const int nRows = 10;
+    PdfSimpleTableModel model( nCols, nRows );
+    for(i=0;i<nCols;i++)
+        for(z=0;z<nRows;z++) 
+        {
+            std::ostringstream oss;
+            oss << "Cell " << i << " " << z;
+            model.SetText( i, z, PdfString( oss.str() ) );
+        }
 
-    PdfSimpleTableModel model;
-    PdfTable table1( 3, 10 );
+    PdfTable table1( nCols, nRows );
     table1.SetTableWidth ( 80000 * CONVERSION_CONSTANT );
     table1.SetTableHeight( 120000 * CONVERSION_CONSTANT );
     table1.SetModel( &model );
@@ -567,9 +577,26 @@ void TableTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
     dY = pPage->GetPageSize().GetHeight()/2.0 - 30000 * CONVERSION_CONSTANT;
     dX = 2000.0 * CONVERSION_CONSTANT;
-    PdfTable table2( 5, 4 );
+
+    const int nCols2 = 5;
+    const int nRows2 = 4;
+    PdfSimpleTableModel model2( nCols2, nRows2 );
+    model2.SetAlignment( ePdfAlignment_Center );
+    model2.SetBackgroundColor( PdfColor( 0.3 ) );
+    model2.SetBackgroundEnabled( true );
+    for(i=0;i<nCols2;i++)
+        for(z=0;z<nRows2;z++) 
+        {
+            std::ostringstream oss;
+            oss << rand();
+            model2.SetText( i, z, PdfString( oss.str() ) );
+        }
+
+    PdfTable table2( nCols2, nRows2 );
+    table2.SetModel( &model2 );
     table2.Draw( dX, dY, pPainter );
 
+    
 }
 
 int main( int argc, char* argv[] ) 

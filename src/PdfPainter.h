@@ -28,6 +28,7 @@
 namespace PoDoFo {
 
 class PdfCanvas;
+class PdfColor;
 class PdfExtGState;
 class PdfFont;
 class PdfImage;
@@ -137,6 +138,17 @@ class PODOFO_API PdfPainter {
      */
     void SetColorCMYK( double c, double m, double y, double k );
 
+    /** Set the color for all following stroking operations. 
+     * 
+     *  \param rColor a PdfColor object
+     */
+    void SetStrokingColor( const PdfColor & rColor );
+
+    /** Set the color for all following non-stroking operations. 
+     * 
+     *  \param rColor a PdfColor object
+     */
+    void SetColor( const PdfColor & rColor );
 
     /** Set the line width for all stroking operations.
      *  \param dWidth in PDF User Units.
