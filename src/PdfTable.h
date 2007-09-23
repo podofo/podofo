@@ -119,7 +119,7 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
      *
      * \returns the horizontal alignment of the contents in the cell
      */
-    virtual EPdfAlignment GetAlignment ( int col, int row ) const;
+    inline virtual EPdfAlignment GetAlignment ( int col, int row ) const;
 
     /** 
      * \param col the column of the table cell
@@ -127,7 +127,7 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
      *
      * \returns the vertical alignment of the contents in the cell
      */
-    virtual EPdfVerticalAlignment GetVerticalAlignment ( int col, int row ) const;
+    inline virtual EPdfVerticalAlignment GetVerticalAlignment ( int col, int row ) const;
 
     /** 
      * \param col the column of the table cell
