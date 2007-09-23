@@ -138,6 +138,7 @@ class PdfTranslator
 
 	bool checkIsPDF(std::string path);
 	PdfObject* getInheritedResources(PdfPage* page);
+	void mergeResKey(PdfObject *base, PdfName key,  PdfObject *tomerge);
         void drawLine(double x, double y, double xx, double yy, std::ostringstream & a );
         void signature(double x , double y, int sheet, const std::vector<int> & pages, std::ostringstream & a );
 	int pageRange(int plan, int sheet , int pagesInBooklet, int numBooklet); // much more a macro !

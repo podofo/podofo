@@ -149,6 +149,45 @@ void PdfTranslator::addToSource( const std::string & source )
 	
 }
 
+// When getting resources along pages tree, it would be bad to overwrite an XObject dictionnary.
+void PdfTranslator::mergeResKey(PdfObject *base,PdfName key, PdfObject *tomerge)
+{
+	if(key == PdfName("ProcSet"))
+		return;
+	
+	PdfObject * kbase = base->GetDictionary().GetKey(key);
+	if(kbase->IsReference() && tomerge->IsReference())
+	{
+		if(kbase->GetReference() != tomerge->GetReference())
+		{
+			PdfObject *kbaseO = targetDoc->GetObjects().GetObject(  kbase->GetReference() );
+			PdfObject *tomergeO = targetDoc->GetObjects().GetObject(  tomerge->GetReference() ) ;
+			TKeyMap tomergemap = tomergeO->GetDictionary().GetKeys();
+			TCIKeyMap itres;
+			for(itres = tomergemap.begin(); itres != tomergemap.end(); ++itres)
+			{
+				if(!kbaseO->GetDictionary().HasKey((*itres).first))
+				{
+					kbaseO->GetDictionary().AddKey((*itres).first, (*itres).second);
+				}
+			}
+		}
+		
+	}
+	else if(kbase->IsDictionary() && tomerge->IsDictionary() )
+	{
+		TKeyMap tomergemap = tomerge->GetDictionary().GetKeys();
+		TCIKeyMap itres;
+		for(itres = tomergemap.begin(); itres != tomergemap.end(); ++itres)
+		{
+			if(!kbase->GetDictionary().HasKey((*itres).first))
+			{
+				kbase->GetDictionary().AddKey((*itres).first, (*itres).second);
+			}
+		}
+	}
+}
+
 PdfObject* PdfTranslator::getInheritedResources(PdfPage* page)
 {
 	PdfObject *res = new PdfObject; 
@@ -164,7 +203,14 @@ PdfObject* PdfTranslator::getInheritedResources(PdfPage* page)
 				TCIKeyMap itres;
 				for(itres = resmap.begin(); itres != resmap.end(); ++itres)
 				{
-					res->GetDictionary().AddKey((*itres).first, (*itres).second);
+					if(res->GetDictionary().HasKey((*itres).first))
+					{
+						mergeResKey(res,(*itres).first , (*itres).second);
+					}
+					else
+					{
+						res->GetDictionary().AddKey((*itres).first, (*itres).second);
+					}
 				}
 			}
 			else if(curRes->IsReference())
@@ -174,7 +220,14 @@ PdfObject* PdfTranslator::getInheritedResources(PdfPage* page)
 				TCIKeyMap itres;
 				for(itres = resmap.begin(); itres != resmap.end(); ++itres)
 				{
-					res->GetDictionary().AddKey((*itres).first, (*itres).second);
+					if(res->GetDictionary().HasKey((*itres).first))
+					{
+						mergeResKey(res,(*itres).first , (*itres).second);
+					}
+					else
+					{
+						res->GetDictionary().AddKey((*itres).first, (*itres).second);
+					}
 				}
 			}
 		}
