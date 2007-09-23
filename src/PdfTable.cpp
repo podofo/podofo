@@ -28,6 +28,8 @@
 namespace PoDoFo {
 
 PdfSimpleTableModel::PdfSimpleTableModel()
+    : m_pFont( NULL ), m_eAlignment( ePdfAlignment_Left ),
+      m_eVerticalAlignment( ePdfVerticalAlignment_Center )
 {
 
 }

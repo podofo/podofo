@@ -4,6 +4,7 @@ SET(PODOFO_SOURCES
     PdfAnnotation.cpp
     PdfArray.cpp
     PdfCanvas.cpp
+    PdfColor.cpp
     PdfContents.cpp
     PdfData.cpp
     PdfDataType.cpp
@@ -70,6 +71,7 @@ SET(PODOFO_HEADERS
     PdfAnnotation.h
     PdfArray.h
     PdfCanvas.h
+    PdfColor.h
     PdfContents.h
     PdfData.h
     PdfDataType.h
@@ -119,6 +121,7 @@ SET(PODOFO_HEADERS
     PdfStream.h
     PdfStreamedDocument.h
     PdfString.h
+    PdfTable.h
     PdfTokenizer.h
     PdfTTFWriter.h
     PdfVariant.h

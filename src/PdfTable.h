@@ -105,6 +105,24 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
 
     virtual ~PdfSimpleTableModel();
 
+    /** Set the font that will be used to draw all table contents.
+     *
+     *  \param pFont the font for the table contents
+     */
+    inline void SetFont( PdfFont* pFont );
+
+    /** Set the horizontal alignment of the contents in all table cells
+     *
+     *  \param eAlignment the horizontal alignment of text in a table cell
+     */
+    inline void SetAlignment( EPdfAlignment eAlignment );
+
+    /** Set the vertical alignment of the contents in all table cells
+     *
+     *  \param eAlignment the vertiical alignment of text in a table cell
+     */
+    inline void SetAlignment( EPdfVerticalAlignment eAlignment );
+
     /** 
      * \param col the column of the table cell
      * \param row the row of the table cell
@@ -146,22 +164,51 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
     inline virtual bool HasBackgroundColor( int col, int row ) const;
 
  private:
+    PdfFont*              m_pFont;
+
+    EPdfAlignment         m_eAlignment;
+    EPdfVerticalAlignment m_eVerticalAlignment;
 };
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-EPdfAlignment PdfSimpleTableModel::GetAlignment ( int col, int row ) const
+void PdfSimpleTableModel::SetFont( PdfFont* pFont )
 {
-    return static_cast<EPdfAlignment>(col % 3); //ePdfAlignment_Center;
+    m_pFont = pFont;
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-EPdfVerticalAlignment PdfSimpleTableModel::GetVerticalAlignment ( int col, int row ) const
+void PdfSimpleTableModel::SetAlignment( EPdfAlignment eAlignment )
 {
-    return static_cast<EPdfVerticalAlignment>(col % 3); //ePdfAlignment_Center;
+    m_eAlignment = eAlignment;
+}
+
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfSimpleTableModel::SetAlignment( EPdfVerticalAlignment eAlignment )
+{
+    m_eVerticalAlignment = eAlignment;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+EPdfAlignment PdfSimpleTableModel::GetAlignment ( int, int ) const
+{
+    return m_eAlignment;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+EPdfVerticalAlignment PdfSimpleTableModel::GetVerticalAlignment ( int, int ) const
+{
+    return m_eVerticalAlignment;
 }
 
 // -----------------------------------------------------
