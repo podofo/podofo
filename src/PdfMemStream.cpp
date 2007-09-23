@@ -119,7 +119,7 @@ void PdfMemStream::FlateCompress()
 
     PdfArray::const_iterator tciFilters;
     
-    if( !m_lLength );
+    if( !m_lLength )
         return; // ePdfError_ErrOk
 
     // TODO: Handle DecodeParms
