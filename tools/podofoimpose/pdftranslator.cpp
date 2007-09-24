@@ -103,6 +103,7 @@ void PdfTranslator::setSource ( const std::string & source )
 	
 	if(checkIsPDF(source))
 	{
+// 		std::cerr << "Appending "<<source<<" to source" << endl;
 		multiSource.push_back(source);
 	}
 	else 
@@ -117,7 +118,12 @@ void PdfTranslator::setSource ( const std::string & source )
 		do
 		{
 			in.getline (filenameBuffer, 1000 );
-			multiSource.push_back(std::string(filenameBuffer, in.gcount() ) );
+			std::string ts(filenameBuffer, in.gcount() );
+			if(ts.size() > 4)// at least ".pdf" because just test if ts is empty doesn't work.
+			{
+				multiSource.push_back( ts );
+// 				std::cerr << "Appending "<< ts <<" to source" << endl;
+			}
 		}
 		while ( !in.eof() );
 		in.close();
@@ -128,12 +134,15 @@ void PdfTranslator::setSource ( const std::string & source )
 	{
 		if(ms == multiSource.begin())
 		{
+			std::cerr << "First doc is "<< *ms  << endl;
 			sourceDoc = new PdfMemDocument ( (*ms).c_str() );
 		}
 		else
 		{
 			PdfMemDocument mdoc((*ms).c_str());
-			targetDoc->InsertPages( mdoc, 0, mdoc.GetPageCount());
+			std::cerr << "Appending "<< mdoc.GetPageCount() << " page(s) of " << *ms  << endl;
+			
+			sourceDoc->InsertPages( mdoc, 0, mdoc.GetPageCount());
 		}
 	}
 }
