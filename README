@@ -97,15 +97,17 @@ consumes a lot of resources which can be spend better on improving PoDoFo
 itself.
 
 Unix users should generate Unix Makefiles with CMake, though it's also possible
-to produce a KDevelop project.
+to produce a KDevelop project. See section 4.1.1 and section 4.1.
 
-On Windows, it is recommended that you use CMake to generate Visual Studio
-project files appropriate for your VS version and your libraries. You can also
-generate NMake builds or MinGW Makefiles (see "Installation with CMake").
+If your application or library uses Visual Studio, CMake can be used to
+build a Visual Studio project you can use. Alternately, if you are using
+MinGW for your existing code, CMake can make you a MinGW makefile to
+build a mingw compatible version of PoDoFo. You must build PoDoFo with
+the same compiler as your application. See section 4.1.3 and section 4.1.
 
 Mac OS X users will need to use CMake to generate a conventional UNIX build
 with Makefiles, or may generate an XCode project with CMake. See the Mac OS X
-section below.
+section (4.1.2) below, and the generict instructions in 4.1 .
 
 4.1 STLPort support
 -------------------
@@ -134,6 +136,10 @@ platforms. The CMake build has been tested on:
 	- gcc 4.0 [Linux: Debian 4.0] ("Unix Makefiles" target)
 	- gcc 4.1 [Linux: Debian 4.0] ("Unix Makefiles" target)
 	- gcc 4.0 [Mac OS X 10.4.10] ("Unix Makefiles" target)
+
+PoDoFo is also known to build with Visual C++ 6 using CMake, though it is
+not regularly tested by the team so you might need to do some work to use
+a recent svn build.
 
 You can use the CMake variable CMAKE_BUILD_TYPE to control the type of
 build. The main values supported are DEBUG and RELEASE. The default is
@@ -307,6 +313,15 @@ extra argument to cmake:
 
 	-DPODOFO_BUILD_SHARED=FALSE
 
+PoDoFo is designed work correctly if you download pre-built copies of the
+libraries it requires (such as those published by the GnuWin32 project at
+SourceForge) even if they were built with a different compiler and use a
+different runtime. For release, you might want to consider building your own
+copies of the libraries, but this is not strictly necessary. If you have done
+this, however, or know the runtimes used by the libraries are compatible, you
+can pass -DJPEG_COMPATIBLE_RUNTIME (or -DTIFF... or -DFREETYPE...) to tell
+PoDoFo it's safe not to use its' workarounds for incompatible runtimes.
+
 4.1.3.1 CMake builds on Windows with MinGW
 ==========================================
 
@@ -334,17 +349,21 @@ this will cause you problems if you intend to use PoDoFo across DLL boundaries,
 but until libstd++ is made shared on MinGW there's not much to be done. VC++
 does not suffer from this issue.
 
-4.1.3.1 CMake builds on Windows with Visual Studio
+4.1.3.2 CMake builds on Windows with Visual Studio
 ==================================================
 
 A Visual Studio build requires that Microsoft Visual Studio be installed.
 Visual Studio 8 2005 Express Edition is known to work, and is a free download
-from Microsoft. The visual studio build has two stages - first, CMake is used
-to generate a Visual Studio solution:
+from Microsoft. The GnuWin32 libraries may be used for freetype etc, however it
+is preferable for release to build your own copies of these libraries with your
+compiler and bundle those copies (see 4.1.3).
+
+The visual studio build has two stages - first, CMake is used to generate a
+Visual Studio solution:
 
 md ..\podofo-debug
 cd ..\podofo-debug
-cmake -G "Visual Studio 8 2005" ..\podofo-src -DCMAKE_INCLUDE_PATH=c:\progra~1\gnuwin32\include -DCMAKE_LIBRARY_PATH=c:\progra~1\gnuwin32\lib
+\path\to\cmake -G "Visual Studio 8 2005" ..\podofo-src -DCMAKE_INCLUDE_PATH=c:\progra~1\gnuwin32\include -DCMAKE_LIBRARY_PATH=c:\progra~1\gnuwin32\lib
 podofo.sln
 
 ... and build the solution when it opens in Visual Studio.
@@ -358,7 +377,19 @@ http://msdn.microsoft.com/vstudio/express/ .
 You will need to install the Win32 SDK if using the Express Edition, since it
 is not bundled.
 
-4.1.3.1 CMake builds on Windows with NMake
+If you have problems, try deleting your build directory then re-running
+the commands above after running:
+
+set PATH=%SystemRoot%;%SystemRoot%\SYSTEM32
+
+in the cmd.exe window you are using. If you do this you'll have to copy
+jpeg62.dll, freetype6.dll, and zlib.dll (names may vary; make sure they're the
+ones that match the LIB files you linked to) to the same folder as the .exe you
+are trying to run. This should resolve any issues caused by incompatible DLLs
+with the same names being present earlier on your PATH. Do this if you get
+unexplained crashes or errors about missing/mismatched ordinals.
+
+4.1.3.3 CMake builds on Windows with NMake
 ==========================================
 
 PoDoFo can also be built with NMake. The build procedure is essentially the same
