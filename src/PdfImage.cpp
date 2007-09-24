@@ -189,9 +189,9 @@ void PdfImage::LoadFromFile( const char* pszFilename )
 }
 
 #ifdef PODOFO_HAVE_JPEG_LIB
-#ifdef _WIN32
+#if !defined(PODOFO_JPEG_RUNTIME_COMPATIBLE)
 void jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize);
-#endif // _WIN32
+#endif // PODOFO_JPEG_RUNTIME_COMPATIBLE
 
 void PdfImage::LoadFromJpeg( const char* pszFilename )
 {
@@ -213,7 +213,7 @@ void PdfImage::LoadFromJpeg( const char* pszFilename )
     cinfo.err = jpeg_std_error(&jerr);
     jpeg_create_decompress(&cinfo);
 
-#ifdef _WIN32
+#if !defined(PODOFO_JPEG_RUNTIME_COMPATIBLE)
 	const long lSize = 1024;
 	PdfRefCountedBuffer buffer( lSize );
 	fread( buffer.GetBuffer(), sizeof(char), lSize, hInfile );
@@ -227,7 +227,7 @@ void PdfImage::LoadFromJpeg( const char* pszFilename )
 	jpeg_memory_src ( &cinfo, reinterpret_cast<JOCTET*>(buffer.GetBuffer()), buffer.GetSize() );
 #else
 	jpeg_stdio_src(&cinfo, hInfile);
-#endif // _WIN32
+#endif // PODOFO_JPEG_RUNTIME_COMPATIBLE
 
     if( jpeg_read_header(&cinfo, TRUE) <= 0 )
     {

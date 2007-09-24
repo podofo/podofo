@@ -203,6 +203,32 @@ ELSE(WANT_FONTCONFIG)
 	SET(PODOFO_LIB_FONTCONFIG:STRING)
 ENDIF(WANT_FONTCONFIG)
 
+# libjpeg has routines that take a FILE*. This is safe if and only
+# if the C runtime podofo is built against is the same as the C runtime
+# libjpeg is built against. That is not always the case.
+#
+# If the user has explicitly told us that libjpeg's libc is binary compatible,
+# don't worry about using workarounds. Otherwise, on Windows we assume it's not
+# compatible and on other platforms we'll assume it is. This change currently
+# only affects PdfImage.cpp.
+#
+IF(DEFINED JPEG_RUNTIME_COMPATIBLE)
+	IF(JPEG_RUNTIME_COMPATIBLE)
+		# Trust the user to know what they're doing and pass a FILE*
+		ADD_DEFINITIONS(-DPODOFO_JPEG_RUNTIME_COMPATIBLE)
+	ENDIF(JPEG_RUNTIME_COMPATIBLE)
+ELSE(DEFINED JPEG_RUNTIME_COMPATIBLE)
+	IF(NOT WIN32)
+		# It's a sensible platform and the user hasn't told us
+		# otherwise - pass a FILE* .
+		ADD_DEFINITIONS(-DPODOFO_JPEG_RUNTIME_COMPATIBLE)
+	ENDIF(NOT WIN32)
+ENDIF(DEFINED JPEG_RUNTIME_COMPATIBLE)
+
+IF (WIN32 OR JPEG_RUNTIME_COMPATIBLE)
+ELSE (WIN32 OR JPEG_RUNTIME_COMPATIBLE)
+ENDIF (WIN32 OR JPEG_RUNTIME_COMPATIBLE)
+
 INCLUDE_DIRECTORIES(
     src
     ${LIBFREETYPE_FT2BUILD_H}
