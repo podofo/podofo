@@ -50,6 +50,7 @@ PdfFont::PdfFont( PdfFontMetrics* pMetrics, bool bEmbed, PdfVecObjects* pParent 
     m_bBold       = false;
     m_bItalic     = false;
     m_bUnderlined = false;
+	m_bStrikedOut = false;
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.

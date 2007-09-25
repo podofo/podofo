@@ -78,6 +78,17 @@ class PODOFO_API PdfFont : public PdfElement {
      */
     inline bool IsUnderlined() const;
 
+	/** Set the strikeout property of the font
+     *  \param bStrikeOut if true any text drawn with this font
+     *                    by a PdfPainter will be strikedout.
+     *  Default is false
+     */
+	inline void SetStrikeOut( bool bStrikeOut );
+
+    /** \returns true if the font is striked out
+     */
+	inline bool IsStrikeOut() const;
+
     /** Returns the identifier of this font how it is known
      *  in the pages resource dictionary.
      *  \returns PdfName containing the identifier (e.g. /Ft13)
@@ -134,6 +145,7 @@ class PODOFO_API PdfFont : public PdfElement {
     bool  m_bBold;
     bool  m_bItalic;
     bool  m_bUnderlined;
+	bool  m_bStrikedOut;
 
     PdfName m_Identifier;
     PdfName m_BaseFont;
@@ -174,6 +186,16 @@ void PdfFont::SetUnderlined( bool bUnder )
 bool PdfFont::IsUnderlined() const
 {
     return m_bUnderlined;
+}
+
+void PdfFont::SetStrikeOut( bool bStrikeOut )
+{
+    m_bStrikedOut = bStrikeOut;
+}
+
+bool PdfFont::IsStrikeOut() const
+{
+    return m_bStrikedOut;
 }
 
 };

@@ -30,6 +30,14 @@ static inline void CheckDoubleRange( double val, double min, double max )
     }
 }
 
+PdfColor::PdfColor()
+    : m_eColorSpace( ePdfColorSpace_DeviceRGB )
+{
+    m_uColor.rgb[0] = 0.0;
+    m_uColor.rgb[1] = 0.0;
+    m_uColor.rgb[2] = 0.0;
+}
+
 PdfColor::PdfColor( double dGray )
     : m_eColorSpace( ePdfColorSpace_DeviceGray )
 {

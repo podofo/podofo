@@ -587,15 +587,27 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
 
     this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->Reference(), PdfName("Font") );
 
-    if( m_pFont->IsUnderlined() )
+    if( m_pFont->IsUnderlined() || m_pFont->IsStrikeOut())
     {
         this->Save();
         this->SetCurrentStrokingColor();
         this->SetStrokeWidth( m_pFont->GetFontMetrics()->GetUnderlineThickness() );
-        this->DrawLine( dX, 
-                        dY + m_pFont->GetFontMetrics()->GetUnderlinePosition(), 
-                        dX + m_pFont->GetFontMetrics()->StringWidth( pszTab ),
-                        dY + m_pFont->GetFontMetrics()->GetUnderlinePosition() );
+		
+		// Draw underline
+		if( m_pFont->IsUnderlined() )
+			this->DrawLine( dX, 
+				            dY + m_pFont->GetFontMetrics()->GetUnderlinePosition(), 
+					        dX + m_pFont->GetFontMetrics()->StringWidth( pszTab ),
+						    dY + m_pFont->GetFontMetrics()->GetUnderlinePosition() );
+
+		// Draw strikeout
+		if( m_pFont->IsStrikeOut() )
+			this->DrawLine( dX, 
+				            dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition(), 
+					        dX + m_pFont->GetFontMetrics()->StringWidth( pszTab ),
+						    dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition() );
+
+
         this->Restore();
     }
 

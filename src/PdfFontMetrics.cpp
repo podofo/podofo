@@ -142,6 +142,7 @@ void PdfFontMetrics::InitFromFace()
     m_dLineSpacing        = 0.0;
     m_dUnderlineThickness = 0.0;
     m_dUnderlinePosition  = 0.0;
+	m_dStrikeOutPosition  = 0.0;
     m_fFontSize           = 0.0f;
 
     if ( m_face )
@@ -1272,9 +1273,12 @@ void PdfFontMetrics::SetFontSize( float fSize )
 
     m_dUnderlineThickness = (static_cast<double>(m_face->underline_thickness) * fSize / m_face->units_per_EM);
     m_dUnderlinePosition  = (static_cast<double>(m_face->underline_position)  * fSize  / m_face->units_per_EM);
-
+	
     m_dAscent  = static_cast<double>(m_face->ascender)  * fSize / m_face->units_per_EM;
     m_dDescent = static_cast<double>(m_face->descender) * fSize / m_face->units_per_EM;
+
+	// TODO: DS Fetch strikeout position
+	//m_dStrikeOutPosition  = (static_cast<double>(m_face->stri)  * fSize  / m_face->units_per_EM);
 
     m_fFontSize = fSize;
 }

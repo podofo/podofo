@@ -33,6 +33,10 @@ namespace PoDoFo {
  */
 class PODOFO_API PdfColor {
  public:
+	/** Create a PdfColor object that is RGB black.
+	 */
+	PdfColor();
+
     /** Create a new PdfColor object with
      *  a grayscale value.
      *

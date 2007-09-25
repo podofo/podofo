@@ -155,6 +155,18 @@ class PODOFO_API PdfFontMetrics {
      */
     inline long GetUnderlinePositionMM() const;
 
+    /** Return the position of the strikeout for the current font
+     *  size in PDF units
+     *  \returns the underline position in PDF units
+     */
+	inline double GetStrikeOutPosition() const;
+
+    /** Return the position of the strikeout for the current font
+     *  size in 1/1000th mm
+     *  \returns the underline position in 1/1000th mm
+     */
+	inline unsigned long GetStrikeOutPositionMM() const;
+
     /** Get a pointer to the path of the font file.
      *  \returns a zero terminated string containing the filename of the font file
      */
@@ -323,6 +335,7 @@ class PODOFO_API PdfFontMetrics {
     double        m_dLineSpacing;
     double        m_dUnderlineThickness;
     double        m_dUnderlinePosition;
+	double        m_dStrikeOutPosition;
 
     std::string   m_sFilename;
     char*	  m_pFontData;
@@ -374,6 +387,22 @@ double PdfFontMetrics::GetUnderlinePosition() const
 long PdfFontMetrics::GetUnderlinePositionMM() const
 {
     return static_cast<long>(m_dUnderlinePosition /  PODOFO_CONVERSION_CONSTANT);
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+double PdfFontMetrics::GetStrikeOutPosition() const
+{
+	return m_dStrikeOutPosition;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+unsigned long PdfFontMetrics::GetStrikeOutPositionMM() const
+{
+	    return static_cast<long>(m_dStrikeOutPosition /  PODOFO_CONVERSION_CONSTANT);
 }
 
 // -----------------------------------------------------
