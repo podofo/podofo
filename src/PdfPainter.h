@@ -301,7 +301,7 @@ class PODOFO_API PdfPainter {
      */
     void FillCircle( double dX, double dY, double dRadius );
 
-    /** Draw a text string on a page using a given font object.
+    /** Draw a single-line text string on a page using a given font object.
      *  You have to call SetFont before calling this function.
      *  \param dX the x coordinate
      *  \param dY the y coordinate
@@ -311,7 +311,7 @@ class PODOFO_API PdfPainter {
      */
     void DrawText( double dX, double dY, const PdfString & sText);
 
-    /** Draw a text string on a page using a given font object.
+    /** Draw a single-line text string on a page using a given font object.
      *  You have to call SetFont before calling this function.
      *  \param dX the x coordinate
      *  \param dY the y coordinate
@@ -321,6 +321,39 @@ class PODOFO_API PdfPainter {
      *  \see SetFont()
      */
     void DrawText( double dX, double dY, const PdfString & sText, long lLen );
+
+	/** Draw multiline text into a rectangle doing automatic wordwrapping.
+	 *  The current font is used and SetFont has to be called at least once
+	 *  before using this function
+	 *
+	 *  \param dX the x coordinate of the text area (left)
+	 *  \param dY the y coordinate of the text area (bottom)
+	 *  \param dWidth width of the text area
+	 *  \param dHeight height of the text area
+	 *  \param rsText the text which should be drawn
+	 *  \param eAlignment alignment of the individual text lines in the given bounding box
+	 */
+	void DrawMultiLineText( double dX, double dY, double dWidth, double dHeight, 
+		                    const PdfString & rsText, EPdfAlignment eAlignment = ePdfAlignment_Left );
+
+	/** Draw multiline text into a rectangle doing automatic wordwrapping.
+	 *  The current font is used and SetFont has to be called at least once
+	 *  before using this function
+	 *
+	 *  \param rRect bounding rectangle of the text
+	 *  \param rsText the text which should be drawn
+	 *  \param eAlignment alignment of the individual text lines in the given bounding box
+	 */
+	inline void DrawMultiLineText( const PdfRect & rRect, const PdfString & rsText, EPdfAlignment eAlignment = ePdfAlignment_Left );
+
+	/** Draw a single line of text horizontally aligned.
+	 *  \param dX the x coordinate of the text line
+	 *  \param dY the y coordinate of the text line
+	 *  \param dWidth the width of the text line
+	 *  \param rsText the text to draw
+	 *  \param eAlignmet alignment of the text line
+	 */
+	void DrawTextAligned( double dX, double dY, double dWidth, const PdfString & rsText, EPdfAlignment eAlignment );
 
     /** Draw an image on the current page.
      *  \param dX the x coordinate (bottom left position of the image)
@@ -561,6 +594,15 @@ class PODOFO_API PdfPainter {
      */
     void SetCurrentStrokingColor();
 
+	/** Expand all tab characters in a string
+     *  using spaces.
+	 *
+	 *  \param rsString expand all tabs in this string using spaces
+	 *  \returns an expanded copy of the passed string
+	 *  \see SetTabWidth
+	 */
+	PdfString ExpandTabs( const PdfString & rsString );
+
  protected:
     /** All drawing operations work on this stream.
      *  This object may not be NULL. If it is NULL any function accessing it should
@@ -675,6 +717,13 @@ void PdfPainter::FillRect( const PdfRect & rRect, double dRoundX, double dRoundY
 					dRoundX, dRoundY );
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfPainter::DrawMultiLineText( const PdfRect & rRect, const PdfString & rsText, EPdfAlignment eAlignment)
+{
+	this->DrawMultiLineText( rRect.GetLeft(), rRect.GetBottom(), rRect.GetWidth(), rRect.GetHeight(), rsText, eAlignment );
+}
 
 };
 

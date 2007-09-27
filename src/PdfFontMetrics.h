@@ -113,13 +113,13 @@ class PODOFO_API PdfFontMetrics {
      *  \param c character
      *  \returns the width in PDF units
      */
-    double CharWidth( char c ) const;
+    double CharWidth( unsigned char c ) const;
 
     /** Retrieve the width of the given character in 1/1000th mm in the current font
      *  \param c character
      *  \returns the width in 1/1000th mm
      */
-    unsigned long CharWidthMM( char c ) const;
+    unsigned long CharWidthMM( unsigned char c ) const;
 
     /** Retrieve the line spacing for this font
      *  \returns the linespacing in PDF units

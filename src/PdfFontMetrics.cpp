@@ -1204,15 +1204,15 @@ std::string PdfFontMetrics::GetFilenameForFont( FcConfig* pConfig, const char* p
 }
 #endif
 
-double PdfFontMetrics::CharWidth( char c ) const
+double PdfFontMetrics::CharWidth( unsigned char c ) const
 {
     FT_Error ftErr;
     double   dWidth = 0.0;
 
 
-    if( static_cast<int>(c) < PODOFO_WIDTH_CACHE_SIZE ) 
+    if( static_cast<unsigned int>(c) < PODOFO_WIDTH_CACHE_SIZE ) 
     {
-        dWidth = m_vecWidth[static_cast<int>(c)];
+        dWidth = m_vecWidth[static_cast<unsigned int>(c)];
     }
     else
     {
@@ -1227,7 +1227,7 @@ double PdfFontMetrics::CharWidth( char c ) const
 		   static_cast<double>( m_fFontSize * m_fFontScale / 100.0 * m_fFontCharSpace / 100.0);
 }
 
-unsigned long PdfFontMetrics::CharWidthMM( char c ) const
+unsigned long PdfFontMetrics::CharWidthMM( unsigned char c ) const
 {
     return static_cast<unsigned long>(this->CharWidth( c ) / PODOFO_CONVERSION_CONSTANT);
 }

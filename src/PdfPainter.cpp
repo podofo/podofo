@@ -531,11 +531,6 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText )
 
 void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long lStringLen )
 {
-    int         nTabCnt = 0;
-    int         i,z;
-    char*       pszTab;
-    char*       pBuffer;
-    const char* pszText;
     long        lLen;
 
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
@@ -545,46 +540,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    // replace anytabs in pszText by enough spaces
-    for( i=0;i<=lStringLen;i++ )
-        if( sText.GetString()[i] == '\t' )
-            ++nTabCnt;
-
-    if( nTabCnt )
-    {
-        pszText = sText.GetString();
-        lLen    = lStringLen + nTabCnt*(m_nTabWidth-1) + 1;
-
-        pszTab = static_cast<char*>(malloc( sizeof( char ) * lLen ));
-        if( !pszTab )
-        {
-            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
-        }
-
-        i = 0;
-        while( lStringLen-- )
-        {
-            if( *pszText == '\t' )
-            {
-                for( z=0;z<m_nTabWidth; z++ )
-                    pszTab[i+z] += ' ';
-                
-                i+=m_nTabWidth;
-            }
-            else
-                pszTab[i++] = *pszText;
-
-            ++pszText;
-        }
-        
-        lStringLen = lLen;
-        pszTab[i]  = '\0';
-    }
-    else 
-        // pszTab is accessed only readonly beyond this point
-        // so this cast is ok
-        pszTab = const_cast<char*>(sText.GetString());
-
+	PdfString sString = this->ExpandTabs( PdfString( sText.GetString(), lStringLen ) );
     this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->Reference(), PdfName("Font") );
 
     if( m_pFont->IsUnderlined() || m_pFont->IsStrikeOut())
@@ -597,22 +553,23 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
 		if( m_pFont->IsUnderlined() )
 			this->DrawLine( dX, 
 				            dY + m_pFont->GetFontMetrics()->GetUnderlinePosition(), 
-					        dX + m_pFont->GetFontMetrics()->StringWidth( pszTab ),
+							dX + m_pFont->GetFontMetrics()->StringWidth( sString.GetString() ),
 						    dY + m_pFont->GetFontMetrics()->GetUnderlinePosition() );
 
 		// Draw strikeout
 		if( m_pFont->IsStrikeOut() )
 			this->DrawLine( dX, 
 				            dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition(), 
-					        dX + m_pFont->GetFontMetrics()->StringWidth( pszTab ),
+					        dX + m_pFont->GetFontMetrics()->StringWidth( sString.GetString() ),
 						    dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition() );
 
 
         this->Restore();
     }
 
+	char* pBuffer;
     std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
-    pFilter->Encode( pszTab, lStringLen, &pBuffer, &lLen );
+	pFilter->Encode( sString.GetString(), sString.GetLength(), &pBuffer, &lLen );
 
     m_oss.str("");
     m_oss << "BT" << std::endl << "/" << m_pFont->GetIdentifier().GetName()
@@ -633,9 +590,101 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
     free( pBuffer );
 
     m_pCanvas->Append( ">Tj\nET\n" );
+}
 
-    if( nTabCnt )
-        free( pszTab );
+void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double dHeight, const PdfString & rsText, EPdfAlignment eAlignment )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+
+    if( !m_pFont || !m_pPage || !rsText.IsValid() )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+	if( dWidth <= 0.0 || dHeight <= 0.0 ) // nonsense arguments
+		return;
+
+	//this->SetClipRect( dX, dY, dWidth, dHeight );
+
+	// Set correct y coordinate for first line of text
+	dY += dHeight;
+	dY -= m_pFont->GetFontMetrics()->GetLineSpacing();
+
+	PdfString   sString  = this->ExpandTabs( rsText );
+	const char* pszStart = sString.GetString();
+	const char* pszEnd   = pszStart;
+	const char* pszWord  = pszStart;
+
+	double dCurWidth = 0.0;
+
+	while( *pszEnd ) 
+	{
+		dCurWidth += m_pFont->GetFontMetrics()->CharWidth( *pszEnd );
+
+		if( *pszEnd == '\n' ) // hard-break!
+		{
+			++pszEnd; // skip the line feed
+			
+			this->DrawTextAligned( dX, dY, dWidth, PdfString( pszStart, pszEnd-pszStart ), eAlignment );
+		
+			dCurWidth = 0.0;
+			dY       -= m_pFont->GetFontMetrics()->GetLineSpacing();
+			pszStart  = pszEnd;
+		}
+		else if( isspace( static_cast<unsigned int>(static_cast<unsigned char>(*pszEnd)) ) || 
+			     ispunct( static_cast<unsigned int>(static_cast<unsigned char>(*pszEnd)) ))
+			pszWord = pszEnd;
+
+		if( dCurWidth > dWidth ) 
+		{
+			// The last word does not fit anymore in the current line.
+			// -> Move it to the next one.
+			
+			// skip leading whitespaces!
+			while( *pszStart && isspace( static_cast<unsigned int>(static_cast<unsigned char>(*pszStart)) ) )
+				++pszStart;
+
+			this->DrawTextAligned( dX, dY, dWidth, PdfString( pszStart, pszWord-pszStart ), eAlignment );
+
+			dCurWidth = pszEnd-pszWord > 0 ? 
+				m_pFont->GetFontMetrics()->StringWidth( pszWord, pszEnd-pszWord ) : 0.0;
+			dY       -= m_pFont->GetFontMetrics()->GetLineSpacing();
+			pszStart  = pszWord;
+		}
+
+		++pszEnd;
+	}
+
+	if( pszEnd-pszStart > 0 ) 
+		this->DrawTextAligned( dX, dY, dWidth, PdfString( pszStart, pszEnd-pszStart ), eAlignment );
+}
+
+void PdfPainter::DrawTextAligned( double dX, double dY, double dWidth, const PdfString & rsText, EPdfAlignment eAlignment )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+
+    if( !m_pFont || !m_pPage || !rsText.IsValid() )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+	if( dWidth <= 0.0 ) // nonsense arguments
+		return;
+
+	switch( eAlignment ) 
+	{
+		default:
+		case ePdfAlignment_Left:
+			break;
+		case ePdfAlignment_Center:
+			dX += (dWidth - m_pFont->GetFontMetrics()->StringWidth( rsText ) ) / 2.0;
+			break;
+		case ePdfAlignment_Right:
+			dX += (dWidth - m_pFont->GetFontMetrics()->StringWidth( rsText ) );
+			break;
+	}
+
+	this->DrawText( dX, dY, rsText );
 }
 
 void PdfPainter::DrawImage( double dX, double dY, PdfImage* pObject, double dScaleX, double dScaleY )
@@ -1014,6 +1063,52 @@ void PdfPainter::SetRenderingIntent( char* intent )
     m_oss << "/" << intent
           << " ri" << std::endl;
     m_pCanvas->Append( m_oss.str() );
+}
+
+PdfString PdfPainter::ExpandTabs( const PdfString & rsString ) 
+{
+	int nTabCnt = 0;
+	int i;
+	long lStringLen = rsString.GetLength();
+
+	// count the number of tabs in the string
+    for( i=0;i<=lStringLen;i++ )
+        if( rsString.GetString()[i] == '\t' )
+            ++nTabCnt;
+
+	// if no tabs are found: bail out!
+    if( !nTabCnt )
+		return rsString;
+
+    const char* pszText = rsString.GetString();
+    long        lLen    = lStringLen + nTabCnt*(m_nTabWidth-1) + 1;
+	char*       pszTab  = static_cast<char*>(malloc( sizeof( char ) * lLen ));
+    if( !pszTab )
+    {
+		PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+    }
+
+    i = 0;
+    while( lStringLen-- )
+    {
+		if( *pszText == '\t' )
+        {
+			for( int z=0;z<m_nTabWidth; z++ )
+				pszTab[i+z] += ' ';
+                
+             i+=m_nTabWidth;
+        }
+        else
+			pszTab[i++] = *pszText;
+
+        ++pszText;
+    }
+        
+    pszTab[i]  = '\0';
+	PdfString str( pszTab );
+	free( pszTab );
+
+	return str;
 }
 
 }

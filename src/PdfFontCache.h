@@ -30,7 +30,7 @@ class PdfFont;
 class PdfFontMetrics;
 class PdfVecObjects;
 
-typedef struct TFontCacheElement {
+struct TFontCacheElement {
 	TFontCacheElement() 
 		: m_pFont( NULL ), 
 		  m_bBold( false ),
