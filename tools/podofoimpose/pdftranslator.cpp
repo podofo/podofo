@@ -264,7 +264,28 @@ void PdfTranslator::setTarget ( const std::string & target )
         PdfMemoryOutputStream outMemStream ( 1 );
 
         PdfXObject *xobj = new PdfXObject ( page->GetMediaBox(), targetDoc );
-        page->GetContents()->GetStream()->GetFilteredCopy ( &outMemStream );
+	if(!page->GetContents()->IsArray())
+	{
+        	page->GetContents()->GetStream()->GetFilteredCopy ( &outMemStream );
+	}
+	else
+	{	
+		PdfArray carray(page->GetContents()->GetArray());
+		for(uint ci = 0; ci < carray.GetSize(); ++ci)
+		{
+// 			std::cerr << " Appending stream from : ";
+			if(carray[ci].IsReference())
+			{
+// 				std::cerr << "reference" << endl;
+				targetDoc->GetObjects().GetObject( carray[ci].GetReference() )->GetStream()->GetFilteredCopy ( &outMemStream );
+			}
+			else
+			{
+// 				std::cerr << "stream" << endl;
+				carray[ci].GetStream()->GetFilteredCopy ( &outMemStream );
+			}
+		}
+	}
         outMemStream.Close();
 
         PdfMemoryInputStream inStream ( outMemStream.TakeBuffer(),outMemStream.GetLength() );
