@@ -271,7 +271,7 @@ void PdfTranslator::setTarget ( const std::string & target )
 	else
 	{	
 		PdfArray carray(page->GetContents()->GetArray());
-		for(uint ci = 0; ci < carray.GetSize(); ++ci)
+		for(unsigned int ci = 0; ci < carray.GetSize(); ++ci)
 		{
 // 			std::cerr << " Appending stream from : ";
 			if(carray[ci].IsReference())
