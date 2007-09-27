@@ -37,7 +37,8 @@ using namespace std;
 
 namespace PoDoFo {
 
-PdfFont::PdfFont( PdfFontMetrics* pMetrics, bool bEmbed, PdfVecObjects* pParent )
+PdfFont::PdfFont( PdfFontMetrics* pMetrics, bool bEmbed, bool bBold, bool bItalic, 
+				  PdfVecObjects* pParent )
     : PdfElement( "Font", pParent ), m_pMetrics( pMetrics )
 {
     ostringstream out;
@@ -47,8 +48,8 @@ PdfFont::PdfFont( PdfFontMetrics* pMetrics, bool bEmbed, PdfVecObjects* pParent 
     m_pMetrics->SetFontScale( 100.0 );
     m_pMetrics->SetFontCharSpace( 0.0 );
 
-    m_bBold       = false;
-    m_bItalic     = false;
+    m_bBold       = bBold;
+    m_bItalic     = bItalic;
     m_bUnderlined = false;
 	m_bStrikedOut = false;
 

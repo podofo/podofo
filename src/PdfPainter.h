@@ -23,6 +23,8 @@
 
 #include "PdfDefines.h"
 
+#include "PdfRect.h"
+
 #include <sstream>
 
 namespace PoDoFo {
@@ -213,6 +215,12 @@ class PODOFO_API PdfPainter {
      */
     void SetClipRect( double dX, double dY, double dWidth, double dHeight );
 
+	/** Set a clipping rectangle
+     *
+     *  \param rRect rectangle
+     */
+    inline void SetClipRect( const PdfRect & rRect );
+
     /** Draw a line with the current color and line settings.
      *  \param dStartX x coordinate of the starting point
      *  \param dStartY y coordinate of the starting point
@@ -228,9 +236,19 @@ class PODOFO_API PdfPainter {
      *  \param dHeight absolute height of the rectangle
      *  \param dRoundX rounding factor, x direction
      *  \param dRoundY rounding factor, y direction
-    */
+     */
     void DrawRect( double dX, double dY, double dWidth, double dHeight,
                    double dRoundX=0.0, double dRoundY=0.0 );
+
+    /** Draw a rectangle with the current stroking settings
+	 *	
+	 *  \param rRect the rectangle area
+     *  \param dRoundX rounding factor, x direction
+     *  \param dRoundY rounding factor, y direction
+	 *
+	 *  \see DrawRect
+     */
+	inline void DrawRect( const PdfRect & rRect, double dRoundX=0.0, double dRoundY=0.0 );
 
     /** Fill a rectangle with the current fill settings
      *  \param dX x coordinate of the rectangle (left coordinate)
@@ -242,6 +260,16 @@ class PODOFO_API PdfPainter {
      */
     void FillRect( double dX, double dY, double dWidth, double dHeight,
                    double dRoundX=0.0, double dRoundY=0.0 );
+
+    /** Fill a rectangle with the current fill settings
+	 *	
+	 *  \param rRect the rectangle area
+     *  \param dRoundX rounding factor, x direction
+     *  \param dRoundY rounding factor, y direction
+	 *
+	 *  \see FillRect
+     */
+	inline void FillRect( const PdfRect & rRect, double dRoundX=0.0, double dRoundY=0.0 );
 
     /** Draw an ellipse with the current stroking settings
      *  \param dX x coordinate of the ellipse (left coordinate)
@@ -618,6 +646,36 @@ unsigned short PdfPainter::GetPrecision() const
 {
     return m_oss.precision();
 }
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfPainter::SetClipRect( const PdfRect & rRect )
+{
+	this->SetClipRect( rRect.GetLeft(), rRect.GetBottom(), rRect.GetWidth(), rRect.GetHeight() );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfPainter::DrawRect( const PdfRect & rRect, double dRoundX, double dRoundY )
+{
+	this->DrawRect( rRect.GetLeft(), rRect.GetBottom(), 
+					rRect.GetWidth(), rRect.GetHeight(), 
+					dRoundX, dRoundY );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfPainter::FillRect( const PdfRect & rRect, double dRoundX, double dRoundY )
+{
+	this->FillRect( rRect.GetLeft(), rRect.GetBottom(), 
+					rRect.GetWidth(), rRect.GetHeight(), 
+					dRoundX, dRoundY );
+}
+
+
 };
 
 #endif // _PDF_PAINTER_H_

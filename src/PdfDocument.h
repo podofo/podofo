@@ -44,7 +44,6 @@ class PdfPagesTree;
 class PdfRect;
 class PdfXObject;
 
-
 /** PdfDocument is the core interface for working with PDF documents.
  *
  *  PdfDocument provides easy access to the individual pages
@@ -134,6 +133,16 @@ class PODOFO_API PdfDocument {
      *  \returns PdfFont* a pointer to a new PdfFont object.
      */
     PdfFont* CreateFont( const char* pszFontName, bool bEmbedd = true );
+
+    /** Creates a PdfFont object
+     *  \param pszFontName name of the font as it is known to the system
+	 *  \param bBold if true search for a bold font
+	 *  \param bItalic if true search for an italic font
+     *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
+     *         Embedding fonts is usually a good idea.
+     *  \returns PdfFont* a pointer to a new PdfFont object.
+     */
+    PdfFont* CreateFont( const char* pszFontName, bool bBold, bool bItalic, bool bEmbedd = true );
 
     /** Creates a PdfFont object
      *  \param face a valid freetype font handle

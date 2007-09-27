@@ -96,8 +96,22 @@ class PODOFO_API PdfTableModel {
      */
     virtual PdfColor GetBackgroundColor( int col, int row ) const = 0;
 
-    //virtual PdfColor  GetColor( int col, int row ) = 0;
-    // TODO: alignment, wordwrap, background ....??? 
+    /** 
+     * \param col the column of the table cell
+     * \param row the row of the table cell
+     *
+     * \returns the foreground (text) color of the specified cell
+     */
+    virtual PdfColor GetForegroundColor( int col, int row ) const = 0;
+
+    /** 
+     * \param col the column of the table cell
+     * \param row the row of the table cell
+     *
+     * \returns true if the specified cell should use wordwrapping
+     */
+    virtual bool HasWordWrap( int col, int row ) const = 0;
+
 };
 
 /**
@@ -152,11 +166,23 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
      */
     inline void SetBackgroundColor( const PdfColor & rColor );
 
+    /** Set the foreground color of the table cells
+     *
+     *  \param rColor the foreground color
+     */
+    inline void SetForegroundColor( const PdfColor & rColor );
+
     /** Sets wether all cells have a background color or not
      *
      *  \param bEnable if true all cells have a background color
      */
     inline void SetBackgroundEnabled( bool bEnable );
+
+    /** Sets wether all cells have wordwrapping or not
+     *
+     *  \param bEnable if true all cells have wordwrapping
+     */
+	inline void SetWordWrapEnabled( bool bEnable );
 
     /** Sets the contents of a specific cell
      *
@@ -214,14 +240,33 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
      */
     inline virtual PdfColor GetBackgroundColor( int col, int row ) const;
 
+
+    /** 
+     * \param col the column of the table cell
+     * \param row the row of the table cell
+     *
+     * \returns the foreground (text) color of the specified cell
+     */
+    inline virtual PdfColor GetForegroundColor( int col, int row ) const;
+
+    /** 
+     * \param col the column of the table cell
+     * \param row the row of the table cell
+     *
+     * \returns true if the specified cell should use wordwrapping
+     */
+    inline virtual bool HasWordWrap( int col, int row ) const;
+
  private:
     PdfFont*              m_pFont;
 
     EPdfAlignment         m_eAlignment;
     EPdfVerticalAlignment m_eVerticalAlignment;
     
+	bool                  m_bWordWrap;
     bool                  m_bBackground;
     PdfColor              m_clBackground;
+	PdfColor              m_clForeground;
 
     PdfString**           m_ppData;
 
@@ -265,9 +310,25 @@ void PdfSimpleTableModel::SetBackgroundEnabled( bool bEnable )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
+void PdfSimpleTableModel::SetWordWrapEnabled( bool bEnable )
+{
+	m_bWordWrap = bEnable;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfSimpleTableModel::SetBackgroundColor( const PdfColor & rColor )
 {
     m_clBackground = rColor;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfSimpleTableModel::SetForegroundColor( const PdfColor & rColor )
+{
+	m_clForeground = rColor;
 }
 
 // -----------------------------------------------------
@@ -334,6 +395,21 @@ PdfColor PdfSimpleTableModel::GetBackgroundColor ( int, int ) const
     return m_clBackground;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfColor PdfSimpleTableModel::GetForegroundColor( int col, int row ) const
+{
+	return m_clForeground;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfSimpleTableModel::HasWordWrap( int col, int row ) const
+{
+	return m_bWordWrap;
+}
  
 /**
  * This is a high level class of a table which can be drawn to a PdfPainter.

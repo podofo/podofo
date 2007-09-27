@@ -30,6 +30,7 @@ namespace PoDoFo {
 PdfSimpleTableModel::PdfSimpleTableModel()
     : m_pFont( NULL ), m_eAlignment( ePdfAlignment_Left ),
       m_eVerticalAlignment( ePdfVerticalAlignment_Center ),
+	  m_bWordWrap( false), m_clForeground( 1.0 ),
       m_bBackground( false ), m_clBackground( 0.0 ),
       m_ppData( NULL ), m_nCols( 0 ), m_nRows( 0 )
 {
@@ -39,6 +40,7 @@ PdfSimpleTableModel::PdfSimpleTableModel()
 PdfSimpleTableModel::PdfSimpleTableModel( int nCols, int nRows )
     : m_pFont( NULL ), m_eAlignment( ePdfAlignment_Left ),
       m_eVerticalAlignment( ePdfVerticalAlignment_Center ),
+	  m_bWordWrap( false ), m_clForeground( 1.0 ),
       m_bBackground( false ), m_clBackground( 0.0 ),
       m_nCols( nCols ), m_nRows( nRows )
 {
@@ -136,7 +138,7 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter )
                 pFont = m_pModel->GetFont( i, j );
                 pFont = pFont ? pFont : pDefaultFont;
                 pPainter->SetFont( pFont );
-
+				pPainter->SetColor( m_pModel->GetForegroundColor( i, j ) );
                 // calculate horizontal and vertical alignment
                 dCurY      += pdRowHeights[j];
 

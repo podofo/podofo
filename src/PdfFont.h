@@ -31,10 +31,13 @@ class PODOFO_API PdfFont : public PdfElement {
      *         deleted along with the font.
      *  \param bEmbed specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
+	 *  \param bBold specifies if this font is a bold font
+	 *  \param bItalic specifies if this font is an italic font
      *  \param pParent parent of the font object
      *  
      */
-    PdfFont( PdfFontMetrics* pMetrics, bool bEmbed, PdfVecObjects* pParent );
+    PdfFont( PdfFontMetrics* pMetrics, bool bEmbed, bool bBold, bool bItalic, 
+			 PdfVecObjects* pParent );
     virtual ~PdfFont();
 
     /** Set the font size before drawing with this font.
@@ -75,8 +78,22 @@ class PODOFO_API PdfFont : public PdfElement {
     inline void SetUnderlined( bool bUnder );
 
     /** \returns true if the font is underlined
+	 *  \see IsBold
+	 *  \see IsItalic
      */
     inline bool IsUnderlined() const;
+
+	/** \returns true if this font is bold
+	 *  \see IsItalic
+	 *  \see IsUnderlined
+	 */
+	inline bool IsBold() const;
+
+	/** \returns true if this font is italic
+	 *  \see IsBold
+	 *  \see IsUnderlined
+	 */
+	inline bool IsItalic() const;
 
 	/** Set the strikeout property of the font
      *  \param bStrikeOut if true any text drawn with this font
@@ -196,6 +213,16 @@ void PdfFont::SetStrikeOut( bool bStrikeOut )
 bool PdfFont::IsStrikeOut() const
 {
     return m_bStrikedOut;
+}
+
+bool PdfFont::IsBold() const
+{
+	return m_bBold;
+}
+
+bool PdfFont::IsItalic() const
+{
+	return m_bItalic;
 }
 
 };

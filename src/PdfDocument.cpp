@@ -164,7 +164,12 @@ PdfPage* PdfDocument::GetPage( int nIndex ) const
 
 PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bEmbedd )
 {
-    return m_fontCache.GetFont( pszFontName, bEmbedd );
+    return m_fontCache.GetFont( pszFontName, false, false, bEmbedd );
+}
+
+PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bBold, bool bItalic, bool bEmbedd )
+{
+    return m_fontCache.GetFont( pszFontName, bBold, bItalic, bEmbedd );
 }
 
 PdfFont* PdfDocument::CreateFont( FT_Face face, bool bEmbedd )
