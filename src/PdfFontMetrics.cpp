@@ -52,24 +52,9 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename )
     FT_Error err = FT_New_Face( *pLibrary, pszFilename, 0, &m_face );
     if ( err )
     {	
-#ifdef _WIN32
-        // try to load from the OS by name
-        char*	     fontBuf = NULL;
-        unsigned int fontBufLen = 0;
-        if ( GetWin32HostFont( m_sFilename, &fontBuf, fontBufLen ) ) 
-        {
-            err            = FT_New_Memory_Face( *pLibrary, (unsigned char*)fontBuf, fontBufLen, 0, &m_face );
-            m_pFontData    = fontBuf;
-            m_nFontDataLen = fontBufLen;
-            m_eFontType    = ePdfFontType_TrueType;
-        }
-        else
-#endif
-        {
-            // throw an exception
-            PdfError::LogMessage( eLogSeverity_Critical, "FreeType returned the error %i when calling FT_New_Face for font %s.", err, pszFilename );
-            PODOFO_RAISE_ERROR( ePdfError_FreeType );
-        }
+	    // throw an exception
+	    PdfError::LogMessage( eLogSeverity_Critical, "FreeType returned the error %i when calling FT_New_Face for font %s.", err, pszFilename );
+	    PODOFO_RAISE_ERROR( ePdfError_FreeType );
     }
     else
     {
@@ -86,8 +71,8 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsig
       m_eFontType( ePdfFontType_Unknown )
 {
     m_face                = NULL;
-    m_bufFontData = PdfRefCountedBuffer( const_cast<char*>(pBuffer), nBufLen ); // const_cast is ok, because we SetTakePossension to false!
-    m_bufFontData.SetTakePossesion( false );
+    m_bufFontData = PdfRefCountedBuffer( nBufLen ); // const_cast is ok, because we SetTakePossension to false!
+	memcpy( m_bufFontData.GetBuffer(), pBuffer, nBufLen );
 
     FT_Error error = FT_New_Memory_Face( *pLibrary, reinterpret_cast<const unsigned char*>(pBuffer), nBufLen, 0, &m_face );
 

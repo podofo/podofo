@@ -56,9 +56,9 @@ class PODOFO_API PdfFontMetrics {
 
     /** Create a font metrics object for a given memory buffer
      *  \param pLibrary handle to an initialized FreeType2 library handle
-     *  \param pBuffer block of memory representing the font data
+     *  \param pBuffer block of memory representing the font data (PdfFontMetrics will copy the buffer)
      *  \param nBufLen the length of the buffer
-     */
+	 */
     PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen );
 
     /** Create a font metrics object for a given true type file
