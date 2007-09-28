@@ -165,13 +165,25 @@ class PODOFO_API PdfFontMetrics {
      *  size in PDF units
      *  \returns the underline position in PDF units
      */
-	inline double GetStrikeOutPosition() const;
+    inline double GetStrikeOutPosition() const;
 
     /** Return the position of the strikeout for the current font
      *  size in 1/1000th mm
      *  \returns the underline position in 1/1000th mm
      */
-	inline unsigned long GetStrikeOutPositionMM() const;
+    inline unsigned long GetStrikeOutPositionMM() const;
+
+    /** Get the width of the strikeout for the current 
+     *  font size in PDF units
+     *  \returns the thickness of the strikeout in PDF units
+     */
+    inline double GetStrikeoutThickness() const;
+
+    /** Get the width of the strikeout for the current 
+     *  font size in 1/1000th mm
+     *  \returns the thickness of the strikeout in 1/1000th mm
+     */
+    inline unsigned long GetStrikeoutThicknessMM() const;
 
     /** Get a pointer to the path of the font file.
      *  \returns a zero terminated string containing the filename of the font file
@@ -316,7 +328,8 @@ class PODOFO_API PdfFontMetrics {
     double        m_dLineSpacing;
     double        m_dUnderlineThickness;
     double        m_dUnderlinePosition;
-	double        m_dStrikeOutPosition;
+    double        m_dStrikeOutThickness;
+    double        m_dStrikeOutPosition;
 
     std::string   m_sFilename;
     PdfRefCountedBuffer m_bufFontData;
@@ -399,6 +412,22 @@ double PdfFontMetrics::GetUnderlineThickness() const
 unsigned long PdfFontMetrics::GetUnderlineThicknessMM() const
 {
     return static_cast<unsigned long>(m_dUnderlineThickness / PODOFO_CONVERSION_CONSTANT);
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+double PdfFontMetrics::GetStrikeoutThickness() const
+{
+    return m_dStrikeOutThickness;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+unsigned long PdfFontMetrics::GetStrikeoutThicknessMM() const
+{
+    return static_cast<unsigned long>(m_dStrikeOutThickness / PODOFO_CONVERSION_CONSTANT);
 }
 
 // -----------------------------------------------------

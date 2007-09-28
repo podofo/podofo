@@ -30,6 +30,7 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include FT_TRUETYPE_TABLES_H
 
 #define PODOFO_FIRST_READABLE 31
 #define PODOFO_WIDTH_CACHE_SIZE 256
@@ -62,13 +63,13 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename )
             m_nFontDataLen = fontBufLen;
             m_eFontType    = ePdfFontType_TrueType;
         }
-		else
+        else
 #endif
-		{
-	        // throw an exception
-	        PdfError::LogMessage( eLogSeverity_Critical, "FreeType returned the error %i when calling FT_New_Face for font %s.", err, pszFilename );
-	        PODOFO_RAISE_ERROR( ePdfError_FreeType );
-		}
+        {
+            // throw an exception
+            PdfError::LogMessage( eLogSeverity_Critical, "FreeType returned the error %i when calling FT_New_Face for font %s.", err, pszFilename );
+            PODOFO_RAISE_ERROR( ePdfError_FreeType );
+        }
     }
     else
     {
@@ -139,7 +140,8 @@ void PdfFontMetrics::InitFromFace()
     m_dLineSpacing        = 0.0;
     m_dUnderlineThickness = 0.0;
     m_dUnderlinePosition  = 0.0;
-	m_dStrikeOutPosition  = 0.0;
+    m_dStrikeOutPosition  = 0.0;
+    m_dStrikeOutThickness = 0.0;
     m_fFontSize           = 0.0f;
 
     if ( m_face )
@@ -148,21 +150,8 @@ void PdfFontMetrics::InitFromFace()
         m_dPdfDescent = m_face->descender * 1000.0 / m_face->units_per_EM;
     }
 
-    /*
-      //Debug code to output font map information which will be useful while fixing font support
-    printf("face: %s\n", m_face->family_name );
-    printf("num : %i\n", m_face->num_charmaps );
-    for( int i=0;i<m_face->num_charmaps;i++ ) 
-    {
-        printf("Charmap: %c%c%c%c\n", 
-               (m_face->charmaps[i]->encoding >> 24) & 0xff,
-               (m_face->charmaps[i]->encoding >> 16) & 0xff,
-               (m_face->charmaps[i]->encoding >> 8) & 0xff,
-               m_face->charmaps[i]->encoding & 0xff );
-    }
-    */
 
-    // we cache the 256 first widht entries as they 
+    // we cache the 256 first width entries as they 
     // are most likely needed quite often
     m_vecWidth.clear();
     m_vecWidth.reserve( PODOFO_WIDTH_CACHE_SIZE );
@@ -1137,8 +1126,16 @@ void PdfFontMetrics::SetFontSize( float fSize )
     m_dAscent  = static_cast<double>(m_face->ascender)  * fSize / m_face->units_per_EM;
     m_dDescent = static_cast<double>(m_face->descender) * fSize / m_face->units_per_EM;
 
-    // TODO: DS Fetch strikeout position
-    //m_dStrikeOutPosition  = (static_cast<double>(m_face->stri)  * fSize  / m_face->units_per_EM);
+    // Set default values for strikeout, in case the font has no direct values
+    m_dStrikeOutPosition  = m_dAscent / 2.0; 
+    m_dStrikeOutThickness = m_dUnderlineThickness;
+
+    TT_OS2* pOs2Table = static_cast<TT_OS2*>(FT_Get_Sfnt_Table( m_face, ft_sfnt_os2 ));
+    if( pOs2Table ) 
+    {
+        m_dStrikeOutPosition  = static_cast<double>(pOs2Table->yStrikeoutPosition)  * fSize / m_face->units_per_EM;
+        m_dStrikeOutThickness = static_cast<double>(pOs2Table->yStrikeoutSize)  * fSize / m_face->units_per_EM;
+    }
 
     m_fFontSize = fSize;
 }
