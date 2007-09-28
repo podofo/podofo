@@ -31,26 +31,18 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#if defined(HAVE_FONTCONFIG)
-#include <fontconfig/fontconfig.h>
-#endif
-
-
 #define PODOFO_FIRST_READABLE 31
 #define PODOFO_WIDTH_CACHE_SIZE 256
 
 namespace PoDoFo {
 
-#ifdef _WIN32
-static bool GetWin32HostFont( const std::string& inFontName, char** outFontBuffer, unsigned int& outFontBufferLen );
-#endif
 #if defined(__APPLE_CC__) && !defined(HAVE_FONTCONFIG)
 #include <Carbon/Carbon.h>
 #endif
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename )
-    : m_pLibrary( pLibrary ), m_sFilename( pszFilename ), m_pFontData( NULL ), 
-      m_nFontDataLen( 0 ), m_fFontSize( 0.0f ), 
+    : m_pLibrary( pLibrary ), m_sFilename( pszFilename ),
+      m_fFontSize( 0.0f ), 
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown )
 {
@@ -87,12 +79,14 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename )
 }
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen )
-    : m_pLibrary( pLibrary ), m_sFilename( "" ), m_pFontData( const_cast<char*>(pBuffer) ), 
-      m_nFontDataLen( nBufLen ), m_fFontSize( 0.0f ),
+    : m_pLibrary( pLibrary ), m_sFilename( "" ),
+      m_fFontSize( 0.0f ),
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown )
 {
     m_face                = NULL;
+    m_bufFontData = PdfRefCountedBuffer( const_cast<char*>(pBuffer), nBufLen ); // const_cast is ok, because we SetTakePossension to false!
+    m_bufFontData.SetTakePossesion( false );
 
     FT_Error error = FT_New_Memory_Face( *pLibrary, reinterpret_cast<const unsigned char*>(pBuffer), nBufLen, 0, &m_face );
 
@@ -108,6 +102,15 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsig
     }
 
     InitFromFace();
+}
+
+PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const PdfRefCountedBuffer & rBuffer )
+    : m_pLibrary( pLibrary ), m_sFilename( "" ), m_bufFontData( rBuffer ),
+      m_fFontSize( 0.0f ),
+      m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
+      m_eFontType( ePdfFontType_Unknown )
+{
+
 }
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, FT_Face face )
@@ -127,12 +130,6 @@ PdfFontMetrics::~PdfFontMetrics()
 {
     if ( m_face )
         FT_Done_Face( m_face );
-    
-    if ( m_pFontData && m_nFontDataLen ) 
-    {
-        free( m_pFontData );
-        m_nFontDataLen = 0;
-    }
 }
 
 void PdfFontMetrics::InitFromFace()
@@ -235,106 +232,7 @@ void PdfFontMetrics::GetBoundingBox( PdfArray & array ) const
     array.push_back( PdfVariant( m_face->bbox.yMax  * 1000.0 / m_face->units_per_EM ) );
 }
 
-#if defined(HAVE_FONTCONFIG) || defined(_WIN32)
-std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
-{
-#if defined(_WIN32)
-	return std::string( pszFontname );	// return the name...
-#else
-    FcConfig* pConfig = FcInitLoadConfigAndFonts();
-    std::string sPath = PdfFontMetrics::GetFilenameForFont( pConfig, pszFontname );
-
-    FcConfigDestroy( pConfig );    
-// TODO: Supported only by newer fontconfig versions 
-//       but fixes a memory leak
-//    FcFini(void);
-
-    return sPath;
-#endif
-}
-#endif
-
-#ifdef _WIN32
-static bool GetDataFromLPFONT( LOGFONT* inFont, char** outFontBuffer, unsigned int& outFontBufferLen )
-{
-	HFONT 	hf;
-	HDC		hdc;
-
-	if ( ( hf = CreateFontIndirect( inFont ) ) == NULL )
-		return false;
-
-	if ( ( hdc = GetDC(0) ) == NULL ) {
-		DeleteObject(hf);
-		return false;
-	}
-
-	SelectObject(hdc, hf);
-
-	outFontBufferLen = GetFontData(hdc, 0, 0, 0, 0);
-
-	if (outFontBufferLen == GDI_ERROR) {
-		ReleaseDC(0, hdc);
-		DeleteObject(hf);
-		return false;
-	}
-
-	*outFontBuffer = (char *) malloc( outFontBufferLen );
-
-	if ( GetFontData( hdc, 0, 0, *outFontBuffer, (DWORD) outFontBufferLen ) == GDI_ERROR ) {
-		free( *outFontBuffer );
-		*outFontBuffer = NULL;
-		outFontBufferLen = 0;
-		ReleaseDC(0, hdc);
-		DeleteObject(hf);
-		return false;
-	}
-
-	ReleaseDC( 0, hdc );
-	DeleteObject( hf );
-
-	return true;
-}
-
-static bool GetWin32HostFont( const std::string& inFontName, char** outFontBuffer, unsigned int& outFontBufferLen )
-{
-	LOGFONT	lf;
-
-	std::string	localFName( inFontName );
-	bool	isBold = false,
-		isItalic = false;
-
-	// deal with BOLD and ITALIC versions of TimesNewRomanPS
-	if ( inFontName.find( "TimesNewRomanPS" ) != std::string::npos )	 {
-		isBold = ( inFontName.find( "Bold" ) != std::string::npos );
-		isItalic = ( inFontName.find( "Italic" ) != std::string::npos );
-		localFName = "Times New Roman";
-	}
-
-	lf.lfHeight			= 0;
-	lf.lfWidth			= 0;
-	lf.lfEscapement		= 0;
-	lf.lfOrientation	= 0;
-	lf.lfWeight			= isBold ? FW_BOLD : 0;
-	lf.lfItalic			= isItalic;
-	lf.lfUnderline		= 0;
-	lf.lfStrikeOut		= 0;
-	lf.lfCharSet		= DEFAULT_CHARSET;
-	lf.lfOutPrecision	= OUT_DEFAULT_PRECIS;
-	lf.lfClipPrecision	= CLIP_DEFAULT_PRECIS;
-	lf.lfQuality		= DEFAULT_QUALITY;
-	lf.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
-
-	if ( localFName.length() >= LF_FACESIZE) {
-		return false;
-	}
-
-	memset(&(lf.lfFaceName), 0, LF_FACESIZE);
-	strcpy( (char *)lf.lfFaceName, localFName.c_str() );
-
-	return GetDataFromLPFONT( &lf, outFontBuffer, outFontBufferLen );
-}
-
-#elif defined(__APPLE_CC__) && !defined(HAVE_FONTCONFIG)
+#if defined(__APPLE_CC__) && !defined(HAVE_FONTCONFIG)
 FT_Error
 My_FT_GetFile_From_Mac_ATS_Name( const char*  fontName,
 								 FSSpec*  pathSpec, FT_Long*     face_index )
@@ -405,7 +303,7 @@ My_FT_GetFile_From_Mac_ATS_Name( const char*  fontName,
 
         /* get the family name */
         FMGetFontFamilyName( family, famNameStr );
-        CopyPascalStringToC( famNameStr, famName );
+( famNameStr, famName );
 
 		// inLog.Debug( boost::format( "Found FontFamily: '%s'\n" ) % famName );
 
@@ -1164,45 +1062,7 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
     }
 }
 
-#else
-
-std::string PdfFontMetrics::GetFilenameForFont( FcConfig* pConfig, const char* pszFontname )
-{
-    FcPattern* pattern;
-    FcPattern* matched;
-    FcResult result = FcResultMatch;
-    FcValue v;
-    std::string sPath;
-
-    pattern = FcPatternBuild (0, FC_FAMILY, FcTypeString, pszFontname, static_cast<char*>(0));
-    FcDefaultSubstitute( pattern );
-
-    if( !FcConfigSubstitute( pConfig, pattern, FcMatchFont ) )
-    {
-        FcPatternDestroy( pattern );
-        return NULL;
-    }
-
-    matched = FcFontMatch( pConfig, pattern, &result );
-    if( result != FcResultNoMatch )
-    {
-        result = FcPatternGet( matched, FC_FILE, 0, &v );
-        sPath = reinterpret_cast<const char*>(v.u.s);
-
-        printf("Got Font %s for for %s\n", sPath.c_str(), pszFontname );
-    }
-    else
-    {
-        FcPatternDestroy( pattern );
-        FcPatternDestroy( matched );
-        return NULL;
-    }
-
-    FcPatternDestroy( pattern );
-    FcPatternDestroy( matched );
-    return sPath;
-}
-#endif
+#endif // apple 
 
 double PdfFontMetrics::CharWidth( unsigned char c ) const
 {
@@ -1224,7 +1084,7 @@ double PdfFontMetrics::CharWidth( unsigned char c ) const
     }
 
     return dWidth * static_cast<double>(m_fFontSize * m_fFontScale / 100.0) / 1000.0 +
-		   static_cast<double>( m_fFontSize * m_fFontScale / 100.0 * m_fFontCharSpace / 100.0);
+		    static_cast<double>( m_fFontSize * m_fFontScale / 100.0 * m_fFontCharSpace / 100.0);
 }
 
 unsigned long PdfFontMetrics::CharWidthMM( unsigned char c ) const
@@ -1277,8 +1137,8 @@ void PdfFontMetrics::SetFontSize( float fSize )
     m_dAscent  = static_cast<double>(m_face->ascender)  * fSize / m_face->units_per_EM;
     m_dDescent = static_cast<double>(m_face->descender) * fSize / m_face->units_per_EM;
 
-	// TODO: DS Fetch strikeout position
-	//m_dStrikeOutPosition  = (static_cast<double>(m_face->stri)  * fSize  / m_face->units_per_EM);
+    // TODO: DS Fetch strikeout position
+    //m_dStrikeOutPosition  = (static_cast<double>(m_face->stri)  * fSize  / m_face->units_per_EM);
 
     m_fFontSize = fSize;
 }

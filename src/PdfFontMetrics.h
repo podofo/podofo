@@ -61,6 +61,12 @@ class PODOFO_API PdfFontMetrics {
      */
     PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen );
 
+    /** Create a font metrics object for a given true type file
+     *  \param pLibrary handle to an initialized FreeType2 library handle
+     *  \param rBuffer a buffer containing a font file
+     */
+    PdfFontMetrics( FT_Library* pLibrary, const PdfRefCountedBuffer & rBuffer );
+
     /** Create a font metrics object for a given freetype font.
      *  \param pLibrary handle to an initialized FreeType2 library handle
      *  \param face a valid freetype font face
@@ -262,7 +268,7 @@ class PODOFO_API PdfFontMetrics {
     /** Retrieve the current horizontal scaling of this metrics object
      *  \returns the current font scaling
      */
-	inline float GetFontScale() const;
+    inline float GetFontScale() const;
 
     /** Set the character spacing of this metrics object
      *  \param fCharSpace character spacing in percent
@@ -272,32 +278,7 @@ class PODOFO_API PdfFontMetrics {
     /** Retrieve the current character spacing of this metrics object
      *  \returns the current font character spacing
      */
-	inline float GetFontCharSpace() const;
-
-    /** Get the filename where a font is located on the system
-     *  On Unix systems the FontConfig library is used to find fonts.
-     * 
-     *  Everytime you call this function. The fontconfig library will be initialized
-     *  and deinitialized afterwards, which is kind of slow.
-     *  You should use the version below which can use an existing FcConfig object.
-     *
-     *  \param pszFontname name of the font e.g "Arial" or "Times New Roman"
-     *  \returns the compelte absolute path to a matching font file or NULL
-     *           if none was found.
-     */
-    static std::string GetFilenameForFont( const char* pszFontname );
-
-    /** Get the filename where a font is located on the system
-     *  On Unix systems the FontConfig library is used to find fonts.
-     *  \param pConfig a handle to a fontconfig config object,
-     *         using this function is fast as Fontconfig is not initialized in this function.
-     *  \param pszFontname name of the font e.g "Arial" or "Times New Roman"
-     *  \returns the compelte absolute path to a matching font file or NULL
-     *           if none was found.
-     */
-#if defined(HAVE_FONTCONFIG)
-    static std::string GetFilenameForFont( FcConfig* pConfig, const char* pszFontname );
-#endif
+    inline float GetFontCharSpace() const;
 
     /** 
      *  \returns the fonttype of the loaded font
@@ -338,8 +319,7 @@ class PODOFO_API PdfFontMetrics {
 	double        m_dStrikeOutPosition;
 
     std::string   m_sFilename;
-    char*	  m_pFontData;
-    unsigned int  m_nFontDataLen;
+    PdfRefCountedBuffer m_bufFontData;
     float         m_fFontSize;
     float         m_fFontScale;
     float         m_fFontCharSpace;
@@ -434,7 +414,7 @@ const char* PdfFontMetrics::GetFilename() const
 // -----------------------------------------------------
 const char* PdfFontMetrics::GetFontData() const
 {
-    return m_pFontData;
+    return m_bufFontData.GetBuffer();
 }
 
 // -----------------------------------------------------
@@ -442,7 +422,7 @@ const char* PdfFontMetrics::GetFontData() const
 // -----------------------------------------------------
 unsigned int PdfFontMetrics::GetFontDataLen() const
 {
-    return m_nFontDataLen;
+    return m_bufFontData.GetSize();
 }  
 
 // -----------------------------------------------------

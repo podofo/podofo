@@ -26,6 +26,9 @@
 
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
+#include "PdfInputDevice.h"
+#include "PdfTTFWriter.h"
+#include "PdfOutputDevice.h"
 
 #include <algorithm>
 
@@ -139,11 +142,19 @@ void PdfFontCache::EmptyCache()
 
     while( itFont != m_vecFonts.end() )
     {
-		delete (*itFont).m_pFont;
+        delete (*itFont).m_pFont;
+        ++itFont;
+    }
+
+    itFont = m_vecFontSubsets.begin();
+    while( itFont != m_vecFontSubsets.end() )
+    {
+        delete (*itFont).m_pFont;
         ++itFont;
     }
 
     m_vecFonts.clear();
+    m_vecFontSubsets.clear();
 }
 
 PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItalic, bool bEmbedd )
@@ -155,23 +166,23 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
     it = std::find_if( m_vecFonts.begin(), m_vecFonts.end(), FontComperator( pszFontName, bBold, bItalic ) );
     if( it == m_vecFonts.end() )
     {
-	    std::string sPath = this->GetFontPath( pszFontName, bBold, bItalic );
-	    if( sPath.empty() )
-		{
+        std::string sPath = this->GetFontPath( pszFontName, bBold, bItalic );
+        if( sPath.empty() )
+        {
 #if _WIN32
-			return GetWin32Font( pszFontName, bBold, bItalic, bEmbedd );
+            return GetWin32Font( pszFontName, bBold, bItalic, bEmbedd );
 #else
-		    PdfError::LogMessage( eLogSeverity_Critical, "No path was found for the specified fontname: %s\n", pszFontName );
-			return NULL;
+            PdfError::LogMessage( eLogSeverity_Critical, "No path was found for the specified fontname: %s\n", pszFontName );
+            return NULL;
 #endif // _WIN32
-	    }
-
-		pMetrics = new PdfFontMetrics( &m_ftLibrary, sPath.c_str() );
+        }
+        
+        pMetrics = new PdfFontMetrics( &m_ftLibrary, sPath.c_str() );
         pFont    = this->CreateFont( pMetrics, bEmbedd, bBold, bItalic, pszFontName );
     }
     else
-		pFont = (*it).m_pFont;
-
+        pFont = (*it).m_pFont;
+    
     return pFont;
 }
 
@@ -180,7 +191,6 @@ PdfFont* PdfFontCache::GetFont( FT_Face face, bool bEmbedd )
     PdfFont*          pFont;
     PdfFontMetrics*   pMetrics;
     TCISortedFontList it;
-	PODOFO_RAISE_ERROR( ePdfError_Unknown );
 
     std::string sName = FT_Get_Postscript_Name( face );
     if( sName.empty() )
@@ -189,8 +199,8 @@ PdfFont* PdfFontCache::GetFont( FT_Face face, bool bEmbedd )
         return NULL;
     }
 
-	bool bBold   = ((face->style_flags & FT_STYLE_FLAG_BOLD)   != 0);
-	bool bItalic = ((face->style_flags & FT_STYLE_FLAG_ITALIC) != 0);
+    bool bBold   = ((face->style_flags & FT_STYLE_FLAG_BOLD)   != 0);
+    bool bItalic = ((face->style_flags & FT_STYLE_FLAG_ITALIC) != 0);
 
     it = std::find_if( m_vecFonts.begin(), m_vecFonts.end(), FontComperator( sName.c_str(), bBold, bItalic ) );
     if( it == m_vecFonts.end() )
@@ -199,7 +209,42 @@ PdfFont* PdfFontCache::GetFont( FT_Face face, bool bEmbedd )
         pFont    = this->CreateFont( pMetrics, bEmbedd, bBold, bItalic, sName.c_str() );
     }
     else
-		pFont = (*it).m_pFont;
+        pFont = (*it).m_pFont;
+
+    return pFont;
+}
+
+PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool bItalic, const std::vector<int> & vecGlyphs )
+{
+    PdfFont*        pFont;
+    PdfFontMetrics* pMetrics;
+
+    // TODO: DS Subset are currently not yet cached!
+
+    std::string sPath = this->GetFontPath( pszFontName, bBold, bItalic );
+    if( sPath.empty() )
+    {
+        PdfError::LogMessage( eLogSeverity_Critical, "No path was found for the specified fontname: %s\n", pszFontName );
+        return NULL;
+    }
+
+    
+    NonPublic::PdfTTFWriter writer;
+    PdfInputDevice          input( sPath.c_str() );
+    PdfRefCountedBuffer     buffer;
+    PdfOutputDevice         output( &buffer );
+
+    try {
+        writer.Read( &input );
+        writer.Write( &output );
+    } catch( PdfError & e ) {
+        e.AddToCallstack( __FILE__, __LINE__ );
+        e.PrintErrorMsg();
+        PdfError::LogMessage( eLogSeverity_Error, "Cannot do subsetting for: %s\n", sPath.c_str() );
+    };
+
+    pMetrics = new PdfFontMetrics( &m_ftLibrary, buffer );
+    pFont    = this->CreateFontSubset( pMetrics, pszFontName, bBold, bItalic, vecGlyphs );
 
     return pFont;
 }
@@ -207,55 +252,96 @@ PdfFont* PdfFontCache::GetFont( FT_Face face, bool bEmbedd )
 #ifdef _WIN32
 PdfFont* PdfFontCache::GetWin32Font( const char* pszFontName, bool bBold, bool bItalic, bool bEmbedd )
 {
-	LOGFONT	lf;
-
-	lf.lfHeight			= 0;
-	lf.lfWidth			= 0;
-	lf.lfEscapement		= 0;
-	lf.lfOrientation	= 0;
-	lf.lfWeight			= bBold ? FW_BOLD : 0;
-	lf.lfItalic			= bItalic;
-	lf.lfUnderline		= 0;
-	lf.lfStrikeOut		= 0;
-	lf.lfCharSet		= DEFAULT_CHARSET;
-	lf.lfOutPrecision	= OUT_DEFAULT_PRECIS;
-	lf.lfClipPrecision	= CLIP_DEFAULT_PRECIS;
-	lf.lfQuality		= DEFAULT_QUALITY;
-	lf.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
-
-	if (strlen(pszFontName) >= LF_FACESIZE)
-		return NULL;
-
-	memset(&(lf.lfFaceName), 0, LF_FACESIZE);
-	strcpy( (char *)lf.lfFaceName, pszFontName );
-
-	char*        pBuffer;
-	unsigned int nLen;
-	if( !GetDataFromLPFONT( &lf, &pBuffer, nLen ) )
-		return NULL;
-
-	PdfFontMetrics* pMetrics;
-	PdfFont*        pFont = NULL;
-	try {
-		pMetrics = new PdfFontMetrics( &m_ftLibrary, pBuffer, nLen );
-		pFont    = this->CreateFont( pMetrics, bEmbedd, bBold, bItalic, pszFontName );
-	} catch( PdfError & error ) {
-		//free( pBuffer );
-		throw error;
-	}
-
-	// TODO: DS: Enable free as soons as PdfFontMetrics is using PdfRefCountedBuffer!
-	//free( pBuffer );
-	return pFont;
+    LOGFONT	lf;
+    
+    lf.lfHeight			= 0;
+    lf.lfWidth			= 0;
+    lf.lfEscapement		= 0;
+    lf.lfOrientation	= 0;
+    lf.lfWeight			= bBold ? FW_BOLD : 0;
+    lf.lfItalic			= bItalic;
+    lf.lfUnderline		= 0;
+    lf.lfStrikeOut		= 0;
+    lf.lfCharSet		= DEFAULT_CHARSET;
+    lf.lfOutPrecision	= OUT_DEFAULT_PRECIS;
+    lf.lfClipPrecision	= CLIP_DEFAULT_PRECIS;
+    lf.lfQuality		= DEFAULT_QUALITY;
+    lf.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
+    
+    if (strlen(pszFontName) >= LF_FACESIZE)
+        return NULL;
+    
+    memset(&(lf.lfFaceName), 0, LF_FACESIZE);
+    strcpy( (char *)lf.lfFaceName, pszFontName );
+    
+    char*        pBuffer;
+    unsigned int nLen;
+    if( !GetDataFromLPFONT( &lf, &pBuffer, nLen ) )
+        return NULL;
+    
+    PdfFontMetrics* pMetrics;
+    PdfFont*        pFont = NULL;
+    try {
+        pMetrics = new PdfFontMetrics( &m_ftLibrary, pBuffer, nLen );
+        pFont    = this->CreateFont( pMetrics, bEmbedd, bBold, bItalic, pszFontName );
+    } catch( PdfError & error ) {
+        free( pBuffer );
+        throw error;
+    }
+    
+    free( pBuffer );
+    return pFont;
 }
 #endif // _WIN32
+
+#if defined(HAVE_FONTCONFIG)
+std::string PdfFontCache::GetFontConfigFontPath( FcConfig* pConfig, const char* pszFontName, bool bBold, bool bItalic )
+{
+    FcPattern*  pattern;
+    FcPattern*  matched;
+    FcResult    result = FcResultMatch;
+    FcValue     v;
+    std::string sPath;
+
+    // Build a pattern to search using fontname, bold and italic
+    pattern = FcPatternBuild (0, FC_FAMILY, FcTypeString, pszFontName, 
+                              FC_WEIGHT, FcTypeInteger, (bBold ? FC_WEIGHT_BOLD : FC_WEIGHT_MEDIUM),
+                              FC_SLANT, FcTypeInteger, (bItalic ? FC_SLANT_ITALIC : FC_SLANT_ROMAN),  
+                              static_cast<char*>(0));
+
+    FcDefaultSubstitute( pattern );
+
+    if( !FcConfigSubstitute( pConfig, pattern, FcMatchFont ) )
+    {
+        FcPatternDestroy( pattern );
+        return sPath;
+    }
+
+    matched = FcFontMatch( pConfig, pattern, &result );
+    if( result != FcResultNoMatch )
+    {
+        result = FcPatternGet( matched, FC_FILE, 0, &v );
+        sPath = reinterpret_cast<const char*>(v.u.s);
+#ifdef PODOFO_VERBOSE_DEBUG
+        printf("Got Font %s for for %s\n", sPath.c_str(), pszFontname );
+#endif // PODOFO_DEBUG
+    }
+
+    FcPatternDestroy( pattern );
+    FcPatternDestroy( matched );
+    return sPath;
+}
+
+#endif // HAVE_FONTCONFIG
 
 std::string PdfFontCache::GetFontPath( const char* pszFontName, bool bBold, bool bItalic )
 {
 #if defined(HAVE_FONTCONFIG)
-    std::string sPath = PdfFontMetrics::GetFilenameForFont( m_pFcConfig, pszFontName );
+    FcConfig*   pConfig = FcInitLoadConfigAndFonts();
+    std::string sPath   = this->GetFontConfigFontPath( pConfig, pszFontName, bBold, bItalic );
+    FcConfigDestroy( pConfig );    
 #else
-	std::string sPath = "";
+    std::string sPath = "";
 #endif
     return sPath;
 }
@@ -267,11 +353,11 @@ PdfFont* PdfFontCache::CreateFont( PdfFontMetrics* pMetrics, bool bEmbedd, bool 
     try {
         pFont    = new PdfFont( pMetrics, bEmbedd, bBold, bItalic, m_pParent );
 
-		TFontCacheElement element;
-		element.m_pFont     = pFont;
-		element.m_bBold     = pFont->IsBold();
-		element.m_bItalic   = pFont->IsItalic();
-		element.m_sFontName = pszFontName;
+        TFontCacheElement element;
+        element.m_pFont     = pFont;
+        element.m_bBold     = pFont->IsBold();
+        element.m_bItalic   = pFont->IsItalic();
+        element.m_sFontName = pszFontName;
 
         m_vecFonts  .push_back( element );
         
@@ -281,6 +367,27 @@ PdfFont* PdfFontCache::CreateFont( PdfFontMetrics* pMetrics, bool bEmbedd, bool 
         e.AddToCallstack( __FILE__, __LINE__ );
         e.PrintErrorMsg();
         PdfError::LogMessage( eLogSeverity_Error, "Cannot initialize font: %s\n", pszFontName ? pszFontName : "" );
+        return NULL;
+    }
+
+    return pFont;
+}
+
+PdfFont* PdfFontCache::CreateFontSubset( PdfFontMetrics* pMetrics, const char* pszFontName, 
+                                         bool bBold, bool bItalic, const std::vector<int> & vecGlyphs ) 
+{
+    PdfFont* pFont;
+
+    try {
+        /*
+        pFont    = new PdfFont( pMetrics, vecGlyphs, m_pParent );
+        
+        m_vecFontSubsets  .push_back( pFont );
+        */
+    } catch( PdfError & e ) {
+        e.AddToCallstack( __FILE__, __LINE__ );
+        e.PrintErrorMsg();
+        PdfError::LogMessage( eLogSeverity_Error, "Cannot initialize font subset: %s\n", pszFontName ? pszFontName : "" );
         return NULL;
     }
 

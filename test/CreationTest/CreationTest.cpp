@@ -114,6 +114,14 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     y -= dLineLength;
     y -= (10000 * CONVERSION_CONSTANT);
 
+    pFont = pDocument->CreateFont( "Arial", true, false ); // arial bold - not italic
+    if( !pFont )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    pFont->SetFontSize( 16.0 );
+    pPainter->SetFont( pFont );
     pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y - pFont->GetFontMetrics()->GetLineSpacing(), "RGB Colorspace" );
 
     // Draw 10 lines in rgb
@@ -130,6 +138,14 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     y -= dLineLength;
     y -= (10000 * CONVERSION_CONSTANT);
 
+    pFont = pDocument->CreateFont( "Arial", false, true ); // arial italic - not bold
+    if( !pFont )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    pFont->SetFontSize( 16.0 );
+    pPainter->SetFont( pFont );
     pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y - pFont->GetFontMetrics()->GetLineSpacing(), "CMYK Colorspace" );
 
     // Draw 10 lines in cmyk
@@ -357,11 +373,16 @@ void TextTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
     pPainter->GetFont()->SetUnderlined( false );
     pFont->SetFontCharSpace( 0.0 );
-   	pFont->SetFontScale( 100.0 );
+    pFont->SetFontScale( 100.0 );
 
 
     y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
     y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+
+    pPainter->GetFont()->SetStrikeOut( true );
+    pPainter->DrawText( x, y, "Strikeout" );
+    y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+    pPainter->GetFont()->SetUnderlined( false );
 
 
     pPainter->DrawText( x, y, "PoDoFo rocks!" );
@@ -554,6 +575,19 @@ void TableTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     double        dX     = 10000 * CONVERSION_CONSTANT;
     double        dY     = (pPage->GetPageSize().GetHeight() - 40000 * CONVERSION_CONSTANT);
 
+    std::vector<int> vecGlyphIndeces;
+    vecGlyphIndeces.push_back( static_cast<int>('H') );
+    vecGlyphIndeces.push_back( static_cast<int>('a') );
+    vecGlyphIndeces.push_back( static_cast<int>('l') );
+    vecGlyphIndeces.push_back( static_cast<int>('o') );
+    vecGlyphIndeces.push_back( static_cast<int>(' ') );
+    vecGlyphIndeces.push_back( static_cast<int>('W') );
+    vecGlyphIndeces.push_back( static_cast<int>('r') );
+    vecGlyphIndeces.push_back( static_cast<int>('d') );
+    vecGlyphIndeces.push_back( static_cast<int>('!') );
+    PdfFont* pFontSubset = pDocument->CreateFontSubset( "Arial", false, false, vecGlyphIndeces );
+    pPainter->DrawText( dX + 90000 * CONVERSION_CONSTANT, dY, "Hallo World!" );
+
     PdfFont* pFont = pDocument->CreateFont( "Comic Sans MS" );
     pFont->SetFontSize( 12.0f );
     pPainter->SetFont( pFont );
@@ -574,6 +608,7 @@ void TableTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     table1.SetTableHeight( 120000 * CONVERSION_CONSTANT );
     table1.SetModel( &model );
     table1.Draw( dX, dY, pPainter );
+
 
     dY = pPage->GetPageSize().GetHeight()/2.0 - 30000 * CONVERSION_CONSTANT;
     dX = 2000.0 * CONVERSION_CONSTANT;

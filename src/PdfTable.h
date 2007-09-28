@@ -182,7 +182,7 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
      *
      *  \param bEnable if true all cells have wordwrapping
      */
-	inline void SetWordWrapEnabled( bool bEnable );
+    inline void SetWordWrapEnabled( bool bEnable );
 
     /** Sets the contents of a specific cell
      *
@@ -263,11 +263,11 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
     EPdfAlignment         m_eAlignment;
     EPdfVerticalAlignment m_eVerticalAlignment;
     
-	bool                  m_bWordWrap;
+    bool                  m_bWordWrap;
+    PdfColor              m_clForeground;
     bool                  m_bBackground;
     PdfColor              m_clBackground;
-	PdfColor              m_clForeground;
-
+        
     PdfString**           m_ppData;
 
     int                   m_nCols;
@@ -312,7 +312,7 @@ void PdfSimpleTableModel::SetBackgroundEnabled( bool bEnable )
 // -----------------------------------------------------
 void PdfSimpleTableModel::SetWordWrapEnabled( bool bEnable )
 {
-	m_bWordWrap = bEnable;
+    m_bWordWrap = bEnable;
 }
 
 // -----------------------------------------------------
@@ -328,7 +328,7 @@ void PdfSimpleTableModel::SetBackgroundColor( const PdfColor & rColor )
 // -----------------------------------------------------
 void PdfSimpleTableModel::SetForegroundColor( const PdfColor & rColor )
 {
-	m_clForeground = rColor;
+    m_clForeground = rColor;
 }
 
 // -----------------------------------------------------
@@ -398,17 +398,17 @@ PdfColor PdfSimpleTableModel::GetBackgroundColor ( int, int ) const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-PdfColor PdfSimpleTableModel::GetForegroundColor( int col, int row ) const
+PdfColor PdfSimpleTableModel::GetForegroundColor( int, int ) const
 {
-	return m_clForeground;
+    return m_clForeground;
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-bool PdfSimpleTableModel::HasWordWrap( int col, int row ) const
+bool PdfSimpleTableModel::HasWordWrap( int, int ) const
 {
-	return m_bWordWrap;
+    return m_bWordWrap;
 }
  
 /**

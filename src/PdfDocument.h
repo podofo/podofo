@@ -122,7 +122,8 @@ class PODOFO_API PdfDocument {
      *  and will get deleted along with it!
      *
      *  \param nIndex which page (0-based)
-     *  \returns a pointer to a PdfPage for the requested page
+     *  \returns a pointer to a PdfPage for the requested page.
+     *           The returned object is owned by the PdfDocument.
      */
     PdfPage* GetPage( int nIndex ) const;
 
@@ -131,13 +132,14 @@ class PODOFO_API PdfDocument {
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
      *  \returns PdfFont* a pointer to a new PdfFont object.
+     *                    The returned object is owned by the PdfDocument.
      */
     PdfFont* CreateFont( const char* pszFontName, bool bEmbedd = true );
 
     /** Creates a PdfFont object
      *  \param pszFontName name of the font as it is known to the system
-	 *  \param bBold if true search for a bold font
-	 *  \param bItalic if true search for an italic font
+     *  \param bBold if true search for a bold font
+     *  \param bItalic if true search for an italic font
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
      *  \returns PdfFont* a pointer to a new PdfFont object.
@@ -149,8 +151,21 @@ class PODOFO_API PdfDocument {
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
      *  \returns PdfFont* a pointer to a new PdfFont object.
+     *                    The returned object is owned by the PdfDocument.
      */
     PdfFont* CreateFont( FT_Face face, bool bEmbedd = true );
+
+    /** Creates a PdfFont object that is a subset of an existing true type font.
+     *
+     *  \param pszFontName the fontname of an existing truetype font
+     *  \param bBold if true search for a bold font
+     *  \param bItalic if true search for an italic font
+     *  \param vecGlyphs a list of Unicode glyph indeces that should be embedded in the subset
+     *
+     *  \returns PdfFont* a pointer to a new PdfFont object that contains only the specified glyphs.
+     *                    The returned object is owned by the PdfDocument.
+     */
+    PdfFont* CreateFontSubset( const char* pszFontName, bool bBold, bool bItalic, const std::vector<int> & vecGlyphs );
 
     /** Creates a new page object and inserts it into the internal
      *  page tree. 

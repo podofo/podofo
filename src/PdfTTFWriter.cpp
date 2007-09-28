@@ -109,6 +109,14 @@ PdfTTFWriter::PdfTTFWriter()
     std::sort( m_vecGlyphIndeces.begin(), m_vecGlyphIndeces.end() );
 }
 
+PdfTTFWriter::PdfTTFWriter( const std::vector<int> & rvecGlyphs )
+    : m_lGlyphDataOffset( -1L ), m_lCMapOffset( -1L ), m_pRefBuffer( NULL )
+{
+    m_vecGlyphIndeces = rvecGlyphs;
+
+    std::sort( m_vecGlyphIndeces.begin(), m_vecGlyphIndeces.end() );
+}
+
 PdfTTFWriter::~PdfTTFWriter()
 {
     delete m_pRefBuffer;

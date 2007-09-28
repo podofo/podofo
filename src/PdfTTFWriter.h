@@ -381,9 +381,13 @@ class PODOFO_API PdfTTFWriter {
 
  public:
     /** Create a PdfTTFWriter object.
+     *  For testing purposes.
      *
+     *  TODO: Remove
      */ 
     PdfTTFWriter();
+
+    PdfTTFWriter( const std::vector<int> & rvecGlyphs );
 
     ~PdfTTFWriter();
 
