@@ -376,7 +376,7 @@ PdfFont* PdfFontCache::CreateFont( PdfFontMetrics* pMetrics, bool bEmbedd, bool 
 PdfFont* PdfFontCache::CreateFontSubset( PdfFontMetrics* pMetrics, const char* pszFontName, 
                                          bool bBold, bool bItalic, const std::vector<int> & vecGlyphs ) 
 {
-    PdfFont* pFont;
+    PdfFont* pFont = 0;
 
     try {
         /*
