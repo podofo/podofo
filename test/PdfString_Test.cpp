@@ -28,7 +28,14 @@
 
 using namespace PoDoFo;
 
-// The same string as a NULL-terminated UTF-8 string
+#if _MSC_VER
+// Visual Studo warns about truncation of the following values. We know, and don't care.
+#pragma warning( push )
+#pragma warning( disable: 4309 )
+#endif
+
+// The same string as a NULL-terminated UTF-8 string. This is a UTF-8 literal, so your editor
+// must be configured to handle this file as UTF-8 to see something sensible below.
 const char* pszStringJapUtf8 = "「PoDoFo」は今から日本語も話せます。";
 // and a UTF-16 BE encoded char array w/o NULL terminator
 const char psStringJapUtf16BE[44] = { 0xfe, 0xff, 0x30, 0x0c, 0x00, 0x50, 0x00,
@@ -37,7 +44,7 @@ const char psStringJapUtf16BE[44] = { 0xfe, 0xff, 0x30, 0x0c, 0x00, 0x50, 0x00,
     0x9e, 0x30, 0x82, 0x8a, 0x71, 0x30, 0x5b, 0x30, 0x7e, 0x30, 0x59, 0x30,
     0x02 };
 
-// Some accented chars within the latin-1-with-euro range (UTF-8 encoded)
+// Some accented chars within the latin-1-with-euro range (UTF-8 encoded in the source)
 const char* pszStringUmlUtf8 = "String with German Umlauts: Hallo schöne Welt: äöüÄÖÜß€\n";
 // The same string in PdfDoc encoding - see PDF Reference Section D.1 Latin Character Set and Encodings
 const char* pszStringUmlPdfDoc = "String with German Umlauts: Hallo sch\366ne Welt: \344\366\374\304\326\334\337\240\n";
@@ -52,6 +59,10 @@ const char psStringUmlUtf16BE[114] = { 0xfe, 0xff, 0x00, 0x53, 0x00, 0x74,
     0x00, 0x6e, 0x00, 0x65, 0x00, 0x20, 0x00, 0x57, 0x00, 0x65, 0x00, 0x6c,
     0x00, 0x74, 0x00, 0x3a, 0x00, 0x20, 0x00, 0xe4, 0x00, 0xf6, 0x00, 0xfc,
     0x00, 0xc4, 0x00, 0xd6, 0x00, 0xdc, 0x00, 0xdf, 0x20, 0xac, 0x00, 0x0a};
+
+#if _MSC_VER
+#pragma warning( pop )
+#endif
 
 void testUnicodeString( const pdf_utf8* pszString, long lBufferLen )
 {
@@ -109,8 +120,8 @@ void testUnicode()
 
 
     char* pBuffer = static_cast<char*>(malloc( unicode.GetLength() + 2 ));
-    pBuffer[0] = 0xFE;
-    pBuffer[1] = 0xFF;
+    pBuffer[0] = '\xFE';
+    pBuffer[1] = '\xFF';
     memcpy( pBuffer+2, unicode.GetString(), unicode.GetLength() );
 
     PdfString unicodeHex( pBuffer, unicode.GetLength() + 2, true );
