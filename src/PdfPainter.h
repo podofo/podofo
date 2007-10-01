@@ -332,9 +332,11 @@ class PODOFO_API PdfPainter {
 	 *  \param dHeight height of the text area
 	 *  \param rsText the text which should be drawn
 	 *  \param eAlignment alignment of the individual text lines in the given bounding box
+	 *  \param eVertical vertical alignment of the text in the given bounding box
 	 */
 	void DrawMultiLineText( double dX, double dY, double dWidth, double dHeight, 
-		                    const PdfString & rsText, EPdfAlignment eAlignment = ePdfAlignment_Left );
+		                    const PdfString & rsText, EPdfAlignment eAlignment = ePdfAlignment_Left,
+							EPdfVerticalAlignment eVertical = ePdfVerticalAlignment_Top);
 
 	/** Draw multiline text into a rectangle doing automatic wordwrapping.
 	 *  The current font is used and SetFont has to be called at least once
@@ -343,8 +345,10 @@ class PODOFO_API PdfPainter {
 	 *  \param rRect bounding rectangle of the text
 	 *  \param rsText the text which should be drawn
 	 *  \param eAlignment alignment of the individual text lines in the given bounding box
+	 *  \param eVertical vertical alignment of the text in the given bounding box
 	 */
-	inline void DrawMultiLineText( const PdfRect & rRect, const PdfString & rsText, EPdfAlignment eAlignment = ePdfAlignment_Left );
+	inline void DrawMultiLineText( const PdfRect & rRect, const PdfString & rsText, EPdfAlignment eAlignment = ePdfAlignment_Left,
+		   						   EPdfVerticalAlignment eVertical = ePdfVerticalAlignment_Top);
 
 	/** Draw a single line of text horizontally aligned.
 	 *  \param dX the x coordinate of the text line
@@ -720,9 +724,11 @@ void PdfPainter::FillRect( const PdfRect & rRect, double dRoundX, double dRoundY
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfPainter::DrawMultiLineText( const PdfRect & rRect, const PdfString & rsText, EPdfAlignment eAlignment)
+void PdfPainter::DrawMultiLineText( const PdfRect & rRect, const PdfString & rsText, 
+								    EPdfAlignment eAlignment, EPdfVerticalAlignment eVertical)
 {
-	this->DrawMultiLineText( rRect.GetLeft(), rRect.GetBottom(), rRect.GetWidth(), rRect.GetHeight(), rsText, eAlignment );
+	this->DrawMultiLineText( rRect.GetLeft(), rRect.GetBottom(), rRect.GetWidth(), rRect.GetHeight(), 
+		                     rsText, eAlignment, eVertical );
 }
 
 };

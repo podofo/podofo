@@ -326,7 +326,7 @@ void PdfPainter::SetClipRect( double dX, double dY, double dWidth, double dHeigh
     m_oss << dX << " "
           << dY << " "
           << dWidth << " "
-          << -dHeight        
+          << dHeight        
           << " re W n" << std::endl;
     m_pCanvas->Append( m_oss.str() );
 }
@@ -374,7 +374,7 @@ void PdfPainter::DrawRect( double dX, double dY, double dWidth, double dHeight,
         m_oss << dX << " "
               << dY << " "
               << dWidth << " "
-              << -dHeight        
+              << dHeight        
               << " re S" << std::endl;
         m_pCanvas->Append( m_oss.str() );
     }
@@ -407,7 +407,7 @@ void PdfPainter::FillRect( double dX, double dY, double dWidth, double dHeight,
         m_oss << dX << " "
             << dY << " "
             << dWidth << " "
-            << -dHeight        
+            << dHeight        
             << " re f" << std::endl;
     }
 
@@ -593,9 +593,20 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
     m_pCanvas->Append( ">Tj\nET\n" );
 }
 
-void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double dHeight, const PdfString & rsText, EPdfAlignment eAlignment )
+void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double dHeight, const PdfString & rsText, 
+								    EPdfAlignment eAlignment, EPdfVerticalAlignment eVertical )
 {
-    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+	struct TLineElement {
+		TLineElement()
+			: pszStart( NULL ), lLen( 0L )
+		{
+		}
+
+		const char* pszStart;
+		long        lLen;
+	};
+
+	PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
     if( !m_pFont || !m_pPage || !rsText.IsValid() )
     {
@@ -605,19 +616,19 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
 	if( dWidth <= 0.0 || dHeight <= 0.0 ) // nonsense arguments
 		return;
 
-	//this->SetClipRect( dX, dY, dWidth, dHeight );
-
-	// Set correct y coordinate for first line of text
-	dY += dHeight;
-	dY -= m_pFont->GetFontMetrics()->GetLineSpacing();
+	TLineElement              tLine;
+	std::vector<TLineElement> vecLines;
+	this->SetClipRect( dX, dY, dWidth, dHeight );
 
 	PdfString   sString  = this->ExpandTabs( rsText );
-	const char* pszStart = sString.GetString();
-	const char* pszEnd   = pszStart;
-	const char* pszWord  = pszStart;
+	tLine.pszStart       = sString.GetString();
+	const char* pszEnd   = tLine.pszStart;
+	const char* pszWord  = tLine.pszStart;
 
 	double dCurWidth = 0.0;
 
+	// do simple word wrapping
+	// TODO: Use better algorithm!
 	while( *pszEnd ) 
 	{
 		dCurWidth += m_pFont->GetFontMetrics()->CharWidth( *pszEnd );
@@ -625,12 +636,12 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
 		if( *pszEnd == '\n' ) // hard-break!
 		{
 			++pszEnd; // skip the line feed
-			
-			this->DrawTextAligned( dX, dY, dWidth, PdfString( pszStart, pszEnd-pszStart ), eAlignment );
-		
+
+			tLine.lLen = pszEnd - tLine.pszStart;
+			vecLines.push_back( tLine );
+
+			tLine.pszStart = pszEnd;
 			dCurWidth = 0.0;
-			dY       -= m_pFont->GetFontMetrics()->GetLineSpacing();
-			pszStart  = pszEnd;
 		}
 		else if( isspace( static_cast<unsigned int>(static_cast<unsigned char>(*pszEnd)) ) || 
 			     ispunct( static_cast<unsigned int>(static_cast<unsigned char>(*pszEnd)) ))
@@ -642,22 +653,46 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
 			// -> Move it to the next one.
 			
 			// skip leading whitespaces!
-			while( *pszStart && isspace( static_cast<unsigned int>(static_cast<unsigned char>(*pszStart)) ) )
-				++pszStart;
+			while( *tLine.pszStart && isspace( static_cast<unsigned int>(static_cast<unsigned char>(*tLine.pszStart)) ) )
+				++tLine.pszStart;
 
-			this->DrawTextAligned( dX, dY, dWidth, PdfString( pszStart, pszWord-pszStart ), eAlignment );
+			tLine.lLen = pszEnd - tLine.pszStart;
+			vecLines.push_back( tLine );
+			tLine.pszStart = pszWord;
 
 			dCurWidth = pszEnd-pszWord > 0 ? 
 				m_pFont->GetFontMetrics()->StringWidth( pszWord, pszEnd-pszWord ) : 0.0;
-			dY       -= m_pFont->GetFontMetrics()->GetLineSpacing();
-			pszStart  = pszWord;
 		}
-
 		++pszEnd;
 	}
 
-	if( pszEnd-pszStart > 0 ) 
-		this->DrawTextAligned( dX, dY, dWidth, PdfString( pszStart, pszEnd-pszStart ), eAlignment );
+	if( pszEnd-tLine.pszStart > 0 ) 
+	{
+		tLine.lLen = pszEnd - tLine.pszStart;
+		vecLines.push_back( tLine );
+	}
+
+	// Do horizontal alignment
+	switch( eVertical ) 
+	{
+		default:
+		case ePdfVerticalAlignment_Top:
+			dY += dHeight; break;
+		case ePdfVerticalAlignment_Bottom:
+			dY += m_pFont->GetFontMetrics()->GetLineSpacing() * vecLines.size(); break;
+		case ePdfVerticalAlignment_Center:
+			dY += (dHeight - (m_pFont->GetFontMetrics()->GetLineSpacing() * vecLines.size()))/2.0; break;
+	}
+
+	std::vector<TLineElement>::const_iterator it = vecLines.begin();
+	while( it != vecLines.end() )
+	{
+		dY -= m_pFont->GetFontMetrics()->GetLineSpacing();
+		if( (*it).pszStart )
+			this->DrawTextAligned( dX, dY, dWidth, PdfString( (*it).pszStart, (*it).lLen ), eAlignment );
+
+		++it;
+	}
 }
 
 void PdfPainter::DrawTextAligned( double dX, double dY, double dWidth, const PdfString & rsText, EPdfAlignment eAlignment )

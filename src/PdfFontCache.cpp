@@ -285,11 +285,11 @@ PdfFont* PdfFontCache::GetWin32Font( const char* pszFontName, bool bBold, bool b
         pMetrics = new PdfFontMetrics( &m_ftLibrary, pBuffer, nLen );
         pFont    = this->CreateFont( pMetrics, bEmbedd, bBold, bItalic, pszFontName );
     } catch( PdfError & error ) {
-        free( pBuffer );
+        //free( pBuffer );
         throw error;
     }
     
-    free( pBuffer );
+    //free( pBuffer );
     return pFont;
 }
 #endif // _WIN32

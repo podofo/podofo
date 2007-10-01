@@ -121,6 +121,8 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter )
             dCurY = 0.0;
             for( j=0;j<m_nRows;j++ )
             {
+                dCurY      += pdRowHeights[j];
+
                 // set a clipping rectangle
                 pPainter->Save();
                 pPainter->SetClipRect( dX + dCurX, dY - dCurY, pdColWidths[i], pdRowHeights[j] );
@@ -139,9 +141,8 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter )
                 pFont = pFont ? pFont : pDefaultFont;
                 pPainter->SetFont( pFont );
 				pPainter->SetColor( m_pModel->GetForegroundColor( i, j ) );
-                // calculate horizontal and vertical alignment
-                dCurY      += pdRowHeights[j];
 
+				// calculate horizontal and vertical alignment
                 switch( m_pModel->GetAlignment( i, j ) ) 
                 {
                     default:

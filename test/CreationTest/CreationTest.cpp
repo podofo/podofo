@@ -98,7 +98,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
     pPainter->SetFont( pFont );
     pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y - pFont->GetFontMetrics()->GetLineSpacing(), msg );
-    pPainter->DrawRect( 120000 * CONVERSION_CONSTANT , y, w, h );
+    pPainter->DrawRect( 120000 * CONVERSION_CONSTANT, y - pFont->GetFontMetrics()->GetLineSpacing(), w, h );
 
     // Draw 10 lines in gray scale
     for( i = 0; i < 10; i++ )
@@ -197,7 +197,9 @@ void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     PdfFont* pFont;
 
     const double dWidth  = 50000 * CONVERSION_CONSTANT; // 5cm
-    const double dHeight = 30000 * CONVERSION_CONSTANT; // 3cm
+	const double dHeight = 30000 * CONVERSION_CONSTANT; // 3cm
+
+	y -= dHeight;
 
     pFont = pDocument->CreateFont( "Arial" );
     if( !pFont )
@@ -250,8 +252,10 @@ void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->SetStrokeWidth( 100 * CONVERSION_CONSTANT );
     pPainter->SetStrokingColor( 0.0, 1.0, 0.0 );
     pPainter->SetColor( 0.0, 0.0, 1.0 );
-    pPainter->FillRect( x, y, dWidth, dHeight );
-    pPainter->DrawRect( x, y, dWidth, dHeight );
+	x = 0.0;
+	y = 0.0;
+    pPainter->FillRect( x, y, 50000 * CONVERSION_CONSTANT, 50000 * CONVERSION_CONSTANT);
+    pPainter->DrawRect( x, y, 50000 * CONVERSION_CONSTANT, 50000 * CONVERSION_CONSTANT);
 
     y -= dHeight;
     y -= 10000 * CONVERSION_CONSTANT;
@@ -413,7 +417,7 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pnt.GetFont()->SetFontSize( 8.0 );
     pnt.SetStrokingColor( 1.0, 1.0, 1.0 );
     pnt.SetColor( 1.0, 1.0, 0.0 );
-    pnt.FillRect( 0, xObj.GetPageSize().GetHeight(), xObj.GetPageSize().GetWidth(), xObj.GetPageSize().GetHeight()  );
+    pnt.FillRect( 0, 0, xObj.GetPageSize().GetWidth(), xObj.GetPageSize().GetHeight()  );
     pnt.SetColor( 0.0, 0.0, 0.0 );
     pnt.DrawRect( 0, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT );
     pnt.DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am a XObject." );
@@ -423,9 +427,12 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     // Draw onto the page 
 
 #ifdef PODOFO_HAVE_JPEG_LIB
+	/*
     pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y, &image, 0.3, 0.3 );
     pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y - (100000 * CONVERSION_CONSTANT), &image, 0.2, 0.5 );
     pPainter->DrawImage( 40000 * CONVERSION_CONSTANT, y - (200000 * CONVERSION_CONSTANT), &image, 0.3, 0.3 );
+	*/
+	pPainter->DrawImage( 0.0, pPage->GetPageSize().GetHeight() - image.GetHeight(), &image );
 #endif // PODOFO_HAVE_JPEG_LIB
 
     pPainter->DrawXObject( 120000 * CONVERSION_CONSTANT, y - (50000 * CONVERSION_CONSTANT), &xObj );
@@ -485,7 +492,7 @@ void XObjectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     const double dHeight = 270000 * CONVERSION_CONSTANT; // 27cm
 
     pPainter->SetColor( 1.0, 0.8, 0.8 );
-    pPainter->FillRect( x, y, dWidth, dHeight );
+    pPainter->FillRect( x, y - dHeight, dWidth, dHeight );
     
     // Das funktioniert immer
     PdfXObject xObj1( "../../../podofo/test/CreationTest/Illust.pdf", 0, pDocument );
@@ -508,7 +515,7 @@ void XObjectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     // Draw text onto the XObject3
     pPainter->SetPage( &xObj3 );
     pPainter->SetColor( 0.0, 1.0, 0.0 );
-    pPainter->FillRect( 0.0, rectX.GetHeight(), rectX.GetWidth(), rectX.GetHeight() );
+    pPainter->FillRect( 0.0, 0.0, rectX.GetWidth(), rectX.GetHeight() );
     pPainter->SetFont( pDocument->CreateFont( "Comic Sans MS" ) );
     pPainter->SetColor( 0.0, 0.0, 0.0 );
     pPainter->DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am XObject 3." );
@@ -517,7 +524,7 @@ void XObjectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     // Draw text and pdf onto the XObject4
     pPainter->SetPage( &xObj4 );
     pPainter->SetColor( 0.0, 1.0, 0.0 );
-    pPainter->FillRect( 0.0, rectX.GetHeight(), rectX.GetWidth(), rectX.GetHeight() );
+    pPainter->FillRect( 0.0, 0.0, rectX.GetWidth(), rectX.GetHeight() );
     pPainter->SetFont( pDocument->CreateFont( "Comic Sans MS" ) );
     pPainter->SetColor( 0.0, 0.0, 0.0 );
     pPainter->DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am XObject 4." );
