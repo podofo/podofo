@@ -32,7 +32,8 @@ PdfSimpleTableModel::PdfSimpleTableModel()
       m_eVerticalAlignment( ePdfVerticalAlignment_Center ),
       m_bWordWrap( false), m_clForeground( 1.0 ),
       m_bBackground( false ), m_clBackground( 0.0 ),
-      m_ppData( NULL ), m_nCols( 0 ), m_nRows( 0 )
+      m_ppData( NULL ), m_nCols( 0 ), m_nRows( 0 ),
+	  m_bBorder( true )
 {
 
 }
@@ -42,7 +43,8 @@ PdfSimpleTableModel::PdfSimpleTableModel( int nCols, int nRows )
       m_eVerticalAlignment( ePdfVerticalAlignment_Center ),
       m_bWordWrap( false ), m_clForeground( 1.0 ),
       m_bBackground( false ), m_clBackground( 0.0 ),
-      m_nCols( nCols ), m_nRows( nRows )
+      m_nCols( nCols ), m_nRows( nRows ),
+	  m_bBorder( true )
 {
     m_ppData = static_cast<PdfString**>(malloc( sizeof(PdfString*) * nRows ));
     if( !m_ppData )
@@ -98,7 +100,6 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter )
     double  dWidth;
     double  dHeight;
     double  dVertical;
-    double  dHorizontal;
     double* pdColWidths  = new double[this->GetCols()];
     double* pdRowHeights = new double[this->GetRows()];
 
@@ -142,38 +143,35 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter )
                 pPainter->SetFont( pFont );
 				pPainter->SetColor( m_pModel->GetForegroundColor( i, j ) );
 
-				// calculate horizontal and vertical alignment
-                switch( m_pModel->GetAlignment( i, j ) ) 
-                {
-                    default:
-                    case ePdfAlignment_Left:
-                        dHorizontal = 0.0;
-                        break;
-                    case ePdfAlignment_Center:
-                        dHorizontal = (pdColWidths[i] - pFont->GetFontMetrics()->StringWidth( m_pModel->GetText( i, j ) )) / 2.0;
-                        break;
-                    case ePdfAlignment_Right:
-                        dHorizontal = (pdColWidths[i] - pFont->GetFontMetrics()->StringWidth( m_pModel->GetText( i, j ) ));
-                        break;
-
-                }
-
-                switch( m_pModel->GetVerticalAlignment( i, j ) ) 
-                {
-                    default:
-                    case ePdfVerticalAlignment_Top:
-                        dVertical = 0.0;
-                        break;
-                    case ePdfVerticalAlignment_Center:
-                        dVertical = (pdRowHeights[j] - pFont->GetFontMetrics()->GetLineSpacing()) / 2.0;
-                        break;
-                    case ePdfVerticalAlignment_Bottom:
-                        dVertical = (pdRowHeights[j] - pFont->GetFontMetrics()->GetLineSpacing());
-                        break;
-                }
-
                 // draw text
-                pPainter->DrawText( dX + dCurX + dHorizontal, dY - dCurY + dVertical, m_pModel->GetText( i, j ) );
+				if( m_pModel->HasWordWrap( i, j ) )
+				{
+					// Make sure we have at least 1 dot free space at each side of the rectangle
+					pPainter->DrawMultiLineText( dX + dCurX + 1, dY - dCurY, pdColWidths[i] - 2, pdRowHeights[j],
+												 m_pModel->GetText( i, j ), m_pModel->GetAlignment( i, j ),
+												 m_pModel->GetVerticalAlignment( i, j ) );
+				}
+				else
+				{
+					// calculate vertical alignment
+					switch( m_pModel->GetVerticalAlignment( i, j ) ) 
+					{
+						default:
+						case ePdfVerticalAlignment_Top:
+							dVertical = 0.0;
+							break;
+						case ePdfVerticalAlignment_Center:
+							dVertical = (pdRowHeights[j] - pFont->GetFontMetrics()->GetLineSpacing()) / 2.0;
+							break;
+						case ePdfVerticalAlignment_Bottom:
+							dVertical = (pdRowHeights[j] - pFont->GetFontMetrics()->GetLineSpacing());
+							break;
+					}
+
+					// Make sure we have at least 1 dot free space at each side of the rectangle
+					pPainter->DrawTextAligned( dX + dCurX + 1, dY - dCurY + dVertical, pdColWidths[i] - 2, m_pModel->GetText( i, j ), m_pModel->GetAlignment( i, j ) );
+				}
+                
                 pPainter->Restore();
             }
 
@@ -181,23 +179,28 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter )
         }        
     }
 
-    // draw borders
-    dCurY = 0.0;
-    for( i=0;i<m_nRows;i++ )
-    {
-        pPainter->DrawLine( dX, dY - dCurY, dX + dWidth, dY - dCurY);
-        dCurY += pdRowHeights[i];
-    }
-    pPainter->DrawLine( dX, dY - dCurY, dX + dWidth, dY - dCurY);
+    // draw borders (even draw borders if we have no model)
+	bool bBorders = !m_pModel || (m_pModel && m_pModel->HasBorders() );
 
-    dCurX = 0.0;
-    for( i=0;i<m_nCols;i++ ) 
-    {
+	if( bBorders ) 
+	{
+		dCurY = 0.0;
+		for( i=0;i<m_nRows;i++ )
+		{
+			pPainter->DrawLine( dX, dY - dCurY, dX + dWidth, dY - dCurY);
+			dCurY += pdRowHeights[i];
+		}
+		pPainter->DrawLine( dX, dY - dCurY, dX + dWidth, dY - dCurY);
 
-        pPainter->DrawLine( dX + dCurX, dY, dX + dCurX, dY - dHeight );
-        dCurX += pdColWidths[i];
-    }
-    pPainter->DrawLine( dX + dCurX, dY, dX + dCurX, dY - dHeight );
+		dCurX = 0.0;
+		for( i=0;i<m_nCols;i++ ) 
+		{
+
+			pPainter->DrawLine( dX + dCurX, dY, dX + dCurX, dY - dHeight );
+			dCurX += pdColWidths[i];
+		}
+		pPainter->DrawLine( dX + dCurX, dY, dX + dCurX, dY - dHeight );
+	}
 
     pPainter->Restore();
 

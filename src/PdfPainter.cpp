@@ -618,6 +618,7 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
 
 	TLineElement              tLine;
 	std::vector<TLineElement> vecLines;
+	this->Save();
 	this->SetClipRect( dX, dY, dWidth, dHeight );
 
 	PdfString   sString  = this->ExpandTabs( rsText );
@@ -672,7 +673,7 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
 		vecLines.push_back( tLine );
 	}
 
-	// Do horizontal alignment
+	// Do vertical alignment
 	switch( eVertical ) 
 	{
 		default:
@@ -681,7 +682,9 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
 		case ePdfVerticalAlignment_Bottom:
 			dY += m_pFont->GetFontMetrics()->GetLineSpacing() * vecLines.size(); break;
 		case ePdfVerticalAlignment_Center:
-			dY += (dHeight - (m_pFont->GetFontMetrics()->GetLineSpacing() * vecLines.size()))/2.0; break;
+			dY += (dHeight - 
+					((dHeight - (m_pFont->GetFontMetrics()->GetLineSpacing() * vecLines.size()))/2.0)); 
+			break;
 	}
 
 	std::vector<TLineElement>::const_iterator it = vecLines.begin();
@@ -693,6 +696,7 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
 
 		++it;
 	}
+	this->Restore();
 }
 
 void PdfPainter::DrawTextAligned( double dX, double dY, double dWidth, const PdfString & rsText, EPdfAlignment eAlignment )

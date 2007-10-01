@@ -112,6 +112,15 @@ class PODOFO_API PdfTableModel {
      */
     virtual bool HasWordWrap( int col, int row ) const = 0;
 
+	/** 
+	 * \returns true if the table should have
+	 *          a border around all cells.
+	 * \returns false if no cell border should be visible
+	 *
+	 * Cell borders are always drawn using the current PdfPainter
+	 * settings.
+	 */
+	virtual bool HasBorders() const = 0;
 };
 
 /**
@@ -183,6 +192,13 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
      *  \param bEnable if true all cells have wordwrapping
      */
     inline void SetWordWrapEnabled( bool bEnable );
+
+	/** Sets wether all cells have a border or not.
+	 *  
+	 *  \param bEnable if true a border will be drawn
+	 *                 using the current PdfPainter settings
+	 */
+	inline void SetBorderEnabled( bool bEnable );
 
     /** Sets the contents of a specific cell
      *
@@ -257,6 +273,16 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
      */
     inline virtual bool HasWordWrap( int col, int row ) const;
 
+	/** 
+	 * \returns true if the table should have
+	 *          a border around all cells.
+	 * \returns false if no cell border should be visible
+	 *
+	 * Cell borders are always drawn using the current PdfPainter
+	 * settings.
+	 */
+	inline virtual bool HasBorders() const;
+
  private:
     PdfFont*              m_pFont;
 
@@ -272,6 +298,8 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
 
     int                   m_nCols;
     int                   m_nRows;
+
+	bool                  m_bBorder;
 };
 
 // -----------------------------------------------------
@@ -313,6 +341,14 @@ void PdfSimpleTableModel::SetBackgroundEnabled( bool bEnable )
 void PdfSimpleTableModel::SetWordWrapEnabled( bool bEnable )
 {
     m_bWordWrap = bEnable;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfSimpleTableModel::SetBorderEnabled( bool bEnable )
+{
+	m_bBorder = bEnable;
 }
 
 // -----------------------------------------------------
@@ -409,6 +445,14 @@ PdfColor PdfSimpleTableModel::GetForegroundColor( int, int ) const
 bool PdfSimpleTableModel::HasWordWrap( int, int ) const
 {
     return m_bWordWrap;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfSimpleTableModel::HasBorders() const
+{
+	return m_bBorder;
 }
  
 /**
