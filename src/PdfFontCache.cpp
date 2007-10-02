@@ -193,7 +193,29 @@ PdfFont* PdfFontCache::GetFont( const char* pszFilename, bool bEmbedd )
     FT_Face  face;
     FT_Error error = FT_New_Face( m_ftLibrary, pszFilename, 0, &face );
     if( !error ) 
-        pFont = this->GetFont( face, bEmbedd );
+	{
+	    PdfFontMetrics*   pMetrics;
+	    TCISortedFontList it;
+
+	    std::string sName = FT_Get_Postscript_Name( face );
+	    if( sName.empty() )
+	    {
+	        PdfError::LogMessage( eLogSeverity_Critical, "Could not retrieve fontname for font!\n" );
+	        return NULL;
+	    }
+
+	    bool bBold   = ((face->style_flags & FT_STYLE_FLAG_BOLD)   != 0);
+	    bool bItalic = ((face->style_flags & FT_STYLE_FLAG_ITALIC) != 0);
+
+	    it = std::find_if( m_vecFonts.begin(), m_vecFonts.end(), FontComperator( sName.c_str(), bBold, bItalic ) );
+	    if( it == m_vecFonts.end() )
+	    {
+	        pMetrics = new PdfFontMetrics( &m_ftLibrary, pszFilename );
+	        pFont    = this->CreateFont( pMetrics, bEmbedd, bBold, bItalic, sName.c_str() );
+	    }
+	    else
+	        pFont = (*it).m_pFont;
+	}
 
     return pFont;
 }
