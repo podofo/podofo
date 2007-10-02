@@ -377,6 +377,21 @@ class PODOFO_API PdfTTFWriter {
         pdf_ttf_ushort stringLength;
         pdf_ttf_ushort stringOffset;///< 0
     };
+
+    /** The postscript table
+     */
+    struct TPost {
+        pdf_ttf_fixed format;
+        pdf_ttf_fixed italicAngle;
+        pdf_ttf_fword underlinePosition;
+        pdf_ttf_fword underlineThickness;
+        pdf_ttf_ulong isFixedPitch;
+        pdf_ttf_ulong minMemType42;
+        pdf_ttf_ulong maxMemType42;
+        pdf_ttf_ulong minMemType1;
+        pdf_ttf_ulong maxMemType1;
+    };
+
 #pragma pack()
 
  public:
@@ -507,7 +522,7 @@ class PODOFO_API PdfTTFWriter {
     void ReadGlyfTable( PdfInputDevice* pDevice );
     void ReadOs2Table ( PdfInputDevice* pDevice );
     void ReadHmtxTable( PdfInputDevice* pDevice );
-
+    void ReadPostTable( PdfInputDevice* pDevice );
 
 
     /** Writes the table directory at the current position
@@ -546,6 +561,7 @@ class PODOFO_API PdfTTFWriter {
     void WriteOs2Table ( PdfOutputDevice* pDevice );
     void WriteNameTable( PdfOutputDevice* pDevice );
     void WriteHmtxTable( PdfOutputDevice* pDevice );
+    void WritePostTable( PdfOutputDevice* pDevice );
 
     /** 
      *  Write a table to an output device and create a table directory for it
@@ -569,6 +585,7 @@ class PODOFO_API PdfTTFWriter {
     void SwapMaxpTable();
     void SwapHHeaTable();
     void SwapOs2Table();
+    void SwapPostTable();
 
     /** Read the glyph coordinates from an input device.
      *
@@ -616,6 +633,7 @@ class PODOFO_API PdfTTFWriter {
     THead                     m_tHead;            ///< The head table 
     THHea                     m_tHHea;            ///< The hhea table
     TOs2                      m_tOs2;             ///< The OS/2 table
+    TPost                     m_tPost;            ///< The post table
 
     TVecLoca                  m_tLoca;            ///< The loca table in long format which is read in
     TVecLoca                  m_vecLoca;          ///< The loca table in long format which is written out

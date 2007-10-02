@@ -31,13 +31,30 @@ class PODOFO_API PdfFont : public PdfElement {
      *         deleted along with the font.
      *  \param bEmbed specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
-	 *  \param bBold specifies if this font is a bold font
-	 *  \param bItalic specifies if this font is an italic font
+     *  \param bBold specifies if this font is a bold font
+     *  \param bItalic specifies if this font is an italic font
      *  \param pParent parent of the font object
      *  
      */
     PdfFont( PdfFontMetrics* pMetrics, bool bEmbed, bool bBold, bool bItalic, 
-			 PdfVecObjects* pParent );
+             PdfVecObjects* pParent );
+
+    /** Create a new PdfFont object which is a font subset of a font.
+     *
+     *  The font has a default font size of 12.0pt.
+     *
+     *  \param pMetrics pointer to a font metrics object. The font in the PDF
+     *         file will match this fontmetrics object. The metrics object is 
+     *         deleted along with the font.
+     *  \param bBold specifies if this font is a bold font
+     *  \param bItalic specifies if this font is an italic font
+     *  \param vecUnicodeCodePoints the unicode code points that are part of this subset
+     *  \param pParent parent of the font object
+     *  
+     */
+    PdfFont( PdfFontMetrics* pMetrics, bool bBold, bool bItalic,
+             std::vector<int> vecUnicodeCodePoints, PdfVecObjects* pParent );
+
     virtual ~PdfFont();
 
     /** Set the font size before drawing with this font.
@@ -58,7 +75,7 @@ class PODOFO_API PdfFont : public PdfElement {
     /** Retrieve the current horizontal scaling of this font object
      *  \returns the current font scaling
      */
-	inline float GetFontScale() const;
+    inline float GetFontScale() const;
 
     /** Set the character spacing of the font
      *  \param fCharSpace character spacing in percent
@@ -68,7 +85,7 @@ class PODOFO_API PdfFont : public PdfElement {
     /** Retrieve the current character spacing of this font object
      *  \returns the current font character spacing
      */
-	inline float GetFontCharSpace() const;
+    inline float GetFontCharSpace() const;
 
     /** Set the underlined property of the font
      *  \param bUnder if true any text drawn with this font
@@ -78,34 +95,34 @@ class PODOFO_API PdfFont : public PdfElement {
     inline void SetUnderlined( bool bUnder );
 
     /** \returns true if the font is underlined
-	 *  \see IsBold
-	 *  \see IsItalic
+     *  \see IsBold
+     *  \see IsItalic
      */
     inline bool IsUnderlined() const;
 
-	/** \returns true if this font is bold
-	 *  \see IsItalic
-	 *  \see IsUnderlined
-	 */
-	inline bool IsBold() const;
-
-	/** \returns true if this font is italic
-	 *  \see IsBold
-	 *  \see IsUnderlined
-	 */
-	inline bool IsItalic() const;
-
-	/** Set the strikeout property of the font
+    /** \returns true if this font is bold
+     *  \see IsItalic
+     *  \see IsUnderlined
+     */
+    inline bool IsBold() const;
+    
+    /** \returns true if this font is italic
+     *  \see IsBold
+     *  \see IsUnderlined
+     */
+    inline bool IsItalic() const;
+    
+    /** Set the strikeout property of the font
      *  \param bStrikeOut if true any text drawn with this font
      *                    by a PdfPainter will be strikedout.
      *  Default is false
      */
-	inline void SetStrikeOut( bool bStrikeOut );
-
+    inline void SetStrikeOut( bool bStrikeOut );
+    
     /** \returns true if the font is striked out
      */
-	inline bool IsStrikeOut() const;
-
+    inline bool IsStrikeOut() const;
+    
     /** Returns the identifier of this font how it is known
      *  in the pages resource dictionary.
      *  \returns PdfName containing the identifier (e.g. /Ft13)
@@ -146,6 +163,15 @@ class PODOFO_API PdfFont : public PdfElement {
      */
     void Init( bool bEmbed );
 
+    /** Set the basic variables to their initial values
+     *  (those who are shared between real fonts and subsets)
+     */
+    void InitVars();
+
+    /** Initialise a font subset
+     */
+    void InitSubset();
+
     /** A custom helper function for Type1 fontembeeding.
      *  Searched a string in a binary buffer and returns the offset it was found at.
      *
@@ -158,16 +184,15 @@ class PODOFO_API PdfFont : public PdfElement {
     long FindInBuffer( const char* pszNeedle, const char* pszHaystack, long lLen );
 
  private: 
+    PdfFontMetrics* m_pMetrics;
 
     bool  m_bBold;
     bool  m_bItalic;
     bool  m_bUnderlined;
-	bool  m_bStrikedOut;
+    bool  m_bStrikedOut;
 
     PdfName m_Identifier;
     PdfName m_BaseFont;
-
-    PdfFontMetrics* m_pMetrics;
 };
 
 const PdfName & PdfFont::GetIdentifier() const

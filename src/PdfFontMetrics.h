@@ -298,6 +298,12 @@ class PODOFO_API PdfFontMetrics {
     inline EPdfFontType GetFontType() const;
 
  private:
+    
+    /** Initialize this object from an in memory buffer
+     *  Called internally by the constructors
+     */
+    void InitFromBuffer();
+
     /** Load the metric data from the FTFace data
      *		Called internally by the constructors
      */

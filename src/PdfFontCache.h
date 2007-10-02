@@ -125,7 +125,7 @@ class PODOFO_API PdfFontCache {
     /** Get a font from the cache. If the font does not yet
      *  exist, add it to the cache.
      *
-     *  \param face a valid freetype font face
+     *  \param face a valid freetype font face (will be free'd by PoDoFo)
      *  \param bEmbedd if true a font for embedding into 
      *                 PDF will be created
      *
@@ -133,6 +133,18 @@ class PODOFO_API PdfFontCache {
      *           not be created or found.
      */
     PdfFont* GetFont( FT_Face face, bool bEmbedd );
+
+    /** Get a font from the cache. If the font does not yet
+     *  exist, add it to the cache.
+     *
+     *  \param pszFilename path to a valid font file
+     *  \param bEmbedd if true a font for embedding into 
+     *                 PDF will be created
+     *
+     *  \returns a PdfFont object or NULL if the font could
+     *           not be created or found.
+     */
+    PdfFont* GetFont( const char* pszFilename, bool bEmbedd );
 
     /** Get a fontsubset from the cache. If the font does not yet
      *  exist, add it to the cache.

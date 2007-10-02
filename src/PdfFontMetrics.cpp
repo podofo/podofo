@@ -72,22 +72,9 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsig
 {
     m_face                = NULL;
     m_bufFontData = PdfRefCountedBuffer( nBufLen ); // const_cast is ok, because we SetTakePossension to false!
-	memcpy( m_bufFontData.GetBuffer(), pBuffer, nBufLen );
+    memcpy( m_bufFontData.GetBuffer(), pBuffer, nBufLen );
 
-    FT_Error error = FT_New_Memory_Face( *pLibrary, reinterpret_cast<const unsigned char*>(pBuffer), nBufLen, 0, &m_face );
-
-    if( error ) 
-    {
-        PdfError::LogMessage( eLogSeverity_Critical, "FreeType return edthe error %i when calling FT_New_Face for a buffered font.", error );
-        PODOFO_RAISE_ERROR( ePdfError_FreeType );
-    }
-    else
-    {
-        // asume true type
-        m_eFontType = ePdfFontType_TrueType;
-    }
-
-    InitFromFace();
+    InitFromBuffer();
 }
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const PdfRefCountedBuffer & rBuffer )
@@ -96,7 +83,7 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const PdfRefCountedBuffer 
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown )
 {
-
+    InitFromBuffer();
 }
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, FT_Face face )
@@ -116,6 +103,25 @@ PdfFontMetrics::~PdfFontMetrics()
 {
     if ( m_face )
         FT_Done_Face( m_face );
+}
+
+
+void PdfFontMetrics::InitFromBuffer() 
+{
+    FT_Error error = FT_New_Memory_Face( *m_pLibrary, reinterpret_cast<const unsigned char*>(m_bufFontData.GetBuffer()), 
+                                         m_bufFontData.GetSize(), 0, &m_face );
+    if( error ) 
+    {
+        PdfError::LogMessage( eLogSeverity_Critical, "FreeType return edthe error %i when calling FT_New_Face for a buffered font.", error );
+        PODOFO_RAISE_ERROR( ePdfError_FreeType );
+    }
+    else
+    {
+        // asume true type
+        m_eFontType = ePdfFontType_TrueType;
+    }
+
+    InitFromFace();
 }
 
 void PdfFontMetrics::InitFromFace()

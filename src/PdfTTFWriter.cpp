@@ -130,6 +130,7 @@ void PdfTTFWriter::Read( PdfInputDevice* pDevice )
     long lMaxp = -1;
     long lOs2  = -1;
     long lHmtx = -1;
+    long lPost = -1;
 
     // Read the table directory
     this->ReadTableDirectory( pDevice );
@@ -159,6 +160,8 @@ void PdfTTFWriter::Read( PdfInputDevice* pDevice )
             lOs2 = entry.offset;
         else if( entry.tag == this->CreateTag( 'h', 'm', 't', 'x' ) )
             lHmtx = entry.offset;
+        else if( entry.tag == this->CreateTag( 'p', 'o', 's', 't' ) )
+            lPost = entry.offset;
 
         vecTables.push_back( entry );
     }
@@ -196,6 +199,10 @@ void PdfTTFWriter::Read( PdfInputDevice* pDevice )
     {
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidFontFile, "Table 'hmtx' not found." ); 
     }
+    else if( lPost == -1 ) 
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidFontFile, "Table 'post' not found." ); 
+    }
 
     // Read head table
     pDevice->Seek( lHead );
@@ -228,6 +235,10 @@ void PdfTTFWriter::Read( PdfInputDevice* pDevice )
     // Read hmtx table
     pDevice->Seek( lHmtx );
     this->ReadHmtxTable( pDevice );
+
+    // Read post table
+    pDevice->Seek( lPost );
+    this->ReadPostTable( pDevice );
 
     // read the remaining data tables
     TIVecTableDirectoryEntries it = vecTables.begin(); 
@@ -438,6 +449,29 @@ void PdfTTFWriter::SwapHHeaTable()
     SwapFWord  ( &m_tHHea.minRightSideBearing );
     SwapFWord  ( &m_tHHea.xMaxExtent );
     SwapUShort ( &m_tHHea.numberOfHMetrics );
+}
+
+void PdfTTFWriter::ReadPostTable( PdfInputDevice* pDevice )
+{
+    pDevice->Read( reinterpret_cast<char*>(&m_tPost), sizeof(TPost) );
+
+    if( podofo_is_little_endian() )
+        SwapPostTable();
+}
+
+void PdfTTFWriter::SwapPostTable() 
+{
+    /*
+    pdf_ttf_fixed format;
+    pdf_ttf_fixed italicAngle;
+    pdf_ttf_fword underlinePosition;
+    pdf_ttf_fword underlineThickness;
+    pdf_ttf_ulong isFixedPitch;
+    pdf_ttf_ulong minMemType42;
+    pdf_ttf_ulong maxMemType42;
+    pdf_ttf_ulong minMemType1;
+    pdf_ttf_ulong maxMemType1;
+    */  
 }
 
 void PdfTTFWriter::ReadLocaTable( PdfInputDevice* pDevice )
@@ -788,7 +822,8 @@ void PdfTTFWriter::LoadGlyph( int nIndex, long lOffset, PdfInputDevice* pDevice 
                 glyph.arg2 = cArg2;
             }
             
-            glyph.xx = glyph.yy = 0x10000L;
+//          glyph.xx = glyph.yy = 0x10000L;
+            glyph.xx = glyph.yy = 0x00;
             
             if ( flags & WE_HAVE_A_SCALE ) 
             {
@@ -899,6 +934,8 @@ void PdfTTFWriter::Write( PdfOutputDevice* pDevice )
                       this->CreateTag( 'n', 'a', 'm', 'e' ), &PdfTTFWriter::WriteNameTable );
     this->WriteTable( pDevice, vecToc, 
                       this->CreateTag( 'h', 'm', 't', 'x' ), &PdfTTFWriter::WriteHmtxTable );
+    this->WriteTable( pDevice, vecToc, 
+                      this->CreateTag( 'p', 'o', 's', 't' ), &PdfTTFWriter::WritePostTable );
     
     /*
     TCIVecTable it = m_vecTableData.begin();
@@ -1126,6 +1163,12 @@ void PdfTTFWriter::WriteLocaTable( PdfOutputDevice* pDevice )
 {
     TCIVecLoca    it    = m_vecLoca.begin();
     pdf_ttf_ulong lValue;
+
+    // Write a 0 value for first glyph
+    lValue = 0x00;
+    this->SwapULong( &lValue );
+    pDevice->Write( reinterpret_cast<const char*>(&lValue), sizeof(pdf_ttf_ulong) );
+
     while( it != m_vecLoca.end() )
     {
         lValue = (*it);
@@ -1161,7 +1204,7 @@ void PdfTTFWriter::WriteNameTable( PdfOutputDevice* pDevice )
     tNameTable.platformId   = 0;
     tNameTable.encodingId   = 3;
     tNameTable.languageId   = 0x0809;
-    tNameTable.nameId       = 1;
+    tNameTable.nameId       = 6;
     tNameTable.stringLength = lLen;
     tNameTable.stringOffset = 12;
     
@@ -1198,6 +1241,41 @@ void PdfTTFWriter::WriteHeadTable( PdfOutputDevice* pDevice )
         SwapHeadTable();
 
     pDevice->Write( reinterpret_cast<char*>(&m_tHead), sizeof(THead) );
+}
+
+void PdfTTFWriter::WritePostTable( PdfOutputDevice* pDevice )
+{
+    m_tPost.format = 0x00020000;
+
+    // write table header
+    pDevice->Write( reinterpret_cast<char*>(&m_tPost), sizeof(TPost) );
+
+    // write format 2 post table
+    int nNameIndexValue = 258;
+
+    pdf_ttf_ushort nameIndex;
+    pdf_ttf_ushort numberOfGlyphs = m_tMaxp.numGlyphs; // this value has already been swapped when writing the maxp-table
+    pDevice->Write( reinterpret_cast<char*>(&numberOfGlyphs), sizeof(pdf_ttf_ushort) );
+
+    SwapUShort( &numberOfGlyphs ); // swap it to native format so that we can use it
+    while( numberOfGlyphs-- )
+    {
+        nameIndex = nNameIndexValue++;
+        SwapUShort( &nameIndex );
+        pDevice->Write( reinterpret_cast<char*>(&nameIndex), sizeof(pdf_ttf_ushort) );
+    }
+
+    // write names
+    std::vector<int>::const_iterator it = m_vecGlyphIndeces.begin();
+    while( it != m_vecGlyphIndeces.end() )
+    {
+        const char*   pszName = "Test";
+        unsigned char cLen    = static_cast<unsigned char>(strlen(pszName));
+        pDevice->Write( reinterpret_cast<char*>(&cLen), 1 );
+        pDevice->Write( pszName, cLen );
+
+        ++it;
+    }
 }
 
 // -----------------------------------------------------
@@ -1254,19 +1332,19 @@ void PdfTTFWriter::ReadSimpleGlyfCoordinates( PdfInputDevice* pDevice, const std
     std::vector<unsigned char>::const_iterator itFlags = rvecFlags.begin();
     while( itFlags != rvecFlags.end() )
     {
-        if( *itFlags & nFlagShort == nFlagShort ) 
+        if( (*itFlags & nFlagShort) == nFlagShort ) 
         {
             // read a 1 byte long coordinate
             pDevice->Read( reinterpret_cast<char*>(&shortCoordinate), sizeof(char) );
             printf("Got short: %i\n", shortCoordinate );
             longCoordinate = static_cast<pdf_ttf_short>(shortCoordinate);
-            if( *itFlags & nFlag == nFlag )
+            if( (*itFlags & nFlag) == nFlag )
                 longCoordinate = -longCoordinate;
         }
         else 
         {
             // read a 2 byte long coordinate
-            if( *itFlags & nFlag == nFlag )
+            if( (*itFlags & nFlag) == nFlag )
             {
                 // DO NOTHING
                 // the value of longCoordinate is the same as the last value
@@ -1301,10 +1379,10 @@ void PdfTTFWriter::WriteSimpleGlyfCoordinates( PdfOutputDevice* pDevice, const s
     {
         longCoordinate = (*itCoordinates)++;
 
-        if( *itFlags & nFlagShort == nFlagShort ) 
+        if( (*itFlags & nFlagShort) == nFlagShort ) 
         {
             // read a 1 byte long coordinate
-            if( *itFlags & nFlag == nFlag )
+            if( (*itFlags & nFlag) == nFlag )
                 longCoordinate = -longCoordinate;
 
             shortCoordinate = static_cast<char>(longCoordinate);
@@ -1315,7 +1393,7 @@ void PdfTTFWriter::WriteSimpleGlyfCoordinates( PdfOutputDevice* pDevice, const s
         else 
         {
             // read a 2 byte long coordinate
-            if( *itFlags & nFlag == nFlag )
+            if( (*itFlags & nFlag) == nFlag )
             {
                 // DO NOTHING
                 // the value of longCoordinate is the same as the last value

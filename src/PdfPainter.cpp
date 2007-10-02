@@ -18,6 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#ifdef _MSC_VER
+#pragma warning(disable: 4786)
+#endif
+
 #include <iostream>
 #include <iomanip>
 
@@ -45,6 +49,17 @@
 #define PI           3.141592654f
 
 namespace PoDoFo {
+
+struct TLineElement 
+{
+	TLineElement()
+		: pszStart( NULL ), lLen( 0L )
+	{
+	}
+
+	const char* pszStart;
+	long        lLen;
+};
 
 static inline void CheckDoubleRange( double val, double min, double max )
 {
@@ -596,16 +611,6 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
 void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double dHeight, const PdfString & rsText, 
 								    EPdfAlignment eAlignment, EPdfVerticalAlignment eVertical )
 {
-	struct TLineElement {
-		TLineElement()
-			: pszStart( NULL ), lLen( 0L )
-		{
-		}
-
-		const char* pszStart;
-		long        lLen;
-	};
-
 	PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
     if( !m_pFont || !m_pPage || !rsText.IsValid() )

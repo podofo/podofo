@@ -186,6 +186,18 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
     return pFont;
 }
 
+PdfFont* PdfFontCache::GetFont( const char* pszFilename, bool bEmbedd )
+{
+    PdfFont* pFont = NULL;
+
+    FT_Face  face;
+    FT_Error error = FT_New_Face( m_ftLibrary, pszFilename, 0, &face );
+    if( !error ) 
+        pFont = this->GetFont( face, bEmbedd );
+
+    return pFont;
+}
+
 PdfFont* PdfFontCache::GetFont( FT_Face face, bool bEmbedd )
 {
     PdfFont*          pFont;
@@ -220,7 +232,7 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
     PdfFontMetrics* pMetrics;
 
     // TODO: DS Subset are currently not yet cached!
-
+    // TODO: DS Subsets are currently not supported on Win32
     std::string sPath = this->GetFontPath( pszFontName, bBold, bItalic );
     if( sPath.empty() )
     {
@@ -376,14 +388,12 @@ PdfFont* PdfFontCache::CreateFont( PdfFontMetrics* pMetrics, bool bEmbedd, bool 
 PdfFont* PdfFontCache::CreateFontSubset( PdfFontMetrics* pMetrics, const char* pszFontName, 
                                          bool bBold, bool bItalic, const std::vector<int> & vecGlyphs ) 
 {
-    PdfFont* pFont = 0;
+    PdfFont* pFont = NULL;
 
     try {
-        /*
-        pFont    = new PdfFont( pMetrics, vecGlyphs, m_pParent );
+        pFont    = new PdfFont( pMetrics, bBold, bItalic, vecGlyphs, m_pParent );
         
-        m_vecFontSubsets  .push_back( pFont );
-        */
+        //m_vecFontSubsets  .push_back( pFont );
     } catch( PdfError & e ) {
         e.AddToCallstack( __FILE__, __LINE__ );
         e.PrintErrorMsg();

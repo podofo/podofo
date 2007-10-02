@@ -38,27 +38,25 @@ using namespace std;
 namespace PoDoFo {
 
 PdfFont::PdfFont( PdfFontMetrics* pMetrics, bool bEmbed, bool bBold, bool bItalic, 
-				  PdfVecObjects* pParent )
-    : PdfElement( "Font", pParent ), m_pMetrics( pMetrics )
+                  PdfVecObjects* pParent )
+    : PdfElement( "Font", pParent ), m_pMetrics( pMetrics ), m_bBold( bBold ), m_bItalic( bItalic )
 {
-    ostringstream out;
-    PdfLocaleImbue(out);
-
-    m_pMetrics->SetFontSize( 12.0 );
-    m_pMetrics->SetFontScale( 100.0 );
-    m_pMetrics->SetFontCharSpace( 0.0 );
-
-    m_bBold       = bBold;
-    m_bItalic     = bItalic;
-    m_bUnderlined = false;
-	m_bStrikedOut = false;
-
-    // Implementation note: the identifier is always
-    // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "Ft" << m_pObject->Reference().ObjectNumber();
-    m_Identifier = PdfName( out.str().c_str() );
-
+    this->InitVars();
     this->Init( bEmbed );
+}
+
+PdfFont::PdfFont( PdfFontMetrics* pMetrics, bool bBold, bool bItalic,
+                  std::vector<int> vecUnicodeCodePoints, PdfVecObjects* pParent )
+    : PdfElement( "Font", pParent ), m_pMetrics( pMetrics ), m_bBold( bBold ), m_bItalic( bItalic )
+{
+    this->InitVars();
+    // prefix the base font name with 6 random characters
+    // which are not so random at the moment
+    std::string sTmp = m_BaseFont.GetName();
+    sTmp = "ABCDEF+" + sTmp;
+    m_BaseFont = PdfName( sTmp.c_str() );
+
+    this->Init( true );
 }
     
 PdfFont::~PdfFont()
@@ -66,27 +64,42 @@ PdfFont::~PdfFont()
     delete m_pMetrics;
 }
 
-void PdfFont::Init( bool bEmbed )
+void PdfFont::InitVars()
 {
-    unsigned int  i;
-    int           curPos = 0;
-    PdfObject*    pWidth;
-    PdfObject*    pDescriptor;
-    PdfVariant    var;
-    PdfArray      array;
-    std::string   sTmp;
+    ostringstream out;
+    PdfLocaleImbue(out);
+
+    m_pMetrics->SetFontSize( 12.0 );
+    m_pMetrics->SetFontScale( 100.0 );
+    m_pMetrics->SetFontCharSpace( 0.0 );
+    
+    m_bUnderlined = false;
+    m_bStrikedOut = false;
+
+    // Implementation note: the identifier is always
+    // Prefix+ObjectNo. Prefix is /Ft for fonts.
+    out << "Ft" << m_pObject->Reference().ObjectNumber();
+    m_Identifier = PdfName( out.str().c_str() );
 
     // replace all spaces in the base font name as suggested in 
-    // the PDF reference section 5.5.2
-    sTmp = m_pMetrics->GetFontname();
-    for(i = 0; i < sTmp.size(); i++)
+    // the PDF reference section 5.5.2#
+    int curPos = 0;
+    std::string sTmp = m_pMetrics->GetFontname();
+    for(int i = 0; i < sTmp.size(); i++)
     {
         if(sTmp[i] != ' ')
             sTmp[curPos++] = sTmp[i];
     }
     sTmp.resize(curPos);
     m_BaseFont = PdfName( sTmp.c_str() );
+}
 
+void PdfFont::Init( bool bEmbed )
+{
+    PdfObject*    pWidth;
+    PdfObject*    pDescriptor;
+    PdfVariant    var;
+    PdfArray      array;
 
     pWidth = m_pObject->GetOwner()->CreateObject();
     if( !pWidth )
@@ -140,6 +153,12 @@ void PdfFont::Init( bool bEmbed )
     {
         EmbedFont( pDescriptor );
     }
+}
+
+void PdfFont::InitSubset()
+{
+    
+
 }
 
 void PdfFont::EmbedFont( PdfObject* pDescriptor )

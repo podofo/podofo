@@ -593,6 +593,7 @@ void TableTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     vecGlyphIndeces.push_back( static_cast<int>('d') );
     vecGlyphIndeces.push_back( static_cast<int>('!') );
     PdfFont* pFontSubset = pDocument->CreateFontSubset( "Arial", false, false, vecGlyphIndeces );
+    pPainter->SetFont( pFontSubset );
     pPainter->DrawText( dX + 90000 * CONVERSION_CONSTANT, dY, "Hallo World!" );
 
     PdfFont* pFont = pDocument->CreateFont( "Comic Sans MS" );
