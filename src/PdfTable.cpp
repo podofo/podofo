@@ -23,6 +23,7 @@
 #include "PdfCanvas.h"
 #include "PdfFont.h"
 #include "PdfPainter.h"
+#include "PdfPage.h"
 #include "PdfRect.h"
 
 namespace PoDoFo {
@@ -33,7 +34,7 @@ PdfSimpleTableModel::PdfSimpleTableModel()
       m_bWordWrap( false), m_clForeground( 1.0 ),
       m_bBackground( false ), m_clBackground( 0.0 ),
       m_ppData( NULL ), m_nCols( 0 ), m_nRows( 0 ),
-	  m_bBorder( true )
+	  m_bBorder( true ), m_dBorder( 1.0 )
 {
 
 }
@@ -44,7 +45,7 @@ PdfSimpleTableModel::PdfSimpleTableModel( int nCols, int nRows )
       m_bWordWrap( false ), m_clForeground( 1.0 ),
       m_bBackground( false ), m_clBackground( 0.0 ),
       m_nCols( nCols ), m_nRows( nRows ),
-	  m_bBorder( true )
+	  m_bBorder( true ), m_dBorder( 1.0 )
 {
     m_ppData = static_cast<PdfString**>(malloc( sizeof(PdfString*) * nRows ));
     if( !m_ppData )
@@ -73,7 +74,8 @@ PdfTable::PdfTable( int nCols, int nRows )
       m_dColWidth( 0.0 ), m_dRowHeight( 0.0 ),
       m_dTableWidth( 0.0 ), m_dTableHeight( 0.0 ),
       m_pdColWidths( NULL ), m_pdRowHeights( NULL ),
-      m_bAutoPageBreak( false )
+      m_bAutoPageBreak( false ), m_pCustomData( NULL ),
+      m_fpCallback( NULL )
 {
 
 }
@@ -103,6 +105,8 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter )
     double* pdColWidths  = new double[this->GetCols()];
     double* pdRowHeights = new double[this->GetRows()];
 
+	bool bBorders = !m_pModel || (m_pModel && m_pModel->HasBorders() );
+
     // Calculate all necessary sizes
     this->CalculateTableSize( dX, dY, pPainter->GetPage(), 
                               pdColWidths, pdRowHeights,
@@ -116,24 +120,38 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter )
     // draw contents
     if( m_pModel ) 
     {
-        dCurX = 0.0;
-        for( i=0;i<m_nCols;i++ ) 
-        {
-            dCurY = 0.0;
-            for( j=0;j<m_nRows;j++ )
-            {
-                dCurY      += pdRowHeights[j];
+		pPainter->SetStrokeWidth( m_pModel->GetBorderWidth() );
+        dCurY = 0.0;
 
-                // set a clipping rectangle
+		if( bBorders ) // draw top border
+			pPainter->DrawLine( dX, dY, dX + dWidth, dY );
+
+        for( j=0;j<m_nRows;j++ )
+        {
+			this->CheckForNewPage( dY, &dCurY, pdRowHeights[j], pPainter );
+
+			dCurX  = 0.0;	
+			dCurY += pdRowHeights[j];
+
+            for( i=0;i<m_nCols;i++ ) 
+            {
+	            // set a clipping rectangle
                 pPainter->Save();
                 pPainter->SetClipRect( dX + dCurX, dY - dCurY, pdColWidths[i], pdRowHeights[j] );
 
                 // Draw background
                 if( m_pModel->HasBackgroundColor( i, j ) ) 
                 {
+					double dBorder = bBorders ? m_pModel->GetBorderWidth()/2.0 : 0.0;
+
                     pPainter->Save();
                     pPainter->SetColor( m_pModel->GetBackgroundColor( i, j ) );
-                    pPainter->FillRect( dX + dCurX, dY - dCurY, pdColWidths[i], pdRowHeights[j] );
+					// Make sure that FillRect only fills inside the border
+					// rectangle and not over the border. This is necessary
+					// because we draw the border first and than the contents.
+                    pPainter->FillRect( dX + dCurX + dBorder, dY - dCurY + dBorder, 
+						                pdColWidths[i] - 2.0 * dBorder, 
+										pdRowHeights[j] - 2.0 * dBorder );
                     pPainter->Restore();
                 }
 
@@ -173,15 +191,25 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter )
 				}
                 
                 pPainter->Restore();
+				if( bBorders ) // draw left x border
+					pPainter->DrawLine( dX + dCurX, dY - dCurY, dX + dCurX, dY - dCurY + pdRowHeights[j] );
+
+		        dCurX += pdColWidths[i];    
             }
 
-            dCurX += pdColWidths[i];
-        }        
-    }
+			if( bBorders ) 
+			{
+				// Draw last X border
+				pPainter->DrawLine( dX + dCurX, dY - dCurY, dX + dCurX, dY - dCurY + pdRowHeights[j] );
+				// draw border below row
+				pPainter->DrawLine( dX, dY - dCurY, dX + dWidth, dY - dCurY);
+			}
+		}    
+	}
 
     // draw borders (even draw borders if we have no model)
-	bool bBorders = !m_pModel || (m_pModel && m_pModel->HasBorders() );
 
+		/*
 	if( bBorders ) 
 	{
 		dCurY = 0.0;
@@ -191,7 +219,7 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter )
 			dCurY += pdRowHeights[i];
 		}
 		pPainter->DrawLine( dX, dY - dCurY, dX + dWidth, dY - dCurY);
-
+		
 		dCurX = 0.0;
 		for( i=0;i<m_nCols;i++ ) 
 		{
@@ -201,9 +229,9 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter )
 		}
 		pPainter->DrawLine( dX + dCurX, dY, dX + dCurX, dY - dHeight );
 	}
-
+	*/
     pPainter->Restore();
-
+	
     // Free allocated memory
     delete [] pdColWidths;
     delete [] pdRowHeights;
@@ -323,6 +351,22 @@ void PdfTable::CalculateTableSize( const double dX, const double dY, const PdfCa
         *pdHeight += pdHeights[i];
 }
 
+void PdfTable::CheckForNewPage( double dY, double* pdCurY, double dRowHeight, PdfPainter* pPainter )
+{
+    if( !m_bAutoPageBreak )
+        return;
+
+    if( (dY - *pdCurY) - dRowHeight < 0.0 )
+    {
+        pPainter->Restore();
+
+        PdfPage* pPage = (*m_fpCallback)( m_pCustomData );
+        pPainter->SetPage( pPage );
+        pPainter->Save();
+
+        *pdCurY = 0.0;
+    }
+}
 
 /*
 void CReport::CreateTable( double dX, double dY, int iCols, int iRows, 

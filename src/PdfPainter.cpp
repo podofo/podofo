@@ -86,6 +86,10 @@ PdfPainter::~PdfPainter()
 
 void PdfPainter::SetPage( PdfCanvas* pPage )
 {
+    // Ignore setting the same page twice
+    if( m_pPage == pPage )
+        return;
+
     if( m_pCanvas )
         m_pCanvas->EndAppend();
 

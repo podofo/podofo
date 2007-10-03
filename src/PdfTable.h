@@ -31,6 +31,7 @@ namespace PoDoFo {
 class PdfCanvas;
 class PdfFont;
 class PdfPainter;
+class PdfPage;
 
 /**
  * This is an abstract interface of a model that can provide
@@ -121,6 +122,11 @@ class PODOFO_API PdfTableModel {
 	 * settings.
 	 */
 	virtual bool HasBorders() const = 0;
+
+	/** 
+	 * \returns the stroke witdth of the border line
+	 */
+	virtual double GetBorderWidth() const = 0;
 };
 
 /**
@@ -199,6 +205,13 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
 	 *                 using the current PdfPainter settings
 	 */
 	inline void SetBorderEnabled( bool bEnable );
+
+	/** Sets the stroke width of the border around
+	 *  the table.
+	 *
+	 *  \param dWidth the stroke width of the border
+	 */
+	inline void SetBorderWidth( double dWidth );
 
     /** Sets the contents of a specific cell
      *
@@ -283,6 +296,11 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
 	 */
 	inline virtual bool HasBorders() const;
 
+	/** 
+	 * \returns the stroke witdth of the border line
+	 */
+	inline virtual double GetBorderWidth() const;
+
  private:
     PdfFont*              m_pFont;
 
@@ -300,6 +318,7 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
     int                   m_nRows;
 
 	bool                  m_bBorder;
+	double                m_dBorder;
 };
 
 // -----------------------------------------------------
@@ -349,6 +368,14 @@ void PdfSimpleTableModel::SetWordWrapEnabled( bool bEnable )
 void PdfSimpleTableModel::SetBorderEnabled( bool bEnable )
 {
 	m_bBorder = bEnable;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfSimpleTableModel::SetBorderWidth( double dWidth )
+{
+	m_dBorder = dWidth;
 }
 
 // -----------------------------------------------------
@@ -454,6 +481,14 @@ bool PdfSimpleTableModel::HasBorders() const
 {
 	return m_bBorder;
 }
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+double PdfSimpleTableModel::GetBorderWidth() const
+{
+	return m_dBorder;
+}
  
 /**
  * This is a high level class of a table which can be drawn to a PdfPainter.
@@ -463,6 +498,7 @@ bool PdfSimpleTableModel::HasBorders() const
  */
 class PODOFO_API PdfTable {
  public:
+    typedef PdfPage* (*CreatePageCallback)(void*);
 
     /** Create a new PdfTable object.
      *
@@ -588,13 +624,19 @@ class PODOFO_API PdfTable {
      *
      *  \param bPageBreak if true automatically create new pages
      *         if required.
+     *  \param callback a callback function that is called to create
+     *         a new page. Please note: PdfTable cannot create new pages on its
+     *         own. You always have to implement a callback which does the new page 
+     *         creation for the PdfTable.
+     *  \param pCustomData custom data that is passed to the callback
      *
      *  By default this feature is turned off and contents are clipped
      *  that do not fit on the current page.
      *
      *  \see GetAutoPageBreak
      */
-    inline void SetAutoPageBreak( bool bPageBreak );
+    inline void SetAutoPageBreak( bool bPageBreak, CreatePageCallback callback, 
+                                  void* pCustomData = NULL);
 
     /** 
      *  \returns true if a new page is created automatically if more
@@ -633,6 +675,19 @@ class PODOFO_API PdfTable {
                              double* pdWidths, double* pdHeights,
                              double* pdWidth, double* pdHeight ) const;
 
+	/** Checks if there is enough space on the current page
+	 *  for one row! If necessary a new page is created.
+	 *
+	 *  If GetAutoPageBreak is false, this method does nothing.
+	 *
+     *  \param dY top of the table
+	 *  \param pdCurY pointer to the current y position on the page. 
+	 *                Might be reset to a new y position.
+	 *  \param dRowHeight height of the next row.
+     *  \param pPainter painter used for drawing
+	 */
+	void CheckForNewPage( double dY, double* pdCurY, double dRowHeight, PdfPainter* pPainter );
+
  protected:
     PdfTableModel* m_pModel;
 
@@ -648,6 +703,8 @@ class PODOFO_API PdfTable {
     double* m_pdRowHeights;
 
     bool    m_bAutoPageBreak;
+    void*   m_pCustomData;
+    CreatePageCallback m_fpCallback;
 };
 
 // -----------------------------------------------------
@@ -737,9 +794,12 @@ void PdfTable::SetTableHeight( double dHeight )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfTable::SetAutoPageBreak( bool bPageBreak )
+void PdfTable::SetAutoPageBreak( bool bPageBreak, CreatePageCallback callback, 
+                                 void* pCustomData  )
 {
     m_bAutoPageBreak = bPageBreak;
+    m_fpCallback     = callback;
+    m_pCustomData    = pCustomData;
 }
 
 // -----------------------------------------------------
@@ -770,3 +830,4 @@ int PdfTable::GetRows() const
 
 
 #endif // _PDF_TABLE_H_
+ 
