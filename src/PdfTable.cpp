@@ -89,7 +89,8 @@ PdfTable::~PdfTable()
         delete [] m_pdRowHeights;
 }
 
-void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter )
+void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect & rClipRect,
+                     double* pdLastX, double* pdLastY )
 {
     if( !pPainter ) 
     {
@@ -112,6 +113,16 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter )
                               pdColWidths, pdRowHeights,
                               &dWidth, &dHeight );
  
+    if( !(!rClipRect.GetBottom() && !rClipRect.GetLeft() &&
+          !rClipRect.GetWidth() && !rClipRect.GetWidth()) ) 
+        m_curClipRect = rClipRect;
+    else
+    {
+        m_curClipRect = PdfRect( 0.0, dX, 
+                                 pPainter->GetPage()->GetPageSize().GetWidth() - dX,
+                                 dY );
+    }
+
     // Draw the table
     pPainter->Save();
     PdfFont* pDefaultFont = pPainter->GetFont(); // get the default font
@@ -128,7 +139,9 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter )
 
         for( j=0;j<m_nRows;j++ )
         {
-			this->CheckForNewPage( dY, &dCurY, pdRowHeights[j], pPainter );
+			if( this->CheckForNewPage( &dY, &dCurY, pdRowHeights[j], pPainter ) && bBorders )
+                // draw top border on new page
+			    pPainter->DrawLine( dX, dY, dX + dWidth, dY );
 
 			dCurX  = 0.0;	
 			dCurY += pdRowHeights[j];
@@ -206,32 +219,14 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter )
 			}
 		}    
 	}
-
-    // draw borders (even draw borders if we have no model)
-
-		/*
-	if( bBorders ) 
-	{
-		dCurY = 0.0;
-		for( i=0;i<m_nRows;i++ )
-		{
-			pPainter->DrawLine( dX, dY - dCurY, dX + dWidth, dY - dCurY);
-			dCurY += pdRowHeights[i];
-		}
-		pPainter->DrawLine( dX, dY - dCurY, dX + dWidth, dY - dCurY);
-		
-		dCurX = 0.0;
-		for( i=0;i<m_nCols;i++ ) 
-		{
-
-			pPainter->DrawLine( dX + dCurX, dY, dX + dCurX, dY - dHeight );
-			dCurX += pdColWidths[i];
-		}
-		pPainter->DrawLine( dX + dCurX, dY, dX + dCurX, dY - dHeight );
-	}
-	*/
     pPainter->Restore();
-	
+
+    if( pdLastX )
+        *pdLastX = dX + dWidth;
+
+    if( pdLastY )
+        *pdLastY = dY - dCurY;
+
     // Free allocated memory
     delete [] pdColWidths;
     delete [] pdRowHeights;
@@ -351,21 +346,26 @@ void PdfTable::CalculateTableSize( const double dX, const double dY, const PdfCa
         *pdHeight += pdHeights[i];
 }
 
-void PdfTable::CheckForNewPage( double dY, double* pdCurY, double dRowHeight, PdfPainter* pPainter )
+bool PdfTable::CheckForNewPage( double* pdY, double* pdCurY, double dRowHeight, PdfPainter* pPainter )
 {
     if( !m_bAutoPageBreak )
-        return;
+        return false;
 
-    if( (dY - *pdCurY) - dRowHeight < 0.0 )
+    if( (*pdY - *pdCurY) - dRowHeight < m_curClipRect.GetBottom() )
     {
         pPainter->Restore();
 
-        PdfPage* pPage = (*m_fpCallback)( m_pCustomData );
+        PdfPage* pPage = (*m_fpCallback)( m_curClipRect, m_pCustomData );
         pPainter->SetPage( pPage );
         pPainter->Save();
 
+        *pdY    = m_curClipRect.GetBottom() + m_curClipRect.GetHeight();
         *pdCurY = 0.0;
+
+        return true;
     }
+
+    return false;
 }
 
 /*

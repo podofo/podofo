@@ -24,6 +24,7 @@
 #include "PdfDefines.h"
 
 #include "PdfColor.h"
+#include "PdfRect.h"
 #include "PdfString.h"
 
 namespace PoDoFo {
@@ -498,7 +499,18 @@ double PdfSimpleTableModel::GetBorderWidth() const
  */
 class PODOFO_API PdfTable {
  public:
-    typedef PdfPage* (*CreatePageCallback)(void*);
+    /** Callback to create a new page for PdfTable.
+     *
+     *  \see SetAutoPageBreak
+     *
+     *  \param rClipRect this is an output parameter which has
+     *                   to be set to the clipping rectangle
+     *                   of the new page. If the new page has
+     *                   no clipping rectangle set it to
+     *                   PdfRect( 0, 0, PdfPage::GetPageSize().GetWidth(), PdfPage::GetPageSize().GetHeight() )
+     *  \param pCustom pointer to user defined data
+     */
+    typedef PdfPage* (*CreatePageCallback)( PdfRect & rClipRect, void* pCustom );
 
     /** Create a new PdfTable object.
      *
@@ -515,8 +527,12 @@ class PODOFO_API PdfTable {
      *  \param dX x coordinate of top left of the table
      *  \param dY y coordinate of top left of the table
      *  \param pPainter the painter to draw on. The painter has to have a page set currently.
+     *  \param rClipRect the clipping rectangle on the current page
+     *  \param pdLastX the last used X position by the table on the current page will be written to this value (usually bottom right)
+     *  \param pdLastY the last used Y positon by the table on the current page will be written to this value (usually bottom right)
      */
-    virtual void Draw( double dX, double dY, PdfPainter* pPainter );
+    virtual void Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect & rClipRect = PdfRect(),
+                       double* pdLastX = NULL, double* pdLastY = NULL );
 
     /** Get the width of the table when drawn with the current settings at a certain position.
      *  \param dX x coordinate of top left of the table
@@ -680,13 +696,15 @@ class PODOFO_API PdfTable {
 	 *
 	 *  If GetAutoPageBreak is false, this method does nothing.
 	 *
-     *  \param dY top of the table
+     *  \param pdY top of the table
 	 *  \param pdCurY pointer to the current y position on the page. 
 	 *                Might be reset to a new y position.
 	 *  \param dRowHeight height of the next row.
      *  \param pPainter painter used for drawing
+     *
+     *  \returns true if a new page was created, otherwise false
 	 */
-	void CheckForNewPage( double dY, double* pdCurY, double dRowHeight, PdfPainter* pPainter );
+	bool CheckForNewPage( double* pdY, double* pdCurY, double dRowHeight, PdfPainter* pPainter );
 
  protected:
     PdfTableModel* m_pModel;
@@ -705,6 +723,8 @@ class PODOFO_API PdfTable {
     bool    m_bAutoPageBreak;
     void*   m_pCustomData;
     CreatePageCallback m_fpCallback;
+
+    PdfRect m_curClipRect;
 };
 
 // -----------------------------------------------------
