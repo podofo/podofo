@@ -167,7 +167,7 @@ void PdfStream::SetRawData( PdfInputStream* pStream, long lLen )
 void PdfStream::BeginAppend( bool bClearExisting )
 {
     TVecFilters vecFilters;
-    //vecFilters.push_back( ePdfFilter_FlateDecode );
+    vecFilters.push_back( ePdfFilter_FlateDecode );
 
     this->BeginAppend( vecFilters, bClearExisting );
 }

@@ -22,6 +22,7 @@
 
 #include "PdfCanvas.h"
 #include "PdfFont.h"
+#include "PdfImage.h"
 #include "PdfPainter.h"
 #include "PdfPage.h"
 #include "PdfRect.h"
@@ -153,10 +154,9 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
                 pPainter->SetClipRect( dX + dCurX, dY - dCurY, pdColWidths[i], pdRowHeights[j] );
 
                 // Draw background
+				double dBorder = bBorders ? m_pModel->GetBorderWidth()/2.0 : 0.0;
                 if( m_pModel->HasBackgroundColor( i, j ) ) 
                 {
-					double dBorder = bBorders ? m_pModel->GetBorderWidth()/2.0 : 0.0;
-
                     pPainter->Save();
                     pPainter->SetColor( m_pModel->GetBackgroundColor( i, j ) );
 					// Make sure that FillRect only fills inside the border
@@ -166,6 +166,20 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
 						                pdColWidths[i] - 2.0 * dBorder, 
 										pdRowHeights[j] - 2.0 * dBorder );
                     pPainter->Restore();
+                }
+
+                // draw an image
+                PdfImage* pImage = m_pModel->GetImage( i, j );
+                double dImageWidth = 0.0;
+                if( m_pModel->HasImage( i, j ) && pImage )
+                {
+                    double dScaleX = (pdColWidths[i])  / pImage->GetPageSize().GetWidth();
+                    double dScaleY = (pdRowHeights[j] - 2.0 * dBorder) / pImage->GetPageSize().GetHeight();
+                    double dScale  = PDF_MIN( dScaleX, dScaleY );
+
+                    dImageWidth = pImage->GetPageSize().GetWidth() * dScale;
+
+                    pPainter->DrawImage( dX + dCurX, dY - dCurY + dBorder, pImage, dScale, dScale );
                 }
 
                 // Set the correct font
@@ -178,7 +192,8 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
 				if( m_pModel->HasWordWrap( i, j ) )
 				{
 					// Make sure we have at least 1 dot free space at each side of the rectangle
-					pPainter->DrawMultiLineText( dX + dCurX + 1, dY - dCurY, pdColWidths[i] - 2, pdRowHeights[j],
+					pPainter->DrawMultiLineText( dX + dCurX + 1.0 + dImageWidth, dY - dCurY, 
+                                                 pdColWidths[i] - 2.0 - dImageWidth, pdRowHeights[j],
 												 m_pModel->GetText( i, j ), m_pModel->GetAlignment( i, j ),
 												 m_pModel->GetVerticalAlignment( i, j ) );
 				}
@@ -200,7 +215,8 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
 					}
 
 					// Make sure we have at least 1 dot free space at each side of the rectangle
-					pPainter->DrawTextAligned( dX + dCurX + 1, dY - dCurY + dVertical, pdColWidths[i] - 2, m_pModel->GetText( i, j ), m_pModel->GetAlignment( i, j ) );
+					pPainter->DrawTextAligned( dX + dCurX + 1 + dImageWidth, dY - dCurY + dVertical, 
+                                               pdColWidths[i] - 2.0 - dImageWidth, m_pModel->GetText( i, j ), m_pModel->GetAlignment( i, j ) );
 				}
                 
                 pPainter->Restore();

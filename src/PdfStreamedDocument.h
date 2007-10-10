@@ -203,6 +203,8 @@ class PODOFO_API PdfStreamedDocument : public PdfDocument {
     PdfOutputDevice*    m_pDevice;
 
     PdfEncrypt*         m_pEncrypt;
+
+    bool                m_bOwnDevice; ///< If true m_pDevice is owned by this object and has to be deleted
 };
 
 // -----------------------------------------------------

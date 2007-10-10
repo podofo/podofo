@@ -31,6 +31,7 @@ namespace PoDoFo {
 
 class PdfCanvas;
 class PdfFont;
+class PdfImage;
 class PdfPainter;
 class PdfPage;
 
@@ -128,6 +129,22 @@ class PODOFO_API PdfTableModel {
 	 * \returns the stroke witdth of the border line
 	 */
 	virtual double GetBorderWidth() const = 0;
+
+    /** 
+     * \param col the column of the table cell
+     * \param row the row of the table cell
+     *
+     * \returns true if the table cell contains an image
+     */
+    virtual bool HasImage( int col, int row ) const = 0;
+
+    /**
+     * \param col the column of the table cell
+     * \param row the row of the table cell
+     *
+     * \returns the image for the specified cell or NULL if the cell has no image
+     */     
+    virtual PdfImage* GetImage( int col, int row ) const = 0;
 };
 
 /**
@@ -301,6 +318,22 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
 	 * \returns the stroke witdth of the border line
 	 */
 	inline virtual double GetBorderWidth() const;
+
+    /** 
+     * \param col the column of the table cell
+     * \param row the row of the table cell
+     *
+     * \returns true if the table cell contains an image
+     */
+    inline virtual bool HasImage( int col, int row ) const;
+
+    /**
+     * \param col the column of the table cell
+     * \param row the row of the table cell
+     *
+     * \returns the image for the specified cell or NULL if the cell has no image
+     */     
+    inline virtual PdfImage* GetImage( int col, int row ) const;
 
  private:
     PdfFont*              m_pFont;
@@ -491,6 +524,22 @@ double PdfSimpleTableModel::GetBorderWidth() const
 	return m_dBorder;
 }
  
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfSimpleTableModel::HasImage( int col, int row ) const
+{
+    return false;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfImage* PdfSimpleTableModel::GetImage( int col, int row ) const
+{
+    return NULL;
+}
+
 /**
  * This is a high level class of a table which can be drawn to a PdfPainter.
  *
