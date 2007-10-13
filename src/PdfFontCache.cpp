@@ -157,7 +157,8 @@ void PdfFontCache::EmptyCache()
     m_vecFontSubsets.clear();
 }
 
-PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItalic, bool bEmbedd )
+PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItalic, 
+							    bool bEmbedd, const char* pszFileName )
 {
     PdfFont*          pFont;
     PdfFontMetrics*   pMetrics;
@@ -166,7 +167,12 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
     it = std::find_if( m_vecFonts.begin(), m_vecFonts.end(), FontComperator( pszFontName, bBold, bItalic ) );
     if( it == m_vecFonts.end() )
     {
-        std::string sPath = this->GetFontPath( pszFontName, bBold, bItalic );
+        std::string sPath;
+   		if ( pszFileName == NULL )
+	        sPath = this->GetFontPath( pszFontName, bBold, bItalic );
+		else
+			sPath = pszFileName;
+
         if( sPath.empty() )
         {
 #if _WIN32
@@ -183,40 +189,6 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
     else
         pFont = (*it).m_pFont;
     
-    return pFont;
-}
-
-PdfFont* PdfFontCache::GetFont( const char* pszFilename, bool bEmbedd )
-{
-    PdfFont* pFont = NULL;
-
-    FT_Face  face;
-    FT_Error error = FT_New_Face( m_ftLibrary, pszFilename, 0, &face );
-    if( !error ) 
-	{
-	    PdfFontMetrics*   pMetrics;
-	    TCISortedFontList it;
-
-	    std::string sName = FT_Get_Postscript_Name( face );
-	    if( sName.empty() )
-	    {
-	        PdfError::LogMessage( eLogSeverity_Critical, "Could not retrieve fontname for font!\n" );
-	        return NULL;
-	    }
-
-	    bool bBold   = ((face->style_flags & FT_STYLE_FLAG_BOLD)   != 0);
-	    bool bItalic = ((face->style_flags & FT_STYLE_FLAG_ITALIC) != 0);
-
-	    it = std::find_if( m_vecFonts.begin(), m_vecFonts.end(), FontComperator( sName.c_str(), bBold, bItalic ) );
-	    if( it == m_vecFonts.end() )
-	    {
-	        pMetrics = new PdfFontMetrics( &m_ftLibrary, pszFilename );
-	        pFont    = this->CreateFont( pMetrics, bEmbedd, bBold, bItalic, sName.c_str() );
-	    }
-	    else
-	        pFont = (*it).m_pFont;
-	}
-
     return pFont;
 }
 

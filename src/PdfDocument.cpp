@@ -167,19 +167,14 @@ PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bEmbedd )
     return m_fontCache.GetFont( pszFontName, false, false, bEmbedd );
 }
 
-PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bBold, bool bItalic, bool bEmbedd )
+PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bBold, bool bItalic, bool bEmbedd, const char* pszFileName )
 {
-    return m_fontCache.GetFont( pszFontName, bBold, bItalic, bEmbedd );
+    return m_fontCache.GetFont( pszFontName, bBold, bItalic, bEmbedd, pszFileName );
 }
 
 PdfFont* PdfDocument::CreateFont( FT_Face face, bool bEmbedd )
 {
     return m_fontCache.GetFont( face, bEmbedd );
-}
-
-PdfFont* PdfDocument::CreateFontFromFile( const char* pszFileName, bool bEmbedd )
-{
-    return m_fontCache.GetFont( pszFileName, bEmbedd );
 }
 
 PdfFont* PdfDocument::CreateFontSubset( const char* pszFontName, bool bBold, bool bItalic, const std::vector<int> & vecGlyphs )

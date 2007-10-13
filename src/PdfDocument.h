@@ -142,9 +142,10 @@ class PODOFO_API PdfDocument {
      *  \param bItalic if true search for an italic font
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
+     *  \param optional: pszFileName path to a valid font file
      *  \returns PdfFont* a pointer to a new PdfFont object.
      */
-    PdfFont* CreateFont( const char* pszFontName, bool bBold, bool bItalic, bool bEmbedd = true );
+    PdfFont* CreateFont( const char* pszFontName, bool bBold, bool bItalic, bool bEmbedd = true, const char* pszFileName = NULL );
 
     /** Creates a PdfFont object
      *  \param face a valid freetype font handle (will be free'd by PoDoFo)
@@ -154,15 +155,6 @@ class PODOFO_API PdfDocument {
      *                    The returned object is owned by the PdfDocument.
      */
     PdfFont* CreateFont( FT_Face face, bool bEmbedd = true );
-
-    /** Creates a PdfFont object from a font file
-     *  \param pszFileName path to a valid font file
-     *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
-     *         Embedding fonts is usually a good idea.
-     *  \returns PdfFont* a pointer to a new PdfFont object.
-     *                    The returned object is owned by the PdfDocument.
-     */
-    PdfFont* CreateFontFromFile( const char* pszFileName, bool bEmbedd = true );
 
     /** Creates a PdfFont object that is a subset of an existing true type font.
      *
