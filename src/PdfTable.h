@@ -217,20 +217,20 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
      */
     inline void SetWordWrapEnabled( bool bEnable );
 
-	/** Sets wether all cells have a border or not.
-	 *  
-	 *  \param bEnable if true a border will be drawn
-	 *                 using the current PdfPainter settings
-	 */
-	inline void SetBorderEnabled( bool bEnable );
-
-	/** Sets the stroke width of the border around
-	 *  the table.
-	 *
-	 *  \param dWidth the stroke width of the border
-	 */
-	inline void SetBorderWidth( double dWidth );
-
+    /** Sets wether all cells have a border or not.
+     *  
+     *  \param bEnable if true a border will be drawn
+     *                 using the current PdfPainter settings
+     */
+    inline void SetBorderEnabled( bool bEnable );
+    
+    /** Sets the stroke width of the border around
+     *  the table.
+     *
+     *  \param dWidth the stroke width of the border
+     */
+    inline void SetBorderWidth( double dWidth );
+    
     /** Sets the contents of a specific cell
      *
      * \param col the column of the table cell
@@ -304,21 +304,21 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
      */
     inline virtual bool HasWordWrap( int col, int row ) const;
 
-	/** 
-	 * \returns true if the table should have
-	 *          a border around all cells.
-	 * \returns false if no cell border should be visible
-	 *
-	 * Cell borders are always drawn using the current PdfPainter
-	 * settings.
-	 */
-	inline virtual bool HasBorders() const;
-
-	/** 
-	 * \returns the stroke witdth of the border line
-	 */
-	inline virtual double GetBorderWidth() const;
-
+    /** 
+     * \returns true if the table should have
+     *          a border around all cells.
+     * \returns false if no cell border should be visible
+     *
+     * Cell borders are always drawn using the current PdfPainter
+     * settings.
+     */
+    inline virtual bool HasBorders() const;
+    
+    /** 
+     * \returns the stroke witdth of the border line
+     */
+    inline virtual double GetBorderWidth() const;
+    
     /** 
      * \param col the column of the table cell
      * \param row the row of the table cell
@@ -527,7 +527,7 @@ double PdfSimpleTableModel::GetBorderWidth() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-bool PdfSimpleTableModel::HasImage( int col, int row ) const
+bool PdfSimpleTableModel::HasImage( int, int ) const
 {
     return false;
 }
@@ -535,7 +535,7 @@ bool PdfSimpleTableModel::HasImage( int col, int row ) const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-PdfImage* PdfSimpleTableModel::GetImage( int col, int row ) const
+PdfImage* PdfSimpleTableModel::GetImage( int, int ) const
 {
     return NULL;
 }
@@ -740,21 +740,21 @@ class PODOFO_API PdfTable {
                              double* pdWidths, double* pdHeights,
                              double* pdWidth, double* pdHeight ) const;
 
-	/** Checks if there is enough space on the current page
-	 *  for one row! If necessary a new page is created.
-	 *
-	 *  If GetAutoPageBreak is false, this method does nothing.
-	 *
+    /** Checks if there is enough space on the current page
+     *  for one row! If necessary a new page is created.
+     *
+     *  If GetAutoPageBreak is false, this method does nothing.
+     *
      *  \param pdY top of the table
-	 *  \param pdCurY pointer to the current y position on the page. 
-	 *                Might be reset to a new y position.
-	 *  \param dRowHeight height of the next row.
+     *  \param pdCurY pointer to the current y position on the page. 
+     *                Might be reset to a new y position.
+     *  \param dRowHeight height of the next row.
      *  \param pPainter painter used for drawing
      *
      *  \returns true if a new page was created, otherwise false
-	 */
-	bool CheckForNewPage( double* pdY, double* pdCurY, double dRowHeight, PdfPainter* pPainter );
-
+     */
+    bool CheckForNewPage( double* pdY, double* pdCurY, double dRowHeight, PdfPainter* pPainter );
+    
  protected:
     PdfTableModel* m_pModel;
 

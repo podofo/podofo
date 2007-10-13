@@ -193,6 +193,11 @@ void PdfImage::LoadFromFile( const char* pszFilename )
 void jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize);
 #endif // PODOFO_JPEG_RUNTIME_COMPATIBLE
 
+static void JPegErrorExit(j_common_ptr cinfo)
+{
+	PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+}
+
 void PdfImage::LoadFromJpeg( const char* pszFilename )
 {
     FILE*                         hInfile;    
@@ -211,6 +216,8 @@ void PdfImage::LoadFromJpeg( const char* pszFilename )
     }
 
     cinfo.err = jpeg_std_error(&jerr);
+	jerr.error_exit = &JPegErrorExit;
+
     jpeg_create_decompress(&cinfo);
 
 #if !defined(PODOFO_JPEG_RUNTIME_COMPATIBLE)
