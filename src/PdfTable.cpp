@@ -136,14 +136,14 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
         dCurY = 0.0;
 
 		if( bBorders ) // draw top border
-			pPainter->DrawLine( dX, dY, dX + dWidth, dY );
+            this->DrawHorizontalBorders( 0, dX, dY, pPainter, pdColWidths );
 
         for( j=0;j<m_nRows;j++ )
         {
 			if( this->CheckForNewPage( &dY, &dCurY, pdRowHeights[j], pPainter ) && bBorders )
                 // draw top border on new page
-			    pPainter->DrawLine( dX, dY, dX + dWidth, dY );
-
+                this->DrawHorizontalBorders( j, dX, dY, pPainter, pdColWidths );
+    
 			dCurX  = 0.0;	
 			dCurY += pdRowHeights[j];
 
@@ -221,7 +221,10 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
                 
                 pPainter->Restore();
 				if( bBorders ) // draw left x border
+                {
+                    pPainter->SetStrokingColor( m_pModel->GetBorderColor( i, j ) );
 					pPainter->DrawLine( dX + dCurX, dY - dCurY, dX + dCurX, dY - dCurY + pdRowHeights[j] );
+                }
 
 		        dCurX += pdColWidths[i];    
             }
@@ -229,10 +232,15 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
 			if( bBorders ) 
 			{
 				// Draw last X border
-				pPainter->DrawLine( dX + dCurX, dY - dCurY, dX + dCurX, dY - dCurY + pdRowHeights[j] );
-				// draw border below row
-				pPainter->DrawLine( dX, dY - dCurY, dX + dWidth, dY - dCurY);
-			}
+                if( i > 0 )
+                {
+                    pPainter->SetStrokingColor( m_pModel->GetBorderColor( i-1, j ) );
+				    pPainter->DrawLine( dX + dCurX, dY - dCurY, dX + dCurX, dY - dCurY + pdRowHeights[j] );
+                }
+
+                // draw border below row    
+                this->DrawHorizontalBorders( j, dX, dY - dCurY, pPainter, pdColWidths );
+    		}
 		}    
 	}
     pPainter->Restore();
@@ -246,6 +254,21 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
     // Free allocated memory
     delete [] pdColWidths;
     delete [] pdRowHeights;
+}
+
+void PdfTable::DrawHorizontalBorders( int nRow, double dX, double dY, PdfPainter* pPainter, double* pdColWidths ) 
+{
+    double dCurX = 0.0;
+    pPainter->Save();
+    pPainter->SetLineCapStyle( ePdfLineCapStyle_Square );
+    for( int i=0;i<m_nCols;i++ )
+    {
+        pPainter->SetStrokingColor( m_pModel->GetBorderColor( i, nRow ) );
+	    pPainter->DrawLine( dX + dCurX, dY, dX + dCurX + pdColWidths[i], dY );
+
+        dCurX += pdColWidths[i];
+    }
+    pPainter->Restore();
 }
 
 double PdfTable::GetWidth( double dX, double dY, PdfCanvas* pPage ) const

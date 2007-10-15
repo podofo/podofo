@@ -130,6 +130,14 @@ class PODOFO_API PdfTableModel {
 	 */
 	virtual double GetBorderWidth() const = 0;
 
+    /**
+     * \param col the column of the table cell
+     * \param row the row of the table cell
+     *
+     * \returns the border color 
+     */
+    virtual PdfColor GetBorderColor( int col, int row ) const = 0;
+
     /** 
      * \param col the column of the table cell
      * \param row the row of the table cell
@@ -318,7 +326,15 @@ class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
      * \returns the stroke witdth of the border line
      */
     inline virtual double GetBorderWidth() const;
-    
+
+    /**
+     * \param col the column of the table cell
+     * \param row the row of the table cell
+     *
+     * \returns the border color 
+     */
+    inline virtual PdfColor GetBorderColor( int col, int row ) const;
+
     /** 
      * \param col the column of the table cell
      * \param row the row of the table cell
@@ -523,7 +539,16 @@ double PdfSimpleTableModel::GetBorderWidth() const
 {
 	return m_dBorder;
 }
- 
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfColor PdfSimpleTableModel::GetBorderColor( int col, int row ) const
+{
+    // always return black
+    return PdfColor( 0.0, 0.0, 0.0 );
+}
+
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
@@ -739,6 +764,17 @@ class PODOFO_API PdfTable {
     void CalculateTableSize( const double dX, const double dY, const PdfCanvas* pCanvas, 
                              double* pdWidths, double* pdHeights,
                              double* pdWidth, double* pdHeight ) const;
+
+    /** Draw one row of horizontal cell borders using the correct color
+     *  for each cell.
+     *
+     *  @param nRow the current row
+     *  @param dX left x coordinate
+     *  @param dY y coordinate
+     *  @param pPainter use this painter object
+     *  @param pdColWidth an array containing all colomun widths
+     */
+    void DrawHorizontalBorders( int nRow, double dX, double dY, PdfPainter* pPainter, double* pdColWidths );
 
     /** Checks if there is enough space on the current page
      *  for one row! If necessary a new page is created.
