@@ -222,7 +222,8 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
                 pPainter->Restore();
 				if( bBorders ) // draw left x border
                 {
-                    pPainter->SetStrokingColor( m_pModel->GetBorderColor( i, j ) );
+                    // use always the border color of the left to the current cell
+                    pPainter->SetStrokingColor( m_pModel->GetBorderColor( i>0 ? i-1 : i, j ) );
 					pPainter->DrawLine( dX + dCurX, dY - dCurY, dX + dCurX, dY - dCurY + pdRowHeights[j] );
                 }
 
