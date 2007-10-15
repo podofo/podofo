@@ -170,19 +170,19 @@ void PdfImage::LoadFromFile( const char* pszFilename )
         {
             LoadFromTiff( pszFilename );
             return;
-		}
+        }
 #endif
 
 #ifdef PODOFO_HAVE_JPEG_LIB
 #ifdef _MSC_VER
         if( _strnicmp( pszExtension, "jpg", 3 ) == 0 )
 #else
-		if( strncasecmp( pszExtension, "jpg", 3 ) == 0 )
+            if( strncasecmp( pszExtension, "jpg", 3 ) == 0 )
 #endif
         {
             LoadFromJpeg( pszFilename );
-			return;
-		}
+            return;
+        }
 #endif
 	}
 	PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
@@ -195,7 +195,7 @@ void jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufs
 
 static void JPegErrorExit(j_common_ptr cinfo)
 {
-	PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+    PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedImageFormat, "jpeg_read_header exited with an error." );
 }
 
 void PdfImage::LoadFromJpeg( const char* pszFilename )
@@ -216,24 +216,24 @@ void PdfImage::LoadFromJpeg( const char* pszFilename )
     }
 
     cinfo.err = jpeg_std_error(&jerr);
-	jerr.error_exit = &JPegErrorExit;
+    jerr.error_exit = &JPegErrorExit;
 
     jpeg_create_decompress(&cinfo);
 
 #if !defined(PODOFO_JPEG_RUNTIME_COMPATIBLE)
-	const long lSize = 1024;
-	PdfRefCountedBuffer buffer( lSize );
-	fread( buffer.GetBuffer(), sizeof(char), lSize, hInfile );
-
-	// On WIN32, you can only pass a FILE Handle to DLLs which where compiled using the same
-	// C library. This is usually not the case with LibJpeg on WIN32. 
-	// As a reason we use a memory buffer to determine the header information.
-	//
-	// If you are sure that libJpeg is compiled against the same C library as your application
-	// you can removed this ifdef.
-	jpeg_memory_src ( &cinfo, reinterpret_cast<JOCTET*>(buffer.GetBuffer()), buffer.GetSize() );
+    const long lSize = 1024;
+    PdfRefCountedBuffer buffer( lSize );
+    fread( buffer.GetBuffer(), sizeof(char), lSize, hInfile );
+    
+    // On WIN32, you can only pass a FILE Handle to DLLs which where compiled using the same
+    // C library. This is usually not the case with LibJpeg on WIN32. 
+    // As a reason we use a memory buffer to determine the header information.
+    //
+    // If you are sure that libJpeg is compiled against the same C library as your application
+    // you can removed this ifdef.
+    jpeg_memory_src ( &cinfo, reinterpret_cast<JOCTET*>(buffer.GetBuffer()), buffer.GetSize() );
 #else
-	jpeg_stdio_src(&cinfo, hInfile);
+    jpeg_stdio_src(&cinfo, hInfile);
 #endif // PODOFO_JPEG_RUNTIME_COMPATIBLE
 
     if( jpeg_read_header(&cinfo, TRUE) <= 0 )
@@ -260,7 +260,22 @@ void PdfImage::LoadFromJpeg( const char* pszFilename )
             this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
             break;
         case 4:
-            this->SetImageColorSpace( ePdfColorSpace_DeviceCMYK );
+			{
+				this->SetImageColorSpace( ePdfColorSpace_DeviceCMYK );
+				// The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
+				// in a inverted fashion. Fix by attaching a decode array
+				PdfArray decode;
+				decode.push_back( 1.0 );
+				decode.push_back( 0.0 );
+				decode.push_back( 1.0 );
+				decode.push_back( 0.0 );
+				decode.push_back( 1.0 );
+				decode.push_back( 0.0 );
+				decode.push_back( 1.0 );
+				decode.push_back( 0.0 );
+
+				this->GetObject()->GetDictionary().AddKey( PdfName("Decode"), decode );
+			}
             break;
         default:
             this->SetImageColorSpace( ePdfColorSpace_DeviceGray );
