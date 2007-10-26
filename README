@@ -45,11 +45,24 @@ are first of all examples on how to use the PoDoFo library in your own
 projects. But secondly they offer also features for working with PDF files.
 More tools will come with future release and the existing tools will gain more
 features. The following tools are currently available:
-* podofoimgextract (which extracts all jpeg images from a given PDF file)
-* podofouncompress (which removes all compression filters from a PDF file -
-                    this is useful for debugging existing PDF files).
-* podofopdfinfo (provides some basic info about a PDF - metadata, page details, etc.)
-* podofotxt2pdf (converts a text file to a PDF)
+
+* podofoimgextract
+  Extracts all RGB jpeg images from a given PDF file.
+
+* podofouncompress
+  Removes all compression filters from a PDF file. This is useful for debugging
+  existing PDF files. You might also find PoDoFoBrowser, distributed separately,
+  to be useful if you're using this tool a lot.
+
+* podofopdfinfo
+  Provides some basic info about a PDF - metadata, page details, etc.
+
+* podofotxt2pdf
+  Converts a text file to a PDF
+
+* podofoimpose
+  Places pages from one or more source PDFs onto pages of a new PDF,
+  applying scaling and positioning.
 
 Additionally there is the external tool PoDoFoBrowser which is not included in
 this package, but can be downloaded from the PoDoFo webpage. PoDoFoBrowser is a
@@ -94,7 +107,7 @@ PoDoFo is built and installed using CMake. The autotools build, Visual Studio
 project and XCode project were dropped as maintaining three unrelated and
 incompatible build systems that are exclusive to three different platforms
 consumes a lot of resources which can be spend better on improving PoDoFo
-itself.
+itself. Even if you've never used CMake before, you'll find it pretty easy.
 
 Unix users should generate Unix Makefiles with CMake, though it's also possible
 to produce a KDevelop project. See section 4.1.1 and section 4.1.
@@ -119,9 +132,10 @@ If your project uses STLPort rather than your platform/toolset's native STL,
 you must configure PoDoFo to use STLPort as well. Use the -DUSE_STLPORT=1
 argument to configure. Do not enable STLPort for podofo unless you use it in
 your project; you will get an incompatible C++ STL leading to link errors,
-runtime crashes, or other problems. It is unnecessary and unwise to build
-PoDoFo against STLPort on any current major platform unless you have a specific
-reason to do so.
+runtime crashes, or other problems.
+
+It is unnecessary and unwise to build PoDoFo against STLPort on any current
+major platform unless you have a specific reason to do so.
 
 4.1 Installation with CMake
 ===========================
@@ -129,12 +143,12 @@ reason to do so.
 PoDoFo has support for builds using CMake on all supported
 platforms. The CMake build has been tested on:
 
+	- Visual C++ 9 Express Edition [Win32] ("Visual Studio 9 2008" target)
 	- Visual C++ 8 Express Edition [Win32] ("Visual Studio 8 2005" target)
 	- Visual C++ 8 Express +NMake [Win32] ("NMake Makefiles" target)
 	- MinGW with GCC 3.4.2 [Win32] ("MinGW Makefiles" target)
 	- gcc 3.3.5 [Linux: Debian 3.1] ("Unix Makefiles" target)
-	- gcc 4.0 [Linux: Debian 4.0] ("Unix Makefiles" target)
-	- gcc 4.1 [Linux: Debian 4.0] ("Unix Makefiles" target)
+	- gcc 4.0, 4.1, 4.2 [Linux: Debian 4.0] ("Unix Makefiles" target)
 	- gcc 4.0 [Mac OS X 10.4.10] ("Unix Makefiles" target)
 
 PoDoFo is also known to build with Visual C++ 6 using CMake, though it is
@@ -363,7 +377,7 @@ Visual Studio solution:
 
 md ..\podofo-debug
 cd ..\podofo-debug
-\path\to\cmake -G "Visual Studio 8 2005" ..\podofo-src -DCMAKE_INCLUDE_PATH=c:\progra~1\gnuwin32\include -DCMAKE_LIBRARY_PATH=c:\progra~1\gnuwin32\lib
+\path\to\cmake -G "Visual Studio 9 2008" ..\podofo-src -DCMAKE_INCLUDE_PATH=c:\progra~1\gnuwin32\include -DCMAKE_LIBRARY_PATH=c:\progra~1\gnuwin32\lib
 podofo.sln
 
 ... and build the solution when it opens in Visual Studio.
@@ -374,8 +388,11 @@ than one version of Visual Studio installed.
 
 You can get the Visual C++ Express Edition from
 http://msdn.microsoft.com/vstudio/express/ .
-You will need to install the Win32 SDK if using the Express Edition, since it
-is not bundled.
+If you're using the version 8, you'll need to install the win32 SDK as well,
+since it's not bundled. This is not required for version 9 of the C++ Express
+Edition.
+
+PROBLEMS?
 
 If you have problems, try deleting your build directory then re-running
 the commands above after running:
@@ -409,24 +426,6 @@ A simple example that uses PoDoFo can be found in examples/helloworld . You
 will also find the tests and tools shipped with PoDoFo informative when
 learning to use the library. Reading the documentation on PdfMemDocument,
 PdfStreamedDocument, PdfObject and PdfVariant may also be useful.
-
-When working with PoDoFo it is important to remember that the library makes use
-of exceptions.  Your code must be built with exception support and must be
-exception safe in areas that call PoDoFo.  gcc users may not build with
--fno-exceptions.  If you have non-exception-safe code or code (such as pure C
-code) that cannot propagate exceptions your podofo-using code must catch all
-exceptions before they propagate to such unsafe sections.  PoDoFo will throw a
-PdfError& for PoDoFo-specific exceptions.  It may also propagate STL/runtime
-generated exceptions like std::bad_alloc, though it'll never throw them
-directly. PoDoFo cannot be built without exceptions.
-
-If you're writing, say, a plugin for a C application, you can still use PoDoFo.
-You must write your plugin in C++ but export all interfaces visible to the
-application using:
-	extern "C"
-and you must catch ALL exceptions before they could propagate through to the
-calling C code.
-
 
 5.1 UNSTABLE API (IMPORTANT)
 ----------------------------
@@ -469,6 +468,21 @@ on UNIX:
 
 is generally appropriate. Win32 users must also ensure that they link to
 gdi32 and ws_win32.
+
+5.3 Handling Exceptions
+-----------------------
+
+When working with PoDoFo it is important to remember that the library makes use
+of exceptions.  Your code must be built with exception support and must be
+exception safe in areas that call PoDoFo.  gcc users may not build with
+-fno-exceptions.  If you have non-exception-safe code or code (such as pure C
+code) that cannot propagate exceptions your podofo-using code must catch all
+exceptions before they propagate to such unsafe sections.  PoDoFo will throw a
+PdfError& for PoDoFo-specific exceptions.  It may also propagate STL/runtime
+generated exceptions like std::bad_alloc, though it'll never throw them
+directly. PoDoFo cannot be built without exceptions.
+
+More general information about exception handling is in the FAQ.
 
 6. Contact
 ==========
