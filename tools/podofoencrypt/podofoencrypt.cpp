@@ -81,7 +81,7 @@ void print_help()
     printf("       --editnotes   Add or modify text annoations or form fields (if ePdfPermissions_Edit is set also allow to create interactive form fields including signature)\n");
     printf("       --fillandsign Fill in existing form or signature fields\n");
     printf("       --accessible  Extract text and graphics to support user with disabillities\n");
-    printf("       --assembly    Assemble the document: insert, create, rotate delete pages or add bookmarks\n");
+    printf("       --assemble    Assemble the document: insert, create, rotate delete pages or add bookmarks\n");
     printf("       --highprint   Print a high resolution version of the document\n");
     printf("\n\n");
 }
