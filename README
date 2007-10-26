@@ -1,296 +1,325 @@
+<html>
+<head>
+<title>PoDoFo Readme</title>
+</head>
+<body>
 
-PoDoFo
-======
+<h1>PoDoFo</h1>
 
-1. What is PoDoFo Lib?
-2. Where can I can get it?
-3. Requirements
-4. Installation
-5. Using PoDoFo in Your Application
-5.1. UNSTABLE API (IMPORTANT)
-6. Contact
-7. Licensing
+<ol>
+<li>What is PoDoFo Lib?</li>
+<li>Where can I can get it?</li>
+<li>Requirements</li>
+<li>Installation</li>
+<li>Using PoDoFo in Your Application</li>
+<li>Contact</li>
+<li>Licensing</li>
+</ol>
 
-1. What is PoDoFo?
-==================
+<h2><a name="what_is_podofo" />What is PoDoFo?</h2>
 
-PoDoFo is a library to work with the PDF file format and includes also a few
-tools. The name comes from the first two letters of PDF (Portable Document
-Format).
+<p>PoDoFo is a library to work with the PDF file format and includes also a few
+tools. The name comes from the first two letters of PDF (<b>Po</b>rtable <b>Do</b>cument
+<b>Fo</b>rmat).</p>
 
-The PoDoFo library is a free portable C++ library which includes classes to
+<p>The PoDoFo library is a free portable C++ library which includes classes to
 parse a PDF file and modify its contents into memory. The changes can be
 written back to disk easily. PoDoFo is designed to avoid loading large PDF
 objects into memory until they are required and can write large streams
 immediately to disk, so it is possible to manipulate quite large files with it.
-PoDoFo uses and relies on exceptions, so it must be built with them enabled.
+PoDoFo uses and relies on exceptions, so it must be built with them enabled.</p>
 
-Besides PDF parsing and writing PoDoFo includes also very simple classes to
+<p>Besides PDF parsing and writing PoDoFo includes also very simple classes to
 create your own PDF files. All classes are documented so it is easy to start
-writing your own application using PoDoFo.
+writing your own application using PoDoFo.</p>
 
-PoDoFo is primarily useful for applications that wish to do lower level
+<p>PoDoFo is primarily useful for applications that wish to do lower level
 manipulation of PDF, such as extracting content or merging files. It's also
 useful if your application has specific requirements for it's PDF output that
 more general output-oriented libraries like Cairo cannot satisfy.
 Canvas/drawing support is currently very limited in PoDoFo, so for pure output
 tasks a library like Cairo will be more suitable. PoDoFo cannot render PDF,
-so you should look at a library like Poppler for that.
-See:
-	http://cairographics.org/
-	http://poppler.freedesktop.org/
+so you should look at a library like Poppler for that.</p>
 
-The PoDoFo tools are simple tools build around the PoDoFo library. These tools
+<p>See:</p>
+
+<ul>
+<li><a href="http://cairographics.org/">http://cairographics.org/</a></li>
+<li><a href="http://poppler.freedesktop.org/">http://poppler.freedesktop.org/</a></li>
+</ul>
+
+<p>The PoDoFo tools are simple tools build around the PoDoFo library. These tools
 are first of all examples on how to use the PoDoFo library in your own
 projects. But secondly they offer also features for working with PDF files.
 More tools will come with future release and the existing tools will gain more
-features. The following tools are currently available:
+features. The following tools are currently available:</p>
 
-* podofoimgextract
-  Extracts all RGB jpeg images from a given PDF file.
+<ul>
+<li>podofoimgextract -
+    Extracts all RGB jpeg images from a given PDF file.</li>
 
-* podofouncompress
+<li>podofouncompress -
   Removes all compression filters from a PDF file. This is useful for debugging
   existing PDF files. You might also find PoDoFoBrowser, distributed separately,
-  to be useful if you're using this tool a lot.
+  to be useful if you're using this tool a lot.</li>
 
-* podofopdfinfo
-  Provides some basic info about a PDF - metadata, page details, etc.
+<li>podofopdfinfo -
+  Provides some basic info about a PDF - metadata, page details, etc.</li>
 
-* podofotxt2pdf
-  Converts a text file to a PDF
+<li> podofotxt2pdf -
+  Converts a text file to a PDF</li>
 
-* podofoimpose
+<li> podofoimpose -
   Places pages from one or more source PDFs onto pages of a new PDF,
-  applying scaling and positioning.
+  applying scaling and positioning. </li>
+</ul>
 
-Additionally there is the external tool PoDoFoBrowser which is not included in
+<p>Additionally there is the external tool PoDoFoBrowser which is not included in
 this package, but can be downloaded from the PoDoFo webpage. PoDoFoBrowser is a
 Qt application for browsing and modifying the objects in a PDF file, examining
 the structure of PDF files, and manipulating PDF streams. It is very useful if
-you want to look on the internal structure of PDF files.
+you want to look on the internal structure of PDF files.</p>
 
-As of version 0.5.99 (ie pre-0.6.0 svn trunk) PoDoFo is available for Unix, Mac
-OS X and Windows platforms.
+<p>As of version 0.5.99 (ie pre-0.6.0 svn trunk) PoDoFo is available for Unix, Mac
+OS X and Windows platforms.</p>
 
-2. Where can I can get it?
-==========================
+<h2><a name="where_can_i_get_it" />Where can I can get it?</h2>
 
-PoDoFo is available on the internet: podofo.sf.net
+<p>PoDoFo is available on the internet: <a href="http://podofo.sf.net">podofo.sf.net</a></p>
 
-3. Requirements
-===============
+<h2><a name="requirements" />Requirements</h2>
 
-To build PoDoFo lib you need a working toolchain and a c++ compiler as well as
-the following libraries:
+<p>To build PoDoFo lib you need a working toolchain and a c++ compiler as well as
+the following libraries:</p>
 
-- zlib
-- freetype2
-- fontconfig (Unix & Mac OS X only)
-- libjpeg (optional)
+<ul>
+<li>zlib</li>
+<li>freetype2</li>
+<li>fontconfig (Unix & Mac OS X only)</li>
+<li>libjpeg (optional)</li>
+</ul>
 
-See section 4.1 ("Installation with CMake") for a list of tested platforms and
-compilers. In general, any reasonably well behaved C++ compiler should work.
+<p>See <a href="#installation_with_cmake">Installation with CMake</a> for a
+list of tested platforms and compilers. In general, any reasonably well behaved
+C++ compiler should work.</p>
 
-See also "5. Using PoDoFo".
+<p>See also <a href="#using_podofo">Using PoDoFo</a>.</p>
 
-4. Installation
-===============
+<h2><a name="installation">Installation</a></h2>
 
-Rather than using binary packages, you should usually build PoDoFo yourself.
+<p>Rather than using binary packages, you should usually build PoDoFo yourself.
 This ensures that it will be built with the same compiler and settings as your
 program. Because most platforms have no consistent C++ ABI or runtime
 libraries, this is important to ensure that you get a compatible STL, correct
-memory management between podofo and your app, etc.
+memory management between podofo and your app, etc.</p>
 
-PoDoFo is built and installed using CMake. The autotools build, Visual Studio
+<p>PoDoFo is built and installed using CMake. The autotools build, Visual Studio
 project and XCode project were dropped as maintaining three unrelated and
 incompatible build systems that are exclusive to three different platforms
 consumes a lot of resources which can be spend better on improving PoDoFo
-itself. Even if you've never used CMake before, you'll find it pretty easy.
+itself. Even if you've never used CMake before, you'll find it pretty easy.</p>
 
-Unix users should generate Unix Makefiles with CMake, though it's also possible
-to produce a KDevelop project. See section 4.1.1 and section 4.1.
+<p>Unix users should generate Unix Makefiles with CMake, though it's also possible
+to produce a KDevelop project. See section 4.1.1 and section 4.1.</p>
 
-If your application or library uses Visual Studio, CMake can be used to
+<p>If your application or library uses Visual Studio, CMake can be used to
 build a Visual Studio project you can use. Alternately, if you are using
 MinGW for your existing code, CMake can make you a MinGW makefile to
 build a mingw compatible version of PoDoFo. You must build PoDoFo with
-the same compiler as your application. See section 4.1.3 and section 4.1.
+the same compiler as your application. See section 4.1.3 and section 4.1.</p>
 
-Mac OS X users will need to use CMake to generate a conventional UNIX build
+<p>Mac OS X users will need to use CMake to generate a conventional UNIX build
 with Makefiles, or may generate an XCode project with CMake. See the Mac OS X
-section (4.1.2) below, and the generict instructions in 4.1 .
+section (4.1.2) below, and the generict instructions in 4.1 .</p>
 
-4.1 STLPort support
--------------------
+<h3><a name="stlport_support" />STLPort support</h3>
 
-Don't know what STLPort is? Ignore it and skip this section. Packagers should
-not enable STLPort.
+<p>Don't know what STLPort is? Ignore it and skip this section. Packagers should
+not enable STLPort.</p>
 
-If your project uses STLPort rather than your platform/toolset's native STL,
+<p>If your project uses STLPort rather than your platform/toolset's native STL,
 you must configure PoDoFo to use STLPort as well. Use the -DUSE_STLPORT=1
 argument to configure. Do not enable STLPort for podofo unless you use it in
 your project; you will get an incompatible C++ STL leading to link errors,
-runtime crashes, or other problems.
+runtime crashes, or other problems.</p>
 
-It is unnecessary and unwise to build PoDoFo against STLPort on any current
-major platform unless you have a specific reason to do so.
+<p>It is unnecessary and unwise to build PoDoFo against STLPort on any current
+major platform unless you have a specific reason to do so.</p>
 
-4.1 Installation with CMake
-===========================
+<h3><a name="installation_with_cmake" />Installation with CMake</h3>
 
-PoDoFo has support for builds using CMake on all supported
-platforms. The CMake build has been tested on:
+<P>PoDoFo has support for builds using CMake on all supported
+platforms. The CMake build has been tested on:</p>
 
-	- Visual C++ 9 Express Edition [Win32] ("Visual Studio 9 2008" target)
-	- Visual C++ 8 Express Edition [Win32] ("Visual Studio 8 2005" target)
-	- Visual C++ 8 Express +NMake [Win32] ("NMake Makefiles" target)
-	- MinGW with GCC 3.4.2 [Win32] ("MinGW Makefiles" target)
-	- gcc 3.3.5 [Linux: Debian 3.1] ("Unix Makefiles" target)
-	- gcc 4.0, 4.1, 4.2 [Linux: Debian 4.0] ("Unix Makefiles" target)
-	- gcc 4.0 [Mac OS X 10.4.10] ("Unix Makefiles" target)
+<ul>
+<li>Visual C++ 9 Express Edition [Win32] ("Visual Studio 9 2008" target)</li>
+<li>Visual C++ 8 Express Edition [Win32] ("Visual Studio 8 2005" target)</li>
+<li>Visual C++ 8 Express +NMake [Win32] ("NMake Makefiles" target)</li>
+<li>MinGW with GCC 3.4.2 [Win32] ("MinGW Makefiles" target)</li>
+<li>gcc 3.3.5 [Linux: Debian 3.1] ("Unix Makefiles" target)</li>
+<li>gcc 4.0, 4.1, 4.2 [Linux: Debian 4.0] ("Unix Makefiles" target)</li>
+<li>gcc 4.0 [Mac OS X 10.4.10] ("Unix Makefiles" target)</li>
+</ul>
 
-PoDoFo is also known to build with Visual C++ 6 using CMake, though it is
+<p>PoDoFo is also known to build with Visual C++ 6 using CMake, though it is
 not regularly tested by the team so you might need to do some work to use
-a recent svn build.
+a recent svn build.</p>
 
-You can use the CMake variable CMAKE_BUILD_TYPE to control the type of
-build. The main values supported are DEBUG and RELEASE. The default is
-DEBUG. Set the build type with the CMake argument:
-	-DCMAKE_BUILD_TYPE=DEBUG
-		or
-	-DCMAKE_BUILD_TYPE=RELEASE
-as appropriate.
+<p>You can use the CMake variable <code>CMAKE_BUILD_TYPE</code> to control the type of
+build. The main values supported are <code>DEBUG</code> and <code>RELEASE</code>. The default is
+DEBUG. Set the build type with the CMake argument:<br/>
+&nbsp;&nbsp;<code>-DCMAKE_BUILD_TYPE=DEBUG</code><br/>
+&nbsp;&nbsp;&nbsp;or<br/>
+&nbsp;&nbsp;<code>-DCMAKE_BUILD_TYPE=RELEASE</code><br/>
+as appropriate.</p>
 
-You can control where the files are installed with `make install' with
-	-DCMAKE_INSTALL_PREFIX=/path/to/install/dir
+<p>You can control where the files are installed with `make install' with
+	<code>-DCMAKE_INSTALL_PREFIX=/path/to/install/dir</code></p>
 
-All instructons below use out-of-tree builds (recommended). To clean up an
+<p>All instructons below use out-of-tree builds (recommended). To clean up an
 out-of-tree build, just delete the build directory, as no files are touched
-within the source directory.
+within the source directory.</p>
 
-On all Makefile-style builds, set the VERBOSE flag to 1 on the make command
-line to see all compiler commands etc, eg:
+<p>On all Makefile-style builds, set the <code>VERBOSE</code> flag to 1 on the make command
+line to see all compiler commands etc, eg: <code>make VERBOSE=1</code></p>
 
-4.1.1 CMake builds on Linux/UNIX
-================================
+<h4><a name="cmake_builds_on_linux_unix"/>CMake builds on Linux/UNIX</h4>
 
-Linux and UNIX users should be able to build PoDoFo by cd'ing into the PoDoFo
+<p>Linux and UNIX users should be able to build PoDoFo by cd'ing into the PoDoFo
 checkout or unpacked tarball directory (here assumed to be named "podofo-src")
 then running the build commands shown below. The CMake command below will
 install into $HOME/podofo to avoid needing root priveleges for installation,
 but you can change the destination to wherever you want or remove the install
-prefix setting to use the default.
+prefix setting to use the default.</p>
 
-To build and install:
+<p>To build and install:</p>
 
+<pre>
 mkdir ../podofo-build
 cd ../podofo-build
 cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$HOME/podofo" ../podofo-src
 make
 make install
+</pre>
 
-To see detailed compiler output, use:
+<p>To see detailed compiler output, use:</p>
 
+<pre>
 make VERBOSE=1
+</pre>
 
-i If you're working on a 64 bit linux that has a /usr/lib64 directory, add
--DWANT_LIB64:BOOL=TRUE to the CMake command line.
+<p>If you're working on a 64 bit linux that has a /usr/lib64 directory, add
+<code>-DWANT_LIB64:BOOL=TRUE</code> to the CMake command line.</p>
 
-If you need to specify additional paths to search for libraries, set the
-CMAKE_INCLUDE_PATH and CMAKE_LIBRARY_PATH environment variables or set them on
-the command line:
+<p>If you need to specify additional paths to search for libraries, set the
+<code>CMAKE_INCLUDE_PATH</code> and <code>CMAKE_LIBRARY_PATH</code> environment variables or set them on
+the command line:</p>
 
+<pre>
 cmake -G "Unix Makefiles" ../podofo-src \
 	-DCMAKE_INCLUDE_PATH=/usr/sfw/include \
 	-DCMAKE_LIBRARY_PATH=/usr/sfw/lib
+</pre>
 
-If you wish to generate only a static library or only a shared library, set the
-PODOFO_BUILD_SHARED and/or PODOFO_BUILD_STATIC flags:
+<p>If you wish to generate only a static library or only a shared library, set the
+<code>PODOFO_BUILD_SHARED</code> and/or <code>PODOFO_BUILD_STATIC</code> flags:</p>
 
+<pre>
 cmake -G "Unix Makefiles" ../podofo-src \
 	-DCMAKE_INCLUDE_PATH=/usr/sfw/include \
 	-DCMAKE_LIBRARY_PATH=/usr/sfw/lib \
 	-DPODOFO_BUILD_SHARED:BOOL=TRUE \
 	-DPODOFO_BUILD_STATIC:BOOL=FALSE
+</pre>
 
-By default, with CMake 2.5.x all supported library types will be built where
+<p>By default, with CMake 2.5.x all supported library types will be built where
 possible. Only the shared library will be built by default using 2.4.x because
 of a CMake limitation; you can build a static library instead with
--DPODOFO_BUILD_STATIC:BOOL=TRUE, or upgrade to CMake 2.5.x .
+<code>-DPODOFO_BUILD_STATIC:BOOL=TRUE</code>, or upgrade to CMake 2.5.x .</p>
 
-Note that the instructions above run an out-of-tree build. CMake does support
-in-tree builds, but the use of out-of-tree builds is very strongly recommended.
+<p>Note that the instructions above run an out-of-tree build. CMake does support
+in-tree builds, but the use of out-of-tree builds is very strongly recommended.</p>
 
-If your system has gcc 4, PoDoFo will tell gcc to make symbols hidden by
-default using the -fvisibility=hidden flag to gcc. Only symbols explicitly
+<p>If your system has gcc 4, PoDoFo will tell gcc to make symbols hidden by
+default using the <code>-fvisibility=hidden</code> flag to gcc. Only symbols explicitly
 exported by PoDoFo will be exported. You can explicitly enable or disable this
 behaviour with the boolean flag:
-    -DPODOFO_USE_VISIBILITY=1 (or 0 for off).
+    <code>-DPODOFO_USE_VISIBILITY=1</code> (or 0 for off).
 Enabling default hidden visibility reduces the PoDoFo binary size dramatically
 and improves link times. It also helps prevent accidental use of symbols that
 are not part of PoDoFo's public API. PoDoFo developers will also find this
 useful, as it will cause some mistakes to be reported as link errors that would
-otherwise go undetected and break the win32 builds.
+otherwise go undetected and break the win32 builds.</p>
 
-4.1.2 CMake builds on Mac OS X
-==============================
+<h4><a name="cmake_builds_on_mac_os_x"/>CMake builds on Mac OS X</h4>
 
-Mac OS X users can build PoDoFo using CMake either by generating conventional
+<p>Mac OS X users can build PoDoFo using CMake either by generating conventional
 UNIX Makefiles (the  "Unix Makefiles" CMake target) or generating an XCode
-project (the "Xcode" target). In either case the following applies.
+project (the "Xcode" target). In either case the following applies.</p>
 
-You will need freetype and fontconfig. It's possible to omit the use of
+<p>You will need freetype and fontconfig. It's possible to omit the use of
 libjpeg (see the platform-independent documentation) but by default libjpeg
 will also be required. If you have these libraries already (say, from fink
 or DarwinPorts) you can skip the following section and update the
-CMAKE_INCLUDE_PATH and CMAKE_LIBRARY_PATH arguments appropriately.
+CMAKE_INCLUDE_PATH and CMAKE_LIBRARY_PATH arguments appropriately.</p>
 
- Dependencies
- -----------
+<h5>Dependencies</h5>
 
-I'll assume you're installing podofo and any required libraries into $HOME/libs
-. Adjust to taste, but keep it consistent.
+<p>I'll assume you're installing podofo and any required libraries into $HOME/libs
+. Adjust to taste, but keep it consistent.</p>
 
-You can get libjpeg from:
-	http://www.ijg.org/files/jpegsrc.v6b.tar.gz
-Unpack the tarball and cd into the resulting directory in the Terminal, then run:
+<p>The easiest way to get any required libraries is to use <a href="http://macports.org/>MacPorts</a>
+to install the libjpeg, fontconfig, and freetype libraries. If you prefer to do it manually (say, if you
+want all static libraries), read on.</p>
+
+<p>You can get libjpeg from <a href="http://www.ijg.org/files/jpegsrc.v6b.tar.gz">http://www.ijg.org/files/jpegsrc.v6b.tar.gz</a></p>
+
+<p>Unpack the tarball and cd into the resulting directory in the Terminal, then run:</p>
+<pre>
 	cp /usr/share/libtool/config.{sub,guess} .
-to update the configure files. Now run:
+</pre>
+<p>to update the configure files. Now run:</p>
+<pre>
 	./configure --enable-shared --prefix $HOME/libs
 	make
 	make install
+</pre>
 
-You might have to run:
+<p>You might have to run:</p>
+<pre>
 	mkdir -p $HOME/libs/{bin,lib,man/man1,include}
-to get install to work.
+</pre>
+<p>to get install to work.</p>
 
+<p>
 Next: freetype. You can get the latest freetype sources from freetype.org. Download
-them and unpack the tarball, then cd into it in Terminal and run:
+them and unpack the tarball, then cd into it in Terminal and run:</p>
+<pre>
 	./configure --prefix=$HOME/libs
 	make 
 	make install
+</pre>
 
-fontconfig is a little trickier. It requires the expat library. Get it from
-	http://sf.net/projects/expat
-then unpack the source tarball and cd into it in Terminal. Run:
+<p>fontconfig is a little trickier. It requires the expat library. Get it from <a href="http://sf.net/projects/expat">http://sf.net/projects/expat</a>
+then unpack the source tarball and cd into it in Terminal. Run:</p>
+<pre>
 	./configure --prefix=$HOME/libs
 	make 
 	make install
+</pre>
 	
-Now we build fontconfig its self. Get the current fontconfig sources from:
-	http://freedesktop.org/fontconfig/release/
-and then unpack the source tarball and cd into it in Terminal. Run:
+<p>Now we build fontconfig its self. Get the current fontconfig sources from <a href="http://freedesktop.org/fontconfig/release/">http://freedesktop.org/fontconfig/release</a>
+and then unpack the source tarball and cd into it in Terminal. Run:</p>
+<pre>
 	./configure --prefix=$HOME/libs --with-freetype-config=/Users/post/libs/bin/freetype-config --with-expat=$HOME/libs
 	make
 	make install
+</pre>
 
- PoDoFo its self
- ---------------
+<h5>PoDoFo its self</h5>
 
-You should be able to configure and install podofo on Mac OS X using:
-
+<p>You should be able to configure and install podofo on Mac OS X using:</p>
+<pre>
 	cmake -G "Unix Makefiles" \
 		-DWANT_FONTCONFIG:BOOL=TRUE \
 		-DCMAKE_INSTALL_PREFIX=$HOME/libs \
@@ -299,180 +328,182 @@ You should be able to configure and install podofo on Mac OS X using:
 		../podofo
 	make
 	make install
+</pre>
 
-change "Unix Makefiles" to "Xcode" if you want to build an XCode project instead, then
-instead of running `make' and `make install' just open the project file and work as normal
+<p>change "Unix Makefiles" to "Xcode" if you want to build an XCode project instead, then
+instead of running `make' and `make install' just open the project file and work as normal</p>
 
-4.1.3 CMake builds on Windows
-=============================
+<h4><a name="cmake_builds_on_windows" />CMake builds on Windows</h4>
 
-Building CMake on Windows can be done using MinGW (a minimalist gcc-based
+<p>Building CMake on Windows can be done using MinGW (a minimalist gcc-based
 compliler environment for Windows) or Visual Studio. Other methods may work but
-have not been tested.
+have not been tested.</p>
 
-Because the C++ ABIs of most of the win32 compilers are incompatible, you must
+<p>Because the C++ ABIs of most of the win32 compilers are incompatible, you must
 build PoDoFo with the same compiler and version that you will use to build the
 programs linked to PoDoFo. Failure to follow this restriction will result in
-link errors at best, and bizarre runtime failures at worst.
+link errors at best, and bizarre runtime failures at worst.</p>
 
-On Windows, if you are linking against a shared (DLL) build of PoDoFo you MUST
-define the preprocessor macro USING_SHARED_PODOFO when including any podofo
+<p>On Windows, if you are linking against a shared (DLL) build of PoDoFo you MUST
+define the preprocessor macro <code>USING_SHARED_PODOFO</code> when including any podofo
 headers. Failure to do so will result in link time and/or runtime errors.
-Similarly, defining it when linking with a static PoDoFo can cause problems.
+Similarly, defining it when linking with a static PoDoFo can cause problems.</p>
 
-On Windows, PoDoFo may be built as either a shared or static library. Building
+<p>On Windows, PoDoFo may be built as either a shared or static library. Building
 both is not supported. By default only the shared library will be built. If you
 want a static library, just disable generation of the shared library with the
-extra argument to cmake:
+extra argument to cmake:</p>
 
+<pre>
 	-DPODOFO_BUILD_SHARED=FALSE
+</pre>
 
-PoDoFo is designed work correctly if you download pre-built copies of the
+<p>PoDoFo is designed work correctly if you download pre-built copies of the
 libraries it requires (such as those published by the GnuWin32 project at
 SourceForge) even if they were built with a different compiler and use a
 different runtime. For release, you might want to consider building your own
 copies of the libraries, but this is not strictly necessary. If you have done
 this, however, or know the runtimes used by the libraries are compatible, you
-can pass -DJPEG_COMPATIBLE_RUNTIME (or -DTIFF... or -DFREETYPE...) to tell
-PoDoFo it's safe not to use its' workarounds for incompatible runtimes.
+can pass <code>-DJPEG_COMPATIBLE_RUNTIME</code> (or <code>-DTIFF...</code> or <code>-DFREETYPE...</code>) to tell
+PoDoFo it's safe not to use its' workarounds for incompatible runtimes.</p>
 
-4.1.3.1 CMake builds on Windows with MinGW
-==========================================
+<h5><a name="cmake_builds_on_windows_with_mingw" />CMake builds on Windows with MinGW</h5>
 
-MinGW builds are essentially the same as the UNIX instructions above, but
+<p>MinGW builds are essentially the same as the UNIX instructions above, but
 Windows-style paths should be used. Make sure that the MinGW "bin"
-directory is on your PATH, and be sure to set CMAKE_INCLUDE_PATH and
-CMAKE_LIBRARY_PATH such that CMake can find the headers and libraries that
-PoDoFo requires. The GnuWin32 library packages from http://gnuwin32.sf.net/
-are known to work.
+directory is on your PATH, and be sure to set <code>CMAKE_INCLUDE_PATH</code> and
+<code>CMAKE_LIBRARY_PATH</code> such that CMake can find the headers and libraries that
+PoDoFo requires. The GnuWin32 library packages from <a href="http://gnuwin32.sf.net">http://gnuwin32.sf.net/</a>
+are known to work.</p>
 
+<pre>
 md ..\podofo-debug
 cd ..\podofo-debug
 cmake -G "MinGW Makefiles" ..\podofo-src -DCMAKE_INCLUDE_PATH=c:\progra~1\gnuwin32\include -DCMAKE_LIBRARY_PATH=c:\progra~1\gnuwin32\lib
 mingw32-make
+</pre>
 
-One of the easiest ways to get MinGW is as part of the Qt4 package from
-Trolltech.
+<p>One of the easiest ways to get MinGW is as part of the Qt4 package from
+Trolltech.</p>
 
-It is extremely strongly recommended that you build PoDoFo only as a static
+<p>It is extremely strongly recommended that you build PoDoFo only as a static
 library if you are using MinGW. libstdc++ on MinGW at the time of writing was
 not a shared library, causing serious issues with memory allocation and
 deallocation when C++ objects are passed by value across DLL boundaries or are
 otherwise deleted in a different DLL to where they were allocated. Of course,
 this will cause you problems if you intend to use PoDoFo across DLL boundaries,
 but until libstd++ is made shared on MinGW there's not much to be done. VC++
-does not suffer from this issue.
+does not suffer from this issue.</p>
 
-4.1.3.2 CMake builds on Windows with Visual Studio
-==================================================
+<h5><a name="cmake_builds_on_windows_with_visual_studio" />CMake builds on Windows with Visual Studio</h5>
 
-A Visual Studio build requires that Microsoft Visual Studio be installed.
+<p>A Visual Studio build requires that Microsoft Visual Studio be installed.
 Visual Studio 8 2005 Express Edition is known to work, and is a free download
 from Microsoft. The GnuWin32 libraries may be used for freetype etc, however it
 is preferable for release to build your own copies of these libraries with your
-compiler and bundle those copies (see 4.1.3).
+compiler and bundle those copies (see 4.1.3).</p>
 
-The visual studio build has two stages - first, CMake is used to generate a
-Visual Studio solution:
+<p>The visual studio build has two stages - first, CMake is used to generate a
+Visual Studio solution:</p>
 
+<pre>
 md ..\podofo-debug
 cd ..\podofo-debug
 \path\to\cmake -G "Visual Studio 9 2008" ..\podofo-src -DCMAKE_INCLUDE_PATH=c:\progra~1\gnuwin32\include -DCMAKE_LIBRARY_PATH=c:\progra~1\gnuwin32\lib
 podofo.sln
+</pre>
 
-... and build the solution when it opens in Visual Studio.
+<p>... and build the solution when it opens in Visual Studio.</p>
 
-Note that CMake should automatically find your Visual Studio install, so you
+<p>Note that CMake should automatically find your Visual Studio install, so you
 shouldn't need any special settings unless you have an unusual setup or more
-than one version of Visual Studio installed.
+than one version of Visual Studio installed.</p>
 
-You can get the Visual C++ Express Edition from
-http://msdn.microsoft.com/vstudio/express/ .
+<p>You can get the Visual C++ Express Edition from <a href="http://msdn.microsoft.com/vstudio/express/">MSDN</a>.
 If you're using the version 8, you'll need to install the win32 SDK as well,
 since it's not bundled. This is not required for version 9 of the C++ Express
-Edition.
+Edition.</p>
 
-PROBLEMS?
+<b>PROBLEMS?</b>
 
-If you have problems, try deleting your build directory then re-running
-the commands above after running:
+<p>If you have problems, try deleting your build directory then re-running
+the commands above after running:</p>
 
+<pre>
 set PATH=%SystemRoot%;%SystemRoot%\SYSTEM32
+</pre>
 
-in the cmd.exe window you are using. If you do this you'll have to copy
-jpeg62.dll, freetype6.dll, and zlib.dll (names may vary; make sure they're the
+<p>in the <code>cmd.exe</code> window you are using. If you do this you'll have to copy
+<code>jpeg62.dll</code>, <code>freetype6.dll</code>, and <code>zlib.dll</code> (names may vary; make sure they're the
 ones that match the LIB files you linked to) to the same folder as the .exe you
 are trying to run. This should resolve any issues caused by incompatible DLLs
 with the same names being present earlier on your PATH. Do this if you get
-unexplained crashes or errors about missing/mismatched ordinals.
+unexplained crashes or errors about missing/mismatched ordinals.</p>
 
-4.1.3.3 CMake builds on Windows with NMake
-==========================================
+<h5><a name="cmake_builds_on_windows_with_nmake" />CMake builds on Windows with NMake</h5>
 
-PoDoFo can also be built with NMake. The build procedure is essentially the same
+<p>PoDoFo can also be built with NMake. The build procedure is essentially the same
 as described for MinGW or Visual Studio, but you must use the target name
-"NMake Makefiles" and run "nmake" after CMake completes.
+"NMake Makefiles" and run "nmake" after CMake completes.</p>
 
-Getting your environment set up correctly for NMake can be tricky in some
+<p>Getting your environment set up correctly for NMake can be tricky in some
 environments. The author of this section is a bit of a newbie with these tools,
 but has had success running the Windows 2003 SDK environment file first,
 followed by the Visual Studio vcvars.bat file. If something goes wrong clean
-your build directory before trying again.
+your build directory before trying again.</p>
 
-5. Using PoDoFo in Your Application
-===================================
+<h2><a name="using_podofo_in_your_application" />Using PoDoFo in Your Application</a></h2>
 
-A simple example that uses PoDoFo can be found in examples/helloworld . You
+<p>A simple example that uses PoDoFo can be found in examples/helloworld . You
 will also find the tests and tools shipped with PoDoFo informative when
 learning to use the library. Reading the documentation on PdfMemDocument,
-PdfStreamedDocument, PdfObject and PdfVariant may also be useful.
+PdfStreamedDocument, PdfObject and PdfVariant may also be useful.</p>
 
-5.1 UNSTABLE API (IMPORTANT)
-----------------------------
+<h3><a name="unstable_api" />UNSTABLE API (IMPORTANT)</a>
 
-It is very important to understand that PoDoFo's 0.x's API is not stable from
+<p>It is very important to understand that PoDoFo's 0.x's API is not stable from
 release to release. As such, rather than relying on a particular version of
 PoDoFo being shipped by the OS/distro that you are targeting, consider building
 and linking to your own private copy of PoDoFo. (Win32 developers will do this
-anyway). For example, between PoDoFo 0.5.0 and early PoDoFo 0.6.0svn, PdfDocument
-changed from being a concrete class to an abstract parent of PdfMemDocument and
-PdfStreamedDocument, thus breaking code that instantiates PdfDocument .
+anyway). For example, between PoDoFo 0.5.0 and early PoDoFo 0.6.0svn, <code>PdfDocument</code>
+changed from being a concrete class to an abstract parent of <code>PdfMemDocument</code> and
+<code>PdfStreamedDocument</code>, thus breaking code that instantiates <code>PdfDocument</code> .</p>
 
-A good way to handle maintaining your own private copy if you use Subversion
+<p>A good way to handle maintaining your own private copy if you use Subversion
 for your project is to use the svn:externals mechanism to automatically
 reference a specific revision of PoDoFo from podofo svn, or a particular tag .
 This permits you to control when you update to a new version and lets you make
 sure your code is updated for any API changes, without forcing users to go and
 find a specific version of PoDoFo. Alternately, you can just check the tree
 into your own revision control system and do periodic code drops. Have a look
-at PoDoFoBrowser for an example of the svn:externals approach.
+at PoDoFoBrowser for an example of the svn:externals approach.</p>
 
-If you statically link to podofo, that'll prevent any unexpected problems with
+<p>If you statically link to podofo, that'll prevent any unexpected problems with
 linker paths. Another option on most platforms is to use rpath linking to
 ensure that a specific copy of the podofo library is preferred by the linker.
-CMake takes care of this automatically if you're using it for your project.
+CMake takes care of this automatically if you're using it for your project.</p>
 
-When PoDoFo reaches 1.x versions it is expected that API changes will be
+<p>When PoDoFo reaches 1.x versions it is expected that API changes will be
 less frequent. At this point, though, they're an unavoidable part of
-improving and completing the library.
+improving and completing the library.</p>
 
-5.2 Compiling and Linking Against PoDoFo
-----------------------------------------
+<h3><a name="compiling_and_linking_against_podofo"/>Compiling and Linking Against PoDoFo</h3>
 
-PoDoFo's headers are designed to avoid exposing its library dependencies, so
+<p>PoDoFo's headers are designed to avoid exposing its library dependencies, so
 you do not need the headers for Freetype etc on the include path. However, you
 MUST link your application to podofo's required libraries on most platforms, eg
-on UNIX:
+on UNIX:</p>
 
+<pre>
     -lpodofo -lfreetype -lfontconfig -ljpeg -lz
+</pre>
 
-is generally appropriate. Win32 users must also ensure that they link to
-gdi32 and ws_win32.
+<p>is generally appropriate. Win32 users must also ensure that they link to
+<code>gdi32</code> and <code>ws_win32</code>.</p>
 
-5.3 Handling Exceptions
------------------------
+<h3>Handling Exceptions</h3>
 
-When working with PoDoFo it is important to remember that the library makes use
+<p>When working with PoDoFo it is important to remember that the library makes use
 of exceptions.  Your code must be built with exception support and must be
 exception safe in areas that call PoDoFo.  gcc users may not build with
 -fno-exceptions.  If you have non-exception-safe code or code (such as pure C
@@ -480,21 +511,23 @@ code) that cannot propagate exceptions your podofo-using code must catch all
 exceptions before they propagate to such unsafe sections.  PoDoFo will throw a
 PdfError& for PoDoFo-specific exceptions.  It may also propagate STL/runtime
 generated exceptions like std::bad_alloc, though it'll never throw them
-directly. PoDoFo cannot be built without exceptions.
+directly. PoDoFo cannot be built without exceptions.</p>
 
-More general information about exception handling is in the FAQ.
+<p>More general information about exception handling is in the FAQ.</p>
 
-6. Contact
-==========
+<h2><a name="contact">Contact</h2>
 
-If you have questions on PoDoFo or bug reports, feature requests you can email
-our mailinglist <podofo-users@lists.sf.net>
+<p>If you have questions on PoDoFo or bug reports, feature requests you can email
+our mailinglist &lt;podofo-users@lists.sf.net&gt;. Sign up details are available
+on <a href="http://podofo.sourceforge.net/support.html#mail">the podofo support page</a>.</p>
 
-7. Licensing
-============
+<h2>Licensing</h2>
 
-The library is licensed under the LGPL (i.e. you may even use the shared
+<p>The library is licensed under the LGPL (i.e. you may even use the shared
 library in closed sourced applications). The tests and tools which are
 included in PoDoFo are licensed under the GPL. See the files COPYING and
 COPYING.LIB for details. More detailed explanations are in the FAQ on the
-website, but the licenses have the final say.
+website, but the licenses have the final say.</p>
+
+</body>
+</html>
