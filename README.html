@@ -1,3 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>
 <head>
 <title>PoDoFo Readme</title>
@@ -7,13 +10,23 @@
 <h1>PoDoFo</h1>
 
 <ol>
-<li>What is PoDoFo Lib?</li>
-<li>Where can I can get it?</li>
-<li>Requirements</li>
-<li>Installation</li>
-<li>Using PoDoFo in Your Application</li>
-<li>Contact</li>
-<li>Licensing</li>
+	<li><a href="#what_is_podofo">What is PoDoFo?</a></li>
+	<li><a href="#where_can_i_get_it">Where can I can get it?</a></li>
+	<li><a href="#requirements">Requirements</a></li>
+	<li><a href="#installation">Installation</a>
+	<ol>
+		<li><a href="#installation_with_cmake">Installation with CMake</a>
+		<ol>
+			<li><a href="#cmake_builds_on_linux_unix">CMake bulds on Linux/UNIX</a></li>
+			<li><a href="#cmake_builds_on_mac_os_x">CMake bulds on Mac OS X</a></li>
+			<li><a href="#cmake_builds_on_windows">CMake bulds on Windows</a></li>
+		</ol>
+		</li>
+	</ol>
+	</li>
+	<li><a href="#using_podofo_in_your_application">Using PoDoFo in Your Application</a></li>
+	<li><a href="#contact">Contact</a></li>
+	<li><a href="#licensing">Licensing</a></li>
 </ol>
 
 <h2><a name="what_is_podofo" />What is PoDoFo?</h2>
@@ -55,21 +68,21 @@ More tools will come with future release and the existing tools will gain more
 features. The following tools are currently available:</p>
 
 <ul>
-<li>podofoimgextract -
+	<li><b>podofoimgextract</b> -
     Extracts all RGB jpeg images from a given PDF file.</li>
 
-<li>podofouncompress -
+    <li><b>podofouncompress</b> -
   Removes all compression filters from a PDF file. This is useful for debugging
   existing PDF files. You might also find PoDoFoBrowser, distributed separately,
   to be useful if you're using this tool a lot.</li>
 
-<li>podofopdfinfo -
+  <li><b>podofopdfinfo</b> -
   Provides some basic info about a PDF - metadata, page details, etc.</li>
 
-<li> podofotxt2pdf -
+  <li><b>podofotxt2pdf</b> -
   Converts a text file to a PDF</li>
 
-<li> podofoimpose -
+  <li><b>podofoimpose</b> -
   Places pages from one or more source PDFs onto pages of a new PDF,
   applying scaling and positioning. </li>
 </ul>
@@ -120,17 +133,17 @@ consumes a lot of resources which can be spend better on improving PoDoFo
 itself. Even if you've never used CMake before, you'll find it pretty easy.</p>
 
 <p>Unix users should generate Unix Makefiles with CMake, though it's also possible
-to produce a KDevelop project. See section 4.1.1 and section 4.1.</p>
+to produce a KDevelop project. See <a href="#cmake_builds_on_linux_unix">CMake builds on Linux/UNIX</a></p>
 
 <p>If your application or library uses Visual Studio, CMake can be used to
 build a Visual Studio project you can use. Alternately, if you are using
 MinGW for your existing code, CMake can make you a MinGW makefile to
 build a mingw compatible version of PoDoFo. You must build PoDoFo with
-the same compiler as your application. See section 4.1.3 and section 4.1.</p>
+the same compiler as your application. See <a href="#cmake_builds_on_windows">CMake builds on Windows</a></p>
 
 <p>Mac OS X users will need to use CMake to generate a conventional UNIX build
-with Makefiles, or may generate an XCode project with CMake. See the Mac OS X
-section (4.1.2) below, and the generict instructions in 4.1 .</p>
+with Makefiles, or may generate an XCode project with CMake. See the <a href="#cmake_builds_on_mac_os_x">Mac OS X
+	section</a> below, and the <a href="#installation_with_cmake">generic instructions for cmake builds</a></p>
 
 <h3><a name="stlport_support" />STLPort support</h3>
 
@@ -261,14 +274,14 @@ project (the "Xcode" target). In either case the following applies.</p>
 libjpeg (see the platform-independent documentation) but by default libjpeg
 will also be required. If you have these libraries already (say, from fink
 or DarwinPorts) you can skip the following section and update the
-CMAKE_INCLUDE_PATH and CMAKE_LIBRARY_PATH arguments appropriately.</p>
+<code>CMAKE_INCLUDE_PATH</code> and <code>CMAKE_LIBRARY_PATH</code> arguments appropriately.</p>
 
 <h5>Dependencies</h5>
 
 <p>I'll assume you're installing podofo and any required libraries into $HOME/libs
 . Adjust to taste, but keep it consistent.</p>
 
-<p>The easiest way to get any required libraries is to use <a href="http://macports.org/>MacPorts</a>
+<p>The easiest way to get any required libraries is to use <a href="http://macports.org/">MacPorts</a>
 to install the libjpeg, fontconfig, and freetype libraries. If you prefer to do it manually (say, if you
 want all static libraries), read on.</p>
 
@@ -459,7 +472,7 @@ will also find the tests and tools shipped with PoDoFo informative when
 learning to use the library. Reading the documentation on PdfMemDocument,
 PdfStreamedDocument, PdfObject and PdfVariant may also be useful.</p>
 
-<h3><a name="unstable_api" />UNSTABLE API (IMPORTANT)</a>
+<h3><a name="unstable_api" />UNSTABLE API (IMPORTANT)</a></h3>
 
 <p>It is very important to understand that PoDoFo's 0.x's API is not stable from
 release to release. As such, rather than relying on a particular version of
@@ -509,11 +522,11 @@ exception safe in areas that call PoDoFo.  gcc users may not build with
 -fno-exceptions.  If you have non-exception-safe code or code (such as pure C
 code) that cannot propagate exceptions your podofo-using code must catch all
 exceptions before they propagate to such unsafe sections.  PoDoFo will throw a
-PdfError& for PoDoFo-specific exceptions.  It may also propagate STL/runtime
+PdfError&amp; for PoDoFo-specific exceptions.  It may also propagate STL/runtime
 generated exceptions like std::bad_alloc, though it'll never throw them
 directly. PoDoFo cannot be built without exceptions.</p>
 
-<p>More general information about exception handling is in the FAQ.</p>
+<p>More general information about exception handling is in the <a href="FAQ.html">FAQ</a>.</p>
 
 <h2><a name="contact">Contact</h2>
 
@@ -521,7 +534,7 @@ directly. PoDoFo cannot be built without exceptions.</p>
 our mailinglist &lt;podofo-users@lists.sf.net&gt;. Sign up details are available
 on <a href="http://podofo.sourceforge.net/support.html#mail">the podofo support page</a>.</p>
 
-<h2>Licensing</h2>
+<h2><a name="licensing" />Licensing</h2>
 
 <p>The library is licensed under the LGPL (i.e. you may even use the shared
 library in closed sourced applications). The tests and tools which are
