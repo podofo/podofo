@@ -42,7 +42,7 @@
 			<li><a href="#q_mailinglists">Does PoDoFo have a mailing list?</a></li>
 			<li><a href="#q_contact">My question isn't answered here. Where do I go next?"</a></li>
 		</ul>
-		<p><a href="#s_otherlang">Other Languages</a></p>
+		<p><a href="#s_otherlang">Other Programming Languages</a></p>
 		<ul>
 			<li><a href="#q_c">My program is written in C. Can I use PoDoFo?</a></li>
 			<li><a href="#q_cwrap">Is there a C wrapper for PoDoFo?</a></li>
@@ -105,18 +105,24 @@
 		a particular tag or revision that's versioned along with your project. See
 		PoDoFoBrowser for an example of this.</p>
 
+		<p>The README offers some more information on how to minimise the impact of
+		API changes on your application.</p>
+
 		<p>The PoDoFo developers are interested in offering a stable, maintained
 		release at some point, but the library is not yet at a point where that is
 		practical.</p>
 	</div>
 
 	<a name="q_mailinglists"><p class="question">Does PoDoFo have a mailing list?</p></a>
-	<p class="answer">Yes. See our <a href="http://podofo.sourceforge.net/support.html">support</a> pages.</p>
+	<p class="answer">Yes. See our <a href="http://podofo.sourceforge.net/support.html">support</a> pages. You're very welcome on the lists,
+	and they're not high traffic. If you have a question, make sure to tell us your compiler and version, platform / OS and version, PoDoFo version,
+	where you got PoDoFo / how it was built, and the details of any error messages. If possible, upload a problem PDF somewhere that we can
+	get to it, too.</p>
 
 	<a name="q_contact"><p class="question">My question isn't answered here. Where do I go next?</p></a>
 	<p class="answer">Your best bet is to email the <a href="http://podofo.sourceforge.net/support.html">podofo-users mailing list</a>.</p>
 
-	<a name="s_otherlang"><h2>Other Languages</h2></a>
+	<a name="s_otherlang"><h2>Other Programming Languages</h2></a>
 
 	<a name="q_c"><p class="question">My program is written in C. Can I use PoDoFo?</p></a>
 	<div class="answer">
@@ -167,7 +173,11 @@
 	you've used it but want to move to another language ;-) . In all
 	seriousness a wrapper for Java may be possible, but nobody has been in
 	touch with the PoDoFo developers to express an interest in writing
-	one.</p>
+	one. Java users will probably want to look at <a href="http://sourceforge.net/project/showfiles.php?group_id=2435">iText</a>.</p>
+
+	<a name="q_dotnet"><p class="question">I'm a C# or other .NET develiper. Can I use PoDoFo?</p></a>
+	<p class="answer">Not easily. Since PoDoFo is unmanaged C++ code, you can use it with P/Invoke and a glue layer, but I wouldn't recommend
+	this as a pleasant way to use a library. If writing your PDF output code in C++ is an option, you may well be able to use PoDoFo.</p>
 
 	<a name="q_otherlang"><p class="question">Are any other languages supported?</p></a>
 	<p class="answer">No. Python bindings would be a fun <a href=http://www.boost.org/libs/python/doc/">Boost::Python</a> project, though.</p>
@@ -219,6 +229,10 @@
 	possible, and full information about your platform (OS/distro and
 	version, what the CPU is, etc).</p>
 
+	<a name="q_unusual_terminate"><p class="question">Why does my program exit with the message "Application has requested runtime to terminate it in an unusual way" ? </p>
+	<p class="answer">This is the Windows equivalent of a crash on a signal. This could easily be an error in your code, or an error from PoDoFo
+	crashing your program. You need to attach a debugger to find out. If you're using MinGW, install GDB from <a href="http://sourceforge.net/project/showfiles.php?group_id=2435">this page under "GNU Source Level Debugger"</a> then run <code>gdb --args myprogram.exe</code>. Visual Studio users should use the integrated debugger. If the crash does appear to come from PoDoFo, make sure that you are correctly catching and handling exceptions thrown by PoDoFo - see the answer to <code>std::terminate</code>.</p>
+
 
 	<a name="q_setlocale"><p class="question">PoDoFo creates invalid PDF
 	files because <b>,</b> is used in floats instead of <b>.</b>?</p></a>
@@ -226,14 +240,7 @@
 	drawing operations as coordinates. Those floating point numbers have to
 	be written in the English format with a <b>.</b> (point) as a separator.
 	Some languages like German use a <b>,</b> (comma) instead.<br/>
-	PoDoFo uses the standard C++ library functions to write floating point 
-	numbers and these are dependent on the current locale setting of your 
-	system. You have to make sure to the an English locale so that PoDoFo
-	will create correct PDF files in any situation.</p>
-
-	<p class="answer">
-		<code>
-		setlocale( LC_NUMERIC, "C" ) 
-		</code>
-	</p>
+	Earlier versions of PoDoFo used the current locale's C++ library formatting
+	operations to output values, causing these issues. Upgrade to a recent PoDoFo,
+	or run in the `C' locale.</p>
 </body>
