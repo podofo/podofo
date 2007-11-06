@@ -92,7 +92,7 @@ void PdfParserObject::ReadObjectNumber()
         long obj = this->GetNextNumber();
         long gen = this->GetNextNumber();
 
-        m_reference = PdfReference( obj, gen );
+        m_reference = PdfReference( obj, static_cast<pdf_uint16>(gen) );
     } catch( PdfError & e ) {
         std::string errStr( e.what() );       // avoid compiler warning and in case we need it...
         PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, "Object and generation number cannot be read." );

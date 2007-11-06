@@ -85,7 +85,7 @@ class PODOFO_API PdfVecObjects {
 
     /** Every observer of PdfVecObjects has to implement this interface.
      */
-    class Observer {
+    class PODOFO_API Observer {
         friend class PdfVecObjects;
 
     public:
@@ -118,7 +118,7 @@ class PODOFO_API PdfVecObjects {
 
     /** This class is used to implement stream factories in PoDoFo.
      */
-    class StreamFactory {
+    class PODOFO_API StreamFactory {
     public:
         virtual ~StreamFactory()
             {

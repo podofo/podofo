@@ -50,7 +50,7 @@ public:
     inline bool operator<( const char* pszName ) const
     {
 #ifdef _WIN32
-        return pszName ? stricmp( m_pszName, pszName ) < 0 : true; 
+        return pszName ? _stricmp( m_pszName, pszName ) < 0 : true; 
 #else
         return pszName ? strcasecmp( m_pszName, pszName ) < 0 : true; 
 #endif // _WIN32
@@ -64,7 +64,7 @@ public:
     inline bool operator==( const char* pszName ) const
     {
 #ifdef _WIN32
-        return pszName ? stricmp( m_pszName, pszName ) == 0 : false; 
+        return pszName ? _stricmp( m_pszName, pszName ) == 0 : false; 
 #else
         return pszName ? strcasecmp( m_pszName, pszName ) == 0 : false; 
 #endif // _WIN32

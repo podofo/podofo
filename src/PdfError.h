@@ -28,6 +28,10 @@
 #include <string>
 #include <queue>
 
+#ifdef _MSC_VER // same pragma as in PdfDefines.h which we cannot include here
+#pragma warning(disable: 4251)
+#endif
+
 /** \file PdfError.h
  *  Error information and logging is implemented in this file.
  */
