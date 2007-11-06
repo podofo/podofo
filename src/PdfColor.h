@@ -24,6 +24,8 @@
 #include "PdfDefines.h"
 
 namespace PoDoFo {
+
+class PdfArray;
     
 /** A color object can represent a either a grayscale
  *  value, a RGB color or a CMYK color.
@@ -33,10 +35,10 @@ namespace PoDoFo {
  */
 class PODOFO_API PdfColor {
  public:
-	/** Create a PdfColor object that is RGB black.
-	 */
-	PdfColor();
-
+    /** Create a PdfColor object that is RGB black.
+     */
+    PdfColor();
+    
     /** Create a new PdfColor object with
      *  a grayscale value.
      *
@@ -67,7 +69,7 @@ class PODOFO_API PdfColor {
      *
      *  \param rhs copy rhs into this object
      */
-    PdfColor( const PdfColor & rhs );
+    inline PdfColor( const PdfColor & rhs );
 
     /** Assignment operator
      *
@@ -189,6 +191,29 @@ class PODOFO_API PdfColor {
      */
     inline double GetBlack() const;
 
+    /** Creates a color object from a string.
+     *
+     *  \param pszName a string describing a color.
+     *
+     *  Supported values are:
+     *  - single gray values as string (e.g. '0.5')
+     *  - a named color (e.g. 'auquamarine' or 'magenta')
+     *  - hex values (e.g. #FF002A (RGB) or #FF12AB3D (CMYK))
+     *  - PdfArray's
+     *
+     *  \returns a PdfColor object
+     */
+    static PdfColor FromString( const char* pszName );
+
+    /** Creates a color object from a PdfArray which represents a color.
+     *
+     *  Raises an exception if this is no PdfColor!
+     *
+     *  \param rArray an array that must be a color PdfArray
+     *  \returns a PdfColor object
+     */
+    static PdfColor FromArray( const PdfArray & rArray );
+
  private:
     union {
         double cmyk[4];
@@ -199,6 +224,13 @@ class PODOFO_API PdfColor {
     EPdfColorSpace m_eColorSpace;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfColor::PdfColor( const PdfColor & rhs )
+{
+    this->operator=( rhs );
+}
 
 // -----------------------------------------------------
 // 
