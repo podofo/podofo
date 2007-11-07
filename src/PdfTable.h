@@ -543,7 +543,7 @@ double PdfSimpleTableModel::GetBorderWidth() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-PdfColor PdfSimpleTableModel::GetBorderColor( int col, int row ) const
+PdfColor PdfSimpleTableModel::GetBorderColor( int, int ) const
 {
     // always return black
     return PdfColor( 0.0, 0.0, 0.0 );

@@ -384,7 +384,6 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
             SetImageColorSpace(ePdfColorSpace_DeviceCMYK);
             break;
         default:
-            SetImageColorSpace(ePdfColorSpace_Unknown);
             break;
     }
 
@@ -420,7 +419,6 @@ const char* PdfImage::ColorspaceToName( EPdfColorSpace eColorSpace )
             return "DeviceRGB";
         case ePdfColorSpace_DeviceCMYK:
             return "DeviceCMYK";
-        case ePdfColorSpace_Unknown:
         default:
             return NULL;
     }

@@ -258,7 +258,6 @@ std::auto_ptr<PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter )
         case ePdfFilter_JBIG2Decode:
         case ePdfFilter_JPXDecode:
         case ePdfFilter_Crypt:
-        case ePdfFilter_Unknown:
         default:
             break;
     }
@@ -319,7 +318,7 @@ EPdfFilter PdfFilterFactory::FilterNameToType( const PdfName & name )
         ++i;
     }
 
-    return ePdfFilter_Unknown;
+    PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFilter, name.GetName().c_str() );
 }
 
 const char* PdfFilterFactory::FilterTypeToName( EPdfFilter eFilter )

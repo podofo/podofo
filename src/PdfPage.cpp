@@ -122,7 +122,6 @@ PdfRect PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize, bool bLan
             rect.SetHeight( 1224.0 );
             break;
 
-        case ePdfPageSize_Unknown:
         default:
             break;
     }

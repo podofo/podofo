@@ -118,9 +118,7 @@ typedef enum EPdfVersion {
     ePdfVersion_1_4,           /**< PDF 1.4 */
     ePdfVersion_1_5,           /**< PDF 1.5 */
     ePdfVersion_1_6,           /**< PDF 1.6 */ 
-    ePdfVersion_1_7,           /**< PDF 1.7 */ 
-
-    ePdfVersion_Unknown = 0xff /**< Unknown PDF version */
+    ePdfVersion_1_7            /**< PDF 1.7 */ 
 };
 
 /**
@@ -144,7 +142,8 @@ typedef enum EPdfDataType {
     ePdfDataType_Null,                  /**< The null datatype is always null. */
     ePdfDataType_Reference,             /**< The reference datatype contains references to PDF objects in the PDF file of the form 4 0 R. \see PdfObject */
     ePdfDataType_RawData,               /**< Raw PDF data */
-    ePdfDataType_Unknown = 0xff         /**< Unknown and unsupported PDF datatype. */
+
+    ePdfDataType_Unknown                /**< The Datatype is unknown */
 };
 
 /**
@@ -163,9 +162,7 @@ typedef enum EPdfFilter {
     ePdfFilter_JBIG2Decode,
     ePdfFilter_DCTDecode,
     ePdfFilter_JPXDecode,
-    ePdfFilter_Crypt,
-
-    ePdfFilter_Unknown = 0xff             /**< Unknown PDF filter */
+    ePdfFilter_Crypt
 };
 
 /** 
@@ -175,9 +172,7 @@ typedef enum EPdfFilter {
 typedef enum EPdfColorSpace {
     ePdfColorSpace_DeviceGray,        /**< Gray */
     ePdfColorSpace_DeviceRGB,         /**< RGB  */
-    ePdfColorSpace_DeviceCMYK,        /**< CMYK */
-
-    ePdfColorSpace_Unknown = 0xff
+    ePdfColorSpace_DeviceCMYK         /**< CMYK */
 };
 
 /**
@@ -190,9 +185,7 @@ typedef enum EPdfStrokeStyle {
     ePdfStrokeStyle_Dot,
     ePdfStrokeStyle_DashDot,
     ePdfStrokeStyle_DashDotDot,
-    ePdfStrokeStyle_Custom,
-
-    ePdfStrokeStyle_Unknown = 0xff
+    ePdfStrokeStyle_Custom 
 };
 
 /**
@@ -201,9 +194,7 @@ typedef enum EPdfStrokeStyle {
 typedef enum EPdfLineCapStyle {
     ePdfLineCapStyle_Butt    = 0,
     ePdfLineCapStyle_Round   = 1,
-    ePdfLineCapStyle_Square  = 2,
-
-    ePdfLineCapStyle_Unknown = 0xff
+    ePdfLineCapStyle_Square  = 2
 };
 
 /**
@@ -212,9 +203,7 @@ typedef enum EPdfLineCapStyle {
 typedef enum EPdfLineJoinStyle {
     ePdfLineJoinStyle_Miter   = 0,
     ePdfLineJoinStyle_Round   = 1,
-    ePdfLineJoinStyle_Bevel   = 2,
-
-    ePdfLineJoinStyle_Unknown = 0xff
+    ePdfLineJoinStyle_Bevel   = 2
 };
 
 /**
@@ -223,9 +212,7 @@ typedef enum EPdfLineJoinStyle {
 typedef enum EPdfVerticalAlignment {
     ePdfVerticalAlignment_Top    = 0,
     ePdfVerticalAlignment_Center = 1,
-    ePdfVerticalAlignment_Bottom  = 2,
-
-    ePdfVerticalAlignment_Unknown = 0xff,
+    ePdfVerticalAlignment_Bottom  = 2
 };
 
 /**
@@ -234,9 +221,7 @@ typedef enum EPdfVerticalAlignment {
 typedef enum EPdfAlignment {
     ePdfAlignment_Left    = 0,
     ePdfAlignment_Center  = 1,
-    ePdfAlignment_Right   = 2,
-
-    ePdfAlignment_Unknown = 0xff,
+    ePdfAlignment_Right   = 2
 };
 
 
@@ -245,8 +230,8 @@ typedef enum EPdfAlignment {
  */
 #define ePdfRenderingIntent_AbsoluteColorimetric	"AbsoluteColorimetric"
 #define ePdfRenderingIntent_RelativeColorimetric	"RelativeColorimetric"
-#define ePdfRenderingIntent_Perceptual				"Perceptual"
-#define ePdfRenderingIntent_Saturation				"Saturation"
+#define ePdfRenderingIntent_Perceptual			"Perceptual"
+#define ePdfRenderingIntent_Saturation			"Saturation"
 
 /**
  * List of defined transparency blending modes
@@ -263,9 +248,9 @@ typedef enum EPdfAlignment {
 #define ePdfBlendMode_SoftLight		"SoftLight"
 #define ePdfBlendMode_Difference	"Difference"
 #define ePdfBlendMode_Exclusion		"Exclusion"
-#define ePdfBlendMode_Hue			"Hue"
+#define ePdfBlendMode_Hue		"Hue"
 #define ePdfBlendMode_Saturation	"Saturation"
-#define ePdfBlendMode_Color			"Color"
+#define ePdfBlendMode_Color		"Color"
 #define ePdfBlendMode_Luminosity	"Luminosity"
 
 /**
@@ -285,10 +270,7 @@ typedef enum EPdfPageSize {
     ePdfPageSize_A6,              /**< DIN A6  */
     ePdfPageSize_Letter,          /**< Letter  */
     ePdfPageSize_Legal,           /**< Legal   */
-    ePdfPageSize_Tabloid,         /**< Tabloid */
-
-
-    ePdfPageSize_Unknown = 0xff
+    ePdfPageSize_Tabloid          /**< Tabloid */
 };
 
 /**
@@ -305,9 +287,7 @@ typedef enum EPdfPageMode {
     ePdfPageModeUseBookmarks,
     ePdfPageModeFullScreen,
     ePdfPageModeUseOC,
-    ePdfPageModeUseAttachments,
-
-    ePdfPageModeUnknown = 0xff
+    ePdfPageModeUseAttachments
 };
 
 /**
@@ -325,9 +305,7 @@ typedef enum EPdfPageLayout {
     ePdfPageLayoutTwoColumnLeft,
     ePdfPageLayoutTwoColumnRight,
     ePdfPageLayoutTwoPageLeft,
-    ePdfPageLayoutTwoPageRight,
-
-    ePdfPageLayoutUnknown = 0xff
+    ePdfPageLayoutTwoPageRight
 };
 
 /**

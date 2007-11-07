@@ -303,6 +303,74 @@ const PdfColor & PdfColor::operator=( const PdfColor & rhs )
     return *this;
 }
 
+PdfColor PdfColor::ConvertToGrayScale() const
+{
+    switch(m_eColorSpace)
+    {
+        case ePdfColorSpace_DeviceGray:
+            return *this;
+        case ePdfColorSpace_DeviceRGB:
+            return PdfColor( 0.299*m_uColor.rgb[0] + 0.587*m_uColor.rgb[1] + 0.114*m_uColor.rgb[2] );
+        case ePdfColorSpace_DeviceCMYK:
+            return this->ConvertToRGB().ConvertToGrayScale();
+    };
+
+    return PdfColor();
+}
+
+PdfColor PdfColor::ConvertToRGB() const
+{
+    switch(m_eColorSpace)
+    {
+        case ePdfColorSpace_DeviceGray:
+            return PdfColor( m_uColor.gray, m_uColor.gray, m_uColor.gray );
+        case ePdfColorSpace_DeviceRGB:
+            return *this;
+        case ePdfColorSpace_DeviceCMYK:
+        {
+            double dCyan    = m_uColor.cmyk[0];
+            double dMagenta = m_uColor.cmyk[1];
+            double dYellow  = m_uColor.cmyk[2];
+            double dBlack   = m_uColor.cmyk[3];
+
+            double dRed   = dCyan    * (1.0 - dBlack) + dBlack;
+            double dGreen = dMagenta * (1.0 - dBlack) + dBlack;
+            double dBlue  = dYellow  * (1.0 - dBlack) + dBlack;
+
+            return PdfColor( 1.0 - dRed, 1.0 - dGreen, 1.0 - dBlue );
+        }
+    };
+
+    return PdfColor();
+}
+
+PdfColor PdfColor::ConvertToCMYK() const
+{
+    switch(m_eColorSpace)
+    {
+        case ePdfColorSpace_DeviceGray:
+            return this->ConvertToRGB().ConvertToCMYK();
+        case ePdfColorSpace_DeviceRGB:
+        {
+            double dRed   = m_uColor.rgb[0];
+            double dGreen = m_uColor.rgb[1];
+            double dBlue  = m_uColor.rgb[2];
+
+            double dBlack   = PDF_MIN( 1.0-dRed, PDF_MIN( 1.0-dGreen, 1.0-dBlue ) );
+            double dCyan    = (1-dRed-dBlack)  /(1.0-dBlack);
+            double dMagenta = (1-dGreen-dBlack)/(1.0-dBlack);
+            double dYellow  = (1-dBlue-dBlack) /(1.0-dBlack);
+            
+            return PdfColor( dCyan, dMagenta, dYellow, dBlack );
+        }
+        case ePdfColorSpace_DeviceCMYK:
+            return *this;
+            break;
+    };
+
+    return PdfColor();
+}
+
 static unsigned short GetHex(char inHex)
 {
     if ( islower( inHex ) )

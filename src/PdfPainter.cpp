@@ -290,7 +290,6 @@ void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom )
         case ePdfStrokeStyle_Custom:
             pszCurStroke = pszCustom;
             break;
-        case ePdfStrokeStyle_Unknown:
         default:
         {
             PODOFO_RAISE_ERROR( ePdfError_InvalidStrokeStyle );
@@ -1066,7 +1065,6 @@ void PdfPainter::SetCurrentStrokingColor()
         case ePdfColorSpace_DeviceCMYK:
             this->SetStrokingColorCMYK( m_curColor1, m_curColor2, m_curColor3, m_curColor4 );
         break;
-        case ePdfColorSpace_Unknown:
         default:
         {
             PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, 

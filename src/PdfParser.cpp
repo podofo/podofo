@@ -75,7 +75,7 @@ void PdfParser::Init()
     m_pOffsets        = NULL;
     m_pEncrypt        = NULL;
 
-    m_ePdfVersion     = ePdfVersion_Unknown;
+    m_ePdfVersion     = ePdfVersion_1_0;
 
     m_nXRefOffset     = 0;
     m_nFirstObject    = 0;

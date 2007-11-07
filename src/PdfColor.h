@@ -191,6 +191,42 @@ class PODOFO_API PdfColor {
      */
     inline double GetBlack() const;
 
+    /** Converts the color object into a grayscale
+     *  color object.
+     *
+     *  This is only a convinience function. It might be useful
+     *  for on screen display but is in NO WAY suitable to
+     *  professional printing!
+     *
+     *  \returns a grayscale color object
+     *  \see IsGrayScale()
+     */
+    PdfColor ConvertToGrayScale() const;
+
+    /** Converts the color object into a RGB
+     *  color object.
+     *
+     *  This is only a convinience function. It might be useful
+     *  for on screen display but is in NO WAY suitable to
+     *  professional printing!
+     *
+     *  \returns a RGB color object
+     *  \see IsRGB()
+     */
+    PdfColor ConvertToRGB() const;
+
+    /** Converts the color object into a CMYK
+     *  color object.
+     *
+     *  This is only a convinience function. It might be useful
+     *  for on screen display but is in NO WAY suitable to
+     *  professional printing!
+     *
+     *  \returns a CMYK color object
+     *  \see IsCMYK()
+     */
+    PdfColor ConvertToCMYK() const;
+
     /** Creates a color object from a string.
      *
      *  \param pszName a string describing a color.

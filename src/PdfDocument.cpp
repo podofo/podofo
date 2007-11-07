@@ -403,7 +403,6 @@ void PdfDocument::SetPageMode( EPdfPageMode inMode )
 {
     switch ( inMode ) {
         default:
-        case ePdfPageModeUnknown:
         case ePdfPageModeDontCare:	
             // GetCatalog()->RemoveKey( PdfName( "PageMode" ) );
             // this value means leave it alone!
@@ -524,7 +523,6 @@ void PdfDocument::SetPageLayout( EPdfPageLayout inLayout )
     switch ( inLayout ) {
         default:
         case ePdfPageLayoutIgnore:
-        case ePdfPageLayoutUnknown:
             break;	// means do nothing
         case ePdfPageLayoutDefault:			
             GetCatalog()->GetDictionary().RemoveKey( PdfName( "PageLayout" ) );
