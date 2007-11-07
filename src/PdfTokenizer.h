@@ -128,7 +128,7 @@ class PODOFO_API PdfTokenizer {
     PODOFO_NOTHROW inline static bool IsPrintable(const unsigned char ch);
 
 
- private:
+ protected:
     /** Read the next variant from the current file position
      *  ignoring all comments.
      *
@@ -141,6 +141,12 @@ class PODOFO_API PdfTokenizer {
      */
     void GetNextVariant( const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
 
+    /** Determine the possible datatype of a token.
+     *  Numbers, reals, bools or NULL values are parsed directly by this function
+     *  and saved to a variant.
+     *
+     *  \returns the expected datatype
+     */
     EPdfDataType DetermineDataType( const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant );
 
     void ReadDataType( EPdfDataType eDataType, PdfVariant& rVariant, PdfEncrypt* pEncrypt );

@@ -262,9 +262,6 @@ void PdfTokenizer::GetNextVariant( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
    const char*   pszRead = this->GetNextToken( &eTokenType );
 
    this->GetNextVariant( pszRead, eTokenType, rVariant, pEncrypt );
-
-   std::string str;
-   rVariant.ToString( str );
 }
 
 void PdfTokenizer::GetNextVariant( const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt )
@@ -390,18 +387,21 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
             return ePdfDataType_Name;
     }
 
-    std::ostringstream ss;
+    if( false ) 
+    {
+        std::ostringstream ss;
 #ifdef _MSC_VER
-    ss << "Got unexpected PDF data in" << __FILE__ << ", line " << __LINE__
+        ss << "Got unexpected PDF data in" << __FILE__ << ", line " << __LINE__
 #else
-    ss << "Got unexpected PDF data in" << __FUNCTION__
+        ss << "Got unexpected PDF data in" << __FUNCTION__
 #endif
-		<< ": \""
-       << pszToken
-       << "\". Current read offset is "
-       << m_device.Device()->Tell()
-       << " which should be around the problem.\n";
-    PdfError::DebugMessage(ss.str().c_str());
+           << ": \""
+           << pszToken
+           << "\". Current read offset is "
+           << m_device.Device()->Tell()
+           << " which should be around the problem.\n";
+        PdfError::DebugMessage(ss.str().c_str());
+    }
 
     return ePdfDataType_Unknown;
 }
