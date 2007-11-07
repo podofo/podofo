@@ -3,38 +3,26 @@
 # This module defines
 #  TIFF_INCLUDE_DIR, where to find tiff.h, etc.
 #  TIFF_LIBRARIES, libraries to link against to use TIFF.
-#  TIFF_FOUND, If false, do NOT try to use TIFF.
-# also defined, but NOT for general use are
+#  TIFF_FOUND, If false, do not try to use TIFF.
+# also defined, but not for general use are
 #  TIFF_LIBRARY, where to find the TIFF library.
-#
-# Copyright (c) 2002 Kitware, Inc., Insight Consortium.  All rights reserved.
-# See Copyright.txt or http://www.cmake.org/HTML/Copyright.html for details.
 
-if (TIFF_INCLUDE_DIR)
-  # Already in cache, be silent
-  set(TIFF_FIND_QUIETLY TRUE)
-endif (TIFF_INCLUDE_DIR)
+FIND_PATH(TIFF_INCLUDE_DIR tiff.h)
 
-find_path(TIFF_INCLUDE_DIR NAMES tiff.h )
+SET(TIFF_LIBRARY_NAMES_RELEASE ${TIFF_LIBRARY_NAMES_RELEASE} ${TIFF_LIBRARY_NAMES} tiff libtiff)
+SET(TIFF_LIBRARY_NAMES_DEBUG ${TIFF_LIBRARY_NAMES_DEBUG} tiffd libtiffd)
 
-set(TIFF_NAMES ${TIFF_NAMES} tiff libtiff)
-find_library(TIFF_LIBRARY NAMES ${TIFF_NAMES} )
+FIND_LIBRARY(TIFF_LIBRARY_RELEASE NAMES ${TIFF_LIBRARY_NAMES_RELEASE} )
+FIND_LIBRARY(TIFF_LIBRARY_DEBUG NAMES ${TIFF_LIBRARY_NAMES_DEBUG} )
 
-if (TIFF_INCLUDE_DIR AND TIFF_LIBRARY)
-   set(TIFF_FOUND TRUE)
-   set(TIFF_LIBRARIES ${TIFF_LIBRARY} )
-else (TIFF_INCLUDE_DIR AND TIFF_LIBRARY)
-   set(TIFF_FOUND FALSE)
-endif (TIFF_INCLUDE_DIR AND TIFF_LIBRARY)
+INCLUDE(LibraryDebugAndRelease)
+SET_LIBRARY_FROM_DEBUG_AND_RELEASE(TIFF)
 
-if (TIFF_FOUND)
-   if (NOT TIFF_FIND_QUIETLY)
-      message(STATUS "Found TIFF: ${TIFF_LIBRARY}")
-   endif (NOT TIFF_FIND_QUIETLY)
-else (TIFF_FOUND)
-   if (TIFF_FIND_REQUIRED)
-      message(FATAL_ERROR "Could NOT find TIFF")
-   endif (TIFF_FIND_REQUIRED)
-endif (TIFF_FOUND)
+# handle the QUIETLY and REQUIRED arguments and set TIFF_FOUND to TRUE if 
+# all listed variables are TRUE
+INCLUDE(PoDoFoFindPackageHandleStandardArgs)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(TIFF DEFAULT_MSG TIFF_LIBRARY TIFF_INCLUDE_DIR)
 
-mark_as_advanced(TIFF_INCLUDE_DIR TIFF_LIBRARY)
+IF(TIFF_FOUND)
+  SET( TIFF_LIBRARIES ${TIFF_LIBRARY} )
+ENDIF(TIFF_FOUND)

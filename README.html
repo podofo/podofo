@@ -372,16 +372,36 @@ extra argument to cmake:</p>
 	-DPODOFO_BUILD_SHARED=FALSE
 </pre>
 
-<p>PoDoFo is designed work correctly if you download pre-built copies of the
-libraries it requires (such as those published by the GnuWin32 project at
-SourceForge) even if they were built with a different compiler and use a
-different runtime. For release, you might want to consider building your own
-copies of the libraries, but this is not strictly necessary. If you have done
-this, however, or know the runtimes used by the libraries are compatible, you
-can pass <code>-DJPEG_COMPATIBLE_RUNTIME</code> (or <code>-DTIFF...</code> or <code>-DFREETYPE...</code>) to tell
+<p>PoDoFo will generally work correctly if you download pre-built libraries,
+such as those published by the GnuWin32 project, even if they were built with a
+different compiler. The primary exception is freetype, which should if at all
+possible be built using your compiler. Freetype provides a VC++ project file and is
+very easy to build. Make sure to build both the debug multi-threaded and
+release multi-threaded versions.</p>
+
+<p>For release you should generally build your own copy of these libraries
+unless there is a well known and high quality pre-built version, like there is
+for zlib.  If you have built your own libjpeg you can improve PoDoFo's use of
+it a bit by passing <code>-DJPEG_COMPATIBLE_RUNTIME</code> to CMake to tell
 PoDoFo it's safe not to use its' workarounds for incompatible runtimes.</p>
 
-<p>Now, a quick tip for Windows users: consider getting Microsoft PowerShell from <a href="http://www.microsoft.com/windowsserver2003/technologies/management/powershell/download.mspx">microsoft</a> and using it instead of <code>cmd.exe</code>. It's a big improvement, and will help preserve UNIX users' sanity too. Get the <a href="http://www.codeplex.com/PowerShellCX">Community Extensions</a> for a "Powershell Here" context menu entry.</p>
+<h5><a name="handling_library_naming_on_win32" />Handling library naming on win32</h5>
+
+<p>Especially on Windows it is also common for custom built libraries to have different
+names to those you might download as pre-built copies. CMake won't be able to find
+them if they're called something else unless you tell it. Use these variables to tell CMAke
+what names to look for a library under:</p>
+
+<ul>
+	<li>FREETYPE_LIBRARY_NAMES_DEBUG, FREETYPE_LIBRARY_NAMES_RELEASE and FREETYPE_LIBRARY_NAMES</li>
+	<li>TIFF_LIBRARY_NAMES_DEBUG, TIFF_LIBRARY_NAMES_RELEASE and TIFF_LIBRARY_NAMES</li>
+	<li>LIBJPEG_LIBRARY_NAMES_DEBUG, LIBJPEG_LIBRARY_NAMES_RELEASE and LIBJPEG_LIBRARY_NAMES</li>
+	<li>ZLIB_LIBRARY_NAMES_DEBUG, ZLIB_LIBRARY_NAMES_RELEASE, ZLIB_LIBRARY_NAMES</li>
+</ul>
+
+<p>For example, a cmake command line might include -DFREETYPE_LIBRARY_NAMES_DEBUG=freetype235MT_D -DFREETYPE_LIBRARY_NAMES_RELEASE=freetype235MT . If you only have the release library, just use -DFREETYPE_LIBRARY_NAMES . Telling CMake which are debug and release libraries helps it ensure you link to the right libraries depending on build type, but that does no good if you don't have a debug library.</p>
+
+<p>Now, a quick tip for Windows users: consider getting Microsoft PowerShell from <a href="http://www.microsoft.com/windowsserver2003/technologies/management/powershell/download.mspx">microsoft</a> and using it instead of <code>cmd.exe</code>. It's a big improvement, and will help preserve UNIX users' sanity too.</p>
 
 <h5><a name="cmake_builds_on_windows_with_mingw" />CMake builds on Windows with MinGW</h5>
 
@@ -419,20 +439,38 @@ does not suffer from this issue.</p>
 
 <p>A Visual Studio build requires that Microsoft Visual Studio be installed.
 Visual Studio 9 2008 Express Edition is known to work, and is a free download
-from Microsoft. The GnuWin32 libraries may be used for freetype etc, however it
-is preferable for release to build your own copies of these libraries with your
-compiler and bundle those copies (see 4.1.3).</p>
+from Microsoft. You should get zlib from zlib.org. If you want JPEG support,
+build your own libjpeg from sources or use the version from GnuWin32 (which
+will work OK, if a bit slower, despite being built with gcc).  It is preferable
+to build your own copies of freetype, libjpeg and libtiff with your own
+compiler and bundle those copies.</p>
 
-<p>The visual studio build has two stages - first, CMake is used to generate a
-Visual Studio solution:</p>
+<p>If you're using Visual Studio you really should build your own freetype.
+With recent VC++ versions the GnuWin32 version of freetype is unlikely to work
+reliably. Download the sources from <a href="http://download.savannah.gnu.org/releases/freetype/">http://download.savannah.gnu.org/releases/freetype/</a>
+- you want something like ft245.zip . Unpack them and open
+builds\win32\visualc\freetype.sln in VC++, upgrading it if required. Build it
+in both debug multithreaded and release multithreaded modes. You should now see some
+.lib files in the objs\ directory. The following instructions will assume
+they're named <code>freetype235MT.lib</code> and
+<code>freetype235MT_D.lib</code>, so adjust if yours are different.</p>
+
+<p>The visual studio build of PoDoFo has two stages - first, CMake is used to generate a
+Visual Studio solution, then the solution is built in VC++. I prefer to create
+a short <code>build.cmd</code> file for the CMake command since on Windows it
+tends to get rather long. Here's an example that assumes the
+<code>build.cmd</code> file is in an empty directory with
+<code>..\podofo-src</code> being the relative path to the PoDoFo sources.</p>
 
 <pre>
-md ..\podofo-debug
-cd ..\podofo-debug
-\path\to\cmake -G "Visual Studio 9 2008" ..\podofo-src -DCMAKE_INCLUDE_PATH=c:\progra~1\gnuwin32\include -DCMAKE_LIBRARY_PATH=c:\progra~1\gnuwin32\lib
+del cmakecache.txt
+set FTDIR=C:\developer\freetype-2.3.5
+set JPEGDIR=C:\Developer\GnuWin32\jpeg
+set ZLIBDIR=C:\developer\zlib123-dll
+cmake -G "Visual Studio 9 2008" ..\podofo-src -DCMAKE_INCLUDE_PATH="%FTDIR%\include;%JPEGDIR%\include;%ZLIBDIR%\include" -DCMAKE_LIBRARY_PATH="%FTDIR%\lib;%FTDIR%\objs;%JPEGDIR%\lib;%ZLIBDIR%\lib" -DPODOFO_BUILD_SHARED:BOOL=FALSE -DFREETYPE_LIBRARY_NAMES_DEBUG=freetype235MT_D -DFREETYPE_LIBRARY_NAMES_RELEASE=freetype235MT
 </pre>
 
-<p>Then you can open and build the generated <code>podofo.sln</code> in Visual Studio.</p>
+<p>Run the saved <code>build.cmd</code> from a cmd.exe window. If all goes well, you can open and build the generated <code>podofo.sln</code> in Visual Studio and build it.</p>
 
 <p>Note that CMake should automatically find your Visual Studio install, so you
 shouldn't need any special settings unless you have an unusual setup or more

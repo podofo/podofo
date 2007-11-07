@@ -1,5 +1,11 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
+IF(WIN32)
+  CMAKE_MINIMUM_REQUIRED(VERSION 2.5)
+ELSE(WIN32)
+  CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
+ENDIF(WIN32)
+
 PROJECT(PoDoFo)
+
 INCLUDE(CheckIncludeFile)
 INCLUDE(CheckLibraryExists)
 INCLUDE(UsePkgConfig)
@@ -40,8 +46,9 @@ MESSAGE("Will install libraries to ${CMAKE_INSTALL_PREFIX}/${LIBDIRNAME}")
 IF(CMAKE_MAJOR_VERSION EQUAL "2" AND CMAKE_MINOR_VERSION LESS "5")
     IF(PODOFO_BUILD_SHARED AND PODOFO_BUILD_STATIC)
          MESSAGE("Both PODOFO_BUILD_SHARED and PODOFO_BUILD_STATIC set")
-         MESSAGE("  so disabling static library generation (CMake version < 2.5)")
-         SET(PODOFO_BUILD_STATIC FALSE)
+         MESSAGE("  so disabling shared library generation (CMake version < 2.5)")
+         SET(PODOFO_BUILD_SHARED FALSE)
+         SET(PODOFO_BUILD_STATIC TRUE)
     ENDIF(PODOFO_BUILD_SHARED AND PODOFO_BUILD_STATIC)
 ENDIF(CMAKE_MAJOR_VERSION EQUAL "2" AND CMAKE_MINOR_VERSION LESS "5")
 
@@ -59,8 +66,9 @@ IF(WIN32)
     # static library.
     IF(PODOFO_BUILD_SHARED AND PODOFO_BUILD_STATIC)
          MESSAGE("Both PODOFO_BUILD_SHARED and PODOFO_BUILD_STATIC set")
-         MESSAGE("  so disabling static library generation (win32)")
-         SET(PODOFO_BUILD_STATIC FALSE)
+         MESSAGE("  so disabling shared library generation (win32)")
+         SET(PODOFO_BUILD_SHARED FALSE)
+         SET(PODOFO_BUILD_STATIC TRUE)
     ENDIF(PODOFO_BUILD_SHARED AND PODOFO_BUILD_STATIC)
     # We must explicitly link to the core win32 libraries, and we need winsock2
     # to get some byte-order conversion routines too.
@@ -152,14 +160,14 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 FIND_PACKAGE(ZLIB REQUIRED)
-MESSAGE("Found zlib headers in ${LIBZ_H}, library at ${LIBZ_LIB}")
+MESSAGE("Found zlib headers in ${ZLIB_INCLUDE_DIR}, library at ${ZLIB_LIBRARIES}")
 
 FIND_PACKAGE(LIBJPEG)
 
 IF(LIBJPEG_FOUND)
-  MESSAGE("Found libjpeg headers in ${LIBJPEG_H}, library at ${LIBJPEG_LIB}")
+  MESSAGE("Found libjpeg headers in ${LIBJPEG_INCLUDE_DIR}, library at ${LIBJPEG_LIBRARIES}")
   ADD_DEFINITIONS(-DPODOFO_HAVE_JPEG_LIB)
-  INCLUDE_DIRECTORIES(${LIBJPEG_H})
+  INCLUDE_DIRECTORIES(${LIBJPEG_INCLUDE_DIR})
 ELSE(LIBJPEG_FOUND)
   MESSAGE("Libjpeg not found. JPEG support will be disabled")
 ENDIF(LIBJPEG_FOUND)
@@ -167,15 +175,15 @@ ENDIF(LIBJPEG_FOUND)
 FIND_PACKAGE(TIFF)
 
 IF(TIFF_FOUND)
-  MESSAGE("Found libtiff headers in ${LIBTIFF_H}, library at ${TIFF_LIBRARIES}")
+  MESSAGE("Found libtiff headers in ${TIFF_INCLUDE_DIR}, library at ${TIFF_LIBRARIES}")
   ADD_DEFINITIONS(-DPODOFO_HAVE_TIFF_LIB)
   INCLUDE_DIRECTORIES(${TIFF_INCLUDE_DIR})
 ELSE(TIFF_FOUND)
   MESSAGE("Libtiff not found. TIFF support will be disabled")
 ENDIF(TIFF_FOUND)
 
-FIND_PACKAGE(LIBFREETYPE REQUIRED)
-MESSAGE("Found freetype library at ${LIBFREETYPE_LIB}")
+FIND_PACKAGE(FREETYPE REQUIRED)
+MESSAGE("Found freetype library at ${FREETYPE_LIBRARIES}, headers ${FREETYPE_INCLUDE_DIR}")
 
 FIND_PACKAGE(LIBSTLPORT)
 SET(stlport_libraries_if_use_stlport)
@@ -231,9 +239,8 @@ ENDIF (WIN32 OR JPEG_RUNTIME_COMPATIBLE)
 
 INCLUDE_DIRECTORIES(
     src
-    ${LIBFREETYPE_FT2BUILD_H}
-    ${LIBFREETYPE_FTHEADER_H}
-    ${LIBZ_H}
+    ${FREETYPE_INCLUDE_DIR}
+    ${ZLIB_INCLUDE_DIR}
     ${EXTRA_INCLUDES}
      )
 LINK_DIRECTORIES(
@@ -247,9 +254,9 @@ LINK_DIRECTORIES(
 # should specify only PODOFO_LIB .
 #
 SET(PODOFO_LIB_DEPENDS
-    ${LIBZ_LIB}
-    ${LIBFREETYPE_LIB}
-    ${LIBJPEG_LIB}
+    ${ZLIB_LIBRARIES}
+    ${FREETYPE_LIBRARIES}
+    ${LIBJPEG_LIBRARIES}
     ${TIFF_LIBRARIES}
     ${PLATFORM_SYSTEM_LIBRARIES}
     ${stlport_libraries_if_use_stlport}
