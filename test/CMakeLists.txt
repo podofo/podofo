@@ -1,4 +1,5 @@
 SUBDIRS(
+	ContentParser
 	CreationTest
 	DeviceTest
 	FilterTest
