@@ -407,7 +407,7 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     PdfPainter     pnt;    // XObject painter
 
 #ifdef PODOFO_HAVE_JPEG_LIB
-    image.LoadFromFile( "../../../podofo/test/CreationTest/lena.jpg" );
+    image.LoadFromFile( "resources/lena.jpg" );
 #endif // PODOFO_HAVE_JPEG_LIB
 
     pnt.SetPage( &xObj );
@@ -478,7 +478,7 @@ void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->SetColor( 1.0, 0.0, 0.0 );
     pPainter->FillEllipse( dX, dY, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
 
-    PdfFileSpec file( "../../../podofo/test/CreationTest/lena.jpg", true, pDocument );
+    PdfFileSpec file( "resources/lena.jpg", true, pDocument );
     pFileAnnotation =  pPage->CreateAnnotation( ePdfAnnotation_FileAttachement, PdfRect( 300.0, 400.0, 250.0, 50.0 ) );
     pFileAnnotation->SetContents( "A JPEG image of Lena" );
     pFileAnnotation->SetFileAttachement( file );
@@ -495,7 +495,7 @@ void XObjectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->FillRect( x, y - dHeight, dWidth, dHeight );
     
     // Das funktioniert immer
-    PdfXObject xObj1( "../../../podofo/test/CreationTest/Illust.pdf", 0, pDocument );
+    PdfXObject xObj1( "resources/Illust.pdf", 0, pDocument );
     pPainter->DrawXObject( x + 90000 * CONVERSION_CONSTANT, 
                            y - dHeight,
 						   &xObj1 );
@@ -528,7 +528,7 @@ void XObjectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->SetFont( pDocument->CreateFont( "Comic Sans MS" ) );
     pPainter->SetColor( 0.0, 0.0, 0.0 );
     pPainter->DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am XObject 4." );
-    PdfXObject xObj5( "../../../podofo/test/CreationTest/Illust.pdf", 0, pDocument );
+    PdfXObject xObj5( "resources/Illust.pdf", 0, pDocument );
     pPainter->DrawXObject( 5000 * CONVERSION_CONSTANT, 
                            5000 * CONVERSION_CONSTANT, 
                            &xObj5, 
