@@ -353,6 +353,9 @@ instead of running `make' and `make install' just open the project file and work
 compliler environment for Windows) or Visual Studio. Other methods may work but
 have not been tested.</p>
 
+<p>CMake 2.5 is required for Windows. You can download the latest 2.5 snapshot from
+cmake.org: <a href="http://www.cmake.org/files/vCVS/">http://www.cmake.org/files/vCVS/</a></p>.
+
 <p>Because the C++ ABIs of most of the win32 compilers are incompatible, you must
 build PoDoFo with the same compiler and version that you will use to build the
 programs linked to PoDoFo. Failure to follow this restriction will result in
@@ -444,6 +447,8 @@ build your own libjpeg from sources or use the version from GnuWin32 (which
 will work OK, if a bit slower, despite being built with gcc).  It is preferable
 to build your own copies of freetype, libjpeg and libtiff with your own
 compiler and bundle those copies.</p>
+
+<p>You'll also need CMake 2.5.</p>
 
 <p>If you're using Visual Studio you really should build your own freetype.
 With recent VC++ versions the GnuWin32 version of freetype is unlikely to work
