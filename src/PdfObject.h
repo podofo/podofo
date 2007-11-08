@@ -228,7 +228,7 @@ class PODOFO_API PdfObject : public PdfVariant {
     inline PdfVecObjects* GetOwner() const;
 
     /** Get the parent of this object.
-     *  \return the parent of this object in the object hierarchie
+     *  \return the parent of this object in the object heirachy
      */
     inline PdfObject* GetParent() const;
 

@@ -207,9 +207,17 @@ PdfStream* PdfObject::GetStream_NoDL()
 {
     if( !m_pStream )
     {
+        if ( GetDataType() != ePdfDataType_Dictionary )
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Tried to get stream of non-dictionary object");
+	    }
+        if ( !m_reference.IsIndirect() )
+		{
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Tried to get stream of non-indirect PdfObject");
+		}
         if( !m_pOwner ) 
         {
-            PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "Tried to create stream on PdfObject lacking owning document/PdfVecObjects" );
         }
 
         m_pStream = m_pOwner->CreateStream( this );

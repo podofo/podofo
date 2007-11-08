@@ -352,6 +352,10 @@ TVecFilters PdfFilterFactory::CreateFilterList( const PdfObject* pObject )
 
         while( it != pObj->GetArray().end() )
         {
+            if (! (*it).IsName() )
+			{
+                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Filter array contained unexpected non-name type" );
+			}
             filters.push_back( PdfFilterFactory::FilterNameToType( (*it).GetName() ) );
                 
             ++it;
