@@ -5,71 +5,67 @@
 #include <stack>
 #include <algorithm>
 
-#if defined(HAVE_BOOST)
-//#include <boost/graph.hpp>
-#endif
-
 using namespace PoDoFo;
 
-#if defined(HAVE_BOOST)
-void parse_contents_graph( PdfContentsTokenizer* pTokenizer ) 
+typedef std::pair< std::string, std::vector<PdfVariant> > Operation;
+typedef std::vector<Operation> OperationList;
+
+bool GetOperation( PdfContentsTokenizer* pTokenizer, Operation& op )
 {
-    const char*      pszToken = NULL;
-    PdfVariant       var;
+    PdfVariant var;
+    EPdfContentsType eType;
+    const char* pszToken = NULL;
 
-    std::cout << std::endl << "Parsing a page to build a graph:" << std::endl;
-
-#if 0
-    try 
+    op.second.clear();
+    try
     {
-        while( true )
+        while (true)
         {
-            EPdfContentsType eType;
             pTokenizer->ReadNext( &eType, &pszToken, var );
             if( eType == ePdfContentsType_Keyword )
             {
-                std::cout << "Keyword: " << pszToken << std::endl;
-
-                // support 'l' and 'm' tokens
-                if( strcmp( pszToken, "l" ) == 0 ) 
-                {
-                    double dPosY = stack.top().GetReal();
-                    stack.pop();
-                    double dPosX = stack.top().GetReal();
-                    stack.pop();
-
-                    std::cout << "LineTo: " << dPosX << " " << dPosY << std::endl;
-                }
-                else if( strcmp( pszToken, "m" ) == 0 ) 
-                {
-                    double dPosY = stack.top().GetReal();
-                    stack.pop();
-                    double dPosX = stack.top().GetReal();
-                    stack.pop();
-
-                    std::cout << "MoveTo: " << dPosX << " " << dPosY << std::endl;
-                }
-
+                // A keyword terminates the operation
+                op.first = pszToken;
+                return true;
             }
             else
             {
-                string str;
-                var.ToString( str );
-                std::cout << "Variant: " << str << std::endl;
-                stack.push( var );
+                // Push another operand and keep scanning
+                op.second.push_back( var );
             }
         }
     }
     catch( const PdfError & e )
     {
-        if( e.GetError() == ePdfError_UnexpectedEOF )
-            return; // done with the stream
+        if( e.GetError() == ePdfError_UnexpectedEOF && op.second.size() == 0 )
+        {
+            // EOF when no operands have been read is OK, so we'll just return.
+            return false;
+        }
         else 
+        {
+            // something else went wrong
             throw e;
+        }
     }
-#endif
+    assert(false);  // Unreachable
+    return false;
 }
-#endif // defined(HAVE_BOOST)
+
+void ParseContentStreamInto( PdfContentsTokenizer* pTokenizer, OperationList& ops ) 
+{
+    const char*      pszToken = NULL;
+    PdfVariant       var;
+
+    bool got_op = true;
+    while( got_op )
+    {
+        Operation op;
+        got_op = GetOperation(pTokenizer, op);
+        if (got_op)
+            ops.push_back(op);
+    }
+}
 
 void parse_contents( PdfContentsTokenizer* pTokenizer ) 
 {
@@ -121,19 +117,20 @@ void parse_contents( PdfContentsTokenizer* pTokenizer )
     }
     catch( const PdfError & e )
     {
-		if( e.GetError() == ePdfError_UnexpectedEOF ) { /* Done with the stream */ }
-		else { throw e; }
+        if( e.GetError() == ePdfError_UnexpectedEOF ) { /* Done with the stream */ }
+        else { throw e; }
     }
 }
 
 void ParseContentsObject( PdfObject * pContentsObject )
 {
-	std::cerr << "Reading content stream for " << pContentsObject->Reference().ToString() << std::endl;
+    std::cerr << "Reading content stream for " << pContentsObject->Reference().ToString() << std::endl;
 
     PdfStream* pStream = pContentsObject->GetStream();
     char*      pBuffer;
     long       lLen;
     pStream->GetFilteredCopy( &pBuffer, &lLen );
+    // Run a demo parser over the stream
     try 
     {
         PdfContentsTokenizer tokenizer( pBuffer, lLen );
@@ -144,8 +141,21 @@ void ParseContentsObject( PdfObject * pContentsObject )
         free( pBuffer );
         throw e;
     }
+    // Group the stream into a list of operators with associated operands.
+    try 
+    {
+        PdfContentsTokenizer tokenizer( pBuffer, lLen );
+        OperationList ops;
+        ParseContentStreamInto( &tokenizer, ops );
+        std::cerr << "Read " << ops.size() << " operators." << std::endl;
+    } 
+    catch( const PdfError & e )
+    {
+        free( pBuffer );
+        throw e;
+    }
     free( pBuffer );
-	std::cerr << "Done reading content stream" << std::endl;
+    std::cerr << "Done reading content stream" << std::endl;
 }
 
 void parse_page( PdfMemDocument* doc, PdfPage* pPage )
@@ -153,25 +163,25 @@ void parse_page( PdfMemDocument* doc, PdfPage* pPage )
     PdfObject* pContents = pPage->GetContents();
     if( pContents && pContents->IsArray()  ) 
     {
-		PdfArray& a ( pContents->GetArray() );
-		for ( PdfArray::iterator it = a.begin(); it != a.end() ; ++it )
-		{
-			if ( !(*it).IsReference() )
-			{
-				PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "/Contents array contained non-references" );
-			}
-			PdfObject* pContentsObj = doc->GetObjects().GetObject( (*it).GetReference() );
-			ParseContentsObject(pContentsObj);
-		}
-	}
-	else if ( pContents && pContents->HasStream() )
-	{
-		ParseContentsObject(pContents);
-	}
-	else
-	{
-		PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Page /Contents not stream or array of streams" );
-	}
+        PdfArray& a ( pContents->GetArray() );
+        for ( PdfArray::iterator it = a.begin(); it != a.end() ; ++it )
+        {
+            if ( !(*it).IsReference() )
+            {
+                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "/Contents array contained non-references" );
+            }
+            PdfObject* pContentsObj = doc->GetObjects().GetObject( (*it).GetReference() );
+            ParseContentsObject(pContentsObj);
+        }
+    }
+    else if ( pContents && pContents->HasStream() )
+    {
+        ParseContentsObject(pContents);
+    }
+    else
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Page /Contents not stream or array of streams" );
+    }
 }
 
 int main( int argc, char* argv[] ) 
