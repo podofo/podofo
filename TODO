@@ -9,13 +9,16 @@ PoDoFo 0.6:
         + PdfStreamedDocument does not depend on PdfMemDocument for base implementation
         + Most output-oriented tasks can be performed on any PdfDocument without caring
           what kind it is.
+    - PdfString supports now unicode strings and conversions
+        + PdfDocEncoding  to UTF16
+        + UTF8 to UTF16
+        + UTF16 to UTF8
+    - Simple content stream parsing was added   
+    - Support for reading & writing encrypted PDFs
 
 FUTURE:
-    - PdfString needs to handle (optionally?) encoding & decoding of Unicode strings
     - More filters (read & write)
-    - Content stream parsing
     - Support for attaching an ICC profile to an image or content stream
-    - Support for reading & writing encrypted PDFs
     - Some more drawing routines (tiles, save and rstore?) also finish cleanup
       the existing ones revamp color support to be more general & support more
       types
