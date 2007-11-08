@@ -237,6 +237,17 @@ IF (WIN32 OR JPEG_RUNTIME_COMPATIBLE)
 ELSE (WIN32 OR JPEG_RUNTIME_COMPATIBLE)
 ENDIF (WIN32 OR JPEG_RUNTIME_COMPATIBLE)
 
+MESSAGE("Looking for Boost.")
+MESSAGE("Boost is optional, so don't worry if it is not found.")
+MESSAGE("Set the BOOST_ROOT env var if you have problems.")
+FIND_PACKAGE(BOOST)
+IF(BOOST_FOUND)
+    ADD_DEFINITIONS(-DHAVE_BOOST)
+    INCLUDE_DIRECTORIES(${BOOST_INCLUDE_DIR})
+ELSE(BOOST_FOUND)
+    MESSAGE("If you don't need graph support you can ignore the above error.")
+ENDIF(BOOST_FOUND)
+
 INCLUDE_DIRECTORIES(
     src
     ${FREETYPE_INCLUDE_DIR}
