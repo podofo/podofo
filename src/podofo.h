@@ -46,6 +46,7 @@
 #include "PdfArray.h"
 #include "PdfCanvas.h"
 #include "PdfColor.h"
+#include "PdfContentsTokenizer.h"
 #include "PdfData.h"
 #include "PdfDataType.h"
 #include "PdfDate.h"

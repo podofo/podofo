@@ -83,7 +83,13 @@ IF(WIN32)
     C:/boost
     D:/boost
   )
+ELSE(WIN32)
+  SET(BOOST_DIR_SEARCH
+    "${BOOST_DIR_SEARCH}"
+    /usr/include/boost/
+  )
 ENDIF(WIN32)
+
 
 # Add in some path suffixes. These will have to be updated whenever a new Boost version comes out.
 SET(SUFFIX_FOR_PATH

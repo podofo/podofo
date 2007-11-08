@@ -1,6 +1,7 @@
+
 #include "podofo.h"
 #include "../PdfTest.h"
-#include "ContentParser.h"
+
 #include <iostream>
 #include <stack>
 #include <algorithm>
@@ -54,9 +55,6 @@ bool GetOperation( PdfContentsTokenizer* pTokenizer, Operation& op )
 
 void ParseContentStreamInto( PdfContentsTokenizer* pTokenizer, OperationList& ops ) 
 {
-    const char*      pszToken = NULL;
-    PdfVariant       var;
-
     bool got_op = true;
     while( got_op )
     {
@@ -122,66 +120,35 @@ void parse_contents( PdfContentsTokenizer* pTokenizer )
     }
 }
 
-void ParseContentsObject( PdfObject * pContentsObject )
-{
-    std::cerr << "Reading content stream for " << pContentsObject->Reference().ToString() << std::endl;
 
-    PdfStream* pStream = pContentsObject->GetStream();
-    char*      pBuffer;
-    long       lLen;
-    pStream->GetFilteredCopy( &pBuffer, &lLen );
+void parse_page( PdfMemDocument*, PdfPage* pPage )
+{
+    std::cerr << "Reading content stream for " << pPage->GetObject()->Reference().ToString() << std::endl;
     // Run a demo parser over the stream
     try 
     {
-        PdfContentsTokenizer tokenizer( pBuffer, lLen );
+        PdfContentsTokenizer tokenizer( pPage );
         parse_contents( &tokenizer );
     } 
     catch( const PdfError & e )
     {
-        free( pBuffer );
         throw e;
     }
+
     // Group the stream into a list of operators with associated operands.
     try 
     {
-        PdfContentsTokenizer tokenizer( pBuffer, lLen );
+        PdfContentsTokenizer tokenizer( pPage );
         OperationList ops;
         ParseContentStreamInto( &tokenizer, ops );
         std::cerr << "Read " << ops.size() << " operators." << std::endl;
     } 
     catch( const PdfError & e )
     {
-        free( pBuffer );
         throw e;
     }
-    free( pBuffer );
-    std::cerr << "Done reading content stream" << std::endl;
-}
 
-void parse_page( PdfMemDocument* doc, PdfPage* pPage )
-{
-    PdfObject* pContents = pPage->GetContents();
-    if( pContents && pContents->IsArray()  ) 
-    {
-        PdfArray& a ( pContents->GetArray() );
-        for ( PdfArray::iterator it = a.begin(); it != a.end() ; ++it )
-        {
-            if ( !(*it).IsReference() )
-            {
-                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "/Contents array contained non-references" );
-            }
-            PdfObject* pContentsObj = doc->GetObjects().GetObject( (*it).GetReference() );
-            ParseContentsObject(pContentsObj);
-        }
-    }
-    else if ( pContents && pContents->HasStream() )
-    {
-        ParseContentsObject(pContents);
-    }
-    else
-    {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Page /Contents not stream or array of streams" );
-    }
+    std::cerr << "Done reading content stream" << std::endl;
 }
 
 int main( int argc, char* argv[] ) 

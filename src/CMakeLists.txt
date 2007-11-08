@@ -6,6 +6,7 @@ SET(PODOFO_SOURCES
     PdfCanvas.cpp
     PdfColor.cpp
     PdfContents.cpp
+    PdfContentsTokenizer.cpp
     PdfData.cpp
     PdfDataType.cpp
     PdfDate.cpp
@@ -73,6 +74,7 @@ SET(PODOFO_HEADERS
     PdfCanvas.h
     PdfColor.h
     PdfContents.h
+    PdfContentsTokenizer.h
     PdfData.h
     PdfDataType.h
     PdfDate.h
