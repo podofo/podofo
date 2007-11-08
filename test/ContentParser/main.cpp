@@ -118,21 +118,11 @@ void parse_contents( PdfContentsTokenizer* pTokenizer )
                 stack.push( var );
             }
         }
-        std::cerr << "Remaining stack:" << std::endl;
-        while (stack.size())
-        {
-            std::string s;
-            stack.top().ToString(s);
-            std::cerr << s << std::endl;
-            stack.pop();
-        }
     }
     catch( const PdfError & e )
     {
-        if( e.GetError() == ePdfError_UnexpectedEOF )
-            return; // done with the stream
-        else 
-            throw e;
+		if( e.GetError() == ePdfError_UnexpectedEOF ) { /* Done with the stream */ }
+		else { throw e; }
     }
 }
 
