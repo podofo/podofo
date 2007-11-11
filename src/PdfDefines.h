@@ -42,6 +42,11 @@
 #include <vector>
 #include <set>
 
+// Include common BOOST settings 
+#ifdef HAVE_BOOST
+#include <boost/config.hpp>
+#endif // HAVE_BOOST
+
 /** \def PODOFO_VERBOSE_DEBUG
  *  Debug define. Enable it, if you need
  *  more debuf output to the commandline from PoDoFo
