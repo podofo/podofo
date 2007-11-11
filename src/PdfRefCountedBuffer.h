@@ -154,9 +154,13 @@ class PODOFO_API PdfRefCountedBuffer {
  private:
     struct TRefCountedBuffer {
         // Initialize values - practially free and improves safety.
-        TRefCountedBuffer() : m_pBuffer(0), m_lSize(-1), m_lRefCount(-1), m_bPossesion(false) { }
+        TRefCountedBuffer() : m_pBuffer(0), m_lBufferSize(-1), m_lVisibleSize(-1), m_lRefCount(-1), m_bPossesion(false) { }
         char* m_pBuffer;
-        long  m_lSize;
+        // size in bytes of m_pBuffer
+        long  m_lBufferSize;
+        // Size in bytes of m_pBuffer that should be reported to clients. We over-allocate
+        // for efficiency but this extra should NEVER be visible to a client.
+        long  m_lVisibleSize;
         long  m_lRefCount;
         bool  m_bPossesion;
     };
@@ -211,7 +215,7 @@ inline char* PdfRefCountedBuffer::GetBuffer() const
 // -----------------------------------------------------
 inline long PdfRefCountedBuffer::GetSize() const
 {
-    return m_pBuffer ? m_pBuffer->m_lSize : 0;
+    return m_pBuffer ? m_pBuffer->m_lVisibleSize : 0;
 }
 
 // -----------------------------------------------------

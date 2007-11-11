@@ -22,6 +22,7 @@
 
 namespace PoDoFo {
 
+
 #define STREAM_SIZE_INCREASE 1024
 
 PdfRefCountedBuffer::PdfRefCountedBuffer( char* pBuffer, long lSize )
@@ -32,7 +33,8 @@ PdfRefCountedBuffer::PdfRefCountedBuffer( char* pBuffer, long lSize )
         m_pBuffer = new TRefCountedBuffer();
         m_pBuffer->m_lRefCount     = 1;
         m_pBuffer->m_pBuffer       = pBuffer;
-        m_pBuffer->m_lSize         = 0;
+        m_pBuffer->m_lBufferSize   = lSize;
+        m_pBuffer->m_lVisibleSize  = lSize;
         m_pBuffer->m_bPossesion    = true;
     }
 }
@@ -63,11 +65,11 @@ void PdfRefCountedBuffer::Detach( long lExtraLen )
         }
         else
         {
-            long lSize                 = m_pBuffer->m_lSize + lExtraLen; 
+            long lSize                 = m_pBuffer->m_lBufferSize + lExtraLen; 
             TRefCountedBuffer* pBuffer = new TRefCountedBuffer();
             pBuffer->m_lRefCount       = 1;
             pBuffer->m_pBuffer         = static_cast<char*>(malloc( sizeof(char)*lSize ));
-            pBuffer->m_lSize           = lSize;
+            pBuffer->m_lBufferSize     = lSize;
             pBuffer->m_bPossesion      = true;
         
             if( !pBuffer->m_pBuffer ) 
@@ -80,27 +82,41 @@ void PdfRefCountedBuffer::Detach( long lExtraLen )
 
             memcpy( pBuffer->m_pBuffer, this->GetBuffer(), this->GetSize() );
             --m_pBuffer->m_lRefCount;
+            // Detaching the buffer should have NO visible effect to clients.
+            pBuffer->m_lVisibleSize    = m_pBuffer->m_lVisibleSize;
 
             m_pBuffer = pBuffer;
         }
     }
 }
 
-void PdfRefCountedBuffer::Resize( size_t lSize ) 
+void PdfRefCountedBuffer::Resize( const size_t lSize ) 
 {
     if( m_pBuffer ) 
     {
-        this->Detach( static_cast<size_t>(m_pBuffer->m_lSize) < lSize ? lSize - static_cast<size_t>(m_pBuffer->m_lSize) : 0 );
-        if( static_cast<size_t>(m_pBuffer->m_lSize) < lSize )
+        // Resizing the buffer counts as altering it, so detach as per copy on write behaviour. If the detach
+        // actually has to do anything it'll reallocate the buffer at the new desired size.
+        this->Detach( static_cast<size_t>(m_pBuffer->m_lBufferSize) < lSize ? lSize - static_cast<size_t>(m_pBuffer->m_lBufferSize) : 0 );
+        // We might have pre-allocated enough to service the request already
+        if( static_cast<size_t>(m_pBuffer->m_lBufferSize) < lSize )
         {
-            lSize         = PDF_MAX(lSize,static_cast<size_t>(m_pBuffer->m_lSize) << 1 );
-            char* pBuffer = static_cast<char*>(malloc( sizeof(char) * lSize ));
+            // Allocate more space, since we need it. We over-allocate so that clients can efficiently
+            // request lots of small resizes if they want, but these over allocations are not visible
+            // to clients.
+            //
+            // TODO: Why don't we use realloc(...) here  since we're using C-style memory management?
+            //
+            const size_t lAllocSize = PDF_MAX(lSize,static_cast<size_t>(m_pBuffer->m_lBufferSize) << 1 );
+            char* pBuffer = static_cast<char*>(malloc( sizeof(char) * lAllocSize ));
             if( !pBuffer ) 
             {
                 PODOFO_RAISE_ERROR_INFO( ePdfError_OutOfMemory, "PdfRefCountedBuffer::Resize failed!" );
             }
-            memcpy( pBuffer, m_pBuffer->m_pBuffer, m_pBuffer->m_lSize );
-            m_pBuffer->m_lSize = lSize;
+            // Only bother copying the visible portion of the buffer. It's completely incorrect
+            // to rely on anything more than that, and not copying it will help catch those errors.
+            memcpy( pBuffer, m_pBuffer->m_pBuffer, m_pBuffer->m_lVisibleSize );
+            // Record the newly allocated size. The visible size gets updated later.
+            m_pBuffer->m_lBufferSize = lAllocSize;
 
             if( m_pBuffer->m_bPossesion )
                 free( m_pBuffer->m_pBuffer );
@@ -108,16 +124,16 @@ void PdfRefCountedBuffer::Resize( size_t lSize )
         }
         else
         {
-            // buffer is large enough, do nothing
-            return;
+            // Allocated buffer is large enough, do nothing
         }
     }
     else
     {
+        // No buffer was allocated at all, so we need to make one.
         m_pBuffer = new TRefCountedBuffer();
         m_pBuffer->m_lRefCount     = 1;
         m_pBuffer->m_pBuffer       = static_cast<char*>(malloc( sizeof(char)*lSize ));
-        m_pBuffer->m_lSize         = lSize;
+        m_pBuffer->m_lBufferSize   = lSize;
         m_pBuffer->m_bPossesion    = true;
 
         if( !m_pBuffer->m_pBuffer ) 
@@ -127,13 +143,10 @@ void PdfRefCountedBuffer::Resize( size_t lSize )
 
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
         }
-
-#if !defined(NDEBUG)
-        // When debugging, initialize buffers and null terminate them.
-        memset( m_pBuffer->m_pBuffer, '\xde', lSize - 1 );
-        m_pBuffer->m_pBuffer[lSize-1] = '\0';
-#endif
     }
+    m_pBuffer->m_lVisibleSize = lSize;
+
+    PODOFO_RAISE_LOGIC_IF ( m_pBuffer->m_lVisibleSize > m_pBuffer->m_lBufferSize, "Buffer improperly allocated/resized");
 }
 
 /*
@@ -173,9 +186,14 @@ bool PdfRefCountedBuffer::operator==( const PdfRefCountedBuffer & rhs ) const
     {
         if( m_pBuffer && rhs.m_pBuffer ) 
         {
-            return (memcmp( m_pBuffer->m_pBuffer, rhs.m_pBuffer->m_pBuffer, PDF_MIN( m_pBuffer->m_lSize, rhs.m_pBuffer->m_lSize ) ) == 0 );
+            if ( m_pBuffer->m_lVisibleSize != rhs.m_pBuffer->m_lVisibleSize )
+                // Unequal buffer sizes cannot be equal buffers
+                return false;
+            // Test for byte-for-byte equality since lengths match
+            return (memcmp( m_pBuffer->m_pBuffer, rhs.m_pBuffer->m_pBuffer, m_pBuffer->m_lVisibleSize ) == 0 );
         }
-        else 
+        else
+            // Cannot be equal if only one object has a real data buffer
             return false;
     }
 
@@ -193,7 +211,15 @@ bool PdfRefCountedBuffer::operator<( const PdfRefCountedBuffer & rhs ) const
     else if( m_pBuffer && !rhs.m_pBuffer ) 
         return false;
     else
-        return (memcmp( m_pBuffer->m_pBuffer, rhs.m_pBuffer->m_pBuffer, PDF_MIN( m_pBuffer->m_lSize, rhs.m_pBuffer->m_lSize ) ) < 0 );
+    {
+        int cmp = memcmp( m_pBuffer->m_pBuffer, rhs.m_pBuffer->m_pBuffer, PDF_MIN( m_pBuffer->m_lVisibleSize, rhs.m_pBuffer->m_lVisibleSize ) );
+        if (cmp == 0)
+            // If one is a prefix of the other, ie they compare equal for the length of the shortest but one is longer,
+            // the longer buffer is the greater one.
+            return m_pBuffer->m_lVisibleSize < rhs.m_pBuffer->m_lVisibleSize;
+        else
+            return cmp < 0;
+    }
 
     return false;
 }
@@ -209,7 +235,15 @@ bool PdfRefCountedBuffer::operator>( const PdfRefCountedBuffer & rhs ) const
     else if( m_pBuffer && !rhs.m_pBuffer ) 
         return true;
     else
-        return (memcmp( m_pBuffer->m_pBuffer, rhs.m_pBuffer->m_pBuffer, PDF_MIN( m_pBuffer->m_lSize, rhs.m_pBuffer->m_lSize ) ) > 0 );
+    {
+        int cmp = memcmp( m_pBuffer->m_pBuffer, rhs.m_pBuffer->m_pBuffer, PDF_MIN( m_pBuffer->m_lVisibleSize, rhs.m_pBuffer->m_lVisibleSize ) );
+        if (cmp == 0)
+            // If one is a prefix of the other, ie they compare equal for the length of the shortest but one is longer,
+            // the longer buffer is the greater one.
+            return m_pBuffer->m_lVisibleSize > rhs.m_pBuffer->m_lVisibleSize;
+        else
+            return cmp > 0;
+    }
 
     return false;
 }
