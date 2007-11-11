@@ -149,7 +149,7 @@ ENDIF(Boost_INCLUDE_DIR)
 # compiled any libraries so we set Boost_FOUND to be true here.
 # handle the QUIETLY and REQUIRED arguments and set BOOST_FOUND to TRUE if 
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
+INCLUDE(PoDoFoFindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(Boost "Boost was not found. ${BOOST_DIR_MESSAGE}" Boost_INCLUDE_DIR )
 SET(Boost_FOUND ${BOOST_FOUND})
 
