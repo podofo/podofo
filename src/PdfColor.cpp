@@ -407,9 +407,9 @@ PdfColor PdfColor::FromString( const char* pszName )
             {
                 int r, g, b;
 
-                r = (GetHex( *pszName++ ) << 4) | GetHex( *pszName++ );
-                g = (GetHex( *pszName++ ) << 4) | GetHex( *pszName++ );
-                b = (GetHex( *pszName++ ) << 4) | GetHex( *pszName++ );
+                r = (GetHex( *(pszName++) ) << 4) | GetHex( *(pszName++) );
+                g = (GetHex( *(pszName++) ) << 4) | GetHex( *(pszName++) );
+                b = (GetHex( *(pszName++) ) << 4) | GetHex( *(pszName++) );
 
                 return PdfColor( static_cast<double>(r)/255.0, 
                                  static_cast<double>(g)/255.0, 
@@ -420,10 +420,10 @@ PdfColor PdfColor::FromString( const char* pszName )
                 int c, m, y, k;
 
 
-                c = (GetHex( *pszName++ ) << 4) | GetHex( *pszName++ );
-                m = (GetHex( *pszName++ ) << 4) | GetHex( *pszName++ );
-                y = (GetHex( *pszName++ ) << 4) | GetHex( *pszName++ );
-                k = (GetHex( *pszName++ ) << 4) | GetHex( *pszName++ );
+                c = (GetHex( *(pszName++) ) << 4) | GetHex( *(pszName++) );
+                m = (GetHex( *(pszName++) ) << 4) | GetHex( *(pszName++) );
+                y = (GetHex( *(pszName++) ) << 4) | GetHex( *(pszName++) );
+                k = (GetHex( *(pszName++) ) << 4) | GetHex( *(pszName++) );
 
                 return PdfColor( static_cast<double>(c)/255.0, 
                                  static_cast<double>(m)/255.0, 
