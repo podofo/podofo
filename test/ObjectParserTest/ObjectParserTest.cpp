@@ -408,6 +408,9 @@ const char * pszObject6 = "33 0 obj\n"
         "endstream\n"
         "endobj\n";
 
+// Comment tokenizer test adapted from PDF Reference, section 3.1.2 . Should parse as [ /abc 123 ] .
+const char* pszCommentObject       = "91 0 obj\n[/abc\% comment {/%) blah blah blah\n123]\nendobj\n";
+
 // Use a FULL statement in this macro, it will not add any trailing
 // semicolons etc.
 #ifdef CATCH_EXCEPTIONS
@@ -453,6 +456,7 @@ int main()
     TRY_TEST(TestObject_String( pszSimpleObjectArray3 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.140000 400 500 ]" );)
     TRY_TEST(TestObject_String( pszSimpleObjectArray4 , 9, 1, "[ 100 /Name (Hallo Welt) [ 1 2 ] 3.140000 400 500 /Dict <<\n/A (Hallo)\n/B [ 21 22 ]\n>> /Wert /Farbe ]" );)
     TRY_TEST(TestObject_String( pszSimpleObjectArray5 , 1, 2, "[ 123 0 R ]" );)
+    TRY_TEST(TestObject_String( pszCommentObject, 91, 0, "[ /abc 123 ]" );)
 
     fprintf(stderr,"---\n");
 

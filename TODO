@@ -28,3 +28,8 @@ FUTURE:
     - Semi-streamed writing mode using normal in-memory document and a PdfStream
       class that can read input from a file / PdfInputStream on ::write() calls.
       (like PdfFileStream, but with support for user-supplied input files).
+    - Streamline core datatypes to reduce repeated initialization, copy-construction,
+      etc. Focus on limiting memory allocation/deallocation and heap fragmentation.
+      Known trouble areas:
+         + Small strings on heap in PdfString. Use an in-object buffer for
+           small PdfStrings/PdfRefCountedBuffers since these are the most common type.

@@ -24,12 +24,6 @@ namespace PoDoFo {
 
 #define STREAM_SIZE_INCREASE 1024
 
-PdfRefCountedBuffer::PdfRefCountedBuffer()
-    : m_pBuffer( NULL )
-{
-
-}
-
 PdfRefCountedBuffer::PdfRefCountedBuffer( char* pBuffer, long lSize )
     : m_pBuffer( NULL )
 {
@@ -43,31 +37,19 @@ PdfRefCountedBuffer::PdfRefCountedBuffer( char* pBuffer, long lSize )
     }
 }
 
-PdfRefCountedBuffer::PdfRefCountedBuffer( long lSize )
-    : m_pBuffer( NULL )
-{
-    this->Resize( lSize );
-}
-
-PdfRefCountedBuffer::PdfRefCountedBuffer( const PdfRefCountedBuffer & rhs )
-    : m_pBuffer( NULL )
-{
-    this->operator=( rhs );
-}
-
-PdfRefCountedBuffer::~PdfRefCountedBuffer()
-{
-    FreeBuffer();
-}
-
 void PdfRefCountedBuffer::FreeBuffer()
 {
+    if ( m_pBuffer && m_pBuffer->m_lSize > 1000000 )
+        std::cerr << "Insane buffer deallocation" << std::endl;
     if( m_pBuffer && !--m_pBuffer->m_lRefCount ) 
     {
-        // last owner of the file!
         if( m_pBuffer->m_bPossesion )
+        {
             free( m_pBuffer->m_pBuffer );
+            m_pBuffer->m_pBuffer = 0;
+        }
         delete m_pBuffer;
+        // last owner of the file!
         m_pBuffer = NULL;
     }
 }
@@ -108,6 +90,8 @@ void PdfRefCountedBuffer::Detach( long lExtraLen )
 
 void PdfRefCountedBuffer::Resize( size_t lSize ) 
 {
+    if ( lSize > 1000000 )
+        std::cerr << "Insane buffer allocation" << std::endl;
     if( m_pBuffer ) 
     {
         this->Detach( static_cast<size_t>(m_pBuffer->m_lSize) < lSize ? lSize - static_cast<size_t>(m_pBuffer->m_lSize) : 0 );
@@ -139,7 +123,7 @@ void PdfRefCountedBuffer::Resize( size_t lSize )
         m_pBuffer->m_pBuffer       = static_cast<char*>(malloc( sizeof(char)*lSize ));
         m_pBuffer->m_lSize         = lSize;
         m_pBuffer->m_bPossesion    = true;
-        
+
         if( !m_pBuffer->m_pBuffer ) 
         {
             delete m_pBuffer;
@@ -147,6 +131,12 @@ void PdfRefCountedBuffer::Resize( size_t lSize )
 
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
         }
+
+#if !defined(NDEBUG)
+        // When debugging, initialize buffers and null terminate them.
+        memset( m_pBuffer->m_pBuffer, '\xde', lSize - 1 );
+        m_pBuffer->m_pBuffer[lSize-1] = '\0';
+#endif
     }
 }
 

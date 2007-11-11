@@ -177,7 +177,11 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
 
     if( !bIsTrailer )
     {
-        pszToken = this->GetNextToken();
+        bool gotToken = this->GetNextToken( pszToken );
+        if (!gotToken)
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_UnexpectedEOF, "Expected 'endobj' or (if dict) 'stream', got EOF." );
+        }
         if( strncmp( pszToken, "endobj", s_nLenEndObj ) == 0 )
             ; // nothing to do, just validate that the PDF is correct
         // If it's a dictionary, it might have a stream, so check for that

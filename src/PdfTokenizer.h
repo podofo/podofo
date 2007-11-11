@@ -55,24 +55,34 @@ class PODOFO_API PdfTokenizer {
     PdfTokenizer( const char* pBuffer, long lLen );
     PdfTokenizer( const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer );
 
-    ~PdfTokenizer();
+    virtual ~PdfTokenizer();
 
     /** Reads the next token from the current file position
      *  ignoring all comments.
      *
-     *  \param peType if not NULL the type of the read token
-     *                will be stored into this parameter
+     *  \param[out] pszBuf On true return, set to a pointer to the read
+     *                     token (a NULL-terminated C string). The pointer is
+     *                     to memory owned by PdfTokenizer and must NOT be
+     *                     freed.  The contents are invalidated on the next
+     *                     call to GetNextToken(..) and by the destruction of
+     *                     the PdfTokenizer. Undefined on false return.
+     *
+     *  \param[out] peType On true return, if not NULL the type of the read token
+     *                     will be stored into this parameter. Undefined on false
+     *                     return.
      * 
-     *  \returns a pointer to the internal buffer 
-     *           where the result is stored
+     *  \returns           True if a token was read, false if there are no
+     *                     more tokens to read.
      *
      *  \see GetBuffer
      */
-    const char* GetNextToken( EPdfTokenType* peType = NULL);
+    bool GetNextToken( const char *& pszToken, EPdfTokenType* peType = NULL);
 
     /** Reads the next token from the current file position
      *  ignoring all comments and compare the passed token
      *  to the read token.
+     *
+     *  If there is no next token available, throws UnexpectedEOF.
      *
      *  \param pszToken a token that is compared to the 
      *                  read token
@@ -84,7 +94,9 @@ class PODOFO_API PdfTokenizer {
     /** Read the next number from the current file position
      *  ignoring all comments.
      *
-     *  Raises an exception if the next token is no number.
+     *  Raises NoNumber exception if the next token is no number, and
+     *  UnexpectedEOF if no token could be read. No token is consumed if
+     *  NoNumber is thrown.
      *
      *  \returns a number read from the input device.
      */
@@ -93,7 +105,8 @@ class PODOFO_API PdfTokenizer {
     /** Read the next variant from the current file position
      *  ignoring all comments.
      *
-     *  Raises an exception if there is no variant left in the file.
+     *  Raises an UnexpectedEOF exception if there is no variant left in the
+     *  file.
      *
      *  \param rVariant write the read variant to this value
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
@@ -186,6 +199,8 @@ class PODOFO_API PdfTokenizer {
     /** Read a name from the input device
      *  and store it into a variant.
      * 
+     *  Throws UnexpectedEOF if there is nothing to read.
+     *
      *  \param rVariant store the name into this variable
      */
     void ReadName( PdfVariant& rVariant );

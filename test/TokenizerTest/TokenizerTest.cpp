@@ -47,9 +47,8 @@ int main( int argc, char* argv[] )
         PdfTokenizer             tokenizer( device, buffer );
         const char*              pszToken;
 
-        while( true ) 
+        while ( tokenizer.GetNextToken(pszToken) )
         {
-            pszToken = tokenizer.GetNextToken();
             printf("Got token: %s\n", pszToken );
         }
 

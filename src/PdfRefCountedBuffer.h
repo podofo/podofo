@@ -37,7 +37,7 @@ class PODOFO_API PdfRefCountedBuffer {
     /** Created an empty reference counted buffer
      *  The buffer will be initialize to NULL
      */
-    PdfRefCountedBuffer();
+    inline PdfRefCountedBuffer();
 
     /** Created an reference counted buffer and use an exiting buffer
      *  The buffer will be owned by this object.
@@ -52,18 +52,18 @@ class PODOFO_API PdfRefCountedBuffer {
     /** Create a new PdfRefCountedBuffer. 
      *  \param lSize buffer size
      */
-    PdfRefCountedBuffer( long lSize );
+    inline PdfRefCountedBuffer( long lSize );
 
     /** Copy an existing PdfRefCountedBuffer and increase
      *  the reference count
      *  \param rhs the PdfRefCountedBuffer to copy
      */
-    PdfRefCountedBuffer( const PdfRefCountedBuffer & rhs );
+    inline PdfRefCountedBuffer( const PdfRefCountedBuffer & rhs );
 
     /** Decrease the reference count and delete the buffer
      *  if this is the last owner
      */
-    ~PdfRefCountedBuffer();
+    inline ~PdfRefCountedBuffer();
     
     /** Append to the current buffers contents. 
      *  If the buffer is referenced by another PdfRefCountedBuffer
@@ -152,7 +152,9 @@ class PODOFO_API PdfRefCountedBuffer {
     void Detach( long lExtraLen = 0);
 
  private:
-    typedef struct TRefCountedBuffer {
+    struct TRefCountedBuffer {
+        // Initialize values - practially free and improves safety.
+        TRefCountedBuffer() : m_pBuffer(0), m_lSize(-1), m_lRefCount(-1), m_bPossesion(false) { }
         char* m_pBuffer;
         long  m_lSize;
         long  m_lRefCount;
@@ -161,6 +163,40 @@ class PODOFO_API PdfRefCountedBuffer {
 
     TRefCountedBuffer* m_pBuffer;
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfRefCountedBuffer::PdfRefCountedBuffer()
+    : m_pBuffer( NULL )
+{
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfRefCountedBuffer::PdfRefCountedBuffer( long lSize )
+    : m_pBuffer( NULL )
+{
+    this->Resize( lSize );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfRefCountedBuffer::PdfRefCountedBuffer( const PdfRefCountedBuffer & rhs )
+    : m_pBuffer( NULL )
+{
+    this->operator=( rhs );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfRefCountedBuffer::~PdfRefCountedBuffer()
+{
+    FreeBuffer();
+}
 
 // -----------------------------------------------------
 // 

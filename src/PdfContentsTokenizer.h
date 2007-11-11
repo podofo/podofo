@@ -72,14 +72,26 @@ public:
 
     virtual ~PdfContentsTokenizer() { }
     
-    /** Read the next keyword or variant
+    /** Read the next keyword or variant, returning true and setting reType if something was read.
+     *  Either rpszKeyword or rVariant, but never both, have defined and usable values on
+     *  true return, with which being controlled by the value of eType.
      *
-     *  \param peType will be set to either keyword or variant
-     *  \param ppszKeyword if pType is set to ePdfContentsType_Keyword this will point to the keyword
-     *  \param rVariant if pType is set to ePdfContentsType_Variant this will be set to the read variant
+     *  If EOF is encountered, returns false and leaves eType, pszKeyword and
+     *  rVariant undefined.
+     *
+     *  \param[out] reType will be set to either keyword or variant if true is returned. Undefined
+     *              if false is returned.
+     *
+     *  \param[out] rpszKeyword if pType is set to ePdfContentsType_Keyword this will point to the keyword,
+     *              otherwise the value is undefined. If set, the value points to memory owned by the
+     *              PdfContentsTokenizer and must not be freed. The value is invalidated when ReadNext
+     *              is next called or when the PdfContentsTokenizer is destroyed.
+     *        
+     *  \param[out] rVariant if pType is set to ePdfContentsType_Variant this will be set to the read variant,
+     *              otherwise the value is undefined.
      *
      */
-    void ReadNext( EPdfContentsType* peType, const char** ppszKeyword, PoDoFo::PdfVariant & rVariant );
+    bool ReadNext( EPdfContentsType& reType, const char*& rpszKeyword, PoDoFo::PdfVariant & rVariant );
 
  private:
     /** Set another objects stream as the current stream for parsing

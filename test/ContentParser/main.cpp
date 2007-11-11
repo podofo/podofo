@@ -18,38 +18,22 @@ bool GetOperation( PdfContentsTokenizer* pTokenizer, Operation& op )
     const char* pszToken = NULL;
 
     op.second.clear();
-    try
+
+    while ( pTokenizer->ReadNext( eType, pszToken, var ) )
     {
-        while (true)
+        if( eType == ePdfContentsType_Keyword )
         {
-            pTokenizer->ReadNext( &eType, &pszToken, var );
-            if( eType == ePdfContentsType_Keyword )
-            {
-                // A keyword terminates the operation
-                op.first = pszToken;
-                return true;
-            }
-            else
-            {
-                // Push another operand and keep scanning
-                op.second.push_back( var );
-            }
+            // A keyword terminates the operation
+            op.first = pszToken;
+            return true;
+        }
+        else
+        {
+            // Push another operand and keep scanning
+            op.second.push_back( var );
         }
     }
-    catch( const PdfError & e )
-    {
-        if( e.GetError() == ePdfError_UnexpectedEOF && op.second.size() == 0 )
-        {
-            // EOF when no operands have been read is OK, so we'll just return.
-            return false;
-        }
-        else 
-        {
-            // something else went wrong
-            throw e;
-        }
-    }
-    assert(false);  // Unreachable
+    // If we get here, we hit EOF without reading a keyword.
     return false;
 }
 
@@ -75,49 +59,45 @@ void parse_contents( PdfContentsTokenizer* pTokenizer )
     std::stack<PdfVariant> stack;
     std::cout << std::endl << "Parsing a page:" << std::endl;
 
-    try 
+    while( pTokenizer->ReadNext( eType, pszToken, var ) )
     {
-        while( true )
+        if( eType == ePdfContentsType_Keyword )
         {
-            pTokenizer->ReadNext( &eType, &pszToken, var );
-            if( eType == ePdfContentsType_Keyword )
+            std::cout << "Keyword: " << pszToken << std::endl;
+
+            // support 'l' and 'm' tokens
+            if( strcmp( pszToken, "l" ) == 0 ) 
             {
-                std::cout << "Keyword: " << pszToken << std::endl;
+                double dPosY = stack.top().GetReal();
+                stack.pop();
+                double dPosX = stack.top().GetReal();
+                stack.pop();
 
-                // support 'l' and 'm' tokens
-                if( strcmp( pszToken, "l" ) == 0 ) 
-                {
-                    double dPosY = stack.top().GetReal();
-                    stack.pop();
-                    double dPosX = stack.top().GetReal();
-                    stack.pop();
-
-                    std::cout << "LineTo: " << dPosX << " " << dPosY << std::endl;
-                }
-                else if( strcmp( pszToken, "m" ) == 0 ) 
-                {
-                    double dPosY = stack.top().GetReal();
-                    stack.pop();
-                    double dPosX = stack.top().GetReal();
-                    stack.pop();
-
-                    std::cout << "MoveTo: " << dPosX << " " << dPosY << std::endl;
-                }
-
+                std::cout << "LineTo: " << dPosX << " " << dPosY << std::endl;
             }
-            else
+            else if( strcmp( pszToken, "m" ) == 0 ) 
             {
-                var.ToString( str );
-                std::cout << "Variant: " << str << std::endl;
-                stack.push( var );
+                double dPosY = stack.top().GetReal();
+                stack.pop();
+                double dPosX = stack.top().GetReal();
+                stack.pop();
+
+                std::cout << "MoveTo: " << dPosX << " " << dPosY << std::endl;
             }
         }
+        else if ( eType == ePdfContentsType_Variant )
+        {
+            var.ToString( str );
+            std::cout << "Variant: " << str << std::endl;
+            stack.push( var );
+        }
+        else
+        {
+            // Impossible; type must be keyword or variant
+            PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+        }
     }
-    catch( const PdfError & e )
-    {
-        if( e.GetError() == ePdfError_UnexpectedEOF ) { /* Done with the stream */ }
-        else { throw e; }
-    }
+    std::cout << "EOF" << std::endl;
 }
 
 

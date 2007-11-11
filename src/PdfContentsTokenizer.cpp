@@ -75,37 +75,48 @@ void PdfContentsTokenizer::SetCurrentContentsStream( PdfObject* pObject )
     m_device = PdfRefCountedInputDevice( m_curBuffer.GetBuffer(), m_curBuffer.GetSize() );
 }
 
-void PdfContentsTokenizer::ReadNext( EPdfContentsType* peType, const char** ppszKeyword, PdfVariant & rVariant )
+bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpszKeyword, PdfVariant & rVariant )
 {
     EPdfTokenType eTokenType;
     EPdfDataType  eDataType;
     const char*   pszToken;
 
-    if( m_device.Device() && m_device.Device()->Eof() && m_lstContents.size() )
-    {
-        SetCurrentContentsStream( m_lstContents.front() );
-        m_lstContents.pop_front();
-    }
+    // While officially the keyword pointer is undefined if not needed, it
+    // costs us practically nothing to zero it (in case someone fails to check
+    // the return value and/or reType). Do so. We won't nullify the variant
+    // since that has a real cost.
+    //rpszKeyword = 0;
 
-    try {
-        pszToken  = this->GetNextToken( &eTokenType );
-    } catch( const PdfError & e ) {
-        // set the next stream and try again
-        if( e.GetError() == ePdfError_UnexpectedEOF && m_lstContents.size() ) 
+    // If we've run out of data in this stream and there's another one to read,
+    // switch to reading the next stream.
+    //if( m_device.Device() && m_device.Device()->Eof() && m_lstContents.size() )
+    //{
+    //    SetCurrentContentsStream( m_lstContents.front() );
+    //    m_lstContents.pop_front();
+    //}
+
+    bool gotToken = this->GetNextToken( pszToken, &eTokenType );
+    if ( !gotToken )
+    {
+        if ( m_lstContents.size() )
         {
+	    // We ran out of tokens in this stream. Switch to the next stream
+	    // and try again.
             SetCurrentContentsStream( m_lstContents.front() );
             m_lstContents.pop_front();
-
-            pszToken  = this->GetNextToken( &eTokenType );
+            return ReadNext( reType, rpszKeyword, rVariant );
         }
         else
-            throw e;
+        {
+            // No more content stream tokens to read.
+            return false;
+        }
     }
 
     eDataType = this->DetermineDataType( pszToken, eTokenType, rVariant );
 
-    // asume we read a variant
-    *peType = ePdfContentsType_Variant;
+    // asume we read a variant unless we discover otherwise later.
+    reType = ePdfContentsType_Variant;
 
     switch( eDataType ) 
     {
@@ -143,10 +154,11 @@ void PdfContentsTokenizer::ReadNext( EPdfContentsType* peType, const char** ppsz
         case ePdfDataType_RawData:
         default:
             // Assume we have a keyword
-            *peType      = ePdfContentsType_Keyword;
-            *ppszKeyword = pszToken;
+            reType     = ePdfContentsType_Keyword;
+            rpszKeyword = pszToken;
             break;
     }
+    return true;
 }
 
 };
