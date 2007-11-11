@@ -39,8 +39,6 @@ PdfRefCountedBuffer::PdfRefCountedBuffer( char* pBuffer, long lSize )
 
 void PdfRefCountedBuffer::FreeBuffer()
 {
-    if ( m_pBuffer && m_pBuffer->m_lSize > 1000000 )
-        std::cerr << "Insane buffer deallocation" << std::endl;
     if( m_pBuffer && !--m_pBuffer->m_lRefCount ) 
     {
         if( m_pBuffer->m_bPossesion )
@@ -90,8 +88,6 @@ void PdfRefCountedBuffer::Detach( long lExtraLen )
 
 void PdfRefCountedBuffer::Resize( size_t lSize ) 
 {
-    if ( lSize > 1000000 )
-        std::cerr << "Insane buffer allocation" << std::endl;
     if( m_pBuffer ) 
     {
         this->Detach( static_cast<size_t>(m_pBuffer->m_lSize) < lSize ? lSize - static_cast<size_t>(m_pBuffer->m_lSize) : 0 );
