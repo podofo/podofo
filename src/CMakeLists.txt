@@ -65,6 +65,11 @@ SET(PODOFO_SOURCES
     PdfXRefStream.cpp
 )
 
+IF(WIN32)
+    # If we build for windows systems, we also include the resource file
+    SET(PODOFO_SOURCES ${PODOFO_SOURCES} podofo.rc)
+ENDIF(WIN32)
+
 SET(PODOFO_HEADERS
     Pdf3rdPtyForwardDecl.h
     PdfAction.h
