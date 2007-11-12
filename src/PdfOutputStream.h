@@ -22,13 +22,13 @@
 #define _PDF_OUTPUT_STREAM_H_
 
 #include "PdfDefines.h"
+#include "PdfRefCountedBuffer.h"
 
 namespace PoDoFo {
 
 #define INITIAL_SIZE 4096
 
 class PdfOutputDevice;
-class PdfRefCountedBuffer;
 
 /** An interface for writing blocks of data to 
  *  a data source.
@@ -221,7 +221,7 @@ class PODOFO_API PdfBufferOutputStream : public PdfOutputStream {
      *  \param pBuffer data is written to this buffer
      */
     PdfBufferOutputStream( PdfRefCountedBuffer* pBuffer )
-        : m_pBuffer( pBuffer ), m_lLength( 0 )
+        : m_pBuffer( pBuffer ), m_lLength( pBuffer->GetSize() )
     {
     }
     
