@@ -37,6 +37,7 @@ class PdfImage;
 class PdfName;
 class PdfObject;
 class PdfReference;
+class PdfShadingPattern;
 class PdfStream;
 class PdfString;
 class PdfXObject;
@@ -140,6 +141,20 @@ class PODOFO_API PdfPainter {
      */
     void SetColorCMYK( double c, double m, double y, double k );
 
+    /** Set the shading pattern for all following stroking operations.
+     *  This operation uses the 'SCN' PDF operator.
+     *
+     *  \param rPattern a shading pattern
+     */
+    void SetStrokingShadingPattern( const PdfShadingPattern & rPattern );
+
+    /** Set the shading pattern for all following non-stroking operations.
+     *  This operation uses the 'scn' PDF operator.
+     *
+     *  \param rPattern a shading pattern
+     */
+    void SetShadingPattern( const PdfShadingPattern & rPattern );
+
     /** Set the color for all following stroking operations. 
      * 
      *  \param rColor a PdfColor object
@@ -241,12 +256,12 @@ class PODOFO_API PdfPainter {
                    double dRoundX=0.0, double dRoundY=0.0 );
 
     /** Draw a rectangle with the current stroking settings
-	 *	
-	 *  \param rRect the rectangle area
+     *	
+     *  \param rRect the rectangle area
      *  \param dRoundX rounding factor, x direction
      *  \param dRoundY rounding factor, y direction
-	 *
-	 *  \see DrawRect
+     *
+     *  \see DrawRect
      */
 	inline void DrawRect( const PdfRect & rRect, double dRoundX=0.0, double dRoundY=0.0 );
 
@@ -262,14 +277,14 @@ class PODOFO_API PdfPainter {
                    double dRoundX=0.0, double dRoundY=0.0 );
 
     /** Fill a rectangle with the current fill settings
-	 *	
-	 *  \param rRect the rectangle area
+     *	
+     *  \param rRect the rectangle area
      *  \param dRoundX rounding factor, x direction
      *  \param dRoundY rounding factor, y direction
-	 *
-	 *  \see FillRect
+     *
+     *  \see FillRect
      */
-	inline void FillRect( const PdfRect & rRect, double dRoundX=0.0, double dRoundY=0.0 );
+    inline void FillRect( const PdfRect & rRect, double dRoundX=0.0, double dRoundY=0.0 );
 
     /** Draw an ellipse with the current stroking settings
      *  \param dX x coordinate of the ellipse (left coordinate)
@@ -322,42 +337,42 @@ class PODOFO_API PdfPainter {
      */
     void DrawText( double dX, double dY, const PdfString & sText, long lLen );
 
-	/** Draw multiline text into a rectangle doing automatic wordwrapping.
-	 *  The current font is used and SetFont has to be called at least once
-	 *  before using this function
-	 *
-	 *  \param dX the x coordinate of the text area (left)
-	 *  \param dY the y coordinate of the text area (bottom)
-	 *  \param dWidth width of the text area
-	 *  \param dHeight height of the text area
-	 *  \param rsText the text which should be drawn
-	 *  \param eAlignment alignment of the individual text lines in the given bounding box
-	 *  \param eVertical vertical alignment of the text in the given bounding box
-	 */
-	void DrawMultiLineText( double dX, double dY, double dWidth, double dHeight, 
-		                    const PdfString & rsText, EPdfAlignment eAlignment = ePdfAlignment_Left,
-							EPdfVerticalAlignment eVertical = ePdfVerticalAlignment_Top);
+    /** Draw multiline text into a rectangle doing automatic wordwrapping.
+     *  The current font is used and SetFont has to be called at least once
+     *  before using this function
+     *
+     *  \param dX the x coordinate of the text area (left)
+     *  \param dY the y coordinate of the text area (bottom)
+     *  \param dWidth width of the text area
+     *  \param dHeight height of the text area
+     *  \param rsText the text which should be drawn
+     *  \param eAlignment alignment of the individual text lines in the given bounding box
+     *  \param eVertical vertical alignment of the text in the given bounding box
+     */
+    void DrawMultiLineText( double dX, double dY, double dWidth, double dHeight, 
+                            const PdfString & rsText, EPdfAlignment eAlignment = ePdfAlignment_Left,
+                            EPdfVerticalAlignment eVertical = ePdfVerticalAlignment_Top);
 
-	/** Draw multiline text into a rectangle doing automatic wordwrapping.
-	 *  The current font is used and SetFont has to be called at least once
-	 *  before using this function
-	 *
-	 *  \param rRect bounding rectangle of the text
-	 *  \param rsText the text which should be drawn
-	 *  \param eAlignment alignment of the individual text lines in the given bounding box
-	 *  \param eVertical vertical alignment of the text in the given bounding box
-	 */
-	inline void DrawMultiLineText( const PdfRect & rRect, const PdfString & rsText, EPdfAlignment eAlignment = ePdfAlignment_Left,
-		   						   EPdfVerticalAlignment eVertical = ePdfVerticalAlignment_Top);
+    /** Draw multiline text into a rectangle doing automatic wordwrapping.
+     *  The current font is used and SetFont has to be called at least once
+     *  before using this function
+     *
+     *  \param rRect bounding rectangle of the text
+     *  \param rsText the text which should be drawn
+     *  \param eAlignment alignment of the individual text lines in the given bounding box
+     *  \param eVertical vertical alignment of the text in the given bounding box
+     */
+    inline void DrawMultiLineText( const PdfRect & rRect, const PdfString & rsText, EPdfAlignment eAlignment = ePdfAlignment_Left,
+                                   EPdfVerticalAlignment eVertical = ePdfVerticalAlignment_Top);
 
-	/** Draw a single line of text horizontally aligned.
-	 *  \param dX the x coordinate of the text line
-	 *  \param dY the y coordinate of the text line
-	 *  \param dWidth the width of the text line
-	 *  \param rsText the text to draw
-	 *  \param eAlignmet alignment of the text line
-	 */
-	void DrawTextAligned( double dX, double dY, double dWidth, const PdfString & rsText, EPdfAlignment eAlignment );
+    /** Draw a single line of text horizontally aligned.
+     *  \param dX the x coordinate of the text line
+     *  \param dY the y coordinate of the text line
+     *  \param dWidth the width of the text line
+     *  \param rsText the text to draw
+     *  \param eAlignmet alignment of the text line
+     */
+    void DrawTextAligned( double dX, double dY, double dWidth, const PdfString & rsText, EPdfAlignment eAlignment );
 
     /** Draw an image on the current page.
      *  \param dX the x coordinate (bottom left position of the image)
@@ -487,6 +502,12 @@ class PODOFO_API PdfPainter {
      */
     void Fill();
 
+    /** Clip the current path. Matches the PDF 'W' operator.
+     *  This function is useful to construct an own path
+     *  for drawing or clipping.
+     */
+    void Clip();
+
     /** Save the current graphics settings onto the graphics
      *  stack. Operator 'q' in PDF.
      *  This call has to be balanced with a corresponding call 
@@ -598,15 +619,15 @@ class PODOFO_API PdfPainter {
      */
     void SetCurrentStrokingColor();
 
-	/** Expand all tab characters in a string
+    /** Expand all tab characters in a string
      *  using spaces.
-	 *
-	 *  \param rsString expand all tabs in this string using spaces
-	 *  \returns an expanded copy of the passed string
-	 *  \see SetTabWidth
-	 */
-	PdfString ExpandTabs( const PdfString & rsString );
-
+     *
+     *  \param rsString expand all tabs in this string using spaces
+     *  \returns an expanded copy of the passed string
+     *  \see SetTabWidth
+     */
+    PdfString ExpandTabs( const PdfString & rsString );
+    
  protected:
     /** All drawing operations work on this stream.
      *  This object may not be NULL. If it is NULL any function accessing it should
@@ -698,7 +719,7 @@ unsigned short PdfPainter::GetPrecision() const
 // -----------------------------------------------------
 void PdfPainter::SetClipRect( const PdfRect & rRect )
 {
-	this->SetClipRect( rRect.GetLeft(), rRect.GetBottom(), rRect.GetWidth(), rRect.GetHeight() );
+    this->SetClipRect( rRect.GetLeft(), rRect.GetBottom(), rRect.GetWidth(), rRect.GetHeight() );
 }
 
 // -----------------------------------------------------
@@ -706,9 +727,9 @@ void PdfPainter::SetClipRect( const PdfRect & rRect )
 // -----------------------------------------------------
 void PdfPainter::DrawRect( const PdfRect & rRect, double dRoundX, double dRoundY )
 {
-	this->DrawRect( rRect.GetLeft(), rRect.GetBottom(), 
-					rRect.GetWidth(), rRect.GetHeight(), 
-					dRoundX, dRoundY );
+    this->DrawRect( rRect.GetLeft(), rRect.GetBottom(), 
+                    rRect.GetWidth(), rRect.GetHeight(), 
+                    dRoundX, dRoundY );
 }
 
 // -----------------------------------------------------
@@ -716,19 +737,19 @@ void PdfPainter::DrawRect( const PdfRect & rRect, double dRoundX, double dRoundY
 // -----------------------------------------------------
 void PdfPainter::FillRect( const PdfRect & rRect, double dRoundX, double dRoundY )
 {
-	this->FillRect( rRect.GetLeft(), rRect.GetBottom(), 
-					rRect.GetWidth(), rRect.GetHeight(), 
-					dRoundX, dRoundY );
+    this->FillRect( rRect.GetLeft(), rRect.GetBottom(), 
+                    rRect.GetWidth(), rRect.GetHeight(), 
+                    dRoundX, dRoundY );
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
 void PdfPainter::DrawMultiLineText( const PdfRect & rRect, const PdfString & rsText, 
-								    EPdfAlignment eAlignment, EPdfVerticalAlignment eVertical)
+                                    EPdfAlignment eAlignment, EPdfVerticalAlignment eVertical)
 {
-	this->DrawMultiLineText( rRect.GetLeft(), rRect.GetBottom(), rRect.GetWidth(), rRect.GetHeight(), 
-		                     rsText, eAlignment, eVertical );
+    this->DrawMultiLineText( rRect.GetLeft(), rRect.GetBottom(), rRect.GetWidth(), rRect.GetHeight(), 
+                             rsText, eAlignment, eVertical );
 }
 
 };

@@ -371,6 +371,31 @@ PdfColor PdfColor::ConvertToCMYK() const
     return PdfColor();
 }
 
+PdfArray PdfColor::ToArray() const
+{
+    PdfArray array;
+
+    switch(m_eColorSpace)
+    {
+        case ePdfColorSpace_DeviceGray:
+            array.push_back( m_uColor.gray );
+            break;
+        case ePdfColorSpace_DeviceRGB:
+            array.push_back( m_uColor.rgb[0] ); 
+            array.push_back( m_uColor.rgb[1] ); 
+            array.push_back( m_uColor.rgb[2] );
+            break;
+        case ePdfColorSpace_DeviceCMYK:
+            array.push_back( m_uColor.cmyk[0] ); 
+            array.push_back( m_uColor.cmyk[1] ); 
+            array.push_back( m_uColor.cmyk[2] ); 
+            array.push_back( m_uColor.cmyk[3] ); 
+            break;
+    };
+
+    return array;
+}
+
 static unsigned short GetHex(char inHex)
 {
     if ( islower( inHex ) )

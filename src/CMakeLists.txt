@@ -25,6 +25,7 @@ SET(PODOFO_SOURCES
     PdfFont.cpp
     PdfFontCache.cpp
     PdfFontMetrics.cpp
+    PdfFunction.cpp
     PdfHintStream.cpp
     PdfImage.cpp
     PdfImmediateWriter.cpp
@@ -51,6 +52,7 @@ SET(PODOFO_SOURCES
     PdfRefCountedInputDevice.cpp
     PdfReference.cpp
     PdfRijndael.cpp
+    PdfShadingPattern.cpp
     PdfStream.cpp
     PdfStreamedDocument.cpp
     PdfString.cpp
@@ -99,6 +101,7 @@ SET(PODOFO_HEADERS
     PdfFont.h
     PdfFontCache.h
     PdfFontMetrics.h
+    PdfFunction.h    
     PdfHintStream.h
     PdfImage.h
     PdfImmediateWriter.h
@@ -125,6 +128,7 @@ SET(PODOFO_HEADERS
     PdfRefCountedInputDevice.h
     PdfReference.h
     PdfRijndael.h
+    PdfShadingPattern.h
     PdfStream.h
     PdfStreamedDocument.h
     PdfString.h

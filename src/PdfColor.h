@@ -227,6 +227,11 @@ class PODOFO_API PdfColor {
      */
     PdfColor ConvertToCMYK() const;
 
+    /** Creates a PdfArray which represents a color from a color.
+     *  \returns a PdfArray object
+     */
+    PdfArray ToArray() const;
+
     /** Creates a color object from a string.
      *
      *  \param pszName a string describing a color.

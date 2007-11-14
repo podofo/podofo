@@ -37,6 +37,7 @@
 #include "PdfImage.h"
 #include "PdfName.h"
 #include "PdfRect.h"
+#include "PdfShadingPattern.h"
 #include "PdfStream.h"
 #include "PdfString.h"
 #include "PdfXObject.h"
@@ -178,6 +179,28 @@ void PdfPainter::SetColorCMYK( double c, double m, double y, double k )
     CheckDoubleRange( k, 0.0, 1.0 );
 
     this->SetColor( PdfColor( c, m, y, k ) );
+}
+
+void PdfPainter::SetStrokingShadingPattern( const PdfShadingPattern & rPattern )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
+
+    this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->Reference(), PdfName("Pattern") );
+
+    m_oss.str("");
+    m_oss << "/Pattern CS /" << rPattern.GetIdentifier().GetName() << " SCN" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
+}
+
+void PdfPainter::SetShadingPattern( const PdfShadingPattern & rPattern )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
+
+    this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->Reference(), PdfName("Pattern") );
+
+    m_oss.str("");
+    m_oss << "/Pattern cs /" << rPattern.GetIdentifier().GetName() << " scn" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
 }
 
 void PdfPainter::SetStrokingColor( const PdfColor & rColor )
@@ -405,10 +428,11 @@ void PdfPainter::FillRect( double dX, double dY, double dWidth, double dHeight,
 
     m_oss.str("");
 
-    if ( static_cast<int>(dRoundX) || static_cast<int>(dRoundY) ) {
-         double    x = dX, y = dY, 
-                w = dWidth, h = dHeight,
-                rx = dRoundX, ry = dRoundY;
+    if ( static_cast<int>(dRoundX) || static_cast<int>(dRoundY) ) 
+    {
+        double    x = dX, y = dY, 
+            w = dWidth, h = dHeight,
+            rx = dRoundX, ry = dRoundY;
         double b = 0.4477f;
 
         MoveTo(x + rx, y);
@@ -421,7 +445,9 @@ void PdfPainter::FillRect( double dX, double dY, double dWidth, double dHeight,
         LineTo(x, y + ry);
         CubicBezierTo(x, y + ry * b, x + rx * b, y, x + rx, y);
         m_pCanvas->Append( "f\n" );
-    } else {
+    }
+    else 
+    {
         m_oss << dX << " "
             << dY << " "
             << dWidth << " "
@@ -982,6 +1008,13 @@ void PdfPainter::Fill()
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
     
     m_pCanvas->Append( "f\n" );
+}
+
+void PdfPainter::Clip()
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+    
+    m_pCanvas->Append( "W n\n" );
 }
 
 void PdfPainter::Save()

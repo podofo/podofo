@@ -56,7 +56,8 @@ typedef enum EPdfError {
     ePdfError_UnexpectedEOF,            /**< End of file was reached but data was expected. */
     ePdfError_OutOfMemory,              /**< Not enough memory to complete an operation. */
     ePdfError_ValueOutOfRange,          /**< The specified memory is out of the allowed range. */
-    ePdfError_InternalLogic,            /**< An internal sanity check or assertion failed. */
+    ePdfError_InternalLogic,            /**< An internal sanity check or assertion failed. */ 
+    ePdfError_InvalidEnumValue,         /**< An invalid enum value was specified. */
 
     ePdfError_NoPdfFile,                /**< The file is no PDF file. */
     ePdfError_NoXRef,                   /**< The PDF file has no or an invalid XRef table. */
