@@ -31,15 +31,8 @@
  * and they are not guaranteed to continue to exist.
  */
 
+#include "PdfVersion.h"
 #include "PdfDefines.h"
-
-/**
- * Version number of this release
- */
-#define PODOFO_MAJOR 0
-#define PODOFO_MINOR 5
-#define PODOFO_REVISION 0
-
 #include "PdfAction.h"
 #include "PdfAcroForm.h"
 #include "PdfAnnotation.h"
