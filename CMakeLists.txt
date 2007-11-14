@@ -15,14 +15,21 @@ INCLUDE(UsePkgConfig)
 # Load modules from our source tree too
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
-# By default and if nothing else prevents us,
-# build both shared and static libraries.
-IF(NOT DEFINED PODOFO_BUILD_SHARED)
-    SET(PODOFO_BUILD_SHARED TRUE)
-ENDIF(NOT DEFINED PODOFO_BUILD_SHARED)
-IF(NOT DEFINED PODOFO_BUILD_STATIC)
+# If the user hasn't told use specifically what they want, build only
+# a static library.
+IF(NOT DEFINED PODOFO_BUILD_SHARED AND NOT DEFINED PODOFO_BUILD_STATIC)
     SET(PODOFO_BUILD_STATIC TRUE)
-ENDIF(NOT DEFINED PODOFO_BUILD_STATIC)
+    SET(PODOFO_BUILD_SHARED FALSE)
+ELSE(NOT DEFINED PODOFO_BUILD_SHARED AND NOT DEFINED PODOFO_BUILD_STATIC)
+    # User explicitly requested at least one of shared or static. Don't
+    # build anything they didn't ask for explicitly.
+    IF(NOT DEFINED PODOFO_BUILD_SHARED)
+        SET(PODOFO_BUILD_SHARED FALSE)
+    ENDIF(NOT DEFINED PODOFO_BUILD_SHARED)
+    IF(NOT DEFINED PODOFO_BUILD_STATIC)
+        SET(PODOFO_BUILD_STATIC FALSE)
+    ENDIF(NOT DEFINED PODOFO_BUILD_STATIC)
+ENDIF(NOT DEFINED PODOFO_BUILD_SHARED AND NOT DEFINED PODOFO_BUILD_STATIC)
 
 # Some 64 bit linux distros use /usr/lib64 for 64 bit libraries.
 # on these platforms we must
