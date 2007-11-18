@@ -162,7 +162,7 @@ const PdfRefCountedBuffer & PdfRefCountedBuffer::operator=( const PdfRefCountedB
 {
     // Self assignment is a no-op
     if (this == &rhs)
-        return;
+        return rhs;
 
     DerefBuffer();
 

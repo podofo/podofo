@@ -214,10 +214,13 @@ PdfRefCountedBuffer::PdfRefCountedBuffer( long lSize )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
+// We define the copy ctor separately to the assignment
+// operator since it's a *LOT* faster this way.
 PdfRefCountedBuffer::PdfRefCountedBuffer( const PdfRefCountedBuffer & rhs )
-    : m_pBuffer( NULL )
+    : m_pBuffer( rhs.m_pBuffer )
 {
-    this->operator=( rhs );
+    if (m_pBuffer)
+        ++(m_pBuffer->m_lRefCount);
 }
 
 // -----------------------------------------------------
