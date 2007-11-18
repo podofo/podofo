@@ -22,9 +22,6 @@
 
 namespace PoDoFo {
 
-#if defined(PODOFO_RCBUF_USE_CUSTOM_ALLOCATOR)
-PdfRefCountedBuffer::TRefCountedBuffer::allocator_t PdfRefCountedBuffer::TRefCountedBuffer::m_allocator;
-#endif
 
 #define STREAM_SIZE_INCREASE 1024
 
@@ -58,7 +55,7 @@ void PdfRefCountedBuffer::ReallyDetach( long lExtraLen )
     PODOFO_RAISE_LOGIC_IF( m_pBuffer && m_pBuffer->m_lRefCount == 1, "Use Detach() rather than calling ReallyDetach() directly." )
 
     long lSize                 = m_pBuffer->m_lBufferSize + lExtraLen; 
-    TRefCountedBuffer* pBuffer = new  TRefCountedBuffer();
+    TRefCountedBuffer* pBuffer = new TRefCountedBuffer();
     pBuffer->m_lRefCount       = 1;
     if ( (pBuffer->m_bOnHeap = lSize > TRefCountedBuffer::INTERNAL_BUFSIZE) )
         pBuffer->m_pHeapBuffer  = static_cast<char*>(malloc( sizeof(char)*lSize ));
@@ -139,7 +136,7 @@ void PdfRefCountedBuffer::ReallyResize( const size_t lSize )
     else
     {
         // No buffer was allocated at all, so we need to make one.
-        m_pBuffer = new  TRefCountedBuffer();
+        m_pBuffer = new TRefCountedBuffer();
         m_pBuffer->m_lRefCount       = 1;
         if ( (m_pBuffer->m_bOnHeap   = lSize > TRefCountedBuffer::INTERNAL_BUFSIZE) )
             m_pBuffer->m_pHeapBuffer = static_cast<char*>(malloc( sizeof(char)*lSize ));
@@ -150,7 +147,7 @@ void PdfRefCountedBuffer::ReallyResize( const size_t lSize )
 
         if( m_pBuffer->m_bOnHeap && !m_pBuffer->m_pHeapBuffer ) 
         {
-            delete  m_pBuffer;
+            delete m_pBuffer;
             m_pBuffer = NULL;
 
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );

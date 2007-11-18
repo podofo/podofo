@@ -23,12 +23,6 @@
 
 #include "PdfDefines.h"
 
-
-#if defined(__GNUC__) && (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ > 3 ) )
-#define PODOFO_RCBUF_USE_GCC_POOL_ALLOCATOR
-#include <ext/pool_allocator.h>
-#endif
-
 namespace PoDoFo {
 
 /** 
@@ -178,29 +172,8 @@ class PODOFO_API PdfRefCountedBuffer {
 
  private:
     struct TRefCountedBuffer {
-        // How much storage should be allocated internally to the TRefCountedBuffer and used
-        // before we move to using heap-allocated storage?
         enum { INTERNAL_BUFSIZE = 32 };
-
-#if defined(PODOFO_RCBUF_USE_GCC_POOL_ALLOCATOR)
-        // Use gcc's pool allocator to manager our TRefCountedBuffer instances.
-        // see: http://gcc.gnu.org/onlinedocs/libstdc++/20_util/allocator.html
-        typedef ::__gnu_cxx::__pool_alloc<TRefCountedBuffer> allocator_t;
-#define PODOFO_RCBUF_USE_CUSTOM_ALLOCATOR
-#endif
-
-#if defined(PODOFO_RCBUF_USE_CUSTOM_ALLOCATOR)
-        // The allocator we're going to be using for this class.
-        static allocator_t m_allocator;
-
-        // Override new and delete to use our custom allocator. If we're using
-        // std::allocator this'll basically all optimise out, but it lets us
-        // switch in other allocators like gcc's pool allocator.
-        inline void* operator new(size_t size);
-        PODOFO_NOTHROW inline void operator delete(void* p);
-#endif
-
-        // Convenience inline to permit transparent use of internal vs heap buffer
+        // Convenience inline for buffer switching
         PODOFO_NOTHROW inline char * GetRealBuffer() { return m_bOnHeap? m_pHeapBuffer : &(m_sInternalBuffer[0]); }
         // size in bytes of the buffer. If and only if this is strictly >INTERNAL_BUFSIZE,
         // this buffer is on the heap in memory pointed to by m_pHeapBuffer . If it is <=INTERNAL_BUFSIZE,
@@ -217,8 +190,6 @@ class PODOFO_API PdfRefCountedBuffer {
         // Are we using the heap-allocated buffer in place of our small internal one?
         bool  m_bOnHeap;
     };
-
-
 
     TRefCountedBuffer* m_pBuffer;
 };
@@ -329,26 +300,6 @@ inline void PdfRefCountedBuffer::DerefBuffer()
     // the buffer we just released our claim on.
     m_pBuffer = NULL;
 }
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-#if defined(PODOFO_RCBUF_USE_CUSTOM_ALLOCATOR)
-inline void* PdfRefCountedBuffer::TRefCountedBuffer::operator new(size_t size)
-{
-    return m_allocator.allocate(size);
-}
-#endif
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-#if defined(PODOFO_RCBUF_USE_CUSTOM_ALLOCATOR)
-PODOFO_NOTHROW inline void PdfRefCountedBuffer::TRefCountedBuffer::operator delete(void* p)
-{
-    m_allocator.deallocate( static_cast<PdfRefCountedBuffer::TRefCountedBuffer*>(p), sizeof(PdfRefCountedBuffer::TRefCountedBuffer));
-}
-#endif
 
 };
 
