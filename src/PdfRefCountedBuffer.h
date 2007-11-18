@@ -94,7 +94,7 @@ class PODOFO_API PdfRefCountedBuffer {
      *         
      *  If the buffer is larger no operation is performed.
      */
-    void Resize( size_t lSize );
+    inline void Resize( size_t lSize );
 
     /** Copy an existing PdfRefCountedBuffer and increase
      *  the reference count
@@ -136,8 +136,15 @@ class PODOFO_API PdfRefCountedBuffer {
     bool operator>( const PdfRefCountedBuffer & rhs ) const;
 
  private:
-    /** Free the internal buffer or decrease reference count of buffer
-     *  if another PdfRefCountedBuffer is attached to the same buffer.
+    /**
+     * Indicate that the buffer is no longer being used, freeing it if there
+     * are no further users. The buffer becomes inaccessible to this
+     * PdfRefCountedBuffer in either case.
+     */
+    inline void DerefBuffer();
+
+    /**
+     * Free a buffer if the refcount is zero. Internal method used by DerefBuffer.
      */
     void FreeBuffer();
 
@@ -149,20 +156,39 @@ class PODOFO_API PdfRefCountedBuffer {
      *  \param lLen an additional parameter specifiying extra bytes
      *              to be allocated to optimize allocations of a new buffer.
      */
-    void Detach( long lExtraLen = 0);
+    inline void Detach( long lExtraLen = 0 );
+
+    /**
+     * Called by Detach() to do the work if action is actually required.
+     * \see Detach
+     */
+    void ReallyDetach( long lExtraLen );
+
+    /**
+     * Do the hard work of resizing the buffer if it turns out not to already be big enough.
+     * \see Resize
+     */
+    void ReallyResize( size_t lSize );
 
  private:
     struct TRefCountedBuffer {
-        // Initialize values - practially free and improves safety.
-        TRefCountedBuffer() : m_pBuffer(0), m_lBufferSize(-1), m_lVisibleSize(-1), m_lRefCount(-1), m_bPossesion(false) { }
-        char* m_pBuffer;
-        // size in bytes of m_pBuffer
+        enum { INTERNAL_BUFSIZE = 32 };
+        // Convenience inline for buffer switching
+        PODOFO_NOTHROW inline char * GetRealBuffer() { return m_bOnHeap? m_pHeapBuffer : &(m_sInternalBuffer[0]); }
+        // size in bytes of the buffer. If and only if this is strictly >INTERNAL_BUFSIZE,
+        // this buffer is on the heap in memory pointed to by m_pHeapBuffer . If it is <=INTERNAL_BUFSIZE,
+        // the buffer is in the in-object buffer m_sInternalBuffer.
         long  m_lBufferSize;
-        // Size in bytes of m_pBuffer that should be reported to clients. We over-allocate
-        // for efficiency but this extra should NEVER be visible to a client.
+        // Size in bytes of m_pBuffer that should be reported to clients. We
+        // over-allocate on the heap for efficiency and have a minimum 32 byte
+        // size, but this extra should NEVER be visible to a client.
         long  m_lVisibleSize;
         long  m_lRefCount;
+        char* m_pHeapBuffer;
+        char  m_sInternalBuffer[INTERNAL_BUFSIZE];
         bool  m_bPossesion;
+        // Are we using the heap-allocated buffer in place of our small internal one?
+        bool  m_bOnHeap;
     };
 
     TRefCountedBuffer* m_pBuffer;
@@ -199,7 +225,7 @@ PdfRefCountedBuffer::PdfRefCountedBuffer( const PdfRefCountedBuffer & rhs )
 // -----------------------------------------------------
 PdfRefCountedBuffer::~PdfRefCountedBuffer()
 {
-    FreeBuffer();
+    DerefBuffer();
 }
 
 // -----------------------------------------------------
@@ -207,7 +233,8 @@ PdfRefCountedBuffer::~PdfRefCountedBuffer()
 // -----------------------------------------------------
 inline char* PdfRefCountedBuffer::GetBuffer() const
 {
-    return m_pBuffer ? m_pBuffer->m_pBuffer : NULL;
+    if (!m_pBuffer) return NULL;
+    return m_pBuffer->GetRealBuffer();
 }
 
 // -----------------------------------------------------
@@ -233,6 +260,45 @@ inline void PdfRefCountedBuffer::SetTakePossesion( bool bTakePossession )
 inline bool PdfRefCountedBuffer::TakePossesion() const
 {
     return m_pBuffer ? m_pBuffer->m_bPossesion : false;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfRefCountedBuffer::Detach( long lExtraLen )
+{
+    if (m_pBuffer && m_pBuffer->m_lRefCount > 1L)
+        ReallyDetach(lExtraLen);
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfRefCountedBuffer::Resize( size_t lSize )
+{
+    if (m_pBuffer && m_pBuffer->m_lRefCount == 1L  && static_cast<size_t>(m_pBuffer->m_lBufferSize) >= lSize)
+    {
+        // We have a solely owned buffer the right size already; no need to
+        // waste any time detaching or resizing it. Just let the client see
+        // more of it (or less if they're shrinking their view).
+        m_pBuffer->m_lVisibleSize = lSize;
+    }
+    else
+    {
+        ReallyResize( lSize );
+    }
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfRefCountedBuffer::DerefBuffer()
+{
+    if ( m_pBuffer && !(--m_pBuffer->m_lRefCount) )
+        FreeBuffer();
+    // Whether or not it still exists, we no longer have anything to do with
+    // the buffer we just released our claim on.
+    m_pBuffer = NULL;
 }
 
 };
