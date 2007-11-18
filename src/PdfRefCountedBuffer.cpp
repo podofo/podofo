@@ -160,6 +160,10 @@ void PdfRefCountedBuffer::ReallyResize( const size_t lSize )
 
 const PdfRefCountedBuffer & PdfRefCountedBuffer::operator=( const PdfRefCountedBuffer & rhs )
 {
+    // Self assignment is a no-op
+    if (this == &rhs)
+        return;
+
     DerefBuffer();
 
     m_pBuffer = rhs.m_pBuffer;
