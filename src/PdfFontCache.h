@@ -226,9 +226,7 @@ class PODOFO_API PdfFontCache {
     TSortedFontList m_vecFontSubsets;
     FT_Library      m_ftLibrary;
 
-#if defined(HAVE_FONTCONFIG)
-    FcConfig*       m_pFcConfig;
-#endif
+    void*           m_pFcConfig;
 
     PdfVecObjects*  m_pParent; 
 };

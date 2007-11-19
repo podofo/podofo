@@ -112,7 +112,7 @@ PdfFontCache::PdfFontCache( PdfVecObjects* pParent )
     // Initialize all the fonts stuff
 
 #if defined(HAVE_FONTCONFIG)
-    m_pFcConfig     = FcInitLoadConfigAndFonts();
+    m_pFcConfig     = static_cast<void*>(FcInitLoadConfigAndFonts());
 #endif
 
     if( FT_Init_FreeType( &m_ftLibrary ) )
@@ -126,7 +126,7 @@ PdfFontCache::~PdfFontCache()
     this->EmptyCache();
 
 #if defined(HAVE_FONTCONFIG)
-    FcConfigDestroy( m_pFcConfig );
+    FcConfigDestroy( static_cast<FcConfig*>(m_pFcConfig) );
 #endif
 
     if( m_ftLibrary ) 
