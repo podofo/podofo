@@ -8,47 +8,6 @@
 
 using namespace PoDoFo;
 
-typedef std::pair< std::string, std::vector<PdfVariant> > Operation;
-typedef std::vector<Operation> OperationList;
-
-bool GetOperation( PdfContentsTokenizer* pTokenizer, Operation& op )
-{
-    PdfVariant var;
-    EPdfContentsType eType;
-    const char* pszToken = NULL;
-
-    op.second.clear();
-
-    while ( pTokenizer->ReadNext( eType, pszToken, var ) )
-    {
-        if( eType == ePdfContentsType_Keyword )
-        {
-            // A keyword terminates the operation
-            op.first = pszToken;
-            return true;
-        }
-        else
-        {
-            // Push another operand and keep scanning
-            op.second.push_back( var );
-        }
-    }
-    // If we get here, we hit EOF without reading a keyword.
-    return false;
-}
-
-void ParseContentStreamInto( PdfContentsTokenizer* pTokenizer, OperationList& ops ) 
-{
-    bool got_op = true;
-    while( got_op )
-    {
-        Operation op;
-        got_op = GetOperation(pTokenizer, op);
-        if (got_op)
-            ops.push_back(op);
-    }
-}
-
 void parse_contents( PdfContentsTokenizer* pTokenizer ) 
 {
     const char*      pszToken = NULL;
@@ -100,44 +59,55 @@ void parse_contents( PdfContentsTokenizer* pTokenizer )
     std::cout << "EOF" << std::endl;
 }
 
+#if defined(HAVE_BOOST)
+void parse_page_graph( PdfMemDocument*, PdfPage* pPage )
+{
+    PdfContentsTokenizer tokenizer( pPage );
+    PdfContentsGraph g( tokenizer );
+    g.WriteToStdErr();
+}
+#endif
 
 void parse_page( PdfMemDocument*, PdfPage* pPage )
 {
-    std::cerr << "Reading content stream for " << pPage->GetObject()->Reference().ToString() << std::endl;
-    // Run a demo parser over the stream
-    try 
-    {
-        PdfContentsTokenizer tokenizer( pPage );
-        parse_contents( &tokenizer );
-    } 
-    catch( const PdfError & e )
-    {
-        throw e;
-    }
+    PdfContentsTokenizer tokenizer( pPage );
+    parse_contents( &tokenizer );
+}
 
-    // Group the stream into a list of operators with associated operands.
-    try 
-    {
-        PdfContentsTokenizer tokenizer( pPage );
-        OperationList ops;
-        ParseContentStreamInto( &tokenizer, ops );
-        std::cerr << "Read " << ops.size() << " operators." << std::endl;
-    } 
-    catch( const PdfError & e )
-    {
-        throw e;
-    }
-
-    std::cerr << "Done reading content stream" << std::endl;
+void usage()
+{
+    printf("Usage: ContentParser input_filename [g]\n");
 }
 
 int main( int argc, char* argv[] ) 
 {
-    if( argc != 2 )
+    if( argc < 2 || argc > 3 )
     {
-        printf("Usage: ContentParser [input_filename]\n");
-        return 0;
+        usage();
+        return 1;
     }
+
+    bool use_graph = false;
+    if( argc == 3 )
+    {
+        if ( strcmp(argv[2],"g") == 0 )
+        {
+            use_graph = true;
+        }
+        else
+        {
+            usage();
+            return 2;
+        }
+    }
+
+#if !defined(HAVE_BOOST)
+    if (use_graph)
+    {
+        std::cerr << "Can't use Boost::Graph output - not configured with Boost support" << std::endl;
+        return 4;
+    }
+#endif
 
     try 
     {
@@ -150,8 +120,13 @@ int main( int argc, char* argv[] )
 
         PdfPage* pFirst = doc.GetPage( 0 );
         
-        parse_page( &doc, pFirst );
-    } 
+        if (!use_graph)
+            parse_page( &doc, pFirst );
+#if defined(HAVE_BOOST)
+        else
+            parse_page_graph( &doc, pFirst );
+#endif
+    }
     catch( const PdfError & e )
     {
         e.PrintErrorMsg();

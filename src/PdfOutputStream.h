@@ -24,6 +24,8 @@
 #include "PdfDefines.h"
 #include "PdfRefCountedBuffer.h"
 
+#include <string>
+
 namespace PoDoFo {
 
 #define INITIAL_SIZE 4096
@@ -47,6 +49,11 @@ class PODOFO_API PdfOutputStream {
      */
     virtual long Write( const char* pBuffer, long lLen ) = 0;
 
+    /**
+     * Helper that writes a string via Write(const char*,long)
+     */
+    inline long Write( const std::string & s );
+
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
      *  before the descructor to end writing.
@@ -56,6 +63,11 @@ class PODOFO_API PdfOutputStream {
      */
     virtual void Close() = 0;
 };
+
+inline long PdfOutputStream::Write( const std::string & s )
+{
+    return this->Write( s.data(), s.size() );
+}
 
 /** An output stream that writes data to a file
  */

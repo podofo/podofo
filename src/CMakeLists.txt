@@ -7,6 +7,7 @@ SET(PODOFO_SOURCES
     PdfColor.cpp
     PdfContents.cpp
     PdfContentsTokenizer.cpp
+    PdfContentsGraph.cpp
     PdfData.cpp
     PdfDataType.cpp
     PdfDate.cpp
