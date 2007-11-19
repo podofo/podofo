@@ -561,6 +561,12 @@ CMake takes care of this automatically if you're using it for your project.</p>
 less frequent. At this point, though, they're an unavoidable part of
 improving and completing the library.</p>
 
+<p>If you are using CMake in your project and you choose to bundle a copy of
+the PoDoFo sources, with svn:externals or otherwise, you can quite easily build
+a private copy of PoDoFo as part of your app's normal build process. Have a look
+at FindLIBPODOFO.cmake from PoDoFoBrowser to see how to do that, or just copy
+that file.</p>
+
 <h3><a name="compiling_and_linking_against_podofo"/>Compiling and Linking Against PoDoFo</h3>
 
 <p>PoDoFo's headers are designed to avoid exposing its library dependencies, so
