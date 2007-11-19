@@ -15,6 +15,8 @@
 	<li><a href="#requirements">Requirements</a></li>
 	<li><a href="#installation">Installation</a>
 	<ol>
+		<li><a href="#stlport_support">STLPort support</a>
+		<li><a href="#boost_support">Boost support</a>
 		<li><a href="#installation_with_cmake">Installation with CMake</a>
 		<ol>
 			<li><a href="#cmake_builds_on_linux_unix">CMake bulds on Linux/UNIX</a></li>
@@ -158,6 +160,16 @@ runtime crashes, or other problems.</p>
 
 <p>It is unnecessary and unwise to build PoDoFo against STLPort on any current
 major platform unless you have a specific reason to do so.</p>
+
+<h3><a name="boost_support" />Boost support</h3>
+
+<p>PoDoFo can make limited use of the Boost libraries if they are available.
+There is no need to use them, but some things may work more smoothly, and more
+use is expected in the future. If PoDoFo is built to use Boost, your
+application must also have Boost's headers on its search path. Set
+-DWANT_BOOST:BOOL=1 to enable Boost support.</p>
+
+<p>Packagers should not currently build PoDoFo with boost support.</p>
 
 <h3><a name="installation_with_cmake" />Installation with CMake</h3>
 

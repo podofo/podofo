@@ -241,20 +241,18 @@ IF (WIN32 OR JPEG_RUNTIME_COMPATIBLE)
 ELSE (WIN32 OR JPEG_RUNTIME_COMPATIBLE)
 ENDIF (WIN32 OR JPEG_RUNTIME_COMPATIBLE)
 
-#DISABLED for now, since we don't yet actually use any of the Boost stuff.
-#Before re-enabling it'll be necessary to clean it up so it doesn't complain
-#at all if Boost is not found.
-
-MESSAGE("Looking optional for Boost.")
-MESSAGE("Boost is optional, so don't worry if it is not found.")
-MESSAGE("Set the BOOST_ROOT env var if you have problems.")
-FIND_PACKAGE(Boost)
-IF(BOOST_FOUND)
-   ADD_DEFINITIONS(-DHAVE_BOOST)
-   INCLUDE_DIRECTORIES(${BOOST_INCLUDE_DIR})
-ELSE(BOOST_FOUND)
-   MESSAGE("If you don't need graph support you can ignore the above error.")
-ENDIF(BOOST_FOUND)
+IF(WANT_BOOST)
+    MESSAGE("Looking optional for Boost.")
+    MESSAGE("Boost is optional, so don't worry if it is not found.")
+    MESSAGE("Set the BOOST_ROOT env var if you have problems.")
+    FIND_PACKAGE(Boost)
+    IF(BOOST_FOUND)
+       ADD_DEFINITIONS(-DHAVE_BOOST)
+       INCLUDE_DIRECTORIES(${BOOST_INCLUDE_DIR})
+    ELSE(BOOST_FOUND)
+       MESSAGE("If you don't need graph support you can ignore the above error.")
+    ENDIF(BOOST_FOUND)
+ENDIF(WANT_BOOST)
 
 INCLUDE_DIRECTORIES(
     src
@@ -305,9 +303,11 @@ FILE(APPEND
      )
 
 ADD_SUBDIRECTORY(src)
+IF(NOT PODOFO_BUILD_LIB_ONLY)
 ADD_SUBDIRECTORY(test)
 ADD_SUBDIRECTORY(tools)
 ADD_SUBDIRECTORY(examples)
+ENDIF(NOT PODOFO_BUILD_LIB_ONLY)
 
 # Export some variables into the config file so it's easier for others
 # to build and link against PoDoFo
