@@ -13,7 +13,7 @@ INCLUDE(UsePkgConfig)
 #INCLUDE(CheckCXXCompilerFlag)
 
 # Load modules from our source tree too
-SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
 # If the user hasn't told use specifically what they want, build only
 # a static library.
