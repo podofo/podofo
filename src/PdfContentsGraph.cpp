@@ -16,11 +16,9 @@
 #include <sstream>
 
 #include <boost/graph/depth_first_search.hpp>
-#include <boost/assign/list_of.hpp>
 
 using namespace std;
 using namespace boost;
-using namespace boost::assign;
 using namespace PoDoFo;
 
 // Enable some more verbose debugging output
@@ -175,32 +173,22 @@ struct FormatVariantVisitor
 
 // boost graph depth_first_search visitor that invokes PrintVariantVisitor on
 // each node's variant value.
-//
-// These two classes could be replaced by a simpler class that built on
-// dfs_visitor() but this works well enough for now.
-//
-struct PrintDepartingVertexVisitor
+// The `arriving' param is set to true if the
+// variant visitor this graph visitor invokes is being called on node discovery
+// (in which case EV must be  boost::on_discover_vertex)
+// and false if it's being called on node exit
+// (in which case EV must be boost::on_finish_vertex ).
+template<typename EV, bool Arriving>
+class PrintVertexVisitor
 {
-    PdfOutputStream * const m_os;
-    PrintDepartingVertexVisitor(PdfOutputStream* os) : m_os(os) { }
-    PrintDepartingVertexVisitor(const PrintDepartingVertexVisitor& rhs) : m_os(rhs.m_os) { }
-    typedef boost::on_finish_vertex event_filter;
+    PdfOutputStream * m_os;
+public:
+    PrintVertexVisitor(PdfOutputStream* os) : m_os(os) { }
+    typedef EV event_filter;
     void operator()(const boost::graph_traits<PdfContentsGraph::Graph>::vertex_descriptor & v,
                     const PdfContentsGraph::Graph & g)
     {
-        boost::apply_visitor( PrintVariantVisitor(m_os, false), g[v] );
-    }
-};
-struct PrintArrivingVertexVisitor
-{
-    PdfOutputStream * const m_os;
-    PrintArrivingVertexVisitor(PdfOutputStream* os) : m_os(os) { }
-    PrintArrivingVertexVisitor(const PrintArrivingVertexVisitor& rhs) : m_os(rhs.m_os) { }
-    typedef boost::on_discover_vertex event_filter;
-    void operator()(const boost::graph_traits<PdfContentsGraph::Graph>::vertex_descriptor & v,
-                    const PdfContentsGraph::Graph & g)
-    {
-        boost::apply_visitor( PrintVariantVisitor(m_os, true), g[v] );
+        boost::apply_visitor( PrintVariantVisitor(m_os, Arriving), g[v] );
     }
 };
 
@@ -440,9 +428,10 @@ PdfContentsGraph::PdfContentsGraph( PdfContentsTokenizer & contentsTokenizer )
 
 void PdfContentsGraph::Write(PdfOutputStream& outStream)
 {
-    typedef pair<PrintArrivingVertexVisitor,PrintDepartingVertexVisitor> EVList;
+    typedef pair<PrintVertexVisitor<on_discover_vertex,true>,PrintVertexVisitor<on_finish_vertex,false> > EVList;
     dfs_visitor<EVList> vis = make_dfs_visitor(
-            EVList( PrintArrivingVertexVisitor(&outStream), PrintDepartingVertexVisitor(&outStream) ) );
+            EVList( PrintVertexVisitor<on_discover_vertex,true>(&outStream),
+                    PrintVertexVisitor<on_finish_vertex,false>(&outStream) ) );
     depth_first_search(m_graph, visitor(vis));
 }
 

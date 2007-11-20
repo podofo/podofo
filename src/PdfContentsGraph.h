@@ -125,14 +125,57 @@ public:
      */
     void WriteToStdErr();
 
-    // Look up a keyword string and return a reference to the associated
-    // keyword info struct If the keyword string is not known, return
-    // kwInfoUnknown .
+    /**
+     * Look up a keyword string and return a reference to the associated
+     * keyword info struct If the keyword string is not known, return
+     * a reference to the special kwInfoUnknown structure that sets:
+     *
+     * kwType = PdfContentsGraph::KT_Standalone
+     * kw     = KW_Unknown
+     *
+     * (The rest of the members should not be relied upon).
+     */
     static const KWInfo& findKwByName(const std::string & kwText);
 
-    // Look up an operator code and return the associated keyword string. All
-    // defined enums MUST exist in kwIdMap .
+    /**
+     * Look up an operator code and return the associated keyword string. All
+     * defined enums MUST exist in kwIdMap .
+     */
     static const KWInfo& findKwById(PdfContentStreamKeyword kw);
+
+    /**
+     * Provide access to the internal graph used by ContentStreamGraph to
+     * represent the content stream. The caller may safely modify this graph
+     * so long as:
+     *
+     *  - No cyclic references are created, ie it remains a simple tree
+     *  - The root node is not altered/removed/replaced
+     *  - All internal nodes (ie nodes with children) have variant type
+     *    KWPair, where the first value in the pair is the PdfContentStreamKeyword
+     *    for a valid context opening keyword, and the second in the pair is the
+     *    corresponding closing keyword.
+     *  - Nodes of variant type PdfContentStreamKeyword must not contain a context
+     *    opening or closing keyword.
+     *
+     * You can use the findKwById and findKwByName functions to determine the attributes
+     * of a keyword - for example, whether it's a context opening / closing keyword.
+     *
+     * For many complex operations on PDF content streams you will want to modify this
+     * graph directly or use it as input for one of the Boost Graph Library algorithms
+     * in combination with a custom visitor. To see how this works, have a look at the
+     * implementation of this class's Write(...) method. Another example can be found in
+     * test/ContentsParser.
+     *
+     * \see findKwById \see findKwByName
+     */
+    PODOFO_NOTHROW Graph & GetGraph() { return m_graph; }
+
+    /**
+     * Provide access to a read only view of the internal graph.
+     *
+     * \see GetGraph()
+     */
+    PODOFO_NOTHROW const Graph & GetGraph() const { return m_graph; }
 
 private:
     // private member variables
