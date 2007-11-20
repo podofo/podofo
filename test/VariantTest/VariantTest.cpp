@@ -181,6 +181,7 @@ int main()
     TEST_SAFE_OP( Test( "/.notdef", ePdfDataType_Name ) );
     TEST_SAFE_OP( Test( "/@pattern", ePdfDataType_Name ) );
     TEST_SAFE_OP( Test( "/A;Name_With-Various***Characters?", ePdfDataType_Name ) );
+    TEST_SAFE_OP( Test( "/", ePdfDataType_Name ) ); // empty names are legal, too!
     printf("---\n");
 
     // testing arrays

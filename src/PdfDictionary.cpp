@@ -108,10 +108,14 @@ void PdfDictionary::Clear()
 
 void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObject )
 {
+    // Empty PdfNames are legal according to the PDF specification
+    // weird but true. As a reason we cannot throw an error here
+    /*
     if( !identifier.GetLength() )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
+    */
 
     if( m_mapKeys.find( identifier ) != m_mapKeys.end() )
     {

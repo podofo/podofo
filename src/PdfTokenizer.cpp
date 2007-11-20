@@ -622,17 +622,18 @@ void PdfTokenizer::ReadName( PdfVariant& rVariant )
     const char*   pszToken;
     bool gotToken = this->GetNextToken( pszToken, &eType );
 
-    if (!gotToken)
+    if( !gotToken || eType != ePdfTokenType_Token )
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_UnexpectedEOF, "Expected name." );
-    }
+        // We got an empty name which is legal according to the PDF specification
+        // Some weird PDFs even use them.
+        rVariant = PdfName();
 
-    if( eType != ePdfTokenType_Token )
-    {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Expected name.");
+        // Queque the token again
+        if( gotToken )
+            QuequeToken( pszToken, eType );
     }
-
-    rVariant = PdfName::FromEscaped( pszToken );
+    else
+        rVariant = PdfName::FromEscaped( pszToken );
 }
 
 void PdfTokenizer::QuequeToken( const char* pszToken, EPdfTokenType eType )
