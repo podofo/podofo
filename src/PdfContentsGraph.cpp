@@ -12,6 +12,8 @@
 #include <iostream>
 #include <map>
 #include <stack>
+#include <list>
+#include <sstream>
 
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/assign/list_of.hpp>
@@ -21,136 +23,106 @@ using namespace boost;
 using namespace boost::assign;
 using namespace PoDoFo;
 
+// Enable some more verbose debugging output
+#if !defined(DEBUG_CONTENTS_GRAPH)
+//#define DEBUG_CONTENTS_GRAPH
+#endif
+
 namespace {
 
 //
-// The KWType enumeration is used to identify whether a given keyword should be expected to
-// open or close a new scope (think q/Q pairs) or whether it's just a plain unscoped operator.
+// This static structure describes the content stream keywords PoDoFo knows
+// about.  Anything unrecognised will be assumed to be standalone keyword that
+// doesn't open or close a scope.
 //
-enum KWType
-{
-    KT_Undefined = 0, // Only used for sentinel
-    KT_Standalone,    // Keyword doesn't open or close a scope. Must have opposite id = KW_Undefined
-    KT_Opening,       // Keyword opens a new scope. Must have valid opposite id.
-    KT_Closing        // Keyword closes an open scope. Must have valid opposite id.
-};
-
+// See PDF Reference, table, 4.1, "Operator categories".
 //
-// KWInfo describes a single PDF keyword's characteristics. See kwInfo[] .
-//
-struct KWInfo {
-    // Keyword type ( ends scope, begins scope, or scope neutral )
-    KWType kt;
-    // Keyword ID (enum)
-    PdfContentStreamKeyword kw;
-    // ID enum of opposing keyword, eg KW_EndQ if kw = KW_StartQ
-    PdfContentStreamKeyword kwOpposite;
-    // null-terminated keyword text
-    char kwText[6];
-};
-
-//
-// This static structure describes the content stream keywords PoDoFo knows about.
-// Anything unrecognised will be assumed to be standalone keyword that doesn't open
-// or close a scope.
-//
-static const KWInfo kwInfo[] = {
-    { KT_Standalone, KW_MoveTo, KW_Undefined, "m" },
-    { KT_Standalone, KW_LineTo, KW_Undefined, "l" },
-    { KT_Opening,    KW_StartQ, KW_EndQ,      "q" },
-    { KT_Closing,    KW_EndQ,   KW_StartQ,    "Q" },
+static const PdfContentsGraph::KWInfo kwInfo[] = {
+    { PdfContentsGraph::KT_Standalone, KW_m,       KW_Undefined, "m",     "MoveTo" },
+    { PdfContentsGraph::KT_Standalone, KW_l,       KW_Undefined, "l",     "LineTo" },
+    { PdfContentsGraph::KT_Opening,    KW_q,       KW_Q,         "q",     "Save State" },
+    { PdfContentsGraph::KT_Closing,    KW_Q,       KW_Undefined, "Q",     "Restore State" },
+    { PdfContentsGraph::KT_Opening,    KW_ST,      KW_ET,        "BT",    "Begin Text" },
+    { PdfContentsGraph::KT_Closing,    KW_ET,      KW_Undefined, "ET",    "End Text" },
+    { PdfContentsGraph::KT_Opening,    KW_BDC,     KW_EMC,       "BDC",   "Begin marked content" },
+    { PdfContentsGraph::KT_Opening,    KW_BMC,     KW_EMC,       "BMC",   "Begin marked content with property list" },
+    { PdfContentsGraph::KT_Closing,    KW_EMC,     KW_Undefined, "EMC",   "End marked content" },
     // Sentinel
-    { KT_Undefined, KW_Undefined, KW_Undefined, "\0" }
+    { PdfContentsGraph::KT_Undefined, KW_Undefined, KW_Undefined, "\0",   NULL }
 };
 
 //
 // This value is returned when an unknown keyword is encountered.
 //
-static const KWInfo kwInfoUnknown = { KT_Standalone, KW_Unknown, KW_Undefined, "\0" };
+static const PdfContentsGraph::KWInfo kwInfoUnknown = { PdfContentsGraph::KT_Standalone, KW_Unknown, KW_Undefined, "\0", NULL };
 
-// This function populates kwNameMap at startup, permitting use to look up KWInfo structures
-// by keyword string value.
-map<string,const KWInfo*> generateKWNameMap()
+// This function populates kwNameMap at startup, permitting use to look up
+// KWInfo structures by keyword string value.
+map<string,const PdfContentsGraph::KWInfo*> generateKWNameMap()
 {
-    map<string,const KWInfo*> m;
-    const KWInfo* ki = &(kwInfo[0]);
+    map<string,const PdfContentsGraph::KWInfo*> m;
+    const PdfContentsGraph::KWInfo* ki = &(kwInfo[0]);
     do {
-        m.insert( pair<string,const KWInfo*>(ki->kwText,ki) );
+        m.insert( pair<string,const PdfContentsGraph::KWInfo*>(ki->kwText,ki) );
         ki ++;
-    } while ( ki->kt != KT_Undefined );
+    } while ( ki->kt != PdfContentsGraph::KT_Undefined );
     return m;
 }
 
-// This function populates kwIdMap at startup, permitting use to look up KWInfo structures
-// by keyword enum value.
-map<PdfContentStreamKeyword,const KWInfo*> generateKWIdMap()
+// This function populates kwIdMap at startup, permitting use to look up KWInfo
+// structures by keyword enum value.
+map<PdfContentStreamKeyword,const PdfContentsGraph::KWInfo*> generateKWIdMap()
 {
-    map<PdfContentStreamKeyword,const KWInfo*> m;
-    const KWInfo* ki = &(kwInfo[0]);
+    map<PdfContentStreamKeyword,const PdfContentsGraph::KWInfo*> m;
+    const PdfContentsGraph::KWInfo* ki = &(kwInfo[0]);
     do {
-        m.insert( pair<PdfContentStreamKeyword,const KWInfo*>(ki->kw,ki) );
+        m.insert( pair<PdfContentStreamKeyword,const PdfContentsGraph::KWInfo*>(ki->kw,ki) );
         ki ++;
-    } while ( ki->kt != KT_Undefined );
+    } while ( ki->kt != PdfContentsGraph::KT_Undefined );
     return m;
 }
 
 // Mapping table from keyword string value to KWInfo
-static const map<string,const KWInfo*> kwNameMap = generateKWNameMap();
+static const map<string,const PdfContentsGraph::KWInfo*> kwNameMap = generateKWNameMap();
 // Mapping table from keyword enum value to KWInfo
-static const map<PdfContentStreamKeyword,const KWInfo*> kwIdMap = generateKWIdMap();
+static const map<PdfContentStreamKeyword,const PdfContentsGraph::KWInfo*> kwIdMap = generateKWIdMap();
 
-// Look up a keyword string and return a reference to the associated keyword info struct
-// If the keyword string is not known, return kwInfoUnknown .
-const KWInfo& findKwByName(const string & kwText)
-{
-    static const map<string,const KWInfo*>::const_iterator itEnd = kwNameMap.end();
-    map<string,const KWInfo*>::const_iterator it = kwNameMap.find(kwText);
-    if (it == itEnd)
-        return kwInfoUnknown;
-    else
-        return *((*it).second);
-}
-
-// Look up an operator code and return the associated keyword string. All defined enums MUST
-// exist in kwIdMap .
-const KWInfo& findKwById(PdfContentStreamKeyword kw)
-{
-    static const map<PdfContentStreamKeyword,const KWInfo*>::const_iterator itEnd = kwIdMap.end();
-    map<PdfContentStreamKeyword,const KWInfo*>::const_iterator it = kwIdMap.find(kw);
-    assert( it != itEnd );
-    return *((*it).second);
-}
-
-// A boost::variant visitor that prints the value of the variant to a PdfOutputStream
-// It's somewhat clumsy and inefficient since PdfVariant can't write straight to a stream,
-// we incur a virtual function call for writing the newline, etc.
+// A boost::variant visitor that prints the value of the variant to a
+// PdfOutputStream It's somewhat clumsy and inefficient since PdfVariant can't
+// write straight to a stream, we incur a virtual function call for writing the
+// newline, etc.
 //
-// The first parameter is the output stream to write to. The second indicates whether
-// the node is being arrived at initially (true) or just about to be left after visiting all children (false),
-// IOW true is "white", false is "black".
+// The first parameter is the output stream to write to. The second indicates
+// whether the node is being arrived at initially (true) or just about to be
+// left after visiting all children (false), IOW true is "white", false is
+// "black".
 struct PrintVariantVisitor
-    : public static_visitor<>
+    : public static_visitor<void>
 {
     PdfOutputStream * const m_os;
     mutable string s;
     mutable bool arriving;
 
-    PrintVariantVisitor(PdfOutputStream* os, bool arriving) : static_visitor<>(), m_os(os), s(), arriving(arriving) { }
-    PrintVariantVisitor(const PrintVariantVisitor& rhs) : static_visitor<>(), m_os(rhs.m_os), s(), arriving(arriving) { }
+    PrintVariantVisitor(PdfOutputStream* os, bool arriving)
+        : static_visitor<void>(), m_os(os), s(), arriving(arriving) { }
+    PrintVariantVisitor(const PrintVariantVisitor& rhs)
+        : static_visitor<void>(), m_os(rhs.m_os), s(), arriving(arriving) { }
+    void printKW(PdfContentStreamKeyword op) const
+    {
+        m_os->Write( PdfContentsGraph::findKwById(op).kwText );
+    }
     void operator()(PdfContentsGraph::KWPair kp) const
     {
         if (arriving)
-        {
-            arriving = false;
-            (*this)(kp.first);
-        }
+            printKW(kp.first);
         else
-            (*this)(kp.second);
+            printKW(kp.second);
+        m_os->Write( "\n", 1 );
     }
     void operator()(PdfContentStreamKeyword op) const
     {
         if ( arriving || op == KW_RootNode ) return;
-        m_os->Write( findKwById(op).kwText );
+        printKW(op);
         m_os->Write( "\n", 1 );
     }
     void operator()(const string& s) const
@@ -166,14 +138,46 @@ struct PrintVariantVisitor
         m_os->Write(s);
         m_os->Write( "\n", 1 );
     }
-
 };
 
-// boost graph depth_first_search visitor that invokes PrintVariantVisitor on each
-// node's variant value.
+// Formats a variant to a string
+struct FormatVariantVisitor
+    : public static_visitor<std::string>
+{
+    mutable string s;
+    bool arriving;
+
+    FormatVariantVisitor(bool arriving) : static_visitor<std::string>(), s(), arriving(arriving) { }
+    string operator()(PdfContentsGraph::KWPair kp) const
+    {
+        if (arriving)
+            return PdfContentsGraph::findKwById(kp.first).kwText;
+        else
+            return PdfContentsGraph::findKwById(kp.second).kwText;
+    }
+    string operator()(PdfContentStreamKeyword op) const
+    {
+        if ( arriving || op == KW_RootNode ) return string();
+        return PdfContentsGraph::findKwById(op).kwText;
+    }
+    string operator()(const string& str) const
+    {
+        if ( arriving ) return string();
+        return str;
+    }
+    string operator()(const PdfVariant& var) const
+    {
+        if ( arriving ) return string();
+        var.ToString(s);
+        return s;
+    }
+};
+
+// boost graph depth_first_search visitor that invokes PrintVariantVisitor on
+// each node's variant value.
 //
-// These two classes could be replaced by a simpler class that built on dfs_visitor()
-// but this works well enough for now.
+// These two classes could be replaced by a simpler class that built on
+// dfs_visitor() but this works well enough for now.
 //
 struct PrintDepartingVertexVisitor
 {
@@ -204,12 +208,111 @@ struct PrintArrivingVertexVisitor
 
 namespace PoDoFo {
 
+const PdfContentsGraph::KWInfo& PdfContentsGraph::findKwByName(const string & kwText)
+{
+    static const map<string,const KWInfo*>::const_iterator itEnd = kwNameMap.end();
+    map<string,const KWInfo*>::const_iterator it = kwNameMap.find(kwText);
+    if (it == itEnd)
+        return kwInfoUnknown;
+    else
+        return *((*it).second);
+}
+
+const PdfContentsGraph::KWInfo& PdfContentsGraph::findKwById(PdfContentStreamKeyword kw)
+{
+    static const map<PdfContentStreamKeyword,const KWInfo*>::const_iterator itEnd = kwIdMap.end();
+    map<PdfContentStreamKeyword,const KWInfo*>::const_iterator it = kwIdMap.find(kw);
+    if ( it == itEnd)
+    {
+        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidEnumValue, "Bad keyword ID");
+    }
+    return *((*it).second);
+}
+
 PdfContentsGraph::PdfContentsGraph()
     : m_graph()
 {
     // Init the root node, leaving an otherwise empty graph.
     Vertex v = add_vertex(m_graph);
     m_graph[v] = KW_RootNode;
+}
+
+// This routine is useful in debugging and error reporting. It formats
+// the values associated with the passed stack of vertices into a
+// space-separated string, eg "BT g g g"
+string formatReversedStack(
+        const PdfContentsGraph::Graph & g,
+        stack<PdfContentsGraph::Vertex> s,
+        ostream& os)
+{
+    FormatVariantVisitor vis( true );
+    vector<PdfContentsGraph::Vertex> l;
+    while ( s.size() > 1 )
+    {
+        l.push_back(s.top());
+        s.pop();
+    }
+
+    while ( l.size() )
+    {
+        string str = boost::apply_visitor( vis, g[l.back()] );
+        os << str;
+        os << ' ';
+        l.pop_back();
+    }
+    return string();
+}
+
+#if defined(DEBUG_CONTENTS_GRAPH)
+//
+// This debuging routine prints the current context stack to stderr.
+//
+void PrintStack(
+        const PdfContentsGraph::Graph & g,
+        const stack<PdfContentsGraph::Vertex> & s,
+        const string & prefix)
+{
+    PdfOutputDevice outDev( &cerr );
+    PdfDeviceOutputStream outStream( &outDev );
+
+    ostringstream ss;
+    ss << prefix
+       << ' '
+       << (s.size() - 1)
+       << ' ';
+    formatReversedStack(g,s,ss);
+    ss << '\n';
+    string out = ss.str();
+    outStream.Write( out.data(), out.size() );
+}
+#else
+// Do nothing ; this will inline away nicely and avoids the need for debug
+// ifdefs or ugly macros.
+inline void PrintStack(
+        const PdfContentsGraph::Graph &,
+        const stack<PdfContentsGraph::Vertex> &,
+        const string &)
+{
+}
+#endif
+
+//
+// Format an error message reporting an open/close operator mismatch error.
+//
+std::string formatMismatchError(
+        const PdfContentsGraph::Graph & g,
+        const stack<PdfContentsGraph::Vertex> & s,
+        PdfContentStreamKeyword gotKW,
+        PdfContentStreamKeyword expectedKW)
+{
+    // Didn't find matching opening operator at top of stack.
+    ostringstream err;
+    err << "Found mismatching opening/closing operators. Got: "
+        << PdfContentsGraph::findKwById(gotKW).kwText << ", expected "
+        << PdfContentsGraph::findKwById(expectedKW).kwText << ". Context stack was: ";
+    formatReversedStack(g,s,err);
+    err << '.';
+    return err.str();
 }
 
 PdfContentsGraph::PdfContentsGraph( PdfContentsTokenizer & contentsTokenizer )
@@ -283,30 +386,39 @@ PdfContentsGraph::PdfContentsGraph( PdfContentsTokenizer & contentsTokenizer )
             }
             else if (ki.kt == KT_Opening)
             {
+                PrintStack(m_graph, parentage, "OS: ");
                 // Opening a new level. If we've consumed any arguments that's an error.
                 assert(ki.kw != KW_Undefined && ki.kw != KW_Unknown && ki.kw != KW_RootNode );
-                PODOFO_RAISE_LOGIC_IF( numArguments, "Paired operator opening had arguments" );
                 // Set the node up as a pair of keywords, one of which (the exit keyword) is undefined.
                 m_graph[v] = KWPair(ki.kw,KW_Undefined);
                 // add an edge from the current top to it
                 add_edge( parentage.top(), v, m_graph );
                 // and push it to the top of the parentage stack
                 parentage.push( v );
+                PrintStack(m_graph, parentage, "OF: ");
             }
             else if (ki.kt == KT_Closing)
             {
-                // Closing a level. The top of the stack should contain the matching opening node.
+                PrintStack(m_graph, parentage, "CS: ");
+                // Closing a level. The top of the stack should contain the
+                // matching opening node.
                 assert(ki.kw != KW_Undefined && ki.kw != KW_Unknown && ki.kw != KW_RootNode );
                 assert(!haveNextOpVertex);
                 PODOFO_RAISE_LOGIC_IF( numArguments, "Paired operator opening had arguments" );
                 KWPair kp = get<KWPair>( m_graph[parentage.top()] );
-                PODOFO_RAISE_LOGIC_IF( kp.first != ki.kwOpposite, "Mismatched open/close" );
+                PdfContentStreamKeyword expectedCloseKw = findKwById(kp.first).kwClose;
+                if ( ki.kw != expectedCloseKw )
+                {
+                    string err = formatMismatchError(m_graph, parentage, ki.kw, expectedCloseKw);
+                    PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidContentStream, err.c_str() );
+                }
                 PODOFO_RAISE_LOGIC_IF( kp.second != KW_Undefined, "Closing already closed group" );
                 kp.second = ki.kw;
                 m_graph[parentage.top()] = kp;
                 // Our associated operator is now on the top of the parentage stack. Since its scope
                 // has ended, it should also be popped.
                 parentage.pop();
+                PrintStack(m_graph, parentage, "CF: ");
             }
             else
             {

@@ -8,6 +8,7 @@
 #include "PdfVariant.h"
 
 #include <utility>
+#include <string>
 
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -25,16 +26,22 @@ enum PdfContentStreamKeyword
     // a node variant.
     KW_Undefined = 0,
     // Normal PDF operators
-    KW_StartQ,
-    KW_EndQ,
-    KW_MoveTo,
-    KW_LineTo,
+    KW_q,
+    KW_Q,
+    KW_ST,
+    KW_ET,
+    KW_BMC,
+    KW_BDC,
+    KW_EMC,
+    KW_m,
+    KW_l,
     // Special node with no associated keyword, used to identify the root node that anchors
     // the graph.
     KW_RootNode = 0xfe,
     // Value returned by findKwByName(...) when no enum for the keyword is known.
     KW_Unknown = 0xff
 };
+
 
 /**
  * PdfContentsGraph provides a concrete representation of a content stream as an
@@ -50,6 +57,36 @@ enum PdfContentStreamKeyword
 class PdfContentsGraph
 {
 public:
+    /**
+     * The KWType enumeration is used to identify whether a given keyword
+     * should be expected to open or close a new scope (think q/Q pairs) or
+     * whether it's just a plain unscoped operator.
+     */
+    enum KWType
+    {
+        KT_Undefined = 0, /**< Only used for sentinel */
+        KT_Standalone,    /**< Keyword doesn't open or close a scope. */
+        KT_Opening,       /**< Keyword opens a new scope. */
+        KT_Closing        /**< Keyword closes an open scope. */
+    };
+
+    /**
+     * KWInfo describes a single PDF keyword's characteristics. See kwInfo[] .
+     */
+    struct KWInfo {
+        /// Keyword type ( ends scope, begins scope, or scope neutral )
+        KWType kt;
+        /// Keyword ID (enum)
+        PdfContentStreamKeyword kw;
+        /// ID enum of context closing keyword (only to be set if this
+        /// is a context opening keyword), eg KW_Q if kw = KW_q .
+        PdfContentStreamKeyword kwClose;
+        /// null-terminated keyword text
+        const char kwText[6];
+        /// Short description text (optional, set to NULL if undesired).
+        const char * kwDesc;
+    };
+
     typedef std::pair<PdfContentStreamKeyword,PdfContentStreamKeyword> KWPair;
     // A variant value on a node. May contain one of:
     //    - A pair of keyword IDs representing an opening/closing pair of operators.
@@ -87,6 +124,15 @@ public:
      * a PDF content stream.
      */
     void WriteToStdErr();
+
+    // Look up a keyword string and return a reference to the associated
+    // keyword info struct If the keyword string is not known, return
+    // kwInfoUnknown .
+    static const KWInfo& findKwByName(const std::string & kwText);
+
+    // Look up an operator code and return the associated keyword string. All
+    // defined enums MUST exist in kwIdMap .
+    static const KWInfo& findKwById(PdfContentStreamKeyword kw);
 
 private:
     // private member variables
