@@ -10,6 +10,7 @@ SUBDIRS(
 	TokenizerTest
 	VariantTest
 	WatermarkTest
+	unit
 	)
 
 ADD_EXECUTABLE(PdfError_Test PdfError_Test.cpp)

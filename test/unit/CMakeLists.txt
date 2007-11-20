@@ -1,0 +1,11 @@
+
+IF(HAVE_CPPUNIT)
+  INCLUDE_DIRECTORIES( ${PROJ_SOURCE_DIR}/src ${PROJ_BINARY_DIR}/src ${PROJ_BINARY_DIR}/src/os ${PROJ_BINARY_DIR}/src/os/${OROCOS_TARGET})
+  ADD_DEFINITIONS("-g")
+  
+  # repeat for each test
+  ADD_EXECUTABLE( podofo-test main.cpp NameTest.cpp TokenizerTest.cpp )
+  TARGET_LINK_LIBRARIES( podofo-test ${PODOFO_LIB} ${PODOFO_LIB_DEPENDS} cppunit )
+  SET_TARGET_PROPERTIES( podofo-test PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
+  ADD_TEST( podofo-test podofo-test )
+ENDIF(HAVE_CPPUNIT)

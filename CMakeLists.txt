@@ -186,6 +186,15 @@ ELSE(TIFF_FOUND)
   MESSAGE("Libtiff not found. TIFF support will be disabled")
 ENDIF(TIFF_FOUND)
 
+FIND_PACKAGE(CppUnit)
+
+IF(CppUnit_FOUND)
+  MESSAGE("Found cppunit. Unit tests will be build.")
+  SET(HAVE_CPPUNIT CppUnit_FOUND)
+ELSE(CppUnit_FOUND)
+  MESSAGE("Cppunit not found. No unit tests will be build.")
+ENDIF(CppUnit_FOUND)
+
 FIND_PACKAGE(FREETYPE REQUIRED)
 MESSAGE("Found freetype library at ${FREETYPE_LIBRARIES}, headers ${FREETYPE_INCLUDE_DIR}")
 
