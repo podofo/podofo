@@ -286,6 +286,17 @@ class PODOFO_API PdfVariant {
      */
     const PdfVariant & operator=( const PdfVariant & rhs );
 
+    /**
+     * Test to see if the value contained by this variant is the same
+     * as the value of the other variant.
+     */
+    bool operator==( const PdfVariant & rhs ) const;
+
+    /**
+     * \see operator==
+     */
+    inline bool operator!=( const PdfVariant & rhs) const;
+
  protected:
 
     /**
@@ -743,6 +754,14 @@ void PdfVariant::DelayedLoadImpl()
     // Default implementation of virtual void DelayedLoadImpl() throws, since delayed
     // loading should not be enabled except by types that support it.
     PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfVariant::operator!=( const PdfVariant & rhs) const
+{
+    return !(*this == rhs);
 }
 
 };

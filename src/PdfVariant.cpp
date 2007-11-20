@@ -338,6 +338,40 @@ const char * PdfVariant::GetDataTypeString() const
     return "INVALID_TYPE_ENUM";
 }
 
+//
+// This is rather slow:
+//    - We set up to catch an exception
+//    - We throw & catch an exception whenever there's a type mismatch
+//
+bool PdfVariant::operator==( const PdfVariant & rhs ) const
+{
+    DelayedLoad();
+    try {
+        switch (m_eDataType) {
+            case ePdfDataType_Bool: return GetBool() == rhs.GetBool();
+            case ePdfDataType_Number: return GetNumber() == rhs.GetNumber();
+            case ePdfDataType_Real: return GetReal() == rhs.GetReal();
+            case ePdfDataType_String: return GetString() == rhs.GetString();
+            case ePdfDataType_HexString: return GetString() == rhs.GetString();
+            case ePdfDataType_Name: return GetName() == rhs.GetName();
+            case ePdfDataType_Array: return GetArray() == rhs.GetArray();
+            case ePdfDataType_Dictionary: return GetDictionary() == rhs.GetDictionary();
+            case ePdfDataType_Null: return rhs.IsNull();
+            case ePdfDataType_Reference: return GetReference() == rhs.GetReference();
+            case ePdfDataType_RawData: /* fall through to end of func */ break;
+            case ePdfDataType_Unknown: /* fall through to end of func */ break;
+        }
+    }
+    catch ( PdfError& e )
+    {
+        if (e.GetError() == ePdfError_InvalidDataType)
+            return false;
+        else
+            throw e;
+    }
+    PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Tried to compare unknown/raw variant" );
+}
+
 };
 
 

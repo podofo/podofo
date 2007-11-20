@@ -271,6 +271,8 @@ int main()
     std::cerr << "Encoded buffer: (" << out << ')' << std::endl;
     free( pszResult );
 
+    // TODO: test variant equality comparisons
+
     printf("Test completed with error code: %i\n", eCode.GetError() );
     return eCode.GetError();
 }

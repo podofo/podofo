@@ -60,6 +60,18 @@ class PODOFO_API PdfDictionary : public PdfDataType {
      */
     const PdfDictionary & operator=( const PdfDictionary & rhs );
 
+    /**
+     * Comparison operator. If this dictionary contains all the same keys
+     * as the other dictionary, and for each key the values compare equal,
+     * the dictionaries are considered equal.
+     */
+    bool operator==( const PdfDictionary& rhs ) const;
+
+    /**
+     * \see operator==
+     */
+    inline bool operator!=( const PdfDictionary& rhs ) const;
+
     /** Removes all keys from the dictionary
      */
     void Clear();
@@ -191,6 +203,14 @@ TKeyMap & PdfDictionary::GetKeys()
 void PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) const 
 { 
     this->Write( pDevice, pEncrypt, PdfName::KeyNull ); 
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfDictionary::operator!=( const PdfDictionary& rhs ) const
+{
+    return !(*this == rhs);
 }
 
 };

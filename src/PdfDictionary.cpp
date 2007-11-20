@@ -55,6 +55,40 @@ const PdfDictionary & PdfDictionary::operator=( const PdfDictionary & rhs )
     return *this;
 }
 
+bool PdfDictionary::operator==( const PdfDictionary& rhs ) const
+{
+    if (this == &rhs)
+        return true;
+
+    if ( m_mapKeys.size() != rhs.m_mapKeys.size() )
+        return false;
+
+    // It's not enough to test that our internal maps are equal, because
+    // we store variants by pointer not value. However, since a dictionary's
+    // keys are stored in a SORTED map, and there may be only one instance of
+    // every key, we can do lockstep iteration and compare that way.
+
+    const TCIKeyMap thisIt = m_mapKeys.begin();
+    const TCIKeyMap thisEnd = m_mapKeys.end();
+    const TCIKeyMap rhsIt = rhs.m_mapKeys.begin();
+    const TCIKeyMap rhsEnd = rhs.m_mapKeys.end();
+    while ( thisIt != thisEnd && rhsIt != rhsEnd )
+    {
+        if ( (*thisIt).first != (*rhsIt).first )
+            // Name mismatch. Since the keys are sorted that means that there's a key present
+            // in one dictionary but not the other.
+            return false;
+        if ( *(*thisIt).second != *(*rhsIt).second )
+            // Value mismatch on same-named keys.
+            return false;
+    }
+    // BOTH dictionaries must now be on their end iterators - since we checked that they were
+    // the same size initially, we know they should run out of keys at the same time.
+    PODOFO_RAISE_LOGIC_IF( thisIt != thisEnd || rhsIt != rhsEnd, "Dictionary compare error" );
+    // We didn't find any mismatches
+    return true;
+}
+
 void PdfDictionary::Clear()
 {
     TIKeyMap it;
