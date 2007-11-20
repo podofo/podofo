@@ -30,12 +30,28 @@
 class TokenizerTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE( TokenizerTest );
+  CPPUNIT_TEST( testArrays );
+  CPPUNIT_TEST( testBool );
+  CPPUNIT_TEST( testHexString );
+  CPPUNIT_TEST( testName );
+  CPPUNIT_TEST( testNull );
+  CPPUNIT_TEST( testNumbers );
+  CPPUNIT_TEST( testReference );
   CPPUNIT_TEST( testString );
   CPPUNIT_TEST_SUITE_END();
 
  public:
   void setUp();
   void tearDown();
+
+
+  void testArrays();
+  void testBool();
+  void testHexString();
+  void testName();
+  void testNull();
+  void testNumbers();
+  void testReference();
   void testString();
 
  private:

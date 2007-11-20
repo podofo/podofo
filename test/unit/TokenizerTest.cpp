@@ -51,12 +51,76 @@ void TokenizerTest::Test( const char* pszString, EPdfDataType eDataType, const c
 
 void TokenizerTest::setUp()
 {
-
+    // Nothing todo here
 }
 
 void TokenizerTest::tearDown()
 {
+    // Nothing todo here
+}
 
+void TokenizerTest::testArrays()
+{
+    Test( "[]", ePdfDataType_Array, "[ ]" );
+    Test( "[ ]", ePdfDataType_Array );
+    Test( "[ 1 2 3 4 ]", ePdfDataType_Array );
+    Test( "[1 2 3 4]", ePdfDataType_Array, "[ 1 2 3 4 ]" );
+    Test( "[ 2 (Hallo Welt!) 3.500000 /FMC ]", ePdfDataType_Array );
+    Test( "[ [ 1 2 ] (Hallo Welt!) 3.500000 /FMC ]", ePdfDataType_Array );
+    Test( "[/ImageA/ImageB/ImageC]", ePdfDataType_Array, "[ /ImageA /ImageB /ImageC ]" );
+    Test( "[<530464995927cef8aaf46eb953b93373><530464995927cef8aaf46eb953b93373>]", ePdfDataType_Array, "[ <530464995927CEF8AAF46EB953B93373> <530464995927CEF8AAF46EB953B93373> ]" );
+    Test( "[ 2 0 R (Test Data) 4 << /Key /Data >> 5 0 R ]", ePdfDataType_Array, "[ 2 0 R (Test Data) 4 <<\n/Key /Data\n>> 5 0 R ]" );
+    Test( "[<</key/name>>2 0 R]", ePdfDataType_Array, "[ <<\n/key /name\n>> 2 0 R ]" );
+    Test( "[<<//name>>2 0 R]", ePdfDataType_Array,"[ <<\n/ /name\n>> 2 0 R ]" );
+}
+
+void TokenizerTest::testBool()
+{
+    Test( "false", ePdfDataType_Bool);
+    Test( "true", ePdfDataType_Bool);
+}
+
+void TokenizerTest::testHexString()
+{
+    Test( "<FFEB0400A0CC>", ePdfDataType_HexString );
+    Test( "<FFEB0400A0C>", ePdfDataType_HexString, "<FFEB0400A0C0>" );
+    Test( "<>", ePdfDataType_HexString );
+}
+
+void TokenizerTest::testName()
+{
+    Test( "/Type", ePdfDataType_Name );
+    Test( "/Length", ePdfDataType_Name );
+    Test( "/Adobe#20Green", ePdfDataType_Name );
+    Test( "/$$", ePdfDataType_Name );
+    Test( "/1.2", ePdfDataType_Name );
+    Test( "/.notdef", ePdfDataType_Name );
+    Test( "/@pattern", ePdfDataType_Name );
+    Test( "/A;Name_With-Various***Characters?", ePdfDataType_Name );
+    Test( "/", ePdfDataType_Name ); // empty names are legal, too!
+}
+
+void TokenizerTest::testNull()
+{
+    Test( "null", ePdfDataType_Null );
+}
+
+void TokenizerTest::testNumbers()
+{
+    Test( "145", ePdfDataType_Number );
+    Test( "-12", ePdfDataType_Number );    
+    Test( "3.140000", ePdfDataType_Real );
+    Test( "-2.970000", ePdfDataType_Real );
+    Test( "0", ePdfDataType_Number );
+    Test( "4.", ePdfDataType_Real, "4.000000" );
+
+}
+
+void TokenizerTest::testReference()
+{
+    Test( "2 0 R", ePdfDataType_Reference );
+    Test( "3 0 R", ePdfDataType_Reference );
+    Test( "4 1 R", ePdfDataType_Reference );
 }
 
 void TokenizerTest::testString()
