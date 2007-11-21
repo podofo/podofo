@@ -5,6 +5,7 @@
 #include <stack>
 #include <algorithm>
 #include <string>
+#include <iomanip>
 
 using namespace std;
 using namespace PoDoFo;
@@ -18,13 +19,16 @@ void parse_contents( PdfContentsTokenizer* pTokenizer )
     EPdfContentsType eType;
     std::string      str;
 
+    int numKeywords = 0;
+    int numVariants = 0;
+
     std::stack<PdfVariant> stack;
-    if(print_output) std::cout << std::endl << "Parsing a page:" << std::endl;
 
     while( pTokenizer->ReadNext( eType, pszToken, var ) )
     {
         if( eType == ePdfContentsType_Keyword )
         {
+            ++numKeywords;
             if (print_output) std::cout << "Keyword: " << pszToken << std::endl;
 
             // support 'l' and 'm' tokens
@@ -49,6 +53,7 @@ void parse_contents( PdfContentsTokenizer* pTokenizer )
         }
         else if ( eType == ePdfContentsType_Variant )
         {
+            ++numVariants;
             var.ToString( str );
             if(print_output) std::cout << "Variant: " << str << std::endl;
             stack.push( var );
@@ -59,7 +64,7 @@ void parse_contents( PdfContentsTokenizer* pTokenizer )
             PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
         }
     }
-    if(print_output) std::cout << "EOF" << std::endl;
+    cout << ' ' << setw(8) << numKeywords << "keywords, " << setw(8) << numVariants << " variants" << endl;
 }
 
 #if defined(HAVE_BOOST)
@@ -82,8 +87,11 @@ class NodeCheckVisitor
     mutable PdfVariant m_var;
     mutable EPdfContentsType m_eType;
     bool m_arriving;
+    int* m_numKW;
+    int* m_numVar;
 public:
-    NodeCheckVisitor(PdfContentsTokenizer* tok, bool arriving) : m_tok(tok), m_arriving(arriving) { }
+    NodeCheckVisitor(PdfContentsTokenizer* tok, bool arriving, int* numKW, int* numVar)
+        : m_tok(tok), m_arriving(arriving), m_numKW(numKW), m_numVar(numVar) { }
     void operator()(PdfContentsGraph::KWPair kp) const
     {
         // This is an internal node representing an opening/closing
@@ -99,6 +107,7 @@ public:
             gotKw = PdfContentsGraph::findKwById(kp.second).kwText;
         if ( strcmp(gotKw, m_pszToken) != 0 )
             PODOFO_FAIL( "KWPair node: Got wrong token" );
+        ++(*m_numKW);
     }
     void operator()(PdfContentStreamKeyword op) const
     {
@@ -108,6 +117,7 @@ public:
             PODOFO_FAIL( "Keyword id node: expected keyword from tokenizer, got variant" );
         if ( strcmp(PdfContentsGraph::findKwById(op).kwText, m_pszToken) != 0 )
             PODOFO_FAIL( "Keyword id node: Got wrong token" );
+        ++(*m_numKW);
     }
     void operator()(const string& str) const
     {
@@ -117,6 +127,7 @@ public:
             PODOFO_FAIL( "Keyword str node: expected keyword from tokenizer, got variant" );
         if ( str != m_pszToken )
             PODOFO_FAIL( "Keyword str node: Got wrong token" );
+        ++(*m_numKW);
     }
     void operator()(const PdfVariant& var) const
     {
@@ -126,6 +137,7 @@ public:
             PODOFO_FAIL( "Value node: expected variant from tokenizer, got keyword" );
         if ( !(var == m_var) )
             PODOFO_FAIL( "Value node: Value mismatch" );
+        ++(*m_numVar);
     }
 };
 
@@ -133,23 +145,31 @@ template<typename EV, bool Arriving>
 class CheckVertexVisitor
 {
     PdfContentsTokenizer* m_tok;
+    int* m_numKW;
+    int* m_numVar;
+    NodeCheckVisitor nodeVis;
 public:
-    CheckVertexVisitor( PdfContentsTokenizer& tok ) : m_tok(&tok) { }
+    CheckVertexVisitor( PdfContentsTokenizer& tok, int& numKW, int& numVar )
+        : m_tok(&tok), m_numKW(&numKW), m_numVar(&numVar),
+          nodeVis( NodeCheckVisitor(m_tok, Arriving, m_numKW, m_numVar) )
+    { }
     typedef EV event_filter;
     void operator()(const PdfContentsGraph::Vertex & v,
                     const PdfContentsGraph::Graph & g)
     {
-        boost::apply_visitor( NodeCheckVisitor(m_tok, Arriving), g[v] );
+        boost::apply_visitor( nodeVis, g[v] );
     }
 };
 
-void CheckGraph(PdfContentsTokenizer& tok, PdfContentsGraph& g)
+pair<int,int> CheckGraph(PdfContentsTokenizer& tok, PdfContentsGraph& g)
 {
+    int numKW = 0, numVar = 0;
     typedef pair<CheckVertexVisitor<on_discover_vertex,true>,CheckVertexVisitor<on_finish_vertex,false> > EVList;
     dfs_visitor<EVList> vis = make_dfs_visitor(
-            EVList( CheckVertexVisitor<on_discover_vertex,true>(tok),
-                    CheckVertexVisitor<on_finish_vertex,false>(tok) ) );
+            EVList( CheckVertexVisitor<on_discover_vertex,true>(tok,numKW,numVar),
+                    CheckVertexVisitor<on_finish_vertex,false>(tok,numKW,numVar) ) );
     depth_first_search( g.GetGraph(), visitor(vis));
+    return pair<int,int>(numKW,numVar);
 }
 
 void parse_page_graph( PdfMemDocument*, PdfPage* pPage )
@@ -162,7 +182,8 @@ void parse_page_graph( PdfMemDocument*, PdfPage* pPage )
     // tokenizer. If the graph read, construction, and traverse are correct the
     // results should be identical.
     PdfContentsTokenizer checkTokenizer( pPage );
-    CheckGraph(checkTokenizer, g);
+    pair<int,int> counts = CheckGraph(checkTokenizer, g);
+    cout << ' ' << setw(8) << counts.first << " keywords, " << setw(8) << counts.second << " variants";
     // The above will either execute silently (a pass) or throw (a fail).
 
     // Write to stderr for test view
@@ -250,7 +271,7 @@ int main( int argc, char* argv[] )
         int toPage = all_pages ? doc.GetPageCount() : 1 ;
         for ( int i = 0; i < toPage; ++i )
         {
-            std::cerr << "Processing page " << i << std::endl;
+            cout << "Processing page " << setw(6) << (i+1) << "...";
             PdfPage* page = doc.GetPage( i );
             PODOFO_RAISE_LOGIC_IF( !page, "Got null page pointer within valid page range" );
 
@@ -265,7 +286,7 @@ int main( int argc, char* argv[] )
                 return 4;
 #endif
             }
-            std::cerr << "Processed page " << i << std::endl;
+            cout << " - page ok" << endl;
         }
     }
     catch( const PdfError & e )
