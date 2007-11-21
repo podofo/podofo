@@ -189,10 +189,10 @@ ENDIF(TIFF_FOUND)
 FIND_PACKAGE(CppUnit)
 
 IF(CppUnit_FOUND)
-  MESSAGE("Found cppunit. Unit tests will be build.")
+  MESSAGE("Found cppunit. Unit tests will be built.")
   SET(HAVE_CPPUNIT CppUnit_FOUND)
 ELSE(CppUnit_FOUND)
-  MESSAGE("Cppunit not found. No unit tests will be build.")
+  MESSAGE("Cppunit not found. No unit tests will be built.")
 ENDIF(CppUnit_FOUND)
 
 FIND_PACKAGE(FREETYPE REQUIRED)
