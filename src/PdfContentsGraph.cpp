@@ -192,39 +192,6 @@ public:
     }
 };
 
-} // end anon namespace
-
-namespace PoDoFo {
-
-const PdfContentsGraph::KWInfo& PdfContentsGraph::findKwByName(const string & kwText)
-{
-    static const map<string,const KWInfo*>::const_iterator itEnd = kwNameMap.end();
-    map<string,const KWInfo*>::const_iterator it = kwNameMap.find(kwText);
-    if (it == itEnd)
-        return kwInfoUnknown;
-    else
-        return *((*it).second);
-}
-
-const PdfContentsGraph::KWInfo& PdfContentsGraph::findKwById(PdfContentStreamKeyword kw)
-{
-    static const map<PdfContentStreamKeyword,const KWInfo*>::const_iterator itEnd = kwIdMap.end();
-    map<PdfContentStreamKeyword,const KWInfo*>::const_iterator it = kwIdMap.find(kw);
-    if ( it == itEnd)
-    {
-        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidEnumValue, "Bad keyword ID");
-    }
-    return *((*it).second);
-}
-
-PdfContentsGraph::PdfContentsGraph()
-    : m_graph()
-{
-    // Init the root node, leaving an otherwise empty graph.
-    Vertex v = add_vertex(m_graph);
-    m_graph[v] = KW_RootNode;
-}
-
 // This routine is useful in debugging and error reporting. It formats
 // the values associated with the passed stack of vertices into a
 // space-separated string, eg "BT g g g"
@@ -233,7 +200,6 @@ string formatReversedStack(
         stack<PdfContentsGraph::Vertex> s,
         ostream& os)
 {
-    FormatVariantVisitor vis( true );
     vector<PdfContentsGraph::Vertex> l;
     while ( s.size() > 1 )
     {
@@ -243,9 +209,7 @@ string formatReversedStack(
 
     while ( l.size() )
     {
-        string str = boost::apply_visitor( vis, g[l.back()] );
-        os << str;
-        os << ' ';
+        os << PdfContentsGraph::formatVariant( g[l.back()], true ) << ' ';
         l.pop_back();
     }
     return string();
@@ -301,6 +265,44 @@ std::string formatMismatchError(
     formatReversedStack(g,s,err);
     err << '.';
     return err.str();
+}
+
+} // end anon namespace
+
+namespace PoDoFo {
+
+const PdfContentsGraph::KWInfo& PdfContentsGraph::findKwByName(const string & kwText)
+{
+    static const map<string,const KWInfo*>::const_iterator itEnd = kwNameMap.end();
+    map<string,const KWInfo*>::const_iterator it = kwNameMap.find(kwText);
+    if (it == itEnd)
+        return kwInfoUnknown;
+    else
+        return *((*it).second);
+}
+
+const PdfContentsGraph::KWInfo& PdfContentsGraph::findKwById(PdfContentStreamKeyword kw)
+{
+    static const map<PdfContentStreamKeyword,const KWInfo*>::const_iterator itEnd = kwIdMap.end();
+    map<PdfContentStreamKeyword,const KWInfo*>::const_iterator it = kwIdMap.find(kw);
+    if ( it == itEnd)
+    {
+        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidEnumValue, "Bad keyword ID");
+    }
+    return *((*it).second);
+}
+
+PdfContentsGraph::PdfContentsGraph()
+    : m_graph()
+{
+    // Init the root node, leaving an otherwise empty graph.
+    Vertex v = add_vertex(m_graph);
+    m_graph[v] = KW_RootNode;
+}
+
+string PdfContentsGraph::formatVariant( const NodeData& var, bool arriving )
+{
+    return boost::apply_visitor( FormatVariantVisitor(arriving), var );
 }
 
 PdfContentsGraph::PdfContentsGraph( PdfContentsTokenizer & contentsTokenizer )

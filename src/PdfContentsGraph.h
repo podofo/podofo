@@ -177,6 +177,15 @@ public:
      */
     PODOFO_NOTHROW const Graph & GetGraph() const { return m_graph; }
 
+    /**
+     * Return a string-formatted version of the passed node value. The
+     * `arriving' parameter controls whether the opening (true) or closing
+     * (false) operator is printed if the variant contains an open/close pair.
+     * For other variant types, the null string is returned if arriving is
+     * true, and the formatted variant value if arriving is false.
+     */
+    static std::string formatVariant( const NodeData& var, bool arriving = false );
+
 private:
     // private member variables
     Graph m_graph;
