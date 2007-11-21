@@ -97,87 +97,66 @@ inline void Fail_Print2(const A& a, const B& b, int numKW, int numVar)
 #define PODOFO_FAIL(s,exp,got) { Fail_Print2(exp,got,*m_numKW,*m_numVar); PODOFO_RAISE_ERROR_INFO( ePdfError_TestFailed, s ); }
 // End error reporting crap
 
-/**
- * This visitor is invoked on the variant associated with each node entry
- * (arriving=true) and exit (arriving=false) to check that whatever the
- * tokenizer reads from the input stream matches what we expected to get based
- * on our graph.
- */
-class NodeCheckVisitor
-    : public boost::static_visitor<void>
-{
-    PdfContentsTokenizer * m_tok;
-    mutable const char* m_pszToken;
-    mutable PdfVariant m_var;
-    mutable EPdfContentsType m_eType;
-    bool m_arriving;
-    int* m_numKW;
-    int* m_numVar;
-public:
-    NodeCheckVisitor(PdfContentsTokenizer* tok, bool arriving, int* numKW, int* numVar)
-        : m_tok(tok), m_arriving(arriving), m_numKW(numKW), m_numVar(numVar) { }
-    void operator()(PdfContentsGraph::KWPair kp) const
-    {
-        // This is an internal node representing an opening/closing
-        // operator pair for a context.
-        PdfContentStreamKeyword op = m_arriving ? kp.first : kp.second ;
-        m_tok->ReadNext( m_eType, m_pszToken, m_var );
-        if ( m_eType != ePdfContentsType_Keyword )
-            PODOFO_FAIL( "KWPair node: expected keyword from tokenizer, got variant", op, m_var );
-        const char* gotKw = PdfContentsGraph::findKwById(op).kwText;
-        if ( strcmp(gotKw, m_pszToken) != 0 )
-            PODOFO_FAIL( "KWPair node: Got wrong token", op, m_pszToken );
-        ++(*m_numKW);
-    }
-    void operator()(PdfContentStreamKeyword op) const
-    {
-        if ( m_arriving || op == KW_RootNode ) return;
-        m_tok->ReadNext( m_eType, m_pszToken, m_var );
-        if ( m_eType != ePdfContentsType_Keyword )
-            PODOFO_FAIL( "Keyword id node: expected keyword from tokenizer, got variant", op, m_var );
-        if ( strcmp(PdfContentsGraph::findKwById(op).kwText, m_pszToken) != 0 )
-            PODOFO_FAIL( "Keyword id node: Got wrong token", op, m_pszToken );
-        ++(*m_numKW);
-    }
-    void operator()(const string& str) const
-    {
-        if ( m_arriving ) return;
-        m_tok->ReadNext( m_eType, m_pszToken, m_var );
-        if ( m_eType != ePdfContentsType_Keyword )
-            PODOFO_FAIL( "Keyword str node: expected keyword from tokenizer, got variant", str, m_var );
-        if ( str != m_pszToken )
-            PODOFO_FAIL( "Keyword str node: Got wrong token", str, m_pszToken );
-        ++(*m_numKW);
-    }
-    void operator()(const PdfVariant& var) const
-    {
-        if ( m_arriving ) return;
-        m_tok->ReadNext( m_eType, m_pszToken, m_var );
-        if ( m_eType != ePdfContentsType_Variant )
-            PODOFO_FAIL( "Value node: expected variant from tokenizer, got keyword", var, m_pszToken );
-        if ( !(var == m_var) )
-            PODOFO_FAIL( "Value node: Value mismatch", var, m_var );
-        ++(*m_numVar);
-    }
-};
-
 template<typename EV, bool Arriving>
 class CheckVertexVisitor
 {
     PdfContentsTokenizer* m_tok;
     int* m_numKW;
     int* m_numVar;
-    NodeCheckVisitor nodeVis;
+    // These three members are used to store PdfContentsTokenizer output
+    mutable const char* m_pszToken;
+    mutable PdfVariant m_var;
+    mutable EPdfContentsType m_eType;
 public:
     CheckVertexVisitor( PdfContentsTokenizer& tok, int& numKW, int& numVar )
-        : m_tok(&tok), m_numKW(&numKW), m_numVar(&numVar),
-          nodeVis( NodeCheckVisitor(m_tok, Arriving, m_numKW, m_numVar) )
+        : m_tok(&tok), m_numKW(&numKW), m_numVar(&numVar)
     { }
     typedef EV event_filter;
     void operator()(const PdfContentsGraph::Vertex & v,
                     const PdfContentsGraph::Graph & g)
     {
-        boost::apply_visitor( nodeVis, g[v] );
+        // Get the right half of the node data pair. If this is a leaf node and Arriving is false,
+        // the node will be of type KW_Undefined and have no arguments; otherwise it'll be a valid node.
+        const PdfContentsGraph::KWInstance & kw ( Arriving ? g[v].first : g[v].second );
+        if ( kw.IsRootNode() ) return;
+        // If we're exiting the node, only act if it's second part is defined,
+        // ie if it's an internal node.
+        if (!Arriving && !kw.IsDefined())
+            return;
+        // Ensure that all arguments match up.
+        CheckArguments( kw.GetArgs() );
+        // Make sure that the keyword is what we expected to see too.
+        m_tok->ReadNext( m_eType, m_pszToken, m_var );
+        if ( m_eType != ePdfContentsType_Keyword )
+        {
+            PODOFO_FAIL( "Expected keyword, got variant", kw.GetKwString(), m_var );
+        }
+        if ( kw.GetKwString() != m_pszToken )
+        {
+            printf("BLAH BLAH");
+            PODOFO_FAIL( "Keyword didn't match", kw.GetKwString(), m_pszToken );
+        }
+        ++(*m_numKW);
+    }
+    void CheckArguments( const vector<PdfVariant> args )
+    {
+        // Loop over each argument in the list, making sure that it's what we'd
+        // expect to find.
+        const vector<PdfVariant>::const_iterator itEnd = args.end();
+        vector<PdfVariant>::const_iterator it = args.begin();
+        for ( ; it != itEnd; ++it )
+        {
+            m_tok->ReadNext( m_eType, m_pszToken, m_var );
+            if ( m_eType != ePdfContentsType_Variant )
+            {
+                PODOFO_FAIL( "Expected variant, got keyword", *it, m_pszToken );
+            }
+            if ( *it != m_var )
+            {
+                PODOFO_FAIL( "Variant didn't match", *it, m_var );
+            }
+            ++(*m_numVar);
+        }
     }
 };
 

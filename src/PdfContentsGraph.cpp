@@ -85,94 +85,37 @@ static const map<string,const PdfContentsGraph::KWInfo*> kwNameMap = generateKWN
 // Mapping table from keyword enum value to KWInfo
 static const map<PdfContentStreamKeyword,const PdfContentsGraph::KWInfo*> kwIdMap = generateKWIdMap();
 
-// A boost::variant visitor that prints the value of the variant to a
-// PdfOutputStream It's somewhat clumsy and inefficient since PdfVariant can't
-// write straight to a stream, we incur a virtual function call for writing the
-// newline, etc.
+// Visitor used by KWInstance to convert any stored variant to a string.
+// kw == KW_Unknown indicates that it should be a no-op, ie return ""
+struct KWIVariantAsStringVisitor
+    : public static_visitor<string>
+{
+    string operator()(const std::string& s) const { return s; }
+    string operator()(PdfContentStreamKeyword kw) const
+    {
+        if (kw == KW_Undefined)
+            // Variant has no value
+            return string();
+        PODOFO_RAISE_LOGIC_IF(kw == KW_Unknown, "Variant in invalid state(may not contain KW_Unknown)");
+        return PdfContentsGraph::findKwById(kw).kwText;
+    }
+};
+
+// Visitor used by KWInstance to convert any stored variant to a PdfContentStreamKeyword .
+// If the variant contains a string that's not a keyword known to podofo, returns KW_Unknown.
+struct KWIVariantAsIdVisitor
+    : public static_visitor<PdfContentStreamKeyword>
+{
+    PdfContentStreamKeyword operator()(PdfContentStreamKeyword kw) const { return kw; }
+    PdfContentStreamKeyword operator()(const std::string& s) const
+    {
+        return PdfContentsGraph::findKwByName(s).kw;
+    }
+};
+
+// boost graph depth_first_search visitor that prints each node's keyword and
+// arguments to the provided stream in proper content stream format.
 //
-// The first parameter is the output stream to write to. The second indicates
-// whether the node is being arrived at initially (true) or just about to be
-// left after visiting all children (false), IOW true is "white", false is
-// "black".
-struct PrintVariantVisitor
-    : public static_visitor<void>
-{
-    PdfOutputStream * const m_os;
-    mutable string s;
-    mutable bool arriving;
-
-    PrintVariantVisitor(PdfOutputStream* os, bool arriving)
-        : static_visitor<void>(), m_os(os), s(), arriving(arriving) { }
-    PrintVariantVisitor(const PrintVariantVisitor& rhs)
-        : static_visitor<void>(), m_os(rhs.m_os), s(), arriving(arriving) { }
-    void printKW(PdfContentStreamKeyword op) const
-    {
-        m_os->Write( PdfContentsGraph::findKwById(op).kwText );
-    }
-    void operator()(PdfContentsGraph::KWPair kp) const
-    {
-        if (arriving)
-            printKW(kp.first);
-        else
-            printKW(kp.second);
-        m_os->Write( "\n", 1 );
-    }
-    void operator()(PdfContentStreamKeyword op) const
-    {
-        if ( arriving || op == KW_RootNode ) return;
-        printKW(op);
-        m_os->Write( "\n", 1 );
-    }
-    void operator()(const string& s) const
-    {
-        if ( arriving ) return;
-        m_os->Write( s.data(), s.size() );
-        m_os->Write( "\n", 1 );
-    }
-    void operator()(const PdfVariant& var) const
-    {
-        if ( arriving ) return;
-        var.ToString(s);
-        m_os->Write(s);
-        m_os->Write( "\n", 1 );
-    }
-};
-
-// Formats a variant to a string
-struct FormatVariantVisitor
-    : public static_visitor<std::string>
-{
-    mutable string s;
-    bool arriving;
-
-    FormatVariantVisitor(bool arriving) : static_visitor<std::string>(), s(), arriving(arriving) { }
-    string operator()(PdfContentsGraph::KWPair kp) const
-    {
-        if (arriving)
-            return PdfContentsGraph::findKwById(kp.first).kwText;
-        else
-            return PdfContentsGraph::findKwById(kp.second).kwText;
-    }
-    string operator()(PdfContentStreamKeyword op) const
-    {
-        if ( arriving || op == KW_RootNode ) return string();
-        return PdfContentsGraph::findKwById(op).kwText;
-    }
-    string operator()(const string& str) const
-    {
-        if ( arriving ) return string();
-        return str;
-    }
-    string operator()(const PdfVariant& var) const
-    {
-        if ( arriving ) return string();
-        var.ToString(s);
-        return s;
-    }
-};
-
-// boost graph depth_first_search visitor that invokes PrintVariantVisitor on
-// each node's variant value.
 // The `arriving' param is set to true if the
 // variant visitor this graph visitor invokes is being called on node discovery
 // (in which case EV must be  boost::on_discover_vertex)
@@ -185,10 +128,12 @@ class PrintVertexVisitor
 public:
     PrintVertexVisitor(PdfOutputStream* os) : m_os(os) { }
     typedef EV event_filter;
-    void operator()(const boost::graph_traits<PdfContentsGraph::Graph>::vertex_descriptor & v,
+    void operator()(const PdfContentsGraph::Vertex & v,
                     const PdfContentsGraph::Graph & g)
     {
-        boost::apply_visitor( PrintVariantVisitor(m_os, Arriving), g[v] );
+        const PdfContentsGraph::KWInstance& i ( Arriving ? g[v].first : g[v].second );
+        if (!i.IsRootNode())
+            i.PrintToStream( *m_os );
     }
 };
 
@@ -209,7 +154,7 @@ string formatReversedStack(
 
     while ( l.size() )
     {
-        os << PdfContentsGraph::formatVariant( g[l.back()], true ) << ' ';
+        os << g[l.back()].first.GetKwString() << ' ';
         l.pop_back();
     }
     return string();
@@ -269,6 +214,12 @@ std::string formatMismatchError(
 
 } // end anon namespace
 
+
+
+
+
+
+
 namespace PoDoFo {
 
 const PdfContentsGraph::KWInfo& PdfContentsGraph::findKwByName(const string & kwText)
@@ -283,6 +234,10 @@ const PdfContentsGraph::KWInfo& PdfContentsGraph::findKwByName(const string & kw
 
 const PdfContentsGraph::KWInfo& PdfContentsGraph::findKwById(PdfContentStreamKeyword kw)
 {
+    if ( kw == KW_RootNode )
+    {
+        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidEnumValue, "Cannot get KWInfo for root node");
+    }
     static const map<PdfContentStreamKeyword,const KWInfo*>::const_iterator itEnd = kwIdMap.end();
     map<PdfContentStreamKeyword,const KWInfo*>::const_iterator it = kwIdMap.find(kw);
     if ( it == itEnd)
@@ -297,12 +252,7 @@ PdfContentsGraph::PdfContentsGraph()
 {
     // Init the root node, leaving an otherwise empty graph.
     Vertex v = add_vertex(m_graph);
-    m_graph[v] = KW_RootNode;
-}
-
-string PdfContentsGraph::formatVariant( const NodeData& var, bool arriving )
-{
-    return boost::apply_visitor( FormatVariantVisitor(arriving), var );
+    m_graph[v] = MakeNode(KW_RootNode,KW_RootNode);
 }
 
 PdfContentsGraph::PdfContentsGraph( PdfContentsTokenizer & contentsTokenizer )
@@ -316,33 +266,18 @@ PdfContentsGraph::PdfContentsGraph( PdfContentsTokenizer & contentsTokenizer )
     // Set up the node stack and initialize the root node
     stack<Vertex> parentage;
     parentage.push( add_vertex(m_graph) );
-    m_graph[parentage.top()] = KW_RootNode;
+    m_graph[parentage.top()] = MakeNode(KW_RootNode,KW_RootNode);
 
-    // This flag controls whether the vertex on the top of the parentage stack
-    // is currently untyped. That can happen if, eg, we have some arguments
-    // linked to it but haven't yet seen the operator that consumes them.
-    //
-    bool haveNextOpVertex = false;
-    Vertex nextOpVertex = Vertex();
-    // number of argument values associated with the current top keyword
-    int numArguments = 0;
+    // Arguments to be associated with the next keyword found
+    vector<PdfVariant> args;
 
     while ( ( readToken = contentsTokenizer.ReadNext(t, kwText, var) ) )
     {
         if (t == ePdfContentsType_Variant)
         {
             // arguments come before operators, but we want to group them up before
-            // their operator. Treat the current top of the stack as the operator-to-be
-            // and start associating variants with it.
-            if (!haveNextOpVertex)
-            {
-                nextOpVertex = add_vertex(m_graph);
-                haveNextOpVertex = true;
-            }
-            Vertex arg = add_vertex( m_graph );
-            add_edge( nextOpVertex, arg, m_graph );
-            m_graph[arg] = var;
-            ++numArguments;
+            // their operator.
+            args.push_back(var);
         }
         else if (t == ePdfContentsType_Keyword)
         {
@@ -351,70 +286,82 @@ PdfContentsGraph::PdfContentsGraph( PdfContentsTokenizer & contentsTokenizer )
             if (ki.kt != KT_Closing)
             {
                 // We're going to need a new vertex, so make sure we have one ready.
-                if (haveNextOpVertex)
-                    v = nextOpVertex;
-                else
-                    v = add_vertex( m_graph );
-                haveNextOpVertex = false;
+                v = add_vertex( m_graph );
+                // Switch any waiting arguments into the new node's data.
+                m_graph[v].first.GetArgs().swap( args );
+                assert(!args.size());
             }
+
 
             if (ki.kw == KW_Unknown)
             {
                 // No idea what this keyword is. We have to assume it's an ordinary
                 // one, possibly with arguments, and just push it in as a node at the
                 // current level.
-                m_graph[v] = string(kwText);
+                assert(!m_graph[v].first.IsDefined());
+                m_graph[v].first.SetKw( string(kwText) );
                 add_edge( parentage.top(), v, m_graph );
+                assert( m_graph[v].first.GetKwId() == ki.kw );
+                assert( m_graph[v].first.GetKwString() == kwText );
             }
             else if (ki.kt == KT_Standalone)
             {
-                // Plain operator, shove it in the newly reserved vertex and add an edge from
-                // the top to it.
+                // Plain operator, shove it in the newly reserved vertex (which might already contain
+                // arguments) and add an edge from the top to it.
                 assert(ki.kw != KW_Undefined && ki.kw != KW_Unknown && ki.kw != KW_RootNode );
-                m_graph[v] = ki.kw;
+                assert(!m_graph[v].first.IsDefined());
+                m_graph[v].first.SetKw( ki.kw );
                 add_edge( parentage.top(), v, m_graph );
+                assert( m_graph[v].first.GetKwId() == ki.kw );
+                assert( m_graph[v].first.GetKwString() == kwText );
             }
             else if (ki.kt == KT_Opening)
             {
                 PrintStack(m_graph, parentage, "OS: ");
-                // Opening a new level. If we've consumed any arguments that's an error.
                 assert(ki.kw != KW_Undefined && ki.kw != KW_Unknown && ki.kw != KW_RootNode );
-                // Set the node up as a pair of keywords, one of which (the exit keyword) is undefined.
-                m_graph[v] = KWPair(ki.kw,KW_Undefined);
+                assert(!m_graph[v].first.IsDefined());
+                m_graph[v].first.SetKw( ki.kw );
                 // add an edge from the current top to it
                 add_edge( parentage.top(), v, m_graph );
                 // and push it to the top of the parentage stack
                 parentage.push( v );
+                assert( m_graph[v].first.GetKwId() == ki.kw );
+                assert( m_graph[v].first.GetKwString() == kwText );
                 PrintStack(m_graph, parentage, "OF: ");
             }
             else if (ki.kt == KT_Closing)
             {
+                // This keyword closes a context. The top of the parentage tree should
+                // be a node whose KWInstance is the matching opening keyword. We'll check
+                // that, then set the second KWInstance appropriately.
                 PrintStack(m_graph, parentage, "CS: ");
-                // Closing a level. The top of the stack should contain the
-                // matching opening node.
                 assert(ki.kw != KW_Undefined && ki.kw != KW_Unknown && ki.kw != KW_RootNode );
-                assert(!haveNextOpVertex);
-                PODOFO_RAISE_LOGIC_IF( numArguments, "Paired operator opening had arguments" );
-                KWPair kp = get<KWPair>( m_graph[parentage.top()] );
-                PdfContentStreamKeyword expectedCloseKw = findKwById(kp.first).kwClose;
+                // Get a reference to the node data for the current parent
+                NodeData & n ( m_graph[parentage.top()] );
+                PODOFO_RAISE_LOGIC_IF( n.second.IsDefined(), "Closing already closed group" );
+                // Ensure that the opening keyword therein is one that this closing keyword is
+                // a valid match for
+                PdfContentStreamKeyword expectedCloseKw = n.first.GetKwInfo().kwClose;
                 if ( ki.kw != expectedCloseKw )
                 {
                     string err = formatMismatchError(m_graph, parentage, ki.kw, expectedCloseKw);
                     PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidContentStream, err.c_str() );
                 }
-                PODOFO_RAISE_LOGIC_IF( kp.second != KW_Undefined, "Closing already closed group" );
-                kp.second = ki.kw;
-                m_graph[parentage.top()] = kp;
+                n.second.SetKw( ki.kw );
+                // If there are any arguments accumulated, assign them now.
+                n.second.GetArgs().swap( args );
+                assert(!args.size());
                 // Our associated operator is now on the top of the parentage stack. Since its scope
                 // has ended, it should also be popped.
                 parentage.pop();
+                assert( n.second.GetKwId() == ki.kw );
+                assert( n.second.GetKwString() == kwText );
                 PrintStack(m_graph, parentage, "CF: ");
             }
             else
             {
                 assert(false);
             }
-            numArguments = 0;
         }
         else
         {
@@ -422,7 +369,7 @@ PdfContentsGraph::PdfContentsGraph( PdfContentsTokenizer & contentsTokenizer )
         }
     }
 
-    PODOFO_RAISE_LOGIC_IF( haveNextOpVertex, "Stream ended with unconsumed arguments!" );
+    PODOFO_RAISE_LOGIC_IF( args.size(), "Stream ended with unconsumed arguments!" );
 
     PODOFO_RAISE_LOGIC_IF( parentage.size() != 1, "Stream failed to close all levels" );
 
@@ -442,6 +389,37 @@ void PdfContentsGraph::WriteToStdErr()
     PdfOutputDevice outDev( &cerr );
     PdfDeviceOutputStream outStream( &outDev );
     Write(outStream);
+}
+
+string PdfContentsGraph::KWInstance::GetKwString() const
+{
+    return boost::apply_visitor( KWIVariantAsStringVisitor(), m_keyword );
+}
+
+PdfContentStreamKeyword PdfContentsGraph::KWInstance::GetKwId() const
+{
+    return boost::apply_visitor( KWIVariantAsIdVisitor(), m_keyword );
+}
+
+void PdfContentsGraph::KWInstance::PrintToStream(PdfOutputStream& os, const char * szSepStr, long lStrLen) const
+{
+    string s;
+    if (m_args.size())
+    {
+        typedef vector<PdfVariant>::const_iterator Iter;
+        const Iter itEnd = m_args.end();
+        Iter it = m_args.begin();
+        while ( it != itEnd )
+        {
+            (*it).ToString(s);
+            os.Write(s.data(), s.size());
+            os.Write(szSepStr,lStrLen);
+            ++it;
+        }
+    }
+    s = GetKwString();
+    os.Write(s.data(), s.size());
+    os.Write(szSepStr,lStrLen);
 }
 
 } // namespace PoDoFo
