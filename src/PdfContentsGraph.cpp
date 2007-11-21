@@ -282,52 +282,54 @@ PdfContentsGraph::PdfContentsGraph( PdfContentsTokenizer & contentsTokenizer )
         else if (t == ePdfContentsType_Keyword)
         {
             const KWInfo & ki ( findKwByName(kwText) );
-            Vertex v;
             if (ki.kt != KT_Closing)
             {
                 // We're going to need a new vertex, so make sure we have one ready.
-                v = add_vertex( m_graph );
+                Vertex v = add_vertex( m_graph );
                 // Switch any waiting arguments into the new node's data.
                 m_graph[v].first.GetArgs().swap( args );
                 assert(!args.size());
-            }
 
-
-            if (ki.kw == KW_Unknown)
-            {
-                // No idea what this keyword is. We have to assume it's an ordinary
-                // one, possibly with arguments, and just push it in as a node at the
-                // current level.
-                assert(!m_graph[v].first.IsDefined());
-                m_graph[v].first.SetKw( string(kwText) );
-                add_edge( parentage.top(), v, m_graph );
-                assert( m_graph[v].first.GetKwId() == ki.kw );
-                assert( m_graph[v].first.GetKwString() == kwText );
-            }
-            else if (ki.kt == KT_Standalone)
-            {
-                // Plain operator, shove it in the newly reserved vertex (which might already contain
-                // arguments) and add an edge from the top to it.
-                assert(ki.kw != KW_Undefined && ki.kw != KW_Unknown && ki.kw != KW_RootNode );
-                assert(!m_graph[v].first.IsDefined());
-                m_graph[v].first.SetKw( ki.kw );
-                add_edge( parentage.top(), v, m_graph );
-                assert( m_graph[v].first.GetKwId() == ki.kw );
-                assert( m_graph[v].first.GetKwString() == kwText );
-            }
-            else if (ki.kt == KT_Opening)
-            {
-                PrintStack(m_graph, parentage, "OS: ");
-                assert(ki.kw != KW_Undefined && ki.kw != KW_Unknown && ki.kw != KW_RootNode );
-                assert(!m_graph[v].first.IsDefined());
-                m_graph[v].first.SetKw( ki.kw );
-                // add an edge from the current top to it
-                add_edge( parentage.top(), v, m_graph );
-                // and push it to the top of the parentage stack
-                parentage.push( v );
-                assert( m_graph[v].first.GetKwId() == ki.kw );
-                assert( m_graph[v].first.GetKwString() == kwText );
-                PrintStack(m_graph, parentage, "OF: ");
+                if (ki.kw == KW_Unknown)
+                {
+                    // No idea what this keyword is. We have to assume it's an ordinary
+                    // one, possibly with arguments, and just push it in as a node at the
+                    // current level.
+                    assert(!m_graph[v].first.IsDefined());
+                    m_graph[v].first.SetKw( string(kwText) );
+                    add_edge( parentage.top(), v, m_graph );
+                    assert( m_graph[v].first.GetKwId() == ki.kw );
+                    assert( m_graph[v].first.GetKwString() == kwText );
+                }
+                else if (ki.kt == KT_Standalone)
+                {
+                    // Plain operator, shove it in the newly reserved vertex (which might already contain
+                    // arguments) and add an edge from the top to it.
+                    assert(ki.kw != KW_Undefined && ki.kw != KW_Unknown && ki.kw != KW_RootNode );
+                    assert(!m_graph[v].first.IsDefined());
+                    m_graph[v].first.SetKw( ki.kw );
+                    add_edge( parentage.top(), v, m_graph );
+                    assert( m_graph[v].first.GetKwId() == ki.kw );
+                    assert( m_graph[v].first.GetKwString() == kwText );
+                }
+                else if (ki.kt == KT_Opening)
+                {
+                    PrintStack(m_graph, parentage, "OS: ");
+                    assert(ki.kw != KW_Undefined && ki.kw != KW_Unknown && ki.kw != KW_RootNode );
+                    assert(!m_graph[v].first.IsDefined());
+                    m_graph[v].first.SetKw( ki.kw );
+                    // add an edge from the current top to it
+                    add_edge( parentage.top(), v, m_graph );
+                    // and push it to the top of the parentage stack
+                    parentage.push( v );
+                    assert( m_graph[v].first.GetKwId() == ki.kw );
+                    assert( m_graph[v].first.GetKwString() == kwText );
+                    PrintStack(m_graph, parentage, "OF: ");
+                }
+                else
+                {
+                    assert(false);
+                }
             }
             else if (ki.kt == KT_Closing)
             {
