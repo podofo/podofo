@@ -271,7 +271,7 @@ int main( int argc, char* argv[] )
         int toPage = all_pages ? doc.GetPageCount() : 1 ;
         for ( int i = 0; i < toPage; ++i )
         {
-            cout << "Processing page " << setw(6) << (i+1) << "...";
+            cout << "Processing page " << setw(6) << (i+1) << "..." << std::flush;
             PdfPage* page = doc.GetPage( i );
             PODOFO_RAISE_LOGIC_IF( !page, "Got null page pointer within valid page range" );
 
