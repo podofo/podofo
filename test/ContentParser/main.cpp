@@ -1,4 +1,3 @@
-
 #include "podofo.h"
 #include "../PdfTest.h"
 
@@ -10,6 +9,8 @@
 using namespace std;
 using namespace PoDoFo;
 
+static bool print_output = false;
+
 void parse_contents( PdfContentsTokenizer* pTokenizer ) 
 {
     const char*      pszToken = NULL;
@@ -18,13 +19,13 @@ void parse_contents( PdfContentsTokenizer* pTokenizer )
     std::string      str;
 
     std::stack<PdfVariant> stack;
-    std::cout << std::endl << "Parsing a page:" << std::endl;
+    if(print_output) std::cout << std::endl << "Parsing a page:" << std::endl;
 
     while( pTokenizer->ReadNext( eType, pszToken, var ) )
     {
         if( eType == ePdfContentsType_Keyword )
         {
-            std::cout << "Keyword: " << pszToken << std::endl;
+            if (print_output) std::cout << "Keyword: " << pszToken << std::endl;
 
             // support 'l' and 'm' tokens
             if( strcmp( pszToken, "l" ) == 0 ) 
@@ -34,7 +35,7 @@ void parse_contents( PdfContentsTokenizer* pTokenizer )
                 double dPosX = stack.top().GetReal();
                 stack.pop();
 
-                std::cout << "LineTo: " << dPosX << " " << dPosY << std::endl;
+                if(print_output) std::cout << "LineTo: " << dPosX << " " << dPosY << std::endl;
             }
             else if( strcmp( pszToken, "m" ) == 0 ) 
             {
@@ -43,13 +44,13 @@ void parse_contents( PdfContentsTokenizer* pTokenizer )
                 double dPosX = stack.top().GetReal();
                 stack.pop();
 
-                std::cout << "MoveTo: " << dPosX << " " << dPosY << std::endl;
+                if(print_output) std::cout << "MoveTo: " << dPosX << " " << dPosY << std::endl;
             }
         }
         else if ( eType == ePdfContentsType_Variant )
         {
             var.ToString( str );
-            std::cout << "Variant: " << str << std::endl;
+            if(print_output) std::cout << "Variant: " << str << std::endl;
             stack.push( var );
         }
         else
@@ -58,7 +59,7 @@ void parse_contents( PdfContentsTokenizer* pTokenizer )
             PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
         }
     }
-    std::cout << "EOF" << std::endl;
+    if(print_output) std::cout << "EOF" << std::endl;
 }
 
 #if defined(HAVE_BOOST)
@@ -165,7 +166,7 @@ void parse_page_graph( PdfMemDocument*, PdfPage* pPage )
     // The above will either execute silently (a pass) or throw (a fail).
 
     // Write to stderr for test view
-    g.WriteToStdErr();
+    if(print_output) g.WriteToStdErr();
 }
 #endif
 
@@ -177,52 +178,94 @@ void parse_page( PdfMemDocument*, PdfPage* pPage )
 
 void usage()
 {
-    printf("Usage: ContentParser input_filename [g]\n");
+    printf("Usage: ContentParser [-g] [-a] [-p] input_filename\n");
+    printf("       -g   Use PdfContentsGraph\n");
+    printf("       -a   Process all pages of input, not just first\n");
+    printf("       -p   Print parsed content stream to stdout\n");
 }
 
 int main( int argc, char* argv[] ) 
 {
-    if( argc < 2 || argc > 3 )
+    bool use_graph = false, all_pages = false;
+    string inputFileName;
+    ++argv;
+    --argc;
+    while (argc)
+    {
+        if( argv[0][0] == '-' )
+        {
+            // Single character flag
+            switch( argv[0][1] )
+            {
+                case 'g':
+                    // Use PdfContentsGraph
+                    use_graph = true;
+                    break;
+                case 'a':
+                    // Process all pages, not just first page
+                    all_pages = true;
+                    break;
+                case 'p':
+                    // Print output, rather than parsing & checking
+                    // silently.
+                    print_output = true;
+                    break;
+                default:
+                    usage();
+                    return 1;
+            }
+        }
+        else
+        {
+            // Input filename
+            if (inputFileName.empty())
+            {
+                inputFileName = argv[0];
+            }
+            else
+            {
+                usage();
+                return 1;
+            }
+        }
+        ++argv;
+        --argc;
+    }
+
+    if (inputFileName.empty())
     {
         usage();
         return 1;
     }
 
-    bool use_graph = false;
-    if( argc == 3 )
+    try
     {
-        if ( strcmp(argv[2],"g") == 0 )
-        {
-            use_graph = true;
-        }
-        else
-        {
-            usage();
-            return 2;
-        }
-    }
-
-    try 
-    {
-        PdfMemDocument doc( argv[1] );
+        PdfMemDocument doc( inputFileName.c_str() );
         if( !doc.GetPageCount() )
         {
             std::cerr << "This document contains no page!" << std::endl;
             return 1;
         }
 
-        PdfPage* pFirst = doc.GetPage( 0 );
-        
-        if (!use_graph)
-            parse_page( &doc, pFirst );
-        else
+        int toPage = all_pages ? doc.GetPageCount() : 1 ;
+        for ( int i = 0; i < toPage; ++i )
         {
+            std::cerr << "Processing page " << i << std::endl;
+            PdfPage* page = doc.GetPage( i );
+            PODOFO_RAISE_LOGIC_IF( !page, "Got null page pointer within valid page range" );
+
+            if (!use_graph)
+                parse_page( &doc, page );
+            else
+            {
 #if defined(HAVE_BOOST)
-            parse_page_graph( &doc, pFirst );
+                parse_page_graph( &doc, page );
 #else
-            std::cerr << "Can't use Boost::Graph output - not configured with Boost support" << std::endl;
-            return 4;
+                std::cerr << "Can't use Boost::Graph output - not configured with Boost support" << std::endl;
+                return 4;
 #endif
+            }
+            std::cerr << "Processed page " << i << std::endl;
         }
     }
     catch( const PdfError & e )
@@ -231,5 +274,6 @@ int main( int argc, char* argv[] )
         return e.GetError();
     }
 
+    cout << endl;
     return 0;
 }
