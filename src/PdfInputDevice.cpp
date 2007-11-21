@@ -59,12 +59,12 @@ PdfInputDevice::PdfInputDevice( const char* pszFilename )
 PdfInputDevice::PdfInputDevice( const char* pBuffer, long lLen )
 {
     this->Init();
-    
-    if( !pBuffer || !lLen ) 
+
+    if( !pBuffer || lLen < 0 ) 
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
-    
+
     try {
         m_pStream = static_cast< std::istream* >( new std::istringstream( std::string( pBuffer, lLen), std::ios::binary ) );
         if( !m_pStream || !m_pStream->good() )
