@@ -21,6 +21,16 @@
 #ifndef _PDF_FILTERS_PRIVATE_H_
 #define _PDF_FILTERS_PRIVATE_H_
 
+/**
+ * \file PdfFiltersPrivate.h
+ *
+ * Provides implementations of various PDF stream filters.
+ *
+ * This is an internal header. It should not be included in podofo.h, and
+ * should not be included directly by client applications. These filters should
+ * only be accessed through the factory interface in PdfFilters.h .
+ */
+
 #include "PdfDefines.h"
 #include "PdfFilter.h"
 #include "PdfRefCountedBuffer.h"
