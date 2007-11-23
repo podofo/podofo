@@ -199,12 +199,13 @@ inline void PrintStack(
 std::string formatMismatchError(
         const PdfContentsGraph::Graph & g,
         const stack<PdfContentsGraph::Vertex> & s,
+        int tokenNumber,
         PdfContentStreamKeyword gotKW,
         PdfContentStreamKeyword expectedKW)
 {
     // Didn't find matching opening operator at top of stack.
     ostringstream err;
-    err << "Found mismatching opening/closing operators. Got: "
+    err << "Found mismatching opening/closing operators at token number " << tokenNumber << ". Got: "
         << PdfContentsGraph::findKwById(gotKW).kwText << ", expected "
         << PdfContentsGraph::findKwById(expectedKW).kwText << ". Context stack was: ";
     formatReversedStack(g,s,err);
@@ -263,6 +264,10 @@ PdfContentsGraph::PdfContentsGraph( PdfContentsTokenizer & contentsTokenizer )
     PdfVariant var;
     bool readToken;
 
+    // Keep a count of the number of tokens read so we can report errors
+    // more usefully.
+    int tokenNumber = 0;
+
     // Set up the node stack and initialize the root node
     stack<Vertex> parentage;
     parentage.push( add_vertex(m_graph) );
@@ -273,6 +278,7 @@ PdfContentsGraph::PdfContentsGraph( PdfContentsTokenizer & contentsTokenizer )
 
     while ( ( readToken = contentsTokenizer.ReadNext(t, kwText, var) ) )
     {
+        ++tokenNumber;
         if (t == ePdfContentsType_Variant)
         {
             // arguments come before operators, but we want to group them up before
@@ -346,7 +352,7 @@ PdfContentsGraph::PdfContentsGraph( PdfContentsTokenizer & contentsTokenizer )
                 PdfContentStreamKeyword expectedCloseKw = n.first.GetKwInfo().kwClose;
                 if ( ki.kw != expectedCloseKw )
                 {
-                    string err = formatMismatchError(m_graph, parentage, ki.kw, expectedCloseKw);
+                    string err = formatMismatchError(m_graph, parentage, tokenNumber, ki.kw, expectedCloseKw);
                     PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidContentStream, err.c_str() );
                 }
                 n.second.SetKw( ki.kw );
