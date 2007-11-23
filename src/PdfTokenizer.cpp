@@ -389,7 +389,7 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
                 // No third token, so it can't be a reference
                 return eDataType;
             if( eThirdTokenType == ePdfTokenType_Token &&
-                pszToken[0] == 'R' )
+                pszToken[0] == 'R' && pszToken[1] == '\0' )
             {
                 rVariant = PdfReference( rVariant.GetNumber(), l);
                 return ePdfDataType_Reference;
