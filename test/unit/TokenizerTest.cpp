@@ -135,3 +135,69 @@ void TokenizerTest::testString()
     Test( "(Test: \\0645)", ePdfDataType_String, "(Test: 45)" );
     Test( "(Test: \\478)", ePdfDataType_String, "(Test: '8)" );
 }
+
+void TokenizerTest::TestStream( const char* pszBuffer, const char* pszTokens[] )
+{
+
+    long          lLen = strlen( pszBuffer );
+    PdfTokenizer  tokenizer( pszBuffer, lLen );
+    EPdfTokenType eType;
+    const char*   pszCur;
+    int           i = 0;
+    while( pszTokens[i] )
+    {
+        CPPUNIT_ASSERT_EQUAL( tokenizer.GetNextToken( pszCur, &eType ), true );
+        
+        std::string sCur( pszCur );
+        std::string sToken( pszTokens[i] );
+
+        CPPUNIT_ASSERT_EQUAL( sCur, sToken );
+
+        ++i;
+    }
+
+    // We are at the end, so GetNextToken has to return false!
+    CPPUNIT_ASSERT_EQUAL( tokenizer.GetNextToken( pszCur, &eType ), false );
+}
+
+void TokenizerTest::TestStreamIsNextToken( const char* pszBuffer, const char* pszTokens[] )
+{
+
+    long          lLen = strlen( pszBuffer );
+    PdfTokenizer  tokenizer( pszBuffer, lLen );
+
+    int           i = 0;
+    while( pszTokens[i] )
+        CPPUNIT_ASSERT_EQUAL( tokenizer.IsNextToken( pszTokens[i++] ), true );
+}
+
+void TokenizerTest::testTokens()
+{
+    const char* pszBuffer = "613 0 obj"
+        "<< /Length 141 /Filter [ /ASCII85Decode /FlateDecode ] >>"
+        "endobj";
+
+    const char* pszTokens[] = {
+        "613", "0", "obj", "<<", "/", "Length", "141", "/", "Filter", "[", "/",
+        "ASCII85Decode", "/", "FlateDecode", "]", ">>", "endobj", NULL
+    };
+
+    TestStream( pszBuffer, pszTokens );
+    TestStreamIsNextToken( pszBuffer, pszTokens );
+}
+
+void TokenizerTest::testComments()
+{
+    const char* pszBuffer = "613 0 obj\n"
+        "% A comment that should be ignored\n"
+        "<< /Length 141 /Filter\n% A comment in a dictionary\n[ /ASCII85Decode /FlateDecode ] >>"
+        "endobj";
+
+    const char* pszTokens[] = {
+        "613", "0", "obj", "<<", "/", "Length", "141", "/", "Filter", "[", "/",
+        "ASCII85Decode", "/", "FlateDecode", "]", ">>", "endobj", NULL
+    };
+
+    TestStream( pszBuffer, pszTokens );
+    TestStreamIsNextToken( pszBuffer, pszTokens );
+}

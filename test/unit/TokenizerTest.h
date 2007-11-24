@@ -26,6 +26,11 @@
 #include <podofo.h>
 
 /** This test tests the class PdfTokenizer
+ *
+ *  Currently the following methods are tested
+ *  - void PdfTokenizer::GetNextVariant( PdfVariant& rVariant, PdfEncrypt* pEncrypt );
+ *  - bool PdfTokenizer::GetNextToken( const char *& pszToken, EPdfTokenType* peType = NULL);
+ *  - void PdfTokenizer::IsNextToken( const char* pszToken );
  */
 class TokenizerTest : public CppUnit::TestFixture
 {
@@ -38,12 +43,13 @@ class TokenizerTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testNumbers );
   CPPUNIT_TEST( testReference );
   CPPUNIT_TEST( testString );
+  CPPUNIT_TEST( testTokens );
+  CPPUNIT_TEST( testComments );
   CPPUNIT_TEST_SUITE_END();
 
  public:
   void setUp();
   void tearDown();
-
 
   void testArrays();
   void testBool();
@@ -54,9 +60,27 @@ class TokenizerTest : public CppUnit::TestFixture
   void testReference();
   void testString();
 
+  void testTokens();
+  void testComments();
+
  private:
   void Test( const char* pszString, PoDoFo::EPdfDataType eDataType, const char* pszExpected = NULL );
 
+  /** Test parsing a stream.
+   *
+   *  \param pszBuffer a string buffer that will be parsed
+   *  \param pszTokens a NULL terminated list of all tokens in the  
+   *                   order PdfTokenizer should read them from pszBuffer 
+   */
+  void TestStream( const char* pszBuffer, const char* pszTokens[] );
+
+  /** Test parsing a stream. As above but this time using PdfTokenizer::IsNextToken()
+   *
+   *  \param pszBuffer a string buffer that will be parsed
+   *  \param pszTokens a NULL terminated list of all tokens in the  
+   *                   order PdfTokenizer should read them from pszBuffer 
+   */
+  void TestStreamIsNextToken( const char* pszBuffer, const char* pszTokens[] );
 };
 
 #endif // _TOKENIZER_TEST_H_

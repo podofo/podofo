@@ -28,14 +28,28 @@
 class NameTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE( NameTest );
-  CPPUNIT_TEST( testConstructor );
+  CPPUNIT_TEST( testNameEncoding );
+  CPPUNIT_TEST( testEncodedNames );
+  CPPUNIT_TEST( testEquality );
   CPPUNIT_TEST_SUITE_END();
 
  public:
   void setUp();
   void tearDown();
-  void testConstructor();
 
+
+  void testNameEncoding();
+  void testEncodedNames();
+  void testEquality();
+
+ private:
+
+  void TestName( const char* pszString, const char* pszExpectedEncoded );
+  void TestEncodedName( const char* pszString, const char* pszExpected );
+
+  /** Tests if both names are equal
+   */
+  void TestNameEquality( const char * pszName1, const char* pszName2 );
 };
 
 #endif // _NAME_TEST_H_
