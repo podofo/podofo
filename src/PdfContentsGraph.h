@@ -123,7 +123,7 @@ public:
          *
          *  \see findKwById \see findKwByName
          */
-        const KWInfo& GetKwInfo() { return findKwById(GetKwId()); }
+        const KWInfo& GetKwInfo() const { return findKwById(GetKwId()); }
         /** return a reference to the argument array of this keyword */
         KWArgs & GetArgs() { return m_args; }
         /** Return a reference to the argument array of this keyword. */

@@ -213,6 +213,69 @@ std::string formatMismatchError(
     return err.str();
 }
 
+// Read ahead to try to find an ordering of close operators that satisfies
+// the requirements of the standard.
+bool closeFixup( PdfContentsGraph::Graph & g,
+                 stack<PdfContentsGraph::Vertex> & s,
+                 PdfContentsTokenizer & contentsTokenizer,
+                 const PdfContentsGraph::KWInfo& badKw )
+{
+    // For now we only look ahead one operator, since that's good enough
+    // to let use read the PDF references etc.
+
+    EPdfContentsType t;
+    const char * kwText;
+    PdfVariant var;
+    bool readToken;
+
+    // Save a copy of the stack so we can put it back how it was if
+    // our readahead fixup fails.
+    stack<PdfContentsGraph::Vertex> s_copy ( s );
+
+    // Next item must be a close keyword
+    if ( ( readToken = contentsTokenizer.ReadNext(t, kwText, var) ) )
+    {
+        if ( t == ePdfContentsType_Keyword )
+        {
+            const PdfContentsGraph::KWInfo & ki ( PdfContentsGraph::findKwByName(kwText) );
+            if ( ki.kt == PdfContentsGraph::KT_Closing )
+            {
+                // We know that the waiting close keyword, badKw,
+                // doesn't match the open keyword on the top of the stack.
+                // If the one we just read does, and badKw matches the
+                // context open outside that, we're OK.
+                PdfContentsGraph::NodeData & n1 ( g[s.top()] );
+                if ( ki.kw == n1.first.GetKwInfo().kwClose )
+                {
+                    // The keyword we just read was the right one to
+                    // close the top context.
+                    n1.second.SetKw( ki.kw );
+                    s.pop();
+                    // Leaving us with the newly exposed outer context
+                    // node and the old keyword. See if it matches.
+                    PdfContentsGraph::NodeData & n2 ( g[s.top()] );
+                    if ( badKw.kw == n2.first.GetKwInfo().kwClose )
+                    {
+                        // The old keyword matches the newly exposed
+                        // node's close keyword, so everything's OK.
+                        n2.second.SetKw( badKw.kw );
+                        s.pop();
+                        // Fixup succeeded
+                        return true;
+                    }
+                    // Whoops, failed. Restore the copied stack
+                    // so error reports don't show the effects of the
+                    // lookahead.
+                    s = s_copy;
+                }
+            }
+        }
+    }
+
+    // Fixup attempt failed
+    return false;
+}
+
 } // end anon namespace
 
 
@@ -350,20 +413,29 @@ PdfContentsGraph::PdfContentsGraph( PdfContentsTokenizer & contentsTokenizer )
                 // Ensure that the opening keyword therein is one that this closing keyword is
                 // a valid match for
                 PdfContentStreamKeyword expectedCloseKw = n.first.GetKwInfo().kwClose;
+                // Ensure there aren't any args to the close kw
+                assert(!args.size());
+                // and handle the close matching
                 if ( ki.kw != expectedCloseKw )
                 {
-                    string err = formatMismatchError(m_graph, parentage, tokenNumber, ki.kw, expectedCloseKw);
-                    PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidContentStream, err.c_str() );
+                    // Some PDFs, even Adobe ones, place close operators
+                    // in the wrong order. We'll do some lookahead to see
+                    // if we can fix things up before we hit a non-close
+                    // operator.
+                    if ( !closeFixup( m_graph, parentage, contentsTokenizer, ki  ) )
+                    {
+                        string err = formatMismatchError(m_graph, parentage, tokenNumber, ki.kw, expectedCloseKw);
+                        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidContentStream, err.c_str() );
+                    }
                 }
-                n.second.SetKw( ki.kw );
-                // If there are any arguments accumulated, assign them now.
-                n.second.GetArgs().swap( args );
-                assert(!args.size());
-                // Our associated operator is now on the top of the parentage stack. Since its scope
-                // has ended, it should also be popped.
-                parentage.pop();
-                assert( n.second.GetKwId() == ki.kw );
-                assert( n.second.GetKwString() == kwText );
+                else
+                {
+                    n.second.SetKw( ki.kw );
+                    // Our associated operator is now on the top of the
+                    // parentage stack. Since its scope has ended, it should
+                    // also be popped.
+                    parentage.pop();
+                }
                 PrintStack(m_graph, parentage, "CF: ");
             }
             else
