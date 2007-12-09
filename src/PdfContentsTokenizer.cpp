@@ -35,7 +35,7 @@ PdfContentsTokenizer::PdfContentsTokenizer( PdfCanvas* pCanvas )
     PdfObject* pContents = pCanvas->GetContents();
     if( pContents && pContents->IsArray()  ) 
     {
-        PdfArray& a ( pContents->GetArray() );
+        PdfArray& a = pContents->GetArray();
         for ( PdfArray::iterator it = a.begin(); it != a.end() ; ++it )
         {
             if ( !(*it).IsReference() )
