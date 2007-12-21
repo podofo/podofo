@@ -190,6 +190,9 @@ void PdfMemStream::Uncompress()
     {
         this->GetFilteredCopy( &pBuffer, &lLen );
         this->Set( pBuffer, lLen, vecEmpty );
+        // free the memory allocated by GetFilteredCopy again.
+        free( pBuffer );
+
         m_pParent->GetDictionary().RemoveKey( "Filter" ); 
         
         // TODO: DS:
