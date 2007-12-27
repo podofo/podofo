@@ -54,6 +54,7 @@
 #include "PdfFilter.h"
 #include "PdfFont.h"
 #include "PdfFontCache.h"
+#include "PdfFontFactory.h"
 #include "PdfFontMetrics.h"
 #include "PdfFunction.h"
 #include "PdfImage.h"

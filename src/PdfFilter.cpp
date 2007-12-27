@@ -255,6 +255,14 @@ std::auto_ptr<PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter )
 #endif // PODOFO_HAVE_JPEG_LIB
 
         case ePdfFilter_CCITTFaxDecode:
+#ifdef PODOFO_HAVE_TIFF_LIB
+            pFilter = new PdfCCITTFilter();
+            break;
+#else
+            break;
+#endif // PODOFO_HAVE_TIFF_LIB
+
+
         case ePdfFilter_JBIG2Decode:
         case ePdfFilter_JPXDecode:
         case ePdfFilter_Crypt:

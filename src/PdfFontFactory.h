@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
+ *   Copyright (C) 2007 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,62 +18,34 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#ifndef _PDF_FONT_FACTORY_H_
+#define _PDF_FONT_FACTORY_H_
+
+#include "PdfDefines.h"
 #include "PdfFont.h"
-
-#include "PdfArray.h"
-#include "PdfFontMetrics.h"
-#include "PdfInputStream.h"
-#include "PdfPage.h"
-#include "PdfStream.h"
-#include "PdfWriter.h"
-#include "PdfLocale.h"
-
-#include <sstream>
-
-using namespace std;
 
 namespace PoDoFo {
 
-PdfFont::PdfFont( PdfFontMetrics* pMetrics, PdfVecObjects* pParent )
-    : PdfElement( "Font", pParent ), m_pMetrics( pMetrics ), m_bBold( false ), m_bItalic( false )
-{
-    this->InitVars();
-}
+class PdfFontMetrics;
+class PdfVecObjects;
 
-PdfFont::~PdfFont()
-{
-    delete m_pMetrics;
-}
+/** This is a factory class which knows
+ *  which implementation of PdfFont is required
+ *  for a certain font type with certain features (like encoding).
+ */
+class PODOFO_API PdfFontFactory {
+ public:
 
-void PdfFont::InitVars()
-{
-    ostringstream out;
-    PdfLocaleImbue(out);
-
-    m_pMetrics->SetFontSize( 12.0 );
-    m_pMetrics->SetFontScale( 100.0 );
-    m_pMetrics->SetFontCharSpace( 0.0 );
-    
-    m_bUnderlined = false;
-    m_bStrikedOut = false;
-
-    // Implementation note: the identifier is always
-    // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "Ft" << m_pObject->Reference().ObjectNumber();
-    m_Identifier = PdfName( out.str().c_str() );
-
-    // replace all spaces in the base font name as suggested in 
-    // the PDF reference section 5.5.2#
-    int curPos = 0;
-    std::string sTmp = m_pMetrics->GetFontname();
-    for(int i = 0; i < sTmp.size(); i++)
-    {
-        if(sTmp[i] != ' ')
-            sTmp[curPos++] = sTmp[i];
-    }
-    sTmp.resize(curPos);
-    m_BaseFont = PdfName( sTmp.c_str() );
-}
+    /** Create a new PdfFont object.
+     *
+     *  \returns a new PdfFont object or NULL in case of an error.
+     */
+    static PdfFont* CreateFont( PdfFontMetrics* pMetrics, bool bEmbedd, bool bBold, bool bItalic, PdfVecObjects* pParent );
 
 };
+
+};
+
+#endif /* _PDF_FONT_FACTORY_H_ */
+
 

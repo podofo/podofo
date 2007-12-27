@@ -135,7 +135,7 @@ class PODOFO_API PdfTokenizer {
     PODOFO_NOTHROW inline static bool IsRegular(const unsigned char ch);
 
     /**
-     * True iff the passed character is within the generally accepted "printable"
+     * True if the passed character is within the generally accepted "printable"
      * ASCII range.
      */
     PODOFO_NOTHROW inline static bool IsPrintable(const unsigned char ch);

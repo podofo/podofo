@@ -25,6 +25,7 @@
 #include "PdfFontCache.h" 
 
 #include "PdfFont.h"
+#include "PdfFontFactory.h"
 #include "PdfFontMetrics.h"
 #include "PdfInputDevice.h"
 #include "PdfTTFWriter.h"
@@ -357,7 +358,7 @@ PdfFont* PdfFontCache::CreateFont( PdfFontMetrics* pMetrics, bool bEmbedd, bool 
     PdfFont* pFont;
 
     try {
-        pFont    = new PdfFont( pMetrics, bEmbedd, bBold, bItalic, m_pParent );
+        pFont    = PdfFontFactory::CreateFont( pMetrics, bEmbedd, bBold, bItalic, m_pParent );
 
         TFontCacheElement element;
         element.m_pFont     = pFont;
@@ -384,8 +385,10 @@ PdfFont* PdfFontCache::CreateFontSubset( PdfFontMetrics* pMetrics, const char* p
 {
     PdfFont* pFont = NULL;
 
+    PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "PDF Font subsets are not yet implemented!" );
+
     try {
-        pFont    = new PdfFont( pMetrics, bBold, bItalic, vecGlyphs, m_pParent );
+        //pFont    = new PdfFont( pMetrics, bBold, bItalic, vecGlyphs, m_pParent );
         
         //m_vecFontSubsets  .push_back( pFont );
     } catch( PdfError & e ) {

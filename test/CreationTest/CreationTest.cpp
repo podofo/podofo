@@ -188,6 +188,37 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->DrawLine( x, y, x + (100000 * CONVERSION_CONSTANT), y );
     y -= (10000 * CONVERSION_CONSTANT);
     
+
+    ///////////////////////
+
+    pPage = pDocument->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+    pPainter->SetPage( pPage );
+
+    x     = 10000 * CONVERSION_CONSTANT;
+    y     = pPage->GetPageSize().GetHeight() - 10000 * CONVERSION_CONSTANT;
+    char buffer[1024];
+
+    double dStroke = 0.01;
+    double dLine   = pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
+    for( int i=0;i<23; i++ ) 
+    {
+        sprintf( buffer, "Linewidth: %.3fpt", dStroke );
+        pPainter->DrawText( x, y, PdfString( buffer ) ); 
+
+        pPainter->Save();
+        pPainter->SetStrokeWidth( dStroke );
+        pPainter->DrawLine( x + 60000 * CONVERSION_CONSTANT, y + dLine/2.0, x + 140000 * CONVERSION_CONSTANT, y + dLine/2.0 );
+        pPainter->DrawLine( x + 60000 * CONVERSION_CONSTANT, y, x + 140000 * CONVERSION_CONSTANT, y  );
+        pPainter->DrawLine( x + 60000 * CONVERSION_CONSTANT, y + dLine, x + 140000 * CONVERSION_CONSTANT, y + dLine );
+
+        pPainter->DrawLine( x + 60000 * CONVERSION_CONSTANT, y, x + 60000 * CONVERSION_CONSTANT, y + dLine );
+        pPainter->DrawLine( x + 140000 * CONVERSION_CONSTANT, y, x + 140000 * CONVERSION_CONSTANT, y + dLine );
+
+        pPainter->Restore();
+        dStroke += 0.05;
+ 
+        y -= dLine*2.0;
+    }
 }
 
 void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
@@ -581,20 +612,6 @@ void TableTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     int i,z;
     double        dX     = 10000 * CONVERSION_CONSTANT;
     double        dY     = (pPage->GetPageSize().GetHeight() - 40000 * CONVERSION_CONSTANT);
-
-    std::vector<int> vecGlyphIndeces;
-    vecGlyphIndeces.push_back( static_cast<int>('H') );
-    vecGlyphIndeces.push_back( static_cast<int>('a') );
-    vecGlyphIndeces.push_back( static_cast<int>('l') );
-    vecGlyphIndeces.push_back( static_cast<int>('o') );
-    vecGlyphIndeces.push_back( static_cast<int>(' ') );
-    vecGlyphIndeces.push_back( static_cast<int>('W') );
-    vecGlyphIndeces.push_back( static_cast<int>('r') );
-    vecGlyphIndeces.push_back( static_cast<int>('d') );
-    vecGlyphIndeces.push_back( static_cast<int>('!') );
-    PdfFont* pFontSubset = pDocument->CreateFontSubset( "Arial", false, false, vecGlyphIndeces );
-    pPainter->SetFont( pFontSubset );
-    pPainter->DrawText( dX + 90000 * CONVERSION_CONSTANT, dY, "Hallo World!" );
 
     PdfFont* pFont = pDocument->CreateFont( "Comic Sans MS" );
     pFont->SetFontSize( 12.0f );

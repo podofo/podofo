@@ -1,0 +1,101 @@
+/***************************************************************************
+ *   Copyright (C) 2007 by Dominik Seichter                                *
+ *   domseichter@web.de                                                    *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Library General Public License as       *
+ *   published by the Free Software Foundation; either version 2 of the    *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+#include "PdfFontSimple.h"
+
+
+#include "PdfArray.h"
+#include "PdfDictionary.h"
+#include "PdfFilter.h"
+#include "PdfName.h"
+#include "PdfStream.h"
+
+#define FIRST_CHAR   0
+#define LAST_CHAR  255
+
+namespace PoDoFo {
+
+
+PdfFontSimple::PdfFontSimple( PdfFontMetrics* pMetrics, PdfVecObjects* pParent )
+    : PdfFont( pMetrics, pParent )
+{
+}
+
+
+void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
+{
+    PdfObject*    pWidth;
+    PdfObject*    pDescriptor;
+    PdfVariant    var;
+    PdfArray      array;
+
+    pWidth = m_pObject->GetOwner()->CreateObject();
+    if( !pWidth )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    m_pMetrics->GetWidthArray( *pWidth, FIRST_CHAR, LAST_CHAR );
+
+    pDescriptor = m_pObject->GetOwner()->CreateObject( "FontDescriptor" );
+    if( !pDescriptor )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, rsSubType );
+    m_pObject->GetDictionary().AddKey("BaseFont", this->GetBaseFont() );
+    m_pObject->GetDictionary().AddKey("FirstChar", PdfVariant( static_cast<long>(FIRST_CHAR) ) );
+    m_pObject->GetDictionary().AddKey("LastChar", PdfVariant( static_cast<long>(LAST_CHAR) ) );
+    m_pObject->GetDictionary().AddKey("Encoding", PdfName("WinAnsiEncoding") );
+    m_pObject->GetDictionary().AddKey("Widths", pWidth->Reference() );
+    m_pObject->GetDictionary().AddKey( "FontDescriptor", pDescriptor->Reference() );
+
+    m_pMetrics->GetBoundingBox( array );
+
+    pDescriptor->GetDictionary().AddKey( "FontName", this->GetBaseFont() );
+    //pDescriptor->GetDictionary().AddKey( "FontWeight", (long)m_pMetrics->Weight() );
+    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( 32L ) ); // TODO: 0 ????
+    pDescriptor->GetDictionary().AddKey( "FontBBox", array );
+    pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<long>(m_pMetrics->GetItalicAngle()) ) );
+    pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetPdfAscent() );
+    pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetPdfDescent() );
+    pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetPdfAscent() ); // m_pMetrics->CapHeight() );
+    pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( 1L ) );               // m_pMetrics->StemV() );
+
+    if( bEmbed )
+        this->EmbedFont( pDescriptor );
+}
+
+void PdfFontSimple::WriteStringToStream( const PdfString & rsString, PdfStream* pStream )
+{
+    long  lLen    = 0;
+    char* pBuffer = NULL;
+
+    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );    
+    pFilter->Encode( rsString.GetString(), rsString.GetLength(), &pBuffer, &lLen );
+
+    pStream->Append( "<", 1 );
+    pStream->Append( pBuffer, lLen );
+    pStream->Append( ">", 1 );
+}
+
+
+};

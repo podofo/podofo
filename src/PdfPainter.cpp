@@ -584,7 +584,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-	PdfString sString = this->ExpandTabs( PdfString( sText.GetString(), lStringLen ) );
+    PdfString sString = this->ExpandTabs( PdfString( sText.GetString(), lStringLen ) );
     this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->Reference(), PdfName("Font") );
 
     if( m_pFont->IsUnderlined() || m_pFont->IsStrikeOut())
@@ -611,11 +611,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
 
         this->Restore();
     }
-
-	char* pBuffer;
-    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
-	pFilter->Encode( sString.GetString(), sString.GetLength(), &pBuffer, &lLen );
-
+    
     m_oss.str("");
     m_oss << "BT" << std::endl << "/" << m_pFont->GetIdentifier().GetName()
           << " "  << m_pFont->GetFontSize()
@@ -628,13 +624,21 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
     m_oss << m_pFont->GetFontCharSpace() * m_pFont->GetFontSize() / 100.0 << " Tc" << std::endl;
 
     m_oss << dX << std::endl
-          << dY << std::endl << "Td <";
+          << dY << std::endl << "Td ";
 
     m_pCanvas->Append( m_oss.str() );
+    m_pFont->WriteStringToStream( sString, m_pCanvas );
+
+    /*
+    char* pBuffer;
+    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+    pFilter->Encode( sString.GetString(), sString.GetLength(), &pBuffer, &lLen );
+
     m_pCanvas->Append( pBuffer, lLen );
     free( pBuffer );
+    */
 
-    m_pCanvas->Append( ">Tj\nET\n" );
+    m_pCanvas->Append( " Tj\nET\n" );
 }
 
 void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double dHeight, const PdfString & rsText, 

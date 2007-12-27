@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
+ *   Copyright (C) 2007 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,62 +18,47 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "PdfFont.h"
+#ifndef _PDF_FONT_TYPE1_H_
+#define _PDF_FONT_TYPE1_H_
 
-#include "PdfArray.h"
-#include "PdfFontMetrics.h"
-#include "PdfInputStream.h"
-#include "PdfPage.h"
-#include "PdfStream.h"
-#include "PdfWriter.h"
-#include "PdfLocale.h"
-
-#include <sstream>
-
-using namespace std;
+#include "PdfDefines.h"
+#include "PdfFontSimple.h"
 
 namespace PoDoFo {
 
-PdfFont::PdfFont( PdfFontMetrics* pMetrics, PdfVecObjects* pParent )
-    : PdfElement( "Font", pParent ), m_pMetrics( pMetrics ), m_bBold( false ), m_bItalic( false )
-{
-    this->InitVars();
-}
+/** A PdfFont implementation that can be used
+ *  to embedd type1 fonts into a PDF file
+ *  or to draw with type1 fonts. 
+ */
+class PdfFontType1 : public PdfFontSimple {
+ public:
 
-PdfFont::~PdfFont()
-{
-    delete m_pMetrics;
-}
+    /** Create a new Type1 font object.
+     *
+     *  \param bEmbed if true the font will get embedded.
+     *  \param pMetrics pointer to a font metrics object. The font in the PDF
+     *         file will match this fontmetrics object. The metrics object is 
+     *         deleted along with the font.
+     *  \param pParent parent of the font object
+     *  
+     */
+    PdfFontType1( PdfFontMetrics* pMetrics, bool bEmbed, PdfVecObjects* pParent );
 
-void PdfFont::InitVars()
-{
-    ostringstream out;
-    PdfLocaleImbue(out);
+ protected:
 
-    m_pMetrics->SetFontSize( 12.0 );
-    m_pMetrics->SetFontScale( 100.0 );
-    m_pMetrics->SetFontCharSpace( 0.0 );
-    
-    m_bUnderlined = false;
-    m_bStrikedOut = false;
+    /** Embed the font file directly into the PDF file.
+     *
+     *  \param pDescriptor font descriptor object
+     */
+    virtual void EmbedFont( PdfObject* pDescriptor );
 
-    // Implementation note: the identifier is always
-    // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "Ft" << m_pObject->Reference().ObjectNumber();
-    m_Identifier = PdfName( out.str().c_str() );
+ private:
 
-    // replace all spaces in the base font name as suggested in 
-    // the PDF reference section 5.5.2#
-    int curPos = 0;
-    std::string sTmp = m_pMetrics->GetFontname();
-    for(int i = 0; i < sTmp.size(); i++)
-    {
-        if(sTmp[i] != ' ')
-            sTmp[curPos++] = sTmp[i];
-    }
-    sTmp.resize(curPos);
-    m_BaseFont = PdfName( sTmp.c_str() );
-}
+    long FindInBuffer( const char* pszNeedle, const char* pszHaystack, long lLen ) const;
 
 };
+
+};
+
+#endif // _PDF_FONT_TYPE1_H_
 

@@ -32,6 +32,18 @@ extern "C" {
 }
 #endif // PODOFO_HAVE_JPEG_LIB
 
+#ifdef PODOFO_HAVE_TIFF_LIB
+extern "C" {
+#ifdef WIN32		// For O_RDONLY
+    // TODO: DS
+#else
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#endif
+}
+#endif // PODOFO_HAVE_TIFF_LIB
+
 
 #define CHUNK               16384 
 #define LZW_TABLE_SIZE      4096
@@ -1012,5 +1024,140 @@ jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize)
 
 
 #endif // PODOFO_HAVE_JPEG_LIB
+
+// -------------------------------------------------------
+// 
+// -------------------------------------------------------
+static tsize_t dummy_read(thandle_t, tdata_t, tsize_t)
+{
+    return 0;
+}
+
+// -------------------------------------------------------
+// 
+// -------------------------------------------------------
+static tsize_t dummy_write(thandle_t, tdata_t, tsize_t size)
+{
+    return size;
+}
+
+// -------------------------------------------------------
+// 
+// -------------------------------------------------------
+static toff_t dummy_seek(thandle_t, toff_t, int)
+{
+
+}
+
+// -------------------------------------------------------
+// 
+// -------------------------------------------------------
+static int dummy_close(thandle_t)
+{
+
+}
+
+// -------------------------------------------------------
+// 
+// -------------------------------------------------------
+static toff_t dummy_size(thandle_t)
+{
+
+}
+
+// -------------------------------------------------------
+// Actual filter code below
+// -------------------------------------------------------
+PdfCCITTFilter::PdfCCITTFilter()
+    : m_tiff( NULL )
+{
+}
+
+PdfCCITTFilter::~PdfCCITTFilter()
+{
+}
+
+void PdfCCITTFilter::BeginEncodeImpl()
+{
+    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+}
+
+void PdfCCITTFilter::EncodeBlockImpl( const char*, long )
+{
+    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+}
+
+void PdfCCITTFilter::EndEncodeImpl()
+{
+    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+}
+
+void PdfCCITTFilter::BeginDecodeImpl( const PdfDictionary* pDict )
+{ 
+#ifdef DS_CCITT_DEVELOPMENT_CODE
+
+    if( !pDict )
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "PdfCCITTFilter required a DecodeParms dictionary" );
+    } 
+
+    m_tiff = TIFFClientOpen("podofo", "w", reinterpret_cast<thandle_t>(-1),
+                            dummy_read, dummy_write,
+                            dummy_seek, dummy_close, dummy_size, NULL, NULL);
+
+    if( !m_tiff ) 
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "TIFFClientOpen failed" );
+    }
+
+    printf("m_tiff=%p\n", m_tiff );
+    m_tiff->tif_mode = O_RDONLY;
+
+    TIFFSetField(m_tiff, TIFFTAG_IMAGEWIDTH,      pDict->GetKeyAsLong( PdfName("Columns"), 1728 )->GetNumber() );
+    TIFFSetField(m_tiff, TIFFTAG_SAMPLESPERPIXEL, 1);
+    TIFFSetField(m_tiff, TIFFTAG_BITSPERSAMPLE,   1);
+    TIFFSetField(m_tiff, TIFFTAG_FILLORDER,       FILLORDER_LSB2MSB);
+    TIFFSetField(m_tiff, TIFFTAG_PLANARCONFIG,    PLANARCONFIG_CONTIG);
+    TIFFSetField(m_tiff, TIFFTAG_PHOTOMETRIC,     PHOTOMETRIC_MINISWHITE);
+    TIFFSetField(m_tiff, TIFFTAG_YRESOLUTION,     196.);
+    TIFFSetField(m_tiff, TIFFTAG_RESOLUTIONUNIT,  RESUNIT_INCH);
+
+    /*
+    m_tiff->tif_scanlinesize = TIFFSetField(m_tiff );
+
+    if( pDict ) 
+    {
+        long lEncoding = pDict->GetKeyAsLong( PdfName("K"), 0 );
+        if( lEncoding == 0 ) // pure 1D encoding, Group3 1D
+        {
+            TIFFSetField(faxTIFF,TIFFTAG_GROUP3OPTIONS, GROUP3OPT_1DENCODING);
+
+        }
+        else if( lEncoding < 0 ) // pure 2D encoding, Group4
+        {
+            TIFFSetField(faxTIFF,TIFFTAG_GROUP4OPTIONS, GROUP4OPT_2DENCODING);
+        }
+        else //if( lEncoding > 0 )  // mixed, Group3 2D
+        {
+            TIFFSetField(faxTIFF,TIFFTAG_GROUP3OPTIONS, GROUP3OPT_2DENCODING);
+        }
+
+    }
+    */
+
+#endif // DS_CCITT_DEVELOPMENT_CODE
+
+
+}
+
+void PdfCCITTFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
+{
+
+}
+
+void PdfCCITTFilter::EndDecodeImpl()
+{
+}
+
 
 };

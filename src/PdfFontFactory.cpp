@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
+ *   Copyright (C) 2007 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,62 +18,45 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "PdfFontFactory.h"
+
 #include "PdfFont.h"
-
-#include "PdfArray.h"
 #include "PdfFontMetrics.h"
-#include "PdfInputStream.h"
-#include "PdfPage.h"
-#include "PdfStream.h"
-#include "PdfWriter.h"
-#include "PdfLocale.h"
-
-#include <sstream>
-
-using namespace std;
+#include "PdfFontType1.h"
+#include "PdfFontTrueType.h"
 
 namespace PoDoFo {
 
-PdfFont::PdfFont( PdfFontMetrics* pMetrics, PdfVecObjects* pParent )
-    : PdfElement( "Font", pParent ), m_pMetrics( pMetrics ), m_bBold( false ), m_bItalic( false )
+PdfFont* PdfFontFactory::CreateFont( PdfFontMetrics* pMetrics, bool bEmbedd, bool bBold, bool bItalic, PdfVecObjects* pParent )
 {
-    this->InitVars();
-}
+    PdfFont*     pFont = NULL;
+    EPdfFontType eType = pMetrics->GetFontType();
 
-PdfFont::~PdfFont()
-{
-    delete m_pMetrics;
-}
-
-void PdfFont::InitVars()
-{
-    ostringstream out;
-    PdfLocaleImbue(out);
-
-    m_pMetrics->SetFontSize( 12.0 );
-    m_pMetrics->SetFontScale( 100.0 );
-    m_pMetrics->SetFontCharSpace( 0.0 );
-    
-    m_bUnderlined = false;
-    m_bStrikedOut = false;
-
-    // Implementation note: the identifier is always
-    // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "Ft" << m_pObject->Reference().ObjectNumber();
-    m_Identifier = PdfName( out.str().c_str() );
-
-    // replace all spaces in the base font name as suggested in 
-    // the PDF reference section 5.5.2#
-    int curPos = 0;
-    std::string sTmp = m_pMetrics->GetFontname();
-    for(int i = 0; i < sTmp.size(); i++)
+    switch( eType ) 
     {
-        if(sTmp[i] != ' ')
-            sTmp[curPos++] = sTmp[i];
+        case ePdfFontType_TrueType:
+            pFont = new PdfFontTrueType( pMetrics, pParent );
+            break;
+
+        case ePdfFontType_Type1Pfa:
+        case ePdfFontType_Type1Pfb:
+            pFont = new PdfFontType1( pMetrics, bEmbedd, pParent );
+            break;
+
+        case ePdfFontType_Unknown:
+        default:
+            PdfError::LogMessage( eLogSeverity_Error, "The font format is unknown. Fontname: %s Filename: %s\n", 
+                                  (pMetrics->GetFontname() ? pMetrics->GetFontname() : "<unknown>"),
+                                  (pMetrics->GetFilename() ? pMetrics->GetFilename() : "<unknown>") );
     }
-    sTmp.resize(curPos);
-    m_BaseFont = PdfName( sTmp.c_str() );
+
+    if( pFont ) 
+    {
+        pFont->SetBold( bBold );
+        pFont->SetItalic( bItalic );
+    }
+
+    return pFont;
 }
 
 };
-

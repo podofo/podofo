@@ -4,7 +4,7 @@ IF(HAVE_CPPUNIT)
   ADD_DEFINITIONS("-g")
   
   # repeat for each test
-  ADD_EXECUTABLE( podofo-test main.cpp NameTest.cpp TokenizerTest.cpp )
+  ADD_EXECUTABLE( podofo-test main.cpp FilterTest.cpp NameTest.cpp TokenizerTest.cpp )
   TARGET_LINK_LIBRARIES( podofo-test ${PODOFO_LIB} ${PODOFO_LIB_DEPENDS} cppunit )
   SET_TARGET_PROPERTIES( podofo-test PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
   ADD_TEST( podofo-test podofo-test )

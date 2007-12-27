@@ -1,3 +1,22 @@
+/***************************************************************************
+ *   Copyright (C) 2007 by Dominik Seichter                                *
+ *   domseichter@web.de                                                    *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Library General Public License as       *
+ *   published by the Free Software Foundation; either version 2 of the    *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
 
 #ifndef _PDF_FONT_H_
 #define _PDF_FONT_H_
@@ -16,10 +35,16 @@ class PdfWriter;
 /** Before you can draw text on a PDF document, you have to create 
  *  a font object first. You can reuse this font object as often 
  *  as you want.
- *  You will use PdfSimpleWriter::CreateFont most of the time
- *  to create a new font object.
+ *
+ *  Use PdfDocument::CreateFont to create a new font object.
+ *  It will choose a correct subclass using PdfFontFactory.
+ *
+ *  This is only an abstract base class which is implemented
+ *  for different font formats.
  */
 class PODOFO_API PdfFont : public PdfElement {
+ friend class PdfFontFactory;
+
  public:
     /** Create a new PdfFont object which will introduce itself
      *  automatically to every page object it is used on.
@@ -29,38 +54,17 @@ class PODOFO_API PdfFont : public PdfElement {
      *  \param pMetrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object is 
      *         deleted along with the font.
-     *  \param bEmbed specifies whether this font should be embedded in the PDF file.
-     *         Embedding fonts is usually a good idea.
-     *  \param bBold specifies if this font is a bold font
-     *  \param bItalic specifies if this font is an italic font
      *  \param pParent parent of the font object
      *  
      */
-    PdfFont( PdfFontMetrics* pMetrics, bool bEmbed, bool bBold, bool bItalic, 
-             PdfVecObjects* pParent );
-
-    /** Create a new PdfFont object which is a font subset of a font.
-     *
-     *  The font has a default font size of 12.0pt.
-     *
-     *  \param pMetrics pointer to a font metrics object. The font in the PDF
-     *         file will match this fontmetrics object. The metrics object is 
-     *         deleted along with the font.
-     *  \param bBold specifies if this font is a bold font
-     *  \param bItalic specifies if this font is an italic font
-     *  \param vecUnicodeCodePoints the unicode code points that are part of this subset
-     *  \param pParent parent of the font object
-     *  
-     */
-    PdfFont( PdfFontMetrics* pMetrics, bool bBold, bool bItalic,
-             std::vector<int> vecUnicodeCodePoints, PdfVecObjects* pParent );
+    PdfFont( PdfFontMetrics* pMetrics, PdfVecObjects* pParent );
 
     virtual ~PdfFont();
 
     /** Set the font size before drawing with this font.
      *  \param fSize font size in points
      */
-    void SetFontSize( float fSize );
+    inline void SetFontSize( float fSize );
 
     /** Retrieve the current font size of this font object
      *  \returns the current font size
@@ -70,7 +74,7 @@ class PODOFO_API PdfFont : public PdfElement {
     /** Set the horizontal scaling of the font for compressing (< 100) and expanding (>100)
      *  \param fScale scaling in percent
      */
-    void SetFontScale( float fScale );
+    inline void SetFontScale( float fScale );
 
     /** Retrieve the current horizontal scaling of this font object
      *  \returns the current font scaling
@@ -80,7 +84,7 @@ class PODOFO_API PdfFont : public PdfElement {
     /** Set the character spacing of the font
      *  \param fCharSpace character spacing in percent
      */
-    void SetFontCharSpace( float fCharSpace );
+    inline void SetFontCharSpace( float fCharSpace );
 
     /** Retrieve the current character spacing of this font object
      *  \returns the current font character spacing
@@ -136,54 +140,53 @@ class PODOFO_API PdfFont : public PdfElement {
      */
     inline const PdfFontMetrics* GetFontMetrics() const;
 
+    /** Write a PdfString to a PdfStream in a format so that it can 
+     *  be used with this font.
+     *  This is used by PdfPainter::DrawText to display a text string.
+     *  The following PDF operator will be Tj
+     *
+     *  \param rsString a unicode or ansi string which will be displayed
+     *  \param pStream the string will be appended to pStream without any leading
+     *                 or following whitespaces.
+     */
+    virtual void WriteStringToStream( const PdfString & rsString, PdfStream* pStream ) = 0;
+
+ protected:
+    /** Get the base font name of this font
+     *
+     *  \returns the base font name
+     */
+    inline const PdfName& GetBaseFont() const;
+
  private:
-    /** Embed the font file directly into the PDF file.
-     *  \param pDescriptor font descriptor object
-     */
-    void EmbedFont( PdfObject* pDescriptor );
-
-    /** Embed the font file directly into the PDF file.
-     *
-     *  The font file is a true type file.
-     *
-     *  \param pDescriptor font descriptor object
-     */
-    void EmbedTrueTypeFont( PdfObject* pDescriptor ); 
-
-    /** Embed the font file directly into the PDF file.
-     *
-     *  The font file is a true type file.
-     *
-     *  \param pDescriptor font descriptor object
-     */
-    void EmbedType1Font( PdfObject* pDescriptor ); 
-
-    /** Initialize the object
-     *  \param bEmbed if true the font will be embeded into the PDF 
-     */
-    void Init( bool bEmbed );
-
-    /** Set the basic variables to their initial values
-     *  (those who are shared between real fonts and subsets)
+    /** Initialize all variables
      */
     void InitVars();
 
-    /** Initialise a font subset
-     */
-    void InitSubset();
-
-    /** A custom helper function for Type1 fontembeeding.
-     *  Searched a string in a binary buffer and returns the offset it was found at.
+    /** Used to specify if this represents a bold font
+     *  \param bBold if true this is a bold font.
      *
-     *  \param pszNeedle the string to search
-     *  \param pszHaystack the buffer in which we search
-     *  \param lLen the length of the buffer
+     *  \see IsBold
      *
-     *  \returns the offset of the found string or -1 if the string was not found
+     *  This can be called by PdfFontFactory to tell this font 
+     *  object that it belongs to a bold font.
      */
-    long FindInBuffer( const char* pszNeedle, const char* pszHaystack, long lLen );
+    inline void SetBold( bool bBold );
 
- private: 
+    /** Used to specify if this represents an italic font
+     *  \param bItalic if true this is an italic font.
+     *
+     *  \see IsItalc
+     *
+     *  This can be called by PdfFontFactory to tell this font 
+     *  object that it belongs to an italic font.
+     */
+    inline void SetItalic( bool bItalic );
+
+ private:
+    PdfName m_BaseFont;
+
+ protected: 
     PdfFontMetrics* m_pMetrics;
 
     bool  m_bBold;
@@ -192,59 +195,139 @@ class PODOFO_API PdfFont : public PdfElement {
     bool  m_bStrikedOut;
 
     PdfName m_Identifier;
-    PdfName m_BaseFont;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfFont::SetBold( bool bBold )
+{
+    m_bBold = bBold;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfFont::SetItalic( bool bItalic )
+{
+    m_bItalic = bItalic;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfName& PdfFont::GetBaseFont() const
+{
+    return m_BaseFont;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 const PdfName & PdfFont::GetIdentifier() const
 {
     return m_Identifier;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfFont::SetFontSize( float fSize )
+{
+    m_pMetrics->SetFontSize( fSize );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 float PdfFont::GetFontSize() const
 {
     return m_pMetrics->GetFontSize();
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfFont::SetFontScale( float fScale )
+{
+    m_pMetrics->SetFontScale( fScale );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 float PdfFont::GetFontScale() const
 {
     return m_pMetrics->GetFontScale();
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfFont::SetFontCharSpace( float fCharSpace )
+{
+    m_pMetrics->SetFontCharSpace( fCharSpace );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 float PdfFont::GetFontCharSpace() const
 {
     return m_pMetrics->GetFontCharSpace();
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 const PdfFontMetrics* PdfFont::GetFontMetrics() const
 {
     return m_pMetrics;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfFont::SetUnderlined( bool bUnder )
 {
     m_bUnderlined = bUnder;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfFont::IsUnderlined() const
 {
     return m_bUnderlined;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfFont::SetStrikeOut( bool bStrikeOut )
 {
     m_bStrikedOut = bStrikeOut;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfFont::IsStrikeOut() const
 {
     return m_bStrikedOut;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfFont::IsBold() const
 {
 	return m_bBold;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfFont::IsItalic() const
 {
 	return m_bItalic;
