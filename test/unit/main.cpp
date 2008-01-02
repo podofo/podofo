@@ -19,9 +19,20 @@
  ***************************************************************************/
 
 #include <cppunit/CompilerOutputter.h>
+#include <cppunit/XmlOutputter.h>
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TestRunner.h>
 
+#include <iostream>
+
+void show_help()
+{
+    std::cout << "podofo-test" << std::endl << std::endl;
+    std::cout << "Supported commandline switches:" << std::endl;
+    std::cout << "\t --help\t So this help message." << std::endl;
+    std::cout << "\t --selftest\t Output in compiler compatible format." << std::endl;
+    std::cout << std::endl;
+}
 
 int main(int argc, char* argv[])
 {
@@ -32,9 +43,43 @@ int main(int argc, char* argv[])
   CppUnit::TextUi::TestRunner runner;
   runner.addTest( suite );
 
-  // Change the default outputter to a compiler error format outputter
-  runner.setOutputter( new CppUnit::CompilerOutputter( &runner.result(),
-                                                       std::cerr ) );
+  // check some commandline arguments
+  bool bSelfTest = false;
+  if( argc > 1 ) 
+  {
+      for(int i=1;i<argc;i++)
+      {
+          std::string argument(argv[i]);
+          
+          if( argument=="--help" || argument=="-help")
+          {
+              show_help();
+              return 0;
+          }
+          else if(argument=="--selftest" || argument=="-selftest")
+          {
+              bSelfTest = true;
+          }
+
+      }
+
+  }
+
+  if( bSelfTest ) 
+  {
+      // Change the default outputter to a compiler error format outputter
+      runner.setOutputter( new CppUnit::CompilerOutputter( &runner.result(),
+                                                           std::cerr ) );
+  }
+  else
+  {
+      // Change the default outputter to a xml format outputter
+      // The test runner owns the new outputter.
+      CppUnit::XmlOutputter *xmlOutputter = new 
+          CppUnit::XmlOutputter(&runner.result(),std::cerr ) ;
+      runner.setOutputter(xmlOutputter);
+  }
+
   // Run the tests.
   bool wasSucessful = runner.run();
 
