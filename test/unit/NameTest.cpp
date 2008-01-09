@@ -54,6 +54,7 @@ void NameTest::testEncodedNames()
     TestEncodedName( "paired#28#29parentheses", "paired()parentheses");
     TestEncodedName( "The_Key_of_F#23_Minor", "The_Key_of_F#_Minor");
     TestEncodedName( "A#42", "AB");
+    TestEncodedName( "ANPA#20723-0#20AdPro", "ANPA 723-0 AdPro" );
 }
 
 void NameTest::testEquality()
@@ -62,6 +63,21 @@ void NameTest::testEquality()
     // are equal.
     TestNameEquality( "With Spaces", "With#20Spaces" );
     TestNameEquality( "#57#69#74#68#20#53#70#61#63#65#73", "With#20Spaces" );
+}
+
+void NameTest::testWrite() 
+{
+    // Make sure all names are written correctly to an output device!
+    TestWrite( "Length With Spaces", "/Length#20With#20Spaces" );
+    TestWrite( "Length\001\002\003Spaces\177",  "/Length#01#02#03Spaces#7F" );
+    TestWrite( "Tab\tTest", "/Tab#09Test" );
+    TestWrite( "ANPA 723-0 AdPro", "/ANPA#20723-0#20AdPro" );
+}
+
+void NameTest::testFromEscaped()
+{
+    TestFromEscape( "ANPA#20723-0#20AdPro", "ANPA 723-0 AdPro" );
+    TestFromEscape( "Length#20With#20Spaces", "Length With Spaces" );
 }
 
 //
@@ -116,3 +132,20 @@ void NameTest::TestNameEquality( const char * pszName1, const char* pszName2 )
     CPPUNIT_ASSERT_EQUAL( name1 != name2, false ); // use operator!=
 }
 
+void NameTest::TestWrite( const char * pszName, const char* pszResult )
+{
+    std::ostringstream oss;
+    PdfName            name( pszName );
+    PdfOutputDevice    device( &oss );
+
+    name.Write( &device );
+
+    CPPUNIT_ASSERT_EQUAL( oss.str() == pszResult, true ); 
+}
+
+void NameTest::TestFromEscape( const char* pszName1, const char* pszName2 ) 
+{
+    PdfName name = PdfName::FromEscaped( pszName1, strlen( pszName1 ) );
+
+    CPPUNIT_ASSERT_EQUAL( name.GetName() == pszName2, true  );
+}

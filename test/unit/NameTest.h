@@ -31,6 +31,8 @@ class NameTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testNameEncoding );
   CPPUNIT_TEST( testEncodedNames );
   CPPUNIT_TEST( testEquality );
+  CPPUNIT_TEST( testWrite );
+  CPPUNIT_TEST( testFromEscaped );
   CPPUNIT_TEST_SUITE_END();
 
  public:
@@ -41,6 +43,8 @@ class NameTest : public CppUnit::TestFixture
   void testNameEncoding();
   void testEncodedNames();
   void testEquality();
+  void testWrite();
+  void testFromEscaped();
 
  private:
 
@@ -50,6 +54,13 @@ class NameTest : public CppUnit::TestFixture
   /** Tests if both names are equal
    */
   void TestNameEquality( const char * pszName1, const char* pszName2 );
+
+  /** Test if pszName interpreted as PdfName and written
+   *  to a PdfOutputDevice equals pszResult
+   */
+  void TestWrite( const char * pszName, const char* pszResult );
+
+  void TestFromEscape( const char* pszName1, const char* pszName2 );
 };
 
 #endif // _NAME_TEST_H_
