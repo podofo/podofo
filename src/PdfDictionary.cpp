@@ -241,9 +241,10 @@ void PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt,
             if( keyStop != PdfName::KeyNull && keyStop.GetLength() && (*itKeys).first == keyStop )
                 return;
 
-            pDevice->Print( "/%s ", (*itKeys).first.GetName().c_str() );
+            (*itKeys).first.Write( pDevice );
+            pDevice->Write( " ", 1 ); // write a separator
             (*itKeys).second->Write( pDevice, pEncrypt );
-            pDevice->Print("\n");
+            pDevice->Write( "\n", 1 );
         }
         
         ++itKeys;
