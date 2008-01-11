@@ -193,7 +193,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
 void jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize);
 #endif // PODOFO_JPEG_RUNTIME_COMPATIBLE
 
-static void JPegErrorExit(j_common_ptr cinfo)
+static void JPegErrorExit(j_common_ptr)
 {
     PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedImageFormat, "jpeg_read_header exited with an error." );
 }
