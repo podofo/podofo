@@ -15,6 +15,7 @@ SET(PODOFO_SOURCES
     PdfDictionary.cpp
     PdfDocument.cpp
     PdfElement.cpp
+    PdfEncoding.cpp
     PdfEncrypt.cpp
     PdfError.cpp
     PdfExtGState.cpp
@@ -25,6 +26,7 @@ SET(PODOFO_SOURCES
     PdfFiltersPrivate.cpp
     PdfFont.cpp
     PdfFontCache.cpp
+    PdfFontCID.cpp
     PdfFontMetrics.cpp
     PdfFontFactory.cpp
     PdfFontSimple.cpp
@@ -95,6 +97,7 @@ SET(PODOFO_HEADERS
     PdfDictionary.h
     PdfDocument.h
     PdfElement.h
+    PdfEncoding.h
     PdfEncrypt.h
     PdfError.h
     PdfExtGState.h
@@ -105,6 +108,7 @@ SET(PODOFO_HEADERS
     PdfFiltersPrivate.h
     PdfFont.h
     PdfFontCache.h
+    PdfFontCID.h
     PdfFontMetrics.h
     PdfFontFactory.h
     PdfFontSimple.h

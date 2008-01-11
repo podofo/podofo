@@ -623,11 +623,15 @@ class PODOFO_API PdfPainter {
      *  using spaces.
      *
      *  \param rsString expand all tabs in this string using spaces
+     *  \param lLen use only lLen characters of rsString
      *  \returns an expanded copy of the passed string
      *  \see SetTabWidth
      */
-    PdfString ExpandTabs( const PdfString & rsString );
+    PdfString ExpandTabs( const PdfString & rsString, long lLen ) const;
     
+    template<typename C>
+        PdfString ExpandTabsPrivate( const C* pszText, long lStringLen, int nTabCnt, const C cTab, const C cSpace ) const;
+
  protected:
     /** All drawing operations work on this stream.
      *  This object may not be NULL. If it is NULL any function accessing it should

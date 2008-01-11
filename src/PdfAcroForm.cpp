@@ -61,7 +61,7 @@ void PdfAcroForm::Init( )
         
         // TODO: It is no good idea to always embedd arial
         //       but handling of non embedded helvetica is currently broken
-        PdfFont*   pFont     = m_pDocument->CreateFont( "Arial", true );
+        PdfFont*   pFont     = m_pDocument->CreateFont( "Arial" ); // embedd is default true
         PdfObject* pResource;
         PdfObject* pFontDict;
         

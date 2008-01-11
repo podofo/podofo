@@ -129,44 +129,40 @@ class PODOFO_API PdfDocument {
 
     /** Creates a PdfFont object
      *  \param pszFontName name of the font as it is known to the system
+     *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
+     *
      *  \returns PdfFont* a pointer to a new PdfFont object.
-     *                    The returned object is owned by the PdfDocument.
+     *           The returned object is owned by the PdfDocument.
      */
-    PdfFont* CreateFont( const char* pszFontName, bool bEmbedd = true );
+    PdfFont* CreateFont( const char* pszFontName, const PdfEncoding * const pEncoding = &PdfFont::WinAnsiEncoding, 
+                         bool bEmbedd = true );
 
     /** Creates a PdfFont object
      *  \param pszFontName name of the font as it is known to the system
      *  \param bBold if true search for a bold font
      *  \param bItalic if true search for an italic font
+     *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
      *  \param optional: pszFileName path to a valid font file
+     *
      *  \returns PdfFont* a pointer to a new PdfFont object.
      */
-    PdfFont* CreateFont( const char* pszFontName, bool bBold, bool bItalic, bool bEmbedd = true, const char* pszFileName = NULL );
+    PdfFont* CreateFont( const char* pszFontName, bool bBold, bool bItalic, 
+                         const PdfEncoding * const pEncoding = &PdfFont::WinAnsiEncoding, 
+                         bool bEmbedd = true, const char* pszFileName = NULL );
 
     /** Creates a PdfFont object
      *  \param face a valid freetype font handle (will be free'd by PoDoFo)
+     *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
      *  \returns PdfFont* a pointer to a new PdfFont object.
-     *                    The returned object is owned by the PdfDocument.
+     *           The returned object is owned by the PdfDocument.
      */
-    PdfFont* CreateFont( FT_Face face, bool bEmbedd = true );
-
-    /** Creates a PdfFont object that is a subset of an existing true type font.
-     *
-     *  \param pszFontName the fontname of an existing truetype font
-     *  \param bBold if true search for a bold font
-     *  \param bItalic if true search for an italic font
-     *  \param vecGlyphs a list of Unicode glyph indeces that should be embedded in the subset
-     *
-     *  \returns PdfFont* a pointer to a new PdfFont object that contains only the specified glyphs.
-     *                    The returned object is owned by the PdfDocument.
-     */
-    PdfFont* CreateFontSubset( const char* pszFontName, bool bBold, bool bItalic, const std::vector<int> & vecGlyphs );
+    PdfFont* CreateFont( FT_Face face, const PdfEncoding * const pEncoding = &PdfFont::WinAnsiEncoding, bool bEmbedd = true );
 
     /** Creates a new page object and inserts it into the internal
      *  page tree. 

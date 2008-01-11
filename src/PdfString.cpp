@@ -342,6 +342,26 @@ PdfString::PdfString( const pdf_utf8* pszStringUtf8, long lLen )
     InitFromUtf8( pszStringUtf8, lLen );
 }
 
+PdfString::PdfString( const pdf_utf16be* pszStringUtf16 )
+    : m_bHex( false ), m_bUnicode( true )
+{
+    long               lBufLen = 0;
+    const pdf_utf16be* pszCnt  = pszStringUtf16;
+    
+    while( *pszCnt )
+    {
+        ++pszCnt;
+        ++lBufLen;
+    }
+
+    lBufLen *= sizeof(pdf_utf16be);
+
+    m_buffer = PdfRefCountedBuffer( lBufLen + 2 );
+    memcpy( m_buffer.GetBuffer(), reinterpret_cast<const char*>(pszStringUtf16), lBufLen );
+    m_buffer.GetBuffer()[lBufLen] = '\0';
+    m_buffer.GetBuffer()[lBufLen+1] = '\0';
+}
+
 PdfString::PdfString( const PdfString & rhs )
     : PdfDataType(), m_bHex( false ), m_bUnicode( false )
 {

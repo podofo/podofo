@@ -27,14 +27,11 @@
 #include "PdfName.h"
 #include "PdfStream.h"
 
-#define FIRST_CHAR   0
-#define LAST_CHAR  255
-
 namespace PoDoFo {
 
 
-PdfFontSimple::PdfFontSimple( PdfFontMetrics* pMetrics, PdfVecObjects* pParent )
-    : PdfFont( pMetrics, pParent )
+PdfFontSimple::PdfFontSimple( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent )
+    : PdfFont( pMetrics, pEncoding, pParent )
 {
 }
 
@@ -52,7 +49,7 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    m_pMetrics->GetWidthArray( *pWidth, FIRST_CHAR, LAST_CHAR );
+    m_pMetrics->GetWidthArray( *pWidth, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar() );
 
     pDescriptor = m_pObject->GetOwner()->CreateObject( "FontDescriptor" );
     if( !pDescriptor )
@@ -62,9 +59,10 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
 
     m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, rsSubType );
     m_pObject->GetDictionary().AddKey("BaseFont", this->GetBaseFont() );
-    m_pObject->GetDictionary().AddKey("FirstChar", PdfVariant( static_cast<long>(FIRST_CHAR) ) );
-    m_pObject->GetDictionary().AddKey("LastChar", PdfVariant( static_cast<long>(LAST_CHAR) ) );
-    m_pObject->GetDictionary().AddKey("Encoding", PdfName("WinAnsiEncoding") );
+    m_pObject->GetDictionary().AddKey("FirstChar", PdfVariant( static_cast<long>(m_pEncoding->GetFirstChar()) ) );
+    m_pObject->GetDictionary().AddKey("LastChar", PdfVariant( static_cast<long>(m_pEncoding->GetLastChar()) ) );
+    m_pEncoding->AddToDictionary( m_pObject->GetDictionary() ); // Add encoding key
+
     m_pObject->GetDictionary().AddKey("Widths", pWidth->Reference() );
     m_pObject->GetDictionary().AddKey( "FontDescriptor", pDescriptor->Reference() );
 

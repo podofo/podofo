@@ -34,8 +34,11 @@ using namespace std;
 
 namespace PoDoFo {
 
-PdfFont::PdfFont( PdfFontMetrics* pMetrics, PdfVecObjects* pParent )
-    : PdfElement( "Font", pParent ), m_pMetrics( pMetrics ), m_bBold( false ), m_bItalic( false )
+const PdfWinAnsiEncoding  PdfFont::WinAnsiEncoding;
+const PdfMacRomanEncoding PdfFont::MacRomanEncoding;
+
+PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent )
+    : PdfElement( "Font", pParent ), m_pEncoding( pEncoding ), m_pMetrics( pMetrics ), m_bBold( false ), m_bItalic( false )
 {
     this->InitVars();
 }
@@ -66,7 +69,7 @@ void PdfFont::InitVars()
     // the PDF reference section 5.5.2#
     int curPos = 0;
     std::string sTmp = m_pMetrics->GetFontname();
-    for(int i = 0; i < sTmp.size(); i++)
+    for(unsigned int i = 0; i < sTmp.size(); i++)
     {
         if(sTmp[i] != ' ')
             sTmp[curPos++] = sTmp[i];

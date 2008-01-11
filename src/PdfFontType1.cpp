@@ -27,8 +27,8 @@
 
 namespace PoDoFo {
 
-PdfFontType1::PdfFontType1( PdfFontMetrics* pMetrics, bool bEmbed, PdfVecObjects* pParent )
-    : PdfFontSimple( pMetrics, pParent )
+PdfFontType1::PdfFontType1( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, bool bEmbed, PdfVecObjects* pParent )
+    : PdfFontSimple( pMetrics, pEncoding, pParent )
 {
     this->Init( bEmbed, PdfName("Type1") );
 }

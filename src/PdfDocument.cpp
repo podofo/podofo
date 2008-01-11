@@ -162,24 +162,21 @@ PdfPage* PdfDocument::GetPage( int nIndex ) const
     return m_pPagesTree->GetPage( nIndex );
 }
 
-PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bEmbedd )
+PdfFont* PdfDocument::CreateFont( const char* pszFontName, const PdfEncoding * const pEncoding, bool bEmbedd )
 {
-    return m_fontCache.GetFont( pszFontName, false, false, bEmbedd );
+    return m_fontCache.GetFont( pszFontName, false, false, bEmbedd, pEncoding );
 }
 
-PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bBold, bool bItalic, bool bEmbedd, const char* pszFileName )
+PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bBold, bool bItalic, 
+                                  const PdfEncoding * const pEncoding, bool bEmbedd, 
+                                  const char* pszFileName )
 {
-    return m_fontCache.GetFont( pszFontName, bBold, bItalic, bEmbedd, pszFileName );
+    return m_fontCache.GetFont( pszFontName, bBold, bItalic, bEmbedd, pEncoding, pszFileName );
 }
 
-PdfFont* PdfDocument::CreateFont( FT_Face face, bool bEmbedd )
+PdfFont* PdfDocument::CreateFont( FT_Face face, const PdfEncoding * const pEncoding, bool bEmbedd )
 {
-    return m_fontCache.GetFont( face, bEmbedd );
-}
-
-PdfFont* PdfDocument::CreateFontSubset( const char* pszFontName, bool bBold, bool bItalic, const std::vector<int> & vecGlyphs )
-{
-    return m_fontCache.GetFontSubset( pszFontName, bBold, bItalic, vecGlyphs );
+    return m_fontCache.GetFont( face, bEmbedd, pEncoding );
 }
 
 PdfPage* PdfDocument::CreatePage( const PdfRect & rSize )

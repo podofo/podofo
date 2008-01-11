@@ -205,11 +205,6 @@ class PODOFO_API PdfFontMetrics {
      */
     const char* GetFontname() const;
 
-     /** Get a string with the postscript name of the font.
-     *  \returns the postscript name of the font or empty string if no postscript name is available.
-     */
-    // const std::string Fontname() const;
-
     /** Get the weight of this font.
      *  Used to build the font dictionay
      *  \returns the weight of this font (500 is normal).
@@ -296,6 +291,14 @@ class PODOFO_API PdfFontMetrics {
      *  \returns the fonttype of the loaded font
      */
     inline EPdfFontType GetFontType() const;
+
+    /** Get the glyph id for a unicode character
+     *  in the current font.
+     *
+     *  \param lUnicode the unicode character value
+     *  \returns the glyhph id for the character or 0 if the glyph was not found.
+     */
+    long GetGlyphId( long lUnicode ) const;
 
  private:
     

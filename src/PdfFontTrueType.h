@@ -42,11 +42,12 @@ class PdfFontTrueType : public PdfFontSimple {
      *  \param pMetrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object is 
      *         deleted along with the font.
+     *  \param pEncoding the encoding of this font. The font will not take ownership of this object.
      *  \param pParent parent of the font object
      *  
      */
 
-    PdfFontTrueType( PdfFontMetrics* pMetrics, PdfVecObjects* pParent );
+    PdfFontTrueType( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent );
 
  private:
 

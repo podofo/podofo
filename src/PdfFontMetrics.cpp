@@ -142,6 +142,10 @@ void PdfFontMetrics::InitFromFace()
     }
 
 
+    // Try to get a unicode charmap
+    FT_Select_Charmap( m_face, FT_ENCODING_UNICODE );
+
+
     // we cache the 256 first width entries as they 
     // are most likely needed quite often
     m_vecWidth.clear();
@@ -1170,6 +1174,17 @@ void PdfFontMetrics::SetFontTypeFromFilename( const char* pszFilename )
 
     if( m_eFontType == ePdfFontType_Unknown )
         PdfError::DebugMessage( "Warning: Unrecognized FontFormat: %s\n", m_sFilename.c_str() );
+}
+
+long PdfFontMetrics::GetGlyphId( long lUnicode ) const
+{
+    long lGlyph = 0L;
+
+    // TODO: Handle symbol fonts!
+
+    lGlyph = FT_Get_Char_Index( m_face, lUnicode );
+
+    return lGlyph;
 }
 
 };

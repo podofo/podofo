@@ -30,8 +30,8 @@
 
 namespace PoDoFo {
 
-PdfFontTrueType::PdfFontTrueType( PdfFontMetrics* pMetrics, PdfVecObjects* pParent )
-    : PdfFontSimple( pMetrics, pParent )
+PdfFontTrueType::PdfFontTrueType( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent )
+    : PdfFontSimple( pMetrics, pEncoding, pParent )
 {
     this->Init( true, PdfName("TrueType") );
 }

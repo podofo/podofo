@@ -40,10 +40,12 @@ class PdfFontSimple : public PdfFont {
      *  \param pMetrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object is 
      *         deleted along with the font.
+     *  \param pEncoding the encoding of this font. The encoding will be owned 
+     *                   by this font and will be deleted along with it. 
      *  \param pParent parent of the font object
      *  
      */
-    PdfFontSimple( PdfFontMetrics* pMetrics, PdfVecObjects* pParent );
+    PdfFontSimple( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent );
 
     /** Write a PdfString to a PdfStream in a format so that it can 
      *  be used with this font.

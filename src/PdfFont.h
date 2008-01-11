@@ -24,6 +24,7 @@
 #include "PdfDefines.h"
 #include "PdfName.h"
 #include "PdfElement.h"
+#include "PdfEncoding.h"
 #include "PdfFontMetrics.h"
 
 namespace PoDoFo {
@@ -46,6 +47,19 @@ class PODOFO_API PdfFont : public PdfElement {
  friend class PdfFontFactory;
 
  public:
+
+    /** Always use this static declaration,
+     *  if you need an instance of PdfWinAnsiEncoding
+     *  as heap allocation is expensive for PdfWinAnsiEncoding.
+     */
+    static const PdfWinAnsiEncoding WinAnsiEncoding;
+
+    /** Always use this static declaration,
+     *  if you need an instance of PdfWinAnsiEncoding
+     *  as heap allocation is expensive for PdfWinAnsiEncoding.
+     */
+    static const PdfMacRomanEncoding MacRomanEncoding;
+ 
     /** Create a new PdfFont object which will introduce itself
      *  automatically to every page object it is used on.
      *
@@ -54,10 +68,11 @@ class PODOFO_API PdfFont : public PdfElement {
      *  \param pMetrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object is 
      *         deleted along with the font.
+     *  \param pEncoding the encoding of this font. The font will not take ownership of this object.
      *  \param pParent parent of the font object
      *  
      */
-    PdfFont( PdfFontMetrics* pMetrics, PdfVecObjects* pParent );
+    PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent );
 
     virtual ~PdfFont();
 
@@ -133,6 +148,11 @@ class PODOFO_API PdfFont : public PdfElement {
      */
     inline const PdfName & GetIdentifier() const;
 
+    /** Returns a reference to the fonts encoding
+     *  \returns a PdfEncoding object.
+     */
+    inline const PdfEncoding* GetEncoding() const;
+
     /** Returns a handle to the fontmetrics object of this font.
      *  This can be used for size calculations of text strings when
      *  drawn using this font.
@@ -187,7 +207,8 @@ class PODOFO_API PdfFont : public PdfElement {
     PdfName m_BaseFont;
 
  protected: 
-    PdfFontMetrics* m_pMetrics;
+    const PdfEncoding* const m_pEncoding;
+    PdfFontMetrics*          m_pMetrics;
 
     bool  m_bBold;
     bool  m_bItalic;
@@ -275,6 +296,14 @@ void PdfFont::SetFontCharSpace( float fCharSpace )
 float PdfFont::GetFontCharSpace() const
 {
     return m_pMetrics->GetFontCharSpace();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfEncoding* PdfFont::GetEncoding() const
+{
+    return m_pEncoding;
 }
 
 // -----------------------------------------------------

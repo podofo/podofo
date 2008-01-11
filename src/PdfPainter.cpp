@@ -570,13 +570,11 @@ void PdfPainter::DrawCircle( double dX, double dY, double dRadius )
 
 void PdfPainter::DrawText( double dX, double dY, const PdfString & sText )
 {
-    this->DrawText( dX, dY, sText, sText.GetLength() );
+    this->DrawText( dX, dY, sText, sText.GetCharacterLength() );
 }
 
 void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long lStringLen )
 {
-    long        lLen;
-
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
     if( !m_pFont || !m_pPage || !sText.IsValid() )
@@ -584,7 +582,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    PdfString sString = this->ExpandTabs( PdfString( sText.GetString(), lStringLen ) );
+    PdfString sString = this->ExpandTabs( sText, lStringLen );
     this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->Reference(), PdfName("Font") );
 
     if( m_pFont->IsUnderlined() || m_pFont->IsStrikeOut())
@@ -642,99 +640,99 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
 }
 
 void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double dHeight, const PdfString & rsText, 
-								    EPdfAlignment eAlignment, EPdfVerticalAlignment eVertical )
+                                    EPdfAlignment eAlignment, EPdfVerticalAlignment eVertical )
 {
-	PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
     if( !m_pFont || !m_pPage || !rsText.IsValid() )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
+    
+    if( dWidth <= 0.0 || dHeight <= 0.0 ) // nonsense arguments
+        return;
+    
+    TLineElement              tLine;
+    std::vector<TLineElement> vecLines;
+    this->Save();
+    this->SetClipRect( dX, dY, dWidth, dHeight );
+    
+    PdfString   sString  = this->ExpandTabs( rsText, rsText.GetCharacterLength() );
+    tLine.pszStart       = sString.GetString();
+    const char* pszEnd   = tLine.pszStart;
+    const char* pszWord  = tLine.pszStart;
+    
+    double dCurWidth = 0.0;
 
-	if( dWidth <= 0.0 || dHeight <= 0.0 ) // nonsense arguments
-		return;
-
-	TLineElement              tLine;
-	std::vector<TLineElement> vecLines;
-	this->Save();
-	this->SetClipRect( dX, dY, dWidth, dHeight );
-
-	PdfString   sString  = this->ExpandTabs( rsText );
-	tLine.pszStart       = sString.GetString();
-	const char* pszEnd   = tLine.pszStart;
-	const char* pszWord  = tLine.pszStart;
-
-	double dCurWidth = 0.0;
-
-	// do simple word wrapping
-	// TODO: Use better algorithm!
-	while( *pszEnd ) 
-	{
-		dCurWidth += m_pFont->GetFontMetrics()->CharWidth( *pszEnd );
-
-		if( *pszEnd == '\n' ) // hard-break!
-		{
-			++pszEnd; // skip the line feed
-
-			tLine.lLen = pszEnd - tLine.pszStart;
-			vecLines.push_back( tLine );
-
-			tLine.pszStart = pszEnd;
-			dCurWidth = 0.0;
-		}
-		else if( isspace( static_cast<unsigned int>(static_cast<unsigned char>(*pszEnd)) ) || 
-			     ispunct( static_cast<unsigned int>(static_cast<unsigned char>(*pszEnd)) ))
-			pszWord = pszEnd;
-
-		if( dCurWidth > dWidth ) 
-		{
-			// The last word does not fit anymore in the current line.
-			// -> Move it to the next one.
+    // do simple word wrapping
+    // TODO: Use better algorithm!
+    while( *pszEnd ) 
+    {
+        dCurWidth += m_pFont->GetFontMetrics()->CharWidth( *pszEnd );
+        
+        if( *pszEnd == '\n' ) // hard-break!
+        {
+            ++pszEnd; // skip the line feed
+            
+            tLine.lLen = pszEnd - tLine.pszStart;
+            vecLines.push_back( tLine );
+            
+            tLine.pszStart = pszEnd;
+            dCurWidth = 0.0;
+        }
+        else if( isspace( static_cast<unsigned int>(static_cast<unsigned char>(*pszEnd)) ) || 
+                 ispunct( static_cast<unsigned int>(static_cast<unsigned char>(*pszEnd)) ))
+            pszWord = pszEnd;
+        
+        if( dCurWidth > dWidth ) 
+        {
+            // The last word does not fit anymore in the current line.
+            // -> Move it to the next one.
 			
-			// skip leading whitespaces!
-			while( *tLine.pszStart && isspace( static_cast<unsigned int>(static_cast<unsigned char>(*tLine.pszStart)) ) )
-				++tLine.pszStart;
+            // skip leading whitespaces!
+            while( *tLine.pszStart && isspace( static_cast<unsigned int>(static_cast<unsigned char>(*tLine.pszStart)) ) )
+                ++tLine.pszStart;
 
-			tLine.lLen = pszEnd - tLine.pszStart;
-			vecLines.push_back( tLine );
-			tLine.pszStart = pszWord;
+            tLine.lLen = pszEnd - tLine.pszStart;
+            vecLines.push_back( tLine );
+            tLine.pszStart = pszWord;
 
-			dCurWidth = pszEnd-pszWord > 0 ? 
-				m_pFont->GetFontMetrics()->StringWidth( pszWord, pszEnd-pszWord ) : 0.0;
-		}
-		++pszEnd;
-	}
+            dCurWidth = pszEnd-pszWord > 0 ? 
+                m_pFont->GetFontMetrics()->StringWidth( pszWord, pszEnd-pszWord ) : 0.0;
+        }
+        ++pszEnd;
+    }
 
-	if( pszEnd-tLine.pszStart > 0 ) 
-	{
-		tLine.lLen = pszEnd - tLine.pszStart;
-		vecLines.push_back( tLine );
-	}
+    if( pszEnd-tLine.pszStart > 0 ) 
+    {
+        tLine.lLen = pszEnd - tLine.pszStart;
+        vecLines.push_back( tLine );
+    }
 
-	// Do vertical alignment
-	switch( eVertical ) 
-	{
-		default:
-		case ePdfVerticalAlignment_Top:
-			dY += dHeight; break;
-		case ePdfVerticalAlignment_Bottom:
-			dY += m_pFont->GetFontMetrics()->GetLineSpacing() * vecLines.size(); break;
-		case ePdfVerticalAlignment_Center:
-			dY += (dHeight - 
-					((dHeight - (m_pFont->GetFontMetrics()->GetLineSpacing() * vecLines.size()))/2.0)); 
-			break;
-	}
+    // Do vertical alignment
+    switch( eVertical ) 
+    {
+        default:
+        case ePdfVerticalAlignment_Top:
+            dY += dHeight; break;
+        case ePdfVerticalAlignment_Bottom:
+            dY += m_pFont->GetFontMetrics()->GetLineSpacing() * vecLines.size(); break;
+        case ePdfVerticalAlignment_Center:
+            dY += (dHeight - 
+                   ((dHeight - (m_pFont->GetFontMetrics()->GetLineSpacing() * vecLines.size()))/2.0)); 
+            break;
+    }
 
-	std::vector<TLineElement>::const_iterator it = vecLines.begin();
-	while( it != vecLines.end() )
-	{
-		dY -= m_pFont->GetFontMetrics()->GetLineSpacing();
-		if( (*it).pszStart )
-			this->DrawTextAligned( dX, dY, dWidth, PdfString( (*it).pszStart, (*it).lLen ), eAlignment );
+    std::vector<TLineElement>::const_iterator it = vecLines.begin();
+    while( it != vecLines.end() )
+    {
+        dY -= m_pFont->GetFontMetrics()->GetLineSpacing();
+        if( (*it).pszStart )
+            this->DrawTextAligned( dX, dY, dWidth, PdfString( (*it).pszStart, (*it).lLen ), eAlignment );
 
-		++it;
-	}
-	this->Restore();
+        ++it;
+    }
+    this->Restore();
 }
 
 void PdfPainter::DrawTextAligned( double dX, double dY, double dWidth, const PdfString & rsText, EPdfAlignment eAlignment )
@@ -746,23 +744,23 @@ void PdfPainter::DrawTextAligned( double dX, double dY, double dWidth, const Pdf
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-	if( dWidth <= 0.0 ) // nonsense arguments
-		return;
+    if( dWidth <= 0.0 ) // nonsense arguments
+        return;
 
-	switch( eAlignment ) 
-	{
-		default:
-		case ePdfAlignment_Left:
-			break;
-		case ePdfAlignment_Center:
-			dX += (dWidth - m_pFont->GetFontMetrics()->StringWidth( rsText ) ) / 2.0;
-			break;
-		case ePdfAlignment_Right:
-			dX += (dWidth - m_pFont->GetFontMetrics()->StringWidth( rsText ) );
-			break;
-	}
+    switch( eAlignment ) 
+    {
+        default:
+        case ePdfAlignment_Left:
+            break;
+        case ePdfAlignment_Center:
+            dX += (dWidth - m_pFont->GetFontMetrics()->StringWidth( rsText ) ) / 2.0;
+            break;
+        case ePdfAlignment_Right:
+            dX += (dWidth - m_pFont->GetFontMetrics()->StringWidth( rsText ) );
+            break;
+    }
 
-	this->DrawText( dX, dY, rsText );
+    this->DrawText( dX, dY, rsText );
 }
 
 void PdfPainter::DrawImage( double dX, double dY, PdfImage* pObject, double dScaleX, double dScaleY )
@@ -1149,51 +1147,78 @@ void PdfPainter::SetRenderingIntent( char* intent )
     m_pCanvas->Append( m_oss.str() );
 }
 
-PdfString PdfPainter::ExpandTabs( const PdfString & rsString ) 
+template<typename C>
+PdfString PdfPainter::ExpandTabsPrivate( const C* pszText, long lStringLen, int nTabCnt, const C cTab, const C cSpace ) const
 {
-	int nTabCnt = 0;
-	int i;
-	long lStringLen = rsString.GetLength();
+    printf("TABCOUNT=%i size=%i width=%i cSpace=%04x\n", nTabCnt, sizeof(C),m_nTabWidth, cSpace);
+    long lLen    = lStringLen + nTabCnt*(m_nTabWidth-1) + sizeof(C);
+    C*   pszTab  = static_cast<C*>(malloc( sizeof( C ) * lLen ));
 
-	// count the number of tabs in the string
-    for( i=0;i<=lStringLen;i++ )
-        if( rsString.GetString()[i] == '\t' )
-            ++nTabCnt;
-
-	// if no tabs are found: bail out!
-    if( !nTabCnt )
-		return rsString;
-
-    const char* pszText = rsString.GetString();
-    long        lLen    = lStringLen + nTabCnt*(m_nTabWidth-1) + 1;
-	char*       pszTab  = static_cast<char*>(malloc( sizeof( char ) * lLen ));
     if( !pszTab )
     {
-		PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
-
-    i = 0;
+    
+    int i = 0;
     while( lStringLen-- )
     {
-		if( *pszText == '\t' )
+        if( *pszText == cTab )
         {
-			for( int z=0;z<m_nTabWidth; z++ )
-				pszTab[i+z] += ' ';
-                
-             i+=m_nTabWidth;
+            for( int z=0;z<m_nTabWidth; z++ )
+                pszTab[i+z] = cSpace;
+            
+            i+=m_nTabWidth;
         }
         else
-			pszTab[i++] = *pszText;
-
+            pszTab[i++] = *pszText;
+        
         ++pszText;
     }
-        
-    pszTab[i]  = '\0';
-	PdfString str( pszTab );
-	free( pszTab );
+    
+    pszTab[i]  = 0;
 
-	return str;
+    PdfString str( pszTab );
+    printf("OUT=");
+    for(int z=0;z<lLen;z++)
+        printf("%04x ", str.GetUnicode()[z] );
+    printf("\n\n");
+    free( pszTab );
+    
+    return str;
 }
 
+PdfString PdfPainter::ExpandTabs( const PdfString & rsString, long lStringLen ) const
+{
+    int               nTabCnt  = 0;
+    int               i;
+    bool              bUnicode = rsString.IsUnicode();
+    const pdf_utf16be cTab     = 0x0900;
+    const pdf_utf16be cSpace   = 0x2000;
+
+    // count the number of tabs in the string
+    if( bUnicode ) 
+    {
+        for( i=0;i<=lStringLen;i++ )
+            if( rsString.GetUnicode()[i] == cTab ) 
+                ++nTabCnt;
+    }
+    else
+    {
+        for( i=0;i<=lStringLen;i++ )
+            if( rsString.GetString()[i] == '\t' )
+                ++nTabCnt;
+    }
+
+    // if no tabs are found: bail out!
+    if( !nTabCnt )
+        return rsString;
+    
+    if( rsString.IsUnicode() )
+        return ExpandTabsPrivate<pdf_utf16be>( rsString.GetUnicode(), lStringLen, nTabCnt, cTab, cSpace );
+    else
+        return ExpandTabsPrivate<char>( rsString.GetString(), lStringLen, nTabCnt, '\t', ' ' );
 }
+
+} /* namespace PoDoFo */
+
 

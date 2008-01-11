@@ -39,10 +39,11 @@ class PdfFontType1 : public PdfFontSimple {
      *  \param pMetrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object is 
      *         deleted along with the font.
+     *  \param pEncoding the encoding of this font. The font will not take ownership of this object.
      *  \param pParent parent of the font object
      *  
      */
-    PdfFontType1( PdfFontMetrics* pMetrics, bool bEmbed, PdfVecObjects* pParent );
+    PdfFontType1( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, bool bEmbed, PdfVecObjects* pParent );
 
  protected:
 

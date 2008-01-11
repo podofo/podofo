@@ -18,62 +18,68 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PDF_FONT_FACTORY_H_
-#define _PDF_FONT_FACTORY_H_
+#ifndef _PDF_FONT_CID_H_
+#define _PDF_FONT_CID_H_
 
 #include "PdfDefines.h"
 #include "PdfFont.h"
 
 namespace PoDoFo {
 
-class PdfFontMetrics;
-class PdfVecObjects;
-
-typedef enum EPdfFontFlags {
-    ePdfFont_Normal     = 0x00,
-    ePdfFont_Embedded   = 0x01,
-    ePdfFont_Bold       = 0x02,
-    ePdfFont_Italic     = 0x04,
-    ePdfFont_BoldItalic = ePdfFont_Bold | ePdfFont_Italic,
-
-};
-
-/** This is a factory class which knows
- *  which implementation of PdfFont is required
- *  for a certain font type with certain features (like encoding).
+/** A PdfFont that represents a CID font.
  */
-class PODOFO_API PdfFontFactory {
+class PdfFontCID : public PdfFont {
  public:
 
-    /** Create a new PdfFont object.
-     *
+    /** Create a new CID font. 
+     * 
      *  \param pMetrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object is 
-     *         deleted along with the created font. In case of an error, it is deleted
-     *         here.
-     *  \param nFlags font flags or'ed together, specifying the font style and if it should be embedded
-     *  \param pEncoding the encoding of this font.
-     *  \param pParent the parent of the created font.
-     *
-     *  \returns a new PdfFont object or NULL
+     *         deleted along with the font.
+     *  \param pEncoding the encoding of this font. The font will not take ownership of this object.
+     *  \param pParent parent of the font object
+     *  
      */
-    static PdfFont* CreateFont( PdfFontMetrics* pMetrics, int nFlags, 
-                                const PdfEncoding* const pEncoding, PdfVecObjects* pParent );
+    PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent );
+
+
+    /** Write a PdfString to a PdfStream in a format so that it can 
+     *  be used with this font.
+     *  This is used by PdfPainter::DrawText to display a text string.
+     *  The following PDF operator will be Tj
+     *
+     *  \param rsString a unicode or ansi string which will be displayed
+     *  \param pStream the string will be appended to pStream without any leading
+     *                 or following whitespaces.
+     */
+    virtual void WriteStringToStream( const PdfString & rsString, PdfStream* pStream );
 
  private:
-    /** Actually creates the font object for the requested type.
-     *  Throws an exception in case of an error.
+    /** Create the DW and W entries which contain
+     *  all glyph width in the given font dictionary.
      *
-     *  \returns a new PdfFont object or NULL
+     *  \param pFontDict a CID font dictionary
      */
-    static PdfFont* CreateFontForType( EPdfFontType eType, PdfFontMetrics* pMetrics, 
-                                       const PdfEncoding* const pEncoding, 
-                                       bool bEmbed, PdfVecObjects* pParent );
+    void CreateWidth( PdfObject* pFontDict ) const;
+
+ protected:
+
+    /** Initialize this font object.
+     *
+     *  \param bEmbed if true embed the font data into the PDF file.
+     */
+    void Init( bool bEmbed );
+
+
+    /** Embed the font file directly into the PDF file.
+     *
+     *  \param pDescriptor font descriptor object
+     */
+    void EmbedFont( PdfObject* pDescriptor );
 
 };
 
 };
 
-#endif /* _PDF_FONT_FACTORY_H_ */
-
+#endif // _PDF_FONT_CID_H_
 

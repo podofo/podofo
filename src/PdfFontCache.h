@@ -23,39 +23,48 @@
 
 #include "PdfDefines.h"
 #include "Pdf3rdPtyForwardDecl.h"
+#include "PdfFont.h"
 
 namespace PoDoFo {
 
-class PdfFont;
 class PdfFontMetrics;
 class PdfVecObjects;
 
+/** A private structure,
+ *  which represents a font in the cache.
+ */
 struct TFontCacheElement {
-	TFontCacheElement() 
-            : m_pFont( NULL ), 
-              m_bBold( false ),
-              m_bItalic( false )
+    TFontCacheElement() 
+        : m_pFont( NULL ),
+    m_pEncoding( NULL ),
+    m_bBold( false ),
+    m_bItalic( false )
+    {
+    }
+    
+    TFontCacheElement( const TFontCacheElement & rhs ) 
+    {
+        this->operator=(rhs);
+    }
+    
+    const TFontCacheElement & operator=( const TFontCacheElement & rhs ) 
+    {
+        m_pFont     = rhs.m_pFont;
+        m_pEncoding = rhs.m_pEncoding;
+        m_bBold     = rhs.m_bBold;
+        m_bItalic   = rhs.m_bItalic;
+        m_sFontName = rhs.m_sFontName;
+        
+        return *this;
+    }
+    
+    bool operator<( const TFontCacheElement & rhs ) const
+    {
+        if( m_sFontName == rhs.m_sFontName ) 
         {
-	}
-
-	TFontCacheElement( const TFontCacheElement & rhs ) 
-	{
-            this->operator=(rhs);
-	}
-
-	const TFontCacheElement & operator=( const TFontCacheElement & rhs ) 
-	{
-            m_pFont     = rhs.m_pFont;
-            m_bBold     = rhs.m_bBold;
-            m_bItalic   = rhs.m_bItalic;
-            m_sFontName = rhs.m_sFontName;
-            
-            return *this;
-	}
-
-	bool operator<( const TFontCacheElement & rhs ) const
-	{
-            if( m_sFontName == rhs.m_sFontName ) 
+            // We compare by pointer here,
+            // as every PdfEncoding should exist only once!
+            if( m_pEncoding == rhs.m_pEncoding ) 
             {
                 if( m_bBold == rhs.m_bBold) 
                     return m_bItalic < rhs.m_bItalic;
@@ -63,13 +72,17 @@ struct TFontCacheElement {
                     return m_bBold < rhs.m_bBold;
             }
             else
-                return (m_sFontName < rhs.m_sFontName);
-	}
-	PdfFont*    m_pFont;
+                return m_pEncoding < m_pEncoding;
+        }
+        else
+            return (m_sFontName < rhs.m_sFontName);
+    }
 
-	bool        m_bBold;
-	bool        m_bItalic;
-	std::string m_sFontName;
+    PdfFont*           m_pFont;
+    const PdfEncoding* m_pEncoding;
+    bool               m_bBold;
+    bool               m_bItalic;
+    std::string        m_sFontName;
 };
 
 /**
@@ -116,13 +129,15 @@ class PODOFO_API PdfFontCache {
      *  \param bItalic if true search for an italic font
      *  \param bEmbedd if true a font for embedding into 
      *                 PDF will be created
+     *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
      *  \param optional: pszFileName path to a valid font file
      *
      *  \returns a PdfFont object or NULL if the font could
      *           not be created or found.
      */
     PdfFont* GetFont( const char* pszFontName, bool bBold, bool bItalic, 
-					  bool bEmbedd, const char* pszFileName = NULL );
+                      bool bEmbedd, const PdfEncoding * const = &PdfFont::WinAnsiEncoding, 
+                      const char* pszFileName = NULL );
 
     /** Get a font from the cache. If the font does not yet
      *  exist, add it to the cache.
@@ -130,11 +145,12 @@ class PODOFO_API PdfFontCache {
      *  \param face a valid freetype font face (will be free'd by PoDoFo)
      *  \param bEmbedd if true a font for embedding into 
      *                 PDF will be created
+     *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
      *
      *  \returns a PdfFont object or NULL if the font could
      *           not be created or found.
      */
-    PdfFont* GetFont( FT_Face face, bool bEmbedd );
+    PdfFont* GetFont( FT_Face face, bool bEmbedd, const PdfEncoding * const = &PdfFont::WinAnsiEncoding );
 
     /** Get a fontsubset from the cache. If the font does not yet
      *  exist, add it to the cache.
@@ -188,7 +204,7 @@ class PODOFO_API PdfFontCache {
      *  \returns a font handle or NULL in case of error
      */
     PdfFont* CreateFont( PdfFontMetrics* pMetrics, bool bEmbedd, bool bBold, 
-		                 bool bItalic, const char* pszFontName );
+                         bool bItalic, const char* pszFontName );
 
     /** Create a font subset.
      *  \param pMetrics a font metrics
@@ -222,13 +238,13 @@ class PODOFO_API PdfFontCache {
     typedef TSortedFontList::iterator       TISortedFontList;
     typedef TSortedFontList::const_iterator TCISortedFontList;
 
-    TSortedFontList m_vecFonts;
+    TSortedFontList m_vecFonts;              ///< Sorted list of all fonts, currently in the cache
     TSortedFontList m_vecFontSubsets;
-    FT_Library      m_ftLibrary;
+    FT_Library      m_ftLibrary;             ///< Handle to the freetype library
 
-    void*           m_pFcConfig;
+    void*           m_pFcConfig;             ///< Handle to fontconfig on unix systems
 
-    PdfVecObjects*  m_pParent; 
+    PdfVecObjects*  m_pParent;               ///< Handle to parent for creating new fonts and objects
 };
 
 };

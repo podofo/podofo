@@ -105,6 +105,12 @@ class PODOFO_API PdfString : public PdfDataType{
      */
     PdfString( const pdf_utf8* pszStringUtf8 );
 
+    /** Construct a new PdfString from an UTF-16be encoded zero terminated string.
+     *
+     *  \param pszStringUtf16 a UTF-16BE encoded string.
+     */
+    PdfString( const pdf_utf16be* pszStringUtf16 );
+
     /** Construct a new PdfString from an UTF-8 encoded string.
      *  
      *  The string is converted to UTF-16BE internally.

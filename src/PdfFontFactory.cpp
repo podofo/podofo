@@ -21,39 +21,101 @@
 #include "PdfFontFactory.h"
 
 #include "PdfFont.h"
+#include "PdfFontCID.h"
 #include "PdfFontMetrics.h"
 #include "PdfFontType1.h"
 #include "PdfFontTrueType.h"
 
 namespace PoDoFo {
 
-PdfFont* PdfFontFactory::CreateFont( PdfFontMetrics* pMetrics, bool bEmbedd, bool bBold, bool bItalic, PdfVecObjects* pParent )
+PdfFont* PdfFontFactory::CreateFont( PdfFontMetrics* pMetrics, int nFlags, const PdfEncoding* const pEncoding, PdfVecObjects* pParent )
 {
-    PdfFont*     pFont = NULL;
-    EPdfFontType eType = pMetrics->GetFontType();
+    PdfFont*     pFont  = NULL;
+    EPdfFontType eType  = pMetrics->GetFontType();
+    bool         bEmbed = nFlags & ePdfFont_Embedded;
 
-    switch( eType ) 
-    {
-        case ePdfFontType_TrueType:
-            pFont = new PdfFontTrueType( pMetrics, pParent );
-            break;
-
-        case ePdfFontType_Type1Pfa:
-        case ePdfFontType_Type1Pfb:
-            pFont = new PdfFontType1( pMetrics, bEmbedd, pParent );
-            break;
-
-        case ePdfFontType_Unknown:
-        default:
-            PdfError::LogMessage( eLogSeverity_Error, "The font format is unknown. Fontname: %s Filename: %s\n", 
-                                  (pMetrics->GetFontname() ? pMetrics->GetFontname() : "<unknown>"),
-                                  (pMetrics->GetFilename() ? pMetrics->GetFilename() : "<unknown>") );
+    try
+    { 
+        pFont = PdfFontFactory::CreateFontForType( eType, pMetrics, pEncoding, bEmbed, pParent );
     }
+    catch( PdfError & e ) 
+    {
+        // we have to delete the pMetrics object in case of error 
+        if( pFont ) 
+        {
+            // The font will delete encoding and metrics
+            delete pFont;
+            pFont = NULL;
+        }
+        else
+        {
+            // something went wrong, so we have to delete
+            // the font metrics
+            delete pMetrics;
+            pMetrics = NULL;
+        }
 
+        e.AddToCallstack( __FILE__, __LINE__, "Font creation failed." );
+        throw e;
+        
+    }
+    
     if( pFont ) 
     {
-        pFont->SetBold( bBold );
-        pFont->SetItalic( bItalic );
+        pFont->SetBold( nFlags & ePdfFont_Bold );
+        pFont->SetItalic( nFlags & ePdfFont_Italic );
+    }
+    else
+    {
+        // something went wrong, so we have to delete
+        // the font metrics
+        delete pMetrics;
+    }
+    
+    return pFont;
+}
+
+PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
+                                            bool bEmbed, PdfVecObjects* pParent )
+{
+    PdfFont* pFont = NULL;
+
+    if( pEncoding->IsSingleByteEncoding() ) 
+    {
+        switch( eType ) 
+        {
+            case ePdfFontType_TrueType:
+                pFont = new PdfFontTrueType( pMetrics, pEncoding, pParent );
+                break;
+                
+            case ePdfFontType_Type1Pfa:
+            case ePdfFontType_Type1Pfb:
+                pFont = new PdfFontType1( pMetrics, pEncoding, bEmbed, pParent );
+                break;
+                
+            case ePdfFontType_Unknown:
+            default:
+                PdfError::LogMessage( eLogSeverity_Error, "The font format is unknown. Fontname: %s Filename: %s\n", 
+                                      (pMetrics->GetFontname() ? pMetrics->GetFontname() : "<unknown>"),
+                                      (pMetrics->GetFilename() ? pMetrics->GetFilename() : "<unknown>") );
+        }
+    }
+    else
+    {
+        switch( eType ) 
+        {
+            case ePdfFontType_TrueType:
+                pFont = new PdfFontCID( pMetrics, pEncoding, pParent );
+                break;
+            case ePdfFontType_Type1Pfa:
+            case ePdfFontType_Type1Pfb:
+            case ePdfFontType_Unknown:
+            default:
+                PdfError::LogMessage( eLogSeverity_Error, 
+                                      "The font format is unknown or no multibyte encoding defined. Fontname: %s Filename: %s\n", 
+                                      (pMetrics->GetFontname() ? pMetrics->GetFontname() : "<unknown>"),
+                                      (pMetrics->GetFilename() ? pMetrics->GetFilename() : "<unknown>") );
+        }
     }
 
     return pFont;
