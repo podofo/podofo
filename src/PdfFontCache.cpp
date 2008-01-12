@@ -374,7 +374,7 @@ PdfFont* PdfFontCache::CreateFont( PdfFontMetrics* pMetrics, bool bEmbedd, bool 
         if( bItalic )
             nFlags |= ePdfFont_Italic;
 
-        pFont    = PdfFontFactory::CreateFont( pMetrics, nFlags, new PdfWinAnsiEncoding(), m_pParent );
+        pFont    = PdfFontFactory::CreateFontObject( pMetrics, nFlags, new PdfWinAnsiEncoding(), m_pParent );
 
         TFontCacheElement element;
         element.m_pFont     = pFont;

@@ -28,7 +28,7 @@
 
 namespace PoDoFo {
 
-PdfFont* PdfFontFactory::CreateFont( PdfFontMetrics* pMetrics, int nFlags, const PdfEncoding* const pEncoding, PdfVecObjects* pParent )
+PdfFont* PdfFontFactory::CreateFontObject( PdfFontMetrics* pMetrics, int nFlags, const PdfEncoding* const pEncoding, PdfVecObjects* pParent )
 {
     PdfFont*     pFont  = NULL;
     EPdfFontType eType  = pMetrics->GetFontType();
@@ -62,8 +62,8 @@ PdfFont* PdfFontFactory::CreateFont( PdfFontMetrics* pMetrics, int nFlags, const
     
     if( pFont ) 
     {
-        pFont->SetBold( nFlags & ePdfFont_Bold );
-        pFont->SetItalic( nFlags & ePdfFont_Italic );
+		pFont->SetBold( nFlags & ePdfFont_Bold ? true : false );
+        pFont->SetItalic( nFlags & ePdfFont_Italic ? true : false );
     }
     else
     {

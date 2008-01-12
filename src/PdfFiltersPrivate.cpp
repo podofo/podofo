@@ -1025,6 +1025,8 @@ jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize)
 
 #endif // PODOFO_HAVE_JPEG_LIB
 
+#ifdef PODOFO_HAVE_TIFF_LIB
+
 // -------------------------------------------------------
 // 
 // -------------------------------------------------------
@@ -1158,6 +1160,8 @@ void PdfCCITTFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
 void PdfCCITTFilter::EndDecodeImpl()
 {
 }
+
+#endif // PODOFO_HAVE_TIFF_LIB
 
 
 };

@@ -57,8 +57,8 @@ class PODOFO_API PdfFontFactory {
      *
      *  \returns a new PdfFont object or NULL
      */
-    static PdfFont* CreateFont( PdfFontMetrics* pMetrics, int nFlags, 
-                                const PdfEncoding* const pEncoding, PdfVecObjects* pParent );
+    static PdfFont* CreateFontObject( PdfFontMetrics* pMetrics, int nFlags, 
+                                      const PdfEncoding* const pEncoding, PdfVecObjects* pParent );
 
  private:
     /** Actually creates the font object for the requested type.
