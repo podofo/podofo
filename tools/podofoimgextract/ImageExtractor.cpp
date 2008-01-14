@@ -110,7 +110,7 @@ void ImageExtractor::ExtractImage( PdfObject* pObject, bool bJpeg )
     }
     else
     {
-        long lBitsPerComponent = pObject->GetDictionary().GetKey( PdfName("BitsPerComponent" ) )->GetNumber();
+        //long lBitsPerComponent = pObject->GetDictionary().GetKey( PdfName("BitsPerComponent" ) )->GetNumber();
         // TODO: Handle colorspaces
 
         // Create a ppm image
