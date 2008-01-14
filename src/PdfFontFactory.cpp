@@ -37,6 +37,23 @@ PdfFont* PdfFontFactory::CreateFontObject( PdfFontMetrics* pMetrics, int nFlags,
     try
     { 
         pFont = PdfFontFactory::CreateFontForType( eType, pMetrics, pEncoding, bEmbed, pParent );
+        
+        if( pFont ) 
+        {
+            pFont->SetBold( nFlags & ePdfFont_Bold ? true : false );
+            pFont->SetItalic( nFlags & ePdfFont_Italic ? true : false );
+        }
+        else
+        {
+            // something went wrong, so we have to delete
+            // the font metrics
+            delete pMetrics;
+            // make sure this will be done before the catch block
+            // as the encoding might be deleted already
+            // afterwars, but we cannot set the pointer to NULL
+            if( pEncoding && pEncoding->IsAutoDelete() )
+                delete pEncoding;
+        }
     }
     catch( PdfError & e ) 
     {
@@ -50,26 +67,17 @@ PdfFont* PdfFontFactory::CreateFontObject( PdfFontMetrics* pMetrics, int nFlags,
         else
         {
             // something went wrong, so we have to delete
-            // the font metrics
+            // the font metrics (and if auto-delete, also the encoding)
             delete pMetrics;
             pMetrics = NULL;
+
+            if( pEncoding && pEncoding->IsAutoDelete() )
+                delete pEncoding;
         }
 
         e.AddToCallstack( __FILE__, __LINE__, "Font creation failed." );
         throw e;
         
-    }
-    
-    if( pFont ) 
-    {
-		pFont->SetBold( nFlags & ePdfFont_Bold ? true : false );
-        pFont->SetItalic( nFlags & ePdfFont_Italic ? true : false );
-    }
-    else
-    {
-        // something went wrong, so we have to delete
-        // the font metrics
-        delete pMetrics;
     }
     
     return pFont;

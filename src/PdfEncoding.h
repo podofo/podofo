@@ -51,9 +51,32 @@ class PODOFO_API PdfEncoding {
      */
     PdfEncoding( int nFirstChar, int nLastChar );
 
+    /** Get a unique ID for this encoding
+     *  which can used for comparisons!
+     *
+     *  \returns a unique id for this encoding!
+     */
+    virtual const PdfName & GetID() const = 0;
+
  public:
     
     virtual ~PdfEncoding();
+
+    /** Comparison operator.
+     *
+     *  \param rhs the PdfEncoding to which this encoding should be compared
+     *
+     *  \returns true if both encodings are the same.
+     */
+    inline bool operator==( const PdfEncoding & rhs ) const;
+
+    /** Comparison operator.
+     *
+     *  \param rhs the PdfEncoding to which this encoding should be compared
+     *
+     *  \returns true if this encoding is less than the specified.
+     */
+    inline bool operator<( const PdfEncoding & rhs ) const;
 
     /** Add this encoding object to a dictionary
      *  usually be adding an /Encoding key in font dictionaries.
@@ -81,6 +104,12 @@ class PODOFO_API PdfEncoding {
     virtual PdfString ConvertToEncoding( const PdfString & rString ) const = 0;
 
     /** 
+     * \returns true if this encoding should be deleted automatically with the
+     *          font.
+     */
+    virtual bool IsAutoDelete() const = 0;
+
+    /** 
      *  \returns true if this is a single byte encoding with a maximum of 256 values.
      */
     virtual bool IsSingleByteEncoding() const = 0;
@@ -100,6 +129,22 @@ class PODOFO_API PdfEncoding {
     int     m_nFirstChar;   ///< The first defined character code
     int     m_nLastChar;    ///< The last defined character code
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline bool PdfEncoding::operator<( const PdfEncoding & rhs ) const
+{
+    return (this->GetID() < rhs.GetID());
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline bool PdfEncoding::operator==( const PdfEncoding & rhs ) const
+{
+    return (this->GetID() == rhs.GetID());
+}
 
 // -----------------------------------------------------
 // 
@@ -184,6 +229,18 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
     virtual PdfString ConvertToEncoding( const PdfString & rString ) const;
 
     /** 
+     * PdfSimpleEncoding subclasses are usuylla not auto-deleted, as
+     * they are allocated statically only once.
+     *
+     * \returns true if this encoding should be deleted automatically with the
+     *          font.
+     *
+     * \see PdfFont::WinAnsiEncoding
+     * \see PdfFont::MacRomanEncoding
+     */
+    virtual bool IsAutoDelete() const;
+
+    /** 
      *  \returns true if this is a single byte encoding with a maximum of 256 values.
      */
     inline virtual bool IsSingleByteEncoding() const;
@@ -202,6 +259,13 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
 
  protected:
 
+    /** Get a unique ID for this encoding
+     *  which can used for comparisons!
+     *
+     *  \returns a unique id for this encoding!
+     */
+    inline virtual const PdfName & GetID() const;
+
     /** Gets a table of 256 short values which are the 
      *  big endian unicode code points that are assigned
      *  to the 256 values of this encoding.
@@ -217,6 +281,22 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
     PdfName m_name;           ///< The name of the encoding
     char*   m_pEncodingTable; ///< The helper table for conversions into this encoding
 }; 
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline const PdfName & PdfSimpleEncoding::GetID() const
+{
+    return m_name;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline bool PdfSimpleEncoding::IsAutoDelete() const
+{
+    return false;
+}
 
 // -----------------------------------------------------
 // 
@@ -340,6 +420,100 @@ class PODOFO_API PdfMacExpertEncoding : public PdfSimpleEncoding {
     }
 
 };
+
+/** PdfIdentityEncoding is a two-byte encoding which can be
+ *  used with TrueType fonts to represent all characters
+ *  present in a font. If the font contains all unicode
+ *  glyphs, PdfIdentityEncoding will support all unicode
+ *  characters.
+ */
+class PODOFO_API PdfIdentityEncoding : public PdfEncoding {
+ public:
+
+    /** 
+     *  Create a new PdfIdentityEncoding.
+     *
+     *  \param nFirstChar the first supported unicode character code (at least 0) 
+     *  \param nLastChar the last supported unicode character code, 
+     *                   must be larger than nFirstChar (max value is 0xffff) 
+     *  \param bAutoDelete if true the encoding is deleted by its owning font
+     */
+    PdfIdentityEncoding( int nFirstChar = 0, int nLastChar = 0xffff, bool bAutoDelete = true );
+
+    /** Add this encoding object to a dictionary
+     *  usually be adding an /Encoding key in font dictionaries.
+     *
+     *  \param rDictionary add the encoding to this dictionary
+     */
+    virtual void AddToDictionary( PdfDictionary & rDictionary ) const;
+
+    /** Convert a string that is encoded with this encoding
+     *  to an unicode PdfString.
+     *
+     *  \param rEncodedString a string encoded by this encoding. 
+     *         Usually this string was read from a PdfDocument.
+     *
+     *  \returns an unicode PdfString.
+     */
+    virtual PdfString ConvertToUnicode( const PdfString & rEncodedString ) const;
+
+    /** Convert a unicode PdfString to a string encoded with this encoding.
+     *
+     *  \param an unicode PdfString.
+     *
+     *  \returns an encoded PdfString.
+     */
+    virtual PdfString ConvertToEncoding( const PdfString & rString ) const;
+
+    /** 
+     * PdfIdentityEncoding is usually delete along with the font.
+     *
+     * \returns true if this encoding should be deleted automatically with the
+     *          font.
+     */
+    virtual bool IsAutoDelete() const;
+
+    /** 
+     *  \returns true if this is a single byte encoding with a maximum of 256 values.
+     */
+    virtual bool IsSingleByteEncoding() const;
+
+ protected:
+    /** Get a unique ID for this encoding
+     *  which can used for comparisons!
+     *
+     *  \returns a unique id for this encoding!
+     */
+    inline virtual const PdfName & GetID() const;
+    
+ private:
+    bool    m_bAutoDelete;      ///< If true this encoding is deleted by its font.
+    PdfName m_id;               ///< Unique ID of this encoding 
+};
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline const PdfName & PdfIdentityEncoding::GetID() const
+{
+    return m_id;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline bool PdfIdentityEncoding::IsAutoDelete() const
+{
+    return m_bAutoDelete;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline bool PdfIdentityEncoding::IsSingleByteEncoding() const
+{
+    return false;
+}
 
 }; /* namespace RoMA */
 

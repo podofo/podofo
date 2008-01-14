@@ -55,9 +55,7 @@ public:
     bool operator()(const TFontCacheElement & rhs ) 
     { 
         return ( rhs.m_sFontName == m_pszFontName && 
-                 // We compare by pointer here,
-                 // as every PdfEncoding should exist only once!
-                 ( m_pEncoding == rhs.m_pEncoding ) && 
+                 (*m_pEncoding == *rhs.m_pEncoding ) && 
                  ((m_bBold && rhs.m_bBold) || (!m_bBold && !rhs.m_bBold)) &&
                  ((m_bItalic && rhs.m_bItalic) || (!m_bItalic && !rhs.m_bItalic)) );
     }
@@ -166,6 +164,8 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
                                 bool bEmbedd, const PdfEncoding * const pEncoding, 
                                 const char* pszFileName )
 {
+    PODOFO_ASSERT( pEncoding );
+
     PdfFont*          pFont;
     PdfFontMetrics*   pMetrics;
     TCISortedFontList it;
@@ -174,11 +174,11 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
     if( it == m_vecFonts.end() )
     {
         std::string sPath;
-   		if ( pszFileName == NULL )
-	        sPath = this->GetFontPath( pszFontName, bBold, bItalic );
-		else
-			sPath = pszFileName;
-
+        if ( pszFileName == NULL )
+            sPath = this->GetFontPath( pszFontName, bBold, bItalic );
+        else
+            sPath = pszFileName;
+        
         if( sPath.empty() )
         {
 #if _WIN32
@@ -190,7 +190,7 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
         }
         
         pMetrics = new PdfFontMetrics( &m_ftLibrary, sPath.c_str() );
-        pFont    = this->CreateFont( pMetrics, bEmbedd, bBold, bItalic, pszFontName );
+        pFont    = this->CreateFont( pMetrics, bEmbedd, bBold, bItalic, pszFontName, pEncoding );
     }
     else
         pFont = (*it).m_pFont;
@@ -218,7 +218,7 @@ PdfFont* PdfFontCache::GetFont( FT_Face face, bool bEmbedd, const PdfEncoding * 
     if( it == m_vecFonts.end() )
     {
         pMetrics = new PdfFontMetrics( &m_ftLibrary, face );
-        pFont    = this->CreateFont( pMetrics, bEmbedd, bBold, bItalic, sName.c_str() );
+        pFont    = this->CreateFont( pMetrics, bEmbedd, bBold, bItalic, sName.c_str(), pEncoding );
     }
     else
         pFont = (*it).m_pFont;
@@ -226,6 +226,7 @@ PdfFont* PdfFontCache::GetFont( FT_Face face, bool bEmbedd, const PdfEncoding * 
     return pFont;
 }
 
+/*
 PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool bItalic, const std::vector<int> & vecGlyphs )
 {
     PdfFont*        pFont;
@@ -260,6 +261,7 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
 
     return pFont;
 }
+*/
 
 #ifdef _WIN32
 PdfFont* PdfFontCache::GetWin32Font( const char* pszFontName, bool bBold, bool bItalic, bool bEmbedd )
@@ -358,7 +360,8 @@ std::string PdfFontCache::GetFontPath( const char* pszFontName, bool bBold, bool
     return sPath;
 }
 
-PdfFont* PdfFontCache::CreateFont( PdfFontMetrics* pMetrics, bool bEmbedd, bool bBold, bool bItalic, const char* pszFontName ) 
+PdfFont* PdfFontCache::CreateFont( PdfFontMetrics* pMetrics, bool bEmbedd, bool bBold, bool bItalic, 
+                                   const char* pszFontName, const PdfEncoding * const pEncoding ) 
 {
     PdfFont* pFont;
 
@@ -374,14 +377,14 @@ PdfFont* PdfFontCache::CreateFont( PdfFontMetrics* pMetrics, bool bEmbedd, bool 
         if( bItalic )
             nFlags |= ePdfFont_Italic;
 
-        pFont    = PdfFontFactory::CreateFontObject( pMetrics, nFlags, new PdfWinAnsiEncoding(), m_pParent );
+        pFont    = PdfFontFactory::CreateFontObject( pMetrics, nFlags, pEncoding, m_pParent );
 
         TFontCacheElement element;
         element.m_pFont     = pFont;
         element.m_bBold     = pFont->IsBold();
         element.m_bItalic   = pFont->IsItalic();
         element.m_sFontName = pszFontName;
-
+        element.m_pEncoding = pEncoding;
         m_vecFonts  .push_back( element );
         
         // Now sort the font list
@@ -396,6 +399,7 @@ PdfFont* PdfFontCache::CreateFont( PdfFontMetrics* pMetrics, bool bEmbedd, bool 
     return pFont;
 }
 
+/*
 PdfFont* PdfFontCache::CreateFontSubset( PdfFontMetrics* pMetrics, const char* pszFontName, 
                                          bool bBold, bool bItalic, const std::vector<int> & vecGlyphs ) 
 {
@@ -416,5 +420,6 @@ PdfFont* PdfFontCache::CreateFontSubset( PdfFontMetrics* pMetrics, const char* p
 
     return pFont;
 }
+*/
 
 };

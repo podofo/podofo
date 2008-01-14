@@ -56,8 +56,8 @@ void PdfFontCID::Init( bool bEmbed )
     m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Type0") );
     m_pObject->GetDictionary().AddKey( "BaseFont", this->GetBaseFont() );
 
-    // The encoding here is a (Predefined) CMap:
-    m_pObject->GetDictionary().AddKey( "Encoding", PdfName("Identity-H") );
+    // The encoding is here usually a (Predefined) CMap from PdfIdentityEncoding:
+    m_pEncoding->AddToDictionary( m_pObject->GetDictionary() );
 
     // The DecendantFonts, should be an indirect object:
     array.push_back( pDescendantFonts->Reference() );

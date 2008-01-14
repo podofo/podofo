@@ -22,6 +22,8 @@
 
 #include "PdfDictionary.h"
 
+#include <sstream>
+
 namespace PoDoFo {
 
 PdfEncoding::PdfEncoding( int nFirstChar, int nLastChar )
@@ -53,6 +55,7 @@ PdfSimpleEncoding::~PdfSimpleEncoding()
 
 void PdfSimpleEncoding::InitEncodingTable() 
 {
+    // TODO: LOCK
     const long         lTableLength     = 0xffff;
     const pdf_utf16be* cpUnicodeTable   = this->GetToUnicodeTable();
     char*              m_pEncodingTable = static_cast<char*>(malloc(sizeof(char)*lTableLength));
@@ -62,6 +65,8 @@ void PdfSimpleEncoding::InitEncodingTable()
     // fill the table with data
     for( int i=0;i<256;i++ )
         m_pEncodingTable[ cpUnicodeTable[i] ] = i;
+
+    // TODO: UNLOCK
 }
 
 void PdfSimpleEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
@@ -101,8 +106,10 @@ PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString 
 
 PdfString PdfSimpleEncoding::ConvertToEncoding( const PdfString & rString ) const
 {
+    // TODO: LOCK
     if( !m_pEncodingTable )
         const_cast<PdfSimpleEncoding*>(this)->InitEncodingTable();
+    // TODO: UNLOCK
 
     PdfString sSrc = rString.ToUnicode(); // make sure the string is unicode and not PdfDocEncoding!
     long      lLen = sSrc.GetCharacterLength();
@@ -659,5 +666,36 @@ const pdf_utf16be PdfMacRomanEncoding::s_cEncoding[256] = {
     0x02DB, // OGONEK
     0x02C7, // CARON
 };
+
+// -----------------------------------------------------
+// PdfIdentityEncoding
+// -----------------------------------------------------
+PdfIdentityEncoding::PdfIdentityEncoding( int nFirstChar, int nLastChar, bool bAutoDelete )
+    : PdfEncoding( nFirstChar, nLastChar ), m_bAutoDelete( bAutoDelete )
+{
+    // create a unique ID
+    std::ostringstream oss;
+    oss << "/Identity-H" << nFirstChar << "_" << "nLastChar";
+
+    m_id = PdfName( oss.str() );
+}
+
+void PdfIdentityEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
+{
+    rDictionary.AddKey( "Encoding", PdfName("Identity-H") );
+}
+
+PdfString PdfIdentityEncoding::ConvertToUnicode( const PdfString & rEncodedString ) const
+{
+
+    return PdfString();
+}
+
+PdfString PdfIdentityEncoding::ConvertToEncoding( const PdfString & rString ) const
+{
+
+    return PdfString();
+}
+
 
 }; /* namespace PoDoFo */

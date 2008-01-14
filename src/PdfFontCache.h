@@ -62,8 +62,6 @@ struct TFontCacheElement {
     {
         if( m_sFontName == rhs.m_sFontName ) 
         {
-            // We compare by pointer here,
-            // as every PdfEncoding should exist only once!
             if( m_pEncoding == rhs.m_pEncoding ) 
             {
                 if( m_bBold == rhs.m_bBold) 
@@ -72,7 +70,7 @@ struct TFontCacheElement {
                     return m_bBold < rhs.m_bBold;
             }
             else
-                return m_pEncoding < m_pEncoding;
+                return *m_pEncoding < *rhs.m_pEncoding;
         }
         else
             return (m_sFontName < rhs.m_sFontName);
@@ -163,9 +161,10 @@ class PODOFO_API PdfFontCache {
      *  \returns a PdfFont object or NULL if the font could
      *           not be created or found.
      */
+    /*
     PdfFont* GetFontSubset( const char* pszFontName, bool bBold, 
                             bool bItalic, const std::vector<int> & vecGlyphs );
-
+    */
     
 #if defined(HAVE_FONTCONFIG)
     /** Get the path of a font file on a Unix system using fontconfig
@@ -200,11 +199,12 @@ class PODOFO_API PdfFontCache {
      *  \param bBold if true this font will be treated as bold font
      *  \param bItalic if true this font will be treated as italic font
      *  \param pszFontName a font name for debug output
+     *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
      *
      *  \returns a font handle or NULL in case of error
      */
     PdfFont* CreateFont( PdfFontMetrics* pMetrics, bool bEmbedd, bool bBold, 
-                         bool bItalic, const char* pszFontName );
+                         bool bItalic, const char* pszFontName, const PdfEncoding * const pEncoding );
 
     /** Create a font subset.
      *  \param pMetrics a font metrics
@@ -215,9 +215,10 @@ class PODOFO_API PdfFontCache {
      *
      *  \returns a font handle or NULL in case of error
      */
+    /*
     PdfFont* CreateFontSubset( PdfFontMetrics* pMetrics, const char* pszFontName, bool bBold, 
                                bool bItalic, const std::vector<int> & vecGlyphs );
-
+    */
 #ifdef _WIN32
     /** Load and create a font with windows API calls
      *

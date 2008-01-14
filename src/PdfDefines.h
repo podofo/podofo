@@ -59,6 +59,11 @@
 //#define PODOFO_VERBOSE_DEBUG
 #endif //PODOFO_VERBOSE_DEBUG
 
+#ifdef DEBUG
+#define PODOFO_ASSERT( x ) assert( x );
+#else
+#define PODOFO_ASSERT( x )
+#endif // DEBUG
 
 // Should we do lots of extra (expensive) sanity checking?  You should not
 // define this on production builds because of the runtime cost and because it

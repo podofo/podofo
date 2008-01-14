@@ -1150,7 +1150,6 @@ void PdfPainter::SetRenderingIntent( char* intent )
 template<typename C>
 PdfString PdfPainter::ExpandTabsPrivate( const C* pszText, long lStringLen, int nTabCnt, const C cTab, const C cSpace ) const
 {
-    printf("TABCOUNT=%i size=%i width=%i cSpace=%04x\n", nTabCnt, sizeof(C),m_nTabWidth, cSpace);
     long lLen    = lStringLen + nTabCnt*(m_nTabWidth-1) + sizeof(C);
     C*   pszTab  = static_cast<C*>(malloc( sizeof( C ) * lLen ));
 

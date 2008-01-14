@@ -46,6 +46,8 @@ PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
 PdfFont::~PdfFont()
 {
     delete m_pMetrics;
+    if( m_pEncoding->IsAutoDelete() )
+        delete m_pEncoding;
 }
 
 void PdfFont::InitVars()
