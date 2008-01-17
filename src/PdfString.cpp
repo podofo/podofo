@@ -334,12 +334,16 @@ PdfString::PdfString( const pdf_utf8* pszStringUtf8 )
     : m_bHex( false ), m_bUnicode( true )
 {
     InitFromUtf8( pszStringUtf8, strlen( reinterpret_cast<const char*>(pszStringUtf8) ) );
+
+    m_sUtf8 = reinterpret_cast<const char*>(pszStringUtf8);
 }
 
 PdfString::PdfString( const pdf_utf8* pszStringUtf8, long lLen )
     : m_bHex( false ), m_bUnicode( true )
 {
     InitFromUtf8( pszStringUtf8, lLen );
+
+    m_sUtf8.assign( reinterpret_cast<const char*>(pszStringUtf8), lLen );
 }
 
 PdfString::PdfString( const pdf_utf16be* pszStringUtf16 )
@@ -441,6 +445,18 @@ void PdfString::SetHexData( const char* pszHex, long lLen, PdfEncrypt* pEncrypt 
 
     if( pEncrypt )
         pEncrypt->Encrypt( reinterpret_cast<unsigned char*>(m_buffer.GetBuffer()), m_buffer.GetSize()-2 );
+
+    // Now check for the first two bytes, to see if we got a unicode string
+    if( m_buffer.GetSize()-2 > 2 ) 
+    {
+        m_bUnicode = (m_buffer.GetBuffer()[0] == static_cast<char>(0xFE) && m_buffer.GetBuffer()[1] == static_cast<char>(0xFF));
+        if( m_bUnicode ) 
+        {
+            PdfRefCountedBuffer temp( m_buffer.GetSize() - 2 );
+            memcpy( temp.GetBuffer(), m_buffer.GetBuffer() + 2, m_buffer.GetSize() - 2 );
+            m_buffer = temp;           
+        }
+    }
 }
 
 void PdfString::Write ( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) const
@@ -520,6 +536,7 @@ const PdfString & PdfString::operator=( const PdfString & rhs )
     this->m_bHex     = rhs.m_bHex;
     this->m_bUnicode = rhs.m_bUnicode;
     this->m_buffer   = rhs.m_buffer;
+    this->m_sUtf8    = rhs.m_sUtf8;
 
     return *this;
 }
@@ -629,6 +646,35 @@ void PdfString::InitFromUtf8( const pdf_utf8* pszStringUtf8, long lLen )
     memcpy( m_buffer.GetBuffer(), reinterpret_cast<const char*>(pBuffer), lBufLen );
     m_buffer.GetBuffer()[lBufLen] = '\0';
     m_buffer.GetBuffer()[lBufLen+1] = '\0';
+}
+
+void PdfString::InitUtf8()
+{
+    if( this->IsUnicode() )
+    {
+        // we can convert UTF16 to UTF8
+        // UTF8 is at maximum 5 * characterlenght.
+
+        long  lBufferLen = (5*this->GetUnicodeLength())+1;
+        char* pBuffer    = static_cast<char*>(malloc(sizeof(char)*lBufferLen));
+        if( !pBuffer )
+        {
+            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        }
+
+        long lUtf8 = PdfString::ConvertUTF16toUTF8( reinterpret_cast<const pdf_utf16be*>(m_buffer.GetBuffer()), 
+                                                    this->GetUnicodeLength(), 
+                                                    reinterpret_cast<pdf_utf8*>(pBuffer), lBufferLen, ePdfStringConversion_Lenient );
+
+        pBuffer[lUtf8-1] = '\0';
+        m_sUtf8 = pBuffer;
+        free( pBuffer );
+    }
+    else
+    {
+        PdfString sTmp = this->ToUnicode();
+        m_sUtf8 = sTmp.GetStringUtf8();
+    }
 }
 
 /*

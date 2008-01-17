@@ -60,11 +60,11 @@ void PdfInfo::OutputInfoDict( std::ostream& sOutStream )
         sOutStream << "No info dictionary in this PDF file!" << std::endl;
     else
     {
-        sOutStream << "\tAuthor: "   << ( mDoc->GetInfo()->GetAuthor().GetString()   ? mDoc->GetInfo()->GetAuthor().GetString()  : "" ) << std::endl;
-        sOutStream << "\tCreator: "  << ( mDoc->GetInfo()->GetCreator().GetString()  ? mDoc->GetInfo()->GetCreator().GetString() : "" ) << std::endl;
-        sOutStream << "\tSubject: "  << ( mDoc->GetInfo()->GetSubject().GetString()  ? mDoc->GetInfo()->GetSubject().GetString() : "" ) << std::endl;
-        sOutStream << "\tTitle: "    << ( mDoc->GetInfo()->GetTitle().GetString()    ? mDoc->GetInfo()->GetTitle().GetString()  : "" ) << std::endl;
-        sOutStream << "\tKeywords: " << ( mDoc->GetInfo()->GetKeywords().GetString() ? mDoc->GetInfo()->GetKeywords().GetString()  : "" ) << std::endl;
+        sOutStream << "\tAuthor: "   << mDoc->GetInfo()->GetAuthor().GetStringUtf8() << std::endl;
+        sOutStream << "\tCreator: "  << mDoc->GetInfo()->GetCreator().GetStringUtf8() << std::endl;
+        sOutStream << "\tSubject: "  << mDoc->GetInfo()->GetSubject().GetStringUtf8() << std::endl;
+        sOutStream << "\tTitle: "    << mDoc->GetInfo()->GetTitle().GetStringUtf8() << std::endl;
+        sOutStream << "\tKeywords: " << mDoc->GetInfo()->GetKeywords().GetStringUtf8() << std::endl;
     }
 }
 
@@ -103,8 +103,8 @@ void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
             sOutStream << std::endl;
             sOutStream << "\tAnnotation "  << i << std::endl;
             sOutStream << "\t\tType: "     << curAnnot->GetType() << std::endl;
-            sOutStream << "\t\tContents: " << (curAnnot->GetContents().GetString() ? curAnnot->GetContents().GetString() : "") << std::endl;
-            sOutStream << "\t\tTitle: "    << (curAnnot->GetTitle().GetString()    ? curAnnot->GetTitle().GetString() : "") << std::endl;
+            sOutStream << "\t\tContents: " << curAnnot->GetContents().GetStringUtf8() << std::endl;
+            sOutStream << "\t\tTitle: "    << curAnnot->GetTitle().GetStringUtf8() << std::endl;
             sOutStream << "\t\tFlags: "    << curAnnot->GetFlags() << std::endl;
             sOutStream << "\t\tRect: "     << str << std::endl;
             sOutStream << "\t\tOpen: "     << (curAnnot->GetOpen() ? "true" : "false" ) << std::endl;
@@ -113,8 +113,7 @@ void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
             {
                 sOutStream << "\t\tLink Target: " << curAnnot->GetType() << std::endl;
                 if( curAnnot->HasAction() && curAnnot->GetAction()->HasURI() )
-                    sOutStream << "\t\tAction URI: " << (curAnnot->GetAction()->GetURI().GetString() ? 
-                                                         curAnnot->GetAction()->GetURI().GetString() : "") << std::endl;
+                    sOutStream << "\t\tAction URI: " << curAnnot->GetAction()->GetURI().GetStringUtf8()  << std::endl;
             }
         }        
     }

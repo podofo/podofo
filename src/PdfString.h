@@ -166,7 +166,7 @@ class PODOFO_API PdfString : public PdfDataType{
     /** The contents of the strings can be read
      *  by this function.
      *
-     *  The returned data is never hex encoded any maycontain 0 bytes.
+     *  The returned data is never hex encoded may contain 0 bytes.
      *
      *  if IsUnicode() returns true, the return value
      *  points to a UTF-16BE string buffer with Length()
@@ -197,6 +197,18 @@ class PODOFO_API PdfString : public PdfDataType{
      *  \see Length
      */
     inline const pdf_utf16be* GetUnicode() const;
+
+    /** The contents of the string as UTF8 string.
+     *
+     *  The strings contents are always returned as
+     *  UTF8 by this function. Works for unicode strings 
+     *  and for non unicode strings.
+     *
+     *  This is the prefered way to access the strings contents.
+     *
+     *  \returns the string contents always as UTF8.
+     */
+    inline const std::string & GetStringUtf8() const;
 
     /** The length of the string data returned by GetString() 
      *  in bytes not including terminating zeros.
@@ -356,6 +368,13 @@ class PODOFO_API PdfString : public PdfDataType{
      */
     static void SwapBytes( char* pBuf, long lLen ); 
 
+    /** Initialise the data member containing a
+     *  UTF8 version of this string.
+     *
+     *  This is only done once and only if necessary.
+     */
+    void InitUtf8();
+
  private:
     static const char        s_pszUnicodeMarker[];   ///< The unicode marker used to indicate unicode strings in PDF
     static const char*       s_pszUnicodeMarkerHex;  ///< The unicode marker converted to HEX
@@ -366,43 +385,80 @@ class PODOFO_API PdfString : public PdfDataType{
 
     bool                m_bHex;                      ///< This string is converted to hex during write out
     bool                m_bUnicode;                  ///< This string contains unicode data
+
+    std::string         m_sUtf8;                     ///< The UTF8 version of the strings contents.
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfString::IsValid() const
 {
     return (m_buffer.GetBuffer() != NULL);
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfString::IsHex () const
 {
     return m_bHex;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 bool PdfString::IsUnicode () const
 {
     return m_bUnicode;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 const char* PdfString::GetString() const
 {
     return m_buffer.GetBuffer();
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 const pdf_utf16be* PdfString::GetUnicode() const
 {
     return reinterpret_cast<pdf_utf16be*>(m_buffer.GetBuffer());
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const std::string & PdfString::GetStringUtf8() const
+{
+    if( this->IsValid() && !m_sUtf8.length() && m_buffer.GetSize() - 2) 
+        const_cast<PdfString*>(this)->InitUtf8();
+
+    return m_sUtf8;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 long PdfString::GetLength() const
 {
     return m_buffer.GetSize() - 2;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 long PdfString::GetCharacterLength() const 
 {
     return this->IsUnicode() ? this->GetUnicodeLength() : this->GetLength();
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 long PdfString::GetUnicodeLength() const
 {
     return (m_buffer.GetSize() / sizeof(pdf_utf16be)) - 1;
