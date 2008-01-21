@@ -63,7 +63,6 @@ void PdfFontCID::Init( bool bEmbed )
     array.push_back( pDescendantFonts->Reference() );
     m_pObject->GetDictionary().AddKey( "DescendantFonts", array );
 
-
     // Setting the DescendantFonts paras
     // This is a type2 CIDFont, which is also known as TrueType:
     pDescendantFonts->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("CIDFontType2") );
@@ -80,7 +79,6 @@ void PdfFontCID::Init( bool bEmbed )
 
     // Add the width keys
     this->CreateWidth( pDescendantFonts );
-
 
     // Setting the CIDSystemInfo paras:
     pCIDSystemInfo->GetDictionary().AddKey( "Registry", PdfString("Adobe") );
@@ -142,8 +140,85 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
 
 void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
 {
-    long nNumGlyphs = 0xffffL; // 2 bytes are available for glyphs
+    int nFirstChar = m_pEncoding->GetFirstChar();
+    int nLastChar  = m_pEncoding->GetLastChar();
 
+    int  i;
+
+    // Allocate an initialize an array, large enough to 
+    // hold a width value for every possible glyph index
+    double* pdWidth = static_cast<double*>(malloc( sizeof(double) * 0xffff ) );
+    if( !pdWidth ) 
+    {
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+    }
+
+    for( i=0;i<0xffff;i++ )
+        pdWidth[i] = 0.0;
+
+    // Load the width of all requested glyph indeces
+    int nMin       = 0xffff;
+    int nMax       = 0;
+
+    long    lGlyph = 0;
+
+    for( i=nFirstChar;i<=nLastChar;i++ )
+    {
+        lGlyph = m_pMetrics->GetGlyphId( i );
+        if( lGlyph )
+        {
+            nMin = PDF_MIN( nMin, lGlyph );
+            nMax = PDF_MAX( nMax, lGlyph );
+
+            if( lGlyph < 0xffff )
+                pdWidth[lGlyph] = m_pMetrics->GetGlyphWidth( lGlyph );
+        }
+    }
+
+    // Now compact the array
+    PdfArray array;
+    array.reserve( nMax - nMin + 1 );
+
+    i = nMin;
+    double dCurWidth  = pdWidth[i];
+    long   lCurIndex  = i++;
+    long   lCurLength = 1L;
+
+    for( ;i<=nMax;i++ )
+    {
+        if( static_cast<int>(pdWidth[i] - dCurWidth) == 0 )
+            ++lCurLength;
+        else
+        {
+            if( lCurLength > 1 ) 
+            {
+                array.push_back( lCurIndex ); 
+                array.push_back( lCurIndex + lCurLength - 1 ); 
+                array.push_back( dCurWidth ); 
+            }
+            else
+            {
+                if( array.back().IsArray() ) 
+                {
+                    array.back().GetArray().push_back( dCurWidth );
+                }
+                else
+                {
+                    PdfArray tmp;
+                    tmp.push_back( dCurWidth );
+
+                    array.push_back( lCurIndex );
+                    array.push_back( tmp );
+                }
+            }
+
+            lCurIndex  = i;
+            lCurLength = 1L;
+            dCurWidth  = pdWidth[i];
+        }
+    }
+
+    pFontDict->GetDictionary().AddKey( PdfName("W"), array ); 
 }
 
 inline char ToHex( const char byte )

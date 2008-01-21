@@ -49,13 +49,16 @@ void PdfArray::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) con
 {
     PdfArray::const_iterator it = this->begin();
 
+    int count = 1;
+
     pDevice->Print( "[ " );
     while( it != this->end() )
     {
         (*it).Write( pDevice, pEncrypt );
-        pDevice->Print( " " );
+        pDevice->Print( !(count % 10) ? "\n" : " " );
 
         ++it;
+        ++count;
     }
 
     pDevice->Print( "]" );

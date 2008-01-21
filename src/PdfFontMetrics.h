@@ -83,6 +83,12 @@ class PODOFO_API PdfFontMetrics {
      */
     void GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast ) const;
 
+    /** Get the width of a single glyph id
+     *
+     *  \returns the width of a single glyph id
+     */
+    double GetGlyphWidth( int nGlyphId ) const;
+
     /** Create the bounding box array as required by the PDF reference
      *  so that it can be written directly to a PDF file.
      * 

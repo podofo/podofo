@@ -202,6 +202,22 @@ void PdfFontMetrics::GetWidthArray( PdfVariant & var, unsigned int nFirst, unsig
     var = PdfVariant( list );
 }
 
+double PdfFontMetrics::GetGlyphWidth( int nGlyphId ) const
+{
+    if( !m_face ) 
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    if( !FT_Load_Glyph( m_face, nGlyphId, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP ) )  // | FT_LOAD_NO_RENDER
+    {
+        // zero return code is success!
+        return m_face->glyph->metrics.horiAdvance * 1000.0 / m_face->units_per_EM;
+    }
+
+    return 0.0;
+}
+
 void PdfFontMetrics::GetBoundingBox( PdfArray & array ) const
 {
     if( !m_face ) 
