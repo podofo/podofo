@@ -198,7 +198,7 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
             }
             else
             {
-                if( array.back().IsArray() ) 
+                if( array.size() && array.back().IsArray() ) 
                 {
                     array.back().GetArray().push_back( dCurWidth );
                 }
@@ -206,7 +206,7 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
                 {
                     PdfArray tmp;
                     tmp.push_back( dCurWidth );
-
+                        
                     array.push_back( lCurIndex );
                     array.push_back( tmp );
                 }
