@@ -21,10 +21,15 @@
 #include "PdfEncoding.h"
 
 #include "PdfDictionary.h"
+#include "PdfFont.h"
+#include "PdfFontMetrics.h"
+#include "PdfLocale.h"
 
 #include <sstream>
 
 namespace PoDoFo {
+
+extern bool podofo_is_little_endian();
 
 PdfEncoding::PdfEncoding( int nFirstChar, int nLastChar )
     : m_nFirstChar( nFirstChar ), m_nLastChar( nLastChar )
@@ -58,7 +63,8 @@ void PdfSimpleEncoding::InitEncodingTable()
     // TODO: LOCK
     const long         lTableLength     = 0xffff;
     const pdf_utf16be* cpUnicodeTable   = this->GetToUnicodeTable();
-    char*              m_pEncodingTable = static_cast<char*>(malloc(sizeof(char)*lTableLength));
+    
+    m_pEncodingTable = static_cast<char*>(malloc(sizeof(char)*lTableLength));
     
     // fill the table with 0
     memset( m_pEncodingTable, 0, lTableLength * sizeof(char) ); 
@@ -74,7 +80,7 @@ void PdfSimpleEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
     rDictionary.AddKey( PdfName("Encoding"), m_name );
 }
 
-PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString ) const
+PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* ) const
 {
     const pdf_utf16be* cpUnicodeTable = this->GetToUnicodeTable();
     long               lLen           = rEncodedString.GetLength();
@@ -104,7 +110,7 @@ PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString 
     return sStr;
 }
 
-PdfString PdfSimpleEncoding::ConvertToEncoding( const PdfString & rString ) const
+PdfString PdfSimpleEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* ) const
 {
     // TODO: LOCK
     if( !m_pEncodingTable )
@@ -125,10 +131,15 @@ PdfString PdfSimpleEncoding::ConvertToEncoding( const PdfString & rString ) cons
         
     const pdf_utf16be* pszUtf16 = sSrc.GetUnicode();
     char*              pCur     = pDest;
+    const bool         bLittle = podofo_is_little_endian();
 
     for( int i=0;i<lLen;i++ ) 
     {
-        *pCur = m_pEncodingTable[ pszUtf16[i] ]; 
+        pdf_utf16be val = pszUtf16[i];
+        if( bLittle ) 
+            val = ((val & 0xff00) >> 8) | ((val & 0xff) << 8);
+
+        *pCur = m_pEncodingTable[val]; 
 
         if( *pCur ) // ignore 0 characters, as they cannot be converted to the current encoding
             ++pCur; 
@@ -685,16 +696,43 @@ void PdfIdentityEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
     rDictionary.AddKey( "Encoding", PdfName("Identity-H") );
 }
 
-PdfString PdfIdentityEncoding::ConvertToUnicode( const PdfString & rEncodedString ) const
+PdfString PdfIdentityEncoding::ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const
 {
 
     return PdfString();
 }
 
-PdfString PdfIdentityEncoding::ConvertToEncoding( const PdfString & rString ) const
+PdfString PdfIdentityEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const
 {
+    if( !pFont ) 
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
 
-    return PdfString();
+    // Get the string in UTF-16be format
+    PdfString          sStr = rString.ToUnicode();
+    const pdf_utf16be* pStr = sStr.GetUnicode();
+    long               lGlyphId;
+
+    const bool         bLittle = podofo_is_little_endian();
+
+    std::ostringstream out;
+    PdfLocaleImbue(out);
+
+    while( *pStr ) 
+    {
+        if( bLittle )
+            lGlyphId = pFont->GetFontMetrics()->GetGlyphId( (((*pStr & 0xff) << 8) | ((*pStr & 0xff00) >> 8)) );
+        else
+            lGlyphId = pFont->GetFontMetrics()->GetGlyphId( *pStr );
+
+        out << static_cast<unsigned char>((lGlyphId & 0xff00) >> 8);
+        out << static_cast<unsigned char>(lGlyphId & 0x00ff);
+
+        ++pStr;
+    }
+
+    return PdfString( out.str().c_str(), out.str().length() );;
 }
 
 

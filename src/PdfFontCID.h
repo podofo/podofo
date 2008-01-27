@@ -42,18 +42,6 @@ class PdfFontCID : public PdfFont {
      */
     PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent );
 
-
-    /** Write a PdfString to a PdfStream in a format so that it can 
-     *  be used with this font.
-     *  This is used by PdfPainter::DrawText to display a text string.
-     *  The following PDF operator will be Tj
-     *
-     *  \param rsString a unicode or ansi string which will be displayed
-     *  \param pStream the string will be appended to pStream without any leading
-     *                 or following whitespaces.
-     */
-    virtual void WriteStringToStream( const PdfString & rsString, PdfStream* pStream );
-
  private:
     /** Create the DW and W entries which contain
      *  all glyph width in the given font dictionary.

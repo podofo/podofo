@@ -169,7 +169,7 @@ class PODOFO_API PdfFont : public PdfElement {
      *  \param pStream the string will be appended to pStream without any leading
      *                 or following whitespaces.
      */
-    virtual void WriteStringToStream( const PdfString & rsString, PdfStream* pStream ) = 0;
+    virtual void WriteStringToStream( const PdfString & rsString, PdfStream* pStream );
 
  protected:
     /** Get the base font name of this font

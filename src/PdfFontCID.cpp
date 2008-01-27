@@ -30,8 +30,6 @@
 
 namespace PoDoFo {
 
-extern bool podofo_is_little_endian();
-
 PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent )
     : PdfFont( pMetrics, pEncoding, pParent )
 {
@@ -221,15 +219,7 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
     pFontDict->GetDictionary().AddKey( PdfName("W"), array ); 
 }
 
-inline char ToHex( const char byte )
-{
-    static const char* s_pszHex = "0123456789ABCDEF";
-
-    return s_pszHex[byte % 16];
-}
-
-void PdfFontCID::WriteStringToStream( const PdfString & rsString, PdfStream* pStream )
-{
+/*
     // Get the string in UTF-16be format
     PdfString    sStr = rsString.ToUnicode();
     const pdf_utf16be* pStr = sStr.GetUnicode();
@@ -259,7 +249,8 @@ void PdfFontCID::WriteStringToStream( const PdfString & rsString, PdfStream* pSt
     out << ">";
 
     pStream->Append( out.str().c_str(), out.str().length() );
-}
+*/
+
 
 };
 

@@ -80,5 +80,35 @@ void PdfFont::InitVars()
     m_BaseFont = PdfName( sTmp.c_str() );
 }
 
+
+inline char ToHex( const char byte )
+{
+    static const char* s_pszHex = "0123456789ABCDEF";
+
+    return s_pszHex[byte % 16];
+}
+
+void PdfFont::WriteStringToStream( const PdfString & rsString, PdfStream* pStream )
+{
+    PdfString sEncoded = m_pEncoding->ConvertToEncoding( rsString, this );
+    if( sEncoded.IsUnicode() ) 
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "ConvertToEncoding must not return a unicode string" );
+    }
+
+    long  lLen    = 0;
+    char* pBuffer = NULL;
+
+    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );    
+    pFilter->Encode( sEncoded.GetString(), sEncoded.GetLength(), &pBuffer, &lLen );
+
+    pStream->Append( "<", 1 );
+    pStream->Append( pBuffer, lLen );
+    pStream->Append( ">", 1 );
+
+    free( pBuffer );
+}
+
+
 };
 

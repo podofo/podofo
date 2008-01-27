@@ -28,6 +28,7 @@
 namespace PoDoFo {
 
 class PdfDictionary;
+class PdfFont;
 
 /** 
  * A PdfEncoding is in PdfFont to transform a text string
@@ -89,19 +90,22 @@ class PODOFO_API PdfEncoding {
      *  to an unicode PdfString.
      *
      *  \param rEncodedString a string encoded by this encoding. 
-     *         Usually this string was read from a PdfDocument.
+     *         Usually this string was read from a content stream.
+     *  \param pFont the font for which this string is converted
      *
      *  \returns an unicode PdfString.
      */
-    virtual PdfString ConvertToUnicode( const PdfString & rEncodedString ) const = 0;
+    virtual PdfString ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const = 0;
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *
      *  \param an unicode PdfString.
+     *  \param pFont the font for which this string is converted
      *
-     *  \returns an encoded PdfString.
+     *  \returns an encoded PdfString. The PdfString is treated as a series of bytes
+     *           and is allowed to have 0 bytes. The returned string must not be a unicode string.
      */
-    virtual PdfString ConvertToEncoding( const PdfString & rString ) const = 0;
+    virtual PdfString ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const = 0;
 
     /** 
      * \returns true if this encoding should be deleted automatically with the
@@ -214,19 +218,22 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
      *  to an unicode PdfString.
      *
      *  \param rEncodedString a string encoded by this encoding. 
-     *         Usually this string was read from a PdfDocument.
+     *         Usually this string was read from a content stream.
+     *  \param pFont the font for which this string is converted
      *
      *  \returns an unicode PdfString.
      */
-    virtual PdfString ConvertToUnicode( const PdfString & rEncodedString ) const;
+    virtual PdfString ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const;
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *
      *  \param an unicode PdfString.
+     *  \param pFont the font for which this string is converted
      *
-     *  \returns an encoded PdfString.
+     *  \returns an encoded PdfString. The PdfString is treated as a series of bytes
+     *           and is allowed to have 0 bytes. The returned string must not be a unicode string.
      */
-    virtual PdfString ConvertToEncoding( const PdfString & rString ) const;
+    virtual PdfString ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const;
 
     /** 
      * PdfSimpleEncoding subclasses are usuylla not auto-deleted, as
@@ -451,19 +458,22 @@ class PODOFO_API PdfIdentityEncoding : public PdfEncoding {
      *  to an unicode PdfString.
      *
      *  \param rEncodedString a string encoded by this encoding. 
-     *         Usually this string was read from a PdfDocument.
+     *         Usually this string was read from a content stream.
+     *  \param pFont the font for which this string is converted
      *
      *  \returns an unicode PdfString.
      */
-    virtual PdfString ConvertToUnicode( const PdfString & rEncodedString ) const;
+    virtual PdfString ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const;
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *
      *  \param an unicode PdfString.
+     *  \param pFont the font for which this string is converted
      *
-     *  \returns an encoded PdfString.
+     *  \returns an encoded PdfString. The PdfString is treated as a series of bytes
+     *           and is allowed to have 0 bytes. The returned string must not be a unicode string.
      */
-    virtual PdfString ConvertToEncoding( const PdfString & rString ) const;
+    virtual PdfString ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const;
 
     /** 
      * PdfIdentityEncoding is usually delete along with the font.

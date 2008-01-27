@@ -82,18 +82,4 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
         this->EmbedFont( pDescriptor );
 }
 
-void PdfFontSimple::WriteStringToStream( const PdfString & rsString, PdfStream* pStream )
-{
-    long  lLen    = 0;
-    char* pBuffer = NULL;
-
-    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );    
-    pFilter->Encode( rsString.GetString(), rsString.GetLength(), &pBuffer, &lLen );
-
-    pStream->Append( "<", 1 );
-    pStream->Append( pBuffer, lLen );
-    pStream->Append( ">", 1 );
-}
-
-
 };
