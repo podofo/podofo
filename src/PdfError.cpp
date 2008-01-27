@@ -248,6 +248,9 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_InvalidFontFile:
             pszMsg = "ePdfError_InvalidFontFile";
             break;
+        case ePdfError_InvalidContentStream:
+            pszMsg = "ePdfError_InvalidContentStream";
+            break;
         case ePdfError_UnsupportedFilter:
             pszMsg = "ePdfError_UnsupportedFilter"; 
             break;
@@ -359,6 +362,9 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
             break;
         case ePdfError_InvalidFontFile:
             pszMsg = "The font file is invalid.";
+            break;
+        case ePdfError_InvalidContentStream:
+            pszMsg = "The content stream is invalid due to mismatched context pairing or other problems.";
             break;
         case ePdfError_UnsupportedFilter:
             break;
