@@ -306,6 +306,7 @@ class PODOFO_API PdfFontMetrics {
      */
     long GetGlyphId( long lUnicode ) const;
 
+    FT_Face GetFace() { return m_face; }; 
  private:
     
     /** Initialize this object from an in memory buffer

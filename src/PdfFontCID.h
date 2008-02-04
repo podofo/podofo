@@ -50,6 +50,13 @@ class PdfFontCID : public PdfFont {
      */
     void CreateWidth( PdfObject* pFontDict ) const;
 
+    /** Create a ToUnicode CMap and write it to the stream
+     *  of the given object.
+     *
+     *  \param pUnicode the object which will contain the CMap
+     */
+    void CreateCMap( PdfObject* pUnicode ) const;
+
  protected:
 
     /** Initialize this font object.
