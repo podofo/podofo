@@ -49,6 +49,7 @@ void UnCompress::UncompressObjects()
 
     while( it != m_pDocument->GetObjects().end() )
     {
+        printf("Reading %i %i R\n", (*it)->Reference().ObjectNumber(), (*it)->Reference().GenerationNumber() );
         if( (*it)->HasStream() )
         {
             try {
@@ -56,7 +57,17 @@ void UnCompress::UncompressObjects()
                        (*it)->Reference().ObjectNumber(), (*it)->Reference().GenerationNumber() );
                 PdfMemStream* pStream = dynamic_cast<PdfMemStream*>((*it)->GetStream());
                 printf("-> Original Length: %li\n", pStream->GetLength() );
-                pStream->Uncompress();
+                try {
+                    pStream->Uncompress();
+                } catch( const PdfError & e ) {
+                    if( e.GetError() == ePdfError_Flate )
+                    {
+                        // Ignore ZLib errors
+                        fprintf( stderr, "WARNING: ZLib error ignored for this object.\n");
+                    }
+                    else
+                        throw e;
+                }
                 printf("-> Uncompressed Length: %li\n", pStream->GetLength() );
             } catch( const PdfError & e ) {
                 if( e.GetError() != ePdfError_UnsupportedFilter )
