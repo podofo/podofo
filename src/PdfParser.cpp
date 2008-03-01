@@ -128,8 +128,13 @@ void PdfParser::Clear()
     m_device = PdfRefCountedInputDevice();
 
     delete m_pTrailer;
+    m_pTrailer = NULL;
+
     delete m_pLinearization;
+    m_pLinearization = NULL;
+
     delete m_pEncrypt;
+    m_pEncrypt = NULL;
 
     this->Init();
 }
@@ -265,7 +270,7 @@ void PdfParser::HasLinearizationDict()
         // strange that there is no obj in the first 1024 bytes,
         // but ignore it
         return;
-
+    
     --pszObj; // *pszObj == 'o', so the while would fail without decrement
     while( *pszObj && (PdfTokenizer::IsWhitespace( *pszObj ) || (*pszObj >= '0' && *pszObj <= '9')) )
         --pszObj;
@@ -495,7 +500,7 @@ void PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
                 ReadXRefSubsection( nFirstObject, nNumObjects );
 
         } catch( PdfError & e ) {
-            if( e == ePdfError_NoNumber || e == ePdfError_InvalidXRef) 
+            if( e == ePdfError_NoNumber || e == ePdfError_InvalidXRef || e == ePdfError_UnexpectedEOF ) 
                 break;
             else 
             {
@@ -547,6 +552,7 @@ void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
 
     if( count != nNumObjects )
     {
+        PdfError::LogMessage( eLogSeverity_Warning, "Count of readobject is %i. Expected %i.\n", count, nNumObjects );
         PODOFO_RAISE_ERROR( ePdfError_NoXRef );
     }
 
@@ -791,7 +797,7 @@ void PdfParser::ReadObjects()
             PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidEncryptionDict, 
                                      "The encryption entry in the trailer is neither an object nor a reference." ); 
         }
-        
+
         // Generate encryption keys
         // Set user password, try first with an empty password
         bool bAuthenticate = m_pEncrypt->Authenticate( "", this->GetDocumentId() );

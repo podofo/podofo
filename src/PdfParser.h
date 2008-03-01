@@ -142,6 +142,18 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      */
     const PdfEncrypt* GetEncrypt() const { return m_pEncrypt; }
 
+    /** 
+     * Takes the encryption object fro mthe parser. The internal handle will be set
+     * to NULL and the ownership of the object is given to the caller.
+     *
+     * Only call this if you need access to the encryption object
+     * before deleting the parser.
+     *
+     * \returns the parsers encryption object or NULL if the read PDF file was not encrypted
+     */
+    inline PdfEncrypt* TakeEncrypt();
+    
+
     /** If you try to open an encrypted PDF file, which requires
      *  a password to open, PoDoFo will throw a PdfError( ePdfError_InvalidPassword ) 
      *  exception. 
@@ -337,6 +349,16 @@ const PdfVecObjects* PdfParser::GetObjects() const
 const PdfObject* PdfParser::GetTrailer() const
 {
     return m_pTrailer;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfEncrypt* PdfParser::TakeEncrypt() 
+{ 
+    PdfEncrypt* pEncrypt = m_pEncrypt;
+    m_pEncrypt = NULL; 
+    return pEncrypt; 
 }
 
 };

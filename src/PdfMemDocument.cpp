@@ -110,8 +110,13 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
     else 
         pInfoObj = new PdfInfo( pInfo );
 
-    if( pParser->GetEncrypted() )
-        this->SetEncrypted( *(pParser->GetEncrypt()) );
+    if( pParser->GetEncrypted() ) 
+    {
+        // All PdfParserObjects have a pointer to the PdfEncrypt obkect
+        // So we have to take ownership of it.
+        delete m_pEncrypt;
+        m_pEncrypt = pParser->TakeEncrypt();
+    }
 
     this->SetCatalog ( pCatalog );
     this->SetInfo    ( pInfoObj );
