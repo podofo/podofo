@@ -65,9 +65,9 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
     PdfMemoryOutputStream  stream;
     if( vecFilters.size() )
     {
-        PdfOutputStream*       pDecodeStream = PdfFilterFactory::CreateDecodeStream( vecFilters, &stream, 
-                                                                           m_pParent ? 
-                                                                           &(m_pParent->GetDictionary()) : NULL  );
+        PdfOutputStream* pDecodeStream = PdfFilterFactory::CreateDecodeStream( vecFilters, &stream, 
+                                                                               m_pParent ? 
+                                                                               &(m_pParent->GetDictionary()) : NULL  );
 
         pDecodeStream->Write( this->GetInternalBuffer(), this->GetInternalBufferSize() );
         pDecodeStream->Close();

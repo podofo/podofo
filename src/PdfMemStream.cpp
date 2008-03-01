@@ -182,13 +182,21 @@ void PdfMemStream::FlateCompress()
 void PdfMemStream::Uncompress()
 {
     long         lLen;
-    char*        pBuffer;
+    char*        pBuffer = NULL;
     
     TVecFilters  vecEmpty;
 
     if( m_pParent && m_pParent->IsDictionary() && m_pParent->GetDictionary().HasKey( "Filter" ) && m_lLength )
     {
-        this->GetFilteredCopy( &pBuffer, &lLen );
+        try {
+            this->GetFilteredCopy( &pBuffer, &lLen );
+        } catch( PdfError & e ) {
+            if( pBuffer )
+                free( pBuffer );
+
+            throw e;
+        }
+
         this->Set( pBuffer, lLen, vecEmpty );
         // free the memory allocated by GetFilteredCopy again.
         free( pBuffer );
