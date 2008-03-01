@@ -139,7 +139,6 @@ public:
                         
                     default:
                     {
-                        printf("Got predictor: %i\n", m_nCurPredictor );
                         PODOFO_RAISE_ERROR( ePdfError_InvalidPredictor );
                         break;
                     }
@@ -397,7 +396,6 @@ void PdfAscii85Filter::WidePut( unsigned long tuple, int bytes ) const
             data[0] = static_cast<char>(tuple >> 24);
             data[1] = static_cast<char>(tuple >> 16);
             data[2] = static_cast<char>(tuple >>  8);
-            printf("Writing %x %x %x\n", data[0], data[1], data[2] );
             break;
 	case 2:
             data[0] = static_cast<char>(tuple >> 24);
@@ -842,8 +840,9 @@ void PdfDCTFilter::EndDecodeImpl()
 
     char*      pOutBuffer;
     JSAMPARRAY pBuffer;	
-    long       lRowBytes = m_cinfo.output_width * m_cinfo.output_components;
-    
+    long       lRowBytes   = m_cinfo.output_width * m_cinfo.output_components;
+    const int  iComponents = m_cinfo.output_components;
+
     // pBuffer will be deleted by jpeg_destroy_decompress
     pBuffer    = (*m_cinfo.mem->alloc_sarray)( reinterpret_cast<j_common_ptr>( &m_cinfo ), JPOOL_IMAGE, lRowBytes, 1);
     pOutBuffer = static_cast<char*>(malloc( lRowBytes * sizeof(char)) );
@@ -851,11 +850,22 @@ void PdfDCTFilter::EndDecodeImpl()
     while( m_cinfo.output_scanline < m_cinfo.output_height ) 
     {
         jpeg_read_scanlines(&m_cinfo, pBuffer, 1);
-        for( unsigned int i=0, c=0; i < m_cinfo.output_width; i++, c+=3 ) 
+        if( iComponents == 3 ) 
         {
-            pOutBuffer[c] = pBuffer[0][i*3];
-            pOutBuffer[c+1] = pBuffer[0][i*3+1];
-            pOutBuffer[c+2] = pBuffer[0][i*3+2];
+            for( unsigned int i=0, c=0; i < m_cinfo.output_width; i++, c+=3 ) 
+            {
+                pOutBuffer[c]   = pBuffer[0][i*3];
+                pOutBuffer[c+1] = pBuffer[0][i*3+1];
+                pOutBuffer[c+2] = pBuffer[0][i*3+2];
+            }
+        }
+        else if( iComponents == 1 ) 
+        {
+            memcpy( pOutBuffer, pBuffer[0], m_cinfo.output_width );
+        }
+        else
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "DCTDecode unknown components" );
         }
         
         GetStream()->Write( reinterpret_cast<char*>(pOutBuffer), lRowBytes );
