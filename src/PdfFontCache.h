@@ -203,8 +203,8 @@ class PODOFO_API PdfFontCache {
      *
      *  \returns a font handle or NULL in case of error
      */
-    PdfFont* CreateFont( PdfFontMetrics* pMetrics, bool bEmbedd, bool bBold, 
-                         bool bItalic, const char* pszFontName, const PdfEncoding * const pEncoding );
+    PdfFont* CreateFontObject( PdfFontMetrics* pMetrics, bool bEmbedd, bool bBold, 
+                               bool bItalic, const char* pszFontName, const PdfEncoding * const pEncoding );
 
     /** Create a font subset.
      *  \param pMetrics a font metrics
@@ -228,10 +228,11 @@ class PODOFO_API PdfFontCache {
      *  \param bBold if true search for a bold font
      *  \param bItalic if true search for an italic font
      *  \param bEmbedd if true embedd the font
+     *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
      *
      *  \returns a font handle or NULL in case of error
      */
-    PdfFont* GetWin32Font( const char* pszFontName, bool bBold, bool bItalic, bool bEmbedd );
+    PdfFont* GetWin32Font( const char* pszFontName, bool bBold, bool bItalic, bool bEmbedd, const PdfEncoding * const pEncoding );
 #endif // _WIN32
 
  private:

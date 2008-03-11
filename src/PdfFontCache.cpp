@@ -18,10 +18,6 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #include "PdfFontCache.h" 
 
 #include "PdfFont.h"
@@ -32,6 +28,10 @@
 #include "PdfOutputDevice.h"
 
 #include <algorithm>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -182,7 +182,7 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
         if( sPath.empty() )
         {
 #if _WIN32
-            return GetWin32Font( pszFontName, bBold, bItalic, bEmbedd );
+            return GetWin32Font( pszFontName, bBold, bItalic, bEmbedd, pEncoding );
 #else
             PdfError::LogMessage( eLogSeverity_Critical, "No path was found for the specified fontname: %s\n", pszFontName );
             return NULL;
@@ -190,7 +190,7 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
         }
         
         pMetrics = new PdfFontMetrics( &m_ftLibrary, sPath.c_str() );
-        pFont    = this->CreateFont( pMetrics, bEmbedd, bBold, bItalic, pszFontName, pEncoding );
+        pFont    = this->CreateFontObject( pMetrics, bEmbedd, bBold, bItalic, pszFontName, pEncoding );
     }
     else
         pFont = (*it).m_pFont;
@@ -218,7 +218,7 @@ PdfFont* PdfFontCache::GetFont( FT_Face face, bool bEmbedd, const PdfEncoding * 
     if( it == m_vecFonts.end() )
     {
         pMetrics = new PdfFontMetrics( &m_ftLibrary, face );
-        pFont    = this->CreateFont( pMetrics, bEmbedd, bBold, bItalic, sName.c_str(), pEncoding );
+        pFont    = this->CreateFontObject( pMetrics, bEmbedd, bBold, bItalic, sName.c_str(), pEncoding );
     }
     else
         pFont = (*it).m_pFont;
@@ -264,7 +264,7 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
 */
 
 #ifdef _WIN32
-PdfFont* PdfFontCache::GetWin32Font( const char* pszFontName, bool bBold, bool bItalic, bool bEmbedd )
+PdfFont* PdfFontCache::GetWin32Font( const char* pszFontName, bool bBold, bool bItalic, bool bEmbedd, const PdfEncoding * const pEncoding )
 {
     LOGFONT	lf;
     
@@ -297,7 +297,7 @@ PdfFont* PdfFontCache::GetWin32Font( const char* pszFontName, bool bBold, bool b
     PdfFont*        pFont = NULL;
     try {
         pMetrics = new PdfFontMetrics( &m_ftLibrary, pBuffer, nLen );
-        pFont    = this->CreateFont( pMetrics, bEmbedd, bBold, bItalic, pszFontName );
+        pFont    = this->CreateFontObject( pMetrics, bEmbedd, bBold, bItalic, pszFontName, pEncoding );
     } catch( PdfError & error ) {
         //free( pBuffer );
         throw error;
@@ -360,7 +360,7 @@ std::string PdfFontCache::GetFontPath( const char* pszFontName, bool bBold, bool
     return sPath;
 }
 
-PdfFont* PdfFontCache::CreateFont( PdfFontMetrics* pMetrics, bool bEmbedd, bool bBold, bool bItalic, 
+PdfFont* PdfFontCache::CreateFontObject( PdfFontMetrics* pMetrics, bool bEmbedd, bool bBold, bool bItalic, 
                                    const char* pszFontName, const PdfEncoding * const pEncoding ) 
 {
     PdfFont* pFont;
