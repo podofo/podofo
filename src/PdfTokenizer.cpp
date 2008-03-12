@@ -584,7 +584,10 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
     if( pEncrypt )
         pEncrypt->Encrypt( reinterpret_cast<unsigned char*>(&(m_vecBuffer[0])), m_vecBuffer.size() );
 
-    rVariant = PdfString( &(m_vecBuffer[0]), m_vecBuffer.size() );
+    if( m_vecBuffer.size() )
+        rVariant = PdfString( &(m_vecBuffer[0]), m_vecBuffer.size() );
+    else
+        rVariant = PdfString("");
 }
 
 void PdfTokenizer::ReadHexString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
