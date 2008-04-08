@@ -581,7 +581,7 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
     if( bOctEscape )
         m_vecBuffer.push_back ( cOctValue );
 
-    if( pEncrypt )
+    if( pEncrypt && m_vecBuffer.size() )
         pEncrypt->Encrypt( reinterpret_cast<unsigned char*>(&(m_vecBuffer[0])), m_vecBuffer.size() );
 
     if( m_vecBuffer.size() )
