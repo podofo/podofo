@@ -48,8 +48,16 @@ PdfPage::PdfPage( const PdfRect & rSize, PdfVecObjects* pParent )
 PdfPage::PdfPage( PdfObject* pObject )
     : PdfElement( "Page", pObject ), PdfCanvas()
 {
+    // TODO: handle m_pResources NULL
     m_pResources = m_pObject->GetIndirectKey( "Resources" );
-    m_pContents = new PdfContents( m_pObject->GetIndirectKey( "Contents" ) );
+    PdfObject* pContents = m_pObject->GetIndirectKey( "Contents" );
+    if (pContents)
+        m_pContents = new PdfContents( pContents );
+    else
+    {
+        // TODO: handle absent contents
+        m_pContents = 0;
+    }
 }
 
 PdfPage::~PdfPage()
