@@ -400,6 +400,9 @@ static const char s_cDelimiters[] = {
 #endif
 
 
+#define PODOFO_MAX_OBJ_NUMBER 9999999999
+#define PODOFO_MAX_GEN_NUMBER 65535
+
 /**
  * \mainpage
  *
