@@ -183,7 +183,7 @@ PdfReference PdfVecObjects::GetNextFreeObject()
 {
     PdfReference ref( m_nObjectCount, 0 );
 
-    if( m_lstFreeObjects.size() )
+    if( !m_lstFreeObjects.empty() )
     {
         ref = m_lstFreeObjects.front();
         m_lstFreeObjects.pop_front();
@@ -223,9 +223,18 @@ void PdfVecObjects::AddFreeObject( const PdfReference & rReference )
     // When append free objects from external doc we need plus one number objects
     if( it == this->end() )
         ++m_nObjectCount;
-        
-    m_lstFreeObjects.push_front( rReference );
-    m_lstFreeObjects.sort();
+
+    if ( !m_lstFreeObjects.empty() && m_lstFreeObjects.back() < rReference )
+    {
+        // We can maintain sort order by just appending the new free object.
+        // This is a whole lot faster than a push_front() and sort().
+        m_lstFreeObjects.push_back( rReference );
+    }
+    else
+    {
+        m_lstFreeObjects.push_front( rReference );
+        m_lstFreeObjects.sort();
+    }
 }
 
 void PdfVecObjects::push_back( PdfObject* pObj )
@@ -233,7 +242,7 @@ void PdfVecObjects::push_back( PdfObject* pObj )
     if( pObj->Reference().ObjectNumber() >= m_nObjectCount )
         ++m_nObjectCount;
 
-    if( m_vector.size() && m_vector.back()->Reference() < pObj->Reference() )
+    if( !m_vector.empty() && m_vector.back()->Reference() < pObj->Reference() )
         m_bSorted = false;
 
     pObj->SetOwner( this );
@@ -386,7 +395,7 @@ void PdfVecObjects::BuildReferenceCountVector( TVecReferencePointerList* pList )
     TCIVecObjects      it      = this->begin();
 
     pList->clear();
-    pList->resize( m_vector.size() );
+    pList->resize( !m_vector.empty() );
 
     while( it != this->end() )
     {
