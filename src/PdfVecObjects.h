@@ -138,14 +138,6 @@ class PODOFO_API PdfVecObjects {
     typedef TVecObservers::iterator       TIVecObservers;
     typedef TVecObservers::const_iterator TCIVecObservers;
 
-    enum EObjectState {
-        eObjectState_Object,
-        eObjectState_Free,
-        eObjectState_Written,
-
-        eObjectState_Invalid = 0xff
-    };
-
  public:
     /** Default constuctor 
      */
