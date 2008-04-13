@@ -299,6 +299,19 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     const PdfString & GetDocumentId();
 
  private:
+
+    struct TXRefEntry {
+        inline TXRefEntry() : lOffset(0), lGeneration(0), cUsed('\x00'), bParsed(false) { }
+        long lOffset;
+        long lGeneration;
+        char cUsed;
+        bool bParsed;
+    };
+
+    typedef std::vector<TXRefEntry>      TVecOffsets;
+    typedef TVecOffsets::iterator        TIVecOffsets;
+    typedef TVecOffsets::const_iterator  TCIVecOffsets;
+
     EPdfVersion   m_ePdfVersion;
 
     bool          m_bLoadOnDemand;
@@ -309,7 +322,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     long          m_nXRefLinearizedOffset;
     size_t        m_nFileSize;
 
-    TXRefEntry*    m_pOffsets;
+    TVecOffsets m_offsets;
     PdfVecObjects* m_vecObjects;
 
     PdfObject*    m_pTrailer;

@@ -323,18 +323,6 @@ typedef enum EPdfPageLayout {
 const bool ePdfCreateObject = true;
 const bool ePdfDontCreateObject = false;
 
-// data structures
-struct TXRefEntry {
-    long lOffset;
-    long lGeneration;
-    char cUsed;
-    bool bParsed;
-};
-
-typedef std::vector<TXRefEntry>      TVecOffsets;
-typedef TVecOffsets::iterator        TIVecOffsets;
-typedef TVecOffsets::const_iterator  TCIVecOffsets;
-
 // character constants
 #define MAX_PDF_VERSION_STRING_INDEX  6
 

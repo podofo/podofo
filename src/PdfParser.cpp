@@ -72,7 +72,7 @@ void PdfParser::Init()
     m_device          = PdfRefCountedInputDevice();
     m_pTrailer        = NULL;
     m_pLinearization  = NULL;
-    m_pOffsets        = NULL;
+    m_offsets.clear();
     m_pEncrypt        = NULL;
 
     m_ePdfVersion     = ePdfVersion_1_0;
@@ -121,9 +121,7 @@ void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
 void PdfParser::Clear()
 {
     m_setObjectStreams.clear();
-
-    if( m_pOffsets )
-        free( m_pOffsets );
+    m_offsets.clear();
 
     m_device = PdfRefCountedInputDevice();
 
@@ -179,20 +177,21 @@ void PdfParser::ReadDocumentStructure()
         }
     }
 
-    if( !m_pTrailer->IsDictionary() || !m_pTrailer->GetDictionary().HasKey( PdfName::KeySize ) )
+    if( m_pTrailer->IsDictionary() && m_pTrailer->GetDictionary().HasKey( PdfName::KeySize ) )
+    {
+        m_nNumObjects = m_pTrailer->GetDictionary().GetKeyAsLong( PdfName::KeySize );
+    }
+    else
     {
         PdfError::LogMessage( eLogSeverity_Error, "No /Size key was specified in the trailer directory." );
         PODOFO_RAISE_ERROR( ePdfError_InvalidTrailerSize );
     }
 
-    m_nNumObjects = m_pTrailer->GetDictionary().GetKeyAsLong( PdfName::KeySize );
-
 #ifdef PODOFO_VERBOSE_DEBUG
     PdfError::DebugMessage("Allocating for %i objects\n", m_nNumObjects );
 #endif // PODOFO_VERBOSE_DEBUG
 
-    m_pOffsets = static_cast<TXRefEntry*>(malloc( sizeof( TXRefEntry ) * (m_nNumObjects+1)  ));
-    memset( m_pOffsets, 0, sizeof( TXRefEntry ) * (m_nNumObjects+1) );
+    m_offsets.resize(m_nNumObjects);
 
 #ifdef PODOFO_VERBOSE_DEBUG
     PdfError::DebugMessage("Linearized Offset: %i Pointer: %p\n", m_nXRefLinearizedOffset, m_pLinearization );
@@ -539,12 +538,12 @@ void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
             PODOFO_RAISE_ERROR( ePdfError_InvalidXRef );
         }
  
-        if( !m_pOffsets[objID].bParsed )
+        if( !m_offsets[objID].bParsed )
         {
-            m_pOffsets[objID].bParsed = true;
+            m_offsets[objID].bParsed = true;
             sscanf( m_buffer.GetBuffer(), "%10ld %5ld %c \n", 
-                    &(m_pOffsets[objID].lOffset), 
-                    &(m_pOffsets[objID].lGeneration), &(m_pOffsets[objID].cUsed) );
+                    &(m_offsets[objID].lOffset), 
+                    &(m_offsets[objID].lGeneration), &(m_offsets[objID].cUsed) );
        }
 
         ++count;
@@ -721,27 +720,27 @@ void PdfParser::ReadXRefStreamEntry( char* pBuffer, long, long lW[W_ARRAY_SIZE],
         }
     }
 
-    m_pOffsets[nObjNo].bParsed = true;
+    m_offsets[nObjNo].bParsed = true;
 
     switch( nData[0] ) // nData[0] contains the type information of this entry
     {
         case 0:
             // a free object
-            m_pOffsets[nObjNo].lOffset     = nData[1];
-            m_pOffsets[nObjNo].lGeneration = nData[2];
-            m_pOffsets[nObjNo].cUsed       = 'f';
+            m_offsets[nObjNo].lOffset     = nData[1];
+            m_offsets[nObjNo].lGeneration = nData[2];
+            m_offsets[nObjNo].cUsed       = 'f';
             break;
         case 1:
             // normal uncompressed object
-            m_pOffsets[nObjNo].lOffset     = nData[1];
-            m_pOffsets[nObjNo].lGeneration = nData[2];
-            m_pOffsets[nObjNo].cUsed       = 'n';
+            m_offsets[nObjNo].lOffset     = nData[1];
+            m_offsets[nObjNo].lGeneration = nData[2];
+            m_offsets[nObjNo].cUsed       = 'n';
             break;
         case 2:
             // object that is part of an object stream
-            m_pOffsets[nObjNo].lOffset     = nData[2]; // index in the object stream
-            m_pOffsets[nObjNo].lGeneration = nData[1]; // object number of the stream
-            m_pOffsets[nObjNo].cUsed       = 's';      // mark as stream
+            m_offsets[nObjNo].lOffset     = nData[2]; // index in the object stream
+            m_offsets[nObjNo].lGeneration = nData[1]; // object number of the stream
+            m_offsets[nObjNo].cUsed       = 's';      // mark as stream
             break;
         default:
         {
@@ -770,12 +769,12 @@ void PdfParser::ReadObjects()
         {
             i = pEncrypt->GetReference().ObjectNumber();
 
-            pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, m_pOffsets[i].lOffset );
+            pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, m_offsets[i].lOffset );
             pObject->SetLoadOnDemand( m_bLoadOnDemand );
             try {
                 pObject->ParseFile( NULL ); // The encryption dictionary is not encrypted :)
                 m_vecObjects->push_back( pObject );
-                m_pOffsets[i].bParsed = false;
+                m_offsets[i].bParsed = false;
                 m_pEncrypt = new PdfEncrypt( pObject );
             } catch( PdfError & e ) {
                 std::ostringstream oss;
@@ -825,9 +824,9 @@ void PdfParser::ReadObjectsInternal()
     // Read objects
     for( i=0; i <= m_nNumObjects; i++ )
     {
-        if( m_pOffsets[i].bParsed && m_pOffsets[i].cUsed == 'n' )
+        if( m_offsets[i].bParsed && m_offsets[i].cUsed == 'n' )
         {
-            pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, m_pOffsets[i].lOffset );
+            pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, m_offsets[i].lOffset );
             pObject->SetLoadOnDemand( m_bLoadOnDemand );
             try {
                 pObject->ParseFile( m_pEncrypt );
@@ -855,9 +854,9 @@ void PdfParser::ReadObjectsInternal()
                 throw e;
             }
         }
-        else if( m_pOffsets[i].bParsed && m_pOffsets[i].cUsed == 'f' && m_pOffsets[i].lOffset )
+        else if( m_offsets[i].bParsed && m_offsets[i].cUsed == 'f' && m_offsets[i].lOffset )
         {
-            m_vecObjects->AddFreeObject( PdfReference( m_pOffsets[i].lOffset, 1 ) ); // TODO: do not hard code
+            m_vecObjects->AddFreeObject( PdfReference( m_offsets[i].lOffset, 1 ) ); // TODO: do not hard code
         }
     }
 
@@ -869,12 +868,12 @@ void PdfParser::ReadObjectsInternal()
     //
     for( i = 0; i < m_nNumObjects; i++ )
     {
-        if( m_pOffsets[i].bParsed && m_pOffsets[i].cUsed == 's' ) // we have an object stream
+        if( m_offsets[i].bParsed && m_offsets[i].cUsed == 's' ) // we have an object stream
         {
 #if defined(PODOFO_VERBOSE_DEBUG)
             if (m_bLoadOnDemand) cerr << "Demand loading on, but can't demand-load found object stream." << endl;
 #endif
-            ReadObjectFromStream( m_pOffsets[i].lGeneration, m_pOffsets[i].lOffset );
+            ReadObjectFromStream( m_offsets[i].lGeneration, m_offsets[i].lOffset );
         }
     }
 
