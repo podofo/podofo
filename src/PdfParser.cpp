@@ -80,6 +80,7 @@ void PdfParser::Init()
     m_nXRefOffset     = 0;
     m_nFirstObject    = 0;
     m_nNumObjects     = 0;
+    m_xrefSizeUnknown = false;
     m_nXRefLinearizedOffset = 0;
 }
 
@@ -183,19 +184,14 @@ void PdfParser::ReadDocumentStructure()
     }
     else
     {
-        PdfError::LogMessage( eLogSeverity_Error, "No /Size key was specified in the trailer directory." );
-        PODOFO_RAISE_ERROR( ePdfError_InvalidTrailerSize );
+        PdfError::LogMessage( eLogSeverity_Warning, "PDF Standard Violation: No /Size key was specified in the trailer directory. Will attempt to recover." );
+        // Treat the xref size as unknown, and expand the xref dynamically as we read it.
+        m_nNumObjects = 0;
+        m_xrefSizeUnknown = true;
     }
 
-#ifdef PODOFO_VERBOSE_DEBUG
-    PdfError::DebugMessage("Allocating for %i objects\n", m_nNumObjects );
-#endif // PODOFO_VERBOSE_DEBUG
-
-    m_offsets.resize(m_nNumObjects);
-
-#ifdef PODOFO_VERBOSE_DEBUG
-    PdfError::DebugMessage("Linearized Offset: %i Pointer: %p\n", m_nXRefLinearizedOffset, m_pLinearization );
-#endif // PODOFO_VERBOSE_DEBUG
+    if (m_nNumObjects > 0)
+        m_offsets.resize(m_nNumObjects);
 
     if( m_pLinearization )
     {
@@ -481,9 +477,6 @@ void PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
     for( ;; )
     {
         try {
-            //nFirstObject = GetNextNumberFromFile();
-            //nNumObjects  = GetNextNumberFromFile();
-
             nFirstObject = this->GetNextNumber();
             nNumObjects  = this->GetNextNumber();
 
@@ -528,16 +521,27 @@ void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
     PdfError::DebugMessage("Reading XRef Section: %i with %i Objects\n", nFirstObject, nNumObjects );
 #endif // PODOFO_VERBOSE_DEBUG 
 
+    if ( nFirstObject + nNumObjects > m_nNumObjects )
+    {
+        // Total number of xref entries to read is greater than the /Size
+        // specified in the trailer if any. That's an error unless we're trying
+        // to recover from a missing /Size entry.
+        if (m_xrefSizeUnknown)
+        {
+            m_nNumObjects = nFirstObject + nNumObjects;
+            m_offsets.resize(nFirstObject+nNumObjects);
+        }
+        else
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidXRef, "Xref subsection specifies first object + count > trailer /Size" );
+        }
+    }
+
     while( count < nNumObjects && m_device.Device()->Read( m_buffer.GetBuffer(), PDF_XREF_ENTRY_SIZE ) == PDF_XREF_ENTRY_SIZE )
     {
         m_buffer.GetBuffer()[PDF_XREF_ENTRY_SIZE] = '\0';
 
-        int objID = nFirstObject + count;
-        if( objID >= m_nNumObjects )
-        {
-            PODOFO_RAISE_ERROR( ePdfError_InvalidXRef );
-        }
- 
+        const int objID = nFirstObject+count;
         if( !m_offsets[objID].bParsed )
         {
             m_offsets[objID].bParsed = true;
@@ -555,22 +559,6 @@ void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
         PODOFO_RAISE_ERROR( ePdfError_NoXRef );
     }
 
-    // now check if there is another xref section right before the next object.
-    /*
-    if( m_ppOffsets[nFirstObject]->cUsed == 'n' )
-    {
-        long lOffset = 0;
-
-        PdfError::DebugMessage("Searching at: %i\n", m_ppOffsets[nFirstObject]->lOffset );
-        SAFE_OP( fseek( m_hFile, m_ppOffsets[nFirstObject]->lOffset, SEEK_SET ) );
-        eCode = ReadXRef( &lOffset );
-        if( eCode )
-            eCode == ErrOk;
-
-        PdfError::DebugMessage("Found XRef at: %i\n", lOffset );
-        SAFE_OP( ReadXRefContents( lOffset ) );
-    }
-    */
 }
 
 void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )

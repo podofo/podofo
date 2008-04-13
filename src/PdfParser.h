@@ -220,6 +220,11 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     void ReadXRefContents( long lOffset, bool bPositionAtEnd = false );
 
     /** Read a xref subsection
+     *  
+     *  Throws ePdfError_NoXref if the number of objects read was not
+     *  the number specified by the subsection header (as passed in
+     *  `nNumObjects').
+     *
      *  \param nFirstObject object number of the first object
      *  \param nNumObjects  how many objects should be read from this section
      */
@@ -328,6 +333,8 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     PdfObject*    m_pTrailer;
     PdfObject*    m_pLinearization;
     PdfEncrypt*   m_pEncrypt;
+
+    bool          m_xrefSizeUnknown;
 
     std::set<int> m_setObjectStreams;
 };
