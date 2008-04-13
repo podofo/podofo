@@ -480,6 +480,11 @@ void PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
             nFirstObject = this->GetNextNumber();
             nNumObjects  = this->GetNextNumber();
 
+            if ( nFirstObject < 0 || nFirstObject > 65545 || nNumObjects <= 0 || nNumObjects > 65535 - nFirstObject)
+            {
+                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidXRef, "xref subsection first object number or object count out of legal range" );
+            }
+
 #ifdef PODOFO_VERBOSE_DEBUG
             PdfError::DebugMessage("Reading numbers: %i %i\n", nFirstObject, nNumObjects );
 #endif // PODOFO_VERBOSE_DEBUG
