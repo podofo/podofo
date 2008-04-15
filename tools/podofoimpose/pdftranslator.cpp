@@ -122,7 +122,7 @@ void PdfTranslator::setSource ( const std::string & source )
 			if(ts.size() > 4)// at least ".pdf" because just test if ts is empty doesn't work.
 			{
 				multiSource.push_back( ts );
-// 				std::cerr << "Appending "<< ts <<" to source" << endl;
+				std::cerr << "Appending "<< ts <<" to source" << endl;
 			}
 		}
 		while ( !in.eof() );
@@ -257,35 +257,52 @@ void PdfTranslator::setTarget ( const std::string & target )
     targetDoc = sourceDoc;
     outFilePath  = target;
     pcount = targetDoc->GetPageCount();
-
+    std::cerr << "Document has "<< pcount << " page(s) " << endl;
     for ( int i = 0; i < pcount ; ++i )
     {
         PdfPage * page = targetDoc->GetPage ( i );
         PdfMemoryOutputStream outMemStream ( 1 );
 
         PdfXObject *xobj = new PdfXObject ( page->GetMediaBox(), targetDoc );
-	if(!page->GetContents()->IsArray())
+	if(page->GetContents()->HasStream())
 	{
         	page->GetContents()->GetStream()->GetFilteredCopy ( &outMemStream );
 	}
-	else
+	else if(page->GetContents()->IsArray())
 	{	
 		PdfArray carray(page->GetContents()->GetArray());
 		for(unsigned int ci = 0; ci < carray.GetSize(); ++ci)
 		{
-// 			std::cerr << " Appending stream from : ";
-			if(carray[ci].IsReference())
+// 			std::cerr << "carray at "<< ci <<" is "<< carray[ci].GetDataTypeString () <<endl;
+			if(carray[ci].HasStream())
 			{
-// 				std::cerr << "reference" << endl;
-				targetDoc->GetObjects().GetObject( carray[ci].GetReference() )->GetStream()->GetFilteredCopy ( &outMemStream );
-			}
-			else
-			{
-// 				std::cerr << "stream" << endl;
 				carray[ci].GetStream()->GetFilteredCopy ( &outMemStream );
 			}
+			else if(carray[ci].IsReference())
+			{
+// 				std::cerr << "carray at "<< ci <<" is "<< carray[ci].GetReference().ToString() << endl;
+				
+				PdfObject *co = targetDoc->GetObjects().GetObject(carray[ci].GetReference());
+				
+				while(co != NULL)
+				{
+					
+					if(co->IsReference())
+					{
+						co = targetDoc->GetObjects().GetObject(co->GetReference());
+					}
+					else if(co->HasStream())
+					{
+						co->GetStream()->GetFilteredCopy ( &outMemStream );
+						break;
+					}
+				}
+				
+			}
+			
 		}
 	}
+
         outMemStream.Close();
 
         PdfMemoryInputStream inStream ( outMemStream.TakeBuffer(),outMemStream.GetLength() );
@@ -295,6 +312,8 @@ void PdfTranslator::setTarget ( const std::string & target )
         xobjects[i+1] = xobj;
         trimRect[i+1] = page->GetTrimBox();
         bleedRect[i+1] = page->GetBleedBox();
+	
+	std::cerr << "XObject added("<< i + 1 << ")" << endl;
     }
 }
 
@@ -321,8 +340,8 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 
         PageRecord p;
         in >> p;
-        if (in.eof())
-            break;
+//         if (in.eof())
+//             break;
         if (!p.isValid())
             throw runtime_error("Bad plan file record");
 
@@ -474,7 +493,6 @@ void PdfTranslator::impose()
     if ( ! (sourceDoc && targetDoc) )
         throw std::invalid_argument("impose() called with empty source or destination path");
 
-    PdfDictionary globalRes;
 
     double pw = destWidth + (2.0 * extraSpace) ;
     double ph = destHeight  + (2.0 * extraSpace);
@@ -510,8 +528,8 @@ void PdfTranslator::impose()
 
             PdfArray matrix;
 
-            double cosR = cos ( planImposition[index].rotate  *  3.14159 / 180 );
-            double sinR = sin ( planImposition[index].rotate  *  3.14159 / 180 );
+            double cosR = cos ( planImposition[index].rotate  *  3.14159 / 180.0 );
+            double sinR = sin ( planImposition[index].rotate  *  3.14159 / 180.0 );
             double tx = planImposition[index].transX + extraSpace;
             double ty = planImposition[index].transY + extraSpace;
 
@@ -568,7 +586,15 @@ void PdfTranslator::impose()
         newpage->GetResources()->GetDictionary().AddKey ( PdfName ( "XObject" ), xdict );
         ++git;
     }
+    try{
     targetDoc->DeletePages ( 0,pcount );
+    }
+    catch( PoDoFo::PdfError & e )
+    {
+	    e.PrintErrorMsg();
+	    std::cerr <<"For the above reason, PoDoFo didn't delete original pages,\nas we can live with that, process continues"<<endl;
+    }
+    
     targetDoc->Write ( outFilePath.c_str() );
 
 }
