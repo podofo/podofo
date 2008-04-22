@@ -362,7 +362,7 @@ void PdfHintStream::WriteUInt16( pdf_uint16 val )
 {
     if( m_bLittleEndian ) 
     {
-        val = static_cast<pdf_uint16>(htons( static_cast<u_short>(val) ));
+        val = static_cast<pdf_uint16>(htons( static_cast<unsigned short>(val) ));
     }
 
     m_pObject->GetStream()->Append( (char*)&val, 2 );
