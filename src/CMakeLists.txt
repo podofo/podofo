@@ -68,6 +68,7 @@ SET(PODOFO_SOURCES
     PdfTTFWriter.cpp
     PdfVariant.cpp
     PdfVecObjects.cpp
+    PdfVersion.h
     PdfWriter.cpp
     PdfXObject.cpp
     PdfXRef.cpp
