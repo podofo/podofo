@@ -379,16 +379,18 @@ PdfFont* PdfFontCache::CreateFontObject( PdfFontMetrics* pMetrics, bool bEmbedd,
 
         pFont    = PdfFontFactory::CreateFontObject( pMetrics, nFlags, pEncoding, m_pParent );
 
-        TFontCacheElement element;
-        element.m_pFont     = pFont;
-        element.m_bBold     = pFont->IsBold();
-        element.m_bItalic   = pFont->IsItalic();
-        element.m_sFontName = pszFontName;
-        element.m_pEncoding = pEncoding;
-        m_vecFonts  .push_back( element );
+        if( pFont ) {
+            TFontCacheElement element;
+            element.m_pFont     = pFont;
+            element.m_bBold     = pFont->IsBold();
+            element.m_bItalic   = pFont->IsItalic();
+            element.m_sFontName = pszFontName;
+            element.m_pEncoding = pEncoding;
+            m_vecFonts  .push_back( element );
         
-        // Now sort the font list
-        std::sort( m_vecFonts.begin(), m_vecFonts.end() );
+            // Now sort the font list
+            std::sort( m_vecFonts.begin(), m_vecFonts.end() );
+        }
     } catch( PdfError & e ) {
         e.AddToCallstack( __FILE__, __LINE__ );
         e.PrintErrorMsg();
