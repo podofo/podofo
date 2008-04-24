@@ -171,13 +171,13 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
                 m_pRefCountedBuffer->Resize( m_ulPosition + lBytes );
 
             memcpy( m_pRefCountedBuffer->GetBuffer() + m_ulPosition, data, lBytes );
-            m_ulPosition += lBytes;
         }
 
         free( data );
     }
     va_end( args );
 
+    m_ulPosition += lBytes;
     m_ulLength += lBytes;
 }
 
@@ -242,6 +242,7 @@ void PdfOutputDevice::Seek( size_t offset )
         m_ulPosition = offset;
     }
 
+    m_ulPosition = offset;
     // Seek should not change the length of the device
     // m_ulLength = offset;
 }

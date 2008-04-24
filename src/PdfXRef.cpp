@@ -132,7 +132,7 @@ void PdfXRef::Write( PdfOutputDevice* pDevice )
 
     MergeBlocks();
 
-    m_lOffset = pDevice->GetLength();
+    m_lOffset = pDevice->Tell();
     this->BeginWrite( pDevice );
     while( it != m_vecBlocks.end() )
     {

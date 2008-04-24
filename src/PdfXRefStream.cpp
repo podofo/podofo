@@ -116,7 +116,7 @@ void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
     w.push_back( 1L );
 
     // Add our self to the XRef table
-    this->WriteXRefEntry( pDevice, pDevice->GetLength(), 0, 'n' );
+    this->WriteXRefEntry( pDevice, pDevice->Tell(), 0, 'n' );
 
     m_pObject->GetStream()->EndAppend();
     m_pWriter->FillTrailerObject( m_pObject, this->GetSize(), false, false );

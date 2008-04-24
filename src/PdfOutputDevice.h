@@ -115,6 +115,11 @@ class PODOFO_API PdfOutputDevice {
      */
     virtual void Seek( size_t offset );
 
+    /** Get the current offset from the beginning of the file.
+     *  \return the offset form the beginning of the file.
+     */
+    virtual inline unsigned long Tell() const;
+
     /** Flush the output files buffer to disk if this devices
      *  operates on a disk.
      */
@@ -139,9 +144,20 @@ class PODOFO_API PdfOutputDevice {
 
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 unsigned long PdfOutputDevice::GetLength() const
 {
     return m_ulLength;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+unsigned long PdfOutputDevice::Tell() const
+{
+    return m_ulPosition;
 }
 
 };

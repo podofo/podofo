@@ -263,7 +263,7 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& 
 
     while( itObjects != vecObjects.end() )
     {
-        pXref->AddObject( (*itObjects)->Reference(), pDevice->GetLength(), true );
+        pXref->AddObject( (*itObjects)->Reference(), pDevice->Tell(), true );
         // Make sure that we do not encrypt the encryption dictionary!
         (*itObjects)->WriteObject( pDevice, ((*itObjects) == m_pEncryptObj ? NULL : m_pEncrypt) );
 

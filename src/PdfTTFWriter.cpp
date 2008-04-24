@@ -991,7 +991,7 @@ void PdfTTFWriter::WriteGlyfTable( PdfOutputDevice* pDevice )
         pDevice->Write( (*it).m_buffer.GetBuffer(), (*it).m_buffer.GetSize() );
 
         // add value to new loca table so that it can be created correctly
-        m_vecLoca.push_back( pDevice->GetLength() ); 
+        m_vecLoca.push_back( pDevice->Tell() ); 
 
 #if 0
 
@@ -1028,7 +1028,7 @@ void PdfTTFWriter::WriteGlyfTable( PdfOutputDevice* pDevice )
     }
     
     // add an additional entry to loca so that the length of the last character can be determined
-    m_vecLoca.push_back( pDevice->GetLength() ); 
+    m_vecLoca.push_back( pDevice->Tell() ); 
 }
 
 void PdfTTFWriter::WriteCMapTable( PdfOutputDevice* pDevice )
@@ -1308,7 +1308,7 @@ void PdfTTFWriter::WriteTable( PdfOutputDevice* pDevice, TVecTableDirectoryEntri
     entry.tag      = tag;
     entry.checkSum = 0;
     entry.length   = 0;
-    entry.offset   = pDevice->GetLength();
+    entry.offset   = pDevice->Tell();
 
     (this->*WriteTableFunc)( &memDevice );
 

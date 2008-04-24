@@ -68,14 +68,14 @@ void PdfImmediateWriter::WriteObject( const PdfObject* pObject )
 
     this->FinishLastObject();
 
-    m_pXRef->AddObject( pObject->Reference(), m_pDevice->GetLength(), true );
+    m_pXRef->AddObject( pObject->Reference(), m_pDevice->Tell(), true );
     pObject->WriteObject( m_pDevice, m_pEncrypt );
 
     // Let's cheat a bit:
     // pObject has written an "endobj\n" as last data to the file.
     // we simply overwrite this string with "stream\n" which 
     // has excatly the same length.
-    m_pDevice->Seek( m_pDevice->GetLength() - endObjLenght );
+    m_pDevice->Seek( m_pDevice->Tell() - endObjLenght );
     m_pDevice->Print( "stream\n" );
 
     m_pLast = const_cast<PdfObject*>(pObject);
@@ -99,11 +99,10 @@ void PdfImmediateWriter::Finish()
         m_pEncrypt->CreateEncryptionDictionary( m_pEncryptObj->GetDictionary() );
     }
 
-
     this->WritePdfObjects( m_pDevice, *m_pParent, m_pXRef );
 
     // write the XRef
-    long lXRefOffset = m_pDevice->GetLength();
+    long lXRefOffset = m_pDevice->Tell();
     m_pXRef->Write( m_pDevice );
             
     // XRef streams contain the trailer in the XRef

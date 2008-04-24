@@ -109,9 +109,9 @@ PdfDeviceOutputStream::PdfDeviceOutputStream( PdfOutputDevice* pDevice )
 
 long PdfDeviceOutputStream::Write( const char* pBuffer, long lLen )
 {
-    long lTell = m_pDevice->GetLength();
+    long lTell = m_pDevice->Tell();
     m_pDevice->Write( pBuffer, lLen );
-    return m_pDevice->GetLength() - lTell;
+    return m_pDevice->Tell() - lTell;
 }
 
 
