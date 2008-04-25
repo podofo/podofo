@@ -109,19 +109,18 @@ public:
      *  \see GenerateEncryptionKey with the documentID to generate the real
      *       encryption key using this information
      */
-   	static PdfEncrypt * CreatePdfEncrypt( const std::string & userPassword,
-                const std::string & ownerPassword, 
-                int protection = ePdfPermissions_Print | 
-                                 ePdfPermissions_Edit |
-                                 ePdfPermissions_Copy |
-                                 ePdfPermissions_EditNotes | 
-                                 ePdfPermissions_FillAndSign |
-                                 ePdfPermissions_Accessible |
-                                 ePdfPermissions_DocAssembly |
-                                 ePdfPermissions_HighPrint,
-                EPdfEncryptAlgorithm eAlgorithm = ePdfEncryptAlgorithm_RC4V1, 
-                EPdfKeyLength eKeyLength = ePdfKeyLength_40 );
-
+    static PdfEncrypt * CreatePdfEncrypt( const std::string & userPassword,
+                                          const std::string & ownerPassword, 
+                                          int protection = ePdfPermissions_Print | 
+                                          ePdfPermissions_Edit |
+                                          ePdfPermissions_Copy |
+                                          ePdfPermissions_EditNotes | 
+                                          ePdfPermissions_FillAndSign |
+                                          ePdfPermissions_Accessible |
+                                          ePdfPermissions_DocAssembly |
+                                          ePdfPermissions_HighPrint,
+                                          EPdfEncryptAlgorithm eAlgorithm = ePdfEncryptAlgorithm_RC4V1, 
+                                          EPdfKeyLength eKeyLength = ePdfKeyLength_40 );
 
     /** Initialize a PdfEncrypt object from an encryption dictionary in a PDF file.
      *
@@ -270,9 +269,9 @@ public:
     inline bool IsHighPrintAllowed() const;
 
 
-  bool Authenticate(const std::string & documentID, const std::string & password,
-                    const std::string & uValue, const std::string & oValue,
-                    int pValue, int lengthValue, int rValue);
+    bool Authenticate(const std::string & documentID, const std::string & password,
+                      const std::string & uValue, const std::string & oValue,
+                      int pValue, int lengthValue, int rValue);
 
   /// Get the U object value (user)
   const unsigned char* GetUValue() const { return m_uValue; }

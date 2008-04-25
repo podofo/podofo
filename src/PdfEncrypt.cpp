@@ -523,7 +523,7 @@ PdfEncrypt::CreatePdfEncrypt( const std::string & userPassword,
 							  EPdfEncryptAlgorithm eAlgorithm, 
 							  EPdfKeyLength eKeyLength )
 {
-	PdfEncrypt *pdfEncrypt = 0;
+    PdfEncrypt *pdfEncrypt = 0;
    
     switch (eAlgorithm)
     {
@@ -536,13 +536,13 @@ PdfEncrypt::CreatePdfEncrypt( const std::string & userPassword,
             pdfEncrypt = new PdfEncryptRC4(userPassword, ownerPassword, protection, eAlgorithm, eKeyLength);
             break;
     }
-	return pdfEncrypt;
+    return pdfEncrypt;
 }
 
 PdfEncrypt *
 PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
 {
-	PdfEncrypt *pdfEncrypt = 0;
+    PdfEncrypt *pdfEncrypt = 0;
     if( !pObject->GetDictionary().HasKey( PdfName("Filter") ) ||
         pObject->GetDictionary().GetKey( PdfName("Filter" ) )->GetName() != PdfName("Standard") )
     {
@@ -553,14 +553,14 @@ PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
         
     long lV;
     long lLength;
-	int rValue;
-	int pValue;
-	PdfString oValue;
-	PdfString uValue;
-
+    int rValue;
+    int pValue;
+    PdfString oValue;
+    PdfString uValue;
+    
     try {
         PdfString sTmp;
-
+        
         lV           = pObject->GetDictionary().GetKey( PdfName("V") )->GetNumber();
         rValue       = pObject->GetDictionary().GetKey( PdfName("R") )->GetNumber();
 
@@ -579,15 +579,15 @@ PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
 
     if( lV == 1L && rValue == 2L ) 
     {
-		pdfEncrypt = new PdfEncryptRC4(oValue, uValue, pValue, rValue, ePdfEncryptAlgorithm_RC4V1, 40);
+        pdfEncrypt = new PdfEncryptRC4(oValue, uValue, pValue, rValue, ePdfEncryptAlgorithm_RC4V1, 40);
     }
     else if( lV == 2L && rValue == 3L ) 
     {
-		pdfEncrypt = new PdfEncryptRC4(oValue, uValue, pValue, rValue, ePdfEncryptAlgorithm_RC4V2, lLength);
+        pdfEncrypt = new PdfEncryptRC4(oValue, uValue, pValue, rValue, ePdfEncryptAlgorithm_RC4V2, lLength);
     }
     else if( lV == 4L && rValue == 4L ) 
     {
-		pdfEncrypt = new PdfEncryptAES(oValue, uValue, pValue);      
+        pdfEncrypt = new PdfEncryptAES(oValue, uValue, pValue);      
     }
     else
     {
@@ -595,22 +595,22 @@ PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
         oss << "Unsupported encryption method Version=" << lV << " Revision=" << rValue;
         PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFilter, oss.str().c_str() );
     }
-	return pdfEncrypt;
+    return pdfEncrypt;
 }
 
 PdfEncrypt *
 PdfEncrypt::CreatePdfEncrypt(const PdfEncrypt & rhs )  
 {
-	PdfEncrypt *pdfEncrypt = 0;
-	if (rhs.m_eAlgorithm == ePdfEncryptAlgorithm_AESV2)
-	{
-		pdfEncrypt = new PdfEncryptAES(rhs);
-	}
-	else
-	{
-		pdfEncrypt = new PdfEncryptRC4(rhs);
-	}
-	return pdfEncrypt;
+    PdfEncrypt *pdfEncrypt = 0;
+    if (rhs.m_eAlgorithm == ePdfEncryptAlgorithm_AESV2)
+    {
+        pdfEncrypt = new PdfEncryptAES(rhs);
+    }
+    else
+    {
+        pdfEncrypt = new PdfEncryptRC4(rhs);
+    }
+    return pdfEncrypt;
 }
 
 PdfEncrypt::PdfEncrypt( const PdfEncrypt & rhs )  
@@ -1054,8 +1054,8 @@ PdfEncryptAES::PdfEncryptAES( const std::string & userPassword, const std::strin
 
     m_rValue = 4;
     m_keyLength = 128 / 8;
-	m_eKeyLength = ePdfKeyLength_128;
-	m_eAlgorithm = ePdfEncryptAlgorithm_AESV2;
+    m_eKeyLength = ePdfKeyLength_128;
+    m_eAlgorithm = ePdfEncryptAlgorithm_AESV2;
     m_aes = new PdfRijndael();         
     
     int j;
@@ -1069,13 +1069,13 @@ PdfEncryptAES::PdfEncryptAES( const std::string & userPassword, const std::strin
 
 PdfEncryptAES::PdfEncryptAES(PdfString oValue, PdfString uValue, int pValue)
 {
-	m_pValue = pValue;
-	m_eAlgorithm = ePdfEncryptAlgorithm_AESV2;
+    m_pValue = pValue;
+    m_eAlgorithm = ePdfEncryptAlgorithm_AESV2;
     m_eKeyLength = ePdfKeyLength_128;
     m_keyLength  = 128 / 8;
     m_aes        = new PdfRijndael();
-	m_rValue	 = 4;
-	memcpy( m_oValue, oValue.GetString(), 32 );
+    m_rValue	 = 4;
+    memcpy( m_oValue, oValue.GetString(), 32 );
     memcpy( m_uValue, uValue.GetString(), 32 );
 }
 
@@ -1198,12 +1198,12 @@ PdfInputStream* PdfEncryptRC4::CreateEncryptionInputStream( PdfInputStream* pInp
 
 PdfEncryptRC4::PdfEncryptRC4(PdfString oValue, PdfString uValue, int pValue, int rValue, EPdfEncryptAlgorithm eAlgorithm, long length)
 {
-	m_pValue = pValue;
-	m_rValue = rValue;
-	m_eAlgorithm = eAlgorithm;
+    m_pValue = pValue;
+    m_rValue = rValue;
+    m_eAlgorithm = eAlgorithm;
     m_eKeyLength = static_cast<EPdfKeyLength>(length);
     m_keyLength  = length/8;
-	memcpy( m_oValue, oValue.GetString(), 32 );
+    memcpy( m_oValue, oValue.GetString(), 32 );
     memcpy( m_uValue, uValue.GetString(), 32 );
 }
 
@@ -1213,11 +1213,11 @@ PdfEncryptRC4::PdfEncryptRC4( const std::string & userPassword, const std::strin
     // setup object
     int keyLength = static_cast<int>(eKeyLength);
 
-	m_userPass = userPassword;
-	m_ownerPass =  ownerPassword;
-	m_eAlgorithm = eAlgorithm;
-	m_eKeyLength = eKeyLength; 
-
+    m_userPass = userPassword;
+    m_ownerPass =  ownerPassword;
+    m_eAlgorithm = eAlgorithm;
+    m_eKeyLength = eKeyLength; 
+    
     switch (eAlgorithm)
     {      
         case ePdfEncryptAlgorithm_RC4V2:
