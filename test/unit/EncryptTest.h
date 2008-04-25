@@ -1,0 +1,71 @@
+/***************************************************************************
+ *   Copyright (C) 2008 by Dominik Seichter                                *
+ *   domseichter@web.de                                                    *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Library General Public License as       *
+ *   published by the Free Software Foundation; either version 2 of the    *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+#ifndef _ENCRYPT_TEST_H_
+#define _ENCRYPT_TEST_H_
+
+#include <cppunit/extensions/HelperMacros.h>
+
+namespace PoDoFo {
+    class PdfEncrypt;
+}
+
+/** This test tests the class PdfString
+ */
+class EncryptTest : public CppUnit::TestFixture
+{
+  CPPUNIT_TEST_SUITE( EncryptTest );
+  CPPUNIT_TEST( testDefault );
+  CPPUNIT_TEST( testRC4 );
+  CPPUNIT_TEST( testRC4v2_40 );
+  CPPUNIT_TEST( testRC4v2_56 );
+  CPPUNIT_TEST( testRC4v2_80 );
+  CPPUNIT_TEST( testRC4v2_96 );
+  CPPUNIT_TEST( testRC4v2_128 );
+  CPPUNIT_TEST( testAES );
+  CPPUNIT_TEST_SUITE_END();
+
+ public:
+  void setUp();
+  void tearDown();
+
+  void testDefault();
+  void testRC4();
+  void testRC4v2_40();
+  void testRC4v2_56();
+  void testRC4v2_80();
+  void testRC4v2_96();
+  void testRC4v2_128();
+  void testAES();
+
+ private:
+  void TestAuthenticate( PoDoFo::PdfEncrypt* pEncrypt, int keyLength, int rValue );
+  void TestEncrypt( PoDoFo::PdfEncrypt* pEncrypt );
+
+ private:
+  char* m_pEncBuffer;
+  long  m_lLen;
+  int   m_protection;
+  
+};
+
+#endif // _ENCRYPT_TEST_H_
+
+

@@ -45,13 +45,13 @@ void StringTest::testGetStringUtf8()
     PdfString str1( src1.c_str() );
     std::string res1 = str1.GetStringUtf8();
 
-    CPPUNIT_ASSERT_EQUAL_MESSAGE( "testing const char* ASCII -> UTF8", res1, src1 );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "testing const char* ASCII -> UTF8", src1, res1 );
 
     // Normal std::string string should be converted to UTF8
     PdfString str2( src2 );
     std::string res2 = str2.GetStringUtf8();
 
-    CPPUNIT_ASSERT_EQUAL_MESSAGE( "testing std::string ASCII -> UTF8", res2, src2 );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "testing std::string ASCII -> UTF8", src2, res2 );
 
     // UTF8 data in std::string cannot be converted as we do not know it is UTF8
     PdfString str3( src3 );
