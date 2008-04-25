@@ -37,6 +37,7 @@ using namespace PoDoFo;
 
 void enc_test() 
 {
+    /*
     PdfString documentId;
     documentId.SetHexData( "BF37541A9083A51619AD5924ECF156DF", 32 );
 
@@ -89,6 +90,7 @@ void enc_test()
 
     enc.Encrypt( reinterpret_cast<unsigned char*>(pEncBuffer), lLen );
     printf("Decrypted buffer: %s\n", pEncBuffer );
+    */
 }
 
 void write_back( PdfParser* pParser, const char* pszFilename )

@@ -465,7 +465,14 @@ void PdfString::Write ( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) c
     // this case has to be handled!
     if( pEncrypt ) 
     {
-        std::string enc = std::string( this->GetString(), this->GetLength() );
+        int nOffset = pEncrypt->CalculateStreamOffset();
+        int nLen = this->GetLength();
+        int nOutputLen = pEncrypt->CalculateStreamLength(nLen);
+        
+        char* pBuffer = new char [nOutputLen + 1];
+        memcpy(&pBuffer[nOffset], this->GetString(), this->GetLength());
+        
+        std::string enc = std::string(pBuffer, nOutputLen);
         if( m_bUnicode )
         {
             std::string tmp( reinterpret_cast<const char*>(&PdfString::s_pszUnicodeMarker), 2 );
@@ -473,11 +480,14 @@ void PdfString::Write ( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) c
 
             enc = tmp;
         }
-
-        pEncrypt->Encrypt( enc );
+	
+        pEncrypt->Encrypt(enc, nLen );
 
         PdfString str( enc.c_str(), enc.length(), true );
         str.Write( pDevice, NULL );
+
+        delete[] pBuffer;
+		
         return;
     }
 

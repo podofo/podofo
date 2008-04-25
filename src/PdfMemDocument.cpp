@@ -272,13 +272,13 @@ void PdfMemDocument::SetEncrypted( const std::string & userPassword, const std::
                                    PdfEncrypt::EPdfKeyLength eKeyLength )
 {
     delete m_pEncrypt;
-    m_pEncrypt = new PdfEncrypt( userPassword, ownerPassword, protection, eAlgorithm, eKeyLength );
+	m_pEncrypt = PdfEncrypt::CreatePdfEncrypt( userPassword, ownerPassword, protection, eAlgorithm, eKeyLength );
 }
 
 void PdfMemDocument::SetEncrypted( const PdfEncrypt & pEncrypt )
 {
     delete m_pEncrypt;
-    m_pEncrypt = new PdfEncrypt( pEncrypt );
+    m_pEncrypt = PdfEncrypt::CreatePdfEncrypt( pEncrypt );
 }
 
 };

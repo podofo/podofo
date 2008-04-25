@@ -763,7 +763,7 @@ void PdfParser::ReadObjects()
                 pObject->ParseFile( NULL ); // The encryption dictionary is not encrypted :)
                 m_vecObjects->push_back( pObject );
                 m_offsets[i].bParsed = false;
-                m_pEncrypt = new PdfEncrypt( pObject );
+                m_pEncrypt = PdfEncrypt::CreatePdfEncrypt( pObject );
             } catch( PdfError & e ) {
                 std::ostringstream oss;
                 if( pObject )
@@ -778,7 +778,7 @@ void PdfParser::ReadObjects()
             }
         }
         else if( pEncrypt->IsDictionary() ) 
-            m_pEncrypt = new PdfEncrypt( pEncrypt );
+            m_pEncrypt = PdfEncrypt::CreatePdfEncrypt( pEncrypt );
         else
         {
             PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidEncryptionDict, 

@@ -53,12 +53,14 @@ void encrypt( const char* pszInput, const char* pszOutput,
     }
 
     PdfWriter writer( &parser );
-    PdfEncrypt encrypt( userPass, ownerPass, nPermissions,
+	PdfEncrypt *encrypt = PdfEncrypt::CreatePdfEncrypt( userPass, ownerPass, nPermissions,
                         eAlgorithm, eKeyLength  );
     
     writer.SetPdfVersion( eVersion );
-    writer.SetEncrypted( encrypt );
+    writer.SetEncrypted( *encrypt );
     writer.Write( pszOutput );
+
+	delete encrypt;
 }
 
 void print_help()
@@ -111,8 +113,7 @@ int main( int argc, char* argv[] )
           else if( strcmp( argv[i], "--rc4v2" ) == 0 ) 
               eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_RC4V2;
           else if( strcmp( argv[i], "--aes" ) == 0 ) 
-          {
-              fprintf( stderr, "WARNING: AES encryption selected which is currently not supported by PoDoFo!\n");
+          {              
               eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_AESV2;
           }
           else if( strcmp( argv[i], "-u" ) == 0 ) 

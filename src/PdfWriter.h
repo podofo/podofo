@@ -125,7 +125,7 @@ class PODOFO_API PdfWriter {
      *
      *  \param rEncrypt an encryption object which is used to encrypt the written PDF file
      */
-    void SetEncrypted( const PdfEncrypt & rEncrypt ) { if( m_pEncrypt ) delete m_pEncrypt; m_pEncrypt = new PdfEncrypt( rEncrypt ); };
+    void SetEncrypted( const PdfEncrypt & rEncrypt ) { if( m_pEncrypt ) delete m_pEncrypt; m_pEncrypt = PdfEncrypt::CreatePdfEncrypt( rEncrypt ); };
 
     /** 
      * \returns true if this PdfWriter creates an encrypted PDF file
