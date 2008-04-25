@@ -195,6 +195,16 @@ ELSE(CppUnit_FOUND)
   MESSAGE("Cppunit not found. No unit tests will be built.")
 ENDIF(CppUnit_FOUND)
 
+FIND_PACKAGE(OpenSSL)
+
+IF(OPENSSL_FOUND)
+  MESSAGE("Found openssl. Signature support will be build.")
+  SET(HAVE_OPENSSL OPENSSL_FOUND)
+ELSE(OPENSSL_FOUND)
+  MESSAGE("Openssl not found. Signature support will not be build.")
+ENDIF(OPENSSL_FOUND)
+
+
 FIND_PACKAGE(FREETYPE REQUIRED)
 MESSAGE("Found freetype library at ${FREETYPE_LIBRARIES}, headers ${FREETYPE_INCLUDE_DIR}")
 
