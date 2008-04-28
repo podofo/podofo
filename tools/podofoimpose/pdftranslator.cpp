@@ -59,6 +59,8 @@ istream & operator>>(istream& s, PageRecord& r)
 {
     s >> r.sourcePage >> r.destPage >> r.rotate >> r.transX >> r.transY;
     // TODO: set invalid if stream state bad
+    
+    std::cerr<<"RECORD :"<< r.sourcePage << "|" << r.destPage << "|" << r.rotate << "|" <<  r.transX << "|" << r.transY;
     return s;
 }
 
@@ -70,6 +72,8 @@ ostream & operator<<(ostream& s, const PageRecord& r)
 bool PageRecord::isValid() const
 {
     //TODO
+	if(!sourcePage || !destPage)
+		return false;
     return true;
 }
 
@@ -361,6 +365,11 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 	    resources[dup] = getInheritedResources( targetDoc->GetPage(p.sourcePage - 1));
             trimRect[dup] = targetDoc->GetPage(p.sourcePage - 1)->GetTrimBox();
             bleedRect[dup] = targetDoc->GetPage(p.sourcePage - 1)->GetBleedBox();
+	    
+	    std::cerr << "Page "<< p.sourcePage << ": MediaBox" << targetDoc->GetPage(p.sourcePage - 1)->GetMediaBox().ToString() <<endl;
+	    std::cerr << "Page "<< p.sourcePage << ": TrimBox" << trimRect[dup].ToString() <<endl;
+	    
+	    
             p.sourcePage = dup;
             ++dup;
         }
