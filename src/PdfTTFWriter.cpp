@@ -38,7 +38,7 @@ inline double PdfLog2(double x) { return log2(x); }
 inline double PdfExp2(double x) { return exp2(x); }
 #else
 inline double PdfLog2(double x) { return log(x)/log(2.0f); }
-inline double PdfExp2(double x) { return pow(2,x); }
+inline double PdfExp2(double x) { return pow(static_cast<double>(2.0f),static_cast<double>(x)); }
 #endif
 }
 
