@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <title>PodofoImpose - some words</title>
+  <meta name="GENERATOR" content="Quanta Plus" /=true />
+  <meta name="AUTHOR" content="Pierre Marchand" /=true />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /=true />
+</head>
+<p>
+	<h2>PodofoImpose</h2>
+	<div>PodofoImpose is a utility program which aims to provide a rather simple way to impose PDF documents. Originally written for my own use, it ended up in PoDoFo release as a show-case (don’t rely too much on it).</div>
+	<h3>Usage</h3>
+	<div> PodofoImpose is driven by a PLAN file. This file describes how pages from a source PDF document have to be relayout into a target document. We’ll describe how this file must be formated. <dl>
+		<dt>Header</dt>
+		<dd>The first line of the file indicates the width and height of the target document without its trim box.</dd>
+	</dl>
+	<dl>
+		<dt>Records</dt>
+		<dd>Each line of the file is a record describing how a page from the source page will be repositionned. Each line is of the form: <pre>source_page target_page rotation translationX translationY</pre>
+	</dd>
+	</dl> Once you’ve wrote the PLAN file you can run the program: <pre>$podofoimpose source.pdf target.pdf plan.plan 0</pre>
+		
+		<pre>Note1: the source can be either a PDF file or a text file which is a listing of PDF files</pre>
+		<pre>Note2: the last argument is the external margin that you can ask PodofoImpose to insert;
+			in this case it will create a trimbox, print cut marks and the folio </pre>
+		
+        </div>
+	
+	<h3>Examples</h3>
+	<h5>Add a stamp to a document</h5>
+	<p>
+	<p>Shame on me, don’t even have a real stamp at my "office". So I tried something and it worked! Say you have that official one page A4 doc on which you want to add a nice stamp named official.pdf. You have your stamp in the file stamp.pdf. You first have to create two files : <pre>
+		== pdf.list ==
+		official.pdf
+		stamp.pdf
+		=========
+	</pre>
+		<pre>
+		==stamponator.plan==
+		597.6 842.4
+		1 1 0 0 0
+		2 1 0 350 100
+		===============
+	</pre> Now you can run:
+	<pre>$podofoimpose  pdf.list stamped-official.pdf stamponator.plan 0</pre>
+	</p>
+	
+	
+		<h5>Make a tiled poster</h5>
+		<p>
+			I composed a 640x380 mm document in Scribus, I was thinking I could use the 
+			built-in Kprinter poster option to print it on my A4 laser printer. But no 
+			poster available on my OpenSuse box, so I thought I could give podofo a try.
+			Here is the plan file, it’s still not exact but since i get my poster printed 
+			I don’t bother too much :)
+
+<pre>
+	==poster.plan======
+	597.6 842.4
+	1 1 0 16.56 172.4
+	1 2 0 -547.92 172.4
+	1 3 0 -1112.4 172.4
+	1 4 0 -1676.88 172.4
+	
+	1 5 0 16.56 -497.6
+	1 6 0 -547.92 -497.6
+	1 7 0 -1112.4 -497.6
+	1 8 0 -1676.88 -497.6
+	===============
+</pre>
+I ran a regular:
+<pre>$podofoimpose large.pdf poster.pdf poster.plan 0</pre>
+	</p>
+	<h5>Multiple business cards on a sheet</h5>
+	<p>
+	<pre>
+		==carte.plan========
+		520.722 765.22
+		1 1 0 0 0
+		1 1 0 265.548 0
+		1 1 0 0 255.174
+		1 1 0 265.548 255.174
+		1 1 0 0 510.348
+		1 1 0 265.548 510.348
+		2 2 0 0 0
+		2 2 0 265.548 0
+		2 2 0 0 255.174
+		2 2 0 265.548 255.174
+		2 2 0 0 510.348
+		2 2 0 265.548 510.348
+		================
+	</pre>
+	<pre>$podofoimpose carte.pdf carte_imposed.pdf carte.plan 38.439</pre>
+	Note the sheet margin adjustment which lets room for the cut marks (if there 
+	is a relevant trim box in the file), I can’t decide if it’s a bug or a 
+	feature! If the plan was generated automatically by a GUI app or something 
+	similar it would be a feature but when you have to compute it "by hand", it’s 
+a real pain. Although it gives good results.
+</p>
+</body>
+</html>
