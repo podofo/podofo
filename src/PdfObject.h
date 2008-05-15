@@ -28,6 +28,7 @@
 #include "PdfString.h"
 #include "PdfVariant.h"
 
+
 namespace PoDoFo {
 
 class PdfEncrypt;

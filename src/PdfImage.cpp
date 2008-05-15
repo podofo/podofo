@@ -368,8 +368,13 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
     }
 
     int32 scanlineSize = TIFFScanlineSize(hInfile);
-    int32 bufferSize = scanlineSize * height;
+    long bufferSize = scanlineSize * height;
     char *buffer = new char[bufferSize];
+    if( !buffer ) 
+    {
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+    }
+
     PdfMemoryInputStream stream(buffer, bufferSize);
 
     switch(bitsPixel)

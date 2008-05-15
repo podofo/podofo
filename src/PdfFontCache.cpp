@@ -70,42 +70,42 @@ private:
 #ifdef _WIN32
 static bool GetDataFromLPFONT( const LOGFONTA* inFont, char** outFontBuffer, unsigned int& outFontBufferLen )
 {
-	HFONT 	hf;
-	HDC		hdc;
+    HFONT 	hf;
+    HDC		hdc;
 
-	if ( ( hf = ::CreateFontIndirect( inFont ) ) == NULL )
-		return false;
+    if ( ( hf = ::CreateFontIndirect( inFont ) ) == NULL )
+        return false;
+    
+    if ( ( hdc = GetDC(0) ) == NULL ) {
+        DeleteObject(hf);
+        return false;
+    }
+    
+    SelectObject(hdc, hf);
 
-	if ( ( hdc = GetDC(0) ) == NULL ) {
-		DeleteObject(hf);
-		return false;
-	}
-
-	SelectObject(hdc, hf);
-
-	outFontBufferLen = GetFontData(hdc, 0, 0, 0, 0);
-
-	if (outFontBufferLen == GDI_ERROR) {
-		ReleaseDC(0, hdc);
-		DeleteObject(hf);
-		return false;
-	}
-
-	*outFontBuffer = (char *) malloc( outFontBufferLen );
-
-	if ( GetFontData( hdc, 0, 0, *outFontBuffer, (DWORD) outFontBufferLen ) == GDI_ERROR ) {
-		free( *outFontBuffer );
-		*outFontBuffer = NULL;
-		outFontBufferLen = 0;
-		ReleaseDC(0, hdc);
-		DeleteObject(hf);
-		return false;
-	}
-
-	ReleaseDC( 0, hdc );
-	DeleteObject( hf );
-
-	return true;
+    outFontBufferLen = GetFontData(hdc, 0, 0, 0, 0);
+    
+    if (outFontBufferLen == GDI_ERROR) {
+        ReleaseDC(0, hdc);
+        DeleteObject(hf);
+        return false;
+    }
+    
+    *outFontBuffer = (char *) malloc( outFontBufferLen );
+    
+    if ( GetFontData( hdc, 0, 0, *outFontBuffer, (DWORD) outFontBufferLen ) == GDI_ERROR ) {
+        free( *outFontBuffer );
+        *outFontBuffer = NULL;
+        outFontBufferLen = 0;
+        ReleaseDC(0, hdc);
+        DeleteObject(hf);
+        return false;
+    }
+    
+    ReleaseDC( 0, hdc );
+    DeleteObject( hf );
+    
+    return true;
 }
 #endif // _WIN32
 
@@ -264,23 +264,24 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
 */
 
 #ifdef _WIN32
-PdfFont* PdfFontCache::GetWin32Font( const char* pszFontName, bool bBold, bool bItalic, bool bEmbedd, const PdfEncoding * const pEncoding )
+PdfFont* PdfFontCache::GetWin32Font( const char* pszFontName, bool bBold, bool bItalic, 
+                                     bool bEmbedd, const PdfEncoding * const pEncoding )
 {
     LOGFONT	lf;
     
     lf.lfHeight			= 0;
     lf.lfWidth			= 0;
     lf.lfEscapement		= 0;
-    lf.lfOrientation	= 0;
+    lf.lfOrientation    	= 0;
     lf.lfWeight			= bBold ? FW_BOLD : 0;
     lf.lfItalic			= bItalic;
     lf.lfUnderline		= 0;
     lf.lfStrikeOut		= 0;
     lf.lfCharSet		= DEFAULT_CHARSET;
-    lf.lfOutPrecision	= OUT_DEFAULT_PRECIS;
-    lf.lfClipPrecision	= CLIP_DEFAULT_PRECIS;
+    lf.lfOutPrecision	        = OUT_DEFAULT_PRECIS;
+    lf.lfClipPrecision	        = CLIP_DEFAULT_PRECIS;
     lf.lfQuality		= DEFAULT_QUALITY;
-    lf.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
+    lf.lfPitchAndFamily         = DEFAULT_PITCH | FF_DONTCARE;
     
     if (strlen(pszFontName) >= LF_FACESIZE)
         return NULL;
