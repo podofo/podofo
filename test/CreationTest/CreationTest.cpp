@@ -1,4 +1,4 @@
-/***************************************************************************
+	/***************************************************************************
  *   Copyright (C) 2005 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
@@ -83,6 +83,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     double w;
     int    i;
 
+	/*
     pFont = pDocument->CreateFont( "Arial Unicode MS", new PdfIdentityEncoding( 0, 0xffff, true ) );
     printf("GOT: %s\n", pFont->GetFontMetrics()->GetFontname() );
     PdfString sJap(reinterpret_cast<const pdf_utf8*>("「Po\tDoFo」は今から日本語も話せます。"));
@@ -96,9 +97,9 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pFont->SetFontSize( 8.0 );
     pPainter->SetFont( pFont );
     pPainter->DrawText( 100.0, 100.0, sJap );
+	*/
 
-
-    pFont = pDocument->CreateFont( "Arial" );
+    pFont = pDocument->CreateFont( "Courier New" );
     if( !pFont )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
@@ -205,7 +206,6 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     
 
     ///////////////////////
-
     pPage = pDocument->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
     pPainter->SetPage( pPage );
 
@@ -710,7 +710,6 @@ int main( int argc, char* argv[] )
     printf("Drawing the first page with various lines.\n");
     TEST_SAFE_OP( LineTest( &painter, pPage, &writer ) );
 
-    /*
     pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_Letter ) );
     painter.SetPage( pPage );
     pRoot->Last()->CreateNext( "Rectangles Test", PdfDestination( pPage ) );
@@ -761,8 +760,6 @@ int main( int argc, char* argv[] )
     TEST_SAFE_OP( MMTest( &painterMM, pPage, &writer ) );
 
     painterMM.FinishPage();
-    */
-    painter.FinishPage();
 #if 0
     /** Create a really large name tree to test the name tree implementation
      */

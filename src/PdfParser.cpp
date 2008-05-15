@@ -810,7 +810,7 @@ void PdfParser::ReadObjectsInternal()
     PdfParserObject* pObject    = NULL;
 
     // Read objects
-    for( i=0; i <= m_nNumObjects; i++ )
+    for( i=0; i < m_nNumObjects; i++ )
     {
         if( m_offsets[i].bParsed && m_offsets[i].cUsed == 'n' )
         {
