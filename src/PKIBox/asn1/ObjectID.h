@@ -102,10 +102,10 @@ namespace PKIBox
 	//! This namespace provides classes for different basic ASN.1 structures.
 	namespace asn1
 	{
-		class CAttribute;
-		class CAlgorithmID;
-		class CRelativeDistinguishedName;
-		class CDistinguishedName;
+		class Attribute;
+		class AlgorithmID;
+		class RelativeDistinguishedName;
+		class DistinguishedName;
 
 		//! This class implements the ASN.1 native type "OBJECT IDENTIFIER". 
 		/*! 
@@ -117,10 +117,10 @@ namespace PKIBox
 		*/
 		class ObjectID
 		{
-			friend class CAttribute;
-			friend class CAlgorithmID;
-			friend class CRelativeDistinguishedName;
-			friend class CDistinguishedName;
+			friend class Attribute;
+			friend class AlgorithmID;
+			friend class RelativeDistinguishedName;
+			friend class DistinguishedName;
 			friend class x509::CX509Certificate;
 			friend class x509::CX509Extension;
 			friend class x509::CX509CRLEntry;

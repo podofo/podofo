@@ -87,7 +87,7 @@ IMPLEMENT_ASN1_DUP_FUNCTION_EX(PKCS12);
 // Return type		: 
 // Argument         : 
 //---------------------------------------------------------------------------------------
-int OIDtoNID(const PKIBox::asn1::CObjectID &OID)
+int OIDtoNID(const PKIBox::asn1::ObjectID &OID)
 {
 	using namespace PKIBox::asn1;
 

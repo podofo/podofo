@@ -38,7 +38,7 @@ namespace PKIBox
 {
     namespace asn1
 	{
-		class CObjectID;
+		class ObjectID;
 	}
 
 	namespace x509
@@ -47,7 +47,7 @@ namespace PKIBox
 	}
 }
 
-extern int OIDtoNID(const PKIBox::asn1::CObjectID &OID);
+extern int OIDtoNID(const PKIBox::asn1::ObjectID &OID);
 extern std::string GetErrorDescription(DWORD dw);
 extern std::string GetCertName(const PKIBox::x509::CX509Certificate &Cert);
 
