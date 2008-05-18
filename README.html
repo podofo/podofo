@@ -257,10 +257,10 @@ cmake -G "Unix Makefiles" ../podofo-src \
 	-DPODOFO_BUILD_STATIC:BOOL=FALSE
 </pre>
 
-<p>By default, with CMake 2.5.x all supported library types will be built where
+<p>By default, with CMake 2.6.x all supported library types will be built where
 possible. Only the shared library will be built by default using 2.4.x because
 of a CMake limitation; you can build a static library instead with
-<code>-DPODOFO_BUILD_STATIC:BOOL=TRUE</code>, or upgrade to CMake 2.5.x .</p>
+<code>-DPODOFO_BUILD_STATIC:BOOL=TRUE</code>, or upgrade to CMake 2.6.x .</p>
 
 <p>Note that the instructions above run an out-of-tree build. CMake does support
 in-tree builds, but the use of out-of-tree builds is very strongly recommended.</p>
@@ -360,28 +360,42 @@ instead of running `make' and `make install' just open the project file and work
 
 <h4><a name="cmake_builds_on_windows" />CMake builds on Windows</h4>
 
+<h5><a name="windows_dependencies"/>Windows Dependencies</h5>
 
-<p>Building CMake on Windows can be done using MinGW (a minimalist gcc-based
+<h6><a name="windows_dependency_zlib">zlib</h6>
+
+<p>Both MinGW and Visual Studio users should use the standard precompiled zlib dll from <a href="http://zlib.org">zlib.org</a>. There is no need to compile your own.</p>
+
+<h6><a name="windows_dependency_libjpeg"/>libjpeg</h6>
+
+<p>MinGW users can download the latest libjpeg installer from <a href="http://gnuwin32.sf.net">GnuWin32</a></p>.
+
+<p>For Visual Studio you will need to build libjpeg with your version of Visual Studio. Download the libjpeg sources from <a href="http://www.ijg.org/">http://www.ijg.org/</a> and unpack them into a working directory. I'll assume you've used <code>C:\Developer\jpeg</code>. Once the sources are unpacked, start a visual studio command prompt and cd into <code>c:\developer\jpeg</code> then run <code>nmake /f makefile.vc /a</code></p>.
+
+<h5><a name="windows_podofo"/>Building PoDoFo on Windows</h5>
+
+<p>Building PoDoFo on Windows can be done using MinGW (a minimalist gcc-based
 compliler environment for Windows) or Visual Studio. Other methods may work but
 have not been tested.</p>
 
-<p>CMake 2.5 is required for Windows. You can download the latest 2.5 snapshot from
-cmake.org: <a href="http://www.cmake.org/files/vCVS/">http://www.cmake.org/files/vCVS/</a></p>.
+<p>CMake 2.6.x is required for Windows. You can download it from
+ <a href="http://www.cmake.org/HTML/Download.html">cmake.org</a></p>.
 
-<p>Because the C++ ABIs of most of the win32 compilers are incompatible, you must
-build PoDoFo with the same compiler and version that you will use to build the
-programs linked to PoDoFo. Failure to follow this restriction will result in
-link errors at best, and bizarre runtime failures at worst.</p>
+<p>Because the C++ ABIs of most of the win32 compilers are incompatible, you
+must build PoDoFo with the same compiler and version that you will use to build
+the programs linked to PoDoFo. Failure to follow this restriction will result
+in link errors at best, and bizarre runtime failures at worst.</p>
 
-<p>On Windows, if you are linking against a shared (DLL) build of PoDoFo you MUST
-define the preprocessor macro <code>USING_SHARED_PODOFO</code> when including any podofo
-headers. Failure to do so will result in link time and/or runtime errors.
-Similarly, defining it when linking with a static PoDoFo can cause problems.</p>
+<p>On Windows, if you are linking against a shared (DLL) build of PoDoFo you
+MUST define the preprocessor macro <code>USING_SHARED_PODOFO</code> when
+including any podofo headers. Failure to do so will result in link time and/or
+runtime errors.  Similarly, defining it when linking with a static PoDoFo can
+cause problems.</p>
 
-<p>On Windows, PoDoFo may be built as either a shared or static library. Building
-both is not supported. By default only the shared library will be built. If you
-want a static library, just disable generation of the shared library with the
-extra argument to cmake:</p>
+<p>On Windows, PoDoFo may be built as either a shared or static library.
+Building both is not supported. By default only the shared library will be
+built. If you want a static library, just disable generation of the shared
+library with the extra argument to cmake:</p>
 
 <pre>
 	-DPODOFO_BUILD_SHARED=FALSE
@@ -390,8 +404,8 @@ extra argument to cmake:</p>
 <p>PoDoFo will generally work correctly if you download pre-built libraries,
 such as those published by the GnuWin32 project, even if they were built with a
 different compiler. The primary exception is freetype, which should if at all
-possible be built using your compiler. Freetype provides a VC++ project file and is
-very easy to build. Make sure to build both the debug multi-threaded and
+possible be built using your compiler. Freetype provides a VC++ project file
+and is very easy to build. Make sure to build both the debug multi-threaded and
 release multi-threaded versions.</p>
 
 <p>For release you should generally build your own copy of these libraries
@@ -402,10 +416,10 @@ PoDoFo it's safe not to use its' workarounds for incompatible runtimes.</p>
 
 <h5><a name="handling_library_naming_on_win32" />Handling library naming on win32</h5>
 
-<p>Especially on Windows it is also common for custom built libraries to have different
-names to those you might download as pre-built copies. CMake won't be able to find
-them if they're called something else unless you tell it. Use these variables to tell CMAke
-what names to look for a library under:</p>
+<p>Especially on Windows it is also common for custom built libraries to have
+different names to those you might download as pre-built copies. CMake won't be
+able to find them if they're called something else unless you tell it. Use
+these variables to tell CMake what names to look for a library under:</p>
 
 <ul>
 	<li>FREETYPE_LIBRARY_NAMES_DEBUG, FREETYPE_LIBRARY_NAMES_RELEASE and FREETYPE_LIBRARY_NAMES</li>
@@ -415,8 +429,6 @@ what names to look for a library under:</p>
 </ul>
 
 <p>For example, a cmake command line might include -DFREETYPE_LIBRARY_NAMES_DEBUG=freetype235MT_D -DFREETYPE_LIBRARY_NAMES_RELEASE=freetype235MT . If you only have the release library, just use -DFREETYPE_LIBRARY_NAMES . Telling CMake which are debug and release libraries helps it ensure you link to the right libraries depending on build type, but that does no good if you don't have a debug library.</p>
-
-<p>Now, a quick tip for Windows users: consider getting Microsoft PowerShell from <a href="http://www.microsoft.com/windowsserver2003/technologies/management/powershell/download.mspx">microsoft</a> and using it instead of <code>cmd.exe</code>. It's a big improvement, and will help preserve UNIX users' sanity too.</p>
 
 <h5><a name="cmake_builds_on_windows_with_mingw" />CMake builds on Windows with MinGW</h5>
 
@@ -460,7 +472,7 @@ will work OK, if a bit slower, despite being built with gcc).  It is preferable
 to build your own copies of freetype, libjpeg and libtiff with your own
 compiler and bundle those copies.</p>
 
-<p>You'll also need CMake 2.5.</p>
+<p>You'll also need CMake 2.6.</p>
 
 <p>If you're using Visual Studio you really should build your own freetype.
 With recent VC++ versions the GnuWin32 version of freetype is unlikely to work
