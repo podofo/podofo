@@ -362,15 +362,21 @@ instead of running `make' and `make install' just open the project file and work
 
 <h5><a name="windows_dependencies"/>Windows Dependencies</h5>
 
+<p>PoDoFo requires a couple of other open source libraries to work. At minimum it needs zlib and libjpeg. Additional functionality is enabled if libtiff and/or openssl are available.</p>
+
 <h6><a name="windows_dependency_zlib">zlib</h6>
 
 <p>Both MinGW and Visual Studio users should use the standard precompiled zlib dll from <a href="http://zlib.org">zlib.org</a>. There is no need to compile your own.</p>
+
+<p>Remember that you must ship <code>zlib1.dll</code> with your application. During testing it must be in the same directory as the PoDoFo-using executable or the directory containing it must be on your system PATH.</p>
 
 <h6><a name="windows_dependency_libjpeg"/>libjpeg</h6>
 
 <p>MinGW users can download the latest libjpeg installer from <a href="http://gnuwin32.sf.net">GnuWin32</a></p>.
 
 <p>For Visual Studio you will need to build libjpeg with your version of Visual Studio. Download the libjpeg sources from <a href="http://www.ijg.org/">http://www.ijg.org/</a> and unpack them into a working directory. I'll assume you've used <code>C:\Developer\jpeg</code>. Once the sources are unpacked, start a visual studio command prompt and cd into <code>c:\developer\jpeg</code> then run <code>nmake /f makefile.vc /a</code></p>.
+
+<p>If you use a DLL build of libjpeg remember that you must ship the DLL with your application. During testing the libjpeg dll must be in the same directory as the PoDoFo-using executable or the directory containing it must be on your system PATH. These requirements do not apply to the (recommended) static library libjpeg.</p>
 
 <h5><a name="windows_podofo"/>Building PoDoFo on Windows</h5>
 
