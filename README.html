@@ -178,8 +178,8 @@ platforms. The CMake build has been tested on:</p>
 
 <ul>
 <li>Visual C++ 9 Express Edition [Win32] ("Visual Studio 9 2008" target)</li>
-<li>Visual C++ 8 Express Edition [Win32] ("Visual Studio 8 2005" target)</li>
-<li>Visual C++ 8 Express +NMake [Win32] ("NMake Makefiles" target)</li>
+<li>Visual C++ 8 Express Edition [Win32] ("Visual Studio 8 2005" target) (needs additional setup)</li>
+<li>Visual C++ 8 Express +NMake [Win32] ("NMake Makefiles" target) (needs additional setup)</li>
 <li>MinGW with GCC 3.4.2 [Win32] ("MinGW Makefiles" target)</li>
 <li>gcc 3.3.5 [Linux: Debian 3.1] ("Unix Makefiles" target)</li>
 <li>gcc 4.0, 4.1, 4.2 [Linux: Debian 4.0] ("Unix Makefiles" target)</li>
@@ -511,10 +511,7 @@ cmake -G "Visual Studio 9 2008" ..\podofo-src -DCMAKE_INCLUDE_PATH="%FTDIR%\incl
 shouldn't need any special settings unless you have an unusual setup or more
 than copy of the same version of Visual Studio installed.</p>
 
-<p>You can get the Visual C++ Express Edition 9 from <a href="http://msdn.microsoft.com/vstudio/express/">MSDN</a>.
-If you're using the version 8 instead of 9, you'll need to install the <a href="http://www.microsoft.com/downloads/details.aspx?FamilyId=A55B6B43-E24F-4EA3-A93E-40C0EC4F68E5&displaylang=en">win32 SDK</a> as well,
-since it's not bundled. This is not required for version 9 of the C++ Express
-Edition.</p>
+<p>You can download the free Visual C++ Express Edition 9 from <a href="http://www.microsoft.com/express/">Microsoft</a>.</p>
 
 <b>PROBLEMS?</b>
 
