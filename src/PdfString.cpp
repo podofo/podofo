@@ -463,7 +463,11 @@ void PdfString::Write ( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) c
 {
     // Strings in PDF documents may contain \0 especially if they are encrypted
     // this case has to be handled!
-    if( pEncrypt ) 
+
+    // Peter Petrov: 17 May 2008
+    // Added check - m_buffer.GetSize()
+    // Now we are not encrypting the empty strings (was access violation)!
+    if( pEncrypt && m_buffer.GetSize()) 
     {
         int nOffset = pEncrypt->CalculateStreamOffset();
         int nLen = this->GetLength();
