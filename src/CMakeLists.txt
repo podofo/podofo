@@ -95,6 +95,7 @@ SET(PODOFO_HEADERS
     PdfColor.h
     PdfContents.h
     PdfContentsTokenizer.h
+    PdfContentsGraph.h
     PdfData.h
     PdfDataType.h
     PdfDate.h
@@ -156,6 +157,7 @@ SET(PODOFO_HEADERS
     PdfTTFWriter.h
     PdfVariant.h
     PdfVecObjects.h
+    PdfVersion.h
     PdfWriter.h
     PdfXObject.h
     PdfXRef.h
