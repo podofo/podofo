@@ -51,7 +51,7 @@ BEGIN
             VALUE "CompanyName", "PoDoFo\0"
             VALUE "InternalName", "podofo\0"
             VALUE "ProductName", "PoDoFo\0"
-            VALUE "LegalCopyright", "Copyright (C) 2007 Dominik Seichter, Craig Ringer, The PoDoFo Developers\0"		
+            VALUE "LegalCopyright", "Copyright (C) 2008 Dominik Seichter, Craig Ringer, The PoDoFo Developers\0"		
             VALUE "FileDescription", VER_FILEDESCRIPTION_STR
             VALUE "OriginalFilename", VER_ORIGINALFILENAME_STR 
             VALUE "PrivateBuild",     VER_PRIVATEBUILD_STR
