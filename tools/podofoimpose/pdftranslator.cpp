@@ -344,8 +344,8 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 
         PageRecord p;
         in >> p;
-//         if (in.eof())
-//             break;
+        if (in.eof())
+            break;
         if (!p.isValid())
             throw runtime_error("Bad plan file record");
 
