@@ -88,6 +88,7 @@ void PdfDocument::Clear()
     }
 
     m_vecObjects.Clear();
+    m_vecObjects.SetParentDocument( this );
 
     if( m_pInfo ) 
     {
