@@ -60,6 +60,27 @@ PdfParser::PdfParser( PdfVecObjects* pVecObjects, const char* pszFilename, bool 
     this->ParseFile( pszFilename, bLoadOnDemand );
 }
 
+PdfParser::PdfParser( PdfVecObjects* pVecObjects, const char* pBuffer, long lLen, bool bLoadOnDemand )
+    : PdfTokenizer(), m_vecObjects( pVecObjects )
+{
+    this->Init();
+    this->ParseFile( pBuffer, lLen, bLoadOnDemand );
+}
+
+PdfParser::PdfParser( PdfVecObjects* pVecObjects, const PdfRefCountedInputDevice & rDevice, 
+                      bool bLoadOnDemand )
+    : PdfTokenizer(), m_vecObjects( pVecObjects )
+{
+    this->Init();
+
+    if( !rDevice.Device() )
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "Cannot create PdfRefCountedInputDevice." );
+    }
+
+    this->ParseFile( rDevice, bLoadOnDemand );
+}
+
 PdfParser::~PdfParser()
 {
     Clear();
@@ -91,16 +112,39 @@ void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    // make sure everything is clean
-    Clear();
-
-    m_bLoadOnDemand = bLoadOnDemand;
-
-    m_device           = PdfRefCountedInputDevice( pszFilename, "rb" );
-    if( !m_device.Device() )
+    PdfRefCountedInputDevice device( pszFilename, "rb" );
+    if( !device.Device() )
     {
         PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
     }
+
+    this->ParseFile( device, bLoadOnDemand );
+}
+
+void PdfParser::ParseFile( const char* pBuffer, long lLen, bool bLoadOnDemand )
+{
+    if( !pBuffer || !lLen )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    PdfRefCountedInputDevice device( pBuffer, lLen );
+    if( !device.Device() )
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "Cannot create PdfParser from buffer." );
+    }
+
+    this->ParseFile( device, bLoadOnDemand );
+}
+
+void PdfParser::ParseFile( const PdfRefCountedInputDevice & rDevice, bool bLoadOnDemand )
+{
+    // make sure everything is clean
+    Clear();
+
+    m_device = rDevice;
+
+    m_bLoadOnDemand = bLoadOnDemand;
 
     if( !IsPdfFile() )
     {
@@ -590,7 +634,7 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
         PODOFO_RAISE_ERROR( ePdfError_NoXRef );
     } 
 
-    if( !m_pTrailer )    
+    if( !m_pTrailer )
         m_pTrailer = new PdfParserObject( m_vecObjects, m_device, m_buffer );
 
     MergeTrailer( &xrefObject );

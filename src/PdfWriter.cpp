@@ -50,13 +50,13 @@ PdfWriter::PdfWriter( PdfParser* pParser )
       m_pEncryptObj( NULL ), m_pPagesTree( NULL ), 
       m_bLinearized( false ), m_lFirstInXRef( 0 )
 {
-    if( !pParser )
+    if( !(pParser && pParser->GetTrailer()) )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     m_eVersion     = pParser->GetPdfVersion();
-    m_pTrailer     = new PdfObject( *(pParser->GetTrailer() ) );
+    m_pTrailer     = new PdfObject( *(pParser->GetTrailer()) );
     m_vecObjects   = pParser->m_vecObjects;
 }
 
@@ -65,7 +65,7 @@ PdfWriter::PdfWriter( PdfDocument* pDocument )
       m_pEncryptObj( NULL ), m_pPagesTree( NULL ),
       m_bLinearized( false ), m_lFirstInXRef( 0 )
 {
-    if( !pDocument )
+    if( !(pDocument && pDocument->GetTrailer()) )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }

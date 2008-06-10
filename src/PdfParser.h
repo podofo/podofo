@@ -75,6 +75,46 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      */
     PdfParser( PdfVecObjects* pVecObjects, const char* pszFilename, bool bLoadOnDemand = true );
 
+    /** Create a new PdfParser object and open a PDF file and parse
+     *  it into memory.
+     *
+     *  \param pVecObjects vector to write the parsed PdfObjects to
+     *  \param pBuffer buffer containing a PDF file in memory
+     *  \param lLen length of the buffer containing the PDF file
+     *  \param bLoadOnDemand If true all objects will be read from the file at
+     *                       the time they are accesed first.
+     *                       If false all objects will be read immediately.
+     *                       This is faster if you do not need the complete PDF 
+     *                       file in memory.
+     *
+     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  if a password is required to read this PDF.
+     *  Call SetPassword with the correct password in this case.
+     *  
+     *  \see SetPassword
+     */
+    PdfParser( PdfVecObjects* pVecObjects, const char* pBuffer, long lLen, bool bLoadOnDemand = true );
+
+    /** Create a new PdfParser object and open a PDF file and parse
+     *  it into memory.
+     *
+     *  \param pVecObjects vector to write the parsed PdfObjects to
+     *  \param rDevice read from this PdfRefCountedInputDevice
+     *  \param bLoadOnDemand If true all objects will be read from the file at
+     *                       the time they are accesed first.
+     *                       If false all objects will be read immediately.
+     *                       This is faster if you do not need the complete PDF 
+     *                       file in memory.
+     *
+     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  if a password is required to read this PDF.
+     *  Call SetPassword with the correct password in this case.
+     *  
+     *  \see SetPassword
+     */
+    PdfParser( PdfVecObjects* pVecObjects, const PdfRefCountedInputDevice & rDevice, 
+               bool bLoadOnDemand = true );
+
     /** Delete the PdfParser and all PdfObjects
      */
     virtual ~PdfParser();
@@ -96,6 +136,43 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *  \see SetPassword
      */
     void ParseFile( const char* pszFilename, bool bLoadOnDemand = true );
+
+    /** Open a PDF file and parse it.
+     *
+     *  \param pBuffer buffer containing a PDF file in memory
+     *  \param lLen length of the buffer containing the PDF file
+     *  \param bLoadOnDemand If true all objects will be read from the file at
+     *                       the time they are accesed first.
+     *                       If false all objects will be read immediately.
+     *                       This is faster if you do not need the complete PDF 
+     *                       file in memory.
+     *
+     *
+     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  if a password is required to read this PDF.
+     *  Call SetPassword with the correct password in this case.
+     *  
+     *  \see SetPassword
+     */
+    void ParseFile( const  char* pBuffer, long lLen, bool bLoadOnDemand = true );
+
+    /** Open a PDF file and parse it.
+     *
+     *  \param rDevice the input device to read from
+     *  \param bLoadOnDemand If true all objects will be read from the file at
+     *                       the time they are accesed first.
+     *                       If false all objects will be read immediately.
+     *                       This is faster if you do not need the complete PDF 
+     *                       file in memory.
+     *
+     *
+     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  if a password is required to read this PDF.
+     *  Call SetPassword with the correct password in this case.
+     *  
+     *  \see SetPassword
+     */
+    void ParseFile( const PdfRefCountedInputDevice & rDevice, bool bLoadOnDemand = true );
 
     /** Get a reference to the sorted internal objects vector.
      *  \returns the internal objects vector.

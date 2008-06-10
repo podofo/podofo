@@ -135,6 +135,34 @@ void PdfMemDocument::Load( const char* pszFilename )
     m_pParser = NULL;
 }
 
+void PdfMemDocument::Load( const char* pBuffer, long lLen )
+{
+    this->Clear();
+
+    m_pParser = new PdfParser( PdfDocument::GetObjects(), pBuffer, lLen, true );
+    InitFromParser( m_pParser );
+    InitPagesTree();
+
+    // Delete the temporary pdfparser object.
+    // It is only set to m_pParser so that SetPassword can work
+    delete m_pParser;
+    m_pParser = NULL;
+}
+
+void PdfMemDocument::Load( const PdfRefCountedInputDevice & rDevice )
+{
+    this->Clear();
+
+    m_pParser = new PdfParser( PdfDocument::GetObjects(), rDevice, true );
+    InitFromParser( m_pParser );
+    InitPagesTree();
+
+    // Delete the temporary pdfparser object.
+    // It is only set to m_pParser so that SetPassword can work
+    delete m_pParser;
+    m_pParser = NULL;
+}
+
 void PdfMemDocument::SetPassword( const std::string & sPassword )
 {
     PODOFO_RAISE_LOGIC_IF( !m_pParser, "SetPassword called without reading a PDF file." );

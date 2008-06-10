@@ -97,6 +97,31 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
      */
     void Load( const char* pszFilename );
 
+    /** Load a PdfMemDocument from a buffer in memory
+     *
+     *  \param pBuffer a memory area containing the PDF data
+     *  \param lLen length of the buffer
+     *
+     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  if a password is required to read this PDF.
+     *  Call SetPassword with the correct password in this case.
+     *  
+     *  \see SetPassword
+     */
+    void Load( const char* pBuffer, long lLen );
+
+    /** Load a PdfMemDocument from a PdfRefCountedInputDevice
+     *
+     *  \param rDevice the input device containing the PDF
+     *
+     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  if a password is required to read this PDF.
+     *  Call SetPassword with the correct password in this case.
+     *  
+     *  \see SetPassword
+     */
+    void Load( const PdfRefCountedInputDevice & rDevice );
+
     /** Writes the complete document to a file
      *
      *  \param pszFilename filename of the document 
