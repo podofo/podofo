@@ -53,6 +53,12 @@ class PODOFO_API PdfRefCountedInputDevice {
      */
     PdfRefCountedInputDevice( const char* pBuffer, long lLen );
 
+    /** Create a new PdfRefCountedInputDevice from an PdfInputDevice
+     *  
+     *  \param pDevice the input device. It will be owned and deleted by this object.
+     */
+    PdfRefCountedInputDevice( PdfInputDevice* pDevice );
+
     /** Copy an existing PdfRefCountedFile and increase
      *  the reference count
      *  \param rhs the PdfRefCountedFile to copy
