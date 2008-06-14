@@ -89,7 +89,7 @@ PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString,
         return PdfString("");
 
     pdf_utf16be* pszStringUtf16 = static_cast<pdf_utf16be*>(malloc(sizeof(pdf_utf16be) * (lLen + 1)) );
-    if( pszStringUtf16 ) 
+    if( !pszStringUtf16 ) 
     {
         PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
