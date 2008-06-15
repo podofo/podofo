@@ -38,9 +38,18 @@ const PdfWinAnsiEncoding  PdfFont::WinAnsiEncoding;
 const PdfMacRomanEncoding PdfFont::MacRomanEncoding;
 
 PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent )
-    : PdfElement( "Font", pParent ), m_pEncoding( pEncoding ), m_pMetrics( pMetrics ), m_bBold( false ), m_bItalic( false )
+    : PdfElement( "Font", pParent ), m_pEncoding( pEncoding ), 
+      m_pMetrics( pMetrics ), m_bBold( false ), m_bItalic( false )
 {
     this->InitVars();
+}
+
+PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject )
+    : PdfElement( "Font", pObject ),
+      m_pEncoding( pEncoding ), m_pMetrics( pMetrics ),
+      m_bBold( false ), m_bItalic( false )
+{
+
 }
 
 PdfFont::~PdfFont()
@@ -79,7 +88,6 @@ void PdfFont::InitVars()
     sTmp.resize(curPos);
     m_BaseFont = PdfName( sTmp.c_str() );
 }
-
 
 inline char ToHex( const char byte )
 {

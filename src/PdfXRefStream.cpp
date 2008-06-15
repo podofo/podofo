@@ -62,7 +62,6 @@ bool podofo_is_little_endian()
 PdfXRefStream::PdfXRefStream( PdfVecObjects* pParent, PdfWriter* pWriter )
     : m_pParent( pParent ), m_pWriter( pWriter ), m_pObject( NULL )
 {
-    m_bLittle    = podofo_is_little_endian();
     m_lBufferLen = 2 + sizeof( STREAM_OFFSET_TYPE );
 
     m_pObject    = pParent->CreateObject( "XRef" );
@@ -101,8 +100,9 @@ void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, unsigned long lOffset, uns
     //       which require integers to be alligned on byte boundaries.
     //       -> Better use memcpy here!
     *pValue             = static_cast<STREAM_OFFSET_TYPE>(lOffset);
-    if( m_bLittle )
-        *pValue = static_cast<STREAM_OFFSET_TYPE>(htonl( *pValue ));
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+    *pValue = static_cast<STREAM_OFFSET_TYPE>(htonl( *pValue ));
+#endif // PODOFO_IS_LITTLE_ENDIAN
     
     m_pObject->GetStream()->Append( buffer, m_lBufferLen );
 }

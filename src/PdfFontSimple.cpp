@@ -35,6 +35,10 @@ PdfFontSimple::PdfFontSimple( PdfFontMetrics* pMetrics, const PdfEncoding* const
 {
 }
 
+PdfFontSimple::PdfFontSimple( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject )
+    : PdfFont( pMetrics, pEncoding, pObject )
+{
+}
 
 void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
 {

@@ -525,7 +525,7 @@ inline bool PdfIdentityEncoding::IsSingleByteEncoding() const
     return false;
 }
 
-}; /* namespace RoMA */
+}; /* namespace PoDoFo */
 
 
 #endif // _PDF_ENCODING_H_

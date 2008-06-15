@@ -108,7 +108,6 @@ class PdfXRefStream : public PdfXRef {
     PdfObject*     m_pObject;
     PdfArray       m_indeces;
 
-    bool           m_bLittle;    ///< Wether we run on a little or big endian machine
     size_t         m_lBufferLen; ///< The length of the internal buffer for one XRef entry
     long           m_lOffset;    ///< Offset of the XRefStream object
 };

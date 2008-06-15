@@ -42,6 +42,15 @@ class PdfFontCID : public PdfFont {
      */
     PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent );
 
+    /** Create a PdfFont based on an existing PdfObject
+     *  \param pMetrics pointer to a font metrics object. The font in the PDF
+     *         file will match this fontmetrics object. The metrics object is 
+     *         deleted along with the font.
+     *  \param pEncoding the encoding of this font. The font will not take ownership of this object.
+     *  \param pObject an existing PdfObject
+     */
+    PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject );
+
  private:
     /** Create the DW and W entries which contain
      *  all glyph width in the given font dictionary.

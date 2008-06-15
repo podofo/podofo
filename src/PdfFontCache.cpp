@@ -160,6 +160,49 @@ void PdfFontCache::EmptyCache()
     m_vecFontSubsets.clear();
 }
 
+PdfFont* PdfFontCache::GetFont( PdfObject* pObject )
+{
+    TCISortedFontList it = m_vecFonts.begin();
+    const PdfReference & ref = pObject->Reference(); 
+
+    // Search if the object is a cached normal font
+    while( it != m_vecFonts.end() )
+    {
+        if( (*it).m_pFont->GetObject()->Reference() == ref ) 
+            return (*it).m_pFont;
+
+        ++it;
+    }
+
+    // Search if the object is a cached font subset
+    it = m_vecFontSubsets.begin();
+    while( it != m_vecFontSubsets.end() )
+    {
+        if( (*it).m_pFont->GetObject()->Reference() == ref ) 
+            return (*it).m_pFont;
+
+        ++it;
+    }
+
+    // Create a new font
+    PdfFont* pFont = PdfFontFactory::CreateFont( &m_ftLibrary, pObject );
+    if( pFont ) 
+    {
+        TFontCacheElement element;
+        element.m_pFont     = pFont;
+        element.m_bBold     = pFont->IsBold();
+        element.m_bItalic   = pFont->IsItalic();
+        element.m_sFontName = pFont->GetFontMetrics()->GetFontname();
+        element.m_pEncoding = NULL;
+        m_vecFonts  .push_back( element );
+        
+        // Now sort the font list
+        std::sort( m_vecFonts.begin(), m_vecFonts.end() );
+    }
+    
+    return pFont;
+}
+
 PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItalic, 
                                 bool bEmbedd, const PdfEncoding * const pEncoding, 
                                 const char* pszFileName )

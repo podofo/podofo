@@ -20,6 +20,9 @@
 
 #include "PdfFontFactory.h"
 
+#include "PdfArray.h"
+#include "PdfDictionary.h"
+#include "PdfEncodingFactory.h"
 #include "PdfFont.h"
 #include "PdfFontCID.h"
 #include "PdfFontMetrics.h"
@@ -28,7 +31,9 @@
 
 namespace PoDoFo {
 
-PdfFont* PdfFontFactory::CreateFontObject( PdfFontMetrics* pMetrics, int nFlags, const PdfEncoding* const pEncoding, PdfVecObjects* pParent )
+PdfFont* PdfFontFactory::CreateFontObject( PdfFontMetrics* pMetrics, int nFlags, 
+                                           const PdfEncoding* const pEncoding,
+                                           PdfVecObjects* pParent )
 {
     PdfFont*     pFont  = NULL;
     EPdfFontType eType  = pMetrics->GetFontType();
@@ -83,7 +88,8 @@ PdfFont* PdfFontFactory::CreateFontObject( PdfFontMetrics* pMetrics, int nFlags,
     return pFont;
 }
 
-PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
+PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* pMetrics, 
+                                            const PdfEncoding* const pEncoding, 
                                             bool bEmbed, PdfVecObjects* pParent )
 {
     PdfFont* pFont = NULL;
@@ -124,6 +130,58 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
                                       (pMetrics->GetFontname() ? pMetrics->GetFontname() : "<unknown>"),
                                       (pMetrics->GetFilename() ? pMetrics->GetFilename() : "<unknown>") );
         }
+    }
+
+    return pFont;
+}
+
+PdfFont* PdfFontFactory::CreateFont( FT_Library* pLibrary, PdfObject* pObject )
+{
+    PdfFontMetrics* pMetrics    = NULL;
+    PdfFont*        pFont       = NULL;
+    PdfObject*      pDescriptor = NULL;
+    PdfObject*      pEncoding   = NULL;
+
+    if( pObject->GetDictionary().GetKey( PdfName::KeyType )->GetName() != PdfName("Font") )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
+    const PdfName & rSubType = pObject->GetDictionary().GetKey( PdfName::KeySubtype )->GetName();
+    if( rSubType == PdfName("Type0") ) 
+    {
+        const PdfArray & descendant  = 
+            pObject->GetDictionary().GetKey( "DescendantFonts" )->GetArray();
+        PdfObject* pFontObject = pObject->GetOwner()->GetObject( descendant[0].GetReference() );
+
+        pDescriptor = pFontObject->GetIndirectKey( "FontDescriptor" );
+        pMetrics    = new PdfFontMetrics( pLibrary, pDescriptor );
+        pFont       = new PdfFontCID( pMetrics, NULL, pObject );
+    }
+    else if( rSubType == PdfName("Type1") ) 
+    {
+        // TODO: Old documents do not have a FontDescriptor for 
+        //       the 14 standard fonts. This suggestions is 
+        //       deprecated now, but give us problems with old documents.
+        pDescriptor = pObject->GetIndirectKey( "FontDescriptor" );
+        pEncoding   = pObject->GetIndirectKey( "Encoding" );
+
+        const PdfEncoding* const pPdfEncoding = 
+            PdfEncodingFactory::CreateEncoding( pEncoding );
+
+        pMetrics    = new PdfFontMetrics( pLibrary, pDescriptor );
+        pFont       = new PdfFontType1( pMetrics, pPdfEncoding, pObject );
+    }
+    else if( rSubType == PdfName("TrueType") ) 
+    {
+        pDescriptor = pObject->GetIndirectKey( "FontDescriptor" );
+        pEncoding   = pObject->GetIndirectKey( "Encoding" );
+
+        const PdfEncoding* const pPdfEncoding = 
+            PdfEncodingFactory::CreateEncoding( pEncoding );
+
+        pMetrics    = new PdfFontMetrics( pLibrary, pDescriptor );
+        pFont       = new PdfFontTrueType( pMetrics, pPdfEncoding, pObject );
     }
 
     return pFont;

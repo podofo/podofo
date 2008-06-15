@@ -9,6 +9,7 @@ PROJECT(PoDoFo)
 INCLUDE(CheckIncludeFile)
 INCLUDE(CheckLibraryExists)
 INCLUDE(UsePkgConfig)
+INCLUDE(TestBigEndian)
 # [CMAKE 2.5 ONLY]
 #INCLUDE(CheckCXXCompilerFlag)
 
@@ -64,6 +65,14 @@ CONFIGURE_FILE(
 ADD_CUSTOM_TARGET(uninstall "${CMAKE_COMMAND}"
     -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
 
+# Check if we are big endian
+TEST_BIG_ENDIAN(TEST_BIG)
+IF(TEST_BIG)
+  ADD_DEFINITIONS(-DPODOFO_IS_BIG_ENDIAN)
+ELSE(TEST_BIG)
+  ADD_DEFINITIONS(-DPODOFO_IS_LITTLE_ENDIAN)
+ENDIF(TEST_BIG)
+
 IF(WIN32)
     # On win32 we support EITHER shared OR static builds.
     # If both are enabled (default), turn off generation of the
@@ -91,7 +100,7 @@ ENDIF(WIN32)
 
 IF(UNIX)
     SET(WANT_FONTCONFIG TRUE CACHE INTERNAL
-        "True if PoDoFo should be built with fontconfig support")
+-        "True if PoDoFo should be built with fontconfig support")
 ELSE(UNIX)
     SET(WANT_FONTCONFIG FALSE CACHE INTERNAL
         "True if PoDoFo should be built with fontconfig support")

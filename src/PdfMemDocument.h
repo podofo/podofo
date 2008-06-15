@@ -243,6 +243,15 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
      */
     PdfObject* GetMetadata() const { return GetNamedObjectFromCatalog( "Metadata" ); }
 
+    /** Creates a PdfFont object from an existing font.
+     *
+     *  \param pObject a PdfObject that is a font
+
+     *  \returns PdfFont* a pointer to a new PdfFont object.
+     *           The returned object is owned by the PdfDocument.
+     */
+    PdfFont* GetFont( PdfObject* pObject );
+
     /** Copies one or more pages from another PdfMemDocument to this document
      *  \param rDoc the document to append
      *  \param inFirstPage the first page number to copy (0-based)

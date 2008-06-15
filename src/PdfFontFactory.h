@@ -60,6 +60,15 @@ class PODOFO_API PdfFontFactory {
     static PdfFont* CreateFontObject( PdfFontMetrics* pMetrics, int nFlags, 
                                       const PdfEncoding* const pEncoding, PdfVecObjects* pParent );
 
+    /** Create a new PdfFont from an existing
+     *  font in a PDF file.
+     *
+     *  \param pLibrary handle to the FreeType library, so that a PdfFontMetrics
+     *         can be constructed for this font
+     *  \param pObject a PDF font object
+     */
+    static PdfFont* CreateFont( FT_Library* pLibrary, PdfObject* pObject );
+
  private:
     /** Actually creates the font object for the requested type.
      *  Throws an exception in case of an error.

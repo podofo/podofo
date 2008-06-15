@@ -74,6 +74,15 @@ class PODOFO_API PdfFont : public PdfElement {
      */
     PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent );
 
+    /** Create a PdfFont based on an existing PdfObject
+     *  \param pMetrics pointer to a font metrics object. The font in the PDF
+     *         file will match this fontmetrics object. The metrics object is 
+     *         deleted along with the font.
+     *  \param pEncoding the encoding of this font. The font will not take ownership of this object.
+     *  \param pObject an existing PdfObject
+     */
+    PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject );
+
     virtual ~PdfFont();
 
     /** Set the font size before drawing with this font.

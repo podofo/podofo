@@ -449,6 +449,9 @@ class PODOFO_API PdfDocument {
      */
     void Clear();
 
+ protected:
+    PdfFontCache    m_fontCache;
+
  private:
     // Prevent use of copy constructor and assignment operator.  These methods
     // should never be referenced (given that code referencing them outside
@@ -469,7 +472,6 @@ class PODOFO_API PdfDocument {
     PdfAcroForm*    m_pAcroForms;
 
     EPdfVersion     m_eVersion;
-    PdfFontCache    m_fontCache;
 };
 
 // -----------------------------------------------------

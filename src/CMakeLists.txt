@@ -21,6 +21,7 @@ SET(PODOFO_SOURCES
     PdfDocument.cpp
     PdfElement.cpp
     PdfEncoding.cpp
+    PdfEncodingFactory.cpp
     PdfEncrypt.cpp
     PdfError.cpp
     PdfExtGState.cpp
@@ -105,6 +106,7 @@ SET(PODOFO_HEADERS
     PdfDocument.h
     PdfElement.h
     PdfEncoding.h
+    PdfEncodingFactory.h
     PdfEncrypt.h
     PdfError.h
     PdfExtGState.h

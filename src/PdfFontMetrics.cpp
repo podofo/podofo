@@ -25,6 +25,7 @@
 #include "PdfFontMetrics.h"
 
 #include "PdfArray.h"
+#include "PdfDictionary.h"
 #include "PdfVariant.h"
 #include <sstream>
 
@@ -52,9 +53,10 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename )
     FT_Error err = FT_New_Face( *pLibrary, pszFilename, 0, &m_face );
     if ( err )
     {	
-	    // throw an exception
-	    PdfError::LogMessage( eLogSeverity_Critical, "FreeType returned the error %i when calling FT_New_Face for font %s.", err, pszFilename );
-	    PODOFO_RAISE_ERROR( ePdfError_FreeType );
+        // throw an exception
+        PdfError::LogMessage( eLogSeverity_Critical, "FreeType returned the error %i when calling FT_New_Face for font %s.", 
+                              err, pszFilename );
+        PODOFO_RAISE_ERROR( ePdfError_FreeType );
     }
     else
     {
@@ -97,6 +99,28 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, FT_Face face )
     m_eFontType = ePdfFontType_TrueType;
     
     InitFromFace();
+}
+
+PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, PdfObject* pDescriptor )
+    : m_pLibrary( pLibrary ), m_sFilename( "" ), 
+      m_fFontSize( 0.0f ), 
+      m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
+      m_eFontType( ePdfFontType_Unknown )
+{
+    m_face = NULL;
+
+    if( !pDescriptor )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    PdfName sName = pDescriptor->GetDictionary().GetKey( "FontName" )->GetName();
+    printf("FONTNAME=%s\n", sName.GetName().c_str() );
+    m_nWeight   = pDescriptor->GetDictionary().GetKey( "FontWeight" )->GetNumber(); 
+
+    m_nItalicAngle = pDescriptor->GetDictionary().GetKey( "ItalicAngle" )->GetNumber();
+    m_dPdfAscent = pDescriptor->GetDictionary().GetKey( "Ascent" )->GetReal();
+    m_dPdfDescent = pDescriptor->GetDictionary().GetKey( "Descent" )->GetReal();
 }
 
 PdfFontMetrics::~PdfFontMetrics()

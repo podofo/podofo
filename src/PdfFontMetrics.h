@@ -32,6 +32,7 @@
 namespace PoDoFo {
 
 class PdfArray;
+class PdfObject;
 class PdfVariant;
 
 /**
@@ -72,6 +73,13 @@ class PODOFO_API PdfFontMetrics {
      *  \param face a valid freetype font face
      */
     PdfFontMetrics( FT_Library* pLibrary, FT_Face face );
+
+    /** Create a font metrics object based on an existing PdfObject
+     *
+     *  \param pLibrary handle to an initialized FreeType2 library handle
+     *  \param pObject an existing font descriptor object
+     */
+    PdfFontMetrics( FT_Library* pLibrary, PdfObject* pDescriptor );
 
     virtual ~PdfFontMetrics();
 

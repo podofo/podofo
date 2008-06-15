@@ -44,9 +44,6 @@
 
 #define PAGE_OFFSET_HEADER 38
 
-// Imported from PdfWriter.cpp
-namespace PoDoFo { extern bool podofo_is_little_endian(); };
-
 using namespace PoDoFo;
 
 namespace {
@@ -226,6 +223,7 @@ public:
 }; // end anon namespace
 
 namespace PoDoFo {
+
 namespace NonPublic {
 
 PdfHintStream::PdfHintStream( PdfVecObjects* pParent, PdfPagesTree* pPagesTree )
@@ -234,7 +232,11 @@ PdfHintStream::PdfHintStream( PdfVecObjects* pParent, PdfPagesTree* pPagesTree )
     // This is overwritten later with valid data!
     PdfVariant place_holder( PdfData( LINEARIZATION_PADDING ) );
 
-    m_bLittleEndian = podofo_is_little_endian();
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+    m_bLittleEndian = true;
+#else
+    m_bLittleEndian = false;
+#endif // PODOFO_IS_LITTLE_ENDIAN
 
     m_pObject->GetDictionary().AddKey( "S", place_holder ); // shared object hint table
 }
@@ -365,17 +367,17 @@ void PdfHintStream::WriteUInt16( pdf_uint16 val )
         val = static_cast<pdf_uint16>(htons( static_cast<unsigned short>(val) ));
     }
 
-    m_pObject->GetStream()->Append( (char*)&val, 2 );
+    m_pObject->GetStream()->Append( reinterpret_cast<char*>(&val), 2 );
 }
 
 void PdfHintStream::WriteUInt32( pdf_uint32 val )
 {
     if( m_bLittleEndian ) 
     {
-        val = (pdf_uint32)htonl( (unsigned int)val );
+        val = static_cast<pdf_uint32>(htonl( static_cast<unsigned int>(val) ));
     }
 
-    m_pObject->GetStream()->Append( (char*)&val, 4 );
+    m_pObject->GetStream()->Append( reinterpret_cast<char*>(&val), 4 );
 }
 
 }; // end namespace PoDoFo::NonPublic

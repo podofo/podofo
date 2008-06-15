@@ -193,6 +193,16 @@ class PODOFO_API PdfPage : public PdfElement, public PdfCanvas {
      */
     const PdfField GetField( int index ) const;
 
+    /** Get an element from the pages resources dictionary,
+     *  using a type (category) and a key.
+     *
+     *  \param rType the type of resource to fetch (e.g. /Font, or /XObject)
+     *  \param rKey the key of the resource
+     *
+     *  \returns the object of the resource or NULL if it was not found
+     */
+    PdfObject* GetFromResources( const PdfName & rType, const PdfName & rKey );
+
  private:
    /** Get the bounds of a specified page box in PDF units.
      * This function is internal, since there are wrappers for all standard boxes

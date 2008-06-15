@@ -33,8 +33,6 @@
 
 namespace PoDoFo {
 
-extern bool podofo_is_little_endian();
-
 struct TBFRange {
     int srcCode;
     std::vector<int> vecDest;
@@ -44,6 +42,12 @@ PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEnco
     : PdfFont( pMetrics, pEncoding, pParent )
 {
     this->Init( true );
+}
+
+PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject )
+    : PdfFont( pMetrics, pEncoding, pObject )
+{
+
 }
 
 void PdfFontCID::Init( bool bEmbed )

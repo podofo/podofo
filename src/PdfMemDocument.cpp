@@ -309,5 +309,10 @@ void PdfMemDocument::SetEncrypted( const PdfEncrypt & pEncrypt )
     m_pEncrypt = PdfEncrypt::CreatePdfEncrypt( pEncrypt );
 }
 
+PdfFont* PdfMemDocument::GetFont( PdfObject* pObject )
+{
+    return m_fontCache.GetFont( pObject );
+}
+
 };
 

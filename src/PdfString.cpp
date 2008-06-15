@@ -35,8 +35,6 @@
 
 namespace PoDoFo {
 
-extern bool podofo_is_little_endian();
-
 const PdfString PdfString::StringNull        = PdfString();
 #ifdef _MSC_VER
 const char  PdfString::s_pszUnicodeMarker[]  = { (char) 0xFE, (char) 0xFF };
@@ -766,8 +764,9 @@ PdfString PdfString::ToUnicode() const
         pString[(lLen>>1)-1] = 0;
 
         // convert to UTF-16be on little endian systems
-        if( podofo_is_little_endian() )
-            PdfString::SwapBytes( buffer.GetBuffer(), lLen );
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+        PdfString::SwapBytes( buffer.GetBuffer(), lLen );
+#endif // PODOFO_IS_LITTLE_ENDIAN
 
         str.m_buffer   = buffer;
         str.m_bHex     = false;
@@ -1025,8 +1024,9 @@ long PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, long lLenUtf8,
     }
 
     // swap to UTF-16be on LE systems
-    if( podofo_is_little_endian() )
-        PdfString::SwapBytes( reinterpret_cast<char*>(pszUtf16), static_cast<long>(target - pszUtf16) << 1 );
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+    PdfString::SwapBytes( reinterpret_cast<char*>(pszUtf16), static_cast<long>(target - pszUtf16) << 1 );
+#endif // PODOFO_IS_LITTLE_ENDIAN
 
     // return characters written
     return target - pszUtf16;
@@ -1055,21 +1055,20 @@ long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, long lLenUtf16,
     pdf_utf8* targetEnd = pszUtf8 + lLenUtf8;
 
     // swap to UTF-16be on LE systems
-    if( podofo_is_little_endian() )
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+    bOwnBuf = true;
+    source  = new pdf_utf16be[lLenUtf16];
+    if( !source )
     {
-        bOwnBuf = true;
-        source  = new pdf_utf16be[lLenUtf16];
-        if( !source )
-        {
-            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
-        }
-
-        memcpy( const_cast<pdf_utf16be*>(source), pszUtf16, lLenUtf16 * sizeof(pdf_utf16be) );
-
-        PdfString::SwapBytes( reinterpret_cast<char*>(const_cast<pdf_utf16be*>(source)), lLenUtf16 * sizeof(pdf_utf16be) );
-        pszUtf16  = source;
-        sourceEnd = pszUtf16 + lLenUtf16 + 1; // point after the last element
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
+    
+    memcpy( const_cast<pdf_utf16be*>(source), pszUtf16, lLenUtf16 * sizeof(pdf_utf16be) );
+    
+    PdfString::SwapBytes( reinterpret_cast<char*>(const_cast<pdf_utf16be*>(source)), lLenUtf16 * sizeof(pdf_utf16be) );
+    pszUtf16  = source;
+    sourceEnd = pszUtf16 + lLenUtf16 + 1; // point after the last element
+#endif // PODOFO_IS_LITTLE_ENDIAN
 
     try {
         while (source < sourceEnd) {

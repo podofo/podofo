@@ -53,8 +53,9 @@ using namespace std;
 namespace PoDoFo {
 
 PdfDocument::PdfDocument()
-    : m_pOutlines( NULL ), m_pNamesTree( NULL ), m_pPagesTree( NULL ), 
-      m_pAcroForms( NULL ), m_fontCache( &m_vecObjects )
+    : m_fontCache( &m_vecObjects ), m_pOutlines( NULL ), 
+      m_pNamesTree( NULL ), m_pPagesTree( NULL ), 
+      m_pAcroForms( NULL )
 {
     m_vecObjects.SetParentDocument( this );
 

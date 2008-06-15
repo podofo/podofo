@@ -120,6 +120,17 @@ class PODOFO_API PdfFontCache {
     void EmptyCache();
 
     /** Get a font from the cache. If the font does not yet
+     *  exist, add it to the cache. This font is created
+     *  from an existing object.
+     *
+     *  \param pObject a PdfObject that is a font
+     *
+     *  \returns a PdfFont object or NULL if the font could
+     *           not be created or found.
+     */
+    PdfFont* GetFont( PdfObject* pObject );
+
+    /** Get a font from the cache. If the font does not yet
      *  exist, add it to the cache.
      *
      *  \param pszFontName a valid fontname
@@ -224,7 +235,7 @@ class PODOFO_API PdfFontCache {
      *
      *  This method is only available on Windows systems.
      * 
-     *  \param pszFontName a fontnanme
+     *  \param pszFontName a fontname
      *  \param bBold if true search for a bold font
      *  \param bItalic if true search for an italic font
      *  \param bEmbedd if true embedd the font

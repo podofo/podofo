@@ -415,4 +415,19 @@ const PdfField PdfPage::GetField( int index ) const
     return field;
 }
 
+PdfObject* PdfPage::GetFromResources( const PdfName & rType, const PdfName & rKey )
+{
+    if( m_pResources->GetDictionary().HasKey( rType ) ) 
+    {
+        PdfObject* pType = m_pResources->GetDictionary().GetKey( rType );
+        if( pType->IsDictionary() && pType->GetDictionary().HasKey( rKey ) )
+        {
+            const PdfReference & ref = pType->GetDictionary().GetKey( rKey )->GetReference();
+            return m_pObject->GetOwner()->GetObject( ref );
+        }
+    }
+    
+    return NULL;
+}
+
 };

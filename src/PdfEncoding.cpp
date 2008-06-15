@@ -29,8 +29,6 @@
 
 namespace PoDoFo {
 
-extern bool podofo_is_little_endian();
-
 PdfEncoding::PdfEncoding( int nFirstChar, int nLastChar )
     : m_nFirstChar( nFirstChar ), m_nLastChar( nLastChar )
 {
@@ -97,8 +95,13 @@ PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString,
     const char* pszString = rEncodedString.GetString();
     for( int i=0;i<lLen;i++ )
     {
-        pszStringUtf16[i] = cpUnicodeTable[ *pszString ];
-
+#ifdef PODOFO_IS_BIG_ENDIAN
+        pszStringUtf16[i] = cpUnicodeTable[ static_cast<unsigned char>(*pszString) ];
+#else
+        pszStringUtf16[i] =             
+            ((( cpUnicodeTable[ static_cast<unsigned char>(*pszString) ] << 8 ) & 0xff00) | 
+             (( cpUnicodeTable[ static_cast<unsigned char>(*pszString) ] >> 8 ) & 0x00ff));
+#endif // PODOFO_IS_BIG_ENDIAN
         ++pszString;
     }
 
@@ -131,13 +134,13 @@ PdfString PdfSimpleEncoding::ConvertToEncoding( const PdfString & rString, const
         
     const pdf_utf16be* pszUtf16 = sSrc.GetUnicode();
     char*              pCur     = pDest;
-    const bool         bLittle = podofo_is_little_endian();
 
     for( int i=0;i<lLen;i++ ) 
     {
         pdf_utf16be val = pszUtf16[i];
-        if( bLittle ) 
-            val = ((val & 0xff00) >> 8) | ((val & 0xff) << 8);
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+        val = ((val & 0xff00) >> 8) | ((val & 0xff) << 8);
+#endif // PODOFO_IS_LITTLE_ENDIAN
 
         *pCur = m_pEncodingTable[val]; 
 
@@ -714,17 +717,16 @@ PdfString PdfIdentityEncoding::ConvertToEncoding( const PdfString & rString, con
     const pdf_utf16be* pStr = sStr.GetUnicode();
     long               lGlyphId;
 
-    const bool         bLittle = podofo_is_little_endian();
-
     std::ostringstream out;
     PdfLocaleImbue(out);
 
     while( *pStr ) 
     {
-        if( bLittle )
-            lGlyphId = pFont->GetFontMetrics()->GetGlyphId( (((*pStr & 0xff) << 8) | ((*pStr & 0xff00) >> 8)) );
-        else
-            lGlyphId = pFont->GetFontMetrics()->GetGlyphId( *pStr );
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+        lGlyphId = pFont->GetFontMetrics()->GetGlyphId( (((*pStr & 0xff) << 8) | ((*pStr & 0xff00) >> 8)) );
+#else
+        lGlyphId = pFont->GetFontMetrics()->GetGlyphId( *pStr );
+#endif // PODOFO_IS_LITTLE_ENDIAN
 
         out << static_cast<unsigned char>((lGlyphId & 0xff00) >> 8);
         out << static_cast<unsigned char>(lGlyphId & 0x00ff);
