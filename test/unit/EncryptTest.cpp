@@ -61,6 +61,8 @@ void EncryptTest::testDefault()
 
     TestAuthenticate( pEncrypt, 40, 2 );
     TestEncrypt( pEncrypt );
+
+    delete pEncrypt;
 }
 
 void EncryptTest::testRC4() 
@@ -71,6 +73,8 @@ void EncryptTest::testRC4()
 
     TestAuthenticate( pEncrypt, 40, 2 );
     TestEncrypt( pEncrypt );
+
+    delete pEncrypt;
 }
 
 void EncryptTest::testRC4v2_40() 
@@ -81,6 +85,9 @@ void EncryptTest::testRC4v2_40()
 
     TestAuthenticate( pEncrypt, 40, 3 );
     TestEncrypt( pEncrypt );
+
+
+    delete pEncrypt;
 }
 
 void EncryptTest::testRC4v2_56() 
@@ -91,6 +98,8 @@ void EncryptTest::testRC4v2_56()
 
     TestAuthenticate( pEncrypt, 56, 3 );
     TestEncrypt( pEncrypt );
+
+    delete pEncrypt;
 }
 
 void EncryptTest::testRC4v2_80() 
@@ -101,6 +110,8 @@ void EncryptTest::testRC4v2_80()
 
     TestAuthenticate( pEncrypt, 80, 3 );
     TestEncrypt( pEncrypt );
+
+    delete pEncrypt;
 }
 
 void EncryptTest::testRC4v2_96() 
@@ -111,6 +122,8 @@ void EncryptTest::testRC4v2_96()
 
     TestAuthenticate( pEncrypt, 96, 3 );
     TestEncrypt( pEncrypt );
+
+    delete pEncrypt;
 }
 
 void EncryptTest::testRC4v2_128() 
@@ -121,6 +134,8 @@ void EncryptTest::testRC4v2_128()
 
     TestAuthenticate( pEncrypt, 128, 3 );
     TestEncrypt( pEncrypt );
+
+    delete pEncrypt;
 }
 
 void EncryptTest::testAES() 
@@ -133,6 +148,8 @@ void EncryptTest::testAES()
     // AES decryption is not yet implemented.
     // Therefore we have to disable this test.
     // TestEncrypt( pEncrypt );
+
+    delete pEncrypt;
 }
 
 void EncryptTest::TestAuthenticate( PdfEncrypt* pEncrypt, int keyLength, int rValue ) 
