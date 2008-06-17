@@ -169,6 +169,18 @@ long PdfDictionary::GetKeyAsLong( const PdfName & key, long lDefault ) const
     return lDefault;
 }
 
+double PdfDictionary::GetKeyAsReal( const PdfName & key, double dDefault ) const
+{
+    const PdfObject* pObject = GetKey( key );
+    
+    if( pObject && pObject->GetDataType() == ePdfDataType_Real ) 
+    {
+        return pObject->GetReal();
+    }
+
+    return dDefault;
+}
+
 bool PdfDictionary::GetKeyAsBool( const PdfName & key, bool bDefault ) const
 {
     const PdfObject* pObject = GetKey( key );
