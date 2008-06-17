@@ -29,14 +29,15 @@ class StringTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE( StringTest );
   CPPUNIT_TEST( testGetStringUtf8 );
+  CPPUNIT_TEST( testUtf16beContructor );
   CPPUNIT_TEST_SUITE_END();
 
  public:
   void setUp();
   void tearDown();
 
-
   void testGetStringUtf8();
+  void testUtf16beContructor();
 
  private:
 

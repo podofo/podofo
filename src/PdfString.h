@@ -120,6 +120,13 @@ class PODOFO_API PdfString : public PdfDataType{
      */
     PdfString( const pdf_utf8* pszStringUtf8, long lLen );
 
+    /** Construct a new PdfString from an UTF-16be encoded zero terminated string.
+     *
+     *  \param pszStringUtf16 a UTF-16BE encoded string.
+     *  \param lLen number of words to convert
+     */
+    PdfString( const pdf_utf16be* pszStringUtf16, long lLen );
+
     /** Copy an existing PdfString 
      *  \param rhs another PdfString to copy
      */

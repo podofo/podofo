@@ -27,6 +27,11 @@ using namespace PoDoFo;
 // Registers the fixture into the 'registry'
 CPPUNIT_TEST_SUITE_REGISTRATION( StringTest );
 
+inline std::ostream& operator<<(std::ostream& o, const PdfString& s)
+{
+    return o << s.GetStringUtf8();
+}
+
 void StringTest::setUp()
 {
 }
@@ -63,7 +68,56 @@ void StringTest::testGetStringUtf8()
     PdfString str4( reinterpret_cast<const pdf_utf8*>(src3.c_str()) );
     std::string res4 = str4.GetStringUtf8();
 
-    CPPUNIT_ASSERT_EQUAL_MESSAGE( "testing pdf_utf8* UTF8 -> UTF8", res4, src3 );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "testing pdf_utf8* UTF8 -> UTF8", res4, src3 );    
+}
 
+void StringTest::testUtf16beContructor()
+{
+    const char* pszStringJapUtf8 = "「PoDoFo」は今から日本語も話せます。";
+    // The same string as a NULL-terminated UTF-8 string. This is a UTF-8 literal, so your editor
+    // must be configured to handle this file as UTF-8 to see something sensible below.
+    // The same string in UTF16BE encoding
+    const char psStringJapUtf16BE[44] = { 0x30, 0x0c, 0x00, 0x50, 0x00, 0x6f, 
+                                          0x00, 0x44, 0x00, 0x6f, 0x00, 0x46, 
+                                          0x00, 0x6f, 0x30, 0x0d, 0x30, 0x6f, 
+                                          0x4e, 0xca, 0x30, 0x4b, 0x30, 0x89, 
+                                          0x65, 0xe5, 0x67, 0x2c, 0x8a, 0x9e, 
+                                          0x30, 0x82, 0x8a, 0x71, 0x30, 0x5b, 
+                                          0x30, 0x7e, 0x30, 0x59, 0x30, 0x02, 
+                                          0x00, 0x00 };
+
+    PdfString strUtf8( reinterpret_cast<const pdf_utf8*>(pszStringJapUtf8) );
+    PdfString strUtf16( reinterpret_cast<const pdf_utf16be*>(psStringJapUtf16BE), 21 );
+    PdfString strUtf16b( reinterpret_cast<const pdf_utf16be*>(psStringJapUtf16BE), 21 );
+
+    /*
+    std::cout << std::endl;
+    std::cout << "utf8 :" << strUtf8 << "  " << strUtf8.GetCharacterLength() << std::endl;
+    std::cout << "utf16:" << strUtf16 << "  " << strUtf16.GetCharacterLength() <<  std::endl;
+    std::cout << "wide : ";
+    for( int i=0;i<=strUtf16.GetCharacterLength();i++ )
+        printf("%04x ", strUtf16.GetUnicode()[i]);
+    std::cout << std::endl;
+
+
+    std::cout << "wide : ";
+    for( int i=0;i<=strUtf16.GetCharacterLength();i++ )
+        printf("%4i ", i );
+    std::cout << std::endl;
+    */
     
+    // Compare UTF16 to UTF8 string
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "Comparing string length", 
+                                  strUtf8.GetCharacterLength(), strUtf16.GetCharacterLength() );
+
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "Comparing UTF8 and UTF16 string converted to UTF8", 
+                                  strUtf8.GetStringUtf8(), strUtf16.GetStringUtf8() );
+
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "Comparing UTF8 and UTF16 string", strUtf8, strUtf16 );
+
+    // Compare two UTF16 strings
+    CPPUNIT_ASSERT_EQUAL( strUtf16.GetCharacterLength(), strUtf16b.GetCharacterLength() );
+    CPPUNIT_ASSERT_EQUAL( strUtf16.GetStringUtf8(), strUtf16b.GetStringUtf8() );
+    CPPUNIT_ASSERT_EQUAL( strUtf16, strUtf16b );
+
 }

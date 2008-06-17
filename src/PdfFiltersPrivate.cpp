@@ -441,7 +441,7 @@ void PdfFlateFilter::EncodeBlockImpl( const char* pBuffer, long lLen )
 
 void PdfFlateFilter::EncodeBlockInternal( const char* pBuffer, long lLen, int nMode )
 {
-    int nWrittenData;
+    int nWrittenData = 0;
 
     m_stream.avail_in = lLen;
     m_stream.next_in  = reinterpret_cast<Bytef*>(const_cast<char*>(pBuffer));
