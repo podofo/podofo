@@ -104,6 +104,9 @@ void FilterTest::TestFilter( EPdfFilter eFilter, const char * pTestBuffer, const
     CPPUNIT_ASSERT_EQUAL( static_cast<long>(lTestLength), lDecoded );
     CPPUNIT_ASSERT_EQUAL( memcmp( pTestBuffer, pDecoded, lTestLength ), 0 );
 
+    free( pEncoded );
+    free( pDecoded );
+
     printf("\t-> Test succeeded!\n");
 }
 
