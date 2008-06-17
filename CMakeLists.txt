@@ -92,7 +92,7 @@ IF(WIN32)
     # We need a fake unistd.h for some libraries to build. They try to include <unistd.h>
     # which is not available under win32 with MSVC++, but everything in unistd.h is defined,
     # so an empty file solves the issue.
-    SET(EXTRA_INCLUDES vcincludes)
+    SET(EXTRA_INCLUDES ${PoDoFo_SOURCE_DIR}/vcincludes)
 ELSE(WIN32)
     SET(PLATFORM_SYSTEM_LIBRARIES)
     SET(EXTRA_INCLUDES)
@@ -283,7 +283,7 @@ IF(WANT_BOOST)
 ENDIF(WANT_BOOST)
 
 INCLUDE_DIRECTORIES(
-    src
+    ${PoDoFo_SOURCE_DIR}/src
     ${FREETYPE_INCLUDE_DIR}
     ${ZLIB_INCLUDE_DIR}
     ${EXTRA_INCLUDES}
@@ -308,8 +308,8 @@ SET(PODOFO_LIB_DEPENDS
     )
 
 IF(LIBFONTCONFIG_FOUND AND WANT_FONTCONFIG)
-	SET(PODOFO_LIB_DEPENDS ${LIBFONTCONFIG_LIB} ${PODOFO_LIB_DEPENDS})
-	INCLUDE_DIRECTORIES(${LIBFONTCONFIG_H})
+  SET(PODOFO_LIB_DEPENDS ${LIBFONTCONFIG_LIB} ${PODOFO_LIB_DEPENDS})
+  INCLUDE_DIRECTORIES(${LIBFONTCONFIG_H})
 ENDIF(LIBFONTCONFIG_FOUND AND WANT_FONTCONFIG)
 
 
