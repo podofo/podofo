@@ -226,6 +226,14 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
      *  \returns PdfObject the documents catalog or NULL 
      *                     if no catalog is available
      */
+    PdfObject* GetCatalog()  { return PdfDocument::GetCatalog(); }
+
+    /** Get access to the internal Catalog dictionary
+     *  or root object.
+     *  
+     *  \returns PdfObject the documents catalog or NULL 
+     *                     if no catalog is available
+     */
     const PdfObject* GetCatalog() const { return PdfDocument::GetCatalog(); }
 
     /** Get the trailer dictionary
