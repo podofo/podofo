@@ -6,7 +6,7 @@ IF(HAVE_CPPUNIT)
   # repeat for each test
   ADD_EXECUTABLE( podofo-test main.cpp EncryptTest.cpp FilterTest.cpp NameTest.cpp TokenizerTest.cpp StringTest.cpp )
   ADD_DEPENDENCIES( podofo-test ${PODOFO_DEPEND_TARGET})
-  TARGET_LINK_LIBRARIES( podofo-test ${PODOFO_LIB} ${PODOFO_LIB_DEPENDS} cppunit )
+  TARGET_LINK_LIBRARIES( podofo-test ${PODOFO_LIB} ${PODOFO_LIB_DEPENDS} ${CPPUNIT_LIBRARIES} )
   SET_TARGET_PROPERTIES( podofo-test PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
   ADD_TEST( podofo-test podofo-test )
 ENDIF(HAVE_CPPUNIT)

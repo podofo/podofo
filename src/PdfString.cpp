@@ -33,6 +33,8 @@
 #include <cstdlib>
 #endif
 
+#include <string.h>
+
 namespace PoDoFo {
 
 const PdfString PdfString::StringNull        = PdfString();

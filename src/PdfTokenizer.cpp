@@ -31,6 +31,9 @@
 
 #include <sstream>
 
+#include <stdlib.h>
+#include <string.h>
+
 #define PDF_BUFFER 4096
 
 #define DICT_SEP_LENGTH 2

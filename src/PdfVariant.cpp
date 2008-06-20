@@ -28,6 +28,8 @@
 
 #include <sstream>
 
+#include <string.h>
+
 #define NULL_LENGTH  4
 #define TRUE_LENGTH  4
 #define FALSE_LENGTH 5

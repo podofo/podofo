@@ -27,6 +27,9 @@
 #include <PdfPage.h>
 #include <PdfPainterMM.h>
 
+#include <stdlib.h>
+#include <string.h>
+
 using namespace PoDoFo;
 
 #ifdef _HAVE_CONFIG

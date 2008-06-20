@@ -29,6 +29,8 @@
 #include "PdfFilter.h"
 #include "PdfRijndael.h"
 
+#include <stdlib.h>
+#include <string.h>
 #include <sstream>
 
 namespace PoDoFo {

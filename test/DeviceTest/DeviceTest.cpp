@@ -24,6 +24,7 @@
 #include "PdfOutputStream.h"
 
 #include <stdio.h>
+#include <string.h>
 #define BUFFER_SIZE 4096
 
 using namespace PoDoFo;

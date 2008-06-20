@@ -25,6 +25,8 @@
 #include "PdfName.h"
 #include "PdfStream.h"
 
+#include <stdlib.h>
+
 namespace PoDoFo {
 
 PdfFontType1::PdfFontType1( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 

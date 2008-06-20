@@ -28,6 +28,8 @@
 #include "PdfOutputStream.h"
 #include "PdfVariant.h"
 
+#include <stdlib.h>
+
 namespace PoDoFo {
 
 #define STREAM_SIZE_INCREASE 1024

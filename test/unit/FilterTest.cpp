@@ -22,6 +22,8 @@
 
 #include <cppunit/Asserter.h>
 
+#include <stdlib.h>
+
 using namespace PoDoFo;
 
 CPPUNIT_TEST_SUITE_REGISTRATION( FilterTest );

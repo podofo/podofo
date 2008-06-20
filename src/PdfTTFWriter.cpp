@@ -25,6 +25,7 @@
 #include "PdfRefCountedBuffer.h"
 #include "PdfString.h"
 
+#include <algorithm>
 #include <cmath>
 
 #include <ft2build.h>

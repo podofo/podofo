@@ -1,4 +1,4 @@
-	/***************************************************************************
+/***************************************************************************
  *   Copyright (C) 2005 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
@@ -45,6 +45,8 @@
 
 #include "PdfInputDevice.h"
 #include "PdfTTFWriter.h"
+
+#include <stdlib.h>
 
 using namespace PoDoFo;
 

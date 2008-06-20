@@ -25,6 +25,8 @@
 #include "PdfStreamedDocument.h"
 #include "PdfVecObjects.h"
 
+#include <string.h>
+
 namespace PoDoFo {
 
 PdfElement::PdfElement( const char* pszType, PdfVecObjects* pParent )

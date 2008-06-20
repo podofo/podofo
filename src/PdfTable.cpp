@@ -27,6 +27,8 @@
 #include "PdfPage.h"
 #include "PdfRect.h"
 
+#include <stdlib.h>
+
 namespace PoDoFo {
 
 PdfSimpleTableModel::PdfSimpleTableModel()

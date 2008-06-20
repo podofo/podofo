@@ -20,8 +20,10 @@
 
 #include "PdfRefCountedBuffer.h"
 
-namespace PoDoFo {
+#include <stdlib.h>
+#include <string.h>
 
+namespace PoDoFo {
 
 #define STREAM_SIZE_INCREASE 1024
 
