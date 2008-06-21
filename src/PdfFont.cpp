@@ -28,6 +28,8 @@
 #include "PdfWriter.h"
 #include "PdfLocale.h"
 
+#include <stdlib.h>
+#include <string.h>
 #include <sstream>
 
 using namespace std;

@@ -21,6 +21,8 @@
 #include <PdfDefines.h>
 #include "Uncompress.h"
 
+#include <stdlib.h>
+
 using namespace PoDoFo;
 
 #ifdef _HAVE_CONFIG

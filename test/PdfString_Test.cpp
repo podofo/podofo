@@ -26,6 +26,9 @@
 #include <ostream>
 #include <sstream>
 
+#include <stdlib.h>
+#include <string.h>
+
 using namespace PoDoFo;
 
 #if _MSC_VER

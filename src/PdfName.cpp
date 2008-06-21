@@ -23,6 +23,8 @@
 #include "PdfOutputDevice.h"
 #include "PdfTokenizer.h"
 
+#include <string.h>
+
 using namespace std;
 using PoDoFo::ePdfError_InvalidName;
 

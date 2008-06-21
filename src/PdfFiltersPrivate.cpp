@@ -32,6 +32,9 @@ extern "C" {
 }
 #endif // PODOFO_HAVE_JPEG_LIB
 
+#include <stdlib.h>
+#include <string.h>
+
 #ifdef PODOFO_HAVE_TIFF_LIB
 extern "C" {
 #ifdef WIN32		// For O_RDONLY

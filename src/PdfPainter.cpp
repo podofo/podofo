@@ -43,6 +43,8 @@
 #include "PdfXObject.h"
 #include "PdfLocale.h"
 
+#include <stdlib.h>
+
 #define BEZIER_POINTS 13
 
 /* 4/3 * (1-cos 45ƒ)/sin 45ƒ = 4/3 * sqrt(2) - 1 */

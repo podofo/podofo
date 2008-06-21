@@ -27,6 +27,8 @@
 #include "PdfRect.h"
 #include "PdfString.h"
 
+#include <string.h>
+
 namespace PoDoFo {
 
 class PdfCanvas;

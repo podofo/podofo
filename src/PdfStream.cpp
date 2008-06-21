@@ -26,7 +26,11 @@
 #include "PdfOutputStream.h"
 
 #include "PdfOutputDevice.h"
+
 #include <iostream>
+
+#include <stdlib.h>
+
 using namespace std;
 
 namespace PoDoFo {

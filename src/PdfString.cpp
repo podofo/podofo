@@ -33,6 +33,8 @@
 #include <cstdlib>
 #endif
 
+#include <string.h>
+
 namespace PoDoFo {
 
 extern bool podofo_is_little_endian();

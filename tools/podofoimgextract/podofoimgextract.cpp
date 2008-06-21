@@ -21,6 +21,7 @@
 #include "ImageExtractor.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifdef _HAVE_CONFIG
 #include <config.h>

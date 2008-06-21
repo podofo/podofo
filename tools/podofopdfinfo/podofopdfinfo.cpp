@@ -22,6 +22,8 @@
 #include <PdfDefines.h>
 #include "pdfinfo.h"
 
+#include <stdlib.h>
+
 #ifdef _HAVE_CONFIG
 #include <config.h>
 #endif // _HAVE_CONFIG

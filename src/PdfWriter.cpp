@@ -42,6 +42,7 @@
 #define LINEARIZATION_PADDING "          " 
 
 #include <iostream>
+#include <stdlib.h>
 
 namespace PoDoFo {
 

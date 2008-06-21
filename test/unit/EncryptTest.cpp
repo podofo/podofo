@@ -22,6 +22,8 @@
 
 #include <podofo.h>
 
+#include <stdlib.h>
+
 using namespace PoDoFo;
 
 // Registers the fixture into the 'registry'

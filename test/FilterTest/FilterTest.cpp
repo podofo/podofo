@@ -25,6 +25,8 @@
 
 #include "../PdfTest.h"
 
+#include <stdlib.h>
+
 using namespace PoDoFo;
 
 namespace {

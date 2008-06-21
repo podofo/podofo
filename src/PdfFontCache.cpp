@@ -31,7 +31,19 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#endif
+
+// Undefined stuff which windows does
+// define that breaks are build
+// e.g. GetObject is defined to either GetObjectA or GetObjectW
+#ifdef GetObject
+#undef GetObject
+#endif // GetObject
+
+#ifdef CreateFont
+#undef CreateFont
+#endif // CreateFont
+
+#endif // _WIN32
 
 #include <ft2build.h>
 #include FT_FREETYPE_H

@@ -21,6 +21,7 @@
 #include "ImageExtractor.h"
 
 #include <sys/stat.h>
+#include <stdlib.h>
 
 ImageExtractor::ImageExtractor()
     : m_pszOutputDirectory( NULL ), m_nCount( 0 )

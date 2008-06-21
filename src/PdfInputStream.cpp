@@ -23,6 +23,7 @@
 #include "PdfInputDevice.h"
 
 #include <stdio.h>
+#include <string.h>
 
 namespace PoDoFo {
 

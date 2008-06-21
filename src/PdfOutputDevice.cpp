@@ -24,6 +24,9 @@
 #include <fstream>
 #include <sstream>
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "PdfRefCountedBuffer.h"
 
 namespace PoDoFo {

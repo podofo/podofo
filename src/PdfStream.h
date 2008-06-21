@@ -27,6 +27,8 @@
 #include "PdfFilter.h"
 #include "PdfRefCountedBuffer.h"
 
+#include <string.h>
+
 namespace PoDoFo {
 
 class PdfInputStream;
