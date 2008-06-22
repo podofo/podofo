@@ -38,7 +38,7 @@ class PdfVariant;
 /**
  * Enum for the different font formats supported by PoDoFo
  */
-typedef enum EPdfFontType {
+enum EPdfFontType {
     ePdfFontType_TrueType,
     ePdfFontType_Type1Pfa,
     ePdfFontType_Type1Pfb,

@@ -30,7 +30,7 @@ namespace PoDoFo {
 
 class PdfArray;
 
-typedef enum EPdfFunctionType {
+enum EPdfFunctionType {
     ePdfFunctionType_Sampled     = 0, ///< A sampled function (Type1)
     ePdfFunctionType_Exponential = 2, ///< An exponential interpolation function (Type2)
     ePdfFunctionType_Stitching   = 3, ///< A stitching function (Type3)

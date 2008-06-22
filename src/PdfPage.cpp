@@ -182,7 +182,7 @@ const PdfRect PdfPage::GetPageBox( const char* inBox ) const
     return pageBox;
 }
 
-const int PdfPage::GetRotation() const 
+int PdfPage::GetRotation() const 
 { 
     int rot = 0;
     
@@ -214,7 +214,7 @@ PdfObject* PdfPage::GetAnnotationsArray( bool bCreate ) const
     return NULL;
 }
 
-const int PdfPage::GetNumAnnots() const
+int PdfPage::GetNumAnnots() const
 {
     PdfObject* pObj = this->GetAnnotationsArray();
 
@@ -368,7 +368,7 @@ unsigned int PdfPage::GetPageNumber() const
     return ++nPageNumber;
 }
 
-const int PdfPage::GetNumFields() const
+int PdfPage::GetNumFields() const
 {
     int                  nCount  = 0;
     int                  nAnnots = this->GetNumAnnots();

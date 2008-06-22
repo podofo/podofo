@@ -157,7 +157,7 @@ void testUnicode()
 void testString( const char* pszString, const PdfString & str, const PdfString & hex ) 
 {
     printf("\t->    Got string: %s\n", pszString );
-    printf("\t-> ... of length: %li\n", strlen( pszString ) );
+    printf("\t-> ... of length: %li\n", static_cast<long>(strlen( pszString )) );
     printf("\t-> Got PdfString: %s\n", str.GetString() );
     printf("\t-> ... of length: %li\n", str.GetLength() );
     printf("\t-> Got hexstring: %s\n", hex.GetString() );
@@ -171,7 +171,7 @@ void testString( const char* pszString, const PdfString & str, const PdfString &
 
     if( static_cast<size_t>(str.GetLength()) != strlen( pszString ) ) 
     {
-        printf("Strings length is not equal: %li vs %li!\n", str.GetLength(), strlen( pszString ) );
+        printf("Strings length is not equal: %li vs %li!\n", str.GetLength(), static_cast<long>(strlen( pszString )) );
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 

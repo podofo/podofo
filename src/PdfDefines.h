@@ -120,7 +120,7 @@ typedef unsigned char  pdf_utf8;
 /**
  * Enum to identify diferent versions of the PDF file format
  */
-typedef enum EPdfVersion {
+enum EPdfVersion {
     ePdfVersion_1_0 = 0,       /**< PDF 1.0 */
     ePdfVersion_1_1,           /**< PDF 1.1 */
     ePdfVersion_1_2,           /**< PDF 1.2 */  
@@ -139,7 +139,7 @@ typedef enum EPdfVersion {
  *
  * Remember to update PdfVariant::GetDataTypeString() when adding members here.
  */
-typedef enum EPdfDataType {
+enum EPdfDataType {
     ePdfDataType_Bool,                  /**< Boolean datatype: Accepts the values "true" and "false" */
     ePdfDataType_Number,                /**< Number datatype for integer values */
     ePdfDataType_Real,                  /**< Real datatype for floating point numbers */
@@ -162,7 +162,7 @@ typedef enum EPdfDataType {
  * Common filters are ePdfFilter_FlateDecode (i.e. Zip) or
  * ePdfFilter_ASCIIHexDecode
  */
-typedef enum EPdfFilter {
+enum EPdfFilter {
     ePdfFilter_ASCIIHexDecode,            /**< Converts data from and to hexadecimal. Increases size of the data by a factor of 2! \see PdfHexFilter */
     ePdfFilter_ASCII85Decode,             /**< Converts to and from Ascii85 encoding. \see PdfAscii85Filter */
     ePdfFilter_LZWDecode,                 
@@ -179,7 +179,7 @@ typedef enum EPdfFilter {
  * Enum for the three colorspaces supported
  * by PDF.
  */
-typedef enum EPdfColorSpace {
+enum EPdfColorSpace {
     ePdfColorSpace_DeviceGray,        /**< Gray */
     ePdfColorSpace_DeviceRGB,         /**< RGB  */
     ePdfColorSpace_DeviceCMYK         /**< CMYK */
@@ -189,7 +189,7 @@ typedef enum EPdfColorSpace {
  * Enum for the different stroke styles that can be set
  * when drawing to a PDF file (mostly for line drawing).
  */
-typedef enum EPdfStrokeStyle {
+enum EPdfStrokeStyle {
     ePdfStrokeStyle_Solid,
     ePdfStrokeStyle_Dash,
     ePdfStrokeStyle_Dot,
@@ -201,7 +201,7 @@ typedef enum EPdfStrokeStyle {
 /**
  * Enum for line cap styles when drawing.
  */
-typedef enum EPdfLineCapStyle {
+enum EPdfLineCapStyle {
     ePdfLineCapStyle_Butt    = 0,
     ePdfLineCapStyle_Round   = 1,
     ePdfLineCapStyle_Square  = 2
@@ -210,7 +210,7 @@ typedef enum EPdfLineCapStyle {
 /**
  * Enum for line join styles when drawing.
  */
-typedef enum EPdfLineJoinStyle {
+enum EPdfLineJoinStyle {
     ePdfLineJoinStyle_Miter   = 0,
     ePdfLineJoinStyle_Round   = 1,
     ePdfLineJoinStyle_Bevel   = 2
@@ -219,7 +219,7 @@ typedef enum EPdfLineJoinStyle {
 /**
  * Enum for vertical text alignment
  */
-typedef enum EPdfVerticalAlignment {
+enum EPdfVerticalAlignment {
     ePdfVerticalAlignment_Top    = 0,
     ePdfVerticalAlignment_Center = 1,
     ePdfVerticalAlignment_Bottom  = 2
@@ -228,7 +228,7 @@ typedef enum EPdfVerticalAlignment {
 /**
  * Enum for text alignment
  */
-typedef enum EPdfAlignment {
+enum EPdfAlignment {
     ePdfAlignment_Left    = 0,
     ePdfAlignment_Center  = 1,
     ePdfAlignment_Right   = 2
@@ -270,7 +270,7 @@ typedef enum EPdfAlignment {
  *
  * \see PdfPage
  */
-typedef enum EPdfPageSize {
+enum EPdfPageSize {
     ePdfPageSize_A0,              /**< DIN A0  */
     ePdfPageSize_A1,              /**< DIN A1  */
     ePdfPageSize_A2,              /**< DIN A2  */
@@ -290,7 +290,7 @@ typedef enum EPdfPageSize {
  *
  * \see PdfDocument
  */
-typedef enum EPdfPageMode {
+enum EPdfPageMode {
     ePdfPageModeDontCare,
     ePdfPageModeUseNone,
     ePdfPageModeUseThumbs,
@@ -307,7 +307,7 @@ typedef enum EPdfPageMode {
  *
  * \see PdfDocument
  */
-typedef enum EPdfPageLayout {
+enum EPdfPageLayout {
     ePdfPageLayoutIgnore,
     ePdfPageLayoutDefault,
     ePdfPageLayoutSinglePage,
@@ -324,7 +324,7 @@ const bool ePdfCreateObject = true;
 const bool ePdfDontCreateObject = false;
 
 // character constants
-#define MAX_PDF_VERSION_STRING_INDEX  6
+#define MAX_PDF_VERSION_STRING_INDEX  7
 
 // We use fixed bounds two dimensional arrays here so that
 // they go into the const data section of the library.
@@ -335,7 +335,8 @@ static const char s_szPdfVersions[][9] = {
     "%PDF-1.3",
     "%PDF-1.4",
     "%PDF-1.5",
-    "%PDF-1.6"
+    "%PDF-1.6",
+    "%PDF-1.7"
 };
 
 static const char s_szPdfVersionNums[][4] = {
@@ -345,7 +346,8 @@ static const char s_szPdfVersionNums[][4] = {
     "1.3",
     "1.4",
     "1.5",
-    "1.6"
+    "1.6",
+    "1.7"
 };
 
 /// PDF Reference, Section 3.1.1, Table 3.1, White-space characters

@@ -32,7 +32,7 @@ class PdfAction;
 class PdfPage;
 class PdfRect;
 
-typedef enum EPdfDestinationFit {
+enum EPdfDestinationFit {
     ePdfDestinationFit_Fit,
     ePdfDestinationFit_FitH,
     ePdfDestinationFit_FitV,

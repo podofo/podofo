@@ -88,10 +88,10 @@ class PODOFO_API PdfRefCountedInputDevice {
     void Detach();
 
  private:
-    typedef struct TRefCountedInputDevice {
+    typedef struct {
         PdfInputDevice* m_pDevice;
         long            m_lRefCount;
-    };
+    } TRefCountedInputDevice;
 
     TRefCountedInputDevice* m_pDevice;
 };

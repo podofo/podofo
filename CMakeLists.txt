@@ -146,7 +146,7 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
         -Wwrite-strings
         -Wredundant-decls
         -Wreorder
-        )
+       )
     # STLPort uses old style casts extensively, so if we're building against it
     # we'd best disable the warning.
     IF(NOT USE_STLPORT)

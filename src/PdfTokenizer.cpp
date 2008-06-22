@@ -56,7 +56,7 @@ const char * genDelMap()
     for (i = 0; i < 256; i++)
         map[i] = '\0';
     for (i = 0; i < PoDoFo::s_nNumDelimiters; ++i)
-        map[PoDoFo::s_cDelimiters[i]] = 1;
+        map[static_cast<int>(PoDoFo::s_cDelimiters[i])] = 1;
     return map;
 }
 
@@ -70,7 +70,7 @@ const char * genWsMap()
     for (i = 0; i < 256; i++)
         map[i] = '\0';
     for (i = 0; i < PoDoFo::s_nNumWhiteSpaces; ++i)
-        map[PoDoFo::s_cWhiteSpaces[i]] = 1;
+        map[static_cast<int>(PoDoFo::s_cWhiteSpaces[i])] = 1;
     return map;
 }
 
@@ -570,7 +570,7 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
             else
             {
                 cOctValue <<= 3;
-                cOctValue  |= (c-'0' & 0x07);
+                cOctValue  |= ((c-'0') & 0x07);
                 ++nOctCount;
             }
         }

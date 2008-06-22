@@ -45,7 +45,7 @@ class PdfXObject;
  *  Please make also sure that the annotation type you use is
  *  supported by the PDF version you are using.
  */
-typedef enum EPdfAnnotation {
+enum EPdfAnnotation {
     ePdfAnnotation_Text = 0,                   // - supported
     ePdfAnnotation_Link,                       // - supported
     ePdfAnnotation_FreeText,       // PDF 1.3  // - supported
@@ -79,7 +79,7 @@ typedef enum EPdfAnnotation {
  *  You can OR them together and pass it to 
  *  PdfAnnotation::SetFlags.
  */
-typedef enum EPdfAnnotationFlags {
+enum EPdfAnnotationFlags {
     ePdfAnnotationFlags_Invisible    = 0x0001,
     ePdfAnnotationFlags_Hidden       = 0x0002,
     ePdfAnnotationFlags_Print        = 0x0004,

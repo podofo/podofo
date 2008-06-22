@@ -137,7 +137,7 @@ class PODOFO_API PdfVariant {
     /** \returns the datatype of this object or ePdfDataType_Unknown
      *  if it does not have a value.
      */
-    inline const EPdfDataType GetDataType() const;
+    inline EPdfDataType GetDataType() const;
 
     /** \returns a human readable string representation of GetDataType()
      *  The returned string must not be free'd.
@@ -473,7 +473,7 @@ bool PdfVariant::IsEmpty() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const EPdfDataType PdfVariant::GetDataType() const
+EPdfDataType PdfVariant::GetDataType() const
 {
     DelayedLoad();
 

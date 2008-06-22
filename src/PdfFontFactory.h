@@ -29,7 +29,7 @@ namespace PoDoFo {
 class PdfFontMetrics;
 class PdfVecObjects;
 
-typedef enum EPdfFontFlags {
+enum EPdfFontFlags {
     ePdfFont_Normal     = 0x00,
     ePdfFont_Embedded   = 0x01,
     ePdfFont_Bold       = 0x02,
