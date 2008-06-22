@@ -32,7 +32,7 @@ class PdfObject;
 class PdfPage;
 class PdfWriter;
 
-typedef enum EPdfShadingPatternType {
+enum EPdfShadingPatternType {
     ePdfShadingPatternType_FunctionBase  = 1,    
     ePdfShadingPatternType_Axial         = 2,
     ePdfShadingPatternType_Radial        = 3,

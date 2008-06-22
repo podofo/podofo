@@ -32,7 +32,7 @@ namespace PoDoFo {
 class PdfEncrypt;
 class PdfVariant;
 
-typedef enum EPdfTokenType {
+enum EPdfTokenType {
     ePdfTokenType_Delimiter,
     ePdfTokenType_Token,
 

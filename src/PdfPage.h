@@ -132,12 +132,12 @@ class PODOFO_API PdfPage : public PdfElement, public PdfCanvas {
     /** Get the current page rotation (if any).
      *  \returns int 0, 90, 180 or 270
      */
-    virtual const int GetRotation() const;
+    virtual int GetRotation() const;
         
     /** Get the number of annotations associated with this page
      * \ returns int number of annotations
      */
-    virtual const int GetNumAnnots() const;
+    virtual int GetNumAnnots() const;
 
     /** Create a new annotation to this page.
      *  \param eType the type of the annotation
@@ -173,7 +173,7 @@ class PODOFO_API PdfPage : public PdfElement, public PdfCanvas {
     /** 
      * \returns the number of PdfFields on this page.
      */
-    const int GetNumFields() const;
+    int GetNumFields() const;
 
     /** Get a PdfField with a certain index.
      *  \param index of the PdfField (must be smaller than GetNumFields() )
@@ -189,7 +189,7 @@ class PODOFO_API PdfPage : public PdfElement, public PdfCanvas {
      *
      *  \see GetNumFields
      *
-     *  \returns a const PdfField
+     *  \returns a constP dfField
      */
     const PdfField GetField( int index ) const;
 

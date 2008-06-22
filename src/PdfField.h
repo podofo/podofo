@@ -41,7 +41,7 @@ class PdfStreamedDocument;
 
 /** The type of PDF field
  */
-typedef enum EPdfField {
+enum EPdfField {
     ePdfField_PushButton, 
     ePdfField_CheckBox,
     ePdfField_RadioButton,
@@ -61,7 +61,7 @@ typedef enum EPdfField {
  *  The default value is 
  *  ePdfHighlightingMode_Invert
  */
-typedef enum EPdfHighlightingMode {
+enum EPdfHighlightingMode {
     ePdfHighlightingMode_None,           ///< Do no highlighting
     ePdfHighlightingMode_Invert,         ///< Invert the PdfField
     ePdfHighlightingMode_InvertOutline,  ///< Invert the fields border

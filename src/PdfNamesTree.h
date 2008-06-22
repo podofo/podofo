@@ -32,7 +32,7 @@ class PdfObject;
 class PdfString;
 class PdfVecObjects;
 
-typedef enum EPdfNameLimits {
+enum EPdfNameLimits {
     ePdfNameLimits_Before,
     ePdfNameLimits_Inside,
     ePdfNameLimits_After

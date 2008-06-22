@@ -35,7 +35,7 @@ class PdfObject;
 
 /** An enum describing the type of a read token
  */
-typedef enum EPdfContentsType {
+enum EPdfContentsType {
     ePdfContentsType_Keyword, ///< A keyword is a PDF function
     ePdfContentsType_Variant  ///< A variant is usually a parameter to a keyword 
 };

@@ -31,7 +31,7 @@ namespace PoDoFo {
 
 class PdfOutputDevice;
 
-typedef enum EPdfStringConversion {
+enum EPdfStringConversion {
     ePdfStringConversion_Strict,
     ePdfStringConversion_Lenient
 };

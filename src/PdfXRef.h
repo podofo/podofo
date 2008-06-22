@@ -38,7 +38,7 @@ class PdfOutputDevice;
  */
 class PdfXRef {
  protected:
-    typedef struct TXRefItem {
+    struct TXRefItem{
         TXRefItem( const PdfReference & rRef, const long & rlOff ) 
             : reference( rRef ), lOffset( rlOff )
             {

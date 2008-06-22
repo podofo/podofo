@@ -45,7 +45,7 @@ namespace PoDoFo {
  * 
  *  \see PdfError
  */
-typedef enum EPdfError {
+enum EPdfError {
     ePdfError_ErrOk = 0,                /**< The default value indicating no error. */
 
     ePdfError_TestFailed,               /**< Used in PoDoFo tests, to indicate that a test failed for some reason. */
@@ -103,7 +103,7 @@ typedef enum EPdfError {
  *
  * \see PdfError::LogMessage
  */
-typedef enum ELogSeverity {
+enum ELogSeverity {
     eLogSeverity_Critical,            /**< Critical unexpected error */
     eLogSeverity_Error,               /**< Error */
     eLogSeverity_Warning,             /**< Warning */

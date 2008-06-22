@@ -36,7 +36,7 @@ class PdfVecObjects;
  * The title of an outline item can be displayed
  * in different formating styles since PDF 1.4.
  */
-typedef enum EPdfOutlineFormat {
+enum EPdfOutlineFormat {
     ePdfOutlineFormat_Default    = 0x00,   /**< Default format */
     ePdfOutlineFormat_Italic     = 0x01,   /**< Italic */
     ePdfOutlineFormat_Bold       = 0x02,   /**< Bold */

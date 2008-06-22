@@ -40,7 +40,7 @@ class PdfVecObjects;
  *  Please make also sure that the action type you use is
  *  supported by the PDF version you are using.
  */
-typedef enum EPdfAction {
+enum EPdfAction {
     ePdfAction_GoTo = 0,
     ePdfAction_GoToR,
     ePdfAction_GoToE,
@@ -113,7 +113,7 @@ class PODOFO_API PdfAction : public PdfElement {
     /** Get the type of this action
      *  \returns the type of this action
      */
-    inline const EPdfAction GetType() const;
+    inline EPdfAction GetType() const;
 
  private:
     PdfAction( const PdfAction & rhs );
@@ -130,7 +130,7 @@ class PODOFO_API PdfAction : public PdfElement {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline const EPdfAction PdfAction::GetType() const
+inline EPdfAction PdfAction::GetType() const
 {
     return m_eType;
 }
