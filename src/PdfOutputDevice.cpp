@@ -24,6 +24,7 @@
 #include <fstream>
 #include <sstream>
 
+#include <locale.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -108,6 +109,8 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
+    const char* pszOldLocale = setlocale( LC_NUMERIC, "C" );
+
     if( m_hFile )
     {
         va_start( args, pszFormat );
@@ -152,6 +155,7 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
     else if( m_pStream || m_pRefCountedBuffer )
     {
         ++lBytes;
+        // TODO: keep the buffer between subsequent calls!
         char* data = static_cast<char*>(malloc( lBytes * sizeof(char) ));
         if( !data )
         {
@@ -179,6 +183,8 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
         free( data );
     }
     va_end( args );
+
+    setlocale( LC_NUMERIC, pszOldLocale );
 
     m_ulPosition += lBytes;
     m_ulLength += lBytes;
