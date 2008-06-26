@@ -125,9 +125,16 @@ class PODOFO_API PdfPagesTree : public PdfElement
      */
     PdfObject* GetPageNode( int nPageNum, PdfObject* pPagesObject );
 
+    /** Private method for actually traversing the /Pages tree
+     *  This method directly traverses the tree and does no
+     *  optimization for nodes with only one element like GetPageNode does.
+     */
+    PdfObject* GetPageNodeFromTree( int nPageNum, const PdfArray & kidsArray );
+
     /** Private method to access the Root of the tree using a logical name
      */
     PdfObject* GetRoot()	{ return m_pObject; }
+    const PdfObject* GetRoot() const	{ return m_pObject; }
     
     /** Private method for getting the Parent of a node in the /Pages tree
      */
@@ -151,7 +158,7 @@ class PODOFO_API PdfPagesTree : public PdfElement
 
     /** Private method for getting the PdfObject* for a Page from a specific /Kids array
      */
-    PdfObject* GetPageFromKidArray( PdfArray& inArray, int inIndex );
+    PdfObject* GetPageFromKidArray( const PdfArray& inArray, int inIndex ) const;
 
   private:
     PdfPageObjects    m_deqPageObjs;
