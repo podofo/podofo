@@ -70,9 +70,9 @@ int PdfPagesTree::GetTotalNumberOfPages() const
              m_pObject->GetDictionary().GetKeyAsLong( "Count", 0 ) : 0 );
 }
 
-PdfObject* PdfPagesTree::GetPageFromKidArray( PdfArray& inArray, int inIndex )
+PdfObject* PdfPagesTree::GetPageFromKidArray( const PdfArray& inArray, int inIndex ) const
 {
-    PdfVariant & kidsVar = inArray[ inIndex ];
+    const PdfVariant & kidsVar = inArray[ inIndex ];
 
 #ifdef PODOFO_VERBOSE_DEBUG
     std::string str;
@@ -92,7 +92,6 @@ PdfObject* PdfPagesTree::GetPageFromKidArray( PdfArray& inArray, int inIndex )
 PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
 {
     // recurse through the pages tree nodes
-    int        nPagesSeenSoFar = -1;	// initialize to -1 because nPageNum is 0-based
     PdfObject* pObj            = NULL;
 
     if( !pPagesObject->GetDictionary().HasKey( "Kids" ) )
@@ -122,7 +121,12 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
         PdfVariant pgVar = kidsArray[ nPageNum ];
         while ( true ) 
         {
-            if ( !pgVar.IsReference() ) 
+            if ( pgVar.IsArray() ) 
+            {
+                // Fixes some broken PDFs who have trees with 1 element kids arrays
+                return GetPageNodeFromTree( nPageNum, pgVar.GetArray() );
+            }
+            else if ( !pgVar.IsReference() )
                 return NULL;	// can't handle inline pages just yet...
 
             PdfObject* pgObject = GetRoot()->GetOwner()->GetObject( pgVar.GetReference() );
@@ -139,30 +143,42 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
     } 
     else 
     {
-        for( unsigned int i = 0 ; i < numKids ; i++ )
+        return GetPageNodeFromTree( nPageNum, kidsArray );
+    }
+
+    // we should never exit from here - we should always have been able to return a page from above
+    // assert( false ) ;
+    return NULL;
+}
+
+PdfObject* PdfPagesTree::GetPageNodeFromTree( int nPageNum, const PdfArray & kidsArray )
+{
+    size_t numKids = kidsArray.GetSize();
+    int    nPagesSeenSoFar = -1;	// initialize to -1 because nPageNum is 0-based
+
+    for( unsigned int i = 0 ; i < numKids ; i++ )
+    {
+        PdfObject* pgObject = GetPageFromKidArray( kidsArray, i );
+        
+        // if it's a Page, then is it the right page??
+        // otherwise, it's a Pages, and we need to recurse
+        if ( pgObject->GetDictionary().GetKeyAsName( PdfName( "Type" ) ) == PdfName( "Page" ) )
         {
-            PdfObject* pgObject = GetPageFromKidArray( kidsArray, i );
-            
-            // if it's a Page, then is it the right page??
-            // otherwise, it's a Pages, and we need to recurse
-            if ( pgObject->GetDictionary().GetKeyAsName( PdfName( "Type" ) ) == PdfName( "Page" ) )
+            nPagesSeenSoFar++;
+            if( nPagesSeenSoFar == nPageNum )
             {
-                nPagesSeenSoFar++;
-                if( nPagesSeenSoFar == nPageNum )
-                {
-                    return pgObject;
-                }
+                return pgObject;
             }
-            else 
+        }
+        else 
+        {
+            int thisKidCount = pgObject->GetDictionary().GetKeyAsLong( "Count", 0 );
+            if( ( nPagesSeenSoFar + thisKidCount ) >= nPageNum )
             {
-                int thisKidCount = pgObject->GetDictionary().GetKeyAsLong( "Count", 0 );
-                if( ( nPagesSeenSoFar + thisKidCount ) >= nPageNum )
-                {
-                    return this->GetPageNode( nPageNum - ( nPagesSeenSoFar + 1 ), pgObject ) ;
-                }
-                else
-                    nPagesSeenSoFar += thisKidCount ;
+                return this->GetPageNode( nPageNum - ( nPagesSeenSoFar + 1 ), pgObject ) ;
             }
+            else
+                nPagesSeenSoFar += thisKidCount ;
         }
     }
 
