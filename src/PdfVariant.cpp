@@ -208,8 +208,13 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt, co
     switch( m_eDataType ) 
     {
         case ePdfDataType_Bool:
-            pDevice->Print( m_Data.bBoolValue ? "true" : "false" );
+        {
+            if( m_Data.bBoolValue )
+                pDevice->Write( "true", 4 );
+            else
+                pDevice->Write( "false", 5 );
             break;
+        }
         case ePdfDataType_Number:
             pDevice->Print( "%li", m_Data.nNumber );
             break;
@@ -220,8 +225,16 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt, co
             //           which is not supported in PDF.
             //           %f fixes this but might loose precision as 
             //           it defaults to a precision of 6
-            pDevice->Print( "%f", m_Data.dNumber );
+            // pDevice->Print( "%f", m_Data.dNumber );
+        {
+            // Use ostringstream, so that locale does not matter
+            std::ostringstream oss;
+            PdfLocaleImbue(oss);
+            oss << m_Data.dNumber;
+
+            pDevice->Write( oss.str().c_str(), oss.str().size() );
             break;
+        }
         case ePdfDataType_HexString:
         case ePdfDataType_String:
         case ePdfDataType_Name:

@@ -92,6 +92,9 @@ class PODOFO_API PdfOutputDevice {
 
     /** Write to the PdfOutputDevice. Usage is as the usage of printf.
      * 
+     *  WARNING: Do not use this for doubles or floating point values
+     *           as the output might depend on the current locale.
+     *
      *  \param pszFormat a format string as you would use it with printf
      *  \returns ErrOk on success
      *

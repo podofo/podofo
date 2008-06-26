@@ -65,8 +65,8 @@ void TokenizerTest::testArrays()
     Test( "[ ]", ePdfDataType_Array );
     Test( "[ 1 2 3 4 ]", ePdfDataType_Array );
     Test( "[1 2 3 4]", ePdfDataType_Array, "[ 1 2 3 4 ]" );
-    Test( "[ 2 (Hallo Welt!) 3.500000 /FMC ]", ePdfDataType_Array );
-    Test( "[ [ 1 2 ] (Hallo Welt!) 3.500000 /FMC ]", ePdfDataType_Array );
+    Test( "[ 2 (Hallo Welt!) 3.5 /FMC ]", ePdfDataType_Array );
+    Test( "[ [ 1 2 ] (Hallo Welt!) 3.5 /FMC ]", ePdfDataType_Array );
     Test( "[/ImageA/ImageB/ImageC]", ePdfDataType_Array, "[ /ImageA /ImageB /ImageC ]" );
     Test( "[<530464995927cef8aaf46eb953b93373><530464995927cef8aaf46eb953b93373>]", ePdfDataType_Array, "[ <530464995927CEF8AAF46EB953B93373> <530464995927CEF8AAF46EB953B93373> ]" );
     Test( "[ 2 0 R (Test Data) 4 << /Key /Data >> 5 0 R ]", ePdfDataType_Array, "[ 2 0 R (Test Data) 4 <<\n/Key /Data\n>> 5 0 R ]" );
@@ -109,10 +109,10 @@ void TokenizerTest::testNumbers()
 {
     Test( "145", ePdfDataType_Number );
     Test( "-12", ePdfDataType_Number );    
-    Test( "3.140000", ePdfDataType_Real );
-    Test( "-2.970000", ePdfDataType_Real );
+    Test( "3.14123", ePdfDataType_Real );
+    Test( "-2.97", ePdfDataType_Real );
     Test( "0", ePdfDataType_Number );
-    Test( "4.", ePdfDataType_Real, "4.000000" );
+    Test( "4.", ePdfDataType_Real, "4" );
 
 }
 
