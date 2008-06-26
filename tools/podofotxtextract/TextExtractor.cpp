@@ -81,8 +81,9 @@ void TextExtractor::ExtractText( PdfMemDocument* pDocument, PdfPage* pPage )
             else if( strcmp( pszToken, "BT" ) == 0 ) 
             {
                 bTextBlock   = true;     
-                dCurFontSize = 0.0;
-                pCurFont     = NULL;
+                // BT does not reset font
+                // dCurFontSize = 0.0;
+                // pCurFont     = NULL;
             }
             else if( strcmp( pszToken, "ET" ) == 0 ) 
             {
@@ -104,6 +105,12 @@ void TextExtractor::ExtractText( PdfMemDocument* pDocument, PdfPage* pPage )
                     }
 
                     pCurFont = pDocument->GetFont( pFont );
+                    if( !pCurFont ) 
+                    {
+                        fprintf( stderr, "WARNING: Unable to create font for object %li %i R\n",
+                                 pFont->Reference().ObjectNumber(),
+                                 pFont->Reference().GenerationNumber() );
+                    }
                 }
                 else if( strcmp( pszToken, "Tj" ) == 0 ||
                          strcmp( pszToken, "'" ) == 0 ) 
@@ -122,8 +129,8 @@ void TextExtractor::ExtractText( PdfMemDocument* pDocument, PdfPage* pPage )
                 {
                     PdfArray array = stack.top().GetArray();
                     stack.pop();
-
-                    for( int i=0; i<array.GetSize(); i++ ) 
+                    
+                    for( int i=0; i<static_cast<int>(array.GetSize()); i++ ) 
                     {
                         if( array[i].IsString() )
                             AddTextElement( dCurPosX, dCurPosY, pCurFont, array[i].GetString() );
@@ -146,6 +153,12 @@ void TextExtractor::ExtractText( PdfMemDocument* pDocument, PdfPage* pPage )
 void TextExtractor::AddTextElement( double dCurPosX, double dCurPosY, 
                                     PdfFont* pCurFont, const PdfString & rString )
 {
+    if( !pCurFont ) 
+    {
+        fprintf( stderr, "WARNING: Found text but do not have a current font: %s\n", rString.GetString() );
+        return;
+    }
+
     // For now just write to console
     PdfString unicode = pCurFont->GetEncoding()->ConvertToUnicode( rString, pCurFont );
     const char* pszData = unicode.GetStringUtf8().c_str();

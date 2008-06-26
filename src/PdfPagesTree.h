@@ -122,14 +122,20 @@ class PODOFO_API PdfPagesTree : public PdfElement
     PdfPagesTree();	// don't allow construction from nothing!
 
     /** Private method for actually traversing the /Pages tree
+     *
+     *  \param rListOfParents all parents of the page node will be added to this lists,
+     *                        so that the PdfPage can later access inherited attributes
      */
-    PdfObject* GetPageNode( int nPageNum, PdfObject* pPagesObject );
+    PdfObject* GetPageNode( int nPageNum, PdfObject* pPagesObject, std::deque<PdfObject*> & rListOfParents );
 
     /** Private method for actually traversing the /Pages tree
      *  This method directly traverses the tree and does no
      *  optimization for nodes with only one element like GetPageNode does.
+     *
+     *  \param rListOfParents all parents of the page node will be added to this lists,
+     *                        so that the PdfPage can later access inherited attributes
      */
-    PdfObject* GetPageNodeFromTree( int nPageNum, const PdfArray & kidsArray );
+    PdfObject* GetPageNodeFromTree( int nPageNum, const PdfArray & kidsArray, std::deque<PdfObject*> & rListOfParents );
 
     /** Private method to access the Root of the tree using a logical name
      */

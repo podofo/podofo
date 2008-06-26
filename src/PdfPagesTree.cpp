@@ -89,7 +89,7 @@ PdfObject* PdfPagesTree::GetPageFromKidArray( const PdfArray& inArray, int inInd
     return GetRoot()->GetOwner()->GetObject( kidsVar.GetReference() );
 }
 
-PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
+PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject, std::deque<PdfObject*> & rListOfParents )
 {
     // recurse through the pages tree nodes
     PdfObject* pObj            = NULL;
@@ -104,6 +104,10 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
     PdfArray&	kidsArray = pObj->GetArray();
     size_t	numKids   = kidsArray.size();
     size_t      kidsCount = pPagesObject->GetDictionary().GetKeyAsLong( "Count", 0 );
+
+    // All parents of the page node will be added to this lists,
+    // so that the PdfPage can later access inherited attributes
+    rListOfParents.push_back( pPagesObject );
 
     // the pages tree node represented by pPagesObject has only page nodes in its kids array,
     // or pages nodes with a kid count of 1, so we can speed things up by going straight to the desired node
@@ -124,7 +128,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
             if ( pgVar.IsArray() ) 
             {
                 // Fixes some broken PDFs who have trees with 1 element kids arrays
-                return GetPageNodeFromTree( nPageNum, pgVar.GetArray() );
+                return GetPageNodeFromTree( nPageNum, pgVar.GetArray(), rListOfParents );
             }
             else if ( !pgVar.IsReference() )
                 return NULL;	// can't handle inline pages just yet...
@@ -138,12 +142,13 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
             if( !pgObject->GetDictionary().HasKey( "Kids" ) )
                 return NULL;
 
+            rListOfParents.push_back( pgObject );
             pgVar = *(pgObject->GetDictionary().GetKey( "Kids" ));
         }
     } 
     else 
     {
-        return GetPageNodeFromTree( nPageNum, kidsArray );
+        return GetPageNodeFromTree( nPageNum, kidsArray, rListOfParents );
     }
 
     // we should never exit from here - we should always have been able to return a page from above
@@ -151,7 +156,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject )
     return NULL;
 }
 
-PdfObject* PdfPagesTree::GetPageNodeFromTree( int nPageNum, const PdfArray & kidsArray )
+PdfObject* PdfPagesTree::GetPageNodeFromTree( int nPageNum, const PdfArray & kidsArray, std::deque<PdfObject*> & rListOfParents )
 {
     size_t numKids = kidsArray.GetSize();
     int    nPagesSeenSoFar = -1;	// initialize to -1 because nPageNum is 0-based
@@ -175,7 +180,7 @@ PdfObject* PdfPagesTree::GetPageNodeFromTree( int nPageNum, const PdfArray & kid
             int thisKidCount = pgObject->GetDictionary().GetKeyAsLong( "Count", 0 );
             if( ( nPagesSeenSoFar + thisKidCount ) >= nPageNum )
             {
-                return this->GetPageNode( nPageNum - ( nPagesSeenSoFar + 1 ), pgObject ) ;
+                return this->GetPageNode( nPageNum - ( nPagesSeenSoFar + 1 ), pgObject, rListOfParents ) ;
             }
             else
                 nPagesSeenSoFar += thisKidCount ;
@@ -202,10 +207,11 @@ PdfPage* PdfPagesTree::GetPage( int nIndex )
     pPage = m_deqPageObjs[ nIndex ];
     if ( !pPage ) 
     {
-        pObj = GetPageNode( nIndex, GetRoot() );
+        std::deque<PdfObject*> listOfParents;
+        pObj = GetPageNode( nIndex, GetRoot(), listOfParents );
         if ( pObj )
         {
-            pPage = new PdfPage( pObj );
+            pPage = new PdfPage( pObj, listOfParents );
             m_deqPageObjs[ nIndex ] = pPage;
         }
     }
@@ -215,9 +221,23 @@ PdfPage* PdfPagesTree::GetPage( int nIndex )
 
 PdfPage* PdfPagesTree::GetPage( const PdfReference & ref )
 {
+    // We have to search through all pages,
+    // as this is the only way
+    // to instantiate the PdfPage with a correct list of parents
+    for( int i=0;i<this->GetTotalNumberOfPages();i++ ) 
+    {
+        PdfPage* pPage = this->GetPage( i );
+        if( pPage->GetObject()->Reference() == ref ) 
+            return pPage;
+    }
+    
+    return NULL;
+
+/*
     PdfPage* pPage  = new PdfPage( m_pObject->GetOwner()->GetObject( ref ) );
     m_deqPageObjs[ pPage->GetPageNumber() - 1 ] = pPage;
     return pPage;
+*/
 }
 
 PdfObject* PdfPagesTree::GetParent( PdfObject* inObject )
@@ -278,7 +298,8 @@ void PdfPagesTree::InsertPage( int inAfterPageNumber, PdfObject* pPage )
     if( PageInsertBeforeFirstPage != inAfterPageNumber )
     {
         // get the page dictionary that we want to insert after, and get its parent pages dictionary
-        afterPageObj = GetPageNode( inAfterPageNumber, GetRoot() ) ;
+        std::deque<PdfObject*> listOfPages;
+        afterPageObj = GetPageNode( inAfterPageNumber, GetRoot(), listOfPages ) ;
         if( !afterPageObj )
         {
             PdfError::DebugMessage( "Cannot find page node: %i\n", inAfterPageNumber );
@@ -374,7 +395,8 @@ PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
 
 void PdfPagesTree::DeletePage( int inPageNumber )
 {
-    PdfObject* thePageObj = this->GetPageNode( inPageNumber, GetRoot() ) ;
+    std::deque<PdfObject*> listOfPages;
+    PdfObject* thePageObj = this->GetPageNode( inPageNumber, GetRoot(), listOfPages ) ;
     bool isPageALeaf = true ;
     int theParentCount = 0, theCount = 0 ;
     

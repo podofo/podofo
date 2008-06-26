@@ -45,18 +45,29 @@ PdfPage::PdfPage( const PdfRect & rSize, PdfVecObjects* pParent )
     m_pObject->GetDictionary().AddKey( PdfName::KeyContents, m_pContents->GetContents()->Reference());
 }
 
-PdfPage::PdfPage( PdfObject* pObject )
+PdfPage::PdfPage( PdfObject* pObject, const std::deque<PdfObject*> & rListOfParents )
     : PdfElement( "Page", pObject ), PdfCanvas()
 {
-    // TODO: handle m_pResources NULL
     m_pResources = m_pObject->GetIndirectKey( "Resources" );
+    if( !m_pResources ) 
+    {
+        // Resources might be inherited
+        std::deque<PdfObject*>::const_reverse_iterator it = rListOfParents.rbegin();
+
+        while( it != rListOfParents.rend() && !m_pResources )
+        {
+            m_pResources = (*it)->GetIndirectKey( "Resources" );
+            ++it;
+        }
+    }
+
     PdfObject* pContents = m_pObject->GetIndirectKey( "Contents" );
     if (pContents)
         m_pContents = new PdfContents( pContents );
     else
     {
         // TODO: handle absent contents
-        m_pContents = 0;
+        m_pContents = NULL;
     }
 }
 

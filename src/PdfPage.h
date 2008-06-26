@@ -55,8 +55,13 @@ class PODOFO_API PdfPage : public PdfElement, public PdfCanvas {
  
     /** Create a PdfPage based on an existing PdfObject
      *  \param pObject an existing PdfObject
+     *  \param listOfParents a list of PdfObjects that are
+     *                       parents of this page and can be 
+     *                       queried for inherited attributes.
+     *                       The last object in the list is the
+     *                       most direct parent of this page.
      */
-    PdfPage( PdfObject* pObject );
+    PdfPage( PdfObject* pObject, const std::deque<PdfObject*> & listOfParents );
 
     virtual ~PdfPage();
 
