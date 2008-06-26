@@ -114,13 +114,12 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, PdfObject* pDescriptor )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    PdfName sName = pDescriptor->GetDictionary().GetKey( "FontName" )->GetName();
-    printf("FONTNAME=%s\n", sName.GetName().c_str() );
-    m_nWeight   = pDescriptor->GetDictionary().GetKey( "FontWeight" )->GetNumber(); 
+    PdfName sName  = pDescriptor->GetDictionary().GetKey( "FontName" )->GetName();
+    m_nWeight      = pDescriptor->GetDictionary().GetKeyAsLong( "FontWeight", 400L );
+    m_nItalicAngle = pDescriptor->GetDictionary().GetKeyAsLong( "ItalicAngle", 0L );
 
-    m_nItalicAngle = pDescriptor->GetDictionary().GetKey( "ItalicAngle" )->GetNumber();
-    m_dPdfAscent = pDescriptor->GetDictionary().GetKey( "Ascent" )->GetReal();
-    m_dPdfDescent = pDescriptor->GetDictionary().GetKey( "Descent" )->GetReal();
+    m_dPdfAscent   = pDescriptor->GetDictionary().GetKeyAsReal( "Ascent", 0.0 );
+    m_dPdfDescent  = pDescriptor->GetDictionary().GetKeyAsReal( "Descent", 0.0 );
 }
 
 PdfFontMetrics::~PdfFontMetrics()

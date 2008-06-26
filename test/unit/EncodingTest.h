@@ -18,45 +18,32 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "PdfEncodingFactory.h"
+#ifndef _ENCODING_TEST_H_
+#define _ENCODING_TEST_H_
 
-#include "PdfEncoding.h"
-#include "PdfDifferenceEncoding.h"
-#include "PdfFont.h"
-#include "PdfName.h"
-#include "PdfObject.h"
+#include <cppunit/extensions/HelperMacros.h>
 
-namespace PoDoFo {
-
-const PdfEncoding* const PdfEncodingFactory::CreateEncoding( PdfObject* pObject )
+/** This test tests the various class PdfEncoding classes
+ */
+class EncodingTest : public CppUnit::TestFixture
 {
-    if( pObject->IsReference() )
-    {
-        // resolve any references
-        pObject = pObject->GetOwner()->GetObject( pObject->GetReference() );
-    }
+  CPPUNIT_TEST_SUITE( EncodingTest );
+  CPPUNIT_TEST( testDifferences );
+  CPPUNIT_TEST( testUnicodeNames );
+  CPPUNIT_TEST_SUITE_END();
 
-    if( pObject->IsName() )
-    {
-        const PdfName & rName = pObject->GetName();
-        if( rName == PdfName("WinAnsiEncoding") )
-            return &PdfFont::WinAnsiEncoding;
-        else if( rName == PdfName("MacRomanEncoding") )
-            return &PdfFont::MacRomanEncoding;
-        // TODO:
-        //else if( rName == PdfName("MacExpertEncoding") )
-        //    return &PdfFont::MacExpertEncoding;
-    }
-    else if( pObject->IsDictionary() )
-    {
-        return new PdfDifferenceEncoding( pObject );
-    }
+ public:
+  void setUp();
+  void tearDown();
 
 
-    PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Unsupported encoding detected!" );
+  void testDifferences();
+  void testUnicodeNames();
 
-    return NULL;
-}
-
+ private:
 
 };
+
+#endif // _STRING_TEST_H_
+
+

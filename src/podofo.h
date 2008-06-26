@@ -44,6 +44,8 @@
 #include "PdfDataType.h"
 #include "PdfDate.h"
 #include "PdfDestination.h"
+#include "PdfDictionary.h"
+#include "PdfDifferenceEncoding.h"
 #include "PdfDocument.h"
 #include "PdfElement.h"
 #include "PdfEncoding.h"

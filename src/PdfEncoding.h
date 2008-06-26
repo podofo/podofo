@@ -22,6 +22,7 @@
 #define _PDF_ENCODING_H_
 
 #include "PdfDefines.h"
+#include "PdfElement.h"
 #include "PdfName.h"
 #include "PdfString.h"
 

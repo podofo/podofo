@@ -691,7 +691,7 @@ PdfIdentityEncoding::PdfIdentityEncoding( int nFirstChar, int nLastChar, bool bA
 {
     // create a unique ID
     std::ostringstream oss;
-    oss << "/Identity-H" << nFirstChar << "_" << "nLastChar";
+    oss << "/Identity-H" << nFirstChar << "_" << nLastChar;
 
     m_id = PdfName( oss.str() );
 }

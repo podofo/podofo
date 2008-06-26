@@ -18,6 +18,7 @@ SET(PODOFO_SOURCES
     PdfDate.cpp
     PdfDestination.cpp
     PdfDictionary.cpp
+    PdfDifferenceEncoding.cpp
     PdfDocument.cpp
     PdfElement.cpp
     PdfEncoding.cpp
@@ -103,6 +104,7 @@ SET(PODOFO_HEADERS
     PdfDefines.h
     PdfDestination.h
     PdfDictionary.h
+    PdfDifferenceEncoding.h
     PdfDocument.h
     PdfElement.h
     PdfEncoding.h
