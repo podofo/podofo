@@ -247,6 +247,12 @@ class PODOFO_API PdfDifferenceEncoding : public PdfEncoding, private PdfElement 
      */
     void CreateID();
 
+    /** Get an object of type baseencoding 
+     * 
+     *  \returns a base encoding
+     */
+    const PdfEncoding* GetBaseEncoding() const;
+
  private:
     PdfEncodingDifference m_differences;
 

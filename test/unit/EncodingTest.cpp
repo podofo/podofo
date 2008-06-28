@@ -155,6 +155,70 @@ void EncodingTest::testDifferences()
    
 }
 
+void EncodingTest::testDifferencesObject()
+{
+    PdfMemDocument doc;
+    PdfEncodingDifference difference;
+    difference.AddDifference( 1, PdfName("B") );
+    difference.AddDifference( 2, PdfName("C") );
+    difference.AddDifference( 4, PdfName("D") );
+    difference.AddDifference( 5, PdfName("E") );
+    difference.AddDifference( 9, PdfName("F") );
+
+    PdfDifferenceEncoding encoding( difference, PdfDifferenceEncoding::eBaseEncoding_MacRoman, &doc );
+
+    // Check for encoding key
+    PdfObject* pObj = doc.GetObjects().CreateObject();
+    encoding.AddToDictionary( pObj->GetDictionary() );
+
+    CPPUNIT_ASSERT_EQUAL( true, pObj->GetDictionary().HasKey( PdfName("Encoding") ) );
+
+    PdfObject* pKey = pObj->GetDictionary().GetKey( PdfName("Encoding") );
+    CPPUNIT_ASSERT_EQUAL( true, pKey->IsReference() );
+
+    PdfObject* pEncoding = doc.GetObjects().GetObject( pKey->GetReference() );
+
+    // Test BaseEncoding
+    PdfObject* pBase = pEncoding->GetDictionary().GetKey( PdfName("BaseEncoding" ) );
+    CPPUNIT_ASSERT_EQUAL( pBase->GetName(), PdfName("MacRomanEncoding") );
+    
+    // Test differences
+    PdfObject* pDiff = pEncoding->GetDictionary().GetKey( PdfName("Differences" ) );
+    PdfArray   expected;
+
+    expected.push_back( 1L );
+    expected.push_back( PdfName("B") );
+    expected.push_back( PdfName("C") );
+    expected.push_back( 4L );
+    expected.push_back( PdfName("D") );
+    expected.push_back( PdfName("E") );
+    expected.push_back( 9L );
+    expected.push_back( PdfName("F") );
+
+    const PdfArray & data = pDiff->GetArray();
+    CPPUNIT_ASSERT_EQUAL( data.GetSize(), expected.GetSize() );
+    for( unsigned int i=0;i<data.GetSize(); i++ )
+        CPPUNIT_ASSERT_EQUAL( data[i], expected[i] );
+}
+
+void EncodingTest::testDifferencesEncoding()
+{
+    PdfMemDocument doc;
+
+    // Create a differences encoding where A and B are exchanged
+    PdfEncodingDifference difference;
+    difference.AddDifference( 0x0041, PdfName("B") );
+    difference.AddDifference( 0x0042, PdfName("A") );
+
+    PdfDifferenceEncoding encoding( difference, PdfDifferenceEncoding::eBaseEncoding_WinAnsi, &doc );
+
+    PdfString unicodeStr = encoding.ConvertToUnicode( PdfString("BAAB"), NULL );
+    CPPUNIT_ASSERT_EQUAL( PdfString("ABBA"), unicodeStr );
+
+    PdfString encodingStr = encoding.ConvertToEncoding( PdfString("ABBA"), NULL );
+    CPPUNIT_ASSERT_EQUAL( PdfString("BAAB"), encodingStr );
+}
+
 void EncodingTest::testUnicodeNames()
 {
     // List of items which are defined twice and cause

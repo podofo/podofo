@@ -29,6 +29,8 @@ class EncodingTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE( EncodingTest );
   CPPUNIT_TEST( testDifferences );
+  CPPUNIT_TEST( testDifferencesEncoding );
+  CPPUNIT_TEST( testDifferencesObject );
   CPPUNIT_TEST( testUnicodeNames );
   CPPUNIT_TEST_SUITE_END();
 
@@ -36,8 +38,9 @@ class EncodingTest : public CppUnit::TestFixture
   void setUp();
   void tearDown();
 
-
   void testDifferences();
+  void testDifferencesObject();
+  void testDifferencesEncoding();
   void testUnicodeNames();
 
  private:

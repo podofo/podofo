@@ -2476,27 +2476,7 @@ PdfName PdfDifferenceEncoding::UnicodeIDToName( pdf_utf16be inCodePoint )
 PdfString PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedString, 
                                                    const PdfFont* pFont ) const
 {
-    const PdfEncoding* pEncoding = NULL;
-    switch( m_baseEncoding ) 
-    {
-        case eBaseEncoding_WinAnsi:
-            pEncoding = &PdfFont::WinAnsiEncoding;
-            break;
-
-        case eBaseEncoding_MacRoman:
-            pEncoding = &PdfFont::MacRomanEncoding;
-            break;
-
-        case eBaseEncoding_MacExpert:
-        case eBaseEncoding_Font:
-        default:
-            break;
-    }
-
-    if( !pEncoding ) 
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    const PdfEncoding* pEncoding = GetBaseEncoding();
     
     PdfString str  = pEncoding->ConvertToUnicode( rEncodedString, pFont );
     long      lLen = str.GetCharacterLength();
@@ -2531,10 +2511,79 @@ PdfString PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedStr
 PdfString PdfDifferenceEncoding::ConvertToEncoding( const PdfString & rString, 
                                                     const PdfFont* pFont ) const
 {
-    PdfString ret = rString;
+    const PdfEncoding* pEncoding = GetBaseEncoding();
 
-    return ret;
+    pdf_utf16be* pszUtf16 = NULL;
+    long         lLen     = 0;
+
+    if( rString.IsUnicode() )
+    {
+        lLen = rString.GetCharacterLength();
+        pszUtf16 = static_cast<pdf_utf16be*>(malloc(sizeof(pdf_utf16be)*lLen));
+        if( !pszUtf16 )
+        {
+            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        }
+        memcpy( pszUtf16, rString.GetUnicode(), lLen * sizeof(pdf_utf16be) );
+    }
+    else
+    {
+        // Only do a copy if we really have to
+        PdfString str = rString.ToUnicode();
+        lLen = str.GetCharacterLength();
+        pszUtf16 = static_cast<pdf_utf16be*>(malloc(sizeof(pdf_utf16be)*lLen));
+        if( !pszUtf16 )
+        {
+            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        }
+        memcpy( pszUtf16, str.GetUnicode(), lLen * sizeof(pdf_utf16be) );
+    }
+
+    for( int i=0;i<lLen;i++ ) 
+    {
+        pdf_utf16be val = pszUtf16[i];
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+        val = ((val & 0xff00) >> 8) | ((val & 0xff) << 8);
+#endif // PODOFO_IS_LITTLE_ENDIAN
+
+        PdfName     name;
+        pdf_utf16be value;
+        if( m_differences.Contains( static_cast<int>(val), name, value ) )
+            pszUtf16[i] = value;
+    }
+
+    PdfString ret( pszUtf16, lLen );
+    free( pszUtf16 );
+
+    return pEncoding->ConvertToEncoding( ret, pFont );
 }
 
+const PdfEncoding* PdfDifferenceEncoding::GetBaseEncoding() const
+{
+    const PdfEncoding* pEncoding = NULL;
+
+    switch( m_baseEncoding ) 
+    {
+        case eBaseEncoding_WinAnsi:
+            pEncoding = &PdfFont::WinAnsiEncoding;
+            break;
+
+        case eBaseEncoding_MacRoman:
+            pEncoding = &PdfFont::MacRomanEncoding;
+            break;
+
+        case eBaseEncoding_MacExpert:
+        case eBaseEncoding_Font:
+        default:
+            break;
+    }
+
+    if( !pEncoding ) 
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    return pEncoding;
+}
 
 }; /* PoDoFo */
