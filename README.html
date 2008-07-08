@@ -118,6 +118,9 @@ the following libraries:</p>
 list of tested platforms and compilers. In general, any reasonably well behaved
 C++ compiler should work.</p>
 
+<p>A list of known -dev / -devel packages required for various Linux distros is maintained
+in the <a href="#required_linux_packages">required Linux packages</a> appendix.</p>
+
 <p>See also <a href="#using_podofo">Using PoDoFo</a>.</p>
 
 <h2><a name="installation">Installation</a></h2>
@@ -623,6 +626,20 @@ library in closed sourced applications). The tests and tools which are
 included in PoDoFo are licensed under the GPL. See the files COPYING and
 COPYING.LIB for details. More detailed explanations are in the FAQ on the
 website, but the licenses have the final say.</p>
+
+<h2>Appendices</h2>
+
+<h3><a name="required_linux_packages">Required Linux Packages</a></h3>
+
+<p>Linux distros love to name their packages in various weird ways. Here are commands to install the required -dev or -devel packages for PoDoFo for various distros. Please send additions for reasonably recent distros to the PoDoFo mailing list.</p>
+
+<ul>
+<li>Ubuntu (also generally applies to recent Debian)
+    <ul>
+    <li>8.10 and most others: sudo aptitude install build-essential g++ cmake libz-dev libtiff-dev libjpeg-dev libfreetype6-dev libfontconfig-dev</li>
+    </ul>
+</li>
+</ul>
 
 </body>
 </html>
