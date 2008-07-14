@@ -88,8 +88,8 @@ class PODOFO_API PdfEncodingDifference {
 
     struct DifferenceComparatorPredicate {
         public:
-          inline bool operator()( const PdfEncodingDifference::TDifference & rDif1, 
-                                  const PdfEncodingDifference::TDifference & rDif2 ) const { 
+          inline bool operator()( const TDifference & rDif1, 
+                                  const TDifference & rDif2 ) const { 
               return rDif1.nCode < rDif2.nCode;
           }
     };

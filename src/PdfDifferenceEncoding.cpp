@@ -2453,14 +2453,15 @@ PdfName PdfDifferenceEncoding::UnicodeIDToName( pdf_utf16be inCodePoint )
     inCodePoint = ((inCodePoint & 0xff00) >> 8) | ((inCodePoint & 0xff) << 8);
 #endif // PODOFO_IS_LITTLE_ENDIAN
 
-    for( int i = 0; UnicodeToNameTab[i].name; ++i) 
+    int i;
+	for( i = 0; UnicodeToNameTab[i].name; ++i) 
     {
         if ( UnicodeToNameTab[i].u == inCodePoint ) 
             return PdfName( UnicodeToNameTab[i].name );
     }
 
     // if we can't find in the canonical list, look in the complete list
-    for (int i = 0; nameToUnicodeTab[i].name; ++i) 
+    for ( i = 0; nameToUnicodeTab[i].name; ++i) 
     {
         if ( nameToUnicodeTab[i].u == inCodePoint )
             return PdfName( UnicodeToNameTab[i].name );

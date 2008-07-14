@@ -212,8 +212,9 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
         {
             if( lCurLength > 1 ) 
             {
-                array.push_back( lCurIndex ); 
-                array.push_back( lCurIndex + lCurLength - 1 ); 
+                array.push_back( lCurIndex );
+				long temp = lCurIndex + lCurLength - 1;
+                array.push_back( temp ); 
                 array.push_back( dCurWidth ); 
             }
             else

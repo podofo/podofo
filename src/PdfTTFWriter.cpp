@@ -753,7 +753,7 @@ void PdfTTFWriter::LoadGlyph( int nIndex, long lOffset, PdfInputDevice* pDevice 
         {
             pDevice->Read( reinterpret_cast<char*>(&flag), sizeof(char) );
             glyph.vecFlagsOrig.push_back( flag );
-            if( flag & 0x08 == 0x08 ) // i.e. the next byte tells us how often this flag is to be repeated
+            if( (flag & 0x08) == 0x08 ) // i.e. the next byte tells us how often this flag is to be repeated
             {
                 pDevice->Read( reinterpret_cast<char*>(&repeat), sizeof(char) );
                 glyph.vecFlagsOrig.push_back( repeat );

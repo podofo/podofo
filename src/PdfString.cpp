@@ -469,8 +469,12 @@ void PdfString::SetHexData( const char* pszHex, long lLen, PdfEncrypt* pEncrypt 
     // Now check for the first two bytes, to see if we got a unicode string
     if( m_buffer.GetSize()-2 > 2 ) 
     {
-        m_bUnicode = (m_buffer.GetBuffer()[0] == static_cast<char>(0xFE) && m_buffer.GetBuffer()[1] == static_cast<char>(0xFF));
-        if( m_bUnicode ) 
+#ifdef _MSC_VER	// MSC warns of possible truncation for static_cast
+		m_bUnicode = (m_buffer.GetBuffer()[0] == 0xFE && m_buffer.GetBuffer()[1] == 0xFF);
+#else
+		m_bUnicode = (m_buffer.GetBuffer()[0] == static_cast<char>(0xFE) && m_buffer.GetBuffer()[1] == static_cast<char>(0xFF));
+#endif
+		if( m_bUnicode ) 
         {
             PdfRefCountedBuffer temp( m_buffer.GetSize() - 2 );
             memcpy( temp.GetBuffer(), m_buffer.GetBuffer() + 2, m_buffer.GetSize() - 2 );

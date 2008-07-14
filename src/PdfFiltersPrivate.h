@@ -39,6 +39,9 @@
 
 #ifdef PODOFO_HAVE_JPEG_LIB
 extern "C" {
+#ifdef WIN32		// Collision between win and jpeg-headers
+#define XMD_H
+#endif
 #include "jpeglib.h"
 }
 #endif // PODOFO_HAVE_JPEG_LIB
