@@ -373,7 +373,7 @@ void PdfPagesTree::InsertPages( int inAfterIndex,
 #ifdef _MSC_VER		
         // cannot access empty deque, 
         // TODO:perhaps better move up in next function ??!!
-        if ( i >= m_deqPageObjs.size())
+        if ( i >= static_cast<int>(m_deqPageObjs.size()) )
             m_deqPageObjs.push_back( NULL );
 #endif
 
