@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200
 #pragma warning(disable: 4786)
 #endif
 
@@ -1149,6 +1149,83 @@ void PdfPainter::SetRenderingIntent( char* intent )
     m_pCanvas->Append( m_oss.str() );
 }
 
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200	// MSC 6.0 has a template-bug
+PdfString PdfPainter::ExpandTabs_char( const char* pszText, long lStringLen, int nTabCnt, const char cTab, const char cSpace ) const
+{
+    long lLen    = lStringLen + nTabCnt*(m_nTabWidth-1) + sizeof(char);
+    char*   pszTab  = static_cast<char*>(malloc( sizeof( char ) * lLen ));
+
+    if( !pszTab )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+    }
+    
+    int i = 0;
+    while( lStringLen-- )
+    {
+        if( *pszText == cTab )
+        {
+            for( int z=0;z<m_nTabWidth; z++ )
+                pszTab[i+z] = cSpace;
+            
+            i+=m_nTabWidth;
+        }
+        else
+            pszTab[i++] = *pszText;
+        
+        ++pszText;
+    }
+    
+    pszTab[i]  = 0;
+
+    PdfString str( pszTab );
+    printf("OUT=");
+    for(int z=0;z<lLen;z++)
+        printf("%04x ", str.GetUnicode()[z] );
+    printf("\n\n");
+    free( pszTab );
+    
+    return str;
+}
+
+PdfString PdfPainter::ExpandTabs_pdf_utf16be( const pdf_utf16be* pszText, long lStringLen, int nTabCnt, const pdf_utf16be cTab, const pdf_utf16be cSpace ) const
+{
+    long lLen    = lStringLen + nTabCnt*(m_nTabWidth-1) + sizeof(pdf_utf16be);
+    pdf_utf16be*   pszTab  = static_cast<pdf_utf16be*>(malloc( sizeof( pdf_utf16be ) * lLen ));
+
+    if( !pszTab )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+    }
+    
+    int i = 0;
+    while( lStringLen-- )
+    {
+        if( *pszText == cTab )
+        {
+            for( int z=0;z<m_nTabWidth; z++ )
+                pszTab[i+z] = cSpace;
+            
+            i+=m_nTabWidth;
+        }
+        else
+            pszTab[i++] = *pszText;
+        
+        ++pszText;
+    }
+    
+    pszTab[i]  = 0;
+
+    PdfString str( pszTab );
+    printf("OUT=");
+    for(int z=0;z<lLen;z++)
+        printf("%04x ", str.GetUnicode()[z] );
+    printf("\n\n");
+    free( pszTab );
+    
+    return str;
+}
+#else
 template<typename C>
 PdfString PdfPainter::ExpandTabsPrivate( const C* pszText, long lStringLen, int nTabCnt, const C cTab, const C cSpace ) const
 {
@@ -1187,6 +1264,7 @@ PdfString PdfPainter::ExpandTabsPrivate( const C* pszText, long lStringLen, int 
     
     return str;
 }
+#endif
 
 PdfString PdfPainter::ExpandTabs( const PdfString & rsString, long lStringLen ) const
 {
@@ -1214,10 +1292,17 @@ PdfString PdfPainter::ExpandTabs( const PdfString & rsString, long lStringLen ) 
     if( !nTabCnt )
         return rsString;
     
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200	// MSC 6.0 has a template-bug
+    if( rsString.IsUnicode() )
+        return ExpandTabs_pdf_utf16be( rsString.GetUnicode(), lStringLen, nTabCnt, cTab, cSpace );
+    else
+        return ExpandTabs_char( rsString.GetString(), lStringLen, nTabCnt, '\t', ' ' );
+#else
     if( rsString.IsUnicode() )
         return ExpandTabsPrivate<pdf_utf16be>( rsString.GetUnicode(), lStringLen, nTabCnt, cTab, cSpace );
     else
         return ExpandTabsPrivate<char>( rsString.GetString(), lStringLen, nTabCnt, '\t', ' ' );
+#endif
 }
 
 } /* namespace PoDoFo */

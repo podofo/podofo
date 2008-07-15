@@ -629,8 +629,13 @@ class PODOFO_API PdfPainter {
      */
     PdfString ExpandTabs( const PdfString & rsString, long lLen ) const;
     
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200	// MSC 6.0 has a template-bug 
+    PdfString ExpandTabs_char( const char* pszText, long lStringLen, int nTabCnt, const char cTab, const char cSpace ) const;
+    PdfString ExpandTabs_pdf_utf16be( const pdf_utf16be* pszText, long lStringLen, int nTabCnt, const pdf_utf16be cTab, const pdf_utf16be cSpace ) const;
+#else
     template<typename C>
         PdfString ExpandTabsPrivate( const C* pszText, long lStringLen, int nTabCnt, const C cTab, const C cSpace ) const;
+#endif
 
  protected:
     /** All drawing operations work on this stream.

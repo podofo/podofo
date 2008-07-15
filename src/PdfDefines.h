@@ -28,7 +28,7 @@
  *        supporting platforms it will be precompiled to speed compilation.
  */ 
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200
 #pragma warning(disable: 4786)
 #pragma warning(disable: 4251)
 #endif

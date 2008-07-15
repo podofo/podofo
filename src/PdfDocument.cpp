@@ -18,7 +18,7 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200
 #pragma warning(disable: 4786)
 #endif
 

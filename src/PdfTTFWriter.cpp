@@ -31,6 +31,11 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#if defined(_MSC_VER)  &&  _MSC_VER == 1500	// Ignore those warnings from MS-VS2008
+#pragma warning(disable: 4018)
+#pragma warning(disable: 4244)
+#endif
+
 namespace {
 // MSVC++ does not provide the c99 exp2(..) and log2(..) in <cmath> since they
 // are not required by C++ . Use the gcc ones if we're on gcc.

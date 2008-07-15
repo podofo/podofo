@@ -177,7 +177,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
 #ifdef _MSC_VER
         if( _strnicmp( pszExtension, "jpg", 3 ) == 0 )
 #else
-            if( strncasecmp( pszExtension, "jpg", 3 ) == 0 )
+        if( strncasecmp( pszExtension, "jpg", 3 ) == 0 )
 #endif
         {
             LoadFromJpeg( pszFilename );
