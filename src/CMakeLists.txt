@@ -38,6 +38,7 @@ SET(PODOFO_SOURCES
     PdfFontSimple.cpp
     PdfFontType1.cpp
     PdfFontTrueType.cpp
+    PdfFontTTFSubset.cpp
     PdfFunction.cpp
     PdfHintStream.cpp
     PdfImage.cpp
@@ -123,6 +124,7 @@ SET(PODOFO_HEADERS
     PdfFontSimple.h
     PdfFontType1.h
     PdfFontTrueType.h
+    PdfFontTTFSubset.h
     PdfFunction.h    
     PdfHintStream.h
     PdfImage.h
