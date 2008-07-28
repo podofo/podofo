@@ -25,6 +25,8 @@
 #include "PdfEncoding.h"
 #include "PdfElement.h"
 
+#include <iterator>
+
 namespace PoDoFo {
 
 
@@ -32,8 +34,17 @@ namespace PoDoFo {
  *  can be used to create a differences array.
  */
 class PODOFO_API PdfEncodingDifference {
- public: 
+    struct TDifference {
+        int         nCode;
+        PdfName     name;
+        pdf_utf16be unicodeValue;
+    };
 
+    typedef std::vector<TDifference>                 TVecDifferences;
+    typedef std::vector<TDifference>::iterator       TIVecDifferences;
+    typedef std::vector<TDifference>::const_iterator TCIVecDifferences;
+
+ public: 
     /** Create a PdfEncodingDifference object.
      */
     PdfEncodingDifference();
@@ -48,7 +59,16 @@ class PODOFO_API PdfEncodingDifference {
 
     /** Add a difference to the object.
      * 
-     *  \param nCode code point of the difference (0 to 255 are legal values)
+     *  \param nCode unicode code point of the difference (0 to 255 are legal values)
+     *
+     *  \see AddDifference if you know the name of the code point
+     *       use the overload below which is faster
+     */
+    void AddDifference( int nCode );
+
+    /** Add a difference to the object.
+     * 
+     *  \param nCode unicode code point of the difference (0 to 255 are legal values)
      *  \param rName name of the different code point or .notdef if none
      */
     void AddDifference( int nCode, const PdfName & rName );
@@ -80,12 +100,6 @@ class PODOFO_API PdfEncodingDifference {
     inline int GetCount() const;
 
  private:
-    struct TDifference {
-        int         nCode;
-        PdfName     name;
-        pdf_utf16be unicodeValue;
-    };
-
     struct DifferenceComparatorPredicate {
         public:
           inline bool operator()( const TDifference & rDif1, 
@@ -93,10 +107,6 @@ class PODOFO_API PdfEncodingDifference {
               return rDif1.nCode < rDif2.nCode;
           }
     };
-
-    typedef std::vector<TDifference>                 TVecDifferences;
-    typedef std::vector<TDifference>::iterator       TIVecDifferences ;
-    typedef std::vector<TDifference>::const_iterator TCIVecDifferences ;
 
     TVecDifferences m_vecDifferences;
 };
@@ -108,7 +118,6 @@ inline int PdfEncodingDifference::GetCount() const
 {
     return m_vecDifferences.size();
 }
-
 
 /** PdfDifferenceEncoding is an encoding, which is based
  *  on either the fonts encoding or a predefined encoding
@@ -229,6 +238,28 @@ class PODOFO_API PdfDifferenceEncoding : public PdfEncoding, private PdfElement 
      */
     virtual bool IsSingleByteEncoding() const;
 
+    /** 
+     * Get read-only access to the object containing the actual
+     * differences.
+     *
+     * \returns the container with the actual differences
+     */
+    inline const PdfEncodingDifference & GetDifferences() const;
+
+    /** Get the unicode character code for this encoding
+     *  at the position nIndex. nIndex is a position between
+     *  GetFirstChar() and GetLastChar()
+     *
+     *  \param nIndex character code at position index
+     *  \returns unicode character code 
+     * 
+     *  \see GetFirstChar 
+     *  \see GetLastChar
+     *
+     *  Will throw an exception if nIndex is out of range.
+     */
+    virtual pdf_utf16be GetCharCode( int nIndex ) const;
+
  protected:
 
     /** Get a unique ID for this encoding
@@ -284,6 +315,15 @@ inline bool PdfDifferenceEncoding::IsSingleByteEncoding() const
 {
     return true;
 }
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline const PdfEncodingDifference & PdfDifferenceEncoding::GetDifferences() const
+{
+    return m_differences;
+}
+
 
 }; /* PoDoFo */
 

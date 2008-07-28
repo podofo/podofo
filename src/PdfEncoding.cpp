@@ -80,6 +80,24 @@ void PdfSimpleEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
     rDictionary.AddKey( PdfName("Encoding"), m_name );
 }
 
+pdf_utf16be PdfSimpleEncoding::GetCharCode( int nIndex ) const
+{
+    if( nIndex < this->GetFirstChar() ||
+	nIndex > this->GetLastChar() )
+    {
+	PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+    }
+
+    const pdf_utf16be* cpUnicodeTable   = this->GetToUnicodeTable();
+
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+    return ((cpUnicodeTable[nIndex] & 0xff00) >> 8) | ((cpUnicodeTable[nIndex] & 0xff) << 8);
+#else
+    return cpUnicodeTable[nIndex];
+#endif // PODOFO_IS_LITTLE_ENDIAN
+
+}
+
 PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* ) const
 {
     const pdf_utf16be* cpUnicodeTable = this->GetToUnicodeTable();
@@ -699,6 +717,21 @@ PdfIdentityEncoding::PdfIdentityEncoding( int nFirstChar, int nLastChar, bool bA
 void PdfIdentityEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
 {
     rDictionary.AddKey( "Encoding", PdfName("Identity-H") );
+}
+
+pdf_utf16be PdfIdentityEncoding::GetCharCode( int nIndex ) const
+{
+    if( nIndex < this->GetFirstChar() ||
+	nIndex > this->GetLastChar() )
+    {
+	PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+    }
+
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+    return ((nIndex & 0xff00) >> 8) | ((nIndex & 0xff) << 8);
+#else
+    return static_cast<pdf_utf16be>(nIndex);
+#endif // PODOFO_IS_LITTLE_ENDIAN
 }
 
 PdfString PdfIdentityEncoding::ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const

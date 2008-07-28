@@ -23,6 +23,10 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
+namespace PoDoFo {
+  class PdfEncoding;
+};
+
 /** This test tests the various class PdfEncoding classes
  */
 class EncodingTest : public CppUnit::TestFixture
@@ -32,6 +36,7 @@ class EncodingTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testDifferencesEncoding );
   CPPUNIT_TEST( testDifferencesObject );
   CPPUNIT_TEST( testUnicodeNames );
+  CPPUNIT_TEST( testGetCharCode );
   CPPUNIT_TEST_SUITE_END();
 
  public:
@@ -42,9 +47,11 @@ class EncodingTest : public CppUnit::TestFixture
   void testDifferencesObject();
   void testDifferencesEncoding();
   void testUnicodeNames();
+  void testGetCharCode();
 
  private:
 
+  bool outofRangeHelper( PoDoFo::PdfEncoding* pEncoding, std::string & rMsg, const char* pszName );
 };
 
 #endif // _STRING_TEST_H_

@@ -26,6 +26,8 @@
 #include "PdfName.h"
 #include "PdfString.h"
 
+#include <iterator>
+
 namespace PoDoFo {
 
 class PdfDictionary;
@@ -41,7 +43,6 @@ class PdfFont;
  */
 class PODOFO_API PdfEncoding {
  protected:
-
     /** 
      *  Create a new PdfEncoding.
      *
@@ -61,7 +62,56 @@ class PODOFO_API PdfEncoding {
     virtual const PdfName & GetID() const = 0;
 
  public:
-    
+    class PODOFO_API const_iterator : public std::iterator<
+                                             std::forward_iterator_tag, 
+						 int,std::ptrdiff_t, 
+						 const int *, const int &> {
+    public:
+	const_iterator( const PdfEncoding* pEncoding, int nCur )
+	    : m_pEncoding( pEncoding ), m_nCur( nCur )
+	{
+	}
+
+	const_iterator( const const_iterator & rhs ) 
+	{
+	    this->operator=(rhs);
+	}
+
+	const const_iterator & operator=( const const_iterator & rhs ) 
+	{
+	    m_nCur      = rhs.m_nCur;
+	    m_pEncoding = rhs.m_pEncoding;
+
+	    return *this;
+	}
+
+	inline bool operator==( const const_iterator & rhs ) const
+	{
+	    return (m_nCur == rhs.m_nCur);
+	}
+
+	inline bool operator!=( const const_iterator & rhs ) const
+	{
+	    return (m_nCur != rhs.m_nCur);
+	}
+
+	inline const pdf_utf16be operator*() const 
+	{
+	    return m_pEncoding->GetCharCode( m_nCur );
+	}
+	
+	inline const_iterator & operator++()
+	{
+	    m_nCur++;
+
+	    return *this;
+	}
+
+    private:
+	const PdfEncoding* m_pEncoding;
+	int                m_nCur;
+    };
+
     virtual ~PdfEncoding();
 
     /** Comparison operator.
@@ -129,6 +179,33 @@ class PODOFO_API PdfEncoding {
      */
     inline int GetLastChar() const;
 
+    /** Iterate over all unicode character points in this
+     *  encoding, beginning with the first.
+     *
+     *  \returns iterator pointing to the first defined unicode character
+     */
+    inline const_iterator begin() const;
+
+    /** Iterate over all unicode character points in this
+     *  encoding, beginning with the first.
+     *
+     *  \returns iterator pointing at the end
+     */
+    inline const_iterator end() const;
+
+    /** Get the unicode character code for this encoding
+     *  at the position nIndex. nIndex is a position between
+     *  GetFirstChar() and GetLastChar()
+     *
+     *  \param nIndex character code at position index
+     *  \returns unicode character code 
+     * 
+     *  \see GetFirstChar 
+     *  \see GetLastChar
+     *
+     *  Will throw an exception if nIndex is out of range.
+     */
+    virtual pdf_utf16be GetCharCode( int nIndex ) const = 0;
 
  private:
     int     m_nFirstChar;   ///< The first defined character code
@@ -167,6 +244,22 @@ inline int PdfEncoding::GetLastChar() const
     return m_nLastChar;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfEncoding::const_iterator PdfEncoding::begin() const
+{
+    return PdfEncoding::const_iterator( this, this->GetFirstChar() );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfEncoding::const_iterator PdfEncoding::end() const
+{
+    return PdfEncoding::const_iterator( this, this->GetLastChar() + 1 );
+}
+
 /**
  * A common base class for standard PdfEncoding which are
  * known by name.
@@ -182,7 +275,6 @@ inline int PdfEncoding::GetLastChar() const
  */
 class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
  public:
-
     /*
      *  Create a new simple PdfEncoding which uses 1 byte.
      *
@@ -259,6 +351,20 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
      */
     inline const PdfName & GetName() const;
 
+    /** Get the unicode character code for this encoding
+     *  at the position nIndex. nIndex is a position between
+     *  GetFirstChar() and GetLastChar()
+     *
+     *  \param nIndex character code at position index
+     *  \returns unicode character code 
+     * 
+     *  \see GetFirstChar 
+     *  \see GetLastChar
+     *
+     *  Will throw an exception if nIndex is out of range.
+     */
+    virtual pdf_utf16be GetCharCode( int nIndex ) const;
+
  private:
     /** Initialize the internal table of mappings from unicode code points
      *  to encoded byte values.
@@ -321,7 +427,6 @@ inline const PdfName & PdfSimpleEncoding::GetName() const
 {
     return m_name;
 }
-
 
 /** 
  * The WinAnsi Encoding is the default encoding in PoDoFo for 
@@ -437,7 +542,6 @@ class PODOFO_API PdfMacExpertEncoding : public PdfSimpleEncoding {
  */
 class PODOFO_API PdfIdentityEncoding : public PdfEncoding {
  public:
-
     /** 
      *  Create a new PdfIdentityEncoding.
      *
@@ -488,6 +592,20 @@ class PODOFO_API PdfIdentityEncoding : public PdfEncoding {
      *  \returns true if this is a single byte encoding with a maximum of 256 values.
      */
     virtual bool IsSingleByteEncoding() const;
+
+    /** Get the unicode character code for this encoding
+     *  at the position nIndex. nIndex is a position between
+     *  GetFirstChar() and GetLastChar()
+     *
+     *  \param nIndex character code at position index
+     *  \returns unicode character code 
+     * 
+     *  \see GetFirstChar 
+     *  \see GetLastChar
+     *
+     *  Will throw an exception if nIndex is out of range.
+     */
+    virtual pdf_utf16be GetCharCode( int nIndex ) const;
 
  protected:
     /** Get a unique ID for this encoding

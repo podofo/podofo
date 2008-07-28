@@ -22,6 +22,7 @@
 #define _PDF_FONT_TTF_SUBSET_H_
 
 #include "PdfDefines.h"
+#include "PdfFontMetrics.h"
 
 #include <string>
 #include <vector>
@@ -52,18 +53,20 @@ class PODOFO_API PdfFontTTFSubset {
      *  TTF font file.
      *
      *  @param pszFontFileName path to a TTF file
+     *  @param pMetrics font metrics object for this font
      *  @param nFaceIndex index of the face inside of the font
      */
-    PdfFontTTFSubset( const char* pszFontFileName, unsigned short nFaceIndex = 0 );
+    PdfFontTTFSubset( const char* pszFontFileName, PdfFontMetrics* pMetrics, unsigned short nFaceIndex = 0 );
 
     /** Create a new PdfFontTTFSubset from an existing 
      *  TTF font file using an input device.
      *
      *  @param pDevice a PdfInputDevice
+     *  @param pMetrics font metrics object for this font
      *  @param eType the type of the font
      *  @param nFaceIndex index of the face inside of the font
      */
-    PdfFontTTFSubset( PdfInputDevice* pDevice, EFontFileType eType, unsigned short nFaceIndex = 0 );
+    PdfFontTTFSubset( PdfInputDevice* pDevice, PdfFontMetrics* pMetrics, EFontFileType eType, unsigned short nFaceIndex = 0 );
 
     ~PdfFontTTFSubset();
 
@@ -82,6 +85,12 @@ class PODOFO_API PdfFontTTFSubset {
      *  glyph can be added only once.
      */
     void AddGlyph( unsigned short nGlyphIndex );
+
+    /** Add an unicode character to the subset
+     *
+     *  @param nCharCode unicode character code
+     */
+    inline void AddCharacter( pdf_utf16be nCharCode );
 
     /** Get the number of glyphs in this font.
      *
@@ -142,12 +151,12 @@ class PODOFO_API PdfFontTTFSubset {
 	unsigned long	glyphNewAddressLong;
     };
 
-
-    EFontFileType  m_eFontFileType;
-    bool	   m_bIsLongLoca;
+    PdfFontMetrics* m_pMetrics;                ///< FontMetrics object which is required to convert unicode character points to glyph ids
+    EFontFileType   m_eFontFileType;
+    bool	    m_bIsLongLoca;
     
-    unsigned short m_numTables;
-    unsigned short m_numGlyphs;
+    unsigned short  m_numTables;
+    unsigned short  m_numGlyphs;
     
     std::vector<TTrueTypeTable> m_vTable;
     std::vector<unsigned short> m_vGlyphIndice;
@@ -166,6 +175,18 @@ class PODOFO_API PdfFontTTFSubset {
 inline unsigned long PdfFontTTFSubset::GetSize() const 
 {
     return m_vGlyphIndice.size();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfFontTTFSubset::AddCharacter( pdf_utf16be nCharCode )
+{
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+    this->AddGlyph( m_pMetrics->GetGlyphId( ((nCharCode & 0xff00) >> 8) | ((nCharCode & 0xff) << 8) ) );
+#else
+    this->AddGlyph( m_pMetrics->GetGlyphId( nCharCode ) );
+#endif // PODOFO_IS_LITTLE_ENDIAN
 }
 
 }; /* PoDoFo */

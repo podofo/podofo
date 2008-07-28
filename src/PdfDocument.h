@@ -164,6 +164,22 @@ class PODOFO_API PdfDocument {
      */
     PdfFont* CreateFont( FT_Face face, const PdfEncoding * const pEncoding = &PdfFont::WinAnsiEncoding, bool bEmbedd = true );
 
+    /** Creates a font subset which contains only a few characters and is embedded.
+     *
+     *  THIS WORKS ONLY FOR TTF FONTS!
+     *
+     *  \param pszFontName name of the font as it is known to the system
+     *  \param bBold if true search for a bold font
+     *  \param bItalic if true search for an italic font
+     *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
+     *  \param optional: pszFileName path to a valid font file
+     *
+     *  \returns PdfFont* a pointer to a new PdfFont object.
+     */
+    PdfFont* CreateFontSubset( const char* pszFontName, bool bBold, bool bItalic, 
+			       const PdfEncoding * const = &PdfFont::WinAnsiEncoding,
+			       const char* pszFileName = NULL);
+
     /** Creates a new page object and inserts it into the internal
      *  page tree. 
      *  The returned page is owned by the PdfDocument

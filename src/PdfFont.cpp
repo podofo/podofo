@@ -82,6 +82,13 @@ void PdfFont::InitVars()
     // the PDF reference section 5.5.2#
     int curPos = 0;
     std::string sTmp = m_pMetrics->GetFontname();
+    const char* pszPrefix = m_pMetrics->GetSubsetFontnamePrefix();
+    if( pszPrefix ) 
+    {
+	std::string sPrefix = pszPrefix;
+	sTmp = sPrefix + sTmp;
+    }
+
     for(unsigned int i = 0; i < sTmp.size(); i++)
     {
         if(sTmp[i] != ' ')

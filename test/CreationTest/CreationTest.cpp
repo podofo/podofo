@@ -29,6 +29,7 @@
 #include "PdfFileSpec.h"
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
+#include "PdfFontTTFSubset.h"
 #include "PdfImage.h"
 #include "PdfInfo.h"
 #include "PdfOutlines.h"
@@ -51,28 +52,6 @@
 using namespace PoDoFo;
 
 #define CONVERSION_CONSTANT 0.002834645669291339
-
-
-void tmp()
-{
-    /*
-    if( access( "/home/dominik/out.ttf", F_OK ) == 0 ) 
-    {
-        printf("Reading old created file!!\n\n");
-        NonPublic::PdfTTFWriter tmp;
-        PdfInputDevice old ( "/home/dominik/out.ttf" ); 
-        tmp.Read( &old );
-    }
-
-    printf("Reading font\n\n\n");
-    NonPublic::PdfTTFWriter writer;
-    PdfInputDevice device( "/home/dominik/.fonts/arial.ttf" ); 
-    PdfOutputDevice outDev( "/home/dominik/out.ttf" ); 
-
-    writer.Read( &device );
-    writer.Write( &outDev );
-    */
-}
 
 void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
@@ -101,7 +80,22 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->DrawText( 100.0, 100.0, sJap );
 	*/
 
-    pFont = pDocument->CreateFont( "Courier New" );
+    std::vector<int> vecCharacters;
+    vecCharacters.push_back( static_cast<int>('C') );
+    vecCharacters.push_back( static_cast<int>('G') );
+    vecCharacters.push_back( static_cast<int>('a') );
+    vecCharacters.push_back( static_cast<int>('c') );
+    vecCharacters.push_back( static_cast<int>('e') );
+    vecCharacters.push_back( static_cast<int>('l') );
+    vecCharacters.push_back( static_cast<int>('o') );
+    vecCharacters.push_back( static_cast<int>('p') );
+    vecCharacters.push_back( static_cast<int>('s') );
+    vecCharacters.push_back( static_cast<int>('r') );
+    vecCharacters.push_back( static_cast<int>('y') );
+    vecCharacters.push_back( static_cast<int>(' ') );
+    vecCharacters.push_back( static_cast<int>('-') );
+
+    pFont = pDocument->CreateFontSubset( "Arial Unicode MS", false, false ); //, vecCharacters );
     if( !pFont )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
@@ -790,8 +784,6 @@ int main( int argc, char* argv[] )
 
     TEST_SAFE_OP( writer.Write( argv[1] ) );
     //TEST_SAFE_OP( writer.Close() );
-
-    tmp();
 
 #ifdef TEST_MEM_BUFFER
     // ---

@@ -36,9 +36,16 @@ class PdfVecObjects;
 struct TFontCacheElement {
     TFontCacheElement() 
         : m_pFont( NULL ),
-    m_pEncoding( NULL ),
-    m_bBold( false ),
-    m_bItalic( false )
+	  m_pEncoding( NULL ),
+	  m_bBold( false ),
+	  m_bItalic( false )
+    {
+    }
+
+    TFontCacheElement( const char* pszFontName, bool bBold, bool bItalic, 
+		       const PdfEncoding * const pEncoding )
+        : m_pFont(NULL), m_pEncoding( pEncoding ), m_bBold( bBold ), 
+	  m_bItalic( bItalic ), m_sFontName( pszFontName )
     {
     }
     
@@ -75,6 +82,12 @@ struct TFontCacheElement {
         else
             return (m_sFontName < rhs.m_sFontName);
     }
+    
+    inline bool operator()( const TFontCacheElement& r1, 
+			    const TFontCacheElement& r2 ) const 
+    { 
+	return r1 < r2;
+    }
 
     PdfFont*           m_pFont;
     const PdfEncoding* m_pEncoding;
@@ -100,6 +113,11 @@ struct TFontCacheElement {
  * \see PdfDocument
  */
 class PODOFO_API PdfFontCache {
+    typedef std::vector<TFontCacheElement>  TSortedFontList;
+    typedef TSortedFontList::iterator       TISortedFontList;
+    typedef TSortedFontList::const_iterator TCISortedFontList;
+
+
  public:
     /** Create an empty font cache 
      *
@@ -167,15 +185,18 @@ class PODOFO_API PdfFontCache {
      *  \param pszFontName a valid fontname
      *  \param bBold if true search for a bold font
      *  \param bItalic if true search for an italic font
-     *  \param vecGlyphs a list of Unicode glyph indeces that should be embedded in the subset
+     *  \param pEncoding the encoding of the font. All characters
+     *                   of the encoding will be included in this subset.
+     *                   The font will not take ownership of this object.     
+     *  \param optional: pszFileName path to a valid font file
      *
      *  \returns a PdfFont object or NULL if the font could
      *           not be created or found.
      */
-    /*
-    PdfFont* GetFontSubset( const char* pszFontName, bool bBold, 
-                            bool bItalic, const std::vector<int> & vecGlyphs );
-    */
+    PdfFont* GetFontSubset( const char* pszFontName, bool bBold, bool bItalic, 
+			    const PdfEncoding * const = &PdfFont::WinAnsiEncoding,
+			    const char* pszFileName = NULL);
+
     
 #if defined(HAVE_FONTCONFIG)
     /** Get the path of a font file on a Unix system using fontconfig
@@ -190,7 +211,7 @@ class PODOFO_API PdfFontCache {
      *  \returns the path to the fontfile or an empty string
      */
     static std::string GetFontConfigFontPath( FcConfig* pConfig, const char* pszFontName, bool bBold, bool bItalic );
-#endif // (HAVE_FONTCONFIG)
+#endif // defined(HAVE_FONTCONFIG)
 
  private:
     /**
@@ -205,6 +226,10 @@ class PODOFO_API PdfFontCache {
     std::string GetFontPath( const char* pszFontName, bool bBold, bool bItalic );
 
     /** Create a font and put it into the fontcache
+     *
+     *  \param itSorted iterator pointing to a location in vecContainer
+     *                  where a sorted insert can be made
+     *  \param vecContainer container where the font object should be added
      *  \param pMetrics a font metrics
      *  \param bEmbedd if true the font will be embedded in the pdf file
      *  \param bBold if true this font will be treated as bold font
@@ -214,7 +239,8 @@ class PODOFO_API PdfFontCache {
      *
      *  \returns a font handle or NULL in case of error
      */
-    PdfFont* CreateFontObject( PdfFontMetrics* pMetrics, bool bEmbedd, bool bBold, 
+    PdfFont* CreateFontObject( TISortedFontList itSorted, TSortedFontList & vecContainer,
+			       PdfFontMetrics* pMetrics, bool bEmbedd, bool bBold, 
                                bool bItalic, const char* pszFontName, const PdfEncoding * const pEncoding );
 
     /** Create a font subset.
@@ -222,19 +248,22 @@ class PODOFO_API PdfFontCache {
      *  \param pszFontName a font name for debug output
      *  \param bBold if true this font will be treated as bold font
      *  \param bItalic if true this font will be treated as italic font
-     *  \param vecGlyphs the list of all glyphs that should get embedded into this subset
+     *  \param vecCharacters a list of Unicode character indeces that should be embedded in the subset
      *
      *  \returns a font handle or NULL in case of error
      */
     /*
     PdfFont* CreateFontSubset( PdfFontMetrics* pMetrics, const char* pszFontName, bool bBold, 
-                               bool bItalic, const std::vector<int> & vecGlyphs );
+                               bool bItalic, const std::vector<int> & vecCharacters );
     */
 #ifdef _WIN32
     /** Load and create a font with windows API calls
      *
      *  This method is only available on Windows systems.
      * 
+     *  \param itSorted iterator pointing to a location in vecContainer
+     *                  where a sorted insert can be made
+     *  \param vecContainer container where the font object should be added
      *  \param pszFontName a fontname
      *  \param bBold if true search for a bold font
      *  \param bItalic if true search for an italic font
@@ -243,14 +272,11 @@ class PODOFO_API PdfFontCache {
      *
      *  \returns a font handle or NULL in case of error
      */
-    PdfFont* GetWin32Font( const char* pszFontName, bool bBold, bool bItalic, bool bEmbedd, const PdfEncoding * const pEncoding );
+    PdfFont* GetWin32Font( TISortedFontList itSorted, TSortedFontList & vecContainer, const char* pszFontName, 
+			   bool bBold, bool bItalic, bool bEmbedd, const PdfEncoding * const pEncoding );
 #endif // _WIN32
 
  private:
-    typedef std::vector<TFontCacheElement>  TSortedFontList;
-    typedef TSortedFontList::iterator       TISortedFontList;
-    typedef TSortedFontList::const_iterator TCISortedFontList;
-
     TSortedFontList m_vecFonts;              ///< Sorted list of all fonts, currently in the cache
     TSortedFontList m_vecFontSubsets;
     FT_Library      m_ftLibrary;             ///< Handle to the freetype library

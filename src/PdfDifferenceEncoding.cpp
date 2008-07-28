@@ -2201,6 +2201,17 @@ const PdfEncodingDifference & PdfEncodingDifference::operator=( const PdfEncodin
     return *this;
 }
 
+void PdfEncodingDifference::AddDifference( int nCode )
+{
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+    pdf_utf16be inCodePoint = ((nCode & 0xff00) >> 8) | ((nCode & 0xff) << 8);
+#else
+    pdf_utf16be inCodePoint = nCode;
+#endif // PODOFO_IS_LITTLE_ENDIAN
+
+    this->AddDifference( nCode, PdfDifferenceEncoding::UnicodeIDToName( inCodePoint ) );
+}
+
 void PdfEncodingDifference::AddDifference( int nCode, const PdfName & rName )
 {
     if( nCode > 255 || nCode < 0 ) 
@@ -2411,6 +2422,27 @@ void PdfDifferenceEncoding::Init()
 void PdfDifferenceEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
 {
     rDictionary.AddKey( PdfName("Encoding"), m_pObject->Reference() );
+}
+
+pdf_utf16be PdfDifferenceEncoding::GetCharCode( int nIndex ) const
+{
+    if( nIndex < this->GetFirstChar() ||
+	nIndex > this->GetLastChar() )
+    {
+	PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+    }
+
+    PdfName     name;
+    pdf_utf16be value;
+    if( m_differences.Contains( nIndex, name, value ) )
+    {
+	return value;
+    }
+    else
+    {
+	const PdfEncoding* pEncoding = this->GetBaseEncoding();
+	return pEncoding->GetCharCode( nIndex ); 
+    }
 }
 
 pdf_utf16be PdfDifferenceEncoding::NameToUnicodeID( const PdfName & rName )

@@ -284,3 +284,105 @@ void EncodingTest::testUnicodeNames()
 
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "Compared codes count", 65422, nCount );
 }
+
+void EncodingTest::testGetCharCode()
+{
+    std::string msg;
+    bool        ret;
+
+    PdfWinAnsiEncoding cWinAnsiEncoding;
+    ret = outofRangeHelper( &cWinAnsiEncoding, msg, "PdfWinAnsiEncoding" );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( msg, ret, true );
+
+    PdfMacRomanEncoding cMacRomanEncoding;
+    ret = outofRangeHelper( &cMacRomanEncoding, msg, "PdfMacRomanEncoding" );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( msg, ret, true );
+
+    PdfIdentityEncoding cIdentityEncoding;
+    ret = outofRangeHelper( &cIdentityEncoding, msg, "PdfIdentityEncoding" );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( msg, ret, true );
+
+    PdfVecObjects vec;
+    PdfEncodingDifference difference;
+    difference.AddDifference( 0x0041, PdfName("B") );
+    difference.AddDifference( 0x0042, PdfName("A") );
+    PdfDifferenceEncoding cDifferenceEncoding( difference, PdfDifferenceEncoding::eBaseEncoding_WinAnsi, &vec );
+    ret = outofRangeHelper( &cDifferenceEncoding, msg, "PdfDifferenceEncoding" );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( msg, ret, true );
+
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_utf16be>(0x4200), cDifferenceEncoding.GetCharCode( 0x0041 ) );
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_utf16be>(0x4100), cDifferenceEncoding.GetCharCode( 0x0042 ) );
+#else
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_utf16be>(0x0042), cDifferenceEncoding.GetCharCode( 0x0041 ) );
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_utf16be>(0x0041), cDifferenceEncoding.GetCharCode( 0x0042 ) );
+#endif // PODOFO_IS_LITTLE_ENDIAN
+}
+
+bool EncodingTest::outofRangeHelper( PdfEncoding* pEncoding, std::string & rMsg, const char* pszName )
+{
+    bool exception = false;
+
+    try {
+	pEncoding->GetCharCode( pEncoding->GetFirstChar() );
+    } 
+    catch( const PdfError & rError ) 
+    {
+	// This may not throw!
+	rMsg = "pEncoding->GetCharCode( pEncoding->GetFirstChar() ) failed";
+	return false;
+    }
+
+    try {
+	pEncoding->GetCharCode( pEncoding->GetFirstChar() - 1 );
+    } 
+    catch( const PdfError & rError ) 
+    {
+	// This has to throw!
+	exception = true;
+    }
+
+    if( !exception ) 
+    {
+	rMsg = "pEncoding->GetCharCode( pEncoding->GetFirstChar() - 1 ); failed";
+	return false;
+    }
+
+    try {
+	pEncoding->GetCharCode( pEncoding->GetLastChar() );
+    } 
+    catch( const PdfError & rError ) 
+    {
+	// This may not throw!
+	rMsg = "pEncoding->GetCharCode( pEncoding->GetLastChar()  ); failed";
+	return false;
+    }
+
+    exception = false;
+    try {
+	pEncoding->GetCharCode( pEncoding->GetLastChar() + 1 );
+    } 
+    catch( const PdfError & rError ) 
+    {
+	// This has to throw!
+	exception = true;
+    }
+
+    if( !exception ) 
+    {
+	rMsg = "pEncoding->GetCharCode( pEncoding->GetLastChar() + 1 ); failed";
+	return false;
+    }
+
+    PdfEncoding::const_iterator it = pEncoding->begin();
+    int nCount = pEncoding->GetFirstChar();
+    while( it != pEncoding->end() ) 
+    {
+	CPPUNIT_ASSERT_EQUAL_MESSAGE( pszName, *it, pEncoding->GetCharCode( nCount ) );
+
+	++nCount;
+	++it;
+    }
+
+    return true;
+}

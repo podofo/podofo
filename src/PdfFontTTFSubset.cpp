@@ -66,8 +66,8 @@ inline short Big2Little(short big)
 unsigned int GetPadding(unsigned long ul);	
 
 
-PdfFontTTFSubset::PdfFontTTFSubset( const char* pszFontFileName, unsigned short nFaceIndex )
-    : m_faceIndex(nFaceIndex), m_bOwnDevice( true )
+PdfFontTTFSubset::PdfFontTTFSubset( const char* pszFontFileName, PdfFontMetrics* pMetrics, unsigned short nFaceIndex )
+    : m_pMetrics( pMetrics ), m_faceIndex( nFaceIndex ), m_bOwnDevice( true )
 {
     //File type is now distinguished by ext, which might cause problems.
     const char* pname = pszFontFileName;
@@ -96,8 +96,8 @@ PdfFontTTFSubset::PdfFontTTFSubset( const char* pszFontFileName, unsigned short 
     m_vGlyphIndice.push_back(0);	
 }
 
-PdfFontTTFSubset::PdfFontTTFSubset( PdfInputDevice* pDevice, EFontFileType eType, unsigned short nFaceIndex )
-    : m_eFontFileType( eType ), m_faceIndex(nFaceIndex),
+PdfFontTTFSubset::PdfFontTTFSubset( PdfInputDevice* pDevice, PdfFontMetrics* pMetrics, EFontFileType eType, unsigned short nFaceIndex )
+    : m_pMetrics( pMetrics ), m_eFontFileType( eType ), m_faceIndex(nFaceIndex),
       m_pDevice( pDevice ), m_bOwnDevice( false )
 {
     // For any fonts, assume that glyph 0 is needed.

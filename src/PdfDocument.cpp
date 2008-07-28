@@ -176,6 +176,12 @@ PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bBold, bool bIta
     return m_fontCache.GetFont( pszFontName, bBold, bItalic, bEmbedd, pEncoding, pszFileName );
 }
 
+PdfFont* PdfDocument::CreateFontSubset( const char* pszFontName, bool bBold, bool bItalic, 
+					const PdfEncoding * const pEncoding, const char* pszFileName )
+{
+    return m_fontCache.GetFontSubset( pszFontName, bBold, bItalic, pEncoding, pszFileName );
+}
+
 PdfFont* PdfDocument::CreateFont( FT_Face face, const PdfEncoding * const pEncoding, bool bEmbedd )
 {
     return m_fontCache.GetFont( face, bEmbedd, pEncoding );

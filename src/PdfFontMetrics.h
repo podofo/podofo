@@ -52,27 +52,35 @@ class PODOFO_API PdfFontMetrics {
     /** Create a font metrics object for a given true type file
      *  \param pLibrary handle to an initialized FreeType2 library handle
      *  \param pszFilename filename of a truetype file
+     *  \param pszSubsetPrefix unique prefix for font subsets (see GetFontSubsetPrefix)
      */
-    PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename );
+    PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename, 
+		    const char* pszSubsetPrefix = NULL );
 
     /** Create a font metrics object for a given memory buffer
      *  \param pLibrary handle to an initialized FreeType2 library handle
      *  \param pBuffer block of memory representing the font data (PdfFontMetrics will copy the buffer)
      *  \param nBufLen the length of the buffer
-	 */
-    PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen );
+     *  \param pszSubsetPrefix unique prefix for font subsets (see GetFontSubsetPrefix)
+     */
+    PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen,
+		    const char* pszSubsetPrefix = NULL);
 
     /** Create a font metrics object for a given true type file
      *  \param pLibrary handle to an initialized FreeType2 library handle
      *  \param rBuffer a buffer containing a font file
+     *  \param pszSubsetPrefix unique prefix for font subsets (see GetFontSubsetPrefix)
      */
-    PdfFontMetrics( FT_Library* pLibrary, const PdfRefCountedBuffer & rBuffer );
+    PdfFontMetrics( FT_Library* pLibrary, const PdfRefCountedBuffer & rBuffer,
+		    const char* pszSubsetPrefix = NULL);
 
     /** Create a font metrics object for a given freetype font.
      *  \param pLibrary handle to an initialized FreeType2 library handle
      *  \param face a valid freetype font face
+     *  \param pszSubsetPrefix unique prefix for font subsets (see GetFontSubsetPrefix)
      */
-    PdfFontMetrics( FT_Library* pLibrary, FT_Face face );
+    PdfFontMetrics( FT_Library* pLibrary, FT_Face face,
+		    const char* pszSubsetPrefix = NULL);
 
     /** Create a font metrics object based on an existing PdfObject
      *
@@ -219,6 +227,12 @@ class PODOFO_API PdfFontMetrics {
      */
     const char* GetFontname() const;
 
+    /**
+     * \returns NULL or a 6 uppercase letter and "+" sign prefix
+     *          used for font subsets
+     */
+    const char* GetSubsetFontnamePrefix() const;
+
     /** Get the weight of this font.
      *  Used to build the font dictionay
      *  \returns the weight of this font (500 is normal).
@@ -364,6 +378,7 @@ class PODOFO_API PdfFontMetrics {
     std::vector<double> m_vecWidth;
 
     EPdfFontType  m_eFontType;
+    std::string   m_sFontSubsetPrefix;
 };
 
 // -----------------------------------------------------
