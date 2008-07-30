@@ -55,6 +55,17 @@ class PODOFO_API PdfOutputDevice {
      */
     PdfOutputDevice( const char* pszFilename );
 
+    /** Construct a new PdfOutputDevice that writes all data to a file.
+     *
+     *  \param pszFilename path to a file that will be opened and all data
+     *                     is written to this file.
+	 *
+	 *  This is an overloaded member function to allow working
+	 *  with unicode characters. On Unix systes you can also path
+	 *  UTF-8 to the const char* overload.
+     */
+    PdfOutputDevice( const wchar_t* pszFilename );
+
     /** Construct a new PdfOutputDevice that writes all data to a memory buffer.
      *  The buffer will not be owned by this object and has to be allocated before.
      *

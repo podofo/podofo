@@ -183,9 +183,9 @@ inline unsigned long PdfFontTTFSubset::GetSize() const
 inline void PdfFontTTFSubset::AddCharacter( pdf_utf16be nCharCode )
 {
 #ifdef PODOFO_IS_LITTLE_ENDIAN
-    this->AddGlyph( m_pMetrics->GetGlyphId( ((nCharCode & 0xff00) >> 8) | ((nCharCode & 0xff) << 8) ) );
+    this->AddGlyph( static_cast<unsigned short>(m_pMetrics->GetGlyphId( ((nCharCode & 0xff00) >> 8) | ((nCharCode & 0xff) << 8) )) );
 #else
-    this->AddGlyph( m_pMetrics->GetGlyphId( nCharCode ) );
+    this->AddGlyph( static_cast<unsigned short>(m_pMetrics->GetGlyphId( nCharCode )) );
 #endif // PODOFO_IS_LITTLE_ENDIAN
 }
 

@@ -258,7 +258,7 @@ void PdfAscii85Filter::EncodeTuple( unsigned long tuple, int count )
 
     do 
     {
-        *start++ = tuple % 85;
+        *start++ = static_cast<char>(tuple % 85);
         tuple /= 85;
     } 
     while (--i > 0);

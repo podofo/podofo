@@ -2234,7 +2234,7 @@ void PdfEncodingDifference::AddDifference( int nCode, const PdfName & rName )
     }
     else
     {
-        m_vecDifferences.insert( it.first, dif );
+        //m_vecDifferences.insert( it.first, dif );
     }
 }
 

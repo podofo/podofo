@@ -25,7 +25,7 @@
 
 namespace PoDoFo {
 
-bool        PdfError::s_DgbEnabled = true;
+bool PdfError::s_DgbEnabled = true;
 
 PdfErrorInfo::PdfErrorInfo()
     : m_nLine( -1 )
@@ -38,6 +38,11 @@ PdfErrorInfo::PdfErrorInfo( int line, const char* pszFile, const char* pszInfo )
 
 }
  
+PdfErrorInfo::PdfErrorInfo( int line, const char* pszFile, const wchar_t* pszInfo )
+    : m_nLine( line ), m_sFile( pszFile ? pszFile : "" ), m_swInfo( pszInfo ? pszInfo : L"" )
+{
+
+}
 PdfErrorInfo::PdfErrorInfo( const PdfErrorInfo & rhs )
 {
     this->operator=( rhs );
@@ -45,9 +50,10 @@ PdfErrorInfo::PdfErrorInfo( const PdfErrorInfo & rhs )
 
 const PdfErrorInfo & PdfErrorInfo::operator=( const PdfErrorInfo & rhs )
 {
-    m_nLine = rhs.m_nLine;
-    m_sFile = rhs.m_sFile;
-    m_sInfo = rhs.m_sInfo;
+    m_nLine  = rhs.m_nLine;
+    m_sFile  = rhs.m_sFile;
+    m_sInfo  = rhs.m_sInfo;
+    m_swInfo = rhs.m_swInfo;
 
     return *this;
 }
@@ -136,7 +142,10 @@ void PdfError::PrintErrorMsg() const
 
         if( !(*it).GetInformation().empty() )
             PdfError::LogMessage( eLogSeverity_Error, "\t\tInformation: %s\n", (*it).GetInformation().c_str() );
-        
+
+        if( !(*it).GetInformationW().empty() )
+            PdfError::LogMessage( eLogSeverity_Error, L"\t\tInformation: %s\n", (*it).GetInformationW().c_str() );
+
         ++i;
         ++it;
     }
@@ -424,6 +433,34 @@ void PdfError::LogMessage( ELogSeverity, const char* pszMsg, ... )
         fprintf( stderr, pszPrefix );
 
     vfprintf( stderr, pszMsg, args );
+    va_end( args );
+}
+
+void PdfError::LogMessage( ELogSeverity, const wchar_t* pszMsg, ... )
+{
+    const wchar_t* pszPrefix = NULL;
+
+    /*
+    switch( eLogSeverity ) 
+    {
+        case eLogSeverity_Error:
+            break;
+        case eLogSeverity_Critical:
+            break;
+        case eLogSeverity_Warning:
+            break;
+        default:
+            break;
+    }
+    */
+
+    va_list  args;
+    va_start( args, pszMsg );
+    
+    if( pszPrefix )
+        fwprintf( stderr, pszPrefix );
+
+    vfwprintf( stderr, pszMsg, args );
     va_end( args );
 }
 

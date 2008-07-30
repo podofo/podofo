@@ -35,6 +35,13 @@ PdfStreamedDocument::PdfStreamedDocument( const char* pszFilename, EPdfVersion e
     Init( m_pDevice, eVersion, pEncrypt );
 }
 
+PdfStreamedDocument::PdfStreamedDocument( const wchar_t* pszFilename, EPdfVersion eVersion, PdfEncrypt* pEncrypt )
+    : m_pWriter( NULL ), m_pEncrypt( pEncrypt ), m_bOwnDevice( true )
+{
+    m_pDevice = new PdfOutputDevice( pszFilename );
+    Init( m_pDevice, eVersion, pEncrypt );
+}
+
 PdfStreamedDocument::~PdfStreamedDocument()
 {
     delete m_pWriter;

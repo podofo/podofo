@@ -42,7 +42,7 @@ PdfInputDevice::PdfInputDevice( const char* pszFilename )
     }
 
     try {
-        m_pStream = static_cast< std::istream* >( new std::ifstream( pszFilename, std::ios::binary ) );
+        m_pStream = new std::ifstream( pszFilename, std::ios::binary );
         if( !m_pStream || !m_pStream->good() )
         {
             PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
@@ -53,6 +53,34 @@ PdfInputDevice::PdfInputDevice( const char* pszFilename )
         // should probably check the exact error, but for now it's a good error
         PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
     }
+    PdfLocaleImbue(*m_pStream);
+}
+
+PdfInputDevice::PdfInputDevice( const wchar_t* pszFilename )
+{
+    this->Init();
+
+    if( !pszFilename ) 
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    try {
+        m_pStream = new std::ifstream( pszFilename, std::ios::binary );
+        if( !m_pStream || !m_pStream->good() )
+        {
+			PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
+			e.SetErrorInformation( pszFilename );
+			throw e;
+        }
+        m_StreamOwned = true;
+    }
+    catch(...) {
+        // should probably check the exact error, but for now it's a good error
+		PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
+		e.SetErrorInformation( pszFilename );
+	    throw e;
+	}
     PdfLocaleImbue(*m_pStream);
 }
 

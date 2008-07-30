@@ -61,6 +61,8 @@ int main( int argc, char* argv[] )
       std::cout << "----------------" << std::endl;
       myInfo.OutputInfoDict( std::cout );
       std::cout << std::endl;
+		
+	  return 0;
 
       std::cout << "Page Info" << std::endl;
       std::cout << "---------" << std::endl;

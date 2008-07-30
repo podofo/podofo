@@ -150,20 +150,24 @@ class PODOFO_API PdfErrorInfo {
  public:
     PdfErrorInfo();
     PdfErrorInfo( int line, const char* pszFile, const char* pszInfo );
-    PdfErrorInfo( const PdfErrorInfo & rhs );
+    PdfErrorInfo( int line, const char* pszFile, const wchar_t* pszInfo );
+	PdfErrorInfo( const PdfErrorInfo & rhs );
 
     const PdfErrorInfo & operator=( const PdfErrorInfo & rhs );
 
     inline int GetLine() const { return m_nLine; }
     inline const std::string & GetFilename() const { return m_sFile; }
     inline const std::string & GetInformation() const { return m_sInfo; }
+    inline const std::wstring & GetInformationW() const { return m_swInfo; }
 
     inline void SetInformation( const char* pszInfo ) { m_sInfo = pszInfo ? pszInfo : ""; }
+    inline void SetInformation( const wchar_t* pszInfo ) { m_swInfo = pszInfo ? pszInfo : L""; }
 
  private:
-    int         m_nLine;
-    std::string m_sFile;
-    std::string m_sInfo;
+    int          m_nLine;
+    std::string  m_sFile;
+    std::string  m_sInfo;
+	std::wstring m_swInfo;
 };
 
 
@@ -272,12 +276,48 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError : public std::exception {
      */
     inline void SetError( const EPdfError & eCode, const char* pszFile = NULL, int line = 0, const char* pszInformation = NULL );
 
+    /** Set the error code of this object.
+     *  \param eCode the error code of this object
+     *  \param pszFile the filename of the source file causing
+     *                 the error or NULL. Typically you will use
+     *                 the gcc macro __FILE__ here.
+     *  \param line    the line of source causing the error
+     *                 or 0. Typically you will use the gcc 
+     *                 macro __LINE__ here.
+     *  \param pszInformation additional information on the error.
+     *         e.g. how to fix the error. This string is intended to 
+     *         be shown to the user.
+     */
+    inline void SetError( const EPdfError & eCode, const char* pszFile, int line, const wchar_t* pszInformation );
+
     /** Set additional error informatiom
      *  \param pszInformation additional information on the error.
      *         e.g. how to fix the error. This string is intended to 
      *         be shown to the user.
      */
     inline void SetErrorInformation( const char* pszInformation );
+
+    /** Set additional error informatiom
+     *  \param pszInformation additional information on the error.
+     *         e.g. how to fix the error. This string is intended to 
+     *         be shown to the user.
+     */
+    inline void SetErrorInformation( const wchar_t* pszInformation );
+
+	/** Add callstack information to an error object. Always call this function
+     *  if you get an error object but do not handle the error but throw it again.
+     *
+     *  \param pszFile the filename of the source file causing
+     *                 the error or NULL. Typically you will use
+     *                 the gcc macro __FILE__ here.
+     *  \param line    the line of source causing the error
+     *                 or 0. Typically you will use the gcc 
+     *                 macro __LINE__ here.
+     *  \param pszInformation additional information on the error.
+     *         e.g. how to fix the error. This string is intended to 
+     *         be shown to the user.
+     */
+    inline void AddToCallstack( const char* pszFile = NULL, int line = 0, const char* pszInformation = NULL );
 
     /** Add callstack information to an error object. Always call this function
      *  if you get an error object but do not handle the error but throw it again.
@@ -292,7 +332,7 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError : public std::exception {
      *         e.g. how to fix the error. This string is intended to 
      *         be shown to the user.
      */
-    inline void AddToCallstack( const char* pszFile = NULL, int line = 0, const char* pszInformation = NULL );
+    inline void AddToCallstack( const char* pszFile, int line, const wchar_t* pszInformation );
 
     /** \returns true if an error code was set 
      *           and false if the error code is ePdfError_ErrOk
@@ -327,6 +367,12 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError : public std::exception {
      *  \param pszMsg       the message to be logged
      */
     static void LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... );
+
+    /** Log a message to the logging system defined for PoDoFo.
+     *  \param eLogSeverity the sevirity of the log message
+     *  \param pszMsg       the message to be logged
+     */
+    static void LogMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ... );
 
     /** Log a message to the logging system defined for PoDoFo for debugging
      *  \param pszMsg       the message to be logged
@@ -378,7 +424,24 @@ void PdfError::SetError( const EPdfError & eCode, const char* pszFile, int line,
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
+void PdfError::SetError( const EPdfError & eCode, const char* pszFile, int line, const wchar_t* pszInformation )
+{
+    m_error = eCode;
+    this->AddToCallstack( pszFile, line, pszInformation );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 void PdfError::AddToCallstack( const char* pszFile, int line, const char* pszInformation )
+{
+    m_callStack.push_front( PdfErrorInfo( line, pszFile, pszInformation ) );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfError::AddToCallstack( const char* pszFile, int line, const wchar_t* pszInformation )
 {
     m_callStack.push_front( PdfErrorInfo( line, pszFile, pszInformation ) );
 }
@@ -390,6 +453,15 @@ void PdfError::SetErrorInformation( const char* pszInformation )
 {
     if( m_callStack.size() )
         m_callStack.front().SetInformation( pszInformation ? pszInformation : "" );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfError::SetErrorInformation( const wchar_t* pszInformation )
+{
+    if( m_callStack.size() )
+        m_callStack.front().SetInformation( pszInformation ? pszInformation : L"" );
 }
 
 // -----------------------------------------------------

@@ -79,6 +79,29 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *  it into memory.
      *
      *  \param pVecObjects vector to write the parsed PdfObjects to
+     *  \param pszFilename filename of the file which is going to be parsed
+     *  \param bLoadOnDemand If true all objects will be read from the file at
+     *                       the time they are accesed first.
+     *                       If false all objects will be read immediately.
+     *                       This is faster if you do not need the complete PDF 
+     *                       file in memory.
+     *
+     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  if a password is required to read this PDF.
+     *  Call SetPassword with the correct password in this case.
+     *  
+	 *  This is an overloaded member function to allow working
+	 *  with unicode characters. On Unix systes you can also path
+	 *  UTF-8 to the const char* overload.
+	 *
+     *  \see SetPassword
+     */
+    PdfParser( PdfVecObjects* pVecObjects, const wchar_t* pszFilename, bool bLoadOnDemand = true );
+
+    /** Create a new PdfParser object and open a PDF file and parse
+     *  it into memory.
+     *
+     *  \param pVecObjects vector to write the parsed PdfObjects to
      *  \param pBuffer buffer containing a PDF file in memory
      *  \param lLen length of the buffer containing the PDF file
      *  \param bLoadOnDemand If true all objects will be read from the file at
@@ -137,6 +160,28 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      */
     void ParseFile( const char* pszFilename, bool bLoadOnDemand = true );
 
+	/** Open a PDF file and parse it.
+     *
+     *  \param pszFilename filename of the file which is going to be parsed
+     *  \param bLoadOnDemand If true all objects will be read from the file at
+     *                       the time they are accesed first.
+     *                       If false all objects will be read immediately.
+     *                       This is faster if you do not need the complete PDF 
+     *                       file in memory.
+     *
+     *
+     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  if a password is required to read this PDF.
+     *  Call SetPassword with the correct password in this case.
+     *  
+	 *  This is an overloaded member function to allow working
+	 *  with unicode characters. On Unix systes you can also path
+	 *  UTF-8 to the const char* overload.
+	 *
+     *  \see SetPassword
+     */
+    void ParseFile( const wchar_t* pszFilename, bool bLoadOnDemand = true );
+
     /** Open a PDF file and parse it.
      *
      *  \param pBuffer buffer containing a PDF file in memory
@@ -154,7 +199,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *  
      *  \see SetPassword
      */
-    void ParseFile( const  char* pBuffer, long lLen, bool bLoadOnDemand = true );
+    void ParseFile( const char* pBuffer, long lLen, bool bLoadOnDemand = true );
 
     /** Open a PDF file and parse it.
      *

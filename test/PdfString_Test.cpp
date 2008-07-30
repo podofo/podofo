@@ -151,6 +151,12 @@ void testUnicode()
     PdfString fromJap16BE( psStringJapUtf16BE, sizeof(psStringJapUtf16BE), false);
     if (!fromJap16BE.IsUnicode())
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+
+	std::string str;
+	str = fromJap16BE.GetStringUtf8();
+	if( str != std::string(pszStringJapUtf8) )
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+
 }
 
 

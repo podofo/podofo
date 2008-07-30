@@ -24,6 +24,7 @@
 #include "PdfStream.h"
 
 #include <stdio.h>
+#include <wchar.h>
 #include <sstream>
 
 #ifdef PODOFO_HAVE_TIFF_LIB
@@ -201,8 +202,6 @@ static void JPegErrorExit(j_common_ptr)
 void PdfImage::LoadFromJpeg( const char* pszFilename )
 {
     FILE*                         hInfile;    
-    struct jpeg_decompress_struct cinfo;
-    struct jpeg_error_mgr         jerr;
 
     if( !pszFilename )
     {
@@ -214,6 +213,40 @@ void PdfImage::LoadFromJpeg( const char* pszFilename )
     {
         PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
     }
+
+	PdfFileInputStream stream( pszFilename );
+	LoadFromJpegHandle( hInfile, &stream );
+}
+
+void PdfImage::LoadFromJpeg( const wchar_t* pszFilename )
+{
+    FILE*                         hInfile;    
+
+    if( !pszFilename )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+#ifdef _WIN32
+    hInfile = _wfopen(pszFilename, L"rb");
+#else
+    hInfile = wfopen(pszFilename, L"rb");
+#endif // _WIN32
+    if( !hInfile )
+    {
+		PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
+		e.SetErrorInformation( pszFilename );
+	    throw e;
+	}
+
+	PdfFileInputStream stream( pszFilename );
+	LoadFromJpegHandle( hInfile, &stream );
+}
+
+void PdfImage::LoadFromJpegHandle( FILE* hInfile, PdfFileInputStream* pInStream )
+{
+    struct jpeg_decompress_struct cinfo;
+    struct jpeg_error_mgr         jerr;
 
     cinfo.err = jpeg_std_error(&jerr);
     jerr.error_exit = &JPegErrorExit;
@@ -282,11 +315,10 @@ void PdfImage::LoadFromJpeg( const char* pszFilename )
             break;
     }
 
-    PdfFileInputStream stream( pszFilename );
     // Set the filters key to DCTDecode
     m_pObject->GetDictionary().AddKey( PdfName::KeyFilter, PdfName( "DCTDecode" ) );
     // Do not apply any filters as JPEG data is already DCT encoded.
-    this->SetImageDataRaw( cinfo.output_width, cinfo.output_height, 8, &stream );
+    this->SetImageDataRaw( cinfo.output_width, cinfo.output_height, 8, pInStream );
     
     (void) jpeg_destroy_decompress(&cinfo);
 }

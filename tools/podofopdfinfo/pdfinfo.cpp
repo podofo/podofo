@@ -60,6 +60,7 @@ void PdfInfo::OutputInfoDict( std::ostream& sOutStream )
         sOutStream << "No info dictionary in this PDF file!" << std::endl;
     else
     {
+
         sOutStream << "\tAuthor: "   << mDoc->GetInfo()->GetAuthor().GetStringUtf8() << std::endl;
         sOutStream << "\tCreator: "  << mDoc->GetInfo()->GetCreator().GetStringUtf8() << std::endl;
         sOutStream << "\tSubject: "  << mDoc->GetInfo()->GetSubject().GetStringUtf8() << std::endl;

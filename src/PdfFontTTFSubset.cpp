@@ -27,7 +27,7 @@
 #include <string.h>
 
 #ifdef _WIN32
-#include <strings.h>
+#include <string.h>
 #define strcasecmp _stricmp
 #endif // _WIN32
 
@@ -233,7 +233,7 @@ void PdfFontTTFSubset::SeeIfLongLocaOrNot()
     unsigned long ulHeadOffset = GetTableOffset("head");
     GetData( ulHeadOffset+50,&usIsLong,__LENGTH_WORD);
     usIsLong = Big2Little(usIsLong);
-    m_bIsLongLoca = usIsLong;
+	m_bIsLongLoca = (usIsLong == 0 ? false : true);
 }
 
 void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
@@ -538,7 +538,7 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
 	    GetData( ulLocaTableOffset+__LENGTH_WORD*(gd.glyphIndex+1),&usNextGlyphAddress,__LENGTH_WORD);
 	    usNextGlyphAddress = Big2Little(usNextGlyphAddress);
 	    usNextGlyphAddressLong = usNextGlyphAddress*2;
-	    gd.glyphLength = usNextGlyphAddressLong-gd.glyphOldAddressLong;
+	    gd.glyphLength = static_cast<unsigned short>(usNextGlyphAddressLong-gd.glyphOldAddressLong);
 	    vsGD.push_back(gd);
 	}
 	
@@ -547,14 +547,14 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
 	GetData( ulLocaTableOffset+(m_numGlyphs)*__LENGTH_WORD,&gd.glyphOldAddress,__LENGTH_WORD);	//?
 	gd.glyphOldAddress = Big2Little(gd.glyphOldAddress);
 	gd.glyphOldAddressLong = gd.glyphOldAddress*2;
-	gd.glyphLength = usNextGlyphAddressLong-gd.glyphOldAddressLong;
+	gd.glyphLength = static_cast<unsigned short>(usNextGlyphAddressLong-gd.glyphOldAddressLong);
 	vsGD.push_back(gd);
 	vsGD[0].glyphNewAddress = 0x0;
 	vsGD[0].glyphNewAddressLong = 0x0;
 	for (unsigned long i(1); i < vsGD.size(); i++)
 	{
 	    vsGD[i].glyphNewAddressLong = vsGD[i-1].glyphNewAddressLong+vsGD[i-1].glyphLength;
-	    vsGD[i].glyphNewAddress = vsGD[i].glyphNewAddressLong/2;
+	    vsGD[i].glyphNewAddress = static_cast<unsigned short>(vsGD[i].glyphNewAddressLong/2);
 	}
 	
 	//New glyf table length:

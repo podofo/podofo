@@ -1211,7 +1211,7 @@ void PdfTTFWriter::WriteNameTable( PdfOutputDevice* pDevice )
     tNameTable.encodingId   = 3;
     tNameTable.languageId   = 0x0809;
     tNameTable.nameId       = 6;
-    tNameTable.stringLength = lLen;
+    tNameTable.stringLength = static_cast<pdf_ttf_ushort>(lLen);
     tNameTable.stringOffset = 12;
     
     SwapUShort( &tNameTable.format );

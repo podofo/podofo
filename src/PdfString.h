@@ -85,6 +85,14 @@ class PODOFO_API PdfString : public PdfDataType{
      */
     PdfString( const char* pszString );
 
+    /** Construct a new PdfString from a 0 terminated
+     *  string. 
+     *  The input string will be copied.
+     *
+     *  \param pszString the string to copy
+     */
+    PdfString( const wchar_t* pszString );
+
     /** Construct a new PdfString from a string. 
      *  The input string will be copied.
      *  If the first to bytes of the string are 0xFE and 0xFF

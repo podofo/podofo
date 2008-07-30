@@ -132,11 +132,21 @@ class PODOFO_API PdfImage : public PdfXObject {
      *  \param pszFilename
      */
     void LoadFromFile( const char* pszFilename );
+
 #ifdef PODOFO_HAVE_JPEG_LIB
     /** Load the image data from a JPEG file
      *  \param pszFilename
      */
     void LoadFromJpeg( const char* pszFilename );
+
+    /** Load the image data from a JPEG file
+     *  \param pszFilename
+	 *
+	 *  This is an overloaded member function to allow working
+	 *  with unicode characters. On Unix systes you can also path
+	 *  UTF-8 to the const char* overload.
+     */
+    void LoadFromJpeg( const wchar_t* pszFilename );
 #endif // PODOFO_HAVE_JPEG_LIB
 #ifdef PODOFO_HAVE_TIFF_LIB
     /** Load the image data from a TIFF file
@@ -166,7 +176,9 @@ class PODOFO_API PdfImage : public PdfXObject {
      */
     static const char* ColorspaceToName( EPdfColorSpace eColorSpace );
 
- private:
+#ifdef PODOFO_HAVE_JPEG_LIB
+	void LoadFromJpegHandle( FILE* hInfile, PdfFileInputStream* pInStream );
+#endif // PODOFO_HAVE_JPEG_LIB
 };
 
 // -----------------------------------------------------

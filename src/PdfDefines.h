@@ -28,10 +28,15 @@
  *        supporting platforms it will be precompiled to speed compilation.
  */ 
 
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200
+#ifdef _MSC_VER
+#if _MSC_VER <= 1200 // Visual Studio 6
 #pragma warning(disable: 4786)
 #pragma warning(disable: 4251)
-#endif
+#elif _MSC_VER <= 1400 // Visual Studio 2005
+#pragma warning(disable: 4251)
+#pragma warning(disable: 4275)
+#endif // _MSC_VER
+#endif // _MSC_VER
 
 // Include common system files
 #include <cstdio>
@@ -130,6 +135,11 @@ enum EPdfVersion {
     ePdfVersion_1_6,           /**< PDF 1.6 */ 
     ePdfVersion_1_7            /**< PDF 1.7 */ 
 };
+
+/** The default PDF Version used by new PDF documents
+ *  in PoDoFo. 
+ */
+const EPdfVersion ePdfVersion_Default = ePdfVersion_1_3;
 
 /**
  * Every PDF datatype that can occur in a PDF file

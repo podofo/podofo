@@ -31,8 +31,6 @@ class PdfObject;
 class PdfPage;
 class PdfRect;
 
-typedef std::deque< PdfPage* >	PdfPageObjects;
-
 typedef enum {
     PageInsertBeforeFirstPage	= -1,
     PageInsertLastPage		= -2,
@@ -48,6 +46,7 @@ typedef enum {
  */
 class PODOFO_API PdfPagesTree : public PdfElement
 {
+	typedef std::deque< PdfPage* >	PdfPageObjects;
  public:
     /** Construct a new PdfPagesTree
      */

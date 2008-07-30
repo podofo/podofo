@@ -60,6 +60,13 @@ PdfParser::PdfParser( PdfVecObjects* pVecObjects, const char* pszFilename, bool 
     this->ParseFile( pszFilename, bLoadOnDemand );
 }
 
+PdfParser::PdfParser( PdfVecObjects* pVecObjects, const wchar_t* pszFilename, bool bLoadOnDemand )
+    : PdfTokenizer(), m_vecObjects( pVecObjects )
+{
+    this->Init();
+    this->ParseFile( pszFilename, bLoadOnDemand );
+}
+
 PdfParser::PdfParser( PdfVecObjects* pVecObjects, const char* pBuffer, long lLen, bool bLoadOnDemand )
     : PdfTokenizer(), m_vecObjects( pVecObjects )
 {
@@ -96,7 +103,7 @@ void PdfParser::Init()
     m_offsets.clear();
     m_pEncrypt        = NULL;
 
-    m_ePdfVersion     = ePdfVersion_1_0;
+    m_ePdfVersion     = ePdfVersion_Default;
 
     m_nXRefOffset     = 0;
     m_nFirstObject    = 0;
@@ -117,6 +124,24 @@ void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
     {
         PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
     }
+
+    this->ParseFile( device, bLoadOnDemand );
+}
+
+void PdfParser::ParseFile( const wchar_t* pszFilename, bool bLoadOnDemand )
+{
+    if( !pszFilename || !pszFilename[0] )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    PdfRefCountedInputDevice device( pszFilename, "rb" );
+    if( !device.Device() )
+    {
+		PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
+		e.SetErrorInformation( pszFilename );
+		throw e;
+	}
 
     this->ParseFile( device, bLoadOnDemand );
 }

@@ -87,7 +87,7 @@ PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    m_eVersion     = ePdfVersion_1_3;
+    m_eVersion     = ePdfVersion_Default;
     m_pTrailer     = new PdfObject( *pTrailer );
     m_vecObjects   = pVecObjects;
 }
@@ -97,7 +97,7 @@ PdfWriter::PdfWriter( PdfVecObjects* pVecObjects )
       m_pEncryptObj( NULL ), m_pPagesTree( NULL ),
       m_bLinearized( false ), m_lFirstInXRef( 0 )
 {
-    m_eVersion     = ePdfVersion_1_3;
+    m_eVersion     = ePdfVersion_Default;
     m_pTrailer     = new PdfObject();
     m_vecObjects   = pVecObjects;
 }
@@ -113,6 +113,13 @@ PdfWriter::~PdfWriter()
 }
 
 void PdfWriter::Write( const char* pszFilename )
+{
+    PdfOutputDevice device( pszFilename );
+
+    this->Write( &device );
+}
+
+void PdfWriter::Write( const wchar_t* pszFilename )
 {
     PdfOutputDevice device( pszFilename );
 

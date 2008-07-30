@@ -53,11 +53,17 @@ namespace PoDoFo {
 PdfMemDocument::PdfMemDocument()
     : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL )
 {
-    m_eVersion    = ePdfVersion_1_3;
+    m_eVersion    = ePdfVersion_Default;
     m_bLinearized = false;
 }
 
 PdfMemDocument::PdfMemDocument( const char* pszFilename )
+    : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL )
+{
+    this->Load( pszFilename );
+}
+
+PdfMemDocument::PdfMemDocument( const wchar_t* pszFilename )
     : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL )
 {
     this->Load( pszFilename );
@@ -121,7 +127,22 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
     this->SetCatalog ( pCatalog );
     this->SetInfo    ( pInfoObj );
 }
+
 void PdfMemDocument::Load( const char* pszFilename )
+{
+    this->Clear();
+
+    m_pParser = new PdfParser( PdfDocument::GetObjects(), pszFilename, true );
+    InitFromParser( m_pParser );
+    InitPagesTree();
+
+    // Delete the temporary pdfparser object.
+    // It is only set to m_pParser so that SetPassword can work
+    delete m_pParser;
+    m_pParser = NULL;
+}
+
+void PdfMemDocument::Load( const wchar_t* pszFilename )
 {
     this->Clear();
 
@@ -171,6 +192,23 @@ void PdfMemDocument::SetPassword( const std::string & sPassword )
 }
 
 void PdfMemDocument::Write( const char* pszFilename )
+{
+    /** TODO:
+     *  We will get problems here on linux,
+     *  if we write to the same filename we read the 
+     *  document from.
+     *  Because the PdfParserObjects will read there streams 
+     *  data from the file while we are writing it.
+     *  The problem is that the stream data won't exist at this time
+     *  as we truncated the file already to zero length by opening
+     *  it writeable.
+     */
+    PdfOutputDevice device( pszFilename );
+
+    this->Write( &device );
+}
+
+void PdfMemDocument::Write( const wchar_t* pszFilename )
 {
     /** TODO:
      *  We will get problems here on linux,
