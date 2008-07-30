@@ -59,15 +59,17 @@ class PODOFO_API PdfFileInputStream : public PdfInputStream {
      */
     PdfFileInputStream( const char* pszFilename );
 
+#ifdef _WIN32
     /** Open a file for reading data
      *  
      *  \param pszFilename the filename of the file to read
-	 *
-	 *  This is an overloaded member function to allow working
-	 *  with unicode characters. On Unix systes you can also path
-	 *  UTF-8 to the const char* overload.
+     *
+     *  This is an overloaded member function to allow working
+     *  with unicode characters. On Unix systes you can also path
+     *  UTF-8 to the const char* overload.
      */
     PdfFileInputStream( const wchar_t* pszFilename );
+#endif // _WIN32
 
     ~PdfFileInputStream();
 

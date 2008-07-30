@@ -119,12 +119,14 @@ void PdfWriter::Write( const char* pszFilename )
     this->Write( &device );
 }
 
+#ifdef _WIN32
 void PdfWriter::Write( const wchar_t* pszFilename )
 {
     PdfOutputDevice device( pszFilename );
 
     this->Write( &device );
 }
+#endif // _WIN32
 
 void PdfWriter::Write( PdfOutputDevice* pDevice )
 {

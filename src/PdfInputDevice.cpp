@@ -56,6 +56,7 @@ PdfInputDevice::PdfInputDevice( const char* pszFilename )
     PdfLocaleImbue(*m_pStream);
 }
 
+#ifdef _WIN32
 PdfInputDevice::PdfInputDevice( const wchar_t* pszFilename )
 {
     this->Init();
@@ -69,20 +70,21 @@ PdfInputDevice::PdfInputDevice( const wchar_t* pszFilename )
         m_pStream = new std::ifstream( pszFilename, std::ios::binary );
         if( !m_pStream || !m_pStream->good() )
         {
-			PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
-			e.SetErrorInformation( pszFilename );
-			throw e;
+	    PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
+	    e.SetErrorInformation( pszFilename );
+	    throw e;
         }
         m_StreamOwned = true;
     }
     catch(...) {
         // should probably check the exact error, but for now it's a good error
-		PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
-		e.SetErrorInformation( pszFilename );
-	    throw e;
-	}
+	PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
+	e.SetErrorInformation( pszFilename );
+	throw e;
+    }
     PdfLocaleImbue(*m_pStream);
 }
+#endif // _WIN32
 
 PdfInputDevice::PdfInputDevice( const char* pBuffer, long lLen )
 {

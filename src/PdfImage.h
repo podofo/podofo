@@ -139,14 +139,16 @@ class PODOFO_API PdfImage : public PdfXObject {
      */
     void LoadFromJpeg( const char* pszFilename );
 
+#ifdef _WIN32
     /** Load the image data from a JPEG file
      *  \param pszFilename
-	 *
-	 *  This is an overloaded member function to allow working
-	 *  with unicode characters. On Unix systes you can also path
-	 *  UTF-8 to the const char* overload.
+     *
+     *  This is an overloaded member function to allow working
+     *  with unicode characters. On Unix systes you can also path
+     *  UTF-8 to the const char* overload.
      */
     void LoadFromJpeg( const wchar_t* pszFilename );
+#endif // _WIN32
 #endif // PODOFO_HAVE_JPEG_LIB
 #ifdef PODOFO_HAVE_TIFF_LIB
     /** Load the image data from a TIFF file

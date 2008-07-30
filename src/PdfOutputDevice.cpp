@@ -55,6 +55,7 @@ PdfOutputDevice::PdfOutputDevice( const char* pszFilename )
 }
 
 
+#ifdef _WIN32
 PdfOutputDevice::PdfOutputDevice( const wchar_t* pszFilename )
 {
     this->Init();
@@ -64,18 +65,16 @@ PdfOutputDevice::PdfOutputDevice( const wchar_t* pszFilename )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-#ifdef _WIN32
     m_hFile = _wfopen( pszFilename, L"wb" );
-#else
-    m_hFile = wfopen( pszFilename, L"wb" );
-#endif // _WIN32
     if( !m_hFile )
     {
-		PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
-		e.SetErrorInformation( pszFilename );
-		throw e;
-	}
+	PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
+	e.SetErrorInformation( pszFilename );
+	throw e;
+    }
 }
+#endif // _WIN32
+
 PdfOutputDevice::PdfOutputDevice( char* pBuffer, long lLen )
 {
     this->Init();

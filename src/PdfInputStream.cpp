@@ -37,20 +37,18 @@ PdfFileInputStream::PdfFileInputStream( const char* pszFilename )
     }
 }
 
+#ifdef _WIN32
 PdfFileInputStream::PdfFileInputStream( const wchar_t* pszFilename )
 {
-#ifdef _WIN32
-	m_hFile = _wfopen( pszFilename, L"rb" );
-#else
-    m_hFile = wfopen( pszFilename, L"rb" );
-#endif // _WIN32
+    m_hFile = _wfopen( pszFilename, L"rb" );
     if( !m_hFile ) 
     {
-		PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
-		e.SetErrorInformation( pszFilename );
-	    throw e;
-	}
+	PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
+	e.SetErrorInformation( pszFilename );
+	throw e;
+    }
 }
+#endif // _WIN32
 
 PdfFileInputStream::~PdfFileInputStream()
 {

@@ -124,5 +124,6 @@ void StringTest::testUtf16beContructor()
 
 void StringTest::testWCharConstructor()
 {
-	CPPUNIT_ASSERT_EQUAL( PdfString("Hallo World"), PdfString(L"Hallo World") );
+    CPPUNIT_ASSERT_EQUAL( PdfString("Hallo World"), PdfString(L"Hallo World") );
+    CPPUNIT_ASSERT_EQUAL( PdfString(L"Hallo World"), PdfString(L"Hallo World") );
 }

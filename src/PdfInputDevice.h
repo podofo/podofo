@@ -45,16 +45,18 @@ class PODOFO_API PdfInputDevice {
      */
     PdfInputDevice( const char* pszFilename );
 
+#ifdef _WIN32
     /** Construct a new PdfInputDevice that reads all data from a file.
      *
      *  \param pszFilename path to a file that will be opened and all data
      *                     is read from this file.
-	 *
-	 *  This is an overloaded member function to allow working
-	 *  with unicode characters. On Unix systes you can also path
-	 *  UTF-8 to the const char* overload.
+     *
+     *  This is an overloaded member function to allow working
+     *  with unicode characters. On Unix systes you can also path
+     *  UTF-8 to the const char* overload.
      */
     PdfInputDevice( const wchar_t* pszFilename );
+#endif // _WIN32
 
     /** Construct a new PdfInputDevice that reads all data from a memory buffer.
      *  The buffer will not be owned by this object - it is COPIED.

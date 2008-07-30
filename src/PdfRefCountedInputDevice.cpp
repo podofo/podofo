@@ -38,6 +38,7 @@ PdfRefCountedInputDevice::PdfRefCountedInputDevice( const char* pszFilename, con
     m_pDevice->m_pDevice   = new PdfInputDevice( pszFilename );
 }
 
+#ifdef _WIN32
 PdfRefCountedInputDevice::PdfRefCountedInputDevice( const wchar_t* pszFilename, const char* )
     : m_pDevice( NULL )
 {
@@ -45,6 +46,7 @@ PdfRefCountedInputDevice::PdfRefCountedInputDevice( const wchar_t* pszFilename, 
     m_pDevice->m_lRefCount = 1;
     m_pDevice->m_pDevice   = new PdfInputDevice( pszFilename );
 }
+#endif // _WIN32
 
 PdfRefCountedInputDevice::PdfRefCountedInputDevice( const char* pBuffer, long lLen )
     : m_pDevice( NULL )

@@ -94,6 +94,7 @@ class PODOFO_API PdfStreamedDocument : public PdfDocument {
      */
     PdfStreamedDocument( const char* pszFilename, EPdfVersion eVersion = ePdfVersion_Default, PdfEncrypt* pEncrypt = NULL );
 
+#ifdef _WIN32
     /** Create a new PdfStreamedDocument.
      *  All data is written to a file immediately.
      *
@@ -104,12 +105,13 @@ class PODOFO_API PdfStreamedDocument : public PdfDocument {
      *  \param pEncrypt pointer to an encryption object or NULL. If not NULL
      *                  the PdfEncrypt object will be copied and used to encrypt the
      *                  created document.
-	 *
-	 *  This is an overloaded member function to allow working
-	 *  with unicode characters. On Unix systes you can also path
-	 *  UTF-8 to the const char* overload.
+     *
+     *  This is an overloaded member function to allow working
+     *  with unicode characters. On Unix systes you can also path
+     *  UTF-8 to the const char* overload.
      */
     PdfStreamedDocument( const wchar_t* pszFilename, EPdfVersion eVersion = ePdfVersion_Default, PdfEncrypt* pEncrypt = NULL );
+#endif // _WIN32
 
     ~PdfStreamedDocument();
 

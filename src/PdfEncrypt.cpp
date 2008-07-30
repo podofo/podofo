@@ -1128,7 +1128,7 @@ PdfEncryptAES::CalculateStreamOffset() const
   return 16;
 }
 
-PdfInputStream* PdfEncryptAES::CreateEncryptionInputStream( PdfInputStream* pInputStream )
+PdfInputStream* PdfEncryptAES::CreateEncryptionInputStream( PdfInputStream* )
 {
   unsigned char objkey[MD5_HASHBYTES];
   int keylen;
@@ -1165,7 +1165,7 @@ void PdfEncryptAES::CreateEncryptionDictionary( PdfDictionary & rDictionary ) co
 }
 
 
-PdfOutputStream* PdfEncryptAES::CreateEncryptionOutputStream( PdfOutputStream* pOutputStream )
+PdfOutputStream* PdfEncryptAES::CreateEncryptionOutputStream( PdfOutputStream* )
 {
   unsigned char objkey[MD5_HASHBYTES];
   int keylen;
@@ -1233,7 +1233,8 @@ PdfEncryptRC4::PdfEncryptRC4( const std::string & userPassword, const std::strin
             m_rValue = 2;
             m_keyLength = 40 / 8;
             break;
-    }
+	case ePdfEncryptAlgorithm_AESV2:
+	    break;    }
     
     int j;
     for (j = 0; j < 16; j++)
@@ -1270,6 +1271,9 @@ void PdfEncryptRC4::CreateEncryptionDictionary( PdfDictionary & rDictionary ) co
             rDictionary.AddKey( PdfName("R"), 3L );
             rDictionary.AddKey( PdfName("Length"), PdfVariant( static_cast<long>(m_eKeyLength) ) );
             break;        
+	default:
+	case ePdfEncryptAlgorithm_AESV2:
+	    break;
     }
 
     rDictionary.AddKey( PdfName("O"), PdfString( reinterpret_cast<const char*>(this->GetOValue()), 32, true ) );

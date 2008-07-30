@@ -60,12 +60,14 @@ PdfParser::PdfParser( PdfVecObjects* pVecObjects, const char* pszFilename, bool 
     this->ParseFile( pszFilename, bLoadOnDemand );
 }
 
+#ifdef _WIN32
 PdfParser::PdfParser( PdfVecObjects* pVecObjects, const wchar_t* pszFilename, bool bLoadOnDemand )
     : PdfTokenizer(), m_vecObjects( pVecObjects )
 {
     this->Init();
     this->ParseFile( pszFilename, bLoadOnDemand );
 }
+#endif // _WIN32
 
 PdfParser::PdfParser( PdfVecObjects* pVecObjects, const char* pBuffer, long lLen, bool bLoadOnDemand )
     : PdfTokenizer(), m_vecObjects( pVecObjects )
@@ -128,6 +130,7 @@ void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
     this->ParseFile( device, bLoadOnDemand );
 }
 
+#ifdef _WIN32
 void PdfParser::ParseFile( const wchar_t* pszFilename, bool bLoadOnDemand )
 {
     if( !pszFilename || !pszFilename[0] )
@@ -145,6 +148,7 @@ void PdfParser::ParseFile( const wchar_t* pszFilename, bool bLoadOnDemand )
 
     this->ParseFile( device, bLoadOnDemand );
 }
+#endif // _WIN32
 
 void PdfParser::ParseFile( const char* pBuffer, long lLen, bool bLoadOnDemand )
 {

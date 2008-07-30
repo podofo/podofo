@@ -75,6 +75,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      */
     PdfParser( PdfVecObjects* pVecObjects, const char* pszFilename, bool bLoadOnDemand = true );
 
+#ifdef _WIN32
     /** Create a new PdfParser object and open a PDF file and parse
      *  it into memory.
      *
@@ -90,13 +91,14 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *  if a password is required to read this PDF.
      *  Call SetPassword with the correct password in this case.
      *  
-	 *  This is an overloaded member function to allow working
-	 *  with unicode characters. On Unix systes you can also path
-	 *  UTF-8 to the const char* overload.
-	 *
+     *  This is an overloaded member function to allow working
+     *  with unicode characters. On Unix systes you can also path
+     *  UTF-8 to the const char* overload.
+     *
      *  \see SetPassword
      */
     PdfParser( PdfVecObjects* pVecObjects, const wchar_t* pszFilename, bool bLoadOnDemand = true );
+#endif // _WIN32
 
     /** Create a new PdfParser object and open a PDF file and parse
      *  it into memory.
@@ -160,7 +162,8 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      */
     void ParseFile( const char* pszFilename, bool bLoadOnDemand = true );
 
-	/** Open a PDF file and parse it.
+#ifdef _WIN32
+    /** Open a PDF file and parse it.
      *
      *  \param pszFilename filename of the file which is going to be parsed
      *  \param bLoadOnDemand If true all objects will be read from the file at
@@ -174,13 +177,14 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *  if a password is required to read this PDF.
      *  Call SetPassword with the correct password in this case.
      *  
-	 *  This is an overloaded member function to allow working
-	 *  with unicode characters. On Unix systes you can also path
-	 *  UTF-8 to the const char* overload.
-	 *
+     *  This is an overloaded member function to allow working
+     *  with unicode characters. On Unix systes you can also path
+     *  UTF-8 to the const char* overload.
+     *
      *  \see SetPassword
      */
     void ParseFile( const wchar_t* pszFilename, bool bLoadOnDemand = true );
+#endif // _WIN32
 
     /** Open a PDF file and parse it.
      *

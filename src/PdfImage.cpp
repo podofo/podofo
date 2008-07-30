@@ -214,10 +214,11 @@ void PdfImage::LoadFromJpeg( const char* pszFilename )
         PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
     }
 
-	PdfFileInputStream stream( pszFilename );
-	LoadFromJpegHandle( hInfile, &stream );
+    PdfFileInputStream stream( pszFilename );
+    LoadFromJpegHandle( hInfile, &stream );
 }
 
+#ifdef _WIN32
 void PdfImage::LoadFromJpeg( const wchar_t* pszFilename )
 {
     FILE*                         hInfile;    
@@ -227,21 +228,18 @@ void PdfImage::LoadFromJpeg( const wchar_t* pszFilename )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-#ifdef _WIN32
     hInfile = _wfopen(pszFilename, L"rb");
-#else
-    hInfile = wfopen(pszFilename, L"rb");
-#endif // _WIN32
     if( !hInfile )
     {
-		PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
-		e.SetErrorInformation( pszFilename );
-	    throw e;
-	}
+	PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
+	e.SetErrorInformation( pszFilename );
+	throw e;
+    }
 
-	PdfFileInputStream stream( pszFilename );
-	LoadFromJpegHandle( hInfile, &stream );
+    PdfFileInputStream stream( pszFilename );
+    LoadFromJpegHandle( hInfile, &stream );
 }
+#endif // _WIN32
 
 void PdfImage::LoadFromJpegHandle( FILE* hInfile, PdfFileInputStream* pInStream )
 {
@@ -293,28 +291,28 @@ void PdfImage::LoadFromJpegHandle( FILE* hInfile, PdfFileInputStream* pInStream 
             this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
             break;
         case 4:
-			{
-				this->SetImageColorSpace( ePdfColorSpace_DeviceCMYK );
-				// The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
-				// in a inverted fashion. Fix by attaching a decode array
-				PdfArray decode;
-				decode.push_back( 1.0 );
-				decode.push_back( 0.0 );
-				decode.push_back( 1.0 );
-				decode.push_back( 0.0 );
-				decode.push_back( 1.0 );
-				decode.push_back( 0.0 );
-				decode.push_back( 1.0 );
-				decode.push_back( 0.0 );
-
-				this->GetObject()->GetDictionary().AddKey( PdfName("Decode"), decode );
-			}
-            break;
+	{
+	    this->SetImageColorSpace( ePdfColorSpace_DeviceCMYK );
+	    // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
+	    // in a inverted fashion. Fix by attaching a decode array
+	    PdfArray decode;
+	    decode.push_back( 1.0 );
+	    decode.push_back( 0.0 );
+	    decode.push_back( 1.0 );
+	    decode.push_back( 0.0 );
+	    decode.push_back( 1.0 );
+	    decode.push_back( 0.0 );
+	    decode.push_back( 1.0 );
+	    decode.push_back( 0.0 );
+	    
+	    this->GetObject()->GetDictionary().AddKey( PdfName("Decode"), decode );
+	}
+	break;
         default:
             this->SetImageColorSpace( ePdfColorSpace_DeviceGray );
             break;
     }
-
+    
     // Set the filters key to DCTDecode
     m_pObject->GetDictionary().AddKey( PdfName::KeyFilter, PdfName( "DCTDecode" ) );
     // Do not apply any filters as JPEG data is already DCT encoded.

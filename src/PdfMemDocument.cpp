@@ -63,11 +63,13 @@ PdfMemDocument::PdfMemDocument( const char* pszFilename )
     this->Load( pszFilename );
 }
 
+#ifdef _WIN32
 PdfMemDocument::PdfMemDocument( const wchar_t* pszFilename )
     : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL )
 {
     this->Load( pszFilename );
 }
+#endif // _WIN32
 
 PdfMemDocument::~PdfMemDocument()
 {
@@ -142,6 +144,7 @@ void PdfMemDocument::Load( const char* pszFilename )
     m_pParser = NULL;
 }
 
+#ifdef _WIN32
 void PdfMemDocument::Load( const wchar_t* pszFilename )
 {
     this->Clear();
@@ -155,6 +158,7 @@ void PdfMemDocument::Load( const wchar_t* pszFilename )
     delete m_pParser;
     m_pParser = NULL;
 }
+#endif // _WIN32
 
 void PdfMemDocument::Load( const char* pBuffer, long lLen )
 {
@@ -208,6 +212,7 @@ void PdfMemDocument::Write( const char* pszFilename )
     this->Write( &device );
 }
 
+#ifdef _WIN32
 void PdfMemDocument::Write( const wchar_t* pszFilename )
 {
     /** TODO:
@@ -224,6 +229,7 @@ void PdfMemDocument::Write( const wchar_t* pszFilename )
 
     this->Write( &device );
 }
+#endif // _WIN32
 
 void PdfMemDocument::Write( PdfOutputDevice* pDevice ) 
 {

@@ -330,45 +330,44 @@ PdfString::PdfString( const wchar_t* pszString )
     : m_bHex( false ), m_bUnicode( true )
 {
     if( pszString )
+    {
+	long lLen = wcslen( pszString );
+	if( sizeof(wchar_t) == 2 ) 
 	{
-		long lLen = wcslen( pszString );
-		if( sizeof(wchar_t) == 2 ) 
-		{
-			// We have UTF16
-			lLen *= sizeof(wchar_t);
-			m_buffer = PdfRefCountedBuffer( lLen + 2 );
-			memcpy( m_buffer.GetBuffer(), pszString, lLen );
-			m_buffer.GetBuffer()[lLen] = '\0';
-			m_buffer.GetBuffer()[lLen+1] = '\0';
-
-			// if the buffer is a UTF-16LE string
-			// convert it to UTF-16BE
+	    // We have UTF16
+	    lLen *= sizeof(wchar_t);
+	    m_buffer = PdfRefCountedBuffer( lLen + 2 );
+	    memcpy( m_buffer.GetBuffer(), pszString, lLen );
+	    m_buffer.GetBuffer()[lLen] = '\0';
+	    m_buffer.GetBuffer()[lLen+1] = '\0';
+	    
+	    // if the buffer is a UTF-16LE string
+	    // convert it to UTF-16BE
 #ifdef PODOFO_IS_LITTLE_ENDIAN
             SwapBytes( m_buffer.GetBuffer(), lLen );
 #endif // PODOFO_IS_LITTLE_ENDIA
-		}
-		else
-		{
-			// Try to convert to UTF8
-			long   lDest = 5 * lLen; // At max 5 bytes per UTF8 char
-			char*  pDest = static_cast<char*>(malloc( lDest ));
-			size_t cnt   = wcstombs(pDest, pszString, lDest);
-			if( cnt != static_cast<size_t>(-1) )
-			{
-				// No error
-				InitFromUtf8( reinterpret_cast<pdf_utf8*>(pDest), cnt );
-				free( pDest );
-			}
-			else
-			{
-				free( pDest );
-				PdfError e( ePdfError_InternalLogic, __FILE__, __LINE__ );
-				e.SetErrorInformation( pszString );
-				throw e;
-			}
-		}
-        
 	}
+	else
+	{
+	    // Try to convert to UTF8
+	    long   lDest = 5 * lLen; // At max 5 bytes per UTF8 char
+	    char*  pDest = static_cast<char*>(malloc( lDest ));
+	    size_t cnt   = wcstombs(pDest, pszString, lDest);
+	    if( cnt != static_cast<size_t>(-1) )
+	    {
+		// No error
+		InitFromUtf8( reinterpret_cast<pdf_utf8*>(pDest), cnt );
+		free( pDest );
+	    }
+	    else
+	    {
+		free( pDest );
+		PdfError e( ePdfError_InternalLogic, __FILE__, __LINE__ );
+		e.SetErrorInformation( pszString );
+		throw e;
+	    }
+	}    
+    }
 }
 
 PdfString::PdfString( const char* pszString, long lLen, bool bHex )

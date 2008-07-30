@@ -76,15 +76,17 @@ class PODOFO_API PdfWriter {
      */
     void Write( const char* pszFilename );
 
+#ifdef _WIN32
     /** Writes the complete document to a PDF file.
      *
      *  \param pszFilename filename of a PDF file.
-	 *
-	 *  This is an overloaded member function to allow working
-	 *  with unicode characters. On Unix systes you can also path
-	 *  UTF-8 to the const char* overload.
+     *
+     *  This is an overloaded member function to allow working
+     *  with unicode characters. On Unix systes you can also path
+     *  UTF-8 to the const char* overload.
      */
     void Write( const wchar_t* pszFilename );
+#endif // _WIN32
 
     /** Writes the complete document to a PdfOutputDevice
      *
