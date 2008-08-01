@@ -285,6 +285,12 @@ void PdfXRef::MergeBlocks()
     PdfXRef::TIVecXRefBlock  it     = m_vecBlocks.begin();
     PdfXRef::TIVecXRefBlock  itNext = it+1;
 
+    // Do not crash in case we have no blocks at all
+    if( it == m_vecBlocks.end() )
+    {
+	PODOFO_RAISE_ERROR( ePdfError_NoXRef );
+    }
+
     while( itNext != m_vecBlocks.end() )
     {
         if( (*itNext).m_nFirst == (*it).m_nFirst + (*it).m_nCount ) 

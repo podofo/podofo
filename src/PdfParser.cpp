@@ -44,6 +44,7 @@ using std::flush;
 #define PDF_XREF_ENTRY_SIZE 20
 #define PDF_XREF_BUF        512
 
+#define PODOFO_VERBOSE_DEBUG
 
 namespace PoDoFo {
 
@@ -110,7 +111,6 @@ void PdfParser::Init()
     m_nXRefOffset     = 0;
     m_nFirstObject    = 0;
     m_nNumObjects     = 0;
-    m_xrefSizeUnknown = false;
     m_nXRefLinearizedOffset = 0;
 }
 
@@ -260,7 +260,6 @@ void PdfParser::ReadDocumentStructure()
         PdfError::LogMessage( eLogSeverity_Warning, "PDF Standard Violation: No /Size key was specified in the trailer directory. Will attempt to recover." );
         // Treat the xref size as unknown, and expand the xref dynamically as we read it.
         m_nNumObjects = 0;
-        m_xrefSizeUnknown = true;
     }
 
     if (m_nNumObjects > 0)
@@ -531,8 +530,6 @@ void PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
 
     m_device.Device()->Seek( lOffset );
     
-    //GetNextStringFromFile( );
-    //if( strncmp( m_buffer.GetBuffer(), "xref", 4 ) != 0 )
     if( !this->IsNextToken( "xref" ) )
     {
         if( m_ePdfVersion < ePdfVersion_1_5 )
@@ -591,7 +588,7 @@ void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
     int         count        = 0;
 
 #ifdef PODOFO_VERBOSE_DEBUG
-    PdfError::DebugMessage("Reading XRef Section: %i with %i Objects\n", nFirstObject, nNumObjects );
+    PdfError::DebugMessage("Reading XRef Section: %i with %i Objects.\n", nFirstObject, nNumObjects );
 #endif // PODOFO_VERBOSE_DEBUG 
 
     if ( nFirstObject + nNumObjects > m_nNumObjects )
@@ -599,15 +596,13 @@ void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
         // Total number of xref entries to read is greater than the /Size
         // specified in the trailer if any. That's an error unless we're trying
         // to recover from a missing /Size entry.
-        if (m_xrefSizeUnknown)
-        {
-            m_nNumObjects = nFirstObject + nNumObjects;
-            m_offsets.resize(nFirstObject+nNumObjects);
-        }
-        else
-        {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidXRef, "Xref subsection specifies first object + count > trailer /Size" );
-        }
+	PdfError::LogMessage( eLogSeverity_Warning,
+			      "There are more objects (%i) in this XRef table than "
+			      "specified in the size key of the trailer directory (%i)!\n",
+			      nFirstObject + nNumObjects, m_nNumObjects );
+
+	m_nNumObjects = nFirstObject + nNumObjects;
+	m_offsets.resize(nFirstObject+nNumObjects);
     }
 
     while( count < nNumObjects && m_device.Device()->Read( m_buffer.GetBuffer(), PDF_XREF_ENTRY_SIZE ) == PDF_XREF_ENTRY_SIZE )

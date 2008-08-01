@@ -460,8 +460,6 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     PdfObject*    m_pLinearization;
     PdfEncrypt*   m_pEncrypt;
 
-    bool          m_xrefSizeUnknown;
-
     std::set<int> m_setObjectStreams;
 };
 

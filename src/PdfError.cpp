@@ -407,24 +407,30 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
     return pszMsg;
 }
 
-// ELogSeverity is currently not used
-void PdfError::LogMessage( ELogSeverity, const char* pszMsg, ... )
+void PdfError::LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... )
 {
     const char* pszPrefix = NULL;
 
-    /*
     switch( eLogSeverity ) 
     {
         case eLogSeverity_Error:
             break;
         case eLogSeverity_Critical:
+	    pszPrefix = "CRITICAL: ";
             break;
         case eLogSeverity_Warning:
+	    pszPrefix = "WARNING: ";
             break;
+	case eLogSeverity_Information:
+            break;
+	case eLogSeverity_Debug:
+	    pszPrefix = "DEBUG: ";
+            break;
+	case eLogSeverity_None:
+	case eLogSeverity_Unknown:
         default:
             break;
     }
-    */
 
     va_list  args;
     va_start( args, pszMsg );
@@ -436,23 +442,30 @@ void PdfError::LogMessage( ELogSeverity, const char* pszMsg, ... )
     va_end( args );
 }
 
-void PdfError::LogMessage( ELogSeverity, const wchar_t* pszMsg, ... )
+void PdfError::LogMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ... )
 {
     const wchar_t* pszPrefix = NULL;
 
-    /*
     switch( eLogSeverity ) 
     {
         case eLogSeverity_Error:
             break;
         case eLogSeverity_Critical:
+	    pszPrefix = L"CRITICAL: ";
             break;
         case eLogSeverity_Warning:
+	    pszPrefix = L"WARNING: ";
             break;
+	case eLogSeverity_Information:
+            break;
+	case eLogSeverity_Debug:
+	    pszPrefix = L"DEBUG: ";
+            break;
+	case eLogSeverity_None:
+	case eLogSeverity_Unknown:
         default:
             break;
     }
-    */
 
     va_list  args;
     va_start( args, pszMsg );
