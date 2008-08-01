@@ -1,0 +1,57 @@
+##### ISO A2 paper - ISO A5 pages - in16 x 2 #####
+## Here is a sample plan file for podofoimpose
+## You should find sample.pdf along this file
+## run "podofoimpose sample.pdf sample_imposed.pdf sample.plan" to try it.
+# $PageWidth & $PageHeight are required
+# reminder:
+# source page; destination page; rotation; Tx; Ty;
+
+$PageWidth=1190.55
+$PageHeight=1683.78
+# I’m lazy at typing :)
+$pw=1190.55
+$ph=1683.78
+
+# Plate 1
+$plate=1
+8;	$plate;	270;	0;	$ph;
+1;	$plate;	90;	$pw;	($ph/4.0)*3.0;
+9;	$plate;	270;	0;	($ph/4.0) * 3.0;
+16;	$plate;	90;	$pw;	($ph/4.0)*2.0;
+12;	$plate;	270;	0;	($ph/4.0)*2.0;
+13;	$plate;	90;	$pw;	$ph/4.0;
+5;	$plate;	270;	0;	$ph/4.0;
+4;	$plate;	90;	$pw;	0;
+
+# Plate 2
+$plate=2
+2;	$plate;	270;	0;	$ph;
+7;	$plate;	90;	$pw;	($ph/4.0)*3.0;
+15;	$plate;	270;	0;	($ph/4.0)*3.0;
+10;	$plate;	90;	$pw;	($ph/4.0)*2.0;
+14;	$plate;	270;	0;	($ph/4.0)*2.0;
+11;	$plate;	90;	$pw;	$ph/4.0;
+3;	$plate;	270;	0;	$ph/4.0;
+6;	$plate;	90;	$pw;	0;
+
+# Plate 3
+$plate=3
+24;	$plate;	270;	0;	$ph;
+17;	$plate;	90;	$pw;	($ph/4.0)*3.0;
+25;	$plate;	270;	0;	($ph/4.0)*3.0;
+32;	$plate;	90;	$pw;	($ph/4.0)*2.0;
+28;	$plate;	270;	0;	($ph/4.0)*2.0;
+29;	$plate;	90;	$pw;	$ph/4.0;
+21;	$plate;	270;	0;	$ph/4.0;
+20;	$plate;	90;	$pw;	0;
+
+# Plate 4
+$plate=4
+18;	$plate;	270;	0;	$ph;
+23;	$plate;	90;	$pw;	($ph/4.0)*3.0;
+31;	$plate;	270;	0;	($ph/4.0)*3.0;
+26;	$plate;	90;	$pw;	($ph/4.0)*2.0;
+30;	$plate;	270;	0;	($ph/4.0)*2.0;
+27;	$plate;	90;	$pw;	$ph/4.0;
+19;	$plate;	270;	0;	$ph/4.0;
+22;	$plate;	90;	$pw;	0;

@@ -34,22 +34,26 @@ struct _params {
     string inFilePath;
     string outFilePath;
     string planFilePath;
-    double sheetMargin;
 } params;
 
 void usage()
 {
-     cerr << "Usage : " << params.executablePath << " input output plan sheetMargin" << endl;
-     cerr << "\tinput is a PDF file or a file which contains a list of PDF files" << endl;
-     cerr << "\toutput will be a PDF file" << endl;
-     cerr << "\tplan is an imposition plan file.\n\tFormat is simple, the first line indicates width and height of final page size (MediaBox), and follows a list of records of form :\n\tsourcePage destinationPage rotation(counterclokwise & with axis 0.0) Xcoordinate Ycoordinate" << endl;
-     cerr << "\tsheetMargin is the size of the margins where cut marks will be drawn" << endl;
-     cerr << "\nAll sizes are in point and user space as defined in PDF (origine is bottom left). " << endl;
+     cerr << "Usage : " << params.executablePath << " INPUT OUTPUT PLAN" << endl;
+     cerr << "INPUT is a PDF file or a file which contains a list of PDF files" << endl;
+     cerr << "OUTPUT will be a PDF file" << endl;
+     cerr << "PLAN is an imposition plan file.\n\
+\tYou can set arbitrary constants as in \"$pi=3.14\"\n\
+(2 constants are required, $PageWidth and $PageHeight (MediaBox))\n\
+Follows a list of records of the form :\n\
+\tsourcePage; destinationPage; rotation; Xcoordinate; Ycoordinate;\n\
+Each of the entry can be a literal value or an expression or \n\
+a constant or an expression involving both literals and constants." << endl <<endl;
+     cerr << "\nAll sizes are in postscript point and user space as defined in PDF (origine is bottom left). " << endl;
 }
 
 int parseCommandLine(int argc, char* argv[])
 {
-      if(argc !=  5)
+      if(argc !=  4)
       {
           usage();
           return 1;
@@ -60,14 +64,6 @@ int parseCommandLine(int argc, char* argv[])
       params.outFilePath = argv[2];
       params.planFilePath = argv[3];
 
-      char * endptr = 0;
-      params.sheetMargin = strtod(argv[4], &endptr);
-      if (!endptr)
-      {
-          cerr << "Cannot parse '" << argv[4] << "' as decimal for sheetMargin argument" << endl;
-          usage();
-          return 1;
-      }
       return 0;
 }
 
@@ -84,7 +80,7 @@ int main(int argc, char *argv[])
         return ret;
 
     try {
-        PdfTranslator *translator = new PdfTranslator(params.sheetMargin);
+        PdfTranslator *translator = new PdfTranslator;
         translator->setSource(params.inFilePath);
         translator->setTarget(params.outFilePath);
         translator->loadPlan(params.planFilePath);
