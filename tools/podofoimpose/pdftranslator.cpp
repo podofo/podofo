@@ -168,9 +168,10 @@ double PageRecord::calc ( const std::string& s )
 
 double PageRecord::calc ( const std::vector<std::string>& t )
 {
-// 	std::cerr<<"C2"<<std::endl;
-// 	for(uint i(0);i<t.size();++i)
-// 		std::cerr<<"+ \""<< t.at(i) <<"\""<<std::endl;
+	std::cerr<<"C =";
+	for(uint i(0);i<t.size();++i)
+		std::cerr<<" "<< t.at(i) <<" ";
+// 	std::cerr<<std::endl;
 		
 		
 	if ( t.size() == 0 )
@@ -180,7 +181,7 @@ double PageRecord::calc ( const std::vector<std::string>& t )
 	
 	std::vector<double> values;
 	std::vector<std::string> ops;
-	
+	ops.push_back( "+" );
 		
 	for ( uint vi ( 0 ); vi < t.size(); ++vi )
 	{
@@ -205,7 +206,7 @@ double PageRecord::calc ( const std::vector<std::string>& t )
 				{
 					++cdeep;
 				}
-	
+				std::cerr<<std::endl<<"\t";
 				tokens.push_back ( t.at ( vi ) );
 			}
 // 			std::cerr<<std::endl;
@@ -227,19 +228,19 @@ double PageRecord::calc ( const std::vector<std::string>& t )
 		ret = 	values.at(0);
 	else
 	{
-		for(uint vi(0); (vi + 1) < values.size(); ++vi)
+		for(uint vi(0); vi < ops.size(); ++vi)
 		{
 			if ( ops.at ( vi ) == "+" )
-				ret += values.at(vi) + values.at(vi + 1);
+				ret += values.at( vi );
 			else if ( ops.at ( vi ) == "-" )
-				ret += values.at(vi) - values.at(vi + 1);
+				ret -= values.at(vi);
 			else if ( ops.at ( vi ) == "*" )
-				ret += values.at(vi) * values.at(vi + 1);
+				ret *= values.at(vi);
 			else if ( ops.at ( vi ) == "/" )
-				ret += values.at(vi) / values.at(vi + 1);
+				ret /= values.at(vi);
 		}
 	}
-// 	std::cerr<<"R "<<ret<<std::endl;
+	std::cerr<<" <"<< values.size() <<"> "<<ret<<std::endl;
 	return ret;
 }
 
@@ -511,7 +512,7 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 		in.getline ( cbuffer, MAX_RECORD_SIZE );
 		blen = in.gcount() ;
 		std::string buffer ( cbuffer, blen );
-		std::cerr<< blen <<" \""<< buffer <<"\""<<std::endl;
+// 		std::cerr<< blen <<" \""<< buffer <<"\""<<std::endl;
 		
 		if ( blen < 2 ) // Nothing
 			continue;
@@ -539,7 +540,7 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 			{
 				PoDoFoImpose::vars.insert ( std::pair<std::string, std::string> ( key,value ) );
 			}
-			std::cerr<< sepPos << " "<<key << " = " << PoDoFoImpose::vars[key] <<std::endl;
+// 			std::cerr<< sepPos << " "<<key << " = " << PoDoFoImpose::vars[key] <<std::endl;
 		}
 		else if( buffer.at ( 0 ) == '@' ) // Loop - experimental
 		{
@@ -563,7 +564,7 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 				iterN += buffer.at(a);
 			}
 			std::cerr<<std::endl;
-			std::cerr<< "L "<< iterN <<std::endl;
+// 			std::cerr<< "L "<< iterN <<std::endl;
 			std::map<std::string, double> increments;
 			std::string tvar;
 			std::string tinc;
@@ -607,7 +608,7 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 			}
 			
 			std::cerr<<std::endl;
-			std::cerr<< "V "<< increments.size() <<std::endl;
+// 			std::cerr<< "V "<< increments.size() <<std::endl;
 			
 			std::vector<std::string> lrecords;
 			
@@ -620,26 +621,27 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 					endOfloopBlock = bolb2 + 1;		
 			}
 			
-			std::cerr<< "R "<< lrecords.size() <<std::endl;
+// 			std::cerr<< "R "<< lrecords.size() <<std::endl;
 			
 			// Now we have all to loop, whoooooo!
 			int maxIter(std::atoi(iterN.c_str()));
 			for(int iter(0); iter < maxIter ; ++iter )
 			{
-				std::cerr<< "I "<< iter <<std::endl;
+// 				std::cerr<< "I "<< iter <<std::endl;
 				if(iter != 0)
 				{
 					// we set the vars
 					std::map<std::string, double>::iterator vit;
 					for(vit = increments.begin(); vit != increments.end() ; ++vit)
 					{
-// 						std::cerr<< "PV "<< vit->first<<" "<< vit->second * iter <<std::endl;
 						PoDoFoImpose::vars[vit->first] = dToStr( std::atof(PoDoFoImpose::vars[vit->first].c_str()) + vit->second );
+						std::cerr<< vit->first<<"="<< PoDoFoImpose::vars[vit->first]<<" | ";
 					}
+					std::cerr <<std::endl;
 				}
 				for(uint subi(numline + 1);subi < endOfloopBlock ; ++subi)
 				{
-					std::cerr<< "S "<< memfile.at(subi) <<std::endl;
+// 					std::cerr<< "S "<< memfile.at(subi) <<std::endl;
 					PageRecord p;
 					p.load ( memfile.at(subi) ) ;
 					if(!p.isValid())
