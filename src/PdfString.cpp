@@ -627,36 +627,48 @@ const PdfString & PdfString::operator=( const PdfString & rhs )
 
 bool PdfString::operator>( const PdfString & rhs ) const
 {
-    PdfString str1 = *this;
-    PdfString str2 = rhs;
+    const PdfString & str1 = *this;
+    const PdfString & str2 = rhs;
 
     if( m_bUnicode || rhs.m_bUnicode )
     {
-        // one or both strings are unicode:
-        // make sure both are unicode so that 
-        // we do not loose information
-        str1 = str1.ToUnicode();
-        str2 = str2.ToUnicode();
+#ifdef _WIN32
+        std::wstring sWide_1 = str1.GetStringW();
+        std::wstring sWide_2 = str2.GetStringW();
+
+        return sWide_1 > sWide_2;
+#else
+        std::string sUtf8_1 = str1.GetStringUtf8();
+        std::string sUtf8_2 = str2.GetStringUtf8();
+
+        return sUtf8_1 > sUtf8_2;
+#endif // _WIN32
     }
 
-    return str1.m_buffer > str2.m_buffer;
+    return (strcmp( str1.GetString(), str2.GetString() ) > 0);
 }
 
 bool PdfString::operator<( const PdfString & rhs ) const
 {
-    PdfString str1 = *this;
-    PdfString str2 = rhs;
+    const PdfString & str1 = *this;
+    const PdfString & str2 = rhs;
 
     if( m_bUnicode || rhs.m_bUnicode )
     {
-        // one or both strings are unicode:
-        // make sure both are unicode so that 
-        // we do not loose information
-        str1 = str1.ToUnicode();
-        str2 = str2.ToUnicode();
+#ifdef _WIN32
+        std::wstring sWide_1 = str1.GetStringW();
+        std::wstring sWide_2 = str2.GetStringW();
+
+        return sWide_1 < sWide_2;
+#else
+        std::string sUtf8_1 = str1.GetStringUtf8();
+        std::string sUtf8_2 = str2.GetStringUtf8();
+
+        return sUtf8_1 < sUtf8_2;
+#endif // _WIN32
     }
 
-    return str1.m_buffer < str2.m_buffer;
+    return (strcmp( str1.GetString(), str2.GetString() ) < 0);
 }
 
 bool PdfString::operator==( const PdfString & rhs ) const
@@ -720,7 +732,7 @@ void PdfString::Init( const char* pszString, long lLen )
 
 void PdfString::InitFromUtf8( const pdf_utf8* pszStringUtf8, long lLen )
 {
-    long        lBufLen = lLen << 1;
+    long        lBufLen = (lLen << 1) + sizeof(wchar_t);
     // twice as large buffer should always be enough
     pdf_utf16be *pBuffer = static_cast<pdf_utf16be *>(alloca(lBufLen)); 
 
@@ -762,6 +774,27 @@ void PdfString::InitUtf8()
         m_sUtf8 = sTmp.GetStringUtf8();
     }
 }
+
+#ifdef _WIN32
+const std::wstring PdfString::GetStringW() const
+{
+    if( !this->IsUnicode() )
+    {
+        return this->ToUnicode().GetStringW();
+    }
+
+    PdfRefCountedBuffer buffer( m_buffer.GetSize() );
+    memcpy( buffer.GetBuffer(), m_buffer.GetBuffer(), m_buffer.GetSize() );
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+    SwapBytes( buffer.GetBuffer(), buffer.GetSize() );
+#endif // PODOFO_IS_LITTLE_ENDIA
+
+    std::wstring wstr( reinterpret_cast<const wchar_t*>(buffer.GetBuffer()) );
+
+    return wstr;
+}
+
+#endif // _WIN32
 
 /*
 PdfString PdfString::HexEncode() const

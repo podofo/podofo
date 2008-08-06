@@ -59,14 +59,10 @@ using namespace std;
 namespace PoDoFo {
 
 #ifdef _WIN32
-static bool GetDataFromLPFONT( const LOGFONTA* inFont, char** outFontBuffer, unsigned int& outFontBufferLen )
+static bool GetDataFromHFONT( HFONT hf, char** outFontBuffer, unsigned int& outFontBufferLen )
 {
-    HFONT 	hf;
     HDC		hdc;
 
-    if ( ( hf = ::CreateFontIndirect( inFont ) ) == NULL )
-        return false;
-    
     if ( ( hdc = GetDC(0) ) == NULL ) {
         DeleteObject(hf);
         return false;
@@ -97,6 +93,26 @@ static bool GetDataFromLPFONT( const LOGFONTA* inFont, char** outFontBuffer, uns
     DeleteObject( hf );
     
     return true;
+}
+    
+static bool GetDataFromLPFONT( const LOGFONTA* inFont, char** outFontBuffer, unsigned int& outFontBufferLen )
+{
+    HFONT 	hf;
+
+    if ( ( hf = ::CreateFontIndirectA( inFont ) ) == NULL )
+        return false;
+
+    return GetDataFromHFONT( hf, outFontBuffer, outFontBufferLen );
+}
+
+static bool GetDataFromLPFONT( const LOGFONTW* inFont, char** outFontBuffer, unsigned int& outFontBufferLen )
+{
+    HFONT 	hf;
+
+    if ( ( hf = ::CreateFontIndirectW( inFont ) ) == NULL )
+        return false;
+
+    return GetDataFromHFONT( hf, outFontBuffer, outFontBufferLen );
 }
 #endif // _WIN32
 
@@ -234,6 +250,26 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
     return pFont;
 }
 
+#ifdef _WIN32
+PdfFont* PdfFontCache::GetFont( const wchar_t* pszFontName, bool bBold, bool bItalic, 
+                                bool bEmbedd, const PdfEncoding * const pEncoding )
+{
+    PODOFO_ASSERT( pEncoding );
+
+    PdfFont*          pFont;
+    std::pair<TISortedFontList,TCISortedFontList> it;
+
+    it = std::equal_range( m_vecFonts.begin(), m_vecFonts.end(), 
+			   TFontCacheElement( pszFontName, bBold, bItalic, pEncoding ) );
+    if( it.first == it.second )
+        return GetWin32Font( it.first, m_vecFonts, pszFontName, bBold, bItalic, bEmbedd, pEncoding );
+    else
+        pFont = (*it.first).m_pFont;
+    
+    return pFont;
+}
+#endif // _WIN32
+
 PdfFont* PdfFontCache::GetFont( FT_Face face, bool bEmbedd, const PdfEncoding * const pEncoding )
 {
     PdfFont*          pFont;
@@ -333,7 +369,7 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
 
 #ifdef _WIN32
 PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList & vecContainer, 
-				     const char* pszFontName, bool bBold, bool bItalic, 
+				                     const char* pszFontName, bool bBold, bool bItalic, 
                                      bool bEmbedd, const PdfEncoding * const pEncoding )
 {
     LOGFONT	lf;
@@ -341,22 +377,22 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     lf.lfHeight			= 0;
     lf.lfWidth			= 0;
     lf.lfEscapement		= 0;
-    lf.lfOrientation    	= 0;
+    lf.lfOrientation    = 0;
     lf.lfWeight			= bBold ? FW_BOLD : 0;
     lf.lfItalic			= bItalic;
     lf.lfUnderline		= 0;
     lf.lfStrikeOut		= 0;
     lf.lfCharSet		= DEFAULT_CHARSET;
-    lf.lfOutPrecision	        = OUT_DEFAULT_PRECIS;
-    lf.lfClipPrecision	        = CLIP_DEFAULT_PRECIS;
+    lf.lfOutPrecision	= OUT_DEFAULT_PRECIS;
+    lf.lfClipPrecision	= CLIP_DEFAULT_PRECIS;
     lf.lfQuality		= DEFAULT_QUALITY;
-    lf.lfPitchAndFamily         = DEFAULT_PITCH | FF_DONTCARE;
+    lf.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
     
     if (strlen(pszFontName) >= LF_FACESIZE)
         return NULL;
     
     memset(&(lf.lfFaceName), 0, LF_FACESIZE);
-    strcpy( (char *)lf.lfFaceName, pszFontName );
+    strcpy( static_cast<char*>(lf.lfFaceName), pszFontName );
     
     char*        pBuffer;
     unsigned int nLen;
@@ -370,6 +406,69 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
         pFont    = this->CreateFontObject( itSorted, vecContainer, pMetrics, 
 					   bEmbedd, bBold, bItalic, pszFontName, pEncoding );
     } catch( PdfError & error ) {
+        //free( pBuffer );
+        throw error;
+    }
+    
+    //free( pBuffer );
+    return pFont;
+}
+
+PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList & vecContainer, 
+				                     const wchar_t* pszFontName, bool bBold, bool bItalic, 
+                                     bool bEmbedd, const PdfEncoding * const pEncoding )
+{
+    LOGFONTW	lf;
+    
+    lf.lfHeight			= 0;
+    lf.lfWidth			= 0;
+    lf.lfEscapement		= 0;
+    lf.lfOrientation    = 0;
+    lf.lfWeight			= bBold ? FW_BOLD : 0;
+    lf.lfItalic			= bItalic;
+    lf.lfUnderline		= 0;
+    lf.lfStrikeOut		= 0;
+    lf.lfCharSet		= DEFAULT_CHARSET;
+    lf.lfOutPrecision	= OUT_DEFAULT_PRECIS;
+    lf.lfClipPrecision	= CLIP_DEFAULT_PRECIS;
+    lf.lfQuality		= DEFAULT_QUALITY;
+    lf.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
+    
+    long lFontNameLen = wcslen(pszFontName);
+    if (lFontNameLen >= LF_FACESIZE)
+        return NULL;
+    
+    memset(&(lf.lfFaceName), 0, LF_FACESIZE);
+    wcscpy( static_cast<wchar_t*>(lf.lfFaceName), pszFontName );
+    
+    char*        pBuffer;
+    unsigned int nLen;
+    if( !GetDataFromLPFONT( &lf, &pBuffer, nLen ) )
+        return NULL;
+    
+    long lMaxLen = lFontNameLen * 5;
+    char* pmbFontName = static_cast<char*>(malloc(lMaxLen));
+    if( !pmbFontName )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+    }
+
+    if( wcstombs( pmbFontName, pszFontName, lMaxLen ) <= 0 )
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Conversion to multibyte char failed" );
+    }
+
+    PdfFontMetrics* pMetrics;
+    PdfFont*        pFont = NULL;
+    try {
+        pMetrics = new PdfFontMetrics( &m_ftLibrary, pBuffer, nLen );
+        pFont    = this->CreateFontObject( itSorted, vecContainer, pMetrics, 
+					                       bEmbedd, bBold, bItalic, pmbFontName, pEncoding );
+        free( pmbFontName );
+        pmbFontName = NULL;
+    } catch( PdfError & error ) {
+        free( pmbFontName );
+        pmbFontName = NULL;
         //free( pBuffer );
         throw error;
     }
@@ -459,7 +558,7 @@ PdfFont* PdfFontCache::CreateFontObject( TISortedFontList itSorted, TSortedFontL
             element.m_sFontName = pszFontName;
             element.m_pEncoding = pEncoding;
 
-	    // Do a sorted insert, so no need to sort again
+	        // Do a sorted insert, so no need to sort again
             rvecContainer.insert( itSorted, element );
 	}
     } catch( PdfError & e ) {

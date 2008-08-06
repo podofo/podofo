@@ -225,6 +225,14 @@ class PODOFO_API PdfString : public PdfDataType{
      */
     inline const std::string & GetStringUtf8() const;
 
+#ifdef _WIN32
+    /** The contents of the string as wide character string.
+     *
+     *  \returns the string contents as wide character string.
+     */
+    const std::wstring GetStringW() const;
+#endif // _WIN32
+
     /** The length of the string data returned by GetString() 
      *  in bytes not including terminating zeros.
      *

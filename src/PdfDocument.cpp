@@ -176,11 +176,33 @@ PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bBold, bool bIta
     return m_fontCache.GetFont( pszFontName, bBold, bItalic, bEmbedd, pEncoding, pszFileName );
 }
 
+#ifdef _WIN32
+PdfFont* PdfDocument::CreateFont( const wchar_t* pszFontName, const PdfEncoding * const pEncoding, 
+                                  bool bEmbedd )
+{
+    return m_fontCache.GetFont( pszFontName, false, false, bEmbedd, pEncoding );
+}
+
+PdfFont* PdfDocument::CreateFont( const wchar_t* pszFontName, bool bBold, bool bItalic, 
+                                  const PdfEncoding * const pEncoding, bool bEmbedd )
+{
+    return m_fontCache.GetFont( pszFontName, bBold, bItalic, bEmbedd, pEncoding );
+}
+#endif // _WIN32
+
 PdfFont* PdfDocument::CreateFontSubset( const char* pszFontName, bool bBold, bool bItalic, 
-					const PdfEncoding * const pEncoding, const char* pszFileName )
+					                    const PdfEncoding * const pEncoding, const char* pszFileName )
 {
     return m_fontCache.GetFontSubset( pszFontName, bBold, bItalic, pEncoding, pszFileName );
 }
+
+#ifdef _WIN32
+PdfFont* PdfDocument::CreateFontSubset( const wchar_t* pszFontName, bool bBold, bool bItalic, 
+					                    const PdfEncoding * const pEncoding)
+{
+    PODOFO_RAISE_ERROR_INFO( ePdfError_Unknown, "Subsets are not yet implemented for unicode on windows." );
+}
+#endif // _WIN32
 
 PdfFont* PdfDocument::CreateFont( FT_Face face, const PdfEncoding * const pEncoding, bool bEmbedd )
 {

@@ -43,12 +43,21 @@ struct TFontCacheElement {
     }
 
     TFontCacheElement( const char* pszFontName, bool bBold, bool bItalic, 
-		       const PdfEncoding * const pEncoding )
+		               const PdfEncoding * const pEncoding )
         : m_pFont(NULL), m_pEncoding( pEncoding ), m_bBold( bBold ), 
-	  m_bItalic( bItalic ), m_sFontName( pszFontName )
+          m_bItalic( bItalic ), m_sFontName( reinterpret_cast<const pdf_utf8*>(pszFontName) )
     {
     }
-    
+
+#ifdef _WIN32
+    TFontCacheElement( const wchar_t* pszFontName, bool bBold, bool bItalic, 
+		               const PdfEncoding * const pEncoding )
+        : m_pFont(NULL), m_pEncoding( pEncoding ), m_bBold( bBold ), 
+          m_bItalic( bItalic ), m_sFontName( pszFontName )
+    {
+    }
+#endif // _WIN32
+
     TFontCacheElement( const TFontCacheElement & rhs ) 
     {
         this->operator=(rhs);
@@ -86,14 +95,14 @@ struct TFontCacheElement {
     inline bool operator()( const TFontCacheElement& r1, 
 			    const TFontCacheElement& r2 ) const 
     { 
-	return r1 < r2;
+	    return r1 < r2;
     }
 
     PdfFont*           m_pFont;
     const PdfEncoding* m_pEncoding;
     bool               m_bBold;
     bool               m_bItalic;
-    std::string        m_sFontName;
+    PdfString          m_sFontName; ///< We use PdfString here as it can easily handle unicode on windows
 };
 
 /**
@@ -165,6 +174,28 @@ class PODOFO_API PdfFontCache {
     PdfFont* GetFont( const char* pszFontName, bool bBold, bool bItalic, 
                       bool bEmbedd, const PdfEncoding * const = &PdfFont::WinAnsiEncoding, 
                       const char* pszFileName = NULL );
+
+#ifdef _WIN32
+    /** Get a font from the cache. If the font does not yet
+     *  exist, add it to the cache.
+     *
+     *  \param pszFontName a valid fontname
+     *  \param bBold if true search for a bold font
+     *  \param bItalic if true search for an italic font
+     *  \param bEmbedd if true a font for embedding into 
+     *                 PDF will be created
+     *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
+     *
+     *  \returns a PdfFont object or NULL if the font could
+     *           not be created or found.
+ 	 *
+     *  This is an overloaded member function to allow working
+     *  with unicode characters. On Unix systes you can also path
+     *  UTF-8 to the const char* overload.
+     */
+    PdfFont* GetFont( const wchar_t* pszFontName, bool bBold, bool bItalic, 
+                      bool bEmbedd, const PdfEncoding * const = &PdfFont::WinAnsiEncoding );
+#endif // _WIN32
 
     /** Get a font from the cache. If the font does not yet
      *  exist, add it to the cache.
@@ -273,7 +304,10 @@ class PODOFO_API PdfFontCache {
      *  \returns a font handle or NULL in case of error
      */
     PdfFont* GetWin32Font( TISortedFontList itSorted, TSortedFontList & vecContainer, const char* pszFontName, 
-			   bool bBold, bool bItalic, bool bEmbedd, const PdfEncoding * const pEncoding );
+			               bool bBold, bool bItalic, bool bEmbedd, const PdfEncoding * const pEncoding );
+
+    PdfFont* GetWin32Font( TISortedFontList itSorted, TSortedFontList & vecContainer, const wchar_t* pszFontName, 
+			               bool bBold, bool bItalic, bool bEmbedd, const PdfEncoding * const pEncoding );
 #endif // _WIN32
 
  private:
