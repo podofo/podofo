@@ -1,0 +1,84 @@
+## don’t know where i’m going with thet
+## but here’s my attempt to impose PDF reference
+## with PoDoFoImpose. pm
+
+# source page size is 7.38 x 9.25 in
+# number of pages 1310 !!!
+
+$PageWidth=2383.94
+$PageHeight=3370.39
+
+$spw=531.36
+$sph=666
+
+$vgap=40
+$hgap=40
+
+$xoffset=40
+$yoffset=300
+
+$lp=1
+$gp=0
+
+@41($lp+2;$gp+32)
+############################ P1 ##
+
+# first row P1
+17 +$gp;	$lp;	180;	$xoffset + $spw;	$yoffset + (3*$vgap) + (3*$sph) + $sph;
+16 +$gp;	$lp;	180;	$xoffset + $spw + $hgap+ $spw;	$yoffset + (3*$vgap) + (3*$sph)+ $sph;
+9  +$gp;	$lp;	180;	$xoffset + ($spw*2) + ($hgap*2)+ $spw;	$yoffset + (3*$vgap) + (3*$sph)+ $sph;
+24 +$gp;	$lp;	180;	$xoffset + ($spw*3) + ($hgap*3)+ $spw;	$yoffset + (3*$vgap) + (3*$sph)+ $sph;
+
+# second row P1
+32 +$gp;	$lp;	0;	$xoffset;	$yoffset + (2*$vgap) + (2*$sph);
+1  +$gp;	$lp;	0;	$xoffset + $spw + $hgap;	$yoffset + (2*$vgap) + (2*$sph);
+8  +$gp;	$lp;	0;	$xoffset + ($spw*2) + ($hgap*2);	$yoffset + (2*$vgap) + (2*$sph);
+25 +$gp;	$lp;	0;	$xoffset + ($spw*3) + ($hgap*3);	$yoffset + (2*$vgap) + (2*$sph);
+
+# third row P1
+29 +$gp;	$lp;	180;	$xoffset + $spw;	$yoffset + ($vgap) + ($sph) + $sph;
+4  +$gp;	$lp;	180;	$xoffset + $spw + $hgap + $spw;	 $yoffset + ($vgap) + ($sph) + $sph;
+5  +$gp;	$lp;	180;	$xoffset + ($spw*2) + ($hgap*2) + $spw;	$yoffset + ($vgap) + ($sph) + $sph;
+28 +$gp;	$lp;	180;	$xoffset + ($spw*3) + ($hgap*3) + $spw;	$yoffset + ($vgap) + ($sph) + $sph;
+
+
+# fourth row P1
+20 +$gp;	$lp;	0;	$xoffset;	$yoffset ;
+13 +$gp;	$lp;	0;	$xoffset + $spw + $hgap;	$yoffset ;
+12 +$gp;	$lp;	0;	$xoffset + ($spw*2) + ($hgap*2);	$yoffset ;
+21 +$gp;	$lp;	0;	$xoffset + ($spw*3) + ($hgap*3);	$yoffset ;
+
+############################ P2 ##
+
+# first row P2
+23 +$gp;	$lp + 1;	180;	$xoffset + $spw;	$yoffset + (3*$vgap) + (3*$sph) + $sph;
+10 +$gp;	$lp + 1;	180;	$xoffset + $spw + $hgap+ $spw;	$yoffset + (3*$vgap) + (3*$sph)+ $sph;
+15 +$gp;	$lp + 1;	180;	$xoffset + ($spw*2) + ($hgap*2)+ $spw;	$yoffset + (3*$vgap) + (3*$sph)+ $sph;
+18 +$gp;	$lp + 1;	180;	$xoffset + ($spw*3) + ($hgap*3)+ $spw;	$yoffset + (3*$vgap) + (3*$sph)+ $sph;
+
+# second row P2
+26 +$gp;	$lp + 1;	0;	$xoffset;	$yoffset + (2*$vgap) + (2*$sph);
+7  +$gp;	$lp + 1;	0;	$xoffset + $spw + $hgap;	$yoffset + (2*$vgap) + (2*$sph);
+2  +$gp;	$lp + 1;	0;	$xoffset + ($spw*2) + ($hgap*2);	$yoffset + (2*$vgap) + (2*$sph);
+31 +$gp;	$lp + 1;	0;	$xoffset + ($spw*3) + ($hgap*3);	$yoffset + (2*$vgap) + (2*$sph);
+
+# third row P2
+27 +$gp;	$lp + 1;	180;	$xoffset + $spw;	$yoffset + ($vgap) + ($sph) + $sph;
+6  +$gp;	$lp + 1;	180;	$xoffset + $spw + $hgap + $spw;	$yoffset + ($vgap) + ($sph) + $sph;
+3  +$gp;	$lp + 1;	180;	$xoffset + ($spw*2) + ($hgap*2) + $spw;	$yoffset + ($vgap) + ($sph) + $sph;
+30 +$gp;	$lp + 1;	180;	$xoffset + ($spw*3) + ($hgap*3) + $spw;	$yoffset + ($vgap) + ($sph) + $sph;
+
+
+# fourth row P2
+22 +$gp;	$lp + 1;	0;	$xoffset;	$yoffset ;
+11 +$gp;	$lp + 1;	0;	$xoffset + $spw + $hgap;	$yoffset ;
+14 +$gp;	$lp + 1;	0;	$xoffset + ($spw*2) + ($hgap*2);	$yoffset ;
+19 +$gp;	$lp + 1;	0;	$xoffset + ($spw*3) + ($hgap*3);	$yoffset ;
+
+@ END OF LOOP
+
+
+
+
+
+
