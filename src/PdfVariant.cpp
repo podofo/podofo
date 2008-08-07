@@ -230,7 +230,7 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt, co
             // Use ostringstream, so that locale does not matter
             std::ostringstream oss;
             PdfLocaleImbue(oss);
-            oss << m_Data.dNumber;
+            oss << std::fixed << m_Data.dNumber;
 
             pDevice->Write( oss.str().c_str(), oss.str().size() );
             break;
