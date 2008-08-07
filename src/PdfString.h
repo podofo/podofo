@@ -29,6 +29,7 @@ namespace PoDoFo {
 
 #define PDF_STRING_BUFFER_SIZE 24
 
+class PdfEncoding;
 class PdfOutputDevice;
 
 enum EPdfStringConversion {
@@ -68,22 +69,26 @@ class PODOFO_API PdfString : public PdfDataType{
      */
     PdfString();
 
-   /** Construct a new PdfString from a std::string. 
-    *  The input string will be copied.
-    *  If the first to bytes of the string are 0xFE and 0xFF
-    *  this string is treated as UTF-16BE encoded unicode string.
-    *
-    *  \param sString the string to copy
-    */
-    PdfString( const std::string& sString );
+    /** Construct a new PdfString from a std::string. 
+     *  The input string will be copied.
+     *  If the first to bytes of the string are 0xFE and 0xFF
+     *  this string is treated as UTF-16BE encoded unicode string.
+     *
+     *  \param sString the string to copy
+     *  \param pEncoding the encoding of this string, if it is no unicode string.
+	 *         This is ignored for unicode strings. If NULL PdfDocEncoding will be used as a default.
+     */
+    PdfString( const std::string& sString, const PdfEncoding * const pEncoding = NULL );
 
     /** Construct a new PdfString from a 0 terminated
      *  string. 
      *  The input string will be copied.
      *
      *  \param pszString the string to copy
+ 	 *  \param pEncoding the encoding of this string, if it is no unicode string.
+	 *         This is ignored for unicode strings. If NULL PdfDocEncoding will be used as a default.
      */
-    PdfString( const char* pszString );
+    PdfString( const char* pszString, const PdfEncoding * const pEncoding = NULL );
 
     /** Construct a new PdfString from a 0 terminated
      *  string. 
@@ -102,8 +107,10 @@ class PODOFO_API PdfString : public PdfDataType{
      *  \param lLen length of the string data to encode
      *  \param bHex if true the data will be 
      *              hex encoded during writeout of the string and IsHex() will return true.
+ 	 *  \param pEncoding the encoding of this string, if it is no unicode string.
+	 *         This is ignored for unicode strings. If NULL PdfDocEncoding will be used as a default.
      */
-    PdfString( const char* pszString, long lLen, bool bHex = false );
+    PdfString( const char* pszString, long lLen, bool bHex = false, const PdfEncoding * const pEncoding = NULL );
 
     /** Construct a new PdfString from an UTF-8 encoded string.
      *  
@@ -410,6 +417,7 @@ class PODOFO_API PdfString : public PdfDataType{
     bool                m_bUnicode;                  ///< This string contains unicode data
 
     std::string         m_sUtf8;                     ///< The UTF8 version of the strings contents.
+	const PdfEncoding* const m_pEncoding;            ///< Encoding for non Unicode strings. NULL for unicode strings.
 };
 
 // -----------------------------------------------------

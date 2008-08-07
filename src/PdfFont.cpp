@@ -36,6 +36,7 @@ using namespace std;
 
 namespace PoDoFo {
 
+const PdfDocEncoding      PdfFont::DocEncoding;
 const PdfWinAnsiEncoding  PdfFont::WinAnsiEncoding;
 const PdfMacRomanEncoding PdfFont::MacRomanEncoding;
 

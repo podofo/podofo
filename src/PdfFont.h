@@ -48,6 +48,12 @@ class PODOFO_API PdfFont : public PdfElement {
 
  public:
 
+	/** Always use this static declaration,
+	 *  if you need an instance of PdfDocEncoding
+	 *  as heap allocation is expensive for PdfDocEncoding.
+	 */
+	static const PODOFO_API PdfDocEncoding DocEncoding;
+
     /** Always use this static declaration,
      *  if you need an instance of PdfWinAnsiEncoding
      *  as heap allocation is expensive for PdfWinAnsiEncoding.

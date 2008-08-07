@@ -264,6 +264,8 @@ inline PdfEncoding::const_iterator PdfEncoding::end() const
  * A common base class for standard PdfEncoding which are
  * known by name.
  *
+ *  - PdfDocEncoding (only use this for strings which are not printed 
+ *                    in the document. This is for meta data in the PDF).
  *  - MacRomanEncoding
  *  - WinAnsiEncoding
  *  - MacExpertEncoding
@@ -429,6 +431,45 @@ inline const PdfName & PdfSimpleEncoding::GetName() const
 }
 
 /** 
+ * The PdfDocEncoding is the default encoding for
+ * all strings in PoDoFo which are data in the PDF
+ * file.
+ *
+ * Do not allocate this class yourself, as allocations
+ * might be expensive. Try using PdfFont::DocEncoding.
+ *
+ * \see PdfFont::DocEncoding
+ */
+class PODOFO_API PdfDocEncoding : public PdfSimpleEncoding {
+ public:
+   
+    /** Create a new PdfWinAnsiEncoding
+     */
+    PdfDocEncoding()
+        : PdfSimpleEncoding( PdfName("PdfDocEncoding") )
+    {
+
+    }
+
+ protected:
+
+    /** Gets a table of 256 short values which are the 
+     *  big endian unicode code points that are assigned
+     *  to the 256 values of this encoding.
+     *
+     *  This table is used internally to convert an encoded
+     *  string of this encoding to and from unicode.
+     *
+     *  \returns an array of 256 big endian unicode code points
+     */
+    virtual const pdf_utf16be* GetToUnicodeTable() const;
+
+ private:
+    static const pdf_utf16be s_cEncoding[256]; ///< conversion table from WinAnsiEncoding to UTF16
+
+};
+
+/** 
  * The WinAnsi Encoding is the default encoding in PoDoFo for 
  * contents on PDF pages.
  *
@@ -444,7 +485,7 @@ class PODOFO_API PdfWinAnsiEncoding : public PdfSimpleEncoding {
    
     /** Create a new PdfWinAnsiEncoding
      */
-    inline PdfWinAnsiEncoding()
+    PdfWinAnsiEncoding()
         : PdfSimpleEncoding( PdfName("WinAnsiEncoding") )
     {
 
@@ -461,20 +502,12 @@ class PODOFO_API PdfWinAnsiEncoding : public PdfSimpleEncoding {
      *
      *  \returns an array of 256 big endian unicode code points
      */
-    inline virtual const pdf_utf16be* GetToUnicodeTable() const;
+    virtual const pdf_utf16be* GetToUnicodeTable() const;
 
  private:
     static const pdf_utf16be s_cEncoding[256]; ///< conversion table from WinAnsiEncoding to UTF16
 
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline const pdf_utf16be* PdfWinAnsiEncoding::GetToUnicodeTable() const
-{
-    return PdfWinAnsiEncoding::s_cEncoding;
-}
 
 /** 
  * Do not allocate this class yourself, as allocations
@@ -487,7 +520,7 @@ class PODOFO_API PdfMacRomanEncoding : public PdfSimpleEncoding {
    
     /** Create a new PdfMacRomanEncoding
      */
-    inline PdfMacRomanEncoding()
+    PdfMacRomanEncoding()
         : PdfSimpleEncoding( PdfName("MacRomanEncoding") )
     {
 
@@ -504,20 +537,12 @@ class PODOFO_API PdfMacRomanEncoding : public PdfSimpleEncoding {
      *
      *  \returns an array of 256 big endian unicode code points
      */
-    inline virtual const pdf_utf16be* GetToUnicodeTable() const;
+    virtual const pdf_utf16be* GetToUnicodeTable() const;
 
  private:
     static const pdf_utf16be s_cEncoding[256]; ///< conversion table from WinAnsiEncoding to UTF16
 
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline const pdf_utf16be* PdfMacRomanEncoding::GetToUnicodeTable() const
-{
-    return PdfMacRomanEncoding::s_cEncoding;
-}
 
 /** 
  */
