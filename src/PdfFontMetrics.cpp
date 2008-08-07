@@ -1146,7 +1146,43 @@ double PdfFontMetrics::StringWidth( const char* pszText, unsigned int nLength ) 
     return dWidth;
 }
 
+double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, unsigned int nLength = 0 ) const
+{
+    double dWidth = 0.0;
+
+    if( !pszText )
+        return dWidth;
+
+    if( !nLength )
+	{
+		const pdf_utf16b3* pszCount = pszText;
+		while( *pszCount )
+		{
+			++pszCount;
+			++nLength;
+		}
+	}
+
+    const pdf_utf16be* localText = pszText;
+    for ( unsigned int i=0; i<nLength; i++ ) 
+    {
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+        dWidth += CharWidth( ((*localText & 0x00ff) << 8 | (*localText & 0xff00) >> 8) );
+#else
+        dWidth += CharWidth( *localText );
+#endif PODOFO_IS_LITTLE_ENDIAN
+        localText++;
+    }
+
+    return dWidth;
+}
+
 unsigned long PdfFontMetrics::StringWidthMM( const char* pszText, unsigned int nLength ) const
+{
+    return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / PODOFO_CONVERSION_CONSTANT);
+}
+
+unsigned long PdfFontMetrics::StringWidthMM( const pdf_utf16be* pszText, unsigned int nLength ) const
 {
     return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / PODOFO_CONVERSION_CONSTANT);
 }
