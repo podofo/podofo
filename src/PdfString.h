@@ -417,7 +417,7 @@ class PODOFO_API PdfString : public PdfDataType{
     bool                m_bUnicode;                  ///< This string contains unicode data
 
     std::string         m_sUtf8;                     ///< The UTF8 version of the strings contents.
-	const PdfEncoding* const m_pEncoding;            ///< Encoding for non Unicode strings. NULL for unicode strings.
+    const PdfEncoding*  m_pEncoding;                 ///< Encoding for non Unicode strings. NULL for unicode strings.
 };
 
 // -----------------------------------------------------

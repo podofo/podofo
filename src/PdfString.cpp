@@ -365,7 +365,7 @@ const PdfString & PdfString::operator=( const PdfString & rhs )
     this->m_bUnicode  = rhs.m_bUnicode;
     this->m_buffer    = rhs.m_buffer;
     this->m_sUtf8     = rhs.m_sUtf8;
-	const_cast<const PdfEncoding*>(this->m_pEncoding) = rhs.m_pEncoding;
+    this->m_pEncoding = rhs.m_pEncoding;
 
     return *this;
 }
@@ -603,9 +603,9 @@ PdfString PdfString::ToUnicode() const
     if( this->IsUnicode() )
         return *this;
     else
-	{
-		const PdfEncoding* const pEncoding = (m_pEncoding ? m_pEncoding : &DocEncoding);
-		return pEncoding->ConvertToUnicode( *this, NULL );
+    {
+	const PdfEncoding* const pEncoding = (m_pEncoding ? m_pEncoding : &PdfFont::DocEncoding);
+	return pEncoding->ConvertToUnicode( *this, NULL );
     }
 }
 

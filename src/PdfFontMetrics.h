@@ -137,6 +137,14 @@ class PODOFO_API PdfFontMetrics {
      */
     double StringWidth( const pdf_utf16be* pszText, unsigned int nLength = 0 ) const;
 
+    /** Retrieve the width of a given text string in PDF units when
+     *  drawn with the current font
+     *  \param pszText a text string of which the width should be calculated
+     *  \param nLength if != 0 only the width of the nLength first characters is calculated
+     *  \returns the width in PDF units
+     */
+    double StringWidth( const wchar_t* pszText, unsigned int nLength = 0 ) const;
+
     /** Retrieve the width of a given text string in 1/1000th mm when
      *  drawn with the current font
      *  \param pszText a text string of which the width should be calculated
@@ -152,6 +160,14 @@ class PODOFO_API PdfFontMetrics {
      *  \returns the width in 1/1000th mm
      */
     unsigned long StringWidthMM( const pdf_utf16be* pszText, unsigned int nLength = 0 ) const;
+
+    /** Retrieve the width of a given text string in 1/1000th mm when
+     *  drawn with the current font
+     *  \param pszText a text string of which the width should be calculated
+     *  \param nLength if != 0 only the width of the nLength first characters is calculated
+     *  \returns the width in 1/1000th mm
+     */
+    unsigned long StringWidthMM( const wchar_t* pszText, unsigned int nLength = 0 ) const;
 
     /** Retrieve the width of the given character in PDF units in the current font
      *  \param c character
@@ -402,7 +418,7 @@ class PODOFO_API PdfFontMetrics {
 // -----------------------------------------------------
 double PdfFontMetrics::StringWidth( const PdfString & rsString ) const
 {
-	return (rsString.IsUnicode() ?  this->StringWidth( rsString->GetUnicode() ) : this->StringWidth( rsString.GetString() ));
+    return (rsString.IsUnicode() ?  this->StringWidth( rsString.GetUnicode() ) : this->StringWidth( rsString.GetString() ));
 }
 
 // -----------------------------------------------------

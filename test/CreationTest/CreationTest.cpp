@@ -104,7 +104,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pFont->SetFontSize( 16.0 );
 
 
-    const char* msg = "Grayscale - Colorspace";
+    const wchar_t* msg = L"Grayscale - Colorspace";
     h = pFont->GetFontMetrics()->GetLineSpacing();
     w = pFont->GetFontMetrics()->StringWidth( msg );
 

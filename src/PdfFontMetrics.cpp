@@ -29,6 +29,7 @@
 #include "PdfVariant.h"
 #include <sstream>
 
+#include <wchar.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_TRUETYPE_TABLES_H
@@ -1146,7 +1147,7 @@ double PdfFontMetrics::StringWidth( const char* pszText, unsigned int nLength ) 
     return dWidth;
 }
 
-double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, unsigned int nLength = 0 ) const
+double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, unsigned int nLength ) const
 {
     double dWidth = 0.0;
 
@@ -1154,15 +1155,15 @@ double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, unsigned int nLe
         return dWidth;
 
     if( !nLength )
+    {
+	const pdf_utf16be* pszCount = pszText;
+	while( *pszCount )
 	{
-		const pdf_utf16b3* pszCount = pszText;
-		while( *pszCount )
-		{
-			++pszCount;
-			++nLength;
-		}
+	    ++pszCount;
+	    ++nLength;
 	}
-
+    }
+    
     const pdf_utf16be* localText = pszText;
     for ( unsigned int i=0; i<nLength; i++ ) 
     {
@@ -1170,7 +1171,27 @@ double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, unsigned int nLe
         dWidth += CharWidth( ((*localText & 0x00ff) << 8 | (*localText & 0xff00) >> 8) );
 #else
         dWidth += CharWidth( *localText );
-#endif PODOFO_IS_LITTLE_ENDIAN
+#endif // PODOFO_IS_LITTLE_ENDIAN
+        localText++;
+    }
+
+    return dWidth;
+}
+
+double PdfFontMetrics::StringWidth( const wchar_t* pszText, unsigned int nLength ) const
+{
+    double dWidth = 0.0;
+
+    if( !pszText )
+        return dWidth;
+
+    if( !nLength )
+        nLength = static_cast<unsigned int>(wcslen( pszText ));
+
+    const wchar_t *localText = pszText;
+    for ( unsigned int i=0; i<nLength; i++ ) 
+    {
+        dWidth += CharWidth( static_cast<int>(*localText) );
         localText++;
     }
 
@@ -1183,6 +1204,11 @@ unsigned long PdfFontMetrics::StringWidthMM( const char* pszText, unsigned int n
 }
 
 unsigned long PdfFontMetrics::StringWidthMM( const pdf_utf16be* pszText, unsigned int nLength ) const
+{
+    return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / PODOFO_CONVERSION_CONSTANT);
+}
+
+unsigned long PdfFontMetrics::StringWidthMM( const wchar_t* pszText, unsigned int nLength ) const
 {
     return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / PODOFO_CONVERSION_CONSTANT);
 }
