@@ -105,7 +105,7 @@ void PageRecord::load ( const std::string& buffer )
 	transX	= calc ( tokens.at ( 3 ) );
 	transY	= calc ( tokens.at ( 4 ) );
 		
-	std::cerr<<" "<<sourcePage<<" "<<destPage<<" "<<rotate<<" "<<transX<<" "<<transY <<std::endl;
+// 	std::cerr<<" "<<sourcePage<<" "<<destPage<<" "<<rotate<<" "<<transX<<" "<<transY <<std::endl;
 
 }
 
@@ -378,84 +378,54 @@ void PdfTranslator::mergeResKey ( PdfObject *base,PdfName key, PdfObject *tomerg
 
 PdfObject* PdfTranslator::migrateResource(PdfObject * obj)
 {
-	PdfObject *ret( targetDoc->GetObjects().CreateObject(*obj));
-
+	PdfObject *ret( 0 );
+	
 	if ( obj->IsDictionary() )
-	{	
-// 		std::cerr<<"DICT"<<std::endl;
-		TKeyMap resmap = obj->GetDictionary().GetKeys();
-		TCIKeyMap itres;
-		for ( itres = resmap.begin(); itres != resmap.end(); ++itres )
+	{
+		ret = targetDoc->GetObjects().CreateObject(*obj);
+				
+		TKeyMap resmap = obj->GetDictionary().GetKeys();		
+		for ( TCIKeyMap itres = resmap.begin(); itres != resmap.end(); ++itres )
 		{
-// 			std::cerr<<"/"<< itres->first.GetEscapedName () << std::endl;
-// 			if( itres->first == "Length" )
-// 			{
-// // 				std::cerr<<"SKIP_LENGTH" << std::endl;
-// 				continue;
-// 			}
 			PdfObject *o = itres->second;
-			if(o->IsReference())
-				ret->GetDictionary().AddKey (itres->first , migrateResource(o)->Reference() );
-			else
-				ret->GetDictionary().AddKey (itres->first , o );
-			
-		}
-		if ( obj->HasStream() )
-		{
-// 			std::cerr<<"HAS_STREAM"<<std::endl;
-// 			PdfRefCountedBuffer refC( obj->GetStream()->GetLength() );
-// 			PdfBufferOutputStream outMemStream ( &refC );
-// 			obj->GetStream()->GetCopy( refC.GetBuffer(),  refC.GetSize ());
-// 			outMemStream.Close();
-// 			PdfMemoryInputStream inStream ( refC.GetBuffer(),outMemStream.GetLength() );
-// 			ret->GetStream()->Set ( &inStream );
-			*(ret->GetStream()) = *(obj->GetStream());
-			
-		}
-		else if ( obj->IsArray() )
-		{
-			PdfArray carray ( obj->GetArray() );
-			for ( unsigned int ci = 0; ci < carray.GetSize(); ++ci )
-			{
-				if ( carray[ci].HasStream() )
-				{
-// 					carray[ci].GetStream()->GetFilteredCopy ( &outMemStream );
-					PdfObject *itemObj( targetDoc->GetObjects().CreateObject(carray[ci]));
-					*(itemObj->GetStream()) = *(carray[ci].GetStream());
-					ret->GetArray().push_back( itemObj->Reference() );
-				}
-				else if ( carray[ci].IsReference() )
-				{
-					PdfObject *co = sourceDoc->GetObjects().GetObject ( carray[ci].GetReference() );
-					while ( co != NULL )
-					{
-						if ( co->IsReference() )
-						{
-							co = sourceDoc->GetObjects().GetObject ( co->GetReference() );
-						}
-						else if ( co->HasStream() )
-						{
-							PdfObject *itemObj( targetDoc->GetObjects().CreateObject(carray[ci]));
-							*(itemObj->GetStream()) = *(co->GetStream());
-							ret->GetArray().push_back( itemObj->Reference() );
-						}
-					}
-
-				}
-
-			}
-// 			outMemStream.Close();
-// 			PdfMemoryInputStream inStream ( refC.GetBuffer(),outMemStream.GetLength() );
-// 			ret->GetStream()->Set ( &inStream );
+			ret->GetDictionary().AddKey (itres->first , migrateResource( o ) );
 		}
 		
-	
+		if ( obj->HasStream() )
+		{
+			*(ret->GetStream()) = *(obj->GetStream());
+		}
+	}
+	else if ( obj->IsArray() )
+	{
+		PdfArray carray ( obj->GetArray() );
+		PdfArray narray;
+		for ( unsigned int ci = 0; ci < carray.GetSize(); ++ci )
+		{
+			PdfObject *co( migrateResource(&carray[ci]) );
+			narray.push_back( *co );
+		}
+		ret = targetDoc->GetObjects().CreateObject(narray);
 	}
 	else if( obj->IsReference() )
 	{
-// 		std::cerr<<"REF"<<std::endl;
-		ret = migrateResource(sourceDoc->GetObjects().GetObject(obj->GetReference()));
+		if(migrateMap.find(obj->GetReference().ToString()) != migrateMap.end())
+		{
+			return migrateMap[obj->GetReference().ToString()];
+		}
+		
+		PdfObject * o ( migrateResource( sourceDoc->GetObjects().GetObject( obj->GetReference() ) ) );
+		
+		ret  = new PdfObject(o->Reference()) ;
+		
 	}
+	else
+	{
+		ret = new PdfObject(*obj);//targetDoc->GetObjects().CreateObject(*obj);
+	}
+	
+	
+	migrateMap.insert( std::pair<std::string, PdfObject*>( obj->Reference().ToString(), ret ) );
 	
 	
 	return ret;
@@ -464,54 +434,14 @@ PdfObject* PdfTranslator::migrateResource(PdfObject * obj)
 
 PdfObject* PdfTranslator::getInheritedResources ( PdfPage* page )
 {
-	PdfObject *res = new PdfObject;
+	PdfObject *res(0); // = new PdfObject;
 	PdfObject *rparent = page->GetObject();
 	while ( rparent && rparent->IsDictionary() )
 	{
 		PdfObject *curRes = rparent->GetDictionary().GetKey ( PdfName ( "Resources" ) );
 		if ( curRes )
 		{
-			if ( curRes->IsDictionary() )
-			{
-				TKeyMap resmap = curRes->GetDictionary().GetKeys();
-				TCIKeyMap itres;
-				for ( itres = resmap.begin(); itres != resmap.end(); ++itres )
-				{
-// 					if ( res->GetDictionary().HasKey ( ( *itres ).first ) )
-// 					{
-// 						mergeResKey ( res, ( *itres ).first , ( *itres ).second );
-// 					}
-// 					else
-					{
-						PdfObject *mO = migrateResource(itres->second);
-						if(mO == itres->second)
-							res->GetDictionary().AddKey ( itres->first, mO );
-						else
-							res->GetDictionary().AddKey ( itres->first, mO->Reference() );
-					}
-				}
-			}
-			else if ( curRes->IsReference() )
-			{
-				curRes = sourceDoc->GetObjects().GetObject ( curRes->GetReference() );
-				TKeyMap resmap = curRes->GetDictionary().GetKeys();
-				TCIKeyMap itres;
-				for ( itres = resmap.begin(); itres != resmap.end(); ++itres )
-				{
-// 					if ( res->GetDictionary().HasKey ( itres->first ) )
-// 					{
-// 						mergeResKey ( res, itres->first , itres->second );
-// 					}
-// 					else
-					{
-						PdfObject *mO = migrateResource(itres->second);
-						if(mO == itres->second)
-							res->GetDictionary().AddKey ( itres->first, mO );
-						else
-							res->GetDictionary().AddKey ( itres->first, mO->Reference() );
-					}
-				}
-			}
+			res = migrateResource( curRes );
 		}
 		rparent = rparent->GetIndirectKey ( "Parent" );
 	}
@@ -550,20 +480,16 @@ void PdfTranslator::setTarget ( const std::string & target )
 			PdfArray carray ( page->GetContents()->GetArray() );
 			for ( unsigned int ci = 0; ci < carray.GetSize(); ++ci )
 			{
-// 			std::cerr << "carray at "<< ci <<" is "<< carray[ci].GetDataTypeString () <<endl;
 				if ( carray[ci].HasStream() )
 				{
 					carray[ci].GetStream()->GetFilteredCopy ( &outMemStream );
 				}
 				else if ( carray[ci].IsReference() )
 				{
-// 				std::cerr << "carray at "<< ci <<" is "<< carray[ci].GetReference().ToString() << endl;
-
 					PdfObject *co = sourceDoc->GetObjects().GetObject ( carray[ci].GetReference() );
 
 					while ( co != NULL )
 					{
-
 						if ( co->IsReference() )
 						{
 							co = sourceDoc->GetObjects().GetObject ( co->GetReference() );
@@ -584,14 +510,15 @@ void PdfTranslator::setTarget ( const std::string & target )
 
 		PdfMemoryInputStream inStream ( outMemStream.TakeBuffer(),outMemStream.GetLength() );
 		xobj->GetContents()->GetStream()->Set ( &inStream );
-		std::cerr << "XObject added("<< i + 1 << ")" << endl;
-
+		
 		resources[i+1] = getInheritedResources ( page );
 		xobjects[i+1] = xobj;
 		trimRect[i+1] = page->GetTrimBox();
 		bleedRect[i+1] = page->GetBleedBox();
 
 	}
+	
+	delete sourceDoc;
 }
 
 void PdfTranslator::loadPlan ( const std::string & plan )
@@ -610,7 +537,6 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 		in.getline ( cbuffer, MAX_RECORD_SIZE );
 		blen = in.gcount() ;
 		std::string buffer ( cbuffer, blen );
-// 		std::cerr<< blen <<" \""<< buffer <<"\""<<std::endl;
 		
 		if ( blen < 2 ) // Nothing
 			continue;
@@ -618,7 +544,7 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 		while(buffer.length() && ( buffer.at(0) == 0x20 ||buffer.at(0) ==0x9))
 			buffer.erase(0,1);
 		
-		if(buffer.length() == 0)
+		if(buffer.length() < 2)
 			continue;
 		else if ( buffer.at ( 0 ) == '#' ) // Comment
 			continue;
@@ -627,7 +553,7 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 	}
 	while(!in.eof());
 	
-	for( int numline(0); numline < memfile.size() ; ++numline)
+	for( uint numline(0); numline < memfile.size() ; ++numline)
 	{
 		std::string buffer( memfile.at(numline) );
 		if ( buffer.at ( 0 ) == '$' ) // Variable
@@ -644,7 +570,6 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 			{
 				PoDoFoImpose::vars.insert ( std::pair<std::string, std::string> ( key,value ) );
 			}
-// 			std::cerr<< sepPos << " "<<key << " = " << PoDoFoImpose::vars[key] <<std::endl;
 		}
 		else if( buffer.at ( 0 ) == '@' ) // Loop - experimental
 		{
@@ -660,15 +585,13 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 			for(;a<blen;++a)
 			{
 				ca = buffer.at(a);
-				std::cerr<< ca << " " ;
 				if(ca == '(')
 					break;
 				else if(ca == 0x20 || ca == 0x9 )
 					continue;
 				iterN += buffer.at(a);
 			}
-			std::cerr<<std::endl;
-// 			std::cerr<< "L "<< iterN <<std::endl;
+			
 			std::map<std::string, double> increments;
 			std::string tvar;
 			std::string tinc;
@@ -677,8 +600,6 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 			for(;a<blen;++a)
 			{
 				ca = buffer.at(a);
-				
-				std::cerr<< ca << " " ;
 				if( ca == ')')
 				{
 					if(PoDoFoImpose::vars.find(tvar) != PoDoFoImpose::vars.end())
@@ -711,26 +632,18 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 				}
 			}
 			
-			std::cerr<<std::endl;
-// 			std::cerr<< "V "<< increments.size() <<std::endl;
-			
-			std::vector<std::string> lrecords;
-			
 			int endOfloopBlock(numline + 1);
-			for(int bolb2(numline + 1); bolb2 < memfile.size();++bolb2)
+			for(uint bolb2(numline + 1); bolb2 < memfile.size();++bolb2)
 			{
 				if(memfile.at ( bolb2 ).at( 0 ) == '@')
 					break;
 				else	
 					endOfloopBlock = bolb2 + 1;		
 			}
-// 			std::cerr<< "R "<< lrecords.size() <<std::endl;
-			
 			// Now we have all to loop, whoooooo!
 			int maxIter(std::atoi(iterN.c_str()));
 			for(int iter(0); iter < maxIter ; ++iter )
 			{
-// 				std::cerr<< "I "<< iter <<std::endl;
 				if(iter != 0)
 				{
 					// we set the vars
@@ -738,14 +651,10 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 					for(vit = increments.begin(); vit != increments.end() ; ++vit)
 					{
 						PoDoFoImpose::vars[vit->first] = dToStr( std::atof(PoDoFoImpose::vars[vit->first].c_str()) + vit->second );
-						std::cerr<< vit->first<<"="<< PoDoFoImpose::vars[vit->first]<<" | ";
 					}
-					std::cerr <<std::endl;
 				}
-				for(uint subi(numline + 1);subi < endOfloopBlock ; ++subi)
+				for(int subi(numline + 1);subi < endOfloopBlock ; ++subi)
 				{
-// 					std::cerr<< "S "<< memfile.at(subi) <<std::endl;
-					
 					PageRecord p;
 					p.load ( memfile.at(subi) ) ;
 					if(!p.isValid() || p.sourcePage >= pcount)
@@ -753,27 +662,11 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 					maxPageDest = std::max ( maxPageDest, p.destPage );
 					if ( pagesIndex.find ( p.sourcePage ) != pagesIndex.end() )
 					{
-						PdfXObject *xobj;
-						try
-						{ 
-							xobj = new PdfXObject ( targetDoc->GetPage ( p.sourcePage - 1 )->GetMediaBox(), targetDoc );
-						
-						
-						PdfMemoryOutputStream outMemStream ( 1 );
-						xobjects[p.sourcePage]->GetContents()->GetStream()->GetFilteredCopy ( &outMemStream );
-						outMemStream.Close();
-						PdfMemoryInputStream inStream ( outMemStream.TakeBuffer(),outMemStream.GetLength() );
-						xobj->GetContents()->GetStream()->Set ( &inStream );
-						}
-						catch(PoDoFo::PdfError & e)
-						{
-							std::cerr<<"ERROR1 "<<p.sourcePage - 1<<" "<<memfile.at(subi);
-						}
-						xobjects[dup] = xobj;
-						resources[dup] = getInheritedResources ( targetDoc->GetPage ( p.sourcePage - 1 ) );
-						trimRect[dup] = targetDoc->GetPage ( p.sourcePage - 1 )->GetTrimBox();
-						bleedRect[dup] = targetDoc->GetPage ( p.sourcePage - 1 )->GetBleedBox();
-	
+						xobjects[dup] = xobjects[ p.sourcePage ];
+						resources[dup] = resources[ p.sourcePage ];
+						trimRect[dup] = trimRect[ p.sourcePage ];
+						bleedRect[dup] = bleedRect[ p.sourcePage ];
+
 						p.sourcePage = dup;
 						++dup;
 					}
@@ -782,15 +675,11 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 				}
 				
 			}
-			
-			
-			std::cerr<<"END OF LOOP"<<std::endl;
 			numline = endOfloopBlock;
 			
 		}
 		else // Record? We hope!
 		{
-			std::cerr<<"R "<<buffer<<std::endl;
 			PageRecord p;
 			p.load ( buffer ) ;
 			if(!p.isValid() || p.sourcePage >= pcount)
@@ -798,19 +687,10 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 			maxPageDest = std::max ( maxPageDest, p.destPage );
 			if ( pagesIndex.find ( p.sourcePage ) != pagesIndex.end() )
 			{
-				//qDebug() << "duplicate "<< p.sourcePage << " in " << dup;
-
-				PdfXObject *xobj = new PdfXObject ( targetDoc->GetPage ( p.sourcePage - 1 )->GetMediaBox(), targetDoc );
-				PdfMemoryOutputStream outMemStream ( 1 );
-				xobjects[p.sourcePage]->GetContents()->GetStream()->GetFilteredCopy ( &outMemStream );
-				outMemStream.Close();
-				PdfMemoryInputStream inStream ( outMemStream.TakeBuffer(),outMemStream.GetLength() );
-				xobj->GetContents()->GetStream()->Set ( &inStream );
-
-				xobjects[dup] = xobj;
-				resources[dup] = getInheritedResources ( targetDoc->GetPage ( p.sourcePage - 1 ) );
-				trimRect[dup] = targetDoc->GetPage ( p.sourcePage - 1 )->GetTrimBox();
-				bleedRect[dup] = targetDoc->GetPage ( p.sourcePage - 1 )->GetBleedBox();
+				xobjects[dup] = xobjects[ p.sourcePage ];
+				resources[dup] = resources[ p.sourcePage ];
+				trimRect[dup] = trimRect[ p.sourcePage ];
+				bleedRect[dup] = bleedRect[ p.sourcePage ];
 
 				p.sourcePage = dup;
 				++dup;
@@ -953,10 +833,8 @@ void PdfTranslator::computePlan ( int wellKnownPlan, int sheetsPerBooklet )
 
 void PdfTranslator::impose()
 {
-	if ( ! ( sourceDoc && targetDoc ) )
-		throw std::invalid_argument ( "impose() called with empty source or destination path" );
-
-
+	if ( !targetDoc )
+		throw std::invalid_argument ( "impose() called with empty target" );
 
 	PdfObject trimbox;
 	PdfRect trim ( 0, 0, destWidth, destHeight );
@@ -980,9 +858,7 @@ void PdfTranslator::impose()
 		ostringstream buffer;
 		for ( unsigned int i = 0; i < ( *git ).second.size(); ++i )
 		{
-
 			int curPage = ( *git ).second[i];
-
 			int index = pagesIndex[curPage];
 			
 			double cosR = cos ( planImposition[index].rotate  *  3.14159 / 180.0 );
@@ -997,25 +873,24 @@ void PdfTranslator::impose()
 
 			if ( resources[curPage] )
 			{
-				TKeyMap resmap = resources[curPage]->GetDictionary().GetKeys();
-				TCIKeyMap itres;
-				for ( itres = resmap.begin(); itres != resmap.end(); ++itres )
+				if(resources[curPage]->IsDictionary())
 				{
-// 					if( itres->second->IsReference() )
-// 					{
-// 						std::cerr<<"Ref "<<itres->second->Reference().ToString();
-// 						PdfObject *ro = targetDoc->GetObjects().CreateObject( *(resources[curPage]->GetIndirectKey(itres->first)) );
-// 						xo->GetResources()->GetDictionary().AddKey( itres->first, ro->Reference());
-// 						std::cerr<<" -> "<<ro->Reference().ToString()<<std::endl;
-// 					}
-// 					else
+					TKeyMap resmap = resources[curPage]->GetDictionary().GetKeys();
+					TCIKeyMap itres;
+					for ( itres = resmap.begin(); itres != resmap.end(); ++itres )
+					{
 						xo->GetResources()->GetDictionary().AddKey( itres->first, itres->second );
+					}
 				}
-// 				xo->GetResources()->GetDictionary() = resources[curPage]->GetDictionary();
+				else if( resources[curPage]->IsReference() )
+				{
+					xo->GetObject()->GetDictionary().AddKey(PdfName ( "Resources" ), resources[curPage]  );
+				}
+				else
+					std::cerr<<"ERROR Unknown type resource "<<resources[curPage]->GetDataTypeString()  <<  std::endl;
 				
 			}
-			
-			
+			// Very primitive but it makes it easy to track down imposition plan into content stream.
 			buffer << "q\n";
 			buffer << std::fixed << cosR <<" "<< sinR<<" "<<-sinR<<" "<< cosR<<" "<< tx <<" "<<  ty << " cm\n";
 			buffer << "/OriginalPage" << curPage << " Do\n";
@@ -1026,16 +901,7 @@ void PdfTranslator::impose()
 		newpage->GetResources()->GetDictionary().AddKey ( PdfName ( "XObject" ), xdict );
 		++git;
 	}
-// 	try
-// 	{
-// 		targetDoc->DeletePages ( 0,pcount );
-// 	}
-// 	catch ( PoDoFo::PdfError & e )
-// 	{
-// 		e.PrintErrorMsg();
-// 		std::cerr <<"For the reason above, PoDoFo didn't delete original pages,\nas we can live with that, process continues"<<endl;
-// 	}
-
+	
 	targetDoc->Write ( outFilePath.c_str() );
 
 }

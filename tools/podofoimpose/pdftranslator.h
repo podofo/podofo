@@ -152,6 +152,8 @@ class PdfTranslator
 		double extraSpace;
 
 		std::vector<std::string> multiSource;
+		
+		std::map<std::string, PdfObject*> migrateMap;
 
 
 };
