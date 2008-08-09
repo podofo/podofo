@@ -35,12 +35,16 @@ bool PdfMutex::IsPoDoFoMultiThread()
 }
 
 PdfMutex::PdfMutex()
+#ifdef PODOFO_MULTI_THREAD
+#ifndef _WIN32
+    : m_mutex( PTHREAD_MUTEX_INITIALIZER )
+#endif // _WIN32
+#endif // PODOFO_MULTI_THREAD
+
 {
 #ifdef PODOFO_MULTI_THREAD
 #ifdef _WIN32
-
-#else
-    pthread_mutex_init( &m_mutex, NULL );
+    InitializeCriticalSection( &m_cs );
 #endif // _WIN32
 #endif // PODOFO_MULTI_THREAD
 }
@@ -49,7 +53,7 @@ PdfMutex::~PdfMutex()
 {
 #ifdef PODOFO_MULTI_THREAD
 #ifdef _WIN32
-
+    DeleteCriticalSection( &m_cs );
 #else
     pthread_mutex_destroy( &m_mutex );
 #endif // _WIN32
@@ -60,11 +64,11 @@ void PdfMutex::Lock()
 {
 #ifdef PODOFO_MULTI_THREAD
 #ifdef _WIN32
-
+    EnterCriticalSection( &m_cs );
 #else
     if( pthread_mutex_lock( &m_mutex ) != 0 ) 
     {
-	PODOFO_RAISE_ERROR( ePdfError_MutexError );
+	    PODOFO_RAISE_ERROR( ePdfError_MutexError );
     }
 #endif // _WIN32
 #endif // PODOFO_MULTI_THREAD
@@ -74,16 +78,16 @@ bool PdfMutex::TryLock()
 {
 #ifdef PODOFO_MULTI_THREAD
 #ifdef _WIN32
-
+    return (TryEnterCriticalSection( &m_cs ) ? true : false);
 #else
     int nRet = pthread_mutex_trylock( &m_mutex );
     if( nRet == 0 )
-	return true;
+	    return true;
     else if( nRet == EBUSY )
-	return false;
+	    return false;
     else
     {
-	PODOFO_RAISE_ERROR( ePdfError_MutexError );
+	    PODOFO_RAISE_ERROR( ePdfError_MutexError );
     }
 #endif // _WIN32
 #endif // PODOFO_MULTI_THREAD
@@ -97,11 +101,11 @@ void PdfMutex::UnLock()
 {
 #ifdef PODOFO_MULTI_THREAD
 #ifdef _WIN32
-
+    LeaveCriticalSection( &m_cs );
 #else
     if( pthread_mutex_unlock( &m_mutex ) != 0 )
     {
-	PODOFO_RAISE_ERROR( ePdfError_MutexError );
+	    PODOFO_RAISE_ERROR( ePdfError_MutexError );
     }
 #endif // _WIN32
 #endif // PODOFO_MULTI_THREAD

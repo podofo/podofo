@@ -25,7 +25,16 @@
 
 #ifdef PODOFO_MULTI_THREAD
 #ifdef _WIN32
-
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0400 // Make the TryEnterCriticalSection method available
+#include <windows.h>
+#undef _WIN32_WINNT
+#else
+#include <windows.h>
+#endif // _WIN32_WINNT
+#undef CreateFont
+#undef DrawText
+#undef GetObject
 #else
 #include <pthread.h>
 #endif // _WIN32
@@ -78,7 +87,7 @@ class PODOFO_API PdfMutex {
   private:
 #ifdef PODOFO_MULTI_THREAD
 #ifdef _WIN32
-
+    CRITICAL_SECTION m_cs;
 #else
     pthread_mutex_t m_mutex;    
 #endif // _WIN32
