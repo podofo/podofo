@@ -604,7 +604,9 @@ PdfString PdfString::ToUnicode() const
         return *this;
     else
     {
-	const PdfEncoding* const pEncoding = (m_pEncoding ? m_pEncoding : &PdfFont::DocEncoding);
+	const PdfEncoding* const pEncoding = (m_pEncoding ? 
+					      m_pEncoding : 
+					      PdfEncodingFactory::GlobalPdfDocEncodingInstance());
 	return pEncoding->ConvertToUnicode( *this, NULL );
     }
 }

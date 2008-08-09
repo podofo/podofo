@@ -21,6 +21,7 @@
 #include "PdfFont.h"
 
 #include "PdfArray.h"
+#include "PdfEncoding.h"
 #include "PdfFontMetrics.h"
 #include "PdfInputStream.h"
 #include "PdfPage.h"
@@ -35,10 +36,6 @@
 using namespace std;
 
 namespace PoDoFo {
-
-const PdfDocEncoding      PdfFont::DocEncoding;
-const PdfWinAnsiEncoding  PdfFont::WinAnsiEncoding;
-const PdfMacRomanEncoding PdfFont::MacRomanEncoding;
 
 PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent )
     : PdfElement( "Font", pParent ), m_pEncoding( pEncoding ), 

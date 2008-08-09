@@ -2601,11 +2601,11 @@ const PdfEncoding* PdfDifferenceEncoding::GetBaseEncoding() const
     switch( m_baseEncoding ) 
     {
         case eBaseEncoding_WinAnsi:
-            pEncoding = &PdfFont::WinAnsiEncoding;
+            pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance();
             break;
 
         case eBaseEncoding_MacRoman:
-            pEncoding = &PdfFont::MacRomanEncoding;
+            pEncoding = PdfEncodingFactory::GlobalMacRomanEncodingInstance();
             break;
 
         case eBaseEncoding_MacExpert:

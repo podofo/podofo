@@ -22,6 +22,7 @@
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
+#include "PdfEncoding.h"
 #include "PdfEncodingFactory.h"
 #include "PdfFont.h"
 #include "PdfFontCID.h"

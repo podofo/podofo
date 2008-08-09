@@ -80,6 +80,8 @@ SET(PODOFO_SOURCES
     PdfXObject.cpp
     PdfXRef.cpp
     PdfXRefStream.cpp
+    util/PdfMutex.cpp
+    util/PdfMutexWrapper.cpp
 )
 
 IF(WIN32)
@@ -168,6 +170,8 @@ SET(PODOFO_HEADERS
     PdfXRefStream.h
     podofo.h
     podofoapi.h
+    util/PdfMutex.h
+    util/PdfMutexWrapper.h
 )
 
 INSTALL(FILES ${PODOFO_HEADERS}

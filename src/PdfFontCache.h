@@ -23,6 +23,8 @@
 
 #include "PdfDefines.h"
 #include "Pdf3rdPtyForwardDecl.h"
+#include "PdfEncoding.h"
+#include "PdfEncodingFactory.h"
 #include "PdfFont.h"
 
 namespace PoDoFo {
@@ -51,7 +53,7 @@ struct TFontCacheElement {
 
 #ifdef _WIN32
     TFontCacheElement( const wchar_t* pszFontName, bool bBold, bool bItalic, 
-		               const PdfEncoding * const pEncoding )
+		       const PdfEncoding * const pEncoding )
         : m_pFont(NULL), m_pEncoding( pEncoding ), m_bBold( bBold ), 
           m_bItalic( bItalic ), m_sFontName( pszFontName )
     {
@@ -95,7 +97,7 @@ struct TFontCacheElement {
     inline bool operator()( const TFontCacheElement& r1, 
 			    const TFontCacheElement& r2 ) const 
     { 
-	    return r1 < r2;
+	return r1 < r2;
     }
 
     PdfFont*           m_pFont;
@@ -172,7 +174,8 @@ class PODOFO_API PdfFontCache {
      *           not be created or found.
      */
     PdfFont* GetFont( const char* pszFontName, bool bBold, bool bItalic, 
-                      bool bEmbedd, const PdfEncoding * const = &PdfFont::WinAnsiEncoding, 
+                      bool bEmbedd, 
+		      const PdfEncoding * const = PdfEncodingFactory::GlobalPdfDocEncodingInstance(), 
                       const char* pszFileName = NULL );
 
 #ifdef _WIN32
@@ -194,7 +197,7 @@ class PODOFO_API PdfFontCache {
      *  UTF-8 to the const char* overload.
      */
     PdfFont* GetFont( const wchar_t* pszFontName, bool bBold, bool bItalic, 
-                      bool bEmbedd, const PdfEncoding * const = &PdfFont::WinAnsiEncoding );
+                      bool bEmbedd, const PdfEncoding * const = PdfEncodingFactory::GlobalPdfDocEncodingInstance() );
 #endif // _WIN32
 
     /** Get a font from the cache. If the font does not yet
@@ -208,7 +211,7 @@ class PODOFO_API PdfFontCache {
      *  \returns a PdfFont object or NULL if the font could
      *           not be created or found.
      */
-    PdfFont* GetFont( FT_Face face, bool bEmbedd, const PdfEncoding * const = &PdfFont::WinAnsiEncoding );
+    PdfFont* GetFont( FT_Face face, bool bEmbedd, const PdfEncoding * const = PdfEncodingFactory::GlobalPdfDocEncodingInstance() );
 
     /** Get a fontsubset from the cache. If the font does not yet
      *  exist, add it to the cache.
@@ -225,7 +228,7 @@ class PODOFO_API PdfFontCache {
      *           not be created or found.
      */
     PdfFont* GetFontSubset( const char* pszFontName, bool bBold, bool bItalic, 
-			    const PdfEncoding * const = &PdfFont::WinAnsiEncoding,
+			    const PdfEncoding * const = PdfEncodingFactory::GlobalPdfDocEncodingInstance(),
 			    const char* pszFileName = NULL);
 
     

@@ -22,11 +22,15 @@
 #define _PDF_ENCODING_FACTORY_H_
 
 #include "PdfDefines.h"
+#include "PdfMutex.h"
 
 namespace PoDoFo {
 
 class PdfEncoding;
+class PdfDocEncoding;
+class PdfMacRomanEncoding;
 class PdfObject;
+class PdfWinAnsiEncoding;
 
 /** This factory creates a PdfEncoding
  *  from an existing object in the PDF.
@@ -41,6 +45,48 @@ class PODOFO_API PdfEncodingFactory {
      *  \returns a PdfEncoding or NULL
      */
     static const PdfEncoding* const CreateEncoding( PdfObject* pObject );
+
+    /** Singleton method which returns a global instance
+     *  of PdfDocEncoding.
+     *
+     *  \returns global instance of PdfDocEncoding
+     */
+    static const PdfEncoding* GlobalPdfDocEncodingInstance();
+
+    /** Singleton method which returns a global instance
+     *  of WinAnsiEncoding.
+     *
+     *  \returns global instance of WinAnsiEncoding
+     */
+    static const PdfEncoding* GlobalWinAnsiEncodingInstance();
+
+    /** Singleton method which returns a global instance
+     *  of MacRomanEncoding.
+     *
+     *  \returns global instance of MacRomanEncoding
+     */
+    static const PdfEncoding* GlobalMacRomanEncodingInstance();
+
+ private:
+    /** Always use this static declaration,
+     *  if you need an instance of PdfDocEncoding
+     *  as heap allocation is expensive for PdfDocEncoding.
+     */
+    static const PdfDocEncoding* s_pDocEncoding;
+
+    /** Always use this static declaration,
+     *  if you need an instance of PdfWinAnsiEncoding
+     *  as heap allocation is expensive for PdfWinAnsiEncoding.
+     */
+    static const PdfWinAnsiEncoding* s_pWinAnsiEncoding;
+
+    /** Always use this static declaration,
+     *  if you need an instance of PdfWinAnsiEncoding
+     *  as heap allocation is expensive for PdfWinAnsiEncoding.
+     */
+    static const PdfMacRomanEncoding* s_pMacRomanEncoding;
+
+    static Util::PdfMutex s_mutex;
 };
 
 }; /* namespace PoDoFo */

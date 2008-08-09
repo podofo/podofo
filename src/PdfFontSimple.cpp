@@ -23,6 +23,7 @@
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
+#include "PdfEncoding.h"
 #include "PdfFilter.h"
 #include "PdfName.h"
 #include "PdfStream.h"

@@ -24,7 +24,7 @@
 #include "PdfDefines.h"
 #include "PdfName.h"
 #include "PdfElement.h"
-#include "PdfEncoding.h"
+#include "PdfEncodingFactory.h"
 #include "PdfFontMetrics.h"
 
 namespace PoDoFo {
@@ -48,24 +48,6 @@ class PODOFO_API PdfFont : public PdfElement {
 
  public:
 
-	/** Always use this static declaration,
-	 *  if you need an instance of PdfDocEncoding
-	 *  as heap allocation is expensive for PdfDocEncoding.
-	 */
-	static const PODOFO_API PdfDocEncoding DocEncoding;
-
-    /** Always use this static declaration,
-     *  if you need an instance of PdfWinAnsiEncoding
-     *  as heap allocation is expensive for PdfWinAnsiEncoding.
-     */
-    static const PdfWinAnsiEncoding WinAnsiEncoding;
-
-    /** Always use this static declaration,
-     *  if you need an instance of PdfWinAnsiEncoding
-     *  as heap allocation is expensive for PdfWinAnsiEncoding.
-     */
-    static const PdfMacRomanEncoding MacRomanEncoding;
- 
     /** Create a new PdfFont object which will introduce itself
      *  automatically to every page object it is used on.
      *

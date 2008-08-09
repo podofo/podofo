@@ -23,10 +23,17 @@
 #include "PdfEncoding.h"
 #include "PdfDifferenceEncoding.h"
 #include "PdfFont.h"
+#include "PdfMutexWrapper.h"
 #include "PdfName.h"
 #include "PdfObject.h"
 
 namespace PoDoFo {
+
+const PdfDocEncoding*      PdfEncodingFactory::s_pDocEncoding      = NULL;
+const PdfWinAnsiEncoding*  PdfEncodingFactory::s_pWinAnsiEncoding  = NULL;
+const PdfMacRomanEncoding* PdfEncodingFactory::s_pMacRomanEncoding = NULL;
+
+Util::PdfMutex PdfEncodingFactory::s_mutex;
 
 const PdfEncoding* const PdfEncodingFactory::CreateEncoding( PdfObject* pObject )
 {
@@ -40,9 +47,9 @@ const PdfEncoding* const PdfEncodingFactory::CreateEncoding( PdfObject* pObject 
     {
         const PdfName & rName = pObject->GetName();
         if( rName == PdfName("WinAnsiEncoding") )
-            return &PdfFont::WinAnsiEncoding;
+            return PdfEncodingFactory::GlobalWinAnsiEncodingInstance();
         else if( rName == PdfName("MacRomanEncoding") )
-            return &PdfFont::MacRomanEncoding;
+            return PdfEncodingFactory::GlobalMacRomanEncodingInstance();
         // TODO:
         //else if( rName == PdfName("MacExpertEncoding") )
         //    return &PdfFont::MacExpertEncoding;
@@ -58,5 +65,43 @@ const PdfEncoding* const PdfEncodingFactory::CreateEncoding( PdfObject* pObject 
     return NULL;
 }
 
+const PdfEncoding* PdfEncodingFactory::GlobalPdfDocEncodingInstance()
+{
+    if(!s_pDocEncoding) // First check
+    {
+	Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
+
+	if(!s_pDocEncoding) // Double check
+	    s_pDocEncoding = new PdfDocEncoding();
+    }
+
+    return s_pDocEncoding;
+}
+
+const PdfEncoding* PdfEncodingFactory::GlobalWinAnsiEncodingInstance()
+{
+    if(!s_pWinAnsiEncoding) // First check
+    {
+	Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
+
+	if(!s_pWinAnsiEncoding) // Double check
+	    s_pWinAnsiEncoding = new PdfWinAnsiEncoding();
+    }
+
+    return s_pWinAnsiEncoding;
+}
+
+const PdfEncoding* PdfEncodingFactory::GlobalMacRomanEncodingInstance()
+{
+    if(!s_pMacRomanEncoding) // First check
+    {
+	Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
+
+	if(!s_pMacRomanEncoding) // Double check
+	    s_pMacRomanEncoding = new PdfMacRomanEncoding();
+    }
+
+    return s_pMacRomanEncoding;
+}
 
 };

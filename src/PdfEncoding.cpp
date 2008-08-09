@@ -24,6 +24,7 @@
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
 #include "PdfLocale.h"
+#include "PdfMutexWrapper.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -60,19 +61,20 @@ PdfSimpleEncoding::~PdfSimpleEncoding()
 
 void PdfSimpleEncoding::InitEncodingTable() 
 {
-    // TODO: LOCK
+    Util::PdfMutexWrapper wrapper( m_mutex );
     const long         lTableLength     = 0xffff;
     const pdf_utf16be* cpUnicodeTable   = this->GetToUnicodeTable();
-    
-    m_pEncodingTable = static_cast<char*>(malloc(sizeof(char)*lTableLength));
-    
-    // fill the table with 0
-    memset( m_pEncodingTable, 0, lTableLength * sizeof(char) ); 
-    // fill the table with data
-    for( int i=0;i<256;i++ )
-        m_pEncodingTable[ cpUnicodeTable[i] ] = i;
 
-    // TODO: UNLOCK
+    if( !m_pEncodingTable ) // double check
+    {
+	m_pEncodingTable = static_cast<char*>(malloc(sizeof(char)*lTableLength));
+    
+	// fill the table with 0
+	memset( m_pEncodingTable, 0, lTableLength * sizeof(char) ); 
+	// fill the table with data
+	for( int i=0;i<256;i++ )
+	    m_pEncodingTable[ cpUnicodeTable[i] ] = i;
+    }
 }
 
 void PdfSimpleEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
@@ -135,10 +137,8 @@ PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString,
 
 PdfString PdfSimpleEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* ) const
 {
-    // TODO: LOCK
     if( !m_pEncodingTable )
         const_cast<PdfSimpleEncoding*>(this)->InitEncodingTable();
-    // TODO: UNLOCK
 
     PdfString sSrc = rString.ToUnicode(); // make sure the string is unicode and not PdfDocEncoding!
     long      lLen = sSrc.GetCharacterLength();

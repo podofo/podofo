@@ -25,6 +25,7 @@
 #include "PdfElement.h"
 #include "PdfName.h"
 #include "PdfString.h"
+#include "PdfMutex.h"
 
 #include <iterator>
 
@@ -393,6 +394,9 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
      */
     virtual const pdf_utf16be* GetToUnicodeTable() const = 0;
 
+ protected:
+    Util::PdfMutex m_mutex;   ///< Mutex for the creation of the encoding table
+    
  private:
     PdfName m_name;           ///< The name of the encoding
     char*   m_pEncodingTable; ///< The helper table for conversions into this encoding

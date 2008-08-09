@@ -93,6 +93,8 @@ enum EPdfError {
     ePdfError_FreeType,                 /**< Error in FreeType */
     ePdfError_SignatureError,           /**< Error in signature */
 
+    ePdfError_MutexError,               /**< Error during a mutex operation */
+
     ePdfError_UnsupportedImageFormat,   /**< This image format is not supported by PoDoFO. */
 
     ePdfError_Unknown = 0xffff          /**< Unknown error */
