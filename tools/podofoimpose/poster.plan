@@ -1,0 +1,38 @@
+# source is A1 doc
+$sw=1683,78
+$sh=2383,94
+# target on A4
+# yeah, we love fun!
+$PageWidth=597.6
+$PageHeight=842.4
+$pw=597.6
+$ph=842.4
+
+$margin=20
+$Xoffset=10
+$Yoffset=0
+
+$it=3
+$R=1
+$C=1
+@3($C+1)
+1; $C + (($R - 1) * $it); 0; $Xoffset  +$margin - ( ( $pw - $margin   ) * ($C - 1) );  $Yoffset + $margin - ( ($ph - $margin) * ($R -1) ) ;
+@
+
+$R=2
+$C=1
+@3($C+1)
+1; $C + (($R - 1) * $it); 0; $Xoffset +$margin- ( ( $pw - $margin   ) * ($C - 1) );    $Yoffset + $margin - ( ($ph - $margin) * ($R -1) ) ;
+@
+
+$R=3
+$C=1
+@3($C+1)
+1; $C + (($R - 1) * $it); 0; $Xoffset +$margin- ( ( $pw - $margin   ) * ($C - 1) );    $Yoffset + $margin - ( ($ph - $margin) * ($R -1) ) ;
+@
+
+# Margins mask & possibly cut marks
+$p=1
+@9($p+1)
+2; $p; 0; 0; 0;
+@

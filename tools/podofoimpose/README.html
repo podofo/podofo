@@ -4,102 +4,192 @@
 
 <head>
   <title>PodofoImpose - some words</title>
-  <meta name="GENERATOR" content="Quanta Plus" /=true />
-  <meta name="AUTHOR" content="Pierre Marchand" /=true />
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /=true />
+  <meta name="AUTHOR" content="Pierre Marchand"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <style type="text/css">
+body{
+	width:360pt;
+	margin:auto;
+	font-family:sans-serif;
+	font-size:11.2pt;
+}
+.section{
+/* 	background-color:#ddd; */
+	border-left:1pt solid #333;
+	padding-left:12pt;
+	
+}
+.code-abs{
+	font-family:mono;
+	font-weight:bold;
+	font-size:9pt;
+	background-color:#eee;
+	color:#222;
+}
+.command{
+	font-family:monospace;
+	font-size:9pt;
+	background-color:#222;
+	color:#eee;
+	padding:6pt;
+}
+.file{
+	border:1pt dotted black;
+	width:90%;
+	margin:12pt auto;
+}
+.file .name{
+	text-align:right;
+	font-family:monospace;
+	font-weight:bold;
+	font-size:8pt;
+	background-color:#eee;
+}
+.file .content{
+	margin:0;
+	padding:0;
+	border:0;
+	white-space:pre;
+}
+  </style>
 </head>
-<H1> As of today, this document is OBSOLETE</H1>
-<p>Please refer to source code or sample.plan to figure out how it’s work till I find time to rewrite the examples presented here.</p>
-<p>
+<body>
 	<h2>PodofoImpose</h2>
-	<div>PodofoImpose is a utility program which aims to provide a rather simple way to impose PDF documents. Originally written for my own use, it ended up in PoDoFo release as a show-case (don’t rely too much on it).</div>
-	<h3>Usage</h3>
-	<div> PodofoImpose is driven by a PLAN file. This file describes how pages from a source PDF document have to be relayout into a target document. We’ll describe how this file must be formated. <dl>
-		<dt>Header</dt>
-		<dd>The first line of the file indicates the width and height of the target document without its trim box.</dd>
-	</dl>
-	<dl>
-		<dt>Records</dt>
-		<dd>Each line of the file is a record describing how a page from the source page will be repositionned. Each line is of the form: <pre>source_page target_page rotation translationX translationY</pre>
-	</dd>
-	</dl> Once you’ve wrote the PLAN file you can run the program: <pre>$podofoimpose source.pdf target.pdf plan.plan 0</pre>
-		
-		<pre>Note1: the source can be either a PDF file or a text file which is a listing of PDF files</pre>
-		<pre>Note2: the last argument is the external margin that you can ask PodofoImpose to insert;
-			in this case it will create a trimbox, print cut marks and the folio </pre>
-		
-        </div>
+	<div id="intro">PodofoImpose is a utility program which aims to provide a rather simple way to impose PDF documents. Originally written for my own use, it ended up in PoDoFo release as a show-case (don’t rely too much on it).
+	</div>
+	
+	<h3>Plan</h3>
+	<div class="section"><!-- Plan -->
+		PodofoImpose is driven by a PLAN file. This file describes how pages from a source PDF document have to be relayout into a target document. We’ll describe how this file must be formated.
+		<h4>Records</h4>
+		<div>
+			Most of the PLAN file is composed of record lines of the form:
+			<div class="code-abs">
+				source page; target page; rotation; horizontal translation; vertical translation;
+			</div>
+			Each element of the record can be a numeric value, a constant or an expression involving both numerics and constants.
+		</div>
+		<h4>Constants</h4>
+		<div>
+			Constants can be  declared everywhere in the PLAN file except in loops. They are 8 bits char strings (except "=") with a leading "$" character which makes them easy to identify. Their value is always interpreted as a float through std::atof. You can "overload" a constant value by redeclaring it. They are declared in this form:
+			<div class="code-abs">
+				$MyConstant=123.456
+			</div>
+			Note that a PLAN file is valid only if it contains 2 required constants which are "$PageWidth" and "$PageHeight", giving target document dimensions.
+		</div>
+		<h4>Expressions</h4>
+		<div>
+			An expression is a set of basic mathematic operations +, -, * and /. Operations are executed from left to right without taking care of any kind of precedance. You can use parenthesis to enclose operations that need to be computed separetly. Example:
+			<div class="code-abs">
+				123.456 * ( $ConstantA - ( $ConstantB / 3.14 ) )
+			</div>
+		</div>
+		<h4>Loops</h4>
+		<div>
+			Loops allow users to programmatically generate records. While the concept itself is familiar to programmers I can imagine that regular users would feel not so easy with it. So let me introduce a simple example to explain the thing.
+		</div>
+		<div>
+			Let say we have a source document, A4 format, which has 1000 pages and we just want to position each page on the center of an A3 plate.
+			<div class="file">
+				<div class="name">A4onA3.plan</div>
+				<div class="content">$PageWidth=842.6 
+$PageHeight=1195.2
+## SourceWidth &#38; SourceHeight
+$sw=597.6
+$sh=842.4
+$page=1
+@1000($page+1)
+$page; $page; 0; ($PageWidth-$sw)/2; ($PageHeight-$sh)/2;
+@</div>	
+			</div>
+			The loop is what’s enclosed by "@" characters, the second just indicates the end of the loop. The first first indicates how many iterations (loops) have to be performed &#8212; 1000 here. Then comes the interesting part, constants which appear in parenthesis will be incremented by the value following the "+" (can be a minus one, in that case don’t turn the "+" into a "-", just prefix the value with "-" as in ($foo+-1.23)), which means in this example that at each iteration, $page will see its value increased by 1.
+		</div>
+		<div>
+			Constants (which finally turn into variables ;-)) must be declared before the loop. Many constants can be put in loop declaration, separate them with semicolons.
+		</div>
+		<div>
+			No, loops can’t be nested!
+		</div>
+		<h4>Running</h4>
+		<div>
+		Once you’ve wrote the PLAN file you can run the program: 
+			<div class="command">
+				podofoimpose source.pdf target.pdf plan.plan
+			</div>
+		Note the source can be either a PDF file or a text file which is a listing of PDF files
+		</div>
+        </div> <!-- Plan -->
 	
 	<h3>Examples</h3>
+	<div class="section"><!-- Examples -->
 	<h5>Add a stamp to a document</h5>
-	<p>
-	<p>Shame on me, don’t even have a real stamp at my "office". So I tried something and it worked! Say you have that official one page A4 doc on which you want to add a nice stamp named official.pdf. You have your stamp in the file stamp.pdf. You first have to create two files : <pre>
-		== pdf.list ==
-		official.pdf
-		stamp.pdf
-		=========
-	</pre>
-		<pre>
-		==stamponator.plan==
-		597.6 842.4
-		1 1 0 0 0
-		2 1 0 350 100
-		===============
-	</pre> Now you can run:
-	<pre>$podofoimpose  pdf.list stamped-official.pdf stamponator.plan 0</pre>
-	</p>
-	
-	
-		<h5>Make a tiled poster</h5>
-		<p>
-			I composed a 640x380 mm document in Scribus, I was thinking I could use the 
-			built-in Kprinter poster option to print it on my A4 laser printer. But no 
-			poster available on my OpenSuse box, so I thought I could give podofo a try.
-			Here is the plan file, it’s still not exact but since i get my poster printed 
-			I don’t bother too much :)
+	Shame on me, don’t even have a real stamp at my "office". So I tried something and it worked! Say you have that official one page A4 doc, named official.pdf, on which you want to add a nice stamp. You have your stamp in the file stamp.pdf. You first have to create two files:
+	<div class="file">
+		<div class="name">
+		pdf.list
+		</div>
+		<div class="content">official.pdf
+stamp.pdf</div>
+	</div>
+	<div class="file">
+		<div class="name">stamponator.plan</div>
+<div class="content">$PageWidth=597.6 
+$PageHeight=842.4
+# original page is left unchanged;
+1; 1; 0; 0; 0;
+# positionning stamp is up to you!
+2; 1; 0; 350; 100;</div>
+	</div>
+	Now you can run:
+	<div class="command">podofoimpose  pdf.list stamped-official.pdf stamponator.plan</div>
 
-<pre>
-	==poster.plan======
-	597.6 842.4
-	1 1 0 16.56 172.4
-	1 2 0 -547.92 172.4
-	1 3 0 -1112.4 172.4
-	1 4 0 -1676.88 172.4
-	
-	1 5 0 16.56 -497.6
-	1 6 0 -547.92 -497.6
-	1 7 0 -1112.4 -497.6
-	1 8 0 -1676.88 -497.6
-	===============
-</pre>
-I ran a regular:
-<pre>$podofoimpose large.pdf poster.pdf poster.plan 0</pre>
-	</p>
-	<h5>Multiple business cards on a sheet</h5>
-	<p>
-	<pre>
-		==carte.plan========
-		520.722 765.22
-		1 1 0 0 0
-		1 1 0 265.548 0
-		1 1 0 0 255.174
-		1 1 0 265.548 255.174
-		1 1 0 0 510.348
-		1 1 0 265.548 510.348
-		2 2 0 0 0
-		2 2 0 265.548 0
-		2 2 0 0 255.174
-		2 2 0 265.548 255.174
-		2 2 0 0 510.348
-		2 2 0 265.548 510.348
-		================
-	</pre>
-	<pre>$podofoimpose carte.pdf carte_imposed.pdf carte.plan 38.439</pre>
-	Note the sheet margin adjustment which lets room for the cut marks (if there 
-	is a relevant trim box in the file), I can’t decide if it’s a bug or a 
-	feature! If the plan was generated automatically by a GUI app or something 
-	similar it would be a feature but when you have to compute it "by hand", it’s 
-a real pain. Although it gives good results.
-</p>
+	<h5>Make a tiled poster</h5>
+	<div>
+		Printing a large graphic onto a set of little paper sheets can be handful. Doing it automatically is even better! You can find files used in this example here: <a href="poster.pdf">poster.pdf</a>,
+							 <a href="poster_mask.pdf">poster_mask.pdf</a>,
+							  <a href="poster.plan">poster.plan</a> and 
+							  <a href="poster.list">poster.list</a>. Here constants are a bit abbreviated in order to fit in the frame.
+		<div class="file">
+			<div class="name">poster.plan</div>
+			<div class="content"># source is A1 doc
+$sw=1683,78
+$sh=2383,94
+# target on A4
+$PageWidth=597.6
+$PageHeight=842.4
+$pw=597.6
+$ph=842.4
+$m=20
+$Xo=10
+$Yo=0
+$it=3
+$R=1
+$C=1
+@3($C+1)
+1; $C + (($R - 1) * $it); 0; $Xo + $m - (( $pw - $m) * ($C - 1));  $Yo + $m - (($ph - $m) * ($R -1)) ;
+@
+
+$R=2
+$C=1
+@3($C+1)
+1; $C + (($R - 1) * $it); 0; $Xo + $m - (( $pw - $m) * ($C - 1));  $Yo + $m - (($ph - $m) * ($R -1)) ;
+@
+
+$R=3
+$C=1
+@3($C+1)
+1; $C + (($R - 1) * $it); 0; $Xo + $m - (( $pw - $m) * ($C - 1));  $Yo + $m - (($ph - $m) * ($R -1)) ;
+@
+
+# Margins mask &amp; possibly cut marks
+$p=1
+@9($p+1)
+2; $p; 0; 0; 0;
+@</div>
+			</div>
+		</div>
+	<div class="command">podofoimpose poster.list tile.pdf poster.plan </div>
+	<div>Etc.</div>
+	</div><!-- Examples -->
 </body>
 </html>
