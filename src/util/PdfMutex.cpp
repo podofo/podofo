@@ -35,16 +35,12 @@ bool PdfMutex::IsPoDoFoMultiThread()
 }
 
 PdfMutex::PdfMutex()
-#ifdef PODOFO_MULTI_THREAD
-#ifndef _WIN32
-    : m_mutex( PTHREAD_MUTEX_INITIALIZER )
-#endif // _WIN32
-#endif // PODOFO_MULTI_THREAD
-
 {
 #ifdef PODOFO_MULTI_THREAD
 #ifdef _WIN32
     InitializeCriticalSection( &m_cs );
+#else
+    pthread_mutex_init( &m_mutex, NULL );
 #endif // _WIN32
 #endif // PODOFO_MULTI_THREAD
 }

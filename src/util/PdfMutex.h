@@ -92,7 +92,6 @@ class PODOFO_API PdfMutex {
     pthread_mutex_t m_mutex;    
 #endif // _WIN32
 #endif // PODOFO_MULTI_THREAD
-
 };
 
 }; // Util
