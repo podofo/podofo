@@ -459,8 +459,8 @@ void PdfTranslator::setTarget ( const std::string & target )
 	// But it seems we don't need to duplicate & can do all job on source doc ! I try it now. (pm)
 // 	targetDoc = sourceDoc;
 	targetDoc = new PdfMemDocument;
+
 	
-	targetDoc->SetPdfVersion( sourceDoc->GetPdfVersion() );
 	
 	outFilePath  = target;
 	pcount = sourceDoc->GetPageCount();
@@ -518,6 +518,38 @@ void PdfTranslator::setTarget ( const std::string & target )
 
 	}
 	
+		
+	targetDoc->SetPdfVersion( sourceDoc->GetPdfVersion() );
+		
+	PdfInfo *sInfo( sourceDoc->GetInfo() );
+	PdfInfo *tInfo( targetDoc->GetInfo() );
+	
+	if(sInfo->GetAuthor() != PdfString::StringNull)
+		tInfo->SetAuthor(sInfo->GetAuthor());
+	if(sInfo->GetCreator() != PdfString::StringNull)
+		tInfo->SetCreator(sInfo->GetCreator());
+	if(sInfo->GetSubject() != PdfString::StringNull)
+		tInfo->SetSubject(sInfo->GetSubject());
+	if(sInfo->GetTitle() != PdfString::StringNull)
+		tInfo->SetTitle(sInfo->GetTitle());
+	if(sInfo->GetKeywords() != PdfString::StringNull)
+		tInfo->SetKeywords(sInfo->GetKeywords());
+	
+	if(sInfo->GetTrapped() != PdfName::KeyNull)
+		tInfo->SetTrapped(sInfo->GetTrapped());
+
+	
+	PdfObject *cat( sourceDoc->GetCatalog() );		
+	TKeyMap catmap = cat->GetDictionary().GetKeys();		
+	for ( TCIKeyMap itc = catmap.begin(); itc != catmap.end(); ++itc )
+	{
+		if(cat->GetDictionary().GetKey(itc->first) == 0)
+		{
+			PdfObject *o = itc->second;
+			cat->GetDictionary().AddKey (itc->first , migrateResource( o ) );
+		}
+	}
+
 	delete sourceDoc;
 }
 
@@ -655,10 +687,14 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 				}
 				for(int subi(numline + 1);subi < endOfloopBlock ; ++subi)
 				{
+// 					std::cerr<< subi <<"/"<< endOfloopBlock <<" - "<<memfile.at(subi) <<std::endl;
 					PageRecord p;
 					p.load ( memfile.at(subi) ) ;
-					if(!p.isValid() || p.sourcePage >= pcount)
+					if(!p.isValid() || p.sourcePage > pcount)
+					{
+						std::cerr<< "Error p("<<(p.isValid()?"valid":"invalid")<<") "<< p.sourcePage  <<std::endl;
 						continue;
+					}
 					maxPageDest = std::max ( maxPageDest, p.destPage );
 					if ( pagesIndex.find ( p.sourcePage ) != pagesIndex.end() )
 					{
@@ -682,7 +718,7 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 		{
 			PageRecord p;
 			p.load ( buffer ) ;
-			if(!p.isValid() || p.sourcePage >= pcount)
+			if(!p.isValid() || p.sourcePage > pcount)
 				continue;
 			maxPageDest = std::max ( maxPageDest, p.destPage );
 			if ( pagesIndex.find ( p.sourcePage ) != pagesIndex.end() )
