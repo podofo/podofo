@@ -100,6 +100,16 @@ class PODOFO_API PdfInfo : public PdfElement {
      *  \returns the title
      */
     inline const PdfString & GetTitle() const;
+    
+    /** Set the trapping state of the document.
+     *  \param sTitle title
+     */
+    void SetTrapped( const PdfName & sTrapped );
+    
+    /** Get the trapping state of the document
+     *  \returns the title
+     */
+    inline const PdfName & GetTrapped() const;
 
  private:
     /** Add the initial document information to the dictionary.
@@ -113,6 +123,12 @@ class PODOFO_API PdfInfo : public PdfElement {
      *  \return a value from the info dictionary
      */
     const PdfString & GetStringFromInfoDict( const PdfName & rName ) const;
+    
+     /** Get a value from the info dictionary as name
+     *  \para rName the key to fetch from the info dictionary
+     *  \return a value from the info dictionary
+     */
+    const PdfName & GetNameFromInfoDict( const PdfName & rName ) const;
 
 };
 
@@ -154,6 +170,14 @@ const PdfString & PdfInfo::GetSubject() const
 const PdfString & PdfInfo::GetTitle() const
 {
     return this->GetStringFromInfoDict( PdfName("Title") );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfName & PdfInfo::GetTrapped() const
+{
+	return this->GetNameFromInfoDict( PdfName("Trapped") );
 }
 
 };

@@ -62,6 +62,13 @@ const PdfString & PdfInfo::GetStringFromInfoDict( const PdfName & rName ) const
     return pObj && pObj->IsString() ? pObj->GetString() : PdfString::StringNull;
 }
 
+const PdfName & PdfInfo::GetNameFromInfoDict(const PdfName & rName) const
+{
+	PdfObject* pObj = m_pObject->GetDictionary().GetKey( rName );
+    
+	return pObj && pObj->IsName() ? pObj->GetName() : PdfName::KeyNull;
+}
+
 void PdfInfo::SetAuthor( const PdfString & sAuthor )
 {
     m_pObject->GetDictionary().AddKey( "Author", sAuthor );
@@ -87,4 +94,15 @@ void PdfInfo::SetTitle( const PdfString & sTitle )
     m_pObject->GetDictionary().AddKey( "Title", sTitle );
 }
 
+void PdfInfo::SetTrapped(const PdfName & sTrapped)
+{
+	if((sTrapped.GetEscapedName() == "True" ) || (sTrapped.GetEscapedName() == "False" ))
+		m_pObject->GetDictionary().AddKey( "Trapped", sTrapped );
+	else
+		m_pObject->GetDictionary().AddKey( "Trapped", PdfName( "Unknown" ) );
+}
+
 };
+
+
+
