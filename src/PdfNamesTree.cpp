@@ -188,18 +188,42 @@ void PdfNameTreeNode::SetLimits()
 {
     PdfArray limits;
 
-    if( m_bHasKids )
+    if( m_bHasKids ) 
     {
-        PdfObject* pChild = m_pObject->GetOwner()->GetObject( (*m_pObject->GetDictionary().GetKey("Kids")->GetArray().begin()).GetReference() );
-        limits.push_back( *(pChild->GetDictionary().GetKey("Limits")->GetArray().begin()) );
+	if( m_pObject->GetDictionary().HasKey( PdfName("Kids") ) &&
+	    m_pObject->GetDictionary().GetKey( PdfName("Kids") )->IsArray() )
+	{
+	    const PdfReference & rRefFirst = (*m_pObject->GetDictionary().GetKey("Kids")->GetArray().begin()).GetReference();
+	    PdfObject* pChild = m_pObject->GetOwner()->GetObject( rRefFirst );
+	    if( pChild && pChild->GetDictionary().HasKey( PdfName("Limits") ) &&
+		pChild->GetDictionary().GetKey( PdfName("Limits") )->IsArray() ) 
+		limits.push_back( *(pChild->GetDictionary().GetKey("Limits")->GetArray().begin()) );
 
-        pChild = m_pObject->GetOwner()->GetObject( m_pObject->GetDictionary().GetKey("Kids")->GetArray().back().GetReference() );
-        limits.push_back( pChild->GetDictionary().GetKey("Limits")->GetArray().back() );
+	    const PdfReference & rRefLast = m_pObject->GetDictionary().GetKey("Kids")->GetArray().back().GetReference();
+	    pChild = m_pObject->GetOwner()->GetObject( rRefLast );
+	    if( pChild && pChild->GetDictionary().HasKey( PdfName("Limits") ) &&
+		pChild->GetDictionary().GetKey( PdfName("Limits") )->IsArray() ) 
+		limits.push_back( pChild->GetDictionary().GetKey("Limits")->GetArray().back() );
+	}
+	else
+	    PdfError::LogMessage( eLogSeverity_Error, 
+				  "Object %i %si does not have Kids array.", 
+				  m_pObject->Reference().ObjectNumber(), 
+				  m_pObject->Reference().GenerationNumber() );
     }
     else // has "Names"
     {
-        limits.push_back( (*m_pObject->GetDictionary().GetKey("Names")->GetArray().begin()) );
-        limits.push_back( (*(m_pObject->GetDictionary().GetKey("Names")->GetArray().end()-2)) );
+	if( m_pObject->GetDictionary().HasKey( PdfName("Names") ) &&
+	    m_pObject->GetDictionary().GetKey( PdfName("Names") )->IsArray() )
+	{
+	    limits.push_back( (*m_pObject->GetDictionary().GetKey("Names")->GetArray().begin()) );
+	    limits.push_back( (*(m_pObject->GetDictionary().GetKey("Names")->GetArray().end()-2)) );
+	}
+	else
+	    PdfError::LogMessage( eLogSeverity_Error, 
+				  "Object %i %si does not have Names array.", 
+				  m_pObject->Reference().ObjectNumber(), 
+				  m_pObject->Reference().GenerationNumber() );
     }
 
     m_pObject->GetDictionary().AddKey("Limits", limits );
