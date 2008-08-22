@@ -279,7 +279,7 @@ PdfTranslator::PdfTranslator ( )
 	sourceDoc = 0;
 	targetDoc = 0;
 	extraSpace = 0;
-	scaleFactor = 0;
+	scaleFactor = 1.0;
 }
 
 void PdfTranslator::setSource ( const std::string & source )
