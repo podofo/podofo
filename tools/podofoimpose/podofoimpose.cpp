@@ -78,6 +78,10 @@ int main(int argc, char *argv[])
     int ret = parseCommandLine(argc, argv);
     if (ret)
         return ret;
+    
+    std::cerr<<"Source : "<<params.inFilePath<<std::endl;
+    std::cerr<<"Target : "<<params.outFilePath<<std::endl;
+    std::cerr<<"Plan   : "<<params.planFilePath<<std::endl;
 
     try {
         PdfTranslator *translator = new PdfTranslator;

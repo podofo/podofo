@@ -79,7 +79,11 @@ body{
 		</div>
 		<h4>Expressions</h4>
 		<div>
-			An expression is a set of basic mathematic operations +, -, * and /. Operations are executed from left to right without taking care of any kind of precedance. You can use parenthesis to enclose operations that need to be computed separetly. Example:
+			An expression is a set of basic mathematic operations +, -, * and /. As a convenience, we added the | as "max(a,b)" it’s mainly there to allow user to prevent division by 0.
+			<div class="code-abs">
+				$ValueA / ( $ValueB | 0.000001 )
+			</div>
+ 			Operations are executed from left to right without taking care of any kind of precedance. You can use parenthesis to enclose operations that need to be computed separetly. Example:
 			<div class="code-abs">
 				123.456 * ( $ConstantA - ( $ConstantB / 3.14 ) )
 			</div>

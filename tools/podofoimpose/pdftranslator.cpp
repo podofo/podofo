@@ -121,7 +121,7 @@ double PageRecord::calc ( const std::string& s )
 		char ci ( s.at ( i ) );
 		if ( ci == 0x20 || ci == 0x9 )// skip spaces and horizontal tabs
 			continue;
-		else if ( ( ci == '+' ) || ( ci == '-' ) || ( ci == '*' ) || ( ci == '/' ) || ( ci == '(' ) || ( ci == ')' ) )
+		else if ( ( ci == '+' ) || ( ci == '-' ) || ( ci == '*' ) || ( ci == '/' ) || ( ci == '|' ) || ( ci == '(' ) || ( ci == ')' ) )
 		{
 			// commit current string
 			if(ts.length() > 0)
@@ -220,6 +220,8 @@ double PageRecord::calc ( const std::vector<std::string>& t )
 			ops.push_back( "*" );
 		else if ( t.at ( vi ) == "/" )
 			ops.push_back( "/" );
+		else if ( t.at ( vi ) == "|" )
+			ops.push_back( "|" );
 		else
 			values.push_back( std::atof ( t.at ( vi ).c_str() ));
 	}
@@ -238,6 +240,8 @@ double PageRecord::calc ( const std::vector<std::string>& t )
 				ret *= values.at(vi);
 			else if ( ops.at ( vi ) == "/" )
 				ret /= values.at(vi);
+			else if ( ops.at ( vi ) == "|" ) // Stands for max(a,b), easier than true condition, allow to filter division by 0
+				ret = std::max(ret , values.at(vi));
 		}
 	}
 // 	std::cerr<<" <"<< values.size() <<"> "<<ret<<std::endl;
@@ -692,7 +696,7 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 					p.load ( memfile.at(subi) ) ;
 					if(!p.isValid() || p.sourcePage > pcount)
 					{
-						std::cerr<< "Error p("<<(p.isValid()?"valid":"invalid")<<") "<< p.sourcePage  <<std::endl;
+// 						std::cerr<< "Error p("<<(p.isValid()?"valid":"invalid")<<") "<< p.sourcePage  <<std::endl;
 						continue;
 					}
 					maxPageDest = std::max ( maxPageDest, p.destPage );
@@ -745,7 +749,7 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 	destWidth = atof( PoDoFoImpose::vars["$PageWidth"].c_str() );
 	destHeight = atof( PoDoFoImpose::vars["$PageHeight"].c_str() );
 	
-	std::cerr <<"Plan completed "<< planImposition.size() <<endl;
+// 	std::cerr <<"Plan completed "<< planImposition.size() <<endl;
 	
 }
 
