@@ -279,6 +279,7 @@ PdfTranslator::PdfTranslator ( )
 	sourceDoc = 0;
 	targetDoc = 0;
 	extraSpace = 0;
+	scaleFactor = 0;
 }
 
 void PdfTranslator::setSource ( const std::string & source )
@@ -741,13 +742,21 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 		
 	}
 	
+	/// REQUIRED
 	if ( PoDoFoImpose::vars.find("$PageWidth") == PoDoFoImpose::vars.end() )
-		throw runtime_error ( "PageWidth not specified" );
+		throw runtime_error ( "$PageWidth not set" );
 	if ( PoDoFoImpose::vars.find("$PageHeight") == PoDoFoImpose::vars.end() )
-		throw runtime_error ( "Pageheight not specified" );
+		throw runtime_error ( "$PageHeight not set" );
 	
 	destWidth = atof( PoDoFoImpose::vars["$PageWidth"].c_str() );
 	destHeight = atof( PoDoFoImpose::vars["$PageHeight"].c_str() );
+	/// END OF REQUIRED
+	
+	/// SUPPORTED
+	if ( PoDoFoImpose::vars.find("$ScaleFactor") != PoDoFoImpose::vars.end() )
+		scaleFactor = atof( PoDoFoImpose::vars["$ScaleFactor"].c_str() );
+	/// END OF SUPPORTED
+	
 	
 // 	std::cerr <<"Plan completed "<< planImposition.size() <<endl;
 	
@@ -896,6 +905,9 @@ void PdfTranslator::impose()
 		PdfDictionary xdict;
 
 		ostringstream buffer;
+		// Scale
+		buffer << std::fixed << scaleFactor <<" 0 0 "<< scaleFactor <<" 0 0 cm\n";
+		
 		for ( unsigned int i = 0; i < ( *git ).second.size(); ++i )
 		{
 			int curPage = ( *git ).second[i];

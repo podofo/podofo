@@ -137,6 +137,7 @@ class PdfTranslator
 		std::map<int, int> virtualMap;
 		double destWidth;
 		double destHeight;
+		double scaleFactor;
 		int maxPageDest;
 
 		bool checkIsPDF ( std::string path );
