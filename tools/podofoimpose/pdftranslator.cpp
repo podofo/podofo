@@ -54,7 +54,13 @@ std::string dToStr(double d)
 	return ret;
 
 }
-
+std::string iToStr(int i)
+{
+	char buffer [126];
+	sprintf (buffer, "%d", i);
+	std::string ret(buffer);
+	return ret;
+}
 PageRecord::PageRecord ( int s,int d,double r, double tx, double ty )
 		: sourcePage ( s ),
 		destPage ( d ),
@@ -101,6 +107,11 @@ void PageRecord::load ( const std::string& buffer )
 
 	sourcePage	= calc ( tokens.at ( 0 ) );
 	destPage	= calc ( tokens.at ( 1 ) );
+		if((sourcePage < 1) || (destPage < 1))
+	{
+		sourcePage = destPage = 0;
+	}
+
 	rotate	= calc ( tokens.at ( 2 ) );
 	transX	= calc ( tokens.at ( 3 ) );
 	transY	= calc ( tokens.at ( 4 ) );
@@ -129,7 +140,7 @@ double PageRecord::calc ( const std::string& s )
 				vit = PoDoFoImpose::vars.find ( ts );
 				if ( vit != PoDoFoImpose::vars.end() )
 				{
-// 					std::cerr<<"Found "<<ts<<std::endl; 
+// 					std::cerr<<"Found "<<ts<<" "<< vit->second <<std::endl; 
 					tokens.push_back ( vit->second );
 				}
 				else
@@ -590,6 +601,10 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 	}
 	while(!in.eof());
 	
+	/// PROVIDED 
+	PoDoFoImpose::vars["$PagesCount"] = iToStr(pcount);
+	/// END OF PROVIDED
+	
 	for( uint numline(0); numline < memfile.size() ; ++numline)
 	{
 		std::string buffer( memfile.at(numline) );
@@ -622,7 +637,7 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 			for(;a<blen;++a)
 			{
 				ca = buffer.at(a);
-				if(ca == '(')
+				if(ca == '[')
 					break;
 				else if(ca == 0x20 || ca == 0x9 )
 					continue;
@@ -637,7 +652,7 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 			for(;a<blen;++a)
 			{
 				ca = buffer.at(a);
-				if( ca == ')')
+				if( ca == ']')
 				{
 					if(PoDoFoImpose::vars.find(tvar) != PoDoFoImpose::vars.end())
 						increments.insert(std::pair<std::string, double>( tvar, std::atof(tinc.c_str())));
@@ -678,7 +693,7 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 					endOfloopBlock = bolb2 + 1;		
 			}
 			// Now we have all to loop, whoooooo!
-			int maxIter(std::atoi(iterN.c_str()));
+			int maxIter(PageRecord::calc(iterN));
 			for(int iter(0); iter < maxIter ; ++iter )
 			{
 				if(iter != 0)
@@ -756,6 +771,8 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 	if ( PoDoFoImpose::vars.find("$ScaleFactor") != PoDoFoImpose::vars.end() )
 		scaleFactor = atof( PoDoFoImpose::vars["$ScaleFactor"].c_str() );
 	/// END OF SUPPORTED
+	
+	
 	
 	
 // 	std::cerr <<"Plan completed "<< planImposition.size() <<endl;

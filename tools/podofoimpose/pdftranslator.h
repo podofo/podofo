@@ -48,8 +48,8 @@ class PageRecord
 		double transX;
 		double transY;
 		bool isValid() const;
-		double calc ( const std::string& s );
-		double calc ( const std::vector<std::string>& t );
+		static double calc ( const std::string& s );
+		static double calc ( const std::vector<std::string>& t );
 		void load ( const std::string& s );
 };
 
