@@ -75,6 +75,10 @@ int parseCommandLine(int argc, char* argv[])
  */
 int main(int argc, char *argv[])
 {
+#if 1
+	PoDoFo::PdfError::EnableDebug( false );	
+	PoDoFo::PdfError::EnableLogging( false );
+#endif
     int ret = parseCommandLine(argc, argv);
     if (ret)
         return ret;
