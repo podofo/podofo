@@ -40,6 +40,7 @@ private:
 
 	void OutputOneName( std::ostream& sOutStream, PoDoFo::PdfNamesTree* inTreeObj, 
                             const std::string& inTitle, const std::string& inKey );
+	std::string GuessFormat();
 };
 
 

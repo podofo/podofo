@@ -38,20 +38,21 @@ PdfInfo::~PdfInfo()
 
 void PdfInfo::OutputDocumentInfo( std::ostream& sOutStream )
 {
-    sOutStream << "PDF Version: " << PoDoFo::s_szPdfVersionNums[static_cast<int>(mDoc->GetPdfVersion())] << std::endl;
-    sOutStream << "Page Count: " << mDoc->GetPageCount() << std::endl;
+	sOutStream << "\tPDF Version: " << PoDoFo::s_szPdfVersionNums[static_cast<int>(mDoc->GetPdfVersion())] << std::endl;
+	sOutStream << "\tPage Count: " << mDoc->GetPageCount() << std::endl;
+	sOutStream << "\tPage Size: " << GuessFormat() << std::endl; 
     sOutStream << std::endl;
-    sOutStream << "Fast Web View Enabled: " << (mDoc->IsLinearized() ? "Yes" : "No") << std::endl;
-    sOutStream << "Tagged: " << (static_cast<PoDoFo::PdfMemDocument*>(mDoc)->GetStructTreeRoot() != NULL ? "Yes" : "No") << std::endl;
-    sOutStream << "Encrypted: " << (static_cast<PoDoFo::PdfMemDocument*>(mDoc)->GetEncrypted() != NULL ? "Yes" : "No") << std::endl;
-    sOutStream << "Printing Allowed: "  << (mDoc->IsPrintAllowed() ? "Yes" : "No") << std::endl;
-    sOutStream << "Modification Allowed: "  << (mDoc->IsEditAllowed() ? "Yes" : "No") << std::endl;
-    sOutStream << "Copy&Paste Allowed: "  << (mDoc->IsCopyAllowed() ? "Yes" : "No") << std::endl;
-    sOutStream << "Add/Modify Annotations Allowed: "  << (mDoc->IsEditNotesAllowed() ? "Yes" : "No") << std::endl;
-    sOutStream << "Fill&Sign Allowed: "  << (mDoc->IsFillAndSignAllowed() ? "Yes" : "No") << std::endl;
-    sOutStream << "Accessibility Allowed: "  << (mDoc->IsAccessibilityAllowed() ? "Yes" : "No") << std::endl;
-    sOutStream << "Document Assembly Allowed: "  << (mDoc->IsDocAssemblyAllowed() ? "Yes" : "No") << std::endl;
-    sOutStream << "High Quality Print Allowed: "  << (mDoc->IsHighPrintAllowed() ? "Yes" : "No") << std::endl;
+    sOutStream << "\tFast Web View Enabled: " << (mDoc->IsLinearized() ? "Yes" : "No") << std::endl;
+    sOutStream << "\tTagged: " << (static_cast<PoDoFo::PdfMemDocument*>(mDoc)->GetStructTreeRoot() != NULL ? "Yes" : "No") << std::endl;
+    sOutStream << "\tEncrypted: " << (static_cast<PoDoFo::PdfMemDocument*>(mDoc)->GetEncrypted() != NULL ? "Yes" : "No") << std::endl;
+    sOutStream << "\tPrinting Allowed: "  << (mDoc->IsPrintAllowed() ? "Yes" : "No") << std::endl;
+    sOutStream << "\tModification Allowed: "  << (mDoc->IsEditAllowed() ? "Yes" : "No") << std::endl;
+    sOutStream << "\tCopy&Paste Allowed: "  << (mDoc->IsCopyAllowed() ? "Yes" : "No") << std::endl;
+    sOutStream << "\tAdd/Modify Annotations Allowed: "  << (mDoc->IsEditNotesAllowed() ? "Yes" : "No") << std::endl;
+    sOutStream << "\tFill&Sign Allowed: "  << (mDoc->IsFillAndSignAllowed() ? "Yes" : "No") << std::endl;
+    sOutStream << "\tAccessibility Allowed: "  << (mDoc->IsAccessibilityAllowed() ? "Yes" : "No") << std::endl;
+    sOutStream << "\tDocument Assembly Allowed: "  << (mDoc->IsDocAssemblyAllowed() ? "Yes" : "No") << std::endl;
+    sOutStream << "\tHigh Quality Print Allowed: "  << (mDoc->IsHighPrintAllowed() ? "Yes" : "No") << std::endl;
 }
 
 void PdfInfo::OutputInfoDict( std::ostream& sOutStream )
@@ -66,6 +67,7 @@ void PdfInfo::OutputInfoDict( std::ostream& sOutStream )
         sOutStream << "\tSubject: "  << mDoc->GetInfo()->GetSubject().GetStringUtf8() << std::endl;
         sOutStream << "\tTitle: "    << mDoc->GetInfo()->GetTitle().GetStringUtf8() << std::endl;
         sOutStream << "\tKeywords: " << mDoc->GetInfo()->GetKeywords().GetStringUtf8() << std::endl;
+	sOutStream << "\tTrapped: "  << mDoc->GetInfo()->GetTrapped().GetEscapedName() << std::endl;
     }
 }
 
@@ -191,4 +193,50 @@ void PdfInfo::OutputNames( std::ostream& sOutStream )
     } else {
         sOutStream << "\t\tNone Found" << std::endl;
     }
+}
+
+std::string PdfInfo::GuessFormat()
+{
+	typedef std::pair<double,double> Format;
+	
+	PoDoFo::PdfPage*  curPage;
+	int	pgCount = mDoc->GetPageCount();
+	std::map<  Format , int > sizes;
+	std::map<  Format , int >::iterator sIt;
+	PoDoFo::PdfRect  rect;
+	for ( int pg=0; pg<pgCount; pg++ ) 
+	{
+		curPage = mDoc->GetPage( pg );
+		rect = curPage->GetMediaBox();
+		Format s( rect.GetWidth() - rect.GetLeft(), rect.GetHeight() - rect.GetBottom());
+		sIt = sizes.find(s);
+		if(sIt == sizes.end())
+			sizes.insert(std::pair<Format,int>(s,1));
+		else
+			++(sIt->second);
+	}
+	
+	Format format;
+	std::stringstream ss;
+	if(sizes.size() == 1)
+	{
+		format = sizes.begin()->first;
+		ss << format.first << " x " << format.second << " pts"  ;
+	}
+	else
+	{
+		// We’re looking for the most represented format
+		int max=0;
+		for(sIt = sizes.begin();sIt != sizes.end(); ++sIt)
+		{
+			if(sIt->second > max)
+			{
+				max = sIt->second;
+				format = sIt->first;
+			}
+		}
+		ss << format.first << " x " << format.second << " pts "<<std::string(sizes.size(), '*');
+	}
+	
+	return ss.str();
 }
