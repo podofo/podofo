@@ -26,6 +26,7 @@
 namespace PoDoFo {
 
 bool PdfError::s_DgbEnabled = true;
+bool PdfError::s_LogEnabled = true;
 
 PdfErrorInfo::PdfErrorInfo()
     : m_nLine( -1 )
@@ -415,6 +416,8 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
 
 void PdfError::LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... )
 {
+	if(!PdfError::LoggingEnabled())
+		return;
     const char* pszPrefix = NULL;
 
     switch( eLogSeverity ) 
@@ -450,6 +453,8 @@ void PdfError::LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... )
 
 void PdfError::LogMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ... )
 {
+	if(!PdfError::LoggingEnabled())
+		return;
     const wchar_t* pszPrefix = NULL;
 
     switch( eLogSeverity ) 

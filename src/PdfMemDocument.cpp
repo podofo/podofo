@@ -97,9 +97,11 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
                                    // so that pTrailer has an owner
                                    // and GetIndirectKey will work
 
-
-    PdfOutputDevice debug( &(std::cout) );
-    pTrailer->Write( &debug );
+    if(PdfError::DebugEnabled())
+    {
+	PdfOutputDevice debug( &(std::cout) );
+	pTrailer->Write( &debug );
+    }
 
     PdfObject* pCatalog = pTrailer->GetIndirectKey( "Root" );
     if( !pCatalog )

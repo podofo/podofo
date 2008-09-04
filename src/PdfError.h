@@ -347,6 +347,15 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError : public std::exception {
      */
     static void LogMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ... );
 
+     /** Enable or disable Logging
+     *  \param bEnable       enable (true) or disable (false)
+     */
+    static void EnableLogging( bool bEnable ) { PdfError::s_LogEnabled = bEnable; }
+	
+    /** Is the display of debugging messages enabled or not?
+     */
+    static bool LoggingEnabled() { return PdfError::s_LogEnabled; }
+    
     /** Log a message to the logging system defined for PoDoFo for debugging
      *  \param pszMsg       the message to be logged
      */
@@ -367,6 +376,7 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError : public std::exception {
     TDequeErrorInfo    m_callStack;
 
     static bool        s_DgbEnabled;
+    static bool		s_LogEnabled;
 };
 
 // -----------------------------------------------------
