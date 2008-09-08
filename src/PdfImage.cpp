@@ -379,47 +379,93 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
         PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
     }
 		
-    if( bitsPixel != 8 && bitsPixel != 24 && bitsPixel != 32)
-    {
-        TIFFClose(hInfile);
-        PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
-    }
-
     if ( planarConfig != PLANARCONFIG_CONTIG && colorChannels != 1 )
     {
         TIFFClose(hInfile);
         PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
     }
 
-    if ( photoMetric == PHOTOMETRIC_PALETTE )
+	if ( orientation != ORIENTATION_TOPLEFT )
     {
         TIFFClose(hInfile);
         PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
     }
 
-    int32 scanlineSize = TIFFScanlineSize(hInfile);
+	switch(photoMetric)
+	{
+		case PHOTOMETRIC_MINISBLACK:
+		{
+			if( bitsPixel == 1 )
+			{
+				PdfArray decode;
+				decode.insert( decode.end(), PdfVariant( static_cast<long>(0) ) );
+				decode.insert( decode.end(), PdfVariant( static_cast<long>(1) ) );
+				m_pObject->GetDictionary().AddKey( PdfName("Decode"), decode );
+				m_pObject->GetDictionary().AddKey( PdfName("ImageMask"), PdfVariant( true ) );
+				m_pObject->GetDictionary().RemoveKey( PdfName("ColorSpace") );
+			}
+			else if ( bitsPixel == 8)
+	            SetImageColorSpace(ePdfColorSpace_DeviceGray);
+			else
+			{
+				TIFFClose(hInfile);
+				PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+			}
+		}
+		break;
+
+		case PHOTOMETRIC_MINISWHITE:
+		{
+			if( bitsPixel == 1 )
+			{
+				PdfArray decode;
+				decode.insert( decode.end(), PdfVariant( static_cast<long>(1) ) );
+				decode.insert( decode.end(), PdfVariant( static_cast<long>(0) ) );
+				m_pObject->GetDictionary().AddKey( PdfName("Decode"), decode );
+				m_pObject->GetDictionary().AddKey( PdfName("ImageMask"), PdfVariant( true ) );
+				m_pObject->GetDictionary().RemoveKey( PdfName("ColorSpace") );
+			}
+			else if ( bitsPixel == 8)
+	            SetImageColorSpace(ePdfColorSpace_DeviceGray);
+			else
+			{
+				TIFFClose(hInfile);
+				PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+			}
+		}
+		break;
+
+		case PHOTOMETRIC_RGB:
+            if ( bitsPixel != 24 )
+			{
+				TIFFClose(hInfile);
+				PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+			}
+			SetImageColorSpace(ePdfColorSpace_DeviceRGB);
+		break;
+
+		case PHOTOMETRIC_SEPARATED: 
+			if( bitsPixel != 32)
+			{
+				TIFFClose(hInfile);
+				PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+			}
+            SetImageColorSpace(ePdfColorSpace_DeviceCMYK);
+		break;
+
+		default:
+	        TIFFClose(hInfile);
+	        PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+		break;
+	}
+
+	int32 scanlineSize = TIFFScanlineSize(hInfile);
     long bufferSize = scanlineSize * height;
     char *buffer = new char[bufferSize];
     if( !buffer ) 
     {
+        TIFFClose(hInfile);
         PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
-    }
-
-    PdfMemoryInputStream stream(buffer, bufferSize);
-
-    switch(bitsPixel)
-    {
-        case 8:
-            SetImageColorSpace(ePdfColorSpace_DeviceGray);
-            break;
-        case 24:
-            SetImageColorSpace(ePdfColorSpace_DeviceRGB);
-            break;
-        case 32:
-            SetImageColorSpace(ePdfColorSpace_DeviceCMYK);
-            break;
-        default:
-            break;
     }
 
     for(row = 0; row < height; row++)
@@ -432,6 +478,8 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
             PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
         }
     }
+
+	PdfMemoryInputStream stream(buffer, bufferSize);
 
     SetImageData(static_cast<unsigned int>(width), 
                  static_cast<unsigned int>(height),
