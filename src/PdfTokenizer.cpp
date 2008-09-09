@@ -53,8 +53,7 @@ const char * genDelMap()
 {
     int    i;
     char* map = static_cast<char*>(malloc(256));
-    for (i = 0; i < 256; i++)
-        map[i] = '\0';
+    memset( map, 0, sizeof(char) );
     for (i = 0; i < PoDoFo::s_nNumDelimiters; ++i)
         map[static_cast<int>(PoDoFo::s_cDelimiters[i])] = 1;
     return map;
@@ -67,18 +66,35 @@ const char * genWsMap()
 {
     int   i;
     char* map = static_cast<char*>(malloc(256));
-    for (i = 0; i < 256; i++)
-        map[i] = '\0';
+    memset( map, 0, sizeof(char) );
     for (i = 0; i < PoDoFo::s_nNumWhiteSpaces; ++i)
         map[static_cast<int>(PoDoFo::s_cWhiteSpaces[i])] = 1;
     return map;
 }
 
+// Generate the escape character map at runtime
+const char* genEscMap()
+{
+    char* map = static_cast<char*>(malloc(256));
+    memset( map, 0, sizeof(char) );
+
+    map['n'] = '\n'; // Line feed (LF)
+    map['r'] = '\r'; // Carriage return (CR)
+    map['t'] = '\t'; // Horizontal tab (HT)
+    map['b'] = '\b'; // Backspace (BS)
+    map['f'] = '\f'; // Form feed (FF)
+    map[')'] = ')';  
+    map['('] = '(';  
+    map['\\'] = '\\';
+
+    return map;
+}
 
 };
 
 const char * const PdfTokenizer::m_delimiterMap  = PdfTokenizerNameSpace::genDelMap();
 const char * const PdfTokenizer::m_whitespaceMap = PdfTokenizerNameSpace::genWsMap();
+const char * const PdfTokenizer::m_escMap        = PdfTokenizerNameSpace::genEscMap();
 const char PdfTokenizer::m_octMap[]        = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -107,7 +123,6 @@ const char PdfTokenizer::m_octMap[]        = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0
 };
-
 
 PdfTokenizer::PdfTokenizer()
     : m_buffer( PDF_BUFFER )
@@ -534,7 +549,7 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 {
     int               c;
 
-    bool              bIgnore       = false;
+    bool              bEscape       = false;
     bool              bOctEscape    = false;
     int               nOctCount     = 0;
     char              cOctValue     = 0;
@@ -542,42 +557,74 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 
     m_vecBuffer.clear();
 
-    while( (c = m_device.Device()->GetChar()) != EOF )
+    while( (c = m_device.Device()->Look()) != EOF )
     {
         // end of stream reached
-        if( !bIgnore && !nBalanceCount && c == ')' )
-            break;
+	if( !bEscape ) 
+	{
+	    // Handle raw characters
+	    c = m_device.Device()->GetChar();
+	    if( !nBalanceCount && c == ')' )
+		break;
 
-        if( !bIgnore && c == '(' )
-            ++nBalanceCount;
-        else if( !bIgnore && c == ')' )
-            --nBalanceCount;
+	    if( c == '(' )
+		++nBalanceCount;
+	    else if( c == ')' )
+		--nBalanceCount;
 
-        if( bIgnore && isdigit( c ) )
-            // The last character we have read was a '\\',
-            // so we check now for a digit to find stuff like \005
-            bOctEscape = true;
+	    bEscape = (c == '\\');
+	    if( !bEscape )
+		m_vecBuffer.push_back( static_cast<char>(c) );
+	}
+	else
+	{
+	    // Handle escape sequences
+	    if( bOctEscape || m_octMap[c] )
+		// The last character we have read was a '\\',
+		// so we check now for a digit to find stuff like \005
+		bOctEscape = true;
 
-        if( bOctEscape ) 
-        {
-            if( !m_octMap[c] || nOctCount > 2 )
-            {
-                m_vecBuffer.push_back ( cOctValue );
-                bOctEscape = false;
-                nOctCount  = 0;
-                cOctValue  = 0;
-            } 
-            else
-            {
-                cOctValue <<= 3;
-                cOctValue  |= ((c-'0') & 0x07);
-                ++nOctCount;
-            }
-        }
+	    if( bOctEscape ) 
+	    {
+		// Handle octal escape sequences
+		++nOctCount;
 
-        bIgnore = (c == '\\') && !bIgnore;
-        if( !bIgnore && !bOctEscape ) 
-            m_vecBuffer.push_back( static_cast<char>(c) );
+		if( !m_octMap[c] )
+		{
+		    // No octal character anymore,
+		    // so the octal sequence must be ended
+		    // and the character has to be treated as normal character!
+		    m_vecBuffer.push_back ( cOctValue );
+		    bEscape    = false;
+		    bOctEscape = false;
+		    nOctCount  = 0;
+		    cOctValue  = 0;
+		    continue;
+		}
+
+		c = m_device.Device()->GetChar();
+		cOctValue <<= 3;
+		cOctValue  |= ((c-'0') & 0x07);
+
+		if( nOctCount > 2 )
+		{
+		    m_vecBuffer.push_back ( cOctValue );
+		    bEscape    = false;
+		    bOctEscape = false;
+		    nOctCount  = 0;
+		    cOctValue  = 0;
+		}
+	    }
+	    else
+	    {
+		// Handle plain escape sequences
+		const char & code = m_escMap[m_device.Device()->GetChar()];
+		if( code )
+		    m_vecBuffer.push_back( code );
+		
+		bEscape = false;
+	    }
+	}
     }
 
     // In case the string ends with a octal escape sequence

@@ -226,7 +226,9 @@ class PODOFO_API PdfTokenizer {
     // standard.
     static const char * const m_delimiterMap;
     static const char * const m_whitespaceMap;
-    static const char m_octMap[];
+    static const char m_octMap[]; ///< Map of bool values, if a certain char
+                                  ///< is a valid octal digit
+    static const char * const m_escMap; ///< Mapping of escape sequences to there value
 
 
     TTokenizerQueque m_deqQueque;

@@ -159,6 +159,12 @@ void TextExtractor::AddTextElement( double dCurPosX, double dCurPosY,
         return;
     }
 
+    if( !pCurFont->GetEncoding() ) 
+    {
+        fprintf( stderr, "WARNING: Found text but do not have a current encoding: %s\n", rString.GetString() );
+        return;
+    }
+
     // For now just write to console
     PdfString unicode = pCurFont->GetEncoding()->ConvertToUnicode( rString, pCurFont );
     const char* pszData = unicode.GetStringUtf8().c_str();

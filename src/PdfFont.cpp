@@ -55,7 +55,7 @@ PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
 PdfFont::~PdfFont()
 {
     delete m_pMetrics;
-    if( m_pEncoding->IsAutoDelete() )
+    if( m_pEncoding && m_pEncoding->IsAutoDelete() )
         delete m_pEncoding;
 }
 
@@ -105,6 +105,11 @@ inline char ToHex( const char byte )
 
 void PdfFont::WriteStringToStream( const PdfString & rsString, PdfStream* pStream )
 {
+    if( !m_pEncoding )
+    {
+	PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
     PdfString sEncoded = m_pEncoding->ConvertToEncoding( rsString, this );
     if( sEncoded.IsUnicode() ) 
     {

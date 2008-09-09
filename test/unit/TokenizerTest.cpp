@@ -131,9 +131,24 @@ void TokenizerTest::testString()
     Test( "(Balanced () brackets are (ok ()) in PDF Strings)", ePdfDataType_String,
                         "(Balanced \\(\\) brackets are \\(ok \\(\\)\\) in PDF Strings)" );
     Test( "()", ePdfDataType_String );
+    
+    // Test octal strings
     Test( "(Test: \\064)", ePdfDataType_String, "(Test: \064)" );
+    Test( "(Test: \\064\\064)", ePdfDataType_String, "(Test: \064\064)" );
     Test( "(Test: \\0645)", ePdfDataType_String, "(Test: 45)" );
     Test( "(Test: \\478)", ePdfDataType_String, "(Test: '8)" );
+
+    // Test line breaks 
+    Test( "(Hallo\nWelt!)", ePdfDataType_String, "(Hallo\nWelt!)" );
+    Test( "(These \\\ntwo strings \\\nare the same.)", ePdfDataType_String, 
+	  "(These two strings are the same.)" );
+
+    // Test escape sequences
+    Test( "(Hallo\\nWelt!)", ePdfDataType_String, "(Hallo\nWelt!)" );
+    Test( "(Hallo\\rWelt!)", ePdfDataType_String, "(Hallo\rWelt!)" );
+    Test( "(Hallo\\tWelt!)", ePdfDataType_String, "(Hallo\tWelt!)" );
+    Test( "(Hallo\\bWelt!)", ePdfDataType_String, "(Hallo\bWelt!)" );
+    Test( "(Hallo\\fWelt!)", ePdfDataType_String, "(Hallo\fWelt!)" );
 }
 
 void TokenizerTest::TestStream( const char* pszBuffer, const char* pszTokens[] )
