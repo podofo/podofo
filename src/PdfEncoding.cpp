@@ -1024,8 +1024,35 @@ pdf_utf16be PdfIdentityEncoding::GetCharCode( int nIndex ) const
 
 PdfString PdfIdentityEncoding::ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const
 {
+    if( !pFont ) 
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
 
-    return PdfString();
+    // Get the string in UTF-16be format
+    PdfString          sStr = rEncodedString.ToUnicode();
+    const pdf_utf16be* pStr = sStr.GetUnicode();
+    long               lUnicodeValue;
+
+    std::ostringstream out;
+    PdfLocaleImbue(out);
+
+    while( *pStr ) 
+    {
+        lUnicodeValue = this->GetUnicodeValue( static_cast<long>(*(const_cast<pdf_utf16be*>(pStr))) );
+
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+        out << static_cast<unsigned char>((lUnicodeValue & 0xff00) >> 8);
+        out << static_cast<unsigned char>(lUnicodeValue & 0x00ff);
+#else
+        out << static_cast<unsigned char>(lUnicodeValue & 0x00ff);
+        out << static_cast<unsigned char>((lUnicodeValue & 0xff00) >> 8);
+#endif // PODOFO_IS_LITTLE_ENDIAN
+
+        ++pStr;
+    }
+
+    return PdfString( out.str().c_str(), out.str().length() );;
 }
 
 PdfString PdfIdentityEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const
@@ -1060,5 +1087,9 @@ PdfString PdfIdentityEncoding::ConvertToEncoding( const PdfString & rString, con
     return PdfString( out.str().c_str(), out.str().length() );;
 }
 
-
+pdf_utf16be PdfIdentityEncoding::GetUnicodeValue( long lCharCode ) const
+{
+    return 0;
+}
+ 
 }; /* namespace PoDoFo */

@@ -645,6 +645,16 @@ class PODOFO_API PdfIdentityEncoding : public PdfEncoding {
     inline virtual const PdfName & GetID() const;
     
  private:
+
+    /** Gets the unicode value from a char code in this font
+     *
+     *  \param lCharCode the character code (i.e. glyph id)
+     *
+     *  \returns an unicode value
+     */
+    pdf_utf16be GetUnicodeValue( long lCharCode ) const;
+ 
+ private:
     bool    m_bAutoDelete;      ///< If true this encoding is deleted by its font.
     PdfName m_id;               ///< Unique ID of this encoding 
 };
