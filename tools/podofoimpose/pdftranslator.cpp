@@ -132,7 +132,14 @@ double PageRecord::calc ( const std::string& s )
 		char ci ( s.at ( i ) );
 		if ( ci == 0x20 || ci == 0x9 )// skip spaces and horizontal tabs
 			continue;
-		else if ( ( ci == '+' ) || ( ci == '-' ) || ( ci == '*' ) || ( ci == '/' ) || ( ci == '|' ) || ( ci == '(' ) || ( ci == ')' ) )
+		else if ( ( ci == '+' ) 
+				|| ( ci == '-' ) 
+				|| ( ci == '*' ) 
+				|| ( ci == '/' )
+				|| ( ci == '%' ) 
+				|| ( ci == '|' ) 
+				|| ( ci == '(' ) 
+				|| ( ci == ')' ) )
 		{
 			// commit current string
 			if(ts.length() > 0)
@@ -141,7 +148,7 @@ double PageRecord::calc ( const std::string& s )
 				if ( vit != PoDoFoImpose::vars.end() )
 				{
 // 					std::cerr<<"Found "<<ts<<" "<< vit->second <<std::endl; 
-					tokens.push_back ( vit->second );
+					tokens.push_back ( dToStr(calc(vit->second)) );
 				}
 				else
 				{
@@ -164,7 +171,7 @@ double PageRecord::calc ( const std::string& s )
 		if ( vit != PoDoFoImpose::vars.end() )
 		{
 // 			std::cerr<<"Found "<<ts<<std::endl; 
-			tokens.push_back ( vit->second );
+			tokens.push_back ( dToStr(calc(vit->second)) );
 		}
 		else
 		{
@@ -231,6 +238,8 @@ double PageRecord::calc ( const std::vector<std::string>& t )
 			ops.push_back( "*" );
 		else if ( t.at ( vi ) == "/" )
 			ops.push_back( "/" );
+		else if ( t.at ( vi ) == "%" )
+			ops.push_back( "%" );
 		else if ( t.at ( vi ) == "|" )
 			ops.push_back( "|" );
 		else
@@ -251,6 +260,8 @@ double PageRecord::calc ( const std::vector<std::string>& t )
 				ret *= values.at(vi);
 			else if ( ops.at ( vi ) == "/" )
 				ret /= values.at(vi);
+			else if ( ops.at ( vi ) == "%" )
+				ret = static_cast<int>(ret) % static_cast<int>(values.at(vi));
 			else if ( ops.at ( vi ) == "|" ) // Stands for max(a,b), easier than true condition, allow to filter division by 0
 				ret = std::max(ret , values.at(vi));
 		}
@@ -621,6 +632,7 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 			else
 			{
 				PoDoFoImpose::vars.insert ( std::pair<std::string, std::string> ( key,value ) );
+// 				std::cerr<<key<<" = "<<value<<std::endl;
 			}
 		}
 		else if( buffer.at ( 0 ) == '@' ) // Loop - experimental
@@ -769,7 +781,7 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 	
 	/// SUPPORTED
 	if ( PoDoFoImpose::vars.find("$ScaleFactor") != PoDoFoImpose::vars.end() )
-		scaleFactor = atof( PoDoFoImpose::vars["$ScaleFactor"].c_str() );
+		scaleFactor = PageRecord::calc( PoDoFoImpose::vars["$ScaleFactor"] );
 	/// END OF SUPPORTED
 	
 	
