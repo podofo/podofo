@@ -30,7 +30,7 @@
 #ifdef PODOFO_HAVE_TIFF_LIB
 extern "C" {
 #include "tiffio.h"
-#ifdef WIN32		// Collision between tiff and jpeg-headers
+#ifdef _WIN32		// Collision between tiff and jpeg-headers
 #define XMD_H
 #undef FAR
 #endif

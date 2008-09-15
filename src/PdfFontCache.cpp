@@ -232,7 +232,7 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
         
         if( sPath.empty() )
         {
-#if _WIN32
+#ifdef _WIN32
             return GetWin32Font( it.first, m_vecFonts, pszFontName, bBold, bItalic, bEmbedd, pEncoding );
 #else
             PdfError::LogMessage( eLogSeverity_Critical, "No path was found for the specified fontname: %s\n", pszFontName );
@@ -320,7 +320,7 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
 	    sPath = this->GetFontPath( pszFontName, bBold, bItalic );
 	    if( sPath.empty() )
 	    {
-#if _WIN32
+#ifdef _WIN32
 		// TODO: GetWin32Font
 		PODOFO_ASSERT( 0 );
 #else	    
@@ -369,7 +369,7 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
 
 #ifdef _WIN32
 PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList & vecContainer, 
-				                     const char* pszFontName, bool bBold, bool bItalic, 
+				     const char* pszFontName, bool bBold, bool bItalic, 
                                      bool bEmbedd, const PdfEncoding * const pEncoding )
 {
     LOGFONT	lf;
@@ -415,7 +415,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
 }
 
 PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList & vecContainer, 
-				                     const wchar_t* pszFontName, bool bBold, bool bItalic, 
+				     const wchar_t* pszFontName, bool bBold, bool bItalic, 
                                      bool bEmbedd, const PdfEncoding * const pEncoding )
 {
     LOGFONTW	lf;
@@ -463,7 +463,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     try {
         pMetrics = new PdfFontMetrics( &m_ftLibrary, pBuffer, nLen );
         pFont    = this->CreateFontObject( itSorted, vecContainer, pMetrics, 
-					                       bEmbedd, bBold, bItalic, pmbFontName, pEncoding );
+					   bEmbedd, bBold, bItalic, pmbFontName, pEncoding );
         free( pmbFontName );
         pmbFontName = NULL;
     } catch( PdfError & error ) {
@@ -550,7 +550,8 @@ PdfFont* PdfFontCache::CreateFontObject( TISortedFontList itSorted, TSortedFontL
 
         pFont    = PdfFontFactory::CreateFontObject( pMetrics, nFlags, pEncoding, m_pParent );
 
-        if( pFont ) {
+        if( pFont ) 
+	{
             TFontCacheElement element;
             element.m_pFont     = pFont;
             element.m_bBold     = pFont->IsBold();
@@ -558,7 +559,7 @@ PdfFont* PdfFontCache::CreateFontObject( TISortedFontList itSorted, TSortedFontL
             element.m_sFontName = pszFontName;
             element.m_pEncoding = pEncoding;
 
-	        // Do a sorted insert, so no need to sort again
+	    // Do a sorted insert, so no need to sort again
             rvecContainer.insert( itSorted, element );
 	}
     } catch( PdfError & e ) {

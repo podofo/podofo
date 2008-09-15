@@ -64,7 +64,17 @@
 //#define PODOFO_VERBOSE_DEBUG
 #endif //PODOFO_VERBOSE_DEBUG
 
+// Make sure that DEBUG is defined 
+// for debug builds on Windows
+// as Visual Studio defines only _DEBUG
+#ifdef _DEBUG
+#ifndef DEBUG
+#define DEBUG 1
+#endif // DEBUG
+#endif // _DEBUG
+
 #ifdef DEBUG
+#include <assert.h>
 #define PODOFO_ASSERT( x ) assert( x );
 #else
 #define PODOFO_ASSERT( x )

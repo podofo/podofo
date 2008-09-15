@@ -27,6 +27,7 @@
 	</ol>
 	</li>
 	<li><a href="#using_podofo_in_your_application">Using PoDoFo in Your Application</a></li>
+	<li><a href="#preprocessor">Preprocessor defines used in PoDoFo</a></li>
 	<li><a href="#contact">Contact</a></li>
 	<li><a href="#licensing">Licensing</a></li>
 </ol>
@@ -612,6 +613,64 @@ generated exceptions like std::bad_alloc, though it'll never throw them
 directly. PoDoFo cannot be built without exceptions.</p>
 
 <p>More general information about exception handling is in the <a href="FAQ.html">FAQ</a>.</p>
+
+<h2><a name="preprocessor">Preprocessor defines used in PoDoFo</h2>
+
+<p>Several preprocessor defines are used inside PoDoFo. This section tries to
+  document all of them. These defines are set automatically by the CMake build
+  system, so usually you do not have to worry about them.</p>
+
+<table>
+  <tr>
+    <td><b>Define</b></td>
+    <td><b>Meaning</b></td>
+  </tr>
+
+  <tr>
+    <td><code>DEBUG</code></td>
+    <td>Indicates a debug build of PoDoFo.</td>
+  </tr>
+  <tr>
+    <td><code>PODOFO_EXTRA_CHECKS</code></td>
+    <td>Should we do lots of extra (expensive) sanity checking?  You should not
+define this on production builds because of the runtime cost and because it
+might cause the library to abort() if it notices something nasty.
+It may also change the size of some objects, and is thus not binary
+compatible.
+    </td>
+  </tr>
+  <tr>
+    <td><code>PODOFO_IS_LITTLE_ENDIAN</code></td>
+    <td>This define is set on all little endian
+      system and required on these systems for PoDoFo to work properly.</td>
+  </tr>
+  <tr>
+    <td><code>PODOFO_IS_BIG_ENDIAN</code></td>
+    <td>This define is set on all big endian
+      system and required on these systems for PoDoFo to work properly.</td>
+  </tr>
+  <tr>
+    <td><code>PODOFO_MULTI_THREAD</code></td>
+    <td>Will compile PoDoFo with threading support, e.g. mutex that lock
+      global variables.</td>
+  </tr>
+  <tr>
+    <td><code>PODOFO_VERBOSE_DEBUG</code></td>
+    <td>This will cause PoDoFo to write even more debug output to the commandline.</td>
+  </tr>
+  <tr>
+    <td><code>HAVE_BOOST</code></td>
+    <td>If defined PoDoFo is compiled with Boost support.</td>
+  </tr>
+  <tr>
+    <td><code>PODOFO_HAVE_JPEG_LIB</code></td>
+    <td>If defined PoDoFo will use libJpeg to read and decode JPEG images.</td>
+  </tr>
+  <tr>
+    <td><code>PODOFO_HAVE_TIFF_LIB</code></td>
+    <td>If defined PoDoFo will use libTiff to read and decode TIFF images.</td>
+  </tr>
+</table>
 
 <h2><a name="contact">Contact</h2>
 
