@@ -45,7 +45,7 @@ static const unsigned int __LENGTH_WORD		 = 2;
 inline unsigned long Big2Little(unsigned long big)
 {
     return ((big << 24) & 0xFF000000) | ((big << 8) & 0x00FF0000) | 
-	((big >> 8) & 0x0000FF00) | ((big >> 24) & 0x000000FF) ;
+        ((big >> 8) & 0x0000FF00) | ((big >> 24) & 0x000000FF) ;
 }
 
 inline unsigned short Big2Little(unsigned short big)
@@ -75,19 +75,19 @@ PdfFontTTFSubset::PdfFontTTFSubset( const char* pszFontFileName, PdfFontMetrics*
 
     if (strcasecmp(ext,"ttf") == 0)
     {
-	m_eFontFileType = eFontFileType_TTF;
+        m_eFontFileType = eFontFileType_TTF;
     }
     else if (strcasecmp(ext,"ttc") == 0)
     {
-	m_eFontFileType = eFontFileType_TTC;
+        m_eFontFileType = eFontFileType_TTC;
     }
     else if (strcasecmp(ext,"otf") == 0)
     {
-	m_eFontFileType = eFontFileType_OTF;
+        m_eFontFileType = eFontFileType_OTF;
     }
     else
     {
-	m_eFontFileType = eFontFileType_Unknown;
+        m_eFontFileType = eFontFileType_Unknown;
     }
 
     m_pDevice = new PdfInputDevice( pszFontFileName );
@@ -107,8 +107,8 @@ PdfFontTTFSubset::PdfFontTTFSubset( PdfInputDevice* pDevice, PdfFontMetrics* pMe
 PdfFontTTFSubset::~PdfFontTTFSubset()
 {
     if( m_bOwnDevice ) {
-	delete m_pDevice;
-	m_pDevice = NULL;
+        delete m_pDevice;
+        m_pDevice = NULL;
     }
 }
 
@@ -116,17 +116,17 @@ void PdfFontTTFSubset::AddGlyph( unsigned short nGlyphIndex )
 {
     // Do a sorted insert
     std::pair<std::vector<unsigned short>::iterator,
-	std::vector<unsigned short>::const_iterator> it =
-	std::equal_range( m_vGlyphIndice.begin(), m_vGlyphIndice.end(), 
-			  nGlyphIndex );
+        std::vector<unsigned short>::const_iterator> it =
+        std::equal_range( m_vGlyphIndice.begin(), m_vGlyphIndice.end(), 
+                          nGlyphIndex );
     
-    if( it.first == it.second )
-    {
-	m_vGlyphIndice.insert( it.first, nGlyphIndex );
-    }
+if( it.first == it.second )
+{
+    m_vGlyphIndice.insert( it.first, nGlyphIndex );
+}
 }
 
-void PdfFontTTFSubset::Init()
+    void PdfFontTTFSubset::Init()
 {
     GetStartOfTTFOffsets();
     GetNumberOfTables();
@@ -141,8 +141,8 @@ unsigned long PdfFontTTFSubset::GetTableOffset( const char* pszTableName )
 
     for (; it != m_vTable.end(); it++)
     {
-	if (it->m_strTableName == pszTableName)
-	    return it->m_offset;
+        if (it->m_strTableName == pszTableName)
+            return it->m_offset;
     }
 
     return 0L;
@@ -162,34 +162,34 @@ void PdfFontTTFSubset::InitTables()
 {
     for (int i=0; i < m_numTables; i++)
     {
-	TTrueTypeTable tbl;
+        TTrueTypeTable tbl;
 
-	//Name of each table:
-	GetData( m_ulStartOfTTFOffsets+__LENGTH_HEADER12+__LENGTH_OFFSETTABLE16*i, tbl.m_tableName, __LENGTH_DWORD );
+        //Name of each table:
+        GetData( m_ulStartOfTTFOffsets+__LENGTH_HEADER12+__LENGTH_OFFSETTABLE16*i, tbl.m_tableName, __LENGTH_DWORD );
 
-	//String name of each table:
-	tbl.m_strTableName.assign( reinterpret_cast<char*>(tbl.m_tableName), __LENGTH_DWORD );
+        //String name of each table:
+        tbl.m_strTableName.assign( reinterpret_cast<char*>(tbl.m_tableName), __LENGTH_DWORD );
 
-	//Checksum of each table:
-	GetData( m_ulStartOfTTFOffsets+__LENGTH_HEADER12+__LENGTH_OFFSETTABLE16*i+__LENGTH_DWORD*1,&tbl.m_checksum,__LENGTH_DWORD);
-	tbl.m_checksum = Big2Little(tbl.m_checksum);
+        //Checksum of each table:
+        GetData( m_ulStartOfTTFOffsets+__LENGTH_HEADER12+__LENGTH_OFFSETTABLE16*i+__LENGTH_DWORD*1,&tbl.m_checksum,__LENGTH_DWORD);
+        tbl.m_checksum = Big2Little(tbl.m_checksum);
 
-	//Offset of each table:
-	GetData( m_ulStartOfTTFOffsets+__LENGTH_HEADER12+__LENGTH_OFFSETTABLE16*i+__LENGTH_DWORD*2,&tbl.m_offset,__LENGTH_DWORD);
-	tbl.m_offset = Big2Little(tbl.m_offset);
+        //Offset of each table:
+        GetData( m_ulStartOfTTFOffsets+__LENGTH_HEADER12+__LENGTH_OFFSETTABLE16*i+__LENGTH_DWORD*2,&tbl.m_offset,__LENGTH_DWORD);
+        tbl.m_offset = Big2Little(tbl.m_offset);
 
-	//Length of each table:
-	GetData( m_ulStartOfTTFOffsets+__LENGTH_HEADER12+__LENGTH_OFFSETTABLE16*i+__LENGTH_DWORD*3,&tbl.m_length,__LENGTH_DWORD);
-	tbl.m_length = Big2Little(tbl.m_length);
+        //Length of each table:
+        GetData( m_ulStartOfTTFOffsets+__LENGTH_HEADER12+__LENGTH_OFFSETTABLE16*i+__LENGTH_DWORD*3,&tbl.m_length,__LENGTH_DWORD);
+        tbl.m_length = Big2Little(tbl.m_length);
 
-	//It seems that the EBDT, EBLC, EBSC table can be erased.
-	if (tbl.m_strTableName == "EBDT")
-	    /*||tbl.m_strTableName == string("EBLC")||tbl.m_strTableName == string("EBSC")*/
-	{
-	    continue;
-	}
+        //It seems that the EBDT, EBLC, EBSC table can be erased.
+        if (tbl.m_strTableName == "EBDT")
+            /*||tbl.m_strTableName == string("EBLC")||tbl.m_strTableName == string("EBSC")*/
+        {
+            continue;
+        }
 
-	m_vTable.push_back(tbl);		
+        m_vTable.push_back(tbl);		
 
     }
     m_numTables = m_vTable.size();
@@ -200,24 +200,24 @@ void PdfFontTTFSubset::GetStartOfTTFOffsets()
 	
     switch (m_eFontFileType)
     {
-	case eFontFileType_TTF:
-	case eFontFileType_OTF:
-	    m_ulStartOfTTFOffsets = 0x0;
-	    break;
-	case eFontFileType_TTC:
-	{
-	    unsigned long ulnumFace;
-	    GetData( 8,&ulnumFace,4);
-	    ulnumFace = Big2Little(ulnumFace);
+        case eFontFileType_TTF:
+        case eFontFileType_OTF:
+            m_ulStartOfTTFOffsets = 0x0;
+            break;
+        case eFontFileType_TTC:
+        {
+            unsigned long ulnumFace;
+            GetData( 8,&ulnumFace,4);
+            ulnumFace = Big2Little(ulnumFace);
 	    
-	    GetData( (3+m_faceIndex)*__LENGTH_DWORD,&m_ulStartOfTTFOffsets,__LENGTH_DWORD);
-	    m_ulStartOfTTFOffsets = Big2Little(m_ulStartOfTTFOffsets);
-	}
-	break;
-	case eFontFileType_Unknown:
-	    break;
-	default:
-	    return;
+            GetData( (3+m_faceIndex)*__LENGTH_DWORD,&m_ulStartOfTTFOffsets,__LENGTH_DWORD);
+            m_ulStartOfTTFOffsets = Big2Little(m_ulStartOfTTFOffsets);
+        }
+        break;
+        case eFontFileType_Unknown:
+            break;
+        default:
+            return;
     }
 }
 
@@ -252,14 +252,14 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
     std::vector<unsigned short>::iterator itGlyphIndice = m_vGlyphIndice.begin();
     for (; itGlyphIndice != m_vGlyphIndice.end();)
     {
-	if (*itGlyphIndice > m_numGlyphs)
-	{
-	    m_vGlyphIndice.erase(itGlyphIndice);
-	}
-	else
-	{
-	    itGlyphIndice++;
-	}
+        if (*itGlyphIndice > m_numGlyphs)
+        {
+            m_vGlyphIndice.erase(itGlyphIndice);
+        }
+        else
+        {
+            itGlyphIndice++;
+        }
     }
 
     //==============================================================================
@@ -268,13 +268,13 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
     // Make the glyf table be the last table, just for convenience:
     for (unsigned short i(0); i < m_numTables; i++)
     {
-	if (m_vTable[i].m_strTableName == "glyf")
-	{
-	    TTrueTypeTable tmpTbl = m_vTable.back();
-	    m_vTable.back() = m_vTable[i];
-	    m_vTable[i] = tmpTbl;
-	    break;
-	}
+        if (m_vTable[i].m_strTableName == "glyf")
+        {
+            TTrueTypeTable tmpTbl = m_vTable.back();
+            m_vTable.back() = m_vTable[i];
+            m_vTable[i] = tmpTbl;
+            break;
+        }
     }
 
     unsigned long ulGlyfTableOffset = GetTableOffset("glyf");
@@ -285,9 +285,9 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
     //Print the old table information:
     for (int i(0); i < m_numTables; i++)
     {
-	std::cout << "OldTable:\t" << m_vTable[i].m_strTableName << std::endl;
-	std::cout << "\tOffSet:\t" << m_vTable[i].m_offset << std::endl;
-	std::cout << "\t\tLength:\t"<<m_vTable[i].m_length << std::endl;
+        std::cout << "OldTable:\t" << m_vTable[i].m_strTableName << std::endl;
+        std::cout << "\tOffSet:\t" << m_vTable[i].m_offset << std::endl;
+        std::cout << "\t\tLength:\t"<<m_vTable[i].m_length << std::endl;
     }
 	
     //Change the offsets:
@@ -295,393 +295,387 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
     for (int i(1); i < m_numTables; i++)
     {
         m_vTable[i].m_offset = m_vTable[i-1].m_offset+m_vTable[i-1].m_length;
-	unsigned pad = GetPadding(m_vTable[i-1].m_length);
-	m_vTable[i].m_offset += pad;
+        unsigned pad = GetPadding(m_vTable[i-1].m_length);
+        m_vTable[i].m_offset += pad;
     }
 	
     //Print the new table information:
     for (int i(0); i < m_numTables; i++)
     {
-	std::cout << "NewTable:\t" << m_vTable[i].m_strTableName <<std::endl;
-	std::cout << "\tOffSet:\t" << m_vTable[i].m_offset <<std::endl;
-	std::cout << "\t\tLength:\t"<<m_vTable[i].m_length <<std::endl;
+        std::cout << "NewTable:\t" << m_vTable[i].m_strTableName <<std::endl;
+        std::cout << "\tOffSet:\t" << m_vTable[i].m_offset <<std::endl;
+        std::cout << "\t\tLength:\t"<<m_vTable[i].m_length <<std::endl;
     }
 
     //The glyph data:
     if (m_bIsLongLoca)
     {
-	std::vector<TGlyphData> vGD;
-	TGlyphData gd;
-	unsigned long ulNextGlyphAddress;
+        std::vector<TGlyphData> vGD;
+        TGlyphData gd;
+        unsigned long ulNextGlyphAddress;
 	
-	//Deal with the composite glyphs:
-	//Sometimes glyph A will use glyph B, so glyph B must be embeded also, but whether glyph B is using another glyph has not been taken into account.
-	std::vector<unsigned short> vGlyphIndice = m_vGlyphIndice;		//Temp vGlyphIndice.
-	for (unsigned long i(0); i < vGlyphIndice.size(); i++)
-	{
-	    gd.glyphIndex = vGlyphIndice[i];
-	    GetData(  ulLocaTableOffset+__LENGTH_DWORD*gd.glyphIndex,&gd.glyphOldAddress,__LENGTH_DWORD);
-	    gd.glyphOldAddress = Big2Little(gd.glyphOldAddress);
+        //Deal with the composite glyphs:
+        //Sometimes glyph A will use glyph B, so glyph B must be embeded also, but whether glyph B is using another glyph has not been taken into account.
+        std::vector<unsigned short> vGlyphIndice = m_vGlyphIndice;		//Temp vGlyphIndice.
+        for (unsigned long i(0); i < vGlyphIndice.size(); i++)
+        {
+            gd.glyphIndex = vGlyphIndice[i];
+            GetData(  ulLocaTableOffset+__LENGTH_DWORD*gd.glyphIndex,&gd.glyphOldAddress,__LENGTH_DWORD);
+            gd.glyphOldAddress = Big2Little(gd.glyphOldAddress);
 		
-	    short sIsComp;
-	    GetData(  ulGlyfTableOffset+gd.glyphOldAddress,&sIsComp,__LENGTH_WORD);
-	    sIsComp = Big2Little(sIsComp);
-	    if (sIsComp >= 0)
-	    {
-		continue;
-	    }
-	    else
-	    {
-		unsigned short usNewGlyphIndex;
-		GetData(  ulGlyfTableOffset+gd.glyphOldAddress+12,&usNewGlyphIndex,__LENGTH_WORD);
-		usNewGlyphIndex = Big2Little(usNewGlyphIndex);
+            short sIsComp;
+            GetData(  ulGlyfTableOffset+gd.glyphOldAddress,&sIsComp,__LENGTH_WORD);
+            sIsComp = Big2Little(sIsComp);
+            if (sIsComp >= 0)
+            {
+                continue;
+            }
+            else
+            {
+                unsigned short usNewGlyphIndex;
+                GetData(  ulGlyfTableOffset+gd.glyphOldAddress+12,&usNewGlyphIndex,__LENGTH_WORD);
+                usNewGlyphIndex = Big2Little(usNewGlyphIndex);
 
-		this->AddGlyph( usNewGlyphIndex );
-	    }
-	}
+                this->AddGlyph( usNewGlyphIndex );
+            }
+        }
 
 	
-	// Let us assume that the first glyphindex in the vector is always 0:
-	for (unsigned long i(0); i < m_vGlyphIndice.size(); i++)
-	{
-	    gd.glyphIndex = m_vGlyphIndice[i];
-	    GetData( ulLocaTableOffset+__LENGTH_DWORD*gd.glyphIndex,&gd.glyphOldAddress,__LENGTH_DWORD);
-	    gd.glyphOldAddress = Big2Little(gd.glyphOldAddress);
-	    GetData( ulLocaTableOffset+__LENGTH_DWORD*(gd.glyphIndex+1),&ulNextGlyphAddress,__LENGTH_DWORD);
-	    ulNextGlyphAddress = Big2Little(ulNextGlyphAddress);
-	    gd.glyphLength = ulNextGlyphAddress-gd.glyphOldAddress;
-	    vGD.push_back(gd);
-	}
+        // Let us assume that the first glyphindex in the vector is always 0:
+        for (unsigned long i(0); i < m_vGlyphIndice.size(); i++)
+        {
+            gd.glyphIndex = m_vGlyphIndice[i];
+            GetData( ulLocaTableOffset+__LENGTH_DWORD*gd.glyphIndex,&gd.glyphOldAddress,__LENGTH_DWORD);
+            gd.glyphOldAddress = Big2Little(gd.glyphOldAddress);
+            GetData( ulLocaTableOffset+__LENGTH_DWORD*(gd.glyphIndex+1),&ulNextGlyphAddress,__LENGTH_DWORD);
+            ulNextGlyphAddress = Big2Little(ulNextGlyphAddress);
+            gd.glyphLength = ulNextGlyphAddress-gd.glyphOldAddress;
+            vGD.push_back(gd);
+        }
 	
-	//The last glyph, whose index seems not needed.
-	ulNextGlyphAddress = m_vTable.back().m_length;
-	GetData( ulLocaTableOffset+(m_numGlyphs)*__LENGTH_DWORD,&gd.glyphOldAddress,__LENGTH_DWORD);	//?
-	gd.glyphOldAddress = Big2Little(gd.glyphOldAddress);
-	gd.glyphLength = ulNextGlyphAddress-gd.glyphOldAddress;
-	vGD.push_back(gd);
-	vGD[0].glyphNewAddress = 0x0;
-	for (unsigned long i(1); i < vGD.size(); i++)
-	{
-	    vGD[i].glyphNewAddress = vGD[i-1].glyphNewAddress+vGD[i-1].glyphLength;
-	}
+        //The last glyph, whose index seems not needed.
+        ulNextGlyphAddress = m_vTable.back().m_length;
+        GetData( ulLocaTableOffset+(m_numGlyphs)*__LENGTH_DWORD,&gd.glyphOldAddress,__LENGTH_DWORD);	//?
+        gd.glyphOldAddress = Big2Little(gd.glyphOldAddress);
+        gd.glyphLength = ulNextGlyphAddress-gd.glyphOldAddress;
+        vGD.push_back(gd);
+        vGD[0].glyphNewAddress = 0x0;
+        for (unsigned long i(1); i < vGD.size(); i++)
+        {
+            vGD[i].glyphNewAddress = vGD[i-1].glyphNewAddress+vGD[i-1].glyphLength;
+        }
 	
-	//New glyf table length:
-	unsigned long ulnew = vGD.back().glyphNewAddress;
-	unsigned long ulNewGlyfTableLength = vGD.back().glyphNewAddress+vGD.back().glyphLength;
-	m_vTable.back().m_length = ulNewGlyfTableLength;
+        //New glyf table length:
+        unsigned long ulNewGlyfTableLength = vGD.back().glyphNewAddress+vGD.back().glyphLength;
+        m_vTable.back().m_length = ulNewGlyfTableLength;
 	
         //Writing the header:
-	unsigned char* buf = new unsigned char[3*__LENGTH_DWORD];
-	GetData( ulStartOfTTFOffsets,buf,3*__LENGTH_DWORD);
-	pOutputDevice->Write( reinterpret_cast<char*>(buf), 3*__LENGTH_DWORD );
-	delete[]  buf;
-	buf = new unsigned char[m_numTables*__LENGTH_DWORD*4];
+        unsigned char* buf = new unsigned char[3*__LENGTH_DWORD];
+        GetData( ulStartOfTTFOffsets,buf,3*__LENGTH_DWORD);
+        pOutputDevice->Write( reinterpret_cast<char*>(buf), 3*__LENGTH_DWORD );
+        delete[]  buf;
+        buf = new unsigned char[m_numTables*__LENGTH_DWORD*4];
 	
-	for (int i(0); i < m_numTables; i++)
-	{
-	    //The table name:
-	    for (int j(0); j < static_cast<int>(__LENGTH_DWORD); j++)
-	    {
-		buf[i*__LENGTH_DWORD*4 + j] = m_vTable[i].m_tableName[j]; 
-	    }
-	    //The checksum:
-	    unsigned long ultemp = Big2Little(m_vTable[i].m_checksum);
-	    for (int k(0); k < static_cast<int>(__LENGTH_DWORD); k++)
-	    {
-		unsigned char ch = static_cast<unsigned char>(ultemp%256);
-		buf[i*__LENGTH_DWORD*4 + 4 + k] = ch;
-		ultemp /= 256;
-	    }
-	    //The offset:
-	    ultemp = Big2Little(m_vTable[i].m_offset);
-	    for (int m(0); m < static_cast<int>(__LENGTH_DWORD); m++)
-	    {
-		unsigned char ch = static_cast<unsigned char>(ultemp%256);
-		buf[i*__LENGTH_DWORD*4 + 8 + m] = ch;
-		ultemp /= 256;
-	    }
-	    //The length:
-	    ultemp = Big2Little(m_vTable[i].m_length);
-	    for (int n(0); n < static_cast<int>(__LENGTH_DWORD); n++)
-	    {
-		unsigned char ch = static_cast<unsigned char>(ultemp%256);
-		buf[i*__LENGTH_DWORD*4 + 12 + n] = ch;
-		ultemp /= 256;
-	    }
-	}
-	pOutputDevice->Write( reinterpret_cast<char*>(buf), m_numTables*__LENGTH_DWORD*4 );
-	delete[] buf;
+        for (int i(0); i < m_numTables; i++)
+        {
+            //The table name:
+            for (int j(0); j < static_cast<int>(__LENGTH_DWORD); j++)
+            {
+                buf[i*__LENGTH_DWORD*4 + j] = m_vTable[i].m_tableName[j]; 
+            }
+            //The checksum:
+            unsigned long ultemp = Big2Little(m_vTable[i].m_checksum);
+            for (int k(0); k < static_cast<int>(__LENGTH_DWORD); k++)
+            {
+                unsigned char ch = static_cast<unsigned char>(ultemp%256);
+                buf[i*__LENGTH_DWORD*4 + 4 + k] = ch;
+                ultemp /= 256;
+            }
+            //The offset:
+            ultemp = Big2Little(m_vTable[i].m_offset);
+            for (int m(0); m < static_cast<int>(__LENGTH_DWORD); m++)
+            {
+                unsigned char ch = static_cast<unsigned char>(ultemp%256);
+                buf[i*__LENGTH_DWORD*4 + 8 + m] = ch;
+                ultemp /= 256;
+            }
+            //The length:
+            ultemp = Big2Little(m_vTable[i].m_length);
+            for (int n(0); n < static_cast<int>(__LENGTH_DWORD); n++)
+            {
+                unsigned char ch = static_cast<unsigned char>(ultemp%256);
+                buf[i*__LENGTH_DWORD*4 + 12 + n] = ch;
+                ultemp /= 256;
+            }
+        }
+        pOutputDevice->Write( reinterpret_cast<char*>(buf), m_numTables*__LENGTH_DWORD*4 );
+        delete[] buf;
 	
-	//Writing new tables:
-	vGD.back().glyphIndex = m_numGlyphs;
-	for (int i(0); i < m_numTables-1; i++)
-	{
-	    if (m_vTable[i].m_strTableName != "loca")
-	    {
-		//string str = m_vTable[i].m_strTableName;
-		//unsigned long length = m_vTable[i].m_length;
-		//unsigned long offset = m_vTable[i].m_offset;
-		//unsigned long x = m_vTable[i].m_length;
-		char *buf = new  char[m_vTable[i].m_length];
-		//unsigned long olength = vOldTable[i].m_length;
-		//unsigned long ooffset = vOldTable[i].m_offset;
-		GetData( vOldTable[i].m_offset,buf,vOldTable[i].m_length);
-		pOutputDevice->Write( reinterpret_cast<char*>(buf), vOldTable[i].m_length );
-		delete[] buf;
-		buf = 0;
-	    }
-	    else
-	    {
-		//The loca table:
-		for (unsigned long j(0); j < vGD.size()-1; j++)
-		{
-		    unsigned long ultemp = vGD[j].glyphNewAddress;
-		    ultemp = Big2Little(ultemp);
-		    buf = new unsigned char[__LENGTH_DWORD];
-		    for (int k(0); k < static_cast<int>(__LENGTH_DWORD); k++)
-		    {
-			unsigned char ch = static_cast<unsigned char>(ultemp%256);
-			buf[k] = ch;
-			ultemp /= 256;
-		    }
-		    pOutputDevice->Write( reinterpret_cast<char*>(buf), __LENGTH_DWORD );
-		    ultemp = vGD[j+1].glyphNewAddress;
-		    ultemp = Big2Little(ultemp);
-		    for (int n(0); n < static_cast<int>(__LENGTH_DWORD); n++)
-		    {
-			unsigned char ch = static_cast<unsigned char>(ultemp%256);
-			buf[n] = ch;
-			ultemp /= 256;
-		    }
-		    for (unsigned long m(vGD[j].glyphIndex+1); m < vGD[j+1].glyphIndex; m++)
-		    {
-			pOutputDevice->Write( reinterpret_cast<char*>(buf), __LENGTH_DWORD );
-		    }
-		    delete[] buf;
-		}
-		//The last glyph address:
+        //Writing new tables:
+        vGD.back().glyphIndex = m_numGlyphs;
+        for (int i(0); i < m_numTables-1; i++)
+        {
+            if (m_vTable[i].m_strTableName != "loca")
+            {
+                //string str = m_vTable[i].m_strTableName;
+                //unsigned long length = m_vTable[i].m_length;
+                //unsigned long offset = m_vTable[i].m_offset;
+                //unsigned long x = m_vTable[i].m_length;
+                char *buf = new  char[m_vTable[i].m_length];
+                //unsigned long olength = vOldTable[i].m_length;
+                //unsigned long ooffset = vOldTable[i].m_offset;
+                GetData( vOldTable[i].m_offset,buf,vOldTable[i].m_length);
+                pOutputDevice->Write( reinterpret_cast<char*>(buf), vOldTable[i].m_length );
+                delete[] buf;
+                buf = 0;
+            }
+            else
+            {
+                //The loca table:
+                for (unsigned long j(0); j < vGD.size()-1; j++)
+                {
+                    unsigned long ultemp = vGD[j].glyphNewAddress;
+                    ultemp = Big2Little(ultemp);
+                    buf = new unsigned char[__LENGTH_DWORD];
+                    for (int k(0); k < static_cast<int>(__LENGTH_DWORD); k++)
+                    {
+                        unsigned char ch = static_cast<unsigned char>(ultemp%256);
+                        buf[k] = ch;
+                        ultemp /= 256;
+                    }
+                    pOutputDevice->Write( reinterpret_cast<char*>(buf), __LENGTH_DWORD );
+                    ultemp = vGD[j+1].glyphNewAddress;
+                    ultemp = Big2Little(ultemp);
+                    for (int n(0); n < static_cast<int>(__LENGTH_DWORD); n++)
+                    {
+                        unsigned char ch = static_cast<unsigned char>(ultemp%256);
+                        buf[n] = ch;
+                        ultemp /= 256;
+                    }
+                    for (unsigned long m(vGD[j].glyphIndex+1); m < vGD[j+1].glyphIndex; m++)
+                    {
+                        pOutputDevice->Write( reinterpret_cast<char*>(buf), __LENGTH_DWORD );
+                    }
+                    delete[] buf;
+                }
+                //The last glyph address:
 		
-		buf = new unsigned char[__LENGTH_DWORD];
-		unsigned long ultemp = vGD.back().glyphNewAddress;
-		ultemp = Big2Little(ultemp);
-		for (int n(0); n < static_cast<int>(__LENGTH_DWORD); n++)
-		{
-		    unsigned char ch = static_cast<unsigned char>(ultemp%256);
-		    buf[n] = ch;
-		    ultemp /= 256;
-		}
-		pOutputDevice->Write( reinterpret_cast<char*>(buf), __LENGTH_DWORD );
-		delete[] buf;				
-	    }
-	    //Paddings:
-	    unsigned pad = GetPadding(m_vTable[i].m_length);
-	    if (pad != 0)
-	    {
-		buf = new unsigned char[pad];
-		pOutputDevice->Write( reinterpret_cast<char*>(buf), pad );
-		delete[] buf;
-	    }
+                buf = new unsigned char[__LENGTH_DWORD];
+                unsigned long ultemp = vGD.back().glyphNewAddress;
+                ultemp = Big2Little(ultemp);
+                for (int n(0); n < static_cast<int>(__LENGTH_DWORD); n++)
+                {
+                    unsigned char ch = static_cast<unsigned char>(ultemp%256);
+                    buf[n] = ch;
+                    ultemp /= 256;
+                }
+                pOutputDevice->Write( reinterpret_cast<char*>(buf), __LENGTH_DWORD );
+                delete[] buf;				
+            }
+            //Paddings:
+            unsigned pad = GetPadding(m_vTable[i].m_length);
+            if (pad != 0)
+            {
+                buf = new unsigned char[pad];
+                pOutputDevice->Write( reinterpret_cast<char*>(buf), pad );
+                delete[] buf;
+            }
 	    
-	}
-	//Writing the last table, glyf:
-	int s = vGD.size();
-	for (unsigned long i(0); i < vGD.size(); i++)
-	{
-	    unsigned long l = vGD[i].glyphLength;
-	    buf = new unsigned char[vGD[i].glyphLength];
-	    GetData( ulGlyfTableOffset+vGD[i].glyphOldAddress,buf,vGD[i].glyphLength);
-	    pOutputDevice->Write( reinterpret_cast<char*>(buf), vGD[i].glyphLength );
-	    delete[] buf;
-	}
+        }
+        //Writing the last table, glyf:
+        for (unsigned long i(0); i < vGD.size(); i++)
+        {
+            buf = new unsigned char[vGD[i].glyphLength];
+            GetData( ulGlyfTableOffset+vGD[i].glyphOldAddress,buf,vGD[i].glyphLength);
+            pOutputDevice->Write( reinterpret_cast<char*>(buf), vGD[i].glyphLength );
+            delete[] buf;
+        }
     }
     else
     {
-	std::vector<TGlyphDataShort> vsGD;
-	TGlyphDataShort gd;
-	unsigned short usNextGlyphAddress;
-	unsigned long  usNextGlyphAddressLong;
+        std::vector<TGlyphDataShort> vsGD;
+        TGlyphDataShort gd;
+        unsigned short usNextGlyphAddress;
+        unsigned long  usNextGlyphAddressLong;
 	
-	//Deal with the composite glyphs:
-	//Temp vGlyphIndice:
-	std::vector<unsigned short> vGlyphIndice = m_vGlyphIndice;
-	for (unsigned long i(0); i < vGlyphIndice.size(); i++)
-	{
-	    gd.glyphIndex = vGlyphIndice[i];
-	    GetData(  ulLocaTableOffset+__LENGTH_WORD*gd.glyphIndex,&gd.glyphOldAddress,__LENGTH_WORD);
-	    gd.glyphOldAddress = Big2Little(gd.glyphOldAddress);
-	    gd.glyphOldAddressLong = gd.glyphOldAddress*2;
-	    short sIsComp;
-	    GetData(  ulGlyfTableOffset+gd.glyphOldAddressLong,&sIsComp,__LENGTH_WORD);
-	    sIsComp = Big2Little(sIsComp);
-	    if (sIsComp >= 0)
-	    {
-		continue;
-	    }
-	    else
-	    {
-		unsigned short usNewGlyphIndex;
-		GetData(  ulGlyfTableOffset+gd.glyphOldAddressLong+12,&usNewGlyphIndex,__LENGTH_WORD);
-		usNewGlyphIndex = Big2Little(usNewGlyphIndex);
+        //Deal with the composite glyphs:
+        //Temp vGlyphIndice:
+        std::vector<unsigned short> vGlyphIndice = m_vGlyphIndice;
+        for (unsigned long i(0); i < vGlyphIndice.size(); i++)
+        {
+            gd.glyphIndex = vGlyphIndice[i];
+            GetData(  ulLocaTableOffset+__LENGTH_WORD*gd.glyphIndex,&gd.glyphOldAddress,__LENGTH_WORD);
+            gd.glyphOldAddress = Big2Little(gd.glyphOldAddress);
+            gd.glyphOldAddressLong = gd.glyphOldAddress*2;
+            short sIsComp;
+            GetData(  ulGlyfTableOffset+gd.glyphOldAddressLong,&sIsComp,__LENGTH_WORD);
+            sIsComp = Big2Little(sIsComp);
+            if (sIsComp >= 0)
+            {
+                continue;
+            }
+            else
+            {
+                unsigned short usNewGlyphIndex;
+                GetData(  ulGlyfTableOffset+gd.glyphOldAddressLong+12,&usNewGlyphIndex,__LENGTH_WORD);
+                usNewGlyphIndex = Big2Little(usNewGlyphIndex);
 
-		this->AddGlyph( usNewGlyphIndex );
-	    }
-	}
+                this->AddGlyph( usNewGlyphIndex );
+            }
+        }
 
-	//Let us assume that the first glyphindex in the vector is always 0:
-	int s1 = m_vGlyphIndice.size();
-	for (unsigned long i(0); i < m_vGlyphIndice.size(); i++)
-	{
-	    gd.glyphIndex = m_vGlyphIndice[i];
-	    GetData( ulLocaTableOffset+__LENGTH_WORD*gd.glyphIndex,&gd.glyphOldAddress,__LENGTH_WORD);
-	    gd.glyphOldAddress = Big2Little(gd.glyphOldAddress);
-	    gd.glyphOldAddressLong = gd.glyphOldAddress*2;
-	    GetData( ulLocaTableOffset+__LENGTH_WORD*(gd.glyphIndex+1),&usNextGlyphAddress,__LENGTH_WORD);
-	    usNextGlyphAddress = Big2Little(usNextGlyphAddress);
-	    usNextGlyphAddressLong = usNextGlyphAddress*2;
-	    gd.glyphLength = static_cast<unsigned short>(usNextGlyphAddressLong-gd.glyphOldAddressLong);
-	    vsGD.push_back(gd);
-	}
+        //Let us assume that the first glyphindex in the vector is always 0:
+        for (unsigned long i(0); i < m_vGlyphIndice.size(); i++)
+        {
+            gd.glyphIndex = m_vGlyphIndice[i];
+            GetData( ulLocaTableOffset+__LENGTH_WORD*gd.glyphIndex,&gd.glyphOldAddress,__LENGTH_WORD);
+            gd.glyphOldAddress = Big2Little(gd.glyphOldAddress);
+            gd.glyphOldAddressLong = gd.glyphOldAddress*2;
+            GetData( ulLocaTableOffset+__LENGTH_WORD*(gd.glyphIndex+1),&usNextGlyphAddress,__LENGTH_WORD);
+            usNextGlyphAddress = Big2Little(usNextGlyphAddress);
+            usNextGlyphAddressLong = usNextGlyphAddress*2;
+            gd.glyphLength = static_cast<unsigned short>(usNextGlyphAddressLong-gd.glyphOldAddressLong);
+            vsGD.push_back(gd);
+        }
 	
-	//The last glyph, glyph index seems not needed.
-	usNextGlyphAddressLong = m_vTable.back().m_length;
-	GetData( ulLocaTableOffset+(m_numGlyphs)*__LENGTH_WORD,&gd.glyphOldAddress,__LENGTH_WORD);	//?
-	gd.glyphOldAddress = Big2Little(gd.glyphOldAddress);
-	gd.glyphOldAddressLong = gd.glyphOldAddress*2;
-	gd.glyphLength = static_cast<unsigned short>(usNextGlyphAddressLong-gd.glyphOldAddressLong);
-	vsGD.push_back(gd);
-	vsGD[0].glyphNewAddress = 0x0;
-	vsGD[0].glyphNewAddressLong = 0x0;
-	for (unsigned long i(1); i < vsGD.size(); i++)
-	{
-	    vsGD[i].glyphNewAddressLong = vsGD[i-1].glyphNewAddressLong+vsGD[i-1].glyphLength;
-	    vsGD[i].glyphNewAddress = static_cast<unsigned short>(vsGD[i].glyphNewAddressLong/2);
-	}
+        //The last glyph, glyph index seems not needed.
+        usNextGlyphAddressLong = m_vTable.back().m_length;
+        GetData( ulLocaTableOffset+(m_numGlyphs)*__LENGTH_WORD,&gd.glyphOldAddress,__LENGTH_WORD);	//?
+        gd.glyphOldAddress = Big2Little(gd.glyphOldAddress);
+        gd.glyphOldAddressLong = gd.glyphOldAddress*2;
+        gd.glyphLength = static_cast<unsigned short>(usNextGlyphAddressLong-gd.glyphOldAddressLong);
+        vsGD.push_back(gd);
+        vsGD[0].glyphNewAddress = 0x0;
+        vsGD[0].glyphNewAddressLong = 0x0;
+        for (unsigned long i(1); i < vsGD.size(); i++)
+        {
+            vsGD[i].glyphNewAddressLong = vsGD[i-1].glyphNewAddressLong+vsGD[i-1].glyphLength;
+            vsGD[i].glyphNewAddress = static_cast<unsigned short>(vsGD[i].glyphNewAddressLong/2);
+        }
 	
-	//New glyf table length:
-	unsigned long usNewGlyfTableLength = vsGD.back().glyphNewAddressLong+vsGD.back().glyphLength;
-	m_vTable.back().m_length = usNewGlyfTableLength;
-	//Writing the header:
-	unsigned char* buf = new unsigned char[3*__LENGTH_DWORD];
-	GetData( ulStartOfTTFOffsets,buf,3*__LENGTH_DWORD);
-	pOutputDevice->Write( reinterpret_cast<char*>(buf), 3*__LENGTH_DWORD );
-	delete[]  buf;
-	buf = new unsigned char[m_numTables*__LENGTH_DWORD*4];
-	for (int i(0); i < m_numTables; i++)
-	{
-	    //The table name:
-	    for (int j(0); j < __LENGTH_DWORD; j++)
-	    {
-		buf[i*__LENGTH_DWORD*4 + j] = m_vTable[i].m_tableName[j]; 
-	    }
-	    //The checksum:
-	    unsigned long ultemp = Big2Little(m_vTable[i].m_checksum);
-	    for (int k(0); k < __LENGTH_DWORD; k++)
-	    {
-		unsigned char ch = static_cast<unsigned char>(ultemp%256);
-		buf[i*__LENGTH_DWORD*4 + 4 + k] = ch;
-		ultemp /= 256;
-	    }
-	    //The offset:
-	    ultemp = Big2Little(m_vTable[i].m_offset);
-	    for (int m(0); m < __LENGTH_DWORD; m++)
-	    {
-		unsigned char ch = static_cast<unsigned char>(ultemp%256);
-		buf[i*__LENGTH_DWORD*4 + 8 + m] = ch;
-		ultemp /= 256;
-	    }
-	    //The length:
-	    ultemp = Big2Little(m_vTable[i].m_length);
-	    for (int n(0); n < __LENGTH_DWORD; n++)
-	    {
-		unsigned char ch = static_cast<unsigned char>(ultemp%256);
-		buf[i*__LENGTH_DWORD*4 + 12 + n] = ch;
-		ultemp /= 256;
-	    }
-	}
-	pOutputDevice->Write( reinterpret_cast<char*>(buf), m_numTables*__LENGTH_DWORD*4 );
-	delete[] buf;
-	//Writing new tables:
-	vsGD.back().glyphIndex = m_numGlyphs;
-	for (int i(0); i < m_numTables-1; i++)
-	{
-	    if (m_vTable[i].m_strTableName != "loca")
-	    {
-		//string str = m_vTable[i].m_strTableName;
-		//unsigned long length = m_vTable[i].m_length;
-		//unsigned long offset = m_vTable[i].m_offset;
-		char *buf = new  char[m_vTable[i].m_length];
-		//unsigned long olength = vOldTable[i].m_length;
-		//unsigned long ooffset = vOldTable[i].m_offset;
-		GetData( vOldTable[i].m_offset,buf,vOldTable[i].m_length);
-		pOutputDevice->Write( reinterpret_cast<char*>(buf), vOldTable[i].m_length );
-		delete[] buf;
-		buf = 0;
-	    }
-	    else
-	    {
-		//The loca table:
-		for (unsigned long j(0); j < vsGD.size()-1; j++)
-		{
-		    unsigned short ustemp = vsGD[j].glyphNewAddress;
-		    ustemp = Big2Little(ustemp);
-		    buf = new unsigned char[__LENGTH_WORD];
-		    for (int k(0); k < __LENGTH_WORD; k++)
-		    {
-			unsigned char ch = ustemp%256;
-			buf[k] = ch;
-			ustemp /= 256;
-		    }
-		    pOutputDevice->Write( reinterpret_cast<char*>(buf), __LENGTH_WORD );
-		    ustemp = vsGD[j+1].glyphNewAddress;
-		    ustemp = Big2Little(ustemp);
-		    for (int n(0); n < __LENGTH_WORD; n++)
-		    {
-			unsigned char ch = ustemp%256;
-			buf[n] = ch;
-			ustemp /= 256;
-		    }
-		    for (unsigned long m(vsGD[j].glyphIndex+1); m < vsGD[j+1].glyphIndex; m++)
-		    {
-			pOutputDevice->Write( reinterpret_cast<char*>(buf), __LENGTH_WORD );
-		    }
-		    delete[] buf;
-		}
-		//The last glyph address:
+        //New glyf table length:
+        unsigned long usNewGlyfTableLength = vsGD.back().glyphNewAddressLong+vsGD.back().glyphLength;
+        m_vTable.back().m_length = usNewGlyfTableLength;
+        //Writing the header:
+        unsigned char* buf = new unsigned char[3*__LENGTH_DWORD];
+        GetData( ulStartOfTTFOffsets,buf,3*__LENGTH_DWORD);
+        pOutputDevice->Write( reinterpret_cast<char*>(buf), 3*__LENGTH_DWORD );
+        delete[]  buf;
+        buf = new unsigned char[m_numTables*__LENGTH_DWORD*4];
+        for (int i(0); i < m_numTables; i++)
+        {
+            //The table name:
+            for (int j(0); j < static_cast<int>(__LENGTH_DWORD); j++)
+            {
+                buf[i*__LENGTH_DWORD*4 + j] = m_vTable[i].m_tableName[j]; 
+            }
+            //The checksum:
+            unsigned long ultemp = Big2Little(m_vTable[i].m_checksum);
+            for (int k(0); k < static_cast<int>(__LENGTH_DWORD); k++)
+            {
+                unsigned char ch = static_cast<unsigned char>(ultemp%256);
+                buf[i*__LENGTH_DWORD*4 + 4 + k] = ch;
+                ultemp /= 256;
+            }
+            //The offset:
+            ultemp = Big2Little(m_vTable[i].m_offset);
+            for (int m(0); m < static_cast<int>(__LENGTH_DWORD); m++)
+            {
+                unsigned char ch = static_cast<unsigned char>(ultemp%256);
+                buf[i*__LENGTH_DWORD*4 + 8 + m] = ch;
+                ultemp /= 256;
+            }
+            //The length:
+            ultemp = Big2Little(m_vTable[i].m_length);
+            for (int n(0); n < static_cast<int>(__LENGTH_DWORD); n++)
+            {
+                unsigned char ch = static_cast<unsigned char>(ultemp%256);
+                buf[i*__LENGTH_DWORD*4 + 12 + n] = ch;
+                ultemp /= 256;
+            }
+        }
+        pOutputDevice->Write( reinterpret_cast<char*>(buf), m_numTables*__LENGTH_DWORD*4 );
+        delete[] buf;
+        //Writing new tables:
+        vsGD.back().glyphIndex = m_numGlyphs;
+        for (int i(0); i < m_numTables-1; i++)
+        {
+            if (m_vTable[i].m_strTableName != "loca")
+            {
+                //string str = m_vTable[i].m_strTableName;
+                //unsigned long length = m_vTable[i].m_length;
+                //unsigned long offset = m_vTable[i].m_offset;
+                char *buf = new  char[m_vTable[i].m_length];
+                //unsigned long olength = vOldTable[i].m_length;
+                //unsigned long ooffset = vOldTable[i].m_offset;
+                GetData( vOldTable[i].m_offset,buf,vOldTable[i].m_length);
+                pOutputDevice->Write( reinterpret_cast<char*>(buf), vOldTable[i].m_length );
+                delete[] buf;
+                buf = 0;
+            }
+            else
+            {
+                //The loca table:
+                for (unsigned long j(0); j < vsGD.size()-1; j++)
+                {
+                    unsigned short ustemp = vsGD[j].glyphNewAddress;
+                    ustemp = Big2Little(ustemp);
+                    buf = new unsigned char[__LENGTH_WORD];
+                    for (int k(0); k < static_cast<int>(__LENGTH_WORD); k++)
+                    {
+                        unsigned char ch = ustemp%256;
+                        buf[k] = ch;
+                        ustemp /= 256;
+                    }
+                    pOutputDevice->Write( reinterpret_cast<char*>(buf), __LENGTH_WORD );
+                    ustemp = vsGD[j+1].glyphNewAddress;
+                    ustemp = Big2Little(ustemp);
+                    for (int n(0); n < static_cast<int>(__LENGTH_WORD); n++)
+                    {
+                        unsigned char ch = ustemp%256;
+                        buf[n] = ch;
+                        ustemp /= 256;
+                    }
+                    for (unsigned long m(vsGD[j].glyphIndex+1); m < vsGD[j+1].glyphIndex; m++)
+                    {
+                        pOutputDevice->Write( reinterpret_cast<char*>(buf), __LENGTH_WORD );
+                    }
+                    delete[] buf;
+                }
+                //The last glyph address:
 		
-		buf = new unsigned char[__LENGTH_WORD];
-		unsigned short ustemp = vsGD.back().glyphNewAddress;
-		ustemp = Big2Little(ustemp);
-		for (int n(0); n < __LENGTH_WORD; n++)
-		{
-		    unsigned char ch = ustemp%256;
-		    buf[n] = ch;
-		    ustemp /= 256;
-		}
-		//vsGD.back().glyphLength = 0;
-		pOutputDevice->Write( reinterpret_cast<char*>(buf), __LENGTH_WORD );
+                buf = new unsigned char[__LENGTH_WORD];
+                unsigned short ustemp = vsGD.back().glyphNewAddress;
+                ustemp = Big2Little(ustemp);
+                for (int n(0); n < static_cast<int>(__LENGTH_WORD); n++)
+                {
+                    unsigned char ch = ustemp%256;
+                    buf[n] = ch;
+                    ustemp /= 256;
+                }
+                //vsGD.back().glyphLength = 0;
+                pOutputDevice->Write( reinterpret_cast<char*>(buf), __LENGTH_WORD );
 		
-		delete[] buf;
-	    }
-	    //Paddings:
-	    unsigned pad = GetPadding(m_vTable[i].m_length);
-	    if (pad != 0)
-	    {
-		buf = new unsigned char[pad];
-		pOutputDevice->Write( reinterpret_cast<char*>(buf), pad );
-		delete[] buf;
-	    }
+                delete[] buf;
+            }
+            //Paddings:
+            unsigned pad = GetPadding(m_vTable[i].m_length);
+            if (pad != 0)
+            {
+                buf = new unsigned char[pad];
+                pOutputDevice->Write( reinterpret_cast<char*>(buf), pad );
+                delete[] buf;
+            }
 	    
-	}
-	//Writing the last table, glyf:
-	int s = vsGD.size();
-	for (unsigned long i(0); i < vsGD.size(); i++)
-	{
-	    unsigned long l = vsGD[i].glyphLength;
-	    buf = new unsigned char[vsGD[i].glyphLength];
-	    GetData( ulGlyfTableOffset+vsGD[i].glyphOldAddressLong,buf,vsGD[i].glyphLength);
-	    pOutputDevice->Write( reinterpret_cast<char*>(buf), vsGD[i].glyphLength );
-	    delete[] buf;
-	}
+        }
+        //Writing the last table, glyf:
+        for (unsigned long i(0); i < vsGD.size(); i++)
+        {
+            buf = new unsigned char[vsGD[i].glyphLength];
+            GetData( ulGlyfTableOffset+vsGD[i].glyphOldAddressLong,buf,vsGD[i].glyphLength);
+            pOutputDevice->Write( reinterpret_cast<char*>(buf), vsGD[i].glyphLength );
+            delete[] buf;
+        }
     }
 }
 
@@ -700,7 +694,7 @@ unsigned int GetPadding(unsigned long ul)
     ul %= 4;
     if (ul != 0)
     {
-	ul = 4-ul;
+        ul = 4-ul;
     }
     
     return ul;

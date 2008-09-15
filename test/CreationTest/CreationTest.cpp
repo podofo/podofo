@@ -45,7 +45,6 @@
 #include "../PdfTest.h"
 
 #include "PdfInputDevice.h"
-#include "PdfTTFWriter.h"
 
 #include <stdlib.h>
 
