@@ -51,9 +51,10 @@ namespace PdfTokenizerNameSpace{
 // maintainable structures in PdfDefines.h
 const char * genDelMap()
 {
-    int    i;
-    char* map = static_cast<char*>(malloc(256));
-    memset( map, 0, sizeof(char) );
+    int        i;
+    const long lAllocLen = 256;
+    char* map = static_cast<char*>(malloc(lAllocLen));
+    memset( map, 0, sizeof(char) * lAllocLen );
     for (i = 0; i < PoDoFo::s_nNumDelimiters; ++i)
         map[static_cast<int>(PoDoFo::s_cDelimiters[i])] = 1;
     return map;
@@ -65,8 +66,9 @@ const char * genDelMap()
 const char * genWsMap()
 {
     int   i;
-    char* map = static_cast<char*>(malloc(256));
-    memset( map, 0, sizeof(char) );
+    const long lAllocLen = 256;
+    char* map = static_cast<char*>(malloc(lAllocLen));
+    memset( map, 0, sizeof(char) * lAllocLen );
     for (i = 0; i < PoDoFo::s_nNumWhiteSpaces; ++i)
         map[static_cast<int>(PoDoFo::s_cWhiteSpaces[i])] = 1;
     return map;
@@ -75,8 +77,9 @@ const char * genWsMap()
 // Generate the escape character map at runtime
 const char* genEscMap()
 {
-    char* map = static_cast<char*>(malloc(256));
-    memset( map, 0, sizeof(char) );
+    const long lAllocLen = 256;
+    char* map = static_cast<char*>(malloc(lAllocLen));
+    memset( map, 0, sizeof(char) * lAllocLen );
 
     map['n'] = '\n'; // Line feed (LF)
     map['r'] = '\r'; // Carriage return (CR)

@@ -174,6 +174,11 @@ SET(PODOFO_HEADERS
     util/PdfMutexWrapper.h
 )
 
+# Create a Source Group for Visual Studio
+# so that headers are listed in the folder view
+# and are easier accessible
+SOURCE_GROUP(Headers FILES ${PODOFO_HEADERS})
+
 INSTALL(FILES ${PODOFO_HEADERS}
     DESTINATION "include/podofo"
     )
