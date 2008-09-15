@@ -26,7 +26,6 @@
 #include "PdfFontMetrics.h"
 #include "PdfFontTTFSubset.h"
 #include "PdfInputDevice.h"
-#include "PdfTTFWriter.h"
 #include "PdfOutputDevice.h"
 
 #include <algorithm>

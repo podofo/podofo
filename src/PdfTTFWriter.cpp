@@ -1094,7 +1094,8 @@ void PdfTTFWriter::WriteCMapTable( PdfOutputDevice* pDevice )
     vecRanges.push_back( current );
 
     int            i;
-    pdf_ttf_ushort nSearchRange = 2 * ( PdfExp2( floor( PdfLog2( vecRanges.size() ) ) ) );
+    double         dSearchRange = 2.0 * ( PdfExp2( floor( PdfLog2( vecRanges.size() ) ) ) );
+    pdf_ttf_ushort nSearchRange = static_cast<pdf_ttf_ushort>(dSearchRange);
 
     // write the actual cmap table
     nValue = 4; 
@@ -1107,12 +1108,12 @@ void PdfTTFWriter::WriteCMapTable( PdfOutputDevice* pDevice )
     WRITE_TTF_USHORT( nValue ); // seg count * 2
     nValue = nSearchRange;
     WRITE_TTF_USHORT( nValue ); // search range
-    nValue = PdfLog2( vecRanges.size() >> 1 );
+    nValue = static_cast<pdf_ttf_ushort>(PdfLog2( vecRanges.size() >> 1 ));
     WRITE_TTF_USHORT( nValue ); // entry selector
     nValue = 2 * vecRanges.size() - nSearchRange;
     WRITE_TTF_USHORT( nValue ); // range shift
     
-    for( i=0;i<vecRanges.size();i++ )
+    for( i=0;i<static_cast<int>(vecRanges.size());i++ )
     {
         WRITE_TTF_USHORT( vecRanges[i].nEnd );
     }
@@ -1120,17 +1121,17 @@ void PdfTTFWriter::WriteCMapTable( PdfOutputDevice* pDevice )
     nValue = 0;
     WRITE_TTF_USHORT( nValue ); // reserve pad
 
-    for( i=0;i<vecRanges.size();i++ )
+    for( i=0;i<static_cast<int>(vecRanges.size());i++ )
     {
         WRITE_TTF_USHORT( vecRanges[i].nStart );
     }
 
-    for( i=0;i<vecRanges.size();i++ )
+    for( i=0;i<static_cast<int>(vecRanges.size());i++ )
     {
         WRITE_TTF_SHORT( vecRanges[i].nDelta );
     }
 
-    for( i=0;i<vecRanges.size();i++ )
+    for( i=0;i<static_cast<int>(vecRanges.size());i++ )
     {
         WRITE_TTF_USHORT( vecRanges[i].nOffset );
     }

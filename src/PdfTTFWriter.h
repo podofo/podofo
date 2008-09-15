@@ -21,6 +21,8 @@
 #ifndef _PDF_TTF_WRITER_H_
 #define _PDF_TTF_WRITER_H_
 
+#error "THIS SOURCE FILE WAS REPLACED BY PdfFontTTFSubset.h !"
+
 #include "PdfDefines.h"
 #include "PdfRefCountedBuffer.h"
 

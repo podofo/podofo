@@ -72,7 +72,6 @@ SET(PODOFO_SOURCES
     PdfString.cpp
     PdfTable.cpp
     PdfTokenizer.cpp
-    PdfTTFWriter.cpp
     PdfVariant.cpp
     PdfVecObjects.cpp
     PdfVersion.h
@@ -160,7 +159,6 @@ SET(PODOFO_HEADERS
     PdfString.h
     PdfTable.h
     PdfTokenizer.h
-    PdfTTFWriter.h
     PdfVariant.h
     PdfVecObjects.h
     PdfVersion.h

@@ -388,7 +388,7 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
 	    unsigned long ultemp = Big2Little(m_vTable[i].m_checksum);
 	    for (int k(0); k < static_cast<int>(__LENGTH_DWORD); k++)
 	    {
-		unsigned char ch = ultemp%256;
+		unsigned char ch = static_cast<unsigned char>(ultemp%256);
 		buf[i*__LENGTH_DWORD*4 + 4 + k] = ch;
 		ultemp /= 256;
 	    }
@@ -396,7 +396,7 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
 	    ultemp = Big2Little(m_vTable[i].m_offset);
 	    for (int m(0); m < static_cast<int>(__LENGTH_DWORD); m++)
 	    {
-		unsigned char ch = ultemp%256;
+		unsigned char ch = static_cast<unsigned char>(ultemp%256);
 		buf[i*__LENGTH_DWORD*4 + 8 + m] = ch;
 		ultemp /= 256;
 	    }
@@ -404,7 +404,7 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
 	    ultemp = Big2Little(m_vTable[i].m_length);
 	    for (int n(0); n < static_cast<int>(__LENGTH_DWORD); n++)
 	    {
-		unsigned char ch = ultemp%256;
+		unsigned char ch = static_cast<unsigned char>(ultemp%256);
 		buf[i*__LENGTH_DWORD*4 + 12 + n] = ch;
 		ultemp /= 256;
 	    }
@@ -440,7 +440,7 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
 		    buf = new unsigned char[__LENGTH_DWORD];
 		    for (int k(0); k < static_cast<int>(__LENGTH_DWORD); k++)
 		    {
-			unsigned char ch = ultemp%256;
+			unsigned char ch = static_cast<unsigned char>(ultemp%256);
 			buf[k] = ch;
 			ultemp /= 256;
 		    }
@@ -449,7 +449,7 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
 		    ultemp = Big2Little(ultemp);
 		    for (int n(0); n < static_cast<int>(__LENGTH_DWORD); n++)
 		    {
-			unsigned char ch = ultemp%256;
+			unsigned char ch = static_cast<unsigned char>(ultemp%256);
 			buf[n] = ch;
 			ultemp /= 256;
 		    }
@@ -466,7 +466,7 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
 		ultemp = Big2Little(ultemp);
 		for (int n(0); n < static_cast<int>(__LENGTH_DWORD); n++)
 		{
-		    unsigned char ch = ultemp%256;
+		    unsigned char ch = static_cast<unsigned char>(ultemp%256);
 		    buf[n] = ch;
 		    ultemp /= 256;
 		}
@@ -577,7 +577,7 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
 	    unsigned long ultemp = Big2Little(m_vTable[i].m_checksum);
 	    for (int k(0); k < __LENGTH_DWORD; k++)
 	    {
-		unsigned char ch = ultemp%256;
+		unsigned char ch = static_cast<unsigned char>(ultemp%256);
 		buf[i*__LENGTH_DWORD*4 + 4 + k] = ch;
 		ultemp /= 256;
 	    }
@@ -585,7 +585,7 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
 	    ultemp = Big2Little(m_vTable[i].m_offset);
 	    for (int m(0); m < __LENGTH_DWORD; m++)
 	    {
-		unsigned char ch = ultemp%256;
+		unsigned char ch = static_cast<unsigned char>(ultemp%256);
 		buf[i*__LENGTH_DWORD*4 + 8 + m] = ch;
 		ultemp /= 256;
 	    }
@@ -593,7 +593,7 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
 	    ultemp = Big2Little(m_vTable[i].m_length);
 	    for (int n(0); n < __LENGTH_DWORD; n++)
 	    {
-		unsigned char ch = ultemp%256;
+		unsigned char ch = static_cast<unsigned char>(ultemp%256);
 		buf[i*__LENGTH_DWORD*4 + 12 + n] = ch;
 		ultemp /= 256;
 	    }
