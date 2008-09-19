@@ -832,9 +832,7 @@ bool PdfParser::QuickEncryptedCheck( const char* pszFilename )
     if( !IsPdfFile() )
     {
         //PODOFO_RAISE_ERROR( ePdfError_NoPdfFile );
-        // If we have unknown format then 
-        // we have secured PDF file
-        return true;
+        return false;
     }
 
     ReadDocumentStructure();
