@@ -805,6 +805,60 @@ void PdfParser::ReadXRefStreamEntry( char* pBuffer, long, long lW[W_ARRAY_SIZE],
     }
 }
 
+bool PdfParser::QuickEncryptedCheck( const char* pszFilename ) 
+{
+    bool bEncryptStatus   = false;
+    bool bOldLoadOnDemand = m_bLoadOnDemand;
+    Init();
+    Clear();
+
+   
+    m_bLoadOnDemand   = true; // maybe will be quicker if true?
+
+    if( !pszFilename || !pszFilename[0] )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    m_device = PdfRefCountedInputDevice( pszFilename, "rb" );
+    if( !m_device.Device() )
+    {
+        //PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
+        // If we can not open PDF file
+        // then file does not exist
+        return false;
+    }
+
+    if( !IsPdfFile() )
+    {
+        //PODOFO_RAISE_ERROR( ePdfError_NoPdfFile );
+        // If we have unknown format then 
+        // we have secured PDF file
+        return true;
+    }
+
+    ReadDocumentStructure();
+    try {
+
+        m_vecObjects->Reserve( m_nNumObjects );
+
+        // Check for encryption and make sure that the encryption object
+        // is loaded before all other objects
+        if( m_pTrailer->GetDictionary().HasKey( PdfName("Encrypt") ) )
+        {
+            bEncryptStatus = true;
+        }
+    } catch( PdfError & e ) {
+        m_bLoadOnDemand = bOldLoadOnDemand; // Restore load on demand behaviour
+        e.AddToCallstack( __FILE__, __LINE__, "Unable to load objects from file." );
+        throw e;
+    }
+
+    m_bLoadOnDemand = bOldLoadOnDemand; // Restore load on demand behaviour
+
+    return bEncryptStatus;
+}
+
 void PdfParser::ReadObjects()
 {
     int              i          = 0;

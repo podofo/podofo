@@ -223,6 +223,13 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      */
     void ParseFile( const PdfRefCountedInputDevice & rDevice, bool bLoadOnDemand = true );
 
+    /** Quick method to detect secured PDF files, i.e.
+     *  a PDF with an /Encrypt key in the trailer directory.
+     *
+     *  \returns true if document is secured, false otherwise
+     */
+    bool QuickEncryptedCheck( const char* pszFilename );
+
     /** Get a reference to the sorted internal objects vector.
      *  \returns the internal objects vector.
      */
