@@ -240,7 +240,16 @@ void PdfVecObjects::AddFreeObject( const PdfReference & rReference )
 void PdfVecObjects::push_back( PdfObject* pObj )
 {
     if( pObj->Reference().ObjectNumber() >= m_nObjectCount )
-        ++m_nObjectCount;
+    // Peter Petrov 18 September 2008
+    {
+        // This was a bug.
+        //++m_nObjectCount;
+
+        // In fact "m_bObjectCount" is used for the next free object number.
+        // We need to use the greatest object number + 1 for the next free object number.
+        // Otherwise, object number overlap would have occurred.
+        m_nObjectCount = pObj->Reference().ObjectNumber() + 1;
+    }
 
     if( !m_vector.empty() && m_vector.back()->Reference() < pObj->Reference() )
         m_bSorted = false;
