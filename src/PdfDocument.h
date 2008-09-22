@@ -235,6 +235,13 @@ class PODOFO_API PdfDocument {
     PdfFont* CreateFontSubset( const wchar_t* pszFontName, bool bBold, bool bItalic, 
 			       const PdfEncoding * const = PdfEncodingFactory::GlobalPdfDocEncodingInstance() );
 #endif // _WIN32
+
+    // Peter Petrov 26 April 2008
+    /** Returns the font library from font cache
+     *
+     *  \returns the internal handle to the freetype library
+     */
+    inline FT_Library GetFontLibrary() const;
 	
     /** Creates a new page object and inserts it into the internal
      *  page tree. 
@@ -630,6 +637,15 @@ inline PdfVecObjects* PdfDocument::GetObjects()
 inline const PdfVecObjects* PdfDocument::GetObjects() const
 {
     return &m_vecObjects;
+}
+
+// Peter Petrov 26 April 2008
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline FT_Library PdfDocument::GetFontLibrary() const
+{
+    return this->m_fontCache.GetFontLibrary();
 }
 
 };

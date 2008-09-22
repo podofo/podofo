@@ -65,6 +65,7 @@
 /* Automatically defined by CMake when building a shared library */
 #if defined(podofo_shared_EXPORTS)
     #define COMPILING_SHARED_PODOFO
+    #undef USING_SHARED_PODOFO
 #endif
 
 /* Sanity check - can't be both compiling and using shared podofo */

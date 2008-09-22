@@ -38,9 +38,11 @@ class PdfFontCID : public PdfFont {
      *         deleted along with the font.
      *  \param pEncoding the encoding of this font. The font will not take ownership of this object.
      *  \param pParent parent of the font object
+     *  \param bEmbed specifies the embedding of font
      *  
      */
-    PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent );
+    PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
+                PdfVecObjects* pParent, bool bEmbed = true );
 
     /** Create a PdfFont based on an existing PdfObject
      *  \param pMetrics pointer to a font metrics object. The font in the PDF

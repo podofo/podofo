@@ -94,6 +94,13 @@ void PdfInfo::SetTitle( const PdfString & sTitle )
     m_pObject->GetDictionary().AddKey( "Title", sTitle );
 }
 
+// Peter Petrov 27 April 2008
+// We have added a SetProducer() method in PdfInfo
+void PdfInfo::SetProducer( const PdfString & sProducer )
+{
+    m_pObject->GetDictionary().AddKey( "Producer", sProducer );
+}
+
 void PdfInfo::SetTrapped(const PdfName & sTrapped)
 {
 	if((sTrapped.GetEscapedName() == "True" ) || (sTrapped.GetEscapedName() == "False" ))

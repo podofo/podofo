@@ -418,6 +418,16 @@ void PdfError::LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... )
 {
 	if(!PdfError::LoggingEnabled())
 		return;
+
+#ifdef DEBUG
+    const ELogSeverity eMinSeverity = eLogSeverity_Debug;
+#else
+    const ELogSeverity eMinSeverity = eLogSeverity_Information;
+#endif // DEBUG
+
+    if( eLogSeverity < eMinSeverity )
+        return;
+
     const char* pszPrefix = NULL;
 
     switch( eLogSeverity ) 

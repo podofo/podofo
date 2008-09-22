@@ -247,6 +247,13 @@ class PODOFO_API PdfFontCache {
     static std::string GetFontConfigFontPath( FcConfig* pConfig, const char* pszFontName, bool bBold, bool bItalic );
 #endif // defined(HAVE_FONTCONFIG)
 
+    // Peter Petrov: 26 April 2008
+    /** Returns the font library from font cache
+     *
+     *  \returns the internal handle to the freetype library
+     */
+    inline FT_Library GetFontLibrary() const;
+
  private:
     /**
      * Get the path to a font file for a certain fontname
@@ -322,6 +329,15 @@ class PODOFO_API PdfFontCache {
 
     PdfVecObjects*  m_pParent;               ///< Handle to parent for creating new fonts and objects
 };
+
+// Peter Petrov: 26 April 2008
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+FT_Library PdfFontCache::GetFontLibrary() const
+{
+    return this->m_ftLibrary;
+}
 
 };
 

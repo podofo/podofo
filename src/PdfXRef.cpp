@@ -319,7 +319,9 @@ void PdfXRef::BeginWrite( PdfOutputDevice* pDevice )
 
 void PdfXRef::WriteSubSection( PdfOutputDevice* pDevice, unsigned int nFirst, unsigned int nCount )
 {
+#ifdef DEBUG
     PdfError::DebugMessage("Writing XRef section: %u %u\n", nFirst, nCount );
+#endif // DEBUG
     pDevice->Print( "%u %u\n", nFirst, nCount );
 }
 

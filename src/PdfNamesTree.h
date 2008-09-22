@@ -100,6 +100,16 @@ class PODOFO_API PdfNamesTree : public PdfElement {
      */
     void ToDictionary( const PdfName & dictionary, PdfDictionary& rDict );
 
+    /** Peter Petrov: 23 May 2008
+     * I have made it for access to "JavaScript" dictonary. This is "document-level javascript storage"
+     */
+    inline PdfObject* GetJavaScriptNode() const;
+
+    /** Peter Petrov: 6 June 2008
+     * I have made it for access to "Dest" dictionary. This is "document-level named destination storage"
+     */
+    inline PdfObject* GetDestsNode() const;
+
  private:
     /** Get a PdfNameTrees root node for a certain name.
      *  \param name that identifies a specific name tree.
@@ -138,6 +148,21 @@ class PODOFO_API PdfNamesTree : public PdfElement {
     PdfObject*	m_pCatalog;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfObject* PdfNamesTree::GetJavaScriptNode() const
+{
+    return this->GetRootNode( PdfName("JavaScript") );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfObject* PdfNamesTree::GetDestsNode() const
+{
+    return this->GetRootNode( PdfName("Dests") );
+}
 
 };
 

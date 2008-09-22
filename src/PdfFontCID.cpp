@@ -39,16 +39,16 @@ struct TBFRange {
     std::vector<int> vecDest;
 };
 
-PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent )
+PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
+                        PdfVecObjects* pParent, bool bEmbed )
     : PdfFont( pMetrics, pEncoding, pParent )
 {
-    this->Init( true );
+    this->Init( bEmbed );
 }
 
 PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject )
     : PdfFont( pMetrics, pEncoding, pObject )
 {
-
 }
 
 void PdfFontCID::Init( bool bEmbed )

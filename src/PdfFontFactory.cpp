@@ -100,12 +100,12 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
         switch( eType ) 
         {
             case ePdfFontType_TrueType:
-                pFont = new PdfFontTrueType( pMetrics, pEncoding, pParent );
+                pFont = new PdfFontTrueType( pMetrics, pEncoding, pParent, bEmbed );
                 break;
                 
             case ePdfFontType_Type1Pfa:
             case ePdfFontType_Type1Pfb:
-                pFont = new PdfFontType1( pMetrics, pEncoding, bEmbed, pParent );
+                pFont = new PdfFontType1( pMetrics, pEncoding, pParent, bEmbed );
                 break;
                 
             case ePdfFontType_Unknown:
@@ -120,7 +120,7 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
         switch( eType ) 
         {
             case ePdfFontType_TrueType:
-                pFont = new PdfFontCID( pMetrics, pEncoding, pParent );
+                pFont = new PdfFontCID( pMetrics, pEncoding, pParent, bEmbed );
                 break;
             case ePdfFontType_Type1Pfa:
             case ePdfFontType_Type1Pfb:

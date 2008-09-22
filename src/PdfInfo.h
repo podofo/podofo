@@ -101,6 +101,18 @@ class PODOFO_API PdfInfo : public PdfElement {
      */
     inline const PdfString & GetTitle() const;
     
+    // Peter Petrov 27 April 2008
+    /** Set the producer of the document.
+     *  \param sProducer producer
+     */
+    void SetProducer( const PdfString & sProducer );
+
+    // Peter Petrov 27 April 2008
+    /** Get the producer of the document
+     *  \returns the producer
+     */
+    inline const PdfString & GetProducer() const;
+
     /** Set the trapping state of the document.
      *  \param sTitle title
      */
@@ -170,6 +182,14 @@ const PdfString & PdfInfo::GetSubject() const
 const PdfString & PdfInfo::GetTitle() const
 {
     return this->GetStringFromInfoDict( PdfName("Title") );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfString & PdfInfo::GetProducer() const
+{
+    return this->GetStringFromInfoDict( PdfName("Producer") );
 }
 
 // -----------------------------------------------------

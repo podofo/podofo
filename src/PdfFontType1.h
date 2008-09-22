@@ -35,16 +35,16 @@ class PdfFontType1 : public PdfFontSimple {
 
     /** Create a new Type1 font object.
      *
-     *  \param bEmbed if true the font will get embedded.
      *  \param pMetrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object is 
      *         deleted along with the font.
      *  \param pEncoding the encoding of this font. The font will not take ownership of this object.
      *  \param pParent parent of the font object
+     *  \param bEmbed if true the font will get embedded.
      *  
      */
     PdfFontType1( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
-                  bool bEmbed, PdfVecObjects* pParent );
+                  PdfVecObjects* pParent, bool bEmbed );
 
     /** Create a PdfFont based on an existing PdfObject
      *  \param pMetrics pointer to a font metrics object. The font in the PDF

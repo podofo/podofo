@@ -21,6 +21,13 @@
 #ifndef _PDF_ARRAY_H_
 #define _PDF_ARRAY_H_
 
+#ifdef _WIN32
+#ifdef _MSC_VER
+// IC: VS2008 suppress dll warning
+#pragma warning(disable: 4275)
+#endif // _MSC_VER
+#endif // _WIN32
+
 #include "PdfDefines.h"
 #include "PdfDataType.h"
 #include "PdfObject.h"
