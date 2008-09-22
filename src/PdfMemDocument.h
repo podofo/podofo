@@ -82,6 +82,8 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
     PdfMemDocument( const char* pszFilename );
 
 #ifdef _WIN32
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#else
     /** Construct a PdfMemDocument from an existing PDF (on disk)
      *  \param pszFilename filename of the file which is going to be parsed/opened
      *
@@ -96,6 +98,7 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
      *  \see SetPassword
      */
     PdfMemDocument( const wchar_t* pszFilename );
+#endif
 #endif // _WIN32
 
     /** Close down/destruct the PdfMemDocument
@@ -115,6 +118,8 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
     void Load( const char* pszFilename );
 
 #ifdef _WIN32
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#else
     /** Load a PdfMemDocument from a file
      *
      *  \param pszFilename filename of the file which is going to be parsed/opened
@@ -130,6 +135,7 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
      *  \see SetPassword
      */
     void Load( const wchar_t* pszFilename );
+#endif
 #endif // _WIN32
 
     /** Load a PdfMemDocument from a buffer in memory

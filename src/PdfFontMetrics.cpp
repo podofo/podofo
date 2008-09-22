@@ -1178,6 +1178,8 @@ double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, unsigned int nLe
     return dWidth;
 }
 
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#else
 double PdfFontMetrics::StringWidth( const wchar_t* pszText, unsigned int nLength ) const
 {
     double dWidth = 0.0;
@@ -1197,6 +1199,7 @@ double PdfFontMetrics::StringWidth( const wchar_t* pszText, unsigned int nLength
 
     return dWidth;
 }
+#endif
 
 unsigned long PdfFontMetrics::StringWidthMM( const char* pszText, unsigned int nLength ) const
 {
@@ -1208,10 +1211,13 @@ unsigned long PdfFontMetrics::StringWidthMM( const pdf_utf16be* pszText, unsigne
     return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / PODOFO_CONVERSION_CONSTANT);
 }
 
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#else
 unsigned long PdfFontMetrics::StringWidthMM( const wchar_t* pszText, unsigned int nLength ) const
 {
     return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / PODOFO_CONVERSION_CONSTANT);
 }
+#endif
 
 void PdfFontMetrics::SetFontSize( float fSize )
 {

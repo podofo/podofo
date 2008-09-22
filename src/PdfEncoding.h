@@ -63,10 +63,16 @@ class PODOFO_API PdfEncoding {
     virtual const PdfName & GetID() const = 0;
 
  public:
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// ab Visualstudio 6
     class PODOFO_API const_iterator : public std::iterator<
                                              std::forward_iterator_tag, 
-						 int,std::ptrdiff_t, 
+						 int, ptrdiff_t> {
+#else
+    class PODOFO_API const_iterator : public std::iterator<
+                                             std::forward_iterator_tag, 
+						 int, std::ptrdiff_t, 
 						 const int *, const int &> {
+#endif
     public:
 	const_iterator( const PdfEncoding* pEncoding, int nCur )
 	    : m_pEncoding( pEncoding ), m_nCur( nCur )

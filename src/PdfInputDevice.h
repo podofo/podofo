@@ -46,6 +46,8 @@ class PODOFO_API PdfInputDevice {
     PdfInputDevice( const char* pszFilename );
 
 #ifdef _WIN32
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#else
     /** Construct a new PdfInputDevice that reads all data from a file.
      *
      *  \param pszFilename path to a file that will be opened and all data
@@ -56,6 +58,7 @@ class PODOFO_API PdfInputDevice {
      *  UTF-8 to the const char* overload.
      */
     PdfInputDevice( const wchar_t* pszFilename );
+#endif
 #endif // _WIN32
 
     /** Construct a new PdfInputDevice that reads all data from a memory buffer.

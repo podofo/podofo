@@ -48,6 +48,8 @@ class PODOFO_API PdfRefCountedInputDevice {
 
 
 #ifdef _WIN32
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#else
     /** Create a new PdfRefCountedInputDevice which reads from a file. 
      *  The file is opened using fopen()
      *  \param pszFilename a filename to be passed to fopen
@@ -59,6 +61,7 @@ class PODOFO_API PdfRefCountedInputDevice {
      *
      */
     PdfRefCountedInputDevice( const wchar_t* pszFilename, const char* pszMode );
+#endif
 #endif // _WIN32
 
     /** Create a new PdfRefCountedInputDevice which operates on a in memory buffer

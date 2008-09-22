@@ -137,6 +137,8 @@ class PODOFO_API PdfFontMetrics {
      */
     double StringWidth( const pdf_utf16be* pszText, unsigned int nLength = 0 ) const;
 
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#else
     /** Retrieve the width of a given text string in PDF units when
      *  drawn with the current font
      *  \param pszText a text string of which the width should be calculated
@@ -144,6 +146,7 @@ class PODOFO_API PdfFontMetrics {
      *  \returns the width in PDF units
      */
     double StringWidth( const wchar_t* pszText, unsigned int nLength = 0 ) const;
+#endif
 
     /** Retrieve the width of a given text string in 1/1000th mm when
      *  drawn with the current font
@@ -161,6 +164,8 @@ class PODOFO_API PdfFontMetrics {
      */
     unsigned long StringWidthMM( const pdf_utf16be* pszText, unsigned int nLength = 0 ) const;
 
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#else
     /** Retrieve the width of a given text string in 1/1000th mm when
      *  drawn with the current font
      *  \param pszText a text string of which the width should be calculated
@@ -168,6 +173,7 @@ class PODOFO_API PdfFontMetrics {
      *  \returns the width in 1/1000th mm
      */
     unsigned long StringWidthMM( const wchar_t* pszText, unsigned int nLength = 0 ) const;
+#endif
 
     /** Retrieve the width of the given character in PDF units in the current font
      *  \param c character
