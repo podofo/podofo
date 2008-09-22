@@ -44,6 +44,20 @@ using std::runtime_error;
 namespace PoDoFoImpose
 {
 	static std::map<std::string, std::string> vars;
+	void trimmed_str(std::string& s)
+	{
+		std::string::iterator si(s.begin());
+		while(si != s.end())
+		{
+			if((*si) == 0x20)
+				si = s.erase(si);
+			else if((*si) == 0x9)
+				si = s.erase(si);
+			else
+				++si;	
+		}
+		
+	}
 }
 
 std::string dToStr(double d)
@@ -481,17 +495,11 @@ void PdfTranslator::setTarget ( const std::string & target )
 	if ( !sourceDoc )
 		throw std::logic_error ( "setTarget() called before setSource()" );
 
-	// DOCUMENT: Setting `targetDoc' to the input path will be confusing when reading the code.
-	// I guess, but appending new content to a duplicated source doc rather than rebuild a brand new PDF file is far more easy.
-	// But it seems we don't need to duplicate & can do all job on source doc ! I try it now. (pm)
-// 	targetDoc = sourceDoc;
 	targetDoc = new PdfMemDocument;
-
-	
-	
 	outFilePath  = target;
 	pcount = sourceDoc->GetPageCount();
 	std::cerr << "Document has "<< pcount << " page(s) " << endl;
+	
 	for ( int i = 0; i < pcount ; ++i )
 	{
 		PdfPage * page = sourceDoc->GetPage ( i );
@@ -600,15 +608,16 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 		if ( blen < 2 ) // Nothing
 			continue;
 		
-		while(buffer.length() && ( buffer.at(0) == 0x20 ||buffer.at(0) ==0x9))
-			buffer.erase(0,1);
-		
+		PoDoFoImpose::trimmed_str(buffer);
 		if(buffer.length() < 2)
 			continue;
 		else if ( buffer.at ( 0 ) == '#' ) // Comment
 			continue;
 		else
+		{
 			memfile.push_back(buffer);
+// 			std::cerr<<buffer<<std::endl;
+		}
 	}
 	while(!in.eof());
 	
