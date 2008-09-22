@@ -46,6 +46,7 @@ inline void PdfVariant::Init()
 {
     memset( &m_Data, 0, sizeof( UVariant ) );
     m_eDataType = ePdfDataType_Null;
+    m_bDelayedLoadDone = true;
 #if defined(PODOFO_EXTRA_CHECKS)
     m_bDelayedLoadInProgress=false;
 #endif
@@ -179,7 +180,7 @@ void PdfVariant::Clear()
     }
 
     m_bDelayedLoadDone = true;
-    m_eDataType  = ePdfDataType_Null;
+    m_eDataType        = ePdfDataType_Null;
 
     memset( &m_Data, 0, sizeof( UVariant ) );
 }

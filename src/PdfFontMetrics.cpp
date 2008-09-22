@@ -44,7 +44,7 @@ namespace PoDoFo {
 #endif
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename, 
-				const char* pszSubsetPrefix )
+                                const char* pszSubsetPrefix )
     : m_pLibrary( pLibrary ), m_sFilename( pszFilename ),
       m_fFontSize( 0.0f ), 
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),

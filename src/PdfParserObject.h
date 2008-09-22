@@ -102,6 +102,16 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
      */
     inline void SetObjectNumber( unsigned int nObjNo );
 
+    /** Tries to free all memory allocated by this
+     *  PdfObject (variables and streams) and reads
+     *  it from disk again if it is requested another time.
+     *
+     *  This will only work if load on demand is used.
+     *
+     * \see IsLoadOnDemand
+     */
+    void FreeObjectMemory();
+
  protected:
     /** Load all data of the object if load object on demand is enabled.
      *  Reimplemented from PdfVariant. Do not call this directly, use

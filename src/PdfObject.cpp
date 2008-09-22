@@ -128,7 +128,7 @@ PdfObject::~PdfObject()
 void PdfObject::InitPdfObject()
 {
     m_pStream                 = NULL;
-    m_pOwner                = NULL;
+    m_pOwner                  = NULL;
 
     m_bDelayedStreamLoadDone  = true;
 

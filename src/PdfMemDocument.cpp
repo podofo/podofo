@@ -43,6 +43,7 @@
 #include "PdfOutlines.h"
 #include "PdfPage.h"
 #include "PdfPagesTree.h"
+#include "PdfParserObject.h"
 #include "PdfStream.h"
 #include "PdfVecObjects.h"
 
@@ -99,8 +100,8 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
 
     if(PdfError::DebugEnabled())
     {
-	PdfOutputDevice debug( &(std::cout) );
-	pTrailer->Write( &debug );
+        PdfOutputDevice debug( &(std::cout) );
+        pTrailer->Write( &debug );
     }
 
     PdfObject* pCatalog = pTrailer->GetIndirectKey( "Root" );
@@ -358,6 +359,28 @@ void PdfMemDocument::SetEncrypted( const PdfEncrypt & pEncrypt )
 PdfFont* PdfMemDocument::GetFont( PdfObject* pObject )
 {
     return m_fontCache.GetFont( pObject );
+}
+
+void PdfMemDocument::FreeObjectMemory( const PdfReference & rRef )
+{
+    FreeObjectMemory( this->GetObjects().GetObject( rRef ) );
+}
+
+void PdfMemDocument::FreeObjectMemory( PdfObject* pObj )
+{
+    if( !pObj ) 
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+    
+    PdfParserObject* pParserObject = dynamic_cast<PdfParserObject*>(pObj);
+    if( !pParserObject ) 
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, 
+                                 "FreeObjectMemory works only on classes of type PdfParserObject." );
+    }
+
+    pParserObject->FreeObjectMemory();
 }
 
 };

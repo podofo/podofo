@@ -398,6 +398,34 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
      */
     inline virtual bool IsHighPrintAllowed() const;
 
+    /** Tries to free all memory allocated by the given
+     *  PdfObject (variables and streams) and reads
+     *  it from disk again if it is requested another time.
+     *
+     *  This will only work if load on demand is used. Other-
+     *  wise any call to this method will be ignored. Load on 
+     *  demand is currently always enabled when using PdfMemDocument.
+     *
+     *  \param rRef free all memory allocated by the object
+     *              with this reference.
+     *
+     *  This is an overloaded member for your convinience.
+     */
+    void FreeObjectMemory( const PdfReference & rRef );
+
+
+    /** Tries to free all memory allocated by the given
+     *  PdfObject (variables and streams) and reads
+     *  it from disk again if it is requested another time.
+     *
+     *  This will only work if load on demand is used. Other-
+     *  wise any call to this method will be ignored. Load on 
+     *  demand is currently always enabled when using PdfMemDocument.
+     *
+     *  \param pObj free all memory allocated by this object
+     */
+    void FreeObjectMemory( PdfObject* pObj );
+
  private:
     /** Get a dictioary from the catalog dictionary by its name.
      *  \param pszName will be converted into a PdfName

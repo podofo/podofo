@@ -357,4 +357,18 @@ void PdfParserObject::DelayedStreamLoadImpl()
     // If we complete without throwing the stream will be flagged as loaded.
 }
 
+void PdfParserObject::FreeObjectMemory()
+{
+    if( this->IsLoadOnDemand() )
+    {
+        PdfVariant::Clear();
+
+        delete m_pStream;
+        m_pStream = NULL;
+
+        EnableDelayedLoading();
+        EnableDelayedStreamLoading();
+    }
+}
+
 };
