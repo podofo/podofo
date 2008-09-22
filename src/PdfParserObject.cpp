@@ -44,7 +44,7 @@ static const int s_nLenEndStream = 9; // strlen("endstream");
 
 PdfParserObject::PdfParserObject( PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, 
                                   const PdfRefCountedBuffer & rBuffer, long lOffset )
-    : PdfObject( PdfReference( 0, 0 ), static_cast<const char*>(NULL)), PdfTokenizer( rDevice, rBuffer ), m_pEncrypt( NULL )
+    : PdfObject( PdfVariant::NullValue ), PdfTokenizer( rDevice, rBuffer ), m_pEncrypt( NULL )
 {
     m_pOwner = pCreator;
 
@@ -54,7 +54,7 @@ PdfParserObject::PdfParserObject( PdfVecObjects* pCreator, const PdfRefCountedIn
 }
 
 PdfParserObject::PdfParserObject( const PdfRefCountedBuffer & rBuffer )
-    : PdfObject( PdfReference( 0, 0 ), static_cast<const char*>(NULL)), PdfTokenizer( PdfRefCountedInputDevice(), rBuffer ), 
+    : PdfObject( PdfVariant::NullValue ), PdfTokenizer( PdfRefCountedInputDevice(), rBuffer ), 
       m_pEncrypt( NULL )
 {
     InitPdfParserObject();
