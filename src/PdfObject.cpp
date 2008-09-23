@@ -223,6 +223,7 @@ PdfStream* PdfObject::GetStream_NoDL()
         m_pStream = m_pOwner->CreateStream( this );
     }
 
+    SetDirty( true );
     return m_pStream;
 }
 

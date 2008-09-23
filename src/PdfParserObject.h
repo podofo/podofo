@@ -107,10 +107,17 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
      *  it from disk again if it is requested another time.
      *
      *  This will only work if load on demand is used.
+     *  If the object is dirty if will not be free'd.
      *
-     * \see IsLoadOnDemand
+     *  \param bForce if true the object will be free'd
+     *                even if IsDirty() returns true.
+     *                So you will loose any changes made
+     *                to this object.
+     * 
+     *  \see IsLoadOnDemand
+     *  \see IsDirty
      */
-    void FreeObjectMemory();
+    void FreeObjectMemory( bool bForce = false );
 
  protected:
     /** Load all data of the object if load object on demand is enabled.

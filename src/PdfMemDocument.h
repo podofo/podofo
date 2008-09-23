@@ -411,13 +411,18 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
      *  This will only work if load on demand is used. Other-
      *  wise any call to this method will be ignored. Load on 
      *  demand is currently always enabled when using PdfMemDocument.
+     *  If the object is dirty if will not be free'd.
      *
      *  \param rRef free all memory allocated by the object
      *              with this reference.
+     *  \param bForce if true the object will be free'd
+     *                even if IsDirty() returns true.
+     *                So you will loose any changes made
+     *                to this object.
      *
      *  This is an overloaded member for your convinience.
      */
-    void FreeObjectMemory( const PdfReference & rRef );
+    void FreeObjectMemory( const PdfReference & rRef, bool bForce = false );
 
 
     /** Tries to free all memory allocated by the given
@@ -427,10 +432,17 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
      *  This will only work if load on demand is used. Other-
      *  wise any call to this method will be ignored. Load on 
      *  demand is currently always enabled when using PdfMemDocument.
+     *  If the object is dirty if will not be free'd.
      *
-     *  \param pObj free all memory allocated by this object
+     *  \param pObj free object from memory
+     *  \param bForce if true the object will be free'd
+     *                even if IsDirty() returns true.
+     *                So you will loose any changes made
+     *                to this object.
+     * 
+     *  \see IsDirty
      */
-    void FreeObjectMemory( PdfObject* pObj );
+    void FreeObjectMemory( PdfObject* pObj, bool bForce = false );
 
  private:
     /** Get a dictioary from the catalog dictionary by its name.

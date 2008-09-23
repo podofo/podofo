@@ -99,7 +99,8 @@ PdfInputDevice::PdfInputDevice( const char* pBuffer, long lLen )
     }
 
     try {
-        m_pStream = static_cast< std::istream* >( new std::istringstream( std::string( pBuffer, lLen), std::ios::binary ) );
+        m_pStream = static_cast< std::istream* >( 
+            new std::istringstream( std::string( pBuffer, lLen ), std::ios::binary ) );
         if( !m_pStream || !m_pStream->good() )
         {
             PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
@@ -172,10 +173,8 @@ void PdfInputDevice::Seek( std::streamoff off, std::ios_base::seekdir dir )
 
 std::streamoff PdfInputDevice::Read( char* pBuffer, std::streamsize lLen )
 {
-    std::streamoff lPos = this->Tell();
-
     m_pStream->read( pBuffer, lLen );
-    return (this->Tell() - lPos);
+    return m_pStream->gcount();
 }
 
 }; // namespace PoDoFo

@@ -173,7 +173,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     if( m_pEncrypt )
         m_pEncrypt->SetCurrentReference( m_reference );
     this->GetNextVariant( *this, m_pEncrypt );
-
+    this->SetDirty( false );
 
     if( !bIsTrailer )
     {
@@ -300,6 +300,7 @@ void PdfParserObject::ParseStream()
     else
         this->GetStream_NoDL()->SetRawData( &reader, lLen );
 
+    this->SetDirty( false );
     /*
     SAFE_OP( GetNextStringFromFile( ) );
     if( strncmp( m_buffer.Buffer(), "endstream", s_nLenEndStream ) != 0 )
@@ -357,9 +358,9 @@ void PdfParserObject::DelayedStreamLoadImpl()
     // If we complete without throwing the stream will be flagged as loaded.
 }
 
-void PdfParserObject::FreeObjectMemory()
+void PdfParserObject::FreeObjectMemory( bool bForce )
 {
-    if( this->IsLoadOnDemand() )
+    if( this->IsLoadOnDemand() && (bForce || !this->IsDirty()) )
     {
         PdfVariant::Clear();
 

@@ -367,12 +367,12 @@ PdfFont* PdfMemDocument::GetFont( PdfObject* pObject )
     return m_fontCache.GetFont( pObject );
 }
 
-void PdfMemDocument::FreeObjectMemory( const PdfReference & rRef )
+void PdfMemDocument::FreeObjectMemory( const PdfReference & rRef, bool bForce )
 {
-    FreeObjectMemory( this->GetObjects().GetObject( rRef ) );
+    FreeObjectMemory( this->GetObjects().GetObject( rRef ), bForce );
 }
 
-void PdfMemDocument::FreeObjectMemory( PdfObject* pObj )
+void PdfMemDocument::FreeObjectMemory( PdfObject* pObj, bool bForce )
 {
     if( !pObj ) 
     {
@@ -386,7 +386,7 @@ void PdfMemDocument::FreeObjectMemory( PdfObject* pObj )
                                  "FreeObjectMemory works only on classes of type PdfParserObject." );
     }
 
-    pParserObject->FreeObjectMemory();
+    pParserObject->FreeObjectMemory( bForce );
 }
 
 };

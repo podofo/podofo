@@ -188,6 +188,9 @@ class PODOFO_API PdfObject : public PdfVariant {
      *  If the PDF object does not have a stream,
      *  one will be created.
      *  \returns a PdfStream object
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
      */
     PdfStream* GetStream();
 
@@ -298,6 +301,9 @@ class PODOFO_API PdfObject : public PdfVariant {
 
     /** Same as GetStream() but won't trigger a delayed load, so it's safe
      *  for use while a delayed load is in progress.
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
      */
     PdfStream* GetStream_NoDL();
 

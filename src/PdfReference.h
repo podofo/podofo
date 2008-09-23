@@ -78,7 +78,7 @@ class PODOFO_API PdfReference : public PdfDataType {
     const std::string ToString() const;
 
    /**
-     * Assigne the value of another object to this PdfReference.
+     * Assign the value of another object to this PdfReference.
      *
      * \param rhs the object to copy
      */

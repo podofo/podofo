@@ -44,9 +44,16 @@ PdfVariant PdfVariant::NullValue;
 // in the Clear() method. Mostly useful for internal sanity checks.
 inline void PdfVariant::Init()
 {
+    // DS: These members will be set in ::Clear()
+    //     which is called by every constructor.
+    // m_eDataType = ePdfDataType_Null;
+    // m_bDelayedLoadDone = true;
+    // m_bDirty = false;
+
+    // Has to be done in Init so that Clear() works
+    // and can delete data if necessary
     memset( &m_Data, 0, sizeof( UVariant ) );
-    m_eDataType = ePdfDataType_Null;
-    m_bDelayedLoadDone = true;
+
 #if defined(PODOFO_EXTRA_CHECKS)
     m_bDelayedLoadInProgress=false;
 #endif
@@ -145,6 +152,8 @@ PdfVariant::PdfVariant( const PdfVariant & rhs )
 {
     Init();
     this->operator=(rhs);
+
+    SetDirty( false );
 }
 
 PdfVariant::~PdfVariant()
@@ -180,6 +189,7 @@ void PdfVariant::Clear()
     }
 
     m_bDelayedLoadDone = true;
+    m_bDirty           = false; 
     m_eDataType        = ePdfDataType_Null;
 
     memset( &m_Data, 0, sizeof( UVariant ) );
@@ -330,6 +340,8 @@ const PdfVariant & PdfVariant::operator=( const PdfVariant & rhs )
         default:
             break;
     };
+
+    SetDirty( true ); 
 
     return (*this);
 }

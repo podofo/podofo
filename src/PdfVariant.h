@@ -131,6 +131,9 @@ class PODOFO_API PdfVariant {
     /** Clear all internal member variables and free the memory
      *  they have allocated.
      *  Sets the datatype to ePdfDataType_Null
+     *
+     *  This will reset the dirty flag of this object to be clean.
+     *  \see IsDirty
      */
     void Clear();
 
@@ -215,6 +218,9 @@ class PODOFO_API PdfVariant {
 
     /** Set the value of this object as bool
      *  \param b the value as bool.
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
      */
     inline void SetBool( bool b );
 
@@ -225,6 +231,9 @@ class PODOFO_API PdfVariant {
 
     /** Set the value of this object as long
      *  \param l the value as long.
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
      */
     inline void SetNumber( long l );
 
@@ -235,6 +244,9 @@ class PODOFO_API PdfVariant {
 
     /** Set the value of this object as double
      *  \param d the value as double.
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
      */
     inline void SetReal( double d );
 
@@ -258,6 +270,9 @@ class PODOFO_API PdfVariant {
 
     /** Returns the value of the object as array
      *  \returns a array
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
      */
     inline PdfArray & GetArray();
 
@@ -268,6 +283,9 @@ class PODOFO_API PdfVariant {
 
     /** Returns the dictionary value of this object
      *  \returns a PdfDictionary
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
      */
     inline PdfDictionary & GetDictionary(); 
 
@@ -278,11 +296,17 @@ class PODOFO_API PdfVariant {
 
     /** Get the reference values of this object.
      *  \returns a PdfReference
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
      */
     inline PdfReference & GetReference();
 
     /** Assign the values of another PdfVariant to this one.
      *  \param rhs an existing variant which is copied.
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
      */
     const PdfVariant & operator=( const PdfVariant & rhs );
 
@@ -297,7 +321,30 @@ class PODOFO_API PdfVariant {
      */
     inline bool operator!=( const PdfVariant & rhs) const;
 
+    /** The dirty flag is set if this variant
+     *  has been modified after construction.
+     *  
+     *  Usually the dirty flag is also set
+     *  if you call any non-const member function
+     *  (e.g. GetDictionary()) as PdfVariant cannot
+     *  determine if you actually changed the dictionary
+     *  or not.
+     *
+     *  \returns true if the value is dirty and has been 
+     *                modified since construction
+     */
+    inline bool IsDirty() const;
+
  protected:
+
+    /** Sets the dirty flag of this PdfVariant
+     *
+     *  \param bDirty true if this PdfVariant has been
+     *                modified from the outside
+     *
+     *  \see IsDirty
+     */
+    inline void SetDirty( bool bDirty );
 
     /**
      * Dynamically load the contents of this object from a PDF file by calling
@@ -355,6 +402,9 @@ class PODOFO_API PdfVariant {
 
     /** Version of GetDictionary() that doesn't trigger a delayed load
      *  \returns a PdfDictionary
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
      */
     inline PdfDictionary & GetDictionary_NoDL(); 
 
@@ -365,6 +415,9 @@ class PODOFO_API PdfVariant {
 
     /** Version of GetArray() that doesn't trigger a delayed load.
      *  \returns a array
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
      */
     inline PdfArray & GetArray_NoDL();
 
@@ -411,6 +464,9 @@ class PODOFO_API PdfVariant {
     } UVariant;
 
     UVariant     m_Data;
+
+    bool         m_bDirty; ///< Indicates if this object was modified after construction
+
 
     /** Datatype of the variant.
      *  required to access the correct member of 
@@ -493,6 +549,7 @@ void PdfVariant::SetBool( bool b )
     }
 
     m_Data.bBoolValue = b;
+    SetDirty( true );
 }
 
 // -----------------------------------------------------
@@ -526,6 +583,8 @@ void PdfVariant::SetNumber( long l )
         m_Data.dNumber = static_cast<double>(l);
     else
         m_Data.nNumber = l;
+
+    SetDirty( true );
 }
 
 // -----------------------------------------------------
@@ -562,6 +621,8 @@ void PdfVariant::SetReal( double d )
         m_Data.dNumber = d;
     else
         m_Data.nNumber = static_cast<long>(floor( d ));
+
+    SetDirty( true );
 }
 
 // -----------------------------------------------------
@@ -621,6 +682,9 @@ const PdfArray & PdfVariant::GetArray() const
     return GetArray_NoDL();
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 const PdfArray & PdfVariant::GetArray_NoDL() const
 {
     // Test against eDataType directly not GetDataType() since
@@ -643,6 +707,9 @@ PdfArray & PdfVariant::GetArray()
     return GetArray_NoDL();
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 PdfArray & PdfVariant::GetArray_NoDL()
 {
     // Test against eDataType directly not GetDataType() since
@@ -652,6 +719,8 @@ PdfArray & PdfVariant::GetArray_NoDL()
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
+
+    SetDirty( true );
 
     return *(reinterpret_cast<PdfArray* const>(m_Data.pData));
 }
@@ -665,6 +734,9 @@ const PdfDictionary & PdfVariant::GetDictionary() const
     return GetDictionary_NoDL();
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 const PdfDictionary & PdfVariant::GetDictionary_NoDL() const
 {
     // Test against eDataType directly not GetDataType() since
@@ -687,6 +759,9 @@ PdfDictionary & PdfVariant::GetDictionary()
     return GetDictionary_NoDL();
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 PdfDictionary & PdfVariant::GetDictionary_NoDL()
 {
     // Test against eDataType directly not GetDataType() since
@@ -697,6 +772,7 @@ PdfDictionary & PdfVariant::GetDictionary_NoDL()
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
+    SetDirty( true );
     return *(reinterpret_cast<PdfDictionary* const>(m_Data.pData));
 }
 
@@ -727,6 +803,7 @@ inline PdfReference & PdfVariant::GetReference()
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
+    SetDirty( true );
     return *(reinterpret_cast<PdfReference* const>(m_Data.pData));
 }
 
@@ -762,6 +839,22 @@ void PdfVariant::DelayedLoadImpl()
 bool PdfVariant::operator!=( const PdfVariant & rhs) const
 {
     return !(*this == rhs);
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfVariant::IsDirty() const
+{
+    return m_bDirty;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfVariant::SetDirty( bool bDirty ) 
+{
+    m_bDirty = bDirty;
 }
 
 };
