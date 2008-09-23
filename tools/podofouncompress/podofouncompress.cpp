@@ -53,13 +53,15 @@ int main( int argc, char* argv[] )
   pszInput  = argv[1];
   pszOutput = argv[2];
 
-  try {
+//  try {
       unc.Init( pszInput, pszOutput );
+      /*
   } catch( PdfError & e ) {
       fprintf( stderr, "Error: An error %i ocurred during uncompressing the pdf file.\n", e.GetError() );
       e.PrintErrorMsg();
       return e.GetError();
   }
+      */
 
 
   printf("%s was sucessfully uncompressed to: %s\n", pszInput, pszOutput );

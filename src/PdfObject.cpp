@@ -112,11 +112,25 @@ PdfObject::PdfObject( const PdfDictionary & rDict )
     InitPdfObject();
 }
 
-PdfObject::PdfObject( const PdfObject & rhs ) : PdfVariant()
+PdfObject::PdfObject( const PdfObject & rhs ) 
+    : PdfVariant( rhs ), m_reference( rhs.m_reference )
 {
     InitPdfObject();
 
-    operator=( rhs );
+    // DS: If you change this code, also change the assignment operator.
+    //     As the copy constructor is called very often,
+    //     it contains a copy of parts of the assignment code to be faster.
+    const_cast<PdfObject*>(&rhs)->DelayedStreamLoad();
+    m_bDelayedStreamLoadDone = rhs.DelayedStreamLoadDone();
+
+    if( rhs.m_pStream )
+        m_pStream = m_pOwner->CreateStream( *(rhs.m_pStream) );
+
+#if defined(PODOFO_EXTRA_CHECKS)
+    // Must've been demand loaded or already done
+    assert(DelayedLoadDone());
+    assert(DelayedStreamLoadDone());
+#endif
 }
 
 PdfObject::~PdfObject()
@@ -247,6 +261,10 @@ void PdfObject::FlateCompressStream()
 
 const PdfObject & PdfObject::operator=( const PdfObject & rhs )
 {
+    // DS: If you change this code, also change the copy constructor.
+    //     As the copy constructor is called very often,
+    //     it contains a copy of parts of this code to be faster.
+
     delete m_pStream;
 
     const_cast<PdfObject*>(&rhs)->DelayedStreamLoad();

@@ -69,14 +69,14 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
     PdfMemoryOutputStream  stream;
     if( vecFilters.size() )
     {
-        PdfOutputStream* pDecodeStream = PdfFilterFactory::CreateDecodeStream( vecFilters, &stream, 
-                                                                               m_pParent ? 
-                                                                               &(m_pParent->GetDictionary()) : NULL  );
+        // Use std::auto_ptr so that pDecodeStream is deleted 
+        // even in the case of an exception 
+        std::auto_ptr<PdfOutputStream> pDecodeStream( PdfFilterFactory::CreateDecodeStream( vecFilters, &stream, 
+                                                                                            m_pParent ? 
+                                                                                            &(m_pParent->GetDictionary()) : NULL  ) );
 
         pDecodeStream->Write( this->GetInternalBuffer(), this->GetInternalBufferSize() );
         pDecodeStream->Close();
-
-        delete pDecodeStream;
     }
     else
     {

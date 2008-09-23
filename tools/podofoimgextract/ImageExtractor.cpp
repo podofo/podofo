@@ -24,7 +24,7 @@
 #include <stdlib.h>
 
 ImageExtractor::ImageExtractor()
-    : m_pszOutputDirectory( NULL ), m_nCount( 0 )
+    : m_pszOutputDirectory( NULL ), m_nCount( 0 ), m_nSuccess( 0 )
 {
 
 }
@@ -78,6 +78,8 @@ void ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnN
                     {
                         ExtractImage( *it, false );
                     }
+
+                    document.FreeObjectMemory( *it );
                 }
             }
         }
@@ -131,6 +133,8 @@ void ImageExtractor::ExtractImage( PdfObject* pObject, bool bJpeg )
     }
 
     fclose( hFile );
+
+    ++m_nSuccess;
 }
 
 bool ImageExtractor::FileExists( const char* pszFilename )

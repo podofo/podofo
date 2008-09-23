@@ -45,6 +45,11 @@ class ImageExtractor {
      */
     void Init( const char* pszInput, const char* pszOutput, int* pnNum = NULL );
 
+    /**
+     * \returns the number of succesfully extracted images
+     */
+    inline int GetNumImagesExtracted() const;
+
  private:
     /** Extracts the image form the given PdfObject
      *  which has to be an XObject with Subtype "Image"
@@ -62,9 +67,15 @@ class ImageExtractor {
 
  private:
     char*        m_pszOutputDirectory;
+    unsigned int m_nSuccess;
     unsigned int m_nCount;
 
     char         m_szBuffer[MAX_PATH];
 };
+
+inline int ImageExtractor::GetNumImagesExtracted() const
+{
+    return m_nSuccess;
+}
 
 #endif // _IMAGE_EXTRACTOR_H_

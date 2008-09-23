@@ -70,6 +70,7 @@ void UnCompress::UncompressObjects()
                 }
                 printf("-> Uncompressed Length: %li\n", pStream->GetLength() );
             } catch( const PdfError & e ) {
+                e.PrintErrorMsg();
                 if( e.GetError() != ePdfError_UnsupportedFilter )
                     throw e;
             }

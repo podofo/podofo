@@ -94,10 +94,10 @@ bool PdfDictionary::operator==( const PdfDictionary& rhs ) const
 
 void PdfDictionary::Clear()
 {
-    TIKeyMap it;
-
     if( !m_mapKeys.empty() )
     {
+        TIKeyMap it;
+
         it = m_mapKeys.begin();
         while( it != m_mapKeys.end() )
         {

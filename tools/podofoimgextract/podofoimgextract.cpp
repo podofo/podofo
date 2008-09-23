@@ -57,6 +57,8 @@ int main( int argc, char* argv[] )
       return e.GetError();
   }
 
+  nNum = extractor.GetNumImagesExtracted();
+
   printf("Extracted %i images sucessfully from the PDF file.\n", nNum );
   
   return 0;

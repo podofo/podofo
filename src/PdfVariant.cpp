@@ -46,13 +46,14 @@ inline void PdfVariant::Init()
 {
     // DS: These members will be set in ::Clear()
     //     which is called by every constructor.
-    // m_eDataType = ePdfDataType_Null;
     // m_bDelayedLoadDone = true;
     // m_bDirty = false;
 
     // Has to be done in Init so that Clear() works
     // and can delete data if necessary
     memset( &m_Data, 0, sizeof( UVariant ) );
+    // Has to be set as Clear() depends on it
+    m_eDataType = ePdfDataType_Null;
 
 #if defined(PODOFO_EXTRA_CHECKS)
     m_bDelayedLoadInProgress=false;
