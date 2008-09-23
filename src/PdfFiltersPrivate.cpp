@@ -853,7 +853,17 @@ void PdfDCTFilter::EndDecodeImpl()
     while( m_cinfo.output_scanline < m_cinfo.output_height ) 
     {
         jpeg_read_scanlines(&m_cinfo, pBuffer, 1);
-        if( iComponents == 3 ) 
+        if( iComponents == 4 ) 
+        {
+            for( unsigned int i=0, c=0; i < m_cinfo.output_width; i++, c+=4 ) 
+            {
+                pOutBuffer[c]   = pBuffer[0][i*4];
+                pOutBuffer[c+1] = pBuffer[0][i*4+1];
+                pOutBuffer[c+2] = pBuffer[0][i*4+2];
+                pOutBuffer[c+3] = pBuffer[0][i*4+3];
+            }
+        }
+        else if( iComponents == 3 ) 
         {
             for( unsigned int i=0, c=0; i < m_cinfo.output_width; i++, c+=3 ) 
             {
