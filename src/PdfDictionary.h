@@ -57,6 +57,9 @@ class PODOFO_API PdfDictionary : public PdfDataType {
      *  \param rhs the PdfDictionary to copy.
      *
      *  \return this PdfDictionary
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
      */
     const PdfDictionary & operator=( const PdfDictionary & rhs );
 
@@ -82,6 +85,9 @@ class PODOFO_API PdfDictionary : public PdfDataType {
      *
      *  \param identifier the key is identified by this name in the dictionary
      *  \param rObject a variant object containing the data. The object is copied.
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
      */
     void AddKey( const PdfName & identifier, const PdfObject & rObject );
 
@@ -93,6 +99,9 @@ class PODOFO_API PdfDictionary : public PdfDataType {
      *
      *  \param identifier the key is identified by this name in the dictionary
      *  \param rObject a variant object containing the data. The object is copied.
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
      */
     void AddKey( const PdfName & identifier, const PdfObject* pObject );
 
@@ -142,6 +151,9 @@ class PODOFO_API PdfDictionary : public PdfDataType {
      * 
      *  \returns true if the key was found in the object and was removed if
      *  there was is no key with this name, false is returned.
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
      */
     bool RemoveKey( const PdfName & identifier );
 
@@ -171,16 +183,40 @@ class PODOFO_API PdfDictionary : public PdfDataType {
     inline const TKeyMap & GetKeys() const;
 
     /** Get access to the internal map of keys.  \returns all keys of this
-     * dictionary
+     *  dictionary
      */
     inline TKeyMap & GetKeys();
 
+    /** The dirty flag is set if this variant
+     *  has been modified after construction.
+     *  
+     *  Usually the dirty flag is also set
+     *  if you call any non-const member function
+     *  as we cannot determine if you actually changed 
+     *  something or not.
+     *
+     *  \returns true if the value is dirty and has been 
+     *                modified since construction
+     */
+    virtual bool IsDirty() const;
+
+    /** Sets the dirty flag of this PdfVariant
+     *
+     *  \param bDirty true if this PdfVariant has been
+     *                modified from the outside
+     *
+     *  \see IsDirty
+     */
+    virtual void SetDirty( bool bDirty );
+
  private: 
     TKeyMap      m_mapKeys; 
+
+    bool         m_bDirty; ///< Indicates if this object was modified after construction
 };
 
 typedef std::vector<PdfDictionary*>      TVecDictionaries; 
-typedef	TVecDictionaries::iterator       TIVecDictionaries; 
+typedef	TVecDictionaries::iterator       oTIVecDictionaries; 
 typedef	TVecDictionaries::const_iterator TCIVecDictionaries;
 
 // -----------------------------------------------------

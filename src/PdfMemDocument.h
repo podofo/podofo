@@ -461,15 +461,6 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
      */
     void Clear();
 
-    /** Recursively changes every PdfReference in the PdfObject and in any child
-     *  that is either an PdfArray or a direct object.
-     *  The reference is changed so that difference is added to the object number
-     *  if the reference.
-     *  \param pObject object to change
-     *  \param difference add this value to every reference that is encountered
-     */
-    void FixObjectReferences( PdfObject* pObject, int difference );
-
     /** Low level APIs for setting a viewer preference
      *  \param whichPrefs the dictionary key to set
      *  \param the object to be set

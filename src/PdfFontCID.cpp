@@ -106,7 +106,7 @@ void PdfFontCID::Init( bool bEmbed )
 
 
     // Setting the FontDescriptor paras:
-    array.clear();
+    array.Clear();
     m_pMetrics->GetBoundingBox( array );
 
     pDescriptor->GetDictionary().AddKey( "FontName", this->GetBaseFont() );

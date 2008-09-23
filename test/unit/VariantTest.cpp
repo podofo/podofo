@@ -92,13 +92,12 @@ void VariantTest::testIsDirtyTrue()
     PdfVariant varDict( dict );
     PdfVariant varVariant( varBool );
 
-
     varBool.SetBool( false );
     varLong.SetNumber( 2L );
     varDouble.SetReal( 2.0 );
     varStr = PdfString("Other");
     varName = PdfName("Name2");
-    varRef.GetReference().SetObjectNumber( 1 );
+    varRef = PdfReference( 2, 0 );
     varArray.GetArray().push_back( varBool );
     varDict.GetDictionary().AddKey( varName.GetName(), varStr );
     varVariant = varLong;
@@ -121,8 +120,8 @@ void VariantTest::testIsDirtyTrue()
 
     // After reading const stream it has still to be clean
     PdfStream* pStream = parser.GetStream();
+    CPPUNIT_ASSERT_EQUAL( static_cast<long>(pStream->GetLength()), 9381L );
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "STREAM    IsDirty() == true", true, parser.IsDirty() );
-
 }
 
 void VariantTest::testIsDirtyFalse()
@@ -160,8 +159,8 @@ void VariantTest::testIsDirtyFalse()
     (void)varLong.GetNumber();
     (void)varDouble.GetReal();
     (void)varStr.GetString();
-    (void)static_cast<const PdfVariant>(varRef).GetReference();
-    (void)static_cast<const PdfVariant>(varName).GetName();
+    (void)varName.GetName();
+    (void)varRef.GetReference();
     (void)static_cast<const PdfVariant>(varArray).GetArray();
     (void)static_cast<const PdfVariant>(varDict).GetDictionary();
     (void)varVariant.GetBool();
@@ -175,6 +174,15 @@ void VariantTest::testIsDirtyFalse()
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "DICT      IsDirty() == false", false, varDict.IsDirty() );
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "VARIANT   IsDirty() == false", false, varVariant.IsDirty() );
 
+    // IsDirty() should be false after calling non const getter, but not modifying object
+    PdfArray& rArray = varArray.GetArray();
+    PdfDictionary& rDict = varDict.GetDictionary();
+
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "ARRAY     IsDirty() == false", false, varArray.IsDirty() );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "DICT      IsDirty() == false", false, varDict.IsDirty() );
+
+
+    // IsDirty() should be false after reading an object
     PdfRefCountedInputDevice device( s_pszObjectData, strlen( s_pszObjectData ) );
     PdfRefCountedBuffer buffer( 1024 );
     PdfVecObjects vecObjects;
@@ -186,6 +194,7 @@ void VariantTest::testIsDirtyFalse()
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "OBJECT    IsDirty() == false", false, parser.IsDirty() );
 
     // After reading const stream it has still to be clean
-    const PdfStream* pStream = static_cast<const PdfParserObject>(parser).GetStream();
+    const PdfStream* pStream = static_cast<const PdfParserObject*>(&parser)->GetStream();
+    CPPUNIT_ASSERT_EQUAL( static_cast<long>(pStream->GetLength()), 9381L );
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "STREAM    IsDirty() == false", false, parser.IsDirty() );
 }

@@ -52,6 +52,9 @@ class PdfReference;
  * TODO: domseichter: Make this class implicitly shared
  */
 class PODOFO_API PdfVariant {
+    friend class PdfArray;
+    friend class PdfDictionary;
+
  public:
 
     static PdfVariant NullValue;
@@ -270,9 +273,6 @@ class PODOFO_API PdfVariant {
 
     /** Returns the value of the object as array
      *  \returns a array
-     *
-     *  This will set the dirty flag of this object.
-     *  \see IsDirty
      */
     inline PdfArray & GetArray();
 
@@ -283,9 +283,6 @@ class PODOFO_API PdfVariant {
 
     /** Returns the dictionary value of this object
      *  \returns a PdfDictionary
-     *
-     *  This will set the dirty flag of this object.
-     *  \see IsDirty
      */
     inline PdfDictionary & GetDictionary(); 
 
@@ -293,14 +290,6 @@ class PODOFO_API PdfVariant {
      *  \returns a PdfReference
      */
     inline const PdfReference & GetReference() const;
-
-    /** Get the reference values of this object.
-     *  \returns a PdfReference
-     *
-     *  This will set the dirty flag of this object.
-     *  \see IsDirty
-     */
-    inline PdfReference & GetReference();
 
     /** Assign the values of another PdfVariant to this one.
      *  \param rhs an existing variant which is copied.
@@ -402,9 +391,6 @@ class PODOFO_API PdfVariant {
 
     /** Version of GetDictionary() that doesn't trigger a delayed load
      *  \returns a PdfDictionary
-     *
-     *  This will set the dirty flag of this object.
-     *  \see IsDirty
      */
     inline PdfDictionary & GetDictionary_NoDL(); 
 
@@ -415,9 +401,6 @@ class PODOFO_API PdfVariant {
 
     /** Version of GetArray() that doesn't trigger a delayed load.
      *  \returns a array
-     *
-     *  This will set the dirty flag of this object.
-     *  \see IsDirty
      */
     inline PdfArray & GetArray_NoDL();
 
@@ -719,9 +702,6 @@ PdfArray & PdfVariant::GetArray_NoDL()
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
-
-    SetDirty( true );
-
     return *(reinterpret_cast<PdfArray* const>(m_Data.pData));
 }
 
@@ -772,7 +752,6 @@ PdfDictionary & PdfVariant::GetDictionary_NoDL()
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    SetDirty( true );
     return *(reinterpret_cast<PdfDictionary* const>(m_Data.pData));
 }
 
@@ -788,22 +767,6 @@ const PdfReference & PdfVariant::GetReference() const
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *(reinterpret_cast<PdfReference* const>(m_Data.pData));
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfReference & PdfVariant::GetReference()
-{
-    DelayedLoad();
-
-    if( !IsReference() )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
-    }
-
-    SetDirty( true );
     return *(reinterpret_cast<PdfReference* const>(m_Data.pData));
 }
 
@@ -846,7 +809,33 @@ bool PdfVariant::operator!=( const PdfVariant & rhs) const
 // -----------------------------------------------------
 bool PdfVariant::IsDirty() const
 {
-    return m_bDirty;
+    // If this is a object with
+    // stream, the streams dirty
+    // flag might be set.
+    if( m_bDirty )
+        return m_bDirty;
+
+    switch( m_eDataType ) 
+    {
+        case ePdfDataType_Array:
+        case ePdfDataType_Dictionary:
+            // Arrays and Dictionaries
+            // handle dirty status by themselfes
+            return m_Data.pData->IsDirty();
+
+        case ePdfDataType_Bool:
+        case ePdfDataType_Number:
+        case ePdfDataType_Real:
+        case ePdfDataType_HexString:
+        case ePdfDataType_String:
+        case ePdfDataType_Name:
+        case ePdfDataType_RawData:
+        case ePdfDataType_Reference:
+        case ePdfDataType_Null:
+        case ePdfDataType_Unknown:
+        default:
+            return m_bDirty;
+    };
 }
 
 // -----------------------------------------------------
@@ -855,6 +844,32 @@ bool PdfVariant::IsDirty() const
 void PdfVariant::SetDirty( bool bDirty ) 
 {
     m_bDirty = bDirty;
+
+    if( !m_bDirty ) 
+    {
+        // Propogate new dirty state to subclasses
+        switch( m_eDataType ) 
+        {
+            case ePdfDataType_Array:
+            case ePdfDataType_Dictionary:
+                // Arrays and Dictionaries
+                // handle dirty status by themselfes
+                m_Data.pData->SetDirty( m_bDirty );
+
+            case ePdfDataType_Bool:
+            case ePdfDataType_Number:
+            case ePdfDataType_Real:
+            case ePdfDataType_HexString:
+            case ePdfDataType_String:
+            case ePdfDataType_Name:
+            case ePdfDataType_RawData:
+            case ePdfDataType_Reference:
+            case ePdfDataType_Null:
+            case ePdfDataType_Unknown:
+            default:
+                break;
+        };    
+    }
 }
 
 };

@@ -265,39 +265,6 @@ PdfObject* PdfMemDocument::GetNamedObjectFromCatalog( const char* pszName ) cons
     return this->GetCatalog()->GetIndirectKey( PdfName( pszName ) );
 }
 
-void PdfMemDocument::FixObjectReferences( PdfObject* pObject, int difference )
-{
-    if( !pObject ) 
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    if( pObject->IsReference() )
-    {
-        pObject->GetReference().SetObjectNumber( pObject->GetReference().ObjectNumber() + difference );
-    }
-    else if( pObject->IsDictionary() )
-    {
-        TKeyMap::iterator it = pObject->GetDictionary().GetKeys().begin();
-
-        while( it != pObject->GetDictionary().GetKeys().end() )
-        {
-            FixObjectReferences( (*it).second, difference );
-            ++it;
-        }
-    }
-    else if( pObject->IsArray() )
-    {
-        PdfArray::iterator it = pObject->GetArray().begin();
-
-        while( it != pObject->GetArray().end() )
-        {
-            FixObjectReferences( &(*it), difference );
-            ++it;
-        }
-    }
-}
-
 void PdfMemDocument::DeletePages( int inFirstPage, int inNumPages )
 {
     for( int i = 0 ; i < inNumPages ; i++ )

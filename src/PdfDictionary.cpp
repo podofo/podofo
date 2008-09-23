@@ -25,6 +25,7 @@
 namespace PoDoFo {
 
 PdfDictionary::PdfDictionary()
+    : m_bDirty( false )
 {
 }
 
@@ -32,6 +33,7 @@ PdfDictionary::PdfDictionary( const PdfDictionary & rhs )
     : PdfDataType()
 {
     this->operator=( rhs );
+    m_bDirty = false;
 }
 
 PdfDictionary::~PdfDictionary()
@@ -52,6 +54,7 @@ const PdfDictionary & PdfDictionary::operator=( const PdfDictionary & rhs )
         ++it;
     }
     
+    m_bDirty = true;
     return *this;
 }
 
@@ -124,6 +127,7 @@ void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObjec
     }
 
 	m_mapKeys[identifier] = new PdfObject( rObject );
+    m_bDirty = true;
 }
 
 void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject* pObject )
@@ -221,6 +225,7 @@ bool PdfDictionary::RemoveKey( const PdfName & identifier )
         delete m_mapKeys[identifier];
 
         m_mapKeys.erase( identifier );
+        m_bDirty = true;
         return true;
     }
 
@@ -263,6 +268,42 @@ void PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt,
     }
 
     pDevice->Print( ">>" );
+}
+
+bool PdfDictionary::IsDirty() const
+{
+    // If the dictionary itself is dirty
+    // return immediately
+    // otherwise check all children.
+    if( m_bDirty ) 
+        return m_bDirty;
+
+    TKeyMap::const_iterator it = this->GetKeys().begin();
+    while( it != this->GetKeys().end() )
+    {
+        if( (*it).second->IsDirty() )
+            return true;
+
+        ++it;
+    }
+
+    return false;
+}
+
+void PdfDictionary::SetDirty( bool bDirty )
+{
+    m_bDirty = bDirty;
+
+    if( !m_bDirty )
+    {
+        // Propagate state to all subclasses
+        TKeyMap::iterator it = this->GetKeys().begin();
+        while( it != this->GetKeys().end() )
+        {
+            (*it).second->SetDirty( m_bDirty );
+            ++it;
+        }
+    }
 }
 
 };

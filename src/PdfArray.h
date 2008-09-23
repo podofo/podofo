@@ -41,8 +41,12 @@ namespace PoDoFo {
  *
  *  \see PdfVariant
  */
-class PODOFO_API PdfArray : public std::vector<PdfObject>, public PdfDataType {
+class PODOFO_API PdfArray : private std::vector<PdfObject>, public PdfDataType {
  public:
+    typedef std::vector<PdfObject>::iterator               iterator;
+    typedef std::vector<PdfObject>::const_iterator         const_iterator;
+    typedef std::vector<PdfObject>::reverse_iterator       reverse_iterator;
+    typedef std::vector<PdfObject>::const_reverse_iterator const_reverse_iterator;
 
     /** Create an empty array 
      */
@@ -96,6 +100,149 @@ class PODOFO_API PdfArray : public std::vector<PdfObject>, public PdfDataType {
      *  \returns true if success, false if not
      */
     size_t GetStringIndex( const std::string& cmpString ) const;
+
+    /** Adds a PdfObject to the array
+     *
+     *  \param var add a PdfObject to the array
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
+     */
+    inline void push_back( const PdfObject & var );
+
+    /** 
+     *  \returns the size of the array
+     */
+    inline size_t size() const;
+
+    /**
+     *  \returns true if the array is empty.
+     */
+    inline bool empty() const;
+
+    inline PdfObject & operator[](size_type __n);
+    inline const PdfObject & operator[](size_type __n) const;
+    
+    /**
+     *  Returns a read/write iterator that points to the first
+     *  element in the array.  Iteration is done in ordinary
+     *  element order.
+     */
+    inline iterator begin();
+
+    /**
+     *  Returns a read-only (constant) iterator that points to the
+     *  first element in the array.  Iteration is done in ordinary
+     *  element order.
+     */
+    inline const_iterator begin() const;
+
+    /**
+     *  Returns a read/write iterator that points one past the last
+     *  element in the array.  Iteration is done in ordinary
+     *  element order.
+     */
+    inline iterator end();
+
+    /**
+     *  Returns a read-only (constant) iterator that points one past
+     *  the last element in the array.  Iteration is done in
+     *  ordinary element order.
+     */
+    inline const_iterator end() const;
+
+    /**
+     *  Returns a read/write reverse iterator that points to the
+     *  last element in the array.  Iteration is done in reverse
+     *  element order.
+     */
+    inline reverse_iterator rbegin();
+
+    /**
+     *  Returns a read-only (constant) reverse iterator that points
+     *  to the last element in the array.  Iteration is done in
+     *  reverse element order.
+     */
+    inline const_reverse_iterator rbegin() const;
+
+    /**
+     *  Returns a read/write reverse iterator that points to one
+     *  before the first element in the array.  Iteration is done
+     *  in reverse element order.
+     */
+    inline reverse_iterator rend();
+
+    /**
+     *  Returns a read-only (constant) reverse iterator that points
+     *  to one before the first element in the array.  Iteration
+     *  is done in reverse element order.
+     */
+    inline const_reverse_iterator rend() const;
+
+    template<typename _InputIterator> 
+        void insert(iterator __position, 
+                    _InputIterator __first,
+                    _InputIterator __last);
+
+    inline PdfArray::iterator insert(iterator __position, const PdfObject & val );
+
+    inline void erase( iterator pos );
+    inline void erase( iterator first, iterator last );
+
+    inline void reserve(size_type __n);
+
+    /**
+     *  \returns a read/write reference to the data at the first
+     *           element of the array.
+     */
+    inline reference front();
+
+    /**
+     *  \returns a read-only (constant) reference to the data at the first
+     *           element of the array.
+     */
+    inline const_reference front() const;
+
+    /**
+     *  \returns a read/write reference to the data at the last
+     *           element of the array.
+     */
+    inline reference back();
+      
+    /**
+     *  \returns a read-only (constant) reference to the data at the
+     *           last element of the array.
+     */
+    inline const_reference back() const;
+
+    inline bool operator==( const PdfArray & rhs ) const;
+    inline bool operator!=( const PdfArray & rhs ) const;
+
+    /** The dirty flag is set if this variant
+     *  has been modified after construction.
+     *  
+     *  Usually the dirty flag is also set
+     *  if you call any non-const member function
+     *  as we cannot determine if you actually changed 
+     *  something or not.
+     *
+     *  \returns true if the value is dirty and has been 
+     *                modified since construction
+     */
+    virtual bool IsDirty() const;
+
+    /** Sets the dirty flag of this PdfVariant
+     *
+     *  \param bDirty true if this PdfVariant has been
+     *                modified from the outside
+     *
+     *  \see IsDirty
+     */
+    virtual void SetDirty( bool bDirty );
+
+ private:
+    bool         m_bDirty; ///< Indicates if this object was modified after construction
+
 };
 
 // -----------------------------------------------------
@@ -112,6 +259,207 @@ void PdfArray::Clear()
 size_t PdfArray::GetSize() const
 {
     return this->size();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfArray::push_back( const PdfObject & var )
+{
+    std::vector<PdfObject>::push_back( var );
+    m_bDirty = true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+size_t PdfArray::size() const
+{
+    return std::vector<PdfObject>::size();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfArray::empty() const
+{
+    return std::vector<PdfObject>::empty();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfObject& PdfArray::operator[](size_type __n)
+{
+    m_bDirty = true;
+    return std::vector<PdfObject>::operator[](__n);
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfObject& PdfArray::operator[](size_type __n) const
+{
+    return std::vector<PdfObject>::operator[](__n);
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfArray::iterator PdfArray::begin()
+{
+    return std::vector<PdfObject>::begin();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfArray::const_iterator PdfArray::begin() const
+{
+    return std::vector<PdfObject>::begin();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfArray::iterator PdfArray::end()
+{
+    return std::vector<PdfObject>::end();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfArray::const_iterator PdfArray::end() const
+{
+    return std::vector<PdfObject>::end();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfArray::reverse_iterator PdfArray::rbegin()
+{
+    return std::vector<PdfObject>::rbegin();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfArray::const_reverse_iterator PdfArray::rbegin() const
+{
+    return std::vector<PdfObject>::rbegin();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfArray::reverse_iterator PdfArray::rend()
+{
+    return std::vector<PdfObject>::rend();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfArray::const_reverse_iterator PdfArray::rend() const
+{
+    return std::vector<PdfObject>::rend();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+template<typename _InputIterator>
+void PdfArray::insert(PdfArray::iterator __position, 
+                      _InputIterator __first,
+                      _InputIterator __last)
+{
+    std::vector<PdfObject>::insert( __position, __first, __last );
+    m_bDirty = true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfArray::iterator PdfArray::insert(PdfArray::iterator __position, const PdfObject & val )
+{
+    m_bDirty = true;
+    return std::vector<PdfObject>::insert( __position, val );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfArray::erase( iterator pos )
+{
+    std::vector<PdfObject>::erase( pos );
+    m_bDirty = true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfArray::erase( iterator first, iterator last )
+{
+    std::vector<PdfObject>::erase( first, last );
+    m_bDirty = true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfArray::reserve(size_type __n)
+{
+    std::vector<PdfObject>::reserve( __n );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfObject & PdfArray::front()
+{
+    return std::vector<PdfObject>::front();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfObject & PdfArray::front() const
+{
+    return std::vector<PdfObject>::front();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfObject & PdfArray::back()
+{
+    return std::vector<PdfObject>::back();
+}
+      
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfObject & PdfArray::back() const
+{
+    return std::vector<PdfObject>::back();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfArray::operator==( const PdfArray & rhs ) const
+{
+    return (static_cast< std::vector<PdfObject> >(*this) == static_cast< std::vector<PdfObject> >(rhs) );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfArray::operator!=( const PdfArray & rhs ) const
+{
+    return (static_cast< std::vector<PdfObject> >(*this) != static_cast< std::vector<PdfObject> >(rhs) );
 }
 
 typedef PdfArray                 TVariantList;

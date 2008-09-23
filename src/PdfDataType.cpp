@@ -30,6 +30,16 @@ PdfDataType::~PdfDataType()
 {
 }
 
+bool PdfDataType::IsDirty() const
+{
+    return false;
+}
+
+void PdfDataType::SetDirty( bool )
+{
+    // Ignore
+}
+
 };
 
 

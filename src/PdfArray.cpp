@@ -25,7 +25,7 @@
 namespace PoDoFo {
 
 PdfArray::PdfArray()
-    : std::vector<PoDoFo::PdfObject>(), PdfDataType()
+    : std::vector<PoDoFo::PdfObject>(), PdfDataType(), m_bDirty( false )
 {
 }
 
@@ -37,12 +37,14 @@ PdfArray::PdfArray( const PdfObject & var )
     : std::vector<PoDoFo::PdfObject>(), PdfDataType()
 {
     this->push_back( var );
+    m_bDirty = false;
 }
 
 PdfArray::PdfArray( const PdfArray & rhs )
     : std::vector<PoDoFo::PdfObject>(), PdfDataType()
 {
     this->operator=( rhs );
+    m_bDirty = false;
 }
 
 void PdfArray::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) const
@@ -102,6 +104,42 @@ size_t PdfArray::GetStringIndex( const std::string& cmpString ) const
     }
     
     return foundIdx;
+}
+
+bool PdfArray::IsDirty() const
+{
+    // If the array itself is dirty
+    // return immediately
+    // otherwise check all children.
+    if( m_bDirty ) 
+        return m_bDirty;
+
+    PdfArray::const_iterator it = this->begin();
+    while( it != this->end() )
+    {
+        if( (*it).IsDirty() )
+            return true;
+
+        ++it;
+    }
+
+    return false;
+}
+
+void PdfArray::SetDirty( bool bDirty )
+{
+    m_bDirty = bDirty;
+
+    if( !m_bDirty )
+    {
+        // Propagate state to all subclasses
+        PdfArray::iterator it = this->begin();
+        while( it != this->end() )
+        {
+            (*it).SetDirty( m_bDirty );
+            ++it;
+        }
+    }
 }
 
 };

@@ -372,17 +372,22 @@ void PdfDocument::FixObjectReferences( PdfObject* pObject, int difference )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    if( pObject->IsReference() )
-    {
-        pObject->GetReference().SetObjectNumber( pObject->GetReference().ObjectNumber() + difference );
-    }
-    else if( pObject->IsDictionary() )
+    if( pObject->IsDictionary() )
     {
         TKeyMap::iterator it = pObject->GetDictionary().GetKeys().begin();
 
         while( it != pObject->GetDictionary().GetKeys().end() )
         {
-            FixObjectReferences( (*it).second, difference );
+            if( (*it).second->IsReference() )
+            {
+                *(*it).second = PdfReference( (*it).second->GetReference().ObjectNumber() + difference,
+                                              (*it).second->GetReference().GenerationNumber() );
+
+            }
+            else if( (*it).second->IsDictionary() || 
+                     (*it).second->IsArray() )
+                FixObjectReferences( (*it).second, difference );
+
             ++it;
         }
     }
@@ -392,7 +397,16 @@ void PdfDocument::FixObjectReferences( PdfObject* pObject, int difference )
 
         while( it != pObject->GetArray().end() )
         {
-            FixObjectReferences( &(*it), difference );
+            if( (*it).IsReference() )
+            {
+                (*it) = PdfReference( (*it).GetReference().ObjectNumber() + difference,
+                                      (*it).GetReference().GenerationNumber() );
+
+            }
+            else if( (*it).IsDictionary() || 
+                     (*it).IsArray() )
+                FixObjectReferences( &(*it), difference );
+
             ++it;
         }
     }

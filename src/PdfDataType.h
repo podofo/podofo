@@ -51,6 +51,29 @@ class PODOFO_API PdfDataType {
      *                  or NULL to not encrypt this object
      */
     virtual void Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt = NULL ) const = 0;
+
+    /** The dirty flag is set if this variant
+     *  has been modified after construction.
+     *  
+     *  Usually the dirty flag is also set
+     *  if you call any non-const member function
+     *  as we cannot determine if you actually changed 
+     *  something or not.
+     *
+     *  \returns true if the value is dirty and has been 
+     *                modified since construction
+     */
+    virtual bool IsDirty() const;
+
+    /** Sets the dirty flag of this PdfVariant
+     *
+     *  \param bDirty true if this PdfVariant has been
+     *                modified from the outside
+     *
+     *  \see IsDirty
+     */
+    virtual void SetDirty( bool bDirty );
+
 };
 
 }; // namespace PoDoFo

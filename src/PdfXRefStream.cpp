@@ -126,7 +126,7 @@ void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
 
     pDevice->Seek( m_lOffset );
     m_pObject->WriteObject( pDevice, NULL ); // DominikS: Requires encryption info??
-    m_indeces.clear();
+    m_indeces.Clear();
 }
 
 };
