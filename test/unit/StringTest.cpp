@@ -127,3 +127,70 @@ void StringTest::testWCharConstructor()
     CPPUNIT_ASSERT_EQUAL( PdfString("Hallo World"), PdfString(L"Hallo World") );
     CPPUNIT_ASSERT_EQUAL( PdfString(L"Hallo World"), PdfString(L"Hallo World") );
 }
+
+void StringTest::testEscapeBrackets()
+{
+    // Test balanced brackets ansi
+    const char* pszAscii       = "Hello (balanced) World";
+    const char* pszAsciiExpect = "(Hello \\(balanced\\) World)";
+
+    PdfString   sAscii( pszAscii );
+    PdfVariant  varAscii( sAscii );
+    std::string strAscii;
+    varAscii.ToString( strAscii );
+
+    CPPUNIT_ASSERT_EQUAL( strAscii == pszAsciiExpect, true );
+
+    // Test un-balanced brackets ansi
+    const char* pszAscii2       = "Hello ((unbalanced World";
+    const char* pszAsciiExpect2 = "(Hello \\(\\(unbalanced World)";
+
+    PdfString   sAscii2( pszAscii2 );
+    PdfVariant  varAscii2( sAscii2 );
+    std::string strAscii2;
+    varAscii2.ToString( strAscii2 );
+
+    CPPUNIT_ASSERT_EQUAL( strAscii2 == pszAsciiExpect2, true );
+
+    // Test balanced brackets unicode
+    const char* pszUnic       = "Hello (balanced) World";
+    const char pszUnicExpect[]= { 0x28, 0xFE, 0xFF, 0x00, 0x48, 0x00, 0x65, 0x00, 
+                                  0x6C, 0x00, 0x6C, 0x00, 0x6F, 0x00, 0x20, 0x00, 
+                                  0x5C, 0x28, 0x00, 0x62, 0x00, 0x61, 0x00, 0x6C, 
+                                  0x00, 0x61, 0x00, 0x6E, 0x00, 0x63, 0x00, 0x65, 
+                                  0x00, 0x64, 0x00, 0x5C, 0x29, 0x00, 0x20, 0x00, 
+                                  0x57, 0x00, 0x6F, 0x00, 0x72, 0x00, 0x6C, 0x00, 
+                                  0x64, 0x29, 0x00, 0x00 };
+    
+    // Force unicode string
+    PdfString   sUnic( reinterpret_cast<const pdf_utf8*>(pszUnic) );
+    PdfVariant  varUnic( sUnic );
+    std::string strUnic;
+    varUnic.ToString( strUnic );
+
+    CPPUNIT_ASSERT_EQUAL( memcmp( strUnic.c_str(), pszUnicExpect, strUnic.length() ) == 0, true );
+
+    // Test un-balanced brackets unicode
+    const char* pszUnic2       = "Hello ((unbalanced World";
+    const char pszUnicExpect2[]= { 0x28, 0xFE, 0xFF, 0x00, 0x48, 0x00, 0x65, 0x00, 
+                                   0x6C, 0x00, 0x6C, 0x00, 0x6F, 0x00, 0x20, 0x00, 
+                                   0x5C, 0x28, 0x00, 0x5C, 0x28, 0x00, 0x75, 0x00, 
+                                   0x6E, 0x00, 0x62, 0x00, 0x61, 0x00, 0x6C, 0x00, 
+                                   0x61, 0x00, 0x6E, 0x00, 0x63, 0x00, 0x65, 0x00, 
+                                   0x64, 0x00, 0x20, 0x00, 0x57, 0x00, 0x6F, 0x00, 
+                                   0x72, 0x00, 0x6C, 0x00, 0x64, 0x29 };
+    
+    // Force unicode string
+    PdfString   sUnic2( reinterpret_cast<const pdf_utf8*>(pszUnic2) );
+    PdfVariant  varUnic2( sUnic2 );
+    std::string strUnic2;
+    varUnic2.ToString( strUnic2 );
+
+    CPPUNIT_ASSERT_EQUAL( memcmp( strUnic2.c_str(), pszUnicExpect2, strUnic2.length() ) == 0, true );
+
+    // Test reading the unicode string back in
+    PdfVariant varRead;
+    PdfTokenizer tokenizer( strUnic2.c_str(), strUnic2.length() );
+    tokenizer.GetNextVariant( varRead, NULL );
+    CPPUNIT_ASSERT_EQUAL( varRead.GetString() == sUnic2, true );
+}

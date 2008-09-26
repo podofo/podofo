@@ -342,19 +342,16 @@ void PdfString::Write ( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) c
             if( m_bUnicode ) 
             {
                 pDevice->Write( PdfString::s_pszUnicodeMarker, sizeof( PdfString::s_pszUnicodeMarker ) );
-                pDevice->Write( m_buffer.GetBuffer(), lLen );
             }
-            else
+
+            while( lLen-- ) 
             {
-                while( lLen-- ) 
-                {
-                    if( *pBuf == '\\' ||
-                        *pBuf == '(' ||
-                        *pBuf == ')' )
-                        pDevice->Write( "\\", 1 );
+                if( *pBuf == '\\' ||
+                    *pBuf == '(' ||
+                    *pBuf == ')' )
+                    pDevice->Write( "\\", 1 );
                     
-                    pDevice->Write( &*pBuf++, 1 );
-                }
+                pDevice->Write( &*pBuf++, 1 );
             }
         }
     }
