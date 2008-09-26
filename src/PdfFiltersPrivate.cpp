@@ -85,7 +85,7 @@ public:
         m_nCurRowIndex  = 0;
         m_nRows = (m_nColumns * m_nBPC) >> 3; 
 
-        m_pPrev = static_cast<char*>(malloc( sizeof(char) * m_nRows ));
+        m_pPrev = static_cast<char*>(malloc( sizeof(char) * m_nRows));
         if( !m_pPrev )
         {
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
@@ -110,17 +110,18 @@ public:
         if( m_nCurPredictor == -1 ) 
         {
             m_nCurPredictor = m_nPredictor >= 10 ? *pBuffer + 10 : *pBuffer;
-            ++m_nCurRowIndex;
+            m_nCurRowIndex  = 0;
             ++pBuffer;
             --lLen;
         }
 
         while( lLen-- ) 
         {
-            if( m_nCurRowIndex > m_nRows ) 
+            if( m_nCurRowIndex >= m_nRows ) 
             {
                 m_nCurRowIndex  = 0;
                 m_nCurPredictor = m_nPredictor >= 10 ? *pBuffer + 10 : *pBuffer;
+                pStream->Write( m_pPrev, m_nRows );
             }
             else
             {
@@ -133,7 +134,6 @@ public:
                     case 11: // png sub
                     case 12: // png up
                         m_pPrev[m_nCurRowIndex] += *pBuffer;
-                        pStream->Write( &m_pPrev[m_nCurRowIndex], 1 );
                         break;
                     case 13: // png average
                     case 14: // png paeth
@@ -146,11 +146,13 @@ public:
                         break;
                     }
                 }
+
+                ++m_nCurRowIndex;
             }
 
-            ++m_nCurRowIndex;
             ++pBuffer;
         }
+        pStream->Write( m_pPrev, m_nRows );
     }
 
 
