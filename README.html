@@ -71,13 +71,20 @@ More tools will come with future release and the existing tools will gain more
 features. The following tools are currently available:</p>
 
 <ul>
-	<li><b>podofoimgextract</b> -
-    Extracts all RGB jpeg images from a given PDF file.</li>
+  <li><b>podofoencrypt</b> -
+    Encrypts any PDF and allows to set PDF permissions..</li>
 
-    <li><b>podofouncompress</b> -
-  Removes all compression filters from a PDF file. This is useful for debugging
-  existing PDF files. You might also find PoDoFoBrowser, distributed separately,
-  to be useful if you're using this tool a lot.</li>
+  <li><b>podofoimgextract</b> -
+    Extracts all images from a given PDF file.</li>
+
+  <li><b>podofoimpose</b> -
+    A powerful
+    PDF <a href="http://en.wikipedia.org/wiki/Imposition">imposition</a>
+    tool. It places pages from one or more source PDFs onto pages of a new PDF,
+    applying scaling and positioning.</li>
+
+  <li><b>podofomerge</b> -
+    Merges two PDF files into onw.</li>
 
   <li><b>podofopdfinfo</b> -
   Provides some basic info about a PDF - metadata, page details, etc.</li>
@@ -85,9 +92,14 @@ features. The following tools are currently available:</p>
   <li><b>podofotxt2pdf</b> -
   Converts a text file to a PDF</li>
 
-  <li><b>podofoimpose</b> -
-  Places pages from one or more source PDFs onto pages of a new PDF,
-  applying scaling and positioning. </li>
+  <li><b>podofotxtextract</b> -
+  A tool that extracts all text from a PDF file. Works only for simple PDFs
+  at the moment.</li>
+
+  <li><b>podofouncompress</b> -
+  Removes all compression filters from a PDF file. This is useful for debugging
+  existing PDF files. You might also find PoDoFoBrowser, distributed separately,
+  to be useful if you're using this tool a lot.</li>
 </ul>
 
 <p>Additionally there is the external tool PoDoFoBrowser which is not included in
@@ -96,7 +108,7 @@ Qt application for browsing and modifying the objects in a PDF file, examining
 the structure of PDF files, and manipulating PDF streams. It is very useful if
 you want to look on the internal structure of PDF files.</p>
 
-<p>As of version 0.5.99 (ie pre-0.6.0 svn trunk) PoDoFo is available for Unix, Mac
+<p>As of version 0.7 PoDoFo is available for Unix, Mac
 OS X and Windows platforms.</p>
 
 <h2><a name="where_can_i_get_it" />Where can I can get it?</h2>
@@ -113,6 +125,7 @@ the following libraries:</p>
 <li>freetype2</li>
 <li>fontconfig (Unix & Mac OS X only)</li>
 <li>libjpeg (optional)</li>
+<li>libtiff (optional)</li>
 </ul>
 
 <p>See <a href="#installation_with_cmake">Installation with CMake</a> for a
