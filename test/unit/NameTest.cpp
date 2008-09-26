@@ -35,6 +35,46 @@ void NameTest::tearDown()
 {
 }
 
+void NameTest::testParseAndWrite()
+{
+    const char* pszData = "/#E5#8A#A8#E6#80#81#E8#BF#9E#E6#8E#A5#E7#BA#BF";
+    PdfTokenizer tokenizer(pszData, strlen(pszData));
+    
+
+    const char*   pszToken;
+    EPdfTokenType eType;
+    bool bGotToken = tokenizer.GetNextToken( pszToken, &eType );
+
+    CPPUNIT_ASSERT_EQUAL( bGotToken, true );
+    CPPUNIT_ASSERT_EQUAL( eType, ePdfTokenType_Delimiter );
+
+    bGotToken = tokenizer.GetNextToken( pszToken, &eType );
+
+    CPPUNIT_ASSERT_EQUAL( bGotToken, true );
+    CPPUNIT_ASSERT_EQUAL( eType, ePdfTokenType_Token );
+
+    // Test with const char* constructor
+    PdfName name = PdfName::FromEscaped( pszToken );
+    PdfVariant var( name );
+    std::string str;
+    var.ToString( str );
+    
+    CPPUNIT_ASSERT_EQUAL( str == pszData, true );
+    // str.c_str() + 1 <- ignore leading slash 
+    CPPUNIT_ASSERT_EQUAL( name.GetEscapedName() == (str.c_str() + 1), true );
+
+    // Test with std::string constructor
+    std::string sToken = pszToken;
+    PdfName name2 = PdfName::FromEscaped( sToken );
+    PdfVariant var2( name );
+    std::string str2;
+    var.ToString( str2 );
+
+    CPPUNIT_ASSERT_EQUAL( str2 == pszData, true );
+    // str.c_str() + 1 <- ignore leading slash 
+    CPPUNIT_ASSERT_EQUAL( name2.GetEscapedName() == (str2.c_str() + 1), true );
+}
+
 void NameTest::testNameEncoding()
 {
     // Test some names. The first argument is the unencoded representation, the second

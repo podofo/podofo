@@ -44,7 +44,7 @@ namespace {
  *            dereference operators.
  */
 template<typename T>
-inline void hexchr(const char ch, T & it)
+inline void hexchr(const unsigned char ch, T & it)
 {
     *(it++) = "0123456789ABCDEF"[ch / 16];
     *(it++) = "0123456789ABCDEF"[ch % 16];
@@ -89,12 +89,14 @@ static std::string EscapeName(T it, size_t length)
     std::string::iterator bufIt(buf.begin());
     for (size_t z = 0; z < length; ++z)
     {
-        if (::PoDoFo::PdfTokenizer::IsRegular(*it) && ::PoDoFo::PdfTokenizer::IsPrintable(*it) && (*it != '#') )
+        if (::PoDoFo::PdfTokenizer::IsRegular(*it) && 
+            ::PoDoFo::PdfTokenizer::IsPrintable(*it) && 
+            (*it != '#') )
             *(bufIt++) = *it;
         else
         {
             *(bufIt++) = '#';
-            hexchr(*it, bufIt);
+            hexchr(static_cast<unsigned char>(*it), bufIt);
         }
         ++it;
     }
@@ -121,8 +123,8 @@ static std::string UnescapeName(T it, size_t length)
     {
         if (*it == '#')
         {
-            char hi = *(++it); ++incount;
-            char low = *(++it); ++incount;
+            unsigned char hi = static_cast<unsigned char>(*(++it)); ++incount;
+            unsigned char low = static_cast<unsigned char>(*(++it)); ++incount;
             hi  -= ( hi  < 'A' ? '0' : 'A'-10 );
             low -= ( low < 'A' ? '0' : 'A'-10 );
             buf[outcount++] = (hi << 4) | (low & 0x0F);

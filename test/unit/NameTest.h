@@ -28,6 +28,7 @@
 class NameTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE( NameTest );
+  CPPUNIT_TEST( testParseAndWrite );
   CPPUNIT_TEST( testNameEncoding );
   CPPUNIT_TEST( testEncodedNames );
   CPPUNIT_TEST( testEquality );
@@ -39,7 +40,7 @@ class NameTest : public CppUnit::TestFixture
   void setUp();
   void tearDown();
 
-
+  void testParseAndWrite();
   void testNameEncoding();
   void testEncodedNames();
   void testEquality();
