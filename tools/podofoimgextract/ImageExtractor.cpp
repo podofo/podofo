@@ -24,7 +24,7 @@
 #include <stdlib.h>
 
 ImageExtractor::ImageExtractor()
-    : m_pszOutputDirectory( NULL ), m_nCount( 0 ), m_nSuccess( 0 )
+    : m_pszOutputDirectory( NULL ), m_nSuccess( 0 ), m_nCount( 0 )
 {
 
 }
