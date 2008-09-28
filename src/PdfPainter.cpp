@@ -80,6 +80,17 @@ PdfPainter::PdfPainter()
     m_oss.flags( std::ios_base::fixed );
     m_oss.precision( 3 );
     PdfLocaleImbue(m_oss);
+
+    lpx  = 
+    lpy  = 
+    lpx2 = 
+    lpy2 = 
+    lpx3 = 
+    lpy3 = 
+    lcx  =
+    lcy  = 
+    lrx  = 
+    lry  = 0.0;
 }
 
 PdfPainter::~PdfPainter()
