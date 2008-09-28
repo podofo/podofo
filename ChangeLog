@@ -1,3 +1,27 @@
+Version 0.7
+    Fixed PdfPainter::ArcTo
+    Fixed crash in FlateDecode and LZWDecode predictor functions
+    Fixed writing of unicode PdfStrings with brackets (will be escaped
+	now)
+    Fixed encoding of bytes in PdfName
+    Added many new unit tests
+    Added methods to free object memory of objects that are not needed
+	anymore (These objects will be re-read from disk if they are
+	needed again)
+    Fixed a crash when appending PDFs
+    Added unicode support on Win32 (wchar_t* constructors and methods
+	where apropriate, e.g. file handling)
+    Fixed a memory leak in PdfStream
+    Small optimizations in various places
+    Fixed DCTDecode filter for CMYK images
+    PdfReference is now immutable, which allows for various optimizations
+    Fixed PdfInputDevice::Read to return now the correct number of bytes
+	read
+    
+
+Version 0.6
+    Many many changes :) See SVN log
+
 Version 0.5
     Added support for Embedded Files (annotations & named objects)
     Added support for ExtGStates when drawing
