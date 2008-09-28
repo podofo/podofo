@@ -910,10 +910,10 @@ void PdfPainter::SmoothQuadCurveTo( double inX3, double inY3 )
 void PdfPainter::ArcTo( double inX, double inY, double inRadiusX, double inRadiusY,
                        double    inRotation, bool inLarge, bool inSweep)
 {
-    double    px = inX, py = inY;
+    double px = inX, py = inY;
     double rx = inRadiusX, ry = inRadiusY, rot = inRotation;
-    int        large = ( inLarge ? 1 : 0 ),
-            sweep = ( inSweep ? 1 : 0 );
+    int    large = ( inLarge ? 1 : 0 ),
+           sweep = ( inSweep ? 1 : 0 );
 
     double sin_th, cos_th;
     double a00, a01, a10, a11;
@@ -957,12 +957,21 @@ void PdfPainter::ArcTo( double inX, double inY, double inRadiusX, double inRadiu
 
     for (i = 0; i < n_segs; i++) {
         double nth0 = th0 + static_cast<double>(i) * th_arc / n_segs,
-                nth1 = th0 + static_cast<double>(i + 1) * th_arc / n_segs;
-        double nsin_th, ncos_th;
-        double na00, na01, na10, na11;
-        double nx1, ny1, nx2, ny2, nx3, ny3;
-        double t;
-        double th_half;
+               nth1 = th0 + static_cast<double>(i + 1) * th_arc / n_segs;
+        double nsin_th = 0.0,
+                ncos_th = 0.0;
+        double na00 = 0.0, 
+               na01 = 0.0, 
+               na10 = 0.0, 
+               na11 = 0.0;
+        double nx1 = 0.0, 
+               ny1 = 0.0, 
+               nx2 = 0.0, 
+               ny2 = 0.0, 
+               nx3 = 0.0,
+               ny3 = 0.0;
+        double t   = 0.0;
+        double th_half = 0.0;
 
         nsin_th = sin (rot * (PI / 180.0));
         ncos_th = cos (rot * (PI / 180.0)); 
@@ -986,7 +995,12 @@ void PdfPainter::ArcTo( double inX, double inY, double inRadiusX, double inRadiu
         ny2 = na10 * nx2 + na11 * ny2;
         nx3 = na00 * nx3 + na01 * ny3;
         ny3 = na10 * nx3 + na11 * ny3;
-        CubicBezierTo( nx1, ny1, nx2, ny2, nx3, ny3 );
+        CubicBezierTo( nx1, 
+                       ny1,
+                       nx2, 
+                       ny2, 
+                       nx3, 
+                       ny3 );
     }
 
     lpx = lpx2 = lpx3 = px; lpy = lpy2 = lpy3 = py;
