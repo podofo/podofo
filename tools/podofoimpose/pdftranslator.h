@@ -135,10 +135,13 @@ class PdfTranslator
 		std::map<int,PdfRect> bleedRect;
 		std::map<int, PdfDictionary*> pDict;
 		std::map<int, int> virtualMap;
+		double sourceWidth;
+		double sourceHeight;
 		double destWidth;
 		double destHeight;
 		double scaleFactor;
 		int maxPageDest;
+		int duplicate;
 
 		bool checkIsPDF ( std::string path );
 		PdfObject* getInheritedResources ( PdfPage* page );
@@ -147,6 +150,10 @@ class PdfTranslator
 		void drawLine ( double x, double y, double xx, double yy, std::ostringstream & a );
 		void signature ( double x , double y, int sheet, const std::vector<int> & pages, std::ostringstream & a );
 		int pageRange ( int plan, int sheet , int pagesInBooklet, int numBooklet ); // much more a macro !
+		
+		// An attempt to allow nested loops
+		// returns new position in records list.
+		int sortLoop(std::vector<std::string>& memfile, int numline);
 
 		std::string useFont;
 		PdfReference useFontRef;

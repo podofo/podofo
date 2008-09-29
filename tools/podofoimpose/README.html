@@ -73,13 +73,18 @@ body{
 		<div>
 			Constants can be  declared everywhere in the PLAN file except in loops. They are 8 bits char strings (except "=") with a leading "$" character which makes them easy to identify. Their value is always interpreted as a float through std::atof. You can "overload" a constant value by redeclaring it. They are declared in this form:
 			<div class="code-abs">
-				$MyConstant=123.456
+				$MyConstant = 123.456
 			</div>
-			Note that a PLAN file is valid only if it contains 2 required constants which are "$PageWidth" and "$PageHeight", giving target document dimensions. Now support the "$ScaleFactor" constant.
+			Note that a PLAN file is valid only if it contains 2 required constants which are "$PageWidth" and "$PageHeight", giving target document dimensions. Now support the "$ScaleFactor" constant -- means that the declared scale factor will be added to the current transformation matrix for each placed page. Constants declarations can hold expressions:
+			<div class="code-abs">
+				$MyConstant = $AnotherConst * .5;
+			</div>
+			Source document pages count is provided as "$PageCount".
+			Source first page geometry is provided as "$SourceWidth" and "$SourceHeight", reflecting geometry given by the MediaBox.
 		</div>
 		<h4>Expressions</h4>
 		<div>
-			An expression is a set of basic mathematic operations +, -, * and /. As a convenience, we added the | as "max(a,b)" it’s mainly there to allow user to prevent division by 0.
+			An expression is a set of basic mathematic operations +, -, *,/ and % (operands of modulo will be first rounded). As a convenience, we added the | as "max(a,b)" it’s mainly there to allow user to prevent division by 0.
 			<div class="code-abs">
 				$ValueA / ( $ValueB | 0.000001 )
 			</div>
@@ -93,7 +98,7 @@ body{
 			Loops allow users to programmatically generate records. While the concept itself is familiar to programmers I can imagine that regular users would feel not so easy with it. So let me introduce a simple example to explain the thing.
 		</div>
 		<div>
-			Let say we have a source document, A4 format, which has 1000 pages and we just want to position each page on the center of an A3 plate.
+			Let say we have a source document, A4 format, which has 1000 pages and we just want to position each page of the first half of the document on the center of an A3 plate.
 			<div class="file">
 				<div class="name">A4onA3.plan</div>
 				<div class="content">$PageWidth=842.6 
@@ -102,17 +107,19 @@ $PageHeight=1195.2
 $sw=597.6
 $sh=842.4
 $page=1
-@1000($page+1)
+&#60;$PageCount/2[$page+1]
 $page; $page; 0; ($PageWidth-$sw)/2; ($PageHeight-$sh)/2;
-@</div>	
+&#62;
+</div>	
 			</div>
-			The loop is what’s enclosed by "@" characters, the second just indicates the end of the loop. The first first indicates how many iterations (loops) have to be performed &#8212; 1000 here. Then comes the interesting part, constants which appear in parenthesis will be incremented by the value following the "+" (can be a minus one, in that case don’t turn the "+" into a "-", just prefix the value with "-" as in ($foo+-1.23)), which means in this example that at each iteration, $page will see its value increased by 1.
+			The loop is what’s enclosed by "&#60;" and "&#62;"characters, the second just indicates the end of the loop. The first first indicates how many iterations (loops) have to be performed &#8212; 500 here. Then comes the interesting part, constants which appear in parenthesis will be incremented by the value following the "+" (can be a minus one, in that case don’t turn the "+" into a "-", just prefix the value with "-" as in [$foo+-1.23]), which means in this example that at each iteration, $page will see its value increased by 1.
 		</div>
 		<div>
 			Constants (which finally turn into variables ;-)) must be declared before the loop. Many constants can be put in loop declaration, separate them with semicolons.
 		</div>
 		<div>
-			No, loops can’t be nested!
+			<!-- No, loops can’t be nested! -->
+			There is an experimental support of nested loops.
 		</div>
 		<h4>Running</h4>
 		<div>
@@ -120,7 +127,7 @@ $page; $page; 0; ($PageWidth-$sw)/2; ($PageHeight-$sh)/2;
 			<div class="command">
 				podofoimpose source.pdf target.pdf plan.plan
 			</div>
-		Note the source can be either a PDF file or a text file which is a listing of PDF files
+		Note the source can be either a PDF file or a text file which is a listing of PDF files. In this case, listed files will be first merged in order.
 		</div>
         </div> <!-- Plan -->
 	
@@ -149,50 +156,43 @@ $PageHeight=842.4
 
 	<h5>Make a tiled poster</h5>
 	<div>
-		Printing a large graphic onto a set of little paper sheets can be handful. Doing it automatically is even better! You can find files used in this example here: <a href="poster.pdf">poster.pdf</a>,
+		Printing a large graphic onto a set of little paper sheets can be handful. Doing it automatically is even better! <!--You can find files used in this example here: <a href="poster.pdf">poster.pdf</a>,
 							 <a href="poster_mask.pdf">poster_mask.pdf</a>,
 							  <a href="poster.plan">poster.plan</a> and 
-							  <a href="poster.list">poster.list</a>. Here constants are a bit abbreviated in order to fit in the frame.
+							  <a href="poster.list">poster.list</a>. Here constants are a bit abbreviated in order to fit in the frame.-->
+		Latest changes allow us to provide you with a quasi all-automatic solution. The only thing that you would want to change (apart from debugging) is the output paper size (here ISO-A4, "Europe oblige !").
 		<div class="file">
 			<div class="name">poster.plan</div>
-			<div class="content"># source is A1 doc
-$sw=1683,78
-$sh=2383,94
-# target on A4
-$PageWidth=597.6
-$PageHeight=842.4
-$pw=597.6
-$ph=842.4
-$m=20
-$Xo=10
-$Yo=0
-$it=3
-$R=1
-$C=1
-@3($C+1)
-1; $C + (($R - 1) * $it); 0; $Xo + $m - (( $pw - $m) * ($C - 1));  $Yo + $m - (($ph - $m) * ($R -1)) ;
-@
+			<div class="content">
+##POSTER printed on tiled A4 paper sheets.
+# destination (A4)
+$PageWidth = 597.6
+$PageHeight = 842.4
 
-$R=2
-$C=1
-@3($C+1)
-1; $C + (($R - 1) * $it); 0; $Xo + $m - (( $pw - $m) * ($C - 1));  $Yo + $m - (($ph - $m) * ($R -1)) ;
-@
+$sW = $SourceWidth 
+$sH = $SourceHeight 
 
-$R=3
-$C=1
-@3($C+1)
-1; $C + (($R - 1) * $it); 0; $Xo + $m - (( $pw - $m) * ($C - 1));  $Yo + $m - (($ph - $m) * ($R -1)) ;
-@
+# with a little trick to get integers
+$rows = (($sH / $PageHeight) + 1) % (2 * (($sH / $PageHeight)+1))
+$cols = (($sW / $PageWidth)  + 1) % (2 * (($sW / $PageWidth )+1))
 
-# Margins mask &amp; possibly cut marks
-$p=1
-@9($p+1)
-2; $p; 0; 0; 0;
-@</div>
+$hbox = ($sW / ($cols | 1))
+$vbox = ($sH/ ($rows | 1))
+$hm = ($PageWidth -  $hbox ) / 2
+$vm = ($PageHeight - $vbox ) / 2
+
+$R = 1
+$C = 1
+&#60;$rows[$R+1]
+	&#60;$cols[$C+1]
+		1; (($R - 1)*$cols) + $C; 0; $hm - (($C -1) * $hbox); $vm - (($R-1) * $vbox);
+	&#62;
+&#62;
+
+</div>
 			</div>
 		</div>
-	<div class="command">podofoimpose poster.list tile.pdf poster.plan </div>
+	<div class="command">podofoimpose poster.pdf poster_tiled.pdf poster.plan </div>
 	<div>Etc.</div>
 	</div><!-- Examples -->
 </body>

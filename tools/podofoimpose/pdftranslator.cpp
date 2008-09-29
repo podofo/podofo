@@ -136,17 +136,16 @@ void PageRecord::load ( const std::string& buffer )
 
 double PageRecord::calc ( const std::string& s )
 {
-// 	std::cerr<<"C1 "<< s<<std::endl;
+// 	std::cerr<< s;
 	std::vector<std::string> tokens;
 	int tlen ( s.length() );
 	std::string ts;
-	std::map<std::string, std::string>::iterator vit;
 	for ( int i ( 0 ); i < tlen; ++i )
 	{
 		char ci ( s.at ( i ) );
-		if ( ci == 0x20 || ci == 0x9 )// skip spaces and horizontal tabs
-			continue;
-		else if ( ( ci == '+' ) 
+// 		if ( ci == 0x20 || ci == 0x9 )// skip spaces and horizontal tabs
+// 			continue;
+		if ( ( ci == '+' ) 
 				|| ( ci == '-' ) 
 				|| ( ci == '*' ) 
 				|| ( ci == '/' )
@@ -158,15 +157,15 @@ double PageRecord::calc ( const std::string& s )
 			// commit current string
 			if(ts.length() > 0)
 			{
-				vit = PoDoFoImpose::vars.find ( ts );
+				std::map<std::string, std::string>::iterator vit = PoDoFoImpose::vars.find ( ts );
 				if ( vit != PoDoFoImpose::vars.end() )
 				{
-// 					std::cerr<<"Found "<<ts<<" "<< vit->second <<std::endl; 
+// 					std::cerr<<"A Found "<<ts<<" "<< vit->second <<std::endl; 
 					tokens.push_back ( dToStr(calc(vit->second)) );
 				}
 				else
 				{
-// 					std::cerr<<"Not Found "<<ts<<std::endl;
+// 					std::cerr<<"A Not Found "<<ts<<std::endl;
 					tokens.push_back ( ts );
 				}
 			}
@@ -176,25 +175,47 @@ double PageRecord::calc ( const std::string& s )
 			tokens.push_back ( ts );
 			ts.clear();
 		}
-		else
+		else if(ci > 32)
+		{
 			ts += ci;
+		}
+// 		else
+// 			std::cerr<<"Wrong char : "<< ci <<std::endl;
 	}
 	if(ts.length() > 0)
 	{
-		vit = PoDoFoImpose::vars.find ( ts );
-		if ( vit != PoDoFoImpose::vars.end() )
+		std::map<std::string, std::string>::iterator vit2 = PoDoFoImpose::vars.find ( ts );
+		if ( vit2 != PoDoFoImpose::vars.end() )
 		{
-// 			std::cerr<<"Found "<<ts<<std::endl; 
-			tokens.push_back ( dToStr(calc(vit->second)) );
+// 			std::cerr<<std::endl<<"Found "<<ts<<std::endl; 
+			tokens.push_back ( dToStr(calc(vit2->second)) );
 		}
 		else
 		{
-// 			std::cerr<<"Not Found "<<ts<<std::endl;
+// 			if((ts.length() > 0) && (ts[0] == '$'))
+// 			{
+// 				std::cerr<<std::endl<<"Not Found \"";
+// 				for(unsigned int c(0);c < ts.length(); ++c)
+// 				{
+// 					std::cerr<<ts[c]<<"/";
+// 				}
+// 				std::cerr<<"\""<<std::endl;
+// 				for(std::map<std::string,std::string>::iterator i(PoDoFoImpose::vars.begin());i != PoDoFoImpose::vars.end(); ++i)
+// 				{
+// // 					std::cerr<<"VA \""<< i->first << "\" => " <<(i->first == ts ? "True" : "False") <<std::endl;
+// 					for(unsigned int c(0);c < i->first.length(); ++c)
+// 					{
+// 						std::cerr<<	i->first[c]<<"/";
+// 					}
+// 					std::cerr<<std::endl;
+// 				}
+// 			}
 			tokens.push_back ( ts );
 		}
 	}
-
-	return calc ( tokens );
+	double result( calc ( tokens ));
+// 	std::cerr<<" = "<<result<<std::endl;
+	return result;
 
 }
 
@@ -266,18 +287,33 @@ double PageRecord::calc ( const std::vector<std::string>& t )
 	{
 		for(uint vi(0); vi < ops.size(); ++vi)
 		{
+// 			std::cerr<<"OP>> \""<<ret<<"\" " << ops.at ( vi )<<" \""<<values.at( vi ) <<"\" = "; 
 			if ( ops.at ( vi ) == "+" )
 				ret += values.at( vi );
 			else if ( ops.at ( vi ) == "-" )
 				ret -= values.at(vi);
 			else if ( ops.at ( vi ) == "*" )
 				ret *= values.at(vi);
+			/// I know it’s not good (tm)
+			/// + http://gcc.gnu.org/ml/gcc/2001-08/msg00853.html
 			else if ( ops.at ( vi ) == "/" )
-				ret /= values.at(vi);
+			{
+				if(values.at(vi) == 0.0)
+					ret = 0.0;
+				else
+					ret /= values.at(vi);
+			}
 			else if ( ops.at ( vi ) == "%" )
-				ret = static_cast<int>(ret) % static_cast<int>(values.at(vi));
+			{
+				if(values.at(vi) == 0.0)
+					ret = 0.0;
+				else
+					ret = static_cast<int>(ret) % static_cast<int>(values.at(vi));
+			}
 			else if ( ops.at ( vi ) == "|" ) // Stands for max(a,b), easier than true condition, allow to filter division by 0
 				ret = std::max(ret , values.at(vi));
+			
+// 			std::cerr<<ret<<std::endl;
 		}
 	}
 // 	std::cerr<<" <"<< values.size() <<"> "<<ret<<std::endl;
@@ -354,16 +390,25 @@ void PdfTranslator::setSource ( const std::string & source )
 	{
 		if ( ms == multiSource.begin() )
 		{
-			std::cerr << "First doc is "<< *ms  << endl;
+// 			std::cerr << "First doc is "<< *ms  << endl;
 			sourceDoc = new PdfMemDocument ( ( *ms ).c_str() );
 		}
 		else
 		{
 			PdfMemDocument mdoc ( ( *ms ).c_str() );
-			std::cerr << "Appending "<< mdoc.GetPageCount() << " page(s) of " << *ms  << endl;
-
+// 			std::cerr << "Appending "<< mdoc.GetPageCount() << " page(s) of " << *ms  << endl;
 			sourceDoc->InsertPages ( mdoc, 0, mdoc.GetPageCount() );
 		}
+	}
+	
+	pcount = sourceDoc->GetPageCount();
+// 	std::cerr << "Document has "<< pcount << " page(s) " << endl;
+	if(pcount > 0) // only here to avoid possible segfault, but PDF without page is not conform IIRC
+	{
+		PoDoFo::PdfRect rect(sourceDoc->GetPage( 0 )->GetMediaBox());
+		// keep in mind it’s just a hint since PDF can have different page sizes in a same doc
+		sourceWidth =  rect.GetWidth() - rect.GetLeft();
+		sourceHeight =  rect.GetHeight() - rect.GetBottom() ;
 	}
 }
 
@@ -497,8 +542,6 @@ void PdfTranslator::setTarget ( const std::string & target )
 
 	targetDoc = new PdfMemDocument;
 	outFilePath  = target;
-	pcount = sourceDoc->GetPageCount();
-	std::cerr << "Document has "<< pcount << " page(s) " << endl;
 	
 	for ( int i = 0; i < pcount ; ++i )
 	{
@@ -594,7 +637,7 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 	if ( !in.good() )
 		throw runtime_error ( "Failed to open plan file" );
 
-	int dup = MAX_SOURCE_PAGES;
+	duplicate = MAX_SOURCE_PAGES;
 	std::string line;
 	char cbuffer[MAX_RECORD_SIZE];
 	int blen (0);
@@ -622,7 +665,10 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 	while(!in.eof());
 	
 	/// PROVIDED 
-	PoDoFoImpose::vars["$PagesCount"] = iToStr(pcount);
+	PoDoFoImpose::vars[std::string("$PagesCount")] = iToStr( pcount );
+	PoDoFoImpose::vars[std::string("$SourceWidth")] = dToStr( sourceWidth );
+	PoDoFoImpose::vars[std::string("$SourceHeight")] = dToStr( sourceHeight );
+// 	std::cerr << PoDoFoImpose::vars["$PagesCount"]<< " "<< PoDoFoImpose::vars["$SourceWidth"]<<" "<< PoDoFoImpose::vars["$SourceHeight"] <<" "<<std::endl;
 	/// END OF PROVIDED
 	
 	for( uint numline(0); numline < memfile.size() ; ++numline)
@@ -634,126 +680,20 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 			std::string key(buffer.substr ( 0,sepPos ));
 			std::string value(buffer.substr ( sepPos + 1 ));
 			
-			if ( PoDoFoImpose::vars.find ( key ) != PoDoFoImpose::vars.end() )
+// 			if ( PoDoFoImpose::vars.find ( key ) != PoDoFoImpose::vars.end() )
 			{
 				PoDoFoImpose::vars[key] = value;
 			}
-			else
-			{
-				PoDoFoImpose::vars.insert ( std::pair<std::string, std::string> ( key,value ) );
+// 			else
+// 			{
+// 				PoDoFoImpose::vars.insert ( std::pair<std::string, std::string> ( key,value ) );
 // 				std::cerr<<key<<" = "<<value<<std::endl;
-			}
+// 			}
 		}
-		else if( buffer.at ( 0 ) == '@' ) // Loop - experimental
+		else if( buffer.at ( 0 ) == '<' ) // Loop - experimental
 		{
-			// we’ll try to parse something like:
-			// @10($var1+increment;$var2+increment)
-			// ^ operator, we’ll store lines till next "@"
-			//  ^^ number of iterations
-			//     ^..............................^ available constants in the loop and their increment value.
-			blen = buffer.length();
-			std::string iterN;
-			int a(1);
-			char ca(0);
-			for(;a<blen;++a)
-			{
-				ca = buffer.at(a);
-				if(ca == '[')
-					break;
-				else if(ca == 0x20 || ca == 0x9 )
-					continue;
-				iterN += buffer.at(a);
-			}
-			
-			std::map<std::string, double> increments;
-			std::string tvar;
-			std::string tinc;
-			++a;
-			bool varside(true);
-			for(;a<blen;++a)
-			{
-				ca = buffer.at(a);
-				if( ca == ']')
-				{
-					if(PoDoFoImpose::vars.find(tvar) != PoDoFoImpose::vars.end())
-						increments.insert(std::pair<std::string, double>( tvar, std::atof(tinc.c_str())));
-					tvar.clear();
-					tinc.clear();
-					break;
-				}
-				else if(ca == 0x20 || ca == 0x9 )
-					continue;
-				else if(ca == ';')
-				{
-					if(PoDoFoImpose::vars.find(tvar) != PoDoFoImpose::vars.end())
-						increments.insert(std::pair<std::string, double>( tvar, std::atof(tinc.c_str())));
-					tvar.clear();
-					tinc.clear();
-					varside = true;
-				}
-				else if(ca == '+')
-				{
-					varside = false;
-					continue;
-				}
-				else
-				{
-					if(varside)
-						tvar += ca;
-					else
-						tinc += ca;
-				}
-			}
-			
-			int endOfloopBlock(numline + 1);
-			for(uint bolb2(numline + 1); bolb2 < memfile.size();++bolb2)
-			{
-				if(memfile.at ( bolb2 ).at( 0 ) == '@')
-					break;
-				else	
-					endOfloopBlock = bolb2 + 1;		
-			}
-			// Now we have all to loop, whoooooo!
-			int maxIter(PageRecord::calc(iterN));
-			for(int iter(0); iter < maxIter ; ++iter )
-			{
-				if(iter != 0)
-				{
-					// we set the vars
-					std::map<std::string, double>::iterator vit;
-					for(vit = increments.begin(); vit != increments.end() ; ++vit)
-					{
-						PoDoFoImpose::vars[vit->first] = dToStr( std::atof(PoDoFoImpose::vars[vit->first].c_str()) + vit->second );
-					}
-				}
-				for(int subi(numline + 1);subi < endOfloopBlock ; ++subi)
-				{
-// 					std::cerr<< subi <<"/"<< endOfloopBlock <<" - "<<memfile.at(subi) <<std::endl;
-					PageRecord p;
-					p.load ( memfile.at(subi) ) ;
-					if(!p.isValid() || p.sourcePage > pcount)
-					{
-// 						std::cerr<< "Error p("<<(p.isValid()?"valid":"invalid")<<") "<< p.sourcePage  <<std::endl;
-						continue;
-					}
-					maxPageDest = std::max ( maxPageDest, p.destPage );
-					if ( pagesIndex.find ( p.sourcePage ) != pagesIndex.end() )
-					{
-						xobjects[dup] = xobjects[ p.sourcePage ];
-						resources[dup] = resources[ p.sourcePage ];
-						trimRect[dup] = trimRect[ p.sourcePage ];
-						bleedRect[dup] = bleedRect[ p.sourcePage ];
-
-						p.sourcePage = dup;
-						++dup;
-					}
-					planImposition.push_back ( p );
-					pagesIndex[p.sourcePage] = planImposition.size() - 1;
-				}
-				
-			}
-			numline = endOfloopBlock;
-			
+			numline += sortLoop( memfile , numline  );
+// 			std::cerr<<"<< "<< memfile.at(numline) <<" >>"<<std::endl; 
 		}
 		else // Record? We hope!
 		{
@@ -764,13 +704,13 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 			maxPageDest = std::max ( maxPageDest, p.destPage );
 			if ( pagesIndex.find ( p.sourcePage ) != pagesIndex.end() )
 			{
-				xobjects[dup] = xobjects[ p.sourcePage ];
-				resources[dup] = resources[ p.sourcePage ];
-				trimRect[dup] = trimRect[ p.sourcePage ];
-				bleedRect[dup] = bleedRect[ p.sourcePage ];
+				xobjects[duplicate] = xobjects[ p.sourcePage ];
+				resources[duplicate] = resources[ p.sourcePage ];
+				trimRect[duplicate] = trimRect[ p.sourcePage ];
+				bleedRect[duplicate] = bleedRect[ p.sourcePage ];
 
-				p.sourcePage = dup;
-				++dup;
+				p.sourcePage = duplicate;
+				++duplicate;
 			}
 			planImposition.push_back ( p );
 			pagesIndex[p.sourcePage] = planImposition.size() - 1;
@@ -778,14 +718,19 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 		
 	}
 	
+// 	for(std::map<std::string,std::string>::iterator i(PoDoFoImpose::vars.begin());i != PoDoFoImpose::vars.end(); ++i)
+// 	{
+// 		std::cerr<<"VA "<< i->first << " => " << i->second<<std::endl;
+// 	}
+	
 	/// REQUIRED
 	if ( PoDoFoImpose::vars.find("$PageWidth") == PoDoFoImpose::vars.end() )
 		throw runtime_error ( "$PageWidth not set" );
 	if ( PoDoFoImpose::vars.find("$PageHeight") == PoDoFoImpose::vars.end() )
 		throw runtime_error ( "$PageHeight not set" );
 	
-	destWidth = atof( PoDoFoImpose::vars["$PageWidth"].c_str() );
-	destHeight = atof( PoDoFoImpose::vars["$PageHeight"].c_str() );
+	destWidth = PageRecord::calc( PoDoFoImpose::vars["$PageWidth"] );
+	destHeight = PageRecord::calc( PoDoFoImpose::vars["$PageHeight"] );
 	/// END OF REQUIRED
 	
 	/// SUPPORTED
@@ -798,6 +743,143 @@ void PdfTranslator::loadPlan ( const std::string & plan )
 	
 // 	std::cerr <<"Plan completed "<< planImposition.size() <<endl;
 	
+}
+
+int PdfTranslator::sortLoop(std::vector<std::string>& memfile, int numline)
+{
+// 	std::cerr<<"===================================== "<<numline<<std::endl;
+	//Debug
+// 	for(std::map<std::string, double>::iterator dit(localvars.begin());dit!=localvars.end();++dit)
+// 	{
+// 		std::cerr<<"R "<<dit->first<<" = "<<dit->second<<std::endl;
+// 	}
+	//
+	std::map<std::string,std::string> storedvars = PoDoFoImpose::vars;
+	int startAt(numline);
+	std::string buffer( memfile.at(numline) );
+	int blen = buffer.length();
+	std::string iterN;
+	int a(1);
+	char ca(0);
+	for(;a<blen;++a)
+	{
+		ca = buffer.at(a);
+		if(ca == '[')
+			break;
+		else if(ca == 0x20 || ca == 0x9 )
+			continue;
+		iterN += buffer.at(a);
+	}
+			
+	std::map<std::string, double> increments;
+	std::string tvar;
+	std::string tinc;
+	++a;
+	bool varside(true);
+	for(;a<blen;++a)
+	{
+		ca = buffer.at(a);
+// 		if(ca == 0x20 || ca == 0x9 )
+// 			continue;
+		if( (ca == ']') || (ca == ';') ) // time to commit
+		{
+			if(PoDoFoImpose::vars.find(tvar) != PoDoFoImpose::vars.end())
+			{
+// 				std::cerr<< "I " << tvar <<" = "<< tinc <<std::endl;
+				increments.insert(std::pair<std::string, double>( tvar, std::atof(tinc.c_str())));
+			}
+			tvar.clear();
+			tinc.clear();
+			if(ca == ';')
+				varside = true;
+			else
+				break;
+		}
+		else if(ca == '+')
+		{
+			varside = false;
+			continue;
+		}
+		else
+		{
+			if(varside)
+				tvar += ca;
+			else
+				tinc += ca;
+		}
+	}
+			
+	int endOfloopBlock(numline + 1);
+	int openLoop(0);
+	for(uint bolb2(numline + 1); bolb2 < memfile.size();++bolb2)
+	{
+// 		std::cerr<<"| "<< memfile.at ( bolb2 ) <<" |"<<std::endl;
+		if(memfile.at ( bolb2 ).at( 0 ) == '<')
+			++openLoop;
+		else if(memfile.at ( bolb2 ).at( 0 ) == '>')
+		{
+			if(openLoop == 0)
+				break;
+			else
+				--openLoop;
+		}
+		else	
+			endOfloopBlock = bolb2 + 1;		
+	}
+
+	int maxIter(PageRecord::calc(iterN));
+	for(int iter(0); iter < maxIter ; ++iter )
+	{
+		if(iter != 0)
+		{
+			// we set the vars
+			std::map<std::string, double>::iterator vit;
+			for(vit = increments.begin(); vit != increments.end() ; ++vit)
+			{
+				PoDoFoImpose::vars[vit->first] = dToStr( std::atof(PoDoFoImpose::vars[vit->first].c_str()) + vit->second );
+			}
+		}
+		for(int subi(numline + 1);subi < endOfloopBlock ; ++subi)
+		{
+// 					std::cerr<< subi <<"/"<< endOfloopBlock <<" - "<<memfile.at(subi) <<std::endl;
+			
+			if(memfile.at ( subi ).at( 0 ) == '<')
+			{
+				subi += sortLoop(memfile , subi);
+// 				std::cerr<< "||  "  << memfile.at ( subi )  <<std::endl;
+			}
+			else
+			{
+				PageRecord p;
+				p.load ( memfile.at(subi) ) ;
+				if(!p.isValid() || p.sourcePage > pcount)
+				{
+							std::cerr<< "Error p("<<(p.isValid()?"valid":"invalid")<<") "<< p.sourcePage  <<std::endl;
+					continue;
+				}
+				maxPageDest = std::max ( maxPageDest, p.destPage );
+				if ( pagesIndex.find ( p.sourcePage ) != pagesIndex.end() )
+				{
+					xobjects[duplicate] = xobjects[ p.sourcePage ];
+					resources[duplicate] = resources[ p.sourcePage ];
+					trimRect[duplicate] = trimRect[ p.sourcePage ];
+					bleedRect[duplicate] = bleedRect[ p.sourcePage ];
+	
+					p.sourcePage = duplicate;
+					++duplicate;
+				}
+				planImposition.push_back ( p );
+				pagesIndex[p.sourcePage] = planImposition.size() - 1;
+			}
+		}
+				
+	}
+// 	numline = endOfloopBlock;
+// 	std::cerr<<"EOL"<<std::endl;
+	int retvalue(endOfloopBlock - startAt + 1);
+	PoDoFoImpose::vars = storedvars;
+// 	std::cerr<<"------------------------------------- "<<retvalue<<std::endl;
+	return retvalue;
 }
 
 //returns the number of processed pages.
