@@ -254,7 +254,7 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
     {
         if (*itGlyphIndice > m_numGlyphs)
         {
-            m_vGlyphIndice.erase(itGlyphIndice);
+            itGlyphIndice = m_vGlyphIndice.erase(itGlyphIndice);
         }
         else
         {
@@ -318,7 +318,7 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
         //Deal with the composite glyphs:
         //Sometimes glyph A will use glyph B, so glyph B must be embeded also, but whether glyph B is using another glyph has not been taken into account.
         std::vector<unsigned short> vGlyphIndice = m_vGlyphIndice;		//Temp vGlyphIndice.
-        for ( i = 0; i < vGlyphIndice.size(); i++)
+        for ( i = 0; i < static_cast<long>(vGlyphIndice.size()); i++)
         {
             gd.glyphIndex = vGlyphIndice[i];
             GetData(  ulLocaTableOffset+__LENGTH_DWORD*gd.glyphIndex,&gd.glyphOldAddress,__LENGTH_DWORD);
@@ -333,17 +333,45 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
             }
             else
             {
+                unsigned long lOffset = ulGlyfTableOffset+gd.glyphOldAddress+10;
+                const int ARG_1_AND_2_ARE_WORDS = 0x01;
+                const int MORE_COMPONENTS       = 0x20;
+                unsigned short flags;
+                unsigned short glyphIndex;
+                do {
+                    GetData(  lOffset, &flags,__LENGTH_WORD);
+                    lOffset += __LENGTH_WORD;
+                    GetData(  lOffset, &glyphIndex,__LENGTH_WORD);
+                    lOffset += __LENGTH_WORD;
+                    
+                    flags = Big2Little( flags );
+                    if( flags & ARG_1_AND_2_ARE_WORDS) 
+                    {
+                        // Skip two args
+                        lOffset += (2*__LENGTH_WORD);
+                    }
+                    else 
+                    {
+                        // Skip one arg
+                        lOffset += __LENGTH_WORD;
+                    }
+                    
+                    glyphIndex = Big2Little( glyphIndex );
+                    this->AddGlyph( glyphIndex );
+                } while ( flags & MORE_COMPONENTS );
+                /*
                 unsigned short usNewGlyphIndex;
                 GetData(  ulGlyfTableOffset+gd.glyphOldAddress+12,&usNewGlyphIndex,__LENGTH_WORD);
                 usNewGlyphIndex = Big2Little(usNewGlyphIndex);
 
                 this->AddGlyph( usNewGlyphIndex );
+                */
             }
         }
 
 	
         // Let us assume that the first glyphindex in the vector is always 0:
-        for ( i = 0; i < m_vGlyphIndice.size(); i++)
+        for ( i = 0; i < static_cast<long>(m_vGlyphIndice.size()); i++)
         {
             gd.glyphIndex = m_vGlyphIndice[i];
             GetData( ulLocaTableOffset+__LENGTH_DWORD*gd.glyphIndex,&gd.glyphOldAddress,__LENGTH_DWORD);
@@ -361,7 +389,7 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
         gd.glyphLength = ulNextGlyphAddress-gd.glyphOldAddress;
         vGD.push_back(gd);
         vGD[0].glyphNewAddress = 0x0;
-        for ( i = 1; i < vGD.size(); i++)
+        for ( i = 1; i < static_cast<long>(vGD.size()); i++)
         {
             vGD[i].glyphNewAddress = vGD[i-1].glyphNewAddress+vGD[i-1].glyphLength;
         }
@@ -484,7 +512,7 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
 	    
         }
         //Writing the last table, glyf:
-        for ( i = 0; i < vGD.size(); i++)
+        for ( i = 0; i < static_cast<long>(vGD.size()); i++)
         {
             buf = new unsigned char[vGD[i].glyphLength];
             GetData( ulGlyfTableOffset+vGD[i].glyphOldAddress,buf,vGD[i].glyphLength);
@@ -502,7 +530,7 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
         //Deal with the composite glyphs:
         //Temp vGlyphIndice:
         std::vector<unsigned short> vGlyphIndice = m_vGlyphIndice;
-        for ( i = 0; i < vGlyphIndice.size(); i++)
+        for ( i = 0; i < static_cast<long>(vGlyphIndice.size()); i++)
         {
             gd.glyphIndex = vGlyphIndice[i];
             GetData(  ulLocaTableOffset+__LENGTH_WORD*gd.glyphIndex,&gd.glyphOldAddress,__LENGTH_WORD);
@@ -526,7 +554,7 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
         }
 
         //Let us assume that the first glyphindex in the vector is always 0:
-        for ( i = 0; i < m_vGlyphIndice.size(); i++)
+        for ( i = 0; i < static_cast<long>(m_vGlyphIndice.size()); i++)
         {
             gd.glyphIndex = m_vGlyphIndice[i];
             GetData( ulLocaTableOffset+__LENGTH_WORD*gd.glyphIndex,&gd.glyphOldAddress,__LENGTH_WORD);
@@ -548,7 +576,7 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
         vsGD.push_back(gd);
         vsGD[0].glyphNewAddress = 0x0;
         vsGD[0].glyphNewAddressLong = 0x0;
-        for ( i = 1; i < vsGD.size(); i++)
+        for ( i = 1; i < static_cast<long>(vsGD.size()); i++)
         {
             vsGD[i].glyphNewAddressLong = vsGD[i-1].glyphNewAddressLong+vsGD[i-1].glyphLength;
             vsGD[i].glyphNewAddress = static_cast<unsigned short>(vsGD[i].glyphNewAddressLong/2);
@@ -670,7 +698,7 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
 	    
         }
         //Writing the last table, glyf:
-        for ( i = 0; i < vsGD.size(); i++)
+        for ( i = 0; i < static_cast<long>(vsGD.size()); i++)
         {
             buf = new unsigned char[vsGD[i].glyphLength];
             GetData( ulGlyfTableOffset+vsGD[i].glyphOldAddressLong,buf,vsGD[i].glyphLength);

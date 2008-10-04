@@ -53,6 +53,9 @@
 
 namespace PoDoFo {
 
+static const long clPainterHighPrecision    = 15L;
+static const long clPainterDefaultPrecision = 3L;
+
 struct TLineElement 
 {
 	TLineElement()
@@ -78,7 +81,7 @@ PdfPainter::PdfPainter()
   m_curColor1( 0.0 ), m_curColor2( 0.0 ), m_curColor3( 0.0 ), m_curColor4( 0.0 )
 {
     m_oss.flags( std::ios_base::fixed );
-    m_oss.precision( 3 );
+    m_oss.precision( clPainterDefaultPrecision );
     PdfLocaleImbue(m_oss);
 
     lpx  = 
@@ -796,6 +799,7 @@ void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double 
     // already and is not in memory anymore in this case.
     this->AddToPageResources( pObject->GetIdentifier(), pObject->GetObjectReference(), "XObject" );
 
+	std::streamsize oldPrecision = m_oss.precision(clPainterHighPrecision);
     m_oss.str("");
     m_oss << "q" << std::endl
           << dScaleX << " 0 0 "
@@ -803,6 +807,7 @@ void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double 
           << dX << " " 
           << dY << " cm" << std::endl
           << "/" << pObject->GetIdentifier().GetName() << " Do" << std::endl << "Q" << std::endl;
+	m_oss.precision(oldPrecision);
     
     m_pCanvas->Append( m_oss.str() );
 }
@@ -1141,6 +1146,8 @@ void PdfPainter::SetTransformationMatrix( double a, double b, double c, double d
 {
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
+	// Need more precision for transformation-matrix !!
+	std::streamsize oldPrecision = m_oss.precision(clPainterHighPrecision);
     m_oss.str("");
     m_oss << a << " "
           << b << " "
@@ -1148,6 +1155,7 @@ void PdfPainter::SetTransformationMatrix( double a, double b, double c, double d
           << d << " "
           << e << " "
           << f << " cm" << std::endl;
+	m_oss.precision(oldPrecision);
 
     m_pCanvas->Append( m_oss.str() );
 }
