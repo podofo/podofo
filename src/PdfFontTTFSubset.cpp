@@ -24,10 +24,10 @@
 #include "PdfOutputDevice.h"
 
 #include <iostream>
-#include <string.h>
+#include <algorithm>
+#include <cstring>
 
 #ifdef _WIN32
-#include <string.h>
 #define strcasecmp _stricmp
 #endif // _WIN32
 
