@@ -23,7 +23,7 @@
 #include "PdfEncoding.h"
 #include "PdfDifferenceEncoding.h"
 #include "PdfFont.h"
-#include "PdfMutexWrapper.h"
+#include "util/PdfMutexWrapper.h"
 #include "PdfName.h"
 #include "PdfObject.h"
 

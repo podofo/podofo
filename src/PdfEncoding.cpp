@@ -24,7 +24,7 @@
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
 #include "PdfLocale.h"
-#include "PdfMutexWrapper.h"
+#include "util/PdfMutexWrapper.h"
 
 #include <stdlib.h>
 #include <string.h>

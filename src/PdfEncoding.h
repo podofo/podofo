@@ -25,7 +25,7 @@
 #include "PdfElement.h"
 #include "PdfName.h"
 #include "PdfString.h"
-#include "PdfMutex.h"
+#include "util/PdfMutex.h"
 
 #include <iterator>
 

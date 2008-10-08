@@ -22,7 +22,7 @@
 #define _PDF_ENCODING_FACTORY_H_
 
 #include "PdfDefines.h"
-#include "PdfMutex.h"
+#include "util/PdfMutex.h"
 
 namespace PoDoFo {
 
