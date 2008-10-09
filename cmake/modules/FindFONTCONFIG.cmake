@@ -10,6 +10,7 @@
 # Redistribution and use is allowed according to the terms of the BSD license.
 # For details see the accompanying COPYING-CMAKE-SCRIPTS file.
 
+FIND_PACKAGE(PkgConfig)
 
 if (FONTCONFIG_LIBRARIES AND FONTCONFIG_INCLUDE_DIR)
 
@@ -18,25 +19,22 @@ if (FONTCONFIG_LIBRARIES AND FONTCONFIG_INCLUDE_DIR)
 
 else (FONTCONFIG_LIBRARIES AND FONTCONFIG_INCLUDE_DIR)
 
-  if (NOT WIN32)
+  if (PKG_CONFIG_FOUND)
     # use pkg-config to get the directories and then use these values
     # in the FIND_PATH() and FIND_LIBRARY() calls
-    include(UsePkgConfig)
-
-    pkgconfig(fontconfig _FONTCONFIGIncDir _FONTCONFIGLinkDir _FONTCONFIGLinkFlags _FONTCONFIGCflags)
-
-    set(FONTCONFIG_DEFINITIONS ${_FONTCONFIGCflags} CACHE INTERNAL "The compilation flags for fontconfig")
-  endif (NOT WIN32)
+    pkg_check_modules(FONTCONFIG fontconfig)
+    set(FONTCONFIG_DEFINITIONS ${FONTCONFIG_CFLAGS} CACHE INTERNAL "The compilation flags for fontconfig")
+  endif (PKG_CONFIG_FOUND)
 
   find_path(FONTCONFIG_INCLUDE_DIR fontconfig/fontconfig.h
     PATHS
-    ${_FONTCONFIGIncDir}
+    ${FONTCONFIG_INCLUDE_DIRS}
     /usr/X11/include
   )
 
   find_library(FONTCONFIG_LIBRARIES NAMES fontconfig
     PATHS
-    ${_FONTCONFIGLinkDir}
+    ${FONTCONFIG_LIBRARY_DIRS}
   )
 
   include(PoDoFoFindPackageHandleStandardArgs)

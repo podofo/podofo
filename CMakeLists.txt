@@ -270,6 +270,17 @@ ELSE(DEFINED JPEG_RUNTIME_COMPATIBLE)
 	ENDIF(NOT WIN32)
 ENDIF(DEFINED JPEG_RUNTIME_COMPATIBLE)
 
+FIND_PACKAGE(LUA)
+IF(LUA_FOUND)
+	# If we have lua, we can build podofoimpose.
+	MESSAGE("Lua found - PoDoFoImpose will be built with Lua support")
+	INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
+	ADD_DEFINITIONS(-DHAVE_LUA)
+ELSE(LUA_FOUND)
+	MESSAGE("Lua not found - PoDoFoImpose will be built without Lua support")
+ENDIF(LUA_FOUND)
+
+
 # Check if we should build a multithreaded version of PODOFO
 IF(DEFINED PODOFO_NO_MULTITHREAD)
   MESSAGE("Building non multithreaded version of PoDoFo.")
