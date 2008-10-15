@@ -371,12 +371,20 @@ sv.PageWidth = sourceWidth;
 			{
 				groups[ ( *planImposition ) [i].destPage].push_back ( ( *planImposition ) [i] );
 			}
-
+			
+			unsigned int lastPlate(0);
 			groups_t::const_iterator  git = groups.begin();
 			const groups_t::const_iterator gitEnd = groups.end();
 			while ( git != gitEnd )
 			{
-				PdfPage * newpage = targetDoc->CreatePage ( PdfRect ( 0.0, 0.0, destWidth, destHeight ) );
+				PdfPage * newpage;
+				// Allow "holes" in dest. pages sequence.
+				unsigned int curPlate(git->first);
+				while(lastPlate != curPlate)
+				{
+					newpage = targetDoc->CreatePage ( PdfRect ( 0.0, 0.0, destWidth, destHeight ) );
+					++lastPlate;
+				}
 // 		newpage->GetObject()->GetDictionary().AddKey ( PdfName ( "TrimBox" ), trimbox );
 				PdfDictionary xdict;
 
@@ -384,9 +392,9 @@ sv.PageWidth = sourceWidth;
 				// Scale
 				buffer << std::fixed << scaleFactor <<" 0 0 "<< scaleFactor <<" 0 0 cm\n";
 
-				for ( unsigned int i = 0; i < ( *git ).second.size(); ++i )
+				for ( unsigned int i = 0; i < git->second.size(); ++i )
 				{
-					PageRecord curRecord ( ( *git ).second[i] );
+					PageRecord curRecord ( git->second[i] );
 // 					std::cerr<<curRecord.sourcePage<< " " << curRecord.destPage<<std::endl;
 					if(curRecord.sourcePage <= pcount)
 					{
