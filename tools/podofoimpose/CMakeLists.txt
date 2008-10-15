@@ -1,20 +1,51 @@
-SET(PODOFOIMPOSE_SOURCES charpainter.cpp pdftranslator.cpp podofoimpose.cpp)
+# PoDoFoImpose
 
-# Add extra sources for Lua-specific code; guard includes of associated
-# headers with:
-#  #if defined(HAVE_LUA)
-# in c++ code.
-#
-#SET(PODOFOIMPOSE_EXTRA_LIBS)
-#IF(LUA_FOUND)
-#	SET(PODOFOIMPOSE_SOURCES ${PODOFOIMPOSE_SOURCES} luaplan.cpp)
-#       SET(PODOFOIMPOSE_EXTRA_LIBS ${LUA_LIBRARIES})
-#	# note that -DHAVE_LUA will also be set
-#ENDIF(LUA_FOUND)
+FIND_PACKAGE(Lua51)
+IF(LUA51_FOUND)
+	ADD_DEFINITIONS(-DHAVE_LUA)
+	SET(Lua_Reader planreader_lua.cpp)
+	MESSAGE(STATUS "Build with Lua support (51)")
+ELSE(LUA51_FOUND)
+	FIND_PACKAGE(Lua50)
+	IF(LUA50_FOUND)
+		ADD_DEFINITIONS(-DHAVE_LUA)
+		SET(Lua_Reader planreader_lua.cpp)
+		MESSAGE(STATUS "Build with Lua support (50)")
+	ENDIF(LUA50_FOUND)
+ENDIF(LUA51_FOUND)
 
-ADD_EXECUTABLE(podofoimpose ${PODOFOIMPOSE_SOURCES})
-TARGET_LINK_LIBRARIES(podofoimpose ${PODOFO_LIB} ${PODOFOIMPOSE_EXTRA_LIBS})
+
+SET(impose_extra_libs
+${LUA_LIBRARIES}
+)
+
+INCLUDE_DIRECTORIES(
+${LUA_INCLUDE_DIR}
+)
+
+SET(plan_readers 
+planreader_legacy.cpp
+${Lua_Reader}
+)
+
+
+SET(impose_srcs
+podofoimpose.cpp
+pdftranslator.cpp
+impositionplan.cpp
+${plan_readers}
+)
+
+ADD_EXECUTABLE(podofoimpose  ${impose_srcs} )
+
+TARGET_LINK_LIBRARIES(podofoimpose 
+${PODOFO_LIB}
+${impose_extra_libs}
+)
+
 SET_TARGET_PROPERTIES(podofoimpose PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
+
 ADD_DEPENDENCIES(podofoimpose ${PODOFO_DEPEND_TARGET})
+
 INSTALL(TARGETS podofoimpose
 	RUNTIME DESTINATION "bin")

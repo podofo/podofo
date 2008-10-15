@@ -21,6 +21,7 @@
 #define PDFTRANSLATOR_H
 
 #include "podofo.h"
+#include "impositionplan.h"
 
 #include <string>
 #include <map>
@@ -30,30 +31,13 @@
 
 
 
-using namespace PoDoFo;
+// using namespace PoDoFo;
 
-/**
-  @author Pierre Marchand <pierre@moulindetouvois.com>
-  */
-class PageRecord
+namespace PoDoFo
 {
-	public:
-		PageRecord ( int s,int d,double r, double tx, double ty  );
-		PageRecord( );
-		~PageRecord() {};
-		int sourcePage;
-		int xobjIndex;
-		int destPage;
-		double rotate;
-		double transX;
-		double transY;
-		bool isValid() const;
-		static double calc ( const std::string& s );
-		static double calc ( const std::vector<std::string>& t );
-		void load ( const std::string& s );
-};
-
-
+	namespace Impose
+	{
+		
 /**
 PdfTranslator create a new PDF file which is the imposed version, following the imposition
 plan provided by the user, of the source PDF file.
@@ -72,9 +56,6 @@ p->mailItToMyPrinterShop("job@proprint.com");//Would be great, doesn't it ?
 class PdfTranslator
 {
 	public:
-		/**
-		Constructor takes just  1 arg, the sheet margin expressed in point.
-		*/
 		PdfTranslator();
 
 		~PdfTranslator() { }
@@ -105,16 +86,8 @@ class PdfTranslator
 		sourcePage destPage rotation translationX translationY
 		...        ...      ...      ...          ...
 		*/
-		void loadPlan ( const std::string & plan );
-
-		/**
-		An experimental method (don't use it) intended to perform basic imposition such In-n.
-		Well known plans are : in-folio = 2; in-quatro = 4; etc. But for now, there is just in-4 (feel free to write support for more plans!).
-		Later there will be a way to know what plans are available.
-		sheets per booklet is sheets per booklet
-		*/
-		void computePlan ( int wellKnownPlan, int sheetsPerBooklet );
-
+		void loadPlan ( const std::string & planFile , PoDoFo::Impose::PlanReader loader );
+		
 		/**
 		When all is prepared, call it to do the job.
 		*/
@@ -123,24 +96,18 @@ class PdfTranslator
 	private:
 		std::string inFilePath;
 		std::string outFilePath;
-		int pcount;
 
 		PdfReference globalResRef;
-
-		std::vector<PageRecord> planImposition;
-		std::map<int, int> pagesIndex;
+		
+		ImpositionPlan *planImposition;
+		
 		std::map<int, PdfXObject*> xobjects;
 		std::map<int,PdfObject*> resources;
 		std::map<int, PdfRect> trimRect;
 		std::map<int,PdfRect> bleedRect;
 		std::map<int, PdfDictionary*> pDict;
 		std::map<int, int> virtualMap;
-		double sourceWidth;
-		double sourceHeight;
-		double destWidth;
-		double destHeight;
-		double scaleFactor;
-		int maxPageDest;
+// 		int maxPageDest;
 		int duplicate;
 
 		bool checkIsPDF ( std::string path );
@@ -149,7 +116,6 @@ class PdfTranslator
 		PdfObject* migrateResource(PdfObject * obj);
 		void drawLine ( double x, double y, double xx, double yy, std::ostringstream & a );
 		void signature ( double x , double y, int sheet, const std::vector<int> & pages, std::ostringstream & a );
-		int pageRange ( int plan, int sheet , int pagesInBooklet, int numBooklet ); // much more a macro !
 		
 		// An attempt to allow nested loops
 		// returns new position in records list.
@@ -162,8 +128,16 @@ class PdfTranslator
 		std::vector<std::string> multiSource;
 		
 		std::map<std::string, PdfObject*> migrateMap;
+	public:
+		int pcount;
+		double sourceWidth;
+		double sourceHeight;
+		double destWidth;
+		double destHeight;
+		double scaleFactor;
 
 
 };
 
+	};}; // end of namespace
 #endif
