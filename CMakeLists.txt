@@ -141,7 +141,6 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
         -Wall
         -Woverloaded-virtual
         -Wswitch-enum
-        -Wfloat-equal
         -Wcast-qual
         -Wwrite-strings
         -Wredundant-decls

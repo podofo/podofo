@@ -15,7 +15,10 @@
 #include <stdexcept>
 #include <iostream>
 
-#include "lua.hpp"
+// Note: this is *not* lua.hpp shipped with lua 5.1, it's a wrapper
+// header we use to handle version differences between lua 5.1 and lua
+// 5.0 .
+#include "lua_compat.h"
 
 LuaMachina::LuaMachina()
 {
@@ -92,7 +95,8 @@ PlanReader_Lua::PlanReader_Lua(const std::string & planfile, PoDoFo::Impose::Imp
 	setNumber("SourceWidth", plan->sourceVars.PageWidth );
 	setNumber("SourceHeight", plan->sourceVars.PageHeight);
 	
-	if(luaL_dofile(L.State(), planfile.c_str()))
+	// imp_loa_dofile is a wrapper around luaL_dofile for Lua 5.0/5.1 compat.
+	if(imp_lua_dofile(L.State(), planfile.c_str()))
 	{
 		std::cerr<<"Unable to process Lua script:\"" <<lua_tostring(L.State(), -1)<<"\""<<std::endl ;
 	}
