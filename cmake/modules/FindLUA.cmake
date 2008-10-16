@@ -9,8 +9,6 @@
 #
 # TODO: Update this code to handle debug/release builds on win32.
 
-FIND_PACKAGE(PkgConfig)
-
 if (LUA_LIBRARIES AND LUA_INCLUDE_DIR)
 
   # in cache already
@@ -18,7 +16,9 @@ if (LUA_LIBRARIES AND LUA_INCLUDE_DIR)
 
 else (LUA_LIBRARIES AND LUA_INCLUDE_DIR)
 
-  if (PKG_CONFIG_FOUND)
+IF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} LESS 2.6)
+FIND_PACKAGE(PkgConfig)
+if (PKG_CONFIG_FOUND)
     # use pkg-config to get the directories and then use these values
     # in the FIND_PATH() and FIND_LIBRARY() calls
     pkg_check_modules(LUA51 lua5.1)
@@ -26,12 +26,18 @@ else (LUA_LIBRARIES AND LUA_INCLUDE_DIR)
     # If we can't find Lua 5.1, try for Lua 5.0
     # TODO: set compile flag for lua version
     IF(NOT LUA51_FOUND)
+    	MESSAGE(STATUS "No Lua 5.1, searching 5.0 now")
         pkg_check_modules(LUA50 lua50)
         pkg_check_modules(LUALIB50 lualib50)
     ENDIF(NOT LUA51_FOUND)
-
-  endif (PKG_CONFIG_FOUND)
-
+endif (PKG_CONFIG_FOUND)
+ELSE(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} LESS 2.6)
+	FIND_PACKAGE(Lua51)
+	IF(NOT LUA51_FOUND)
+		FIND_PACKAGE(Lua50) 
+	# 	from cmake2.6 doc "LUA_LIBRARIES, both lua and lualib"
+	ENDIF(NOT LUA51_FOUND)
+ENDIF(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} LESS 2.6)
 
   find_library(LUA_LIBRARIES NAMES lua5.1
     PATHS
