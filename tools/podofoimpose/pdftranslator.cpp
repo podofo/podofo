@@ -341,10 +341,12 @@ sv.PageWidth = sourceWidth;
 			{
 				PlanReader_Legacy ( planFile, planImposition );
 			}
+#if defined(HAVE_LUA)
 			else if ( loader == PoDoFo::Impose::Lua )
 			{
 				PlanReader_Lua ( planFile, planImposition );
 			}
+#endif
 
 			if ( !planImposition->valid() )
 				throw std::runtime_error ( "Unable to build a valid imposition plan" );
