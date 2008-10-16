@@ -13,17 +13,11 @@
 #ifndef PLANREADERLUA_H
 #define PLANREADERLUA_H
 
-			 
 #include "impositionplan.h"
 
-extern "C"
-{
-#include "lua.h"
-#include "lualib.h"
-#include "lauxlib.h"
-}
-
 #include <string>
+
+struct lua_State;
 
 class LuaMachina
 {
@@ -36,14 +30,14 @@ class LuaMachina
 		{
 			return L;
 		}
-		
 };
-
 
 // could be best to have a base class but we wont develop 36000
 // readers after all.
 class PlanReader_Lua
 {
+		LuaMachina L;
+
 	public:
 		PlanReader_Lua(const std::string & planfile, PoDoFo::Impose::ImpositionPlan* ip);
 		~PlanReader_Lua();
@@ -51,8 +45,6 @@ class PlanReader_Lua
 		static int PushRecord(lua_State *L);
 		
 	private:
-		
-		LuaMachina *L;
 		PoDoFo::Impose::ImpositionPlan* plan;
 		
 		/** Ask if a variable is available in script global scope */

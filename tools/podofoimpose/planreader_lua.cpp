@@ -15,6 +15,8 @@
 #include <stdexcept>
 #include <iostream>
 
+#include "lua.hpp"
+
 LuaMachina::LuaMachina()
 {
 // 	std::cerr<<"LuaMachina::LuaMachina"<<std::endl;
@@ -78,22 +80,21 @@ LuaMachina::~LuaMachina()
 PlanReader_Lua::PlanReader_Lua(const std::string & planfile, PoDoFo::Impose::ImpositionPlan * ip)
 {
 // 	std::cerr<<"PlanReader_Lua::PlanReader_Lua "<< planfile <<std::endl;
-	L = new LuaMachina;
 	plan = ip;
 	
-	lua_pushcfunction(L->State(), &PlanReader_Lua::PushRecord);
-	lua_setglobal(L->State(), "PushRecord");
+	lua_pushcfunction(L.State(), &PlanReader_Lua::PushRecord);
+	lua_setglobal(L.State(), "PushRecord");
 	
-	lua_pushlightuserdata(L->State(), static_cast<void*>(this));
-	lua_setglobal(L->State(), "This"); 
+	lua_pushlightuserdata(L.State(), static_cast<void*>(this));
+	lua_setglobal(L.State(), "This"); 
 	
 	setNumber("PageCount", plan->sourceVars.PageCount);
 	setNumber("SourceWidth", plan->sourceVars.PageWidth );
 	setNumber("SourceHeight", plan->sourceVars.PageHeight);
 	
-	if(luaL_dofile(L->State(), planfile.c_str()))
+	if(luaL_dofile(L.State(), planfile.c_str()))
 	{
-		std::cerr<<"Unable to process Lua script:\"" <<lua_tostring(L->State(), -1)<<"\""<<std::endl ;
+		std::cerr<<"Unable to process Lua script:\"" <<lua_tostring(L.State(), -1)<<"\""<<std::endl ;
 	}
 	else // if not reached, the plan remains invalid
 	{
@@ -108,11 +109,7 @@ PlanReader_Lua::PlanReader_Lua(const std::string & planfile, PoDoFo::Impose::Imp
 }
 
 PlanReader_Lua::~ PlanReader_Lua()
-{
-// 	std::cerr<<"PlanReader_Lua::~ PlanReader_Lua"<<std::endl;
-	if(L)
-		delete L;
-}
+{ }
 
 int PlanReader_Lua::PushRecord ( lua_State * L )
 {
@@ -154,32 +151,32 @@ int PlanReader_Lua::PushRecord ( lua_State * L )
 
 double PlanReader_Lua::getNumber(const std::string & name)
 {
-	lua_getglobal(L->State(), name.c_str());
-	if (!lua_isnumber(L->State(), -1))
+	lua_getglobal(L.State(), name.c_str());
+	if (!lua_isnumber(L.State(), -1))
 	{
 		std::string errString = name + " is non-number";
 		throw std::runtime_error(errString.c_str());
 	}
-	double d = lua_tonumber(L->State(), -1);
-	lua_pop(L->State(), 1);
+	double d = lua_tonumber(L.State(), -1);
+	lua_pop(L.State(), 1);
 	return d;
 }
 
 void PlanReader_Lua::setNumber(const std::string & name, double value)
 {
-	lua_pushnumber(L->State(), value);
-	lua_setglobal(L->State(), name.c_str()); /* pops stack */
+	lua_pushnumber(L.State(), value);
+	lua_setglobal(L.State(), name.c_str()); /* pops stack */
 }
 
 bool PlanReader_Lua::hasGlobal(const std::string & name)
 {
 	bool ret(true);
-	lua_getglobal(L->State(), name.c_str());
-	if(lua_isnil(L->State(), -1) > 0)
+	lua_getglobal(L.State(), name.c_str());
+	if(lua_isnil(L.State(), -1) > 0)
 	{
 		ret = false;
 	}
-	lua_pop(L->State(), 1);
+	lua_pop(L.State(), 1);
 	return ret;
 }
 
