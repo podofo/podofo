@@ -314,7 +314,7 @@ void PdfPage::DeleteAnnotation( const PdfReference & ref )
     }
 
     it = pObj->GetArray().begin();
-    while( it != pObj->GetArray().begin() ) 
+    while( it != pObj->GetArray().end() ) 
     {
         if( (*it).GetReference() == ref ) 
         {
