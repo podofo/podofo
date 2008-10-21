@@ -119,6 +119,7 @@ void testUnicode()
     const long lUtf8BufferLenUsed =
         PdfString::ConvertUTF16toUTF8( unicode.GetUnicode(), unicode.GetUnicodeLength(), 
                                        pUtf8Buffer, lUtf8BufferLen  );
+    PODOFO_UNUSED( lUtf8BufferLenUsed );
     printf("Utf8: %s\n", pUtf8Buffer );
 
 

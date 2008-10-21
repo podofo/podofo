@@ -413,6 +413,14 @@ static const char s_cDelimiters[] = {
  */
 #define PDF_MIN(x,y) ((x)<(y)?(x):(y))
 
+/**
+ * \def PODOFO_UNUSED( x )
+ * Make a certain variable to be unused
+ * in the code, without getting a compiler
+ * warning.
+ */
+#define PODOFO_UNUSED( x )
+
 /*
 	This is needed to enable compilation with VC++ on Windows
 */

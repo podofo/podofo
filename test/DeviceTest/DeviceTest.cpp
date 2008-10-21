@@ -44,7 +44,7 @@ void RefCountedBufferTest()
     stream1.Close();
     if( buffer1.GetSize() != lLen ) 
     {
-        fprintf( stderr, "Buffer size does not match! Size=%i should be %i\n", buffer1.GetSize(), lLen );
+        fprintf( stderr, "Buffer size does not match! Size=%li should be %li\n", buffer1.GetSize(), lLen );
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
     
@@ -59,7 +59,7 @@ void RefCountedBufferTest()
     buffer2 = buffer1;
     if( buffer1.GetSize() != buffer2.GetSize() ) 
     {
-        fprintf( stderr, "Buffer sizes does not match! Size1=%i Size2=%i\n", buffer1.GetSize(), buffer2.GetSize() );
+        fprintf( stderr, "Buffer sizes does not match! Size1=%li Size2=%li\n", buffer1.GetSize(), buffer2.GetSize() );
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 
@@ -76,7 +76,7 @@ void RefCountedBufferTest()
     stream.Close();
     if( buffer2.GetSize() != lLen * 2 ) 
     {
-        fprintf( stderr, "Buffer size after detach does not match! Size=%i should be %i\n", buffer2.GetSize(), lLen * 2 );
+        fprintf( stderr, "Buffer size after detach does not match! Size=%li should be %li\n", buffer2.GetSize(), lLen * 2 );
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 
@@ -102,7 +102,7 @@ void RefCountedBufferTest()
 
     if( buffer1.GetSize() != (lLen * 100 + lLen) ) 
     {
-        fprintf( stderr, "Buffer1 size is wrong after 100 attaches: %i\n", buffer1.GetSize() );
+        fprintf( stderr, "Buffer1 size is wrong after 100 attaches: %li\n", buffer1.GetSize() );
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
     
@@ -110,6 +110,8 @@ void RefCountedBufferTest()
 
 int main( int argc, char* argv[] )
 {
+    PODOFO_UNUSED( argv );
+
     printf("Device Test\n");
     printf("==============\n");
 

@@ -448,6 +448,11 @@ void PdfPagesTree::DeletePage( int inPageNumber )
         thePageObj = theParentPagesDict ;
         isPageALeaf = false ;
     }
+
+    // Delete PdfPage object
+    // from deque
+    delete m_deqPageObjs[inPageNumber];
+    m_deqPageObjs.erase( m_deqPageObjs.begin() + inPageNumber );
 }
 
 };

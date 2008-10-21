@@ -111,9 +111,11 @@ class PODOFO_API PdfPagesTree : public PdfElement
     PdfPage* CreatePage( const PdfRect & rSize );
     
     /**  Delete the specified page object from the internal pages tree.
-     *    It does NOT remove anything from memory - just the reference from the tree
+     *   It does NOT remove any PdfObjects from memory - just the reference from the tree
      *
-     *  \param inPageNumber the page number (0-based) to be removed
+     *   \param inPageNumber the page number (0-based) to be removed
+     *
+     *   The PdfPage object refering to this page will be deleted by this call!
      */
     void DeletePage( int inPageNumber );
 
