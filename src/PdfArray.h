@@ -41,12 +41,14 @@ namespace PoDoFo {
  *
  *  \see PdfVariant
  */
-class PODOFO_API PdfArray : private std::vector<PdfObject>, public PdfDataType {
+typedef std::vector<PdfObject> PdfArrayBaseClass;
+
+class PODOFO_API PdfArray : private PdfArrayBaseClass, public PdfDataType {
  public:
-    typedef std::vector<PdfObject>::iterator               iterator;
-    typedef std::vector<PdfObject>::const_iterator         const_iterator;
-    typedef std::vector<PdfObject>::reverse_iterator       reverse_iterator;
-    typedef std::vector<PdfObject>::const_reverse_iterator const_reverse_iterator;
+    typedef PdfArrayBaseClass::iterator               iterator;
+    typedef PdfArrayBaseClass::const_iterator         const_iterator;
+    typedef PdfArrayBaseClass::reverse_iterator       reverse_iterator;
+    typedef PdfArrayBaseClass::const_reverse_iterator const_reverse_iterator;
 
     /** Create an empty array 
      */
@@ -179,10 +181,16 @@ class PODOFO_API PdfArray : private std::vector<PdfObject>, public PdfDataType {
      */
     inline const_reverse_iterator rend() const;
 
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200		// workaround template-error in Visualstudio 6
+    inline void insert(iterator __position, 
+					   iterator __first,
+					   iterator __last);
+#else
     template<typename _InputIterator> 
         void insert(iterator __position, 
                     _InputIterator __first,
                     _InputIterator __last);
+#endif
 
     inline PdfArray::iterator insert(iterator __position, const PdfObject & val );
 
@@ -266,7 +274,7 @@ size_t PdfArray::GetSize() const
 // -----------------------------------------------------
 void PdfArray::push_back( const PdfObject & var )
 {
-    std::vector<PdfObject>::push_back( var );
+    PdfArrayBaseClass::push_back( var );
     m_bDirty = true;
 }
 
@@ -275,7 +283,7 @@ void PdfArray::push_back( const PdfObject & var )
 // -----------------------------------------------------
 size_t PdfArray::size() const
 {
-    return std::vector<PdfObject>::size();
+    return PdfArrayBaseClass::size();
 }
 
 // -----------------------------------------------------
@@ -283,7 +291,7 @@ size_t PdfArray::size() const
 // -----------------------------------------------------
 bool PdfArray::empty() const
 {
-    return std::vector<PdfObject>::empty();
+    return PdfArrayBaseClass::empty();
 }
 
 // -----------------------------------------------------
@@ -292,7 +300,7 @@ bool PdfArray::empty() const
 PdfObject& PdfArray::operator[](size_type __n)
 {
     m_bDirty = true;
-    return std::vector<PdfObject>::operator[](__n);
+    return PdfArrayBaseClass::operator[](__n);
 }
 
 // -----------------------------------------------------
@@ -300,7 +308,7 @@ PdfObject& PdfArray::operator[](size_type __n)
 // -----------------------------------------------------
 const PdfObject& PdfArray::operator[](size_type __n) const
 {
-    return std::vector<PdfObject>::operator[](__n);
+    return PdfArrayBaseClass::operator[](__n);
 }
 
 // -----------------------------------------------------
@@ -308,7 +316,7 @@ const PdfObject& PdfArray::operator[](size_type __n) const
 // -----------------------------------------------------
 PdfArray::iterator PdfArray::begin()
 {
-    return std::vector<PdfObject>::begin();
+    return PdfArrayBaseClass::begin();
 }
 
 // -----------------------------------------------------
@@ -316,7 +324,7 @@ PdfArray::iterator PdfArray::begin()
 // -----------------------------------------------------
 PdfArray::const_iterator PdfArray::begin() const
 {
-    return std::vector<PdfObject>::begin();
+    return PdfArrayBaseClass::begin();
 }
 
 // -----------------------------------------------------
@@ -324,7 +332,7 @@ PdfArray::const_iterator PdfArray::begin() const
 // -----------------------------------------------------
 PdfArray::iterator PdfArray::end()
 {
-    return std::vector<PdfObject>::end();
+    return PdfArrayBaseClass::end();
 }
 
 // -----------------------------------------------------
@@ -332,7 +340,7 @@ PdfArray::iterator PdfArray::end()
 // -----------------------------------------------------
 PdfArray::const_iterator PdfArray::end() const
 {
-    return std::vector<PdfObject>::end();
+    return PdfArrayBaseClass::end();
 }
 
 // -----------------------------------------------------
@@ -340,7 +348,7 @@ PdfArray::const_iterator PdfArray::end() const
 // -----------------------------------------------------
 PdfArray::reverse_iterator PdfArray::rbegin()
 {
-    return std::vector<PdfObject>::rbegin();
+    return PdfArrayBaseClass::rbegin();
 }
 
 // -----------------------------------------------------
@@ -348,7 +356,7 @@ PdfArray::reverse_iterator PdfArray::rbegin()
 // -----------------------------------------------------
 PdfArray::const_reverse_iterator PdfArray::rbegin() const
 {
-    return std::vector<PdfObject>::rbegin();
+    return PdfArrayBaseClass::rbegin();
 }
 
 // -----------------------------------------------------
@@ -356,7 +364,7 @@ PdfArray::const_reverse_iterator PdfArray::rbegin() const
 // -----------------------------------------------------
 PdfArray::reverse_iterator PdfArray::rend()
 {
-    return std::vector<PdfObject>::rend();
+    return PdfArrayBaseClass::rend();
 }
 
 // -----------------------------------------------------
@@ -364,18 +372,24 @@ PdfArray::reverse_iterator PdfArray::rend()
 // -----------------------------------------------------
 PdfArray::const_reverse_iterator PdfArray::rend() const
 {
-    return std::vector<PdfObject>::rend();
+    return PdfArrayBaseClass::rend();
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200		// workaround template-error in Visualstudio 6
+void PdfArray::insert(PdfArray::iterator __position, 
+                      PdfArray::iterator __first,
+                      PdfArray::iterator __last)
+#else
 template<typename _InputIterator>
 void PdfArray::insert(PdfArray::iterator __position, 
                       _InputIterator __first,
                       _InputIterator __last)
+#endif
 {
-    std::vector<PdfObject>::insert( __position, __first, __last );
+    PdfArrayBaseClass::insert( __position, __first, __last );
     m_bDirty = true;
 }
 
@@ -385,7 +399,7 @@ void PdfArray::insert(PdfArray::iterator __position,
 PdfArray::iterator PdfArray::insert(PdfArray::iterator __position, const PdfObject & val )
 {
     m_bDirty = true;
-    return std::vector<PdfObject>::insert( __position, val );
+    return PdfArrayBaseClass::insert( __position, val );
 }
 
 // -----------------------------------------------------
@@ -393,7 +407,7 @@ PdfArray::iterator PdfArray::insert(PdfArray::iterator __position, const PdfObje
 // -----------------------------------------------------
 void PdfArray::erase( iterator pos )
 {
-    std::vector<PdfObject>::erase( pos );
+    PdfArrayBaseClass::erase( pos );
     m_bDirty = true;
 }
 
@@ -402,7 +416,7 @@ void PdfArray::erase( iterator pos )
 // -----------------------------------------------------
 void PdfArray::erase( iterator first, iterator last )
 {
-    std::vector<PdfObject>::erase( first, last );
+    PdfArrayBaseClass::erase( first, last );
     m_bDirty = true;
 }
 
@@ -411,7 +425,7 @@ void PdfArray::erase( iterator first, iterator last )
 // -----------------------------------------------------
 void PdfArray::reserve(size_type __n)
 {
-    std::vector<PdfObject>::reserve( __n );
+    PdfArrayBaseClass::reserve( __n );
 }
 
 // -----------------------------------------------------
@@ -419,7 +433,7 @@ void PdfArray::reserve(size_type __n)
 // -----------------------------------------------------
 PdfObject & PdfArray::front()
 {
-    return std::vector<PdfObject>::front();
+    return PdfArrayBaseClass::front();
 }
 
 // -----------------------------------------------------
@@ -427,7 +441,7 @@ PdfObject & PdfArray::front()
 // -----------------------------------------------------
 const PdfObject & PdfArray::front() const
 {
-    return std::vector<PdfObject>::front();
+    return PdfArrayBaseClass::front();
 }
 
 // -----------------------------------------------------
@@ -435,7 +449,7 @@ const PdfObject & PdfArray::front() const
 // -----------------------------------------------------
 PdfObject & PdfArray::back()
 {
-    return std::vector<PdfObject>::back();
+    return PdfArrayBaseClass::back();
 }
       
 // -----------------------------------------------------
@@ -443,7 +457,7 @@ PdfObject & PdfArray::back()
 // -----------------------------------------------------
 const PdfObject & PdfArray::back() const
 {
-    return std::vector<PdfObject>::back();
+    return PdfArrayBaseClass::back();
 }
 
 // -----------------------------------------------------
@@ -451,7 +465,7 @@ const PdfObject & PdfArray::back() const
 // -----------------------------------------------------
 bool PdfArray::operator==( const PdfArray & rhs ) const
 {
-    return (static_cast< std::vector<PdfObject> >(*this) == static_cast< std::vector<PdfObject> >(rhs) );
+    return (static_cast< PdfArrayBaseClass >(*this) == static_cast< PdfArrayBaseClass >(rhs) );
 }
 
 // -----------------------------------------------------
@@ -459,7 +473,7 @@ bool PdfArray::operator==( const PdfArray & rhs ) const
 // -----------------------------------------------------
 bool PdfArray::operator!=( const PdfArray & rhs ) const
 {
-    return (static_cast< std::vector<PdfObject> >(*this) != static_cast< std::vector<PdfObject> >(rhs) );
+    return (static_cast< PdfArrayBaseClass >(*this) != static_cast< PdfArrayBaseClass >(rhs) );
 }
 
 typedef PdfArray                 TVariantList;

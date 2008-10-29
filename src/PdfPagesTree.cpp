@@ -370,13 +370,6 @@ void PdfPagesTree::InsertPages( int inAfterIndex,
 
     // put the newly added pages into the cache
     for ( int i=insIdx; i<insIdx+inNumPages; i++ ) {
-#ifdef _MSC_VER		
-        // cannot access empty deque, 
-        // TODO:perhaps better move up in next function ??!!
-        if ( i >= static_cast<int>(m_deqPageObjs.size()) )
-            m_deqPageObjs.push_back( NULL );
-#endif
-
         m_deqPageObjs.push_back( NULL );	// clear it
         m_deqPageObjs[i] = GetPage( i );	// and now fill it
     }
