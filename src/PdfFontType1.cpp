@@ -93,26 +93,75 @@ void PdfFontType1::EmbedFont( PdfObject* pDescriptor )
         pBuffer = pAllocated;
     }
 
-    // Parse the font data buffer to get the values for length1, length2 and length3
-    lLength1 = FindInBuffer( "eexec", pBuffer, lSize );
-    if( lLength1 > 0 )
-        lLength1 += 6; // 6 == eexec + lf
-    else
-        lLength1 = 0;
+	// Remove binary segment headers from pfb
+	unsigned char *pBinary = reinterpret_cast<unsigned char*>(const_cast<char*>(pBuffer));
+	while( *pBinary == 0x80 )	// binary segment header
+	{
+		const int	cHeaderLength  = 6;
+		int			iSegmentType   = pBinary[1];	// binary segment type
+		long		lSegmentLength = 0L;
+		long		lSegmentDelta  = static_cast<long>(&pBuffer[lSize] - reinterpret_cast<const char*>(pBinary) );
+
+		switch( iSegmentType )
+		{
+			case 1:									// ASCII text
+				lSegmentLength = pBinary[2] + 		// little endian
+								 pBinary[3] * 256L + 
+								 pBinary[4] * 65536L +
+								 pBinary[5] * 16777216L;
+				if( lLength1 == 0L )
+					lLength1 = lSegmentLength;
+				else
+					lLength3 = lSegmentLength;
+				lSize -= cHeaderLength;
+				memmove( pBinary, &pBinary[cHeaderLength], lSegmentDelta );
+				pBinary = &pBinary[lSegmentLength];
+				break;
+			case 2:									// binary data
+				lSegmentLength = pBinary[2] + 		// little endian
+								 pBinary[3] * 256L + 
+								 pBinary[4] * 65536L +
+								 pBinary[5] * 16777216L;
+				lLength2 = lSegmentLength;
+				lSize -= cHeaderLength;
+				memmove( pBinary, &pBinary[cHeaderLength], lSegmentDelta );
+				pBinary = &pBinary[lSegmentLength];
+				break;
+			case 3:									// end-of-file
+				pContents->GetStream()->Set( pBuffer, lSize - 2L );
+				if( pAllocated )
+					free( pAllocated );
+
+				pContents->GetDictionary().AddKey( "Length1", PdfVariant( lLength1 ) );
+				pContents->GetDictionary().AddKey( "Length2", PdfVariant( lLength2 ) );
+				pContents->GetDictionary().AddKey( "Length3", PdfVariant( lLength3 ) );
+
+				return;
+			default:
+				break;
+		}
+	}
+
+	// Parse the font data buffer to get the values for length1, length2 and length3
+	lLength1 = FindInBuffer( "eexec", pBuffer, lSize );
+	if( lLength1 > 0 )
+		lLength1 += 6; // 6 == eexec + lf
+	else
+		lLength1 = 0;
+
+	if( lLength1 )
+	{
+		lLength2 = FindInBuffer( "cleartomark", pBuffer, lSize );
+		if( lLength2 > 0 )
+			lLength2 = lSize - lLength1 - 520; // 520 == 512 + strlen(cleartomark)
+		else
+			lLength1 = 0;
+	}
+
+	lLength3 = lSize - lLength2 - lLength1;
     
-    if( lLength1 )
-    {
-        lLength2 = FindInBuffer( "cleartomark", pBuffer, lSize );
-        if( lLength2 > 0 )
-            lLength2 = lSize - lLength1 - 520; // 520 == 512 + strlen(cleartomark)
-        else
-            lLength1 = 0;
-    }
-    
-    lLength3 = lSize - lLength2 - lLength1;
-    
-    // TODO: Pdf Supports only Type1 fonts with binary encrypted sections and not the hex format
-    pContents->GetStream()->Set( pBuffer, lSize );
+	// TODO: Pdf Supports only Type1 fonts with binary encrypted sections and not the hex format
+	pContents->GetStream()->Set( pBuffer, lSize );
     if( pAllocated )
         free( pAllocated );
 
