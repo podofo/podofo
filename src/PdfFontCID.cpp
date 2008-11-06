@@ -257,6 +257,8 @@ void PdfFontCID::CreateCMap( PdfObject* pUnicode ) const
     TBFRange curRange;
     curRange.srcCode = -1;
     std::vector<TBFRange> vecRanges;
+    // Only 255 sequent characters are allowed to be in one range!
+    const unsigned int MAX_CHARS_IN_RANGE = 255;
 
     charcode = FT_Get_First_Char( face, &gindex );                   
     while ( gindex != 0 )                                            
@@ -272,7 +274,8 @@ void PdfFontCID::CreateCMap( PdfObject* pUnicode ) const
                 curRange.srcCode  = gindex;
                 curRange.vecDest.push_back( charcode );
             }
-            else if( curRange.srcCode + curRange.vecDest.size() == gindex )
+            else if( (curRange.srcCode + curRange.vecDest.size() == gindex) && 
+                     ((gindex - curRange.srcCode + curRange.vecDest.size()) < MAX_CHARS_IN_RANGE) )
             {
                 curRange.vecDest.push_back( charcode );
             } 
