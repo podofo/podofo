@@ -419,8 +419,13 @@ static const char s_cDelimiters[] = {
  * in the code, without getting a compiler
  * warning.
  */
-#define PODOFO_UNUSED( x )
-
+#ifndef _WIN32
+template <typename T>
+inline void podofo_unused(T &t) { (void)t; }
+#define PODOFO_UNUSED( x ) podofo_unused( x );
+#else
+#define PODOFO_UNUSED( x ) (void)x;
+#endif // _WIN32
 /*
 	This is needed to enable compilation with VC++ on Windows
 */
