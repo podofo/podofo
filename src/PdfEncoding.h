@@ -102,7 +102,7 @@ class PODOFO_API PdfEncoding {
 	    return (m_nCur != rhs.m_nCur);
 	}
 
-	inline const pdf_utf16be operator*() const 
+	inline pdf_utf16be operator*() const 
 	{
 	    return m_pEncoding->GetCharCode( m_nCur );
 	}

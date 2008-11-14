@@ -44,7 +44,7 @@ class PODOFO_API PdfEncodingFactory {
      *
      *  \returns a PdfEncoding or NULL
      */
-    static const PdfEncoding* const CreateEncoding( PdfObject* pObject );
+    static const PdfEncoding* CreateEncoding( PdfObject* pObject );
 
     /** Singleton method which returns a global instance
      *  of PdfDocEncoding.

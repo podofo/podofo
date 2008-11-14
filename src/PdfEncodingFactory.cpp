@@ -35,7 +35,7 @@ const PdfMacRomanEncoding* PdfEncodingFactory::s_pMacRomanEncoding = NULL;
 
 Util::PdfMutex PdfEncodingFactory::s_mutex;
 
-const PdfEncoding* const PdfEncodingFactory::CreateEncoding( PdfObject* pObject )
+const PdfEncoding* PdfEncodingFactory::CreateEncoding( PdfObject* pObject )
 {
     if( pObject->IsReference() )
     {
