@@ -71,7 +71,7 @@ void PdfExtGState::Init( void )
 
 void PdfExtGState::SetFillOpacity( float opac )
 {
-    m_pObject->GetDictionary().AddKey( "ca", PdfVariant( opac ) );
+    m_pObject->GetDictionary().AddKey( "ca", PdfVariant( static_cast<double>(opac) ) );
 }
 
 void PdfExtGState::SetStrokeOpacity( float opac )

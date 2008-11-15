@@ -262,4 +262,20 @@ PdfFileSpec* PdfAnnotation::GetFileAttachement() const
     return m_pFileSpec;
 }
 
+PdfArray PdfAnnotation::GetQuadPoints() const
+{
+    if( m_pObject->GetDictionary().HasKey( "QuadPoints" ) )
+        return PdfArray( m_pObject->GetDictionary().GetKey( "QuadPoints" )->GetArray() );
+
+    return PdfArray();
+}
+
+void PdfAnnotation::SetQuadPoints( const PdfArray & rQuadPoints )
+{
+    if ( m_eAnnotation == ePdfAnnotation_Highlight )
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Must be a highlight annotation to set quad points" );
+
+    m_pObject->GetDictionary().AddKey( "QuadPoints", rQuadPoints );
+}
+
 };

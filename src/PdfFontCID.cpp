@@ -296,36 +296,56 @@ void PdfFontCID::CreateCMap( PdfObject* pUnicode ) const
         vecRanges.push_back( curRange );
 
     // Now transform it into a string
+    // Make sure each bfrange section has a maximum of 
+    // 100 entries. If there are more Acrobat Reader might crash
+    std::ostringstream range;
+    int numberOfEntries = 0;
+
     std::vector<TBFRange>::const_iterator it = vecRanges.begin();
-    oss << vecRanges.size() << " beginbfrange" << std::endl;
 
     const int BUFFER_LEN = 5;
     char buffer[BUFFER_LEN]; // buffer of the format "XXXX\0"
-
+    
     while( it != vecRanges.end() ) 
     {
+        if( numberOfEntries == 99 ) 
+        {
+            oss << numberOfEntries << " beginbfrange" << std::endl;
+            oss << range.str();
+            oss << "endbfrange" << std::endl;
+
+            numberOfEntries = 0;
+            range.str("");
+        }
+
         int iStart = (*it).srcCode;
         int iEnd   = (*it).srcCode + (*it).vecDest.size() - 1;
 
         snprintf( buffer, BUFFER_LEN, "%04X", iStart );
-        oss << "<" << buffer << "> <";
+        range << "<" << buffer << "> <";
         snprintf( buffer, BUFFER_LEN, "%04X", iEnd );
-        oss << buffer << "> [ ";
+        range << buffer << "> [ ";
 
         std::vector<int>::const_iterator it2 = (*it).vecDest.begin();
         while( it2 != (*it).vecDest.end() )
         {
             snprintf( buffer, BUFFER_LEN, "%04X", *it2 );
-            oss << "<" << buffer << "> ";
+            range << "<" << buffer << "> ";
 
             ++it2;
         }
 
-        oss << "]" << std::endl;
+        range << "]" << std::endl;
         ++it;
+        ++numberOfEntries;
     }
 
-    oss << "endbfrange" << std::endl;
+    if( numberOfEntries > 0 ) 
+    {
+        oss << numberOfEntries << " beginbfrange" << std::endl;
+        oss << range.str();
+        oss << "endbfrange" << std::endl;
+    }
 
     /*
     // Create the beginbfchar section

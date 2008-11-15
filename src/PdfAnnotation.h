@@ -270,6 +270,30 @@ class PODOFO_API PdfAnnotation : public PdfElement {
      */
     PdfFileSpec* GetFileAttachement() const;
 
+ 
+    /** Get the quad points associated with the annotation (if appropriate).
+     *  This array is used in text markup annotations to describe the
+     *  regions affected by the markup (i.e. the hilighted words, one
+     *  quadrilateral per word)
+     *
+     *  \returns a PdfArray of 8xn numbers describing the
+     *           x,y coordinates of BL BR TR TL corners of the
+     *           quadrilaterals. If inappropriate, returns
+     *           an empty array.
+     */
+    PdfArray GetQuadPoints() const;
+
+    /** Set the quad points associated with the annotation (if appropriate).
+     *  This array is used in text markup annotations to describe the
+     *  regions affected by the markup (i.e. the hilighted words, one
+     *  quadrilateral per word)
+     *
+     *  \param rQuadPoints a PdfArray of 8xn numbers describing the
+     *           x,y coordinates of BL BR TR TL corners of the
+     *           quadrilaterals. 
+     */
+    void SetQuadPoints( const PdfArray & rQuadPoints );
+
     /** Get the type of this annotation
      *  \returns the annotation type
      */
