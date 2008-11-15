@@ -77,6 +77,7 @@ static inline void CheckDoubleRange( double val, double min, double max )
 
 PdfPainter::PdfPainter()
 : m_pCanvas( NULL ), m_pPage( NULL ), m_pFont( NULL ), m_nTabWidth( 4 ),
+  m_isTextOpen( false ),
   m_eCurColorSpace( ePdfColorSpace_DeviceRGB ), 
   m_curColor1( 0.0 ), m_curColor2( 0.0 ), m_curColor3( 0.0 ), m_curColor4( 0.0 )
 {
@@ -653,6 +654,85 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
     */
 
     m_pCanvas->Append( " Tj\nET\n" );
+}
+
+void PdfPainter::BeginText( double dX, double dY )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+
+    if( !m_pFont || !m_pPage ||  m_isTextOpen)
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->Reference(), PdfName("Font") );
+
+    m_oss.str("");
+    m_oss << "BT" << std::endl << "/" << m_pFont->GetIdentifier().GetName()
+          << " "  << m_pFont->GetFontSize()
+          << " Tf" << std::endl;
+
+    //if( m_pFont->GetFontScale() != 100.0F ) - this value is kept between text blocks
+    m_oss << m_pFont->GetFontScale() << " Tz" << std::endl;
+
+    //if( m_pFont->GetFontCharSpace() != 0.0F )  - this value is kept between text blocks
+    m_oss << m_pFont->GetFontCharSpace() * m_pFont->GetFontSize() / 100.0 << " Tc" << std::endl;
+
+    m_oss << dX << " " << dY << " Td" << std::endl ;
+
+    m_pCanvas->Append( m_oss.str() );
+
+	m_isTextOpen = true;
+}
+
+void PdfPainter::MoveTextPos( double dX, double dY )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+
+    if( !m_pFont || !m_pPage || !m_isTextOpen )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    m_oss.str("");
+    m_oss << dX << " " << dY << " Td" << std::endl ;
+    m_pCanvas->Append( m_oss.str() );
+}
+
+void PdfPainter::AddText( const PdfString & sText )
+{
+	AddText( sText, sText.GetCharacterLength() );
+}
+
+void PdfPainter::AddText( const PdfString & sText, long lStringLen )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+
+    if( !m_pFont || !m_pPage || !sText.IsValid() || !m_isTextOpen )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    PdfString sString = this->ExpandTabs( sText, lStringLen );
+
+	// TODO: Underline and Strikeout not yet supported
+    
+	m_pFont->WriteStringToStream( sString, m_pCanvas );
+
+    m_pCanvas->Append( " Tj\n" );
+}
+
+void PdfPainter::EndText()
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+
+    if( !m_pFont || !m_pPage || !m_isTextOpen )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    m_pCanvas->Append( "ET\n" );
+	m_isTextOpen = false;
 }
 
 void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double dHeight, const PdfString & rsText, 

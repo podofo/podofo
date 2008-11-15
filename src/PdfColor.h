@@ -79,6 +79,22 @@ class PODOFO_API PdfColor {
      */    
     const PdfColor & operator=( const PdfColor & rhs );
 
+    /** Test for equality of colors.
+     * 
+     *  \param rhs color to compare ro
+	 *
+     *  \returns true if object color is equal to rhs
+     */
+    inline bool operator==( const PdfColor & rhs ) const;
+
+    /** Test for inequality of colors.
+     * 
+     *  \param rhs color to compare ro
+	 *
+     *  \returns true if object color is not equal to rhs
+     */
+    inline bool operator!=( const PdfColor & rhs ) const;
+
     /** Test if this is a grayscale color.
      * 
      *  \returns true if this is a grayscale PdfColor object
@@ -271,6 +287,47 @@ class PODOFO_API PdfColor {
 PdfColor::PdfColor( const PdfColor & rhs )
 {
     this->operator=( rhs );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline bool PdfColor::operator==( const PdfColor & rhs ) const
+{
+	if ( m_eColorSpace == rhs.m_eColorSpace	)
+	{
+		if ( 
+			m_eColorSpace == ePdfColorSpace_DeviceGray			&&
+			m_uColor.gray == rhs.m_uColor.gray
+		   )
+		   return true;
+
+		if ( 
+			m_eColorSpace == ePdfColorSpace_DeviceRGB			&&
+			m_uColor.rgb[0] == rhs.m_uColor.rgb[0]				&&
+			m_uColor.rgb[1] == rhs.m_uColor.rgb[1]				&&
+			m_uColor.rgb[2] == rhs.m_uColor.rgb[2]
+		   )
+		   return true;
+
+		if ( 
+			m_eColorSpace == ePdfColorSpace_DeviceCMYK			&&
+			m_uColor.cmyk[0] == rhs.m_uColor.cmyk[0]			&&
+			m_uColor.cmyk[1] == rhs.m_uColor.cmyk[1]			&&
+			m_uColor.cmyk[2] == rhs.m_uColor.cmyk[2]			&&
+			m_uColor.cmyk[3] == rhs.m_uColor.cmyk[3]
+		   )
+		   return true;
+	}
+	return false;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline bool PdfColor::operator!=( const PdfColor & rhs ) const
+{
+	return ! (*this == rhs);
 }
 
 // -----------------------------------------------------

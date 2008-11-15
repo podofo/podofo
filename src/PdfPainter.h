@@ -374,6 +374,84 @@ class PODOFO_API PdfPainter {
      */
     void DrawTextAligned( double dX, double dY, double dWidth, const PdfString & rsText, EPdfAlignment eAlignment );
 
+    /** Begin drawing multiple text strings on a page using a given font object.
+     *  You have to call SetFont before calling this function.
+     *
+     *  If you want more simpler text output and do not need
+     *  the advanced text position features of MoveTextPos
+     *  use DrawText which is easier.
+     * 
+     *  \param dX the x coordinate
+     *  \param dY the y coordinate
+     *
+     *  \see SetFont()
+     *  \see AddText()
+     *  \see MoveTextPos()
+     *  \see EndText()
+     */
+	void BeginText( double dX, double dY );
+
+	/** Draw a string on a page.
+     *  You have to call BeginText before the first call of this function
+	 *  and EndText after the last call.
+     *
+     *  If you want more simpler text output and do not need
+     *  the advanced text position features of MoveTextPos
+     *  use DrawText which is easier.
+     * 
+     *  \param sText the text string which should be printed 
+     *
+     *  \see SetFont()
+     *  \see MoveTextPos()
+     *  \see EndText()
+     */
+	void AddText( const PdfString & sText );
+
+    /** Draw a string on a page.
+     *  You have to call BeginText before the first call of this function
+	 *  and EndText after the last call.
+     *
+     *  If you want more simpler text output and do not need
+     *  the advanced text position features of MoveTextPos
+     *  use DrawText which is easier.
+     * 
+     *  \param sText the text string which should be printed 
+     *  \param lLen draw only lLen characters of pszText
+     *
+     *  \see SetFont()
+     *  \see MoveTextPos()
+     *  \see EndText()
+     */
+	void AddText( const PdfString & sText, long lStringLen );
+
+    /** Move position für text drawing on a page.
+     *  You have to call BeginText before calling this function
+     *
+     *  If you want more simpler text output and do not need
+     *  the advanced text position features of MoveTextPos
+     *  use DrawText which is easier.
+     * 
+     *  \param dX the x offset relative to pos of BeginText or last MoveTextPos
+     *  \param dY the y offset relative to pos of BeginText or last MoveTextPos
+     * 
+     *  \see BeginText()
+     *  \see AddText()
+     *  \see EndText()
+     */
+	void MoveTextPos( double dX, double dY );
+
+	/** End drawing multiple text strings on a page
+     *
+     *  If you want more simpler text output and do not need
+     *  the advanced text position features of MoveTextPos
+     *  use DrawText which is easier.
+     * 
+     *  \see BeginText()
+     *  \see AddText()
+     *  \see MoveTextPos()
+     */
+	void EndText();
+
     /** Draw an image on the current page.
      *  \param dX the x coordinate (bottom left position of the image)
      *  \param dY the y coordinate (bottom position of the image)
@@ -381,7 +459,7 @@ class PODOFO_API PdfPainter {
      *  \param dScaleX option scaling factor in x direction
      *  \param dScaleY option scaling factor in y direction
      */
-    void DrawImage( double dX, double dY, PdfImage* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
+	void DrawImage( double dX, double dY, PdfImage* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
 
     /** Draw an XObject on the current page. For PdfImage use DrawImage.
      *
@@ -665,6 +743,10 @@ class PODOFO_API PdfPainter {
     /** Save the current color
      */
     double m_curColor1, m_curColor2, m_curColor3, m_curColor4;
+
+    /** Is between BT and ET
+     */
+	bool m_isTextOpen;
 
     /** temporary stream buffer 
      */
