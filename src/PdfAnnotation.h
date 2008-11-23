@@ -294,6 +294,62 @@ class PODOFO_API PdfAnnotation : public PdfElement {
      */
     void SetQuadPoints( const PdfArray & rQuadPoints );
 
+    /** Get the color key of the Annotation dictionary
+     *  which defines the color of the annotation, 
+     *  as per 8.4 of the pdf spec. The PdfArray contains
+     *  0 to four numbers, depending on the colorspace in
+     *  which the color is specified
+     *  0 numbers means the annotation is transparent
+     *  1 number specifies the intensity of the color in grayscale
+     *  3 numbers specifie the color in the RGB colorspace and
+     *  4 numbers specify the color in the CMYK colorspace
+     *
+     *  \returns a PdfArray of either 0, 1, 3 or 4 numbers
+     *           depending on the colorspace in which the color
+     *           is specified
+     */
+
+    PdfArray GetColor() const;
+
+    /** Set the C key of the Annotation dictionary, which defines the
+     *  color of the annotation, as per 8.4 of the pdf spec. Parameters
+     *  give the color in rgb colorspace coordinates
+     *
+     *  \param r number from 0 to 1, the intensity of the red channel 
+     *  \param g number from 0 to 1, the intensity of the green channel 
+     *  \param b number from 0 to 1, the intensity of the blue channel 
+     */
+
+    void SetColor( double r, double g, double b );
+
+    /** Set the C key of the Annotation dictionary, which defines the
+     *  color of the annotation, as per 8.4 of the pdf spec. Parameters
+     *  give the color in cmyk colorspace coordinates
+     *
+     *  \param c number from 0 to 1, the intensity of the cyan channel 
+     *  \param m number from 0 to 1, the intensity of the magneta channel 
+     *  \param y number from 0 to 1, the intensity of the yellow channel 
+     *  \param k number from 0 to 1, the intensity of the black channel 
+     */
+
+    void SetColor( double c, double m, double y, double k );
+
+    /** Set the C key of the Annotation dictionary, which defines the
+     *  color of the annotation, as per 8.4 of the pdf spec. Parameters
+     *  give the color in grayscale colorspace coordinates
+     *
+     *  \param gray  number from 0 to 1, the intensity of the black
+     */
+
+    void SetColor( double gray );
+
+    /** Set the C key of the Annotation dictionary to an empty array, which,
+     *  as per 8.4 of the pdf spec., makes the annotation transparent
+     *
+     */
+
+    void SetColor();
+
     /** Get the type of this annotation
      *  \returns the annotation type
      */

@@ -272,10 +272,44 @@ PdfArray PdfAnnotation::GetQuadPoints() const
 
 void PdfAnnotation::SetQuadPoints( const PdfArray & rQuadPoints )
 {
-    if ( m_eAnnotation == ePdfAnnotation_Highlight )
+    if ( m_eAnnotation != ePdfAnnotation_Highlight )
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Must be a highlight annotation to set quad points" );
 
     m_pObject->GetDictionary().AddKey( "QuadPoints", rQuadPoints );
+}
+
+PdfArray PdfAnnotation::GetColor() const
+{
+    if( m_pObject->GetDictionary().HasKey( "C" ) )
+        return PdfArray( m_pObject->GetDictionary().GetKey( "C" )->GetArray() );
+    return PdfArray();
+}
+
+void PdfAnnotation::SetColor( double r, double g, double b ) {
+  PdfArray c;
+  c.push_back( PdfVariant( r ) );
+  c.push_back( PdfVariant( g ) );
+  c.push_back( PdfVariant( b ) );
+  m_pObject->GetDictionary().AddKey( "C", c );
+}
+void PdfAnnotation::SetColor( double C, double M, double Y, double K ) {
+  PdfArray c;
+  c.push_back( PdfVariant( C ) );
+  c.push_back( PdfVariant( M ) );
+  c.push_back( PdfVariant( Y ) );
+  c.push_back( PdfVariant( K ) );
+  m_pObject->GetDictionary().AddKey( "C", c );
+}
+
+void PdfAnnotation::SetColor( double gray ) {
+  PdfArray c;
+  c.push_back( PdfVariant( gray ) );
+  m_pObject->GetDictionary().AddKey( "C", c );
+}
+
+void PdfAnnotation::SetColor() {
+  PdfArray c;
+  m_pObject->GetDictionary().AddKey( "C", c );
 }
 
 };
