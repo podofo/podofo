@@ -363,7 +363,13 @@ PdfObject* PdfNamesTree::GetKeyValue( PdfObject* pObj, const PdfString & key ) c
         {
             PdfObject* pChild = m_pObject->GetOwner()->GetObject( (*it).GetReference() );
             if( pChild ) 
-                return GetKeyValue( pChild, key );
+            {
+                PdfObject* pResult = GetKeyValue( pChild, key );
+                if( pResult ) // If recursive call returns NULL, 
+                              // continue with the next element
+                              // in the kids array.
+                    return pResult;
+            }
             else
                 PdfError::LogMessage( eLogSeverity_Debug, "Object %lu %lu is child of nametree but was not found!", 
                                       (*it).GetReference().ObjectNumber(), 
