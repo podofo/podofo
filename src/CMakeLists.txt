@@ -168,6 +168,8 @@ SET(PODOFO_HEADERS
     PdfXRefStream.h
     podofo.h
     podofoapi.h
+)
+SET(PODOFO_HEADERS2 
     util/PdfMutex.h
     util/PdfMutexWrapper.h
 )
@@ -175,10 +177,14 @@ SET(PODOFO_HEADERS
 # Create a Source Group for Visual Studio
 # so that headers are listed in the folder view
 # and are easier accessible
-SOURCE_GROUP(Headers FILES ${PODOFO_HEADERS})
+SOURCE_GROUP(Headers FILES ${PODOFO_HEADERS} ${PODOFO_HEADERS2})
 
 INSTALL(FILES ${PODOFO_HEADERS}
     DESTINATION "include/podofo"
+    )
+
+INSTALL(FILES ${PODOFO_HEADERS2}
+    DESTINATION "include/podofo/util"
     )
 
 IF(NOT PODOFO_BUILD_SHARED AND NOT PODOFO_BUILD_STATIC)
