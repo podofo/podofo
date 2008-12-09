@@ -66,6 +66,21 @@ PdfXObject::PdfXObject( const PdfMemDocument & rDoc, int nPage, PdfDocument* pPa
     PdfVariant    var;
     m_rRect.ToVariant( var );
     m_pObject->GetDictionary().AddKey( "BBox", var );
+
+    PdfArray      matrix;
+    matrix.push_back( PdfVariant( 1L ) );
+    matrix.push_back( PdfVariant( 0L ) );
+    matrix.push_back( PdfVariant( 0L ) );
+    matrix.push_back( PdfVariant( 1L ) );
+	if( m_rRect.GetLeft() != 0 )
+	    matrix.push_back( PdfVariant( m_rRect.GetLeft() * (-1.0) ) );
+	else
+	    matrix.push_back( PdfVariant( 0L ) );
+	if( m_rRect.GetBottom() != 0 )
+	    matrix.push_back( PdfVariant( m_rRect.GetBottom() * (-1.0) ) );
+	else
+	    matrix.push_back( PdfVariant( 0L ) );
+    m_pObject->GetDictionary().AddKey( "Matrix", matrix );
 }
 
 PdfXObject::PdfXObject( PdfObject* pObject )

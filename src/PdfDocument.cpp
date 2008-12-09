@@ -288,6 +288,15 @@ PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfM
     PdfPage*      pPage = rDoc.GetPage( nPage );
     PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, 0 ) );
     PdfRect		  box  = pPage->GetMediaBox();
+    PdfRect		  gbox;
+
+    gbox  = pPage->GetCropBox();
+	if( gbox.GetBottom() != 0 || gbox.GetHeight() != 0 || gbox.GetLeft() != 0 || gbox.GetWidth() != 0 )
+		box = gbox;
+
+    gbox = pPage->GetTrimBox();
+	if( gbox.GetBottom() != 0 || gbox.GetHeight() != 0 || gbox.GetLeft() != 0 || gbox.GetWidth() != 0 )
+		box = gbox;
 
 	// link resources from external doc to x-object
     if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Resources" ) )
