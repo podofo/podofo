@@ -33,6 +33,8 @@ PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects*
     : PdfWriter( pVecObjects ), m_pParent( pVecObjects ), 
       m_pDevice( pDevice ), m_pLast( NULL ), m_bOpenStream( false )
 {
+    if( m_pTrailer )
+        delete m_pTrailer;
     m_pTrailer = new PdfObject( *pTrailer );
 
     // register as observer for PdfVecObjects
@@ -60,6 +62,8 @@ PdfImmediateWriter::~PdfImmediateWriter()
 {
     if( m_pParent ) 
         m_pParent->Detach( this );
+    
+    delete m_pXRef;
 }
 
 void PdfImmediateWriter::WriteObject( const PdfObject* pObject )

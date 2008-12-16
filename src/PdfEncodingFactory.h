@@ -67,6 +67,18 @@ class PODOFO_API PdfEncodingFactory {
      */
     static const PdfEncoding* GlobalMacRomanEncodingInstance();
 
+    /** Free's the memory allocated by
+     *  the global encoding instancess in this singleton.
+     *
+     *  PoDoFo will reallocated these encodings as soon
+     *  as they are needed again.
+     *
+     +  Only call this method if no other class
+     *  of PoDoFo exists anymore, as PdfString etc
+     *  contain pointers to the global instances.
+     */
+    static void FreeGlobalEncodingInstances();
+
  private:
     /** Always use this static declaration,
      *  if you need an instance of PdfDocEncoding

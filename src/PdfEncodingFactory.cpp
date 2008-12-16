@@ -104,4 +104,17 @@ const PdfEncoding* PdfEncodingFactory::GlobalMacRomanEncodingInstance()
     return s_pMacRomanEncoding;
 }
 
+void PdfEncodingFactory::FreeGlobalEncodingInstances()
+{
+    Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
+    
+    delete s_pMacRomanEncoding;
+    delete s_pWinAnsiEncoding;
+    delete s_pDocEncoding;
+
+    s_pMacRomanEncoding = NULL;
+    s_pWinAnsiEncoding  = NULL;
+    s_pDocEncoding      = NULL;
+}
+
 };

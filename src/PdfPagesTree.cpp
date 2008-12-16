@@ -380,8 +380,16 @@ PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
     int last  = m_deqPageObjs.size()-1;
     PdfPage* pPage = new PdfPage( rSize, GetRoot()->GetOwner() );
 
+    // We have to add it to m_deqPageObjs here,
+    // as InsertPage calls InsertPages which
+    // uses GetPage( last ), which in turn
+    // uses m_deqPageObjs.
+    // TODO: The PdfPagesTree needs a cleanup
+    //       to make this easier
+    //       and a few tests to verify
+    //       its correctness.
+    m_deqPageObjs.push_back( pPage );
     InsertPage( last, pPage );
-//    m_deqPageObjs.push_back( pPage );	// might as well add it here too...
 
     return pPage;
 }
