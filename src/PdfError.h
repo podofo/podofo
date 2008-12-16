@@ -97,6 +97,8 @@ enum EPdfError {
 
     ePdfError_UnsupportedImageFormat,   /**< This image format is not supported by PoDoFO. */
 
+    ePdfError_NotImplemented,           /**< This feature is currently not implemented. */
+
     ePdfError_Unknown = 0xffff          /**< Unknown error */
 };
 

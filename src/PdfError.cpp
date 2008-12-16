@@ -285,11 +285,14 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_SignatureError:
             pszMsg = "ePdfError_SignatureError";
             break;
-	case ePdfError_MutexError:
-	    pszMsg = "ePdfError_MutexError";
-	    break;
+        case ePdfError_MutexError:
+            pszMsg = "ePdfError_MutexError";
+            break;
         case ePdfError_UnsupportedImageFormat:    /**< This image format is not supported by PoDoFO. */
             pszMsg = "ePdfError_UnsupportedImageFormat";
+            break;
+        case ePdfError_NotImplemented:
+            pszMsg = "ePdfError_NotImplemented";
             break;
         case ePdfError_Unknown:
             pszMsg = "ePdfError_Unknown"; 
@@ -398,13 +401,15 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
         case ePdfError_SignatureError:
             pszMsg = "The signature contains an error.";
             break;
-	case ePdfError_MutexError:
-	    pszMsg = "Error during a mutex operation.";
-	    break;
+        case ePdfError_MutexError:
+            pszMsg = "Error during a mutex operation.";
+            break;
         case ePdfError_UnsupportedImageFormat:
             pszMsg = "This image format is not supported by PoDoFO.";
             break;
-
+        case ePdfError_NotImplemented:
+            pszMsg = "This feature is currently not implemented.";
+            break;
         case ePdfError_Unknown:
             pszMsg = "Error code unknown.";
         default:
