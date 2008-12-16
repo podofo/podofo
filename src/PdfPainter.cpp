@@ -77,9 +77,9 @@ static inline void CheckDoubleRange( double val, double min, double max )
 
 PdfPainter::PdfPainter()
 : m_pCanvas( NULL ), m_pPage( NULL ), m_pFont( NULL ), m_nTabWidth( 4 ),
-  m_isTextOpen( false ),
   m_eCurColorSpace( ePdfColorSpace_DeviceRGB ), 
-  m_curColor1( 0.0 ), m_curColor2( 0.0 ), m_curColor3( 0.0 ), m_curColor4( 0.0 )
+  m_curColor1( 0.0 ), m_curColor2( 0.0 ), m_curColor3( 0.0 ), m_curColor4( 0.0 ),
+  m_isTextOpen( false )
 {
     m_oss.flags( std::ios_base::fixed );
     m_oss.precision( clPainterDefaultPrecision );
