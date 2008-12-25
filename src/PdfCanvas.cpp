@@ -60,8 +60,24 @@ void PdfCanvas::AddResource( const PdfName & rIdentifier, const PdfReference & r
         pResource->GetDictionary().AddKey( rName, PdfDictionary() );
     }
 
-    if( !pResource->GetDictionary().GetKey( rName )->GetDictionary().HasKey( rIdentifier ) )
-        pResource->GetDictionary().GetKey( rName )->GetDictionary().AddKey( rIdentifier, rRef );
+    // Peter Petrov: 18 December 2008. Bug fix
+	if (ePdfDataType_Reference == pResource->GetDictionary().GetKey( rName )->GetDataType())
+    {
+        PdfObject *directObject = pResource->GetOwner()->GetObject(pResource->GetDictionary().GetKey( rName )->GetReference());
+
+        if (0 == directObject)
+        {
+            PODOFO_RAISE_ERROR( ePdfError_NoObject );
+        }
+
+        if( !directObject->GetDictionary().HasKey( rIdentifier ) )
+            directObject->GetDictionary().AddKey( rIdentifier, rRef );
+    }else
+    {
+
+        if( !pResource->GetDictionary().GetKey( rName )->GetDictionary().HasKey( rIdentifier ) )
+            pResource->GetDictionary().GetKey( rName )->GetDictionary().AddKey( rIdentifier, rRef );
+    }
 }
 
 };
