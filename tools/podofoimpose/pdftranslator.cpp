@@ -21,7 +21,7 @@
 // #include "charpainter.h"
 #include "planreader_legacy.h"
 
-#ifdef HAVE_LUA
+#ifdef PODOFO_HAVE_LUA
 #include "planreader_lua.h"
 #endif
 
@@ -341,7 +341,7 @@ sv.PageWidth = sourceWidth;
 			{
 				PlanReader_Legacy ( planFile, planImposition );
 			}
-#if defined(HAVE_LUA)
+#if defined(PODOFO_HAVE_LUA)
 			else if ( loader == PoDoFo::Impose::Lua )
 			{
 				PlanReader_Lua ( planFile, planImposition );

@@ -81,7 +81,9 @@ features. The following tools are currently available:</p>
     A powerful
     PDF <a href="http://en.wikipedia.org/wiki/Imposition">imposition</a>
     tool. It places pages from one or more source PDFs onto pages of a new PDF,
-    applying scaling and positioning.</li>
+    applying scaling and positioning. If you have lua5.1 development
+    libraries installed, it will be built with support for Lua plan files,
+    which allow for mighty PDF transformations.</li>
 
   <li><b>podofomerge</b> -
     Merges two PDF files into onw.</li>
@@ -682,6 +684,10 @@ compatible.
   <tr>
     <td><code>PODOFO_HAVE_TIFF_LIB</code></td>
     <td>If defined PoDoFo will use libTiff to read and decode TIFF images.</td>
+  </tr>
+  <tr>
+    <td><code>PODOFO_HAVE_LUA</code></td>
+    <td>If defined PoDoFoImpose will be built with Lua support for plan files.</td>
   </tr>
 </table>
 
