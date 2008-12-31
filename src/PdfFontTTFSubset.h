@@ -32,12 +32,16 @@ namespace PoDoFo {
 class PdfInputDevice;
 class PdfOutputDevice;
 
+// This code is based heabily on code by ZhangYang 
+// (张杨.国际) <zhang_yang@founder.com>
+//
+// (Do not put this into doxygen documentation blocks
+//  as this will break latex documentation generation)
+
 /**
  * This class is able to build a new TTF font with only
  * certain glyphs from an existing font.
  *
- *
- * It based heabily on code by ZhangYang (张杨.国际) <zhang_yang@founder.com>
  */
 class PODOFO_API PdfFontTTFSubset {
  public:

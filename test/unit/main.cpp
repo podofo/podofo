@@ -24,6 +24,7 @@
 #include <cppunit/ui/text/TestRunner.h>
 
 #include <iostream>
+#include <podofo.h>
 
 void show_help()
 {
@@ -79,6 +80,10 @@ int main(int argc, char* argv[])
           CppUnit::XmlOutputter(&runner.result(),std::cerr ) ;
       runner.setOutputter(xmlOutputter);
   }
+
+  // Enable PoDoFo debugging and logging
+  PoDoFo::PdfError::EnableLogging( true );
+  PoDoFo::PdfError::EnableDebug( true );
 
   // Run the tests.
   bool wasSucessful = runner.run();
