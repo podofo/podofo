@@ -29,6 +29,15 @@ using std::ostream;
 using std::endl;
 using std::runtime_error;
 
+#ifdef _WIN32
+#ifdef max
+#undef max
+#endif // max
+#ifdef min
+#undef min
+#endif // min
+#endif // _WIN32
+
 #include <iostream> //XXX
 namespace PoDoFo { namespace Impose {
 PageRecord::PageRecord ( int s,int d,double r, double tx, double ty, int du )
@@ -72,12 +81,12 @@ void PageRecord::load ( const std::string& buffer, const std::map<std::string, s
 	{
 		sourcePage = destPage = 0; // will return false for isValid()
 		std::cerr<<"INVALID_RECORD("<< tokens.size() <<") "<<buffer<<std::endl;
-		for ( uint i ( 0 );i<tokens.size();++i )
+		for ( unsigned int i = 0;i<tokens.size();++i )
 			std::cerr<<"\t+ "<<tokens.at ( i ) <<std::endl;
 	}
 
-	sourcePage	= calc ( tokens.at ( 0 ) , vars);
-	destPage	= calc ( tokens.at ( 1 ) , vars);
+	sourcePage	= static_cast<int>(calc ( tokens.at ( 0 ) , vars));
+	destPage	= static_cast<int>(calc ( tokens.at ( 1 ) , vars));
 	if ( ( sourcePage < 1 ) || ( destPage < 1 ) )
 	{
 		sourcePage = destPage = 0;
@@ -194,7 +203,7 @@ double PageRecord::calc ( const std::vector<std::string>& t )
 	std::vector<std::string> ops;
 	ops.push_back ( "+" );
 
-	for ( uint vi ( 0 ); vi < t.size(); ++vi )
+	for ( unsigned int vi = 0; vi < t.size(); ++vi )
 	{
 		if ( t.at ( vi ) == "(" )
 		{
@@ -245,7 +254,7 @@ double PageRecord::calc ( const std::vector<std::string>& t )
 		ret = 	values.at ( 0 );
 	else
 	{
-		for ( uint vi ( 0 ); vi < ops.size(); ++vi )
+		for ( unsigned int vi = 0; vi < ops.size(); ++vi )
 		{
 // 			std::cerr<<"OP>> \""<<ret<<"\" " << ops.at ( vi )<<" \""<<values.at( vi ) <<"\" = ";
 			if ( ops.at ( vi ) == "+" )

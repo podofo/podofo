@@ -97,7 +97,7 @@ int PlanReader_Legacy::sortLoop(std::vector<std::string>& memfile, int numline)
 			
 	int endOfloopBlock(numline + 1);
 	int openLoop(0);
-	for(uint bolb2(numline + 1); bolb2 < memfile.size();++bolb2)
+	for(unsigned int bolb2 = (numline + 1); bolb2 < memfile.size();++bolb2)
 	{
 // 		std::cerr<<"| "<< memfile.at ( bolb2 ) <<" |"<<std::endl;
 		if(memfile.at ( bolb2 ).at( 0 ) == '<')
@@ -209,7 +209,7 @@ PlanReader_Legacy::PlanReader_Legacy(const std::string & plan, PoDoFo::Impose::I
 	I->vars[std::string("$SourceHeight")] = PoDoFo::Impose::Util::dToStr( I->sourceVars.PageHeight );
 	/// END OF PROVIDED
 	
-	for( uint numline(0); numline < memfile.size() ; ++numline)
+	for( unsigned int numline = 0; numline < memfile.size() ; ++numline)
 	{
 		std::string buffer( memfile.at(numline) );
 		if ( buffer.at ( 0 ) == '$' ) // Variable
