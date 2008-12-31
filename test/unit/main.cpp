@@ -24,6 +24,7 @@
 #include <cppunit/ui/text/TestRunner.h>
 
 #include <iostream>
+#include <podofo.h>
 
 void show_help()
 {
@@ -81,8 +82,8 @@ int main(int argc, char* argv[])
   }
 
   // Enable PoDoFo debugging and logging
-  PdfError::EnableLogging( true );
-  PdfError::EnableDebug( true );
+  PoDoFo::PdfError::EnableLogging( true );
+  PoDoFo::PdfError::EnableDebug( true );
 
   // Run the tests.
   bool wasSucessful = runner.run();
