@@ -17,6 +17,16 @@ Version 0.7
     PdfReference is now immutable, which allows for various optimizations
     Fixed PdfInputDevice::Read to return now the correct number of bytes
 	read
+    Fixed a memory leak in PdfImmediateWriter/PdfStreamedDocument
+    Fixed several minor parsing issues
+    Fixed adding text to existing pages
+    Added Lua5.1 plan file support to podofoimpose
+    Several fixes in creating XObjects from pages
+    Fixed a possible crash in PdfNamesTree
+    Added support for setting colors in PdfAnnotations
+    Added advanced text drawing support to PdfPainter
+    Fixed parsing of Type1 fonts
+    Fixed deletion of PdfAnnations (fixes a memory leak)
     
 
 Version 0.6
