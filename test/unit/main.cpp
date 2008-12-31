@@ -80,6 +80,10 @@ int main(int argc, char* argv[])
       runner.setOutputter(xmlOutputter);
   }
 
+  // Enable PoDoFo debugging and logging
+  PdfError::EnableLogging( true );
+  PdfError::EnableDebug( true );
+
   // Run the tests.
   bool wasSucessful = runner.run();
 
