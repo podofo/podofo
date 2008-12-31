@@ -424,7 +424,7 @@ class PODOFO_API PdfPainter {
      */
 	void AddText( const PdfString & sText, long lStringLen );
 
-    /** Move position für text drawing on a page.
+    /** Move position for text drawing on a page.
      *  You have to call BeginText before calling this function
      *
      *  If you want more simpler text output and do not need
