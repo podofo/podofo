@@ -58,8 +58,8 @@ body{
 	<div id="intro">PodofoImpose is a utility program which aims to provide a rather simple way to impose PDF documents. Originally written for my own use, it ended up in PoDoFo release as a show-case (don’t rely too much on it).
 	</div>
 	
-	<h3>Plan</h3>
-	<div class="section"><!-- Plan -->
+	<h3>Plan (built-in)</h3>
+	<div class="section"><!-- Plan own -->
 		PodofoImpose is driven by a PLAN file. This file describes how pages from a source PDF document have to be relayout into a target document. We’ll describe how this file must be formated.
 		<h4>Records</h4>
 		<div>
@@ -130,9 +130,29 @@ $page; $page; 0; ($PageWidth-$sw)/2; ($PageHeight-$sh)/2;
 		Note the source can be either a PDF file or a text file which is a listing of PDF files. In this case, listed files will be first merged in order.
 		</div>
         </div> <!-- Plan -->
+	  <h3>Plan (Lua)</h3>
+	<div class="section"><!-- lua plan -->
+	    PoDoFoImpose now supports Lua scripted plan files. Note that, mainly for security reasons, only the following modules are loaded: base, table, string, math. If you need more, just add luaopen_* calls to LuaMachina::LuaMachina().
+	    <h4>Format</h4>
+	    <div>
+	     Records are pushed with:
+	     <div class="command">
+	      PushRecord(source page, target page, rotation, x, y);
+	      </div>
+		As for regular plan files, there are a couple of provided informations through global variables, specifically: "SourceWidth", "SourceHeight", "PageCount". You need to set "PageWidth" and "PageHeight". You may alter the global scale factor (from source to target) by setting "Scale".
+	     </div>
+		<h4>Running</h4>
+		 <div>
+		  There is no format detection mechanism, so you need to append "lua" keyword to podofoimpose invocation when you want it to process a Lua script.
+		  </div>
+
+	 </div> <!-- lua plan -->
 	
 	<h3>Examples</h3>
 	<div class="section"><!-- Examples -->
+	 <div>
+	  For Lua scripts, some samples can be found in directory tools/podofoimpose/plans/lua of PoDoFo sources tree.
+	  </div>
 	<h5>Add a stamp to a document</h5>
 	Shame on me, don’t even have a real stamp at my "office". So I tried something and it worked! Say you have that official one page A4 doc, named official.pdf, on which you want to add a nice stamp. You have your stamp in the file stamp.pdf. You first have to create two files:
 	<div class="file">

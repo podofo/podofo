@@ -1,0 +1,9 @@
+-- Test
+PageHeight = SourceHeight
+PageWidth = SourceWidth
+print("SourceHeight",SourceHeight);
+
+PushRecord(1,1,0,0,0);
+PushRecord(1,3,0,0,0);
+PushRecord(1,5,0,0,0);
+PushRecord(1,7,0,0,0);

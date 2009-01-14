@@ -1,0 +1,32 @@
+-- In4 - imposé sur un A4 présentement
+
+PageWidth = 595.27559
+PageHeight = 841.88976
+
+sw = SourceWidth
+sh = SourceHeight
+
+xoffset = (PageWidth - (2*sw)) / 2;
+yoffset = (PageHeight - (2*sh)) / 2;
+
+print("xo",xoffset );
+print("yo",yoffset );
+-- sw = sw + xoffset;
+-- sh = sh + yoffset;
+i = 0
+
+while i < PageCount
+	do
+		F = i/8
+		PushRecord(i+ 8,F+ 1, 0, 0, yoffset )
+		PushRecord(i+ 1,F+ 1, 0, sw, yoffset  )
+		PushRecord(i+ 4,F+ 1, 180, 2*sw, 2*(sh+yoffset) )
+		PushRecord(i+ 5,F+ 1, 180, sw, 2*(sh+yoffset) )
+		
+		PushRecord( i+ 2, F+ 2,  0, 0, yoffset )
+		PushRecord( i+ 7, F+ 2, 0, sw, yoffset )
+		PushRecord( i+ 6, F+ 2, 180, 2*sw, 2*(sh+yoffset) )
+		PushRecord( i+ 3, F+ 2, 180, sw, 2*(sh+yoffset) )
+		
+		i = i + 8
+	end

@@ -1,0 +1,15 @@
+-- Identity - a test script for podofoimpose
+
+-- Required
+PageWidth = SourceWidth
+PageHeight = SourceHeight
+
+-- Records
+i = 1
+while i <= PageCount
+do
+	PushRecord( i , i ,0,0,0)
+	i = i + 1
+end
+
+		

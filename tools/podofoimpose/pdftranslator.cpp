@@ -66,12 +66,13 @@ namespace PoDoFo
 			in.close();
 			if ( magic.find ( "%PDF" ) < 5 )
 				return true;
-
+// 			throw runtime_error("First bytes of the file tend to indicate it is not a PDF file");
 			return false;
 		}
 
 		PdfTranslator::PdfTranslator ( )
 		{
+			std::cerr<<"PdfTranslator::PdfTranslator"<<std::endl;
 			sourceDoc = 0;
 			targetDoc = 0;
 			extraSpace = 0;
@@ -80,7 +81,9 @@ namespace PoDoFo
 
 		void PdfTranslator::setSource ( const std::string & source )
 		{
-
+			int dbg(0);
+// 			std::cerr<<"PdfTranslator::setSource "<<source<<std::endl;
+			std::cerr<< ++dbg <<std::endl;
 			if ( checkIsPDF ( source ) )
 			{
 // 		std::cerr << "Appending "<<source<<" to source" << endl;
@@ -109,13 +112,21 @@ namespace PoDoFo
 				in.close();
 				delete filenameBuffer;
 			}
+			std::cerr<< ++dbg <<std::endl;
 
 			for ( std::vector<std::string>::const_iterator ms = multiSource.begin(); ms != multiSource.end(); ++ms )
 			{
 				if ( ms == multiSource.begin() )
 				{
-// 			std::cerr << "First doc is "<< *ms  << endl;
-					sourceDoc = new PdfMemDocument ( ( *ms ).c_str() );
+// 					std::cerr << "First doc is "<< (*ms).c_str()   << endl;
+					try{
+						sourceDoc = new PdfMemDocument ( ( *ms ).c_str() );
+					}
+					catch(PdfError& e)
+					{
+						std::cerr<<"Unable to create Document: " <<PdfError::ErrorMessage( e. GetError() )<<endl;
+						return;
+					}
 				}
 				else
 				{
@@ -138,6 +149,7 @@ namespace PoDoFo
 
 		void PdfTranslator::addToSource ( const std::string & source )
 		{
+// 			std::cerr<<"PdfTranslator::addToSource "<< source<<std::endl;
 			if ( !sourceDoc )
 				return;
 
@@ -149,6 +161,7 @@ namespace PoDoFo
 
 		PdfObject* PdfTranslator::migrateResource ( PdfObject * obj )
 		{
+// 			std::cerr<<"PdfTranslator::migrateResource"<<std::endl;
 			PdfObject *ret ( 0 );
 
 			if ( obj->IsDictionary() )
@@ -187,7 +200,7 @@ namespace PoDoFo
 
 				PdfObject * o ( migrateResource ( sourceDoc->GetObjects().GetObject ( obj->GetReference() ) ) );
 
-				ret  = new PdfObject ( o->Reference() ) ;
+                                ret  = new PdfObject ( o->Reference() ) ;
 
 			}
 			else
@@ -205,6 +218,7 @@ namespace PoDoFo
 
 		PdfObject* PdfTranslator::getInheritedResources ( PdfPage* page )
 		{
+// 			std::cerr<<"PdfTranslator::getInheritedResources"<<std::endl;
 			PdfObject *res ( 0 ); // = new PdfObject;
 			PdfObject *rparent = page->GetObject();
 			while ( rparent && rparent->IsDictionary() )
@@ -222,6 +236,7 @@ namespace PoDoFo
 
 		void PdfTranslator::setTarget ( const std::string & target )
 		{
+// 			std::cerr<<"PdfTranslator::setTarget "<<target<<std::endl;
 			if ( !sourceDoc )
 				throw std::logic_error ( "setTarget() called before setSource()" );
 
@@ -332,10 +347,11 @@ namespace PoDoFo
 
 		void PdfTranslator::loadPlan ( const std::string & planFile , PoDoFo::Impose::PlanReader loader )
 		{
-SourceVars sv;
-sv.PageCount = pcount;
-sv.PageHeight = sourceHeight;
-sv.PageWidth = sourceWidth;
+// 			std::cerr<< "loadPlan" << planFile<<std::endl;
+			SourceVars sv;
+			sv.PageCount = pcount;
+			sv.PageHeight = sourceHeight;
+			sv.PageWidth = sourceWidth;
 			planImposition = new ImpositionPlan ( sv );
 			if ( loader == PoDoFo::Impose::Legacy )
 			{
@@ -360,6 +376,7 @@ sv.PageWidth = sourceWidth;
 
 		void PdfTranslator::impose()
 		{
+// 			std::cerr<<"PdfTranslator::impose"<<std::endl;
 			if ( !targetDoc )
 				throw std::invalid_argument ( "impose() called with empty target" );
 

@@ -85,7 +85,7 @@ int parseCommandLine ( int argc, char* argv[] )
  */
 int main ( int argc, char *argv[] )
 {
-#if 1
+#if 0
 	PoDoFo::PdfError::EnableDebug ( false );
 	PoDoFo::PdfError::EnableLogging ( false );
 #endif
@@ -110,6 +110,7 @@ int main ( int argc, char *argv[] )
 	}
 	catch ( PoDoFo::PdfError & e )
 	{
+		e.GetCallstack();
 		e.PrintErrorMsg();
 		return 3;
 	}

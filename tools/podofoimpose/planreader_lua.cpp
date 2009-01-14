@@ -22,14 +22,7 @@
 
 LuaMachina::LuaMachina()
 {
-// 	std::cerr<<"LuaMachina::LuaMachina"<<std::endl;
-// 	luaopen_io(L);
-// 	luaopen_base(L);
-// 	luaopen_table(L);
-// 	luaopen_string(L);
-// 	luaopen_math(L);
 	int error;
-
 	/* Init the Lua interpreter */
 	L = lua_open();
 	if (!L)
@@ -41,42 +34,14 @@ LuaMachina::LuaMachina()
 	* Note that the `os' and `io' libraries MUST NOT be included,
 	* as providing access to those libraries to the user would
 	* make running plan files unsafe. */
-	error = luaopen_base(L);
-// 	if (error)
-	/// Found something weird in lua code source. And it seems it’s same for all luaopen_*
-// 	LUALIB_API int luaopen_base (lua_State *L) {
-// 		base_open(L);
-// 		luaL_register(L, LUA_COLIBNAME, co_funcs);
-// 		return 2; <- HERE !!!
-// 	}
-
-// 	{
-// 		lua_close(L);
-// 		throw std::runtime_error("Whoops! Failed top init lua base libs.");
-// 	}
-	error = luaopen_table(L);
-// 	if (error)
-// 	{
-// 		lua_close(L);
-// 		throw std::runtime_error("Whoops! Failed top init lua table libs.");
-// 	}
-	error = luaopen_string(L);
-// 	if (error)
-// 	{
-// 		lua_close(L);
-// 		throw std::runtime_error("Whoops! Failed top init lua string libs.");
-// 	}
-	error = luaopen_math(L);
-// 	if (error)
-// 	{
-// 		lua_close(L);
-// 		throw std::runtime_error("Whoops! Failed top init lua math libs.");
-// 	}
+	luaopen_base(L);
+	luaopen_table(L);
+	luaopen_string(L);
+	luaopen_math(L);
 }
 
 LuaMachina::~LuaMachina()
 {
-// 	std::cerr<<"LuaMachina::~LuaMachina"<<std::endl;
 	lua_close(L);
 }
 
@@ -95,7 +60,7 @@ PlanReader_Lua::PlanReader_Lua(const std::string & planfile, PoDoFo::Impose::Imp
 	setNumber("SourceWidth", plan->sourceVars.PageWidth );
 	setNumber("SourceHeight", plan->sourceVars.PageHeight);
 	
-	// imp_loa_dofile is a wrapper around luaL_dofile for Lua 5.0/5.1 compat.
+	// imp_lua_dofile is a wrapper around luaL_dofile for Lua 5.0/5.1 compat.
 	if(imp_lua_dofile(L.State(), planfile.c_str()))
 	{
 		std::cerr<<"Unable to process Lua script:\"" <<lua_tostring(L.State(), -1)<<"\""<<std::endl ;
