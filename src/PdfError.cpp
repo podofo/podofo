@@ -128,31 +128,31 @@ void PdfError::PrintErrorMsg() const
 
     int i                = 0;
 
-    PdfError::LogMessage( eLogSeverity_Error, "\n\nPoDoFo encounter an error. Error: %i %s\n", m_error, pszName ? pszName : "" );
+    PdfError::LogErrorMessage( eLogSeverity_Error, "\n\nPoDoFo encounter an error. Error: %i %s\n", m_error, pszName ? pszName : "" );
 
     if( pszMsg )
-        PdfError::LogMessage( eLogSeverity_Error, "\tError Description: %s\n", pszMsg );
+        PdfError::LogErrorMessage( eLogSeverity_Error, "\tError Description: %s\n", pszMsg );
     
     if( m_callStack.size() )
-        PdfError::LogMessage( eLogSeverity_Error, "\tCallstack:\n" );
+        PdfError::LogErrorMessage( eLogSeverity_Error, "\tCallstack:\n" );
 
     while( it != m_callStack.end() )
     {
         if( !(*it).GetFilename().empty() )
-            PdfError::LogMessage( eLogSeverity_Error, "\t#%i Error Source: %s:%i\n", i, (*it).GetFilename().c_str(), (*it).GetLine() );
+            PdfError::LogErrorMessage( eLogSeverity_Error, "\t#%i Error Source: %s:%i\n", i, (*it).GetFilename().c_str(), (*it).GetLine() );
 
         if( !(*it).GetInformation().empty() )
-            PdfError::LogMessage( eLogSeverity_Error, "\t\tInformation: %s\n", (*it).GetInformation().c_str() );
+            PdfError::LogErrorMessage( eLogSeverity_Error, "\t\tInformation: %s\n", (*it).GetInformation().c_str() );
 
         if( !(*it).GetInformationW().empty() )
-            PdfError::LogMessage( eLogSeverity_Error, L"\t\tInformation: %s\n", (*it).GetInformationW().c_str() );
+            PdfError::LogErrorMessage( eLogSeverity_Error, L"\t\tInformation: %s\n", (*it).GetInformationW().c_str() );
 
         ++i;
         ++it;
     }
 
         
-    PdfError::LogMessage( eLogSeverity_Error, "\n\n" );
+    PdfError::LogErrorMessage( eLogSeverity_Error, "\n\n" );
 }
 
 const char* PdfError::what() const throw()
@@ -433,6 +433,24 @@ void PdfError::LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... )
     if( eLogSeverity < eMinSeverity )
         return;
 
+    va_list  args;
+    va_start( args, pszMsg );
+
+    LogMessageInternal( eLogSeverity, pszMsg, args );
+    va_end( args );
+}
+
+void PdfError::LogErrorMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... )
+{
+    va_list  args;
+    va_start( args, pszMsg );
+
+    LogMessageInternal( eLogSeverity, pszMsg, args );
+    va_end( args );
+}
+
+void PdfError::LogMessageInternal( ELogSeverity eLogSeverity, const char* pszMsg, va_list & args )
+{
     const char* pszPrefix = NULL;
 
     switch( eLogSeverity ) 
@@ -456,20 +474,44 @@ void PdfError::LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... )
             break;
     }
 
-    va_list  args;
-    va_start( args, pszMsg );
-    
     if( pszPrefix )
         fprintf( stderr, pszPrefix );
 
     vfprintf( stderr, pszMsg, args );
-    va_end( args );
 }
 
 void PdfError::LogMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ... )
 {
 	if(!PdfError::LoggingEnabled())
 		return;
+
+#ifdef DEBUG
+    const ELogSeverity eMinSeverity = eLogSeverity_Debug;
+#else
+    const ELogSeverity eMinSeverity = eLogSeverity_Information;
+#endif // DEBUG
+
+    if( eLogSeverity < eMinSeverity )
+        return;
+
+    va_list  args;
+    va_start( args, pszMsg );
+
+    LogMessageInternal( eLogSeverity, pszMsg, args );
+    va_end( args );
+}
+
+void PdfError::LogErrorMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ... )
+{
+    va_list  args;
+    va_start( args, pszMsg );
+
+    LogMessageInternal( eLogSeverity, pszMsg, args );
+    va_end( args );
+}
+
+void PdfError::LogMessageInternal( ELogSeverity eLogSeverity, const wchar_t* pszMsg, va_list & args )
+{
     const wchar_t* pszPrefix = NULL;
 
     switch( eLogSeverity ) 
@@ -493,14 +535,10 @@ void PdfError::LogMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ...
             break;
     }
 
-    va_list  args;
-    va_start( args, pszMsg );
-    
     if( pszPrefix )
         fwprintf( stderr, pszPrefix );
 
     vfwprintf( stderr, pszMsg, args );
-    va_end( args );
 }
 
 void PdfError::DebugMessage( const char* pszMsg, ... )

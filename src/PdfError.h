@@ -373,6 +373,30 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError : public std::exception {
     static bool DebugEnabled() { return PdfError::s_DgbEnabled; }
 
  private:
+    /** Log a message to the logging system defined for PoDoFo.
+     *
+     *  This call does not check if logging is enabled and always
+     *  prints the error message
+     *
+     *  \param eLogSeverity the sevirity of the log message
+     *  \param pszMsg       the message to be logged
+     */
+    static void LogErrorMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... );
+
+    /** Log a message to the logging system defined for PoDoFo.
+     *
+     *  This call does not check if logging is enabled and always
+     *  prints the error message
+     *
+     *  \param eLogSeverity the sevirity of the log message
+     *  \param pszMsg       the message to be logged
+     */
+    static void LogErrorMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ... );
+
+    static void LogMessageInternal( ELogSeverity eLogSeverity, const char* pszMsg, va_list & args );
+    static void LogMessageInternal( ELogSeverity eLogSeverity, const wchar_t* pszMsg, va_list & args );
+
+ private:
     EPdfError          m_error;
 
     TDequeErrorInfo    m_callStack;
