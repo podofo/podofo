@@ -29,6 +29,7 @@ namespace PoDoFo {
 class PdfDictionary;
 class PdfObject;
 class PdfRect;
+class PdfColor;
 
 /** A interface that provides the necessary features 
  *  for a painter to draw onto a PdfObject.
@@ -70,8 +71,15 @@ class PODOFO_API PdfCanvas {
      */
     static const PdfArray & GetProcSet();
 
+	/** Register a colourspace for a (separation) colour in the resource dictionary 
+	 *  of this page or XObbject so that it can be used for any following drawing 
+	 *  operations.
+     *  
+     *  \param rColor reference to the PdfColor
+     */
+	void AddColorResource( const PdfColor & rColor );
 
-    /** Register an object in the resource dictionary of this page or XObbject
+	/** Register an object in the resource dictionary of this page or XObbject
      *  so that it can be used for any following drawing operations.
      *  
      *  \param rIdentifier identifier of this object, e.g. /Ft0

@@ -22,6 +22,9 @@
 
 #include "PdfDictionary.h"
 #include "PdfName.h"
+#include "PdfColor.h"
+#include "PdfFunction.h"
+#include "PdfStream.h"
 
 namespace PoDoFo {
 
@@ -39,6 +42,93 @@ const PdfArray & PdfCanvas::GetProcSet()
     }
 
     return s_procset;
+}
+
+void PdfCanvas::AddColorResource( const PdfColor & rColor )
+{
+    PdfObject* pResource = GetResources();
+    
+    if( !pResource )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+	std::string csPrefix( "ColorSpace" );
+	std::string csName = rColor.GetName();
+
+	std::string temp( csPrefix + csName );
+	if ( 
+		! pResource->GetDictionary().HasKey( "ColorSpace" )	||
+		! pResource->GetDictionary().GetKey( "ColorSpace" )->GetDictionary().HasKey( csPrefix + csName )
+	   )
+	{
+		// Build color-spaces for separation
+		PdfObject* csTintFunc = GetContents()->GetOwner()->CreateObject();
+
+		csTintFunc->GetDictionary().AddKey( "BitsPerSample", 8L );
+
+		PdfArray decode;
+		decode.push_back( 0L );
+		decode.push_back( 1L );
+		decode.push_back( 0L );
+		decode.push_back( 1L );
+		decode.push_back( 0L );
+		decode.push_back( 1L );
+		decode.push_back( 0L );
+		decode.push_back( 1L );
+		csTintFunc->GetDictionary().AddKey( "Decode", decode );
+
+		PdfArray domain;
+		domain.push_back( 0L );
+		domain.push_back( 1L );
+		csTintFunc->GetDictionary().AddKey( "Domain", domain );
+
+		PdfArray encode;
+		encode.push_back( 0L );
+		encode.push_back( 255L );
+		csTintFunc->GetDictionary().AddKey( "Encode", encode );
+
+		csTintFunc->GetDictionary().AddKey( "Filter", PdfName( "FlateDecode" ) );
+		csTintFunc->GetDictionary().AddKey( "FunctionType", PdfVariant( static_cast<long>(ePdfFunctionType_Sampled) ) );
+
+		char data[4*2];
+		data[0] =
+			data[1] =
+			data[2] = 
+			data[3] = 0;
+		data[4] = static_cast<char>(rColor.GetCyan() * 255);
+		data[5] = static_cast<char>(rColor.GetMagenta() * 255);
+		data[6] = static_cast<char>(rColor.GetYellow() * 255);
+		data[7] = static_cast<char>(rColor.GetBlack() * 255);
+
+		PdfMemoryInputStream stream( data, 4*2 );
+		csTintFunc->GetStream()->Set( &stream );
+
+		PdfArray range;
+		range.push_back( 0L );
+		range.push_back( 1L );
+		range.push_back( 0L );
+		range.push_back( 1L );
+		range.push_back( 0L );
+		range.push_back( 1L );
+		range.push_back( 0L );
+		range.push_back( 1L );
+		csTintFunc->GetDictionary().AddKey( "Range", range );
+
+		PdfArray size;
+		size.push_back( 2L );
+		csTintFunc->GetDictionary().AddKey( "Size", size );
+
+		PdfArray csArr;
+		csArr.push_back( PdfName("Separation") );
+		csArr.push_back( PdfName( csName ) );
+		csArr.push_back( PdfName("DeviceCMYK") );
+		csArr.push_back( csTintFunc->Reference() );
+
+		PdfObject* csp = GetContents()->GetOwner()->CreateObject( csArr );
+
+		AddResource( csPrefix + csName, csp->Reference(), PdfName("ColorSpace") );
+	}
 }
 
 void PdfCanvas::AddResource( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName )

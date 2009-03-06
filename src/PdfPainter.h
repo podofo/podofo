@@ -24,13 +24,13 @@
 #include "PdfDefines.h"
 
 #include "PdfRect.h"
+#include "PdfColor.h"
 
 #include <sstream>
 
 namespace PoDoFo {
 
 class PdfCanvas;
-class PdfColor;
 class PdfExtGState;
 class PdfFont;
 class PdfImage;
@@ -736,13 +736,9 @@ class PODOFO_API PdfPainter {
      */
     unsigned short m_nTabWidth;
 
-    /** The current color space for non stroking colors
+    /** Save the current color for non stroking colors
      */
-    EPdfColorSpace m_eCurColorSpace;
-
-    /** Save the current color
-     */
-    double m_curColor1, m_curColor2, m_curColor3, m_curColor4;
+	PdfColor m_curColor;
 
     /** Is between BT and ET
      */

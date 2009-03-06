@@ -196,13 +196,14 @@ enum EPdfFilter {
 };
 
 /** 
- * Enum for the three colorspaces supported
+ * Enum for the colorspaces supported
  * by PDF.
  */
 enum EPdfColorSpace {
     ePdfColorSpace_DeviceGray,        /**< Gray */
     ePdfColorSpace_DeviceRGB,         /**< RGB  */
-    ePdfColorSpace_DeviceCMYK         /**< CMYK */
+    ePdfColorSpace_DeviceCMYK,        /**< CMYK */
+    ePdfColorSpace_Separation         /**< Separation */
 };
 
 /**

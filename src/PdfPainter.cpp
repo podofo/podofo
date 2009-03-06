@@ -43,6 +43,7 @@
 #include "PdfXObject.h"
 #include "PdfLocale.h"
 
+
 #include <stdlib.h>
 
 #define BEZIER_POINTS 13
@@ -77,8 +78,7 @@ static inline void CheckDoubleRange( double val, double min, double max )
 
 PdfPainter::PdfPainter()
 : m_pCanvas( NULL ), m_pPage( NULL ), m_pFont( NULL ), m_nTabWidth( 4 ),
-  m_eCurColorSpace( ePdfColorSpace_DeviceRGB ), 
-  m_curColor1( 0.0 ), m_curColor2( 0.0 ), m_curColor3( 0.0 ), m_curColor4( 0.0 ),
+  m_curColor( PdfColor( 0.0, 0.0, 0.0 ) ),
   m_isTextOpen( false )
 {
     m_oss.flags( std::ios_base::fixed );
@@ -245,6 +245,10 @@ void PdfPainter::SetStrokingColor( const PdfColor & rColor )
         case ePdfColorSpace_DeviceGray:
             m_oss << rColor.GetGrayScale() << " G" << std::endl;
             break;
+        case ePdfColorSpace_Separation:
+			m_pPage->AddColorResource( rColor );
+			m_oss << "/ColorSpace" << PdfName( rColor.GetName() ).GetEscapedName() << " CS 1 SCN" << std::endl;
+            break;
     }
 
     m_pCanvas->Append( m_oss.str() );
@@ -256,27 +260,17 @@ void PdfPainter::SetColor( const PdfColor & rColor )
 
     m_oss.str("");
 
+    m_curColor = rColor;
     switch( rColor.GetColorSpace() ) 
     {
         default: 
         case ePdfColorSpace_DeviceRGB:
-            m_eCurColorSpace = ePdfColorSpace_DeviceRGB;
-            m_curColor1      = rColor.GetRed();
-            m_curColor2      = rColor.GetGreen();
-            m_curColor3      = rColor.GetBlue();
-
             m_oss << rColor.GetRed()   << " "
                   << rColor.GetGreen() << " "
                   << rColor.GetBlue() 
                   << " rg" << std::endl;
             break;
         case ePdfColorSpace_DeviceCMYK:
-            m_eCurColorSpace = ePdfColorSpace_DeviceCMYK;
-            m_curColor1      = rColor.GetCyan();
-            m_curColor2      = rColor.GetMagenta();
-            m_curColor3      = rColor.GetYellow();
-            m_curColor4      = rColor.GetBlack();
-
             m_oss << rColor.GetCyan()    << " " 
                   << rColor.GetMagenta() << " " 
                   << rColor.GetYellow()  << " " 
@@ -284,10 +278,11 @@ void PdfPainter::SetColor( const PdfColor & rColor )
                   << " k" << std::endl;
             break;
         case ePdfColorSpace_DeviceGray:
-            m_eCurColorSpace = ePdfColorSpace_DeviceGray;
-            m_curColor1      = rColor.GetGrayScale();
-
             m_oss << rColor.GetGrayScale() << " g" << std::endl;
+            break;
+        case ePdfColorSpace_Separation:
+			m_pPage->AddColorResource( rColor );
+            m_oss << "/ColorSpace" << PdfName( rColor.GetName() ).GetEscapedName() << " cs 1 scn" << std::endl;
             break;
     }
 
@@ -1201,25 +1196,7 @@ void PdfPainter::ConvertRectToBezier( double dX, double dY, double dWidth, doubl
 
 void PdfPainter::SetCurrentStrokingColor()
 {
-    switch( m_eCurColorSpace )
-    {
-        case ePdfColorSpace_DeviceGray:
-            this->SetStrokingGray( m_curColor1 );
-        break;
-        case ePdfColorSpace_DeviceRGB:
-            this->SetStrokingColor( m_curColor1, m_curColor2, m_curColor3 );
-        break;
-        case ePdfColorSpace_DeviceCMYK:
-            this->SetStrokingColorCMYK( m_curColor1, m_curColor2, m_curColor3, m_curColor4 );
-        break;
-        default:
-        {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, 
-                                     "The color space for the current text drawing operation is invalid. "
-                                     "Please set a correct color."  ); 
-        }
-        break;
-    }
+	SetStrokingColor( m_curColor );
 }
 
 void PdfPainter::SetTransformationMatrix( double a, double b, double c, double d, double e, double f )

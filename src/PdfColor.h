@@ -27,8 +27,8 @@ namespace PoDoFo {
 
 class PdfArray;
     
-/** A color object can represent a either a grayscale
- *  value, a RGB color or a CMYK color.
+/** A color object can represent either a grayscale
+ *  value, a RGB color, a CMYK color or a separation color.
  *
  *  All drawing functions in PoDoFo accept a PdfColor object
  *  to specify a drawing color in one of these colorspaces.
@@ -46,7 +46,7 @@ class PODOFO_API PdfColor {
      */
     PdfColor( double dGray );
 
-    /** Create a new PdfColor object with
+	/** Create a new PdfColor object with
      *  a RGB color
      *
      *  \param dRed the value of the red component, must be between 0.0 and 1.0
@@ -65,7 +65,25 @@ class PODOFO_API PdfColor {
      */
     PdfColor( double dCyan, double dMagenta, double dYellow, double dBlack );
 
-    /** Copy constructor
+    /** Create a new PdfColor object with
+     *  Separation color All or None.
+     *
+     *  \param bAll true = All, false = None
+     */
+    PdfColor( bool bAll );
+
+    /** Create a new PdfColor object with
+     *  a separation-name and an equivalent CMYK color
+     *
+     *  \param sName Name of the separation color
+     *  \param dCyan the value of the cyan component, must be between 0.0 and 1.0
+     *  \param dMagenta the value of the magenta component, must be between 0.0 and 1.0
+     *  \param dYellow the value of the yellow component, must be between 0.0 and 1.0
+     *  \param dBlack the value of the black component, must be between 0.0 and 1.0
+     */
+	PdfColor( const std::string & sName, double dCyan, double dMagenta, double dYellow, double dBlack );
+
+	/** Copy constructor
      *
      *  \param rhs copy rhs into this object
      */
@@ -113,7 +131,13 @@ class PODOFO_API PdfColor {
      */
     inline bool IsCMYK() const;
 
-    /** Get the colorspace of this PdfColor object
+    /** Test if this is a separation color.
+     * 
+     *  \returns true if this is a separation PdfColor object
+     */
+    inline bool IsSeparation() const;
+
+	/** Get the colorspace of this PdfColor object
      *
      *  \returns the colorspace of this PdfColor object
      */
@@ -166,7 +190,7 @@ class PODOFO_API PdfColor {
     /** Get the cyan color value 
      *  of this object.
      *
-     *  Throws an exception if this is no CMYK color object.
+     *  Throws an exception if this is no CMYK or separation color object.
      *
      *  \returns the cyan color value of this object (between 0.0 and 1.0)
      *
@@ -177,7 +201,7 @@ class PODOFO_API PdfColor {
     /** Get the magenta color value 
      *  of this object.
      *
-     *  Throws an exception if this is no CMYK color object.
+     *  Throws an exception if this is no CMYK or separation color object.
      *
      *  \returns the magenta color value of this object (between 0.0 and 1.0)
      *
@@ -188,7 +212,7 @@ class PODOFO_API PdfColor {
     /** Get the yellow color value 
      *  of this object.
      *
-     *  Throws an exception if this is no CMYK color object.
+     *  Throws an exception if this is no CMYK or separation color object.
      *
      *  \returns the yellow color value of this object (between 0.0 and 1.0)
      *
@@ -199,7 +223,7 @@ class PODOFO_API PdfColor {
     /** Get the black color value 
      *  of this object.
      *
-     *  Throws an exception if this is no CMYK color object.
+     *  Throws an exception if this is no CMYK or separation color object.
      *
      *  \returns the black color value of this object (between 0.0 and 1.0)
      *
@@ -207,7 +231,17 @@ class PODOFO_API PdfColor {
      */
     inline double GetBlack() const;
 
-    /** Converts the color object into a grayscale
+    /** Get the separation name of this object.
+     *
+     *  Throws an exception if this is no separation color object.
+     *
+     *  \returns the name of this object
+     *
+     *  \see IsSeparation
+     */
+	inline const std::string GetName() const;
+
+	/** Converts the color object into a grayscale
      *  color object.
      *
      *  This is only a convinience function. It might be useful
@@ -277,7 +311,7 @@ class PODOFO_API PdfColor {
         double rgb[3];
         double gray;
     }  m_uColor; 
-
+	std::string m_separationName;
     EPdfColorSpace m_eColorSpace;
 };
 
@@ -296,6 +330,16 @@ inline bool PdfColor::operator==( const PdfColor & rhs ) const
 {
 	if ( m_eColorSpace == rhs.m_eColorSpace	)
 	{
+		if ( 
+			m_eColorSpace == ePdfColorSpace_Separation			&&
+			m_uColor.cmyk[0] == rhs.m_uColor.cmyk[0]			&&
+			m_uColor.cmyk[1] == rhs.m_uColor.cmyk[1]			&&
+			m_uColor.cmyk[2] == rhs.m_uColor.cmyk[2]			&&
+			m_uColor.cmyk[3] == rhs.m_uColor.cmyk[3]			&&
+			m_separationName == rhs.m_separationName
+		   )
+		   return true;
+
 		if ( 
 			m_eColorSpace == ePdfColorSpace_DeviceGray			&&
 			m_uColor.gray == rhs.m_uColor.gray
@@ -357,6 +401,14 @@ bool PdfColor::IsCMYK() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
+bool PdfColor::IsSeparation() const
+{
+    return (m_eColorSpace == ePdfColorSpace_Separation);
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 EPdfColorSpace PdfColor::GetColorSpace() const
 {
     return m_eColorSpace;
@@ -407,7 +459,7 @@ double PdfColor::GetBlue() const
 // -----------------------------------------------------
 double PdfColor::GetCyan() const
 {
-    PODOFO_RAISE_LOGIC_IF( !this->IsCMYK(), "PdfColor::GetCyan cannot be called on non CMYK color objects!");
+	PODOFO_RAISE_LOGIC_IF( !this->IsCMYK()  &&  !this->IsSeparation(), "PdfColor::GetCyan cannot be called on non CMYK/separation color objects!");
 
     return m_uColor.cmyk[0];
 }
@@ -417,7 +469,7 @@ double PdfColor::GetCyan() const
 // -----------------------------------------------------
 double PdfColor::GetMagenta() const
 {
-    PODOFO_RAISE_LOGIC_IF( !this->IsCMYK(), "PdfColor::GetMagenta cannot be called on non CMYK color objects!");
+	PODOFO_RAISE_LOGIC_IF( !this->IsCMYK()  &&  !this->IsSeparation(), "PdfColor::GetMagenta cannot be called on non CMYK/separation color objects!");
 
     return m_uColor.cmyk[1];
 }
@@ -427,7 +479,7 @@ double PdfColor::GetMagenta() const
 // -----------------------------------------------------
 double PdfColor::GetYellow() const
 {
-    PODOFO_RAISE_LOGIC_IF( !this->IsCMYK(), "PdfColor::GetYellow cannot be called on non CMYK color objects!");
+	PODOFO_RAISE_LOGIC_IF( !this->IsCMYK()  &&  !this->IsSeparation(), "PdfColor::GetYellow cannot be called on non CMYK/separation color objects!");
 
     return m_uColor.cmyk[2];
 }
@@ -437,9 +489,19 @@ double PdfColor::GetYellow() const
 // -----------------------------------------------------
 double PdfColor::GetBlack() const
 {
-    PODOFO_RAISE_LOGIC_IF( !this->IsCMYK(), "PdfColor::GetBlack cannot be called on non CMYK color objects!");
+	PODOFO_RAISE_LOGIC_IF( !this->IsCMYK()  &&  !this->IsSeparation(), "PdfColor::GetBlack cannot be called on non CMYK/separation color objects!");
 
     return m_uColor.cmyk[3];
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const std::string PdfColor::GetName() const
+{
+    PODOFO_RAISE_LOGIC_IF( !this->IsSeparation(), "PdfColor::GetName cannot be called on non separation color objects!");
+
+    return m_separationName;
 }
 
 };
