@@ -190,6 +190,10 @@ void PdfParser::ParseFile( const PdfRefCountedInputDevice & rDevice, bool bLoadO
     try {
         ReadObjects();
     } catch( PdfError & e ) {
+        // If this is being called from a constructor then the
+        // destructor will not be called.
+        // Clean up here  
+        Clear();
         e.AddToCallstack( __FILE__, __LINE__, "Unable to load objects from file." );
         throw e;
     }
