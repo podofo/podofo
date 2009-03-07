@@ -72,6 +72,7 @@ void TokenizerTest::testArrays()
     Test( "[ 2 0 R (Test Data) 4 << /Key /Data >> 5 0 R ]", ePdfDataType_Array, "[ 2 0 R (Test Data) 4 <<\n/Key /Data\n>> 5 0 R ]" );
     Test( "[<</key/name>>2 0 R]", ePdfDataType_Array, "[ <<\n/key /name\n>> 2 0 R ]" );
     Test( "[<<//name>>2 0 R]", ePdfDataType_Array,"[ <<\n/ /name\n>> 2 0 R ]" );
+    Test( "[ 27.673200 27.673200 566.256000 651.295000 ]", ePdfDataType_Array );
 }
 
 void TokenizerTest::testBool()
