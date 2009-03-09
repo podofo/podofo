@@ -605,23 +605,42 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
         // Draw underline
         this->SetStrokeWidth( m_pFont->GetFontMetrics()->GetUnderlineThickness() );
         if( m_pFont->IsUnderlined() )
-            this->DrawLine( dX, 
-                            dY + m_pFont->GetFontMetrics()->GetUnderlinePosition(), 
-                            dX + m_pFont->GetFontMetrics()->StringWidth( sString.GetString() ),
-                            dY + m_pFont->GetFontMetrics()->GetUnderlinePosition() );
-        
+        {
+            if (sString.IsUnicode())
+                this->DrawLine( dX,
+                                dY + m_pFont->GetFontMetrics()->GetUnderlinePosition(),
+                                dX + m_pFont->GetFontMetrics()->StringWidth( sString.GetUnicode() ),
+                                dY + m_pFont->GetFontMetrics()->GetUnderlinePosition() );
+            else
+                this->DrawLine( dX,
+                                dY + m_pFont->GetFontMetrics()->GetUnderlinePosition(),
+                                dX + m_pFont->GetFontMetrics()->StringWidth( sString.GetString() ),
+                                dY + m_pFont->GetFontMetrics()->GetUnderlinePosition() );
+        }
+
         // Draw strikeout
         this->SetStrokeWidth( m_pFont->GetFontMetrics()->GetStrikeoutThickness() );
         if( m_pFont->IsStrikeOut() )
-            this->DrawLine( dX, 
-                            dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition(), 
-                            dX + m_pFont->GetFontMetrics()->StringWidth( sString.GetString() ),
-                            dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition() );
+        {
+            if (sString.IsUnicode())
+                this->DrawLine( dX,
+                                dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition(),
+                                dX + m_pFont->GetFontMetrics()->StringWidth( sString.GetUnicode() ),
+                                dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition() );
+            else
+                this->DrawLine( dX,
+                                dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition(),
+                                dX + m_pFont->GetFontMetrics()->StringWidth( sString.GetString() ),
+                                dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition() );
         
+        }
 
         this->Restore();
     }
     
+
+
+
     m_oss.str("");
     m_oss << "BT" << std::endl << "/" << m_pFont->GetIdentifier().GetName()
           << " "  << m_pFont->GetFontSize()
