@@ -80,7 +80,7 @@ struct TFontCacheElement {
     {
         if( m_sFontName == rhs.m_sFontName ) 
         {
-            if( m_pEncoding == rhs.m_pEncoding ) 
+            if( *m_pEncoding == *rhs.m_pEncoding ) 
             {
                 if( m_bBold == rhs.m_bBold) 
                     return m_bItalic < rhs.m_bItalic;
