@@ -203,7 +203,8 @@ enum EPdfColorSpace {
     ePdfColorSpace_DeviceGray,        /**< Gray */
     ePdfColorSpace_DeviceRGB,         /**< RGB  */
     ePdfColorSpace_DeviceCMYK,        /**< CMYK */
-    ePdfColorSpace_Separation         /**< Separation */
+    ePdfColorSpace_Separation,        /**< Separation */
+    ePdfColorSpace_CieLab             /**< CIE-Lab */
 };
 
 /**

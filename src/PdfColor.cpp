@@ -302,40 +302,66 @@ PdfColor::PdfColor( double dCyan, double dMagenta, double dYellow, double dBlack
     m_uColor.cmyk[3] = dBlack;
 }
 
-PdfColor::PdfColor( bool bAll )
+PdfColorGray::PdfColorGray( double dGray ) :
+	PdfColor( dGray )
 {
-	m_eColorSpace = ePdfColorSpace_Separation;
-	if ( bAll )
-	{
-		m_separationName = "All";
-	    m_uColor.cmyk[0] = 
-		    m_uColor.cmyk[1] =
-		    m_uColor.cmyk[2] =
-		    m_uColor.cmyk[3] = 1.0;
-	}
-	else
-	{
-		m_separationName = "None";
-			    m_uColor.cmyk[0] = 
-		    m_uColor.cmyk[1] =
-		    m_uColor.cmyk[2] =
-		    m_uColor.cmyk[3] = 0.0;
-	}
 }
 
-PdfColor::PdfColor( const std::string & sName, double dCyan, double dMagenta, double dYellow, double dBlack )
-    : m_eColorSpace( ePdfColorSpace_Separation )
+PdfColorRGB::PdfColorRGB( double dRed, double dGreen, double dBlue )
+    : PdfColor( dRed, dGreen, dBlue )
+{
+}
+
+PdfColorCMYK::PdfColorCMYK( double dCyan, double dMagenta, double dYellow, double dBlack )
+    : PdfColor( dCyan, dMagenta, dYellow, dBlack )
+{
+}
+
+PdfColorSeparationAll::PdfColorSeparationAll()
+{
+	m_eColorSpace = ePdfColorSpace_Separation;
+	m_separationName = "All";
+    m_uColor.cmyk[0] = 
+	    m_uColor.cmyk[1] =
+	    m_uColor.cmyk[2] =
+	    m_uColor.cmyk[3] = 1.0;
+}
+
+PdfColorSeparationNone::PdfColorSeparationNone()
+{
+	m_eColorSpace = ePdfColorSpace_Separation;
+	m_separationName = "None";
+    m_uColor.cmyk[0] = 
+	    m_uColor.cmyk[1] =
+	    m_uColor.cmyk[2] =
+	    m_uColor.cmyk[3] = 0.0;
+}
+
+PdfColorSeparation::PdfColorSeparation( const std::string & sName, double dCyan, double dMagenta, double dYellow, double dBlack )
 {
     CheckDoubleRange( dCyan,    0.0, 1.0 );
     CheckDoubleRange( dMagenta, 0.0, 1.0 );
     CheckDoubleRange( dYellow,  0.0, 1.0 );
     CheckDoubleRange( dBlack,   0.0, 1.0 );
 
+    m_eColorSpace = ePdfColorSpace_Separation;
 	m_separationName = sName;
     m_uColor.cmyk[0] = dCyan;
     m_uColor.cmyk[1] = dMagenta;
     m_uColor.cmyk[2] = dYellow;
     m_uColor.cmyk[3] = dBlack;
+}
+
+PdfColorCieLab::PdfColorCieLab( double dCieL, double dCieA, double dCieB )
+{
+    CheckDoubleRange( dCieL,    0.0, 100.0 );
+    CheckDoubleRange( dCieA, -128.0, 127.0 );
+    CheckDoubleRange( dCieB, -128.0, 127.0 );
+
+	m_eColorSpace = ePdfColorSpace_CieLab;
+    m_uColor.lab[0] = dCieL;
+    m_uColor.lab[1] = dCieA;
+    m_uColor.lab[2] = dCieB;
 }
 
 const PdfColor & PdfColor::operator=( const PdfColor & rhs )

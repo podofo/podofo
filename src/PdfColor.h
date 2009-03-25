@@ -28,10 +28,14 @@ namespace PoDoFo {
 class PdfArray;
     
 /** A color object can represent either a grayscale
- *  value, a RGB color, a CMYK color or a separation color.
+ *  value, a RGB color, a CMYK color, a separation color or
+ *  a CieLab color.
  *
  *  All drawing functions in PoDoFo accept a PdfColor object
  *  to specify a drawing color in one of these colorspaces.
+ *
+ *  Derived classes PdfColorGray, PdfColorRGB, PdfColorCMYK, PdfColorSeparation
+ *  and PdfColorCieLab are available for easy construction
  */
 class PODOFO_API PdfColor {
  public:
@@ -64,24 +68,6 @@ class PODOFO_API PdfColor {
      *  \param dBlack the value of the black component, must be between 0.0 and 1.0
      */
     PdfColor( double dCyan, double dMagenta, double dYellow, double dBlack );
-
-    /** Create a new PdfColor object with
-     *  Separation color All or None.
-     *
-     *  \param bAll true = All, false = None
-     */
-    PdfColor( bool bAll );
-
-    /** Create a new PdfColor object with
-     *  a separation-name and an equivalent CMYK color
-     *
-     *  \param sName Name of the separation color
-     *  \param dCyan the value of the cyan component, must be between 0.0 and 1.0
-     *  \param dMagenta the value of the magenta component, must be between 0.0 and 1.0
-     *  \param dYellow the value of the yellow component, must be between 0.0 and 1.0
-     *  \param dBlack the value of the black component, must be between 0.0 and 1.0
-     */
-	PdfColor( const std::string & sName, double dCyan, double dMagenta, double dYellow, double dBlack );
 
 	/** Copy constructor
      *
@@ -136,6 +122,12 @@ class PODOFO_API PdfColor {
      *  \returns true if this is a separation PdfColor object
      */
     inline bool IsSeparation() const;
+
+    /** Test if this is a CIE-Lab color.
+     * 
+     *  \returns true if this is a lab Color object
+     */
+    inline bool IsCieLab() const;
 
 	/** Get the colorspace of this PdfColor object
      *
@@ -241,6 +233,39 @@ class PODOFO_API PdfColor {
      */
 	inline const std::string GetName() const;
 
+    /** Get the L color value 
+     *  of this object.
+     *
+     *  Throws an exception if this is no CIE-Lab color object.
+     *
+     *  \returns the L color value of this object (between 0.0 and 100.0)
+     *
+     *  \see IsCieLab
+     */
+    inline double GetCieL() const;
+
+    /** Get the A color value 
+     *  of this object.
+     *
+     *  Throws an exception if this is no CIE-Lab color object.
+     *
+     *  \returns the A color value of this object (between -128.0 and 127.0)
+     *
+     *  \see IsCieLab
+     */
+    inline double GetCieA() const;
+
+    /** Get the B color value 
+     *  of this object.
+     *
+     *  Throws an exception if this is no CIE-Lab color object.
+     *
+     *  \returns the B color value of this object (between -128.0 and 127.0)
+     *
+     *  \see IsCieLab
+     */
+    inline double GetCieB() const;
+
 	/** Converts the color object into a grayscale
      *  color object.
      *
@@ -305,14 +330,100 @@ class PODOFO_API PdfColor {
      */
     static PdfColor FromArray( const PdfArray & rArray );
 
- private:
+ protected:
     union {
         double cmyk[4];
         double rgb[3];
+        double lab[3];
         double gray;
     }  m_uColor; 
 	std::string m_separationName;
     EPdfColorSpace m_eColorSpace;
+};
+
+class PODOFO_API PdfColorGray : public PdfColor {
+ public:
+    
+    /** Create a new PdfColor object with
+     *  a grayscale value.
+     *
+     *  \param dGray a grayscalue value between 0.0 and 1.0
+     */
+    PdfColorGray( double dGray );
+};
+
+class PODOFO_API PdfColorRGB : public PdfColor {
+ public:
+	/** Create a new PdfColor object with
+     *  a RGB color
+     *
+     *  \param dRed the value of the red component, must be between 0.0 and 1.0
+     *  \param dGreen the value of the green component, must be between 0.0 and 1.0
+     *  \param dBlue the value of the blue component, must be between 0.0 and 1.0
+     */
+    PdfColorRGB( double dRed, double dGreen, double dBlue );
+};
+
+class PODOFO_API PdfColorCMYK : public PdfColor {
+ public:
+
+    /** Create a new PdfColor object with
+     *  a CMYK color
+     *
+     *  \param dCyan the value of the cyan component, must be between 0.0 and 1.0
+     *  \param dMagenta the value of the magenta component, must be between 0.0 and 1.0
+     *  \param dYellow the value of the yellow component, must be between 0.0 and 1.0
+     *  \param dBlack the value of the black component, must be between 0.0 and 1.0
+     */
+    PdfColorCMYK( double dCyan, double dMagenta, double dYellow, double dBlack );
+};
+
+class PODOFO_API PdfColorSeparationAll : public PdfColor {
+ public:
+
+	 /** Create a new PdfColor object with
+     *  Separation color All.
+     *
+     */
+    PdfColorSeparationAll();
+};
+
+class PODOFO_API PdfColorSeparationNone : public PdfColor {
+ public:
+
+	 /** Create a new PdfColor object with
+     *  Separation color None.
+     *
+     */
+    PdfColorSeparationNone();
+};
+
+class PODOFO_API PdfColorSeparation : public PdfColor {
+ public:
+
+    /** Create a new PdfColor object with
+     *  a separation-name and an equivalent CMYK color
+     *
+     *  \param sName Name of the separation color
+     *  \param dCyan the value of the cyan component, must be between 0.0 and 1.0
+     *  \param dMagenta the value of the magenta component, must be between 0.0 and 1.0
+     *  \param dYellow the value of the yellow component, must be between 0.0 and 1.0
+     *  \param dBlack the value of the black component, must be between 0.0 and 1.0
+     */
+	PdfColorSeparation( const std::string & sName, double dCyan, double dMagenta, double dYellow, double dBlack );
+};
+
+class PODOFO_API PdfColorCieLab : public PdfColor {
+ public:
+
+    /** Create a new PdfColor object with
+     *  a CIE-LAB-values
+     *
+     *  \param dCieL the value of the L component, must be between 0.0 and 100.0
+     *  \param dCieA the value of the A component, must be between -128.0 and 127.0
+     *  \param dCieB the value of the B component, must be between -128.0 and 127.0
+     */
+	PdfColorCieLab( double dCieL, double dCieA, double dCieB );
 };
 
 // -----------------------------------------------------
@@ -330,16 +441,6 @@ inline bool PdfColor::operator==( const PdfColor & rhs ) const
 {
 	if ( m_eColorSpace == rhs.m_eColorSpace	)
 	{
-		if ( 
-			m_eColorSpace == ePdfColorSpace_Separation			&&
-			m_uColor.cmyk[0] == rhs.m_uColor.cmyk[0]			&&
-			m_uColor.cmyk[1] == rhs.m_uColor.cmyk[1]			&&
-			m_uColor.cmyk[2] == rhs.m_uColor.cmyk[2]			&&
-			m_uColor.cmyk[3] == rhs.m_uColor.cmyk[3]			&&
-			m_separationName == rhs.m_separationName
-		   )
-		   return true;
-
 		if ( 
 			m_eColorSpace == ePdfColorSpace_DeviceGray			&&
 			m_uColor.gray == rhs.m_uColor.gray
@@ -360,6 +461,24 @@ inline bool PdfColor::operator==( const PdfColor & rhs ) const
 			m_uColor.cmyk[1] == rhs.m_uColor.cmyk[1]			&&
 			m_uColor.cmyk[2] == rhs.m_uColor.cmyk[2]			&&
 			m_uColor.cmyk[3] == rhs.m_uColor.cmyk[3]
+		   )
+		   return true;
+
+		if ( 
+			m_eColorSpace == ePdfColorSpace_Separation			&&
+			m_uColor.cmyk[0] == rhs.m_uColor.cmyk[0]			&&
+			m_uColor.cmyk[1] == rhs.m_uColor.cmyk[1]			&&
+			m_uColor.cmyk[2] == rhs.m_uColor.cmyk[2]			&&
+			m_uColor.cmyk[3] == rhs.m_uColor.cmyk[3]			&&
+			m_separationName == rhs.m_separationName
+		   )
+		   return true;
+
+		if ( 
+			m_eColorSpace == ePdfColorSpace_CieLab				&&
+			m_uColor.lab[0] == rhs.m_uColor.lab[0]				&&
+			m_uColor.lab[1] == rhs.m_uColor.lab[1]				&&
+			m_uColor.lab[2] == rhs.m_uColor.lab[2]
 		   )
 		   return true;
 	}
@@ -404,6 +523,14 @@ bool PdfColor::IsCMYK() const
 bool PdfColor::IsSeparation() const
 {
     return (m_eColorSpace == ePdfColorSpace_Separation);
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfColor::IsCieLab() const
+{
+    return (m_eColorSpace == ePdfColorSpace_CieLab);
 }
 
 // -----------------------------------------------------
@@ -502,6 +629,36 @@ const std::string PdfColor::GetName() const
     PODOFO_RAISE_LOGIC_IF( !this->IsSeparation(), "PdfColor::GetName cannot be called on non separation color objects!");
 
     return m_separationName;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+double PdfColor::GetCieL() const
+{
+    PODOFO_RAISE_LOGIC_IF( !this->IsCieLab(), "PdfColor::GetCieL cannot be called on non CIE-Lab color objects!");
+
+    return m_uColor.lab[0];
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+double PdfColor::GetCieA() const
+{
+    PODOFO_RAISE_LOGIC_IF( !this->IsCieLab(), "PdfColor::GetCieA cannot be called on non CIE-Lab color objects!");
+
+    return m_uColor.lab[1];
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+double PdfColor::GetCieB() const
+{
+    PODOFO_RAISE_LOGIC_IF( !this->IsCieLab(), "PdfColor::GetCieB cannot be called on non CIE-Lab color objects!");
+
+    return m_uColor.lab[2];
 }
 
 };
