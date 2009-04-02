@@ -241,6 +241,8 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
     }
 
     pFontDict->GetDictionary().AddKey( PdfName("W"), array ); 
+
+    free( pdWidth );
 }
 
 void PdfFontCID::CreateCMap( PdfObject* pUnicode ) const

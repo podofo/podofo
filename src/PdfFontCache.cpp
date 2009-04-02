@@ -368,7 +368,7 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
 
 #ifdef _WIN32
 PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList & vecContainer, 
-				     const char* pszFontName, bool bBold, bool bItalic, 
+                                     const char* pszFontName, bool bBold, bool bItalic, 
                                      bool bEmbedd, const PdfEncoding * const pEncoding )
 {
     LOGFONT	lf;
@@ -393,7 +393,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     memset(&(lf.lfFaceName), 0, LF_FACESIZE);
     strcpy( static_cast<char*>(lf.lfFaceName), pszFontName );
     
-    char*        pBuffer;
+    char*        pBuffer = NULL;
     unsigned int nLen;
     if( !GetDataFromLPFONT( &lf, &pBuffer, nLen ) )
         return NULL;
@@ -405,11 +405,11 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
         pFont    = this->CreateFontObject( itSorted, vecContainer, pMetrics, 
 					   bEmbedd, bBold, bItalic, pszFontName, pEncoding );
     } catch( PdfError & error ) {
-        //free( pBuffer );
+        free( pBuffer );
         throw error;
     }
     
-    //free( pBuffer );
+    free( pBuffer );
     return pFont;
 }
 
@@ -440,7 +440,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     memset(&(lf.lfFaceName), 0, LF_FACESIZE);
     wcscpy( static_cast<wchar_t*>(lf.lfFaceName), pszFontName );
     
-    char*        pBuffer;
+    char*        pBuffer = NULL;
     unsigned int nLen;
     if( !GetDataFromLPFONT( &lf, &pBuffer, nLen ) )
         return NULL;
@@ -449,11 +449,14 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     char* pmbFontName = static_cast<char*>(malloc(lMaxLen));
     if( !pmbFontName )
     {
+        free( pBuffer );
         PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
     if( wcstombs( pmbFontName, pszFontName, lMaxLen ) <= 0 )
     {
+        free( pBuffer );
+        free( pmbFontName );
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Conversion to multibyte char failed" );
     }
 
@@ -468,11 +471,11 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     } catch( PdfError & error ) {
         free( pmbFontName );
         pmbFontName = NULL;
-        //free( pBuffer );
+        free( pBuffer );
         throw error;
     }
     
-    //free( pBuffer );
+    free( pBuffer );
     return pFont;
 }
 #endif // _WIN32
