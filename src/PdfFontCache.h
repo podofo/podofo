@@ -97,7 +97,7 @@ struct TFontCacheElement {
     inline bool operator()( const TFontCacheElement& r1, 
 			    const TFontCacheElement& r2 ) const 
     { 
-	return r1 < r2;
+        return r1 < r2;
     }
 
     PdfFont*           m_pFont;
