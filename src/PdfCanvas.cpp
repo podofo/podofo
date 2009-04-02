@@ -100,10 +100,10 @@ void PdfCanvas::AddColorResource( const PdfColor & rColor )
 					data[1] =
 					data[2] = 
 					data[3] = 0;
-				data[4] = (char) (rColor.GetCyan() * 255);
-				data[5] = (char) (rColor.GetMagenta() * 255);
-				data[6] = (char) (rColor.GetYellow() * 255);
-				data[7] = (char) (rColor.GetBlack() * 255);
+				data[4] = static_cast<char> (rColor.GetCyan() * 255);
+				data[5] = static_cast<char> (rColor.GetMagenta() * 255);
+				data[6] = static_cast<char> (rColor.GetYellow() * 255);
+				data[7] = static_cast<char> (rColor.GetBlack() * 255);
 
 				PdfMemoryInputStream stream( data, 4*2 );
 				csTintFunc->GetStream()->Set( &stream );
@@ -172,6 +172,9 @@ void PdfCanvas::AddColorResource( const PdfColor & rColor )
 		}
 		break;
 
+        case ePdfColorSpace_DeviceGray:
+        case ePdfColorSpace_DeviceRGB:
+        case ePdfColorSpace_DeviceCMYK:
 		default:
 		break;
 	}
