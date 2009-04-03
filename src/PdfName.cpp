@@ -171,6 +171,7 @@ PdfName PdfName::FromEscaped( const char * pszName, pdf_long ilen )
 
 void PdfName::Write( PdfOutputDevice* pDevice, const PdfEncrypt* ) const
 {
+    // Allow empty names, which are legal according to the PDF specification
     pDevice->Print( "/" );
     if( m_Data.length() )
     {
