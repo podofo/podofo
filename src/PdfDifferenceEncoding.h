@@ -97,7 +97,7 @@ class PODOFO_API PdfEncodingDifference {
      *  
      *  \returns the number of differences in this object
      */
-    inline int GetCount() const;
+    inline size_t GetCount() const;
 
  private:
     struct DifferenceComparatorPredicate {
@@ -114,7 +114,7 @@ class PODOFO_API PdfEncodingDifference {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline int PdfEncodingDifference::GetCount() const
+inline size_t PdfEncodingDifference::GetCount() const
 {
     return m_vecDifferences.size();
 }

@@ -44,6 +44,7 @@ class PdfFontCID : public PdfFont {
     PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
                 PdfVecObjects* pParent, bool bEmbed = true );
 
+    // Peter Petrov 30 April 2008
     /** Create a PdfFont based on an existing PdfObject
      *  \param pMetrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object is 
@@ -51,7 +52,13 @@ class PdfFontCID : public PdfFont {
      *  \param pEncoding the encoding of this font. The font will not take ownership of this object.
      *  \param pObject an existing PdfObject
      */
-    PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject );
+    PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject, bool bEmbed );
+
+    // Peter Petrov 24 September 2008
+    /** Embeds the font into PDF page
+     *
+     */
+    virtual void EmbedFont();
 
  private:
     /** Create the DW and W entries which contain
@@ -82,6 +89,9 @@ class PdfFontCID : public PdfFont {
      *  \param pDescriptor font descriptor object
      */
     void EmbedFont( PdfObject* pDescriptor );
+
+    // Peter Petrov 24 September 2008
+    PdfObject* m_pDescriptor;
 
 };
 

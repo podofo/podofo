@@ -69,7 +69,7 @@ class PODOFO_API PdfRefCountedInputDevice {
      *  \param pBuffer pointer to the buffer
      *  \param lLen length of the buffer
      */
-    PdfRefCountedInputDevice( const char* pBuffer, long lLen );
+    PdfRefCountedInputDevice( const char* pBuffer, size_t lLen );
 
     /** Create a new PdfRefCountedInputDevice from an PdfInputDevice
      *  

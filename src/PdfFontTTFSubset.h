@@ -100,7 +100,7 @@ class PODOFO_API PdfFontTTFSubset {
      *
      *  @returns the number of glyphs in this font.
      */
-    inline unsigned long GetSize() const;
+    inline size_t GetSize() const;
 
  private:
     /** Hide default constructor
@@ -176,7 +176,7 @@ class PODOFO_API PdfFontTTFSubset {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline unsigned long PdfFontTTFSubset::GetSize() const 
+inline size_t PdfFontTTFSubset::GetSize() const 
 {
     return m_vGlyphIndice.size();
 }

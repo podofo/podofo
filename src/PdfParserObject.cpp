@@ -43,7 +43,7 @@ static const int s_nLenStream    = 6; // strlen("stream");
 static const int s_nLenEndStream = 9; // strlen("endstream");
 
 PdfParserObject::PdfParserObject( PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, 
-                                  const PdfRefCountedBuffer & rBuffer, long lOffset )
+                                  const PdfRefCountedBuffer & rBuffer, pdf_long lOffset )
     : PdfObject( PdfVariant::NullValue ), PdfTokenizer( rDevice, rBuffer ), m_pEncrypt( NULL )
 {
     m_pOwner = pCreator;
@@ -89,10 +89,10 @@ void PdfParserObject::InitPdfParserObject()
 void PdfParserObject::ReadObjectNumber()
 {
     try {
-        long obj = this->GetNextNumber();
-        long gen = this->GetNextNumber();
+        pdf_long obj = this->GetNextNumber();
+        pdf_long gen = this->GetNextNumber();
 
-        m_reference = PdfReference( obj, static_cast<pdf_uint16>(gen) );
+        m_reference = PdfReference( (unsigned int)obj, static_cast<pdf_uint16>(gen) );
     } catch( PdfError & e ) {
         std::string errStr( e.what() );       // avoid compiler warning and in case we need it...
         PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, "Object and generation number cannot be read." );
@@ -218,7 +218,7 @@ void PdfParserObject::ParseStream()
     assert(!DelayedStreamLoadDone());
 #endif
 
-    long         lLen  = -1;
+    long long         lLen  = -1;
     int          c;
 
     if( !m_device.Device() || !m_pOwner )
@@ -248,7 +248,7 @@ void PdfParserObject::ParseStream()
         }
     } 
     
-    long fLoc = m_device.Device()->Tell();	// we need to save this, since loading the Length key could disturb it!
+    pdf_long fLoc = m_device.Device()->Tell();	// we need to save this, since loading the Length key could disturb it!
 
     PdfObject* pObj = this->GetDictionary_NoDL().GetKey( PdfName::KeyLength );  
     if( pObj && pObj->IsNumber() )
@@ -294,11 +294,11 @@ void PdfParserObject::ParseStream()
     {
         m_pEncrypt->SetCurrentReference( m_reference );
         PdfInputStream* pInput = m_pEncrypt->CreateEncryptionInputStream( &reader );
-        this->GetStream_NoDL()->SetRawData( pInput, lLen );
+        this->GetStream_NoDL()->SetRawData( pInput, (pdf_long)lLen );
         delete pInput;
     }
     else
-        this->GetStream_NoDL()->SetRawData( &reader, lLen );
+        this->GetStream_NoDL()->SetRawData( &reader, (pdf_long)lLen );
 
     this->SetDirty( false );
     /*

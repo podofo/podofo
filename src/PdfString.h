@@ -113,7 +113,7 @@ class PODOFO_API PdfString : public PdfDataType{
  	 *  \param pEncoding the encoding of this string, if it is no unicode string.
 	 *         This is ignored for unicode strings. If NULL PdfDocEncoding will be used as a default.
      */
-    PdfString( const char* pszString, long lLen, bool bHex = false, const PdfEncoding * const pEncoding = NULL );
+    PdfString( const char* pszString, pdf_long lLen, bool bHex = false, const PdfEncoding * const pEncoding = NULL );
 
     /** Construct a new PdfString from an UTF-8 encoded string.
      *  
@@ -136,14 +136,14 @@ class PODOFO_API PdfString : public PdfDataType{
      *  \param pszStringUtf8 a UTF-8 encoded string.
      *  \param lLen number of bytes to convert
      */
-    PdfString( const pdf_utf8* pszStringUtf8, long lLen );
+    PdfString( const pdf_utf8* pszStringUtf8, pdf_long lLen );
 
     /** Construct a new PdfString from an UTF-16be encoded zero terminated string.
      *
      *  \param pszStringUtf16 a UTF-16BE encoded string.
      *  \param lLen number of words to convert
      */
-    PdfString( const pdf_utf16be* pszStringUtf16, long lLen );
+    PdfString( const pdf_utf16be* pszStringUtf16, pdf_long lLen );
 
     /** Copy an existing PdfString 
      *  \param rhs another PdfString to copy
@@ -160,7 +160,7 @@ class PODOFO_API PdfString : public PdfDataType{
      *                pszHex has to be zero terminated in this case.
      *  \param pEncrypt if !NULL assume the hex data is encrypted and should be decrypted after hexdecoding 
      */
-    void SetHexData( const char* pszHex, long lLen = -1, PdfEncrypt* pEncrypt = NULL );
+    void SetHexData( const char* pszHex, pdf_long lLen = -1, PdfEncrypt* pEncrypt = NULL );
 
     /** The string is valid if no error in the constructor has occurred.
      *  If it is valid it is safe to call all the other member functions.
@@ -250,7 +250,7 @@ class PODOFO_API PdfString : public PdfDataType{
      *
      *  \see GetCharacterLength to determine the number of characters in the string
      */
-    inline long GetLength() const;
+    inline pdf_long GetLength() const;
 
     /** The length of the string data returned by GetUnicode() 
      *  in characters not including the terminating zero 
@@ -259,7 +259,7 @@ class PODOFO_API PdfString : public PdfDataType{
      *
      *  \see GetCharacterLength to determine the number of characters in the string
      */
-    inline long GetUnicodeLength() const;
+    inline pdf_long GetUnicodeLength() const;
 
     /** Get the number of characters in the string.
      *  
@@ -271,7 +271,7 @@ class PODOFO_API PdfString : public PdfDataType{
      * 
      *  \returngs the number of characters in the string
      */
-    inline long GetCharacterLength() const;
+    inline pdf_long GetCharacterLength() const;
 
     /** Write this PdfString in PDF format to a PdfOutputDevice 
      *  
@@ -351,14 +351,14 @@ class PODOFO_API PdfString : public PdfDataType{
 
     static const PdfString StringNull;
 
-    static long ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_utf16be* pszUtf16, long lLenUtf16 );
-    static long ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, long lLenUtf8, 
-                                    pdf_utf16be* pszUtf16, long lLenUtf16, 
+    static pdf_long ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_utf16be* pszUtf16, pdf_long lLenUtf16 );
+    static pdf_long ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_long lLenUtf8, 
+                                    pdf_utf16be* pszUtf16, pdf_long lLenUtf16, 
                                     EPdfStringConversion eConversion = ePdfStringConversion_Strict  );
 
-    static long ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_utf8* pszUtf8, long lLenUtf8 );
-    static long ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, long lLenUtf16, 
-                                    pdf_utf8* pszUtf8, long lLenUtf8, 
+    static pdf_long ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_utf8* pszUtf8, pdf_long lLenUtf8 );
+    static pdf_long ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_long lLenUtf16, 
+                                    pdf_utf8* pszUtf8, pdf_long lLenUtf8, 
                                     EPdfStringConversion eConversion = ePdfStringConversion_Strict );
 
  private:
@@ -383,7 +383,7 @@ class PODOFO_API PdfString : public PdfDataType{
      *  \param lLen length of the string data to copy
      *  
      */
-    void Init( const char* pszString, long lLen );
+    void Init( const char* pszString, pdf_long lLen );
 
     /** Construct a new PdfString from a UTF8
      *  string. 
@@ -393,13 +393,13 @@ class PODOFO_API PdfString : public PdfDataType{
      *  \param lLen number of bytes of the string data to copy
      *  
      */
-    void InitFromUtf8( const pdf_utf8* pszStringUtf8, long lLen );
+    void InitFromUtf8( const pdf_utf8* pszStringUtf8, pdf_long lLen );
 
     /** Swap the bytes in the buffer (UTF16be -> UTF16le)
      *  \param pBuf buffer
      *  \param lLen length of buffer
      */
-    static void SwapBytes( char* pBuf, long lLen ); 
+    static void SwapBytes( char* pBuf, pdf_long lLen ); 
 
     /** Initialise the data member containing a
      *  UTF8 version of this string.
@@ -477,7 +477,7 @@ const std::string & PdfString::GetStringUtf8() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-long PdfString::GetLength() const
+pdf_long PdfString::GetLength() const
 {
     return m_buffer.GetSize() - 2;
 }
@@ -485,7 +485,7 @@ long PdfString::GetLength() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-long PdfString::GetCharacterLength() const 
+pdf_long PdfString::GetCharacterLength() const 
 {
     return this->IsUnicode() ? this->GetUnicodeLength() : this->GetLength();
 }
@@ -493,7 +493,7 @@ long PdfString::GetCharacterLength() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-long PdfString::GetUnicodeLength() const
+pdf_long PdfString::GetUnicodeLength() const
 {
     return (m_buffer.GetSize() / sizeof(pdf_utf16be)) - 1;
 }

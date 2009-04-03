@@ -167,7 +167,7 @@ PdfObject* PdfField::GetAppearanceCharacteristics( bool bCreate ) const
 
 void PdfField::SetFieldFlag( long lValue, bool bSet )
 {
-    long lCur = 0;
+    long long lCur = 0;
 
     if( m_pObject->GetDictionary().HasKey( PdfName("Ff") ) )
         lCur = m_pObject->GetDictionary().GetKey( PdfName("Ff") )->GetNumber();
@@ -185,7 +185,7 @@ void PdfField::SetFieldFlag( long lValue, bool bSet )
 
 bool PdfField::GetFieldFlag( long lValue, bool bDefault ) const
 {
-    long lCur = 0;
+    long long lCur = 0;
 
     if( m_pObject->GetDictionary().HasKey( PdfName("Ff") ) )
     {
@@ -566,7 +566,10 @@ void PdfCheckBox::Init()
     double dWidth = PDF_MIN( m_pWidget->GetRect().GetWidth(), m_pWidget->GetRect().GetHeight() ) * 0.1;
     dWidth = PDF_MAX( dWidth, 1.0 );
     
-    if( !m_pWidget->HasAppearanceStream() )
+    // Date: 20/10/2007
+    // Prashanth Udupa.
+    // We expect PDF3DWidgetStyle to provide appearence streams. So we can comment this here.
+    /*if( !m_pWidget->HasAppearanceStream() )
     {
         // Create the default appearance stream
         PdfRect    rect( 0.0, 0.0, m_pWidget->GetRect().GetWidth(), m_pWidget->GetRect().GetHeight() );
@@ -597,7 +600,7 @@ void PdfCheckBox::Init()
         this->SetAppearanceChecked( xObjYes );
         this->SetAppearanceUnchecked( xObjOff );
         this->SetChecked( false );
-   }
+   }*/
 }
 
 void PdfCheckBox::AddAppearanceStream( const PdfName & rName, const PdfReference & rReference )
@@ -681,7 +684,7 @@ void PdfTextField::SetText( const PdfString & rsText )
     PdfName key = this->IsRichText() ? PdfName("RV") : PdfName("V");
 
     // if rsText is longer than maxlen, truncate it
-    int nMax = this->GetMaxLen();
+    pdf_long nMax = this->GetMaxLen();
     if( nMax != -1 && rsText.GetLength() > nMax )
         m_pObject->GetDictionary().AddKey( key, PdfString( rsText.GetString(), nMax ) );
     else
@@ -699,15 +702,15 @@ PdfString PdfTextField::GetText() const
     return str;
 }
 
-void PdfTextField::SetMaxLen( int nMaxLen )
+void PdfTextField::SetMaxLen( pdf_long nMaxLen )
 {
-    m_pObject->GetDictionary().AddKey( PdfName("MaxLen"), static_cast<long>(nMaxLen) );
+    m_pObject->GetDictionary().AddKey( PdfName("MaxLen"), static_cast<long long>(nMaxLen) );
 }
 
-int PdfTextField::GetMaxLen() const
+pdf_long  PdfTextField::GetMaxLen() const
 {
-    return m_pObject->GetDictionary().HasKey( PdfName("MaxLen") ) ? 
-        m_pObject->GetDictionary().GetKey( PdfName("MaxLen") )->GetNumber() : -1;
+    return static_cast<pdf_long>(m_pObject->GetDictionary().HasKey( PdfName("MaxLen") ) ? 
+                                 m_pObject->GetDictionary().GetKey( PdfName("MaxLen") )->GetNumber() : -1);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -841,7 +844,7 @@ const PdfString & PdfListField::GetItemDisplayText( int nIndex ) const
     return var.GetString();
 }
 
-int PdfListField::GetItemCount() const
+size_t PdfListField::GetItemCount() const
 {
     PdfArray   opt;
     
@@ -866,7 +869,7 @@ int PdfListField::GetSelectedItem() const
         if( pValue->IsString() )
         {
             PdfString value = pValue->GetString();
-            for( int i=0;i<this->GetItemCount();i++ ) 
+            for( int i=0;i<static_cast<int>(this->GetItemCount());i++ ) 
             {
                 if( this->GetItem( i ) == value )
                     return i;

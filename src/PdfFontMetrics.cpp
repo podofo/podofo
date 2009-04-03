@@ -45,7 +45,7 @@ namespace PoDoFo {
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename, 
                                 const char* pszSubsetPrefix )
-    : m_pLibrary( pLibrary ), m_sFilename( pszFilename ),
+    : m_sFilename( pszFilename ), m_pLibrary( pLibrary ), 
       m_fFontSize( 0.0f ), 
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown ),
@@ -71,7 +71,7 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename,
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen,
 				const char* pszSubsetPrefix )
-    : m_pLibrary( pLibrary ), m_sFilename( "" ),
+    : m_sFilename( "" ), m_pLibrary( pLibrary ), 
       m_fFontSize( 0.0f ),
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown ),
@@ -86,7 +86,7 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsig
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const PdfRefCountedBuffer & rBuffer,
 				const char* pszSubsetPrefix )
-    : m_pLibrary( pLibrary ), m_sFilename( "" ), m_bufFontData( rBuffer ),
+    : m_sFilename( "" ), m_pLibrary( pLibrary ), m_bufFontData( rBuffer ),
       m_fFontSize( 0.0f ),
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown ),
@@ -96,7 +96,7 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const PdfRefCountedBuffer 
 }
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, FT_Face face, const char* pszSubsetPrefix  )
-    : m_face( face ), m_pLibrary( pLibrary ), m_sFilename( "" ), 
+    : m_face( face ), m_sFilename( "" ), m_pLibrary( pLibrary ), 
       m_fFontSize( 0.0f ), 
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown ),
@@ -109,7 +109,7 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, FT_Face face, const char* 
 }
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, PdfObject* pDescriptor )
-    : m_pLibrary( pLibrary ), m_sFilename( "" ), 
+    : m_sFilename( "" ), m_pLibrary( pLibrary ), 
       m_fFontSize( 0.0f ), 
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown )
@@ -122,8 +122,8 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, PdfObject* pDescriptor )
     }
 
     PdfName sName  = pDescriptor->GetDictionary().GetKey( "FontName" )->GetName();
-    m_nWeight      = pDescriptor->GetDictionary().GetKeyAsLong( "FontWeight", 400L );
-    m_nItalicAngle = pDescriptor->GetDictionary().GetKeyAsLong( "ItalicAngle", 0L );
+    m_nWeight      = static_cast<unsigned int>(pDescriptor->GetDictionary().GetKeyAsLong( "FontWeight", 400L ));
+    m_nItalicAngle = static_cast<int>(pDescriptor->GetDictionary().GetKeyAsLong( "ItalicAngle", 0L ));
 
     m_dPdfAscent   = pDescriptor->GetDictionary().GetKeyAsReal( "Ascent", 0.0 );
     m_dPdfDescent  = pDescriptor->GetDictionary().GetKeyAsReal( "Descent", 0.0 );
@@ -139,7 +139,7 @@ PdfFontMetrics::~PdfFontMetrics()
 void PdfFontMetrics::InitFromBuffer() 
 {
     FT_Error error = FT_New_Memory_Face( *m_pLibrary, reinterpret_cast<const unsigned char*>(m_bufFontData.GetBuffer()), 
-                                         m_bufFontData.GetSize(), 0, &m_face );
+                                         static_cast<long>(m_bufFontData.GetSize()), 0, &m_face );
     if( error ) 
     {
         PdfError::LogMessage( eLogSeverity_Critical, "FreeType return edthe error %i when calling FT_New_Face for a buffered font.", error );
@@ -1122,12 +1122,35 @@ double PdfFontMetrics::CharWidth( unsigned char c ) const
 		    static_cast<double>( m_fFontSize * m_fFontScale / 100.0 * m_fFontCharSpace / 100.0);
 }
 
+double PdfFontMetrics::UnicodeCharWidth( unsigned short c ) const
+{
+    FT_Error ftErr;
+    double   dWidth = 0.0;
+
+
+    if( static_cast<int>(c) < PODOFO_WIDTH_CACHE_SIZE ) 
+    {
+        dWidth = m_vecWidth[static_cast<unsigned int>(c)];
+    }
+    else
+    {
+        ftErr = FT_Load_Char( m_face, static_cast<FT_UInt>(c), FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP );
+        if( ftErr )
+            return dWidth;
+
+        dWidth = m_face->glyph->metrics.horiAdvance * 1000.0 / m_face->units_per_EM;
+    }
+
+    return dWidth * static_cast<double>(m_fFontSize * m_fFontScale / 100.0) / 1000.0 +
+		    static_cast<double>( m_fFontSize * m_fFontScale / 100.0 * m_fFontCharSpace / 100.0);
+}
+
 unsigned long PdfFontMetrics::CharWidthMM( unsigned char c ) const
 {
     return static_cast<unsigned long>(this->CharWidth( c ) / PODOFO_CONVERSION_CONSTANT);
 }
 
-double PdfFontMetrics::StringWidth( const char* pszText, unsigned int nLength ) const
+double PdfFontMetrics::StringWidth( const char* pszText, pdf_long nLength ) const
 {
     double dWidth = 0.0;
 
@@ -1135,10 +1158,10 @@ double PdfFontMetrics::StringWidth( const char* pszText, unsigned int nLength ) 
         return dWidth;
 
     if( !nLength )
-        nLength = static_cast<unsigned int>(strlen( pszText ));
+        nLength = strlen( pszText );
 
     const char *localText = pszText;
-    for ( unsigned int i=0; i<nLength; i++ ) 
+    for ( pdf_long i=0; i<nLength; i++ ) 
     {
         dWidth += CharWidth( *localText );
         localText++;
@@ -1168,9 +1191,9 @@ double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, unsigned int nLe
     for ( unsigned int i=0; i<nLength; i++ ) 
     {
 #ifdef PODOFO_IS_LITTLE_ENDIAN
-        dWidth += CharWidth( ((*localText & 0x00ff) << 8 | (*localText & 0xff00) >> 8) );
+        dWidth += UnicodeCharWidth(static_cast<unsigned short>(((*localText & 0x00ff) << 8 | (*localText & 0xff00) >> 8)) );
 #else
-        dWidth += CharWidth( *localText );
+        dWidth += UnicodeCharWidth(static_cast<unsigned short>(*localText) );
 #endif // PODOFO_IS_LITTLE_ENDIAN
         localText++;
     }

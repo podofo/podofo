@@ -67,7 +67,7 @@ class PODOFO_API PdfInputDevice {
      *  \param pBuffer a buffer in memory
      *  \param lLen the length of the buffer in memory
      */
-    PdfInputDevice( const char* pBuffer, long lLen );
+    PdfInputDevice( const char* pBuffer, size_t lLen );
 
     /** Construct a new PdfInputDevice that reads all data from a std::istream.
      *
@@ -159,6 +159,7 @@ class PODOFO_API PdfInputDevice {
 
  private:
     std::istream* m_pStream;
+	  FILE *				m_pFile;
     bool          m_StreamOwned;
     bool          m_bIsSeekable;
 };

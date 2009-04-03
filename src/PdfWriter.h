@@ -153,7 +153,7 @@ class PODOFO_API PdfWriter {
      *                 child of this PdfWriter)
      *  \param pulOffset pointer to an unsigned long to save the offset
      */
-    void GetByteOffset( PdfObject* pObject, unsigned long* pulOffset );
+    void GetByteOffset( PdfObject* pObject, pdf_long* pulOffset );
 
     /** Write the whole document to a buffer in memory.
      *  
@@ -166,7 +166,7 @@ class PODOFO_API PdfWriter {
      *  
      *  \see Write
      */
-    void WriteToBuffer( char** ppBuffer, unsigned long* pulLen );
+    void WriteToBuffer( char** ppBuffer, pdf_long* pulLen );
 
     /** Add required keys to a trailer object
      *  \param pTrailer add keys to this object
@@ -174,7 +174,7 @@ class PODOFO_API PdfWriter {
      *  \param bPrevEntry if true a prev entry is added to the trailer object with a value of 0
      *  \param bOnlySizeKey write only the size key
      */
-    void FillTrailerObject( PdfObject* pTrailer, long lSize, bool bPrevEntry, bool bOnlySizeKey ) const;
+    void FillTrailerObject( PdfObject* pTrailer, pdf_long lSize, bool bPrevEntry, bool bOnlySizeKey ) const;
 
  protected:
     /**
@@ -271,10 +271,10 @@ class PODOFO_API PdfWriter {
      * character before the first line in the XRef
      * section.
      */
-    long            m_lFirstInXRef;
-    long            m_lLinearizedOffset;
-    long            m_lLinearizedLastOffset;
-    long            m_lTrailerOffset;
+    size_t            m_lFirstInXRef;
+    size_t            m_lLinearizedOffset;
+    size_t            m_lLinearizedLastOffset;
+    size_t            m_lTrailerOffset;
     PdfVecObjects   m_vecLinearized;
 };
 

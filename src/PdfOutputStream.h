@@ -47,12 +47,12 @@ class PODOFO_API PdfOutputStream {
      *
      *  \returns the number of bytes written, -1 if an error ocurred
      */
-    virtual long Write( const char* pBuffer, long lLen ) = 0;
+    virtual pdf_long Write( const char* pBuffer, pdf_long lLen ) = 0;
 
     /**
      * Helper that writes a string via Write(const char*,long)
      */
-    inline long Write( const std::string & s );
+    inline pdf_long Write( const std::string & s );
 
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
@@ -64,7 +64,7 @@ class PODOFO_API PdfOutputStream {
     virtual void Close() = 0;
 };
 
-inline long PdfOutputStream::Write( const std::string & s )
+inline pdf_long PdfOutputStream::Write( const std::string & s )
 {
     return this->Write( s.data(), s.size() );
 }
@@ -87,7 +87,7 @@ class PODOFO_API PdfFileOutputStream : public PdfOutputStream {
      *
      *  \returns the number of bytes written, -1 if an error ocurred
      */
-    virtual long Write( const char* pBuffer, long lLen );
+    virtual pdf_long Write( const char* pBuffer, pdf_long lLen );
 
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
@@ -114,14 +114,14 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
      *  Construct a new PdfMemoryOutputStream
      *  \param lInitial initial size of the buffer
      */
-    PdfMemoryOutputStream( long lInitial = INITIAL_SIZE);
+    PdfMemoryOutputStream( pdf_long lInitial = INITIAL_SIZE);
 
     /**
      * Construct a new PdfMemoryOutputStream that writes to an existing buffer
      * \param pBuffer handle to the buffer
      * \param lLen length of the buffer
      */
-    PdfMemoryOutputStream( char* pBuffer, long lLen );
+    PdfMemoryOutputStream( char* pBuffer, pdf_long lLen );
 
     ~PdfMemoryOutputStream();
 
@@ -132,7 +132,7 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
      *
      *  \returns the number of bytes written, -1 if an error ocurred
      */
-    virtual long Write( const char* pBuffer, long lLen );
+    virtual pdf_long Write( const char* pBuffer, pdf_long lLen );
 
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
@@ -145,7 +145,7 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
 
     /** \returns the length of the written data
      */
-    inline unsigned long GetLength() const;
+    inline pdf_long GetLength() const;
 
     /**
      *  \returns a handle to the internal buffer.
@@ -162,8 +162,8 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
     char* m_pBuffer;
     char* m_pCur;
 
-    long  m_lLen;
-    long  m_lSize;
+    pdf_long  m_lLen;
+    pdf_long  m_lSize;
 
     bool  m_bOwnBuffer;
 };
@@ -171,7 +171,7 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline unsigned long PdfMemoryOutputStream::GetLength() const
+inline pdf_long PdfMemoryOutputStream::GetLength() const
 {
     return m_lLen;
 }
@@ -205,7 +205,7 @@ class PODOFO_API PdfDeviceOutputStream : public PdfOutputStream {
      *
      *  \returns the number of bytes written, -1 if an error ocurred
      */
-    virtual long Write( const char* pBuffer, long lLen );
+    virtual pdf_long Write( const char* pBuffer, pdf_long lLen );
 
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
@@ -244,7 +244,7 @@ class PODOFO_API PdfBufferOutputStream : public PdfOutputStream {
      *
      *  \returns the number of bytes written, -1 if an error ocurred
      */
-    virtual long Write( const char* pBuffer, long lLen );
+    virtual pdf_long Write( const char* pBuffer, pdf_long lLen );
 
     virtual void Close() 
     {
@@ -253,7 +253,7 @@ class PODOFO_API PdfBufferOutputStream : public PdfOutputStream {
     /** 
      * \returns the length of the buffers contents
      */
-    inline long GetLength() const 
+    inline pdf_long GetLength() const 
     {
         return m_lLength;
     }
@@ -261,7 +261,7 @@ class PODOFO_API PdfBufferOutputStream : public PdfOutputStream {
  private:
     PdfRefCountedBuffer* m_pBuffer;
 
-    long                 m_lLength;
+    pdf_long                 m_lLength;
 };
 
 };

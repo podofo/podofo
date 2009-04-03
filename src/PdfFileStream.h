@@ -86,14 +86,14 @@ class PODOFO_API PdfFileStream : public PdfStream {
      *  \param lLen    pointer to the buffer length
      *  \returns ErrOk on success.
      */
-    virtual void GetCopy( char** pBuffer, long* lLen ) const;
+    virtual void GetCopy( char** pBuffer, pdf_long* lLen ) const;
 
     /** Get the streams length with all filters applied (eg the compressed
      *  length of a Flate compressed stream).
      *
      *  \returns the length of the stream with all filters applied
      */
-    inline virtual unsigned long GetLength() const;
+    inline virtual pdf_long GetLength() const;
 
  protected:
     /** Required for the GetFilteredCopy implementation
@@ -104,7 +104,7 @@ class PODOFO_API PdfFileStream : public PdfStream {
     /** Required for the GetFilteredCopy implementation
      *  \returns the size of the internal buffer
      */
-    inline virtual unsigned long GetInternalBufferSize() const;
+    inline virtual pdf_long GetInternalBufferSize() const;
 
     /** Begin appending data to this stream.
      *  Clears the current stream contents.
@@ -134,8 +134,8 @@ class PODOFO_API PdfFileStream : public PdfStream {
     PdfOutputStream* m_pDeviceStream;
     PdfOutputStream* m_pEncryptStream;
 
-    unsigned long    m_lLenInitial;
-    unsigned long    m_lLength;
+    pdf_long    m_lLenInitial;
+    pdf_long    m_lLength;
     
 
     PdfObject*       m_pLength;
@@ -146,7 +146,7 @@ class PODOFO_API PdfFileStream : public PdfStream {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned long PdfFileStream::GetLength() const
+pdf_long PdfFileStream::GetLength() const
 {
     return m_lLength;
 }
@@ -162,7 +162,7 @@ const char* PdfFileStream::GetInternalBuffer() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned long PdfFileStream::GetInternalBufferSize() const
+pdf_long PdfFileStream::GetInternalBufferSize() const
 {
     return 0;
 }

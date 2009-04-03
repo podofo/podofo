@@ -45,13 +45,15 @@ PdfFontType1::PdfFontType1( PdfFontMetrics* pMetrics, const PdfEncoding* const p
 
 void PdfFontType1::EmbedFont( PdfObject* pDescriptor )
 {
-    long        lSize    = 0;
-    long        lLength1 = 0L;
-    long        lLength2 = 0L;
-    long        lLength3 = 0L;
+    pdf_long        lSize    = 0;
+    pdf_long        lLength1 = 0L;
+    pdf_long        lLength2 = 0L;
+    pdf_long        lLength3 = 0L;
     PdfObject*  pContents;
     const char* pBuffer;
     char*       pAllocated = NULL;
+
+    m_bWasEmbedded = true;
 
     pContents = m_pObject->GetOwner()->CreateObject();
     if( !pContents )
@@ -132,9 +134,9 @@ void PdfFontType1::EmbedFont( PdfObject* pDescriptor )
 				if( pAllocated )
 					free( pAllocated );
 
-				pContents->GetDictionary().AddKey( "Length1", PdfVariant( lLength1 ) );
-				pContents->GetDictionary().AddKey( "Length2", PdfVariant( lLength2 ) );
-				pContents->GetDictionary().AddKey( "Length3", PdfVariant( lLength3 ) );
+				pContents->GetDictionary().AddKey( "Length1", PdfVariant( (long long)lLength1 ) );
+				pContents->GetDictionary().AddKey( "Length2", PdfVariant( (long long)lLength2 ) );
+				pContents->GetDictionary().AddKey( "Length3", PdfVariant( (long long)lLength3 ) );
 
 				return;
 			default:
@@ -165,15 +167,15 @@ void PdfFontType1::EmbedFont( PdfObject* pDescriptor )
     if( pAllocated )
         free( pAllocated );
 
-    pContents->GetDictionary().AddKey( "Length1", PdfVariant( lLength1 ) );
-    pContents->GetDictionary().AddKey( "Length2", PdfVariant( lLength2 ) );
-    pContents->GetDictionary().AddKey( "Length3", PdfVariant( lLength3 ) );
+    pContents->GetDictionary().AddKey( "Length1", PdfVariant( (long long)lLength1 ) );
+    pContents->GetDictionary().AddKey( "Length2", PdfVariant( (long long)lLength2 ) );
+    pContents->GetDictionary().AddKey( "Length3", PdfVariant( (long long)lLength3 ) );
 }
 
-long PdfFontType1::FindInBuffer( const char* pszNeedle, const char* pszHaystack, long lLen ) const
+pdf_long PdfFontType1::FindInBuffer( const char* pszNeedle, const char* pszHaystack, pdf_long lLen ) const
 {
     // if lNeedleLen is 0 the while loop will not be executed and we return -1
-    long lNeedleLen      = pszNeedle ? strlen( pszNeedle ) : 0; 
+    pdf_long lNeedleLen      = pszNeedle ? strlen( pszNeedle ) : 0; 
     const char* pszEnd   = pszHaystack + lLen - lNeedleLen; 
     const char* pszStart = pszHaystack;
 

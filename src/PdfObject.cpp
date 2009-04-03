@@ -70,7 +70,7 @@ PdfObject::PdfObject( bool b )
     InitPdfObject();
 }
 
-PdfObject::PdfObject( long l )
+PdfObject::PdfObject( long long l )
     : PdfVariant( l )
 {
     InitPdfObject();
@@ -202,7 +202,7 @@ PdfObject* PdfObject::GetIndirectKey( const PdfName & key ) const
     return const_cast<PdfObject*>(pObj);
 }
 
-unsigned long PdfObject::GetObjectLength()
+pdf_long PdfObject::GetObjectLength()
 {
     PdfOutputDevice device;
 
@@ -287,7 +287,7 @@ const PdfObject & PdfObject::operator=( const PdfObject & rhs )
     return *this;
 }
 
-unsigned long PdfObject::GetByteOffset( const char* pszKey )
+pdf_long PdfObject::GetByteOffset( const char* pszKey )
 {
     PdfOutputDevice device;
 

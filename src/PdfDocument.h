@@ -427,6 +427,22 @@ class PODOFO_API PdfDocument {
      */
     virtual bool IsHighPrintAllowed() const = 0;
 
+    // Peter Petrov 26 April 2008    
+    /** Get access to the internal vector of objects
+     *  or root object.
+     *  
+     *  \returns the vector of objects
+     */
+    inline PdfVecObjects* GetObjects();
+
+    // Peter Petrov 26 April 2008
+    /** Get access to the internal vector of objects
+     *  or root object.
+     *  
+     *  \returns the vector of objects
+     */
+    inline const PdfVecObjects* GetObjects() const;
+
  protected:
     /** Construct a new (empty) PdfDocument
      */
@@ -482,20 +498,6 @@ class PODOFO_API PdfDocument {
      *         It will be owned by PdfDocument.
      */
     inline void SetTrailer( PdfObject* pObject );
-
-    /** Get access to the internal vector of objects
-     *  or root object.
-     *  
-     *  \returns the vector of objects
-     */
-    inline PdfVecObjects* GetObjects();
-
-    /** Get access to the internal vector of objects
-     *  or root object.
-     *  
-     *  \returns the vector of objects
-     */
-    inline const PdfVecObjects* GetObjects() const;
 
     /** Get a dictioary from the catalog dictionary by its name.
      *  \param pszName will be converted into a PdfName

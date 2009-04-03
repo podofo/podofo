@@ -84,7 +84,7 @@ PdfDestination::PdfDestination( PdfObject* pObject )
 
 PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit )
 {
-    PdfName type;
+    PdfName type = PdfName("Fit");
 
     if( eFit == ePdfDestinationFit_Fit )
         type = PdfName("Fit");
@@ -92,7 +92,9 @@ PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit )
         type = PdfName("FitB");
     else
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidKey );
+        // Peter Petrov 6 June 2008
+        // silent mode
+        //PODOFO_RAISE_ERROR( ePdfError_InvalidKey );
     }
 
     m_array.push_back( pPage->GetObject()->Reference() );

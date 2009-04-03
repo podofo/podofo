@@ -433,7 +433,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     lf.lfQuality		= DEFAULT_QUALITY;
     lf.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
     
-    long lFontNameLen = wcslen(pszFontName);
+    pdf_long lFontNameLen = wcslen(pszFontName);
     if (lFontNameLen >= LF_FACESIZE)
         return NULL;
     
@@ -445,7 +445,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     if( !GetDataFromLPFONT( &lf, &pBuffer, nLen ) )
         return NULL;
     
-    long lMaxLen = lFontNameLen * 5;
+    pdf_long lMaxLen = lFontNameLen * 5;
     char* pmbFontName = static_cast<char*>(malloc(lMaxLen));
     if( !pmbFontName )
     {

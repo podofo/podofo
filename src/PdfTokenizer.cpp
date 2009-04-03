@@ -133,7 +133,7 @@ PdfTokenizer::PdfTokenizer()
 
 }
 
-PdfTokenizer::PdfTokenizer( const char* pBuffer, long lLen )
+PdfTokenizer::PdfTokenizer( const char* pBuffer, size_t lLen )
     : m_device( pBuffer, lLen ), m_buffer( PDF_BUFFER )
 {
 
@@ -151,7 +151,7 @@ PdfTokenizer::~PdfTokenizer()
 bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
 {
     int  c; 
-    int  counter  = 0;
+    long long  counter  = 0;
 
     // check first if there are quequed tokens and return them first
     if( m_deqQueque.size() )
@@ -175,7 +175,8 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
     if( peType )
         *peType = ePdfTokenType_Token;
 
-    while( (c = m_device.Device()->Look()) != EOF && counter < m_buffer.GetSize() )
+    while( (c = m_device.Device()->Look()) != EOF
+           && counter < static_cast<long long>(m_buffer.GetSize()) )
     {
         // ignore leading whitespaces
         if( !counter && IsWhitespace( c ) )
@@ -278,7 +279,7 @@ bool PdfTokenizer::IsNextToken( const char* pszToken )
     return (strcmp( pszToken, pszRead ) == 0);
 }
 
-long PdfTokenizer::GetNextNumber()
+pdf_long PdfTokenizer::GetNextNumber()
 {
     EPdfTokenType eType;
     const char* pszRead;
@@ -290,7 +291,11 @@ long PdfTokenizer::GetNextNumber()
     }
 
     char* end;
-    long l = strtol( pszRead, &end, 10 );
+#ifdef _WIN64
+		pdf_long l = _strtoui64( pszRead, &end, 10 );
+#else
+    pdf_long l = strtol( pszRead, &end, 10 );
+#endif
     if( end == pszRead )
     {
         // Don't consume the token
@@ -378,8 +383,11 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
         }
         else if( eDataType == ePdfDataType_Number ) 
         {
-            rVariant = PdfVariant( strtol( pszToken, NULL, 10 ) );
-
+#ifdef _WIN64
+            rVariant = PdfVariant( static_cast<long long>(_strtoui64( pszToken, NULL, 10 )) );
+#else
+            rVariant = PdfVariant( static_cast<long long>(strtol( pszToken, NULL, 10 )) );
+#endif
             // read another two tokens to see if it is a reference
             // we cannot be sure that there is another token
             // on the input device, so if we hit EOF just return
@@ -395,8 +403,13 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
                 return eDataType;
             }
             
+            
             pszStart = pszToken;
+#ifdef _WIN64            
+            pdf_long  l   = _strtoui64( pszStart, const_cast<char**>(&pszToken), 10 );
+#else
             long  l   = strtol( pszStart, const_cast<char**>(&pszToken), 10 );
+#endif
             if( pszToken == pszStart ) 
             {
                 this->QuequeToken( pszStart, eSecondTokenType );
@@ -412,7 +425,8 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
             if( eThirdTokenType == ePdfTokenType_Token &&
                 pszToken[0] == 'R' && pszToken[1] == '\0' )
             {
-                rVariant = PdfReference( rVariant.GetNumber(), static_cast<const pdf_uint16>(l) );
+                rVariant = PdfReference( static_cast<unsigned int>(rVariant.GetNumber()), 
+                                         static_cast<const pdf_uint16>(l) );
                 return ePdfDataType_Reference;
             }
             else
@@ -635,7 +649,8 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
         m_vecBuffer.push_back ( cOctValue );
 
     if( pEncrypt && m_vecBuffer.size() )
-        pEncrypt->Encrypt( reinterpret_cast<unsigned char*>(&(m_vecBuffer[0])), m_vecBuffer.size() );
+        pEncrypt->Encrypt( reinterpret_cast<unsigned char*>(&(m_vecBuffer[0])), 
+                           static_cast<unsigned int>(m_vecBuffer.size()) );
 
     if( m_vecBuffer.size() )
         rVariant = PdfString( &(m_vecBuffer[0]), m_vecBuffer.size() );

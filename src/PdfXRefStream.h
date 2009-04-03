@@ -91,7 +91,7 @@ class PdfXRefStream : public PdfXRef {
      *  @param lObjectNumber the object number of the currently written object if cMode = 'n' 
      *                       otherwise undefined
      */
-    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, unsigned long lOffset, unsigned long lGeneration, 
+    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, size_t lOffset, unsigned long lGeneration, 
                                  char cMode, unsigned long lObjectNumber = 0 );
 
     /** Called at the end of writing the XRef table.
@@ -109,7 +109,7 @@ class PdfXRefStream : public PdfXRef {
     PdfArray       m_indeces;
 
     size_t         m_lBufferLen; ///< The length of the internal buffer for one XRef entry
-    long           m_lOffset;    ///< Offset of the XRefStream object
+    unsigned long  m_lOffset;    ///< Offset of the XRefStream object
 };
 
 // -----------------------------------------------------

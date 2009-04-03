@@ -76,7 +76,7 @@ class PODOFO_API PdfFilter {
      *  \param ppOutBuffer pointer to the buffer of the encoded data
      *  \param plOutLen pointer to the length of the output buffer
      */
-    void Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const;
+    void Encode( const char* pInBuffer, pdf_long lInLen, char** ppOutBuffer, pdf_long* plOutLen ) const;
 
     /** Begin progressively encoding data using this filter.
      *
@@ -115,7 +115,7 @@ class PODOFO_API PdfFilter {
      *  \see BeginEncode
      *  \see EndEncode
      */
-    inline void EncodeBlock( const char* pBuffer, long lLen );
+    inline void EncodeBlock( const char* pBuffer, pdf_long lLen );
 
     /**
      *  Finish encoding of data and reset the stream's state.
@@ -143,7 +143,7 @@ class PODOFO_API PdfFilter {
      *                      This pointer must be NULL if no decode parameter dictionary
      *                      is available.
      */
-    void Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
+    void Decode( const char* pInBuffer, pdf_long lInLen, char** ppOutBuffer, pdf_long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
 
     /** Begin progressively decoding data using this filter.
      *
@@ -183,7 +183,7 @@ class PODOFO_API PdfFilter {
      *  \see BeginDecode
      *  \see EndDecode
      */
-    inline void DecodeBlock( const char* pBuffer, long lLen );
+    inline void DecodeBlock( const char* pBuffer, pdf_long lLen );
 
     /**
      *  Finish decoding of data and reset the stream's state.
@@ -238,7 +238,7 @@ class PODOFO_API PdfFilter {
      *  EndEncode() has not been called since the last BeginEncode().
      *
      * \see EncodeBlock */
-    virtual void EncodeBlockImpl( const char* pBuffer, long lLen ) = 0;
+    virtual void EncodeBlockImpl( const char* pBuffer, pdf_long lLen ) = 0;
 
     /** Real implementation of `EndEncode()'. NEVER call this method directly.
      *
@@ -277,7 +277,7 @@ class PODOFO_API PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    virtual void DecodeBlockImpl( const char* pBuffer, long lLen ) = 0;
+    virtual void DecodeBlockImpl( const char* pBuffer, pdf_long lLen ) = 0;
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *
@@ -303,11 +303,11 @@ void PdfFilter::BeginEncode( PdfOutputStream* pOutput )
     m_pOutputStream = pOutput;
     BeginEncodeImpl();
 }
-
+ 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfFilter::EncodeBlock( const char* pBuffer, long lLen )
+void PdfFilter::EncodeBlock( const char* pBuffer, pdf_long lLen )
 {
     PODOFO_RAISE_LOGIC_IF( !m_pOutputStream, "EncodeBlock() without BeginEncode() or on failed filter" );
     EncodeBlockImpl(pBuffer, lLen);
@@ -338,7 +338,7 @@ void PdfFilter::BeginDecode( PdfOutputStream* pOutput, const PdfDictionary* pDec
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfFilter::DecodeBlock( const char* pBuffer, long lLen )
+void PdfFilter::DecodeBlock( const char* pBuffer, pdf_long lLen )
 {
     PODOFO_RAISE_LOGIC_IF( !m_pOutputStream, "DecodeBlock() without BeginDecode() or on failed filter" )
     DecodeBlockImpl(pBuffer, lLen);

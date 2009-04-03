@@ -96,6 +96,7 @@ enum EPdfError {
     ePdfError_MutexError,               /**< Error during a mutex operation */
 
     ePdfError_UnsupportedImageFormat,   /**< This image format is not supported by PoDoFO. */
+    ePdfError_CannotConvertColor,       /**< This color format cannot be converted. */
 
     ePdfError_NotImplemented,           /**< This feature is currently not implemented. */
 

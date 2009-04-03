@@ -127,7 +127,7 @@ class PODOFO_API PdfFontMetrics {
      *  \param nLength if != 0 only the width of the nLength first characters is calculated
      *  \returns the width in PDF units
      */
-    double StringWidth( const char* pszText, unsigned int nLength = 0 ) const;
+    double StringWidth( const char* pszText, pdf_long nLength = 0 ) const;
 
     /** Retrieve the width of a given text string in PDF units when
      *  drawn with the current font
@@ -174,12 +174,19 @@ class PODOFO_API PdfFontMetrics {
      */
     unsigned long StringWidthMM( const wchar_t* pszText, unsigned int nLength = 0 ) const;
 #endif
-
+    
     /** Retrieve the width of the given character in PDF units in the current font
      *  \param c character
      *  \returns the width in PDF units
      */
     double CharWidth( unsigned char c ) const;
+
+    // Peter Petrov 20 March 2009
+    /** Retrieve the width of the given character in PDF units in the current font
+     *  \param c character
+     *  \returns the width in PDF units
+     */
+    double UnicodeCharWidth( unsigned short c ) const;
 
     /** Retrieve the width of the given character in 1/1000th mm in the current font
      *  \param c character
@@ -258,7 +265,7 @@ class PODOFO_API PdfFontMetrics {
     /** Get the length of the actual font data - if it was loaded from memory.
      *  \returns a the length of the font data
      */
-    inline unsigned int GetFontDataLen() const;
+    inline pdf_long GetFontDataLen() const;
 
     /** Get a string with the postscript name of the font.
      *  \returns the postscript name of the font or NULL string if no postscript name is available.
@@ -388,8 +395,12 @@ class PODOFO_API PdfFontMetrics {
      */
     void SetFontTypeFromFilename( const char* pszFilename );
 
- protected:
+ public:
     FT_Face       m_face;
+    // Peter Petrov 19 March 2009
+    std::string   m_sFilename;
+
+ protected:
     FT_Library*   m_pLibrary;
 
  private:
@@ -407,7 +418,6 @@ class PODOFO_API PdfFontMetrics {
     double        m_dStrikeOutThickness;
     double        m_dStrikeOutPosition;
 
-    std::string   m_sFilename;
     PdfRefCountedBuffer m_bufFontData;
     float         m_fFontSize;
     float         m_fFontScale;
@@ -526,7 +536,7 @@ const char* PdfFontMetrics::GetFontData() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned int PdfFontMetrics::GetFontDataLen() const
+pdf_long PdfFontMetrics::GetFontDataLen() const
 {
     return m_bufFontData.GetSize();
 }  

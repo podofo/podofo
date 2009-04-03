@@ -56,7 +56,7 @@ PdfFileInputStream::~PdfFileInputStream()
         fclose( m_hFile );
 }
 
-long PdfFileInputStream::Read( char* pBuffer, long lLen )
+pdf_long PdfFileInputStream::Read( char* pBuffer, pdf_long lLen )
 {
     if( !pBuffer ) 
     {
@@ -72,19 +72,19 @@ long PdfFileInputStream::Read( char* pBuffer, long lLen )
     return fread( pBuffer, sizeof(char), lLen, m_hFile );
 }
 
-long PdfFileInputStream::GetFileLength()
+pdf_long PdfFileInputStream::GetFileLength()
 {
-    long lOffset = ftell( m_hFile );
-    long lLen;
+    pdf_long lOffset = ftello( m_hFile );
+    pdf_long lLen;
 
-    fseek( m_hFile, 0L, SEEK_END );
-    lLen = ftell( m_hFile );
-    fseek( m_hFile, lOffset, SEEK_SET );
+    fseeko( m_hFile, 0L, SEEK_END );
+    lLen = ftello( m_hFile );
+    fseeko( m_hFile, lOffset, SEEK_SET );
 
     return lLen;
 }
 
-PdfMemoryInputStream::PdfMemoryInputStream( const char* pBuffer, long lBufferLen )
+PdfMemoryInputStream::PdfMemoryInputStream( const char* pBuffer, pdf_long lBufferLen )
     : m_pBuffer( pBuffer ), m_pCur( pBuffer ), m_lBufferLen( lBufferLen )
 {
 
@@ -94,14 +94,14 @@ PdfMemoryInputStream::~PdfMemoryInputStream()
 {
 }
 
-long PdfMemoryInputStream::Read( char* pBuffer, long lLen )
+pdf_long PdfMemoryInputStream::Read( char* pBuffer, pdf_long lLen )
 {
     if( !pBuffer ) 
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    long lRead = m_pCur - m_pBuffer;
+    pdf_long lRead = m_pCur - m_pBuffer;
 
     // return zero if EOF is reached
     if( lRead == m_lBufferLen ) 
@@ -123,7 +123,7 @@ PdfDeviceInputStream::~PdfDeviceInputStream()
 {
 }
 
-long PdfDeviceInputStream::Read( char* pBuffer, long lLen )
+pdf_long PdfDeviceInputStream::Read( char* pBuffer, pdf_long lLen )
 {
     return m_pDevice->Read( pBuffer, lLen );
 }

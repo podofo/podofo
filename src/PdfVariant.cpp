@@ -77,7 +77,7 @@ PdfVariant::PdfVariant( bool b )
     m_Data.bBoolValue = b;
 }
 
-PdfVariant::PdfVariant( long l )
+PdfVariant::PdfVariant( long long l )
 {
     Init();
     Clear();
@@ -228,7 +228,11 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt, co
             break;
         }
         case ePdfDataType_Number:
-            pDevice->Print( "%li", m_Data.nNumber );
+#ifdef _WIN64
+            pDevice->Print( "%I64i", m_Data.nNumber );
+#else
+            pDevice->Print( "%lld", m_Data.nNumber );
+#endif
             break;
         case ePdfDataType_Real:
             //pDevice->Print( "%g", m_Data.dNumber );

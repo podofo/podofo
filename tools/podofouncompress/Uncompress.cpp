@@ -49,11 +49,11 @@ void UnCompress::UncompressObjects()
 
     while( it != m_pDocument->GetObjects().end() )
     {
-        printf("Reading %li %i R\n", (*it)->Reference().ObjectNumber(), (*it)->Reference().GenerationNumber() );
+        printf("Reading %i %i R\n", (*it)->Reference().ObjectNumber(), (*it)->Reference().GenerationNumber() );
         if( (*it)->HasStream() )
         {
             try {
-                printf("-> Uncompressing object %li %i\n", 
+                printf("-> Uncompressing object %i %i\n", 
                        (*it)->Reference().ObjectNumber(), (*it)->Reference().GenerationNumber() );
                 PdfMemStream* pStream = dynamic_cast<PdfMemStream*>((*it)->GetStream());
                 printf("-> Original Length: %li\n", pStream->GetLength() );

@@ -422,7 +422,7 @@ class PODOFO_API PdfPainter {
      *  \see MoveTextPos()
      *  \see EndText()
      */
-	void AddText( const PdfString & sText, long lStringLen );
+	void AddText( const PdfString & sText, pdf_long lStringLen );
 
     /** Move position for text drawing on a page.
      *  You have to call BeginText before calling this function
@@ -563,6 +563,11 @@ class PODOFO_API PdfPainter {
      */
     void ArcTo( double dX, double dY, double dRadiusX, double dRadiusY,
                 double	dRotation, bool bLarge, bool bSweep);
+
+    // Peter Petrov 5 January 2009 was delivered from libHaru
+    /**
+    */
+    bool DrawArc(double dX, double dY, double dRadius, double dAngle1, double dAngle2);
     
     /** Close the current path. Matches the PDF 'h' operator.
      */
@@ -697,6 +702,14 @@ class PODOFO_API PdfPainter {
      */
     void SetCurrentStrokingColor();
 
+    bool InternalArc(
+              double    x,
+              double    y,
+              double    ray,
+              double    ang1,
+              double    ang2,
+              bool      cont_flg);
+
     /** Expand all tab characters in a string
      *  using spaces.
      *
@@ -705,14 +718,14 @@ class PODOFO_API PdfPainter {
      *  \returns an expanded copy of the passed string
      *  \see SetTabWidth
      */
-    PdfString ExpandTabs( const PdfString & rsString, long lLen ) const;
+    PdfString ExpandTabs( const PdfString & rsString, pdf_long lLen ) const;
     
 #if defined(_MSC_VER)  &&  _MSC_VER <= 1200	// MSC 6.0 has a template-bug 
     PdfString ExpandTabs_char( const char* pszText, long lStringLen, int nTabCnt, const char cTab, const char cSpace ) const;
     PdfString ExpandTabs_pdf_utf16be( const pdf_utf16be* pszText, long lStringLen, int nTabCnt, const pdf_utf16be cTab, const pdf_utf16be cSpace ) const;
 #else
     template<typename C>
-        PdfString ExpandTabsPrivate( const C* pszText, long lStringLen, int nTabCnt, const C cTab, const C cSpace ) const;
+        PdfString ExpandTabsPrivate( const C* pszText, pdf_long lStringLen, int nTabCnt, const C cTab, const C cSpace ) const;
 #endif
 
  protected:
@@ -798,7 +811,7 @@ void PdfPainter::SetPrecision( unsigned short inPrec )
 // -----------------------------------------------------
 unsigned short PdfPainter::GetPrecision() const
 {
-    return m_oss.precision();
+    return static_cast<unsigned short>(m_oss.precision());
 }
 
 // -----------------------------------------------------

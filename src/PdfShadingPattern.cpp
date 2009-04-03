@@ -161,9 +161,9 @@ void PdfShadingPattern::Init( EPdfShadingPatternType eShadingType )
 
     // keys common to all shading directories
     PdfDictionary shading;
-    shading.AddKey( PdfName("ShadingType"), static_cast<long>(eShadingType) );
+    shading.AddKey( PdfName("ShadingType"), static_cast<long long>(eShadingType) );
 
-    m_pObject->GetDictionary().AddKey( PdfName("PatternType"), 2L ); // Shading pattern
+    m_pObject->GetDictionary().AddKey( PdfName("PatternType"), 2LL ); // Shading pattern
     m_pObject->GetDictionary().AddKey( PdfName("Shading"), shading );
 }
 

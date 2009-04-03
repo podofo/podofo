@@ -25,6 +25,8 @@
 #include <fstream>
 #include <sstream>
 
+#include <wchar.h>
+
 namespace PoDoFo {
 
 PdfInputDevice::PdfInputDevice()
@@ -42,8 +44,9 @@ PdfInputDevice::PdfInputDevice( const char* pszFilename )
     }
 
     try {
-        m_pStream = new std::ifstream( pszFilename, std::ios::binary );
-        if( !m_pStream || !m_pStream->good() )
+        m_pFile = fopen(pszFilename, "rb");
+        //m_pStream = new std::ifstream( pszFilename, std::ios::binary );
+        if( !m_pFile)
         {
             PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
         }
@@ -53,7 +56,7 @@ PdfInputDevice::PdfInputDevice( const char* pszFilename )
         // should probably check the exact error, but for now it's a good error
         PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
     }
-    PdfLocaleImbue(*m_pStream);
+    //PdfLocaleImbue(*m_pStream);
 }
 
 #ifdef _WIN32
@@ -69,27 +72,33 @@ PdfInputDevice::PdfInputDevice( const wchar_t* pszFilename )
     }
 
     try {
-        m_pStream = new std::ifstream( pszFilename, std::ios::binary );
-        if( !m_pStream || !m_pStream->good() )
+        //m_pStream = new std::ifstream( pszFilename, std::ios::binary );
+        size_t strLen = wcslen(pszFilename);
+        char * pStr = new char[strLen+1];
+        wcstombs(pStr, pszFilename, strLen);
+        m_pFile = fopen(pStr, "rb");
+        delete pStr;
+        if( !m_pFile)
+        //if( !m_pStream || !m_pStream->good() )
         {
-	    PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
-	    e.SetErrorInformation( pszFilename );
-	    throw e;
+            PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
+            e.SetErrorInformation( pszFilename );
+            throw e;
         }
         m_StreamOwned = true;
     }
     catch(...) {
         // should probably check the exact error, but for now it's a good error
-	PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
-	e.SetErrorInformation( pszFilename );
-	throw e;
+        PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
+        e.SetErrorInformation( pszFilename );
+        throw e;
     }
-    PdfLocaleImbue(*m_pStream);
+    //PdfLocaleImbue(*m_pStream);
 }
 #endif
 #endif // _WIN32
 
-PdfInputDevice::PdfInputDevice( const char* pBuffer, long lLen )
+PdfInputDevice::PdfInputDevice( const char* pBuffer, size_t lLen )
 {
     this->Init();
 
@@ -132,13 +141,17 @@ PdfInputDevice::~PdfInputDevice()
 
     if ( m_StreamOwned ) 
     {
+			if (m_pStream)
         delete m_pStream;
+			if (m_pFile)
+				fclose(m_pFile);
     }
 }
 
 void PdfInputDevice::Init()
 {
     m_pStream     = NULL;
+		m_pFile = 0;
     m_StreamOwned = false;
     m_bIsSeekable = true;
 }
@@ -150,19 +163,36 @@ void PdfInputDevice::Close()
 
 int PdfInputDevice::GetChar() const
 {
+	if (m_pStream)
     return m_pStream->get();
+	if (m_pFile)
+		return fgetc(m_pFile);
+	return 0;
 }
 
 int PdfInputDevice::Look() const 
 {
+	if (m_pStream)
     return m_pStream->peek();
+	if (m_pFile) {
+		pdf_long lOffset = ftello( m_pFile );
+		int ch = GetChar();
+		fseeko( m_pFile, lOffset, SEEK_SET );
+		return ch;
+	}
+
+	return 0;
 }
 
 std::streamoff PdfInputDevice::Tell() const
 {
+	if (m_pStream)
     return m_pStream->tellg();
+	if (m_pFile)
+		return ftello(m_pFile);
+	return 0;
 }
-
+/*
 void PdfInputDevice::Seek( std::streamoff off, std::ios_base::seekdir dir )
 {
     if (m_bIsSeekable)
@@ -170,11 +200,39 @@ void PdfInputDevice::Seek( std::streamoff off, std::ios_base::seekdir dir )
     else
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Tried to seek an unseekable input device." );
 }
+*/
+
+void PdfInputDevice::Seek( std::streamoff off, std::ios_base::seekdir dir )
+{
+    if (m_bIsSeekable)
+    {
+        if (m_pStream)
+        {
+            m_pStream->seekg( off, dir );
+        }
+
+        if (m_pFile)
+        {
+            fseeko( m_pFile, off, dir );
+        }
+    }
+    else
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Tried to seek an unseekable input device." );
+    }
+}
+
 
 std::streamoff PdfInputDevice::Read( char* pBuffer, std::streamsize lLen )
 {
+	if (m_pStream) {
     m_pStream->read( pBuffer, lLen );
     return m_pStream->gcount();
+	}
+	else 
+	{
+		return fread(pBuffer, 1, lLen, m_pFile);
+	}
 }
 
 }; // namespace PoDoFo

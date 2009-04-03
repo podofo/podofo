@@ -51,7 +51,7 @@ PdfRefCountedInputDevice::PdfRefCountedInputDevice( const wchar_t* pszFilename, 
 #endif
 #endif // _WIN32
 
-PdfRefCountedInputDevice::PdfRefCountedInputDevice( const char* pBuffer, long lLen )
+PdfRefCountedInputDevice::PdfRefCountedInputDevice( const char* pBuffer, size_t lLen )
     : m_pDevice( NULL )
 {
     m_pDevice              = new TRefCountedInputDevice();

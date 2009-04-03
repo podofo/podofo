@@ -90,7 +90,7 @@ class PdfFilteredEncodeStream : public PdfOutputStream{
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer 
      */
-    virtual long Write( const char* pBuffer, long lLen )
+    virtual pdf_long Write( const char* pBuffer, pdf_long lLen )
     {
         m_filter->EncodeBlock( pBuffer, lLen );
         
@@ -155,7 +155,7 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer 
      */
-    virtual long Write( const char* pBuffer, long lLen )
+    virtual pdf_long Write( const char* pBuffer, pdf_long lLen )
     {
         m_filter->DecodeBlock( pBuffer, lLen );
         return 0;
@@ -182,7 +182,7 @@ PdfFilter::PdfFilter()
 {
 }
 
-void PdfFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen ) const
+void PdfFilter::Encode( const char* pInBuffer, pdf_long lInLen, char** ppOutBuffer, pdf_long* plOutLen ) const
 {
     if( !this->CanEncode() )
     {
@@ -199,7 +199,7 @@ void PdfFilter::Encode( const char* pInBuffer, long lInLen, char** ppOutBuffer, 
     *plOutLen    = stream.GetLength();
 }
 
-void PdfFilter::Decode( const char* pInBuffer, long lInLen, char** ppOutBuffer, long* plOutLen, 
+void PdfFilter::Decode( const char* pInBuffer, pdf_long lInLen, char** ppOutBuffer, pdf_long* plOutLen, 
                         const PdfDictionary* pDecodeParms ) const
 {
     if( !this->CanDecode() )

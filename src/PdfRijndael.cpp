@@ -1122,9 +1122,9 @@ int PdfRijndael::blockEncrypt(const UINT8 *input,int inputLen,UINT8 *outBuffer)
   return 128 * numBlocks;
 }
 
-int PdfRijndael::padEncrypt(const UINT8 *input, int inputOctets, UINT8 *outBuffer)
+pdf_long PdfRijndael::padEncrypt(const UINT8 *input, pdf_long inputOctets, UINT8 *outBuffer)
 {
-  int i, numBlocks, padLen;
+  pdf_long i, numBlocks, padLen;
   UINT8 block[16], *iv;
 
   if(m_state != Valid)return RIJNDAEL_NOT_INITIALIZED;
@@ -1146,7 +1146,7 @@ int PdfRijndael::padEncrypt(const UINT8 *input, int inputOctets, UINT8 *outBuffe
       padLen = 16 - (inputOctets - 16*numBlocks);
 //      assert(padLen > 0 && padLen <= 16);
       memcpy(block, input, 16 - padLen);
-      memset(block + 16 - padLen, padLen, padLen);
+      memset(block + 16 - padLen, (int)padLen, padLen);
       encrypt(block,outBuffer);
     break;
     case CBC:

@@ -107,7 +107,7 @@ void TextExtractor::ExtractText( PdfMemDocument* pDocument, PdfPage* pPage )
                     pCurFont = pDocument->GetFont( pFont );
                     if( !pCurFont ) 
                     {
-                        fprintf( stderr, "WARNING: Unable to create font for object %li %i R\n",
+                        fprintf( stderr, "WARNING: Unable to create font for object %i %i R\n",
                                  pFont->Reference().ObjectNumber(),
                                  pFont->Reference().GenerationNumber() );
                     }

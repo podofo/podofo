@@ -59,6 +59,12 @@ class PdfFontSimple : public PdfFont {
     PdfFontSimple( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
                    PdfObject* pObject );
 
+    // Peter Petrov 24 September 2008
+    /** Embeds the font into PDF page
+     *
+     */
+    virtual void EmbedFont();
+
  protected:
     /** Initialize this font object.
      *
@@ -72,6 +78,8 @@ class PdfFontSimple : public PdfFont {
      *  \param pDescriptor font descriptor object
      */
     virtual void EmbedFont( PdfObject* pDescriptor ) = 0;
+
+    PdfObject* m_pDescriptor;
 };
 
 };

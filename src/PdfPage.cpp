@@ -199,7 +199,7 @@ int PdfPage::GetRotation() const
     
     PdfObject* pObj = GetInheritedKeyFromObject( "Rotate", m_pObject ); 
     if ( pObj && pObj->IsNumber() )
-        rot = pObj->GetNumber();
+        rot = static_cast<int>(pObj->GetNumber());
     
     return rot;
 }
@@ -362,7 +362,7 @@ unsigned int PdfPage::GetPageNumber() const
             PdfObject* pNode = m_pObject->GetOwner()->GetObject( (*it).GetReference() );
 
             if( pNode->GetDictionary().GetKey( PdfName::KeyType )->GetName() == PdfName( "Pages" ) )
-                nPageNumber += pNode->GetDictionary().GetKey( "Count" )->GetNumber();
+                nPageNumber += static_cast<int>(pNode->GetDictionary().GetKey( "Count" )->GetNumber());
             else 
                 // if we do not have a page tree node, 
                 // we most likely have a page object:

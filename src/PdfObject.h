@@ -92,7 +92,7 @@ class PODOFO_API PdfObject : public PdfVariant {
      *
      *  \param l the long value of this PdfObject
      */
-    PdfObject( long l );
+    PdfObject( long long l );
 
     /** Construct a PdfObject with object and generation number -1
      *  and a double as value.
@@ -177,7 +177,7 @@ class PODOFO_API PdfObject : public PdfVariant {
     /** Get the length of the object in bytes if it was written to disk now.
      *  \returns  the length of the object
      */
-    unsigned long GetObjectLength();
+    pdf_long GetObjectLength();
 
     /** Get a indirect reference to this object
      *  \returns a PdfReference pointing to this object.
@@ -258,7 +258,7 @@ class PODOFO_API PdfObject : public PdfVariant {
      *  \param pszKey  key to calculate the byte offset
      *  \returns the offset of the key 
      */
-    unsigned long GetByteOffset( const char* pszKey );
+    pdf_long GetByteOffset( const char* pszKey );
 
     /**
      * Dynamically load this object and any associated stream from a PDF file

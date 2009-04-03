@@ -51,7 +51,7 @@ typedef signed int 	int32_t;
 typedef unsigned int 	uint32_t;
 #endif
 
-#define STREAM_OFFSET_TYPE uint32_t
+#define STREAM_OFFSET_TYPE long long
 
 bool podofo_is_little_endian()
 { 
@@ -81,16 +81,17 @@ void PdfXRefStream::WriteSubSection( PdfOutputDevice*, unsigned int nFirst, unsi
 {
     PdfError::DebugMessage("Writing XRef section: %u %u\n", nFirst, nCount );
 
-    m_indeces.push_back( static_cast<long>(nFirst) );
-    m_indeces.push_back( static_cast<long>(nCount) );
+    m_indeces.push_back( static_cast<long long>(nFirst) );
+    m_indeces.push_back( static_cast<long long>(nCount) );
 }
 
-void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, unsigned long lOffset, unsigned long lGeneration, 
+void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, size_t lOffset, unsigned long lGeneration, 
                                     char cMode, unsigned long lObjectNumber ) 
 {
     char *              buffer = reinterpret_cast<char*>(alloca(m_lBufferLen));
     STREAM_OFFSET_TYPE* pValue = reinterpret_cast<STREAM_OFFSET_TYPE*>(buffer+1);
 
+		// [Alexey] I have no idea what to do here, Its format dependend
     if( cMode == 'n' && lObjectNumber == m_pObject->Reference().ObjectNumber() )
         m_lOffset = lOffset;
     
@@ -99,9 +100,11 @@ void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, unsigned long lOffset, uns
     // TODO: This might cause bus errors on HP-UX machines 
     //       which require integers to be alligned on byte boundaries.
     //       -> Better use memcpy here!
+
+		// [Alexey] I have no idea what to do here, Its format dependend
     *pValue             = static_cast<STREAM_OFFSET_TYPE>(lOffset);
 #ifdef PODOFO_IS_LITTLE_ENDIAN
-    *pValue = static_cast<STREAM_OFFSET_TYPE>(htonl( *pValue ));
+    *pValue = static_cast<STREAM_OFFSET_TYPE>(static_cast<long long>(htonl( static_cast<u_long>(*pValue) )));
 #endif // PODOFO_IS_LITTLE_ENDIAN
     
     m_pObject->GetStream()->Append( buffer, m_lBufferLen );
@@ -111,9 +114,9 @@ void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
 {
     PdfArray w;
 
-    w.push_back( 1L );
-    w.push_back( static_cast<long>(sizeof(STREAM_OFFSET_TYPE)) );
-    w.push_back( 1L );
+    w.push_back( static_cast<long long>(1) );
+    w.push_back( static_cast<long long>(sizeof(STREAM_OFFSET_TYPE)) );
+    w.push_back( static_cast<long long>(1) );
 
     // Add our self to the XRef table
     this->WriteXRefEntry( pDevice, pDevice->Tell(), 0, 'n' );

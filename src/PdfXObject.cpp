@@ -68,18 +68,18 @@ PdfXObject::PdfXObject( const PdfMemDocument & rDoc, int nPage, PdfDocument* pPa
     m_pObject->GetDictionary().AddKey( "BBox", var );
 
     PdfArray      matrix;
-    matrix.push_back( PdfVariant( 1L ) );
-    matrix.push_back( PdfVariant( 0L ) );
-    matrix.push_back( PdfVariant( 0L ) );
-    matrix.push_back( PdfVariant( 1L ) );
+    matrix.push_back( PdfVariant( 1LL ) );
+    matrix.push_back( PdfVariant( 0LL ) );
+    matrix.push_back( PdfVariant( 0LL ) );
+    matrix.push_back( PdfVariant( 1LL ) );
 	if( m_rRect.GetLeft() != 0 )
 	    matrix.push_back( PdfVariant( m_rRect.GetLeft() * (-1.0) ) );
 	else
-	    matrix.push_back( PdfVariant( 0L ) );
+	    matrix.push_back( PdfVariant( 0LL ) );
 	if( m_rRect.GetBottom() != 0 )
 	    matrix.push_back( PdfVariant( m_rRect.GetBottom() * (-1.0) ) );
 	else
-	    matrix.push_back( PdfVariant( 0L ) );
+	    matrix.push_back( PdfVariant( 0LL ) );
     m_pObject->GetDictionary().AddKey( "Matrix", matrix );
 }
 
@@ -109,18 +109,18 @@ void PdfXObject::InitXObject( const PdfRect & rRect )
     if( s_matrix.empty() )
     {
         // This matrix is the same for all PdfXObjects so cache it
-        s_matrix.push_back( PdfVariant( 1L ) );
-        s_matrix.push_back( PdfVariant( 0L ) );
-        s_matrix.push_back( PdfVariant( 0L ) );
-        s_matrix.push_back( PdfVariant( 1L ) );
-        s_matrix.push_back( PdfVariant( 0L ) );
-        s_matrix.push_back( PdfVariant( 0L ) );
+        s_matrix.push_back( PdfVariant( 1LL ) );
+        s_matrix.push_back( PdfVariant( 0LL ) );
+        s_matrix.push_back( PdfVariant( 0LL ) );
+        s_matrix.push_back( PdfVariant( 1LL ) );
+        s_matrix.push_back( PdfVariant( 0LL ) );
+        s_matrix.push_back( PdfVariant( 0LL ) );
     }
 
     rRect.ToVariant( var );
     m_pObject->GetDictionary().AddKey( "BBox", var );
     m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Form") );
-    m_pObject->GetDictionary().AddKey( "FormType", PdfVariant( 1L ) ); // only 1 is only defined in the specification.
+    m_pObject->GetDictionary().AddKey( "FormType", PdfVariant( 1LL ) ); // only 1 is only defined in the specification.
     m_pObject->GetDictionary().AddKey( "Matrix", s_matrix );
 
     // The PDF specification suggests that we send all available PDF Procedure sets

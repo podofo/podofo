@@ -94,7 +94,7 @@ class PODOFO_API PdfName : public PdfDataType {
      *                 be a zero terminated string.
      *  \return A new PdfName
      */
-    static PdfName FromEscaped( const char * pszName, int ilength = 0 );
+    static PdfName FromEscaped( const char * pszName, pdf_long ilength = 0 );
 
     /** \return an escaped representation of this name
      *          without the leading / .
@@ -251,3 +251,4 @@ const PdfName& PdfName::operator=( const PdfName & rhs )
 };
 
 #endif /* _PDF_NAME_H_ */
+

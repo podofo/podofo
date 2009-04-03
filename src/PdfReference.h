@@ -53,7 +53,7 @@ class PODOFO_API PdfReference : public PdfDataType {
      * \param nObjectNo the object number
      * \param nGenerationNo the generation number
      */
-    PdfReference( const unsigned long nObjectNo, const pdf_uint16 nGenerationNo )
+    PdfReference( const unsigned int nObjectNo, const pdf_uint16 nGenerationNo )
         : m_nObjectNo( nObjectNo ), m_nGenerationNo( nGenerationNo ) 
     {
     }
@@ -112,12 +112,12 @@ class PODOFO_API PdfReference : public PdfDataType {
     /** Set the object number of this object
      *  \param o the new object number
      */
-    PODOFO_NOTHROW inline void SetObjectNumber( unsigned long o );
+    PODOFO_NOTHROW inline void SetObjectNumber( unsigned int o );
 
     /** Get the object number.
      *  \returns the object number of this PdfReference
      */
-    PODOFO_NOTHROW inline unsigned long ObjectNumber() const;
+    PODOFO_NOTHROW inline unsigned int ObjectNumber() const;
 
     /** Set the generation number of this object
      *  \param g the new generation number
@@ -141,7 +141,7 @@ class PODOFO_API PdfReference : public PdfDataType {
     PODOFO_NOTHROW inline bool IsIndirect() const;
 
  private:
-    unsigned long m_nObjectNo;
+    unsigned int m_nObjectNo;
     pdf_uint16    m_nGenerationNo;
 };
 
@@ -182,7 +182,7 @@ inline bool PdfReference::operator!=( const PdfReference & rhs ) const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfReference::SetObjectNumber( unsigned long o )
+void PdfReference::SetObjectNumber( unsigned int o )
 {
     m_nObjectNo = o;
 }
@@ -190,7 +190,7 @@ void PdfReference::SetObjectNumber( unsigned long o )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned long PdfReference::ObjectNumber() const
+unsigned int PdfReference::ObjectNumber() const
 {
     return m_nObjectNo;
 }

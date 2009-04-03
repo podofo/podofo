@@ -134,7 +134,7 @@ bool PdfAnnotation::HasAppearanceStream() const
 
 void PdfAnnotation::SetFlags( pdf_uint32 uiFlags )
 {
-    m_pObject->GetDictionary().AddKey( "F", PdfVariant( static_cast<long>(uiFlags) ) );
+    m_pObject->GetDictionary().AddKey( "F", PdfVariant( static_cast<long long>(uiFlags) ) );
 }
 
 pdf_uint32 PdfAnnotation::GetFlags() const

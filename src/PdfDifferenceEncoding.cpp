@@ -2268,7 +2268,7 @@ bool PdfEncodingDifference::Contains( int nCode, PdfName & rName, pdf_utf16be & 
 
 void PdfEncodingDifference::ToArray( PdfArray & rArray )
 {
-    int nLastCode = -2;
+    long long nLastCode = -2;
 
     rArray.Clear();
 
@@ -2279,7 +2279,7 @@ void PdfEncodingDifference::ToArray( PdfArray & rArray )
         {
             nLastCode = (*it).nCode;
 
-            rArray.push_back( static_cast<long>(nLastCode) );
+            rArray.push_back( nLastCode );
             rArray.push_back( (*it).name );
         }
         else
@@ -2359,7 +2359,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDele
         const PdfArray & rDifferences = m_pObject->GetDictionary().GetKey( PdfName("Differences") )->GetArray();
         PdfArray::const_iterator it = rDifferences.begin();
 
-        int curCode = -1;
+        long long curCode = -1;
 
         while( it != rDifferences.end() ) 
         {
@@ -2367,7 +2367,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDele
                 curCode = (*it).GetNumber();
             else if( (*it).IsName() ) 
             {
-                m_differences.AddDifference( curCode, (*it).GetName() );
+                m_differences.AddDifference( static_cast<int>(curCode), (*it).GetName() );
                 ++curCode;
             }
             
@@ -2515,7 +2515,7 @@ PdfString PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedStr
     const PdfEncoding* pEncoding = GetBaseEncoding();
     
     PdfString str  = pEncoding->ConvertToUnicode( rEncodedString, pFont );
-    long      lLen = str.GetCharacterLength();
+    pdf_long      lLen = str.GetCharacterLength();
 
     pdf_utf16be* pszUtf16 = static_cast<pdf_utf16be*>(malloc(sizeof(pdf_utf16be)*lLen));
     if( !pszUtf16 )
@@ -2525,7 +2525,7 @@ PdfString PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedStr
 
     memcpy( pszUtf16, str.GetUnicode(), lLen * sizeof(pdf_utf16be) );
 
-    for( int i=0;i<lLen;i++ ) 
+    for( pdf_long i=0;i<lLen;i++ ) 
     {
         pdf_utf16be val = pszUtf16[i];
 #ifdef PODOFO_IS_LITTLE_ENDIAN
@@ -2550,7 +2550,7 @@ PdfString PdfDifferenceEncoding::ConvertToEncoding( const PdfString & rString,
     const PdfEncoding* pEncoding = GetBaseEncoding();
 
     pdf_utf16be* pszUtf16 = NULL;
-    long         lLen     = 0;
+    pdf_long         lLen     = 0;
 
     if( rString.IsUnicode() )
     {

@@ -291,6 +291,9 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_UnsupportedImageFormat:    /**< This image format is not supported by PoDoFO. */
             pszMsg = "ePdfError_UnsupportedImageFormat";
             break;
+        case ePdfError_CannotConvertColor:       /**< This color format cannot be converted. */
+            pszMsg = "ePdfError_CannotConvertColor";
+            break;
         case ePdfError_NotImplemented:
             pszMsg = "ePdfError_NotImplemented";
             break;
@@ -406,6 +409,9 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
             break;
         case ePdfError_UnsupportedImageFormat:
             pszMsg = "This image format is not supported by PoDoFO.";
+            break;
+        case ePdfError_CannotConvertColor:
+            pszMsg = "This color format cannot be converted.";
             break;
         case ePdfError_NotImplemented:
             pszMsg = "This feature is currently not implemented.";

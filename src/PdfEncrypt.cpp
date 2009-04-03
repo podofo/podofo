@@ -81,10 +81,10 @@ public:
      *  \param pBuffer the input/output buffer. Data is read from this buffer and also stored here
      *  \param lLen    the size of the buffer 
      */
-    long Encrypt( char* pBuffer, long lLen )
+    pdf_long Encrypt( char* pBuffer, pdf_long lLen )
     {
         unsigned char k;
-        int t, i;
+        pdf_long t, i;
 
         // Do not encode data with no length
         if( !lLen )
@@ -97,7 +97,7 @@ public:
             m_b = (m_b + t) % 256;
 
             m_rc4[m_a] = m_rc4[m_b];
-            m_rc4[m_b] = t;
+            m_rc4[m_b] = static_cast<unsigned char>(t);
 
             k = m_rc4[(m_rc4[m_a] + m_rc4[m_b]) % 256];
             pBuffer[i] = pBuffer[i] ^ k;
@@ -133,7 +133,7 @@ public:
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer 
      */
-    virtual long Write( const char* pBuffer, long lLen )
+    virtual pdf_long Write( const char* pBuffer, pdf_long lLen )
     {
         // Do not encode data with no length
         if( !lLen )
@@ -194,7 +194,7 @@ public:
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    virtual long Read( char* pBuffer, long lLen )
+    virtual pdf_long Read( char* pBuffer, pdf_long lLen )
     {
         // Do not encode data with no length
         if( !lLen )
@@ -554,7 +554,7 @@ PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
     }
         
     long lV;
-    long lLength;
+    long long lLength;
     int rValue;
     int pValue;
     PdfString oValue;
@@ -563,10 +563,10 @@ PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
     try {
         PdfString sTmp;
         
-        lV           = pObject->GetDictionary().GetKey( PdfName("V") )->GetNumber();
-        rValue       = pObject->GetDictionary().GetKey( PdfName("R") )->GetNumber();
+        lV           = static_cast<long>(pObject->GetDictionary().GetKey( PdfName("V") )->GetNumber());
+        rValue       = static_cast<int>(pObject->GetDictionary().GetKey( PdfName("R") )->GetNumber());
 
-        pValue       = pObject->GetDictionary().GetKey( PdfName("P") )->GetNumber();
+        pValue       = static_cast<int>(pObject->GetDictionary().GetKey( PdfName("P") )->GetNumber());
         oValue       = pObject->GetDictionary().GetKey( PdfName("O") )->GetString();
              
         uValue       = pObject->GetDictionary().GetKey( PdfName("U") )->GetString();
@@ -585,7 +585,8 @@ PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
     }
     else if( lV == 2L && rValue == 3L ) 
     {
-        pdfEncrypt = new PdfEncryptRC4(oValue, uValue, pValue, rValue, ePdfEncryptAlgorithm_RC4V2, lLength);
+			// [Alexey] - lLength is long long. Please make changes in encryption algorithms
+        pdfEncrypt = new PdfEncryptRC4(oValue, uValue, pValue, rValue, ePdfEncryptAlgorithm_RC4V2, static_cast<int>(lLength));
     }
     else if( lV == 4L && rValue == 4L ) 
     {
@@ -653,12 +654,12 @@ const PdfEncrypt & PdfEncrypt::operator=( const PdfEncrypt & rhs )
 void
 PdfEncrypt::PadPassword(const std::string& password, unsigned char pswd[32])
 {
-  int m = password.length();
+  size_t m = password.length();
 
   if (m > 32) m = 32;
 
-  int j;
-  int p = 0;
+  size_t j;
+  size_t p = 0;
   for (j = 0; j < m; j++)
   {
       pswd[p++] = static_cast<unsigned char>( password[j] );
@@ -823,7 +824,7 @@ PdfEncrypt::ComputeEncryptionKey(const std::string& documentId,
   ext[3] = static_cast<unsigned char> ((pValue >> 24) & 0xff);
   MD5Update(&ctx, ext, 4);
 
-  size_t docIdLength = documentId.length();
+  unsigned int docIdLength = static_cast<unsigned int>(documentId.length());
   unsigned char* docId = NULL;
   if (docIdLength > 0)
   {
@@ -904,7 +905,7 @@ PdfEncrypt::CheckKey(unsigned char key1[32], unsigned char key2[32])
 }
 
 void
-PdfEncrypt::Encrypt(std::string& str, int inputLen) const
+PdfEncrypt::Encrypt(std::string& str, pdf_long inputLen) const
 {
   size_t len = str.length();
   unsigned char* data = new unsigned char[len];
@@ -959,7 +960,7 @@ void PdfEncrypt::CreateObjKey( unsigned char objkey[16], int* pnKeyLen ) const
 
 void
 PdfEncrypt::RC4(unsigned char* key, int keylen,
-                unsigned char* textin, int textlen,
+                unsigned char* textin, pdf_long textlen,
                 unsigned char* textout)
 {
   int i;
@@ -1015,16 +1016,17 @@ PdfEncrypt::GetMD5Binary(const unsigned char* data, int length, unsigned char* d
 
 void PdfEncrypt::GenerateInitialVector(unsigned char iv[16])
 {
-    GetMD5Binary(reinterpret_cast<const unsigned char*>(m_documentId.c_str()), m_documentId.length(), iv);
+    GetMD5Binary(reinterpret_cast<const unsigned char*>(m_documentId.c_str()), 
+                 static_cast<unsigned int>(m_documentId.length()), iv);
 }
 
-int
-PdfEncrypt::CalculateStreamLength(int length) const
+pdf_long
+PdfEncrypt::CalculateStreamLength(pdf_long length) const
 {
 	return length;
 }
 
-int PdfEncrypt::CalculateStreamOffset() const
+pdf_long PdfEncrypt::CalculateStreamOffset() const
 {
 	return 0;
 }
@@ -1039,7 +1041,7 @@ PdfString PdfEncrypt::GetMD5String( const unsigned char* pBuffer, int nLength )
 }
 
 void
-PdfEncryptAES::Encrypt(unsigned char* str, int len) const
+PdfEncryptAES::Encrypt(unsigned char* str, pdf_long len) const
 {
   unsigned char objkey[MD5_HASHBYTES];
   int keylen;
@@ -1091,10 +1093,10 @@ PdfEncryptAES::~PdfEncryptAES()
 	delete m_aes;   
 }
 
-int
-PdfEncryptAES::CalculateStreamLength(int length) const
+pdf_long
+PdfEncryptAES::CalculateStreamLength(pdf_long length) const
 {
-  int realLength = length;
+  pdf_long realLength = length;
 //  realLength = (length % 0x7ffffff0) + 32;
   realLength = ((length + 15) & ~15) + 16;
   if (length % 16 == 0)
@@ -1107,13 +1109,13 @@ PdfEncryptAES::CalculateStreamLength(int length) const
 
 void
 PdfEncryptAES::AES(unsigned char* key, int,
-                unsigned char* textin, int textlen,
+                unsigned char* textin, pdf_long textlen,
                 unsigned char* textout)
 {
   GenerateInitialVector(textout);
   m_aes->init( PdfRijndael::CBC, PdfRijndael::Encrypt, key, PdfRijndael::Key16Bytes, textout);
-  int offset = CalculateStreamOffset();
-  int len = m_aes->padEncrypt(&textin[offset], textlen, &textout[offset]);
+  pdf_long offset = CalculateStreamOffset();
+  pdf_long len = m_aes->padEncrypt(&textin[offset], textlen, &textout[offset]);
   
   // It is a good idea to check the error code
   if (len < 0)
@@ -1122,7 +1124,7 @@ PdfEncryptAES::AES(unsigned char* key, int,
   }
 }
 
-int
+pdf_long
 PdfEncryptAES::CalculateStreamOffset() const
 { 
   return 16;
@@ -1144,14 +1146,14 @@ void PdfEncryptAES::CreateEncryptionDictionary( PdfDictionary & rDictionary ) co
 {
     rDictionary.AddKey( PdfName("Filter"), PdfName("Standard") );
    
-    rDictionary.AddKey( PdfName("V"), 4L );
-    rDictionary.AddKey( PdfName("R"), 4L );
-    rDictionary.AddKey( PdfName("Length"), 128L );
+    rDictionary.AddKey( PdfName("V"), 4LL );
+    rDictionary.AddKey( PdfName("R"), 4LL );
+    rDictionary.AddKey( PdfName("Length"), 128LL );
 
     PdfDictionary cf;
     PdfDictionary stdCf;
     stdCf.AddKey( PdfName("CFM"), PdfName("AESV2") );
-    stdCf.AddKey( PdfName("Length"), 16L );
+    stdCf.AddKey( PdfName("Length"), 16LL );
     stdCf.AddKey( PdfName("AuthEvent"), PdfName("DocOpen") );
     cf.AddKey( PdfName("StdCF"), stdCf );
 
@@ -1161,7 +1163,7 @@ void PdfEncryptAES::CreateEncryptionDictionary( PdfDictionary & rDictionary ) co
 
     rDictionary.AddKey( PdfName("O"), PdfString( reinterpret_cast<const char*>(this->GetOValue()), 32, true ) );
     rDictionary.AddKey( PdfName("U"), PdfString( reinterpret_cast<const char*>(this->GetUValue()), 32, true ) );
-    rDictionary.AddKey( PdfName("P"), PdfVariant( static_cast<long>(this->GetPValue()) ) );
+    rDictionary.AddKey( PdfName("P"), PdfVariant( static_cast<long long>(this->GetPValue()) ) );
 }
 
 
@@ -1178,7 +1180,7 @@ PdfOutputStream* PdfEncryptAES::CreateEncryptionOutputStream( PdfOutputStream* )
 }
 
 void
-PdfEncryptRC4::Encrypt(unsigned char* str, int len) const
+PdfEncryptRC4::Encrypt(unsigned char* str, pdf_long len) const
 {
   unsigned char objkey[MD5_HASHBYTES];
   int keylen;
@@ -1263,13 +1265,13 @@ void PdfEncryptRC4::CreateEncryptionDictionary( PdfDictionary & rDictionary ) co
     switch( m_eAlgorithm ) 
     {        
         case ePdfEncryptAlgorithm_RC4V1:
-            rDictionary.AddKey( PdfName("V"), 1L );
-            rDictionary.AddKey( PdfName("R"), 2L );
+            rDictionary.AddKey( PdfName("V"), 1LL );
+            rDictionary.AddKey( PdfName("R"), 2LL );
             break;
         case ePdfEncryptAlgorithm_RC4V2:
-            rDictionary.AddKey( PdfName("V"), 2L );
-            rDictionary.AddKey( PdfName("R"), 3L );
-            rDictionary.AddKey( PdfName("Length"), PdfVariant( static_cast<long>(m_eKeyLength) ) );
+            rDictionary.AddKey( PdfName("V"), 2LL );
+            rDictionary.AddKey( PdfName("R"), 3LL );
+            rDictionary.AddKey( PdfName("Length"), PdfVariant( static_cast<long long>(m_eKeyLength) ) );
             break;        
 	default:
 	case ePdfEncryptAlgorithm_AESV2:
@@ -1278,7 +1280,7 @@ void PdfEncryptRC4::CreateEncryptionDictionary( PdfDictionary & rDictionary ) co
 
     rDictionary.AddKey( PdfName("O"), PdfString( reinterpret_cast<const char*>(this->GetOValue()), 32, true ) );
     rDictionary.AddKey( PdfName("U"), PdfString( reinterpret_cast<const char*>(this->GetUValue()), 32, true ) );
-    rDictionary.AddKey( PdfName("P"), PdfVariant( static_cast<long>(this->GetPValue()) ) );
+    rDictionary.AddKey( PdfName("P"), PdfVariant( static_cast<long long>(this->GetPValue()) ) );
 }
 
 

@@ -53,7 +53,8 @@ void PdfAcroForm::Init( )
     // Add default appearance: black text, 12pt times 
     // -> only if we do not have a DA key yet
 
-    m_pObject->GetDictionary().AddKey( PdfName("NeedAppearances"), true );
+    // Peter Petrov 27 April 2008
+    //m_pObject->GetDictionary().AddKey( PdfName("NeedAppearances"), PdfVariant(true) );
 
     if( !m_pObject->GetDictionary().HasKey("DA") )
     {

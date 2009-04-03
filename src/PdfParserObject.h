@@ -47,7 +47,7 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
      *                 if lOffset = -1, the object will be read from the current 
      *                 position in the file.
      */
-    PdfParserObject( PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer, long lOffset = -1 );
+    PdfParserObject( PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer, pdf_long lOffset = -1 );
 
     /** Parse the object data for an internal object.
      *  You have to call ParseDictionaryKeys as next function call.
@@ -166,10 +166,10 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
     // of operation.
     bool m_bLoadOnDemand;
 
-    long m_lOffset;
+    pdf_long m_lOffset;
 
     bool m_bStream;
-    long m_lStreamOffset;
+    pdf_long m_lStreamOffset;
 };
 
 // -----------------------------------------------------

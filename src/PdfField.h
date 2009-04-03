@@ -323,6 +323,10 @@ class PODOFO_API PdfField {
 
     inline void SetPageVisibleAction( const PdfAction & rAction );
     inline void SetPageInvisibleAction( const PdfAction & rAction );
+
+    /* Peter Petrov 15 October 2008 */
+    inline void SetKeystrokeAction( const PdfAction & rAction );
+    inline void SetValidateAction( const PdfAction & rAction );
     
     /** 
      * \returns the type of this field
@@ -346,6 +350,11 @@ class PODOFO_API PdfField {
 
  private:
     EPdfField  m_eField;
+
+    // Peter Petrov 27 April 2008
+ public:
+     inline PdfAnnotation* GetWidgetAnnotation() const;
+     inline PdfObject* GetFieldObject() const;
 };
 
 // -----------------------------------------------------
@@ -363,8 +372,8 @@ inline const PdfField & PdfField::operator=( const PdfField & rhs )
     m_eField  = rhs.m_eField;
 
     return *this;
-}
-*/
+}*/
+
 
 // -----------------------------------------------------
 // 
@@ -502,12 +511,48 @@ inline void PdfField::SetPageInvisibleAction( const PdfAction & rAction )
     this->AddAlternativeAction( PdfName("PI"), rAction );
 }
 
+/* Peter Petrov 15 October 2008 */
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfField::SetKeystrokeAction( const PdfAction & rAction )
+{
+    this->AddAlternativeAction( PdfName("K"), rAction);
+}
+
+/* Peter Petrov 15 October 2008 */
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfField::SetValidateAction( const PdfAction & rAction )
+{
+    this->AddAlternativeAction( PdfName("V"), rAction);
+}
+
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
 inline EPdfField PdfField::GetType() const
 {
     return m_eField;
+}
+
+// Peter Petrov 27 April 2008
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfAnnotation* PdfField::GetWidgetAnnotation() const
+{
+    return m_pWidget;
+}
+
+// Peter Petrov 27 April 2008
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfObject* PdfField::GetFieldObject() const
+{
+    return m_pObject;
 }
 
 class PODOFO_API PdfButton : public PdfField {
@@ -776,13 +821,13 @@ class PODOFO_API PdfTextField : public PdfField {
     /** Sets the max length in characters of this textfield
      *  \param nMaxLen the max length of this textfields in characters
      */
-    void SetMaxLen( int nMaxLen );
+    void SetMaxLen( pdf_long nMaxLen );
 
     /** 
      * \returns the max length of this textfield in characters or -1
      *          if no max length was specified
      */
-    int GetMaxLen() const;
+    pdf_long GetMaxLen() const;
 
     /**
      *  Create a multi-line text field that can contains multiple lines of text.
@@ -1084,7 +1129,7 @@ class PODOFO_API PdfListField : public PdfField {
     /**
      * \returns the number of items in this list
      */
-    int GetItemCount() const;
+    size_t GetItemCount() const;
 
     /** Sets the currently selected item
      *  \param nIndex index of the currently selected item

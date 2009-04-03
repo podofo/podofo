@@ -63,7 +63,7 @@ void PdfStream::GetFilteredCopy( PdfOutputStream* pStream ) const
         pStream->Write( const_cast<char*>(this->GetInternalBuffer()), this->GetInternalBufferSize() );
 }
 
-void PdfStream::GetFilteredCopy( char** ppBuffer, long* lLen ) const
+void PdfStream::GetFilteredCopy( char** ppBuffer, pdf_long* lLen ) const
 {
     TVecFilters            vecFilters    = PdfFilterFactory::CreateFilterList( m_pParent );
     PdfMemoryOutputStream  stream;
@@ -96,19 +96,19 @@ const PdfStream & PdfStream::operator=( const PdfStream & rhs )
 
     if( m_pParent ) 
         m_pParent->GetDictionary().AddKey( PdfName::KeyLength, 
-                                           PdfVariant( static_cast<long>(rhs.GetInternalBufferSize()) ) );
+                                           PdfVariant(static_cast<long long>(rhs.GetInternalBufferSize())));
 
     return (*this);
 }
 
-void PdfStream::Set( const char* szBuffer, long lLen, const TVecFilters & vecFilters )
+void PdfStream::Set( const char* szBuffer, pdf_long lLen, const TVecFilters & vecFilters )
 {
     this->BeginAppend( vecFilters );
     this->Append( szBuffer, lLen );
     this->EndAppend();
 }
 
-void PdfStream::Set( const char* szBuffer, long lLen )
+void PdfStream::Set( const char* szBuffer, pdf_long lLen )
 {
     this->BeginAppend();
     this->Append( szBuffer, lLen );
@@ -126,7 +126,7 @@ void PdfStream::Set( PdfInputStream* pStream )
 void PdfStream::Set( PdfInputStream* pStream, const TVecFilters & vecFilters )
 {
     const int BUFFER_SIZE = 4096;
-    long      lLen        = 0;
+    pdf_long      lLen        = 0;
     char      buffer[BUFFER_SIZE];
 
     this->BeginAppend( vecFilters );
@@ -139,11 +139,11 @@ void PdfStream::Set( PdfInputStream* pStream, const TVecFilters & vecFilters )
     this->EndAppend();
 }
 
-void PdfStream::SetRawData( PdfInputStream* pStream, long lLen )
+void PdfStream::SetRawData( PdfInputStream* pStream, pdf_long lLen )
 {
     const int   BUFFER_SIZE = 4096;
     char        buffer[BUFFER_SIZE];
-    long        lRead;
+    pdf_long        lRead;
     TVecFilters vecEmpty;
 
     // TODO: DS, give begin append a size hint so that it knows
@@ -179,7 +179,7 @@ void PdfStream::BeginAppend( bool bClearExisting )
 void PdfStream::BeginAppend( const TVecFilters & vecFilters, bool bClearExisting, bool bDeleteFilters )
 {
     char* pBuffer = NULL;
-    long  lLen;
+    pdf_long  lLen;
 
     PODOFO_RAISE_LOGIC_IF( m_bAppend, "BeginAppend() failed because EndAppend() was not yet called!" );
 

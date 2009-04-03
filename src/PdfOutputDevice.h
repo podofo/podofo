@@ -74,7 +74,7 @@ class PODOFO_API PdfOutputDevice {
      *  \param pBuffer a buffer in memory
      *  \param lLen the length of the buffer in memory
      */
-    PdfOutputDevice( char* pBuffer, long lLen );
+    PdfOutputDevice( char* pBuffer, size_t lLen );
 
     /** Construct a new PdfOutputDevice that writes all data to a std::ostream.
      *
@@ -101,7 +101,7 @@ class PODOFO_API PdfOutputDevice {
      *  
      *  \see Init
      */
-    virtual inline unsigned long GetLength() const;
+    virtual inline size_t GetLength() const;
 
     /** Write to the PdfOutputDevice. Usage is as the usage of printf.
      * 
@@ -124,7 +124,7 @@ class PODOFO_API PdfOutputDevice {
      * 
      *  \see Print
      */
-    virtual void Write( const char* pBuffer, long lLen );
+    virtual void Write( const char* pBuffer, size_t lLen );
 
     /** Seek the device to the position offset from the begining
      *  \param offset from the beginning of the file
@@ -134,7 +134,7 @@ class PODOFO_API PdfOutputDevice {
     /** Get the current offset from the beginning of the file.
      *  \return the offset form the beginning of the file.
      */
-    virtual inline unsigned long Tell() const;
+    virtual inline size_t Tell() const;
 
     /** Flush the output files buffer to disk if this devices
      *  operates on a disk.
@@ -147,23 +147,23 @@ class PODOFO_API PdfOutputDevice {
     void Init();
 
  protected:
-    unsigned long        m_ulLength;
+    size_t        m_ulLength;
 
  private:
     FILE*                m_hFile;
     char*                m_pBuffer;
-    unsigned long        m_lBufferLen;
+    size_t        m_lBufferLen;
 
     std::ostream*        m_pStream;
     PdfRefCountedBuffer* m_pRefCountedBuffer;
-    unsigned long        m_ulPosition;
+    size_t        m_ulPosition;
 
 };
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned long PdfOutputDevice::GetLength() const
+size_t PdfOutputDevice::GetLength() const
 {
     return m_ulLength;
 }
@@ -171,7 +171,7 @@ unsigned long PdfOutputDevice::GetLength() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned long PdfOutputDevice::Tell() const
+size_t PdfOutputDevice::Tell() const
 {
     return m_ulPosition;
 }

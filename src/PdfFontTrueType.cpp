@@ -47,7 +47,9 @@ PdfFontTrueType::PdfFontTrueType( PdfFontMetrics* pMetrics, const PdfEncoding* c
 void PdfFontTrueType::EmbedFont( PdfObject* pDescriptor )
 {
     PdfObject* pContents;
-    long       lSize = 0;
+    pdf_long       lSize = 0;
+    
+    m_bWasEmbedded = true;    
         
     pContents = m_pObject->GetOwner()->CreateObject();
     if( !pContents )
@@ -75,7 +77,7 @@ void PdfFontTrueType::EmbedFont( PdfObject* pDescriptor )
         lSize = stream.GetFileLength();
     }
         
-    pContents->GetDictionary().AddKey( "Length1", PdfVariant( lSize ) );
+    pContents->GetDictionary().AddKey( "Length1", PdfVariant( (long long)lSize ) );
 }
 
 #if 0

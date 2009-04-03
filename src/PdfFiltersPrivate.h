@@ -90,7 +90,7 @@ class PdfHexFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    virtual void EncodeBlockImpl( const char* pBuffer, long lLen );
+    virtual void EncodeBlockImpl( const char* pBuffer, pdf_long lLen );
 
     /** Check wether the decoding is implemented for this filter.
      * 
@@ -124,7 +124,7 @@ class PdfHexFilter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    virtual void DecodeBlockImpl( const char* pBuffer, long lLen );
+    virtual void DecodeBlockImpl( const char* pBuffer, pdf_long lLen );
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *
@@ -205,7 +205,7 @@ class PdfAscii85Filter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    virtual void EncodeBlockImpl( const char* pBuffer, long lLen );
+    virtual void EncodeBlockImpl( const char* pBuffer, pdf_long lLen );
 
     /**
      *  Finish encoding of data.
@@ -247,7 +247,7 @@ class PdfAscii85Filter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    virtual void DecodeBlockImpl( const char* pBuffer, long lLen );
+    virtual void DecodeBlockImpl( const char* pBuffer, pdf_long lLen );
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *
@@ -333,7 +333,7 @@ class PdfFlateFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    virtual void EncodeBlockImpl( const char* pBuffer, long lLen );
+    virtual void EncodeBlockImpl( const char* pBuffer, pdf_long lLen );
 
     /**
      *  Finish encoding of data.
@@ -378,7 +378,7 @@ class PdfFlateFilter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    virtual void DecodeBlockImpl( const char* pBuffer, long lLen );
+    virtual void DecodeBlockImpl( const char* pBuffer, pdf_long lLen );
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *
@@ -397,7 +397,7 @@ class PdfFlateFilter : public PdfFilter {
     inline virtual EPdfFilter GetType() const;
 
  private:
-    void EncodeBlockInternal( const char* pBuffer, long lLen, int nMode );
+    void EncodeBlockInternal( const char* pBuffer, pdf_long lLen, int nMode );
 
  private:
     unsigned char        m_buffer[PODOFO_FILTER_INTERNAL_BUFFER_SIZE];
@@ -459,7 +459,7 @@ class PdfRLEFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    virtual void EncodeBlockImpl( const char* pBuffer, long lLen );
+    virtual void EncodeBlockImpl( const char* pBuffer, pdf_long lLen );
 
     /**
      *  Finish encoding of data.
@@ -501,7 +501,7 @@ class PdfRLEFilter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    virtual void DecodeBlockImpl( const char* pBuffer, long lLen );
+    virtual void DecodeBlockImpl( const char* pBuffer, pdf_long lLen );
 
     /** GetType of this filter.
      *  \returns the GetType of this filter
@@ -580,7 +580,7 @@ class PdfLZWFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    virtual void EncodeBlockImpl( const char* pBuffer, long lLen );
+    virtual void EncodeBlockImpl( const char* pBuffer, pdf_long lLen );
 
     /**
      *  Finish encoding of data.
@@ -622,7 +622,7 @@ class PdfLZWFilter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    virtual void DecodeBlockImpl( const char* pBuffer, long lLen );
+    virtual void DecodeBlockImpl( const char* pBuffer, pdf_long lLen );
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *
@@ -725,7 +725,7 @@ class PdfDCTFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    virtual void EncodeBlockImpl( const char* pBuffer, long lLen );
+    virtual void EncodeBlockImpl( const char* pBuffer, pdf_long lLen );
 
     /**
      *  Finish encoding of data.
@@ -767,7 +767,7 @@ class PdfDCTFilter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    virtual void DecodeBlockImpl( const char* pBuffer, long lLen );
+    virtual void DecodeBlockImpl( const char* pBuffer, pdf_long lLen );
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *
@@ -858,7 +858,7 @@ class PdfCCITTFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    virtual void EncodeBlockImpl( const char* pBuffer, long lLen );
+    virtual void EncodeBlockImpl( const char* pBuffer, pdf_long lLen );
 
     /**
      *  Finish encoding of data.
@@ -900,7 +900,7 @@ class PdfCCITTFilter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    virtual void DecodeBlockImpl( const char* pBuffer, long lLen );
+    virtual void DecodeBlockImpl( const char* pBuffer, pdf_long lLen );
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *

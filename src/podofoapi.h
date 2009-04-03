@@ -62,10 +62,16 @@
  *
  */
 
+// Peter Petrov 26 April 2008
+/* Automatically defined by CMake when building a shared library */
+#if defined (podofo_EXPORTS)
+    #define COMPILING_SHARED_PODOFO
+    #undef USING_SHARED_PODOFO
+#endif
+
 /* Automatically defined by CMake when building a shared library */
 #if defined(podofo_shared_EXPORTS)
     #define COMPILING_SHARED_PODOFO
-    #undef USING_SHARED_PODOFO
 #endif
 
 /* Sanity check - can't be both compiling and using shared podofo */
@@ -139,5 +145,12 @@
     #define PODOFO_PURE_FUNCTION
     #define PODOFO_NOTHROW          __declspec(nothrow)
 #endif
+
+// Peter Petrov 27 April 2008
+// Disable warnings
+#ifdef _WIN32
+#pragma warning(disable: 4251)
+#pragma warning(disable: 4309)
+#endif // _WIN32
 
 #endif // PODOFO_API_H

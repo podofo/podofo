@@ -49,29 +49,29 @@ void EncodingTest::testDifferences()
     PdfEncodingDifference difference;
 
     // Newly created encoding should be empty
-    CPPUNIT_ASSERT_EQUAL( difference.GetCount(), 0 );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int>(difference.GetCount()), 0 );
 
 
     // Adding 0 should work
     difference.AddDifference( 0, PdfName("A") );
-    CPPUNIT_ASSERT_EQUAL( difference.GetCount(), 1 );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int>(difference.GetCount()), 1 );
 
     // Adding 255 should work
     difference.AddDifference( 255, PdfName("B") );
-    CPPUNIT_ASSERT_EQUAL( difference.GetCount(), 2 );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int>(difference.GetCount()), 2 );
 
     // Adding out of range should throw exception
     CPPUNIT_ASSERT_THROW( difference.AddDifference( -1, PdfName("C") );, PdfError );
     CPPUNIT_ASSERT_THROW( difference.AddDifference( 256, PdfName("D") );, PdfError );
 
-    CPPUNIT_ASSERT_EQUAL( difference.GetCount(), 2 );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int>(difference.GetCount()), 2 );
 
     // Convert to array
     PdfArray data;
     PdfArray expected;
-    expected.push_back( 0L );
+    expected.push_back( 0LL );
     expected.push_back( PdfName("A") );
-    expected.push_back( 255L );
+    expected.push_back( 255LL );
     expected.push_back( PdfName("B") );
 
     difference.ToArray( data );
@@ -83,9 +83,9 @@ void EncodingTest::testDifferences()
 
     // Test replace
     expected.Clear();
-    expected.push_back( 0L );
+    expected.push_back( 0LL );
     expected.push_back( PdfName("A") );
-    expected.push_back( 255L );
+    expected.push_back( 255LL );
     expected.push_back( PdfName("X") );
 
     difference.AddDifference( 255, PdfName("X") );
@@ -99,16 +99,16 @@ void EncodingTest::testDifferences()
 
     // Test more complicated array
     expected.Clear();
-    expected.push_back( 0L );
+    expected.push_back( 0LL );
     expected.push_back( PdfName("A") );
     expected.push_back( PdfName("B") );
     expected.push_back( PdfName("C") );
-    expected.push_back( 4L );
+    expected.push_back( 4LL );
     expected.push_back( PdfName("D") );
     expected.push_back( PdfName("E") );
-    expected.push_back( 9L );
+    expected.push_back( 9LL );
     expected.push_back( PdfName("F") );
-    expected.push_back( 255L );
+    expected.push_back( 255LL );
     expected.push_back( PdfName("X") );
 
     difference.AddDifference( 1, PdfName("B") );
@@ -186,13 +186,13 @@ void EncodingTest::testDifferencesObject()
     PdfObject* pDiff = pEncoding->GetDictionary().GetKey( PdfName("Differences" ) );
     PdfArray   expected;
 
-    expected.push_back( 1L );
+    expected.push_back( 1LL );
     expected.push_back( PdfName("B") );
     expected.push_back( PdfName("C") );
-    expected.push_back( 4L );
+    expected.push_back( 4LL );
     expected.push_back( PdfName("D") );
     expected.push_back( PdfName("E") );
-    expected.push_back( 9L );
+    expected.push_back( 9LL );
     expected.push_back( PdfName("F") );
 
     const PdfArray & data = pDiff->GetArray();

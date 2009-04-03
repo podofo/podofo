@@ -37,7 +37,7 @@ PdfFileOutputStream::PdfFileOutputStream( const char* pszFilename )
     }
 }
 
-long PdfFileOutputStream::Write( const char* pBuffer, long lLen )
+pdf_long PdfFileOutputStream::Write( const char* pBuffer, pdf_long lLen )
 {
     return fwrite( pBuffer, sizeof(char), lLen, m_hFile );
 }
@@ -48,7 +48,7 @@ void PdfFileOutputStream::Close()
         fclose( m_hFile );
 }
 
-PdfMemoryOutputStream::PdfMemoryOutputStream( long lInitial )
+PdfMemoryOutputStream::PdfMemoryOutputStream( pdf_long lInitial )
     : m_lLen( 0 ), m_bOwnBuffer( true )
 {
     m_lSize   = lInitial;
@@ -60,7 +60,7 @@ PdfMemoryOutputStream::PdfMemoryOutputStream( long lInitial )
     }
 }
 
-PdfMemoryOutputStream::PdfMemoryOutputStream( char* pBuffer, long lLen )
+PdfMemoryOutputStream::PdfMemoryOutputStream( char* pBuffer, pdf_long lLen )
     : m_lLen( 0 ), m_bOwnBuffer( false )
 {
     m_lSize   = lLen;
@@ -74,7 +74,7 @@ PdfMemoryOutputStream::~PdfMemoryOutputStream()
         free( m_pBuffer );
 }
 
-long PdfMemoryOutputStream::Write( const char* pBuffer, long lLen )
+pdf_long PdfMemoryOutputStream::Write( const char* pBuffer, pdf_long lLen )
 {
     if( !m_pBuffer ) 
     {
@@ -110,17 +110,17 @@ PdfDeviceOutputStream::PdfDeviceOutputStream( PdfOutputDevice* pDevice )
 {
 }
 
-long PdfDeviceOutputStream::Write( const char* pBuffer, long lLen )
+pdf_long PdfDeviceOutputStream::Write( const char* pBuffer, pdf_long lLen )
 {
-    long lTell = m_pDevice->Tell();
+    pdf_long lTell = m_pDevice->Tell();
     m_pDevice->Write( pBuffer, lLen );
     return m_pDevice->Tell() - lTell;
 }
 
 
-long PdfBufferOutputStream::Write( const char* pBuffer, long lLen )
+pdf_long PdfBufferOutputStream::Write( const char* pBuffer, pdf_long lLen )
 {
-    if( m_lLength + lLen >= m_pBuffer->GetSize() ) 
+    if( m_lLength + lLen >= static_cast<pdf_long>(m_pBuffer->GetSize()) ) 
         m_pBuffer->Resize( m_lLength + lLen );
 
     memcpy( m_pBuffer->GetBuffer() + m_lLength, pBuffer, lLen );

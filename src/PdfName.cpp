@@ -161,7 +161,7 @@ PdfName PdfName::FromEscaped( const string & sName )
     return PdfName(UnescapeName(sName.begin(), sName.length()));
 }
 
-PdfName PdfName::FromEscaped( const char * pszName, int ilen )
+PdfName PdfName::FromEscaped( const char * pszName, pdf_long ilen )
 {
     if( !ilen && pszName )
         ilen = strlen( pszName );

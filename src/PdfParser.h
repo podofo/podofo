@@ -318,6 +318,18 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      */
     void FindToken( const char* pszToken, const long lRange );
 
+    // Peter Petrov 23 December 2008
+    /** Searches backwards from the specified position of the file
+     *  and tries to find a token.
+     *  The current file is positioned right after the token.
+     * 
+     *  \param pszToken a token to find
+     *  \param lRange range in bytes in which to search
+     *                begining at the specified position of the file
+     *  \param searchEnd specifies position 
+     */
+    void FindToken2( const char* pszToken, const long lRange, size_t searchEnd );
+
     /** Reads the xref sections and the trailers of the file
      *  in the correct order in the memory
      *  and takes care for linearized pdf files.
@@ -343,7 +355,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *  and saves its byteoffset to pXRefOffset.
      *  \param pXRefOffset store the byte offset of the xref section into this variable.
      */
-    void ReadXRef( long* pXRefOffset );
+    void ReadXRef( pdf_long* pXRefOffset );
 
     /** Reads the xref table from a pdf file.
      *  If there is no xref table, ReadXRefStreamContents() is called.
@@ -353,7 +365,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *                        after the table, which allows reading
      *                        a following trailer dictionary.
      */
-    void ReadXRefContents( long lOffset, bool bPositionAtEnd = false );
+    void ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd = false );
 
     /** Read a xref subsection
      *  
@@ -364,16 +376,16 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *  \param nFirstObject object number of the first object
      *  \param nNumObjects  how many objects should be read from this section
      */
-    void ReadXRefSubsection( long & nFirstObject, long & nNumObjects );
+    void ReadXRefSubsection( long long & nFirstObject, long long & nNumObjects );
 
     /** Reads a xref stream contens object
      *  \param lOffset read the stream from this offset
      *  \param bReadOnlyTrailer only the trailer is skipped over, the contents
      *         of the xref stream are not parsed
      */
-    void ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer );
+    void ReadXRefStreamContents( pdf_long lOffset, bool bReadOnlyTrailer );
 
-    void ReadXRefStreamEntry( char* pBuffer, long lLen, long lW[W_ARRAY_SIZE], int nObjNo );
+    void ReadXRefStreamEntry( char* pBuffer, pdf_long lLen, long lW[W_ARRAY_SIZE], int nObjNo );
 
     /** Reads all objects from the pdf into memory
      *  from the offsets listed in m_vecOffsets.
@@ -443,7 +455,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
 
     struct TXRefEntry {
         inline TXRefEntry() : lOffset(0), lGeneration(0), cUsed('\x00'), bParsed(false) { }
-        long lOffset;
+        pdf_long lOffset;
         long lGeneration;
         char cUsed;
         bool bParsed;
@@ -457,10 +469,10 @@ class PODOFO_API PdfParser : public PdfTokenizer {
 
     bool          m_bLoadOnDemand;
 
-    long          m_nXRefOffset;
+    pdf_long      m_nXRefOffset;
     long          m_nFirstObject;
     long          m_nNumObjects;
-    long          m_nXRefLinearizedOffset;
+    pdf_long      m_nXRefLinearizedOffset;
     size_t        m_nFileSize;
 
     TVecOffsets m_offsets;
@@ -469,6 +481,8 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     PdfObject*    m_pTrailer;
     PdfObject*    m_pLinearization;
     PdfEncrypt*   m_pEncrypt;
+
+    bool          m_xrefSizeUnknown;
 
     std::set<int> m_setObjectStreams;
 };

@@ -66,7 +66,7 @@ class PdfFontType1 : public PdfFontSimple {
 
  private:
 
-    long FindInBuffer( const char* pszNeedle, const char* pszHaystack, long lLen ) const;
+    pdf_long FindInBuffer( const char* pszNeedle, const char* pszHaystack, pdf_long lLen ) const;
 
 };
 

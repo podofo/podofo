@@ -65,7 +65,7 @@ struct TLineElement
 	}
 
 	const char* pszStart;
-	long        lLen;
+	pdf_long        lLen;
 };
 
 static inline void CheckDoubleRange( double val, double min, double max )
@@ -598,7 +598,7 @@ void PdfPainter::DrawCircle( double dX, double dY, double dRadius )
 
 void PdfPainter::DrawText( double dX, double dY, const PdfString & sText )
 {
-    this->DrawText( dX, dY, sText, sText.GetCharacterLength() );
+    this->DrawText( dX, dY, sText, (long)sText.GetCharacterLength() );
 }
 
 void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long lStringLen )
@@ -609,6 +609,9 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
+
+    // Peter Petrov 25 September 2008
+    m_pFont->EmbedFont();
 
     PdfString sString = this->ExpandTabs( sText, lStringLen );
     this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->Reference(), PdfName("Font") );
@@ -648,7 +651,6 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
                                 dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition(),
                                 dX + m_pFont->GetFontMetrics()->StringWidth( sString.GetString() ),
                                 dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition() );
-        
         }
 
         this->Restore();
@@ -734,7 +736,7 @@ void PdfPainter::AddText( const PdfString & sText )
 	AddText( sText, sText.GetCharacterLength() );
 }
 
-void PdfPainter::AddText( const PdfString & sText, long lStringLen )
+void PdfPainter::AddText( const PdfString & sText, pdf_long lStringLen )
 {
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
@@ -774,6 +776,9 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
+
+    // Peter Petrov 25 September 2008
+    m_pFont->EmbedFont();
     
     if( dWidth <= 0.0 || dHeight <= 0.0 ) // nonsense arguments
         return;
@@ -869,6 +874,9 @@ void PdfPainter::DrawTextAligned( double dX, double dY, double dWidth, const Pdf
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
+
+    // Peter Petrov 25 Septemer 2008
+    m_pFont->EmbedFont();
 
     if( dWidth <= 0.0 ) // nonsense arguments
         return;
@@ -1133,6 +1141,102 @@ void PdfPainter::ArcTo( double inX, double inY, double inRadiusX, double inRadiu
     lcx = px;    lcy = py;    lrx = px;    lry = py;    // thanks Raph!
 }
 
+// Peter Petrov 5 January 2009 was delivered from libHaru
+bool PdfPainter::DrawArc(double dX, double dY, double dRadius, double dAngle1, double dAngle2)
+{
+    bool cont_flg = false;
+
+    bool ret = true;
+
+    if (dAngle1 >= dAngle2 || (dAngle2 - dAngle1) >= 360.0f)
+        return false;
+
+    while (dAngle1 < 0.0f || dAngle2 < 0.0f) {
+        dAngle1 = dAngle1 + 360.0f;
+        dAngle2 = dAngle2 + 360.0f;
+    }
+
+    for (;;) {
+        if (dAngle2 - dAngle1 <= 90.0f)
+            return InternalArc (dX, dY, dRadius, dAngle1, dAngle2, cont_flg);
+        else {
+            double tmp_ang = dAngle1 + 90.0f;
+
+            ret = InternalArc (dX, dY, dRadius, dAngle1, tmp_ang, cont_flg);
+            if (!ret)
+                return ret;
+
+            dAngle1 = tmp_ang;
+        }
+
+        if (dAngle1 >= dAngle2)
+            break;
+
+        cont_flg = true;
+    }
+
+    return true;
+}
+
+bool PdfPainter::InternalArc(
+              double    x,
+              double    y,
+              double    ray,
+              double    ang1,
+              double    ang2,
+              bool      cont_flg)
+{
+    bool ret = true;
+
+    double rx0, ry0, rx1, ry1, rx2, ry2, rx3, ry3;
+    double x0, y0, x1, y1, x2, y2, x3, y3;
+    double delta_angle = (90.0f - (double)(ang1 + ang2) / 2.0f) / 180.0f * PI;
+    double new_angle = (double)(ang2 - ang1) / 2.0f / 180.0f * PI;
+
+    rx0 = ray * cos (new_angle);
+    ry0 = ray * sin (new_angle);
+    rx2 = (ray * 4.0f - rx0) / 3.0f;
+    ry2 = ((ray * 1.0f - rx0) * (rx0 - ray * 3.0f)) / (3.0 * ry0);
+    rx1 = rx2;
+    ry1 = -ry2;
+    rx3 = rx0;
+    ry3 = -ry0;
+
+    x0 = rx0 * cos (delta_angle) - ry0 * sin (delta_angle) + x;
+    y0 = rx0 * sin (delta_angle) + ry0 * cos (delta_angle) + y;
+    x1 = rx1 * cos (delta_angle) - ry1 * sin (delta_angle) + x;
+    y1 = rx1 * sin (delta_angle) + ry1 * cos (delta_angle) + y;
+    x2 = rx2 * cos (delta_angle) - ry2 * sin (delta_angle) + x;
+    y2 = rx2 * sin (delta_angle) + ry2 * cos (delta_angle) + y;
+    x3 = rx3 * cos (delta_angle) - ry3 * sin (delta_angle) + x;
+    y3 = rx3 * sin (delta_angle) + ry3 * cos (delta_angle) + y;
+
+    if (!cont_flg) {
+        MoveTo(x0,y0);
+    }
+
+    CubicBezierTo( x1, 
+                   y1,
+                   x2, 
+                   y2, 
+                   x3, 
+                   y3 );
+
+    //attr->cur_pos.x = (HPDF_REAL)x3;
+    //attr->cur_pos.y = (HPDF_REAL)y3;
+    lcx = x3;
+    lcy = y3;
+
+    lpx = lpx2 = lpx3 = x3; 
+    lpy = lpy2 = lpy3 = y3;
+    lcx = x3;   
+    lcy = y3;    
+    lrx = x3;    
+    lry = y3;   
+
+    return ret;
+}
+
 void PdfPainter::Close()
 {
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
@@ -1352,9 +1456,9 @@ PdfString PdfPainter::ExpandTabs_pdf_utf16be( const pdf_utf16be* pszText, long l
 }
 #else
 template<typename C>
-PdfString PdfPainter::ExpandTabsPrivate( const C* pszText, long lStringLen, int nTabCnt, const C cTab, const C cSpace ) const
+PdfString PdfPainter::ExpandTabsPrivate( const C* pszText, pdf_long lStringLen, int nTabCnt, const C cTab, const C cSpace ) const
 {
-    long lLen    = lStringLen + nTabCnt*(m_nTabWidth-1) + sizeof(C);
+    pdf_long lLen    = lStringLen + nTabCnt*(m_nTabWidth-1) + sizeof(C);
     C*   pszTab  = static_cast<C*>(malloc( sizeof( C ) * lLen ));
 
     if( !pszTab )
@@ -1391,7 +1495,7 @@ PdfString PdfPainter::ExpandTabsPrivate( const C* pszText, long lStringLen, int 
 }
 #endif
 
-PdfString PdfPainter::ExpandTabs( const PdfString & rsString, long lStringLen ) const
+PdfString PdfPainter::ExpandTabs( const PdfString & rsString, pdf_long lStringLen ) const
 {
     int               nTabCnt  = 0;
     int               i;

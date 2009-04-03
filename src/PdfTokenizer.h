@@ -52,7 +52,7 @@ class PODOFO_API PdfTokenizer {
  public:
     PdfTokenizer();
 
-    PdfTokenizer( const char* pBuffer, long lLen );
+    PdfTokenizer( const char* pBuffer, size_t lLen );
     PdfTokenizer( const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer );
 
     virtual ~PdfTokenizer();
@@ -100,7 +100,7 @@ class PODOFO_API PdfTokenizer {
      *
      *  \returns a number read from the input device.
      */
-    long GetNextNumber();
+    pdf_long GetNextNumber();
 
     /** Read the next variant from the current file position
      *  ignoring all comments.

@@ -100,6 +100,7 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
         switch( eType ) 
         {
             case ePdfFontType_TrueType:
+                // Peter Petrov 30 April 2008 - added bEmbed parameter
                 pFont = new PdfFontTrueType( pMetrics, pEncoding, pParent, bEmbed );
                 break;
                 
@@ -120,6 +121,7 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
         switch( eType ) 
         {
             case ePdfFontType_TrueType:
+                // Peter Petrov 30 April 2008 - added bEmbed parameter
                 pFont = new PdfFontCID( pMetrics, pEncoding, pParent, bEmbed );
                 break;
             case ePdfFontType_Type1Pfa:
@@ -157,7 +159,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library* pLibrary, PdfObject* pObject )
 
         pDescriptor = pFontObject->GetIndirectKey( "FontDescriptor" );
         pMetrics    = new PdfFontMetrics( pLibrary, pDescriptor );
-        pFont       = new PdfFontCID( pMetrics, NULL, pObject );
+        pFont       = new PdfFontCID( pMetrics, NULL, pObject, false );
     }
     else if( rSubType == PdfName("Type1") ) 
     {

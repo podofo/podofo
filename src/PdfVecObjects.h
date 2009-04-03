@@ -203,7 +203,7 @@ class PODOFO_API PdfVecObjects {
      *  \param ref the object to be found
      *  \returns the found object or NULL if no object was found.
      */
-    unsigned int GetIndex( const PdfReference & ref ) const;
+    size_t GetIndex( const PdfReference & ref ) const;
 
     /** Remove the object with the given object and generation number from the list
      *  of objects.
@@ -361,7 +361,7 @@ class PODOFO_API PdfVecObjects {
      */
     inline TCIVecObjects end() const;
 
-    inline PdfObject*& operator[](int index);
+    inline PdfObject*& operator[](size_t index);
 
     /** Get the last object in the vector
      *  \returns the last object in the vector or NULL 
@@ -523,7 +523,7 @@ inline PdfObject* PdfVecObjects::GetBack()
     return m_vector.back(); 
 }
 
-inline PdfObject*& PdfVecObjects::operator[](int index) { return m_vector[index]; }
+inline PdfObject*& PdfVecObjects::operator[](size_t index) { return m_vector[index]; }
 
 //inline PdfObject const * & PdfVecObjects::operator[](int index) const { return m_vector[index]; }
 

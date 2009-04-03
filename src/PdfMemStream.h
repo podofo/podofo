@@ -80,7 +80,7 @@ class PODOFO_API PdfMemStream : public PdfStream {
      *  \param lLen    pointer to the buffer length
      *  \returns ErrOk on success.
      */
-    virtual void GetCopy( char** pBuffer, long* lLen ) const;
+    virtual void GetCopy( char** pBuffer, pdf_long* lLen ) const;
 
     /** Get a read-only handle to the current stream data.
      *  The data will not be filtered before being returned, so (eg) calling
@@ -101,7 +101,7 @@ class PODOFO_API PdfMemStream : public PdfStream {
      *  \returns the length of the internal buffer
      *  \see Get()
      */
-    inline unsigned long GetLength() const;
+    inline pdf_long GetLength() const;
 
     /** This function compresses any currently set stream
      *  using the FlateDecode(ZIP) algorithm. JPEG compressed streams
@@ -134,7 +134,7 @@ class PODOFO_API PdfMemStream : public PdfStream {
     /** Required for the GetFilteredCopy implementation
      *  \returns the size of the internal buffer
      */
-    inline virtual unsigned long GetInternalBufferSize() const;
+    inline virtual pdf_long GetInternalBufferSize() const;
 
     /** Begin appending data to this stream.
      *  Clears the current stream contents.
@@ -171,7 +171,7 @@ class PODOFO_API PdfMemStream : public PdfStream {
     PdfOutputStream*       m_pStream;
     PdfBufferOutputStream* m_pBufferStream;
 
-    long                   m_lLength;
+    pdf_long                   m_lLength;
 };
 
 // -----------------------------------------------------
@@ -185,7 +185,7 @@ const char* PdfMemStream::Get() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned long PdfMemStream::GetLength() const
+pdf_long PdfMemStream::GetLength() const
 {
     return m_lLength;
 }
@@ -201,7 +201,7 @@ const char* PdfMemStream::GetInternalBuffer() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned long PdfMemStream::GetInternalBufferSize() const
+pdf_long PdfMemStream::GetInternalBufferSize() const
 {
     return m_lLength;
 }

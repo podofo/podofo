@@ -132,7 +132,7 @@ PdfObject* PdfVecObjects::GetObject( const PdfReference & ref ) const
     return NULL;
 }
 
-unsigned int PdfVecObjects::GetIndex( const PdfReference & ref ) const
+size_t PdfVecObjects::GetIndex( const PdfReference & ref ) const
 {
     if( !m_bSorted )
         const_cast<PdfVecObjects*>(this)->Sort();
@@ -181,7 +181,7 @@ PdfObject* PdfVecObjects::RemoveObject( const TIVecObjects & it )
 
 PdfReference PdfVecObjects::GetNextFreeObject()
 {
-    PdfReference ref( m_nObjectCount, 0 );
+    PdfReference ref( static_cast<unsigned int>(m_nObjectCount), 0 );
 
     if( !m_lstFreeObjects.empty() )
     {
@@ -298,7 +298,7 @@ void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* )
 
 void PdfVecObjects::InsertOneReferenceIntoVector( const PdfObject* pObj, TVecReferencePointerList* pList )  
 {
-    int                        index;
+    size_t                        index;
 
     PODOFO_RAISE_LOGIC_IF( !m_bSorted, 
                            "PdfVecObjects must be sorted before calling PdfVecObjects::InsertOneReferenceIntoVector!" );

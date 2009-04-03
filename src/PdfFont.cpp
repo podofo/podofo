@@ -67,6 +67,9 @@ void PdfFont::InitVars()
     m_pMetrics->SetFontSize( 12.0 );
     m_pMetrics->SetFontScale( 100.0 );
     m_pMetrics->SetFontCharSpace( 0.0 );
+
+    // Peter Petrov 24 Spetember 2008
+    m_bWasEmbedded = false;
     
     m_bUnderlined = false;
     m_bStrikedOut = false;
@@ -116,7 +119,7 @@ void PdfFont::WriteStringToStream( const PdfString & rsString, PdfStream* pStrea
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "ConvertToEncoding must not return a unicode string" );
     }
 
-    long  lLen    = 0;
+    pdf_long  lLen    = 0;
     char* pBuffer = NULL;
 
     std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );    
@@ -127,6 +130,18 @@ void PdfFont::WriteStringToStream( const PdfString & rsString, PdfStream* pStrea
     pStream->Append( ">", 1 );
 
     free( pBuffer );
+}
+
+// Peter Petrov 5 January 2009
+void PdfFont::EmbedFont()
+{
+    if (!m_bWasEmbedded)
+    {
+        // Now we embed the font
+
+        // Now we set the flag
+        m_bWasEmbedded = true;
+    }
 }
 
 

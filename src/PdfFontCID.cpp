@@ -46,9 +46,10 @@ PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEnco
     this->Init( bEmbed );
 }
 
-PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject )
+PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject, bool bEmbed )
     : PdfFont( pMetrics, pEncoding, pObject )
 {
+    this->Init( bEmbed );
 }
 
 void PdfFontCID::Init( bool bEmbed )
@@ -102,7 +103,7 @@ void PdfFontCID::Init( bool bEmbed )
     // Setting the CIDSystemInfo paras:
     pCIDSystemInfo->GetDictionary().AddKey( "Registry", PdfString("Adobe") );
     pCIDSystemInfo->GetDictionary().AddKey( "Ordering", PdfString("Identity") );
-    pCIDSystemInfo->GetDictionary().AddKey( "Supplement", PdfVariant(0L) );
+    pCIDSystemInfo->GetDictionary().AddKey( "Supplement", PdfVariant(0LL) );
 
 
     // Setting the FontDescriptor paras:
@@ -110,23 +111,39 @@ void PdfFontCID::Init( bool bEmbed )
     m_pMetrics->GetBoundingBox( array );
 
     pDescriptor->GetDictionary().AddKey( "FontName", this->GetBaseFont() );
-    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( 32L ) ); // TODO: 0 ????
+    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( 32LL ) ); // TODO: 0 ????
     pDescriptor->GetDictionary().AddKey( "FontBBox", array );
-    pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<long>(m_pMetrics->GetItalicAngle()) ) );
+    pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<long long>(m_pMetrics->GetItalicAngle()) ) );
     pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetPdfAscent() );
     pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetPdfDescent() );
     pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetPdfAscent() ); // m_pMetrics->CapHeight() );
-    pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( 1L ) );               // m_pMetrics->StemV() );
+    pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( 1LL ) );               // m_pMetrics->StemV() );
 
+    // Peter Petrov 24 September 2008
+    m_pDescriptor = pDescriptor;
     
     if( bEmbed )
+    {
         this->EmbedFont( pDescriptor );
+        m_bWasEmbedded = true;
+    }
+}
+
+void PdfFontCID::EmbedFont()
+{
+    if (!m_bWasEmbedded)
+    {
+        this->EmbedFont( m_pDescriptor );
+        m_bWasEmbedded = true;
+    }
 }
 
 void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
 {
     PdfObject* pContents;
-    long       lSize = 0;
+    pdf_long       lSize = 0;
+    
+    m_bWasEmbedded = true;    
         
     pContents = m_pObject->GetOwner()->CreateObject();
     if( !pContents )
@@ -154,7 +171,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
         lSize = stream.GetFileLength();
     }
         
-    pContents->GetDictionary().AddKey( "Length1", PdfVariant( lSize ) );
+    pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<long long>(lSize) ) );
 }
 
 void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
@@ -202,8 +219,8 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
 
     i = nMin;
     double dCurWidth  = pdWidth[i];
-    long   lCurIndex  = i++;
-    long   lCurLength = 1L;
+    long long  lCurIndex  = i++;
+    long long  lCurLength = 1L;
 
     for( ;i<=nMax;i++ )
     {
@@ -214,7 +231,7 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
             if( lCurLength > 1 ) 
             {
                 array.push_back( lCurIndex );
-				long temp = lCurIndex + lCurLength - 1;
+				long long temp = lCurIndex + lCurLength - 1;
                 array.push_back( temp ); 
                 array.push_back( dCurWidth ); 
             }
@@ -320,12 +337,12 @@ void PdfFontCID::CreateCMap( PdfObject* pUnicode ) const
             range.str("");
         }
 
-        int iStart = (*it).srcCode;
-        int iEnd   = (*it).srcCode + (*it).vecDest.size() - 1;
+        pdf_long iStart = (*it).srcCode;
+        pdf_long iEnd   = (*it).srcCode + (*it).vecDest.size() - 1;
 
-        snprintf( buffer, BUFFER_LEN, "%04X", iStart );
+        snprintf( buffer, BUFFER_LEN, "%04X", static_cast<unsigned int>(iStart) );
         range << "<" << buffer << "> <";
-        snprintf( buffer, BUFFER_LEN, "%04X", iEnd );
+        snprintf( buffer, BUFFER_LEN, "%04X", static_cast<unsigned int>(iEnd) );
         range << buffer << "> [ ";
 
         std::vector<int>::const_iterator it2 = (*it).vecDest.begin();

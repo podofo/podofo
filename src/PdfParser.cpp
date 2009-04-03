@@ -263,7 +263,7 @@ void PdfParser::ReadDocumentStructure()
 
     if( m_pTrailer->IsDictionary() && m_pTrailer->GetDictionary().HasKey( PdfName::KeySize ) )
     {
-        m_nNumObjects = m_pTrailer->GetDictionary().GetKeyAsLong( PdfName::KeySize );
+        m_nNumObjects = static_cast<long>(m_pTrailer->GetDictionary().GetKeyAsLong( PdfName::KeySize ));
     }
     else
     {
@@ -295,7 +295,7 @@ void PdfParser::ReadDocumentStructure()
     if( m_pTrailer->GetDictionary().HasKey( "Prev" ) )
     {
         try {
-            ReadXRefContents( m_pTrailer->GetDictionary().GetKeyAsLong( "Prev", 0 ) ); 
+            ReadXRefContents( static_cast<pdf_long>(m_pTrailer->GetDictionary().GetKeyAsLong( "Prev", 0L )) ); 
         } catch( PdfError & e ) {
             e.AddToCallstack( __FILE__, __LINE__, "Unable to load /Prev xref entries." );
             throw e;
@@ -335,7 +335,7 @@ void PdfParser::HasLinearizationDict()
 
     m_device.Device()->Seek( 0 );
     // look for a linearization dictionary in the first 1024 bytes
-    if( m_device.Device()->Read( m_buffer.GetBuffer(), m_buffer.GetSize() ) != m_buffer.GetSize() )
+    if( static_cast<size_t>(m_device.Device()->Read( m_buffer.GetBuffer(), m_buffer.GetSize() )) != m_buffer.GetSize() )
     {
         // Clear the error state from the bad read
         m_device.Device()->Clear();
@@ -372,7 +372,7 @@ void PdfParser::HasLinearizationDict()
         return;
     }
     
-    long      lXRef      = -1;
+    long long      lXRef      = -1;
     lXRef = m_pLinearization->GetDictionary().GetKeyAsLong( "T", lXRef );
     if( lXRef == -1 )
     {
@@ -380,7 +380,7 @@ void PdfParser::HasLinearizationDict()
     }
 
     // avoid moving to a negative file position here
-    m_device.Device()->Seek( (lXRef-PDF_XREF_BUF > 0 ? lXRef-PDF_XREF_BUF : PDF_XREF_BUF) );
+    m_device.Device()->Seek( (static_cast<pdf_long>(lXRef-PDF_XREF_BUF) > 0 ? static_cast<pdf_long>(lXRef-PDF_XREF_BUF) : PDF_XREF_BUF) );
     m_nXRefLinearizedOffset = m_device.Device()->Tell();
 
     if( m_device.Device()->Read( m_buffer.GetBuffer(), PDF_XREF_BUF ) != PDF_XREF_BUF )
@@ -415,7 +415,7 @@ void PdfParser::HasLinearizationDict()
         }
 
         {
-            m_nXRefLinearizedOffset = lXRef;
+            m_nXRefLinearizedOffset = static_cast<pdf_long>(lXRef);
             /*
             eCode = ReadXRefStreamContents();
             i     = 0;
@@ -470,7 +470,7 @@ void PdfParser::ReadNextTrailer()
         if( trailer.GetDictionary().HasKey( "Prev" ) )
         {
             try {
-                ReadXRefContents( trailer.GetDictionary().GetKeyAsLong( "Prev", 0 ) );
+                ReadXRefContents( static_cast<pdf_long>(trailer.GetDictionary().GetKeyAsLong( "Prev", 0 )) );
             } catch( PdfError & e ) {
                 e.AddToCallstack( __FILE__, __LINE__, "Unable to load /Prev xref entries." );
                 throw e;
@@ -521,7 +521,7 @@ void PdfParser::ReadTrailer()
     }
 }
 
-void PdfParser::ReadXRef( long* pXRefOffset )
+void PdfParser::ReadXRef( pdf_long* pXRefOffset )
 {
     FindToken( "startxref", PDF_XREF_BUF );
 
@@ -533,12 +533,30 @@ void PdfParser::ReadXRef( long* pXRefOffset )
     *pXRefOffset = this->GetNextNumber();
 }
 
-void PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
+void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
 {
-    long        nFirstObject = 0;
-    long        nNumObjects  = 0;
+    long long nFirstObject = 0;
+    long long nNumObjects  = 0;
 
-    m_device.Device()->Seek( lOffset );
+    size_t curPosition = m_device.Device()->Tell();
+    m_device.Device()->Seek(0,std::ios_base::end);
+    std::streamoff fileSize = m_device.Device()->Tell();
+    m_device.Device()->Seek(curPosition,std::ios_base::beg);
+
+    if (lOffset > fileSize)
+    { // Invalid "startxref" Peter Petrov 23 December 2008
+        FindToken( "startxref", PDF_XREF_BUF );
+        lOffset = m_device.Device()->Tell();
+        // TODO: hard coded value "4"
+        m_buffer.Resize(PDF_XREF_BUF*4);
+        FindToken2("xref", PDF_XREF_BUF*4,lOffset);
+        m_buffer.Resize(PDF_XREF_BUF);
+        lOffset = m_device.Device()->Tell();
+        m_nXRefOffset = lOffset;
+    }else
+    {
+        m_device.Device()->Seek( lOffset );
+    }
     
     if( !this->IsNextToken( "xref" ) )
     {
@@ -561,7 +579,7 @@ void PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
             nNumObjects  = this->GetNextNumber();
 
 #ifdef PODOFO_VERBOSE_DEBUG
-            PdfError::DebugMessage("Reading numbers: %i %i\n", nFirstObject, nNumObjects );
+            PdfError::DebugMessage("Reading numbers: %lli %lli\n", nFirstObject, nNumObjects );
 #endif // PODOFO_VERBOSE_DEBUG
 
             if( bPositionAtEnd )
@@ -593,9 +611,9 @@ void PdfParser::ReadXRefContents( long lOffset, bool bPositionAtEnd )
     }
 }
 
-void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
+void PdfParser::ReadXRefSubsection( long long & nFirstObject, long long & nNumObjects )
 {
-    int         count        = 0;
+    int count = 0;
 
 #ifdef PODOFO_VERBOSE_DEBUG
     PdfError::DebugMessage("Reading XRef Section: %i with %i Objects.\n", nFirstObject, nNumObjects );
@@ -623,9 +641,15 @@ void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
         if( !m_offsets[objID].bParsed )
         {
             m_offsets[objID].bParsed = true;
-            sscanf( m_buffer.GetBuffer(), "%10ld %5ld %c \n", 
+#ifdef _WIN64
+            sscanf( m_buffer.GetBuffer(), "%10I64d %5ld %c \n", 
                     &(m_offsets[objID].lOffset), 
                     &(m_offsets[objID].lGeneration), &(m_offsets[objID].cUsed) );
+#else
+            sscanf( m_buffer.GetBuffer(), "%10lld %5ld %c \n", 
+                    &(m_offsets[objID].lOffset), 
+                    &(m_offsets[objID].lGeneration), &(m_offsets[objID].cUsed) );
+#endif
        }
 
         ++count;
@@ -639,12 +663,12 @@ void PdfParser::ReadXRefSubsection( long & nFirstObject, long & nNumObjects )
 
 }
 
-void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
+void PdfParser::ReadXRefStreamContents( pdf_long lOffset, bool bReadOnlyTrailer )
 {
     char*       pBuffer;
     char*       pStart;
-    long        lBufferLen;
-    long        lSize     = 0;
+    pdf_long        lBufferLen;
+    long long        lSize     = 0;
     PdfVariant  vWArray;
     PdfObject*  pObj;
 
@@ -698,10 +722,10 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
             PODOFO_RAISE_ERROR( ePdfError_NoXRef );
         }
 
-        nW[i] = vWArray.GetArray()[i].GetNumber();
+        nW[i] = static_cast<long>(vWArray.GetArray()[i].GetNumber());
     }
 
-    std::vector<int> vecIndeces;
+    std::vector<long long> vecIndeces;
     // get the first object number in this crossref stream.
     // it is not required to have an index key though.
     if( xrefObject.GetDictionary().HasKey( "Index" ) )
@@ -740,10 +764,10 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
 
     pStart        = pBuffer;
     int nCurIndex = 0;
-    while( nCurIndex < static_cast<int>(vecIndeces.size()) && pBuffer - pStart < lBufferLen )
+    while( nCurIndex < static_cast<pdf_long>(vecIndeces.size()) && pBuffer - pStart < lBufferLen )
     {
-        long nFirstObj = vecIndeces[nCurIndex];
-        long nCount    = vecIndeces[nCurIndex+1];
+        int nFirstObj = static_cast<int>(vecIndeces[nCurIndex]);
+        long long nCount    = vecIndeces[nCurIndex+1];
 
         PdfError::DebugMessage( "Reading Subrefsection: %li %li\n", nFirstObj, nCount );
 
@@ -759,12 +783,12 @@ void PdfParser::ReadXRefStreamContents( long lOffset, bool bReadOnlyTrailer )
 
     if( xrefObject.GetDictionary().HasKey("Prev") )
     {
-        lOffset = xrefObject.GetDictionary().GetKeyAsLong( "Prev", 0 );
+        lOffset = static_cast<pdf_long>(xrefObject.GetDictionary().GetKeyAsLong( "Prev", 0 ));
         ReadXRefStreamContents( lOffset, bReadOnlyTrailer );
     }
 }
 
-void PdfParser::ReadXRefStreamEntry( char* pBuffer, long, long lW[W_ARRAY_SIZE], int nObjNo )
+void PdfParser::ReadXRefStreamEntry( char* pBuffer, pdf_long, long lW[W_ARRAY_SIZE], int nObjNo )
 {
     int              i, z;
     unsigned long    nData[W_ARRAY_SIZE];
@@ -974,7 +998,7 @@ void PdfParser::ReadObjectsInternal()
         }
         else if( m_offsets[i].bParsed && m_offsets[i].cUsed == 'f' && m_offsets[i].lOffset )
         {
-            m_vecObjects->AddFreeObject( PdfReference( m_offsets[i].lOffset, 1 ) ); // TODO: do not hard code
+            m_vecObjects->AddFreeObject( PdfReference( static_cast<int>(m_offsets[i].lOffset), 1LL ) ); // TODO: do not hard code
         }
     }
 
@@ -991,7 +1015,8 @@ void PdfParser::ReadObjectsInternal()
 #if defined(PODOFO_VERBOSE_DEBUG)
             if (m_bLoadOnDemand) cerr << "Demand loading on, but can't demand-load found object stream." << endl;
 #endif
-            ReadObjectFromStream( m_offsets[i].lGeneration, m_offsets[i].lOffset );
+            ReadObjectFromStream( static_cast<int>(m_offsets[i].lGeneration), 
+                                  static_cast<int>(m_offsets[i].lOffset) );
         }
     }
 
@@ -1054,11 +1079,11 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int )
         PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, oss.str().c_str() );
     }
     
-    long lNum   = pStream->GetDictionary().GetKeyAsLong( "N", 0 );
-    long lFirst = pStream->GetDictionary().GetKeyAsLong( "First", 0 );
+    long long lNum   = pStream->GetDictionary().GetKeyAsLong( "N", 0 );
+    long long lFirst = pStream->GetDictionary().GetKeyAsLong( "First", 0 );
     
     char * pBuffer;
-    long lBufferLen;
+    pdf_long lBufferLen;
 
     pStream->GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
 
@@ -1072,15 +1097,15 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int )
 
     while( i < lNum )
     {
-        const long lObj          = tokenizer.GetNextNumber();
-        const long lOff          = tokenizer.GetNextNumber();
+        const long long lObj          = tokenizer.GetNextNumber();
+        const long long lOff          = tokenizer.GetNextNumber();
         const std::streamoff pos = device.Device()->Tell();
 
         // move to the position of the object in the stream
-        device.Device()->Seek( lFirst + lOff );
+				device.Device()->Seek( static_cast<std::streamoff>(lFirst + lOff) );
 
         tokenizer.GetNextVariant( var, m_pEncrypt );
-        m_vecObjects->push_back( new PdfObject( PdfReference( lObj, 0 ), var ) );
+        m_vecObjects->push_back( new PdfObject( PdfReference( static_cast<int>(lObj), 0LL ), var ) );
 
         // move back to the position inside of the table of contents
         device.Device()->Seek( pos );
@@ -1108,9 +1133,9 @@ void PdfParser::FindToken( const char* pszToken, const long lRange )
                 "Failed to seek to EOF when looking for xref");
     }
 
-    long           lXRefBuf  = PDF_MIN( nFileSize, lRange );
-    const int      nTokenLen = strlen( pszToken );
-    int            i;
+    pdf_long           lXRefBuf  = PDF_MIN( nFileSize, lRange );
+    size_t      nTokenLen = strlen( pszToken );
+    size_t            i;
 
     m_device.Device()->Seek( -lXRefBuf, std::ios_base::cur );
     if( m_device.Device()->Read( m_buffer.GetBuffer(), lXRefBuf ) != lXRefBuf && !m_device.Device()->Eof() )
@@ -1134,6 +1159,47 @@ void PdfParser::FindToken( const char* pszToken, const long lRange )
     }
 
     m_device.Device()->Seek( (lXRefBuf-i)*-1, std::ios_base::end );
+}
+
+// Peter Petrov 23 December 2008
+void PdfParser::FindToken2( const char* pszToken, const long lRange, size_t searchEnd )
+{
+    m_device.Device()->Seek( searchEnd, std::ios_base::beg );
+
+    std::streamoff nFileSize = m_device.Device()->Tell();
+    if (nFileSize == -1)
+    {
+        PODOFO_RAISE_ERROR_INFO(
+                ePdfError_NoXRef,
+                "Failed to seek to EOF when looking for xref");
+    }
+
+    pdf_long      lXRefBuf  = PDF_MIN( nFileSize, lRange );
+    size_t        nTokenLen = strlen( pszToken );
+    size_t        i;
+
+    m_device.Device()->Seek( -lXRefBuf, std::ios_base::cur );
+    if( m_device.Device()->Read( m_buffer.GetBuffer(), lXRefBuf ) != lXRefBuf && !m_device.Device()->Eof() )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
+    }
+
+    m_buffer.GetBuffer()[lXRefBuf] = '\0';
+
+    // search backwards in the buffer in case the buffer contains null bytes
+    // because it is right after a stream (can't use strstr for this reason)
+    for( i = lXRefBuf - nTokenLen; i >= 0; i-- )
+        if( strncmp( m_buffer.GetBuffer()+i, pszToken, nTokenLen ) == 0 )
+        {
+            break;
+        }
+
+    if( !i )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+    }
+
+    m_device.Device()->Seek( searchEnd + (lXRefBuf-i)*-1, std::ios_base::beg );
 }
 
 const PdfString & PdfParser::GetDocumentId() 

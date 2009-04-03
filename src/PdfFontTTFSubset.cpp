@@ -192,7 +192,7 @@ void PdfFontTTFSubset::InitTables()
         m_vTable.push_back(tbl);		
 
     }
-    m_numTables = m_vTable.size();
+    m_numTables = static_cast<unsigned short>(m_vTable.size());
 }
 
 void PdfFontTTFSubset::GetStartOfTTFOffsets()

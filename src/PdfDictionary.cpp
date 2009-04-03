@@ -161,7 +161,7 @@ PdfObject* PdfDictionary::GetKey( const PdfName & key )
     return NULL;
 }
 
-long PdfDictionary::GetKeyAsLong( const PdfName & key, long lDefault ) const
+long long PdfDictionary::GetKeyAsLong( const PdfName & key, long long lDefault ) const
 {
     const PdfObject* pObject = GetKey( key );
     

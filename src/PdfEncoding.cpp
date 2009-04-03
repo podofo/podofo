@@ -103,7 +103,7 @@ pdf_utf16be PdfSimpleEncoding::GetCharCode( int nIndex ) const
 PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* ) const
 {
     const pdf_utf16be* cpUnicodeTable = this->GetToUnicodeTable();
-    long               lLen           = rEncodedString.GetLength();
+    pdf_long               lLen           = rEncodedString.GetLength();
 
     if( !lLen )
         return PdfString("");
@@ -141,7 +141,7 @@ PdfString PdfSimpleEncoding::ConvertToEncoding( const PdfString & rString, const
         const_cast<PdfSimpleEncoding*>(this)->InitEncodingTable();
 
     PdfString sSrc = rString.ToUnicode(); // make sure the string is unicode and not PdfDocEncoding!
-    long      lLen = sSrc.GetCharacterLength();
+    pdf_long      lLen = sSrc.GetCharacterLength();
 
     if( !lLen )
         return PdfString("");

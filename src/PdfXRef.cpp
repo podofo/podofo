@@ -88,7 +88,7 @@ PdfXRef::~PdfXRef()
 
 }
 
-void PdfXRef::AddObject( const PdfReference & rRef, long lOffset, bool bUsed )
+void PdfXRef::AddObject( const PdfReference & rRef, pdf_long lOffset, bool bUsed )
 {
     TIVecXRefBlock     it = m_vecBlocks.begin();
     PdfXRef::TXRefItem item( rRef, lOffset );
@@ -127,8 +127,8 @@ void PdfXRef::Write( PdfOutputDevice* pDevice )
     PdfXRef::TCIVecReferences itFree;
     const PdfReference*       pNextFree  = NULL;
 
-    int nFirst       = 0;
-    int nCount       = 0;
+    unsigned int nFirst       = 0;
+    unsigned int nCount       = 0;
 
     MergeBlocks();
 
@@ -257,7 +257,7 @@ const PdfReference* PdfXRef::GetNextFreeObject( PdfXRef::TCIVecXRefBlock itBlock
 unsigned int PdfXRef::GetSize() const
 {
 
-    int                       nCount = 0;
+    unsigned int                       nCount = 0;
     PdfXRef::TCIVecXRefBlock  it     = m_vecBlocks.begin();
 
     while( it != m_vecBlocks.end() )
@@ -271,10 +271,10 @@ unsigned int PdfXRef::GetSize() const
         return 0;
 
     const PdfXRefBlock& lastBlock = m_vecBlocks.back();
-    int highObj  = lastBlock.items.size() ? lastBlock.items.back().reference.ObjectNumber() : 0;
-    int highFree = lastBlock.freeItems.size() ? lastBlock.freeItems.back().ObjectNumber() : 0;
+    unsigned int highObj  = lastBlock.items.size() ? lastBlock.items.back().reference.ObjectNumber() : 0;
+    unsigned int highFree = lastBlock.freeItems.size() ? lastBlock.freeItems.back().ObjectNumber() : 0;
 
-    int max      =  PDF_MAX( highObj, highFree );
+    unsigned int max      =  PDF_MAX( highObj, highFree );
 
     // From the PdfReference: /Size's value is 1 greater than the highes object number used in the file.
     return max+1;
@@ -325,7 +325,8 @@ void PdfXRef::WriteSubSection( PdfOutputDevice* pDevice, unsigned int nFirst, un
     pDevice->Print( "%u %u\n", nFirst, nCount );
 }
 
-void PdfXRef::WriteXRefEntry( PdfOutputDevice* pDevice, unsigned long lOffset, unsigned long lGeneration, char cMode, unsigned long ) 
+void PdfXRef::WriteXRefEntry( PdfOutputDevice* pDevice, size_t lOffset, 
+                              unsigned long lGeneration, char cMode, unsigned long ) 
 {
     pDevice->Print( "%0.10i %0.5i %c \n", lOffset, lGeneration, cMode );
 }

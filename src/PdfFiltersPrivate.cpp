@@ -75,11 +75,11 @@ class PdfPredictorDecoder {
 
 public:
     PdfPredictorDecoder( const PdfDictionary* pDecodeParms ) {
-        m_nPredictor   = pDecodeParms->GetKeyAsLong( "Predictor", 1L );
-        m_nColors      = pDecodeParms->GetKeyAsLong( "Colors", 1L );
-        m_nBPC         = pDecodeParms->GetKeyAsLong( "BitsPerComponent", 8L );
-        m_nColumns     = pDecodeParms->GetKeyAsLong( "Columns", 1L );
-        m_nEarlyChange = pDecodeParms->GetKeyAsLong( "EarlyChange", 1L );
+        m_nPredictor   = (int)pDecodeParms->GetKeyAsLong( "Predictor", 1L );
+        m_nColors      = (int)pDecodeParms->GetKeyAsLong( "Colors", 1L );
+        m_nBPC         = (int)pDecodeParms->GetKeyAsLong( "BitsPerComponent", 8L );
+        m_nColumns     = (int)pDecodeParms->GetKeyAsLong( "Columns", 1L );
+        m_nEarlyChange = (int)pDecodeParms->GetKeyAsLong( "EarlyChange", 1L );
 
         m_nCurPredictor = -1;
         m_nCurRowIndex  = 0;
@@ -99,7 +99,7 @@ public:
         free( m_pPrev );
     }
 
-    void Decode( const char* pBuffer, long lLen, PdfOutputStream* pStream ) 
+    void Decode( const char* pBuffer, pdf_long lLen, PdfOutputStream* pStream ) 
     {
         if( m_nPredictor == 1 )
         {
@@ -175,7 +175,7 @@ private:
 // Hex
 // -------------------------------------------------------
 
-void PdfHexFilter::EncodeBlockImpl( const char* pBuffer, long lLen )
+void PdfHexFilter::EncodeBlockImpl( const char* pBuffer, pdf_long lLen )
 {
     char data[2];
     while( lLen-- )
@@ -198,7 +198,7 @@ void PdfHexFilter::BeginDecodeImpl( const PdfDictionary* )
     m_bLow         = true;
 }
 
-void PdfHexFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
+void PdfHexFilter::DecodeBlockImpl( const char* pBuffer, pdf_long lLen )
 {
     char val;
 
@@ -281,7 +281,7 @@ void PdfAscii85Filter::BeginEncodeImpl()
     m_tuple = 0;
 }
 
-void PdfAscii85Filter::EncodeBlockImpl( const char* pBuffer, long lLen )
+void PdfAscii85Filter::EncodeBlockImpl( const char* pBuffer, pdf_long lLen )
 {
     unsigned int  c;
     const char*   z = "z";
@@ -326,7 +326,7 @@ void PdfAscii85Filter::BeginDecodeImpl( const PdfDictionary* )
     m_tuple = 0;
 }
 
-void PdfAscii85Filter::DecodeBlockImpl( const char* pBuffer, long lLen )
+void PdfAscii85Filter::DecodeBlockImpl( const char* pBuffer, pdf_long lLen )
 {
     bool foundEndMarker = false;
 
@@ -439,16 +439,16 @@ void PdfFlateFilter::BeginEncodeImpl()
     }
 }
 
-void PdfFlateFilter::EncodeBlockImpl( const char* pBuffer, long lLen )
+void PdfFlateFilter::EncodeBlockImpl( const char* pBuffer, pdf_long lLen )
 {
     this->EncodeBlockInternal( pBuffer, lLen, Z_NO_FLUSH );
 }
 
-void PdfFlateFilter::EncodeBlockInternal( const char* pBuffer, long lLen, int nMode )
+void PdfFlateFilter::EncodeBlockInternal( const char* pBuffer, pdf_long lLen, int nMode )
 {
     int nWrittenData = 0;
 
-    m_stream.avail_in = lLen;
+    m_stream.avail_in = (long)lLen;
     m_stream.next_in  = reinterpret_cast<Bytef*>(const_cast<char*>(pBuffer));
 
     do {
@@ -496,12 +496,12 @@ void PdfFlateFilter::BeginDecodeImpl( const PdfDictionary* pDecodeParms )
     }
 }
 
-void PdfFlateFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
+void PdfFlateFilter::DecodeBlockImpl( const char* pBuffer, pdf_long lLen )
 {
     int flateErr;
     int nWrittenData;
 
-    m_stream.avail_in = lLen;
+    m_stream.avail_in = (long)lLen;
     m_stream.next_in  = reinterpret_cast<Bytef*>(const_cast<char*>(pBuffer));
 
     do {
@@ -555,7 +555,7 @@ void PdfRLEFilter::BeginEncodeImpl()
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
-void PdfRLEFilter::EncodeBlockImpl( const char*, long )
+void PdfRLEFilter::EncodeBlockImpl( const char*, pdf_long )
 {
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
@@ -570,7 +570,7 @@ void PdfRLEFilter::BeginDecodeImpl( const PdfDictionary* )
     m_nCodeLen = 0;
 }
 
-void PdfRLEFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
+void PdfRLEFilter::DecodeBlockImpl( const char* pBuffer, pdf_long lLen )
 {
     while( lLen-- )
     {
@@ -623,7 +623,7 @@ void PdfLZWFilter::BeginEncodeImpl()
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
-void PdfLZWFilter::EncodeBlockImpl( const char*, long )
+void PdfLZWFilter::EncodeBlockImpl( const char*, pdf_long )
 {
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
@@ -646,7 +646,7 @@ void PdfLZWFilter::BeginDecodeImpl( const PdfDictionary* pDecodeParms )
     InitTable();
 }
 
-void PdfLZWFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
+void PdfLZWFilter::DecodeBlockImpl( const char* pBuffer, pdf_long lLen )
 {
     unsigned int       buffer_size = 0;
     const unsigned int buffer_max  = 24;
@@ -801,7 +801,7 @@ void PdfDCTFilter::BeginEncodeImpl()
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
-void PdfDCTFilter::EncodeBlockImpl( const char*, long )
+void PdfDCTFilter::EncodeBlockImpl( const char*, pdf_long )
 {
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
@@ -821,7 +821,7 @@ void PdfDCTFilter::BeginDecodeImpl( const PdfDictionary* )
     m_pDevice = new PdfOutputDevice( &m_buffer );
 }
 
-void PdfDCTFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
+void PdfDCTFilter::DecodeBlockImpl( const char* pBuffer, pdf_long lLen )
 {
     m_pDevice->Write( pBuffer, lLen );
 }
@@ -1109,7 +1109,7 @@ void PdfCCITTFilter::BeginEncodeImpl()
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
-void PdfCCITTFilter::EncodeBlockImpl( const char*, long )
+void PdfCCITTFilter::EncodeBlockImpl( const char*, pdf_long )
 {
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
@@ -1177,7 +1177,7 @@ void PdfCCITTFilter::BeginDecodeImpl( const PdfDictionary* pDict )
 
 }
 
-void PdfCCITTFilter::DecodeBlockImpl( const char* pBuffer, long lLen )
+void PdfCCITTFilter::DecodeBlockImpl( const char* pBuffer, pdf_long lLen )
 {
 
 }

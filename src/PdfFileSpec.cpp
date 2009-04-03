@@ -78,11 +78,11 @@ PdfFileSpec::PdfFileSpec( PdfObject* pObject )
 PdfString PdfFileSpec::CreateFileSpecification( const char* pszFilename ) const
 {
     std::ostringstream str;
-    int                nLen = strlen( pszFilename );
+    size_t                nLen = strlen( pszFilename );
 
     // Not sure if we really get a platform independent file specifier here.
     
-    for( int i=0;i<nLen;i++ ) 
+    for( size_t i=0;i<nLen;i++ ) 
     {
         if( pszFilename[i] == ':' || pszFilename[i] == '\\' ) 
             str.put( '/' );
@@ -100,7 +100,7 @@ void PdfFileSpec::EmbeddFile( PdfObject* pStream, const char* pszFilename ) cons
 
     // Add additional information about the embedded file to the stream
     PdfDictionary params;
-    params.AddKey( "Size", stream.GetFileLength() );
+    params.AddKey( "Size", static_cast<long long>(stream.GetFileLength()) );
     // TODO: CreationDate and ModDate
     pStream->GetDictionary().AddKey("Params", params );
 }

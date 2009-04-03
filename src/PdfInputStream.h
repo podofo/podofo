@@ -44,7 +44,7 @@ class PODOFO_API PdfInputStream {
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    virtual long Read( char* pBuffer, long lLen ) = 0;
+    virtual pdf_long Read( char* pBuffer, pdf_long lLen ) = 0;
 
 };
 
@@ -82,12 +82,12 @@ class PODOFO_API PdfFileInputStream : public PdfInputStream {
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    virtual long Read( char* pBuffer, long lLen );
+    virtual pdf_long Read( char* pBuffer, pdf_long lLen );
 
     /** Get the length of the file.
      *  \return the file length
      */
-    long GetFileLength();
+    pdf_long GetFileLength();
 
  private:
     FILE* m_hFile;
@@ -103,7 +103,7 @@ class PODOFO_API PdfMemoryInputStream : public PdfInputStream {
      *  \param pBuffer buffer to read from
      *  \param lBufferLen length of the buffer
      */
-    PdfMemoryInputStream( const char* pBuffer, long lBufferLen );
+    PdfMemoryInputStream( const char* pBuffer, pdf_long lBufferLen );
     ~PdfMemoryInputStream();
 
     /** Read data from the input stream
@@ -115,12 +115,12 @@ class PODOFO_API PdfMemoryInputStream : public PdfInputStream {
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    virtual long Read( char* pBuffer, long lLen );
+    virtual pdf_long Read( char* pBuffer, pdf_long lLen );
 
  private:
     const char* m_pBuffer;
     const char* m_pCur;
-    long        m_lBufferLen;
+    pdf_long        m_lBufferLen;
 };
 
 /** An input stream that reads data from an input device
@@ -145,7 +145,7 @@ class PODOFO_API PdfDeviceInputStream : public PdfInputStream {
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    virtual long Read( char* pBuffer, long lLen );
+    virtual pdf_long Read( char* pBuffer, pdf_long lLen );
 
  private:
     PdfInputDevice* m_pDevice;

@@ -91,10 +91,10 @@ void PdfMemStream::EndAppendImpl()
     }
 
     if( m_pParent )
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( m_lLength ) );
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant(static_cast<long long>(m_lLength) ) );
 }
 
-void PdfMemStream::GetCopy( char** pBuffer, long* lLen ) const
+void PdfMemStream::GetCopy( char** pBuffer, pdf_long* lLen ) const
 {
     if( !pBuffer || !lLen )
     {
@@ -183,7 +183,7 @@ void PdfMemStream::FlateCompress()
 
 void PdfMemStream::Uncompress()
 {
-    long         lLen;
+    pdf_long         lLen;
     char*        pBuffer = NULL;
     
     TVecFilters  vecEmpty;
@@ -214,7 +214,7 @@ void PdfMemStream::Uncompress()
 void PdfMemStream::FlateCompressStreamData()
 {
     char*            pBuffer;
-    long             lLen;
+    pdf_long             lLen;
 
     if( !m_lLength )
         return;
@@ -241,7 +241,7 @@ const PdfStream & PdfMemStream::operator=( const PdfStream & rhs )
 
     m_lLength = rhs.GetLength();
     if( m_pParent ) 
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( m_lLength ) );
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( static_cast<long long>(m_lLength) ) );
 
     return *this;
 }
@@ -252,11 +252,11 @@ void PdfMemStream::Write( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt )
     if( pEncrypt ) 
     {
         char* pBuffer;
-        long  lLen;
+        pdf_long  lLen;
         this->GetCopy( &pBuffer, &lLen );
 
-        int nOutputLen = pEncrypt->CalculateStreamLength(lLen);
-        int nOffset = pEncrypt->CalculateStreamOffset();
+        pdf_long nOutputLen = pEncrypt->CalculateStreamLength(lLen);
+        pdf_long nOffset = pEncrypt->CalculateStreamOffset();
 
         char *pOutputBuffer = new char[nOutputLen+1];
         memcpy(&pOutputBuffer[nOffset], pBuffer, lLen);

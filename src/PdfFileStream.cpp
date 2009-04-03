@@ -31,7 +31,7 @@ PdfFileStream::PdfFileStream( PdfObject* pParent, PdfOutputDevice* pDevice )
     : PdfStream( pParent ), m_pDevice( pDevice ), m_pStream( NULL ), m_pDeviceStream( NULL ),
       m_pEncryptStream( NULL ), m_lLenInitial( 0 ), m_lLength( 0 ), m_pCurEncrypt( NULL )
 {
-    m_pLength = pParent->GetOwner()->CreateObject( PdfVariant(0L) );
+    m_pLength = pParent->GetOwner()->CreateObject( PdfVariant(0LL) );
     m_pParent->GetDictionary().AddKey( PdfName::KeyLength, m_pLength->Reference() );
 }
 
@@ -101,10 +101,10 @@ void PdfFileStream::EndAppendImpl()
     }
 
     m_lLength = m_pDevice->GetLength() - m_lLenInitial;
-    m_pLength->SetNumber( m_lLength );
+    m_pLength->SetNumber( static_cast<long>(m_lLength) );
 }
 
-void PdfFileStream::GetCopy( char**, long* ) const
+void PdfFileStream::GetCopy( char**, pdf_long* ) const
 {
     PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
 }

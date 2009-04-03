@@ -27,7 +27,7 @@ namespace PoDoFo {
 
 #define STREAM_SIZE_INCREASE 1024
 
-PdfRefCountedBuffer::PdfRefCountedBuffer( char* pBuffer, long lSize )
+PdfRefCountedBuffer::PdfRefCountedBuffer( char* pBuffer, pdf_long lSize )
     : m_pBuffer( NULL )
 {
     if( pBuffer && lSize ) 
@@ -52,11 +52,11 @@ void PdfRefCountedBuffer::FreeBuffer()
     delete m_pBuffer;
 }
 
-void PdfRefCountedBuffer::ReallyDetach( long lExtraLen )
+void PdfRefCountedBuffer::ReallyDetach( pdf_long lExtraLen )
 {
     PODOFO_RAISE_LOGIC_IF( m_pBuffer && m_pBuffer->m_lRefCount == 1, "Use Detach() rather than calling ReallyDetach() directly." )
 
-    long lSize                 = m_pBuffer->m_lBufferSize + lExtraLen; 
+    pdf_long lSize                 = m_pBuffer->m_lBufferSize + lExtraLen; 
     TRefCountedBuffer* pBuffer = new TRefCountedBuffer();
     pBuffer->m_lRefCount       = 1;
     if ( (pBuffer->m_bOnHeap = lSize > TRefCountedBuffer::INTERNAL_BUFSIZE) )

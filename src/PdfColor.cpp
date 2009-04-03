@@ -28,7 +28,8 @@
 #include <string.h>
 
 #ifndef _WIN32
-#include <strings.h>
+  #include <strings.h>
+  #include <ctype.h>
 #endif // _WIN32
 
 namespace PoDoFo {
@@ -383,6 +384,11 @@ PdfColor PdfColor::ConvertToGrayScale() const
             return PdfColor( 0.299*m_uColor.rgb[0] + 0.587*m_uColor.rgb[1] + 0.114*m_uColor.rgb[2] );
         case ePdfColorSpace_DeviceCMYK:
             return this->ConvertToRGB().ConvertToGrayScale();
+        case ePdfColorSpace_Separation:
+        case ePdfColorSpace_CieLab:
+        {
+            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+        }
     };
 
     return PdfColor();
@@ -408,6 +414,11 @@ PdfColor PdfColor::ConvertToRGB() const
             double dBlue  = dYellow  * (1.0 - dBlack) + dBlack;
 
             return PdfColor( 1.0 - dRed, 1.0 - dGreen, 1.0 - dBlue );
+        }
+        case ePdfColorSpace_Separation:
+        case ePdfColorSpace_CieLab:
+        {
+            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
         }
     };
 
@@ -436,6 +447,11 @@ PdfColor PdfColor::ConvertToCMYK() const
         case ePdfColorSpace_DeviceCMYK:
             return *this;
             break;
+        case ePdfColorSpace_Separation:
+        case ePdfColorSpace_CieLab:
+        {
+            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+        }
     };
 
     return PdfColor();
@@ -461,6 +477,11 @@ PdfArray PdfColor::ToArray() const
             array.push_back( m_uColor.cmyk[2] ); 
             array.push_back( m_uColor.cmyk[3] ); 
             break;
+        case ePdfColorSpace_Separation:
+        case ePdfColorSpace_CieLab:
+        {
+            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+        }
     };
 
     return array;
@@ -481,7 +502,7 @@ PdfColor PdfColor::FromString( const char* pszName )
 {
     if( pszName ) 
     {
-        long lLen = strlen( pszName );
+        size_t lLen = strlen( pszName );
 
         // first see if it's a single number - if so, that's a single gray value
         if( isdigit( pszName[0] ) || pszName[0] == '.' ) 

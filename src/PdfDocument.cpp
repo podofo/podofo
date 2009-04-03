@@ -216,13 +216,14 @@ PdfPage* PdfDocument::CreatePage( const PdfRect & rSize )
 
 const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppendAll )
 {
-    int difference = m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size();
+    unsigned int difference = static_cast<unsigned int>(m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size());
 
     // append all objects first and fix their references
     TCIVecObjects it           = rDoc.GetObjects().begin();
     while( it != rDoc.GetObjects().end() )
     {
-        PdfObject* pObj = new PdfObject( PdfReference( (*it)->Reference().ObjectNumber() + difference, 0 ), *(*it) );
+        PdfObject* pObj = new PdfObject( PdfReference( 
+                                             static_cast<unsigned int>((*it)->Reference().ObjectNumber() + difference), 0 ), *(*it) );
         m_vecObjects.push_back( pObj );
 
         if( (*it)->IsDictionary() && (*it)->HasStream() )
@@ -265,8 +266,6 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
             while( pRoot && pRoot->Next() ) 
                 pRoot = pRoot->Next();
             
-            printf("Reached last node difference=%i\n", difference);
-            printf("First: %li 0 R\n", pAppendRoot->First()->GetObject()->Reference().ObjectNumber() );
             PdfReference ref( pAppendRoot->First()->GetObject()->Reference().ObjectNumber() + difference, 0 );
             pRoot->InsertChild( new PdfOutlines( m_vecObjects.GetObject( ref ) ) );
         }
@@ -279,7 +278,7 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
 
 PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfMemDocument & rDoc, int nPage )
 {
-    int difference = m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size();
+    unsigned int difference = static_cast<unsigned int>(m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size());
 
 	Append( rDoc, false );
 
@@ -335,7 +334,7 @@ PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfM
 		            PdfStream*  pcontStream = pObj->GetStream();
 
 		            char*       pcontStreamBuffer;
-			        long        pcontStreamLength;
+			        pdf_long        pcontStreamLength;
 		            pcontStream->GetFilteredCopy( &pcontStreamBuffer, &pcontStreamLength );
 		    
 					pObjStream->Append( pcontStreamBuffer, pcontStreamLength );
@@ -357,7 +356,7 @@ PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfM
             PdfStream*  pObjStream = pObj->GetStream();
             PdfStream*  pcontStream = pContents->GetStream();
             char*       pcontStreamBuffer;
-            long        pcontStreamLength;
+            pdf_long        pcontStreamLength;
 
             TVecFilters vFilters;
             vFilters.clear();

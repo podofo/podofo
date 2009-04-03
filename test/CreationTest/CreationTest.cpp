@@ -705,6 +705,8 @@ int main( int argc, char* argv[] )
     printf("Drawing the first page with various lines.\n");
     TEST_SAFE_OP( LineTest( &painter, pPage, &writer ) );
 
+    painter.FinishPage();
+#if 0
     pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_Letter ) );
     painter.SetPage( pPage );
     pRoot->Last()->CreateNext( "Rectangles Test", PdfDestination( pPage ) );
@@ -755,6 +757,7 @@ int main( int argc, char* argv[] )
     TEST_SAFE_OP( MMTest( &painterMM, pPage, &writer ) );
 
     painterMM.FinishPage();
+#endif // 0
 #if 0
     /** Create a really large name tree to test the name tree implementation
      */

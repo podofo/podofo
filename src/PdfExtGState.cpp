@@ -101,7 +101,7 @@ void PdfExtGState::SetStrokeOverprint( bool enable )
 
 void PdfExtGState::SetNonZeroOverprint( bool enable )
 {
-    m_pObject->GetDictionary().AddKey( "OPM", PdfVariant( (enable ? 1L : 0L) ) );
+    m_pObject->GetDictionary().AddKey( "OPM", PdfVariant( (enable ? 1LL : 0LL) ) );
 }
 
 void PdfExtGState::SetRenderingIntent( char* intent )

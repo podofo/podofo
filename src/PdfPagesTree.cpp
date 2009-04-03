@@ -35,7 +35,7 @@ PdfPagesTree::PdfPagesTree( PdfVecObjects* pParent )
 {
     // PdfObject* kids = pParent->CreateObject( PdfArray() );
     GetObject()->GetDictionary().AddKey( "Kids", PdfArray() ); // kids->Reference() 
-    GetObject()->GetDictionary().AddKey( "Count", PdfObject( 0L ) );
+    GetObject()->GetDictionary().AddKey( "Count", PdfObject( 0LL ) );
 }
 
 PdfPagesTree::PdfPagesTree( PdfObject* pPagesRoot )
@@ -66,8 +66,8 @@ PdfPagesTree::~PdfPagesTree()
 
 int PdfPagesTree::GetTotalNumberOfPages() const
 {
-    return ( ( m_pObject->GetDictionary().HasKey( "Count" ) ) ?
-             m_pObject->GetDictionary().GetKeyAsLong( "Count", 0 ) : 0 );
+    return static_cast<int>( ( m_pObject->GetDictionary().HasKey( "Count" ) ) ?
+                             m_pObject->GetDictionary().GetKeyAsLong( "Count", 0 ) : 0 );
 }
 
 PdfObject* PdfPagesTree::GetPageFromKidArray( const PdfArray& inArray, int inIndex ) const
@@ -102,8 +102,8 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject, std
         return NULL;
 
     PdfArray&	kidsArray = pObj->GetArray();
-    size_t	numKids   = kidsArray.size();
-    size_t      kidsCount = pPagesObject->GetDictionary().GetKeyAsLong( "Count", 0 );
+    size_t	    numKids   = kidsArray.size();
+    size_t      kidsCount = static_cast<size_t>(pPagesObject->GetDictionary().GetKeyAsLong( "Count", 0 ));
 
     // All parents of the page node will be added to this lists,
     // so that the PdfPage can later access inherited attributes
@@ -177,7 +177,7 @@ PdfObject* PdfPagesTree::GetPageNodeFromTree( int nPageNum, const PdfArray & kid
         }
         else 
         {
-            int thisKidCount = pgObject->GetDictionary().GetKeyAsLong( "Count", 0 );
+            int thisKidCount = static_cast<int>(pgObject->GetDictionary().GetKeyAsLong( "Count", 0 ));
             if( ( nPagesSeenSoFar + thisKidCount ) >= nPageNum )
             {
                 return this->GetPageNode( nPageNum - ( nPagesSeenSoFar + 1 ), pgObject, rListOfParents ) ;
@@ -316,11 +316,14 @@ void PdfPagesTree::InsertPage( int inAfterPageNumber, PdfObject* pPage )
     else
         kidsIndex = PdfPagesTree::GetPosInKids( afterPageObj ) ;
 
+    /*
+     * PATCH: I. Curington 29 Jan 08, hide debug message, don't need to show it to users
     PdfError::DebugMessage("kidsIndex=%i\n", kidsIndex );
+     */
     // insert our page into the tree
 
     // TODO:
-    // Passing parentObj instead of GetRoot() caused a crash that took me ours to fix.
+    // Passing parentObj instead of GetRoot() caused a crash that took me hours to fix.
     // Don't know wether I broke this with a change of mine before or not.
     // Maybe this fix is incorrect, too (I think though)
     // At least creation test works now again.
@@ -331,15 +334,18 @@ int PdfPagesTree::ChangePagesCount( PdfObject* inPageObj, int inDelta )
 {
     // Increment or decrement inPagesDict's Count by inDelta, and return the new count.
     // Simply return the current count if inDelta is 0.
-    int	cnt = inPageObj->GetDictionary().GetKey( "Count" )->GetNumber();
+    pdf_long	cnt = static_cast<pdf_long>(inPageObj->GetDictionary().GetKey( "Count" )->GetNumber());
     if( 0 != inDelta ) 
     {
         cnt += inDelta ;
+    /*
+     * PATCH: I. Curington 29 Jan 08, hide debug message, don't need to show it to users
         PdfError::DebugMessage("New pages count:%i\n", cnt );
-        inPageObj->GetDictionary().AddKey( "Count", PdfVariant( static_cast<long>(cnt) ) );
+        */
+        inPageObj->GetDictionary().AddKey( "Count", PdfVariant( static_cast<long long>(cnt)) );
     }
 
-    return cnt ;
+    return static_cast<int>(cnt);
 }
 
 void PdfPagesTree::InsertPages( int inAfterIndex, 
@@ -377,7 +383,7 @@ void PdfPagesTree::InsertPages( int inAfterIndex,
 
 PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
 {
-    int last  = m_deqPageObjs.size()-1;
+    int last  = static_cast<int>(m_deqPageObjs.size()-1);
     PdfPage* pPage = new PdfPage( rSize, GetRoot()->GetOwner() );
 
     // We have to add it to m_deqPageObjs here,

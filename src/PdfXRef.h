@@ -39,13 +39,13 @@ class PdfOutputDevice;
 class PdfXRef {
  protected:
     struct TXRefItem{
-        TXRefItem( const PdfReference & rRef, const long & rlOff ) 
+        TXRefItem( const PdfReference & rRef, const pdf_long & rlOff ) 
             : reference( rRef ), lOffset( rlOff )
             {
             }
 
         PdfReference reference;
-        long         lOffset;
+        pdf_long         lOffset;
 
         bool operator<( const TXRefItem & rhs ) const
         {
@@ -92,8 +92,8 @@ class PdfXRef {
             return *this;
         }
 
-        unsigned long m_nFirst;
-        unsigned long m_nCount;
+        unsigned int m_nFirst;
+        unsigned int m_nCount;
         
         TVecXRefItems items;
         TVecReferences freeItems;
@@ -121,7 +121,7 @@ class PdfXRef {
      *               Set this value to true for all normal objects and to false
      *               for free object references.
      */
-    void AddObject( const PdfReference & rRef, long lOffset, bool bUsed );
+    void AddObject( const PdfReference & rRef, pdf_long lOffset, bool bUsed );
 
     /** Write the XRef table to an output device.
      * 
@@ -173,7 +173,7 @@ class PdfXRef {
      *  @param lObjectNumber the object number of the currently written object if cMode = 'n' 
      *                       otherwise undefined
      */
-    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, unsigned long lOffset, unsigned long lGeneration, 
+    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, size_t lOffset, unsigned long lGeneration, 
                                  char cMode, unsigned long lObjectNumber = 0 );
 
     /** Called at the end of writing the XRef table.
@@ -197,7 +197,7 @@ class PdfXRef {
     void MergeBlocks();
 
  private:
-    long m_lOffset;
+    pdf_long m_lOffset;
 
  protected:
     TVecXRefBlock  m_vecBlocks;

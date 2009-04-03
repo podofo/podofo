@@ -75,7 +75,7 @@ PdfOutputDevice::PdfOutputDevice( const wchar_t* pszFilename )
 }
 #endif // _WIN32
 
-PdfOutputDevice::PdfOutputDevice( char* pBuffer, long lLen )
+PdfOutputDevice::PdfOutputDevice( char* pBuffer, size_t lLen )
 {
     this->Init();
 
@@ -207,7 +207,7 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
     m_ulLength += lBytes;
 }
 
-void PdfOutputDevice::Write( const char* pBuffer, long lLen )
+void PdfOutputDevice::Write( const char* pBuffer, size_t lLen )
 {
     if( m_hFile )
     {
@@ -233,7 +233,7 @@ void PdfOutputDevice::Write( const char* pBuffer, long lLen )
     }
     else if( m_pRefCountedBuffer ) 
     {
-        if( m_ulPosition + lLen > static_cast<unsigned long>(m_pRefCountedBuffer->GetSize()) )
+        if( m_ulPosition + lLen > m_pRefCountedBuffer->GetSize() )
             m_pRefCountedBuffer->Resize( m_ulPosition + lLen );
 
         memcpy( m_pRefCountedBuffer->GetBuffer() + m_ulPosition, pBuffer, lLen );
@@ -247,7 +247,7 @@ void PdfOutputDevice::Seek( size_t offset )
 {
     if( m_hFile )
     {
-        if( fseek( m_hFile, offset, SEEK_SET ) == -1 )
+        if( fseeko( m_hFile, offset, SEEK_SET ) == -1 )
         {
             PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
         }

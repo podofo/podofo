@@ -83,7 +83,7 @@ void VariantTest::testIsDirtyTrue()
     PdfDictionary dict;
 
     PdfVariant varBool( true );
-    PdfVariant varLong( 1L );
+    PdfVariant varLong( 1LL );
     PdfVariant varDouble( 1.0 );
     PdfVariant varStr( PdfString("Any") );
     PdfVariant varName( PdfName("Name") );
@@ -93,7 +93,7 @@ void VariantTest::testIsDirtyTrue()
     PdfVariant varVariant( varBool );
 
     varBool.SetBool( false );
-    varLong.SetNumber( 2L );
+    varLong.SetNumber( 2LL );
     varDouble.SetReal( 2.0 );
     varStr = PdfString("Other");
     varName = PdfName("Name2");
@@ -132,7 +132,7 @@ void VariantTest::testIsDirtyFalse()
 
     PdfVariant varEmpty;
     PdfVariant varBool( true );
-    PdfVariant varLong( 1L );
+    PdfVariant varLong( 1LL );
     PdfVariant varDouble( 1.0 );
     PdfVariant varStr( PdfString("Any") );
     PdfVariant varName( PdfName("Name") );

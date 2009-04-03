@@ -47,6 +47,17 @@
 #include <vector>
 #include <set>
 
+#define pdf_long ptrdiff_t
+
+#if defined(_WIN64)
+#define fseeko _fseeki64
+#define ftello _ftelli64
+#else
+#define fseeko fseek
+#define ftello ftell
+#endif
+
+
 // Include common BOOST settings 
 #ifdef HAVE_BOOST
 #include <boost/config.hpp>

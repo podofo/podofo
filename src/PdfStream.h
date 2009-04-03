@@ -75,7 +75,7 @@ class PODOFO_API PdfStream {
      *  \param lLen length of the buffer
      *  \param vecFilters a list of filters to use when appending data
      */
-    void Set( const char* szBuffer, long lLen, const TVecFilters & vecFilters );
+    void Set( const char* szBuffer, pdf_long lLen, const TVecFilters & vecFilters );
 
     /** Set a binary buffer as stream data.
      *  All data will be flate encoded.
@@ -83,7 +83,7 @@ class PODOFO_API PdfStream {
      *  \param szBuffer buffer containing the stream data
      *  \param lLen length of the buffer
      */
-    void Set( const char* szBuffer, long lLen );
+    void Set( const char* szBuffer, pdf_long lLen );
 
     /** Set a binary buffer whose contents are read from a PdfInputStream
      *  All data will be flate encoded.
@@ -118,7 +118,7 @@ class PODOFO_API PdfStream {
      *  \param lLen    read excactly lLen bytes from the input stream
      *                 if lLen = -1 read until the end of the input stream was reached.
      */
-    void SetRawData( PdfInputStream* pStream, long lLen = -1 );
+    void SetRawData( PdfInputStream* pStream, pdf_long lLen = -1 );
 
     /** Start appending data to this stream.
      *
@@ -196,7 +196,7 @@ class PODOFO_API PdfStream {
      *
      *  \returns the length of the internal buffer
      */
-    virtual unsigned long GetLength() const = 0;
+    virtual pdf_long GetLength() const = 0;
 
     /** Get a malloced buffer of the current stream.
      *  No filters will be applied to the buffer, so
@@ -208,7 +208,7 @@ class PODOFO_API PdfStream {
      *  \param pBuffer pointer to the buffer
      *  \param lLen    pointer to the buffer length
      */
-    virtual void GetCopy( char** pBuffer, long* lLen ) const = 0;
+    virtual void GetCopy( char** pBuffer, pdf_long* lLen ) const = 0;
 
     /** Get a malloced buffer of the current stream which has been
      *  filtered by all filters as specified in the dictionary's
@@ -220,7 +220,7 @@ class PODOFO_API PdfStream {
      *  \param pBuffer pointer to the buffer
      *  \param lLen    pointer to the buffer length
      */
-    void GetFilteredCopy( char** pBuffer, long* lLen ) const;
+    void GetFilteredCopy( char** pBuffer, pdf_long* lLen ) const;
 
     /** Get a filtered copy of a the stream and write it to a PdfOutputStream
      *  
@@ -243,7 +243,7 @@ class PODOFO_API PdfStream {
     /** Required for the GetFilteredCopy implementation
      *  \returns the size of the internal buffer
      */
-    virtual unsigned long GetInternalBufferSize() const = 0;
+    virtual pdf_long GetInternalBufferSize() const = 0;
 
     /** Begin appending data to this stream.
      *  Clears the current stream contents.

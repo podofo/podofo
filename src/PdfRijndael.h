@@ -139,7 +139,7 @@ public:
 	// Input len is in BYTES!
 	// outBuffer must be at least (inputLen + 16) bytes long
 	// Returns the encrypted buffer length in BYTES or an error code < 0 in case of error
-	int padEncrypt(const UINT8 *input, int inputOctets, UINT8 *outBuffer);
+	pdf_long padEncrypt(const UINT8 *input, pdf_long inputOctets, UINT8 *outBuffer);
 	// Decrypts the input vector
 	// Input len is in BITS!
 	// outBuffer must be at least inputLen / 8 bytes long

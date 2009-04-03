@@ -157,6 +157,14 @@ class PODOFO_API PdfFont : public PdfElement {
      */
     inline const PdfFontMetrics* GetFontMetrics() const;
 
+    // Peter Petrov 19 March 2009
+    /** Returns a handle to the fontmetrics object of this font.
+     *  This can be used for size calculations of text strings when
+     *  drawn using this font.
+     *  \returns a handle to the font metrics object
+     */
+    inline PdfFontMetrics* GetFontMetrics2();
+
     /** Write a PdfString to a PdfStream in a format so that it can 
      *  be used with this font.
      *  This is used by PdfPainter::DrawText to display a text string.
@@ -167,6 +175,12 @@ class PODOFO_API PdfFont : public PdfElement {
      *                 or following whitespaces.
      */
     virtual void WriteStringToStream( const PdfString & rsString, PdfStream* pStream );
+
+    // Peter Petrov 24 September 2008
+    /** Embeds the font into PDF page
+     *
+     */
+    virtual void EmbedFont();
 
  protected:
     /** Get the base font name of this font
@@ -211,6 +225,8 @@ class PODOFO_API PdfFont : public PdfElement {
     bool  m_bItalic;
     bool  m_bUnderlined;
     bool  m_bStrikedOut;
+
+    bool  m_bWasEmbedded;
 
     PdfName m_Identifier;
 };
@@ -301,6 +317,14 @@ float PdfFont::GetFontCharSpace() const
 const PdfEncoding* PdfFont::GetEncoding() const
 {
     return m_pEncoding;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfFontMetrics* PdfFont::GetFontMetrics2()
+{
+    return m_pMetrics;
 }
 
 // -----------------------------------------------------

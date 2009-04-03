@@ -289,16 +289,16 @@ public:
   int GetKeyLength() const { return m_keyLength*8; }
 
   /// Encrypt a wxString
-  void Encrypt( std::string & str, int inputLen ) const;
+  void Encrypt( std::string & str, pdf_long inputLen ) const;
 
   /// Encrypt a character string
-  virtual void Encrypt(unsigned char* str, int len) const = 0;
+  virtual void Encrypt(unsigned char* str, pdf_long len) const = 0;
 
   /// Calculate stream size
-  virtual int CalculateStreamLength(int length) const;
+  virtual pdf_long CalculateStreamLength(pdf_long length) const;
 
   /// Calculate stream offset
-  virtual int CalculateStreamOffset() const;
+  virtual pdf_long CalculateStreamOffset() const;
 
   /** Create a PdfString of MD5 data generated from a buffer in memory.
    *  \param pBuffer the buffer of which to calculate the MD5 sum
@@ -342,7 +342,7 @@ protected:
 
   /// RC4 encryption
   void RC4(unsigned char* key, int keylen,
-           unsigned char* textin, int textlen,
+           unsigned char* textin, pdf_long textlen,
            unsigned char* textout);
 
   /// Calculate the binary MD5 message digest of the given data
@@ -409,22 +409,22 @@ public:
 	*/ 
 	~PdfEncryptAES();
 
-	void Encrypt(unsigned char* str, int len) const;
+	void Encrypt(unsigned char* str, pdf_long len) const;
 
 	/// Calculate stream offset
-	int CalculateStreamOffset() const;
+	pdf_long CalculateStreamOffset() const;
 
 	PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream );
 	PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream );
 
-	int CalculateStreamLength(int length) const;
+	pdf_long CalculateStreamLength(pdf_long length) const;
 
 	void CreateEncryptionDictionary( PdfDictionary & rDictionary ) const;
 
 private:
   /// AES encryption
   void AES(unsigned char* key, int keylen,
-           unsigned char* textin, int textlen,
+           unsigned char* textin, pdf_long textlen,
            unsigned char* textout);
 
   PdfRijndael*   m_aes;                ///< AES encryptor
@@ -459,7 +459,7 @@ public:
                   EPdfKeyLength eKeyLength = ePdfKeyLength_40 );
 	PdfEncryptRC4(const PdfEncrypt & rhs) : PdfEncrypt(rhs)	{}
 
-	void Encrypt(unsigned char* str, int len) const;	
+	void Encrypt(unsigned char* str, pdf_long len) const;	
 
 	PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream );
 	PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream );
