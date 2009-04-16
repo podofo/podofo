@@ -176,6 +176,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
 
 void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
 {
+    const int cAbsoluteMax = 0xffff;
     int nFirstChar = m_pEncoding->GetFirstChar();
     int nLastChar  = m_pEncoding->GetLastChar();
 
@@ -183,13 +184,13 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
 
     // Allocate an initialize an array, large enough to 
     // hold a width value for every possible glyph index
-    double* pdWidth = static_cast<double*>(malloc( sizeof(double) * 0xffff ) );
+    double* pdWidth = static_cast<double*>(malloc( sizeof(double) * cAbsoluteMax ) );
     if( !pdWidth )
     {
         PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
-    for( i=0;i<0xffff;i++ )
+    for( i=0;i<cAbsoluteMax;i++ )
         pdWidth[i] = 0.0;
 
     // Load the width of all requested glyph indeces
@@ -205,8 +206,9 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
         {
             nMin = PDF_MIN( nMin, lGlyph );
             nMax = PDF_MAX( nMax, lGlyph );
+            nMax = PDF_MIN( nMax, cAbsoluteMax );
 
-            if( lGlyph < 0xffff )
+            if( lGlyph < cAbsoluteMax )
                 pdWidth[lGlyph] = m_pMetrics->GetGlyphWidth( lGlyph );
 
         }
