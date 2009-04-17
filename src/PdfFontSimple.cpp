@@ -88,7 +88,7 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
 
     if( bEmbed )
     {
-        this->EmbedFont( pDescriptor );
+        this->EmbedFontFile( pDescriptor );
         m_bWasEmbedded = true;
     }
 }
@@ -97,7 +97,7 @@ void PdfFontSimple::EmbedFont()
 {
     if (!m_bWasEmbedded)
     {
-        this->EmbedFont( m_pDescriptor );
+        this->EmbedFontFile( m_pDescriptor );
         m_bWasEmbedded = true;
     }
 }

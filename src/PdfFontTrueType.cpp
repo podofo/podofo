@@ -44,7 +44,7 @@ PdfFontTrueType::PdfFontTrueType( PdfFontMetrics* pMetrics, const PdfEncoding* c
 
 }
 
-void PdfFontTrueType::EmbedFont( PdfObject* pDescriptor )
+void PdfFontTrueType::EmbedFontFile( PdfObject* pDescriptor )
 {
     PdfObject* pContents;
     pdf_long       lSize = 0;

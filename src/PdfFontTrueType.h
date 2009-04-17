@@ -66,7 +66,7 @@ class PdfFontTrueType : public PdfFontSimple {
      *
      *  \param pDescriptor font descriptor object
      */
-    void EmbedFont( PdfObject* pDescriptor );
+    void EmbedFontFile( PdfObject* pDescriptor );
 
 };
 

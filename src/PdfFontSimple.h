@@ -77,7 +77,7 @@ class PdfFontSimple : public PdfFont {
      *
      *  \param pDescriptor font descriptor object
      */
-    virtual void EmbedFont( PdfObject* pDescriptor ) = 0;
+    virtual void EmbedFontFile( PdfObject* pDescriptor ) = 0;
 
     PdfObject* m_pDescriptor;
 };

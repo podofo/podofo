@@ -62,7 +62,7 @@ class PdfFontType1 : public PdfFontSimple {
      *
      *  \param pDescriptor font descriptor object
      */
-    virtual void EmbedFont( PdfObject* pDescriptor );
+    virtual void EmbedFontFile( PdfObject* pDescriptor );
 
  private:
 

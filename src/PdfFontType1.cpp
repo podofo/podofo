@@ -43,7 +43,7 @@ PdfFontType1::PdfFontType1( PdfFontMetrics* pMetrics, const PdfEncoding* const p
 
 }
 
-void PdfFontType1::EmbedFont( PdfObject* pDescriptor )
+void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 {
     pdf_long        lSize    = 0;
     pdf_long        lLength1 = 0L;
@@ -134,9 +134,9 @@ void PdfFontType1::EmbedFont( PdfObject* pDescriptor )
 				if( pAllocated )
 					free( pAllocated );
 
-				pContents->GetDictionary().AddKey( "Length1", PdfVariant( (long long)lLength1 ) );
-				pContents->GetDictionary().AddKey( "Length2", PdfVariant( (long long)lLength2 ) );
-				pContents->GetDictionary().AddKey( "Length3", PdfVariant( (long long)lLength3 ) );
+				pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<long long>(lLength1) ) );
+                pContents->GetDictionary().AddKey( "Length2", PdfVariant( static_cast<long long>(lLength2) ) );
+                pContents->GetDictionary().AddKey( "Length3", PdfVariant( static_cast<long long>(lLength3) ) );
 
 				return;
 			default:
@@ -167,9 +167,9 @@ void PdfFontType1::EmbedFont( PdfObject* pDescriptor )
     if( pAllocated )
         free( pAllocated );
 
-    pContents->GetDictionary().AddKey( "Length1", PdfVariant( (long long)lLength1 ) );
-    pContents->GetDictionary().AddKey( "Length2", PdfVariant( (long long)lLength2 ) );
-    pContents->GetDictionary().AddKey( "Length3", PdfVariant( (long long)lLength3 ) );
+    pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<long long>(lLength1) ) );
+    pContents->GetDictionary().AddKey( "Length2", PdfVariant( static_cast<long long>(lLength2) ) );
+    pContents->GetDictionary().AddKey( "Length3", PdfVariant( static_cast<long long>(lLength3) ) );
 }
 
 pdf_long PdfFontType1::FindInBuffer( const char* pszNeedle, const char* pszHaystack, pdf_long lLen ) const

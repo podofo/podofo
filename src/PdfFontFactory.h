@@ -69,6 +69,13 @@ class PODOFO_API PdfFontFactory {
      */
     static PdfFont* CreateFont( FT_Library* pLibrary, PdfObject* pObject );
 
+    /** Try to guess the fonttype from a the filename of a font file.
+     * 
+     *  \param pszFilename filename of a fontfile
+     *  \returns the font type
+     */
+    static EPdfFontType GetFontType( const char* pszFilename );
+
  private:
     /** Actually creates the font object for the requested type.
      *  Throws an exception in case of an error.
