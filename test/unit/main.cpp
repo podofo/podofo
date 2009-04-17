@@ -32,6 +32,7 @@ void show_help()
     std::cout << "Supported commandline switches:" << std::endl;
     std::cout << "\t --help\t So this help message." << std::endl;
     std::cout << "\t --selftest\t Output in compiler compatible format." << std::endl;
+    std::cout << "\t --test [name]\t Run only the test case [name]." << std::endl;
     std::cout << std::endl;
 }
 
@@ -45,6 +46,7 @@ int main(int argc, char* argv[])
   runner.addTest( suite );
 
   // check some commandline arguments
+  std::string sTestName = "";
   bool bSelfTest = false;
   if( argc > 1 ) 
   {
@@ -61,9 +63,12 @@ int main(int argc, char* argv[])
           {
               bSelfTest = true;
           }
-
+          else if(argument=="--test" || argument=="-test" && i+1 < argc) 
+          {
+              i++;
+              sTestName = argv[i];
+          }
       }
-
   }
 
   if( bSelfTest ) 
@@ -77,7 +82,7 @@ int main(int argc, char* argv[])
       // Change the default outputter to a xml format outputter
       // The test runner owns the new outputter.
       CppUnit::XmlOutputter *xmlOutputter = new 
-          CppUnit::XmlOutputter(&runner.result(),std::cerr ) ;
+          CppUnit::XmlOutputter( &runner.result(), std::cerr ) ;
       runner.setOutputter(xmlOutputter);
   }
 
@@ -86,7 +91,7 @@ int main(int argc, char* argv[])
   PoDoFo::PdfError::EnableDebug( true );
 
   // Run the tests.
-  bool wasSucessful = runner.run();
+  bool wasSucessful = runner.run( sTestName );
 
   // Return error code 1 if the one of test failed.
   return wasSucessful ? 0 : 1;
