@@ -111,6 +111,8 @@ void write_back( PdfParser* pParser, const char* pszFilename )
 
 int main( int argc, char*  argv[] )
 {
+    PdfError::EnableLogging(true);
+
     PdfVecObjects objects;
     PdfParser     parser( &objects );
     

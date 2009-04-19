@@ -47,11 +47,15 @@ PdfOutputDevice::PdfOutputDevice( const char* pszFilename )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
+    m_pStream = new std::ofstream(pszFilename);
+    PdfLocaleImbue(*m_pStream);
+    /*
     m_hFile = fopen( pszFilename, "wb" );
     if( !m_hFile )
     {
         PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
     }
+    */
 }
 
 
@@ -104,8 +108,10 @@ PdfOutputDevice::PdfOutputDevice( PdfRefCountedBuffer* pOutBuffer )
 
 PdfOutputDevice::~PdfOutputDevice()
 {
+    printf("Closing %p\n", m_hFile);
     if( m_hFile )
         fclose( m_hFile );
+    printf("DONE\n");
 }
 
 void PdfOutputDevice::Init()

@@ -174,7 +174,9 @@ class PODOFO_API PdfRefCountedBuffer {
     struct TRefCountedBuffer {
         enum { INTERNAL_BUFSIZE = 32 };
         // Convenience inline for buffer switching
-        PODOFO_NOTHROW inline char * GetRealBuffer() { return m_bOnHeap? m_pHeapBuffer : &(m_sInternalBuffer[0]); }
+        PODOFO_NOTHROW inline char * GetRealBuffer() { 
+            return m_bOnHeap? m_pHeapBuffer : &(m_sInternalBuffer[0]);
+        }
         // size in bytes of the buffer. If and only if this is strictly >INTERNAL_BUFSIZE,
         // this buffer is on the heap in memory pointed to by m_pHeapBuffer . If it is <=INTERNAL_BUFSIZE,
         // the buffer is in the in-object buffer m_sInternalBuffer.
