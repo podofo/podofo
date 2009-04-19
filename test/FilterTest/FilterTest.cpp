@@ -34,7 +34,7 @@ namespace {
 const char pTestBuffer1[]  = "Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure.";
 
 // We treat the buffer as _excluding_ the trailing \0
-const long lTestLength1 = strlen(pTestBuffer1);
+const pdf_long lTestLength1 = strlen(pTestBuffer1);
 
 const char pTestBuffer2[]  = { 
     0x01, 0x64, 0x65, 0xFE, 0x6B, 0x80, 0x45, 0x32, 0x88, 0x12, 0x71, 0xEA, 0x01,
@@ -45,9 +45,9 @@ const char pTestBuffer2[]  = {
     0x00, 0x00, 0x00, 0x00, 0x6B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
-const long lTestLength2 = 6*13;
+const pdf_long lTestLength2 = 6*13;
 
-void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const long lTestLength )
+void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const pdf_long lTestLength )
 {
     char*      pEncoded;
     char*      pDecoded;
@@ -98,7 +98,7 @@ void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const long lTest
     printf("\t-> Encoded  Data Length: %li\n", lEncoded );
     printf("\t-> Decoded  Data Length: %li\n", lDecoded );
 
-    if( static_cast<long>(lTestLength) != lDecoded ) 
+    if( static_cast<pdf_long>(lTestLength) != lDecoded ) 
     {
         fprintf( stderr, "Error: Decoded Length != Original Length\n");
 
@@ -126,11 +126,11 @@ void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const long lTest
 
 void test_filter_queque( const char* pBuffer, long lLen )
 {
-    char* pEncoded;
-    long  lEncoded;
+    char*    pEncoded;
+    pdf_long lEncoded;
 
-    char* pDecoded;
-    long  lDecoded;
+    char*    pDecoded;
+    pdf_long lDecoded;
 
     TVecFilters filters;
     filters.push_back( ePdfFilter_ASCIIHexDecode );
@@ -189,7 +189,7 @@ void test_filter_queque( const char* pBuffer, long lLen )
 
 }
 
-void test_stream( const char* pBuffer, long lLen )
+void test_stream( const char* pBuffer, pdf_long lLen )
 {
     char*    pDecoded;
     pdf_long lDecoded;
@@ -247,10 +247,10 @@ int main()
     // Data from stream  of obj 9 0 R 
     const char pszInputAscii85Lzw[] = "J..)6T`?q0\"W37&!thJ^C,m/iL/?:-g&uFOK1b,*F;>>qM[VuU#oJ230p2o6!o^dK\r=tpu7Tr'VZ1gWb9&Im[N#Q~>";
 
-    long  lLargeBufer1  = strlen(pszInputAscii85Lzw) * 6;
-    long  lLargeBufer2  = strlen(pszInputAscii85Lzw) * 6;
-    char* pLargeBuffer1 = static_cast<char*>(malloc( strlen(pszInputAscii85Lzw) * 6 ));
-    char* pLargeBuffer2 = static_cast<char*>(malloc( strlen(pszInputAscii85Lzw) * 6 ));
+    pdf_long lLargeBufer1  = strlen(pszInputAscii85Lzw) * 6;
+    pdf_long lLargeBufer2  = strlen(pszInputAscii85Lzw) * 6;
+    char*    pLargeBuffer1 = static_cast<char*>(malloc( strlen(pszInputAscii85Lzw) * 6 ));
+    char*    pLargeBuffer2 = static_cast<char*>(malloc( strlen(pszInputAscii85Lzw) * 6 ));
 
     std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCII85Decode );
     pFilter->Decode( pszInputAscii85Lzw, strlen(pszInputAscii85Lzw),
@@ -268,7 +268,7 @@ int main()
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    if( static_cast<long>(strlen(pszInputAscii85Lzw)) != lLargeBufer2 ) 
+    if( static_cast<pdf_long>(strlen(pszInputAscii85Lzw)) != lLargeBufer2 ) 
     {
         fprintf( stderr, "ROACH Error: Decoded Length != Original Length\n");
         fprintf( stderr, "ROACH Original: %li\n", strlen(pszInputAscii85Lzw) );
