@@ -51,8 +51,8 @@ void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const long lTest
 {
     char*      pEncoded;
     char*      pDecoded;
-    long       lEncoded;
-    long       lDecoded;
+    pdf_long   lEncoded;
+    pdf_long   lDecoded;
    
     std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( eFilter );
     if( !pFilter.get() )
@@ -191,8 +191,8 @@ void test_filter_queque( const char* pBuffer, long lLen )
 
 void test_stream( const char* pBuffer, long lLen )
 {
-    char* pDecoded;
-    long  lDecoded;
+    char*    pDecoded;
+    pdf_long lDecoded;
 
     PdfObject    object;
     PdfMemStream stream( &object );
@@ -243,6 +243,42 @@ int main()
     printf("ePdfFilter_DCTDecode          = 7\n");
     printf("ePdfFilter_JPXDecode          = 8\n");
     printf("ePdfFilter_Crypt              = 9\n");
+
+    // Data from stream  of obj 9 0 R 
+    const char pszInputAscii85Lzw[] = "J..)6T`?q0\"W37&!thJ^C,m/iL/?:-g&uFOK1b,*F;>>qM[VuU#oJ230p2o6!o^dK\r=tpu7Tr'VZ1gWb9&Im[N#Q~>";
+
+    long  lLargeBufer1  = strlen(pszInputAscii85Lzw) * 6;
+    long  lLargeBufer2  = strlen(pszInputAscii85Lzw) * 6;
+    char* pLargeBuffer1 = static_cast<char*>(malloc( strlen(pszInputAscii85Lzw) * 6 ));
+    char* pLargeBuffer2 = static_cast<char*>(malloc( strlen(pszInputAscii85Lzw) * 6 ));
+
+    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCII85Decode );
+    pFilter->Decode( pszInputAscii85Lzw, strlen(pszInputAscii85Lzw),
+                     &pLargeBuffer1, &lLargeBufer1 );
+    pFilter->Encode( pLargeBuffer1, lLargeBufer1,
+                     &pLargeBuffer2, &lLargeBufer2 );
+
+    if( memcmp( pszInputAscii85Lzw, pLargeBuffer2, lLargeBufer2 ) != 0 )
+    {
+        printf("\tROACH -> Original Data: <%s>\n", pszInputAscii85Lzw );
+        printf("\tROACH -> Encoded  Data: <%s>\n", pLargeBuffer1 );
+        printf("\tROACH -> Decoded  Data: <%s>\n", pLargeBuffer2 );
+
+        fprintf( stderr, "Error: Decoded Data does not match original data.\n");
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    }
+
+    if( static_cast<long>(strlen(pszInputAscii85Lzw)) != lLargeBufer2 ) 
+    {
+        fprintf( stderr, "ROACH Error: Decoded Length != Original Length\n");
+        fprintf( stderr, "ROACH Original: %li\n", strlen(pszInputAscii85Lzw) );
+        fprintf( stderr, "ROACH Encode: %li\n", lLargeBufer2 );
+        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+    }
+
+
+    // ASCII 85 decode and re-encode delivers same results
+    printf("ROACH ASCII encode/decode OK\n");
 
     try {
         for( int i =0; i<=ePdfFilter_Crypt; i++ )
