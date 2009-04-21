@@ -206,8 +206,8 @@ void TestObject( const string & sFilename,
 
     if (bHasStream)
     {
-        char* pBuffer;
-        long  lLen;
+        char*    pBuffer;
+        pdf_long lLen;
 
         cerr << "  -> Has Stream, loading ... " << flush;
         PdfMemStream * const ps = dynamic_cast<PdfMemStream*>(obj.GetStream());
