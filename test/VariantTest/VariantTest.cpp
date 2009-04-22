@@ -226,9 +226,9 @@ int main()
     char* pszHex = static_cast<char*>(malloc( sizeof(char) * 256 ));
     memset(pszHex, 0, 256);
     strcpy( pszHex, "Hallo Du schoene Welt!" );
-    long lLen = strlen( pszHex );
+    pdf_long lLen = strlen( pszHex );
     char* pszResult = NULL;
-    long lRes = -1;
+    pdf_long lRes = -1;
     std::string out;
 
     TEST_SAFE_OP( pFilter->Encode( pszHex, lLen, &pszResult, &lRes ) );
