@@ -23,6 +23,7 @@
 
 #include "PdfDefines.h"
 #include "util/PdfMutex.h"
+#include "string.h"
 
 namespace PoDoFo {
 
