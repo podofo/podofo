@@ -27,6 +27,7 @@
 #include "podofoapi.h"
 #include <string>
 #include <queue>
+#include <cstdarg>
 
 #if defined(_MSC_VER)  &&  _MSC_VER <= 1200 // same pragma as in PdfDefines.h which we cannot include here
 #pragma warning(disable: 4251)
