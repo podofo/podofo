@@ -125,8 +125,8 @@ void ImageExtractor::ExtractImage( PdfObject* pObject, bool bJpeg )
                  pObject->GetDictionary().GetKey( PdfName("Height" ) )->GetNumber(),
                  255 );
                  
-        char* pBuffer;
-        long  lLen;
+        char*    pBuffer;
+        pdf_long lLen;
         pObject->GetStream()->GetFilteredCopy( &pBuffer, &lLen );
         fwrite( pBuffer, lLen, sizeof(char), hFile );
         free( pBuffer );
