@@ -611,7 +611,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
     }
 
     // Peter Petrov 25 September 2008
-    m_pFont->EmbedFont();
+    //m_pFont->EmbedFont();
 
     PdfString sString = this->ExpandTabs( sText, lStringLen );
     this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->Reference(), PdfName("Font") );

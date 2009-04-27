@@ -544,7 +544,8 @@ void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
     m_device.Device()->Seek(curPosition,std::ios_base::beg);
 
     if (lOffset > fileSize)
-    { // Invalid "startxref" Peter Petrov 23 December 2008
+    { 
+        // Invalid "startxref" Peter Petrov 23 December 2008
         FindToken( "startxref", PDF_XREF_BUF );
         lOffset = m_device.Device()->Tell();
         // TODO: hard coded value "4"
@@ -553,7 +554,8 @@ void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
         m_buffer.Resize(PDF_XREF_BUF);
         lOffset = m_device.Device()->Tell();
         m_nXRefOffset = lOffset;
-    }else
+    }
+    else
     {
         m_device.Device()->Seek( lOffset );
     }
