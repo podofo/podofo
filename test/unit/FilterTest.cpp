@@ -56,8 +56,8 @@ void FilterTest::TestFilter( EPdfFilter eFilter, const char * pTestBuffer, const
 {
     char*      pEncoded;
     char*      pDecoded;
-    long       lEncoded;
-    long       lDecoded;
+    pdf_long   lEncoded;
+    pdf_long   lDecoded;
    
     std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( eFilter );
     if( !pFilter.get() )
@@ -103,7 +103,7 @@ void FilterTest::TestFilter( EPdfFilter eFilter, const char * pTestBuffer, const
     printf("\t-> Encoded  Data Length: %li\n", lEncoded );
     printf("\t-> Decoded  Data Length: %li\n", lDecoded );
 
-    CPPUNIT_ASSERT_EQUAL( static_cast<long>(lTestLength), lDecoded );
+    CPPUNIT_ASSERT_EQUAL( static_cast<long>(lTestLength), static_cast<long>(lDecoded) );
     CPPUNIT_ASSERT_EQUAL( memcmp( pTestBuffer, pDecoded, lTestLength ), 0 );
 
     free( pEncoded );
