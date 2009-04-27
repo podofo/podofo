@@ -47,7 +47,8 @@ PdfOutputDevice::PdfOutputDevice( const char* pszFilename )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    m_pStream = new std::ofstream(pszFilename);
+
+    m_pStream = new std::ofstream(pszFilename, std::ofstream::binary);
     PdfLocaleImbue(*m_pStream);
     /*
     m_hFile = fopen( pszFilename, "wb" );
@@ -209,8 +210,8 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
     }
     va_end( args );
 
-    m_ulPosition += lBytes;
-    m_ulLength += lBytes;
+    m_ulPosition += static_cast<size_t>(lBytes);
+    m_ulLength += static_cast<size_t>(lBytes);
 }
 
 void PdfOutputDevice::Write( const char* pBuffer, size_t lLen )
@@ -245,8 +246,8 @@ void PdfOutputDevice::Write( const char* pBuffer, size_t lLen )
         memcpy( m_pRefCountedBuffer->GetBuffer() + m_ulPosition, pBuffer, lLen );
     }
 
-    m_ulLength   += lLen;
-    m_ulPosition += lLen;
+    m_ulLength   += static_cast<size_t>(lLen);
+    m_ulPosition += static_cast<size_t>(lLen);
 }
 
 void PdfOutputDevice::Seek( size_t offset )
