@@ -45,6 +45,7 @@ class TokenizerTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testString );
   CPPUNIT_TEST( testTokens );
   CPPUNIT_TEST( testComments );
+  CPPUNIT_TEST( testDictionary );
   CPPUNIT_TEST_SUITE_END();
 
  public:
@@ -59,6 +60,7 @@ class TokenizerTest : public CppUnit::TestFixture
   void testNumbers();
   void testReference();
   void testString();
+  void testDictionary();
 
   void testTokens();
   void testComments();

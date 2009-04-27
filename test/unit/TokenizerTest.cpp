@@ -99,6 +99,27 @@ void TokenizerTest::testName()
     Test( "/@pattern", ePdfDataType_Name );
     Test( "/A;Name_With-Various***Characters?", ePdfDataType_Name );
     Test( "/", ePdfDataType_Name ); // empty names are legal, too!
+
+    // Some additional tests, which cause errors for Sebastian Loch
+    
+    const char* pszString = "/CheckBox#C3#9Cbersetzungshinweis";
+    PdfVariant variant;
+    PdfTokenizer tokenizer( pszString, strlen( pszString ) );
+    tokenizer.GetNextVariant( variant, NULL );
+
+    PdfName name2( variant.GetName() );
+
+
+    std::ostringstream oss;
+    PdfOutputDevice output(&oss);
+    name2.Write(&output);
+
+    CPPUNIT_ASSERT_EQUAL( variant.GetName().GetName(), name2.GetName() );
+    CPPUNIT_ASSERT_EQUAL( oss.str(), std::string(pszString) );
+
+    printf("!!! Name=[%s]\n", variant.GetName().GetName().c_str() );
+    printf("!!! Name2=[%s]\n", name2.GetName().c_str() );
+    printf("!!! oss=[%s]\n", oss.str().c_str() );
 }
 
 void TokenizerTest::testNull()
@@ -150,6 +171,16 @@ void TokenizerTest::testString()
     Test( "(Hallo\\tWelt!)", ePdfDataType_String, "(Hallo\tWelt!)" );
     Test( "(Hallo\\bWelt!)", ePdfDataType_String, "(Hallo\bWelt!)" );
     Test( "(Hallo\\fWelt!)", ePdfDataType_String, "(Hallo\fWelt!)" );
+}
+
+void TokenizerTest::testDictionary() 
+{
+    const char* pszDictIn = 
+        "<< /CheckBox#C3#9Cbersetzungshinweis(False)/Checkbox#C3#9Cbersetzungstabelle(False) >>";
+    const char* pszDictOut = 
+        "<<\n/CheckBox#C3#9Cbersetzungshinweis (False)\n/Checkbox#C3#9Cbersetzungstabelle (False)\n>>";
+
+    Test( pszDictIn, ePdfDataType_Dictionary, pszDictOut );
 }
 
 void TokenizerTest::TestStream( const char* pszBuffer, const char* pszTokens[] )
