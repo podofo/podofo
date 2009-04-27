@@ -464,7 +464,10 @@ void PdfFlateFilter::EncodeBlockInternal( const char* pBuffer, pdf_long lLen, in
 
         nWrittenData = PODOFO_FILTER_INTERNAL_BUFFER_SIZE - m_stream.avail_out;
         try {
-            GetStream()->Write( reinterpret_cast<char*>(m_buffer), nWrittenData );
+            if( nWrittenData > 0 ) 
+            {
+                GetStream()->Write( reinterpret_cast<char*>(m_buffer), nWrittenData );
+            }
         } catch( PdfError & e ) {
             // clean up after any output stream errors
             FailEncodeDecode();

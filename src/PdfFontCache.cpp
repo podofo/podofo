@@ -553,7 +553,7 @@ PdfFont* PdfFontCache::CreateFontObject( TISortedFontList itSorted, TSortedFontL
         pFont    = PdfFontFactory::CreateFontObject( pMetrics, nFlags, pEncoding, m_pParent );
 
         if( pFont ) 
-	{
+        {
             TFontCacheElement element;
             element.m_pFont     = pFont;
             element.m_bBold     = pFont->IsBold();
@@ -561,9 +561,9 @@ PdfFont* PdfFontCache::CreateFontObject( TISortedFontList itSorted, TSortedFontL
             element.m_sFontName = pszFontName;
             element.m_pEncoding = pEncoding;
 
-	    // Do a sorted insert, so no need to sort again
+            // Do a sorted insert, so no need to sort again
             rvecContainer.insert( itSorted, element );
-	}
+        }
     } catch( PdfError & e ) {
         e.AddToCallstack( __FILE__, __LINE__ );
         e.PrintErrorMsg();
