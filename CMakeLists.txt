@@ -205,12 +205,12 @@ ENDIF(CppUnit_FOUND)
 
 FIND_PACKAGE(OpenSSL)
 
-IF(OPENSSL_FOUND)
-  MESSAGE("Found openssl. Signature support will be build.")
-  SET(HAVE_OPENSSL OPENSSL_FOUND)
-ELSE(OPENSSL_FOUND)
-  MESSAGE("Openssl not found. Signature support will not be build.")
-ENDIF(OPENSSL_FOUND)
+#IF(OPENSSL_FOUND)
+#  MESSAGE("Found openssl. Signature support will be build.")
+#  SET(HAVE_OPENSSL OPENSSL_FOUND)
+#ELSE(OPENSSL_FOUND)
+#  MESSAGE("Openssl not found. Signature support will not be build.")
+#ENDIF(OPENSSL_FOUND)
 
 
 FIND_PACKAGE(FREETYPE REQUIRED)
