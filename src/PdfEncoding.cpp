@@ -67,13 +67,13 @@ void PdfSimpleEncoding::InitEncodingTable()
 
     if( !m_pEncodingTable ) // double check
     {
-	m_pEncodingTable = static_cast<char*>(malloc(sizeof(char)*lTableLength));
+        m_pEncodingTable = static_cast<char*>(malloc(sizeof(char)*lTableLength));
     
-	// fill the table with 0
-	memset( m_pEncodingTable, 0, lTableLength * sizeof(char) ); 
-	// fill the table with data
-	for( int i=0;i<256;i++ )
-	    m_pEncodingTable[ cpUnicodeTable[i] ] = i;
+        // fill the table with 0
+        memset( m_pEncodingTable, 0, lTableLength * sizeof(char) ); 
+        // fill the table with data
+        for( int i=0;i<256;i++ )
+            m_pEncodingTable[ cpUnicodeTable[i] ] = i;
     }
 }
 
@@ -85,9 +85,9 @@ void PdfSimpleEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
 pdf_utf16be PdfSimpleEncoding::GetCharCode( int nIndex ) const
 {
     if( nIndex < this->GetFirstChar() ||
-	nIndex > this->GetLastChar() )
+        nIndex > this->GetLastChar() )
     {
-	PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
     }
 
     const pdf_utf16be* cpUnicodeTable   = this->GetToUnicodeTable();
@@ -141,7 +141,7 @@ PdfString PdfSimpleEncoding::ConvertToEncoding( const PdfString & rString, const
         const_cast<PdfSimpleEncoding*>(this)->InitEncodingTable();
 
     PdfString sSrc = rString.ToUnicode(); // make sure the string is unicode and not PdfDocEncoding!
-    pdf_long      lLen = sSrc.GetCharacterLength();
+    pdf_long  lLen = sSrc.GetCharacterLength();
 
     if( !lLen )
         return PdfString("");

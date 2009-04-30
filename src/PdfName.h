@@ -27,6 +27,10 @@
 namespace PoDoFo {
 
 class PdfOutputDevice;
+class PdfName;
+
+std::size_t hash_value(PdfName const& name);
+
 
 /** This class represents a PdfName.
  *  Whenever a key is required you have to use a PdfName object.
@@ -39,6 +43,7 @@ class PdfOutputDevice;
  */
 class PODOFO_API PdfName : public PdfDataType {
  public:
+
     /** Constructor to create NULL strings.
      *  use PdfName::KeyNull instead of this constructor
      */

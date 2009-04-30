@@ -27,9 +27,44 @@
 #include "PdfName.h"
 #include "PdfObject.h"
 
+/**
+ * PODOFO_USE_UNORDERED_MAP
+ * 
+ * If you set this define, PoDoFo
+ * will use std::tr1::unordered_map instead
+ * of std::map for PdfDictionary.
+ *
+ * Some benchmarking tests using callgrind have shown
+ * that unordered_map is a little faster for writing and AddKey
+ * but of course slower for GetKey and HasKey. As PdfDictionaries
+ * are usually very small the difference for GetKey and HasKey is
+ * not very large and should therefore be rarely noticeable.
+ *
+ * By default this define is not set and std::map will be used.
+ */
+#ifdef PODOFO_USE_UNORDERED_MAP
+#include <tr1/unordered_map>
+#endif // PODOFO_USE_ORDERED_MAP
+
 namespace PoDoFo {
 
+#ifdef PODOFO_USE_UNORDERED_MAP
+class PdfNameHash : public std::unary_function<PdfName, size_t>
+{
+public:
+    size_t operator()( const PdfName& v ) const
+    {
+        std::tr1::hash<std::string> hasher;
+        
+        return hasher( v.GetName() );
+    }
+};
+
+typedef std::tr1::unordered_map<PdfName,PdfObject*, PdfNameHash>      TKeyMap;
+#else
 typedef std::map<PdfName,PdfObject*>      TKeyMap;
+#endif // PODOFO_USE_UNORDERED_MAP
+
 typedef TKeyMap::iterator                 TIKeyMap;
 typedef TKeyMap::const_iterator           TCIKeyMap;
 
