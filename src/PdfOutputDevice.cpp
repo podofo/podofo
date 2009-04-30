@@ -109,6 +109,9 @@ PdfOutputDevice::PdfOutputDevice( PdfRefCountedBuffer* pOutBuffer )
 
 PdfOutputDevice::~PdfOutputDevice()
 {
+    if( m_pStream ) 
+        delete m_pStream; // will call close
+
     if( m_hFile )
         fclose( m_hFile );
 }
