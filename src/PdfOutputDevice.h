@@ -78,6 +78,11 @@ class PODOFO_API PdfOutputDevice {
 
     /** Construct a new PdfOutputDevice that writes all data to a std::ostream.
      *
+     * PdfOutputDevice takes ownership of the stream and will destroy it when writing
+     * is complete.
+     * TODO: Provide option to leave stream intact and restore its locale at end of
+     *       writing.
+     *
      *  \param pOutStream write to this std::ostream
      */
     PdfOutputDevice( const std::ostream* pOutStream );
