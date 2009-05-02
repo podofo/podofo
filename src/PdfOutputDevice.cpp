@@ -98,6 +98,8 @@ PdfOutputDevice::PdfOutputDevice( const std::ostream* pOutStream )
     this->Init();
 
     m_pStream = const_cast< std::ostream* >( pOutStream );
+    m_pStreamOwned = false;
+    m_pStreamSavedLocale = m_pStream->getloc();
     PdfLocaleImbue(*m_pStream);
 }
 
@@ -109,8 +111,11 @@ PdfOutputDevice::PdfOutputDevice( PdfRefCountedBuffer* pOutBuffer )
 
 PdfOutputDevice::~PdfOutputDevice()
 {
-    if( m_pStream ) 
+    if( m_pStreamOwned ) 
+        // remember, deleting a null pointer is safe
         delete m_pStream; // will call close
+    else
+        m_pStream->imbue(m_pStreamSavedLocale);
 
     if( m_hFile )
         fclose( m_hFile );
@@ -126,6 +131,7 @@ void PdfOutputDevice::Init()
     m_pRefCountedBuffer = NULL;
     m_lBufferLen        = 0;
     m_ulPosition        = 0;
+    m_pStreamOwned      = true;
 }
 
 void PdfOutputDevice::Print( const char* pszFormat, ... )
