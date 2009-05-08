@@ -2,6 +2,7 @@ SUBDIRS(
 	podofoencrypt
 	podofoimgextract
 	podofomerge
+	podofopages
 	podofopdfinfo
 	podofotxt2pdf
 	podofotxtextract

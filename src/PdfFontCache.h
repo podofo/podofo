@@ -175,7 +175,7 @@ class PODOFO_API PdfFontCache {
      */
     PdfFont* GetFont( const char* pszFontName, bool bBold, bool bItalic, 
                       bool bEmbedd, 
-		      const PdfEncoding * const = PdfEncodingFactory::GlobalPdfDocEncodingInstance(), 
+                      const PdfEncoding * const = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
                       const char* pszFileName = NULL );
 
 #ifdef _WIN32
@@ -197,7 +197,7 @@ class PODOFO_API PdfFontCache {
      *  UTF-8 to the const char* overload.
      */
     PdfFont* GetFont( const wchar_t* pszFontName, bool bBold, bool bItalic, 
-                      bool bEmbedd, const PdfEncoding * const = PdfEncodingFactory::GlobalPdfDocEncodingInstance() );
+                      bool bEmbedd, const PdfEncoding * const = PdfEncodingFactory::GlobalWinAnsiEncodingInstance() );
 #endif // _WIN32
 
     /** Get a font from the cache. If the font does not yet
@@ -211,7 +211,7 @@ class PODOFO_API PdfFontCache {
      *  \returns a PdfFont object or NULL if the font could
      *           not be created or found.
      */
-    PdfFont* GetFont( FT_Face face, bool bEmbedd, const PdfEncoding * const = PdfEncodingFactory::GlobalPdfDocEncodingInstance() );
+    PdfFont* GetFont( FT_Face face, bool bEmbedd, const PdfEncoding * const = PdfEncodingFactory::GlobalWinAnsiEncodingInstance() );
 
     /** Get a fontsubset from the cache. If the font does not yet
      *  exist, add it to the cache.
@@ -228,7 +228,7 @@ class PODOFO_API PdfFontCache {
      *           not be created or found.
      */
     PdfFont* GetFontSubset( const char* pszFontName, bool bBold, bool bItalic, 
-			    const PdfEncoding * const = PdfEncodingFactory::GlobalPdfDocEncodingInstance(),
+			    const PdfEncoding * const = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(),
 			    const char* pszFileName = NULL);
 
     
@@ -281,7 +281,7 @@ class PODOFO_API PdfFontCache {
      *  \returns a font handle or NULL in case of error
      */
     PdfFont* CreateFontObject( TISortedFontList itSorted, TSortedFontList & vecContainer,
-			       PdfFontMetrics* pMetrics, bool bEmbedd, bool bBold, 
+                               PdfFontMetrics* pMetrics, bool bEmbedd, bool bBold, 
                                bool bItalic, const char* pszFontName, const PdfEncoding * const pEncoding );
 
     /** Create a font subset.

@@ -60,6 +60,8 @@ enum EPdfError {
     ePdfError_InternalLogic,            /**< An internal sanity check or assertion failed. */ 
     ePdfError_InvalidEnumValue,         /**< An invalid enum value was specified. */
 
+    ePdfError_PageNotFound,             /**< The requested page could not be found in the PDF. */
+
     ePdfError_NoPdfFile,                /**< The file is no PDF file. */
     ePdfError_NoXRef,                   /**< The PDF file has no or an invalid XRef table. */
     ePdfError_NoTrailer,                /**< The PDF file has no or an invalid trailer. */

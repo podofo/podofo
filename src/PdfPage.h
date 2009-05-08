@@ -51,6 +51,12 @@ class PODOFO_API PdfPage : public PdfElement, public PdfCanvas {
      *  \param rSize a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
      *  \param pParent add the page to this parent
      */
+    PdfPage( const PdfRect & rSize, PdfDocument* pParent );
+
+    /** Create a new PdfPage object.
+     *  \param rSize a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
+     *  \param pParent add the page to this parent
+     */
     PdfPage( const PdfRect & rSize, PdfVecObjects* pParent );
  
     /** Create a PdfPage based on an existing PdfObject
@@ -209,7 +215,16 @@ class PODOFO_API PdfPage : public PdfElement, public PdfCanvas {
     PdfObject* GetFromResources( const PdfName & rType, const PdfName & rKey );
 
  private:
-   /** Get the bounds of a specified page box in PDF units.
+
+    /**
+     * Initialize a new page object.
+     * m_pContents must be initialized before calling this!
+     *
+     * @param rSize page size
+     */
+    void InitNewPage( const PdfRect & rSize );
+
+    /** Get the bounds of a specified page box in PDF units.
      * This function is internal, since there are wrappers for all standard boxes
      *  \returns PdfRect the page box
      */

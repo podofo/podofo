@@ -81,7 +81,6 @@ void PdfImmediateWriter::WriteObject( const PdfObject* pObject )
     // has excatly the same length.
     m_pDevice->Seek( m_pDevice->Tell() - endObjLenght );
     m_pDevice->Print( "stream\n" );
-
     m_pLast = const_cast<PdfObject*>(pObject);
 }
 

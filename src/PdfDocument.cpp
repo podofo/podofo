@@ -156,9 +156,9 @@ int PdfDocument::GetPageCount() const
 
 PdfPage* PdfDocument::GetPage( int nIndex ) const
 {
-    if( nIndex < 0 || nIndex > m_pPagesTree->GetTotalNumberOfPages() )
+    if( nIndex < 0 || nIndex >= m_pPagesTree->GetTotalNumberOfPages() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+        PODOFO_RAISE_ERROR( ePdfError_PageNotFound );
     }
 
     return m_pPagesTree->GetPage( nIndex );

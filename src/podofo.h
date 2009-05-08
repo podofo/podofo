@@ -74,6 +74,7 @@
 #include "PdfOutputDevice.h"
 #include "PdfPage.h"
 #include "PdfPagesTree.h"
+#include "PdfPagesTreeCache.h"
 #include "PdfPainter.h"
 #include "PdfPainterMM.h"
 #include "PdfParser.h"

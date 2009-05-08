@@ -57,6 +57,7 @@ SET(PODOFO_SOURCES
     PdfOutputStream.cpp
     PdfPage.cpp
     PdfPagesTree.cpp
+    PdfPagesTreeCache.cpp
     PdfPainter.cpp
     PdfPainterMM.cpp
     PdfParser.cpp

@@ -136,7 +136,7 @@ class PODOFO_API PdfDocument {
      *  \returns PdfFont* a pointer to a new PdfFont object.
      *           The returned object is owned by the PdfDocument.
      */
-    PdfFont* CreateFont( const char* pszFontName, const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalPdfDocEncodingInstance(), 
+    PdfFont* CreateFont( const char* pszFontName, const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
                          bool bEmbedd = true );
 
     /** Creates a PdfFont object
@@ -151,7 +151,7 @@ class PODOFO_API PdfDocument {
      *  \returns PdfFont* a pointer to a new PdfFont object.
      */
     PdfFont* CreateFont( const char* pszFontName, bool bBold, bool bItalic, 
-                         const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalPdfDocEncodingInstance(), 
+                         const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
                          bool bEmbedd = true, const char* pszFileName = NULL );
 
 #ifdef _WIN32
@@ -168,7 +168,7 @@ class PODOFO_API PdfDocument {
      *  with unicode characters. On Unix systes you can also path
      *  UTF-8 to the const char* overload.
      */
-    PdfFont* CreateFont( const wchar_t* pszFontName, const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalPdfDocEncodingInstance(), 
+    PdfFont* CreateFont( const wchar_t* pszFontName, const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
                          bool bEmbedd = true );
 
     /** Creates a PdfFont object
@@ -187,7 +187,7 @@ class PODOFO_API PdfDocument {
      *  UTF-8 to the const char* overload.
      */
     PdfFont* CreateFont( const wchar_t* pszFontName, bool bBold, bool bItalic, 
-                         const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalPdfDocEncodingInstance(), 
+                         const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
                          bool bEmbedd = true);
 #endif // _WIN32
 
@@ -199,7 +199,7 @@ class PODOFO_API PdfDocument {
      *  \returns PdfFont* a pointer to a new PdfFont object.
      *           The returned object is owned by the PdfDocument.
      */
-    PdfFont* CreateFont( FT_Face face, const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalPdfDocEncodingInstance(), bool bEmbedd = true );
+    PdfFont* CreateFont( FT_Face face, const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), bool bEmbedd = true );
 
     /** Creates a font subset which contains only a few characters and is embedded.
      *
@@ -213,7 +213,7 @@ class PODOFO_API PdfDocument {
      *  \returns PdfFont* a pointer to a new PdfFont object.
      */
     PdfFont* CreateFontSubset( const char* pszFontName, bool bBold, bool bItalic, 
-			       const PdfEncoding * const = PdfEncodingFactory::GlobalPdfDocEncodingInstance(),
+			       const PdfEncoding * const = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(),
 			       const char* pszFileName = NULL);
 
 #ifdef _WIN32
@@ -233,7 +233,7 @@ class PODOFO_API PdfDocument {
      *  UTF-8 to the const char* overload.
      */
     PdfFont* CreateFontSubset( const wchar_t* pszFontName, bool bBold, bool bItalic, 
-			       const PdfEncoding * const = PdfEncodingFactory::GlobalPdfDocEncodingInstance() );
+			       const PdfEncoding * const = PdfEncodingFactory::GlobalWinAnsiEncodingInstance() );
 #endif // _WIN32
 
     // Peter Petrov 26 April 2008

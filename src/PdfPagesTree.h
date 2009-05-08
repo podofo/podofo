@@ -24,6 +24,7 @@
 #include "PdfArray.h"
 #include "PdfDefines.h"
 #include "PdfElement.h"
+#include "PdfPagesTreeCache.h"
 
 namespace PoDoFo {
 
@@ -31,13 +32,13 @@ class PdfObject;
 class PdfPage;
 class PdfRect;
 
-typedef enum {
-    PageInsertBeforeFirstPage	= -1,
-    PageInsertLastPage		= -2,
-    PageInsertAllPages		= -3,
-    PageInsertOddPagesOnly	= -4,
-    PageInsertEvenPagesOnly	= -5
-} PageInsertionPoints;
+enum EPdfPageInsertionPoint {
+    ePdfPageInsertionPoint_InsertBeforeFirstPage	= -1,
+    ePdfPageInsertionPoint_InsertLastPage		= -2,
+    ePdfPageInsertionPoint_InsertAllPages		= -3,
+    ePdfPageInsertionPoint_InsertOddPagesOnly	= -4,
+    ePdfPageInsertionPoint_InsertEvenPagesOnly	= -5
+};
 
 /** Class for managing the tree of Pages in a PDF document
  *  Don't use this class directly. Use PdfDocument instead.
@@ -46,7 +47,8 @@ typedef enum {
  */
 class PODOFO_API PdfPagesTree : public PdfElement
 {
-	typedef std::deque< PdfPage* >	PdfPageObjects;
+	typedef std::deque< PdfObject* >  PdfObjectList;
+
  public:
     /** Construct a new PdfPagesTree
      */
@@ -87,18 +89,23 @@ class PODOFO_API PdfPagesTree : public PdfElement
     /** Inserts an existing page object into the internal page tree. 
      *	after the specified page number
      *
-     *  \param inAfterPageNumber an integer specifying after what page - may be one of the special values
+     *  \param nAfterPageNumber an integer specifying after what page
+     *         - may be one of the special values from EPdfPageInsertionPoint.
+     *         Pages are 0 based.
+     *         
      *  \param pPage musst be a PdfObject with type /Page
      */
-    void InsertPage( int inAfterPageNumber, PdfObject* pPage );
+    void InsertPage( int nAfterPageNumber, PdfObject* pPage );
 
     /** Inserts an existing page object into the internal page tree. 
      *	after the specified page number
      *
-     *  \param inAfterPageNumber an integer specifying after what page - may be one of the special values
-     *  \param inPage a PdfPage to be inserted
+     *  \param nAfterPageNumber an integer specifying after what page
+     *         - may be one of the special values  from EPdfPageInsertionPoint.
+     *         Pages are 0 based.
+     *  \param nPage a PdfPage to be inserted, the PdfPage will not get owned by the PdfPagesTree
      */
-    void InsertPage( int inAfterPageNumber, PdfPage* inPage );
+    void InsertPage( int nAfterPageNumber, PdfPage* pPage );
 
     /** Creates a new page object and inserts it into the internal
      *  page tree.
@@ -116,18 +123,102 @@ class PODOFO_API PdfPagesTree : public PdfElement
      *   \param inPageNumber the page number (0-based) to be removed
      *
      *   The PdfPage object refering to this page will be deleted by this call!
+     *   Empty page nodes will also be deleted.
      */
     void DeletePage( int inPageNumber );
 
+    /**
+     * Clear internal cache of PdfPage objects.
+     * All references to PdfPage object will become invalid
+     * when calling this method. All PdfPages will be deleted.
+     *
+     * You normally will never have to call this method.
+     * It is only useful if one modified the page nodes 
+     * of the pagestree manually.
+     *
+     */
+    inline void ClearCache();
+
  private:
     PdfPagesTree();	// don't allow construction from nothing!
+
+    PdfObject* GetPageNode( int nPageNum, PdfObject* pParent, PdfObjectList & rLstParents );
+    PdfObject* GetPageNodeFromArray( int nPageNum, const PdfArray & rKidsArray, PdfObjectList & rLstParents );
+
+    int GetChildCount( const PdfObject* pNode ) const;
+
+    /**
+     * Test if a PdfObject is a page node
+     * @return true if PdfObject is a page node
+     */
+    bool IsTypePage( const PdfObject* pObject ) const; 
+
+    /**
+     * Test if a PdfObject is a pages node
+     * @return true if PdfObject is a pages node
+     */
+    bool IsTypePages( const PdfObject* pObject ) const; 
+
+    /**
+     * Find the position of pPageObj in the kids array of pPageParent
+     *
+     * @returns the index in the kids array or -1 if pPageObj is no child of pPageParent
+     */
+    int GetPosInKids( PdfObject* pPageObj, PdfObject* pPageParent );
+
+    /** Private method for adjusting the page count in a tree
+     */
+    int ChangePagesCount( PdfObject* inPageObj, int inDelta );
+
+    /**
+     * Insert a page object into a pages node
+     *
+     * @param pNode the pages node whete pPage is to be inserted
+     * @param rlstParents list of all (future) parent pages nodes in the pages tree
+     *                   of pPage
+     * @param nIndex index where pPage is to be inserted in pNode's kids array
+     * @param pPage the page object which is to be inserted
+     */
+    void InsertPageIntoNode( PdfObject* pNode, const PdfObjectList & rlstParents, 
+                             int nIndex, PdfObject* pPage );
+
+    
+    /**
+     * Delete a page object from a pages node
+     *
+     * @param pNode which is the direct parent of pPage and where the page must be deleted
+     * @param rlstParents list of all parent pages nodes in the pages tree
+     *                   of pPage
+     * @param nIndex index where pPage is to be deleted in pNode's kids array
+     * @param pPage the page object which is to be deleted
+     */
+    void DeletePageFromNode( PdfObject* pNode, const PdfObjectList & rlstParents, 
+                             int nIndex, PdfObject* pPage );
+    
+    /**
+     * Delete a single page node or page object from the kids array of pParent
+     *
+     * @param pParent the parent of the page node which is deleted
+     * @param nIndex index to remove from the kids array of pParent
+     */
+    void DeletePageNode( PdfObject* pParent, int nIndex );
+
+    /**
+     * Tests if a page node is emtpy
+     *
+     * @returns true if Count of page is 0 or the Kids array is empty
+     */
+    bool IsEmptyPageNode( PdfObject* pPageNode );
 
     /** Private method for actually traversing the /Pages tree
      *
      *  \param rListOfParents all parents of the page node will be added to this lists,
      *                        so that the PdfPage can later access inherited attributes
      */
-    PdfObject* GetPageNode( int nPageNum, PdfObject* pPagesObject, std::deque<PdfObject*> & rListOfParents );
+    /*
+    PdfObject* GetPageNode( int nPageNum, PdfObject* pPagesObject, 
+                            std::deque<PdfObject*> & rListOfParents );
+    */
 
     /** Private method for actually traversing the /Pages tree
      *  This method directly traverses the tree and does no
@@ -136,41 +227,27 @@ class PODOFO_API PdfPagesTree : public PdfElement
      *  \param rListOfParents all parents of the page node will be added to this lists,
      *                        so that the PdfPage can later access inherited attributes
      */
-    PdfObject* GetPageNodeFromTree( int nPageNum, const PdfArray & kidsArray, std::deque<PdfObject*> & rListOfParents );
+    /*
+    PdfObject* GetPageNodeFromTree( int nPageNum, const PdfArray & kidsArray, 
+                                    std::deque<PdfObject*> & rListOfParents );
 
+    */
     /** Private method to access the Root of the tree using a logical name
      */
     PdfObject* GetRoot()	{ return m_pObject; }
     const PdfObject* GetRoot() const	{ return m_pObject; }
-    
-    /** Private method for getting the Parent of a node in the /Pages tree
-     */
-    static PdfObject* GetParent( PdfObject* inObject );
-    
-    /** Private method for getting the Kids of a node in the /Pages tree
-     */
-    static PdfObject* GetKids( PdfObject* inObject );
-    
-    /** Private method for determining where a page is in the /Pages tree
-     */
-    int GetPosInKids( PdfObject* inPageObj );
-    
-    /** Private method for adjusting the page count in a tree
-     */
-    int ChangePagesCount( PdfObject* inPageObj, int inDelta );
-    
-    /** Private method for cleaning up after an insertion
-     */
-    void InsertPages( int inAfterIndex, PdfObject* inPageOrPagesObj, PdfObject* inParentObj, int inNumPages );
 
-    /** Private method for getting the PdfObject* for a Page from a specific /Kids array
-     */
-    PdfObject* GetPageFromKidArray( const PdfArray& inArray, int inIndex ) const;
-
-  private:
-    PdfPageObjects    m_deqPageObjs;
-    
+private:
+    PdfPagesTreeCache m_cache;
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfPagesTree::ClearCache() 
+{
+    m_cache.ClearCache();
+}
 
 };
 

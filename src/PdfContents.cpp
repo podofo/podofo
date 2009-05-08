@@ -20,6 +20,8 @@
 
 #include "PdfContents.h"
 
+#include "PdfArray.h"
+#include "PdfDocument.h"
 #include "PdfName.h"
 #include "PdfOutputDevice.h"
 
@@ -27,16 +29,25 @@
 
 namespace PoDoFo {
 
-PdfContents::PdfContents( PdfVecObjects* pParent )
-: mContObj( pParent->CreateObject() )
+PdfContents::PdfContents( PdfDocument* pParent )
+    : PdfElement( NULL, pParent )
 {
+    mContObj = m_pObject;
+}
+
+PdfContents::PdfContents( PdfVecObjects* pParent )
+    : PdfElement( NULL, pParent )
+{
+    mContObj = m_pObject;
 }
 
 PdfContents::PdfContents( PdfObject* inObj )
-: mContObj( inObj )
+    : PdfElement( NULL, inObj )
 {
-    if ( mContObj->GetDataType() == ePdfDataType_Reference )
-        mContObj = inObj->GetOwner()->GetObject( inObj->GetReference() );
+    if ( m_pObject->GetDataType() == ePdfDataType_Reference )
+        mContObj = inObj->GetOwner()->GetObject( m_pObject->GetReference() );
+    else
+        mContObj = m_pObject;
 }
 
 PdfObject* PdfContents::GetContentsForAppending() const

@@ -22,16 +22,21 @@
 #define _PDF_CONTENTS_H_
 
 #include "PdfDefines.h"
-#include "PdfArray.h"
-#include "PdfObject.h"
+#include "PdfElement.h"
 
 namespace PoDoFo {
+
+class PdfObject;
 
 /** A interface that provides a wrapper around "PDF content" -
 	the instructions that are used to draw on the PDF "canvas".
  */
-class PODOFO_API PdfContents {
+class PODOFO_API PdfContents : private PdfElement {
  public:
+
+    /** Construct a new/empty set of contents in the owning objects
+     */
+    PdfContents( PdfDocument* pParent );
 
     /** Construct a new/empty set of contents in the owning objects
      */

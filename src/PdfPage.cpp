@@ -28,21 +28,20 @@
 
 namespace PoDoFo {
 
+PdfPage::PdfPage( const PdfRect & rSize, PdfDocument* pParent )
+    : PdfElement( "Page", pParent ), PdfCanvas()
+{
+    m_pContents = new PdfContents( pParent );
+
+    InitNewPage( rSize );
+}
+
 PdfPage::PdfPage( const PdfRect & rSize, PdfVecObjects* pParent )
     : PdfElement( "Page", pParent ), PdfCanvas()
 {
-    PdfVariant mediabox;
-    rSize.ToVariant( mediabox );
-    m_pObject->GetDictionary().AddKey( "MediaBox", mediabox );
-
-    // The PDF specification suggests that we send all available PDF Procedure sets
-    m_pObject->GetDictionary().AddKey( "Resources", PdfObject( PdfDictionary() ) );
-
-    m_pResources = m_pObject->GetIndirectKey( "Resources" );
-    m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::GetProcSet() );
-
     m_pContents = new PdfContents( pParent );
-    m_pObject->GetDictionary().AddKey( PdfName::KeyContents, m_pContents->GetContents()->Reference());
+
+    InitNewPage( rSize );
 }
 
 PdfPage::PdfPage( PdfObject* pObject, const std::deque<PdfObject*> & rListOfParents )
@@ -83,6 +82,23 @@ PdfPage::~PdfPage()
     }
 
     delete m_pContents;	// just clears the C++ object from memory, NOT the PdfObject
+}
+
+void PdfPage::InitNewPage( const PdfRect & rSize )
+{
+    PdfVariant mediabox;
+    rSize.ToVariant( mediabox );
+    m_pObject->GetDictionary().AddKey( "MediaBox", mediabox );
+
+    // The PDF specification suggests that we send all available PDF Procedure sets
+    m_pObject->GetDictionary().AddKey( "Resources", PdfObject( PdfDictionary() ) );
+
+    m_pResources = m_pObject->GetIndirectKey( "Resources" );
+    m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::GetProcSet() );
+
+    // Add contents to page object
+    // m_pContents must have been initialized before calling this method
+    m_pObject->GetDictionary().AddKey( PdfName::KeyContents, m_pContents->GetContents()->Reference());
 }
 
 PdfRect PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize, bool bLandscape )

@@ -1,0 +1,6 @@
+ADD_EXECUTABLE(podofopages podofopages.cpp DeleteOperation.cpp MoveOperation.cpp)
+TARGET_LINK_LIBRARIES(podofopages ${PODOFO_LIB})
+SET_TARGET_PROPERTIES(podofopages PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
+ADD_DEPENDENCIES(podofopages ${PODOFO_DEPEND_TARGET})
+INSTALL(TARGETS podofopages
+	RUNTIME DESTINATION "bin")

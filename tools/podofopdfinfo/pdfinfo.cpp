@@ -81,6 +81,7 @@ void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
 
     int annotCount;
     int	pgCount = mDoc->GetPageCount();
+    sOutStream << "Page Count: " << pgCount << std::endl;
     for ( int pg=0; pg<pgCount; pg++ ) 
     {
         sOutStream << "Page " << pg << ":" << std::endl;
@@ -207,6 +208,7 @@ std::string PdfInfo::GuessFormat()
 	for ( int pg=0; pg<pgCount; pg++ ) 
 	{
 		curPage = mDoc->GetPage( pg );
+        printf("curPage=%p\n", curPage);
 		rect = curPage->GetMediaBox();
 		Format s( rect.GetWidth() - rect.GetLeft(), rect.GetHeight() - rect.GetBottom());
 		sIt = sizes.find(s);

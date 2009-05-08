@@ -94,7 +94,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     vecCharacters.push_back( static_cast<int>(' ') );
     vecCharacters.push_back( static_cast<int>('-') );
 
-    pFont = pDocument->CreateFontSubset( "Arial Unicode MS", false, false ); //, vecCharacters );
+    pFont = pDocument->CreateFont( "Comic Sans MS", false, false ); //, vecCharacters );
     if( !pFont )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );

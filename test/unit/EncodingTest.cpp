@@ -303,6 +303,7 @@ void EncodingTest::testGetCharCode()
     CPPUNIT_ASSERT_EQUAL_MESSAGE( msg, ret, true );
 
     PdfVecObjects vec;
+    vec.SetAutoDelete( true );
     PdfEncodingDifference difference;
     difference.AddDifference( 0x0041, PdfName("B") );
     difference.AddDifference( 0x0042, PdfName("A") );
