@@ -292,7 +292,7 @@ pdf_long PdfTokenizer::GetNextNumber()
 
     char* end;
 #ifdef _WIN64
-		pdf_long l = _strtoui64( pszRead, &end, 10 );
+    pdf_long l = _strtoui64( pszRead, &end, 10 );
 #else
     pdf_long l = strtol( pszRead, &end, 10 );
 #endif
@@ -300,7 +300,7 @@ pdf_long PdfTokenizer::GetNextNumber()
     {
         // Don't consume the token
         this->QuequeToken( pszRead, eType );
-        PODOFO_RAISE_ERROR( ePdfError_NoNumber );
+        PODOFO_RAISE_ERROR_INFO( ePdfError_NoNumber, pszRead );
     }
 
     return l;

@@ -771,8 +771,6 @@ void PdfParser::ReadXRefStreamContents( pdf_long lOffset, bool bReadOnlyTrailer 
         int nFirstObj = static_cast<int>(vecIndeces[nCurIndex]);
         long long nCount    = vecIndeces[nCurIndex+1];
 
-        PdfError::DebugMessage( "Reading Subrefsection: %li %li\n", nFirstObj, nCount );
-
         while( nCount-- && pBuffer - pStart < lBufferLen ) 
         {
             ReadXRefStreamEntry( pBuffer, lBufferLen, nW, nFirstObj++ );
@@ -813,7 +811,6 @@ void PdfParser::ReadXRefStreamEntry( char* pBuffer, pdf_long, long lW[W_ARRAY_SI
     }
 
     m_offsets[nObjNo].bParsed = true;
-
     switch( nData[0] ) // nData[0] contains the type information of this entry
     {
         case 0:
@@ -1097,14 +1094,14 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int )
     PdfVariant               var;
     int                      i = 0;
 
-    while( i < lNum )
+    while( static_cast<long long>(i) < lNum )
     {
-        const long long lObj          = tokenizer.GetNextNumber();
-        const long long lOff          = tokenizer.GetNextNumber();
+        const long long lObj     = tokenizer.GetNextNumber();
+        const long long lOff     = tokenizer.GetNextNumber();
         const std::streamoff pos = device.Device()->Tell();
 
         // move to the position of the object in the stream
-				device.Device()->Seek( static_cast<std::streamoff>(lFirst + lOff) );
+        device.Device()->Seek( static_cast<std::streamoff>(lFirst + lOff) );
 
         tokenizer.GetNextVariant( var, m_pEncrypt );
         m_vecObjects->push_back( new PdfObject( PdfReference( static_cast<int>(lObj), 0LL ), var ) );
@@ -1135,9 +1132,8 @@ void PdfParser::FindToken( const char* pszToken, const long lRange )
                 "Failed to seek to EOF when looking for xref");
     }
 
-    pdf_long           lXRefBuf  = PDF_MIN( nFileSize, lRange );
-    size_t      nTokenLen = strlen( pszToken );
-    size_t            i;
+    pdf_long lXRefBuf  = PDF_MIN( nFileSize, lRange );
+    size_t   nTokenLen = strlen( pszToken );
 
     m_device.Device()->Seek( -lXRefBuf, std::ios_base::cur );
     if( m_device.Device()->Read( m_buffer.GetBuffer(), lXRefBuf ) != lXRefBuf && !m_device.Device()->Eof() )
@@ -1147,13 +1143,17 @@ void PdfParser::FindToken( const char* pszToken, const long lRange )
 
     m_buffer.GetBuffer()[lXRefBuf] = '\0';
 
+    int i; // Do not make this unsigned, this will cause infinte loops in files without trailer
+ 
     // search backwards in the buffer in case the buffer contains null bytes
     // because it is right after a stream (can't use strstr for this reason)
     for( i = lXRefBuf - nTokenLen; i >= 0; i-- )
+    {
         if( strncmp( m_buffer.GetBuffer()+i, pszToken, nTokenLen ) == 0 )
         {
             break;
         }
+    }
 
     if( !i )
     {

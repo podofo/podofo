@@ -565,7 +565,17 @@ void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* p
     // dictionary if it exists.
     if( pTrailer->GetDictionary().HasKey("Info") )
     {
-        pInfo = new PdfObject( *(m_vecObjects->GetObject( pTrailer->GetDictionary().GetKey( "Info" )->GetReference() ) ) );
+        const PdfReference & rRef = pTrailer->GetDictionary().GetKey( "Info" )->GetReference();
+        const PdfObject* pObj = m_vecObjects->GetObject( rRef );
+
+        if( pObj ) 
+        {
+            pInfo = new PdfObject( *pObj );
+        }
+        else
+        {
+            PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        }
     }
     else 
     {
