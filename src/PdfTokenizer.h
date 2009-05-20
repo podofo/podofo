@@ -26,6 +26,7 @@
 #include "PdfRefCountedInputDevice.h"
 
 #include <deque>
+#include <sstream>
 
 namespace PoDoFo {
 
@@ -239,6 +240,10 @@ class PODOFO_API PdfTokenizer {
                                    // because we might read a unicode
                                    // string which is allowed to contain 0 bytes.
 
+    /// An istringstream which is used
+    /// to read double values instead of strtod
+    /// which is locale depend.
+    std::istringstream m_doubleParser;
 };
 
 // -----------------------------------------------------

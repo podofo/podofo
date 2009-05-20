@@ -248,3 +248,14 @@ void TokenizerTest::testComments()
     TestStream( pszBuffer, pszTokens );
     TestStreamIsNextToken( pszBuffer, pszTokens );
 }
+
+void TokenizerTest::testLocale()
+{
+    // Test with a locale thate uses "," instead of "." for doubles 
+    char *old = setlocale( LC_ALL, "de_DE" ); 
+
+    const char* pszNumber = "3.140000";
+    Test( pszNumber, ePdfDataType_Real, pszNumber );
+
+    setlocale( LC_ALL, old );
+}

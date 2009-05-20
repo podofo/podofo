@@ -46,6 +46,7 @@ class TokenizerTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testTokens );
   CPPUNIT_TEST( testComments );
   CPPUNIT_TEST( testDictionary );
+  CPPUNIT_TEST( testLocale );
   CPPUNIT_TEST_SUITE_END();
 
  public:
@@ -64,6 +65,8 @@ class TokenizerTest : public CppUnit::TestFixture
 
   void testTokens();
   void testComments();
+
+  void testLocale();
 
  private:
   void Test( const char* pszString, PoDoFo::EPdfDataType eDataType, const char* pszExpected = NULL );

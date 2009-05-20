@@ -130,18 +130,19 @@ const char PdfTokenizer::m_octMap[]        = {
 PdfTokenizer::PdfTokenizer()
     : m_buffer( PDF_BUFFER )
 {
-
+    PdfLocaleImbue(m_doubleParser);
 }
 
 PdfTokenizer::PdfTokenizer( const char* pBuffer, size_t lLen )
     : m_device( pBuffer, lLen ), m_buffer( PDF_BUFFER )
 {
-
+    PdfLocaleImbue(m_doubleParser);
 }
 
 PdfTokenizer::PdfTokenizer( const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer )
     : m_device( rDevice ), m_buffer( rBuffer )
 {
+    PdfLocaleImbue(m_doubleParser);
 }
 
 PdfTokenizer::~PdfTokenizer()
@@ -378,7 +379,18 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
 
         if( eDataType == ePdfDataType_Real ) 
         {
-            rVariant = PdfVariant( strtod( pszToken, NULL ) );
+            // DOM: strtod is locale dependend,
+            //      do not use it
+            //double dVal = strtod( pszToken, NULL );
+            double dVal;
+
+            m_doubleParser.str( pszToken );
+            if( !(m_doubleParser >> dVal) ) 
+            {
+                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, pszToken );
+            }
+
+            rVariant = PdfVariant( dVal );
             return ePdfDataType_Real;
         }
         else if( eDataType == ePdfDataType_Number ) 

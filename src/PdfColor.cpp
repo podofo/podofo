@@ -21,6 +21,7 @@
 #include "PdfColor.h"
 
 #include "PdfArray.h"
+#include "PdfLocale.h"
 #include "PdfTokenizer.h"
 #include "PdfVariant.h"
 
@@ -507,10 +508,13 @@ PdfColor PdfColor::FromString( const char* pszName )
         // first see if it's a single number - if so, that's a single gray value
         if( isdigit( pszName[0] ) || pszName[0] == '.' ) 
         {
-            char* pszEnd = const_cast<char*>(pszName);
-            double dGrayVal = strtod( pszName, &pszEnd );
+            double dGrayVal;
 
-            if( pszEnd == pszName ) // error in conversion
+            std::istringstream stream( pszName );
+            PdfLocaleImbue(stream);
+
+            if( !(stream >> dGrayVal) ) 
+                // error in conversion
                 return PdfColor();
             else
                 return PdfColor( dGrayVal );
