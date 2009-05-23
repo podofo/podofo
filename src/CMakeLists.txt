@@ -145,6 +145,7 @@ SET(PODOFO_HEADERS
     PdfOutputStream.h
     PdfPage.h
     PdfPagesTree.h
+    PdfPagesTreeCache.h
     PdfPainter.h
     PdfPainterMM.h
     PdfParser.h
