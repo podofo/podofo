@@ -301,7 +301,14 @@ void PdfFilter::BeginEncode( PdfOutputStream* pOutput )
 {
     PODOFO_RAISE_LOGIC_IF( m_pOutputStream, "BeginEncode() on failed filter or without EndEncode()" );
     m_pOutputStream = pOutput;
-    BeginEncodeImpl();
+
+	try {
+		BeginEncodeImpl();
+	} catch( const PdfError & e ) {
+		// Clean up and close stream
+		this->FailEncodeDecode();
+		throw e;
+	}
 }
  
 // -----------------------------------------------------
@@ -310,7 +317,14 @@ void PdfFilter::BeginEncode( PdfOutputStream* pOutput )
 void PdfFilter::EncodeBlock( const char* pBuffer, pdf_long lLen )
 {
     PODOFO_RAISE_LOGIC_IF( !m_pOutputStream, "EncodeBlock() without BeginEncode() or on failed filter" );
-    EncodeBlockImpl(pBuffer, lLen);
+
+	try {
+		EncodeBlockImpl(pBuffer, lLen);
+	} catch( const PdfError & e ) {
+		// Clean up and close stream
+		this->FailEncodeDecode();
+		throw e;
+	}
 }
 
 // -----------------------------------------------------
@@ -319,7 +333,14 @@ void PdfFilter::EncodeBlock( const char* pBuffer, pdf_long lLen )
 void PdfFilter::EndEncode()
 {
     PODOFO_RAISE_LOGIC_IF( !m_pOutputStream, "EndEncode() without BeginEncode() or on failed filter" );
-    EndEncodeImpl();
+
+	try {
+		EndEncodeImpl();
+	} catch( const PdfError & e ) {
+		// Clean up and close stream
+		this->FailEncodeDecode();
+		throw e;
+	}    
 
     m_pOutputStream->Close();
     m_pOutputStream = NULL;
@@ -332,7 +353,14 @@ void PdfFilter::BeginDecode( PdfOutputStream* pOutput, const PdfDictionary* pDec
 {
     PODOFO_RAISE_LOGIC_IF( m_pOutputStream, "BeginDecode() on failed filter or without EndDecode()" );
     m_pOutputStream = pOutput;
-    BeginDecodeImpl( pDecodeParms );
+
+	try {
+		BeginDecodeImpl( pDecodeParms );
+	} catch( const PdfError & e ) {
+		// Clean up and close stream
+		this->FailEncodeDecode();
+		throw e;
+	}    
 }
 
 // -----------------------------------------------------
@@ -341,7 +369,14 @@ void PdfFilter::BeginDecode( PdfOutputStream* pOutput, const PdfDictionary* pDec
 void PdfFilter::DecodeBlock( const char* pBuffer, pdf_long lLen )
 {
     PODOFO_RAISE_LOGIC_IF( !m_pOutputStream, "DecodeBlock() without BeginDecode() or on failed filter" )
-    DecodeBlockImpl(pBuffer, lLen);
+
+	try {
+		DecodeBlockImpl(pBuffer, lLen);
+	} catch( const PdfError & e ) {
+		// Clean up and close stream
+		this->FailEncodeDecode();
+		throw e;
+	}    
 }
 
 // -----------------------------------------------------
@@ -350,7 +385,14 @@ void PdfFilter::DecodeBlock( const char* pBuffer, pdf_long lLen )
 void PdfFilter::EndDecode()
 {
     PODOFO_RAISE_LOGIC_IF( !m_pOutputStream, "EndDecode() without BeginDecode() or on failed filter" )
-    EndDecodeImpl();
+
+	try {
+	    EndDecodeImpl();
+	} catch( const PdfError & e ) {
+		// Clean up and close stream
+		this->FailEncodeDecode();
+		throw e;
+	}    
 
     m_pOutputStream->Close();
     m_pOutputStream = NULL;

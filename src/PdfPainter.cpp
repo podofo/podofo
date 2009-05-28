@@ -99,7 +99,16 @@ PdfPainter::PdfPainter()
 
 PdfPainter::~PdfPainter()
 {
-    PODOFO_RAISE_LOGIC_IF( m_pCanvas, "FinishPage() has to be called after a page is completed!" );
+	// Throwing exceptions in C++ destructors is not allowed.
+	// Just log the error.
+    // PODOFO_RAISE_LOGIC_IF( m_pCanvas, "FinishPage() has to be called after a page is completed!" );
+    // Note that we can't do this for the user, since FinishPage() might
+    // throw and we can't safely have that in a dtor. That also means
+    // we can't throw here, but must abort.
+	PdfError::LogMessage( eLogSeverity_Error, 
+		"PdfPainter::~PdfPainter(): FinishPage() has to be called after a page is completed!" );
+
+    assert(!m_pCanvas);
 }
 
 void PdfPainter::SetPage( PdfCanvas* pPage )
@@ -132,8 +141,16 @@ void PdfPainter::SetPage( PdfCanvas* pPage )
 
 void PdfPainter::FinishPage()
 {
-    if( m_pCanvas )
-        m_pCanvas->EndAppend();
+	try { 
+		if( m_pCanvas )
+			m_pCanvas->EndAppend();
+	} catch( const PdfError & e ) {
+	    // clean up, even in case of error
+		m_pCanvas = NULL;
+		m_pPage   = NULL;
+
+		throw e;
+	}
 
     m_pCanvas = NULL;
     m_pPage   = NULL;
