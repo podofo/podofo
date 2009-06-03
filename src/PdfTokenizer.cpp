@@ -384,9 +384,11 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
             //double dVal = strtod( pszToken, NULL );
             double dVal;
 
+            m_doubleParser.clear(); // clear error state
             m_doubleParser.str( pszToken );
-            if( !(m_doubleParser >> dVal) ) 
+            if( !(m_doubleParser >> dVal) )
             {
+                m_doubleParser.clear(); // clear error state
                 PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, pszToken );
             }
 

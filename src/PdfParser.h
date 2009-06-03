@@ -307,6 +307,27 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      */
     void SetPassword( const std::string & sPassword );
 
+    /**
+     * \returns true if strict parsing mode is enabled
+     *
+     * \see SetStringParsing
+     */
+    inline bool IsStrictParsing() const;
+
+    /**
+     * Enable/disable strict parsing mode.
+     * Strict parsing is by default disabled.
+     *
+     * If you enable strict parsing, PoDoFo will fail
+     * on a few more common PDF failures. Please not 
+     * that PoDoFo's parser is by default very strict
+     * already and does not recover from e.g. wrong XREF
+     * tables.
+     *
+     * \param bStrict new setting for strict parsing mode.
+     */
+    inline void SetStringParsing( bool bStrict );
+
  protected:
     /** Searches backwards from the end of the file
      *  and tries to find a token.
@@ -485,6 +506,8 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     bool          m_xrefSizeUnknown;
 
     std::set<int> m_setObjectStreams;
+
+    bool          m_bStringParsing;
 };
 
 // -----------------------------------------------------
@@ -527,6 +550,22 @@ PdfEncrypt* PdfParser::TakeEncrypt()
     PdfEncrypt* pEncrypt = m_pEncrypt;
     m_pEncrypt = NULL; 
     return pEncrypt; 
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfParser::IsStrictParsing() const
+{
+    return m_bStringParsing;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfParser::SetStringParsing( bool bStrict )
+{
+    m_bStringParsing = bStrict;
 }
 
 };

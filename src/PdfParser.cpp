@@ -115,6 +115,8 @@ void PdfParser::Init()
     m_nFirstObject    = 0;
     m_nNumObjects     = 0;
     m_nXRefLinearizedOffset = 0;
+
+    m_bStringParsing  = false;
 }
 
 void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
@@ -965,7 +967,7 @@ void PdfParser::ReadObjectsInternal()
     // Read objects
     for( i=0; i < m_nNumObjects; i++ )
     {
-        if( m_offsets[i].bParsed && m_offsets[i].cUsed == 'n' )
+        if( m_offsets[i].bParsed && m_offsets[i].cUsed == 'n' && m_offsets[i].lOffset > 0 )
         {
             pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, m_offsets[i].lOffset );
             pObject->SetLoadOnDemand( m_bLoadOnDemand );
@@ -993,6 +995,24 @@ void PdfParser::ReadObjectsInternal()
 
                 e.AddToCallstack( __FILE__, __LINE__, oss.str().c_str() );
                 throw e;
+            }
+        }
+        else if( m_offsets[i].bParsed && m_offsets[i].cUsed == 'n' && (m_offsets[i].lOffset == 0)  )
+        {
+            // There are broken PDFs which add objects with 'n' 
+            // and 0 offset and 0 generation number
+            // to the xref table instead of using free objects
+            // treating them as free objects
+            if( m_bStringParsing ) 
+            {
+                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidXRef,
+                                         "Found object with 0 offset which should be 'f' instead of 'n'." );
+            }
+            else
+            {
+                PdfError::LogMessage( eLogSeverity_Warning, 
+                                      "Treating object %i 0 R as a free object." );
+                m_vecObjects->AddFreeObject( PdfReference( i, 1LL ) );
             }
         }
         else if( m_offsets[i].bParsed && m_offsets[i].cUsed == 'f' && m_offsets[i].lOffset )

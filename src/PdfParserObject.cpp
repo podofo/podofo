@@ -92,7 +92,8 @@ void PdfParserObject::ReadObjectNumber()
         pdf_long obj = this->GetNextNumber();
         pdf_long gen = this->GetNextNumber();
 
-        m_reference = PdfReference( (unsigned int)obj, static_cast<pdf_uint16>(gen) );
+        m_reference = PdfReference( static_cast<unsigned int>(obj)
+, static_cast<pdf_uint16>(gen) );
     } catch( PdfError & e ) {
         std::string errStr( e.what() );       // avoid compiler warning and in case we need it...
         PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, "Object and generation number cannot be read." );
@@ -294,11 +295,11 @@ void PdfParserObject::ParseStream()
     {
         m_pEncrypt->SetCurrentReference( m_reference );
         PdfInputStream* pInput = m_pEncrypt->CreateEncryptionInputStream( &reader );
-        this->GetStream_NoDL()->SetRawData( pInput, (pdf_long)lLen );
+        this->GetStream_NoDL()->SetRawData( pInput, static_cast<pdf_long>(lLen) );
         delete pInput;
     }
     else
-        this->GetStream_NoDL()->SetRawData( &reader, (pdf_long)lLen );
+        this->GetStream_NoDL()->SetRawData( &reader, static_cast<pdf_long>(lLen) );
 
     this->SetDirty( false );
     /*

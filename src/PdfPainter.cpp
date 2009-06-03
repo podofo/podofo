@@ -615,7 +615,7 @@ void PdfPainter::DrawCircle( double dX, double dY, double dRadius )
 
 void PdfPainter::DrawText( double dX, double dY, const PdfString & sText )
 {
-    this->DrawText( dX, dY, sText, (long)sText.GetCharacterLength() );
+    this->DrawText( dX, dY, sText, static_cast<long>(sText.GetCharacterLength()) );
 }
 
 void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long lStringLen )
@@ -1207,8 +1207,8 @@ bool PdfPainter::InternalArc(
 
     double rx0, ry0, rx1, ry1, rx2, ry2, rx3, ry3;
     double x0, y0, x1, y1, x2, y2, x3, y3;
-    double delta_angle = (90.0f - (double)(ang1 + ang2) / 2.0f) / 180.0f * PI;
-    double new_angle = (double)(ang2 - ang1) / 2.0f / 180.0f * PI;
+    double delta_angle = (90.0f - static_cast<double>(ang1 + ang2) / 2.0f) / 180.0f * PI;
+    double new_angle = static_cast<double>(ang2 - ang1) / 2.0f / 180.0f * PI;
 
     rx0 = ray * cos (new_angle);
     ry0 = ray * sin (new_angle);
