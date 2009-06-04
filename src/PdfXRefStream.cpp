@@ -104,7 +104,7 @@ void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, size_t lOffset, unsigned l
 		// [Alexey] I have no idea what to do here, Its format dependend
     *pValue             = static_cast<STREAM_OFFSET_TYPE>(lOffset);
 #ifdef PODOFO_IS_LITTLE_ENDIAN
-    *pValue = static_cast<STREAM_OFFSET_TYPE>(static_cast<long long>(htonl( static_cast<u_long>(*pValue) )));
+    *pValue = static_cast<STREAM_OFFSET_TYPE>(static_cast<long long>(htonl( static_cast<unsigned long>(*pValue) )));
 #endif // PODOFO_IS_LITTLE_ENDIAN
     
     m_pObject->GetStream()->Append( buffer, m_lBufferLen );
