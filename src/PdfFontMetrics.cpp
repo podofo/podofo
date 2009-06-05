@@ -47,7 +47,7 @@ namespace PoDoFo {
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename, 
                                 const char* pszSubsetPrefix )
     : m_sFilename( pszFilename ), m_pLibrary( pLibrary ), 
-      m_fFontSize( 0.0f ), 
+      m_bSymbol( false ), m_fFontSize( 0.0f ), 
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown ),
       m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" )
@@ -73,7 +73,7 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename,
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen,
 				const char* pszSubsetPrefix )
     : m_sFilename( "" ), m_pLibrary( pLibrary ), 
-      m_fFontSize( 0.0f ),
+      m_bSymbol( false ), m_fFontSize( 0.0f ),
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown ),
       m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" )
@@ -86,9 +86,9 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsig
 }
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const PdfRefCountedBuffer & rBuffer,
-				const char* pszSubsetPrefix )
-    : m_sFilename( "" ), m_pLibrary( pLibrary ), m_bufFontData( rBuffer ),
-      m_fFontSize( 0.0f ),
+                                const char* pszSubsetPrefix )
+    : m_sFilename( "" ), m_pLibrary( pLibrary ), 
+      m_bSymbol( false ), m_bufFontData( rBuffer ), m_fFontSize( 0.0f ),
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown ),
       m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" )
@@ -98,7 +98,7 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const PdfRefCountedBuffer 
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, FT_Face face, const char* pszSubsetPrefix  )
     : m_face( face ), m_sFilename( "" ), m_pLibrary( pLibrary ), 
-      m_fFontSize( 0.0f ), 
+      m_bSymbol( false ), m_fFontSize( 0.0f ), 
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown ),
       m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" )
@@ -111,7 +111,7 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, FT_Face face, const char* 
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, PdfObject* pDescriptor )
     : m_sFilename( "" ), m_pLibrary( pLibrary ), 
-      m_fFontSize( 0.0f ), 
+      m_bSymbol( false ), m_fFontSize( 0.0f ), 
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown )
 {
@@ -172,11 +172,23 @@ void PdfFontMetrics::InitFromFace()
         m_dPdfDescent = m_face->descender * 1000.0 / m_face->units_per_EM;
     }
 
-
     // Try to get a unicode charmap
     FT_Select_Charmap( m_face, FT_ENCODING_UNICODE );
 
+    // Try to determine if it is a symbol font
+    for( int c=0;c<m_face->num_charmaps;c++ ) 
+    {  
+        FT_CharMap charmap = m_face->charmaps[c]; 
 
+        if( charmap->encoding == FT_ENCODING_MS_SYMBOL ) 
+        {
+            m_bSymbol = true;
+            FT_Set_Charmap( m_face, charmap );
+            break;
+        }
+        // TODO: Also check for FT_ENCODING_ADOBE_CUSTOM and set it?
+    }
+    
     // we cache the 256 first width entries as they 
     // are most likely needed quite often
     m_vecWidth.clear();
@@ -187,7 +199,14 @@ void PdfFontMetrics::InitFromFace()
             m_vecWidth.push_back( 0.0  );
         else
         {
-            if( !FT_Load_Char( m_face, i, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP ) )  // | FT_LOAD_NO_RENDER
+            int index = i;
+            // Handle symbol fonts
+            if( m_bSymbol ) 
+            {
+                index = index | 0xf000;
+            }
+
+            if( !FT_Load_Char( m_face, index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP ) )  // | FT_LOAD_NO_RENDER
             {
                 //m_vecWidth.push_back( 0.0  );
                 //continue;
@@ -1299,8 +1318,11 @@ long PdfFontMetrics::GetGlyphId( long lUnicode ) const
 {
     long lGlyph = 0L;
 
-    // TODO: Handle symbol fonts!
-
+    // Handle symbol fonts!
+    if( m_bSymbol ) 
+    {
+        lUnicode = lUnicode | 0xf000;
+    }
     lGlyph = FT_Get_Char_Index( m_face, lUnicode );
 
     return lGlyph;

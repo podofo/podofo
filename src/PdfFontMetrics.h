@@ -373,7 +373,21 @@ class PODOFO_API PdfFontMetrics {
      */
     long GetGlyphId( long lUnicode ) const;
 
-    FT_Face GetFace() { return m_face; }; 
+    /** Get direct access to the internal FreeType handle
+     * 
+     *  \returns the internal freetype handle
+     */
+    inline FT_Face GetFace();
+ 
+    /** Symbol fonts do need special treatment in a few cases.
+     *  Use this method to check if the current font is a symbol
+     *  font. Symbold fonts are detected by checking 
+     *  if they use FT_ENCODING_MS_SYMBOL as internal encoding.
+     * 
+     * \returns true if this is a symbol font
+     */
+    inline bool IsSymbol() const;
+
  private:
     
     /** Initialize this object from an in memory buffer
@@ -404,6 +418,8 @@ class PODOFO_API PdfFontMetrics {
     FT_Library*   m_pLibrary;
 
  private:
+    bool          m_bSymbol;  ///< Internal member to singnal a symbol font
+
     unsigned int  m_nWeight;
     int           m_nItalicAngle;
 
@@ -619,6 +635,22 @@ float PdfFontMetrics::GetFontScale() const
 float PdfFontMetrics::GetFontCharSpace() const
 {
     return m_fFontCharSpace;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+FT_Face PdfFontMetrics::GetFace() 
+{ 
+    return m_face; 
+} 
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfFontMetrics::IsSymbol() const
+{
+    return m_bSymbol;
 }
  
 };
