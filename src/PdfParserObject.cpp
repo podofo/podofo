@@ -202,7 +202,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
         }
         else
         {
-            PODOFO_RAISE_ERROR( ePdfError_NoObject );
+            PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, pszToken );
         }
     }
 }

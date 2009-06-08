@@ -77,6 +77,24 @@ void VariantTest::tearDown()
 {
 }
 
+void VariantTest::testNameObject()
+{
+    const char* pszObject = 
+        "10 0 obj / endobj\n";
+
+    
+    PdfRefCountedInputDevice device( pszObject, strlen( pszObject ) );
+    PdfRefCountedBuffer buffer( 1024 );
+    PdfVecObjects vecObjects;
+
+    PdfParserObject parser( &vecObjects, device, buffer, 0 );
+    parser.SetLoadOnDemand( false );
+    parser.ParseFile( NULL );
+
+    CPPUNIT_ASSERT_EQUAL( parser.IsName(), true );
+    CPPUNIT_ASSERT_EQUAL( parser.GetName().GetName(), std::string("") );
+}
+
 void VariantTest::testIsDirtyTrue()
 {
     PdfArray array;

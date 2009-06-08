@@ -165,7 +165,7 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
 
         strcpy( m_buffer.GetBuffer(), pair.first.c_str() );
         pszToken = m_buffer.GetBuffer();
-	return true;
+        return true;
     }
     
     if( !m_device.Device() )
@@ -705,8 +705,21 @@ void PdfTokenizer::ReadName( PdfVariant& rVariant )
 {
     EPdfTokenType eType;
     const char*   pszToken;
-    bool gotToken = this->GetNextToken( pszToken, &eType );
 
+    // Do special checking for empty names
+    // as GetNextToken will ignore white spaces 
+    // and we have to take care for stuff like:
+    // 10 0 obj / endobj
+    // which stupid but legal PDF
+    int c = m_device.Device()->Look();
+    if( IsWhitespace( c ) ) // Delimeters are handled correctly by GetNextToken
+    {
+        // We are an empty PdfName
+        rVariant = PdfName();
+        return;
+    }
+
+    bool gotToken = this->GetNextToken( pszToken, &eType );
     if( !gotToken || eType != ePdfTokenType_Token )
     {
         // We got an empty name which is legal according to the PDF specification

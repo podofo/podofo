@@ -63,6 +63,9 @@ void TokenizerTest::testArrays()
 {
     Test( "[]", ePdfDataType_Array, "[ ]" );
     Test( "[ ]", ePdfDataType_Array );
+    Test( "[ / ]", ePdfDataType_Array, "[ / ]" ); // empty names are legal, too!
+    Test( "[ / [ ] ]", ePdfDataType_Array, "[ / [ ] ]" ); // empty names are legal, too!
+    Test( "[/[]]", ePdfDataType_Array, "[ / [ ] ]" ); // empty names are legal, too!
     Test( "[ 1 2 3 4 ]", ePdfDataType_Array );
     Test( "[1 2 3 4]", ePdfDataType_Array, "[ 1 2 3 4 ]" );
     Test( "[ 2 (Hallo Welt!) 3.500000 /FMC ]", ePdfDataType_Array );
