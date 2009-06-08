@@ -65,6 +65,12 @@ int main(int argc, char* argv[])
           }
           else if(argument=="--test" || argument=="-test" && i+1 < argc) 
           {
+              if( i == argc - 1 ) 
+              {
+                  show_help();
+                  return 0;
+              }
+
               i++;
               sTestName = argv[i];
           }
