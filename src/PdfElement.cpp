@@ -62,6 +62,21 @@ PdfElement::PdfElement( const char* pszType, PdfObject* pObject )
     }
 }
 
+PdfElement::PdfElement( EPdfDataType eExpectedDataType, PdfObject* pObject ) 
+{
+    if( !pObject )         
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    m_pObject = pObject;
+
+    if( m_pObject->GetDataType() != eExpectedDataType ) 
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+}
+
 PdfElement::~PdfElement()
 {
 }

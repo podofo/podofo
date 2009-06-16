@@ -78,6 +78,8 @@ class PODOFO_API PdfElement {
     PdfElement( const char* pszType, PdfDocument* pParent );
 
     /** Create a PdfElement from an existing PdfObject
+     *  The object must be a dictionary.
+     *
      *  \param pszType type entry of the elements object.
      *                 Throws an exception if the type in the 
      *                 PdfObject differs from pszType.
@@ -85,6 +87,19 @@ class PODOFO_API PdfElement {
      *                 by this PdfElement
      */
     PdfElement( const char* pszType, PdfObject* pObject );
+
+    /** Create a PdfElement from an existing PdfObject
+     *  The object might be of any data type, 
+     *  PdfElement will throw an exception if the PdfObject
+     *  if not of the same datatype as the expected one.
+     *  This is necessary in rare cases. E.g. in PdfContents.
+     *
+     *  \param eExpectedDataType the expected datatype of this object
+     *  \param pObject pointer to the PdfObject that is modified
+     *                 by this PdfElement
+     */
+    PdfElement( EPdfDataType eExpectedDataType, PdfObject* pObject );
+
 
     /** Convert an enum or index to its string representation
      *  which can be written to the PDF file.

@@ -42,7 +42,12 @@ PdfContents::PdfContents( PdfVecObjects* pParent )
 }
 
 PdfContents::PdfContents( PdfObject* inObj )
-    : PdfElement( NULL, inObj )
+    // A PdfElement expects normally a dictionary
+    // But we may get here, a reference, a dictionary
+    // or an array. Therefore, tell PdfElement
+    // that we also want to accept the datatype of 
+    // the object we send in.
+    : PdfElement( inObj->GetDataType(), inObj )
 {
     if ( m_pObject->GetDataType() == ePdfDataType_Reference )
         mContObj = inObj->GetOwner()->GetObject( m_pObject->GetReference() );
