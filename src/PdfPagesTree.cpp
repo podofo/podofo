@@ -300,7 +300,9 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
                 else // Type == Page
                 {
                     // Skip a normal page
-                    nPageNum--;
+                    if(nPageNum > 0 )
+                        nPageNum--;
+
                     if( 0 == nPageNum )
                     {
                         rLstParents.push_back( pParent );

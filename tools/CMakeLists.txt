@@ -1,4 +1,5 @@
 SUBDIRS(
+        podofocountpages
 	podofoencrypt
 	podofoimgextract
 	podofomerge

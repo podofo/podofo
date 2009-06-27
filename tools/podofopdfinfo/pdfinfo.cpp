@@ -208,7 +208,6 @@ std::string PdfInfo::GuessFormat()
 	for ( int pg=0; pg<pgCount; pg++ ) 
 	{
 		curPage = mDoc->GetPage( pg );
-        printf("curPage=%p\n", curPage);
 		rect = curPage->GetMediaBox();
 		Format s( rect.GetWidth() - rect.GetLeft(), rect.GetHeight() - rect.GetBottom());
 		sIt = sizes.find(s);
