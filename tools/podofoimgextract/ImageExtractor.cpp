@@ -56,31 +56,29 @@ void ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnN
     {
         if( (*it)->IsDictionary() )
         {            
-            pObj = (*it)->GetDictionary().GetKey( PdfName::KeyType );
-            if( pObj && pObj->IsName() && ( pObj->GetName().GetName() == "XObject" ) )
+            PdfObject* pObjType = (*it)->GetDictionary().GetKey( PdfName::KeyType );
+            PdfObject* pObjSubType = (*it)->GetDictionary().GetKey( PdfName::KeySubtype );
+            if( ( pObjType && pObjType->IsName() && ( pObjType->GetName().GetName() == "XObject" ) ) ||
+                ( pObjSubType && pObjSubType->IsName() && ( pObjSubType->GetName().GetName() == "Image" ) ) )
             {
-                pObj = (*it)->GetDictionary().GetKey( PdfName::KeySubtype );
-                if( pObj && pObj->IsName() && ( pObj->GetName().GetName() == "Image" ) )
+                pObj = (*it)->GetDictionary().GetKey( PdfName::KeyFilter );
+                if( pObj->IsName() && ( pObj->GetName().GetName() == "DCTDecode" ) )
                 {
-                    pObj = (*it)->GetDictionary().GetKey( PdfName::KeyFilter );
-                    if( pObj->IsName() && ( pObj->GetName().GetName() == "DCTDecode" ) )
-                    {
-                        // The only filter is JPEG -> create a JPEG file
-                        ExtractImage( *it, true );
-                    }
-                    else if( pObj->IsArray() && pObj->GetArray().GetSize() == 1 && 
-                             pObj->GetArray()[0].IsName() && (pObj->GetArray()[0].GetName().GetName() == "DCTDecode") )
-                    {
-                        // The only filter is JPEG -> create a JPEG file
-                        ExtractImage( *it, true );
-                    }
-                    else
-                    {
-                        ExtractImage( *it, false );
-                    }
-
-                    document.FreeObjectMemory( *it );
+                    // The only filter is JPEG -> create a JPEG file
+                    ExtractImage( *it, true );
                 }
+                else if( pObj->IsArray() && pObj->GetArray().GetSize() == 1 && 
+                         pObj->GetArray()[0].IsName() && (pObj->GetArray()[0].GetName().GetName() == "DCTDecode") )
+                {
+                    // The only filter is JPEG -> create a JPEG file
+                    ExtractImage( *it, true );
+                }
+                else
+                {
+                    ExtractImage( *it, false );
+                }
+                
+                document.FreeObjectMemory( *it );
             }
         }
 
