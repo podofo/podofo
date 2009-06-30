@@ -109,5 +109,16 @@ void PdfExtGState::SetRenderingIntent( char* intent )
     m_pObject->GetDictionary().AddKey( "RI", PdfVariant( PdfName( intent ) ) );
 }
 
+void PdfExtGState::SetFrequency( double frequency )
+{
+	PdfDictionary halftoneDict;
+	halftoneDict.AddKey( "HalftoneType", PdfVariant( 1LL ) );
+	halftoneDict.AddKey( "Frequency", PdfVariant( frequency ) );
+	halftoneDict.AddKey( "Angle", PdfVariant( 45.0 ) );
+	halftoneDict.AddKey( "SpotFunction", PdfName( "SimpleDot" ) );
+
+    m_pObject->GetDictionary().AddKey( "HT", halftoneDict);
+}
+
 
 }	// end namespace

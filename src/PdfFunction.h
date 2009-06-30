@@ -44,6 +44,7 @@ class PODOFO_API PdfFunction : public PdfElement {
 public:
 
     typedef std::list<PdfFunction> List;
+    typedef std::list<char> Sample;
 
     virtual ~PdfFunction();
 
@@ -79,6 +80,43 @@ private:
      *                 where each number describes either the lower or upper boundary of the input range.
      */
     void Init( EPdfFunctionType eType, const PdfArray & rDomain );
+
+};
+
+/** This class is a PdfSampledFunction.
+ */
+class PODOFO_API PdfSampledFunction : public PdfFunction {
+public:
+    /** Create a new PdfSampledFunction object.
+     *
+     *  \param rDomain this array describes the input parameters of this PdfFunction. If this
+     *                 function has m input parameters, this array has to contain 2*m numbers
+     *                 where each number describes either the lower or upper boundary of the input range.
+     *  \param rRange  this array describes the output parameters of this PdfFunction. If this
+     *                 function has n input parameters, this array has to contain 2*n numbers
+     *                 where each number describes either the lower or upper boundary of the output range.
+     *  \param rlstSamples a list of bytes which are used to build up this function sample data
+     *  \param pParent parent vector of objects
+     */
+    PdfSampledFunction( const PdfArray & rDomain,  const PdfArray & rRange, const PdfFunction::Sample & rlstSamples, PdfVecObjects* pParent );
+
+    /** Create a new PdfSampledFunction object.
+     *
+     *  \param rDomain this array describes the input parameters of this PdfFunction. If this
+     *                 function has m input parameters, this array has to contain 2*m numbers
+     *                 where each number describes either the lower or upper boundary of the input range.
+     *  \param rRange  this array describes the output parameters of this PdfFunction. If this
+     *                 function has n input parameters, this array has to contain 2*n numbers
+     *                 where each number describes either the lower or upper boundary of the output range.
+     *  \param rlstSamples a list of bytes which are used to build up this function sample data
+     *  \param pParent parent document 
+     */
+    PdfSampledFunction( const PdfArray & rDomain,  const PdfArray & rRange, const PdfFunction::Sample & rlstSamples, PdfDocument* pParent );
+
+private:
+    /** Initialize this object.
+     */
+    void Init( const PdfArray & rDomain,  const PdfArray & rRange, const PdfFunction::Sample & rlstSamples );
 
 };
 

@@ -43,6 +43,22 @@ PdfFontType1::PdfFontType1( PdfFontMetrics* pMetrics, const PdfEncoding* const p
 
 }
 
+PdfFontType1::PdfFontType1( PdfFontType1* pFont, PdfFontMetrics* pMetrics, const char *pszSuffix, PdfVecObjects* pParent )
+    : PdfFontSimple( pMetrics, pFont->m_pEncoding, pParent )
+{
+	// don't embedd font
+    Init( false, PdfName("Type1") );
+
+	// set identifier
+	std::string id = pFont->GetIdentifier().GetName();
+	id += pszSuffix;
+	m_Identifier = id;
+
+	// remove new FontDescriptor and use FontDescriptor of source font instead
+	pParent->RemoveObject( GetObject()->GetIndirectKey( "FontDescriptor" )->Reference() );
+	GetObject()->GetDictionary().AddKey( "FontDescriptor", pFont->GetObject()->GetDictionary().GetKey( "FontDescriptor" ) );
+}
+
 void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 {
     pdf_long        lSize    = 0;

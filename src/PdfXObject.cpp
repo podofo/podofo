@@ -53,7 +53,7 @@ PdfXObject::PdfXObject( const PdfMemDocument & rDoc, int nPage, PdfDocument* pPa
 {
     m_rRect = PdfRect();
 
-    InitXObject( m_rRect );
+    InitXObject( m_rRect, "XObInd" );
 
     // Implementation note: source document must be different from distination
     if ( pParent == reinterpret_cast<const PdfDocument*>(&rDoc) )
@@ -99,7 +99,7 @@ PdfXObject::PdfXObject( PdfObject* pObject )
     m_Reference  = m_pObject->Reference();
 }
 
-void PdfXObject::InitXObject( const PdfRect & rRect )
+void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
 {
     PdfVariant    var;
     ostringstream out;
@@ -130,7 +130,11 @@ void PdfXObject::InitXObject( const PdfRect & rRect )
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
-    out << "XOb" << m_pObject->Reference().ObjectNumber();
+	if ( pszPrefix == NULL )
+	    out << "XOb" << m_pObject->Reference().ObjectNumber();
+	else
+	    out << pszPrefix << m_pObject->Reference().ObjectNumber();
+
     m_Identifier = PdfName( out.str().c_str() );
     m_Reference  = m_pObject->Reference();
 }

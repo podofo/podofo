@@ -89,7 +89,7 @@ void PdfCanvas::AddColorResource( const PdfColor & rColor )
 
 				PdfArray encode;
 				encode.push_back( 0LL );
-				encode.push_back( 255LL );
+				encode.push_back( 1LL );
 				csTintFunc->GetDictionary().AddKey( "Encode", encode );
 
 				csTintFunc->GetDictionary().AddKey( "Filter", PdfName( "FlateDecode" ) );

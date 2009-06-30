@@ -21,10 +21,12 @@
 #include "PdfFontCache.h" 
 
 #include "PdfDifferenceEncoding.h"
+#include "PdfDictionary.h"
 #include "PdfFont.h"
 #include "PdfFontFactory.h"
 #include "PdfFontMetrics.h"
 #include "PdfFontTTFSubset.h"
+#include "PdfFontType1.h"
 #include "PdfInputDevice.h"
 #include "PdfOutputDevice.h"
 
@@ -297,6 +299,55 @@ PdfFont* PdfFontCache::GetFont( FT_Face face, bool bEmbedd, const PdfEncoding * 
         pFont = (*it.first).m_pFont;
 
     return pFont;
+}
+
+PdfFont* PdfFontCache::GetDuplicateFontType1( PdfFont * pFont, const char* pszSuffix )
+{
+    TCISortedFontList it = m_vecFonts.begin();
+
+	std::string id = pFont->GetIdentifier().GetName();
+	id += pszSuffix;
+
+    // Search if the object is a cached normal font
+    while( it != m_vecFonts.end() )
+    {
+		if( (*it).m_pFont->GetIdentifier() == id ) 
+            return (*it).m_pFont;
+
+        ++it;
+    }
+
+    // Search if the object is a cached font subset
+    it = m_vecFontSubsets.begin();
+    while( it != m_vecFontSubsets.end() )
+    {
+        if( (*it).m_pFont->GetIdentifier() == id ) 
+            return (*it).m_pFont;
+
+        ++it;
+    }
+
+    // Create a copy of the font
+	PODOFO_ASSERT( pFont->GetFontMetrics()->GetFontType() == ePdfFontType_Type1Pfb );
+	PdfFontMetrics *pMetrics = new PdfFontMetrics( &m_ftLibrary, pFont->GetFontMetrics()->GetFilename() );
+	PdfFont* newFont = new PdfFontType1( static_cast<PdfFontType1 *>(pFont), pMetrics, pszSuffix, m_pParent );
+    if( newFont ) 
+    {
+		std::string name = newFont->GetFontMetrics()->GetFontname();
+		name += pszSuffix;
+        TFontCacheElement element;
+        element.m_pFont     = newFont;
+        element.m_bBold     = newFont->IsBold();
+        element.m_bItalic   = newFont->IsItalic();
+        element.m_sFontName = name;
+        element.m_pEncoding = newFont->GetEncoding();
+        m_vecFonts  .push_back( element );
+        
+        // Now sort the font list
+        std::sort( m_vecFonts.begin(), m_vecFonts.end() );
+    }
+
+    return newFont;
 }
 
 PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool bItalic, 

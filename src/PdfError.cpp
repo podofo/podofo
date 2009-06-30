@@ -301,6 +301,9 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_NotImplemented:
             pszMsg = "ePdfError_NotImplemented";
             break;
+        case ePdfError_DestinationAlreadyPresent:
+            pszMsg = "ePdfError_DestinationAlreadyPresent"; 
+            break;
         case ePdfError_Unknown:
             pszMsg = "ePdfError_Unknown"; 
             break;
@@ -397,8 +400,10 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
         case ePdfError_UnsupportedFontFormat:
             pszMsg = "This font format is not supported by PoDoFO.";
             break;
+        case ePdfError_DestinationAlreadyPresent:
         case ePdfError_ActionAlreadyPresent:
-
+            pszMsg = "Outlines can have either destinations or actions."; 
+            break;
         case ePdfError_MissingEndStream:
         case ePdfError_Date:
             break;

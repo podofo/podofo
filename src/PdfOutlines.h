@@ -27,6 +27,7 @@
 namespace PoDoFo {
 
 class PdfDestination;
+class PdfAction;
 class PdfObject;
 class PdfOutlineItem;
 class PdfString;
@@ -70,7 +71,13 @@ class PODOFO_API PdfOutlineItem : public PdfElement {
      */
     PdfOutlineItem* CreateNext ( const PdfString & sTitle, const PdfDestination & rDest );
 
-    /** Inserts an existing PdfOutlineItem as a child
+    /** Create a PdfOutlineItem that is on the same level and follows the current item.
+     *  \param sTitle title of this item
+     *  \param rAction action of this item
+     */
+    PdfOutlineItem* CreateNext ( const PdfString & sTitle, const PdfAction & rAction );
+
+	/** Inserts an existing PdfOutlineItem as a child
      *  of this outline item.
      *
      *  \param pItem an existing outline item
@@ -120,6 +127,16 @@ class PODOFO_API PdfOutlineItem : public PdfElement {
      *  \returns the destination, if there is one, or NULL
      */
     PdfDestination* GetDestination( void );
+
+    /** Set the action of this outline.
+     *  \param rAction the action
+     */
+    void SetAction( const PdfAction & rAction );
+
+    /** Get the action of this outline.
+     *  \returns the action, if there is one, or NULL
+     */
+    PdfAction* GetAction( void );
 
     /** Set the title of this outline item
      *  \param sTitle the title to use
@@ -199,7 +216,18 @@ class PODOFO_API PdfOutlineItem : public PdfElement {
     PdfOutlineItem( const PdfString & sTitle, const PdfDestination & rDest, 
                     PdfOutlineItem* pParentOutline, PdfVecObjects* pParent );
 
-    /** Create a PdfOutlineItem from an existing PdfObject
+    /** Create a new PdfOutlineItem from scratch
+     *  \param sTitle title of this item
+     *  \param rAction action of this item
+     *  \param pParentOutline parent of this outline item 
+     *                        in the outline item hierarchie
+     *  \param pParent parent vector of objects which is required
+     *                 to create new objects
+     */
+    PdfOutlineItem( const PdfString & sTitle, const PdfAction & rAction, 
+                    PdfOutlineItem* pParentOutline, PdfVecObjects* pParent );
+
+	/** Create a PdfOutlineItem from an existing PdfObject
      *  \param pObject an existing outline item
      *  \param pParentOutline parent of this outline item 
      *                        in the outline item hierarchie
@@ -217,6 +245,7 @@ class PODOFO_API PdfOutlineItem : public PdfElement {
     PdfOutlineItem*    m_pLast;
 
     PdfDestination*    m_pDestination;
+    PdfAction*		   m_pAction;
 };
 
 // -----------------------------------------------------

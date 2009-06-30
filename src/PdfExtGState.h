@@ -83,6 +83,11 @@ class PODOFO_API PdfExtGState : public PdfElement {
      */
     void SetRenderingIntent( char* intent );
 
+    /** Set the frequency for halftones
+     *  \param screen frequency, measured in halftone cells per inch in device space
+     */
+    void SetFrequency( double frequency );
+
  private:
     /** Initialize the object
      */

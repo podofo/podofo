@@ -323,7 +323,8 @@ PdfColorSeparationAll::PdfColorSeparationAll()
 {
 	m_eColorSpace = ePdfColorSpace_Separation;
 	m_separationName = "All";
-    m_uColor.cmyk[0] = 
+	m_separationDensity = 1.0;
+	m_uColor.cmyk[0] = 
 	    m_uColor.cmyk[1] =
 	    m_uColor.cmyk[2] =
 	    m_uColor.cmyk[3] = 1.0;
@@ -333,14 +334,16 @@ PdfColorSeparationNone::PdfColorSeparationNone()
 {
 	m_eColorSpace = ePdfColorSpace_Separation;
 	m_separationName = "None";
+	m_separationDensity = 0.0;
     m_uColor.cmyk[0] = 
 	    m_uColor.cmyk[1] =
 	    m_uColor.cmyk[2] =
 	    m_uColor.cmyk[3] = 0.0;
 }
 
-PdfColorSeparation::PdfColorSeparation( const std::string & sName, double dCyan, double dMagenta, double dYellow, double dBlack )
+PdfColorSeparation::PdfColorSeparation( const std::string & sName, double dDensity, double dCyan, double dMagenta, double dYellow, double dBlack )
 {
+    CheckDoubleRange( dDensity, 0.0, 1.0 );
     CheckDoubleRange( dCyan,    0.0, 1.0 );
     CheckDoubleRange( dMagenta, 0.0, 1.0 );
     CheckDoubleRange( dYellow,  0.0, 1.0 );
@@ -348,6 +351,7 @@ PdfColorSeparation::PdfColorSeparation( const std::string & sName, double dCyan,
 
     m_eColorSpace = ePdfColorSpace_Separation;
 	m_separationName = sName;
+	m_separationDensity = dDensity;
     m_uColor.cmyk[0] = dCyan;
     m_uColor.cmyk[1] = dMagenta;
     m_uColor.cmyk[2] = dYellow;
@@ -370,7 +374,8 @@ const PdfColor & PdfColor::operator=( const PdfColor & rhs )
 {
     m_eColorSpace = rhs.m_eColorSpace;
 	m_separationName = rhs.m_separationName;
-    memcpy( &m_uColor, &rhs.m_uColor, sizeof(m_uColor) );
+	m_separationDensity = rhs.m_separationDensity;
+	memcpy( &m_uColor, &rhs.m_uColor, sizeof(m_uColor) );
 
     return *this;
 }

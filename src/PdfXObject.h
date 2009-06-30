@@ -125,7 +125,7 @@ class PODOFO_API PdfXObject : public PdfElement, public PdfCanvas {
     inline const PdfReference & GetObjectReference() const;
 
  protected:
-    void InitXObject( const PdfRect & rRect );
+    void InitXObject( const PdfRect & rRect, const char* pszPrefix = NULL );
 
     PdfXObject( const char* pszSubType, PdfDocument* pParent );
     PdfXObject( const char* pszSubType, PdfVecObjects* pParent );

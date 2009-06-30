@@ -103,6 +103,8 @@ enum EPdfError {
 
     ePdfError_NotImplemented,           /**< This feature is currently not implemented. */
 
+    ePdfError_DestinationAlreadyPresent,/**< An destination was already present when trying to add a Action */
+
     ePdfError_Unknown = 0xffff          /**< Unknown error */
 };
 

@@ -219,6 +219,122 @@ void PdfAxialShadingPattern::Init( double dX0, double dY0, double dX1, double dY
     shading.AddKey( PdfName("Extend"), extend );
 }
 
+PdfFunctionBaseShadingPattern::PdfFunctionBaseShadingPattern( const PdfColor & rLL, const PdfColor & rUL, const PdfColor & rLR, const PdfColor & rUR, const PdfArray & rMatrix, PdfVecObjects* pParent )
+    : PdfShadingPattern( ePdfShadingPatternType_FunctionBase, pParent )
+{
+    Init( rLL, rUL, rLR, rUR, rMatrix );
+}
+
+PdfFunctionBaseShadingPattern::PdfFunctionBaseShadingPattern( const PdfColor & rLL, const PdfColor & rUL, const PdfColor & rLR, const PdfColor & rUR, const PdfArray & rMatrix, PdfDocument* pParent )
+    : PdfShadingPattern( ePdfShadingPatternType_FunctionBase, pParent )
+{
+    Init( rLL, rUL, rLR, rUR, rMatrix );
+}
+
+void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor & rUL, const PdfColor & rLR, const PdfColor & rUR, const PdfArray & rMatrix )
+{
+    if( rLL.GetColorSpace() != rUL.GetColorSpace() || rUL.GetColorSpace() != rLR.GetColorSpace() || rLR.GetColorSpace() != rUR.GetColorSpace() )
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Colorspace of start and end color in PdfFunctionBaseShadingPattern does not match." );
+    }
+
+    PdfArray extend; 
+    extend.push_back( true );
+    extend.push_back( true );
+
+    PdfArray domain;
+    domain.push_back( 0.0 );
+    domain.push_back( 1.0 );
+    domain.push_back( 0.0 );
+    domain.push_back( 1.0 );
+
+    PdfDictionary & shading = this->GetObject()->GetDictionary().GetKey( PdfName("Shading") )->GetDictionary();
+	PdfArray range;
+	PdfSampledFunction::Sample samples;
+
+    if( rLL.IsRGB() )
+	{
+		range.push_back( 0.0 );
+		range.push_back( 1.0 );
+		range.push_back( 0.0 );
+		range.push_back( 1.0 );
+		range.push_back( 0.0 );
+		range.push_back( 1.0 );
+
+		samples.insert( samples.end(), (char) ( rLL.GetRed() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rLL.GetGreen() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rLL.GetBlue() *255.0 ) );
+
+		samples.insert( samples.end(), (char) ( rLR.GetRed() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rLR.GetGreen() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rLR.GetBlue() *255.0 ) );
+
+		samples.insert( samples.end(), (char) ( rUL.GetRed() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rUL.GetGreen() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rUL.GetBlue() *255.0 ) );
+
+		samples.insert( samples.end(), (char) ( rUR.GetRed() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rUR.GetGreen() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rUR.GetBlue() *255.0 ) );
+
+        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceRGB") );
+	}
+    else if( rLL.IsCMYK() )
+	{
+		range.push_back( 0.0 );
+		range.push_back( 1.0 );
+		range.push_back( 0.0 );
+		range.push_back( 1.0 );
+		range.push_back( 0.0 );
+		range.push_back( 1.0 );
+		range.push_back( 0.0 );
+		range.push_back( 1.0 );
+
+		samples.insert( samples.end(), (char) ( rLL.GetCyan() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rLL.GetMagenta() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rLL.GetYellow() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rLL.GetBlack() *255.0 ) );
+
+		samples.insert( samples.end(), (char) ( rLR.GetCyan() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rLR.GetMagenta() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rLR.GetYellow() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rLR.GetBlack() *255.0 ) );
+
+		samples.insert( samples.end(), (char) ( rUL.GetCyan() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rUL.GetMagenta() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rUL.GetYellow() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rUL.GetBlack() *255.0 ) );
+
+		samples.insert( samples.end(), (char) ( rUR.GetCyan() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rUR.GetMagenta() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rUR.GetYellow() *255.0 ) );
+		samples.insert( samples.end(), (char) ( rUR.GetBlack() *255.0 ) );
+
+        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceCMYK") );
+	}
+    else if( rLL.IsGrayScale() )
+	{
+		range.push_back( 0.0 );
+		range.push_back( 1.0 );
+
+		samples.insert( samples.end(), (char) ( rLL.GetGrayScale() *255.0 ) );
+
+		samples.insert( samples.end(), (char) ( rLR.GetGrayScale() *255.0 ) );
+
+		samples.insert( samples.end(), (char) ( rUL.GetGrayScale() *255.0 ) );
+
+		samples.insert( samples.end(), (char) ( rUR.GetGrayScale() *255.0 ) );
+
+        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceGray") );
+	}
+
+    PdfSampledFunction function( domain, range, samples, this->GetObject()->GetOwner() );
+    shading.AddKey( PdfName("Function"), function.GetObject()->Reference() );
+    shading.AddKey( PdfName("Domain"), domain );
+    shading.AddKey( PdfName("Extend"), extend );
+    shading.AddKey( PdfName("Matrix"), rMatrix );
+}
+
 PdfRadialShadingPattern::PdfRadialShadingPattern( double dX0, double dY0, double dR0, double dX1, double dY1, double dR1, const PdfColor & rStart, const PdfColor & rEnd, PdfVecObjects* pParent )
     : PdfShadingPattern( ePdfShadingPatternType_Radial, pParent )
 {

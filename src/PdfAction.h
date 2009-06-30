@@ -115,6 +115,15 @@ class PODOFO_API PdfAction : public PdfElement {
      */
     inline EPdfAction GetType() const;
 
+    /** Adds this action to an dictionary.
+     *  This method handles the all the complexities of making sure it's added correctly
+     *
+     *  If this action is empty. Nothing will be added.
+     *
+     *  \param dictionary the action will be added to this dictionary
+     */
+    void AddToDictionary( PdfDictionary & dictionary ) const;
+
  private:
     PdfAction( const PdfAction & rhs );
 

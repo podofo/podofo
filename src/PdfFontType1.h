@@ -56,6 +56,13 @@ class PdfFontType1 : public PdfFontSimple {
     PdfFontType1( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
                   PdfObject* pObject );
 
+	/** Create a PdfFont based on an existing PdfFont with a new id
+     *  \param pFont pointer to existing font
+     *  \param pszSuffix Suffix to add to font-id 
+     *  \param pParent parent of the font object
+     */
+    PdfFontType1( PdfFontType1* pFont, PdfFontMetrics* pMetrics, const char *pszSuffix, PdfVecObjects* pParent );
+
  protected:
 
     /** Embed the font file directly into the PDF file.

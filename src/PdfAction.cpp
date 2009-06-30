@@ -118,6 +118,20 @@ bool PdfAction::HasScript() const
     return m_pObject->GetDictionary().HasKey( "JS" );
 }
 
+void PdfAction::AddToDictionary( PdfDictionary & dictionary ) const
+{
+    // Do not add empty destinations
+//    if( !m_array.size() )
+//        return;
+
+    // since we can only have EITHER a Dest OR an Action
+    // we check for an Action, and if already present, we throw
+    if ( dictionary.HasKey( PdfName( "Dest" ) ) )
+        PODOFO_RAISE_ERROR( ePdfError_ActionAlreadyPresent );
+
+    dictionary.RemoveKey( "A" );
+    dictionary.AddKey( "A", m_pObject );
+}
 
 
 

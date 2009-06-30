@@ -201,7 +201,17 @@ class PODOFO_API PdfDocument {
      */
     PdfFont* CreateFont( FT_Face face, const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), bool bEmbedd = true );
 
-    /** Creates a font subset which contains only a few characters and is embedded.
+    /** Creates a duplicate Type1-PdfFont with a new Id
+     *  \param pFont is the existing font 
+     *  \param pszSuffix Suffix to add to font-id 
+     *           The returned object is owned by the PdfDocument.
+     *
+     *  TODO: DS: Make this generic so that it will work 
+     *            for any font type!
+     */
+	PdfFont* CreateDuplicateFontType1( PdfFont * pFont, const char * pszSuffix );
+
+	/** Creates a font subset which contains only a few characters and is embedded.
      *
      *  THIS WORKS ONLY FOR TTF FONTS!
      *

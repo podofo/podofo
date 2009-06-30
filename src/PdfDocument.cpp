@@ -209,6 +209,11 @@ PdfFont* PdfDocument::CreateFont( FT_Face face, const PdfEncoding * const pEncod
     return m_fontCache.GetFont( face, bEmbedd, pEncoding );
 }
 
+PdfFont* PdfDocument::CreateDuplicateFontType1( PdfFont * pFont, const char * pszSuffix )
+{
+	return m_fontCache.GetDuplicateFontType1( pFont, pszSuffix );
+}
+
 PdfPage* PdfDocument::CreatePage( const PdfRect & rSize )
 {
     return m_pPagesTree->CreatePage( rSize );

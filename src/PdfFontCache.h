@@ -80,7 +80,7 @@ struct TFontCacheElement {
     {
         if( m_sFontName == rhs.m_sFontName ) 
         {
-            if( *m_pEncoding == *rhs.m_pEncoding ) 
+            if( m_pEncoding == NULL  ||  rhs.m_pEncoding == NULL  ||  *m_pEncoding == *rhs.m_pEncoding ) 
             {
                 if( m_bBold == rhs.m_bBold) 
                     return m_bItalic < rhs.m_bItalic;
@@ -212,6 +212,17 @@ class PODOFO_API PdfFontCache {
      *           not be created or found.
      */
     PdfFont* GetFont( FT_Face face, bool bEmbedd, const PdfEncoding * const = PdfEncodingFactory::GlobalWinAnsiEncodingInstance() );
+
+    /** Get a font with specific id from the cache. If the font does not yet
+     *  exist, copy from existing type1-font and set id.
+     *
+     *  \param pFont an existing font
+     *  \param pszSuffix Suffix to add to font-id 
+     *
+     *  \returns a PdfFont object or NULL if the font could
+     *           not be created or found.
+     */
+	PdfFont* GetDuplicateFontType1( PdfFont * pFont, const char* pszSuffix );
 
     /** Get a fontsubset from the cache. If the font does not yet
      *  exist, add it to the cache.

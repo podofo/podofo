@@ -588,8 +588,12 @@ void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
 
             if( bPositionAtEnd )
             {
+#ifdef _WIN32
+				m_device.Device()->Seek( static_cast<std::streamoff>(nNumObjects* PDF_XREF_ENTRY_SIZE), std::ios_base::cur );
+#else
                 m_device.Device()->Seek( nNumObjects* PDF_XREF_ENTRY_SIZE, std::ios_base::cur );
-            }
+#endif // _WIN32
+			}
             else
                 ReadXRefSubsection( nFirstObject, nNumObjects );
 
@@ -628,20 +632,30 @@ void PdfParser::ReadXRefSubsection( long long & nFirstObject, long long & nNumOb
         // Total number of xref entries to read is greater than the /Size
         // specified in the trailer if any. That's an error unless we're trying
         // to recover from a missing /Size entry.
-	PdfError::LogMessage( eLogSeverity_Warning,
+		PdfError::LogMessage( eLogSeverity_Warning,
 			      "There are more objects (%i) in this XRef table than "
 			      "specified in the size key of the trailer directory (%i)!\n",
 			      nFirstObject + nNumObjects, m_nNumObjects );
 
-	m_nNumObjects = nFirstObject + nNumObjects;
-	m_offsets.resize(nFirstObject+nNumObjects);
-    }
+#ifdef _WIN32
+		m_nNumObjects = static_cast<long>(nFirstObject + nNumObjects);
+		m_offsets.resize(static_cast<long>(nFirstObject+nNumObjects));
+#else
+		m_nNumObjects = nFirstObject + nNumObjects;
+		m_offsets.resize(nFirstObject+nNumObjects);
+#endif // _WIN32
+	}
 
     while( count < nNumObjects && m_device.Device()->Read( m_buffer.GetBuffer(), PDF_XREF_ENTRY_SIZE ) == PDF_XREF_ENTRY_SIZE )
     {
         m_buffer.GetBuffer()[PDF_XREF_ENTRY_SIZE] = '\0';
 
-        const int objID = nFirstObject+count;
+#ifdef _WIN32
+		const int objID = static_cast<int>(nFirstObject+count);
+#else
+		const int objID = nFirstObject+count;
+#endif // _WIN32
+
         if( !m_offsets[objID].bParsed )
         {
             m_offsets[objID].bParsed = true;

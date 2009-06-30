@@ -233,7 +233,18 @@ class PODOFO_API PdfColor {
      */
 	inline const std::string GetName() const;
 
-    /** Get the L color value 
+    /** Get the density color value 
+     *  of this object.
+     *
+     *  Throws an exception if this is no separation color object.
+     *
+     *  \returns the density value of this object (between 0.0 and 1.0)
+     *
+     *  \see IsSeparation
+     */
+    inline double GetDensity() const;
+
+	/** Get the L color value 
      *  of this object.
      *
      *  Throws an exception if this is no CIE-Lab color object.
@@ -338,6 +349,7 @@ class PODOFO_API PdfColor {
         double gray;
     }  m_uColor; 
 	std::string m_separationName;
+	double m_separationDensity;
     EPdfColorSpace m_eColorSpace;
 };
 
@@ -405,12 +417,13 @@ class PODOFO_API PdfColorSeparation : public PdfColor {
      *  a separation-name and an equivalent CMYK color
      *
      *  \param sName Name of the separation color
+	 *	\param sDensity the density value of the separation color
      *  \param dCyan the value of the cyan component, must be between 0.0 and 1.0
      *  \param dMagenta the value of the magenta component, must be between 0.0 and 1.0
      *  \param dYellow the value of the yellow component, must be between 0.0 and 1.0
      *  \param dBlack the value of the black component, must be between 0.0 and 1.0
      */
-	PdfColorSeparation( const std::string & sName, double dCyan, double dMagenta, double dYellow, double dBlack );
+	PdfColorSeparation( const std::string & sName, double dDensity, double dCyan, double dMagenta, double dYellow, double dBlack );
 };
 
 class PODOFO_API PdfColorCieLab : public PdfColor {
@@ -470,6 +483,7 @@ inline bool PdfColor::operator==( const PdfColor & rhs ) const
 			m_uColor.cmyk[1] == rhs.m_uColor.cmyk[1]			&&
 			m_uColor.cmyk[2] == rhs.m_uColor.cmyk[2]			&&
 			m_uColor.cmyk[3] == rhs.m_uColor.cmyk[3]			&&
+			m_separationDensity == rhs.m_separationDensity		&&
 			m_separationName == rhs.m_separationName
 		   )
 		   return true;
@@ -629,6 +643,16 @@ const std::string PdfColor::GetName() const
     PODOFO_RAISE_LOGIC_IF( !this->IsSeparation(), "PdfColor::GetName cannot be called on non separation color objects!");
 
     return m_separationName;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+double PdfColor::GetDensity() const
+{
+    PODOFO_RAISE_LOGIC_IF( !this->IsSeparation(), "PdfColor::GetDensity cannot be called on non separation color objects!");
+
+    return m_separationDensity;
 }
 
 // -----------------------------------------------------

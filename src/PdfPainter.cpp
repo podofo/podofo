@@ -264,7 +264,7 @@ void PdfPainter::SetStrokingColor( const PdfColor & rColor )
             break;
         case ePdfColorSpace_Separation:
 			m_pPage->AddColorResource( rColor );
-			m_oss << "/ColorSpace" << PdfName( rColor.GetName() ).GetEscapedName() << " CS 1 SCN" << std::endl;
+			m_oss << "/ColorSpace" << PdfName( rColor.GetName() ).GetEscapedName() << " CS " << rColor.GetDensity() << " SCN" << std::endl;
             break;
         case ePdfColorSpace_CieLab:
 			m_pPage->AddColorResource( rColor );
@@ -307,7 +307,7 @@ void PdfPainter::SetColor( const PdfColor & rColor )
             break;
         case ePdfColorSpace_Separation:
 			m_pPage->AddColorResource( rColor );
-            m_oss << "/ColorSpace" << PdfName( rColor.GetName() ).GetEscapedName() << " cs 1 scn" << std::endl;
+            m_oss << "/ColorSpace" << PdfName( rColor.GetName() ).GetEscapedName() << " cs " << rColor.GetDensity() << " scn" << std::endl;
             break;
         case ePdfColorSpace_CieLab:
 			m_pPage->AddColorResource( rColor );

@@ -138,6 +138,49 @@ private:
     void Init( double dX0, double dY0, double dX1, double dY1, const PdfColor & rStart, const PdfColor & rEnd );
 };
 
+/** A shading pattern that is an 2D
+ *  shading between four colors.
+ */
+class PODOFO_API PdfFunctionBaseShadingPattern : public PdfShadingPattern {
+public:
+    /** Create an 2D shading pattern
+     *
+     *  \param rLL the color on lower left corner
+     *  \param rUL the color on upper left corner
+     *  \param rLR the color on lower right corner
+     *  \param rUR the color on upper right corner
+     *  \param rMatrix the transformation matrix mapping the coordinate space 
+     *         specified by the Domain entry into the shading’s target coordinate space
+     *  \param pParent the parent
+     */
+    PdfFunctionBaseShadingPattern( const PdfColor & rLL, const PdfColor & rUL, const PdfColor & rLR, const PdfColor & rUR, const PdfArray & rMatrix, PdfVecObjects* pParent );
+
+    /** Create an 2D shading pattern
+     *
+     *  \param rLL the color on lower left corner
+     *  \param rUL the color on upper left corner
+     *  \param rLR the color on lower right corner
+     *  \param rUR the color on upper right corner
+     *  \param rMatrix the transformation matrix mapping the coordinate space 
+     *         specified by the Domain entry into the shading’s target coordinate space
+     *  \param pParent the parent
+     */
+    PdfFunctionBaseShadingPattern( const PdfColor & rLL, const PdfColor & rUL, const PdfColor & rLR, const PdfColor & rUR, const PdfArray & rMatrix, PdfDocument* pParent );
+
+private:
+
+    /** Initialize an 2D shading pattern
+     *
+     *  \param rLL the color on lower left corner
+     *  \param rUL the color on upper left corner
+     *  \param rLR the color on lower right corner
+     *  \param rUR the color on upper right corner
+     *  \param rMatrix the transformation matrix mapping the coordinate space 
+     *         specified by the Domain entry into the shading’s target coordinate space
+     */
+    void Init( const PdfColor & rLL, const PdfColor & rUL, const PdfColor & rLR, const PdfColor & rUR, const PdfArray & rMatrix );
+};
+
 /** A shading pattern that is a simple radial
  *  shading between two colors.
  */

@@ -21,6 +21,7 @@
 #include "PdfOutlines.h"
 
 #include "PdfArray.h"
+#include "PdfAction.h"
 #include "PdfDestination.h"
 #include "PdfDictionary.h"
 #include "PdfObject.h"
@@ -31,7 +32,7 @@ PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfDestination &
                                 PdfOutlineItem* pParentOutline, PdfVecObjects* pParent )
     : PdfElement( NULL, pParent ), 
       m_pParentOutline( pParentOutline ), m_pPrev( NULL ), m_pNext( NULL ), 
-      m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL )
+      m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL ), m_pAction( NULL )
 {
     if( pParentOutline )
         m_pObject->GetDictionary().AddKey( "Parent", pParentOutline->GetObject()->Reference() );
@@ -40,9 +41,22 @@ PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfDestination &
     this->SetDestination( rDest );
 }
 
+PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfAction & rAction, 
+                                PdfOutlineItem* pParentOutline, PdfVecObjects* pParent )
+    : PdfElement( NULL, pParent ), 
+      m_pParentOutline( pParentOutline ), m_pPrev( NULL ), m_pNext( NULL ), 
+      m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL ), m_pAction( NULL )
+{
+    if( pParentOutline )
+        m_pObject->GetDictionary().AddKey( "Parent", pParentOutline->GetObject()->Reference() );
+
+    this->SetTitle( sTitle );
+    this->SetAction( rAction );
+}
+
 PdfOutlineItem::PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutline, PdfOutlineItem* pPrevious )
     : PdfElement( NULL, pObject ), m_pParentOutline( pParentOutline ), m_pPrev( pPrevious ), 
-      m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL )
+      m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL ), m_pAction( NULL )
 {
     PdfReference first, next;
 
@@ -70,7 +84,7 @@ PdfOutlineItem::PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutli
 
 PdfOutlineItem::PdfOutlineItem( PdfVecObjects* pParent )
     : PdfElement( "Outlines", pParent ), m_pParentOutline( NULL ), m_pPrev( NULL ), 
-      m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL )
+      m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL ), m_pAction( NULL )
 {
 }
 
@@ -109,6 +123,27 @@ void PdfOutlineItem::InsertChild( PdfOutlineItem* pItem )
 PdfOutlineItem* PdfOutlineItem::CreateNext ( const PdfString & sTitle, const PdfDestination & rDest )
 {
     PdfOutlineItem* pItem = new PdfOutlineItem( sTitle, rDest, m_pParentOutline, m_pObject->GetOwner() );
+
+    if( m_pNext ) 
+    {
+        m_pNext->SetPrevious( pItem );
+        pItem->SetNext( m_pNext );
+    }
+
+    m_pNext = pItem;
+    m_pNext->SetPrevious( this );
+
+    m_pObject->GetDictionary().AddKey( "Next", m_pNext->GetObject()->Reference() );
+
+    if( m_pParentOutline && !m_pNext->Next() ) 
+        m_pParentOutline->SetLast( m_pNext );
+
+    return m_pNext;
+}
+
+PdfOutlineItem* PdfOutlineItem::CreateNext ( const PdfString & sTitle, const PdfAction & rAction )
+{
+    PdfOutlineItem* pItem = new PdfOutlineItem( sTitle, rAction, m_pParentOutline, m_pObject->GetOwner() );
 
     if( m_pNext ) 
     {
@@ -202,6 +237,28 @@ PdfDestination* PdfOutlineItem::GetDestination( void )
     }
 
     return m_pDestination;
+}
+
+void PdfOutlineItem::SetAction( const PdfAction & rAction )
+{
+    delete m_pAction;
+    m_pAction = NULL;
+
+    rAction.AddToDictionary( m_pObject->GetDictionary() );
+}
+
+PdfAction* PdfOutlineItem::GetAction( void )
+{
+    if( !m_pAction )
+    {
+        PdfObject*	dObj = m_pObject->GetIndirectKey( "A" );
+        if ( !dObj ) 
+            return NULL;
+    
+        m_pAction = new PdfAction( dObj );
+    }
+
+    return m_pAction;
 }
 
 void PdfOutlineItem::SetTitle( const PdfString & sTitle )

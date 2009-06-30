@@ -22,6 +22,7 @@
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
+#include "PdfStream.h"
 
 namespace PoDoFo {
 
@@ -47,6 +48,41 @@ void PdfFunction::Init( EPdfFunctionType eType, const PdfArray & rDomain )
     m_pObject->GetDictionary().AddKey( PdfName("FunctionType"), static_cast<long long>(eType) );
     m_pObject->GetDictionary().AddKey( PdfName("Domain"), rDomain );
 
+}
+
+/////////////////////////////////////////////////////////////////////////////
+PdfSampledFunction::PdfSampledFunction( const PdfArray & rDomain,  const PdfArray & rRange, const PdfFunction::Sample & rlstSamples, PdfVecObjects* pParent )
+    : PdfFunction( ePdfFunctionType_Sampled, rDomain, pParent )
+{
+	Init( rDomain, rRange, rlstSamples );
+}
+
+PdfSampledFunction::PdfSampledFunction( const PdfArray & rDomain,  const PdfArray & rRange, const PdfFunction::Sample & rlstSamples, PdfDocument* pParent )
+    : PdfFunction( ePdfFunctionType_Sampled, rDomain, pParent )
+{
+	Init( rDomain, rRange, rlstSamples );
+}
+
+void PdfSampledFunction::Init( const PdfArray & rDomain,  const PdfArray & rRange, const PdfFunction::Sample & rlstSamples )
+{
+	PdfArray Size;
+	for( unsigned i = 0; i < rDomain.GetSize() / 2; i++ )
+		Size.push_back( PdfObject( (long long) (rDomain.GetSize()) / 2L ) );
+
+    this->GetObject()->GetDictionary().AddKey( PdfName("Domain"), rDomain );
+    this->GetObject()->GetDictionary().AddKey( PdfName("Range"), rRange );
+    this->GetObject()->GetDictionary().AddKey( PdfName("Size"), Size );
+    this->GetObject()->GetDictionary().AddKey( PdfName("Order"), PdfObject( 1LL ) );
+    this->GetObject()->GetDictionary().AddKey( PdfName("BitsPerSample"), PdfObject( 8LL ) );
+
+    this->GetObject()->GetStream()->BeginAppend();
+    PdfFunction::Sample::const_iterator it = rlstSamples.begin();
+    while( it != rlstSamples.end() )
+    {
+        this->GetObject()->GetStream()->Append( & ( *it ), 1 );
+        ++it;
+    }
+    this->GetObject()->GetStream()->EndAppend();
 }
 
 /////////////////////////////////////////////////////////////////////////////
