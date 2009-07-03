@@ -336,8 +336,21 @@ void PdfParser::HasLinearizationDict()
     }
 
     m_device.Device()->Seek( 0 );
-    // look for a linearization dictionary in the first 1024 bytes
-    if( static_cast<size_t>(m_device.Device()->Read( m_buffer.GetBuffer(), m_buffer.GetSize() )) != m_buffer.GetSize() )
+
+    // The linearization dictionary must be in the first 1024 
+    // bytes of the PDF, our buffer might be larger so.
+    // Therefore read only the first 1024 byte.
+    // Normally we should jump to the end of the file, to determine
+    // it's filesize and read the min(1024, filesize) to not fail
+    // on smaller files, but jumping to the end is against the idea
+    // of linearized PDF. Therefore just check if we read anything.
+    const std::streamoff MAX_READ = 1024;
+    PdfRefCountedBuffer linearizeBuffer( MAX_READ );
+
+    std::streamoff size = m_device.Device()->Read( linearizeBuffer.GetBuffer(), 
+                                                   linearizeBuffer.GetSize() );
+    // Only fail if we read nothing, to allow files smaller than MAX_READ
+    if( static_cast<size_t>(size) <= 0 )
     {
         // Clear the error state from the bad read
         m_device.Device()->Clear();
@@ -354,7 +367,8 @@ void PdfParser::HasLinearizationDict()
     while( *pszObj && (PdfTokenizer::IsWhitespace( *pszObj ) || (*pszObj >= '0' && *pszObj <= '9')) )
         --pszObj;
 
-    m_pLinearization = new PdfParserObject( m_vecObjects, m_device, m_buffer, pszObj - m_buffer.GetBuffer() + 2 );
+    m_pLinearization = new PdfParserObject( m_vecObjects, m_device, linearizeBuffer,
+                                            pszObj - linearizeBuffer.GetBuffer() + 2 );
 
     try {
         // Do not care for encryption here, as the linearization dictionary does not contain strings or streams
