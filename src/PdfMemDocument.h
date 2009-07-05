@@ -326,6 +326,10 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
     const PdfMemDocument & InsertPages( const PdfMemDocument & rDoc, int inFirstPage, int inNumPages );
 
     /** Deletes one or more pages from this document
+     *  It does NOT remove any PdfObjects from memory - just the reference from the pages tree.
+     *  If you want to delete resources of this page, you have to delete them yourself,
+     *  but the resources might be used by other pages, too.
+     *
      *  \param inFirstPage the first page number to delete (0-based)
      *  \param inNumPages the number of pages to delete
      *  \returns this document

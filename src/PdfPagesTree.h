@@ -124,6 +124,8 @@ class PODOFO_API PdfPagesTree : public PdfElement
      *
      *   The PdfPage object refering to this page will be deleted by this call!
      *   Empty page nodes will also be deleted.
+     *
+     *   \see PdfMemDocument::DeletePages
      */
     void DeletePage( int inPageNumber );
 
