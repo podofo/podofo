@@ -175,7 +175,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
 #endif
 
 #ifdef PODOFO_HAVE_JPEG_LIB
-        if( strncasecmp( pszExtension, "jpg", 3 ) == 0 )
+        if( PoDoFo::compat::strncasecmp( pszExtension, "jpg", 3 ) == 0 )
         {
             LoadFromJpeg( pszFilename );
             return;
