@@ -31,10 +31,7 @@
 #include "PdfCompilerCompat.h"
 
 // Include common system files
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
-#include <ctype.h>
+// (most are now pulled in my PdfCompilerCompat.h)
 #include <wchar.h>
 
 // Include common STL files

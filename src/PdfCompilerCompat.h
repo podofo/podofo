@@ -56,21 +56,31 @@
 #include <ctype.h>
 #endif
 
+#if HAVE_STRINGS_H
+#include <strings.h>
+#endif
+
 // Define pdf_long
 // TODO: properly specify pdf_long
 //#define pdf_long PDF_UINT64_TYPENAME   (correct?)
 // historical/existing definition:
 #define pdf_long ptrdiff_t
 
-#if HAVE_STRINGS_H
-#include <strings.h>
-#endif
-
 #if defined(__BORLANDC__) || defined( __TURBOC__)
    // Borland Turbo C has a broken "<cmath>" but provides a usable "math.h"
-#  include "math.h"
+   // and it needs a bunch of other includes
+#  include <stdlib.h>
+#  include <stdio.h>
+#  include <string.h>
+#  include <math.h>
+#  include <time.h>
 #else
+   // We can use the ISO C++ headers with other compilers
+#  include <cstdlib>
+#  include <cstdio>
 #  include <cmath>
+#  include <cstring>
+#  include <ctime>
 #endif
 
 // Use the more informative __FUNCTION__ macro instead of __FILE__ __LINE__ where possible.
