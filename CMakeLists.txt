@@ -1,8 +1,9 @@
-IF(WIN32)
-  CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-ELSE(WIN32)
-  CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
-ENDIF(WIN32)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+
+#*****************  IMPORTANT  ************* IMPORTANT **********************
+# Look at http://www.vtk.org/Wiki/CMake_HowToDoPlatformChecks
+# and the other wiki entries before you add anything. You might not need to.
+#****************************************************************************
 
 PROJECT(PoDoFo)
 
@@ -10,8 +11,8 @@ INCLUDE(CheckIncludeFile)
 INCLUDE(CheckLibraryExists)
 INCLUDE(UsePkgConfig)
 INCLUDE(TestBigEndian)
-# [CMAKE 2.5 ONLY]
-#INCLUDE(CheckCXXCompilerFlag)
+INCLUDE(CheckTypeSize)
+
 
 # Load modules from our source tree too
 SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
@@ -44,18 +45,125 @@ ELSE(WANT_LIB64)
 ENDIF(WANT_LIB64)
 MESSAGE("Will install libraries to ${CMAKE_INSTALL_PREFIX}/${LIBDIRNAME}")
 
-# CMake 2.5 added the CLEAN_DIRECT_OUTPUT property that we require
-# to generate both a shared and static library in the same directory.
-# On older versons we can can build EITHER a shared OR static library
-# only.
-IF(CMAKE_MAJOR_VERSION EQUAL "2" AND CMAKE_MINOR_VERSION LESS "5")
-    IF(PODOFO_BUILD_SHARED AND PODOFO_BUILD_STATIC)
-         MESSAGE("Both PODOFO_BUILD_SHARED and PODOFO_BUILD_STATIC set")
-         MESSAGE("  so disabling shared library generation (CMake version < 2.5)")
-         SET(PODOFO_BUILD_SHARED FALSE)
-         SET(PODOFO_BUILD_STATIC TRUE)
-    ENDIF(PODOFO_BUILD_SHARED AND PODOFO_BUILD_STATIC)
-ENDIF(CMAKE_MAJOR_VERSION EQUAL "2" AND CMAKE_MINOR_VERSION LESS "5")
+# Some headers that tend to vary a bit
+CHECK_INCLUDE_FILE("strings.h" HAVE_STRINGS_H) 
+CHECK_INCLUDE_FILE("arpa/inet.h" HAVE_ARPA_INET_H) 
+CHECK_INCLUDE_FILE("winsock2.h" HAVE_WINSOCK2_H) 
+CHECK_INCLUDE_FILE("mem.h" HAVE_MEM_H) 
+CHECK_INCLUDE_FILE("ctype.h" HAVE_MEM_H) 
+
+# Do some type size detection and provide yet another set of typedefs for fixed
+# font sizes. We can't use the c99 / c++0x uint32_t etc, because people use
+# ancient compilers that don't and will never support the standard.
+
+CHECK_INCLUDE_FILE("sys/types.h" HAVE_SYS_TYPES_H) 
+CHECK_INCLUDE_FILE("stdint.h" HAVE_STDINT_H) 
+# See: http://msdn.microsoft.com/en-us/library/aa384264(VS.85).aspx
+CHECK_INCLUDE_FILE("BaseTsd.h" HAVE_BASETSD_H) 
+
+# We cache integer type detection results, and don't repeat them
+# (and overwrite the user's manual changes) if they've been done already.
+IF(NOT PDF_INT64_TYPENAME)
+  # I hate old compilers.
+  IF(HAVE_STDINT_H)
+    SET(pdfint16 "int16_t")
+    SET(pdfint32 "int32_t")
+    SET(pdfint64 "int64_t")
+    SET(pdfuint16 "uint16_t")
+    SET(pdfuint32 "uint32_t")
+    SET(pdfuint64 "uint64_t")
+  ELSE(HAVE_STDINT_H)
+    # No stdint.h . Try BaseTsd.h windows types.
+    IF(HAVE_BASETSD_H)
+       # We have BaseTsd.h, so use those types.
+       SET(pdfint16 "short")
+       SET(pdfint32 "INT32")
+       SET(pdfint64 "INT64")
+       SET(pdfuint16 "unsigned short")
+       SET(pdfuint32 "UINT32")
+       SET(pdfuint64 "UINT64")
+    ELSE(HAVE_BASETSD_H)
+       # No BaseTsd.h either. Assume the standard types, and go poking
+       # for a sane 64-bit integer.
+       SET(pdfint16 "short")
+       SET(pdfint32 "int")
+       SET(pdfuint16 "unsigned short")
+       SET(pdfuint32 "unsigned int")
+       # Do we have VC >= 6's __uint64 and __int64?
+       # See: http://icfun.blogspot.com/2008/04/use-of-int64-variable-in-c.html
+       CHECK_TYPE_SIZE("__uint64" SZ___INT64)
+       CHECK_TYPE_SIZE("__int64"  SZ___UINT64)
+       IF(SZ___INT64 == 8 AND SZ___UINT64 == 8)
+         # MS compiler, VC6 or newer without BaseTsd.h in SDK
+         SET(pdfint64 "__int64")
+         SET(pdfuint64 "__uint64")
+       ELSE(SZ___INT64 AND SZ___UINT64)
+         # Still no luck. Old unix compiler, Borland, or some other monster?
+         # Are we lucky and sizeof(long) == 8?
+         CHECK_TYPE_SIZE("long int", SZ_LONG)
+         CHECK_TYPE_SIZE("unsigned long int", SZ_ULONG)
+         IF(SZ_LONG == 8 AND SZ_ULONG == 8)
+           # Must be on a LP64 platform, sizeof(long) = 8
+           SET(pdfint64 "long int")
+           SET(pdfuint64 "unsigned long int")
+         ELSE(SZ_LONG == 8 AND SZ_ULONG == 8)
+           # See if the compiler implements "long long int", _int64, int64, __int64 or int64_t
+           IF(HAVE_SYS_TYPES_H)
+             SET(CMAKE_EXTRA_INCLUDE_FILES "sys/types.h")
+           ENDIF(HAVE_SYS_TYPES_H)
+           CHECK_TYPE_SIZE("long long int"          SZ_LONG_LONG)
+           CHECK_TYPE_SIZE("unsigned long long int" SZ_UNSIGNED_LONG_LONG)
+           IF(SZ_LONG_LONG == 8 AND SZ_UNSIGNED_LONG_LONG == 8)
+             SET(pdfint64 "long int")
+             SET(pdfuint64 "unsigned long int")
+           ELSE(SZ_LONG_LONG == 8 AND SZ_UNSIGNED_LONG_LONG == 8)
+             CHECK_TYPE_SIZE("int64_t"                SZ_INT64_T)
+             CHECK_TYPE_SIZE("uint64_t"               SZ_UINT64_T)
+             IF(SZ_INT64_T AND SZ_UINT64_T)
+               SET(pdfint64 "int64_t")
+               SET(pdfuint64 "uint64_t")
+             ELSE(SZ_INT64_T AND SZ_UINT64_T)
+               CHECK_TYPE_SIZE("int64"                SZ_INT64)
+               CHECK_TYPE_SIZE("uint64"               SZ_UINT64)
+               IF(SZ_INT64 AND SZ_UINT64)
+                 SET(pdfint64 "int64")
+                 SET(pdfuint64 "uint64")
+               ELSE(SZ_INT64 AND SZ_UINT64)
+                 CHECK_TYPE_SIZE("_int64"                SZ__INT64)
+                 CHECK_TYPE_SIZE("_uint64"               SZ__UINT64)
+                 IF(SZ__INT64 AND SZ__UINT64)
+                   SET(pdfint64 "_int64")
+                   SET(pdfuint64 "_uint64")
+                 ELSE(SZ__INT64 AND SZ__UINT64)
+                   CHECK_TYPE_SIZE("__int64"                SZ___INT64)
+                   CHECK_TYPE_SIZE("__uint64"               SZ___UINT64)
+                   IF(SZ___INT64 AND SZ___UINT64)
+                     SET(pdfint64 "__int64")
+                     SET(pdfuint64 "__uint64")
+                   ELSE(SZ___INT64 AND SZ___UINT64)
+                     MESSAGE("Oh my lord, your compiler doesn't seem to support any of the int64 type flavours we tried.")
+                     MESSAGE(WARNING "You must set the PDF_INTxx_TYPENAME and PDF_UINTxx_TYPENAME variables manually")
+                   ENDIF(SZ___INT64 AND SZ___UINT64)
+                 ENDIF(SZ__INT64 AND SZ__UINT64)
+               ENDIF(SZ_INT64 AND SZ_UINT64)
+             ENDIF(SZ_INT64_T AND SZ_UINT64_T)
+           ENDIF(SZ_LONG_LONG == 8 AND SZ_UNSIGNED_LONG_LONG == 8)
+         ENDIF(SZ_LONG == 8 AND SZ_ULONG == 8)
+       ENDIF(SZ___INT64 AND SZ___UINT64)
+    ENDIF(HAVE_BASETSD_H)
+  ENDIF(HAVE_STDINT_H)
+  SET(CMAKE_EXTRA_INCLUDE_FILES)
+ENDIF(NOT PDF_INT64_TYPENAME)
+
+IF(NOT PDF_INT64_TYPENAME AND pdfint64)
+  SET(PDF_INT64_TYPENAME "${pdfint64}" CACHE STRING "Name of detected 64-bit signed integer type to use")
+  SET(PDF_INT32_TYPENAME "${pdfint32}" CACHE STRING "Name of detected 32-bit signed integer type to use")
+  SET(PDF_INT16_TYPENAME "${pdfint16}" CACHE STRING "Name of detected 16-bit signed integer type to use")
+  SET(PDF_UINT64_TYPENAME "${pdfuint64}" CACHE STRING "Name of detected 64-bit unsigned integer type to use")
+  SET(PDF_UINT32_TYPENAME "${pdfuint32}" CACHE STRING "Name of detected 32-bit unsigned integer type to use")
+  SET(PDF_UINT16_TYPENAME "${pdfuint16}" CACHE STRING "Name of detected 16-bit unsigned integer type to use")
+ENDIF(NOT PDF_INT64_TYPENAME AND pdfint64)
+
 
 # Linux packagers want an uninstall target.
 CONFIGURE_FILE(
@@ -67,11 +175,6 @@ ADD_CUSTOM_TARGET(uninstall "${CMAKE_COMMAND}"
 
 # Check if we are big endian
 TEST_BIG_ENDIAN(TEST_BIG)
-IF(TEST_BIG)
-  ADD_DEFINITIONS(-DPODOFO_IS_BIG_ENDIAN)
-ELSE(TEST_BIG)
-  ADD_DEFINITIONS(-DPODOFO_IS_LITTLE_ENDIAN)
-ENDIF(TEST_BIG)
 
 IF(WIN32)
     # On win32 we support EITHER shared OR static builds.
@@ -178,7 +281,7 @@ FIND_PACKAGE(LIBJPEG)
 
 IF(LIBJPEG_FOUND)
   MESSAGE("Found libjpeg headers in ${LIBJPEG_INCLUDE_DIR}, library at ${LIBJPEG_LIBRARIES}")
-  ADD_DEFINITIONS(-DPODOFO_HAVE_JPEG_LIB)
+  SET(PODOFO_HAVE_JPEG_LIB TRUE)
   INCLUDE_DIRECTORIES(${LIBJPEG_INCLUDE_DIR})
 ELSE(LIBJPEG_FOUND)
   MESSAGE("Libjpeg not found. JPEG support will be disabled")
@@ -188,7 +291,7 @@ FIND_PACKAGE(TIFF)
 
 IF(TIFF_FOUND)
   MESSAGE("Found libtiff headers in ${TIFF_INCLUDE_DIR}, library at ${TIFF_LIBRARIES}")
-  ADD_DEFINITIONS(-DPODOFO_HAVE_TIFF_LIB)
+  SET(PODOFO_HAVE_TIFF_LIB TRUE)
   INCLUDE_DIRECTORIES(${TIFF_INCLUDE_DIR})
 ELSE(TIFF_FOUND)
   MESSAGE("Libtiff not found. TIFF support will be disabled")
@@ -204,14 +307,6 @@ ELSE(CppUnit_FOUND)
 ENDIF(CppUnit_FOUND)
 
 FIND_PACKAGE(OpenSSL)
-
-#IF(OPENSSL_FOUND)
-#  MESSAGE("Found openssl. Signature support will be build.")
-#  SET(HAVE_OPENSSL OPENSSL_FOUND)
-#ELSE(OPENSSL_FOUND)
-#  MESSAGE("Openssl not found. Signature support will not be build.")
-#ENDIF(OPENSSL_FOUND)
-
 
 FIND_PACKAGE(FREETYPE REQUIRED)
 MESSAGE("Found freetype library at ${FREETYPE_LIBRARIES}, headers ${FREETYPE_INCLUDE_DIR}")
@@ -233,7 +328,7 @@ ENDIF(USE_STLPORT)
 
 IF(WANT_FONTCONFIG)
 	FIND_PACKAGE(FONTCONFIG REQUIRED)
-	ADD_DEFINITIONS(-DHAVE_FONTCONFIG)
+	SET(HAVE_FONTCONFIG TRUE)
 	SET(PODOFO_LIB_FONTCONFIG:STRING fontconfig)
 	IF(FONTCONFIG_FOUND)
 	  MESSAGE("Found fontconfig headers in ${FONTCONFIG_INCLUDE_DIR}, library at ${FONTCONFIG_LIBRARIES}")
@@ -259,13 +354,13 @@ ENDIF(WANT_FONTCONFIG)
 IF(DEFINED JPEG_RUNTIME_COMPATIBLE)
 	IF(JPEG_RUNTIME_COMPATIBLE)
 		# Trust the user to know what they're doing and pass a FILE*
-		ADD_DEFINITIONS(-DPODOFO_JPEG_RUNTIME_COMPATIBLE)
+		SET(PODOFO_JPEG_RUNTIME_COMPATIBLE TRUE)
 	ENDIF(JPEG_RUNTIME_COMPATIBLE)
 ELSE(DEFINED JPEG_RUNTIME_COMPATIBLE)
 	IF(NOT WIN32)
 		# It's a sensible platform and the user hasn't told us
 		# otherwise - pass a FILE* .
-		ADD_DEFINITIONS(-DPODOFO_JPEG_RUNTIME_COMPATIBLE)
+		SET(PODOFO_JPEG_RUNTIME_COMPATIBLE TRUE)
 	ENDIF(NOT WIN32)
 ENDIF(DEFINED JPEG_RUNTIME_COMPATIBLE)
 
@@ -276,7 +371,7 @@ IF(LUA_FOUND)
 	MESSAGE(" * Lua include directory: ${LUA_INCLUDE_DIR}")
 	MESSAGE(" * Lua libraries: ${LUA_LIBRARIES}")
 	INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
-	ADD_DEFINITIONS(-DPODOFO_HAVE_LUA)
+	SET(PODOFO_HAVE_LUA TRUE)
 ELSE(LUA_FOUND)
 	MESSAGE("Lua not found - PoDoFoImpose will be built without Lua support")
 ENDIF(LUA_FOUND)
@@ -285,17 +380,13 @@ ENDIF(LUA_FOUND)
 # Check if we should build a multithreaded version of PODOFO
 IF(DEFINED PODOFO_NO_MULTITHREAD)
   MESSAGE("Building non multithreaded version of PoDoFo.")
-
+  SET(PODOFO_MULTI_THREAD FALSE)
 ELSE(DEFINED PODOFO_NO_MULTITHREAD)
   MESSAGE("Building multithreaded version of PoDoFo.")
-  ADD_DEFINITIONS(-DPODOFO_MULTI_THREAD)
-	FIND_PACKAGE(Threads)
-   	SET(PLATFORM_SYSTEM_LIBRARIES ${CMAKE_THREAD_LIBS_INIT} ${PLATFORM_SYSTEM_LIBRARIES})
+  SET(PODOFO_MULTI_THREAD TRUE)
+  FIND_PACKAGE(Threads)
+  SET(PLATFORM_SYSTEM_LIBRARIES ${CMAKE_THREAD_LIBS_INIT} ${PLATFORM_SYSTEM_LIBRARIES})
 ENDIF(DEFINED PODOFO_NO_MULTITHREAD)
-
-IF (WIN32 OR JPEG_RUNTIME_COMPATIBLE)
-ELSE (WIN32 OR JPEG_RUNTIME_COMPATIBLE)
-ENDIF (WIN32 OR JPEG_RUNTIME_COMPATIBLE)
 
 IF(WANT_BOOST)
     MESSAGE("Looking optional for Boost.")
@@ -303,7 +394,7 @@ IF(WANT_BOOST)
     MESSAGE("Set the BOOST_ROOT env var if you have problems.")
     FIND_PACKAGE(Boost)
     IF(BOOST_FOUND)
-       ADD_DEFINITIONS(-DHAVE_BOOST)
+       SET(HAVE_BOOST TRUE)
        INCLUDE_DIRECTORIES(${BOOST_INCLUDE_DIR})
     ELSE(BOOST_FOUND)
        MESSAGE("If you don't need graph support you can ignore the above error.")
@@ -311,6 +402,7 @@ IF(WANT_BOOST)
 ENDIF(WANT_BOOST)
 
 INCLUDE_DIRECTORIES(
+    ${PoDoFo_BINARY_DIR}
     ${PoDoFo_SOURCE_DIR}/src
     ${FREETYPE_INCLUDE_DIR}
     ${ZLIB_INCLUDE_DIR}
@@ -365,6 +457,9 @@ ADD_SUBDIRECTORY(test)
 ADD_SUBDIRECTORY(tools)
 ADD_SUBDIRECTORY(examples)
 ENDIF(NOT PODOFO_BUILD_LIB_ONLY)
+
+# Generate our configure file
+CONFIGURE_FILE(${PoDoFo_SOURCE_DIR}/podofo_config.h.in ${PoDoFo_BINARY_DIR}/podofo_config.h)
 
 # Export some variables into the config file so it's easier for others
 # to build and link against PoDoFo

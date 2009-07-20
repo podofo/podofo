@@ -1180,7 +1180,7 @@ void PdfParser::FindToken( const char* pszToken, const long lRange )
                 "Failed to seek to EOF when looking for xref");
     }
 
-    pdf_long lXRefBuf  = PDF_MIN( nFileSize, lRange );
+    pdf_long lXRefBuf  = PDF_MIN( static_cast<pdf_long>(nFileSize), static_cast<pdf_long>(lRange) );
     size_t   nTokenLen = strlen( pszToken );
 
     m_device.Device()->Seek( -lXRefBuf, std::ios_base::cur );
@@ -1224,7 +1224,7 @@ void PdfParser::FindToken2( const char* pszToken, const long lRange, size_t sear
                 "Failed to seek to EOF when looking for xref");
     }
 
-    pdf_long      lXRefBuf  = PDF_MIN( nFileSize, lRange );
+    pdf_long      lXRefBuf  = PDF_MIN( static_cast<pdf_long>(nFileSize), static_cast<pdf_long>(lRange) );
     size_t        nTokenLen = strlen( pszToken );
     size_t        i;
 

@@ -20,12 +20,9 @@
 
 #include "PdfInputDevice.h"
 
-#include <cstdio>
 #include <cstdarg>
 #include <fstream>
 #include <sstream>
-
-#include <wchar.h>
 
 namespace PoDoFo {
 

@@ -23,13 +23,9 @@
 #include "PdfInputDevice.h"
 #include "PdfOutputDevice.h"
 
+#include <cstring>
 #include <iostream>
 #include <algorithm>
-#include <cstring>
-
-#ifdef _WIN32
-#define strcasecmp _stricmp
-#endif // _WIN32
 
 namespace PoDoFo {
 
@@ -73,15 +69,15 @@ PdfFontTTFSubset::PdfFontTTFSubset( const char* pszFontFileName, PdfFontMetrics*
     const char* pname = pszFontFileName;
     const char* ext   = pname + strlen(pname) - 3;
 
-    if (strcasecmp(ext,"ttf") == 0)
+    if (PoDoFo::compat::strcasecmp(ext,"ttf") == 0)
     {
         m_eFontFileType = eFontFileType_TTF;
     }
-    else if (strcasecmp(ext,"ttc") == 0)
+    else if (PoDoFo::compat::strcasecmp(ext,"ttc") == 0)
     {
         m_eFontFileType = eFontFileType_TTC;
     }
-    else if (strcasecmp(ext,"otf") == 0)
+    else if (PoDoFo::compat::strcasecmp(ext,"otf") == 0)
     {
         m_eFontFileType = eFontFileType_OTF;
     }

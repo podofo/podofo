@@ -20,13 +20,8 @@
 
 #include "PdfOutputDevice.h"
 
-#include <cstdio>
 #include <fstream>
 #include <sstream>
-
-#include <stdlib.h>
-#include <string.h>
-#include <wchar.h>
 
 #include "PdfRefCountedBuffer.h"
 

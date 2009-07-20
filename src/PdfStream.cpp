@@ -141,10 +141,10 @@ void PdfStream::Set( PdfInputStream* pStream, const TVecFilters & vecFilters )
 
 void PdfStream::SetRawData( PdfInputStream* pStream, pdf_long lLen )
 {
-    const int   BUFFER_SIZE = 4096;
-    char        buffer[BUFFER_SIZE];
-    pdf_long        lRead;
-    TVecFilters vecEmpty;
+    const pdf_long   BUFFER_SIZE = 4096;
+    char             buffer[BUFFER_SIZE];
+    pdf_long         lRead;
+    TVecFilters      vecEmpty;
 
     // TODO: DS, give begin append a size hint so that it knows
     //       how many data has to be allocated

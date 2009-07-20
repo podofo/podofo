@@ -29,17 +29,22 @@
 
 #ifdef PODOFO_HAVE_TIFF_LIB
 extern "C" {
-#include "tiffio.h"
-#ifdef _WIN32		// Collision between tiff and jpeg-headers
-#define XMD_H
-#undef FAR
-#endif
+#  include "tiffio.h"
+#  ifdef _WIN32		// Collision between tiff and jpeg-headers
+#    ifndef XMD_H
+#    define XMD_H
+#    endif
+#    undef FAR
+#  endif
 }
 #endif // PODOFO_HAVE_TIFF_LIB
 
 #ifdef PODOFO_HAVE_JPEG_LIB
 extern "C" {
-#include "jpeglib.h"
+#  ifndef XMD_H
+#    define XMD_H
+#  endif
+#  include "jpeglib.h"
 }
 #endif // PODOFO_HAVE_JPEG_LIB
 
@@ -161,13 +166,8 @@ void PdfImage::LoadFromFile( const char* pszFilename )
         const char* pszExtension = pszFilename + strlen( pszFilename ) - 3;
 
 #ifdef PODOFO_HAVE_TIFF_LIB
-#ifdef _MSC_VER
-        if( _strnicmp( pszExtension, "tif", 3 ) == 0 || 
-            _strnicmp( pszExtension, "iff", 3 ) == 0 ) // "tiff"
-#else
-        if( strncasecmp( pszExtension, "tif", 3 ) == 0 ||
-            strncasecmp( pszExtension, "iff", 3 ) == 0 ) // "tiff"
-#endif
+        if( PoDoFo::compat::strncasecmp( pszExtension, "tif", 3 ) == 0 ||
+            PoDoFo::compat::strncasecmp( pszExtension, "iff", 3 ) == 0 ) // "tiff"
         {
             LoadFromTiff( pszFilename );
             return;
@@ -175,11 +175,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
 #endif
 
 #ifdef PODOFO_HAVE_JPEG_LIB
-#ifdef _MSC_VER
-        if( _strnicmp( pszExtension, "jpg", 3 ) == 0 )
-#else
         if( strncasecmp( pszExtension, "jpg", 3 ) == 0 )
-#endif
         {
             LoadFromJpeg( pszFilename );
             return;

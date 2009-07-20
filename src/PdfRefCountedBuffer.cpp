@@ -27,7 +27,7 @@ namespace PoDoFo {
 
 #define STREAM_SIZE_INCREASE 1024
 
-PdfRefCountedBuffer::PdfRefCountedBuffer( char* pBuffer, pdf_long lSize )
+PdfRefCountedBuffer::PdfRefCountedBuffer( char* pBuffer, size_t lSize )
     : m_pBuffer( NULL )
 {
     if( pBuffer && lSize ) 
@@ -52,18 +52,18 @@ void PdfRefCountedBuffer::FreeBuffer()
     delete m_pBuffer;
 }
 
-void PdfRefCountedBuffer::ReallyDetach( pdf_long lExtraLen )
+void PdfRefCountedBuffer::ReallyDetach( size_t lExtraLen )
 {
     PODOFO_RAISE_LOGIC_IF( m_pBuffer && m_pBuffer->m_lRefCount == 1, "Use Detach() rather than calling ReallyDetach() directly." )
 
-    pdf_long lSize                 = m_pBuffer->m_lBufferSize + lExtraLen; 
+    size_t lSize                 = m_pBuffer->m_lBufferSize + lExtraLen; 
     TRefCountedBuffer* pBuffer = new TRefCountedBuffer();
     pBuffer->m_lRefCount       = 1;
     if ( (pBuffer->m_bOnHeap = lSize > TRefCountedBuffer::INTERNAL_BUFSIZE) )
         pBuffer->m_pHeapBuffer  = static_cast<char*>(malloc( sizeof(char)*lSize ));
     else
         pBuffer->m_pHeapBuffer = 0;
-    pBuffer->m_lBufferSize     = PDF_MAX( lSize, +TRefCountedBuffer::INTERNAL_BUFSIZE );
+    pBuffer->m_lBufferSize     = PDF_MAX( lSize, static_cast<size_t>(+TRefCountedBuffer::INTERNAL_BUFSIZE) );
     pBuffer->m_bPossesion      = true;
 
     if( pBuffer->m_bOnHeap && !pBuffer->m_pHeapBuffer ) 
@@ -99,7 +99,7 @@ void PdfRefCountedBuffer::ReallyResize( const size_t lSize )
             // request lots of small resizes if they want, but these over allocations are not visible
             // to clients.
             //
-            const size_t lAllocSize = PDF_MAX(lSize,static_cast<size_t>(m_pBuffer->m_lBufferSize) << 1 );
+            const size_t lAllocSize = PDF_MAX(lSize, m_pBuffer->m_lBufferSize) << 1;
             if ( m_pBuffer->m_bPossesion && m_pBuffer->m_bOnHeap )
             {
                 // We have an existing on-heap buffer that we own. Realloc()
@@ -144,7 +144,7 @@ void PdfRefCountedBuffer::ReallyResize( const size_t lSize )
             m_pBuffer->m_pHeapBuffer = static_cast<char*>(malloc( sizeof(char)*lSize ));
         else
             m_pBuffer->m_pHeapBuffer = 0;
-        m_pBuffer->m_lBufferSize     = PDF_MAX( lSize, +TRefCountedBuffer::INTERNAL_BUFSIZE );
+        m_pBuffer->m_lBufferSize     = PDF_MAX( lSize, static_cast<size_t>(+TRefCountedBuffer::INTERNAL_BUFSIZE) );
         m_pBuffer->m_bPossesion      = true;
 
         if( m_pBuffer->m_bOnHeap && !m_pBuffer->m_pHeapBuffer ) 

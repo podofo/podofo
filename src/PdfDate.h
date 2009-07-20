@@ -24,6 +24,8 @@
 #include "PdfDefines.h"
 #include "PdfString.h"
 
+#include <ctime>
+
 // a PDF date has a maximum of 26 bytes incuding the terminating \0
 #define PDF_DATE_BUFFER_SIZE 26
 

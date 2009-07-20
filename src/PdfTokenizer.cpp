@@ -468,11 +468,7 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
     if( false ) 
     {
         std::ostringstream ss;
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200
-        ss << "Got unexpected PDF data in" << __FILE__ << ", line " << __LINE__
-#else
-        ss << "Got unexpected PDF data in" << __FUNCTION__
-#endif
+        ss << "Got unexpected PDF data in" << PODOFO__FUNCTION__
            << ": \""
            << pszToken
            << "\". Current read offset is "

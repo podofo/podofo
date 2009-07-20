@@ -47,12 +47,12 @@ class PODOFO_API PdfRefCountedBuffer {
      *
      *  \see SetTakePossesion
      */
-    PdfRefCountedBuffer( char* pBuffer, pdf_long lSize );
+    PdfRefCountedBuffer( char* pBuffer, size_t lSize );
 
     /** Create a new PdfRefCountedBuffer. 
      *  \param lSize buffer size
      */
-    inline PdfRefCountedBuffer( pdf_long lSize );
+    inline PdfRefCountedBuffer( size_t lSize );
 
     /** Copy an existing PdfRefCountedBuffer and increase
      *  the reference count
@@ -156,13 +156,13 @@ class PODOFO_API PdfRefCountedBuffer {
      *  \param lLen an additional parameter specifiying extra bytes
      *              to be allocated to optimize allocations of a new buffer.
      */
-    inline void Detach( pdf_long lExtraLen = 0 );
+    inline void Detach( size_t lExtraLen = 0 );
 
     /**
      * Called by Detach() to do the work if action is actually required.
      * \see Detach
      */
-    void ReallyDetach( pdf_long lExtraLen );
+    void ReallyDetach( size_t lExtraLen );
 
     /**
      * Do the hard work of resizing the buffer if it turns out not to already be big enough.
@@ -180,11 +180,11 @@ class PODOFO_API PdfRefCountedBuffer {
         // size in bytes of the buffer. If and only if this is strictly >INTERNAL_BUFSIZE,
         // this buffer is on the heap in memory pointed to by m_pHeapBuffer . If it is <=INTERNAL_BUFSIZE,
         // the buffer is in the in-object buffer m_sInternalBuffer.
-        pdf_long  m_lBufferSize;
+        size_t  m_lBufferSize;
         // Size in bytes of m_pBuffer that should be reported to clients. We
         // over-allocate on the heap for efficiency and have a minimum 32 byte
         // size, but this extra should NEVER be visible to a client.
-        pdf_long  m_lVisibleSize;
+        size_t  m_lVisibleSize;
         long  m_lRefCount;
         char* m_pHeapBuffer;
         char  m_sInternalBuffer[INTERNAL_BUFSIZE];
@@ -207,7 +207,7 @@ PdfRefCountedBuffer::PdfRefCountedBuffer()
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-PdfRefCountedBuffer::PdfRefCountedBuffer( pdf_long lSize )
+PdfRefCountedBuffer::PdfRefCountedBuffer( size_t lSize )
     : m_pBuffer( NULL )
 {
     this->Resize( lSize );
@@ -270,7 +270,7 @@ inline bool PdfRefCountedBuffer::TakePossesion() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfRefCountedBuffer::Detach( pdf_long lExtraLen )
+inline void PdfRefCountedBuffer::Detach( size_t lExtraLen )
 {
     if (m_pBuffer && m_pBuffer->m_lRefCount > 1L)
         ReallyDetach(lExtraLen);

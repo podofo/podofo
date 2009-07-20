@@ -1,0 +1,45 @@
+/* Template filled out by CMake */
+
+/*
+ * *** THIS HEADER IS INCLUDED BY PdfCompilerCompat.h ***
+ * *** DO NOT INCLUDE DIRECTLY ***
+ */
+#ifndef _PDF_COMPILERCOMPAT_H
+#error Please include PdfDefines.h instead
+#endif
+
+/* PoDoFo configuration options */
+#cmakedefine PODOFO_MULTI_THREAD
+
+/* somewhat platform-specific headers */
+#cmakedefine HAVE_STRINGS_H 1
+#cmakedefine HAVE_ARPA_INET_H 1
+#cmakedefine HAVE_WINSOCK2_H 1
+#cmakedefine HAVE_MEM_H 1
+#cmakedefine HAVE_CTYPE_H 1
+
+/* Integer types - headers */
+#cmakedefine HAVE_STDINT_H 1
+#cmakedefine HAVE_BASETSD_H 1 
+#cmakedefine HAVE_SYS_TYPES_H 1
+/* Integer types - type names */
+#cmakedefine PDF_INT16_TYPENAME  @PDF_INT16_TYPENAME@
+#cmakedefine PDF_INT32_TYPENAME  @PDF_INT32_TYPENAME@
+#cmakedefine PDF_INT64_TYPENAME  @PDF_INT64_TYPENAME@
+#cmakedefine PDF_UINT16_TYPENAME @PDF_UINT16_TYPENAME@
+#cmakedefine PDF_UINT32_TYPENAME @PDF_UINT32_TYPENAME@
+#cmakedefine PDF_UINT64_TYPENAME @PDF_UINT64_TYPENAME@
+
+/* Endianness */
+#cmakedefine TEST_BIG
+
+/* Libraries */
+#cmakedefine PODOFO_HAVE_JPEG_LIB
+#cmakedefine PODOFO_HAVE_TIFF_LIB
+#cmakedefine HAVE_FONTCONFIG
+#cmakedefine PODOFO_HAVE_LUA
+#cmakedefine HAVE_BOOST
+#cmakedefine HAVE_CPPUNIT
+
+/* Platform quirks */
+#cmakedefine PODOFO_JPEG_RUNTIME_COMPATIBLE

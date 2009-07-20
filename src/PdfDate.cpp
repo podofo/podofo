@@ -21,7 +21,6 @@
 #include "PdfDate.h"
 
 #include <string.h>
-#include <time.h>
 #include <sstream>
 
 namespace PoDoFo {

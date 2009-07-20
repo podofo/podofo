@@ -18,8 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <cmath>
-
 #include "PdfHintStream.h"
 
 #include "PdfData.h"
@@ -29,15 +27,6 @@
 #include "PdfStream.h"
 #include "PdfVariant.h"
 #include "PdfVecObjects.h"
-
-// for htonl
-#ifdef _WIN32
-#include <winsock2.h>
-#undef GetObject
-#define logb log
-#else 
-#include <arpa/inet.h>
-#endif // _WIN32
 
 // See PdfWriter.cpp
 #define LINEARIZATION_PADDING "1234567890"

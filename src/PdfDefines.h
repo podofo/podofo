@@ -28,35 +28,20 @@
  *        supporting platforms it will be precompiled to speed compilation.
  */ 
 
-#ifdef _MSC_VER
-#if _MSC_VER <= 1200 // Visual Studio 6
-#pragma warning(disable: 4786)
-#pragma warning(disable: 4251)
-#elif _MSC_VER <= 1400 // Visual Studio 2005
-#pragma warning(disable: 4251)
-#pragma warning(disable: 4275)
-#endif // _MSC_VER
-#endif // _MSC_VER
+#include "PdfCompilerCompat.h"
 
 // Include common system files
+#include <cstdlib>
 #include <cstdio>
+#include <cstring>
+#include <ctype.h>
+#include <wchar.h>
 
 // Include common STL files
 #include <map>
 #include <string>
 #include <vector>
 #include <set>
-
-#define pdf_long ptrdiff_t
-
-#if defined(_WIN64)
-#define fseeko _fseeki64
-#define ftello _ftelli64
-#else
-#define fseeko fseek
-#define ftello ftell
-#endif
-
 
 // Include common BOOST settings 
 #ifdef HAVE_BOOST
@@ -75,15 +60,6 @@
 //#define PODOFO_VERBOSE_DEBUG
 #endif //PODOFO_VERBOSE_DEBUG
 
-// Make sure that DEBUG is defined 
-// for debug builds on Windows
-// as Visual Studio defines only _DEBUG
-#ifdef _DEBUG
-#ifndef DEBUG
-#define DEBUG 1
-#endif // DEBUG
-#endif // _DEBUG
-
 #ifdef DEBUG
 #include <assert.h>
 #define PODOFO_ASSERT( x ) assert( x );
@@ -96,6 +72,9 @@
 // might cause the library to abort() if it notices something nasty.
 // It may also change the size of some objects, and is thus not binary
 // compatible.
+//
+// If you don't know you need this, avoid it.
+//
 #ifndef PODOFO_EXTRA_CHECKS
 //#define PODOFO_EXTRA_CHECKS
 #endif //PODOFO_EXTRA_CHECKS
@@ -129,6 +108,7 @@
 namespace PoDoFo {
 
 // Datatypes which are required to have a certain size when porting
+// These should probably go into PdfCompilerCompat.h
 
 /**
  * unsigned int which is defined to be 32 bits wide.
@@ -411,41 +391,28 @@ static const char s_cDelimiters[] = {
     '\0' // end marker
 };
 
-};
-
-// macros
 /**
- * \def PDF_MAX(x,y)
+ * PDF_MAX(x,y)
+ *
  * \returns the maximum of x and y
  */
-#define PDF_MAX(x,y) ((x)>(y)?(x):(y))
+// Not actually a macro, because function-like macros are evil and
+// prone to nasty issues with double-evaluation of arguments.
+template <typename T> const T PDF_MAX ( const T a, const T b ) {
+  return (b<a)?a:b;
+}
 
 /**
- * \def PDF_MIN(x,y)
+ * PDF_MIN(x,y)
  * \returns the minimum of x and y
  */
-#define PDF_MIN(x,y) ((x)<(y)?(x):(y))
+// Not actually a macro, because function-like macros are evil and
+// prone to nasty issues with double-evaluation of arguments.
+template <typename T> const T PDF_MIN ( const T a, const T b ) {
+  return (a<b)?a:b;
+}
 
-/**
- * \def PODOFO_UNUSED( x )
- * Make a certain variable to be unused
- * in the code, without getting a compiler
- * warning.
- */
-#ifndef _WIN32
-template <typename T>
-inline void podofo_unused(T &t) { (void)t; }
-#define PODOFO_UNUSED( x ) podofo_unused( x );
-#else
-#define PODOFO_UNUSED( x ) (void)x;
-#endif // _WIN32
-/*
-	This is needed to enable compilation with VC++ on Windows
-*/
-#ifdef _MSC_VER
-#define snprintf _snprintf
-#define vsnprintf _vsnprintf
-#endif
+}; // end namespace PoDoFo
 
 /**
  * \mainpage

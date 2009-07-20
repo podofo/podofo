@@ -25,14 +25,6 @@
 #include "PdfTokenizer.h"
 #include "PdfVariant.h"
 
-#include <stdlib.h>
-#include <string.h>
-
-#ifndef _WIN32
-  #include <strings.h>
-  #include <ctype.h>
-#endif // _WIN32
-
 namespace PoDoFo {
 
 /** A PdfNamedColor holds
@@ -58,11 +50,7 @@ public:
      */
     inline bool operator<( const char* pszName ) const
     {
-#ifdef _WIN32
-        return pszName ? _stricmp( m_pszName, pszName ) < 0 : true; 
-#else
-        return pszName ? strcasecmp( m_pszName, pszName ) < 0 : true; 
-#endif // _WIN32
+        return pszName ? PoDoFo::compat::strcasecmp( m_pszName, pszName ) < 0 : true; 
     }
 
     /** Compare this color object to a name 
@@ -72,11 +60,7 @@ public:
      */
     inline bool operator==( const char* pszName ) const
     {
-#ifdef _WIN32
-        return pszName ? _stricmp( m_pszName, pszName ) == 0 : false; 
-#else
-        return pszName ? strcasecmp( m_pszName, pszName ) == 0 : false; 
-#endif // _WIN32
+        return pszName ? PoDoFo::compat::strcasecmp( m_pszName, pszName ) == 0 : false; 
     }
 
     /** 

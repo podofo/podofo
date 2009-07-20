@@ -204,8 +204,8 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
         lGlyph = m_pMetrics->GetGlyphId( i );
         if( lGlyph )
         {
-            nMin = PDF_MIN( nMin, lGlyph );
-            nMax = PDF_MAX( nMax, lGlyph );
+            nMin = PDF_MIN( static_cast<long>(nMin), lGlyph );
+            nMax = PDF_MAX( static_cast<long>(nMax), lGlyph );
             nMax = PDF_MIN( nMax, cAbsoluteMax );
 
             if( lGlyph < cAbsoluteMax )
