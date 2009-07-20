@@ -266,11 +266,6 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
         -Wredundant-decls
         -Wreorder
        )
-    # STLPort uses old style casts extensively, so if we're building against it
-    # we'd best disable the warning.
-    IF(NOT USE_STLPORT)
-        ADD_DEFINITIONS(-Wold-style-cast)
-    ENDIF(NOT USE_STLPORT)
     #
     # Note that we do not need debug definitions here. Set
     # -DCMAKE_BUILD_TYPE=debug or (if you want an optimised
