@@ -627,8 +627,8 @@ void PdfCheckBox::SetAppearanceUnchecked( const PdfXObject & rXObject )
 
 void PdfCheckBox::SetChecked( bool bChecked )
 {
-    m_pObject->GetDictionary().AddKey( PdfName("V"), bChecked ? PdfName("Yes") : PdfName("Off") );
-    m_pObject->GetDictionary().AddKey( PdfName("AS"), bChecked ? PdfName("Yes") : PdfName("Off") );
+    m_pObject->GetDictionary().AddKey( PdfName("V"), (bChecked ? PdfName("Yes") : PdfName("Off")) );
+    m_pObject->GetDictionary().AddKey( PdfName("AS"), (bChecked ? PdfName("Yes") : PdfName("Off")) );
 }
 
 bool PdfCheckBox::IsChecked() const
