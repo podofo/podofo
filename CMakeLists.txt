@@ -85,10 +85,25 @@ IF(NOT PDF_INT64_TYPENAME)
     ELSE(HAVE_BASETSD_H)
        # No BaseTsd.h either. Assume the standard types, and go poking
        # for a sane 64-bit integer.
+       #
+       # First, though, make sure sizeof(int) = 4 and if not, scream, because
+       # hopefully this case will never be hit and we'll never have to write
+       # the horrible code check for
+       CHECK_TYPE_SIZE("short int"          SZ_SHORT_INT)
+       CHECK_TYPE_SIZE("int"                SZ_INT)
+       CHECK_TYPE_SIZE("unsigned short int" SZ_UINT)
+       CHECK_TYPE_SIZE("unsigned int"       SZ_SHORT_UINT)
+       SET(smallintsok SZ_INT == 4 AND SZ_UINT == 4 AND SZ_SHORT_INT == 2 AND SZ_SHORT_UINT == 2)
+       IF(NOT smallintsok)
+         MESSAGE(FATAL "sizeof(int) != 4 and/or sizeof(short) != 2 and no stdint.h or BaseTsd.h found. We don't know how to cope with this.")
+       ENDIF(NOT smallintsok)
+       # 16-bit and 32-bit types should be OK....
        SET(pdfint16 "short")
        SET(pdfint32 "int")
        SET(pdfuint16 "unsigned short")
        SET(pdfuint32 "unsigned int")
+       # Now we just have to figure out what 64-bit integer type we can use.
+       #
        # Do we have VC >= 6's __uint64 and __int64?
        # See: http://icfun.blogspot.com/2008/04/use-of-int64-variable-in-c.html
        CHECK_TYPE_SIZE("__uint64" SZ___INT64)
@@ -135,15 +150,8 @@ IF(NOT PDF_INT64_TYPENAME)
                    SET(pdfint64 "_int64")
                    SET(pdfuint64 "_uint64")
                  ELSE(SZ__INT64 AND SZ__UINT64)
-                   CHECK_TYPE_SIZE("__int64"                SZ___INT64)
-                   CHECK_TYPE_SIZE("__uint64"               SZ___UINT64)
-                   IF(SZ___INT64 AND SZ___UINT64)
-                     SET(pdfint64 "__int64")
-                     SET(pdfuint64 "__uint64")
-                   ELSE(SZ___INT64 AND SZ___UINT64)
-                     MESSAGE("Oh my lord, your compiler doesn't seem to support any of the int64 type flavours we tried.")
-                     MESSAGE(WARNING "You must set the PDF_INTxx_TYPENAME and PDF_UINTxx_TYPENAME variables manually")
-                   ENDIF(SZ___INT64 AND SZ___UINT64)
+                   MESSAGE("Oh my lord, your compiler doesn't seem to support any of the int64 type flavours we tried.")
+                   MESSAGE(WARNING "You must set the PDF_INTxx_TYPENAME and PDF_UINTxx_TYPENAME variables manually")
                  ENDIF(SZ__INT64 AND SZ__UINT64)
                ENDIF(SZ_INT64 AND SZ_UINT64)
              ENDIF(SZ_INT64_T AND SZ_UINT64_T)
