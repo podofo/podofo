@@ -63,11 +63,6 @@
 #define _MAX_ROUNDS      14
 #define MAX_IV_SIZE      16
 
-// We assume that unsigned int is 32 bits long.... 
-typedef unsigned char  UINT8;
-typedef unsigned int   UINT32;
-typedef unsigned short UINT16;
-
 // Error codes
 #define RIJNDAEL_SUCCESS 0
 #define RIJNDAEL_UNSUPPORTED_MODE -1
@@ -100,12 +95,12 @@ protected:
 	// Internal stuff
 	enum State { Valid , Invalid };
 
-	State     m_state;
-	Mode      m_mode;
-	Direction m_direction;
-	UINT8     m_initVector[MAX_IV_SIZE];
-	UINT32    m_uRounds;
-	UINT8     m_expandedKey[_MAX_ROUNDS+1][4][4];
+	State      m_state;
+	Mode       m_mode;
+	Direction  m_direction;
+	pdf_uint8  m_initVector[MAX_IV_SIZE];
+	pdf_uint32 m_uRounds;
+	pdf_uint8  m_expandedKey[_MAX_ROUNDS+1][4][4];
 public:
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// API
@@ -125,7 +120,7 @@ public:
 	//             this CAN be binary data (it is not expected to be null terminated)
 	// keyLen    : Rijndael::Key16Bytes , Rijndael::Key24Bytes or Rijndael::Key32Bytes
 	// initVector: initialization vector, you will usually use 0 here
-	int init(Mode mode,Direction dir,const UINT8 *key,KeyLength keyLen,UINT8 * initVector = 0);
+	int init(Mode mode,Direction dir,const pdf_uint8 *key,KeyLength keyLen,pdf_uint8 * initVector = 0);
 	// Encrypts the input array (can be binary data)
 	// The input array length must be a multiple of 16 bytes, the remaining part
 	// is DISCARDED.
@@ -133,28 +128,28 @@ public:
 	// Input len is in BITS!
 	// outBuffer must be at least inputLen / 8 bytes long.
 	// Returns the encrypted buffer length in BITS or an error code < 0 in case of error
-	int blockEncrypt(const UINT8 *input, int inputLen, UINT8 *outBuffer);
+	int blockEncrypt(const pdf_uint8 *input, int inputLen, pdf_uint8 *outBuffer);
 	// Encrypts the input array (can be binary data)
 	// The input array can be any length , it is automatically padded on a 16 byte boundary.
 	// Input len is in BYTES!
 	// outBuffer must be at least (inputLen + 16) bytes long
 	// Returns the encrypted buffer length in BYTES or an error code < 0 in case of error
-	pdf_long padEncrypt(const UINT8 *input, pdf_long inputOctets, UINT8 *outBuffer);
+	pdf_long padEncrypt(const pdf_uint8 *input, pdf_long inputOctets, pdf_uint8 *outBuffer);
 	// Decrypts the input vector
 	// Input len is in BITS!
 	// outBuffer must be at least inputLen / 8 bytes long
 	// Returns the decrypted buffer length in BITS and an error code < 0 in case of error
-	int blockDecrypt(const UINT8 *input, int inputLen, UINT8 *outBuffer);
+	int blockDecrypt(const pdf_uint8 *input, int inputLen, pdf_uint8 *outBuffer);
 	// Decrypts the input vector
 	// Input len is in BYTES!
 	// outBuffer must be at least inputLen bytes long
 	// Returns the decrypted buffer length in BYTES and an error code < 0 in case of error
-	int padDecrypt(const UINT8 *input, int inputOctets, UINT8 *outBuffer);
+	int padDecrypt(const pdf_uint8 *input, int inputOctets, pdf_uint8 *outBuffer);
 protected:
-	void keySched(UINT8 key[_MAX_KEY_COLUMNS][4]);
+	void keySched(pdf_uint8 key[_MAX_KEY_COLUMNS][4]);
 	void keyEncToDec();
-	void encrypt(const UINT8 a[16], UINT8 b[16]);
-	void decrypt(const UINT8 a[16], UINT8 b[16]);
+	void encrypt(const pdf_uint8 a[16], pdf_uint8 b[16]);
+	void decrypt(const pdf_uint8 a[16], pdf_uint8 b[16]);
 };
 
 };

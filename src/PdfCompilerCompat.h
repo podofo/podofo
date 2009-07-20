@@ -65,16 +65,20 @@
 // CMake. Use typedefs rather than macros for saner error messages
 // etc.
 namespace PoDoFo {
+    typedef PDF_INT8_TYPENAME  pdf_int8;
     typedef PDF_INT16_TYPENAME  pdf_int16;
     typedef PDF_INT32_TYPENAME  pdf_int32;
     typedef PDF_INT64_TYPENAME  pdf_int64;
+    typedef PDF_UINT8_TYPENAME pdf_uint8;
     typedef PDF_UINT16_TYPENAME pdf_uint16;
     typedef PDF_UINT32_TYPENAME pdf_uint32;
     typedef PDF_UINT64_TYPENAME pdf_uint64;
 };
+#undef PDF_INT8_TYPENAME
 #undef PDF_INT16_TYPENAME
 #undef PDF_INT32_TYPENAME
 #undef PDF_INT64_TYPENAME
+#undef PDF_UINT8_TYPENAME
 #undef PDF_UINT16_TYPENAME
 #undef PDF_UINT32_TYPENAME
 #undef PDF_UINT64_TYPENAME
