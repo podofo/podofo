@@ -99,7 +99,7 @@ PdfInputDevice::PdfInputDevice( const char* pBuffer, size_t lLen )
 {
     this->Init();
 
-    if( !pBuffer || lLen < 0 ) 
+    if( !pBuffer ) 
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }

@@ -104,19 +104,10 @@
  */ 
 namespace PoDoFo {
 
-// Datatypes which are required to have a certain size when porting
-// These should probably go into PdfCompilerCompat.h
-
-/**
- * unsigned int which is defined to be 32 bits wide.
- */
-typedef unsigned int   pdf_uint32;
-typedef unsigned short pdf_uint16;
-typedef signed short   pdf_int16;
-
+/* Explicitly big-endian short, suitable for unicode text */
 typedef pdf_uint16     pdf_utf16be;
+/* Typedef to indicate utf-8 encoded data */
 typedef unsigned char  pdf_utf8;
-
 
 // Enums
 

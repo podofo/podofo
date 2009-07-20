@@ -72,7 +72,7 @@ class PODOFO_API PdfVariant {
     /** Construct a PdfVariant that is a number.
      *  \param l the value of the number.
      */
-    PdfVariant( long long l );
+    PdfVariant( pdf_int64 l );
 
     /** Construct a PdfVariant that is a real number.
      *  \param d the value of the real number.
@@ -243,7 +243,7 @@ class PODOFO_API PdfVariant {
     /** Get the value of the object as long.
      *  \return the value of the number
      */
-    inline long long GetNumber() const;
+    inline pdf_int64 GetNumber() const;
 
     /** Set the value of this object as double
      *  \param d the value as double.
@@ -443,7 +443,7 @@ class PODOFO_API PdfVariant {
 
         bool       bBoolValue;
         double     dNumber;
-        long long      nNumber;
+        pdf_int64      nNumber;
     } UVariant;
 
     UVariant     m_Data;
@@ -573,7 +573,7 @@ void PdfVariant::SetNumber( long l )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-long long PdfVariant::GetNumber() const
+pdf_int64 PdfVariant::GetNumber() const
 {
     DelayedLoad();
 

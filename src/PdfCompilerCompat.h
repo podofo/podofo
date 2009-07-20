@@ -66,6 +66,27 @@
 // historical/existing definition:
 #define pdf_long ptrdiff_t
 
+// Integer types - fixed size types guaranteed to work anywhere
+// because we detect the right underlying type name to use with
+// CMake. Use typedefs rather than macros for saner error messages
+// etc.
+namespace PoDoFo {
+    typedef PDF_INT16_TYPENAME  pdf_int16;
+    typedef PDF_INT32_TYPENAME  pdf_int32;
+    typedef PDF_INT64_TYPENAME  pdf_int64;
+    typedef PDF_UINT16_TYPENAME pdf_uint16;
+    typedef PDF_UINT32_TYPENAME pdf_uint32;
+    typedef PDF_UINT64_TYPENAME pdf_uint64;
+};
+#undef PDF_INT16_TYPENAME
+#undef PDF_INT32_TYPENAME
+#undef PDF_INT64_TYPENAME
+#undef PDF_UINT16_TYPENAME
+#undef PDF_UINT32_TYPENAME
+#undef PDF_UINT64_TYPENAME
+
+
+
 #if defined(__BORLANDC__) || defined( __TURBOC__)
    // Borland Turbo C has a broken "<cmath>" but provides a usable "math.h"
    // and it needs a bunch of other includes
