@@ -81,7 +81,7 @@
 #endif
 
 // for htonl
-#if HAVE_WINSOCK_H
+#if HAVE_WINSOCK2_H
 #  include <winsock2.h>
 #  undef GetObject // Horrible windows.h macro definition that breaks things
 #endif
