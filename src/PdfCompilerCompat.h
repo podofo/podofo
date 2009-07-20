@@ -66,14 +66,15 @@
 #include <strings.h>
 #endif
 
-#if defined(__REPLACE_WITH_MACRO_MATCHING_ONLY_BORLAND_COMPILER_)
+#if defined(__BORLANDC__) || defined( __TURBOC__)
+   // Borland Turbo C has a broken "<cmath>" but provides a usable "math.h"
 #  include "math.h"
 #else
 #  include <cmath>
 #endif
 
 // Use the more informative __FUNCTION__ macro instead of __FILE__ __LINE__ where possible.
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200
+#if (defined(_MSC_VER)  &&  _MSC_VER <= 1200)  || defined(__BORLANDC__) || defined(__TURBOC__)
 #  define PODOFO__FUNCTION__ (__FILE__ ":" __LINE__)
 #else
 #  define PODOFO__FUNCTION__ __FUNCTION__
