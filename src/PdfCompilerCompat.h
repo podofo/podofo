@@ -60,12 +60,6 @@
 #include <strings.h>
 #endif
 
-// Define pdf_long
-// TODO: properly specify pdf_long
-//#define pdf_long PDF_UINT64_TYPENAME   (correct?)
-// historical/existing definition:
-#define pdf_long ptrdiff_t
-
 // Integer types - fixed size types guaranteed to work anywhere
 // because we detect the right underlying type name to use with
 // CMake. Use typedefs rather than macros for saner error messages
@@ -84,6 +78,36 @@ namespace PoDoFo {
 #undef PDF_UINT16_TYPENAME
 #undef PDF_UINT32_TYPENAME
 #undef PDF_UINT64_TYPENAME
+
+// pdf_long used to be defined as ptrdiff_t . It's a 64-bit signed quantity
+// used with large file offsets and the like. Unfortunately, it's become
+// used for much more in PoDoFo's code, to the point where it's not even clear
+// what it's supposed to mean anymore.
+//
+// pdf_long is DEPRECATED. Please use one of the explicitly sized types
+// instead, or define a typedef that meaninfully describes what it's for
+// (eg say fileoffset_t) if you really need one.
+//
+// pdf_long should not be used in new code.
+//
+namespace PoDoFo {
+    typedef pdf_int64 pdf_long;
+};
+
+
+// Different compilers use different format specifiers for 64-bit integers
+// (yay!).  Use these macros with C's automatic string concatenation to handle
+// that ghastly quirk.
+//
+// for example:   printf("Value of signed 64-bit integer: %"PDF_FORMAT_INT64" (more blah)", 128LL)
+//
+#if defined(_MSC_VER)
+#  define PDF_FORMAT_INT64 "I64"
+#  define PDF_FORMAT_UINT64 "I64"
+#else
+#  define PDF_FORMAT_INT64 "lld"
+#  define PDF_FORMAT_UINT64 "llu"
+#endif
 
 
 

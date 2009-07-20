@@ -361,7 +361,7 @@ bool PagesTreeTest::IsPageNumber( PoDoFo::PdfPage* pPage, int nNumber )
 
     if( lPageNumber != static_cast<long long>(nNumber) )
     {
-        printf("PagesTreeTest: Expected page number %i but got %lli.\n", nNumber, lPageNumber);
+        printf("PagesTreeTest: Expected page number %i but got %"PDF_FORMAT_INT64".\n", nNumber, lPageNumber);
         return false;
     }
     else
