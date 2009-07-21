@@ -83,19 +83,18 @@ namespace PoDoFo {
 #undef PDF_UINT32_TYPENAME
 #undef PDF_UINT64_TYPENAME
 
-// pdf_long used to be defined as ptrdiff_t . It's a 64-bit signed quantity
-// used with large file offsets and the like. Unfortunately, it's become
-// used for much more in PoDoFo's code, to the point where it's not even clear
-// what it's supposed to mean anymore.
+// pdf_long is defined as ptrdiff_t . It's a pointer-sized signed quantity
+// used throughout the code for a variety of purposes.
 //
 // pdf_long is DEPRECATED. Please use one of the explicitly sized types
-// instead, or define a typedef that meaninfully describes what it's for
-// (eg say fileoffset_t) if you really need one.
+// instead, or define a typedef that meaningfully describes what it's for.
+// Good choices in many cases include size_t (string and buffer sizes) and
+// ptrdiff_t (offsets and pointer arithmetic).
 //
 // pdf_long should not be used in new code.
 //
 namespace PoDoFo {
-    typedef pdf_int64 pdf_long;
+    typedef ptrdiff_t pdf_long;
 };
 
 
