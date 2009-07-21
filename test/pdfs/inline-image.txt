@@ -1,0 +1,24 @@
+This PDF contains an inline image, defined according to the PDF Spec (4.8.6 Inline Images).
+    test/ContentParser/ContentParser -p test/pdfs/inline-image.pdf
+should parse it fine, with output including:
+
+          37 Keyword: BI
+          38 Variant: /CS
+          39 Variant: /CMYK
+          40 Variant: /W
+          41 Variant: 43
+          42 Variant: /H
+          43 Variant: 66
+          44 Variant: /BPC
+          45 Variant: 8
+          46 Variant: /F
+          47 Variant: /Fl
+          48 Variant: /DP
+          49 Variant: <<
+/Colors 4
+/Columns 43
+/Predictor 15
+>>
+          50 Keyword: ID
+             Inline image data: 560 bytes
+          51 Keyword: EI
