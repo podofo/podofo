@@ -37,7 +37,8 @@ class PdfObject;
  */
 enum EPdfContentsType {
     ePdfContentsType_Keyword, ///< A keyword is a PDF function
-    ePdfContentsType_Variant  ///< A variant is usually a parameter to a keyword 
+    ePdfContentsType_Variant, ///< A variant is usually a parameter to a keyword
+    ePdfContentsType_ImageData ///< This indicates inline image data (binary data between ID/EI)
 };
 
 /** This class is a parser for content streams in PDF documents.
@@ -60,7 +61,7 @@ public:
     {
     }
 
-    /** Construct a PdfContentsTokenizer from a PdfCanvas 
+    /** Construct a PdfContentsTokenizer from a PdfCanvas
      *  (i.e. PdfPage or a PdfXObject).
      *
      *  This is more convinient as you do not have
@@ -71,7 +72,7 @@ public:
     PdfContentsTokenizer( PdfCanvas* pCanvas );
 
     virtual ~PdfContentsTokenizer() { }
-    
+
     /** Read the next keyword or variant, returning true and setting reType if something was read.
      *  Either rpszKeyword or rVariant, but never both, have defined and usable values on
      *  true return, with which being controlled by the value of eType.
@@ -86,7 +87,7 @@ public:
      *              otherwise the value is undefined. If set, the value points to memory owned by the
      *              PdfContentsTokenizer and must not be freed. The value is invalidated when ReadNext
      *              is next called or when the PdfContentsTokenizer is destroyed.
-     *        
+     *
      *  \param[out] rVariant if pType is set to ePdfContentsType_Variant this will be set to the read variant,
      *              otherwise the value is undefined.
      *
@@ -99,10 +100,12 @@ public:
      *  \param pObject use the stream of this object for parsing
      */
     void SetCurrentContentsStream( PdfObject* pObject );
+    bool ReadInlineImgData(EPdfContentsType& reType, const char*& rpszKeyword, PoDoFo::PdfVariant & rVariant);
 
  private:
     PdfRefCountedBuffer       m_curBuffer;    ///< A copy of the current contents stream
-    std::list<PdfObject*>     m_lstContents;  ///< A list containing pointers to all contents objects 
+    std::list<PdfObject*>     m_lstContents;  ///< A list containing pointers to all contents objects
+    bool                      m_readingInlineImgData;  ///< A state of reading inline image data
 };
 
 };

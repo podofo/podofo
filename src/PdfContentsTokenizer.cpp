@@ -26,14 +26,15 @@
 #include "PdfOutputStream.h"
 #include "PdfStream.h"
 #include "PdfVecObjects.h"
+#include "PdfData.h"
 
 namespace PoDoFo {
 
 PdfContentsTokenizer::PdfContentsTokenizer( PdfCanvas* pCanvas )
-    : PdfTokenizer()
+    : PdfTokenizer(), m_readingInlineImgData(false)
 {
     PdfObject* pContents = pCanvas->GetContents();
-    if( pContents && pContents->IsArray()  ) 
+    if( pContents && pContents->IsArray()  )
     {
         PdfArray& a = pContents->GetArray();
         for ( PdfArray::iterator it = a.begin(); it != a.end() ; ++it )
@@ -43,7 +44,7 @@ PdfContentsTokenizer::PdfContentsTokenizer( PdfCanvas* pCanvas )
                 PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "/Contents array contained non-references" );
 
             }
-            
+
             m_lstContents.push_back( pContents->GetOwner()->GetObject( (*it).GetReference() ) );
         }
     }
@@ -77,6 +78,8 @@ void PdfContentsTokenizer::SetCurrentContentsStream( PdfObject* pObject )
 
 bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpszKeyword, PdfVariant & rVariant )
 {
+    if (m_readingInlineImgData)
+        return ReadInlineImgData(reType, rpszKeyword, rVariant);
     EPdfTokenType eTokenType;
     EPdfDataType  eDataType;
     const char*   pszToken;
@@ -100,8 +103,8 @@ bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpsz
     {
         if ( m_lstContents.size() )
         {
-	    // We ran out of tokens in this stream. Switch to the next stream
-	    // and try again.
+        // We ran out of tokens in this stream. Switch to the next stream
+        // and try again.
             SetCurrentContentsStream( m_lstContents.front() );
             m_lstContents.pop_front();
             return ReadNext( reType, rpszKeyword, rVariant );
@@ -118,7 +121,7 @@ bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpsz
     // asume we read a variant unless we discover otherwise later.
     reType = ePdfContentsType_Variant;
 
-    switch( eDataType ) 
+    switch( eDataType )
     {
         case ePdfDataType_Null:
         case ePdfDataType_Bool:
@@ -158,7 +161,56 @@ bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpsz
             rpszKeyword = pszToken;
             break;
     }
+    std::string idKW ("ID");
+    if ((reType == ePdfContentsType_Keyword) && (idKW.compare(rpszKeyword) == 0) )
+        m_readingInlineImgData = true;
     return true;
 }
 
+bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, const char*& rpszKeyword, PdfVariant & rVariant )
+{
+    int  c;
+    long long  counter  = 0;
+    if( !m_device.Device() )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    // cosume the only whitespace between ID and data
+    c = m_device.Device()->Look();
+    if( PdfTokenizer::IsWhitespace( c ) )
+    {
+        c = m_device.Device()->GetChar();
+    }
+
+    while( (c = m_device.Device()->Look()) != EOF
+           && counter < static_cast<long long>(m_buffer.GetSize()) )
+    {
+        if (PdfTokenizer::IsWhitespace(c))
+        {
+            // test if end-of-image-data is reached (hit EI keyword)
+            c = m_device.Device()->GetChar(); // skip the white space
+            char e = m_device.Device()->GetChar();
+            char i = m_device.Device()->GetChar();
+            m_device.Device()->Seek(-2, std::ios::cur);
+            if (e == 'E' && i == 'I')
+            {
+                m_buffer.GetBuffer()[counter] = '\0';
+                rVariant = PdfData(m_buffer.GetBuffer());
+                reType = ePdfContentsType_ImageData;
+                m_readingInlineImgData = false;
+                return true;
+            }
+            m_buffer.GetBuffer()[counter] = c;
+            ++counter;
+        }
+        else
+        {
+            c = m_device.Device()->GetChar();
+            m_buffer.GetBuffer()[counter] = c;
+            ++counter;
+        }
+    }
+    return false;
+}
 };

@@ -12,7 +12,7 @@ using namespace PoDoFo;
 
 static bool print_output = false;
 
-void parse_contents( PdfContentsTokenizer* pTokenizer ) 
+void parse_contents( PdfContentsTokenizer* pTokenizer )
 {
     const char*      pszToken = NULL;
     PdfVariant       var;
@@ -33,7 +33,7 @@ void parse_contents( PdfContentsTokenizer* pTokenizer )
                                         << " Keyword: " << pszToken << std::endl;
 
             // support 'l' and 'm' tokens
-            if( strcmp( pszToken, "l" ) == 0 ) 
+            if( strcmp( pszToken, "l" ) == 0 )
             {
                 double dPosY = stack.top().GetReal();
                 stack.pop();
@@ -42,7 +42,7 @@ void parse_contents( PdfContentsTokenizer* pTokenizer )
 
                 if(print_output) std::cout << string(12,' ') << " LineTo: " << dPosX << " " << dPosY << std::endl;
             }
-            else if( strcmp( pszToken, "m" ) == 0 ) 
+            else if( strcmp( pszToken, "m" ) == 0 )
             {
                 double dPosY = stack.top().GetReal();
                 stack.pop();
@@ -59,6 +59,10 @@ void parse_contents( PdfContentsTokenizer* pTokenizer )
             if(print_output) std::cout << setw(12) << (numKeywords+numVariants)
                                        << " Variant: " << str << std::endl;
             stack.push( var );
+        }
+        else if (eType == ePdfContentsType_ImageData)
+        {
+            if (print_output) std::cout << string(13, ' ') << "Inline image data: " << var.GetRawData().data().size() << " bytes" << std::endl;
         }
         else
         {
@@ -82,7 +86,7 @@ void usage()
     printf("       -p   Print parsed content stream to stdout\n");
 }
 
-int main( int argc, char* argv[] ) 
+int main( int argc, char* argv[] )
 {
     bool all_pages = false;
     int firstPageNo = 0;
