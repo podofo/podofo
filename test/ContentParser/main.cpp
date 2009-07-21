@@ -62,7 +62,15 @@ void parse_contents( PdfContentsTokenizer* pTokenizer )
         }
         else if (eType == ePdfContentsType_ImageData)
         {
-            if (print_output) std::cout << string(13, ' ') << "Inline image data: " << var.GetRawData().data().size() << " bytes" << std::endl;
+            if (print_output) {
+                std::string d ( var.GetRawData().data() );
+		std::cout << string(13, ' ') << "Inline image data: " << d.size() << " bytes. Hex follows." << std::hex << std::endl;
+                std::cout << std::hex << std::setfill('0');
+                for ( std::string::iterator i = d.begin(); i != d.end(); i ++) {
+                    std::cout << std::setw(2) << (static_cast<unsigned short>(*i) & 0x00FF);
+                }
+		std::cout << std::dec << std::setfill(' ') << std::endl;
+            }
         }
         else
         {
