@@ -25,7 +25,7 @@
 
 #include <podofo.h>
 
-#if defined(HAVE_FONTCONFIG)
+#if defined(PODOFO_HAVE_FONTCONFIG)
 #include <fontconfig/fontconfig.h>
 #endif
 
@@ -34,7 +34,7 @@
 class FontTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE( FontTest );
-#if defined(HAVE_FONTCONFIG)
+#if defined(PODOFO_HAVE_FONTCONFIG)
   CPPUNIT_TEST( testFonts );
 #endif
   CPPUNIT_TEST_SUITE_END();
@@ -43,12 +43,12 @@ class FontTest : public CppUnit::TestFixture
   void setUp();
   void tearDown();
 
-#if defined(HAVE_FONTCONFIG)
+#if defined(PODOFO_HAVE_FONTCONFIG)
   void testFonts();
 #endif
 
 private:
-#if defined(HAVE_FONTCONFIG)
+#if defined(PODOFO_HAVE_FONTCONFIG)
     void testSingleFont(FcPattern* pFont, FcConfig* pConfig);
 
     bool GetFontInfo( FcPattern* pFont, std::string & rsFamily, std::string & rsPath, 

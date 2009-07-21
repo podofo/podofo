@@ -46,26 +46,26 @@ ENDIF(WANT_LIB64)
 MESSAGE("Will install libraries to ${CMAKE_INSTALL_PREFIX}/${LIBDIRNAME}")
 
 # Some headers that tend to vary a bit
-CHECK_INCLUDE_FILE("strings.h" HAVE_STRINGS_H) 
-CHECK_INCLUDE_FILE("arpa/inet.h" HAVE_ARPA_INET_H) 
-CHECK_INCLUDE_FILE("winsock2.h" HAVE_WINSOCK2_H) 
-CHECK_INCLUDE_FILE("mem.h" HAVE_MEM_H) 
-CHECK_INCLUDE_FILE("ctype.h" HAVE_MEM_H) 
+CHECK_INCLUDE_FILE("strings.h" PODOFO_HAVE_STRINGS_H) 
+CHECK_INCLUDE_FILE("arpa/inet.h" PODOFO_HAVE_ARPA_INET_H) 
+CHECK_INCLUDE_FILE("winsock2.h" PODOFO_HAVE_WINSOCK2_H) 
+CHECK_INCLUDE_FILE("mem.h" PODOFO_HAVE_MEM_H) 
+CHECK_INCLUDE_FILE("ctype.h" PODOFO_HAVE_MEM_H) 
 
 # Do some type size detection and provide yet another set of typedefs for fixed
 # font sizes. We can't use the c99 / c++0x uint32_t etc, because people use
 # ancient compilers that don't and will never support the standard.
 
-CHECK_INCLUDE_FILE("sys/types.h" HAVE_SYS_TYPES_H) 
-CHECK_INCLUDE_FILE("stdint.h" HAVE_STDINT_H) 
+CHECK_INCLUDE_FILE("sys/types.h" PODOFO_HAVE_SYS_TYPES_H) 
+CHECK_INCLUDE_FILE("stdint.h" PODOFO_HAVE_STDINT_H) 
 # See: http://msdn.microsoft.com/en-us/library/aa384264(VS.85).aspx
-CHECK_INCLUDE_FILE("BaseTsd.h" HAVE_BASETSD_H) 
+CHECK_INCLUDE_FILE("BaseTsd.h" PODOFO_HAVE_BASETSD_H) 
 
 # We cache integer type detection results, and don't repeat them
 # (and overwrite the user's manual changes) if they've been done already.
 IF(NOT PDF_INT64_TYPENAME)
   # I hate old compilers.
-  IF(HAVE_STDINT_H)
+  IF(PODOFO_HAVE_STDINT_H)
     SET(pdfint8 "int8_t")
     SET(pdfint16 "int16_t")
     SET(pdfint32 "int32_t")
@@ -74,9 +74,9 @@ IF(NOT PDF_INT64_TYPENAME)
     SET(pdfuint16 "uint16_t")
     SET(pdfuint32 "uint32_t")
     SET(pdfuint64 "uint64_t")
-  ELSE(HAVE_STDINT_H)
+  ELSE(PODOFO_HAVE_STDINT_H)
     # No stdint.h . Try BaseTsd.h windows types.
-    IF(HAVE_BASETSD_H)
+    IF(PODOFO_HAVE_BASETSD_H)
        # We have BaseTsd.h, so use those types.
        SET(pdfint8  "signed char")
        SET(pdfint16 "short")
@@ -86,7 +86,7 @@ IF(NOT PDF_INT64_TYPENAME)
        SET(pdfuint16 "unsigned short")
        SET(pdfuint32 "UINT32")
        SET(pdfuint64 "UINT64")
-    ELSE(HAVE_BASETSD_H)
+    ELSE(PODOFO_HAVE_BASETSD_H)
        # No BaseTsd.h either. Assume the standard types, and go poking
        # for a sane 64-bit integer.
        #
@@ -130,9 +130,9 @@ IF(NOT PDF_INT64_TYPENAME)
            SET(pdfuint64 "unsigned long int")
          ELSE(SZ_LONG == 8 AND SZ_ULONG == 8)
            # See if the compiler implements "long long int", _int64, int64, __int64 or int64_t
-           IF(HAVE_SYS_TYPES_H)
+           IF(PODOFO_HAVE_SYS_TYPES_H)
              SET(CMAKE_EXTRA_INCLUDE_FILES "sys/types.h")
-           ENDIF(HAVE_SYS_TYPES_H)
+           ENDIF(PODOFO_HAVE_SYS_TYPES_H)
            CHECK_TYPE_SIZE("long long int"          SZ_LONG_LONG)
            CHECK_TYPE_SIZE("unsigned long long int" SZ_UNSIGNED_LONG_LONG)
            IF(SZ_LONG_LONG == 8 AND SZ_UNSIGNED_LONG_LONG == 8)
@@ -165,8 +165,8 @@ IF(NOT PDF_INT64_TYPENAME)
            ENDIF(SZ_LONG_LONG == 8 AND SZ_UNSIGNED_LONG_LONG == 8)
          ENDIF(SZ_LONG == 8 AND SZ_ULONG == 8)
        ENDIF(SZ___INT64 AND SZ___UINT64)
-    ENDIF(HAVE_BASETSD_H)
-  ENDIF(HAVE_STDINT_H)
+    ENDIF(PODOFO_HAVE_BASETSD_H)
+  ENDIF(PODOFO_HAVE_STDINT_H)
   SET(CMAKE_EXTRA_INCLUDE_FILES)
 ENDIF(NOT PDF_INT64_TYPENAME)
 
@@ -237,16 +237,16 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
     EXEC_PROGRAM(gcc ARGS --version OUTPUT_VARIABLE GCC_VERSION)
     IF(GCC_VERSION MATCHES ".*\\(GCC\\) 4\\.[0-9].*")
         MESSAGE("Have gcc 4.x")
-        SET(HAVE_GCC4 1)
+        SET(PODOFO_HAVE_GCC4 1)
     ELSE(GCC_VERSION MATCHES ".*\\(GCC\\) 4\\.[0-9].*")
-        SET(HAVE_GCC4 0)
+        SET(PODOFO_HAVE_GCC4 0)
     ENDIF(GCC_VERSION MATCHES ".*\\(GCC\\) 4\\.[0-9].*")
 
     # If the user hasn't specifically said whether they want
     # -fvisibility=hidden or not, turn it on for gcc4 and off
     # for other gcc versions.
     IF(NOT DEFINED PODOFO_USE_VISIBILITY)
-        SET(PODOFO_USE_VISIBILITY ${HAVE_GCC4})
+        SET(PODOFO_USE_VISIBILITY ${PODOFO_HAVE_GCC4})
     ENDIF(NOT DEFINED PODOFO_USE_VISIBILITY)
 
     # We can't request C++98 compliance on win32, because mingw
@@ -313,7 +313,7 @@ FIND_PACKAGE(CppUnit)
 
 IF(CppUnit_FOUND)
   MESSAGE("Found cppunit. Unit tests will be built.")
-  SET(HAVE_CPPUNIT CppUnit_FOUND)
+  SET(PODOFO_HAVE_CPPUNIT CppUnit_FOUND)
 ELSE(CppUnit_FOUND)
   MESSAGE("Cppunit not found. No unit tests will be built.")
 ENDIF(CppUnit_FOUND)
@@ -340,7 +340,7 @@ ENDIF(USE_STLPORT)
 
 IF(WANT_FONTCONFIG)
 	FIND_PACKAGE(FONTCONFIG REQUIRED)
-	SET(HAVE_FONTCONFIG TRUE)
+	SET(PODOFO_HAVE_FONTCONFIG TRUE)
 	SET(PODOFO_LIB_FONTCONFIG:STRING fontconfig)
 	IF(FONTCONFIG_FOUND)
 	  MESSAGE("Found fontconfig headers in ${FONTCONFIG_INCLUDE_DIR}, library at ${FONTCONFIG_LIBRARIES}")
@@ -406,7 +406,7 @@ IF(WANT_BOOST)
     MESSAGE("Set the BOOST_ROOT env var if you have problems.")
     FIND_PACKAGE(Boost)
     IF(BOOST_FOUND)
-       SET(HAVE_BOOST TRUE)
+       SET(PODOFO_HAVE_BOOST TRUE)
        INCLUDE_DIRECTORIES(${BOOST_INCLUDE_DIR})
     ELSE(BOOST_FOUND)
        MESSAGE("If you don't need graph support you can ignore the above error.")

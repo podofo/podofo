@@ -243,7 +243,7 @@ class PODOFO_API PdfFontCache {
 			    const char* pszFileName = NULL);
 
     
-#if defined(HAVE_FONTCONFIG)
+#if defined(PODOFO_HAVE_FONTCONFIG)
     /** Get the path of a font file on a Unix system using fontconfig
      *
      *  This method is only available if PoDoFo was compiled with
@@ -256,7 +256,7 @@ class PODOFO_API PdfFontCache {
      *  \returns the path to the fontfile or an empty string
      */
     static std::string GetFontConfigFontPath( FcConfig* pConfig, const char* pszFontName, bool bBold, bool bItalic );
-#endif // defined(HAVE_FONTCONFIG)
+#endif // defined(PODOFO_HAVE_FONTCONFIG)
 
     // Peter Petrov: 26 April 2008
     /** Returns the font library from font cache

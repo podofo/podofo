@@ -41,9 +41,9 @@
 #include <set>
 
 // Include common BOOST settings 
-#ifdef HAVE_BOOST
+#ifdef PODOFO_HAVE_BOOST
 #include <boost/config.hpp>
-#endif // HAVE_BOOST
+#endif // PODOFO_HAVE_BOOST
 
 /** \def PODOFO_VERBOSE_DEBUG
  *  Debug define. Enable it, if you need

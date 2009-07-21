@@ -98,7 +98,7 @@
      * symbols from the export table with gcc4. */
     #define PODOFO_LOCAL
 #else
-    #if defined(HAVE_GCC_SYMBOL_VISIBILITY)
+    #if defined(PODOFO_HAVE_GCC_SYMBOL_VISIBILITY)
         /* Forces inclusion of a symbol in the symbol table, so
            software outside the current library can use it. */
         #define PODOFO_API __attribute__ ((visibility("default")))
@@ -121,7 +121,7 @@
  * ensures this. */
 #ifdef _WIN32
   #define PODOFO_EXCEPTION_API(api) api
-#elif defined(HAVE_GCC_SYMBOL_VISIBILITY)
+#elif defined(PODOFO_HAVE_GCC_SYMBOL_VISIBILITY)
   #define PODOFO_EXCEPTION_API(api) PODOFO_API
 #else
   #define PODOFO_EXCEPTION_API(api)

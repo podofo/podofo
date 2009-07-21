@@ -51,7 +51,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#if defined(HAVE_FONTCONFIG)
+#if defined(PODOFO_HAVE_FONTCONFIG)
 #include <fontconfig/fontconfig.h>
 #endif
 
@@ -122,7 +122,7 @@ PdfFontCache::PdfFontCache( PdfVecObjects* pParent )
 {
     // Initialize all the fonts stuff
 
-#if defined(HAVE_FONTCONFIG)
+#if defined(PODOFO_HAVE_FONTCONFIG)
     m_pFcConfig     = static_cast<void*>(FcInitLoadConfigAndFonts());
 #endif
 
@@ -136,7 +136,7 @@ PdfFontCache::~PdfFontCache()
 {
     this->EmptyCache();
 
-#if defined(HAVE_FONTCONFIG)
+#if defined(PODOFO_HAVE_FONTCONFIG)
     FcConfigDestroy( static_cast<FcConfig*>(m_pFcConfig) );
 #endif
 
@@ -531,7 +531,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
 }
 #endif // _WIN32
 
-#if defined(HAVE_FONTCONFIG)
+#if defined(PODOFO_HAVE_FONTCONFIG)
 std::string PdfFontCache::GetFontConfigFontPath( FcConfig* pConfig, const char* pszFontName, bool bBold, bool bItalic )
 {
     FcPattern*  pattern;
@@ -569,11 +569,11 @@ std::string PdfFontCache::GetFontConfigFontPath( FcConfig* pConfig, const char* 
     return sPath;
 }
 
-#endif // HAVE_FONTCONFIG
+#endif // PODOFO_HAVE_FONTCONFIG
 
 std::string PdfFontCache::GetFontPath( const char* pszFontName, bool bBold, bool bItalic )
 {
-#if defined(HAVE_FONTCONFIG)
+#if defined(PODOFO_HAVE_FONTCONFIG)
     FcConfig*   pConfig = FcInitLoadConfigAndFonts();
     std::string sPath   = this->GetFontConfigFontPath( pConfig, pszFontName, bBold, bItalic );
     FcConfigDestroy( pConfig );    

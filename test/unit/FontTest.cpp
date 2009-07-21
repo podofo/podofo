@@ -40,7 +40,7 @@ void FontTest::tearDown()
     delete m_pVecObjects;
 }
 
-#if defined(HAVE_FONTCONFIG)
+#if defined(PODOFO_HAVE_FONTCONFIG)
 void FontTest::testFonts()
 {
     FcObjectSet* objectSet = NULL;

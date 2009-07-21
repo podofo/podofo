@@ -40,7 +40,7 @@
 
 namespace PoDoFo {
 
-#if defined(__APPLE_CC__) && !defined(HAVE_FONTCONFIG)
+#if defined(__APPLE_CC__) && !defined(PODOFO_HAVE_FONTCONFIG)
 #include <Carbon/Carbon.h>
 #endif
 
@@ -287,7 +287,7 @@ void PdfFontMetrics::GetBoundingBox( PdfArray & array ) const
     array.push_back( PdfVariant( m_face->bbox.yMax  * 1000.0 / m_face->units_per_EM ) );
 }
 
-#if defined(__APPLE_CC__) && !defined(HAVE_FONTCONFIG)
+#if defined(__APPLE_CC__) && !defined(PODOFO_HAVE_FONTCONFIG)
 FT_Error
 My_FT_GetFile_From_Mac_ATS_Name( const char*  fontName,
 								 FSSpec*  pathSpec, FT_Long*     face_index )

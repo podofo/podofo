@@ -30,33 +30,52 @@
 #endif // DEBUG
 #endif // _DEBUG
 
+
+#if defined(__BORLANDC__) || defined( __TURBOC__)
+   // Borland Turbo C has a broken "<cmath>" but provides a usable "math.h"
+   // and it needs a bunch of other includes
+#  include <stdlib.h>
+#  include <stdio.h>
+#  include <string.h>
+#  include <math.h>
+#  include <time.h>
+#else
+   // We can use the ISO C++ headers with other compilers
+#  include <cstdlib>
+#  include <cstdio>
+#  include <cmath>
+#  include <cstring>
+#  include <ctime>
+#endif
+
+
 #if defined(TEST_BIG)
 #  define PODOFO_IS_BIG_ENDIAN
 #else
 #  define PODOFO_IS_LITTLE_ENDIAN
 #endif
 
-#if HAVE_STDINT_H
+#if PODOFO_HAVE_STDINT_H
 #include <stdint.h>
 #endif
 
-#if HAVE_BASETSD_H
+#if PODOFO_HAVE_BASETSD_H
 #include <BaseTsd.h>
 #endif
 
-#if HAVE_SYS_TYPES_H
+#if PODOFO_HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
 
-#if HAVE_MEM_H
+#if PODOFO_HAVE_MEM_H
 #include <mem.h>
 #endif
 
-#if HAVE_CTYPE_H
+#if PODOFO_HAVE_CTYPE_H
 #include <ctype.h>
 #endif
 
-#if HAVE_STRINGS_H
+#if PODOFO_HAVE_STRINGS_H
 #include <strings.h>
 #endif
 
@@ -114,23 +133,6 @@ namespace PoDoFo {
 
 
 
-#if defined(__BORLANDC__) || defined( __TURBOC__)
-   // Borland Turbo C has a broken "<cmath>" but provides a usable "math.h"
-   // and it needs a bunch of other includes
-#  include <stdlib.h>
-#  include <stdio.h>
-#  include <string.h>
-#  include <math.h>
-#  include <time.h>
-#else
-   // We can use the ISO C++ headers with other compilers
-#  include <cstdlib>
-#  include <cstdio>
-#  include <cmath>
-#  include <cstring>
-#  include <ctime>
-#endif
-
 // Use the more informative __FUNCTION__ macro instead of __FILE__ __LINE__ where possible.
 #if (defined(_MSC_VER)  &&  _MSC_VER <= 1200)  || defined(__BORLANDC__) || defined(__TURBOC__)
 #  define PODOFO__FUNCTION__ (__FILE__ ":" __LINE__)
@@ -139,7 +141,7 @@ namespace PoDoFo {
 #endif
 
 // for htonl
-#if HAVE_WINSOCK2_H
+#if PODOFO_HAVE_WINSOCK2_H
 #  include <winsock2.h>
 #  if defined(GetObject)
 #    undef GetObject // Horrible windows.h macro definition that breaks things
@@ -148,7 +150,7 @@ namespace PoDoFo {
 #    undef DrawText // Horrible windows.h macro definition that breaks things
 #  endif
 #endif
-#if HAVE_ARPA_INET_H
+#if PODOFO_HAVE_ARPA_INET_H
 #  include <arpa/inet.h>
 #endif
 

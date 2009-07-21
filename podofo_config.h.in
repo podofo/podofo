@@ -12,16 +12,16 @@
 #cmakedefine PODOFO_MULTI_THREAD
 
 /* somewhat platform-specific headers */
-#cmakedefine HAVE_STRINGS_H 1
-#cmakedefine HAVE_ARPA_INET_H 1
-#cmakedefine HAVE_WINSOCK2_H 1
-#cmakedefine HAVE_MEM_H 1
-#cmakedefine HAVE_CTYPE_H 1
+#cmakedefine PODOFO_HAVE_STRINGS_H 1
+#cmakedefine PODOFO_HAVE_ARPA_INET_H 1
+#cmakedefine PODOFO_HAVE_WINSOCK2_H 1
+#cmakedefine PODOFO_HAVE_MEM_H 1
+#cmakedefine PODOFO_HAVE_CTYPE_H 1
 
 /* Integer types - headers */
-#cmakedefine HAVE_STDINT_H 1
-#cmakedefine HAVE_BASETSD_H 1 
-#cmakedefine HAVE_SYS_TYPES_H 1
+#cmakedefine PODOFO_HAVE_STDINT_H 1
+#cmakedefine PODOFO_HAVE_BASETSD_H 1 
+#cmakedefine PODOFO_HAVE_SYS_TYPES_H 1
 /* Integer types - type names */
 #cmakedefine PDF_INT8_TYPENAME   @PDF_INT8_TYPENAME@
 #cmakedefine PDF_INT16_TYPENAME  @PDF_INT16_TYPENAME@
@@ -38,10 +38,10 @@
 /* Libraries */
 #cmakedefine PODOFO_HAVE_JPEG_LIB
 #cmakedefine PODOFO_HAVE_TIFF_LIB
-#cmakedefine HAVE_FONTCONFIG
+#cmakedefine PODOFO_HAVE_FONTCONFIG
 #cmakedefine PODOFO_HAVE_LUA
-#cmakedefine HAVE_BOOST
-#cmakedefine HAVE_CPPUNIT
+#cmakedefine PODOFO_HAVE_BOOST
+#cmakedefine PODOFO_HAVE_CPPUNIT
 
 /* Platform quirks */
 #cmakedefine PODOFO_JPEG_RUNTIME_COMPATIBLE

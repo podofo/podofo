@@ -30,7 +30,7 @@ typedef struct FT_LibraryRec_  *FT_Library;
 struct FT_FaceRec_;
 typedef struct FT_FaceRec_*  FT_Face;
 
-#if defined(HAVE_FONTCONFIG)
+#if defined(PODOFO_HAVE_FONTCONFIG)
 // Fontconfig
 struct _FcConfig;
 typedef struct _FcConfig    FcConfig;
