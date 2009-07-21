@@ -71,6 +71,12 @@ class PODOFO_API PdfData : public PdfDataType {
      */
     inline const PdfData & operator=( const PdfData & rhs );
 
+    /**
+     * Access the data as a std::string
+     * \returns a const reference to the contained data
+     */
+     inline const std::string & data() const;
+
  private:
     std::string m_sData;
 };
@@ -83,6 +89,14 @@ const PdfData & PdfData::operator=( const PdfData & rhs )
     m_sData = rhs.m_sData;
     return (*this);
 }
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const std::string & PdfData::data() const {
+    return m_sData;
+}
+
 
 }; // namespace PoDoFo
 

@@ -291,6 +291,16 @@ class PODOFO_API PdfVariant {
      */
     inline const PdfReference & GetReference() const;
 
+    /** Get the reference values of this object.
+     *  \returns a reference to the PdfData instance.
+     */
+    inline const PdfData & GetRawData() const;
+
+    /** Get the reference values of this object.
+     *  \returns a reference to the PdfData instance.
+     */
+    inline PdfData & GetRawData();
+
     /** Assign the values of another PdfVariant to this one.
      *  \param rhs an existing variant which is copied.
      *
@@ -624,6 +634,31 @@ double PdfVariant::GetReal() const
         return m_Data.dNumber;
     else
         return static_cast<double>(m_Data.nNumber);
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfData & PdfVariant::GetRawData() const
+{
+    DelayedLoad();
+
+    if( !IsRawData() )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+    return *(reinterpret_cast<PdfData* const>(m_Data.pData));
+}
+
+PdfData & PdfVariant::GetRawData()
+{
+    DelayedLoad();
+
+    if( !IsRawData() )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+    return *(reinterpret_cast<PdfData* const>(m_Data.pData));
 }
 
 // -----------------------------------------------------
