@@ -28,6 +28,8 @@
 #include "PdfVecObjects.h"
 #include "PdfData.h"
 
+#include <iostream>
+
 namespace PoDoFo {
 
 PdfContentsTokenizer::PdfContentsTokenizer( PdfCanvas* pCanvas )
@@ -196,7 +198,7 @@ bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, const ch
             if (e == 'E' && i == 'I')
             {
                 m_buffer.GetBuffer()[counter] = '\0';
-                rVariant = PdfData(m_buffer.GetBuffer());
+                rVariant = PdfData(m_buffer.GetBuffer(), counter);
                 reType = ePdfContentsType_ImageData;
                 m_readingInlineImgData = false;
                 return true;

@@ -43,11 +43,24 @@ class PODOFO_API PdfData : public PdfDataType {
     /**
      * Create a new PdfData object with valid PdfData
      *
-     * \param pszData has to be a valid value in a PDF file.
-     *                It will be written directly to the PDF file.
+     * The contained data has to be a valid value in a PDF file.
+     * It will be written directly to the PDF file.
+     *
+     * \param pszData a null-terminated string to be copied.
      */
     PdfData( const char* pszData )
         : PdfDataType(), m_sData( pszData ) 
+        {
+        }
+
+    /**
+     * Create a new PdfData object with valid PdfData.
+     *
+     * \param pszData a char * buffer to be copied.
+     * \param dataSize size of buffer
+     */
+    PdfData( const char* pszData, size_t dataSize )
+        : PdfDataType(), m_sData( pszData, dataSize ) 
         {
         }
 
