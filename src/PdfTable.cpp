@@ -85,11 +85,8 @@ PdfTable::PdfTable( int nCols, int nRows )
 
 PdfTable::~PdfTable()
 {
-    if( m_pdColWidths )
-        delete [] m_pdColWidths;
-
-    if( m_pdRowHeights )
-        delete [] m_pdRowHeights;
+	delete [] m_pdColWidths;
+	delete [] m_pdRowHeights;
 }
 
 void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect & rClipRect,
