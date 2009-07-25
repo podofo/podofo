@@ -69,31 +69,31 @@ void PdfCanvas::AddColorResource( const PdfColor & rColor )
 				// Build color-spaces for separation
 				PdfObject* csTintFunc = GetContents()->GetOwner()->CreateObject();
 
-				csTintFunc->GetDictionary().AddKey( "BitsPerSample", 8LL );
+				csTintFunc->GetDictionary().AddKey( "BitsPerSample", static_cast<pdf_int64>(8LL) );
 
 				PdfArray decode;
-				decode.push_back( 0LL );
-				decode.push_back( 1LL );
-				decode.push_back( 0LL );
-				decode.push_back( 1LL );
-				decode.push_back( 0LL );
-				decode.push_back( 1LL );
-				decode.push_back( 0LL );
-				decode.push_back( 1LL );
+				decode.push_back( static_cast<pdf_int64>(0LL) );
+				decode.push_back( static_cast<pdf_int64>(1LL) );
+				decode.push_back( static_cast<pdf_int64>(0LL) );
+				decode.push_back( static_cast<pdf_int64>(1LL) );
+				decode.push_back( static_cast<pdf_int64>(0LL) );
+				decode.push_back( static_cast<pdf_int64>(1LL) );
+				decode.push_back( static_cast<pdf_int64>(0LL) );
+                decode.push_back( static_cast<pdf_int64>(1LL) );
 				csTintFunc->GetDictionary().AddKey( "Decode", decode );
 
 				PdfArray domain;
-				domain.push_back( 0LL );
-				domain.push_back( 1LL );
+				domain.push_back( static_cast<pdf_int64>(0LL) );
+				domain.push_back( static_cast<pdf_int64>(1LL) );
 				csTintFunc->GetDictionary().AddKey( "Domain", domain );
 
 				PdfArray encode;
-				encode.push_back( 0LL );
-				encode.push_back( 1LL );
+				encode.push_back( static_cast<pdf_int64>(0LL) );
+				encode.push_back( static_cast<pdf_int64>(1LL) );
 				csTintFunc->GetDictionary().AddKey( "Encode", encode );
 
 				csTintFunc->GetDictionary().AddKey( "Filter", PdfName( "FlateDecode" ) );
-				csTintFunc->GetDictionary().AddKey( "FunctionType", PdfVariant( static_cast<long long>(ePdfFunctionType_Sampled) ) );
+				csTintFunc->GetDictionary().AddKey( "FunctionType", PdfVariant( static_cast<pdf_int64>(ePdfFunctionType_Sampled) ) );
 
 				char data[4*2];
 				data[0] =
@@ -109,18 +109,18 @@ void PdfCanvas::AddColorResource( const PdfColor & rColor )
 				csTintFunc->GetStream()->Set( &stream );
 
 				PdfArray range;
-				range.push_back( 0LL );
-				range.push_back( 1LL );
-				range.push_back( 0LL );
-				range.push_back( 1LL );
-				range.push_back( 0LL );
-				range.push_back( 1LL );
-				range.push_back( 0LL );
-				range.push_back( 1LL );
+				range.push_back( static_cast<pdf_int64>(0LL) );
+				range.push_back( static_cast<pdf_int64>(1LL) );
+				range.push_back( static_cast<pdf_int64>(0LL) );
+				range.push_back( static_cast<pdf_int64>(1LL) );
+				range.push_back( static_cast<pdf_int64>(0LL) );
+				range.push_back( static_cast<pdf_int64>(1LL) );
+				range.push_back( static_cast<pdf_int64>(0LL) );
+				range.push_back( static_cast<pdf_int64>(1LL) );
 				csTintFunc->GetDictionary().AddKey( "Range", range );
 
 				PdfArray size;
-				size.push_back( 2LL );
+				size.push_back( static_cast<pdf_int64>(2LL) );
 				csTintFunc->GetDictionary().AddKey( "Size", size );
 
 				PdfArray csArr;
@@ -155,10 +155,10 @@ void PdfCanvas::AddColorResource( const PdfColor & rColor )
 
 				// Range for A,B, L is implicit 0..100
 				PdfArray rangeArr;
-				rangeArr.push_back( -128LL );
-				rangeArr.push_back( 127LL );
-				rangeArr.push_back( -128LL );
-				rangeArr.push_back( 127LL );
+				rangeArr.push_back( static_cast<pdf_int64>(-128LL) );
+				rangeArr.push_back( static_cast<pdf_int64>(127LL) );
+				rangeArr.push_back( static_cast<pdf_int64>(-128LL) );
+				rangeArr.push_back( static_cast<pdf_int64>(127LL) );
 				labDict.AddKey( PdfName("Range" ), rangeArr );
 
 				PdfArray labArr;

@@ -105,7 +105,7 @@ void PdfImage::SetImageICCProfile( PdfInputStream* pStream, long lColorComponent
     // Create a colorspace object
     PdfObject* pIccObject = this->GetObject()->GetOwner()->CreateObject();
     pIccObject->GetDictionary().AddKey( PdfName("Alternate"), PdfName( ColorspaceToName( eAlternateColorSpace ) ) );
-    pIccObject->GetDictionary().AddKey( PdfName("N"), static_cast<long long>(lColorComponents) );
+    pIccObject->GetDictionary().AddKey( PdfName("N"), static_cast<pdf_int64>(lColorComponents) );
     pIccObject->GetStream()->Set( pStream );
     
     // Add the colorspace to our image
@@ -131,9 +131,9 @@ void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight,
     m_rRect.SetWidth( nWidth );
     m_rRect.SetHeight( nHeight );
 
-    m_pObject->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<long long>(nWidth) ) );
-    m_pObject->GetDictionary().AddKey( "Height", PdfVariant( static_cast<long long>(nHeight) ) );
-    m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<long long>(nBitsPerComponent) ) );
+    m_pObject->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<pdf_int64>(nWidth) ) );
+    m_pObject->GetDictionary().AddKey( "Height", PdfVariant( static_cast<pdf_int64>(nHeight) ) );
+    m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<pdf_int64>(nBitsPerComponent) ) );
 
     PdfVariant var;
     m_rRect.ToVariant( var );
@@ -148,9 +148,9 @@ void PdfImage::SetImageDataRaw( unsigned int nWidth, unsigned int nHeight,
     m_rRect.SetWidth( nWidth );
     m_rRect.SetHeight( nHeight );
 
-    m_pObject->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<long long>(nWidth) ) );
-    m_pObject->GetDictionary().AddKey( "Height", PdfVariant( static_cast<long long>(nHeight) ) );
-    m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<long long>(nBitsPerComponent) ) );
+    m_pObject->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<pdf_int64>(nWidth) ) );
+    m_pObject->GetDictionary().AddKey( "Height", PdfVariant( static_cast<pdf_int64>(nHeight) ) );
+    m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<pdf_int64>(nBitsPerComponent) ) );
 
     PdfVariant var;
     m_rRect.ToVariant( var );
@@ -394,8 +394,8 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
 			if( bitsPixel == 1 )
 			{
 				PdfArray decode;
-				decode.insert( decode.end(), PdfVariant( static_cast<long long>(0) ) );
-				decode.insert( decode.end(), PdfVariant( static_cast<long long>(1) ) );
+				decode.insert( decode.end(), PdfVariant( static_cast<pdf_int64>(0) ) );
+				decode.insert( decode.end(), PdfVariant( static_cast<pdf_int64>(1) ) );
 				m_pObject->GetDictionary().AddKey( PdfName("Decode"), decode );
 				m_pObject->GetDictionary().AddKey( PdfName("ImageMask"), PdfVariant( true ) );
 				m_pObject->GetDictionary().RemoveKey( PdfName("ColorSpace") );
@@ -415,8 +415,8 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
 			if( bitsPixel == 1 )
 			{
 				PdfArray decode;
-				decode.insert( decode.end(), PdfVariant( static_cast<long long>(1) ) );
-				decode.insert( decode.end(), PdfVariant( static_cast<long long>(0) ) );
+				decode.insert( decode.end(), PdfVariant( static_cast<pdf_int64>(1) ) );
+				decode.insert( decode.end(), PdfVariant( static_cast<pdf_int64>(0) ) );
 				m_pObject->GetDictionary().AddKey( PdfName("Decode"), decode );
 				m_pObject->GetDictionary().AddKey( PdfName("ImageMask"), PdfVariant( true ) );
 				m_pObject->GetDictionary().RemoveKey( PdfName("ColorSpace") );

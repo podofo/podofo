@@ -70,7 +70,7 @@ PdfObject::PdfObject( bool b )
     InitPdfObject();
 }
 
-PdfObject::PdfObject( long long l )
+PdfObject::PdfObject( pdf_int64 l )
     : PdfVariant( l )
 {
     InitPdfObject();

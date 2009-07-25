@@ -31,7 +31,7 @@ PdfFileStream::PdfFileStream( PdfObject* pParent, PdfOutputDevice* pDevice )
     : PdfStream( pParent ), m_pDevice( pDevice ), m_pStream( NULL ), m_pDeviceStream( NULL ),
       m_pEncryptStream( NULL ), m_lLenInitial( 0 ), m_lLength( 0 ), m_pCurEncrypt( NULL )
 {
-    m_pLength = pParent->GetOwner()->CreateObject( PdfVariant(0LL) );
+    m_pLength = pParent->GetOwner()->CreateObject( PdfVariant(static_cast<pdf_int64>(0LL)) );
     m_pParent->GetDictionary().AddKey( PdfName::KeyLength, m_pLength->Reference() );
 }
 

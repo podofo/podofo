@@ -2268,7 +2268,7 @@ bool PdfEncodingDifference::Contains( int nCode, PdfName & rName, pdf_utf16be & 
 
 void PdfEncodingDifference::ToArray( PdfArray & rArray )
 {
-    long long nLastCode = -2;
+    pdf_int64 nLastCode = -2;
 
     rArray.Clear();
 

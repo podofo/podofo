@@ -349,7 +349,7 @@ PdfObject* PdfWriter::CreateLinearizationDictionary()
     pLinearize->GetDictionary().AddKey( "H", array );         // Hint stream offset and length as PdfArray
     pLinearize->GetDictionary().AddKey( "E", place_holder );  // Offset of end of first page
     pLinearize->GetDictionary().AddKey( "N",                  // Number of pages in the document 
-                                        static_cast<long long>(m_pPagesTree->GetTotalNumberOfPages()) );             
+                                        static_cast<pdf_int64>(m_pPagesTree->GetTotalNumberOfPages()) );             
     pLinearize->GetDictionary().AddKey( "O", place_holder );  // Object number of the first page
     pLinearize->GetDictionary().AddKey( "T", place_holder );  // Offset of first entry in main cross reference table
 
@@ -453,7 +453,7 @@ void PdfWriter::FillTrailerObject( PdfObject* pTrailer, pdf_long lSize, bool bPr
     // this will be overwritten later with valid data
     PdfVariant place_holder( PdfData( LINEARIZATION_PADDING ) );
 
-    pTrailer->GetDictionary().AddKey( PdfName::KeySize, static_cast<long long>(lSize) );
+    pTrailer->GetDictionary().AddKey( PdfName::KeySize, static_cast<pdf_int64>(lSize) );
 
     if( !bOnlySizeKey ) 
     {

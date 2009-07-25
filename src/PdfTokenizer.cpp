@@ -398,9 +398,9 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
         else if( eDataType == ePdfDataType_Number ) 
         {
 #ifdef _WIN64
-            rVariant = PdfVariant( static_cast<long long>(_strtoui64( pszToken, NULL, 10 )) );
+            rVariant = PdfVariant( static_cast<pdf_int64>(_strtoui64( pszToken, NULL, 10 )) );
 #else
-            rVariant = PdfVariant( static_cast<long long>(strtol( pszToken, NULL, 10 )) );
+            rVariant = PdfVariant( static_cast<pdf_int64>(strtol( pszToken, NULL, 10 )) );
 #endif
             // read another two tokens to see if it is a reference
             // we cannot be sure that there is another token

@@ -1146,14 +1146,14 @@ void PdfEncryptAES::CreateEncryptionDictionary( PdfDictionary & rDictionary ) co
 {
     rDictionary.AddKey( PdfName("Filter"), PdfName("Standard") );
    
-    rDictionary.AddKey( PdfName("V"), 4LL );
-    rDictionary.AddKey( PdfName("R"), 4LL );
-    rDictionary.AddKey( PdfName("Length"), 128LL );
+    rDictionary.AddKey( PdfName("V"), static_cast<pdf_int64>(4LL) );
+    rDictionary.AddKey( PdfName("R"), static_cast<pdf_int64>(4LL) );
+    rDictionary.AddKey( PdfName("Length"), static_cast<pdf_int64>(128LL) );
 
     PdfDictionary cf;
     PdfDictionary stdCf;
     stdCf.AddKey( PdfName("CFM"), PdfName("AESV2") );
-    stdCf.AddKey( PdfName("Length"), 16LL );
+    stdCf.AddKey( PdfName("Length"), static_cast<pdf_int64>(16LL) );
     stdCf.AddKey( PdfName("AuthEvent"), PdfName("DocOpen") );
     cf.AddKey( PdfName("StdCF"), stdCf );
 
@@ -1163,7 +1163,7 @@ void PdfEncryptAES::CreateEncryptionDictionary( PdfDictionary & rDictionary ) co
 
     rDictionary.AddKey( PdfName("O"), PdfString( reinterpret_cast<const char*>(this->GetOValue()), 32, true ) );
     rDictionary.AddKey( PdfName("U"), PdfString( reinterpret_cast<const char*>(this->GetUValue()), 32, true ) );
-    rDictionary.AddKey( PdfName("P"), PdfVariant( static_cast<long long>(this->GetPValue()) ) );
+    rDictionary.AddKey( PdfName("P"), PdfVariant( static_cast<pdf_int64>(this->GetPValue()) ) );
 }
 
 
@@ -1265,13 +1265,13 @@ void PdfEncryptRC4::CreateEncryptionDictionary( PdfDictionary & rDictionary ) co
     switch( m_eAlgorithm ) 
     {        
         case ePdfEncryptAlgorithm_RC4V1:
-            rDictionary.AddKey( PdfName("V"), 1LL );
-            rDictionary.AddKey( PdfName("R"), 2LL );
+            rDictionary.AddKey( PdfName("V"), static_cast<pdf_int64>(1LL) );
+            rDictionary.AddKey( PdfName("R"), static_cast<pdf_int64>(2LL) );
             break;
         case ePdfEncryptAlgorithm_RC4V2:
-            rDictionary.AddKey( PdfName("V"), 2LL );
-            rDictionary.AddKey( PdfName("R"), 3LL );
-            rDictionary.AddKey( PdfName("Length"), PdfVariant( static_cast<long long>(m_eKeyLength) ) );
+            rDictionary.AddKey( PdfName("V"), static_cast<pdf_int64>(2LL) );
+            rDictionary.AddKey( PdfName("R"), static_cast<pdf_int64>(3LL) );
+            rDictionary.AddKey( PdfName("Length"), PdfVariant( static_cast<pdf_int64>(m_eKeyLength) ) );
             break;        
 	default:
 	case ePdfEncryptAlgorithm_AESV2:
@@ -1280,7 +1280,7 @@ void PdfEncryptRC4::CreateEncryptionDictionary( PdfDictionary & rDictionary ) co
 
     rDictionary.AddKey( PdfName("O"), PdfString( reinterpret_cast<const char*>(this->GetOValue()), 32, true ) );
     rDictionary.AddKey( PdfName("U"), PdfString( reinterpret_cast<const char*>(this->GetUValue()), 32, true ) );
-    rDictionary.AddKey( PdfName("P"), PdfVariant( static_cast<long long>(this->GetPValue()) ) );
+    rDictionary.AddKey( PdfName("P"), PdfVariant( static_cast<pdf_int64>(this->GetPValue()) ) );
 }
 
 

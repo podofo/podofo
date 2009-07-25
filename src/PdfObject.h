@@ -88,11 +88,11 @@ class PODOFO_API PdfObject : public PdfVariant {
     PdfObject( bool b );
 
     /** Construct a PdfObject with object and generation number -1
-     *  and a long as value.
+     *  and a pdf_int64 as value.
      *
      *  \param l the long value of this PdfObject
      */
-    PdfObject( long long l );
+    PdfObject( pdf_int64 l );
 
     /** Construct a PdfObject with object and generation number -1
      *  and a double as value.

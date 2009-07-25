@@ -81,8 +81,8 @@ void PdfXRefStream::WriteSubSection( PdfOutputDevice*, unsigned int nFirst, unsi
 {
     PdfError::DebugMessage("Writing XRef section: %u %u\n", nFirst, nCount );
 
-    m_indeces.push_back( static_cast<long long>(nFirst) );
-    m_indeces.push_back( static_cast<long long>(nCount) );
+    m_indeces.push_back( static_cast<pdf_int64>(nFirst) );
+    m_indeces.push_back( static_cast<pdf_int64>(nCount) );
 }
 
 void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, size_t lOffset, unsigned long lGeneration, 
@@ -114,9 +114,9 @@ void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
 {
     PdfArray w;
 
-    w.push_back( static_cast<long long>(1) );
-    w.push_back( static_cast<long long>(sizeof(STREAM_OFFSET_TYPE)) );
-    w.push_back( static_cast<long long>(1) );
+    w.push_back( static_cast<pdf_int64>(1) );
+    w.push_back( static_cast<pdf_int64>(sizeof(STREAM_OFFSET_TYPE)) );
+    w.push_back( static_cast<pdf_int64>(1) );
 
     // Add our self to the XRef table
     this->WriteXRefEntry( pDevice, pDevice->Tell(), 0, 'n' );

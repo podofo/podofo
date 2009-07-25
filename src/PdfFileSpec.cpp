@@ -100,7 +100,7 @@ void PdfFileSpec::EmbeddFile( PdfObject* pStream, const char* pszFilename ) cons
 
     // Add additional information about the embedded file to the stream
     PdfDictionary params;
-    params.AddKey( "Size", static_cast<long long>(stream.GetFileLength()) );
+    params.AddKey( "Size", static_cast<pdf_int64>(stream.GetFileLength()) );
     // TODO: CreationDate and ModDate
     pStream->GetDictionary().AddKey("Params", params );
 }

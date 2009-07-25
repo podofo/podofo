@@ -167,7 +167,7 @@ PdfObject* PdfField::GetAppearanceCharacteristics( bool bCreate ) const
 
 void PdfField::SetFieldFlag( long lValue, bool bSet )
 {
-    long long lCur = 0;
+    pdf_int64 lCur = 0;
 
     if( m_pObject->GetDictionary().HasKey( PdfName("Ff") ) )
         lCur = m_pObject->GetDictionary().GetKey( PdfName("Ff") )->GetNumber();
@@ -704,7 +704,7 @@ PdfString PdfTextField::GetText() const
 
 void PdfTextField::SetMaxLen( pdf_long nMaxLen )
 {
-    m_pObject->GetDictionary().AddKey( PdfName("MaxLen"), static_cast<long long>(nMaxLen) );
+    m_pObject->GetDictionary().AddKey( PdfName("MaxLen"), static_cast<pdf_int64>(nMaxLen) );
 }
 
 pdf_long  PdfTextField::GetMaxLen() const

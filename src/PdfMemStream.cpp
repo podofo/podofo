@@ -91,7 +91,7 @@ void PdfMemStream::EndAppendImpl()
     }
 
     if( m_pParent )
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant(static_cast<long long>(m_lLength) ) );
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant(static_cast<pdf_int64>(m_lLength) ) );
 }
 
 void PdfMemStream::GetCopy( char** pBuffer, pdf_long* lLen ) const
@@ -241,7 +241,7 @@ const PdfStream & PdfMemStream::operator=( const PdfStream & rhs )
 
     m_lLength = rhs.GetLength();
     if( m_pParent ) 
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( static_cast<long long>(m_lLength) ) );
+        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( static_cast<pdf_int64>(m_lLength) ) );
 
     return *this;
 }

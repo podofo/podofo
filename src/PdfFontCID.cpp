@@ -103,7 +103,7 @@ void PdfFontCID::Init( bool bEmbed )
     // Setting the CIDSystemInfo paras:
     pCIDSystemInfo->GetDictionary().AddKey( "Registry", PdfString("Adobe") );
     pCIDSystemInfo->GetDictionary().AddKey( "Ordering", PdfString("Identity") );
-    pCIDSystemInfo->GetDictionary().AddKey( "Supplement", PdfVariant(0LL) );
+    pCIDSystemInfo->GetDictionary().AddKey( "Supplement", PdfVariant(static_cast<pdf_int64>(0LL)) );
 
 
     // Setting the FontDescriptor paras:
@@ -111,13 +111,13 @@ void PdfFontCID::Init( bool bEmbed )
     m_pMetrics->GetBoundingBox( array );
 
     pDescriptor->GetDictionary().AddKey( "FontName", this->GetBaseFont() );
-    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( 32LL ) ); // TODO: 0 ????
+    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( static_cast<pdf_int64>(32LL) ) ); // TODO: 0 ????
     pDescriptor->GetDictionary().AddKey( "FontBBox", array );
-    pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<long long>(m_pMetrics->GetItalicAngle()) ) );
+    pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<pdf_int64>(m_pMetrics->GetItalicAngle()) ) );
     pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetPdfAscent() );
     pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetPdfDescent() );
     pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetPdfAscent() ); // m_pMetrics->CapHeight() );
-    pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( 1LL ) );               // m_pMetrics->StemV() );
+    pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( static_cast<pdf_int64>(1LL) ) );               // m_pMetrics->StemV() );
 
     // Peter Petrov 24 September 2008
     m_pDescriptor = pDescriptor;
@@ -171,7 +171,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
         lSize = stream.GetFileLength();
     }
         
-    pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<long long>(lSize) ) );
+    pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<pdf_int64>(lSize) ) );
 }
 
 void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
@@ -220,9 +220,9 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
     array.reserve( nMax - nMin + 1 );
 
     i = nMin;
-    double dCurWidth  = pdWidth[i];
-    long long  lCurIndex  = i++;
-    long long  lCurLength = 1L;
+    double    dCurWidth  = pdWidth[i];
+    pdf_int64 lCurIndex  = i++;
+    pdf_int64 lCurLength = 1L;
 
     for( ;i<=nMax;i++ )
     {
@@ -233,7 +233,7 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
             if( lCurLength > 1 ) 
             {
                 array.push_back( lCurIndex );
-				long long temp = lCurIndex + lCurLength - 1;
+				pdf_int64 temp = lCurIndex + lCurLength - 1;
                 array.push_back( temp ); 
                 array.push_back( dCurWidth ); 
             }

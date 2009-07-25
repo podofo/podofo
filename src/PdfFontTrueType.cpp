@@ -77,7 +77,7 @@ void PdfFontTrueType::EmbedFontFile( PdfObject* pDescriptor )
         lSize = stream.GetFileLength();
     }
         
-    pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<long long>(lSize) ) );
+    pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<pdf_int64>(lSize) ) );
 }
 
 
