@@ -129,7 +129,7 @@ void EncodingTest::testDifferences()
     pdf_utf16be value;
     CPPUNIT_ASSERT_EQUAL( difference.Contains( 0, name, value ), true );
     CPPUNIT_ASSERT_EQUAL( name, PdfName("A") ); 
-#if PODOFO_IS_LITTLE_ENDIAN
+#ifdef PODOFO_IS_LITTLE_ENDIAN
     CPPUNIT_ASSERT_EQUAL( static_cast<int>(value), 0x4100 ); 
 #else
     CPPUNIT_ASSERT_EQUAL( static_cast<int>(value), 0x0041 ); 
@@ -137,7 +137,7 @@ void EncodingTest::testDifferences()
 
     CPPUNIT_ASSERT_EQUAL( difference.Contains( 9, name, value ), true );
     CPPUNIT_ASSERT_EQUAL( name, PdfName("F") ); 
-#if PODOFO_IS_LITTLE_ENDIAN
+#ifdef PODOFO_IS_LITTLE_ENDIAN
     CPPUNIT_ASSERT_EQUAL( static_cast<int>(value), 0x4600 ); 
 #else
     CPPUNIT_ASSERT_EQUAL( static_cast<int>(value), 0x0046 ); 
@@ -145,7 +145,7 @@ void EncodingTest::testDifferences()
 
     CPPUNIT_ASSERT_EQUAL( difference.Contains( 255, name, value ), true );
     CPPUNIT_ASSERT_EQUAL( name, PdfName("X") ); 
-#if PODOFO_IS_LITTLE_ENDIAN
+#ifdef PODOFO_IS_LITTLE_ENDIAN
     CPPUNIT_ASSERT_EQUAL( static_cast<int>(value), 0x5800 ); 
 #else
     CPPUNIT_ASSERT_EQUAL( static_cast<int>(value), 0x0058 ); 
