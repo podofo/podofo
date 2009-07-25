@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
           {
               bSelfTest = true;
           }
-          else if(argument=="--test" || argument=="-test" && i+1 < argc) 
+          else if((argument=="--test" || argument=="-test") && i+1 < argc) 
           {
               if( i == argc - 1 ) 
               {
