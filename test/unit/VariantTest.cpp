@@ -101,7 +101,7 @@ void VariantTest::testIsDirtyTrue()
     PdfDictionary dict;
 
     PdfVariant varBool( true );
-    PdfVariant varLong( 1LL );
+    PdfVariant varLong( static_cast<pdf_int64>(1LL) );
     PdfVariant varDouble( 1.0 );
     PdfVariant varStr( PdfString("Any") );
     PdfVariant varName( PdfName("Name") );
@@ -111,7 +111,7 @@ void VariantTest::testIsDirtyTrue()
     PdfVariant varVariant( varBool );
 
     varBool.SetBool( false );
-    varLong.SetNumber( 2LL );
+    varLong.SetNumber( static_cast<pdf_int64>(2LL) );
     varDouble.SetReal( 2.0 );
     varStr = PdfString("Other");
     varName = PdfName("Name2");
@@ -150,7 +150,7 @@ void VariantTest::testIsDirtyFalse()
 
     PdfVariant varEmpty;
     PdfVariant varBool( true );
-    PdfVariant varLong( 1LL );
+    PdfVariant varLong( static_cast<pdf_int64>(1LL) );
     PdfVariant varDouble( 1.0 );
     PdfVariant varStr( PdfString("Any") );
     PdfVariant varName( PdfName("Name") );
@@ -195,6 +195,9 @@ void VariantTest::testIsDirtyFalse()
     // IsDirty() should be false after calling non const getter, but not modifying object
     PdfArray& rArray = varArray.GetArray();
     PdfDictionary& rDict = varDict.GetDictionary();
+
+    PODOFO_UNUSED( rArray );
+    PODOFO_UNUSED( rDict );
 
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "ARRAY     IsDirty() == false", false, varArray.IsDirty() );
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "DICT      IsDirty() == false", false, varDict.IsDirty() );

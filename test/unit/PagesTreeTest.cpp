@@ -243,7 +243,7 @@ void PagesTreeTest::testInsert( PdfMemDocument & doc )
     PdfPage* pPage = new PdfPage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ),
                                   &(doc.GetObjects()) );
     pPage->GetObject()->GetDictionary().AddKey( PODOFO_TEST_PAGE_KEY, 
-                                                static_cast<long long>(INSERTED_PAGE_FLAG) );
+                                                static_cast<pdf_int64>(INSERTED_PAGE_FLAG) );
 
     // Insert page at the beginning
     doc.GetPagesTree()->InsertPage(
@@ -262,7 +262,7 @@ void PagesTreeTest::testInsert( PdfMemDocument & doc )
     // Insert at end 
     pPage = doc.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
     pPage->GetObject()->GetDictionary().AddKey( PODOFO_TEST_PAGE_KEY, 
-                                                static_cast<long long>(INSERTED_PAGE_FLAG1) );
+                                                static_cast<pdf_int64>(INSERTED_PAGE_FLAG1) );
 
     pPage = doc.GetPage( doc.GetPageCount() - 1 );
     CPPUNIT_ASSERT_EQUAL( IsPageNumber( pPage, INSERTED_PAGE_FLAG1 ), true );
@@ -271,7 +271,7 @@ void PagesTreeTest::testInsert( PdfMemDocument & doc )
     pPage = new PdfPage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ),
                                   &(doc.GetObjects()) );
     pPage->GetObject()->GetDictionary().AddKey( PODOFO_TEST_PAGE_KEY, 
-                                                static_cast<long long>(INSERTED_PAGE_FLAG2) );
+                                                static_cast<pdf_int64>(INSERTED_PAGE_FLAG2) );
 
     const int INSERT_POINT = 50;
     doc.GetPagesTree()->InsertPage( INSERT_POINT, pPage );
@@ -316,7 +316,7 @@ void PagesTreeTest::CreateTestTreePoDoFo( PoDoFo::PdfMemDocument & rDoc )
     for(int i=0; i<PODOFO_TEST_NUM_PAGES; i++) 
     {
         PdfPage* pPage = rDoc.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-        pPage->GetObject()->GetDictionary().AddKey( PODOFO_TEST_PAGE_KEY, static_cast<long long>(i) );
+        pPage->GetObject()->GetDictionary().AddKey( PODOFO_TEST_PAGE_KEY, static_cast<pdf_int64>(i) );
 
         CPPUNIT_ASSERT_EQUAL( rDoc.GetPageCount(), i + 1 );
     }
@@ -339,19 +339,19 @@ void PagesTreeTest::CreateTestTreeCustom( PoDoFo::PdfMemDocument & rDoc )
             PdfPage* pPage = new PdfPage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ),
                                           &(rDoc.GetObjects()) );
             pPage->GetObject()->GetDictionary().AddKey( PODOFO_TEST_PAGE_KEY, 
-                                                        static_cast<long long>(z * COUNT + i) );
+                                                        static_cast<pdf_int64>(z * COUNT + i) );
 
             //printf("Creating page %i z=%i i=%i\n", z * COUNT + i, z, i );
             nodeKids.push_back( pPage->GetObject()->Reference() );
         }
 
         pNode->GetDictionary().AddKey( PdfName("Kids"), nodeKids );
-        pNode->GetDictionary().AddKey( PdfName("Count"), static_cast<long long>(COUNT) );
+        pNode->GetDictionary().AddKey( PdfName("Count"), static_cast<pdf_int64>(COUNT) );
         rootKids.push_back( pNode->Reference() );
     }
 
     pRoot->GetDictionary().AddKey( PdfName("Kids"), rootKids );
-    pRoot->GetDictionary().AddKey( PdfName("Count"), static_cast<long long>(PODOFO_TEST_NUM_PAGES) );
+    pRoot->GetDictionary().AddKey( PdfName("Count"), static_cast<pdf_int64>(PODOFO_TEST_NUM_PAGES) );
 }
 
 

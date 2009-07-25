@@ -69,9 +69,9 @@ void EncodingTest::testDifferences()
     // Convert to array
     PdfArray data;
     PdfArray expected;
-    expected.push_back( 0LL );
+    expected.push_back( static_cast<pdf_int64>(0LL) );
     expected.push_back( PdfName("A") );
-    expected.push_back( 255LL );
+    expected.push_back( static_cast<pdf_int64>(255LL) );
     expected.push_back( PdfName("B") );
 
     difference.ToArray( data );
@@ -83,9 +83,9 @@ void EncodingTest::testDifferences()
 
     // Test replace
     expected.Clear();
-    expected.push_back( 0LL );
+    expected.push_back( static_cast<pdf_int64>(0LL) );
     expected.push_back( PdfName("A") );
-    expected.push_back( 255LL );
+    expected.push_back( static_cast<pdf_int64>(255LL) );
     expected.push_back( PdfName("X") );
 
     difference.AddDifference( 255, PdfName("X") );
@@ -99,16 +99,16 @@ void EncodingTest::testDifferences()
 
     // Test more complicated array
     expected.Clear();
-    expected.push_back( 0LL );
+    expected.push_back( static_cast<pdf_int64>(0LL) );
     expected.push_back( PdfName("A") );
     expected.push_back( PdfName("B") );
     expected.push_back( PdfName("C") );
-    expected.push_back( 4LL );
+    expected.push_back( static_cast<pdf_int64>(4LL) );
     expected.push_back( PdfName("D") );
     expected.push_back( PdfName("E") );
-    expected.push_back( 9LL );
+    expected.push_back( static_cast<pdf_int64>(9LL) );
     expected.push_back( PdfName("F") );
-    expected.push_back( 255LL );
+    expected.push_back( static_cast<pdf_int64>(255LL) );
     expected.push_back( PdfName("X") );
 
     difference.AddDifference( 1, PdfName("B") );
@@ -186,13 +186,13 @@ void EncodingTest::testDifferencesObject()
     PdfObject* pDiff = pEncoding->GetDictionary().GetKey( PdfName("Differences" ) );
     PdfArray   expected;
 
-    expected.push_back( 1LL );
+    expected.push_back( static_cast<pdf_int64>(1LL) );
     expected.push_back( PdfName("B") );
     expected.push_back( PdfName("C") );
-    expected.push_back( 4LL );
+    expected.push_back( static_cast<pdf_int64>(4LL) );
     expected.push_back( PdfName("D") );
     expected.push_back( PdfName("E") );
-    expected.push_back( 9LL );
+    expected.push_back( static_cast<pdf_int64>(9LL) );
     expected.push_back( PdfName("F") );
 
     const PdfArray & data = pDiff->GetArray();
