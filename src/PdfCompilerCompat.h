@@ -79,6 +79,12 @@
 #include <strings.h>
 #endif
 
+// alloca() is defined only in <cstdlib> on Mac OS X,
+// only in <malloc.h> on win32, and in both on Linux.
+#if defined(_WIN32)
+#include <malloc.h>
+#endif
+
 // Integer types - fixed size types guaranteed to work anywhere
 // because we detect the right underlying type name to use with
 // CMake. Use typedefs rather than macros for saner error messages
@@ -194,6 +200,27 @@ inline static double logb(double x) {
 #else
   return ::logb(x);
 #endif
+}
+
+/*
+ * We define inline wrappers for htons and friends here so that
+ * any issues with integer types can be contained to just this
+ * source file.
+ */
+inline static pdf_uint32 ntohl(pdf_uint32 i) {
+   return static_cast<pdf_uint32>( i );
+}
+
+inline static pdf_uint16 ntohs(pdf_uint16 i) {
+   return static_cast<pdf_uint16>( i );
+}
+
+inline static pdf_uint32 htonl(pdf_uint32 i) {
+   return static_cast<pdf_uint32>( i );
+}
+
+inline static pdf_uint16 htons(pdf_uint16 i) {
+   return static_cast<pdf_uint16>( i );
 }
 
 };}; // end namespace PoDoFo::compat

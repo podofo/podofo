@@ -612,5 +612,11 @@ void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* p
     delete pInfo;
 }
 
+void PdfWriter::SetEncrypted( const PdfEncrypt & rEncrypt )
+{
+	delete m_pEncrypt;
+	m_pEncrypt = PdfEncrypt::CreatePdfEncrypt( rEncrypt );
+}
+
 };
 

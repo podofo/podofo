@@ -507,7 +507,7 @@ class PODOFO_API PdfDocument {
      *  @param pObject the new trailer object
      *         It will be owned by PdfDocument.
      */
-    inline void SetTrailer( PdfObject* pObject );
+    void SetTrailer( PdfObject* pObject );
 
     /** Get a dictioary from the catalog dictionary by its name.
      *  \param pszName will be converted into a PdfName
@@ -576,15 +576,6 @@ inline PdfPagesTree* PdfDocument::GetPagesTree() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfDocument::SetInfo( PdfInfo* pInfo )
-{
-    delete m_pInfo;
-    m_pInfo = pInfo;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 inline PdfObject* PdfDocument::GetCatalog()
 {
     return m_pCatalog;
@@ -622,17 +613,6 @@ inline PdfObject* PdfDocument::GetTrailer()
 inline const PdfObject* PdfDocument::GetTrailer() const
 {
     return m_pTrailer;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfDocument::SetTrailer( PdfObject* pObject ) 
-{
-    delete m_pTrailer;
-    m_pTrailer = pObject;
-    // Set owner so that GetIndirectKey will work
-    m_pTrailer->SetOwner( &m_vecObjects );
 }
 
 // -----------------------------------------------------

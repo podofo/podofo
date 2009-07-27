@@ -353,7 +353,7 @@ void PdfHintStream::WriteUInt16( pdf_uint16 val )
 {
     if( m_bLittleEndian ) 
     {
-        val = static_cast<pdf_uint16>(htons( static_cast<unsigned short>(val) ));
+        val = ::PoDoFo::compat::htons(val);
     }
 
     m_pObject->GetStream()->Append( reinterpret_cast<char*>(&val), 2 );
@@ -363,7 +363,7 @@ void PdfHintStream::WriteUInt32( pdf_uint32 val )
 {
     if( m_bLittleEndian ) 
     {
-        val = static_cast<pdf_uint32>(htonl( static_cast<unsigned int>(val) ));
+        val = ::PoDoFo::compat::htonl(val);
     }
 
     m_pObject->GetStream()->Append( reinterpret_cast<char*>(&val), 4 );

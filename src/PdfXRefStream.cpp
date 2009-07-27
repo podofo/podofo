@@ -24,14 +24,6 @@
 #include "PdfStream.h"
 #include "PdfWriter.h"
 
-// for htonl
-#ifdef _WIN32
-#include <winsock2.h>
-#undef GetObject
-#else 
-#include <arpa/inet.h>
-#endif // _WIN32
-
 // alloca() is defined only in <cstdlib> on Mac OS X,
 // only in <malloc.h> on win32, and in both on Linux.
 #if defined(_WIN32)
@@ -104,7 +96,7 @@ void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, size_t lOffset, unsigned l
 		// [Alexey] I have no idea what to do here, Its format dependend
     *pValue             = static_cast<STREAM_OFFSET_TYPE>(lOffset);
 #ifdef PODOFO_IS_LITTLE_ENDIAN
-    *pValue = static_cast<STREAM_OFFSET_TYPE>(static_cast<long long>(htonl( static_cast<unsigned long>(*pValue) )));
+    *pValue = static_cast<STREAM_OFFSET_TYPE>(static_cast<long long>(::PoDoFo::compat::htonl( static_cast<unsigned long>(*pValue) )));
 #endif // PODOFO_IS_LITTLE_ENDIAN
     
     m_pObject->GetStream()->Append( buffer, m_lBufferLen );

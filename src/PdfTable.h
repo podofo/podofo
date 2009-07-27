@@ -653,7 +653,7 @@ class PODOFO_API PdfTable {
      *
      *  \see GetCols()
      */
-    inline void SetColumnWidths( double* pdWidths );
+    void SetColumnWidths( double* pdWidths );
 
     /** Set the height of all rows.
      *  
@@ -662,7 +662,7 @@ class PODOFO_API PdfTable {
      *
      *  \see GetRows()
      */
-    inline void SetRowHeights( double* pdHeights );
+    void SetRowHeights( double* pdHeights );
 
     /** Set all columns to have the same width.
      *
@@ -830,41 +830,6 @@ const PdfTableModel* PdfTable::GetModel() const
     return m_pModel;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfTable::SetColumnWidths( double* pdWidths )
-{
-    if( m_pdColWidths )
-    {
-        delete [] m_pdColWidths;
-        m_pdColWidths = NULL;
-    }
-
-    if( pdWidths ) 
-    {
-        m_pdColWidths = new double[this->GetCols()];
-        memcpy( m_pdColWidths, pdWidths, this->GetCols() * sizeof(double) );
-    }
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfTable::SetRowHeights( double* pdHeights )
-{
-    if( m_pdRowHeights )
-    {
-        delete [] m_pdRowHeights;
-        m_pdRowHeights = NULL;
-    }
-
-    if( pdHeights ) 
-    {
-        m_pdRowHeights = new double[this->GetRows()];
-        memcpy( m_pdRowHeights, pdHeights, this->GetRows() * sizeof(double) );
-    }
-}
 
 // -----------------------------------------------------
 // 

@@ -409,6 +409,36 @@ bool PdfTable::CheckForNewPage( double* pdY, double* pdCurY, double dRowHeight, 
     return false;
 }
 
+void PdfTable::SetColumnWidths( double* pdWidths )
+{
+    if( m_pdColWidths )
+    {
+        delete [] m_pdColWidths;
+        m_pdColWidths = NULL;
+    }
+
+    if( pdWidths ) 
+    {
+        m_pdColWidths = new double[this->GetCols()];
+        memcpy( m_pdColWidths, pdWidths, this->GetCols() * sizeof(double) );
+    }
+}
+
+void PdfTable::SetRowHeights( double* pdHeights )
+{
+    if( m_pdRowHeights )
+    {
+        delete [] m_pdRowHeights;
+        m_pdRowHeights = NULL;
+    }
+
+    if( pdHeights ) 
+    {
+        m_pdRowHeights = new double[this->GetRows()];
+        memcpy( m_pdRowHeights, pdHeights, this->GetRows() * sizeof(double) );
+    }
+}
+
 /*
 void CReport::CreateTable( double dX, double dY, int iCols, int iRows, 
                                                    const char** apsTable, double* pdColWidths, double* pdRowHeights,
