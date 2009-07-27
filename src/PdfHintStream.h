@@ -60,8 +60,6 @@ class PdfHintStream : public PdfElement {
  
  private:
     PdfPagesTree* m_pPagesTree;
-
-    bool          m_bLittleEndian;
 };
 
 }; // end namespace NonPublic

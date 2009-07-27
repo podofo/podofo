@@ -220,13 +220,6 @@ PdfHintStream::PdfHintStream( PdfVecObjects* pParent, PdfPagesTree* pPagesTree )
 {
     // This is overwritten later with valid data!
     PdfVariant place_holder( PdfData( LINEARIZATION_PADDING ) );
-
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-    m_bLittleEndian = true;
-#else
-    m_bLittleEndian = false;
-#endif // PODOFO_IS_LITTLE_ENDIAN
-
     m_pObject->GetDictionary().AddKey( "S", place_holder ); // shared object hint table
 }
 
@@ -351,21 +344,13 @@ void PdfHintStream::CreateSharedObjectHintTable()
 
 void PdfHintStream::WriteUInt16( pdf_uint16 val )
 {
-    if( m_bLittleEndian ) 
-    {
-        val = ::PoDoFo::compat::htons(val);
-    }
-
+    val = ::PoDoFo::compat::podofo_htons(val);
     m_pObject->GetStream()->Append( reinterpret_cast<char*>(&val), 2 );
 }
 
 void PdfHintStream::WriteUInt32( pdf_uint32 val )
 {
-    if( m_bLittleEndian ) 
-    {
-        val = ::PoDoFo::compat::htonl(val);
-    }
-
+    val = ::PoDoFo::compat::podofo_htonl(val);
     m_pObject->GetStream()->Append( reinterpret_cast<char*>(&val), 4 );
 }
 

@@ -219,21 +219,27 @@ inline static double logb(double x) {
  * We define inline wrappers for htons and friends here so that
  * any issues with integer types can be contained to just this
  * source file.
+ *
+ * These functions are defined to do NOTHING when
+ * host byte order == network byte order (ie: on big endian hosts)
+ * so you do NOT need to #ifdef them. They'll be inlined and
+ * then optimized out with any sane compiler and C library.
  */
-inline static pdf_uint32 ntohl(pdf_uint32 i) {
-   return static_cast<pdf_uint32>( i );
+
+inline static pdf_uint32 podofo_ntohl(pdf_uint32 i) {
+   return static_cast<pdf_uint32>( ::ntohl( i ) );
 }
 
-inline static pdf_uint16 ntohs(pdf_uint16 i) {
-   return static_cast<pdf_uint16>( i );
+inline static pdf_uint16 podofo_ntohs(pdf_uint16 i) {
+   return static_cast<pdf_uint16>( ::ntohs( i ) );
 }
 
-inline static pdf_uint32 htonl(pdf_uint32 i) {
-   return static_cast<pdf_uint32>( i );
+inline static pdf_uint32 podofo_htonl(pdf_uint32 i) {
+   return static_cast<pdf_uint32>( ::htonl( i ) );
 }
 
-inline static pdf_uint16 htons(pdf_uint16 i) {
-   return static_cast<pdf_uint16>( i );
+inline static pdf_uint16 podofo_htons(pdf_uint16 i) {
+   return static_cast<pdf_uint16>( ::htons( i ) );
 }
 
 };}; // end namespace PoDoFo::compat

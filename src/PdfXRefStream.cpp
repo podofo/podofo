@@ -94,10 +94,7 @@ void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, size_t lOffset, unsigned l
     //       -> Better use memcpy here!
 
 		// [Alexey] I have no idea what to do here, Its format dependend
-    *pValue             = static_cast<STREAM_OFFSET_TYPE>(lOffset);
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-    *pValue = static_cast<STREAM_OFFSET_TYPE>(static_cast<long long>(::PoDoFo::compat::htonl( static_cast<unsigned long>(*pValue) )));
-#endif // PODOFO_IS_LITTLE_ENDIAN
+    *pValue             = static_cast<STREAM_OFFSET_TYPE>( ::PoDoFo::compat::podofo_htonl(lOffset) );
     
     m_pObject->GetStream()->Append( buffer, m_lBufferLen );
 }
