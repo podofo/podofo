@@ -258,3 +258,21 @@ simple editor settings.
     as a DLL (Windows) or, on UNIX platforms, use gcc4 and enable visibility
     support. This will help catch cases where you forgot to export required
     API.
+
+3.7 Memory allocations in inlined methods
+
+    It's not safe to (directly) allocate or free
+    heap memory in an inlined function, because it only works if the same
+    runtime library is used in the shared library and the executable linking
+    to the library. Using malloc and/or new in inlined methods will lead to
+    crashes on MS Windows systems. It might be undetected on Linux systems
+    (even though it is bad style on Linux, too), because most processes and
+    libraries use the same runtime library on a Linux system.
+
+    There's also no point inlining functions that call new / delete /
+    malloc / free, because the memory allocation is dramatically more
+    expensive than a mere function call is.
+
+    Using STL classes that may perform allocations internally is fine since
+    they tend to carry their own std::allocator instance (or reference,
+    anyway) around with them.
