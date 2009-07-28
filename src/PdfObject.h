@@ -316,6 +316,11 @@ class PODOFO_API PdfObject : public PdfVariant {
     PODOFO_NOTHROW inline bool DelayedStreamLoadDone() const;
 
  private:
+    /* See PdfVariant.h for a detailed explanation of this member, which is
+     * here to prevent accidental construction of a PdfObject of integer type
+     * when passing a pointer. */
+    template<typename T> PdfObject(T*);
+
 
     // Shared initialization between all the ctors
     void InitPdfObject();
