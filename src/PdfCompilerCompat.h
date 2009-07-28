@@ -24,13 +24,23 @@
 // Make sure that DEBUG is defined 
 // for debug builds on Windows
 // as Visual Studio defines only _DEBUG
+
+#if defined(BUILDING_PODOFO)
 #ifdef _DEBUG
 #ifndef DEBUG
 #define DEBUG 1
 #endif // DEBUG
 #endif // _DEBUG
+#endif // BUILDING_PODOFO
 
 
+#if defined(__BORLANDC__) || defined( __TURBOC__)
+#  include <stddef.h>
+#else
+#  include <cstddef>
+#endif
+
+#if defined(BUILDING_PODOFO)
 #if defined(__BORLANDC__) || defined( __TURBOC__)
    // Borland Turbo C has a broken "<cmath>" but provides a usable "math.h"
    // and it needs a bunch of other includes
@@ -47,6 +57,7 @@
 #  include <cstring>
 #  include <ctime>
 #endif
+#endif // BUILDING_PODOFO
 
 
 #if defined(TEST_BIG)
@@ -152,14 +163,26 @@ namespace PoDoFo {
 
 
 
-// Use the more informative __FUNCTION__ macro instead of __FILE__ __LINE__ where possible.
-#if (defined(_MSC_VER)  &&  _MSC_VER <= 1200)  || defined(__BORLANDC__) || defined(__TURBOC__)
-#  define PODOFO__FUNCTION__ (__FILE__ ":" __LINE__)
+// Different compilers express __FUNC__ in different ways and with different
+// capabilities. Try to find the best option.
+//
+// Note that __LINE__ and __FILE__ are *NOT* included.
+// Further note that you can't use compile-time string concatenation on __FUNC__ and friends
+// on many compilers as they're defined to behave as if they were a:
+//    static const char* __func__ = 'nameoffunction';
+// just after the opening brace of each function.
+//
+#if (defined(_MSC_VER)  &&  _MSC_VER <= 1200)
+#  define PODOFO__FUNCTION__ __FUNCTION__
+#elif defined(__BORLANDC__) || defined(__TURBOC__)
+#  define PODOFO__FUNCTION__ __FUNC__
+#elif defined(__GNUC__)
+#  define PODOFO__FUNCTION__ __PRETTY_FUNCTION__
 #else
 #  define PODOFO__FUNCTION__ __FUNCTION__
 #endif
 
-// for htonl
+#if defined(BUILDING_PODOFO)
 #if PODOFO_HAVE_WINSOCK2_H
 #  include <winsock2.h>
 #  if defined(GetObject)
@@ -172,11 +195,13 @@ namespace PoDoFo {
 #if PODOFO_HAVE_ARPA_INET_H
 #  include <arpa/inet.h>
 #endif
+#endif //BUILDING_PODOFO
 
 
 namespace PoDoFo {
 namespace compat {
 
+#if defined(BUILDING_PODOFO)
 // Case-insensitive string compare functions aren't very portable, and we must account
 // for several flavours.
 inline static int strcasecmp( const char * s1, const char * s2) {
@@ -242,6 +267,8 @@ inline static pdf_uint16 podofo_htons(pdf_uint16 i) {
    return static_cast<pdf_uint16>( ::htons( i ) );
 }
 
+#endif //BUILDING_PODOFO
+
 };}; // end namespace PoDoFo::compat
 
 /*
@@ -252,6 +279,8 @@ inline static pdf_uint16 podofo_htons(pdf_uint16 i) {
  * hacks from the rest of the code where other _underscore_prefixed_names are checked
  * for here.
  */
+#if defined(BUILDING_PODOFO)
+
 #ifdef _MSC_VER
 #define snprintf _snprintf
 #define vsnprintf _vsnprintf
@@ -265,6 +294,9 @@ inline static pdf_uint16 podofo_htons(pdf_uint16 i) {
 #define ftello ftell
 #endif
 
+#endif //BUILDING_PODOFO
+
+#if defined(BUILDING_PODOFO)
 /**
  * \def PODOFO_UNUSED( x )
  * Make a certain variable to be unused
@@ -278,6 +310,8 @@ inline void podofo_unused(T &t) { (void)t; }
 #else
 #define PODOFO_UNUSED( x ) (void)x;
 #endif // _WIN32
+
+#endif //BUILDING_PODOFO
 
 /**
  * \mainpage

@@ -108,10 +108,8 @@ void RefCountedBufferTest()
     
 }
 
-int main( int argc, char* argv[] )
+int main( int argc, char** )
 {
-    PODOFO_UNUSED( argv );
-
     printf("Device Test\n");
     printf("==============\n");
 

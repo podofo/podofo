@@ -1,8 +1,3 @@
-
-# IF(OPENSSL_FOUND)
-# ADD_SUBDIRECTORY(PKIBox)
-# ENDIF(OPENSSL_FOUND)
-
 SET(PODOFO_SOURCES
     PdfAction.cpp
     PdfAcroForm.cpp
@@ -203,10 +198,11 @@ IF(PODOFO_BUILD_STATIC)
     ADD_LIBRARY(podofo_static STATIC ${PODOFO_SOURCES})
     TARGET_LINK_LIBRARIES(podofo_static ${PODOFO_LIB_DEPENDS})
     SET_TARGET_PROPERTIES(podofo_static PROPERTIES
-        VERSION "0.7.0"
-        SOVERSION "0.7.0"
+        VERSION "${PODOFO_LIBVERSION}"
+        SOVERSION "${PODOFO_SOVERSION}"
         CLEAN_DIRECT_OUTPUT 1
         OUTPUT_NAME "podofo"
+        COMPILE_FLAGS "-DBUILDING_PODOFO"
         )
     SET(PODOFO_DEPEND_TARGET podofo_static
         CACHE INTERNAL "Which PoDoFo library variant to depend on")
@@ -226,10 +222,11 @@ IF(PODOFO_BUILD_SHARED)
     # Visual Studio, since it produces invalid warnings about STL
     # use.
     SET_TARGET_PROPERTIES(podofo_shared PROPERTIES
-        VERSION "0.7.0"
-        SOVERSION "0.7.00"
+        VERSION "${PODOFO_LIBVERSION}"
+        SOVERSION "${PODOFO_SOVERSION}"
         CLEAN_DIRECT_OUTPUT 1
         OUTPUT_NAME "podofo"
+        COMPILE_FLAGS "-DBUILDING_PODOFO"
         )
     # Since we're building a shared podofo, prefer to depend on this one for
     # tests and tools over the static library (if built).

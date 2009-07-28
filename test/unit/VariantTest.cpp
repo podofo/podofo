@@ -193,11 +193,8 @@ void VariantTest::testIsDirtyFalse()
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "VARIANT   IsDirty() == false", false, varVariant.IsDirty() );
 
     // IsDirty() should be false after calling non const getter, but not modifying object
-    PdfArray& rArray = varArray.GetArray();
-    PdfDictionary& rDict = varDict.GetDictionary();
-
-    PODOFO_UNUSED( rArray );
-    PODOFO_UNUSED( rDict );
+    (void) varArray.GetArray();
+    (void) varDict.GetDictionary();
 
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "ARRAY     IsDirty() == false", false, varArray.IsDirty() );
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "DICT      IsDirty() == false", false, varDict.IsDirty() );

@@ -30,6 +30,14 @@
 
 #include "PdfCompilerCompat.h"
 
+#define PODOFO_MAKE_VERSION_REAL(M,m,p) ( (M<<16)+(m<<8)+(m) )
+#define PODOFO_MAKE_VERSION(M,m,p) PODOFO_MAKE_VERSION_REAL(M,m,p)
+#define PODOFO_VERSION PODOFO_MAKE_VERSION(PODOFO_VERSION_MAJOR, PODOFO_VERSION_MINOR, PODOFO_VERSION_PATCH)
+
+#define PODOFO_MAKE_VERSION_STR_REAL(M,m,p) ("'" #M "." #m "." #p)
+#define PODOFO_MAKE_VERSION_STR(M,m,p) PODOFO_MAKE_VERSION_REAL(M,m,p)
+#define PODOFO_VERSION_STR PODOFO_MAKE_VERSION_STR(PODOFO_VERSION_MAJOR, PODOFO_VERSION_MINOR, PODOFO_VERSION_PATCH)
+
 // Include common system files
 // (most are now pulled in my PdfCompilerCompat.h)
 #include <wchar.h>

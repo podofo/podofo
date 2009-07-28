@@ -8,6 +8,10 @@
 #error Please include PdfDefines.h instead
 #endif
 
+#cmakedefine PODOFO_VERSION_MAJOR @PODOFO_VERSION_MAJOR@
+#cmakedefine PODOFO_VERSION_MINOR @PODOFO_VERSION_MINOR@
+#cmakedefine PODOFO_VERSION_PATCH @PODOFO_VERSION_PATCH@
+
 /* PoDoFo configuration options */
 #cmakedefine PODOFO_MULTI_THREAD
 
