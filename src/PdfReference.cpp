@@ -28,7 +28,7 @@ namespace PoDoFo {
 
 void PdfReference::Write( PdfOutputDevice* pDevice, const PdfEncrypt* ) const
 {
-    pDevice->Print( "%i %i R", m_nObjectNo, m_nGenerationNo );
+    pDevice->Print( "%i %hi R", m_nObjectNo, m_nGenerationNo );
 }
 
 const std::string PdfReference::ToString() const

@@ -34,17 +34,7 @@
 
 namespace PoDoFo {
 
-#ifdef _WIN32
-typedef signed char 	int8_t;
-typedef unsigned char 	uint8_t;
-typedef signed short 	int16_t;
-typedef unsigned short 	uint16_t;
-typedef signed int 	int32_t;
-typedef unsigned int 	uint32_t;
-#endif
-
-#define STREAM_OFFSET_TYPE long long
-
+/* TODO CR: Why is this here?!? */
 bool podofo_is_little_endian()
 { 
     int _p = 1;
@@ -54,10 +44,10 @@ bool podofo_is_little_endian()
 PdfXRefStream::PdfXRefStream( PdfVecObjects* pParent, PdfWriter* pWriter )
     : m_pParent( pParent ), m_pWriter( pWriter ), m_pObject( NULL )
 {
-    m_lBufferLen = 2 + sizeof( STREAM_OFFSET_TYPE );
+    m_bufferLen = 2 + sizeof( pdf_uint64 );
 
     m_pObject    = pParent->CreateObject( "XRef" );
-    m_lOffset    = 0;
+    m_offset    = 0;
 }
 
 PdfXRefStream::~PdfXRefStream()
@@ -69,34 +59,29 @@ void PdfXRefStream::BeginWrite( PdfOutputDevice* )
     m_pObject->GetStream()->BeginAppend();
 }
 
-void PdfXRefStream::WriteSubSection( PdfOutputDevice*, unsigned int nFirst, unsigned int nCount )
+void PdfXRefStream::WriteSubSection( PdfOutputDevice*, pdf_objnum first, pdf_uint32 count )
 {
-    PdfError::DebugMessage("Writing XRef section: %u %u\n", nFirst, nCount );
+    PdfError::DebugMessage("Writing XRef section: %u %u\n", first, count );
 
-    m_indeces.push_back( static_cast<pdf_int64>(nFirst) );
-    m_indeces.push_back( static_cast<pdf_int64>(nCount) );
+    m_indeces.push_back( static_cast<pdf_int64>(first) );
+    m_indeces.push_back( static_cast<pdf_int64>(count) );
 }
 
-void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, size_t lOffset, unsigned long lGeneration, 
-                                    char cMode, unsigned long lObjectNumber ) 
+void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, pdf_uint64 offset, pdf_gennum generation, 
+                                    char cMode, pdf_objnum objectNumber ) 
 {
-    char *              buffer = reinterpret_cast<char*>(alloca(m_lBufferLen));
-    STREAM_OFFSET_TYPE* pValue = reinterpret_cast<STREAM_OFFSET_TYPE*>(buffer+1);
+    char * buffer = reinterpret_cast<char*>(alloca(m_bufferLen));
 
-		// [Alexey] I have no idea what to do here, Its format dependend
-    if( cMode == 'n' && lObjectNumber == m_pObject->Reference().ObjectNumber() )
-        m_lOffset = lOffset;
+    if( cMode == 'n' && objectNumber == m_pObject->Reference().ObjectNumber() )
+        m_offset = offset;
     
-    buffer[0]              = static_cast<char>( cMode == 'n' ? 1 : 0 );
-    buffer[m_lBufferLen-1] = static_cast<char>( cMode == 'n' ? 0 : lGeneration );
-    // TODO: This might cause bus errors on HP-UX machines 
-    //       which require integers to be alligned on byte boundaries.
-    //       -> Better use memcpy here!
+    buffer[0]             = static_cast<char>( cMode == 'n' ? 1 : 0 );
+    buffer[m_bufferLen-1] = static_cast<char>( cMode == 'n' ? 0 : generation );
 
-		// [Alexey] I have no idea what to do here, Its format dependend
-    *pValue             = static_cast<STREAM_OFFSET_TYPE>( ::PoDoFo::compat::podofo_htonl(lOffset) );
+    const pdf_uint64 offset_be = ::PoDoFo::compat::podofo_htonl(offset);
+    memcpy( &buffer[1], reinterpret_cast<const char*>(&offset_be), sizeof(pdf_uint64) );
     
-    m_pObject->GetStream()->Append( buffer, m_lBufferLen );
+    m_pObject->GetStream()->Append( buffer, m_bufferLen );
 }
 
 void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice ) 
@@ -104,7 +89,7 @@ void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
     PdfArray w;
 
     w.push_back( static_cast<pdf_int64>(1) );
-    w.push_back( static_cast<pdf_int64>(sizeof(STREAM_OFFSET_TYPE)) );
+    w.push_back( static_cast<pdf_int64>(sizeof(pdf_uint64)) );
     w.push_back( static_cast<pdf_int64>(1) );
 
     // Add our self to the XRef table
@@ -116,7 +101,7 @@ void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
     m_pObject->GetDictionary().AddKey( "Index", m_indeces );
     m_pObject->GetDictionary().AddKey( "W", w );
 
-    pDevice->Seek( m_lOffset );
+    pDevice->Seek( m_offset );
     m_pObject->WriteObject( pDevice, NULL ); // DominikS: Requires encryption info??
     m_indeces.Clear();
 }

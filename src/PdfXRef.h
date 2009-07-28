@@ -39,13 +39,13 @@ class PdfOutputDevice;
 class PdfXRef {
  protected:
     struct TXRefItem{
-        TXRefItem( const PdfReference & rRef, const pdf_long & rlOff ) 
-            : reference( rRef ), lOffset( rlOff )
+        TXRefItem( const PdfReference & rRef, const pdf_uint64 & off ) 
+            : reference( rRef ), offset( off )
             {
             }
 
         PdfReference reference;
-        pdf_long         lOffset;
+        pdf_uint64   offset;
 
         bool operator<( const TXRefItem & rhs ) const
         {
@@ -92,8 +92,8 @@ class PdfXRef {
             return *this;
         }
 
-        unsigned int m_nFirst;
-        unsigned int m_nCount;
+        pdf_objnum   m_nFirst;
+        pdf_uint32   m_nCount;
         
         TVecXRefItems items;
         TVecReferences freeItems;
@@ -116,12 +116,12 @@ class PdfXRef {
      *  The object should have been written to an output device already.
      *  
      *  \param rRef reference of this object
-     *  \param lOffset the offset where on the device the object was written
+     *  \param offset the offset where on the device the object was written
      *  \param bUsed specifies wether this is an used or free object.
      *               Set this value to true for all normal objects and to false
      *               for free object references.
      */
-    void AddObject( const PdfReference & rRef, pdf_long lOffset, bool bUsed );
+    void AddObject( const PdfReference & rRef, pdf_uint64 offset, bool bUsed );
 
     /** Write the XRef table to an output device.
      * 
@@ -135,13 +135,13 @@ class PdfXRef {
      *
      *  \returns the size of the xref table
      */
-    unsigned int GetSize() const;
+    pdf_uint32 GetSize() const;
 
     /**
      * \returns the offset in the file at which the XRef table
      *          starts after it was written
      */
-    inline virtual size_t GetOffset() const;
+    inline virtual pdf_uint64 GetOffset() const;
 
  protected:
     /** Called at the start of writing the XRef table.
@@ -161,20 +161,20 @@ class PdfXRef {
      *  @param nFirst the object number of the first object in this subsection
      *  @param nCount the number of entries in this subsection
      */
-    virtual void WriteSubSection( PdfOutputDevice* pDevice, unsigned int nFirst, unsigned int nCount );
+    virtual void WriteSubSection( PdfOutputDevice* pDevice, pdf_objnum nFirst, pdf_uint32 nCount );
 
     /** Write a single entry to the XRef table
      *  
      *  @param pDevice the output device to which the XRef table 
      *                 should be written.
-     *  @param lOffset the offset of the object
-     *  @param lGeneration the generation number
+     *  @param offset the offset of the object
+     *  @param generation the generation number
      *  @param cMode the mode 'n' for object and 'f' for free objects
-     *  @param lObjectNumber the object number of the currently written object if cMode = 'n' 
+     *  @param objectNumber the object number of the currently written object if cMode = 'n' 
      *                       otherwise undefined
      */
-    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, size_t lOffset, unsigned long lGeneration, 
-                                 char cMode, unsigned long lObjectNumber = 0 );
+    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, pdf_uint64 offset, pdf_gennum generation, 
+                                 char cMode, pdf_objnum objectNumber = 0 );
 
     /** Called at the end of writing the XRef table.
      *  Sub classes can overload this method to finish a XRef table.
@@ -197,7 +197,7 @@ class PdfXRef {
     void MergeBlocks();
 
  private:
-    pdf_long m_lOffset;
+    pdf_uint64 m_offset;
 
  protected:
     TVecXRefBlock  m_vecBlocks;
@@ -206,9 +206,9 @@ class PdfXRef {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline size_t PdfXRef::GetOffset() const
+inline pdf_uint64 PdfXRef::GetOffset() const
 {
-    return m_lOffset;
+    return m_offset;
 }
 
 };

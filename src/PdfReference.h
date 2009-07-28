@@ -27,6 +27,15 @@
 
 namespace PoDoFo {
 
+typedef pdf_uint32 pdf_objnum;
+/* Technically a generation number must be able to represent 99999 so 65535 isn't good enough.
+ * In practice Adobe's implementation notes suggest that they use a uint16 internally, and PDFs
+ * with greater object numbers won't work on many viewers. So we'll stick with uint16.
+ *
+ * If you change this you'll need to change PdfReference::Write(...) to use the apppropriate
+ * format, too. */
+typedef pdf_uint16 pdf_gennum;
+
 class PdfOutputDevice;
 
 /**
@@ -53,7 +62,7 @@ class PODOFO_API PdfReference : public PdfDataType {
      * \param nObjectNo the object number
      * \param nGenerationNo the generation number
      */
-    PdfReference( const unsigned int nObjectNo, const pdf_uint16 nGenerationNo )
+    PdfReference( const pdf_objnum nObjectNo, const pdf_gennum nGenerationNo )
         : m_nObjectNo( nObjectNo ), m_nGenerationNo( nGenerationNo ) 
     {
     }
@@ -112,12 +121,12 @@ class PODOFO_API PdfReference : public PdfDataType {
     /** Set the object number of this object
      *  \param o the new object number
      */
-    PODOFO_NOTHROW inline void SetObjectNumber( unsigned int o );
+    PODOFO_NOTHROW inline void SetObjectNumber( pdf_uint32 o );
 
     /** Get the object number.
      *  \returns the object number of this PdfReference
      */
-    PODOFO_NOTHROW inline unsigned int ObjectNumber() const;
+    PODOFO_NOTHROW inline pdf_objnum ObjectNumber() const;
 
     /** Set the generation number of this object
      *  \param g the new generation number
@@ -127,7 +136,7 @@ class PODOFO_API PdfReference : public PdfDataType {
     /** Get the generation number.
      *  \returns the generation number of this PdfReference
      */
-    PODOFO_NOTHROW inline pdf_uint16 GenerationNumber() const;
+    PODOFO_NOTHROW inline pdf_gennum GenerationNumber() const;
 
     /** Allows to check if a reference points to an indirect
      *  object.
@@ -141,8 +150,8 @@ class PODOFO_API PdfReference : public PdfDataType {
     PODOFO_NOTHROW inline bool IsIndirect() const;
 
  private:
-    unsigned int m_nObjectNo;
-    pdf_uint16    m_nGenerationNo;
+    pdf_objnum    m_nObjectNo;
+    pdf_gennum    m_nGenerationNo;
 };
 
 // -----------------------------------------------------
@@ -182,7 +191,7 @@ inline bool PdfReference::operator!=( const PdfReference & rhs ) const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfReference::SetObjectNumber( unsigned int o )
+void PdfReference::SetObjectNumber( pdf_objnum o )
 {
     m_nObjectNo = o;
 }
@@ -190,7 +199,7 @@ void PdfReference::SetObjectNumber( unsigned int o )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-unsigned int PdfReference::ObjectNumber() const
+pdf_uint32 PdfReference::ObjectNumber() const
 {
     return m_nObjectNo;
 }
@@ -198,7 +207,7 @@ unsigned int PdfReference::ObjectNumber() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfReference::SetGenerationNumber( pdf_uint16 g )
+void PdfReference::SetGenerationNumber( pdf_gennum g )
 {
     m_nGenerationNo = g;
 }

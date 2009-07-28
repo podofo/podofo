@@ -90,7 +90,7 @@ class PODOFO_API PdfObject : public PdfVariant {
     /** Construct a PdfObject with object and generation number -1
      *  and a pdf_int64 as value.
      *
-     *  \param l the long value of this PdfObject
+     *  \param l the pdf_int64 value of this PdfObject
      */
     PdfObject( pdf_int64 l );
 

@@ -88,10 +88,10 @@ PdfXRef::~PdfXRef()
 
 }
 
-void PdfXRef::AddObject( const PdfReference & rRef, pdf_long lOffset, bool bUsed )
+void PdfXRef::AddObject( const PdfReference & rRef, pdf_uint64 offset, bool bUsed )
 {
     TIVecXRefBlock     it = m_vecBlocks.begin();
-    PdfXRef::TXRefItem item( rRef, lOffset );
+    PdfXRef::TXRefItem item( rRef, offset );
     bool               bInsertDone = false;
 
     while( it != m_vecBlocks.end() )
@@ -127,12 +127,12 @@ void PdfXRef::Write( PdfOutputDevice* pDevice )
     PdfXRef::TCIVecReferences itFree;
     const PdfReference*       pNextFree  = NULL;
 
-    unsigned int nFirst       = 0;
-    unsigned int nCount       = 0;
+    pdf_objnum nFirst = 0;
+    pdf_uint32 nCount = 0;
 
     MergeBlocks();
 
-    m_lOffset = pDevice->Tell();
+    m_offset = pDevice->Tell();
     this->BeginWrite( pDevice );
     while( it != m_vecBlocks.end() )
     {
@@ -162,7 +162,7 @@ void PdfXRef::Write( PdfOutputDevice* pDevice )
             while( itFree != (*it).freeItems.end() &&
                    *itFree < (*itItems).reference )
             {
-                int nGen  = (*itFree).GenerationNumber();
+                pdf_gennum nGen  = (*itFree).GenerationNumber();
 
                 // get a pointer to the next free object
                 pNextFree = this->GetNextFreeObject( it, itFree );
@@ -172,7 +172,7 @@ void PdfXRef::Write( PdfOutputDevice* pDevice )
                 ++itFree;
             }
 
-            this->WriteXRefEntry( pDevice, (*itItems).lOffset, (*itItems).reference.GenerationNumber(), 'n', 
+            this->WriteXRefEntry( pDevice, (*itItems).offset, (*itItems).reference.GenerationNumber(), 'n', 
                                   (*itItems).reference.ObjectNumber()  );
             ++itItems;
         }
@@ -180,7 +180,7 @@ void PdfXRef::Write( PdfOutputDevice* pDevice )
         // Check if there are any free objects left!
         while( itFree != (*it).freeItems.end() )
         {
-            int nGen  = (*itFree).GenerationNumber();
+            pdf_gennum nGen  = (*itFree).GenerationNumber();
             
             // get a pointer to the next free object
             pNextFree = this->GetNextFreeObject( it, itFree );
@@ -254,11 +254,11 @@ const PdfReference* PdfXRef::GetNextFreeObject( PdfXRef::TCIVecXRefBlock itBlock
     return pRef;
 }
 
-unsigned int PdfXRef::GetSize() const
+pdf_uint32 PdfXRef::GetSize() const
 {
 
-    unsigned int                       nCount = 0;
-    PdfXRef::TCIVecXRefBlock  it     = m_vecBlocks.begin();
+    pdf_uint32 nCount = 0;
+    PdfXRef::TCIVecXRefBlock  it = m_vecBlocks.begin();
 
     while( it != m_vecBlocks.end() )
     {
@@ -271,10 +271,10 @@ unsigned int PdfXRef::GetSize() const
         return 0;
 
     const PdfXRefBlock& lastBlock = m_vecBlocks.back();
-    unsigned int highObj  = lastBlock.items.size() ? lastBlock.items.back().reference.ObjectNumber() : 0;
-    unsigned int highFree = lastBlock.freeItems.size() ? lastBlock.freeItems.back().ObjectNumber() : 0;
+    pdf_objnum highObj  = lastBlock.items.size() ? lastBlock.items.back().reference.ObjectNumber() : 0;
+    pdf_objnum highFree = lastBlock.freeItems.size() ? lastBlock.freeItems.back().ObjectNumber() : 0;
 
-    unsigned int max      =  PDF_MAX( highObj, highFree );
+    pdf_uint32 max = PDF_MAX( highObj, highFree );
 
     // From the PdfReference: /Size's value is 1 greater than the highes object number used in the file.
     return max+1;
@@ -317,7 +317,7 @@ void PdfXRef::BeginWrite( PdfOutputDevice* pDevice )
     pDevice->Print( "xref\n" );
 }
 
-void PdfXRef::WriteSubSection( PdfOutputDevice* pDevice, unsigned int nFirst, unsigned int nCount )
+void PdfXRef::WriteSubSection( PdfOutputDevice* pDevice, pdf_objnum nFirst, pdf_uint32 nCount )
 {
 #ifdef DEBUG
     PdfError::DebugMessage("Writing XRef section: %u %u\n", nFirst, nCount );
@@ -325,10 +325,10 @@ void PdfXRef::WriteSubSection( PdfOutputDevice* pDevice, unsigned int nFirst, un
     pDevice->Print( "%u %u\n", nFirst, nCount );
 }
 
-void PdfXRef::WriteXRefEntry( PdfOutputDevice* pDevice, size_t lOffset, 
-                              unsigned long lGeneration, char cMode, unsigned long ) 
+void PdfXRef::WriteXRefEntry( PdfOutputDevice* pDevice, pdf_uint64 offset, 
+                              pdf_uint16 generation, char cMode, pdf_objnum ) 
 {
-    pDevice->Print( "%0.10i %0.5i %c \n", lOffset, lGeneration, cMode );
+    pDevice->Print( "%0.10" PDF_FORMAT_UINT64 " %0.5hu %c \n", offset, generation, cMode );
 }
 
 void PdfXRef::EndWrite( PdfOutputDevice* ) 
