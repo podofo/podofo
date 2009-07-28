@@ -29,6 +29,7 @@
 #include "PdfFontMetrics.h"
 #include "PdfFontType1.h"
 #include "PdfFontTrueType.h"
+#include "PdfDefinesPrivate.h"
 
 namespace PoDoFo {
 

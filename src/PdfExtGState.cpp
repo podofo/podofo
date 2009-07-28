@@ -24,6 +24,7 @@
 #include "PdfPage.h"
 #include "PdfWriter.h"
 #include "PdfLocale.h"
+#include "PdfDefinesPrivate.h"
 
 #include <sstream>
 

@@ -34,6 +34,7 @@
 #include "PdfVariant.h"
 #include "PdfXRef.h"
 #include "PdfXRefStream.h"
+#include "PdfDefinesPrivate.h"
 
 //#define PDF_MAGIC "%‚„œ”\n" //"%\0x25\0xe2\0xe3\0xcf\0xd3\0x0d"
 #define PDF_MAGIC           "\xe2\xe3\xcf\xd3\n"

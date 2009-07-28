@@ -25,6 +25,7 @@
 #include "PdfColor.h"
 #include "PdfFunction.h"
 #include "PdfStream.h"
+#include "PdfDefinesPrivate.h"
 
 namespace PoDoFo {
 

@@ -21,6 +21,7 @@
 #include "PdfXRef.h"
 
 #include "PdfOutputDevice.h"
+#include "PdfDefinesPrivate.h"
 
 #include <algorithm>
 

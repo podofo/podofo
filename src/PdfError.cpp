@@ -18,7 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "PdfError.h"
+// PdfError.h doesn't, and can't, include PdfDefines.h so we do so here.
+// PdfDefines.h will include PdfError.h for us.
+#include "PdfDefines.h"
+#include "PdfDefinesPrivate.h"
 
 #include <stdarg.h>
 #include <stdio.h>

@@ -22,6 +22,7 @@
 
 #include "PdfDocument.h"
 #include "PdfStream.h"
+#include "PdfDefinesPrivate.h"
 
 #include <stdio.h>
 #include <wchar.h>

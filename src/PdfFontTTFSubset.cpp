@@ -22,6 +22,7 @@
 
 #include "PdfInputDevice.h"
 #include "PdfOutputDevice.h"
+#include "PdfDefinesPrivate.h"
 
 #include <cstring>
 #include <iostream>

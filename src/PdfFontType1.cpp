@@ -24,6 +24,7 @@
 #include "PdfDictionary.h"
 #include "PdfName.h"
 #include "PdfStream.h"
+#include "PdfDefinesPrivate.h"
 
 #include <stdlib.h>
 

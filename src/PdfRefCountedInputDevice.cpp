@@ -21,6 +21,7 @@
 #include "PdfRefCountedInputDevice.h"  
 
 #include "PdfInputDevice.h"
+#include "PdfDefinesPrivate.h"
 
 namespace PoDoFo {
 

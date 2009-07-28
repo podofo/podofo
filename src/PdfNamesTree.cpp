@@ -22,9 +22,10 @@
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
+#include "PdfOutputDevice.h"
+#include "PdfDefinesPrivate.h"
 
 #include <sstream>
-#include "PdfOutputDevice.h"
 
 namespace PoDoFo {
 

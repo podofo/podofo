@@ -27,6 +27,7 @@
 #include "PdfStream.h"
 #include "PdfVariant.h"
 #include "PdfVecObjects.h"
+#include "PdfDefinesPrivate.h"
 
 // See PdfWriter.cpp
 #define LINEARIZATION_PADDING "1234567890"

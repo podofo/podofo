@@ -26,6 +26,7 @@
 #include "PdfObject.h"
 #include "PdfReference.h"
 #include "PdfStream.h"
+#include "PdfDefinesPrivate.h"
 
 #include <algorithm>
 

@@ -25,6 +25,7 @@
 #include "PdfOutputDevice.h"
 #include "PdfOutputStream.h"
 #include "PdfTokenizer.h"
+#include "PdfDefinesPrivate.h"
 
 #ifdef PODOFO_HAVE_JPEG_LIB
 extern "C" {

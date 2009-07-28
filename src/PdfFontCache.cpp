@@ -29,6 +29,7 @@
 #include "PdfFontType1.h"
 #include "PdfInputDevice.h"
 #include "PdfOutputDevice.h"
+#include "PdfDefinesPrivate.h"
 
 #include <algorithm>
 

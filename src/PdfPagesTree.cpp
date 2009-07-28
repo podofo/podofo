@@ -26,6 +26,7 @@
 #include "PdfOutputDevice.h"
 #include "PdfPage.h"
 #include "PdfVecObjects.h"
+#include "PdfDefinesPrivate.h"
 
 #include <iostream>
 namespace PoDoFo {

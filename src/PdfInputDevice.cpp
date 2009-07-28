@@ -23,6 +23,7 @@
 #include <cstdarg>
 #include <fstream>
 #include <sstream>
+#include "PdfDefinesPrivate.h"
 
 namespace PoDoFo {
 

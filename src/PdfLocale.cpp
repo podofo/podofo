@@ -1,6 +1,7 @@
 #include "PdfDefines.h"
 #include "PdfLocale.h"
 #include "PdfError.h"
+#include "PdfDefinesPrivate.h"
 
 #include <iostream>
 #include <sstream>

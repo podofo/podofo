@@ -24,6 +24,7 @@
 #include "PdfDocument.h"
 #include "PdfName.h"
 #include "PdfOutputDevice.h"
+#include "PdfDefinesPrivate.h"
 
 #include <iostream>
 

@@ -25,6 +25,7 @@
 #include "PdfDictionary.h"
 #include "PdfOutputDevice.h"
 #include "PdfParserObject.h"
+#include "PdfDefinesPrivate.h"
 
 #include <sstream>
 

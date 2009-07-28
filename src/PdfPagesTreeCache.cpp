@@ -22,6 +22,7 @@
 
 #include "PdfPage.h"
 #include "PdfPagesTree.h"
+#include "PdfDefinesPrivate.h"
 
 namespace PoDoFo {
 

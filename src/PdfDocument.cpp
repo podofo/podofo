@@ -48,6 +48,8 @@
 #include "PdfVecObjects.h"
 #include "PdfXObject.h"
 
+#include "PdfDefinesPrivate.h"
+
 using namespace std;
 
 namespace PoDoFo {

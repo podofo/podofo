@@ -24,6 +24,7 @@
 #include "PdfInputStream.h"
 #include "PdfObject.h"
 #include "PdfStream.h"
+#include "PdfDefinesPrivate.h"
 
 #include <sstream>
 

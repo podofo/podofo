@@ -19,11 +19,12 @@
  ***************************************************************************/
 
 #include "PdfOutputDevice.h"
+#include "PdfRefCountedBuffer.h"
+#include "PdfDefinesPrivate.h"
 
 #include <fstream>
 #include <sstream>
 
-#include "PdfRefCountedBuffer.h"
 
 namespace PoDoFo {
 

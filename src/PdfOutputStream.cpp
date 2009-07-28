@@ -22,6 +22,7 @@
 
 #include "PdfOutputDevice.h"
 #include "PdfRefCountedBuffer.h"
+#include "PdfDefinesPrivate.h"
 
 #include <stdlib.h>
 #include <string.h>

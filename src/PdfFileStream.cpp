@@ -24,6 +24,7 @@
 #include "PdfFilter.h"
 #include "PdfOutputDevice.h"
 #include "PdfOutputStream.h"
+#include "PdfDefinesPrivate.h"
 
 namespace PoDoFo {
 

@@ -23,6 +23,7 @@
 #include "PdfArray.h"
 #include "PdfPage.h"
 #include "PdfVariant.h"
+#include "PdfDefinesPrivate.h"
 
 #include <iostream>
 #include <sstream>

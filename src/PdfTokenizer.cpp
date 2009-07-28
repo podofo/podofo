@@ -28,6 +28,7 @@
 #include "PdfString.h"
 #include "PdfReference.h"
 #include "PdfVariant.h"
+#include "PdfDefinesPrivate.h"
 
 #include <sstream>
 

@@ -423,12 +423,6 @@ template <typename T> const T PDF_MIN ( const T a, const T b ) {
 
 }; // end namespace PoDoFo
 
-// Temporarily pull in source-private code if building src/
-// This include will soon move to the individual src/*cpp files.
-#if defined(BUILDING_PODOFO)
-#include "PdfCompilerCompatPrivate.h"
-#endif
-
 /**
  * \mainpage
  *

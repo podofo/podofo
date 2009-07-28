@@ -21,6 +21,7 @@
 #include "PdfReference.h"
 
 #include "PdfOutputDevice.h"
+#include "PdfDefinesPrivate.h"
 
 #include <sstream>
 

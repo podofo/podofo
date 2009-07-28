@@ -46,6 +46,7 @@
 #include "PdfParserObject.h"
 #include "PdfStream.h"
 #include "PdfVecObjects.h"
+#include "PdfDefinesPrivate.h"
 
 using namespace std;
 

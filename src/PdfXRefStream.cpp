@@ -23,6 +23,7 @@
 #include "PdfObject.h"
 #include "PdfStream.h"
 #include "PdfWriter.h"
+#include "PdfDefinesPrivate.h"
 
 // alloca() is defined only in <cstdlib> on Mac OS X,
 // only in <malloc.h> on win32, and in both on Linux.

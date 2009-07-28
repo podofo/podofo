@@ -24,8 +24,8 @@
 #include "PdfFilter.h" 
 #include "PdfInputStream.h"
 #include "PdfOutputStream.h"
-
 #include "PdfOutputDevice.h"
+#include "PdfDefinesPrivate.h"
 
 #include <iostream>
 

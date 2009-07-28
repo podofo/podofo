@@ -23,6 +23,7 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfFont.h"
+#include "PdfDefinesPrivate.h"
 
 #include <cstdlib>
 #include <cstring>

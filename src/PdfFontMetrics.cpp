@@ -28,6 +28,7 @@
 #include "PdfDictionary.h"
 #include "PdfFontFactory.h"
 #include "PdfVariant.h"
+#include "PdfDefinesPrivate.h"
 #include <sstream>
 
 #include <wchar.h>

@@ -24,6 +24,7 @@
 #include "PdfDictionary.h"
 #include "PdfName.h"
 #include "PdfStream.h"
+#include "PdfDefinesPrivate.h"
 
 #define FIRST_CHAR   0
 #define LAST_CHAR  255

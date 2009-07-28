@@ -26,6 +26,7 @@
 #include "PdfPainter.h"
 #include "PdfPage.h"
 #include "PdfRect.h"
+#include "PdfDefinesPrivate.h"
 
 #include <stdlib.h>
 

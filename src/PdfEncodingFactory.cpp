@@ -26,6 +26,7 @@
 #include "util/PdfMutexWrapper.h"
 #include "PdfName.h"
 #include "PdfObject.h"
+#include "PdfDefinesPrivate.h"
 
 namespace PoDoFo {
 

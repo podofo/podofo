@@ -24,6 +24,7 @@
 #include "PdfLocale.h"
 #include "PdfTokenizer.h"
 #include "PdfVariant.h"
+#include "PdfDefinesPrivate.h"
 
 namespace PoDoFo {
 

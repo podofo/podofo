@@ -28,6 +28,7 @@
 #include "PdfRect.h"
 #include "PdfVariant.h"
 #include "PdfXObject.h"
+#include "PdfDefinesPrivate.h"
 
 namespace PoDoFo {
 

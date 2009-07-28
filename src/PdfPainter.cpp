@@ -42,6 +42,7 @@
 #include "PdfString.h"
 #include "PdfXObject.h"
 #include "PdfLocale.h"
+#include "PdfDefinesPrivate.h"
 
 
 #include <stdlib.h>

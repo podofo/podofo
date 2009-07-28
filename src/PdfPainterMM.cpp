@@ -1,4 +1,5 @@
 #include "PdfPainterMM.h"
+#include "PdfDefinesPrivate.h"
 
 namespace PoDoFo {
 

@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "PdfDataType.h"
+#include "PdfDefinesPrivate.h"
 
 namespace PoDoFo {
 

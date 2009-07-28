@@ -28,6 +28,7 @@
 #include "PdfStream.h"
 #include "PdfWriter.h"
 #include "PdfLocale.h"
+#include "PdfDefinesPrivate.h"
 
 #include <stdlib.h>
 #include <string.h>

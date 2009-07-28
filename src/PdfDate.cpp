@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "PdfDate.h"
+#include "PdfDefinesPrivate.h"
 
 #include <string.h>
 #include <sstream>

@@ -1,9 +1,9 @@
 #ifndef _PDF_COMPILERCOMPAT_PRIVATE_H
 #define _PDF_COMPILERCOMPAT_PRIVATE_H
 
-//#ifndef BUILDING_PODOFO
-//#error PdfCompilerCompatPrivate.h is only available for use in the core PoDoFo src/ build
-//#endif
+#ifndef _PDF_DEFINES_PRIVATE_H_
+#error Include PdfDefinesPrivate.h instead
+#endif
 
 #if defined(__BORLANDC__) || defined( __TURBOC__)
    // Borland Turbo C has a broken "<cmath>" but provides a usable "math.h"

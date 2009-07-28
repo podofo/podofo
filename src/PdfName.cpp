@@ -22,6 +22,7 @@
 
 #include "PdfOutputDevice.h"
 #include "PdfTokenizer.h"
+#include "PdfDefinesPrivate.h"
 
 #include <string.h>
 

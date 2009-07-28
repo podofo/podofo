@@ -23,6 +23,7 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfStream.h"
+#include "PdfDefinesPrivate.h"
 
 namespace PoDoFo {
 

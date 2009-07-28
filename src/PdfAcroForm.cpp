@@ -24,6 +24,7 @@
 #include "PdfDictionary.h"
 #include "PdfDocument.h"
 #include "PdfFont.h"
+#include "PdfDefinesPrivate.h"
 
 #include <sstream>
 

@@ -29,6 +29,7 @@
 #include "PdfParserObject.h"
 #include "PdfStream.h"
 #include "PdfVariant.h"
+#include "PdfDefinesPrivate.h"
 
 #include <cstring>
 #include <cstdlib>

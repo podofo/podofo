@@ -28,6 +28,7 @@
 #include "PdfDictionary.h"
 #include "PdfFilter.h"
 #include "PdfRijndael.h"
+#include "PdfDefinesPrivate.h"
 
 #include <stdlib.h>
 #include <string.h>

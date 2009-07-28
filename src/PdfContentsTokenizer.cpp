@@ -27,6 +27,7 @@
 #include "PdfStream.h"
 #include "PdfVecObjects.h"
 #include "PdfData.h"
+#include "PdfDefinesPrivate.h"
 
 #include <iostream>
 

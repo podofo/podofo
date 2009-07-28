@@ -29,6 +29,7 @@
 #include "PdfPage.h"
 #include "PdfStreamedDocument.h"
 #include "PdfXObject.h"
+#include "PdfDefinesPrivate.h"
 
 #include <sstream>
 

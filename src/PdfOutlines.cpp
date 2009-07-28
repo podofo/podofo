@@ -25,6 +25,7 @@
 #include "PdfDestination.h"
 #include "PdfDictionary.h"
 #include "PdfObject.h"
+#include "PdfDefinesPrivate.h"
 
 namespace PoDoFo {
 

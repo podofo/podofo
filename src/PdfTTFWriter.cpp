@@ -24,6 +24,7 @@
 #include "PdfOutputDevice.h"
 #include "PdfRefCountedBuffer.h"
 #include "PdfString.h"
+#include "PdfDefinesPrivate.h"
 
 #include <algorithm>
 #include <cmath>

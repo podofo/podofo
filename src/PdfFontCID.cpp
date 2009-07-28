@@ -26,6 +26,7 @@
 #include "PdfLocale.h"
 #include "PdfName.h"
 #include "PdfStream.h"
+#include "PdfDefinesPrivate.h"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H

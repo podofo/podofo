@@ -24,6 +24,7 @@
 #include "PdfDictionary.h"
 #include "PdfString.h"
 
+#include "PdfDefinesPrivate.h"
 #define PRODUCER_STRING "PoDoFo - http://podofo.sf.net"
 
 namespace PoDoFo {

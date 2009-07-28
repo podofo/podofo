@@ -27,6 +27,7 @@
 #include "PdfParser.h"
 #include "PdfStream.h"
 #include "PdfVariant.h"
+#include "PdfDefinesPrivate.h"
 
 #include <cassert>
 #include <iostream>

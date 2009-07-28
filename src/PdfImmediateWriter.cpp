@@ -25,6 +25,7 @@
 #include "PdfObject.h"
 #include "PdfXRef.h"
 #include "PdfXRefStream.h"
+#include "PdfDefinesPrivate.h"
 
 namespace PoDoFo {
 

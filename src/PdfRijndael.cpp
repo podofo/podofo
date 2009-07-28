@@ -32,6 +32,7 @@
 #define _PDFRIJNDAEL_CPP_
 
 #include "PdfRijndael.h"
+#include "PdfDefinesPrivate.h"
 
 #include <stdio.h>
 #include <stdlib.h>
