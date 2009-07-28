@@ -30,12 +30,23 @@
 
 #include "PdfCompilerCompat.h"
 
-static const int ver = 1;
-
+/**
+ * PoDoFo version - 24-bit integer representation.
+ * Version is 0xMMmmpp  where M is major, m is minor and p is patch
+ * eg 0.7.0  is represented as 0x000700
+ * eg 0.7.99 is represented as 0x000763
+ *
+ * Note that the PoDoFo version is available in parts as individual 8-bit
+ * integer literals in PODOFO_VERSION_MAJOR, PODOFO_VERSION_MINOR and
+ * PODOFO_VERSION_PATCH .
+ */
 #define PODOFO_MAKE_VERSION_REAL(M,m,p) ( (M<<16)+(m<<8)+(p) )
 #define PODOFO_MAKE_VERSION(M,m,p) PODOFO_MAKE_VERSION_REAL(M,m,p)
 #define PODOFO_VERSION PODOFO_MAKE_VERSION(PODOFO_VERSION_MAJOR, PODOFO_VERSION_MINOR, PODOFO_VERSION_PATCH)
 
+/**
+ * PoDoFo version represented as a string literal, eg '0.7.99'
+ */
 #define PODOFO_MAKE_VERSION_STR_REAL(M,m,p) ("\"" #M "." #m "." #p "\"")
 #define PODOFO_MAKE_VERSION_STR(M,m,p) PODOFO_MAKE_VERSION_STR_REAL(M,m,p)
 #define PODOFO_VERSION_STR PODOFO_MAKE_VERSION_STR(PODOFO_VERSION_MAJOR, PODOFO_VERSION_MINOR, PODOFO_VERSION_PATCH)
