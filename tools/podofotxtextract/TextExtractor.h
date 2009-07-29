@@ -22,6 +22,7 @@
 #define _TEXT_EXTRACTOR_H_
 
 #include <podofo.h>
+#include <cstdio>
 
 using namespace PoDoFo;
 

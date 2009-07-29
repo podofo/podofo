@@ -22,6 +22,7 @@
 #include "Uncompress.h"
 
 #include <stdlib.h>
+#include <cstdio>
 
 using namespace PoDoFo;
 

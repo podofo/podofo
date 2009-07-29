@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <cstdio>
 
 using std::cerr;
 using std::endl;

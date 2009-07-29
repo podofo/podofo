@@ -19,6 +19,8 @@
 #include <cmath>
 #include <istream>
 #include <ostream>
+#include <cstdio>
+
 using std::ostringstream;
 using std::map;
 using std::vector;

@@ -26,6 +26,7 @@
 #include <string>
 #include <stdexcept>
 #include <vector>
+#include <cstdio>
 
 #include "DeleteOperation.h"
 #include "MoveOperation.h"

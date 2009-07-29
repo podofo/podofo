@@ -25,6 +25,7 @@
 #include <PdfOutlines.h>
 
 #include <stdlib.h>
+#include <cstdio>
 
 using namespace PoDoFo;
 
