@@ -31,6 +31,7 @@
 #include "PdfXObject.h"
 
 #include "../PdfTest.h"
+#include <cstdio>
 
 using namespace PoDoFo;
 
