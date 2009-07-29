@@ -23,6 +23,7 @@
 #include "../PdfTest.h"
 
 #include <iostream>
+#include <cstdio>
 
 using namespace PoDoFo;
 

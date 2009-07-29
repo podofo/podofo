@@ -20,6 +20,7 @@
 
 #include <podofo.h>
 #include <fontconfig/fontconfig.h>
+#include <cstdio>
 
 using namespace PoDoFo;
 

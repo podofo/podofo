@@ -47,6 +47,7 @@
 #include "PdfInputDevice.h"
 
 #include <stdlib.h>
+#include <cstdio>
 
 using namespace PoDoFo;
 

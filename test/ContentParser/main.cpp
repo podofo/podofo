@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <string>
 #include <iomanip>
+#include <cstdio>
 
 using namespace std;
 using namespace PoDoFo;

@@ -29,6 +29,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string.h>
+#include <cstdio>
 
 using namespace PoDoFo;
 
