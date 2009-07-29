@@ -86,6 +86,7 @@ IF(WIN32)
 ENDIF(WIN32)
 
 SET(PODOFO_HEADERS
+    ${PoDoFo_BINARY_DIR}/podofo_config.h
     Pdf3rdPtyForwardDecl.h
     PdfAction.h
     PdfAcroForm.h
