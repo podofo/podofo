@@ -88,19 +88,19 @@ inline static double logb(double x) {
  */
 
 inline static pdf_uint32 podofo_ntohl(pdf_uint32 i) {
-   return static_cast<pdf_uint32>( ::ntohl( i ) );
+   return static_cast<pdf_uint32>( ntohl( i ) );
 }
 
 inline static pdf_uint16 podofo_ntohs(pdf_uint16 i) {
-   return static_cast<pdf_uint16>( ::ntohs( i ) );
+   return static_cast<pdf_uint16>( ntohs( i ) );
 }
 
 inline static pdf_uint32 podofo_htonl(pdf_uint32 i) {
-   return static_cast<pdf_uint32>( ::htonl( i ) );
+   return static_cast<pdf_uint32>( htonl( i ) );
 }
 
 inline static pdf_uint16 podofo_htons(pdf_uint16 i) {
-   return static_cast<pdf_uint16>( ::htons( i ) );
+   return static_cast<pdf_uint16>( htons( i ) );
 }
 
 };}; // end namespace PoDoFo::compat
