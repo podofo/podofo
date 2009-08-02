@@ -313,11 +313,15 @@ or DarwinPorts) you can skip the following section and update the
 . Adjust to taste, but keep it consistent.</p>
 
 <p>The easiest way to get any required libraries is to use <a href="http://macports.org/">MacPorts</a>
-to install the libjpeg, fontconfig, and freetype libraries.</p>
+to install the libjpeg, fontconfig, and freetype libraries. Once you've installed MacPorts, just run:</p>
 
 <pre>
-/opt/local/bin/port install fontconfig freetype jpeg tiff
+/opt/local/bin/port install fontconfig freetype jpeg tiff lua
 </pre>
+
+<p>MacPorts will automatically build the libraries and their dependencies, installing them in /opt/local.</p>
+
+<p>If you want to distribute the libraries with your application, all you'll need to do is use install_name_tool to set appropriate relative paths for their linkage and include them in your application bundle - just like you do with any other libraries.</p>
 
 <h5>PoDoFo its self</h5>
 
