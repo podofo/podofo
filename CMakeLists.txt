@@ -286,7 +286,7 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
     # If they've enabled the use of gcc4 symbol visibility, use it.
     IF(PODOFO_USE_VISIBILITY)
         ADD_DEFINITIONS(
-            -DHAVE_GCC_SYMBOL_VISIBILITY
+            -DPODOFO_HAVE_GCC_SYMBOL_VISIBILITY
             -fvisibility=hidden
             )
     ENDIF(PODOFO_USE_VISIBILITY)
