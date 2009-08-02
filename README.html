@@ -313,51 +313,10 @@ or DarwinPorts) you can skip the following section and update the
 . Adjust to taste, but keep it consistent.</p>
 
 <p>The easiest way to get any required libraries is to use <a href="http://macports.org/">MacPorts</a>
-to install the libjpeg, fontconfig, and freetype libraries. If you prefer to do it manually (say, if you
-want all static libraries), read on.</p>
+to install the libjpeg, fontconfig, and freetype libraries.</p>
 
-<p>You can get libjpeg from <a href="http://www.ijg.org/files/jpegsrc.v6b.tar.gz">http://www.ijg.org/files/jpegsrc.v6b.tar.gz</a></p>
-
-<p>Unpack the tarball and cd into the resulting directory in the Terminal, then run:</p>
 <pre>
-	cp /usr/share/libtool/config.{sub,guess} .
-</pre>
-<p>to update the configure files. Now run:</p>
-<pre>
-	./configure --enable-shared --prefix $HOME/libs
-	make
-	make install
-</pre>
-
-<p>You might have to run:</p>
-<pre>
-	mkdir -p $HOME/libs/{bin,lib,man/man1,include}
-</pre>
-<p>to get install to work.</p>
-
-<p>
-Next: freetype. You can get the latest freetype sources from freetype.org. Download
-them and unpack the tarball, then cd into it in Terminal and run:</p>
-<pre>
-	./configure --prefix=$HOME/libs
-	make 
-	make install
-</pre>
-
-<p>fontconfig is a little trickier. It requires the expat library. Get it from <a href="http://sf.net/projects/expat">http://sf.net/projects/expat</a>
-then unpack the source tarball and cd into it in Terminal. Run:</p>
-<pre>
-	./configure --prefix=$HOME/libs
-	make 
-	make install
-</pre>
-	
-<p>Now we build fontconfig its self. Get the current fontconfig sources from <a href="http://freedesktop.org/fontconfig/release/">http://freedesktop.org/fontconfig/release</a>
-and then unpack the source tarball and cd into it in Terminal. Run:</p>
-<pre>
-	./configure --prefix=$HOME/libs --with-freetype-config=/Users/post/libs/bin/freetype-config --with-expat=$HOME/libs
-	make
-	make install
+/opt/local/bin/port install fontconfig freetype jpeg tiff
 </pre>
 
 <h5>PoDoFo its self</h5>
@@ -367,8 +326,8 @@ and then unpack the source tarball and cd into it in Terminal. Run:</p>
 	cmake -G "Unix Makefiles" \
 		-DWANT_FONTCONFIG:BOOL=TRUE \
 		-DCMAKE_INSTALL_PREFIX=$HOME/libs \
-		-DCMAKE_INCLUDE_PATH=/Users/post/libs/include/ \
-		-DCMAKE_LIBRARY_PATH=/Users/post/libs/lib \
+		-DCMAKE_INCLUDE_PATH=/opt/local/include;/Users/post/libs/include/ \
+		-DCMAKE_LIBRARY_PATH=/opt/local/lib;/Users/post/libs/lib \
 		../podofo
 	make
 	make install
