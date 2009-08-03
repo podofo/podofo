@@ -3,7 +3,7 @@
 
 #include "PdfDefines.h"
 
-#if defined(HAVE_BOOST)
+#if defined(PODOFO_HAVE_BOOST)
 
 #include "PdfVariant.h"
 
@@ -277,6 +277,6 @@ inline void PdfContentsGraph::KWInstance::SetKw(const std::string& kwStr)
 
 } // namespace PoDoFo
 
-#endif // defined(HAVE_BOOST)
+#endif // defined(PODOFO_HAVE_BOOST)
 
 #endif

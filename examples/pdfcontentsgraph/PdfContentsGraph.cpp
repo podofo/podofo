@@ -1,6 +1,8 @@
 #include "PdfContentsGraph.h"
 
-#if defined(HAVE_BOOST)
+#if !defined(PODOFO_HAVE_BOOST)
+#error This module requires boost::graph
+#endif
 
 #include "PdfContentsTokenizer.h"
 #include "PdfOutputDevice.h"
@@ -502,6 +504,4 @@ void PdfContentsGraph::KWInstance::PrintToStream(PdfOutputStream& os, const char
     os.Write(szSepStr,lStrLen);
 }
 
-} // namespace PoDoFo
-
-#endif // HAVE_BOOST
+}; // namespace PoDoFo
