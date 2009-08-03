@@ -329,11 +329,13 @@ to install the libjpeg, fontconfig, and freetype libraries. Once you've installe
 <pre>
 	cmake -G "Unix Makefiles" \
 		-DWANT_FONTCONFIG:BOOL=TRUE \
-		-DCMAKE_INSTALL_PREFIX=$HOME/libs \
-		-DCMAKE_INCLUDE_PATH=/opt/local/include;/Users/post/libs/include/ \
-		-DCMAKE_LIBRARY_PATH=/opt/local/lib;/Users/post/libs/lib \
+		-DCMAKE_INSTALL_PREFIX=/opt/podofo \
+		-DCMAKE_INCLUDE_PATH=/opt/local/include \
+		-DCMAKE_LIBRARY_PATH=/opt/local/lib \
 		../podofo
 	make
+	sudo mkdir /opt/podofo
+	sudo chown $USER /opt/podofo
 	make install
 </pre>
 
