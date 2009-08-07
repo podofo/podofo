@@ -418,7 +418,7 @@ these variables to tell CMake what names to look for a library under:</p>
 	<li>ZLIB_LIBRARY_NAMES_DEBUG, ZLIB_LIBRARY_NAMES_RELEASE, ZLIB_LIBRARY_NAMES</li>
 </ul>
 
-<p>For example, a cmake command line might include -DFREETYPE_LIBRARY_NAMES_DEBUG=freetype235MT_D -DFREETYPE_LIBRARY_NAMES_RELEASE=freetype235MT . If you only have the release library, just use -DFREETYPE_LIBRARY_NAMES . Telling CMake which are debug and release libraries helps it ensure you link to the right libraries depending on build type, but that does no good if you don't have a debug library.</p>
+<p>For example, a cmake command line might include -DFREETYPE_LIBRARY_NAMES_DEBUG=freetype239MT_D -DFREETYPE_LIBRARY_NAMES_RELEASE=freetype239MT . If you only have the release library, just use -DFREETYPE_LIBRARY_NAMES . Telling CMake which are debug and release libraries helps it ensure you link to the right libraries depending on build type, but that does no good if you don't have a debug library.</p>
 
 <h5><a name="cmake_builds_on_windows_with_mingw" />CMake builds on Windows with MinGW</h5>
 
@@ -470,9 +470,9 @@ reliably. Download the sources from <a href="http://download.savannah.gnu.org/re
 - you want something like ft245.zip . Unpack them and open
 builds\win32\visualc\freetype.sln in VC++, upgrading it if required. Build it
 in both debug multithreaded and release multithreaded modes. You should now see some
-.lib files in the objs\win32\ directory. The following instructions will assume
-they're named <code>freetype235MT.lib</code> and
-<code>freetype235MT_D.lib</code>, so adjust if yours are different.</p>
+.lib files in a subdirectory of the objs\ directory. The following instructions will assume
+they're named <code>freetype239MT.lib</code> and
+<code>freetype239MT_D.lib</code> and are found in <code>objs\win32\vc2008</code>, so adjust if yours are different.</p>
 
 <p>The visual studio build of PoDoFo has two stages - first, CMake is used to generate a
 Visual Studio solution, then the solution is built in VC++. I prefer to create
@@ -484,9 +484,10 @@ tends to get rather long. Here's an example that assumes the
 <pre>
 del cmakecache.txt
 set FTDIR=C:\developer\freetype-2.3.5
+set FTLIBDIR=C:\developer\freetype-2.3.5\objs\win32\vc2008
 set JPEGDIR=C:\Developer\jpeg
 set ZLIBDIR=C:\developer\zlib123-dll
-cmake -G "Visual Studio 9 2008" ..\podofo-src -DCMAKE_INCLUDE_PATH="%FTDIR%\include;%JPEGDIR%\include;%JPEGDIR%;%ZLIBDIR%\include" -DCMAKE_LIBRARY_PATH="%FTDIR%\lib;%FTDIR%\objs;%FTDIR%\objs\win32;%JPEGDIR%\lib;%JPEGDIR%;%ZLIBDIR%\lib" -DPODOFO_BUILD_SHARED:BOOL=FALSE -DFREETYPE_LIBRARY_NAMES_DEBUG=freetype235MT_D -DFREETYPE_LIBRARY_NAMES_RELEASE=freetype235MT
+cmake -G "Visual Studio 9 2008" ..\podofo-src -DCMAKE_INCLUDE_PATH="%FTDIR%\include;%JPEGDIR%\include;%JPEGDIR%;%ZLIBDIR%\include" -DCMAKE_LIBRARY_PATH="%FTLIBDIR%;%FTDIR%\lib;%JPEGDIR%\lib;%JPEGDIR%;%ZLIBDIR%\lib" -DPODOFO_BUILD_SHARED:BOOL=FALSE -DFREETYPE_LIBRARY_NAMES_DEBUG=freetype239MT_D -DFREETYPE_LIBRARY_NAMES_RELEASE=freetype239MT
 </pre>
 
 <p>Run the saved <code>build.cmd</code> from a cmd.exe window. If all goes well, you can open and build the generated <code>podofo.sln</code> in Visual Studio and build it.</p>
