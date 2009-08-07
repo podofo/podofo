@@ -470,9 +470,11 @@ reliably. Download the sources from <a href="http://download.savannah.gnu.org/re
 - you want something like ft245.zip . Unpack them and open
 builds\win32\visualc\freetype.sln in VC++, upgrading it if required. Build it
 in both debug multithreaded and release multithreaded modes. You should now see some
-.lib files in a subdirectory of the objs\ directory. The following instructions will assume
+.lib files in a subdirectory of the objs\win32\ directory. The following instructions will assume
 they're named <code>freetype239MT.lib</code> and
 <code>freetype239MT_D.lib</code> and are found in <code>objs\win32\vc2008</code>, so adjust if yours are different.</p>
+
+<p>If you built a debug freetype, you will also need to copy vc90.pdb (assuming you're using VC++ 9, otherwise the name will vary) from objs\debug_mt\vc90.pdb to objs\win32\vc2008\ so that VC++ can find Freetype's debug info.</p>
 
 <p>The visual studio build of PoDoFo has two stages - first, CMake is used to generate a
 Visual Studio solution, then the solution is built in VC++. I prefer to create
