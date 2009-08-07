@@ -37,8 +37,9 @@ namespace Util {
  *  If PODOFO_MULTI_THREAD is not defined during
  *  the build, this class does nothing.
  *  
+ *  PdfMutex is *NOT* part of PoDoFo's public API.
  */
-class PODOFO_API PdfMutex {
+class PdfMutex {
   public:
     /** Construct a new mutex
      */

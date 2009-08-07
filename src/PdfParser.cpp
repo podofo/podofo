@@ -906,7 +906,8 @@ bool PdfParser::QuickEncryptedCheck( const char* pszFilename )
 
         // Check for encryption and make sure that the encryption object
         // is loaded before all other objects
-        if( m_pTrailer->GetDictionary().HasKey( PdfName("Encrypt") ) )
+        const PdfObject * encObj = m_pTrailer->GetDictionary().GetKey( PdfName("Encrypt") );
+        if( encObj && ! encObj->IsNull() ) 
         {
             bEncryptStatus = true;
         }
@@ -930,13 +931,13 @@ void PdfParser::ReadObjects()
 
     // Check for encryption and make sure that the encryption object
     // is loaded before all other objects
-    if( m_pTrailer->GetDictionary().HasKey( PdfName("Encrypt") ) )
+    PdfObject * pEncrypt = m_pTrailer->GetDictionary().GetKey( PdfName("Encrypt") );
+    if( pEncrypt && !pEncrypt->IsNull() )
     {
 #ifdef PODOFO_VERBOSE_DEBUG
         PdfError::DebugMessage("The PDF file is encrypted.\n" );
 #endif // PODOFO_VERBOSE_DEBUG
 
-        PdfObject* pEncrypt = m_pTrailer->GetDictionary().GetKey( PdfName("Encrypt") );
         if( pEncrypt->IsReference() ) 
         {
             i = pEncrypt->GetReference().ObjectNumber();

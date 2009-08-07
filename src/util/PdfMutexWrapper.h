@@ -35,8 +35,9 @@ namespace Util {
  * All exceptions that might be thrown by PdfMutex
  * are catched and logged.
  *  
+ * PdfMutexWrapper is *not* part of PoDoFo's public API.
  */
-class PODOFO_API PdfMutexWrapper {
+class PdfMutexWrapper {
   public:
     /** Lock a mutex.
      * 
