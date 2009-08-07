@@ -358,7 +358,7 @@ instead of running `make' and `make install' just open the project file and work
 
 <p>MinGW users can download the latest libjpeg installer from <a href="http://gnuwin32.sf.net">GnuWin32</a></p>.
 
-<p>For Visual Studio you will need to build libjpeg with your version of Visual Studio. Download the libjpeg sources from <a href="http://www.ijg.org/">http://www.ijg.org/</a> and unpack them into a working directory. I'll assume you've used <code>C:\Developer\jpeg</code>. Once the sources are unpacked, start a visual studio command prompt and cd into <code>c:\developer\jpeg</code> then run <code>nmake /f makefile.vc /a</code></p>.
+<p>For Visual Studio you will need to build libjpeg with your version of Visual Studio. Download the libjpeg sources from <a href="http://www.ijg.org/">http://www.ijg.org/</a> and unpack them into a working directory. I'll assume you've used <code>C:\Developer\jpeg</code>. Once the sources are unpacked, start a visual studio command prompt and cd into <code>c:\developer\jpeg</code> then run <code>copy jconfig.vc jconfig.h</code> then <code>nmake /f makefile.vc /a</code></p>.
 
 <p>If you use a DLL build of libjpeg remember that you must ship the DLL with your application. During testing the libjpeg dll must be in the same directory as the PoDoFo-using executable or the directory containing it must be on your system PATH. These requirements do not apply to the (recommended) static library libjpeg.</p>
 
