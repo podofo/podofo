@@ -24,6 +24,10 @@
 #include <stdlib.h>
 #include <cstdio>
 
+#ifdef _MSC_VER
+#define snprintf _snprintf
+#endif
+
 ImageExtractor::ImageExtractor()
     : m_pszOutputDirectory( NULL ), m_nSuccess( 0 ), m_nCount( 0 )
 {
