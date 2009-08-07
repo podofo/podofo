@@ -51,18 +51,19 @@ PdfEncoding::~PdfEncoding()
 // PdfSimpleEncoding
 // -----------------------------------------------------
 PdfSimpleEncoding::PdfSimpleEncoding( const PdfName & rName )
-    : PdfEncoding( 0, 255 ), m_name( rName ), m_pEncodingTable( NULL )
+    : PdfEncoding( 0, 255 ), m_mutex( new PoDoFo::Util::PdfMutex() ), m_name( rName ), m_pEncodingTable( NULL )
 {
 }
 
 PdfSimpleEncoding::~PdfSimpleEncoding() 
 {
     free( m_pEncodingTable );
+    delete m_mutex;
 }
 
 void PdfSimpleEncoding::InitEncodingTable() 
 {
-    Util::PdfMutexWrapper wrapper( m_mutex );
+    Util::PdfMutexWrapper wrapper( *m_mutex );
     const long         lTableLength     = 0xffff;
     const pdf_utf16be* cpUnicodeTable   = this->GetToUnicodeTable();
 

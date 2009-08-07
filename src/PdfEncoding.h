@@ -25,7 +25,6 @@
 #include "PdfElement.h"
 #include "PdfName.h"
 #include "PdfString.h"
-#include "util/PdfMutex.h"
 
 #include <iterator>
 
@@ -33,6 +32,8 @@ namespace PoDoFo {
 
 class PdfDictionary;
 class PdfFont;
+
+namespace Util { class PdfMutex; };
 
 /** 
  * A PdfEncoding is in PdfFont to transform a text string
@@ -401,7 +402,7 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
     virtual const pdf_utf16be* GetToUnicodeTable() const = 0;
 
  protected:
-    Util::PdfMutex m_mutex;   ///< Mutex for the creation of the encoding table
+    Util::PdfMutex *m_mutex;   ///< Mutex for the creation of the encoding table
     
  private:
     PdfName m_name;           ///< The name of the encoding

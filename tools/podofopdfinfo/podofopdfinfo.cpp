@@ -20,7 +20,6 @@
 
 #include <iostream>
 #include <PdfDefines.h>
-#include <util/PdfMutex.h>
 #include "pdfinfo.h"
 
 #include <stdlib.h>
@@ -78,10 +77,6 @@ int main( int argc, char* argv[] )
 #if 1
   PoDoFo::PdfError::EnableDebug( false );	// turn it off to better view the output from this app!
   PoDoFo::PdfError::EnableLogging( false );
-#endif
-
-#if 0
-  printf("Multithreaded PoDoFo: %i\n", PoDoFo::Util::PdfMutex::IsPoDoFoMultiThread() );
 #endif
 			 
   if( (argc == 1) ||  (argc > 3) )

@@ -94,8 +94,6 @@
 #include "PdfXObject.h"
 #include "PdfXRef.h"
 #include "PdfXRefStream.h"
-#include "util/PdfMutex.h"
-#include "util/PdfMutexWrapper.h"
 
 #if 0
 #ifndef _PODOFO_NO_NAMESPACE_
