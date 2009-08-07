@@ -470,7 +470,7 @@ reliably. Download the sources from <a href="http://download.savannah.gnu.org/re
 - you want something like ft245.zip . Unpack them and open
 builds\win32\visualc\freetype.sln in VC++, upgrading it if required. Build it
 in both debug multithreaded and release multithreaded modes. You should now see some
-.lib files in the objs\ directory. The following instructions will assume
+.lib files in the objs\win32\ directory. The following instructions will assume
 they're named <code>freetype235MT.lib</code> and
 <code>freetype235MT_D.lib</code>, so adjust if yours are different.</p>
 
@@ -486,7 +486,7 @@ del cmakecache.txt
 set FTDIR=C:\developer\freetype-2.3.5
 set JPEGDIR=C:\Developer\jpeg
 set ZLIBDIR=C:\developer\zlib123-dll
-cmake -G "Visual Studio 9 2008" ..\podofo-src -DCMAKE_INCLUDE_PATH="%FTDIR%\include;%JPEGDIR%\include;%JPEGDIR%;%ZLIBDIR%\include" -DCMAKE_LIBRARY_PATH="%FTDIR%\lib;%FTDIR%\objs;%JPEGDIR%\lib;%JPEGDIR%;%ZLIBDIR%\lib" -DPODOFO_BUILD_SHARED:BOOL=FALSE -DFREETYPE_LIBRARY_NAMES_DEBUG=freetype235MT_D -DFREETYPE_LIBRARY_NAMES_RELEASE=freetype235MT
+cmake -G "Visual Studio 9 2008" ..\podofo-src -DCMAKE_INCLUDE_PATH="%FTDIR%\include;%JPEGDIR%\include;%JPEGDIR%;%ZLIBDIR%\include" -DCMAKE_LIBRARY_PATH="%FTDIR%\lib;%FTDIR%\objs;%FTDIR%\objs\win32;%JPEGDIR%\lib;%JPEGDIR%;%ZLIBDIR%\lib" -DPODOFO_BUILD_SHARED:BOOL=FALSE -DFREETYPE_LIBRARY_NAMES_DEBUG=freetype235MT_D -DFREETYPE_LIBRARY_NAMES_RELEASE=freetype235MT
 </pre>
 
 <p>Run the saved <code>build.cmd</code> from a cmd.exe window. If all goes well, you can open and build the generated <code>podofo.sln</code> in Visual Studio and build it.</p>
