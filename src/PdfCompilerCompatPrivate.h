@@ -24,15 +24,6 @@
 
 #if PODOFO_HAVE_WINSOCK2_H
 #  include <winsock2.h>
-#  if defined(GetObject)
-#    undef GetObject // Horrible windows.h macro definition that breaks things
-#  endif
-#  if defined(DrawText)
-#    undef DrawText // Horrible windows.h macro definition that breaks things
-#  endif
-#  if defined(GetFont)
-#    undef GetFont
-#  endif
 #endif
 #if PODOFO_HAVE_ARPA_INET_H
 #  include <arpa/inet.h>
@@ -40,7 +31,7 @@
 
 
 #ifdef PODOFO_MULTI_THREAD
-#  ifdef _WIN32
+#  if defined(_WIN32) || defined(_WIN64)
 #    ifndef _WIN32_WINNT
 #      define _WIN32_WINNT 0x0400 // Make the TryEnterCriticalSection method available
 #      include <windows.h>
@@ -53,6 +44,17 @@
 #  endif // _WIN32
 #endif // PODOFO_MULTI_THREAD
 
+#if defined(_WIN32) || defined(_WIN64)
+#  if defined(GetObject)
+#    undef GetObject // Horrible windows.h macro definition that breaks things
+#  endif
+#  if defined(DrawText)
+#    undef DrawText // Horrible windows.h macro definition that breaks things
+#  endif
+#  if defined(CreateFont)
+#    undef CreateFont
+#  endif
+#endif
 
 namespace PoDoFo {
 namespace compat {
@@ -60,7 +62,7 @@ namespace compat {
 // Case-insensitive string compare functions aren't very portable, and we must account
 // for several flavours.
 inline static int strcasecmp( const char * s1, const char * s2) {
-#if defined(_WIN32)
+#if defined(_WIN32) || defined (_WIN64)
 #   if defined(_MSC_VER)
         // MSVC++
         return ::_stricmp(s1, s2);
@@ -74,7 +76,7 @@ inline static int strcasecmp( const char * s1, const char * s2) {
 }
 
 inline static int strncasecmp( const char * s1, const char * s2, size_t n) {
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(_WIN64)
 #   if defined(_MSC_VER)
         // MSVC++
         return ::_strnicmp(s1, s2, n);
@@ -88,7 +90,7 @@ inline static int strncasecmp( const char * s1, const char * s2, size_t n) {
 }
 
 inline static double logb(double x) {
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(_WIN64)
   return ::log(x);
 #else
   return ::logb(x);
