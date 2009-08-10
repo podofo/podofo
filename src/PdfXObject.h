@@ -49,16 +49,18 @@ class PODOFO_API PdfXObject : public PdfElement, public PdfCanvas {
      * 
      *  \param rRect the size of the XObject
      *  \param pParent the parent document of the XObject
+	 *  \param pszPrefix optional prefix for XObject-name
      */
-    PdfXObject( const PdfRect & rRect, PdfDocument* pParent );
+    PdfXObject( const PdfRect & rRect, PdfDocument* pParent, const char* pszPrefix = NULL );
 
     /** Create a new XObject with a specified dimension
      *  in a given vector of PdfObjects
      * 
      *  \param rRect the size of the XObject
      *  \param pParent the parent vector of the XObject
+	 *  \param pszPrefix optional prefix for XObject-name
      */
-    PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent );
+    PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent, const char* pszPrefix = NULL );
     
     /** Create a new XObject from a page of another document
      *  in a given document
@@ -66,8 +68,9 @@ class PODOFO_API PdfXObject : public PdfElement, public PdfCanvas {
      *  \param rDoc the document to create the XObject from
      *  \param nPage the page-number in rDoc to create the XObject from
      *  \param pParent the parent document of the XObject
+	 *  \param pszPrefix optional prefix for XObject-name
      */
-    PdfXObject( const PdfMemDocument & rSourceDoc, int nPage, PdfDocument* pParent );
+    PdfXObject( const PdfMemDocument & rSourceDoc, int nPage, PdfDocument* pParent, const char* pszPrefix = NULL );
 
     /** Create a XObject from an existing PdfObject
      *  
@@ -127,8 +130,8 @@ class PODOFO_API PdfXObject : public PdfElement, public PdfCanvas {
  protected:
     void InitXObject( const PdfRect & rRect, const char* pszPrefix = NULL );
 
-    PdfXObject( const char* pszSubType, PdfDocument* pParent );
-    PdfXObject( const char* pszSubType, PdfVecObjects* pParent );
+    PdfXObject( const char* pszSubType, PdfDocument* pParent, const char* pszPrefix = NULL );
+    PdfXObject( const char* pszSubType, PdfVecObjects* pParent, const char* pszPrefix = NULL );
     PdfXObject( const char* pszSubType, PdfObject* pObject );
 
  protected:

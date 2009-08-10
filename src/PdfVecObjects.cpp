@@ -217,6 +217,18 @@ PdfObject* PdfVecObjects::CreateObject( const PdfVariant & rVariant )
 
 void PdfVecObjects::AddFreeObject( const PdfReference & rReference )
 {
+	// Ulrich Arnold 30.7.2009: Should no longer happen after fix in parsing free-list, just to be sure 
+	TCIPdfReferenceList itFreeDest = m_lstFreeObjects.begin();
+	while( itFreeDest != m_lstFreeObjects.end() )
+	{
+		if ( (*itFreeDest).ObjectNumber() == rReference.ObjectNumber() )
+		{
+			PdfError::DebugMessage( "Adding %d to freelist, is already contained !!", rReference.ObjectNumber() );
+			return;
+		}
+		++itFreeDest;
+	}
+
     TIVecObjects it;
 
     it = std::find_if( this->begin(), this->end(), ObjectsComperator( rReference ) );
@@ -252,7 +264,9 @@ void PdfVecObjects::push_back( PdfObject* pObj )
         m_nObjectCount = pObj->Reference().ObjectNumber() + 1;
     }
 
-    if( !m_vector.empty() && m_vector.back()->Reference() < pObj->Reference() )
+//  Ulrich Arnold 30.7.2009 must sort if INSIDE range
+//	if( !m_vector.empty() && m_vector.back()->Reference() < pObj->Reference() )
+    if( !m_vector.empty() && pObj->Reference() < m_vector.back()->Reference() )
         m_bSorted = false;
 
     pObj->SetOwner( this );

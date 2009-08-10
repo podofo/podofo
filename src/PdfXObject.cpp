@@ -37,24 +37,24 @@ namespace PoDoFo {
 
 PdfArray PdfXObject::s_matrix;
 
-PdfXObject::PdfXObject( const PdfRect & rRect, PdfDocument* pParent )
+PdfXObject::PdfXObject( const PdfRect & rRect, PdfDocument* pParent, const char* pszPrefix )
     : PdfElement( "XObject", pParent ), PdfCanvas(), m_rRect( rRect )
 {
-    InitXObject( rRect );
+    InitXObject( rRect, pszPrefix );
 }
 
-PdfXObject::PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent )
+PdfXObject::PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent, const char* pszPrefix )
     : PdfElement( "XObject", pParent ), PdfCanvas(), m_rRect( rRect )
 {
-    InitXObject( rRect );
+    InitXObject( rRect, pszPrefix );
 }
 
-PdfXObject::PdfXObject( const PdfMemDocument & rDoc, int nPage, PdfDocument* pParent )
+PdfXObject::PdfXObject( const PdfMemDocument & rDoc, int nPage, PdfDocument* pParent, const char* pszPrefix )
     : PdfElement( "XObject", pParent ), PdfCanvas()
 {
     m_rRect = PdfRect();
 
-    InitXObject( m_rRect, "XObInd" );
+    InitXObject( m_rRect, pszPrefix );
 
     // Implementation note: source document must be different from distination
     if ( pParent == reinterpret_cast<const PdfDocument*>(&rDoc) )
@@ -140,14 +140,17 @@ void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
     m_Reference  = m_pObject->Reference();
 }
 
-PdfXObject::PdfXObject( const char* pszSubType, PdfDocument* pParent )
+PdfXObject::PdfXObject( const char* pszSubType, PdfDocument* pParent, const char* pszPrefix )
     : PdfElement( "XObject", pParent ) 
 {
     ostringstream out;
     PdfLocaleImbue(out);
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
-    out << "XOb" << m_pObject->Reference().ObjectNumber();
+	if ( pszPrefix == NULL )
+	    out << "XOb" << m_pObject->Reference().ObjectNumber();
+	else
+	    out << pszPrefix << m_pObject->Reference().ObjectNumber();
 
     m_Identifier = PdfName( out.str().c_str() );
     m_Reference  = m_pObject->Reference();
@@ -155,14 +158,17 @@ PdfXObject::PdfXObject( const char* pszSubType, PdfDocument* pParent )
     m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName( pszSubType ) );
 }
 
-PdfXObject::PdfXObject( const char* pszSubType, PdfVecObjects* pParent )
+PdfXObject::PdfXObject( const char* pszSubType, PdfVecObjects* pParent, const char* pszPrefix )
     : PdfElement( "XObject", pParent ) 
 {
     ostringstream out;
     PdfLocaleImbue(out);
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
-    out << "XOb" << m_pObject->Reference().ObjectNumber();
+	if ( pszPrefix == NULL )
+	    out << "XOb" << m_pObject->Reference().ObjectNumber();
+	else
+	    out << pszPrefix << m_pObject->Reference().ObjectNumber();
 
     m_Identifier = PdfName( out.str().c_str() );
     m_Reference  = m_pObject->Reference();

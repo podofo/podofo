@@ -60,16 +60,16 @@ using namespace std;
 
 namespace PoDoFo {
 
-PdfImage::PdfImage( PdfVecObjects* pParent )
-    : PdfXObject( "Image", pParent )
+PdfImage::PdfImage( PdfVecObjects* pParent, const char* pszPrefix )
+    : PdfXObject( "Image", pParent, pszPrefix )
 {
     m_rRect = PdfRect();
 
     this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
 }
 
-PdfImage::PdfImage( PdfDocument* pParent )
-    : PdfXObject( "Image", pParent )
+PdfImage::PdfImage( PdfDocument* pParent, const char* pszPrefix )
+    : PdfXObject( "Image", pParent, pszPrefix )
 {
     m_rRect = PdfRect();
 

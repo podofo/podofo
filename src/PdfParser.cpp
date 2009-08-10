@@ -295,7 +295,10 @@ void PdfParser::ReadDocumentStructure()
         throw e;
     }
 
-    if( m_pTrailer->GetDictionary().HasKey( "Prev" ) )
+	// Ulrich Arnold 30.7.2009: ReadXRefContents already reads all xref-sections through recursive call 
+	// of ReadNextTrailer, so this would only read it a second time
+#if 0
+	if( m_pTrailer->GetDictionary().HasKey( "Prev" ) )
     {
         try {
             ReadXRefContents( static_cast<pdf_long>(m_pTrailer->GetDictionary().GetKeyAsLong( "Prev", 0L )) ); 
@@ -304,6 +307,7 @@ void PdfParser::ReadDocumentStructure()
             throw e;
         }
     }
+#endif
 }
 
 bool PdfParser::IsPdfFile()
@@ -639,7 +643,7 @@ void PdfParser::ReadXRefSubsection( long long & nFirstObject, long long & nNumOb
     int count = 0;
 
 #ifdef PODOFO_VERBOSE_DEBUG
-    PdfError::DebugMessage("Reading XRef Section: %i with %i Objects.\n", nFirstObject, nNumObjects );
+    PdfError::DebugMessage("Reading XRef Section: %lli with %lli Objects.\n", nFirstObject, nNumObjects );
 #endif // PODOFO_VERBOSE_DEBUG 
 
     if ( nFirstObject + nNumObjects > m_nNumObjects )
@@ -648,8 +652,8 @@ void PdfParser::ReadXRefSubsection( long long & nFirstObject, long long & nNumOb
         // specified in the trailer if any. That's an error unless we're trying
         // to recover from a missing /Size entry.
 		PdfError::LogMessage( eLogSeverity_Warning,
-			      "There are more objects (%i) in this XRef table than "
-			      "specified in the size key of the trailer directory (%i)!\n",
+			      "There are more objects (%lli) in this XRef table than "
+			      "specified in the size key of the trailer directory (%lli)!\n",
 			      nFirstObject + nNumObjects, m_nNumObjects );
 
 #ifdef _WIN32
@@ -690,7 +694,7 @@ void PdfParser::ReadXRefSubsection( long long & nFirstObject, long long & nNumOb
 
     if( count != nNumObjects )
     {
-        PdfError::LogMessage( eLogSeverity_Warning, "Count of readobject is %i. Expected %i.\n", count, nNumObjects );
+        PdfError::LogMessage( eLogSeverity_Warning, "Count of readobject is %i. Expected %lli.\n", count, nNumObjects );
         PODOFO_RAISE_ERROR( ePdfError_NoXRef );
     }
 
@@ -1045,9 +1049,19 @@ void PdfParser::ReadObjectsInternal()
                 m_vecObjects->AddFreeObject( PdfReference( i, 1LL ) );
             }
         }
-        else if( m_offsets[i].bParsed && m_offsets[i].cUsed == 'f' && m_offsets[i].lOffset )
+// Ulrich Arnold 30.7.2009: the linked free list in the xref section is not always correct in pdf's
+//							(especially Illustrator) but Acrobat still accepts them. I've seen XRefs 
+//							where some object-numbers are alltogether missing and multiple XRefs where 
+//							the link list is broken.
+//							Because PdfVecObjects relies on a unbroken range, fill the free list more
+//							robustly from all places which are either free or unparsed
+//      else if( m_offsets[i].bParsed && m_offsets[i].cUsed == 'f' && m_offsets[i].lOffset )
+//      {
+//          m_vecObjects->AddFreeObject( PdfReference( static_cast<int>(m_offsets[i].lOffset), 1LL ) ); // TODO: do not hard code
+//      }
+        else if( (!m_offsets[i].bParsed || m_offsets[i].cUsed == 'f') && i != 0 )
         {
-            m_vecObjects->AddFreeObject( PdfReference( static_cast<int>(m_offsets[i].lOffset), 1LL ) ); // TODO: do not hard code
+			m_vecObjects->AddFreeObject( PdfReference( static_cast<int>(i), 1LL ) ); // TODO: do not hard code
         }
     }
 
@@ -1228,7 +1242,6 @@ void PdfParser::FindToken2( const char* pszToken, const long lRange, size_t sear
 
     pdf_long      lXRefBuf  = PDF_MIN( static_cast<pdf_long>(nFileSize), static_cast<pdf_long>(lRange) );
     size_t        nTokenLen = strlen( pszToken );
-    size_t        i;
 
     m_device.Device()->Seek( -lXRefBuf, std::ios_base::cur );
     if( m_device.Device()->Read( m_buffer.GetBuffer(), lXRefBuf ) != lXRefBuf && !m_device.Device()->Eof() )
@@ -1240,6 +1253,7 @@ void PdfParser::FindToken2( const char* pszToken, const long lRange, size_t sear
 
     // search backwards in the buffer in case the buffer contains null bytes
     // because it is right after a stream (can't use strstr for this reason)
+    int i; // Do not use an unsigned variable here
     for( i = lXRefBuf - nTokenLen; i >= 0; i-- )
         if( strncmp( m_buffer.GetBuffer()+i, pszToken, nTokenLen ) == 0 )
         {

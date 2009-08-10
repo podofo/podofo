@@ -29,7 +29,7 @@ namespace PoDoFo {
 class PdfOutputDevice;
 class PdfName;
 
-std::size_t hash_value(PdfName const& name);
+//std::size_t hash_value(PdfName const& name);
 
 
 /** This class represents a PdfName.

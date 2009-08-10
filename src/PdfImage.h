@@ -48,15 +48,17 @@ class PODOFO_API PdfImage : public PdfXObject {
     /** Constuct a new PdfImage object
      *
      *  \param pParent parent vector of this image
+	 *  \param pszPrefix optional prefix for XObject-name
      */
-    PdfImage( PdfVecObjects* pParent );
+    PdfImage( PdfVecObjects* pParent, const char* pszPrefix = NULL );
 
     /** Constuct a new PdfImage object
      *  This is an overloaded constructor.
      *
      *  \param pParent parent document
+	 *  \param pszPrefix optional prefix for XObject-name
      */
-    PdfImage( PdfDocument* pParent );
+    PdfImage( PdfDocument* pParent, const char* pszPrefix = NULL );
 
     /** Construct an image from an existing PdfObject
      *  

@@ -225,7 +225,22 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
 {
     unsigned int difference = static_cast<unsigned int>(m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size());
 
-    // append all objects first and fix their references
+
+    // Ulrich Arnold 30.7.2009: Because GetNextObject uses m_nObjectCount instead 
+    //                          of m_vecObjects.GetSize()+m_vecObjects.GetFreeObjects().size()+1
+    //                          make sure the free objects are already present before appending to
+	//                          prevent overlapping obj-numbers
+
+    // create all free objects again, to have a clean free object list
+    TCIPdfReferenceList itFree = rDoc.GetObjects().GetFreeObjects().begin();
+    while( itFree != rDoc.GetObjects().GetFreeObjects().end() )
+    {
+        m_vecObjects.AddFreeObject( PdfReference( (*itFree).ObjectNumber() + difference, 0 ) );
+
+        ++itFree;
+    }
+
+	// append all objects first and fix their references
     TCIVecObjects it           = rDoc.GetObjects().begin();
     while( it != rDoc.GetObjects().end() )
     {
@@ -241,7 +256,10 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
         ++it;
     }
 
-    // create all free objects again, to have a clean free object list
+
+    // Ulrich Arnold 30.7.2009: Moved to front
+#if 0
+	// create all free objects again, to have a clean free object list
     TCIPdfReferenceList itFree = rDoc.GetObjects().GetFreeObjects().begin();
     while( itFree != rDoc.GetObjects().GetFreeObjects().end() )
     {
@@ -249,6 +267,7 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
 
         ++itFree;
     }
+#endif
 
     if( bAppendAll )
     {

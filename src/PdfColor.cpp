@@ -394,6 +394,7 @@ PdfColor PdfColor::ConvertToRGB() const
         case ePdfColorSpace_DeviceRGB:
             return *this;
         case ePdfColorSpace_DeviceCMYK:
+        case ePdfColorSpace_Separation:
         {
             double dCyan    = m_uColor.cmyk[0];
             double dMagenta = m_uColor.cmyk[1];
@@ -406,7 +407,6 @@ PdfColor PdfColor::ConvertToRGB() const
 
             return PdfColor( 1.0 - dRed, 1.0 - dGreen, 1.0 - dBlue );
         }
-        case ePdfColorSpace_Separation:
         case ePdfColorSpace_CieLab:
         {
             PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
