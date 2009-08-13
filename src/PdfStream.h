@@ -210,6 +210,12 @@ class PODOFO_API PdfStream {
      */
     virtual void GetCopy( char** pBuffer, pdf_long* lLen ) const = 0;
 
+    /** Get a copy of a the stream and write it to a PdfOutputStream
+     *
+     *  \param pStream data is written to this stream.
+     */
+    virtual void GetCopy( PdfOutputStream* pStream ) const = 0;
+
     /** Get a malloced buffer of the current stream which has been
      *  filtered by all filters as specified in the dictionary's
      *  /Filter key. For example, if the stream is Flate compressed,

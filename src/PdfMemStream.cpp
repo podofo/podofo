@@ -113,6 +113,16 @@ void PdfMemStream::GetCopy( char** pBuffer, pdf_long* lLen ) const
     memcpy( *pBuffer, m_buffer.GetBuffer(), m_lLength );
 }
 
+
+void PdfMemStream::GetCopy(PdfOutputStream * pStream) const
+{
+	if( !pStream)
+	{
+		PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+	}
+	pStream->Write(m_buffer.GetBuffer(), m_lLength);
+}
+
 void PdfMemStream::FlateCompress()
 {
     PdfObject*        pObj;

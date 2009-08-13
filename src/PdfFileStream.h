@@ -88,6 +88,12 @@ class PODOFO_API PdfFileStream : public PdfStream {
      */
     virtual void GetCopy( char** pBuffer, pdf_long* lLen ) const;
 
+    /** Get a copy of a the stream and write it to a PdfOutputStream
+     *
+     *  \param pStream data is written to this stream.
+     */
+    virtual void GetCopy( PdfOutputStream* pStream ) const;
+
     /** Get the streams length with all filters applied (eg the compressed
      *  length of a Flate compressed stream).
      *

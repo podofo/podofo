@@ -82,6 +82,12 @@ class PODOFO_API PdfMemStream : public PdfStream {
      */
     virtual void GetCopy( char** pBuffer, pdf_long* lLen ) const;
 
+    /** Get a copy of a the stream and write it to a PdfOutputStream
+     *
+     *  \param pStream data is written to this stream.
+     */
+    virtual void GetCopy( PdfOutputStream* pStream ) const;
+
     /** Get a read-only handle to the current stream data.
      *  The data will not be filtered before being returned, so (eg) calling
      *  Get() on a Flate compressed stream will return a pointer to the

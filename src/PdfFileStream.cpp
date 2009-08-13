@@ -110,6 +110,11 @@ void PdfFileStream::GetCopy( char**, pdf_long* ) const
     PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
 }
 
+void PdfFileStream::GetCopy(PdfOutputStream*) const
+{
+	PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+}
+
 void PdfFileStream::SetEncrypted( PdfEncrypt* pEncrypt ) 
 {
     m_pCurEncrypt = pEncrypt;
