@@ -28,6 +28,7 @@
 class VariantTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE( VariantTest );
+  CPPUNIT_TEST( testEmptyObject );
   CPPUNIT_TEST( testNameObject );
   CPPUNIT_TEST( testIsDirtyTrue );
   CPPUNIT_TEST( testIsDirtyFalse );
@@ -37,6 +38,7 @@ class VariantTest : public CppUnit::TestFixture
   void setUp();
   void tearDown();
 
+  void testEmptyObject();
   void testNameObject();
 
   void testIsDirtyTrue();
