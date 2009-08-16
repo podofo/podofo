@@ -174,36 +174,54 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     m_device.Device()->Seek( m_lOffset );
     if( m_pEncrypt )
         m_pEncrypt->SetCurrentReference( m_reference );
-    this->GetNextVariant( *this, m_pEncrypt );
-    this->SetDirty( false );
 
-    if( !bIsTrailer )
+    // Do not call GetNextVariant directly,
+    // but GetNextToken, to handle empty objects like:
+    // 13 0 obj
+    // endobj
+
+    EPdfTokenType eTokenType;
+    bool gotToken = this->GetNextToken( pszToken, &eTokenType );
+    
+    if (!gotToken)
     {
-        bool gotToken = this->GetNextToken( pszToken );
-        if (!gotToken)
-        {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_UnexpectedEOF, "Expected 'endobj' or (if dict) 'stream', got EOF." );
-        }
-        if( strncmp( pszToken, "endobj", s_nLenEndObj ) == 0 )
-            ; // nothing to do, just validate that the PDF is correct
-        // If it's a dictionary, it might have a stream, so check for that
-        else if( this->IsDictionary() && strncmp( pszToken, "stream", s_nLenStream ) == 0 )
-        {
-            m_bStream = true;
-            m_lStreamOffset = m_device.Device()->Tell(); // NOTE: whitespace after "stream" handle in stream parser!
+        PODOFO_RAISE_ERROR_INFO( ePdfError_UnexpectedEOF, "Expected variant." );
+    }
 
-            // Most of the code relies on PdfObjects that are dictionaries
-            // to have the datatype ePdfDataType_Dictionary and not Stream.
-            // Please use PdfObject::HasStream to check wether it has a stream.
-            //
-            // Commenting this out is right now easier than fixing all code to check
-            // either for ePdfDataType_Stream or ePdfDataType_Dictionary
-            //
-            //eDataType = ePdfDataType_Stream;	// reset the object type to stream!
-        }
-        else
+    // Check if we have an empty object or data
+    if( strncmp( pszToken, "endobj", s_nLenEndObj ) != 0 )
+    {
+        this->GetNextVariant( pszToken, eTokenType, *this, m_pEncrypt );
+        this->SetDirty( false );
+
+        if( !bIsTrailer )
         {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, pszToken );
+            bool gotToken = this->GetNextToken( pszToken );
+            if (!gotToken)
+            {
+                PODOFO_RAISE_ERROR_INFO( ePdfError_UnexpectedEOF, "Expected 'endobj' or (if dict) 'stream', got EOF." );
+            }
+            if( strncmp( pszToken, "endobj", s_nLenEndObj ) == 0 )
+                ; // nothing to do, just validate that the PDF is correct
+            // If it's a dictionary, it might have a stream, so check for that
+            else if( this->IsDictionary() && strncmp( pszToken, "stream", s_nLenStream ) == 0 )
+            {
+                m_bStream = true;
+                m_lStreamOffset = m_device.Device()->Tell(); // NOTE: whitespace after "stream" handle in stream parser!
+                
+                // Most of the code relies on PdfObjects that are dictionaries
+                // to have the datatype ePdfDataType_Dictionary and not Stream.
+                // Please use PdfObject::HasStream to check wether it has a stream.
+                //
+                // Commenting this out is right now easier than fixing all code to check
+                // either for ePdfDataType_Stream or ePdfDataType_Dictionary
+                //
+                //eDataType = ePdfDataType_Stream;	// reset the object type to stream!
+            }
+            else
+            {
+                PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, pszToken );
+            }
         }
     }
 }
