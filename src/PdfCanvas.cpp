@@ -61,15 +61,15 @@ void PdfCanvas::AddColorResource( const PdfColor & rColor )
 			std::string csPrefix( "ColorSpace" );
 			std::string csName = rColor.GetName();
 			std::string temp( csPrefix + csName );
-		
+            
 			if ( 
 				! pResource->GetDictionary().HasKey( "ColorSpace" )	||
 				! pResource->GetDictionary().GetKey( "ColorSpace" )->GetDictionary().HasKey( csPrefix + csName )
-			   )
+                )
 			{
 				// Build color-spaces for separation
 				PdfObject* csTintFunc = GetContents()->GetOwner()->CreateObject();
-
+                
 				csTintFunc->GetDictionary().AddKey( "BitsPerSample", static_cast<pdf_int64>(8LL) );
 
 				PdfArray decode;
@@ -96,43 +96,156 @@ void PdfCanvas::AddColorResource( const PdfColor & rColor )
 				csTintFunc->GetDictionary().AddKey( "Filter", PdfName( "FlateDecode" ) );
 				csTintFunc->GetDictionary().AddKey( "FunctionType", PdfVariant( static_cast<pdf_int64>(ePdfFunctionType_Sampled) ) );
 
-				char data[4*2];
-				data[0] =
-					data[1] =
-					data[2] = 
-					data[3] = 0;
-				data[4] = static_cast<char> (rColor.GetCyan() * 255);
-				data[5] = static_cast<char> (rColor.GetMagenta() * 255);
-				data[6] = static_cast<char> (rColor.GetYellow() * 255);
-				data[7] = static_cast<char> (rColor.GetBlack() * 255);
-
-				PdfMemoryInputStream stream( data, 4*2 );
-				csTintFunc->GetStream()->Set( &stream );
-
-				PdfArray range;
-				range.push_back( static_cast<pdf_int64>(0LL) );
-				range.push_back( static_cast<pdf_int64>(1LL) );
-				range.push_back( static_cast<pdf_int64>(0LL) );
-				range.push_back( static_cast<pdf_int64>(1LL) );
-				range.push_back( static_cast<pdf_int64>(0LL) );
-				range.push_back( static_cast<pdf_int64>(1LL) );
-				range.push_back( static_cast<pdf_int64>(0LL) );
-				range.push_back( static_cast<pdf_int64>(1LL) );
-				csTintFunc->GetDictionary().AddKey( "Range", range );
-
-				PdfArray size;
-				size.push_back( static_cast<pdf_int64>(2LL) );
-				csTintFunc->GetDictionary().AddKey( "Size", size );
-
-				PdfArray csArr;
-				csArr.push_back( PdfName("Separation") );
-				csArr.push_back( PdfName( csName ) );
-				csArr.push_back( PdfName("DeviceCMYK") );
-				csArr.push_back( csTintFunc->Reference() );
-
-				PdfObject* csp = GetContents()->GetOwner()->CreateObject( csArr );
-
-				AddResource( csPrefix + csName, csp->Reference(), PdfName("ColorSpace") );
+ 				switch ( rColor.GetAlternateColorSpace() )
+ 				{
+ 					case ePdfColorSpace_DeviceGray:
+ 					{
+ 						char data[1*2];
+ 						data[0] = 0;
+ 						data[1] = static_cast<char> (rColor.GetGrayScale());
+  
+ 						PdfMemoryInputStream stream( data, 1*2 );
+ 						csTintFunc->GetStream()->Set( &stream );
+  
+ 						PdfArray range;
+ 						range.push_back( static_cast<pdf_int64>(0LL) );
+                        range.push_back( static_cast<pdf_int64>(1LL) );
+ 						csTintFunc->GetDictionary().AddKey( "Range", range );
+  
+ 						PdfArray size;
+ 						size.push_back( static_cast<pdf_int64>(2LL) );
+ 						csTintFunc->GetDictionary().AddKey( "Size", size );
+  
+ 						PdfArray csArr;
+ 						csArr.push_back( PdfName("Separation") );
+ 						csArr.push_back( PdfName( csName ) );
+ 						csArr.push_back( PdfName("DeviceGray") );
+ 						csArr.push_back( csTintFunc->Reference() );
+  
+ 						PdfObject* csp = GetContents()->GetOwner()->CreateObject( csArr );
+  
+ 						AddResource( csPrefix + csName, csp->Reference(), PdfName("ColorSpace") );
+ 					}
+ 					break;
+ 
+ 					case ePdfColorSpace_DeviceRGB:
+ 					{
+ 						char data[3*2];
+ 						data[0] =
+ 							data[1] =
+ 							data[2] = 0;
+ 						data[3] = static_cast<char> (rColor.GetRed() * 255);
+ 						data[4] = static_cast<char> (rColor.GetGreen() * 255);
+ 						data[5] = static_cast<char> (rColor.GetBlue() * 255);
+ 
+ 						PdfMemoryInputStream stream( data, 3*2 );
+ 						csTintFunc->GetStream()->Set( &stream );
+ 
+ 						PdfArray range;
+ 						range.push_back( static_cast<pdf_int64>(0LL) );
+ 						range.push_back( static_cast<pdf_int64>(1LL) );
+ 						range.push_back( static_cast<pdf_int64>(0LL) );
+ 						range.push_back( static_cast<pdf_int64>(1LL) );
+ 						range.push_back( static_cast<pdf_int64>(0LL) );
+ 						range.push_back( static_cast<pdf_int64>(1LL) );
+ 						csTintFunc->GetDictionary().AddKey( "Range", range );
+ 
+ 						PdfArray size;
+ 						size.push_back( static_cast<pdf_int64>(2LL) );
+ 						csTintFunc->GetDictionary().AddKey( "Size", size );
+ 
+ 						PdfArray csArr;
+ 						csArr.push_back( PdfName("Separation") );
+ 						csArr.push_back( PdfName( csName ) );
+ 						csArr.push_back( PdfName("DeviceRGB") );
+ 						csArr.push_back( csTintFunc->Reference() );
+ 
+ 						PdfObject* csp = GetContents()->GetOwner()->CreateObject( csArr );
+ 
+ 						AddResource( csPrefix + csName, csp->Reference(), PdfName("ColorSpace") );
+ 					}
+ 					break;
+ 
+ 					case ePdfColorSpace_DeviceCMYK:
+ 					{
+ 						char data[4*2];
+ 						data[0] =
+ 							data[1] =
+ 							data[2] = 
+ 							data[3] = 0;
+ 						data[4] = static_cast<char> (rColor.GetCyan() * 255);
+ 						data[5] = static_cast<char> (rColor.GetMagenta() * 255);
+ 						data[6] = static_cast<char> (rColor.GetYellow() * 255);
+ 						data[7] = static_cast<char> (rColor.GetBlack() * 255);
+ 
+ 						PdfMemoryInputStream stream( data, 4*2 );
+ 						csTintFunc->GetStream()->Set( &stream );
+ 
+ 						PdfArray range;
+ 						range.push_back( static_cast<pdf_int64>(0LL) );
+ 						range.push_back( static_cast<pdf_int64>(1LL) );
+ 						range.push_back( static_cast<pdf_int64>(0LL) );
+ 						range.push_back( static_cast<pdf_int64>(1LL) );
+ 						range.push_back( static_cast<pdf_int64>(0LL) );
+ 						range.push_back( static_cast<pdf_int64>(1LL) );
+ 						range.push_back( static_cast<pdf_int64>(0LL) );
+ 						range.push_back( static_cast<pdf_int64>(1LL) );
+ 						csTintFunc->GetDictionary().AddKey( "Range", range );
+ 
+ 						PdfArray size;
+ 						size.push_back( static_cast<pdf_int64>(2LL) );
+ 						csTintFunc->GetDictionary().AddKey( "Size", size );
+ 
+ 						PdfArray csArr;
+ 						csArr.push_back( PdfName("Separation") );
+ 						csArr.push_back( PdfName( csName ) );
+ 						csArr.push_back( PdfName("DeviceCMYK") );
+ 						csArr.push_back( csTintFunc->Reference() );
+ 
+ 						PdfObject* csp = GetContents()->GetOwner()->CreateObject( csArr );
+ 
+ 						AddResource( csPrefix + csName, csp->Reference(), PdfName("ColorSpace") );
+ 					}
+ 					break;
+ 
+ 					case ePdfColorSpace_CieLab:
+ 					{
+ 						char data[3*2];
+ 						data[0] =
+ 							data[1] =
+ 							data[2] = 0;
+ 						data[3] = static_cast<char> (rColor.GetCieL() * 255);
+ 						data[4] = static_cast<char> (rColor.GetCieA() * 255);
+ 						data[5] = static_cast<char> (rColor.GetCieB() * 255);
+ 
+ 						PdfMemoryInputStream stream( data, 3*2 );
+ 						csTintFunc->GetStream()->Set( &stream );
+ 
+ 						PdfArray range;
+ 						range.push_back( static_cast<pdf_int64>(0LL) );
+ 						range.push_back( static_cast<pdf_int64>(1LL) );
+ 						range.push_back( static_cast<pdf_int64>(0LL) );
+ 						range.push_back( static_cast<pdf_int64>(1LL) );
+						range.push_back( static_cast<pdf_int64>(0LL) );
+ 						range.push_back( static_cast<pdf_int64>(1LL) );
+ 						csTintFunc->GetDictionary().AddKey( "Range", range );
+ 
+ 						PdfArray size;
+ 						size.push_back( static_cast<pdf_int64>(2LL) );
+ 						csTintFunc->GetDictionary().AddKey( "Size", size );
+ 
+ 						PdfArray csArr;
+ 						csArr.push_back( PdfName("Separation") );
+ 						csArr.push_back( PdfName( csName ) );
+ 						csArr.push_back( PdfName("Lab") );
+						csArr.push_back( csTintFunc->Reference() );
+ 
+ 						PdfObject* csp = GetContents()->GetOwner()->CreateObject( csArr );
+ 
+ 						AddResource( csPrefix + csName, csp->Reference(), PdfName("ColorSpace") );
+ 					}
+ 					break;
+ 				}
 			}
 		}
 		break;

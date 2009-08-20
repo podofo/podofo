@@ -1276,11 +1276,14 @@ void PdfPainter::Fill()
     m_pCanvas->Append( "f\n" );
 }
 
-void PdfPainter::Clip()
+void PdfPainter::Clip( bool useEvenOddRule )
 {
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
     
-    m_pCanvas->Append( "W n\n" );
+	if ( useEvenOddRule )
+	    m_pCanvas->Append( "W* n\n" );
+	else
+	    m_pCanvas->Append( "W n\n" );
 }
 
 void PdfPainter::Save()

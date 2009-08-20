@@ -588,8 +588,10 @@ class PODOFO_API PdfPainter {
     /** Clip the current path. Matches the PDF 'W' operator.
      *  This function is useful to construct an own path
      *  for drawing or clipping.
+	 *
+     *  \param useEvenOddRule select even-odd rule instead of nonzero winding number rule
      */
-    void Clip();
+    void Clip( bool useEvenOddRule = false);
 
     /** Save the current graphics settings onto the graphics
      *  stack. Operator 'q' in PDF.

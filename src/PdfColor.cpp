@@ -304,45 +304,6 @@ PdfColorCMYK::PdfColorCMYK( double dCyan, double dMagenta, double dYellow, doubl
 {
 }
 
-PdfColorSeparationAll::PdfColorSeparationAll()
-{
-	m_eColorSpace = ePdfColorSpace_Separation;
-	m_separationName = "All";
-	m_separationDensity = 1.0;
-	m_uColor.cmyk[0] = 
-	    m_uColor.cmyk[1] =
-	    m_uColor.cmyk[2] =
-	    m_uColor.cmyk[3] = 1.0;
-}
-
-PdfColorSeparationNone::PdfColorSeparationNone()
-{
-	m_eColorSpace = ePdfColorSpace_Separation;
-	m_separationName = "None";
-	m_separationDensity = 0.0;
-    m_uColor.cmyk[0] = 
-	    m_uColor.cmyk[1] =
-	    m_uColor.cmyk[2] =
-	    m_uColor.cmyk[3] = 0.0;
-}
-
-PdfColorSeparation::PdfColorSeparation( const std::string & sName, double dDensity, double dCyan, double dMagenta, double dYellow, double dBlack )
-{
-    CheckDoubleRange( dDensity, 0.0, 1.0 );
-    CheckDoubleRange( dCyan,    0.0, 1.0 );
-    CheckDoubleRange( dMagenta, 0.0, 1.0 );
-    CheckDoubleRange( dYellow,  0.0, 1.0 );
-    CheckDoubleRange( dBlack,   0.0, 1.0 );
-
-    m_eColorSpace = ePdfColorSpace_Separation;
-	m_separationName = sName;
-	m_separationDensity = dDensity;
-    m_uColor.cmyk[0] = dCyan;
-    m_uColor.cmyk[1] = dMagenta;
-    m_uColor.cmyk[2] = dYellow;
-    m_uColor.cmyk[3] = dBlack;
-}
-
 PdfColorCieLab::PdfColorCieLab( double dCieL, double dCieA, double dCieB )
 {
     CheckDoubleRange( dCieL,    0.0, 100.0 );
@@ -355,9 +316,71 @@ PdfColorCieLab::PdfColorCieLab( double dCieL, double dCieA, double dCieB )
     m_uColor.lab[2] = dCieB;
 }
 
+PdfColorSeparationAll::PdfColorSeparationAll()
+{
+	m_eColorSpace = ePdfColorSpace_Separation;
+	m_separationName = "All";
+	m_separationDensity = 1.0;
+	m_eAlternateColorSpace = ePdfColorSpace_DeviceCMYK;
+	m_uColor.cmyk[0] = 
+	    m_uColor.cmyk[1] =
+	    m_uColor.cmyk[2] =
+	    m_uColor.cmyk[3] = 1.0;
+}
+
+PdfColorSeparationNone::PdfColorSeparationNone()
+{
+	m_eColorSpace = ePdfColorSpace_Separation;
+	m_separationName = "None";
+	m_separationDensity = 0.0;
+	m_eAlternateColorSpace = ePdfColorSpace_DeviceCMYK;
+    m_uColor.cmyk[0] = 
+	    m_uColor.cmyk[1] =
+	    m_uColor.cmyk[2] =
+	    m_uColor.cmyk[3] = 0.0;
+}
+
+PdfColorSeparation::PdfColorSeparation( const std::string & sName, double dDensity, const PdfColor & alternateColor )
+{
+	m_eAlternateColorSpace = alternateColor.GetColorSpace();
+	switch( m_eAlternateColorSpace )
+	{
+		case ePdfColorSpace_DeviceGray:
+			m_uColor.gray = alternateColor.GetGrayScale();
+		break;
+
+		case ePdfColorSpace_DeviceRGB:
+			m_uColor.rgb[0] = alternateColor.GetRed();
+			m_uColor.rgb[1] = alternateColor.GetGreen();
+			m_uColor.rgb[2] = alternateColor.GetBlue();
+		break;
+
+		case ePdfColorSpace_DeviceCMYK:
+			m_uColor.cmyk[0] = alternateColor.GetCyan();
+			m_uColor.cmyk[1] = alternateColor.GetMagenta();
+			m_uColor.cmyk[2] = alternateColor.GetYellow();
+			m_uColor.cmyk[3] = alternateColor.GetBlack();
+		break;
+
+		case ePdfColorSpace_CieLab:
+			m_uColor.lab[0] = alternateColor.GetCieL();
+			m_uColor.lab[1] = alternateColor.GetCieA();
+			m_uColor.lab[2] = alternateColor.GetCieB();
+		break;
+
+		default:
+			PODOFO_RAISE_LOGIC_IF( true, "PdfColor::PdfColorSeparation alternatColor must be Gray, RGB, CMYK or CieLab!");
+		break;
+	}
+    m_eColorSpace = ePdfColorSpace_Separation;
+	m_separationName = sName;
+	m_separationDensity = dDensity;
+}
+
 const PdfColor & PdfColor::operator=( const PdfColor & rhs )
 {
     m_eColorSpace = rhs.m_eColorSpace;
+	m_eAlternateColorSpace = rhs.m_eAlternateColorSpace;
 	m_separationName = rhs.m_separationName;
 	m_separationDensity = rhs.m_separationDensity;
 	memcpy( &m_uColor, &rhs.m_uColor, sizeof(m_uColor) );
@@ -376,6 +399,19 @@ PdfColor PdfColor::ConvertToGrayScale() const
         case ePdfColorSpace_DeviceCMYK:
             return this->ConvertToRGB().ConvertToGrayScale();
         case ePdfColorSpace_Separation:
+			if ( m_eAlternateColorSpace == ePdfColorSpace_DeviceCMYK )
+			{
+				double dCyan    = m_uColor.cmyk[0];
+				double dMagenta = m_uColor.cmyk[1];
+				double dYellow  = m_uColor.cmyk[2];
+				double dBlack   = m_uColor.cmyk[3];
+
+				double dRed   = dCyan    * (1.0 - dBlack) + dBlack;
+				double dGreen = dMagenta * (1.0 - dBlack) + dBlack;
+				double dBlue  = dYellow  * (1.0 - dBlack) + dBlack;
+
+				return PdfColor( 1.0 - dRed, 1.0 - dGreen, 1.0 - dBlue );
+			}
         case ePdfColorSpace_CieLab:
         {
             PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
