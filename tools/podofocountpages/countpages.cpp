@@ -20,7 +20,8 @@
 
 #include <podofo.h>
 
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstdio>
 
 using namespace PoDoFo;
 

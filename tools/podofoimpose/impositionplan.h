@@ -18,6 +18,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <cstdio>
 
 namespace PoDoFo
 {

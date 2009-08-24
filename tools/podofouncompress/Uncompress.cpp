@@ -20,6 +20,8 @@
 
 #include "Uncompress.h"
 
+#include <cstdio>
+
 UnCompress::UnCompress()
     : m_pDocument( NULL )
 {

@@ -22,7 +22,8 @@
 
 using namespace PoDoFo;
 
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstdio>
 
 #ifdef _HAVE_CONFIG
 #include <config.h>
