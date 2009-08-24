@@ -75,8 +75,6 @@ SET(PODOFO_SOURCES
     PdfXObject.cpp
     PdfXRef.cpp
     PdfXRefStream.cpp
-    util/PdfMutex.cpp
-    util/PdfMutexWrapper.cpp
 )
 
 IF(WIN32)
@@ -170,6 +168,9 @@ SET(PODOFO_HEADERS
 )
 SET(PODOFO_HEADERS2 
     util/PdfMutex.h
+    util/PdfMutex_noop.h
+    util/PdfMutex_win32.h
+    util/PdfMutex_pthread.h
     util/PdfMutexWrapper.h
 )
 

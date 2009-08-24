@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Dominik Seichter                                *
+ *   Copyright (C) 2008 by Dominik Seichter, Craig Ringer                  *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,64 +18,82 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "PdfMutex.h"
+#include "../PdfDefines.h"
+#include "../PdfDefinesPrivate.h"
 
+#if ! defined(PODOFO_MULTI_THREAD)
+#error "Not a multi-thread build. PdfMutex_null.h should be used instead"
+#endif
+
+#if defined(_WIN32)
+#error "win32 build. PdfMutex_win32.h should be used instead"
+#endif
+
+#include <pthread.h>
 #include <errno.h>
 
 namespace PoDoFo {
 namespace Util {
 
-bool PdfMutex::IsPoDoFoMultiThread()
-{
-#ifdef PODOFO_MULTI_THREAD
-    return true;
-#else
-    return false;
-#endif // PODOFO_MULTI_THREAD
+/**
+ * A platform independent reentrant mutex, pthread implementation.
+ *  
+ * PdfMutex is *NOT* part of PoDoFo's public API.
+ *
+ * This is the pthread implementation, which is
+ * entirely inline.
+ */
+class PdfMutexImpl {
+    pthread_mutex_t m_mutex;
+  public:
+
+    inline PdfMutexImpl();
+
+    inline ~PdfMutexImpl();
+
+    inline void Init( const pthread_mutexattr_t *attr );
+
+    /**
+     * Lock the mutex
+     */
+    inline void Lock();
+
+    /**
+     * Try locking the mutex. 
+     *
+     * \returns true if the mutex was locked
+     * \returns false if the mutex is already locked
+     *                by some other thread
+     */
+    inline bool TryLock();
+
+    /**
+     * Unlock the mutex
+     */
+    inline void UnLock();
+};
+
+PdfMutexImpl::PdfMutexImpl() {
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init( &m_mutex, &attr );
 }
 
-PdfMutex::PdfMutex()
+PdfMutexImpl::~PdfMutexImpl()
 {
-#ifdef PODOFO_MULTI_THREAD
-#ifdef _WIN32
-    InitializeCriticalSection( &m_cs );
-#else
-    pthread_mutex_init( &m_mutex, NULL );
-#endif // _WIN32
-#endif // PODOFO_MULTI_THREAD
-}
-
-PdfMutex::~PdfMutex()
-{
-#ifdef PODOFO_MULTI_THREAD
-#ifdef _WIN32
-    DeleteCriticalSection( &m_cs );
-#else
     pthread_mutex_destroy( &m_mutex );
-#endif // _WIN32
-#endif // PODOFO_MULTI_THREAD
 }
 
-void PdfMutex::Lock()
+void PdfMutexImpl::Lock()
 {
-#ifdef PODOFO_MULTI_THREAD
-#ifdef _WIN32
-    EnterCriticalSection( &m_cs );
-#else
     if( pthread_mutex_lock( &m_mutex ) != 0 ) 
     {
 	    PODOFO_RAISE_ERROR( ePdfError_MutexError );
     }
-#endif // _WIN32
-#endif // PODOFO_MULTI_THREAD
 }
 
-bool PdfMutex::TryLock()
+bool PdfMutexImpl::TryLock()
 {
-#ifdef PODOFO_MULTI_THREAD
-#ifdef _WIN32
-    return (TryEnterCriticalSection( &m_cs ) ? true : false);
-#else
     int nRet = pthread_mutex_trylock( &m_mutex );
     if( nRet == 0 )
 	    return true;
@@ -85,28 +103,15 @@ bool PdfMutex::TryLock()
     {
 	    PODOFO_RAISE_ERROR( ePdfError_MutexError );
     }
-#endif // _WIN32
-#endif // PODOFO_MULTI_THREAD
-
-    // If we have no multithreading support always
-    // simulate succesfull locking
-    return true;
 }
 
-void PdfMutex::UnLock()
+void PdfMutexImpl::UnLock()
 {
-#ifdef PODOFO_MULTI_THREAD
-#ifdef _WIN32
-    LeaveCriticalSection( &m_cs );
-#else
     if( pthread_mutex_unlock( &m_mutex ) != 0 )
     {
 	    PODOFO_RAISE_ERROR( ePdfError_MutexError );
     }
-#endif // _WIN32
-#endif // PODOFO_MULTI_THREAD
 }
-
 
 }; // Util
 }; // PoDoFo

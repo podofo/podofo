@@ -22,6 +22,7 @@
 #define _PDF_ENCODING_FACTORY_H_
 
 #include "PdfDefines.h"
+#include "util/PdfMutex.h"
 #include "string.h"
 
 namespace PoDoFo {
@@ -31,8 +32,6 @@ class PdfDocEncoding;
 class PdfMacRomanEncoding;
 class PdfObject;
 class PdfWinAnsiEncoding;
-
-namespace Util { class PdfMutex; };
 
 /** This factory creates a PdfEncoding
  *  from an existing object in the PDF.
@@ -100,7 +99,7 @@ class PODOFO_API PdfEncodingFactory {
      */
     static const PdfMacRomanEncoding* s_pMacRomanEncoding;
 
-    static Util::PdfMutex *s_mutex;
+    static Util::PdfMutex s_mutex;
 };
 
 }; /* namespace PoDoFo */

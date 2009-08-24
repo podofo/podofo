@@ -34,8 +34,7 @@ const PdfDocEncoding*      PdfEncodingFactory::s_pDocEncoding      = NULL;
 const PdfWinAnsiEncoding*  PdfEncodingFactory::s_pWinAnsiEncoding  = NULL;
 const PdfMacRomanEncoding* PdfEncodingFactory::s_pMacRomanEncoding = NULL;
 
-// Knowingly leaked at exit. Who cares, it's just one mutex.
-Util::PdfMutex * PdfEncodingFactory::s_mutex = new Util::PdfMutex();
+Util::PdfMutex PdfEncodingFactory::s_mutex;
 
 const PdfEncoding* PdfEncodingFactory::CreateEncoding( PdfObject* pObject )
 {
@@ -71,7 +70,7 @@ const PdfEncoding* PdfEncodingFactory::GlobalPdfDocEncodingInstance()
 {
     if(!s_pDocEncoding) // First check
     {
-	Util::PdfMutexWrapper wrapper( *PdfEncodingFactory::s_mutex ); 
+	Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
 
 	if(!s_pDocEncoding) // Double check
 	    s_pDocEncoding = new PdfDocEncoding();
@@ -84,7 +83,7 @@ const PdfEncoding* PdfEncodingFactory::GlobalWinAnsiEncodingInstance()
 {
     if(!s_pWinAnsiEncoding) // First check
     {
-	Util::PdfMutexWrapper wrapper( *PdfEncodingFactory::s_mutex ); 
+	Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
 
 	if(!s_pWinAnsiEncoding) // Double check
 	    s_pWinAnsiEncoding = new PdfWinAnsiEncoding();
@@ -97,7 +96,7 @@ const PdfEncoding* PdfEncodingFactory::GlobalMacRomanEncodingInstance()
 {
     if(!s_pMacRomanEncoding) // First check
     {
-	Util::PdfMutexWrapper wrapper( *PdfEncodingFactory::s_mutex ); 
+	Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
 
 	if(!s_pMacRomanEncoding) // Double check
 	    s_pMacRomanEncoding = new PdfMacRomanEncoding();
@@ -108,7 +107,7 @@ const PdfEncoding* PdfEncodingFactory::GlobalMacRomanEncodingInstance()
 
 void PdfEncodingFactory::FreeGlobalEncodingInstances()
 {
-    Util::PdfMutexWrapper wrapper( *PdfEncodingFactory::s_mutex ); 
+    Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
     
     delete s_pMacRomanEncoding;
     delete s_pWinAnsiEncoding;

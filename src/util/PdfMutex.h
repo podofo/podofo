@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Dominik Seichter                                *
+ *   Copyright (C) 2008 by Dominik Seichter, Craig Ringer                  *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,70 +18,55 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PDF_MUTEX_H_
-#define _PDF_MUTEX_H_
+#ifndef PDF_PDFMUTEX_H
+#define PDF_PDFMUTEX_H
 
-#include "../PdfDefines.h"
-// PdfMutex.h is a private implementation header. It includes PdfDefinesPrivate.h
-// to gain access to win32 APIs.
-#include "../PdfDefinesPrivate.h"
+#if defined(BUILDING_PODOFO)
 
-namespace PoDoFo {
-namespace Util {
-
-/** A plattform independent mutex.
- *
- *  Uses pthreads on Unix and critical sections
- *  on Windows.
- *
- *  If PODOFO_MULTI_THREAD is not defined during
- *  the build, this class does nothing.
- *  
- *  PdfMutex is *NOT* part of PoDoFo's public API.
- */
-class PdfMutex {
-  public:
-    /** Construct a new mutex
-     */
-    PdfMutex();
-
-    ~PdfMutex();
-
-    /** 
-     * Query if this is a multithreaded PoDoFo build.
-     */
-    static bool IsPoDoFoMultiThread();
-
-    /**
-     * Lock the mutex
-     */
-    void Lock();
-
-    /**
-     * Try locking the mutex. 
-     *
-     * \returns true if the mutex was locked
-     * \returns false if the mutex is already locked
-     *                by some other thread
-     */
-    bool TryLock();
-
-    /**
-     * Unlock the mutex
-     */
-    void UnLock();
-
-  private:
-#ifdef PODOFO_MULTI_THREAD
-#ifdef _WIN32
-    CRITICAL_SECTION m_cs;
+/* Import the platform-specific implementation of PdfMutex */
+#if defined(PODOFO_MULTI_THREAD)
+#  if defined(_WIN32)
+#    include "PdfMutexImpl_win32.h"
+#  else
+#    include "PdfMutexImpl_pthread.h"
+#  endif
 #else
-    pthread_mutex_t m_mutex;    
-#endif // _WIN32
-#endif // PODOFO_MULTI_THREAD
+#  include "PdfMutexImpl_noop.h"
+#endif
+
+namespace PoDoFo { namespace Util {
+
+/**
+ * Reentrant mutex implemented by win32 CRITICAL_SECTION or pthread recursive mutex.
+ *
+ * If PODOFO_MULTI_THREAD is not set, all operations are no-ops and always succeed.
+ *
+ * A held (locked) PdfMutex may not be acquired (locked) by a thread other than
+ * the thread that currently holds it.
+ *
+ * The thread holding a PdfMutex may acquire it repeatedly. Every acquision must be matched
+ * by a release.
+ *
+ * When a PdfMutex is not held by any thread (ie it is newly allocated or has been released)
+ * then exactly one thread attempting to acquire it will succeed. If there is more than one
+ * thread trying to acquire a PdfMutex, which thread will succeed is undefined.
+ *
+ */
+class PdfMutex : public PdfMutexImpl
+{
+  // This wrapper/extension class is provided so we can add platform-independent
+  // functionality and helpers if desired.
+  public:
+    PdfMutex() { }
+    ~PdfMutex() { }
 };
 
-}; // Util
-}; // PoDoFo
+};};
 
-#endif // _PDF_MUTEX_H_
+#else // BUILDING_PODOFO
+// Only a forward-declaration is available for PdfMutex for sources outside the
+// PoDoFo library build its self. PdfMutex is not public API.
+namespace PoDoFo { namespace Util { class PdfMutex; }; };
+#endif
+
+#endif

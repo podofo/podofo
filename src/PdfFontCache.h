@@ -26,6 +26,7 @@
 #include "PdfEncoding.h"
 #include "PdfEncodingFactory.h"
 #include "PdfFont.h"
+#include "util/PdfMutex.h"
 
 namespace PoDoFo {
 
@@ -128,6 +129,9 @@ class PODOFO_API PdfFontCache {
     typedef TSortedFontList::iterator       TISortedFontList;
     typedef TSortedFontList::const_iterator TCISortedFontList;
 
+#if defined(PODOFO_HAVE_FONTCONFIG)
+    static Util::PdfMutex m_FcMutex;
+#endif
 
  public:
     /** Create an empty font cache 

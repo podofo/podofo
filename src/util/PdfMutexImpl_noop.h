@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Dominik Seichter                                *
+ *   Copyright (C) 2008 by Dominik Seichter, Craig Ringer                  *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,65 +18,49 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PDF_MUTEX_WRAPPER_H_
-#define _PDF_MUTEX_WRAPPER_H_
-
 #include "../PdfDefines.h"
-#include "PdfMutex.h"
+#include "../PdfDefinesPrivate.h"
+
+#if defined(PODOFO_MULTI_THREAD)
+#error "Multi-thread build, a real PdfMutex implementation should be used instead"
+#endif
 
 namespace PoDoFo {
 namespace Util {
 
-/** 
- * A wrapper around PdfMutex.
- * The mutex is locked in the constructor
- * and unlocked in the destructor.
- * 
- * In debug builds all exceptions thrown by the mutex implementation
- * are caught and logged before being rethrown.
+/**
+ * A platform independent non-reentrant mutex, no-op implementation.
+ * This version is used if PoDoFo is built without threading support.
  *  
- * Note that PdfMutexWrapper is *not* part of PoDoFo's public API.
+ * PdfMutex is *NOT* part of PoDoFo's public API.
  */
-class PdfMutexWrapper {
+class PdfMutexImpl {
   public:
-    /** Lock a mutex.
-     * 
-     *  \param rMutex the mutex to be locked.
+    /** Construct a new mutex
      */
-    PODOFO_NOTHROW inline PdfMutexWrapper( PdfMutex & rMutex );
+    inline PdfMutexImpl() { }
 
-    /** Unlocks the mutex on destruction
+    inline ~PdfMutexImpl() { }
+
+    /**
+     * Lock the mutex
      */
-    inline ~PdfMutexWrapper();
+    inline void Lock() { }
 
-  private:
-    PdfMutex& m_rMutex;
+    /**
+     * Try locking the mutex. 
+     *
+     * \returns true if the mutex was locked
+     * \returns false if the mutex is already locked
+     *                by some other thread
+     */
+    inline bool TryLock() { return true; }
+
+    /**
+     * Unlock the mutex
+     */
+    inline void UnLock() { }
 };
-
-PdfMutexWrapper::PdfMutexWrapper( PdfMutex & rMutex )
-    : m_rMutex( rMutex )
-{
-    m_rMutex.Lock();
-}
-
-
-PdfMutexWrapper::~PdfMutexWrapper()
-{
-#if defined(DEBUG)
-    try {
-	m_rMutex.UnLock();
-    }
-    catch( const PdfError & rError ) 
-    {
-	rError.PrintErrorMsg();
-        throw rError;
-    }
-#else
-    m_rMutex.UnLock();
-#endif
-}
 
 }; // Util
 }; // PoDoFo
-
-#endif // _PDF_MUTEX_H_

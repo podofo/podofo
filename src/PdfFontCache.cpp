@@ -54,6 +54,7 @@
 
 #if defined(PODOFO_HAVE_FONTCONFIG)
 #include <fontconfig/fontconfig.h>
+#include "util/PdfMutexWrapper.h"
 #endif
 
 using namespace std;
@@ -118,13 +119,20 @@ static bool GetDataFromLPFONT( const LOGFONTW* inFont, char** outFontBuffer, uns
 }
 #endif // _WIN32
 
+#if defined(PODOFO_HAVE_FONTCONFIG)
+Util::PdfMutex PdfFontCache::m_FcMutex;
+#endif
+
 PdfFontCache::PdfFontCache( PdfVecObjects* pParent )
     : m_pParent( pParent )
 {
     // Initialize all the fonts stuff
 
 #if defined(PODOFO_HAVE_FONTCONFIG)
-    m_pFcConfig     = static_cast<void*>(FcInitLoadConfigAndFonts());
+    {
+        Util::PdfMutexWrapper mutex(m_FcMutex);
+        m_pFcConfig     = static_cast<void*>(FcInitLoadConfigAndFonts());
+    }
 #endif
 
     if( FT_Init_FreeType( &m_ftLibrary ) )
@@ -138,7 +146,10 @@ PdfFontCache::~PdfFontCache()
     this->EmptyCache();
 
 #if defined(PODOFO_HAVE_FONTCONFIG)
-    FcConfigDestroy( static_cast<FcConfig*>(m_pFcConfig) );
+    {
+        Util::PdfMutexWrapper mutex(m_FcMutex);
+        FcConfigDestroy( static_cast<FcConfig*>(m_pFcConfig) );
+    }
 #endif
 
     if( m_ftLibrary ) 
@@ -540,6 +551,7 @@ std::string PdfFontCache::GetFontConfigFontPath( FcConfig* pConfig, const char* 
     FcResult    result = FcResultMatch;
     FcValue     v;
     std::string sPath;
+    Util::PdfMutexWrapper mutex(m_FcMutex);
 
     // Build a pattern to search using fontname, bold and italic
     pattern = FcPatternBuild (0, FC_FAMILY, FcTypeString, pszFontName, 
@@ -575,6 +587,7 @@ std::string PdfFontCache::GetFontConfigFontPath( FcConfig* pConfig, const char* 
 std::string PdfFontCache::GetFontPath( const char* pszFontName, bool bBold, bool bItalic )
 {
 #if defined(PODOFO_HAVE_FONTCONFIG)
+    Util::PdfMutexWrapper mutex(m_FcMutex);
     FcConfig*   pConfig = FcInitLoadConfigAndFonts();
     std::string sPath   = this->GetFontConfigFontPath( pConfig, pszFontName, bBold, bItalic );
     FcConfigDestroy( pConfig );    
