@@ -154,6 +154,13 @@ void PdfFontMetrics::InitFromBuffer()
 
 void PdfFontMetrics::InitFromFace()
 {
+
+    if ( m_eFontType == ePdfFontType_Unknown ) {
+        // We need to have identified the font type by this point
+        // Unsupported font.
+        PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFontFormat, m_sFilename.c_str() );
+    }
+
     m_nWeight             = 500;
     m_nItalicAngle        = 0;
     m_dLineSpacing        = 0.0;

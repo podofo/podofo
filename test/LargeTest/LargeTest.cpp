@@ -37,8 +37,13 @@ void AddPage( PdfDocument* pDoc, const char* pszFontName, const char* pszImagePa
     PdfImage*  pImage;
     PdfRect    rect;
  
+    try {
+        pFont  = pDoc->CreateFont( pszFontName );
+    } catch ( const PdfError & e ) {
+        e.PrintErrorMsg();
+        return;
+    }
     pPage  = pDoc->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    pFont  = pDoc->CreateFont( pszFontName );
     pArial = pDoc->CreateFont( "Arial" );
     pImage = new PdfImage( pDoc );
 
