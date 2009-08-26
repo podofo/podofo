@@ -40,6 +40,7 @@
 
 namespace PoDoFo {
 
+
 static pdf_uint8 S[256]=
 {
    99, 124, 119, 123, 242, 107, 111, 197,  48,   1, 103,  43, 254, 215, 171, 118, 
@@ -1060,18 +1061,19 @@ int PdfRijndael::blockEncrypt(const pdf_uint8 *input,int inputLen,pdf_uint8 *out
       }
     break;
     case CBC:
-      ((pdf_uint32*)block)[0] = ((pdf_uint32*)m_initVector)[0] ^ ((pdf_uint32*)input)[0];
-      ((pdf_uint32*)block)[1] = ((pdf_uint32*)m_initVector)[1] ^ ((pdf_uint32*)input)[1];
-      ((pdf_uint32*)block)[2] = ((pdf_uint32*)m_initVector)[2] ^ ((pdf_uint32*)input)[2];
-      ((pdf_uint32*)block)[3] = ((pdf_uint32*)m_initVector)[3] ^ ((pdf_uint32*)input)[3];
+      reinterpret_cast<pdf_uint32*>(block)[0] = reinterpret_cast<const pdf_uint32*>(m_initVector)[0] ^ reinterpret_cast<const pdf_uint32*>(input)[0];
+      reinterpret_cast<pdf_uint32*>(block)[1] = reinterpret_cast<const pdf_uint32*>(m_initVector)[1] ^ reinterpret_cast<const pdf_uint32*>(input)[1];
+      reinterpret_cast<pdf_uint32*>(block)[2] = reinterpret_cast<const pdf_uint32*>(m_initVector)[2] ^ reinterpret_cast<const pdf_uint32*>(input)[2];
+      reinterpret_cast<pdf_uint32*>(block)[3] = reinterpret_cast<const pdf_uint32*>(m_initVector)[3] ^ reinterpret_cast<const pdf_uint32*>(input)[3];
       encrypt(block,outBuffer);
       input += 16;
       for(i = numBlocks - 1;i > 0;i--)
       {
-        ((pdf_uint32*)block)[0] = ((pdf_uint32*)outBuffer)[0] ^ ((pdf_uint32*)input)[0];
-        ((pdf_uint32*)block)[1] = ((pdf_uint32*)outBuffer)[1] ^ ((pdf_uint32*)input)[1];
-        ((pdf_uint32*)block)[2] = ((pdf_uint32*)outBuffer)[2] ^ ((pdf_uint32*)input)[2];
-        ((pdf_uint32*)block)[3] = ((pdf_uint32*)outBuffer)[3] ^ ((pdf_uint32*)input)[3];
+   
+     reinterpret_cast<pdf_uint32*>(block)[0] = reinterpret_cast<const pdf_uint32*>(outBuffer)[0] ^ reinterpret_cast<const pdf_uint32*>(input)[0];
+        reinterpret_cast<pdf_uint32*>(block)[1] = reinterpret_cast<const pdf_uint32*>(outBuffer)[1] ^ reinterpret_cast<const pdf_uint32*>(input)[1];
+        reinterpret_cast<pdf_uint32*>(block)[2] = reinterpret_cast<const pdf_uint32*>(outBuffer)[2] ^ reinterpret_cast<const pdf_uint32*>(input)[2];
+        reinterpret_cast<pdf_uint32*>(block)[3] = reinterpret_cast<const pdf_uint32*>(outBuffer)[3] ^ reinterpret_cast<const pdf_uint32*>(input)[3];
         outBuffer += 16;
         encrypt(block,outBuffer);
         input += 16;
@@ -1081,37 +1083,37 @@ int PdfRijndael::blockEncrypt(const pdf_uint8 *input,int inputLen,pdf_uint8 *out
 #if STRICT_ALIGN 
       memcpy(iv,m_initVector,16); 
 #else  /* !STRICT_ALIGN */
-      *((pdf_uint32*)iv[0]) = *((pdf_uint32*)(m_initVector   ));
-      *((pdf_uint32*)iv[1]) = *((pdf_uint32*)(m_initVector + 4));
-      *((pdf_uint32*)iv[2]) = *((pdf_uint32*)(m_initVector + 8));
-      *((pdf_uint32*)iv[3]) = *((pdf_uint32*)(m_initVector +12));
+      *reinterpret_cast<pdf_uint32*>(iv[0]) = *reinterpret_cast<const pdf_uint32*>((m_initVector   ));
+      *reinterpret_cast<pdf_uint32*>(iv[1]) = *reinterpret_cast<const pdf_uint32*>((m_initVector + 4));
+      *reinterpret_cast<pdf_uint32*>(iv[2]) = *reinterpret_cast<const pdf_uint32*>((m_initVector + 8));
+      *reinterpret_cast<pdf_uint32*>(iv[3]) = *reinterpret_cast<const pdf_uint32*>((m_initVector +12));
 #endif /* ?STRICT_ALIGN */
       for(i = numBlocks; i > 0; i--)
       {
         for(k = 0; k < 128; k++)
         {
-          *((pdf_uint32*) block    ) = *((pdf_uint32*)iv[0]);
-          *((pdf_uint32*)(block+ 4)) = *((pdf_uint32*)iv[1]);
-          *((pdf_uint32*)(block+ 8)) = *((pdf_uint32*)iv[2]);
-          *((pdf_uint32*)(block+12)) = *((pdf_uint32*)iv[3]);
+          *reinterpret_cast<pdf_uint32*>( block    ) = *reinterpret_cast<const pdf_uint32*>(iv[0]);
+          *reinterpret_cast<pdf_uint32*>((block+ 4)) = *reinterpret_cast<const pdf_uint32*>(iv[1]);
+          *reinterpret_cast<pdf_uint32*>((block+ 8)) = *reinterpret_cast<const pdf_uint32*>(iv[2]);
+          *reinterpret_cast<pdf_uint32*>((block+12)) = *reinterpret_cast<const pdf_uint32*>(iv[3]);
           encrypt(block,block);
           outBuffer[k/8] ^= (block[0] & 0x80) >> (k & 7);
-          iv[0][0] = (pdf_uint8) ((iv[0][0] << 1) | (iv[0][1] >> 7));
-          iv[0][1] = (pdf_uint8) ((iv[0][1] << 1) | (iv[0][2] >> 7));
-          iv[0][2] = (pdf_uint8) ((iv[0][2] << 1) | (iv[0][3] >> 7));
-          iv[0][3] = (pdf_uint8) ((iv[0][3] << 1) | (iv[1][0] >> 7));
-          iv[1][0] = (pdf_uint8) ((iv[1][0] << 1) | (iv[1][1] >> 7));
-          iv[1][1] = (pdf_uint8) ((iv[1][1] << 1) | (iv[1][2] >> 7));
-          iv[1][2] = (pdf_uint8) ((iv[1][2] << 1) | (iv[1][3] >> 7));
-          iv[1][3] = (pdf_uint8) ((iv[1][3] << 1) | (iv[2][0] >> 7));
-          iv[2][0] = (pdf_uint8) ((iv[2][0] << 1) | (iv[2][1] >> 7));
-          iv[2][1] = (pdf_uint8) ((iv[2][1] << 1) | (iv[2][2] >> 7));
-          iv[2][2] = (pdf_uint8) ((iv[2][2] << 1) | (iv[2][3] >> 7));
-          iv[2][3] = (pdf_uint8) ((iv[2][3] << 1) | (iv[3][0] >> 7));
-          iv[3][0] = (pdf_uint8) ((iv[3][0] << 1) | (iv[3][1] >> 7));
-          iv[3][1] = (pdf_uint8) ((iv[3][1] << 1) | (iv[3][2] >> 7));
-          iv[3][2] = (pdf_uint8) ((iv[3][2] << 1) | (iv[3][3] >> 7));
-          iv[3][3] = (pdf_uint8) ((iv[3][3] << 1) | (outBuffer[k/8] >> (7-(k&7))) & 1);
+          iv[0][0] = static_cast<pdf_uint8> ((iv[0][0] << 1) | (iv[0][1] >> 7));
+          iv[0][1] = static_cast<pdf_uint8> ((iv[0][1] << 1) | (iv[0][2] >> 7));
+          iv[0][2] = static_cast<pdf_uint8> ((iv[0][2] << 1) | (iv[0][3] >> 7));
+          iv[0][3] = static_cast<pdf_uint8> ((iv[0][3] << 1) | (iv[1][0] >> 7));
+          iv[1][0] = static_cast<pdf_uint8> ((iv[1][0] << 1) | (iv[1][1] >> 7));
+          iv[1][1] = static_cast<pdf_uint8> ((iv[1][1] << 1) | (iv[1][2] >> 7));
+          iv[1][2] = static_cast<pdf_uint8> ((iv[1][2] << 1) | (iv[1][3] >> 7));
+          iv[1][3] = static_cast<pdf_uint8> ((iv[1][3] << 1) | (iv[2][0] >> 7));
+          iv[2][0] = static_cast<pdf_uint8> ((iv[2][0] << 1) | (iv[2][1] >> 7));
+          iv[2][1] = static_cast<pdf_uint8> ((iv[2][1] << 1) | (iv[2][2] >> 7));
+          iv[2][2] = static_cast<pdf_uint8> ((iv[2][2] << 1) | (iv[2][3] >> 7));
+          iv[2][3] = static_cast<pdf_uint8> ((iv[2][3] << 1) | (iv[3][0] >> 7));
+          iv[3][0] = static_cast<pdf_uint8> ((iv[3][0] << 1) | (iv[3][1] >> 7));
+          iv[3][1] = static_cast<pdf_uint8> ((iv[3][1] << 1) | (iv[3][2] >> 7));
+          iv[3][2] = static_cast<pdf_uint8> ((iv[3][2] << 1) | (iv[3][3] >> 7));
+          iv[3][3] = static_cast<pdf_uint8> (((iv[3][3] << 1) | (outBuffer[k/8] >> (7-(k&7)))) & 1);
         }
       }
     break;
@@ -1147,17 +1149,17 @@ pdf_long PdfRijndael::padEncrypt(const pdf_uint8 *input, pdf_long inputOctets, p
       padLen = 16 - (inputOctets - 16*numBlocks);
 //      assert(padLen > 0 && padLen <= 16);
       memcpy(block, input, 16 - padLen);
-      memset(block + 16 - padLen, (int)padLen, padLen);
+      memset(block + 16 - padLen, static_cast<int>(padLen), padLen);
       encrypt(block,outBuffer);
     break;
     case CBC:
       iv = m_initVector;
       for(i = numBlocks; i > 0; i--)
       {
-        ((pdf_uint32*)block)[0] = ((pdf_uint32*)input)[0] ^ ((pdf_uint32*)iv)[0];
-        ((pdf_uint32*)block)[1] = ((pdf_uint32*)input)[1] ^ ((pdf_uint32*)iv)[1];
-        ((pdf_uint32*)block)[2] = ((pdf_uint32*)input)[2] ^ ((pdf_uint32*)iv)[2];
-        ((pdf_uint32*)block)[3] = ((pdf_uint32*)input)[3] ^ ((pdf_uint32*)iv)[3];
+        reinterpret_cast<pdf_uint32*>(block)[0] = reinterpret_cast<const pdf_uint32*>(input)[0] ^ reinterpret_cast<const pdf_uint32*>(iv)[0];
+        reinterpret_cast<pdf_uint32*>(block)[1] = reinterpret_cast<const pdf_uint32*>(input)[1] ^ reinterpret_cast<const pdf_uint32*>(iv)[1];
+        reinterpret_cast<pdf_uint32*>(block)[2] = reinterpret_cast<const pdf_uint32*>(input)[2] ^ reinterpret_cast<const pdf_uint32*>(iv)[2];
+        reinterpret_cast<pdf_uint32*>(block)[3] = reinterpret_cast<const pdf_uint32*>(input)[3] ^ reinterpret_cast<const pdf_uint32*>(iv)[3];
         encrypt(block, outBuffer);
         iv = outBuffer;
         input += 16;
@@ -1166,13 +1168,14 @@ pdf_long PdfRijndael::padEncrypt(const pdf_uint8 *input, pdf_long inputOctets, p
       padLen = 16 - (inputOctets - 16*numBlocks);
 //      assert(padLen > 0 && padLen <= 16); // DO SOMETHING HERE ?
       for (i = 0; i < 16 - padLen; i++) {
-        block[i] = (pdf_uint8) (input[i] ^ iv[i]);
+        block[i] = static_cast<pdf_uint8> (input[i] ^ iv[i]);
       }
       for (i = 16 - padLen; i < 16; i++) {
-        block[i] = (pdf_uint8) ((pdf_uint8) padLen ^ iv[i]);
+          block[i] = static_cast<pdf_uint8> (static_cast<pdf_uint8>( padLen ) ^ iv[i]);
       }
       encrypt(block,outBuffer);
     break;
+    case CFB1:
     default:
       return -1;
     break;
@@ -1207,26 +1210,26 @@ int PdfRijndael::blockDecrypt(const pdf_uint8 *input, int inputLen, pdf_uint8 *o
 #if STRICT_ALIGN 
       memcpy(iv,m_initVector,16); 
 #else
-      *((pdf_uint32*)iv[0]) = *((pdf_uint32*)(m_initVector  ));
-      *((pdf_uint32*)iv[1]) = *((pdf_uint32*)(m_initVector+ 4));
-      *((pdf_uint32*)iv[2]) = *((pdf_uint32*)(m_initVector+ 8));
-      *((pdf_uint32*)iv[3]) = *((pdf_uint32*)(m_initVector+12));
+      *reinterpret_cast<pdf_uint32*>(iv[0]) = *reinterpret_cast<pdf_uint32*>((m_initVector  ));
+      *reinterpret_cast<pdf_uint32*>(iv[1]) = *reinterpret_cast<pdf_uint32*>((m_initVector+ 4));
+      *reinterpret_cast<pdf_uint32*>(iv[2]) = *reinterpret_cast<pdf_uint32*>((m_initVector+ 8));
+      *reinterpret_cast<pdf_uint32*>(iv[3]) = *reinterpret_cast<pdf_uint32*>((m_initVector+12));
 #endif
       for (i = numBlocks; i > 0; i--)
       {
         decrypt(input, block);
-        ((pdf_uint32*)block)[0] ^= *((pdf_uint32*)iv[0]);
-        ((pdf_uint32*)block)[1] ^= *((pdf_uint32*)iv[1]);
-        ((pdf_uint32*)block)[2] ^= *((pdf_uint32*)iv[2]);
-        ((pdf_uint32*)block)[3] ^= *((pdf_uint32*)iv[3]);
+        reinterpret_cast<pdf_uint32*>(block)[0] ^= *reinterpret_cast<pdf_uint32*>(iv[0]);
+        reinterpret_cast<pdf_uint32*>(block)[1] ^= *reinterpret_cast<pdf_uint32*>(iv[1]);
+        reinterpret_cast<pdf_uint32*>(block)[2] ^= *reinterpret_cast<pdf_uint32*>(iv[2]);
+        reinterpret_cast<pdf_uint32*>(block)[3] ^= *reinterpret_cast<pdf_uint32*>(iv[3]);
 #if STRICT_ALIGN
         memcpy(iv, input, 16);
         memcpy(outBuf, block, 16);
 #else
-        *((pdf_uint32*)iv[0]) = ((pdf_uint32*)input)[0]; ((pdf_uint32*)outBuffer)[0] = ((pdf_uint32*)block)[0];
-        *((pdf_uint32*)iv[1]) = ((pdf_uint32*)input)[1]; ((pdf_uint32*)outBuffer)[1] = ((pdf_uint32*)block)[1];
-        *((pdf_uint32*)iv[2]) = ((pdf_uint32*)input)[2]; ((pdf_uint32*)outBuffer)[2] = ((pdf_uint32*)block)[2];
-        *((pdf_uint32*)iv[3]) = ((pdf_uint32*)input)[3]; ((pdf_uint32*)outBuffer)[3] = ((pdf_uint32*)block)[3];
+        *reinterpret_cast<pdf_uint32*>(iv[0]) = reinterpret_cast<const pdf_uint32*>(input)[0]; reinterpret_cast<pdf_uint32*>(outBuffer)[0] = reinterpret_cast<const pdf_uint32*>(block)[0];
+        *reinterpret_cast<pdf_uint32*>(iv[1]) = reinterpret_cast<const pdf_uint32*>(input)[1]; reinterpret_cast<pdf_uint32*>(outBuffer)[1] = reinterpret_cast<const pdf_uint32*>(block)[1];
+        *reinterpret_cast<pdf_uint32*>(iv[2]) = reinterpret_cast<const pdf_uint32*>(input)[2]; reinterpret_cast<pdf_uint32*>(outBuffer)[2] = reinterpret_cast<const pdf_uint32*>(block)[2];
+        *reinterpret_cast<pdf_uint32*>(iv[3]) = reinterpret_cast<const pdf_uint32*>(input)[3]; reinterpret_cast<pdf_uint32*>(outBuffer)[3] = reinterpret_cast<const pdf_uint32*>(block)[3];
 #endif
         input += 16;
         outBuffer += 16;
@@ -1236,36 +1239,36 @@ int PdfRijndael::blockDecrypt(const pdf_uint8 *input, int inputLen, pdf_uint8 *o
 #if STRICT_ALIGN 
       memcpy(iv, m_initVector, 16); 
 #else
-      *((pdf_uint32*)iv[0]) = *((pdf_uint32*)(m_initVector));
-      *((pdf_uint32*)iv[1]) = *((pdf_uint32*)(m_initVector+ 4));
-      *((pdf_uint32*)iv[2]) = *((pdf_uint32*)(m_initVector+ 8));
-      *((pdf_uint32*)iv[3]) = *((pdf_uint32*)(m_initVector+12));
+      *reinterpret_cast<pdf_uint32*>(iv[0]) = *reinterpret_cast<pdf_uint32*>((m_initVector));
+      *reinterpret_cast<pdf_uint32*>(iv[1]) = *reinterpret_cast<pdf_uint32*>((m_initVector+ 4));
+      *reinterpret_cast<pdf_uint32*>(iv[2]) = *reinterpret_cast<pdf_uint32*>((m_initVector+ 8));
+      *reinterpret_cast<pdf_uint32*>(iv[3]) = *reinterpret_cast<pdf_uint32*>((m_initVector+12));
 #endif
       for(i = numBlocks; i > 0; i--)
       {
         for(k = 0; k < 128; k++)
         {
-          *((pdf_uint32*) block    ) = *((pdf_uint32*)iv[0]);
-          *((pdf_uint32*)(block+ 4)) = *((pdf_uint32*)iv[1]);
-          *((pdf_uint32*)(block+ 8)) = *((pdf_uint32*)iv[2]);
-          *((pdf_uint32*)(block+12)) = *((pdf_uint32*)iv[3]);
+          *reinterpret_cast<pdf_uint32*>( block    ) = *reinterpret_cast<const pdf_uint32*>(iv[0]);
+          *reinterpret_cast<pdf_uint32*>((block+ 4)) = *reinterpret_cast<const pdf_uint32*>(iv[1]);
+          *reinterpret_cast<pdf_uint32*>((block+ 8)) = *reinterpret_cast<const pdf_uint32*>(iv[2]);
+          *reinterpret_cast<pdf_uint32*>((block+12)) = *reinterpret_cast<const pdf_uint32*>(iv[3]);
           encrypt(block, block);
-          iv[0][0] = (pdf_uint8) ((iv[0][0] << 1) | (iv[0][1] >> 7));
-          iv[0][1] = (pdf_uint8) ((iv[0][1] << 1) | (iv[0][2] >> 7));
-          iv[0][2] = (pdf_uint8) ((iv[0][2] << 1) | (iv[0][3] >> 7));
-          iv[0][3] = (pdf_uint8) ((iv[0][3] << 1) | (iv[1][0] >> 7));
-          iv[1][0] = (pdf_uint8) ((iv[1][0] << 1) | (iv[1][1] >> 7));
-          iv[1][1] = (pdf_uint8) ((iv[1][1] << 1) | (iv[1][2] >> 7));
-          iv[1][2] = (pdf_uint8) ((iv[1][2] << 1) | (iv[1][3] >> 7));
-          iv[1][3] = (pdf_uint8) ((iv[1][3] << 1) | (iv[2][0] >> 7));
-          iv[2][0] = (pdf_uint8) ((iv[2][0] << 1) | (iv[2][1] >> 7));
-          iv[2][1] = (pdf_uint8) ((iv[2][1] << 1) | (iv[2][2] >> 7));
-          iv[2][2] = (pdf_uint8) ((iv[2][2] << 1) | (iv[2][3] >> 7));
-          iv[2][3] = (pdf_uint8) ((iv[2][3] << 1) | (iv[3][0] >> 7));
-          iv[3][0] = (pdf_uint8) ((iv[3][0] << 1) | (iv[3][1] >> 7));
-          iv[3][1] = (pdf_uint8) ((iv[3][1] << 1) | (iv[3][2] >> 7));
-          iv[3][2] = (pdf_uint8) ((iv[3][2] << 1) | (iv[3][3] >> 7));
-          iv[3][3] = (pdf_uint8) ((iv[3][3] << 1) | (input[k/8] >> (7-(k&7))) & 1);
+          iv[0][0] = static_cast<pdf_uint8> ((iv[0][0] << 1) | (iv[0][1] >> 7));
+          iv[0][1] = static_cast<pdf_uint8> ((iv[0][1] << 1) | (iv[0][2] >> 7));
+          iv[0][2] = static_cast<pdf_uint8> ((iv[0][2] << 1) | (iv[0][3] >> 7));
+          iv[0][3] = static_cast<pdf_uint8> ((iv[0][3] << 1) | (iv[1][0] >> 7));
+          iv[1][0] = static_cast<pdf_uint8> ((iv[1][0] << 1) | (iv[1][1] >> 7));
+          iv[1][1] = static_cast<pdf_uint8> ((iv[1][1] << 1) | (iv[1][2] >> 7));
+          iv[1][2] = static_cast<pdf_uint8> ((iv[1][2] << 1) | (iv[1][3] >> 7));
+          iv[1][3] = static_cast<pdf_uint8> ((iv[1][3] << 1) | (iv[2][0] >> 7));
+          iv[2][0] = static_cast<pdf_uint8> ((iv[2][0] << 1) | (iv[2][1] >> 7));
+          iv[2][1] = static_cast<pdf_uint8> ((iv[2][1] << 1) | (iv[2][2] >> 7));
+          iv[2][2] = static_cast<pdf_uint8> ((iv[2][2] << 1) | (iv[2][3] >> 7));
+          iv[2][3] = static_cast<pdf_uint8> ((iv[2][3] << 1) | (iv[3][0] >> 7));
+          iv[3][0] = static_cast<pdf_uint8> ((iv[3][0] << 1) | (iv[3][1] >> 7));
+          iv[3][1] = static_cast<pdf_uint8> ((iv[3][1] << 1) | (iv[3][2] >> 7));
+          iv[3][2] = static_cast<pdf_uint8> ((iv[3][2] << 1) | (iv[3][3] >> 7));
+          iv[3][3] = static_cast<pdf_uint8> (((iv[3][3] << 1) | (input[k/8] >> (7-(k&7)))) & 1);
           outBuffer[k/8] ^= (block[0] & 0x80) >> (k & 7);
         }
       }
@@ -1317,10 +1320,10 @@ int PdfRijndael::padDecrypt(const pdf_uint8 *input, int inputOctets, pdf_uint8 *
       for (i = numBlocks - 1; i > 0; i--)
       {
         decrypt(input, block);
-        ((pdf_uint32*)block)[0] ^= iv[0];
-        ((pdf_uint32*)block)[1] ^= iv[1];
-        ((pdf_uint32*)block)[2] ^= iv[2];
-        ((pdf_uint32*)block)[3] ^= iv[3];
+        reinterpret_cast<pdf_uint32*>(block)[0] ^= iv[0];
+        reinterpret_cast<pdf_uint32*>(block)[1] ^= iv[1];
+        reinterpret_cast<pdf_uint32*>(block)[2] ^= iv[2];
+        reinterpret_cast<pdf_uint32*>(block)[3] ^= iv[3];
         memcpy(iv, input, 16);
         memcpy(outBuffer, block, 16);
         input += 16;
@@ -1328,10 +1331,10 @@ int PdfRijndael::padDecrypt(const pdf_uint8 *input, int inputOctets, pdf_uint8 *
       }
       /* last block */
       decrypt(input, block);
-      ((pdf_uint32*)block)[0] ^= iv[0];
-      ((pdf_uint32*)block)[1] ^= iv[1];
-      ((pdf_uint32*)block)[2] ^= iv[2];
-      ((pdf_uint32*)block)[3] ^= iv[3];
+      reinterpret_cast<pdf_uint32*>(block)[0] ^= iv[0];
+      reinterpret_cast<pdf_uint32*>(block)[1] ^= iv[1];
+      reinterpret_cast<pdf_uint32*>(block)[2] ^= iv[2];
+      reinterpret_cast<pdf_uint32*>(block)[3] ^= iv[3];
       padLen = block[15];
       if(padLen <= 0 || padLen > 16)return RIJNDAEL_CORRUPTED_DATA;
       for(i = 16 - padLen; i < 16; i++)
@@ -1341,6 +1344,7 @@ int PdfRijndael::padDecrypt(const pdf_uint8 *input, int inputOctets, pdf_uint8 *
       memcpy(outBuffer, block, 16 - padLen);
       break;
     
+    case CFB1:
     default:
       return -1;
     break;
@@ -1368,7 +1372,7 @@ void PdfRijndael::keySched(pdf_uint8 key[_MAX_KEY_COLUMNS][4])
 
   for(j = 0;j < uKeyColumns;j++)
   {
-    *((pdf_uint32*)(tempKey[j])) = *((pdf_uint32*)(key[j]));
+    *reinterpret_cast<pdf_uint32*>((tempKey[j])) = *reinterpret_cast<pdf_uint32*>((key[j]));
   }
 
   pdf_uint32 r = 0;
@@ -1379,7 +1383,7 @@ void PdfRijndael::keySched(pdf_uint8 key[_MAX_KEY_COLUMNS][4])
   {
     for(;(j < uKeyColumns) && (t < 4); j++, t++)
     {
-      *((pdf_uint32*)m_expandedKey[r][t]) = *((pdf_uint32*)tempKey[j]);
+      *reinterpret_cast<pdf_uint32*>(m_expandedKey[r][t]) = *reinterpret_cast<pdf_uint32*>(tempKey[j]);
     }
 
 
@@ -1402,12 +1406,12 @@ void PdfRijndael::keySched(pdf_uint8 key[_MAX_KEY_COLUMNS][4])
     {
       for(j = 1; j < uKeyColumns; j++)
       {
-        *((pdf_uint32*)tempKey[j]) ^= *((pdf_uint32*)tempKey[j-1]);
+        *reinterpret_cast<pdf_uint32*>(tempKey[j]) ^= *reinterpret_cast<pdf_uint32*>(tempKey[j-1]);
       }
     } else {
       for(j = 1; j < uKeyColumns/2; j++)
       {
-        *((pdf_uint32*)tempKey[j]) ^= *((pdf_uint32*)tempKey[j-1]);
+        *reinterpret_cast<pdf_uint32*>(tempKey[j]) ^= *reinterpret_cast<pdf_uint32*>(tempKey[j-1]);
       }
       tempKey[uKeyColumns/2][0] ^= S[tempKey[uKeyColumns/2 - 1][0]];
       tempKey[uKeyColumns/2][1] ^= S[tempKey[uKeyColumns/2 - 1][1]];
@@ -1415,14 +1419,14 @@ void PdfRijndael::keySched(pdf_uint8 key[_MAX_KEY_COLUMNS][4])
       tempKey[uKeyColumns/2][3] ^= S[tempKey[uKeyColumns/2 - 1][3]];
       for(j = uKeyColumns/2 + 1; j < uKeyColumns; j++)
       {
-        *((pdf_uint32*)tempKey[j]) ^= *((pdf_uint32*)tempKey[j-1]);
+        *reinterpret_cast<pdf_uint32*>(tempKey[j]) ^= *reinterpret_cast<pdf_uint32*>(tempKey[j-1]);
       }
     }
     for(j = 0; (j < uKeyColumns) && (r <= m_uRounds); )
     {
       for(; (j < uKeyColumns) && (t < 4); j++, t++)
       {
-        *((pdf_uint32*)m_expandedKey[r][t]) = *((pdf_uint32*)tempKey[j]);
+        *reinterpret_cast<pdf_uint32*>(m_expandedKey[r][t]) = *reinterpret_cast<pdf_uint32*>(tempKey[j]);
       }
       if(t == 4)
       {
@@ -1441,13 +1445,13 @@ void PdfRijndael::keyEncToDec()
   for(r = 1; r < m_uRounds; r++)
   {
     w = m_expandedKey[r][0];
-    *((pdf_uint32*)w) = *((pdf_uint32*)U1[w[0]]) ^ *((pdf_uint32*)U2[w[1]]) ^ *((pdf_uint32*)U3[w[2]]) ^ *((pdf_uint32*)U4[w[3]]);
+    *reinterpret_cast<pdf_uint32*>(w) = *reinterpret_cast<pdf_uint32*>(U1[w[0]]) ^ *reinterpret_cast<pdf_uint32*>(U2[w[1]]) ^ *reinterpret_cast<const pdf_uint32*>(U3[w[2]]) ^ *reinterpret_cast<const pdf_uint32*>(U4[w[3]]);
     w = m_expandedKey[r][1];
-    *((pdf_uint32*)w) = *((pdf_uint32*)U1[w[0]]) ^ *((pdf_uint32*)U2[w[1]]) ^ *((pdf_uint32*)U3[w[2]]) ^ *((pdf_uint32*)U4[w[3]]);
+    *reinterpret_cast<pdf_uint32*>(w) = *reinterpret_cast<pdf_uint32*>(U1[w[0]]) ^ *reinterpret_cast<pdf_uint32*>(U2[w[1]]) ^ *reinterpret_cast<const pdf_uint32*>(U3[w[2]]) ^ *reinterpret_cast<const pdf_uint32*>(U4[w[3]]);
     w = m_expandedKey[r][2];
-    *((pdf_uint32*)w) = *((pdf_uint32*)U1[w[0]]) ^ *((pdf_uint32*)U2[w[1]]) ^ *((pdf_uint32*)U3[w[2]]) ^ *((pdf_uint32*)U4[w[3]]);
+    *reinterpret_cast<pdf_uint32*>(w) = *reinterpret_cast<pdf_uint32*>(U1[w[0]]) ^ *reinterpret_cast<pdf_uint32*>(U2[w[1]]) ^ *reinterpret_cast<const pdf_uint32*>(U3[w[2]]) ^ *reinterpret_cast<const pdf_uint32*>(U4[w[3]]);
     w = m_expandedKey[r][3];
-    *((pdf_uint32*)w) = *((pdf_uint32*)U1[w[0]]) ^ *((pdf_uint32*)U2[w[1]]) ^ *((pdf_uint32*)U3[w[2]]) ^ *((pdf_uint32*)U4[w[3]]);
+    *reinterpret_cast<pdf_uint32*>(w) = *reinterpret_cast<pdf_uint32*>(U1[w[0]]) ^ *reinterpret_cast<pdf_uint32*>(U2[w[1]]) ^ *reinterpret_cast<const pdf_uint32*>(U3[w[2]]) ^ *reinterpret_cast<const pdf_uint32*>(U4[w[3]]);
   }
 }  
 
@@ -1456,54 +1460,54 @@ void PdfRijndael::encrypt(const pdf_uint8 a[16], pdf_uint8 b[16])
   pdf_uint32 r;
   pdf_uint8 temp[4][4];
 
-    *((pdf_uint32*)temp[0]) = *((pdf_uint32*)(a   )) ^ *((pdf_uint32*)m_expandedKey[0][0]);
-    *((pdf_uint32*)temp[1]) = *((pdf_uint32*)(a+ 4)) ^ *((pdf_uint32*)m_expandedKey[0][1]);
-    *((pdf_uint32*)temp[2]) = *((pdf_uint32*)(a+ 8)) ^ *((pdf_uint32*)m_expandedKey[0][2]);
-    *((pdf_uint32*)temp[3]) = *((pdf_uint32*)(a+12)) ^ *((pdf_uint32*)m_expandedKey[0][3]);
-    *((pdf_uint32*)(b    )) = *((pdf_uint32*)T1[temp[0][0]])
-            ^ *((pdf_uint32*)T2[temp[1][1]])
-            ^ *((pdf_uint32*)T3[temp[2][2]]) 
-            ^ *((pdf_uint32*)T4[temp[3][3]]);
-    *((pdf_uint32*)(b + 4)) = *((pdf_uint32*)T1[temp[1][0]])
-            ^ *((pdf_uint32*)T2[temp[2][1]])
-            ^ *((pdf_uint32*)T3[temp[3][2]]) 
-            ^ *((pdf_uint32*)T4[temp[0][3]]);
-    *((pdf_uint32*)(b + 8)) = *((pdf_uint32*)T1[temp[2][0]])
-            ^ *((pdf_uint32*)T2[temp[3][1]])
-            ^ *((pdf_uint32*)T3[temp[0][2]]) 
-            ^ *((pdf_uint32*)T4[temp[1][3]]);
-    *((pdf_uint32*)(b +12)) = *((pdf_uint32*)T1[temp[3][0]])
-            ^ *((pdf_uint32*)T2[temp[0][1]])
-            ^ *((pdf_uint32*)T3[temp[1][2]]) 
-            ^ *((pdf_uint32*)T4[temp[2][3]]);
+    *reinterpret_cast<pdf_uint32*>(temp[0]) = *reinterpret_cast<const pdf_uint32*>((a   )) ^ *reinterpret_cast<const pdf_uint32*>(m_expandedKey[0][0]);
+    *reinterpret_cast<pdf_uint32*>(temp[1]) = *reinterpret_cast<const pdf_uint32*>((a+ 4)) ^ *reinterpret_cast<const pdf_uint32*>(m_expandedKey[0][1]);
+    *reinterpret_cast<pdf_uint32*>(temp[2]) = *reinterpret_cast<const pdf_uint32*>((a+ 8)) ^ *reinterpret_cast<const pdf_uint32*>(m_expandedKey[0][2]);
+    *reinterpret_cast<pdf_uint32*>(temp[3]) = *reinterpret_cast<const pdf_uint32*>((a+12)) ^ *reinterpret_cast<const pdf_uint32*>(m_expandedKey[0][3]);
+    *reinterpret_cast<pdf_uint32*>((b    )) = *reinterpret_cast<const pdf_uint32*>(T1[temp[0][0]])
+            ^ *reinterpret_cast<pdf_uint32*>(T2[temp[1][1]])
+            ^ *reinterpret_cast<pdf_uint32*>(T3[temp[2][2]]) 
+            ^ *reinterpret_cast<pdf_uint32*>(T4[temp[3][3]]);
+    *reinterpret_cast<pdf_uint32*>((b + 4)) = *reinterpret_cast<pdf_uint32*>(T1[temp[1][0]])
+            ^ *reinterpret_cast<pdf_uint32*>(T2[temp[2][1]])
+            ^ *reinterpret_cast<pdf_uint32*>(T3[temp[3][2]]) 
+            ^ *reinterpret_cast<pdf_uint32*>(T4[temp[0][3]]);
+    *reinterpret_cast<pdf_uint32*>((b + 8)) = *reinterpret_cast<pdf_uint32*>(T1[temp[2][0]])
+            ^ *reinterpret_cast<pdf_uint32*>(T2[temp[3][1]])
+            ^ *reinterpret_cast<pdf_uint32*>(T3[temp[0][2]]) 
+            ^ *reinterpret_cast<pdf_uint32*>(T4[temp[1][3]]);
+    *reinterpret_cast<pdf_uint32*>((b +12)) = *reinterpret_cast<pdf_uint32*>(T1[temp[3][0]])
+            ^ *reinterpret_cast<pdf_uint32*>(T2[temp[0][1]])
+            ^ *reinterpret_cast<pdf_uint32*>(T3[temp[1][2]]) 
+            ^ *reinterpret_cast<pdf_uint32*>(T4[temp[2][3]]);
   for(r = 1; r < m_uRounds-1; r++)
   {
-    *((pdf_uint32*)temp[0]) = *((pdf_uint32*)(b   )) ^ *((pdf_uint32*)m_expandedKey[r][0]);
-    *((pdf_uint32*)temp[1]) = *((pdf_uint32*)(b+ 4)) ^ *((pdf_uint32*)m_expandedKey[r][1]);
-    *((pdf_uint32*)temp[2]) = *((pdf_uint32*)(b+ 8)) ^ *((pdf_uint32*)m_expandedKey[r][2]);
-    *((pdf_uint32*)temp[3]) = *((pdf_uint32*)(b+12)) ^ *((pdf_uint32*)m_expandedKey[r][3]);
+    *reinterpret_cast<pdf_uint32*>(temp[0]) = *reinterpret_cast<pdf_uint32*>((b   )) ^ *reinterpret_cast<pdf_uint32*>(m_expandedKey[r][0]);
+    *reinterpret_cast<pdf_uint32*>(temp[1]) = *reinterpret_cast<pdf_uint32*>((b+ 4)) ^ *reinterpret_cast<pdf_uint32*>(m_expandedKey[r][1]);
+    *reinterpret_cast<pdf_uint32*>(temp[2]) = *reinterpret_cast<pdf_uint32*>((b+ 8)) ^ *reinterpret_cast<pdf_uint32*>(m_expandedKey[r][2]);
+    *reinterpret_cast<pdf_uint32*>(temp[3]) = *reinterpret_cast<pdf_uint32*>((b+12)) ^ *reinterpret_cast<pdf_uint32*>(m_expandedKey[r][3]);
 
-    *((pdf_uint32*)(b    )) = *((pdf_uint32*)T1[temp[0][0]])
-              ^ *((pdf_uint32*)T2[temp[1][1]])
-              ^ *((pdf_uint32*)T3[temp[2][2]]) 
-              ^ *((pdf_uint32*)T4[temp[3][3]]);
-    *((pdf_uint32*)(b + 4)) = *((pdf_uint32*)T1[temp[1][0]])
-              ^ *((pdf_uint32*)T2[temp[2][1]])
-              ^ *((pdf_uint32*)T3[temp[3][2]]) 
-              ^ *((pdf_uint32*)T4[temp[0][3]]);
-    *((pdf_uint32*)(b + 8)) = *((pdf_uint32*)T1[temp[2][0]])
-              ^ *((pdf_uint32*)T2[temp[3][1]])
-              ^ *((pdf_uint32*)T3[temp[0][2]]) 
-              ^ *((pdf_uint32*)T4[temp[1][3]]);
-    *((pdf_uint32*)(b +12)) = *((pdf_uint32*)T1[temp[3][0]])
-              ^ *((pdf_uint32*)T2[temp[0][1]])
-              ^ *((pdf_uint32*)T3[temp[1][2]]) 
-              ^ *((pdf_uint32*)T4[temp[2][3]]);
+    *reinterpret_cast<pdf_uint32*>((b    )) = *reinterpret_cast<pdf_uint32*>(T1[temp[0][0]])
+              ^ *reinterpret_cast<pdf_uint32*>(T2[temp[1][1]])
+              ^ *reinterpret_cast<pdf_uint32*>(T3[temp[2][2]]) 
+              ^ *reinterpret_cast<pdf_uint32*>(T4[temp[3][3]]);
+    *reinterpret_cast<pdf_uint32*>((b + 4)) = *reinterpret_cast<pdf_uint32*>(T1[temp[1][0]])
+              ^ *reinterpret_cast<pdf_uint32*>(T2[temp[2][1]])
+              ^ *reinterpret_cast<pdf_uint32*>(T3[temp[3][2]]) 
+              ^ *reinterpret_cast<pdf_uint32*>(T4[temp[0][3]]);
+    *reinterpret_cast<pdf_uint32*>((b + 8)) = *reinterpret_cast<pdf_uint32*>(T1[temp[2][0]])
+              ^ *reinterpret_cast<pdf_uint32*>(T2[temp[3][1]])
+              ^ *reinterpret_cast<pdf_uint32*>(T3[temp[0][2]]) 
+              ^ *reinterpret_cast<pdf_uint32*>(T4[temp[1][3]]);
+    *reinterpret_cast<pdf_uint32*>((b +12)) = *reinterpret_cast<pdf_uint32*>(T1[temp[3][0]])
+              ^ *reinterpret_cast<pdf_uint32*>(T2[temp[0][1]])
+              ^ *reinterpret_cast<pdf_uint32*>(T3[temp[1][2]]) 
+              ^ *reinterpret_cast<pdf_uint32*>(T4[temp[2][3]]);
   }
-  *((pdf_uint32*)temp[0]) = *((pdf_uint32*)(b   )) ^ *((pdf_uint32*)m_expandedKey[m_uRounds-1][0]);
-  *((pdf_uint32*)temp[1]) = *((pdf_uint32*)(b+ 4)) ^ *((pdf_uint32*)m_expandedKey[m_uRounds-1][1]);
-  *((pdf_uint32*)temp[2]) = *((pdf_uint32*)(b+ 8)) ^ *((pdf_uint32*)m_expandedKey[m_uRounds-1][2]);
-  *((pdf_uint32*)temp[3]) = *((pdf_uint32*)(b+12)) ^ *((pdf_uint32*)m_expandedKey[m_uRounds-1][3]);
+  *reinterpret_cast<pdf_uint32*>(temp[0]) = *reinterpret_cast<pdf_uint32*>((b   )) ^ *reinterpret_cast<pdf_uint32*>(m_expandedKey[m_uRounds-1][0]);
+  *reinterpret_cast<pdf_uint32*>(temp[1]) = *reinterpret_cast<pdf_uint32*>((b+ 4)) ^ *reinterpret_cast<pdf_uint32*>(m_expandedKey[m_uRounds-1][1]);
+  *reinterpret_cast<pdf_uint32*>(temp[2]) = *reinterpret_cast<pdf_uint32*>((b+ 8)) ^ *reinterpret_cast<pdf_uint32*>(m_expandedKey[m_uRounds-1][2]);
+  *reinterpret_cast<pdf_uint32*>(temp[3]) = *reinterpret_cast<pdf_uint32*>((b+12)) ^ *reinterpret_cast<pdf_uint32*>(m_expandedKey[m_uRounds-1][3]);
   b[ 0] = T1[temp[0][0]][1];
   b[ 1] = T1[temp[1][1]][1];
   b[ 2] = T1[temp[2][2]][1];
@@ -1520,10 +1524,10 @@ void PdfRijndael::encrypt(const pdf_uint8 a[16], pdf_uint8 b[16])
   b[13] = T1[temp[0][1]][1];
   b[14] = T1[temp[1][2]][1];
   b[15] = T1[temp[2][3]][1];
-  *((pdf_uint32*)(b   )) ^= *((pdf_uint32*)m_expandedKey[m_uRounds][0]);
-  *((pdf_uint32*)(b+ 4)) ^= *((pdf_uint32*)m_expandedKey[m_uRounds][1]);
-  *((pdf_uint32*)(b+ 8)) ^= *((pdf_uint32*)m_expandedKey[m_uRounds][2]);
-  *((pdf_uint32*)(b+12)) ^= *((pdf_uint32*)m_expandedKey[m_uRounds][3]);
+  *reinterpret_cast<pdf_uint32*>((b   )) ^= *reinterpret_cast<pdf_uint32*>(m_expandedKey[m_uRounds][0]);
+  *reinterpret_cast<pdf_uint32*>((b+ 4)) ^= *reinterpret_cast<pdf_uint32*>(m_expandedKey[m_uRounds][1]);
+  *reinterpret_cast<pdf_uint32*>((b+ 8)) ^= *reinterpret_cast<pdf_uint32*>(m_expandedKey[m_uRounds][2]);
+  *reinterpret_cast<pdf_uint32*>((b+12)) ^= *reinterpret_cast<pdf_uint32*>(m_expandedKey[m_uRounds][3]);
 }
 
 void PdfRijndael::decrypt(const pdf_uint8 a[16], pdf_uint8 b[16])
@@ -1531,55 +1535,55 @@ void PdfRijndael::decrypt(const pdf_uint8 a[16], pdf_uint8 b[16])
   int r;
   pdf_uint8 temp[4][4];
   
-    *((pdf_uint32*)temp[0]) = *((pdf_uint32*)(a   )) ^ *((pdf_uint32*)m_expandedKey[m_uRounds][0]);
-    *((pdf_uint32*)temp[1]) = *((pdf_uint32*)(a+ 4)) ^ *((pdf_uint32*)m_expandedKey[m_uRounds][1]);
-    *((pdf_uint32*)temp[2]) = *((pdf_uint32*)(a+ 8)) ^ *((pdf_uint32*)m_expandedKey[m_uRounds][2]);
-    *((pdf_uint32*)temp[3]) = *((pdf_uint32*)(a+12)) ^ *((pdf_uint32*)m_expandedKey[m_uRounds][3]);
+    *reinterpret_cast<pdf_uint32*>(temp[0]) = *reinterpret_cast<const pdf_uint32*>((a   )) ^ *reinterpret_cast<const pdf_uint32*>(m_expandedKey[m_uRounds][0]);
+    *reinterpret_cast<pdf_uint32*>(temp[1]) = *reinterpret_cast<const pdf_uint32*>((a+ 4)) ^ *reinterpret_cast<const pdf_uint32*>(m_expandedKey[m_uRounds][1]);
+    *reinterpret_cast<pdf_uint32*>(temp[2]) = *reinterpret_cast<const pdf_uint32*>((a+ 8)) ^ *reinterpret_cast<const pdf_uint32*>(m_expandedKey[m_uRounds][2]);
+    *reinterpret_cast<pdf_uint32*>(temp[3]) = *reinterpret_cast<const pdf_uint32*>((a+12)) ^ *reinterpret_cast<const pdf_uint32*>(m_expandedKey[m_uRounds][3]);
 
-    *((pdf_uint32*)(b   )) = *((pdf_uint32*)T5[temp[0][0]])
-           ^ *((pdf_uint32*)T6[temp[3][1]])
-           ^ *((pdf_uint32*)T7[temp[2][2]]) 
-           ^ *((pdf_uint32*)T8[temp[1][3]]);
-  *((pdf_uint32*)(b+ 4)) = *((pdf_uint32*)T5[temp[1][0]])
-           ^ *((pdf_uint32*)T6[temp[0][1]])
-           ^ *((pdf_uint32*)T7[temp[3][2]]) 
-           ^ *((pdf_uint32*)T8[temp[2][3]]);
-  *((pdf_uint32*)(b+ 8)) = *((pdf_uint32*)T5[temp[2][0]])
-           ^ *((pdf_uint32*)T6[temp[1][1]])
-           ^ *((pdf_uint32*)T7[temp[0][2]]) 
-           ^ *((pdf_uint32*)T8[temp[3][3]]);
-  *((pdf_uint32*)(b+12)) = *((pdf_uint32*)T5[temp[3][0]])
-           ^ *((pdf_uint32*)T6[temp[2][1]])
-           ^ *((pdf_uint32*)T7[temp[1][2]]) 
-           ^ *((pdf_uint32*)T8[temp[0][3]]);
+    *reinterpret_cast<pdf_uint32*>((b   )) = *reinterpret_cast<pdf_uint32*>(T5[temp[0][0]])
+           ^ *reinterpret_cast<pdf_uint32*>(T6[temp[3][1]])
+           ^ *reinterpret_cast<pdf_uint32*>(T7[temp[2][2]]) 
+           ^ *reinterpret_cast<pdf_uint32*>(T8[temp[1][3]]);
+  *reinterpret_cast<pdf_uint32*>((b+ 4)) = *reinterpret_cast<pdf_uint32*>(T5[temp[1][0]])
+           ^ *reinterpret_cast<pdf_uint32*>(T6[temp[0][1]])
+           ^ *reinterpret_cast<pdf_uint32*>(T7[temp[3][2]]) 
+           ^ *reinterpret_cast<pdf_uint32*>(T8[temp[2][3]]);
+  *reinterpret_cast<pdf_uint32*>((b+ 8)) = *reinterpret_cast<pdf_uint32*>(T5[temp[2][0]])
+           ^ *reinterpret_cast<pdf_uint32*>(T6[temp[1][1]])
+           ^ *reinterpret_cast<pdf_uint32*>(T7[temp[0][2]]) 
+           ^ *reinterpret_cast<pdf_uint32*>(T8[temp[3][3]]);
+  *reinterpret_cast<pdf_uint32*>((b+12)) = *reinterpret_cast<pdf_uint32*>(T5[temp[3][0]])
+           ^ *reinterpret_cast<pdf_uint32*>(T6[temp[2][1]])
+           ^ *reinterpret_cast<pdf_uint32*>(T7[temp[1][2]]) 
+           ^ *reinterpret_cast<pdf_uint32*>(T8[temp[0][3]]);
   for(r = m_uRounds-1; r > 1; r--)
   {
-    *((pdf_uint32*)temp[0]) = *((pdf_uint32*)(b   )) ^ *((pdf_uint32*)m_expandedKey[r][0]);
-    *((pdf_uint32*)temp[1]) = *((pdf_uint32*)(b+ 4)) ^ *((pdf_uint32*)m_expandedKey[r][1]);
-    *((pdf_uint32*)temp[2]) = *((pdf_uint32*)(b+ 8)) ^ *((pdf_uint32*)m_expandedKey[r][2]);
-    *((pdf_uint32*)temp[3]) = *((pdf_uint32*)(b+12)) ^ *((pdf_uint32*)m_expandedKey[r][3]);
-    *((pdf_uint32*)(b   )) = *((pdf_uint32*)T5[temp[0][0]])
-           ^ *((pdf_uint32*)T6[temp[3][1]])
-           ^ *((pdf_uint32*)T7[temp[2][2]]) 
-           ^ *((pdf_uint32*)T8[temp[1][3]]);
-    *((pdf_uint32*)(b+ 4)) = *((pdf_uint32*)T5[temp[1][0]])
-           ^ *((pdf_uint32*)T6[temp[0][1]])
-           ^ *((pdf_uint32*)T7[temp[3][2]]) 
-           ^ *((pdf_uint32*)T8[temp[2][3]]);
-    *((pdf_uint32*)(b+ 8)) = *((pdf_uint32*)T5[temp[2][0]])
-           ^ *((pdf_uint32*)T6[temp[1][1]])
-           ^ *((pdf_uint32*)T7[temp[0][2]]) 
-           ^ *((pdf_uint32*)T8[temp[3][3]]);
-    *((pdf_uint32*)(b+12)) = *((pdf_uint32*)T5[temp[3][0]])
-           ^ *((pdf_uint32*)T6[temp[2][1]])
-           ^ *((pdf_uint32*)T7[temp[1][2]]) 
-           ^ *((pdf_uint32*)T8[temp[0][3]]);
+    *reinterpret_cast<pdf_uint32*>(temp[0]) = *reinterpret_cast<pdf_uint32*>((b   )) ^ *reinterpret_cast<pdf_uint32*>(m_expandedKey[r][0]);
+    *reinterpret_cast<pdf_uint32*>(temp[1]) = *reinterpret_cast<pdf_uint32*>((b+ 4)) ^ *reinterpret_cast<pdf_uint32*>(m_expandedKey[r][1]);
+    *reinterpret_cast<pdf_uint32*>(temp[2]) = *reinterpret_cast<pdf_uint32*>((b+ 8)) ^ *reinterpret_cast<pdf_uint32*>(m_expandedKey[r][2]);
+    *reinterpret_cast<pdf_uint32*>(temp[3]) = *reinterpret_cast<pdf_uint32*>((b+12)) ^ *reinterpret_cast<pdf_uint32*>(m_expandedKey[r][3]);
+    *reinterpret_cast<pdf_uint32*>((b   )) = *reinterpret_cast<pdf_uint32*>(T5[temp[0][0]])
+           ^ *reinterpret_cast<pdf_uint32*>(T6[temp[3][1]])
+           ^ *reinterpret_cast<pdf_uint32*>(T7[temp[2][2]]) 
+           ^ *reinterpret_cast<pdf_uint32*>(T8[temp[1][3]]);
+    *reinterpret_cast<pdf_uint32*>((b+ 4)) = *reinterpret_cast<pdf_uint32*>(T5[temp[1][0]])
+           ^ *reinterpret_cast<pdf_uint32*>(T6[temp[0][1]])
+           ^ *reinterpret_cast<pdf_uint32*>(T7[temp[3][2]]) 
+           ^ *reinterpret_cast<pdf_uint32*>(T8[temp[2][3]]);
+    *reinterpret_cast<pdf_uint32*>((b+ 8)) = *reinterpret_cast<pdf_uint32*>(T5[temp[2][0]])
+           ^ *reinterpret_cast<pdf_uint32*>(T6[temp[1][1]])
+           ^ *reinterpret_cast<pdf_uint32*>(T7[temp[0][2]]) 
+           ^ *reinterpret_cast<pdf_uint32*>(T8[temp[3][3]]);
+    *reinterpret_cast<pdf_uint32*>((b+12)) = *reinterpret_cast<pdf_uint32*>(T5[temp[3][0]])
+           ^ *reinterpret_cast<pdf_uint32*>(T6[temp[2][1]])
+           ^ *reinterpret_cast<pdf_uint32*>(T7[temp[1][2]]) 
+           ^ *reinterpret_cast<pdf_uint32*>(T8[temp[0][3]]);
   }
  
-  *((pdf_uint32*)temp[0]) = *((pdf_uint32*)(b   )) ^ *((pdf_uint32*)m_expandedKey[1][0]);
-  *((pdf_uint32*)temp[1]) = *((pdf_uint32*)(b+ 4)) ^ *((pdf_uint32*)m_expandedKey[1][1]);
-  *((pdf_uint32*)temp[2]) = *((pdf_uint32*)(b+ 8)) ^ *((pdf_uint32*)m_expandedKey[1][2]);
-  *((pdf_uint32*)temp[3]) = *((pdf_uint32*)(b+12)) ^ *((pdf_uint32*)m_expandedKey[1][3]);
+  *reinterpret_cast<pdf_uint32*>(temp[0]) = *reinterpret_cast<pdf_uint32*>((b   )) ^ *reinterpret_cast<pdf_uint32*>(m_expandedKey[1][0]);
+  *reinterpret_cast<pdf_uint32*>(temp[1]) = *reinterpret_cast<pdf_uint32*>((b+ 4)) ^ *reinterpret_cast<pdf_uint32*>(m_expandedKey[1][1]);
+  *reinterpret_cast<pdf_uint32*>(temp[2]) = *reinterpret_cast<pdf_uint32*>((b+ 8)) ^ *reinterpret_cast<pdf_uint32*>(m_expandedKey[1][2]);
+  *reinterpret_cast<pdf_uint32*>(temp[3]) = *reinterpret_cast<pdf_uint32*>((b+12)) ^ *reinterpret_cast<pdf_uint32*>(m_expandedKey[1][3]);
   b[ 0] = S5[temp[0][0]];
   b[ 1] = S5[temp[3][1]];
   b[ 2] = S5[temp[2][2]];
@@ -1596,10 +1600,10 @@ void PdfRijndael::decrypt(const pdf_uint8 a[16], pdf_uint8 b[16])
   b[13] = S5[temp[2][1]];
   b[14] = S5[temp[1][2]];
   b[15] = S5[temp[0][3]];
-  *((pdf_uint32*)(b   )) ^= *((pdf_uint32*)m_expandedKey[0][0]);
-  *((pdf_uint32*)(b+ 4)) ^= *((pdf_uint32*)m_expandedKey[0][1]);
-  *((pdf_uint32*)(b+ 8)) ^= *((pdf_uint32*)m_expandedKey[0][2]);
-  *((pdf_uint32*)(b+12)) ^= *((pdf_uint32*)m_expandedKey[0][3]);
+  *reinterpret_cast<pdf_uint32*>((b   )) ^= *reinterpret_cast<pdf_uint32*>(m_expandedKey[0][0]);
+  *reinterpret_cast<pdf_uint32*>((b+ 4)) ^= *reinterpret_cast<pdf_uint32*>(m_expandedKey[0][1]);
+  *reinterpret_cast<pdf_uint32*>((b+ 8)) ^= *reinterpret_cast<pdf_uint32*>(m_expandedKey[0][2]);
+  *reinterpret_cast<pdf_uint32*>((b+12)) ^= *reinterpret_cast<pdf_uint32*>(m_expandedKey[0][3]);
 }
 
 };

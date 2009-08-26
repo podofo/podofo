@@ -271,6 +271,7 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
         -Wwrite-strings
         -Wredundant-decls
         -Wreorder
+	-Wold-style-cast
        )
     #
     # Note that we do not need debug definitions here. Set
