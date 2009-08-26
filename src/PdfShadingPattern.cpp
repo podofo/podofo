@@ -262,21 +262,21 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
 		range.push_back( 0.0 );
 		range.push_back( 1.0 );
 
-		samples.insert( samples.end(), (char) ( rLL.GetRed() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rLL.GetGreen() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rLL.GetBlue() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rLL.GetRed() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rLL.GetGreen() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rLL.GetBlue() *255.0 ) );
 
-		samples.insert( samples.end(), (char) ( rLR.GetRed() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rLR.GetGreen() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rLR.GetBlue() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rLR.GetRed() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rLR.GetGreen() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rLR.GetBlue() *255.0 ) );
 
-		samples.insert( samples.end(), (char) ( rUL.GetRed() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rUL.GetGreen() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rUL.GetBlue() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rUL.GetRed() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rUL.GetGreen() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rUL.GetBlue() *255.0 ) );
 
-		samples.insert( samples.end(), (char) ( rUR.GetRed() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rUR.GetGreen() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rUR.GetBlue() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rUR.GetRed() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rUR.GetGreen() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rUR.GetBlue() *255.0 ) );
 
         shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceRGB") );
 	}
@@ -291,25 +291,25 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
 		range.push_back( 0.0 );
 		range.push_back( 1.0 );
 
-		samples.insert( samples.end(), (char) ( rLL.GetCyan() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rLL.GetMagenta() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rLL.GetYellow() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rLL.GetBlack() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rLL.GetCyan() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rLL.GetMagenta() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rLL.GetYellow() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rLL.GetBlack() *255.0 ) );
 
-		samples.insert( samples.end(), (char) ( rLR.GetCyan() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rLR.GetMagenta() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rLR.GetYellow() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rLR.GetBlack() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rLR.GetCyan() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rLR.GetMagenta() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rLR.GetYellow() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rLR.GetBlack() *255.0 ) );
 
-		samples.insert( samples.end(), (char) ( rUL.GetCyan() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rUL.GetMagenta() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rUL.GetYellow() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rUL.GetBlack() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rUL.GetCyan() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rUL.GetMagenta() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rUL.GetYellow() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rUL.GetBlack() *255.0 ) );
 
-		samples.insert( samples.end(), (char) ( rUR.GetCyan() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rUR.GetMagenta() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rUR.GetYellow() *255.0 ) );
-		samples.insert( samples.end(), (char) ( rUR.GetBlack() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rUR.GetCyan() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rUR.GetMagenta() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rUR.GetYellow() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rUR.GetBlack() *255.0 ) );
 
         shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceCMYK") );
 	}
@@ -318,13 +318,13 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
 		range.push_back( 0.0 );
 		range.push_back( 1.0 );
 
-		samples.insert( samples.end(), (char) ( rLL.GetGrayScale() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rLL.GetGrayScale() *255.0 ) );
 
-		samples.insert( samples.end(), (char) ( rLR.GetGrayScale() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rLR.GetGrayScale() *255.0 ) );
 
-		samples.insert( samples.end(), (char) ( rUL.GetGrayScale() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rUL.GetGrayScale() *255.0 ) );
 
-		samples.insert( samples.end(), (char) ( rUR.GetGrayScale() *255.0 ) );
+		samples.insert( samples.end(), static_cast<char> ( rUR.GetGrayScale() *255.0 ) );
 
         shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceGray") );
 	}

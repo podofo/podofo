@@ -368,8 +368,9 @@ PdfColorSeparation::PdfColorSeparation( const std::string & sName, double dDensi
 			m_uColor.lab[2] = alternateColor.GetCieB();
 		break;
 
+        case ePdfColorSpace_Separation:
 		default:
-			PODOFO_RAISE_LOGIC_IF( true, "PdfColor::PdfColorSeparation alternatColor must be Gray, RGB, CMYK or CieLab!");
+			PODOFO_RAISE_LOGIC_IF( true, "PdfColor::PdfColorSeparation alternateColor must be Gray, RGB, CMYK or CieLab!");
 		break;
 	}
     m_eColorSpace = ePdfColorSpace_Separation;
