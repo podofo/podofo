@@ -283,16 +283,20 @@ void PdfParserObject::ParseStream()
             PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "/Length key referenced indirect object that could not be loaded" );
         }
 
+        printf("Reading object %i 0 R with type: %s\n", pObj->Reference().ObjectNumber(), pObj->GetDataTypeString());
         if( !pObj->IsNumber() )
         {
             PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidStreamLength, "/Length key for stream referenced non-number" );
         }
 
         lLen = pObj->GetNumber();
-        if( !lLen )
-        {
-            PODOFO_RAISE_ERROR( ePdfError_InvalidStreamLength );
-        }
+
+        // DS: This code makes no sense, 
+        //     as empty streams with length 0 are valid, too.
+        //if( !lLen )
+        //{
+        //    PODOFO_RAISE_ERROR( ePdfError_InvalidStreamLength );
+        //}
 
         // we do not use indirect references for the length of the document
         // DS: Even though do not remove the length key,
