@@ -35,16 +35,31 @@ class PdfString;
  */
 class PODOFO_API PdfInfo : public PdfElement {
  public:
+    /**
+     * Enum to specifiy the initial information of the 
+     * info dictionary.
+     */
+    enum EPdfInfoInitial {
+        ePdfInfoInitial_WriteCreationTime     = 0x01, ///< Write the creation time (current time). Default for new documents.
+        ePdfInfoInitial_WriteModificationTime = 0x02, ///< Write the modification time (current time). Default for loaded documents.
+        ePdfInfoInitial_WriteProducer         = 0x04  ///< Write producer key. Default for new documents.
+    };
+
     /** Create a new PdfInfo object
      *  \param pParent the parent of this object
+     *  \param eInitial which information should be 
+     *         writting initially to the information dictionary
      */
-    PdfInfo( PdfVecObjects* pParent );
+    PdfInfo( PdfVecObjects* pParent, 
+             int eInitial = ePdfInfoInitial_WriteCreationTime | ePdfInfoInitial_WriteProducer );
 
     /** Create a PdfInfo object from an existing
      *  object in the PDF file.
      *  \param pObject must be an info dictionary.
+     *  \param eInitial which information should be 
+     *         writting initially to the information
      */
-    PdfInfo( PdfObject* pObject );
+    PdfInfo( PdfObject* pObject, int eInitial = ePdfInfoInitial_WriteModificationTime );
 
     /** Destructor
      */
@@ -125,10 +140,10 @@ class PODOFO_API PdfInfo : public PdfElement {
 
  private:
     /** Add the initial document information to the dictionary.
-     *  \param bModify if true a ModDate will be added instead
-     *                 of a CreationDate.
+     *  \param eInitial which information should be 
+     *         writting initially to the information
      */
-    void Init( bool bModify = false );
+    void Init( int eInitial );
 
     /** Get a value from the info dictionary as name
      *  \para rName the key to fetch from the info dictionary

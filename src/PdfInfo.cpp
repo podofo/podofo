@@ -29,31 +29,43 @@
 
 namespace PoDoFo {
 
-PdfInfo::PdfInfo( PdfVecObjects* pParent )
+PdfInfo::PdfInfo( PdfVecObjects* pParent, int eInitial )
     : PdfElement( NULL, pParent )
 {
-    Init( false );
+    Init( eInitial );
 }
 
-PdfInfo::PdfInfo( PdfObject* pObject )
+PdfInfo::PdfInfo( PdfObject* pObject, int eInitial )
     : PdfElement( NULL, pObject )
 {
-    Init( true );
+    Init( eInitial );
 }
 
 PdfInfo::~PdfInfo()
 {
 }
 
-void PdfInfo::Init( bool bModify )
+void PdfInfo::Init( int eInitial )
 {
     PdfDate   date;
     PdfString str;
 
     date.ToString( str );
     
-    m_pObject->GetDictionary().AddKey( bModify ? "ModDate" : "CreationDate", str );
-    m_pObject->GetDictionary().AddKey( "Producer", PdfString( PRODUCER_STRING) );
+    if( eInitial & ePdfInfoInitial_WriteCreationTime == ePdfInfoInitial_WriteCreationTime ) 
+    {
+        m_pObject->GetDictionary().AddKey( "CreationDate", str );
+    }
+
+    if( eInitial & ePdfInfoInitial_WriteModificationTime == ePdfInfoInitial_WriteModificationTime ) 
+    {
+        m_pObject->GetDictionary().AddKey( "ModDate", str );
+    }
+
+    if( eInitial & ePdfInfoInitial_WriteProducer == ePdfInfoInitial_WriteProducer ) 
+    {
+        m_pObject->GetDictionary().AddKey( "Producer", PdfString(PRODUCER_STRING) );
+    }
 }
 
 const PdfString & PdfInfo::GetStringFromInfoDict( const PdfName & rName ) const
