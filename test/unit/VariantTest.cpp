@@ -110,7 +110,7 @@ void VariantTest::testEmptyStream()
 
     CPPUNIT_ASSERT_EQUAL( parser.IsDictionary(), true );
     CPPUNIT_ASSERT_EQUAL( parser.HasStream(), true );
-    CPPUNIT_ASSERT_EQUAL( parser.GetStream()->GetLength(), 0 );
+    CPPUNIT_ASSERT_EQUAL( parser.GetStream()->GetLength(), static_cast<pdf_long>(0) );
 }
 
 
