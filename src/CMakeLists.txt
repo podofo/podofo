@@ -168,9 +168,9 @@ SET(PODOFO_HEADERS
 )
 SET(PODOFO_HEADERS2 
     util/PdfMutex.h
-    util/PdfMutex_noop.h
-    util/PdfMutex_win32.h
-    util/PdfMutex_pthread.h
+    util/PdfMutexImpl_noop.h
+    util/PdfMutexImpl_win32.h
+    util/PdfMutexImpl_pthread.h
     util/PdfMutexWrapper.h
 )
 
