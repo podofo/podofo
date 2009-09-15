@@ -5,23 +5,36 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 # and the other wiki entries before you add anything. You might not need to.
 #****************************************************************************
 
+#
+# Project name and version
+#
 PROJECT(PoDoFo)
 
+SET(PODOFO_VERSION_MAJOR "0" CACHE STRING "Major part of PoDoFo version number")
+SET(PODOFO_VERSION_MINOR "7" CACHE STRING "Minor part of PoDoFo version number")
+SET(PODOFO_VERSION_PATCH "99" CACHE STRING "Patchlevel part of PoDoFo version number")
+SET(PODOFO_SOVERSION "${PODOFO_VERSION_MAJOR}.${PODOFO_VERSION_MINOR}.${PODOFO_VERSION_PATCH}")
+SET(PODOFO_LIBVERSION "${PODOFO_LIBVERSION}")
+
+
+#
+# Main includes
+#
 INCLUDE(CheckIncludeFile)
 INCLUDE(CheckLibraryExists)
 INCLUDE(UsePkgConfig)
 INCLUDE(TestBigEndian)
 INCLUDE(CheckTypeSize)
 
-SET(PODOFO_VERSION_MAJOR "0" CACHE STRING "Major part of PoDoFo version number")
-SET(PODOFO_VERSION_MINOR "7" CACHE STRING "Minor part of PoDoFo version number")
-SET(PODOFO_VERSION_PATCH "99" CACHE STRING "Patchlevel part of PoDoFo version number")
-
-SET(PODOFO_SOVERSION "${PODOFO_VERSION_MAJOR}.${PODOFO_VERSION_MINOR}.${PODOFO_VERSION_PATCH}")
-SET(PODOFO_LIBVERSION "${PODOFO_LIBVERSION}")
-
 # Load modules from our source tree too
 SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
+
+
+# Builds must use this CMakeLists.txt, not the one in src/ or somewhere else.
+# If users try to use something else the results can be confusing. We set a
+# variable here that we require to be set elsewhere, otherwise we'll complain.
+SET(PODOFO_MAIN_CMAKELISTS_READ TRUE)
+
 
 # If the user hasn't told use specifically what they want, build only
 # a static library.

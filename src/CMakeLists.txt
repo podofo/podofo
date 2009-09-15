@@ -1,3 +1,8 @@
+cmake_minimum_required(VERSION 2.6)
+IF(NOT PODOFO_MAIN_CMAKELISTS_READ)
+MESSAGE(FATAL_ERROR "Run cmake on the CMakeLists.txt in the project root, not the one in the 'src' directory. You will need to delete CMakeCache.txt from the current directory.")
+ENDIF(NOT PODOFO_MAIN_CMAKELISTS_READ)
+
 SET(PODOFO_SOURCES
     PdfAction.cpp
     PdfAcroForm.cpp
