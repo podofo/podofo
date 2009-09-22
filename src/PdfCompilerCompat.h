@@ -131,8 +131,8 @@ namespace PoDoFo {
 // for example:   printf("Value of signed 64-bit integer: %"PDF_FORMAT_INT64" (more blah)", 128LL)
 //
 #if defined(_MSC_VER)
-#  define PDF_FORMAT_INT64 "I64"
-#  define PDF_FORMAT_UINT64 "I64"
+#  define PDF_FORMAT_INT64 "I64d"
+#  define PDF_FORMAT_UINT64 "I64u"
 #else
 #  define PDF_FORMAT_INT64 "lld"
 #  define PDF_FORMAT_UINT64 "llu"
