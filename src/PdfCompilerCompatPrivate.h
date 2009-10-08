@@ -35,7 +35,7 @@
 #    ifndef _WIN32_WINNT
 #      define _WIN32_WINNT 0x0400 // Make the TryEnterCriticalSection method available
 #      include <windows.h>
-#      undef _WIN32_WINNT
+#      undef _WIN32_WINNT 
 #    else
 #      include <windows.h>
 #    endif // _WIN32_WINNT
@@ -109,19 +109,35 @@ inline static double logb(double x) {
  */
 
 inline static pdf_uint32 podofo_ntohl(pdf_uint32 i) {
+#ifdef _WIN32
+   return (pdf_uint32)( ntohl( i ) );
+#else
    return static_cast<pdf_uint32>( ntohl( i ) );
+#endif // _WIN32
 }
 
 inline static pdf_uint16 podofo_ntohs(pdf_uint16 i) {
+#ifdef _WIN32
+   return (pdf_uint16)( ntohs( i ) );
+#else
    return static_cast<pdf_uint16>( ntohs( i ) );
+#endif // _WIN32
 }
 
 inline static pdf_uint32 podofo_htonl(pdf_uint32 i) {
-   return static_cast<pdf_uint32>( htonl( i ) );
+#ifdef _WIN32
+    return (pdf_uint32)( htonl( i ) );
+#else
+    return static_cast<pdf_uint32>( htonl( i ) );
+#endif // _WIN32
 }
 
 inline static pdf_uint16 podofo_htons(pdf_uint16 i) {
-   return static_cast<pdf_uint16>( htons( i ) );
+#ifdef _WIN32
+    return (pdf_uint16)( htons( i ) );
+#else
+    return static_cast<pdf_uint16>( htons( i ) );
+#endif // _WIN32
 }
 
 };}; // end namespace PoDoFo::compat

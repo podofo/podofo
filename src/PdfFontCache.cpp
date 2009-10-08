@@ -34,8 +34,7 @@
 #include <algorithm>
 
 #ifdef _WIN32
-#include <windows.h>
-
+//#include <windows.h>
 // Undefined stuff which windows does
 // define that breaks are build
 // e.g. GetObject is defined to either GetObjectA or GetObjectW

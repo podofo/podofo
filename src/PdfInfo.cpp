@@ -52,17 +52,17 @@ void PdfInfo::Init( int eInitial )
 
     date.ToString( str );
     
-    if( eInitial & ePdfInfoInitial_WriteCreationTime == ePdfInfoInitial_WriteCreationTime ) 
+    if( (eInitial & ePdfInfoInitial_WriteCreationTime) == ePdfInfoInitial_WriteCreationTime ) 
     {
         m_pObject->GetDictionary().AddKey( "CreationDate", str );
     }
 
-    if( eInitial & ePdfInfoInitial_WriteModificationTime == ePdfInfoInitial_WriteModificationTime ) 
+    if( (eInitial & ePdfInfoInitial_WriteModificationTime) == ePdfInfoInitial_WriteModificationTime ) 
     {
         m_pObject->GetDictionary().AddKey( "ModDate", str );
     }
 
-    if( eInitial & ePdfInfoInitial_WriteProducer == ePdfInfoInitial_WriteProducer ) 
+    if( (eInitial & ePdfInfoInitial_WriteProducer) == ePdfInfoInitial_WriteProducer ) 
     {
         m_pObject->GetDictionary().AddKey( "Producer", PdfString(PRODUCER_STRING) );
     }
