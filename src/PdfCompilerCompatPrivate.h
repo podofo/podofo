@@ -32,6 +32,9 @@
 
 #ifdef PODOFO_MULTI_THREAD
 #  if defined(_WIN32) || defined(_WIN64)
+#    if !defined(_WINSOCK2API_)
+#      error <winsock2.h> must be included before <windows.h>, config problem?
+#    endif
 #    ifndef _WIN32_WINNT
 #      define _WIN32_WINNT 0x0400 // Make the TryEnterCriticalSection method available
 #      include <windows.h>
