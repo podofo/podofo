@@ -32,6 +32,7 @@
  */
 
 #include "PdfDefines.h"
+#include "PdfDefinesPrivate.h"
 #include "PdfFilter.h"
 #include "PdfRefCountedBuffer.h"
 
