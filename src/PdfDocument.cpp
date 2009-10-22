@@ -319,9 +319,11 @@ PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfM
 	if( gbox.GetBottom() != 0 || gbox.GetHeight() != 0 || gbox.GetLeft() != 0 || gbox.GetWidth() != 0 )
 		box = gbox;
 
+#if 0		// Only crop-box is relevant, same as during reading in Acrobat-Reader, trim box might be bigger
     gbox = pPage->GetTrimBox();
 	if( gbox.GetBottom() != 0 || gbox.GetHeight() != 0 || gbox.GetLeft() != 0 || gbox.GetWidth() != 0 )
 		box = gbox;
+#endif // 0
 
 	// link resources from external doc to x-object
     if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Resources" ) )
