@@ -226,7 +226,8 @@ void PdfParser::Clear()
 
 void PdfParser::ReadDocumentStructure()
 {
-    HasLinearizationDict();
+// Ulrich Arnold 8.9.2009, deactivated because of problems during reading xref's
+//    HasLinearizationDict();
     
     // position at the end of the file to search the xref table.
     m_device.Device()->Seek( 0, std::ios_base::end );
@@ -510,7 +511,9 @@ void PdfParser::ReadTrailer()
     
     if( !this->IsNextToken( "trailer" ) ) 
     {
-        if( m_ePdfVersion < ePdfVersion_1_5 )
+//      if( m_ePdfVersion < ePdfVersion_1_5 )
+//		Ulrich Arnold 19.10.2009, found linearized 1.3-pdf's with trailer-info in xref-stream
+        if( m_ePdfVersion < ePdfVersion_1_3 )
         {
             PODOFO_RAISE_ERROR( ePdfError_NoTrailer );
         }
@@ -583,7 +586,9 @@ void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
     
     if( !this->IsNextToken( "xref" ) )
     {
-        if( m_ePdfVersion < ePdfVersion_1_5 )
+//      if( m_ePdfVersion < ePdfVersion_1_5 )
+//		Ulrich Arnold 19.10.2009, found linearized 1.3-pdf's with trailer-info in xref-stream
+        if( m_ePdfVersion < ePdfVersion_1_3 )
         {
             PODOFO_RAISE_ERROR( ePdfError_NoXRef );
         }
