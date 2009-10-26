@@ -90,7 +90,13 @@ class PODOFO_API PdfImage : public PdfXObject {
 
     //EPdfColorSpace GetImageColorSpace() const;
 
-    /** Get the width of the image when drawn in PDF units
+    /** Set a softmask for this image.
+     *  \param pSoftmask a PdfImage pointer to the image, which is to be set as softmask, must be 8-Bit-Grayscale
+     *
+     */
+    void SetImageSoftmask( const PdfImage* pSoftmask );
+
+	/** Get the width of the image when drawn in PDF units
      *  \returns the width in PDF units
      */
     inline double GetWidth() const;

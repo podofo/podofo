@@ -116,6 +116,11 @@ void PdfImage::SetImageICCProfile( PdfInputStream* pStream, long lColorComponent
     this->GetObject()->GetDictionary().AddKey( PdfName("ColorSpace"), array );
 }
 
+void PdfImage::SetImageSoftmask( const PdfImage* pSoftmask )
+{
+	GetObject()->GetDictionary().AddKey( "SMask", pSoftmask->GetObject()->Reference() );
+}
+
 void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight, 
                              unsigned int nBitsPerComponent, PdfInputStream* pStream )
 {
