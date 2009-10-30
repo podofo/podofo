@@ -205,7 +205,23 @@ const PdfRect PdfPage::GetPageBox( const char* inBox ) const
     
     // assign the value of the box from the array
     if ( pObj && pObj->IsArray() )
+    {
         pageBox.FromArray( pObj->GetArray() );
+    }
+    else if ( strcmp( inBox, "ArtBox" ) == 0   ||
+              strcmp( inBox, "BleedBox" ) == 0 ||
+              strcmp( inBox, "TrimBox" ) == 0  )
+    {
+        // If those page boxes are not specified then
+        // default to CropBox per PDF Spec (3.6.2)
+        pageBox = GetPageBox( "CropBox" );
+    }
+    else if ( strcmp( inBox, "CropBox" ) == 0 )
+    {
+        // If crop box is not specified then
+        // default to MediaBox per PDF Spec (3.6.2)
+        pageBox = GetPageBox( "MediaBox" );
+    }
     
     return pageBox;
 }
