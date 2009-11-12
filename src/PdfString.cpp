@@ -28,12 +28,12 @@
 #include "PdfOutputDevice.h"
 #include "PdfDefinesPrivate.h"
 
-// alloca() is defined only in <cstdlib> on Mac OS X,
-// only in <malloc.h> on win32, and in both on Linux.
-#if defined(_WIN32)
-#include <malloc.h>
-#else
+#if defined(_AIX) || defined(__sun)
+#include <alloca.h>
+#elif defined(__APPLE__) || defined(__linux)
 #include <cstdlib>
+#elif defined(_WIN32)
+#include <malloc.h>
 #endif
 
 #include <stdlib.h>
