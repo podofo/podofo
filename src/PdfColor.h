@@ -26,6 +26,8 @@
 namespace PoDoFo {
 
 class PdfArray;
+class PdfObject;
+class PdfVecObjects;
     
 /** A color object can represent either a grayscale
  *  value, a RGB color, a CMYK color, a separation color or
@@ -346,6 +348,13 @@ class PODOFO_API PdfColor {
      *  \returns a PdfColor object
      */
     static PdfColor FromArray( const PdfArray & rArray );
+
+    /** Creates a colorspace object from a color to insert into resources.
+     *
+     *  \param pOwner a pointer to the owner of the generated object
+     *  \returns a PdfObject pointer, which can be insert into resources, NULL if not needed
+     */
+	PdfObject* BuildColorSpace( PdfVecObjects* pOwner ) const;
 
  protected:
     union {
