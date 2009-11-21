@@ -102,13 +102,15 @@ class PODOFO_API PdfNamesTree : public PdfElement {
 
     /** Peter Petrov: 23 May 2008
      * I have made it for access to "JavaScript" dictonary. This is "document-level javascript storage"
+     *  \param bCreate if true the javascript node is created if it does not exists.
      */
-    inline PdfObject* GetJavaScriptNode() const;
+    inline PdfObject* GetJavaScriptNode(bool bCreate = false) const;
 
     /** Peter Petrov: 6 June 2008
      * I have made it for access to "Dest" dictionary. This is "document-level named destination storage"
+     *  \param bCreate if true the dests node is created if it does not exists.
      */
-    inline PdfObject* GetDestsNode() const;
+    inline PdfObject* GetDestsNode(bool bCreate = false) const;
 
  private:
     /** Get a PdfNameTrees root node for a certain name.
@@ -125,7 +127,7 @@ class PODOFO_API PdfNamesTree : public PdfElement {
      *            - AlternatePresentations
      *            - Renditions
      *
-     *  \param bCreate if true the root node is create if it does not exists.
+     *  \param bCreate if true the root node is created if it does not exists.
      *  \returns the root node of the tree or NULL if it does not exists
      */
     PdfObject* GetRootNode( const PdfName & name, bool bCreate = false ) const;
@@ -151,17 +153,17 @@ class PODOFO_API PdfNamesTree : public PdfElement {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-PdfObject* PdfNamesTree::GetJavaScriptNode() const
+PdfObject* PdfNamesTree::GetJavaScriptNode(bool bCreate) const
 {
-    return this->GetRootNode( PdfName("JavaScript") );
+    return this->GetRootNode( PdfName("JavaScript"), bCreate );
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-PdfObject* PdfNamesTree::GetDestsNode() const
+PdfObject* PdfNamesTree::GetDestsNode(bool bCreate) const
 {
-    return this->GetRootNode( PdfName("Dests") );
+    return this->GetRootNode( PdfName("Dests"), bCreate );
 }
 
 };
