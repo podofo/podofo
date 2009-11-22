@@ -74,7 +74,66 @@ class PODOFO_API PdfDataType {
      */
     virtual void SetDirty( bool bDirty );
 
+    /**
+     * Sets this object to immutable,
+     * so that no keys can be edited or changed.
+     *
+     * @param bImmutable if true set the object to be immutable
+     *
+     * This is used by PdfImmediateWriter and PdfStreamedDocument so 
+     * that no keys can be added to an object after setting stream data on it.
+     *
+     */
+    inline void SetImmutable(bool bImmutable);
+
+    /**
+     * Retrieve if an object is immutable.
+     *
+     * This is used by PdfImmediateWriter and PdfStreamedDocument so 
+     * that no keys can be added to an object after setting stream data on it.
+     *
+     * @returns true if the object is immutable
+     */
+    inline bool GetImmutable() const;
+
+protected:
+    /**
+     *  Will throw an exception if called on an immutable object,
+     *  so this should be called before actually changing a value!
+     * 
+     */
+    inline void AssertMutable() const;
+
+private:
+    bool m_bImmutable;
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfDataType::SetImmutable(bool bImmutable)
+{
+    m_bImmutable = bImmutable;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline bool PdfDataType::GetImmutable() const 
+{
+    return m_bImmutable;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfDataType::AssertMutable() const
+{
+    if(m_bImmutable) 
+    {
+        throw new PdfError( ePdfError_ChangeOnImmutable );
+    }
+}
 
 }; // namespace PoDoFo
 

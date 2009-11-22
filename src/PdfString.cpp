@@ -192,6 +192,8 @@ PdfString::~PdfString()
 
 void PdfString::SetHexData( const char* pszHex, pdf_long lLen, PdfEncrypt* pEncrypt )
 {
+    AssertMutable();
+
     if( !pszHex ) 
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );

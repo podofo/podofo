@@ -334,7 +334,36 @@ class PODOFO_API PdfVariant {
      */
     inline bool IsDirty() const;
 
+    /**
+     * Sets this object to immutable,
+     * so that no keys can be edited or changed.
+     *
+     * @param bImmutable if true set the object to be immutable
+     *
+     * This is used by PdfImmediateWriter and PdfStreamedDocument so 
+     * that no keys can be added to an object after setting stream data on it.
+     *
+     */
+    inline void SetImmutable(bool bImmutable);
+
+    /**
+     * Retrieve if an object is immutable.
+     *
+     * This is used by PdfImmediateWriter and PdfStreamedDocument so 
+     * that no keys can be added to an object after setting stream data on it.
+     *
+     * @returns true if the object is immutable
+     */
+    inline bool GetImmutable() const;
+
  protected:
+
+    /**
+     *  Will throw an exception if called on an immutable object,
+     *  so this should be called before actually changing a value!
+     * 
+     */
+    inline void AssertMutable() const;
 
     /** Sets the dirty flag of this PdfVariant
      *
@@ -459,6 +488,7 @@ class PODOFO_API PdfVariant {
     UVariant     m_Data;
 
     bool         m_bDirty; ///< Indicates if this object was modified after construction
+    bool         m_bImmutable; ///< Indicates if this object maybe modified
 
 
     /** Datatype of the variant.
@@ -541,6 +571,7 @@ void PdfVariant::SetBool( bool b )
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
+    AssertMutable();
     m_Data.bBoolValue = b;
     SetDirty( true );
 }
@@ -572,11 +603,11 @@ void PdfVariant::SetNumber( long l )
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
+    AssertMutable();
     if ( IsReal() )
         m_Data.dNumber = static_cast<double>(l);
     else
         m_Data.nNumber = l;
-
     SetDirty( true );
 }
 
@@ -610,11 +641,11 @@ void PdfVariant::SetReal( double d )
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
+    AssertMutable();
     if ( IsReal() )
         m_Data.dNumber = d;
     else
         m_Data.nNumber = static_cast<long>(floor( d ));
-
     SetDirty( true );
 }
 
@@ -904,6 +935,56 @@ void PdfVariant::SetDirty( bool bDirty )
             default:
                 break;
         };    
+    }
+}
+
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfVariant::SetImmutable(bool bImmutable)
+{
+    m_bImmutable = bImmutable;
+
+    switch( m_eDataType ) 
+    {
+        case ePdfDataType_Array:
+        case ePdfDataType_Dictionary:
+            // Arrays and Dictionaries
+            // handle dirty status by themselfes
+            m_Data.pData->SetImmutable( m_bImmutable );
+            
+        case ePdfDataType_Bool:
+        case ePdfDataType_Number:
+        case ePdfDataType_Real:
+        case ePdfDataType_HexString:
+        case ePdfDataType_String:
+        case ePdfDataType_Name:
+        case ePdfDataType_RawData:
+        case ePdfDataType_Reference:
+        case ePdfDataType_Null:
+        case ePdfDataType_Unknown:
+        default:
+            break;
+    };    
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline bool PdfVariant::GetImmutable() const 
+{
+    return m_bImmutable;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfVariant::AssertMutable() const
+{
+    if(m_bImmutable) 
+    {
+        throw new PdfError( ePdfError_ChangeOnImmutable );
     }
 }
 

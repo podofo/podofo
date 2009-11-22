@@ -59,7 +59,7 @@ void PdfFontTrueType::EmbedFontFile( PdfObject* pDescriptor )
     }
         
     pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->Reference() );
-        
+
     // if the data was loaded from memory - use it from there
     // otherwise, load from disk
     if ( m_pMetrics->GetFontDataLen() && m_pMetrics->GetFontData() ) 
@@ -67,18 +67,25 @@ void PdfFontTrueType::EmbedFontFile( PdfObject* pDescriptor )
         // FIXME const_cast<char*> is dangerous if string literals may ever be passed
         char* pBuffer = const_cast<char*>( m_pMetrics->GetFontData() );
         lSize = m_pMetrics->GetFontDataLen();
-            
+        
+        // Set Length1 before creating the stream
+        // as PdfStreamedDocument does not allow 
+        // adding keys to an object after a stream was written
+        pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<pdf_int64>(lSize) ) );
         pContents->GetStream()->Set( pBuffer, lSize );
     } 
     else 
     {
         PdfFileInputStream stream( m_pMetrics->GetFilename() );
+        lSize = stream.GetFileLength();
+
+        // Set Length1 before creating the stream
+        // as PdfStreamedDocument does not allow 
+        // adding keys to an object after a stream was written
+        pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<pdf_int64>(lSize) ) );
         pContents->GetStream()->Set( &stream );
             
-        lSize = stream.GetFileLength();
     }
-        
-    pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<pdf_int64>(lSize) ) );
 }
 
 

@@ -39,6 +39,7 @@ PdfDictionary::PdfDictionary( const PdfDictionary & rhs )
 
 PdfDictionary::~PdfDictionary()
 {
+    this->SetImmutable(false); // Destructor may change things, i.e. delete
     this->Clear();
 }
 
@@ -95,6 +96,8 @@ bool PdfDictionary::operator==( const PdfDictionary& rhs ) const
 
 void PdfDictionary::Clear()
 {
+    AssertMutable();
+
     if( !m_mapKeys.empty() )
     {
         TIKeyMap it;
@@ -112,6 +115,8 @@ void PdfDictionary::Clear()
 
 void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObject )
 {
+    AssertMutable();
+
     // Empty PdfNames are legal according to the PDF specification
     // weird but true. As a reason we cannot throw an error here
     /*
@@ -223,6 +228,7 @@ bool PdfDictionary::RemoveKey( const PdfName & identifier )
 {
     if( HasKey( identifier ) )
     {
+        AssertMutable();
         delete m_mapKeys[identifier];
 
         m_mapKeys.erase( identifier );

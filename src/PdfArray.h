@@ -258,6 +258,8 @@ class PODOFO_API PdfArray : private PdfArrayBaseClass, public PdfDataType {
 // -----------------------------------------------------
 void PdfArray::Clear() 
 {
+    AssertMutable();
+
     this->clear();
 }
 
@@ -274,6 +276,8 @@ size_t PdfArray::GetSize() const
 // -----------------------------------------------------
 void PdfArray::push_back( const PdfObject & var )
 {
+    AssertMutable();
+
     PdfArrayBaseClass::push_back( var );
     m_bDirty = true;
 }
@@ -299,6 +303,8 @@ bool PdfArray::empty() const
 // -----------------------------------------------------
 PdfObject& PdfArray::operator[](size_type __n)
 {
+    AssertMutable();
+
     m_bDirty = true;
     return PdfArrayBaseClass::operator[](__n);
 }
@@ -389,6 +395,8 @@ void PdfArray::insert(PdfArray::iterator __position,
                       _InputIterator __last)
 #endif
 {
+    AssertMutable();
+
     PdfArrayBaseClass::insert( __position, __first, __last );
     m_bDirty = true;
 }
@@ -398,6 +406,8 @@ void PdfArray::insert(PdfArray::iterator __position,
 // -----------------------------------------------------
 PdfArray::iterator PdfArray::insert(PdfArray::iterator __position, const PdfObject & val )
 {
+    AssertMutable();
+
     m_bDirty = true;
     return PdfArrayBaseClass::insert( __position, val );
 }
@@ -407,6 +417,8 @@ PdfArray::iterator PdfArray::insert(PdfArray::iterator __position, const PdfObje
 // -----------------------------------------------------
 void PdfArray::erase( iterator pos )
 {
+    AssertMutable();
+
     PdfArrayBaseClass::erase( pos );
     m_bDirty = true;
 }
@@ -416,6 +428,8 @@ void PdfArray::erase( iterator pos )
 // -----------------------------------------------------
 void PdfArray::erase( iterator first, iterator last )
 {
+    AssertMutable();
+
     PdfArrayBaseClass::erase( first, last );
     m_bDirty = true;
 }

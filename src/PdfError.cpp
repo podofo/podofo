@@ -1,5 +1,5 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
+/**************************************************************************
+ *    Copyright (C) 2006 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -307,6 +307,9 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_DestinationAlreadyPresent:
             pszMsg = "ePdfError_DestinationAlreadyPresent"; 
             break;
+        case ePdfError_ChangeOnImmutable:
+            pszMsg = "ePdfError_ChangeOnImmutable";
+            break;
         case ePdfError_Unknown:
             pszMsg = "ePdfError_Unknown"; 
             break;
@@ -428,11 +431,15 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
         case ePdfError_CannotConvertColor:
             pszMsg = "This color format cannot be converted.";
             break;
+        case ePdfError_ChangeOnImmutable:
+            pszMsg = "Changing values on immutable objects is not allowed.";
+            break;
         case ePdfError_NotImplemented:
             pszMsg = "This feature is currently not implemented.";
             break;
         case ePdfError_Unknown:
             pszMsg = "Error code unknown.";
+            break;
         default:
             break;
     }

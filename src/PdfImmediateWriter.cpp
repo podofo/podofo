@@ -75,6 +75,8 @@ void PdfImmediateWriter::WriteObject( const PdfObject* pObject )
 
     m_pXRef->AddObject( pObject->Reference(), m_pDevice->Tell(), true );
     pObject->WriteObject( m_pDevice, m_pEncrypt );
+    // Make sure, no one will add keys now to the object
+    const_cast<PdfObject*>(pObject)->SetImmutable(true);
 
     // Let's cheat a bit:
     // pObject has written an "endobj\n" as last data to the file.

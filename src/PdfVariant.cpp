@@ -55,6 +55,7 @@ inline void PdfVariant::Init()
     memset( &m_Data, 0, sizeof( UVariant ) );
     // Has to be set as Clear() depends on it
     m_eDataType = ePdfDataType_Null;
+    m_bImmutable = false;
 
 #if defined(PODOFO_EXTRA_CHECKS)
     m_bDelayedLoadInProgress=false;
@@ -160,6 +161,7 @@ PdfVariant::PdfVariant( const PdfVariant & rhs )
 
 PdfVariant::~PdfVariant()
 {
+    m_bImmutable = false; // Destructor may change things, i.e. delete
     Clear();
 }
 
@@ -193,6 +195,7 @@ void PdfVariant::Clear()
     m_bDelayedLoadDone = true;
     m_bDirty           = false; 
     m_eDataType        = ePdfDataType_Null;
+    m_bImmutable       = false;
 
     memset( &m_Data, 0, sizeof( UVariant ) );
 }

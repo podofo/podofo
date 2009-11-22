@@ -24,6 +24,7 @@
 namespace PoDoFo {
 
 PdfDataType::PdfDataType()
+    : m_bImmutable(false)
 {
 }
 

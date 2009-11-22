@@ -104,6 +104,7 @@ enum EPdfError {
     ePdfError_NotImplemented,           /**< This feature is currently not implemented. */
 
     ePdfError_DestinationAlreadyPresent,/**< An destination was already present when trying to add a Action */
+    ePdfError_ChangeOnImmutable,        /**< Changing values on immutable objects is not allowed. */
 
     ePdfError_Unknown = 0xffff          /**< Unknown error */
 };
