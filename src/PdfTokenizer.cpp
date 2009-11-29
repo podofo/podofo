@@ -41,7 +41,6 @@
 #define NULL_LENGTH     4
 #define TRUE_LENGTH     4
 #define FALSE_LENGTH    5
-#define REF_LENGTH      1
 
 namespace PoDoFo {
 

@@ -32,8 +32,6 @@
 // See PdfWriter.cpp
 #define LINEARIZATION_PADDING "1234567890"
 
-#define PAGE_OFFSET_HEADER 38
-
 using namespace PoDoFo;
 
 namespace {

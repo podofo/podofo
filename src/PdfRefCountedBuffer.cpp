@@ -26,8 +26,6 @@
 
 namespace PoDoFo {
 
-#define STREAM_SIZE_INCREASE 1024
-
 PdfRefCountedBuffer::PdfRefCountedBuffer( char* pBuffer, size_t lSize )
     : m_pBuffer( NULL )
 {

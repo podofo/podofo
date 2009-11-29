@@ -30,11 +30,9 @@
 namespace PoDoFo {
 
 #define BALANCE_TREE_MAX 65
-#define BALANCE_TREE_MIN (BALANCE_TREE_MAX+1)/2
 
 /*
 #define BALANCE_TREE_MAX 9
-#define BALANCE_TREE_MIN (BALANCE_TREE_MAX+1)/2
 */
 
 class PdfNameTreeNode {

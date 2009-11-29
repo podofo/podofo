@@ -33,8 +33,6 @@
 
 namespace PoDoFo {
 
-#define STREAM_SIZE_INCREASE 1024
-
 PdfMemStream::PdfMemStream( PdfObject* pParent )
     : PdfStream( pParent ), m_pStream( NULL ), m_pBufferStream( NULL ), m_lLength( 0 )
 {

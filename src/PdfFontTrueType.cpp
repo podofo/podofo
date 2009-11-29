@@ -26,9 +26,6 @@
 #include "PdfStream.h"
 #include "PdfDefinesPrivate.h"
 
-#define FIRST_CHAR   0
-#define LAST_CHAR  255
-
 namespace PoDoFo {
 
 PdfFontTrueType::PdfFontTrueType( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 

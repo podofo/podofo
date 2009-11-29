@@ -503,7 +503,7 @@ void PdfError::LogMessageInternal( ELogSeverity eLogSeverity, const char* pszMsg
     }
 
     if( pszPrefix )
-        fprintf( stderr, pszPrefix );
+        fprintf( stderr, "%s", pszPrefix );
 
     vfprintf( stderr, pszMsg, args );
 }
@@ -580,7 +580,7 @@ void PdfError::DebugMessage( const char* pszMsg, ... )
 	va_start( args, pszMsg );
 
 	if( pszPrefix )
-		fprintf( stderr, pszPrefix );
+		fprintf( stderr, "%s", pszPrefix );
 
 	vfprintf( stderr, pszMsg, args );
 	va_end( args );

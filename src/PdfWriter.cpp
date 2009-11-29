@@ -38,7 +38,6 @@
 
 //#define PDF_MAGIC "%‚„œ”\n" //"%\0x25\0xe2\0xe3\0xcf\0xd3\0x0d"
 #define PDF_MAGIC           "\xe2\xe3\xcf\xd3\n"
-#define XREF_ENTRY_SIZE       20
 // 10 spaces
 #define LINEARIZATION_PADDING "          " 
 

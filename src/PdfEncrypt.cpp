@@ -237,33 +237,6 @@ static void  MD5Init(MD5_CTX *context);
 static void  MD5Update(MD5_CTX *context, unsigned char const *buf, unsigned len);
 static void  MD5Final(unsigned char digest[MD5_HASHBYTES], MD5_CTX *context);
 static void  MD5Transform(unsigned int buf[4], unsigned int const in[16]);
-static char* MD5End(MD5_CTX *, char *);
-
-static char* MD5End(MD5_CTX *ctx, char *buf)
-{
-  int i;
-  unsigned char digest[MD5_HASHBYTES];
-  char hex[]="0123456789abcdef";
-
-  if (!buf)
-  {
-    buf = static_cast<char*>(malloc(33));
-  }
-    
-  if (!buf)
-  {
-    return 0;
-  }
-    
-  MD5Final(digest,ctx);
-  for (i=0;i<MD5_HASHBYTES;i++)
-  {
-    buf[i+i] = hex[digest[i] >> 4];
-    buf[i+i+1] = hex[digest[i] & 0x0f];
-  }
-  buf[i+i] = '\0';
-  return buf;
-}
 
 /*
  * Final wrapup - pad to 64-byte boundary with the bit pattern
@@ -467,29 +440,6 @@ static void MD5Transform(unsigned int buf[4], unsigned int const in[16])
   buf[3] += d;
 }
  
-
-#ifndef REVERSEBYTE
-#define byteReverse(buf, len)   /* Nothing */
-#else
-void byteReverse(unsigned char *buf, unsigned longs);
-
-/*
- * Note: this code is harmless on little-endian machines.
- */
-static void byteReverse(unsigned char *buf, unsigned longs)
-{
-  unsigned int t;
-  do
-  {
-    t = (unsigned int) ((unsigned) buf[3] << 8 | buf[2]) << 16 |
-        ((unsigned) buf[1] << 8 | buf[0]);
-    *(unsigned int *) buf = t;  
-    buf += 4;
-  }
-  while (--longs);
-}
-#endif
-
 
 /***************************************************************************
 *   Copyright (C) 2006 by Dominik Seichter                                *

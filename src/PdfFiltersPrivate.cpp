@@ -49,7 +49,6 @@ extern "C" {
 #endif // PODOFO_HAVE_TIFF_LIB
 
 
-#define CHUNK               16384 
 #define LZW_TABLE_SIZE      4096
 
 namespace {
@@ -1056,6 +1055,7 @@ jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize)
 
 #ifdef PODOFO_HAVE_TIFF_LIB
 
+#ifdef DS_CCITT_DEVELOPMENT_CODE
 // -------------------------------------------------------
 // 
 // -------------------------------------------------------
@@ -1095,6 +1095,7 @@ static toff_t dummy_size(thandle_t)
 {
 
 }
+#endif
 
 // -------------------------------------------------------
 // Actual filter code below

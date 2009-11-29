@@ -29,8 +29,6 @@
 // and on 128 bit blocks
 //
 
-#define _PDFRIJNDAEL_CPP_
-
 #include "PdfRijndael.h"
 #include "PdfDefinesPrivate.h"
 

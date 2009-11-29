@@ -33,8 +33,6 @@
 #include <iostream>
 #include <sstream>
 
-#define KEY_BUFFER 128
-
 namespace PoDoFo {
 
 using namespace std;

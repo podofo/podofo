@@ -681,8 +681,6 @@ void PdfString::SwapBytes( char* pBuf, pdf_long lLen )
 #define UNI_REPLACEMENT_CHAR static_cast<unsigned long>(0x0000FFFD)
 #define UNI_MAX_BMP          static_cast<unsigned long>(0x0000FFFF)
 #define UNI_MAX_UTF16        static_cast<unsigned long>(0x0010FFFF)
-#define UNI_MAX_UTF32        static_cast<unsigned long>(0x7FFFFFFF)
-#define UNI_MAX_LEGAL_UTF32  static_cast<unsigned long>(0x0010FFFF)
 
 #define UNI_SUR_HIGH_START   static_cast<unsigned long>(0xD800)
 #define UNI_SUR_HIGH_END     static_cast<unsigned long>(0xDBFF)
