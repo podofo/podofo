@@ -38,8 +38,8 @@ PdfShadingPattern::PdfShadingPattern( EPdfShadingPatternType eShadingType, PdfVe
     std::ostringstream out;
     // We probably aren't doing anything locale sensitive here, but it's
     // best to be sure.
-    PdfLocaleImbue(out)
-;
+    PdfLocaleImbue(out);
+
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
     out << "Sh" << m_pObject->Reference().ObjectNumber();
@@ -208,12 +208,40 @@ void PdfAxialShadingPattern::Init( double dX0, double dY0, double dX1, double dY
 
     PdfDictionary & shading = this->GetObject()->GetDictionary().GetKey( PdfName("Shading") )->GetDictionary();
 
-    if( rStart.IsRGB() )
-        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceRGB") );
-    else if( rStart.IsCMYK() )
-        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceCMYK") );
-    else if( rStart.IsGrayScale() )
-        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceGray") );
+	switch( rStart.GetColorSpace() )
+	{
+		case ePdfColorSpace_DeviceRGB:
+	        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceRGB") );
+		break;
+
+		case ePdfColorSpace_DeviceCMYK:
+		    shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceCMYK") );
+		break;
+
+		case ePdfColorSpace_DeviceGray:
+	        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceGray") );
+		break;
+
+		case ePdfColorSpace_CieLab:
+		{	
+			PdfObject * csp = rStart.BuildColorSpace( this->GetObject()->GetOwner() );
+
+			shading.AddKey( PdfName("ColorSpace"), csp->Reference() );
+		}
+		break;
+
+		case ePdfColorSpace_Separation:
+		{
+			PdfObject * csp = rStart.BuildColorSpace( this->GetObject()->GetOwner() );
+
+			shading.AddKey( PdfName("ColorSpace"), csp->Reference() );
+		}
+		break;
+
+		default:
+	        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Colorspace not supported in PdfAxialShadingPattern." );
+		break;
+	}
 
     shading.AddKey( PdfName("Coords"), coords );
     shading.AddKey( PdfName("Function"), function.GetObject()->Reference() );
@@ -239,15 +267,15 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Colorspace of start and end color in PdfFunctionBaseShadingPattern does not match." );
     }
 
-    PdfArray extend; 
-    extend.push_back( true );
-    extend.push_back( true );
-
     PdfArray domain;
     domain.push_back( 0.0 );
     domain.push_back( 1.0 );
     domain.push_back( 0.0 );
     domain.push_back( 1.0 );
+
+    PdfArray extend; 
+    extend.push_back( true );
+    extend.push_back( true );
 
     PdfDictionary & shading = this->GetObject()->GetDictionary().GetKey( PdfName("Shading") )->GetDictionary();
 	PdfArray range;
@@ -360,7 +388,7 @@ void PdfRadialShadingPattern::Init( double dX0, double dY0, double dR0, double d
             
     if( rStart.GetColorSpace() != rEnd.GetColorSpace() )
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Colorspace of start and end color in PdfAxialShadingPattern does not match." );
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Colorspace of start and end color in PdfRadialShadingPattern does not match." );
     }
 
     PdfArray c0 = rStart.ToArray();
@@ -378,12 +406,40 @@ void PdfRadialShadingPattern::Init( double dX0, double dY0, double dR0, double d
 
     PdfDictionary & shading = this->GetObject()->GetDictionary().GetKey( PdfName("Shading") )->GetDictionary();
 
-    if( rStart.IsRGB() )
-        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceRGB") );
-    else if( rStart.IsCMYK() )
-        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceCMYK") );
-    else if( rStart.IsGrayScale() )
-        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceGray") );
+	switch( rStart.GetColorSpace() )
+	{
+		case ePdfColorSpace_DeviceRGB:
+	        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceRGB") );
+		break;
+
+		case ePdfColorSpace_DeviceCMYK:
+		    shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceCMYK") );
+		break;
+
+		case ePdfColorSpace_DeviceGray:
+	        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceGray") );
+		break;
+
+		case ePdfColorSpace_CieLab:
+		{	
+			PdfObject * csp = rStart.BuildColorSpace( this->GetObject()->GetOwner() );
+
+			shading.AddKey( PdfName("ColorSpace"), csp->Reference() );
+		}
+		break;
+
+		case ePdfColorSpace_Separation:
+		{
+			PdfObject * csp = rStart.BuildColorSpace( this->GetObject()->GetOwner() );
+
+			shading.AddKey( PdfName("ColorSpace"), csp->Reference() );
+		}
+		break;
+
+		default:
+	        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Colorspace not supported in PdfRadialShadingPattern." );
+		break;
+	}
 
     shading.AddKey( PdfName("Coords"), coords );
     shading.AddKey( PdfName("Function"), function.GetObject()->Reference() );
