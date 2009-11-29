@@ -1125,22 +1125,7 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
 
 double PdfFontMetrics::CharWidth( unsigned char c ) const
 {
-    FT_Error ftErr;
-    double   dWidth = 0.0;
-
-
-    if( static_cast<int>(c) < PODOFO_WIDTH_CACHE_SIZE ) 
-    {
-        dWidth = m_vecWidth[static_cast<unsigned int>(c)];
-    }
-    else
-    {
-        ftErr = FT_Load_Char( m_face, static_cast<FT_UInt>(c), FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP );
-        if( ftErr )
-            return dWidth;
-
-        dWidth = m_face->glyph->metrics.horiAdvance * 1000.0 / m_face->units_per_EM;
-    }
+    double dWidth = m_vecWidth[static_cast<unsigned int>(c)];
 
     return dWidth * static_cast<double>(m_fFontSize * m_fFontScale / 100.0) / 1000.0 +
 		    static_cast<double>( m_fFontSize * m_fFontScale / 100.0 * m_fFontCharSpace / 100.0);
