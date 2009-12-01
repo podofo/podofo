@@ -233,6 +233,16 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      */
     bool QuickEncryptedCheck( const char* pszFilename );
 
+    /**
+     * Retrieve the number of incremental updates that 
+     * have been applied to the last parsed PDF file.
+     *
+     * 0 means no update has been applied.
+     *
+     * \returns the number of incremental updates to the parsed PDF.
+     */
+    inline int GetNumberOfIncrementalUpdates() const;
+
     /** Get a reference to the sorted internal objects vector.
      *  \returns the internal objects vector.
      */
@@ -508,6 +518,8 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     std::set<int> m_setObjectStreams;
 
     bool          m_bStringParsing;
+
+    int           m_nIncrementalUpdates;
 };
 
 // -----------------------------------------------------
@@ -524,6 +536,14 @@ bool PdfParser::GetLoadOnDemand() const
 EPdfVersion PdfParser::GetPdfVersion() const
 {
     return m_ePdfVersion;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+int PdfParser::GetNumberOfIncrementalUpdates() const
+{
+    return m_nIncrementalUpdates;
 }
 
 // -----------------------------------------------------

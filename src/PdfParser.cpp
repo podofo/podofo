@@ -118,6 +118,7 @@ void PdfParser::Init()
     m_nXRefLinearizedOffset = 0;
 
     m_bStringParsing  = false;
+    m_nIncrementalUpdates = 0;
 }
 
 void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
@@ -204,6 +205,7 @@ void PdfParser::ParseFile( const PdfRefCountedInputDevice & rDevice, bool bLoadO
     // Now sort the list of objects
     m_vecObjects->Sort();
 }
+
 
 void PdfParser::Clear()
 {
@@ -296,19 +298,6 @@ void PdfParser::ReadDocumentStructure()
         throw e;
     }
 
-	// Ulrich Arnold 30.7.2009: ReadXRefContents already reads all xref-sections through recursive call 
-	// of ReadNextTrailer, so this would only read it a second time
-#if 0
-	if( m_pTrailer->GetDictionary().HasKey( "Prev" ) )
-    {
-        try {
-            ReadXRefContents( static_cast<pdf_long>(m_pTrailer->GetDictionary().GetKeyAsLong( "Prev", 0L )) ); 
-        } catch( PdfError & e ) {
-            e.AddToCallstack( __FILE__, __LINE__, "Unable to load /Prev xref entries." );
-            throw e;
-        }
-    }
-#endif
 }
 
 bool PdfParser::IsPdfFile()
@@ -491,6 +480,11 @@ void PdfParser::ReadNextTrailer()
         
         if( trailer.GetDictionary().HasKey( "Prev" ) )
         {
+            // Whenever we read a Prev key, 
+            // we know that the file was updated.
+            m_nIncrementalUpdates++;
+            printf("m_nIncrementalUpdates=%i\n", m_nIncrementalUpdates);
+
             try {
                 ReadXRefContents( static_cast<pdf_long>(trailer.GetDictionary().GetKeyAsLong( "Prev", 0 )) );
             } catch( PdfError & e ) {

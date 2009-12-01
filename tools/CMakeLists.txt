@@ -9,4 +9,5 @@ SUBDIRS(
 	podofotxtextract
 	podofouncompress
 	podofoimpose
+	podofoincrementalupdates
 	)
