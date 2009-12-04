@@ -199,7 +199,7 @@ bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, const ch
             if (e == 'E' && i == 'I')
             {
                 m_buffer.GetBuffer()[counter] = '\0';
-                rVariant = PdfData(m_buffer.GetBuffer(), counter);
+                rVariant = PdfData(m_buffer.GetBuffer(), static_cast<size_t>(counter));
                 reType = ePdfContentsType_ImageData;
                 m_readingInlineImgData = false;
                 return true;

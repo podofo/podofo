@@ -79,7 +79,7 @@ void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, pdf_uint64 offset, pdf_gen
     buffer[0]             = static_cast<char>( cMode == 'n' ? 1 : 0 );
     buffer[m_bufferLen-1] = static_cast<char>( cMode == 'n' ? 0 : generation );
 
-    const pdf_uint64 offset_be = ::PoDoFo::compat::podofo_htonl(offset);
+    const pdf_uint64 offset_be = ::PoDoFo::compat::podofo_htonl(static_cast<pdf_uint32>(offset));
     memcpy( &buffer[1], reinterpret_cast<const char*>(&offset_be), sizeof(pdf_uint64) );
     
     m_pObject->GetStream()->Append( buffer, m_bufferLen );
@@ -102,7 +102,7 @@ void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
     m_pObject->GetDictionary().AddKey( "Index", m_indeces );
     m_pObject->GetDictionary().AddKey( "W", w );
 
-    pDevice->Seek( m_offset );
+    pDevice->Seek( static_cast<size_t>(m_offset) );
     m_pObject->WriteObject( pDevice, NULL ); // DominikS: Requires encryption info??
     m_indeces.Clear();
 }

@@ -42,6 +42,7 @@
 extern "C" {
 #ifdef _WIN32		// Collision between win and jpeg-headers
 #define XMD_H
+#undef FAR
 #endif
 #include "jpeglib.h"
 }

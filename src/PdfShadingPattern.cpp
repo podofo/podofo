@@ -273,94 +273,151 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
     domain.push_back( 0.0 );
     domain.push_back( 1.0 );
 
-    PdfArray extend; 
-    extend.push_back( true );
-    extend.push_back( true );
-
     PdfDictionary & shading = this->GetObject()->GetDictionary().GetKey( PdfName("Shading") )->GetDictionary();
 	PdfArray range;
 	PdfSampledFunction::Sample samples;
 
-    if( rLL.IsRGB() )
+	switch ( rLL.GetColorSpace() )
 	{
-		range.push_back( 0.0 );
-		range.push_back( 1.0 );
-		range.push_back( 0.0 );
-		range.push_back( 1.0 );
-		range.push_back( 0.0 );
-		range.push_back( 1.0 );
+		case ePdfColorSpace_DeviceRGB:
+		{
+			range.push_back( 0.0 );
+			range.push_back( 1.0 );
+			range.push_back( 0.0 );
+			range.push_back( 1.0 );
+			range.push_back( 0.0 );
+			range.push_back( 1.0 );
+	
+			samples.insert( samples.end(), static_cast<char> ( rLL.GetRed() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rLL.GetGreen() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rLL.GetBlue() *255.0 ) );
+	
+			samples.insert( samples.end(), static_cast<char> ( rLR.GetRed() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rLR.GetGreen() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rLR.GetBlue() *255.0 ) );
+	
+			samples.insert( samples.end(), static_cast<char> ( rUL.GetRed() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rUL.GetGreen() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rUL.GetBlue() *255.0 ) );
+	
+			samples.insert( samples.end(), static_cast<char> ( rUR.GetRed() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rUR.GetGreen() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rUR.GetBlue() *255.0 ) );
+	
+	        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceRGB") );
+		}
+		break;
 
-		samples.insert( samples.end(), static_cast<char> ( rLL.GetRed() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rLL.GetGreen() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rLL.GetBlue() *255.0 ) );
+		case ePdfColorSpace_DeviceCMYK:
+		{
+			range.push_back( 0.0 );
+			range.push_back( 1.0 );
+			range.push_back( 0.0 );
+			range.push_back( 1.0 );
+			range.push_back( 0.0 );
+			range.push_back( 1.0 );
+			range.push_back( 0.0 );
+			range.push_back( 1.0 );
+	
+			samples.insert( samples.end(), static_cast<char> ( rLL.GetCyan() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rLL.GetMagenta() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rLL.GetYellow() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rLL.GetBlack() *255.0 ) );
+	
+			samples.insert( samples.end(), static_cast<char> ( rLR.GetCyan() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rLR.GetMagenta() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rLR.GetYellow() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rLR.GetBlack() *255.0 ) );
+	
+			samples.insert( samples.end(), static_cast<char> ( rUL.GetCyan() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rUL.GetMagenta() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rUL.GetYellow() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rUL.GetBlack() *255.0 ) );
+	
+			samples.insert( samples.end(), static_cast<char> ( rUR.GetCyan() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rUR.GetMagenta() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rUR.GetYellow() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rUR.GetBlack() *255.0 ) );
+	
+	        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceCMYK") );
+		}
+		break;
 
-		samples.insert( samples.end(), static_cast<char> ( rLR.GetRed() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rLR.GetGreen() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rLR.GetBlue() *255.0 ) );
+		case ePdfColorSpace_DeviceGray:
+		{
+			range.push_back( 0.0 );
+			range.push_back( 1.0 );
+	
+			samples.insert( samples.end(), static_cast<char> ( rLL.GetGrayScale() *255.0 ) );
+	
+			samples.insert( samples.end(), static_cast<char> ( rLR.GetGrayScale() *255.0 ) );
+	
+			samples.insert( samples.end(), static_cast<char> ( rUL.GetGrayScale() *255.0 ) );
+	
+			samples.insert( samples.end(), static_cast<char> ( rUR.GetGrayScale() *255.0 ) );
+	
+	        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceGray") );
+		}
+		break;
 
-		samples.insert( samples.end(), static_cast<char> ( rUL.GetRed() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rUL.GetGreen() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rUL.GetBlue() *255.0 ) );
+		case ePdfColorSpace_CieLab:
+		{
+			range.push_back( 0.0 );
+			range.push_back( 100.0 );
+			range.push_back( -128.0 );
+			range.push_back( 127.0 );
+			range.push_back( -128.0 );
+			range.push_back( 127.0 );
 
-		samples.insert( samples.end(), static_cast<char> ( rUR.GetRed() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rUR.GetGreen() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rUR.GetBlue() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rLL.GetCieL() *2.55 ) );
+			samples.insert( samples.end(), static_cast<char> ( rLL.GetCieA() +128 ) );
+			samples.insert( samples.end(), static_cast<char> ( rLL.GetCieB() +128 ) );
 
-        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceRGB") );
-	}
-    else if( rLL.IsCMYK() )
-	{
-		range.push_back( 0.0 );
-		range.push_back( 1.0 );
-		range.push_back( 0.0 );
-		range.push_back( 1.0 );
-		range.push_back( 0.0 );
-		range.push_back( 1.0 );
-		range.push_back( 0.0 );
-		range.push_back( 1.0 );
+			samples.insert( samples.end(), static_cast<char> ( rLR.GetCieL() *2.55 ) );
+			samples.insert( samples.end(), static_cast<char> ( rLR.GetCieA() +128 ) );
+			samples.insert( samples.end(), static_cast<char> ( rLR.GetCieB() +128 ) );
 
-		samples.insert( samples.end(), static_cast<char> ( rLL.GetCyan() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rLL.GetMagenta() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rLL.GetYellow() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rLL.GetBlack() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rUL.GetCieL() *2.55 ) );
+			samples.insert( samples.end(), static_cast<char> ( rUL.GetCieA() +128 ) );
+			samples.insert( samples.end(), static_cast<char> ( rUL.GetCieB() +128 ) );
 
-		samples.insert( samples.end(), static_cast<char> ( rLR.GetCyan() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rLR.GetMagenta() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rLR.GetYellow() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rLR.GetBlack() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rUR.GetCieL() *2.55 ) );
+			samples.insert( samples.end(), static_cast<char> ( rUR.GetCieA() +128 ) );
+			samples.insert( samples.end(), static_cast<char> ( rUR.GetCieB() +128 ) );
 
-		samples.insert( samples.end(), static_cast<char> ( rUL.GetCyan() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rUL.GetMagenta() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rUL.GetYellow() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rUL.GetBlack() *255.0 ) );
+			PdfObject * csp = rLL.BuildColorSpace( this->GetObject()->GetOwner() );
 
-		samples.insert( samples.end(), static_cast<char> ( rUR.GetCyan() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rUR.GetMagenta() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rUR.GetYellow() *255.0 ) );
-		samples.insert( samples.end(), static_cast<char> ( rUR.GetBlack() *255.0 ) );
+			shading.AddKey( PdfName("ColorSpace"), csp->Reference() );
+		}
+		break;
 
-        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceCMYK") );
-	}
-    else if( rLL.IsGrayScale() )
-	{
-		range.push_back( 0.0 );
-		range.push_back( 1.0 );
+		case ePdfColorSpace_Separation:
+		{
+			range.push_back( 0.0 );
+			range.push_back( 1.0 );
 
-		samples.insert( samples.end(), static_cast<char> ( rLL.GetGrayScale() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rLL.GetDensity() *255.0 ) );
 
-		samples.insert( samples.end(), static_cast<char> ( rLR.GetGrayScale() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rLR.GetDensity() *255.0 ) );
 
-		samples.insert( samples.end(), static_cast<char> ( rUL.GetGrayScale() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rUL.GetDensity() *255.0 ) );
 
-		samples.insert( samples.end(), static_cast<char> ( rUR.GetGrayScale() *255.0 ) );
+			samples.insert( samples.end(), static_cast<char> ( rUR.GetDensity() *255.0 ) );
 
-        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceGray") );
+			PdfObject * csp = rLL.BuildColorSpace( this->GetObject()->GetOwner() );
+
+			shading.AddKey( PdfName("ColorSpace"), csp->Reference() );
+		}
+		break;
+
+		default:
+	        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Colorspace not supported in PdfFunctionBaseShadingPattern." );
+		break;
 	}
 
     PdfSampledFunction function( domain, range, samples, this->GetObject()->GetOwner() );
     shading.AddKey( PdfName("Function"), function.GetObject()->Reference() );
     shading.AddKey( PdfName("Domain"), domain );
-    shading.AddKey( PdfName("Extend"), extend );
     shading.AddKey( PdfName("Matrix"), rMatrix );
 }
 
