@@ -39,6 +39,7 @@ void print_help()
   printf("       P displays Page Info.\n");
   printf("       O displays Outlines.\n");
   printf("       N displays Names.\n");
+  printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
 }
 
 struct Format {

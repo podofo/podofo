@@ -56,7 +56,7 @@ void print_help()
   printf("\tbe retrieved from the document though.\n\n");
   printf("\t--move FROM TO\n");
   printf("\tMoves a page FROM TO in the document (FROM and TO are 0-based)\n\n"); 
-
+  printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);  
 }
 
 void work(const char* pszInput, const char* pszOutput, std::vector<Operation*> & rvecOperations)

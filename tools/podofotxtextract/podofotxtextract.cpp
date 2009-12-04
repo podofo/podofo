@@ -31,6 +31,7 @@
 void print_help()
 {
   printf("Usage: podofotxtextract [inputfile]\n\n");
+  printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
 }
 
 int main( int argc, char* argv[] )

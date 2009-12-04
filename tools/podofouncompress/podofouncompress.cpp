@@ -35,6 +35,7 @@ void print_help()
   printf("Usage: podofouncompress [inputfile] [outputfile]\n\n");
   printf("       This tool removes all compression from the PDF file.\n");
   printf("       It is useful for debugging errors in PDF files or analysing their structure.\n");
+  printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
 }
 
 int main( int argc, char* argv[] )

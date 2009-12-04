@@ -26,6 +26,7 @@
 #include <PdfInfo.h>
 #include <PdfPage.h>
 #include <PdfPainterMM.h>
+#include <PdfVersion.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -44,6 +45,7 @@ using namespace PoDoFo;
 void print_help()
 {
   printf("Usage: podofotxt2pdf [inputfile] [outputfile]\n\n");
+  printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
 }
 
 void draw( char* pszBuffer, PdfDocument* pDocument )

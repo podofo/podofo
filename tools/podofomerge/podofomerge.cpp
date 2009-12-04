@@ -23,6 +23,7 @@
 #include <PdfDestination.h>
 #include <PdfMemDocument.h>
 #include <PdfOutlines.h>
+#include <PdfVersion.h>
 
 #include <stdlib.h>
 #include <cstdio>
@@ -36,6 +37,7 @@ using namespace PoDoFo;
 void print_help()
 {
   printf("Usage: podofomerge [inputfile1] [inputfile2] [outputfile]\n\n");
+  printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
 }
 
 void merge( const char* pszInput1, const char* pszInput2, const char* pszOutput )

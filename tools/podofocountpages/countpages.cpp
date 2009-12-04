@@ -36,6 +36,7 @@ void print_help()
     printf("       -s will enable the short format, which ommites\n");
     printf("          printing of the filename in the output.\n");
     printf("       -t print the total sum of all pages.\n");
+    printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
 }
 
 int count_pages( const char* pszFilename, const bool & bShortFormat ) 

@@ -47,6 +47,7 @@ void usage()
 	cerr << "\tOutput will be a PDF file" << endl<< endl;
 	cerr << "\tPlan is an imposition plan file" <<endl<< endl;
 	cerr << "\t[Interpretor] Can be \"native\" (default value) or \"lua\""<< endl<< endl;
+    cerr << "PoDoFo Version: " << PODOFO_VERSION_STRING << endl << endl;
 }
 
 int parseCommandLine ( int argc, char* argv[] )

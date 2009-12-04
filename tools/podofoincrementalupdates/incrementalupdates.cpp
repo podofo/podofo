@@ -36,6 +36,7 @@ void print_help()
     printf("       By default the number of incremental updates will be printed.\n");
     printf("       -e N out.pdf\n");
     printf("       Extract the Nth update from file.pdf and write it to out.pdf.\n");
+    printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
 }
 
 int get_info( const char* pszFilename )
