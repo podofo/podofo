@@ -90,6 +90,7 @@
 #include "PdfTokenizer.h"
 #include "PdfVariant.h"
 #include "PdfVecObjects.h"
+#include "PdfVersion.h"
 #include "PdfWriter.h"
 #include "PdfXObject.h"
 #include "PdfXRef.h"
