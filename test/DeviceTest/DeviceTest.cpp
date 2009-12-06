@@ -42,7 +42,7 @@ void RefCountedBufferTest()
     PdfBufferOutputStream stream1( &buffer1 );
     stream1.Write( pszTestString, lLen );
     stream1.Close();
-    if( buffer1.GetSize() != lLen ) 
+    if( static_cast<long>(buffer1.GetSize()) != lLen ) 
     {
         fprintf( stderr, "Buffer size does not match! Size=%li should be %li\n", buffer1.GetSize(), lLen );
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
@@ -74,13 +74,13 @@ void RefCountedBufferTest()
     PdfBufferOutputStream stream( &buffer2 );
     stream.Write( pszTestString, lLen );
     stream.Close();
-    if( buffer2.GetSize() != lLen * 2 ) 
+    if( static_cast<long>(buffer2.GetSize()) != lLen * 2 ) 
     {
         fprintf( stderr, "Buffer size after detach does not match! Size=%li should be %li\n", buffer2.GetSize(), lLen * 2 );
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
     }
 
-    if( buffer1.GetSize() != lLen ) 
+    if( static_cast<long>(buffer1.GetSize()) != lLen ) 
     {
         fprintf( stderr, "Buffer1 size seems to be modified\n");
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
@@ -100,7 +100,7 @@ void RefCountedBufferTest()
     }
     streamLarge.Close();
 
-    if( buffer1.GetSize() != (lLen * 100 + lLen) ) 
+    if( static_cast<long>(buffer1.GetSize()) != (lLen * 100 + lLen) ) 
     {
         fprintf( stderr, "Buffer1 size is wrong after 100 attaches: %li\n", buffer1.GetSize() );
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
