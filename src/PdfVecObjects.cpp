@@ -54,6 +54,13 @@ public:
 };
 
 
+struct ReferenceComperatorPredicate {
+public:
+    inline bool operator()( const PdfReference & pObj, const PdfReference & pObj2 ) const { 
+        return pObj < pObj2;
+    }
+};
+
 class ObjectsComperator { 
 public:
     ObjectsComperator( const PdfReference & ref )
@@ -217,52 +224,28 @@ PdfObject* PdfVecObjects::CreateObject( const PdfVariant & rVariant )
 
 void PdfVecObjects::AddFreeObject( const PdfReference & rReference )
 {
-	// Ulrich Arnold 30.7.2009: Should no longer happen after fix in parsing free-list, just to be sure 
-	TCIPdfReferenceList itFreeDest = m_lstFreeObjects.begin();
-	while( itFreeDest != m_lstFreeObjects.end() )
-	{
-		if ( (*itFreeDest).ObjectNumber() == rReference.ObjectNumber() )
-		{
-			PdfError::DebugMessage( "Adding %d to freelist, is already contained !!", rReference.ObjectNumber() );
-			return;
-		}
-		++itFreeDest;
-	}
+    std::pair<TIPdfReferenceList,TIPdfReferenceList> it = 
+        std::equal_range( m_lstFreeObjects.begin(), m_lstFreeObjects.end(), rReference, ReferenceComperatorPredicate() );
 
-    TIVecObjects it;
-
-    it = std::find_if( this->begin(), this->end(), ObjectsComperator( rReference ) );
-   
-    // When append free objects from external doc we need plus one number objects
-    if( it == this->end() )
-        ++m_nObjectCount;
-
-    if ( !m_lstFreeObjects.empty() && m_lstFreeObjects.back() < rReference )
+    if( it.first != it.second && !m_lstFreeObjects.empty() ) 
     {
-        // We can maintain sort order by just appending the new free object.
-        // This is a whole lot faster than a push_front() and sort().
-        m_lstFreeObjects.push_back( rReference );
+        // Be sure that no reference is added twice to free list
+        PdfError::DebugMessage( "Adding %d to freelist, is already contained !!", rReference.ObjectNumber() );
+        return;
     }
     else
     {
-        m_lstFreeObjects.push_front( rReference );
-        m_lstFreeObjects.sort();
+        // When append free objects from external doc we need plus one number objects
+        SetObjectCount( rReference );
+
+        // Insert so that list stays sorted
+        m_lstFreeObjects.insert( it.first, rReference );
     }
 }
 
 void PdfVecObjects::push_back( PdfObject* pObj )
 {
-    if( pObj->Reference().ObjectNumber() >= m_nObjectCount )
-    // Peter Petrov 18 September 2008
-    {
-        // This was a bug.
-        //++m_nObjectCount;
-
-        // In fact "m_bObjectCount" is used for the next free object number.
-        // We need to use the greatest object number + 1 for the next free object number.
-        // Otherwise, object number overlap would have occurred.
-        m_nObjectCount = pObj->Reference().ObjectNumber() + 1;
-    }
+    SetObjectCount( pObj->Reference() );
 
 //  Ulrich Arnold 30.7.2009 must sort if INSIDE range
 //	if( !m_vector.empty() && m_vector.back()->Reference() < pObj->Reference() )

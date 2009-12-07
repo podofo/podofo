@@ -30,6 +30,7 @@
 #include "PdfStream.h"
 #include "PdfVariant.h"
 #include "PdfDefinesPrivate.h"
+#include "PdfXRefStreamParserObject.h"
 
 #include <cstring>
 #include <cstdlib>
@@ -117,7 +118,7 @@ void PdfParser::Init()
     m_nNumObjects     = 0;
     m_nXRefLinearizedOffset = 0;
 
-    m_bStringParsing  = false;
+    m_bStrictParsing  = false;
     m_nIncrementalUpdates = 0;
 }
 
@@ -483,7 +484,6 @@ void PdfParser::ReadNextTrailer()
             // Whenever we read a Prev key, 
             // we know that the file was updated.
             m_nIncrementalUpdates++;
-            printf("m_nIncrementalUpdates=%i\n", m_nIncrementalUpdates);
 
             try {
                 ReadXRefContents( static_cast<pdf_long>(trailer.GetDictionary().GetKeyAsLong( "Prev", 0 )) );
@@ -682,9 +682,13 @@ void PdfParser::ReadXRefSubsection( long long & nFirstObject, long long & nNumOb
                     &(m_offsets[objID].lOffset), 
                     &(m_offsets[objID].lGeneration), &(m_offsets[objID].cUsed) );
 #else
+            long long int tmp1;
+            long int tmp2;
             sscanf( m_buffer.GetBuffer(), "%10lld %5ld %c \n", 
-                    &(m_offsets[objID].lOffset), 
-                    &(m_offsets[objID].lGeneration), &(m_offsets[objID].cUsed) );
+                    &tmp1, &tmp2, &(m_offsets[objID].cUsed) );
+
+            m_offsets[objID].lOffset = tmp1;
+            m_offsets[objID].lGeneration = tmp2;
 #endif
        }
 
@@ -701,32 +705,10 @@ void PdfParser::ReadXRefSubsection( long long & nFirstObject, long long & nNumOb
 
 void PdfParser::ReadXRefStreamContents( pdf_long lOffset, bool bReadOnlyTrailer )
 {
-    char*       pBuffer;
-    char*       pStart;
-    pdf_long        lBufferLen;
-    long long        lSize     = 0;
-    PdfVariant  vWArray;
-    PdfObject*  pObj;
-
-    long        nW[W_ARRAY_SIZE] = { 0, 0, 0 };
-    int         i;
-
     m_device.Device()->Seek( lOffset );
 
-    PdfParserObject xrefObject( m_vecObjects, m_device, m_buffer );
-    // Ignore the encryption in the XREF as the XREF stream must no be encrypted (see PDF Reference 3.4.7)
-    xrefObject.ParseFile( NULL );
-
-    if( !xrefObject.GetDictionary().HasKey( PdfName::KeyType ) )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
-    } 
-
-    pObj = xrefObject.GetDictionary().GetKey( PdfName::KeyType );
-    if( !pObj->IsName() || ( pObj->GetName() != "XRef" ) )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
-    } 
+    PdfXRefStreamParserObject xrefObject( m_vecObjects, m_device, m_buffer, &m_offsets );
+    xrefObject.Parse();
 
     if( !m_pTrailer )
         m_pTrailer = new PdfParserObject( m_vecObjects, m_device, m_buffer );
@@ -736,139 +718,13 @@ void PdfParser::ReadXRefStreamContents( pdf_long lOffset, bool bReadOnlyTrailer 
     if( bReadOnlyTrailer )
         return;
 
-    if( !xrefObject.GetDictionary().HasKey( PdfName::KeySize ) || !xrefObject.GetDictionary().HasKey( "W" ) )
+    xrefObject.ReadXRefTable();
+
+    // Check for a previous XRef stream
+    if(xrefObject.HasPrevious()) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
-    }
-
-    lSize   = xrefObject.GetDictionary().GetKeyAsLong( PdfName::KeySize, 0 );
-    vWArray = *(xrefObject.GetDictionary().GetKey( "W" ));
-
-    // The pdf reference states that W is always an array with 3 entries
-    // all of them have to be integeres
-    if( !vWArray.IsArray() || vWArray.GetArray().size() != 3 )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
-    }
-
-    for( i=0;i<W_ARRAY_SIZE;i++ )
-    {
-        if( !vWArray.GetArray()[i].IsNumber() )
-        {
-            PODOFO_RAISE_ERROR( ePdfError_NoXRef );
-        }
-
-        nW[i] = static_cast<long>(vWArray.GetArray()[i].GetNumber());
-    }
-
-    std::vector<long long> vecIndeces;
-    // get the first object number in this crossref stream.
-    // it is not required to have an index key though.
-    if( xrefObject.GetDictionary().HasKey( "Index" ) )
-    {
-        // reuse vWArray!!
-        vWArray = *(xrefObject.GetDictionary().GetKey( "Index" ));
-        if( !vWArray.IsArray() )
-        {
-            PODOFO_RAISE_ERROR( ePdfError_NoXRef );
-        }
-
-        TCIVariantList it = vWArray.GetArray().begin();
-        while ( it != vWArray.GetArray().end() )
-        {
-            vecIndeces.push_back( (*it).GetNumber() );
-            ++it;
-        }
-    }
-    else
-    {
-        vecIndeces.push_back( 0 );
-        vecIndeces.push_back( lSize );
-    }
-
-    if( vecIndeces.size() % 2 )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
-    }
-
-    if( !xrefObject.HasStreamToParse() )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
-    }
-
-    xrefObject.GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
-
-    pStart        = pBuffer;
-    int nCurIndex = 0;
-    while( nCurIndex < static_cast<pdf_long>(vecIndeces.size()) && pBuffer - pStart < lBufferLen )
-    {
-        int nFirstObj = static_cast<int>(vecIndeces[nCurIndex]);
-        long long nCount    = vecIndeces[nCurIndex+1];
-
-        while( nCount-- && pBuffer - pStart < lBufferLen ) 
-        {
-            ReadXRefStreamEntry( pBuffer, lBufferLen, nW, nFirstObj++ );
-            pBuffer += (nW[0] + nW[1] + nW[2]);
-        }
-
-        nCurIndex += 2;
-    }
-    free( pStart );
-
-    if( xrefObject.GetDictionary().HasKey("Prev") )
-    {
-        lOffset = static_cast<pdf_long>(xrefObject.GetDictionary().GetKeyAsLong( "Prev", 0 ));
-        ReadXRefStreamContents( lOffset, bReadOnlyTrailer );
-    }
-}
-
-void PdfParser::ReadXRefStreamEntry( char* pBuffer, pdf_long, long lW[W_ARRAY_SIZE], int nObjNo )
-{
-    int              i, z;
-    unsigned long    nData[W_ARRAY_SIZE];
-
-    for( i=0;i<W_ARRAY_SIZE;i++ )
-    {
-        if( lW[i] > W_MAX_BYTES )
-        {
-            PdfError::LogMessage( eLogSeverity_Error, "The XRef stream dictionary has an entry in /W of size %i.\nThe maximum supported value is %i.\n", lW[i], W_MAX_BYTES );
-
-            PODOFO_RAISE_ERROR( ePdfError_InvalidXRefStream );
-        }
-        
-        nData[i] = 0;
-        for( z=W_MAX_BYTES-lW[i];z<W_MAX_BYTES;z++ )
-        {
-            nData[i] = (nData[i] << 8) + static_cast<unsigned char>(*pBuffer);
-            ++pBuffer;
-        }
-    }
-
-    m_offsets[nObjNo].bParsed = true;
-    switch( nData[0] ) // nData[0] contains the type information of this entry
-    {
-        case 0:
-            // a free object
-            m_offsets[nObjNo].lOffset     = nData[1];
-            m_offsets[nObjNo].lGeneration = nData[2];
-            m_offsets[nObjNo].cUsed       = 'f';
-            break;
-        case 1:
-            // normal uncompressed object
-            m_offsets[nObjNo].lOffset     = nData[1];
-            m_offsets[nObjNo].lGeneration = nData[2];
-            m_offsets[nObjNo].cUsed       = 'n';
-            break;
-        case 2:
-            // object that is part of an object stream
-            m_offsets[nObjNo].lOffset     = nData[2]; // index in the object stream
-            m_offsets[nObjNo].lGeneration = nData[1]; // object number of the stream
-            m_offsets[nObjNo].cUsed       = 's';      // mark as stream
-            break;
-        default:
-        {
-            PODOFO_RAISE_ERROR( ePdfError_InvalidXRefType );
-        }
+        m_nIncrementalUpdates++;
+        this->ReadXRefStreamContents( xrefObject.GetPreviousOffset(), bReadOnlyTrailer );
     }
 }
 
@@ -1004,9 +860,17 @@ void PdfParser::ReadObjectsInternal()
         {
             pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, m_offsets[i].lOffset );
             pObject->SetLoadOnDemand( m_bLoadOnDemand );
+
             try {
                 pObject->ParseFile( m_pEncrypt );
                 nLast = pObject->Reference().ObjectNumber();
+                /*
+                if( pObject->Reference().ObjectNumber() != i ) 
+                {
+                    printf("EXPECTED: %i got %i\n", i, pObject->Reference().ObjectNumber() );
+                    abort();
+                }
+                */
 
                 // final pdf should not contain a linerization dictionary as it contents are invalid 
                 // as we change some objects and the final xref table
@@ -1021,11 +885,12 @@ void PdfParser::ReadObjectsInternal()
                 std::ostringstream oss;
                 if( pObject )
                 {
-                    oss << "Error while loading object " << pObject->Reference().ObjectNumber() << " " 
-                        << pObject->Reference().GenerationNumber() << std::endl;
+                    oss << "Error while loading object " << pObject->Reference().ObjectNumber() 
+                        << " " << pObject->Reference().GenerationNumber() 
+                        << " Offset = " << m_offsets[i].lOffset
+                        << " Index = " << i << std::endl;
                     delete pObject;
                 }
-
                 e.AddToCallstack( __FILE__, __LINE__, oss.str().c_str() );
                 throw e;
             }
@@ -1036,7 +901,7 @@ void PdfParser::ReadObjectsInternal()
             // and 0 offset and 0 generation number
             // to the xref table instead of using free objects
             // treating them as free objects
-            if( m_bStringParsing ) 
+            if( m_bStrictParsing ) 
             {
                 PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidXRef,
                                          "Found object with 0 offset which should be 'f' instead of 'n'." );
@@ -1075,13 +940,12 @@ void PdfParser::ReadObjectsInternal()
         if( m_offsets[i].bParsed && m_offsets[i].cUsed == 's' ) // we have an object stream
         {
 #if defined(PODOFO_VERBOSE_DEBUG)
-            if (m_bLoadOnDemand) cerr << "Demand loading on, but can't demand-load found object stream." << endl;
+            if (m_bLoadOnDemand) cerr << "Demand loading on, but can't demand-load from object stream." << endl;
 #endif
             ReadObjectFromStream( static_cast<int>(m_offsets[i].lGeneration), 
                                   static_cast<int>(m_offsets[i].lOffset) );
         }
     }
-
     if( !m_bLoadOnDemand )
     {
         // Force loading of streams. We can't do this during the initial

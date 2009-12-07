@@ -48,6 +48,7 @@ SET(PODOFO_SOURCES
     PdfInputStream.cpp
     PdfLocale.cpp
     PdfMemDocument.cpp
+    PdfMemoryManagement.cpp
     PdfMemStream.cpp
     PdfName.cpp
     PdfNamesTree.cpp
@@ -80,6 +81,7 @@ SET(PODOFO_SOURCES
     PdfXObject.cpp
     PdfXRef.cpp
     PdfXRefStream.cpp
+    PdfXRefStreamParserObject.cpp
 )
 
 IF(WIN32)
@@ -136,6 +138,7 @@ SET(PODOFO_HEADERS
     PdfInputStream.h
     PdfLocale.h
     PdfMemDocument.h
+    PdfMemoryManagement.h
     PdfMemStream.h
     PdfName.h
     PdfNamesTree.h
@@ -168,6 +171,7 @@ SET(PODOFO_HEADERS
     PdfXObject.h
     PdfXRef.h
     PdfXRefStream.h
+    PdfXRefStreamParserObject.h
     podofo.h
     podofoapi.h
 )

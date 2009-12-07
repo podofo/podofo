@@ -48,6 +48,18 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     friend class PdfWriter;
 
  public:
+    struct TXRefEntry {
+        inline TXRefEntry() : lOffset(0), lGeneration(0), cUsed('\x00'), bParsed(false) { }
+        pdf_long lOffset;
+        long lGeneration;
+        char cUsed;
+        bool bParsed;
+    };
+
+    typedef std::vector<TXRefEntry>      TVecOffsets;
+    typedef TVecOffsets::iterator        TIVecOffsets;
+    typedef TVecOffsets::const_iterator  TCIVecOffsets;
+
     /** Create a new PdfParser object
      *  You have to open a PDF file using ParseFile later.
      *  \param pVecObjects vector to write the parsed PdfObjects to
@@ -416,8 +428,6 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      */
     void ReadXRefStreamContents( pdf_long lOffset, bool bReadOnlyTrailer );
 
-    void ReadXRefStreamEntry( char* pBuffer, pdf_long lLen, long lW[W_ARRAY_SIZE], int nObjNo );
-
     /** Reads all objects from the pdf into memory
      *  from the offsets listed in m_vecOffsets.
      *
@@ -483,19 +493,6 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     const PdfString & GetDocumentId();
 
  private:
-
-    struct TXRefEntry {
-        inline TXRefEntry() : lOffset(0), lGeneration(0), cUsed('\x00'), bParsed(false) { }
-        pdf_long lOffset;
-        long lGeneration;
-        char cUsed;
-        bool bParsed;
-    };
-
-    typedef std::vector<TXRefEntry>      TVecOffsets;
-    typedef TVecOffsets::iterator        TIVecOffsets;
-    typedef TVecOffsets::const_iterator  TCIVecOffsets;
-
     EPdfVersion   m_ePdfVersion;
 
     bool          m_bLoadOnDemand;
@@ -506,7 +503,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     pdf_long      m_nXRefLinearizedOffset;
     size_t        m_nFileSize;
 
-    TVecOffsets m_offsets;
+    TVecOffsets   m_offsets;
     PdfVecObjects* m_vecObjects;
 
     PdfObject*    m_pTrailer;
@@ -517,7 +514,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
 
     std::set<int> m_setObjectStreams;
 
-    bool          m_bStringParsing;
+    bool          m_bStrictParsing;
 
     int           m_nIncrementalUpdates;
 };
@@ -577,7 +574,7 @@ PdfEncrypt* PdfParser::TakeEncrypt()
 // -----------------------------------------------------
 bool PdfParser::IsStrictParsing() const
 {
-    return m_bStringParsing;
+    return m_bStrictParsing;
 }
 
 // -----------------------------------------------------
@@ -585,7 +582,7 @@ bool PdfParser::IsStrictParsing() const
 // -----------------------------------------------------
 void PdfParser::SetStringParsing( bool bStrict )
 {
-    m_bStringParsing = bStrict;
+    m_bStrictParsing = bStrict;
 }
 
 };

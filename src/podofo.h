@@ -95,6 +95,7 @@
 #include "PdfXObject.h"
 #include "PdfXRef.h"
 #include "PdfXRefStream.h"
+#include "PdfXRefStreamParserObject.h"
 
 #if 0
 #ifndef _PODOFO_NO_NAMESPACE_

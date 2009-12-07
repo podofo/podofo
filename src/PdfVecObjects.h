@@ -33,8 +33,10 @@ class PdfObject;
 class PdfStream;
 class PdfVariant;
 
-// slist would be better, but it is not support by default gcc :-(
-typedef std::list<PdfReference>                  TPdfReferenceList;
+// Use deque as many insertions are here way faster than with using std::list
+// This is especially useful for PDFs like PDFReference17.pdf with
+// lot's of free objects.
+typedef std::deque<PdfReference>                 TPdfReferenceList;
 typedef TPdfReferenceList::iterator              TIPdfReferenceList;
 typedef TPdfReferenceList::const_iterator        TCIPdfReferenceList;
 
@@ -395,6 +397,14 @@ class PODOFO_API PdfVecObjects {
      */
     void GarbageCollection( TVecReferencePointerList* pList, PdfObject* pTrailer, TPdfReferenceSet* pNotDelete = NULL );
 
+    /**
+     * Set the object count so that the object described this reference
+     * is contained in the object count.
+     *
+     * \param rRef reference of newly added object
+     */
+    void SetObjectCount( const PdfReference & rRef );
+
  private:
     bool                m_bAutoDelete;
     size_t              m_nObjectCount;
@@ -523,6 +533,27 @@ inline PdfObject* PdfVecObjects::GetBack()
     return m_vector.back(); 
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfVecObjects::SetObjectCount( const PdfReference & rRef ) 
+{
+    if( rRef.ObjectNumber() >= m_nObjectCount )
+    // Peter Petrov 18 September 2008
+    {
+        // This was a bug.
+        //++m_nObjectCount;
+
+        // In fact "m_bObjectCount" is used for the next free object number.
+        // We need to use the greatest object number + 1 for the next free object number.
+        // Otherwise, object number overlap would have occurred.
+        m_nObjectCount = rRef.ObjectNumber() + 1;
+    }
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 inline PdfObject*& PdfVecObjects::operator[](size_t index) { return m_vector[index]; }
 
 //inline PdfObject const * & PdfVecObjects::operator[](int index) const { return m_vector[index]; }

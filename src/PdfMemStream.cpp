@@ -210,7 +210,7 @@ void PdfMemStream::Uncompress()
 
         this->Set( pBuffer, lLen, vecEmpty );
         // free the memory allocated by GetFilteredCopy again.
-        free( pBuffer );
+        podofo_free( pBuffer );
 
         m_pParent->GetDictionary().RemoveKey( "Filter" ); 
         

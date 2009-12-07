@@ -53,7 +53,7 @@ PdfMemoryOutputStream::PdfMemoryOutputStream( pdf_long lInitial )
     : m_lLen( 0 ), m_bOwnBuffer( true )
 {
     m_lSize   = lInitial;
-    m_pBuffer = static_cast<char*>(malloc( m_lSize * sizeof(char) ));
+    m_pBuffer = static_cast<char*>(podofo_malloc( m_lSize * sizeof(char) ));
     
     if( !m_pBuffer ) 
     {
@@ -72,7 +72,7 @@ PdfMemoryOutputStream::PdfMemoryOutputStream( char* pBuffer, pdf_long lLen )
 PdfMemoryOutputStream::~PdfMemoryOutputStream()
 {
     if( m_bOwnBuffer )
-        free( m_pBuffer );
+        podofo_free( m_pBuffer );
 }
 
 pdf_long PdfMemoryOutputStream::Write( const char* pBuffer, pdf_long lLen )
@@ -88,7 +88,7 @@ pdf_long PdfMemoryOutputStream::Write( const char* pBuffer, pdf_long lLen )
         {
             // a reallocation is required
             m_lSize = PDF_MAX( (m_lLen + lLen), (m_lSize << 1 ) );
-            m_pBuffer = static_cast<char*>(realloc( m_pBuffer, m_lSize ));
+            m_pBuffer = static_cast<char*>(podofo_realloc( m_pBuffer, m_lSize ));
             if( !m_pBuffer ) 
             {
                 PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
