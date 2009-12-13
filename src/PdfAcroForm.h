@@ -30,16 +30,25 @@ class PdfDocument;
 
 class PODOFO_API PdfAcroForm : public PdfElement {
  public:
+    enum EPdfAcroFormDefaulAppearance {
+        ePdfAcroFormDefaultAppearance_None, ///< Do not add a default appearrance
+        ePdfAcroFormDefaultAppearance_BlackText12pt ///< Add a default appearance with Arial embedded and black text 12pt if no other DA key is present
+    };
+
     /** Create a new PdfAcroForm dictionary object
-     *  \param pParent parent of this action
+     *  \param pDoc parent of this action
+     *  \param eDefaultAppearance specifies if a default appearance should be added
      */
-    PdfAcroForm( PdfDocument* pDoc );
+    PdfAcroForm( PdfDocument* pDoc, 
+                 EPdfAcroFormDefaulAppearance eDefaultAppearance = ePdfAcroFormDefaultAppearance_BlackText12pt );
 
     /** Create a PdfAcroForm dictionary object from an existing PdfObject
+     *  \param pDoc parent document
      *	\param pObject the object to create from
-     *  \param pCatalog the Catalog dictionary of the owning PDF
+     *  \param eDefaultAppearance specifies if a default appearance should be added
      */
-    PdfAcroForm( PdfDocument* pDoc, PdfObject* pObject );
+    PdfAcroForm( PdfDocument* pDoc, PdfObject* pObject,
+                 EPdfAcroFormDefaulAppearance eDefaultAppearance = ePdfAcroFormDefaultAppearance_BlackText12pt );
 
     virtual ~PdfAcroForm() { }
 
@@ -53,8 +62,9 @@ class PODOFO_API PdfAcroForm : public PdfElement {
  private:
     /** Initialize this object
      *  with a default appearance
+     *  \param eDefaultAppearance specifies if a default appearance should be added
      */
-    void Init();
+    void Init( EPdfAcroFormDefaulAppearance eDefaultAppearance );
 
  private:
     PdfDocument* m_pDocument;

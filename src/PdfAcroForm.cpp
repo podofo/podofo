@@ -34,22 +34,22 @@ namespace PoDoFo {
   We use NULL for the PdfElement name, since the AcroForm dict
   does NOT have a /Type key!
 */
-PdfAcroForm::PdfAcroForm( PdfDocument* pDoc )
+PdfAcroForm::PdfAcroForm( PdfDocument* pDoc, EPdfAcroFormDefaulAppearance eDefaultAppearance )
     : PdfElement( NULL, pDoc ), m_pDocument( pDoc )
 {
     // Initialize with an empty fields array
     m_pObject->GetDictionary().AddKey( PdfName("Fields"), PdfArray() );
 
-    Init();
+    Init( eDefaultAppearance );
 }
 
-PdfAcroForm::PdfAcroForm( PdfDocument* pDoc, PdfObject* pObject )
+PdfAcroForm::PdfAcroForm( PdfDocument* pDoc, PdfObject* pObject, EPdfAcroFormDefaulAppearance eDefaultAppearance )
     : PdfElement( NULL, pObject ), m_pDocument( pDoc )
 {
-    Init();
+    Init( eDefaultAppearance );
 }
 
-void PdfAcroForm::Init( )
+void PdfAcroForm::Init( EPdfAcroFormDefaulAppearance eDefaultAppearance )
 {
     // Add default appearance: black text, 12pt times 
     // -> only if we do not have a DA key yet
@@ -57,7 +57,8 @@ void PdfAcroForm::Init( )
     // Peter Petrov 27 April 2008
     //m_pObject->GetDictionary().AddKey( PdfName("NeedAppearances"), PdfVariant(true) );
 
-    if( !m_pObject->GetDictionary().HasKey("DA") )
+    if( !m_pObject->GetDictionary().HasKey("DA") || 
+        eDefaultAppearance == ePdfAcroFormDefaultAppearance_BlackText12pt )
     {
         //PdfFont* pFont = pParent->GetDocument()->CreateFont( "Helvetica", false );
         
