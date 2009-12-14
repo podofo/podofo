@@ -412,6 +412,7 @@ class PODOFO_API PdfString : public PdfDataType{
     static const char        s_pszUnicodeMarker[];   ///< The unicode marker used to indicate unicode strings in PDF
     static const char*       s_pszUnicodeMarkerHex;  ///< The unicode marker converted to HEX
     static const pdf_utf16be s_cPdfDocEncoding[256]; ///< conversion table from PDFDocEncoding to UTF16
+    static const char * const m_escMap;              ///< Mapping of escape sequences to there value
 
  private:
     PdfRefCountedBuffer m_buffer;                    ///< String data (always binary), may contain 0 bytes

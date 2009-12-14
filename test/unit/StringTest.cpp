@@ -194,3 +194,46 @@ void StringTest::testEscapeBrackets()
     tokenizer.GetNextVariant( varRead, NULL );
     CPPUNIT_ASSERT_EQUAL( varRead.GetString() == sUnic2, true );
 }
+
+void StringTest::testWriteEscapeSequences()
+{
+    TestWriteEscapeSequences("(Hello\\nWorld)", "(Hello\\nWorld)");
+    TestWriteEscapeSequences("(Hello\nWorld)", "(Hello\\nWorld)");
+
+    TestWriteEscapeSequences("(Hello\\rWorld)", "(Hello\\rWorld)");
+    TestWriteEscapeSequences("(Hello\rWorld)", "(Hello\\rWorld)");
+
+    TestWriteEscapeSequences("(Hello\\tWorld)", "(Hello\\tWorld)");
+    TestWriteEscapeSequences("(Hello\tWorld)", "(Hello\\tWorld)");
+
+    TestWriteEscapeSequences("(Hello\\fWorld)", "(Hello\\fWorld)");
+    TestWriteEscapeSequences("(Hello\fWorld)", "(Hello\\fWorld)");
+
+    TestWriteEscapeSequences("(Hello\\(World)", "(Hello\\(World)");
+
+    TestWriteEscapeSequences("(Hello\\)World)", "(Hello\\)World)");
+
+    TestWriteEscapeSequences("(Hello\\\\World)", "(Hello\\\\World)");
+
+    // Special case, \ at end of line
+    TestWriteEscapeSequences("(Hello\\\nWorld)", "(HelloWorld)");
+}
+
+void StringTest::TestWriteEscapeSequences(const char* pszSource, const char* pszExpected)
+{
+    PdfVariant  variant;
+    std::string ret;
+    std::string expected = pszExpected;
+
+    printf("Testing with value: %s\n", pszSource );
+    PdfTokenizer tokenizer( pszSource, strlen( pszSource ) );
+
+    tokenizer.GetNextVariant( variant, NULL );
+    CPPUNIT_ASSERT_EQUAL( variant.GetDataType(), ePdfDataType_String );
+
+    variant.ToString( ret );
+    printf("   -> Convert To String: %s\n", ret.c_str() );
+
+    CPPUNIT_ASSERT_EQUAL( expected, ret );
+
+}

@@ -98,6 +98,7 @@ const char* genEscMap()
 const char * const PdfTokenizer::m_delimiterMap  = PdfTokenizerNameSpace::genDelMap();
 const char * const PdfTokenizer::m_whitespaceMap = PdfTokenizerNameSpace::genWsMap();
 const char * const PdfTokenizer::m_escMap        = PdfTokenizerNameSpace::genEscMap();
+
 const char PdfTokenizer::m_octMap[]        = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -644,12 +645,12 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 	    }
 	    else
 	    {
-		// Handle plain escape sequences
-		const char & code = m_escMap[m_device.Device()->GetChar()];
-		if( code )
-		    m_vecBuffer.push_back( code );
+            // Handle plain escape sequences
+            const char & code = m_escMap[m_device.Device()->GetChar()];
+            if( code )
+                m_vecBuffer.push_back( code );
 		
-		bEscape = false;
+            bEscape = false;
 	    }
 	}
     }

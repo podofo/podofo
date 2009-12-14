@@ -32,6 +32,7 @@ class StringTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testUtf16beContructor );
   CPPUNIT_TEST( testWCharConstructor );
   CPPUNIT_TEST( testEscapeBrackets );
+  CPPUNIT_TEST( testWriteEscapeSequences );
   CPPUNIT_TEST_SUITE_END();
 
  public:
@@ -42,8 +43,10 @@ class StringTest : public CppUnit::TestFixture
   void testUtf16beContructor();
   void testWCharConstructor();
   void testEscapeBrackets();
+  void testWriteEscapeSequences();
 
  private:
+  void TestWriteEscapeSequences(const char* pszSource, const char* pszExpected);
 
 };
 

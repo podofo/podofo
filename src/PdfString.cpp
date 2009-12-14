@@ -42,6 +42,31 @@
 
 namespace PoDoFo {
 
+namespace PdfStringNameSpace {
+
+// Generate the escape character map at runtime
+static const char* genEscMap()
+{
+    const long lAllocLen = 256;
+    char* map = static_cast<char*>(malloc(lAllocLen));
+    memset( map, 0, sizeof(char) * lAllocLen );
+
+    map['\n'] = 'n'; // Line feed (LF)
+    map['\r'] = 'r'; // Carriage return (CR)
+    map['\t'] = 't'; // Horizontal tab (HT)
+    map['\b'] = 'b'; // Backspace (BS)
+    map['\f'] = 'f'; // Form feed (FF)
+    map[')'] = ')';  
+    map['('] = '(';  
+    map['\\'] = '\\';
+
+    return map;
+}
+
+};
+
+const char * const PdfString::m_escMap        = PdfStringNameSpace::genEscMap();
+
 const PdfString PdfString::StringNull        = PdfString();
 #ifdef _MSC_VER
 const char  PdfString::s_pszUnicodeMarker[]  = { (char) 0xFE, (char) 0xFF };
@@ -241,11 +266,12 @@ void PdfString::SetHexData( const char* pszHex, pdf_long lLen, PdfEncrypt* pEncr
     }
 
     if( !bLow ) 
+    {
         // an odd number of bytes was read,
         // so the last byte is 0
         *pBuffer++ = cDecodedByte;
+    }
 
-    // zero terminate the buffer
     *pBuffer++ = '\0';
     *pBuffer++ = '\0';
 
@@ -350,12 +376,18 @@ void PdfString::Write ( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) c
 
             while( lLen-- ) 
             {
-                if( *pBuf == '\\' ||
-                    *pBuf == '(' ||
-                    *pBuf == ')' )
+                const char & cEsc = m_escMap[static_cast<int>(*pBuf)];
+                if( cEsc != 0 ) 
+                {
                     pDevice->Write( "\\", 1 );
-                    
-                pDevice->Write( &*pBuf++, 1 );
+                    pDevice->Write( &cEsc, 1 );
+                }
+                else 
+                {
+                    pDevice->Write( &*pBuf, 1 );
+                }
+
+                ++pBuf;
             }
         }
     }

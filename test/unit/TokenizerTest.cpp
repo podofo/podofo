@@ -164,16 +164,16 @@ void TokenizerTest::testString()
     Test( "(Test: \\478)", ePdfDataType_String, "(Test: '8)" );
 
     // Test line breaks 
-    Test( "(Hallo\nWelt!)", ePdfDataType_String, "(Hallo\nWelt!)" );
+    Test( "(Hallo\nWelt!)", ePdfDataType_String, "(Hallo\\nWelt!)" );
     Test( "(These \\\ntwo strings \\\nare the same.)", ePdfDataType_String, 
 	  "(These two strings are the same.)" );
 
     // Test escape sequences
-    Test( "(Hallo\\nWelt!)", ePdfDataType_String, "(Hallo\nWelt!)" );
-    Test( "(Hallo\\rWelt!)", ePdfDataType_String, "(Hallo\rWelt!)" );
-    Test( "(Hallo\\tWelt!)", ePdfDataType_String, "(Hallo\tWelt!)" );
-    Test( "(Hallo\\bWelt!)", ePdfDataType_String, "(Hallo\bWelt!)" );
-    Test( "(Hallo\\fWelt!)", ePdfDataType_String, "(Hallo\fWelt!)" );
+    Test( "(Hallo\\nWelt!)", ePdfDataType_String, "(Hallo\\nWelt!)" );
+    Test( "(Hallo\\rWelt!)", ePdfDataType_String, "(Hallo\\rWelt!)" );
+    Test( "(Hallo\\tWelt!)", ePdfDataType_String, "(Hallo\\tWelt!)" );
+    Test( "(Hallo\\bWelt!)", ePdfDataType_String, "(Hallo\\bWelt!)" );
+    Test( "(Hallo\\fWelt!)", ePdfDataType_String, "(Hallo\\fWelt!)" );
 }
 
 void TokenizerTest::testDictionary() 
