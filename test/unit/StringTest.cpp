@@ -199,24 +199,38 @@ void StringTest::testWriteEscapeSequences()
 {
     TestWriteEscapeSequences("(Hello\\nWorld)", "(Hello\\nWorld)");
     TestWriteEscapeSequences("(Hello\nWorld)", "(Hello\\nWorld)");
+    TestWriteEscapeSequences("(Hello\012World)", "(Hello\\nWorld)");
+    TestWriteEscapeSequences("(Hello\\012World)", "(Hello\\nWorld)");
 
     TestWriteEscapeSequences("(Hello\\rWorld)", "(Hello\\rWorld)");
     TestWriteEscapeSequences("(Hello\rWorld)", "(Hello\\rWorld)");
+    TestWriteEscapeSequences("(Hello\015World)", "(Hello\\rWorld)");
+    TestWriteEscapeSequences("(Hello\\015World)", "(Hello\\rWorld)");
 
     TestWriteEscapeSequences("(Hello\\tWorld)", "(Hello\\tWorld)");
     TestWriteEscapeSequences("(Hello\tWorld)", "(Hello\\tWorld)");
+    TestWriteEscapeSequences("(Hello\011World)", "(Hello\\tWorld)");
+    TestWriteEscapeSequences("(Hello\\011World)", "(Hello\\tWorld)");
 
     TestWriteEscapeSequences("(Hello\\fWorld)", "(Hello\\fWorld)");
     TestWriteEscapeSequences("(Hello\fWorld)", "(Hello\\fWorld)");
+    TestWriteEscapeSequences("(Hello\014World)", "(Hello\\fWorld)");
+    TestWriteEscapeSequences("(Hello\\014World)", "(Hello\\fWorld)");
 
     TestWriteEscapeSequences("(Hello\\(World)", "(Hello\\(World)");
+    TestWriteEscapeSequences("(Hello\\050World)", "(Hello\\(World)");
 
     TestWriteEscapeSequences("(Hello\\)World)", "(Hello\\)World)");
+    TestWriteEscapeSequences("(Hello\\051World)", "(Hello\\)World)");
 
     TestWriteEscapeSequences("(Hello\\\\World)", "(Hello\\\\World)");
+    TestWriteEscapeSequences("(Hello\\\134World)", "(Hello\\\\World)");
 
     // Special case, \ at end of line
     TestWriteEscapeSequences("(Hello\\\nWorld)", "(HelloWorld)");
+
+
+    TestWriteEscapeSequences("(Hello\003World)", "(Hello\003World)");
 }
 
 void StringTest::TestWriteEscapeSequences(const char* pszSource, const char* pszExpected)

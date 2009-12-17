@@ -588,71 +588,71 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
     while( (c = m_device.Device()->Look()) != EOF )
     {
         // end of stream reached
-	if( !bEscape ) 
-	{
-	    // Handle raw characters
-	    c = m_device.Device()->GetChar();
-	    if( !nBalanceCount && c == ')' )
-		break;
-
-	    if( c == '(' )
-		++nBalanceCount;
-	    else if( c == ')' )
-		--nBalanceCount;
-
-	    bEscape = (c == '\\');
-	    if( !bEscape )
-		m_vecBuffer.push_back( static_cast<char>(c) );
-	}
-	else
-	{
-	    // Handle escape sequences
-	    if( bOctEscape || m_octMap[c] )
-		// The last character we have read was a '\\',
-		// so we check now for a digit to find stuff like \005
-		bOctEscape = true;
-
-	    if( bOctEscape ) 
-	    {
-		// Handle octal escape sequences
-		++nOctCount;
-
-		if( !m_octMap[c] )
-		{
-		    // No octal character anymore,
-		    // so the octal sequence must be ended
-		    // and the character has to be treated as normal character!
-		    m_vecBuffer.push_back ( cOctValue );
-		    bEscape    = false;
-		    bOctEscape = false;
-		    nOctCount  = 0;
-		    cOctValue  = 0;
-		    continue;
-		}
-
-		c = m_device.Device()->GetChar();
-		cOctValue <<= 3;
-		cOctValue  |= ((c-'0') & 0x07);
-
-		if( nOctCount > 2 )
-		{
-		    m_vecBuffer.push_back ( cOctValue );
-		    bEscape    = false;
-		    bOctEscape = false;
-		    nOctCount  = 0;
-		    cOctValue  = 0;
-		}
-	    }
-	    else
-	    {
-            // Handle plain escape sequences
-            const char & code = m_escMap[m_device.Device()->GetChar()];
-            if( code )
-                m_vecBuffer.push_back( code );
-		
-            bEscape = false;
-	    }
-	}
+        if( !bEscape ) 
+        {
+            // Handle raw characters
+            c = m_device.Device()->GetChar();
+            if( !nBalanceCount && c == ')' )
+                break;
+            
+            if( c == '(' )
+                ++nBalanceCount;
+            else if( c == ')' )
+                --nBalanceCount;
+        
+            bEscape = (c == '\\');
+            if( !bEscape )
+                m_vecBuffer.push_back( static_cast<char>(c) );
+        }
+        else
+        {
+            // Handle escape sequences
+            if( bOctEscape || m_octMap[c] )
+                // The last character we have read was a '\\',
+                // so we check now for a digit to find stuff like \005
+                bOctEscape = true;
+            
+            if( bOctEscape ) 
+            {
+                // Handle octal escape sequences
+                ++nOctCount;
+                
+                if( !m_octMap[c] )
+                {
+                    // No octal character anymore,
+                    // so the octal sequence must be ended
+                    // and the character has to be treated as normal character!
+                    m_vecBuffer.push_back ( cOctValue );
+                    bEscape    = false;
+                    bOctEscape = false;
+                    nOctCount  = 0;
+                    cOctValue  = 0;
+                    continue;
+                }
+                
+                c = m_device.Device()->GetChar();
+                cOctValue <<= 3;
+                cOctValue  |= ((c-'0') & 0x07);
+                
+                if( nOctCount > 2 )
+                {
+                    m_vecBuffer.push_back ( cOctValue );
+                    bEscape    = false;
+                    bOctEscape = false;
+                    nOctCount  = 0;
+                    cOctValue  = 0;
+                }
+            }
+            else
+            {
+                // Handle plain escape sequences
+                const char & code = m_escMap[m_device.Device()->GetChar()];
+                if( code )
+                    m_vecBuffer.push_back( code );
+                
+                bEscape = false;
+            }
+        }
     }
 
     // In case the string ends with a octal escape sequence
