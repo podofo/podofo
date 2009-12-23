@@ -21,9 +21,11 @@
 #include "PdfContents.h"
 
 #include "PdfArray.h"
+#include "PdfDictionary.h"
 #include "PdfDocument.h"
 #include "PdfName.h"
 #include "PdfOutputDevice.h"
+#include "PdfPage.h"
 #include "PdfDefinesPrivate.h"
 
 #include <iostream>
@@ -54,6 +56,14 @@ PdfContents::PdfContents( PdfObject* inObj )
         mContObj = inObj->GetOwner()->GetObject( m_pObject->GetReference() );
     else
         mContObj = m_pObject;
+}
+
+PdfContents::PdfContents( PdfPage* pParent ) 
+    : PdfElement( NULL, pParent->GetObject()->GetOwner() )
+{
+    // TODO: Maybe create this only on demand
+    pParent->GetObject()->GetDictionary().AddKey( "Contents", m_pObject->Reference() );
+    mContObj = m_pObject;
 }
 
 PdfObject* PdfContents::GetContentsForAppending() const

@@ -27,6 +27,7 @@
 namespace PoDoFo {
 
 class PdfObject;
+class PdfPage;
 
 /** A interface that provides a wrapper around "PDF content" -
 	the instructions that are used to draw on the PDF "canvas".
@@ -45,6 +46,14 @@ class PODOFO_API PdfContents : private PdfElement {
     /** Construct the contents from an existing PdfObject
      */
     PdfContents( PdfObject* inObj );
+
+    /** Create the contents for an existing page which does not yet 
+     *  have a contents object.
+     *
+     *  \param pParent a /Contents key will be added to this page 
+     *         and a contents object will be created.
+     */
+    PdfContents( PdfPage* pParent );
 
     /** Virtual destructor - because ALL destructors should be...
      */

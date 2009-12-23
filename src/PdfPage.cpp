@@ -66,8 +66,7 @@ PdfPage::PdfPage( PdfObject* pObject, const std::deque<PdfObject*> & rListOfPare
         m_pContents = new PdfContents( pContents );
     else
     {
-        // TODO: handle absent contents
-        m_pContents = NULL;
+        m_pContents = new PdfContents( this );;
     }
 }
 
