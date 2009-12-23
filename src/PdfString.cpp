@@ -376,7 +376,7 @@ void PdfString::Write ( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) c
 
             while( lLen-- ) 
             {
-                const char & cEsc = m_escMap[static_cast<int>(*pBuf)];
+                const char & cEsc = m_escMap[static_cast<unsigned char>(*pBuf)];
                 if( cEsc != 0 ) 
                 {
                     pDevice->Write( "\\", 1 );

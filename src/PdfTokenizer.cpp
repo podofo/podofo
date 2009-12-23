@@ -607,7 +607,7 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
         else
         {
             // Handle escape sequences
-            if( bOctEscape || m_octMap[c] )
+            if( bOctEscape || m_octMap[c & 0xff] )
                 // The last character we have read was a '\\',
                 // so we check now for a digit to find stuff like \005
                 bOctEscape = true;
@@ -617,7 +617,7 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
                 // Handle octal escape sequences
                 ++nOctCount;
                 
-                if( !m_octMap[c] )
+                if( !m_octMap[c & 0xff] )
                 {
                     // No octal character anymore,
                     // so the octal sequence must be ended
@@ -646,7 +646,7 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
             else
             {
                 // Handle plain escape sequences
-                const char & code = m_escMap[m_device.Device()->GetChar()];
+                const char & code = m_escMap[m_device.Device()->GetChar() & 0xff];
                 if( code )
                     m_vecBuffer.push_back( code );
                 
