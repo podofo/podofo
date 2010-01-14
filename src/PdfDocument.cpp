@@ -348,7 +348,7 @@ PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfM
             PdfStream*  pObjStream = pObj->GetStream();
 
             TVecFilters vFilters;
-            vFilters.clear();
+		    vFilters.push_back( ePdfFilter_FlateDecode );
             pObjStream->BeginAppend( vFilters );
 
 			TIVariantList it;
@@ -362,10 +362,11 @@ PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfM
 		            PdfStream*  pcontStream = pObj->GetStream();
 
 		            char*       pcontStreamBuffer;
-			        pdf_long        pcontStreamLength;
+			        pdf_long    pcontStreamLength;
 		            pcontStream->GetFilteredCopy( &pcontStreamBuffer, &pcontStreamLength );
 		    
 					pObjStream->Append( pcontStreamBuffer, pcontStreamLength );
+					free( pcontStreamBuffer );
 				}
 				else
 				{
@@ -384,10 +385,10 @@ PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfM
             PdfStream*  pObjStream = pObj->GetStream();
             PdfStream*  pcontStream = pContents->GetStream();
             char*       pcontStreamBuffer;
-            pdf_long        pcontStreamLength;
+            pdf_long    pcontStreamLength;
 
             TVecFilters vFilters;
-            vFilters.clear();
+		    vFilters.push_back( ePdfFilter_FlateDecode );
             pObjStream->BeginAppend( vFilters );
             pcontStream->GetFilteredCopy( &pcontStreamBuffer, &pcontStreamLength );
             pObjStream->Append( pcontStreamBuffer, pcontStreamLength );
