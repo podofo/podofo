@@ -202,6 +202,113 @@ void EncryptTest::TestEncrypt( PdfEncrypt* pEncrypt )
     delete[] pOutputBuffer;
 }
 
+void EncryptTest::testLoadEncrypedFilePdfParser()
+{
+    const long lLen = 256;
+    char tmpFilename[lLen];
+    strncpy( tmpFilename, "/tmp/podofoXXXXXX", lLen);
+    mktemp(tmpFilename);
+    std::string sFilename = tmpFilename;
+
+    try {
+        CreatedEncrypedPdf( sFilename.c_str() );
+    
+        // Try loading with PdfParser
+        PdfVecObjects objects;
+        PdfParser     parser( &objects );
+
+        try {
+            parser.ParseFile( sFilename.c_str(), true );
+
+            // Must throw an exception
+            CPPUNIT_FAIL("Encrypted file not recognized!");
+        } catch( const PdfError & e ) {
+            if( e.GetError() != ePdfError_InvalidPassword ) 
+            {
+                CPPUNIT_FAIL("Invalid encryption exception thrown!");
+            }
+        }
+
+        parser.SetPassword( "user" );
+    } catch( PdfError & e ) {
+        e.PrintErrorMsg();
+
+        printf("Removing temp file: %s\n", sFilename.c_str());
+        unlink(sFilename.c_str());
+
+        throw e;
+    }
+
+    printf("Removing temp file: %s\n", sFilename.c_str());
+    unlink(sFilename.c_str());
+}
+
+void EncryptTest::testLoadEncrypedFilePdfMemDocument()
+{
+    const long lLen = 256;
+    char tmpFilename[lLen];
+    strncpy( tmpFilename, "/tmp/podofoXXXXXX", lLen);
+    mktemp(tmpFilename);
+    std::string sFilename = tmpFilename;
+
+    try {
+        CreatedEncrypedPdf( sFilename.c_str() );
+    
+        // Try loading with PdfParser
+        PdfMemDocument document;
+        try {
+            document.Load( sFilename.c_str() );
+
+            // Must throw an exception
+            CPPUNIT_FAIL("Encrypted file not recognized!");
+        } catch( const PdfError & e ) {
+            if( e.GetError() != ePdfError_InvalidPassword ) 
+            {
+                CPPUNIT_FAIL("Invalid encryption exception thrown!");
+            }
+        }
+        
+        document.SetPassword( "user" );
+
+    } catch( PdfError & e ) {
+        e.PrintErrorMsg();
+
+        printf("Removing temp file: %s\n", sFilename.c_str());
+        unlink(sFilename.c_str());
+
+        throw e;
+    }
+
+    printf("Removing temp file: %s\n", sFilename.c_str());
+    unlink(sFilename.c_str());
+}
+
+void EncryptTest::CreatedEncrypedPdf( const char* pszFilename )
+{
+    PdfMemDocument  writer;
+    PdfPage* pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+    PdfPainter painter;
+    painter.SetPage( pPage );
+
+    PdfFont* pFont = writer.CreateFont( "Arial", PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), false );
+    if( !pFont )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    pFont->SetFontSize( 16.0 );
+    painter.SetFont( pFont );
+    painter.DrawText( 100, 100, "Hello World" );
+    painter.FinishPage();
+
+    writer.SetEncrypted( "user", "owner" );
+    writer.Write( pszFilename );
+
+    printf( "Wrote: %s\n", pszFilename );
+}
+
+
+
                                   /*
 
 

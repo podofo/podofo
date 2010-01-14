@@ -109,6 +109,7 @@ void PdfParser::Init()
     m_pTrailer        = NULL;
     m_pLinearization  = NULL;
     m_offsets.clear();
+
     m_pEncrypt        = NULL;
 
     m_ePdfVersion     = ePdfVersion_Default;
@@ -179,7 +180,6 @@ void PdfParser::ParseFile( const char* pBuffer, long lLen, bool bLoadOnDemand )
 
 void PdfParser::ParseFile( const PdfRefCountedInputDevice & rDevice, bool bLoadOnDemand )
 {
-    // make sure everything is clean
     Clear();
 
     m_device = rDevice;
@@ -195,6 +195,12 @@ void PdfParser::ParseFile( const PdfRefCountedInputDevice & rDevice, bool bLoadO
     try {
         ReadObjects();
     } catch( PdfError & e ) {
+        if( e.GetError() == ePdfError_InvalidPassword ) 
+        {
+            // Do not clean up, expect user to call ParseFile again
+            throw e;
+        }
+
         // If this is being called from a constructor then the
         // destructor will not be called.
         // Clean up here  
@@ -309,7 +315,7 @@ bool PdfParser::IsPdfFile()
     if( m_device.Device()->Read( m_buffer.GetBuffer(), PDF_MAGIC_LEN ) != PDF_MAGIC_LEN )
         return false;
 
-     if( strncmp( m_buffer.GetBuffer(), szPdfMagicStart, strlen( szPdfMagicStart ) ) != 0 )
+    if( strncmp( m_buffer.GetBuffer(), szPdfMagicStart, strlen( szPdfMagicStart ) ) != 0 )
         return false;
         
     // try to determine the excact PDF version of the file
@@ -822,7 +828,9 @@ void PdfParser::ReadObjects()
             }
         }
         else if( pEncrypt->IsDictionary() ) 
+        {
             m_pEncrypt = PdfEncrypt::CreatePdfEncrypt( pEncrypt );
+        }
         else
         {
             PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidEncryptionDict, 

@@ -40,6 +40,8 @@ class EncryptTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testRC4v2_96 );
   CPPUNIT_TEST( testRC4v2_128 );
   CPPUNIT_TEST( testAES );
+  CPPUNIT_TEST( testLoadEncrypedFilePdfParser );
+  CPPUNIT_TEST( testLoadEncrypedFilePdfMemDocument );
   CPPUNIT_TEST_SUITE_END();
 
  public:
@@ -55,9 +57,19 @@ class EncryptTest : public CppUnit::TestFixture
   void testRC4v2_128();
   void testAES();
 
+  void testLoadEncrypedFilePdfParser();
+  void testLoadEncrypedFilePdfMemDocument();
+
  private:
   void TestAuthenticate( PoDoFo::PdfEncrypt* pEncrypt, int keyLength, int rValue );
   void TestEncrypt( PoDoFo::PdfEncrypt* pEncrypt );
+
+  /**
+   * Create an encrypted PDF.
+   *
+   * @param pszFilename save the encrypted PDF here.
+   */
+  void CreatedEncrypedPdf( const char* pszFilename );
 
  private:
   char* m_pEncBuffer;

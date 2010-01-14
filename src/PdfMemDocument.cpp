@@ -89,6 +89,9 @@ void PdfMemDocument::Clear()
         m_pEncrypt = NULL;
     }
 
+    delete m_pParser;
+    m_pParser = NULL;
+
     PdfDocument::Clear();
 }
 
@@ -141,7 +144,10 @@ void PdfMemDocument::Load( const char* pszFilename )
 {
     this->Clear();
 
-    m_pParser = new PdfParser( PdfDocument::GetObjects(), pszFilename, true );
+    // Call parse file instead of using the constructor
+    // so that m_pParser is initialized for encrypted documents
+    m_pParser = new PdfParser( PdfDocument::GetObjects() );
+    m_pParser->ParseFile( pszFilename, true );
     InitFromParser( m_pParser );
     InitPagesTree();
 
@@ -158,7 +164,10 @@ void PdfMemDocument::Load( const wchar_t* pszFilename )
 {
     this->Clear();
 
-    m_pParser = new PdfParser( PdfDocument::GetObjects(), pszFilename, true );
+    // Call parse file instead of using the constructor
+    // so that m_pParser is initialized for encrypted documents
+    m_pParser = new PdfParser( PdfDocument::GetObjects() );
+    m_pParser->ParseFile( pszFilename, true );
     InitFromParser( m_pParser );
     InitPagesTree();
 
@@ -174,7 +183,10 @@ void PdfMemDocument::Load( const char* pBuffer, long lLen )
 {
     this->Clear();
 
-    m_pParser = new PdfParser( PdfDocument::GetObjects(), pBuffer, lLen, true );
+    // Call parse file instead of using the constructor
+    // so that m_pParser is initialized for encrypted documents
+    m_pParser = new PdfParser( PdfDocument::GetObjects() );
+    m_pParser->ParseFile( pBuffer, lLen, true );
     InitFromParser( m_pParser );
     InitPagesTree();
 
@@ -188,7 +200,10 @@ void PdfMemDocument::Load( const PdfRefCountedInputDevice & rDevice )
 {
     this->Clear();
 
-    m_pParser = new PdfParser( PdfDocument::GetObjects(), rDevice, true );
+    // Call parse file instead of using the constructor
+    // so that m_pParser is initialized for encrypted documents
+    m_pParser = new PdfParser( PdfDocument::GetObjects() );
+    m_pParser->ParseFile( rDevice, true );
     InitFromParser( m_pParser );
     InitPagesTree();
 
