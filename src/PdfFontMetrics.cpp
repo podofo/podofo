@@ -68,7 +68,7 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename,
 }
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen,
-				const char* pszSubsetPrefix )
+                                const char* pszSubsetPrefix )
     : m_sFilename( "" ), m_pLibrary( pLibrary ), 
       m_bSymbol( false ), m_fFontSize( 0.0f ),
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
@@ -102,7 +102,14 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, FT_Face face, const char* 
 {
     // asume true type
     m_eFontType = ePdfFontType_TrueType;
-    
+
+    if( m_face->stream ) 
+    {
+        // Try to initialize the pathname from m_face
+        // so that font embedding will work
+        m_sFilename = reinterpret_cast<char*>(m_face->stream->pathname.pointer);
+    }
+
     InitFromFace();
 }
 

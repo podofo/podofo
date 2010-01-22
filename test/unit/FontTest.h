@@ -36,6 +36,7 @@ class FontTest : public CppUnit::TestFixture
   CPPUNIT_TEST_SUITE( FontTest );
 #if defined(PODOFO_HAVE_FONTCONFIG)
   CPPUNIT_TEST( testFonts );
+  CPPUNIT_TEST( testCreateFontFtFace );
 #endif
   CPPUNIT_TEST_SUITE_END();
 
@@ -45,6 +46,7 @@ class FontTest : public CppUnit::TestFixture
 
 #if defined(PODOFO_HAVE_FONTCONFIG)
   void testFonts();
+  void testCreateFontFtFace();
 #endif
 
 private:
