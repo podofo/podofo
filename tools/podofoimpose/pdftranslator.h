@@ -28,6 +28,7 @@
 #include <vector>
 #include <sstream>
 #include <istream>
+#include <string>
 
 
 
@@ -103,8 +104,10 @@ class PdfTranslator
 		
 		std::map<int, PdfXObject*> xobjects;
 		std::map<int,PdfObject*> resources;
-		std::map<int, PdfRect> trimRect;
+		std::map<int, PdfRect> cropRect;
 		std::map<int,PdfRect> bleedRect;
+		std::map<int, PdfRect> trimRect;
+		std::map<int,PdfRect> artRect;
 		std::map<int, PdfDictionary*> pDict;
 		std::map<int, int> virtualMap;
 // 		int maxPageDest;
@@ -135,6 +138,7 @@ class PdfTranslator
 		double destWidth;
 		double destHeight;
 		double scaleFactor;
+		std::string boundingBox;
 
 
 };

@@ -345,4 +345,9 @@ void ImpositionPlan::setScale ( double theValue )
 	m_scale = theValue;
 }
 
+void ImpositionPlan::setBoundingBox( const std::string& theString )
+{
+	m_boundingBox = theString;
+}
+
 };};

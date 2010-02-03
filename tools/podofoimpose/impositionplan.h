@@ -116,6 +116,7 @@ class ImpositionPlan : public std::vector<PageRecord>
 		double m_destWidth;
 		double m_destHeight;
 		double m_scale;
+                std::string m_boundingBox;
 	public:
 		bool valid() const;
 
@@ -127,6 +128,9 @@ class ImpositionPlan : public std::vector<PageRecord>
 		
 		void setScale ( double theValue );
 		double scale() const{return m_scale;}
+
+		void setBoundingBox( const std::string& theString );
+                std::string boundingBox()const{return m_boundingBox;}
 };
 
 };}; // end of namespace

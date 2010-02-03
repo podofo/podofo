@@ -31,6 +31,7 @@
 #include <cmath>
 #include <istream>
 #include <ostream>
+#include <cstdlib>
 using std::ostringstream;
 using std::map;
 using std::vector;
@@ -304,8 +305,10 @@ namespace PoDoFo
 
 				resources[i+1] = getInheritedResources ( page );
 				xobjects[i+1] = xobj;
-				trimRect[i+1] = page->GetTrimBox();
+				cropRect[i+1] = page->GetCropBox();
 				bleedRect[i+1] = page->GetBleedBox();
+				trimRect[i+1] = page->GetTrimBox();
+				artRect[i+1] = page->GetArtBox();
 
 			}
 
@@ -370,6 +373,7 @@ namespace PoDoFo
 			destWidth = planImposition->destWidth();
 			destHeight = planImposition->destHeight();
 			scaleFactor = planImposition->scale();
+			boundingBox = planImposition->boundingBox();
 // 	std::cerr <<"Plan completed "<< planImposition.size() <<endl;
 
 		}
@@ -380,9 +384,29 @@ namespace PoDoFo
 			if ( !targetDoc )
 				throw std::invalid_argument ( "impose() called with empty target" );
 
-			PdfObject trimbox;
-			PdfRect trim ( 0, 0, destWidth, destHeight );
-			trim.ToVariant ( trimbox );
+//			PdfObject trimbox;
+//			PdfRect trim ( 0, 0, destWidth, destHeight );
+//			trim.ToVariant ( trimbox );
+			std::map<int, PdfRect>* bbIndex = NULL;
+			if(boundingBox.size() > 0)
+			{
+				if(boundingBox.find("crop") != std::string::npos)
+				{
+					bbIndex = &cropRect;
+				}
+				else if(boundingBox.find("bleed") != std::string::npos)
+				{
+					bbIndex = &bleedRect;
+				}
+				else if(boundingBox.find("trim") != std::string::npos)
+				{
+					bbIndex = &trimRect;
+				}
+				else if(boundingBox.find("art") != std::string::npos)
+				{
+					bbIndex = &artRect;
+				}
+			}
 
 			typedef map<int, vector<PageRecord> > groups_t;
 			groups_t groups;
@@ -424,6 +448,12 @@ namespace PoDoFo
 	
 						int resourceIndex ( /*(curRecord.duplicateOf > 0) ? curRecord.duplicateOf : */curRecord.sourcePage );
 						PdfXObject *xo = xobjects[resourceIndex];
+						if(NULL != bbIndex)
+						{
+							PdfObject bb;
+							bbIndex->at(resourceIndex).ToVariant( bb );
+							xo->GetObject()->GetDictionary().AddKey ( PdfName ( "BBox" ), bb );
+						}
 						ostringstream op;
 						op << "OriginalPage" << resourceIndex;
 						xdict.AddKey ( PdfName ( op.str() ) , xo->GetObjectReference() );

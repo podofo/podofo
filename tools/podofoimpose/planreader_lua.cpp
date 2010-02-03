@@ -73,6 +73,8 @@ PlanReader_Lua::PlanReader_Lua(const std::string & planfile, PoDoFo::Impose::Imp
 			plan->setDestHeight(getNumber("PageHeight"));
 		if(hasGlobal("Scale"))
 			plan->setScale(getNumber("Scale"));
+		if(hasGlobal("BoundingBox"))
+			plan->setBoundingBox(getString("BoundingBox"));
 	}
 	
 }
@@ -149,4 +151,16 @@ bool PlanReader_Lua::hasGlobal(const std::string & name)
 	return ret;
 }
 
+std::string PlanReader_Lua::getString(const std::string& name)
+{
+	lua_getglobal(L.State(), name.c_str());
+	if (!lua_isstring(L.State(), -1))
+	{
+		std::string errString = name + " is non-string";
+		throw std::runtime_error(errString.c_str());
+	}
+	std::string s( lua_tostring(L.State(), -1) );
+	lua_pop(L.State(), 1);
+	return s;
+}
 

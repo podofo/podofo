@@ -54,6 +54,8 @@ class PlanReader_Lua
 		double getNumber(const std::string& name);
 		/** Set a global to the passed value */
 		void setNumber(const std::string& name, double value);
+
+		std::string getString(const std::string& name);
 };
 
 #endif
