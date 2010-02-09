@@ -329,6 +329,17 @@ ELSE(TIFF_FOUND)
   MESSAGE("Libtiff not found. TIFF support will be disabled")
 ENDIF(TIFF_FOUND)
 
+FIND_PACKAGE(PNG)
+
+IF(PNG_FOUND)
+  MESSAGE("Found LibPng headers in ${PNG_INCLUDE_DIR}, library at ${PNG_LIBRARIES}")
+  SET(PODOFO_HAVE_PNG_LIB TRUE)
+  INCLUDE_DIRECTORIES(${PNG_INCLUDE_DIR})
+ELSE(PNG_FOUND)
+  MESSAGE("LibPng not found. PNG support will be disabled")
+ENDIF(PNG_FOUND)
+
+
 FIND_PACKAGE(CppUnit)
 
 IF(CppUnit_FOUND)
@@ -455,6 +466,7 @@ SET(PODOFO_LIB_DEPENDS
     ${ZLIB_LIBRARIES}
     ${FREETYPE_LIBRARIES}
     ${LIBJPEG_LIBRARIES}
+    ${PNG_LIBRARIES}
     ${TIFF_LIBRARIES}
     ${PLATFORM_SYSTEM_LIBRARIES}
     ${stlport_libraries_if_use_stlport}

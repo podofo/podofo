@@ -117,7 +117,7 @@ class PODOFO_API PdfImage : public PdfXObject {
 
     /** Set the actual image data from an input stream
      *  
-     *  The image data will be flater compressed.
+     *  The image data will be flate compressed.
      *  If you want no compression or another filter to be applied
      *  use the overload of SetImageData which takes a TVecFilters
      *  as argument.
@@ -173,6 +173,13 @@ class PODOFO_API PdfImage : public PdfXObject {
      */
     void LoadFromTiff( const char* pszFilename );
 #endif // PODOFO_HAVE_TIFF_LIB
+#ifdef PODOFO_HAVE_PNG_LIB
+    /** Load the image data from a PNG file
+     *  \param pszFilename
+     */
+    void LoadFromPng( const char* pszFilename );
+#endif // PODOFO_HAVE_PNG_LIB
+
 
  private:
     /** Set the actual image data from an input stream.

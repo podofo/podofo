@@ -49,6 +49,10 @@ extern "C" {
 }
 #endif // PODOFO_HAVE_JPEG_LIB
 
+#ifdef PODOFO_HAVE_PNG_LIB
+#include <png.h>
+#endif /// PODOFO_HAVE_PNG_LIB
+
 // <windows.h> defines an annoying GetObject macro that changes uses of GetObject to
 // GetObjectA . Since macros aren't scope and namespace aware that breaks our code.
 // Since we won't be using the Win32 resource manager API here, just undefine it.
@@ -98,6 +102,9 @@ const char** PdfImage::GetSupportedFormats()
 #ifdef PODOFO_HAVE_JPEG_LIB
         "JPEG",
 #endif // PODOFO_HAVE_JPEG_LIB
+#ifdef PODOFO_HAVE_PNG_LIB
+        "PNG", 
+#endif // PODOFO_HAVE_PNG_LIB
 #ifdef PODOFO_HAVE_TIFF_LIB
         "TIFF", 
 #endif // PODOFO_HAVE_TIFF_LIB
@@ -206,6 +213,15 @@ void PdfImage::LoadFromFile( const char* pszFilename )
             return;
         }
 #endif
+
+#ifdef PODOFO_HAVE_PNG_LIB
+        if( PoDoFo::compat::strncasecmp( pszExtension, "png", 3 ) == 0 )
+        {
+            LoadFromPng( pszFilename );
+            return;
+        }
+#endif
+
 	}
 	PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
 }
@@ -512,6 +528,112 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
     TIFFClose(hInfile);
 }
 #endif // PODOFO_HAVE_TIFF_LIB
+#ifdef PODOFO_HAVE_PNG_LIB
+void PdfImage::LoadFromPng( const char* pszFilename )
+{
+    if( !pszFilename )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    FILE* hFile = fopen(pszFilename, "rb");
+    if( !hFile )
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
+    }
+
+    png_byte header[8];
+    fread(header, 1, 8, hFile);
+    if( png_sig_cmp(header, 0, 8) )
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedImageFormat, "The file could not be recognized as a PNG file." );
+    }
+    
+    png_structp pPng = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    if( !pPng )
+    {
+        fclose( hFile );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    png_infop pInfo = png_create_info_struct(pPng);
+    if( !pInfo )
+    {
+        fclose( hFile );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    if( setjmp(png_jmpbuf(pPng)) )
+    {
+        fclose( hFile );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    png_init_io(pPng, hFile);
+    png_set_sig_bytes(pPng, 8);
+    png_read_info(pPng, pInfo);
+
+    int width = pInfo->width;
+    int height = pInfo->height;
+    png_read_update_info(pPng, pInfo);
+    
+    // Read the file
+    if( setjmp(png_jmpbuf(pPng)) ) 
+    {
+        fclose( hFile );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+
+    long lLen = static_cast<long>(pInfo->rowbytes * height);
+    char* pBuffer = static_cast<char*>(malloc(sizeof(char) * lLen));
+    png_bytep pRows[height];
+    for(int y=0; y<height; y++)
+    {
+        pRows[y] = reinterpret_cast<png_bytep>(pBuffer + (y * pInfo->rowbytes));
+    }
+
+    png_read_image(pPng, pRows);
+    fclose(hFile);
+
+    m_rRect.SetWidth( width );
+    m_rRect.SetHeight( height );
+
+    switch( pInfo->channels )
+    {
+        case 3:
+            this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
+            break;
+        case 4:
+        {
+            this->SetImageColorSpace( ePdfColorSpace_DeviceCMYK );
+            // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
+            // in a inverted fashion. Fix by attaching a decode array
+            PdfArray decode;
+            decode.push_back( 1.0 );
+            decode.push_back( 0.0 );
+            decode.push_back( 1.0 );
+            decode.push_back( 0.0 );
+            decode.push_back( 1.0 );
+            decode.push_back( 0.0 );
+            decode.push_back( 1.0 );
+            decode.push_back( 0.0 );
+            
+            this->GetObject()->GetDictionary().AddKey( PdfName("Decode"), decode );
+        }
+        break;
+        default:
+            this->SetImageColorSpace( ePdfColorSpace_DeviceGray );
+            break;
+    }
+
+    // Set the image data and flate compress it
+    PdfMemoryInputStream stream( pBuffer, lLen );
+    this->SetImageData( width, height, pInfo->bit_depth, &stream );
+    
+    free(pBuffer);
+}
+#endif // PODOFO_HAVE_PNG_LIB
 
 const char* PdfImage::ColorspaceToName( EPdfColorSpace eColorSpace )
 {

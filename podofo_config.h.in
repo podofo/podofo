@@ -41,6 +41,7 @@
 
 /* Libraries */
 #cmakedefine PODOFO_HAVE_JPEG_LIB
+#cmakedefine PODOFO_HAVE_PNG_LIB
 #cmakedefine PODOFO_HAVE_TIFF_LIB
 #cmakedefine PODOFO_HAVE_FONTCONFIG
 #cmakedefine PODOFO_HAVE_LUA
