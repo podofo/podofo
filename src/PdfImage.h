@@ -68,6 +68,15 @@ class PODOFO_API PdfImage : public PdfXObject {
 
     ~PdfImage();
 
+    /**
+     * Get a list of all image formats supported by this PoDoFo build.
+     *
+     * Example: { "JPEG", "TIFF", NULL }
+     *
+     * \returns a zero terminates list of all supported image formats
+     */
+    static const char** GetSupportedFormats();
+
     /** Set the color space of this image. The default value is
      *  ePdfColorSpace_DeviceRGB.
      *  \param eColorSpace one of ePdfColorSpace_DeviceGray, ePdfColorSpace_DeviceRGB and

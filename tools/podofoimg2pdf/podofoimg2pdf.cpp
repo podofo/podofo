@@ -40,6 +40,15 @@ void print_help()
   printf("Large pages will be scaled to fit the page and imags smaller\n");
   printf("than the defined page size, will be centered.\n");
   printf("\n");
+  printf("Supported image formats:\n");
+
+  const char** ppszFormats = PoDoFo::PdfImage::GetSupportedFormats();
+  while( *ppszFormats ) 
+  {
+      printf("\t%s\n", *ppszFormats );
+      ++ppszFormats;
+  }
+  printf("\n");
 }
 
 int main( int argc, char* argv[] )

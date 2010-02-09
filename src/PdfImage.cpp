@@ -88,6 +88,25 @@ PdfImage::~PdfImage()
 
 }
 
+     /* Example: { "JPEG", "TIFF", NULL }
+     *
+     * \returns a zero terminates list of all supported image formats
+     */
+const char** PdfImage::GetSupportedFormats()
+{
+    static const char* ppszFormats[] = {
+#ifdef PODOFO_HAVE_JPEG_LIB
+        "JPEG",
+#endif // PODOFO_HAVE_JPEG_LIB
+#ifdef PODOFO_HAVE_TIFF_LIB
+        "TIFF", 
+#endif // PODOFO_HAVE_TIFF_LIB
+        NULL
+    };
+
+    return ppszFormats;
+}
+
 void PdfImage::SetImageColorSpace( EPdfColorSpace eColorSpace )
 {
     m_pObject->GetDictionary().AddKey( PdfName("ColorSpace"), PdfName( ColorspaceToName( eColorSpace ) ) );
