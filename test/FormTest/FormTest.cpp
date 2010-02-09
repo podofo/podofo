@@ -186,7 +186,7 @@ void CreateSimpleForm( PdfPage* pPage, PdfStreamedDocument* pDoc )
     combo.SetSelectedItem( 1 );
 
     printf("IsComboBox: %i\n", combo.IsComboBox() );
-    printf("Count     : %i\n", combo.GetItemCount() );
+    printf("Count     : %i\n", static_cast<int>(combo.GetItemCount()) );
     printf("Selected  : %i\n", combo.GetSelectedItem() );
 
     PdfListBox listBox( pPage, PdfRect( 70000 * CONVERSION_CONSTANT, 200000 * CONVERSION_CONSTANT,
@@ -223,7 +223,7 @@ void FillListField( PdfListField & rField )
     std::cout << "  Current value:" << (pszCur ? pszCur : "") << std::endl;
     std::cout << "  Values:" << std::endl;
     
-    for( int i=0;i<rField.GetItemCount();i++ )
+    for( int i=0;i<static_cast<int>(rField.GetItemCount());i++ )
     {
         pszCur = rField.GetItemDisplayText( i ).GetString();
         std::cout << "     " << i << " " << (pszCur ? pszCur : "") << std::endl;
@@ -233,7 +233,7 @@ void FillListField( PdfListField & rField )
     std::cout << "  Enter index of new value:" << std::endl;
     std::cin >> nValue;
 
-    if( nValue >= 0 && nValue < rField.GetItemCount() )
+    if( nValue >= 0 && nValue < static_cast<int>(rField.GetItemCount()) )
         rField.SetSelectedItem( nValue );
 }
 
