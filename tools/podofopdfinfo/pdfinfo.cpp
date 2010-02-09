@@ -44,7 +44,7 @@ void PdfInfo::OutputDocumentInfo( std::ostream& sOutStream )
     sOutStream << std::endl;
     sOutStream << "\tFast Web View Enabled: " << (mDoc->IsLinearized() ? "Yes" : "No") << std::endl;
     sOutStream << "\tTagged: " << (static_cast<PoDoFo::PdfMemDocument*>(mDoc)->GetStructTreeRoot() != NULL ? "Yes" : "No") << std::endl;
-    sOutStream << "\tEncrypted: " << (static_cast<PoDoFo::PdfMemDocument*>(mDoc)->GetEncrypted() != NULL ? "Yes" : "No") << std::endl;
+    sOutStream << "\tEncrypted: " << (static_cast<PoDoFo::PdfMemDocument*>(mDoc)->GetEncrypted() ? "Yes" : "No") << std::endl;
     sOutStream << "\tPrinting Allowed: "  << (mDoc->IsPrintAllowed() ? "Yes" : "No") << std::endl;
     sOutStream << "\tModification Allowed: "  << (mDoc->IsEditAllowed() ? "Yes" : "No") << std::endl;
     sOutStream << "\tCopy&Paste Allowed: "  << (mDoc->IsCopyAllowed() ? "Yes" : "No") << std::endl;
