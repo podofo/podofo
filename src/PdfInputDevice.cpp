@@ -73,7 +73,7 @@ PdfInputDevice::PdfInputDevice( const wchar_t* pszFilename )
         //m_pStream = new std::ifstream( pszFilename, std::ios::binary );
         size_t strLen = wcslen(pszFilename);
         char * pStr = new char[strLen+1];
-        wcstombs(pStr, pszFilename, strLen);
+        wcstombs(pStr, pszFilename, strLen + 1);
         m_pFile = fopen(pStr, "rb");
         delete pStr;
         if( !m_pFile)
