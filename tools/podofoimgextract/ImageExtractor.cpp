@@ -67,13 +67,11 @@ void ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnN
                 ( pObjSubType && pObjSubType->IsName() && ( pObjSubType->GetName().GetName() == "Image" ) ) )
             {
                 pObj = (*it)->GetDictionary().GetKey( PdfName::KeyFilter );
-                if( pObj->IsName() && ( pObj->GetName().GetName() == "DCTDecode" ) )
-                {
-                    // The only filter is JPEG -> create a JPEG file
-                    ExtractImage( *it, true );
-                }
-                else if( pObj->IsArray() && pObj->GetArray().GetSize() == 1 && 
-                         pObj->GetArray()[0].IsName() && (pObj->GetArray()[0].GetName().GetName() == "DCTDecode") )
+                if( pObj && pObj->IsArray() && pObj->GetArray().GetSize() == 1 && 
+                    pObj->GetArray()[0].IsName() && (pObj->GetArray()[0].GetName().GetName() == "DCTDecode") )
+                    pObj = &pObj->GetArray()[0];
+
+                if( pObj && pObj->IsName() && ( pObj->GetName().GetName() == "DCTDecode" ) )
                 {
                     // The only filter is JPEG -> create a JPEG file
                     ExtractImage( *it, true );
