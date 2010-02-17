@@ -50,7 +50,12 @@ PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
       m_pEncoding( pEncoding ), m_pMetrics( pMetrics ),
       m_bBold( false ), m_bItalic( false )
 {
-
+    // Implementation note: the identifier is always
+    // Prefix+ObjectNo. Prefix is /Ft for fonts.
+    ostringstream out;
+    PdfLocaleImbue(out);
+    out << "PoDoFoFt" << m_pObject->Reference().ObjectNumber();
+    m_Identifier = PdfName( out.str().c_str() );
 }
 
 PdfFont::~PdfFont()
