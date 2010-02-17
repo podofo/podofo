@@ -251,7 +251,7 @@ class PODOFO_API PdfDictionary : public PdfDataType {
 };
 
 typedef std::vector<PdfDictionary*>      TVecDictionaries; 
-typedef	TVecDictionaries::iterator       oTIVecDictionaries; 
+typedef	TVecDictionaries::iterator       TIVecDictionaries; 
 typedef	TVecDictionaries::const_iterator TCIVecDictionaries;
 
 // -----------------------------------------------------
