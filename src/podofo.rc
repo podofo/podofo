@@ -1,5 +1,6 @@
 #include "podofoapi.h"
 #include "WinResrc.h"
+#include "PdfDefines.h"
 #include "PdfVersion.h"
 
 #define VER_PRODUCTVERSION          PODOFO_MAJOR,PODOFO_MINOR,PODOFO_REVISION,0 
@@ -45,13 +46,13 @@ BEGIN
     BEGIN
         BLOCK "040904E4"
         BEGIN
-            VALUE "FileVersion", VER_FILEVERSION_STR
-            VALUE "ProductVersion", VER_PRODUCTVERSION_STR
+            VALUE "FileVersion", VER_FILEVERSION
+            VALUE "ProductVersion", VER_PRODUCTVERSION
             VALUE "Comments", "PoDoFo PDF Library\0"
             VALUE "CompanyName", "PoDoFo\0"
             VALUE "InternalName", "podofo\0"
             VALUE "ProductName", "PoDoFo\0"
-            VALUE "LegalCopyright", "Copyright (C) 2008 Dominik Seichter, Craig Ringer, The PoDoFo Developers\0"		
+            VALUE "LegalCopyright", "Copyright (C) 2010 Dominik Seichter, Craig Ringer, The PoDoFo Developers\0"		
             VALUE "FileDescription", VER_FILEDESCRIPTION_STR
             VALUE "OriginalFilename", VER_ORIGINALFILENAME_STR 
             VALUE "PrivateBuild",     VER_PRIVATEBUILD_STR

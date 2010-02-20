@@ -13,7 +13,7 @@
  *   GNU General Public License for more details.                          *
  *                                                                         *
  *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
+- *   License along with this program; if not, write to the                 *
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
@@ -23,6 +23,19 @@
 #include <podofo.h>
 
 #include <stdlib.h>
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+
+#ifdef CreateFont
+#undef CreateFont
+#endif // CreateFont
+
+#ifdef DrawText
+#undef DrawText
+#endif // DrawText
+
+#endif // _WIN32 || _WIN64
 
 using namespace PoDoFo;
 
@@ -206,8 +219,14 @@ void EncryptTest::testLoadEncrypedFilePdfParser()
 {
     const long lLen = 256;
     char tmpFilename[lLen];
+#if defined(_WIN32) || defined(_WIN64)
+	char tmpDir[lLen];
+	GetTempPath(lLen, tmpDir);
+	GetTempFileName(tmpDir, "podofo", 0, tmpFilename);
+#else
     strncpy( tmpFilename, "/tmp/podofoXXXXXX", lLen);
     mktemp(tmpFilename);
+#endif // _WIN32 || _WIN64
     std::string sFilename = tmpFilename;
 
     try {
@@ -247,8 +266,14 @@ void EncryptTest::testLoadEncrypedFilePdfMemDocument()
 {
     const long lLen = 256;
     char tmpFilename[lLen];
+#if defined(_WIN32) || defined(_WIN64)
+	char tmpDir[lLen];
+	GetTempPath(lLen, tmpDir);
+	GetTempFileName(tmpDir, "podofo", 0, tmpFilename);
+#else
     strncpy( tmpFilename, "/tmp/podofoXXXXXX", lLen);
     mktemp(tmpFilename);
+#endif // _WIN32 || _WIN64
     std::string sFilename = tmpFilename;
 
     try {

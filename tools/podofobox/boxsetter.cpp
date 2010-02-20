@@ -67,5 +67,7 @@ void BoxSetter::SetBox(PoDoFo::PdfPage *page)
 bool BoxSetter::CompareBox(const PoDoFo::PdfRect &rect1, const PoDoFo::PdfRect &rect2)
 {
 	// TODO
+	// ADDED: DominikS: Visual Studio complains that this has to return a value
+	return false;
 }
 

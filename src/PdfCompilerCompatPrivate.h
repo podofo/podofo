@@ -22,13 +22,27 @@
 #  include <ctime>
 #endif
 
+
 #if PODOFO_HAVE_WINSOCK2_H
-#  include <winsock2.h>
+#  ifdef PODOFO_MULTI_THREAD
+#    if defined(_WIN32) || defined(_WIN64)
+#      ifndef _WIN32_WINNT
+#        define _WIN32_WINNT 0x0400 // Make the TryEnterCriticalSection method available
+#        include <winsock2.h>       // This will include windows.h, so we have to define _WIN32_WINNT
+                                    // if we want to use threads later.
+#        undef _WIN32_WINNT 
+#      else
+#        include <winsock2.h>
+#      endif // _WIN32_WINNT
+#    endif // _WIN32 || _WIN64
+#  else
+#    include <winsock2.h>
+#  endif // PODOFO_MULTI_THREAD
 #endif
+
 #if PODOFO_HAVE_ARPA_INET_H
 #  include <arpa/inet.h>
 #endif
-
 
 #ifdef PODOFO_MULTI_THREAD
 #  if defined(_WIN32) || defined(_WIN64)
