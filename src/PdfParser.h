@@ -350,6 +350,23 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      */
     inline void SetStringParsing( bool bStrict );
 
+    /**
+     * \return if broken objects are ignored while parsing
+     */
+    inline bool GetIgnoreBrokenObjects();
+
+    /**
+     * Specify if the parser should ignore broken
+     * objects, i.e. XRef entries that do not point
+     * to valid objects.
+     *
+     * Default is to not ignore broken objects and
+     * throw an exception if one is found.
+     *
+     * \param bBroken if true broken objects will be ignored
+     */
+    inline void SetIgnoreBrokenObjects( bool bBroken );
+
  protected:
     /** Searches backwards from the end of the file
      *  and tries to find a token.
@@ -492,6 +509,16 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      */
     const PdfString & GetDocumentId();
 
+    /** Determines the correct version of the PDF
+     *  from the document catalog (if available).
+     *  as, PDF > 1.4 allows updating the version.
+     *
+     *  If no catalog dictionary is present or no /Version
+     *  key is available, the version from the file header will
+     *  be used.
+     */
+    void         UpdateDocumentVersion();
+
  private:
     EPdfVersion   m_ePdfVersion;
 
@@ -515,6 +542,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     std::set<int> m_setObjectStreams;
 
     bool          m_bStrictParsing;
+    bool          m_bIgnoreBrokenObjects;
 
     int           m_nIncrementalUpdates;
 };
@@ -583,6 +611,22 @@ bool PdfParser::IsStrictParsing() const
 void PdfParser::SetStringParsing( bool bStrict )
 {
     m_bStrictParsing = bStrict;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfParser::GetIgnoreBrokenObjects()
+{
+    return m_bIgnoreBrokenObjects;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfParser::SetIgnoreBrokenObjects( bool bBroken )
+{
+    m_bIgnoreBrokenObjects = bBroken;
 }
 
 };

@@ -120,6 +120,7 @@ void PdfParser::Init()
     m_nXRefLinearizedOffset = 0;
 
     m_bStrictParsing  = false;
+    m_bIgnoreBrokenObjects = false;
     m_nIncrementalUpdates = 0;
 }
 
@@ -211,6 +212,8 @@ void PdfParser::ParseFile( const PdfRefCountedInputDevice & rDevice, bool bLoadO
 
     // Now sort the list of objects
     m_vecObjects->Sort();
+
+    UpdateDocumentVersion();
 }
 
 
@@ -825,6 +828,7 @@ void PdfParser::ReadObjects()
 
                 e.AddToCallstack( __FILE__, __LINE__, oss.str().c_str() );
                 throw e;
+
             }
         }
         else if( pEncrypt->IsDictionary() ) 
@@ -866,13 +870,20 @@ void PdfParser::ReadObjectsInternal()
     {
         if( m_offsets[i].bParsed && m_offsets[i].cUsed == 'n' && m_offsets[i].lOffset > 0 )
         {
+            //printf("Reading object %i 0 R from %li\n", i, m_offsets[i].lOffset );
+            
             pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, m_offsets[i].lOffset );
             pObject->SetLoadOnDemand( m_bLoadOnDemand );
 
             try {
                 pObject->ParseFile( m_pEncrypt );
                 nLast = pObject->Reference().ObjectNumber();
+
                 /*
+                if( i != pObject->Reference().ObjectNumber() ) 
+                {
+                    printf("Expected %i got %i\n", i, pObject->Reference().ObjectNumber());
+                }
                 if( pObject->Reference().ObjectNumber() != i ) 
                 {
                     printf("EXPECTED: %i got %i\n", i, pObject->Reference().ObjectNumber() );
@@ -899,8 +910,17 @@ void PdfParser::ReadObjectsInternal()
                         << " Index = " << i << std::endl;
                     delete pObject;
                 }
-                e.AddToCallstack( __FILE__, __LINE__, oss.str().c_str() );
-                throw e;
+
+                if( m_bIgnoreBrokenObjects ) 
+                {
+                    PdfError::LogMessage( eLogSeverity_Error, oss.str().c_str() );
+                    m_vecObjects->AddFreeObject( PdfReference( i, 0 ) );
+                }
+                else
+                {
+                    e.AddToCallstack( __FILE__, __LINE__, oss.str().c_str() );
+                    throw e;
+                }
             }
         }
         else if( m_offsets[i].bParsed && m_offsets[i].cUsed == 'n' && (m_offsets[i].lOffset == 0)  )
@@ -1147,6 +1167,38 @@ const PdfString & PdfParser::GetDocumentId()
     }
 
     return m_pTrailer->GetDictionary().GetKey( PdfName("ID") )->GetArray()[0].GetString();
+}
+
+void PdfParser::UpdateDocumentVersion()
+{
+    if( m_pTrailer->IsDictionary() && m_pTrailer->GetDictionary().HasKey( PdfName("Root") ) )
+    {
+        PdfObject* pCatalog = m_pTrailer->GetDictionary().GetKey( PdfName("Root") );
+        if( pCatalog->IsReference() ) 
+        {
+            pCatalog = m_vecObjects->GetObject( pCatalog->GetReference() );
+        }
+
+        if( pCatalog
+            && pCatalog->IsDictionary() 
+            && pCatalog->GetDictionary().HasKey( PdfName("Version" ) ) ) 
+        {
+            PdfObject* pVersion = pCatalog->GetDictionary().GetKey( PdfName( "Version" ) );
+            for(int i=0;i<=MAX_PDF_VERSION_STRING_INDEX;i++)
+            {
+                if(pVersion->GetName().GetName() == s_szPdfVersionNums[i])
+                {
+                    PdfError::LogMessage( eLogSeverity_Information,
+                                          "Updating version from %s to %s\n", 
+                                          s_szPdfVersionNums[static_cast<int>(m_ePdfVersion)],
+                                          s_szPdfVersionNums[i] );
+                    m_ePdfVersion = static_cast<EPdfVersion>(i);
+                    break;
+                }
+            }
+        }
+    }
+    
 }
 
 };
