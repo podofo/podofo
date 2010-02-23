@@ -75,11 +75,11 @@ class PdfPredictorDecoder {
 
 public:
     PdfPredictorDecoder( const PdfDictionary* pDecodeParms ) {
-        m_nPredictor   = (int)pDecodeParms->GetKeyAsLong( "Predictor", 1L );
-        m_nColors      = (int)pDecodeParms->GetKeyAsLong( "Colors", 1L );
-        m_nBPC         = (int)pDecodeParms->GetKeyAsLong( "BitsPerComponent", 8L );
-        m_nColumns     = (int)pDecodeParms->GetKeyAsLong( "Columns", 1L );
-        m_nEarlyChange = (int)pDecodeParms->GetKeyAsLong( "EarlyChange", 1L );
+        m_nPredictor   = static_cast<int>(pDecodeParms->GetKeyAsLong( "Predictor", 1L ));
+        m_nColors      = static_cast<int>(pDecodeParms->GetKeyAsLong( "Colors", 1L ));
+        m_nBPC         = static_cast<int>(pDecodeParms->GetKeyAsLong( "BitsPerComponent", 8L ));
+        m_nColumns     = static_cast<int>(pDecodeParms->GetKeyAsLong( "Columns", 1L ));
+        m_nEarlyChange = static_cast<int>(pDecodeParms->GetKeyAsLong( "EarlyChange", 1L ));
 
         m_nCurPredictor = -1;
         m_nCurRowIndex  = 0;
@@ -448,7 +448,7 @@ void PdfFlateFilter::EncodeBlockInternal( const char* pBuffer, pdf_long lLen, in
 {
     int nWrittenData = 0;
 
-    m_stream.avail_in = (long)lLen;
+    m_stream.avail_in = static_cast<long>(lLen);
     m_stream.next_in  = reinterpret_cast<Bytef*>(const_cast<char*>(pBuffer));
 
     do {
@@ -504,7 +504,7 @@ void PdfFlateFilter::DecodeBlockImpl( const char* pBuffer, pdf_long lLen )
     int flateErr;
     int nWrittenData;
 
-    m_stream.avail_in = (long)lLen;
+    m_stream.avail_in = static_cast<long>(lLen);
     m_stream.next_in  = reinterpret_cast<Bytef*>(const_cast<char*>(pBuffer));
 
     do {
