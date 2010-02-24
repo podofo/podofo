@@ -109,7 +109,7 @@ void PdfXRefStreamParserObject::ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], c
 {
     char*        pBuffer;
     pdf_long     lBufferLen;
-    const size_t entryLen  = (nW[0] + nW[1] + nW[2]);
+    const size_t entryLen  = static_cast<size_t>(nW[0] + nW[1] + nW[2]);
 
     this->GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
 

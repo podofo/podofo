@@ -253,13 +253,21 @@ void EncryptTest::testLoadEncrypedFilePdfParser()
         e.PrintErrorMsg();
 
         printf("Removing temp file: %s\n", sFilename.c_str());
-        unlink(sFilename.c_str());
+#if defined(_WIN32) || defined(_WIN64)
+		_unlink(sFilename.c_str());
+#else
+		unlink(sFilename.c_str());
+#endif // _WIN32 || _WIN64
 
         throw e;
     }
 
     printf("Removing temp file: %s\n", sFilename.c_str());
-    unlink(sFilename.c_str());
+#if defined(_WIN32) || defined(_WIN64)
+	_unlink(sFilename.c_str());
+#else
+	unlink(sFilename.c_str());
+#endif // _WIN32 || _WIN64
 }
 
 void EncryptTest::testLoadEncrypedFilePdfMemDocument()
@@ -299,14 +307,21 @@ void EncryptTest::testLoadEncrypedFilePdfMemDocument()
         e.PrintErrorMsg();
 
         printf("Removing temp file: %s\n", sFilename.c_str());
-        unlink(sFilename.c_str());
+#if defined(_WIN32) || defined(_WIN64)
+		_unlink(sFilename.c_str());
+#else
+		unlink(sFilename.c_str());
+#endif // _WIN32 || _WIN64
 
         throw e;
     }
 
     printf("Removing temp file: %s\n", sFilename.c_str());
-    unlink(sFilename.c_str());
-}
+#if defined(_WIN32) || defined(_WIN64)
+	_unlink(sFilename.c_str());
+#else
+	unlink(sFilename.c_str());
+#endif // _WIN32 || _WIN64}
 
 void EncryptTest::CreatedEncrypedPdf( const char* pszFilename )
 {

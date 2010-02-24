@@ -451,7 +451,9 @@ namespace PoDoFo
 						if(NULL != bbIndex)
 						{
 							PdfObject bb;
-							bbIndex->at(resourceIndex).ToVariant( bb );
+							// DominikS: Fix compilation using Visual Studio on Windows
+							// bbIndex->at(resourceIndex).ToVariant( bb );							
+							((*bbIndex)[resourceIndex]).ToVariant( bb );
 							xo->GetObject()->GetDictionary().AddKey ( PdfName ( "BBox" ), bb );
 						}
 						ostringstream op;

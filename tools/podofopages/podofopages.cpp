@@ -114,14 +114,14 @@ int main( int argc, char* argv[] )
       std::string argument = argv[i];
       if( argument == "--delete" || argument == "-delete" ) 
       {
-          int page = convertToInt( std::string(argv[i+1]) );
+          int page = static_cast<int>(convertToInt( std::string(argv[i+1]) ));
           vecOperations.push_back( new DeleteOperation( page ) );
           ++i;
       }
       else if( argument == "--move" || argument == "-move" ) 
       {
-          int from = convertToInt( std::string(argv[i+1]) );
-          int to = convertToInt( std::string(argv[i+2]) );
+          int from = static_cast<int>(convertToInt( std::string(argv[i+1]) ));
+          int to = static_cast<int>(convertToInt( std::string(argv[i+2]) ));
           vecOperations.push_back( new MoveOperation( from, to ) );
           ++i;
           ++i;          
