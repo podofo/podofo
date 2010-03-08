@@ -322,6 +322,7 @@ void EncryptTest::testLoadEncrypedFilePdfMemDocument()
 #else
 	unlink(sFilename.c_str());
 #endif // _WIN32 || _WIN64}
+}
 
 void EncryptTest::CreatedEncrypedPdf( const char* pszFilename )
 {
