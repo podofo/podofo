@@ -308,6 +308,11 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
      */
     PdfObject* GetMetadata() const { return GetNamedObjectFromCatalog( "Metadata" ); }
 
+    /** Get access to the MarkInfo dictionary (ISO 32000-1:2008 14.7.1)
+     *  \returns PdfObject the MarkInfo dictionary
+     */
+    PdfObject* GetMarkInfo() const { return GetNamedObjectFromCatalog( "MarkInfo" ); }
+
     /** Creates a PdfFont object from an existing font.
      *
      *  \param pObject a PdfObject that is a font
