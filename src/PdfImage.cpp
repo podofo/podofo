@@ -490,6 +490,46 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
             SetImageColorSpace(ePdfColorSpace_DeviceCMYK);
 		break;
 
+		case PHOTOMETRIC_PALETTE:
+		{
+			int numColors = (1 << bitsPixel);
+
+			PdfArray decode;
+			decode.insert( decode.end(), PdfVariant( static_cast<pdf_int64>(0) ) );
+			decode.insert( decode.end(), PdfVariant( static_cast<pdf_int64>(numColors-1) ) );
+			m_pObject->GetDictionary().AddKey( PdfName("Decode"), decode );
+
+			uint16 * rgbRed;
+			uint16 * rgbGreen;
+			uint16 * rgbBlue;
+			TIFFGetField(hInfile, TIFFTAG_COLORMAP, &rgbRed, &rgbGreen, &rgbBlue);
+
+			char *datap = new char[numColors*3];
+
+			for ( int clr = 0; clr < numColors; clr++ )
+			{
+				datap[3*clr+0] = rgbRed[clr]/257;
+				datap[3*clr+1] = rgbGreen[clr]/257;
+				datap[3*clr+2] = rgbBlue[clr]/257;
+			}
+		    PdfMemoryInputStream stream( datap, numColors*3 );
+
+		    // Create a colorspace object
+		    PdfObject* pIdxObject = this->GetObject()->GetOwner()->CreateObject();
+			pIdxObject->GetStream()->Set( &stream );
+    
+		    // Add the colorspace to our image
+		    PdfArray array;
+		    array.push_back( PdfName("Indexed") );
+		    array.push_back( PdfName("DeviceRGB") );
+			array.push_back( static_cast<pdf_int64>(numColors) );
+		    array.push_back( pIdxObject->Reference() );
+		    this->GetObject()->GetDictionary().AddKey( PdfName("ColorSpace"), array );
+
+			delete[] datap;
+		}
+		break;
+
 		default:
 	        TIFFClose(hInfile);
 	        PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
