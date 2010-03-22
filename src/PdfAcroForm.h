@@ -59,6 +59,24 @@ class PODOFO_API PdfAcroForm : public PdfElement {
      */
     inline PdfDocument* GetDocument(); 
 
+    /** Set the value of the NeedAppearances key in the interactive forms
+     *  dictionary.
+     * 
+     *  \param bNeedAppearances A flag specifying whether to construct appearance streams
+     *                          and appearance dictionaries for all widget annotations in
+     *                          the document. Default value is false.
+     */
+    void SetNeedAppearances( bool bNeedAppearances );
+
+    /** Retrieve the value of the NeedAppearances key in the interactive forms
+     *  dictionary.
+     *
+     *  \returns value of the NeedAppearances key
+     *
+     *  \see SetNeedAppearances
+     */
+    bool GetNeedAppearances() const;
+
  private:
     /** Initialize this object
      *  with a default appearance

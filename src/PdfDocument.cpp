@@ -29,7 +29,6 @@
 
 #include "PdfDocument.h"
 
-#include "PdfAcroForm.h"
 #include "PdfArray.h"
 #include "PdfDestination.h"
 #include "PdfDictionary.h"
@@ -673,7 +672,7 @@ PdfNamesTree* PdfDocument::GetNamesTree( bool bCreate )
     return m_pNamesTree;
 }
 
-PdfAcroForm* PdfDocument::GetAcroForm( bool bCreate )
+PdfAcroForm* PdfDocument::GetAcroForm( bool bCreate, PdfAcroForm::EPdfAcroFormDefaulAppearance eDefaultAppearance )
 {
     PdfObject* pObj;
 
@@ -684,12 +683,12 @@ PdfAcroForm* PdfDocument::GetAcroForm( bool bCreate )
         {
             if ( !bCreate )	return NULL;
             
-            m_pAcroForms = new PdfAcroForm( this );
+            m_pAcroForms = new PdfAcroForm( this, eDefaultAppearance );
             this->GetCatalog()->GetDictionary().AddKey( "AcroForm", m_pAcroForms->GetObject()->Reference() );
         } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         } else
-            m_pAcroForms = new PdfAcroForm( this, pObj );
+            m_pAcroForms = new PdfAcroForm( this, pObj, eDefaultAppearance );
     }        
     
     return m_pAcroForms;

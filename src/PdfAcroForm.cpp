@@ -102,4 +102,14 @@ int PdfAcroForm::GetCount()
 }
 */
 
+void PdfAcroForm::SetNeedAppearances( bool bNeedAppearances )
+{
+    m_pObject->GetDictionary().AddKey( PdfName("NeedAppearances"), PdfVariant(bNeedAppearances) );    
+}
+
+bool PdfAcroForm::GetNeedAppearances() const
+{
+    return m_pObject->GetDictionary().GetKeyAsBool( PdfName("NeedAppearances"), false );
+}
+
 };

@@ -22,6 +22,7 @@
 #define _PDF_DOCUMENT_H_
 
 #include "PdfDefines.h"
+#include "PdfAcroForm.h"
 #include "PdfFontCache.h"
 #include "PdfInfo.h"
 #include "PdfObject.h"
@@ -30,7 +31,6 @@
 
 namespace PoDoFo {
 
-class PdfAcroForm;
 class PdfDestination;
 class PdfDictionary;
 class PdfFileSpec;
@@ -90,6 +90,8 @@ class PODOFO_API PdfDocument {
     /** Get access to the Outlines (Bookmarks) dictionary
      *  The returned outlines object is owned by the PdfDocument.
      * 
+     *  \param bCreate create the object if it does not exist (ePdfCreateObject) 
+     *                 or return NULL if it does not exist
      *  \returns the Outlines/Bookmarks dictionary
      */
     PdfOutlines* GetOutlines( bool bCreate = ePdfCreateObject );
@@ -97,14 +99,22 @@ class PODOFO_API PdfDocument {
     /** Get access to the Names dictionary (where all the named objects are stored)
      *  The returned PdfNamesTree object is owned by the PdfDocument.
      * 
+     *  \param bCreate create the object if it does not exist (ePdfCreateObject) 
+     *                 or return NULL if it does not exist
      *  \returns the Names dictionary
      */
     PdfNamesTree* GetNamesTree( bool bCreate = ePdfCreateObject );
 
     /** Get access to the AcroForm dictionary
+     *  
+     *  \param bCreate create the object if it does not exist (ePdfCreateObject) 
+     *                 or return NULL if it does not exist
+     *  \param eDefaultAppearance specifies if a default appearence shall be created
+     *
      *  \returns PdfObject the AcroForm dictionary
      */
-    PdfAcroForm* GetAcroForm( bool bCreate = ePdfCreateObject );
+    PdfAcroForm* GetAcroForm( bool bCreate = ePdfCreateObject,
+                              PdfAcroForm::EPdfAcroFormDefaulAppearance eDefaultAppearance = PdfAcroForm::ePdfAcroFormDefaultAppearance_BlackText12pt);
 
     /** Get access to the pages tree.
      *  Better use GetPage and CreatePage methods.
