@@ -563,7 +563,7 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
                  static_cast<unsigned int>(bitsPerSample), 
                  &stream);
 
-    delete buffer;
+    delete[] buffer;
 
     TIFFClose(hInfile);
 }
