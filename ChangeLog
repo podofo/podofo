@@ -1,3 +1,6 @@
+Version 0.8
+	See SVN ChangeLog
+
 Version 0.7
     Fixed PdfPainter::ArcTo
     Fixed crash in FlateDecode and LZWDecode predictor functions
