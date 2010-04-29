@@ -4560,20 +4560,32 @@ static   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
         PODOFO_HPDF_FONT_SYMBOL,
         CHAR_DATA_SYMBOL,
         PODOFO_TRUE,
+        683,
+        -217,
+        462,
+        669,
+        /*
         0,
         0,
         0,
         0,
+        */
        PODOFO_Rect(-180, -293, 1090, 1010)
     ),
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_ZAPF_DINGBATS,
         CHAR_DATA_ZAPF_DINGBATS,
         PODOFO_TRUE,
+        683,
+        -217,
+        462,
+        669,
+        /*
         0,
         0,
         0,
         0,
+        */
         PODOFO_Rect(-1, -143, 981, 820)
     ),
     PdfFontMetricsBase14(
