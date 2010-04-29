@@ -1,10 +1,11 @@
 IF(BOOST_FOUND)
-	SET(graph pdfcontentsgraph)
+  SET(graph pdfcontentsgraph)
 ELSE(BOOST_FOUND)
-	SET(graph)
+  SET(graph)
 ENDIF(BOOST_FOUND)
 
 SUBDIRS(
 	helloworld
+	helloworld-base14
 	${graph}
 	)
