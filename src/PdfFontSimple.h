@@ -59,6 +59,11 @@ class PdfFontSimple : public PdfFont {
     PdfFontSimple( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
                    PdfObject* pObject );
 
+    PdfFontSimple(PODOFO_Base14FontDefData *pMetrics_base14, const PdfEncoding* const pEncoding, 
+		PdfVecObjects* pParent ) : PdfFont(pMetrics_base14, pEncoding, pParent)
+    {
+    }
+
     // Peter Petrov 24 September 2008
     /** Embeds the font into PDF page
      *

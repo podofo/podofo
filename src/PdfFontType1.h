@@ -63,6 +63,14 @@ class PdfFontType1 : public PdfFontSimple {
      */
     PdfFontType1( PdfFontType1* pFont, PdfFontMetrics* pMetrics, const char *pszSuffix, PdfVecObjects* pParent );
 
+ 
+	/* Base14changes */
+	PdfFontType1(  PODOFO_Base14FontDefData *pMetrics_base14, const PdfEncoding* const pEncoding, 
+					PdfVecObjects* pParent ) : PdfFontSimple(pMetrics_base14,pEncoding,pParent)
+	{
+		InitBase14Font();
+	}
+
  protected:
 
     /** Embed the font file directly into the PDF file.

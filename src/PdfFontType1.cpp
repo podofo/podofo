@@ -36,6 +36,7 @@ PdfFontType1::PdfFontType1( PdfFontMetrics* pMetrics, const PdfEncoding* const p
 {
     this->Init( bEmbed, PdfName("Type1") );
 }
+ 
 
 PdfFontType1::PdfFontType1( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
                             PdfObject* pObject )
@@ -44,6 +45,7 @@ PdfFontType1::PdfFontType1( PdfFontMetrics* pMetrics, const PdfEncoding* const p
 
 }
 
+ 
 PdfFontType1::PdfFontType1( PdfFontType1* pFont, PdfFontMetrics* pMetrics, const char *pszSuffix, PdfVecObjects* pParent )
     : PdfFontSimple( pMetrics, pFont->m_pEncoding, pParent )
 {
@@ -70,6 +72,12 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
     PdfObject*  pContents;
     const char* pBuffer;
     char*       pAllocated = NULL;
+
+	if (m_isBase14) 
+	{
+		m_bWasEmbedded = false;
+		return;
+	}
 
     m_bWasEmbedded = true;
 
@@ -207,6 +215,8 @@ pdf_long PdfFontType1::FindInBuffer( const char* pszNeedle, const char* pszHayst
 
     return -1;
 }
+
+
 
 };
 
