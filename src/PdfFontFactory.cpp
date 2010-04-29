@@ -216,7 +216,7 @@ EPdfFontType PdfFontFactory::GetFontType( const char* pszFilename )
 }
 
 
-PODOFO_Base14FontDefData*
+PdfFontMetricsBase14*
 PODOFO_Base14FontDef_FindBuiltinData(const char  *font_name)
 {
     unsigned int i = 0;

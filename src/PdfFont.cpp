@@ -63,8 +63,8 @@ Constructor for a base14font. All base14 fonts must be constructed via this.
 It generates the object number for the font dictionary which will be wrriten in to the pdf.
 - Kaushik April 12th 2010
 */
-PdfFont::PdfFont(PODOFO_Base14FontDefData *pMetrics_base14, const PdfEncoding* const pEncoding, 
-					PdfVecObjects* pParent )
+PdfFont::PdfFont( PdfFontMetricsBase14* pMetrics_base14, const PdfEncoding* const pEncoding, 
+                  PdfVecObjects* pParent )
     :  PdfElement( "Font", pParent ), 
        m_pEncoding( pEncoding ), m_bBold( false ), m_bItalic( false ), m_isBase14(true)
 {

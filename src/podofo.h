@@ -60,6 +60,7 @@
 #include "PdfFontCache.h"
 #include "PdfFontFactory.h"
 #include "PdfFontMetrics.h"
+#include "PdfFontMetricsBase14.h"
 #include "PdfFontTTFSubset.h"
 #include "PdfFunction.h"
 #include "PdfImage.h"

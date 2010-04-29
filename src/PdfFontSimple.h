@@ -59,8 +59,9 @@ class PdfFontSimple : public PdfFont {
     PdfFontSimple( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
                    PdfObject* pObject );
 
-    PdfFontSimple(PODOFO_Base14FontDefData *pMetrics_base14, const PdfEncoding* const pEncoding, 
-		PdfVecObjects* pParent ) : PdfFont(pMetrics_base14, pEncoding, pParent)
+    PdfFontSimple( PdfFontMetricsBase14* pMetrics_base14, const PdfEncoding* const pEncoding, 
+                   PdfVecObjects* pParent ) 
+        : PdfFont(pMetrics_base14, pEncoding, pParent)
     {
     }
 

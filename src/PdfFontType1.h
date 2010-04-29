@@ -65,8 +65,9 @@ class PdfFontType1 : public PdfFontSimple {
 
  
 	/* Base14changes */
-	PdfFontType1(  PODOFO_Base14FontDefData *pMetrics_base14, const PdfEncoding* const pEncoding, 
-					PdfVecObjects* pParent ) : PdfFontSimple(pMetrics_base14,pEncoding,pParent)
+	PdfFontType1( PdfFontMetricsBase14* pMetrics_base14, const PdfEncoding* const pEncoding, 
+                  PdfVecObjects* pParent )
+        : PdfFontSimple(pMetrics_base14,pEncoding,pParent)
 	{
 		InitBase14Font();
 	}

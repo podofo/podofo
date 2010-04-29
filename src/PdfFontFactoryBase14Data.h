@@ -4282,7 +4282,7 @@ static const PODOFO_CharData CHAR_DATA_SYMBOL[190] = {
 const int PODOFO_TRUE=1;
 const int PODOFO_FALSE=0;
 /*
-static const PODOFO_Base14FontDefDataRec  PODOFO_BUILTIN_FONTS[] = {
+static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
     {
         PODOFO_HPDF_FONT_COURIER,
         CHAR_DATA_COURIER,
@@ -4436,8 +4436,8 @@ static const PODOFO_Base14FontDefDataRec  PODOFO_BUILTIN_FONTS[] = {
 };	 
 */
 
-static   PODOFO_Base14FontDefData   PODOFO_BUILTIN_FONTS[] = {
-		PODOFO_Base14FontDefData(PODOFO_HPDF_FONT_COURIER,
+static   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
+		PdfFontMetricsBase14(PODOFO_HPDF_FONT_COURIER,
 								CHAR_DATA_COURIER,
 								PODOFO_FALSE,
 								629,
@@ -4446,7 +4446,7 @@ static   PODOFO_Base14FontDefData   PODOFO_BUILTIN_FONTS[] = {
 								562,
 								PODOFO_Rect(-23, -250, 715, 805)
 								),
-		PODOFO_Base14FontDefData(
+		PdfFontMetricsBase14(
 								PODOFO_HPDF_FONT_COURIER_BOLD,
 								CHAR_DATA_COURIER_BOLD,
 								PODOFO_FALSE,
@@ -4456,7 +4456,7 @@ static   PODOFO_Base14FontDefData   PODOFO_BUILTIN_FONTS[] = {
 								562,
 								PODOFO_Rect(-113, -250, 749, 801)
 								),
-								    PODOFO_Base14FontDefData(
+								    PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_COURIER_OBLIQUE,
         CHAR_DATA_COURIER_OBLIQUE,
         PODOFO_FALSE,
@@ -4466,7 +4466,7 @@ static   PODOFO_Base14FontDefData   PODOFO_BUILTIN_FONTS[] = {
         562,
         PODOFO_Rect(-27, -250, 849, 805)
     ),
-		PODOFO_Base14FontDefData(
+		PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_COURIER_BOLD_OBLIQUE,
         CHAR_DATA_COURIER_BOLD_OBLIQUE,
         PODOFO_FALSE,
@@ -4476,7 +4476,7 @@ static   PODOFO_Base14FontDefData   PODOFO_BUILTIN_FONTS[] = {
         562,
         PODOFO_Rect(-57, -250, 869, 801)
     ),
-    PODOFO_Base14FontDefData(
+    PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_HELVETICA,
         CHAR_DATA_HELVETICA,
         PODOFO_FALSE,
@@ -4486,7 +4486,7 @@ static   PODOFO_Base14FontDefData   PODOFO_BUILTIN_FONTS[] = {
         718,
         PODOFO_Rect(-166, -225, 1000, 931)
     ),
-    PODOFO_Base14FontDefData(
+    PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_HELVETICA_BOLD,
         CHAR_DATA_HELVETICA_BOLD,
         PODOFO_FALSE,
@@ -4496,7 +4496,7 @@ static   PODOFO_Base14FontDefData   PODOFO_BUILTIN_FONTS[] = {
         718,
         PODOFO_Rect(-170, -228, 1003, 962)
     ),
-    PODOFO_Base14FontDefData(
+    PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_HELVETICA_OBLIQUE,
         CHAR_DATA_HELVETICA_OBLIQUE,
         PODOFO_FALSE,
@@ -4506,7 +4506,7 @@ static   PODOFO_Base14FontDefData   PODOFO_BUILTIN_FONTS[] = {
         718,
         PODOFO_Rect(-170, -225, 1116, 931)
     ),
-    PODOFO_Base14FontDefData(
+    PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_HELVETICA_BOLD_OBLIQUE,
         CHAR_DATA_HELVETICA_BOLD_OBLIQUE,
         PODOFO_FALSE,
@@ -4516,7 +4516,7 @@ static   PODOFO_Base14FontDefData   PODOFO_BUILTIN_FONTS[] = {
         718,
         PODOFO_Rect(-174, -228, 1114, 962)
     ),
-    PODOFO_Base14FontDefData(
+    PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_TIMES_ROMAN,
         CHAR_DATA_TIMES_ROMAN,
         PODOFO_FALSE,
@@ -4526,7 +4526,7 @@ static   PODOFO_Base14FontDefData   PODOFO_BUILTIN_FONTS[] = {
         662,
         PODOFO_Rect(-168, -218, 1000, 898)
     ),
-    PODOFO_Base14FontDefData(
+    PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_TIMES_BOLD,
         CHAR_DATA_TIMES_BOLD,
         PODOFO_FALSE,
@@ -4536,7 +4536,7 @@ static   PODOFO_Base14FontDefData   PODOFO_BUILTIN_FONTS[] = {
         676,
         PODOFO_Rect(-168, -218, 1000, 935)
     ),
-    PODOFO_Base14FontDefData(
+    PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_TIMES_ITALIC,
         CHAR_DATA_TIMES_ITALIC,
         PODOFO_FALSE,
@@ -4546,7 +4546,7 @@ static   PODOFO_Base14FontDefData   PODOFO_BUILTIN_FONTS[] = {
         653,
         PODOFO_Rect(-169, -217, 1010, 883)
     ),
-    PODOFO_Base14FontDefData(
+    PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_TIMES_BOLD_ITALIC,
         CHAR_DATA_TIMES_BOLD_ITALIC,
         PODOFO_FALSE,
@@ -4556,7 +4556,7 @@ static   PODOFO_Base14FontDefData   PODOFO_BUILTIN_FONTS[] = {
         669,
         PODOFO_Rect(-200, -218, 996, 921)
     ),
-    PODOFO_Base14FontDefData(
+    PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_SYMBOL,
         CHAR_DATA_SYMBOL,
         PODOFO_TRUE,
@@ -4566,7 +4566,7 @@ static   PODOFO_Base14FontDefData   PODOFO_BUILTIN_FONTS[] = {
         0,
        PODOFO_Rect(-180, -293, 1090, 1010)
     ),
-    PODOFO_Base14FontDefData(
+    PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_ZAPF_DINGBATS,
         CHAR_DATA_ZAPF_DINGBATS,
         PODOFO_TRUE,
@@ -4576,7 +4576,7 @@ static   PODOFO_Base14FontDefData   PODOFO_BUILTIN_FONTS[] = {
         0,
         PODOFO_Rect(-1, -143, 981, 820)
     ),
-    PODOFO_Base14FontDefData(
+    PdfFontMetricsBase14(
         NULL,
         NULL,
         PODOFO_FALSE,

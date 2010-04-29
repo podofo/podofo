@@ -34,6 +34,7 @@ SET(PODOFO_SOURCES
     PdfFontCache.cpp
     PdfFontCID.cpp
     PdfFontMetrics.cpp
+    PdfFontMetricsBase14.cpp
     PdfFontFactory.cpp
     PdfFontSimple.cpp
     PdfFontType1.cpp

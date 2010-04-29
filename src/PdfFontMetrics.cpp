@@ -245,33 +245,6 @@ const char* PdfFontMetrics::GetSubsetFontnamePrefix() const
     return m_sFontSubsetPrefix.c_str();
 }
 
-
-void PODOFO_Base14FontDefData::GetBoundingBox( PdfArray & array ) const
-{
-		array.Clear();
-		array.push_back( PdfVariant( bbox.left * 1000.0 / units_per_EM ) );
-		array.push_back( PdfVariant( bbox.bottom  * 1000.0 / units_per_EM ) );
-		array.push_back( PdfVariant( bbox.right  * 1000.0 / units_per_EM ) );
-		array.push_back( PdfVariant( bbox.top  * 1000.0 / units_per_EM ) );
-
-		return ;
-}
-
-void PODOFO_Base14FontDefData::GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast ) const
-{
-    unsigned int  i;
-    PdfArray  list;
- 
-    for( i=nFirst;i<=nLast;i++ )
-    {
-		list.push_back( PdfVariant(  double(widths_table[i].width)  ) );
-    }
-
-    var = PdfVariant( list );
-
-}
-
-
 void PdfFontMetrics::GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast ) const
 {
 	if (m_pMetrics_base14)

@@ -198,6 +198,18 @@ enum EPdfFilter {
     ePdfFilter_Crypt
 };
 
+
+/**
+ * Enum for the different font formats supported by PoDoFo
+ */
+enum EPdfFontType {
+    ePdfFontType_TrueType,
+    ePdfFontType_Type1Pfa,
+    ePdfFontType_Type1Pfb,
+	ePdfFontType_Type1Base14,
+    ePdfFontType_Unknown = 0xff
+};
+
 /** 
  * Enum for the colorspaces supported
  * by PDF.
@@ -423,6 +435,10 @@ template <typename T> const T PDF_MAX ( const T a, const T b ) {
 template <typename T> const T PDF_MIN ( const T a, const T b ) {
   return (a<b)?a:b;
 }
+
+#ifndef PODOFO_CONVERSION_CONSTANT
+#define PODOFO_CONVERSION_CONSTANT 0.002834645669291339
+#endif // PODOFO_CONVERSION_CONSTANT
 
 }; // end namespace PoDoFo
 
