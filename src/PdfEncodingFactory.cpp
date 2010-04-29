@@ -105,17 +105,39 @@ const PdfEncoding* PdfEncodingFactory::GlobalMacRomanEncodingInstance()
     return s_pMacRomanEncoding;
 }
 
+int podofo_number_of_clients = 0;
+
 void PdfEncodingFactory::FreeGlobalEncodingInstances()
 {
-    Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
+    Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 	
     
-    delete s_pMacRomanEncoding;
-    delete s_pWinAnsiEncoding;
-    delete s_pDocEncoding;
+    podofo_number_of_clients--;
+    if (podofo_number_of_clients <= 0)
+    {
+        Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
+        
+        if (0 != s_pMacRomanEncoding)
+        {
+            delete s_pMacRomanEncoding;
+        }
+        if (0 != s_pWinAnsiEncoding)
+        {
+            delete s_pWinAnsiEncoding;
+        }
+        if (0 != s_pDocEncoding)
+        {
+            delete s_pDocEncoding;
+        }
 
-    s_pMacRomanEncoding = NULL;
-    s_pWinAnsiEncoding  = NULL;
-    s_pDocEncoding      = NULL;
+        s_pMacRomanEncoding = NULL;
+        s_pWinAnsiEncoding  = NULL;
+        s_pDocEncoding      = NULL;
+    }
+}
+
+void PdfEncodingFactory::PoDoFoClientAttached()
+{
+    podofo_number_of_clients++;
 }
 
 };

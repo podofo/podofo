@@ -80,6 +80,8 @@ class PODOFO_API PdfEncodingFactory {
      */
     static void FreeGlobalEncodingInstances();
 
+    static void PoDoFoClientAttached();
+
  private:
     /** Always use this static declaration,
      *  if you need an instance of PdfDocEncoding
