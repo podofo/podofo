@@ -76,6 +76,22 @@ class PODOFO_API PdfPage : public PdfElement, public PdfCanvas {
      */
     inline virtual const PdfRect GetPageSize() const;
 
+    // added by Petr P. Petrov 21 Febrary 2010
+    /** Set the current page width in PDF Units
+     *
+     * \returns true if successfull, false otherwise
+     *
+     */
+    bool SetPageWidth(int newWidth);
+
+    // added by Petr P. Petrov 21 Febrary 2010
+    /** Set the current page height in PDF Units
+     *
+     * \returns true if successfull, false otherwise
+     *
+     */
+    bool SetPageHeight(int newHeight);
+
     /** Page number inside of the document. The  first page
      *  has the number 1, the last page has the number 
      *  PdfPagesTree:GetTotalNumberOfPages()

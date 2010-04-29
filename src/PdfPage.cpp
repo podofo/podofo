@@ -378,6 +378,70 @@ void PdfPage::DeleteAnnotation( const PdfReference & ref )
     delete m_pObject->GetOwner()->RemoveObject( ref );
 }
 
+// added by Petr P. Petrov 21 Febrary 2010
+bool PdfPage::SetPageWidth(int newWidth)
+{
+    PdfObject*   pObjMediaBox;
+        
+    // Take advantage of inherited values - walking up the tree if necessary
+    pObjMediaBox = GetInheritedKeyFromObject( "MediaBox", m_pObject );
+    
+    // assign the value of the box from the array
+    if ( pObjMediaBox && pObjMediaBox->IsArray() )
+    {
+        pObjMediaBox->GetArray()[2].SetNumber(newWidth);
+
+        PdfObject*   pObjCropBox;
+
+        // Take advantage of inherited values - walking up the tree if necessary
+        pObjCropBox = GetInheritedKeyFromObject( "CropBox", m_pObject );
+
+        if ( pObjCropBox && pObjCropBox->IsArray() )
+        {
+            pObjCropBox->GetArray()[2].SetNumber(newWidth);
+            return true;
+        }else
+        {
+            return false;
+        }
+    }else
+    {
+        return false;
+    }
+}
+
+// added by Petr P. Petrov 21 Febrary 2010
+bool PdfPage::SetPageHeight(int newHeight)
+{
+    PdfObject*   pObj;
+        
+    // Take advantage of inherited values - walking up the tree if necessary
+    pObj = GetInheritedKeyFromObject( "MediaBox", m_pObject );
+    
+    // assign the value of the box from the array
+    if ( pObj && pObj->IsArray() )
+    {
+        pObj->GetArray()[3].SetNumber(newHeight);
+
+        PdfObject*   pObjCropBox;
+
+        // Take advantage of inherited values - walking up the tree if necessary
+        pObjCropBox = GetInheritedKeyFromObject( "CropBox", m_pObject );
+
+        if ( pObjCropBox && pObjCropBox->IsArray() )
+        {
+            pObjCropBox->GetArray()[3].SetNumber(newHeight);
+            return true;
+        }else
+        {
+            return false;
+        }
+    }else
+    {
+        return false;
+    }
+}
+
 unsigned int PdfPage::GetPageNumber() const
 {
     unsigned int        nPageNumber = 0;
