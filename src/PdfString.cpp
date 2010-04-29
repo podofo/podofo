@@ -96,7 +96,6 @@ PdfString::PdfString( const char* pszString, const PdfEncoding * const pEncoding
         Init( pszString, strlen( pszString ) );
 }
 
-#ifndef _WCHAR_T_DEFINED
 #if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
 #else
 PdfString::PdfString( const wchar_t* pszString )
@@ -142,7 +141,6 @@ PdfString::PdfString( const wchar_t* pszString )
 	}    
     }
 }
-#endif
 #endif
 
 PdfString::PdfString( const char* pszString, pdf_long lLen, bool bHex, const PdfEncoding * const pEncoding )
