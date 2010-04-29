@@ -46,6 +46,10 @@ namespace PoDoFo {
 
 namespace PdfTokenizerNameSpace{
 
+static char g_DelMap[256] = { 0 };
+static char g_WsMap[256] = { 0 };
+static char g_EscMap[256] = { 0 };
+
 // Generate the delimiter character map at runtime
 // so that it can be derived from the more easily
 // maintainable structures in PdfDefines.h
@@ -53,7 +57,9 @@ const char * genDelMap()
 {
     int        i;
     const long lAllocLen = 256;
-    char* map = static_cast<char*>(malloc(lAllocLen));
+    // Petr Petrov: do not use memory on heap - we have a memory leak (22 December 2009)
+    //char* map = static_cast<char*>(malloc(lAllocLen));
+    char* map = static_cast<char*>(g_DelMap);
     memset( map, 0, sizeof(char) * lAllocLen );
     for (i = 0; i < PoDoFo::s_nNumDelimiters; ++i)
         map[static_cast<int>(PoDoFo::s_cDelimiters[i])] = 1;
@@ -67,7 +73,9 @@ const char * genWsMap()
 {
     int   i;
     const long lAllocLen = 256;
-    char* map = static_cast<char*>(malloc(lAllocLen));
+    // Petr Petrov: do not use memory on heap - we have a memory leak (22 December 2009)
+    //char* map = static_cast<char*>(malloc(lAllocLen));
+    char* map = static_cast<char*>(g_WsMap);
     memset( map, 0, sizeof(char) * lAllocLen );
     for (i = 0; i < PoDoFo::s_nNumWhiteSpaces; ++i)
         map[static_cast<int>(PoDoFo::s_cWhiteSpaces[i])] = 1;
@@ -78,7 +86,9 @@ const char * genWsMap()
 const char* genEscMap()
 {
     const long lAllocLen = 256;
-    char* map = static_cast<char*>(malloc(lAllocLen));
+    // Petr Petrov: do not use memory on heap - we have a memory leak (22 December 2009)
+    //char* map = static_cast<char*>(malloc(lAllocLen));
+    char* map = static_cast<char*>(g_EscMap);
     memset( map, 0, sizeof(char) * lAllocLen );
 
     map['n'] = '\n'; // Line feed (LF)
@@ -469,7 +479,11 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
     if( false ) 
     {
         std::ostringstream ss;
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200
+        ss << "Got unexpected PDF data in" << __FILE__ << ", line " << __LINE__
+#else
         ss << "Got unexpected PDF data in" << PODOFO__FUNCTION__
+#endif
            << ": \""
            << pszToken
            << "\". Current read offset is "
