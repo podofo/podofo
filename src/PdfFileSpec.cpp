@@ -70,6 +70,23 @@ PdfFileSpec::PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfVecObjects* 
     }
 }
 
+PdfFileSpec::PdfFileSpec( const char* pszFilename, const unsigned char* data, ptrdiff_t size, PdfVecObjects* pParent)
+    : PdfElement( "Filespec", pParent )
+{
+    PdfObject* pEmbeddedStream;
+
+    m_pObject->GetDictionary().AddKey( "F", this->CreateFileSpecification( pszFilename ) );
+
+    PdfDictionary ef;
+
+    pEmbeddedStream = this->CreateObject( "EmbeddedFile" );
+    this->EmbeddFileFromMem( pEmbeddedStream, data, size );
+
+    ef.AddKey( "F",  pEmbeddedStream->Reference() );
+
+    m_pObject->GetDictionary().AddKey( "EF", ef );
+}
+
 PdfFileSpec::PdfFileSpec( PdfObject* pObject )
     : PdfElement( "Filespec", pObject )
 {
@@ -103,6 +120,17 @@ void PdfFileSpec::EmbeddFile( PdfObject* pStream, const char* pszFilename ) cons
     PdfDictionary params;
     params.AddKey( "Size", static_cast<pdf_int64>(stream.GetFileLength()) );
     // TODO: CreationDate and ModDate
+    pStream->GetDictionary().AddKey("Params", params );
+}
+
+void PdfFileSpec::EmbeddFileFromMem( PdfObject* pStream, const unsigned char* data, ptrdiff_t size ) const
+{
+    PdfMemoryInputStream memstream((const char*)data,size);
+    pStream->GetStream()->Set( &memstream );
+
+    // Add additional information about the embedded file to the stream
+    PdfDictionary params;
+    params.AddKey( "Size", (pdf_int64)size );
     pStream->GetDictionary().AddKey("Params", params );
 }
 
