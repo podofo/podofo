@@ -70,11 +70,13 @@ static bool GetDataFromHFONT( HFONT hf, char** outFontBuffer, unsigned int& outF
         return false;
     }
     
-    SelectObject(hdc, hf);
+    // Petr Petrov (22 December 2009)
+    HGDIOBJ oldFont = SelectObject(hdc, hf);
 
     outFontBufferLen = GetFontData(hdc, 0, 0, 0, 0);
     
     if (outFontBufferLen == GDI_ERROR) {
+        SelectObject(hdc,oldFont);
         ReleaseDC(0, hdc);
         DeleteObject(hf);
         return false;
@@ -86,11 +88,13 @@ static bool GetDataFromHFONT( HFONT hf, char** outFontBuffer, unsigned int& outF
         free( *outFontBuffer );
         *outFontBuffer = NULL;
         outFontBufferLen = 0;
+        SelectObject(hdc,oldFont);
         ReleaseDC(0, hdc);
         DeleteObject(hf);
         return false;
     }
     
+    SelectObject(hdc,oldFont);
     ReleaseDC( 0, hdc );
     DeleteObject( hf );
     
@@ -228,37 +232,69 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
 {
     PODOFO_ASSERT( pEncoding );
 
-    PdfFont*          pFont;
-    PdfFontMetrics*   pMetrics;
+    PdfFont*          pFont = NULL;
+    PdfFontMetrics*   pMetrics = NULL;
     std::pair<TISortedFontList,TCISortedFontList> it;
 
     it = std::equal_range( m_vecFonts.begin(), m_vecFonts.end(), 
 			   TFontCacheElement( pszFontName, bBold, bItalic, pEncoding ) );
+
+		
     if( it.first == it.second )
     {
-        std::string sPath;
-        if ( pszFileName == NULL )
-            sPath = this->GetFontPath( pszFontName, bBold, bItalic );
-        else
-            sPath = pszFileName;
-        
-        if( sPath.empty() )
-        {
+		if (PODOFO_Base14FontDef_FindBuiltinData(pszFontName))
+		{  
+			pFont = CreateBase14Font(pszFontName,pEncoding,m_pParent);
+
+			if( pFont ) 
+			{
+				TFontCacheElement element;
+				element.m_pFont     = pFont;
+				element.m_bBold     = pFont->IsBold();
+				element.m_bItalic   = pFont->IsItalic();
+				element.m_sFontName = pszFontName;
+				element.m_pEncoding = pEncoding;
+
+				// Do a sorted insert, so no need to sort again
+				//rvecContainer.insert( itSorted, element ); 
+				m_vecFonts.insert( it.first, element );
+				
+			 }
+
+	//	pdfont = new PdfFontType1(PODOFO_Base14FontDef_FindBuiltinData(pszFontName), pEncoding, &m_vecObjects);
+		}
+		
+		if (!pFont)
+		{
+			std::string sPath;
+			if ( pszFileName == NULL )
+				sPath = this->GetFontPath( pszFontName, bBold, bItalic );
+			else
+				sPath = pszFileName;
+	        
+			if( sPath.empty() )
+			{
 #ifdef _WIN32
-            return GetWin32Font( it.first, m_vecFonts, pszFontName, bBold, bItalic, bEmbedd, pEncoding );
-#else
-            PdfError::LogMessage( eLogSeverity_Critical, "No path was found for the specified fontname: %s\n", pszFontName );
-            return NULL;
+				pFont = GetWin32Font( it.first, m_vecFonts, pszFontName, bBold, bItalic, bEmbedd, pEncoding );
 #endif // _WIN32
-        }
-        
-        pMetrics = new PdfFontMetrics( &m_ftLibrary, sPath.c_str() );
-        pFont    = this->CreateFontObject( it.first, m_vecFonts, pMetrics, 
-					   bEmbedd, bBold, bItalic, pszFontName, pEncoding );
+			}
+			else
+			{
+				pMetrics = new PdfFontMetrics( &m_ftLibrary, sPath.c_str() );
+				pFont    = this->CreateFontObject( it.first, m_vecFonts, pMetrics, 
+						   bEmbedd, bBold, bItalic, pszFontName, pEncoding );
+			}
+
+		}
     }
     else
         pFont = (*it.first).m_pFont;
-    
+
+#ifndef WIN32
+		if (!pFont)
+	        PdfError::LogMessage( eLogSeverity_Critical, "No path was found for the specified fontname: %s\n", pszFontName );
+#endif             
+
     return pFont;
 }
 
