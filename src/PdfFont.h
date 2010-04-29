@@ -33,6 +33,8 @@ class PdfObject;
 class PdfPage;
 class PdfWriter;
 
+
+
 /** Before you can draw text on a PDF document, you have to create 
  *  a font object first. You can reuse this font object as often 
  *  as you want.
@@ -62,6 +64,7 @@ class PODOFO_API PdfFont : public PdfElement {
      */
     PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent );
 
+
     /** Create a PdfFont based on an existing PdfObject
      *  \param pMetrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object is 
@@ -70,6 +73,9 @@ class PODOFO_API PdfFont : public PdfElement {
      *  \param pObject an existing PdfObject
      */
     PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject );
+
+	PdfFont( PODOFO_Base14FontDefData *pMetrics_base14, const PdfEncoding* const pEncoding, 
+					PdfVecObjects* pParent );
 
     virtual ~PdfFont();
 
@@ -189,6 +195,8 @@ class PODOFO_API PdfFont : public PdfElement {
      */
     inline const PdfName& GetBaseFont() const;
 
+	void InitBase14Font();
+
  private:
     /** Initialize all variables
      */
@@ -214,6 +222,7 @@ class PODOFO_API PdfFont : public PdfElement {
      */
     inline void SetItalic( bool bItalic );
 
+	
  private:
     PdfName m_BaseFont;
 
@@ -227,9 +236,11 @@ class PODOFO_API PdfFont : public PdfElement {
     bool  m_bStrikedOut;
 
     bool  m_bWasEmbedded;
-
+	bool m_isBase14;
     PdfName m_Identifier;
 };
+
+PdfFont* CreateBase14Font(const char* pszFontName, const PdfEncoding * const pEncoding,PdfVecObjects *pvecObjects);
 
 // -----------------------------------------------------
 // 
@@ -268,7 +279,7 @@ const PdfName & PdfFont::GetIdentifier() const
 // -----------------------------------------------------
 void PdfFont::SetFontSize( float fSize )
 {
-    m_pMetrics->SetFontSize( fSize );
+		m_pMetrics->SetFontSize( fSize );
 }
 
 // -----------------------------------------------------
@@ -276,7 +287,7 @@ void PdfFont::SetFontSize( float fSize )
 // -----------------------------------------------------
 float PdfFont::GetFontSize() const
 {
-    return m_pMetrics->GetFontSize();
+	    return m_pMetrics->GetFontSize();
 }
 
 // -----------------------------------------------------
@@ -284,7 +295,7 @@ float PdfFont::GetFontSize() const
 // -----------------------------------------------------
 void PdfFont::SetFontScale( float fScale )
 {
-    m_pMetrics->SetFontScale( fScale );
+		m_pMetrics->SetFontScale( fScale );
 }
 
 // -----------------------------------------------------
@@ -292,7 +303,7 @@ void PdfFont::SetFontScale( float fScale )
 // -----------------------------------------------------
 float PdfFont::GetFontScale() const
 {
-    return m_pMetrics->GetFontScale();
+		return  m_pMetrics->GetFontScale();
 }
 
 // -----------------------------------------------------
@@ -300,7 +311,7 @@ float PdfFont::GetFontScale() const
 // -----------------------------------------------------
 void PdfFont::SetFontCharSpace( float fCharSpace )
 {
-    m_pMetrics->SetFontCharSpace( fCharSpace );
+		m_pMetrics->SetFontCharSpace( fCharSpace );
 }
 
 // -----------------------------------------------------
@@ -308,7 +319,7 @@ void PdfFont::SetFontCharSpace( float fCharSpace )
 // -----------------------------------------------------
 float PdfFont::GetFontCharSpace() const
 {
-    return m_pMetrics->GetFontCharSpace();
+		return m_pMetrics->GetFontCharSpace();
 }
 
 // -----------------------------------------------------
@@ -317,6 +328,7 @@ float PdfFont::GetFontCharSpace() const
 const PdfEncoding* PdfFont::GetEncoding() const
 {
     return m_pEncoding;
+
 }
 
 // -----------------------------------------------------
