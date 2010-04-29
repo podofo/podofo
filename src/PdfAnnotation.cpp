@@ -59,6 +59,7 @@ const char* PdfAnnotation::s_names[] = {
     "TrapNet",        // PDF 1.3
     "Watermark",      // PDF 1.6
     "3D",             // PDF 1.6
+    "RichMedia",      // PDF 1.7 ALX: Petr P. Petrov
     NULL
 };
 
