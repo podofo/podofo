@@ -279,7 +279,7 @@ const PdfName & PdfFont::GetIdentifier() const
 // -----------------------------------------------------
 void PdfFont::SetFontSize( float fSize )
 {
-		m_pMetrics->SetFontSize( fSize );
+    m_pMetrics->SetFontSize( fSize );
 }
 
 // -----------------------------------------------------
@@ -287,7 +287,7 @@ void PdfFont::SetFontSize( float fSize )
 // -----------------------------------------------------
 float PdfFont::GetFontSize() const
 {
-	    return m_pMetrics->GetFontSize();
+    return m_pMetrics->GetFontSize();
 }
 
 // -----------------------------------------------------
@@ -295,7 +295,7 @@ float PdfFont::GetFontSize() const
 // -----------------------------------------------------
 void PdfFont::SetFontScale( float fScale )
 {
-		m_pMetrics->SetFontScale( fScale );
+    m_pMetrics->SetFontScale( fScale );
 }
 
 // -----------------------------------------------------
@@ -303,7 +303,7 @@ void PdfFont::SetFontScale( float fScale )
 // -----------------------------------------------------
 float PdfFont::GetFontScale() const
 {
-		return  m_pMetrics->GetFontScale();
+    return  m_pMetrics->GetFontScale();
 }
 
 // -----------------------------------------------------
@@ -311,7 +311,7 @@ float PdfFont::GetFontScale() const
 // -----------------------------------------------------
 void PdfFont::SetFontCharSpace( float fCharSpace )
 {
-		m_pMetrics->SetFontCharSpace( fCharSpace );
+    m_pMetrics->SetFontCharSpace( fCharSpace );
 }
 
 // -----------------------------------------------------
@@ -319,7 +319,7 @@ void PdfFont::SetFontCharSpace( float fCharSpace )
 // -----------------------------------------------------
 float PdfFont::GetFontCharSpace() const
 {
-		return m_pMetrics->GetFontCharSpace();
+    return m_pMetrics->GetFontCharSpace();
 }
 
 // -----------------------------------------------------

@@ -111,6 +111,7 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
                 break;
                 
             case ePdfFontType_Unknown:
+            case ePdfFontType_Type1Base14:
             default:
                 PdfError::LogMessage( eLogSeverity_Error, "The font format is unknown. Fontname: %s Filename: %s\n", 
                                       (pMetrics->GetFontname() ? pMetrics->GetFontname() : "<unknown>"),
@@ -127,6 +128,7 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
                 break;
             case ePdfFontType_Type1Pfa:
             case ePdfFontType_Type1Pfb:
+            case ePdfFontType_Type1Base14:
             case ePdfFontType_Unknown:
             default:
                 PdfError::LogMessage( eLogSeverity_Error, 

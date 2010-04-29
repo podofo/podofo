@@ -43,11 +43,11 @@ namespace PoDoFo {
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename, 
                                 const char* pszSubsetPrefix )
-    : m_sFilename( pszFilename ), m_pLibrary( pLibrary ), 
+    : m_sFilename( pszFilename ), m_pLibrary( pLibrary ), m_pMetrics_base14(NULL),
       m_bSymbol( false ), m_fFontSize( 0.0f ), 
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown ),
-      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" ), m_pMetrics_base14(NULL)
+      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" )
 {
     m_face                = NULL;
 
@@ -69,11 +69,11 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename,
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen,
                                 const char* pszSubsetPrefix )
-    : m_sFilename( "" ), m_pLibrary( pLibrary ), 
+    : m_sFilename( "" ), m_pLibrary( pLibrary ), m_pMetrics_base14(NULL),
       m_bSymbol( false ), m_fFontSize( 0.0f ),
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown ),
-      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" ), m_pMetrics_base14(NULL)
+      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" )
 {
     m_face                = NULL;
     m_bufFontData = PdfRefCountedBuffer( nBufLen ); // const_cast is ok, because we SetTakePossension to false!
@@ -84,21 +84,21 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsig
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const PdfRefCountedBuffer & rBuffer,
                                 const char* pszSubsetPrefix ) 
-    : m_sFilename( "" ), m_pLibrary( pLibrary ), 
+    : m_sFilename( "" ), m_pLibrary( pLibrary ), m_pMetrics_base14(NULL),
       m_bSymbol( false ), m_bufFontData( rBuffer ), m_fFontSize( 0.0f ),
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown ),
-      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" ) , m_pMetrics_base14(NULL)
+      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" )
 {
     InitFromBuffer();
 }
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, FT_Face face, const char* pszSubsetPrefix  )
-    : m_face( face ), m_sFilename( "" ), m_pLibrary( pLibrary ), 
+    : m_face( face ), m_sFilename( "" ), m_pLibrary( pLibrary ), m_pMetrics_base14(NULL),
       m_bSymbol( false ), m_fFontSize( 0.0f ), 
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown ),
-      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" ) , m_pMetrics_base14(NULL)
+      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" )
 {
     // asume true type
     m_eFontType = ePdfFontType_TrueType;
@@ -114,10 +114,10 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, FT_Face face, const char* 
 }
  
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, PdfObject* pDescriptor )
-    : m_sFilename( "" ), m_pLibrary( pLibrary ), 
+    : m_sFilename( "" ), m_pLibrary( pLibrary ), m_pMetrics_base14(NULL),
       m_bSymbol( false ), m_fFontSize( 0.0f ), 
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
-      m_eFontType( ePdfFontType_Unknown ) , m_pMetrics_base14(NULL)
+      m_eFontType( ePdfFontType_Unknown )
 {
     m_face = NULL;
 

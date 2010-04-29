@@ -25,6 +25,8 @@
 #include "Pdf3rdPtyForwardDecl.h"
 #include "PdfString.h"
 
+#include <string.h>
+
 #ifndef PODOFO_CONVERSION_CONSTANT
 #define PODOFO_CONVERSION_CONSTANT 0.002834645669291339
 #endif // PODOFO_CONVERSION_CONSTANT
@@ -811,8 +813,8 @@ class PODOFO_API PdfFontMetrics {
      */
     PdfFontMetrics( FT_Library* pLibrary, PdfObject* pDescriptor );
 
-	PdfFontMetrics( PODOFO_Base14FontDefData* pMetrics_base14) : m_pMetrics_base14(pMetrics_base14)
-							, m_pLibrary(NULL), m_face(NULL)
+	PdfFontMetrics( PODOFO_Base14FontDefData* pMetrics_base14) 
+        : m_face(NULL), m_pLibrary(NULL), m_pMetrics_base14(pMetrics_base14)
 	{
 #ifdef MYASSERT
 		assert(m_pMetrics_base14 != NULL);
@@ -1152,6 +1154,8 @@ class PODOFO_API PdfFontMetrics {
     FT_Library*   m_pLibrary;
 
  private:
+	PODOFO_Base14FontDefData* m_pMetrics_base14; //base14changes
+
     bool          m_bSymbol;  ///< Internal member to singnal a symbol font
 
     unsigned int  m_nWeight;
@@ -1178,7 +1182,6 @@ class PODOFO_API PdfFontMetrics {
     EPdfFontType  m_eFontType;
     std::string   m_sFontSubsetPrefix;
 
-	PODOFO_Base14FontDefData* m_pMetrics_base14; //base14changes
 	bool m_isBase14;
 };
 

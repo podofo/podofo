@@ -64,8 +64,9 @@ It generates the object number for the font dictionary which will be wrriten in 
 - Kaushik April 12th 2010
 */
 PdfFont::PdfFont(PODOFO_Base14FontDefData *pMetrics_base14, const PdfEncoding* const pEncoding, 
-					PdfVecObjects* pParent ) :  PdfElement( "Font", pParent ), 
-					m_pEncoding( pEncoding ),	 m_isBase14(true), m_bBold( false ), m_bItalic( false )
+					PdfVecObjects* pParent )
+    :  PdfElement( "Font", pParent ), 
+       m_pEncoding( pEncoding ), m_bBold( false ), m_bItalic( false ), m_isBase14(true)
 {
 	ostringstream out;
     PdfLocaleImbue(out);
