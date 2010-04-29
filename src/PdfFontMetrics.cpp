@@ -47,7 +47,7 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename,
       m_bSymbol( false ), m_fFontSize( 0.0f ), 
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown ),
-      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" )
+      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" ), m_pMetrics_base14(NULL)
 {
     m_face                = NULL;
 
@@ -73,7 +73,7 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsig
       m_bSymbol( false ), m_fFontSize( 0.0f ),
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown ),
-      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" )
+      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" ), m_pMetrics_base14(NULL)
 {
     m_face                = NULL;
     m_bufFontData = PdfRefCountedBuffer( nBufLen ); // const_cast is ok, because we SetTakePossension to false!
@@ -83,12 +83,12 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsig
 }
 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const PdfRefCountedBuffer & rBuffer,
-                                const char* pszSubsetPrefix )
+                                const char* pszSubsetPrefix ) 
     : m_sFilename( "" ), m_pLibrary( pLibrary ), 
       m_bSymbol( false ), m_bufFontData( rBuffer ), m_fFontSize( 0.0f ),
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown ),
-      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" )
+      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" ) , m_pMetrics_base14(NULL)
 {
     InitFromBuffer();
 }
@@ -98,7 +98,7 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, FT_Face face, const char* 
       m_bSymbol( false ), m_fFontSize( 0.0f ), 
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown ),
-      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" )
+      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" ) , m_pMetrics_base14(NULL)
 {
     // asume true type
     m_eFontType = ePdfFontType_TrueType;
@@ -112,12 +112,12 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, FT_Face face, const char* 
 
     InitFromFace();
 }
-
+ 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, PdfObject* pDescriptor )
     : m_sFilename( "" ), m_pLibrary( pLibrary ), 
       m_bSymbol( false ), m_fFontSize( 0.0f ), 
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
-      m_eFontType( ePdfFontType_Unknown )
+      m_eFontType( ePdfFontType_Unknown ) , m_pMetrics_base14(NULL)
 {
     m_face = NULL;
 
@@ -133,6 +133,7 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, PdfObject* pDescriptor )
     m_dPdfAscent   = pDescriptor->GetDictionary().GetKeyAsReal( "Ascent", 0.0 );
     m_dPdfDescent  = pDescriptor->GetDictionary().GetKeyAsReal( "Descent", 0.0 );
 }
+
 
 PdfFontMetrics::~PdfFontMetrics()
 {
@@ -229,17 +230,53 @@ void PdfFontMetrics::InitFromFace()
 
 const char* PdfFontMetrics::GetFontname() const
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->GetFontname();
+
     const char*	s = FT_Get_Postscript_Name( m_face );
     return s ? s : "";
 }
 
 const char* PdfFontMetrics::GetSubsetFontnamePrefix() const
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->GetSubsetFontnamePrefix();
+
     return m_sFontSubsetPrefix.c_str();
 }
 
+
+void PODOFO_Base14FontDefData::GetBoundingBox( PdfArray & array ) const
+{
+		array.Clear();
+		array.push_back( PdfVariant( bbox.left * 1000.0 / units_per_EM ) );
+		array.push_back( PdfVariant( bbox.bottom  * 1000.0 / units_per_EM ) );
+		array.push_back( PdfVariant( bbox.right  * 1000.0 / units_per_EM ) );
+		array.push_back( PdfVariant( bbox.top  * 1000.0 / units_per_EM ) );
+
+		return ;
+}
+
+void PODOFO_Base14FontDefData::GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast ) const
+{
+    unsigned int  i;
+    PdfArray  list;
+ 
+    for( i=nFirst;i<=nLast;i++ )
+    {
+		list.push_back( PdfVariant(  double(widths_table[i].width)  ) );
+    }
+
+    var = PdfVariant( list );
+
+}
+
+
 void PdfFontMetrics::GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast ) const
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->GetWidthArray(var, nFirst, nLast );
+
     unsigned int  i;
     PdfArray  list;
 
@@ -270,6 +307,9 @@ void PdfFontMetrics::GetWidthArray( PdfVariant & var, unsigned int nFirst, unsig
 
 double PdfFontMetrics::GetGlyphWidth( int nGlyphId ) const
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->GetGlyphWidth(nGlyphId);
+
     if( !m_face ) 
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
@@ -286,6 +326,9 @@ double PdfFontMetrics::GetGlyphWidth( int nGlyphId ) const
 
 void PdfFontMetrics::GetBoundingBox( PdfArray & array ) const
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->GetBoundingBox(array);
+
     if( !m_face ) 
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
@@ -1024,6 +1067,9 @@ std::string	Std2AltFontName( const std::string& inStdName )
 
 std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->GetFilenameForFont(pszFontname);
+
     // TODO: Use FT_GetFile_From_Mac_ATS_Name
 
     FSSpec  fSpec;
@@ -1132,6 +1178,9 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
 
 double PdfFontMetrics::CharWidth( unsigned char c ) const
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->CharWidth(c);
+
     double dWidth = m_vecWidth[static_cast<unsigned int>(c)];
 
     return dWidth * static_cast<double>(m_fFontSize * m_fFontScale / 100.0) / 1000.0 +
@@ -1140,6 +1189,9 @@ double PdfFontMetrics::CharWidth( unsigned char c ) const
 
 double PdfFontMetrics::UnicodeCharWidth( unsigned short c ) const
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->UnicodeCharWidth(c);
+
     FT_Error ftErr;
     double   dWidth = 0.0;
 
@@ -1163,11 +1215,17 @@ double PdfFontMetrics::UnicodeCharWidth( unsigned short c ) const
 
 unsigned long PdfFontMetrics::CharWidthMM( unsigned char c ) const
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->CharWidthMM(c);
+
     return static_cast<unsigned long>(this->CharWidth( c ) / PODOFO_CONVERSION_CONSTANT);
 }
 
 double PdfFontMetrics::StringWidth( const char* pszText, pdf_long nLength ) const
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->StringWidth(pszText, nLength );
+
     double dWidth = 0.0;
 
     if( !pszText )
@@ -1188,6 +1246,9 @@ double PdfFontMetrics::StringWidth( const char* pszText, pdf_long nLength ) cons
 
 double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, unsigned int nLength ) const
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->StringWidth( pszText, nLength ) ;
+
     double dWidth = 0.0;
 
     if( !pszText )
@@ -1217,10 +1278,14 @@ double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, unsigned int nLe
     return dWidth;
 }
 
+#ifndef _WCHAR_T_DEFINED
 #if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
 #else
 double PdfFontMetrics::StringWidth( const wchar_t* pszText, unsigned int nLength ) const
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->StringWidth(pszText, nLength ) ;
+
     double dWidth = 0.0;
 
     if( !pszText )
@@ -1239,28 +1304,44 @@ double PdfFontMetrics::StringWidth( const wchar_t* pszText, unsigned int nLength
     return dWidth;
 }
 #endif
+#endif
 
 unsigned long PdfFontMetrics::StringWidthMM( const char* pszText, unsigned int nLength ) const
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->StringWidthMM( pszText, nLength ) ;
+
     return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / PODOFO_CONVERSION_CONSTANT);
 }
 
 unsigned long PdfFontMetrics::StringWidthMM( const pdf_utf16be* pszText, unsigned int nLength ) const
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->StringWidthMM( pszText, nLength );
+
     return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / PODOFO_CONVERSION_CONSTANT);
 }
 
+#ifndef _WCHAR_T_DEFINED
 #if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
 #else
 unsigned long PdfFontMetrics::StringWidthMM( const wchar_t* pszText, unsigned int nLength ) const
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->StringWidthMM( pszText, nLength ) ;
+
     return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / PODOFO_CONVERSION_CONSTANT);
 }
+#endif
 #endif
 
 void PdfFontMetrics::SetFontSize( float fSize )
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->SetFontSize( fSize );
+
     FT_Error ftErr;
+
 
     if( !m_face )
     {
@@ -1294,16 +1375,25 @@ void PdfFontMetrics::SetFontSize( float fSize )
 
 void PdfFontMetrics::SetFontScale( float fScale )
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->SetFontScale( fScale );
+
     m_fFontScale = fScale;
 }
 
 void PdfFontMetrics::SetFontCharSpace( float fCharSpace )
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->SetFontCharSpace( fCharSpace );
+
     m_fFontCharSpace = fCharSpace;
 }
 
 void PdfFontMetrics::SetFontTypeFromFilename( const char* pszFilename )
 {
+	if (m_pMetrics_base14)
+		return 	;  
+
     m_eFontType = PdfFontFactory::GetFontType( pszFilename );
 
     if( m_eFontType == ePdfFontType_Unknown )
@@ -1312,6 +1402,9 @@ void PdfFontMetrics::SetFontTypeFromFilename( const char* pszFilename )
 
 long PdfFontMetrics::GetGlyphId( long lUnicode ) const
 {
+	if (m_pMetrics_base14)
+		return 	m_pMetrics_base14->GetGlyphId(lUnicode);
+
     long lGlyph = 0L;
 
     // Handle symbol fonts!
