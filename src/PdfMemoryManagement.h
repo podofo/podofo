@@ -21,6 +21,7 @@
 #ifndef _PDF_MEMORY_MANAGEMENT_H_
 #define _PDF_MEMORY_MANAGEMENT_H_
 
+#include "PdfDefines.h"
 #include <stdlib.h>
 
 namespace PoDoFo {
@@ -30,12 +31,12 @@ namespace PoDoFo {
  *
  * Is used to allocate buffers inside of PoDoFo.
  */
-void* podofo_malloc( size_t size );
+PODOFO_API void* podofo_malloc( size_t size );
 
 /**
  * Wrapper around realloc of the c-library used by PoDoFo.
  */
-void* podofo_realloc( void* buffer, size_t size );
+PODOFO_API void* podofo_realloc( void* buffer, size_t size );
 
 /**
  * Wrapper around free of the c-library used by PoDoFo.
@@ -43,7 +44,7 @@ void* podofo_realloc( void* buffer, size_t size );
  * Use this to free memory allocated inside of PoDoFo
  * with podofo_malloc.
  */
-void podofo_free( void* buffer );
+PODOFO_API void podofo_free( void* buffer );
 
 };
 
