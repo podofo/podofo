@@ -69,8 +69,9 @@ typedef struct  {
    Kaushik : April 12th 2010
    
  */
-struct PdfFontMetricsBase14 
+class PdfFontMetricsBase14 
 {
+public:
 	PdfFontMetricsBase14(const char      *mfont_name,
                          const PODOFO_CharData  *mwidths_table,
                          bool             mis_font_specific,
@@ -634,13 +635,15 @@ double StringWidth( const pdf_utf16be* pszText, unsigned int nLength = 0 ) const
 	{
 		long lGlyph = 0;
  
-/*
+
 		// Handle symbol fonts!
+        /*
 		if( m_bSymbol ) 
 		{
 			lUnicode = lUnicode | 0xf000;
 		}
-*/
+        */
+
 
 		for(int i = 0; widths_table[i].unicode != 0xFFFF ; ++i)
 		{
@@ -667,13 +670,14 @@ double StringWidth( const pdf_utf16be* pszText, unsigned int nLength = 0 ) const
 	{
 		long lGlyph = 0;
  
-/*
+
 		// Handle symbol fonts!
+        /*
 		if( m_bSymbol ) 
 		{
-			lUnicode = lUnicode | 0xf000;
+			charId = charId | 0xf000;
 		}
-*/
+        */
 
 		for(int i = 0; widths_table[i].unicode != 0xFFFF  ; ++i)
 		{
