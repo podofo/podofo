@@ -202,6 +202,13 @@ const PdfRect PdfPage::GetPageBox( const char* inBox ) const
     // Take advantage of inherited values - walking up the tree if necessary
     pObj = GetInheritedKeyFromObject( inBox, m_pObject );
     
+
+    // Sometime page boxes are defined using reference objects
+    while ( pObj && pObj->IsReference() )
+    {
+        pObj = m_pObject->GetOwner()->GetObject( pObj->GetReference() );
+    }
+
     // assign the value of the box from the array
     if ( pObj && pObj->IsArray() )
     {
