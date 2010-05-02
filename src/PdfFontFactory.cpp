@@ -162,8 +162,13 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library* pLibrary, PdfObject* pObject )
         PdfObject* pFontObject = pObject->GetOwner()->GetObject( descendant[0].GetReference() );
 
         pDescriptor = pFontObject->GetIndirectKey( "FontDescriptor" );
+        pEncoding   = pObject->GetIndirectKey( "Encoding" );
+
+        const PdfEncoding* const pPdfEncoding = 
+            PdfEncodingFactory::CreateEncoding( pEncoding );
+
         pMetrics    = new PdfFontMetrics( pLibrary, pDescriptor );
-        pFont       = new PdfFontCID( pMetrics, NULL, pObject, false );
+        pFont       = new PdfFontCID( pMetrics, pPdfEncoding, pObject, false );
     }
     else if( rSubType == PdfName("Type1") ) 
     {
