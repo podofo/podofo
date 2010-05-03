@@ -125,7 +125,9 @@ SET(PODOFO_HEADERS
     PdfFontCache.h
     PdfFontCID.h
     PdfFontMetrics.h
+    PdfFontMetricsBase14.h
     PdfFontFactory.h
+    PdfFontFactoryBase14Data.h
     PdfFontSimple.h
     PdfFontType1.h
     PdfFontTrueType.h
