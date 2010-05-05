@@ -574,7 +574,11 @@ void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* p
         }
         else
         {
-            PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+            std::ostringstream oss;
+            oss << "Error while retrieving info dictionary: " 
+                << rRef.ObjectNumber() << " " 
+                << rRef.GenerationNumber() << " R" << std::endl;
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, oss.str().c_str() );
         }
     }
     else 
