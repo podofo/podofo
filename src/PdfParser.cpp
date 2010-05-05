@@ -191,7 +191,7 @@ void PdfParser::ParseFile( const PdfRefCountedInputDevice & rDevice, bool bLoadO
     {
         PODOFO_RAISE_ERROR( ePdfError_NoPdfFile );
     }
-
+    
     ReadDocumentStructure();
     try {
         ReadObjects();
@@ -209,11 +209,6 @@ void PdfParser::ParseFile( const PdfRefCountedInputDevice & rDevice, bool bLoadO
         e.AddToCallstack( __FILE__, __LINE__, "Unable to load objects from file." );
         throw e;
     }
-
-    // Now sort the list of objects
-    m_vecObjects->Sort();
-
-    UpdateDocumentVersion();
 }
 
 
@@ -814,9 +809,12 @@ void PdfParser::ReadObjects()
             pObject->SetLoadOnDemand( m_bLoadOnDemand );
             try {
                 pObject->ParseFile( NULL ); // The encryption dictionary is not encrypted :)
-                m_vecObjects->push_back( pObject );
+                // Never add the encryption dictionary to m_vecObjects
+                // we create a new one, if we need it for writing
+                // m_vecObjects->push_back( pObject );
                 m_offsets[i].bParsed = false;
                 m_pEncrypt = PdfEncrypt::CreatePdfEncrypt( pObject );
+                delete pObject;
             } catch( PdfError & e ) {
                 std::ostringstream oss;
                 if( pObject )
@@ -874,7 +872,6 @@ void PdfParser::ReadObjectsInternal()
             
             pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, m_offsets[i].lOffset );
             pObject->SetLoadOnDemand( m_bLoadOnDemand );
-
             try {
                 pObject->ParseFile( m_pEncrypt );
                 nLast = pObject->Reference().ObjectNumber();
@@ -953,7 +950,7 @@ void PdfParser::ReadObjectsInternal()
 //      }
         else if( (!m_offsets[i].bParsed || m_offsets[i].cUsed == 'f') && i != 0 )
         {
-			m_vecObjects->AddFreeObject( PdfReference( static_cast<int>(i), 1LL ) ); // TODO: do not hard code
+			m_vecObjects->AddFreeObject( PdfReference( static_cast<int>(i), 1LL ) ); // TODO: do not hard code generation number
         }
     }
 
@@ -974,6 +971,7 @@ void PdfParser::ReadObjectsInternal()
                                   static_cast<int>(m_offsets[i].lOffset) );
         }
     }
+
     if( !m_bLoadOnDemand )
     {
         // Force loading of streams. We can't do this during the initial
@@ -991,6 +989,12 @@ void PdfParser::ReadObjectsInternal()
                 pObject->GetStream();
         }
     }
+
+
+    // Now sort the list of objects
+    m_vecObjects->Sort();
+
+    UpdateDocumentVersion();
 }
 
 void PdfParser::SetPassword( const std::string & sPassword )
