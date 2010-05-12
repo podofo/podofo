@@ -361,11 +361,24 @@ TVecFilters PdfFilterFactory::CreateFilterList( const PdfObject* pObject )
 
         while( it != pObj->GetArray().end() )
         {
-            if (! (*it).IsName() )
+            if ( (*it).IsName() )
 			{
+                filters.push_back( PdfFilterFactory::FilterNameToType( (*it).GetName() ) );
+            }
+            else if ( (*it).IsReference() )
+            {
+                PdfObject* pFilter = pObject->GetOwner()->GetObject( (*it).GetReference() );
+                if( pFilter == NULL ) 
+                {
+                    PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Filter array contained unexpected reference" );
+                }
+
+                filters.push_back( PdfFilterFactory::FilterNameToType( pFilter->GetName() ) );
+            }
+            else 
+            {
                 PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Filter array contained unexpected non-name type" );
 			}
-            filters.push_back( PdfFilterFactory::FilterNameToType( (*it).GetName() ) );
                 
             ++it;
         }
