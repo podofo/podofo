@@ -394,8 +394,11 @@ void PdfFilter::EndDecode()
 		throw e;
 	}    
 
-    m_pOutputStream->Close();
-    m_pOutputStream = NULL;
+    if( m_pOutputStream ) 
+    {
+        m_pOutputStream->Close();
+        m_pOutputStream = NULL;
+    }
 }
 
 // -----------------------------------------------------
