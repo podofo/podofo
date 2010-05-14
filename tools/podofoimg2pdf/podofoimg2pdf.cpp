@@ -30,8 +30,8 @@
 
 void print_help()
 {
-  printf("Usage: podofoimg2pdf [output.pdf] [image1 image2 image3 ...]\n\n");
-  printf("Optuons:\n");
+  printf("Usage: podofoimg2pdf [output.pdf] [-useimgsize] [image1 image2 image3 ...]\n\n");
+  printf("Options:\n");
   printf(" -useimgsize    Use the imagesize as page size, instead of A4\n");
   printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
   printf("\n");
