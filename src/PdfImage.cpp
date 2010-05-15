@@ -223,7 +223,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
 #endif
 
 	}
-	PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+	PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedImageFormat, pszFilename );
 }
 
 #ifdef PODOFO_HAVE_JPEG_LIB
