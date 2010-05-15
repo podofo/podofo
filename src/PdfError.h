@@ -89,6 +89,7 @@ enum EPdfError {
     ePdfError_UnsupportedFilter,        /**< The requested filter is not yet implemented. */
     ePdfError_UnsupportedFontFormat,    /**< This font format is not supported by PoDoFO. */
     ePdfError_ActionAlreadyPresent,     /**< An Action was already present when trying to add a Destination */
+    ePdfError_WrongDestinationType,     /**< The requested field is not available for the given destination type */
 
     ePdfError_MissingEndStream,         /**< The required token endstream was not found. */
     ePdfError_Date,                     /**< Date/time error */

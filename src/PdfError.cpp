@@ -277,6 +277,9 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_ActionAlreadyPresent:
             pszMsg = "ePdfError_ActionAlreadyPresent"; 
             break;
+        case ePdfError_WrongDestinationType:
+            pszMsg = "ePdfError_WrongDestinationType";
+            break;
         case ePdfError_MissingEndStream:
             pszMsg = "ePdfError_MissingEndStream"; 
             break;
@@ -409,6 +412,9 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
         case ePdfError_DestinationAlreadyPresent:
         case ePdfError_ActionAlreadyPresent:
             pszMsg = "Outlines can have either destinations or actions."; 
+            break;
+        case ePdfError_WrongDestinationType:
+            pszMsg = "The requested field is not available for the given destination type";
             break;
         case ePdfError_MissingEndStream:
         case ePdfError_Date:
