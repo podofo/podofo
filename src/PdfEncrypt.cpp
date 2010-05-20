@@ -492,15 +492,24 @@ PdfEncrypt::CreatePdfEncrypt( const std::string & userPassword,
     return pdfEncrypt;
 }
 
-PdfEncrypt *
-PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
+PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
 {
-    PdfEncrypt *pdfEncrypt = 0;
+    PdfEncrypt* pdfEncrypt = NULL;
+    printf("pObject=%p\n", pObject);
+    printf("pObject=%i 0 R\n", pObject->Reference().ObjectNumber());
     if( !pObject->GetDictionary().HasKey( PdfName("Filter") ) ||
         pObject->GetDictionary().GetKey( PdfName("Filter" ) )->GetName() != PdfName("Standard") )
     {
         std::ostringstream oss;
-        oss << "Unsupported encryption filter: " << pObject->GetDictionary().GetKey( PdfName("Filter" ) )->GetName().GetName();
+        if( pObject->GetDictionary().HasKey( PdfName("Filter") ) )
+        {
+            oss << "Unsupported encryption filter: " << pObject->GetDictionary().GetKey( PdfName("Filter" ) )->GetName().GetName();
+        }
+        else
+        {
+            oss << "Encryption dictionary does not have a key /Filter.";
+        }
+
         PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFilter, oss.str().c_str() );
     }
         
