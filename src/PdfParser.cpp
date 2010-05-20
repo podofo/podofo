@@ -617,8 +617,9 @@ void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
 #endif // _WIN32
 			}
             else
+            {
                 ReadXRefSubsection( nFirstObject, nNumObjects );
-
+            }
         } catch( PdfError & e ) {
             if( e == ePdfError_NoNumber || e == ePdfError_InvalidXRef || e == ePdfError_UnexpectedEOF ) 
                 break;
@@ -668,8 +669,17 @@ void PdfParser::ReadXRefSubsection( long long & nFirstObject, long long & nNumOb
 #endif // _WIN32
 	}
 
+    // consume all whitespaces
+    int charcode;
+    while( this->IsWhitespace((charcode = m_device.Device()->Look())) )
+    {
+        m_device.Device()->GetChar();
+    }
+
     while( count < nNumObjects && m_device.Device()->Read( m_buffer.GetBuffer(), PDF_XREF_ENTRY_SIZE ) == PDF_XREF_ENTRY_SIZE )
     {
+        char empty1;
+        char empty2;
         m_buffer.GetBuffer()[PDF_XREF_ENTRY_SIZE] = '\0';
 
 #ifdef _WIN32
@@ -682,14 +692,14 @@ void PdfParser::ReadXRefSubsection( long long & nFirstObject, long long & nNumOb
         {
             m_offsets[objID].bParsed = true;
 #ifdef _WIN64
-            sscanf( m_buffer.GetBuffer(), "%10I64d %5ld %c \n", 
+            sscanf( m_buffer.GetBuffer(), "%10I64d %5ld %c%c%c", 
                     &(m_offsets[objID].lOffset), 
-                    &(m_offsets[objID].lGeneration), &(m_offsets[objID].cUsed) );
+                    &(m_offsets[objID].lGeneration), &(m_offsets[objID].cUsed), &empty1, &empty2 );
 #else
             long long int tmp1;
             long int tmp2;
-            sscanf( m_buffer.GetBuffer(), "%10lld %5ld %c \n", 
-                    &tmp1, &tmp2, &(m_offsets[objID].cUsed) );
+            sscanf( m_buffer.GetBuffer(), "%10lld %5ld %c%c%c", 
+                    &tmp1, &tmp2, &(m_offsets[objID].cUsed), &empty1, &empty2 );
 
             m_offsets[objID].lOffset = tmp1;
             m_offsets[objID].lGeneration = tmp2;
@@ -794,7 +804,7 @@ void PdfParser::ReadObjects()
 
     // Check for encryption and make sure that the encryption object
     // is loaded before all other objects
-    PdfObject * pEncrypt = m_pTrailer->GetDictionary().GetKey( PdfName("Encrypt") );
+    PdfObject* pEncrypt = m_pTrailer->GetDictionary().GetKey( PdfName("Encrypt") );
     if( pEncrypt && !pEncrypt->IsNull() )
     {
 #ifdef PODOFO_VERBOSE_DEBUG
@@ -804,9 +814,8 @@ void PdfParser::ReadObjects()
         if( pEncrypt->IsReference() ) 
         {
             i = pEncrypt->GetReference().ObjectNumber();
-
             pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, m_offsets[i].lOffset );
-            pObject->SetLoadOnDemand( m_bLoadOnDemand );
+            pObject->SetLoadOnDemand( false ); // Never load this on demand, as we will use it immediately
             try {
                 pObject->ParseFile( NULL ); // The encryption dictionary is not encrypted :)
                 // Never add the encryption dictionary to m_vecObjects
