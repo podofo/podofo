@@ -155,20 +155,15 @@ void PdfFont::WriteStringToStream( const PdfString & rsString, PdfStream* pStrea
 {
     if( !m_pEncoding )
     {
-	PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    PdfString sEncoded = m_pEncoding->ConvertToEncoding( rsString, this );
-    if( sEncoded.IsUnicode() ) 
-    {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "ConvertToEncoding must not return a unicode string" );
-    }
-
+    PdfRefCountedBuffer buffer = m_pEncoding->ConvertToEncoding( rsString, this );
     pdf_long  lLen    = 0;
     char* pBuffer = NULL;
 
     std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );    
-    pFilter->Encode( sEncoded.GetString(), sEncoded.GetLength(), &pBuffer, &lLen );
+    pFilter->Encode( buffer.GetBuffer(), buffer.GetSize(), &pBuffer, &lLen );
 
     pStream->Append( "<", 1 );
     pStream->Append( pBuffer, lLen );

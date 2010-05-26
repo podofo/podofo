@@ -222,10 +222,10 @@ class PODOFO_API PdfDifferenceEncoding : public PdfEncoding, private PdfElement 
      *  \param an unicode PdfString.
      *  \param pFont the font for which this string is converted
      *
-     *  \returns an encoded PdfString. The PdfString is treated as a series of bytes
-     *           and is allowed to have 0 bytes. The returned string must not be a unicode string.
+     *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes
+     *           and is allowed to have 0 bytes. The returned buffer must not be a unicode string.
      */
-    virtual PdfString ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const;
+    virtual PdfRefCountedBuffer ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const;
 
     /** 
      * \returns true if this encoding should be deleted automatically with the

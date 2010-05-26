@@ -137,7 +137,7 @@ PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString,
     return sStr;
 }
 
-PdfString PdfSimpleEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* ) const
+PdfRefCountedBuffer PdfSimpleEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* ) const
 {
     if( !m_pEncodingTable )
         const_cast<PdfSimpleEncoding*>(this)->InitEncodingTable();
@@ -146,7 +146,7 @@ PdfString PdfSimpleEncoding::ConvertToEncoding( const PdfString & rString, const
     pdf_long  lLen = sSrc.GetCharacterLength();
 
     if( !lLen )
-        return PdfString("");
+        return PdfRefCountedBuffer();
 
     char* pDest = static_cast<char*>(malloc( sizeof(char) * (lLen + 1) ));
     if( !pDest ) 
@@ -156,6 +156,7 @@ PdfString PdfSimpleEncoding::ConvertToEncoding( const PdfString & rString, const
         
     const pdf_utf16be* pszUtf16 = sSrc.GetUnicode();
     char*              pCur     = pDest;
+    long               lNewLen  = 0L;
 
     for( int i=0;i<lLen;i++ ) 
     {
@@ -165,17 +166,21 @@ PdfString PdfSimpleEncoding::ConvertToEncoding( const PdfString & rString, const
 #endif // PODOFO_IS_LITTLE_ENDIAN
 
         *pCur = m_pEncodingTable[val]; 
-
         if( *pCur ) // ignore 0 characters, as they cannot be converted to the current encoding
+        {
             ++pCur; 
+            ++lNewLen;
+        }
     }
     
     *pCur = '\0';
     
-    PdfString sDest( pDest ); // fake a PdfDocEncoding string .... would be more clear if we return a buffer
+
+    PdfRefCountedBuffer cDest( lNewLen );
+    memcpy( cDest.GetBuffer(), pDest, lNewLen );
     free( pDest );
 
-    return sDest;
+    return cDest;
 }
 
 // -----------------------------------------------------
@@ -1058,7 +1063,7 @@ PdfString PdfIdentityEncoding::ConvertToUnicode( const PdfString & rEncodedStrin
     return PdfString( out.str().c_str(), out.str().length() );;
 }
 
-PdfString PdfIdentityEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const
+PdfRefCountedBuffer PdfIdentityEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const
 {
     if( !pFont ) 
     {
@@ -1087,7 +1092,9 @@ PdfString PdfIdentityEncoding::ConvertToEncoding( const PdfString & rString, con
         ++pStr;
     }
 
-    return PdfString( out.str().c_str(), out.str().length() );;
+    PdfRefCountedBuffer buffer( out.str().length() );
+    memcpy( buffer.GetBuffer(), out.str().c_str(), out.str().length() );
+    return buffer;
 }
 
 pdf_utf16be PdfIdentityEncoding::GetUnicodeValue( long lCharCode ) const

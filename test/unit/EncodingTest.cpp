@@ -215,8 +215,9 @@ void EncodingTest::testDifferencesEncoding()
     PdfString unicodeStr = encoding.ConvertToUnicode( PdfString("BAAB"), NULL );
     CPPUNIT_ASSERT_EQUAL( PdfString("ABBA"), unicodeStr );
 
-    PdfString encodingStr = encoding.ConvertToEncoding( PdfString("ABBA"), NULL );
-    CPPUNIT_ASSERT_EQUAL( PdfString("BAAB"), encodingStr );
+    PdfRefCountedBuffer encodingStr = encoding.ConvertToEncoding( PdfString("ABBA"), NULL );
+    CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(4), encodingStr.GetSize() );
+    CPPUNIT_ASSERT_EQUAL( memcmp("BAAB", encodingStr.GetBuffer(), encodingStr.GetSize()), 0 );
 }
 
 void EncodingTest::testUnicodeNames()

@@ -2545,7 +2545,7 @@ PdfString PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedStr
     return ret;
 }
 
-PdfString PdfDifferenceEncoding::ConvertToEncoding( const PdfString & rString, 
+PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & rString, 
                                                     const PdfFont* pFont ) const
 {
     const PdfEncoding* pEncoding = GetBaseEncoding();

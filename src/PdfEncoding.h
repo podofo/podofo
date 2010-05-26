@@ -50,7 +50,7 @@ class PODOFO_API PdfEncoding {
      *  \param nFirstChar the first supported character code 
      *                    (either a byte value in the current encoding or a unicode value)
      *  \param nLastChar the last supported character code, must be larger than nFirstChar 
-     *                    (either a byte value in the current encoding or a unicode value)
+-     *                    (either a byte value in the current encoding or a unicode value)
      *
      */
     PdfEncoding( int nFirstChar, int nLastChar );
@@ -160,10 +160,10 @@ class PODOFO_API PdfEncoding {
      *  \param an unicode PdfString.
      *  \param pFont the font for which this string is converted
      *
-     *  \returns an encoded PdfString. The PdfString is treated as a series of bytes
-     *           and is allowed to have 0 bytes. The returned string must not be a unicode string.
+     *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes
+     *           and is allowed to have 0 bytes. The returned buffer must not be a unicode string.
      */
-    virtual PdfString ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const = 0;
+    virtual PdfRefCountedBuffer ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const = 0;
 
     /** 
      * \returns true if this encoding should be deleted automatically with the
@@ -332,10 +332,10 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
      *  \param an unicode PdfString.
      *  \param pFont the font for which this string is converted
      *
-     *  \returns an encoded PdfString. The PdfString is treated as a series of bytes
-     *           and is allowed to have 0 bytes. The returned string must not be a unicode string.
+     *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes
+     *           and is allowed to have 0 bytes. The returned buffer must not be a unicode string.
      */
-    virtual PdfString ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const;
+    virtual PdfRefCountedBuffer ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const;
 
     /** 
      * PdfSimpleEncoding subclasses are usuylla not auto-deleted, as
@@ -610,10 +610,10 @@ class PODOFO_API PdfIdentityEncoding : public PdfEncoding {
      *  \param an unicode PdfString.
      *  \param pFont the font for which this string is converted
      *
-     *  \returns an encoded PdfString. The PdfString is treated as a series of bytes
-     *           and is allowed to have 0 bytes. The returned string must not be a unicode string.
+     *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes
+     *           and is allowed to have 0 bytes. The returned buffer must not be a unicode string.
      */
-    virtual PdfString ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const;
+    virtual PdfRefCountedBuffer ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const;
 
     /** 
      * PdfIdentityEncoding is usually delete along with the font.
