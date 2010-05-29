@@ -23,6 +23,7 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfEncoding.h"
+#include "PdfFontMetricsFreetype.h"
 #include "PdfLocale.h"
 #include "PdfName.h"
 #include "PdfStream.h"
@@ -278,7 +279,8 @@ void PdfFontCID::CreateCMap( PdfObject* pUnicode ) const
 
     std::ostringstream oss;
 
-    FT_Face   face = m_pMetrics->GetFace();
+    PdfFontMetricsFreetype* pFreetype = dynamic_cast<PdfFontMetricsFreetype*>(m_pMetrics);
+    FT_Face   face = pFreetype->GetFace();
     FT_ULong  charcode;                                              
     FT_UInt   gindex;                                                
 

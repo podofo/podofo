@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2010 by Dominik Seichter                                *
+ *   Copyright (C) 2005 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,58 +18,63 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PDF_FONT_METRICS_BASE14_H_
-#define _PDF_FONT_METRICS_BASE14_H_
+#ifndef _PDF_FONT_METRICS_FREETYPE_H_
+#define _PDF_FONT_METRICS_FREETYPE_H_
 
 #include "PdfDefines.h"
-
+#include "Pdf3rdPtyForwardDecl.h"
 #include "PdfFontMetrics.h"
-#include "PdfRect.h"
-#include "PdfVariant.h"
-
-#include <string.h>
-
-/*
-  The following are the Base 14 fonts data copied from libharu.
-  - kaushik April 12 2010
-*/
+#include "PdfString.h"
 
 namespace PoDoFo {
 
-struct PODOFO_CharData;
-
 class PdfArray;
+class PdfObject;
+class PdfVariant;
 
- /*
-   This is the main class to handle the base14 metric data.
-   The member functions are accessed only through PDFFontmetrics.
-   For eg. pdffontmetrics->GetFontSize would check if it is a base14 font,
-   and call PdfFontMetricsBase14->GetFontSize.
-   
-   This is done to ensure all existing paths work as is.
-   The changes to Base 14 get added without affecting the existing workflow and fit in exactly.
-   
-   Ideally PdfFontMetrics should be abstract or the metric related interface should be seperated out
-   from the implementation details - such as whether the font metric data is read from a file/buffer/hard coded.
-   
-   Kaushik : April 12th 2010
-   
- */
-class PODOFO_API PdfFontMetricsBase14 : public PdfFontMetrics {
-public:
-	PdfFontMetricsBase14(const char      *mfont_name,
-                         const PODOFO_CharData  *mwidths_table,
-                         bool             mis_font_specific,
-                         pdf_int16            mascent,
-                         pdf_int16            mdescent,
-                         pdf_uint16           mx_height,
-                         pdf_uint16           mcap_height,
-                         const PdfRect &      mbbox);
+class PODOFO_API PdfFontMetricsFreetype : public PdfFontMetrics {
+ public:
+    /** Create a font metrics object for a given true type file
+     *  \param pLibrary handle to an initialized FreeType2 library handle
+     *  \param pszFilename filename of a truetype file
+     *  \param pszSubsetPrefix unique prefix for font subsets (see GetFontSubsetPrefix)
+     */
+    PdfFontMetricsFreetype( FT_Library* pLibrary, const char* pszFilename, 
+		    const char* pszSubsetPrefix = NULL );
 
-    ~PdfFontMetricsBase14();
+    /** Create a font metrics object for a given memory buffer
+     *  \param pLibrary handle to an initialized FreeType2 library handle
+     *  \param pBuffer block of memory representing the font data (PdfFontMetricsFreetype will copy the buffer)
+     *  \param nBufLen the length of the buffer
+     *  \param pszSubsetPrefix unique prefix for font subsets (see GetFontSubsetPrefix)
+     */
+    PdfFontMetricsFreetype( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen,
+		    const char* pszSubsetPrefix = NULL);
 
-	friend  PdfFontMetricsBase14*
-		PODOFO_Base14FontDef_FindBuiltinData  (const char  *font_name);
+    /** Create a font metrics object for a given true type file
+     *  \param pLibrary handle to an initialized FreeType2 library handle
+     *  \param rBuffer a buffer containing a font file
+     *  \param pszSubsetPrefix unique prefix for font subsets (see GetFontSubsetPrefix)
+     */
+    PdfFontMetricsFreetype( FT_Library* pLibrary, const PdfRefCountedBuffer & rBuffer,
+		    const char* pszSubsetPrefix = NULL);
+
+    /** Create a font metrics object for a given freetype font.
+     *  \param pLibrary handle to an initialized FreeType2 library handle
+     *  \param face a valid freetype font face
+     *  \param pszSubsetPrefix unique prefix for font subsets (see GetFontSubsetPrefix)
+     */
+    PdfFontMetricsFreetype( FT_Library* pLibrary, FT_Face face,
+		    const char* pszSubsetPrefix = NULL);
+
+    /** Create a font metrics object based on an existing PdfObject
+     *
+     *  \param pLibrary handle to an initialized FreeType2 library handle
+     *  \param pObject an existing font descriptor object
+     */
+    PdfFontMetricsFreetype( FT_Library* pLibrary, PdfObject* pDescriptor );
+
+    virtual ~PdfFontMetricsFreetype();
 
     /** Create a width array for this font which is a required part
      *  of every font dictionary.
@@ -91,7 +96,7 @@ public:
      *  \param array write the bounding box to this array.
      */
     virtual void GetBoundingBox( PdfArray & array ) const;
-
+    
     /** Retrieve the width of the given character in PDF units in the current font
      *  \param c character
      *  \returns the width in PDF units
@@ -143,7 +148,7 @@ public:
      *  Used to build the font dictionay
      *  \returns the weight of this font (500 is normal).
      */
-    virtual  unsigned int GetWeight() const;
+    virtual unsigned int GetWeight() const;
 
     /** Get the ascent of this font in PDF
      *  units for the current font size.
@@ -185,7 +190,7 @@ public:
      *  \returns the italic angle of this font.
      */
     virtual int GetItalicAngle() const;
- 
+
     /** Get the glyph id for a unicode character
      *  in the current font.
      *
@@ -213,28 +218,35 @@ public:
      */
     virtual pdf_long GetFontDataLen() const;
 
-    inline double GetCapHeight() const;
+    /** Get direct access to the internal FreeType handle
+     * 
+     *  \returns the internal freetype handle
+     */
+    inline FT_Face GetFace();
+ 
+ private:
+    
+    /** Initialize this object from an in memory buffer
+     *  Called internally by the constructors
+     */
+    void InitFromBuffer();
 
-private:
-    long GetGlyphIdUnicode( long lUnicode ) const;
+    /** Load the metric data from the FTFace data
+     *		Called internally by the constructors
+     */
+    void InitFromFace();
 
-private :
-//	const PODOFO_Base14FontDefDataRec& base14font_data;
-	const char      *font_name;
-    const PODOFO_CharData  *widths_table;
-    bool             is_font_specific;
-    pdf_int16            ascent;
-    pdf_int16            descent;
-    pdf_uint16           x_height;
-    pdf_uint16           cap_height;
-    PdfRect              bbox;
+    void InitFontSizes();
+ protected:
+    FT_Library*   m_pLibrary;
+    FT_Face       m_pFace;
 
-	bool          m_bSymbol;  ///< Internal member to singnal a symbol font
+ private:
+    bool          m_bSymbol;  ///< Internal member to singnal a symbol font
 
     unsigned int  m_nWeight;
     int           m_nItalicAngle;
 
-	
     double        m_dAscent;
     double        m_dPdfAscent;
     double        m_dDescent;
@@ -246,22 +258,20 @@ private :
     double        m_dStrikeOutThickness;
     double        m_dStrikeOutPosition;
 
-	int units_per_EM;
-
+    PdfRefCountedBuffer m_bufFontData;
+    std::vector<double> m_vecWidth;
 };
-
-
-PdfFontMetricsBase14*
-PODOFO_Base14FontDef_FindBuiltinData  (const char  *font_name);
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline double PdfFontMetricsBase14::GetCapHeight() const 
-{
-    return cap_height;
-}
+FT_Face PdfFontMetricsFreetype::GetFace() 
+{ 
+    return m_pFace; 
+} 
 
+ 
 };
 
-#endif // _PDF_FONT_METRICS_BASE14_H_
+#endif // _PDF_FONT_METRICS_FREETYPE_H_
+

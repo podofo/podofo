@@ -35,9 +35,12 @@ SET(PODOFO_SOURCES
     PdfFontCID.cpp
     PdfFontMetrics.cpp
     PdfFontMetricsBase14.cpp
+    PdfFontMetricsFreetype.cpp
+    PdfFontMetricsObject.cpp
     PdfFontFactory.cpp
     PdfFontSimple.cpp
     PdfFontType1.cpp
+    PdfFontType1Base14.cpp
     PdfFontTrueType.cpp
     PdfFontTTFSubset.cpp
     PdfFunction.cpp
@@ -126,10 +129,13 @@ SET(PODOFO_HEADERS
     PdfFontCID.h
     PdfFontMetrics.h
     PdfFontMetricsBase14.h
+    PdfFontMetricsFreetype.h
+    PdfFontMetricsObject.h
     PdfFontFactory.h
     PdfFontFactoryBase14Data.h
     PdfFontSimple.h
     PdfFontType1.h
+    PdfFontType1Base14.h
     PdfFontTrueType.h
     PdfFontTTFSubset.h
     PdfFunction.h    

@@ -31,7 +31,6 @@
 
 namespace PoDoFo {
 
-
 PdfFontSimple::PdfFontSimple( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent )
     : PdfFont( pMetrics, pEncoding, pParent )
 {

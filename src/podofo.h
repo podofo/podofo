@@ -61,6 +61,8 @@
 #include "PdfFontFactory.h"
 #include "PdfFontMetrics.h"
 #include "PdfFontMetricsBase14.h"
+#include "PdfFontMetricsFreetype.h"
+#include "PdfFontMetricsObject.h"
 #include "PdfFontTTFSubset.h"
 #include "PdfFunction.h"
 #include "PdfImage.h"

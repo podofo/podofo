@@ -18,58 +18,32 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PDF_FONT_METRICS_BASE14_H_
-#define _PDF_FONT_METRICS_BASE14_H_
+#ifndef _PDF_FONT_METRICS_OBJECT_H_
+#define _PDF_FONT_METRICS_OBJECT_H_
 
 #include "PdfDefines.h"
-
+#include "PdfArray.h"
 #include "PdfFontMetrics.h"
-#include "PdfRect.h"
-#include "PdfVariant.h"
-
-#include <string.h>
-
-/*
-  The following are the Base 14 fonts data copied from libharu.
-  - kaushik April 12 2010
-*/
+#include "PdfName.h"
+#include "PdfString.h"
 
 namespace PoDoFo {
 
-struct PODOFO_CharData;
-
 class PdfArray;
+class PdfObject;
+class PdfVariant;
 
- /*
-   This is the main class to handle the base14 metric data.
-   The member functions are accessed only through PDFFontmetrics.
-   For eg. pdffontmetrics->GetFontSize would check if it is a base14 font,
-   and call PdfFontMetricsBase14->GetFontSize.
-   
-   This is done to ensure all existing paths work as is.
-   The changes to Base 14 get added without affecting the existing workflow and fit in exactly.
-   
-   Ideally PdfFontMetrics should be abstract or the metric related interface should be seperated out
-   from the implementation details - such as whether the font metric data is read from a file/buffer/hard coded.
-   
-   Kaushik : April 12th 2010
-   
- */
-class PODOFO_API PdfFontMetricsBase14 : public PdfFontMetrics {
-public:
-	PdfFontMetricsBase14(const char      *mfont_name,
-                         const PODOFO_CharData  *mwidths_table,
-                         bool             mis_font_specific,
-                         pdf_int16            mascent,
-                         pdf_int16            mdescent,
-                         pdf_uint16           mx_height,
-                         pdf_uint16           mcap_height,
-                         const PdfRect &      mbbox);
+class PODOFO_API PdfFontMetricsObject : public PdfFontMetrics {
+ public:
 
-    ~PdfFontMetricsBase14();
+    /** Create a font metrics object based on an existing PdfObject
+     *
+     *  \param pObject an existing font descriptor object
+     *  \param pEncoding a PdfEncoding which will NOT be owned by PdfFontMetricsObject
+     */
+    PdfFontMetricsObject( PdfObject* pDescriptor, const PdfEncoding* const pEncoding );
 
-	friend  PdfFontMetricsBase14*
-		PODOFO_Base14FontDef_FindBuiltinData  (const char  *font_name);
+    virtual ~PdfFontMetricsObject();
 
     /** Create a width array for this font which is a required part
      *  of every font dictionary.
@@ -91,7 +65,7 @@ public:
      *  \param array write the bounding box to this array.
      */
     virtual void GetBoundingBox( PdfArray & array ) const;
-
+    
     /** Retrieve the width of the given character in PDF units in the current font
      *  \param c character
      *  \returns the width in PDF units
@@ -143,7 +117,7 @@ public:
      *  Used to build the font dictionay
      *  \returns the weight of this font (500 is normal).
      */
-    virtual  unsigned int GetWeight() const;
+    virtual unsigned int GetWeight() const;
 
     /** Get the ascent of this font in PDF
      *  units for the current font size.
@@ -185,7 +159,7 @@ public:
      *  \returns the italic angle of this font.
      */
     virtual int GetItalicAngle() const;
- 
+
     /** Get the glyph id for a unicode character
      *  in the current font.
      *
@@ -212,56 +186,32 @@ public:
      *  \returns a the length of the font data
      */
     virtual pdf_long GetFontDataLen() const;
+ 
+ private:
+    const PdfEncoding* const m_pEncoding;
 
-    inline double GetCapHeight() const;
-
-private:
-    long GetGlyphIdUnicode( long lUnicode ) const;
-
-private :
-//	const PODOFO_Base14FontDefDataRec& base14font_data;
-	const char      *font_name;
-    const PODOFO_CharData  *widths_table;
-    bool             is_font_specific;
-    pdf_int16            ascent;
-    pdf_int16            descent;
-    pdf_uint16           x_height;
-    pdf_uint16           cap_height;
-    PdfRect              bbox;
-
-	bool          m_bSymbol;  ///< Internal member to singnal a symbol font
-
+    PdfName       m_sName;
+    PdfArray      m_bbox;
+    PdfArray      m_width;
+    int           m_nFirst;
+    int           m_nLast;
     unsigned int  m_nWeight;
     int           m_nItalicAngle;
-
-	
-    double        m_dAscent;
     double        m_dPdfAscent;
-    double        m_dDescent;
     double        m_dPdfDescent;
-
+    double        m_dAscent;
+    double        m_dDescent;
     double        m_dLineSpacing;
+
     double        m_dUnderlineThickness;
     double        m_dUnderlinePosition;
     double        m_dStrikeOutThickness;
     double        m_dStrikeOutPosition;
 
-	int units_per_EM;
-
+    bool          m_bSymbol;  ///< Internal member to singnal a symbol font
+};
+ 
 };
 
+#endif // _PDF_FONT_METRICS_OBJECT_H_
 
-PdfFontMetricsBase14*
-PODOFO_Base14FontDef_FindBuiltinData  (const char  *font_name);
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline double PdfFontMetricsBase14::GetCapHeight() const 
-{
-    return cap_height;
-}
-
-};
-
-#endif // _PDF_FONT_METRICS_BASE14_H_

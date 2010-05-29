@@ -22,13 +22,21 @@
 #define _PDF_FONT_FACTORY_BASE14_DATA_H_
 
 #include "PdfDefines.h"
+#include "PdfFontMetricsBase14.h"
+#include "PdfRect.h"
 
 /*
-  The following are the Base 14 fonts data copied from libharu.
-  - kaushik April 12 2010
-*/
+ * The following are the Base 14 fonts data copied from libharu.
+ * - kaushik April 12 2010
+ */
 
 namespace PoDoFo {
+
+struct PODOFO_CharData {
+    pdf_int16     char_cd;
+    pdf_uint16   unicode;  
+    pdf_int16     width;
+} ;
 
 static const PODOFO_CharData CHAR_DATA_COURIER[316] = {
     {32, 0x0020, 600},
@@ -4444,7 +4452,7 @@ static   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
 								-157,
 								426,
 								562,
-								PODOFO_Rect(-23, -250, 715, 805)
+								PdfRect(-23, -250, 715, 805)
 								),
 		PdfFontMetricsBase14(
 								PODOFO_HPDF_FONT_COURIER_BOLD,
@@ -4454,7 +4462,7 @@ static   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
 								-157,
 								439,
 								562,
-								PODOFO_Rect(-113, -250, 749, 801)
+								PdfRect(-113, -250, 749, 801)
 								),
 								    PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_COURIER_OBLIQUE,
@@ -4464,7 +4472,7 @@ static   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
         -157,
         426,
         562,
-        PODOFO_Rect(-27, -250, 849, 805)
+        PdfRect(-27, -250, 849, 805)
     ),
 		PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_COURIER_BOLD_OBLIQUE,
@@ -4474,7 +4482,7 @@ static   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
         -157,
         439,
         562,
-        PODOFO_Rect(-57, -250, 869, 801)
+        PdfRect(-57, -250, 869, 801)
     ),
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_HELVETICA,
@@ -4484,7 +4492,7 @@ static   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
         -207,
         523,
         718,
-        PODOFO_Rect(-166, -225, 1000, 931)
+        PdfRect(-166, -225, 1000, 931)
     ),
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_HELVETICA_BOLD,
@@ -4494,7 +4502,7 @@ static   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
         -207,
         532,
         718,
-        PODOFO_Rect(-170, -228, 1003, 962)
+        PdfRect(-170, -228, 1003, 962)
     ),
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_HELVETICA_OBLIQUE,
@@ -4504,7 +4512,7 @@ static   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
         -207,
         532,
         718,
-        PODOFO_Rect(-170, -225, 1116, 931)
+        PdfRect(-170, -225, 1116, 931)
     ),
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_HELVETICA_BOLD_OBLIQUE,
@@ -4514,7 +4522,7 @@ static   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
         -207,
         532,
         718,
-        PODOFO_Rect(-174, -228, 1114, 962)
+        PdfRect(-174, -228, 1114, 962)
     ),
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_TIMES_ROMAN,
@@ -4524,7 +4532,7 @@ static   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
         -217,
         450,
         662,
-        PODOFO_Rect(-168, -218, 1000, 898)
+        PdfRect(-168, -218, 1000, 898)
     ),
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_TIMES_BOLD,
@@ -4534,7 +4542,7 @@ static   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
         -217,
         461,
         676,
-        PODOFO_Rect(-168, -218, 1000, 935)
+        PdfRect(-168, -218, 1000, 935)
     ),
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_TIMES_ITALIC,
@@ -4544,7 +4552,7 @@ static   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
         -217,
         441,
         653,
-        PODOFO_Rect(-169, -217, 1010, 883)
+        PdfRect(-169, -217, 1010, 883)
     ),
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_TIMES_BOLD_ITALIC,
@@ -4554,7 +4562,7 @@ static   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
         -217,
         462,
         669,
-        PODOFO_Rect(-200, -218, 996, 921)
+        PdfRect(-200, -218, 996, 921)
     ),
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_SYMBOL,
@@ -4570,7 +4578,7 @@ static   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
         0,
         0,
         */
-       PODOFO_Rect(-180, -293, 1090, 1010)
+       PdfRect(-180, -293, 1090, 1010)
     ),
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_ZAPF_DINGBATS,
@@ -4586,7 +4594,7 @@ static   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
         0,
         0,
         */
-        PODOFO_Rect(-1, -143, 981, 820)
+        PdfRect(-1, -143, 981, 820)
     ),
     PdfFontMetricsBase14(
         NULL,
@@ -4596,7 +4604,7 @@ static   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
         0,
         0,
         0,
-        PODOFO_Rect(0, 0, 0, 0)
+        PdfRect(0, 0, 0, 0)
     ),
 };
 

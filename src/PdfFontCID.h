@@ -26,6 +26,8 @@
 
 namespace PoDoFo {
 
+class PdfFontMetricsFreetype;
+
 /** A PdfFont that represents a CID font.
  */
 class PdfFontCID : public PdfFont {
@@ -90,9 +92,9 @@ class PdfFontCID : public PdfFont {
      */
     void EmbedFont( PdfObject* pDescriptor );
 
+ protected:
     // Peter Petrov 24 September 2008
     PdfObject* m_pDescriptor;
-
 };
 
 };

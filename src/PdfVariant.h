@@ -25,7 +25,6 @@
 
 #include "PdfDefines.h"
 #include "PdfRefCountedBuffer.h"
-
 #include "PdfString.h"
 
 namespace PoDoFo {

@@ -24,7 +24,8 @@
 #include "PdfDictionary.h"
 #include "PdfFont.h"
 #include "PdfFontFactory.h"
-#include "PdfFontMetrics.h"
+#include "PdfFontMetricsFreetype.h"
+#include "PdfFontMetricsBase14.h"
 #include "PdfFontTTFSubset.h"
 #include "PdfFontType1.h"
 #include "PdfInputDevice.h"
@@ -280,7 +281,7 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
 			}
 			else
 			{
-				pMetrics = new PdfFontMetrics( &m_ftLibrary, sPath.c_str() );
+				pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, sPath.c_str() );
 				pFont    = this->CreateFontObject( it.first, m_vecFonts, pMetrics, 
 						   bEmbedd, bBold, bItalic, pszFontName, pEncoding );
 			}
@@ -338,7 +339,7 @@ PdfFont* PdfFontCache::GetFont( FT_Face face, bool bEmbedd, const PdfEncoding * 
 			   TFontCacheElement( sName.c_str(), bBold, bItalic, pEncoding ) );
     if( it.first == it.second )
     {
-        pMetrics = new PdfFontMetrics( &m_ftLibrary, face );
+        pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, face );
         pFont    = this->CreateFontObject( it.first, m_vecFonts, pMetrics, 
 					   bEmbedd, bBold, bItalic, sName.c_str(), pEncoding );
     }
@@ -376,7 +377,7 @@ PdfFont* PdfFontCache::GetDuplicateFontType1( PdfFont * pFont, const char* pszSu
 
     // Create a copy of the font
 	PODOFO_ASSERT( pFont->GetFontMetrics()->GetFontType() == ePdfFontType_Type1Pfb );
-	PdfFontMetrics *pMetrics = new PdfFontMetrics( &m_ftLibrary, pFont->GetFontMetrics()->GetFilename() );
+	PdfFontMetrics* pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, pFont->GetFontMetrics()->GetFilename() );
 	PdfFont* newFont = new PdfFontType1( static_cast<PdfFontType1 *>(pFont), pMetrics, pszSuffix, m_pParent );
     if( newFont ) 
     {
@@ -411,56 +412,56 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
 			   TFontCacheElement( pszFontName, bBold, bItalic, pEncoding ) );
     if( it.first == it.second )
     {
-	std::string sPath; 
-	if( pszFileName == NULL ) 
-	{
-	    sPath = this->GetFontPath( pszFontName, bBold, bItalic );
-	    if( sPath.empty() )
-	    {
+        std::string sPath; 
+        if( pszFileName == NULL ) 
+        {
+            sPath = this->GetFontPath( pszFontName, bBold, bItalic );
+            if( sPath.empty() )
+            {
 #ifdef _WIN32
-		// TODO: GetWin32Font
-		PODOFO_ASSERT( 0 );
+                // TODO: GetWin32Font
+                PODOFO_ASSERT( 0 );
 #else	    
-		PdfError::LogMessage( eLogSeverity_Critical, "No path was found for the specified fontname: %s\n", pszFontName );
-		return NULL;
+                PdfError::LogMessage( eLogSeverity_Critical, "No path was found for the specified fontname: %s\n", pszFontName );
+                return NULL;
 #endif // _WIN32
-	    }
-	}
-	else
-	    sPath = pszFileName;
-	
-	pMetrics = new PdfFontMetrics( &m_ftLibrary, sPath.c_str() );
-	if( !(pMetrics && pMetrics->GetFontType() == ePdfFontType_TrueType ) )
-	{
-	    PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidFontFile, "Subsetting is only supported for TrueType fonts." );
-	}
-	
-	PdfInputDevice          input( sPath.c_str() );
-	PdfRefCountedBuffer     buffer;
-	PdfOutputDevice         output( &buffer );
-	
-	PdfFontTTFSubset        subset( &input, pMetrics, PdfFontTTFSubset::eFontFileType_TTF );
-	PdfEncoding::const_iterator itChar
-	    = pEncoding->begin();
-	while( itChar != pEncoding->end() )
-	{
-	    subset.AddCharacter( *itChar );
-	    ++itChar;
-	}
-	subset.BuildFont( &output );
-
-	// Delete metrics object, as it was only used so that PdfFontTTFSubset could
-	// match unicode character points to glyph indeces
-	delete pMetrics;
-	// TODO: Do not hardcode unique basenames...
-	pMetrics = new PdfFontMetrics( &m_ftLibrary, buffer, "ABCDEF+" );
-	pFont = this->CreateFontObject( it.first, m_vecFontSubsets, pMetrics, 
-					true, bBold, bItalic, pszFontName, pEncoding );
+            }
+        }
+        else
+            sPath = pszFileName;
+        
+        pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, sPath.c_str() );
+        if( !(pMetrics && pMetrics->GetFontType() == ePdfFontType_TrueType ) )
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidFontFile, "Subsetting is only supported for TrueType fonts." );
+        }
+        
+        PdfInputDevice          input( sPath.c_str() );
+        PdfRefCountedBuffer     buffer;
+        PdfOutputDevice         output( &buffer );
+        
+        PdfFontTTFSubset        subset( &input, pMetrics, PdfFontTTFSubset::eFontFileType_TTF );
+        PdfEncoding::const_iterator itChar
+            = pEncoding->begin();
+        while( itChar != pEncoding->end() )
+        {
+            subset.AddCharacter( *itChar );
+            ++itChar;
+        }
+        subset.BuildFont( &output );
+        
+        // Delete metrics object, as it was only used so that PdfFontTTFSubset could
+        // match unicode character points to glyph indeces
+        delete pMetrics;
+        // TODO: Do not hardcode unique basenames...
+        pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, buffer, "ABCDEF+" );
+        pFont = this->CreateFontObject( it.first, m_vecFontSubsets, pMetrics, 
+                                        true, bBold, bItalic, pszFontName, pEncoding );
     }
     else
-	pFont = (*it.first).m_pFont;
-
-
+        pFont = (*it.first).m_pFont;
+    
+    
     return pFont;
 }
 

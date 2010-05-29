@@ -27,7 +27,10 @@
 #include "PdfFont.h"
 #include "PdfFontCID.h"
 #include "PdfFontMetrics.h"
+#include "PdfFontMetricsBase14.h"
+#include "PdfFontMetricsObject.h"
 #include "PdfFontType1.h"
+#include "PdfFontType1Base14.h"
 #include "PdfFontTrueType.h"
 #include "PdfDefinesPrivate.h"
 #include "PdfFontFactoryBase14Data.h"
@@ -167,7 +170,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library* pLibrary, PdfObject* pObject )
         const PdfEncoding* const pPdfEncoding = 
             PdfEncodingFactory::CreateEncoding( pEncoding );
 
-        pMetrics    = new PdfFontMetrics( pLibrary, pDescriptor );
+        pMetrics    = new PdfFontMetricsObject( pDescriptor, pPdfEncoding );
         pFont       = new PdfFontCID( pMetrics, pPdfEncoding, pObject, false );
     }
     else if( rSubType == PdfName("Type1") ) 
@@ -181,7 +184,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library* pLibrary, PdfObject* pObject )
         const PdfEncoding* const pPdfEncoding = 
             PdfEncodingFactory::CreateEncoding( pEncoding );
 
-        pMetrics    = new PdfFontMetrics( pLibrary, pDescriptor );
+        pMetrics    = new PdfFontMetricsObject( pDescriptor, pPdfEncoding );
         pFont       = new PdfFontType1( pMetrics, pPdfEncoding, pObject );
     }
     else if( rSubType == PdfName("TrueType") ) 
@@ -192,7 +195,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library* pLibrary, PdfObject* pObject )
         const PdfEncoding* const pPdfEncoding = 
             PdfEncodingFactory::CreateEncoding( pEncoding );
 
-        pMetrics    = new PdfFontMetrics( pLibrary, pDescriptor );
+        pMetrics    = new PdfFontMetricsObject( pDescriptor, pPdfEncoding );
         pFont       = new PdfFontTrueType( pMetrics, pPdfEncoding, pObject );
     }
 
@@ -241,7 +244,7 @@ PODOFO_Base14FontDef_FindBuiltinData(const char  *font_name)
 
 PdfFont* CreateBase14Font(const char* pszFontName, const PdfEncoding * const pEncoding,PdfVecObjects *pvecObjects)
 {
-	return new PdfFontType1(PODOFO_Base14FontDef_FindBuiltinData(pszFontName) , pEncoding, pvecObjects);
+	return new PdfFontType1Base14(PODOFO_Base14FontDef_FindBuiltinData(pszFontName), pEncoding, pvecObjects);
 }
 
 };

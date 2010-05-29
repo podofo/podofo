@@ -45,7 +45,6 @@ PdfFontType1::PdfFontType1( PdfFontMetrics* pMetrics, const PdfEncoding* const p
 
 }
 
- 
 PdfFontType1::PdfFontType1( PdfFontType1* pFont, PdfFontMetrics* pMetrics, const char *pszSuffix, PdfVecObjects* pParent )
     : PdfFontSimple( pMetrics, pFont->m_pEncoding, pParent )
 {
@@ -215,8 +214,6 @@ pdf_long PdfFontType1::FindInBuffer( const char* pszNeedle, const char* pszHayst
 
     return -1;
 }
-
-
 
 };
 

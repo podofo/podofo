@@ -40,79 +40,18 @@ namespace PoDoFo {
 #if defined(__APPLE_CC__) && !defined(PODOFO_HAVE_FONTCONFIG)
 #include <Carbon/Carbon.h>
 #endif
+PdfFontMetrics::PdfFontMetrics( EPdfFontType eFontType, const char* pszFilename, const char* pszSubsetPrefix )
 
-PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pszFilename, 
-                                const char* pszSubsetPrefix )
-    : m_sFilename( pszFilename ), m_pLibrary( pLibrary ), m_pMetrics_base14(NULL),
-      m_bSymbol( false ), m_fFontSize( 0.0f ), 
-      m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
-      m_eFontType( ePdfFontType_Unknown ),
+    : m_sFilename( pszFilename ),
+      m_fFontSize( 0.0f ), 
+      m_fFontScale( 100.0f ), 
+      m_fFontCharSpace( 0.0f ),
+      m_eFontType( eFontType ),
       m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" )
 {
-    m_face                = NULL;
 
-    FT_Error err = FT_New_Face( *pLibrary, pszFilename, 0, &m_face );
-    if ( err )
-    {	
-        // throw an exception
-        PdfError::LogMessage( eLogSeverity_Critical, "FreeType returned the error %i when calling FT_New_Face for font %s.", 
-                              err, pszFilename );
-        PODOFO_RAISE_ERROR( ePdfError_FreeType );
-    }
-    else
-    {
-        SetFontTypeFromFilename( m_sFilename.c_str() );
-    }
-    
-    InitFromFace();
 }
-
-PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen,
-                                const char* pszSubsetPrefix )
-    : m_sFilename( "" ), m_pLibrary( pLibrary ), m_pMetrics_base14(NULL),
-      m_bSymbol( false ), m_fFontSize( 0.0f ),
-      m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
-      m_eFontType( ePdfFontType_Unknown ),
-      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" )
-{
-    m_face                = NULL;
-    m_bufFontData = PdfRefCountedBuffer( nBufLen ); // const_cast is ok, because we SetTakePossension to false!
-    memcpy( m_bufFontData.GetBuffer(), pBuffer, nBufLen );
-
-    InitFromBuffer();
-}
-
-PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, const PdfRefCountedBuffer & rBuffer,
-                                const char* pszSubsetPrefix ) 
-    : m_sFilename( "" ), m_pLibrary( pLibrary ), m_pMetrics_base14(NULL),
-      m_bSymbol( false ), m_bufFontData( rBuffer ), m_fFontSize( 0.0f ),
-      m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
-      m_eFontType( ePdfFontType_Unknown ),
-      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" )
-{
-    InitFromBuffer();
-}
-
-PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, FT_Face face, const char* pszSubsetPrefix  )
-    : m_face( face ), m_sFilename( "" ), m_pLibrary( pLibrary ), m_pMetrics_base14(NULL),
-      m_bSymbol( false ), m_fFontSize( 0.0f ), 
-      m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
-      m_eFontType( ePdfFontType_Unknown ),
-      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" )
-{
-    // asume true type
-    m_eFontType = ePdfFontType_TrueType;
-
-    if( m_face->stream ) 
-    {
-        // Try to initialize the pathname from m_face
-        // so that font embedding will work
-        m_sFilename = reinterpret_cast<char*>(m_face->stream->pathname.pointer);
-    }
-
-    InitFromFace();
-}
- 
+/* 
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, PdfObject* pDescriptor )
     : m_sFilename( "" ), m_pLibrary( pLibrary ), m_pMetrics_base14(NULL),
       m_bSymbol( false ), m_fFontSize( 0.0f ), 
@@ -133,185 +72,10 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, PdfObject* pDescriptor )
     m_dPdfAscent   = pDescriptor->GetDictionary().GetKeyAsReal( "Ascent", 0.0 );
     m_dPdfDescent  = pDescriptor->GetDictionary().GetKeyAsReal( "Descent", 0.0 );
 }
-
+*/
 
 PdfFontMetrics::~PdfFontMetrics()
 {
-    if ( m_face )
-        FT_Done_Face( m_face );
-}
-
-
-void PdfFontMetrics::InitFromBuffer() 
-{
-    FT_Error error = FT_New_Memory_Face( *m_pLibrary, reinterpret_cast<const unsigned char*>(m_bufFontData.GetBuffer()), 
-                                         static_cast<long>(m_bufFontData.GetSize()), 0, &m_face );
-    if( error ) 
-    {
-        PdfError::LogMessage( eLogSeverity_Critical, "FreeType return edthe error %i when calling FT_New_Face for a buffered font.", error );
-        PODOFO_RAISE_ERROR( ePdfError_FreeType );
-    }
-    else
-    {
-        // asume true type
-        m_eFontType = ePdfFontType_TrueType;
-    }
-
-    InitFromFace();
-}
-
-void PdfFontMetrics::InitFromFace()
-{
-
-    if ( m_eFontType == ePdfFontType_Unknown ) {
-        // We need to have identified the font type by this point
-        // Unsupported font.
-        PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFontFormat, m_sFilename.c_str() );
-    }
-
-    m_nWeight             = 500;
-    m_nItalicAngle        = 0;
-    m_dLineSpacing        = 0.0;
-    m_dUnderlineThickness = 0.0;
-    m_dUnderlinePosition  = 0.0;
-    m_dStrikeOutPosition  = 0.0;
-    m_dStrikeOutThickness = 0.0;
-    m_fFontSize           = 0.0f;
-
-    if ( m_face )
-    {	// better be, but just in case...
-        m_dPdfAscent  = m_face->ascender  * 1000.0 / m_face->units_per_EM;
-        m_dPdfDescent = m_face->descender * 1000.0 / m_face->units_per_EM;
-    }
-
-    // Try to get a unicode charmap
-    FT_Select_Charmap( m_face, FT_ENCODING_UNICODE );
-
-    // Try to determine if it is a symbol font
-    for( int c=0;c<m_face->num_charmaps;c++ ) 
-    {  
-        FT_CharMap charmap = m_face->charmaps[c]; 
-
-        if( charmap->encoding == FT_ENCODING_MS_SYMBOL ) 
-        {
-            m_bSymbol = true;
-            FT_Set_Charmap( m_face, charmap );
-            break;
-        }
-        // TODO: Also check for FT_ENCODING_ADOBE_CUSTOM and set it?
-    }
-    
-    // we cache the 256 first width entries as they 
-    // are most likely needed quite often
-    m_vecWidth.clear();
-    m_vecWidth.reserve( PODOFO_WIDTH_CACHE_SIZE );
-    for( unsigned int i=0;i<PODOFO_WIDTH_CACHE_SIZE;i++ )
-    {
-        if( i < PODOFO_FIRST_READABLE || !m_face )
-            m_vecWidth.push_back( 0.0  );
-        else
-        {
-            int index = i;
-            // Handle symbol fonts
-            if( m_bSymbol ) 
-            {
-                index = index | 0xf000;
-            }
-
-            if( !FT_Load_Char( m_face, index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP ) )  // | FT_LOAD_NO_RENDER
-            {
-                //m_vecWidth.push_back( 0.0  );
-                //continue;
-            }
-            m_vecWidth.push_back( static_cast<double>(m_face->glyph->metrics.horiAdvance) * 1000.0 / m_face->units_per_EM );
-        }
-    }
-}
-
-const char* PdfFontMetrics::GetFontname() const
-{
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->GetFontname();
-
-    const char*	s = FT_Get_Postscript_Name( m_face );
-    return s ? s : "";
-}
-
-const char* PdfFontMetrics::GetSubsetFontnamePrefix() const
-{
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->GetSubsetFontnamePrefix();
-
-    return m_sFontSubsetPrefix.c_str();
-}
-
-void PdfFontMetrics::GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast ) const
-{
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->GetWidthArray(var, nFirst, nLast );
-
-    unsigned int  i;
-    PdfArray  list;
-
-    if( !m_face ) 
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    for( i=nFirst;i<=nLast;i++ )
-    {
-        if( i < PODOFO_WIDTH_CACHE_SIZE )
-            list.push_back( PdfVariant( m_vecWidth[i] ) );
-        else
-        {
-            if( !FT_Load_Char( m_face, i, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP ) )  // | FT_LOAD_NO_RENDER
-            {
-                //PODOFO_RAISE_ERROR( ePdfError_FreeType );
-                list.push_back( PdfVariant( 0.0 ) );
-                continue;
-            }
-
-            list.push_back( PdfVariant( m_face->glyph->metrics.horiAdvance * 1000.0 / m_face->units_per_EM ) );
-        }
-    }
-
-    var = PdfVariant( list );
-}
-
-double PdfFontMetrics::GetGlyphWidth( int nGlyphId ) const
-{
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->GetGlyphWidth(nGlyphId);
-
-    if( !m_face ) 
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    if( !FT_Load_Glyph( m_face, nGlyphId, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP ) )  // | FT_LOAD_NO_RENDER
-    {
-        // zero return code is success!
-        return m_face->glyph->metrics.horiAdvance * 1000.0 / m_face->units_per_EM;
-    }
-
-    return 0.0;
-}
-
-void PdfFontMetrics::GetBoundingBox( PdfArray & array ) const
-{
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->GetBoundingBox(array);
-
-    if( !m_face ) 
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    array.Clear();
-    array.push_back( PdfVariant( m_face->bbox.xMin * 1000.0 / m_face->units_per_EM ) );
-    array.push_back( PdfVariant( m_face->bbox.yMin  * 1000.0 / m_face->units_per_EM ) );
-    array.push_back( PdfVariant( m_face->bbox.xMax  * 1000.0 / m_face->units_per_EM ) );
-    array.push_back( PdfVariant( m_face->bbox.yMax  * 1000.0 / m_face->units_per_EM ) );
 }
 
 #if defined(__APPLE_CC__) && !defined(PODOFO_HAVE_FONTCONFIG)
@@ -1149,56 +913,8 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
 
 #endif // apple 
 
-double PdfFontMetrics::CharWidth( unsigned char c ) const
-{
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->CharWidth(c);
-
-    double dWidth = m_vecWidth[static_cast<unsigned int>(c)];
-
-    return dWidth * static_cast<double>(m_fFontSize * m_fFontScale / 100.0) / 1000.0 +
-		    static_cast<double>( m_fFontSize * m_fFontScale / 100.0 * m_fFontCharSpace / 100.0);
-}
-
-double PdfFontMetrics::UnicodeCharWidth( unsigned short c ) const
-{
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->UnicodeCharWidth(c);
-
-    FT_Error ftErr;
-    double   dWidth = 0.0;
-
-
-    if( static_cast<int>(c) < PODOFO_WIDTH_CACHE_SIZE ) 
-    {
-        dWidth = m_vecWidth[static_cast<unsigned int>(c)];
-    }
-    else
-    {
-        ftErr = FT_Load_Char( m_face, static_cast<FT_UInt>(c), FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP );
-        if( ftErr )
-            return dWidth;
-
-        dWidth = m_face->glyph->metrics.horiAdvance * 1000.0 / m_face->units_per_EM;
-    }
-
-    return dWidth * static_cast<double>(m_fFontSize * m_fFontScale / 100.0) / 1000.0 +
-		    static_cast<double>( m_fFontSize * m_fFontScale / 100.0 * m_fFontCharSpace / 100.0);
-}
-
-unsigned long PdfFontMetrics::CharWidthMM( unsigned char c ) const
-{
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->CharWidthMM(c);
-
-    return static_cast<unsigned long>(this->CharWidth( c ) / PODOFO_CONVERSION_CONSTANT);
-}
-
 double PdfFontMetrics::StringWidth( const char* pszText, pdf_long nLength ) const
 {
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->StringWidth(pszText, nLength );
-
     double dWidth = 0.0;
 
     if( !pszText )
@@ -1219,9 +935,6 @@ double PdfFontMetrics::StringWidth( const char* pszText, pdf_long nLength ) cons
 
 double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, unsigned int nLength ) const
 {
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->StringWidth( pszText, nLength ) ;
-
     double dWidth = 0.0;
 
     if( !pszText )
@@ -1279,115 +992,15 @@ double PdfFontMetrics::StringWidth( const wchar_t* pszText, unsigned int nLength
 #endif
 #endif
 
-unsigned long PdfFontMetrics::StringWidthMM( const char* pszText, unsigned int nLength ) const
+EPdfFontType PdfFontMetrics::FontTypeFromFilename( const char* pszFilename )
 {
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->StringWidthMM( pszText, nLength ) ;
+    EPdfFontType eFontType = PdfFontFactory::GetFontType( pszFilename );
 
-    return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / PODOFO_CONVERSION_CONSTANT);
+    if( eFontType == ePdfFontType_Unknown )
+        PdfError::DebugMessage( "Warning: Unrecognized FontFormat: %s\n", pszFilename );
+
+    return eFontType;
 }
 
-unsigned long PdfFontMetrics::StringWidthMM( const pdf_utf16be* pszText, unsigned int nLength ) const
-{
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->StringWidthMM( pszText, nLength );
-
-    return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / PODOFO_CONVERSION_CONSTANT);
-}
-
-#ifndef _WCHAR_T_DEFINED
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
-#else
-unsigned long PdfFontMetrics::StringWidthMM( const wchar_t* pszText, unsigned int nLength ) const
-{
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->StringWidthMM( pszText, nLength ) ;
-
-    return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / PODOFO_CONVERSION_CONSTANT);
-}
-#endif
-#endif
-
-void PdfFontMetrics::SetFontSize( float fSize )
-{
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->SetFontSize( fSize );
-
-    FT_Error ftErr;
-
-
-    if( !m_face )
-    {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "Cannot set font size on invalid font!" );
-    }
- 
-    ftErr = FT_Set_Char_Size( m_face, static_cast<int>(fSize*64.0), 0, 72, 72 );
-
-    // calculate the line spacing now, as it changes only with the font size
-    m_dLineSpacing        = (static_cast<double>(m_face->ascender + abs(m_face->descender)) * fSize / m_face->units_per_EM);
-
-    m_dUnderlineThickness = (static_cast<double>(m_face->underline_thickness) * fSize / m_face->units_per_EM);
-    m_dUnderlinePosition  = (static_cast<double>(m_face->underline_position)  * fSize  / m_face->units_per_EM);
-	
-    m_dAscent  = static_cast<double>(m_face->ascender)  * fSize / m_face->units_per_EM;
-    m_dDescent = static_cast<double>(m_face->descender) * fSize / m_face->units_per_EM;
-
-    // Set default values for strikeout, in case the font has no direct values
-    m_dStrikeOutPosition  = m_dAscent / 2.0; 
-    m_dStrikeOutThickness = m_dUnderlineThickness;
-
-    TT_OS2* pOs2Table = static_cast<TT_OS2*>(FT_Get_Sfnt_Table( m_face, ft_sfnt_os2 ));
-    if( pOs2Table ) 
-    {
-        m_dStrikeOutPosition  = static_cast<double>(pOs2Table->yStrikeoutPosition)  * fSize / m_face->units_per_EM;
-        m_dStrikeOutThickness = static_cast<double>(pOs2Table->yStrikeoutSize)  * fSize / m_face->units_per_EM;
-    }
-
-    m_fFontSize = fSize;
-}
-
-void PdfFontMetrics::SetFontScale( float fScale )
-{
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->SetFontScale( fScale );
-
-    m_fFontScale = fScale;
-}
-
-void PdfFontMetrics::SetFontCharSpace( float fCharSpace )
-{
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->SetFontCharSpace( fCharSpace );
-
-    m_fFontCharSpace = fCharSpace;
-}
-
-void PdfFontMetrics::SetFontTypeFromFilename( const char* pszFilename )
-{
-	if (m_pMetrics_base14)
-		return 	;  
-
-    m_eFontType = PdfFontFactory::GetFontType( pszFilename );
-
-    if( m_eFontType == ePdfFontType_Unknown )
-        PdfError::DebugMessage( "Warning: Unrecognized FontFormat: %s\n", m_sFilename.c_str() );
-}
-
-long PdfFontMetrics::GetGlyphId( long lUnicode ) const
-{
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->GetGlyphId(lUnicode);
-
-    long lGlyph = 0L;
-
-    // Handle symbol fonts!
-    if( m_bSymbol ) 
-    {
-        lUnicode = lUnicode | 0xf000;
-    }
-    lGlyph = FT_Get_Char_Index( m_face, lUnicode );
-
-    return lGlyph;
-}
 
 };

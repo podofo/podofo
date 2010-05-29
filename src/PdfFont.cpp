@@ -58,43 +58,6 @@ PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
     m_Identifier = PdfName( out.str().c_str() );
 }
 
-/*
-Constructor for a base14font. All base14 fonts must be constructed via this.
-It generates the object number for the font dictionary which will be wrriten in to the pdf.
-- Kaushik April 12th 2010
-*/
-PdfFont::PdfFont( PdfFontMetricsBase14* pMetrics_base14, const PdfEncoding* const pEncoding, 
-                  PdfVecObjects* pParent )
-    :  PdfElement( "Font", pParent ), 
-       m_pEncoding( pEncoding ), m_bBold( false ), m_bItalic( false ), m_isBase14(true)
-{
-	ostringstream out;
-    PdfLocaleImbue(out);
-
-	out << "Ft" << m_pObject->Reference().ObjectNumber();
-    m_Identifier = PdfName( out.str().c_str() );
-
-#ifdef MYASSERT
-	assert(pMetrics_base14 != NULL);
-#endif
-
-	if (!pMetrics_base14) PODOFO_RAISE_ERROR(ePdfError_InvalidHandle); // base14changes throw
-	m_pMetrics = new PdfFontMetrics(pMetrics_base14);
-
-	m_pMetrics->SetFontSize( 12.0 );
-    m_pMetrics->SetFontScale( 100.0 );
-    m_pMetrics->SetFontCharSpace( 0.0 );
-
-    // Peter Petrov 24 Spetember 2008
-    m_bWasEmbedded = false;
-    
-    m_bUnderlined = false;
-    m_bStrikedOut = false;
-
-	std::string sTmp = m_pMetrics->GetFontname();
-	m_BaseFont = PdfName( sTmp.c_str() );
-}
-
 PdfFont::~PdfFont()
 {
     delete m_pMetrics;
@@ -182,39 +145,6 @@ void PdfFont::EmbedFont()
         // Now we set the flag
         m_bWasEmbedded = true;
     }
-}
-/*
-kausik : April 12th 2010
-This is the font dictionary. It gets added to the page resources dictionary of the pdf.
-*/
-void PdfFont::InitBase14Font( )
-{
- 		PdfVariant    var;
-
-		m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Type1"));
-		m_pObject->GetDictionary().AddKey("BaseFont", this->GetBaseFont() );
-		 
-		m_pEncoding->AddToDictionary( m_pObject->GetDictionary() ); // Add encoding key
-//		pDescriptor->GetDictionary().AddKey( "FontName", this->GetBaseFont() );
-		//pDescriptor->GetDictionary().AddKey( "FontWeight", (long)m_pMetrics->Weight() );
-//		pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( static_cast<pdf_int64>(32LL) ) ); // TODO: 0 ????
-//		pDescriptor->GetDictionary().AddKey( "FontBBox", array );
-	  
-
-	 
-		
-//			pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<pdf_int64>(m_pMetrics->GetItalicAngle()) ) );
-//			pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetPdfAscent() );
-//			pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetPdfDescent() );
-//			pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetPdfAscent() ); // m_pMetrics->CapHeight() );
-		 
-
-//		pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( static_cast<pdf_int64>(1LL) ) );               // m_pMetrics->StemV() );
-
-		// Peter Petrov 24 September 2008
-//		m_pDescriptor = pDescriptor;
-
-		 
 }
 
 };

@@ -29,7 +29,6 @@
 
 namespace PoDoFo {
 
-class PdfFontMetricsBase14;
 class PdfObject;
 class PdfPage;
 class PdfWriter;
@@ -74,9 +73,6 @@ class PODOFO_API PdfFont : public PdfElement {
      *  \param pObject an existing PdfObject
      */
     PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject );
-
-	PdfFont( PdfFontMetricsBase14* pMetrics_base14, const PdfEncoding* const pEncoding, 
-					PdfVecObjects* pParent );
 
     virtual ~PdfFont();
 
