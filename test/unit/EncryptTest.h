@@ -42,6 +42,7 @@ class EncryptTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testAES );
   CPPUNIT_TEST( testLoadEncrypedFilePdfParser );
   CPPUNIT_TEST( testLoadEncrypedFilePdfMemDocument );
+  CPPUNIT_TEST( testEnableAlgorithms );
   CPPUNIT_TEST_SUITE_END();
 
  public:
@@ -60,6 +61,8 @@ class EncryptTest : public CppUnit::TestFixture
   void testLoadEncrypedFilePdfParser();
   void testLoadEncrypedFilePdfMemDocument();
 
+  void testEnableAlgorithms();
+    
  private:
   void TestAuthenticate( PoDoFo::PdfEncrypt* pEncrypt, int keyLength, int rValue );
   void TestEncrypt( PoDoFo::PdfEncrypt* pEncrypt );

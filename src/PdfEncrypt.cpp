@@ -36,6 +36,11 @@
 
 namespace PoDoFo {
 
+int PdfEncrypt::s_nEnabledEncryptionAlgorithms = 
+    ePdfEncryptAlgorithm_RC4V1 |
+    ePdfEncryptAlgorithm_RC4V2 |
+    ePdfEncryptAlgorithm_AESV2;
+
 
 /** A class that can encrypt/decrpyt streamed data block wise
  *  This is used in the input and output stream encryption implementation.
@@ -495,8 +500,6 @@ PdfEncrypt::CreatePdfEncrypt( const std::string & userPassword,
 PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
 {
     PdfEncrypt* pdfEncrypt = NULL;
-    printf("pObject=%p\n", pObject);
-    printf("pObject=%i 0 R\n", pObject->Reference().ObjectNumber());
     if( !pObject->GetDictionary().HasKey( PdfName("Filter") ) ||
         pObject->GetDictionary().GetKey( PdfName("Filter" ) )->GetName() != PdfName("Standard") )
     {
@@ -539,16 +542,19 @@ PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
         throw e;
     }
 
-    if( lV == 1L && rValue == 2L ) 
+    if( lV == 1L && rValue == 2L
+        && PdfEncrypt::IsEncryptionEnabled( ePdfEncryptAlgorithm_RC4V1 ) ) 
     {
         pdfEncrypt = new PdfEncryptRC4(oValue, uValue, pValue, rValue, ePdfEncryptAlgorithm_RC4V1, 40);
     }
-    else if( lV == 2L && rValue == 3L ) 
+    else if( lV == 2L && rValue == 3L
+             && PdfEncrypt::IsEncryptionEnabled( ePdfEncryptAlgorithm_RC4V2 ) ) 
     {
 			// [Alexey] - lLength is long long. Please make changes in encryption algorithms
         pdfEncrypt = new PdfEncryptRC4(oValue, uValue, pValue, rValue, ePdfEncryptAlgorithm_RC4V2, static_cast<int>(lLength));
     }
-    else if( lV == 4L && rValue == 4L ) 
+    else if( lV == 4L && rValue == 4L 
+         && PdfEncrypt::IsEncryptionEnabled( ePdfEncryptAlgorithm_AESV2 ) ) 
     {
         pdfEncrypt = new PdfEncryptAES(oValue, uValue, pValue);      
     }
@@ -583,6 +589,21 @@ PdfEncrypt::PdfEncrypt( const PdfEncrypt & rhs )
 
 PdfEncrypt::~PdfEncrypt()
 {
+}
+
+int PdfEncrypt::GetEnabledEncryptionAlgorithms()
+{
+    return PdfEncrypt::s_nEnabledEncryptionAlgorithms;
+}
+
+void PdfEncrypt::SetEnabledEncryptionAlgorithms(int nEncryptionAlgorithms)
+{
+    PdfEncrypt::s_nEnabledEncryptionAlgorithms = nEncryptionAlgorithms;
+}
+
+bool PdfEncrypt::IsEncryptionEnabled(EPdfEncryptAlgorithm eAlgorithm)
+{
+    return (PdfEncrypt::s_nEnabledEncryptionAlgorithms & eAlgorithm);
 }
 
 const PdfEncrypt & PdfEncrypt::operator=( const PdfEncrypt & rhs )

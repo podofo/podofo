@@ -90,9 +90,9 @@ public:
     } EPdfPermissions;
 
     typedef enum {
-        ePdfEncryptAlgorithm_RC4V1, ///< RC4 Version 1 encryption using a 40bit key
-        ePdfEncryptAlgorithm_RC4V2, ///< RC4 Version 2 encryption using a key with 40-128bit
-        ePdfEncryptAlgorithm_AESV2  ///< AES encryption with an 128 bit key (PDF1.6)
+        ePdfEncryptAlgorithm_RC4V1 = 1, ///< RC4 Version 1 encryption using a 40bit key
+        ePdfEncryptAlgorithm_RC4V2 = 2, ///< RC4 Version 2 encryption using a key with 40-128bit
+        ePdfEncryptAlgorithm_AESV2 = 4 ///< AES encryption with an 128 bit key (PDF1.6)
     } EPdfEncryptAlgorithm;
 
     /** Create a PdfEncrypt object which can be used to encrypt a PDF file.
@@ -126,8 +126,12 @@ public:
      *
      *  This is required for encrypting a PDF file, but handled internally in PdfParser
      *  for you.
+     *  
+     *  Will use only encrypting algorithms that are enabled.
      *
      *  \param pObject a PDF encryption dictionary
+     *
+     *  \see GetEnabledEncryptionAlgorithms
      */ 
     static PdfEncrypt * CreatePdfEncrypt( const PdfObject* pObject );
 
@@ -136,6 +140,41 @@ public:
      *  \param rhs another PdfEncrypt object which is copied
      */
     static PdfEncrypt * CreatePdfEncrypt( const PdfEncrypt & rhs );
+
+    /**
+     * Retrieve the list of encryption algorithms that are used
+     * when loading a PDF document.
+     *
+     * By default all alogrithms are enabled.
+     *
+     * \see IsEncryptionEnabled
+     * \see SetEnabledEncryptionAlgorithms
+     *
+     * \return an or'ed together list of all enabled encryption algorithms
+     */
+    static int GetEnabledEncryptionAlgorithms();
+
+    /**
+     * Specify the list of encryption algorithms that should be used by PoDoFo
+     * when loading a PDF document.
+     *
+     * This can be used to disable for example AES encryption/decryption
+     * which is unstable in certain cases.
+     *
+     * \see GetEnabledEncryptionAlgorithms
+     * \see IsEncryptionEnabled
+     */
+    static void SetEnabledEncryptionAlgorithms(int nEncryptionAlgorithms);
+
+    /**
+     * Test if a certain encryption algorithm is enabled for loading PDF documents.
+     *
+     * \returns ture if the encryption algorithm is enabled
+     * \see GetEnabledEncryptionAlgorithms
+     * \see SetEnabledEncryptionAlgorithms
+     */
+    static bool IsEncryptionEnabled(EPdfEncryptAlgorithm eAlgorithm);
+
 
     /** Destruct the PdfEncrypt object
      */
@@ -371,6 +410,8 @@ protected:
   unsigned char  m_oValue[32];         ///< O entry in pdf document
 
 private:    
+  static int     s_nEnabledEncryptionAlgorithms; ///< Or'ed int containing the enabled encryption algorithms
+
   unsigned char  m_encryptionKey[16];  ///< Encryption key
  
   PdfReference   m_curReference;       ///< Reference of the current PdfObject

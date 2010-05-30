@@ -348,6 +348,50 @@ void EncryptTest::CreatedEncrypedPdf( const char* pszFilename )
     printf( "Wrote: %s\n", pszFilename );
 }
 
+void EncryptTest::testEnableAlgorithms()
+{
+    int nDefault = PdfEncrypt::GetEnabledEncryptionAlgorithms();
+
+    // By default every algorithms should be enabled
+    CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 ) );
+    CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_RC4V2 ) );
+    CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_AESV2 ) );
+
+    CPPUNIT_ASSERT_EQUAL( PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 |
+                          PdfEncrypt::ePdfEncryptAlgorithm_RC4V2 |
+                          PdfEncrypt::ePdfEncryptAlgorithm_AESV2,
+                          PdfEncrypt::GetEnabledEncryptionAlgorithms() );
+    // Disable AES
+    PdfEncrypt::SetEnabledEncryptionAlgorithms( PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 |
+                                                PdfEncrypt::ePdfEncryptAlgorithm_RC4V2 );
+
+    CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 ) );
+    CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_RC4V2 ) );
+    CPPUNIT_ASSERT( !PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_AESV2 ) );
+
+    CPPUNIT_ASSERT_EQUAL( PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 |
+                          PdfEncrypt::ePdfEncryptAlgorithm_RC4V2,
+                          PdfEncrypt::GetEnabledEncryptionAlgorithms() );
+
+
+    PdfObject object;
+    object.GetDictionary().AddKey(PdfName("Filter"), PdfName("Standard"));
+    object.GetDictionary().AddKey(PdfName("V"), 4L);
+    object.GetDictionary().AddKey(PdfName("R"), 4L);
+    object.GetDictionary().AddKey(PdfName("P"), 1L);
+    object.GetDictionary().AddKey(PdfName("O"), PdfString(""));
+    object.GetDictionary().AddKey(PdfName("U"), PdfString(""));
+
+    try {
+        PdfEncrypt* pEncrypt = PdfEncrypt::CreatePdfEncrypt( &object );
+        CPPUNIT_ASSERT( false );
+    } catch( PdfError & rError ) {
+        CPPUNIT_ASSERT_EQUAL( rError.GetError(), ePdfError_UnsupportedFilter );
+    }
+
+    // Restore default
+    PdfEncrypt::SetEnabledEncryptionAlgorithms( nDefault );
+}
 
 
                                   /*
