@@ -66,7 +66,7 @@ PdfXObject::PdfXObject( const PdfMemDocument & rDoc, int nPage, PdfDocument* pPa
 
     PdfVariant    var;
     m_rRect.ToVariant( var );
-    m_pObject->GetDictionary().AddKey( "BBox", var );
+    this->GetObject()->GetDictionary().AddKey( "BBox", var );
 
     PdfArray      matrix;
     matrix.push_back( PdfVariant( static_cast<pdf_int64>(1LL) ) );
@@ -81,7 +81,7 @@ PdfXObject::PdfXObject( const PdfMemDocument & rDoc, int nPage, PdfDocument* pPa
 	    matrix.push_back( PdfVariant( m_rRect.GetBottom() * (-1.0) ) );
 	else
 	    matrix.push_back( PdfVariant( static_cast<pdf_int64>(0LL) ) );
-    m_pObject->GetDictionary().AddKey( "Matrix", matrix );
+    this->GetObject()->GetDictionary().AddKey( "Matrix", matrix );
 }
 
 PdfXObject::PdfXObject( PdfObject* pObject )
@@ -91,13 +91,13 @@ PdfXObject::PdfXObject( PdfObject* pObject )
     PdfLocaleImbue(out);
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
-    out << "XOb" << m_pObject->Reference().ObjectNumber();
+    out << "XOb" << this->GetObject()->Reference().ObjectNumber();
 
     
     m_pResources = pObject->GetIndirectKey( "Resources" );
     m_Identifier = PdfName( out.str().c_str() );
-    m_rRect      = PdfRect( m_pObject->GetIndirectKey( "BBox" )->GetArray() );
-    m_Reference  = m_pObject->Reference();
+    m_rRect      = PdfRect( this->GetObject()->GetIndirectKey( "BBox" )->GetArray() );
+    m_Reference  = this->GetObject()->Reference();
 }
 
 void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
@@ -119,25 +119,25 @@ void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
     }
 
     rRect.ToVariant( var );
-    m_pObject->GetDictionary().AddKey( "BBox", var );
-    m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Form") );
-    m_pObject->GetDictionary().AddKey( "FormType", PdfVariant( static_cast<pdf_int64>(1LL) ) ); // only 1 is only defined in the specification.
-    m_pObject->GetDictionary().AddKey( "Matrix", s_matrix );
+    this->GetObject()->GetDictionary().AddKey( "BBox", var );
+    this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Form") );
+    this->GetObject()->GetDictionary().AddKey( "FormType", PdfVariant( static_cast<pdf_int64>(1LL) ) ); // only 1 is only defined in the specification.
+    this->GetObject()->GetDictionary().AddKey( "Matrix", s_matrix );
 
     // The PDF specification suggests that we send all available PDF Procedure sets
-    m_pObject->GetDictionary().AddKey( "Resources", PdfObject( PdfDictionary() ) );
-    m_pResources = m_pObject->GetDictionary().GetKey( "Resources" );
+    this->GetObject()->GetDictionary().AddKey( "Resources", PdfObject( PdfDictionary() ) );
+    m_pResources = this->GetObject()->GetDictionary().GetKey( "Resources" );
     m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::GetProcSet() );
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
 	if ( pszPrefix == NULL )
-	    out << "XOb" << m_pObject->Reference().ObjectNumber();
+	    out << "XOb" << this->GetObject()->Reference().ObjectNumber();
 	else
-	    out << pszPrefix << m_pObject->Reference().ObjectNumber();
+	    out << pszPrefix << this->GetObject()->Reference().ObjectNumber();
 
     m_Identifier = PdfName( out.str().c_str() );
-    m_Reference  = m_pObject->Reference();
+    m_Reference  = this->GetObject()->Reference();
 }
 
 PdfXObject::PdfXObject( const char* pszSubType, PdfDocument* pParent, const char* pszPrefix )
@@ -148,14 +148,14 @@ PdfXObject::PdfXObject( const char* pszSubType, PdfDocument* pParent, const char
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
 	if ( pszPrefix == NULL )
-	    out << "XOb" << m_pObject->Reference().ObjectNumber();
+	    out << "XOb" << this->GetObject()->Reference().ObjectNumber();
 	else
-	    out << pszPrefix << m_pObject->Reference().ObjectNumber();
+	    out << pszPrefix << this->GetObject()->Reference().ObjectNumber();
 
     m_Identifier = PdfName( out.str().c_str() );
-    m_Reference  = m_pObject->Reference();
+    m_Reference  = this->GetObject()->Reference();
 
-    m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName( pszSubType ) );
+    this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName( pszSubType ) );
 }
 
 PdfXObject::PdfXObject( const char* pszSubType, PdfVecObjects* pParent, const char* pszPrefix )
@@ -166,14 +166,14 @@ PdfXObject::PdfXObject( const char* pszSubType, PdfVecObjects* pParent, const ch
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
 	if ( pszPrefix == NULL )
-	    out << "XOb" << m_pObject->Reference().ObjectNumber();
+	    out << "XOb" << this->GetObject()->Reference().ObjectNumber();
 	else
-	    out << pszPrefix << m_pObject->Reference().ObjectNumber();
+	    out << pszPrefix << this->GetObject()->Reference().ObjectNumber();
 
     m_Identifier = PdfName( out.str().c_str() );
-    m_Reference  = m_pObject->Reference();
+    m_Reference  = this->GetObject()->Reference();
 
-    m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName( pszSubType ) );
+    this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName( pszSubType ) );
 }
 
 PdfXObject::PdfXObject( const char* pszSubType, PdfObject* pObject )
@@ -182,17 +182,17 @@ PdfXObject::PdfXObject( const char* pszSubType, PdfObject* pObject )
     ostringstream out;
     PdfLocaleImbue(out);
 
-    if( m_pObject->GetDictionary().GetKeyAsName( PdfName::KeySubtype ) != pszSubType ) 
+    if( this->GetObject()->GetDictionary().GetKeyAsName( PdfName::KeySubtype ) != pszSubType ) 
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
-    out << "XOb" << m_pObject->Reference().ObjectNumber();
+    out << "XOb" << this->GetObject()->Reference().ObjectNumber();
 
     m_Identifier = PdfName( out.str().c_str() );
-    m_Reference  = m_pObject->Reference();
+    m_Reference  = this->GetObject()->Reference();
 }
 
 };

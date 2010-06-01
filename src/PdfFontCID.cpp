@@ -65,22 +65,22 @@ void PdfFontCID::Init( bool bEmbed )
     PdfArray   array;
 
     // The descendant font is a CIDFont:
-    pDescendantFonts = m_pObject->GetOwner()->CreateObject("Font");
-    pCIDSystemInfo   = m_pObject->GetOwner()->CreateObject();
-    pDescriptor      = m_pObject->GetOwner()->CreateObject("FontDescriptor");
-    pUnicode         = m_pObject->GetOwner()->CreateObject(); // The ToUnicode CMap
+    pDescendantFonts = this->GetObject()->GetOwner()->CreateObject("Font");
+    pCIDSystemInfo   = this->GetObject()->GetOwner()->CreateObject();
+    pDescriptor      = this->GetObject()->GetOwner()->CreateObject("FontDescriptor");
+    pUnicode         = this->GetObject()->GetOwner()->CreateObject(); // The ToUnicode CMap
 
     // Now setting each of the entries of the font
-    m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Type0") );
-    m_pObject->GetDictionary().AddKey( "BaseFont", this->GetBaseFont() );
-    m_pObject->GetDictionary().AddKey( "ToUnicode", pUnicode->Reference() );
+    this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Type0") );
+    this->GetObject()->GetDictionary().AddKey( "BaseFont", this->GetBaseFont() );
+    this->GetObject()->GetDictionary().AddKey( "ToUnicode", pUnicode->Reference() );
 
     // The encoding is here usually a (Predefined) CMap from PdfIdentityEncoding:
-    m_pEncoding->AddToDictionary( m_pObject->GetDictionary() );
+    m_pEncoding->AddToDictionary( this->GetObject()->GetDictionary() );
 
     // The DecendantFonts, should be an indirect object:
     array.push_back( pDescendantFonts->Reference() );
-    m_pObject->GetDictionary().AddKey( "DescendantFonts", array );
+    this->GetObject()->GetDictionary().AddKey( "DescendantFonts", array );
 
     // Setting the DescendantFonts paras
     // This is a type2 CIDFont, which is also known as TrueType:
@@ -147,7 +147,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
     
     m_bWasEmbedded = true;    
         
-    pContents = m_pObject->GetOwner()->CreateObject();
+    pContents = this->GetObject()->GetOwner()->CreateObject();
     if( !pContents )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );

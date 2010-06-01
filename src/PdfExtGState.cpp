@@ -40,7 +40,7 @@ PdfExtGState::PdfExtGState( PdfVecObjects* pParent )
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "ExtGS" << m_pObject->Reference().ObjectNumber();
+    out << "ExtGS" << this->GetObject()->Reference().ObjectNumber();
     m_Identifier = PdfName( out.str().c_str() );
 
     this->Init();
@@ -56,7 +56,7 @@ PdfExtGState::PdfExtGState( PdfDocument* pParent )
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "ExtGS" << m_pObject->Reference().ObjectNumber();
+    out << "ExtGS" << this->GetObject()->Reference().ObjectNumber();
     m_Identifier = PdfName( out.str().c_str() );
 
     this->Init();
@@ -72,42 +72,42 @@ void PdfExtGState::Init( void )
 
 void PdfExtGState::SetFillOpacity( float opac )
 {
-    m_pObject->GetDictionary().AddKey( "ca", PdfVariant( static_cast<double>(opac) ) );
+    this->GetObject()->GetDictionary().AddKey( "ca", PdfVariant( static_cast<double>(opac) ) );
 }
 
 void PdfExtGState::SetStrokeOpacity( float opac )
 {
-    m_pObject->GetDictionary().AddKey( "CA", PdfVariant( opac ) );
+    this->GetObject()->GetDictionary().AddKey( "CA", PdfVariant( opac ) );
 }
 
 void PdfExtGState::SetBlendMode( char* blendMode )
 {
-    m_pObject->GetDictionary().AddKey( "BM", PdfVariant( PdfName( blendMode ) ) );
+    this->GetObject()->GetDictionary().AddKey( "BM", PdfVariant( PdfName( blendMode ) ) );
 }
 
 void PdfExtGState::SetOverprint( bool enable )
 {
-    m_pObject->GetDictionary().AddKey( "OP", PdfVariant( enable ) );
+    this->GetObject()->GetDictionary().AddKey( "OP", PdfVariant( enable ) );
 }
 
 void PdfExtGState::SetFillOverprint( bool enable )
 {
-    m_pObject->GetDictionary().AddKey( "op", PdfVariant( enable ) );
+    this->GetObject()->GetDictionary().AddKey( "op", PdfVariant( enable ) );
 }
 
 void PdfExtGState::SetStrokeOverprint( bool enable )
 {
-    m_pObject->GetDictionary().AddKey( "OP", PdfVariant( enable ) );
+    this->GetObject()->GetDictionary().AddKey( "OP", PdfVariant( enable ) );
 }
 
 void PdfExtGState::SetNonZeroOverprint( bool enable )
 {
-    m_pObject->GetDictionary().AddKey( "OPM", PdfVariant( static_cast<pdf_int64>(enable ? 1LL : 0LL) ) );
+    this->GetObject()->GetDictionary().AddKey( "OPM", PdfVariant( static_cast<pdf_int64>(enable ? 1LL : 0LL) ) );
 }
 
 void PdfExtGState::SetRenderingIntent( char* intent )
 {
-    m_pObject->GetDictionary().AddKey( "RI", PdfVariant( PdfName( intent ) ) );
+    this->GetObject()->GetDictionary().AddKey( "RI", PdfVariant( PdfName( intent ) ) );
 }
 
 void PdfExtGState::SetFrequency( double frequency )
@@ -118,7 +118,7 @@ void PdfExtGState::SetFrequency( double frequency )
 	halftoneDict.AddKey( "Angle", PdfVariant( 45.0 ) );
 	halftoneDict.AddKey( "SpotFunction", PdfName( "SimpleDot" ) );
 
-    m_pObject->GetDictionary().AddKey( "HT", halftoneDict);
+    this->GetObject()->GetDictionary().AddKey( "HT", halftoneDict);
 }
 
 

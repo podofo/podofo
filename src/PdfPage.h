@@ -249,7 +249,7 @@ class PODOFO_API PdfPage : public PdfElement, public PdfCanvas {
     /** Private method for getting a key value that could be inherited (such as the boxes, resources, etc.)
      *  \returns PdfVariant - the result of the key fetching
      */
-    PdfObject* GetInheritedKeyFromObject( const char* inKey, PdfObject* inObject ) const; 
+    const PdfObject* GetInheritedKeyFromObject( const char* inKey, const PdfObject* inObject ) const; 
 
     /** Get the annotations array.
      *  \param bCreate if true the annotations array is created 

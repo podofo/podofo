@@ -83,8 +83,8 @@ PdfImage::PdfImage( PdfDocument* pParent, const char* pszPrefix )
 PdfImage::PdfImage( PdfObject* pObject )
     : PdfXObject( "Image", pObject )
 {
-    m_rRect.SetHeight( static_cast<double>(m_pObject->GetDictionary().GetKey( "Height" )->GetNumber()) );
-    m_rRect.SetWidth ( static_cast<double>(m_pObject->GetDictionary().GetKey( "Width" )->GetNumber()) );
+    m_rRect.SetHeight( static_cast<double>(this->GetObject()->GetDictionary().GetKey( "Height" )->GetNumber()) );
+    m_rRect.SetWidth ( static_cast<double>(this->GetObject()->GetDictionary().GetKey( "Width" )->GetNumber()) );
 }
 
 PdfImage::~PdfImage()
@@ -116,7 +116,7 @@ const char** PdfImage::GetSupportedFormats()
 
 void PdfImage::SetImageColorSpace( EPdfColorSpace eColorSpace )
 {
-    m_pObject->GetDictionary().AddKey( PdfName("ColorSpace"), PdfName( ColorspaceToName( eColorSpace ) ) );
+    this->GetObject()->GetDictionary().AddKey( PdfName("ColorSpace"), PdfName( ColorspaceToName( eColorSpace ) ) );
 }
 
 void PdfImage::SetImageICCProfile( PdfInputStream* pStream, long lColorComponents, EPdfColorSpace eAlternateColorSpace ) 
@@ -163,15 +163,15 @@ void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight,
     m_rRect.SetWidth( nWidth );
     m_rRect.SetHeight( nHeight );
 
-    m_pObject->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<pdf_int64>(nWidth) ) );
-    m_pObject->GetDictionary().AddKey( "Height", PdfVariant( static_cast<pdf_int64>(nHeight) ) );
-    m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<pdf_int64>(nBitsPerComponent) ) );
+    this->GetObject()->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<pdf_int64>(nWidth) ) );
+    this->GetObject()->GetDictionary().AddKey( "Height", PdfVariant( static_cast<pdf_int64>(nHeight) ) );
+    this->GetObject()->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<pdf_int64>(nBitsPerComponent) ) );
 
     PdfVariant var;
     m_rRect.ToVariant( var );
-    m_pObject->GetDictionary().AddKey( "BBox", var );
+    this->GetObject()->GetDictionary().AddKey( "BBox", var );
 
-    m_pObject->GetStream()->Set( pStream, vecFilters );
+    this->GetObject()->GetStream()->Set( pStream, vecFilters );
 }
 
 void PdfImage::SetImageDataRaw( unsigned int nWidth, unsigned int nHeight, 
@@ -180,15 +180,15 @@ void PdfImage::SetImageDataRaw( unsigned int nWidth, unsigned int nHeight,
     m_rRect.SetWidth( nWidth );
     m_rRect.SetHeight( nHeight );
 
-    m_pObject->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<pdf_int64>(nWidth) ) );
-    m_pObject->GetDictionary().AddKey( "Height", PdfVariant( static_cast<pdf_int64>(nHeight) ) );
-    m_pObject->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<pdf_int64>(nBitsPerComponent) ) );
+    this->GetObject()->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<pdf_int64>(nWidth) ) );
+    this->GetObject()->GetDictionary().AddKey( "Height", PdfVariant( static_cast<pdf_int64>(nHeight) ) );
+    this->GetObject()->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<pdf_int64>(nBitsPerComponent) ) );
 
     PdfVariant var;
     m_rRect.ToVariant( var );
-    m_pObject->GetDictionary().AddKey( "BBox", var );
+    this->GetObject()->GetDictionary().AddKey( "BBox", var );
 
-    m_pObject->GetStream()->SetRawData( pStream, -1 );
+    this->GetObject()->GetStream()->SetRawData( pStream, -1 );
 }
 
 void PdfImage::LoadFromFile( const char* pszFilename )
@@ -351,7 +351,7 @@ void PdfImage::LoadFromJpegHandle( FILE* hInfile, PdfFileInputStream* pInStream 
     }
     
     // Set the filters key to DCTDecode
-    m_pObject->GetDictionary().AddKey( PdfName::KeyFilter, PdfName( "DCTDecode" ) );
+    this->GetObject()->GetDictionary().AddKey( PdfName::KeyFilter, PdfName( "DCTDecode" ) );
     // Do not apply any filters as JPEG data is already DCT encoded.
     this->SetImageDataRaw( cinfo.output_width, cinfo.output_height, 8, pInStream );
     
@@ -437,9 +437,9 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
 				PdfArray decode;
 				decode.insert( decode.end(), PdfVariant( static_cast<pdf_int64>(0) ) );
 				decode.insert( decode.end(), PdfVariant( static_cast<pdf_int64>(1) ) );
-				m_pObject->GetDictionary().AddKey( PdfName("Decode"), decode );
-				m_pObject->GetDictionary().AddKey( PdfName("ImageMask"), PdfVariant( true ) );
-				m_pObject->GetDictionary().RemoveKey( PdfName("ColorSpace") );
+				this->GetObject()->GetDictionary().AddKey( PdfName("Decode"), decode );
+				this->GetObject()->GetDictionary().AddKey( PdfName("ImageMask"), PdfVariant( true ) );
+				this->GetObject()->GetDictionary().RemoveKey( PdfName("ColorSpace") );
 			}
 			else if ( bitsPixel == 8)
 	            SetImageColorSpace(ePdfColorSpace_DeviceGray);
@@ -458,9 +458,9 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
 				PdfArray decode;
 				decode.insert( decode.end(), PdfVariant( static_cast<pdf_int64>(1) ) );
 				decode.insert( decode.end(), PdfVariant( static_cast<pdf_int64>(0) ) );
-				m_pObject->GetDictionary().AddKey( PdfName("Decode"), decode );
-				m_pObject->GetDictionary().AddKey( PdfName("ImageMask"), PdfVariant( true ) );
-				m_pObject->GetDictionary().RemoveKey( PdfName("ColorSpace") );
+				this->GetObject()->GetDictionary().AddKey( PdfName("Decode"), decode );
+				this->GetObject()->GetDictionary().AddKey( PdfName("ImageMask"), PdfVariant( true ) );
+				this->GetObject()->GetDictionary().RemoveKey( PdfName("ColorSpace") );
 			}
 			else if ( bitsPixel == 8)
 	            SetImageColorSpace(ePdfColorSpace_DeviceGray);
@@ -497,7 +497,7 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
 			PdfArray decode;
 			decode.insert( decode.end(), PdfVariant( static_cast<pdf_int64>(0) ) );
 			decode.insert( decode.end(), PdfVariant( static_cast<pdf_int64>(numColors-1) ) );
-			m_pObject->GetDictionary().AddKey( PdfName("Decode"), decode );
+			this->GetObject()->GetDictionary().AddKey( PdfName("Decode"), decode );
 
 			uint16 * rgbRed;
 			uint16 * rgbGreen;

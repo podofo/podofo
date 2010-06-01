@@ -146,7 +146,15 @@ class PODOFO_API PdfElement {
      */
     PdfObject* CreateObject( const char* pszType = NULL );
 
- protected:
+    /** Get access to the internal object.
+     *  Use this method if you need access to the internal 
+     *  object in a const-method without having to do a const cast.
+     *
+     *  \returns the internal PdfObject
+     */
+    inline PdfObject* GetNonConstObject() const;
+
+ private:
     PdfObject* m_pObject;
 };
 
@@ -164,6 +172,14 @@ inline PdfObject* PdfElement::GetObject()
 inline const PdfObject* PdfElement::GetObject() const
 {
     return m_pObject;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline PdfObject* PdfElement::GetNonConstObject() const
+{
+    return const_cast<PdfElement*>(this)->m_pObject;
 }
 
 };

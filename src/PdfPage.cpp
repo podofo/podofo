@@ -48,7 +48,7 @@ PdfPage::PdfPage( const PdfRect & rSize, PdfVecObjects* pParent )
 PdfPage::PdfPage( PdfObject* pObject, const std::deque<PdfObject*> & rListOfParents )
     : PdfElement( "Page", pObject ), PdfCanvas()
 {
-    m_pResources = m_pObject->GetIndirectKey( "Resources" );
+    m_pResources = this->GetObject()->GetIndirectKey( "Resources" );
     if( !m_pResources ) 
     {
         // Resources might be inherited
@@ -61,7 +61,7 @@ PdfPage::PdfPage( PdfObject* pObject, const std::deque<PdfObject*> & rListOfPare
         }
     }
 
-    PdfObject* pContents = m_pObject->GetIndirectKey( "Contents" );
+    PdfObject* pContents = this->GetObject()->GetIndirectKey( "Contents" );
     if (pContents)
         m_pContents = new PdfContents( pContents );
     else
@@ -88,17 +88,17 @@ void PdfPage::InitNewPage( const PdfRect & rSize )
 {
     PdfVariant mediabox;
     rSize.ToVariant( mediabox );
-    m_pObject->GetDictionary().AddKey( "MediaBox", mediabox );
+    this->GetObject()->GetDictionary().AddKey( "MediaBox", mediabox );
 
     // The PDF specification suggests that we send all available PDF Procedure sets
-    m_pObject->GetDictionary().AddKey( "Resources", PdfObject( PdfDictionary() ) );
+    this->GetObject()->GetDictionary().AddKey( "Resources", PdfObject( PdfDictionary() ) );
 
-    m_pResources = m_pObject->GetIndirectKey( "Resources" );
+    m_pResources = this->GetObject()->GetIndirectKey( "Resources" );
     m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::GetProcSet() );
 
     // Add contents to page object
     // m_pContents must have been initialized before calling this method
-    m_pObject->GetDictionary().AddKey( PdfName::KeyContents, m_pContents->GetContents()->Reference());
+    this->GetObject()->GetDictionary().AddKey( PdfName::KeyContents, m_pContents->GetContents()->Reference());
 }
 
 PdfRect PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize, bool bLandscape )
@@ -171,9 +171,9 @@ PdfRect PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize, bool bLan
     return rect;
 }
 
-PdfObject* PdfPage::GetInheritedKeyFromObject( const char* inKey, PdfObject* inObject ) const
+const PdfObject* PdfPage::GetInheritedKeyFromObject( const char* inKey, const PdfObject* inObject ) const
 {
-    PdfObject* pObj = NULL;
+    const PdfObject* pObj = NULL;
 
     // check for it in the object itself
     if ( inObject->GetDictionary().HasKey( inKey ) ) 
@@ -197,16 +197,16 @@ PdfObject* PdfPage::GetInheritedKeyFromObject( const char* inKey, PdfObject* inO
 const PdfRect PdfPage::GetPageBox( const char* inBox ) const
 {
     PdfRect	 pageBox;
-    PdfObject*   pObj;
+    const PdfObject*   pObj;
         
     // Take advantage of inherited values - walking up the tree if necessary
-    pObj = GetInheritedKeyFromObject( inBox, m_pObject );
+    pObj = GetInheritedKeyFromObject( inBox, this->GetObject() );
     
 
     // Sometime page boxes are defined using reference objects
     while ( pObj && pObj->IsReference() )
     {
-        pObj = m_pObject->GetOwner()->GetObject( pObj->GetReference() );
+        pObj = this->GetObject()->GetOwner()->GetObject( pObj->GetReference() );
     }
 
     // assign the value of the box from the array
@@ -236,7 +236,7 @@ int PdfPage::GetRotation() const
 { 
     int rot = 0;
     
-    PdfObject* pObj = GetInheritedKeyFromObject( "Rotate", m_pObject ); 
+    const PdfObject* pObj = GetInheritedKeyFromObject( "Rotate", this->GetObject() ); 
     if ( pObj && pObj->IsNumber() )
         rot = static_cast<int>(pObj->GetNumber());
     
@@ -248,17 +248,17 @@ PdfObject* PdfPage::GetAnnotationsArray( bool bCreate ) const
     PdfObject* pObj;
 
     // check for it in the object itself
-    if ( m_pObject->GetDictionary().HasKey( "Annots" ) ) 
+    if ( this->GetObject()->GetDictionary().HasKey( "Annots" ) ) 
     {
-        pObj = m_pObject->GetIndirectKey( "Annots" );
+        pObj = this->GetObject()->GetIndirectKey( "Annots" );
         if( pObj && pObj->IsArray() )
             return pObj;
     }
     else if( bCreate ) 
     {
         PdfArray array;
-        const_cast<PdfPage*>(this)->m_pObject->GetDictionary().AddKey( "Annots", array );
-        return m_pObject->GetDictionary().GetKey( "Annots" );
+        this->GetNonConstObject()->GetDictionary().AddKey( "Annots", array );
+        return const_cast<PdfObject*>(this->GetObject()->GetDictionary().GetKey( "Annots" ));
     }
 
     return NULL;
@@ -273,7 +273,7 @@ int PdfPage::GetNumAnnots() const
 
 PdfAnnotation* PdfPage::CreateAnnotation( EPdfAnnotation eType, const PdfRect & rRect )
 {
-    PdfAnnotation* pAnnot = new PdfAnnotation( this, eType, rRect, m_pObject->GetOwner() );
+    PdfAnnotation* pAnnot = new PdfAnnotation( this, eType, rRect, this->GetObject()->GetOwner() );
     PdfObject*     pObj   = this->GetAnnotationsArray( true );
     PdfReference   ref    = pAnnot->GetObject()->Reference();
 
@@ -304,7 +304,7 @@ PdfAnnotation* PdfPage::GetAnnotation( int index )
     pAnnot = m_mapAnnotations[ref];
     if( !pAnnot )
     {
-        pObj = m_pObject->GetOwner()->GetObject( ref );
+        pObj = this->GetObject()->GetOwner()->GetObject( ref );
         if( !pObj )
         {
             PdfError::DebugMessage( "Error looking up object %i %i R\n", ref.ObjectNumber(), ref.GenerationNumber() );
@@ -382,7 +382,7 @@ void PdfPage::DeleteAnnotation( const PdfReference & ref )
     }
 
     // delete the PdfObject in the file
-    delete m_pObject->GetOwner()->RemoveObject( ref );
+    delete this->GetObject()->GetOwner()->RemoveObject( ref );
 }
 
 // added by Petr P. Petrov 21 Febrary 2010
@@ -391,7 +391,7 @@ bool PdfPage::SetPageWidth(int newWidth)
     PdfObject*   pObjMediaBox;
         
     // Take advantage of inherited values - walking up the tree if necessary
-    pObjMediaBox = GetInheritedKeyFromObject( "MediaBox", m_pObject );
+    pObjMediaBox = const_cast<PdfObject*>(GetInheritedKeyFromObject( "MediaBox", this->GetObject() ));
     
     // assign the value of the box from the array
     if ( pObjMediaBox && pObjMediaBox->IsArray() )
@@ -401,7 +401,7 @@ bool PdfPage::SetPageWidth(int newWidth)
         PdfObject*   pObjCropBox;
 
         // Take advantage of inherited values - walking up the tree if necessary
-        pObjCropBox = GetInheritedKeyFromObject( "CropBox", m_pObject );
+        pObjCropBox = const_cast<PdfObject*>(GetInheritedKeyFromObject( "CropBox", this->GetObject() ));
 
         if ( pObjCropBox && pObjCropBox->IsArray() )
         {
@@ -423,7 +423,7 @@ bool PdfPage::SetPageHeight(int newHeight)
     PdfObject*   pObj;
         
     // Take advantage of inherited values - walking up the tree if necessary
-    pObj = GetInheritedKeyFromObject( "MediaBox", m_pObject );
+    pObj = const_cast<PdfObject*>(GetInheritedKeyFromObject( "MediaBox", this->GetObject() ));
     
     // assign the value of the box from the array
     if ( pObj && pObj->IsArray() )
@@ -433,7 +433,7 @@ bool PdfPage::SetPageHeight(int newHeight)
         PdfObject*   pObjCropBox;
 
         // Take advantage of inherited values - walking up the tree if necessary
-        pObjCropBox = GetInheritedKeyFromObject( "CropBox", m_pObject );
+        pObjCropBox = const_cast<PdfObject*>(GetInheritedKeyFromObject( "CropBox", this->GetObject() ));
 
         if ( pObjCropBox && pObjCropBox->IsArray() )
         {
@@ -452,8 +452,8 @@ bool PdfPage::SetPageHeight(int newHeight)
 unsigned int PdfPage::GetPageNumber() const
 {
     unsigned int        nPageNumber = 0;
-    PdfObject*          pParent     = m_pObject->GetIndirectKey( "Parent" );
-    PdfReference ref                = m_pObject->Reference();
+    PdfObject*          pParent     = this->GetObject()->GetIndirectKey( "Parent" );
+    PdfReference ref                = this->GetObject()->Reference();
 
     while( pParent ) 
     {
@@ -462,7 +462,7 @@ unsigned int PdfPage::GetPageNumber() const
 
         while( it != kids.end() && (*it).GetReference() != ref )
         {
-            PdfObject* pNode = m_pObject->GetOwner()->GetObject( (*it).GetReference() );
+            PdfObject* pNode = this->GetObject()->GetOwner()->GetObject( (*it).GetReference() );
 
             if( pNode->GetDictionary().GetKey( PdfName::KeyType )->GetName() == PdfName( "Pages" ) )
                 nPageNumber += static_cast<int>(pNode->GetDictionary().GetKey( "Count" )->GetNumber());
@@ -537,7 +537,7 @@ PdfObject* PdfPage::GetFromResources( const PdfName & rType, const PdfName & rKe
         if( pType->IsDictionary() && pType->GetDictionary().HasKey( rKey ) )
         {
             const PdfReference & ref = pType->GetDictionary().GetKey( rKey )->GetReference();
-            return m_pObject->GetOwner()->GetObject( ref );
+            return this->GetObject()->GetOwner()->GetObject( ref );
         }
     }
     

@@ -54,7 +54,7 @@ PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
     ostringstream out;
     PdfLocaleImbue(out);
-    out << "PoDoFoFt" << m_pObject->Reference().ObjectNumber();
+    out << "PoDoFoFt" << this->GetObject()->Reference().ObjectNumber();
     m_Identifier = PdfName( out.str().c_str() );
 }
 
@@ -82,7 +82,7 @@ void PdfFont::InitVars()
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "Ft" << m_pObject->Reference().ObjectNumber();
+    out << "Ft" << this->GetObject()->Reference().ObjectNumber();
     m_Identifier = PdfName( out.str().c_str() );
 
 	

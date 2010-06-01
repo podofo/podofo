@@ -58,7 +58,7 @@ PdfAction::PdfAction( EPdfAction eAction, PdfVecObjects* pParent )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    m_pObject->GetDictionary().AddKey( "S", type );
+    this->GetObject()->GetDictionary().AddKey( "S", type );
 }
 
 PdfAction::PdfAction( EPdfAction eAction, PdfDocument* pParent )
@@ -71,52 +71,52 @@ PdfAction::PdfAction( EPdfAction eAction, PdfDocument* pParent )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    m_pObject->GetDictionary().AddKey( "S", type );
+    this->GetObject()->GetDictionary().AddKey( "S", type );
 }
 
 PdfAction::PdfAction( PdfObject* pObject )
     // The typename /Action is optional for PdfActions
     : PdfElement( NULL, pObject )
 {
-    m_eType = static_cast<EPdfAction>(TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions ));
+    m_eType = static_cast<EPdfAction>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions ));
 }
 
 PdfAction::PdfAction( const PdfAction & rhs )
-    : PdfElement( "Action", rhs.m_pObject )
+    : PdfElement( "Action", rhs.GetNonConstObject() )
 {
-    m_eType = static_cast<EPdfAction>(TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions ));
+    m_eType = static_cast<EPdfAction>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions ));
 }
 
 void PdfAction::SetURI( const PdfString & sUri )
 {
-    m_pObject->GetDictionary().AddKey( "URI", sUri );
+    this->GetObject()->GetDictionary().AddKey( "URI", sUri );
 }
 
 PdfString PdfAction::GetURI() const
 {
-    return m_pObject->GetDictionary().GetKey( "URI" )->GetString();
+    return this->GetObject()->GetDictionary().GetKey( "URI" )->GetString();
 }
 
 bool PdfAction::HasURI() const
 {
-    return m_pObject->GetDictionary().HasKey( "URI" );
+    return this->GetObject()->GetDictionary().HasKey( "URI" );
 }
 
 void PdfAction::SetScript( const PdfString & sScript )
 {
-    m_pObject->GetDictionary().AddKey( "JS", sScript );
+    this->GetObject()->GetDictionary().AddKey( "JS", sScript );
 
 }
 
 PdfString PdfAction::GetScript() const
 {
-    return m_pObject->GetDictionary().GetKey( "JS" )->GetString();
+    return this->GetObject()->GetDictionary().GetKey( "JS" )->GetString();
 
 }
 
 bool PdfAction::HasScript() const
 {
-    return m_pObject->GetDictionary().HasKey( "JS" );
+    return this->GetObject()->GetDictionary().HasKey( "JS" );
 }
 
 void PdfAction::AddToDictionary( PdfDictionary & dictionary ) const
@@ -131,7 +131,7 @@ void PdfAction::AddToDictionary( PdfDictionary & dictionary ) const
         PODOFO_RAISE_ERROR( ePdfError_ActionAlreadyPresent );
 
     dictionary.RemoveKey( "A" );
-    dictionary.AddKey( "A", m_pObject );
+    dictionary.AddKey( "A", this->GetObject() );
 }
 
 

@@ -78,21 +78,21 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
 
     rRect.ToVariant( rect );
 
-    m_pObject->GetDictionary().AddKey( PdfName::KeyRect, rect );
+    this->GetObject()->GetDictionary().AddKey( PdfName::KeyRect, rect );
 
     rRect.ToVariant( rect );
     date.ToString( sDate );
     
-    m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, name );
-    m_pObject->GetDictionary().AddKey( PdfName::KeyRect, rect );
-    m_pObject->GetDictionary().AddKey( "P", pPage->GetObject()->Reference() );
-    m_pObject->GetDictionary().AddKey( "M", sDate );
+    this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, name );
+    this->GetObject()->GetDictionary().AddKey( PdfName::KeyRect, rect );
+    this->GetObject()->GetDictionary().AddKey( "P", pPage->GetObject()->Reference() );
+    this->GetObject()->GetDictionary().AddKey( "M", sDate );
 }
 
 PdfAnnotation::PdfAnnotation( PdfObject* pObject, PdfPage* pPage )
     : PdfElement( "Annot", pObject ), m_eAnnotation( ePdfAnnotation_Unknown ), m_pAction( NULL ), m_pFileSpec( NULL ), m_pPage( pPage )
 {
-    m_eAnnotation = static_cast<EPdfAnnotation>(TypeNameToIndex( m_pObject->GetDictionary().GetKeyAsName( PdfName::KeySubtype ).GetName().c_str(), s_names, s_lNumActions ));
+    m_eAnnotation = static_cast<EPdfAnnotation>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( PdfName::KeySubtype ).GetName().c_str(), s_names, s_lNumActions ));
 }
 
 PdfAnnotation::~PdfAnnotation()
@@ -103,8 +103,8 @@ PdfAnnotation::~PdfAnnotation()
 
 PdfRect PdfAnnotation::GetRect() const
 {
-   if( m_pObject->GetDictionary().HasKey( PdfName::KeyRect ) )
-        return PdfRect( m_pObject->GetDictionary().GetKey( PdfName::KeyRect )->GetArray() );
+   if( this->GetObject()->GetDictionary().HasKey( PdfName::KeyRect ) )
+        return PdfRect( this->GetObject()->GetDictionary().GetKey( PdfName::KeyRect )->GetArray() );
 
    return PdfRect();
 }
@@ -124,25 +124,25 @@ void PdfAnnotation::SetAppearanceStream( PdfXObject* pObject )
 
     dict.AddKey( "N", internal );
 
-    m_pObject->GetDictionary().AddKey( "AP", dict );
-    m_pObject->GetDictionary().AddKey( "AS", PdfName("On") );
+    this->GetObject()->GetDictionary().AddKey( "AP", dict );
+    this->GetObject()->GetDictionary().AddKey( "AS", PdfName("On") );
 }
 
 bool PdfAnnotation::HasAppearanceStream() const
 {
-    return m_pObject->GetDictionary().HasKey( "AP" );
+    return this->GetObject()->GetDictionary().HasKey( "AP" );
 }
 
 
 void PdfAnnotation::SetFlags( pdf_uint32 uiFlags )
 {
-    m_pObject->GetDictionary().AddKey( "F", PdfVariant( static_cast<pdf_int64>(uiFlags) ) );
+    this->GetObject()->GetDictionary().AddKey( "F", PdfVariant( static_cast<pdf_int64>(uiFlags) ) );
 }
 
 pdf_uint32 PdfAnnotation::GetFlags() const
 {
-    if( m_pObject->GetDictionary().HasKey( "F" ) )
-        return static_cast<pdf_uint32>(m_pObject->GetDictionary().GetKey( "F" )->GetNumber());
+    if( this->GetObject()->GetDictionary().HasKey( "F" ) )
+        return static_cast<pdf_uint32>(this->GetObject()->GetDictionary().GetKey( "F" )->GetNumber());
 
     return static_cast<pdf_uint32>(0);
 }
@@ -163,48 +163,48 @@ void PdfAnnotation::SetBorderStyle( double dHCorner, double dVCorner, double dWi
     if( rStrokeStyle.size() )
         aValues.push_back(rStrokeStyle);
 
-    m_pObject->GetDictionary().AddKey( "Border", aValues );
+    this->GetObject()->GetDictionary().AddKey( "Border", aValues );
 }
 
 void PdfAnnotation::SetTitle( const PdfString & sTitle )
 {
-    m_pObject->GetDictionary().AddKey( "T", sTitle );
+    this->GetObject()->GetDictionary().AddKey( "T", sTitle );
 }
 
 PdfString PdfAnnotation::GetTitle() const
 {
-    if( m_pObject->GetDictionary().HasKey( "T" ) )
-        return m_pObject->GetDictionary().GetKey( "T" )->GetString();
+    if( this->GetObject()->GetDictionary().HasKey( "T" ) )
+        return this->GetObject()->GetDictionary().GetKey( "T" )->GetString();
 
     return PdfString();
 }
 
 void PdfAnnotation::SetContents( const PdfString & sContents )
 {
-    m_pObject->GetDictionary().AddKey( "Contents", sContents );
+    this->GetObject()->GetDictionary().AddKey( "Contents", sContents );
 }
 
 PdfString PdfAnnotation::GetContents() const
 {
-    if( m_pObject->GetDictionary().HasKey( "Contents" ) )
-        return m_pObject->GetDictionary().GetKey( "Contents" )->GetString();
+    if( this->GetObject()->GetDictionary().HasKey( "Contents" ) )
+        return this->GetObject()->GetDictionary().GetKey( "Contents" )->GetString();
 
     return PdfString();
 }
 
 void PdfAnnotation::SetDestination( const PdfDestination & rDestination )
 {
-    rDestination.AddToDictionary( m_pObject->GetDictionary() );
+    rDestination.AddToDictionary( this->GetObject()->GetDictionary() );
 }
 
 PdfDestination PdfAnnotation::GetDestination() const
 {
-    return PdfDestination( m_pObject->GetDictionary().GetKey( "Dest" ) );
+    return PdfDestination( this->GetNonConstObject()->GetDictionary().GetKey( "Dest" ) );
 }
 
 bool PdfAnnotation::HasDestination() const
 {
-    return m_pObject->GetDictionary().HasKey( "Dest" );
+    return this->GetObject()->GetDictionary().HasKey( "Dest" );
 }
 
 void PdfAnnotation::SetAction( const PdfAction & rAction )
@@ -213,38 +213,38 @@ void PdfAnnotation::SetAction( const PdfAction & rAction )
         delete m_pAction;
 
     m_pAction = new PdfAction( rAction );
-    m_pObject->GetDictionary().AddKey( "A", m_pAction->GetObject()->Reference() );
+    this->GetObject()->GetDictionary().AddKey( "A", m_pAction->GetObject()->Reference() );
 }
 
 PdfAction* PdfAnnotation::GetAction() const
 {
     if( !m_pAction && HasAction() )
-        const_cast<PdfAnnotation*>(this)->m_pAction = new PdfAction( m_pObject->GetIndirectKey( "A" ) );
+        const_cast<PdfAnnotation*>(this)->m_pAction = new PdfAction( this->GetObject()->GetIndirectKey( "A" ) );
 
     return m_pAction;
 }
 
 bool PdfAnnotation::HasAction() const
 {
-    return m_pObject->GetDictionary().HasKey( "A" );
+    return this->GetObject()->GetDictionary().HasKey( "A" );
 }
 
 void PdfAnnotation::SetOpen( bool b )
 {
-    m_pObject->GetDictionary().AddKey( "Open", b );
+    this->GetObject()->GetDictionary().AddKey( "Open", b );
 }
 
 bool PdfAnnotation::GetOpen() const
 {
-    if( m_pObject->GetDictionary().HasKey( "Open" ) )
-        return m_pObject->GetDictionary().GetKey( "Open" )->GetBool();
+    if( this->GetObject()->GetDictionary().HasKey( "Open" ) )
+        return this->GetObject()->GetDictionary().GetKey( "Open" )->GetBool();
 
     return false;
 }
 
 bool PdfAnnotation::HasFileAttachement() const
 {
-    return m_pObject->GetDictionary().HasKey( "FS" );
+    return this->GetObject()->GetDictionary().HasKey( "FS" );
 }
 
 void PdfAnnotation::SetFileAttachement( const PdfFileSpec & rFileSpec )
@@ -253,21 +253,21 @@ void PdfAnnotation::SetFileAttachement( const PdfFileSpec & rFileSpec )
         delete m_pFileSpec;
 
     m_pFileSpec = new PdfFileSpec( rFileSpec );
-    m_pObject->GetDictionary().AddKey( "FS", m_pFileSpec->GetObject()->Reference() );
+    this->GetObject()->GetDictionary().AddKey( "FS", m_pFileSpec->GetObject()->Reference() );
 }
 
 PdfFileSpec* PdfAnnotation::GetFileAttachement() const
 {
     if( !m_pFileSpec && HasFileAttachement() )
-        const_cast<PdfAnnotation*>(this)->m_pFileSpec = new PdfFileSpec( m_pObject->GetIndirectKey( "FS" ) );
+        const_cast<PdfAnnotation*>(this)->m_pFileSpec = new PdfFileSpec( this->GetObject()->GetIndirectKey( "FS" ) );
 
     return m_pFileSpec;
 }
 
 PdfArray PdfAnnotation::GetQuadPoints() const
 {
-    if( m_pObject->GetDictionary().HasKey( "QuadPoints" ) )
-        return PdfArray( m_pObject->GetDictionary().GetKey( "QuadPoints" )->GetArray() );
+    if( this->GetObject()->GetDictionary().HasKey( "QuadPoints" ) )
+        return PdfArray( this->GetObject()->GetDictionary().GetKey( "QuadPoints" )->GetArray() );
 
     return PdfArray();
 }
@@ -277,41 +277,45 @@ void PdfAnnotation::SetQuadPoints( const PdfArray & rQuadPoints )
     if ( m_eAnnotation != ePdfAnnotation_Highlight )
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Must be a highlight annotation to set quad points" );
 
-    m_pObject->GetDictionary().AddKey( "QuadPoints", rQuadPoints );
+    this->GetObject()->GetDictionary().AddKey( "QuadPoints", rQuadPoints );
 }
 
 PdfArray PdfAnnotation::GetColor() const
 {
-    if( m_pObject->GetDictionary().HasKey( "C" ) )
-        return PdfArray( m_pObject->GetDictionary().GetKey( "C" )->GetArray() );
+    if( this->GetObject()->GetDictionary().HasKey( "C" ) )
+        return PdfArray( this->GetObject()->GetDictionary().GetKey( "C" )->GetArray() );
     return PdfArray();
 }
 
-void PdfAnnotation::SetColor( double r, double g, double b ) {
-  PdfArray c;
-  c.push_back( PdfVariant( r ) );
-  c.push_back( PdfVariant( g ) );
-  c.push_back( PdfVariant( b ) );
-  m_pObject->GetDictionary().AddKey( "C", c );
+void PdfAnnotation::SetColor( double r, double g, double b )
+{
+    PdfArray c;
+    c.push_back( PdfVariant( r ) );
+    c.push_back( PdfVariant( g ) );
+    c.push_back( PdfVariant( b ) );
+    this->GetObject()->GetDictionary().AddKey( "C", c );
 }
-void PdfAnnotation::SetColor( double C, double M, double Y, double K ) {
-  PdfArray c;
-  c.push_back( PdfVariant( C ) );
-  c.push_back( PdfVariant( M ) );
-  c.push_back( PdfVariant( Y ) );
-  c.push_back( PdfVariant( K ) );
-  m_pObject->GetDictionary().AddKey( "C", c );
-}
-
-void PdfAnnotation::SetColor( double gray ) {
-  PdfArray c;
-  c.push_back( PdfVariant( gray ) );
-  m_pObject->GetDictionary().AddKey( "C", c );
+void PdfAnnotation::SetColor( double C, double M, double Y, double K ) 
+{
+    PdfArray c;
+    c.push_back( PdfVariant( C ) );
+    c.push_back( PdfVariant( M ) );
+    c.push_back( PdfVariant( Y ) );
+    c.push_back( PdfVariant( K ) );
+    this->GetObject()->GetDictionary().AddKey( "C", c );
 }
 
-void PdfAnnotation::SetColor() {
-  PdfArray c;
-  m_pObject->GetDictionary().AddKey( "C", c );
+void PdfAnnotation::SetColor( double gray ) 
+{
+    PdfArray c;
+    c.push_back( PdfVariant( gray ) );
+    this->GetObject()->GetDictionary().AddKey( "C", c );
+}
+
+void PdfAnnotation::SetColor() 
+{
+    PdfArray c;
+    this->GetObject()->GetDictionary().AddKey( "C", c );
 }
 
 };

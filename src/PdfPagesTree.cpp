@@ -43,7 +43,7 @@ PdfPagesTree::PdfPagesTree( PdfObject* pPagesRoot )
     : PdfElement( "Pages", pPagesRoot ),
       m_cache( static_cast<int>(pPagesRoot->GetDictionary().GetKeyAsLong( "Count", static_cast<pdf_int64>(0LL) )) )
 {
-    if( !m_pObject ) 
+    if( !this->GetObject() ) 
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -56,8 +56,8 @@ PdfPagesTree::~PdfPagesTree()
 
 int PdfPagesTree::GetTotalNumberOfPages() const
 {
-    return ( ( m_pObject->GetDictionary().HasKey( "Count" ) ) ?
-             static_cast<int>(m_pObject->GetDictionary().GetKeyAsLong( "Count", 0LL )) : 0 );
+    return ( ( this->GetObject()->GetDictionary().HasKey( "Count" ) ) ?
+             static_cast<int>(this->GetObject()->GetDictionary().GetKeyAsLong( "Count", 0LL )) : 0 );
 }
 
 PdfPage* PdfPagesTree::GetPage( int nIndex )
@@ -144,9 +144,9 @@ void PdfPagesTree::InsertPage( int nAfterPageNumber, PdfObject* pPage )
         {
             // We insert the first page into an empty pages tree
             PdfObjectList lstPagesTree;
-            lstPagesTree.push_back( m_pObject );
+            lstPagesTree.push_back( this->GetObject() );
             // Use -1 as index to insert before the empty kids array
-            InsertPageIntoNode( m_pObject, lstPagesTree, -1, pPage );
+            InsertPageIntoNode( this->GetObject(), lstPagesTree, -1, pPage );
         }
     }
     else

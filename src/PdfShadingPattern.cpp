@@ -42,7 +42,7 @@ PdfShadingPattern::PdfShadingPattern( EPdfShadingPatternType eShadingType, PdfVe
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "Sh" << m_pObject->Reference().ObjectNumber();
+    out << "Sh" << this->GetObject()->Reference().ObjectNumber();
     m_Identifier = PdfName( out.str().c_str() );
 
     this->Init( eShadingType );
@@ -58,7 +58,7 @@ PdfShadingPattern::PdfShadingPattern( EPdfShadingPatternType eShadingType, PdfDo
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "Sh" << m_pObject->Reference().ObjectNumber();
+    out << "Sh" << this->GetObject()->Reference().ObjectNumber();
     m_Identifier = PdfName( out.str().c_str() );
 
     this->Init( eShadingType );
@@ -164,8 +164,8 @@ void PdfShadingPattern::Init( EPdfShadingPatternType eShadingType )
     PdfDictionary shading;
     shading.AddKey( PdfName("ShadingType"), static_cast<pdf_int64>(eShadingType) );
 
-    m_pObject->GetDictionary().AddKey( PdfName("PatternType"), static_cast<pdf_int64>(2LL) ); // Shading pattern
-    m_pObject->GetDictionary().AddKey( PdfName("Shading"), shading );
+    this->GetObject()->GetDictionary().AddKey( PdfName("PatternType"), static_cast<pdf_int64>(2LL) ); // Shading pattern
+    this->GetObject()->GetDictionary().AddKey( PdfName("Shading"), shading );
 }
 
 PdfAxialShadingPattern::PdfAxialShadingPattern( double dX0, double dY0, double dX1, double dY1, const PdfColor & rStart, const PdfColor & rEnd, PdfVecObjects* pParent )

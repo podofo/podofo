@@ -44,19 +44,19 @@ This is the font dictionary. It gets added to the page resources dictionary of t
 */
 void PdfFontType1Base14::InitBase14Font( )
 {
- 		PdfVariant    var;
-
-		m_pObject->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Type1"));
-		m_pObject->GetDictionary().AddKey("BaseFont", this->GetBaseFont() );
+    PdfVariant    var;
+    
+    this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Type1"));
+    this->GetObject()->GetDictionary().AddKey("BaseFont", this->GetBaseFont() );
 		 
-		m_pEncoding->AddToDictionary( m_pObject->GetDictionary() ); // Add encoding key
-//		pDescriptor->GetDictionary().AddKey( "FontName", this->GetBaseFont() );
-		//pDescriptor->GetDictionary().AddKey( "FontWeight", (long)m_pMetrics->Weight() );
+    m_pEncoding->AddToDictionary( this->GetObject()->GetDictionary() ); // Add encoding key
+//	pDescriptor->GetDictionary().AddKey( "FontName", this->GetBaseFont() );
+    //pDescriptor->GetDictionary().AddKey( "FontWeight", (long)m_pMetrics->Weight() );
 //		pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( static_cast<pdf_int64>(32LL) ) ); // TODO: 0 ????
 //		pDescriptor->GetDictionary().AddKey( "FontBBox", array );
-	  
-
-	 
+	
+    
+	
 		
 //			pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<pdf_int64>(m_pMetrics->GetItalicAngle()) ) );
 //			pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetPdfAscent() );

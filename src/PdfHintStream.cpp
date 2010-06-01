@@ -219,7 +219,7 @@ PdfHintStream::PdfHintStream( PdfVecObjects* pParent, PdfPagesTree* pPagesTree )
 {
     // This is overwritten later with valid data!
     PdfVariant place_holder( PdfData( LINEARIZATION_PADDING ) );
-    m_pObject->GetDictionary().AddKey( "S", place_holder ); // shared object hint table
+    this->GetObject()->GetDictionary().AddKey( "S", place_holder ); // shared object hint table
 }
 
 PdfHintStream::~PdfHintStream()
@@ -265,7 +265,7 @@ void PdfHintStream::CreatePageHintTable( TVecXRefTable* pXRef )
     {
         lstPages.clear();
 
-        m_pObject->GetParent()->GetObjectDependencies( m_pPagesTree->GetPage( i )->GetObject(), &lstPages );
+        this->GetObject()->GetParent()->GetObjectDependencies( m_pPagesTree->GetPage( i )->GetObject(), &lstPages );
         vecPages[i].nObjectsPerPage = lstPages.size();
 
         if( !header.nLeastNumberOfObjects || header.nLeastNumberOfObjects > lstPages.size() )
@@ -293,7 +293,7 @@ void PdfHintStream::CreatePageHintTable( TVecXRefTable* pXRef )
             ++it;
         }
 
-        max += m_pObject->GetParent()->GetObject( maxRef )->GetObjectLength();
+        max += this->GetObject()->GetParent()->GetObject( maxRef )->GetObjectLength();
 
         vecPages[i].nPageLength     = max - least;
 
@@ -332,10 +332,10 @@ void PdfHintStream::CreatePageHintTable( TVecXRefTable* pXRef )
 
 void PdfHintStream::CreateSharedObjectHintTable()
 {
-    PdfVariant offset( static_cast<long>(m_pObject->GetStream()->GetLength()) );
+    PdfVariant offset( static_cast<long>(this->GetObject()->GetStream()->GetLength()) );
     offset.SetPaddingLength( LINEARIZATION_PADDING );
 
-    m_pObject->GetDictionary().AddKey( "S", offset ); // shared object hint table
+    this->GetObject()->GetDictionary().AddKey( "S", offset ); // shared object hint table
 
 
 }
@@ -344,13 +344,13 @@ void PdfHintStream::CreateSharedObjectHintTable()
 void PdfHintStream::WriteUInt16( pdf_uint16 val )
 {
     val = ::PoDoFo::compat::podofo_htons(val);
-    m_pObject->GetStream()->Append( reinterpret_cast<char*>(&val), 2 );
+    this->GetObject()->GetStream()->Append( reinterpret_cast<char*>(&val), 2 );
 }
 
 void PdfHintStream::WriteUInt32( pdf_uint32 val )
 {
     val = ::PoDoFo::compat::podofo_htonl(val);
-    m_pObject->GetStream()->Append( reinterpret_cast<char*>(&val), 4 );
+    this->GetObject()->GetStream()->Append( reinterpret_cast<char*>(&val), 4 );
 }
 
 }; // end namespace PoDoFo::NonPublic

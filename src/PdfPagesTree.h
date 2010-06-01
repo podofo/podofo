@@ -236,8 +236,8 @@ class PODOFO_API PdfPagesTree : public PdfElement
     */
     /** Private method to access the Root of the tree using a logical name
      */
-    PdfObject* GetRoot()	{ return m_pObject; }
-    const PdfObject* GetRoot() const	{ return m_pObject; }
+    PdfObject* GetRoot()	{ return this->GetObject(); }
+    const PdfObject* GetRoot() const	{ return this->GetObject(); }
 
 private:
     PdfPagesTreeCache m_cache;

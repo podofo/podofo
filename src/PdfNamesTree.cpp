@@ -64,14 +64,14 @@ bool PdfNameTreeNode::AddValue( const PdfString & key, const PdfObject & rValue 
 {
     if( m_bHasKids )
     {
-        const PdfArray &         kids   = m_pObject->GetDictionary().GetKey("Kids")->GetArray();
+        const PdfArray &         kids   = this->GetObject()->GetDictionary().GetKey("Kids")->GetArray();
         PdfArray::const_iterator it     = kids.begin();
         PdfObject*               pChild = NULL;
         EPdfNameLimits           eLimits;
 
         while( it != kids.end() )
         {
-            pChild = m_pObject->GetOwner()->GetObject( (*it).GetReference() );
+            pChild = this->GetObject()->GetOwner()->GetObject( (*it).GetReference() );
             if( !pChild ) 
             {
                 PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
@@ -88,7 +88,7 @@ bool PdfNameTreeNode::AddValue( const PdfString & key, const PdfObject & rValue 
         if( it == kids.end() ) 
         {
             // not added, so add to last child
-            pChild = m_pObject->GetOwner()->GetObject( kids.back().GetReference() );
+            pChild = this->GetObject()->GetOwner()->GetObject( kids.back().GetReference() );
             if( !pChild ) 
             {
                 PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
@@ -117,9 +117,9 @@ bool PdfNameTreeNode::AddValue( const PdfString & key, const PdfObject & rValue 
         bool bRebalance = false;
         PdfArray limits;
 
-        if( m_pObject->GetDictionary().HasKey( "Names" ) ) 
+        if( this->GetObject()->GetDictionary().HasKey( "Names" ) ) 
         {
-            PdfArray& array = m_pObject->GetDictionary().GetKey("Names")->GetArray();
+            PdfArray& array = this->GetObject()->GetDictionary().GetKey("Names")->GetArray();
             PdfArray::iterator it = array.begin();
             
             while( it != array.end() )
@@ -163,16 +163,16 @@ bool PdfNameTreeNode::AddValue( const PdfString & key, const PdfObject & rValue 
             limits.push_back( key );
 
             // create a child object
-            PdfObject* pChild = m_pObject->GetOwner()->CreateObject();
+            PdfObject* pChild = this->GetObject()->GetOwner()->CreateObject();
             pChild->GetDictionary().AddKey( "Names", array );
             pChild->GetDictionary().AddKey( "Limits", limits );
 
             PdfArray kids( pChild->Reference() );
-            m_pObject->GetDictionary().AddKey( "Kids", kids );
+            this->GetObject()->GetDictionary().AddKey( "Kids", kids );
             m_bHasKids = true;
         }
 
-        m_pObject->GetDictionary().AddKey( "Limits", limits );
+        this->GetObject()->GetDictionary().AddKey( "Limits", limits );
 
         if( bRebalance )
             this->Rebalance();
@@ -189,17 +189,17 @@ void PdfNameTreeNode::SetLimits()
 
     if( m_bHasKids ) 
     {
-	if( m_pObject->GetDictionary().HasKey( PdfName("Kids") ) &&
-	    m_pObject->GetDictionary().GetKey( PdfName("Kids") )->IsArray() )
+	if( this->GetObject()->GetDictionary().HasKey( PdfName("Kids") ) &&
+	    this->GetObject()->GetDictionary().GetKey( PdfName("Kids") )->IsArray() )
 	{
-	    const PdfReference & rRefFirst = (*m_pObject->GetDictionary().GetKey("Kids")->GetArray().begin()).GetReference();
-	    PdfObject* pChild = m_pObject->GetOwner()->GetObject( rRefFirst );
+	    const PdfReference & rRefFirst = (*this->GetObject()->GetDictionary().GetKey("Kids")->GetArray().begin()).GetReference();
+	    PdfObject* pChild = this->GetObject()->GetOwner()->GetObject( rRefFirst );
 	    if( pChild && pChild->GetDictionary().HasKey( PdfName("Limits") ) &&
 		pChild->GetDictionary().GetKey( PdfName("Limits") )->IsArray() ) 
 		limits.push_back( *(pChild->GetDictionary().GetKey("Limits")->GetArray().begin()) );
 
-	    const PdfReference & rRefLast = m_pObject->GetDictionary().GetKey("Kids")->GetArray().back().GetReference();
-	    pChild = m_pObject->GetOwner()->GetObject( rRefLast );
+	    const PdfReference & rRefLast = this->GetObject()->GetDictionary().GetKey("Kids")->GetArray().back().GetReference();
+	    pChild = this->GetObject()->GetOwner()->GetObject( rRefLast );
 	    if( pChild && pChild->GetDictionary().HasKey( PdfName("Limits") ) &&
 		pChild->GetDictionary().GetKey( PdfName("Limits") )->IsArray() ) 
 		limits.push_back( pChild->GetDictionary().GetKey("Limits")->GetArray().back() );
@@ -207,31 +207,31 @@ void PdfNameTreeNode::SetLimits()
 	else
 	    PdfError::LogMessage( eLogSeverity_Error, 
 				  "Object %i %si does not have Kids array.", 
-				  m_pObject->Reference().ObjectNumber(), 
-				  m_pObject->Reference().GenerationNumber() );
+				  this->GetObject()->Reference().ObjectNumber(), 
+				  this->GetObject()->Reference().GenerationNumber() );
     }
     else // has "Names"
     {
-	if( m_pObject->GetDictionary().HasKey( PdfName("Names") ) &&
-	    m_pObject->GetDictionary().GetKey( PdfName("Names") )->IsArray() )
+	if( this->GetObject()->GetDictionary().HasKey( PdfName("Names") ) &&
+	    this->GetObject()->GetDictionary().GetKey( PdfName("Names") )->IsArray() )
 	{
-	    limits.push_back( (*m_pObject->GetDictionary().GetKey("Names")->GetArray().begin()) );
-	    limits.push_back( (*(m_pObject->GetDictionary().GetKey("Names")->GetArray().end()-2)) );
+	    limits.push_back( (*this->GetObject()->GetDictionary().GetKey("Names")->GetArray().begin()) );
+	    limits.push_back( (*(this->GetObject()->GetDictionary().GetKey("Names")->GetArray().end()-2)) );
 	}
 	else
 	    PdfError::LogMessage( eLogSeverity_Error, 
 				  "Object %i %si does not have Names array.", 
-				  m_pObject->Reference().ObjectNumber(), 
-				  m_pObject->Reference().GenerationNumber() );
+				  this->GetObject()->Reference().ObjectNumber(), 
+				  this->GetObject()->Reference().GenerationNumber() );
     }
 
-    m_pObject->GetDictionary().AddKey("Limits", limits );
+    this->GetObject()->GetDictionary().AddKey("Limits", limits );
 }
 
 bool PdfNameTreeNode::Rebalance()
 {
-    PdfArray* pArray            = m_bHasKids ? &(m_pObject->GetDictionary().GetKey("Kids")->GetArray()) :
-                                               &(m_pObject->GetDictionary().GetKey("Names")->GetArray());
+    PdfArray* pArray            = m_bHasKids ? &(this->GetObject()->GetDictionary().GetKey("Kids")->GetArray()) :
+                                               &(this->GetObject()->GetDictionary().GetKey("Names")->GetArray());
     const PdfName& key          = m_bHasKids ? PdfName("Kids") : PdfName("Names");
     const unsigned int nLength  = m_bHasKids ? BALANCE_TREE_MAX : BALANCE_TREE_MAX * 2;
 
@@ -248,17 +248,17 @@ bool PdfNameTreeNode::Rebalance()
         second.insert( second.end(), pArray->begin()+(nLength/2)+1, pArray->end() );
 
         PdfObject* pChild1;
-        PdfObject* pChild2 = m_pObject->GetOwner()->CreateObject();
+        PdfObject* pChild2 = this->GetObject()->GetOwner()->CreateObject();
 
         if( !m_pParent ) 
         {
             m_bHasKids = true;
-            pChild1    = m_pObject->GetOwner()->CreateObject();
-            m_pObject->GetDictionary().RemoveKey( "Names" );
+            pChild1    = this->GetObject()->GetOwner()->CreateObject();
+            this->GetObject()->GetDictionary().RemoveKey( "Names" );
         }
         else
         {
-            pChild1 = m_pObject;
+            pChild1 = this->GetObject();
             kids    = m_pParent->GetObject()->GetDictionary().GetKey("Kids")->GetArray();
         }
 
@@ -287,7 +287,7 @@ bool PdfNameTreeNode::Rebalance()
         if( m_pParent ) 
             m_pParent->GetObject()->GetDictionary().AddKey( "Kids", kids );
         else
-            m_pObject->GetDictionary().AddKey( "Kids", kids );
+            this->GetObject()->GetDictionary().AddKey( "Kids", kids );
 
         // Important is to the the limits
         // of the children first,
@@ -342,7 +342,7 @@ PdfObject* PdfNamesTree::GetValue( const PdfName & tree, const PdfString & key )
     {
         pResult = this->GetKeyValue( pObject, key );
         if( pResult && pResult->IsReference() )
-            pResult = m_pObject->GetOwner()->GetObject( pResult->GetReference() );
+            pResult = this->GetObject()->GetOwner()->GetObject( pResult->GetReference() );
     }
 
     return pResult;
@@ -360,7 +360,7 @@ PdfObject* PdfNamesTree::GetKeyValue( PdfObject* pObj, const PdfString & key ) c
 
         while( it != kids.end() )
         {
-            PdfObject* pChild = m_pObject->GetOwner()->GetObject( (*it).GetReference() );
+            PdfObject* pChild = this->GetObject()->GetOwner()->GetObject( (*it).GetReference() );
             if( pChild ) 
             {
                 PdfObject* pResult = GetKeyValue( pChild, key );
@@ -389,7 +389,7 @@ PdfObject* PdfNamesTree::GetKeyValue( PdfObject* pObj, const PdfString & key ) c
             if( (*it).GetString() == key ) 
             {
                 ++it;
-                return m_pObject->GetOwner()->GetObject( (*it).GetReference() );
+                return this->GetObject()->GetOwner()->GetObject( (*it).GetReference() );
             }
 
             it += 2;
@@ -402,11 +402,11 @@ PdfObject* PdfNamesTree::GetKeyValue( PdfObject* pObj, const PdfString & key ) c
 
 PdfObject* PdfNamesTree::GetRootNode( const PdfName & name, bool bCreate ) const
 {
-    PdfObject* pObj = m_pObject->GetIndirectKey( name );
+    PdfObject* pObj = this->GetObject()->GetIndirectKey( name );
     if( !pObj && bCreate ) 
     {
-        pObj = m_pObject->GetOwner()->CreateObject();
-        const_cast<PdfNamesTree*>(this)->m_pObject->GetDictionary().AddKey( name, pObj->Reference() );
+        pObj = this->GetObject()->GetOwner()->CreateObject();
+        this->GetNonConstObject()->GetDictionary().AddKey( name, pObj->Reference() );
     }
 
     return pObj;
@@ -456,7 +456,7 @@ void PdfNamesTree::AddToDictionary( PdfObject* pObj, PdfDictionary & rDict )
 
         while( it != kids.end() )
         {
-            PdfObject* pChild = m_pObject->GetOwner()->GetObject( (*it).GetReference() );
+            PdfObject* pChild = this->GetObject()->GetOwner()->GetObject( (*it).GetReference() );
             if( pChild ) 
                 this->AddToDictionary( pChild, rDict );
             else

@@ -35,13 +35,13 @@ namespace PoDoFo {
 PdfContents::PdfContents( PdfDocument* pParent )
     : PdfElement( NULL, pParent )
 {
-    mContObj = m_pObject;
+    mContObj = this->GetObject();
 }
 
 PdfContents::PdfContents( PdfVecObjects* pParent )
     : PdfElement( NULL, pParent )
 {
-    mContObj = m_pObject;
+    mContObj = this->GetObject();
 }
 
 PdfContents::PdfContents( PdfObject* inObj )
@@ -52,18 +52,18 @@ PdfContents::PdfContents( PdfObject* inObj )
     // the object we send in.
     : PdfElement( inObj->GetDataType(), inObj )
 {
-    if ( m_pObject->GetDataType() == ePdfDataType_Reference )
-        mContObj = inObj->GetOwner()->GetObject( m_pObject->GetReference() );
+    if ( this->GetObject()->GetDataType() == ePdfDataType_Reference )
+        mContObj = inObj->GetOwner()->GetObject( this->GetObject()->GetReference() );
     else
-        mContObj = m_pObject;
+        mContObj = this->GetObject();
 }
 
 PdfContents::PdfContents( PdfPage* pParent ) 
     : PdfElement( NULL, pParent->GetObject()->GetOwner() )
 {
     // TODO: Maybe create this only on demand
-    pParent->GetObject()->GetDictionary().AddKey( "Contents", m_pObject->Reference() );
-    mContObj = m_pObject;
+    pParent->GetObject()->GetDictionary().AddKey( "Contents", this->GetObject()->Reference() );
+    mContObj = this->GetObject();
 }
 
 PdfObject* PdfContents::GetContentsForAppending() const

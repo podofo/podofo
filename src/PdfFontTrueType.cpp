@@ -49,7 +49,7 @@ void PdfFontTrueType::EmbedFontFile( PdfObject* pDescriptor )
     
     m_bWasEmbedded = true;    
         
-    pContents = m_pObject->GetOwner()->CreateObject();
+    pContents = this->GetObject()->GetOwner()->CreateObject();
     if( !pContents )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );

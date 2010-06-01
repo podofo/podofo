@@ -38,7 +38,7 @@ PdfAcroForm::PdfAcroForm( PdfDocument* pDoc, EPdfAcroFormDefaulAppearance eDefau
     : PdfElement( NULL, pDoc ), m_pDocument( pDoc )
 {
     // Initialize with an empty fields array
-    m_pObject->GetDictionary().AddKey( PdfName("Fields"), PdfArray() );
+    this->GetObject()->GetDictionary().AddKey( PdfName("Fields"), PdfArray() );
 
     Init( eDefaultAppearance );
 }
@@ -55,9 +55,9 @@ void PdfAcroForm::Init( EPdfAcroFormDefaulAppearance eDefaultAppearance )
     // -> only if we do not have a DA key yet
 
     // Peter Petrov 27 April 2008
-    //m_pObject->GetDictionary().AddKey( PdfName("NeedAppearances"), PdfVariant(true) );
+    //this->GetObject()->GetDictionary().AddKey( PdfName("NeedAppearances"), PdfVariant(true) );
 
-    if( !m_pObject->GetDictionary().HasKey("DA") || 
+    if( !this->GetObject()->GetDictionary().HasKey("DA") || 
         eDefaultAppearance == ePdfAcroFormDefaultAppearance_BlackText12pt )
     {
         //PdfFont* pFont = pParent->GetDocument()->CreateFont( "Helvetica", false );
@@ -69,9 +69,9 @@ void PdfAcroForm::Init( EPdfAcroFormDefaulAppearance eDefaultAppearance )
         PdfObject* pFontDict;
         
         // Create DR key
-        if( !m_pObject->GetDictionary().HasKey( PdfName("DR") ) )
-            m_pObject->GetDictionary().AddKey( PdfName("DR"), PdfDictionary() );
-        pResource = m_pObject->GetDictionary().GetKey( PdfName("DR") );
+        if( !this->GetObject()->GetDictionary().HasKey( PdfName("DR") ) )
+            this->GetObject()->GetDictionary().AddKey( PdfName("DR"), PdfDictionary() );
+        pResource = this->GetObject()->GetDictionary().GetKey( PdfName("DR") );
         
         if( !pResource->GetDictionary().HasKey( PdfName("Font") ) )
             pResource->GetDictionary().AddKey( PdfName("Font"), PdfDictionary() );
@@ -83,14 +83,14 @@ void PdfAcroForm::Init( EPdfAcroFormDefaulAppearance eDefaultAppearance )
         std::ostringstream oss;
         PdfLocaleImbue(oss);
         oss << "0 0 0 rg /" << pFont->GetIdentifier().GetName() << " 12 Tf";
-        m_pObject->GetDictionary().AddKey( PdfName("DA"), PdfString( oss.str() ) );
+        this->GetObject()->GetDictionary().AddKey( PdfName("DA"), PdfString( oss.str() ) );
     }
 }
 
 /*
 int PdfAcroForm::GetCount()
 {
-    PdfObject* pFields = m_pObject->GetDictionary().GetKey( PdfName("Fields") );
+    PdfObject* pFields = this->GetObject()->GetDictionary().GetKey( PdfName("Fields") );
     if( pFields ) 
     {
         return pFields->GetArray().size();
@@ -104,12 +104,12 @@ int PdfAcroForm::GetCount()
 
 void PdfAcroForm::SetNeedAppearances( bool bNeedAppearances )
 {
-    m_pObject->GetDictionary().AddKey( PdfName("NeedAppearances"), PdfVariant(bNeedAppearances) );    
+    this->GetObject()->GetDictionary().AddKey( PdfName("NeedAppearances"), PdfVariant(bNeedAppearances) );    
 }
 
 bool PdfAcroForm::GetNeedAppearances() const
 {
-    return m_pObject->GetDictionary().GetKeyAsBool( PdfName("NeedAppearances"), false );
+    return this->GetObject()->GetDictionary().GetKeyAsBool( PdfName("NeedAppearances"), false );
 }
 
 };

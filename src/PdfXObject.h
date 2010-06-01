@@ -151,7 +151,7 @@ class PODOFO_API PdfXObject : public PdfElement, public PdfCanvas {
 // -----------------------------------------------------
 inline PdfObject* PdfXObject::GetContents() const
 {
-    return m_pObject;
+    return this->GetNonConstObject();
 }
 
 // -----------------------------------------------------

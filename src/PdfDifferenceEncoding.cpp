@@ -2342,9 +2342,9 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDele
     
     m_baseEncoding = eBaseEncoding_WinAnsi;
 
-    if( m_pObject->GetDictionary().HasKey( PdfName("BaseEncoding") ) )
+    if( this->GetObject()->GetDictionary().HasKey( PdfName("BaseEncoding") ) )
     {
-        const PdfName & rBase = m_pObject->GetDictionary().GetKey( PdfName("BaseEncoding") )->GetName();
+        const PdfName & rBase = this->GetObject()->GetDictionary().GetKey( PdfName("BaseEncoding") )->GetName();
         
         if( rBase == PdfName("WinAnsiEncoding") )
             m_baseEncoding = eBaseEncoding_WinAnsi;
@@ -2355,9 +2355,9 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDele
     }    
 
     // Read the differences key
-    if( m_pObject->GetDictionary().HasKey( PdfName("Differences") ) )
+    if( this->GetObject()->GetDictionary().HasKey( PdfName("Differences") ) )
     {
-        const PdfArray & rDifferences = m_pObject->GetDictionary().GetKey( PdfName("Differences") )->GetArray();
+        const PdfArray & rDifferences = this->GetObject()->GetDictionary().GetKey( PdfName("Differences") )->GetArray();
         PdfArray::const_iterator it = rDifferences.begin();
 
         long long curCode = -1;
@@ -2380,8 +2380,8 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDele
 void PdfDifferenceEncoding::CreateID() 
 {
     std::ostringstream oss;
-    oss << "/DifferencesEncoding" << m_pObject->Reference().ObjectNumber() 
-        << "_" << m_pObject->Reference().GenerationNumber();
+    oss << "/DifferencesEncoding" << this->GetObject()->Reference().ObjectNumber() 
+        << "_" << this->GetObject()->Reference().GenerationNumber();
 
     m_id = PdfName( oss.str() );    
 }
@@ -2393,16 +2393,16 @@ void PdfDifferenceEncoding::Init()
     switch( m_baseEncoding ) 
     {
         case eBaseEncoding_WinAnsi:
-            m_pObject->GetDictionary().AddKey( PdfName("BaseEncoding"),
+            this->GetObject()->GetDictionary().AddKey( PdfName("BaseEncoding"),
                                                PdfName("WinAnsiEncoding") );
             break;
 
         case eBaseEncoding_MacRoman:
-            m_pObject->GetDictionary().AddKey( PdfName("BaseEncoding"),
+            this->GetObject()->GetDictionary().AddKey( PdfName("BaseEncoding"),
                                                PdfName("MacRomanEncoding") );
             break;
         case eBaseEncoding_MacExpert:
-            m_pObject->GetDictionary().AddKey( PdfName("BaseEncoding"),
+            this->GetObject()->GetDictionary().AddKey( PdfName("BaseEncoding"),
                                                PdfName("MacExpertEncoding") );
             break;
 
@@ -2416,21 +2416,21 @@ void PdfDifferenceEncoding::Init()
         PdfArray differences;
         m_differences.ToArray( differences );
     
-        m_pObject->GetDictionary().AddKey( PdfName("Differences"), differences );
+        this->GetObject()->GetDictionary().AddKey( PdfName("Differences"), differences );
     }                      
 }
 
 void PdfDifferenceEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
 {
-    rDictionary.AddKey( PdfName("Encoding"), m_pObject->Reference() );
+    rDictionary.AddKey( PdfName("Encoding"), this->GetObject()->Reference() );
 }
 
 pdf_utf16be PdfDifferenceEncoding::GetCharCode( int nIndex ) const
 {
     if( nIndex < this->GetFirstChar() ||
-	nIndex > this->GetLastChar() )
+        nIndex > this->GetLastChar() )
     {
-	PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
     }
 
     PdfName     name;

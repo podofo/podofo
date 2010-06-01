@@ -54,72 +54,72 @@ void PdfInfo::Init( int eInitial )
     
     if( (eInitial & ePdfInfoInitial_WriteCreationTime) == ePdfInfoInitial_WriteCreationTime ) 
     {
-        m_pObject->GetDictionary().AddKey( "CreationDate", str );
+        this->GetObject()->GetDictionary().AddKey( "CreationDate", str );
     }
 
     if( (eInitial & ePdfInfoInitial_WriteModificationTime) == ePdfInfoInitial_WriteModificationTime ) 
     {
-        m_pObject->GetDictionary().AddKey( "ModDate", str );
+        this->GetObject()->GetDictionary().AddKey( "ModDate", str );
     }
 
     if( (eInitial & ePdfInfoInitial_WriteProducer) == ePdfInfoInitial_WriteProducer ) 
     {
-        m_pObject->GetDictionary().AddKey( "Producer", PdfString(PRODUCER_STRING) );
+        this->GetObject()->GetDictionary().AddKey( "Producer", PdfString(PRODUCER_STRING) );
     }
 }
 
 const PdfString & PdfInfo::GetStringFromInfoDict( const PdfName & rName ) const
 {
-    PdfObject* pObj = m_pObject->GetDictionary().GetKey( rName );
+    const PdfObject* pObj = this->GetObject()->GetDictionary().GetKey( rName );
     
     return pObj && pObj->IsString() ? pObj->GetString() : PdfString::StringNull;
 }
 
 const PdfName & PdfInfo::GetNameFromInfoDict(const PdfName & rName) const
 {
-	PdfObject* pObj = m_pObject->GetDictionary().GetKey( rName );
+	const PdfObject* pObj = this->GetObject()->GetDictionary().GetKey( rName );
     
 	return pObj && pObj->IsName() ? pObj->GetName() : PdfName::KeyNull;
 }
 
 void PdfInfo::SetAuthor( const PdfString & sAuthor )
 {
-    m_pObject->GetDictionary().AddKey( "Author", sAuthor );
+    this->GetObject()->GetDictionary().AddKey( "Author", sAuthor );
 }
 
 void PdfInfo::SetCreator( const PdfString & sCreator )
 {
-    m_pObject->GetDictionary().AddKey( "Creator", sCreator );
+    this->GetObject()->GetDictionary().AddKey( "Creator", sCreator );
 }
 
 void PdfInfo::SetKeywords( const PdfString & sKeywords )
 {
-    m_pObject->GetDictionary().AddKey( "Keywords", sKeywords );
+    this->GetObject()->GetDictionary().AddKey( "Keywords", sKeywords );
 }
 
 void PdfInfo::SetSubject( const PdfString & sSubject )
 {
-    m_pObject->GetDictionary().AddKey( "Subject", sSubject );
+    this->GetObject()->GetDictionary().AddKey( "Subject", sSubject );
 }
 
 void PdfInfo::SetTitle( const PdfString & sTitle )
 {
-    m_pObject->GetDictionary().AddKey( "Title", sTitle );
+    this->GetObject()->GetDictionary().AddKey( "Title", sTitle );
 }
 
 // Peter Petrov 27 April 2008
 // We have added a SetProducer() method in PdfInfo
 void PdfInfo::SetProducer( const PdfString & sProducer )
 {
-    m_pObject->GetDictionary().AddKey( "Producer", sProducer );
+    this->GetObject()->GetDictionary().AddKey( "Producer", sProducer );
 }
 
 void PdfInfo::SetTrapped(const PdfName & sTrapped)
 {
 	if((sTrapped.GetEscapedName() == "True" ) || (sTrapped.GetEscapedName() == "False" ))
-		m_pObject->GetDictionary().AddKey( "Trapped", sTrapped );
+		this->GetObject()->GetDictionary().AddKey( "Trapped", sTrapped );
 	else
-		m_pObject->GetDictionary().AddKey( "Trapped", PdfName( "Unknown" ) );
+		this->GetObject()->GetDictionary().AddKey( "Trapped", PdfName( "Unknown" ) );
 }
 
 };

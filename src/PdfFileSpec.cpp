@@ -35,7 +35,7 @@ PdfFileSpec::PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfDocument* pP
 {
     PdfObject* pEmbeddedStream;
 
-    m_pObject->GetDictionary().AddKey( "F", this->CreateFileSpecification( pszFilename ) );
+    this->GetObject()->GetDictionary().AddKey( "F", this->CreateFileSpecification( pszFilename ) );
 
     if( bEmbedd ) 
     {
@@ -46,7 +46,7 @@ PdfFileSpec::PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfDocument* pP
 
         ef.AddKey( "F",  pEmbeddedStream->Reference() );
 
-        m_pObject->GetDictionary().AddKey( "EF", ef );
+        this->GetObject()->GetDictionary().AddKey( "EF", ef );
     }
 }
 
@@ -55,7 +55,7 @@ PdfFileSpec::PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfVecObjects* 
 {
     PdfObject* pEmbeddedStream;
 
-    m_pObject->GetDictionary().AddKey( "F", this->CreateFileSpecification( pszFilename ) );
+    this->GetObject()->GetDictionary().AddKey( "F", this->CreateFileSpecification( pszFilename ) );
 
     if( bEmbedd ) 
     {
@@ -66,7 +66,7 @@ PdfFileSpec::PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfVecObjects* 
 
         ef.AddKey( "F",  pEmbeddedStream->Reference() );
 
-        m_pObject->GetDictionary().AddKey( "EF", ef );
+        this->GetObject()->GetDictionary().AddKey( "EF", ef );
     }
 }
 
@@ -75,7 +75,7 @@ PdfFileSpec::PdfFileSpec( const char* pszFilename, const unsigned char* data, pt
 {
     PdfObject* pEmbeddedStream;
 
-    m_pObject->GetDictionary().AddKey( "F", this->CreateFileSpecification( pszFilename ) );
+    this->GetObject()->GetDictionary().AddKey( "F", this->CreateFileSpecification( pszFilename ) );
 
     PdfDictionary ef;
 
@@ -84,7 +84,7 @@ PdfFileSpec::PdfFileSpec( const char* pszFilename, const unsigned char* data, pt
 
     ef.AddKey( "F",  pEmbeddedStream->Reference() );
 
-    m_pObject->GetDictionary().AddKey( "EF", ef );
+    this->GetObject()->GetDictionary().AddKey( "EF", ef );
 }
 
 PdfFileSpec::PdfFileSpec( PdfObject* pObject )
@@ -136,8 +136,10 @@ void PdfFileSpec::EmbeddFileFromMem( PdfObject* pStream, const unsigned char* da
 
 const PdfString & PdfFileSpec::GetFilename() const
 {
-    if( m_pObject->GetDictionary().HasKey( "F" ) )
-        return m_pObject->GetDictionary().GetKey( "F" )->GetString();
+    if( this->GetObject()->GetDictionary().HasKey( "F" ) )
+    {
+        return this->GetObject()->GetDictionary().GetKey( "F" )->GetString();
+    }
 
     PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
 }
