@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Dominik Seichter                                *
+ *   Copyright (C) 2010 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,32 +18,48 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PAGE_TEST_H_
-#define _PAGE_TEST_H_
+#include "TestUtils.h"
 
-#include <cppunit/extensions/HelperMacros.h>
+#include <stdlib.h>
+#include <string.h>
 
-namespace PoDoFo {
-class PdfPage;
-};
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
 
-/** This test tests the class PdfPagesTree
- */
-class PageTest : public CppUnit::TestFixture
+#ifdef CreateFont
+#undef CreateFont
+#endif // CreateFont
+
+#ifdef DrawText
+#undef DrawText
+#endif // DrawText
+
+#endif // _WIN32 || _WIN64
+
+std::string TestUtils::getTempFilename()
 {
-  CPPUNIT_TEST_SUITE( PageTest );
-  CPPUNIT_TEST( testEmptyContents );
-  CPPUNIT_TEST( testEmptyContentsStream );
-  CPPUNIT_TEST_SUITE_END();
+    const long lLen = 256;
+    char tmpFilename[lLen];
+#if defined(_WIN32) || defined(_WIN64)
+	char tmpDir[lLen];
+	GetTempPath(lLen, tmpDir);
+	GetTempFileName(tmpDir, "podofo", 0, tmpFilename);
+#else
+    strncpy( tmpFilename, "/tmp/podofoXXXXXX", lLen);
+    int handle = mkstemp(tmpFilename);
+    close(handle);
+#endif // _WIN32 || _WIN64
+    std::string sFilename = tmpFilename;
+    return sFilename;
+}
 
- public:
-  void setUp();
-  void tearDown();
+void TestUtils::deleteFile( const char* pszFilename )
+{
+#if defined(_WIN32) || defined(_WIN64)
+    _unlink(pszFilename);
+#else
+    unlink(pszFilename);
+#endif // _WIN32 || _WIN64
 
-  void testEmptyContents();
-  void testEmptyContentsStream();
-};
-
-#endif // _PAGE_TEST_H_
-
+}
 

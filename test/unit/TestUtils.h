@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Dominik Seichter                                *
+ *   Copyright (C) 2010 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,32 +18,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _PAGE_TEST_H_
-#define _PAGE_TEST_H_
+#ifndef _TEST_UTILS_H_
+#define _TEST_UTILS_H_
 
-#include <cppunit/extensions/HelperMacros.h>
+#include <string>
 
-namespace PoDoFo {
-class PdfPage;
-};
-
-/** This test tests the class PdfPagesTree
+/**
+ * This class contains utility methods that are
+ * often needed when writing tests.
  */
-class PageTest : public CppUnit::TestFixture
-{
-  CPPUNIT_TEST_SUITE( PageTest );
-  CPPUNIT_TEST( testEmptyContents );
-  CPPUNIT_TEST( testEmptyContentsStream );
-  CPPUNIT_TEST_SUITE_END();
+class TestUtils {
 
- public:
-  void setUp();
-  void tearDown();
-
-  void testEmptyContents();
-  void testEmptyContentsStream();
+public:
+    static std::string getTempFilename();
+    static void deleteFile( const char* pszFilename );
 };
 
-#endif // _PAGE_TEST_H_
-
-
+#endif // _TEST_UTILS_H_

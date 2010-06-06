@@ -46,3 +46,11 @@ void PageTest::testEmptyContents()
     CPPUNIT_ASSERT( NULL != page.GetContents() );
     
 }
+
+void PageTest::testEmptyContentsStream()
+{
+    PdfMemDocument doc;
+    PdfPage* pPage doc.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+
+    doc.Write( 
+}
