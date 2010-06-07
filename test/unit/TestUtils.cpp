@@ -20,6 +20,7 @@
 
 #include "TestUtils.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -49,6 +50,8 @@ std::string TestUtils::getTempFilename()
     int handle = mkstemp(tmpFilename);
     close(handle);
 #endif // _WIN32 || _WIN64
+
+    printf("Created tempfile: %s\n", tmpFilename);
     std::string sFilename = tmpFilename;
     return sFilename;
 }

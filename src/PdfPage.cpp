@@ -30,18 +30,14 @@
 namespace PoDoFo {
 
 PdfPage::PdfPage( const PdfRect & rSize, PdfDocument* pParent )
-    : PdfElement( "Page", pParent ), PdfCanvas()
+    : PdfElement( "Page", pParent ), PdfCanvas(), m_pContents( NULL )
 {
-    m_pContents = new PdfContents( pParent );
-
     InitNewPage( rSize );
 }
 
 PdfPage::PdfPage( const PdfRect & rSize, PdfVecObjects* pParent )
-    : PdfElement( "Page", pParent ), PdfCanvas()
+    : PdfElement( "Page", pParent ), PdfCanvas(), m_pContents( NULL )
 {
-    m_pContents = new PdfContents( pParent );
-
     InitNewPage( rSize );
 }
 
@@ -63,10 +59,13 @@ PdfPage::PdfPage( PdfObject* pObject, const std::deque<PdfObject*> & rListOfPare
 
     PdfObject* pContents = this->GetObject()->GetIndirectKey( "Contents" );
     if (pContents)
+    {
         m_pContents = new PdfContents( pContents );
+    }
     else
     {
-        m_pContents = new PdfContents( this );;
+        // Create object on demand
+        m_pContents =  NULL;
     }
 }
 
@@ -95,10 +94,36 @@ void PdfPage::InitNewPage( const PdfRect & rSize )
 
     m_pResources = this->GetObject()->GetIndirectKey( "Resources" );
     m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::GetProcSet() );
+}
 
-    // Add contents to page object
-    // m_pContents must have been initialized before calling this method
-    this->GetObject()->GetDictionary().AddKey( PdfName::KeyContents, m_pContents->GetContents()->Reference());
+void PdfPage::CreateContents() 
+{
+    if( !m_pContents ) 
+    {
+        m_pContents = new PdfContents( this );
+        this->GetObject()->GetDictionary().AddKey( PdfName::KeyContents, 
+                                                   m_pContents->GetContents()->Reference());   
+    }
+}
+
+PdfObject* PdfPage::GetContents() const 
+{ 
+    if( !m_pContents ) 
+    {
+        const_cast<PdfPage*>(this)->CreateContents();
+    }
+
+    return m_pContents->GetContents(); 
+}
+
+PdfObject* PdfPage::GetContentsForAppending() const
+{ 
+    if( !m_pContents ) 
+    {
+        const_cast<PdfPage*>(this)->CreateContents();
+    }
+
+    return m_pContents->GetContentsForAppending(); 
 }
 
 PdfRect PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize, bool bLandscape )

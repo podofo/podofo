@@ -271,6 +271,7 @@ const PdfObject & PdfObject::operator=( const PdfObject & rhs )
     const_cast<PdfObject*>(&rhs)->DelayedStreamLoad();
 
     m_reference     = rhs.m_reference;
+    m_pOwner        = rhs.m_pOwner;
 
     PdfVariant::operator=( rhs );
 

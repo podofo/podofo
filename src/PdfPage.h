@@ -116,14 +116,14 @@ class PODOFO_API PdfPage : public PdfElement, public PdfCanvas {
      *  drawing commands to the stream of the Contents object.
      *  \returns a contents object
      */
-    virtual PdfObject* GetContents() const { return m_pContents->GetContents(); }
+    virtual PdfObject* GetContents() const;
 
     /** Get access an object that you can use to ADD drawing to.
      *  If you want to draw onto the page, you have to add 
      *  drawing commands to the stream of the Contents object.
      *  \returns a contents object
      */
-    virtual PdfObject* GetContentsForAppending() const { return m_pContents->GetContentsForAppending(); }
+    virtual PdfObject* GetContentsForAppending() const;
 
     /** Get access to the resources object of this page.
      *  This is most likely an internal object.
@@ -239,6 +239,13 @@ class PODOFO_API PdfPage : public PdfElement, public PdfCanvas {
      * @param rSize page size
      */
     void InitNewPage( const PdfRect & rSize );
+
+    /**
+     * Create the internal PdfContents object.
+     * Call this before accessing m_pContents as
+     * the object is only created if needed.
+     */
+    void CreateContents();
 
     /** Get the bounds of a specified page box in PDF units.
      * This function is internal, since there are wrappers for all standard boxes
