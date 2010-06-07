@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Dominik Seichter                                *
+ *   Copyright (C) 2010 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,25 +18,32 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "BasicTypeTest.h"
-#include <podofo.h>
+#ifndef _ELEMENT_TEST_H_
+#define _ELEMENT_TEST_H_
 
-#include <limits>
+#include <cppunit/extensions/HelperMacros.h>
 
-using namespace PoDoFo;
-
-// Registers the fixture into the 'registry'
-CPPUNIT_TEST_SUITE_REGISTRATION( BasicTypeTest );
-
-void BasicTypeTest::setUp()
+class ElementTest : public CppUnit::TestFixture
 {
-}
+  CPPUNIT_TEST_SUITE( ElementTest );
+  CPPUNIT_TEST( testTypeToIndexAnnotation );
+  CPPUNIT_TEST( testTypeToIndexAction );
+  CPPUNIT_TEST( testTypeToIndexAnnotationUnknown );
+  CPPUNIT_TEST( testTypeToIndexActionUnknown );
+  CPPUNIT_TEST_SUITE_END();
 
-void BasicTypeTest::tearDown()
-{
-}
+ public:
+  void setUp();
+  void tearDown();
 
-void BasicTypeTest::testXrefOffsetTypeSize() 
-{
-    CPPUNIT_ASSERT_MESSAGE("pdf_uint64 is big enough to hold an xref entry", std::numeric_limits<pdf_uint64>::max() >= PODOFO_ULL_LITERAL(9999999999) );
-}
+  void testTypeToIndexAnnotation();
+  void testTypeToIndexAction();
+  void testTypeToIndexAnnotationUnknown();
+  void testTypeToIndexActionUnknown();
+
+ private:
+};
+
+#endif // _ELEMENT_TEST_H_
+
+

@@ -25,7 +25,7 @@
 
 namespace PoDoFo {
 
-const long  PdfAction::s_lNumActions = 19;
+const long  PdfAction::s_lNumActions = 18;
 const char* PdfAction::s_names[] = {
     "GoTo",
     "GoToR",
@@ -78,13 +78,13 @@ PdfAction::PdfAction( PdfObject* pObject )
     // The typename /Action is optional for PdfActions
     : PdfElement( NULL, pObject )
 {
-    m_eType = static_cast<EPdfAction>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions ));
+    m_eType = static_cast<EPdfAction>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions, ePdfAction_Unknown ));
 }
 
 PdfAction::PdfAction( const PdfAction & rhs )
     : PdfElement( "Action", rhs.GetNonConstObject() )
 {
-    m_eType = static_cast<EPdfAction>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions ));
+    m_eType = static_cast<EPdfAction>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions, ePdfAction_Unknown ));
 }
 
 void PdfAction::SetURI( const PdfString & sUri )

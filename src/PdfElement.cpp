@@ -89,18 +89,22 @@ const char* PdfElement::TypeNameForIndex( int i, const char** ppTypes, long lLen
     return ( i >= lLen ? NULL : ppTypes[i] );
 }
 
-int PdfElement::TypeNameToIndex( const char* pszType, const char** ppTypes, long lLen ) const
+int PdfElement::TypeNameToIndex( const char* pszType, const char** ppTypes, long lLen, int nUnknownValue ) const
 {
     int i;
 
     if( !pszType )
-        return --lLen;
+        return nUnknownValue;
 
     for( i=0; i<lLen; i++ )
-        if( strcmp( pszType, ppTypes[i] ) == 0 )
+    {
+        if( ppTypes[i] && strcmp( pszType, ppTypes[i] ) == 0 ) 
+        {
             return i;
-
-    return --lLen;
+        }
+    }
+    
+    return nUnknownValue;
 }
 PdfObject* PdfElement::CreateObject( const char* pszType )
 {

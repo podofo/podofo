@@ -128,10 +128,11 @@ class PODOFO_API PdfElement {
      *  \param ppTypes an array of strings containing
      *         the string mapping of the index
      *  \param lLen the length of the string array
+     *  \param nUnknownValue the value that is returned when the type is unknown
      *
      *  \returns the index of the string in the array
      */
-    int TypeNameToIndex( const char* pszType, const char** ppTypes, long lLen ) const;
+    int TypeNameToIndex( const char* pszType, const char** ppTypes, long lLen, int nUnknownValue ) const;
 
     /** Create a PdfObject in the parent of this PdfElement which
      *  might either be a PdfStreamedDocument, a PdfDocument or

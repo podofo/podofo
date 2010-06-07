@@ -92,7 +92,7 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
 PdfAnnotation::PdfAnnotation( PdfObject* pObject, PdfPage* pPage )
     : PdfElement( "Annot", pObject ), m_eAnnotation( ePdfAnnotation_Unknown ), m_pAction( NULL ), m_pFileSpec( NULL ), m_pPage( pPage )
 {
-    m_eAnnotation = static_cast<EPdfAnnotation>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( PdfName::KeySubtype ).GetName().c_str(), s_names, s_lNumActions ));
+    m_eAnnotation = static_cast<EPdfAnnotation>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( PdfName::KeySubtype ).GetName().c_str(), s_names, s_lNumActions, ePdfAnnotation_Unknown ));
 }
 
 PdfAnnotation::~PdfAnnotation()

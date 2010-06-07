@@ -94,7 +94,7 @@ PdfPage* PdfPagesTree::GetPage( const PdfReference & ref )
     for( int i=0;i<this->GetTotalNumberOfPages();i++ ) 
     {
         PdfPage* pPage = this->GetPage( i );
-        if( pPage->GetObject()->Reference() == ref ) 
+        if( pPage && pPage->GetObject()->Reference() == ref ) 
             return pPage;
     }
     
