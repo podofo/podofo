@@ -39,9 +39,12 @@ class PODOFO_API PdfFontMetricsObject : public PdfFontMetrics {
     /** Create a font metrics object based on an existing PdfObject
      *
      *  \param pObject an existing font descriptor object
+     *  \param pFontObject that references this font descriptor
      *  \param pEncoding a PdfEncoding which will NOT be owned by PdfFontMetricsObject
      */
-    PdfFontMetricsObject( PdfObject* pDescriptor, const PdfEncoding* const pEncoding );
+    PdfFontMetricsObject( PdfObject* pDescriptor, 
+                          PdfObject* pFontObject,
+                          const PdfEncoding* const pEncoding );
 
     virtual ~PdfFontMetricsObject();
 

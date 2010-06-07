@@ -151,10 +151,26 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library* pLibrary, PdfObject* pObject )
     PdfFont*        pFont       = NULL;
     PdfObject*      pDescriptor = NULL;
     PdfObject*      pEncoding   = NULL;
+    const PdfEncoding* pPdfEncoding;
 
     if( pObject->GetDictionary().GetKey( PdfName::KeyType )->GetName() != PdfName("Font") )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
+    pEncoding = pObject->GetIndirectKey( "Encoding" );
+
+    if( !pEncoding ) 
+    {
+        // Encoding is an optional key, if it is missing
+        // we have to use the built-in encoding of the font.
+        //pPdfEncoding = PdfEncodingFactory::CreateBuiltInEncoding( pObject );
+        PODOFO_RAISE_ERROR_INFO( ePdfError_NotImplemented, 
+                                 "Using built-in font encodings is not yet supported." );
+    }
+    else
+    {
+        pPdfEncoding = PdfEncodingFactory::CreateEncoding( pEncoding );
     }
 
     const PdfName & rSubType = pObject->GetDictionary().GetKey( PdfName::KeySubtype )->GetName();
@@ -165,12 +181,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library* pLibrary, PdfObject* pObject )
         PdfObject* pFontObject = pObject->GetOwner()->GetObject( descendant[0].GetReference() );
 
         pDescriptor = pFontObject->GetIndirectKey( "FontDescriptor" );
-        pEncoding   = pObject->GetIndirectKey( "Encoding" );
-
-        const PdfEncoding* const pPdfEncoding = 
-            PdfEncodingFactory::CreateEncoding( pEncoding );
-
-        pMetrics    = new PdfFontMetricsObject( pDescriptor, pPdfEncoding );
+        pMetrics    = new PdfFontMetricsObject( pDescriptor, pFontObject, pPdfEncoding );
         pFont       = new PdfFontCID( pMetrics, pPdfEncoding, pObject, false );
     }
     else if( rSubType == PdfName("Type1") ) 
@@ -179,23 +190,13 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library* pLibrary, PdfObject* pObject )
         //       the 14 standard fonts. This suggestions is 
         //       deprecated now, but give us problems with old documents.
         pDescriptor = pObject->GetIndirectKey( "FontDescriptor" );
-        pEncoding   = pObject->GetIndirectKey( "Encoding" );
-
-        const PdfEncoding* const pPdfEncoding = 
-            PdfEncodingFactory::CreateEncoding( pEncoding );
-
-        pMetrics    = new PdfFontMetricsObject( pDescriptor, pPdfEncoding );
+        pMetrics    = new PdfFontMetricsObject( pDescriptor, pObject, pPdfEncoding );
         pFont       = new PdfFontType1( pMetrics, pPdfEncoding, pObject );
     }
     else if( rSubType == PdfName("TrueType") ) 
     {
         pDescriptor = pObject->GetIndirectKey( "FontDescriptor" );
-        pEncoding   = pObject->GetIndirectKey( "Encoding" );
-
-        const PdfEncoding* const pPdfEncoding = 
-            PdfEncodingFactory::CreateEncoding( pEncoding );
-
-        pMetrics    = new PdfFontMetricsObject( pDescriptor, pPdfEncoding );
+        pMetrics    = new PdfFontMetricsObject( pDescriptor, pObject, pPdfEncoding );
         pFont       = new PdfFontTrueType( pMetrics, pPdfEncoding, pObject );
     }
 

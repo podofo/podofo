@@ -38,6 +38,11 @@ Util::PdfMutex PdfEncodingFactory::s_mutex;
 
 const PdfEncoding* PdfEncodingFactory::CreateEncoding( PdfObject* pObject )
 {
+    if( !pObject ) 
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
     if( pObject->IsReference() )
     {
         // resolve any references
