@@ -326,9 +326,9 @@ void EncryptTest::testEnableAlgorithms()
 
     PdfObject object;
     object.GetDictionary().AddKey(PdfName("Filter"), PdfName("Standard"));
-    object.GetDictionary().AddKey(PdfName("V"), 4L);
-    object.GetDictionary().AddKey(PdfName("R"), 4L);
-    object.GetDictionary().AddKey(PdfName("P"), 1L);
+    object.GetDictionary().AddKey(PdfName("V"), static_cast<pdf_int64>(4L));
+    object.GetDictionary().AddKey(PdfName("R"), static_cast<pdf_int64>(4L));
+    object.GetDictionary().AddKey(PdfName("P"), static_cast<pdf_int64>(1L));
     object.GetDictionary().AddKey(PdfName("O"), PdfString(""));
     object.GetDictionary().AddKey(PdfName("U"), PdfString(""));
 
