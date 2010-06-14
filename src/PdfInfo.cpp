@@ -72,7 +72,7 @@ const PdfString & PdfInfo::GetStringFromInfoDict( const PdfName & rName ) const
 {
     const PdfObject* pObj = this->GetObject()->GetDictionary().GetKey( rName );
     
-    return pObj && pObj->IsString() ? pObj->GetString() : PdfString::StringNull;
+    return pObj && (pObj->IsString() || pObj->IsHexString()) ? pObj->GetString() : PdfString::StringNull;
 }
 
 const PdfName & PdfInfo::GetNameFromInfoDict(const PdfName & rName) const
