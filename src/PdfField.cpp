@@ -867,7 +867,7 @@ int PdfListField::GetSelectedItem() const
     if( m_pObject->GetDictionary().HasKey( PdfName("V") ) )
     {
         PdfObject* pValue = m_pObject->GetDictionary().GetKey( PdfName("V") );
-        if( pValue->IsString() )
+        if( pValue->IsString() || pValue->IsHexString() )
         {
             PdfString value = pValue->GetString();
             for( int i=0;i<static_cast<int>(this->GetItemCount());i++ ) 
