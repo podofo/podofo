@@ -40,8 +40,8 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pDescriptor,
 
     m_sName        = pDescriptor->GetDictionary().GetKey( "FontName" )->GetName();
     m_bbox         = pDescriptor->GetDictionary().GetKey( "FontBBox" )->GetArray();
-    m_nFirst       = pDescriptor->GetDictionary().GetKeyAsLong( "FirstChar", 0L );
-    m_nLast        = pDescriptor->GetDictionary().GetKeyAsLong( "LastChar", 0L );
+    m_nFirst       = static_cast<int>(pDescriptor->GetDictionary().GetKeyAsLong( "FirstChar", 0L ));
+    m_nLast        = static_cast<int>(pDescriptor->GetDictionary().GetKeyAsLong( "LastChar", 0L ));
     m_nWeight      = static_cast<unsigned int>(pDescriptor->GetDictionary().GetKeyAsLong( "FontWeight", 400L ));
     m_nItalicAngle = static_cast<int>(pDescriptor->GetDictionary().GetKeyAsLong( "ItalicAngle", 0L ));
 
@@ -107,11 +107,13 @@ void PdfFontMetricsObject::GetWidthArray( PdfVariant & var, unsigned int nFirst,
 double PdfFontMetricsObject::GetGlyphWidth( int nGlyphId ) const
 {
     // TODO
+    return 0.0;
 }
 
 long PdfFontMetricsObject::GetGlyphId( long lUnicode ) const
 {
     // TODO
+    return 0L;
 }
 
 // -----------------------------------------------------

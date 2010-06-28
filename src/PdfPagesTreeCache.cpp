@@ -76,7 +76,7 @@ void PdfPagesTreeCache::InsertPage( int nIndex )
             m_deqPageObjs.resize( nIndex );
         }
         
-        m_deqPageObjs.insert( m_deqPageObjs.begin() + nIndex, NULL );
+        m_deqPageObjs.insert( m_deqPageObjs.begin() + nIndex, static_cast<PdfPage*>(NULL) );
     }
 }
 

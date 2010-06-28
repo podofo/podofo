@@ -500,7 +500,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     PdfFontMetrics* pMetrics;
     PdfFont*        pFont = NULL;
     try {
-        pMetrics = new PdfFontMetrics( &m_ftLibrary, pBuffer, nLen );
+        pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, pBuffer, nLen );
         pFont    = this->CreateFontObject( itSorted, vecContainer, pMetrics, 
 					   bEmbedd, bBold, bItalic, pszFontName, pEncoding );
     } catch( PdfError & error ) {
@@ -562,7 +562,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     PdfFontMetrics* pMetrics;
     PdfFont*        pFont = NULL;
     try {
-        pMetrics = new PdfFontMetrics( &m_ftLibrary, pBuffer, nLen );
+        pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, pBuffer, nLen );
         pFont    = this->CreateFontObject( itSorted, vecContainer, pMetrics, 
 					   bEmbedd, bBold, bItalic, pmbFontName, pEncoding );
         free( pmbFontName );
