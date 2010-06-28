@@ -52,15 +52,22 @@ void PdfStream::GetFilteredCopy( PdfOutputStream* pStream ) const
         PdfOutputStream* pDecodeStream = PdfFilterFactory::CreateDecodeStream( vecFilters, pStream, 
                                                                                m_pParent ? 
                                                                                &(m_pParent->GetDictionary()) : NULL  );
-        
-        pDecodeStream->Write( const_cast<char*>(this->GetInternalBuffer()), this->GetInternalBufferSize() );
-        pDecodeStream->Close();
-
+        try {
+            pDecodeStream->Write( const_cast<char*>(this->GetInternalBuffer()), this->GetInternalBufferSize() );
+            pDecodeStream->Close();
+        }
+        catch( const PdfError & e ) 
+        {
+            delete pDecodeStream;
+            throw e;
+        }
         delete pDecodeStream;
     }
     else
+    {
         // Also work on unencoded streams
         pStream->Write( const_cast<char*>(this->GetInternalBuffer()), this->GetInternalBufferSize() );
+    }
 }
 
 void PdfStream::GetFilteredCopy( char** ppBuffer, pdf_long* lLen ) const
