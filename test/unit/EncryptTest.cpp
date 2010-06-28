@@ -333,7 +333,7 @@ void EncryptTest::testEnableAlgorithms()
     object.GetDictionary().AddKey(PdfName("U"), PdfString(""));
 
     try {
-        PdfEncrypt* pEncrypt = PdfEncrypt::CreatePdfEncrypt( &object );
+        (void)PdfEncrypt::CreatePdfEncrypt( &object );
         CPPUNIT_ASSERT( false );
     } catch( PdfError & rError ) {
         CPPUNIT_ASSERT_EQUAL( rError.GetError(), ePdfError_UnsupportedFilter );
