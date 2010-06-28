@@ -36,6 +36,11 @@ namespace PoDoFo {
 PdfContentsTokenizer::PdfContentsTokenizer( PdfCanvas* pCanvas )
     : PdfTokenizer(), m_readingInlineImgData(false)
 {
+    if( !pCanvas ) 
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
     PdfObject* pContents = pCanvas->GetContents();
     if( pContents && pContents->IsArray()  )
     {
