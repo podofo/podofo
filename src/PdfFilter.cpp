@@ -132,7 +132,7 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
      */
     PdfFilteredDecodeStream( PdfOutputStream* pOutputStream, const EPdfFilter eFilter, bool bOwnStream,
                              const PdfDictionary* pDecodeParms = NULL )
-        : m_pOutputStream( pOutputStream )
+        : m_pOutputStream( pOutputStream ), m_bFilterFailed( false )
     {
         m_filter = PdfFilterFactory::Create( eFilter );
         if( !m_filter.get() ) 
@@ -158,18 +158,30 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
      */
     virtual pdf_long Write( const char* pBuffer, pdf_long lLen )
     {
-        m_filter->DecodeBlock( pBuffer, lLen );
+        try {
+            m_filter->DecodeBlock( pBuffer, lLen );
+        }
+        catch( const PdfError & e ) 
+        {
+            m_bFilterFailed = true;
+            throw e;
+        }
+
         return 0;
     }
 
     virtual void Close() 
     {
-        m_filter->EndDecode();
+        if( !m_bFilterFailed ) 
+        {
+            m_filter->EndDecode();
+        }
     }
 
 private:
     PdfOutputStream*         m_pOutputStream;
     std::auto_ptr<PdfFilter> m_filter;
+    bool                     m_bFilterFailed;
 };
 
 
