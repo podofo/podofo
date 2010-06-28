@@ -159,7 +159,6 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library* pLibrary, PdfObject* pObject )
     }
 
     pEncoding = pObject->GetIndirectKey( "Encoding" );
-
     if( !pEncoding ) 
     {
         // Encoding is an optional key, if it is missing
@@ -192,6 +191,15 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library* pLibrary, PdfObject* pObject )
         pDescriptor = pObject->GetIndirectKey( "FontDescriptor" );
         pMetrics    = new PdfFontMetricsObject( pDescriptor, pObject, pPdfEncoding );
         pFont       = new PdfFontType1( pMetrics, pPdfEncoding, pObject );
+    }
+    else if( rSubType == PdfName("Type3") ) 
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_NotImplemented, "Type3 fonts are not yet supported." );
+        /*
+        pDescriptor = pObject->GetIndirectKey( "FontDescriptor" );
+        pMetrics    = new PdfFontMetricsObject( pDescriptor, pObject, pPdfEncoding );
+        pFont       = new PdfFontType3( pMetrics, pPdfEncoding, pObject );
+        */
     }
     else if( rSubType == PdfName("TrueType") ) 
     {
