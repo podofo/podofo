@@ -75,7 +75,6 @@ PdfPage* PdfPagesTree::GetPage( int nIndex )
     // Not in cache -> search tree
     PdfObjectList lstParents;
     PdfObject* pObj = this->GetPageNode(nIndex, this->GetRoot(), lstParents);
-    
     if( pObj ) 
     {
         pPage = new PdfPage( pObj, lstParents );
@@ -221,16 +220,14 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
 
     if( !pParent->GetDictionary().HasKey( PdfName("Kids") ) )
     {
-        //printf("Does not have kids\n");
-        return NULL;
+        PODOFO_RAISE_ERROR( ePdfError_InvalidKey );
     }
 
     
-    const PdfObject* pObj = pParent->GetDictionary().GetKey( "Kids" );
+    const PdfObject* pObj = pParent->GetIndirectKey( "Kids" );
     if( !pObj->IsArray() )
     {
-        //printf("Is no array\n");
-        return NULL;
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
     const PdfArray & rKidsArray = pObj->GetArray(); 
@@ -327,7 +324,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
 
 PdfObject* PdfPagesTree::GetPageNodeFromArray( int nPageNum, const PdfArray & rKidsArray, PdfObjectList & rLstParents )
 {
-    if ( static_cast<size_t>(nPageNum) >= rKidsArray.GetSize() )
+    if( static_cast<size_t>(nPageNum) >= rKidsArray.GetSize() )
     {
         PdfError::LogMessage( eLogSeverity_Critical, "Requesting page index %i from array of size %i\n", 
                               nPageNum, rKidsArray.size() );
@@ -337,15 +334,17 @@ PdfObject* PdfPagesTree::GetPageNodeFromArray( int nPageNum, const PdfArray & rK
     // TODO: Fill cache immediately with all pages 
     //       in this kids array
     PdfVariant rVar = rKidsArray[nPageNum];
-    while ( true ) 
+    while( true ) 
     {
-        if ( rVar.IsArray() ) 
+        if( rVar.IsArray() ) 
         {
             // Fixes some broken PDFs who have trees with 1 element kids arrays
-            return GetPageNodeFromArray( nPageNum, rVar.GetArray(), rLstParents );
+            return GetPageNodeFromArray( 0, rVar.GetArray(), rLstParents );
         }
-        else if ( !rVar.IsReference() )
-            return NULL;	// can't handle inline pages just yet...
+        else if( !rVar.IsReference() )
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_NotImplemented, "Cannot handle inline pages." );
+        }
 
         PdfObject* pgObject = GetRoot()->GetOwner()->GetObject( rVar.GetReference() );
         //printf("Reading %s\n", pgObject->Reference().ToString().c_str());
