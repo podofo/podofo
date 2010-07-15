@@ -121,8 +121,8 @@ void PdfXRefStreamParserObject::ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], c
         pdf_int64 nFirstObj = *it; ++it;
         pdf_int64 nCount    = *it; ++it;
 
-        pdf_int64 nFirstObjOrg = nFirstObj;
-        pdf_int64 nCountOrg = nCount;
+        //pdf_int64 nFirstObjOrg = nFirstObj;
+        //pdf_int64 nCountOrg = nCount;
         
         //printf("\n");
         //printf("nFirstObj=%i\n", static_cast<int>(nFirstObj));
@@ -137,7 +137,9 @@ void PdfXRefStreamParserObject::ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], c
             //printf("nCount=%i ", static_cast<int>(nCount));
             //printf("pBuffer=%li ", (long)(pBuffer - pStart));
             //printf("pEnd=%li ", lBufferLen);
-            ReadXRefStreamEntry( pBuffer, lBufferLen, nW, nFirstObj++ );
+			if( ! (*m_pOffsets)[nFirstObj].bParsed )
+				ReadXRefStreamEntry( pBuffer, lBufferLen, nW, nFirstObj );
+			nFirstObj++ ;
             pBuffer += entryLen;
             --nCount;
         }
