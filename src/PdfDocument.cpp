@@ -277,8 +277,14 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
             PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, 0 ) );
             if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Parent" ) )
                 pObj->GetDictionary().RemoveKey( "Parent" );
+
+			// Ulrich Arnold 26.7.2010: make sure inherited mediabox from pages is transferred to page
+			PdfRect mediaboxRect = pPage->GetMediaBox();
+			PdfVariant mediaboxVariant;
+		    mediaboxRect.ToVariant( mediaboxVariant );
+			pObj->GetDictionary().AddKey( "MediaBox", mediaboxVariant );
             
-            printf("Inserting at: %i\n", this->GetPageCount()-1 );
+            //printf("Inserting at: %i\n", this->GetPageCount()-1 );
             m_pPagesTree->InsertPage( this->GetPageCount()-1, pObj );
         }
         
@@ -395,7 +401,9 @@ PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfM
             pObjStream->EndAppend();
         }
 		else
+        {
 	        PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+        }
     }
 
     return box;

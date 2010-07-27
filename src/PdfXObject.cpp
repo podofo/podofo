@@ -25,11 +25,14 @@
 #include "PdfRect.h"
 #include "PdfPage.h"
 #include "PdfVariant.h"
+#include "PdfMemDocument.h"
 #include "PdfDocument.h"
 #include "PdfLocale.h"
 #include "PdfDefinesPrivate.h"
 
 #include <sstream>
+
+#define PI           3.141592654f
 
 using namespace std;
 
@@ -61,26 +64,74 @@ PdfXObject::PdfXObject( const PdfMemDocument & rDoc, int nPage, PdfDocument* pPa
     {
         PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
     }
-    // After filling set correct BBox
+
+    // After filling set correct BBox, independent of rotation
     m_rRect = pParent->FillXObjectFromDocumentPage( this, rDoc, nPage );
 
     PdfVariant    var;
     m_rRect.ToVariant( var );
     this->GetObject()->GetDictionary().AddKey( "BBox", var );
 
+ 	// Switch width/height for vertical rotation
+ 	int rotation = rDoc.GetPage( nPage )->GetRotation();
+ 	switch ( rotation )
+ 	{
+ 		case 90:
+ 		case 270:
+ 		{
+ 			double temp = m_rRect.GetWidth();
+ 			m_rRect.SetWidth( m_rRect.GetHeight() );
+ 			m_rRect.SetHeight( temp );
+ 		}
+ 		break;
+        
+ 		default:
+            break;
+ 	}
+ 
+ 	// Build matrix for rotation
+ 	double alpha = -rotation / 360.0 * 2.0 * PI;
+    
+ 	double a, b, c, d, e, f;
+    
+ 	a = cos( alpha );
+ 	b = sin( alpha );
+ 	c = -sin( alpha );
+ 	d = cos( alpha );
+ 
+ 	// TODO: Check and implement combination of rotation and cropping for 180 and 270
+ 	switch ( rotation )
+ 	{
+ 		case 90:
+ 			e = - m_rRect.GetBottom();
+ 			f = m_rRect.GetLeft() + m_rRect.GetHeight();
+            break;
+  
+  		case 180:
+ 			e = m_rRect.GetWidth();
+ 			f = m_rRect.GetHeight();
+            break;
+            
+ 		case 270:
+ 			e = m_rRect.GetWidth();
+ 			f = 0.0;
+            break;
+ 
+ 		case 0:
+ 		default:
+ 			e = - m_rRect.GetLeft();
+ 			f = - m_rRect.GetBottom();
+            break;
+ 	}
+
     PdfArray      matrix;
-    matrix.push_back( PdfVariant( static_cast<pdf_int64>(1LL) ) );
-    matrix.push_back( PdfVariant( static_cast<pdf_int64>(0LL) ) );
-    matrix.push_back( PdfVariant( static_cast<pdf_int64>(0LL) ) );
-    matrix.push_back( PdfVariant( static_cast<pdf_int64>(1LL) ) );
-	if( m_rRect.GetLeft() != 0 )
-	    matrix.push_back( PdfVariant( m_rRect.GetLeft() * (-1.0) ) );
-	else
-	    matrix.push_back( PdfVariant( static_cast<pdf_int64>(0LL) ) );
-	if( m_rRect.GetBottom() != 0 )
-	    matrix.push_back( PdfVariant( m_rRect.GetBottom() * (-1.0) ) );
-	else
-	    matrix.push_back( PdfVariant( static_cast<pdf_int64>(0LL) ) );
+    matrix.push_back( PdfVariant( a ) );
+    matrix.push_back( PdfVariant( b ) );
+    matrix.push_back( PdfVariant( c ) );
+    matrix.push_back( PdfVariant( d ) );
+    matrix.push_back( PdfVariant( e ) );
+    matrix.push_back( PdfVariant( f ) );
+    
     this->GetObject()->GetDictionary().AddKey( "Matrix", matrix );
 }
 
