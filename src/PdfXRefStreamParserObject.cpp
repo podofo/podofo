@@ -137,8 +137,8 @@ void PdfXRefStreamParserObject::ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], c
             //printf("nCount=%i ", static_cast<int>(nCount));
             //printf("pBuffer=%li ", (long)(pBuffer - pStart));
             //printf("pEnd=%li ", lBufferLen);
-			if( ! (*m_pOffsets)[nFirstObj].bParsed )
-				ReadXRefStreamEntry( pBuffer, lBufferLen, nW, nFirstObj );
+			if( ! (*m_pOffsets)[static_cast<int>(nFirstObj)].bParsed )
+				ReadXRefStreamEntry( pBuffer, lBufferLen, nW, static_cast<int>(nFirstObj) );
 			nFirstObj++ ;
             pBuffer += entryLen;
             --nCount;
@@ -185,7 +185,8 @@ void PdfXRefStreamParserObject::GetIndeces( std::vector<pdf_int64> & rvecIndeces
 
 void PdfXRefStreamParserObject::ReadXRefStreamEntry( char* pBuffer, pdf_long, const pdf_int64 lW[W_ARRAY_SIZE], int nObjNo )
 {
-    int              i, z;
+    int              i;
+    pdf_int64        z;
     unsigned long    nData[W_ARRAY_SIZE];
 
     for( i=0;i<W_ARRAY_SIZE;i++ )

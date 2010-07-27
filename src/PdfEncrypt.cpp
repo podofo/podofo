@@ -603,7 +603,7 @@ void PdfEncrypt::SetEnabledEncryptionAlgorithms(int nEncryptionAlgorithms)
 
 bool PdfEncrypt::IsEncryptionEnabled(EPdfEncryptAlgorithm eAlgorithm)
 {
-    return (PdfEncrypt::s_nEnabledEncryptionAlgorithms & eAlgorithm);
+    return (PdfEncrypt::s_nEnabledEncryptionAlgorithms & eAlgorithm) != 0;
 }
 
 const PdfEncrypt & PdfEncrypt::operator=( const PdfEncrypt & rhs )

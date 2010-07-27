@@ -522,7 +522,7 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
 		    PdfArray array;
 		    array.push_back( PdfName("Indexed") );
 		    array.push_back( PdfName("DeviceRGB") );
-			array.push_back( static_cast<pdf_int64>(numColors) );
+            array.push_back( static_cast<pdf_int64>(numColors-1) );
 		    array.push_back( pIdxObject->Reference() );
 		    this->GetObject()->GetDictionary().AddKey( PdfName("ColorSpace"), array );
 
