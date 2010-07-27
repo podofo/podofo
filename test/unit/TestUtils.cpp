@@ -37,6 +37,8 @@
 
 #endif // _WIN32 || _WIN64
 
+#include <podofo.h>
+
 std::string TestUtils::getTempFilename()
 {
     const long lLen = 256;
@@ -63,6 +65,20 @@ void TestUtils::deleteFile( const char* pszFilename )
 #else
     unlink(pszFilename);
 #endif // _WIN32 || _WIN64
-
 }
+
+char* TestUtils::readDataFile( const char* pszFilename )
+{
+    // TODO: determine correct prefix during runtime
+    std::string sFilename = "/home/dominik/podofotmp/test/unit/data/";
+    sFilename = sFilename + pszFilename;
+    PoDoFo::PdfFileInputStream stream( sFilename.c_str() );
+    long lLen = stream.GetFileLength();
+
+    char* pBuffer = static_cast<char*>(malloc(sizeof(char) * lLen));
+    stream.Read(pBuffer, lLen);
+
+    return pBuffer;
+}
+
 

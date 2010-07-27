@@ -32,6 +32,13 @@ class TestUtils {
 public:
     static std::string getTempFilename();
     static void deleteFile( const char* pszFilename );
+    
+    /**
+     * Read a test data file into memory and return a malloc'ed buffer.
+     *
+     * @param pszFilename filename of the data file. The path will be determined automatically.
+     */
+    static char* readDataFile( const char* pszFilename );
 };
 
 #endif // _TEST_UTILS_H_
