@@ -449,19 +449,25 @@ void PdfParser::MergeTrailer( const PdfObject* pTrailer )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    if( pTrailer->GetDictionary().HasKey( PdfName::KeySize ) )
+    // Only update keys, if not already present
+    if( pTrailer->GetDictionary().HasKey( PdfName::KeySize ) 
+        && !m_pTrailer->GetDictionary().HasKey( PdfName::KeySize ) )
         m_pTrailer->GetDictionary().AddKey( PdfName::KeySize, *(pTrailer->GetDictionary().GetKey( PdfName::KeySize )) );
 
-    if( pTrailer->GetDictionary().HasKey( "Root" ) )
+    if( pTrailer->GetDictionary().HasKey( "Root" ) 
+        && !m_pTrailer->GetDictionary().HasKey( "Root" ))
         m_pTrailer->GetDictionary().AddKey( "Root", *(pTrailer->GetDictionary().GetKey( "Root" )) );
 
-    if( pTrailer->GetDictionary().HasKey( "Encrypt" ) )
+    if( pTrailer->GetDictionary().HasKey( "Encrypt" )
+        && !m_pTrailer->GetDictionary().HasKey( "Encrypt" ) )
         m_pTrailer->GetDictionary().AddKey( "Encrypt", *(pTrailer->GetDictionary().GetKey( "Encrypt" )) );
 
-    if( pTrailer->GetDictionary().HasKey( "Info" ) )
+    if( pTrailer->GetDictionary().HasKey( "Info" ) 
+        && !m_pTrailer->GetDictionary().HasKey( "Info" ) )
         m_pTrailer->GetDictionary().AddKey( "Info", *(pTrailer->GetDictionary().GetKey( "Info" )) );
 
-    if( pTrailer->GetDictionary().HasKey( "ID" ) )
+    if( pTrailer->GetDictionary().HasKey( "ID" ) 
+        && !m_pTrailer->GetDictionary().HasKey( "ID" ) )
         m_pTrailer->GetDictionary().AddKey( "ID", *(pTrailer->GetDictionary().GetKey( "ID" )) );
 }
 
