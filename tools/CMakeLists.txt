@@ -1,6 +1,7 @@
 SUBDIRS(
 	podofobox
         podofocountpages
+        podofocrop
 	podofoencrypt
 	podofoimgextract
 	podofoimg2pdf
