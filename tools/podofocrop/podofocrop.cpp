@@ -25,6 +25,14 @@
 
 #include <vector>
 
+#ifdef _WIN32
+# error "Not yet available for Windows"
+#else
+# include <unistd.h>
+# include <sys/types.h> 
+# include <sys/wait.h> 
+#endif // _WIN32
+
 using namespace PoDoFo;
 
 #ifdef _HAVE_CONFIG
@@ -39,20 +47,16 @@ void print_help()
     printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
 }
 
-const char* find_ghostscript()
-{
-    return "gs";
-}
-
 void crop_page( PdfPage* pPage, const PdfRect & rCropBox ) 
 {
     PdfVariant var;
+    /*
     printf("%f %f %f %f\n",
            rCropBox.GetLeft(),
            rCropBox.GetBottom(),
            rCropBox.GetWidth(),
            rCropBox.GetHeight());
-
+    */
     rCropBox.ToVariant( var );
     pPage->GetObject()->GetDictionary().AddKey( PdfName("MediaBox"), var );
 }
@@ -60,39 +64,73 @@ void crop_page( PdfPage* pPage, const PdfRect & rCropBox )
 std::vector<PdfRect> get_crop_boxes( const char* pszInput )
 {
     const int lBufferLen = 256;
-    const char* pszFormat = 
-        "gs -dSAFER -sDEVICE=bbox -sNOPAUSE -q %s -c quit 2>&1";
     char buffer[lBufferLen];
-    char line[lBufferLen];
-
-    snprintf( buffer, lBufferLen, pszFormat, pszInput );
-    printf("cmd=%s\n", buffer);
-    FILE* hPipe = popen(buffer, "r");
-    
     std::vector<PdfRect> rects;
-    while( !feof( hPipe ) ) 
+    pid_t pid;
+    int p[2];
+    int count;
+
+    pipe( p );
+
+    if( (pid = fork()) == 0 ) 
+    {        
+        // Child, launch ghostscript
+        close( p[0] ); // Close unused read end
+
+        dup2(p[1], 2); // redirect stderr to stdout
+        dup2(p[1], 1); 
+
+        //printf("HELLO\n");
+        execlp( "gs", "gs", "-dSAFER", "-sDEVICE=bbox",
+                          "-sNOPAUSE", "-q", pszInput, "-c", "quit", NULL );
+        printf("Fatal error, cannot launch ghostscript\n");
+        exit(0);
+    }
+    else
     {
-        //fread( line, sizeof(char), lBufferLen, hPipe );
-        fgets( line, lBufferLen, hPipe );
-        fgets( line, lBufferLen, hPipe );
-        
-        if( strncmp( "%%BoundingBox: ", line, 15 ) == 0)
+        close( p[1] ); // Close unused write end
+
+        std::string sOuput;
+        while( (count = read( p[0], buffer, lBufferLen )) > 0 )
         {
-            printf("Read: (%s)\n", line );
-            int x, y, w, h;
-            sscanf(line+15, "%i %i %i %i\n", &x, &y, &w, &h);
-            printf("x=%i y=%i w=%i h=%i\n", x,y,w,h);
-            PdfRect rect( static_cast<double>(x), 
-                          static_cast<double>(y),
-                          static_cast<double>(w-x),
-                          static_cast<double>(h-y) );
-            
-            rects.push_back( rect );
-            //break;
-        } 
+            sOuput.append( buffer, count );
+        }
+        wait(NULL);
+
+
+        std::stringstream ss(sOuput);
+        std::string sLine;
+        PdfRect curRect;
+        bool bHaveRect = false;
+        while(std::getline(ss, sLine)) 
+        {
+            if( strncmp( "%%BoundingBox: ", sLine.c_str(), 15 ) == 0 )
+            {
+                int x, y, w, h;
+                sscanf(sLine.c_str()+15, "%i %i %i %i\n", &x, &y, &w, &h);
+                curRect = PdfRect( static_cast<double>(x), 
+                                   static_cast<double>(y),
+                                   static_cast<double>(w-x),
+                                   static_cast<double>(h-y) );
+                bHaveRect = true;
+            } 
+            else if( strncmp( "%%HiResBoundingBox: ", sLine.c_str(), 17 ) == 0 ) 
+            {
+                if( bHaveRect ) 
+                {
+                    // I have no idea, while gs writes BoundingBoxes twice to stdout ..
+                    printf("Using bounding box: [ %f %f %f %f ]\n", 
+                           curRect.GetLeft(),
+                           curRect.GetBottom(),
+                           curRect.GetWidth(),
+                           curRect.GetHeight());
+                    rects.push_back( curRect );
+                    bHaveRect = false;
+                }
+            }
+        }
     }
 
-    pclose(hPipe); 
     return rects;
 }
 
@@ -118,10 +156,11 @@ int main( int argc, char* argv[] )
         PdfMemDocument doc;
         doc.Load( pszInput );
 
-        if( cropBoxes.size() != doc.GetPageCount() ) 
+        if( static_cast<int>(cropBoxes.size()) != doc.GetPageCount() ) 
         {
             printf("Number of cropboxes obtained form ghostscript does not match with page count (%i, %i)\n",
-                   cropBoxes.size(), doc.GetPageCount() );
+                   static_cast<int>(cropBoxes.size()), doc.GetPageCount() );
+            PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
         }
 
         for( int i=0;i<doc.GetPageCount(); i++ ) 
