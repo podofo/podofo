@@ -13,4 +13,5 @@ SUBDIRS(
 	podofouncompress
 	podofoimpose
 	podofoincrementalupdates
+	podofoxmp
 	)
