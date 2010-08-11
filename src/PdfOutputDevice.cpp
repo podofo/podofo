@@ -153,7 +153,7 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
     else
     {
         va_start( args, pszFormat );
-#ifdef _MSC_VER	// vsnprintf without buffer does not work with MS-VC
+#if (defined _MSC_VER || defined __hpux)	// vsnprintf without buffer does not work with MS-VC or HPUX
         int len = 1024;
         do
         {

@@ -804,9 +804,6 @@ std::string	Std2AltFontName( const std::string& inStdName )
 
 std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
 {
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->GetFilenameForFont(pszFontname);
-
     // TODO: Use FT_GetFile_From_Mac_ATS_Name
 
     FSSpec  fSpec;
@@ -969,9 +966,6 @@ double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, unsigned int nLe
 #else
 double PdfFontMetrics::StringWidth( const wchar_t* pszText, unsigned int nLength ) const
 {
-	if (m_pMetrics_base14)
-		return 	m_pMetrics_base14->StringWidth(pszText, nLength ) ;
-
     double dWidth = 0.0;
 
     if( !pszText )
