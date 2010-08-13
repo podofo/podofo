@@ -88,7 +88,7 @@ int main (int argc, char *argv[])
                 
                 PoDoFo::PdfObject *xmpObj = doc.GetObjects().CreateObject("Metadata");
                 xmpObj->GetDictionary().AddKey(PoDoFo::PdfName("Subtype"), PoDoFo::PdfName("XML"));
-                xmpObj->GetStream()->Set(xmpBuf, xmpLen);
+                xmpObj->GetStream()->Set(xmpBuf, xmpLen, PoDoFo::TVecFilters());
                 doc.GetCatalog()->GetDictionary().AddKey(PoDoFo::PdfName("Metadata"), xmpObj->Reference());
                 delete[] xmpBuf;
                 
@@ -102,5 +102,6 @@ int main (int argc, char *argv[])
 		e.PrintErrorMsg();
 		return e.GetError();
 	}
+
 	return EXIT_SUCCESS;
 }
