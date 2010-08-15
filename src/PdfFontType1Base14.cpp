@@ -32,6 +32,14 @@ PdfFontType1Base14::PdfFontType1Base14( PdfFontMetrics* pMetrics, const PdfEncod
     InitBase14Font();
 }
 
+// OC 13.08.2010 New:
+PdfFontType1Base14::PdfFontType1Base14( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
+                                        PdfObject* pObject )
+    : PdfFontSimple( pMetrics, pEncoding, pObject )
+{
+    InitBase14Font();
+}
+
 PdfFontType1Base14::~PdfFontType1Base14()
 {
     // FontMetrics of base14 fonts may not be deleted

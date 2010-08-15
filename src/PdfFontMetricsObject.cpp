@@ -27,9 +27,7 @@
 
 namespace PoDoFo {
 
-PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pDescriptor, 
-                                            PdfObject* pFontObject,
-                                            const PdfEncoding* const pEncoding )
+PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescriptor, const PdfEncoding* const pEncoding )
     : PdfFontMetrics( ePdfFontType_Unknown, "", NULL ),
       m_pEncoding( pEncoding )
 {
@@ -40,8 +38,12 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pDescriptor,
 
     m_sName        = pDescriptor->GetDictionary().GetKey( "FontName" )->GetName();
     m_bbox         = pDescriptor->GetDictionary().GetKey( "FontBBox" )->GetArray();
-    m_nFirst       = static_cast<int>(pDescriptor->GetDictionary().GetKeyAsLong( "FirstChar", 0L ));
-    m_nLast        = static_cast<int>(pDescriptor->GetDictionary().GetKeyAsLong( "LastChar", 0L ));
+    // OC 15.08.2010 BugFix: /FirstChar /LastChar /Widths are in the Font dictionary and not in the FontDescriptor
+    m_nFirst       = pFont->GetDictionary().GetKeyAsLong( "FirstChar", 0L );
+    m_nLast        = pFont->GetDictionary().GetKeyAsLong( "LastChar", 0L );
+	 // OC 15.08.2010 BugFix: GetIndirectKey() instead of GetDictionary().GetKey() and "Widths" instead of "Width"
+    m_width        = pFont->GetIndirectKey( "Widths" )->GetArray();
+
     m_nWeight      = static_cast<unsigned int>(pDescriptor->GetDictionary().GetKeyAsLong( "FontWeight", 400L ));
     m_nItalicAngle = static_cast<int>(pDescriptor->GetDictionary().GetKeyAsLong( "ItalicAngle", 0L ));
 
@@ -50,7 +52,7 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pDescriptor,
     m_dPdfDescent  = pDescriptor->GetDictionary().GetKeyAsReal( "Descent", 0.0 );
     m_dDescent     = m_dPdfDescent / 1000.0;
     m_dLineSpacing = m_dAscent + m_dDescent;
-
+    
     // Try to fine some sensible values
     m_dUnderlineThickness = 1.0;
     m_dUnderlinePosition  = 0.0;
@@ -58,11 +60,6 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pDescriptor,
     m_dStrikeOutPosition  = m_dAscent / 2.0;
 
     m_bSymbol = false; // TODO
-
-    if( pFontObject->GetDictionary().HasKey( "Width" ) ) 
-    {
-        m_width = pDescriptor->GetIndirectKey( "Width" )->GetArray();
-    }
 }
 
 PdfFontMetricsObject::~PdfFontMetricsObject()
@@ -107,13 +104,13 @@ void PdfFontMetricsObject::GetWidthArray( PdfVariant & var, unsigned int nFirst,
 double PdfFontMetricsObject::GetGlyphWidth( int nGlyphId ) const
 {
     // TODO
-    return 0.0;
+    return 0.0; // OC 13.08.2010 BugFix: Avoid microsoft compiler error
 }
 
 long PdfFontMetricsObject::GetGlyphId( long lUnicode ) const
 {
     // TODO
-    return 0L;
+    return 0; // OC 13.08.2010 BugFix: Avoid microsoft compiler error
 }
 
 // -----------------------------------------------------

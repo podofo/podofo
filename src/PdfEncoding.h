@@ -276,10 +276,16 @@ inline PdfEncoding::const_iterator PdfEncoding::end() const
  *  - MacRomanEncoding
  *  - WinAnsiEncoding
  *  - MacExpertEncoding
+ *  - StandardEncoding
+ *  - SymbolEncoding
+ *  - ZapfDingbatsEncoding
  *
  *  \see PdfWinAnsiEncoding
  *  \see PdfMacRomanEncoding
  *  \see PdfMacExportEncoding
+ *..\see PdfStandardEncoding
+ *  \see PdfSymbolEncoding
+ *  \see PdfZapfDingbatsEncoding
  *
  */
 class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
@@ -293,10 +299,16 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
      *  - MacRomanEncoding
      *  - WinAnsiEncoding
      *  - MacExpertEncoding
+     *  - StandardEncoding
+     *  - SymbolEncoding
+     *  - ZapfDingbatsEncoding
      *
      *  \see PdfWinAnsiEncoding
      *  \see PdfMacRomanEncoding
      *  \see PdfMacExportEncoding
+     *  \see PdfStandardEncoding
+     *  \see PdfSymbolEncoding
+     *  \see PdfZapfDingbatsEncoding
      *
      *  This will allocate a table of 65535 short values
      *  to make conversion from unicode to encoded strings
@@ -453,7 +465,7 @@ inline const PdfName & PdfSimpleEncoding::GetName() const
 class PODOFO_API PdfDocEncoding : public PdfSimpleEncoding {
  public:
    
-    /** Create a new PdfWinAnsiEncoding
+    /** Create a new PdfDocEncoding
      */
     PdfDocEncoding()
         : PdfSimpleEncoding( PdfName("PdfDocEncoding") )
@@ -475,7 +487,7 @@ class PODOFO_API PdfDocEncoding : public PdfSimpleEncoding {
     virtual const pdf_utf16be* GetToUnicodeTable() const;
 
  private:
-    static const pdf_utf16be s_cEncoding[256]; ///< conversion table from WinAnsiEncoding to UTF16
+    static const pdf_utf16be s_cEncoding[256]; ///< conversion table from DocEncoding to UTF16
 
 };
 
@@ -550,7 +562,7 @@ class PODOFO_API PdfMacRomanEncoding : public PdfSimpleEncoding {
     virtual const pdf_utf16be* GetToUnicodeTable() const;
 
  private:
-    static const pdf_utf16be s_cEncoding[256]; ///< conversion table from WinAnsiEncoding to UTF16
+    static const pdf_utf16be s_cEncoding[256]; ///< conversion table from MacRomanEncoding to UTF16
 
 };
 
@@ -566,6 +578,130 @@ class PODOFO_API PdfMacExpertEncoding : public PdfSimpleEncoding {
     {
 
     }
+
+ protected:
+
+    /** Gets a table of 256 short values which are the 
+     *  big endian unicode code points that are assigned
+     *  to the 256 values of this encoding.
+     *
+     *  This table is used internally to convert an encoded
+     *  string of this encoding to and from unicode.
+     *
+     *  \returns an array of 256 big endian unicode code points
+     */
+    virtual const pdf_utf16be* GetToUnicodeTable() const;
+
+ private:
+    static const pdf_utf16be s_cEncoding[256]; ///< conversion table from MacExpertEncoding to UTF16
+
+};
+
+// OC 13.08.2010 Neu: StandardEncoding
+/** 
+ * Do not allocate this class yourself, as allocations
+ * might be expensive. Try using PdfFont::StandardEncoding.
+ *
+ * \see PdfFont::StandardEncoding
+ */
+class PODOFO_API PdfStandardEncoding : public PdfSimpleEncoding {
+ public:
+   
+    /** Create a new PdfStandardEncoding
+     */
+    PdfStandardEncoding()
+        : PdfSimpleEncoding( PdfName("StandardEncoding") )
+    {
+
+    }
+
+ protected:
+
+    /** Gets a table of 256 short values which are the 
+     *  big endian unicode code points that are assigned
+     *  to the 256 values of this encoding.
+     *
+     *  This table is used internally to convert an encoded
+     *  string of this encoding to and from unicode.
+     *
+     *  \returns an array of 256 big endian unicode code points
+     */
+    virtual const pdf_utf16be* GetToUnicodeTable() const;
+
+ private:
+    static const pdf_utf16be s_cEncoding[256]; ///< conversion table from StandardEncoding to UTF16
+
+};
+
+// OC 13.08.2010 Neu: SymbolEncoding
+/** 
+ * Do not allocate this class yourself, as allocations
+ * might be expensive. Try using PdfFont::SymbolEncoding.
+ *
+ * \see PdfFont::SymbolEncoding
+ */
+class PODOFO_API PdfSymbolEncoding : public PdfSimpleEncoding {
+ public:
+   
+    /** Create a new PdfSymbolEncoding
+     */
+    PdfSymbolEncoding()
+        : PdfSimpleEncoding( PdfName("SymbolEncoding") )
+    {
+
+    }
+
+ protected:
+
+    /** Gets a table of 256 short values which are the 
+     *  big endian unicode code points that are assigned
+     *  to the 256 values of this encoding.
+     *
+     *  This table is used internally to convert an encoded
+     *  string of this encoding to and from unicode.
+     *
+     *  \returns an array of 256 big endian unicode code points
+     */
+    virtual const pdf_utf16be* GetToUnicodeTable() const;
+
+ private:
+    static const pdf_utf16be s_cEncoding[256]; ///< conversion table from SymbolEncoding to UTF16
+
+};
+
+// OC 13.08.2010 Neu: ZapfDingbatsEncoding
+/** 
+ * Do not allocate this class yourself, as allocations
+ * might be expensive. Try using PdfFont::ZapfDingbats.
+ *
+ * \see PdfFont::ZapfDingbatsEncoding
+ */
+class PODOFO_API PdfZapfDingbatsEncoding : public PdfSimpleEncoding {
+ public:
+   
+    /** Create a new PdfZapfDingbatsEncoding
+     */
+    PdfZapfDingbatsEncoding()
+        : PdfSimpleEncoding( PdfName("ZapfDingbatsEncoding") )
+    {
+
+    }
+
+ protected:
+
+    /** Gets a table of 256 short values which are the 
+     *  big endian unicode code points that are assigned
+     *  to the 256 values of this encoding.
+     *
+     *  This table is used internally to convert an encoded
+     *  string of this encoding to and from unicode.
+     *
+     *  \returns an array of 256 big endian unicode code points
+     */
+    virtual const pdf_utf16be* GetToUnicodeTable() const;
+
+ private:
+    static const pdf_utf16be s_cEncoding[256]; ///< conversion table from ZapfDingbatsEncoding to UTF16
 
 };
 

@@ -151,25 +151,10 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library* pLibrary, PdfObject* pObject )
     PdfFont*        pFont       = NULL;
     PdfObject*      pDescriptor = NULL;
     PdfObject*      pEncoding   = NULL;
-    const PdfEncoding* pPdfEncoding;
 
     if( pObject->GetDictionary().GetKey( PdfName::KeyType )->GetName() != PdfName("Font") )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
-    }
-
-    pEncoding = pObject->GetIndirectKey( "Encoding" );
-    if( !pEncoding ) 
-    {
-        // Encoding is an optional key, if it is missing
-        // we have to use the built-in encoding of the font.
-        //pPdfEncoding = PdfEncodingFactory::CreateBuiltInEncoding( pObject );
-        PODOFO_RAISE_ERROR_INFO( ePdfError_NotImplemented, 
-                                 "Using built-in font encodings is not yet supported." );
-    }
-    else
-    {
-        pPdfEncoding = PdfEncodingFactory::CreateEncoding( pEncoding );
     }
 
     const PdfName & rSubType = pObject->GetDictionary().GetKey( PdfName::KeySubtype )->GetName();
@@ -180,7 +165,13 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library* pLibrary, PdfObject* pObject )
         PdfObject* pFontObject = pObject->GetOwner()->GetObject( descendant[0].GetReference() );
 
         pDescriptor = pFontObject->GetIndirectKey( "FontDescriptor" );
-        pMetrics    = new PdfFontMetricsObject( pDescriptor, pFontObject, pPdfEncoding );
+        pEncoding   = pObject->GetIndirectKey( "Encoding" );
+
+        const PdfEncoding* const pPdfEncoding = 
+            PdfEncodingFactory::CreateEncoding( pEncoding );
+
+        // OC 15.08.2010 BugFix: Parameter pFontObject added: TODO: untested
+        pMetrics    = new PdfFontMetricsObject( pFontObject, pDescriptor, pPdfEncoding );
         pFont       = new PdfFontCID( pMetrics, pPdfEncoding, pObject, false );
     }
     else if( rSubType == PdfName("Type1") ) 
@@ -189,22 +180,59 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library* pLibrary, PdfObject* pObject )
         //       the 14 standard fonts. This suggestions is 
         //       deprecated now, but give us problems with old documents.
         pDescriptor = pObject->GetIndirectKey( "FontDescriptor" );
-        pMetrics    = new PdfFontMetricsObject( pDescriptor, pObject, pPdfEncoding );
+        pEncoding   = pObject->GetIndirectKey( "Encoding" );
+
+        // OC 13.08.2010: Handle missing FontDescriptor for the 14 standard fonts:
+        if( !pDescriptor )
+        {
+           // Check if its a PdfFontType1Base14
+           PdfObject* pBaseFont = NULL;
+           pBaseFont = pObject->GetIndirectKey( "BaseFont" );
+           const char* pszBaseFontName = pBaseFont->GetName().GetName().c_str();
+           PdfFontMetricsBase14* pMetrics = PODOFO_Base14FontDef_FindBuiltinData(pszBaseFontName);
+           if ( pMetrics != NULL )
+           {
+               // pEncoding may be undefined, found a valid pdf with
+               //   20 0 obj
+               //   <<
+               //   /Type /Font
+               //   /BaseFont /ZapfDingbats
+               //   /Subtype /Type1
+               //   >>
+               //   endobj 
+               // If pEncoding is null then
+               // use StandardEncoding for Courier, Times, Helvetica font families
+               // and special encodings for Symbol and ZapfDingbats
+               const PdfEncoding* pPdfEncoding = NULL;
+               if ( pEncoding!= NULL )
+                   pPdfEncoding = PdfEncodingFactory::CreateEncoding( pEncoding );
+               else if ( !pMetrics->IsSymbol() )
+                   pPdfEncoding = PdfEncodingFactory::GlobalStandardEncodingInstance();
+               else if ( strcmp(pszBaseFontName, "Symbol") == 0 )
+                   pPdfEncoding = PdfEncodingFactory::GlobalSymbolEncodingInstance();
+               else if ( strcmp(pszBaseFontName, "ZapfDingbats") == 0 )
+                   pPdfEncoding = PdfEncodingFactory::GlobalZapfDingbatsEncodingInstance();
+               return new PdfFontType1Base14(pMetrics, pPdfEncoding, pObject);
+           }
+        }
+
+        const PdfEncoding* const pPdfEncoding = 
+            PdfEncodingFactory::CreateEncoding( pEncoding );
+
+        // OC 15.08.2010 BugFix: Parameter pObject added:
+        pMetrics    = new PdfFontMetricsObject( pObject, pDescriptor, pPdfEncoding );
         pFont       = new PdfFontType1( pMetrics, pPdfEncoding, pObject );
-    }
-    else if( rSubType == PdfName("Type3") ) 
-    {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_NotImplemented, "Type3 fonts are not yet supported." );
-        /*
-        pDescriptor = pObject->GetIndirectKey( "FontDescriptor" );
-        pMetrics    = new PdfFontMetricsObject( pDescriptor, pObject, pPdfEncoding );
-        pFont       = new PdfFontType3( pMetrics, pPdfEncoding, pObject );
-        */
     }
     else if( rSubType == PdfName("TrueType") ) 
     {
         pDescriptor = pObject->GetIndirectKey( "FontDescriptor" );
-        pMetrics    = new PdfFontMetricsObject( pDescriptor, pObject, pPdfEncoding );
+        pEncoding   = pObject->GetIndirectKey( "Encoding" );
+
+        const PdfEncoding* const pPdfEncoding = 
+            PdfEncodingFactory::CreateEncoding( pEncoding );
+
+        // OC 15.08.2010 BugFix: Parameter pObject added:
+        pMetrics    = new PdfFontMetricsObject( pObject, pDescriptor, pPdfEncoding );
         pFont       = new PdfFontTrueType( pMetrics, pPdfEncoding, pObject );
     }
 

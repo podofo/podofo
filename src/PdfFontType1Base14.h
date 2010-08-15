@@ -44,6 +44,17 @@ class PdfFontType1Base14 : public PdfFontSimple {
     PdfFontType1Base14( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
                   PdfVecObjects* pParent );
 
+    // OC 13.08.2010 New:
+    /** Create a new Type1 font object based on an existing PdfObject
+     *  \param pMetrics pointer to a font metrics object. The font in the PDF
+     *         file will match this fontmetrics object. The metrics object is 
+     *         deleted along with the font.
+     *  \param pEncoding the encoding of this font. The font will not take ownership of this object.
+     *  \param pObject an existing PdfObject
+     */
+    PdfFontType1Base14( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
+                  PdfObject* pObject );
+
     ~PdfFontType1Base14();
 
  protected:

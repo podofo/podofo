@@ -33,16 +33,15 @@ namespace PoDoFo {
 const PdfDocEncoding*      PdfEncodingFactory::s_pDocEncoding      = NULL;
 const PdfWinAnsiEncoding*  PdfEncodingFactory::s_pWinAnsiEncoding  = NULL;
 const PdfMacRomanEncoding* PdfEncodingFactory::s_pMacRomanEncoding = NULL;
+const PdfStandardEncoding*     PdfEncodingFactory::s_pStandardEncoding     = NULL; // OC 13.08.2010 New.
+const PdfMacExpertEncoding*    PdfEncodingFactory::s_pMacExpertEncoding    = NULL; // OC 13.08.2010 New.
+const PdfSymbolEncoding*       PdfEncodingFactory::s_pSymbolEncoding       = NULL; // OC 13.08.2010 New.
+const PdfZapfDingbatsEncoding* PdfEncodingFactory::s_pZapfDingbatsEncoding = NULL; // OC 13.08.2010 New.
 
 Util::PdfMutex PdfEncodingFactory::s_mutex;
 
 const PdfEncoding* PdfEncodingFactory::CreateEncoding( PdfObject* pObject )
 {
-    if( !pObject ) 
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
     if( pObject->IsReference() )
     {
         // resolve any references
@@ -56,9 +55,14 @@ const PdfEncoding* PdfEncodingFactory::CreateEncoding( PdfObject* pObject )
             return PdfEncodingFactory::GlobalWinAnsiEncodingInstance();
         else if( rName == PdfName("MacRomanEncoding") )
             return PdfEncodingFactory::GlobalMacRomanEncodingInstance();
-        // TODO:
-        //else if( rName == PdfName("MacExpertEncoding") )
-        //    return &PdfFont::MacExpertEncoding;
+        else if( rName == PdfName("StandardEncoding") ) // OC 13.08.2010
+            return PdfEncodingFactory::GlobalStandardEncodingInstance();
+        else if( rName == PdfName("MacExpertEncoding") ) // OC 13.08.2010 TODO solved
+            return PdfEncodingFactory::GlobalMacExpertEncodingInstance();
+        else if( rName == PdfName("SymbolEncoding") ) // OC 13.08.2010
+            return PdfEncodingFactory::GlobalSymbolEncodingInstance();
+        else if( rName == PdfName("ZapfDingbatsEncoding") ) // OC 13.08.2010
+            return PdfEncodingFactory::GlobalZapfDingbatsEncodingInstance();
     }
     else if( pObject->IsDictionary() )
     {
@@ -110,6 +114,63 @@ const PdfEncoding* PdfEncodingFactory::GlobalMacRomanEncodingInstance()
     return s_pMacRomanEncoding;
 }
 
+// OC 13.08.2010:
+const PdfEncoding* PdfEncodingFactory::GlobalStandardEncodingInstance()
+{
+    if(!s_pStandardEncoding) // First check
+    {
+	Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
+
+	if(!s_pStandardEncoding) // Double check
+	    s_pStandardEncoding = new PdfStandardEncoding();
+    }
+
+    return s_pStandardEncoding;
+}
+
+// OC 13.08.2010:
+const PdfEncoding* PdfEncodingFactory::GlobalMacExpertEncodingInstance()
+{
+    if(!s_pMacExpertEncoding) // First check
+    {
+	Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
+
+	if(!s_pMacExpertEncoding) // Double check
+	    s_pMacExpertEncoding = new PdfMacExpertEncoding();
+    }
+
+    return s_pMacExpertEncoding;
+}
+
+// OC 13.08.2010:
+const PdfEncoding* PdfEncodingFactory::GlobalSymbolEncodingInstance()
+{
+    if(!s_pSymbolEncoding) // First check
+    {
+	Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
+
+	if(!s_pSymbolEncoding) // Double check
+	    s_pSymbolEncoding = new PdfSymbolEncoding();
+    }
+
+    return s_pSymbolEncoding;
+}
+
+// OC 13.08.2010:
+const PdfEncoding* PdfEncodingFactory::GlobalZapfDingbatsEncodingInstance()
+{
+    if(!s_pZapfDingbatsEncoding) // First check
+    {
+	Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
+
+	if(!s_pZapfDingbatsEncoding) // Double check
+	    s_pZapfDingbatsEncoding = new PdfZapfDingbatsEncoding();
+    }
+
+    return s_pZapfDingbatsEncoding;
+}
+
+
 int podofo_number_of_clients = 0;
 
 void PdfEncodingFactory::FreeGlobalEncodingInstances()
@@ -133,10 +194,30 @@ void PdfEncodingFactory::FreeGlobalEncodingInstances()
         {
             delete s_pDocEncoding;
         }
+        if (0 != s_pStandardEncoding) // OC 13.08.2010
+        {
+            delete s_pStandardEncoding;
+        }
+        if (0 != s_pMacExpertEncoding) // OC 13.08.2010
+        {
+            delete s_pMacExpertEncoding;
+        }
+        if (0 != s_pSymbolEncoding) // OC 13.08.2010
+        {
+            delete s_pSymbolEncoding;
+        }
+        if (0 != s_pZapfDingbatsEncoding) // OC 13.08.2010
+        {
+            delete s_pZapfDingbatsEncoding;
+        }
 
         s_pMacRomanEncoding = NULL;
         s_pWinAnsiEncoding  = NULL;
         s_pDocEncoding      = NULL;
+        s_pStandardEncoding     = NULL; // OC 13.08.2010
+        s_pMacExpertEncoding    = NULL; // OC 13.08.2010
+        s_pSymbolEncoding       = NULL; // OC 13.08.2010
+        s_pZapfDingbatsEncoding = NULL; // OC 13.08.2010
     }
 }
 

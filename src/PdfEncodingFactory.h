@@ -32,6 +32,10 @@ class PdfDocEncoding;
 class PdfMacRomanEncoding;
 class PdfObject;
 class PdfWinAnsiEncoding;
+class PdfStandardEncoding; // OC 13.08.2010
+class PdfMacExpertEncoding; // OC 13.08.2010
+class PdfSymbolEncoding; // OC 13.08.2010
+class PdfZapfDingbatsEncoding; // OC 13.08.2010
 
 /** This factory creates a PdfEncoding
  *  from an existing object in the PDF.
@@ -68,6 +72,38 @@ class PODOFO_API PdfEncodingFactory {
      */
     static const PdfEncoding* GlobalMacRomanEncodingInstance();
 
+    // OC 13.08.2010:
+    /** Singleton method which returns a global instance
+     *  of StandardEncoding.
+     *
+     *  \returns global instance of StandardEncoding
+     */
+    static const PdfEncoding* GlobalStandardEncodingInstance();
+
+    // OC 13.08.2010:
+    /** Singleton method which returns a global instance
+     *  of MacExpertEncoding.
+     *
+     *  \returns global instance of MacExpertEncoding
+     */
+    static const PdfEncoding* GlobalMacExpertEncodingInstance();
+
+    // OC 13.08.2010:
+    /** Singleton method which returns a global instance
+     *  of SymbolEncoding.
+     *
+     *  \returns global instance of SymbolEncoding
+     */
+    static const PdfEncoding* GlobalSymbolEncodingInstance();
+
+    // OC 13.08.2010:
+    /** Singleton method which returns a global instance
+     *  of ZapfDingbatsEncoding.
+     *
+     *  \returns global instance of ZapfDingbatsEncoding
+     */
+    static const PdfEncoding* GlobalZapfDingbatsEncodingInstance();
+
     /** Free's the memory allocated by
      *  the global encoding instancess in this singleton.
      *
@@ -100,6 +136,34 @@ class PODOFO_API PdfEncodingFactory {
      *  as heap allocation is expensive for PdfWinAnsiEncoding.
      */
     static const PdfMacRomanEncoding* s_pMacRomanEncoding;
+
+    // OC 13.08.2010:
+    /** Always use this static declaration,
+     *  if you need an instance of StandardEncoding
+     *  as heap allocation is expensive for PdfStandardEncoding.
+     */
+    static const PdfStandardEncoding* s_pStandardEncoding;
+
+    // OC 13.08.2010:
+    /** Always use this static declaration,
+     *  if you need an instance of MacExpertEncoding
+     *  as heap allocation is expensive for PdfMacExpertEncoding.
+     */
+    static const PdfMacExpertEncoding* s_pMacExpertEncoding;
+
+    // OC 13.08.2010:
+    /** Always use this static declaration,
+     *  if you need an instance of SymbolEncoding
+     *  as heap allocation is expensive for PdfSymbolEncoding.
+     */
+    static const PdfSymbolEncoding* s_pSymbolEncoding;
+
+    // OC 13.08.2010:
+    /** Always use this static declaration,
+     *  if you need an instance of ZapfDingbatsEncoding
+     *  as heap allocation is expensive for PdfZapfDingbatsEncoding.
+     */
+    static const PdfZapfDingbatsEncoding* s_pZapfDingbatsEncoding;
 
     static Util::PdfMutex s_mutex;
 };
