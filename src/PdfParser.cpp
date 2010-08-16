@@ -192,8 +192,8 @@ void PdfParser::ParseFile( const PdfRefCountedInputDevice & rDevice, bool bLoadO
         PODOFO_RAISE_ERROR( ePdfError_NoPdfFile );
     }
     
-    ReadDocumentStructure();
     try {
+        ReadDocumentStructure();
         ReadObjects();
     } catch( PdfError & e ) {
         if( e.GetError() == ePdfError_InvalidPassword ) 
@@ -449,26 +449,26 @@ void PdfParser::MergeTrailer( const PdfObject* pTrailer )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    // Only update keys, if not already present
-    if( pTrailer->GetDictionary().HasKey( PdfName::KeySize ) 
+    // Only update keys, if not already present                   
+    if( pTrailer->GetDictionary().HasKey( PdfName::KeySize )      
         && !m_pTrailer->GetDictionary().HasKey( PdfName::KeySize ) )
         m_pTrailer->GetDictionary().AddKey( PdfName::KeySize, *(pTrailer->GetDictionary().GetKey( PdfName::KeySize )) );
-
-    if( pTrailer->GetDictionary().HasKey( "Root" ) 
-        && !m_pTrailer->GetDictionary().HasKey( "Root" ))
-        m_pTrailer->GetDictionary().AddKey( "Root", *(pTrailer->GetDictionary().GetKey( "Root" )) );
-
-    if( pTrailer->GetDictionary().HasKey( "Encrypt" )
-        && !m_pTrailer->GetDictionary().HasKey( "Encrypt" ) )
-        m_pTrailer->GetDictionary().AddKey( "Encrypt", *(pTrailer->GetDictionary().GetKey( "Encrypt" )) );
-
-    if( pTrailer->GetDictionary().HasKey( "Info" ) 
-        && !m_pTrailer->GetDictionary().HasKey( "Info" ) )
-        m_pTrailer->GetDictionary().AddKey( "Info", *(pTrailer->GetDictionary().GetKey( "Info" )) );
-
-    if( pTrailer->GetDictionary().HasKey( "ID" ) 
-        && !m_pTrailer->GetDictionary().HasKey( "ID" ) )
-        m_pTrailer->GetDictionary().AddKey( "ID", *(pTrailer->GetDictionary().GetKey( "ID" )) );
+                                                                                                                         
+    if( pTrailer->GetDictionary().HasKey( "Root" )                                                                      
+        && !m_pTrailer->GetDictionary().HasKey( "Root" ))                                                               
+        m_pTrailer->GetDictionary().AddKey( "Root", *(pTrailer->GetDictionary().GetKey( "Root" )) );                    
+                                                                                                                         
+    if( pTrailer->GetDictionary().HasKey( "Encrypt" )                                                                   
+        && !m_pTrailer->GetDictionary().HasKey( "Encrypt" ) )                                                                                                                                            
+        m_pTrailer->GetDictionary().AddKey( "Encrypt", *(pTrailer->GetDictionary().GetKey( "Encrypt" )) );                                                                                               
+                                                                                                                                                                                                          
+    if( pTrailer->GetDictionary().HasKey( "Info" )                                                                                                                                                       
+        && !m_pTrailer->GetDictionary().HasKey( "Info" ) )                                                                                                                                               
+        m_pTrailer->GetDictionary().AddKey( "Info", *(pTrailer->GetDictionary().GetKey( "Info" )) );                                                                                                     
+                                                                                                                                                                                                          
+    if( pTrailer->GetDictionary().HasKey( "ID" )                                                                                                                                                         
+        && !m_pTrailer->GetDictionary().HasKey( "ID" ) )                                                                                                                                                 
+        m_pTrailer->GetDictionary().AddKey( "ID", *(pTrailer->GetDictionary().GetKey( "ID" )) );        
 }
 
 void PdfParser::ReadNextTrailer()
@@ -502,10 +502,10 @@ void PdfParser::ReadNextTrailer()
                 throw e;
             }
         }
-        else
-        {
-            PODOFO_RAISE_ERROR( ePdfError_NoTrailer );
-        }
+    }
+    else // OC 13.08.2010 BugFix: else belongs to IsNextToken( "trailer" ) and not to HasKey( "Prev" )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_NoTrailer );
     }
 }
 
@@ -604,9 +604,26 @@ void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
     }
 
     // read all xref subsections
-    for( ;; )
+    // OC 13.08.2010: Avoid exception to terminate endless loop
+    for( int nXrefSection = 0; ; ++nXrefSection )
     {
         try {
+
+            // OC 13.08.2010: Avoid exception to terminate endless loop
+            if ( nXrefSection > 0 )
+            {
+                // something like PeekNextToken()
+                EPdfTokenType eType;
+                const char* pszRead;
+                bool gotToken = this->GetNextToken( pszRead, &eType );
+                if( gotToken )
+                {
+                    this->QuequeToken( pszRead, eType );
+                    if ( strcmp( "trailer", pszRead ) == 0 )
+                        break;
+                }
+            }
+
             nFirstObject = this->GetNextNumber();
             nNumObjects  = this->GetNextNumber();
 
@@ -707,7 +724,7 @@ void PdfParser::ReadXRefSubsection( long long & nFirstObject, long long & nNumOb
             sscanf( m_buffer.GetBuffer(), "%10lld %5ld %c%c%c", 
                     &tmp1, &tmp2, &(m_offsets[objID].cUsed), &empty1, &empty2 );
 
-            m_offsets[objID].lOffset = static_cast<pdf_long>(tmp1);
+            m_offsets[objID].lOffset = tmp1;
             m_offsets[objID].lGeneration = tmp2;
 #endif
        }
