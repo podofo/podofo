@@ -34,7 +34,7 @@ void CreateComplexForm( PdfPage* pPage, PdfStreamedDocument* pDoc )
     PdfRect rect = pPage->GetPageSize();
 
     PdfPainter painter;
-    PdfFont*   pFont = pDoc->CreateFont( "Courier", false );
+    PdfFont*   pFont = pDoc->CreateFont( "Courier" );
 
     painter.SetPage( pPage );
     painter.SetFont( pFont );
@@ -139,7 +139,7 @@ void CreateComplexForm( PdfPage* pPage, PdfStreamedDocument* pDoc )
 void CreateSimpleForm( PdfPage* pPage, PdfStreamedDocument* pDoc )
 {
     PdfPainter painter;
-    PdfFont*   pFont = pDoc->CreateFont( "Courier", false );
+    PdfFont*   pFont = pDoc->CreateFont( "Courier" );
 
     painter.SetPage( pPage );
     painter.SetFont( pFont );

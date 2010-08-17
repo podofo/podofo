@@ -529,7 +529,7 @@ void PdfParser::ReadTrailer()
             m_device.Device()->Seek( m_nXRefOffset );
 
             m_pTrailer = new PdfParserObject( m_vecObjects, m_device, m_buffer );
-            static_cast<PdfParserObject*>(m_pTrailer)->ParseFile( false );
+            static_cast<PdfParserObject*>(m_pTrailer)->ParseFile( NULL, false );
             return;
         }
     }

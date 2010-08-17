@@ -178,7 +178,7 @@ void TestObject( const string & sFilename,
     PdfRefCountedBuffer      buffer( BUFFER_SIZE );
     PdfParserObject obj( &parser, device, buffer );
     TRY {
-        obj.ParseFile( false );
+        obj.ParseFile( NULL, false );
 #ifdef CATCH_EXCEPTIONS
     } catch( PdfError & e ) {
         cerr << "Error during test: " << e.GetError() << endl;
