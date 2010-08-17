@@ -22,12 +22,17 @@
 #include <cstdlib>
 #include <cstdio>
 
-#include "podofo.h"
+#include "podofo/PdfMemDocument.h"
+#include "podofo/PdfStream.h"
+#include "podofo/PdfString.h"
+#include "podofo/PdfDictionary.h"
+#include "podofo/PdfFilter.h"
 
 using namespace std;
 
 int main (int argc, char *argv[])
 {
+	PoDoFo::PdfError::EnableDebug(false);
 	if (argc != 2 && argc != 4)
     {
 		cout << "Syntax" << endl;
@@ -37,71 +42,64 @@ int main (int argc, char *argv[])
 		return EXIT_FAILURE;
     }
 
-    PoDoFo::PdfError::EnableDebug( false );
-    try {
-        PoDoFo::PdfMemDocument doc(argv[1]);
+	PoDoFo::PdfMemDocument *doc = new PoDoFo::PdfMemDocument(argv[1]);
 
-        if (argc == 2)
+	if (argc == 2)
+    {
+		PoDoFo::PdfObject *metadata;
+		if ((metadata = doc->GetMetadata()) == NULL)
+			cout << "No metadata" << endl;
+		else
         {
-            PoDoFo::PdfObject *metadata;
-            if ((metadata = doc.GetMetadata()) == NULL)
+			PoDoFo::PdfStream *str = metadata->GetStream();
+			if (str != NULL)
             {
-                cout << "No metadata" << endl;
-            }
-            else
-            {
-                PoDoFo::PdfStream *str = metadata->GetStream();
-                if (str != NULL)
-				{
-                    char *buf;
-                    PoDoFo::pdf_long len;
-                    
-                    str->GetFilteredCopy(&buf, &len);
-                    for (PoDoFo::pdf_long i = 0; i < len; ++i)
-                    {
-                        printf("%c", buf[i]);
-                    }
-                    printf("\n");
-                    fflush(stdout);
-                    free(buf);
-				}
+				char *buf;
+				PoDoFo::pdf_long len;
+	
+				str->GetFilteredCopy(&buf, &len);
+				for (PoDoFo::pdf_long i = 0; i < len; ++i)
+					printf("%c", buf[i]);
+				printf("\n");
+				fflush(stdout);
+				free(buf);
             }
         }
-        
-        if (argc == 4)
+    }
+
+	if (argc == 4)
+    {
+		char *xmpBuf;
+		FILE *fp;
+
+		if ((fp = fopen(argv[2], "rb")) == NULL)
+			cout << "Cannot open " << argv[2] << endl;
+		else
         {
-            char *xmpBuf;
-            FILE *fp;
-            
-            if ((fp = fopen(argv[2], "rb")) == NULL)
+			fseek(fp, 0, SEEK_END);
+			long xmpLen = ftell(fp);
+			xmpBuf = new char[xmpLen];
+			fseek(fp, 0, SEEK_SET);
+			fread(xmpBuf, 1, xmpLen, fp);
+			fclose(fp);
+
+			PoDoFo::PdfObject *metadata;
+			if ((metadata = doc->GetMetadata()) != NULL)
+				metadata->GetStream()->Set(xmpBuf, xmpLen, PoDoFo::TVecFilters());
+			else
             {
-                cout << "Cannot open " << argv[2] << endl;
+				metadata = doc->GetObjects().CreateObject("Metadata");
+				metadata->GetDictionary().AddKey(PoDoFo::PdfName("Subtype"), PoDoFo::PdfName("XML"));
+				metadata->GetStream()->Set(xmpBuf, xmpLen, PoDoFo::TVecFilters());
+				doc->GetCatalog()->GetDictionary().AddKey(PoDoFo::PdfName("Metadata"), metadata->Reference());
             }
-            else
-            {
-                fseek(fp, 0, SEEK_END);
-                long xmpLen = ftell(fp);
-                xmpBuf = new char[xmpLen];
-                fseek(fp, 0, SEEK_SET);
-                fread(xmpBuf, 1, xmpLen, fp);
-                fclose(fp);
-                
-                PoDoFo::PdfObject *xmpObj = doc.GetObjects().CreateObject("Metadata");
-                xmpObj->GetDictionary().AddKey(PoDoFo::PdfName("Subtype"), PoDoFo::PdfName("XML"));
-                xmpObj->GetStream()->Set(xmpBuf, xmpLen, PoDoFo::TVecFilters());
-                doc.GetCatalog()->GetDictionary().AddKey(PoDoFo::PdfName("Metadata"), xmpObj->Reference());
-                delete[] xmpBuf;
-                
-                doc.Write(argv[3]);
-			}
+			delete[] xmpBuf;
+
+			doc->Write(argv[3]);
         }
-	}
-	catch( PoDoFo::PdfError & e )
-	{
-		cerr << "Error: An error "<< e.GetError() <<" ocurred during processing the pdf file\n";
-		e.PrintErrorMsg();
-		return e.GetError();
-	}
+    }
+
+	delete doc;
 
 	return EXIT_SUCCESS;
 }
