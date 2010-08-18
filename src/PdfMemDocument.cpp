@@ -107,8 +107,17 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
 
     if(PdfError::DebugEnabled())
     {
-        PdfOutputDevice debug( &(std::cout) );
+        // OC 17.08.2010: Avoid using cout here:
+     // PdfOutputDevice debug( &(std::cout) );
+     // pTrailer->Write( &debug );
+     // debug.Write("\n", 1); // OC 17.08.2010: Append Linefeed
+        PdfRefCountedBuffer buf;
+        PdfOutputDevice debug( &buf );
         pTrailer->Write( &debug );
+        debug.Write("\n", 1); // OC 17.08.2010: Append Linefeed
+        size_t siz = buf.GetSize();
+        char*  ptr = buf.GetBuffer();
+        PdfError::LogMessage(eLogSeverity_Information, "%.*s", siz, ptr);
     }
 
     PdfObject* pCatalog = pTrailer->GetIndirectKey( "Root" );
