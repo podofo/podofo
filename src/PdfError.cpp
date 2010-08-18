@@ -31,6 +31,17 @@ namespace PoDoFo {
 bool PdfError::s_DgbEnabled = true;
 bool PdfError::s_LogEnabled = true;
 
+// OC 17.08.2010 New to optionally replace stderr output by a callback:
+PdfError::LogMessageCallback* PdfError::m_fLogMessageCallback = NULL;
+
+//static
+PdfError::LogMessageCallback* PdfError::SetLogMessageCallback(LogMessageCallback* fLogMessageCallback)
+{
+    PdfError::LogMessageCallback* old_fLogMessageCallback = m_fLogMessageCallback;
+    m_fLogMessageCallback = fLogMessageCallback;
+    return old_fLogMessageCallback;
+}
+
 PdfErrorInfo::PdfErrorInfo()
     : m_nLine( -1 )
 {
@@ -464,7 +475,9 @@ void PdfError::LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... )
     const ELogSeverity eMinSeverity = eLogSeverity_Information;
 #endif // DEBUG
 
-    if( eLogSeverity < eMinSeverity )
+    // OC 17.08.2010 BugFix: Higher level is lower value
+ // if( eLogSeverity < eMinSeverity )
+    if( eLogSeverity > eMinSeverity )
         return;
 
     va_list  args;
@@ -508,6 +521,13 @@ void PdfError::LogMessageInternal( ELogSeverity eLogSeverity, const char* pszMsg
             break;
     }
 
+    // OC 17.08.2010 New to optionally replace stderr output by a callback:
+    if ( m_fLogMessageCallback != NULL )
+    {
+        m_fLogMessageCallback->LogMessage(eLogSeverity, pszPrefix, pszMsg, args);
+        return;
+    }
+
     if( pszPrefix )
         fprintf( stderr, "%s", pszPrefix );
 
@@ -525,7 +545,9 @@ void PdfError::LogMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ...
     const ELogSeverity eMinSeverity = eLogSeverity_Information;
 #endif // DEBUG
 
-    if( eLogSeverity < eMinSeverity )
+    // OC 17.08.2010 BugFix: Higher level is lower value
+ // if( eLogSeverity < eMinSeverity )
+    if( eLogSeverity > eMinSeverity )
         return;
 
     va_list  args;
@@ -569,6 +591,13 @@ void PdfError::LogMessageInternal( ELogSeverity eLogSeverity, const wchar_t* psz
             break;
     }
 
+    // OC 17.08.2010 New to optionally replace stderr output by a callback:
+    if ( m_fLogMessageCallback != NULL )
+    {
+        m_fLogMessageCallback->LogMessage(eLogSeverity, pszPrefix, pszMsg, args);
+        return;
+    }
+
     if( pszPrefix )
         fwprintf( stderr, pszPrefix );
 
@@ -584,6 +613,13 @@ void PdfError::DebugMessage( const char* pszMsg, ... )
 
 	va_list  args;
 	va_start( args, pszMsg );
+
+    // OC 17.08.2010 New to optionally replace stderr output by a callback:
+    if ( m_fLogMessageCallback != NULL )
+    {
+        m_fLogMessageCallback->LogMessage(eLogSeverity_Debug, pszPrefix, pszMsg, args);
+        return;
+    }
 
 	if( pszPrefix )
 		fprintf( stderr, "%s", pszPrefix );
