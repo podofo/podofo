@@ -194,6 +194,24 @@ inline void podofo_unused(T &t) { (void)t; }
 #define PODOFO_UNUSED( x ) (void)x;
 #endif // _WIN32
 
+// OC 17.08.2010: Activate showing the correct source for Memory Leak Detection in Visual Studio:
+// See: <afx.h>  looking for _AFX_NO_DEBUG_CRT
+#ifdef _MSC_VER
+#if defined(_DEBUG) && defined(DEFINE_NEW_DEBUG_NEW)
+  // fuer crtdbg.h und malloc.h
+  #define _CRTDBG_MAP_ALLOC
+  #include <malloc.h>
+  #include <crtdbg.h>
+  void* operator new(size_t ai_NewSize, const char* ac_File_, int ai_Line);
+  void operator delete(void* av_Ptr_, const char* ac_File_, int ai_Line);
+  #define DEBUG_NEW new(__FILE__, __LINE__)
+  #define new DEBUG_NEW
+  // doesnt work:
+  // // _NEW_CRT is defined in <xdebug>
+  // // #define new _NEW_CRT
+#endif // _DEBUG
+#endif // _MSC_VER
+
 /*
  * \mainpage
 
