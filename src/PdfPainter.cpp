@@ -106,8 +106,9 @@ PdfPainter::~PdfPainter()
     // Note that we can't do this for the user, since FinishPage() might
     // throw and we can't safely have that in a dtor. That also means
     // we can't throw here, but must abort.
-	PdfError::LogMessage( eLogSeverity_Error, 
-		"PdfPainter::~PdfPainter(): FinishPage() has to be called after a page is completed!" );
+    if( m_pCanvas )
+        PdfError::LogMessage( eLogSeverity_Error, 
+                              "PdfPainter::~PdfPainter(): FinishPage() has to be called after a page is completed!" );
 
     assert(!m_pCanvas);
 }
