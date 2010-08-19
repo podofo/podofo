@@ -406,7 +406,8 @@ void PdfFilter::EndDecode()
 // -----------------------------------------------------
 void PdfFilter::FailEncodeDecode()
 {
-    m_pOutputStream->Close();
+    if ( m_pOutputStream != NULL ) // OC 19.08.2010 BugFix: Sometimes FailEncodeDecode() is called twice
+        m_pOutputStream->Close();
     m_pOutputStream = NULL;
 }
 

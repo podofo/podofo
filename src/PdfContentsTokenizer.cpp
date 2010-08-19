@@ -60,6 +60,24 @@ PdfContentsTokenizer::PdfContentsTokenizer( PdfCanvas* pCanvas )
     {
         m_lstContents.push_back( pContents );
     }
+    else if ( pContents && pContents->IsDictionary() )
+    {
+        m_lstContents.push_back( pContents );
+        PdfError::LogMessage(eLogSeverity_Information,
+                  "PdfContentsTokenizer: found canvas-dictionary without stream => empty page");
+        // OC 18.09.2010 BugFix: Found an empty page in a PDF document:
+        //    103 0 obj
+        //    <<
+        //    /Type /Page
+        //    /MediaBox [ 0 0 595 842 ]
+        //    /Parent 3 0 R
+        //    /Resources <<
+        //    /ProcSet [ /PDF ]
+        //    >>
+        //    /Rotate 0
+        //    >>
+        //    endobj
+    }
     else
     {
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Page /Contents not stream or array of streams" );
