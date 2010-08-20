@@ -1095,6 +1095,11 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int )
         device.Device()->Seek( static_cast<std::streamoff>(lFirst + lOff) );
 
         tokenizer.GetNextVariant( var, m_pEncrypt );
+        if(m_vecObjects->GetObject(PdfReference( static_cast<int>(lObj), 0LL )))
+        {
+            PdfError::LogMessage( eLogSeverity_Warning, "Object: %li 0 R will be deleted and loaded again.\n", lObj );
+            delete m_vecObjects->RemoveObject(PdfReference( static_cast<int>(lObj), 0LL ),false);
+        }
         m_vecObjects->push_back( new PdfObject( PdfReference( static_cast<int>(lObj), 0LL ), var ) );
 
         // move back to the position inside of the table of contents
