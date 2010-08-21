@@ -22,11 +22,7 @@
 #include <cstdlib>
 #include <cstdio>
 
-#include "podofo/PdfMemDocument.h"
-#include "podofo/PdfStream.h"
-#include "podofo/PdfString.h"
-#include "podofo/PdfDictionary.h"
-#include "podofo/PdfFilter.h"
+#include <podofo.h>
 
 using namespace std;
 
