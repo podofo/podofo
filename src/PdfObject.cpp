@@ -165,7 +165,17 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt, con
         pDevice->Print( "%i %i obj\n", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
 
     if( pEncrypt ) 
+    {
         pEncrypt->SetCurrentReference( m_reference );
+    }
+
+    if( pEncrypt && m_pStream )
+    {
+        pdf_long lLength = pEncrypt->CalculateStreamLength(m_pStream->GetLength());
+        PdfVariant varLength = static_cast<pdf_int64>(lLength);
+        // Set length whether it is a key or an indirect reference
+        *(const_cast<PdfObject*>(this)->GetIndirectKey( PdfName::KeyLength )) = varLength;
+    }
 
     this->Write( pDevice, pEncrypt, keyStop );
     pDevice->Print( "\n" );
