@@ -734,7 +734,6 @@ void PdfLZWFilter::DecodeBlockImpl( const char* pBuffer, pdf_long lLen )
                     case 511:
                     case 1023:
                     case 2047:
-                    case 4095:
                         ++m_code_len;
                         ++m_mask;
                     default:
