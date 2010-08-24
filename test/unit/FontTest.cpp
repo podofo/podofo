@@ -117,11 +117,17 @@ void FontTest::testSingleFont(FcPattern* pFont, FcConfig* pConfig)
 void FontTest::testCreateFontFtFace()
 {
     FT_Face face;
-    FT_New_Face( m_pDoc->GetFontLibrary(), "/usr/share/fonts/truetype/msttcorefonts/Arial.ttf", 0, &face );
+    FT_Error error;
+    
+    // TODO: Find font file on disc!
+    error = FT_New_Face( m_pDoc->GetFontLibrary(), "/usr/share/fonts/truetype/msttcorefonts/Arial.ttf", 0, &face );
 
-    PdfFont* pFont = m_pDoc->CreateFont( face );
+    if( !error ) 
+    {
+        PdfFont* pFont = m_pDoc->CreateFont( face );
 
-    CPPUNIT_ASSERT_MESSAGE( "Cannot create font from FT_Face.", pFont != NULL );
+        CPPUNIT_ASSERT_MESSAGE( "Cannot create font from FT_Face.", pFont != NULL );
+    }
 }
 
 bool FontTest::GetFontInfo( FcPattern* pFont, std::string & rsFamily, std::string & rsPath, 
