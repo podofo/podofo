@@ -758,21 +758,15 @@ void PdfLZWFilter::InitTable()
     m_table.clear();
     m_table.reserve( LZW_TABLE_SIZE );
 
-    for( i=0;i<255;i++ )
+    for( i=0;i<=255;i++ )
     {
         item.value.clear();
         item.value.push_back( static_cast<unsigned char>(i) );
         m_table.push_back( item );
     }
 
+    // Add dummy entry, which is never used by decoder
     item.value.clear();
-    item.value.push_back( static_cast<unsigned char>((s_clear >> 1) & 0xff) );
-    item.value.push_back( static_cast<unsigned char>(s_clear & 0xff) );
-    m_table.push_back( item );
-    
-    item.value.clear();
-    item.value.push_back( static_cast<unsigned char>((s_eod >> 1)& 0xff) );
-    item.value.push_back( static_cast<unsigned char>(s_eod & 0xff) );
     m_table.push_back( item );
 }
 
