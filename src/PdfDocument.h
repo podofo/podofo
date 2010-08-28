@@ -140,13 +140,16 @@ class PODOFO_API PdfDocument {
     /** Creates a PdfFont object
      *  \param pszFontName name of the font as it is known to the system
      *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
+     *  \param eFontCreationFlags special flag to specify how fonts should be created
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
      *
      *  \returns PdfFont* a pointer to a new PdfFont object.
      *           The returned object is owned by the PdfDocument.
      */
-    PdfFont* CreateFont( const char* pszFontName, const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
+    PdfFont* CreateFont( const char* pszFontName, 
+                         const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
+                         PdfFontCache::EFontCreationFlags eFontCreationFlags = PdfFontCache::eFontCreationFlags_AutoSelectBase14,
                          bool bEmbedd = true );
 
     /** Creates a PdfFont object
@@ -154,6 +157,7 @@ class PODOFO_API PdfDocument {
      *  \param bBold if true search for a bold font
      *  \param bItalic if true search for an italic font
      *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
+     *  \param eFontCreationFlags special flag to specify how fonts should be created
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
      *  \param optional: pszFileName path to a valid font file
@@ -162,6 +166,7 @@ class PODOFO_API PdfDocument {
      */
     PdfFont* CreateFont( const char* pszFontName, bool bBold, bool bItalic, 
                          const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
+                         PdfFontCache::EFontCreationFlags eFontCreationFlags = PdfFontCache::eFontCreationFlags_AutoSelectBase14,
                          bool bEmbedd = true, const char* pszFileName = NULL );
 
 #ifdef _WIN32

@@ -165,16 +165,20 @@ PdfPage* PdfDocument::GetPage( int nIndex ) const
     return m_pPagesTree->GetPage( nIndex );
 }
 
-PdfFont* PdfDocument::CreateFont( const char* pszFontName, const PdfEncoding * const pEncoding, bool bEmbedd )
+PdfFont* PdfDocument::CreateFont( const char* pszFontName,                                   
+                                  const PdfEncoding * const pEncoding, 
+                                  PdfFontCache::EFontCreationFlags eFontCreationFlags, 
+                                  bool bEmbedd )
 {
-    return m_fontCache.GetFont( pszFontName, false, false, bEmbedd, pEncoding );
+    return m_fontCache.GetFont( pszFontName, false, false, bEmbedd, eFontCreationFlags, pEncoding );
 }
 
 PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bBold, bool bItalic, 
-                                  const PdfEncoding * const pEncoding, bool bEmbedd, 
-                                  const char* pszFileName )
+                                  const PdfEncoding * const pEncoding, 
+                                  PdfFontCache::EFontCreationFlags eFontCreationFlags,
+                                  bool bEmbedd, const char* pszFileName )
 {
-    return m_fontCache.GetFont( pszFontName, bBold, bItalic, bEmbedd, pEncoding, pszFileName );
+    return m_fontCache.GetFont( pszFontName, bBold, bItalic, bEmbedd, eFontCreationFlags, pEncoding, pszFileName );
 }
 
 #ifdef _WIN32

@@ -228,8 +228,9 @@ PdfFont* PdfFontCache::GetFont( PdfObject* pObject )
 }
 
 PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItalic, 
-                                bool bEmbedd, const PdfEncoding * const pEncoding, 
-                                const char* pszFileName )
+                                bool bEmbedd, EFontCreationFlags eFontCreationFlags,
+                                const PdfEncoding * const pEncoding, 
+                                const char* pszFileName)
 {
     PODOFO_ASSERT( pEncoding );
 
@@ -243,7 +244,8 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
 		
     if( it.first == it.second )
     {
-		if (PODOFO_Base14FontDef_FindBuiltinData(pszFontName))
+		if ( (eFontCreationFlags & eFontCreationFlags_AutoSelectBase14) 
+             && PODOFO_Base14FontDef_FindBuiltinData(pszFontName))
 		{  
 			pFont = CreateBase14Font(pszFontName,pEncoding,m_pParent);
 
@@ -262,7 +264,6 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
 				
 			 }
 
-	//	pdfont = new PdfFontType1(PODOFO_Base14FontDef_FindBuiltinData(pszFontName), pEncoding, &m_vecObjects);
 		}
 		
 		if (!pFont)

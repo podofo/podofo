@@ -134,6 +134,11 @@ class PODOFO_API PdfFontCache {
 #endif
 
  public:
+    enum EFontCreationFlags {
+        eFontCreationFlags_None = 0, ///< No special settings
+        eFontCreationFlags_AutoSelectBase14 = 1 ///< Create automatically a base14 font if the fontname matches one of them
+    };
+
     /** Create an empty font cache 
      *
      *  \param pParent a PdfVecObjects which is required
@@ -171,6 +176,7 @@ class PODOFO_API PdfFontCache {
      *  \param bItalic if true search for an italic font
      *  \param bEmbedd if true a font for embedding into 
      *                 PDF will be created
+     *  \param eFontCreationFlags special flag to specify how fonts should be created
      *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
      *  \param optional: pszFileName path to a valid font file
      *
@@ -178,7 +184,7 @@ class PODOFO_API PdfFontCache {
      *           not be created or found.
      */
     PdfFont* GetFont( const char* pszFontName, bool bBold, bool bItalic, 
-                      bool bEmbedd, 
+                      bool bEmbedd, EFontCreationFlags eFontCreationFlags = eFontCreationFlags_AutoSelectBase14,
                       const PdfEncoding * const = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
                       const char* pszFileName = NULL );
 
