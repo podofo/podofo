@@ -202,41 +202,51 @@ bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, const ch
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    // cosume the only whitespace between ID and data
+    // consume the only whitespace between ID and data
     c = m_device.Device()->Look();
     if( PdfTokenizer::IsWhitespace( c ) )
     {
         c = m_device.Device()->GetChar();
     }
 
-    while( (c = m_device.Device()->Look()) != EOF
-           && counter < static_cast<long long>(m_buffer.GetSize()) )
+    while((c = m_device.Device()->Look()) != EOF) 
     {
-        if (PdfTokenizer::IsWhitespace(c))
+        c = m_device.Device()->GetChar(); 
+        if (c=='E' &&  m_device.Device()->Look()=='I') 
         {
-            // test if end-of-image-data is reached (hit EI keyword)
-            c = m_device.Device()->GetChar(); // skip the white space
-            char e = m_device.Device()->GetChar();
             char i = m_device.Device()->GetChar();
-            m_device.Device()->Seek(-2, std::ios::cur);
-            if (e == 'E' && i == 'I')
+            char w = m_device.Device()->Look();
+            if (w==EOF || PdfTokenizer::IsWhitespace(w)) 
             {
+                // EI is followed by whitespace => stop
+                m_device.Device()->Seek(-2, std::ios::cur); // put back "EI" 
                 m_buffer.GetBuffer()[counter] = '\0';
                 rVariant = PdfData(m_buffer.GetBuffer(), static_cast<size_t>(counter));
                 reType = ePdfContentsType_ImageData;
                 m_readingInlineImgData = false;
                 return true;
             }
+            else 
+            {
+                // no whitespace after EI => do not stop
+                m_device.Device()->Seek(-1, std::ios::cur); // put back "I" 
+                m_buffer.GetBuffer()[counter] = c;
+                ++counter;    
+            }
+        }
+        else 
+        {
             m_buffer.GetBuffer()[counter] = c;
             ++counter;
         }
-        else
+        
+        if (counter ==  static_cast<long long>(m_buffer.GetSize())) 
         {
-            c = m_device.Device()->GetChar();
-            m_buffer.GetBuffer()[counter] = c;
-            ++counter;
+            // image is larger than buffer => resize buffer
+            m_buffer.Resize(m_buffer.GetSize()*2);
         }
     }
+    
     return false;
 }
 };
