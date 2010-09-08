@@ -46,8 +46,6 @@ using std::flush;
 #define PDF_XREF_ENTRY_SIZE 20
 #define PDF_XREF_BUF        512
 
-#define PODOFO_VERBOSE_DEBUG
-
 namespace PoDoFo {
 
 PdfParser::PdfParser( PdfVecObjects* pVecObjects )
