@@ -838,17 +838,17 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
         {
             // The last word does not fit anymore in the current line.
             // -> Move it to the next one.
-			
+                        
             // skip leading whitespaces!
             while( *tLine.pszStart && isspace( static_cast<unsigned int>(static_cast<unsigned char>(*tLine.pszStart)) ) )
                 ++tLine.pszStart;
 
-            tLine.lLen = pszEnd - tLine.pszStart;
+            tLine.lLen = /*pszEnd*/pszWord - tLine.pszStart + 1;
             vecLines.push_back( tLine );
-            tLine.pszStart = pszWord;
+            tLine.pszStart = pszWord + 1;
 
             dCurWidth = pszEnd-pszWord > 0 ? 
-                m_pFont->GetFontMetrics()->StringWidth( pszWord, pszEnd-pszWord ) : 0.0;
+                m_pFont->GetFontMetrics()->StringWidth( pszWord+1, pszEnd-pszWord-1 ) : 0.0;
         }
         ++pszEnd;
     }
