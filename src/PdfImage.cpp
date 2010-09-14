@@ -697,4 +697,17 @@ const char* PdfImage::ColorspaceToName( EPdfColorSpace eColorSpace )
     return NULL;
 }
 
+void PdfImage::SetImageChromaKeyMask(pdf_int64 r, pdf_int64 g, pdf_int64 b, pdf_int64 threshold)
+{
+    PdfArray array;
+    array.push_back(r - threshold);
+    array.push_back(r + threshold);
+    array.push_back(g - threshold);
+    array.push_back(g + threshold);
+    array.push_back(b - threshold);
+    array.push_back(b + threshold);
+
+    this->GetObject()->GetDictionary().AddKey( "Mask", array);
+}
+
 };

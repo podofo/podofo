@@ -180,6 +180,15 @@ class PODOFO_API PdfImage : public PdfXObject {
     void LoadFromPng( const char* pszFilename );
 #endif // PODOFO_HAVE_PNG_LIB
 
+    /** Set an color/chroma-key mask on an image.
+     *  The masked color will not be painted, i.e. masked as being transparent.
+     *
+     *  \param r red RGB value of color that should be masked
+     *  \param g green RGB value of color that should be masked
+     *  \param b blue RGB value of color that should be masked
+     *  \param threshold colors are masked that are in the range [(r-threshold, r+threshold),(g-threshold, g+threshold),(b-threshold, b+threshold)]
+     */
+    void SetImageChromaKeyMask(pdf_int64 r, pdf_int64 g, pdf_int64 b, pdf_int64 threshold = 0);
 
  private:
     /** Set the actual image data from an input stream.
