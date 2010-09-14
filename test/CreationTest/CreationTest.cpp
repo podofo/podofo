@@ -258,6 +258,9 @@ void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
     pPainter->DrawRect( x, y, dWidth, dHeight );
 
+    PdfString sMultiLine("Hello World! We try to draw text using PdfPainter and DrawMultiLineText into an rectangle - including wordwrapping.");
+    pPainter->DrawMultiLineText( x, y, dWidth, dHeight, sMultiLine );
+
     x += dWidth;
     x += 10000 * CONVERSION_CONSTANT;
 
@@ -707,7 +710,6 @@ int main( int argc, char* argv[] )
     TEST_SAFE_OP( LineTest( &painter, pPage, &writer ) );
 
     painter.FinishPage();
-#if 0
     pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_Letter ) );
     painter.SetPage( pPage );
     pRoot->Last()->CreateNext( "Rectangles Test", PdfDestination( pPage ) );
@@ -758,7 +760,7 @@ int main( int argc, char* argv[] )
     TEST_SAFE_OP( MMTest( &painterMM, pPage, &writer ) );
 
     painterMM.FinishPage();
-#endif // 0
+   
 #if 0
     /** Create a really large name tree to test the name tree implementation
      */
@@ -783,7 +785,7 @@ int main( int argc, char* argv[] )
                       PdfString(reinterpret_cast<const pdf_utf8*>("「PoDoFo」は今から日本語も話せます。") ) ) );
     TEST_SAFE_OP( writer.GetInfo()->SetKeywords( PdfString("Test;PDF;") ) );
 
-    TEST_SAFE_OP( writer.AttachFile( PdfFileSpec("../../../podofo/test/CreationTest/CreationTest.cpp", true, &writer ) ) );
+    //xTEST_SAFE_OP( writer.AttachFile( PdfFileSpec("../../../podofo/test/CreationTest/CreationTest.cpp", true, &writer ) ) );
 
     TEST_SAFE_OP( writer.Write( argv[1] ) );
     //TEST_SAFE_OP( writer.Close() );
