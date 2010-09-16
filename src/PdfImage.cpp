@@ -710,4 +710,8 @@ void PdfImage::SetImageChromaKeyMask(pdf_int64 r, pdf_int64 g, pdf_int64 b, pdf_
     this->GetObject()->GetDictionary().AddKey( "Mask", array);
 }
 
+void PdfImage::SetInterpolate(bool bValue)
+{
+    this->GetObject()->GetDictionary().AddKey( "Interpolate", PdfVariant(bValue));
+}
 };

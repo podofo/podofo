@@ -190,6 +190,14 @@ class PODOFO_API PdfImage : public PdfXObject {
      */
     void SetImageChromaKeyMask(pdf_int64 r, pdf_int64 g, pdf_int64 b, pdf_int64 threshold = 0);
 
+    /**
+     * Apply an interpolation to the image if the source resolution
+     * is lower than the resolution of the output device.
+     * Default is false.
+     * \param bValue whether the image should be interpolated
+     */
+    void SetInterpolate(bool bValue);
+
  private:
     /** Set the actual image data from an input stream.
      *  The data has to be encoded already and an appropriate
