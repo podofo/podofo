@@ -185,12 +185,12 @@ void PdfParser::ParseFile( const PdfRefCountedInputDevice & rDevice, bool bLoadO
 
     m_bLoadOnDemand = bLoadOnDemand;
 
-    if( !IsPdfFile() )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_NoPdfFile );
-    }
-    
     try {
+        if( !IsPdfFile() )
+        {
+            PODOFO_RAISE_ERROR( ePdfError_NoPdfFile );
+        }
+    
         ReadDocumentStructure();
         ReadObjects();
     } catch( PdfError & e ) {
