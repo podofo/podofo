@@ -474,6 +474,13 @@ bool PdfPage::SetPageHeight(int newHeight)
     }
 }
 
+void PdfPage::SetTrimBox( const PdfRect & rSize )
+{
+    PdfVariant trimbox;
+    rSize.ToVariant( trimbox );
+    this->GetObject()->GetDictionary().AddKey( "TrimBox", trimbox );
+}
+
 unsigned int PdfPage::GetPageNumber() const
 {
     unsigned int        nPageNumber = 0;

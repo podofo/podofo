@@ -92,7 +92,12 @@ class PODOFO_API PdfPage : public PdfElement, public PdfCanvas {
      */
     bool SetPageHeight(int newHeight);
 
-    /** Page number inside of the document. The  first page
+    /** Set the trimbox in PDF Units
+     *  \param rSize a PdfRect specifying the trimbox of the page (i.e the /TrimBox key) in PDF units
+     */
+	void SetTrimBox( const PdfRect & rSize );
+
+	/** Page number inside of the document. The  first page
      *  has the number 1, the last page has the number 
      *  PdfPagesTree:GetTotalNumberOfPages()
      *
