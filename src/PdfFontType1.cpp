@@ -62,6 +62,24 @@ PdfFontType1::PdfFontType1( PdfFontType1* pFont, PdfFontMetrics* pMetrics, const
 	GetObject()->GetDictionary().AddKey( "FontDescriptor", pFont->GetObject()->GetDictionary().GetKey( "FontDescriptor" ) );
 }
 
+void PdfFontType1::AddUsedSubsettingGlyphs( const PdfString & sText, long lStringLen )
+{
+	if ( m_bIsSubsetting )
+	{
+		// TODO: remember used glyphs
+	}
+}
+
+void PdfFontType1::EmbedSubsetFont()
+{
+	if ( m_bIsSubsetting  && m_bWasEmbedded == false )
+	{
+		// TODO: only embed with used glyphs
+		EmbedFontFile( m_pDescriptor );
+		m_bWasEmbedded = true;
+	}
+}
+
 void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 {
     pdf_long    lSize    = 0;

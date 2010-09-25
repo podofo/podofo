@@ -67,6 +67,18 @@ class PdfFontType1 : public PdfFontSimple {
 
   protected:
 
+  	/** Remember the glyphs used in the string in case of subsetting 
+	 *
+     *  \param sText the text string which should be printed (is not allowed to be NULL!)
+     *  \param lLen draw only lLen characters of pszText
+	 */
+	virtual void AddUsedSubsettingGlyphs( const PdfString & sText, long lStringLen );
+
+    /** Embeds pending subset-font into PDF page
+     *
+     */
+    virtual void EmbedSubsetFont();
+
     /** Embed the font file directly into the PDF file.
      *
      *  \param pDescriptor font descriptor object

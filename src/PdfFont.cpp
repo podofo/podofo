@@ -40,7 +40,8 @@ namespace PoDoFo {
 
 PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent )
     : PdfElement( "Font", pParent ), m_pEncoding( pEncoding ), 
-      m_pMetrics( pMetrics ), m_bBold( false ), m_bItalic( false ), m_isBase14( false )
+      m_pMetrics( pMetrics ), m_bBold( false ), m_bItalic( false ), m_isBase14( false ), m_bIsSubsetting( false )
+
 {
     this->InitVars();
 }
@@ -48,7 +49,8 @@ PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
 PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject )
     : PdfElement( "Font", pObject ),
       m_pEncoding( pEncoding ), m_pMetrics( pMetrics ),
-      m_bBold( false ), m_bItalic( false ), m_isBase14( false )
+      m_bBold( false ), m_bItalic( false ), m_isBase14( false ), m_bIsSubsetting( false )
+
 {
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
@@ -76,7 +78,7 @@ void PdfFont::InitVars()
 
     // Peter Petrov 24 Spetember 2008
     m_bWasEmbedded = false;
-    
+
     m_bUnderlined = false;
     m_bStrikedOut = false;
 
@@ -145,6 +147,18 @@ void PdfFont::EmbedFont()
         // Now we set the flag
         m_bWasEmbedded = true;
     }
+}
+
+void PdfFont::EmbedSubsetFont()
+{
+	//virtual function is only implemented in derived class
+    PODOFO_RAISE_ERROR_INFO( ePdfError_NotImplemented, "Subsetting not implemented for this font type." );
+}
+
+void PdfFont::AddUsedSubsettingGlyphs( const PdfString & sText, long lStringLen )
+{
+	//virtual function is only implemented in derived class
+    PODOFO_RAISE_ERROR_INFO( ePdfError_NotImplemented, "Subsetting not implemented for this font type." );
 }
 
 };

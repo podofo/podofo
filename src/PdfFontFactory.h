@@ -35,7 +35,7 @@ enum EPdfFontFlags {
     ePdfFont_Bold       = 0x02,
     ePdfFont_Italic     = 0x04,
     ePdfFont_BoldItalic = ePdfFont_Bold | ePdfFont_Italic,
-
+    ePdfFont_Subsetting = 0x08
 };
 
 /** This is a factory class which knows
@@ -86,7 +86,7 @@ class PODOFO_API PdfFontFactory {
      */
     static PdfFont* CreateFontForType( EPdfFontType eType, PdfFontMetrics* pMetrics, 
                                        const PdfEncoding* const pEncoding, 
-                                       bool bEmbed, PdfVecObjects* pParent );
+                                       bool bEmbed, bool bSubsetting, PdfVecObjects* pParent );
 
 };
 

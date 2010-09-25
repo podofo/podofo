@@ -243,6 +243,9 @@ void PdfMemDocument::Write( const char* pszFilename )
      *  as we truncated the file already to zero length by opening
      *  it writeable.
      */
+	// makes sure pending subset-fonts are embedded
+	m_fontCache.EmbedSubsetFonts();
+
     PdfOutputDevice device( pszFilename );
 
     this->Write( &device );

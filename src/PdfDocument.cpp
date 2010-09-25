@@ -224,6 +224,11 @@ PdfPage* PdfDocument::CreatePage( const PdfRect & rSize )
     return m_pPagesTree->CreatePage( rSize );
 }
 
+void PdfDocument::EmbedSubsetFonts()
+{
+	m_fontCache.EmbedSubsetFonts();
+}
+
 const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppendAll )
 {
     unsigned int difference = static_cast<unsigned int>(m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size());

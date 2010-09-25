@@ -44,10 +44,11 @@ PdfFont* PdfFontFactory::CreateFontObject( PdfFontMetrics* pMetrics, int nFlags,
     PdfFont*     pFont  = NULL;
     EPdfFontType eType  = pMetrics->GetFontType();
     bool         bEmbed = nFlags & ePdfFont_Embedded;
+    bool         bSubsetting = (nFlags & ePdfFont_Subsetting) != 0;
 
     try
     { 
-        pFont = PdfFontFactory::CreateFontForType( eType, pMetrics, pEncoding, bEmbed, pParent );
+        pFont = PdfFontFactory::CreateFontForType( eType, pMetrics, pEncoding, bEmbed, bSubsetting, pParent );
         
         if( pFont ) 
         {
@@ -96,7 +97,7 @@ PdfFont* PdfFontFactory::CreateFontObject( PdfFontMetrics* pMetrics, int nFlags,
 
 PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* pMetrics, 
                                             const PdfEncoding* const pEncoding, 
-                                            bool bEmbed, PdfVecObjects* pParent )
+                                            bool bEmbed, bool bSubsetting, PdfVecObjects* pParent )
 {
     PdfFont* pFont = NULL;
 
@@ -111,7 +112,14 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
                 
             case ePdfFontType_Type1Pfa:
             case ePdfFontType_Type1Pfb:
-                pFont = new PdfFontType1( pMetrics, pEncoding, pParent, bEmbed );
+				if ( bSubsetting )
+				{
+					// don't embed yet for subsetting
+	                pFont = new PdfFontType1( pMetrics, pEncoding, pParent, false );
+					pFont->m_bIsSubsetting = true;
+				}
+				else
+					pFont = new PdfFontType1( pMetrics, pEncoding, pParent, bEmbed );
                 break;
                 
             case ePdfFontType_Unknown:

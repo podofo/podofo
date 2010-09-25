@@ -268,6 +268,12 @@ class PODOFO_API PdfDocument {
      */
     inline FT_Library GetFontLibrary() const;
 	
+    /** Embeds all pending subset-fonts, is automatically done on Write().
+	 *  Just call explicit in case PdfDocument is needed as XObject
+     *
+     */
+	void EmbedSubsetFonts();
+
     /** Creates a new page object and inserts it into the internal
      *  page tree. 
      *  The returned page is owned by the PdfDocument

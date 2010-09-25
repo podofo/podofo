@@ -135,8 +135,9 @@ class PODOFO_API PdfFontCache {
 
  public:
     enum EFontCreationFlags {
-        eFontCreationFlags_None = 0, ///< No special settings
-        eFontCreationFlags_AutoSelectBase14 = 1 ///< Create automatically a base14 font if the fontname matches one of them
+        eFontCreationFlags_None = 0,				///< No special settings
+        eFontCreationFlags_AutoSelectBase14 = 1,	///< Create automatically a base14 font if the fontname matches one of them
+        eFontCreationFlags_Type1Subsetting = 2		///< Create subsetted type1-font, which includes only used characters
     };
 
     /** Create an empty font cache 
@@ -252,7 +253,11 @@ class PODOFO_API PdfFontCache {
 			    const PdfEncoding * const = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(),
 			    const char* pszFileName = NULL);
 
-    
+    /** Embeds all pending subset-fonts
+     *
+     */
+	void EmbedSubsetFonts();
+
 #if defined(PODOFO_HAVE_FONTCONFIG)
     /** Get the path of a font file on a Unix system using fontconfig
      *
@@ -298,12 +303,14 @@ class PODOFO_API PdfFontCache {
      *  \param bItalic if true this font will be treated as italic font
      *  \param pszFontName a font name for debug output
      *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
+     *  \param bSubsetting if true the font will be subsetted in the pdf file
      *
      *  \returns a font handle or NULL in case of error
      */
     PdfFont* CreateFontObject( TISortedFontList itSorted, TSortedFontList & vecContainer,
                                PdfFontMetrics* pMetrics, bool bEmbedd, bool bBold, 
-                               bool bItalic, const char* pszFontName, const PdfEncoding * const pEncoding );
+                               bool bItalic, const char* pszFontName, const PdfEncoding * const pEncoding,
+							   bool bSubsetting = false );
 
     /** Create a font subset.
      *  \param pMetrics a font metrics

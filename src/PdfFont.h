@@ -185,6 +185,18 @@ class PODOFO_API PdfFont : public PdfElement {
      */
     virtual void EmbedFont();
 
+	/** Remember the glyphs used in the string in case of subsetting 
+	 *
+     *  \param sText the text string which should be printed (is not allowed to be NULL!)
+     *  \param lLen draw only lLen characters of pszText
+	 */
+	virtual void AddUsedSubsettingGlyphs( const PdfString & sText, long lStringLen );
+
+    /** Embeds pending subset-font into PDF page
+     *
+     */
+    virtual void EmbedSubsetFont();
+
  protected:
     /** Get the base font name of this font
      *
@@ -234,6 +246,7 @@ class PODOFO_API PdfFont : public PdfElement {
 
     bool  m_bWasEmbedded;
 	bool m_isBase14;
+	bool m_bIsSubsetting;
     PdfName m_Identifier;
 };
 

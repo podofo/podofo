@@ -59,6 +59,10 @@ void PdfStreamedDocument::Init( PdfOutputDevice* pDevice, EPdfVersion eVersion, 
 
 void PdfStreamedDocument::Close()
 {
+    // TODO: Check if this works correctly
+	// makes sure pending subset-fonts are embedded
+	m_fontCache.EmbedSubsetFonts();
+    
     this->GetObjects()->Finish();
 }
 

@@ -634,6 +634,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
 
     PdfString sString = this->ExpandTabs( sText, lStringLen );
     this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->Reference(), PdfName("Font") );
+	m_pFont->AddUsedSubsettingGlyphs( sText, lStringLen );
 
     if( m_pFont->IsUnderlined() || m_pFont->IsStrikeOut())
     {
@@ -765,6 +766,7 @@ void PdfPainter::AddText( const PdfString & sText, pdf_long lStringLen )
     }
 
     PdfString sString = this->ExpandTabs( sText, lStringLen );
+	m_pFont->AddUsedSubsettingGlyphs( sText, lStringLen );
 
 	// TODO: Underline and Strikeout not yet supported
     
@@ -808,7 +810,8 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
     this->SetClipRect( dX, dY, dWidth, dHeight );
     
     PdfString   sString  = this->ExpandTabs( rsText, rsText.GetCharacterLength() );
-    tLine.pszStart       = sString.GetString();
+
+	tLine.pszStart       = sString.GetString();
     const char* pszEnd   = tLine.pszStart;
     const char* pszWord  = tLine.pszStart;
     
