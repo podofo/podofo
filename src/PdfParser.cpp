@@ -722,7 +722,7 @@ void PdfParser::ReadXRefSubsection( long long & nFirstObject, long long & nNumOb
             sscanf( m_buffer.GetBuffer(), "%10lld %5ld %c%c%c", 
                     &tmp1, &tmp2, &(m_offsets[objID].cUsed), &empty1, &empty2 );
 
-            m_offsets[objID].lOffset = tmp1;
+            m_offsets[objID].lOffset = static_cast<pdf_long>(tmp1);
             m_offsets[objID].lGeneration = tmp2;
 #endif
        }
