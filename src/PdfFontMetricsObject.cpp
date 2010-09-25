@@ -39,8 +39,8 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
     m_sName        = pDescriptor->GetDictionary().GetKey( "FontName" )->GetName();
     m_bbox         = pDescriptor->GetDictionary().GetKey( "FontBBox" )->GetArray();
     // OC 15.08.2010 BugFix: /FirstChar /LastChar /Widths are in the Font dictionary and not in the FontDescriptor
-    m_nFirst       = pFont->GetDictionary().GetKeyAsLong( "FirstChar", 0L );
-    m_nLast        = pFont->GetDictionary().GetKeyAsLong( "LastChar", 0L );
+    m_nFirst       = static_cast<int>(pFont->GetDictionary().GetKeyAsLong( "FirstChar", 0L ));
+    m_nLast        = static_cast<int>(pFont->GetDictionary().GetKeyAsLong( "LastChar", 0L ));
 	 // OC 15.08.2010 BugFix: GetIndirectKey() instead of GetDictionary().GetKey() and "Widths" instead of "Width"
     m_width        = pFont->GetIndirectKey( "Widths" )->GetArray();
 
