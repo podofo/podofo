@@ -44,13 +44,15 @@ namespace PoDoFo {
 
 namespace PdfStringNameSpace {
 
-// Generate the escape character map at runtime
-static const char* genEscMap()
-{
-    const long lAllocLen = 256;
-    char* map = static_cast<char*>(malloc(lAllocLen));
-    memset( map, 0, sizeof(char) * lAllocLen );
+static char g_StrEscMap[256] = { 0 };
 
+// Generate the escape character map at runtime
+static const char* genStrEscMap()
+{
+    int        i;
+    const long lAllocLen = 256;
+    char* map = static_cast<char*>(g_StrEscMap);
+    memset( map, 0, sizeof(char) * lAllocLen );
     map['\n'] = 'n'; // Line feed (LF)
     map['\r'] = 'r'; // Carriage return (CR)
     map['\t'] = 't'; // Horizontal tab (HT)
@@ -65,7 +67,7 @@ static const char* genEscMap()
 
 };
 
-const char * const PdfString::m_escMap        = PdfStringNameSpace::genEscMap();
+const char * const PdfString::m_escMap        = PdfStringNameSpace::genStrEscMap();
 
 const PdfString PdfString::StringNull        = PdfString();
 #ifdef _MSC_VER
