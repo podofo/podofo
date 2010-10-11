@@ -235,6 +235,11 @@ public:
      */
     bool Authenticate( const std::string & password, const PdfString & documentId );
 
+    /** Get the encryption algorithm of this object.
+     * \returns the EPdfEncryptAlgorithm of this object
+     */
+    inline EPdfEncryptAlgorithm GetEncryptAlgorithm() const;
+
     /** Checks if printing this document is allowed.
      *  Every PDF consuming applications has to adhere this value!
      *
@@ -312,111 +317,111 @@ public:
                       const std::string & uValue, const std::string & oValue,
                       int pValue, int lengthValue, int rValue);
 
-  /// Get the U object value (user)
-  const unsigned char* GetUValue() const { return m_uValue; }
+    /// Get the U object value (user)
+    const unsigned char* GetUValue() const { return m_uValue; }
+    
+    /// Get the O object value (owner)
+    const unsigned char* GetOValue() const { return m_oValue; }
+    
+    /// Get the P object value (protection)
+    int GetPValue() const { return m_pValue; }
+    
+    /// Get the revision number of the encryption method
+    int GetRevision() const { return m_rValue; }
 
-  /// Get the O object value (owner)
-  const unsigned char* GetOValue() const { return m_oValue; }
+    /// Get the key length of the encryption key in bits
+    int GetKeyLength() const { return m_keyLength*8; }
+    
+    /// Encrypt a wxString
+    void Encrypt( std::string & str, pdf_long inputLen ) const;
+    
+    /// Encrypt a character string
+    virtual void Encrypt(unsigned char* str, pdf_long len) const = 0;
+    
+    /// Calculate stream size
+    virtual pdf_long CalculateStreamLength(pdf_long length) const;
+    
+    /// Calculate stream offset
+    virtual pdf_long CalculateStreamOffset() const;
+    
+    /** Create a PdfString of MD5 data generated from a buffer in memory.
+     *  \param pBuffer the buffer of which to calculate the MD5 sum
+     *  \param nLength the length of the buffer
+     * 
+     *  \returns an MD5 sum as PdfString
+     */
+    static PdfString GetMD5String( const unsigned char* pBuffer, int nLength );
 
-  /// Get the P object value (protection)
-  int GetPValue() const { return m_pValue; }
-
-  /// Get the revision number of the encryption method
-  int GetRevision() const { return m_rValue; }
-
-  /// Get the key length of the encryption key in bits
-  int GetKeyLength() const { return m_keyLength*8; }
-
-  /// Encrypt a wxString
-  void Encrypt( std::string & str, pdf_long inputLen ) const;
-
-  /// Encrypt a character string
-  virtual void Encrypt(unsigned char* str, pdf_long len) const = 0;
-
-  /// Calculate stream size
-  virtual pdf_long CalculateStreamLength(pdf_long length) const;
-
-  /// Calculate stream offset
-  virtual pdf_long CalculateStreamOffset() const;
-
-  /** Create a PdfString of MD5 data generated from a buffer in memory.
-   *  \param pBuffer the buffer of which to calculate the MD5 sum
-   *  \param nLength the length of the buffer
-   * 
-   *  \returns an MD5 sum as PdfString
-   */
-  static PdfString GetMD5String( const unsigned char* pBuffer, int nLength );
-
-  /** Set the reference of the object that is currently encrypted.
-   *
-   *  This value will be used in following calls of Encrypt
-   *  to encrypt the object.
-   *
-   *  \see Encrypt 
-   */
-  inline void SetCurrentReference( const PdfReference & rRef );
+    /** Set the reference of the object that is currently encrypted.
+     *
+     *  This value will be used in following calls of Encrypt
+     *  to encrypt the object.
+     *
+     *  \see Encrypt 
+     */
+    inline void SetCurrentReference( const PdfReference & rRef );
 
 protected:
-  PdfEncrypt() {};
+    PdfEncrypt() {};
+    
+    // copy constructor
+    PdfEncrypt( const PdfEncrypt & rhs );
+    
+    /// Pad a password to 32 characters
+    void PadPassword(const std::string& password, unsigned char pswd[32]);
+    
+    /// Compute owner key
+    void ComputeOwnerKey(unsigned char userPad[32], unsigned char ownerPad[32],
+                         int keylength, int revision, bool authenticate,
+                         unsigned char ownerKey[32]);
+    
+    /// Compute encryption key and user key
+    void ComputeEncryptionKey(const std::string & documentID,
+                              unsigned char userPad[32], unsigned char ownerKey[32],
+                              int pValue, int keyLength, int revision,
+                              unsigned char userKey[32]);
+    
+    /// Check two keys for equality
+    bool CheckKey(unsigned char key1[32], unsigned char key2[32]);
+    
+    /// RC4 encryption
+    void RC4(unsigned char* key, int keylen,
+             unsigned char* textin, pdf_long textlen,
+             unsigned char* textout);
+    
+    /// Calculate the binary MD5 message digest of the given data
+    static void GetMD5Binary(const unsigned char* data, int length, unsigned char* digest);
+    
+    /// Generate initial vector
+    void GenerateInitialVector(unsigned char iv[16]);
 
-  // copy constructor
-  PdfEncrypt( const PdfEncrypt & rhs );
-
-  /// Pad a password to 32 characters
-  void PadPassword(const std::string& password, unsigned char pswd[32]);
-
-  /// Compute owner key
-  void ComputeOwnerKey(unsigned char userPad[32], unsigned char ownerPad[32],
-                       int keylength, int revision, bool authenticate,
-                       unsigned char ownerKey[32]);
-
-  /// Compute encryption key and user key
-  void ComputeEncryptionKey(const std::string & documentID,
-                            unsigned char userPad[32], unsigned char ownerKey[32],
-                            int pValue, int keyLength, int revision,
-                            unsigned char userKey[32]);
-
-  /// Check two keys for equality
-  bool CheckKey(unsigned char key1[32], unsigned char key2[32]);
-
-  /// RC4 encryption
-  void RC4(unsigned char* key, int keylen,
-           unsigned char* textin, pdf_long textlen,
-           unsigned char* textout);
-
-  /// Calculate the binary MD5 message digest of the given data
-  static void GetMD5Binary(const unsigned char* data, int length, unsigned char* digest);
-
-   /// Generate initial vector
-  void GenerateInitialVector(unsigned char iv[16]);
-
-  /** Create the encryption key for the current object.
-   *
-   *  \param pObjkey pointer to an array of at least MD5_HASHBYTES (=16) bytes length
-   *  \param pnKeyLen pointer to an integer where the actual keylength is stored.
-   */
-  void CreateObjKey( unsigned char objkey[16], int* pnKeyLen ) const;
-
-  EPdfEncryptAlgorithm m_eAlgorithm;    ///< The used encryption algorithm
-  int            m_keyLength;          ///< Length of encryption key
-  int            m_rValue;             ///< Revision
-  int            m_pValue;             ///< P entry in pdf document
-  EPdfKeyLength        m_eKeyLength;    ///< The key length
-  std::string    m_userPass;           ///< User password
-  std::string    m_ownerPass;          ///< Owner password
-  unsigned char  m_rc4key[16];         ///< last RC4 key
-  unsigned char  m_rc4last[256];       ///< last RC4 state table
-  unsigned char  m_uValue[32];         ///< U entry in pdf document
-  unsigned char  m_oValue[32];         ///< O entry in pdf document
-
+    /** Create the encryption key for the current object.
+     *
+     *  \param pObjkey pointer to an array of at least MD5_HASHBYTES (=16) bytes length
+     *  \param pnKeyLen pointer to an integer where the actual keylength is stored.
+     */
+    void CreateObjKey( unsigned char objkey[16], int* pnKeyLen ) const;
+    
+    EPdfEncryptAlgorithm m_eAlgorithm;    ///< The used encryption algorithm
+    int            m_keyLength;          ///< Length of encryption key
+    int            m_rValue;             ///< Revision
+    int            m_pValue;             ///< P entry in pdf document
+    EPdfKeyLength        m_eKeyLength;    ///< The key length
+    std::string    m_userPass;           ///< User password
+    std::string    m_ownerPass;          ///< Owner password
+    unsigned char  m_rc4key[16];         ///< last RC4 key
+    unsigned char  m_rc4last[256];       ///< last RC4 state table
+    unsigned char  m_uValue[32];         ///< U entry in pdf document
+    unsigned char  m_oValue[32];         ///< O entry in pdf document
+    
 private:    
-  static int     s_nEnabledEncryptionAlgorithms; ///< Or'ed int containing the enabled encryption algorithms
-
-  unsigned char  m_encryptionKey[16];  ///< Encryption key
- 
-  PdfReference   m_curReference;       ///< Reference of the current PdfObject
-
-  std::string    m_documentId;         ///< DocumentID of the current document  
+    static int     s_nEnabledEncryptionAlgorithms; ///< Or'ed int containing the enabled encryption algorithms
+    
+    unsigned char  m_encryptionKey[16];  ///< Encryption key
+    
+    PdfReference   m_curReference;       ///< Reference of the current PdfObject
+    
+    std::string    m_documentId;         ///< DocumentID of the current document  
 };
 
 /** A class that is used to encrypt a PDF file (AES-128)
@@ -507,6 +512,14 @@ public:
 
 	void CreateEncryptionDictionary( PdfDictionary & rDictionary ) const;
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfEncrypt::EPdfEncryptAlgorithm PdfEncrypt::GetEncryptAlgorithm() const
+{
+    return m_eAlgorithm;
+}
 
 // -----------------------------------------------------
 // 

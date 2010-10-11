@@ -315,7 +315,8 @@ void PdfString::Write ( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) c
     {
         pdf_long nOffset = pEncrypt->CalculateStreamOffset();
         pdf_long nLen = this->GetLength();
-        pdf_long nOutputLen = pEncrypt->CalculateStreamLength(nLen);
+        // Add two bytes for the s_pszUnicodeMarker
+        pdf_long nOutputLen = pEncrypt->CalculateStreamLength( (m_bUnicode ? nLen + 2 : nLen) );
         
         char* pBuffer = new char [nOutputLen + 1];
         memcpy(&pBuffer[nOffset], this->GetString(), this->GetLength());
@@ -324,12 +325,26 @@ void PdfString::Write ( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) c
         if( m_bUnicode )
         {
             std::string tmp( reinterpret_cast<const char*>(&PdfString::s_pszUnicodeMarker), 2 );
-            tmp += enc;
 
-            enc = tmp;
+            if( pEncrypt->GetEncryptAlgorithm() == PdfEncrypt::ePdfEncryptAlgorithm_AESV2 )
+            {
+                // Insert after the initial vector
+                enc.insert(16,tmp);
+                enc.erase(nOutputLen,std::string::npos);  
+            }
+            else
+            {
+                enc.insert(0,tmp);
+                enc.erase(nOutputLen,std::string::npos);  
+            }
+
+            // Add two bytes for the s_pszUnicodeMarker
+            pEncrypt->Encrypt(enc, nLen + 2 );
         }
-	
-        pEncrypt->Encrypt(enc, nLen );
+        else
+        {
+            pEncrypt->Encrypt(enc, nLen );
+        }
 
         PdfString str( enc.c_str(), enc.length(), true );
         str.Write( pDevice, NULL );
