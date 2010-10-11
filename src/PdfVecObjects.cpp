@@ -54,7 +54,7 @@ public:
 };
 
 
-struct ReferenceComperatorPredicate {
+struct ReferenceComparatorPredicate {
 public:
     inline bool operator()( const PdfReference & pObj, const PdfReference & pObj2 ) const { 
         return pObj < pObj2;
@@ -62,10 +62,9 @@ public:
 };
 
 //RG: 1) Should this class not be moved to the header file
-//    2) Typo: is it comperator or comparator?
-class ObjectsComperator { 
+class ObjectsComparator { 
 public:
-    ObjectsComperator( const PdfReference & ref )
+    ObjectsComparator( const PdfReference & ref )
         : m_ref( ref )
         {
         }
@@ -77,13 +76,13 @@ public:
 private:
     /** default constructor, not implemented
      */
-    ObjectsComperator(void);
+    ObjectsComparator(void);
     /** copy constructor, not implemented
      */
-    ObjectsComperator(const ObjectsComperator& rhs);
+    ObjectsComparator(const ObjectsComparator& rhs);
     /** assignment operator, not implemented
      */
-    ObjectsComperator& operator=(const ObjectsComperator& rhs);
+    ObjectsComparator& operator=(const ObjectsComparator& rhs);
 
     const PdfReference m_ref;
 };
@@ -144,7 +143,7 @@ PdfObject* PdfVecObjects::GetObject( const PdfReference & ref ) const
         return *(it.first);
 
     /*
-    const TCIVecObjects it ( std::find_if( this->begin(), this->end(), ObjectsComperator( ref ) ) );
+    const TCIVecObjects it ( std::find_if( this->begin(), this->end(), ObjectsComparator( ref ) ) );
     if( it != this->end() )
         return (*it);
     */
@@ -237,7 +236,7 @@ PdfObject* PdfVecObjects::CreateObject( const PdfVariant & rVariant )
 void PdfVecObjects::AddFreeObject( const PdfReference & rReference )
 {
     std::pair<TIPdfReferenceList,TIPdfReferenceList> it = 
-        std::equal_range( m_lstFreeObjects.begin(), m_lstFreeObjects.end(), rReference, ReferenceComperatorPredicate() );
+        std::equal_range( m_lstFreeObjects.begin(), m_lstFreeObjects.end(), rReference, ReferenceComparatorPredicate() );
 
     if( it.first != it.second && !m_lstFreeObjects.empty() ) 
     {
