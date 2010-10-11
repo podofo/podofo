@@ -237,6 +237,13 @@ int main( int argc, char* argv[] )
         return eCode.GetError();
     }
 
+
+    /**
+     * Free global memory allocated by PoDoFo.
+     * This is normally not necessary.
+     */
+    PdfEncodingFactory::FreeGlobalEncodingInstances();
+
     /*
      * The PDF was created sucessfully.
      */
