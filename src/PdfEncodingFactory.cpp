@@ -72,7 +72,7 @@ const PdfEncoding* PdfEncodingFactory::CreateEncoding( PdfObject* pObject )
 
     PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Unsupported encoding detected!" );
 
-    return NULL;
+    //return NULL; Unreachable code
 }
 
 const PdfEncoding* PdfEncodingFactory::GlobalPdfDocEncodingInstance()

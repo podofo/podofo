@@ -188,6 +188,18 @@ class PODOFO_API PdfFontMetricsObject : public PdfFontMetrics {
     virtual pdf_long GetFontDataLen() const;
  
  private:
+    /** default constructor, not implemented
+     */
+    PdfFontMetricsObject(void);
+    /** copy constructor, not implemented
+     */
+    PdfFontMetricsObject(const PdfFontMetricsObject& rhs);
+    /** assignment operator, not implemented
+     */
+    PdfFontMetricsObject& operator=(const PdfFontMetricsObject& rhs);
+
+    //Private members:
+
     const PdfEncoding* const m_pEncoding;
 
     PdfName       m_sName;

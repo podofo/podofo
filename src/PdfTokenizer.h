@@ -251,7 +251,7 @@ class PODOFO_API PdfTokenizer {
 // -----------------------------------------------------
 inline bool PdfTokenizer::IsWhitespace(const unsigned char ch)
 {
-    return ( PdfTokenizer::m_whitespaceMap[ch] != 0 );
+    return ( PdfTokenizer::m_whitespaceMap[static_cast<size_t>(ch)] != 0 );
 }
 
 // -----------------------------------------------------
@@ -267,7 +267,7 @@ inline bool PdfTokenizer::IsDelimiter(const unsigned char ch)
 // -----------------------------------------------------
 inline bool PdfTokenizer::IsRegular(const unsigned char ch)
 {
-    return !IsWhitespace(ch) && !IsDelimiter(ch);
+    return !IsWhitespace(ch) && !IsDelimiter(static_cast<size_t>(ch));
 }
 
 // -----------------------------------------------------
@@ -275,7 +275,7 @@ inline bool PdfTokenizer::IsRegular(const unsigned char ch)
 // -----------------------------------------------------
 inline bool PdfTokenizer::IsPrintable(const unsigned char ch)
 {
-    return ch > 32 && ch < 125;
+    return ((ch > 32U) && (ch < 125U));
 }
 
 };

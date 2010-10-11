@@ -50,6 +50,16 @@ class PdfMutexWrapper {
     inline ~PdfMutexWrapper();
 
   private:
+    /** default constructor, not implemented
+     */
+    PdfMutexWrapper(void);
+    /** copy constructor, not implemented
+     */
+    PdfMutexWrapper(const PdfMutexWrapper& rhs);
+    /** assignment operator, not implemented
+     */
+    PdfMutexWrapper& operator=(const PdfMutexWrapper& rhs);
+
     PdfMutex& m_rMutex;
 };
 

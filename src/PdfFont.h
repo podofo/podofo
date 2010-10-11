@@ -217,8 +217,32 @@ class PODOFO_API PdfFont : public PdfElement {
 
 	void InitBase14Font();
 
+
+    const PdfEncoding* const m_pEncoding;
+    PdfFontMetrics*          m_pMetrics;
+
+    bool  m_bBold;
+    bool  m_bItalic;
+    bool  m_bUnderlined;
+    bool  m_bStrikedOut;
+
+    bool  m_bWasEmbedded;
+	bool m_isBase14;
+	bool m_bIsSubsetting;
+    PdfName m_Identifier;
+
  private:
-    /** Initialize all variables
+    /** default constructor, not implemented
+     */
+    PdfFont(void);
+    /** copy constructor, not implemented
+     */
+    PdfFont(const PdfFont& rhs);
+    /** assignment operator, not implemented
+     */
+    PdfFont& operator=(const PdfFont& rhs);
+
+     /** Initialize all variables
      */
     void InitVars();
 
@@ -243,22 +267,7 @@ class PODOFO_API PdfFont : public PdfElement {
     inline void SetItalic( bool bItalic );
 
 	
- private:
     PdfName m_BaseFont;
-
- protected: 
-    const PdfEncoding* const m_pEncoding;
-    PdfFontMetrics*          m_pMetrics;
-
-    bool  m_bBold;
-    bool  m_bItalic;
-    bool  m_bUnderlined;
-    bool  m_bStrikedOut;
-
-    bool  m_bWasEmbedded;
-	bool m_isBase14;
-	bool m_bIsSubsetting;
-    PdfName m_Identifier;
 };
 
 PdfFont* CreateBase14Font(const char* pszFontName, const PdfEncoding * const pEncoding,PdfVecObjects *pvecObjects);

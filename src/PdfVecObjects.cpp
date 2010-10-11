@@ -61,6 +61,8 @@ public:
     }
 };
 
+//RG: 1) Should this class not be moved to the header file
+//    2) Typo: is it comperator or comparator?
 class ObjectsComperator { 
 public:
     ObjectsComperator( const PdfReference & ref )
@@ -73,6 +75,16 @@ public:
     }
 
 private:
+    /** default constructor, not implemented
+     */
+    ObjectsComperator(void);
+    /** copy constructor, not implemented
+     */
+    ObjectsComperator(const ObjectsComperator& rhs);
+    /** assignment operator, not implemented
+     */
+    ObjectsComperator& operator=(const ObjectsComperator& rhs);
+
     const PdfReference m_ref;
 };
 

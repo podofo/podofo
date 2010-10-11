@@ -98,12 +98,15 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    int    i, j;
-    double dCurX, dCurY;
+    //RG: TODO Should dCurY variable be initialised with 0? (line 257 may fall through without initialisation!)
+    int i = 0;
+    int j = 0;
+    double  dCurX = 0.0;
+    double  dCurY = 0.0;
 
-    double  dWidth;
-    double  dHeight;
-    double  dVertical;
+    double  dWidth = 0.0;
+    double  dHeight = 0.0;
+    double  dVertical = 0.0;
     double* pdColWidths  = new double[this->GetCols()];
     double* pdRowHeights = new double[this->GetRows()];
 
@@ -135,7 +138,6 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
     if( m_pModel ) 
     {
 		pPainter->SetStrokeWidth( m_pModel->GetBorderWidth() );
-        dCurY = 0.0;
 
 		if( bBorders ) // draw top border
             this->DrawHorizontalBorders( 0, dX, dY, pPainter, pdColWidths );

@@ -643,7 +643,7 @@ PdfColor PdfColor::FromArray( const PdfArray & rArray )
 
     PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "PdfColor::FromArray supports only GrayScale, RGB and CMYK colors." );
 
-    return PdfColor();
+    //return PdfColor(); RG: TODO Unreachable code
 }
 
 PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const

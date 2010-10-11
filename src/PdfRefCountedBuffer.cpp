@@ -58,7 +58,9 @@ void PdfRefCountedBuffer::ReallyDetach( size_t lExtraLen )
     size_t lSize                 = m_pBuffer->m_lBufferSize + lExtraLen; 
     TRefCountedBuffer* pBuffer = new TRefCountedBuffer();
     pBuffer->m_lRefCount       = 1;
-    if ( (pBuffer->m_bOnHeap = lSize > TRefCountedBuffer::INTERNAL_BUFSIZE) )
+
+    pBuffer->m_bOnHeap = (lSize > TRefCountedBuffer::INTERNAL_BUFSIZE);
+    if ( pBuffer->m_bOnHeap )
         pBuffer->m_pHeapBuffer  = static_cast<char*>(malloc( sizeof(char)*lSize ));
     else
         pBuffer->m_pHeapBuffer = 0;
@@ -139,10 +141,16 @@ void PdfRefCountedBuffer::ReallyResize( const size_t lSize )
         // No buffer was allocated at all, so we need to make one.
         m_pBuffer = new TRefCountedBuffer();
         m_pBuffer->m_lRefCount       = 1;
-        if ( (m_pBuffer->m_bOnHeap   = lSize > TRefCountedBuffer::INTERNAL_BUFSIZE) )
+        m_pBuffer->m_bOnHeap   = (lSize > TRefCountedBuffer::INTERNAL_BUFSIZE);
+        if ( m_pBuffer->m_bOnHeap )
+        {
             m_pBuffer->m_pHeapBuffer = static_cast<char*>(malloc( sizeof(char)*lSize ));
+        }
         else
+        {
             m_pBuffer->m_pHeapBuffer = 0;
+        }
+
         m_pBuffer->m_lBufferSize     = PDF_MAX( lSize, static_cast<size_t>(+TRefCountedBuffer::INTERNAL_BUFSIZE) );
         m_pBuffer->m_bPossesion      = true;
 
@@ -214,8 +222,6 @@ bool PdfRefCountedBuffer::operator<( const PdfRefCountedBuffer & rhs ) const
         else
             return cmp < 0;
     }
-
-    return false;
 }
 
 bool PdfRefCountedBuffer::operator>( const PdfRefCountedBuffer & rhs ) const
@@ -238,8 +244,6 @@ bool PdfRefCountedBuffer::operator>( const PdfRefCountedBuffer & rhs ) const
         else
             return cmp > 0;
     }
-
-    return false;
 }
 
 

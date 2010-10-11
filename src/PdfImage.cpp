@@ -693,8 +693,6 @@ const char* PdfImage::ColorspaceToName( EPdfColorSpace eColorSpace )
         default:
             return NULL;
     }
-
-    return NULL;
 }
 
 void PdfImage::SetImageChromaKeyMask(pdf_int64 r, pdf_int64 g, pdf_int64 b, pdf_int64 threshold)

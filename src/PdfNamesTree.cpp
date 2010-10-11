@@ -67,7 +67,7 @@ bool PdfNameTreeNode::AddValue( const PdfString & key, const PdfObject & rValue 
         const PdfArray &         kids   = this->GetObject()->GetDictionary().GetKey("Kids")->GetArray();
         PdfArray::const_iterator it     = kids.begin();
         PdfObject*               pChild = NULL;
-        EPdfNameLimits           eLimits;
+        EPdfNameLimits           eLimits = ePdfNameLimits_Before; // RG: TODO Compiler complains that this variable should be initialised
 
         while( it != kids.end() )
         {
@@ -78,9 +78,11 @@ bool PdfNameTreeNode::AddValue( const PdfString & key, const PdfObject & rValue 
             }
 
             eLimits = PdfNamesTree::CheckLimits( pChild, key );
-            if( (eLimits == ePdfNameLimits_Before || 
-                 eLimits == ePdfNameLimits_Inside) )
+            if( (eLimits == ePdfNameLimits_Before) || 
+                (eLimits == ePdfNameLimits_Inside) )
+            {
                 break;
+            }
 
             ++it;
         }
@@ -183,8 +185,6 @@ bool PdfNameTreeNode::AddValue( const PdfString & key, const PdfObject & rValue 
 
         return true;
     }
-    
-    return false;
 }
 
 void PdfNameTreeNode::SetLimits() 

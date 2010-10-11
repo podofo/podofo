@@ -34,6 +34,12 @@
 #include <string.h>
 #include <sstream>
 
+namespace
+{
+    //RG: TODO Could we name literal 256 and use the literal name e.g.
+    //const size_t KEY_SIZE = 256;
+}
+
 namespace PoDoFo {
 
 int PdfEncrypt::s_nEnabledEncryptionAlgorithms = 
@@ -48,25 +54,25 @@ int PdfEncrypt::s_nEnabledEncryptionAlgorithms =
  */
 class PdfRC4Stream {
 public:
-    PdfRC4Stream( unsigned char rc4key[256], unsigned char rc4last[256], unsigned char* key, int keylen )
+    PdfRC4Stream( unsigned char rc4key[256], unsigned char rc4last[256], unsigned char* key, const size_t keylen )
         : m_a( 0 ), m_b( 0 )
     {
-        int i;
-        int j;
-        int t;
+        size_t i;
+        size_t j;
+        size_t t;
 
         if (memcmp(key,rc4key,keylen) != 0)
         {
             for (i = 0; i < 256; i++)
-                m_rc4[i] = i;
+                m_rc4[i] = static_cast<unsigned char>(i);
 
             j = 0;
             for (i = 0; i < 256; i++)
             {
-                t = m_rc4[i];
-                j = (j + t + key[i % keylen]) % 256;
+                t = static_cast<size_t>(m_rc4[i]);
+                j = (j + t + static_cast<size_t>(key[i % keylen])) % 256;
                 m_rc4[i] = m_rc4[j];
-                m_rc4[j] = t;
+                m_rc4[j] = static_cast<unsigned char>(t);
             }
 
             memcpy(rc4key, key, keylen);
@@ -535,25 +541,31 @@ PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
         uValue       = pObject->GetDictionary().GetKey( PdfName("U") )->GetString();
 		
         if( pObject->GetDictionary().HasKey( PdfName("Length") ) )
+        {
             lLength = pObject->GetDictionary().GetKey( PdfName("Length") )->GetNumber();
+        }
+        else
+        {
+            lLength = 0;
+        }
 
     } catch( PdfError & e ) {
         e.AddToCallstack( __FILE__, __LINE__, "Invalid key in encryption dictionary" );
         throw e;
     }
 
-    if( lV == 1L && rValue == 2L
+    if( (lV == 1L) && (rValue == 2L)
         && PdfEncrypt::IsEncryptionEnabled( ePdfEncryptAlgorithm_RC4V1 ) ) 
     {
         pdfEncrypt = new PdfEncryptRC4(oValue, uValue, pValue, rValue, ePdfEncryptAlgorithm_RC4V1, 40);
     }
-    else if( lV == 2L && rValue == 3L
+    else if( (lV == 2L) && (rValue == 3L)
              && PdfEncrypt::IsEncryptionEnabled( ePdfEncryptAlgorithm_RC4V2 ) ) 
     {
 			// [Alexey] - lLength is long long. Please make changes in encryption algorithms
         pdfEncrypt = new PdfEncryptRC4(oValue, uValue, pValue, rValue, ePdfEncryptAlgorithm_RC4V2, static_cast<int>(lLength));
     }
-    else if( lV == 4L && rValue == 4L 
+    else if( (lV == 4L) && (rValue == 4L) 
          && PdfEncrypt::IsEncryptionEnabled( ePdfEncryptAlgorithm_AESV2 ) ) 
     {
         pdfEncrypt = new PdfEncryptAES(oValue, uValue, pValue);      
@@ -741,40 +753,41 @@ PdfEncrypt::ComputeOwnerKey(unsigned char userPad[32], unsigned char ownerPad[32
 {
   unsigned char mkey[MD5_HASHBYTES];
   unsigned char digest[MD5_HASHBYTES];
-  int length = keyLength / 8;
+  const int LENGTH = keyLength / 8;
+  const size_t LENGTH_SIZE_T = static_cast<size_t>(LENGTH);
 
   MD5_CTX ctx;
   MD5Init(&ctx);
   MD5Update(&ctx, ownerPad, 32);
   MD5Final(digest,&ctx);
 
-  if (revision == 3 || revision == 4)
+  if ((revision == 3) || (revision == 4))
   {
     // only use for the input as many bit as the key consists of
-    int k;
-    for (k = 0; k < 50; ++k)
+    for (int k = 0; k < 50; ++k)
     {
       MD5Init(&ctx);
-      MD5Update(&ctx, digest, length);
+      MD5Update(&ctx, digest, LENGTH);
       MD5Final(digest,&ctx);
     }
     memcpy(ownerKey, userPad, 32);
-    int i;
-    int j;
-    for (i = 0; i < 20; ++i)
+
+    for (unsigned int i = 0; i < 20; ++i)
     {
-      for (j = 0; j < length ; ++j)
+      for (size_t j = 0; j < LENGTH_SIZE_T ; ++j)
       {
         if (authenticate)
         {
-          mkey[j] = (digest[j] ^ (19-i));
+          mkey[j] = static_cast<unsigned char>(
+              (static_cast<unsigned int>(digest[j]) ^ (19-i)));
         }
         else
         {
-          mkey[j] = (digest[j] ^ i);
+          mkey[j] = static_cast<unsigned char>(
+              static_cast<unsigned int>(digest[j] ^ i));
         }
       }
-      RC4(mkey, length, ownerKey, 32, ownerKey);
+      RC4(mkey, LENGTH, ownerKey, 32, ownerKey);
     }
   }
   else
@@ -905,21 +918,22 @@ PdfEncrypt::Encrypt(std::string& str, pdf_long inputLen) const
 
 void PdfEncrypt::CreateObjKey( unsigned char objkey[16], int* pnKeyLen ) const
 {
-  int n = m_curReference.ObjectNumber();
-  int g = m_curReference.GenerationNumber();
+  const unsigned int n = static_cast<unsigned int>(m_curReference.ObjectNumber());
+  const unsigned int g = static_cast<unsigned int>(m_curReference.GenerationNumber());
 
   unsigned char nkey[MD5_HASHBYTES+5+4];
   int nkeylen = m_keyLength + 5;
-  int j;
-  for (j = 0; j < m_keyLength; j++)
+  const size_t KEY_LENGTH_SIZE_T = static_cast<size_t>(m_keyLength);
+
+  for (size_t j = 0; j < KEY_LENGTH_SIZE_T; j++)
   {
     nkey[j] = m_encryptionKey[j];
   }
-  nkey[m_keyLength+0] = 0xff &  n;
-  nkey[m_keyLength+1] = 0xff & (n >> 8);
-  nkey[m_keyLength+2] = 0xff & (n >> 16);
-  nkey[m_keyLength+3] = 0xff &  g;
-  nkey[m_keyLength+4] = 0xff & (g >> 8);
+  nkey[m_keyLength+0] = static_cast<unsigned char>(0xff &  n);
+  nkey[m_keyLength+1] = static_cast<unsigned char>(0xff & (n >> 8));
+  nkey[m_keyLength+2] = static_cast<unsigned char>(0xff & (n >> 16));
+  nkey[m_keyLength+3] = static_cast<unsigned char>(0xff &  g);
+  nkey[m_keyLength+4] = static_cast<unsigned char>(0xff & (g >> 8));
 
   if (m_rValue == 4)
   {
@@ -944,44 +958,46 @@ PdfEncrypt::RC4(unsigned char* key, int keylen,
                 unsigned char* textin, pdf_long textlen,
                 unsigned char* textout)
 {
-  int i;
-  int j;
-  int t;
   unsigned char rc4[256];
+  const size_t KEY_LEN_SIZE_T = static_cast<size_t>(keylen);
+  unsigned char t = 0;
+  unsigned int j = 0;
 
-  if (memcmp(key,m_rc4key,keylen) != 0)
+  if (memcmp(key, m_rc4key, keylen) != 0)
   {
-    for (i = 0; i < 256; i++)
+    for (size_t i = 0; i < 256; ++i)
     {
-      rc4[i] = i;
+      rc4[i] = static_cast<unsigned char>(i);
     }
-    j = 0;
-    for (i = 0; i < 256; i++)
+
+    for (size_t i = 0; i < 256; ++i)
     {
       t = rc4[i];
-      j = (j + t + key[i % keylen]) % 256;
+      j = (j + static_cast<unsigned int>(t) + static_cast<unsigned int>(key[i % KEY_LEN_SIZE_T])) % 256;
       rc4[i] = rc4[j];
       rc4[j] = t;
     }
-    memcpy(m_rc4key,key,keylen);
-    memcpy(m_rc4last,rc4,256);
+    memcpy(m_rc4key, key, KEY_LEN_SIZE_T);
+    memcpy(m_rc4last, rc4, 256);
   }
   else
   {
-    memcpy(rc4,m_rc4last,256);
+    memcpy(rc4, m_rc4last, 256);
   }
 
-  int a = 0;
-  int b = 0;
-  unsigned char k;
-  for (i = 0; i < textlen; i++)
+  size_t a = 0;
+  size_t b = 0;
+  unsigned char k = 0;
+  const size_t TEXT_LEN_SIZE_T = static_cast<size_t>(textlen);
+
+  for (size_t i = 0; i < TEXT_LEN_SIZE_T; ++i)
   {
     a = (a + 1) % 256;
     t = rc4[a];
-    b = (b + t) % 256;
+    b = (b + static_cast<size_t>(t)) % 256;
     rc4[a] = rc4[b];
     rc4[b] = t;
-    k = rc4[(rc4[a] + rc4[b]) % 256];
+    k = rc4[(static_cast<size_t>(rc4[a]) + static_cast<size_t>(rc4[b])) % 256];
     textout[i] = textin[i] ^ k;
   }
 }
@@ -1120,7 +1136,7 @@ PdfInputStream* PdfEncryptAES::CreateEncryptionInputStream( PdfInputStream* )
 
   PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "CreateEncryptionInputStream does not yet support AES" );
   
-  return NULL;
+  //return NULL; RG: TODO Unreachable code
 }
 
 void PdfEncryptAES::CreateEncryptionDictionary( PdfDictionary & rDictionary ) const
@@ -1157,7 +1173,7 @@ PdfOutputStream* PdfEncryptAES::CreateEncryptionOutputStream( PdfOutputStream* )
 
   PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "CreateEncryptionOutputStream does not yet support AES" );
   
-  return NULL;
+  //return NULL; RG: TODO Unreachable code
 }
 
 void

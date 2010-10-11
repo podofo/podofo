@@ -73,6 +73,11 @@
 #include <malloc.h>
 #endif
 
+// Disable usage of min() and max() macros 
+#if defined(_WIN32)
+#define NOMINMAX
+#endif
+
 // Integer types - fixed size types guaranteed to work anywhere
 // because we detect the right underlying type name to use with
 // CMake. Use typedefs rather than macros for saner error messages

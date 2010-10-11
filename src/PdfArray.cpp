@@ -23,6 +23,8 @@
 #include "PdfOutputDevice.h"
 #include "PdfDefinesPrivate.h"
 
+#include <limits>
+
 namespace PoDoFo {
 
 PdfArray::PdfArray()
@@ -90,8 +92,7 @@ bool PdfArray::ContainsString( const std::string& cmpString ) const
 
 size_t PdfArray::GetStringIndex( const std::string& cmpString ) const
 {
-    // FIXME (size_t)-1 is unsafe as size_t may be unsigned.
-    size_t foundIdx = -1;
+    size_t foundIdx = std::numeric_limits<size_t>::max();
     
     for ( size_t i=0; i<this->size(); i++ ) {
         if( (*this)[i].GetDataType() == ePdfDataType_String )

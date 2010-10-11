@@ -186,7 +186,7 @@ void PdfStream::BeginAppend( bool bClearExisting )
 void PdfStream::BeginAppend( const TVecFilters & vecFilters, bool bClearExisting, bool bDeleteFilters )
 {
     char* pBuffer = NULL;
-    pdf_long  lLen;
+    pdf_long lLen = 0; //RG: TODO Should this variable be initialised with 0 (line 225 may fall through without initialisation!)
 
     PODOFO_RAISE_LOGIC_IF( m_bAppend, "BeginAppend() failed because EndAppend() was not yet called!" );
 
@@ -198,7 +198,7 @@ void PdfStream::BeginAppend( const TVecFilters & vecFilters, bool bClearExisting
 
     if( !vecFilters.size() && bDeleteFilters )
     {
-            m_pParent->GetDictionary().RemoveKey( PdfName::KeyFilter );
+        m_pParent->GetDictionary().RemoveKey( PdfName::KeyFilter );
     }
     if( vecFilters.size() == 1 )
     {

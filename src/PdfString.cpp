@@ -69,7 +69,7 @@ const char * const PdfString::m_escMap        = PdfStringNameSpace::genEscMap();
 
 const PdfString PdfString::StringNull        = PdfString();
 #ifdef _MSC_VER
-const char  PdfString::s_pszUnicodeMarker[]  = { (char) 0xFE, (char) 0xFF };
+const char  PdfString::s_pszUnicodeMarker[]  = { 0xFE, 0xFF };
 #else
 const char  PdfString::s_pszUnicodeMarker[]  = { static_cast<char>(0xFE), static_cast<char>(0xFF) };
 #endif
@@ -872,6 +872,9 @@ pdf_long PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_long lLenUt
 	} else if (ch > UNI_MAX_UTF16) {
 	    if (eConversion == ePdfStringConversion_Strict) {
                 PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+
+        //RG: TODO My compiler says that this is unreachable code!
+
 		source -= (extraBytesToRead+1); /* return to the start */
 		break; /* Bail out; shouldn't continue */
 	    } else {

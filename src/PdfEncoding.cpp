@@ -74,8 +74,11 @@ void PdfSimpleEncoding::InitEncodingTable()
         // fill the table with 0
         memset( m_pEncodingTable, 0, lTableLength * sizeof(char) ); 
         // fill the table with data
-        for( int i=0;i<256;i++ )
-            m_pEncodingTable[ cpUnicodeTable[i] ] = i;
+        for( size_t i=0; i<256; i++ )
+        {
+            m_pEncodingTable[ static_cast<size_t>(cpUnicodeTable[i]) ] = 
+                static_cast<unsigned char>(i);
+        }
     }
 }
 

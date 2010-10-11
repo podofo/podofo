@@ -107,6 +107,13 @@ class PODOFO_API PdfFontTTFSubset {
      */
     PdfFontTTFSubset() : m_bOwnDevice( false ) {} 
 
+    /** copy constructor, not implemented
+     */
+    PdfFontTTFSubset(const PdfFontTTFSubset& rhs);
+    /** assignment operator, not implemented
+     */
+    PdfFontTTFSubset& operator=(const PdfFontTTFSubset& rhs);
+
     void Init();
     
     /** Get the offset of a specified table. 
@@ -125,7 +132,7 @@ class PODOFO_API PdfFontTTFSubset {
      */
     void GetData(unsigned long offset, void* address, unsigned long sz);
 
- private:
+
     /** Information of TrueType tables.
      */
     struct TTrueTypeTable {
