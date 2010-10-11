@@ -295,9 +295,10 @@ class PODOFO_API PdfDocument {
      *  \param pXObj pointer to the XOject
      *  \param rDoc the document to embedd into XObject
      *  \param nPage page-number to embedd into XObject
+	 *	\param bUseTrimBox if true try to use trimbox for size of xobject
      *  \returns the bounding box
      */
-    PdfRect FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfMemDocument & rDoc, int nPage );
+    PdfRect FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfMemDocument & rDoc, int nPage, bool bUseTrimBox );
 
     /** Attach a file to the document.
      *  \param rFileSpec a file specification

@@ -69,7 +69,12 @@ class PODOFO_API PdfRect {
      */
     void FromArray( const PdfArray& inArray );
 
-    /** Get the bottom coordinate of the rectangle
+    /** Intersect with another rect
+     *  \param rRect the rect to intersect with
+     */
+    void Intersect( const PdfRect & rRect );
+
+	/** Get the bottom coordinate of the rectangle
      *  \returns bottom
      */
     inline double GetBottom() const;

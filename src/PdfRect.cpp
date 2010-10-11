@@ -103,6 +103,40 @@ void PdfRect::FromArray( const PdfArray& inArray )
     }
 }
 
+void PdfRect::Intersect( const PdfRect & rRect )
+{
+	if( rRect.GetBottom() != 0 || rRect.GetHeight() != 0 || rRect.GetLeft() != 0 || rRect.GetWidth() != 0 )
+	{
+		double diff;
+		
+		diff = rRect.m_dLeft - m_dLeft;
+		if ( diff > 0.0 )
+		{
+			m_dLeft += diff;
+			m_dWidth -= diff;
+		}
+
+		diff = (m_dLeft + m_dWidth) - (rRect.m_dLeft + rRect.m_dWidth);
+		if ( diff > 0.0 )
+		{
+			m_dWidth -= diff;
+		}
+
+		diff = rRect.m_dBottom - m_dBottom;
+		if ( diff > 0.0 )
+		{
+			m_dBottom += diff;
+			m_dHeight -= diff;
+		}
+
+		diff = (m_dBottom + m_dHeight) - (rRect.m_dBottom + rRect.m_dHeight);
+		if ( diff > 0.0 )
+		{
+			m_dHeight -= diff;
+		}
+	}
+}
+
 PdfRect & PdfRect::operator=( const PdfRect & rhs )
 {
     this->m_dBottom = rhs.m_dBottom;

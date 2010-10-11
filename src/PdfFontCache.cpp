@@ -473,7 +473,10 @@ void PdfFontCache::EmbedSubsetFonts()
 
     while( it != m_vecFonts.end() )
     {
-		(*it).m_pFont->EmbedSubsetFont();
+        if( (*it).m_pFont->IsSubsetting() )
+        {
+            (*it).m_pFont->EmbedSubsetFont();
+        }
 
         ++it;
     }

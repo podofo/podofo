@@ -228,22 +228,22 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library* pLibrary, PdfObject* pObject )
         }
         const PdfEncoding* pPdfEncoding = NULL;
         if ( pEncoding != NULL )
-           pPdfEncoding = PdfEncodingFactory::CreateEncoding( pEncoding );
+            pPdfEncoding = PdfEncodingFactory::CreateEncoding( pEncoding );
         else if ( pDescriptor )
         {
            // OC 18.08.2010 TODO: Encoding has to be taken from the font's built-in encoding
            // Its extremely complicated to interpret the type1 font programs
            // so i try to determine if its a symbolic font by reading the FontDescriptor Flags
            // Flags & 4 --> Symbolic, Flags & 32 --> Nonsymbolic
-           pdf_int32 lFlags = (pdf_int32)pDescriptor->GetDictionary().GetKeyAsLong( "Flags", 0L );
-           if ( lFlags & 32 ) // Nonsymbolic, otherwise pEncoding remains NULL
-              pPdfEncoding = PdfEncodingFactory::GlobalStandardEncodingInstance();
+            pdf_int32 lFlags = static_cast<pdf_int32>(pDescriptor->GetDictionary().GetKeyAsLong( "Flags", 0L ));
+            if ( lFlags & 32 ) // Nonsymbolic, otherwise pEncoding remains NULL
+                pPdfEncoding = PdfEncodingFactory::GlobalStandardEncodingInstance();
         }
         if ( pPdfEncoding && pDescriptor ) // OC 18.08.2010: Avoid sigsegv
         {
-           // OC 15.08.2010 BugFix: Parameter pObject added:
-           pMetrics    = new PdfFontMetricsObject( pObject, pDescriptor, pPdfEncoding );
-           pFont       = new PdfFontType1( pMetrics, pPdfEncoding, pObject );
+            // OC 15.08.2010 BugFix: Parameter pObject added:
+            pMetrics    = new PdfFontMetricsObject( pObject, pDescriptor, pPdfEncoding );
+            pFont       = new PdfFontType1( pMetrics, pPdfEncoding, pObject );
         }
     }
     else if( rSubType == PdfName("TrueType") ) 

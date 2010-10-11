@@ -24,6 +24,7 @@
 #include "PdfDictionary.h"
 #include "PdfName.h"
 #include "PdfStream.h"
+#include "PdfDifferenceEncoding.h"
 #include "PdfDefinesPrivate.h"
 
 #include <stdlib.h>
@@ -34,6 +35,7 @@ PdfFontType1::PdfFontType1( PdfFontMetrics* pMetrics, const PdfEncoding* const p
                             PdfVecObjects* pParent, bool bEmbed )
     : PdfFontSimple( pMetrics, pEncoding, pParent )
 {
+	memset( m_bUsed, 0, sizeof( m_bUsed ) );
     this->Init( bEmbed, PdfName("Type1") );
 }
  
@@ -42,12 +44,13 @@ PdfFontType1::PdfFontType1( PdfFontMetrics* pMetrics, const PdfEncoding* const p
                             PdfObject* pObject )
     : PdfFontSimple( pMetrics, pEncoding, pObject )
 {
-
+	memset( m_bUsed, 0, sizeof( m_bUsed ) );
 }
 
 PdfFontType1::PdfFontType1( PdfFontType1* pFont, PdfFontMetrics* pMetrics, const char *pszSuffix, PdfVecObjects* pParent )
     : PdfFontSimple( pMetrics, pFont->m_pEncoding, pParent )
 {
+	memset( m_bUsed, 0, sizeof( m_bUsed ) );
 	// don't embedd font
     Init( false, PdfName("Type1") );
 
@@ -66,7 +69,12 @@ void PdfFontType1::AddUsedSubsettingGlyphs( const PdfString & sText, long lStrin
 {
 	if ( m_bIsSubsetting )
 	{
-		// TODO: remember used glyphs
+		// TODO: Was ist mit Unicode
+		const char * strp = sText.GetString();
+		for ( int i = 0; i < lStringLen; i++ )
+		{
+			m_bUsed[strp[i] / 32] |= 1 << (strp[i] % 32 ); 
+		}
 	}
 }
 
@@ -74,6 +82,20 @@ void PdfFontType1::EmbedSubsetFont()
 {
 	if ( m_bIsSubsetting  && m_bWasEmbedded == false )
 	{
+		std::vector<std::string> usedGlyphs;
+
+		for ( int i = 0; i < 256; i++ )
+		{
+			if ( (m_bUsed[i / 32] & (1 << (i % 32 ))) != 0 )
+				usedGlyphs.push_back( PdfDifferenceEncoding::UnicodeIDToName( GetEncoding()->GetCharCode(i) ).GetName() );
+		}
+
+		std::string xx( "Glyphs: " ) ;
+		for ( int i = 0; i < (int) usedGlyphs.size(); i++ )
+			xx += " " + usedGlyphs[i]; 
+
+		PdfError::DebugMessage( "%s\n", xx.c_str() ); 
+
 		// TODO: only embed with used glyphs
 		EmbedFontFile( m_pDescriptor );
 		m_bWasEmbedded = true;

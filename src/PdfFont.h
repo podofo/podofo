@@ -189,13 +189,24 @@ class PODOFO_API PdfFont : public PdfElement {
 	 *
      *  \param sText the text string which should be printed (is not allowed to be NULL!)
      *  \param lLen draw only lLen characters of pszText
+     *
+     *  Only call if IsSubsetting() returns true. Might throw an exception otherwise.
+     *
+     *  \see IsSubsetting
 	 */
 	virtual void AddUsedSubsettingGlyphs( const PdfString & sText, long lStringLen );
 
     /** Embeds pending subset-font into PDF page
+     *  Only call if IsSubsetting() returns true. Might throw an exception otherwise.
      *
+     *  \see IsSubsetting
      */
     virtual void EmbedSubsetFont();
+
+    /** Check if this is a subsetting font.
+     * \returns true if this is a subsetting font
+     */
+    inline bool IsSubsetting() const;
 
  protected:
     /** Get the base font name of this font
@@ -403,6 +414,14 @@ bool PdfFont::IsBold() const
 bool PdfFont::IsItalic() const
 {
 	return m_bItalic;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfFont::IsSubsetting() const
+{
+    return m_bIsSubsetting;
 }
 
 };

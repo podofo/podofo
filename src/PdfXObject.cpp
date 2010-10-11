@@ -52,7 +52,7 @@ PdfXObject::PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent, const cha
     InitXObject( rRect, pszPrefix );
 }
 
-PdfXObject::PdfXObject( const PdfMemDocument & rDoc, int nPage, PdfDocument* pParent, const char* pszPrefix )
+PdfXObject::PdfXObject( const PdfMemDocument & rDoc, int nPage, PdfDocument* pParent, const char* pszPrefix, bool bUseTrimBox )
     : PdfElement( "XObject", pParent ), PdfCanvas()
 {
     m_rRect = PdfRect();
@@ -66,22 +66,32 @@ PdfXObject::PdfXObject( const PdfMemDocument & rDoc, int nPage, PdfDocument* pPa
     }
 
     // After filling set correct BBox, independent of rotation
-    m_rRect = pParent->FillXObjectFromDocumentPage( this, rDoc, nPage );
+    m_rRect = pParent->FillXObjectFromDocumentPage( this, rDoc, nPage, bUseTrimBox );
 
     PdfVariant    var;
     m_rRect.ToVariant( var );
     this->GetObject()->GetDictionary().AddKey( "BBox", var );
 
- 	// Switch width/height for vertical rotation
  	int rotation = rDoc.GetPage( nPage )->GetRotation();
+	// correct negative rotation
+	if ( rotation < 0 )
+		rotation = 360 + rotation;
+
+	// Swap offsets/width/height for vertical rotation
  	switch ( rotation )
  	{
  		case 90:
  		case 270:
  		{
- 			double temp = m_rRect.GetWidth();
+ 			double temp;
+			
+			temp = m_rRect.GetWidth();
  			m_rRect.SetWidth( m_rRect.GetHeight() );
  			m_rRect.SetHeight( temp );
+
+			temp = m_rRect.GetLeft();
+ 			m_rRect.SetLeft( m_rRect.GetBottom() );
+ 			m_rRect.SetBottom( temp );
  		}
  		break;
         
@@ -89,7 +99,7 @@ PdfXObject::PdfXObject( const PdfMemDocument & rDoc, int nPage, PdfDocument* pPa
             break;
  	}
  
- 	// Build matrix for rotation
+ 	// Build matrix for rotation and cropping
  	double alpha = -rotation / 360.0 * 2.0 * PI;
     
  	double a, b, c, d, e, f;
@@ -99,22 +109,21 @@ PdfXObject::PdfXObject( const PdfMemDocument & rDoc, int nPage, PdfDocument* pPa
  	c = -sin( alpha );
  	d = cos( alpha );
  
- 	// TODO: Check and implement combination of rotation and cropping for 180 and 270
  	switch ( rotation )
  	{
  		case 90:
- 			e = - m_rRect.GetBottom();
- 			f = m_rRect.GetLeft() + m_rRect.GetHeight();
+ 			e = - m_rRect.GetLeft();
+			f = m_rRect.GetBottom() + m_rRect.GetHeight();
             break;
   
   		case 180:
- 			e = m_rRect.GetWidth();
- 			f = m_rRect.GetHeight();
+ 			e = m_rRect.GetLeft() + m_rRect.GetWidth();
+ 			f = m_rRect.GetBottom() + m_rRect.GetHeight();
             break;
             
  		case 270:
- 			e = m_rRect.GetWidth();
- 			f = 0.0;
+ 			e = m_rRect.GetLeft() + m_rRect.GetWidth();
+ 			f = - m_rRect.GetBottom();
             break;
  
  		case 0:

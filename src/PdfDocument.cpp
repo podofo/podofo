@@ -316,7 +316,7 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
     return *this;
 }
 
-PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfMemDocument & rDoc, int nPage )
+PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfMemDocument & rDoc, int nPage, bool bUseTrimBox )
 {
     unsigned int difference = static_cast<unsigned int>(m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size());
 
@@ -327,17 +327,13 @@ PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfM
     PdfPage*      pPage = rDoc.GetPage( nPage );
     PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, 0 ) );
     PdfRect		  box  = pPage->GetMediaBox();
-    PdfRect		  gbox;
 
-    gbox  = pPage->GetCropBox();
-	if( gbox.GetBottom() != 0 || gbox.GetHeight() != 0 || gbox.GetLeft() != 0 || gbox.GetWidth() != 0 )
-		box = gbox;
+	// intersect with crop-box
+	box.Intersect( pPage->GetCropBox() );
 
-#if 0		// Only crop-box is relevant, same as during reading in Acrobat-Reader, trim box might be bigger
-    gbox = pPage->GetTrimBox();
-	if( gbox.GetBottom() != 0 || gbox.GetHeight() != 0 || gbox.GetLeft() != 0 || gbox.GetWidth() != 0 )
-		box = gbox;
-#endif // 0
+	// intersect with trim-box according to parameter
+	if ( bUseTrimBox )
+		box.Intersect( pPage->GetTrimBox() );
 
 	// link resources from external doc to x-object
     if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Resources" ) )
