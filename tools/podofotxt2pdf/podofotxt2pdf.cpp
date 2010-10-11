@@ -169,8 +169,8 @@ void init( const char* pszInput, const char* pszOutput, bool bUtf8, const char* 
 
 int main( int argc, char* argv[] )
 {
-  const char*   pszInput;
-  const char*   pszOutput;
+  const char*   pszInput = NULL;
+  const char*   pszOutput = NULL;
   const char*   pszFontName = DEFAULT_FONT;
   bool          bUtf8 = false;
 

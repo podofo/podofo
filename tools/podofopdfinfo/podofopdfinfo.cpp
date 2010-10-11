@@ -80,25 +80,32 @@ int main( int argc, char* argv[] )
   PoDoFo::PdfError::EnableLogging( false );
 #endif
 			 
-  if( (argc == 1) ||  (argc > 3) )
+  if( (argc < 2) ||  (argc > 3) )
   {
     print_help();
-    exit( -1 );
+    return ( -1 );
   }
 
   
-  char*    pszInput;
+  char* pszInput = 0;
   Format format;
+  std::string fName;
+
   if(argc == 2)
   {
-	pszInput  = argv[1];
+      pszInput  = argv[1];
   }
   else if(argc == 3)
   {
-	  pszInput  = argv[2];
-	  format = ParseFormat(std::string(argv[1]));
+      pszInput  = argv[2];
+      format = ParseFormat(std::string(argv[1]));
   }
-  std::string fName( pszInput );
+
+  if (pszInput!= NULL)
+  {
+      fName = pszInput;
+  }
+  //else leave empty
 
   try {
       PdfInfo	myInfo( fName );
