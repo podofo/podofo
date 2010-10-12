@@ -69,7 +69,7 @@ void encrypt( const char* pszInput, const char* pszOutput,
 void print_help()
 {
     printf("Usage: podofoencrypt [--rc4v1] [--rc4v2] [--aes] [-u <userpassword>]\n");
-    printf("                     -o <ownerpassword <inputfile> <outputfile>\n\n");
+    printf("                     -o <ownerpassword> <inputfile> <outputfile>\n\n");
     printf("       This tool encrypts an existing PDF file.\n\n");
     printf("       --help        Display this help text\n");
     printf(" Algorithm:\n");
