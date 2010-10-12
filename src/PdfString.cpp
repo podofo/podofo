@@ -49,7 +49,6 @@ static char g_StrEscMap[256] = { 0 };
 // Generate the escape character map at runtime
 static const char* genStrEscMap()
 {
-    int        i;
     const long lAllocLen = 256;
     char* map = static_cast<char*>(g_StrEscMap);
     memset( map, 0, sizeof(char) * lAllocLen );

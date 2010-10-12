@@ -91,7 +91,7 @@ void PdfFontType1::EmbedSubsetFont()
 		}
 
 		std::string xx( "Glyphs: " ) ;
-		for ( int i = 0; i < (int) usedGlyphs.size(); i++ )
+		for ( int i = 0; i < static_cast<int>(usedGlyphs.size()); i++ )
 			xx += " " + usedGlyphs[i]; 
 
 		PdfError::DebugMessage( "%s\n", xx.c_str() ); 
