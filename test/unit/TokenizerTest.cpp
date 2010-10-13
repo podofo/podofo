@@ -115,7 +115,7 @@ void TokenizerTest::testName()
 
     std::ostringstream oss;
     PdfOutputDevice output(&oss);
-    name2.Write(&output);
+    name2.Write(&output, ePdfWriteMode_Default);
 
     CPPUNIT_ASSERT_EQUAL( variant.GetName().GetName(), name2.GetName() );
     CPPUNIT_ASSERT_EQUAL( oss.str(), std::string(pszString) );

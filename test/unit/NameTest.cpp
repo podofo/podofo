@@ -178,8 +178,7 @@ void NameTest::TestWrite( const char * pszName, const char* pszResult )
     PdfName            name( pszName );
     PdfOutputDevice    device( &oss );
 
-    name.Write( &device );
-
+    name.Write( &device, ePdfWriteMode_Default );
     CPPUNIT_ASSERT_EQUAL( oss.str() == pszResult, true ); 
 }
 
