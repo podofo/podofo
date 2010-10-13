@@ -30,7 +30,8 @@
 namespace PoDoFo {
 
 PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, 
-                                        const PdfObject* pTrailer, EPdfVersion eVersion, PdfEncrypt* pEncrypt )
+                                        const PdfObject* pTrailer, EPdfVersion eVersion, 
+                                        PdfEncrypt* pEncrypt, EPdfWriteMode eWriteMode )
     : PdfWriter( pVecObjects ), m_pParent( pVecObjects ), 
       m_pDevice( pDevice ), m_pLast( NULL ), m_bOpenStream( false )
 {
@@ -53,6 +54,7 @@ PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects*
 
     // start with writing the header
     this->SetPdfVersion( eVersion );
+    this->SetWriteMode( eWriteMode );
     this->WritePdfHeader( m_pDevice );
 
     m_pXRef = m_bXRefStream ? new PdfXRefStream( m_vecObjects, this ) : new PdfXRef();
@@ -74,7 +76,7 @@ void PdfImmediateWriter::WriteObject( const PdfObject* pObject )
     this->FinishLastObject();
 
     m_pXRef->AddObject( pObject->Reference(), m_pDevice->Tell(), true );
-    pObject->WriteObject( m_pDevice, m_pEncrypt );
+    pObject->WriteObject( m_pDevice, this->GetWriteMode(), m_pEncrypt );
     // Make sure, no one will add keys now to the object
     const_cast<PdfObject*>(pObject)->SetImmutable(true);
 
@@ -120,7 +122,7 @@ void PdfImmediateWriter::Finish()
         FillTrailerObject( &trailer, m_pXRef->GetSize(), false, false );
         
         m_pDevice->Print("trailer\n");
-        trailer.WriteObject( m_pDevice, NULL );
+        trailer.WriteObject( m_pDevice, this->GetWriteMode(), NULL );
     }
     
     m_pDevice->Print( "startxref\n%li\n%%%%EOF\n", lXRefOffset );

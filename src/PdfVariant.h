@@ -197,26 +197,30 @@ class PODOFO_API PdfVariant {
      *  This is an overloaded member function.
      *
      *  \param pDevice write the object to this device
+     *  \param eWriteMode additional options for writing this object
      *  \param pEncrypt an encryption object which is used to encrypt this object
      *                  or NULL to not encrypt this object
      */
-    void Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt = NULL ) const;
+    void Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, 
+                const PdfEncrypt* pEncrypt = NULL ) const;
 
     /** Write the complete variant to an output device.
      *  \param pDevice write the object to this device
+     *  \param eWriteMode additional options for writing this object
      *  \param pEncrypt an encryption object which is used to encrypt this object
      *                  or NULL to not encrypt this object
      *  \param keyStop if not KeyNull and a key == keyStop is found
      *                 writing will stop right before this key!
      *                 if IsDictionary returns true.
      */
-    virtual void Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt, const PdfName & keyStop ) const;
+    virtual void Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt, const PdfName & keyStop ) const;
 
     /** Converts the current object into a string representation
      *  which can be written directly to a PDF file on disc.
      *  \param rsData the object string is returned in this object.
+     *  \param eWriteMode additional options for writing to a string
      */
-    void ToString( std::string & rsData ) const;
+    void ToString( std::string & rsData, EPdfWriteMode eWriteMode = ePdfWriteMode_Clean ) const;
 
     /** Set the value of this object as bool
      *  \param b the value as bool.

@@ -155,6 +155,16 @@ enum EPdfVersion {
 const EPdfVersion ePdfVersion_Default = ePdfVersion_1_3;
 
 /**
+ * Specify additional options for writing the PDF.
+ */
+enum EPdfWriteMode {
+    ePdfWriteMode_Compact = 0x01, ///< Try to write the PDF as compact as possible (Default)
+    ePdfWriteMode_Clean = 0x02,   ///< Create a PDF that is readable in a text editor, i.e. insert spaces and linebreaks between tokens
+};
+
+const EPdfWriteMode ePdfWriteMode_Default = ePdfWriteMode_Compact;
+
+/**
  * Every PDF datatype that can occur in a PDF file
  * is referenced by an own enum (e.g. Bool or String).
  *

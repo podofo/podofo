@@ -195,6 +195,16 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
      */
     void Write( PdfOutputDevice* pDevice );
 
+    /** Set the write mode to use when writing the PDF.
+     *  \param eWriteMode write mode
+     */
+    void SetWriteMode( EPdfWriteMode eWriteMode ) { m_eWriteMode = eWriteMode; }
+
+    /** Get the write mode used for wirting the PDF
+     *  \returns the write mode
+     */
+    virtual EPdfWriteMode GetWriteMode() const { return m_eWriteMode; }
+
     /** Set the PDF Version of the document. Has to be called before Write() to
      *  have an effect.
      *  \param eVersion  version of the pdf document
@@ -491,6 +501,7 @@ class PODOFO_API PdfMemDocument : public PdfDocument {
     PdfEncrypt*     m_pEncrypt;
 
     PdfParser*      m_pParser; ///< This will be temporarily initialized to a PdfParser object so that SetPassword can work
+    EPdfWriteMode   m_eWriteMode;
 };
 
 // -----------------------------------------------------

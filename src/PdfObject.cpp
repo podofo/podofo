@@ -152,7 +152,8 @@ void PdfObject::InitPdfObject()
 #endif
 }
 
-void PdfObject::WriteObject( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt, const PdfName & keyStop ) const
+void PdfObject::WriteObject( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode,
+                             PdfEncrypt* pEncrypt, const PdfName & keyStop ) const
 {
     DelayedStreamLoad();
 
@@ -162,7 +163,16 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt, con
     }
 
     if( m_reference.IsIndirect() )
-        pDevice->Print( "%i %i obj\n", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
+    {
+        if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
+        {
+            pDevice->Print( "%i %i obj\n", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
+        }
+        else 
+        {
+            pDevice->Print( "%i %i obj", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
+        }
+    }
 
     if( pEncrypt ) 
     {
@@ -177,7 +187,7 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt, con
         *(const_cast<PdfObject*>(this)->GetIndirectKey( PdfName::KeyLength )) = varLength;
     }
 
-    this->Write( pDevice, pEncrypt, keyStop );
+    this->Write( pDevice, eWriteMode, pEncrypt, keyStop );
     pDevice->Print( "\n" );
 
     if( m_pStream )
@@ -186,7 +196,9 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt, con
     }
 
     if( m_reference.IsIndirect() )
+    {
         pDevice->Print( "endobj\n" );
+    }
 }
 
 PdfObject* PdfObject::GetIndirectKey( const PdfName & key ) const
@@ -213,11 +225,11 @@ PdfObject* PdfObject::GetIndirectKey( const PdfName & key ) const
     return const_cast<PdfObject*>(pObj);
 }
 
-pdf_long PdfObject::GetObjectLength()
+pdf_long PdfObject::GetObjectLength( EPdfWriteMode eWriteMode )
 {
     PdfOutputDevice device;
 
-    this->WriteObject( &device, NULL );
+    this->WriteObject( &device, eWriteMode, NULL  );
 
     return device.GetLength();
 }
@@ -299,7 +311,7 @@ const PdfObject & PdfObject::operator=( const PdfObject & rhs )
     return *this;
 }
 
-pdf_long PdfObject::GetByteOffset( const char* pszKey )
+pdf_long PdfObject::GetByteOffset( const char* pszKey, EPdfWriteMode eWriteMode )
 {
     PdfOutputDevice device;
 
@@ -313,7 +325,7 @@ pdf_long PdfObject::GetByteOffset( const char* pszKey )
         PODOFO_RAISE_ERROR( ePdfError_InvalidKey );
     }
 
-    this->Write( &device, NULL, pszKey );
+    this->Write( &device, eWriteMode, NULL, pszKey );
     
     return device.GetLength();
 }

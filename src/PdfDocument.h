@@ -68,6 +68,11 @@ class PODOFO_API PdfDocument {
      */
     virtual ~PdfDocument();
 
+    /** Get the write mode used for wirting the PDF
+     *  \returns the write mode
+     */
+    virtual EPdfWriteMode GetWriteMode() const = 0;
+
     /** Get the PDF version of the document
      *  \returns EPdfVersion version of the pdf document
      */

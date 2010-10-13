@@ -27,9 +27,17 @@
 
 namespace PoDoFo {
 
-void PdfReference::Write( PdfOutputDevice* pDevice, const PdfEncrypt* ) const
+void PdfReference::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* ) const
 {
-    pDevice->Print( "%i %hi R", m_nObjectNo, m_nGenerationNo );
+    if( (eWriteMode & ePdfWriteMode_Compact) == ePdfWriteMode_Compact ) 
+    {
+        // Write space before the reference
+        pDevice->Print( " %i %hi R", m_nObjectNo, m_nGenerationNo );
+    }
+    else
+    {
+        pDevice->Print( "%i %hi R", m_nObjectNo, m_nGenerationNo );
+    }
 }
 
 const std::string PdfReference::ToString() const

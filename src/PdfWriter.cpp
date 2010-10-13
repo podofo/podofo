@@ -170,7 +170,7 @@ void PdfWriter::Write( PdfOutputDevice* pDevice )
                 FillTrailerObject( &trailer, pXRef->GetSize(), false, false );
                 
                 pDevice->Print("trailer\n");
-                trailer.WriteObject( pDevice, NULL ); // Do not encrypt the trailer dicionary!!!
+                trailer.WriteObject( pDevice, m_eWriteMode, NULL ); // Do not encrypt the trailer dicionary!!!
             }
             
             pDevice->Print( "startxref\n%li\n%%%%EOF\n", pXRef->GetOffset() );
@@ -275,7 +275,8 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& 
     {
         pXref->AddObject( (*itObjects)->Reference(), pDevice->Tell(), true );
         // Make sure that we do not encrypt the encryption dictionary!
-        (*itObjects)->WriteObject( pDevice, ((*itObjects) == m_pEncryptObj ? NULL : m_pEncrypt) );
+        (*itObjects)->WriteObject( pDevice, m_eWriteMode, 
+                                   ((*itObjects) == m_pEncryptObj ? NULL : m_pEncrypt) );
 
         ++itObjects;
     }
@@ -306,7 +307,7 @@ void PdfWriter::GetByteOffset( PdfObject* pObject, pdf_long* pulOffset )
         if( (*it) == pObject )
             break;
 
-        *pulOffset += (*it)->GetObjectLength();
+        *pulOffset += (*it)->GetObjectLength( m_eWriteMode );
         ++it;
     }
 }
@@ -596,7 +597,7 @@ void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* p
     
     pInfo->GetDictionary().AddKey( "Location", PdfString("SOMEFILENAME") );
 
-    pInfo->WriteObject( &length, NULL );
+    pInfo->WriteObject( &length, m_eWriteMode, NULL );
 
     pBuffer = static_cast<char*>(malloc( sizeof(char) * length.GetLength() ));
     if( !pBuffer )
@@ -606,7 +607,7 @@ void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* p
     }
 
     PdfOutputDevice device( pBuffer, length.GetLength() );
-    pInfo->WriteObject( &device, NULL );
+    pInfo->WriteObject( &device, m_eWriteMode, NULL );
 
     // calculate the MD5 Sum
     identifier = PdfEncrypt::GetMD5String( reinterpret_cast<unsigned char*>(pBuffer),

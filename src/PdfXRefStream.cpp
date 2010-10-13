@@ -103,7 +103,7 @@ void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
     m_pObject->GetDictionary().AddKey( "W", w );
 
     pDevice->Seek( static_cast<size_t>(m_offset) );
-    m_pObject->WriteObject( pDevice, NULL ); // DominikS: Requires encryption info??
+    m_pObject->WriteObject( pDevice, m_pWriter->GetWriteMode(), NULL ); // DominikS: Requires encryption info??
     m_indeces.Clear();
 }
 

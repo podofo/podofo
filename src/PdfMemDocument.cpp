@@ -56,6 +56,7 @@ PdfMemDocument::PdfMemDocument()
     : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL )
 {
     m_eVersion    = ePdfVersion_Default;
+    m_eWriteMode  = ePdfWriteMode_Default;
     m_bLinearized = false;
 }
 
@@ -92,6 +93,7 @@ void PdfMemDocument::Clear()
     delete m_pParser;
     m_pParser = NULL;
 
+    m_eWriteMode  = ePdfWriteMode_Default;
     PdfDocument::Clear();
 }
 
@@ -113,7 +115,7 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
      // debug.Write("\n", 1); // OC 17.08.2010: Append Linefeed
         PdfRefCountedBuffer buf;
         PdfOutputDevice debug( &buf );
-        pTrailer->Write( &debug );
+        pTrailer->Write( &debug, m_eWriteMode );
         debug.Write("\n", 1); // OC 17.08.2010: Append Linefeed
         size_t siz = buf.GetSize();
         char*  ptr = buf.GetBuffer();
@@ -283,6 +285,7 @@ void PdfMemDocument::Write( PdfOutputDevice* pDevice )
      *  it writeable.
      */
     PdfWriter       writer( this );
+    writer.SetWriteMode( m_eWriteMode );
 
     if( m_pEncrypt ) 
         writer.SetEncrypted( *m_pEncrypt );

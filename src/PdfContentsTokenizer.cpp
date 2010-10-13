@@ -193,7 +193,7 @@ bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpsz
     return true;
 }
 
-bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, const char*& rpszKeyword, PdfVariant & rVariant )
+bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, const char*&, PdfVariant & rVariant )
 {
     int  c;
     long long  counter  = 0;
@@ -214,7 +214,8 @@ bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, const ch
         c = m_device.Device()->GetChar(); 
         if (c=='E' &&  m_device.Device()->Look()=='I') 
         {
-            char i = m_device.Device()->GetChar();
+            // Consume character
+            m_device.Device()->GetChar();
             char w = m_device.Device()->Look();
             if (w==EOF || PdfTokenizer::IsWhitespace(w)) 
             {

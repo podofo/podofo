@@ -78,8 +78,9 @@ class PODOFO_API PdfStreamedDocument : public PdfDocument {
      *  \param pEncrypt pointer to an encryption object or NULL. If not NULL
      *                  the PdfEncrypt object will be copied and used to encrypt the
      *                  created document.
+     *  \param eWriteMode additional options for writing the pdf
      */
-    PdfStreamedDocument( PdfOutputDevice* pDevice, EPdfVersion eVersion = ePdfVersion_Default, PdfEncrypt* pEncrypt = NULL );
+    PdfStreamedDocument( PdfOutputDevice* pDevice, EPdfVersion eVersion = ePdfVersion_Default, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = ePdfWriteMode_Default );
 
     /** Create a new PdfStreamedDocument.
      *  All data is written to a file immediately.
@@ -91,8 +92,9 @@ class PODOFO_API PdfStreamedDocument : public PdfDocument {
      *  \param pEncrypt pointer to an encryption object or NULL. If not NULL
      *                  the PdfEncrypt object will be copied and used to encrypt the
      *                  created document.
+     *  \param eWriteMode additional options for writing the pdf
      */
-    PdfStreamedDocument( const char* pszFilename, EPdfVersion eVersion = ePdfVersion_Default, PdfEncrypt* pEncrypt = NULL );
+    PdfStreamedDocument( const char* pszFilename, EPdfVersion eVersion = ePdfVersion_Default, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = ePdfWriteMode_Default );
 
 #ifdef _WIN32
     /** Create a new PdfStreamedDocument.
@@ -105,12 +107,13 @@ class PODOFO_API PdfStreamedDocument : public PdfDocument {
      *  \param pEncrypt pointer to an encryption object or NULL. If not NULL
      *                  the PdfEncrypt object will be copied and used to encrypt the
      *                  created document.
+     *  \param eWriteMode additional options for writing the pdf
      *
      *  This is an overloaded member function to allow working
      *  with unicode characters. On Unix systes you can also path
      *  UTF-8 to the const char* overload.
      */
-    PdfStreamedDocument( const wchar_t* pszFilename, EPdfVersion eVersion = ePdfVersion_Default, PdfEncrypt* pEncrypt = NULL );
+    PdfStreamedDocument( const wchar_t* pszFilename, EPdfVersion eVersion = ePdfVersion_Default, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = ePdfWriteMode_Default );
 #endif // _WIN32
 
     ~PdfStreamedDocument();
@@ -121,6 +124,10 @@ class PODOFO_API PdfStreamedDocument : public PdfDocument {
      */
     void Close();
 
+    /** Get the write mode used for wirting the PDF
+     *  \returns the write mode
+     */
+    inline virtual EPdfWriteMode GetWriteMode() const;
 
     /** Get the PDF version of the document
      *  \returns EPdfVersion version of the pdf document
@@ -214,8 +221,9 @@ class PODOFO_API PdfStreamedDocument : public PdfDocument {
      *  \param pEncrypt pointer to an encryption object or NULL. If not NULL
      *                  the PdfEncrypt object will be copied and used to encrypt the
      *                  created document.
+     *  \param eWriteMode additional options for writing the pdf
      */
-    void Init( PdfOutputDevice* pDevice, EPdfVersion eVersion = ePdfVersion_Default, PdfEncrypt* pEncrypt = NULL );
+    void Init( PdfOutputDevice* pDevice, EPdfVersion eVersion = ePdfVersion_Default, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = ePdfWriteMode_Default );
 
  private:
     PdfImmediateWriter* m_pWriter;
@@ -225,6 +233,14 @@ class PODOFO_API PdfStreamedDocument : public PdfDocument {
 
     bool                m_bOwnDevice; ///< If true m_pDevice is owned by this object and has to be deleted
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+EPdfWriteMode PdfStreamedDocument::GetWriteMode() const
+{
+    return m_pWriter->GetWriteMode();
+}
 
 // -----------------------------------------------------
 // 

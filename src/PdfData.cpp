@@ -25,7 +25,7 @@
 
 namespace PoDoFo {
 
-void PdfData::Write( PdfOutputDevice* pDevice, const PdfEncrypt* ) const
+void PdfData::Write( PdfOutputDevice* pDevice, EPdfWriteMode, const PdfEncrypt* ) const
 {
     pDevice->Write( m_sData.c_str(), m_sData.length() );
 }

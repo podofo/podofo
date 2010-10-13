@@ -276,10 +276,11 @@ class PODOFO_API PdfString : public PdfDataType{
     /** Write this PdfString in PDF format to a PdfOutputDevice 
      *  
      *  \param pDevice the output device.
+     *  \param eWriteMode additional options for writing this object
      *  \param pEncrypt an encryption object which is used to encrypt this object
      *                  or NULL to not encrypt this object
      */
-    void Write ( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt = NULL ) const;
+    void Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt = NULL ) const;
 
     /** Copy an existing PdfString 
      *  \param rhs another PdfString to copy

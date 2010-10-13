@@ -304,7 +304,7 @@ void PdfString::SetHexData( const char* pszHex, pdf_long lLen, PdfEncrypt* pEncr
     }
 }
 
-void PdfString::Write ( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) const
+void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt ) const
 {
     // Strings in PDF documents may contain \0 especially if they are encrypted
     // this case has to be handled!
@@ -348,7 +348,7 @@ void PdfString::Write ( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) c
         }
 
         PdfString str( enc.c_str(), enc.length(), true );
-        str.Write( pDevice, NULL );
+        str.Write( pDevice, eWriteMode, NULL );
 
         delete[] pBuffer;
 		

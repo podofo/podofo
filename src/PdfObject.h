@@ -28,7 +28,6 @@
 #include "PdfString.h"
 #include "PdfVariant.h"
 
-
 namespace PoDoFo {
 
 class PdfEncrypt;
@@ -169,15 +168,18 @@ class PODOFO_API PdfObject : public PdfVariant {
      *  \param pDevice write the object to this device
      *  \param pEncrypt an encryption object which is used to encrypt this object
      *                  or NULL to not encrypt this object
+     *  \param eWriteMode additional options for writing the object
      *  \param keyStop if not KeyNull and a key == keyStop is found
      *                 writing will stop right before this key!
      */
-    void WriteObject( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt, const PdfName & keyStop = PdfName::KeyNull ) const;
+    void WriteObject( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, PdfEncrypt* pEncrypt,
+                      const PdfName & keyStop = PdfName::KeyNull ) const;
 
     /** Get the length of the object in bytes if it was written to disk now.
+     *  \param eWriteMode additional options for writing the object
      *  \returns  the length of the object
      */
-    pdf_long GetObjectLength();
+    pdf_long GetObjectLength( EPdfWriteMode eWriteMode );
 
     /** Get a indirect reference to this object
      *  \returns a PdfReference pointing to this object.
@@ -256,9 +258,10 @@ class PODOFO_API PdfObject : public PdfVariant {
      *  This function is very calculation intensive!
      *
      *  \param pszKey  key to calculate the byte offset
+     *  \param eWriteMode additional options for writing the PDF
      *  \returns the offset of the key 
      */
-    pdf_long GetByteOffset( const char* pszKey );
+    pdf_long GetByteOffset( const char* pszKey, EPdfWriteMode eWriteMode );
 
     /**
      * Dynamically load this object and any associated stream from a PDF file

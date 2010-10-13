@@ -123,8 +123,11 @@ class PODOFO_API PdfName : public PdfDataType {
      *  This is an overloaded member function.
      *
      *  \param pDevice write the object to this device
+     *  \param eWriteMode additional options for writing this object
+     *  \param pEncrypt an encryption object which is used to encrypt this object
+     *                  or NULL to not encrypt this object     
      */
-    void Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt = NULL) const;
+    void Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt = NULL) const;
 
     /** \returns the unescaped value of this name object
      *           without the leading slash

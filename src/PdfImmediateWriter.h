@@ -51,11 +51,18 @@ class PODOFO_API PdfImmediateWriter : private PdfWriter,
      *  @param pEncrypt pointer to an encryption object or NULL. If not NULL
      *                  the PdfEncrypt object will be copied and used to encrypt the
      *                  created document.
+     *  @param eWriteMode additional options for writing the pdf
      */
     PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, const PdfObject* pTrailer, 
-                        EPdfVersion eVersion = ePdfVersion_1_5, PdfEncrypt* pEncrypt = NULL );
+                        EPdfVersion eVersion = ePdfVersion_1_5, PdfEncrypt* pEncrypt = NULL,
+                        EPdfWriteMode eWriteMode = ePdfWriteMode_Default );
 
     ~PdfImmediateWriter();
+
+    /** Get the write mode used for wirting the PDF
+     *  \returns the write mode
+     */
+    inline EPdfWriteMode GetWriteMode() const;
 
     /** Get the PDF version of the document
      *  The PDF version can only be set in the constructor
@@ -113,6 +120,17 @@ class PODOFO_API PdfImmediateWriter : private PdfWriter,
     bool             m_bOpenStream;
 };
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline EPdfWriteMode PdfImmediateWriter::GetWriteMode() const
+{
+    return PdfWriter::GetWriteMode();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
 inline EPdfVersion PdfImmediateWriter::GetPdfVersion() const
 {
     return PdfWriter::GetPdfVersion();

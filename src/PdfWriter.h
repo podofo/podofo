@@ -50,6 +50,7 @@ namespace NonPublic { class PdfHintStream; }
  *  Most users will want to use PdfDocument.
  */
 class PODOFO_API PdfWriter {
+
  public:
     /** Create a PdfWriter object from a PdfParser object
      *  \param pParser a pdf parser object
@@ -94,11 +95,21 @@ class PODOFO_API PdfWriter {
      */
     void Write( PdfOutputDevice* pDevice );
 
+    /** Set the write mode to use when writing the PDF.
+     *  \param eWriteMode write mode
+     */
+    void SetWriteMode( EPdfWriteMode eWriteMode ) { m_eWriteMode = eWriteMode; }
+
+    /** Get the write mode used for wirting the PDF
+     *  \returns the write mode
+     */
+    EPdfWriteMode GetWriteMode() const { return m_eWriteMode; }
+
     /** Set the PDF Version of the document. Has to be called before Write() to
      *  have an effect.
      *  \param eVersion  version of the pdf document
      */
-    void SetPdfVersion( EPdfVersion eVersion ) { m_eVersion = eVersion;}
+    void SetPdfVersion( EPdfVersion eVersion ) { m_eVersion = eVersion; }
 
     /** Get the PDF version of the document
      *  \returns EPdfVersion version of the pdf document
@@ -259,6 +270,7 @@ class PODOFO_API PdfWriter {
     PdfString       m_identifier;
 
  private:
+    EPdfWriteMode   m_eWriteMode;
     EPdfVersion     m_eVersion;
     PdfPagesTree*   m_pPagesTree;
 

@@ -239,12 +239,18 @@ bool PdfDictionary::RemoveKey( const PdfName & identifier )
     return false;
 }
 
-void PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt, const PdfName & keyStop ) const
+void PdfDictionary::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt, const PdfName & keyStop ) const
 {
     TCIKeyMap     itKeys;
 
-    pDevice->Print( "<<\n" );
-
+    if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
+    {
+        pDevice->Print( "<<\n" );
+    } 
+    else
+    {
+        pDevice->Print( "<<" );
+    }
     itKeys     = m_mapKeys.begin();
 
     if( keyStop != PdfName::KeyNull && keyStop.GetLength() && keyStop == PdfName::KeyType )
@@ -253,9 +259,21 @@ void PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt,
     if( this->HasKey( PdfName::KeyType ) ) 
     {
         // Type has to be the first key in any dictionary
-        pDevice->Print( "/Type " );
-        this->GetKey( PdfName::KeyType )->Write( pDevice, pEncrypt );
-        pDevice->Print( "\n" );
+        if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
+        {
+            pDevice->Print( "/Type " );
+        }
+        else
+        {
+            pDevice->Print( "/Type" );
+        }
+
+        this->GetKey( PdfName::KeyType )->Write( pDevice, eWriteMode, pEncrypt );
+
+        if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
+        {
+            pDevice->Print( "\n" );
+        }
     }
 
     while( itKeys != m_mapKeys.end() )
@@ -265,10 +283,16 @@ void PdfDictionary::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt,
             if( keyStop != PdfName::KeyNull && keyStop.GetLength() && (*itKeys).first == keyStop )
                 return;
 
-            (*itKeys).first.Write( pDevice );
-            pDevice->Write( " ", 1 ); // write a separator
-            (*itKeys).second->Write( pDevice, pEncrypt );
-            pDevice->Write( "\n", 1 );
+            (*itKeys).first.Write( pDevice, eWriteMode );
+            if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
+            {
+                pDevice->Write( " ", 1 ); // write a separator
+            }
+            (*itKeys).second->Write( pDevice, eWriteMode, pEncrypt );
+            if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
+            {
+                pDevice->Write( "\n", 1 );
+            }
         }
         
         ++itKeys;

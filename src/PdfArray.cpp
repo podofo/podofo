@@ -50,17 +50,29 @@ PdfArray::PdfArray( const PdfArray & rhs )
     m_bDirty = false;
 }
 
-void PdfArray::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) const
+void PdfArray::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, 
+                      const PdfEncrypt* pEncrypt ) const
 {
     PdfArray::const_iterator it = this->begin();
 
     int count = 1;
 
-    pDevice->Print( "[ " );
+    if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
+    {
+        pDevice->Print( "[ " );
+    }
+    else
+    {
+        pDevice->Print( "[" );
+    }
+
     while( it != this->end() )
     {
-        (*it).Write( pDevice, pEncrypt );
-        pDevice->Print( !(count % 10) ? "\n" : " " );
+        (*it).Write( pDevice, eWriteMode, pEncrypt );
+        if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
+        {
+            pDevice->Print( !(count % 10) ? "\n" : " " );
+        }
 
         ++it;
         ++count;

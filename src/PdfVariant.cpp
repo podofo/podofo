@@ -196,12 +196,12 @@ void PdfVariant::Clear()
     memset( &m_Data, 0, sizeof( UVariant ) );
 }
 
-void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt ) const
+void PdfVariant::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt ) const
 {
-    this->Write( pDevice, pEncrypt, PdfName::KeyNull );
+    this->Write( pDevice, eWriteMode, pEncrypt, PdfName::KeyNull );
 }
 
-void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt, const PdfName & keyStop ) const
+void PdfVariant::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt, const PdfName & keyStop ) const
 {
     DelayedLoad(); 
 
@@ -221,6 +221,11 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt, co
     {
         case ePdfDataType_Bool:
         {
+            if( (eWriteMode & ePdfWriteMode_Compact) == ePdfWriteMode_Compact ) 
+            {
+                pDevice->Write( " ", 1 ); // Write space before true or false
+            }
+
             if( m_Data.bBoolValue )
                 pDevice->Write( "true", 4 );
             else
@@ -228,12 +233,19 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt, co
             break;
         }
         case ePdfDataType_Number:
+        {
+            if( (eWriteMode & ePdfWriteMode_Compact) == ePdfWriteMode_Compact ) 
+            {
+                pDevice->Write( " ", 1 ); // Write space before numbers
+            }
+
 #ifdef _WIN64
             pDevice->Print( "%I64i", m_Data.nNumber );
 #else
             pDevice->Print( "%lld", m_Data.nNumber );
 #endif
             break;
+        }
         case ePdfDataType_Real:
             //pDevice->Print( "%g", m_Data.dNumber );
             // DominikS: %g precision might write floating points
@@ -243,6 +255,11 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt, co
             //           it defaults to a precision of 6
             // pDevice->Print( "%f", m_Data.dNumber );
         {
+            if( (eWriteMode & ePdfWriteMode_Compact) == ePdfWriteMode_Compact ) 
+            {
+                pDevice->Write( " ", 1 ); // Write space before numbers
+            }
+
             // Use ostringstream, so that locale does not matter
             std::ostringstream oss;
             PdfLocaleImbue(oss);
@@ -257,14 +274,21 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt, co
         case ePdfDataType_Array:
         case ePdfDataType_Reference:
         case ePdfDataType_RawData:
-            m_Data.pData->Write( pDevice, pEncrypt );
+            m_Data.pData->Write( pDevice, eWriteMode, pEncrypt );
             break;
         case ePdfDataType_Dictionary:
-            static_cast<PdfDictionary*>(m_Data.pData)->Write( pDevice, pEncrypt, keyStop );
+            static_cast<PdfDictionary*>(m_Data.pData)->Write( pDevice, eWriteMode, pEncrypt, keyStop );
             break;
         case ePdfDataType_Null:
+        {
+            if( (eWriteMode & ePdfWriteMode_Compact) == ePdfWriteMode_Compact ) 
+            {
+                pDevice->Write( " ", 1 ); // Write space before null
+            }
+
             pDevice->Print( "null" );
             break;
+        }
         case ePdfDataType_Unknown:
         default:
         {
@@ -274,14 +298,14 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, const PdfEncrypt* pEncrypt, co
     };
 }
 
-void PdfVariant::ToString( std::string & rsData ) const
+void PdfVariant::ToString( std::string & rsData, EPdfWriteMode eWriteMode ) const
 {
     ostringstream   out;
     // We don't need to this stream with the safe PDF locale because
     // PdfOutputDevice will do so for us.
     PdfOutputDevice device( &out );
 
-    this->Write( &device, NULL );
+    this->Write( &device, eWriteMode, NULL );
     
     rsData = out.str();
 }
