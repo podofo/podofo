@@ -57,6 +57,7 @@ SET(PODOFO_SOURCES
     PdfName.cpp
     PdfNamesTree.cpp
     PdfObject.cpp
+    PdfObjectStreamParserObject.cpp
     PdfOutlines.cpp
     PdfOutputDevice.cpp
     PdfOutputStream.cpp
@@ -152,6 +153,7 @@ SET(PODOFO_HEADERS
     PdfName.h
     PdfNamesTree.h
     PdfObject.h
+    PdfObjectStreamParserObject.h
     PdfOutlines.h
     PdfOutputDevice.h
     PdfOutputStream.h

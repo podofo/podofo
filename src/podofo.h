@@ -73,6 +73,7 @@
 #include "PdfName.h"
 #include "PdfNamesTree.h"
 #include "PdfObject.h"
+#include "PdfObjectStreamParserObject.h"
 #include "PdfOutlines.h"
 #include "PdfOutputDevice.h"
 #include "PdfPage.h"

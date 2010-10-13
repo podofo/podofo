@@ -21,15 +21,16 @@
 #include "PdfParser.h"
 
 #include "PdfArray.h"
+#include "PdfDefinesPrivate.h"
 #include "PdfDictionary.h"
 #include "PdfEncrypt.h"
 #include "PdfInputDevice.h"
 #include "PdfMemStream.h"
+#include "PdfObjectStreamParserObject.h"
 #include "PdfOutputDevice.h"
 #include "PdfParserObject.h"
 #include "PdfStream.h"
 #include "PdfVariant.h"
-#include "PdfDefinesPrivate.h"
 #include "PdfXRefStreamParserObject.h"
 
 #include <cstring>
@@ -1058,7 +1059,7 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int )
         m_setObjectStreams.insert( nObjNo );
 
     // generation number of object streams is always 0
-    PdfParserObject * const pStream = dynamic_cast<PdfParserObject*>(m_vecObjects->GetObject( PdfReference( nObjNo, 0 ) ) );
+    PdfParserObject* pStream = dynamic_cast<PdfParserObject*>(m_vecObjects->GetObject( PdfReference( nObjNo, 0 ) ) );
     if( !pStream )
     {
         std::ostringstream oss;
@@ -1067,46 +1068,8 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int )
         PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, oss.str().c_str() );
     }
     
-    long long lNum   = pStream->GetDictionary().GetKeyAsLong( "N", 0 );
-    long long lFirst = pStream->GetDictionary().GetKeyAsLong( "First", 0 );
-    
-    char * pBuffer;
-    pdf_long lBufferLen;
-
-    pStream->GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
-
-    // the object stream is not needed anymore in the final PDF
-    delete m_vecObjects->RemoveObject( pStream->Reference() );
-
-    PdfRefCountedInputDevice device( pBuffer, lBufferLen );
-    PdfTokenizer             tokenizer( device, m_buffer );
-    PdfVariant               var;
-    int                      i = 0;
-
-    while( static_cast<long long>(i) < lNum )
-    {
-        const long long lObj     = tokenizer.GetNextNumber();
-        const long long lOff     = tokenizer.GetNextNumber();
-        const std::streamoff pos = device.Device()->Tell();
-
-        // move to the position of the object in the stream
-        device.Device()->Seek( static_cast<std::streamoff>(lFirst + lOff) );
-
-        tokenizer.GetNextVariant( var, m_pEncrypt );
-        if(m_vecObjects->GetObject(PdfReference( static_cast<int>(lObj), 0LL )))
-        {
-            PdfError::LogMessage( eLogSeverity_Warning, "Object: %li 0 R will be deleted and loaded again.\n", lObj );
-            delete m_vecObjects->RemoveObject(PdfReference( static_cast<int>(lObj), 0LL ),false);
-        }
-        m_vecObjects->push_back( new PdfObject( PdfReference( static_cast<int>(lObj), 0LL ), var ) );
-
-        // move back to the position inside of the table of contents
-        device.Device()->Seek( pos );
-
-        ++i;
-    }
-    
-    free( pBuffer );
+    PdfObjectStreamParserObject pParserObject( pStream, m_vecObjects, m_buffer, m_pEncrypt );
+    pParserObject.Parse();
 }
 
 const char* PdfParser::GetPdfVersionString() const
