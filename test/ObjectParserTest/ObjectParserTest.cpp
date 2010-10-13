@@ -252,12 +252,12 @@ void TestObject( const string & sFilename,
         }
     }
 
-    const unsigned long lObjLen = obj.GetObjectLength();
+    const unsigned long lObjLen = obj.GetObjectLength( ePdfWriteMode_Default );
     cerr << "  -> Object Length: " << lObjLen << endl;
 
     std::ostringstream os;
     PdfOutputDevice deviceTest( &os );
-    obj.WriteObject( &deviceTest, NULL );
+    obj.WriteObject( &deviceTest, ePdfWriteMode_Default, NULL );
 
     string sLen = os.str();
     cerr << "  -> Object String Length: " << sLen.length() << endl;
