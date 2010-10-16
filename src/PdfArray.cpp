@@ -28,7 +28,7 @@
 namespace PoDoFo {
 
 PdfArray::PdfArray()
-    : std::vector<PoDoFo::PdfObject>(), PdfDataType(), m_bDirty( false )
+    : PdfArrayBaseClass(), PdfDataType(), m_bDirty( false )
 {
 }
 
@@ -37,17 +37,31 @@ PdfArray::~PdfArray()
 }
 
 PdfArray::PdfArray( const PdfObject & var )
-    : std::vector<PoDoFo::PdfObject>(), PdfDataType()
+    : PdfArrayBaseClass(), PdfDataType(), m_bDirty( false )
 {
     this->push_back( var );
-    m_bDirty = false;
 }
 
 PdfArray::PdfArray( const PdfArray & rhs )
-    : std::vector<PoDoFo::PdfObject>(), PdfDataType()
+    : PdfArrayBaseClass(rhs), PdfDataType(rhs), m_bDirty(rhs.m_bDirty)
 {
     this->operator=( rhs );
-    m_bDirty = false;
+}
+
+ 
+PdfArray& PdfArray::operator=(const PdfArray& rhs)
+{
+    if (this != &rhs)
+    {
+        m_bDirty = rhs.m_bDirty;
+        PdfArrayBaseClass::operator=( rhs );
+    }
+    else
+    {
+        //do nothing
+    }
+    
+    return *this;
 }
 
 void PdfArray::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, 
@@ -71,7 +85,7 @@ void PdfArray::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode,
         (*it).Write( pDevice, eWriteMode, pEncrypt );
         if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
         {
-            pDevice->Print( !(count % 10) ? "\n" : " " );
+            pDevice->Print( (count % 10 == 0) ? "\n" : " " );
         }
 
         ++it;
@@ -85,7 +99,7 @@ bool PdfArray::ContainsString( const std::string& cmpString ) const
 {
     bool foundIt = false;
 
-    TCIVariantList it = this->begin();
+    TCIVariantList it(this->begin());
     while( it != this->end() )
     {
         if( (*it).GetDataType() == ePdfDataType_String )
@@ -125,10 +139,10 @@ bool PdfArray::IsDirty() const
     // If the array itself is dirty
     // return immediately
     // otherwise check all children.
-    if( m_bDirty ) 
+    if( m_bDirty )
         return m_bDirty;
 
-    PdfArray::const_iterator it = this->begin();
+    PdfArray::const_iterator it(this->begin());
     while( it != this->end() )
     {
         if( (*it).IsDirty() )
@@ -147,7 +161,7 @@ void PdfArray::SetDirty( bool bDirty )
     if( !m_bDirty )
     {
         // Propagate state to all subclasses
-        PdfArray::iterator it = this->begin();
+        PdfArray::iterator it(this->begin());
         while( it != this->end() )
         {
             (*it).SetDirty( m_bDirty );

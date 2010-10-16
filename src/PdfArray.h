@@ -59,7 +59,7 @@ class PODOFO_API PdfArray : private PdfArrayBaseClass, public PdfDataType {
      *
      *  \param var add this object to the array.
      */
-    PdfArray( const PdfObject & var );
+    explicit PdfArray( const PdfObject & var );
 
     /** Deep copy an existing PdfArray
      *
@@ -68,6 +68,12 @@ class PODOFO_API PdfArray : private PdfArrayBaseClass, public PdfDataType {
     PdfArray( const PdfArray & rhs );
 
     virtual ~PdfArray();
+
+    /** assignment operator
+     *
+     *  \param rhs the array to assign
+     */
+    PdfArray& operator=(const PdfArray& rhs);
 
     /** 
      *  \returns the size of the array
@@ -86,7 +92,8 @@ class PODOFO_API PdfArray : private PdfArrayBaseClass, public PdfDataType {
      *  \param pEncrypt an encryption object which is used to encrypt this object
      *                  or NULL to not encrypt this object
      */
-    void Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt = NULL ) const;
+    virtual void Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, 
+                        const PdfEncrypt* pEncrypt = NULL ) const;
 
     /** Utility method to determine if the array contains
      *  contains any objects of ePdfDataType_String whose
@@ -182,21 +189,21 @@ class PODOFO_API PdfArray : private PdfArrayBaseClass, public PdfDataType {
      */
     inline const_reverse_iterator rend() const;
 
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200		// workaround template-error in Visualstudio 6
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // workaround template-error in Visualstudio 6
     inline void insert(iterator __position, 
-					   iterator __first,
-					   iterator __last);
+                       iterator __first,
+                       iterator __last);
 #else
     template<typename _InputIterator> 
-        void insert(iterator __position, 
-                    _InputIterator __first,
-                    _InputIterator __last);
+        void insert(const iterator& __position, 
+                    const _InputIterator& __first,
+                    const _InputIterator& __last);
 #endif
 
-    inline PdfArray::iterator insert(iterator __position, const PdfObject & val );
+    inline PdfArray::iterator insert(const iterator& __position, const PdfObject & val );
 
-    inline void erase( iterator pos );
-    inline void erase( iterator first, iterator last );
+    inline void erase( const iterator& pos );
+    inline void erase( const iterator& first, const iterator& last );
 
     inline void reserve(size_type __n);
 
@@ -385,15 +392,15 @@ PdfArray::const_reverse_iterator PdfArray::rend() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200		// workaround template-error in Visualstudio 6
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200        // workaround template-error in Visualstudio 6
 void PdfArray::insert(PdfArray::iterator __position, 
                       PdfArray::iterator __first,
                       PdfArray::iterator __last)
 #else
 template<typename _InputIterator>
-void PdfArray::insert(PdfArray::iterator __position, 
-                      _InputIterator __first,
-                      _InputIterator __last)
+void PdfArray::insert(const PdfArray::iterator& __position, 
+                      const _InputIterator& __first,
+                      const _InputIterator& __last)
 #endif
 {
     AssertMutable();
@@ -405,7 +412,7 @@ void PdfArray::insert(PdfArray::iterator __position,
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-PdfArray::iterator PdfArray::insert(PdfArray::iterator __position, const PdfObject & val )
+PdfArray::iterator PdfArray::insert(const iterator& __position, const PdfObject & val )
 {
     AssertMutable();
 
@@ -416,7 +423,7 @@ PdfArray::iterator PdfArray::insert(PdfArray::iterator __position, const PdfObje
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfArray::erase( iterator pos )
+void PdfArray::erase( const iterator& pos )
 {
     AssertMutable();
 
@@ -427,7 +434,7 @@ void PdfArray::erase( iterator pos )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfArray::erase( iterator first, iterator last )
+void PdfArray::erase( const iterator& first, const iterator& last )
 {
     AssertMutable();
 
@@ -480,6 +487,7 @@ const PdfObject & PdfArray::back() const
 // -----------------------------------------------------
 bool PdfArray::operator==( const PdfArray & rhs ) const
 {
+    //TODO: This operator does not check for m_bDirty. Add comparison or add explanation why it should not be there
     return (static_cast< PdfArrayBaseClass >(*this) == static_cast< PdfArrayBaseClass >(rhs) );
 }
 
@@ -488,6 +496,7 @@ bool PdfArray::operator==( const PdfArray & rhs ) const
 // -----------------------------------------------------
 bool PdfArray::operator!=( const PdfArray & rhs ) const
 {
+    //TODO: This operator does not check for m_bDirty. Add comparison or add explanation why it should not be there
     return (static_cast< PdfArrayBaseClass >(*this) != static_cast< PdfArrayBaseClass >(rhs) );
 }
 
