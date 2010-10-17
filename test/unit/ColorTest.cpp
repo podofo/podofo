@@ -49,5 +49,29 @@ void ColorTest::testHexNames()
     CPPUNIT_ASSERT( static_cast<int>(cmyk.GetMagenta() * 255.0) == 0xCD );
     CPPUNIT_ASSERT( static_cast<int>(cmyk.GetYellow() * 255.0) == 0xEF );
     CPPUNIT_ASSERT( static_cast<int>(cmyk.GetBlack() * 255.0) == 0x01 );
-
 }
+
+void ColorTest::testNames()
+{
+    //PdfNamedColor( "aliceblue", PdfColor(0.941, 0.973, 1.000, 1.000) ) ,
+    PdfColor aliceBlue = PdfColor::FromString( "aliceblue" );
+    CPPUNIT_ASSERT( aliceBlue == PdfColor(0.941, 0.973, 1.000, 1.000) );
+    CPPUNIT_ASSERT( aliceBlue.GetCyan() == 0.941 );
+    CPPUNIT_ASSERT( aliceBlue.GetMagenta() == 0.973 );
+    CPPUNIT_ASSERT( aliceBlue.GetYellow() == 1.000 );
+    CPPUNIT_ASSERT( aliceBlue.GetBlack() == 1.000 );
+
+    //PdfNamedColor( "lime", PdfColor(0.000, 1.000, 0.000, 1.000) ) ,
+    PdfColor lime = PdfColor::FromString( "lime" );
+    CPPUNIT_ASSERT( lime == PdfColor(0.000, 1.000, 0.000, 1.000) );
+
+    //PdfNamedColor( "yellowgreen", PdfColor(0.604, 0.804, 0.196, 1.000) ) 
+    PdfColor yellowGreen = PdfColor::FromString( "yellowgreen" );
+    CPPUNIT_ASSERT( yellowGreen == PdfColor(0.604, 0.804, 0.196, 1.000) );
+
+
+    // Test a not existing color
+    PdfColor notExist = PdfColor::FromString( "asfaf9q341" );
+    CPPUNIT_ASSERT( notExist == PdfColor() );
+}
+

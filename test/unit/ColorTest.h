@@ -27,6 +27,7 @@ class ColorTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE( ColorTest );
   CPPUNIT_TEST( testHexNames );
+  CPPUNIT_TEST( testNames );
   CPPUNIT_TEST_SUITE_END();
 
  public:
@@ -34,6 +35,7 @@ class ColorTest : public CppUnit::TestFixture
   void tearDown();
 
   void testHexNames();
+  void testNames();
 
  private:
 };

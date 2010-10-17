@@ -29,7 +29,7 @@
 #include "PdfVariant.h"
 #include "PdfDefinesPrivate.h"
 
-#include <limits>
+#include <algorithm>
 
 namespace PoDoFo {
 
@@ -111,8 +111,27 @@ private:
     PdfColor    m_color;
 };
 
-const size_t nNumNamedColors = 147;
-PdfNamedColor s_NamedColors[nNumNamedColors] = 
+/**
+ * Predicate to allow binary search in the list
+ * of PdfNamedColor's using for example std::equal_range.
+ */
+class NamedColorComparatorPredicate { 
+public:
+    NamedColorComparatorPredicate()
+    {
+    }
+
+    inline bool operator()( const PdfNamedColor & rNamedColor, const char* const & pszName ) const { 
+        return pszName ? PoDoFo::compat::strcasecmp( rNamedColor.GetName(), pszName ) < 0 : false; 
+    }
+
+    inline bool operator()( const char* const & pszName, const PdfNamedColor & rNamedColor ) const { 
+        return pszName ? PoDoFo::compat::strcasecmp( pszName, rNamedColor.GetName() ) < 0 : false; 
+    }
+};
+
+static const size_t s_nNumNamedColors = 147;
+static const PdfNamedColor s_NamedColors[s_nNumNamedColors] = 
 {
     PdfNamedColor( "aliceblue", PdfColor(0.941, 0.973, 1.000, 1.000) ) ,
     PdfNamedColor( "antiquewhite", PdfColor(0.980, 0.922, 0.843, 1.000) ) ,
@@ -262,8 +281,6 @@ PdfNamedColor s_NamedColors[nNumNamedColors] =
     PdfNamedColor( "yellow", PdfColor(1.000, 1.000, 0.000, 1.000) ) ,
     PdfNamedColor( "yellowgreen", PdfColor(0.604, 0.804, 0.196, 1.000) ) 
 };
-
-
 
 inline void CheckDoubleRange( double val, double min, double max )
 {
@@ -796,13 +813,16 @@ PdfColor PdfColor::FromString( const char* pszName )
         // it must be a named RGB color
         else
         {
-            // TODO: binary search: RG: Which binary search?
-            // TODO: Also write a test for it
-            for( size_t i=0; i<nNumNamedColors; ++i )
+            std::pair<const PdfNamedColor*, const PdfNamedColor*> iterators = 
+                std::equal_range( &(s_NamedColors[0]), 
+                                  s_NamedColors + s_nNumNamedColors, 
+                                  pszName, NamedColorComparatorPredicate() );
+            
+            if( iterators.first != iterators.second )
             {
-                if( s_NamedColors[i] == pszName )
-                    return s_NamedColors[i].GetColor();
+                return (*(iterators.first)).GetColor();
             }
+
         }
     }
 
