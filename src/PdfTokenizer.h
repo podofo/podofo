@@ -141,6 +141,21 @@ class PODOFO_API PdfTokenizer {
      */
     PODOFO_NOTHROW inline static bool IsPrintable(const unsigned char ch);
 
+    /**
+     * Get the hex value from a static map of a given hex character (0-9, A-F, a-f).
+     *
+     * \param ch hex character
+     *
+     * \returns hex value or HEX_NOT_FOUND if invalid
+     *
+     * \see HEX_NOT_FOUND
+     */
+    PODOFO_NOTHROW inline static int GetHexValue(const unsigned char ch);
+
+    /**
+     * Constant which is returned for invalid hex values.
+     */
+    static const unsigned int HEX_NOT_FOUND;
 
  protected:
     /** Read the next variant from the current file position
@@ -225,11 +240,12 @@ class PODOFO_API PdfTokenizer {
     // 256-byte array mapping character ordinal values to a truth value
     // indicating whether or not they are whitespace according to the PDF
     // standard.
-    static const char * const m_delimiterMap;
-    static const char * const m_whitespaceMap;
-    static const char m_octMap[]; ///< Map of bool values, if a certain char
+    static const char * const s_delimiterMap;
+    static const char * const s_whitespaceMap;
+    static const char s_octMap[]; ///< Map of bool values, if a certain char
                                   ///< is a valid octal digit
-    static const char * const m_escMap; ///< Mapping of escape sequences to there value
+    static const char * const s_escMap; ///< Mapping of escape sequences to there value
+    static const char * const s_hexMap; ///< Mapping of hex characters to there value
 
 
     TTokenizerQueque m_deqQueque;
@@ -251,7 +267,7 @@ class PODOFO_API PdfTokenizer {
 // -----------------------------------------------------
 inline bool PdfTokenizer::IsWhitespace(const unsigned char ch)
 {
-    return ( PdfTokenizer::m_whitespaceMap[static_cast<size_t>(ch)] != 0 );
+    return ( PdfTokenizer::s_whitespaceMap[static_cast<size_t>(ch)] != 0 );
 }
 
 // -----------------------------------------------------
@@ -259,7 +275,7 @@ inline bool PdfTokenizer::IsWhitespace(const unsigned char ch)
 // -----------------------------------------------------
 inline bool PdfTokenizer::IsDelimiter(const unsigned char ch)
 {
-    return ( PdfTokenizer::m_delimiterMap[ch] != 0 );
+    return ( PdfTokenizer::s_delimiterMap[ch] != 0 );
 }
 
 // -----------------------------------------------------
@@ -277,6 +293,15 @@ inline bool PdfTokenizer::IsPrintable(const unsigned char ch)
 {
     return ((ch > 32U) && (ch < 125U));
 }
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline int PdfTokenizer::GetHexValue(const unsigned char ch)
+{
+    return PdfTokenizer::s_hexMap[static_cast<size_t>(ch)];
+}
+
 
 };
 

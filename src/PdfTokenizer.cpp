@@ -30,6 +30,7 @@
 #include "PdfVariant.h"
 #include "PdfDefinesPrivate.h"
 
+#include <limits>
 #include <sstream>
 
 #include <stdlib.h>
@@ -46,23 +47,24 @@ namespace PoDoFo {
 
 namespace PdfTokenizerNameSpace{
 
-static char g_DelMap[256] = { 0 };
-static char g_WsMap[256] = { 0 };
-static char g_EscMap[256] = { 0 };
+static const int g_MapAllocLen = 256;
+static char g_DelMap[g_MapAllocLen] = { 0 };
+static char g_WsMap[g_MapAllocLen] = { 0 };
+static char g_EscMap[g_MapAllocLen] = { 0 };
+static char g_hexMap[g_MapAllocLen] = { 0 };
 
 // Generate the delimiter character map at runtime
 // so that it can be derived from the more easily
 // maintainable structures in PdfDefines.h
 const char * genDelMap()
 {
-    int        i;
-    const long lAllocLen = 256;
-    // Petr Petrov: do not use memory on heap - we have a memory leak (22 December 2009)
-    //char* map = static_cast<char*>(malloc(lAllocLen));
     char* map = static_cast<char*>(g_DelMap);
-    memset( map, 0, sizeof(char) * lAllocLen );
-    for (i = 0; i < PoDoFo::s_nNumDelimiters; ++i)
+    memset( map, 0, sizeof(char) * g_MapAllocLen );
+    for (int i = 0; i < PoDoFo::s_nNumDelimiters; ++i)
+    {
         map[static_cast<int>(PoDoFo::s_cDelimiters[i])] = 1;
+    }
+
     return map;
 }
 
@@ -71,25 +73,20 @@ const char * genDelMap()
 // maintainable structures in PdfDefines.h
 const char * genWsMap()
 {
-    int   i;
-    const long lAllocLen = 256;
-    // Petr Petrov: do not use memory on heap - we have a memory leak (22 December 2009)
-    //char* map = static_cast<char*>(malloc(lAllocLen));
     char* map = static_cast<char*>(g_WsMap);
-    memset( map, 0, sizeof(char) * lAllocLen );
-    for (i = 0; i < PoDoFo::s_nNumWhiteSpaces; ++i)
+    memset( map, 0, sizeof(char) * g_MapAllocLen );
+    for (int i = 0; i < PoDoFo::s_nNumWhiteSpaces; ++i)
+    {
         map[static_cast<int>(PoDoFo::s_cWhiteSpaces[i])] = 1;
+    }
     return map;
 }
 
 // Generate the escape character map at runtime
 const char* genEscMap()
 {
-    const long lAllocLen = 256;
-    // Petr Petrov: do not use memory on heap - we have a memory leak (22 December 2009)
-    //char* map = static_cast<char*>(malloc(lAllocLen));
     char* map = static_cast<char*>(g_EscMap);
-    memset( map, 0, sizeof(char) * lAllocLen );
+    memset( map, 0, sizeof(char) * g_MapAllocLen );
 
     map['n'] = '\n'; // Line feed (LF)
     map['r'] = '\r'; // Carriage return (CR)
@@ -103,13 +100,48 @@ const char* genEscMap()
     return map;
 }
 
+// Generate the hex character map at runtime
+const char* genHexMap()
+{
+    const unsigned int HEX_NOT_FOUND = std::numeric_limits<unsigned int>::max();
+    char* map = static_cast<char*>(g_hexMap);
+    memset( map, HEX_NOT_FOUND, sizeof(char) * g_MapAllocLen );
+    
+    map['0'] = 0x0;
+    map['1'] = 0x1;
+    map['2'] = 0x2;
+    map['3'] = 0x3;
+    map['4'] = 0x4;
+    map['5'] = 0x5;
+    map['6'] = 0x6;
+    map['7'] = 0x7;
+    map['8'] = 0x8;
+    map['9'] = 0x9;
+    map['a'] = 0xA;
+    map['b'] = 0xB;
+    map['c'] = 0xC;
+    map['d'] = 0xD;
+    map['e'] = 0xE;
+    map['f'] = 0xF;
+    map['A'] = 0xA;
+    map['B'] = 0xB;
+    map['C'] = 0xC;
+    map['D'] = 0xD;
+    map['E'] = 0xE;
+    map['F'] = 0xF;
+    
+    return map;
+}
+
 };
 
-const char * const PdfTokenizer::m_delimiterMap  = PdfTokenizerNameSpace::genDelMap();
-const char * const PdfTokenizer::m_whitespaceMap = PdfTokenizerNameSpace::genWsMap();
-const char * const PdfTokenizer::m_escMap        = PdfTokenizerNameSpace::genEscMap();
+const unsigned int PdfTokenizer::HEX_NOT_FOUND   = std::numeric_limits<unsigned int>::max();
+const char * const PdfTokenizer::s_delimiterMap  = PdfTokenizerNameSpace::genDelMap();
+const char * const PdfTokenizer::s_whitespaceMap = PdfTokenizerNameSpace::genWsMap();
+const char * const PdfTokenizer::s_escMap        = PdfTokenizerNameSpace::genEscMap();
+const char * const PdfTokenizer::s_hexMap        = PdfTokenizerNameSpace::genHexMap();
 
-const char PdfTokenizer::m_octMap[]        = {
+const char PdfTokenizer::s_octMap[]        = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -621,7 +653,7 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
         else
         {
             // Handle escape sequences
-            if( bOctEscape || m_octMap[c & 0xff] )
+            if( bOctEscape || s_octMap[c & 0xff] )
                 // The last character we have read was a '\\',
                 // so we check now for a digit to find stuff like \005
                 bOctEscape = true;
@@ -631,7 +663,7 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
                 // Handle octal escape sequences
                 ++nOctCount;
                 
-                if( !m_octMap[c & 0xff] )
+                if( !s_octMap[c & 0xff] )
                 {
                     // No octal character anymore,
                     // so the octal sequence must be ended
@@ -660,7 +692,7 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
             else
             {
                 // Handle plain escape sequences
-                const char & code = m_escMap[m_device.Device()->GetChar() & 0xff];
+                const char & code = s_escMap[m_device.Device()->GetChar() & 0xff];
                 if( code )
                     m_vecBuffer.push_back( code );
                 

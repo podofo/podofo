@@ -4,8 +4,8 @@ IF(PODOFO_HAVE_CPPUNIT)
   ADD_DEFINITIONS("-g")
   
   # repeat for each test
-  ADD_EXECUTABLE( podofo-test main.cpp ElementTest.cpp EncodingTest.cpp EncryptTest.cpp 
-		  FilterTest.cpp FontTest.cpp NameTest.cpp PagesTreeTest.cpp PageTest 
+  ADD_EXECUTABLE( podofo-test main.cpp ColorTest.cpp ElementTest.cpp EncodingTest.cpp EncryptTest.cpp 
+		  FilterTest.cpp FontTest.cpp NameTest.cpp PagesTreeTest.cpp PageTest.cpp
                   TokenizerTest.cpp StringTest.cpp VariantTest.cpp BasicTypeTest.cpp TestUtils.cpp )
   ADD_DEPENDENCIES( podofo-test ${PODOFO_DEPEND_TARGET})
   TARGET_LINK_LIBRARIES( podofo-test ${PODOFO_LIB} ${PODOFO_LIB_DEPENDS} ${CPPUNIT_LIBRARIES} )

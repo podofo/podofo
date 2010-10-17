@@ -31,55 +31,7 @@
 
 #include <limits>
 
-namespace PdfColorNamespace
-{
-    const size_t SIZE_OF_STR_HEX_DIGIT_MAP = 256;
-    const unsigned int NOT_FOUND = std::numeric_limits<unsigned int>::max();
-
-    //TODO This map should be accessible for other classes that perform this conversion
-    unsigned int g_StrHexDigitMap[SIZE_OF_STR_HEX_DIGIT_MAP] = { 0 };
-
-    // Generate the escape character map at runtime
-    static const unsigned int* genStrHexDigitMap()
-    {
-        unsigned int* map = g_StrHexDigitMap;
-        for( size_t i=0; i<SIZE_OF_STR_HEX_DIGIT_MAP; ++i)
-        {
-            map[i] = NOT_FOUND;
-        }
-
-        map['0'] = 0x0;
-        map['1'] = 0x1;
-        map['2'] = 0x2;
-        map['3'] = 0x3;
-        map['4'] = 0x4;
-        map['5'] = 0x5;
-        map['6'] = 0x6;
-        map['7'] = 0x7;
-        map['8'] = 0x8;
-        map['9'] = 0x9;
-        map['a'] = 0xA;
-        map['b'] = 0xB;
-        map['c'] = 0xC;
-        map['d'] = 0xD;
-        map['e'] = 0xE;
-        map['f'] = 0xF;
-        map['A'] = 0xA;
-        map['B'] = 0xB;
-        map['C'] = 0xC;
-        map['D'] = 0xD;
-        map['E'] = 0xE;
-        map['F'] = 0xF;
-
-        return map;
-    }
-
-}; //namespace
-
 namespace PoDoFo {
-
-const unsigned int * const PdfColor::m_hexDigitMap = PdfColorNamespace::genStrHexDigitMap();
-
 
 /** A PdfNamedColor holds
  *  a PdfColor object and a name.
@@ -743,20 +695,6 @@ PdfArray PdfColor::ToArray() const
     return array;
 }
 
-//TODO This function has been replaced with m_hexDigitMap[] use
-// GetHex function does not check the input range, so 's' would be mapped to something
-//static unsigned short GetHex(char inHex)
-//{
-//    //TODO What if inHex is not a hex char?????????????????????????????
-//    if ( islower( static_cast<int>(inHex) ) )
-//        inHex -= 32;
-//    
-//    if (inHex <= '9')
-//        return static_cast<unsigned short>(inHex - '0');
-//
-//    return static_cast<unsigned short>(inHex - 'A' + 10);
-//}
-
 PdfColor PdfColor::FromString( const char* pszName )
 {
     if( pszName ) 
@@ -786,19 +724,21 @@ PdfColor PdfColor::FromString( const char* pszName )
             ++pszName;
             if( lLen == 7 ) // RGB
             {
-                unsigned int r = (m_hexDigitMap[ static_cast<size_t>(*pszName) ] << 4) | 
-                                  m_hexDigitMap[ static_cast<size_t>(*(pszName+1)) ];
+                unsigned int r = (PdfTokenizer::GetHexValue( *pszName ) << 4) | 
+                    PdfTokenizer::GetHexValue( *(pszName+1) );
                 pszName += 2;
-                unsigned int g = (m_hexDigitMap[ static_cast<size_t>(*(pszName)) ] << 4) | 
-                                  m_hexDigitMap[ static_cast<size_t>(*(pszName+1)) ];
+                
+                unsigned int g = (PdfTokenizer::GetHexValue( *pszName ) << 4) | 
+                    PdfTokenizer::GetHexValue( *(pszName+1) );
                 pszName += 2;
-                unsigned int b = (m_hexDigitMap[ static_cast<size_t>(*(pszName)) ] << 4) | 
-                                  m_hexDigitMap[ static_cast<size_t>(*(pszName+1)) ];
+
+                unsigned int b = (PdfTokenizer::GetHexValue( *pszName ) << 4) | 
+                    PdfTokenizer::GetHexValue( *(pszName+1) );
 
                 if ( 
-                    (r != PdfColorNamespace::NOT_FOUND) && 
-                    (g != PdfColorNamespace::NOT_FOUND) && 
-                    (b != PdfColorNamespace::NOT_FOUND)
+                    (r != PdfTokenizer::HEX_NOT_FOUND) && 
+                    (g != PdfTokenizer::HEX_NOT_FOUND) && 
+                    (b != PdfTokenizer::HEX_NOT_FOUND)
                     )
                 {
                     return PdfColor( static_cast<double>(r)/255.0, 
@@ -812,23 +752,23 @@ PdfColor PdfColor::FromString( const char* pszName )
             }
             else if( lLen == 9 ) // CMYK
             {
-                unsigned int c = (m_hexDigitMap[ static_cast<size_t>( *pszName ) ] << 4) | 
-                                  m_hexDigitMap[ static_cast<size_t>( *(pszName+1) )];
+                unsigned int c = (PdfTokenizer::GetHexValue( *pszName ) << 4) | 
+                    PdfTokenizer::GetHexValue( *(pszName+1 ) );
                 pszName += 2;
-                unsigned int m = (m_hexDigitMap[ static_cast<size_t>( *pszName ) ] << 4) | 
-                                  m_hexDigitMap[ static_cast<size_t>( *(pszName+1) )];
+                unsigned int m = (PdfTokenizer::GetHexValue( *pszName ) << 4) | 
+                    PdfTokenizer::GetHexValue( *(pszName+1 ) );
                 pszName += 2;
-                unsigned int y = (m_hexDigitMap[ static_cast<size_t>( *pszName ) ] << 4) | 
-                                  m_hexDigitMap[ static_cast<size_t>( *(pszName+1) )];
+                unsigned int y = (PdfTokenizer::GetHexValue( *pszName ) << 4) | 
+                    PdfTokenizer::GetHexValue( *(pszName+1) );
                 pszName += 2;
-                unsigned int k = (m_hexDigitMap[ static_cast<size_t>( *pszName ) ] << 4) |
-                                  m_hexDigitMap[ static_cast<size_t>( *(pszName+1) )];
+                unsigned int k = (PdfTokenizer::GetHexValue( *pszName ) << 4) |
+                    PdfTokenizer::GetHexValue( *(pszName+1) );
 
                 if ( 
-                    (c != PdfColorNamespace::NOT_FOUND) && 
-                    (m != PdfColorNamespace::NOT_FOUND) && 
-                    (y != PdfColorNamespace::NOT_FOUND) && 
-                    (k != PdfColorNamespace::NOT_FOUND)
+                    (c != PdfTokenizer::HEX_NOT_FOUND) && 
+                    (m != PdfTokenizer::HEX_NOT_FOUND) && 
+                    (y != PdfTokenizer::HEX_NOT_FOUND) && 
+                    (k != PdfTokenizer::HEX_NOT_FOUND)
                     )
                 {
                     return PdfColor( static_cast<double>(c)/255.0, 
