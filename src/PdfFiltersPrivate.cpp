@@ -210,11 +210,7 @@ void PdfHexFilter::DecodeBlockImpl( const char* pBuffer, pdf_long lLen )
             continue;
         }
 
-        val  = *pBuffer;
-        if( val >= 'a' && val <= 'f' )
-            val -= 32; // convert lower case to uppercase
-        val -= ( val < 'A' ? '0' : 'A'-10 );
-
+        val  = PdfTokenizer::GetHexValue( *pBuffer );
         if( m_bLow ) 
         {
             m_cDecodedByte = (val & 0x0F);

@@ -245,11 +245,7 @@ void PdfString::SetHexData( const char* pszHex, pdf_long lLen, PdfEncrypt* pEncr
             continue;
         }
 
-        val  = *pszHex;
-        if( val >= 'a' && val <= 'f' )
-            val -= 32; // convert lower case to uppercase
-        val -= ( val < 'A' ? '0' : 'A'-10 );
-
+        val = PdfTokenizer::GetHexValue( *pszHex );
         if( bLow ) 
         {
             cDecodedByte = (val & 0x0F);
