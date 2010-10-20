@@ -213,10 +213,10 @@ void PdfMemStream::Uncompress()
         podofo_free( pBuffer );
 
         m_pParent->GetDictionary().RemoveKey( "Filter" ); 
-        
-        // TODO: DS:
-        // If there is a decode params dictionary it might
-        // be necessary to remove it
+        if( m_pParent->GetDictionary().HasKey( "DecodeParms" ) ) 
+        {
+            m_pParent->GetDictionary().RemoveKey( "DecodeParms" ); 
+        }
     }
 }
 
