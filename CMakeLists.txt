@@ -452,8 +452,8 @@ INCLUDE_DIRECTORIES(
     ${EXTRA_INCLUDES}
      )
 LINK_DIRECTORIES(
-    ${PoDoFo_BINARY_DIR}/src
-    ${PoDoFo_BINARY_DIR}/src/util
+    ${PoDoFo_BINARY_DIR}/src/base
+    ${PoDoFo_BINARY_DIR}/src/doc
     )
 
 #
@@ -462,25 +462,34 @@ LINK_DIRECTORIES(
 # will include these and the correct podofo target, so clients
 # should specify only PODOFO_LIB .
 #
-SET(PODOFO_LIB_DEPENDS
+SET(PODOFO_BASE_LIB_DEPENDS
     ${ZLIB_LIBRARIES}
-    ${FREETYPE_LIBRARIES}
     ${LIBJPEG_LIBRARIES}
-    ${PNG_LIBRARIES}
-    ${TIFF_LIBRARIES}
     ${PLATFORM_SYSTEM_LIBRARIES}
     ${stlport_libraries_if_use_stlport}
     )
 
+SET(PODOFO_DOC_LIB_DEPENDS
+  ${PODOFO_BASE_LIB_DEPENDS}
+  ${FREETYPE_LIBRARIES}
+  ${PNG_LIBRARIES}
+  ${TIFF_LIBRARIES}
+  )
+
 IF(FONTCONFIG_FOUND AND WANT_FONTCONFIG)
-  SET(PODOFO_LIB_DEPENDS ${FONTCONFIG_LIBRARIES} ${PODOFO_LIB_DEPENDS})
+  SET(PODOFO_DOC_LIB_DEPENDS ${FONTCONFIG_LIBRARIES} ${PODOFO_DOC_LIB_DEPENDS})
   INCLUDE_DIRECTORIES(${FONTCONFIG_INCLUDE_DIR})
 ENDIF(FONTCONFIG_FOUND AND WANT_FONTCONFIG)
 
 
+SET(PODOFO_BASE_LIB
+    podofo-base
+    ${PODOFO_BASE_LIB_DEPENDS}
+    )
+
 SET(PODOFO_LIB
-    podofo
-    ${PODOFO_LIB_DEPENDS}
+    podofo-doc
+    ${PODOFO_DOC_LIB_DEPENDS}
     )
 
 # Create the config file. It'll be appended to as the subdirs run though

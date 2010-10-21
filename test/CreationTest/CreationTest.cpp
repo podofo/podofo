@@ -18,33 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "PdfAction.h"
-#include "PdfAnnotation.h"
-#include "PdfDestination.h"
-#include "PdfDictionary.h"
-#include "PdfDocument.h"
-#include "PdfMemDocument.h"
-#include "PdfStreamedDocument.h"
-#include "PdfExtGState.h"
-#include "PdfFileSpec.h"
-#include "PdfFont.h"
-#include "PdfFontMetrics.h"
-#include "PdfFontTTFSubset.h"
-#include "PdfImage.h"
-#include "PdfInfo.h"
-#include "PdfOutlines.h"
-#include "PdfNamesTree.h"
-#include "PdfPage.h"
-#include "PdfPainter.h"
-#include "PdfPainterMM.h"
-#include "PdfRect.h"
-#include "PdfString.h"
-#include "PdfTable.h"
-#include "PdfXObject.h"
-
 #include "../PdfTest.h"
-
-#include "PdfInputDevice.h"
 
 #include <stdlib.h>
 #include <cstdio>

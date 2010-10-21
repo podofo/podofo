@@ -18,8 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <PdfDefines.h>
 #include "Uncompress.h"
+
+#include <podofo.h>
 
 #include <stdlib.h>
 #include <cstdio>

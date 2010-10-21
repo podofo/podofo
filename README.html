@@ -28,6 +28,7 @@
 	</li>
 	<li><a href="#using_podofo_in_your_application">Using PoDoFo in Your Application</a></li>
 	<li><a href="#preprocessor">Preprocessor defines used in PoDoFo</a></li>
+	<li><a href="#structure">Structure of the library</a></li>
 	<li><a href="#contact">Contact</a></li>
 	<li><a href="#licensing">Licensing</a></li>
 </ol>
@@ -659,7 +660,28 @@ compatible.
   </tr>
 </table>
 
-<h2><a name="contact">Contact</h2>
+<h2><a name="structure" />Structure of the library</h2>
+
+<p>PoDoFo is structured into two libraries <b>podofo-base</b>
+  and <b>podofo-doc</b>, where most users want to use <b>podofo-doc</b> which
+  includes all the PoDoFo features and dependends on the <b>podofo-base</b>
+  library. 
+</p>
+
+<p>
+If you only need basic PDF editing features and are not afraid of working with
+the object in a PDF file directly (see PdfObject), <b>podofo-base</b> is the
+right choice for you. It has only a few dependencies (zlib and libjpeg for
+compression). Contrary, <b>podofo-doc</b> provides you with a much richer and
+easier to use interface, but has some more dependencies to handle fonts and
+images. The image below shows the dependencies of each of the two
+libraries.
+</p>
+<p align="center">
+<img src="doc/podofo_architecture.png" alt="Architecture" />
+</p>
+
+<h2><a name="contact" />Contact</a></h2>
 
 <p>If you have questions on PoDoFo or bug reports, feature requests you can email
 our mailinglist &lt;podofo-users@lists.sf.net&gt;. Sign up details are available

@@ -18,11 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "PdfParserObject.h"
-#include "PdfMemStream.h"
-#include "PdfOutputDevice.h"
-#include "PdfWriter.h"
-#include "PdfStream.h"
 #include "../PdfTest.h"
 
 #ifdef _WIN32

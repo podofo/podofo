@@ -306,3 +306,24 @@ simple editor settings.
     don't need to include the 3rd party's header to get access to their
     type sizes in the PoDoFo headers, only in the .cpp files. See, for example,
     PdfMutex.h .
+
+4. Structure
+============
+
+4.1 Project structure
+
+The PoDoFo project is structure as follows. 
+
+There are two libraries: podofo-base and podofo-doc. Podofo-base contains
+everythign needed to work with reading, writing and modifying PDF files and
+there objects. It should have a minimal set of dependencies. Podofo-doc
+provides a rich interface, which also allows to easily create PDF files using
+the PdfPainter and PdfFont infrastructure. 
+
+Additionally, there are two more projects. The test/ subdirectory contains
+tests for both libraries. All new tests shall go to the test/unit/
+sub-projects to provide unit-tests for PoDoFo. Utility programs that come with
+PoDoFo go into the tools/ subdirectory. These tools provide a direct benefit
+for end users who want to work with PDF files on the commandline and are also
+a nice way to showcase the features of the PoDoFo libraries to new
+developers. 

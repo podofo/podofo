@@ -20,10 +20,6 @@
 
 #include "../PdfTest.h"
 
-#include "PdfTokenizer.h"
-#include "PdfRefCountedInputDevice.h" 
-#include "PdfRefCountedBuffer.h"
-
 #include <stdio.h>
 
 #define BUFFER_SIZE 4096

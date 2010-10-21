@@ -20,9 +20,6 @@
 
 #include "pdfinfo.h"
 
-#include "PdfNamesTree.h"
-
-
 PdfInfo::PdfInfo( const std::string& inPathname )
 {
     mDoc = new PoDoFo::PdfMemDocument( inPathname.c_str() );

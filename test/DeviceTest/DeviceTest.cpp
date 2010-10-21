@@ -20,9 +20,6 @@
 
 #include "../PdfTest.h"
 
-#include "PdfRefCountedBuffer.h"
-#include "PdfOutputStream.h"
-
 #include <stdio.h>
 #include <string.h>
 #define BUFFER_SIZE 4096

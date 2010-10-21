@@ -18,14 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "PdfVariant.h"
 #include "../PdfTest.h"
-
-#include "PdfArray.h"
-#include "PdfFilter.h"
-#include "PdfName.h"
-#include "PdfTokenizer.h"
-
 #include <iostream>
 #include <stdlib.h>
 #include <string.h>

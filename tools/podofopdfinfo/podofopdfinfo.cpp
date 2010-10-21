@@ -19,7 +19,6 @@
  ***************************************************************************/
 
 #include <iostream>
-#include <PdfDefines.h>
 #include "pdfinfo.h"
 
 #include <stdlib.h>

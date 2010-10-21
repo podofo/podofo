@@ -22,6 +22,8 @@
 
 #include <cstdio>
 
+using namespace PoDoFo;
+
 UnCompress::UnCompress()
     : m_pDocument( NULL )
 {
@@ -41,7 +43,7 @@ void UnCompress::Init( const char* pszInput, const char* pszOutput )
 
     this->UncompressObjects();
 
-    PdfWriter writer( m_pDocument );
+    PdfWriter writer( &(m_pDocument->GetObjects()), new PdfObject( *(m_pDocument->GetTrailer() ) ) );
     writer.SetWriteMode( ePdfWriteMode_Clean );
     writer.Write( pszOutput );
 }

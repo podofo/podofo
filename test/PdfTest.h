@@ -1,6 +1,5 @@
 
-#include "PdfDefines.h"
-#include "PdfError.h"
+#include <podofo.h>
 
 /* Common defines needed in all tests */
 #define TEST_SAFE_OP( x ) try {  x; } catch( PdfError & e ) { \
