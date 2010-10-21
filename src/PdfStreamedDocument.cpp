@@ -37,7 +37,7 @@ PdfStreamedDocument::PdfStreamedDocument( const char* pszFilename, EPdfVersion e
 }
 
 #ifdef _WIN32
-PdfStreamedDocument::PdfStreamedDocument( const wchar_t* pszFilename, EPdfVersion eVersion, PdfEncrypt* pEncrypt, PdfWriter::EPdfWriteMode eWriteMode )
+PdfStreamedDocument::PdfStreamedDocument( const wchar_t* pszFilename, EPdfVersion eVersion, PdfEncrypt* pEncrypt, EPdfWriteMode eWriteMode )
     : m_pWriter( NULL ), m_pEncrypt( pEncrypt ), m_bOwnDevice( true )
 {
     m_pDevice = new PdfOutputDevice( pszFilename );
