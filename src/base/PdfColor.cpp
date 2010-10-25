@@ -69,7 +69,18 @@ public:
     inline bool operator<( const char* pszName ) const
     {
         return pszName ? PoDoFo::compat::strcasecmp( m_pszName, pszName ) < 0 : true; 
+	}
+
+    /** Compare this color object to a PdfNamedColor comparing only the name.
+     *  The comparison is case insensitive!
+     *  \returns true if the passed string is smaller than the name
+     *           of this color object.
+     */
+    inline bool operator<( const PdfNamedColor & rhs ) const
+    {
+        return rhs.GetName() ? PoDoFo::compat::strcasecmp( m_pszName, rhs.GetName() ) < 0 : true; 
     }
+
 
     /** Compare this color object to a name 
      *  The comparison is case insensitive!
@@ -120,12 +131,8 @@ public:
     {
     }
 
-    inline bool operator()( const PdfNamedColor & rNamedColor, const char* const & pszName ) const { 
-        return pszName ? PoDoFo::compat::strcasecmp( rNamedColor.GetName(), pszName ) < 0 : false; 
-    }
-
-    inline bool operator()( const char* const & pszName, const PdfNamedColor & rNamedColor ) const { 
-        return pszName ? PoDoFo::compat::strcasecmp( pszName, rNamedColor.GetName() ) < 0 : false; 
+    inline bool operator()( const PdfNamedColor & rNamedColor1, const PdfNamedColor & rNamedColor2 ) const { 
+        return rNamedColor1 < rNamedColor2;
     }
 };
 
@@ -815,7 +822,7 @@ PdfColor PdfColor::FromString( const char* pszName )
             std::pair<const PdfNamedColor*, const PdfNamedColor*> iterators = 
                 std::equal_range( &(s_NamedColors[0]), 
                                   s_NamedColors + s_nNumNamedColors, 
-                                  pszName, NamedColorComparatorPredicate() );
+                                  PdfNamedColor( pszName, PdfColor() ), NamedColorComparatorPredicate() );
             
             if( iterators.first != iterators.second )
             {
@@ -873,7 +880,7 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
             csTintFunc->GetDictionary().AddKey( "Encode", encode );
 
             csTintFunc->GetDictionary().AddKey( "Filter", PdfName( "FlateDecode" ) );
-            csTintFunc->GetDictionary().AddKey( "FunctionType", PdfVariant( static_cast<pdf_long>(0L) ) );
+            csTintFunc->GetDictionary().AddKey( "FunctionType", PdfVariant( static_cast<pdf_int64>(0L) ) );
             //csTintFunc->GetDictionary().AddKey( "FunctionType", 
             //                                    PdfVariant( static_cast<pdf_int64>(ePdfFunctionType_Sampled) ) );
 
