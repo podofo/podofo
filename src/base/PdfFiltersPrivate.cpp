@@ -796,9 +796,6 @@ void PdfLZWFilter::InitTable()
 // -------------------------------------------------------
 #ifdef PODOFO_HAVE_JPEG_LIB
 
-
-void jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize);
-
 /*
  * The actual filter implementation
  */

@@ -46,7 +46,7 @@ typedef TMapAnnotation::const_iterator        TCIMapAnnotation;
  *  It is possible to draw on a page using a PdfPainter object.
  *  Every document needs at least one page.
  */
-class PODOFO_API PdfPage : public PdfElement, public PdfCanvas {
+class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
  public:
     /** Create a new PdfPage object.
      *  \param rSize a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units

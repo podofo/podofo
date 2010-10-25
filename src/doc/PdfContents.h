@@ -32,7 +32,7 @@ class PdfPage;
 /** A interface that provides a wrapper around "PDF content" -
 	the instructions that are used to draw on the PDF "canvas".
  */
-class PODOFO_API PdfContents : private PdfElement {
+class PODOFO_DOC_API PdfContents : private PdfElement {
  public:
 
     /** Construct a new/empty set of contents in the owning objects

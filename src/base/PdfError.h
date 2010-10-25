@@ -424,7 +424,7 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError : public std::exception {
     TDequeErrorInfo    m_callStack;
 
     static bool        s_DgbEnabled;
-    static bool		s_LogEnabled;
+    static bool        s_LogEnabled;
 
     // OC 17.08.2010 New to optionally replace stderr output by a callback:
     static LogMessageCallback* m_fLogMessageCallback;

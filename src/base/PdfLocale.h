@@ -29,7 +29,7 @@ static const char PdfIOLocale[] = "C";
  * problems like German and other European users getting numbers in the format
  * "10110,4" or even "10.110,4" instead of "10110.4" .
  */
-void PdfLocaleImbue(std::ios_base&);
+void PODOFO_API PdfLocaleImbue(std::ios_base&);
 
 };
 

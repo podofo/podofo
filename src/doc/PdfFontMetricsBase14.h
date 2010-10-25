@@ -55,7 +55,7 @@ class PdfArray;
    Kaushik : April 12th 2010
    
  */
-class PODOFO_API PdfFontMetricsBase14 : public PdfFontMetrics {
+class PODOFO_DOC_API PdfFontMetricsBase14 : public PdfFontMetrics {
 public:
 	PdfFontMetricsBase14(const char      *mfont_name,
                          const PODOFO_CharData  *mwidths_table,

@@ -35,7 +35,7 @@ class PdfVariant;
  * This abstract class provides access
  * to fontmetrics informations.
  */
-class PODOFO_API PdfFontMetrics {
+class PODOFO_DOC_API PdfFontMetrics {
  public:
     PdfFontMetrics( EPdfFontType eFontType, const char* pszFilename, const char* pszSubsetPrefix );
 

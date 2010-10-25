@@ -48,7 +48,7 @@ class PdfPage;
  * \see PdfTable
  * \see PdfSimpleTableModel
  */
-class PODOFO_API PdfTableModel {
+class PODOFO_DOC_API PdfTableModel {
  public:
     virtual ~PdfTableModel() {};
 
@@ -160,7 +160,7 @@ class PODOFO_API PdfTableModel {
  * An implementation of a simple PdfTableModel.
  *
  */
-class PODOFO_API PdfSimpleTableModel : public PdfTableModel {
+class PODOFO_DOC_API PdfSimpleTableModel : public PdfTableModel {
  public:
     /** Creates an empty PdfSimpleTableModel 
      *  that does not contain any data.
@@ -572,7 +572,7 @@ PdfImage* PdfSimpleTableModel::GetImage( int, int ) const
  * Use this class if you have to include data into your PDF as an table.
  * 
  */
-class PODOFO_API PdfTable {
+class PODOFO_DOC_API PdfTable {
  public:
     /** Callback to create a new page for PdfTable.
      *

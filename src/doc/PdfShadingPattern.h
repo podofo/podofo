@@ -46,7 +46,7 @@ enum EPdfShadingPatternType {
  * This class defined a shading pattern which can be used
  * to fill abitrary shapes with a pattern using PdfPainter.
  */
-class PODOFO_API PdfShadingPattern : public PdfElement {
+class PODOFO_DOC_API PdfShadingPattern : public PdfElement {
  public:
     virtual ~PdfShadingPattern();
 
@@ -98,7 +98,7 @@ const PdfName & PdfShadingPattern::GetIdentifier() const
 /** A shading pattern that is a simple axial
  *  shading between two colors.
  */
-class PODOFO_API PdfAxialShadingPattern : public PdfShadingPattern {
+class PODOFO_DOC_API PdfAxialShadingPattern : public PdfShadingPattern {
 public:
     /** Create an axial shading pattern
      *
@@ -141,7 +141,7 @@ private:
 /** A shading pattern that is an 2D
  *  shading between four colors.
  */
-class PODOFO_API PdfFunctionBaseShadingPattern : public PdfShadingPattern {
+class PODOFO_DOC_API PdfFunctionBaseShadingPattern : public PdfShadingPattern {
 public:
     /** Create an 2D shading pattern
      *
@@ -184,7 +184,7 @@ private:
 /** A shading pattern that is a simple radial
  *  shading between two colors.
  */
-class PODOFO_API PdfRadialShadingPattern : public PdfShadingPattern {
+class PODOFO_DOC_API PdfRadialShadingPattern : public PdfShadingPattern {
 public:
     /** Create an radial shading pattern
      *

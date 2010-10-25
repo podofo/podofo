@@ -124,7 +124,7 @@ struct TFontCacheElement {
  *
  * \see PdfDocument
  */
-class PODOFO_API PdfFontCache {
+class PODOFO_DOC_API PdfFontCache {
     typedef std::vector<TFontCacheElement>  TSortedFontList;
     typedef TSortedFontList::iterator       TISortedFontList;
     typedef TSortedFontList::const_iterator TCISortedFontList;

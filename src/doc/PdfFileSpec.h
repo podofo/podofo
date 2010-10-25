@@ -36,7 +36,7 @@ class PdfDocument;
  *  The other file can be a file outside of the PDF or can be embedded into
  *  the PDF file itself.
  */
-class PODOFO_API PdfFileSpec : public PdfElement {
+class PODOFO_DOC_API PdfFileSpec : public PdfElement {
  public:
     PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfDocument* pParent );
 

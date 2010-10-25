@@ -55,6 +55,7 @@ ENDIF(WIN32)
 
 SET(PODOFO_BASE_HEADERS
     ${PoDoFo_BINARY_DIR}/podofo_config.h
+   podofoapi.h
    Pdf3rdPtyForwardDecl.h
    PdfArray.h
    PdfCanvas.h

@@ -66,7 +66,7 @@ enum EPdfDestinationType {
  *
  *  \see PdfOutlineItem \see PdfAnnotation \see PdfDocument
  */
-class PODOFO_API PdfDestination {
+class PODOFO_DOC_API PdfDestination {
  public:
 
     /** Create an empty destination - points to nowhere

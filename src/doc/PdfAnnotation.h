@@ -99,7 +99,7 @@ enum EPdfAnnotationFlags {
  * 
  *  \see PdfPage::CreateAnnotation
  */
-class PODOFO_API PdfAnnotation : public PdfElement {
+class PODOFO_DOC_API PdfAnnotation : public PdfElement {
  public:
     /** Create a new annotation object
      *

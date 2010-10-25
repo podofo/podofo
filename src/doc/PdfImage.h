@@ -43,7 +43,7 @@ class PdfVecObjects;
  *
  *  \see SetImageData
  */
-class PODOFO_API PdfImage : public PdfXObject {
+class PODOFO_DOC_API PdfImage : public PdfXObject {
  public:
     /** Constuct a new PdfImage object
      *

@@ -62,7 +62,7 @@ class PdfOutputDevice;
  *
  *  document.Close();
  */
-class PODOFO_API PdfStreamedDocument : public PdfDocument {
+class PODOFO_DOC_API PdfStreamedDocument : public PdfDocument {
     friend class PdfImage;
     friend class PdfElement;
 

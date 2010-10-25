@@ -43,7 +43,7 @@ class PdfMemDocument;
  * 
  *  \see PdfPainter
  */
-class PODOFO_API PdfXObject : public PdfElement, public PdfCanvas {
+class PODOFO_DOC_API PdfXObject : public PdfElement, public PdfCanvas {
  public:
     /** Create a new XObject with a specified dimension
      *  in a given document

@@ -40,7 +40,7 @@ enum EPdfFunctionType {
 /** 
  * This class defines a PdfFunction.
  */
-class PODOFO_API PdfFunction : public PdfElement {
+class PODOFO_DOC_API PdfFunction : public PdfElement {
 public:
 
     typedef std::list<PdfFunction> List;
@@ -85,7 +85,7 @@ private:
 
 /** This class is a PdfSampledFunction.
  */
-class PODOFO_API PdfSampledFunction : public PdfFunction {
+class PODOFO_DOC_API PdfSampledFunction : public PdfFunction {
 public:
     /** Create a new PdfSampledFunction object.
      *
@@ -122,7 +122,7 @@ private:
 
 /** This class is a PdfExponentialFunction.
  */
-class PODOFO_API PdfExponentialFunction : public PdfFunction {
+class PODOFO_DOC_API PdfExponentialFunction : public PdfFunction {
 public:
     /** Create a new PdfExponentialFunction object.
      *
@@ -161,7 +161,7 @@ private:
  *  It combines several PdfFunctions that take 1 input parameter to
  *  a new PdfFunction taking again only 1 input parameter.
  */
-class PODOFO_API PdfStitchingFunction : public PdfFunction {
+class PODOFO_DOC_API PdfStitchingFunction : public PdfFunction {
 public:
     /** Create a new PdfStitchingFunction object.
      *

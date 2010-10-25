@@ -33,7 +33,7 @@ class PdfString;
  *  info dictionary, which provides information
  *  about the PDF document.
  */
-class PODOFO_API PdfInfo : public PdfElement {
+class PODOFO_DOC_API PdfInfo : public PdfElement {
  public:
     /**
      * Enum to specifiy the initial information of the 

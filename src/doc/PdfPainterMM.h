@@ -58,7 +58,7 @@ class PdfXObject;
  *
  * \see PdfPainter 
  */
-class PODOFO_API PdfPainterMM : public PdfPainter {
+class PODOFO_DOC_API PdfPainterMM : public PdfPainter {
  public:
     /** Create a new PdfPainterMM object.
      */

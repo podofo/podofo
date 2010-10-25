@@ -32,7 +32,7 @@ class PdfPage;
  *
  *  \see PdfCachedPagesTree
  */
-class PODOFO_API PdfPagesTreeCache
+class PODOFO_DOC_API PdfPagesTreeCache
 {
 	typedef std::deque< PdfPage* > PdfPageList;
 

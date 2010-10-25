@@ -44,7 +44,7 @@ class PdfVecObjects;
  *
  *  \see PdfPage \see PdfAction \see PdfAnnotation
  */
-class PODOFO_API PdfElement {
+class PODOFO_DOC_API PdfElement {
 
  public:
 

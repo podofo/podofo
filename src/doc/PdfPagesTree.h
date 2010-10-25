@@ -46,7 +46,7 @@ enum EPdfPageInsertionPoint {
  *  
  *  \see PdfDocument
  */
-class PODOFO_API PdfPagesTree : public PdfElement
+class PODOFO_DOC_API PdfPagesTree : public PdfElement
 {
 	typedef std::deque< PdfObject* >  PdfObjectList;
 

@@ -64,14 +64,25 @@
 
 // Peter Petrov 26 April 2008
 /* Automatically defined by CMake when building a shared library */
-#if defined (podofo_EXPORTS)
+#if defined (podofo_base_EXPORTS) || defined (podofo_doc_EXPORTS)
     #define COMPILING_SHARED_PODOFO
     #undef USING_SHARED_PODOFO
+    #if defined(podofo_base_EXPORTS) 
+        #define COMPILING_SHARED_PODOFO_BASE
+    #elif defined (podofo_doc_EXPORTS)
+        #define COMPILING_SHARED_PODOFO_DOC
+    #endif
 #endif
 
 /* Automatically defined by CMake when building a shared library */
-#if defined(podofo_shared_EXPORTS)
+#if defined(podofo_base_shared_EXPORTS) || defined (podofo_doc_shared_EXPORTS)
     #define COMPILING_SHARED_PODOFO
+    #undef USING_SHARED_PODOFO
+    #if defined(podofo_base_shared_EXPORTS) 
+        #define COMPILING_SHARED_PODOFO_BASE
+    #elif defined (podofo_doc_shared_EXPORTS)
+        #define COMPILING_SHARED_PODOFO_DOC
+    #endif
 #endif
 
 /* Sanity check - can't be both compiling and using shared podofo */
@@ -87,12 +98,18 @@
  * preprocessor symbol.
  */
 #if defined(_WIN32)
-    #if defined(COMPILING_SHARED_PODOFO)
+    #if defined(COMPILING_SHARED_PODOFO_BASE)
         #define PODOFO_API __declspec(dllexport)
-    #elif defined(USING_SHARED_PODOFO)
+        #define PODOFO_DOC_API ERROR
+    #elif defined(COMPILING_SHARED_PODOFO_DOC)
         #define PODOFO_API __declspec(dllimport)
+        #define PODOFO_DOC_API __declspec(dllexport)
+    #elif defined(USING_SHARED_PODOFO)
+		#define PODOFO_API __declspec(dllimport)
+        #define PODOFO_DOC_API __declspec(dllimport)
     #else
         #define PODOFO_API
+        #define PODOFO_DOC_API
     #endif
     /* PODOFO_LOCAL doesn't mean anything on win32, it's to exclude
      * symbols from the export table with gcc4. */
@@ -102,6 +119,7 @@
         /* Forces inclusion of a symbol in the symbol table, so
            software outside the current library can use it. */
         #define PODOFO_API __attribute__ ((visibility("default")))
+        #define PODOFO_DOC_API __attribute__ ((visibility("default")))
         /* Within a section exported with PODOFO_API, forces a symbol to be
            private to the library / app. Good for private members. */
         #define PODOFO_LOCAL __attribute__ ((visibility("hidden")))
@@ -111,6 +129,7 @@
         #define PODOFO_INTERNAL __attribute__ ((visibility("internal")))
     #else
         #define PODOFO_API
+        #define PODOFO_DOC_API
         #define PODOFO_LOCAL
         #define PODOFO_INTERNAL
     #endif

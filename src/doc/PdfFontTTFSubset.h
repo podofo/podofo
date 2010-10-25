@@ -43,7 +43,7 @@ class PdfOutputDevice;
  * certain glyphs from an existing font.
  *
  */
-class PODOFO_API PdfFontTTFSubset {
+class PODOFO_DOC_API PdfFontTTFSubset {
  public:
     enum EFontFileType {
 	eFontFileType_TTF,    ///< TrueType Font

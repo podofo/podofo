@@ -28,7 +28,7 @@ namespace PoDoFo {
 
 class PdfDocument;
 
-class PODOFO_API PdfAcroForm : public PdfElement {
+class PODOFO_DOC_API PdfAcroForm : public PdfElement {
  public:
     enum EPdfAcroFormDefaulAppearance {
         ePdfAcroFormDefaultAppearance_None, ///< Do not add a default appearrance

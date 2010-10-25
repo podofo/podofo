@@ -55,7 +55,7 @@ enum EPdfOutlineFormat {
  * \see PdfOutlines
  * \see PdfDestination
  */
-class PODOFO_API PdfOutlineItem : public PdfElement {
+class PODOFO_DOC_API PdfOutlineItem : public PdfElement {
  public:
     virtual ~PdfOutlineItem();
 
@@ -296,7 +296,7 @@ inline PdfOutlineItem* PdfOutlineItem::Next() const
  *
  *  \see PdfDocument
  */
-class PODOFO_API PdfOutlines : public PdfOutlineItem {
+class PODOFO_DOC_API PdfOutlines : public PdfOutlineItem {
  public:
    
     /** Create a new PDF outlines dictionary

@@ -33,7 +33,7 @@ namespace PoDoFo {
 /** A helper class for PdfDifferenceEncoding that
  *  can be used to create a differences array.
  */
-class PODOFO_API PdfEncodingDifference {
+class PODOFO_DOC_API PdfEncodingDifference {
     struct TDifference {
         int         nCode;
         PdfName     name;
@@ -123,7 +123,7 @@ inline size_t PdfEncodingDifference::GetCount() const
  *  on either the fonts encoding or a predefined encoding
  *  and defines differences to this base encoding.
  */
-class PODOFO_API PdfDifferenceEncoding : public PdfEncoding, private PdfElement {
+class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElement {
  public:
 
     enum EBaseEncoding {

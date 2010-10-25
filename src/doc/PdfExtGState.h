@@ -18,7 +18,7 @@ namespace PoDoFo {
  *  The main usage is for transparency, but it also support a variety
  *  of prepress features.
  */
-class PODOFO_API PdfExtGState : public PdfElement {
+class PODOFO_DOC_API PdfExtGState : public PdfElement {
  public:
     /** Create a new PdfExtGState object which will introduce itself
      *  automatically to every page object it is used on.

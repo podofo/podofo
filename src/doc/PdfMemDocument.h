@@ -61,7 +61,7 @@ class PdfWriter;
  *  \see PdfParser
  *  \see PdfWriter
  */
-class PODOFO_API PdfMemDocument : public PdfDocument {
+class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
     friend class PdfWriter;
 
  public:

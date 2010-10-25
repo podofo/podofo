@@ -59,7 +59,7 @@ class PdfXObject;
  *  \see PdfStreamedDocument
  *  \see PdfMemDocument
  */
-class PODOFO_API PdfDocument {
+class PODOFO_DOC_API PdfDocument {
     friend class PdfElement;
 
  public:

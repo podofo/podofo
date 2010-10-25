@@ -31,7 +31,7 @@ class PdfObject;
 /** This factory creates a PdfEncoding
  *  from an existing object in the PDF.
  */
-class PODOFO_API PdfEncodingObjectFactory {
+class PODOFO_DOC_API PdfEncodingObjectFactory {
  public:
     /** Create a new PdfEncoding from either an
      *  encoding name or an encoding dictionary.

@@ -70,7 +70,7 @@ enum EPdfHighlightingMode {
     ePdfHighlightingMode_Unknown = 0xff
 };
 
-class PODOFO_API PdfField {
+class PODOFO_DOC_API PdfField {
     enum { ePdfField_ReadOnly       = 0x0001,
            ePdfField_Required       = 0x0002,
            ePdfField_NoExport       = 0x0004
@@ -555,7 +555,7 @@ inline PdfObject* PdfField::GetFieldObject() const
     return m_pObject;
 }
 
-class PODOFO_API PdfButton : public PdfField {
+class PODOFO_DOC_API PdfButton : public PdfField {
  protected:
     enum { ePdfButton_NoToggleOff      = 0x0004000,
            ePdfButton_Radio            = 0x0008000,
@@ -645,7 +645,7 @@ inline bool PdfButton::IsRadioButton() const
 /** A push button is a button which has no state and value
  *  but can toggle actions.
  */
-class PODOFO_API PdfPushButton : public PdfButton {
+class PODOFO_DOC_API PdfPushButton : public PdfButton {
  public:
     /** Create a new PdfPushButton
      */
@@ -701,7 +701,7 @@ class PODOFO_API PdfPushButton : public PdfButton {
 
 /** A checkbox can be checked or unchecked by the user
  */
-class PODOFO_API PdfCheckBox : public PdfButton {
+class PODOFO_DOC_API PdfCheckBox : public PdfButton {
  public:
     /** Create a new PdfCheckBox
      */
@@ -771,7 +771,7 @@ class PODOFO_API PdfCheckBox : public PdfButton {
  *  as well as richtext. The text can be interpreted
  *  as path to a file which is going to be submitted.
  */
-class PODOFO_API PdfTextField : public PdfField {
+class PODOFO_DOC_API PdfTextField : public PdfField {
  private:
     enum { ePdfTextField_MultiLine     = 0x0001000,
            ePdfTextField_Password      = 0x0002000,
@@ -1057,7 +1057,7 @@ inline bool PdfTextField::IsRichText() const
  *  \see PdfComboBox 
  *  \see PdfListBox
  */
-class PODOFO_API PdfListField : public PdfField {
+class PODOFO_DOC_API PdfListField : public PdfField {
  protected:
     enum { ePdfListField_Combo         = 0x0020000,
            ePdfListField_Edit          = 0x0040000,
@@ -1280,7 +1280,7 @@ inline bool PdfListField::IsCommitOnSelectionChange() const
 
 /** A combo box with a drop down list of items.
  */
-class PODOFO_API PdfComboBox : public PdfListField {
+class PODOFO_DOC_API PdfComboBox : public PdfListField {
  public:
     /** Create a new PdfTextField
      */
@@ -1340,7 +1340,7 @@ inline bool PdfComboBox::IsEditable() const
 
 /** A list box
  */
-class PODOFO_API PdfListBox : public PdfListField {
+class PODOFO_DOC_API PdfListBox : public PdfListField {
  public:
     /** Create a new PdfTextField
      */

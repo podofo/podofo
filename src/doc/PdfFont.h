@@ -45,7 +45,7 @@ class PdfWriter;
  *  This is only an abstract base class which is implemented
  *  for different font formats.
  */
-class PODOFO_API PdfFont : public PdfElement {
+class PODOFO_DOC_API PdfFont : public PdfElement {
  friend class PdfFontFactory;
 
  public:

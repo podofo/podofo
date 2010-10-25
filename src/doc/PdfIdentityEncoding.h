@@ -32,7 +32,7 @@ namespace PoDoFo {
  *  glyphs, PdfIdentityEncoding will support all unicode
  *  characters.
  */
-class PODOFO_API PdfIdentityEncoding : public PdfEncoding {
+class PODOFO_DOC_API PdfIdentityEncoding : public PdfEncoding {
  public:
     /** 
      *  Create a new PdfIdentityEncoding.

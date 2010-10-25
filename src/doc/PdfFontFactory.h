@@ -42,7 +42,7 @@ enum EPdfFontFlags {
  *  which implementation of PdfFont is required
  *  for a certain font type with certain features (like encoding).
  */
-class PODOFO_API PdfFontFactory {
+class PODOFO_DOC_API PdfFontFactory {
  public:
 
     /** Create a new PdfFont object.

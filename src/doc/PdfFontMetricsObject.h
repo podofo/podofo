@@ -33,7 +33,7 @@ class PdfArray;
 class PdfObject;
 class PdfVariant;
 
-class PODOFO_API PdfFontMetricsObject : public PdfFontMetrics {
+class PODOFO_DOC_API PdfFontMetricsObject : public PdfFontMetrics {
  public:
 
     /** Create a font metrics object based on an existing PdfObject
