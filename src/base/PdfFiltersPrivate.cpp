@@ -81,7 +81,17 @@ public:
         m_nColumns     = static_cast<int>(pDecodeParms->GetKeyAsLong( "Columns", 1L ));
         m_nEarlyChange = static_cast<int>(pDecodeParms->GetKeyAsLong( "EarlyChange", 1L ));
 
-        m_nCurPredictor = -1;
+        if( m_nPredictor >= 10)
+        {
+          m_bNextByteIsPredictor = true;
+          m_nCurPredictor = -1;
+        }
+        else
+        {
+          m_bNextByteIsPredictor = false;
+          m_nCurPredictor = m_nPredictor;
+        }
+
         m_nCurRowIndex  = 0;
         m_nBpp  = (m_nBPC * m_nColors) >> 3;
         m_nRows = (m_nColumns * m_nColors * m_nBPC) >> 3;
@@ -108,31 +118,32 @@ public:
             return;
         }
 
-        if( m_nCurPredictor == -1 ) 
-        {
-            m_nCurPredictor = m_nPredictor >= 10 ? *pBuffer + 10 : *pBuffer;
-            m_nCurRowIndex  = 0;
-            ++pBuffer;
-            --lLen;
-        }
 
         while( lLen-- ) 
         {
-            if( m_nCurRowIndex >= m_nRows ) 
+            if( m_bNextByteIsPredictor )
             {
-                m_nCurRowIndex  = 0;
-                m_nCurPredictor = m_nPredictor >= 10 ? *pBuffer + 10 : *pBuffer;
-                printf("3 m_nPredictor=%i m_nCurPredictor=%i\n", m_nPredictor, m_nCurPredictor );
-                pStream->Write( m_pPrev, m_nRows );
+                m_nCurPredictor = *pBuffer + 10;
+                m_bNextByteIsPredictor = false;
             }
             else
             {
                 switch( m_nCurPredictor )
                 {
                     case 2: // Tiff Predictor
-                        // TODO: implement tiff predictor
+                    {
+                        if(m_nBPC == 8)
+                        {   // Same as png sub
+                            int prev = (m_nCurRowIndex - m_nBpp < 0
+                                        ? 0 : m_pPrev[m_nCurRowIndex - m_nBpp]);
+                            m_pPrev[m_nCurRowIndex] = *pBuffer + prev;
+                            break;
+                        }
+
+                        // TODO: implement tiff predictor for other than 8 BPC
                         PODOFO_RAISE_ERROR( ePdfError_InvalidPredictor );
                         break;
+                    }
                     case 10: // png none
                     {
                         m_pPrev[m_nCurRowIndex] = *pBuffer;
@@ -173,8 +184,14 @@ public:
             }
 
             ++pBuffer;
+
+            if( m_nCurRowIndex >= m_nRows ) 
+            {   // One line finished
+                m_nCurRowIndex  = 0;
+                m_bNextByteIsPredictor = (m_nCurPredictor >= 10);
+                pStream->Write( m_pPrev, m_nRows );
+            }
         }
-        pStream->Write( m_pPrev, m_nRows );
     }
 
 
@@ -189,6 +206,8 @@ private:
     int m_nCurPredictor;
     int m_nCurRowIndex;
     int m_nRows;
+
+    bool m_bNextByteIsPredictor;
 
     char* m_pPrev;
 };
