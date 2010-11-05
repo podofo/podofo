@@ -236,6 +236,14 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      */
     PdfObject* GetFromResources( const PdfName & rType, const PdfName & rKey );
 
+    /** Method for getting a value that can be inherited
+     *  Possible names that can be inherited according to 
+     *  the PDF specification are: Resources, MediaBox, CropBox and Rotate
+     *  
+     *  \returns PdfObject - the result of the key fetching or NULL
+     */
+    inline const PdfObject* GetInheritedKey( const PdfName & rName ) const; 
+
  private:
 
     /**
@@ -259,8 +267,8 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      */
     const PdfRect GetPageBox( const char* inBox ) const;
     
-    /** Private method for getting a key value that could be inherited (such as the boxes, resources, etc.)
-     *  \returns PdfVariant - the result of the key fetching
+    /** Method for getting a key value that could be inherited (such as the boxes, resources, etc.)
+     *  \returns PdfObject - the result of the key fetching or NULL
      */
     const PdfObject* GetInheritedKeyFromObject( const char* inKey, const PdfObject* inObject ) const; 
 
@@ -292,6 +300,14 @@ inline PdfObject* PdfPage::GetResources() const
 inline const PdfRect PdfPage::GetPageSize() const
 {
     return this->GetMediaBox();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline const PdfObject* PdfPage::GetInheritedKey( const PdfName & rName ) const
+{
+    return this->GetInheritedKeyFromObject( rName.GetName().c_str(), this->GetObject() );
 }
 
 };

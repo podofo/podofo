@@ -281,6 +281,14 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
 
     if( bAppendAll )
     {
+        const PdfName inheritableAttributes[] = {
+            PdfName("Resources"),
+            PdfName("MediaBox"),
+            PdfName("CropBox"),
+            PdfName("Rotate"),
+            NULL
+        };
+
         // append all pages now to our page tree
         for(int i=0;i<rDoc.GetPageCount();i++ )
         {
@@ -289,13 +297,19 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
             if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Parent" ) )
                 pObj->GetDictionary().RemoveKey( "Parent" );
 
-			// Ulrich Arnold 26.7.2010: make sure inherited mediabox from pages is transferred to page
-			PdfRect mediaboxRect = pPage->GetMediaBox();
-			PdfVariant mediaboxVariant;
-		    mediaboxRect.ToVariant( mediaboxVariant );
-			pObj->GetDictionary().AddKey( "MediaBox", mediaboxVariant );
-            
-            //printf("Inserting at: %i\n", this->GetPageCount()-1 );
+            // Deal with inherited attributes
+            const PdfName* pInherited = inheritableAttributes;
+            while( pInherited ) 
+            {
+                const PdfObject* pAttribute = pPage->GetInheritedKey( *pInherited ); 
+                if( pAttribute )
+                {
+                    pObj->GetDictionary().AddKey( *pInherited, *pAttribute );
+                }
+
+                ++pInherited;
+            }
+
             m_pPagesTree->InsertPage( this->GetPageCount()-1, pObj );
         }
         
