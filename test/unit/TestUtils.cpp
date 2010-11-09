@@ -45,8 +45,8 @@ std::string TestUtils::getTempFilename()
     char tmpFilename[lLen];
 #if defined(_WIN32) || defined(_WIN64)
 	char tmpDir[lLen];
-	GetTempPath(lLen, tmpDir);
-	GetTempFileName(tmpDir, "podofo", 0, tmpFilename);
+	GetTempPathA(lLen, tmpDir);
+	GetTempFileNameA(tmpDir, "podofo", 0, tmpFilename);
 #else
     strncpy( tmpFilename, "/tmp/podofoXXXXXX", lLen);
     int handle = mkstemp(tmpFilename);

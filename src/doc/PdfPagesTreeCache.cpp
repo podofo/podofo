@@ -56,9 +56,9 @@ void PdfPagesTreeCache::AddPageObject( int nIndex, PdfPage* pPage )
     PdfPage* pOldPage = GetPage( nIndex );
     delete pOldPage;
 
-    if( nIndex > static_cast<int>(m_deqPageObjs.size()) )
+    if( nIndex+1 > static_cast<int>(m_deqPageObjs.size()) )
     {
-        m_deqPageObjs.resize( nIndex );
+        m_deqPageObjs.resize( nIndex+1 );
     }
 
     m_deqPageObjs[nIndex] = pPage;
