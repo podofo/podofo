@@ -286,7 +286,7 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
             PdfName("MediaBox"),
             PdfName("CropBox"),
             PdfName("Rotate"),
-            NULL
+            PdfName::KeyNull
         };
 
         // append all pages now to our page tree
@@ -299,7 +299,7 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
 
             // Deal with inherited attributes
             const PdfName* pInherited = inheritableAttributes;
-            while( pInherited ) 
+            while( pInherited->GetLength() != 0 ) 
             {
                 const PdfObject* pAttribute = pPage->GetInheritedKey( *pInherited ); 
                 if( pAttribute )
