@@ -286,8 +286,7 @@ void PdfMemDocument::Write( PdfOutputDevice* pDevice )
      *  it writeable.
      */
 
-    // Pass a copy of the trailer, as it will be deleted
-    PdfWriter writer( &(this->GetObjects()), new PdfObject( *(this->GetTrailer() ) ) );
+    PdfWriter writer( &(this->GetObjects()), this->GetTrailer() );
     writer.SetPdfVersion( this->GetPdfVersion() );
     writer.SetWriteMode( m_eWriteMode );
 
