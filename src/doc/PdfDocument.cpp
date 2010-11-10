@@ -261,23 +261,11 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
         if( (*it)->IsDictionary() && (*it)->HasStream() )
             *(pObj->GetStream()) = *((*it)->GetStream());
 
+        printf("Fixing references in %i 0 R by %i\n", pObj->Reference().ObjectNumber(), difference );
         FixObjectReferences( pObj, difference );
 
         ++it;
     }
-
-
-    // Ulrich Arnold 30.7.2009: Moved to front
-#if 0
-	// create all free objects again, to have a clean free object list
-    TCIPdfReferenceList itFree = rDoc.GetObjects().GetFreeObjects().begin();
-    while( itFree != rDoc.GetObjects().GetFreeObjects().end() )
-    {
-        m_vecObjects.AddFreeObject( PdfReference( (*itFree).ObjectNumber() + difference, 0 ) );
-
-        ++itFree;
-    }
-#endif
 
     if( bAppendAll )
     {
@@ -304,7 +292,9 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
                 const PdfObject* pAttribute = pPage->GetInheritedKey( *pInherited ); 
                 if( pAttribute )
                 {
-                    pObj->GetDictionary().AddKey( *pInherited, *pAttribute );
+                    PdfObject attribute( *pAttribute );
+                    FixObjectReferences( &attribute, difference );
+                    pObj->GetDictionary().AddKey( *pInherited, attribute );
                 }
 
                 ++pInherited;
@@ -447,11 +437,12 @@ void PdfDocument::FixObjectReferences( PdfObject* pObject, int difference )
             {
                 *(*it).second = PdfReference( (*it).second->GetReference().ObjectNumber() + difference,
                                               (*it).second->GetReference().GenerationNumber() );
-
             }
             else if( (*it).second->IsDictionary() || 
                      (*it).second->IsArray() )
+            {
                 FixObjectReferences( (*it).second, difference );
+            }
 
             ++it;
         }
@@ -474,6 +465,11 @@ void PdfDocument::FixObjectReferences( PdfObject* pObject, int difference )
 
             ++it;
         }
+    }
+    else if( pObject->IsReference() )
+    {
+        *pObject = PdfReference( pObject->GetReference().ObjectNumber() + difference,
+                                 pObject->GetReference().GenerationNumber() );
     }
 }
 
