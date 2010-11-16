@@ -443,7 +443,6 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      */
     void FreeObjectMemory( const PdfReference & rRef, bool bForce = false );
 
-
     /** Tries to free all memory allocated by the given
      *  PdfObject (variables and streams) and reads
      *  it from disk again if it is requested another time.
@@ -462,6 +461,11 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  \see IsDirty
      */
     void FreeObjectMemory( PdfObject* pObj, bool bForce = false );
+
+    /** 
+     * \returns the parsers encryption object or NULL if the read PDF file was not encrypted
+     */
+    inline const PdfEncrypt* GetEncrypt() const;
 
  private:
     /** Get a dictioary from the catalog dictionary by its name.
@@ -566,6 +570,14 @@ bool PdfMemDocument::IsDocAssemblyAllowed() const
 bool PdfMemDocument::IsHighPrintAllowed() const
 {
     return m_pEncrypt ? m_pEncrypt->IsHighPrintAllowed() : true;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfEncrypt* PdfMemDocument::GetEncrypt() const 
+{ 
+    return m_pEncrypt; 
 }
 
 };
