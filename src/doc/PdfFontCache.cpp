@@ -37,7 +37,6 @@
 #include <algorithm>
 
 #ifdef _WIN32
-#include <tchar.h>
 
 //#include <windows.h>
 // Undefined stuff which windows does
@@ -487,73 +486,11 @@ void PdfFontCache::EmbedSubsetFonts()
 }
 
 #ifdef _WIN32
-typedef basic_string<TCHAR, char_traits<TCHAR>, allocator<TCHAR> > tstring;
-
-const std::wstring StringToUTF16(const std::string& strFrom)
-{
-    const int LENGTH_OF_STR_FROM = strFrom.length();
-    const int LENGTH_OF_STR_TO = LENGTH_OF_STR_FROM + 1;
-	wchar_t* strTo = new wchar_t[LENGTH_OF_STR_TO];
-
-    const int CONVERSION_RESULT = 
-    ::MultiByteToWideChar(
-        CP_ACP, //Codepage
-        0, //dwFlags
-        strFrom.c_str(), //lpMultiByteStr, pointer to the character string to convert. 
-        -1, //cbMultiByte, -1 means string is null-terminated
-        strTo, //lpWideCharStr. Pointer to a buffer that receives the conveted string
-        LENGTH_OF_STR_TO //cchWideChar, size in characters, of the buffer indicated by lpWideCharStr
-        );
-
-    std::wstring result;
-    if (LENGTH_OF_STR_FROM != 0)
-    {
-        if (CONVERSION_RESULT !=0)
-        {
-            result = strTo;
-        }
-        else
-        {
-            //Error. How to report it?
-            //Return empty result string
-        }
-    }
-    else
-    {
-        //do nothing
-    }
-
-	delete[] strTo;
-
-    //This is os-non-specific c++ version:
-    //const size_t SIZE_OF_SOURCE_BUFFER = strlen(errorText);
-    //wchar_t* buffer = new wchar_t[SIZE_OF_SOURCE_BUFFER+1];
-
-    //const int CONVERSION_RESULT = ::mbtowc(buffer, errorText, SIZE_OF_SOURCE_BUFFER);
-    //buffer[SIZE_OF_SOURCE_BUFFER] = 0;
-
-    //delete[] buffer;
-
-    return result;
-}
-
-const tstring StringToTString(const char* strFrom)
-{
-#if defined(UNICODE)
-    return StringToUTF16(strFrom);
-#else
-    //No conversion
-    const std::string result(strFrom);
-    return result;
-#endif
-}
-
-
 PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList & vecContainer, 
                                      const char* pszFontName, bool bBold, bool bItalic, 
                                      bool bEmbedd, const PdfEncoding * const pEncoding )
 {
-    LOGFONT	lf;
+    LOGFONTA lf;
     
     lf.lfHeight			= 0;
     lf.lfWidth			= 0;
@@ -573,7 +510,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
         return NULL;
     
     memset(&(lf.lfFaceName), 0, LF_FACESIZE);
-    _tcscpy( lf.lfFaceName, StringToTString(pszFontName).c_str() );
+    strcpy( lf.lfFaceName, pszFontName );
 
     char* pBuffer = NULL;
     unsigned int nLen;
