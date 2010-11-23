@@ -229,7 +229,8 @@ enum EPdfColorSpace {
     ePdfColorSpace_DeviceRGB,         /**< RGB  */
     ePdfColorSpace_DeviceCMYK,        /**< CMYK */
     ePdfColorSpace_Separation,        /**< Separation */
-    ePdfColorSpace_CieLab             /**< CIE-Lab */
+    ePdfColorSpace_CieLab,            /**< CIE-Lab */
+    ePdfColorSpace_Unknown = 0xff
 };
 
 /**

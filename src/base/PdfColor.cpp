@@ -29,6 +29,7 @@
 #include "PdfDefinesPrivate.h"
 
 #include <algorithm>
+#include <ctype.h>
 
 namespace PoDoFo {
 
@@ -45,6 +46,17 @@ public:
      */
     PdfNamedColor( const char* pszName, const PdfColor & rColor )
         : m_pszName( pszName ), m_color( rColor )
+    {
+    }
+
+    /** Create a PdfNamedColor object.
+     *
+     *  \param pszName the name. The string must be allocated as static memory somewhere
+     *         The string data will not be copied!
+     *  \param rColorValue RGB hex value (e.g. #FFABCD)
+     */
+    PdfNamedColor( const char* pszName, const char* rColorName )
+        : m_pszName( pszName ), m_color( FromRGBString(rColorName) )
     {
     }
 
@@ -117,6 +129,45 @@ private:
      */
     PdfNamedColor& operator=(const PdfNamedColor&);
 
+    /** Creates a color object from a RGB string.
+     *
+     *  \param pszName a string describing a color.
+     *
+     *  Supported values are:
+     *  - hex values (e.g. #FF002A (RGB))
+     *
+     *  \returns a PdfColor object
+     */
+    static PdfColor FromRGBString( const char* pszName )
+    {
+        //This method cannot use PdfTokenizer::GetHexValue() as static values used there have 
+        //not been initialised yet. This function should used only during program startup
+        //and the only purpose is use at s_NamedColors table.
+
+        size_t lLen = strlen( pszName );
+        if (
+            (lLen == 7) &&
+            (pszName[0] == '#') &&
+            isxdigit(pszName[1])
+            )
+        {
+            const unsigned long NAME_CONVERTED_TO_LONG_HEX = 
+                static_cast<unsigned long>(strtol(&pszName[1], 0, 16));
+
+            const unsigned long R = (NAME_CONVERTED_TO_LONG_HEX & 0x00FF0000) >> 16;
+            const unsigned long G = (NAME_CONVERTED_TO_LONG_HEX & 0x0000FF00) >> 8;
+            const unsigned long B = (NAME_CONVERTED_TO_LONG_HEX & 0x000000FF);
+            
+            return PdfColor( static_cast<double>(R)/255.0, 
+                             static_cast<double>(G)/255.0, 
+                             static_cast<double>(B)/255.0 );
+        }
+        else
+        {
+            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+        }
+    }
+
     const char* m_pszName;
     PdfColor    m_color;
 };
@@ -136,156 +187,159 @@ public:
     }
 };
 
-static const size_t s_nNumNamedColors = 147;
+// Table based on http://cvsweb.xfree86.org/cvsweb/*checkout*/xc/programs/rgb/rgb.txt?rev=1.1
+// Hex values have been copied from http://en.wikipedia.org/wiki/X11_color_names (21/11/2010)
+static const size_t s_nNumNamedColors = 148;
 static const PdfNamedColor s_NamedColors[s_nNumNamedColors] = 
 {
-    PdfNamedColor( "aliceblue", PdfColor(0.941, 0.973, 1.000, 1.000) ) ,
-    PdfNamedColor( "antiquewhite", PdfColor(0.980, 0.922, 0.843, 1.000) ) ,
-    PdfNamedColor( "aqua", PdfColor(0.000, 1.000, 1.000, 1.000) ) ,
-    PdfNamedColor( "aquamarine", PdfColor(0.498, 1.000, 0.831, 1.000) ) ,
-    PdfNamedColor( "azure", PdfColor(0.941, 1.000, 1.000, 1.000) ) ,
-    PdfNamedColor( "beige", PdfColor(0.961, 0.961, 0.863, 1.000) ) ,
-    PdfNamedColor( "bisque", PdfColor(1.000, 0.894, 0.769, 1.000) ) ,
-    PdfNamedColor( "black", PdfColor(0.000, 0.000, 0.000, 1.000) ) ,
-    PdfNamedColor( "blanchedalmond", PdfColor(1.000, 0.922, 0.804, 1.000) ) ,
-    PdfNamedColor( "blue", PdfColor(0.000, 0.000, 1.000, 1.000) ) ,
-    PdfNamedColor( "blueviolet", PdfColor(0.541, 0.169, 0.886, 1.000) ) ,
-    PdfNamedColor( "brown", PdfColor(0.647, 0.165, 0.165, 1.000) ) ,
-    PdfNamedColor( "burlywood", PdfColor(0.871, 0.722, 0.529, 1.000) ) ,
-    PdfNamedColor( "cadetblue", PdfColor(0.373, 0.620, 0.627, 1.000) ) ,
-    PdfNamedColor( "chartreuse", PdfColor(0.498, 1.000, 0.000, 1.000) ) ,
-    PdfNamedColor( "chocolate", PdfColor(0.824, 0.412, 0.118, 1.000) ) ,
-    PdfNamedColor( "coral", PdfColor(1.000, 0.498, 0.314, 1.000) ) ,
-    PdfNamedColor( "cornflowerblue", PdfColor(0.392, 0.584, 0.929, 1.000) ) ,
-    PdfNamedColor( "cornsilk", PdfColor(1.000, 0.973, 0.863, 1.000) ) ,
-    PdfNamedColor( "crimson", PdfColor(0.863, 0.078, 0.235, 1.000) ) ,
-    PdfNamedColor( "cyan", PdfColor(0.000, 1.000, 1.000, 1.000) ) ,
-    PdfNamedColor( "darkblue", PdfColor(0.000, 0.000, 0.545, 1.000) ) ,
-    PdfNamedColor( "darkcyan", PdfColor(0.000, 0.545, 0.545, 1.000) ) ,
-    PdfNamedColor( "darkgoldenrod", PdfColor(0.722, 0.525, 0.043, 1.000) ) ,
-    PdfNamedColor( "darkgray", PdfColor(0.663, 0.663, 0.663, 1.000) ) ,
-    PdfNamedColor( "darkgreen", PdfColor(0.000, 0.392, 0.000, 1.000) ) ,
-    PdfNamedColor( "darkgrey", PdfColor(0.663, 0.663, 0.663, 1.000) ) ,
-    PdfNamedColor( "darkkhaki", PdfColor(0.741, 0.718, 0.420, 1.000) ) ,
-    PdfNamedColor( "darkmagenta", PdfColor(0.545, 0.000, 0.545, 1.000) ) ,
-    PdfNamedColor( "darkolivegreen", PdfColor(0.333, 0.420, 0.184, 1.000) ) ,
-    PdfNamedColor( "darkorange", PdfColor(1.000, 0.549, 0.000, 1.000) ) ,
-    PdfNamedColor( "darkorchid", PdfColor(0.600, 0.196, 0.800, 1.000) ) ,
-    PdfNamedColor( "darkred", PdfColor(0.545, 0.000, 0.000, 1.000) ) ,
-    PdfNamedColor( "darksalmon", PdfColor(0.914, 0.588, 0.478, 1.000) ) ,
-    PdfNamedColor( "darkseagreen", PdfColor(0.561, 0.737, 0.561, 1.000) ) ,
-    PdfNamedColor( "darkslateblue", PdfColor(0.282, 0.239, 0.545, 1.000) ) ,
-    PdfNamedColor( "darkslategray", PdfColor(0.184, 0.310, 0.310, 1.000) ) ,
-    PdfNamedColor( "darkslategrey", PdfColor(0.184, 0.310, 0.310, 1.000) ) ,
-    PdfNamedColor( "darkturquoise", PdfColor(0.000, 0.808, 0.820, 1.000) ) ,
-    PdfNamedColor( "darkviolet", PdfColor(0.580, 0.000, 0.827, 1.000) ) ,
-    PdfNamedColor( "deeppink", PdfColor(1.000, 0.078, 0.576, 1.000) ) ,
-    PdfNamedColor( "deepskyblue", PdfColor(0.000, 0.749, 1.000, 1.000) ) ,
-    PdfNamedColor( "dimgray", PdfColor(0.412, 0.412, 0.412, 1.000) ) ,
-    PdfNamedColor( "dimgrey", PdfColor(0.412, 0.412, 0.412, 1.000) ) ,
-    PdfNamedColor( "dodgerblue", PdfColor(0.118, 0.565, 1.000, 1.000) ) ,
-    PdfNamedColor( "firebrick", PdfColor(0.698, 0.133, 0.133, 1.000) ) ,
-    PdfNamedColor( "floralwhite", PdfColor(1.000, 0.980, 0.941, 1.000) ) ,
-    PdfNamedColor( "forestgreen", PdfColor(0.133, 0.545, 0.133, 1.000) ) ,
-    PdfNamedColor( "fuchsia", PdfColor(1.000, 0.000, 1.000, 1.000) ) ,
-    PdfNamedColor( "gainsboro", PdfColor(0.863, 0.863, 0.863, 1.000) ) ,
-    PdfNamedColor( "ghostwhite", PdfColor(0.973, 0.973, 1.000, 1.000) ) ,
-    PdfNamedColor( "gold", PdfColor(1.000, 0.843, 0.000, 1.000) ) ,
-    PdfNamedColor( "goldenrod", PdfColor(0.855, 0.647, 0.125, 1.000) ) ,
-    PdfNamedColor( "gray", PdfColor(0.502, 0.502, 0.502, 1.000) ) ,
-    PdfNamedColor( "green", PdfColor(0.000, 0.502, 0.000, 1.000) ) ,
-    PdfNamedColor( "greenyellow", PdfColor(0.678, 1.000, 0.184, 1.000) ) ,
-    PdfNamedColor( "grey", PdfColor(0.502, 0.502, 0.502, 1.000) ) ,
-    PdfNamedColor( "honeydew", PdfColor(0.941, 1.000, 0.941, 1.000) ) ,
-    PdfNamedColor( "hotpink", PdfColor(1.000, 0.412, 0.706, 1.000) ) ,
-    PdfNamedColor( "indianred", PdfColor(0.804, 0.361, 0.361, 1.000) ) ,
-    PdfNamedColor( "indigo", PdfColor(0.294, 0.000, 0.510, 1.000) ) ,
-    PdfNamedColor( "ivory", PdfColor(1.000, 1.000, 0.941, 1.000) ) ,
-    PdfNamedColor( "khaki", PdfColor(0.941, 0.902, 0.549, 1.000) ) ,
-    PdfNamedColor( "lavender", PdfColor(0.902, 0.902, 0.980, 1.000) ) ,
-    PdfNamedColor( "lavenderblush", PdfColor(1.000, 0.941, 0.961, 1.000) ) ,
-    PdfNamedColor( "lawngreen", PdfColor(0.486, 0.988, 0.000, 1.000) ) ,
-    PdfNamedColor( "lemonchiffon", PdfColor(1.000, 0.980, 0.804, 1.000) ) ,
-    PdfNamedColor( "lightblue", PdfColor(0.678, 0.847, 0.902, 1.000) ) ,
-    PdfNamedColor( "lightcoral", PdfColor(0.941, 0.502, 0.502, 1.000) ) ,
-    PdfNamedColor( "lightcyan", PdfColor(0.878, 1.000, 1.000, 1.000) ) ,
-    PdfNamedColor( "lightgoldenrodyellow", PdfColor(0.980, 0.980, 0.824, 1.000) ) ,
-    PdfNamedColor( "lightgray", PdfColor(0.827, 0.827, 0.827, 1.000) ) ,
-    PdfNamedColor( "lightgreen", PdfColor(0.565, 0.933, 0.565, 1.000) ) ,
-    PdfNamedColor( "lightgrey", PdfColor(0.827, 0.827, 0.827, 1.000) ) ,
-    PdfNamedColor( "lightpink", PdfColor(1.000, 0.714, 0.757, 1.000) ) ,
-    PdfNamedColor( "lightsalmon", PdfColor(1.000, 0.627, 0.478, 1.000) ) ,
-    PdfNamedColor( "lightseagreen", PdfColor(0.125, 0.698, 0.667, 1.000) ) ,
-    PdfNamedColor( "lightskyblue", PdfColor(0.529, 0.808, 0.980, 1.000) ) ,
-    PdfNamedColor( "lightslategray", PdfColor(0.467, 0.533, 0.600, 1.000) ) ,
-    PdfNamedColor( "lightslategrey", PdfColor(0.467, 0.533, 0.600, 1.000) ) ,
-    PdfNamedColor( "lightsteelblue", PdfColor(0.690, 0.769, 0.871, 1.000) ) ,
-    PdfNamedColor( "lightyellow", PdfColor(1.000, 1.000, 0.878, 1.000) ) ,
-    PdfNamedColor( "lime", PdfColor(0.000, 1.000, 0.000, 1.000) ) ,
-    PdfNamedColor( "limegreen", PdfColor(0.196, 0.804, 0.196, 1.000) ) ,
-    PdfNamedColor( "linen", PdfColor(0.980, 0.941, 0.902, 1.000) ) ,
-    PdfNamedColor( "magenta", PdfColor(1.000, 0.000, 1.000, 1.000) ) ,
-    PdfNamedColor( "maroon", PdfColor(0.502, 0.000, 0.000, 1.000) ) ,
-    PdfNamedColor( "mediumaquamarine", PdfColor(0.400, 0.804, 0.667, 1.000) ) ,
-    PdfNamedColor( "mediumblue", PdfColor(0.000, 0.000, 0.804, 1.000) ) ,
-    PdfNamedColor( "mediumorchid", PdfColor(0.729, 0.333, 0.827, 1.000) ) ,
-    PdfNamedColor( "mediumpurple", PdfColor(0.576, 0.439, 0.859, 1.000) ) ,
-    PdfNamedColor( "mediumseagreen", PdfColor(0.235, 0.702, 0.443, 1.000) ) ,
-    PdfNamedColor( "mediumslateblue", PdfColor(0.482, 0.408, 0.933, 1.000) ) ,
-    PdfNamedColor( "mediumspringgreen", PdfColor(0.000, 0.980, 0.604, 1.000) ) ,
-    PdfNamedColor( "mediumturquoise", PdfColor(0.282, 0.820, 0.800, 1.000) ) ,
-    PdfNamedColor( "mediumvioletred", PdfColor(0.780, 0.082, 0.522, 1.000) ) ,
-    PdfNamedColor( "midnightblue", PdfColor(0.098, 0.098, 0.439, 1.000) ) ,
-    PdfNamedColor( "mintcream", PdfColor(0.961, 1.000, 0.980, 1.000) ) ,
-    PdfNamedColor( "mistyrose", PdfColor(1.000, 0.894, 0.882, 1.000) ) ,
-    PdfNamedColor( "moccasin", PdfColor(1.000, 0.894, 0.710, 1.000) ) ,
-    PdfNamedColor( "navajowhite", PdfColor(1.000, 0.871, 0.678, 1.000) ) ,
-    PdfNamedColor( "navy", PdfColor(0.000, 0.000, 0.502, 1.000) ) ,
-    PdfNamedColor( "oldlace", PdfColor(0.992, 0.961, 0.902, 1.000) ) ,
-    PdfNamedColor( "olive", PdfColor(0.502, 0.502, 0.000, 1.000) ) ,
-    PdfNamedColor( "olivedrab", PdfColor(0.420, 0.557, 0.137, 1.000) ) ,
-    PdfNamedColor( "orange", PdfColor(1.000, 0.647, 0.000, 1.000) ) ,
-    PdfNamedColor( "orangered", PdfColor(1.000, 0.271, 0.000, 1.000) ) ,
-    PdfNamedColor( "orchid", PdfColor(0.855, 0.439, 0.839, 1.000) ) ,
-    PdfNamedColor( "palegoldenrod", PdfColor(0.933, 0.910, 0.667, 1.000) ) ,
-    PdfNamedColor( "palegreen", PdfColor(0.596, 0.984, 0.596, 1.000) ) ,
-    PdfNamedColor( "paleturquoise", PdfColor(0.686, 0.933, 0.933, 1.000) ) ,
-    PdfNamedColor( "palevioletred", PdfColor(0.859, 0.439, 0.576, 1.000) ) ,
-    PdfNamedColor( "papayawhip", PdfColor(1.000, 0.937, 0.835, 1.000) ) ,
-    PdfNamedColor( "peachpuff", PdfColor(1.000, 0.855, 0.725, 1.000) ) ,
-    PdfNamedColor( "peru", PdfColor(0.804, 0.522, 0.247, 1.000) ) ,
-    PdfNamedColor( "pink", PdfColor(1.000, 0.753, 0.796, 1.000) ) ,
-    PdfNamedColor( "plum", PdfColor(0.867, 0.627, 0.867, 1.000) ) ,
-    PdfNamedColor( "powderblue", PdfColor(0.690, 0.878, 0.902, 1.000) ) ,
-    PdfNamedColor( "purple", PdfColor(0.502, 0.000, 0.502, 1.000) ) ,
-    PdfNamedColor( "red", PdfColor(1.000, 0.000, 0.000, 1.000) ) ,
-    PdfNamedColor( "rosybrown", PdfColor(0.737, 0.561, 0.561, 1.000) ) ,
-    PdfNamedColor( "royalblue", PdfColor(0.255, 0.412, 0.882, 1.000) ) ,
-    PdfNamedColor( "saddlebrown", PdfColor(0.545, 0.271, 0.075, 1.000) ) ,
-    PdfNamedColor( "salmon", PdfColor(0.980, 0.502, 0.447, 1.000) ) ,
-    PdfNamedColor( "sandybrown", PdfColor(0.957, 0.643, 0.376, 1.000) ) ,
-    PdfNamedColor( "seagreen", PdfColor(0.180, 0.545, 0.341, 1.000) ) ,
-    PdfNamedColor( "seashell", PdfColor(1.000, 0.961, 0.933, 1.000) ) ,
-    PdfNamedColor( "sienna", PdfColor(0.627, 0.322, 0.176, 1.000) ) ,
-    PdfNamedColor( "silver", PdfColor(0.753, 0.753, 0.753, 1.000) ) ,
-    PdfNamedColor( "skyblue", PdfColor(0.529, 0.808, 0.922, 1.000) ) ,
-    PdfNamedColor( "slateblue", PdfColor(0.416, 0.353, 0.804, 1.000) ) ,
-    PdfNamedColor( "slategray", PdfColor(0.439, 0.502, 0.565, 1.000) ) ,
-    PdfNamedColor( "slategrey", PdfColor(0.439, 0.502, 0.565, 1.000) ) ,
-    PdfNamedColor( "snow", PdfColor(1.000, 0.980, 0.980, 1.000) ) ,
-    PdfNamedColor( "springgreen", PdfColor(0.000, 1.000, 0.498, 1.000) ) ,
-    PdfNamedColor( "steelblue", PdfColor(0.275, 0.510, 0.706, 1.000) ) ,
-    PdfNamedColor( "tan", PdfColor(0.824, 0.706, 0.549, 1.000) ) ,
-    PdfNamedColor( "teal", PdfColor(0.000, 0.502, 0.502, 1.000) ) ,
-    PdfNamedColor( "thistle", PdfColor(0.847, 0.749, 0.847, 1.000) ) ,
-    PdfNamedColor( "tomato", PdfColor(1.000, 0.388, 0.278, 1.000) ) ,
-    PdfNamedColor( "turquoise", PdfColor(0.251, 0.878, 0.816, 1.000) ) ,
-    PdfNamedColor( "violet", PdfColor(0.933, 0.510, 0.933, 1.000) ) ,
-    PdfNamedColor( "wheat", PdfColor(0.961, 0.871, 0.702, 1.000) ) ,
-    PdfNamedColor( "white", PdfColor(1.000, 1.000, 1.000, 1.000) ) ,
-    PdfNamedColor( "whitesmoke", PdfColor(0.961, 0.961, 0.961, 1.000) ) ,
-    PdfNamedColor( "yellow", PdfColor(1.000, 1.000, 0.000, 1.000) ) ,
-    PdfNamedColor( "yellowgreen", PdfColor(0.604, 0.804, 0.196, 1.000) ) 
+    PdfNamedColor( "aliceblue",     "#F0F8FF" ) ,
+    PdfNamedColor( "antiquewhite",  "#FAEBD7" ) ,
+    PdfNamedColor( "aqua",          "#00FFFF" ) ,
+    PdfNamedColor( "aquamarine",    "#7FFFD4" ) ,
+    PdfNamedColor( "azure",         "#F0FFFF" ) ,
+    PdfNamedColor( "beige",         "#F5F5DC" ) ,
+    PdfNamedColor( "bisque",        "#FFE4C4" ) ,
+    PdfNamedColor( "black",         "#000000" ) ,
+    PdfNamedColor( "blanchedalmond","#FFEBCD" ) ,
+    PdfNamedColor( "blue",          "#0000FF" ) ,
+    PdfNamedColor( "blueviolet",    "#8A2BE2" ) ,
+    PdfNamedColor( "brown",         "#A52A2A" ) ,
+    PdfNamedColor( "burlywood",     "#DEB887" ) ,
+    PdfNamedColor( "cadetblue",     "#5F9EA0" ) ,
+    PdfNamedColor( "chartreuse",    "#7FFF00" ) ,
+    PdfNamedColor( "chocolate",     "#D2691E" ) ,
+    PdfNamedColor( "coral",         "#FF7F50" ) ,
+    PdfNamedColor( "cornflowerblue","#6495ED" ) ,
+    PdfNamedColor( "cornsilk",      "#FFF8DC" ) ,
+    PdfNamedColor( "crimson",       "#DC143C" ) ,
+    PdfNamedColor( "cyan",          "#00FFFF" ) ,
+    PdfNamedColor( "darkblue",      "#00008B" ) ,
+    PdfNamedColor( "darkcyan",      "#008B8B" ) ,
+    PdfNamedColor( "darkgoldenrod", "#B8860B" ) ,
+    PdfNamedColor( "darkgray",      "#A9A9A9" ) ,
+    PdfNamedColor( "darkgreen",     "#006400" ) ,
+    PdfNamedColor( "darkgrey",      "#A9A9A9" ) ,
+    PdfNamedColor( "darkkhaki",     "#BDB76B" ) ,
+    PdfNamedColor( "darkmagenta",   "#8B008B" ) ,
+    PdfNamedColor( "darkolivegreen","#556B2F" ) ,
+    PdfNamedColor( "darkorange",    "#FF8C00" ) ,
+    PdfNamedColor( "darkorchid",    "#9932CC" ) ,
+    PdfNamedColor( "darkred",       "#8B0000" ) ,
+    PdfNamedColor( "darksalmon",    "#E9967A" ) ,
+    PdfNamedColor( "darkseagreen",  "#8FBC8F" ) ,
+    PdfNamedColor( "darkslateblue", "#483D8B" ) ,
+    PdfNamedColor( "darkslategray", "#2F4F4F" ) ,
+    PdfNamedColor( "darkslategrey", "#2F4F4F" ) ,
+    PdfNamedColor( "darkturquoise", "#00CED1" ) ,
+    PdfNamedColor( "darkviolet",    "#9400D3" ) ,
+    PdfNamedColor( "deeppink",      "#FF1493" ) ,
+    PdfNamedColor( "deepskyblue",   "#00BFFF" ) ,
+    PdfNamedColor( "dimgray",       "#696969" ) ,
+    PdfNamedColor( "dimgrey",       "#696969" ) ,
+    PdfNamedColor( "dodgerblue",    "#1E90FF" ) ,
+    PdfNamedColor( "firebrick",     "#B22222" ) ,
+    PdfNamedColor( "floralwhite",   "#FFFAF0" ) ,
+    PdfNamedColor( "forestgreen",   "#228B22" ) ,
+    PdfNamedColor( "fuchsia",       "#FF00FF" ) ,
+    PdfNamedColor( "gainsboro",     "#DCDCDC" ) ,
+    PdfNamedColor( "ghostwhite",    "#F8F8FF" ) ,
+    PdfNamedColor( "gold",          "#FFD700" ) ,
+    PdfNamedColor( "goldenrod",     "#DAA520" ) ,
+    PdfNamedColor( "gray",          "#BEBEBE" ) , //RG changed from W3C to X11 value
+    PdfNamedColor( "green",         "#00FF00" ) ,
+    PdfNamedColor( "greenyellow",   "#ADFF2F" ) ,
+    PdfNamedColor( "grey",          "#BEBEBE" ) , //RG changed from W3C to X11 value
+    PdfNamedColor( "honeydew",      "#F0FFF0" ) ,
+    PdfNamedColor( "hotpink",       "#FF69B4" ) ,
+    PdfNamedColor( "indianred",     "#CD5C5C" ) ,
+    PdfNamedColor( "indigo",        "#4B0082" ) ,
+    PdfNamedColor( "ivory",         "#FFFFF0" ) ,
+    PdfNamedColor( "khaki",         "#F0E68C" ) ,
+    PdfNamedColor( "lavender",      "#E6E6FA" ) ,
+    PdfNamedColor( "lavenderblush", "#FFF0F5" ) ,
+    PdfNamedColor( "lawngreen",     "#7CFC00" ) ,
+    PdfNamedColor( "lemonchiffon",  "#FFFACD" ) ,
+    PdfNamedColor( "lightblue",     "#ADD8E6" ) ,
+    PdfNamedColor( "lightcoral",    "#F08080" ) ,
+    PdfNamedColor( "lightcyan",     "#E0FFFF" ) ,
+    PdfNamedColor( "lightgoldenrod", "#EEDD82" ) ,
+    PdfNamedColor( "lightgoldenrodyellow", "#FAFAD2" ) ,
+    PdfNamedColor( "lightgray",     "#D3D3D3" ) ,
+    PdfNamedColor( "lightgreen",    "#90EE90" ) ,
+    PdfNamedColor( "lightgrey",     "#D3D3D3" ) ,
+    PdfNamedColor( "lightpink",     "#FFB6C1" ) ,
+    PdfNamedColor( "lightsalmon",   "#FFA07A" ) ,
+    PdfNamedColor( "lightseagreen", "#20B2AA" ) ,
+    PdfNamedColor( "lightskyblue",  "#87CEFA" ) ,
+    PdfNamedColor( "lightslategray","#778899" ) ,
+    PdfNamedColor( "lightslategrey","#778899" ) ,
+    PdfNamedColor( "lightsteelblue","#B0C4DE" ) ,
+    PdfNamedColor( "lightyellow",   "#FFFFE0" ) ,
+    PdfNamedColor( "lime",          "#00FF00" ) ,
+    PdfNamedColor( "limegreen",     "#32CD32" ) ,
+    PdfNamedColor( "linen",         "#FAF0E6" ) ,
+    PdfNamedColor( "magenta",       "#FF00FF" ) ,
+    PdfNamedColor( "maroon",        "#B03060" ) , //RG changed from W3C to X11 value
+    PdfNamedColor( "mediumaquamarine", "#66CDAA" ) ,
+    PdfNamedColor( "mediumblue",    "#0000CD" ) ,
+    PdfNamedColor( "mediumorchid",  "#BA55D3" ) ,
+    PdfNamedColor( "mediumpurple",  "#9370DB" ) ,
+    PdfNamedColor( "mediumseagreen","#3CB371" ) ,
+    PdfNamedColor( "mediumslateblue", "#7B68EE" ) ,
+    PdfNamedColor( "mediumspringgreen", "#00FA9A" ) ,
+    PdfNamedColor( "mediumturquoise", "#48D1CC" ) ,
+    PdfNamedColor( "mediumvioletred", "#C71585" ) ,
+    PdfNamedColor( "midnightblue",  "#191970" ) ,
+    PdfNamedColor( "mintcream",     "#F5FFFA" ) ,
+    PdfNamedColor( "mistyrose",     "#FFE4E1" ) ,
+    PdfNamedColor( "moccasin",      "#FFE4B5" ) ,
+    PdfNamedColor( "navajowhite",   "#FFDEAD" ) ,
+    PdfNamedColor( "navy",          "#000080" ) ,
+    PdfNamedColor( "oldlace",       "#FDF5E6" ) ,
+    PdfNamedColor( "olive",         "#808000" ) ,
+    PdfNamedColor( "olivedrab",     "#6B8E23" ) ,
+    PdfNamedColor( "orange",        "#FFA500" ) ,
+    PdfNamedColor( "orangered",     "#FF4500" ) ,
+    PdfNamedColor( "orchid",        "#DA70D6" ) ,
+    PdfNamedColor( "palegoldenrod", "#EEE8AA" ) ,
+    PdfNamedColor( "palegreen",     "#98FB98" ) ,
+    PdfNamedColor( "paleturquoise", "#AFEEEE" ) ,
+    PdfNamedColor( "palevioletred", "#DB7093" ) ,
+    PdfNamedColor( "papayawhip",    "#FFEFD5" ) ,
+    PdfNamedColor( "peachpuff",     "#FFDAB9" ) ,
+    PdfNamedColor( "peru",          "#CD853F" ) ,
+    PdfNamedColor( "pink",          "#FFC0CB" ) ,
+    PdfNamedColor( "plum",          "#DDA0DD" ) ,
+    PdfNamedColor( "powderblue",    "#B0E0E6" ) ,
+    PdfNamedColor( "purple",        "#A020F0" ) , //RG changed from W3C to X11 value
+    PdfNamedColor( "red",           "#FF0000" ) ,
+    PdfNamedColor( "rosybrown",     "#BC8F8F" ) ,
+    PdfNamedColor( "royalblue",     "#4169E1" ) ,
+    PdfNamedColor( "saddlebrown",   "#8B4513" ) ,
+    PdfNamedColor( "salmon",        "#FA8072" ) ,
+    PdfNamedColor( "sandybrown",    "#F4A460" ) ,
+    PdfNamedColor( "seagreen",      "#2E8B57" ) ,
+    PdfNamedColor( "seashell",      "#FFF5EE" ) ,
+    PdfNamedColor( "sienna",        "#A0522D" ) ,
+    PdfNamedColor( "silver",        "#C0C0C0" ) ,
+    PdfNamedColor( "skyblue",       "#87CEEB" ) ,
+    PdfNamedColor( "slateblue",     "#6A5ACD" ) ,
+    PdfNamedColor( "slategray",     "#708090" ) ,
+    PdfNamedColor( "slategrey",     "#708090" ) ,
+    PdfNamedColor( "snow",          "#FFFAFA" ) ,
+    PdfNamedColor( "springgreen",   "#00FF7F" ) ,
+    PdfNamedColor( "steelblue",     "#4682B4" ) ,
+    PdfNamedColor( "tan",           "#D2B48C" ) ,
+    PdfNamedColor( "teal",          "#008080" ) ,
+    PdfNamedColor( "thistle",       "#D8BFD8" ) ,
+    PdfNamedColor( "tomato",        "#FF6347" ) ,
+    PdfNamedColor( "turquoise",     "#40E0D0" ) ,
+    PdfNamedColor( "violet",        "#EE82EE" ) ,
+    PdfNamedColor( "wheat",         "#F5DEB3" ) ,
+    PdfNamedColor( "white",         "#FFFFFF" ) ,
+    PdfNamedColor( "whitesmoke",    "#F5F5F5" ) ,
+    PdfNamedColor( "yellow",        "#FFFF00" ) ,
+    PdfNamedColor( "yellowgreen",   "#9ACD32" ) 
 };
 
 inline void CheckDoubleRange( double val, double min, double max )
@@ -300,8 +354,8 @@ PdfColor::PdfColor() :
     m_uColor(),
     m_separationName(),
     m_separationDensity(0.0),
-    m_eColorSpace( ePdfColorSpace_DeviceRGB ),
-    m_eAlternateColorSpace()
+    m_eColorSpace(ePdfColorSpace_Unknown),
+    m_eAlternateColorSpace(ePdfColorSpace_Unknown)
 {
     m_uColor.rgb[0] = 0.0;
     m_uColor.rgb[1] = 0.0;
@@ -312,8 +366,8 @@ PdfColor::PdfColor( double dGray ) :
     m_uColor(),
     m_separationName(),
     m_separationDensity(0.0),
-    m_eColorSpace( ePdfColorSpace_DeviceGray ),
-    m_eAlternateColorSpace()
+    m_eColorSpace(ePdfColorSpace_DeviceGray),
+    m_eAlternateColorSpace(ePdfColorSpace_Unknown)
 {
     CheckDoubleRange( dGray, 0.0, 1.0 );
 
@@ -324,8 +378,8 @@ PdfColor::PdfColor( double dRed, double dGreen, double dBlue ) :
     m_uColor(),
     m_separationName(),
     m_separationDensity(0.0),
-    m_eColorSpace( ePdfColorSpace_DeviceRGB ),
-    m_eAlternateColorSpace()
+    m_eColorSpace(ePdfColorSpace_DeviceRGB),
+    m_eAlternateColorSpace(ePdfColorSpace_Unknown)
 {
     CheckDoubleRange( dRed,   0.0, 1.0 );
     CheckDoubleRange( dGreen, 0.0, 1.0 );
@@ -341,7 +395,7 @@ PdfColor::PdfColor( double dCyan, double dMagenta, double dYellow, double dBlack
     m_separationName(),
     m_separationDensity(0.0),
     m_eColorSpace( ePdfColorSpace_DeviceCMYK ),
-    m_eAlternateColorSpace()
+    m_eAlternateColorSpace(ePdfColorSpace_Unknown)
 {
     CheckDoubleRange( dCyan,    0.0, 1.0 );
     CheckDoubleRange( dMagenta, 0.0, 1.0 );
@@ -419,10 +473,10 @@ PdfColorSeparationAll::PdfColorSeparationAll()
     m_separationName = "All";
     m_separationDensity = 1.0;
     m_eAlternateColorSpace = ePdfColorSpace_DeviceCMYK;
-    m_uColor.cmyk[0] = 
-        m_uColor.cmyk[1] =
-        m_uColor.cmyk[2] =
-        m_uColor.cmyk[3] = 1.0;
+    m_uColor.cmyk[0] = 1.0;
+    m_uColor.cmyk[1] = 1.0;
+    m_uColor.cmyk[2] = 1.0;
+    m_uColor.cmyk[3] = 1.0;
 }
 
 PdfColorSeparationAll::~PdfColorSeparationAll()
@@ -436,10 +490,10 @@ PdfColorSeparationNone::PdfColorSeparationNone()
     m_separationName = "None";
     m_separationDensity = 0.0;
     m_eAlternateColorSpace = ePdfColorSpace_DeviceCMYK;
-    m_uColor.cmyk[0] = 
-        m_uColor.cmyk[1] =
-        m_uColor.cmyk[2] =
-        m_uColor.cmyk[3] = 0.0;
+    m_uColor.cmyk[0] = 0.0;
+    m_uColor.cmyk[1] = 0.0;
+    m_uColor.cmyk[2] = 0.0;
+    m_uColor.cmyk[3] = 0.0;
 }
 
 PdfColorSeparationNone::~PdfColorSeparationNone()
@@ -484,6 +538,7 @@ PdfColorSeparation::PdfColorSeparation( const std::string & sName, double dDensi
             PODOFO_RAISE_LOGIC_IF( true, "PdfColor::PdfColorSeparation alternateColor must be Gray, RGB, CMYK or CieLab!");
             break;
         }
+        case ePdfColorSpace_Unknown:
         default:
         {
             PODOFO_RAISE_ERROR( ePdfError_InvalidEnumValue );
@@ -555,6 +610,7 @@ PdfColor PdfColor::ConvertToGrayScale() const
             break;
         }
         case ePdfColorSpace_CieLab:
+        case ePdfColorSpace_Unknown:
         {
             PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
             break;
@@ -617,6 +673,7 @@ PdfColor PdfColor::ConvertToRGB() const
             break;
         }
         case ePdfColorSpace_CieLab:
+        case ePdfColorSpace_Unknown:
         {
             PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
             break;
@@ -646,10 +703,18 @@ PdfColor PdfColor::ConvertToCMYK() const
             double dBlue  = m_uColor.rgb[2];
 
             double dBlack   = PDF_MIN( 1.0-dRed, PDF_MIN( 1.0-dGreen, 1.0-dBlue ) );
-            double dCyan    = (1.0-dRed-dBlack)  /(1.0-dBlack);
-            double dMagenta = (1.0-dGreen-dBlack)/(1.0-dBlack);
-            double dYellow  = (1.0-dBlue-dBlack) /(1.0-dBlack);
-            
+
+            double dCyan = 0.0;
+            double dMagenta = 0.0;
+            double dYellow = 0.0;
+            if (dBlack < 1.0)
+            {
+                dCyan    = (1.0 - dRed   - dBlack) / (1.0 - dBlack);
+                dMagenta = (1.0 - dGreen - dBlack) / (1.0 - dBlack);
+                dYellow  = (1.0 - dBlue  - dBlack) / (1.0 - dBlack);
+            }
+            //else do nothing
+
             return PdfColor( dCyan, dMagenta, dYellow, dBlack );
         }
         case ePdfColorSpace_DeviceCMYK:
@@ -658,6 +723,7 @@ PdfColor PdfColor::ConvertToCMYK() const
         }
         case ePdfColorSpace_Separation:
         case ePdfColorSpace_CieLab:
+        case ePdfColorSpace_Unknown:
         {
             PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
             break;
@@ -708,9 +774,14 @@ PdfArray PdfColor::ToArray() const
             array.push_back( m_separationDensity );
             break;
         }
-        default:
+        case ePdfColorSpace_Unknown:
         {
             PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+            break;
+        }
+        default:
+        {
+            PODOFO_RAISE_ERROR( ePdfError_InvalidEnumValue );
             break;
         }
     };
@@ -747,26 +818,30 @@ PdfColor PdfColor::FromString( const char* pszName )
             ++pszName;
             if( lLen == 7 ) // RGB
             {
-                unsigned int r = (PdfTokenizer::GetHexValue( *pszName ) << 4) | 
-                    PdfTokenizer::GetHexValue( *(pszName+1) );
-                pszName += 2;
+                const unsigned int R_HI = static_cast<unsigned int>(PdfTokenizer::GetHexValue( *pszName++ ));
+                const unsigned int R_LO = static_cast<unsigned int>(PdfTokenizer::GetHexValue( *pszName++ ));
+                const unsigned int R = (R_HI << 4) | R_LO;
                 
-                unsigned int g = (PdfTokenizer::GetHexValue( *pszName ) << 4) | 
-                    PdfTokenizer::GetHexValue( *(pszName+1) );
-                pszName += 2;
+                const unsigned int G_HI = static_cast<unsigned int>(PdfTokenizer::GetHexValue( *pszName++ ));
+                const unsigned int G_LO = static_cast<unsigned int>(PdfTokenizer::GetHexValue( *pszName++ ));
+                const unsigned int G = (G_HI << 4) | G_LO;
 
-                unsigned int b = (PdfTokenizer::GetHexValue( *pszName ) << 4) | 
-                    PdfTokenizer::GetHexValue( *(pszName+1) );
+                const unsigned int B_HI = static_cast<unsigned int>(PdfTokenizer::GetHexValue( *pszName++ ));
+                const unsigned int B_LO = static_cast<unsigned int>(PdfTokenizer::GetHexValue( *pszName++ ));
+                const unsigned int B = (B_HI << 4) | B_LO;
 
                 if ( 
-                    (r != PdfTokenizer::HEX_NOT_FOUND) && 
-                    (g != PdfTokenizer::HEX_NOT_FOUND) && 
-                    (b != PdfTokenizer::HEX_NOT_FOUND)
+                    (R_HI != PdfTokenizer::HEX_NOT_FOUND) && 
+                    (R_LO != PdfTokenizer::HEX_NOT_FOUND) && 
+                    (G_HI != PdfTokenizer::HEX_NOT_FOUND) && 
+                    (G_LO != PdfTokenizer::HEX_NOT_FOUND) && 
+                    (B_HI != PdfTokenizer::HEX_NOT_FOUND) &&
+                    (B_LO != PdfTokenizer::HEX_NOT_FOUND)
                     )
                 {
-                    return PdfColor( static_cast<double>(r)/255.0, 
-                                     static_cast<double>(g)/255.0, 
-                                     static_cast<double>(b)/255.0 );
+                    return PdfColor( static_cast<double>(R)/255.0, 
+                                     static_cast<double>(G)/255.0, 
+                                     static_cast<double>(B)/255.0 );
                 }
                 else
                 {
@@ -775,29 +850,37 @@ PdfColor PdfColor::FromString( const char* pszName )
             }
             else if( lLen == 9 ) // CMYK
             {
-                unsigned int c = (PdfTokenizer::GetHexValue( *pszName ) << 4) | 
-                    PdfTokenizer::GetHexValue( *(pszName+1 ) );
-                pszName += 2;
-                unsigned int m = (PdfTokenizer::GetHexValue( *pszName ) << 4) | 
-                    PdfTokenizer::GetHexValue( *(pszName+1 ) );
-                pszName += 2;
-                unsigned int y = (PdfTokenizer::GetHexValue( *pszName ) << 4) | 
-                    PdfTokenizer::GetHexValue( *(pszName+1) );
-                pszName += 2;
-                unsigned int k = (PdfTokenizer::GetHexValue( *pszName ) << 4) |
-                    PdfTokenizer::GetHexValue( *(pszName+1) );
+                const unsigned int C_HI = static_cast<unsigned int>(PdfTokenizer::GetHexValue( *pszName++ ));
+                const unsigned int C_LO = static_cast<unsigned int>(PdfTokenizer::GetHexValue( *pszName++ ));
+                const unsigned int C = (C_HI << 4) | C_LO;
+                
+                const unsigned int M_HI = static_cast<unsigned int>(PdfTokenizer::GetHexValue( *pszName++ ));
+                const unsigned int M_LO = static_cast<unsigned int>(PdfTokenizer::GetHexValue( *pszName++ ));
+                const unsigned int M = (M_HI << 4) | M_LO;
+
+                const unsigned int Y_HI = static_cast<unsigned int>(PdfTokenizer::GetHexValue( *pszName++ ));
+                const unsigned int Y_LO = static_cast<unsigned int>(PdfTokenizer::GetHexValue( *pszName++ ));
+                const unsigned int Y = (Y_HI << 4) | Y_LO;
+
+                const unsigned int K_HI = static_cast<unsigned int>(PdfTokenizer::GetHexValue( *pszName++ ));
+                const unsigned int K_LO = static_cast<unsigned int>(PdfTokenizer::GetHexValue( *pszName++ ));
+                const unsigned int K = (K_HI << 4) | K_LO;
 
                 if ( 
-                    (c != PdfTokenizer::HEX_NOT_FOUND) && 
-                    (m != PdfTokenizer::HEX_NOT_FOUND) && 
-                    (y != PdfTokenizer::HEX_NOT_FOUND) && 
-                    (k != PdfTokenizer::HEX_NOT_FOUND)
+                    (C_HI != PdfTokenizer::HEX_NOT_FOUND) && 
+                    (C_LO != PdfTokenizer::HEX_NOT_FOUND) && 
+                    (M_HI != PdfTokenizer::HEX_NOT_FOUND) && 
+                    (M_LO != PdfTokenizer::HEX_NOT_FOUND) && 
+                    (Y_HI != PdfTokenizer::HEX_NOT_FOUND) && 
+                    (Y_LO != PdfTokenizer::HEX_NOT_FOUND) && 
+                    (K_HI != PdfTokenizer::HEX_NOT_FOUND) &&
+                    (K_LO != PdfTokenizer::HEX_NOT_FOUND)
                     )
                 {
-                    return PdfColor( static_cast<double>(c)/255.0, 
-                                     static_cast<double>(m)/255.0, 
-                                     static_cast<double>(y)/255.0,
-                                     static_cast<double>(k)/255.0 );
+                    return PdfColor( static_cast<double>(C)/255.0, 
+                                     static_cast<double>(M)/255.0, 
+                                     static_cast<double>(Y)/255.0,
+                                     static_cast<double>(K)/255.0 );
                 }
                 else
                 {
@@ -1038,6 +1121,8 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
                 {
                     break;
                 }
+
+                case ePdfColorSpace_Unknown:
                 default:
                 {
                     PODOFO_RAISE_ERROR( ePdfError_InvalidEnumValue );
@@ -1083,6 +1168,8 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
         {
             break;
         }
+
+        case ePdfColorSpace_Unknown:
         default:
         {
             PODOFO_RAISE_ERROR( ePdfError_InvalidEnumValue );

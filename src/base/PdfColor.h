@@ -641,6 +641,8 @@ inline bool PdfColor::operator==( const PdfColor & rhs ) const
            )
            return true;
 
+        if (m_eColorSpace == ePdfColorSpace_Unknown)
+            return true;
     }
     return false;
 }

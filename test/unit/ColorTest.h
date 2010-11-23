@@ -25,19 +25,64 @@
 
 class ColorTest : public CppUnit::TestFixture
 {
-  CPPUNIT_TEST_SUITE( ColorTest );
-  CPPUNIT_TEST( testHexNames );
-  CPPUNIT_TEST( testNames );
-  CPPUNIT_TEST_SUITE_END();
+    CPPUNIT_TEST_SUITE( ColorTest );
+    CPPUNIT_TEST( testDefaultConstructor );
+    CPPUNIT_TEST( testGreyConstructor );
+    CPPUNIT_TEST( testGreyConstructorInvalid );
+    CPPUNIT_TEST( testRGBConstructor );
+    CPPUNIT_TEST( testRGBConstructorInvalid );
+    CPPUNIT_TEST( testCMYKConstructor );
+    CPPUNIT_TEST( testCMYKConstructorInvalid );
+    CPPUNIT_TEST( testCopyConstructor );
+    CPPUNIT_TEST( testAssignmentOperator );
+    CPPUNIT_TEST( testEqualsOperator );
+    CPPUNIT_TEST( testHexNames );
+    CPPUNIT_TEST( testNamesGeneral );
+    CPPUNIT_TEST( testNamesOneByOne );
 
- public:
-  void setUp();
-  void tearDown();
+    CPPUNIT_TEST( testColorGreyConstructor );
+    CPPUNIT_TEST( testColorRGBConstructor );
+    CPPUNIT_TEST( testColorCMYKConstructor );
 
-  void testHexNames();
-  void testNames();
+    CPPUNIT_TEST( testColorSeparationAllConstructor );
+    CPPUNIT_TEST( testColorSeparationNoneConstructor );
+    CPPUNIT_TEST( testColorSeparationConstructor );
+    CPPUNIT_TEST( testColorCieLabConstructor );
 
- private:
+    CPPUNIT_TEST( testRGBtoCMYKConversions );
+
+    CPPUNIT_TEST_SUITE_END();
+
+public:
+    virtual void setUp();
+    virtual void tearDown();
+
+protected:
+    void testDefaultConstructor();
+    void testGreyConstructor();
+    void testGreyConstructorInvalid();
+    void testRGBConstructor();
+    void testRGBConstructorInvalid();
+    void testCMYKConstructor();
+    void testCMYKConstructorInvalid();
+    void testCopyConstructor();
+    void testAssignmentOperator();
+    void testEqualsOperator();
+    void testHexNames();
+    void testNamesGeneral();
+    void testNamesOneByOne();
+
+    void testColorGreyConstructor();
+    void testColorRGBConstructor();
+    void testColorCMYKConstructor();
+
+    void testColorSeparationAllConstructor();
+    void testColorSeparationNoneConstructor();
+    void testColorSeparationConstructor();
+    void testColorCieLabConstructor();
+
+    void testRGBtoCMYKConversions();
+
 };
 
 #endif
