@@ -103,9 +103,8 @@ const char* genEscMap()
 // Generate the hex character map at runtime
 const char* genHexMap()
 {
-    const unsigned int HEX_NOT_FOUND = std::numeric_limits<unsigned int>::max();
     char* map = static_cast<char*>(g_hexMap);
-    memset( map, HEX_NOT_FOUND, sizeof(char) * g_MapAllocLen );
+    memset( map, PdfTokenizer::HEX_NOT_FOUND, sizeof(char) * g_MapAllocLen );
     
     map['0'] = 0x0;
     map['1'] = 0x1;
