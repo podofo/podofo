@@ -187,7 +187,7 @@ public:
     }
 };
 
-// Table based on http://cvsweb.xfree86.org/cvsweb/*checkout*/xc/programs/rgb/rgb.txt?rev=1.1
+// Table based on http://cvsweb.xfree86.org/cvsweb/xc/programs/rgb/rgb.txt?rev=1.2
 // Hex values have been copied from http://en.wikipedia.org/wiki/X11_color_names (21/11/2010)
 static const size_t s_nNumNamedColors = 148;
 static const PdfNamedColor s_NamedColors[s_nNumNamedColors] = 

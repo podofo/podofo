@@ -1110,8 +1110,7 @@ void ColorTest::testNamesOneByOne()
 #endif
 
 
-//Copied and adjusted from //http://cvsweb.xfree86.org/cvsweb/xc/programs/rgb/rgb.txt?rev=1.2&content-type=text/vnd.viewcvs-markup
-//! $XFree86$
+//Copied and adjusted from http://cvsweb.xfree86.org/cvsweb/xc/programs/rgb/rgb.txt?rev=1.2
     const TestColor TABLE_OF_TEST_COLORS[] = 
     {
         TestColor(255, 250, 250, "snow"),
