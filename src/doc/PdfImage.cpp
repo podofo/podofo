@@ -24,8 +24,6 @@
 
 #include "base/PdfStream.h"
 
-#include "PdfDocument.h"
-
 #include <stdio.h>
 #include <wchar.h>
 #include <sstream>
@@ -601,12 +599,14 @@ void PdfImage::LoadFromPng( const char* pszFilename )
     png_infop pInfo = png_create_info_struct(pPng);
     if( !pInfo )
     {
+        png_destroy_read_struct(&pPng, (png_infopp)NULL, (png_infopp)NULL);
         fclose( hFile );
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     if( setjmp(png_jmpbuf(pPng)) )
     {
+        png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
         fclose( hFile );
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -622,6 +622,7 @@ void PdfImage::LoadFromPng( const char* pszFilename )
     // Read the file
     if( setjmp(png_jmpbuf(pPng)) ) 
     {
+        png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
         fclose( hFile );
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -673,6 +674,8 @@ void PdfImage::LoadFromPng( const char* pszFilename )
     PdfMemoryInputStream stream( pBuffer, lLen );
     this->SetImageData( width, height, pInfo->bit_depth, &stream );
     
+    png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
+
     free(pBuffer);
     free(pRows);
 }
@@ -692,6 +695,7 @@ const char* PdfImage::ColorspaceToName( EPdfColorSpace eColorSpace )
             return "Separation";
         case ePdfColorSpace_CieLab:
             return "Lab";
+        case ePdfColorSpace_Unknown:
         default:
             return NULL;
     }
