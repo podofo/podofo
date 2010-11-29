@@ -23,6 +23,8 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
+#ifndef __clang__
+
 /** This test tests the class PdfString
  */
 class StringTest : public CppUnit::TestFixture
@@ -33,6 +35,7 @@ class StringTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testWCharConstructor );
   CPPUNIT_TEST( testEscapeBrackets );
   CPPUNIT_TEST( testWriteEscapeSequences );
+  CPPUNIT_TEST( testEmptyString );
   CPPUNIT_TEST_SUITE_END();
 
  public:
@@ -44,11 +47,14 @@ class StringTest : public CppUnit::TestFixture
   void testWCharConstructor();
   void testEscapeBrackets();
   void testWriteEscapeSequences();
+  void testEmptyString();
 
  private:
   void TestWriteEscapeSequences(const char* pszSource, const char* pszExpected);
 
 };
+
+#endif // __clang__
 
 #endif // _STRING_TEST_H_
 

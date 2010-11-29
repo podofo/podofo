@@ -22,6 +22,8 @@
 
 #include <podofo.h>
 
+#ifndef __clang__
+
 using namespace PoDoFo;
 
 // Registers the fixture into the 'registry'
@@ -251,3 +253,66 @@ void StringTest::TestWriteEscapeSequences(const char* pszSource, const char* psz
     CPPUNIT_ASSERT_EQUAL( expected, ret );
 
 }
+
+void StringTest::testEmptyString()
+{
+    const char* pszEmpty = "";
+    std::string sEmpty;
+    std::string sEmpty2( pszEmpty );
+
+    PdfString str1;
+    PdfString str2( sEmpty );
+    PdfString str3( sEmpty2 );
+    PdfString str4( pszEmpty );
+    PdfString str5( pszEmpty, 0, false );
+    PdfString str6( reinterpret_cast<const pdf_utf8*>(pszEmpty) );
+    PdfString str7( reinterpret_cast<const pdf_utf8*>(pszEmpty), 0 );
+    PdfString str8( reinterpret_cast<const pdf_utf16be*>(L""), 0 );
+
+    CPPUNIT_ASSERT( !str1.IsValid() );
+
+    CPPUNIT_ASSERT( str2.IsValid() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(0), str2.GetLength() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(0), str2.GetCharacterLength() );
+    CPPUNIT_ASSERT_EQUAL( std::string(), str2.GetStringUtf8() );
+    CPPUNIT_ASSERT_EQUAL( std::string(""), str2.GetStringUtf8() );
+
+    CPPUNIT_ASSERT( str3.IsValid() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(0), str3.GetLength() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(0), str3.GetCharacterLength() );
+    CPPUNIT_ASSERT_EQUAL( std::string(), str3.GetStringUtf8() );
+    CPPUNIT_ASSERT_EQUAL( std::string(""), str3.GetStringUtf8() );
+
+    CPPUNIT_ASSERT( str4.IsValid() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(0), str4.GetLength() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(0), str4.GetCharacterLength() );
+    CPPUNIT_ASSERT_EQUAL( std::string(), str4.GetStringUtf8() );
+    CPPUNIT_ASSERT_EQUAL( std::string(""), str4.GetStringUtf8() );
+
+    CPPUNIT_ASSERT( str5.IsValid() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(0), str5.GetLength() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(0), str5.GetCharacterLength() );
+    CPPUNIT_ASSERT_EQUAL( std::string(), str5.GetStringUtf8() );
+    CPPUNIT_ASSERT_EQUAL( std::string(""), str5.GetStringUtf8() );
+
+    CPPUNIT_ASSERT( str6.IsValid() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(0), str6.GetLength() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(0), str6.GetCharacterLength() );
+    CPPUNIT_ASSERT_EQUAL( std::string(), str6.GetStringUtf8() );
+    CPPUNIT_ASSERT_EQUAL( std::string(""), str6.GetStringUtf8() );
+
+    CPPUNIT_ASSERT( str7.IsValid() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(0), str7.GetLength() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(0), str7.GetCharacterLength() );
+    CPPUNIT_ASSERT_EQUAL( std::string(), str7.GetStringUtf8() );
+    CPPUNIT_ASSERT_EQUAL( std::string(""), str7.GetStringUtf8() );
+
+    CPPUNIT_ASSERT( str8.IsValid() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(0), str8.GetLength() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(0), str8.GetCharacterLength() );
+    CPPUNIT_ASSERT_EQUAL( std::string(), str8.GetStringUtf8() );
+    CPPUNIT_ASSERT_EQUAL( std::string(""), str8.GetStringUtf8() );
+
+}
+
+#endif // __clang__

@@ -380,7 +380,7 @@ class PODOFO_API PdfString : public PdfDataType{
      *  The input string will be copied.
      *  if m_bhex is true the copied data will be hex encoded.
      *
-     *  \param pszString the string to copy
+     *  \param pszString the string to copy, must not be NULL
      *  \param lLen length of the string data to copy
      *  
      */
@@ -390,7 +390,7 @@ class PODOFO_API PdfString : public PdfDataType{
      *  string. 
      *  The input string will be copied and converted to UTF-16be.
      *
-     *  \param pszStringUtf8 the string to copy
+     *  \param pszStringUtf8 the string to copy, ust not be NULL
      *  \param lLen number of bytes of the string data to copy
      *  
      */

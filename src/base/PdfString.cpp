@@ -86,8 +86,7 @@ PdfString::PdfString()
 PdfString::PdfString( const std::string& sString, const PdfEncoding * const pEncoding )
     : m_bHex( false ), m_bUnicode( false ), m_pEncoding( pEncoding )
 {
-    if( sString.length() )
-        Init( sString.c_str(), sString.length() );
+    Init( sString.c_str(), sString.length() );
 }
 
 PdfString::PdfString( const char* pszString, const PdfEncoding * const pEncoding )
@@ -104,42 +103,42 @@ PdfString::PdfString( const wchar_t* pszString )
 {
     if( pszString )
     {
-	pdf_long lLen = wcslen( pszString );
-	if( sizeof(wchar_t) == 2 ) 
-	{
-	    // We have UTF16
-	    lLen *= sizeof(wchar_t);
-	    m_buffer = PdfRefCountedBuffer( lLen + 2 );
-	    memcpy( m_buffer.GetBuffer(), pszString, lLen );
-	    m_buffer.GetBuffer()[lLen] = '\0';
-	    m_buffer.GetBuffer()[lLen+1] = '\0';
-	    
-	    // if the buffer is a UTF-16LE string
-	    // convert it to UTF-16BE
+        pdf_long lLen = wcslen( pszString );
+        if( sizeof(wchar_t) == 2 ) 
+        {
+            // We have UTF16
+            lLen *= sizeof(wchar_t);
+            m_buffer = PdfRefCountedBuffer( lLen + 2 );
+            memcpy( m_buffer.GetBuffer(), pszString, lLen );
+            m_buffer.GetBuffer()[lLen] = '\0';
+            m_buffer.GetBuffer()[lLen+1] = '\0';
+            
+            // if the buffer is a UTF-16LE string
+            // convert it to UTF-16BE
 #ifdef PODOFO_IS_LITTLE_ENDIAN
             SwapBytes( m_buffer.GetBuffer(), lLen );
 #endif // PODOFO_IS_LITTLE_ENDIA
-	}
-	else
-	{
-	    // Try to convert to UTF8
-	    pdf_long   lDest = 5 * lLen; // At max 5 bytes per UTF8 char
-	    char*  pDest = static_cast<char*>(malloc( lDest ));
-	    size_t cnt   = wcstombs(pDest, pszString, lDest);
-	    if( cnt != static_cast<size_t>(-1) )
-	    {
-		// No error
-		InitFromUtf8( reinterpret_cast<pdf_utf8*>(pDest), cnt );
-		free( pDest );
+        }
+        else
+        {
+            // Try to convert to UTF8
+            pdf_long   lDest = 5 * lLen; // At max 5 bytes per UTF8 char
+            char*  pDest = static_cast<char*>(malloc( lDest ));
+            size_t cnt   = wcstombs(pDest, pszString, lDest);
+            if( cnt != static_cast<size_t>(-1) )
+            {
+                // No error
+                InitFromUtf8( reinterpret_cast<pdf_utf8*>(pDest), cnt );
+                free( pDest );
 	    }
-	    else
-	    {
-		free( pDest );
-		PdfError e( ePdfError_InternalLogic, __FILE__, __LINE__ );
-		e.SetErrorInformation( pszString );
-		throw e;
-	    }
-	}    
+            else
+            {
+                free( pDest );
+                PdfError e( ePdfError_InternalLogic, __FILE__, __LINE__ );
+                e.SetErrorInformation( pszString );
+                throw e;
+            }
+        }    
     }
 }
 #endif
@@ -147,7 +146,8 @@ PdfString::PdfString( const wchar_t* pszString )
 PdfString::PdfString( const char* pszString, pdf_long lLen, bool bHex, const PdfEncoding * const pEncoding )
     : m_bHex( bHex ), m_bUnicode( false ), m_pEncoding( pEncoding )
 {
-    Init( pszString, lLen );
+    if( pszString )
+        Init( pszString, lLen );
 }
 
 PdfString::PdfString( const pdf_utf8* pszStringUtf8 )
@@ -333,14 +333,14 @@ void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
             {
                 enc.insert(0,tmp);
                 enc.erase(nOutputLen,std::string::npos);  
-            }
-
+        }
+	
             // Add two bytes for the s_pszUnicodeMarker
             pEncrypt->Encrypt(enc, nLen + 2 );
         }
         else
         {
-            pEncrypt->Encrypt(enc, nLen );
+        pEncrypt->Encrypt(enc, nLen );
         }
 
         PdfString str( enc.c_str(), enc.length(), true );
@@ -480,48 +480,55 @@ bool PdfString::operator==( const PdfString & rhs ) const
 
 void PdfString::Init( const char* pszString, pdf_long lLen )
 {
-    if( pszString ) 
+    if( !pszString )
     {
-        bool bUft16LE = false;
-        // check if it is a unicode string (UTF-16BE)
-        // UTF-16BE strings have to start with 0xFE 0xFF
-        if( lLen >= 2 ) 
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    bool bUft16LE = false;
+    // check if it is a unicode string (UTF-16BE)
+    // UTF-16BE strings have to start with 0xFE 0xFF
+    if( lLen >= 2 ) 
+    {
+        m_bUnicode = (pszString[0] == PdfString::s_pszUnicodeMarker[0] && 
+                      pszString[1] == PdfString::s_pszUnicodeMarker[1]);
+        
+        // Check also for UTF-16LE
+        if( !m_bUnicode && (pszString[0] == PdfString::s_pszUnicodeMarker[1] && 
+                            pszString[1] == PdfString::s_pszUnicodeMarker[0]) )
         {
-            m_bUnicode = (pszString[0] == PdfString::s_pszUnicodeMarker[0] && 
-                          pszString[1] == PdfString::s_pszUnicodeMarker[1]);
-
-            // Check also for UTF-16LE
-            if( !m_bUnicode && (pszString[0] == PdfString::s_pszUnicodeMarker[1] && 
-                                pszString[1] == PdfString::s_pszUnicodeMarker[0]) )
-            {
-                bUft16LE = true;
-            }
-        }
-
-        // skip the first two bytes 
-        if( m_bUnicode )
-        {
-            lLen      -= 2;
-            pszString += 2;
-        }
-
-
-        m_buffer = PdfRefCountedBuffer( lLen + 2 );
-        memcpy( m_buffer.GetBuffer(), pszString, lLen );
-        m_buffer.GetBuffer()[lLen] = '\0';
-        m_buffer.GetBuffer()[lLen+1] = '\0';
-
-        // if the buffer is a UTF-16LE string
-        // convert it to UTF-16BE
-        if( bUft16LE ) 
-        {
-            SwapBytes( m_buffer.GetBuffer(), lLen );
+            bUft16LE = true;
         }
     }
+    
+    // skip the first two bytes 
+    if( m_bUnicode )
+    {
+        lLen      -= 2;
+        pszString += 2;
+    }
+
+    
+    m_buffer = PdfRefCountedBuffer( lLen + 2 );
+    memcpy( m_buffer.GetBuffer(), pszString, lLen );
+    m_buffer.GetBuffer()[lLen] = '\0';
+    m_buffer.GetBuffer()[lLen+1] = '\0';
+
+    // if the buffer is a UTF-16LE string
+    // convert it to UTF-16BE
+    if( bUft16LE ) 
+    {
+        SwapBytes( m_buffer.GetBuffer(), lLen );
+        }
 }
 
 void PdfString::InitFromUtf8( const pdf_utf8* pszStringUtf8, pdf_long lLen )
 {
+    if( !pszStringUtf8 )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
     pdf_long        lBufLen = (lLen << 1) + sizeof(wchar_t);
     // twice as large buffer should always be enough
     pdf_utf16be *pBuffer = static_cast<pdf_utf16be *>(alloca(lBufLen)); 
