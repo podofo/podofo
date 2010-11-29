@@ -519,7 +519,7 @@ void PdfString::Init( const char* pszString, pdf_long lLen )
     if( bUft16LE ) 
     {
         SwapBytes( m_buffer.GetBuffer(), lLen );
-        }
+    }
 }
 
 void PdfString::InitFromUtf8( const pdf_utf8* pszStringUtf8, pdf_long lLen )
