@@ -85,6 +85,8 @@ void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
         
         curPage = mDoc->GetPage( pg );
         sOutStream << "->Internal Number:" << curPage->GetPageNumber() << std::endl;
+        sOutStream << "->Object Number:" << curPage->GetObject()->Reference().ObjectNumber() 
+                   << " " <<  curPage->GetObject()->Reference().GenerationNumber() << " R" << std::endl;
         
         curPage->GetMediaBox().ToVariant( var );
         var.ToString( str );
