@@ -60,17 +60,6 @@ namespace PoDoFo {
 static const long clPainterHighPrecision    = 15L;
 static const long clPainterDefaultPrecision = 3L;
 
-struct TLineElement 
-{
-	TLineElement()
-		: pszStart( NULL ), lLen( 0L )
-	{
-	}
-
-	const char* pszStart;
-	pdf_long        lLen;
-};
-
 static inline void CheckDoubleRange( double val, double min, double max )
 {
     if( val < min || val > max )
@@ -278,6 +267,10 @@ void PdfPainter::SetStrokingColor( const PdfColor & rColor )
                   << rColor.GetCieB() <<
 				  " SCN" << std::endl;
             break;
+        case ePdfColorSpace_Unknown:
+        {
+            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+        }
     }
 
     m_pCanvas->Append( m_oss.str() );
@@ -321,6 +314,10 @@ void PdfPainter::SetColor( const PdfColor & rColor )
                   << rColor.GetCieB() <<
 				  " scn" << std::endl;
 			break;
+        case ePdfColorSpace_Unknown:
+        {
+            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+        }
     }
 
     m_pCanvas->Append( m_oss.str() );
@@ -811,64 +808,13 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
     
     if( dWidth <= 0.0 || dHeight <= 0.0 ) // nonsense arguments
         return;
-    
-    TLineElement              tLine;
-    std::vector<TLineElement> vecLines;
+
     this->Save();
     this->SetClipRect( dX, dY, dWidth, dHeight );
-    
+
     PdfString   sString  = this->ExpandTabs( rsText, rsText.GetCharacterLength() );
 
-	tLine.pszStart       = sString.GetString();
-    const char* pszEnd   = tLine.pszStart;
-    const char* pszWord  = tLine.pszStart;
-    
-    double dCurWidth = 0.0;
-
-    // do simple word wrapping
-    // TODO: Use better algorithm!
-    while( *pszEnd ) 
-    {
-        dCurWidth += m_pFont->GetFontMetrics()->CharWidth( *pszEnd );
-        
-        if( *pszEnd == '\n' ) // hard-break!
-        {
-            ++pszEnd; // skip the line feed
-            
-            tLine.lLen = pszEnd - tLine.pszStart;
-            vecLines.push_back( tLine );
-            
-            tLine.pszStart = pszEnd;
-            dCurWidth = 0.0;
-        }
-        else if( isspace( static_cast<unsigned int>(static_cast<unsigned char>(*pszEnd)) ) || 
-                 ispunct( static_cast<unsigned int>(static_cast<unsigned char>(*pszEnd)) ))
-            pszWord = pszEnd;
-        
-        if( dCurWidth > dWidth ) 
-        {
-            // The last word does not fit anymore in the current line.
-            // -> Move it to the next one.
-                        
-            // skip leading whitespaces!
-            while( *tLine.pszStart && isspace( static_cast<unsigned int>(static_cast<unsigned char>(*tLine.pszStart)) ) )
-                ++tLine.pszStart;
-
-            tLine.lLen = /*pszEnd*/pszWord - tLine.pszStart + 1;
-            vecLines.push_back( tLine );
-            tLine.pszStart = pszWord + 1;
-
-            dCurWidth = pszEnd-pszWord > 0 ? 
-                m_pFont->GetFontMetrics()->StringWidth( pszWord+1, pszEnd-pszWord-1 ) : 0.0;
-        }
-        ++pszEnd;
-    }
-
-    if( pszEnd-tLine.pszStart > 0 ) 
-    {
-        tLine.lLen = pszEnd - tLine.pszStart;
-        vecLines.push_back( tLine );
-    }
+    std::vector<TLineElement> vecLines = getMultiLineTextAsLines(dWidth, sString);
 
     // Do vertical alignment
     switch( eVertical ) 
@@ -894,6 +840,142 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
         ++it;
     }
     this->Restore();
+}
+
+std::vector<TLineElement> PdfPainter::getMultiLineTextAsLines( double dWidth, const PdfString & rsText)
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+
+    if( !m_pFont || !m_pPage || !rsText.IsValid() )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    std::vector<TLineElement> vecLines;
+
+    if( dWidth <= 0.0 ) // nonsense arguments
+        return vecLines;
+
+    TLineElement              tLine;
+    
+    tLine.pszStart       = rsText.GetString();
+    
+    const char* pszCurrentCharacter   = tLine.pszStart;
+    const char* pszStartOfCurrentWord  = tLine.pszStart;
+
+    bool startOfWord = true;
+
+    double dCurWidthOfLine = 0.0;
+
+    // do simple word wrapping
+    while( *pszCurrentCharacter ) 
+    {
+        if( *pszCurrentCharacter == '\n' ) // hard-break!
+        {
+            tLine.lLen = pszCurrentCharacter - tLine.pszStart;
+            vecLines.push_back( tLine );
+
+            ++pszCurrentCharacter; // skip the line feed
+
+            tLine.pszStart = pszCurrentCharacter;
+            startOfWord = true;
+            dCurWidthOfLine = 0.0;
+        }
+        else if( isspace( static_cast<unsigned int>(static_cast<unsigned char>(*pszCurrentCharacter)) ) /*|| 
+                 ispunct( static_cast<unsigned int>(static_cast<unsigned char>(*pszCurrentCharacter)) )*/)
+        {
+            if( dCurWidthOfLine > dWidth )
+            {
+                // The previous word does not fit in the current line.
+                // -> Move it to the next one.
+                tLine.lLen = pszStartOfCurrentWord - tLine.pszStart;
+                vecLines.push_back( tLine );
+
+                tLine.pszStart = pszStartOfCurrentWord;
+
+                if (!startOfWord)
+                {
+                    dCurWidthOfLine = m_pFont->GetFontMetrics()->StringWidth( pszStartOfCurrentWord, pszCurrentCharacter-pszStartOfCurrentWord );
+                }
+                else
+                {
+                    dCurWidthOfLine = 0.0;
+                }
+            }
+            else 
+            {
+           
+                dCurWidthOfLine += m_pFont->GetFontMetrics()->CharWidth( *pszCurrentCharacter );
+            }
+
+            startOfWord = true;
+        }
+        else
+        {
+            if (startOfWord)
+            {
+                pszStartOfCurrentWord = pszCurrentCharacter;
+                startOfWord = false;
+            }
+            //else do nothing
+
+            if ((dCurWidthOfLine + m_pFont->GetFontMetrics()->CharWidth( *pszCurrentCharacter )) > dWidth)
+            {
+                if ( tLine.pszStart == pszStartOfCurrentWord )
+                {
+                    // This word takes up the whole line.
+                    // Put as much as possible on this line.
+                    tLine.lLen = pszCurrentCharacter - tLine.pszStart;
+                    vecLines.push_back( tLine );
+
+                    tLine.pszStart = pszCurrentCharacter;
+                    pszStartOfCurrentWord = pszCurrentCharacter;
+
+                    dCurWidthOfLine = m_pFont->GetFontMetrics()->CharWidth( *pszCurrentCharacter );
+                }
+                else
+                {
+                    // The current word does not fit in the current line.
+                    // -> Move it to the next one.
+                    tLine.lLen = pszStartOfCurrentWord - tLine.pszStart;
+                    vecLines.push_back( tLine );
+
+                    tLine.pszStart = pszStartOfCurrentWord;
+
+                    dCurWidthOfLine = m_pFont->GetFontMetrics()->StringWidth( pszStartOfCurrentWord, (pszCurrentCharacter-pszStartOfCurrentWord) + 1 );
+                }
+            }
+            else 
+            {
+                dCurWidthOfLine += m_pFont->GetFontMetrics()->CharWidth( *pszCurrentCharacter );
+            }
+        }
+        ++pszCurrentCharacter;
+    }
+
+    if( pszCurrentCharacter-tLine.pszStart > 0 ) 
+    {
+        if( dCurWidthOfLine > dWidth )
+        {
+            // The previous word does not fit in the current line.
+            // -> Move it to the next one.
+            tLine.lLen = pszStartOfCurrentWord - tLine.pszStart;
+            vecLines.push_back( tLine );
+
+            tLine.pszStart = pszStartOfCurrentWord;
+
+        }
+        //else do nothing
+
+        if( pszCurrentCharacter-tLine.pszStart > 0 ) 
+        {
+            tLine.lLen = pszCurrentCharacter - tLine.pszStart;
+            vecLines.push_back( tLine );
+        }
+        //else do nothing
+    }
+
+    return vecLines;
 }
 
 void PdfPainter::DrawTextAligned( double dX, double dY, double dWidth, const PdfString & rsText, EPdfAlignment eAlignment )

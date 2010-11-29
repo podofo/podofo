@@ -42,6 +42,17 @@ class PdfStream;
 class PdfString;
 class PdfXObject;
 
+struct TLineElement 
+{
+	TLineElement()
+		: pszStart( NULL ), lLen( 0L )
+	{
+	}
+
+	const char* pszStart;
+	pdf_long        lLen;
+};
+
 /**
  * This class provides an easy to use painter object which allows you to draw on a PDF page
  * object.
@@ -364,6 +375,13 @@ class PODOFO_DOC_API PdfPainter {
      */
     inline void DrawMultiLineText( const PdfRect & rRect, const PdfString & rsText, EPdfAlignment eAlignment = ePdfAlignment_Left,
                                    EPdfVerticalAlignment eVertical = ePdfVerticalAlignment_Top);
+
+    /** Gets the text divided into individual lines, using the current font and clipping rectangle.
+     *
+     *  \param dWidth width of the text area
+     *  \param rsText the text which should be drawn
+     */
+    std::vector<TLineElement> getMultiLineTextAsLines( double dWidth, const PdfString & rsText);
 
     /** Draw a single line of text horizontally aligned.
      *  \param dX the x coordinate of the text line
