@@ -1,0 +1,53 @@
+.TH "PODOFOPAGES" "1" "2010-12-09" "PoDoFo" "podofopages"
+.PP
+.SH NAME
+podofopages \- move and delete pages in a PDF document
+.PP
+.SH SYNOPSIS
+\fBpodofopages\fR [\-\-delete] [\-\-move] [inputfile] [outputfile]
+.PP
+.SH DESCRIPTION
+.B podofopages
+is one of the command line tools from the PoDoFo library that provide several
+useful operations to work with PDF files\. It can move and delete pages in a
+PDF document\.
+.PP
+.SH "OPTIONS"
+.PP
+\fB\-\-delete NUMBER\fR
+.RS
+.PP
+Deletes the page NUMBER (number is 0\-based)\. The page will not really be
+deleted from the PDF\. It is only removed from the so called pagestree and
+therefore becomes hidden\. The content of the page can still be retrieved from
+the document though\.
+.RE
+.PP
+\fB\-\-move FROM TO\fR
+.RS
+.PP
+Moves a page FROM TO in the document (FROM and TO are 0\-based)\.
+.RE
+.PP
+.SH SEE ALSO
+.BR podofobox (1),
+.BR podofocountpages (1),
+.BR podofocrop (1),
+.BR podofoencrypt (1),
+.BR podofoimg2pdf (1),
+.BR podofoimgextract (1),
+.BR podofoimpose (1),
+.BR podofoincrementalupdates (1),
+.BR podofomerge (1),
+.BR podofopdfinfo (1),
+.BR podofotxt2pdf (1),
+.BR podofotxtextract (1),
+.BR podofouncompress (1),
+.BR podofoxmp (1)
+.PP
+.SH AUTHORS
+.PP
+PoDoFo is written by Dominik Seichter <domseichter@web\.de> and others\.
+.PP
+This manual page was written by Oleksandr Moskalenko <malex@debian\.org> for
+the Debian Project (but may be used by others)\.
