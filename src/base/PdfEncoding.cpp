@@ -108,7 +108,7 @@ PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString,
     const pdf_utf16be* cpUnicodeTable = this->GetToUnicodeTable();
     pdf_long           lLen           = rEncodedString.GetLength();
 
-    if( !lLen )
+    if( lLen  <= 0 )
         return PdfString("");
 
     pdf_utf16be* pszStringUtf16 = static_cast<pdf_utf16be*>(malloc(sizeof(pdf_utf16be) * (lLen + 1)) );
