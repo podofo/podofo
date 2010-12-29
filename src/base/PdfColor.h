@@ -23,6 +23,8 @@
 
 #include "PdfDefines.h"
 
+#include "PdfName.h"
+
 namespace PoDoFo {
 
 class PdfArray;
@@ -352,6 +354,22 @@ class PODOFO_API PdfColor {
      *  \returns a PdfColor object
      */
     static PdfColor FromArray( const PdfArray & rArray );
+
+    /**
+     * Convert a name into a colorspace enum.
+     * @param rName name representing a colorspace such as DeviceGray
+     * @returns colorspace enum or ePdfColorSpace_Unknown if name is unknown
+     * @see GetNameForColorSpace
+     */
+    static EPdfColorSpace GetColorSpaceForName( const PdfName & rName );
+
+    /**
+     * Convert a colorspace enum value into a name such as DeviceRGB
+     * @param eColorSpace a colorspace
+     * @returns a name
+     * @see GetColorSpaceForName
+     */
+    static PdfName GetNameForColorSpace( EPdfColorSpace eColorSpace );
 
     /** Creates a colorspace object from a color to insert into resources.
      *

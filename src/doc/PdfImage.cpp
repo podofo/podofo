@@ -22,6 +22,7 @@
 
 #include "base/PdfDefinesPrivate.h"
 
+#include "base/PdfColor.h"
 #include "base/PdfStream.h"
 
 #include <stdio.h>
@@ -683,22 +684,7 @@ void PdfImage::LoadFromPng( const char* pszFilename )
 
 const char* PdfImage::ColorspaceToName( EPdfColorSpace eColorSpace )
 {
-    switch( eColorSpace )
-    {
-        case ePdfColorSpace_DeviceGray:
-            return "DeviceGray";
-        case ePdfColorSpace_DeviceRGB:
-            return "DeviceRGB";
-        case ePdfColorSpace_DeviceCMYK:
-            return "DeviceCMYK";
-        case ePdfColorSpace_Separation:
-            return "Separation";
-        case ePdfColorSpace_CieLab:
-            return "Lab";
-        case ePdfColorSpace_Unknown:
-        default:
-            return NULL;
-    }
+    return PdfColor::GetNameForColorSpace( eColorSpace ).GetName().c_str();
 }
 
 void PdfImage::SetImageChromaKeyMask(pdf_int64 r, pdf_int64 g, pdf_int64 b, pdf_int64 threshold)

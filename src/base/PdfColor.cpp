@@ -1180,5 +1180,52 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
     return NULL;
 }
 
+EPdfColorSpace PdfColor::GetColorSpaceForName( const PdfName & rName )
+{
+    EPdfColorSpace ePdfColorSpace = ePdfColorSpace_Unknown;
+
+    if( PdfName("DeviceGray") == rName ) 
+    {
+        ePdfColorSpace = ePdfColorSpace_DeviceGray;
+    }
+    else if( PdfName("DeviceRGB") == rName ) 
+    {
+        ePdfColorSpace = ePdfColorSpace_DeviceRGB;
+    }
+    else if( PdfName("DeviceCMYK") == rName ) 
+    {
+        ePdfColorSpace = ePdfColorSpace_DeviceCMYK;
+    }
+    else
+    {
+        // TODO: other are not supported at the moment
+        PdfError::LogMessage( eLogSeverity_Information, "Unsupported colorspace name: %s", rName.GetName().c_str() );
+    }
+
+    return ePdfColorSpace;
+}
+    
+PdfName PdfColor::GetNameForColorSpace( EPdfColorSpace eColorSpace )
+{
+    switch( eColorSpace )
+    {
+        case ePdfColorSpace_DeviceGray:
+            return PdfName("DeviceGray");
+        case ePdfColorSpace_DeviceRGB:
+            return PdfName("DeviceRGB");
+        case ePdfColorSpace_DeviceCMYK:
+            return PdfName("DeviceCMYK");
+        case ePdfColorSpace_Separation:
+            return PdfName("Separation");
+        case ePdfColorSpace_CieLab:
+            return PdfName("Lab");
+        case ePdfColorSpace_Unknown:
+        default:
+            PdfError::LogMessage( eLogSeverity_Information, "Unsupported colorspace enum: %i", eColorSpace );
+            return PdfName();
+    }
+    
+}
+
 };
 
