@@ -410,17 +410,17 @@ ENDIF(DEFINED JPEG_RUNTIME_COMPATIBLE)
 FIND_PACKAGE(LUA)
 IF(LUA_FOUND)
 	# If we have lua, we can build podofoimpose.
-	MESSAGE("Lua found - PoDoFoImpose will be built with Lua support")
+	MESSAGE("Lua found - PoDoFoImpose and PoDoFoColor will be built with Lua support")
 	MESSAGE(" * Lua include directory: ${LUA_INCLUDE_DIR}")
 	MESSAGE(" * Lua libraries: ${LUA_LIBRARIES}")
 	INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
 	SET(PODOFO_HAVE_LUA TRUE)
 ELSE(LUA_FOUND)
-	MESSAGE("Lua not found - PoDoFoImpose will be built without Lua support")
+	MESSAGE("Lua not found - PoDoFoImpose and PoDoFoColor will be built without Lua support")
 ENDIF(LUA_FOUND)
 
 
-# Check if we should build a multithreaded version of PODOFO
+# Check if we should build a multithreaded version of PoDoFo
 IF(DEFINED PODOFO_NO_MULTITHREAD)
   MESSAGE("Building non multithreaded version of PoDoFo.")
   SET(PODOFO_MULTI_THREAD FALSE)
@@ -493,6 +493,13 @@ SET(PODOFO_LIB
     ${PODOFO_DOC_LIB_DEPENDS}
     )
 
+#
+# Setup directories we will need
+#
+SET(MANDIR "share/man/")
+
+
+
 # Create the config file. It'll be appended to as the subdirs run though
 # then dependency information will be written to it at the end of the
 # build.
@@ -510,6 +517,7 @@ IF(NOT PODOFO_BUILD_LIB_ONLY)
 ADD_SUBDIRECTORY(test)
 ADD_SUBDIRECTORY(tools)
 ADD_SUBDIRECTORY(examples)
+ADD_SUBDIRECTORY(debian)
 ENDIF(NOT PODOFO_BUILD_LIB_ONLY)
 
 # Generate our configure file

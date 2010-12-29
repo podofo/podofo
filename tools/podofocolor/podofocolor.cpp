@@ -27,12 +27,18 @@
 #include "colorchanger.h"
 #include "dummyconverter.h"
 #include "grayscaleconverter.h"
+#ifdef PODOFO_HAVE_LUA
 #include "luaconverter.h"
+#endif //  PODOFO_HAVE_LUA
 
 static void print_help()
 {
 	std::cerr << "Usage: podofocolor [converter] [inputfile] [outpufile]\n";
+#ifdef PODOFO_HAVE_LUA
     std::cerr << "\t[converter] can be one of: dummy|grayscale|lua [planfile]\n";
+#else
+    std::cerr << "\t[converter] can be one of: dummy|grayscale\n";
+#endif //  PODOFO_HAVE_LUA
 	std::cerr << "\tpodofocolor is a tool to change all colors in a PDF file based on a predefined or Lua description.\n";
 	std::cerr << "\nPoDoFo Version: "<< PODOFO_VERSION_STRING <<"\n\n";
 }
@@ -51,10 +57,12 @@ static IConverter* ConverterForName( const std::string & converter, const std::s
     {
         pConverter = new GrayscaleConverter();
     }
+#ifdef PODOFO_HAVE_LUA
     else if( converter == "lua" )
     {
         pConverter = new LuaConverter( lua );
     }
+#endif //  PODOFO_HAVE_LUA
 
     return pConverter;
 }
@@ -77,12 +85,14 @@ int main( int argc, char* argv[] )
         input = argv[2];
         output = argv[3];
     }
+#ifdef PODOFO_HAVE_LUA
     else if( argc == 5 && converter == "lua" )
     {
         lua = argv[2];
         input = argv[3];
         output = argv[4];
     }
+#endif //  PODOFO_HAVE_LUA
     else
     {
         print_help();
