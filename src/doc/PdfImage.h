@@ -35,8 +35,7 @@ class PdfVecObjects;
 /** A PdfImage object is needed when ever you want to embedd an image
  *  file into a PDF document.
  *  The PdfImage object is embedded once and can be drawn as often
- *  as you want on any page in the document using a PdfImageRef object
- *  which has to be retrieved from the PdfImage object before drawing.
+ *  as you want on any page in the document using PdfPainter
  *
  *  \see GetImageReference
  *  \see PdfPainter::DrawImage

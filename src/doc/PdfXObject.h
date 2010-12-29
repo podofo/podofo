@@ -31,7 +31,6 @@
 namespace PoDoFo {
 
 class PdfDictionary;
-class PdfImageRef;
 class PdfObject;
 class PdfMemDocument;
 
