@@ -82,14 +82,18 @@ LuaConverter::~LuaConverter()
 void LuaConverter::StartPage( PdfPage*, int nPageNumber )
 {
     lua_getglobal( m_machina.State(), FUNCTION_START_PAGE );
-    lua_pushinteger( m_machina.State(), nPageNumber );
+    lua_pushnumber( m_machina.State(), static_cast<double>(nPageNumber) );
+    // Lua 5.1 only
+    //lua_pushinteger( m_machina.State(), nPageNumber );
     lua_call( m_machina.State(), 1, 0 );
 }
 
 void LuaConverter::EndPage( PdfPage*, int nPageNumber )
 {
     lua_getglobal( m_machina.State(), FUNCTION_END_PAGE );
-    lua_pushinteger( m_machina.State(), nPageNumber );
+    lua_pushnumber( m_machina.State(), static_cast<double>(nPageNumber) );
+    // Lua 5.1 only
+    //lua_pushinteger( m_machina.State(), nPageNumber );
     lua_call( m_machina.State(), 1, 0 );
 }
 
@@ -113,7 +117,9 @@ PdfColor LuaConverter::GetColorFromReturnValue()
     size_t len;
 
     luaL_checktype(m_machina.State(), 1, LUA_TTABLE);
-    len = lua_objlen( m_machina.State(), -1 );
+    len = luaL_getn( m_machina.State(), -1 );
+    // Lua 5.1 only
+    //len = lua_objlen( m_machina.State(), -1 );
 
     for( int i = 1; i <= static_cast<int>(len); i++ )
     {

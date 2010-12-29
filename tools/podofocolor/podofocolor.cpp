@@ -24,6 +24,7 @@
 #include <string>
 #include <iostream>
 
+#include "podofo_config.h"
 #include "colorchanger.h"
 #include "dummyconverter.h"
 #include "grayscaleconverter.h"
