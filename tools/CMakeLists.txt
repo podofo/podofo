@@ -1,5 +1,6 @@
 SUBDIRS(
 	podofobox
+	podofocolor
         podofocountpages
         podofocrop
 	podofoencrypt
