@@ -109,7 +109,7 @@ void LuaConverter::EndXObject( PdfXObject* )
     lua_call( m_machina.State(), 0, 0 );
 }
 
-PdfColor LuaConverter::GetColorFromReturnValue()
+PdfColor LuaConverter::GetColorFromReturnValue(const char* pszFunctionName)
 {
     int top;
     double value;
@@ -146,6 +146,7 @@ PdfColor LuaConverter::GetColorFromReturnValue()
                              colors[3] );
         default:
         {
+            PdfError::LogMessage( eLogSeverity_Error, "Array length is %i returned by %s.\n", len, pszFunctionName );
             PODOFO_RAISE_ERROR_INFO( ePdfError_CannotConvertColor,
                                      "Arrays returned from Lua must be { g }, { r,g,b } or { c,m,y,k }!" );
             break;
@@ -161,7 +162,7 @@ PdfColor LuaConverter::SetStrokingColorGray( const PdfColor & rColor )
     lua_pushnumber( m_machina.State(), rColor.GetGrayScale() );
     lua_call( m_machina.State(), 1, 1 );
 
-    return this->GetColorFromReturnValue();
+    return this->GetColorFromReturnValue( FUNCTION_SET_STROKING_GRAY );
 }
 
 PdfColor LuaConverter::SetStrokingColorRGB( const PdfColor & rColor )
@@ -172,7 +173,7 @@ PdfColor LuaConverter::SetStrokingColorRGB( const PdfColor & rColor )
     lua_pushnumber( m_machina.State(), rColor.GetBlue() );
     lua_call( m_machina.State(), 3, 1 );
 
-    return this->GetColorFromReturnValue();
+    return this->GetColorFromReturnValue( FUNCTION_SET_STROKING_RGB );
 }
 
 PdfColor LuaConverter::SetStrokingColorCMYK( const PdfColor & rColor )
@@ -184,7 +185,7 @@ PdfColor LuaConverter::SetStrokingColorCMYK( const PdfColor & rColor )
     lua_pushnumber( m_machina.State(), rColor.GetBlack() );
     lua_call( m_machina.State(), 4, 1 );
 
-    return this->GetColorFromReturnValue();
+    return this->GetColorFromReturnValue( FUNCTION_SET_STROKING_CMYK );
 }
 
 PdfColor LuaConverter::SetNonStrokingColorGray( const PdfColor & rColor )
@@ -193,7 +194,7 @@ PdfColor LuaConverter::SetNonStrokingColorGray( const PdfColor & rColor )
     lua_pushnumber( m_machina.State(), rColor.GetGrayScale() );
     lua_call( m_machina.State(), 1, 1 );
 
-    return this->GetColorFromReturnValue();
+    return this->GetColorFromReturnValue( FUNCTION_SET_NON_STROKING_GRAY );
 }
 
 PdfColor LuaConverter::SetNonStrokingColorRGB( const PdfColor & rColor )
@@ -204,7 +205,7 @@ PdfColor LuaConverter::SetNonStrokingColorRGB( const PdfColor & rColor )
     lua_pushnumber( m_machina.State(), rColor.GetBlue() );
     lua_call( m_machina.State(), 3, 1 );
 
-    return this->GetColorFromReturnValue();
+    return this->GetColorFromReturnValue( FUNCTION_SET_NON_STROKING_RGB );
 }
 
 PdfColor LuaConverter::SetNonStrokingColorCMYK( const PdfColor & rColor )
@@ -216,6 +217,6 @@ PdfColor LuaConverter::SetNonStrokingColorCMYK( const PdfColor & rColor )
     lua_pushnumber( m_machina.State(), rColor.GetBlack() );
     lua_call( m_machina.State(), 4, 1 );
 
-    return this->GetColorFromReturnValue();
+    return this->GetColorFromReturnValue( FUNCTION_SET_NON_STROKING_CMYK );
 }
 

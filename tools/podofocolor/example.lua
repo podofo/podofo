@@ -50,7 +50,7 @@ end
 --
 -- @param a rgb color object
 -- @returns a new color which should be set instead (any colorspace)
-function set_stroking_color_rgb (r,g,n)
+function set_stroking_color_rgb (r,g,b)
    -- convert all black rgb values to cmyk,
    -- leave other as they are
    if r == 0 and
@@ -89,9 +89,10 @@ end
 --
 -- @param a rgb color object
 -- @returns a new color which should be set instead (any colorspace)
-function set_non_stroking_color_rgb (r,g,n)
+function set_non_stroking_color_rgb (r,g,b)
    -- Handle stroking and non-stroking rgb values in the same way
-   return set_stroking_color_rgb (r,g,b)
+   local c = set_stroking_color_rgb (r,g,b)
+   return c
 end
 
 -- This method is called whenever a cmyk non-stroking color is set

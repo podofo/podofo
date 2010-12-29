@@ -141,9 +141,10 @@ private:
     /**
      * Create a PdfColor from an array returned on the stack
      * by a Lua function.
+     * @param pszFunctionName name of Lua function for error reporting
      * @returns a PdfColor or throws a PdfError if color cannot be created
      */
-    PoDoFo::PdfColor GetColorFromReturnValue();
+    PoDoFo::PdfColor GetColorFromReturnValue(const char* pszFunctionName);
 
 private:
     LuaMachina m_machina;

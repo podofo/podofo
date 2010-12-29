@@ -70,9 +70,7 @@ static const ColorChanger::KWInfo kwInfo[] = {
 // K - select CMYK colorspace and CMYK stroking color
 // k - select CMYK colorspace and CMYK non stroking color
 
-// TODO: Rendering intents
-// TODO: Pattern
-// TODO: DefaultGrayColorspace
+// TODO: Allow to set default color and colorspace when starting a page
 
 // ColorSpaces and their default colors
 //  DeviceColorSpaces
@@ -240,7 +238,17 @@ void ColorChanger::ReplaceColorsInPage( PdfCanvas* pPage )
                             break;
 
                         case ePdfColorSpace_Separation:
+                        {
+                            PdfError::LogMessage( eLogSeverity_Error, "Separation color space not supported.\n" );                
+                            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+                            break;
+                        }
                         case ePdfColorSpace_CieLab:
+                        {
+                            PdfError::LogMessage( eLogSeverity_Error, "CieLab color space not supported.\n" );                
+                            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+                            break;
+                        }
                         case ePdfColorSpace_Unknown:
 
                         default:
