@@ -408,22 +408,22 @@ PdfColor ColorChanger::GetColorFromStack( int nArgs, std::vector<PdfVariant> & a
             color = PdfColor( gray );
             break;
         case 3:
-            red = args.back().GetReal();
+            blue = args.back().GetReal();
             args.pop_back();
             green = args.back().GetReal();
             args.pop_back();
-            blue = args.back().GetReal();
+            red = args.back().GetReal();
             args.pop_back();
             color = PdfColor( red, green, blue );
             break;
         case 4:
-            cyan = args.back().GetReal();
-            args.pop_back();
-            magenta = args.back().GetReal();
+            black = args.back().GetReal();
             args.pop_back();
             yellow = args.back().GetReal();
             args.pop_back();
-            black = args.back().GetReal();
+            magenta = args.back().GetReal();
+            args.pop_back();
+            cyan = args.back().GetReal();
             args.pop_back();
             color = PdfColor( cyan, magenta, yellow, black );
             break;
