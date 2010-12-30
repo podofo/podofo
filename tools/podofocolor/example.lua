@@ -1,6 +1,8 @@
 -- /***************************************************************************
 --  *   Copyright (C) 2010 by Dominik Seichter                                *
---  *   domseichter@web.de                                                    *
+--  *                         domseichter@web.de                              *
+--  *                         Stefan  Huber                                   *
+--  *                         sh@signalwerk.ch                                *
 --  *                                                                         *
 --  *   This program is free software; you can redistribute it and/or modify  *
 --  *   it under the terms of the GNU General Public License as published by  *
@@ -104,4 +106,90 @@ function set_non_stroking_color_cmyk (c,m,y,k)
    -- do not change color,
    -- just return input values again
    return { c,m,y,k }
+end
+
+-- This method converts a given RGB color to CMYK
+-- The conversion is like a maximal 
+-- under color removal
+-- http://en.wikipedia.org/wiki/Under_color_removal
+-- according to PoDoFo PdfColor::ConvertToCMYK()
+--
+-- @param a rgb color object
+-- @returns the new CMYK color
+function  ConvertRGBtoCMYK(r,g,b)
+   -- local k = math.min( 1.0-r, math.min( 1.0-g, 1.0-b ) )
+   local k = math.min( 1.0-r, 1.0-g, 1.0-b )
+
+   local c = 0.0
+   local m = 0.0
+   local y = 0.0
+   if k < 1.0 then
+      c = (1.0 - r   - k) / (1.0 - k)
+      m = (1.0 - g - k) / (1.0 - k)
+      y = (1.0 - b  - k) / (1.0 - k)
+   end
+
+   return { c, m, y, k }
+end
+
+-- This method converts a given RGB color to Gray
+-- according to PoDoFo PdfColor::ConvertToGrayScale()
+--
+-- @param a rgb color object
+-- @returns the new GrayScale color
+function  ConvertRGBtoGrayScale(r,g,b)
+   return { 0.299*r + 0.587*g + 0.114*b }
+end
+
+-- Check if the given Color is nearly Gray
+-- IsNearlyGray(0.126,0.127,0.128, 0.002) = true
+-- IsNearlyGray(0.125,0.127,0.128, 0.002) = false
+--
+-- @param a rgb color object plus a tolerance-value
+-- @returns true or false
+function  IsNearlyGray(r,g,b,t)
+   local min = math.min( r,g,b )
+   local max = math.max( r,g,b )
+
+   if max - min <= t and  max - min >= -t then
+      return true
+   else 
+      return false
+   end
+end
+
+-- Check if the given RGB Color1 is nearly RGB Color2
+--
+-- @param two rgb colors plus a tolerance-value
+-- @returns true or false
+function  IsNearlyTheSameRGB(r1,g1,b1, r2,g2,b2, t)
+   local rMin = math.min( r1,r2 )
+   local rMax = math.max( r1,r2 )
+   local rSame = false
+
+   local gMin = math.min( g1,g2 )
+   local gMax = math.max( g1,g2 )
+   local gSame = false
+
+   local bMin = math.min( b1,b2 )
+   local bMax = math.max( b1,b2 )
+   local bSame = false
+
+   if rMax - rMin <= t and  rMax - rMin >= -t then
+      rSame = true
+   end
+   
+   if gMax - gMin <= t and  gMax - gMin >= -t then
+      gSame = true
+   end
+   
+   if bMax - bMin <= t and  bMax - bMin >= -t then
+      bSame = true
+   end
+   
+   if rSame and gSame and bSame then
+      return true
+   else
+      return false
+   end
 end
