@@ -217,8 +217,11 @@ void ColorChanger::ReplaceColorsInPage( PdfCanvas* pPage )
                 case eKeyword_SelectColor_Stroking:
                 case eKeyword_SelectColor_Stroking2:
                 {
-                    PdfError::LogMessage( eLogSeverity_Error, "SCN called.\n" );
-
+                    /*
+                    PdfError::LogMessage( eLogSeverity_Information, "SCN called for colorspace: %s\n",
+                                          PdfColor::GetNameForColorSpace( 
+                                              graphicsStack.GetStrokingColorSpace() ).GetName().c_str() );
+                    */
                     int nTmpArgs;
                     EKeywordType eTempKeyword;
 
@@ -265,12 +268,16 @@ void ColorChanger::ReplaceColorsInPage( PdfCanvas* pPage )
                 case eKeyword_SelectColor_NonStroking:
                 case eKeyword_SelectColor_NonStroking2:
                 {
-                    PdfError::LogMessage( eLogSeverity_Error, "scn called.\n" );
+                    /*
+                    PdfError::LogMessage( eLogSeverity_Information, 
+                                          "scn called for colorspace: %s\n",
+                                          PdfColor::GetNameForColorSpace( 
+                                          graphicsStack.GetNonStrokingColorSpace() ).GetName().c_str() );*/
 
                     int nTmpArgs;
                     EKeywordType eTempKeyword;
 
-                    switch( graphicsStack.GetStrokingColorSpace() )
+                    switch( graphicsStack.GetNonStrokingColorSpace() )
                     {
                         case ePdfColorSpace_DeviceGray:
                             nTmpArgs = 1;
@@ -363,18 +370,17 @@ void ColorChanger::PutColorOnStack( const PdfColor & rColor, std::vector<PdfVari
             break;
 
         case ePdfColorSpace_DeviceRGB:
-            args.push_back( rColor.GetRed() );
-            args.push_back( rColor.GetGreen() );
             args.push_back( rColor.GetBlue() );
+            args.push_back( rColor.GetGreen() );
+            args.push_back( rColor.GetRed() );
             break;
 
         case ePdfColorSpace_DeviceCMYK:
-            args.push_back( rColor.GetCyan() );
-            args.push_back( rColor.GetMagenta() );
-            args.push_back( rColor.GetYellow() );
             args.push_back( rColor.GetBlack() );
+            args.push_back( rColor.GetYellow() );
+            args.push_back( rColor.GetMagenta() );
+            args.push_back( rColor.GetCyan() );
             break;
-
     
         case ePdfColorSpace_Separation:
         case ePdfColorSpace_CieLab:
@@ -437,28 +443,34 @@ const char* ColorChanger::ProcessColor( EKeywordType eKeywordType, int nNumArgs,
 
         case eKeyword_SelectGray_Stroking:
             bStroking = true;
+            rGraphicsStack.SetStrokingColorSpace( ePdfColorSpace_DeviceGray );
             newColor = m_pConverter->SetStrokingColorGray( color );
             break;
 
         case eKeyword_SelectRGB_Stroking:
             bStroking = true;
+            rGraphicsStack.SetStrokingColorSpace( ePdfColorSpace_DeviceRGB );
             newColor = m_pConverter->SetStrokingColorRGB( color );
             break;
 
         case eKeyword_SelectCMYK_Stroking:
             bStroking = true;
+            rGraphicsStack.SetStrokingColorSpace( ePdfColorSpace_DeviceCMYK );
             newColor = m_pConverter->SetStrokingColorCMYK( color );
             break;
  
         case eKeyword_SelectGray_NonStroking:
+            rGraphicsStack.SetNonStrokingColorSpace( ePdfColorSpace_DeviceGray );
             newColor = m_pConverter->SetNonStrokingColorGray( color );
             break;
 
         case eKeyword_SelectRGB_NonStroking:
+            rGraphicsStack.SetNonStrokingColorSpace( ePdfColorSpace_DeviceRGB );
             newColor = m_pConverter->SetNonStrokingColorRGB( color );
             break;
 
         case eKeyword_SelectCMYK_NonStroking:
+            rGraphicsStack.SetNonStrokingColorSpace( ePdfColorSpace_DeviceCMYK );
             newColor = m_pConverter->SetNonStrokingColorCMYK( color );
             break;
 
