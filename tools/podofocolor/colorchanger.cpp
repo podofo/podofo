@@ -16,7 +16,7 @@
  *   along with this program; if not, write to the                         *
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+x1 ***************************************************************************/
 
 #include "colorchanger.h"
 
@@ -329,7 +329,6 @@ void ColorChanger::WriteArgumentsAndKeyword( std::vector<PdfVariant> & rArgs, co
     while( it != rArgs.end() )
     {
         (*it).Write( &rDevice, ePdfWriteMode_Compact );
-        rDevice.Write( " ", 1 );
         ++it;
     }
     
@@ -337,6 +336,7 @@ void ColorChanger::WriteArgumentsAndKeyword( std::vector<PdfVariant> & rArgs, co
     
     if( pszKeyword ) 
     {
+        rDevice.Write( " ", 1 );
         rDevice.Write( pszKeyword, strlen( pszKeyword ) );
         rDevice.Write( "\n", 1 );
     }
@@ -370,16 +370,16 @@ void ColorChanger::PutColorOnStack( const PdfColor & rColor, std::vector<PdfVari
             break;
 
         case ePdfColorSpace_DeviceRGB:
-            args.push_back( rColor.GetBlue() );
-            args.push_back( rColor.GetGreen() );
             args.push_back( rColor.GetRed() );
+            args.push_back( rColor.GetGreen() );
+            args.push_back( rColor.GetBlue() );
             break;
 
         case ePdfColorSpace_DeviceCMYK:
-            args.push_back( rColor.GetBlack() );
-            args.push_back( rColor.GetYellow() );
-            args.push_back( rColor.GetMagenta() );
             args.push_back( rColor.GetCyan() );
+            args.push_back( rColor.GetMagenta() );
+            args.push_back( rColor.GetYellow() );
+            args.push_back( rColor.GetBlack() );
             break;
     
         case ePdfColorSpace_Separation:
