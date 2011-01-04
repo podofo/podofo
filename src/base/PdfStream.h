@@ -191,6 +191,16 @@ class PODOFO_API PdfStream {
      */
     void EndAppend();
 
+    /**
+     * \returns true if code is between BeginAppend()
+     *          and EndAppend() at the moment. I.e.
+     *          it is save to call EndAppend now.
+     *
+     *  \see BeginAppend
+     *  \see Append
+     */
+    inline bool IsAppending() const;
+
     /** Get the stream's length with all filters applied (eg if the stream is
      * Flate compressed, the length of the compressed data stream).
      *
@@ -316,6 +326,14 @@ void PdfStream::Append( const char* pszString )
 void PdfStream::Append( const std::string& sString ) 
 {
     Append( sString.c_str(), sString.length() );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfStream::IsAppending() const
+{
+    return m_bAppend;
 }
 
 };

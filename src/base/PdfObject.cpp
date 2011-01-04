@@ -23,6 +23,7 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfEncrypt.h"
+#include "PdfFileStream.h"
 #include "PdfOutputDevice.h"
 #include "PdfStream.h"
 #include "PdfVariant.h"
@@ -181,10 +182,15 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode,
 
     if( pEncrypt && m_pStream )
     {
-        pdf_long lLength = pEncrypt->CalculateStreamLength(m_pStream->GetLength());
-        PdfVariant varLength = static_cast<pdf_int64>(lLength);
-        // Set length whether it is a key or an indirect reference
-        *(const_cast<PdfObject*>(this)->GetIndirectKey( PdfName::KeyLength )) = varLength;
+        // Set length if it is a key
+        PdfFileStream* pFileStream = dynamic_cast<PdfFileStream*>(m_pStream);
+        if( !pFileStream )
+        {
+            // PdfFileStream handles encryption internally
+            pdf_long lLength = pEncrypt->CalculateStreamLength(m_pStream->GetLength());
+            PdfVariant varLength = static_cast<pdf_int64>(lLength);
+            *(const_cast<PdfObject*>(this)->GetIndirectKey( PdfName::KeyLength )) = varLength;
+        }
     }
 
     this->Write( pDevice, eWriteMode, pEncrypt, keyStop );
