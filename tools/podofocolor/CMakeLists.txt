@@ -1,6 +1,7 @@
 SET(color_srcs
   podofocolor.cpp 
   colorchanger.cpp 
+  colorspace.cpp
   graphicsstack.cpp
   iconverter.cpp
   dummyconverter.cpp

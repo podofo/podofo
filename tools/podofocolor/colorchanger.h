@@ -117,6 +117,16 @@ private:
      */
     void WriteArgumentsAndKeyword( std::vector<PoDoFo::PdfVariant> & rArgs, const char* pszKeyword, PoDoFo::PdfOutputDevice & rDevice );
 
+
+    /**
+     * unused
+     */
+    PoDoFo::EPdfColorSpace GetColorSpaceForName( const PoDoFo::PdfName & rName, PoDoFo::PdfCanvas* pPage );
+
+    /**
+     * unused
+     */
+    PoDoFo::EPdfColorSpace GetColorSpaceForArray( const PoDoFo::PdfArray & rArray, PoDoFo::PdfCanvas* pPage );
 private:
     IConverter* m_pConverter;
     std::string m_sInput;

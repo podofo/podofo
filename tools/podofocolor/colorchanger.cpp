@@ -191,6 +191,7 @@ void ColorChanger::ReplaceColorsInPage( PdfCanvas* pPage )
                     break;
 
                 case eKeyword_SelectColorSpace_Stroking:
+                    eColorSpace = this->GetColorSpaceForName( args.back().GetName(), pPage );
                     eColorSpace = PdfColor::GetColorSpaceForName( args.back().GetName() );
                     args.pop_back();
                     graphicsStack.SetStrokingColorSpace( eColorSpace );
@@ -298,6 +299,7 @@ void ColorChanger::ReplaceColorsInPage( PdfCanvas* pPage )
 
                         default:
                         {
+                            PdfError::LogMessage( eLogSeverity_Error, "Unknown color space %i type.\n", graphicsStack.GetNonStrokingColorSpace() );
                             PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
                         }
                     }
@@ -533,4 +535,59 @@ const char* ColorChanger::GetKeywordForColor( const PdfColor & rColor, bool bIsS
     }
 
     return pszKeyword;
+}
+
+EPdfColorSpace ColorChanger::GetColorSpaceForName( const PdfName & rName, PdfCanvas* pPage ) 
+{
+    EPdfColorSpace eColorSpace = PdfColor::GetColorSpaceForName( rName );
+
+    if( eColorSpace == ePdfColorSpace_Unknown ) 
+    {
+        // See if we can find it in the resource dictionary of the current page
+        PdfObject* pResources = pPage->GetResources();
+        if( pResources != NULL
+            && pResources->GetDictionary().HasKey( PdfName("ColorSpace") ) )
+        {
+            PdfObject* pColorSpaces = pResources->GetIndirectKey( PdfName("ColorSpace") );
+            if( pColorSpaces != NULL
+                && pColorSpaces->GetDictionary().HasKey( rName ) )
+            {
+                PdfObject* pCS = pColorSpaces->GetIndirectKey( rName );
+                if( !pCS )
+                {
+                    PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+                }
+                else if( pCS->IsName() )
+                {
+                    return this->GetColorSpaceForName( pCS->GetName(), pPage ); 
+                }
+                else if( pCS->IsArray() )
+                {
+                    return this->GetColorSpaceForArray( pCS->GetArray(), pPage );
+                }
+            }
+        }
+    }
+
+    return eColorSpace;
+}
+
+EPdfColorSpace ColorChanger::GetColorSpaceForArray( const PdfArray &, PdfCanvas* )
+{
+    EPdfColorSpace eColorSpace = ePdfColorSpace_Unknown;
+
+    // CIE Based: [name dictionary]
+    //     CalGray
+    //     CalRGB
+    //     CalLab
+    //     ICCBased [name stream]
+    // Special:
+    //     Pattern
+    //     Indexed [/Indexed base hival lookup]
+    //     Separation [/Separation name alternateSpace tintTransform]
+    //     DeviceN [/DeviceN names alternateSpace tintTransform] or
+    //             [/DeviceN names alternateSpace tintTransform attributes]
+    // 
+
+    return eColorSpace;
 }
