@@ -21,10 +21,10 @@
 #ifndef _PDF_TABLE_H_
 #define _PDF_TABLE_H_
 
-#include "base/PdfDefines.h"
-#include "base/PdfColor.h"
-#include "base/PdfRect.h"
-#include "base/PdfString.h"
+#include "podofo/base/PdfDefines.h"
+#include "podofo/base/PdfColor.h"
+#include "podofo/base/PdfRect.h"
+#include "podofo/base/PdfString.h"
 
 #include <string.h>
 

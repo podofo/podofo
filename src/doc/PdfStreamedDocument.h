@@ -21,8 +21,8 @@
 #ifndef _PDF_STREAMED_DOCUMENT_H_
 #define _PDF_STREAMED_DOCUMENT_H_
 
-#include "base/PdfDefines.h"
-#include "base/PdfImmediateWriter.h"
+#include "podofo/base/PdfDefines.h"
+#include "podofo/base/PdfImmediateWriter.h"
 
 #include "PdfDocument.h"
 

@@ -21,8 +21,8 @@
 #ifndef _PDF_IDENTITY_ENCODING_H_
 #define _PDF_IDENTITY_ENCODING_H_
 
-#include "base/PdfDefines.h"
-#include "base/PdfEncoding.h"
+#include "podofo/base/PdfDefines.h"
+#include "podofo/base/PdfEncoding.h"
 
 namespace PoDoFo {
 

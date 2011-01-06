@@ -21,8 +21,8 @@
 #ifndef _PDF_PAGES_TREE_H_
 #define _PDF_PAGES_TREE_H_
 
-#include "base/PdfDefines.h"
-#include "base/PdfArray.h"
+#include "podofo/base/PdfDefines.h"
+#include "podofo/base/PdfArray.h"
 
 #include "PdfElement.h"
 #include "PdfPagesTreeCache.h"

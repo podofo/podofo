@@ -21,7 +21,7 @@
 #ifndef _PDF_ACRO_FORM_H_
 #define _PDF_ACRO_FORM_H_
 
-#include "base/PdfDefines.h"
+#include "podofo/base/PdfDefines.h"
 #include "PdfElement.h"
 
 namespace PoDoFo {

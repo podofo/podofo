@@ -21,7 +21,7 @@
 #ifndef _PDF_PAGES_TREE_CACHE_H_
 #define _PDF_PAGES_TREE_CACHE_H_
 
-#include "base/PdfDefines.h"
+#include "podofo/base/PdfDefines.h"
 
 namespace PoDoFo {
 

@@ -21,8 +21,8 @@
 #ifndef _PDF_HINT_STREAM_H_
 #define _PDF_HINT_STREAM_H_
 
-#include "base/PdfDefines.h"
-#include "base/PdfWriter.h"
+#include "podofo/base/PdfDefines.h"
+#include "podofo/base/PdfWriter.h"
 #include "PdfElement.h"
 
 namespace PoDoFo {

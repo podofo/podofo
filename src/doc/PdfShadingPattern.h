@@ -21,8 +21,8 @@
 #ifndef _PDF_SHADING_PATTERN_H_
 #define _PDF_SHADING_PATTERN_H_
 
-#include "base/PdfDefines.h"
-#include "base/PdfName.h"
+#include "podofo/base/PdfDefines.h"
+#include "podofo/base/PdfName.h"
 #include "PdfElement.h"
 
 namespace PoDoFo {

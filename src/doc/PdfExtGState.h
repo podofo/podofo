@@ -2,8 +2,8 @@
 #ifndef _PDF_EXTGSTATE_H_
 #define _PDF_EXTGSTATE_H_
 
-#include "base/PdfDefines.h"
-#include "base/PdfName.h"
+#include "podofo/base/PdfDefines.h"
+#include "podofo/base/PdfName.h"
 
 #include "PdfElement.h"
 

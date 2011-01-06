@@ -21,10 +21,10 @@
 #ifndef _PDF_FONT_METRICS_OBJECT_H_
 #define _PDF_FONT_METRICS_OBJECT_H_
 
-#include "base/PdfDefines.h"
-#include "base/PdfArray.h"
-#include "base/PdfName.h"
-#include "base/PdfString.h"
+#include "podofo/base/PdfDefines.h"
+#include "podofo/base/PdfArray.h"
+#include "podofo/base/PdfName.h"
+#include "podofo/base/PdfString.h"
 #include "PdfFontMetrics.h"
 
 namespace PoDoFo {

@@ -21,9 +21,9 @@
 #ifndef _PDF_FONT_METRICS_H_
 #define _PDF_FONT_METRICS_H_
 
-#include "base/PdfDefines.h"
-#include "base/Pdf3rdPtyForwardDecl.h"
-#include "base/PdfString.h"
+#include "podofo/base/PdfDefines.h"
+#include "podofo/base/Pdf3rdPtyForwardDecl.h"
+#include "podofo/base/PdfString.h"
 
 namespace PoDoFo {
 

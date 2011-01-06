@@ -21,8 +21,8 @@
 #ifndef _PDF_DIFFERENCE_ENCODING_H_
 #define _PDF_DIFFERENCE_ENCODING_H_
 
-#include "base/PdfDefines.h"
-#include "base/PdfEncoding.h"
+#include "podofo/base/PdfDefines.h"
+#include "podofo/base/PdfEncoding.h"
 #include "PdfElement.h"
 
 #include <iterator>

@@ -21,7 +21,7 @@
 #ifndef _PDF_FONT_FACTORY_H_
 #define _PDF_FONT_FACTORY_H_
 
-#include "base/PdfDefines.h"
+#include "podofo/base/PdfDefines.h"
 #include "PdfFont.h"
 
 namespace PoDoFo {

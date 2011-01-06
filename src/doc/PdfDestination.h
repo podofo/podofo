@@ -21,11 +21,11 @@
 #ifndef _PDF_DESTINATION_H_
 #define _PDF_DESTINATION_H_
 
-#include "base/PdfDefines.h"
+#include "podofo/base/PdfDefines.h"
 
-#include "base/PdfArray.h"
-#include "base/PdfRect.h"
-#include "base/PdfReference.h"
+#include "podofo/base/PdfArray.h"
+#include "podofo/base/PdfRect.h"
+#include "podofo/base/PdfReference.h"
 
 namespace PoDoFo {
 

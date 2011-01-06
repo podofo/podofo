@@ -21,8 +21,8 @@
 #ifndef _PDF_IMAGE_H_
 #define _PDF_IMAGE_H_
 
-#include "base/PdfDefines.h"
-#include "base/PdfFilter.h"
+#include "podofo/base/PdfDefines.h"
+#include "podofo/base/PdfFilter.h"
 #include "PdfXObject.h"
 
 namespace PoDoFo {

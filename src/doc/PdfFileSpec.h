@@ -21,9 +21,9 @@
 #ifndef _PDF_FILE_SPEC_H_
 #define _PDF_FILE_SPEC_H_
 
-#include "base/PdfDefines.h"
+#include "podofo/base/PdfDefines.h"
 
-#include "base/PdfString.h"
+#include "podofo/base/PdfString.h"
 
 #include "PdfElement.h"
 

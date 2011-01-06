@@ -21,8 +21,8 @@
 #ifndef _PDF_ELEMENT_H_
 #define _PDF_ELEMENT_H_
 
-#include "base/PdfDefines.h"
-#include "base/PdfObject.h"
+#include "podofo/base/PdfDefines.h"
+#include "podofo/base/PdfObject.h"
 
 namespace PoDoFo {
 

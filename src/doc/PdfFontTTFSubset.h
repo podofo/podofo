@@ -21,7 +21,7 @@
 #ifndef _PDF_FONT_TTF_SUBSET_H_
 #define _PDF_FONT_TTF_SUBSET_H_
 
-#include "base/PdfDefines.h"
+#include "podofo/base/PdfDefines.h"
 #include "PdfFontMetrics.h"
 
 #include <string>

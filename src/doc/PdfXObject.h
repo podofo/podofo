@@ -21,10 +21,10 @@
 #ifndef _PDF_XOBJECT_H_
 #define _PDF_XOBJECT_H_
 
-#include "base/PdfDefines.h"
-#include "base/PdfArray.h"
-#include "base/PdfCanvas.h"
-#include "base/PdfRect.h"
+#include "podofo/base/PdfDefines.h"
+#include "podofo/base/PdfArray.h"
+#include "podofo/base/PdfCanvas.h"
+#include "podofo/base/PdfRect.h"
 
 #include "PdfElement.h"
 

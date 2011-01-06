@@ -21,7 +21,7 @@
 #ifndef _PDF_ENCODING_OBJECT_FACTORY_H_
 #define _PDF_ENCODING_OBJECT_FACTORY_H_
 
-#include "base/PdfDefines.h"
+#include "podofo/base/PdfDefines.h"
 
 namespace PoDoFo {
 

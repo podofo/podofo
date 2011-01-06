@@ -21,8 +21,8 @@
 #ifndef _PDF_MEM_DOCUMENT_H_
 #define _PDF_MEM_DOCUMENT_H_
 
-#include "base/PdfDefines.h"
-#include "base/PdfObject.h"
+#include "podofo/base/PdfDefines.h"
+#include "podofo/base/PdfObject.h"
 
 #include "PdfDocument.h"
 #include "PdfFontCache.h"

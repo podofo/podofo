@@ -21,7 +21,7 @@
 #ifndef _PDF_FUNCTION_H_
 #define _PDF_FUNCTION_H_
 
-#include "base/PdfDefines.h"
+#include "podofo/base/PdfDefines.h"
 #include "PdfElement.h"
 
 #include <list>

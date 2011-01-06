@@ -21,11 +21,11 @@
 #ifndef _PDF_FONT_CACHE_H_
 #define _PDF_FONT_CACHE_H_
 
-#include "base/PdfDefines.h"
-#include "base/Pdf3rdPtyForwardDecl.h"
-#include "base/PdfEncoding.h"
-#include "base/PdfEncodingFactory.h"
-#include "base/util/PdfMutex.h"
+#include "podofo/base/PdfDefines.h"
+#include "podofo/base/Pdf3rdPtyForwardDecl.h"
+#include "podofo/base/PdfEncoding.h"
+#include "podofo/base/PdfEncodingFactory.h"
+#include "podofo/base/util/PdfMutex.h"
 #include "PdfFont.h"
 
 namespace PoDoFo {

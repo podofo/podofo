@@ -21,7 +21,7 @@
 #ifndef _PDF_PAINTER_MM_H_
 #define _PDF_PAINTER_MM_H_
 
-#include "base/PdfDefines.h"
+#include "podofo/base/PdfDefines.h"
 #include "PdfPainter.h"
 
 namespace PoDoFo {

@@ -21,10 +21,12 @@
 #ifndef _PDF_DOCUMENT_H_
 #define _PDF_DOCUMENT_H_
 
-#include "base/PdfDefines.h"
-#include "base/PdfObject.h"
-#include "base/PdfParser.h"
-#include "base/PdfWriter.h"
+#include "podofo/base/PdfDefines.h"
+
+#include "podofo/base/PdfObject.h"
+#include "podofo/base/PdfParser.h"
+#include "podofo/base/PdfWriter.h"
+
 #include "PdfAcroForm.h"
 #include "PdfFontCache.h"
 #include "PdfInfo.h"

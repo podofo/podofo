@@ -21,9 +21,9 @@
 #ifndef _PDF_FONT_H_
 #define _PDF_FONT_H_
 
-#include "base/PdfDefines.h"
-#include "base/PdfName.h"
-#include "base/PdfEncodingFactory.h"
+#include "podofo/base/PdfDefines.h"
+#include "podofo/base/PdfName.h"
+#include "podofo/base/PdfEncodingFactory.h"
 #include "PdfElement.h"
 #include "PdfFontMetrics.h"
 

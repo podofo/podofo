@@ -21,8 +21,8 @@
 #ifndef _PDF_FONT_FACTORY_BASE14_DATA_H_
 #define _PDF_FONT_FACTORY_BASE14_DATA_H_
 
-#include "base/PdfDefines.h"
-#include "base/PdfRect.h"
+#include "podofo/base/PdfDefines.h"
+#include "podofo/base/PdfRect.h"
 #include "PdfFontMetricsBase14.h"
 
 /*

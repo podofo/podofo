@@ -21,9 +21,9 @@
 #ifndef _PDF_FIELD_H_
 #define _PDF_FIELD_H_
 
-#include "base/PdfDefines.h"  
-#include "base/PdfName.h"
-#include "base/PdfString.h"
+#include "podofo/base/PdfDefines.h"  
+#include "podofo/base/PdfName.h"
+#include "podofo/base/PdfString.h"
 
 #include "PdfAnnotation.h"
 

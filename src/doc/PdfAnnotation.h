@@ -21,7 +21,7 @@
 #ifndef _PDF_ANNOTATION_H_
 #define _PDF_ANNOTATION_H_
 
-#include "base/PdfDefines.h"
+#include "podofo/base/PdfDefines.h"
 #include "PdfAction.h"
 #include "PdfDestination.h"
 #include "PdfElement.h"
