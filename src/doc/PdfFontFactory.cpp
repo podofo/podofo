@@ -171,8 +171,10 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library* pLibrary, PdfObject* pObject )
     const PdfName & rSubType = pObject->GetDictionary().GetKey( PdfName::KeySubtype )->GetName();
     if( rSubType == PdfName("Type0") ) 
     {
+        // The PDF reference states that DescendantFonts must be an array,
+        // some applications (e.g. MS Word) put the array into an indirect object though.
         const PdfArray & descendant  = 
-            pObject->GetDictionary().GetKey( "DescendantFonts" )->GetArray();
+            pObject->GetIndirectKey( "DescendantFonts" )->GetArray();
         PdfObject* pFontObject = pObject->GetOwner()->GetObject( descendant[0].GetReference() );
 
         pDescriptor = pFontObject->GetIndirectKey( "FontDescriptor" );

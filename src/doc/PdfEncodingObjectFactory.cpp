@@ -27,6 +27,7 @@
 #include "base/PdfVecObjects.h"
 
 #include "PdfDifferenceEncoding.h"
+#include "PdfIdentityEncoding.h"
 
 namespace PoDoFo {
 
@@ -53,6 +54,8 @@ const PdfEncoding* PdfEncodingObjectFactory::CreateEncoding( PdfObject* pObject 
             return PdfEncodingFactory::GlobalSymbolEncodingInstance();
         else if( rName == PdfName("ZapfDingbatsEncoding") ) // OC 13.08.2010
             return PdfEncodingFactory::GlobalZapfDingbatsEncodingInstance();
+        else if( rName == PdfName("Identity-H") ) 
+            return new PdfIdentityEncoding();
     }
     else if( pObject->IsDictionary() )
     {
