@@ -423,7 +423,7 @@ PdfObject* PdfNamesTree::GetRootNode( const PdfName & name, bool bCreate ) const
 
 bool PdfNamesTree::HasValue( const PdfName & tree, const PdfString & key ) const
 {
-    return ( this->GetValue( tree, key) == NULL );
+    return ( this->GetValue( tree, key ) != NULL );
 }
 
 EPdfNameLimits PdfNamesTree::CheckLimits( const PdfObject* pObj, const PdfString & key )
