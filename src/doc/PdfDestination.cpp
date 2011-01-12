@@ -177,17 +177,25 @@ void PdfDestination::AddToDictionary( PdfDictionary & dictionary ) const
     dictionary.AddKey( "Dest", m_pObject );
 }
 
-PdfPage* PdfDestination::GetPage()
+PdfPage* PdfDestination::GetPage( PdfDocument* pDoc ) 
 {
     if( !m_array.size() )
         return NULL;
 
-    PdfDocument* pDoc = m_pObject->GetOwner()->GetParentDocument();
-    if( !pDoc ) 
-        return NULL;
-
     // first entry in the array is the page - so just make a new page from it!
     return pDoc->GetPagesTree()->GetPage( m_array[0].GetReference() );
+}
+
+PdfPage* PdfDestination::GetPage( PdfVecObjects* pVecObjects )
+{
+    PdfDocument* pDoc = pVecObjects->GetParentDocument();
+    if( !pDoc ) 
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle,
+                                 "PdfVecObjects needs a parent PdfDocument to resolve pages." );
+    }
+     
+    return this->GetPage( pDoc );
 }
 
 };

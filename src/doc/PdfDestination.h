@@ -121,10 +121,20 @@ class PODOFO_DOC_API PdfDestination {
     /** Get the page that this destination points to
      *  Requires that this PdfDestination was somehow
      *  created by or from a PdfDocument. Won't work otherwise.
+     *  \param pDoc a PDF document owning this destination, needed to resolve pages
      * 
      *  \returns the referenced PdfPage
      */
-    PdfPage* GetPage();
+    PdfPage* GetPage( PdfDocument* pDoc ); 
+
+    /** Get the page that this destination points to
+     *  Requires that this PdfDestination was somehow
+     *  created by or from a PdfDocument. Won't work otherwise.
+     *  \param pVecObjects a PdfVecObjects owning this destination, needed to resolve pages
+     * 
+     *  \returns the referenced PdfPage
+     */
+    PdfPage* GetPage( PdfVecObjects* pVecObjects );
     
     /** Get the destination fit type
      *
