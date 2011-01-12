@@ -473,9 +473,13 @@ class PODOFO_API PdfFilterFactory {
 
     /** Converts a filter name to the corresponding enum
      *  \param name of the filter without leading
+     *  \param bSupportShortNames the PDF Reference supports several
+     *         short names for filters (e.g. AHx for AsciiHexDecode), if true
+     *         support for these short names will be enabled. 
+     *         This is often used in inline images.
      *  \returns the filter as enum
      */
-    static EPdfFilter FilterNameToType( const PdfName & name );
+    static EPdfFilter FilterNameToType( const PdfName & name, bool bSupportShortNames = true );
 
     /** Converts a filter type enum to the corresponding PdfName
      *  \param eFilter a filter type

@@ -44,6 +44,19 @@ static const char* aszFilters[] = {
     NULL
 };
 
+static const char* aszShortFilters[] = {
+    "AHx",
+    "A85",
+    "LZW",
+    "Fl",
+    "RL",
+    "CCF", 
+    "", ///< There is no shortname for JBIG2Decode
+    "DCT",
+    "", ///< There is no shortname for JPXDecode 
+    "", ///< There is no shortname for Crypt
+    NULL
+};
 
 /** Create a filter that is a PdfOutputStream.
  *
@@ -327,7 +340,7 @@ PdfOutputStream* PdfFilterFactory::CreateDecodeStream( const TVecFilters & filte
     return pFilter;
 }
 
-EPdfFilter PdfFilterFactory::FilterNameToType( const PdfName & name )
+EPdfFilter PdfFilterFactory::FilterNameToType( const PdfName & name, bool bSupportShortNames )
 {
     int i = 0;
 
@@ -337,6 +350,17 @@ EPdfFilter PdfFilterFactory::FilterNameToType( const PdfName & name )
             return static_cast<EPdfFilter>(i);
         
         ++i;
+    }
+
+    if( bSupportShortNames )
+    {
+        while( aszShortFilters[i] )
+        {
+            if( name == aszShortFilters[i] )
+                return static_cast<EPdfFilter>(i);
+            
+            ++i;
+        }        
     }
 
     PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFilter, name.GetName().c_str() );
