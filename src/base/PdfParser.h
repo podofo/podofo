@@ -348,7 +348,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *
      * \param bStrict new setting for strict parsing mode.
      */
-    inline void SetStringParsing( bool bStrict );
+    inline void SetStrictParsing( bool bStrict );
 
     /**
      * \return if broken objects are ignored while parsing
@@ -608,7 +608,7 @@ bool PdfParser::IsStrictParsing() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfParser::SetStringParsing( bool bStrict )
+void PdfParser::SetStrictParsing( bool bStrict )
 {
     m_bStrictParsing = bStrict;
 }
