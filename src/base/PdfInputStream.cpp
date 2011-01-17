@@ -44,9 +44,9 @@ PdfFileInputStream::PdfFileInputStream( const wchar_t* pszFilename )
     m_hFile = _wfopen( pszFilename, L"rb" );
     if( !m_hFile ) 
     {
-	PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
-	e.SetErrorInformation( pszFilename );
-	throw e;
+        PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
+        e.SetErrorInformation( pszFilename );
+        throw e;
     }
 }
 #endif // _WIN32

@@ -36,7 +36,13 @@ PdfRefCountedInputDevice::PdfRefCountedInputDevice( const char* pszFilename, con
 {
     m_pDevice              = new TRefCountedInputDevice();
     m_pDevice->m_lRefCount = 1;
-    m_pDevice->m_pDevice   = new PdfInputDevice( pszFilename );
+
+    try {
+        m_pDevice->m_pDevice = new PdfInputDevice( pszFilename );
+    } catch( const PdfError & rError ) {
+        delete m_pDevice;
+        throw rError;
+    }
 }
 
 #ifdef _WIN32
@@ -47,7 +53,13 @@ PdfRefCountedInputDevice::PdfRefCountedInputDevice( const wchar_t* pszFilename, 
 {
     m_pDevice              = new TRefCountedInputDevice();
     m_pDevice->m_lRefCount = 1;
-    m_pDevice->m_pDevice   = new PdfInputDevice( pszFilename );
+
+    try {
+        m_pDevice->m_pDevice = new PdfInputDevice( pszFilename );
+    } catch( const PdfError & rError ) {
+        delete m_pDevice;
+        throw rError;
+    }
 }
 #endif
 #endif // _WIN32
@@ -57,7 +69,14 @@ PdfRefCountedInputDevice::PdfRefCountedInputDevice( const char* pBuffer, size_t 
 {
     m_pDevice              = new TRefCountedInputDevice();
     m_pDevice->m_lRefCount = 1;
-    m_pDevice->m_pDevice   = new PdfInputDevice( pBuffer, lLen );
+
+
+    try {
+        m_pDevice->m_pDevice   = new PdfInputDevice( pBuffer, lLen );
+    } catch( const PdfError & rError ) {
+        delete m_pDevice;
+        throw rError;
+    }
 }
 
 PdfRefCountedInputDevice::PdfRefCountedInputDevice( PdfInputDevice* pDevice )
