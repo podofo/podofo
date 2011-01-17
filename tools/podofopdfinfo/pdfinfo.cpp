@@ -141,10 +141,10 @@ void PdfInfo::OutputOutlines( std::ostream& sOutStream, PoDoFo::PdfOutlineItem* 
         sOutStream << "-";
 
     sOutStream << ">" << pItem->GetTitle().GetString();
-    PoDoFo::PdfDestination* pDest = pItem->GetDestination();
+    PoDoFo::PdfDestination* pDest = pItem->GetDestination( mDoc );
     if ( pDest ) {	// then it's a destination
 
-        PoDoFo::PdfPage* pPage = pDest->GetPage();
+        PoDoFo::PdfPage* pPage = pDest->GetPage( mDoc );
         if( pPage ) 
             sOutStream << "\tDestination: Page #" << pPage->GetPageNumber();
         else

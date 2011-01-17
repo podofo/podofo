@@ -111,11 +111,11 @@ int main( int argc, char* argv[] )
 
       if(format.document)
       {
-      std::cout << "Document Info" << std::endl;
-      std::cout << "-------------" << std::endl;
-      std::cout << "\tFile: " << fName << std::endl;
-      myInfo.OutputDocumentInfo( std::cout );
-      std::cout << std::endl;
+          std::cout << "Document Info" << std::endl;
+          std::cout << "-------------" << std::endl;
+          std::cout << "\tFile: " << fName << std::endl;
+          myInfo.OutputDocumentInfo( std::cout );
+          std::cout << std::endl;
       }
       
       if(format.classic)
