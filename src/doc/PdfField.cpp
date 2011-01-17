@@ -794,7 +794,7 @@ void PdfListField::RemoveItem( int nIndex )
     m_pObject->GetDictionary().AddKey( PdfName("Opt"), opt );
 }
 
-const PdfString & PdfListField::GetItem( int nIndex ) const
+const PdfString PdfListField::GetItem( int nIndex ) const
 {
     PdfArray   opt;
     
@@ -820,7 +820,7 @@ const PdfString & PdfListField::GetItem( int nIndex ) const
     return var.GetString();
 }
 
-const PdfString & PdfListField::GetItemDisplayText( int nIndex ) const
+const PdfString PdfListField::GetItemDisplayText( int nIndex ) const
 {
     PdfArray   opt;
     

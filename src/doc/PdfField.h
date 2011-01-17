@@ -1114,7 +1114,7 @@ class PODOFO_DOC_API PdfListField : public PdfField {
      * @param nIndex index of the item
      * @returns the value of the item at the specified index
      */
-    const PdfString & GetItem( int nIndex ) const;
+    const PdfString GetItem( int nIndex ) const;
 
     /** 
      * @param nIndex index of the item
@@ -1124,7 +1124,7 @@ class PODOFO_DOC_API PdfListField : public PdfField {
      *
      * \see GetItem
      */
-    const PdfString & GetItemDisplayText( int nIndex ) const;
+    const PdfString GetItemDisplayText( int nIndex ) const;
 
     /**
      * \returns the number of items in this list
