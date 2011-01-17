@@ -109,6 +109,12 @@ double PdfFontMetricsObject::GetGlyphWidth( int nGlyphId ) const
     return 0.0; // OC 13.08.2010 BugFix: Avoid microsoft compiler error
 }
 
+double PdfFontMetricsObject::GetGlyphWidth( const char* pszGlyphname ) const
+{
+    // TODO
+    return 0.0;
+}
+
 long PdfFontMetricsObject::GetGlyphId( long lUnicode ) const
 {
     // TODO

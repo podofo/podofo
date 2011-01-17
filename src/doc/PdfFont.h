@@ -196,6 +196,12 @@ class PODOFO_DOC_API PdfFont : public PdfElement {
 	 */
 	virtual void AddUsedSubsettingGlyphs( const PdfString & sText, long lStringLen );
 
+  	/** Remember the glyphname in case of subsetting 
+	 *
+     *  \param pszGlyphName Name of the glyph to remember
+	 */
+	virtual void AddUsedGlyphname( const char * pszGlyphName );
+
     /** Embeds pending subset-font into PDF page
      *  Only call if IsSubsetting() returns true. Might throw an exception otherwise.
      *

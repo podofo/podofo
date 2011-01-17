@@ -43,6 +43,7 @@
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
 #include "PdfImage.h"
+#include "PdfMemDocument.h"
 #include "PdfShadingPattern.h"
 #include "PdfXObject.h"
 
@@ -814,7 +815,7 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
 
     PdfString   sString  = this->ExpandTabs( rsText, rsText.GetCharacterLength() );
 
-    std::vector<TLineElement> vecLines = getMultiLineTextAsLines(dWidth, sString);
+    std::vector<TLineElement> vecLines = GetMultiLineTextAsLines(dWidth, sString);
 
     // Do vertical alignment
     switch( eVertical ) 
@@ -842,7 +843,7 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
     this->Restore();
 }
 
-std::vector<TLineElement> PdfPainter::getMultiLineTextAsLines( double dWidth, const PdfString & rsText)
+std::vector<TLineElement> PdfPainter::GetMultiLineTextAsLines( double dWidth, const PdfString & rsText)
 {
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
@@ -1007,6 +1008,111 @@ void PdfPainter::DrawTextAligned( double dX, double dY, double dWidth, const Pdf
     }
 
     this->DrawText( dX, dY, rsText );
+}
+
+void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, const char* pszGlyphname)
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+    
+    if( !m_pFont || !m_pPage || !pszGlyphname )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+	// search for a copy of this font to enter difference-encoding, create a new one if not found
+	PdfFont* pGlyphFont = pDocument->CreateDuplicateFontType1( m_pFont, "Glyph1" );
+
+	// select identical sizes
+	pGlyphFont->SetFontSize( m_pFont->GetFontSize() );
+	pGlyphFont->SetFontCharSpace( m_pFont->GetFontCharSpace() );
+	pGlyphFont->SetFontScale( m_pFont->GetFontScale() );
+	PdfObject* pGlyphFontObj = pGlyphFont->GetObject();
+
+	// get width of glyph
+	int width = static_cast<int>(pGlyphFont->GetFontMetrics()->GetGlyphWidth( pszGlyphname ) );
+
+	// change encoding to difference-encoding and adapt width
+	PdfObject* pEncoding = pGlyphFontObj->GetDictionary().GetKey( "Encoding" );
+
+	int code = 32;
+	if ( pEncoding == NULL  ||  pEncoding->IsReference() == false )
+	{
+		// first time: create difference-encoding as reference, enter glyph
+		pEncoding = pDocument->GetObjects().CreateObject( "Encoding" );
+
+		code++;
+
+		PdfArray diffs;
+		diffs.push_back( static_cast<long long>( code ) );
+		diffs.push_back( PdfName( pszGlyphname ) );
+
+		pEncoding->GetDictionary().AddKey( "Differences", diffs );
+		pGlyphFontObj->GetDictionary().AddKey("Encoding", pEncoding->Reference() );
+
+		// clear Widths-array and enter width of this glyph
+		PdfObject* pWidthObj = pGlyphFontObj->GetIndirectKey( "Widths" );
+		PdfArray & rWidthArr = pWidthObj->GetArray();
+		for ( unsigned int i = 0; i < rWidthArr.size(); i++ )
+        {
+			rWidthArr[i] = static_cast<long long>( 0 );
+        }
+		rWidthArr[code] = static_cast<long long>( width );
+	}
+	else
+	{
+		// search glyph in existing Encoding/Difference, create if not found
+		pEncoding = pDocument->GetObjects().GetObject( pEncoding->GetReference() );
+        
+		PODOFO_ASSERT( pEncoding != NULL ); // paranoia
+
+		PdfArray diffs;
+		diffs = pEncoding->GetDictionary().GetKey( "Differences" )->GetArray();
+
+		bool foundIt = false;
+
+		TCIVariantList it = diffs.begin();
+		while( it != diffs.end() )
+		{
+			if( (*it).GetDataType() == ePdfDataType_Name )
+			{
+				code++;
+				if ( (*it).GetName().GetName() == pszGlyphname )
+				{
+					foundIt = true;
+					break;
+				}
+			}
+				
+			++it;
+		}
+
+		// TODO: if code exceeds 255, create a new font-copy and start again with code 33
+		PODOFO_ASSERT( code <= 255 );
+
+		if ( foundIt == false )
+		{
+			code++;
+			diffs.push_back( PdfName( pszGlyphname ) );
+
+			pEncoding->GetDictionary().AddKey( "Differences", diffs );
+
+			// enter width of glyph
+			PdfObject* pWidthObj = pGlyphFontObj->GetIndirectKey( "Widths" );
+			PdfArray & rWidthArr = pWidthObj->GetArray();
+			rWidthArr[code] = static_cast<long long>( width );
+		}
+	}
+
+	// mark glyph as used in basefont (needed for subsetting)
+	m_pFont->AddUsedGlyphname( pszGlyphname );
+    
+    // output
+	SetFont( pGlyphFont );
+	char temp[2];
+	temp[0] = code;
+	temp[1] = '\0';
+    DrawText( dX, dY, PdfString( temp ) );
+	SetFont( m_pFont );
 }
 
 void PdfPainter::DrawImage( double dX, double dY, PdfImage* pObject, double dScaleX, double dScaleY )

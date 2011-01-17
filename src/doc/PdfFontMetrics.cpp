@@ -999,5 +999,4 @@ EPdfFontType PdfFontMetrics::FontTypeFromFilename( const char* pszFilename )
     return eFontType;
 }
 
-
 };

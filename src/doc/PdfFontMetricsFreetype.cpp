@@ -289,6 +289,11 @@ double PdfFontMetricsFreetype::GetGlyphWidth( int nGlyphId ) const
     return 0.0;
 }
 
+double PdfFontMetricsFreetype::GetGlyphWidth( const char* pszGlyphname ) const
+{
+	return GetGlyphWidth( FT_Get_Name_Index( m_pFace, const_cast<char *>(pszGlyphname) ) );
+}
+
 void PdfFontMetricsFreetype::GetBoundingBox( PdfArray & array ) const
 {
     if( !m_pFace ) 

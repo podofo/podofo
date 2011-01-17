@@ -86,9 +86,17 @@ class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
 
     /** Get the width of a single glyph id
      *
+     *  \param nGlyphId id of the glyph
      *  \returns the width of a single glyph id
      */
     virtual double GetGlyphWidth( int nGlyphId ) const;
+
+    /** Get the width of a single named glyph
+     *
+     *  \param pszGlyphname name of the glyph
+     *  \returns the width of a single named glyph
+     */
+	virtual double GetGlyphWidth( const char* pszGlyphname ) const;
 
     /** Create the bounding box array as required by the PDF reference
      *  so that it can be written directly to a PDF file.

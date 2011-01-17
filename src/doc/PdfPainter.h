@@ -34,6 +34,7 @@ class PdfCanvas;
 class PdfExtGState;
 class PdfFont;
 class PdfImage;
+class PdfMemDocument;
 class PdfName;
 class PdfObject;
 class PdfReference;
@@ -381,7 +382,7 @@ class PODOFO_DOC_API PdfPainter {
      *  \param dWidth width of the text area
      *  \param rsText the text which should be drawn
      */
-    std::vector<TLineElement> getMultiLineTextAsLines( double dWidth, const PdfString & rsText);
+    std::vector<TLineElement> GetMultiLineTextAsLines( double dWidth, const PdfString & rsText);
 
     /** Draw a single line of text horizontally aligned.
      *  \param dX the x coordinate of the text line
@@ -469,6 +470,16 @@ class PODOFO_DOC_API PdfPainter {
      *  \see MoveTextPos()
      */
 	void EndText();
+
+    /** Draw a single glyph on a page using a given font object.
+	 *  \param pDocument pointer to the document, needed to generate a copy of the current font
+     *  \param dX the x coordinate
+     *  \param dY the y coordinate
+     *  \param pszGlyphname the name of the glyph which should be printed 
+     *
+     *  \see SetFont()
+     */
+    void DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, const char * pszGlyphname );
 
     /** Draw an image on the current page.
      *  \param dX the x coordinate (bottom left position of the image)

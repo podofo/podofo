@@ -71,8 +71,10 @@ void PdfFontType1::AddUsedSubsettingGlyphs( const PdfString & sText, long lStrin
 {
 	if ( m_bIsSubsetting )
 	{
-		// TODO: Was ist mit Unicode
-		const char * strp = sText.GetString();
+		// TODO: Unicode and Hex not yet supported
+		PODOFO_ASSERT( sText.IsUnicode() == false );
+		PODOFO_ASSERT( sText.IsHex() == false );
+		const unsigned char* strp = reinterpret_cast<const unsigned char *>(sText.GetString());	// must be unsigned for access to m_bUsed-array
 		for ( int i = 0; i < lStringLen; i++ )
 		{
 			m_bUsed[strp[i] / 32] |= 1 << (strp[i] % 32 ); 
@@ -80,28 +82,272 @@ void PdfFontType1::AddUsedSubsettingGlyphs( const PdfString & sText, long lStrin
 	}
 }
 
+void PdfFontType1::AddUsedGlyphname( const char * sGlyphName )
+{
+	if ( m_bIsSubsetting )
+    {
+		m_sUsedGlyph.insert( sGlyphName ); 
+    }
+}
+
 void PdfFontType1::EmbedSubsetFont()
 {
-	if ( m_bIsSubsetting  && m_bWasEmbedded == false )
-	{
-		std::vector<std::string> usedGlyphs;
+	if ( !m_bIsSubsetting || m_bWasEmbedded == true )
+		return;
 
-		for ( int i = 0; i < 256; i++ )
+    pdf_long    lSize    = 0;
+    pdf_int64   lLength1 = 0L;
+    pdf_int64   lLength2 = 0L;
+    pdf_int64   lLength3 = 0L;
+    PdfObject*  pContents;
+    const char* pBuffer;
+    char*       pAllocated = NULL;
+    
+    m_bWasEmbedded = true;
+
+    pContents = this->GetObject()->GetOwner()->CreateObject();
+    if( !pContents )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+    
+    m_pDescriptor->GetDictionary().AddKey( "FontFile", pContents->Reference() );
+    
+    // if the data was loaded from memory - use it from there
+    // otherwise, load from disk
+    if ( m_pMetrics->GetFontDataLen() && m_pMetrics->GetFontData() ) 
+    {
+        pBuffer = m_pMetrics->GetFontData();
+        lSize   = m_pMetrics->GetFontDataLen();
+    }
+    else
+    {
+        FILE* hFile = fopen( m_pMetrics->GetFilename(), "rb" );
+        if( !hFile )
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, m_pMetrics->GetFilename() );
+        }
+
+        fseek( hFile, 0L, SEEK_END );
+        lSize = ftell( hFile );
+        fseek( hFile, 0L, SEEK_SET );
+        
+        pAllocated = static_cast<char*>(malloc( sizeof(char) * lSize ));
+        if( !pAllocated )
+        {
+            fclose( hFile );
+            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        }
+
+        fread( pAllocated, sizeof(char), lSize, hFile );
+        fclose( hFile );
+
+        pBuffer = pAllocated;
+    }
+
+	// Allocate buffer for subsetted font, worst case size is input size
+	unsigned char* outBuff = new unsigned char[lSize];
+	int outIndex = 0;
+
+	// unsigned to make comparisons work
+	unsigned const char* inBuff = reinterpret_cast<unsigned const char*>(pBuffer);
+	int inIndex = 0;
+
+	// 6-Byte binary header for leading ascii-part
+	PODOFO_ASSERT( inBuff[inIndex + 0] == 0x80 );
+    PODOFO_ASSERT( inBuff[inIndex + 1] == 0x01 );
+    // TODO: Support big endian
+    int length = inBuff[inIndex + 2] + 
+        (inBuff[inIndex + 3] << 8) + 
+        (inBuff[inIndex + 4] << 16) + 
+        (inBuff[inIndex + 5] << 24);				// little endian
+	inIndex += 6;
+	
+	PODOFO_ASSERT( memcmp( &inBuff[inIndex], "%!PS-AdobeFont-1.", 17 ) == 0 );
+
+	// transfer ascii-part, modify encoding dictionary (dup ...), if present
+	std::string line;
+	bool dupFound = false;
+	for ( int i = 0; i < length; i++ )
+ 	{
+		line += static_cast<char>(inBuff[inIndex+i]);
+		if ( inBuff[inIndex+i] == '\r' )
 		{
-			if ( (m_bUsed[i / 32] & (1 << (i % 32 ))) != 0 )
-				usedGlyphs.push_back( PdfDifferenceEncoding::UnicodeIDToName( GetEncoding()->GetCharCode(i) ).GetName() );
+			if ( line.find( "dup " ) != 0 )
+			{
+				memcpy( &outBuff[outIndex], line.c_str(), line.length() );
+				outIndex += line.length();
+			}
+			else
+			{
+				if ( dupFound == false )
+				{
+					// if first found, replace with new dictionary according to used glyphs
+					// ignore further dup's
+					for ( int i = 0; i < 256; i++ )
+					{
+						if ( (m_bUsed[i / 32] & (1 << (i % 32 ))) != 0 )
+						{
+							outIndex += snprintf( reinterpret_cast<char *>( &outBuff[outIndex] ), 
+                                                  lSize - outIndex,
+                                                  "dup %d /%s put\r",
+                                                  i, 
+                                                  PdfDifferenceEncoding::UnicodeIDToName( GetEncoding()->GetCharCode(i) ).GetName().c_str() );
+                        }
+                    }
+                    dupFound = true;
+				}
+			}
+			line.clear();
 		}
+ 	}
 
-		std::string xx( "Glyphs: " ) ;
-		for ( int i = 0; i < static_cast<int>(usedGlyphs.size()); i++ )
-			xx += " " + usedGlyphs[i]; 
+	inIndex += length;
+	lLength1 = outIndex;
 
-		PdfError::DebugMessage( "%s\n", xx.c_str() ); 
+	// 6-Byte binary header for binary-part
+    PODOFO_ASSERT( inBuff[inIndex + 0] == 0x80 );
+	PODOFO_ASSERT( inBuff[inIndex + 1] == 0x02 );
+	length = inBuff[inIndex + 2] + 
+        (inBuff[inIndex + 3] << 8) + 
+        (inBuff[inIndex + 4] << 16) + 
+        (inBuff[inIndex + 5] << 24);				// little endian
+	inIndex += 6;
+    // TODO: Support big endian here
 
-		// TODO: only embed with used glyphs
-		EmbedFontFile( m_pDescriptor );
-		m_bWasEmbedded = true;
+	// copy binary using encrpytion
+	PdfType1Encrypt inCrypt;
+	PdfType1Encrypt outCrypt;
+    
+	line.clear();
+	bool inCharString = false;
+	for ( int i = 0; i < length;  )
+	{
+		unsigned char plain = inCrypt.Decrypt( inBuff[inIndex+i] );
+		i++;
+
+		line += static_cast<char>(plain);
+
+		if ( inCharString && line.find( "/" ) == 0 )
+		{
+			// we are now inside a glyph, copy anything until RD to output,
+			// but do not yet encrypt, in case this glyph will be skipped
+			// in this case we go back to saveOutIndex and cipher-engine must be unchanged
+			int saveOutIndex = outIndex;
+
+			outBuff[outIndex++] = plain;
+			while ( static_cast<int>(line.find( "RD " )) == -1 )
+			{
+				plain = inCrypt.Decrypt( inBuff[inIndex+i] );
+				outBuff[outIndex++] = plain;
+				line += static_cast<char>(plain);
+				i++;
+			}
+
+			// parse line for name and length of glyph
+			char* glyphName = new char[line.length()];
+			int glyphLen;
+            int result = sscanf( line.c_str(), "%s %d RD ", glyphName, &glyphLen )
+			PODOFO_ASSERT( result == 2 );
+
+			bool useGlyph = false;
+			// determine if this glyph is used in normal chars
+			for ( int code = 0; code <= 255; code++ )
+			{
+				if ( 
+					(m_bUsed[code / 32] & (1 << (code % 32 ))) != 0	&&
+					strcmp( glyphName+1, 
+                            PdfDifferenceEncoding::UnicodeIDToName( GetEncoding()->GetCharCode(code) ).GetName().c_str() ) 
+                    == 0
+                    )
+				{
+					useGlyph = true;
+					break;
+				}
+			}
+
+			// determine if this glyph is used in special chars
+			if ( m_sUsedGlyph.find( glyphName+1 ) != m_sUsedGlyph.end() )
+				useGlyph = true;
+            
+			// always use .notdef
+			if ( strcmp( glyphName, "/.notdef" ) == 0 )
+				useGlyph = true;
+
+			delete[] glyphName;
+
+			// transfer glyph to output
+			for ( int j = 0; j < glyphLen; j++, i++ )
+				outBuff[outIndex++] = inCrypt.Decrypt( inBuff[inIndex+i] );
+
+
+			// transfer rest until end of line to output
+			do
+			{
+                plain = inCrypt.Decrypt( inBuff[inIndex+i] );
+				outBuff[outIndex++] = plain;
+				line += static_cast<char>(plain);
+				i++;
+			} while ( plain != '\r'  &&  plain != '\n' );
+            
+			if ( useGlyph )
+			{
+				// glyph is used, encrypt it now
+				for ( int j = saveOutIndex; j < outIndex; j++ )
+					outBuff[j] = outCrypt.Encrypt( outBuff[j] );
+			}
+			else
+			{
+				// glyph is not used, go back to saved position
+				outIndex = saveOutIndex;
+			}
+		}
+		else
+		{
+			// copy anything outside glyph to output
+			outBuff[outIndex++] = outCrypt.Encrypt( plain );
+		}
+        
+		if ( plain == '\r' ||  plain == '\n' )
+		{
+			// parse for /CharStrings = begin of glyphs
+			if ( static_cast<int>(line.find( "/CharStrings" )) != -1 )
+				inCharString = true;
+			line.clear();
+		}
 	}
+
+	lLength2 = outIndex - lLength1;
+	inIndex += length;
+    
+	// 6-Byte binary header for ascii-part
+	PODOFO_ASSERT( inBuff[inIndex + 0] == 0x80 );
+	PODOFO_ASSERT( inBuff[inIndex + 1] == 0x01 );
+	length = inBuff[inIndex + 2] + 
+        (inBuff[inIndex + 3] << 8) + 
+        (inBuff[inIndex + 4] << 16) + 
+        (inBuff[inIndex + 5] << 24);				// little endian
+	inIndex += 6;
+    // TODO: Big endian support
+
+	// copy ascii
+	memcpy( &outBuff[outIndex], &inBuff[inIndex], length );
+	lLength3 = length;
+	inIndex += length;
+	outIndex += length;
+
+	// now embed
+	pContents->GetStream()->Set( reinterpret_cast<const char *>(outBuff), outIndex );
+
+	// cleanup memory
+    if( pAllocated )
+        free( pAllocated );
+    free( outBuff );
+
+	// enter length in dictionary
+    pContents->GetDictionary().AddKey( "Length1", PdfVariant( lLength1 ) );
+    pContents->GetDictionary().AddKey( "Length2", PdfVariant( lLength2 ) );
+    pContents->GetDictionary().AddKey( "Length3", PdfVariant( lLength3 ) );
 }
 
 void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
@@ -255,6 +501,31 @@ pdf_long PdfFontType1::FindInBuffer( const char* pszNeedle, const char* pszHayst
     }
 
     return -1;
+}
+
+PdfType1Encrypt::PdfType1Encrypt()
+{
+	m_r = 55665;
+	m_c1 = 52845;
+	m_c2 = 22719;
+}
+
+unsigned char PdfType1Encrypt::Encrypt( unsigned char plain )
+{
+	unsigned char cipher;
+	cipher = (plain ^ (m_r >> 8));
+	m_r = ((cipher + m_r) * m_c1 + m_c2) & ((1<<16) -1);
+
+	return cipher;
+}
+
+unsigned char PdfType1Encrypt::Decrypt( unsigned char cipher )
+{
+	unsigned char plain;
+	plain = (cipher ^ (m_r >> 8));
+	m_r = (cipher + m_r) * m_c1 + m_c2;
+
+	return plain;
 }
 
 };

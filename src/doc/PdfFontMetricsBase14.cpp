@@ -75,9 +75,14 @@ PdfFontMetricsBase14::~PdfFontMetricsBase14()
 {
 }
 
-double PdfFontMetricsBase14::GetGlyphWidth( int nGlyphId) const 
+double PdfFontMetricsBase14::GetGlyphWidth( int nGlyphId ) const 
 {
     return widths_table[static_cast<unsigned int>(nGlyphId)].width; 
+}
+
+double PdfFontMetricsBase14::GetGlyphWidth( const char* ) const 
+{
+    return 0.0;
 }
 
 double PdfFontMetricsBase14::CharWidth( unsigned char c ) const 

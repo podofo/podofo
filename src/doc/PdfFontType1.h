@@ -74,6 +74,12 @@ class PdfFontType1 : public PdfFontSimple {
 	 */
 	virtual void AddUsedSubsettingGlyphs( const PdfString & sText, long lStringLen );
 
+  	/** Remember the glyphname in case of subsetting 
+	 *
+     *  \param sGlyphName Name of the glyph to remember
+     */
+    virtual void AddUsedGlyphname( const char* sGlyphName );
+
     /** Embeds pending subset-font into PDF page
      *
      */
@@ -91,6 +97,42 @@ class PdfFontType1 : public PdfFontSimple {
 
 	int m_bUsed[8];		// bitmask for usage if char 00..ff
 
+	std::set<std::string>	m_sUsedGlyph;	// array for special chars
+
+};
+
+/** Helper Class needed for parsing type1-font for subsetting
+ */
+class PdfType1Encrypt
+{
+public:
+    /** Create a new PdfTypeEncrypt object.
+     *
+     */
+	PdfType1Encrypt();
+	
+    /** Encrypts a character
+     *
+     *  \param plain the character to encrypt.
+     *
+     *  \return encrypted cipher
+     *
+     */
+	unsigned char Encrypt( unsigned char plain );
+
+    /** Decrypts a character
+     *
+     *  \param cipher the cipher to decrypt.
+     *
+     *  \return decrypted character
+     *
+     */
+	unsigned char Decrypt( unsigned char cipher );
+	
+protected:
+	unsigned short int m_r;
+	unsigned short int m_c1;
+	unsigned short int m_c2;
 };
 
 };

@@ -156,7 +156,7 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
     return pFont;
 }
 
-PdfFont* PdfFontFactory::CreateFont( FT_Library* pLibrary, PdfObject* pObject )
+PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
 {
     PdfFontMetrics* pMetrics    = NULL;
     PdfFont*        pFont       = NULL;
