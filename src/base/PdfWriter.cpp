@@ -44,8 +44,9 @@ namespace PoDoFo {
 
 PdfWriter::PdfWriter( PdfParser* pParser )
     : m_bXRefStream( false ), m_pEncrypt( NULL ), 
-      m_pEncryptObj( NULL ), m_bLinearized( false ),
-      m_lFirstInXRef( 0 )
+      m_pEncryptObj( NULL ), 
+      m_eWriteMode( ePdfWriteMode_Compact ),
+      m_bLinearized( false ), m_lFirstInXRef( 0 )
 {
     if( !(pParser && pParser->GetTrailer()) )
     {
@@ -59,8 +60,9 @@ PdfWriter::PdfWriter( PdfParser* pParser )
 
 PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
     : m_bXRefStream( false ), m_pEncrypt( NULL ), 
-      m_pEncryptObj( NULL ), m_bLinearized( false ),
-      m_lFirstInXRef( 0 )
+      m_pEncryptObj( NULL ), 
+      m_eWriteMode( ePdfWriteMode_Compact ),
+      m_bLinearized( false ), m_lFirstInXRef( 0 )
 {
     if( !pVecObjects || !pTrailer )
     {
@@ -74,8 +76,9 @@ PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
 
 PdfWriter::PdfWriter( PdfVecObjects* pVecObjects )
     : m_bXRefStream( false ), m_pEncrypt( NULL ), 
-      m_pEncryptObj( NULL ), m_bLinearized( false ), 
-      m_lFirstInXRef( 0 )
+      m_pEncryptObj( NULL ), 
+      m_eWriteMode( ePdfWriteMode_Compact ), 
+      m_bLinearized( false ), m_lFirstInXRef( 0 )
 {
     m_eVersion     = ePdfVersion_Default;
     m_pTrailer     = new PdfObject();
