@@ -58,7 +58,7 @@ void PdfAcroForm::Init( EPdfAcroFormDefaulAppearance eDefaultAppearance )
     // Peter Petrov 27 April 2008
     //this->GetObject()->GetDictionary().AddKey( PdfName("NeedAppearances"), PdfVariant(true) );
 
-    if( !this->GetObject()->GetDictionary().HasKey("DA") || 
+    if( !this->GetObject()->GetDictionary().HasKey("DA") && 
         eDefaultAppearance == ePdfAcroFormDefaultAppearance_BlackText12pt )
     {
         //PdfFont* pFont = pParent->GetDocument()->CreateFont( "Helvetica", false );
