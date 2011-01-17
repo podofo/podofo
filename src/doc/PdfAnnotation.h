@@ -206,11 +206,13 @@ class PODOFO_DOC_API PdfAnnotation : public PdfElement {
     void SetDestination( const PdfDestination & rDestination );
 
     /** Get the destination of a link annotations
+     *  \param pDoc a PdfDocument owning this annotation.
+     *         This is required to resolve names and pages.
      *  \returns a destination object
      * 
      *  \see SetDestination
      */
-    PdfDestination GetDestination() const;
+    PdfDestination GetDestination( PdfDocument* pDoc ) const;
 
     /** 
      *  \returns true if this annotation has an destination

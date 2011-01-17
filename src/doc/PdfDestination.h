@@ -75,8 +75,15 @@ class PODOFO_DOC_API PdfDestination {
 
     /** Create a new PdfDestination from an existing PdfObject (such as loaded from a doc)
      *  \param pObject the object to construct from 
+     *  \param pDoc a PDF document owning this destination, needed to resolve pages
      */
-    PdfDestination( PdfObject* pObject );
+    PdfDestination( PdfObject* pObject, PdfDocument* pDocument );
+
+    /** Create a new PdfDestination from an existing PdfObject (such as loaded from a doc)
+     *  \param pObject the object to construct from 
+     *  \param pVecObjects a PdfVecObjects owning this destination, needed to resolve pages
+     */
+    PdfDestination( PdfObject* pObject, PdfVecObjects* pVecObjects );
 
     /** Create a new PdfDestination with a page as destination
      *  \param pPage a page which is the destination 
@@ -216,6 +223,15 @@ class PODOFO_DOC_API PdfDestination {
      *  \param dictionary the destination will be added to this dictionary
      */
     void AddToDictionary( PdfDictionary & dictionary ) const;
+
+ private:
+    /** Initialize a new PdfDestination from an existing PdfObject (such as loaded from a doc)
+     *  and a document.
+     *
+     *  \param pObject the object to construct from 
+     *  \param pDoc a PDF document owning this destination, needed to resolve pages
+     */
+    void Init( PdfObject* pObject, PdfDocument* pDocument );
 
  private:
     static const long  s_lNumDestinations;

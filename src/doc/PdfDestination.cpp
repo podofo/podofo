@@ -47,41 +47,20 @@ PdfDestination::PdfDestination( PdfVecObjects* pParent )
     m_pObject = pParent->CreateObject( m_array );
 }
 
-PdfDestination::PdfDestination( PdfObject* pObject )
+PdfDestination::PdfDestination( PdfObject* pObject, PdfDocument* pDocument )
 {
-    if ( pObject->GetDataType() == ePdfDataType_Array ) 
-    {
-        m_array = pObject->GetArray();
-    }
-    else if( pObject->GetDataType() == ePdfDataType_String ) 
-    {
-        PdfDocument* pDoc = pObject->GetOwner()->GetParentDocument();
-        if( pDoc ) 
-        {
-            PdfNamesTree* pNames = pDoc->GetNamesTree( ePdfDontCreateObject );
-            if( !pNames ) 
-            {
-                PODOFO_RAISE_ERROR( ePdfError_NoObject );
-            }
-            
-            PdfObject* pValue = pNames->GetValue( "Dests", pObject->GetString() );
-            if( !pValue ) 
-            {
-                PODOFO_RAISE_ERROR( ePdfError_InvalidName );
-            }
+    Init( pObject, pDocument );
+}
 
-            if( pValue->IsArray() ) 
-                m_array = pValue->GetArray();
-            else if( pValue->IsDictionary() )
-                m_array = pValue->GetDictionary().GetKey( "D" )->GetArray();
-        }
-    }
-    else 
+PdfDestination::PdfDestination( PdfObject* pObject, PdfVecObjects* pVecObjects )
+{
+    PdfDocument* pDocument = pVecObjects->GetParentDocument();
+    if( !pDocument ) 
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    m_pObject = pObject;
+    Init( pObject, pDocument );
 }
 
 PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit )
@@ -160,6 +139,35 @@ const PdfDestination & PdfDestination::operator=( const PdfDestination & rhs )
     m_pObject	= rhs.m_pObject;
 
     return *this;
+}
+
+void PdfDestination::Init( PdfObject* pObject, PdfDocument* pDocument )
+{
+    if ( pObject->GetDataType() == ePdfDataType_Array ) 
+    {
+        m_array = pObject->GetArray();
+    }
+    else if( pObject->GetDataType() == ePdfDataType_String ) 
+    {
+        PdfNamesTree* pNames = pDocument->GetNamesTree( ePdfDontCreateObject );
+        if( !pNames ) 
+        {
+            PODOFO_RAISE_ERROR( ePdfError_NoObject );
+        }
+            
+        PdfObject* pValue = pNames->GetValue( "Dests", pObject->GetString() );
+        if( !pValue ) 
+        {
+            PODOFO_RAISE_ERROR( ePdfError_InvalidName );
+        }
+
+        if( pValue->IsArray() ) 
+            m_array = pValue->GetArray();
+        else if( pValue->IsDictionary() )
+            m_array = pValue->GetDictionary().GetKey( "D" )->GetArray();
+    }
+
+    m_pObject = pObject;
 }
 
 void PdfDestination::AddToDictionary( PdfDictionary & dictionary ) const

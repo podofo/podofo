@@ -124,9 +124,11 @@ class PODOFO_DOC_API PdfOutlineItem : public PdfElement {
     void SetDestination( const PdfDestination & rDest );
 
     /** Get the destination of this outline.
+     *  \param pDoc a PdfDocument owning this annotation.
+     *         This is required to resolve names and pages.
      *  \returns the destination, if there is one, or NULL
      */
-    PdfDestination* GetDestination( void );
+    PdfDestination* GetDestination( PdfDocument* pDoc );
 
     /** Set the action of this outline.
      *  \param rAction the action

@@ -228,7 +228,7 @@ void PdfOutlineItem::SetDestination( const PdfDestination & rDest )
     rDest.AddToDictionary( this->GetObject()->GetDictionary() );
 }
 
-PdfDestination* PdfOutlineItem::GetDestination( void )
+PdfDestination* PdfOutlineItem::GetDestination( PdfDocument* pDoc )
 {
     if( !m_pDestination )
     {
@@ -236,7 +236,7 @@ PdfDestination* PdfOutlineItem::GetDestination( void )
         if ( !dObj ) 
             return NULL;
     
-        m_pDestination = new PdfDestination( dObj );
+        m_pDestination = new PdfDestination( dObj, pDoc );
     }
 
     return m_pDestination;
