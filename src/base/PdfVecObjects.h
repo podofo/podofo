@@ -258,8 +258,12 @@ class PODOFO_API PdfVecObjects {
      *
      *  \param pTrailer the trailer object
      *  \param pNotDelete a list of object which must not be deleted
+     *  \param bDoGarbageCollection enable garbage collection, which deletes
+     *         all objects that are not reachable from the trailer. This might be slow!
+     *
+     *  \see CollectGarbage
      */
-    void RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNotDelete = NULL );
+    void RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNotDelete = NULL, bool bDoGarbageCollection = false );
 
     /** Insert a object into this vector.
      *  Overwritten from std::vector so that 
@@ -370,7 +374,18 @@ class PODOFO_API PdfVecObjects {
      *           if the vector is emtpy.
      */
     inline PdfObject* GetBack();
-    
+
+    /**
+     * Deletes all objects that are not references by other objects
+     * besides the trailer (which references the root dictionary, which in 
+     * turn should reference all other objects).
+     *
+     * \param pTrailer trailer object of the PDF
+     *
+     * Warning this might be slow!
+     */
+    void CollectGarbage( PdfObject* pTrailer );
+
  private:    
     /** 
      * \returns the next free object reference

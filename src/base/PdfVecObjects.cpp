@@ -198,6 +198,16 @@ PdfObject* PdfVecObjects::RemoveObject( const TIVecObjects & it )
     return pObj;
 }
 
+void PdfVecObjects::CollectGarbage( PdfObject* pTrailer )
+{
+    // We do not have any objects that have
+    // to be on the top, like in a linearized PDF.
+    // So we just use an empty list.
+    TPdfReferenceSet    setLinearizedGroup;
+
+    this->RenumberObjects( pTrailer, &setLinearizedGroup, true );
+}
+
 PdfReference PdfVecObjects::GetNextFreeObject()
 {
     PdfReference ref( static_cast<unsigned int>(m_nObjectCount), 0 );
@@ -267,7 +277,7 @@ void PdfVecObjects::push_back( PdfObject* pObj )
     m_vector.push_back( pObj );
 }
 
-void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* )
+void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNotDelete, bool bDoGarbageCollection )
 {
     TVecReferencePointerList  list;
     TIVecReferencePointerList it;
@@ -284,7 +294,10 @@ void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* )
     BuildReferenceCountVector( &list );
     InsertReferencesIntoVector( pTrailer, &list );
 
-    //GarbageCollection( &list, pTrailer, pNotDelete );
+    if( bDoGarbageCollection )
+    {
+        GarbageCollection( &list, pTrailer, pNotDelete );
+    }
 
     it = list.begin();
     while( it != list.end() )

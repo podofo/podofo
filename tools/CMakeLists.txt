@@ -4,6 +4,7 @@ SUBDIRS(
         podofocountpages
         podofocrop
 	podofoencrypt
+	podofogc
 	podofoimgextract
 	podofoimg2pdf
 	podofomerge
