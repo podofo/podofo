@@ -117,7 +117,7 @@ const char** PdfImage::GetSupportedFormats()
 
 void PdfImage::SetImageColorSpace( EPdfColorSpace eColorSpace )
 {
-    this->GetObject()->GetDictionary().AddKey( PdfName("ColorSpace"), PdfName( ColorspaceToName( eColorSpace ) ) );
+    this->GetObject()->GetDictionary().AddKey( PdfName("ColorSpace"), ColorspaceToName( eColorSpace ) );
 }
 
 void PdfImage::SetImageICCProfile( PdfInputStream* pStream, long lColorComponents, EPdfColorSpace eAlternateColorSpace ) 
@@ -132,7 +132,7 @@ void PdfImage::SetImageICCProfile( PdfInputStream* pStream, long lColorComponent
 
     // Create a colorspace object
     PdfObject* pIccObject = this->GetObject()->GetOwner()->CreateObject();
-    pIccObject->GetDictionary().AddKey( PdfName("Alternate"), PdfName( ColorspaceToName( eAlternateColorSpace ) ) );
+    pIccObject->GetDictionary().AddKey( PdfName("Alternate"), ColorspaceToName( eAlternateColorSpace ) ); 
     pIccObject->GetDictionary().AddKey( PdfName("N"), static_cast<pdf_int64>(lColorComponents) );
     pIccObject->GetStream()->Set( pStream );
     
@@ -682,9 +682,9 @@ void PdfImage::LoadFromPng( const char* pszFilename )
 }
 #endif // PODOFO_HAVE_PNG_LIB
 
-const char* PdfImage::ColorspaceToName( EPdfColorSpace eColorSpace )
+PdfName PdfImage::ColorspaceToName( EPdfColorSpace eColorSpace )
 {
-    return PdfColor::GetNameForColorSpace( eColorSpace ).GetName().c_str();
+    return PdfColor::GetNameForColorSpace( eColorSpace ).GetName();
 }
 
 void PdfImage::SetImageChromaKeyMask(pdf_int64 r, pdf_int64 g, pdf_int64 b, pdf_int64 threshold)

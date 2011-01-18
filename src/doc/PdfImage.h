@@ -216,7 +216,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param eColorSpace a valid colorspace
      *  \returns a valid key for this colorspace.
      */
-    static const char* ColorspaceToName( EPdfColorSpace eColorSpace );
+    static PdfName ColorspaceToName( EPdfColorSpace eColorSpace );
 
 #ifdef PODOFO_HAVE_JPEG_LIB
 	void LoadFromJpegHandle( FILE* hInfile, PdfFileInputStream* pInStream );
