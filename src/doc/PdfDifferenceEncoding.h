@@ -126,6 +126,10 @@ inline size_t PdfEncodingDifference::GetCount() const
 class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElement {
  public:
 
+    /**
+     * Defines the base encoding from which a
+     * PdfDifferenceEncoding differs.
+     */
     enum EBaseEncoding {
         eBaseEncoding_Font,      ///< Use The fonts encoding as base
         eBaseEncoding_WinAnsi,   ///< Use WinAnsiEncoding as base encoding
@@ -187,7 +191,7 @@ class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElem
 
     /** Convert a standard character name to a unicode code point
      * 
-     *  \param pszName a standard character name
+     *  \param rName a standard character name
      *  \returns an unicode code point
      */
     static pdf_utf16be NameToUnicodeID( const PdfName & rName );
@@ -219,7 +223,7 @@ class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElem
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *
-     *  \param an unicode PdfString.
+     *  \param rString an unicode PdfString.
      *  \param pFont the font for which this string is converted
      *
      *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes

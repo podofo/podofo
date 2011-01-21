@@ -240,7 +240,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  \param ownerPassword the owner password
      *  \param protection several EPdfPermissions values or'ed together to set 
      *                    the users permissions for this document
-     *  \param eRevision the revision of the encryption algorithm to be used
+     *  \param eAlgorithm the revision of the encryption algorithm to be used
      *  \param eKeyLength the length of the encryption key ranging from 40 to 128 bits 
      *                    (only used if eAlgorithm == ePdfEncryptAlgorithm_RC4V2)
      *

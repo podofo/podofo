@@ -269,7 +269,7 @@ class PODOFO_API PdfString : public PdfDataType{
      *  as GetLength() will returns the number of bytes used for unicode strings!
      *
      * 
-     *  \returngs the number of characters in the string
+     *  \returns the number of characters in the string
      */
     inline pdf_long GetCharacterLength() const;
 

@@ -327,7 +327,7 @@ void PdfXRef::WriteSubSection( PdfOutputDevice* pDevice, pdf_objnum nFirst, pdf_
 }
 
 void PdfXRef::WriteXRefEntry( PdfOutputDevice* pDevice, pdf_uint64 offset, 
-                              pdf_uint16 generation, char cMode, pdf_objnum ) 
+                              pdf_gennum generation, char cMode, pdf_objnum ) 
 {
     pDevice->Print( "%0.10" PDF_FORMAT_UINT64 " %0.5hu %c \n", offset, generation, cMode );
 }

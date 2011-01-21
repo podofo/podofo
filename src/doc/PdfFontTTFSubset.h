@@ -45,11 +45,14 @@ class PdfOutputDevice;
  */
 class PODOFO_DOC_API PdfFontTTFSubset {
  public:
+    /**
+     * Internal enum specifying the type of a fontfile.
+     */
     enum EFontFileType {
-	eFontFileType_TTF,    ///< TrueType Font
-	eFontFileType_TTC,    ///< TrueType Collection
-	eFontFileType_OTF,    ///< OpenType Font
-	eFontFileType_Unknown ///< Unknown
+        eFontFileType_TTF,    ///< TrueType Font
+        eFontFileType_TTC,    ///< TrueType Collection
+        eFontFileType_OTF,    ///< OpenType Font
+        eFontFileType_Unknown ///< Unknown
     };
 
 

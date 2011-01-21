@@ -134,6 +134,10 @@ class PODOFO_DOC_API PdfFontCache {
 #endif
 
  public:
+
+    /**
+     * Flags to control font creation.
+     */
     enum EFontCreationFlags {
         eFontCreationFlags_None = 0,				///< No special settings
         eFontCreationFlags_AutoSelectBase14 = 1,	///< Create automatically a base14 font if the fontname matches one of them
@@ -179,7 +183,7 @@ class PODOFO_DOC_API PdfFontCache {
      *                 PDF will be created
      *  \param eFontCreationFlags special flag to specify how fonts should be created
      *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
-     *  \param optional: pszFileName path to a valid font file
+     *  \param pszFileName optional path to a valid font file
      *
      *  \returns a PdfFont object or NULL if the font could
      *           not be created or found.
@@ -233,7 +237,7 @@ class PODOFO_DOC_API PdfFontCache {
      *  \returns a PdfFont object or NULL if the font could
      *           not be created or found.
      */
-	PdfFont* GetDuplicateFontType1( PdfFont * pFont, const char* pszSuffix );
+	PdfFont* GetDuplicateFontType1( PdfFont* pFont, const char* pszSuffix );
 
     /** Get a fontsubset from the cache. If the font does not yet
      *  exist, add it to the cache.
@@ -244,7 +248,7 @@ class PODOFO_DOC_API PdfFontCache {
      *  \param pEncoding the encoding of the font. All characters
      *                   of the encoding will be included in this subset.
      *                   The font will not take ownership of this object.     
-     *  \param optional: pszFileName path to a valid font file
+     *  \param pszFileName optional path to a valid font file
      *
      *  \returns a PdfFont object or NULL if the font could
      *           not be created or found.

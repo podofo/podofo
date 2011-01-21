@@ -38,7 +38,6 @@ class PdfFontType1Base14 : public PdfFontSimple {
      *         deleted along with the font.
      *  \param pEncoding the encoding of this font. The font will not take ownership of this object.
      *  \param pParent parent of the font object
-     *  \param bEmbed if true the font will get embedded.
      *  
      */
     PdfFontType1Base14( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 

@@ -63,8 +63,9 @@ class PODOFO_API PdfDate {
      */
     PdfDate( const time_t & t );
 
-    /** Create a PdfDate with a specified date and time
-     *  \param szDate the date and time of this object 
+    /*  !Non-Doxygen comment because constructor is disabled!
+     *  Create a PdfDate with a specified date and time
+     *  \param zDate the date and time of this object 
      *         in PDF format. It has to be a string of 
      *         the format  (D:YYYYMMDDHHmmSSOHH'mm').
      *         Otherwise IsValid will return false.

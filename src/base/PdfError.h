@@ -213,8 +213,9 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError : public std::exception {
         virtual void LogMessage( ELogSeverity eLogSeverity, const char* pszPrefix, const char* pszMsg, va_list & args ) = 0;
         virtual void LogMessage( ELogSeverity eLogSeverity, const wchar_t* pszPrefix, const wchar_t* pszMsg, va_list & args ) = 0;
     };
+
     /** Set a global static LogMessageCallback functor to repleace stderr output in LogMessageInternal
-     *  \param fCallback the pointer to the new callback functor object
+     *  \param fLogMessageCallback the pointer to the new callback functor object
      *  \returns the pointer to the previous callback functor object
      */
     static LogMessageCallback* SetLogMessageCallback(LogMessageCallback* fLogMessageCallback);

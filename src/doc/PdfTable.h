@@ -590,7 +590,7 @@ class PODOFO_DOC_API PdfTable {
     /** Create a new PdfTable object.
      *
      *  \param nCols number of columns in the table.
-     *  \paran nRows number of rows in the table.
+     *  \param nRows number of rows in the table.
      */
     PdfTable( int nCols, int nRows );
 
@@ -773,7 +773,7 @@ class PODOFO_DOC_API PdfTable {
      *  @param dX left x coordinate
      *  @param dY y coordinate
      *  @param pPainter use this painter object
-     *  @param pdColWidth an array containing all colomun widths
+     *  @param pdColWidths an array containing all colomun widths
      */
     void DrawHorizontalBorders( int nRow, double dX, double dY, PdfPainter* pPainter, double* pdColWidths );
 

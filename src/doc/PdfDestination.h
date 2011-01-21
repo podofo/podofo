@@ -75,7 +75,7 @@ class PODOFO_DOC_API PdfDestination {
 
     /** Create a new PdfDestination from an existing PdfObject (such as loaded from a doc)
      *  \param pObject the object to construct from 
-     *  \param pDoc a PDF document owning this destination, needed to resolve pages
+     *  \param pDocument a PDF document owning this destination, needed to resolve pages
      */
     PdfDestination( PdfObject* pObject, PdfDocument* pDocument );
 

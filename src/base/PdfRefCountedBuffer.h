@@ -65,7 +65,8 @@ class PODOFO_API PdfRefCountedBuffer {
      */
     inline ~PdfRefCountedBuffer();
     
-    /** Append to the current buffers contents. 
+    /* !Non-Doxygen comment because constructor is disabled!
+     *  Append to the current buffers contents. 
      *  If the buffer is referenced by another PdfRefCountedBuffer
      *  this object detaches from this buffer and allocates an own
      *  buffer. Otherwise the internal buffer is used and resized if

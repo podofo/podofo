@@ -166,7 +166,7 @@ class PODOFO_DOC_API PdfDocument {
      *  \param eFontCreationFlags special flag to specify how fonts should be created
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
-     *  \param optional: pszFileName path to a valid font file
+     *  \param pszFileName path to a valid font file
      *
      *  \returns PdfFont* a pointer to a new PdfFont object.
      */
@@ -240,11 +240,12 @@ class PODOFO_DOC_API PdfDocument {
      *  \param bBold if true search for a bold font
      *  \param bItalic if true search for an italic font
      *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
+     *  \param pszFileName optional path of a fontfile which should be used
      *
      *  \returns PdfFont* a pointer to a new PdfFont object.
      */
     PdfFont* CreateFontSubset( const char* pszFontName, bool bBold, bool bItalic, 
-			       const PdfEncoding * const = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(),
+			       const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(),
 			       const char* pszFileName = NULL);
 
 #ifdef _WIN32
@@ -557,10 +558,16 @@ class PODOFO_DOC_API PdfDocument {
     void FixObjectReferences( PdfObject* pObject, int difference );
 
     /** Low level APIs for setting a viewer preference
-     *  \param whichPrefs the dictionary key to set
-     *  \param the object to be set
+     *  \param whichPref the dictionary key to set
+     *  \param valueObj the object to be set
      */
     void SetViewerPreference( const PdfName& whichPref, const PdfObject & valueObj );
+
+    /** Low level APIs for setting a viewer preference
+     *  Convinience overload.
+     *  \param whichPref the dictionary key to set
+     *  \param inValue the object to be set
+     */
     void SetViewerPreference( const PdfName& whichPref, bool inValue );
 
     /** Clear all internal variables

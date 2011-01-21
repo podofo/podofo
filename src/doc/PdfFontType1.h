@@ -58,6 +58,9 @@ class PdfFontType1 : public PdfFontSimple {
 
 	/** Create a PdfFont based on an existing PdfFont with a new id
      *  \param pFont pointer to existing font
+     *  \param pMetrics pointer to a font metrics object. The font in the PDF
+     *         file will match this fontmetrics object. The metrics object is 
+     *         deleted along with the font.
      *  \param pszSuffix Suffix to add to font-id 
      *  \param pParent parent of the font object
      */
@@ -70,7 +73,7 @@ class PdfFontType1 : public PdfFontSimple {
   	/** Remember the glyphs used in the string in case of subsetting 
 	 *
      *  \param sText the text string which should be printed (is not allowed to be NULL!)
-     *  \param lLen draw only lLen characters of pszText
+     *  \param lStringLen draw only lLen characters of pszText
 	 */
 	virtual void AddUsedSubsettingGlyphs( const PdfString & sText, long lStringLen );
 

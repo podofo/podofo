@@ -76,6 +76,8 @@ class PODOFO_API PdfData : public PdfDataType {
     /** Write the complete datatype to a file.
      *  \param pDevice write the object to this device
      *  \param eWriteMode additional options for writing this object
+     *  \param pEncrypt an encryption object which is used to encrypt this object
+     *                  or NULL to not encrypt this object
      *
      * PdfData cannot do any encryption for you. So the encryption object will
      * be ignored as it is also the case for the write mode!

@@ -37,15 +37,13 @@ namespace PoDoFo {
  */
 class PdfXRefStreamParserObject : public PdfParserObject {
 public:
+
     /** Parse the object data from the given file handle starting at
      *  the current position.
      *  \param pCreator pointer to a PdfVecObjects to resolve object references
      *  \param rDevice an open reference counted input device which is positioned in
      *                 front of the object which is going to be parsed.
      *  \param rBuffer buffer to use for parsing to avoid reallocations
-     *  \param lOffset the position in the device from which the object shall be read
-     *                 if lOffset = -1, the object will be read from the current 
-     *                 position in the file.
      *  \param pOffsets XRef entries are stored into this array
      */
     PdfXRefStreamParserObject(PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, 

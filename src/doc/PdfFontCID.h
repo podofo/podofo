@@ -53,6 +53,7 @@ class PdfFontCID : public PdfFont {
      *         deleted along with the font.
      *  \param pEncoding the encoding of this font. The font will not take ownership of this object.
      *  \param pObject an existing PdfObject
+     *  \param bEmbed specifies the embedding of font
      */
     PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject, bool bEmbed );
 

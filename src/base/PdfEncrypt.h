@@ -89,6 +89,9 @@ public:
         ePdfPermissions_HighPrint	= 0x00000800   ///< Print a high resolution version of the document
     } EPdfPermissions;
 
+    /**
+     * The encryption algorithm.
+     */
     typedef enum {
         ePdfEncryptAlgorithm_RC4V1 = 1, ///< RC4 Version 1 encryption using a 40bit key
         ePdfEncryptAlgorithm_RC4V2 = 2, ///< RC4 Version 2 encryption using a key with 40-128bit
@@ -102,7 +105,7 @@ public:
      *  \param ownerPassword the owner password
      *  \param protection several EPdfPermissions values or'ed together to set 
      *                    the users permissions for this document
-     *  \param eRevision the revision of the encryption algorithm to be used
+     *  \param eAlgorithm the revision of the encryption algorithm to be used
      *  \param eKeyLength the length of the encryption key ranging from 40 to 128 bits 
      *                    (only used if eAlgorithm == ePdfEncryptAlgorithm_RC4V2)
      *
@@ -397,7 +400,7 @@ protected:
 
     /** Create the encryption key for the current object.
      *
-     *  \param pObjkey pointer to an array of at least MD5_HASHBYTES (=16) bytes length
+     *  \param objkey pointer to an array of at least MD5_HASHBYTES (=16) bytes length
      *  \param pnKeyLen pointer to an integer where the actual keylength is stored.
      */
     void CreateObjKey( unsigned char objkey[16], int* pnKeyLen ) const;

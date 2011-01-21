@@ -53,7 +53,7 @@ public:
      *
      *  \param pszName the name. The string must be allocated as static memory somewhere
      *         The string data will not be copied!
-     *  \param rColorValue RGB hex value (e.g. #FFABCD)
+     *  \param rColorName RGB hex value (e.g. #FFABCD)
      */
     PdfNamedColor( const char* pszName, const char* rColorName )
         : m_pszName( pszName ), m_color( FromRGBString(rColorName) )

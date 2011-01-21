@@ -104,7 +104,7 @@ class PODOFO_DOC_API PdfPagesTree : public PdfElement
      *  \param nAfterPageNumber an integer specifying after what page
      *         - may be one of the special values  from EPdfPageInsertionPoint.
      *         Pages are 0 based.
-     *  \param nPage a PdfPage to be inserted, the PdfPage will not get owned by the PdfPagesTree
+     *  \param pPage a PdfPage to be inserted, the PdfPage will not get owned by the PdfPagesTree
      */
     void InsertPage( int nAfterPageNumber, PdfPage* pPage );
 

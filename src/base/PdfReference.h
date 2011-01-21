@@ -124,7 +124,7 @@ class PODOFO_API PdfReference : public PdfDataType {
     /** Set the object number of this object
      *  \param o the new object number
      */
-    PODOFO_NOTHROW inline void SetObjectNumber( pdf_uint32 o );
+    PODOFO_NOTHROW inline void SetObjectNumber( pdf_objnum o );
 
     /** Get the object number.
      *  \returns the object number of this PdfReference
@@ -134,7 +134,7 @@ class PODOFO_API PdfReference : public PdfDataType {
     /** Set the generation number of this object
      *  \param g the new generation number
      */
-    PODOFO_NOTHROW inline void SetGenerationNumber( const pdf_uint16 g );
+    PODOFO_NOTHROW inline void SetGenerationNumber( const pdf_gennum g );
 
     /** Get the generation number.
      *  \returns the generation number of this PdfReference
@@ -202,7 +202,7 @@ void PdfReference::SetObjectNumber( pdf_objnum o )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-pdf_uint32 PdfReference::ObjectNumber() const
+pdf_objnum PdfReference::ObjectNumber() const
 {
     return m_nObjectNo;
 }
@@ -218,7 +218,7 @@ void PdfReference::SetGenerationNumber( pdf_gennum g )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-pdf_uint16 PdfReference::GenerationNumber() const
+pdf_gennum PdfReference::GenerationNumber() const
 {
     return m_nGenerationNo;
 }

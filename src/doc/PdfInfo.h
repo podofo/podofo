@@ -129,7 +129,7 @@ class PODOFO_DOC_API PdfInfo : public PdfElement {
     inline const PdfString & GetProducer() const;
 
     /** Set the trapping state of the document.
-     *  \param sTitle title
+     *  \param sTrapped trapped
      */
     void SetTrapped( const PdfName & sTrapped );
     

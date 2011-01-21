@@ -156,7 +156,7 @@ class PODOFO_API PdfEncoding {
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *
-     *  \param an unicode PdfString.
+     *  \param rString an unicode PdfString.
      *  \param pFont the font for which this string is converted
      *
      *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes
@@ -340,7 +340,7 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *
-     *  \param an unicode PdfString.
+     *  \param rString an unicode PdfString.
      *  \param pFont the font for which this string is converted
      *
      *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes

@@ -30,6 +30,9 @@ namespace PoDoFo {
 
 class PdfArray;
 
+/**
+ * The function type of a mathematical function in a PDF file. 
+ */
 enum EPdfFunctionType {
     ePdfFunctionType_Sampled     = 0, ///< A sampled function (Type1)
     ePdfFunctionType_Exponential = 2, ///< An exponential interpolation function (Type2)
@@ -39,6 +42,9 @@ enum EPdfFunctionType {
 
 /** 
  * This class defines a PdfFunction.
+ * A function can be used in various ways in a PDF file.
+ * Examples are device dependent rasterization for high quality
+ * printing or color transformation functions for certain colorspaces.
  */
 class PODOFO_DOC_API PdfFunction : public PdfElement {
 public:

@@ -90,7 +90,7 @@ class PdfXRefStream : public PdfXRef {
      *  @param objectNumber the object number of the currently written object if cMode = 'n' 
      *                       otherwise undefined
      */
-    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, pdf_uint64 offset, pdf_uint16 generation, 
+    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, pdf_uint64 offset, pdf_gennum generation, 
                                  char cMode, pdf_objnum objectNumber = 0 );
 
     /** Called at the end of writing the XRef table.

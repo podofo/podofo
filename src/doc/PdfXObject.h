@@ -65,7 +65,7 @@ class PODOFO_DOC_API PdfXObject : public PdfElement, public PdfCanvas {
     /** Create a new XObject from a page of another document
      *  in a given document
      * 
-     *  \param rDoc the document to create the XObject from
+     *  \param rSourceDoc the document to create the XObject from
      *  \param nPage the page-number in rDoc to create the XObject from
      *  \param pParent the parent document of the XObject
 	 *  \param pszPrefix optional prefix for XObject-name

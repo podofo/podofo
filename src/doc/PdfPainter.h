@@ -389,7 +389,7 @@ class PODOFO_DOC_API PdfPainter {
      *  \param dY the y coordinate of the text line
      *  \param dWidth the width of the text line
      *  \param rsText the text to draw
-     *  \param eAlignmet alignment of the text line
+     *  \param eAlignment alignment of the text line
      */
     void DrawTextAligned( double dX, double dY, double dWidth, const PdfString & rsText, EPdfAlignment eAlignment );
 
@@ -435,7 +435,7 @@ class PODOFO_DOC_API PdfPainter {
      *  use DrawText which is easier.
      * 
      *  \param sText the text string which should be printed 
-     *  \param lLen draw only lLen characters of pszText
+     *  \param lStringLen draw only lLen characters of pszText
      *
      *  \see SetFont()
      *  \see MoveTextPos()

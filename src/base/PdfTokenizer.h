@@ -61,7 +61,7 @@ class PODOFO_API PdfTokenizer {
     /** Reads the next token from the current file position
      *  ignoring all comments.
      *
-     *  \param[out] pszBuf On true return, set to a pointer to the read
+     *  \param[out] pszToken On true return, set to a pointer to the read
      *                     token (a NULL-terminated C string). The pointer is
      *                     to memory owned by PdfTokenizer and must NOT be
      *                     freed.  The contents are invalidated on the next
