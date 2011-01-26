@@ -79,14 +79,14 @@ void PdfDate::CreateStringRepresentation()
     // like "W. Australia Standard time". We use tzset and timezone
     // instead.
     _tzset();
-    snprintf( szZone, ZONE_STRING_SIZE, "%+03d", _timezone/3600 );
+    snprintf( szZone, ZONE_STRING_SIZE, "%+03d", -_timezone/3600 );
 #else
     if( strftime( szZone, ZONE_STRING_SIZE, "%z", stm ) == 0 )
     {
         std::ostringstream ss;
-	ss << "Generated invalid date from time_t value " << m_time
+        ss << "Generated invalid date from time_t value " << m_time
            << " (couldn't determine time zone)\n";
-	PdfError::DebugMessage( ss.str().c_str() );
+        PdfError::DebugMessage( ss.str().c_str() );
         strcpy( m_szDate, INVALIDDATE );
         return;
     }
