@@ -44,6 +44,8 @@ SET(PODOFO_DOC_SOURCES
   PdfPainter.cpp
   PdfPainterMM.cpp
   PdfShadingPattern.cpp
+  PdfSignatureField.cpp
+  PdfSignOutputDevice.cpp
   PdfStreamedDocument.cpp
   PdfTable.cpp
   PdfXObject.cpp
@@ -95,6 +97,8 @@ SET(PODOFO_DOC_HEADERS
   PdfPainter.h
   PdfPainterMM.h
   PdfShadingPattern.h
+  PdfSignatureField.h
+  PdfSignOutputDevice.h
   PdfStreamedDocument.h
   PdfTable.h
   PdfXObject.h

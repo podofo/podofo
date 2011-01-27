@@ -117,6 +117,7 @@ class PODOFO_API PdfOutputDevice {
      *  \see Write
      */
     virtual void Print( const char* pszFormat, ... );
+	virtual void PrintV( const char* pszFormat, va_list argptr );
 
     /** Write data to the buffer. Use this call instead of Print if you 
      *  want to write binary data to the PdfOutputDevice.
@@ -128,6 +129,13 @@ class PODOFO_API PdfOutputDevice {
      *  \see Print
      */
     virtual void Write( const char* pBuffer, size_t lLen );
+
+	/** Read data from the device
+     *  \param pBuffer a pointer to the data buffer
+     *  \param lLen length of the output buffer
+	 *  \returns Number of read bytes. Return 0 if EOF
+	 */
+	virtual size_t Read( char* pBuffer, size_t lLen );
 
     /** Seek the device to the position offset from the begining
      *  \param offset from the beginning of the file
@@ -158,6 +166,7 @@ class PODOFO_API PdfOutputDevice {
     size_t        m_lBufferLen;
 
     std::ostream*        m_pStream;
+	std::istream*        m_pReadStream;
     bool                 m_pStreamOwned;
     std::locale          m_pStreamSavedLocale;
     PdfRefCountedBuffer* m_pRefCountedBuffer;

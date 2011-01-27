@@ -74,6 +74,8 @@
 #include "doc/PdfPainter.h"
 #include "doc/PdfPainterMM.h"
 #include "doc/PdfShadingPattern.h"
+#include "doc/PdfSignatureField.h"
+#include "doc/PdfSignOutputDevice.h"
 #include "doc/PdfStreamedDocument.h"
 #include "doc/PdfTable.h"
 #include "doc/PdfXObject.h"

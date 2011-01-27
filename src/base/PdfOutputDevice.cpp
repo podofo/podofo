@@ -43,7 +43,12 @@ PdfOutputDevice::PdfOutputDevice( const char* pszFilename )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    m_pStream = new std::ofstream(pszFilename, std::ofstream::binary);
+	std::fstream *pStream = new std::fstream(pszFilename, std::fstream::binary|std::ios_base::in | std::ios_base::out | std::ios_base::trunc);
+	if(pStream->fail()) {
+		PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+	}
+	m_pStream = pStream;
+	m_pReadStream = pStream;
     PdfLocaleImbue(*m_pStream);
 
     /*
@@ -66,7 +71,7 @@ PdfOutputDevice::PdfOutputDevice( const wchar_t* pszFilename )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    m_hFile = _wfopen( pszFilename, L"wb" );
+    m_hFile = _wfopen( pszFilename, L"w+b" );
     if( !m_hFile )
     {
         PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
@@ -124,6 +129,7 @@ void PdfOutputDevice::Init()
     m_hFile             = NULL;
     m_pBuffer           = NULL;
     m_pStream           = NULL;
+	m_pReadStream       = NULL;
     m_pRefCountedBuffer = NULL;
     m_lBufferLen        = 0;
     m_ulPosition        = 0;
@@ -133,6 +139,13 @@ void PdfOutputDevice::Init()
 void PdfOutputDevice::Print( const char* pszFormat, ... )
 {
     va_list args;
+	va_start( args, pszFormat );
+	PrintV(pszFormat, args);
+	va_end( args );
+}
+
+void PdfOutputDevice::PrintV( const char* pszFormat, va_list args )
+{
     long    lBytes;
 
     if( !pszFormat )
@@ -142,17 +155,14 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
 
     if( m_hFile )
     {
-        va_start( args, pszFormat );
         if( (lBytes = vfprintf( m_hFile, pszFormat, args )) < 0 )
         {
             perror( NULL );
             PODOFO_RAISE_ERROR( ePdfError_UnexpectedEOF );
         }
-        va_end( args );
     }
     else
     {
-        va_start( args, pszFormat );
         // OC 17.08.2010: Use new function _vscprintf to get the number of characters:
         // visual c++  8.0 == 1400 (Visual Studio 2005)
         // i am not shure if 1300 is ok here, but who cares this cruel compiler version
@@ -170,10 +180,7 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
 #else
         lBytes = vsnprintf( NULL, 0, pszFormat, args );
 #endif
-        va_end( args );
     }
-
-    va_start( args, pszFormat );
 
     if( m_pBuffer )
     {
@@ -216,10 +223,51 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
 
         free( data );
     }
-    va_end( args );
 
     m_ulPosition += static_cast<size_t>(lBytes);
-    m_ulLength += static_cast<size_t>(lBytes);
+    if(m_ulPosition>m_ulLength) m_ulLength = m_ulPosition;
+}
+
+size_t PdfOutputDevice::Read( char* pBuffer, size_t lLen )
+{
+	size_t numRead = 0;
+    if( m_hFile )
+    {
+		numRead = fread( pBuffer, sizeof(char), lLen, m_hFile );
+		if(ferror(m_hFile)!=0)
+        {
+            PODOFO_RAISE_ERROR( ePdfError_InvalidDeviceOperation );
+        }		
+    }
+    else if( m_pBuffer )
+    {		
+        if( m_ulPosition <= m_ulLength )
+        {
+			numRead = std::min(lLen,m_ulLength-m_ulPosition);
+            memcpy( pBuffer, m_pBuffer + m_ulPosition, numRead);
+        }
+    }
+    else if( m_pReadStream )
+    {
+		size_t iPos = m_pReadStream->tellg();
+		m_pReadStream->read( pBuffer, lLen );
+		if(m_pReadStream->fail()&&!m_pReadStream->eof()) {
+			PODOFO_RAISE_ERROR( ePdfError_InvalidDeviceOperation );
+		}
+		numRead = m_pReadStream->tellg();
+		numRead -= iPos;
+    }
+    else if( m_pRefCountedBuffer ) 
+    {
+        if( m_ulPosition <= m_ulLength )
+		{
+			numRead = std::min(lLen,m_ulLength-m_ulPosition);
+            memcpy( pBuffer, m_pRefCountedBuffer->GetBuffer() + m_ulPosition, numRead );
+		}
+    }
+
+    m_ulPosition += static_cast<size_t>(numRead);
+	return numRead;
 }
 
 void PdfOutputDevice::Write( const char* pBuffer, size_t lLen )
@@ -254,8 +302,8 @@ void PdfOutputDevice::Write( const char* pBuffer, size_t lLen )
         memcpy( m_pRefCountedBuffer->GetBuffer() + m_ulPosition, pBuffer, lLen );
     }
 
-    m_ulLength   += static_cast<size_t>(lLen);
     m_ulPosition += static_cast<size_t>(lLen);
+	if(m_ulPosition>m_ulLength) m_ulLength = m_ulPosition;
 }
 
 void PdfOutputDevice::Seek( size_t offset )
