@@ -107,7 +107,7 @@ class PODOFO_API PdfMemStream : public PdfStream {
      *  \returns the length of the internal buffer
      *  \see Get()
      */
-    inline pdf_long GetLength() const;
+    virtual pdf_long GetLength() const;
 
     /** This function compresses any currently set stream
      *  using the FlateDecode(ZIP) algorithm. JPEG compressed streams
@@ -177,7 +177,7 @@ class PODOFO_API PdfMemStream : public PdfStream {
     PdfOutputStream*       m_pStream;
     PdfBufferOutputStream* m_pBufferStream;
 
-    pdf_long                   m_lLength;
+    pdf_long               m_lLength;
 };
 
 // -----------------------------------------------------
@@ -186,14 +186,6 @@ class PODOFO_API PdfMemStream : public PdfStream {
 const char* PdfMemStream::Get() const
 {
     return m_buffer.GetBuffer();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-pdf_long PdfMemStream::GetLength() const
-{
-    return m_lLength;
 }
 
 // -----------------------------------------------------
