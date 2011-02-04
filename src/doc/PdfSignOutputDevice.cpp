@@ -26,7 +26,8 @@
 
 namespace PoDoFo {
 
-PdfSignOutputDevice::PdfSignOutputDevice(PdfOutputDevice* pRealDevice)
+
+PdfSignOutputDevice::PdfSignOutputDevice(PdfOutputDevice *pRealDevice)
 {
     Init();
     m_pRealDevice = pRealDevice;	
@@ -89,7 +90,7 @@ size_t PdfSignOutputDevice::GetSignatureSize()const
 	return (m_pSignatureBeacon == NULL)?0:(m_pSignatureBeacon->data().size()/2);
 }
 
-void PdfSignOutputDevice::SetSignature(PdfData &sigData)
+void PdfSignOutputDevice::SetSignature(const PdfData &sigData)
 {
     if(!m_bBeaconFound) {
         PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
@@ -130,7 +131,6 @@ void PdfSignOutputDevice::AdjustByteRange()
     arr.push_back( PdfVariant(static_cast<pdf_int64>(m_sBeaconPos)) );
     arr.push_back( PdfVariant(static_cast<pdf_int64>(m_sBeaconPos+m_pSignatureBeacon->data().size()+2) ) );
     arr.push_back( PdfVariant(static_cast<pdf_int64>(sFileEnd-(m_sBeaconPos+m_pSignatureBeacon->data().size()+2)) ) );
-
     std::string sPosition;
     PdfVariant(arr).ToString(sPosition, ePdfWriteMode_Compact);
     // Fill padding
@@ -151,14 +151,11 @@ void PdfSignOutputDevice::AdjustByteRange()
 
 size_t PdfSignOutputDevice::ReadForSignature(char* pBuffer, size_t lLen)
 {
-    if(!m_bBeaconFound) 
-    {
+    if(!m_bBeaconFound) {
         PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
     }
-
 	size_t pos = m_pRealDevice->Tell();
 	size_t numRead = 0;
-
 	// Check if we are before beacon
 	if(pos<m_sBeaconPos)
 	{
@@ -207,3 +204,4 @@ void PdfSignOutputDevice::Write( const char* pBuffer, size_t lLen )
 }
 
 }
+

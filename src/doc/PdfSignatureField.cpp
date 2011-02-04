@@ -20,7 +20,6 @@
  ***************************************************************************/
 
 #include "PdfSignatureField.h"
-
 #include "../base/PdfDictionary.h"
 #include "../base/PdfData.h"
 
@@ -82,7 +81,7 @@ void PdfSignatureField::SetSignature(const PdfData &sSignatureData)
 {
     // Prepare source data
     size_t lSigLen = sSignatureData.data().size();
-    char *pData = static_cast<char*>(malloc(lSigLen+2));
+    char* pData = static_cast<char*>(malloc(lSigLen+2));
     pData[0]='<';
     pData[lSigLen+1]='>';
     memcpy(pData+1, sSignatureData.data().c_str(), lSigLen);

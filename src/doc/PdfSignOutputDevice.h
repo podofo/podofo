@@ -84,7 +84,7 @@ public:
 
     /** Embed real signature in the PDF
      */
-    virtual void SetSignature(PdfData &sigData);
+    virtual void SetSignature(const PdfData &sigData);
 
     virtual inline size_t GetLength() const
     {
