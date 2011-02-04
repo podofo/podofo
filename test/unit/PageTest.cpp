@@ -75,3 +75,4 @@ void PageTest::testEmptyContentsStream()
 
     TestUtils::deleteFile( sFilename.c_str() );
 }
+
