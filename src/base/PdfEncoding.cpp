@@ -1080,7 +1080,8 @@ const pdf_utf16be PdfStandardEncoding::s_cEncoding[256] = {
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
     0x0020,  // 20   # SPACE   # space
- // 0x00A0,  // 20   # NO-BREAK SPACE   # space
+    // Duplicated char, commented out
+    // 0x00A0,  // 20   # NO-BREAK SPACE   # space
     0x0021,  // 21   # EXCLAMATION MARK   # exclam
     0x0022,  // 22   # QUOTATION MARK   # quotedbl
     0x0023,  // 23   # NUMBER SIGN   # numbersign
@@ -1094,7 +1095,8 @@ const pdf_utf16be PdfStandardEncoding::s_cEncoding[256] = {
     0x002B,  // 2B   # PLUS SIGN   # plus
     0x002C,  // 2C   # COMMA   # comma
     0x002D,  // 2D   # HYPHEN-MINUS   # hyphen
- // 0x00AD,  // 2D   # SOFT HYPHEN   # hyphen
+    // Duplicated char, commented out
+    // 0x00AD,  // 2D   # SOFT HYPHEN   # hyphen
     0x002E,  // 2E   # FULL STOP   # period
     0x002F,  // 2F   # SOLIDUS   # slash
     0x0030,  // 30   # DIGIT ZERO   # zero
@@ -1196,7 +1198,8 @@ const pdf_utf16be PdfStandardEncoding::s_cEncoding[256] = {
     0x00A2,  // A2   # CENT SIGN   # cent
     0x00A3,  // A3   # POUND SIGN   # sterling
     0x2044,  // A4   # FRACTION SLASH	# fraction
- // 0x2215,  // A4   # DIVISION SLASH	# fraction
+    // Duplicated char, commented out
+    // 0x2215,  // A4   # DIVISION SLASH	# fraction
     0x00A5,  // A5   # YEN SIGN   # yen
     0x0192,  // A6   # LATIN SMALL LETTER F WITH HOOK   # florin
     0x00A7,  // A7   # SECTION SIGN   # section
@@ -1231,7 +1234,8 @@ const pdf_utf16be PdfStandardEncoding::s_cEncoding[256] = {
     0x02C6,  // C3   # MODIFIER LETTER CIRCUMFLEX ACCENT   # circumflex
     0x02DC,  // C4   # SMALL TILDE   # tilde
     0x00AF,  // C5   # MACRON   # macron
-    0x02C9,  // C5   # MODIFIER LETTER MACRON   # macron
+    // Duplicated char, commented out
+    //0x02C9,  // C5   # MODIFIER LETTER MACRON   # macron
     0x02D8,  // C6   # BREVE   # breve
     0x02D9,  // C7   # DOT ABOVE   # dotaccent
     0x00A8,  // C8   # DIAERESIS   # dieresis
