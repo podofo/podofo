@@ -1039,13 +1039,13 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 	{
 		// first time: create difference-encoding as reference, enter glyph
 		pEncoding = pDocument->GetObjects().CreateObject( "Encoding" );
-
+        
 		code++;
-
+        
 		PdfArray diffs;
-		diffs.push_back( static_cast<long long>( code ) );
+		diffs.push_back( PdfVariant( static_cast<pdf_int64>( code ) ) );
 		diffs.push_back( PdfName( pszGlyphname ) );
-
+        
 		pEncoding->GetDictionary().AddKey( "Differences", diffs );
 		pGlyphFontObj->GetDictionary().AddKey("Encoding", pEncoding->Reference() );
 
@@ -1054,10 +1054,10 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 		PdfArray & rWidthArr = pWidthObj->GetArray();
 		for ( unsigned int i = 0; i < rWidthArr.size(); i++ )
         {
-			rWidthArr[i] = static_cast<long long>( 0 );
+			rWidthArr[i] = PdfVariant( static_cast<pdf_int64>( 0 ) );
         }
-		rWidthArr[code] = static_cast<long long>( width );
-	}
+        rWidthArr[code] = PdfVariant( static_cast<pdf_int64>( width ) );
+    }
 	else
 	{
 		// search glyph in existing Encoding/Difference, create if not found
@@ -1099,7 +1099,7 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 			// enter width of glyph
 			PdfObject* pWidthObj = pGlyphFontObj->GetIndirectKey( "Widths" );
 			PdfArray & rWidthArr = pWidthObj->GetArray();
-			rWidthArr[code] = static_cast<long long>( width );
+			rWidthArr[code] = PdfVariant( static_cast<pdf_int64>( width ) );
 		}
 	}
 
