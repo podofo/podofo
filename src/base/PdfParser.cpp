@@ -117,6 +117,7 @@ void PdfParser::Init()
     m_nFirstObject    = 0;
     m_nNumObjects     = 0;
     m_nXRefLinearizedOffset = 0;
+    m_lLastEOFOffset  = 0;
 
     m_bStrictParsing  = false;
     m_bIgnoreBrokenObjects = false;
@@ -238,6 +239,14 @@ void PdfParser::ReadDocumentStructure()
     // position at the end of the file to search the xref table.
     m_device.Device()->Seek( 0, std::ios_base::end );
     m_nFileSize = m_device.Device()->Tell();
+
+// James McGill 18.02.2011, validate the eof marker and when not in strict mode accept garbage after it
+    try {
+        CheckEOFMarker();
+    } catch( PdfError & e ) {
+        e.AddToCallstack( __FILE__, __LINE__, "EOF marker could not be found." );
+        throw e;
+    }
 
     try {
         ReadXRef( &m_nXRefOffset );
@@ -1079,7 +1088,8 @@ const char* PdfParser::GetPdfVersionString() const
 
 void PdfParser::FindToken( const char* pszToken, const long lRange )
 {
-    m_device.Device()->Seek( 0, std::ios_base::end );
+// James McGill 18.02.2011, offset read position to the EOF marker if it is not the last thing in the file
+    m_device.Device()->Seek( -m_lLastEOFOffset, std::ios_base::end );
 
     std::streamoff nFileSize = m_device.Device()->Tell();
     if (nFileSize == -1)
@@ -1117,7 +1127,8 @@ void PdfParser::FindToken( const char* pszToken, const long lRange )
         PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
     }
 
-    m_device.Device()->Seek( (lXRefBuf-i)*-1, std::ios_base::end );
+// James McGill 18.02.2011, offset read position to the EOF marker if it is not the last thing in the file
+    m_device.Device()->Seek( ((lXRefBuf-i)*-1)-m_lLastEOFOffset, std::ios_base::end );
 }
 
 // Peter Petrov 23 December 2008
@@ -1201,6 +1212,51 @@ void PdfParser::UpdateDocumentVersion()
         }
     }
     
+}
+
+void PdfParser::CheckEOFMarker()
+{
+    // Check for the existence of the EOF marker
+    m_lLastEOFOffset = 0;
+    const char* pszEOFToken = "%%EOF";
+    const size_t nEOFTokenLen = 5;
+    char pszBuff[nEOFTokenLen+1];
+
+    m_device.Device()->Seek(-nEOFTokenLen, std::ios_base::end );
+    if( IsStrictParsing() )
+    {
+        // For strict mode EOF marker must be at the very end of the file
+        if( m_device.Device()->Read( pszBuff, nEOFTokenLen ) != nEOFTokenLen && !m_device.Device()->Eof() )
+            PODOFO_RAISE_ERROR( ePdfError_NoEOFToken );
+
+        if (strncmp( pszBuff, pszEOFToken, nEOFTokenLen) != 0)
+            PODOFO_RAISE_ERROR( ePdfError_NoEOFToken );
+    }
+    else
+    {
+        // Search for the Marker from the end of the file
+        pdf_long lCurrentPos =  m_device.Device()->Tell();
+        bool bFound = false;
+        while (lCurrentPos>=0)
+        {
+            m_device.Device()->Seek(lCurrentPos, std::ios_base::beg );
+            if( m_device.Device()->Read( pszBuff, nEOFTokenLen ) != nEOFTokenLen && !m_device.Device()->Eof() )
+                PODOFO_RAISE_ERROR( ePdfError_NoEOFToken );
+
+            if (strncmp( pszBuff, pszEOFToken, nEOFTokenLen) == 0)
+            {
+                bFound = true;
+                break;
+            }
+            --lCurrentPos;
+        }
+
+        // Try and deal with garbage by offsetting the buffer reads in PdfParser from now on
+        if (bFound)
+            m_lLastEOFOffset = (m_nFileSize - (m_device.Device()->Tell()-1)) + nEOFTokenLen;
+        else
+            PODOFO_RAISE_ERROR( ePdfError_NoEOFToken );
+    }
 }
 
 };

@@ -228,6 +228,9 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_NoObject:
             pszMsg = "ePdfError_NoObject"; 
             break;
+        case ePdfError_NoEOFToken:
+            pszMsg = "ePdfError_NoEOFToken"; 
+            break;
         case ePdfError_InvalidTrailerSize:
             pszMsg = "ePdfError_InvalidTrailerSize"; 
             break;
@@ -387,6 +390,9 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
             break;
         case ePdfError_NoObject:
             pszMsg = "A object was expected but not found.";
+            break;
+        case ePdfError_NoEOFToken:
+            pszMsg = "No EOF Marker was found in the PDF file.";
             break;
 
         case ePdfError_InvalidTrailerSize:

@@ -493,6 +493,15 @@ class PODOFO_API PdfParser : public PdfTokenizer {
 
     void ReadNextTrailer();
 
+
+    /** Checks for the existence of the %%EOF marker at the end of the file
+     *  When strict mode is off it will also attempt to setup the parser to ignore
+     *  any garbage after the last %%EOF marker
+     *  Simply raises an error if there is a problem with the marker
+     *
+     */
+    void CheckEOFMarker();
+
  private:
     /** Free all internal data structures
      */
@@ -529,6 +538,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     long          m_nNumObjects;
     pdf_long      m_nXRefLinearizedOffset;
     size_t        m_nFileSize;
+    pdf_long      m_lLastEOFOffset;
 
     TVecOffsets   m_offsets;
     PdfVecObjects* m_vecObjects;

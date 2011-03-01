@@ -67,6 +67,7 @@ enum EPdfError {
     ePdfError_NoTrailer,                /**< The PDF file has no or an invalid trailer. */
     ePdfError_NoNumber,                 /**< A number was expected in the PDF file, but the read string is no number. */
     ePdfError_NoObject,                 /**< A object was expected and non was found. */
+    ePdfError_NoEOFToken,               /**< The PDF file has no or an invalid EOF marker. */
 
     ePdfError_InvalidTrailerSize,       /**< The trailer size is invalid. */
     ePdfError_InvalidLinearization,     /**< The linearization directory of a web-optimized PDF file is invalid. */
