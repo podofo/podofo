@@ -616,8 +616,8 @@ void PdfImage::LoadFromPng( const char* pszFilename )
     png_set_sig_bytes(pPng, 8);
     png_read_info(pPng, pInfo);
 
-    int width = pInfo->width;
-    int height = pInfo->height;
+    int width = png_get_image_width(pPng, pInfo);
+    int height = png_get_image_height(pPng, pInfo);
     png_read_update_info(pPng, pInfo);
     
     // Read the file
@@ -629,12 +629,12 @@ void PdfImage::LoadFromPng( const char* pszFilename )
     }
 
 
-    long lLen = static_cast<long>(pInfo->rowbytes * height);
+    long lLen = static_cast<long>(png_get_rowbytes(pPng, pInfo) * height);
     char* pBuffer = static_cast<char*>(malloc(sizeof(char) * lLen));
     png_bytepp pRows = static_cast<png_bytepp>(malloc(sizeof(png_bytep)*height));
     for(int y=0; y<height; y++)
     {
-        pRows[y] = reinterpret_cast<png_bytep>(pBuffer + (y * pInfo->rowbytes));
+        pRows[y] = reinterpret_cast<png_bytep>(pBuffer + (y * png_get_rowbytes(pPng, pInfo)));
     }
 
     png_read_image(pPng, pRows);
@@ -643,7 +643,7 @@ void PdfImage::LoadFromPng( const char* pszFilename )
     m_rRect.SetWidth( width );
     m_rRect.SetHeight( height );
 
-    switch( pInfo->channels )
+    switch( png_get_channels( pPng, pInfo ) )
     {
         case 3:
             this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
@@ -673,7 +673,7 @@ void PdfImage::LoadFromPng( const char* pszFilename )
 
     // Set the image data and flate compress it
     PdfMemoryInputStream stream( pBuffer, lLen );
-    this->SetImageData( width, height, pInfo->bit_depth, &stream );
+    this->SetImageData( width, height, png_get_bit_depth(pPng, pInfo), &stream );
     
     png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
 
