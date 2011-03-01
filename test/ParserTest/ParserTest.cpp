@@ -114,25 +114,40 @@ int main( int argc, char*  argv[] )
     PdfParser     parser( &objects );
     
     objects.SetAutoDelete( true );
-
+    
+    bool useStrictMode = false;
     bool useDemandLoading = false;
     if ( argc >= 2 )
     {
-        if (argv[1][0] == '-')
+        for( int z=1;z<argc;z++ ) 
         {
-            if (string("-d") == argv[1])
+            if (argv[1][0] == '-')
             {
-                useDemandLoading = true;
-                ++argv;
-                --argc;
+                if (string("-d") == argv[1])
+                {
+                    useDemandLoading = true;
+                    ++argv;
+                    --argc;
+                }
+                else if (string("-s") == argv[1]) 
+                {
+                    useStrictMode = true;
+                    ++argv;
+                    --argc;
+                }
+            } 
+            else
+            {
+                break;
             }
         }
     }
 
-    if( argc < 2 || argc > 3 )
+    if( argc < 2 || argc > 4 )
     {
-        cerr << "Usage: ParserTest [-d] <input_filename> [<output_filename>]\n"
+        cerr << "Usage: ParserTest [-d] [-s] <input_filename> [<output_filename>]\n"
              << "    -d       Enable demand loading of objects\n"
+             << "    -s       Enable strict parsing mode\n"
              << flush;
         return 0;
     }
@@ -144,10 +159,13 @@ int main( int argc, char*  argv[] )
     try {
         cerr << "Parsing  " << argv[1] << " with demand loading "
              << (useDemandLoading ? "on" : "off")
+             << " with strict parsing "
+             << (useStrictMode ? "on" : "off")
              << " ..." << flush;
 
         bool bIncorrectPw = false;
         std::string pw;
+        parser.SetStrictParsing( useStrictMode );
         do {
             try {
                 if( !bIncorrectPw ) 
