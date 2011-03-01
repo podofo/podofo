@@ -70,14 +70,9 @@ PdfInputDevice::PdfInputDevice( const wchar_t* pszFilename )
     }
 
     try {
-        //m_pStream = new std::ifstream( pszFilename, std::ios::binary );
-        size_t strLen = wcslen(pszFilename);
-        char * pStr = new char[strLen+1];
-        wcstombs(pStr, pszFilename, strLen + 1);
-        m_pFile = fopen(pStr, "rb");
-        delete pStr;
+        // James McGill 16.02.2011 Fix wide character filename loading in windows
+        m_pFile = _wfopen(pszFilename, L"rb");
         if( !m_pFile)
-        //if( !m_pStream || !m_pStream->good() )
         {
             PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
             e.SetErrorInformation( pszFilename );
@@ -91,7 +86,6 @@ PdfInputDevice::PdfInputDevice( const wchar_t* pszFilename )
         e.SetErrorInformation( pszFilename );
         throw e;
     }
-    //PdfLocaleImbue(*m_pStream);
 }
 #endif
 #endif // _WIN32
