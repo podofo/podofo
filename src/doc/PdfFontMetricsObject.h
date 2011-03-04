@@ -212,6 +212,7 @@ class PODOFO_DOC_API PdfFontMetricsObject : public PdfFontMetrics {
     PdfName       m_sName;
     PdfArray      m_bbox;
     PdfArray      m_width;
+    PdfObject    *m_missingWidth;
     int           m_nFirst;
     int           m_nLast;
     unsigned int  m_nWeight;

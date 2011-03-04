@@ -44,7 +44,21 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
     m_nFirst       = static_cast<int>(pFont->GetDictionary().GetKeyAsLong( "FirstChar", 0L ));
     m_nLast        = static_cast<int>(pFont->GetDictionary().GetKeyAsLong( "LastChar", 0L ));
 	 // OC 15.08.2010 BugFix: GetIndirectKey() instead of GetDictionary().GetKey() and "Widths" instead of "Width"
-    m_width        = pFont->GetIndirectKey( "Widths" )->GetArray();
+    PdfObject* widths = pFont->GetIndirectKey( "Widths" );
+    if( widths != NULL )
+    {
+        m_width        = widths->GetArray();
+        m_missingWidth = NULL;
+    }
+    else
+    {
+        widths = pDescriptor->GetDictionary().GetKey( "MissingWidth" );
+        if( widths == NULL ) 
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, "Font object defines neither Widths, nor MissingWidth values!" );
+            m_missingWidth = widths;
+        }
+    }
 
     m_nWeight      = static_cast<unsigned int>(pDescriptor->GetDictionary().GetKeyAsLong( "FontWeight", 400L ));
     m_nItalicAngle = static_cast<int>(pDescriptor->GetDictionary().GetKeyAsLong( "ItalicAngle", 0L ));
@@ -80,7 +94,8 @@ void PdfFontMetricsObject::GetBoundingBox( PdfArray & array ) const
 
 double PdfFontMetricsObject::CharWidth( unsigned char c ) const
 {
-    if( c > m_nFirst && c < m_nLast ) 
+    if( c >= m_nFirst && c < m_nLast
+       && c - m_nFirst < m_width.size () )
     { 
         double dWidth = m_width[c - m_nFirst].GetReal();
         
@@ -89,7 +104,10 @@ double PdfFontMetricsObject::CharWidth( unsigned char c ) const
 
     }
 
-    return 0.0;
+    if( m_missingWidth != NULL )
+        return m_missingWidth->GetReal ();
+    else
+        return 0.0;
 }
 
 double PdfFontMetricsObject::UnicodeCharWidth( unsigned short c ) const
