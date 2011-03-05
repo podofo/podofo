@@ -26,10 +26,10 @@
 
 #include "PdfDefines.h"
 #include "PdfLocale.h"
+#include "PdfRefCountedBuffer.h"
 
 namespace PoDoFo {
 
-class PdfRefCountedBuffer;
 
 /** This class provides an output device which operates 
  *  either on a file or on a buffer in memory.
@@ -117,7 +117,32 @@ class PODOFO_API PdfOutputDevice {
      *  \see Write
      */
     virtual void Print( const char* pszFormat, ... );
-	virtual void PrintV( const char* pszFormat, va_list argptr );
+
+    /** Write to the PdfOutputDevice. Usage is as the usage of printf.
+     * 
+     *  WARNING: Do not use this for doubles or floating point values
+     *           as the output might depend on the current locale.
+     *
+     *  \param pszFormat a format string as you would use it with printf
+     *  \param lBytes length of the format string in bytes when written
+     *  \param argptr variable argument list
+     *  \returns ErrOk on success
+     *
+     *  \see Write
+     */
+	virtual void PrintV( const char* pszFormat, long lBytes, va_list argptr );
+
+    /**
+     * Determine the length of a format string in bytes
+     * when written using PrintV
+     *
+     * \param pszFormat format string
+     * \param args variable argument list
+     *
+     * \returns length in bytes
+     * \see PrintV
+     */
+    long PrintVLen( const char* pszFormat, va_list args );
 
     /** Write data to the buffer. Use this call instead of Print if you 
      *  want to write binary data to the PdfOutputDevice.
@@ -163,15 +188,16 @@ class PODOFO_API PdfOutputDevice {
  private:
     FILE*                m_hFile;
     char*                m_pBuffer;
-    size_t        m_lBufferLen;
+    size_t               m_lBufferLen;
 
     std::ostream*        m_pStream;
 	std::istream*        m_pReadStream;
     bool                 m_pStreamOwned;
     std::locale          m_pStreamSavedLocale;
     PdfRefCountedBuffer* m_pRefCountedBuffer;
-    size_t        m_ulPosition;
+    size_t               m_ulPosition;
 
+    PdfRefCountedBuffer  m_printBuffer;
 };
 
 // -----------------------------------------------------

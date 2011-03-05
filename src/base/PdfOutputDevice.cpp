@@ -139,12 +139,18 @@ void PdfOutputDevice::Init()
 void PdfOutputDevice::Print( const char* pszFormat, ... )
 {
     va_list args;
+    long lBytes;
+
 	va_start( args, pszFormat );
-	PrintV(pszFormat, args);
+	lBytes = PrintVLen(pszFormat, args);
+	va_end( args );
+
+	va_start( args, pszFormat );
+	PrintV(pszFormat, lBytes, args);
 	va_end( args );
 }
 
-void PdfOutputDevice::PrintV( const char* pszFormat, va_list args )
+long PdfOutputDevice::PrintVLen( const char* pszFormat, va_list args )
 {
     long    lBytes;
 
@@ -182,6 +188,16 @@ void PdfOutputDevice::PrintV( const char* pszFormat, va_list args )
 #endif
     }
 
+    return lBytes;
+}
+
+void PdfOutputDevice::PrintV( const char* pszFormat, long lBytes, va_list args )
+{
+    if( !pszFormat )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
     if( m_pBuffer )
     {
         if( m_ulPosition + lBytes <= m_lBufferLen )
@@ -196,13 +212,13 @@ void PdfOutputDevice::PrintV( const char* pszFormat, va_list args )
     else if( m_pStream || m_pRefCountedBuffer )
     {
         ++lBytes;
-        // TODO: keep the buffer between subsequent calls!
-        char* data = static_cast<char*>(malloc( lBytes * sizeof(char) ));
+        m_printBuffer.Resize( lBytes );
+        char* data = m_printBuffer.GetBuffer();
         if( !data )
         {
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
         }
-        
+
         vsnprintf( data, lBytes, pszFormat, args );
         if( lBytes )
             --lBytes;
@@ -216,16 +232,20 @@ void PdfOutputDevice::PrintV( const char* pszFormat, va_list args )
         else // if( m_pRefCountedBuffer ) 
         {
             if( m_ulPosition + lBytes > static_cast<unsigned long>(m_pRefCountedBuffer->GetSize()) )
+            {
                 m_pRefCountedBuffer->Resize( m_ulPosition + lBytes );
+            }
 
             memcpy( m_pRefCountedBuffer->GetBuffer() + m_ulPosition, data, lBytes );
         }
 
-        free( data );
     }
 
     m_ulPosition += static_cast<size_t>(lBytes);
-    if(m_ulPosition>m_ulLength) m_ulLength = m_ulPosition;
+    if(m_ulPosition>m_ulLength) 
+    {
+        m_ulLength = m_ulPosition;
+    }
 }
 
 size_t PdfOutputDevice::Read( char* pBuffer, size_t lLen )
