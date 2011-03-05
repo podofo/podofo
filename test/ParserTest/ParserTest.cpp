@@ -31,6 +31,15 @@ using std::string;
 
 using namespace PoDoFo;
 
+void print_help()
+{
+        cerr << "Usage: ParserTest [-d] [-clean] [-compact] <input_filename> [<output_filename>]\n"
+             << "    -d       Enable demand loading of objects\n"
+             << "    -clean   Write a clean PDF that is readable in a text editor\n"
+             << "    -compact Write the PDF as compact as possible\n"
+             << flush;
+}
+
 void enc_test() 
 {
     /*
@@ -89,11 +98,12 @@ void enc_test()
     */
 }
 
-void write_back( PdfParser* pParser, const char* pszFilename )
+void write_back( PdfParser* pParser, const char* pszFilename, EPdfWriteMode eWriteMode )
 {
-    enc_test();
+    //enc_test();
 
     PdfWriter writer( pParser );
+    writer.SetWriteMode( eWriteMode );
     /*
     PdfEncrypt encrypt( "user", "podofo", 0,
                         PdfEncrypt::ePdfEncryptAlgorithm_RC4V2, PdfEncrypt::ePdfKeyLength_128 );
@@ -112,42 +122,62 @@ int main( int argc, char*  argv[] )
 
     PdfVecObjects objects;
     PdfParser     parser( &objects );
-    
+    EPdfWriteMode eWriteMode = ePdfWriteMode_Default;
     objects.SetAutoDelete( true );
     
-    bool useStrictMode = false;
     bool useDemandLoading = false;
-    if ( argc >= 2 )
+    bool useStrictMode = false;
+    const char* pszInput = NULL;
+    const char* pszFilename = NULL;
+
+    for( int i=1; i<argc; i++ ) 
     {
-        for( int z=1;z<argc;z++ ) 
+        if( argv[i][0] == '-' ) 
         {
-            if (argv[1][0] == '-')
+
+            if (string("-d") == argv[i]) 
             {
-                if (string("-d") == argv[1])
-                {
-                    useDemandLoading = true;
-                    ++argv;
-                    --argc;
-                }
-                else if (string("-s") == argv[1]) 
-                {
-                    useStrictMode = true;
-                    ++argv;
-                    --argc;
-                }
+                useDemandLoading = true;
+            }
+            else if (string("-s") == argv[1]) 
+            {
+                useStrictMode = true;
             } 
+            else if (string("-clean") == argv[i])
+            {
+                eWriteMode = ePdfWriteMode_Clean;
+            }
+            else if (string("-compact") == argv[i])
+            {
+                eWriteMode = ePdfWriteMode_Compact;
+            }
+        }
+        else
+        {
+            if( pszInput == NULL ) 
+            {
+                pszInput = argv[i];
+            }
+            else if( pszFilename == NULL )
+            {
+                pszFilename = argv[i];
+            }
             else
             {
-                break;
+                print_help();
+                return 0;
             }
         }
     }
 
-    if( argc < 2 || argc > 4 )
+    if( pszInput == NULL )
     {
-        cerr << "Usage: ParserTest [-d] [-s] <input_filename> [<output_filename>]\n"
+        print_help();
+        cerr << "Usage: ParserTest [-d] [-s] [-clean] [-compact] <input_filename> [<output_filename>]\n"
              << "    -d       Enable demand loading of objects\n"
              << "    -s       Enable strict parsing mode\n"
+             << "    -clean   Enable clean writing mode\n"
+             << "    -compact Enable compact writing mode\n"
              << flush;
         return 0;
     }
@@ -155,9 +185,10 @@ int main( int argc, char*  argv[] )
     cerr << "This test reads a PDF file from disk and writes it to a new pdf file." << endl;
     cerr << "The PDF file should look unmodified in any viewer" << endl;
     cerr << "---" << endl;
+    cerr << "Number of incremental updates: " << parser.GetNumberOfIncrementalUpdates() << endl;
 
     try {
-        cerr << "Parsing  " << argv[1] << " with demand loading "
+        cerr << "Parsing  " << pszInput << " with demand loading "
              << (useDemandLoading ? "on" : "off")
              << " with strict parsing "
              << (useStrictMode ? "on" : "off")
@@ -169,7 +200,7 @@ int main( int argc, char*  argv[] )
         do {
             try {
                 if( !bIncorrectPw ) 
-                    parser.ParseFile( argv[1], useDemandLoading );
+                    parser.ParseFile( pszInput, useDemandLoading );
                 else 
                     parser.SetPassword( pw );
                 
@@ -203,10 +234,10 @@ int main( int argc, char*  argv[] )
         cerr << "=============\n");
         */
 
-        if (argc == 3)
+        if (pszFilename)
         {
             cerr << "Writing..." << flush;
-            write_back( &parser, argv[2] );
+            write_back( &parser, pszFilename, eWriteMode );
             cerr << " done" << endl;
         }
     } catch( PdfError & e ) {
@@ -214,7 +245,7 @@ int main( int argc, char*  argv[] )
         return e.GetError();
     }
 
-    if (argc == 3)
+    if (pszFilename)
         cerr << "Parsed and wrote successfully" << endl;
     else
         cerr << "Parsed successfully" << endl;
