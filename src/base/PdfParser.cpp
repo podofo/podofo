@@ -326,11 +326,13 @@ bool PdfParser::IsPdfFile()
         
     // try to determine the excact PDF version of the file
     for( i=0;i<=MAX_PDF_VERSION_STRING_INDEX;i++ )
+    {
         if( strncmp( m_buffer.GetBuffer(), s_szPdfVersions[i], PDF_MAGIC_LEN ) == 0 )
         {
             m_ePdfVersion = static_cast<EPdfVersion>(i);
             break;
         }
+    }
 
     return true;
 }
@@ -1226,7 +1228,8 @@ void PdfParser::CheckEOFMarker()
     if( IsStrictParsing() )
     {
         // For strict mode EOF marker must be at the very end of the file
-        if( m_device.Device()->Read( pszBuff, nEOFTokenLen ) != nEOFTokenLen && !m_device.Device()->Eof() )
+        if( static_cast<size_t>(m_device.Device()->Read( pszBuff, nEOFTokenLen )) != nEOFTokenLen
+            && !m_device.Device()->Eof() )
             PODOFO_RAISE_ERROR( ePdfError_NoEOFToken );
 
         if (strncmp( pszBuff, pszEOFToken, nEOFTokenLen) != 0)
@@ -1239,9 +1242,12 @@ void PdfParser::CheckEOFMarker()
         bool bFound = false;
         while (lCurrentPos>=0)
         {
-            m_device.Device()->Seek(lCurrentPos, std::ios_base::beg );
-            if( m_device.Device()->Read( pszBuff, nEOFTokenLen ) != nEOFTokenLen && !m_device.Device()->Eof() )
+            m_device.Device()->Seek( lCurrentPos, std::ios_base::beg );
+            if( static_cast<size_t>(m_device.Device()->Read( pszBuff, nEOFTokenLen )) != nEOFTokenLen 
+                && !m_device.Device()->Eof() )
+            {
                 PODOFO_RAISE_ERROR( ePdfError_NoEOFToken );
+            }
 
             if (strncmp( pszBuff, pszEOFToken, nEOFTokenLen) == 0)
             {
