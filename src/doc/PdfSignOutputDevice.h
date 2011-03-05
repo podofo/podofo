@@ -92,10 +92,16 @@ public:
     }
     virtual void Print( const char* pszFormat, ... )
     {
-        va_list argptr;
-        va_start(argptr, pszFormat);
-        m_pRealDevice->PrintV(pszFormat, argptr);
-        va_end(argptr);
+        va_list args;
+        long lBytes;
+        
+        va_start( args, pszFormat );
+        lBytes = m_pRealDevice->PrintVLen(pszFormat, args);
+        va_end( args );
+        
+        va_start( args, pszFormat );
+        m_pRealDevice->PrintV(pszFormat, lBytes, args);
+        va_end( args );
     }
     virtual void Write( const char* pBuffer, size_t lLen );
     virtual size_t Read( char* pBuffer, size_t lLen )
