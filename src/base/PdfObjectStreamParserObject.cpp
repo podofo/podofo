@@ -79,7 +79,10 @@ void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long
         // move to the position of the object in the stream
         device.Device()->Seek( static_cast<std::streamoff>(lFirst + lOff) );
 
-        tokenizer.GetNextVariant( var, m_pEncrypt );
+		// use a second tokenizer here so that anything that gets dequeued isn't left in the tokenizer that reads the offsets and lengths
+	    PdfTokenizer variantTokenizer( device, m_buffer );
+        variantTokenizer.GetNextVariant( var, m_pEncrypt );
+
         if(m_vecObjects->GetObject(PdfReference( static_cast<int>(lObj), 0LL )))
         {
             PdfError::LogMessage( eLogSeverity_Warning, "Object: %li 0 R will be deleted and loaded again.\n", lObj );
