@@ -1627,12 +1627,7 @@ PdfString PdfPainter::ExpandTabs_char( const char* pszText, long lStringLen, int
     }
     
     pszTab[i]  = 0;
-
     PdfString str( pszTab );
-    printf("OUT=");
-    for(int z=0;z<lLen;z++)
-        printf("%04x ", str.GetUnicode()[z] );
-    printf("\n\n");
     free( pszTab );
     
     return str;
@@ -1667,10 +1662,6 @@ PdfString PdfPainter::ExpandTabs_pdf_utf16be( const pdf_utf16be* pszText, long l
     pszTab[i]  = 0;
 
     PdfString str( pszTab );
-    printf("OUT=");
-    for(int z=0;z<lLen;z++)
-        printf("%04x ", str.GetUnicode()[z] );
-    printf("\n\n");
     free( pszTab );
     
     return str;
@@ -1706,10 +1697,6 @@ PdfString PdfPainter::ExpandTabsPrivate( const C* pszText, pdf_long lStringLen, 
     pszTab[i]  = 0;
 
     PdfString str( pszTab );
-    printf("OUT=");
-    for(int z=0;z<lLen;z++)
-        printf("%04x ", str.GetUnicode()[z] );
-    printf("\n\n");
     free( pszTab );
     
     return str;

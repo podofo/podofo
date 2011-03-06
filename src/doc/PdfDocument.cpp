@@ -261,7 +261,8 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
         if( (*it)->IsDictionary() && (*it)->HasStream() )
             *(pObj->GetStream()) = *((*it)->GetStream());
 
-        printf("Fixing references in %i 0 R by %i\n", pObj->Reference().ObjectNumber(), difference );
+        PdfError::LogMessage( eLogSeverity_Information,
+                              "Fixing references in %i 0 R by %i\n", pObj->Reference().ObjectNumber(), difference );
         FixObjectReferences( pObj, difference );
 
         ++it;
