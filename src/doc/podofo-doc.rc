@@ -19,12 +19,12 @@
 
 #if defined(COMPILING_SHARED_PODOFO)
 #define VER_FILETYPE VFT_DLL
-#define VER_FILEDESCRIPTION_STR "PoDoFo Doc Dynamic Link Library\0"
-#define VER_ORIGINALFILENAME_STR "podofo-doc.dll\0"
+#define VER_FILEDESCRIPTION_STR "PoDoFo Dynamic Link Library\0"
+#define VER_ORIGINALFILENAME_STR "podofo.dll\0"
 #else
 #define VER_FILETYPE VFT_STATIC_LIB
-#define VER_FILEDESCRIPTION_STR "PoDoFo Doc Static Library\0"
-#define VER_ORIGINALFILENAME_STR "podofo-doc.lib\0"
+#define VER_FILEDESCRIPTION_STR "PoDoFo Static Library\0"
+#define VER_ORIGINALFILENAME_STR "podofo.lib\0"
 #endif
 
 #if 1

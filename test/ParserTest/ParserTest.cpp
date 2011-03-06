@@ -250,5 +250,13 @@ int main( int argc, char*  argv[] )
     else
         cerr << "Parsed successfully" << endl;
 
+    /*
+    cerr << "Now with PdfMemDocument" << endl;
+    PdfMemDocument document;
+    document.Load( pszInput );
+    document.Write( pszFilename );
+    cerr << "DONE: Now with PdfMemDocument" << endl;
+    */
+    
     return 0;
 }
