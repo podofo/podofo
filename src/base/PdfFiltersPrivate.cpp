@@ -1170,7 +1170,6 @@ void PdfCCITTFilter::BeginDecodeImpl( const PdfDictionary* pDict )
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "TIFFClientOpen failed" );
     }
 
-    printf("m_tiff=%p\n", m_tiff );
     m_tiff->tif_mode = O_RDONLY;
 
     TIFFSetField(m_tiff, TIFFTAG_IMAGEWIDTH,      pDict->GetKeyAsLong( PdfName("Columns"), 1728 )->GetNumber() );

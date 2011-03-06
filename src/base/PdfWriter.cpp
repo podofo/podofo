@@ -487,8 +487,8 @@ void PdfWriter::FetchPagesTree()
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         }
 
-        printf("Fetching: %lu\n", pRoot->GetReference().ObjectNumber() );
-        printf("Size    : %i\n", static_cast<int>(m_vecObjects->GetSize()) );
+        //printf("Fetching: %lu\n", pRoot->GetReference().ObjectNumber() );
+        //printf("Size    : %i\n", static_cast<int>(m_vecObjects->GetSize()) );
         pRoot            = m_vecObjects->GetObject( pRoot->GetReference() );
         if( !pRoot ) 
         {
