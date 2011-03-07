@@ -27,6 +27,79 @@ using namespace PoDoFo;
 
 #define CONVERSION_CONSTANT 0.002834645669291339
 
+void WriteStringToStream( const PdfString & rsString, std::ostringstream & oss, PdfFont* pFont )
+{
+    PdfEncoding* pEncoding = new PdfIdentityEncoding( 0, 0xffff, true );
+    PdfRefCountedBuffer buffer = pEncoding->ConvertToEncoding( rsString, pFont );
+    pdf_long  lLen    = 0;
+    char* pBuffer = NULL;
+
+    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );    
+    pFilter->Encode( buffer.GetBuffer(), buffer.GetSize(), &pBuffer, &lLen );
+
+    oss << "<";
+    oss << std::string( pBuffer, lLen );
+    oss << ">";
+    free( pBuffer );
+    delete pEncoding;
+}
+
+void CreateUnicodeAnnotationText( PdfPage* pPage, PdfDocument* pDocument )
+{
+    PdfString sJap(reinterpret_cast<const pdf_utf8*>("「PoDoFo」は今から日本語も話せます。"));
+    PdfAnnotation* pAnnotation = 
+        pPage->CreateAnnotation( ePdfAnnotation_Text, PdfRect( 400.0, 200.0, 20.0, 20.0 ) );
+
+    PdfString sGerman(reinterpret_cast<const pdf_utf8*>("Unicode Umlauts: ÄÖÜß"));
+    pAnnotation->SetTitle( sGerman );
+    pAnnotation->SetContents( sJap );
+    pAnnotation->SetOpen( true );
+}
+
+void CreateUnicodeAnnotationFreeText( PdfPage* pPage, PdfDocument* pDocument )
+{
+    PdfString sJap(reinterpret_cast<const pdf_utf8*>("「PoDoFo」は今から日本語も話せます。"));
+    PdfFont* pFont = pDocument->CreateFont( "Arial Unicode MS", new PdfIdentityEncoding( 0, 0xffff, true ) ); 
+
+    PdfRect rect( 200.0, 200.0, 200.0, 200.0 );
+    /*
+    PdfXObject xObj( rect, pDocument );
+    
+    PdfPainter painter;
+    painter.SetPage( &xObj );
+    painter.SetFont( pFont );
+    painter.SetColor( 1.0, 0.0, 0.0 );
+    painter.DrawRect( 10.0, 10.0, 100.0, 100.0 );
+    painter.DrawText( 100.0, 100.0, sJap );
+    painter.FinishPage();
+    */
+
+    std::ostringstream  oss;
+    oss << "BT" << std::endl << "/" <<   pFont->GetIdentifier().GetName()
+        << " "  <<   pFont->GetFontSize()
+        << " Tf " << std::endl;
+
+    WriteStringToStream( sJap, oss, pFont );
+    oss << "Tj ET" << std::endl;
+
+    PdfDictionary fonts;
+    fonts.AddKey(pFont->GetIdentifier().GetName(), pFont->GetObject()->Reference());
+    PdfDictionary resources;
+    resources.AddKey( PdfName("Fonts"), fonts );
+
+    PdfAnnotation* pAnnotation = 
+        pPage->CreateAnnotation( ePdfAnnotation_FreeText, rect );
+
+    PdfString sGerman(reinterpret_cast<const pdf_utf8*>("Unicode Umlauts: ÄÖÜß"));
+    pAnnotation->SetTitle( sGerman );
+    pAnnotation->SetContents( sJap );
+    //pAnnotation->SetAppearanceStream( &xObj );
+    pAnnotation->GetObject()->GetDictionary().AddKey( PdfName("DA"), PdfString(oss.str()) );
+    pAnnotation->GetObject()->GetDictionary().AddKey( PdfName("DR"), resources );
+    
+
+}
+
 void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 {
     double     x     = 10000 * CONVERSION_CONSTANT;
@@ -173,8 +246,11 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->SetStrokeStyle( ePdfStrokeStyle_Custom, "[7 9 2] 4" );
     pPainter->DrawLine( x, y, x + (100000 * CONVERSION_CONSTANT), y );
     y -= (10000 * CONVERSION_CONSTANT);
-    
 
+    //CreateUnicodeAnnotationText( pPage, pDocument );
+    CreateUnicodeAnnotationFreeText( pPage, pDocument );
+
+    return;
     ///////////////////////
     pPage = pDocument->CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
     pPainter->SetPage( pPage );
@@ -684,6 +760,7 @@ int main( int argc, char* argv[] )
     TEST_SAFE_OP( LineTest( &painter, pPage, &writer ) );
 
     painter.FinishPage();
+    /*
     pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_Letter ) );
     painter.SetPage( pPage );
     pRoot->Last()->CreateNext( "Rectangles Test", PdfDestination( pPage ) );
@@ -734,7 +811,7 @@ int main( int argc, char* argv[] )
     TEST_SAFE_OP( MMTest( &painterMM, pPage, &writer ) );
 
     painterMM.FinishPage();
-   
+    */
 #if 0
     /** Create a really large name tree to test the name tree implementation
      */
