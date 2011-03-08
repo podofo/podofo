@@ -102,7 +102,7 @@ SET(PODOFO_DOC_SOURCES
 
 IF(WIN32)
     # If we build for windows systems, we also include the resource file
-    SET(PODOFO_DOC_SOURCES ${PODOFO_DOC_SOURCES} podofo-doc.rc)
+    SET(PODOFO_DOC_SOURCES ${PODOFO_DOC_SOURCES} doc/podofo-doc.rc)
 ENDIF(WIN32)
 
 SET(PODOFO_HEADERS

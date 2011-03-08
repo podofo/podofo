@@ -64,25 +64,20 @@
 
 // Peter Petrov 26 April 2008
 /* Automatically defined by CMake when building a shared library */
-#if defined (podofo_base_EXPORTS) || defined (podofo_doc_EXPORTS)
+#if defined (podofo_EXPORTS)
     #define COMPILING_SHARED_PODOFO
     #undef USING_SHARED_PODOFO
-    #if defined(podofo_base_EXPORTS) 
+    #if defined(podofo_EXPORTS) 
         #define COMPILING_SHARED_PODOFO_BASE
-    #elif defined (podofo_doc_EXPORTS)
         #define COMPILING_SHARED_PODOFO_DOC
     #endif
 #endif
 
 /* Automatically defined by CMake when building a shared library */
-#if defined(podofo_base_shared_EXPORTS) || defined (podofo_doc_shared_EXPORTS)
+//#if defined(podofo_shared_EXPORTS)
+#if defined(podofo_shared_EXPORTS)
     #define COMPILING_SHARED_PODOFO
     #undef USING_SHARED_PODOFO
-    #if defined(podofo_base_shared_EXPORTS) 
-        #define COMPILING_SHARED_PODOFO_BASE
-    #elif defined (podofo_doc_shared_EXPORTS)
-        #define COMPILING_SHARED_PODOFO_DOC
-    #endif
 #endif
 
 /* Sanity check - can't be both compiling and using shared podofo */
@@ -98,13 +93,10 @@
  * preprocessor symbol.
  */
 #if defined(_WIN32)
-    #if defined(COMPILING_SHARED_PODOFO_BASE)
+    #if defined(COMPILING_SHARED_PODOFO)
         #define PODOFO_API __declspec(dllexport)
-        #define PODOFO_DOC_API ERROR
-    #elif defined(COMPILING_SHARED_PODOFO_DOC)
-        #define PODOFO_API __declspec(dllimport)
         #define PODOFO_DOC_API __declspec(dllexport)
-    #elif defined(USING_SHARED_PODOFO)
+	#elif defined(USING_SHARED_PODOFO)
 		#define PODOFO_API __declspec(dllimport)
         #define PODOFO_DOC_API __declspec(dllimport)
     #else
