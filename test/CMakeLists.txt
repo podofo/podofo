@@ -7,7 +7,7 @@ SUBDIRS(
 	LargeTest
 	ObjectParserTest
 	ParserTest
-	SignTest
+	SignatureTest
 	TokenizerTest
 	VariantTest
 	WatermarkTest
