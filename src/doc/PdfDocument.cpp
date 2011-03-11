@@ -245,7 +245,7 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
     TCIPdfReferenceList itFree = rDoc.GetObjects().GetFreeObjects().begin();
     while( itFree != rDoc.GetObjects().GetFreeObjects().end() )
     {
-        m_vecObjects.AddFreeObject( PdfReference( (*itFree).ObjectNumber() + difference, 0 ) );
+        m_vecObjects.AddFreeObject( PdfReference( (*itFree).ObjectNumber() + difference, (*itFree).GenerationNumber() ) );
 
         ++itFree;
     }
@@ -255,14 +255,14 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
     while( it != rDoc.GetObjects().end() )
     {
         PdfObject* pObj = new PdfObject( PdfReference( 
-                                             static_cast<unsigned int>((*it)->Reference().ObjectNumber() + difference), 0 ), *(*it) );
+                                             static_cast<unsigned int>((*it)->Reference().ObjectNumber() + difference), (*it)->Reference().GenerationNumber() ), *(*it) );
         m_vecObjects.push_back( pObj );
 
         if( (*it)->IsDictionary() && (*it)->HasStream() )
             *(pObj->GetStream()) = *((*it)->GetStream());
 
         PdfError::LogMessage( eLogSeverity_Information,
-                              "Fixing references in %i 0 R by %i\n", pObj->Reference().ObjectNumber(), difference );
+                              "Fixing references in %i %i R by %i\n", pObj->Reference().ObjectNumber(), pObj->Reference().GenerationNumber(), difference );
         FixObjectReferences( pObj, difference );
 
         ++it;
@@ -282,7 +282,7 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
         for(int i=0;i<rDoc.GetPageCount();i++ )
         {
             PdfPage*      pPage = rDoc.GetPage( i );
-            PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, 0 ) );
+            PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, pPage->GetObject()->Reference().GenerationNumber() ) );
             if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Parent" ) )
                 pObj->GetDictionary().RemoveKey( "Parent" );
 
@@ -313,7 +313,7 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
             while( pRoot && pRoot->Next() ) 
                 pRoot = pRoot->Next();
             
-            PdfReference ref( pAppendRoot->First()->GetObject()->Reference().ObjectNumber() + difference, 0 );
+            PdfReference ref( pAppendRoot->First()->GetObject()->Reference().ObjectNumber() + difference, pAppendRoot->First()->GetObject()->Reference().GenerationNumber() );
             pRoot->InsertChild( new PdfOutlines( m_vecObjects.GetObject( ref ) ) );
         }
     }
@@ -332,7 +332,7 @@ PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfM
     // TODO: remove unused objects: page, ...
 
     PdfPage*      pPage = rDoc.GetPage( nPage );
-    PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, 0 ) );
+    PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, pPage->GetObject()->Reference().GenerationNumber() ) );
     PdfRect		  box  = pPage->GetMediaBox();
 
 	// intersect with crop-box
