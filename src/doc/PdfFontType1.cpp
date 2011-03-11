@@ -172,7 +172,7 @@ void PdfFontType1::EmbedSubsetFont()
 		// TODO: only embed with used glyphs
 		EmbedFontFile( m_pDescriptor );
 		m_bWasEmbedded = true;
-		line += (char) inBuff[inIndex+i];
+		line += static_cast<char>( inBuff[inIndex+i] );
 		if ( inBuff[inIndex+i] == '\r' )
 		{
 			if ( line.find( "dup " ) != 0 )
@@ -233,7 +233,7 @@ void PdfFontType1::EmbedSubsetFont()
 			unsigned char plain = inCrypt.Decrypt( inBuff[inIndex+i] );
 			i++;
 
-			line += (char) plain;
+			line += static_cast<char>(plain);
 
 			// output is ssssbuild uncrypted, as parts might be skipped and cipher-engine must be unchanged
 			if ( inCharString && line.find( "/" ) == 0 )
@@ -243,11 +243,12 @@ void PdfFontType1::EmbedSubsetFont()
 				int outIndexSave = outIndex;
 
 				outBuff[outIndex++] = plain;
-				while ( line.find( "RD " ) == -1  &&  line.find( "-| " ) == -1 )
+				while ( line.find( "RD " ) == static_cast<size_t>(-1) 
+                        && line.find( "-| " ) == static_cast<size_t>(-1) )
 				{
 					plain = inCrypt.Decrypt( inBuff[inIndex+i] );
 					outBuff[outIndex++] = plain;
-					line += (char) plain;
+					line += static_cast<char>(plain);
 					i++;
 				}
 
@@ -255,10 +256,14 @@ void PdfFontType1::EmbedSubsetFont()
 				char *glyphName = new char[line.length()];
 				int glyphLen;
 				int result;
-				if ( line.find( "RD " ) != -1 )
+				if ( line.find( "RD " ) != static_cast<size_t>(-1) ) 
+                {
 					result = sscanf( line.c_str(), "%s %d RD ", glyphName, &glyphLen );
+                }
 				else
+                {
 					result = sscanf( line.c_str(), "%s %d -| ", glyphName, &glyphLen );
+                }
 				PODOFO_ASSERT( result == 2);
 
 				bool useGlyph = false;
@@ -299,7 +304,7 @@ void PdfFontType1::EmbedSubsetFont()
 				{
 					plain = inCrypt.Decrypt( inBuff[inIndex+i] );
 					outBuff[outIndex++] = plain;
-					line += (char) plain;
+					line += static_cast<char>(plain);
 					i++;
 				} while ( plain != '\r'  &&  plain != '\n' );
 
@@ -318,7 +323,7 @@ void PdfFontType1::EmbedSubsetFont()
 			if ( plain == '\r' ||  plain == '\n' )
 			{
 				// parse for /CharStrings = begin of glyphs
-				if ( line.find( "/CharStrings" ) != -1 )
+				if ( line.find( "/CharStrings" ) != static_cast<size_t>(-1) )
 					inCharString = true;
 				line.clear();
 			}
@@ -588,25 +593,25 @@ bool PdfFontType1::FindSeac( const unsigned char * buffer, int length )
 				break;
 			}
 		}
-		else if ( plain >= 32  &&  plain <= 255 )
+		else if ( plain >= 32 ) // &&  plain <= 255 )
 		{
 			// this is a number
 			int number = 0;
 			if ( plain >= 32  &&  plain <= 246 )
 			{
-				number = (int) plain-139;
+				number = static_cast<int>(plain-139);
 			}
 			else if ( plain >= 247  &&  plain <= 250 )
 			{
 				unsigned char next = crypt.Decrypt( buffer[j++] );
 
-				number = ((int) plain-247)*256 + next + 108;
+				number = (static_cast<int>(plain)-247)*256 + next + 108;
 			}
 			else if ( plain >= 251  &&  plain <= 254 )
 			{
 				unsigned char next = crypt.Decrypt( buffer[j++] );
 
-				number = -(((int)plain-251)*256) - next - 108;
+				number = -((static_cast<int>(plain)-251)*256) - next - 108;
 			}
 			else if ( plain == 255 )
 			{
@@ -615,7 +620,10 @@ bool PdfFontType1::FindSeac( const unsigned char * buffer, int length )
 				unsigned char next3 = crypt.Decrypt( buffer[j++] );
 				unsigned char next4 = crypt.Decrypt( buffer[j++] );
 
-				number = ((int) next1 << 24) + ((int) next2 << 16) + ((int) next3 << 8) + next4 ;
+				number = (static_cast<int>(next1) << 24)
+                    + (static_cast<int>(next2) << 16)
+                    + (static_cast<int>(next3) << 8)
+                    + next4 ;
 			}
 
 			char num[32];
