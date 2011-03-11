@@ -908,6 +908,13 @@ void PdfParser::ReadObjectsInternal()
     // Read objects
     for( i=0; i < m_nNumObjects; i++ )
     {
+#ifdef PODOFO_VERBOSE_DEBUG
+		std::cerr << "ReadObjectsInteral\t" << i << " "
+			<< (m_offsets[i].bParsed ? "parsed" : "unparsed") << " "
+			<< m_offsets[i].cUsed << " "
+			<< m_offsets[i].lOffset << " "
+			<< m_offsets[i].lGeneration << std::endl;
+#endif
         if( m_offsets[i].bParsed && m_offsets[i].cUsed == 'n' && m_offsets[i].lOffset > 0 )
         {
             //printf("Reading object %i 0 R from %li\n", i, m_offsets[i].lOffset );
@@ -1079,8 +1086,19 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int )
         PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, oss.str().c_str() );
     }
     
+
+	PdfObjectStreamParserObject::ObjectIdList list;
+    for( int i = 0; i < m_nNumObjects; i++ ) 
+    {
+        if( m_offsets[i].bParsed && m_offsets[i].cUsed == 's' &&
+			m_offsets[i].lGeneration == nObjNo) 
+        {
+            list.push_back(static_cast<long long>(i));
+		}
+	}
+    
     PdfObjectStreamParserObject pParserObject( pStream, m_vecObjects, m_buffer, m_pEncrypt );
-    pParserObject.Parse();
+    pParserObject.Parse( list );
 }
 
 const char* PdfParser::GetPdfVersionString() const

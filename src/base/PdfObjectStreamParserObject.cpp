@@ -27,6 +27,12 @@
 #include "PdfStream.h"
 #include "PdfVecObjects.h"
 
+#include <algorithm>
+
+#if defined(PODOFO_VERBOSE_DEBUG)
+#include <iostream>
+#endif
+
 namespace PoDoFo {
 
 PdfObjectStreamParserObject::PdfObjectStreamParserObject(PdfParserObject* pParser, PdfVecObjects* pVecObjects, const PdfRefCountedBuffer & rBuffer, PdfEncrypt* pEncrypt )
@@ -40,7 +46,7 @@ PdfObjectStreamParserObject::~PdfObjectStreamParserObject()
 
 }
 
-void PdfObjectStreamParserObject::Parse()
+void PdfObjectStreamParserObject::Parse(ObjectIdList const & list)
 {
     long long lNum   = m_pParser->GetDictionary().GetKeyAsLong( "N", 0 );
     long long lFirst = m_pParser->GetDictionary().GetKeyAsLong( "First", 0 );
@@ -50,12 +56,12 @@ void PdfObjectStreamParserObject::Parse()
     m_pParser->GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
 
     try {
+        this->ReadObjectsFromStream( pBuffer, lBufferLen, lNum, lFirst, list );
+        free( pBuffer );
+
         // the object stream is not needed anymore in the final PDF
         delete m_vecObjects->RemoveObject( m_pParser->Reference() );
         m_pParser = NULL;
-
-        this->ReadObjectsFromStream( pBuffer, lBufferLen, lNum, lFirst );
-        free( pBuffer );
 
     } catch( const PdfError & rError ) {
         free( pBuffer );
@@ -63,7 +69,7 @@ void PdfObjectStreamParserObject::Parse()
     }
 }
 
-void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long lBufferLen, long long lNum, long long lFirst )
+void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long lBufferLen, long long lNum, long long lFirst, ObjectIdList const & list)
 {
     PdfRefCountedInputDevice device( pBuffer, lBufferLen );
     PdfTokenizer             tokenizer( device, m_buffer );
@@ -82,13 +88,19 @@ void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long
 		// use a second tokenizer here so that anything that gets dequeued isn't left in the tokenizer that reads the offsets and lengths
 	    PdfTokenizer variantTokenizer( device, m_buffer );
         variantTokenizer.GetNextVariant( var, m_pEncrypt );
-
-        if(m_vecObjects->GetObject(PdfReference( static_cast<int>(lObj), 0LL )))
-        {
+		bool should_read = std::find(list.begin(), list.end(), lObj) != list.end();
+#if defined(PODOFO_VERBOSE_DEBUG)
+    std::cerr << "ReadObjectsFromStream STREAM=" << m_pParser->Reference().ToString() <<
+			", OBJ=" << lObj <<
+			", " << (should_read ? "read" : "skipped") << std::endl;
+#endif
+		if (should_read) {
+			if(m_vecObjects->GetObject(PdfReference( static_cast<int>(lObj), 0LL ))) {
             PdfError::LogMessage( eLogSeverity_Warning, "Object: %li 0 R will be deleted and loaded again.\n", lObj );
             delete m_vecObjects->RemoveObject(PdfReference( static_cast<int>(lObj), 0LL ),false);
         }
         m_vecObjects->push_back( new PdfObject( PdfReference( static_cast<int>(lObj), 0LL ), var ) );
+		}
 
         // move back to the position inside of the table of contents
         device.Device()->Seek( pos );
