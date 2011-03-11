@@ -159,7 +159,7 @@
 
 // Peter Petrov 27 April 2008
 // Disable warnings
-#ifdef _WIN32
+#if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable: 4251)
 #pragma warning(disable: 4309)
 #endif // _WIN32

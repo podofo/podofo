@@ -46,7 +46,7 @@
 
 #ifdef PODOFO_MULTI_THREAD
 #  if defined(_WIN32) || defined(_WIN64)
-#    if !defined(_WINSOCK2API_)
+#    if defined(_MSC_VER) && !defined(_WINSOCK2API_)
 #      error <winsock2.h> must be included before <windows.h>, config problem?
 #    endif
 #    ifndef _WIN32_WINNT
@@ -126,7 +126,7 @@ inline static double logb(double x) {
  */
 
 inline static pdf_uint32 podofo_ntohl(pdf_uint32 i) {
-#ifdef _WIN32
+#if defined(_WIN32) && defined(_MSC_VER)
    return (pdf_uint32)( ntohl( i ) );
 #else
    return static_cast<pdf_uint32>( ntohl( i ) );
@@ -134,7 +134,7 @@ inline static pdf_uint32 podofo_ntohl(pdf_uint32 i) {
 }
 
 inline static pdf_uint16 podofo_ntohs(pdf_uint16 i) {
-#ifdef _WIN32
+#if defined(_WIN32) && defined(_MSC_VER)
    return (pdf_uint16)( ntohs( i ) );
 #else
    return static_cast<pdf_uint16>( ntohs( i ) );
@@ -142,7 +142,7 @@ inline static pdf_uint16 podofo_ntohs(pdf_uint16 i) {
 }
 
 inline static pdf_uint32 podofo_htonl(pdf_uint32 i) {
-#ifdef _WIN32
+#if defined(_WIN32) && defined(_MSC_VER)
     return (pdf_uint32)( htonl( i ) );
 #else
     return static_cast<pdf_uint32>( htonl( i ) );
@@ -150,7 +150,7 @@ inline static pdf_uint32 podofo_htonl(pdf_uint32 i) {
 }
 
 inline static pdf_uint16 podofo_htons(pdf_uint16 i) {
-#ifdef _WIN32
+#if defined(_WIN32) && defined(_MSC_VER)
     return (pdf_uint16)( htons( i ) );
 #else
     return static_cast<pdf_uint16>( htons( i ) );

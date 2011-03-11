@@ -74,7 +74,7 @@
 #endif
 
 // Disable usage of min() and max() macros 
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(__MINGW32__)
 #define NOMINMAX
 #endif
 
