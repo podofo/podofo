@@ -269,6 +269,13 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
         }
     }
 
+    if (array.size() == 0) 
+    {
+	    array.push_back( lCurIndex = nMin );
+	    array.push_back( lCurIndex = nMax );
+	    array.push_back( dCurWidth ); 
+    }
+
     pFontDict->GetDictionary().AddKey( PdfName("W"), array ); 
 
     free( pdWidth );

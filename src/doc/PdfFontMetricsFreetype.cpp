@@ -219,8 +219,7 @@ void PdfFontMetricsFreetype::InitFontSizes()
     ftErr = FT_Set_Char_Size( m_pFace, static_cast<int>(fSize*64.0), 0, 72, 72 );
 
     // calculate the line spacing now, as it changes only with the font size
-    m_dLineSpacing        = (static_cast<double>(m_pFace->ascender + abs(m_pFace->descender)) 
-                             / m_pFace->units_per_EM);
+    m_dLineSpacing        = (static_cast<double>(m_pFace->height) / m_pFace->units_per_EM);
     m_dUnderlineThickness = (static_cast<double>(m_pFace->underline_thickness) / m_pFace->units_per_EM);
     m_dUnderlinePosition  = (static_cast<double>(m_pFace->underline_position)  / m_pFace->units_per_EM);
     m_dAscent  = static_cast<double>(m_pFace->ascender) / m_pFace->units_per_EM;
