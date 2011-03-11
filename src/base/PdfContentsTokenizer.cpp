@@ -95,11 +95,27 @@ void PdfContentsTokenizer::SetCurrentContentsStream( PdfObject* pObject )
 
     PdfStream* pStream = pObject->GetStream();
 
-    PdfBufferOutputStream stream( &m_curBuffer );
+	PdfRefCountedBuffer buffer;
+    PdfBufferOutputStream stream( &buffer );
     pStream->GetFilteredCopy( &stream );
 
-    m_device = PdfRefCountedInputDevice( m_curBuffer.GetBuffer(), m_curBuffer.GetSize() );
+    m_device = PdfRefCountedInputDevice( buffer.GetBuffer(), buffer.GetSize() );
 }
+
+bool PdfContentsTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
+{
+	bool result = PdfTokenizer::GetNextToken(pszToken, peType);
+	while (!result) {
+		if( !m_lstContents.size() )
+			return false;
+
+		SetCurrentContentsStream( m_lstContents.front() );
+		m_lstContents.pop_front();
+		result = PdfTokenizer::GetNextToken(pszToken, peType);
+	}
+	return result;
+}
+
 
 bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpszKeyword, PdfVariant & rVariant )
 {

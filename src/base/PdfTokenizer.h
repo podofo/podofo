@@ -77,7 +77,7 @@ class PODOFO_API PdfTokenizer {
      *
      *  \see GetBuffer
      */
-    bool GetNextToken( const char *& pszToken, EPdfTokenType* peType = NULL);
+    virtual bool GetNextToken( const char *& pszToken, EPdfTokenType* peType = NULL);
 
     /** Reads the next token from the current file position
      *  ignoring all comments and compare the passed token

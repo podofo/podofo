@@ -99,6 +99,7 @@ public:
      *
      */
     bool ReadNext( EPdfContentsType& reType, const char*& rpszKeyword, PoDoFo::PdfVariant & rVariant );
+    bool GetNextToken( const char *& pszToken, EPdfTokenType* peType = NULL);
 
  private:
     /** Set another objects stream as the current stream for parsing
@@ -109,7 +110,6 @@ public:
     bool ReadInlineImgData(EPdfContentsType& reType, const char*& rpszKeyword, PoDoFo::PdfVariant & rVariant);
 
  private:
-    PdfRefCountedBuffer       m_curBuffer;    ///< A copy of the current contents stream
     std::list<PdfObject*>     m_lstContents;  ///< A list containing pointers to all contents objects
     bool                      m_readingInlineImgData;  ///< A state of reading inline image data
 };
