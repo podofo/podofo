@@ -29,6 +29,7 @@
 #include <wchar.h>
 #include <sstream>
 
+#define PODOFO_JPEG_RUNTIME_COMPATIBLE
 #ifdef PODOFO_HAVE_TIFF_LIB
 extern "C" {
 #  include "tiffio.h"
@@ -232,60 +233,49 @@ void PdfImage::LoadFromFile( const char* pszFilename )
 void jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize);
 #endif // PODOFO_JPEG_RUNTIME_COMPATIBLE
 
-static void JPegErrorExit(j_common_ptr)
+extern "C" {
+static void JPegErrorExit(j_common_ptr cinfo)
 {
-    PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedImageFormat, "jpeg_read_header exited with an error." );
+#if 1	
+    char buffer[JMSG_LENGTH_MAX];
+
+    /* Create the message */
+    (*cinfo->err->format_message) (cinfo, buffer);
+#endif
+    jpeg_destroy(cinfo);
+    PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedImageFormat, buffer);
 }
 
-void PdfImage::LoadFromJpeg( const char* pszFilename )
+static void JPegErrorOutput(j_common_ptr cinfo, int msg_level)
 {
-    FILE*                         hInfile;    
+}
 
-    if( !pszFilename )
+};
+
+
+void PdfImage::LoadFromJpeg( const char* pszFilename )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    hInfile = fopen(pszFilename, "rb");
-    if( !hInfile )
-    {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
-    }
-
+    /* Constructor will throw exception */
     PdfFileInputStream stream( pszFilename );
-    LoadFromJpegHandle( hInfile, &stream );
+    LoadFromJpegHandle( &stream );
 }
 
 #ifdef _WIN32
 void PdfImage::LoadFromJpeg( const wchar_t* pszFilename )
 {
-    FILE*                         hInfile;    
-
-    if( !pszFilename )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    hInfile = _wfopen(pszFilename, L"rb");
-    if( !hInfile )
-    {
-	PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
-	e.SetErrorInformation( pszFilename );
-	throw e;
-    }
-
     PdfFileInputStream stream( pszFilename );
-    LoadFromJpegHandle( hInfile, &stream );
+    LoadFromJpegHandle( &stream );
 }
 #endif // _WIN32
 
-void PdfImage::LoadFromJpegHandle( FILE* hInfile, PdfFileInputStream* pInStream )
+void PdfImage::LoadFromJpegHandle( PdfFileInputStream* pInStream )
 {
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr         jerr;
 
     cinfo.err = jpeg_std_error(&jerr);
     jerr.error_exit = &JPegErrorExit;
+    jerr.emit_message = &JPegErrorOutput;
 
     jpeg_create_decompress(&cinfo);
 
@@ -302,19 +292,17 @@ void PdfImage::LoadFromJpegHandle( FILE* hInfile, PdfFileInputStream* pInStream 
     // you can removed this ifdef.
     jpeg_memory_src ( &cinfo, reinterpret_cast<JOCTET*>(buffer.GetBuffer()), buffer.GetSize() );
 #else
-    jpeg_stdio_src(&cinfo, hInfile);
+    jpeg_stdio_src(&cinfo, pInStream->GetHandle());
 #endif // PODOFO_JPEG_RUNTIME_COMPATIBLE
 
     if( jpeg_read_header(&cinfo, TRUE) <= 0 )
     {
-        fclose( hInfile );
         (void) jpeg_destroy_decompress(&cinfo);
 
         PODOFO_RAISE_ERROR( ePdfError_UnexpectedEOF );
     }
 
     jpeg_start_decompress(&cinfo);
-    fclose( hInfile );
 
     m_rRect.SetWidth( cinfo.output_width );
     m_rRect.SetHeight( cinfo.output_height );
@@ -354,6 +342,7 @@ void PdfImage::LoadFromJpegHandle( FILE* hInfile, PdfFileInputStream* pInStream 
     // Set the filters key to DCTDecode
     this->GetObject()->GetDictionary().AddKey( PdfName::KeyFilter, PdfName( "DCTDecode" ) );
     // Do not apply any filters as JPEG data is already DCT encoded.
+    fseeko( pInStream->GetHandle(), 0L, SEEK_SET );
     this->SetImageDataRaw( cinfo.output_width, cinfo.output_height, 8, pInStream );
     
     (void) jpeg_destroy_decompress(&cinfo);
@@ -587,6 +576,7 @@ void PdfImage::LoadFromPng( const char* pszFilename )
     fread(header, 1, 8, hFile);
     if( png_sig_cmp(header, 0, 8) )
     {
+        fclose( hFile );
         PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedImageFormat, "The file could not be recognized as a PNG file." );
     }
     
@@ -616,9 +606,61 @@ void PdfImage::LoadFromPng( const char* pszFilename )
     png_set_sig_bytes(pPng, 8);
     png_read_info(pPng, pInfo);
 
-    int width = png_get_image_width(pPng, pInfo);
-    int height = png_get_image_height(pPng, pInfo);
+// Begin
+    png_uint_32 width;
+    png_uint_32 height;
+    int depth;
+    int color_type;
+    int interlace;
+
+    png_get_IHDR (pPng, pInfo,
+                  &width, &height, &depth,
+                  &color_type, &interlace, NULL, NULL);
+
+    /* convert palette/gray image to rgb */
+    if (color_type == PNG_COLOR_TYPE_PALETTE)
+        png_set_palette_to_rgb(pPng);
+
+    if (color_type & PNG_COLOR_MASK_ALPHA)
+       png_set_strip_alpha(pPng);
+#if 0
+    /* expand gray bit depth if needed */
+    if (color_type == PNG_COLOR_TYPE_GRAY) {
+#if PNG_LIBPNG_VER >= 10209
+        png_set_expand_gray_1_2_4_to_8 (pPng);
+#else
+        png_set_gray_1_2_4_to_8 (pPng);
+#endif
+    }
+#endif
+    /* transform transparency to alpha */
+    if (png_get_valid (pPng, pInfo, PNG_INFO_tRNS))
+        png_set_tRNS_to_alpha (pPng);
+
+    if (depth == 16)
+        png_set_strip_16(pPng);
+
+    if (depth < 8)
+        png_set_packing(pPng);
+#if 0
+    /* convert grayscale to RGB */
+    if (color_type == PNG_COLOR_TYPE_GRAY ||
+	color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+    {
+	png_set_gray_to_rgb (pPng);
+    }
+#endif
+    if (interlace != PNG_INTERLACE_NONE)
+        png_set_interlace_handling(pPng);
+
+    //png_set_filler (pPng, 0xff, PNG_FILLER_AFTER);
+
+    /* recheck header after setting EXPAND options */
     png_read_update_info(pPng, pInfo);
+    png_get_IHDR (pPng, pInfo,
+                  &width, &height, &depth,
+                  &color_type, &interlace, NULL, NULL);
+// End //
     
     // Read the file
     if( setjmp(png_jmpbuf(pPng)) ) 
@@ -673,12 +715,13 @@ void PdfImage::LoadFromPng( const char* pszFilename )
 
     // Set the image data and flate compress it
     PdfMemoryInputStream stream( pBuffer, lLen );
-    this->SetImageData( width, height, png_get_bit_depth(pPng, pInfo), &stream );
+    this->SetImageData( width, height, depth, &stream );
+    
+    free(pBuffer);
+    free(pRows);
     
     png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
 
-    free(pBuffer);
-    free(pRows);
 }
 #endif // PODOFO_HAVE_PNG_LIB
 

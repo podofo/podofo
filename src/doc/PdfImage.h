@@ -219,7 +219,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
     static PdfName ColorspaceToName( EPdfColorSpace eColorSpace );
 
 #ifdef PODOFO_HAVE_JPEG_LIB
-	void LoadFromJpegHandle( FILE* hInfile, PdfFileInputStream* pInStream );
+	void LoadFromJpegHandle( PdfFileInputStream* pInStream );
 #endif // PODOFO_HAVE_JPEG_LIB
 };
 

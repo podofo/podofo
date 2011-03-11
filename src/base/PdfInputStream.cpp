@@ -85,6 +85,13 @@ pdf_long PdfFileInputStream::GetFileLength()
     return lLen;
 }
 
+FILE*
+PdfFileInputStream::GetHandle()
+{
+    return m_hFile;
+}
+
+
 PdfMemoryInputStream::PdfMemoryInputStream( const char* pBuffer, pdf_long lBufferLen )
     : m_pBuffer( pBuffer ), m_pCur( pBuffer ), m_lBufferLen( lBufferLen )
 {

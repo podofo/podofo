@@ -103,6 +103,7 @@ public:
         m_pRealDevice->PrintV(pszFormat, lBytes, args);
         va_end( args );
     }
+    
     virtual void Write( const char* pBuffer, size_t lLen );
     virtual size_t Read( char* pBuffer, size_t lLen )
     {

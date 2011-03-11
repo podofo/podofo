@@ -89,6 +89,11 @@ class PODOFO_API PdfFileInputStream : public PdfInputStream {
      */
     pdf_long GetFileLength();
 
+    /** Get the internal FILE handle.
+     *  \return the internal FILE handle
+     */
+    FILE* GetHandle();
+
  private:
     FILE* m_hFile;
 };
