@@ -150,7 +150,7 @@ public:
      *  \param rLR the color on lower right corner
      *  \param rUR the color on upper right corner
      *  \param rMatrix the transformation matrix mapping the coordinate space 
-     *         specified by the Domain entry into the shading’s target coordinate space
+     *         specified by the Domain entry into the shadings target coordinate space
      *  \param pParent the parent
      */
     PdfFunctionBaseShadingPattern( const PdfColor & rLL, const PdfColor & rUL, const PdfColor & rLR, const PdfColor & rUR, const PdfArray & rMatrix, PdfVecObjects* pParent );
@@ -162,7 +162,7 @@ public:
      *  \param rLR the color on lower right corner
      *  \param rUR the color on upper right corner
      *  \param rMatrix the transformation matrix mapping the coordinate space 
-     *         specified by the Domain entry into the shading’s target coordinate space
+     *         specified by the Domain entry into the shading's target coordinate space
      *  \param pParent the parent
      */
     PdfFunctionBaseShadingPattern( const PdfColor & rLL, const PdfColor & rUL, const PdfColor & rLR, const PdfColor & rUR, const PdfArray & rMatrix, PdfDocument* pParent );
@@ -176,7 +176,7 @@ private:
      *  \param rLR the color on lower right corner
      *  \param rUR the color on upper right corner
      *  \param rMatrix the transformation matrix mapping the coordinate space 
-     *         specified by the Domain entry into the shading’s target coordinate space
+     *         specified by the Domain entry into the shading's target coordinate space
      */
     void Init( const PdfColor & rLL, const PdfColor & rUL, const PdfColor & rLR, const PdfColor & rUR, const PdfArray & rMatrix );
 };
