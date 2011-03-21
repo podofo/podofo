@@ -53,7 +53,7 @@ PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEnco
 PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject, bool bEmbed )
     : PdfFont( pMetrics, pEncoding, pObject )
 {
-    this->Init( bEmbed );
+    /* this->Init( bEmbed ); */
 }
 
 void PdfFontCID::Init( bool bEmbed )
@@ -224,71 +224,75 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
         }
     }
 
-    // Now compact the array
-    std::ostringstream oss;
-    PdfArray array;
-    array.reserve( nMax - nMin + 1 );
+	if (nMax >= nMin) {
+        // Now compact the array
+        std::ostringstream oss;
+        PdfArray array;
+        array.reserve( nMax - nMin + 1 );
 
-    i = nMin;
-    double    dCurWidth  = pdWidth[i];
-    pdf_int64 lCurIndex  = i++;
-    pdf_int64 lCurLength = 1L;
-
-    for( ;i<=nMax;i++ )
-    {
-        if( static_cast<int>(pdWidth[i] - dCurWidth) == 0 )
-            ++lCurLength;
-        else
+        i = nMin;
+        double    dCurWidth  = pdWidth[i];
+        pdf_int64 lCurIndex  = i++;
+        pdf_int64 lCurLength = 1L;
+        
+        for( ;i<=nMax;i++ )
         {
-            if( lCurLength > 1 ) 
-            {
-                array.push_back( lCurIndex );
-				pdf_int64 temp = lCurIndex + lCurLength - 1;
-                array.push_back( temp ); 
-                array.push_back( dCurWidth ); 
-            }
+            if( static_cast<int>(pdWidth[i] - dCurWidth) == 0 )
+                ++lCurLength;
             else
             {
-                if( array.size() && array.back().IsArray() ) 
+                if( lCurLength > 1 ) 
                 {
-                    array.back().GetArray().push_back( dCurWidth );
+                    array.push_back( lCurIndex );
+                    pdf_int64 temp = lCurIndex + lCurLength - 1;
+                    array.push_back( temp ); 
+                    array.push_back( dCurWidth ); 
                 }
                 else
                 {
-                    PdfArray tmp;
-                    tmp.push_back( dCurWidth );
+                    if( array.size() && array.back().IsArray() ) 
+                    {
+                        array.back().GetArray().push_back( dCurWidth );
+                    }
+                    else
+                    {
+                        PdfArray tmp;
+                        tmp.push_back( dCurWidth );
                         
-                    array.push_back( lCurIndex );
-                    array.push_back( tmp );
+                        array.push_back( lCurIndex );
+                        array.push_back( tmp );
+                    }
                 }
+                
+                lCurIndex  = i;
+                lCurLength = 1L;
+                dCurWidth  = pdWidth[i];
             }
-
-            lCurIndex  = i;
-            lCurLength = 1L;
-            dCurWidth  = pdWidth[i];
         }
-    }
 
-    if (array.size() == 0) 
-    {
-	    array.push_back( lCurIndex = nMin );
-	    array.push_back( lCurIndex = nMax );
-	    array.push_back( dCurWidth ); 
+        if (array.size() == 0) 
+        {
+            array.push_back( lCurIndex = nMin );
+            array.push_back( lCurIndex = nMax );
+            array.push_back( dCurWidth ); 
+        }
+        
+        pFontDict->GetDictionary().AddKey( PdfName("W"), array ); 
     }
-
-    pFontDict->GetDictionary().AddKey( PdfName("W"), array ); 
 
     free( pdWidth );
 }
 
 void PdfFontCID::CreateCMap( PdfObject* pUnicode ) const
 {
+    PdfFontMetricsFreetype* pFreetype = dynamic_cast<PdfFontMetricsFreetype*>(m_pMetrics);
+	if (!pFreetype) return;
+
     int  nFirstChar = m_pEncoding->GetFirstChar();
     int  nLastChar  = m_pEncoding->GetLastChar();
 
     std::ostringstream oss;
 
-    PdfFontMetricsFreetype* pFreetype = dynamic_cast<PdfFontMetricsFreetype*>(m_pMetrics);
     FT_Face   face = pFreetype->GetFace();
     FT_ULong  charcode;                                              
     FT_UInt   gindex;                                                

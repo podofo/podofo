@@ -31,16 +31,19 @@ namespace PoDoFo {
 
 PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescriptor, const PdfEncoding* const pEncoding )
     : PdfFontMetrics( ePdfFontType_Unknown, "", NULL ),
-      m_pEncoding( pEncoding )
+      m_pEncoding( pEncoding ), m_dDefWidth(0.0)
 {
     if( !pDescriptor )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    m_sName        = pDescriptor->GetDictionary().GetKey( "FontName" )->GetName();
-    m_bbox         = pDescriptor->GetDictionary().GetKey( "FontBBox" )->GetArray();
+	const PdfName & rSubType = pFont->GetDictionary().GetKey( PdfName::KeySubtype )->GetName();
+
     // OC 15.08.2010 BugFix: /FirstChar /LastChar /Widths are in the Font dictionary and not in the FontDescriptor
+	if ( rSubType == PdfName("Type1") || rSubType == PdfName("TrueType") ) {
+		m_sName        = pDescriptor->GetIndirectKey( "FontName" )->GetName();
+		m_bbox         = pDescriptor->GetIndirectKey( "FontBBox" )->GetArray();
     m_nFirst       = static_cast<int>(pFont->GetDictionary().GetKeyAsLong( "FirstChar", 0L ));
     m_nLast        = static_cast<int>(pFont->GetDictionary().GetKeyAsLong( "LastChar", 0L ));
 	 // OC 15.08.2010 BugFix: GetIndirectKey() instead of GetDictionary().GetKey() and "Widths" instead of "Width"
@@ -59,6 +62,59 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
             m_missingWidth = widths;
         }
     }
+	} else if ( rSubType == PdfName("CIDFontType0") || rSubType == PdfName("CIDFontType2") ) {
+		PdfObject *pObj = pDescriptor->GetIndirectKey( "FontName" );
+		if (pObj) {
+			m_sName = pObj->GetName();
+		}
+		pObj = pDescriptor->GetIndirectKey( "FontBBox" );
+		if (pObj) {
+			m_bbox = pObj->GetArray();
+		}
+		m_nFirst = 0;
+		m_nLast = 0;
+
+		m_dDefWidth = pFont->GetDictionary().GetKeyAsLong( "DW", 1000L );
+		PdfVariant default_width(m_dDefWidth);
+		PdfObject * pw = pFont->GetIndirectKey( "W" );
+
+		for (int i = m_nFirst; i <= m_nLast; ++i) {
+			m_width.push_back(default_width);
+		}
+		if (pw) {
+			PdfArray w = pw->GetArray();
+			int pos = 0;
+			while (pos < static_cast<int>(w.size())) {
+				int start = static_cast<int>(w[pos++].GetNumber());
+				PODOFO_ASSERT (start >= 0);
+				if (w[pos].IsArray()) {
+					PdfArray widths = w[pos++].GetArray();
+					int length = start + static_cast<int>(widths.size());
+					PODOFO_ASSERT (length >= start);
+					if (length > m_width.size()) {
+						m_width.resize(length, default_width);
+					}
+					for (int i = 0; i < static_cast<int>(widths.size()); ++i) {
+						m_width[start + i] = widths[i];
+					}
+				} else {
+					int end = static_cast<int>(w[pos++].GetNumber());
+					int length = start + end;
+					PODOFO_ASSERT (length >= start);
+					if (length > m_width.size()) {
+						m_width.resize(length, default_width);
+					}
+					pdf_int64 width = w[pos++].GetNumber();
+					for (int i = start; i <= end; ++i)
+						m_width[i] = PdfVariant(width);
+				}
+			}
+		}
+		m_nLast = m_width.size() - 1;
+	} else {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFontFormat, rSubType.GetEscapedName().c_str() );
+	}
+
 
     m_nWeight      = static_cast<unsigned int>(pDescriptor->GetDictionary().GetKeyAsLong( "FontWeight", 400L ));
     m_nItalicAngle = static_cast<int>(pDescriptor->GetDictionary().GetKeyAsLong( "ItalicAngle", 0L ));
@@ -94,7 +150,7 @@ void PdfFontMetricsObject::GetBoundingBox( PdfArray & array ) const
 
 double PdfFontMetricsObject::CharWidth( unsigned char c ) const
 {
-    if( c >= m_nFirst && c < m_nLast
+    if( c >= m_nFirst && c <= m_nLast
        && c - m_nFirst < m_width.size () )
     { 
         double dWidth = m_width[c - m_nFirst].GetReal();
@@ -107,7 +163,7 @@ double PdfFontMetricsObject::CharWidth( unsigned char c ) const
     if( m_missingWidth != NULL )
         return m_missingWidth->GetReal ();
     else
-        return 0.0;
+        return m_dDefWidth;
 }
 
 double PdfFontMetricsObject::UnicodeCharWidth( unsigned short c ) const

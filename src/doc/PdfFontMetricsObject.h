@@ -229,6 +229,7 @@ class PODOFO_DOC_API PdfFontMetricsObject : public PdfFontMetrics {
     double        m_dStrikeOutPosition;
 
     bool          m_bSymbol;  ///< Internal member to singnal a symbol font
+	double m_dDefWidth; ///< default width
 };
  
 };

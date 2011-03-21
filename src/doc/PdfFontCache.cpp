@@ -630,7 +630,7 @@ std::string PdfFontCache::GetFontConfigFontPath( FcConfig* pConfig, const char* 
         sPath = reinterpret_cast<const char*>(v.u.s);
 #ifdef PODOFO_VERBOSE_DEBUG
         PdfError::LogMessage( eLogSeverity_Debug,
-                              "Got Font %s for for %s\n", sPath.c_str(), pszFontname );
+                              "Got Font %s for for %s\n", sPath.c_str(), pszFontName );
 #endif // PODOFO_DEBUG
     }
 
