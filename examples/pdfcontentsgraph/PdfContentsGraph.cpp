@@ -4,11 +4,6 @@
 #error This module requires boost::graph
 #endif
 
-#include "PdfContentsTokenizer.h"
-#include "PdfOutputDevice.h"
-#include "PdfOutputStream.h"
-#include "PdfInputStream.h"
-
 #include <cassert>
 #include <string>
 #include <iostream>

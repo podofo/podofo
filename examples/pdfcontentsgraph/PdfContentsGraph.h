@@ -1,11 +1,9 @@
 #ifndef _PODOFO_PDFCONTENTSGRAPH_H
 #define _PODOFO_PDFCONTENTSGRAPH_H
 
-#include "PdfDefines.h"
+#include "podofo/podofo.h"
 
 #if defined(PODOFO_HAVE_BOOST)
-
-#include "PdfVariant.h"
 
 #include <utility>
 #include <string>
