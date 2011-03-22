@@ -84,24 +84,24 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
 		if (pw) {
 			PdfArray w = pw->GetArray();
 			int pos = 0;
-			while (pos < static_cast<int>(w.size())) {
+			while (pos < static_cast<int>(w.GetSize())) {
 				int start = static_cast<int>(w[pos++].GetNumber());
 				PODOFO_ASSERT (start >= 0);
 				if (w[pos].IsArray()) {
 					PdfArray widths = w[pos++].GetArray();
-					int length = start + static_cast<int>(widths.size());
+					int length = start + static_cast<int>(widths.GetSize());
 					PODOFO_ASSERT (length >= start);
-					if (length > m_width.size()) {
+					if (length > static_cast<int>(m_width.GetSize())) {
 						m_width.resize(length, default_width);
 					}
-					for (int i = 0; i < static_cast<int>(widths.size()); ++i) {
+					for (int i = 0; i < static_cast<int>(widths.GetSize()); ++i) {
 						m_width[start + i] = widths[i];
 					}
 				} else {
 					int end = static_cast<int>(w[pos++].GetNumber());
 					int length = start + end;
 					PODOFO_ASSERT (length >= start);
-					if (length > m_width.size()) {
+					if (length > static_cast<int>(m_width.GetSize())) {
 						m_width.resize(length, default_width);
 					}
 					pdf_int64 width = w[pos++].GetNumber();
@@ -110,7 +110,7 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
 				}
 			}
 		}
-		m_nLast = m_width.size() - 1;
+		m_nLast = m_width.GetSize() - 1;
 	} else {
         PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFontFormat, rSubType.GetEscapedName().c_str() );
 	}
@@ -151,7 +151,7 @@ void PdfFontMetricsObject::GetBoundingBox( PdfArray & array ) const
 double PdfFontMetricsObject::CharWidth( unsigned char c ) const
 {
     if( c >= m_nFirst && c <= m_nLast
-       && c - m_nFirst < m_width.size () )
+        && c - m_nFirst < static_cast<int>(m_width.GetSize()) )
     { 
         double dWidth = m_width[c - m_nFirst].GetReal();
         
