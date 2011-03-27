@@ -316,6 +316,8 @@ void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNot
         ++i;
         ++it;
     }
+
+    
 }
 
 void PdfVecObjects::InsertOneReferenceIntoVector( const PdfObject* pObj, TVecReferencePointerList* pList )  
@@ -388,8 +390,18 @@ void PdfVecObjects::GetObjectDependencies( const PdfObject* pObj, TPdfReferenceL
   
     if( pObj->IsReference() )
     {
-        if( std::find( pList->begin(), pList->end(), pObj->GetReference() ) == pList->end() )
-            pList->push_back( pObj->GetReference() );
+        std::pair<TPdfReferenceList::iterator, TPdfReferenceList::iterator> itEqualRange
+            = std::equal_range( pList->begin(), pList->end(), pObj->GetReference() );
+        if( itEqualRange.first == itEqualRange.second )
+        {
+            pList->insert(itEqualRange.first, pObj->GetReference() );
+
+            const PdfObject* referencedObject = this->GetObject(pObj->GetReference());
+            if( referencedObject != NULL )
+            {
+                this->GetObjectDependencies( referencedObject, pList );
+            }
+        }
     }
     else if( pObj->IsArray() )
     {
