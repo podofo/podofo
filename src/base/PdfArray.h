@@ -132,6 +132,12 @@ class PODOFO_API PdfArray : private PdfArrayBaseClass, public PdfDataType {
 
     inline PdfObject & operator[](size_type __n);
     inline const PdfObject & operator[](size_type __n) const;
+
+    /**
+     * Resize the internal vector.
+     * \param __n new size
+     */
+    inline void resize(size_t __n, value_type __x = PdfArrayBaseClass::value_type());
     
     /**
      *  Returns a read/write iterator that points to the first
@@ -323,6 +329,14 @@ PdfObject& PdfArray::operator[](size_type __n)
 const PdfObject& PdfArray::operator[](size_type __n) const
 {
     return PdfArrayBaseClass::operator[](__n);
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfArray::resize(size_t __n, value_type __x)
+{
+    return PdfArrayBaseClass::resize(__n, __x);
 }
 
 // -----------------------------------------------------
