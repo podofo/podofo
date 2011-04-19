@@ -74,7 +74,7 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
 		m_nFirst = 0;
 		m_nLast = 0;
 
-		m_dDefWidth = pFont->GetDictionary().GetKeyAsLong( "DW", 1000L );
+		m_dDefWidth = static_cast<double>(pFont->GetDictionary().GetKeyAsLong( "DW", 1000L ));
 		PdfVariant default_width(m_dDefWidth);
 		PdfObject * pw = pFont->GetIndirectKey( "W" );
 

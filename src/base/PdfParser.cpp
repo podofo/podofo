@@ -1242,7 +1242,7 @@ void PdfParser::CheckEOFMarker()
     const size_t nEOFTokenLen = 5;
     char pszBuff[nEOFTokenLen+1];
 
-    m_device.Device()->Seek(-nEOFTokenLen, std::ios_base::end );
+    m_device.Device()->Seek(-static_cast<int>(nEOFTokenLen), std::ios_base::end );
     if( IsStrictParsing() )
     {
         // For strict mode EOF marker must be at the very end of the file
