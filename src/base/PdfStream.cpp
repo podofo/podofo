@@ -229,7 +229,7 @@ void PdfStream::BeginAppend( const TVecFilters & vecFilters, bool bClearExisting
 
 void PdfStream::EndAppend()
 {
-    PODOFO_RAISE_LOGIC_IF( !m_bAppend, "BeginAppend() failed because EndAppend() was not yet called!" );
+    PODOFO_RAISE_LOGIC_IF( !m_bAppend, "EndAppend() failed because BeginAppend() was not yet called!" );
 
     m_bAppend = false;
     this->EndAppendImpl();

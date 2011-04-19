@@ -119,13 +119,16 @@ void PdfPainter::SetPage( PdfCanvas* pPage )
     m_pCanvas = pPage ? pPage->GetContentsForAppending()->GetStream() : NULL;
     if ( m_pCanvas ) 
     {
-        m_pCanvas->BeginAppend( false );
+		// GetLength() must be called before BeginAppend()
         if ( m_pCanvas->GetLength() ) 
-        {    
+		{
+	        m_pCanvas->BeginAppend( false );
             // there is already content here - so let's assume we are appending
             // as such, we MUST put in a "space" to separate whatever we do.
             m_pCanvas->Append( " " );
         }
+		else
+	        m_pCanvas->BeginAppend( false );
     } 
     else 
     {

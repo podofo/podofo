@@ -189,7 +189,10 @@ void PdfVariant::Clear()
     }
 
     m_bDelayedLoadDone = true;
-    m_bDirty           = false; 
+#if defined(PODOFO_EXTRA_CHECKS)
+	m_bDelayedLoadInProgress = false;
+#endif
+	m_bDirty           = false; 
     m_eDataType        = ePdfDataType_Null;
     m_bImmutable       = false;
 
