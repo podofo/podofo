@@ -386,6 +386,13 @@ class PODOFO_API PdfVecObjects {
      */
     void CollectGarbage( PdfObject* pTrailer );
 
+	/** Get next unique subset-prefix
+     *
+     *  \returns a string to use as subset-prefix.
+     */
+	std::string GetNextSubsetPrefix();
+
+
  private:    
     /** 
      * \returns the next free object reference
@@ -433,6 +440,8 @@ class PODOFO_API PdfVecObjects {
     PdfDocument*        m_pDocument;
 
     StreamFactory*      m_pStreamFactory;
+
+	std::string			m_sSubsetPrefix;		 ///< Prefix for BaseFont and FontName of subsetted font
 };
 
 

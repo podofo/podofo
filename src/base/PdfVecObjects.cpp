@@ -560,6 +560,31 @@ void PdfVecObjects::EndAppendStream( const PdfStream* pStream )
     }
 }
 
+std::string PdfVecObjects::GetNextSubsetPrefix()
+{
+	if ( m_sSubsetPrefix == "" )
+	{
+		m_sSubsetPrefix = "AAAAAA+";
+	}
+	else
+	{
+		PODOFO_ASSERT( m_sSubsetPrefix.length() == 7 );
+		PODOFO_ASSERT( m_sSubsetPrefix[6] = '+' );
+	
+		for ( int i = 5; i >= 0; i-- )
+		{
+			if ( m_sSubsetPrefix[i] < 'Z' )
+			{
+				m_sSubsetPrefix[i]++;
+				break;
+			}
+			m_sSubsetPrefix[i] = 'A';
+		}
+	}
+
+	return m_sSubsetPrefix;
+}
+
 };
 
 

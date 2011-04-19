@@ -118,8 +118,7 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
 				if ( bSubsetting )
 				{
 					// don't embed yet for subsetting
-	                pFont = new PdfFontType1( pMetrics, pEncoding, pParent, false );
-					pFont->m_bIsSubsetting = true;
+	                pFont = new PdfFontType1( pMetrics, pEncoding, pParent, false, true );
 				}
 				else
 					pFont = new PdfFontType1( pMetrics, pEncoding, pParent, bEmbed );

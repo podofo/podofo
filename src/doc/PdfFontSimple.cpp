@@ -62,8 +62,13 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
+	std::string name;
+	if ( m_bIsSubsetting )
+		name = this->GetObject()->GetOwner()->GetNextSubsetPrefix();
+	name += this->GetBaseFont().GetName();
+
     this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, rsSubType );
-    this->GetObject()->GetDictionary().AddKey("BaseFont", this->GetBaseFont() );
+    this->GetObject()->GetDictionary().AddKey("BaseFont", PdfName( name ) );
     this->GetObject()->GetDictionary().AddKey("FirstChar", PdfVariant( static_cast<pdf_int64>(m_pEncoding->GetFirstChar()) ) );
     this->GetObject()->GetDictionary().AddKey("LastChar", PdfVariant( static_cast<pdf_int64>(m_pEncoding->GetLastChar()) ) );
     m_pEncoding->AddToDictionary( this->GetObject()->GetDictionary() ); // Add encoding key
@@ -73,7 +78,7 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
 
     m_pMetrics->GetBoundingBox( array );
 
-    pDescriptor->GetDictionary().AddKey( "FontName", this->GetBaseFont() );
+    pDescriptor->GetDictionary().AddKey( "FontName", PdfName( name ) );
     //pDescriptor->GetDictionary().AddKey( "FontWeight", (long)m_pMetrics->Weight() );
     pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( static_cast<pdf_int64>(32LL) ) ); // TODO: 0 ????
     pDescriptor->GetDictionary().AddKey( "FontBBox", array );
