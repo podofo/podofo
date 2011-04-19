@@ -61,6 +61,10 @@ PdfFontType1::PdfFontType1( PdfFontType1* pFont, PdfFontMetrics* pMetrics, const
 	if ( pFont->IsSubsetting() )
 		GetObject()->GetDictionary().AddKey( "BaseFont", pFont->GetObject()->GetDictionary().GetKey( "BaseFont" ) );
 
+	// Use identical subset-names
+	if ( pFont->IsSubsetting() )
+		GetObject()->GetDictionary().AddKey( "BaseFont", pFont->GetObject()->GetDictionary().GetKey( "BaseFont" ) );
+
 	// set identifier
 	std::string id = pFont->GetIdentifier().GetName();
 	id += pszSuffix;
@@ -174,9 +178,6 @@ void PdfFontType1::EmbedSubsetFont()
 	bool dupFound = false;
 	for ( int i = 0; i < length; i++ )
 	{
-		// TODO: only embed with used glyphs
-		EmbedFontFile( m_pDescriptor );
-		m_bWasEmbedded = true;
 		line += static_cast<char>( inBuff[inIndex+i] );
 		if ( inBuff[inIndex+i] == '\r' )
 		{
