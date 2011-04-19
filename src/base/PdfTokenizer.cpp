@@ -232,9 +232,16 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
         else if( c == '%' ) 
         {
             // Consume all characters before the next line break
+			// 2011-04-19 Ulrich Arnold: accept 0x0D, 0x0A and oX0D 0x0A as one EOL
             do {
                 c = m_device.Device()->GetChar();
-            } while( c != EOF && c != 0x0A );
+            } while( c != EOF && c != 0x0D  && c != 0x0A );
+			
+            if ( c == 0x0D )
+			{
+                if ( m_device.Device()->Look() == 0x0A )
+	                c = m_device.Device()->GetChar();
+			}
             // If we've already read one or more chars of a token, return them, since
             // comments are treated as token-delimiting whitespace. Otherwise keep reading
             // at the start of the next line.
