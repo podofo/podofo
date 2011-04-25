@@ -277,6 +277,18 @@ void PdfVecObjects::push_back( PdfObject* pObj )
     m_vector.push_back( pObj );
 }
 
+void PdfVecObjects::insert_sorted( PdfObject* pObj )
+{
+    SetObjectCount( pObj->Reference() );
+    pObj->SetOwner( this );
+
+    if ( m_bSorted ) {
+      TVecObjects::iterator i_pos = std::lower_bound(m_vector.begin(),m_vector.end(),pObj,ObjectLittle);
+      m_vector.insert(i_pos, pObj );
+    } else m_vector.push_back( pObj );
+ 
+}
+
 void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNotDelete, bool bDoGarbageCollection )
 {
     TVecReferencePointerList  list;

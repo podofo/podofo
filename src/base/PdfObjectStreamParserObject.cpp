@@ -90,16 +90,18 @@ void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long
         variantTokenizer.GetNextVariant( var, m_pEncrypt );
 		bool should_read = std::find(list.begin(), list.end(), lObj) != list.end();
 #if defined(PODOFO_VERBOSE_DEBUG)
-    std::cerr << "ReadObjectsFromStream STREAM=" << m_pParser->Reference().ToString() <<
+        std::cerr << "ReadObjectsFromStream STREAM=" << m_pParser->Reference().ToString() <<
 			", OBJ=" << lObj <<
 			", " << (should_read ? "read" : "skipped") << std::endl;
 #endif
-		if (should_read) {
-			if(m_vecObjects->GetObject(PdfReference( static_cast<int>(lObj), 0LL ))) {
-            PdfError::LogMessage( eLogSeverity_Warning, "Object: %li 0 R will be deleted and loaded again.\n", lObj );
-            delete m_vecObjects->RemoveObject(PdfReference( static_cast<int>(lObj), 0LL ),false);
-        }
-        m_vecObjects->push_back( new PdfObject( PdfReference( static_cast<int>(lObj), 0LL ), var ) );
+		if (should_read)
+        {
+			if(m_vecObjects->GetObject(PdfReference( static_cast<int>(lObj), 0LL ))) 
+            {
+                PdfError::LogMessage( eLogSeverity_Warning, "Object: %li 0 R will be deleted and loaded again.\n", lObj );
+                delete m_vecObjects->RemoveObject(PdfReference( static_cast<int>(lObj), 0LL ),false);
+            }
+            m_vecObjects->insert_sorted( new PdfObject( PdfReference( static_cast<int>(lObj), 0LL ), var ) );
 		}
 
         // move back to the position inside of the table of contents

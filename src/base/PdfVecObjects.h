@@ -273,6 +273,19 @@ class PODOFO_API PdfVecObjects {
      */
     void push_back( PdfObject* pObj );
 
+    /** Insert an object into this vector so that
+     *  the vector remains sorted w.r.t. 
+     *  the ordering based on object and generation numbers
+     *  m_bObjectCount will be increased for the object.
+     * 
+     *  Note: Assumes the vector is sorted, otherwise
+     *  equivalent to push_back
+     * 
+     *  \param pObj pointer to the object you want to insert
+     */
+    void insert_sorted( PdfObject *pObj );
+    
+
     /** 
      * Sort the objects in the vector based on their object and generation numbers
      */
