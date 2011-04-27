@@ -61,10 +61,6 @@ PdfFontType1::PdfFontType1( PdfFontType1* pFont, PdfFontMetrics* pMetrics, const
 	if ( pFont->IsSubsetting() )
 		GetObject()->GetDictionary().AddKey( "BaseFont", pFont->GetObject()->GetDictionary().GetKey( "BaseFont" ) );
 
-	// Use identical subset-names
-	if ( pFont->IsSubsetting() )
-		GetObject()->GetDictionary().AddKey( "BaseFont", pFont->GetObject()->GetDictionary().GetKey( "BaseFont" ) );
-
 	// set identifier
 	std::string id = pFont->GetIdentifier().GetName();
 	id += pszSuffix;
