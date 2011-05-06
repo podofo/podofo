@@ -62,67 +62,239 @@
 
 using namespace std;
 
+//us: I know the endian functions are redundant, but they are not availabe in a .h file, right?
+//    Ohh, C++ should have these as intrinsic operators, since processors just need one SWAP directive.
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+inline unsigned long FromBigEndian(unsigned long i)
+{
+    return ((i << 24) & 0xFF000000) |
+           ((i <<  8) & 0x00FF0000) |
+           ((i >>  8) & 0x0000FF00) |
+           ((i >> 24) & 0x000000FF);
+}
+inline unsigned short ShortFromBigEndian(unsigned short i)
+{
+    return ((i << 8) & 0xFF00) | ((i >> 8) & 0x00FF);
+}
+#else
+inline unsigned long FromBigEndian(unsigned long i)
+{
+    return i;
+}
+inline unsigned short ShortFromBigEndian(unsigned short i)
+{
+    return i;
+}
+#endif
+
+
 namespace PoDoFo {
 
 #ifdef _WIN32
-static bool GetDataFromHFONT( HFONT hf, char** outFontBuffer, unsigned int& outFontBufferLen )
+// The function receives a buffer containing a true type collection and replaces the buffer
+// by a new buffer with the extracted font.
+// On error the function returns false.
+static bool GetFontFromCollection(char *&buffer, unsigned int &bufferLen, unsigned int bufferOffset, const LOGFONTW* inFont)
 {
-    HDC		hdc;
+    bool ok = false;
 
-    if ( ( hdc = GetDC(0) ) == NULL ) {
-        DeleteObject(hf);
-        return false;
-    }
-    
-    // Petr Petrov (22 December 2009)
-    HGDIOBJ oldFont = SelectObject(hdc, hf);
+    // these properties are extracted to match the font
+    wchar_t fontFamily[1024];
+    wchar_t fontStyle[1024];
+    wchar_t fontFullName[1024];
+    wchar_t fontPostscriptName[1024];
+    fontFamily[0]   = 0;
+    fontStyle[0]    = 0;
+    fontFullName[0] = 0;
+    fontPostscriptName[0] = 0;
+    unsigned int fontFileSize = 12;
 
-    outFontBufferLen = GetFontData(hdc, 0, 0, 0, 0);
-    
-    if (outFontBufferLen == GDI_ERROR) {
-        SelectObject(hdc,oldFont);
-        ReleaseDC(0, hdc);
-        DeleteObject(hf);
-        return false;
+    //us: see "http://www.microsoft.com/typography/otspec/otff.htm"
+    USHORT numTables = ShortFromBigEndian(*(USHORT *)(buffer + bufferOffset + 4));
+    char *entry = buffer + bufferOffset + 12;
+    for(int i=0; i<numTables; i++)
+    {
+        char tag[5];
+        tag[0] = entry[0];
+        tag[1] = entry[1];
+        tag[2] = entry[2];
+        tag[3] = entry[3];
+        tag[4] = 0;
+        ULONG checkSum = FromBigEndian(*(ULONG *)(entry+4));
+        ULONG offset   = FromBigEndian(*(ULONG *)(entry+8));
+        ULONG length   = FromBigEndian(*(ULONG *)(entry+12));
+        length = (length+3) & ~3;
+        if(offset+length > bufferLen) return false; // truncated or corrupted buffer
+        if(strcmp(tag, "name") == 0)
+        {
+            //us: see "http://www.microsoft.com/typography/otspec/name.htm"
+            char *nameTable = buffer + offset;
+            USHORT format       = ShortFromBigEndian(*(USHORT *)(nameTable));
+            USHORT nameCount    = ShortFromBigEndian(*(USHORT *)(nameTable+2));
+            USHORT stringOffset = ShortFromBigEndian(*(USHORT *)(nameTable+4));
+            char *stringArea = nameTable + stringOffset;
+            char *nameRecord = nameTable + 6;
+            for(int n=0; n<nameCount; n++)
+            {
+                USHORT platformID = ShortFromBigEndian(*(USHORT *)(nameRecord));
+                USHORT encodingID = ShortFromBigEndian(*(USHORT *)(nameRecord+2));
+                USHORT languageID = ShortFromBigEndian(*(USHORT *)(nameRecord+4));
+                if(platformID == 0 && languageID == 0)
+                {
+                    // only Unicode platform / english
+                    USHORT nameID     = ShortFromBigEndian(*(USHORT *)(nameRecord+6));
+                    USHORT length     = ShortFromBigEndian(*(USHORT *)(nameRecord+8));
+                    USHORT offset     = ShortFromBigEndian(*(USHORT *)(nameRecord+10));
+                    wchar_t name[1024];
+                    if(length >= sizeof(name)) length = sizeof(name) - sizeof(wchar_t);
+                    unsigned int charCount = length / sizeof(wchar_t);
+                    for(unsigned int i=0; i<charCount; i++)
+                    {
+                        name[i] = ShortFromBigEndian(((USHORT *)(stringArea + offset))[i]);
+                    }
+                    name[charCount] = 0;
+                    switch(nameID)
+                    {
+                    case 1:
+                        wcscpy(fontFamily, name);
+                        break;
+                    case 2:
+                        wcscpy(fontStyle, name);
+                        break;
+                    case 4:
+                        wcscpy(fontFullName, name);
+                        break;
+                    case 6:
+                        wcscpy(fontPostscriptName, name);
+                        break;
+                    }
+                }
+                nameRecord += 12;
+            }
+        }
+        entry += 16;
+        fontFileSize += 16 + length;
     }
-    
-    *outFontBuffer = (char *) malloc( outFontBufferLen );
-    
-    if ( GetFontData( hdc, 0, 0, *outFontBuffer, (DWORD) outFontBufferLen ) == GDI_ERROR ) {
-        free( *outFontBuffer );
-        *outFontBuffer = NULL;
-        outFontBufferLen = 0;
-        SelectObject(hdc,oldFont);
-        ReleaseDC(0, hdc);
-        DeleteObject(hf);
-        return false;
+
+    // check if font matches the wanted properties
+    unsigned int isMatchingFont = _wcsicmp(fontFamily, inFont->lfFaceName) == 0;
+    //..TODO.. check additional styles (check fontStyle, fontFullName, fontPostscriptName) ?
+
+    // extract font
+    if(isMatchingFont) {
+        char *newBuffer = (char *) malloc(fontFileSize);
+
+        // copy font header and table index (offsets need to be still adjusted)
+        memcpy(newBuffer, buffer + bufferOffset, 12+16*numTables);
+        unsigned int dstDataOffset = 12+16*numTables;
+
+        // process tables
+        char *srcEntry = buffer + bufferOffset + 12;
+        char *dstEntry = newBuffer + 12;
+        for(int table=0; table < numTables; table++)
+        {
+            // read source entry
+            ULONG offset   = FromBigEndian(*(ULONG *)(srcEntry+8));
+            ULONG length   = FromBigEndian(*(ULONG *)(srcEntry+12));
+            length = (length+3) & ~3;
+
+            // adjust offset
+            // U can use FromBigEndian() also to convert _to_ big endian 
+            *(ULONG *)(dstEntry+8) = FromBigEndian(dstDataOffset);
+
+            //copy data
+            memcpy(newBuffer + dstDataOffset, buffer + offset, length);
+            dstDataOffset += length;
+
+            // adjust table entry pointers for loop
+            srcEntry += 16;
+            dstEntry += 16;
+        }
+
+        // replace old buffer
+        //assert(dstDataOffset==fontFileSize)
+        free(buffer);
+        buffer = newBuffer;
+        bufferLen = fontFileSize;
+        ok = true;
     }
-    
-    SelectObject(hdc,oldFont);
-    ReleaseDC( 0, hdc );
-    DeleteObject( hf );
-    
-    return true;
+
+    return ok;
 }
-    
-static bool GetDataFromLPFONT( const LOGFONTA* inFont, char** outFontBuffer, unsigned int& outFontBufferLen )
+
+static bool GetDataFromHFONT( HFONT hf, char** outFontBuffer, unsigned int& outFontBufferLen, const LOGFONTW* inFont )
 {
-    HFONT 	hf;
+    HDC hdc = GetDC(0);
+    if ( hdc == NULL ) return false;
+    HGDIOBJ oldFont = SelectObject(hdc, hf);    // Petr Petrov (22 December 2009)
 
-    if ( ( hf = ::CreateFontIndirectA( inFont ) ) == NULL )
-        return false;
+    bool ok = false;
 
-    return GetDataFromHFONT( hf, outFontBuffer, outFontBufferLen );
+    // try get data from true type collection
+    char *buffer = NULL;
+    unsigned int bufferLen = 0;
+    bool hasData = false;
+    const DWORD ttcf_const = 0x66637474;
+    DWORD dwTable = ttcf_const;
+    bufferLen = GetFontData(hdc, dwTable, 0, 0, 0);
+    if (bufferLen == GDI_ERROR)
+    {
+        dwTable = 0;
+        bufferLen = GetFontData(hdc, dwTable, 0, 0, 0);
+    }
+    if (bufferLen != GDI_ERROR)
+    {
+        buffer = (char *) malloc( bufferLen );
+        hasData = GetFontData( hdc, dwTable, 0, buffer, (DWORD) bufferLen ) != GDI_ERROR;
+    }
+
+    if(hasData)
+    {
+        if(((DWORD *)buffer)[0] == ttcf_const)
+        {
+            // true type collection data
+            unsigned int numFonts = FromBigEndian(((unsigned int *)buffer)[2]);
+            for(unsigned int i=0; i<numFonts; i++)
+            {
+                unsigned int offset = FromBigEndian(((unsigned int *)buffer)[3+i]);
+                ok = GetFontFromCollection(buffer, bufferLen, offset, inFont);
+                if(ok) break;
+            }
+        }
+        else
+        {
+            // "normal" font data
+            ok = true;
+        }
+    }
+
+    // clean up
+    SelectObject(hdc,oldFont);
+    ReleaseDC(0,hdc);
+    if(ok)
+    {
+        // on success set result buffer
+        *outFontBuffer = buffer;
+        outFontBufferLen = bufferLen;
+    }
+    else if(buffer)
+    {
+        // on failure free local buffer
+        free(buffer);
+    }
+    return ok;
 }
 
 static bool GetDataFromLPFONT( const LOGFONTW* inFont, char** outFontBuffer, unsigned int& outFontBufferLen )
 {
-    HFONT 	hf;
-
-    if ( ( hf = ::CreateFontIndirectW( inFont ) ) == NULL )
-        return false;
-
-    return GetDataFromHFONT( hf, outFontBuffer, outFontBufferLen );
+    bool ok = false;
+    HFONT hf = CreateFontIndirectW(inFont);
+    if(hf)
+    {
+        ok = GetDataFromHFONT( hf, outFontBuffer, outFontBufferLen, inFont );
+        DeleteObject(hf);
+    }
+    return ok;
 }
 #endif // _WIN32
 
@@ -490,7 +662,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
                                      const char* pszFontName, bool bBold, bool bItalic, 
                                      bool bEmbedd, const PdfEncoding * const pEncoding )
 {
-    LOGFONTA lf;
+    LOGFONTW lf;
     
     lf.lfHeight			= 0;
     lf.lfWidth			= 0;
@@ -510,7 +682,8 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
         return NULL;
     
     memset(&(lf.lfFaceName), 0, LF_FACESIZE);
-    strcpy( lf.lfFaceName, pszFontName );
+    //strcpy( lf.lfFaceName, pszFontName );
+    /*int destLen =*/ MultiByteToWideChar (0, 0, pszFontName, -1, lf.lfFaceName, LF_FACESIZE);
 
     char* pBuffer = NULL;
     unsigned int nLen;
