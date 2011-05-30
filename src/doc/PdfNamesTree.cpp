@@ -476,7 +476,7 @@ void PdfNamesTree::AddToDictionary( PdfObject* pObj, PdfDictionary & rDict )
             ++it;
         }
     }
-    else
+    else if( pObj->GetDictionary().HasKey("Names") )
     {
         const PdfArray & names      = pObj->GetDictionary().GetKey("Names")->GetArray();
         PdfArray::const_iterator it = names.begin();
