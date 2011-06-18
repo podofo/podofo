@@ -1,4 +1,4 @@
-/***************************************************************************
+/**************************************************************************
  *   Copyright (C) 2006 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
@@ -322,6 +322,11 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  \returns PdfObject the MarkInfo dictionary
      */
     PdfObject* GetMarkInfo() const { return GetNamedObjectFromCatalog( "MarkInfo" ); }
+
+    /** Get access to the RFC 3066 natural language id for the document (ISO 32000-1:2008 14.9.2.1)
+     *  \returns PdfObject the language ID string
+     */
+    PdfObject* GetLanguage() const { return GetNamedObjectFromCatalog( "Lang" ); }
 
     /** Creates a PdfFont object from an existing font.
      *
