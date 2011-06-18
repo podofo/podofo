@@ -1,0 +1,165 @@
+---lua
+---imposition plan : Generic Booklet -- US letter paper -- 8.5 x 11
+---
+---It is said generic as it will try to determine
+---automatically how to fit the booklet onto US letter
+---paper sheets, scaling pages if necessary.
+---it is well suited for office documents for
+---which you do not care too much about resulting
+---imposition artefacts since it manages to save
+---paper!
+---
+-- print("Booklet")
+-- We output a booklet on US letter paper -- 8.5 x 11
+
+-- Interface notes .....
+---- Evidently PageCount, SourceWidth, and SourceHeight are
+---- passed to us from the C++ program when we are called.
+---- Evidently we are required to provide values for
+---- PageWidth, PageHeight, and Scale ... which are used by
+---- the C++ program after we return.  Scale defaults to 1.
+----
+---- Note that these Page-related names are unfortunate,
+---- because they do *not* correspond to the pages as defined
+---- by the source, or to the pages in the final booklet.
+---- Really PageHeight should be called SheetHeight and
+---- PageWidth should be called SheetWidth or something
+---- like that.
+----
+---- Note that we calculate our offsets and margins in
+----_real_ units, not scaled units.  That is significant
+---- PushRecord will scale its arguments, so we will need
+-----to descale the offsets in the call to PushRecord.
+
+-- Useful units, measured in local units (i.e. postscript points):
+inch = 72
+mm = inch / 25.4
+
+PageWidth = 8.5*inch
+PageHeight = 11*inch
+
+-- Turn on TopMode if you want to print the top side of each sheet
+-- Turn on BottomMode if you want to print the bottm side of each sheet
+-- Turn on TopMode and BottomMode if you want both, as for a duplex printer
+TopMode = 1
+BottomMode = 1
+-- Turn on BoStack if your non-duplex printer has the property
+-- that the first thing printed winds up at the bottom of the
+-- stack, face up.
+BoStack = 0
+
+print("PageCount",PageCount)
+
+-- Note that we need to distinguish
+----    the hw margins need to keep the printer happy
+----    the /added/ margins we need to apply here.
+-- Worst case is when the source
+-- material bleeds right to the edge of its bounding box.
+-- Conversely, if the source material has a lot of margin
+-- already built into it, we may not need any /extra/ margin
+-- at all, and we could set UsableHeight = PageHeight here.
+-- Similarly if Ydelta/2 is larger than the hwBottomMargin
+-- we shouldn't need to add any /add/ margin.
+
+hwTopMargin = 0.1*inch
+hwBottomMargin = 0.5*inch
+hwLeftMargin = 0.1*inch
+hwRightMargin = 0.1*inch
+
+srcMargin = 0
+addTopMargin = math.max(0, hwTopMargin - srcMargin)
+addBottomMargin = math.max(0, hwBottomMargin - srcMargin)
+addLeftMargin = math.max(0, hwLeftMargin - srcMargin)
+addRightMargin = math.max(0, hwRightMargin - srcMargin)
+
+-- When calculating wiggle room, assume paper will be used
+-- symmetrically.  This is a nontrivial assumption, since
+-- e.g. we could use a paper cutter to chop off one edge
+-- and not the other ... but that would be beyond the
+-- scope of this analysis.  Symmetry means that if we
+-- apply a margin to the recto page, we must apply the
+-- same margin to the verso page, even if the hardware
+-- would not require it.  Hence the factors of 2 here:
+
+UsableHeight = PageHeight - 2*addTopMargin - 2*addBottomMargin
+UsableWidth = PageWidth - 2*addLeftMargin - 2*addRightMargin
+
+if(SourceWidth <= SourceHeight)
+then
+        Scale = math.min(UsableHeight / (2*SourceWidth), UsableWidth / SourceHeight)
+        rot = 90
+        Ywiggle = 0.5 * math.max(0,  UsableHeight - 2*SourceWidth*Scale)
+        Xwiggle =       math.max(0,  UsableWidth - SourceHeight*Scale)
+        fudge = addTopMargin + 2*(addBottomMargin + Ywiggle)
+-- Apply a factor of /2 to Xwiggle here,
+-- because we want centering
+-- (not flush to right of sheet, i.e. bottom of page):
+-- Do not apply corresponding factor to Ywiggle, because
+-- we do want flush to top of sheet, i.e. right of page:
+        xof = addLeftMargin + SourceHeight*Scale + Xwiggle/2
+        yofRtop = SourceWidth*Scale + fudge
+        yofRbot = SourceWidth*Scale + fudge
+        yofVtop = addBottomMargin + Ywiggle
+        yofVbot = addBottomMargin + Ywiggle
+else
+        Scale = math.min(UsableHeight / (2*SourceHeight), UsableWidth / SourceWidth)
+        rot = 0
+        Ywiggle = 0.5 * math.max(0,  UsableHeight - 2*SourceHeight*Scale)
+        Xwiggle =       math.max(0,  UsableWidth - SourceWidth*Scale)
+        fudge = addTopMargin + 2*(addBottomMargin + Ywiggle)
+        xof = addLeftMargin + Xwiggle/2
+        yofRtop = SourceHeight*Scale + fudge
+        yofRbot = SourceHeight*Scale + fudge
+        yofVtop = addBottomMargin + Ywiggle
+        yofVbot = addBottomMargin + Ywiggle
+end
+
+do
+        rest = PageCount % 4
+        totp = PageCount
+        if rest ~= 0
+                then
+                totp = totp + ( 4 - rest)
+                end
+-- "inc" counts input pages skipped as well as pages actually used:
+        inc = 0
+-- "outc" counts output pages:
+        outc = 0;
+        count = 0
+        imax = totp/4
+        middle = totp/2
+        while count < imax
+                do
+--              We assume that podofoimpose will discard invalid records
+--              such as those with source page greater than PageCount
+--              print(totp, inc, outc, rot, xof, yofRtop, yofVtop, yofRbot, yofVbot)
+-- Top of sheet:   (8 1) ... (6 3)
+                if TopMode ~= 0
+                    then
+-- We did all the interesting calculations in real units (above).
+-- We convert to nasty descaled units at the last moment:
+                    PushRecord(totp - inc, outc + 1, rot, xof/Scale, yofVtop/Scale)
+                    PushRecord(inc + 1, outc + 1, rot, xof/Scale, yofRtop/Scale)
+                    outc = outc + 1
+                    end
+-- Bottom of sheet:
+                if BottomMode ~= 0
+                    then
+                    if BoStack ~= 0
+                        then
+-- Reversed bottom: (4 5) ... (2 7)
+                        PushRecord(middle - inc, outc + 1, rot, xof/Scale, yofVbot/Scale)
+                        PushRecord(middle + 1 + inc, outc + 1, rot, xof/Scale, yofRbot/Scale)
+                        else
+-- Normal bottom: (2 7) ... (4 5)
+                        PushRecord(inc + 2, outc + 1, rot, xof/Scale, yofVbot/Scale)
+                        PushRecord(totp-(inc + 1), outc + 1, rot, xof/Scale, yofRbot/Scale)
+                        end
+
+                    outc = outc + 1
+                    end
+
+                count = count + 1
+                inc = inc + 2
+                end
+end
