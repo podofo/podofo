@@ -22,7 +22,6 @@
 
 LuaMachina::LuaMachina()
 {
-	int error;
 	/* Init the Lua interpreter */
 	L = lua_open();
 	if (!L)

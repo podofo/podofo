@@ -11,6 +11,9 @@
 //
 
 #include "planreader_legacy.h"
+#ifdef PODOFO_HAVE_LUA
+#include "planreader_lua.h"
+#endif // PODOFO_HAVE_LUA
 
 #include <fstream>
 #include <stdexcept>
@@ -188,6 +191,16 @@ PlanReader_Legacy::PlanReader_Legacy(const std::string & plan, PoDoFo::Impose::I
 		blen = in.gcount() ;
 		std::string buffer ( cbuffer, blen );
 		
+#ifdef PODOFO_HAVE_LUA
+// This was "supposed" to be a legacy file, but if it starts 
+// with two dashes, it must be a lua file, so process it accordingly:
+        if (buffer.substr(0,2) == "--") {
+            in.close();
+            PlanReader_Lua(plan, Imp);
+            return;
+        }
+#endif // PODOFO_HAVE_LUA
+
 		if ( blen < 2 ) // Nothing
 			continue;
 		
