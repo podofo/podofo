@@ -121,7 +121,7 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
     if( !(!static_cast<int>(rClipRect.GetBottom()) && 
           !static_cast<int>(rClipRect.GetLeft()) &&
           !static_cast<int>(rClipRect.GetWidth()) && 
-          !static_cast<int>(rClipRect.GetWidth())) ) 
+          !static_cast<int>(rClipRect.GetHeight())) ) 
         m_curClipRect = rClipRect;
     else
     {
