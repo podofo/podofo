@@ -291,6 +291,17 @@ class PODOFO_DOC_API PdfDocument {
      */
     PdfPage* CreatePage( const PdfRect & rSize );
 
+
+    /** Creates several new page objects and inserts them into the internal
+     *  page tree. 
+     *  The created pages are owned by the PdfDocument
+     *  and will get deleted along with it!
+     *
+     *  \param vecSizes a vector PdfRect's specifying the size of the pages (i.e the /MediaBox key) in PDF Units
+     */
+    void CreatePages( const std::vector<PdfRect>& vecSizes );
+
+
     /** Appends another PdfDocument to this document
      *  \param rDoc the document to append
      *  \param bAppendAll specifies whether pages and outlines are appended too

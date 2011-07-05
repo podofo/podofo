@@ -56,29 +56,51 @@ void PdfPagesTreeCache::AddPageObject( int nIndex, PdfPage* pPage )
     PdfPage* pOldPage = GetPage( nIndex );
     delete pOldPage;
 
-    if( nIndex+1 > static_cast<int>(m_deqPageObjs.size()) )
+    if( nIndex >= static_cast<int>(m_deqPageObjs.size()) )
     {
-        m_deqPageObjs.resize( nIndex+1 );
+        m_deqPageObjs.resize( nIndex + 1 );
     }
 
     m_deqPageObjs[nIndex] = pPage;
 }
 
-void PdfPagesTreeCache::InsertPage( int nIndex ) 
+void PdfPagesTreeCache::AddPageObjects( int nIndex, std::vector<PdfPage*> vecPages )
 {
-    if( nIndex == ePdfPageInsertionPoint_InsertBeforeFirstPage ) 
+    if( nIndex + vecPages.size() >= static_cast<int>(m_deqPageObjs.size()) )
     {
-        m_deqPageObjs.push_front( NULL );
-    } 
-    else
-    {
-        if( nIndex > static_cast<int>(m_deqPageObjs.size()) )
-        {
-            m_deqPageObjs.resize( nIndex );
-        }
-        
-        m_deqPageObjs.insert( m_deqPageObjs.begin() + nIndex, static_cast<PdfPage*>(NULL) );
+        m_deqPageObjs.resize( nIndex + vecPages.size() + 1 );
     }
+    
+    for (size_t i=0; i<vecPages.size(); ++i)
+    {
+        // Delete any old pages if it is at the same position
+        PdfPage* pOldPage = GetPage( nIndex + i );
+        delete pOldPage;
+
+        // Assign the new page
+        m_deqPageObjs[nIndex + i]  = vecPages.at(i);
+    }
+}
+
+void PdfPagesTreeCache::InsertPage( int nAfterPageIndex ) 
+{
+    const int nBeforeIndex = ( nAfterPageIndex == ePdfPageInsertionPoint_InsertBeforeFirstPage ) ? 0 : nAfterPageIndex+1;
+
+    if( nBeforeIndex >= static_cast<int>(m_deqPageObjs.size()) )
+        m_deqPageObjs.resize( nBeforeIndex + 1 );
+
+    m_deqPageObjs.insert( m_deqPageObjs.begin() + nBeforeIndex, static_cast<PdfPage*>(NULL) );
+}
+
+void PdfPagesTreeCache::InsertPages( int nAfterPageIndex, int nCount ) 
+{
+    const int nBeforeIndex = ( nAfterPageIndex == ePdfPageInsertionPoint_InsertBeforeFirstPage ) ? 0 : nAfterPageIndex+1;
+
+    if( nBeforeIndex+nCount >= static_cast<int>(m_deqPageObjs.size()) )
+        m_deqPageObjs.resize( nBeforeIndex + nCount + 1 );
+
+    for (int i=0; i<nCount; ++i)
+        m_deqPageObjs.insert( m_deqPageObjs.begin() + nBeforeIndex + i, static_cast<PdfPage*>(NULL) );
 }
 
 void PdfPagesTreeCache::DeletePage( int nIndex )

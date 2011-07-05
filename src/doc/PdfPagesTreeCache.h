@@ -64,12 +64,30 @@ class PODOFO_DOC_API PdfPagesTreeCache
     virtual void AddPageObject( int nIndex, PdfPage* pPage );
 
     /**
+     * Add several PdfPage objects to the cache, replacing any existing at the given index
+     * @param nIndex zero based index of where the first page will be placed
+     * @param vecPages vector of the page objects to add
+     */
+    virtual void AddPageObjects( int nIndex, std::vector<PdfPage*> vecPages );
+
+    /**
      * A page was inserted into the pagestree,
      * therefore the cache has to be updated
      *
-     * @param nIndex index where the page was inserted
+     * @param nAfterPageIndex zero based index of the page we are inserting after
+	 *         - may be one of the special values  from EPdfPageInsertionPoint.
      */
-    virtual void InsertPage( int nIndex );
+    virtual void InsertPage( int nAfterPageIndex );
+
+    /**
+     * Insert several pages into the pagestree, after the given index
+     * therefore the cache has to be updated
+     *
+     * @param nAfterPageIndex zero based index of the page we are inserting after
+	 *         - may be one of the special values  from EPdfPageInsertionPoint.
+     * @param nCount number of pages that were inserted
+     */
+    virtual void InsertPages( int nAfterPageIndex, int nCount );
 
     /**
      * Delete a PdfPage from the cache

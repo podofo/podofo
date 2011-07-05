@@ -103,33 +103,33 @@ PdfPage* PdfPagesTree::GetPage( const PdfReference & ref )
 }
 
 
-void PdfPagesTree::InsertPage( int inAfterPageNumber, PdfPage* inPage )
+void PdfPagesTree::InsertPage( int nAfterPageIndex, PdfPage* inPage )
 {
-    this->InsertPage( inAfterPageNumber, inPage->GetObject() );
+    this->InsertPage( nAfterPageIndex, inPage->GetObject() );
 }
 
-void PdfPagesTree::InsertPage( int nAfterPageNumber, PdfObject* pPage )
+void PdfPagesTree::InsertPage( int nAfterPageIndex, PdfObject* pPage )
 {
     bool bInsertBefore = false;
 
-    if( ePdfPageInsertionPoint_InsertBeforeFirstPage == nAfterPageNumber )
+    if( ePdfPageInsertionPoint_InsertBeforeFirstPage == nAfterPageIndex )
     {
         bInsertBefore = true;
-        nAfterPageNumber = 0;
+        nAfterPageIndex = 0;
     }
-    else if( nAfterPageNumber < 0 ) 
+    else if( nAfterPageIndex < 0 ) 
     {
         // Only ePdfPageInsertionPoint_InsertBeforeFirstPage is valid here
         PdfError::LogMessage( eLogSeverity_Information,
                               "Invalid argument to PdfPagesTree::InsertPage: %i (Only ePdfPageInsertionPoint_InsertBeforeFirstPage is valid here).",
-                              nAfterPageNumber );
+                              nAfterPageIndex );
         return;
     }
 
-    //printf("Fetching page node: %i\n", nAfterPageNumber);
+    //printf("Fetching page node: %i\n", nAfterPageIndex);
     PdfObjectList lstParents;
-    //printf("Searching page=%i\n", nAfterPageNumber );
-    PdfObject* pPageBefore = this->GetPageNode( nAfterPageNumber, this->GetRoot(), lstParents );
+    //printf("Searching page=%i\n", nAfterPageIndex );
+    PdfObject* pPageBefore = this->GetPageNode( nAfterPageIndex, this->GetRoot(), lstParents );
     
     //printf("pPageBefore=%p lstParents=%i\n", pPageBefore,lstParents.size() );
     if( !pPageBefore || lstParents.size() == 0 ) 
@@ -138,7 +138,7 @@ void PdfPagesTree::InsertPage( int nAfterPageNumber, PdfObject* pPage )
         {
             PdfError::LogMessage( eLogSeverity_Critical,
                                   "Cannot find page %i or page %i has no parents. Cannot insert new page.",
-                                  nAfterPageNumber, nAfterPageNumber );
+                                  nAfterPageIndex, nAfterPageIndex );
             return;
         }
         else
@@ -160,9 +160,57 @@ void PdfPagesTree::InsertPage( int nAfterPageNumber, PdfObject* pPage )
         InsertPageIntoNode( pParent, lstParents, nKidsIndex, pPage );
     }
 
-    m_cache.InsertPage( nAfterPageNumber );
+    m_cache.InsertPage( (bInsertBefore && nAfterPageIndex == 0) ? ePdfPageInsertionPoint_InsertBeforeFirstPage : nAfterPageIndex );
 }
 
+void PdfPagesTree::InsertPages( int nAfterPageIndex, const std::vector<PdfObject*>& vecPages )
+{
+    bool bInsertBefore = false;
+    if( ePdfPageInsertionPoint_InsertBeforeFirstPage == nAfterPageIndex )
+    {
+        bInsertBefore = true;
+        nAfterPageIndex = 0;
+    }
+    else if( nAfterPageIndex < 0 ) 
+    {
+        // Only ePdfPageInsertionPoint_InsertBeforeFirstPage is valid here
+        PdfError::LogMessage( eLogSeverity_Information,
+                              "Invalid argument to PdfPagesTree::InsertPage: %i (Only ePdfPageInsertionPoint_InsertBeforeFirstPage is valid here).",
+                              nAfterPageIndex );
+        return;
+    }
+
+    PdfObjectList lstParents;
+    PdfObject* pPageBefore = this->GetPageNode( nAfterPageIndex, this->GetRoot(), lstParents );
+    
+    if( !pPageBefore || lstParents.size() == 0 ) 
+    {
+        if( this->GetTotalNumberOfPages() != 0 ) 
+        {
+            PdfError::LogMessage( eLogSeverity_Critical,
+                                  "Cannot find page %i or page %i has no parents. Cannot insert new page.",
+                                  nAfterPageIndex, nAfterPageIndex );
+            return;
+        }
+        else
+        {
+            // We insert the first page into an empty pages tree
+            PdfObjectList lstPagesTree;
+            lstPagesTree.push_back( this->GetObject() );
+            // Use -1 as index to insert before the empty kids array
+            InsertPagesIntoNode( this->GetObject(), lstPagesTree, -1, vecPages );
+        }
+    }
+    else
+    {
+        PdfObject* pParent = lstParents.back();
+        int nKidsIndex = bInsertBefore  ? -1 : this->GetPosInKids( pPageBefore, pParent );
+
+        InsertPagesIntoNode( pParent, lstParents, nKidsIndex, vecPages );
+    }
+
+    m_cache.InsertPages( (bInsertBefore && nAfterPageIndex == 0) ? ePdfPageInsertionPoint_InsertBeforeFirstPage : nAfterPageIndex,  vecPages.size() );
+}
 
 PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
 {
@@ -172,6 +220,21 @@ PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
     m_cache.AddPageObject( this->GetTotalNumberOfPages() - 1, pPage );
     
     return pPage;
+}
+
+void PdfPagesTree::CreatePages( const std::vector<PdfRect>& vecSizes )
+{
+    std::vector<PdfPage*> vecPages;
+    std::vector<PdfObject*> vecObjects;
+    for (std::vector<PdfRect>::const_iterator it = vecSizes.begin(); it != vecSizes.end(); ++it)
+    {
+        PdfPage* pPage = new PdfPage( (*it), GetRoot()->GetOwner() );
+        vecPages.push_back( pPage );
+        vecObjects.push_back( pPage->GetObject() );
+    }
+
+    InsertPages( this->GetTotalNumberOfPages() - 1, vecObjects );
+    m_cache.AddPageObjects( this->GetTotalNumberOfPages() - 1, vecPages );
 }
 
 void PdfPagesTree::DeletePage( int nPageNumber )
@@ -485,6 +548,64 @@ void PdfPagesTree::InsertPageIntoNode( PdfObject* pParent, const PdfObjectList &
 
     // 3. add parent key to the page
     pPage->GetDictionary().AddKey( PdfName("Parent"), pParent->Reference() );
+}
+
+void PdfPagesTree::InsertPagesIntoNode( PdfObject* pParent, const PdfObjectList & rlstParents, 
+                                       int nIndex, const std::vector<PdfObject*>& vecPages )
+{
+    if( !pParent || !vecPages.size() ) 
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    // 1. Add the reference of the new page to the kids array of pParent
+    // 2. Increase count of every node in lstParents (which also includes pParent)
+    // 3. Add Parent key to the page
+
+    // 1. Add reference
+    const PdfArray oldKids = pParent->GetDictionary().GetKey( PdfName("Kids") )->GetArray();
+    PdfArray newKids;
+    newKids.reserve( oldKids.GetSize() + vecPages.size() );
+
+    bool bIsPushedIn = false;
+    int i=0;
+    for (PdfArray::const_iterator it=oldKids.begin(); it!=oldKids.end(); ++it, ++i ) 
+    {
+        if ( !bIsPushedIn && (nIndex < i) )    // Pushing before
+        {
+            for (std::vector<PdfObject*>::const_iterator itPages=vecPages.begin(); itPages!=vecPages.end(); ++itPages)
+            {
+                newKids.push_back( (*itPages)->Reference() );    // Push all new kids at once
+            }
+            bIsPushedIn = true;
+        }
+        newKids.push_back( *it );    // Push in the old kids
+    }
+
+    // If new kids are still not pushed in then they may be appending to the end
+    if ( !bIsPushedIn && ( (nIndex + 1) == oldKids.size()) ) 
+    {
+        for (std::vector<PdfObject*>::const_iterator itPages=vecPages.begin(); itPages!=vecPages.end(); ++itPages)
+        {
+            newKids.push_back( (*itPages)->Reference() );    // Push all new kids at once
+        }
+        bIsPushedIn = true;
+    }
+
+    pParent->GetDictionary().AddKey( PdfName("Kids"), newKids );
+ 
+
+    // 2. increase count
+    for ( PdfObjectList::const_reverse_iterator itParents = rlstParents.rbegin(); itParents != rlstParents.rend(); ++itParents )
+    {
+        this->ChangePagesCount( *itParents, vecPages.size() );
+    } 
+
+    // 3. add parent key to each of the pages
+    for (std::vector<PdfObject*>::const_iterator itPages=vecPages.begin(); itPages!=vecPages.end(); ++itPages)
+    {
+        (*itPages)->GetDictionary().AddKey( PdfName("Parent"), pParent->Reference() );
+    }
 }
 
 void PdfPagesTree::DeletePageFromNode( PdfObject* pParent, const PdfObjectList & rlstParents, 

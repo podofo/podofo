@@ -90,23 +90,33 @@ class PODOFO_DOC_API PdfPagesTree : public PdfElement
     /** Inserts an existing page object into the internal page tree. 
      *	after the specified page number
      *
-     *  \param nAfterPageNumber an integer specifying after what page
+     *  \param nAfterPageIndex an integer specifying after what page
      *         - may be one of the special values from EPdfPageInsertionPoint.
      *         Pages are 0 based.
      *         
      *  \param pPage musst be a PdfObject with type /Page
      */
-    void InsertPage( int nAfterPageNumber, PdfObject* pPage );
+    void InsertPage( int nAfterPageIndex, PdfObject* pPage );
 
     /** Inserts an existing page object into the internal page tree. 
      *	after the specified page number
      *
-     *  \param nAfterPageNumber an integer specifying after what page
+     *  \param nAfterPageIndex an integer specifying after what page
      *         - may be one of the special values  from EPdfPageInsertionPoint.
      *         Pages are 0 based.
      *  \param pPage a PdfPage to be inserted, the PdfPage will not get owned by the PdfPagesTree
      */
-    void InsertPage( int nAfterPageNumber, PdfPage* pPage );
+    void InsertPage( int nAfterPageIndex, PdfPage* pPage );
+
+    /** Inserts a vector of page objects at once into the internal page tree
+     *  after the specified page index (zero based index)
+     *
+     *  \param nAfterPageIndex a zero based integer index specifying after what page to insert
+     *         - you need to pass ePdfPageInsertionPoint_InsertBeforeFirstPage if you want to insert before the first page.
+     *         
+     *  \param vecPages must be a vector of PdfObjects with type /Page
+     */
+    void InsertPages( int nAfterPageIndex, const std::vector<PdfObject*>& vecPages );
 
     /** Creates a new page object and inserts it into the internal
      *  page tree.
@@ -117,7 +127,18 @@ class PODOFO_DOC_API PdfPagesTree : public PdfElement
      *  \returns a pointer to a PdfPage object
      */
     PdfPage* CreatePage( const PdfRect & rSize );
-    
+
+    /** Creates several new page objects and inserts them into the internal
+     *  page tree.
+     *  The new pages are owned by the pages tree and will get deleted along
+     *  with it!
+	 *  Note: this function will attach all new pages onto the same page node
+	 *  which can cause the tree to be unbalanced if 
+     *
+     *  \param vecSize a vector of PdfRect specifying the size of each of the pages to create (i.e the /MediaBox key) in PDF units
+     */
+    void CreatePages( const std::vector<PdfRect>& vecSizes );
+
     /**  Delete the specified page object from the internal pages tree.
      *   It does NOT remove any PdfObjects from memory - just the reference from the tree
      *
@@ -185,6 +206,19 @@ class PODOFO_DOC_API PdfPagesTree : public PdfElement
     void InsertPageIntoNode( PdfObject* pNode, const PdfObjectList & rlstParents, 
                              int nIndex, PdfObject* pPage );
 
+     /**
+     * Insert a vector of page objects into a pages node
+     * Same as InsertPageIntoNode except that it allows for adding multiple pages at one time
+	 * Note that adding many pages onto the same node will create an unbalanced page tree
+     *
+     * @param pNode the pages node whete pPage is to be inserted
+     * @param rlstParents list of all (future) parent pages nodes in the pages tree
+     *                   of pPage
+     * @param nIndex index where pPage is to be inserted in pNode's kids array
+     * @param vecPages a vector of the page objects which are to be inserted
+     */
+    void InsertPagesIntoNode( PdfObject* pParent, const PdfObjectList & rlstParents, 
+                              int nIndex, const std::vector<PdfObject*>& vecPages );
     
     /**
      * Delete a page object from a pages node
@@ -197,7 +231,7 @@ class PODOFO_DOC_API PdfPagesTree : public PdfElement
      */
     void DeletePageFromNode( PdfObject* pNode, const PdfObjectList & rlstParents, 
                              int nIndex, PdfObject* pPage );
-    
+
     /**
      * Delete a single page node or page object from the kids array of pParent
      *

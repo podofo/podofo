@@ -226,6 +226,11 @@ PdfPage* PdfDocument::CreatePage( const PdfRect & rSize )
     return m_pPagesTree->CreatePage( rSize );
 }
 
+void PdfDocument::CreatePages( const std::vector<PdfRect>& vecSizes )
+{
+    m_pPagesTree->CreatePages( vecSizes );
+}
+
 void PdfDocument::EmbedSubsetFonts()
 {
 	m_fontCache.EmbedSubsetFonts();
