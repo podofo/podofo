@@ -217,7 +217,7 @@ PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
     PdfPage* pPage = new PdfPage( rSize, GetRoot()->GetOwner() );
 
     InsertPage( this->GetTotalNumberOfPages() - 1, pPage );
-    m_cache.AddPageObject( this->GetTotalNumberOfPages() - 1, pPage );
+    m_cache.AddPageObject( this->GetTotalNumberOfPages(), pPage );
     
     return pPage;
 }
@@ -234,7 +234,7 @@ void PdfPagesTree::CreatePages( const std::vector<PdfRect>& vecSizes )
     }
 
     InsertPages( this->GetTotalNumberOfPages() - 1, vecObjects );
-    m_cache.AddPageObjects( this->GetTotalNumberOfPages() - 1, vecPages );
+    m_cache.AddPageObjects( this->GetTotalNumberOfPages(), vecPages );
 }
 
 void PdfPagesTree::DeletePage( int nPageNumber )
