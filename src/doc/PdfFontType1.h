@@ -38,7 +38,8 @@ class PdfFontType1 : public PdfFontSimple {
      *  \param pMetrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object is 
      *         deleted along with the font.
-     *  \param pEncoding the encoding of this font. The font will not take ownership of this object.
+     *  \param pEncoding the encoding of this font. The font will take ownership of this object
+     *                   depending on pEncoding->IsAutoDelete()
      *  \param pParent parent of the font object
      *  \param bEmbed if true the font will get embedded.
      *  \param bSubsetting if true the font will use subsetting.
@@ -51,7 +52,8 @@ class PdfFontType1 : public PdfFontSimple {
      *  \param pMetrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object is 
      *         deleted along with the font.
-     *  \param pEncoding the encoding of this font. The font will not take ownership of this object.
+     *  \param pEncoding the encoding of this font. The font will take ownership of this object
+     *                   depending on pEncoding->IsAutoDelete()
      *  \param pObject an existing PdfObject
      */
     PdfFontType1( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 

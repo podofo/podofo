@@ -40,8 +40,8 @@ class PdfFontSimple : public PdfFont {
      *  \param pMetrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object is 
      *         deleted along with the font.
-     *  \param pEncoding the encoding of this font. The encoding will be owned 
-     *                   by this font and will be deleted along with it. 
+     *  \param pEncoding the encoding of this font. The font will take ownership of this object
+     *                   depending on pEncoding->IsAutoDelete()
      *  \param pParent parent of the font object
      *  
      */
@@ -52,8 +52,8 @@ class PdfFontSimple : public PdfFont {
      *  \param pMetrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object is 
      *         deleted along with the font.
-     *  \param pEncoding the encoding of this font. The encoding will be owned 
-     *                   by this font and will be deleted along with it. 
+     *  \param pEncoding the encoding of this font. The font will take ownership of this object
+     *                   depending on pEncoding->IsAutoDelete()
      *  \param pObject an existing PdfObject
      */
     PdfFontSimple( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
