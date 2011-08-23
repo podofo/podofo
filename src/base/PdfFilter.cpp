@@ -354,6 +354,7 @@ EPdfFilter PdfFilterFactory::FilterNameToType( const PdfName & name, bool bSuppo
 
     if( bSupportShortNames )
     {
+        i = 0;
         while( aszShortFilters[i] )
         {
             if( name == aszShortFilters[i] )
