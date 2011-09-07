@@ -266,15 +266,7 @@ void PdfVecObjects::AddFreeObject( const PdfReference & rReference )
 
 void PdfVecObjects::push_back( PdfObject* pObj )
 {
-    SetObjectCount( pObj->Reference() );
-
-//  Ulrich Arnold 30.7.2009 must sort if INSIDE range
-//	if( !m_vector.empty() && m_vector.back()->Reference() < pObj->Reference() )
-    if( !m_vector.empty() && pObj->Reference() < m_vector.back()->Reference() )
-        m_bSorted = false;
-
-    pObj->SetOwner( this );
-    m_vector.push_back( pObj );
+    insert_sorted( pObj );
 }
 
 void PdfVecObjects::insert_sorted( PdfObject* pObj )
@@ -282,11 +274,16 @@ void PdfVecObjects::insert_sorted( PdfObject* pObj )
     SetObjectCount( pObj->Reference() );
     pObj->SetOwner( this );
 
-    if ( m_bSorted ) {
-      TVecObjects::iterator i_pos = std::lower_bound(m_vector.begin(),m_vector.end(),pObj,ObjectLittle);
-      m_vector.insert(i_pos, pObj );
-    } else m_vector.push_back( pObj );
- 
+    if( m_bSorted && !m_vector.empty() && pObj->Reference() < m_vector.back()->Reference() )
+    {
+        TVecObjects::iterator i_pos = 
+            std::lower_bound(m_vector.begin(),m_vector.end(),pObj,ObjectLittle);
+        m_vector.insert(i_pos, pObj );
+    }
+    else 
+    {
+        m_vector.push_back( pObj );
+    }
 }
 
 void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNotDelete, bool bDoGarbageCollection )

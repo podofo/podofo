@@ -265,11 +265,10 @@ class PODOFO_API PdfVecObjects {
      */
     void RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNotDelete = NULL, bool bDoGarbageCollection = false );
 
-    /** Insert a object into this vector.
-     *  Overwritten from std::vector so that 
-     *  m_bObjectCount can be increased for each object.
-     * 
-     *  \param pObj pointer to the object you want to insert
+    /** 
+     * \see insert_sorted
+     *
+     * Simple forward to insert sorted, as PdfVecObjects is always sorted.
      */
     void push_back( PdfObject* pObj );
 
@@ -277,9 +276,6 @@ class PODOFO_API PdfVecObjects {
      *  the vector remains sorted w.r.t. 
      *  the ordering based on object and generation numbers
      *  m_bObjectCount will be increased for the object.
-     * 
-     *  Note: Assumes the vector is sorted, otherwise
-     *  equivalent to push_back
      * 
      *  \param pObj pointer to the object you want to insert
      */
