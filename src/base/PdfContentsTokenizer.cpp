@@ -231,7 +231,7 @@ bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, const ch
         {
             // Consume character
             m_device.Device()->GetChar();
-            char w = m_device.Device()->Look();
+            int w = m_device.Device()->Look();
             if (w==EOF || PdfTokenizer::IsWhitespace(w)) 
             {
                 // EI is followed by whitespace => stop
