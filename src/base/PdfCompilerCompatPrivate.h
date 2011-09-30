@@ -212,9 +212,9 @@ inline void podofo_unused(T &t) { (void)t; }
 #endif // _DEBUG
 #endif // _MSC_VER
 
-/*
- * \mainpage
-
+/**
+ * \page PoDoFo PdfCompilerCompatPrivate Header
+ * 
  * <b>PdfCompilerCompatPrivate.h</b> gathers up nastyness required for various
  * compiler compatibility into a central place. All compiler-specific defines,
  * wrappers, and the like should be included here and (if necessary) in

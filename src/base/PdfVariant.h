@@ -673,6 +673,7 @@ double PdfVariant::GetReal() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 const PdfData & PdfVariant::GetRawData() const
 {
     DelayedLoad();
@@ -681,8 +682,13 @@ const PdfData & PdfVariant::GetRawData() const
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
-    return *(reinterpret_cast<PdfData* const>(m_Data.pData));
+    // Do not change this to an reinterpret_cast
+    // We need a c-style casts here to avoid crashes
+    // because a reinterpret_cast might point to a different position.
+    return *((PdfData*)m_Data.pData);
 }
+#pragma GCC diagnostic ignored "-Wold-style-cast" pop
+
 
 PdfData & PdfVariant::GetRawData()
 {
@@ -692,7 +698,10 @@ PdfData & PdfVariant::GetRawData()
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
-    return *(reinterpret_cast<PdfData* const>(m_Data.pData));
+    // Do not change this to an reinterpret_cast
+    // We need a c-style casts here to avoid crashes
+    // because a reinterpret_cast might point to a different position.
+    return *((PdfData*)m_Data.pData);
 }
 
 // -----------------------------------------------------
@@ -706,8 +715,10 @@ const PdfString & PdfVariant::GetString() const
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
-
-    return *(reinterpret_cast<PdfString* const>(m_Data.pData));
+    // Do not change this to an reinterpret_cast
+    // We need a c-style casts here to avoid crashes
+    // because a reinterpret_cast might point to a different position.
+    return *((PdfString*)m_Data.pData);
 }
 
 // -----------------------------------------------------
@@ -722,7 +733,10 @@ const PdfName & PdfVariant::GetName() const
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *(reinterpret_cast<PdfName*>(m_Data.pData));
+    // Do not change this to an reinterpret_cast
+    // We need a c-style casts here to avoid crashes
+    // because a reinterpret_cast might point to a different position.
+    return *((PdfName*)m_Data.pData);
 }
 
 // -----------------------------------------------------
@@ -747,7 +761,10 @@ const PdfArray & PdfVariant::GetArray_NoDL() const
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *(reinterpret_cast<PdfArray* const>(m_Data.pData));
+    // Do not change this to an reinterpret_cast
+    // We need a c-style casts here to avoid crashes
+    // because a reinterpret_cast might point to a different position.
+    return *((PdfArray*)m_Data.pData);
 }
 
 // -----------------------------------------------------
@@ -771,7 +788,11 @@ PdfArray & PdfVariant::GetArray_NoDL()
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
-    return *(reinterpret_cast<PdfArray* const>(m_Data.pData));
+
+    // Do not change this to an reinterpret_cast
+    // We need a c-style casts here to avoid crashes
+    // because a reinterpret_cast might point to a different position.
+    return *((PdfArray*)m_Data.pData);
 }
 
 // -----------------------------------------------------
@@ -796,7 +817,10 @@ const PdfDictionary & PdfVariant::GetDictionary_NoDL() const
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *(reinterpret_cast<PdfDictionary* const>(m_Data.pData));
+    // Do not change this to an reinterpret_cast
+    // We need a c-style casts here to avoid crashes
+    // because a reinterpret_cast might point to a different position.
+    return *((PdfDictionary*)m_Data.pData);
 }
 
 // -----------------------------------------------------
@@ -821,7 +845,10 @@ PdfDictionary & PdfVariant::GetDictionary_NoDL()
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *(reinterpret_cast<PdfDictionary* const>(m_Data.pData));
+    // Do not change this to an reinterpret_cast
+    // We need a c-style casts here to avoid crashes
+    // because a reinterpret_cast might point to a different position.
+    return *((PdfDictionary*)m_Data.pData);
 }
 
 // -----------------------------------------------------
@@ -836,7 +863,10 @@ const PdfReference & PdfVariant::GetReference() const
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    return *(reinterpret_cast<PdfReference* const>(m_Data.pData));
+    // Do not change this to an reinterpret_cast
+    // We need a c-style casts here to avoid crashes
+    // because a reinterpret_cast might point to a different position.
+    return *((PdfReference*)m_Data.pData);
 }
 
 // -----------------------------------------------------

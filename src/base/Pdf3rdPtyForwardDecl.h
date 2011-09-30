@@ -2,7 +2,7 @@
 #define PDF_FT_FORWARD_DECL
 
 /**
- * \file Pdf3rdPartyForwardDecl.h
+ * \page Pdf3rdPartyForwardDecl.h
  *
  * Forward declare some types that we use in our public API but don't want to
  * include the headers for directly. We can't do a nice simple forward

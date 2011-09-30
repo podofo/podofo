@@ -9,7 +9,7 @@
 #include "PdfCompilerCompatPrivate.h"
 
 /**
- * \mainpage
+ * \page <PoDoFo PdfDefinesPrivate Header>
  *
  * <b>PdfDefinesPrivate.h</b> contains preprocessor definitions, inline functions, templates, 
  * compile-time const variables, and other things that must be visible across the entirety of

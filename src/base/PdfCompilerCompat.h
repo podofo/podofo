@@ -165,7 +165,7 @@ namespace PoDoFo {
 #endif
 
 /**
- * \mainpage
+ * \page PoDoFo PdfCompilerCompat Header
  * 
  * <b>PdfCompilerCompat.h</b> gathers up nastyness required for various
  * compiler compatibility into a central place. All compiler-specific defines,

@@ -26,7 +26,6 @@
 
 #include <string.h>
 
-using namespace std;
 using PoDoFo::ePdfError_InvalidName;
 
 namespace {
@@ -157,7 +156,7 @@ PdfName::~PdfName()
 {
 }
 
-PdfName PdfName::FromEscaped( const string & sName )
+PdfName PdfName::FromEscaped( const std::string & sName )
 {
     return PdfName(UnescapeName(sName.begin(), sName.length()));
 }
@@ -176,7 +175,7 @@ void PdfName::Write( PdfOutputDevice* pDevice, EPdfWriteMode, const PdfEncrypt* 
     pDevice->Print( "/" );
     if( m_Data.length() )
     {
-        string escaped( EscapeName(m_Data.begin(), m_Data.length()) );
+        std::string escaped( EscapeName(m_Data.begin(), m_Data.length()) );
         pDevice->Write( escaped.c_str(), escaped.length() );
     }
 }
