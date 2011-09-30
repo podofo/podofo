@@ -180,7 +180,7 @@ void PdfName::Write( PdfOutputDevice* pDevice, EPdfWriteMode, const PdfEncrypt* 
     }
 }
 
-string PdfName::GetEscapedName() const
+std::string PdfName::GetEscapedName() const
 {
     return EscapeName(m_Data.begin(), m_Data.length());
 }
