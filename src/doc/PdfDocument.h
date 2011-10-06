@@ -310,13 +310,32 @@ class PODOFO_DOC_API PdfDocument {
     const PdfDocument & Append( const PdfMemDocument & rDoc, bool bAppendAll = true  );
 
     /** Fill an existing empty XObject from a page of another document
+     *  This will append the other document with this one
      *  \param pXObj pointer to the XOject
      *  \param rDoc the document to embedd into XObject
      *  \param nPage page-number to embedd into XObject
-	 *	\param bUseTrimBox if true try to use trimbox for size of xobject
+     *  \param bUseTrimBox if true try to use trimbox for size of xobject
      *  \returns the bounding box
      */
     PdfRect FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfMemDocument & rDoc, int nPage, bool bUseTrimBox );
+
+    /** Fill an existing empty XObject from an existing page from the current document
+     *  If you need a page from another document use FillXObjectFromDocumentPage, or append the documents manually
+     *  \param pXObj pointer to the XOject
+     *  \param nPage page-number to embedd into XObject
+     *  \param bUseTrimBox if true try to use trimbox for size of xobject
+     *  \returns the bounding box
+     */
+    PdfRect FillXObjectFromExistingPage( PdfXObject * pXObj, int nPage, bool bUseTrimBox );
+
+    /** Fill an existing empty XObject from an existing page pointer from the current document
+     *  This is the implementation for FillXObjectFromDocumentPage and FillXObjectFromExistingPage, you should use those directly instead of this
+     *  \param pXObj pointer to the XOject
+     *  \param pPage pointer to the page to embedd into XObject
+     *  \param bUseTrimBox if true try to use trimbox for size of xobject
+     *  \returns the bounding box
+     */
+    PdfRect FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pPage, bool bUseTrimBox, unsigned int difference );
 
     /** Attach a file to the document.
      *  \param rFileSpec a file specification

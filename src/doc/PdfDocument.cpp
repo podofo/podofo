@@ -331,30 +331,41 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
 PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfMemDocument & rDoc, int nPage, bool bUseTrimBox )
 {
     unsigned int difference = static_cast<unsigned int>(m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size());
+    Append( rDoc, false );
+    PdfPage* pPage = rDoc.GetPage( nPage );
 
-	Append( rDoc, false );
+    return FillXObjectFromPage( pXObj, pPage, bUseTrimBox, difference );
+}
 
+PdfRect PdfDocument::FillXObjectFromExistingPage( PdfXObject * pXObj, int nPage, bool bUseTrimBox )
+{
+    PdfPage* pPage = GetPage( nPage );
+
+    return FillXObjectFromPage( pXObj, pPage, bUseTrimBox, 0 );
+}
+
+PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pPage, bool bUseTrimBox, unsigned int difference )
+{
     // TODO: remove unused objects: page, ...
 
-    PdfPage*      pPage = rDoc.GetPage( nPage );
     PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, pPage->GetObject()->Reference().GenerationNumber() ) );
-    PdfRect		  box  = pPage->GetMediaBox();
+    PdfRect       box  = pPage->GetMediaBox();
 
-	// intersect with crop-box
-	box.Intersect( pPage->GetCropBox() );
+    // intersect with crop-box
+    box.Intersect( pPage->GetCropBox() );
 
-	// intersect with trim-box according to parameter
-	if ( bUseTrimBox )
-		box.Intersect( pPage->GetTrimBox() );
+    // intersect with trim-box according to parameter
+    if ( bUseTrimBox )
+        box.Intersect( pPage->GetTrimBox() );
 
-	// link resources from external doc to x-object
+    // link resources from external doc to x-object
     if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Resources" ) )
         pXObj->GetContentsForAppending()->GetDictionary().AddKey( "Resources" , pObj->GetDictionary().GetKey( "Resources" ) );
 
-	// copy top-level content from external doc to x-object
+    // copy top-level content from external doc to x-object
     if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Contents" ) )
     {
-		// get direct pointer to contents
+        // get direct pointer to contents
         PdfObject* pContents;
         if( pObj->GetDictionary().GetKey( "Contents" )->IsReference() )
             pContents = m_vecObjects.GetObject( pObj->GetDictionary().GetKey( "Contents" )->GetReference() );
@@ -363,46 +374,62 @@ PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfM
 
         if( pContents->IsArray() )
         {
-			// copy array as one stream to xobject
+            // copy array as one stream to xobject
             PdfArray pArray = pContents->GetArray();
 
             PdfObject*  pObj = pXObj->GetContentsForAppending();
             PdfStream*  pObjStream = pObj->GetStream();
 
             TVecFilters vFilters;
-		    vFilters.push_back( ePdfFilter_FlateDecode );
+            vFilters.push_back( ePdfFilter_FlateDecode );
             pObjStream->BeginAppend( vFilters );
 
-			TIVariantList it;
+            TIVariantList it;
             for(it = pArray.begin(); it != pArray.end(); it++)
             {
-				if ( it->IsReference() )
-				{
-					// TODO: not very efficient !!
-					PdfObject*  pObj = GetObjects()->GetObject( it->GetReference() );
+                if ( it->IsReference() )
+                {
+                    // TODO: not very efficient !!
+                    PdfObject*  pObj = GetObjects()->GetObject( it->GetReference() );
 
-		            PdfStream*  pcontStream = pObj->GetStream();
+                    while (pObj!=NULL)
+                    {
+                        if (pObj->IsReference())    // Recursively look for the stream
+                        {
+                            pObj = GetObjects()->GetObject( pObj->GetReference() );
+                        }
+                        else if (pObj->HasStream())
+                        {
+                            PdfStream*  pcontStream = pObj->GetStream();
 
-		            char*       pcontStreamBuffer;
-			        pdf_long    pcontStreamLength;
-		            pcontStream->GetFilteredCopy( &pcontStreamBuffer, &pcontStreamLength );
-		    
-					pObjStream->Append( pcontStreamBuffer, pcontStreamLength );
-					free( pcontStreamBuffer );
-				}
-				else
-				{
-					string str;
-	                it->ToString( str );
-	                pObjStream->Append( str );
-	                pObjStream->Append( " " );
-				}
-			}
+                            char*       pcontStreamBuffer;
+                            pdf_long    pcontStreamLength;
+                            pcontStream->GetFilteredCopy( &pcontStreamBuffer, &pcontStreamLength );
+    
+                            pObjStream->Append( pcontStreamBuffer, pcontStreamLength );
+                            free( pcontStreamBuffer );
+                            break;
+                        }
+                        else
+                        {
+                            throw ePdfError_InvalidStream;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    string str;
+                    it->ToString( str );
+                    pObjStream->Append( str );
+                    pObjStream->Append( " " );
+                }
+            }
             pObjStream->EndAppend();
         }
-		else if( pContents->HasStream() )
+        else if( pContents->HasStream() )
         {
-			// copy stream to xobject
+            // copy stream to xobject
             PdfObject*  pObj = pXObj->GetContentsForAppending();
             PdfStream*  pObjStream = pObj->GetStream();
             PdfStream*  pcontStream = pContents->GetStream();
@@ -410,16 +437,16 @@ PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfM
             pdf_long    pcontStreamLength;
 
             TVecFilters vFilters;
-		    vFilters.push_back( ePdfFilter_FlateDecode );
+            vFilters.push_back( ePdfFilter_FlateDecode );
             pObjStream->BeginAppend( vFilters );
             pcontStream->GetFilteredCopy( &pcontStreamBuffer, &pcontStreamLength );
             pObjStream->Append( pcontStreamBuffer, pcontStreamLength );
             free( pcontStreamBuffer );
             pObjStream->EndAppend();
         }
-		else
+        else
         {
-	        PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+            PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
         }
     }
 
