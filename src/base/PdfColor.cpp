@@ -975,9 +975,6 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
                     data[0] = 0;
                     data[1] = static_cast<char> (m_uColor.gray);
 
-                    PdfMemoryInputStream stream( data, 1*2 );
-                    csTintFunc->GetStream()->Set( &stream );
-
                     PdfArray range;
                     range.push_back( static_cast<pdf_int64>(0) );
                     range.push_back( static_cast<pdf_int64>(1) );
@@ -986,6 +983,9 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
                     PdfArray size;
                     size.push_back( static_cast<pdf_int64>(2) );
                     csTintFunc->GetDictionary().AddKey( "Size", size );
+
+                    PdfMemoryInputStream stream( data, 1*2 );
+                    csTintFunc->GetStream()->Set( &stream );
 
                     PdfArray csArr;
                     csArr.push_back( PdfName("Separation") );
@@ -1009,9 +1009,6 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
                     data[4] = static_cast<char> (m_uColor.rgb[1] * 255);
                     data[5] = static_cast<char> (m_uColor.rgb[2] * 255);
 
-                    PdfMemoryInputStream stream( data, 3*2 );
-                    csTintFunc->GetStream()->Set( &stream );
-
                     PdfArray range;
                     range.push_back( static_cast<pdf_int64>(0) );
                     range.push_back( static_cast<pdf_int64>(1) );
@@ -1024,6 +1021,9 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
                     PdfArray size;
                     size.push_back( static_cast<pdf_int64>(2) );
                     csTintFunc->GetDictionary().AddKey( "Size", size );
+
+                    PdfMemoryInputStream stream( data, 3*2 );
+                    csTintFunc->GetStream()->Set( &stream );
 
                     PdfArray csArr;
                     csArr.push_back( PdfName("Separation") );
@@ -1049,9 +1049,6 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
                     data[6] = static_cast<char> (m_uColor.cmyk[2] * 255);
                     data[7] = static_cast<char> (m_uColor.cmyk[3] * 255);
 
-                    PdfMemoryInputStream stream( data, 4*2 );
-                    csTintFunc->GetStream()->Set( &stream );
-
                     PdfArray range;
                     range.push_back( static_cast<pdf_int64>(0) );
                     range.push_back( static_cast<pdf_int64>(1) );
@@ -1073,6 +1070,9 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
                     csArr.push_back( PdfName("DeviceCMYK") );
                     csArr.push_back( csTintFunc->Reference() );
 
+                    PdfMemoryInputStream stream( data, 4*2 );
+                    csTintFunc->GetStream()->Set( &stream ); // set stream as last, so that it will work with PdfStreamedDocument
+
                     PdfObject* csp = pOwner->CreateObject( csArr );
 
                     return csp;
@@ -1089,9 +1089,6 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
                     data[4] = static_cast<char> (m_uColor.lab[1] * 255);
                     data[5] = static_cast<char> (m_uColor.lab[2] * 255);
 
-                    PdfMemoryInputStream stream( data, 3*2 );
-                    csTintFunc->GetStream()->Set( &stream );
-
                     PdfArray range;
                     range.push_back( static_cast<pdf_int64>(0) );
                     range.push_back( static_cast<pdf_int64>(1) );
@@ -1104,6 +1101,9 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
                     PdfArray size;
                     size.push_back( static_cast<pdf_int64>(2) );
                     csTintFunc->GetDictionary().AddKey( "Size", size );
+
+                    PdfMemoryInputStream stream( data, 3*2 );
+                    csTintFunc->GetStream()->Set( &stream );
 
                     PdfArray csArr;
                     csArr.push_back( PdfName("Separation") );
