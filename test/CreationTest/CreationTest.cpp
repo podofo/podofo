@@ -27,6 +27,8 @@ using namespace PoDoFo;
 
 #define CONVERSION_CONSTANT 0.002834645669291339
 
+const char* pszLoremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse lacinia sollicitudin viverra. Praesent augue tellus, feugiat vel tempus ac, semper in tellus. Maecenas et vehicula urna. Suspendisse ullamcorper molestie leo id aliquet. Mauris ultricies porttitor lectus vel facilisis. Integer euismod libero ut lectus mattis sed venenatis metus molestie. Aliquam feugiat, dolor a adipiscing ullamcorper, sapien orci ultrices erat, eget porttitor ipsum purus id magna. Morbi malesuada malesuada sagittis. Curabitur viverra posuere sem, quis condimentum eros viverra et. Pellentesque tristique aliquam orci a aliquam.\n\nIn hac habitasse platea dictumst. Maecenas vitae lorem velit. Donec at ultrices arcu. Phasellus et justo in quam fermentum volutpat. Nam vestibulum tempus lorem nec lacinia. Cras ac dignissim tortor. Morbi pellentesque, nisi sit amet sollicitudin accumsan, ante quam egestas lorem, a dapibus quam orci quis nulla. Donec quis orci ut lacus dictum sollicitudin at eget turpis. Nam condimentum iaculis enim, id volutpat est dapibus id. Quisque sed enim in est condimentum convallis. Cras at posuere ipsum. Cras tempor dui nunc, vel malesuada odio.";
+
 void WriteStringToStream( const PdfString & rsString, std::ostringstream & oss, PdfFont* pFont )
 {
     PdfEncoding* pEncoding = new PdfIdentityEncoding( 0, 0xffff, true );
@@ -759,6 +761,14 @@ int main( int argc, char* argv[] )
     printf("Drawing the first page with various lines.\n");
     TEST_SAFE_OP( LineTest( &painter, pPage, &writer ) );
 
+    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_Letter ) );
+    painter.SetPage( pPage );
+
+    PdfString sLoremIpsum( pszLoremIpsum );
+
+    painter.DrawMultiLineText( 50.0, 50.0,
+                               pPage->GetMediaBox().GetWidth() - 100.0,
+                               pPage->GetMediaBox().GetHeight() - 100.0, sLoremIpsum );
     painter.FinishPage();
     /*
     pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_Letter ) );
