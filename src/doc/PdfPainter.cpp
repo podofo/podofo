@@ -24,6 +24,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <vector>
 
 #include "PdfPainter.h"
 
@@ -67,6 +68,30 @@ static inline void CheckDoubleRange( double val, double min, double max )
     {
         PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
     }
+}
+
+static inline unsigned short SwapBytes(unsigned short val)
+{
+	return ((val & 0x00FF) << 8) | ((val & 0xFF00) >> 8);
+}
+
+static inline unsigned short SwapCharBytesIfRequired(pdf_utf16be ch)
+{
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+	return SwapBytes(ch);
+#else
+	return ch;
+#endif
+}
+
+static inline bool IsNewLineChar(pdf_utf16be ch)
+{
+	return SwapCharBytesIfRequired(ch) == '\n';
+}
+
+static inline bool IsSpaceChar(pdf_utf16be ch)
+{
+	return isspace( SwapCharBytesIfRequired(ch) & 0x00FF ) != 0;
 }
 
 PdfPainter::PdfPainter()
@@ -808,7 +833,7 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
     }
 
     // Peter Petrov 25 September 2008
-    m_pFont->EmbedFont();
+    //m_pFont->EmbedFont();
     
     if( dWidth <= 0.0 || dHeight <= 0.0 ) // nonsense arguments
         return;
@@ -818,7 +843,7 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
 
     PdfString   sString  = this->ExpandTabs( rsText, rsText.GetCharacterLength() );
 
-    std::vector<TLineElement> vecLines = GetMultiLineTextAsLines(dWidth, sString);
+	std::vector<PdfString> vecLines = GetMultiLineTextAsLines(dWidth, sString);
 
     // Do vertical alignment
     switch( eVertical ) 
@@ -834,19 +859,19 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
             break;
     }
 
-    std::vector<TLineElement>::const_iterator it = vecLines.begin();
+    std::vector<PdfString>::const_iterator it = vecLines.begin();
     while( it != vecLines.end() )
     {
         dY -= m_pFont->GetFontMetrics()->GetLineSpacing();
-        if( (*it).pszStart )
-            this->DrawTextAligned( dX, dY, dWidth, PdfString( (*it).pszStart, (*it).lLen ), eAlignment );
+		if( (*it).GetCharacterLength() )
+            this->DrawTextAligned( dX, dY, dWidth, *it, eAlignment );
 
         ++it;
     }
     this->Restore();
 }
 
-std::vector<TLineElement> PdfPainter::GetMultiLineTextAsLines( double dWidth, const PdfString & rsText)
+std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const PdfString & rsText)
 {
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
@@ -854,52 +879,55 @@ std::vector<TLineElement> PdfPainter::GetMultiLineTextAsLines( double dWidth, co
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
-
-    std::vector<TLineElement> vecLines;
-
+     
     if( dWidth <= 0.0 ) // nonsense arguments
-        return vecLines;
-
-    TLineElement              tLine;
+	    return std::vector<PdfString>();
     
-    tLine.pszStart       = rsText.GetString();
-    
-    const char* pszCurrentCharacter   = tLine.pszStart;
-    const char* pszStartOfCurrentWord  = tLine.pszStart;
+    if( rsText.GetCharacterLength() == 0 ) // empty string
+        return std::vector<PdfString>(1, rsText);
+	        
+    // We will work with utf16 encoded string because it allows us 
+    // fast and easy individual characters access    
+    const std::string& stringUtf8 = rsText.GetStringUtf8();
+    std::vector<pdf_utf16be> stringUtf16(stringUtf8.length() + 1, 0);
+	assert(stringUtf16.size() > 0);	
+    const pdf_long converted = PdfString::ConvertUTF8toUTF16(
+	    reinterpret_cast<const pdf_utf8*>(stringUtf8.c_str()), &stringUtf16[0], stringUtf16.size());
+	const pdf_long len = rsText.GetCharacterLength();
+    assert( converted == (rsText.GetCharacterLength() + 1) );
 
+	const pdf_utf16be* const stringUtf16Begin = &stringUtf16[0];
+    const pdf_utf16be* pszLineBegin = stringUtf16Begin;
+    const pdf_utf16be* pszCurrentCharacter = stringUtf16Begin;
+    const pdf_utf16be* pszStartOfCurrentWord  = stringUtf16Begin;
     bool startOfWord = true;
-
     double dCurWidthOfLine = 0.0;
+	std::vector<PdfString> vecLines;
 
     // do simple word wrapping
     while( *pszCurrentCharacter ) 
     {
-        if( *pszCurrentCharacter == '\n' ) // hard-break!
+        if( IsNewLineChar( *pszCurrentCharacter ) ) // hard-break! 
         {
-            tLine.lLen = pszCurrentCharacter - tLine.pszStart;
-            vecLines.push_back( tLine );
-
+            vecLines.push_back( PdfString( pszLineBegin, pszCurrentCharacter - pszLineBegin ) );
             ++pszCurrentCharacter; // skip the line feed
-
-            tLine.pszStart = pszCurrentCharacter;
+            pszLineBegin = pszCurrentCharacter;
             startOfWord = true;
             dCurWidthOfLine = 0.0;
         }
-        else if( isspace( static_cast<unsigned int>(static_cast<unsigned char>(*pszCurrentCharacter)) ) /*|| 
-                 ispunct( static_cast<unsigned int>(static_cast<unsigned char>(*pszCurrentCharacter)) )*/)
+        else if( IsSpaceChar( *pszCurrentCharacter ) )
         {
             if( dCurWidthOfLine > dWidth )
             {
                 // The previous word does not fit in the current line.
                 // -> Move it to the next one.
-                tLine.lLen = pszStartOfCurrentWord - tLine.pszStart;
-                vecLines.push_back( tLine );
-
-                tLine.pszStart = pszStartOfCurrentWord;
+                vecLines.push_back( PdfString( pszLineBegin, pszStartOfCurrentWord - pszLineBegin ) );
+                pszLineBegin = pszStartOfCurrentWord;
 
                 if (!startOfWord)
                 {
-                    dCurWidthOfLine = m_pFont->GetFontMetrics()->StringWidth( pszStartOfCurrentWord, pszCurrentCharacter-pszStartOfCurrentWord );
+                    dCurWidthOfLine = m_pFont->GetFontMetrics()->StringWidth( 
+						pszStartOfCurrentWord, pszCurrentCharacter - pszStartOfCurrentWord );
                 }
                 else
                 {
@@ -907,9 +935,8 @@ std::vector<TLineElement> PdfPainter::GetMultiLineTextAsLines( double dWidth, co
                 }
             }
             else 
-            {
-           
-                dCurWidthOfLine += m_pFont->GetFontMetrics()->CharWidth( *pszCurrentCharacter );
+            {           
+                dCurWidthOfLine += m_pFont->GetFontMetrics()->UnicodeCharWidth( SwapCharBytesIfRequired( *pszCurrentCharacter ) );
             }
 
             startOfWord = true;
@@ -923,58 +950,48 @@ std::vector<TLineElement> PdfPainter::GetMultiLineTextAsLines( double dWidth, co
             }
             //else do nothing
 
-            if ((dCurWidthOfLine + m_pFont->GetFontMetrics()->CharWidth( *pszCurrentCharacter )) > dWidth)
+            if ((dCurWidthOfLine + m_pFont->GetFontMetrics()->UnicodeCharWidth( SwapCharBytesIfRequired( *pszCurrentCharacter ))) > dWidth)
             {
-                if ( tLine.pszStart == pszStartOfCurrentWord )
+                if ( pszLineBegin == pszStartOfCurrentWord )
                 {
                     // This word takes up the whole line.
-                    // Put as much as possible on this line.
-                    tLine.lLen = pszCurrentCharacter - tLine.pszStart;
-                    vecLines.push_back( tLine );
-
-                    tLine.pszStart = pszCurrentCharacter;
+                    // Put as much as possible on this line.                    
+                    vecLines.push_back( PdfString( pszLineBegin, pszCurrentCharacter - pszLineBegin ) );
+                    pszLineBegin = pszCurrentCharacter;
                     pszStartOfCurrentWord = pszCurrentCharacter;
-
-                    dCurWidthOfLine = m_pFont->GetFontMetrics()->CharWidth( *pszCurrentCharacter );
+                    dCurWidthOfLine = m_pFont->GetFontMetrics()->UnicodeCharWidth( SwapCharBytesIfRequired( *pszCurrentCharacter ) );
                 }
                 else
                 {
                     // The current word does not fit in the current line.
-                    // -> Move it to the next one.
-                    tLine.lLen = pszStartOfCurrentWord - tLine.pszStart;
-                    vecLines.push_back( tLine );
-
-                    tLine.pszStart = pszStartOfCurrentWord;
-
+                    // -> Move it to the next one.                    
+                    vecLines.push_back( PdfString( pszLineBegin, pszStartOfCurrentWord - pszLineBegin ) );
+                    pszLineBegin = pszStartOfCurrentWord;
                     dCurWidthOfLine = m_pFont->GetFontMetrics()->StringWidth( pszStartOfCurrentWord, (pszCurrentCharacter-pszStartOfCurrentWord) + 1 );
                 }
             }
             else 
             {
-                dCurWidthOfLine += m_pFont->GetFontMetrics()->CharWidth( *pszCurrentCharacter );
+                dCurWidthOfLine += m_pFont->GetFontMetrics()->UnicodeCharWidth( SwapCharBytesIfRequired( *pszCurrentCharacter ) );
             }
         }
         ++pszCurrentCharacter;
     }
 
-    if( pszCurrentCharacter-tLine.pszStart > 0 ) 
+    if( (pszCurrentCharacter - pszLineBegin) > 0 ) 
     {
         if( dCurWidthOfLine > dWidth )
         {
             // The previous word does not fit in the current line.
             // -> Move it to the next one.
-            tLine.lLen = pszStartOfCurrentWord - tLine.pszStart;
-            vecLines.push_back( tLine );
-
-            tLine.pszStart = pszStartOfCurrentWord;
-
+            vecLines.push_back( PdfString( pszLineBegin, pszStartOfCurrentWord - pszLineBegin) );
+            pszLineBegin = pszStartOfCurrentWord;
         }
         //else do nothing
 
-        if( pszCurrentCharacter-tLine.pszStart > 0 ) 
+        if( pszCurrentCharacter - pszLineBegin > 0 ) 
         {
-            tLine.lLen = pszCurrentCharacter - tLine.pszStart;
-            vecLines.push_back( tLine );
+            vecLines.push_back( PdfString( pszLineBegin, pszCurrentCharacter - pszLineBegin) );
         }
         //else do nothing
     }
@@ -992,7 +1009,7 @@ void PdfPainter::DrawTextAligned( double dX, double dY, double dWidth, const Pdf
     }
 
     // Peter Petrov 25 Septemer 2008
-    m_pFont->EmbedFont();
+    //m_pFont->EmbedFont();
 
     if( dWidth <= 0.0 ) // nonsense arguments
         return;

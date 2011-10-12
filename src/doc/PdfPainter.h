@@ -382,7 +382,7 @@ class PODOFO_DOC_API PdfPainter {
      *  \param dWidth width of the text area
      *  \param rsText the text which should be drawn
      */
-    std::vector<TLineElement> GetMultiLineTextAsLines( double dWidth, const PdfString & rsText);
+    std::vector<PdfString> GetMultiLineTextAsLines( double dWidth, const PdfString & rsText);
 
     /** Draw a single line of text horizontally aligned.
      *  \param dX the x coordinate of the text line
