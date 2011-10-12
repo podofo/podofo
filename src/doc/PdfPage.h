@@ -166,6 +166,11 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      *  \returns int 0, 90, 180 or 270
      */
     virtual int GetRotation() const;
+
+    /** Set the current page rotation.
+     *  \param iRotation Rotation to set to the page. Valid value are 0, 90, 180, 270.
+     */
+    virtual void SetRotation(int nRotation);
         
     /** Get the number of annotations associated with this page
      * \ returns int number of annotations

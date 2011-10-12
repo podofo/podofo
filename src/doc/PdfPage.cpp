@@ -270,6 +270,14 @@ int PdfPage::GetRotation() const
     return rot;
 }
 
+void PdfPage::SetRotation(int nRotation)
+{
+    if( nRotation != 0 && nRotation != 90 && nRotation != 180 && nRotation != 270 )
+        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+
+    this->GetObject()->GetDictionary().AddKey( "Rotate", PdfVariant(static_cast<pdf_int64>(nRotation)) );
+}
+
 PdfObject* PdfPage::GetAnnotationsArray( bool bCreate ) const
 {
     PdfObject* pObj;
