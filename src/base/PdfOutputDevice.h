@@ -193,7 +193,13 @@ class PODOFO_API PdfOutputDevice {
     std::ostream*        m_pStream;
 	std::istream*        m_pReadStream;
     bool                 m_pStreamOwned;
+
+#if USE_CXX_LOCALE
     std::locale          m_pStreamSavedLocale;
+#endif
+
+
+
     PdfRefCountedBuffer* m_pRefCountedBuffer;
     size_t               m_ulPosition;
 

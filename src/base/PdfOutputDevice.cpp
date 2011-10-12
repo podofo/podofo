@@ -100,8 +100,12 @@ PdfOutputDevice::PdfOutputDevice( const std::ostream* pOutStream )
 
     m_pStream = const_cast< std::ostream* >( pOutStream );
     m_pStreamOwned = false;
+
+#if USE_CXX_LOCALE
     m_pStreamSavedLocale = m_pStream->getloc();
     PdfLocaleImbue(*m_pStream);
+#endif
+
 }
 
 PdfOutputDevice::PdfOutputDevice( PdfRefCountedBuffer* pOutBuffer )
@@ -115,9 +119,12 @@ PdfOutputDevice::~PdfOutputDevice()
     if( m_pStreamOwned ) 
         // remember, deleting a null pointer is safe
         delete m_pStream; // will call close
-    else
-        m_pStream->imbue(m_pStreamSavedLocale);
 
+#if USE_CXX_LOCALE
+    if( !m_pStreamOwned )	
+        m_pStream->imbue(m_pStreamSavedLocale);
+#endif
+	
     if( m_hFile )
         fclose( m_hFile );
 }
