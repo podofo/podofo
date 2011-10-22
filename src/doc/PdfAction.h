@@ -59,6 +59,7 @@ enum EPdfAction {
     ePdfAction_Rendition,
     ePdfAction_Trans,
     ePdfAction_GoTo3DView,
+    ePdfAction_RichMediaExecute,
     
     ePdfAction_Unknown = 0xff
 };

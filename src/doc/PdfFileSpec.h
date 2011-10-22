@@ -46,6 +46,7 @@ class PODOFO_DOC_API PdfFileSpec : public PdfElement {
     /** Embeds the file in memory from "data" buffer under "pszFileName" fie name.
       */
     PdfFileSpec( const char* pszFilename, const unsigned char* data, ptrdiff_t size, PdfVecObjects* pParent);
+    PdfFileSpec( const char* pszFilename, const unsigned char* data, ptrdiff_t size, PdfDocument* pParent);
 
     PdfFileSpec( PdfObject* pObject );
 
@@ -56,6 +57,19 @@ class PODOFO_DOC_API PdfFileSpec : public PdfElement {
     const PdfString & GetFilename() const;
 
  private:
+
+    /** Initialize a filespecification from a filename
+     *  \param pszFilename filename 
+     *  \param bEmbedd embedd the file data into the PDF file
+     */
+    void Init( const char* pszFilename, bool bEmbedd );
+
+    /** Initialize a filespecification from an in-memory buffer
+     *  \param pszFilename filename 
+     *  \param data Data of the file
+     *  \param size size of the data buffer
+     */
+    void Init( const char* pszFilename, const unsigned char* data, ptrdiff_t size );
 
     /** Create a file specification string from a filename
      *  \param pszFilename filename 

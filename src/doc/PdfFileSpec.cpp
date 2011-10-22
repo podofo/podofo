@@ -34,25 +34,34 @@ namespace PoDoFo {
 PdfFileSpec::PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfDocument* pParent )
     : PdfElement( "Filespec", pParent )
 {
-    PdfObject* pEmbeddedStream;
-
-    this->GetObject()->GetDictionary().AddKey( "F", this->CreateFileSpecification( pszFilename ) );
-
-    if( bEmbedd ) 
-    {
-        PdfDictionary ef;
-
-        pEmbeddedStream = this->CreateObject( "EmbeddedFile" );
-        this->EmbeddFile( pEmbeddedStream, pszFilename );
-
-        ef.AddKey( "F",  pEmbeddedStream->Reference() );
-
-        this->GetObject()->GetDictionary().AddKey( "EF", ef );
-    }
+    Init( pszFilename, bEmbedd );
 }
 
 PdfFileSpec::PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfVecObjects* pParent )
     : PdfElement( "Filespec", pParent )
+{
+    Init( pszFilename, bEmbedd );
+}
+
+PdfFileSpec::PdfFileSpec( const char* pszFilename, const unsigned char* data, ptrdiff_t size, PdfVecObjects* pParent)
+    : PdfElement( "Filespec", pParent )
+{
+    Init( pszFilename, data, size );
+}
+
+
+PdfFileSpec::PdfFileSpec( const char* pszFilename, const unsigned char* data, ptrdiff_t size, PdfDocument* pParent)
+    : PdfElement( "Filespec", pParent )
+{
+    Init( pszFilename, data, size );
+}
+
+PdfFileSpec::PdfFileSpec( PdfObject* pObject )
+    : PdfElement( "Filespec", pObject )
+{
+}
+
+void PdfFileSpec::Init( const char* pszFilename, bool bEmbedd ) 
 {
     PdfObject* pEmbeddedStream;
 
@@ -71,8 +80,7 @@ PdfFileSpec::PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfVecObjects* 
     }
 }
 
-PdfFileSpec::PdfFileSpec( const char* pszFilename, const unsigned char* data, ptrdiff_t size, PdfVecObjects* pParent)
-    : PdfElement( "Filespec", pParent )
+void PdfFileSpec::Init( const char* pszFilename, const unsigned char* data, ptrdiff_t size ) 
 {
     PdfObject* pEmbeddedStream;
 
@@ -86,12 +94,6 @@ PdfFileSpec::PdfFileSpec( const char* pszFilename, const unsigned char* data, pt
     ef.AddKey( "F",  pEmbeddedStream->Reference() );
 
     this->GetObject()->GetDictionary().AddKey( "EF", ef );
-}
-
-PdfFileSpec::PdfFileSpec( PdfObject* pObject )
-    : PdfElement( "Filespec", pObject )
-{
-
 }
 
 PdfString PdfFileSpec::CreateFileSpecification( const char* pszFilename ) const
