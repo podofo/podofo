@@ -94,12 +94,12 @@ void PdfAction::SetURI( const PdfString & sUri )
 
 PdfString PdfAction::GetURI() const
 {
-    return this->GetObject()->GetDictionary().GetKey( "URI" )->GetString();
+    return this->GetObject()->GetIndirectKey( "URI" )->GetString();
 }
 
 bool PdfAction::HasURI() const
 {
-    return this->GetObject()->GetDictionary().HasKey( "URI" );
+    return (this->GetObject()->GetIndirectKey( "URI" ) != NULL);
 }
 
 void PdfAction::SetScript( const PdfString & sScript )
