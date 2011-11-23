@@ -21,6 +21,7 @@
 		<ol>
 			<li><a href="#cmake_builds_on_linux_unix">CMake builds on Linux/UNIX</a></li>
 			<li><a href="#cmake_builds_on_mac_os_x">CMake builds on Mac OS X</a></li>
+			<li><a href="#homebrew_builds_on_macos">Homebrew builds on Mac OS X</a></li>
 			<li><a href="#cmake_builds_on_windows">CMake builds on Windows</a></li>
 		</ol>
 		</li>
@@ -166,6 +167,7 @@ the same compiler as your application. See <a href="#cmake_builds_on_windows">CM
 <p>Mac OS X users will need to use CMake to generate a conventional UNIX build
 with Makefiles, or may generate an XCode project with CMake. See the <a href="#cmake_builds_on_mac_os_x">Mac OS X
 	section</a> below, and the <a href="#installation_with_cmake">generic instructions for cmake builds</a></p>
+
 
 <h3><a name="stlport_support" />STLPort support</h3>
 
@@ -342,6 +344,20 @@ to install the libjpeg, fontconfig, and freetype libraries. Once you've installe
 
 <p>change "Unix Makefiles" to "Xcode" if you want to build an XCode project instead, then
 instead of running `make' and `make install' just open the project file and work as normal</p>
+
+<h4><a name="homebrew_builds_on_macos" />Homebrew builds on Mac OS X</h4>
+
+<p>For Homebrew (package manager for Mac OS X) it is quite simple to install podofo. Freetype2 and zlib should be installed on Mac OS X by default.
+<pre>
+brew install fontconfig
+brew install libjpeg
+brew install libtiff
+cd ((directory of podofo))
+cmake -G "Unix Makefiles"
+make
+make install
+</pre>
+</p>
 
 <h4><a name="cmake_builds_on_windows" />CMake builds on Windows</h4>
 
