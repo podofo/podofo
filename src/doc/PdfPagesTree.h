@@ -135,7 +135,7 @@ class PODOFO_DOC_API PdfPagesTree : public PdfElement
 	 *  Note: this function will attach all new pages onto the same page node
 	 *  which can cause the tree to be unbalanced if 
      *
-     *  \param vecSize a vector of PdfRect specifying the size of each of the pages to create (i.e the /MediaBox key) in PDF units
+     *  \param vecSizes a vector of PdfRect specifying the size of each of the pages to create (i.e the /MediaBox key) in PDF units
      */
     void CreatePages( const std::vector<PdfRect>& vecSizes );
 
