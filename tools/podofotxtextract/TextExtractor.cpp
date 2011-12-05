@@ -132,7 +132,7 @@ void TextExtractor::ExtractText( PdfMemDocument* pDocument, PdfPage* pPage )
                     
                     for( int i=0; i<static_cast<int>(array.GetSize()); i++ ) 
                     {
-                        if( array[i].IsString() )
+                        if( array[i].IsString() || array[i].IsHexString() )
                             AddTextElement( dCurPosX, dCurPosY, pCurFont, array[i].GetString() );
                     }
                 }
@@ -151,7 +151,7 @@ void TextExtractor::ExtractText( PdfMemDocument* pDocument, PdfPage* pPage )
 }
 
 void TextExtractor::AddTextElement( double dCurPosX, double dCurPosY, 
-                                    PdfFont* pCurFont, const PdfString & rString )
+		PdfFont* pCurFont, const PdfString & rString )
 {
     if( !pCurFont ) 
     {
@@ -169,10 +169,8 @@ void TextExtractor::AddTextElement( double dCurPosX, double dCurPosY,
     PdfString unicode = pCurFont->GetEncoding()->ConvertToUnicode( rString, pCurFont );
     const char* pszData = unicode.GetStringUtf8().c_str();
     while( *pszData ) {
-        printf("%02x", static_cast<unsigned char>(*pszData) );
+        //printf("%02x", static_cast<unsigned char>(*pszData) );
         ++pszData;
     }
-    printf("\n");
-
-    printf("(%.3f,%.3f) %s \n", dCurPosX, dCurPosY, unicode.GetStringUtf8().c_str() );
+	printf("(%.3f,%.3f) %s \n", dCurPosX, dCurPosY, unicode.GetStringUtf8().c_str() );
 }
