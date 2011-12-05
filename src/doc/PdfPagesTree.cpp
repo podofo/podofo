@@ -583,7 +583,7 @@ void PdfPagesTree::InsertPagesIntoNode( PdfObject* pParent, const PdfObjectList 
     }
 
     // If new kids are still not pushed in then they may be appending to the end
-    if ( !bIsPushedIn && ( (nIndex + 1) == oldKids.size()) ) 
+    if ( !bIsPushedIn && ( (nIndex + 1) == static_cast<int>(oldKids.size())) ) 
     {
         for (std::vector<PdfObject*>::const_iterator itPages=vecPages.begin(); itPages!=vecPages.end(); ++itPages)
         {

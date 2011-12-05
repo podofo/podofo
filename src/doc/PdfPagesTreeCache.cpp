@@ -66,7 +66,7 @@ void PdfPagesTreeCache::AddPageObject( int nIndex, PdfPage* pPage )
 
 void PdfPagesTreeCache::AddPageObjects( int nIndex, std::vector<PdfPage*> vecPages )
 {
-    if( nIndex + vecPages.size() >= static_cast<int>(m_deqPageObjs.size()) )
+    if( (nIndex + static_cast<int>(vecPages.size())) >= static_cast<int>(m_deqPageObjs.size()) )
     {
         m_deqPageObjs.resize( nIndex + vecPages.size() + 1 );
     }
