@@ -28,44 +28,59 @@
 
 #include "PdfDifferenceEncoding.h"
 #include "PdfIdentityEncoding.h"
+#include "PdfCMapEncoding.h"
 
-namespace PoDoFo {
+//For temporary purpose
 
-const PdfEncoding* PdfEncodingObjectFactory::CreateEncoding( PdfObject* pObject )
+#include <iostream>
+using namespace std;
+
+namespace PoDoFo
 {
-    if( pObject->IsReference() )
+
+const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *
+                                                             pObject)
+{
+    if (pObject->IsReference ())
     {
         // resolve any references
-        pObject = pObject->GetOwner()->GetObject( pObject->GetReference() );
+        pObject = pObject->GetOwner ()->GetObject (pObject->GetReference ());
     }
 
-    if( pObject->IsName() )
+    if (pObject->IsName ())
     {
-        const PdfName & rName = pObject->GetName();
-        if( rName == PdfName("WinAnsiEncoding") )
-            return PdfEncodingFactory::GlobalWinAnsiEncodingInstance();
-        else if( rName == PdfName("MacRomanEncoding") )
-            return PdfEncodingFactory::GlobalMacRomanEncodingInstance();
-        else if( rName == PdfName("StandardEncoding") ) // OC 13.08.2010
-            return PdfEncodingFactory::GlobalStandardEncodingInstance();
-        else if( rName == PdfName("MacExpertEncoding") ) // OC 13.08.2010 TODO solved
-            return PdfEncodingFactory::GlobalMacExpertEncodingInstance();
-        else if( rName == PdfName("SymbolEncoding") ) // OC 13.08.2010
-            return PdfEncodingFactory::GlobalSymbolEncodingInstance();
-        else if( rName == PdfName("ZapfDingbatsEncoding") ) // OC 13.08.2010
-            return PdfEncodingFactory::GlobalZapfDingbatsEncodingInstance();
-        else if( rName == PdfName("Identity-H") ) 
-            return new PdfIdentityEncoding();
+        const PdfName & rName = pObject->GetName ();
+        if (rName == PdfName ("WinAnsiEncoding"))
+            return PdfEncodingFactory::GlobalWinAnsiEncodingInstance ();
+        else if (rName == PdfName ("MacRomanEncoding"))
+            return PdfEncodingFactory::GlobalMacRomanEncodingInstance ();
+        else if (rName == PdfName ("StandardEncoding"))	// OC 13.08.2010
+            return PdfEncodingFactory::GlobalStandardEncodingInstance ();
+        else if (rName == PdfName ("MacExpertEncoding"))	// OC 13.08.2010 TODO solved
+            return PdfEncodingFactory::GlobalMacExpertEncodingInstance ();
+        else if (rName == PdfName ("SymbolEncoding"))	// OC 13.08.2010
+            return PdfEncodingFactory::GlobalSymbolEncodingInstance ();
+        else if (rName == PdfName ("ZapfDingbatsEncoding"))	// OC 13.08.2010
+            return PdfEncodingFactory::GlobalZapfDingbatsEncodingInstance ();
+        else if (rName == PdfName ("Identity-H"))
+            return new PdfIdentityEncoding ();
     }
-    else if( pObject->IsDictionary() )
+  	else if (pObject->HasStream ())	// Code for /ToUnicode object 
     {
-        return new PdfDifferenceEncoding( pObject );
+		return new PdfCMapEncoding(pObject);
     }
 
+  	else if (pObject->IsDictionary ())
+    {
 
-    PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Unsupported encoding detected!" );
+		return new PdfDifferenceEncoding (pObject);
+    }
+    
+    
+    PODOFO_RAISE_ERROR_INFO (ePdfError_InternalLogic,
+                             "Unsupported encoding detected!");
 
     //return NULL; Unreachable code
 }
 
-}; /* namespace PoDoFo */
+};				/* namespace PoDoFo */

@@ -98,6 +98,7 @@ SET(PODOFO_DOC_SOURCES
   doc/PdfStreamedDocument.cpp
   doc/PdfTable.cpp
   doc/PdfXObject.cpp
+  doc/PdfCMapEncoding.cpp
   )
 
 IF(WIN32)
@@ -216,6 +217,7 @@ SET(PODOFO_DOC_HEADERS
   doc/PdfStreamedDocument.h
   doc/PdfTable.h
   doc/PdfXObject.h
+  doc/PdfCMapEncoding.h
   )
 
 # Create a Source Group for Visual Studio

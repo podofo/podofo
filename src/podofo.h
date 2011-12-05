@@ -37,6 +37,7 @@
 #include "doc/PdfAcroForm.h"
 #include "doc/PdfAction.h"
 #include "doc/PdfAnnotation.h"
+#include "doc/PdfCMapEncoding.h"
 #include "doc/PdfContents.h"
 #include "doc/PdfDestination.h"
 #include "doc/PdfDifferenceEncoding.h"
