@@ -702,7 +702,7 @@ bool PdfEncrypt::Authenticate( const std::string & password, const PdfString & d
         unsigned char userpswd[32];
         ComputeOwnerKey( m_oValue, pswd, m_keyLength*8, m_rValue, true, userpswd );
         ComputeEncryptionKey( m_documentId, userpswd, m_oValue, m_pValue, m_keyLength*8, m_rValue, userKey );
-        ok = CheckKey( userKey, m_oValue );
+        ok = CheckKey( userKey, m_uValue );
 
         if( ok ) 
             m_ownerPass = password;
