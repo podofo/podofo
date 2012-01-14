@@ -46,18 +46,19 @@ namespace PoDoFo {
 PdfFontMetrics::PdfFontMetrics( EPdfFontType eFontType, const char* pszFilename, const char* pszSubsetPrefix )
 
     : m_sFilename( pszFilename ),
-      m_fFontSize( 0.0f ), 
-      m_fFontScale( 100.0f ), 
+      m_fFontSize( 0.0f ),
+      m_fFontScale( 100.0f ),
       m_fFontCharSpace( 0.0f ),
+      m_fWordSpace( 0.0f ),
       m_eFontType( eFontType ),
       m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" )
 {
 
 }
-/* 
+/*
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, PdfObject* pDescriptor )
     : m_sFilename( "" ), m_pLibrary( pLibrary ), m_pMetrics_base14(NULL),
-      m_bSymbol( false ), m_fFontSize( 0.0f ), 
+      m_bSymbol( false ), m_fFontSize( 0.0f ),
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( ePdfFontType_Unknown )
 {
@@ -84,43 +85,43 @@ PdfFontMetrics::~PdfFontMetrics()
 #if defined(__APPLE_CC__) && !defined(PODOFO_HAVE_FONTCONFIG)
 FT_Error
 My_FT_GetFile_From_Mac_ATS_Name( const char*  fontName,
-								 FSSpec*  pathSpec, FT_Long*     face_index )
+                                 FSSpec*  pathSpec, FT_Long*     face_index )
 {
-	CFStringRef  cf_fontName;
-	ATSFontRef   ats_font_id;
+    CFStringRef  cf_fontName;
+    ATSFontRef   ats_font_id;
 
-	*face_index = 0;
+    *face_index = 0;
 
-	cf_fontName = CFStringCreateWithCString( NULL, fontName, kCFStringEncodingMacRoman );
-	ats_font_id = ATSFontFindFromName( cf_fontName, kATSOptionFlagsUnRestrictedScope );
+    cf_fontName = CFStringCreateWithCString( NULL, fontName, kCFStringEncodingMacRoman );
+    ats_font_id = ATSFontFindFromName( cf_fontName, kATSOptionFlagsUnRestrictedScope );
 
-	if ( ats_font_id == 0 || ats_font_id == 0xFFFFFFFFUL )
-		return FT_Err_Unknown_File_Format;
+    if ( ats_font_id == 0 || ats_font_id == 0xFFFFFFFFUL )
+        return FT_Err_Unknown_File_Format;
 
-	if ( 0 != ATSFontGetFileSpecification( ats_font_id, pathSpec ) )
-		return FT_Err_Unknown_File_Format;
+    if ( 0 != ATSFontGetFileSpecification( ats_font_id, pathSpec ) )
+        return FT_Err_Unknown_File_Format;
 
-	/* face_index calculation by searching preceding fontIDs */
-	/* with same FSRef                                       */
-	{
-		int     i;
-		FSSpec  f;
+    /* face_index calculation by searching preceding fontIDs */
+    /* with same FSRef                                       */
+    {
+        int     i;
+        FSSpec  f;
 
 
-		for ( i = 1; i < ats_font_id; i++ )
-		{
-			if ( 0 != ATSFontGetFileSpecification( ats_font_id - i, &f ) ||
-				f.vRefNum != pathSpec->vRefNum                       ||
-				f.parID   != pathSpec->parID                         ||
-				f.name[0] != pathSpec->name[0]                       ||
-				0 != ft_strncmp( (char *)f.name + 1,
-				(char *)pathSpec->name + 1,
-				f.name[0]                           ) )
-				break;
-		}
-		*face_index = ( i - 1 );
-	}
-	return FT_Err_Ok;
+        for ( i = 1; i < ats_font_id; i++ )
+        {
+            if ( 0 != ATSFontGetFileSpecification( ats_font_id - i, &f ) ||
+                f.vRefNum != pathSpec->vRefNum                       ||
+                f.parID   != pathSpec->parID                         ||
+                f.name[0] != pathSpec->name[0]                       ||
+                0 != ft_strncmp( (char *)f.name + 1,
+                (char *)pathSpec->name + 1,
+                f.name[0]                           ) )
+                break;
+        }
+        *face_index = ( i - 1 );
+    }
+    return FT_Err_Ok;
 }
 
   FT_Error
@@ -154,7 +155,7 @@ My_FT_GetFile_From_Mac_ATS_Name( const char*  fontName,
         FMGetFontFamilyName( family, famNameStr );
 ( famNameStr, famName );
 
-		// inLog.Debug( boost::format( "Found FontFamily: '%s'\n" ) % famName );
+        // inLog.Debug( boost::format( "Found FontFamily: '%s'\n" ) % famName );
 
         /* iterate through the styles */
         FMCreateFontFamilyInstanceIterator( family, &instIter );
@@ -182,9 +183,9 @@ My_FT_GetFile_From_Mac_ATS_Name( const char*  fontName,
             if ( style & italic )
               strcat( fullName, " Italic" );
 
-			// inLog.Debug( boost::format( "Checking Face: '%s'\n" ) % fullName );
+            // inLog.Debug( boost::format( "Checking Face: '%s'\n" ) % fullName );
 
-			/* compare with the name we are looking for */
+            /* compare with the name we are looking for */
             if ( ft_strcmp( fullName, fontName ) == 0 )
             {
               /* found it! */
@@ -254,7 +255,7 @@ static void
               short*  have_sfnt,
               short*  sfnt_id,
               char*   ps_name,
-			  Str255  lwfn_file_name,
+              Str255  lwfn_file_name,
               short   face_index )
   {
     AsscEntry*  assoc;
@@ -297,7 +298,7 @@ static void
       unsigned char*  names[64];
       int             i;
 
-	  // inLog.Debug( "Font has StylOff\n" );
+      // inLog.Debug( "Font has StylOff\n" );
 
       p += fond->ffStylOff;
       style = (StyleTable*)p;
@@ -336,7 +337,7 @@ static void
             if ( j < string_count && ( s = names[j] ) != NULL )
             {
               size_t  s_len = (size_t)s[0];
-			  s[s_len] = 0;
+              s[s_len] = 0;
 
 // 			  inLog.Debug( boost::format( "Suffix %d:'%s'\n" ) % i % &s[1] );
 
@@ -351,7 +352,7 @@ static void
         }
       }
 
-	  // inLog.Debug( boost::format( "Found PSName is '%s'\n" ) % ps_name );
+      // inLog.Debug( boost::format( "Found PSName is '%s'\n" ) % ps_name );
       create_lwfn_name( ps_name, lwfn_file_name );
     }
   }
@@ -385,13 +386,13 @@ static void
   /* Return the file type of the file specified by spec. */
   static OSType get_file_type( const FSSpec*  spec )
   {
-	  FInfo  finfo;
+      FInfo  finfo;
 
 
-	  if ( FSpGetFInfo( spec, &finfo ) != noErr )
-		  return 0;  /* file might not exist */
+      if ( FSpGetFInfo( spec, &finfo ) != noErr )
+          return 0;  /* file might not exist */
 
-	  return finfo.fdType;
+      return finfo.fdType;
   }
 
   /* Make a file spec for an LWFN file from a FOND resource and
@@ -465,7 +466,7 @@ static void
       last_code = code;
     }
 
-	buffer = (unsigned char*)malloc( total_size );
+    buffer = (unsigned char*)malloc( total_size );
     if ( buffer == NULL )
       goto Error;
 
@@ -534,7 +535,7 @@ static short count_faces( Handle  fond )
     short   sfnt_id, have_sfnt, have_lwfn = 0;
     Str255  lwfn_file_name;
     FSSpec  lwfn_spec;
-	char	ps_name[256];
+    char	ps_name[256];
 
     HLock( fond );
     parse_fond( *fond, &have_sfnt, &sfnt_id, ps_name, lwfn_file_name, 0 );
@@ -554,148 +555,148 @@ static short count_faces( Handle  fond )
       return count_faces_sfnt( *fond );
   }
 
-static FT_Error LoadFontFromLWFN( FSRef inFileRef, FSSpec inSpec, 
-									const char* inFontName, FT_Long inFaceIndex, 
-									char** outBuffer, long& outBufLen )
+static FT_Error LoadFontFromLWFN( FSRef inFileRef, FSSpec inSpec,
+                                    const char* inFontName, FT_Long inFaceIndex,
+                                    char** outBuffer, long& outBufLen )
 {
-		FT_Error  error = FT_Err_Ok;
-		short     res_ref;
-		FT_Byte*  pfb_data;
-		FT_ULong  pfb_size;
+        FT_Error  error = FT_Err_Ok;
+        short     res_ref;
+        FT_Byte*  pfb_data;
+        FT_ULong  pfb_size;
 
-		// open up the resource file
-		error = FSOpenResourceFile( &inFileRef, 0, NULL, fsRdPerm, &res_ref );
-		if ( error != noErr ) {
-			// try old fashioned way
-			// inLog.Debug( boost::format( "FSOpenResourceFile failed - Error %d\n" ) % error );
+        // open up the resource file
+        error = FSOpenResourceFile( &inFileRef, 0, NULL, fsRdPerm, &res_ref );
+        if ( error != noErr ) {
+            // try old fashioned way
+            // inLog.Debug( boost::format( "FSOpenResourceFile failed - Error %d\n" ) % error );
 
-			res_ref = FSpOpenResFile( &inSpec, fsRdPerm );
-			if ( res_ref < 0 ) {
-				// inLog.Debug( boost::format( "FSpOpenResFile failed- Error %d\n" ) % res_ref );
-				return FT_Err_Cannot_Open_Resource;
-			} else {
-				// inLog.Debug( "FSpOpenResFile Succeeded!\n" );
-			}
-			error = 0;	// reset it
-		}
-		UseResFile( res_ref );
+            res_ref = FSpOpenResFile( &inSpec, fsRdPerm );
+            if ( res_ref < 0 ) {
+                // inLog.Debug( boost::format( "FSpOpenResFile failed- Error %d\n" ) % res_ref );
+                return FT_Err_Cannot_Open_Resource;
+            } else {
+                // inLog.Debug( "FSpOpenResFile Succeeded!\n" );
+            }
+            error = 0;	// reset it
+        }
+        UseResFile( res_ref );
 
-		error = read_lwfn( res_ref, &pfb_data, &pfb_size );
-		if ( !error ) {
-			*outBuffer = (char*)pfb_data;
-			outBufLen = pfb_size;
-		} else {
-			// inLog.Debug( "read_lwfn failed\n" );
-		}
+        error = read_lwfn( res_ref, &pfb_data, &pfb_size );
+        if ( !error ) {
+            *outBuffer = (char*)pfb_data;
+            outBufLen = pfb_size;
+        } else {
+            // inLog.Debug( "read_lwfn failed\n" );
+        }
 
 Error:
-	  CloseResFile( res_ref );
-	  return error;
+      CloseResFile( res_ref );
+      return error;
   }
 
- 
-  static FT_Error LoadFontFromDFont( FSRef inFileRef, FSSpec inSpec, 
-									const char* inFontName, FT_Long inFaceIndex, 
-									char** outBuffer, long& outBufLen )
+
+  static FT_Error LoadFontFromDFont( FSRef inFileRef, FSSpec inSpec,
+                                    const char* inFontName, FT_Long inFaceIndex,
+                                    char** outBuffer, long& outBufLen )
 {
-	const bool PREFER_LWFN=false;
+    const bool PREFER_LWFN=false;
     FT_Error  error = FT_Err_Ok;
     short     res_ref, res_index = 1;
     Handle    fond;
     short   sfnt_id = 0, have_sfnt =0, have_lwfn = 0;
     short	num_faces;
-	char	ps_name[128];
-	Str255  lwfn_file_name;
-	FSSpec  lwfn_spec;
-	
-	char	localFontName[256];
+    char	ps_name[128];
+    Str255  lwfn_file_name;
+    FSSpec  lwfn_spec;
+
+    char	localFontName[256];
 
 #if 1
-	int j = 0;
-	bool	foundSpace = false;
-	for ( int i=0; i<strlen( inFontName ); i++ ) {
-		if ( inFontName[i] == '-' ) {
-			if ( !foundSpace ) {
-				localFontName[j++] = ' ';
-				foundSpace = true;
-			} else {
-				// do nothing, we skip over it!
-			}
-		} else {
-			localFontName[j++] = inFontName[i];
-		}
-	}
-	localFontName[j] = 0;	// helps to zero term
-	// inLog.Debug( boost::format( "LocalFontName: %s\n" ) % localFontName );
+    int j = 0;
+    bool	foundSpace = false;
+    for ( int i=0; i<strlen( inFontName ); i++ ) {
+        if ( inFontName[i] == '-' ) {
+            if ( !foundSpace ) {
+                localFontName[j++] = ' ';
+                foundSpace = true;
+            } else {
+                // do nothing, we skip over it!
+            }
+        } else {
+            localFontName[j++] = inFontName[i];
+        }
+    }
+    localFontName[j] = 0;	// helps to zero term
+    // inLog.Debug( boost::format( "LocalFontName: %s\n" ) % localFontName );
 #else
-	strcpy( localFontName, inFontName );
+    strcpy( localFontName, inFontName );
 #endif
 
     // open up the resource file
     error = FSOpenResourceFile( &inFileRef, 0, NULL, fsRdPerm, &res_ref );
     if ( error != noErr ) {
-		// try old fashioned way
-		// inLog.Debug( boost::format( "FSOpenResourceFile failed - Error %d\n" ) % error );
-		
-		res_ref = FSpOpenResFile( &inSpec, fsRdPerm );
-		if ( res_ref < 0 ) {
-			// inLog.Debug( boost::format( "FSpOpenResFile failed- Error %d\n" ) % res_ref );
-			return FT_Err_Cannot_Open_Resource;
-		} else {
-			// inLog.Debug( "FSpOpenResFile Succeeded!\n" );
-		}
-		error = 0;	// reset it
-	}
+        // try old fashioned way
+        // inLog.Debug( boost::format( "FSOpenResourceFile failed - Error %d\n" ) % error );
+
+        res_ref = FSpOpenResFile( &inSpec, fsRdPerm );
+        if ( res_ref < 0 ) {
+            // inLog.Debug( boost::format( "FSpOpenResFile failed- Error %d\n" ) % res_ref );
+            return FT_Err_Cannot_Open_Resource;
+        } else {
+            // inLog.Debug( "FSpOpenResFile Succeeded!\n" );
+        }
+        error = 0;	// reset it
+    }
     UseResFile( res_ref );
 
 
-	int	numFONDs = Count1Resources( 'FOND' );
-	// inLog.Debug( boost::format( "Number of 'FOND' resources = %d\n" ) % numFONDs );
+    int	numFONDs = Count1Resources( 'FOND' );
+    // inLog.Debug( boost::format( "Number of 'FOND' resources = %d\n" ) % numFONDs );
 
    for ( res_index = 1; ; ++res_index )
     {
       fond = Get1IndResource( 'FOND', res_index );
       if ( ResError() ) {
-		// inLog.Debug( boost::format( "Get1IndResource ('FOND' #%d) failed - Error %d\n" ) % res_index % ResError() );
+        // inLog.Debug( boost::format( "Get1IndResource ('FOND' #%d) failed - Error %d\n" ) % res_index % ResError() );
         error = FT_Err_Cannot_Open_Resource;
         goto Error;
       }
 
-	  short   fond_id;
-	  OSType  fond_type;
-	  Str255  fond_name;
-	  GetResInfo( fond, &fond_id, &fond_type, fond_name );
-	  if ( ResError() != noErr || fond_type != 'FOND' ) {
-		  // inLog.Debug( boost::format( "GetResInfo failed - Error %d\n") % ResError() );
-		  error = FT_Err_Invalid_File_Format;
-		  goto Error;
-	  }
-	  fond_name[ fond_name[0]+1 ] = 0;
+      short   fond_id;
+      OSType  fond_type;
+      Str255  fond_name;
+      GetResInfo( fond, &fond_id, &fond_type, fond_name );
+      if ( ResError() != noErr || fond_type != 'FOND' ) {
+          // inLog.Debug( boost::format( "GetResInfo failed - Error %d\n") % ResError() );
+          error = FT_Err_Invalid_File_Format;
+          goto Error;
+      }
+      fond_name[ fond_name[0]+1 ] = 0;
 
-	  // check to make sure this is a font we want to load (TTF or OTF)
-	  HLock( fond );
-	  parse_fond( *fond, &have_sfnt, &sfnt_id, ps_name, lwfn_file_name, inFaceIndex );
-	  HUnlock( fond );
+      // check to make sure this is a font we want to load (TTF or OTF)
+      HLock( fond );
+      parse_fond( *fond, &have_sfnt, &sfnt_id, ps_name, lwfn_file_name, inFaceIndex );
+      HUnlock( fond );
 
-	  // if either the original font name OR the modified one match - go for it!
-	  // inLog.Debug( boost::format( "FOND name: '%s' - PSName: '%s'\n" ) % &fond_name[1] % ps_name );
-	  if ( ft_strcmp( (char*)&fond_name[1] /*ps_name*/, localFontName ) == 0 ) {
-		  inFaceIndex = res_index-1;
-		  // inLog.Debug( boost::format( "Matched '%s' at res_index:%d\n" ) % &fond_name[1] % res_index );
-		  break;
-	  } else if ( ft_strcmp( (char*)&fond_name[1], inFontName ) == 0 ) {
-		  inFaceIndex = res_index-1;
-		  // inLog.Debug( boost::format( "Matched '%s' at res_index:%d\n" ) % &fond_name[1] % res_index );
-		  break;
-	  } 
+      // if either the original font name OR the modified one match - go for it!
+      // inLog.Debug( boost::format( "FOND name: '%s' - PSName: '%s'\n" ) % &fond_name[1] % ps_name );
+      if ( ft_strcmp( (char*)&fond_name[1] /*ps_name*/, localFontName ) == 0 ) {
+          inFaceIndex = res_index-1;
+          // inLog.Debug( boost::format( "Matched '%s' at res_index:%d\n" ) % &fond_name[1] % res_index );
+          break;
+      } else if ( ft_strcmp( (char*)&fond_name[1], inFontName ) == 0 ) {
+          inFaceIndex = res_index-1;
+          // inLog.Debug( boost::format( "Matched '%s' at res_index:%d\n" ) % &fond_name[1] % res_index );
+          break;
+      }
 
     }
 
     if ( lwfn_file_name[0] )
     {
-		lwfn_file_name[lwfn_file_name[0]+1] = 0;	// zero term for C
+        lwfn_file_name[lwfn_file_name[0]+1] = 0;	// zero term for C
       // inLog.Debug( boost::format( "Found LWFN at '%s'\n" ) % &lwfn_file_name[1] );
-  
+
       if ( make_lwfn_spec( fond, lwfn_file_name, &lwfn_spec ) == FT_Err_Ok )
         have_lwfn = 1;  /* yeah, we got one! */
       else
@@ -703,106 +704,106 @@ Error:
     }
 
     if ( have_lwfn && ( !have_sfnt || PREFER_LWFN ) ) {
-	    FT_Byte*  pfb_data;
-	    FT_ULong  pfb_size;
-	    FT_Error  error;
-	    short     res_ref;
-	
-		res_ref = FSpOpenResFile( &lwfn_spec, fsRdPerm );
-		if ( res_ref < 0 ) {
-			// inLog.Debug( "FSpOpenResFile on LWFN failed\n" );
-			return FT_Err_Cannot_Open_Resource;
-		} else {
-			// inLog.Debug( "FSpOpenResFile on LWFN succeeded!\n" );
-		}
-			
-	    error = read_lwfn( res_ref, &pfb_data, &pfb_size );
-	    if ( !error ) {
-			*outBuffer = (char*)pfb_data;
-			outBufLen = pfb_size;
-		} else {
-			// inLog.Debug( "read_lwfn failed\n" );
-		}
-    } else if ( have_sfnt ) {
-		Handle     sfnt = NULL;
-		FT_Byte*   sfnt_data;
-		size_t     sfnt_size;
-	
-		// inLog.Debug( "Loading from SFNT...\n" );
+        FT_Byte*  pfb_data;
+        FT_ULong  pfb_size;
+        FT_Error  error;
+        short     res_ref;
 
-		sfnt = GetResource( 'sfnt', sfnt_id );
-		if ( ResError() ) {
-			// inLog.Debug( boost::format( "GetResource ('sfnt' #%d) failed - Error %d\n" ) % sfnt_id % ResError() );
-		    return FT_Err_Invalid_Handle;
-		}
-		
-		sfnt_size = (FT_ULong)GetHandleSize( sfnt );
-		sfnt_data = (FT_Byte*)ASmalloc( (FT_Long)sfnt_size );
-		if ( sfnt_data == NULL ) {
-		    ReleaseResource( sfnt );
-		    return error;
-		}
-	
-		HLock( sfnt );
-		memcpy( sfnt_data, *sfnt, sfnt_size );
-		HUnlock( sfnt );
-		ReleaseResource( sfnt );
-	
-		*outBuffer = (char*)sfnt_data;
-		outBufLen = sfnt_size;
+        res_ref = FSpOpenResFile( &lwfn_spec, fsRdPerm );
+        if ( res_ref < 0 ) {
+            // inLog.Debug( "FSpOpenResFile on LWFN failed\n" );
+            return FT_Err_Cannot_Open_Resource;
+        } else {
+            // inLog.Debug( "FSpOpenResFile on LWFN succeeded!\n" );
+        }
+
+        error = read_lwfn( res_ref, &pfb_data, &pfb_size );
+        if ( !error ) {
+            *outBuffer = (char*)pfb_data;
+            outBufLen = pfb_size;
+        } else {
+            // inLog.Debug( "read_lwfn failed\n" );
+        }
+    } else if ( have_sfnt ) {
+        Handle     sfnt = NULL;
+        FT_Byte*   sfnt_data;
+        size_t     sfnt_size;
+
+        // inLog.Debug( "Loading from SFNT...\n" );
+
+        sfnt = GetResource( 'sfnt', sfnt_id );
+        if ( ResError() ) {
+            // inLog.Debug( boost::format( "GetResource ('sfnt' #%d) failed - Error %d\n" ) % sfnt_id % ResError() );
+            return FT_Err_Invalid_Handle;
+        }
+
+        sfnt_size = (FT_ULong)GetHandleSize( sfnt );
+        sfnt_data = (FT_Byte*)ASmalloc( (FT_Long)sfnt_size );
+        if ( sfnt_data == NULL ) {
+            ReleaseResource( sfnt );
+            return error;
+        }
+
+        HLock( sfnt );
+        memcpy( sfnt_data, *sfnt, sfnt_size );
+        HUnlock( sfnt );
+        ReleaseResource( sfnt );
+
+        *outBuffer = (char*)sfnt_data;
+        outBufLen = sfnt_size;
     } else {
-		// inLog.Debug( boost::format( "have_sfnt is false, sfnt_id is %d, and inFaceIndex is %d\n" ) % sfnt_id % inFaceIndex );    	
+        // inLog.Debug( boost::format( "have_sfnt is false, sfnt_id is %d, and inFaceIndex is %d\n" ) % sfnt_id % inFaceIndex );
     }
 
 Error:
-	CloseResFile( res_ref );
+    CloseResFile( res_ref );
     return error;
 }
 
 std::string	Std2AltFontName( const std::string& inStdName )
 {
-	std::string	altName( "" );
+    std::string	altName( "" );
 
-	if ( inStdName == "Courier" )
-		altName.assign( "Courier New" );
-	else if ( inStdName == "Courier-Bold" )
-		altName.assign( "Courier New Bold" );
-	else if ( inStdName == "Courier-Oblique" )
-		altName.assign( "Courier New Italic" );
-	else if ( inStdName == "Courier-BoldOblique" )
-		altName.assign( "Courier New Bold Italic" );
-	else if ( inStdName == "Times-Roman" )
-		altName.assign( "Times New Roman" );
-	else if ( inStdName == "Times-Bold" )
-		altName.assign( "Times New Roman Bold" );
-	else if ( inStdName == "Times-Italic" )
-		altName.assign( "Times New Roman Italic" );
-	else if ( inStdName == "Times-BoldItalic" )
-		altName.assign( "Times New Roman Bold Italic" );
-	else if ( inStdName == "ZapfDingbats" )
-		altName.assign( "Zapf Dingbats" );
+    if ( inStdName == "Courier" )
+        altName.assign( "Courier New" );
+    else if ( inStdName == "Courier-Bold" )
+        altName.assign( "Courier New Bold" );
+    else if ( inStdName == "Courier-Oblique" )
+        altName.assign( "Courier New Italic" );
+    else if ( inStdName == "Courier-BoldOblique" )
+        altName.assign( "Courier New Bold Italic" );
+    else if ( inStdName == "Times-Roman" )
+        altName.assign( "Times New Roman" );
+    else if ( inStdName == "Times-Bold" )
+        altName.assign( "Times New Roman Bold" );
+    else if ( inStdName == "Times-Italic" )
+        altName.assign( "Times New Roman Italic" );
+    else if ( inStdName == "Times-BoldItalic" )
+        altName.assign( "Times New Roman Bold Italic" );
+    else if ( inStdName == "ZapfDingbats" )
+        altName.assign( "Zapf Dingbats" );
 
-	// if we haven't already found it, try doing common subs
-	if ( altName.empty() ) {
-		int j = 0;
-		bool	foundSpace = false;
-		for ( int i=0; i<inStdName.length(); i++ ) {
-			if ( inStdName[i] == ',' ) {
-				altName += ' ';
-			} else if ( inStdName[i] == '-' ) {
-				if ( !foundSpace ) {
-					altName += ' ';
-					foundSpace = true;
-				} else {
-					// do nothing, we skip over it!
-				}
-			} else {
-				altName += inStdName[i];
-			}
-		}
-	}
+    // if we haven't already found it, try doing common subs
+    if ( altName.empty() ) {
+        int j = 0;
+        bool	foundSpace = false;
+        for ( int i=0; i<inStdName.length(); i++ ) {
+            if ( inStdName[i] == ',' ) {
+                altName += ' ';
+            } else if ( inStdName[i] == '-' ) {
+                if ( !foundSpace ) {
+                    altName += ' ';
+                    foundSpace = true;
+                } else {
+                    // do nothing, we skip over it!
+                }
+            } else {
+                altName += inStdName[i];
+            }
+        }
+    }
 
-	return altName;
+    return altName;
 }
 
 std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
@@ -819,7 +820,7 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
         error = My_FT_GetFile_From_Mac_ATS_Name( const_cast<char*>(altName.c_str()), &fSpec, &fIndex );
         if ( error ) {
             // mLog.Debug( boost::format("Unable to locate - trying as Postscript\n") );
-            
+
             // see if this is a Postscript name...
             CFStringRef    cstr = CFStringCreateWithCString( NULL, pszFontname, kCFStringEncodingUTF8 );
             if ( cstr != NULL ) {
@@ -834,7 +835,7 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
             }
         }
     }
-    
+
     if ( !error ) {
         FSRef	 	ref;
         OSErr   err = FSpMakeFSRef( &fSpec, &ref );
@@ -861,14 +862,14 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
                     }
                     char*	fontBuffer = (char*)ASmalloc( fontBufferLen );
                     memcpy( fontBuffer, fontBufStr.c_str(), fontBufferLen );
-                    
+
                     CPDFFTFont*	ftFont = new CPDFFTFont( *this, fontBuffer, fontBufferLen, fIndex );
 #endif
                     retFont = reinterpret_cast< CPDFFont* >( ftFont );
                 } else if ( fontPath.find( ".dfont" ) != fontPath.npos ) {
                     char*	fontBuffer = NULL;
                     ASInt32	fontBufferLen = 0;
-                    
+
                     // mLog.Debug( boost::format("Found a matching .dfont for '%s', index %d\n") % pszFontname % fIndex );
                     FT_Error dfErr = LoadFontFromDFont( mLog, ref, fSpec, pszFontname, fIndex, &fontBuffer, fontBufferLen );
                     if ( !dfErr ) {
@@ -878,7 +879,7 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
                 } else {
                     char*	fontBuffer = NULL;
                     ASInt32	fontBufferLen = 0;
-	
+
                     fSpec.name[ fSpec.name[0]+1 ] = 0;	// zero term for C func
                     // mLog.Debug( boost::format("Found a matching CLASSIC font for '%s' at '%s', index %d\n") % pszFontname % &fSpec.name[1] % fIndex );
                     FT_Error dfErr = 0;
@@ -899,7 +900,7 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
                     }
                 }
             } else {
-	    	// mLog.Debug( boost::format("Unable to locate a matching font for '%s'\n") % pszFontname );
+            // mLog.Debug( boost::format("Unable to locate a matching font for '%s'\n") % pszFontname );
             }
 
             free( path );
@@ -911,7 +912,7 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
     }
 }
 
-#endif // apple 
+#endif // apple
 
 double PdfFontMetrics::StringWidth( const char* pszText, pdf_long nLength ) const
 {
@@ -924,9 +925,11 @@ double PdfFontMetrics::StringWidth( const char* pszText, pdf_long nLength ) cons
         nLength = strlen( pszText );
 
     const char *localText = pszText;
-    for ( pdf_long i=0; i<nLength; i++ ) 
+    for ( pdf_long i=0; i<nLength; i++ )
     {
         dWidth += CharWidth( *localText );
+        if (*localText == 0x20)
+            dWidth += m_fWordSpace;
         localText++;
     }
 
@@ -936,28 +939,32 @@ double PdfFontMetrics::StringWidth( const char* pszText, pdf_long nLength ) cons
 double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, unsigned int nLength ) const
 {
     double dWidth = 0.0;
+    unsigned short uChar;
 
     if( !pszText )
         return dWidth;
 
     if( !nLength )
     {
-	const pdf_utf16be* pszCount = pszText;
-	while( *pszCount )
-	{
-	    ++pszCount;
-	    ++nLength;
-	}
+    const pdf_utf16be* pszCount = pszText;
+    while( *pszCount )
+    {
+        ++pszCount;
+        ++nLength;
     }
-    
+    }
+
     const pdf_utf16be* localText = pszText;
-    for ( unsigned int i=0; i<nLength; i++ ) 
+    for ( unsigned int i=0; i<nLength; i++ )
     {
 #ifdef PODOFO_IS_LITTLE_ENDIAN
-        dWidth += UnicodeCharWidth(static_cast<unsigned short>(((*localText & 0x00ff) << 8 | (*localText & 0xff00) >> 8)) );
+        uChar = static_cast<unsigned short>(((*localText & 0x00ff) << 8 | (*localText & 0xff00) >> 8));
 #else
-        dWidth += UnicodeCharWidth(static_cast<unsigned short>(*localText) );
+        uChar = static_cast<unsigned short>(*localText);
 #endif // PODOFO_IS_LITTLE_ENDIAN
+        dWidth += UnicodeCharWidth( uChar );
+        if ( uChar == 0x0020 )
+            dWidth += m_fWordSpace;
         localText++;
     }
 
@@ -978,9 +985,11 @@ double PdfFontMetrics::StringWidth( const wchar_t* pszText, unsigned int nLength
         nLength = static_cast<unsigned int>(wcslen( pszText ));
 
     const wchar_t *localText = pszText;
-    for ( unsigned int i=0; i<nLength; i++ ) 
+    for ( unsigned int i=0; i<nLength; i++ )
     {
         dWidth += CharWidth( static_cast<int>(*localText) );
+        if ( static_cast<int>(*localText) == 0x0020 )
+            dWidth += m_fWordSpace;
         localText++;
     }
 
