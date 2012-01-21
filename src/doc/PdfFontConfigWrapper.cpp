@@ -36,12 +36,8 @@ PdfFontConfigWrapper::PdfFontConfigWrapper()
 {
     this->m_pFontConfig = new TRefCountedFontConfig();
     this->m_pFontConfig->m_lRefCount = 1;
-#if defined(PODOFO_HAVE_FONTCONFIG)
-    {
-        Util::PdfMutexWrapper mutex(m_FcMutex);
-        this->m_pFontConfig->m_pFcConfig = static_cast<void*>(FcInitLoadConfigAndFonts());
-    }
-#endif
+    this->m_pFontConfig->m_bInitialized = false;
+    this->m_pFontConfig->m_pFcConfig = NULL;
 }
 
 PdfFontConfigWrapper::PdfFontConfigWrapper(const PdfFontConfigWrapper & rhs)
@@ -77,18 +73,34 @@ void PdfFontConfigWrapper::DerefBuffer()
     if ( m_pFontConfig && !(--m_pFontConfig->m_lRefCount) )
     {
 #if defined(PODOFO_HAVE_FONTCONFIG)
+        if( this->m_pFontConfig->m_bInitialized )
         {
             Util::PdfMutexWrapper mutex(m_FcMutex);
             FcConfigDestroy( static_cast<FcConfig*>(m_pFontConfig->m_pFcConfig) );
         }
+#endif
 
         delete m_pFontConfig;
-#endif
     }
 
     // Whether or not it still exists, we no longer have anything to do with
     // the buffer we just released our claim on.
     m_pFontConfig = NULL;
+}
+
+void PdfFontConfigWrapper::InitializeFontConfig() 
+{
+#if defined(PODOFO_HAVE_FONTCONFIG)
+    if( !this->m_pFontConfig->m_bInitialized )
+    {
+        Util::PdfMutexWrapper mutex(m_FcMutex);
+        if( !this->m_pFontConfig->m_bInitialized ) 
+        {
+            this->m_pFontConfig->m_pFcConfig = static_cast<void*>(FcInitLoadConfigAndFonts());
+            this->m_pFontConfig->m_bInitialized = true;
+        }
+    }
+#endif
 }
 
 };

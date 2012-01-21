@@ -291,6 +291,15 @@ class PODOFO_DOC_API PdfFontCache {
      */
     inline FT_Library GetFontLibrary() const;
 
+    /**
+     * Set wrapper for the fontconfig library.
+     * Useful to avoid initializing Fontconfig multiple times.
+     *
+     * This setter can be called until first use of Fontconfig
+     * as the library is initialized at first use.
+     */
+    inline void SetFontConfigWrapper(const PdfFontConfigWrapper & rFontConfig);
+
  private:
     /**
      * Get the path to a font file for a certain fontname
@@ -376,6 +385,14 @@ class PODOFO_DOC_API PdfFontCache {
 FT_Library PdfFontCache::GetFontLibrary() const
 {
     return this->m_ftLibrary;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfFontCache::SetFontConfigWrapper(const PdfFontConfigWrapper & rFontConfig)
+{
+    m_fontConfig = rFontConfig;
 }
 
 };

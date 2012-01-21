@@ -36,6 +36,8 @@ namespace PoDoFo {
  *
  * This class is reference counted. The last user of the fontconfig library
  * will destroy the fontconfig handle.
+ *
+ * The fontconfig library is initialized on first used (lazy loading!)
  */
 class PODOFO_DOC_API PdfFontConfigWrapper {
 public:
@@ -74,6 +76,11 @@ private:
      */
     void DerefBuffer();
 
+    /**
+     * Do the lazy initialization of fontconfig
+     */
+    void InitializeFontConfig();
+
 private:
 
 #if defined(PODOFO_HAVE_FONTCONFIG)
@@ -83,6 +90,7 @@ private:
     struct TRefCountedFontConfig {
         void* m_pFcConfig;             ///< Handle to fontconfig on unix systems
         long  m_lRefCount;
+        bool  m_bInitialized;          ///< Is fontconfig initialized yet?
     };
 
     TRefCountedFontConfig* m_pFontConfig;
@@ -93,6 +101,7 @@ private:
 // -----------------------------------------------------
 void* PdfFontConfigWrapper::GetFontConfig() 
 {
+    InitializeFontConfig();
     return m_pFontConfig->m_pFcConfig;
 }
 

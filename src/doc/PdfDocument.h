@@ -37,6 +37,7 @@ class PdfDestination;
 class PdfDictionary;
 class PdfFileSpec;
 class PdfFont;
+class PdfFontConfigWrapper;
 class PdfInfo;
 class PdfMemDocument;
 class PdfNamesTree;
@@ -512,6 +513,15 @@ class PODOFO_DOC_API PdfDocument {
      */
     inline const PdfVecObjects* GetObjects() const;
 
+    /**
+     * Set wrapper for the fontconfig library.
+     * Useful to avoid initializing Fontconfig multiple times.
+     *
+     * This setter can be called until first use of Fontconfig
+     * as the library is initialized at first use.
+     */
+    inline void SetFontConfigWrapper(const PdfFontConfigWrapper & rFontConfig);
+
  protected:
     /** Construct a new (empty) PdfDocument
      */
@@ -703,6 +713,14 @@ inline const PdfVecObjects* PdfDocument::GetObjects() const
 inline FT_Library PdfDocument::GetFontLibrary() const
 {
     return this->m_fontCache.GetFontLibrary();
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline void PdfDocument::SetFontConfigWrapper(const PdfFontConfigWrapper & rFontConfig)
+{
+    m_fontCache.SetFontConfigWrapper(rFontConfig);
 }
 
 };
