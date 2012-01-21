@@ -68,6 +68,7 @@ SET(PODOFO_DOC_SOURCES
   doc/PdfFileSpec.cpp
   doc/PdfFontCache.cpp
   doc/PdfFontCID.cpp
+  doc/PdfFontConfigWrapper.cpp
   doc/PdfFont.cpp
   doc/PdfFontFactory.cpp
   doc/PdfFontMetricsBase14.cpp
@@ -186,6 +187,7 @@ SET(PODOFO_DOC_HEADERS
   doc/PdfFileSpec.h
   doc/PdfFontCache.h
   doc/PdfFontCID.h
+  doc/PdfFontConfigWrapper.h
   doc/PdfFontFactoryBase14Data.h
   doc/PdfFontFactory.h
   doc/PdfFont.h
