@@ -91,8 +91,11 @@ void PdfMemDocument::Clear()
         m_pEncrypt = NULL;
     }
 
-    delete m_pParser;
-    m_pParser = NULL;
+    if( m_pParser ) 
+    {
+        delete m_pParser;
+        m_pParser = NULL;
+    }
 
     m_eWriteMode  = ePdfWriteMode_Default;
     PdfDocument::Clear();
