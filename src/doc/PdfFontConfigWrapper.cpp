@@ -33,11 +33,14 @@ Util::PdfMutex PdfFontConfigWrapper::m_FcMutex;
 
 
 PdfFontConfigWrapper::PdfFontConfigWrapper()
+    : m_pFontConfig( NULL )
 {
+#if defined(PODOFO_HAVE_FONTCONFIG)
     this->m_pFontConfig = new TRefCountedFontConfig();
     this->m_pFontConfig->m_lRefCount = 1;
     this->m_pFontConfig->m_bInitialized = false;
     this->m_pFontConfig->m_pFcConfig = NULL;
+#endif
 }
 
 PdfFontConfigWrapper::PdfFontConfigWrapper(const PdfFontConfigWrapper & rhs)
