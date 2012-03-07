@@ -184,24 +184,24 @@ double PdfFontMetricsObject::UnicodeCharWidth( unsigned short c ) const
         return m_dDefWidth;
 }
 
-void PdfFontMetricsObject::GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast ) const
+void PdfFontMetricsObject::GetWidthArray( PdfVariant & var, unsigned int, unsigned int ) const
 {
     var = m_width;
 }
 
-double PdfFontMetricsObject::GetGlyphWidth( int nGlyphId ) const
+double PdfFontMetricsObject::GetGlyphWidth( int ) const
 {
     // TODO
     return 0.0; // OC 13.08.2010 BugFix: Avoid microsoft compiler error
 }
 
-double PdfFontMetricsObject::GetGlyphWidth( const char* pszGlyphname ) const
+double PdfFontMetricsObject::GetGlyphWidth( const char* ) const
 {
     // TODO
     return 0.0;
 }
 
-long PdfFontMetricsObject::GetGlyphId( long lUnicode ) const
+long PdfFontMetricsObject::GetGlyphId( long ) const
 {
     // TODO
     return 0; // OC 13.08.2010 BugFix: Avoid microsoft compiler error

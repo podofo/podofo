@@ -52,14 +52,14 @@ static const char* genStrEscMap()
     const long lAllocLen = 256;
     char* map = static_cast<char*>(g_StrEscMap);
     memset( map, 0, sizeof(char) * lAllocLen );
-    map['\n'] = 'n'; // Line feed (LF)
-    map['\r'] = 'r'; // Carriage return (CR)
-    map['\t'] = 't'; // Horizontal tab (HT)
-    map['\b'] = 'b'; // Backspace (BS)
-    map['\f'] = 'f'; // Form feed (FF)
-    map[')'] = ')';  
-    map['('] = '(';  
-    map['\\'] = '\\';
+    map[static_cast<unsigned char>('\n')] = 'n'; // Line feed (LF)
+    map[static_cast<unsigned char>('\r')] = 'r'; // Carriage return (CR)
+    map[static_cast<unsigned char>('\t')] = 't'; // Horizontal tab (HT)
+    map[static_cast<unsigned char>('\b')] = 'b'; // Backspace (BS)
+    map[static_cast<unsigned char>('\f')] = 'f'; // Form feed (FF)
+    map[static_cast<unsigned char>(')')] = ')';  
+    map[static_cast<unsigned char>('(')] = '(';  
+    map[static_cast<unsigned char>('\\')] = '\\';
 
     return map;
 }
@@ -239,7 +239,9 @@ void PdfString::SetHexData( const char* pszHex, pdf_long lLen, PdfEncrypt* pEncr
 
     while( lLen-- ) 
     {
-        if( PdfTokenizer::IsWhitespace( *pszHex ) )
+        // P.Zent: Wouldn't this mess up encrypted data ?
+        // Disabled if encrypted
+        if( !pEncrypt && PdfTokenizer::IsWhitespace( *pszHex ) )
         {
             ++pszHex;
             continue;
@@ -272,7 +274,7 @@ void PdfString::SetHexData( const char* pszHex, pdf_long lLen, PdfEncrypt* pEncr
     *pBuffer++ = '\0';
     *pBuffer++ = '\0';
 
-    // If the allocated internal buffer is to big (e.g. because of whitespaces in the data)
+    // If the allocated internal buffer is too big (e.g. because of whitespaces in the data)
     // copy to a smaller buffer so that PdfString::GetLength() will be correct
     lLen = pBuffer - m_buffer.GetBuffer();
     if( static_cast<size_t>(lLen) != m_buffer.GetSize() )
@@ -282,9 +284,10 @@ void PdfString::SetHexData( const char* pszHex, pdf_long lLen, PdfEncrypt* pEncr
         m_buffer = temp;
     }
 
+    // P.Zent: Encrypt function needs to know the length of the buffer not counting the offset
     if( pEncrypt )
         pEncrypt->Encrypt( reinterpret_cast<unsigned char*>(m_buffer.GetBuffer()), 
-                           static_cast<unsigned int>(m_buffer.GetSize()-2) );
+                           static_cast<unsigned int>(m_buffer.GetSize()-2) - pEncrypt->CalculateStreamOffset() );
 
     // Now check for the first two bytes, to see if we got a unicode string
     if( m_buffer.GetSize()-2 > 2 ) 
@@ -316,32 +319,23 @@ void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
         pdf_long nOutputLen = pEncrypt->CalculateStreamLength( (m_bUnicode ? nLen + 2 : nLen) );
         
         char* pBuffer = new char [nOutputLen + 1];
+        memset(pBuffer, 0, nOffset);
         memcpy(&pBuffer[nOffset], this->GetString(), this->GetLength());
         
         std::string enc = std::string(pBuffer, nOutputLen);
         if( m_bUnicode )
         {
             std::string tmp( reinterpret_cast<const char*>(&PdfString::s_pszUnicodeMarker), 2 );
-
-            if( pEncrypt->GetEncryptAlgorithm() == PdfEncrypt::ePdfEncryptAlgorithm_AESV2 )
-            {
-                // Insert after the initial vector
-                enc.insert(16,tmp);
-                enc.erase(nOutputLen,std::string::npos);  
-            }
-            else
-            {
-                enc.insert(0,tmp);
-                enc.erase(nOutputLen,std::string::npos);  
-        }
-	
+            
+            // Insert after the initial vector
+            enc.insert(nOffset,tmp);
+            enc.erase(nOutputLen,std::string::npos);
+            
             // Add two bytes for the s_pszUnicodeMarker
             pEncrypt->Encrypt(enc, nLen + 2 );
         }
         else
-        {
-        pEncrypt->Encrypt(enc, nLen );
-        }
+            pEncrypt->Encrypt(enc, nLen );
 
         PdfString str( enc.c_str(), enc.length(), true );
         str.Write( pDevice, eWriteMode, NULL );

@@ -47,6 +47,7 @@
 #cmakedefine PODOFO_HAVE_LUA
 #cmakedefine PODOFO_HAVE_BOOST
 #cmakedefine PODOFO_HAVE_CPPUNIT
+#cmakedefine PODOFO_HAVE_CRYPTO_LIBS
 
 /* Platform quirks */
 #cmakedefine PODOFO_JPEG_RUNTIME_COMPATIBLE

@@ -21,6 +21,7 @@
 #ifndef _ENCRYPT_TEST_H_
 #define _ENCRYPT_TEST_H_
 
+#include <podofo.h>
 #include <cppunit/extensions/HelperMacros.h>
 
 namespace PoDoFo {
@@ -39,7 +40,10 @@ class EncryptTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testRC4v2_80 );
   CPPUNIT_TEST( testRC4v2_96 );
   CPPUNIT_TEST( testRC4v2_128 );
-  CPPUNIT_TEST( testAES );
+  CPPUNIT_TEST( testAESV2 );
+#ifdef PODOFO_HAVE_CRYPTO_LIBS
+  CPPUNIT_TEST( testAESV3 );
+#endif // PODOFO_HAVE_CRYPTO_LIBS
   CPPUNIT_TEST( testLoadEncrypedFilePdfParser );
   CPPUNIT_TEST( testLoadEncrypedFilePdfMemDocument );
   CPPUNIT_TEST( testEnableAlgorithms );
@@ -56,7 +60,10 @@ class EncryptTest : public CppUnit::TestFixture
   void testRC4v2_80();
   void testRC4v2_96();
   void testRC4v2_128();
-  void testAES();
+  void testAESV2();
+#ifdef PODOFO_HAVE_CRYPTO_LIBS
+  void testAESV3();
+#endif // PODOFO_HAVE_CRYPTO_LIBS
 
   void testLoadEncrypedFilePdfParser();
   void testLoadEncrypedFilePdfMemDocument();

@@ -1163,15 +1163,20 @@ pdf_long PdfRijndael::padEncrypt(const pdf_uint8 *input, pdf_long inputOctets, p
         input += 16;
         outBuffer += 16;
       }
-      padLen = 16 - (inputOctets - 16*numBlocks);
-//      assert(padLen > 0 && padLen <= 16); // DO SOMETHING HERE ?
-      for (i = 0; i < 16 - padLen; i++) {
-        block[i] = static_cast<pdf_uint8> (input[i] ^ iv[i]);
+      
+      // P.Zent: Continue with padding only if some data is left (1 incomplete block) on encrypt (decrypt should always be %16 == 0)
+      if(inputOctets - 16*numBlocks > 0)
+      {
+          padLen = 16 - (inputOctets - 16*numBlocks);
+        //      assert(padLen > 0 && padLen <= 16); // DO SOMETHING HERE ?
+          for (i = 0; i < 16 - padLen; i++) {
+            block[i] = static_cast<pdf_uint8> (input[i] ^ iv[i]);
+          }
+          for (i = 16 - padLen; i < 16; i++) {
+              block[i] = static_cast<pdf_uint8> (static_cast<pdf_uint8>( padLen ) ^ iv[i]);
+          }
+          encrypt(block,outBuffer);
       }
-      for (i = 16 - padLen; i < 16; i++) {
-          block[i] = static_cast<pdf_uint8> (static_cast<pdf_uint8>( padLen ) ^ iv[i]);
-      }
-      encrypt(block,outBuffer);
     break;
     case CFB1:
     default:

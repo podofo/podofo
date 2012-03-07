@@ -673,6 +673,7 @@ double PdfVariant::GetReal() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 const PdfData & PdfVariant::GetRawData() const
 {
@@ -687,7 +688,7 @@ const PdfData & PdfVariant::GetRawData() const
     // because a reinterpret_cast might point to a different position.
     return *((PdfData*)m_Data.pData);
 }
-#pragma GCC diagnostic ignored "-Wold-style-cast" pop
+#pragma GCC diagnostic pop
 
 
 PdfData & PdfVariant::GetRawData()

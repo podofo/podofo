@@ -123,7 +123,7 @@ PdfRefCountedBuffer PdfIdentityEncoding::ConvertToEncoding( const PdfString & rS
     return buffer;
 }
 
-pdf_utf16be PdfIdentityEncoding::GetUnicodeValue( long lCharCode ) const
+pdf_utf16be PdfIdentityEncoding::GetUnicodeValue( long ) const
 {
     return 0;
 }

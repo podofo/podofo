@@ -160,9 +160,22 @@ void PdfWriter::Write( PdfOutputDevice* pDevice )
         } catch( PdfError & e ) {
             // Make sure pXRef is always deleted
             delete pXRef;
+            
+            // P.Zent: Delete Encryption dictionary (cannot be reused)
+            if(m_pEncryptObj) {
+                m_vecObjects->RemoveObject(m_pEncryptObj->Reference());
+                delete m_pEncryptObj;
+            }
+            
             e.AddToCallstack( __FILE__, __LINE__ );
             throw e;
         }
+    }
+    
+    // P.Zent: Delete Encryption dictionary (cannot be reused)
+    if(m_pEncryptObj) {
+        m_vecObjects->RemoveObject(m_pEncryptObj->Reference());
+        delete m_pEncryptObj;
     }
 }
 
@@ -595,7 +608,7 @@ void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* p
     pInfo->WriteObject( &device, m_eWriteMode, NULL );
 
     // calculate the MD5 Sum
-    identifier = PdfEncrypt::GetMD5String( reinterpret_cast<unsigned char*>(pBuffer),
+    identifier = PdfEncryptMD5Base::GetMD5String( reinterpret_cast<unsigned char*>(pBuffer),
                                            static_cast<unsigned int>(length.GetLength()) );
     free( pBuffer );
 

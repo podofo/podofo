@@ -20,7 +20,6 @@
 
 #include "EncryptTest.h"
 #include "TestUtils.h"
-#include <podofo.h>
 
 #include <stdlib.h>
 
@@ -140,7 +139,7 @@ void EncryptTest::testRC4v2_128()
     delete pEncrypt;
 }
 
-void EncryptTest::testAES() 
+void EncryptTest::testAESV2() 
 {
     PdfEncrypt* pEncrypt = PdfEncrypt::CreatePdfEncrypt( "user", "podofo", m_protection, 
                                                          PdfEncrypt::ePdfEncryptAlgorithm_AESV2, 
@@ -154,6 +153,22 @@ void EncryptTest::testAES()
     delete pEncrypt;
 }
 
+#ifdef PODOFO_HAVE_CRYPTO_LIBS
+void EncryptTest::testAESV3() 
+{
+    PdfEncrypt* pEncrypt = PdfEncrypt::CreatePdfEncrypt( "user", "podofo", m_protection, 
+                                                        PdfEncrypt::ePdfEncryptAlgorithm_AESV3, 
+                                                        PdfEncrypt::ePdfKeyLength_256 );
+    
+    TestAuthenticate( pEncrypt, 256, 5 );
+    // AES decryption is not yet implemented.
+    // Therefore we have to disable this test.
+    // TestEncrypt( pEncrypt );
+    
+    delete pEncrypt;
+}
+#endif // PODOFO_HAVE_CRYPTO_LIBS
+
 void EncryptTest::TestAuthenticate( PdfEncrypt* pEncrypt, int keyLength, int rValue ) 
 {
     PdfString documentId;
@@ -161,22 +176,18 @@ void EncryptTest::TestAuthenticate( PdfEncrypt* pEncrypt, int keyLength, int rVa
 
     pEncrypt->GenerateEncryptionKey( documentId );
 
-    std::string documentIdStr( documentId.GetString(), documentId.GetLength() );
-    std::string password = "user";
-    std::string uValue( reinterpret_cast<const char*>(pEncrypt->GetUValue()), 32 );
-    std::string oValue( reinterpret_cast<const char*>(pEncrypt->GetOValue()), 32 );
-
-    // Authenticate using user password
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "authenticate using user password",
-                                  pEncrypt->Authenticate( documentIdStr, std::string("user"),
-                                                          uValue, oValue, pEncrypt->GetPValue(), keyLength, rValue ),
-                                  true );
-
-    // Authenticate using owner password
+                                 pEncrypt->Authenticate(std::string("user"), documentId),
+                                 true );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "authenticate using wrong user password",
+                                 pEncrypt->Authenticate(std::string("wrongpassword"), documentId),
+                                 false );
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "authenticate using owner password",
-                                  pEncrypt->Authenticate( documentIdStr, std::string("podofo"), 
-                                                          uValue, oValue, pEncrypt->GetPValue(), keyLength, rValue ),
-                                  true );
+                                 pEncrypt->Authenticate(std::string("podofo"), documentId),
+                                 true );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "authenticate using wrong owner password",
+                                 pEncrypt->Authenticate(std::string("wrongpassword"), documentId),
+                                 false );
 }
 
 void EncryptTest::TestEncrypt( PdfEncrypt* pEncrypt ) 
@@ -186,18 +197,17 @@ void EncryptTest::TestEncrypt( PdfEncrypt* pEncrypt )
     int nOutputLen = pEncrypt->CalculateStreamLength(m_lLen);
     int nOffset = pEncrypt->CalculateStreamOffset();
 
-    char *pOutputBuffer = new char[nOutputLen+1];
+    unsigned char *pOutputBuffer = new unsigned char[nOutputLen+1];
+    memset(pOutputBuffer, 0, nOffset);
     memcpy(&pOutputBuffer[nOffset], m_pEncBuffer, m_lLen);
 
     // Encrypt buffer
-    pEncrypt->Encrypt( reinterpret_cast<unsigned char*>(pOutputBuffer), m_lLen );
-
+    pEncrypt->Encrypt( pOutputBuffer, m_lLen );
     // Decrypt buffer
-    pEncrypt->Encrypt( reinterpret_cast<unsigned char*>(pOutputBuffer), m_lLen );
-
+    pEncrypt->Encrypt( pOutputBuffer, m_lLen );
 
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "compare encrypted and decrypted buffer",
-                                  0, memcmp( m_pEncBuffer, pOutputBuffer, m_lLen ) );
+                                  0, memcmp( m_pEncBuffer, pOutputBuffer+nOffset, m_lLen ) );
 
     delete[] pOutputBuffer;
 }
@@ -306,10 +316,16 @@ void EncryptTest::testEnableAlgorithms()
     CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 ) );
     CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_RC4V2 ) );
     CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_AESV2 ) );
-
+#ifdef PODOFO_HAVE_CRYPTO_LIBS
+    CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_AESV3 ) );
+#endif // PODOFO_HAVE_CRYPTO_LIBS
     CPPUNIT_ASSERT_EQUAL( PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 |
                           PdfEncrypt::ePdfEncryptAlgorithm_RC4V2 |
-                          PdfEncrypt::ePdfEncryptAlgorithm_AESV2,
+                          PdfEncrypt::ePdfEncryptAlgorithm_AESV2
+#ifdef PODOFO_HAVE_CRYPTO_LIBS
+                          | PdfEncrypt::ePdfEncryptAlgorithm_AESV3
+#endif // PODOFO_HAVE_CRYPTO_LIBS
+                                                                   ,
                           PdfEncrypt::GetEnabledEncryptionAlgorithms() );
     // Disable AES
     PdfEncrypt::SetEnabledEncryptionAlgorithms( PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 |

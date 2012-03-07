@@ -47,6 +47,12 @@ void encrypt( const char* pszInput, const char* pszOutput,
             eKeyLength = PdfEncrypt::ePdfKeyLength_40;
             eVersion   = ePdfVersion_1_3;
             break;
+#ifdef PODOFO_HAVE_CRYPTO_LIBS
+        case PdfEncrypt::ePdfEncryptAlgorithm_AESV3:;
+            eKeyLength = PdfEncrypt::ePdfKeyLength_256;
+            eVersion   = ePdfVersion_1_7;
+            break;
+#endif // PODOFO_HAVE_CRYPTO_LIBS
         case PdfEncrypt::ePdfEncryptAlgorithm_RC4V2:
         case PdfEncrypt::ePdfEncryptAlgorithm_AESV2:
         default:
@@ -68,14 +74,15 @@ void encrypt( const char* pszInput, const char* pszOutput,
 
 void print_help()
 {
-    printf("Usage: podofoencrypt [--rc4v1] [--rc4v2] [--aes] [-u <userpassword>]\n");
+    printf("Usage: podofoencrypt [--rc4v1] [--rc4v2] [--aesv2] [--aesv3] [-u <userpassword>]\n");
     printf("                     -o <ownerpassword> <inputfile> <outputfile>\n\n");
     printf("       This tool encrypts an existing PDF file.\n\n");
     printf("       --help        Display this help text\n");
     printf(" Algorithm:\n");
     printf("       --rc4v1       Use rc4v1 encryption\n");
     printf("       --rc4v2       Use rc4v2 encryption (Default value)\n");
-    printf("       --aes         Use aes encryption (currently not supported)\n");
+    printf("       --aesv2       Use aes-128 encryption\n");
+    printf("       --aesv3       Use aes-256 encryption\n");
     printf(" Passwords:\n");
     printf("       -u <password> An optional userpassword\n");
     printf("       -o <password> The required owner password\n");
@@ -115,10 +122,12 @@ int main( int argc, char* argv[] )
               eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_RC4V1;
           else if( strcmp( argv[i], "--rc4v2" ) == 0 ) 
               eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_RC4V2;
-          else if( strcmp( argv[i], "--aes" ) == 0 ) 
-          {              
+          else if( strcmp( argv[i], "--aesv2" ) == 0 ) 
               eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_AESV2;
-          }
+#ifdef PODOFO_HAVE_CRYPTO_LIBS
+          else if( strcmp( argv[i], "--aesv3" ) == 0 ) 
+              eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_AESV3;
+#endif // PODOFO_HAVE_CRYPTO_LIBS
           else if( strcmp( argv[i], "-u" ) == 0 ) 
           {
               ++i;

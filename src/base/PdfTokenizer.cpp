@@ -88,14 +88,14 @@ const char* genEscMap()
     char* map = static_cast<char*>(g_EscMap);
     memset( map, 0, sizeof(char) * g_MapAllocLen );
 
-    map['n'] = '\n'; // Line feed (LF)
-    map['r'] = '\r'; // Carriage return (CR)
-    map['t'] = '\t'; // Horizontal tab (HT)
-    map['b'] = '\b'; // Backspace (BS)
-    map['f'] = '\f'; // Form feed (FF)
-    map[')'] = ')';  
-    map['('] = '(';  
-    map['\\'] = '\\';
+    map[static_cast<unsigned char>('n')] = '\n'; // Line feed (LF)
+    map[static_cast<unsigned char>('r')] = '\r'; // Carriage return (CR)
+    map[static_cast<unsigned char>('t')] = '\t'; // Horizontal tab (HT)
+    map[static_cast<unsigned char>('b')] = '\b'; // Backspace (BS)
+    map[static_cast<unsigned char>('f')] = '\f'; // Form feed (FF)
+    map[static_cast<unsigned char>(')')] = ')';  
+    map[static_cast<unsigned char>('(')] = '(';  
+    map[static_cast<unsigned char>('\\')] = '\\';
 
     return map;
 }
@@ -106,28 +106,28 @@ const char* genHexMap()
     char* map = static_cast<char*>(g_hexMap);
     memset( map, PdfTokenizer::HEX_NOT_FOUND, sizeof(char) * g_MapAllocLen );
     
-    map['0'] = 0x0;
-    map['1'] = 0x1;
-    map['2'] = 0x2;
-    map['3'] = 0x3;
-    map['4'] = 0x4;
-    map['5'] = 0x5;
-    map['6'] = 0x6;
-    map['7'] = 0x7;
-    map['8'] = 0x8;
-    map['9'] = 0x9;
-    map['a'] = 0xA;
-    map['b'] = 0xB;
-    map['c'] = 0xC;
-    map['d'] = 0xD;
-    map['e'] = 0xE;
-    map['f'] = 0xF;
-    map['A'] = 0xA;
-    map['B'] = 0xB;
-    map['C'] = 0xC;
-    map['D'] = 0xD;
-    map['E'] = 0xE;
-    map['F'] = 0xF;
+    map[static_cast<unsigned char>('0')] = 0x0;
+    map[static_cast<unsigned char>('1')] = 0x1;
+    map[static_cast<unsigned char>('2')] = 0x2;
+    map[static_cast<unsigned char>('3')] = 0x3;
+    map[static_cast<unsigned char>('4')] = 0x4;
+    map[static_cast<unsigned char>('5')] = 0x5;
+    map[static_cast<unsigned char>('6')] = 0x6;
+    map[static_cast<unsigned char>('7')] = 0x7;
+    map[static_cast<unsigned char>('8')] = 0x8;
+    map[static_cast<unsigned char>('9')] = 0x9;
+    map[static_cast<unsigned char>('a')] = 0xA;
+    map[static_cast<unsigned char>('b')] = 0xB;
+    map[static_cast<unsigned char>('c')] = 0xC;
+    map[static_cast<unsigned char>('d')] = 0xD;
+    map[static_cast<unsigned char>('e')] = 0xE;
+    map[static_cast<unsigned char>('f')] = 0xF;
+    map[static_cast<unsigned char>('A')] = 0xA;
+    map[static_cast<unsigned char>('B')] = 0xB;
+    map[static_cast<unsigned char>('C')] = 0xC;
+    map[static_cast<unsigned char>('D')] = 0xD;
+    map[static_cast<unsigned char>('E')] = 0xE;
+    map[static_cast<unsigned char>('F')] = 0xF;
     
     return map;
 }
@@ -711,9 +711,10 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
     if( bOctEscape )
         m_vecBuffer.push_back ( cOctValue );
 
+    // P.Zent: Encrypt function needs to know the length of the buffer not counting the offset
     if( pEncrypt && m_vecBuffer.size() )
         pEncrypt->Encrypt( reinterpret_cast<unsigned char*>(&(m_vecBuffer[0])), 
-                           static_cast<unsigned int>(m_vecBuffer.size()) );
+                           static_cast<unsigned int>(m_vecBuffer.size()) - pEncrypt->CalculateStreamOffset() );
 
     if( m_vecBuffer.size() )
         rVariant = PdfString( &(m_vecBuffer[0]), m_vecBuffer.size() );

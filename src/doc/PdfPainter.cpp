@@ -893,7 +893,7 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
 	assert(stringUtf16.size() > 0);	
     const pdf_long converted = PdfString::ConvertUTF8toUTF16(
 	    reinterpret_cast<const pdf_utf8*>(stringUtf8.c_str()), &stringUtf16[0], stringUtf16.size());
-	const pdf_long len = rsText.GetCharacterLength();
+	//const pdf_long len = rsText.GetCharacterLength();
     assert( converted == (rsText.GetCharacterLength() + 1) );
 
 	const pdf_utf16be* const stringUtf16Begin = &stringUtf16[0];

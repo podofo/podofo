@@ -246,7 +246,7 @@ static void JPegErrorExit(j_common_ptr cinfo)
     PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedImageFormat, buffer);
 }
 
-static void JPegErrorOutput(j_common_ptr cinfo, int msg_level)
+static void JPegErrorOutput(j_common_ptr, int)
 {
 }
 
@@ -674,7 +674,7 @@ void PdfImage::LoadFromPng( const char* pszFilename )
     long lLen = static_cast<long>(png_get_rowbytes(pPng, pInfo) * height);
     char* pBuffer = static_cast<char*>(malloc(sizeof(char) * lLen));
     png_bytepp pRows = static_cast<png_bytepp>(malloc(sizeof(png_bytep)*height));
-    for(int y=0; y<height; y++)
+    for(unsigned int y=0; y<height; y++)
     {
         pRows[y] = reinterpret_cast<png_bytep>(pBuffer + (y * png_get_rowbytes(pPng, pInfo)));
     }
