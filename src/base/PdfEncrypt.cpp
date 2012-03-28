@@ -38,17 +38,13 @@
 // SASL
 #include <stringprep.h>
 
-// Ignore CryptoPP warnings
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wunused-function"
-#pragma GCC diagnostic ignored "-Wtautological-compare"
-#pragma GCC diagnostic ignored "-Wtype-limits"
 // SHA-256
-#include <cryptopp/sha.h>
-// AES-128/256
-//#include <cryptopp/rijndael.h>
-#pragma GCC diagnostic pop
+#if defined(__APPLE__)
+#define COMMON_DIGEST_FOR_OPENSSL
+#include <CommonCrypto/CommonDigest.h>
+#else
+#include <openssl/sha.h>
+#endif
 #endif // PODOFO_HAVE_CRYPTO_LIBS
 
 #include "PdfRijndael.h"
@@ -840,10 +836,13 @@ void PdfEncryptSHABase::ComputeUserKey(const unsigned char * userpswd, int len)
     
     // Generate hash for U
     unsigned char hashValue[32];
-    CryptoPP::SHA256 hash;
-    hash.Update(userpswd, len);
-    hash.Update(vSalt, 8);
-    hash.Final(hashValue);
+    
+    SHA256_CTX context;
+    SHA256_Init(&context);
+    
+    SHA256_Update(&context, userpswd, len);
+    SHA256_Update(&context, vSalt, 8);
+    SHA256_Final(hashValue, &context);
     
     // U = hash + validation salt + key salt
     memcpy(m_uValue, hashValue, 32);
@@ -851,9 +850,10 @@ void PdfEncryptSHABase::ComputeUserKey(const unsigned char * userpswd, int len)
     memcpy(m_uValue+32+8, kSalt, 8);
     
     // Generate hash for UE
-    hash.Update(userpswd, len);
-    hash.Update(kSalt, 8);
-    hash.Final(hashValue);
+    SHA256_Init(&context);
+    SHA256_Update(&context, userpswd, len);
+    SHA256_Update(&context, kSalt, 8);
+    SHA256_Final(hashValue, &context);
     
     // UE = AES-256 encoded file encryption key with key=hash
     // CBC mode, no padding, init vector=0
@@ -882,11 +882,12 @@ void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char * ownerpswd, int len
     
     // Generate hash for O
     unsigned char hashValue[32];
-    CryptoPP::SHA256 hash;
-    hash.Update(ownerpswd, len);
-    hash.Update(vSalt, 8);
-    hash.Update(m_uValue, 48);
-    hash.Final(hashValue);
+    SHA256_CTX context;
+    SHA256_Init(&context);
+    SHA256_Update(&context, ownerpswd, len);
+    SHA256_Update(&context, vSalt, 8);
+    SHA256_Update(&context, m_uValue, 48);
+    SHA256_Final(hashValue, &context);
     
     // O = hash + validation salt + key salt
     memcpy(m_oValue, hashValue, 32);
@@ -894,10 +895,11 @@ void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char * ownerpswd, int len
     memcpy(m_oValue+32+8, kSalt, 8);
     
     // Generate hash for OE
-    hash.Update(ownerpswd, len);
-    hash.Update(kSalt, 8);
-    hash.Update(m_uValue, 48);
-    hash.Final(hashValue);
+    SHA256_Init(&context);
+    SHA256_Update(&context, ownerpswd, len);
+    SHA256_Update(&context, kSalt, 8);
+    SHA256_Update(&context, m_uValue, 48);
+    SHA256_Final(hashValue, &context);
     
     // OE = AES-256 encoded file encryption key with key=hash
     // CBC mode, no padding, init vector=0
@@ -954,10 +956,11 @@ bool PdfEncryptAESV3::Authenticate( const std::string & password, const PdfStrin
     memcpy(valSalt, &m_uValue[32], 8);
     memcpy(keySalt, &m_uValue[40], 8);
     unsigned char hashValue[32];
-    CryptoPP::SHA256 hash;
-    hash.Update(pswd_sasl, pswdLen);
-    hash.Update(valSalt, 8);
-    hash.Final(hashValue);
+    SHA256_CTX context;
+    SHA256_Init(&context);
+    SHA256_Update(&context, pswd_sasl, pswdLen);
+    SHA256_Update(&context, valSalt, 8);
+    SHA256_Final(hashValue, &context);
     
     ok = CheckKey(hashValue, m_uValue);
     if(!ok)
@@ -965,10 +968,11 @@ bool PdfEncryptAESV3::Authenticate( const std::string & password, const PdfStrin
         // Test 2: is it the owner key ?
         memcpy(valSalt, &m_oValue[32], 8);
         memcpy(keySalt, &m_oValue[40], 8);
-        hash.Update(pswd_sasl, pswdLen);
-        hash.Update(valSalt, 8);
-        hash.Update(m_uValue, 48);
-        hash.Final(hashValue);
+        SHA256_Init(&context);
+        SHA256_Update(&context, pswd_sasl, pswdLen);
+        SHA256_Update(&context, valSalt, 8);
+        SHA256_Update(&context, m_uValue, 48);
+        SHA256_Final(hashValue, &context);
         
         ok = CheckKey(hashValue, m_oValue);
         

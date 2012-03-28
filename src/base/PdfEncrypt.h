@@ -25,10 +25,6 @@
 #include "PdfString.h"
 #include "PdfReference.h"
 
-/*namespace CryptoPP {
-    class Rijndael;
-}*/
-
 namespace PoDoFo {
 
 class PdfDictionary;
