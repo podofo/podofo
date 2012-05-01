@@ -324,7 +324,7 @@ public:
     const unsigned char* GetEncryptionKey() const { return m_encryptionKey; }
     
     /// Get the P object value (protection)
-    int GetPValue() const { return m_pValue; }
+    pdf_int32 GetPValue() const { return m_pValue; }
     
     /// Get the revision number of the encryption method
     int GetRevision() const { return m_rValue; }
@@ -364,7 +364,7 @@ protected:
     EPdfEncryptAlgorithm m_eAlgorithm;   ///< The used encryption algorithm
     int            m_keyLength;          ///< Length of encryption key
     int            m_rValue;             ///< Revision
-    int            m_pValue;             ///< P entry in pdf document
+    pdf_int32      m_pValue;             ///< P entry in pdf document
     EPdfKeyLength  m_eKeyLength;         ///< The key length
     std::string    m_userPass;           ///< User password
     std::string    m_ownerPass;          ///< Owner password
@@ -737,7 +737,6 @@ void PdfEncrypt::SetCurrentReference( const PdfReference & rRef )
 // -----------------------------------------------------
 bool PdfEncrypt::IsPrintAllowed() const
 {
-    // TODO: Check is this is correct (+/- 1 required ???)
     return (m_pValue & ePdfPermissions_Print) == ePdfPermissions_Print;
 }
 

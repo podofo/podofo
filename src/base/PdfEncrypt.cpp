@@ -73,6 +73,9 @@ ePdfEncryptAlgorithm_AESV2;
 
 #endif // PODOFO_HAVE_CRYPTO_LIBS
 
+// Default value for P (permissions) = no permission
+#define PERMS_DEFAULT 0xFFFFF0C0
+    
 /** A class that can encrypt/decrpyt streamed data block wise
  *  This is used in the input and output stream encryption implementation.
  *  Only the RC4 encryption algorithm is supported
@@ -1422,7 +1425,7 @@ PdfEncryptAESV2::PdfEncryptAESV2( const std::string & userPassword, const std::s
     memset(m_encryptionKey, 0 ,32);
     
     // Compute P value
-    m_pValue = -((protection ^ 255) + 1);
+    m_pValue = PERMS_DEFAULT | protection;
 }
 
 #ifdef PODOFO_HAVE_CRYPTO_LIBS
@@ -1445,7 +1448,7 @@ PdfEncryptAESV3::PdfEncryptAESV3( const std::string & userPassword, const std::s
     memset(m_oeValue, 0 ,32);
     
     // Compute P value
-    m_pValue = -((protection ^ 255) + 1);
+    m_pValue = PERMS_DEFAULT | protection;
 }
 
 PdfEncryptAESV3::PdfEncryptAESV3(PdfString oValue,PdfString oeValue, PdfString uValue, PdfString ueValue, int pValue, PdfString permsValue) : PdfEncryptAESBase()
@@ -1602,7 +1605,9 @@ void PdfEncryptMD5Base::CreateEncryptionDictionary( PdfDictionary & rDictionary 
     else if(m_eAlgorithm == ePdfEncryptAlgorithm_RC4V1)
     {
         rDictionary.AddKey( PdfName("V"), static_cast<pdf_int64>(1LL) );
-        rDictionary.AddKey( PdfName("R"), static_cast<pdf_int64>(2LL) );
+        // Force to 3, because P flags with R>=3 are set
+        //rDictionary.AddKey( PdfName("R"), static_cast<pdf_int64>(2LL) );
+        rDictionary.AddKey( PdfName("R"), static_cast<pdf_int64>(3LL) );
     }
     else if(m_eAlgorithm == ePdfEncryptAlgorithm_RC4V2)
     {
@@ -1740,7 +1745,7 @@ PdfEncryptRC4::PdfEncryptRC4( const std::string & userPassword, const std::strin
     memset(m_encryptionKey, 0, 32);
     
     // Compute P value
-    m_pValue = -((protection ^ 255) + 1);
+    m_pValue = PERMS_DEFAULT | protection;
 }
 
 PdfOutputStream* PdfEncryptRC4::CreateEncryptionOutputStream( PdfOutputStream* pOutputStream )
