@@ -69,7 +69,7 @@ CHECK_INCLUDE_FILE("strings.h" PODOFO_HAVE_STRINGS_H)
 CHECK_INCLUDE_FILE("arpa/inet.h" PODOFO_HAVE_ARPA_INET_H) 
 CHECK_INCLUDE_FILE("winsock2.h" PODOFO_HAVE_WINSOCK2_H) 
 CHECK_INCLUDE_FILE("mem.h" PODOFO_HAVE_MEM_H) 
-CHECK_INCLUDE_FILE("ctype.h" PODOFO_HAVE_MEM_H) 
+CHECK_INCLUDE_FILE("ctype.h" PODOFO_HAVE_CTYPE_H) 
 
 # Do some type size detection and provide yet another set of typedefs for fixed
 # font sizes. We can't use the c99 / c++0x uint32_t etc, because people use

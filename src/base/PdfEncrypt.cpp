@@ -256,7 +256,6 @@ private:
 // ----------------
 
 // C headers for MD5
-#include <sys/types.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
