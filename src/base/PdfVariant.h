@@ -673,8 +673,10 @@ double PdfVariant::GetReal() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif // __GNUC__
 const PdfData & PdfVariant::GetRawData() const
 {
     DelayedLoad();
@@ -688,7 +690,9 @@ const PdfData & PdfVariant::GetRawData() const
     // because a reinterpret_cast might point to a different position.
     return *((PdfData*)m_Data.pData);
 }
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif // __GNUC__
 
 
 PdfData & PdfVariant::GetRawData()
