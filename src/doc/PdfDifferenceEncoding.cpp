@@ -2359,7 +2359,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDele
     // Read the differences key
     if( this->GetObject()->GetDictionary().HasKey( PdfName("Differences") ) )
     {
-        const PdfArray & rDifferences = this->GetObject()->GetDictionary().GetKey( PdfName("Differences") )->GetArray();
+        const PdfArray & rDifferences = this->GetObject()->GetIndirectKey( PdfName("Differences") )->GetArray();
         PdfArray::const_iterator it = rDifferences.begin();
 
         long long curCode = -1;
