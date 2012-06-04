@@ -23,6 +23,7 @@
 
 #include "podofo/base/PdfDefines.h"
 #include "podofo/base/PdfName.h"
+#include "podofo/base/PdfDate.h"
 #include "PdfElement.h"
 
 namespace PoDoFo {
@@ -115,7 +116,7 @@ class PODOFO_DOC_API PdfInfo : public PdfElement {
      *  \returns the title
      */
     inline const PdfString & GetTitle() const;
-    
+
     // Peter Petrov 27 April 2008
     /** Set the producer of the document.
      *  \param sProducer producer
@@ -138,6 +139,16 @@ class PODOFO_DOC_API PdfInfo : public PdfElement {
      */
     inline const PdfName & GetTrapped() const;
 
+    /** Get creation date of document
+     *  \return creation date
+     */
+    inline PdfDate GetCreationDate() const;
+
+    /** Get modification date of document
+     *  \return modification date
+     */
+    inline PdfDate GetModDate() const;
+
  private:
     /** Add the initial document information to the dictionary.
      *  \param eInitial which information should be 
@@ -150,7 +161,7 @@ class PODOFO_DOC_API PdfInfo : public PdfElement {
      *  \return a value from the info dictionary
      */
     const PdfString & GetStringFromInfoDict( const PdfName & rName ) const;
-    
+
      /** Get a value from the info dictionary as name
      *  \para rName the key to fetch from the info dictionary
      *  \return a value from the info dictionary
@@ -213,6 +224,23 @@ const PdfString & PdfInfo::GetProducer() const
 const PdfName & PdfInfo::GetTrapped() const
 {
 	return this->GetNameFromInfoDict( PdfName("Trapped") );
+}
+
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfDate PdfInfo::GetCreationDate() const
+{
+    return PdfDate(this->GetStringFromInfoDict(PdfName("CreationDate")));
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfDate PdfInfo::GetModDate() const
+{
+    return PdfDate(this->GetStringFromInfoDict(PdfName("ModDate")));
 }
 
 };

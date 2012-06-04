@@ -63,9 +63,8 @@ class PODOFO_API PdfDate {
      */
     PdfDate( const time_t & t );
 
-    /*  !Non-Doxygen comment because constructor is disabled!
-     *  Create a PdfDate with a specified date and time
-     *  \param zDate the date and time of this object 
+    /** Create a PdfDate with a specified date and time
+     *  \param szDate the date and time of this object 
      *         in PDF format. It has to be a string of 
      *         the format  (D:YYYYMMDDHHmmSSOHH'mm').
      *         Otherwise IsValid will return false.
@@ -75,7 +74,7 @@ class PODOFO_API PdfDate {
      *
      *  \see IsValid()
      */
-    //PdfDate( const PdfString & sDate );
+    PdfDate( const PdfString & sDate );
 
     /** Delete the PdfDate object
      */
@@ -107,6 +106,15 @@ class PODOFO_API PdfDate {
      */
     void CreateStringRepresentation();
 
+    /** Parse fixed length number from string
+     *  \param in string to read number from
+     *  \param length of number to read 
+     *  \param min minimal value of number
+     *  \param max maximal value of number
+     *  \param ret parsed number
+     */
+    bool ParseFixLenNumber(const char *&in, unsigned int length, int min, int max, int &ret);
+
  private:
     time_t m_time;
     char   m_szDate[PDF_DATE_BUFFER_SIZE];
@@ -122,6 +130,11 @@ const time_t & PdfDate::GetTime() const
 void PdfDate::ToString( PdfString & rsString ) const
 {
     rsString = PdfString(  m_szDate );
+}
+
+bool PdfDate::IsValid() const
+{
+    return m_bValid;
 }
 
 };
