@@ -19,8 +19,15 @@
  ***************************************************************************/
 
 #include <iostream>
+#include <iterator>
+#include <string>
 #include <cstdlib>
 #include <cstdio>
+
+#ifdef _MSC_VER
+	#include <io.h>
+	#include <fcntl.h>
+#endif
 
 #include <podofo.h>
 
@@ -32,13 +39,32 @@ int main (int argc, char *argv[])
 	if (argc != 2 && argc != 4)
     {
 		cout << "Syntax" << endl;
-		cout << "  " << argv[0] << " <pdf file> - display the XMP in a file" << endl;
+		cout << "  " << argv[0] << " <pdf file> - display the XMP in a file (use \"-\" to specify stdin)" << endl;
 		cout << "or" << endl;
 		cout << "  " << argv[0] << " <src pdf file> <xmp file> <new pdf file> - create a new PDF with the XMP in" << endl;
 		return EXIT_FAILURE;
     }
 
-	PoDoFo::PdfMemDocument *doc = new PoDoFo::PdfMemDocument(argv[1]);
+	PoDoFo::PdfMemDocument *doc;
+
+	if ( string("-") == argv[1] )
+	{
+		cin >> std::noskipws;
+		#ifdef _MSC_VER
+			_setmode(_fileno(stdin), _O_BINARY); // @TODO: MSVC specific binary setmode -- not sure if other platforms need it
+			cin.sync_with_stdio();
+		#endif
+		istream_iterator<char> it(std::cin);
+		istream_iterator<char> end;
+		string buffer(it, end);
+		doc = new PoDoFo::PdfMemDocument();
+		doc->Load( buffer.c_str(), (long)buffer.size() );
+	} 
+	else 
+	{
+		doc = new PoDoFo::PdfMemDocument(argv[1]);
+	}
+
 
 	if (argc == 2)
     {
