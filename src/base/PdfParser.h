@@ -367,6 +367,24 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      */
     inline void SetIgnoreBrokenObjects( bool bBroken );
 
+    /**
+     * \return maximum object count to read (default is LONG_MAX
+     * which means no limit)
+     */
+    inline static long GetMaxObjectCount();
+    
+    /**
+     * Specify the maximum number of objects the parser should
+     * read. An exception is thrown if document contains more
+     * objects than this. Use to avoid problems with very large
+     * documents with millions of objects, which use 500MB of
+     * working set and spend 15 mins in Load() before throwing
+     * an out of memory exception.
+     *
+     * \param nMaxObjects set max number of objects
+     */
+    inline static void SetMaxObjectCount( long nMaxObjects );
+    
  protected:
     /** Searches backwards from the end of the file
      *  and tries to find a token.
@@ -555,6 +573,9 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     bool          m_bIgnoreBrokenObjects;
 
     int           m_nIncrementalUpdates;
+    int           m_nReadNextTrailerLevel;
+
+    static long   s_nMaxObjects;
 };
 
 // -----------------------------------------------------
@@ -637,6 +658,22 @@ bool PdfParser::GetIgnoreBrokenObjects()
 void PdfParser::SetIgnoreBrokenObjects( bool bBroken )
 {
     m_bIgnoreBrokenObjects = bBroken;
+}
+
+// -----------------------------------------------------
+//
+// -----------------------------------------------------
+long PdfParser::GetMaxObjectCount()
+{
+    return PdfParser::s_nMaxObjects;
+}
+
+// -----------------------------------------------------
+//
+// -----------------------------------------------------
+void PdfParser::SetMaxObjectCount( long nMaxObjects )
+{
+    PdfParser::s_nMaxObjects = nMaxObjects;
 }
 
 };

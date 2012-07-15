@@ -38,6 +38,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iostream>
+#include <limits>
 
 using std::cerr;
 using std::endl;
@@ -48,6 +49,8 @@ using std::flush;
 #define PDF_XREF_BUF        512
 
 namespace PoDoFo {
+
+long PdfParser::s_nMaxObjects = std::numeric_limits<long>::max();
 
 PdfParser::PdfParser( PdfVecObjects* pVecObjects )
     : PdfTokenizer(), m_vecObjects( pVecObjects )
@@ -122,6 +125,7 @@ void PdfParser::Init()
     m_bStrictParsing  = false;
     m_bIgnoreBrokenObjects = false;
     m_nIncrementalUpdates = 0;
+    m_nReadNextTrailerLevel = 0;
 }
 
 void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
@@ -290,6 +294,11 @@ void PdfParser::ReadDocumentStructure()
         // Treat the xref size as unknown, and expand the xref dynamically as we read it.
         m_nNumObjects = 0;
     }
+
+    // allow caller to specify a max object count to avoid very slow load times on large documents
+    if (s_nMaxObjects != std::numeric_limits<long>::max()
+        && m_nNumObjects > s_nMaxObjects)
+        PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange,  "m_nNumObjects is greater than m_nMaxObjects." );
 
     if (m_nNumObjects > 0)
         m_offsets.resize(m_nNumObjects);
@@ -483,6 +492,18 @@ void PdfParser::MergeTrailer( const PdfObject* pTrailer )
 
 void PdfParser::ReadNextTrailer()
 {
+    // be careful changing this limit - overflow limits depend on the OS, linker settings, and how much stack space compiler allocates
+    // 500 limit prevents overflow on Win7 with VC++ 2005 with default linker stack size (1000 caused overflow with same compiler/OS)
+    const int maxReadNextTrailerLevel = 500;
+    
+    ++m_nReadNextTrailerLevel;
+    
+    if ( m_nReadNextTrailerLevel > maxReadNextTrailerLevel )
+    {
+        // avoid stack overflow on documents that have circular cross references in trailer
+        PODOFO_RAISE_ERROR( ePdfError_InvalidXRef );
+    }
+
     // ReadXRefcontents has read the first 't' from "trailer" so just check for "railer"
     if( this->IsNextToken( "trailer" ) )
     //if( strcmp( m_buffer.GetBuffer(), "railer" ) == 0 )
@@ -517,6 +538,8 @@ void PdfParser::ReadNextTrailer()
     {
         PODOFO_RAISE_ERROR( ePdfError_NoTrailer );
     }
+
+    --m_nReadNextTrailerLevel;
 }
 
 void PdfParser::ReadTrailer()
