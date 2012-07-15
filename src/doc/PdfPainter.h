@@ -360,10 +360,11 @@ class PODOFO_DOC_API PdfPainter {
      *  \param rsText the text which should be drawn
      *  \param eAlignment alignment of the individual text lines in the given bounding box
      *  \param eVertical vertical alignment of the text in the given bounding box
+     *  \param bClip set the clipping rectangle to the given rRect, otherwise no clipping is performed
      */
     void DrawMultiLineText( double dX, double dY, double dWidth, double dHeight, 
                             const PdfString & rsText, EPdfAlignment eAlignment = ePdfAlignment_Left,
-                            EPdfVerticalAlignment eVertical = ePdfVerticalAlignment_Top);
+                            EPdfVerticalAlignment eVertical = ePdfVerticalAlignment_Top, bool bClip = true );
 
     /** Draw multiline text into a rectangle doing automatic wordwrapping.
      *  The current font is used and SetFont has to be called at least once
@@ -373,9 +374,10 @@ class PODOFO_DOC_API PdfPainter {
      *  \param rsText the text which should be drawn
      *  \param eAlignment alignment of the individual text lines in the given bounding box
      *  \param eVertical vertical alignment of the text in the given bounding box
+     *  \param bClip set the clipping rectangle to the given rRect, otherwise no clipping is performed
      */
     inline void DrawMultiLineText( const PdfRect & rRect, const PdfString & rsText, EPdfAlignment eAlignment = ePdfAlignment_Left,
-                                   EPdfVerticalAlignment eVertical = ePdfVerticalAlignment_Top);
+                                   EPdfVerticalAlignment eVertical = ePdfVerticalAlignment_Top, bool bClip = true );
 
     /** Gets the text divided into individual lines, using the current font and clipping rectangle.
      *
@@ -877,10 +879,10 @@ void PdfPainter::FillRect( const PdfRect & rRect, double dRoundX, double dRoundY
 // 
 // -----------------------------------------------------
 void PdfPainter::DrawMultiLineText( const PdfRect & rRect, const PdfString & rsText, 
-                                    EPdfAlignment eAlignment, EPdfVerticalAlignment eVertical)
+                                    EPdfAlignment eAlignment, EPdfVerticalAlignment eVertical, bool bClip)
 {
     this->DrawMultiLineText( rRect.GetLeft(), rRect.GetBottom(), rRect.GetWidth(), rRect.GetHeight(), 
-                             rsText, eAlignment, eVertical );
+                             rsText, eAlignment, eVertical, bClip );
 }
 
 };

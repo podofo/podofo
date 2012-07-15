@@ -823,7 +823,7 @@ void PdfPainter::EndText()
 }
 
 void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double dHeight, const PdfString & rsText, 
-                                    EPdfAlignment eAlignment, EPdfVerticalAlignment eVertical )
+                                    EPdfAlignment eAlignment, EPdfVerticalAlignment eVertical, bool bClip )
 {
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
@@ -839,7 +839,10 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
         return;
 
     this->Save();
-    this->SetClipRect( dX, dY, dWidth, dHeight );
+    if( bClip ) 
+    {
+        this->SetClipRect( dX, dY, dWidth, dHeight );
+    }
 
     PdfString   sString  = this->ExpandTabs( rsText, rsText.GetCharacterLength() );
 
