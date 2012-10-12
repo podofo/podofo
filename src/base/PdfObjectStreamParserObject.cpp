@@ -83,7 +83,6 @@ void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long
         const std::streamoff pos = device.Device()->Tell();
 
         // move to the position of the object in the stream
-        device.Device()->Clear();
         device.Device()->Seek( static_cast<std::streamoff>(lFirst + lOff) );
 
 		// use a second tokenizer here so that anything that gets dequeued isn't left in the tokenizer that reads the offsets and lengths
@@ -106,6 +105,7 @@ void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long
 		}
 
         // move back to the position inside of the table of contents
+        device.Device()->Clear();
         device.Device()->Seek( pos );
 
         ++i;
