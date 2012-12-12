@@ -82,7 +82,6 @@ PdfDate::PdfDate( const PdfString & sDate )
                     if ( *pszDate != '\0' ) {
                         if ( ParseFixLenNumber(pszDate,2,0,59,_tm.tm_sec) == false ) return;
                         if ( *pszDate != '\0' ) {
-                            int nZoneShift;
                             switch(*pszDate++) {
                             case '+':
                                 nZoneShift = -1;
