@@ -57,7 +57,6 @@
 #include "base/PdfRefCountedBuffer.h"
 #include "base/PdfRefCountedInputDevice.h"
 #include "base/PdfReference.h"
-#include "base/PdfRijndael.h"
 #include "base/PdfStream.h"
 #include "base/PdfString.h"
 #include "base/PdfTokenizer.h"

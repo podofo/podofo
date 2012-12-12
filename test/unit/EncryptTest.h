@@ -41,9 +41,9 @@ class EncryptTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testRC4v2_96 );
   CPPUNIT_TEST( testRC4v2_128 );
   CPPUNIT_TEST( testAESV2 );
-#ifdef PODOFO_HAVE_CRYPTO_LIBS
+#ifdef PODOFO_HAVE_LIBIDN
   CPPUNIT_TEST( testAESV3 );
-#endif // PODOFO_HAVE_CRYPTO_LIBS
+#endif // PODOFO_HAVE_LIBIDN
   CPPUNIT_TEST( testLoadEncrypedFilePdfParser );
   CPPUNIT_TEST( testLoadEncrypedFilePdfMemDocument );
   CPPUNIT_TEST( testEnableAlgorithms );
@@ -61,9 +61,9 @@ class EncryptTest : public CppUnit::TestFixture
   void testRC4v2_96();
   void testRC4v2_128();
   void testAESV2();
-#ifdef PODOFO_HAVE_CRYPTO_LIBS
+#ifdef PODOFO_HAVE_LIBIDN
   void testAESV3();
-#endif // PODOFO_HAVE_CRYPTO_LIBS
+#endif // PODOFO_HAVE_LIBIDN
 
   void testLoadEncrypedFilePdfParser();
   void testLoadEncrypedFilePdfMemDocument();
@@ -79,7 +79,7 @@ class EncryptTest : public CppUnit::TestFixture
    *
    * @param pszFilename save the encrypted PDF here.
    */
-  void CreatedEncrypedPdf( const char* pszFilename );
+  void CreateEncryptedPdf( const char* pszFilename );
 
  private:
   char* m_pEncBuffer;

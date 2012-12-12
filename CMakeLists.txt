@@ -284,7 +284,7 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
         -Wwrite-strings
         -Wredundant-decls
         -Wreorder
-	-Wold-style-cast
+		#-Wold-style-cast
        )
     #
     # Note that we do not need debug definitions here. Set
@@ -309,25 +309,22 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 FIND_PACKAGE(ZLIB REQUIRED)
 MESSAGE("Found zlib headers in ${ZLIB_INCLUDE_DIR}, library at ${ZLIB_LIBRARIES}")
 
-FIND_PACKAGE(LIBCRYPTO)
+FIND_PACKAGE(LIBCRYPTO REQUIRED)
+MESSAGE("Found OpenSSL's libCrypto headers in ${LIBCRYPTO_INCLUDE_DIR}, library at ${LIBCRYPTO_LIBRARIES}")
+
 FIND_PACKAGE(LIBIDN)
 
-IF(LIBCRYPTO_FOUND)
-  MESSAGE("Found OpenSSL's libCrypto headers in ${LIBCRYPTO_INCLUDE_DIR}, library at ${LIBCRYPTO_LIBRARIES}")
-ENDIF(LIBCRYPTO_FOUND)
- 
 IF(LIBIDN_FOUND)
   MESSAGE("Found libidn headers in ${LIBIDN_INCLUDE_DIR}, library at ${LIBIDN_LIBRARIES}")
 ENDIF(LIBIDN_FOUND)
 
-IF(LIBCRYPTO_FOUND AND LIBIDN_FOUND)
-  SET(PODOFO_HAVE_CRYPTO_LIBS TRUE)
-  INCLUDE_DIRECTORIES(${LIBCRYPTO_INCLUDE_DIR})
-  INCLUDE_DIRECTORIES(${LIBIDN_INCLUDE_DIR})
-  MESSAGE("OpenSSL's libCrypto and libidn found. AES-256 Encryption support will be enabled")
-ELSE(LIBCRYPTO_FOUND AND LIBIDN_FOUND)
-  MESSAGE("OpenSSL's libCrypto or libidn not found. AES-256 Encryption support will be disabled")
-ENDIF(LIBCRYPTO_FOUND AND LIBIDN_FOUND)
+IF(LIBIDN_FOUND)
+	SET(PODOFO_HAVE_LIBIDN TRUE)
+	INCLUDE_DIRECTORIES(${LIBIDN_INCLUDE_DIR})
+	MESSAGE("Libidn found. AES-256 Encryption support will be enabled")
+ELSE(LIBIDN_FOUND)
+	MESSAGE("Libidn not found. AES-256 Encryption support will be disabled")
+ENDIF(LIBIDN_FOUND)
 
 FIND_PACKAGE(LIBJPEG)
 
@@ -365,6 +362,7 @@ FIND_PACKAGE(CppUnit)
 IF(CppUnit_FOUND)
   MESSAGE("Found cppunit. Unit tests will be built.")
   SET(PODOFO_HAVE_CPPUNIT CppUnit_FOUND)
+  INCLUDE_DIRECTORIES(${CPPUNIT_INCLUDE_DIR})
 ELSE(CppUnit_FOUND)
   MESSAGE("Cppunit not found. No unit tests will be built.")
 ENDIF(CppUnit_FOUND)

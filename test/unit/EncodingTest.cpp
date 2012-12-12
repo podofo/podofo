@@ -18,14 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "EncodingTest.h"
-
 #include <podofo.h>
 
 #include <ostream>
-
-// Registers the fixture into the 'registry'
-CPPUNIT_TEST_SUITE_REGISTRATION( EncodingTest );
 
 using namespace PoDoFo;
 
@@ -35,6 +30,13 @@ inline std::ostream& operator<<(std::ostream& o, const PdfVariant& s)
     s.ToString(str);
     return o << str;
 }
+
+// Needs to be included after the redifition of operator<<
+// or it won't compile using clang
+#include "EncodingTest.h"
+
+// Registers the fixture into the 'registry'
+CPPUNIT_TEST_SUITE_REGISTRATION( EncodingTest );
 
 void EncodingTest::setUp()
 {

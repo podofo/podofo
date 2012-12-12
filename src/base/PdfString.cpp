@@ -239,9 +239,7 @@ void PdfString::SetHexData( const char* pszHex, pdf_long lLen, PdfEncrypt* pEncr
 
     while( lLen-- ) 
     {
-        // P.Zent: Wouldn't this mess up encrypted data ?
-        // Disabled if encrypted
-        if( !pEncrypt && PdfTokenizer::IsWhitespace( *pszHex ) )
+        if( PdfTokenizer::IsWhitespace( *pszHex ) )
         {
             ++pszHex;
             continue;
@@ -284,10 +282,19 @@ void PdfString::SetHexData( const char* pszHex, pdf_long lLen, PdfEncrypt* pEncr
         m_buffer = temp;
     }
 
-    // P.Zent: Encrypt function needs to know the length of the buffer not counting the offset
     if( pEncrypt )
-        pEncrypt->Encrypt( reinterpret_cast<unsigned char*>(m_buffer.GetBuffer()), 
-                           static_cast<unsigned int>(m_buffer.GetSize()-2) - pEncrypt->CalculateStreamOffset() );
+    {
+        pdf_long outBufferLen = m_buffer.GetSize()-2 - pEncrypt->CalculateStreamOffset();
+        PdfRefCountedBuffer outBuffer(outBufferLen);
+        
+        pEncrypt->Decrypt( reinterpret_cast<unsigned char*>(m_buffer.GetBuffer()),
+                           static_cast<unsigned int>(m_buffer.GetSize()-2),
+                          reinterpret_cast<unsigned char*>(outBuffer.GetBuffer()),
+                          static_cast<unsigned int>(outBuffer.GetSize()));
+        
+        // Replace buffer with decrypted value
+        m_buffer = outBuffer;
+    }
 
     // Now check for the first two bytes, to see if we got a unicode string
     if( m_buffer.GetSize()-2 > 2 ) 
@@ -311,36 +318,34 @@ void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
     // Peter Petrov: 17 May 2008
     // Added check - m_buffer.GetSize()
     // Now we are not encrypting the empty strings (was access violation)!
-    if( pEncrypt && m_buffer.GetSize()) 
+    if( pEncrypt && m_buffer.GetSize())
     {
-        pdf_long nOffset = pEncrypt->CalculateStreamOffset();
-        pdf_long nLen = this->GetLength();
-        // Add two bytes for the s_pszUnicodeMarker
-        pdf_long nOutputLen = pEncrypt->CalculateStreamLength( (m_bUnicode ? nLen + 2 : nLen) );
+        pdf_long nInputBufferLen = m_buffer.GetSize();
+        pdf_long nUnicodeMarkerOffet = sizeof( PdfString::s_pszUnicodeMarker );
+        if( m_bUnicode )
+            nInputBufferLen += nUnicodeMarkerOffet;
         
-        char* pBuffer = new char [nOutputLen + 1];
-        memset(pBuffer, 0, nOffset);
-        memcpy(&pBuffer[nOffset], this->GetString(), this->GetLength());
+        char * pInputBuffer = new char[nInputBufferLen];
         
-        std::string enc = std::string(pBuffer, nOutputLen);
         if( m_bUnicode )
         {
-            std::string tmp( reinterpret_cast<const char*>(&PdfString::s_pszUnicodeMarker), 2 );
-            
-            // Insert after the initial vector
-            enc.insert(nOffset,tmp);
-            enc.erase(nOutputLen,std::string::npos);
-            
-            // Add two bytes for the s_pszUnicodeMarker
-            pEncrypt->Encrypt(enc, nLen + 2 );
+            memcpy(pInputBuffer, PdfString::s_pszUnicodeMarker, nUnicodeMarkerOffet);
+            memcpy(&pInputBuffer[nUnicodeMarkerOffet], m_buffer.GetBuffer(), m_buffer.GetSize());
         }
         else
-            pEncrypt->Encrypt(enc, nLen );
+            memcpy(pInputBuffer, m_buffer.GetBuffer(), m_buffer.GetSize());
+        
+        pdf_long nOutputBufferLen = pEncrypt->CalculateStreamLength(nInputBufferLen);
+        
+        char* pOutputBuffer = new char [nOutputBufferLen];
+        
+        pEncrypt->Encrypt(reinterpret_cast<const unsigned char*>(pInputBuffer), nInputBufferLen, reinterpret_cast<unsigned char*>(pOutputBuffer), nOutputBufferLen);
 
-        PdfString str( enc.c_str(), enc.length(), true );
+        PdfString str( pOutputBuffer, nOutputBufferLen, true );
         str.Write( pDevice, eWriteMode, NULL );
 
-        delete[] pBuffer;
+        delete[] pInputBuffer;
+        delete[] pOutputBuffer;
 		
         return;
     }

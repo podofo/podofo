@@ -241,8 +241,8 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  \param protection several EPdfPermissions values or'ed together to set 
      *                    the users permissions for this document
      *  \param eAlgorithm the revision of the encryption algorithm to be used
-     *  \param eKeyLength the length of the encryption key ranging from 40 to 128 bits 
-     *                    (only used if eAlgorithm == ePdfEncryptAlgorithm_RC4V2)
+     *  \param eKeyLength the length of the encryption key ranging from 40 to 256 bits 
+     *                    (only used if eAlgorithm >= ePdfEncryptAlgorithm_RC4V2)
      *
      *  \see PdfEncrypt
      */
@@ -256,7 +256,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
                                         PdfEncrypt::ePdfPermissions_Accessible |
                                         PdfEncrypt::ePdfPermissions_DocAssembly |
                                         PdfEncrypt::ePdfPermissions_HighPrint,
-                       PdfEncrypt::EPdfEncryptAlgorithm eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_RC4V1, 
+                       PdfEncrypt::EPdfEncryptAlgorithm eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_RC4V1,
                        PdfEncrypt::EPdfKeyLength eKeyLength = PdfEncrypt::ePdfKeyLength_40 );
 
     /** Encrypt the document during writing using a PdfEncrypt object

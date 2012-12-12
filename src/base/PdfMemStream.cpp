@@ -260,22 +260,17 @@ void PdfMemStream::Write( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt )
     pDevice->Print( "stream\n" );
     if( pEncrypt ) 
     {
-        char* pBuffer;
-        pdf_long  lLen;
-        this->GetCopy( &pBuffer, &lLen );
+        pdf_long  lLen = this->GetLength();
 
         pdf_long nOutputLen = pEncrypt->CalculateStreamLength(lLen);
-        pdf_long nOffset = pEncrypt->CalculateStreamOffset();
 
-        char *pOutputBuffer = new char[nOutputLen+1];
-        memset(pOutputBuffer, 0, nOffset);
-        memcpy(&pOutputBuffer[nOffset], pBuffer, lLen);
+        char *pOutputBuffer = new char[nOutputLen];
 
-        pEncrypt->Encrypt( reinterpret_cast<unsigned char*>(pOutputBuffer), lLen );
+        pEncrypt->Encrypt( reinterpret_cast<const unsigned char*>(this->Get()), lLen,
+                          reinterpret_cast<unsigned char*>(pOutputBuffer), nOutputLen);
         pDevice->Write( pOutputBuffer, nOutputLen );
 
         delete[] pOutputBuffer;
-        free( pBuffer );                               
     }
     else
     {

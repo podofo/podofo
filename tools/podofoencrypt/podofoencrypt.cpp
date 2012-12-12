@@ -47,12 +47,12 @@ void encrypt( const char* pszInput, const char* pszOutput,
             eKeyLength = PdfEncrypt::ePdfKeyLength_40;
             eVersion   = ePdfVersion_1_3;
             break;
-#ifdef PODOFO_HAVE_CRYPTO_LIBS
+#ifdef PODOFO_HAVE_LIBIDN
         case PdfEncrypt::ePdfEncryptAlgorithm_AESV3:;
             eKeyLength = PdfEncrypt::ePdfKeyLength_256;
             eVersion   = ePdfVersion_1_7;
             break;
-#endif // PODOFO_HAVE_CRYPTO_LIBS
+#endif // PODOFO_HAVE_LIBIDN
         case PdfEncrypt::ePdfEncryptAlgorithm_RC4V2:
         case PdfEncrypt::ePdfEncryptAlgorithm_AESV2:
         default:
@@ -124,10 +124,10 @@ int main( int argc, char* argv[] )
               eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_RC4V2;
           else if( strcmp( argv[i], "--aesv2" ) == 0 ) 
               eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_AESV2;
-#ifdef PODOFO_HAVE_CRYPTO_LIBS
+#ifdef PODOFO_HAVE_LIBIDN
           else if( strcmp( argv[i], "--aesv3" ) == 0 ) 
               eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_AESV3;
-#endif // PODOFO_HAVE_CRYPTO_LIBS
+#endif // PODOFO_HAVE_LIBIDN
           else if( strcmp( argv[i], "-u" ) == 0 ) 
           {
               ++i;

@@ -41,7 +41,6 @@ SET(PODOFO_BASE_SOURCES
   base/PdfRefCountedBuffer.cpp
   base/PdfRefCountedInputDevice.cpp
   base/PdfReference.cpp
-  base/PdfRijndael.cpp
   base/PdfStream.cpp
   base/PdfString.cpp
   base/PdfTokenizer.cpp
@@ -151,7 +150,6 @@ SET(PODOFO_BASE_HEADERS
    base/PdfRefCountedBuffer.h
    base/PdfRefCountedInputDevice.h
    base/PdfReference.h
-   base/PdfRijndael.h
    base/PdfStream.h
    base/PdfString.h
    base/PdfTokenizer.h

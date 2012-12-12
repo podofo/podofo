@@ -34,7 +34,7 @@ void DateTest::tearDown()
 {
 }
 
-void checkExpected(char *pszDate, bool bExpected)
+void checkExpected(const char *pszDate, bool bExpected)
 {
     PdfString tmp(pszDate);
     PdfDate date(tmp);

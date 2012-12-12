@@ -711,15 +711,29 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
     if( bOctEscape )
         m_vecBuffer.push_back ( cOctValue );
 
-    // P.Zent: Encrypt function needs to know the length of the buffer not counting the offset
-    if( pEncrypt && m_vecBuffer.size() )
-        pEncrypt->Encrypt( reinterpret_cast<unsigned char*>(&(m_vecBuffer[0])), 
-                           static_cast<unsigned int>(m_vecBuffer.size()) - pEncrypt->CalculateStreamOffset() );
-
     if( m_vecBuffer.size() )
-        rVariant = PdfString( &(m_vecBuffer[0]), m_vecBuffer.size() );
+    {
+        if( pEncrypt )
+        {
+            pdf_long outLen = m_vecBuffer.size() - pEncrypt->CalculateStreamOffset();
+            char * outBuffer = new char[outLen];
+            pEncrypt->Decrypt( reinterpret_cast<unsigned char*>(&(m_vecBuffer[0])),
+                              static_cast<unsigned int>(m_vecBuffer.size()),
+                              reinterpret_cast<unsigned char*>(outBuffer), outLen);
+            
+            rVariant = PdfString( outBuffer, outLen );
+            
+            delete[] outBuffer;
+        }
+        else
+        {
+            rVariant = PdfString( &(m_vecBuffer[0]), m_vecBuffer.size() );
+        }
+    }
     else
+    {
         rVariant = PdfString("");
+    }
 }
 
 void PdfTokenizer::ReadHexString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )

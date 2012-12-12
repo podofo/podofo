@@ -55,7 +55,7 @@ int get_info( const char* pszFilename )
 
 void extract(const char* pszFilename, int nExtract, const char* pszOutputFilename)
 {
-    int nUpdates = 0;
+    //int nUpdates = 0;
 
     PdfVecObjects vecObjects;
     PdfParser parser( &vecObjects );

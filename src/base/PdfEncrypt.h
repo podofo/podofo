@@ -29,9 +29,10 @@ namespace PoDoFo {
 
 class PdfDictionary;
 class PdfInputStream;
-class PdfRijndael;
 class PdfObject;
 class PdfOutputStream;
+class AESCryptoEngine;
+class RC4CryptoEngine;
     
 /// Class representing PDF encryption methods. (For internal use only)
 /// Based on code from Ulrich Telle: http://wxcode.sourceforge.net/components/wxpdfdoc/
@@ -73,9 +74,9 @@ public:
         ePdfKeyLength_80  = 80,
         ePdfKeyLength_96  = 96,
         ePdfKeyLength_128 = 128
-#ifdef PODOFO_HAVE_CRYPTO_LIBS
+#ifdef PODOFO_HAVE_LIBIDN
         ,ePdfKeyLength_256 = 256
-#endif // PODOFO_HAVE_CRYPTO_LIBS
+#endif //PODOFO_HAVE_LIBIDN
     } EPdfKeyLength;
 
     /** Set user permissions/restrictions on a document
@@ -98,9 +99,9 @@ public:
         ePdfEncryptAlgorithm_RC4V1 = 1, ///< RC4 Version 1 encryption using a 40bit key
         ePdfEncryptAlgorithm_RC4V2 = 2, ///< RC4 Version 2 encryption using a key with 40-128bit
         ePdfEncryptAlgorithm_AESV2 = 4  ///< AES encryption with a 128 bit key (PDF1.6)
-#ifdef PODOFO_HAVE_CRYPTO_LIBS
+#ifdef PODOFO_HAVE_LIBIDN
         ,ePdfEncryptAlgorithm_AESV3 = 8 ///< AES encryption with a 256 bit key (PDF1.7 extension 3) - Support added by P. Zent
-#endif // PODOFO_HAVE_CRYPTO_LIBS
+#endif //PODOFO_HAVE_LIBIDN
     } EPdfEncryptAlgorithm;
 
     /** Create a PdfEncrypt object which can be used to encrypt a PDF file.
@@ -333,10 +334,23 @@ public:
     int GetKeyLength() const { return m_keyLength*8; }
     
     /// Encrypt a wxString
-    void Encrypt( std::string & str, pdf_long inputLen ) const;
+    //void Encrypt( std::string & str, pdf_long inputLen ) const;
     
     /// Encrypt a character string
-    virtual void Encrypt(unsigned char* str, pdf_long len) const = 0;
+    // inStr: the input buffer
+    // inLen: length of the input buffer
+    // outStr: the output buffer
+    // outLen: length of the output buffer
+    virtual void Encrypt(const unsigned char* inStr, pdf_long inLen,
+                         unsigned char* outStr, pdf_long outLen) const = 0;
+    
+    /// Decrypt a character string
+    // inStr: the input buffer
+    // inLen: length of the input buffer
+    // outStr: the output buffer
+    // outLen: length of the output buffer
+    virtual void Decrypt(const unsigned char* inStr, pdf_long inLen,
+                         unsigned char* outStr, pdf_long outLen) const = 0;
     
     /// Calculate stream size
     virtual pdf_long CalculateStreamLength(pdf_long length) const = 0;
@@ -378,7 +392,7 @@ private:
     static int     s_nEnabledEncryptionAlgorithms; ///< Or'ed int containing the enabled encryption algorithms
 };
 
-#ifdef PODOFO_HAVE_CRYPTO_LIBS 
+#ifdef PODOFO_HAVE_LIBIDN
 /** A pure virtual class that is used to encrypt a PDF file (AES-256)
  *  This class is the base for classes that implement algorithms based on SHA hashes
  *
@@ -407,7 +421,8 @@ public:
     virtual bool Authenticate( const std::string & password, const PdfString & documentId ) = 0;
     
     /// Encrypt a character string
-    virtual void Encrypt(unsigned char* str, pdf_long len) const = 0;
+    virtual void Encrypt(const unsigned char* inStr, pdf_long inLen,
+                         unsigned char* outStr, pdf_long outLen) const = 0;
     
     virtual void GenerateEncryptionKey(const PdfString & documentId) = 0;
     
@@ -460,9 +475,55 @@ protected:
  *	about PdfEncrypt*, it is created through CreatePdfEncrypt factory method
  *
  */
-#endif // PODOFO_HAVE_CRYPTO_LIBS
+#endif // PODOFO_HAVE_LIBIDN
 
-class PdfEncryptMD5Base : public PdfEncrypt {
+/** A pure virtual class that is used to encrypt a PDF file (AES-128/256)
+ *  This class is the base for classes that implement algorithms based on AES
+ *
+ *  Client code is working only with PdfEncrypt class and knows nothing
+ *	about PdfEncrypt*, it is created through CreatePdfEncrypt factory method
+ *
+ */
+
+class PdfEncryptAESBase {
+public:
+    ~PdfEncryptAESBase();
+    
+protected:
+    PdfEncryptAESBase();
+    
+    /// AES encryption
+    void AES(const unsigned char* key, int keylen, const unsigned char* iv,
+             const unsigned char* textin, pdf_long textlen,
+             unsigned char* textout, pdf_long textoutlen);
+    
+    AESCryptoEngine*   m_aes;                ///< AES encryptor
+};
+
+/** A pure virtual class that is used to encrypt a PDF file (RC4-40..128)
+ *  This class is the base for classes that implement algorithms based on RC4
+ *
+ *  Client code is working only with PdfEncrypt class and knows nothing
+ *	about PdfEncrypt*, it is created through CreatePdfEncrypt factory method
+ *
+ */
+
+class PdfEncryptRC4Base {
+public:
+    ~PdfEncryptRC4Base();
+    
+protected:
+    PdfEncryptRC4Base();
+    
+    /// AES encryption
+    void RC4(const unsigned char* key, int keylen,
+             const unsigned char* textin, pdf_long textlen,
+             unsigned char* textout, pdf_long textoutlen);
+    
+    RC4CryptoEngine*   m_rc4;                ///< AES encryptor
+};
+    
+class PdfEncryptMD5Base : public PdfEncrypt, public PdfEncryptRC4Base {
 public:
     
     PdfEncryptMD5Base() {};
@@ -482,7 +543,8 @@ public:
     virtual bool Authenticate( const std::string & password, const PdfString & documentId ) = 0;
     
     /// Encrypt a character string
-    virtual void Encrypt(unsigned char* str, pdf_long len) const = 0;
+    virtual void Encrypt(const unsigned char* inStr, pdf_long inLen,
+                         unsigned char* outStr, pdf_long outLen) const = 0;
     
     virtual void GenerateEncryptionKey(const PdfString & documentId) = 0;
     
@@ -506,10 +568,6 @@ public:
                       int pValue, int lengthValue, int rValue);
     
 protected:
-    
-    void RC4(unsigned char* key, int keylen,
-        unsigned char* textin, pdf_long textlen,
-        unsigned char* textout);
     
     /// Generate initial vector
     virtual void GenerateInitialVector(unsigned char iv[16]);
@@ -538,29 +596,6 @@ protected:
     unsigned char  m_rc4key[16];         ///< last RC4 key
     unsigned char  m_rc4last[256];       ///< last RC4 state table
     
-};
-    
-/** A pure virtual class that is used to encrypt a PDF file (AES-128/256)
- *  This class is the base for classes that implement algorithms based on AES
- *
- *  Client code is working only with PdfEncrypt class and knows nothing
- *	about PdfEncrypt*, it is created through CreatePdfEncrypt factory method	
- *
- */
-
-class PdfEncryptAESBase {
-public:
-    ~PdfEncryptAESBase();
-    
-protected:
-    PdfEncryptAESBase();
-    
-    /// AES encryption
-    virtual void AES(unsigned char* key, int keylen,
-             unsigned char* textin, pdf_long textlen,
-             unsigned char* textout) = 0;
-    
-    PdfRijndael*   m_aes;                ///< AES encryptor
 };
     
 /** A class that is used to encrypt a PDF file (AES-128)
@@ -600,21 +635,19 @@ public:
     virtual bool Authenticate( const std::string & password, const PdfString & documentId );
     
     /// Encrypt a character string
-    virtual void Encrypt(unsigned char* str, pdf_long len) const;
+    virtual void Encrypt(const unsigned char* inStr, pdf_long inLen,
+                         unsigned char* outStr, pdf_long outLen) const;
+    virtual void Decrypt(const unsigned char* inStr, pdf_long inLen,
+                         unsigned char* outStr, pdf_long outLen) const;
     
     virtual void GenerateEncryptionKey(const PdfString & documentId);
     
     virtual pdf_long CalculateStreamOffset() const;
     
     virtual pdf_long CalculateStreamLength(pdf_long length) const;
-    
-private:
-    virtual void AES(unsigned char* key, int keylen,
-                     unsigned char* textin, pdf_long textlen,
-                     unsigned char* textout);
 };
 
-#ifdef PODOFO_HAVE_CRYPTO_LIBS    
+#ifdef PODOFO_HAVE_LIBIDN    
 /** A class that is used to encrypt a PDF file (AES-256)
  *
  *  Client code is working only with PdfEncrypt class and knows nothing
@@ -652,21 +685,19 @@ public:
     virtual bool Authenticate( const std::string & password, const PdfString & documentId );
     
     /// Encrypt a character string
-    virtual void Encrypt(unsigned char* str, pdf_long len) const;
+    virtual void Encrypt(const unsigned char* inStr, pdf_long inLen,
+                         unsigned char* outStr, pdf_long outLen) const;
+    virtual void Decrypt(const unsigned char* inStr, pdf_long inLen,
+                         unsigned char* outStr, pdf_long outLen) const;
     
     virtual void GenerateEncryptionKey(const PdfString & documentId);
     
     virtual pdf_long CalculateStreamOffset() const;
     
     virtual pdf_long CalculateStreamLength(pdf_long length) const;
-
-private:
-    virtual void AES(unsigned char* key, int keylen,
-                     unsigned char* textin, pdf_long textlen,
-                     unsigned char* textout);
 };
 
-#endif // PODOFO_HAVE_CRYPTO_LIBS
+#endif // PODOFO_HAVE_LIBIDN
 
 /** A class that is used to encrypt a PDF file (RC4 40-bit and 128-bit)
  *
@@ -704,7 +735,10 @@ public:
     virtual bool Authenticate( const std::string & password, const PdfString & documentId );
     
     /// Encrypt a character string
-    virtual void Encrypt(unsigned char* str, pdf_long len) const;
+    virtual void Encrypt(const unsigned char* inStr, pdf_long inLen,
+                         unsigned char* outStr, pdf_long outLen) const;
+    virtual void Decrypt(const unsigned char* inStr, pdf_long inLen,
+                         unsigned char* outStr, pdf_long outLen) const;
 
 	virtual PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream );
 	virtual PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream );
