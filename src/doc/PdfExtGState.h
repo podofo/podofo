@@ -57,7 +57,7 @@ class PODOFO_DOC_API PdfExtGState : public PdfElement {
     /** Sets the transparency blend mode
      *  \param blendMode one of the predefined blending modes (see Podofo.h)
      */
-    void SetBlendMode( char* blendMode );
+    void SetBlendMode( const char* blendMode );
 
     /** Enables/Disables overprinting for both Fill & Stroke
      *  \param enable enable or disable
@@ -82,7 +82,7 @@ class PODOFO_DOC_API PdfExtGState : public PdfElement {
     /** Set the Rendering Intent
      *  \param intent one of the predefined intents (see Podofo.h)
      */
-    void SetRenderingIntent( char* intent );
+    void SetRenderingIntent( const char* intent );
 
     /** Set the frequency for halftones
      *  \param frequency screen frequency, measured in halftone cells per inch in device space

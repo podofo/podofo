@@ -82,7 +82,7 @@ void PdfExtGState::SetStrokeOpacity( float opac )
     this->GetObject()->GetDictionary().AddKey( "CA", PdfVariant( opac ) );
 }
 
-void PdfExtGState::SetBlendMode( char* blendMode )
+void PdfExtGState::SetBlendMode( const char* blendMode )
 {
     this->GetObject()->GetDictionary().AddKey( "BM", PdfVariant( PdfName( blendMode ) ) );
 }
@@ -107,7 +107,7 @@ void PdfExtGState::SetNonZeroOverprint( bool enable )
     this->GetObject()->GetDictionary().AddKey( "OPM", PdfVariant( static_cast<pdf_int64>(enable ? 1LL : 0LL) ) );
 }
 
-void PdfExtGState::SetRenderingIntent( char* intent )
+void PdfExtGState::SetRenderingIntent( const char* intent )
 {
     this->GetObject()->GetDictionary().AddKey( "RI", PdfVariant( PdfName( intent ) ) );
 }
