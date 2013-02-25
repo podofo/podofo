@@ -90,6 +90,7 @@ enum EPdfAnnotationFlags {
     ePdfAnnotationFlags_ReadOnly     = 0x0040,
     ePdfAnnotationFlags_Locked       = 0x0080,
     ePdfAnnotationFlags_ToggleNoView = 0x0100,
+    ePdfAnnotationFlags_LockedContents = 0x0200,
 
     ePdfAnnotationFlags_Unknow       = 0xffff
 };
