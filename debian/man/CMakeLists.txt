@@ -1,8 +1,10 @@
 
 INSTALL(FILES
   podofobox.1
+  podofocolor.1
   podofocountpages.1
   podofocrop.1
+  podofogc.1
   podofoencrypt.1
   podofoimg2pdf.1
   podofoimgextract.1
