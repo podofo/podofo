@@ -356,6 +356,7 @@ ELSE(PNG_FOUND)
   MESSAGE("LibPng not found. PNG support will be disabled")
 ENDIF(PNG_FOUND)
 
+IF(NOT PODOFO_BUILD_LIB_ONLY)
 
 FIND_PACKAGE(CppUnit)
 
@@ -366,6 +367,8 @@ IF(CppUnit_FOUND)
 ELSE(CppUnit_FOUND)
   MESSAGE("Cppunit not found. No unit tests will be built.")
 ENDIF(CppUnit_FOUND)
+
+ENDIF(NOT PODOFO_BUILD_LIB_ONLY)
 
 FIND_PACKAGE(OpenSSL)
 
@@ -425,6 +428,7 @@ ELSE(DEFINED JPEG_RUNTIME_COMPATIBLE)
 	ENDIF(NOT WIN32)
 ENDIF(DEFINED JPEG_RUNTIME_COMPATIBLE)
 
+IF(NOT PODOFO_BUILD_LIB_ONLY)
 FIND_PACKAGE(LUA)
 IF(LUA_FOUND)
 	# If we have lua, we can build podofoimpose.
@@ -436,6 +440,7 @@ IF(LUA_FOUND)
 ELSE(LUA_FOUND)
 	MESSAGE("Lua not found - PoDoFoImpose and PoDoFoColor will be built without Lua support")
 ENDIF(LUA_FOUND)
+ENDIF(NOT PODOFO_BUILD_LIB_ONLY)
 
 
 # Check if we should build a multithreaded version of PoDoFo
