@@ -240,7 +240,13 @@ int main( int argc, char* argv[] )
 
     /**
      * Free global memory allocated by PoDoFo.
-     * This is normally not necessary.
+     * This is normally not necessary as memory
+     * will be free'd when the application terminates.
+     * 
+     * If you want to free all memory allocated by
+     * PoDoFo you have to call this method.
+     * 
+     * PoDoFo will reallocate the memory if necessary.
      */
     PdfEncodingFactory::FreeGlobalEncodingInstances();
 

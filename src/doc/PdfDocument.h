@@ -67,6 +67,10 @@ class PODOFO_DOC_API PdfDocument {
 
  public:
     /** Close down/destruct the PdfDocument
+     *
+     * You also might want to free some other resources
+     * like globally allocated font encodings.
+     * \see PdfEncodingFactory::FreeGlobalEncodingInstances
      */
     virtual ~PdfDocument();
 

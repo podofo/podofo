@@ -101,9 +101,10 @@ class PODOFO_API PdfEncodingFactory {
      *  PoDoFo will reallocated these encodings as soon
      *  as they are needed again.
      *
-     +  Only call this method if no other class
+     *  Only call this method if no other class
      *  of PoDoFo exists anymore, as PdfString etc
      *  contain pointers to the global instances.
+     *
      */
     static void FreeGlobalEncodingInstances();
 
