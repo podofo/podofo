@@ -61,11 +61,11 @@ void PdfAcroForm::Init( EPdfAcroFormDefaulAppearance eDefaultAppearance )
     if( !this->GetObject()->GetDictionary().HasKey("DA") && 
         eDefaultAppearance == ePdfAcroFormDefaultAppearance_BlackText12pt )
     {
-        //PdfFont* pFont = pParent->GetDocument()->CreateFont( "Helvetica", false );
-        
-        // TODO: It is no good idea to always embedd arial
-        //       but handling of non embedded helvetica is currently broken
-        PdfFont*   pFont     = m_pDocument->CreateFont( "Arial" ); // embedd is default true
+        PdfFont* pFont = m_pDocument->CreateFont( "Helvetica",
+                                                 PdfEncodingFactory::GlobalWinAnsiEncodingInstance(),
+                                                 PdfFontCache::eFontCreationFlags_AutoSelectBase14,
+                                                 false );
+        //PdfFont* pFont = m_pDocument->CreateFont( "Arial" );
         PdfObject* pResource;
         PdfObject* pFontDict;
         
