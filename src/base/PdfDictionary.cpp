@@ -183,7 +183,9 @@ double PdfDictionary::GetKeyAsReal( const PdfName & key, double dDefault ) const
 {
     const PdfObject* pObject = GetKey( key );
     
-    if( pObject && pObject->GetDataType() == ePdfDataType_Real ) 
+    if( pObject && (
+        pObject->GetDataType() == ePdfDataType_Real ||
+        pObject->GetDataType() == ePdfDataType_Number))
     {
         return pObject->GetReal();
     }
