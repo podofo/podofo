@@ -99,7 +99,7 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
 					}
 				} else {
 					int end = static_cast<int>(w[pos++].GetNumber());
-					int length = start + end;
+					int length = end + 1;
 					PODOFO_ASSERT (length >= start);
 					if (length > static_cast<int>(m_width.GetSize())) {
 						m_width.resize(length, default_width);
