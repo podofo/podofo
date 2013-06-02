@@ -54,6 +54,8 @@ PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
       m_bBold( false ), m_bItalic( false ), m_isBase14( false ), m_bIsSubsetting( false )
 
 {
+    this->InitVars();
+
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
     ostringstream out;
