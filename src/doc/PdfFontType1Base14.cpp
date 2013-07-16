@@ -31,7 +31,7 @@ PdfFontType1Base14::PdfFontType1Base14( PdfFontMetrics* pMetrics, const PdfEncod
                                         PdfVecObjects* pParent )
     : PdfFontSimple( pMetrics, pEncoding, pParent )
 {
-    InitBase14Font();
+    InitBase14Font( pMetrics );
 }
 
 // OC 13.08.2010 New:
@@ -39,7 +39,7 @@ PdfFontType1Base14::PdfFontType1Base14( PdfFontMetrics* pMetrics, const PdfEncod
                                         PdfObject* pObject )
     : PdfFontSimple( pMetrics, pEncoding, pObject )
 {
-    InitBase14Font();
+    InitBase14Font( pMetrics );
 }
 
 PdfFontType1Base14::~PdfFontType1Base14()
@@ -52,12 +52,12 @@ PdfFontType1Base14::~PdfFontType1Base14()
 kausik : April 12th 2010
 This is the font dictionary. It gets added to the page resources dictionary of the pdf.
 */
-void PdfFontType1Base14::InitBase14Font( )
+void PdfFontType1Base14::InitBase14Font( PdfFontMetrics* pMetrics )
 {
     PdfVariant    var;
     
     this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Type1"));
-    this->GetObject()->GetDictionary().AddKey("BaseFont", this->GetBaseFont() );
+    this->GetObject()->GetDictionary().AddKey("BaseFont", PdfName( pMetrics->GetFontname() ) );
 		 
     m_pEncoding->AddToDictionary( this->GetObject()->GetDictionary() ); // Add encoding key
 //	pDescriptor->GetDictionary().AddKey( "FontName", this->GetBaseFont() );

@@ -66,7 +66,7 @@ class PdfFontType1Base14 : public PdfFontSimple {
     virtual void EmbedFontFile( PdfObject* pDescriptor );
 
  private:
-    void InitBase14Font();
+    void InitBase14Font( PdfFontMetrics* pMetrics );
 
 };
 
