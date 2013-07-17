@@ -166,7 +166,7 @@ int main( int argc, char* argv[] )
   const char*   pszFontName = DEFAULT_FONT;
   bool          bUtf8 = false;
 
-  if( argc <= 3 ) 
+  if( argc < 3 ) 
   {
     print_help();
     exit( -1 );
