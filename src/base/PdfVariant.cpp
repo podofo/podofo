@@ -267,12 +267,13 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
             std::ostringstream oss;
             PdfLocaleImbue(oss);
             oss << std::fixed << m_Data.dNumber;
-            size_t len = oss.str().size();
+            std::string copy = oss.str();
+            size_t len = copy.size();
 
             if( (eWriteMode & ePdfWriteMode_Compact) == ePdfWriteMode_Compact && 
-                oss.str().find('.') != string::npos )
+                copy.find('.') != string::npos )
             {
-                const char *str = oss.str().c_str();
+                const char *str = copy.c_str();
                 while( str[len - 1] == '0' )
                     --len;
                 if( str[len - 1] == '.' )
@@ -284,7 +285,7 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
                 }
             }
 
-            pDevice->Write( oss.str().c_str(), len );
+            pDevice->Write( copy.c_str(), len );
             break;
         }
         case ePdfDataType_HexString:
