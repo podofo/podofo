@@ -40,7 +40,7 @@ namespace PoDoFo
 {
 
 
-PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject) : PdfEncoding(0x0000, 0xffff), PdfElement(NULL, pObject), m_baseEncoding( eBaseEncoding_Font )
+PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject *pToUnicode) : PdfEncoding(0x0000, 0xffff), PdfElement(NULL, pObject), m_baseEncoding( eBaseEncoding_Font )
 {
 
     if(pObject->HasStream())

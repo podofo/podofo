@@ -181,12 +181,14 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
 
         if ( pEncoding && pDescriptor ) // OC 18.08.2010: Avoid sigsegv
         {
-           const PdfEncoding* const pPdfEncoding = 
-               PdfEncodingObjectFactory::CreateEncoding( pEncoding );
-
-           // OC 15.08.2010 BugFix: Parameter pFontObject added: TODO: untested
-           pMetrics    = new PdfFontMetricsObject( pFontObject, pDescriptor, pPdfEncoding );
-           pFont       = new PdfFontCID( pMetrics, pPdfEncoding, pObject, false );
+            // TODO: If /ToUnicode is absent, use the CID font's predefined character collection
+            // (/CIDSystemInfo<</Registry(XXX)/Ordering(XXX)/Supplement 0>>)
+            const PdfEncoding* const pPdfEncoding =
+               PdfEncodingObjectFactory::CreateEncoding( pEncoding, pObject->GetIndirectKey("ToUnicode") );
+            
+            // OC 15.08.2010 BugFix: Parameter pFontObject added: TODO: untested
+            pMetrics    = new PdfFontMetricsObject( pFontObject, pDescriptor, pPdfEncoding );
+            pFont       = new PdfFontCID( pMetrics, pPdfEncoding, pObject, false );
         }
     }
     else if( rSubType == PdfName("Type1") ) 

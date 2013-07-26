@@ -40,7 +40,7 @@ public:
     };
 
 
-    PdfCMapEncoding(PdfObject* pObject);
+    PdfCMapEncoding(PdfObject* pObject, PdfObject* pToUnicode = NULL);
     virtual PdfString ConvertToUnicode(const PdfString& rEncodedString, const PdfFont* pFont) const;
     virtual void AddToDictionary(PdfDictionary & rDictionary ) const;
     virtual PdfRefCountedBuffer ConvertToEncoding(const PdfString& rString, const PdfFont* pFont) const; 

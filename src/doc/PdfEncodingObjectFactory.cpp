@@ -38,8 +38,7 @@ using namespace std;
 namespace PoDoFo
 {
 
-const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *
-                                                             pObject)
+const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *pObject, PdfObject *pToUnicode)
 {
     if (pObject->IsReference ())
     {
@@ -63,11 +62,11 @@ const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *
         else if (rName == PdfName ("ZapfDingbatsEncoding"))	// OC 13.08.2010
             return PdfEncodingFactory::GlobalZapfDingbatsEncodingInstance ();
         else if (rName == PdfName ("Identity-H"))
-            return new PdfIdentityEncoding ();
+            return new PdfIdentityEncoding (0, 0xffff, true, pToUnicode);
     }
-  	else if (pObject->HasStream ())	// Code for /ToUnicode object 
+  	else if (pObject->HasStream ())
     {
-		return new PdfCMapEncoding(pObject);
+		return new PdfCMapEncoding(pObject, pToUnicode);
     }
 
   	else if (pObject->IsDictionary ())

@@ -40,7 +40,7 @@ class PODOFO_DOC_API PdfEncodingObjectFactory {
      *
      *  \returns a PdfEncoding or NULL
      */
-    static const PdfEncoding* CreateEncoding( PdfObject* pObject );
+    static const PdfEncoding* CreateEncoding( PdfObject* pObject, PdfObject *pToUnicode = NULL );
 
 private:
     /**

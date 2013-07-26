@@ -23,6 +23,7 @@
 
 #include "podofo/base/PdfDefines.h"
 #include "podofo/base/PdfEncoding.h"
+#include "podofo/base/PdfObject.h"
 
 namespace PoDoFo {
 
@@ -42,7 +43,7 @@ class PODOFO_DOC_API PdfIdentityEncoding : public PdfEncoding {
      *                   must be larger than nFirstChar (max value is 0xffff) 
      *  \param bAutoDelete if true the encoding is deleted by its owning font
      */
-    PdfIdentityEncoding( int nFirstChar = 0, int nLastChar = 0xffff, bool bAutoDelete = true );
+    PdfIdentityEncoding( int nFirstChar = 0, int nLastChar = 0xffff, bool bAutoDelete = true, PdfObject* pToUnicode = NULL );
 
     /** Add this encoding object to a dictionary
      *  usually be adding an /Encoding key in font dictionaries.
@@ -116,10 +117,26 @@ class PODOFO_DOC_API PdfIdentityEncoding : public PdfEncoding {
      *  \returns an unicode value
      */
     pdf_utf16be GetUnicodeValue( long lCharCode ) const;
+    
+    /** Gets the char code from a uniode value
+     *
+     *  \param lUnicodeValue the unicode valye
+     *
+     *  \returns the character code (i.e. glyph id)
+     */
+    long GetCIDValue( pdf_utf16be lUnicodeValue ) const;
  
  private:
     bool    m_bAutoDelete;      ///< If true this encoding is deleted by its font.
-    PdfName m_id;               ///< Unique ID of this encoding 
+    PdfName m_id;               ///< Unique ID of this encoding
+    
+    PdfObject* m_pToUnicode;    ///< Pointer to /ToUnicode object, if any
+    bool m_bToUnicodeIsLoaded;  ///< If true, ToUnicode has been parsed
+    std::map<pdf_utf16be, pdf_utf16be> m_cMapEncoding;
+    
+    /** Parse the /ToUnicode object
+     */
+    void ParseToUnicode();
 };
 
 // -----------------------------------------------------
