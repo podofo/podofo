@@ -588,9 +588,18 @@ void PdfParser::ReadXRef( pdf_long* pXRefOffset )
 
     if( !this->IsNextToken( "startxref" ) )
     {
-        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
+		// Could be non-standard startref
+		if(!m_bStrictParsing) {
+			FindToken( "startref", PDF_XREF_BUF );
+			if( !this->IsNextToken( "startref" ) )
+			{
+				PODOFO_RAISE_ERROR( ePdfError_NoXRef );
+			}
+		} else 
+		{
+			PODOFO_RAISE_ERROR( ePdfError_NoXRef );
+		}
     }
-    
     *pXRefOffset = this->GetNextNumber();
 }
 
@@ -607,7 +616,8 @@ void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
     if (lOffset > fileSize)
     { 
         // Invalid "startxref" Peter Petrov 23 December 2008
-        FindToken( "startxref", PDF_XREF_BUF );
+		 // ignore returned value and get offset from the device
+        ReadXRef( &lOffset );
         lOffset = m_device.Device()->Tell();
         // TODO: hard coded value "4"
         m_buffer.Resize(PDF_XREF_BUF*4);
