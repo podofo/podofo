@@ -284,20 +284,20 @@ void PdfString::SetHexData( const char* pszHex, pdf_long lLen, PdfEncrypt* pEncr
 
     if( pEncrypt )
     {
-        pdf_long outBufferLen = m_buffer.GetSize()-2 - pEncrypt->CalculateStreamOffset();
-        PdfRefCountedBuffer outBuffer(outBufferLen);
+        pdf_long outBufferLen = m_buffer.GetSize() - 2 - pEncrypt->CalculateStreamOffset();
+        PdfRefCountedBuffer outBuffer(outBufferLen + 16 - (outBufferLen % 16));
         
         pEncrypt->Decrypt( reinterpret_cast<unsigned char*>(m_buffer.GetBuffer()),
                            static_cast<unsigned int>(m_buffer.GetSize()-2),
                           reinterpret_cast<unsigned char*>(outBuffer.GetBuffer()),
-                          static_cast<unsigned int>(outBuffer.GetSize()));
+                          static_cast<unsigned int>(outBufferLen));
         
         // Replace buffer with decrypted value
         m_buffer = outBuffer;
     }
 
     // Now check for the first two bytes, to see if we got a unicode string
-    if( m_buffer.GetSize()-2 > 2 ) 
+    if( m_buffer.GetSize() > 4 ) 
     {
 		m_bUnicode = (m_buffer.GetBuffer()[0] == static_cast<char>(0xFE) && m_buffer.GetBuffer()[1] == static_cast<char>(0xFF));
 		

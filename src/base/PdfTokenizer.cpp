@@ -716,7 +716,7 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
         if( pEncrypt )
         {
             pdf_long outLen = m_vecBuffer.size() - pEncrypt->CalculateStreamOffset();
-            char * outBuffer = new char[outLen];
+            char * outBuffer = new char[outLen + 16 - (outLen % 16)];
             pEncrypt->Decrypt( reinterpret_cast<unsigned char*>(&(m_vecBuffer[0])),
                               static_cast<unsigned int>(m_vecBuffer.size()),
                               reinterpret_cast<unsigned char*>(outBuffer), outLen);
