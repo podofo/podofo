@@ -757,7 +757,7 @@ void PdfParser::ReadXRefSubsection( long long & nFirstObject, long long & nNumOb
         if( !m_offsets[objID].bParsed )
         {
             m_offsets[objID].bParsed = true;
-#ifdef _WIN64
+#if defined(_WIN64) && defined(_MSC_VER)
             sscanf( m_buffer.GetBuffer(), "%10I64d %5ld %c%c%c", 
                     &(m_offsets[objID].lOffset), 
                     &(m_offsets[objID].lGeneration), &(m_offsets[objID].cUsed), &empty1, &empty2 );
