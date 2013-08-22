@@ -44,7 +44,7 @@ using namespace PoDoFo;
 LuaMachina::LuaMachina()
 {
 	/* Init the Lua interpreter */
-	L = lua_open();
+	L = imp_lua_open();
 	if (!L)
 	{
 		throw std::runtime_error("Whoops! Failed to open lua!");
@@ -117,7 +117,7 @@ PdfColor LuaConverter::GetColorFromReturnValue(const char* pszFunctionName)
     size_t len;
 
     luaL_checktype(m_machina.State(), 1, LUA_TTABLE);
-    len = luaL_getn( m_machina.State(), -1 );
+    len = imp_lua_getn( m_machina.State(), -1 );
     // Lua 5.1 only
     //len = lua_objlen( m_machina.State(), -1 );
 

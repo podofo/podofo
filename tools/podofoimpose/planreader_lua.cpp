@@ -23,7 +23,7 @@
 LuaMachina::LuaMachina()
 {
 	/* Init the Lua interpreter */
-	L = lua_open();
+	L = imp_lua_open();
 	if (!L)
 	{
 		throw std::runtime_error("Whoops! Failed to open lua!");

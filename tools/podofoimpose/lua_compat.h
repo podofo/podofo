@@ -11,7 +11,19 @@ extern "C" {
 #define LUA_VERSION_NUM 0
 #endif
 
-// Handle an API difference in the dofile call between
+// Handle an API difference in the lua_open call between
+// Lua 5.1 and Lua 5.2.
+#if LUA_VERSION_NUM >= 502
+inline lua_State* imp_lua_open(void) {
+    return luaL_newstate();
+}
+#else
+inline lua_State* imp_lua_open(void) {
+    return lua_open();
+}
+#endif
+
+// Handle an API difference in the dofile and getn calls between
 // Lua 5.0 and Lua 5.1.
 #if LUA_VERSION_NUM >= 501
 inline int imp_lua_dofile(lua_State* L, const char * path) {
