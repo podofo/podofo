@@ -647,9 +647,17 @@ void PdfCheckBox::SetChecked( bool bChecked )
 
 bool PdfCheckBox::IsChecked() const
 {
-    PdfName name = m_pObject->GetDictionary().GetKey( PdfName("V") )->GetName();
+    PdfDictionary dic = m_pObject->GetDictionary();
 
-    return name == PdfName("Yes");
+    if (dic.HasKey(PdfName("V"))) {
+        PdfName name = dic.GetKey( PdfName("V") )->GetName();
+        return (name == PdfName("Yes") || name == PdfName("On"));
+     } else if (dic.HasKey(PdfName("AS"))) {
+        PdfName name = dic.GetKey( PdfName("AS") )->GetName();
+        return (name == PdfName("Yes") || name == PdfName("On"));
+     }
+
+    return false;
 }
 
 /////////////////////////////////////////////////////////////////////////////
