@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #if defined(_MSC_VER)  &&  _MSC_VER <= 1200
 #pragma warning(disable: 4786)
@@ -65,7 +66,7 @@
 
 #define BEZIER_POINTS 13
 
-/* 4/3 * (1-cos 45ƒ)/sin 45ƒ = 4/3 * sqrt(2) - 1 */
+/* 4/3 * (1-cos 45,A0(B)/sin 45,A0(B = 4/3 * sqrt(2) - 1 */
 #define ARC_MAGIC    0.552284749f
 #define PI           3.141592654f
 
@@ -430,7 +431,7 @@ void PdfPainter::SetLineJoinStyle( EPdfLineJoinStyle eJoinStyle )
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
 
     m_oss.str("");
-    m_oss << static_cast<int>(eJoinStyle) << "j" << std::endl;
+    m_oss << static_cast<int>(eJoinStyle) << " j" << std::endl;
     m_pCanvas->Append( m_oss.str() );
 }
 
