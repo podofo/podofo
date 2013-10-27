@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       ****************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #include "PdfPagesTree.h"
 
@@ -424,6 +425,9 @@ PdfObject* PdfPagesTree::GetPageNodeFromArray( int nPageNum, const PdfArray & rK
         }
 
         PdfObject* pgObject = GetRoot()->GetOwner()->GetObject( rVar.GetReference() );
+		if(pgObject==NULL) {
+			PODOFO_RAISE_ERROR_INFO( ePdfError_PageNotFound, "Invalid reference." );
+		}
         //printf("Reading %s\n", pgObject->Reference().ToString().c_str());
         // make sure the object is a /Page and not a /Pages with a single kid
         if( this->IsTypePage(pgObject) ) 
@@ -439,7 +443,10 @@ PdfObject* PdfPagesTree::GetPageNodeFromArray( int nPageNum, const PdfArray & rK
 
             rLstParents.push_back( pgObject );
             rVar = *(pgObject->GetDictionary().GetKey( "Kids" ));
-        }
+        } else {
+	  // Reference to unexpected object
+	  PODOFO_RAISE_ERROR_INFO( ePdfError_PageNotFound, "Reference to unexpected object." );
+	}
     }
 
     return NULL;
