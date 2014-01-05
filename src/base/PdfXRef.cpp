@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #include "PdfXRef.h"
 
@@ -346,6 +347,14 @@ void PdfXRef::WriteXRefEntry( PdfOutputDevice* pDevice, pdf_uint64 offset,
 
 void PdfXRef::EndWrite( PdfOutputDevice* ) 
 {
+}
+
+void PdfXRef::SetFirstEmptyBlock() 
+{
+    PdfXRefBlock block;
+    block.m_nFirst = 0;
+    block.m_nCount = 1;
+    m_vecBlocks.insert(m_vecBlocks.begin(), block );
 }
 
 };

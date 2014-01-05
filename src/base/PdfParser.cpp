@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #include "PdfParser.h"
 
@@ -250,7 +251,9 @@ void PdfParser::Clear()
 void PdfParser::ReadDocumentStructure()
 {
 // Ulrich Arnold 8.9.2009, deactivated because of problems during reading xref's
-//    HasLinearizationDict();
+   //begin L.K - na test povoleno
+    HasLinearizationDict();
+    //begin L.K
     
     // position at the end of the file to search the xref table.
     m_device.Device()->Seek( 0, std::ios_base::end );
@@ -388,7 +391,10 @@ void PdfParser::HasLinearizationDict()
         return; // Ignore Error Code: ERROR_PDF_NO_TRAILER;
     }
 
-    char * pszObj = strstr( m_buffer.GetBuffer(), "obj" );
+    //begin L.K
+    //char * pszObj = strstr( m_buffer.GetBuffer(), "obj" );
+    char * pszObj = strstr( linearizeBuffer.GetBuffer(), "obj" );
+    //end L.K
     if( !pszObj )
         // strange that there is no obj in the first 1024 bytes,
         // but ignore it
@@ -1327,6 +1333,25 @@ void PdfParser::CheckEOFMarker()
             PODOFO_RAISE_ERROR( ePdfError_NoEOFToken );
     }
 }
+
+bool PdfParser::HasXRefStream()
+{
+   size_t curPosition = m_device.Device()->Tell();
+   m_device.Device()->Seek( m_nXRefOffset );
+   
+   if( !this->IsNextToken( "xref" ) )  {
+        //      if( m_ePdfVersion < ePdfVersion_1_5 )
+        //		Ulrich Arnold 19.10.2009, found linearized 1.3-pdf's with trailer-info in xref-stream
+       if( m_ePdfVersion < ePdfVersion_1_3 )  {
+           return false;
+       } else {
+           return true;
+       }
+   }
+
+   return false;
+}
+
 
 };
 

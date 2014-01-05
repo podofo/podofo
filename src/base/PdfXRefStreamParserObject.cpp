@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #include "PdfXRefStreamParserObject.h"
 
@@ -152,7 +153,7 @@ void PdfXRefStreamParserObject::ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], c
             if ( nFirstObj >= 0 && nFirstObj < m_pOffsets->size() 
                  && ! (*m_pOffsets)[static_cast<int>(nFirstObj)].bParsed)
             {
-				ReadXRefStreamEntry( pBuffer, lBufferLen, nW, static_cast<int>(nFirstObj) );
+	        ReadXRefStreamEntry( pBuffer, lBufferLen, nW, static_cast<int>(nFirstObj) );
             }
 
 			nFirstObj++ ;

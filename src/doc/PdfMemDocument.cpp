@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       * 
+ ***************************************************************************/
 
 #if defined(_MSC_VER)  &&  _MSC_VER <= 1200
 #pragma warning(disable: 4786)
@@ -67,6 +68,14 @@ namespace PoDoFo {
 
 PdfMemDocument::PdfMemDocument()
     : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL )
+{
+    m_eVersion    = ePdfVersion_Default;
+    m_eWriteMode  = ePdfWriteMode_Default;
+    m_bLinearized = false;
+}
+
+PdfMemDocument::PdfMemDocument(bool bOnlyTrailer)
+    : PdfDocument(bOnlyTrailer), m_pEncrypt( NULL ), m_pParser( NULL )
 {
     m_eVersion    = ePdfVersion_Default;
     m_eWriteMode  = ePdfWriteMode_Default;

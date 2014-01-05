@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #include "PdfPage.h" 
 
@@ -38,6 +39,7 @@
 #include "base/PdfRect.h"
 #include "base/PdfVariant.h"
 #include "base/PdfWriter.h"
+#include "base/PdfStream.h"
 
 #include "PdfDocument.h"
 
@@ -599,5 +601,42 @@ PdfObject* PdfPage::GetFromResources( const PdfName & rType, const PdfName & rKe
     
     return NULL;
 }
+
+
+PdfObject* PdfPage::GetOwnAnnotationsArray( bool bCreate, PdfDocument *pDocument)
+{
+   PdfObject* pObj;
+
+   if ( this->GetObject()->GetDictionary().HasKey( "Annots" ) )  {
+      pObj = this->GetObject()->GetIndirectKey( "Annots" );
+        
+      if(!pObj) {
+         pObj = this->GetObject()->GetDictionary().GetKey("Annots");
+         if( pObj->IsReference() ) {
+            if( !pDocument ) {
+               PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "Object is a reference but does not have an owner!" );
+            }
+
+            pObj = pDocument->GetObjects()->GetObject( pObj->GetReference() );
+            if(pObj) {
+               pObj->SetOwner(this->GetObject()->GetOwner());
+            }
+         } else
+            pObj->SetOwner( this->GetObject()->GetOwner() );// even directs might want an owner...
+      }
+
+      if( pObj && pObj->IsArray() )
+         return pObj;
+    }
+    else if( bCreate ) 
+    {
+        PdfArray array;
+        this->GetNonConstObject()->GetDictionary().AddKey( "Annots", array );
+        return const_cast<PdfObject*>(this->GetObject()->GetDictionary().GetKey( "Annots" ));
+    }
+
+    return NULL;
+}
+
 
 };

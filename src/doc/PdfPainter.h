@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #ifndef _PDF_PAINTER_H_
 #define _PDF_PAINTER_H_
@@ -712,16 +713,9 @@ class PODOFO_DOC_API PdfPainter {
      */
     inline unsigned short GetPrecision() const;
 
- private:
-    /** Register an object in the resource dictionary of this page
-     *  so that it can be used for any following drawing operations.
-     *  
-     *  \param rIdentifier identifier of this object, e.g. /Ft0
-     *  \param rRef reference to the object you want to register
-     *  \param rName register under this key in the resource dictionary
-     */
-    void AddToPageResources( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName );
 
+ private:
+ 
     /** Coverts a rectangle to an array of points which can be used 
      *  to draw an ellipse using 4 bezier curves.
      * 
@@ -740,7 +734,17 @@ class PODOFO_DOC_API PdfPainter {
     void ConvertRectToBezier( double dX, double dY, double dWidth, double dHeight, double pdPointX[], double pdPointY[] );
 
  protected:
-    /** Sets the color that was last set by the user as the current stroking color.
+
+    /** Register an object in the resource dictionary of this page
+     *  so that it can be used for any following drawing operations.
+     *  
+     *  \param rIdentifier identifier of this object, e.g. /Ft0
+     *  \param rRef reference to the object you want to register
+     *  \param rName register under this key in the resource dictionary
+     */
+    virtual void AddToPageResources( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName );
+ 
+   /** Sets the color that was last set by the user as the current stroking color.
      *  You should always enclose this function by Save() and Restore()
      *
      *  \see Save() \see Restore()

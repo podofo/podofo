@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2010 by Dominik Seichter                                *
+ *   Copyright (C) 2014 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -31,54 +31,70 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#ifndef _PODOFO_BASE_H_
-#define _PODOFO_BASE_H_
+#ifndef _PDF_SIGINCSIGNATURE_FIELD_H_
+#define _PDF_SIGINCSIGNATURE_FIELD_H_
 
-// Include files from PoDoFo-base
+#include "PdfField.h"
+#include "PdfSignatureField.h"
+#include "podofo/base/PdfDate.h"
+#include "PdfImage.h"
+#include "PdfDocument.h"
 
-#include "base/PdfVersion.h"
-#include "base/PdfDefines.h"
-#include "base/Pdf3rdPtyForwardDecl.h"
-#include "base/PdfArray.h"
-#include "base/PdfCanvas.h"
-#include "base/PdfColor.h"
-#include "base/PdfContentsTokenizer.h"
-#include "base/PdfData.h"
-#include "base/PdfDataType.h"
-#include "base/PdfDate.h"
-#include "base/PdfDictionary.h"
-#include "base/PdfEncodingFactory.h"
-#include "base/PdfEncoding.h"
-#include "base/PdfEncrypt.h"
-#include "base/PdfError.h"
-#include "base/PdfFileStream.h"
-#include "base/PdfFilter.h"
-#include "base/PdfImmediateWriter.h"
-#include "base/PdfInputDevice.h"
-#include "base/PdfInputStream.h"
-#include "base/PdfLocale.h"
-#include "base/PdfMemoryManagement.h"
-#include "base/PdfMemStream.h"
-#include "base/PdfName.h"
-#include "base/PdfObject.h"
-#include "base/PdfObjectStreamParserObject.h"
-#include "base/PdfOutputDevice.h"
-#include "base/PdfOutputStream.h"
-#include "base/PdfParser.h"
-#include "base/PdfParserObject.h"
-#include "base/PdfRect.h"
-#include "base/PdfRefCountedBuffer.h"
-#include "base/PdfRefCountedInputDevice.h"
-#include "base/PdfReference.h"
-#include "base/PdfSigIncWriter.h"
-#include "base/PdfStream.h"
-#include "base/PdfString.h"
-#include "base/PdfTokenizer.h"
-#include "base/PdfVariant.h"
-#include "base/PdfVecObjects.h"
-#include "base/PdfWriter.h"
-#include "base/PdfXRef.h"
-#include "base/PdfXRefStream.h"
-#include "base/PdfXRefStreamParserObject.h"
+namespace PoDoFo {
 
-#endif // _PODOFO_BASE_H_
+class PODOFO_DOC_API PdfSigIncSignatureField 
+{
+private:
+    int m_SignPage;
+    float m_FontSize;
+
+    PdfString m_SignText;
+    PdfRect m_SignTextRect;
+    
+    const unsigned char* m_pImageData;
+    pdf_long m_ImageLen;
+    PdfString m_ImageFile;
+    PdfRect m_SignImageRect;
+
+    PdfString m_SignReason;
+    PdfDate m_SignDate;
+
+    PdfDocument *m_pDocument;
+
+    pdf_int64 m_Red;
+    pdf_int64 m_Green;
+    pdf_int64 m_Blue;
+    pdf_int64 m_Threshold;
+
+private:
+   PdfString CreatePdfString(const wchar_t *text);
+
+public:
+    PdfSigIncSignatureField(PdfDocument *pDocument);
+    virtual ~PdfSigIncSignatureField();
+
+    void SetSignatureReason(const wchar_t *text);
+    PdfString &GetSignatuReason(void) {return m_SignReason;}
+    void SetSignatureDate(const PdfDate &sigDate);
+    PdfDate &GetSignatureDate(void) {return m_SignDate;}
+    bool HasSignatureText(void);
+    bool HasSignatureImage(void);
+    PdfRect &GetTextRect(void) {return m_SignTextRect;}
+    PdfRect &GetImageRect(void) {return m_SignImageRect;}
+    PdfString &GetSignatureText(void) {return m_SignText;}
+    int GetPage(void) {return m_SignPage;}
+    float GetFontSize(void) {return m_FontSize;}
+
+    PdfImage *CreateSignatureImage(PdfDocument *pParent);
+    void FreeSignatureImage(PdfImage *img);
+
+    void SetSignatureText(const wchar_t *text, int page, int x, int y, int width, int height, float fontSize);
+    void SetSignatureImage(const char *fileName, int page, int x, int y, int width, int height);
+    void SetSignatureImage(const unsigned char *pData, pdf_long lLen, int page, int x, int y, int width, int height);
+    void SetImageChromaKeyMask(pdf_int64 r, pdf_int64 g, pdf_int64 b, pdf_int64 threshold);
+    
+};
+
+}
+
+#endif

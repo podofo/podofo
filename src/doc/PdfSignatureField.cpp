@@ -35,6 +35,8 @@
 #include "../base/PdfDictionary.h"
 #include "../base/PdfData.h"
 
+#include "PdfXObject.h"
+
 #include <string.h>
 
 namespace PoDoFo {
@@ -45,6 +47,33 @@ PdfSignatureField::PdfSignatureField( PdfPage* pPage, const PdfRect & rRect, Pdf
     m_pSignatureObj = NULL;
     Init();
 }
+
+//begin L.K
+PdfSignatureField::PdfSignatureField( PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc)
+	:PdfField(PoDoFo::ePdfField_Signature, pWidget,  pParent, pDoc)
+{
+    m_pSignatureObj = NULL;
+    Init();
+}
+
+void PdfSignatureField::SetAppearanceStream( PdfXObject* pObject )
+{
+    if( !pObject )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    if( !m_pObject->GetDictionary().HasKey( PdfName("AP") ) )
+        m_pObject->GetDictionary().AddKey( PdfName("AP"), PdfDictionary() );
+
+    if( m_pObject->GetDictionary().GetKey( PdfName("AP") )->GetDictionary().HasKey( PdfName("N") ) )
+       m_pObject->GetDictionary().GetKey( PdfName("AP") )->GetDictionary().RemoveKey(PdfName("N"));
+    
+    m_pObject->GetDictionary().GetKey( PdfName("AP") )->GetDictionary().AddKey( PdfName("N"), pObject->GetObject()->Reference() );
+    
+    this->GetAppearanceCharacteristics(true);
+}
+//end L.K
 
 void PdfSignatureField::Init()
 {

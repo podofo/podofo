@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #ifndef _PDF_DOCUMENT_H_
 #define _PDF_DOCUMENT_H_
@@ -137,7 +138,7 @@ class PODOFO_DOC_API PdfDocument {
      *  \returns PdfObject the AcroForm dictionary
      */
     PdfAcroForm* GetAcroForm( bool bCreate = ePdfCreateObject,
-                              PdfAcroForm::EPdfAcroFormDefaulAppearance eDefaultAppearance = PdfAcroForm::ePdfAcroFormDefaultAppearance_BlackText12pt);
+                              EPdfAcroFormDefaulAppearance eDefaultAppearance = ePdfAcroFormDefaultAppearance_BlackText12pt);
 
     /** Get access to the pages tree.
      *  Better use GetPage and CreatePage methods.
@@ -247,7 +248,7 @@ class PODOFO_DOC_API PdfDocument {
      *  TODO: DS: Make this generic so that it will work 
      *            for any font type!
      */
-	PdfFont* CreateDuplicateFontType1( PdfFont * pFont, const char * pszSuffix );
+    PdfFont* CreateDuplicateFontType1( PdfFont * pFont, const char * pszSuffix );
 
 	/** Creates a font subset which contains only a few characters and is embedded.
      *
@@ -276,7 +277,7 @@ class PODOFO_DOC_API PdfDocument {
      *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
      *
      *  \returns PdfFont* a pointer to a new PdfFont object.
- 	 *
+     *
      *  This is an overloaded member function to allow working
      *  with unicode characters. On Unix systes you can also path
      *  UTF-8 to the const char* overload.
@@ -293,10 +294,10 @@ class PODOFO_DOC_API PdfDocument {
     inline FT_Library GetFontLibrary() const;
 	
     /** Embeds all pending subset-fonts, is automatically done on Write().
-	 *  Just call explicit in case PdfDocument is needed as XObject
+     *  Just call explicit in case PdfDocument is needed as XObject
      *
      */
-	void EmbedSubsetFonts();
+    void EmbedSubsetFonts();
 
     /** Creates a new page object and inserts it into the internal
      *  page tree. 
@@ -540,8 +541,9 @@ class PODOFO_DOC_API PdfDocument {
 
  protected:
     /** Construct a new (empty) PdfDocument
+     *  \param bEmtpy if true NO default objects (such as catalog) are created.
      */
-    PdfDocument();
+    PdfDocument( bool bEmpty = false );
 
     /** Set the info object containing meta information.
      *  Deletes any old info object.
@@ -633,6 +635,12 @@ class PODOFO_DOC_API PdfDocument {
 
  protected:
     PdfFontCache    m_fontCache;
+    PdfObject*      m_pTrailer;
+    PdfObject*      m_pCatalog;
+
+    PdfInfo*        m_pInfo;
+    PdfPagesTree*   m_pPagesTree;
+    PdfAcroForm*    m_pAcroForms;
 
  private:
     // Prevent use of copy constructor and assignment operator.  These methods
@@ -643,15 +651,10 @@ class PODOFO_DOC_API PdfDocument {
     PdfDocument& operator=(const PdfDocument&);
 
     PdfVecObjects   m_vecObjects;
+   
 
-    PdfObject*      m_pTrailer;
-    PdfObject*      m_pCatalog;
-
-    PdfInfo*        m_pInfo;
     PdfOutlines*    m_pOutlines;
     PdfNamesTree*   m_pNamesTree;
-    PdfPagesTree*   m_pPagesTree;
-    PdfAcroForm*    m_pAcroForms;
 
     EPdfVersion     m_eVersion;
 };

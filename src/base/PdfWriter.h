@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #ifndef _PDF_WRITER_H_
 #define _PDF_WRITER_H_
@@ -221,7 +222,7 @@ class PODOFO_API PdfWriter {
      */
     void CreateFileIdentifier( PdfString & identifier, const PdfObject* pTrailer ) const PODOFO_LOCAL;
 
- private:
+ protected:
     /** Writes a linearized PDF file
      *  \param pDevice write to this output device
      */       

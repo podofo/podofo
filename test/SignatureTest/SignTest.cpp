@@ -96,7 +96,7 @@ int main( int argc, char* argv[] )
 
 	PdfStreamedDocument writer( &signer, PoDoFo::ePdfVersion_1_5 );
     // Disable default appearance
-    writer.GetAcroForm(ePdfCreateObject, PdfAcroForm::ePdfAcroFormDefaultAppearance_None);
+    writer.GetAcroForm(ePdfCreateObject, ePdfAcroFormDefaultAppearance_None);
 
     pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
     TEST_SAFE_OP( CreateSimpleForm( pPage, &writer, *signer.GetSignatureBeacon() ) );

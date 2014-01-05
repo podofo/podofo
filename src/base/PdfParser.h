@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #ifndef _PDF_PARSER_H_
 #define _PDF_PARSER_H_
@@ -396,7 +397,12 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      * \param nMaxObjects set max number of objects
      */
     inline static void SetMaxObjectCount( long nMaxObjects );
+
+    inline pdf_long GetXRefOffset(void);
     
+    bool HasXRefStream();
+
+
  protected:
     /** Searches backwards from the end of the file
      *  and tries to find a token.
@@ -686,6 +692,14 @@ long PdfParser::GetMaxObjectCount()
 void PdfParser::SetMaxObjectCount( long nMaxObjects )
 {
     PdfParser::s_nMaxObjects = nMaxObjects;
+}
+
+// -----------------------------------------------------
+//
+// -----------------------------------------------------
+pdf_long PdfParser::GetXRefOffset()
+{
+    return m_nXRefOffset;
 }
 
 };

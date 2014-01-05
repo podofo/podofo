@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #ifndef _PDF_XREF_H_
 #define _PDF_XREF_H_
@@ -154,6 +155,11 @@ class PdfXRef {
      *          starts after it was written
      */
     inline virtual pdf_uint64 GetOffset() const;
+
+    /**
+     * Mark as empty block.
+     */
+    void SetFirstEmptyBlock();
 
  protected:
     /** Called at the start of writing the XRef table.

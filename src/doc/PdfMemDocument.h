@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #ifndef _PDF_MEM_DOCUMENT_H_
 #define _PDF_MEM_DOCUMENT_H_
@@ -82,6 +83,10 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      */
     PdfMemDocument();
     
+    /** Construct a new (empty) PdfMemDocument
+     */
+    PdfMemDocument( bool bOnlyTrailer );
+
     /** Construct a PdfMemDocument from an existing PDF (on disk)
      *  \param pszFilename filename of the file which is going to be parsed/opened
      *
@@ -484,18 +489,27 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      */
     inline const PdfEncrypt* GetEncrypt() const;
 
- private:
+//begin L.K
+protected:
+    PdfObject* GetMainTrailer() { return PdfDocument::GetTrailer(); }
+
+    //private
     /** Get a dictioary from the catalog dictionary by its name.
      *  \param pszName will be converted into a PdfName
      *  \returns the dictionary if it was found or NULL
      */
     PdfObject* GetNamedObjectFromCatalog( const char* pszName ) const;
 
+    //private
     /** Internal method to load all objects from a PdfParser object.
      *  The objects will be removed from the parser and are now
      *  owned by the PdfMemDocument.
      */
-    void InitFromParser( PdfParser* pParser );
+    //void InitFromParser( PdfParser* pParser );
+    virtual void InitFromParser( PdfParser* pParser );
+//end L.K
+
+ private:
 
     /** Clear all internal variables
      */

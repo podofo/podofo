@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #include "PdfImage.h"
 
@@ -359,6 +360,7 @@ void PdfImage::LoadFromJpegHandle( PdfFileInputStream* pInStream )
     
     (void) jpeg_destroy_decompress(&cinfo);
 }
+
 #endif // PODOFO_HAVE_JPEG_LIB
 
 #ifdef PODOFO_HAVE_TIFF_LIB

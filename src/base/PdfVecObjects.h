@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #ifndef _PDF_VEC_OBJECTS_H_
 #define _PDF_VEC_OBJECTS_H_
@@ -413,6 +414,13 @@ class PODOFO_API PdfVecObjects {
      */
 	std::string GetNextSubsetPrefix();
 
+ 	/**
+     * Set the object count so that the object described this reference
+     * is contained in the object count.
+     *
+     * \param rRef reference of newly added object
+     */
+    void SetObjectCount( const PdfReference & rRef );
 
  private:    
     /** 
@@ -439,14 +447,6 @@ class PODOFO_API PdfVecObjects {
      *  \see BuildReferenceCountVector
      */
     void GarbageCollection( TVecReferencePointerList* pList, PdfObject* pTrailer, TPdfReferenceSet* pNotDelete = NULL );
-
-    /**
-     * Set the object count so that the object described this reference
-     * is contained in the object count.
-     *
-     * \param rRef reference of newly added object
-     */
-    void SetObjectCount( const PdfReference & rRef );
 
  private:
     bool                m_bAutoDelete;

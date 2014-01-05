@@ -29,7 +29,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #ifndef _PDF_SIGNATURE_FIELD_H_
 #define _PDF_SIGNATURE_FIELD_H_
@@ -52,6 +53,10 @@ public:
     /** Create a new PdfSignatureField
      */
     PdfSignatureField( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
+
+    PdfSignatureField( PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc);
+
+    void SetAppearanceStream(PdfXObject *pObject);
 
     /** Create space for signature
      *

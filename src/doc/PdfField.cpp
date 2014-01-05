@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #include "PdfField.h"
 
@@ -81,6 +82,31 @@ PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, Pdf
     Init( pDoc->GetAcroForm() );
 }
 
+PdfField::PdfField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc)
+    : m_pObject( pWidget->GetObject() ), m_pWidget( pWidget ), m_eField( eField )
+{
+    Init( pParent );
+    PdfObject* pFields = pParent->GetObject()->GetDictionary().GetKey( PdfName("Fields") );
+    if( pFields && pFields->IsReference())  {
+       PdfObject *pRefFld = pDoc->GetObjects()->GetObject(pFields->GetReference());
+       if(pRefFld)
+         pRefFld->GetArray().push_back( m_pObject->Reference() );
+    }
+}
+
+PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc, bool bAppearanceNone)
+    :  m_eField( eField )
+{
+   m_pWidget = pPage->CreateAnnotation( ePdfAnnotation_Widget, rRect );
+   m_pObject = m_pWidget->GetObject();
+
+   Init( 
+	pDoc->GetAcroForm(true, 
+			  bAppearanceNone ? 
+			  ePdfAcroFormDefaultAppearance_None
+			  : ePdfAcroFormDefaultAppearance_BlackText12pt ));
+}
+
 PdfField::PdfField( const PdfField & rhs )
     : m_pObject( NULL ), m_pWidget( NULL ), m_eField( ePdfField_Unknown )
 {
@@ -93,7 +119,10 @@ void PdfField::Init( PdfAcroForm* pParent )
     PdfObject* pFields = pParent->GetObject()->GetDictionary().GetKey( PdfName("Fields") );
     if( pFields ) 
     {
-        pFields->GetArray().push_back( m_pObject->Reference() );
+        if(!pFields->IsReference() ) 
+	{
+            pFields->GetArray().push_back( m_pObject->Reference() );
+	}
     }
     else
     {

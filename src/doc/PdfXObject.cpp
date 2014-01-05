@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #include "PdfXObject.h" 
 
@@ -54,10 +55,14 @@ namespace PoDoFo {
 
 PdfArray PdfXObject::s_matrix;
 
-PdfXObject::PdfXObject( const PdfRect & rRect, PdfDocument* pParent, const char* pszPrefix )
+PdfXObject::PdfXObject( const PdfRect & rRect, PdfDocument* pParent, const char* pszPrefix, bool bWithoutIdentifier )
     : PdfElement( "XObject", pParent ), PdfCanvas(), m_rRect( rRect )
 {
     InitXObject( rRect, pszPrefix );
+    if( bWithoutIdentifier )
+    {
+       m_Identifier = PdfName(pszPrefix);
+    }
 }
 
 PdfXObject::PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent, const char* pszPrefix )

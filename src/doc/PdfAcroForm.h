@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #ifndef _PDF_ACRO_FORM_H_
 #define _PDF_ACRO_FORM_H_
@@ -40,12 +41,13 @@ namespace PoDoFo {
 
 class PdfDocument;
 
+enum EPdfAcroFormDefaulAppearance {
+  ePdfAcroFormDefaultAppearance_None, ///< Do not add a default appearrance
+  ePdfAcroFormDefaultAppearance_BlackText12pt ///< Add a default appearance with Arial embedded and black text 12pt if no other DA key is present
+};
+
 class PODOFO_DOC_API PdfAcroForm : public PdfElement {
  public:
-    enum EPdfAcroFormDefaulAppearance {
-        ePdfAcroFormDefaultAppearance_None, ///< Do not add a default appearrance
-        ePdfAcroFormDefaultAppearance_BlackText12pt ///< Add a default appearance with Arial embedded and black text 12pt if no other DA key is present
-    };
 
     /** Create a new PdfAcroForm dictionary object
      *  \param pDoc parent of this action

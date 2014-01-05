@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       ****************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #if defined(_MSC_VER)  &&  _MSC_VER <= 1200
 #pragma warning(disable: 4786)
@@ -50,6 +51,7 @@
 #include "base/PdfStream.h"
 #include "base/PdfVecObjects.h"
 
+#include "PdfAcroForm.h"
 #include "PdfDestination.h"
 #include "PdfFileSpec.h"
 #include "PdfFont.h"
@@ -67,23 +69,31 @@ using namespace std;
 
 namespace PoDoFo {
 
-PdfDocument::PdfDocument()
-    : m_fontCache( &m_vecObjects ), m_pOutlines( NULL ), 
-      m_pNamesTree( NULL ), m_pPagesTree( NULL ), 
-      m_pAcroForms( NULL )
+PdfDocument::PdfDocument(bool bEmpty)
+    : m_fontCache( &m_vecObjects ), 
+      m_pTrailer(NULL),
+      m_pCatalog(NULL),
+      m_pInfo(NULL),
+      m_pPagesTree( NULL ),
+      m_pAcroForms( NULL ),  
+      m_pOutlines( NULL ), 
+      m_pNamesTree( NULL )
 {
     m_vecObjects.SetParentDocument( this );
 
-    m_pTrailer = new PdfObject(); // The trailer is NO part of the vector of objects
-    m_pTrailer->SetOwner( &m_vecObjects );
-    m_pCatalog = m_vecObjects.CreateObject( "Catalog" );
+    if( !bEmpty ) 
+    {
+        m_pTrailer = new PdfObject(); // The trailer is NO part of the vector of objects
+        m_pTrailer->SetOwner( &m_vecObjects );
+        m_pCatalog = m_vecObjects.CreateObject( "Catalog" );
+        
+        m_pInfo = new PdfInfo( &m_vecObjects );
+        
+        m_pTrailer->GetDictionary().AddKey( "Root", m_pCatalog->Reference() );
+        m_pTrailer->GetDictionary().AddKey( "Info", m_pInfo->GetObject()->Reference() );
 
-    m_pInfo = new PdfInfo( &m_vecObjects );
-
-    m_pTrailer->GetDictionary().AddKey( "Root", m_pCatalog->Reference() );
-    m_pTrailer->GetDictionary().AddKey( "Info", m_pInfo->GetObject()->Reference() );
-
-    InitPagesTree();
+        InitPagesTree();
+    }
 }
 
 PdfDocument::~PdfDocument()
@@ -742,7 +752,7 @@ PdfNamesTree* PdfDocument::GetNamesTree( bool bCreate )
     return m_pNamesTree;
 }
 
-PdfAcroForm* PdfDocument::GetAcroForm( bool bCreate, PdfAcroForm::EPdfAcroFormDefaulAppearance eDefaultAppearance )
+PdfAcroForm* PdfDocument::GetAcroForm( bool bCreate, EPdfAcroFormDefaulAppearance eDefaultAppearance )
 {
     PdfObject* pObj;
 

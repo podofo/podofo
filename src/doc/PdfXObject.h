@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #ifndef _PDF_XOBJECT_H_
 #define _PDF_XOBJECT_H_
@@ -62,8 +63,9 @@ class PODOFO_DOC_API PdfXObject : public PdfElement, public PdfCanvas {
      *  \param rRect the size of the XObject
      *  \param pParent the parent document of the XObject
 	 *  \param pszPrefix optional prefix for XObject-name
+     *  \param bWithoutObjNum do not create an object identifier name
      */
-    PdfXObject( const PdfRect & rRect, PdfDocument* pParent, const char* pszPrefix = NULL );
+    PdfXObject( const PdfRect & rRect, PdfDocument* pParent, const char* pszPrefix = NULL, bool bWithoutObjNum = false);
 
     /** Create a new XObject with a specified dimension
      *  in a given vector of PdfObjects

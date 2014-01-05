@@ -29,7 +29,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       * 
+ ***************************************************************************/
 
 #include "PdfSignOutputDevice.h"
 #include "../base/PdfArray.h"
@@ -157,7 +158,7 @@ void PdfSignOutputDevice::AdjustByteRange()
         sPosition+=']';
     }
 
-    m_pRealDevice->Seek(m_sBeaconPos-sPosition.size()-9);
+    m_pRealDevice->Seek(m_sBeaconPos-sPosition.size()-11);
     m_pRealDevice->Write(sPosition.c_str(), sPosition.size());
 }
 

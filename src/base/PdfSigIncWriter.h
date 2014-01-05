@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2010 by Dominik Seichter                                *
+ *   Copyright (C) 2014 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -31,54 +31,26 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#ifndef _PODOFO_BASE_H_
-#define _PODOFO_BASE_H_
+#ifndef _PDF_SIGWRITER_H_
+#define _PDF_SIGWRITER_H_
 
-// Include files from PoDoFo-base
+#include "PdfWriter.h"
 
-#include "base/PdfVersion.h"
-#include "base/PdfDefines.h"
-#include "base/Pdf3rdPtyForwardDecl.h"
-#include "base/PdfArray.h"
-#include "base/PdfCanvas.h"
-#include "base/PdfColor.h"
-#include "base/PdfContentsTokenizer.h"
-#include "base/PdfData.h"
-#include "base/PdfDataType.h"
-#include "base/PdfDate.h"
-#include "base/PdfDictionary.h"
-#include "base/PdfEncodingFactory.h"
-#include "base/PdfEncoding.h"
-#include "base/PdfEncrypt.h"
-#include "base/PdfError.h"
-#include "base/PdfFileStream.h"
-#include "base/PdfFilter.h"
-#include "base/PdfImmediateWriter.h"
-#include "base/PdfInputDevice.h"
-#include "base/PdfInputStream.h"
-#include "base/PdfLocale.h"
-#include "base/PdfMemoryManagement.h"
-#include "base/PdfMemStream.h"
-#include "base/PdfName.h"
-#include "base/PdfObject.h"
-#include "base/PdfObjectStreamParserObject.h"
-#include "base/PdfOutputDevice.h"
-#include "base/PdfOutputStream.h"
-#include "base/PdfParser.h"
-#include "base/PdfParserObject.h"
-#include "base/PdfRect.h"
-#include "base/PdfRefCountedBuffer.h"
-#include "base/PdfRefCountedInputDevice.h"
-#include "base/PdfReference.h"
-#include "base/PdfSigIncWriter.h"
-#include "base/PdfStream.h"
-#include "base/PdfString.h"
-#include "base/PdfTokenizer.h"
-#include "base/PdfVariant.h"
-#include "base/PdfVecObjects.h"
-#include "base/PdfWriter.h"
-#include "base/PdfXRef.h"
-#include "base/PdfXRefStream.h"
-#include "base/PdfXRefStreamParserObject.h"
+namespace PoDoFo {
 
-#endif // _PODOFO_BASE_H_
+class PdfWriter;
+
+class PODOFO_API PdfSigIncWriter: public PdfWriter {
+    
+ public:
+    PdfSigIncWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer );
+
+    virtual ~PdfSigIncWriter();
+
+    void Write( PdfOutputDevice* pDevice, pdf_int64 prevOffset);
+};
+
+
+};
+
+#endif // _PDF_SIGWRITER_H_
