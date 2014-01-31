@@ -167,6 +167,12 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      */
     void LoadFromJpeg( const char* pszFilename );
 
+    /** Load the image data from JPEG bytes
+     *  \param pData JPEG bytes
+     *  \param dwLen number of bytes
+     */
+    void LoadFromJpegData(unsigned char* pData, pdf_long dwLen);
+
 #ifdef _WIN32
     /** Load the image data from a JPEG file
      *  \param pszFilename

@@ -62,6 +62,7 @@ extern "C" {
 #  endif
 #  include "jpeglib.h"
 }
+
 #endif // PODOFO_HAVE_JPEG_LIB
 
 #ifdef PODOFO_HAVE_PNG_LIB
@@ -361,6 +362,71 @@ void PdfImage::LoadFromJpegHandle( PdfFileInputStream* pInStream )
     (void) jpeg_destroy_decompress(&cinfo);
 }
 
+void PdfImage::LoadFromJpegData(unsigned char* pData, pdf_long dwLen)
+{
+    struct jpeg_decompress_struct cinfo;
+    struct jpeg_error_mgr         jerr;
+
+    cinfo.err = jpeg_std_error(&jerr);
+    jerr.error_exit = &JPegErrorExit;
+    jerr.emit_message = &JPegErrorOutput;
+
+    jpeg_create_decompress(&cinfo);
+
+    jpeg_mem_src(&cinfo, pData, dwLen);
+
+    if( jpeg_read_header(&cinfo, TRUE) <= 0 )
+    {
+        (void) jpeg_destroy_decompress(&cinfo);
+
+        PODOFO_RAISE_ERROR( ePdfError_UnexpectedEOF );
+    }
+
+    jpeg_start_decompress(&cinfo);
+
+    m_rRect.SetWidth( cinfo.output_width );
+    m_rRect.SetHeight( cinfo.output_height );
+
+    // I am not sure wether this switch is fully correct.
+    // it should handle all cases though.
+    // Index jpeg files might look strange as jpeglib+
+    // returns 1 for them.
+    switch( cinfo.output_components )
+    {
+        case 3:
+            this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
+            break;
+        case 4:
+	{
+	    this->SetImageColorSpace( ePdfColorSpace_DeviceCMYK );
+	    // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
+	    // in a inverted fashion. Fix by attaching a decode array
+	    PdfArray decode;
+	    decode.push_back( 1.0 );
+	    decode.push_back( 0.0 );
+	    decode.push_back( 1.0 );
+	    decode.push_back( 0.0 );
+	    decode.push_back( 1.0 );
+	    decode.push_back( 0.0 );
+	    decode.push_back( 1.0 );
+	    decode.push_back( 0.0 );
+	    
+	    this->GetObject()->GetDictionary().AddKey( PdfName("Decode"), decode );
+	}
+	break;
+        default:
+            this->SetImageColorSpace( ePdfColorSpace_DeviceGray );
+            break;
+    }
+    
+    // Set the filters key to DCTDecode
+    this->GetObject()->GetDictionary().AddKey( PdfName::KeyFilter, PdfName( "DCTDecode" ) );
+    
+    PdfMemoryInputStream fInpStream( (const char*)pData, (pdf_long) dwLen);
+    this->SetImageDataRaw( cinfo.output_width, cinfo.output_height, 8, &fInpStream );
+    
+    (void) jpeg_destroy_decompress(&cinfo);
+}
 #endif // PODOFO_HAVE_JPEG_LIB
 
 #ifdef PODOFO_HAVE_TIFF_LIB
