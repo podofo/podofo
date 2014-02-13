@@ -105,7 +105,7 @@ void PdfSigIncWriter::Write( PdfOutputDevice* pDevice, pdf_int64 prevOffset)
       pInfo->WriteObject( &device, ePdfWriteMode_Clean, NULL );
 
       // calculate the MD5 Sum
-      m_identifier = PdfEncrypt::GetMD5String( reinterpret_cast<unsigned char*>(pBuffer),
+      m_identifier = PdfEncryptMD5Base::GetMD5String( reinterpret_cast<unsigned char*>(pBuffer),
                                            static_cast<unsigned int>(length.GetLength()) );
       free( pBuffer );
 

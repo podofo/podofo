@@ -98,10 +98,10 @@ PdfString PdfSigIncSignatureField::CreatePdfString(const wchar_t *text)
          return result;
       } else 
          return PdfString(text);
-   #else if
+   #else
       return PdfString(text);
    #endif
-#else if
+#else
    return PdfString(text);
 #endif
 }

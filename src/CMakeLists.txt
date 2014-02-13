@@ -28,8 +28,8 @@ SET(PODOFO_BASE_SOURCES
   base/PdfInputDevice.cpp
   base/PdfInputStream.cpp
   base/PdfLocale.cpp
-  base/PdfMemoryManagement.cpp
   base/PdfMemStream.cpp
+  base/PdfMemoryManagement.cpp
   base/PdfName.cpp
   base/PdfObject.cpp
   base/PdfObjectStreamParserObject.cpp
@@ -41,6 +41,7 @@ SET(PODOFO_BASE_SOURCES
   base/PdfRefCountedBuffer.cpp
   base/PdfRefCountedInputDevice.cpp
   base/PdfReference.cpp
+  base/PdfSigIncWriter.cpp
   base/PdfStream.cpp
   base/PdfString.cpp
   base/PdfTokenizer.cpp
@@ -56,6 +57,7 @@ SET(PODOFO_DOC_SOURCES
   doc/PdfAcroForm.cpp
   doc/PdfAction.cpp
   doc/PdfAnnotation.cpp
+  doc/PdfCMapEncoding.cpp
   doc/PdfContents.cpp
   doc/PdfDestination.cpp
   doc/PdfDifferenceEncoding.cpp
@@ -65,20 +67,20 @@ SET(PODOFO_DOC_SOURCES
   doc/PdfExtGState.cpp
   doc/PdfField.cpp
   doc/PdfFileSpec.cpp
-  doc/PdfFontCache.cpp
-  doc/PdfFontCID.cpp
-  doc/PdfFontConfigWrapper.cpp
   doc/PdfFont.cpp
+  doc/PdfFontCID.cpp
+  doc/PdfFontCache.cpp
+  doc/PdfFontConfigWrapper.cpp
   doc/PdfFontFactory.cpp
-  doc/PdfFontMetricsBase14.cpp
   doc/PdfFontMetrics.cpp
+  doc/PdfFontMetricsBase14.cpp
   doc/PdfFontMetricsFreetype.cpp
   doc/PdfFontMetricsObject.cpp
   doc/PdfFontSimple.cpp
-  doc/PdfFontTrueType.cpp
   doc/PdfFontTTFSubset.cpp
-  doc/PdfFontType1Base14.cpp
+  doc/PdfFontTrueType.cpp
   doc/PdfFontType1.cpp
+  doc/PdfFontType1Base14.cpp
   doc/PdfFunction.cpp
   doc/PdfHintStream.cpp
   doc/PdfIdentityEncoding.cpp
@@ -88,17 +90,19 @@ SET(PODOFO_DOC_SOURCES
   doc/PdfNamesTree.cpp
   doc/PdfOutlines.cpp
   doc/PdfPage.cpp
-  doc/PdfPagesTreeCache.cpp
   doc/PdfPagesTree.cpp
+  doc/PdfPagesTreeCache.cpp
   doc/PdfPainter.cpp
   doc/PdfPainterMM.cpp
   doc/PdfShadingPattern.cpp
-  doc/PdfSignatureField.cpp
+  doc/PdfSigIncMemDocument.cpp
+  doc/PdfSigIncPainter.cpp
+  doc/PdfSigIncSignatureField.cpp
   doc/PdfSignOutputDevice.cpp
+  doc/PdfSignatureField.cpp
   doc/PdfStreamedDocument.cpp
   doc/PdfTable.cpp
   doc/PdfXObject.cpp
-  doc/PdfCMapEncoding.cpp
   )
 
 IF(WIN32)
@@ -112,7 +116,6 @@ SET(PODOFO_HEADERS
 
 SET(PODOFO_BASE_HEADERS
    ${PoDoFo_BINARY_DIR}/podofo_config.h
-   base/podofoapi.h
    base/Pdf3rdPtyForwardDecl.h
    base/PdfArray.h
    base/PdfCanvas.h
@@ -137,8 +140,8 @@ SET(PODOFO_BASE_HEADERS
    base/PdfInputDevice.h
    base/PdfInputStream.h
    base/PdfLocale.h
-   base/PdfMemoryManagement.h
    base/PdfMemStream.h
+   base/PdfMemoryManagement.h
    base/PdfName.h
    base/PdfObject.h
    base/PdfObjectStreamParserObject.h
@@ -150,6 +153,7 @@ SET(PODOFO_BASE_HEADERS
    base/PdfRefCountedBuffer.h
    base/PdfRefCountedInputDevice.h
    base/PdfReference.h
+   base/PdfSigIncWriter.h
    base/PdfStream.h
    base/PdfString.h
    base/PdfTokenizer.h
@@ -160,6 +164,7 @@ SET(PODOFO_BASE_HEADERS
    base/PdfXRef.h
    base/PdfXRefStream.h
    base/PdfXRefStreamParserObject.h
+   base/podofoapi.h
    )
 
 SET(PODOFO_BASE_HEADERS2 
@@ -174,6 +179,7 @@ SET(PODOFO_DOC_HEADERS
   doc/PdfAcroForm.h
   doc/PdfAction.h
   doc/PdfAnnotation.h
+  doc/PdfCMapEncoding.h
   doc/PdfContents.h
   doc/PdfDestination.h
   doc/PdfDifferenceEncoding.h
@@ -183,21 +189,21 @@ SET(PODOFO_DOC_HEADERS
   doc/PdfExtGState.h
   doc/PdfField.h
   doc/PdfFileSpec.h
-  doc/PdfFontCache.h
-  doc/PdfFontCID.h
-  doc/PdfFontConfigWrapper.h
-  doc/PdfFontFactoryBase14Data.h
-  doc/PdfFontFactory.h
   doc/PdfFont.h
+  doc/PdfFontCID.h
+  doc/PdfFontCache.h
+  doc/PdfFontConfigWrapper.h
+  doc/PdfFontFactory.h
+  doc/PdfFontFactoryBase14Data.h
+  doc/PdfFontMetrics.h
   doc/PdfFontMetricsBase14.h
   doc/PdfFontMetricsFreetype.h
-  doc/PdfFontMetrics.h
   doc/PdfFontMetricsObject.h
   doc/PdfFontSimple.h
-  doc/PdfFontTrueType.h
   doc/PdfFontTTFSubset.h
-  doc/PdfFontType1Base14.h
+  doc/PdfFontTrueType.h
   doc/PdfFontType1.h
+  doc/PdfFontType1Base14.h
   doc/PdfFunction.h
   doc/PdfHintStream.h
   doc/PdfIdentityEncoding.h
@@ -207,17 +213,19 @@ SET(PODOFO_DOC_HEADERS
   doc/PdfNamesTree.h
   doc/PdfOutlines.h
   doc/PdfPage.h
-  doc/PdfPagesTreeCache.h
   doc/PdfPagesTree.h
+  doc/PdfPagesTreeCache.h
   doc/PdfPainter.h
   doc/PdfPainterMM.h
   doc/PdfShadingPattern.h
-  doc/PdfSignatureField.h
+  doc/PdfSigIncMemDocument.h
+  doc/PdfSigIncPainter.h
+  doc/PdfSigIncSignatureField.h
   doc/PdfSignOutputDevice.h
+  doc/PdfSignatureField.h
   doc/PdfStreamedDocument.h
   doc/PdfTable.h
   doc/PdfXObject.h
-  doc/PdfCMapEncoding.h
   )
 
 # Create a Source Group for Visual Studio

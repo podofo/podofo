@@ -115,7 +115,7 @@ PdfSigIncMemDocument::PdfSigIncMemDocument(const char* pszInpFilename)
 
 PdfSigIncMemDocument::~PdfSigIncMemDocument()
 {
-   PdfAcroForm *pOldAcroForm = m_Document->GetAcroForm(false, PdfAcroForm::EPdfAcroFormDefaulAppearance::ePdfAcroFormDefaultAppearance_None);
+   PdfAcroForm *pOldAcroForm = m_Document->GetAcroForm(false, ePdfAcroFormDefaultAppearance_None);
    if(pOldAcroForm == m_pAcroForms) 
       m_pAcroForms = NULL;
 
@@ -156,7 +156,7 @@ void PdfSigIncMemDocument::Initialize()
    CreateVisualSignRect();
    m_LastXRefOffset = m_Document->GetXRefOffset();
    
-   PdfAcroForm *pOldAcroForm = m_Document->GetAcroForm(false, PdfAcroForm::EPdfAcroFormDefaulAppearance::ePdfAcroFormDefaultAppearance_None);
+   PdfAcroForm *pOldAcroForm = m_Document->GetAcroForm(false, ePdfAcroFormDefaultAppearance_None);
    if(pOldAcroForm) {
       PdfObject *pCatalog = m_Document->GetCatalog();
       if(pCatalog) {
@@ -226,7 +226,7 @@ void PdfSigIncMemDocument::Initialize()
        PdfReference pdfRef;
        pdfRef.SetObjectNumber(m_Document->GetObjects().GetObjectCount() - 1);
        this->GetObjects().SetObjectCount(pdfRef);
-       this->GetAcroForm(true, PdfAcroForm::EPdfAcroFormDefaulAppearance::ePdfAcroFormDefaultAppearance_None);
+       this->GetAcroForm(true, ePdfAcroFormDefaultAppearance_None);
     
        PdfObject* pagesRootObj = m_Document->GetCatalog()->GetIndirectKey( PdfName( "Pages" ) );
        if ( pagesRootObj ) {
@@ -254,7 +254,7 @@ PdfAcroForm* PdfSigIncMemDocument::GetExistedAcroForm(PdfAcroForm *pOldAcroForm)
                   pdfRef.SetObjectNumber(pOldAcroForm->GetObject()->Reference().ObjectNumber() - 1);
                   this->GetObjects().SetObjectCount(pdfRef);
                   PdfObject *pNewObj = this->GetObjects().CreateObject();
-                  m_pAcroForms = new PdfAcroForm( this, pNewObj, PdfAcroForm::EPdfAcroFormDefaulAppearance::ePdfAcroFormDefaultAppearance_None );
+                  m_pAcroForms = new PdfAcroForm( this, pNewObj, ePdfAcroFormDefaultAppearance_None );
                   this->GetCatalog()->GetDictionary().AddKey( "AcroForm", m_pAcroForms->GetObject()->Reference() );   
                } else if(pOldFields->GetDataType() == ePdfDataType_Reference ) {
                   m_pAcroForms = pOldAcroForm;
@@ -263,7 +263,7 @@ PdfAcroForm* PdfSigIncMemDocument::GetExistedAcroForm(PdfAcroForm *pOldAcroForm)
                pdfRef.SetObjectNumber(pOldAcroForm->GetObject()->Reference().ObjectNumber() - 1);
                this->GetObjects().SetObjectCount(pdfRef);
                PdfObject *pNewObj = this->GetObjects().CreateObject();
-               m_pAcroForms = new PdfAcroForm( this, pNewObj, PdfAcroForm::EPdfAcroFormDefaulAppearance::ePdfAcroFormDefaultAppearance_None );
+               m_pAcroForms = new PdfAcroForm( this, pNewObj, ePdfAcroFormDefaultAppearance_None );
                this->GetCatalog()->GetDictionary().AddKey( "AcroForm", m_pAcroForms->GetObject()->Reference() );
             }
        } else {
