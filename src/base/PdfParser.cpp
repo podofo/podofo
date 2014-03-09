@@ -741,7 +741,7 @@ void PdfParser::ReadXRefSubsection( long long & nFirstObject, long long & nNumOb
         // to recover from a missing /Size entry.
 		PdfError::LogMessage( eLogSeverity_Warning,
 			      "There are more objects (%lli) in this XRef table than "
-			      "specified in the size key of the trailer directory (%lli)!\n",
+			      "specified in the size key of the trailer directory (%li)!\n",
 			      nFirstObject + nNumObjects, m_nNumObjects );
 
 #ifdef _WIN32
@@ -952,13 +952,19 @@ void PdfParser::ReadObjects()
 
 void PdfParser::ReadObjectsInternal() 
 {
-    int              i          = 0;
-    int              nLast      = 0;
-    PdfParserObject* pObject    = NULL;
+    int              i            = 0;
+    int              nLast        = 0;
+    PdfParserObject* pObject      = NULL;
+    int              trailerObjNo = m_pTrailer->Reference().ObjectNumber();
 
     // Read objects
     for( i=0; i < m_nNumObjects; i++ )
     {
+        // Never add the XRef/Trailer to m_vecObjects
+		// (For AESV2 the XRef has cUsed == 'n' and XRef stream is not encrypted.
+		//  So setting m_pEncrypt for it would throw exception if the stream is read later on.)
+		if (i == trailerObjNo)
+			continue;
 #ifdef PODOFO_VERBOSE_DEBUG
 		std::cerr << "ReadObjectsInteral\t" << i << " "
 			<< (m_offsets[i].bParsed ? "parsed" : "unparsed") << " "

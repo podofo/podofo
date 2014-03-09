@@ -302,8 +302,8 @@ void PdfString::SetHexData( const char* pszHex, pdf_long lLen, PdfEncrypt* pEncr
         pEncrypt->Decrypt( reinterpret_cast<unsigned char*>(m_buffer.GetBuffer()),
                            static_cast<unsigned int>(m_buffer.GetSize()-2),
                           reinterpret_cast<unsigned char*>(outBuffer.GetBuffer()),
-                          static_cast<unsigned int>(outBufferLen));
-        
+                          outBufferLen);
+        outBuffer.Resize(outBufferLen);
         // Replace buffer with decrypted value
         m_buffer = outBuffer;
     }

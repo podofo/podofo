@@ -69,7 +69,7 @@ PdfFileInputStream::~PdfFileInputStream()
         fclose( m_hFile );
 }
 
-pdf_long PdfFileInputStream::Read( char* pBuffer, pdf_long lLen )
+pdf_long PdfFileInputStream::Read( char* pBuffer, pdf_long lLen, pdf_long* )
 {
     if( !pBuffer ) 
     {
@@ -114,7 +114,7 @@ PdfMemoryInputStream::~PdfMemoryInputStream()
 {
 }
 
-pdf_long PdfMemoryInputStream::Read( char* pBuffer, pdf_long lLen )
+pdf_long PdfMemoryInputStream::Read( char* pBuffer, pdf_long lLen, pdf_long* )
 {
     if( !pBuffer ) 
     {
@@ -143,7 +143,7 @@ PdfDeviceInputStream::~PdfDeviceInputStream()
 {
 }
 
-pdf_long PdfDeviceInputStream::Read( char* pBuffer, pdf_long lLen )
+pdf_long PdfDeviceInputStream::Read( char* pBuffer, pdf_long lLen, pdf_long* )
 {
     return m_pDevice->Read( pBuffer, lLen );
 }

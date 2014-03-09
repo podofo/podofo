@@ -49,14 +49,15 @@ class PODOFO_API PdfInputStream {
 
     /** Read data from the input stream
      *  
-     *  \param pBuffer the data will be stored into this buffer
-     *  \param lLen    the size of the buffer and number of bytes
-     *                 that will be read
+     *  \param pBuffer    the data will be stored into this buffer
+     *  \param lLen       the size of the buffer and number of bytes
+     *                    that will be read
+     *  \param pTotalLeft total bytes left (needed for AES IV and padding)
      *
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    virtual pdf_long Read( char* pBuffer, pdf_long lLen ) = 0;
+    virtual pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long *pTotalLeft = 0 ) = 0;
 
 };
 
@@ -94,7 +95,7 @@ class PODOFO_API PdfFileInputStream : public PdfInputStream {
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    virtual pdf_long Read( char* pBuffer, pdf_long lLen );
+    virtual pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* = 0 );
 
     /** Get the length of the file.
      *  \return the file length
@@ -132,7 +133,7 @@ class PODOFO_API PdfMemoryInputStream : public PdfInputStream {
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    virtual pdf_long Read( char* pBuffer, pdf_long lLen );
+    virtual pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* );
 
  private:
     const char* m_pBuffer;
@@ -162,7 +163,7 @@ class PODOFO_API PdfDeviceInputStream : public PdfInputStream {
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    virtual pdf_long Read( char* pBuffer, pdf_long lLen );
+    virtual pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* );
 
  private:
     PdfInputDevice* m_pDevice;

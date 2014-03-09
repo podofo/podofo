@@ -32,6 +32,7 @@
 
 #include "PdfParserObject.h"
 
+#include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfEncrypt.h"
 #include "PdfInputDevice.h"
@@ -326,6 +327,19 @@ void PdfParserObject::ParseStream()
 
     m_device.Device()->Seek( fLoc );	// reset it before reading!
     PdfDeviceInputStream reader( m_device.Device() );
+
+	if( m_pEncrypt && !m_pEncrypt->IsMetadataEncrypted() ) {
+		// If metadata is not encrypted the Filter is set to "Crypt"
+		PdfObject* pFilterObj = this->GetDictionary_NoDL().GetKey( PdfName::KeyFilter );
+		if( pFilterObj && pFilterObj->IsArray() ) {
+			PdfArray filters = pFilterObj->GetArray();
+			for(PdfArray::iterator it = filters.begin(); it != filters.end(); it++) {
+				if( (*it).IsName() )
+					if( (*it).GetName() == "Crypt" )
+						m_pEncrypt = 0;
+			}
+		}
+	}
     if( m_pEncrypt )
     {
         m_pEncrypt->SetCurrentReference( m_reference );

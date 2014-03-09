@@ -344,6 +344,9 @@ public:
 
     /// Get the key length of the encryption key in bits
     int GetKeyLength() const { return m_keyLength*8; }
+
+    /// Is metadata encrypted
+    bool IsMetadataEncrypted() const { return m_bEncryptMetadata; }
     
     /// Encrypt a wxString
     //void Encrypt( std::string & str, pdf_long inputLen ) const;
@@ -362,11 +365,11 @@ public:
     // outStr: the output buffer
     // outLen: length of the output buffer
     virtual void Decrypt(const unsigned char* inStr, pdf_long inLen,
-                         unsigned char* outStr, pdf_long outLen) const = 0;
+                         unsigned char* outStr, pdf_long &outLen) const = 0;
     
     /// Calculate stream size
     virtual pdf_long CalculateStreamLength(pdf_long length) const = 0;
-    
+
     /// Calculate stream offset
     virtual pdf_long CalculateStreamOffset() const = 0;
     
@@ -381,7 +384,7 @@ public:
     inline void SetCurrentReference( const PdfReference & rRef );
 
 protected:
-    PdfEncrypt() {};
+    PdfEncrypt() : m_bEncryptMetadata(true) {};
     PdfEncrypt( const PdfEncrypt & rhs );
     
     /// Check two keys for equality
@@ -399,6 +402,7 @@ protected:
     unsigned char  m_encryptionKey[32];  ///< Encryption key
     PdfReference   m_curReference;       ///< Reference of the current PdfObject
     std::string    m_documentId;         ///< DocumentID of the current document  
+	bool           m_bEncryptMetadata;   ///< Is metadata encrypted
     
 private:    
     static int     s_nEnabledEncryptionAlgorithms; ///< Or'ed int containing the enabled encryption algorithms
@@ -446,7 +450,7 @@ public:
     
     /// Get the Perms object value (encrypted protection)
     const unsigned char* GetPermsValue() const { return m_permsValue; }
-    
+
     virtual pdf_long CalculateStreamOffset() const = 0;
     
     virtual pdf_long CalculateStreamLength(pdf_long length) const = 0;
@@ -504,8 +508,10 @@ public:
 protected:
     PdfEncryptAESBase();
     
-    /// AES encryption
-    void AES(const unsigned char* key, int keylen, const unsigned char* iv,
+    void BaseDecrypt(const unsigned char* key, int keylen, const unsigned char* iv,
+             const unsigned char* textin, pdf_long textlen,
+             unsigned char* textout, pdf_long &textoutlen);
+    void BaseEncrypt(const unsigned char* key, int keylen, const unsigned char* iv,
              const unsigned char* textin, pdf_long textlen,
              unsigned char* textout, pdf_long textoutlen);
     
@@ -596,7 +602,7 @@ protected:
     void ComputeEncryptionKey(const std::string & documentID,
                               unsigned char userPad[32], unsigned char ownerKey[32],
                               int pValue, int keyLength, int revision,
-                              unsigned char userKey[32]);
+                              unsigned char userKey[32], bool bEncryptMetadata);
     
     /** Create the encryption key for the current object.
      *
@@ -622,7 +628,7 @@ public:
 	/*
 	*	Constructors of PdfEncryptAESV2
 	*/
-	PdfEncryptAESV2(PdfString oValue, PdfString uValue, int pValue);
+	PdfEncryptAESV2(PdfString oValue, PdfString uValue, int pValue, bool bEncryptMetadata);
     PdfEncryptAESV2( const PdfEncrypt & rhs ) : PdfEncryptMD5Base(rhs) {}
 	PdfEncryptAESV2( const std::string & userPassword,
                    const std::string & ownerPassword, 
@@ -650,7 +656,7 @@ public:
     virtual void Encrypt(const unsigned char* inStr, pdf_long inLen,
                          unsigned char* outStr, pdf_long outLen) const;
     virtual void Decrypt(const unsigned char* inStr, pdf_long inLen,
-                         unsigned char* outStr, pdf_long outLen) const;
+                         unsigned char* outStr, pdf_long &outLen) const;
     
     virtual void GenerateEncryptionKey(const PdfString & documentId);
     
@@ -700,10 +706,10 @@ public:
     virtual void Encrypt(const unsigned char* inStr, pdf_long inLen,
                          unsigned char* outStr, pdf_long outLen) const;
     virtual void Decrypt(const unsigned char* inStr, pdf_long inLen,
-                         unsigned char* outStr, pdf_long outLen) const;
+                         unsigned char* outStr, pdf_long &outLen) const;
     
     virtual void GenerateEncryptionKey(const PdfString & documentId);
-    
+
     virtual pdf_long CalculateStreamOffset() const;
     
     virtual pdf_long CalculateStreamLength(pdf_long length) const;
@@ -724,7 +730,7 @@ public:
 	*	Constructors of PdfEncryptRC4 objects
 	*/
 	PdfEncryptRC4(PdfString oValue, PdfString uValue, 
-		int pValue, int rValue, EPdfEncryptAlgorithm eAlgorithm, long length);
+		int pValue, int rValue, EPdfEncryptAlgorithm eAlgorithm, long length, bool bEncryptMetadata);
     PdfEncryptRC4( const PdfEncrypt & rhs ) : PdfEncryptMD5Base(rhs) {}
 	PdfEncryptRC4( const std::string & userPassword,
                    const std::string & ownerPassword, 
@@ -750,7 +756,7 @@ public:
     virtual void Encrypt(const unsigned char* inStr, pdf_long inLen,
                          unsigned char* outStr, pdf_long outLen) const;
     virtual void Decrypt(const unsigned char* inStr, pdf_long inLen,
-                         unsigned char* outStr, pdf_long outLen) const;
+                         unsigned char* outStr, pdf_long &outLen) const;
 
 	virtual PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream );
 	virtual PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream );

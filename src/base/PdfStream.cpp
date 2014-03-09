@@ -178,7 +178,7 @@ void PdfStream::SetRawData( PdfInputStream* pStream, pdf_long lLen )
     else
     {
         do {
-            lRead = pStream->Read( buffer, PDF_MIN( BUFFER_SIZE, lLen ) );
+            lRead = pStream->Read( buffer, PDF_MIN( BUFFER_SIZE, lLen ), &lLen );
             lLen -= lRead;
             this->Append( buffer, lRead );
         } while( lLen && lRead > 0 );
