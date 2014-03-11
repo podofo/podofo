@@ -980,6 +980,13 @@ void PdfParser::ReadObjectsInternal()
             pObject->SetLoadOnDemand( m_bLoadOnDemand );
             try {
                 pObject->ParseFile( m_pEncrypt );
+				PdfObject* pObjType = pObject->IsDictionary() ? pObject->GetDictionary().GetKey( PdfName::KeyType ) : 0;
+				if( pObjType && pObjType->IsName() && pObjType->GetName() == "XRef" ) {
+					// Never add the XRef to m_vecObjects because if it has a stream it is not encrypted
+					// (So setting m_pEncrypt for it would throw exception if the stream is read later on.)
+					delete pObject;
+					continue;
+				}
                 nLast = pObject->Reference().ObjectNumber();
 
                 /*
