@@ -34,6 +34,7 @@
 #define _PDF_INPUT_DEVICE_H_
 
 #include <istream>
+#include <ios>
 
 #include "PdfDefines.h"
 #include "PdfLocale.h"

@@ -12,27 +12,55 @@
 
 SET(FREETYPE_FIND_QUIETLY 1)
 
+# first we try to find ft2build.h in the new location as
+# of freetype 2.5.1
 FIND_PATH(FREETYPE_INCLUDE_DIR_FT2BUILD ft2build.h
-  /usr/include/
-  /usr/local/include/
-  /usr/X11/include/
+  /usr/include/freetype2
+  /usr/local/include/freetype2
+  /usr/X11/include/freetype2
   NO_CMAKE_SYSTEM_PATH
 )
 
-FIND_PATH(FREETYPE_INCLUDE_DIR_FTHEADER freetype/config/ftheader.h
+# in case we couldn't find it in the new location
+# we check the old location
+IF (NOT FREETYPE_INCLUDE_DIR_FT2BUILD)
+  FIND_PATH(FREETYPE_INCLUDE_DIR_FT2BUILD ft2build.h
+    /usr/include
+    /usr/local/include
+    /usr/X11/include
+    NO_CMAKE_SYSTEM_PATH
+  )
+ENDIF (NOT FREETYPE_INCLUDE_DIR_FT2BUILD)
+
+# now try to find ftheader.h in the new location first
+FIND_PATH(FREETYPE_INCLUDE_DIR_FTHEADER config/ftheader.h
   /usr/include/freetype2
   /usr/local/include/freetype2
   /usr/X11/include/freetype2
   ${FREETYPE_INCLUDE_DIR_FT2BUILD}
-  ${FREETYPE_INCLUDE_DIR_FT2BUILD}/freetype2
   NO_CMAKE_SYSTEM_PATH
 )
+
+# in case we couldn't find it in the new location
+# we check the old location
+IF (NOT FREETYPE_INCLUDE_DIR_FTHEADER)
+  FIND_PATH(FREETYPE_INCLUDE_DIR_FTHEADER freetype/config/ftheader.h
+    /usr/include/freetype2
+    /usr/local/include/freetype2
+    /usr/X11/include/freetype2
+    ${FREETYPE_INCLUDE_DIR_FT2BUILD}
+    ${FREETYPE_INCLUDE_DIR_FT2BUILD}/freetype2
+    NO_CMAKE_SYSTEM_PATH
+  )
+ENDIF (NOT FREETYPE_INCLUDE_DIR_FTHEADER)
 
 IF ( FREETYPE_INCLUDE_DIR_FTHEADER AND FREETYPE_INCLUDE_DIR_FT2BUILD )
 	SET(FREETYPE_INCLUDE_DIR
 		${FREETYPE_INCLUDE_DIR_FTHEADER}
 		${FREETYPE_INCLUDE_DIR_FT2BUILD})
 ENDIF ( FREETYPE_INCLUDE_DIR_FTHEADER AND FREETYPE_INCLUDE_DIR_FT2BUILD )
+
+LIST(REMOVE_DUPLICATES FREETYPE_INCLUDE_DIR)
 
 IF(NOT FREETYPE_FIND_QUIETLY)
   MESSAGE("FREETYPE_INCLUDE_DIR_FT2BUILD ${FREETYPE_INCLUDE_DIR_FT2BUILD}")

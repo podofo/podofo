@@ -1,7 +1,7 @@
 #ifndef PODOFO_PDFLOCALE_H
 #define PODOFO_PDFLOCALE_H
 
-namespace std { class ios_base; };
+#include <ios>
 
 namespace PoDoFo {
 

@@ -45,7 +45,8 @@
 
 #ifdef __APPLE__
 #define COMMON_DIGEST_FOR_OPENSSL
-#include <CommonCrypto/CommonCrypto.h>
+#include <CommonCrypto/CommonCryptor.h>
+#include <CommonCrypto/CommonDigest.h>
 #else // __APPLE__
 #include <openssl/md5.h>
 #include <openssl/evp.h>
