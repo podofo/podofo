@@ -955,16 +955,10 @@ void PdfParser::ReadObjectsInternal()
     int              i            = 0;
     int              nLast        = 0;
     PdfParserObject* pObject      = NULL;
-    int              trailerObjNo = m_pTrailer->Reference().ObjectNumber();
 
     // Read objects
     for( i=0; i < m_nNumObjects; i++ )
     {
-        // Never add the XRef/Trailer to m_vecObjects
-		// (For AESV2 the XRef has cUsed == 'n' and XRef stream is not encrypted.
-		//  So setting m_pEncrypt for it would throw exception if the stream is read later on.)
-		if (i == trailerObjNo)
-			continue;
 #ifdef PODOFO_VERBOSE_DEBUG
 		std::cerr << "ReadObjectsInteral\t" << i << " "
 			<< (m_offsets[i].bParsed ? "parsed" : "unparsed") << " "
@@ -979,13 +973,16 @@ void PdfParser::ReadObjectsInternal()
             pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, m_offsets[i].lOffset );
             pObject->SetLoadOnDemand( m_bLoadOnDemand );
             try {
-                pObject->ParseFile( m_pEncrypt );
-				PdfObject* pObjType = pObject->IsDictionary() ? pObject->GetDictionary().GetKey( PdfName::KeyType ) : 0;
-				if( pObjType && pObjType->IsName() && pObjType->GetName() == "XRef" ) {
-					// Never add the XRef to m_vecObjects because if it has a stream it is not encrypted
-					// (So setting m_pEncrypt for it would throw exception if the stream is read later on.)
-					delete pObject;
-					continue;
+				pObject->ParseFile( m_pEncrypt );
+				if (m_pEncrypt && pObject->IsDictionary()) {
+					PdfObject* pObjType = pObject->GetDictionary().GetKey( PdfName::KeyType );
+					if( pObjType && pObjType->IsName() && pObjType->GetName() == "XRef" ) {
+						// XRef is never encrypted
+						delete pObject;
+						pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, m_offsets[i].lOffset );
+						pObject->SetLoadOnDemand( m_bLoadOnDemand );
+						pObject->ParseFile( NULL );
+					}
 				}
                 nLast = pObject->Reference().ObjectNumber();
 
