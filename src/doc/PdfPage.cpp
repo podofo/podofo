@@ -513,22 +513,28 @@ unsigned int PdfPage::GetPageNumber() const
 
     while( pParent ) 
     {
-        const PdfArray& kids        = pParent->GetIndirectKey( "Kids" )->GetArray();
-        PdfArray::const_iterator it = kids.begin();
-
-        while( it != kids.end() && (*it).GetReference() != ref )
+        PdfObject* pKids = pParent->GetIndirectKey( "Kids" );
+        if ( pKids != NULL )
         {
-            PdfObject* pNode = this->GetObject()->GetOwner()->GetObject( (*it).GetReference() );
+            const PdfArray& kids        = pKids->GetArray();
+            PdfArray::const_iterator it = kids.begin();
 
-            if( pNode->GetDictionary().GetKey( PdfName::KeyType )->GetName() == PdfName( "Pages" ) )
-                nPageNumber += static_cast<int>(pNode->GetDictionary().GetKey( "Count" )->GetNumber());
-            else 
-                // if we do not have a page tree node, 
-                // we most likely have a page object:
-                // so the page count is 1
-                ++nPageNumber;
+            while( it != kids.end() && (*it).GetReference() != ref )
+            {
+                PdfObject* pNode = this->GetObject()->GetOwner()->GetObject( (*it).GetReference() );
 
-            ++it;
+                if( pNode->GetDictionary().GetKey( PdfName::KeyType ) != NULL 
+                    && pNode->GetDictionary().GetKey( PdfName::KeyType )->GetName() == PdfName( "Pages" ) )
+                {
+                    nPageNumber += static_cast<int>(pNode->GetDictionary().GetKey( "Count" )->GetNumber());
+                } else {
+                    // if we do not have a page tree node, 
+                    // we most likely have a page object:
+                    // so the page count is 1
+                    ++nPageNumber;
+                }
+                ++it;
+            }
         }
 
         ref     = pParent->Reference();

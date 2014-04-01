@@ -303,7 +303,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
 
     
     const PdfObject* pObj = pParent->GetIndirectKey( "Kids" );
-    if( !pObj->IsArray() )
+    if( pObj == NULL || !pObj->IsArray() )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
