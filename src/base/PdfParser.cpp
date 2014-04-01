@@ -538,6 +538,21 @@ void PdfParser::ReadNextTrailer()
         // now merge the information of this trailer with the main documents trailer
         MergeTrailer( &trailer );
         
+        if( trailer.GetDictionary().HasKey( "XRefStm" ) )
+        {
+            // Whenever we read a XRefStm key, 
+            // we know that the file was updated.
+            if( !trailer.GetDictionary().HasKey( "Prev" ) )
+                m_nIncrementalUpdates++;
+
+            try {
+                ReadXRefStreamContents( static_cast<pdf_long>(trailer.GetDictionary().GetKeyAsLong( "XRefStm", 0 )), false );
+            } catch( PdfError & e ) {
+                e.AddToCallstack( __FILE__, __LINE__, "Unable to load /XRefStm xref stream." );
+                throw e;
+            }
+        }
+
         if( trailer.GetDictionary().HasKey( "Prev" ) )
         {
             // Whenever we read a Prev key, 
