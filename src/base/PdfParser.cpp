@@ -1361,7 +1361,7 @@ void PdfParser::CheckEOFMarker()
 
 bool PdfParser::HasXRefStream()
 {
-   size_t curPosition = m_device.Device()->Tell();
+   m_device.Device()->Tell();
    m_device.Device()->Seek( m_nXRefOffset );
    
    if( !this->IsNextToken( "xref" ) )  {

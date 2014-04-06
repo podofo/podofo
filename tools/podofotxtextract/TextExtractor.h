@@ -60,8 +60,6 @@ class TextExtractor {
      */
     void AddTextElement( double dCurPosX, double dCurPosY, 
                          PdfFont* pCurFont, const PdfString & rString );
- private:
-    char         m_szBuffer[MAX_PATH];
 };
 
 #endif // _TEXT_EXTRACTOR_H_

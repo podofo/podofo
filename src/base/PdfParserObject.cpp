@@ -52,7 +52,7 @@ using namespace std;
 
 static const int s_nLenEndObj    = 6; // strlen("endobj");
 static const int s_nLenStream    = 6; // strlen("stream");
-static const int s_nLenEndStream = 9; // strlen("endstream");
+//static const int s_nLenEndStream = 9; // strlen("endstream");
 
 PdfParserObject::PdfParserObject( PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, 
                                   const PdfRefCountedBuffer & rBuffer, pdf_long lOffset )

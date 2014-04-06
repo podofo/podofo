@@ -172,7 +172,6 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
 
  private:
     char* m_pBuffer;
-    char* m_pCur;
 
     pdf_long  m_lLen;
     pdf_long  m_lSize;
