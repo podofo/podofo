@@ -360,6 +360,13 @@ class PODOFO_DOC_API PdfDocument {
      */
     void AttachFile( const PdfFileSpec & rFileSpec );
 
+    /** Get an attached file's filespec
+     *  \param rName the name of the attachment
+     *  \return the file specification object if the file exists, NULL otherwise
+     *          The file specification object is not owned by the document and must be deleted by the caller
+     */
+    PdfFileSpec* GetAttachment( const PdfString & rName );
+    
     /** Adds a PdfDestination into the global Names tree
      *  with the specified name, optionally replacing one of the same name
      *  \param rDest the destination to be assigned

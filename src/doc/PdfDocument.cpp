@@ -791,6 +791,25 @@ void PdfDocument::AttachFile( const PdfFileSpec & rFileSpec )
 
     pNames->AddValue( "EmbeddedFiles", rFileSpec.GetFilename(), rFileSpec.GetObject()->Reference() );
 }
+    
+PdfFileSpec* PdfDocument::GetAttachment( const PdfString & rName )
+{
+    PdfNamesTree* pNames = this->GetNamesTree();
+    
+    if( !pNames )
+    {
+        return NULL;
+    }
+    
+    PdfObject* pObj = pNames->GetValue( "EmbeddedFiles", rName );
+    
+    if( !pObj )
+    {
+        return NULL;
+    }
+    
+    return new PdfFileSpec(pObj);
+}
 
 void PdfDocument::SetInfo( PdfInfo* pInfo )
 {
