@@ -311,8 +311,8 @@ public:
     {
 		if (pTotalLeft == 0)
 			PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-decryption needs pTotalLeft" );
-		if( lLen % keyLen != 0 )
-			PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-decryption data length not a multiple of the key length" );
+		if( lLen % 16 != 0 )
+			PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-decryption data length not a multiple of 16" );
 		EVP_CIPHER_CTX* aes = m_aes->getEngine();
 		int lOutLen = 0, lStepOutLen;
 		int status = 1;
@@ -329,12 +329,12 @@ public:
 			}
 			if(status != 1)
 				PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing AES encryption engine" );
-			status = EVP_DecryptUpdate( aes, pBuffer, &lOutLen, pBuffer + keyLen, lLen - keyLen );
+			status = EVP_DecryptUpdate( aes, pBuffer, &lOutLen, pBuffer + AES_IV_LENGTH, lLen - AES_IV_LENGTH );
 		} else if( !bOnlyFinalLeft ) {
 			// Quote openssl.org: "the decrypted data buffer out passed to EVP_DecryptUpdate() should have sufficient room
 			//  for (inl + cipher_block_size) bytes unless the cipher block size is 1 in which case inl bytes is sufficient."
 			// So we need to create a buffer that is bigger than lLen.
-			unsigned char* tempBuffer = new unsigned char[lLen + keyLen];
+			unsigned char* tempBuffer = new unsigned char[lLen + 16];
 			status = EVP_DecryptUpdate( aes, tempBuffer, &lOutLen, pBuffer, lLen );
 			memcpy( pBuffer, tempBuffer, lOutLen );
 			delete[] tempBuffer;
@@ -346,7 +346,7 @@ public:
 			if( lLen == lOutLen ) {
 				// Buffer is full, so we need an other round for EVP_DecryptFinal_ex.
 				bOnlyFinalLeft = true;
-				*pTotalLeft += keyLen;
+				*pTotalLeft += 16;
 			} else {
 				status = EVP_DecryptFinal_ex( aes, pBuffer + lOutLen, &lStepOutLen );
 				if( status != 1 )
@@ -868,11 +868,7 @@ void PdfEncryptMD5Base::CreateObjKey( unsigned char objkey[16], int* pnKeyLen ) 
     nkey[m_keyLength+3] = static_cast<unsigned char>(0xff &  g);
     nkey[m_keyLength+4] = static_cast<unsigned char>(0xff & (g >> 8));
     
-	if (m_eAlgorithm == ePdfEncryptAlgorithm_AESV2
-#ifdef PODOFO_HAVE_LIBIDN
-		|| m_eAlgorithm == ePdfEncryptAlgorithm_AESV3
-#endif
-	)
+	if (m_eAlgorithm == ePdfEncryptAlgorithm_AESV2)
     {
         // AES encryption needs some 'salt'
         nkeylen += 4;
@@ -1188,8 +1184,8 @@ PdfEncryptAESBase::BaseDecrypt(const unsigned char* key, int keyLen, const unsig
                        const unsigned char* textin, pdf_long textlen,
                        unsigned char* textout, pdf_long &outLen )
 {
-	if (textlen % keyLen != 0)
-		PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-decryption data length not a multiple of the key length" );
+	if ((textlen % 16) != 0)
+		PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-decryption data length not a multiple of 16" );
 
     EVP_CIPHER_CTX* aes = m_aes->getEngine();
     
@@ -1692,38 +1688,66 @@ bool PdfEncryptAESV3::Authenticate( const std::string & password, const PdfStrin
     int pswdLen;
     PreprocessPassword(password, pswd_sasl, pswdLen);
     
-    unsigned char valSalt[8];
-    unsigned char keySalt[8];
-    
     // Test 1: is it the user key ?
-    memcpy(valSalt, &m_uValue[32], 8);
-    memcpy(keySalt, &m_uValue[40], 8);
     unsigned char hashValue[32];
     SHA256_CTX context;
     SHA256_Init(&context);
-    SHA256_Update(&context, pswd_sasl, pswdLen);
-    SHA256_Update(&context, valSalt, 8);
+    SHA256_Update(&context, pswd_sasl, pswdLen); // password
+    SHA256_Update(&context, m_uValue + 32, 8); // user Validation Salt
     SHA256_Final(hashValue, &context);
     
     ok = CheckKey(hashValue, m_uValue);
     if(!ok)
     {
         // Test 2: is it the owner key ?
-        memcpy(valSalt, &m_oValue[32], 8);
-        memcpy(keySalt, &m_oValue[40], 8);
         SHA256_Init(&context);
-        SHA256_Update(&context, pswd_sasl, pswdLen);
-        SHA256_Update(&context, valSalt, 8);
-        SHA256_Update(&context, m_uValue, 48);
+        SHA256_Update(&context, pswd_sasl, pswdLen); // password
+        SHA256_Update(&context, m_oValue + 32, 8); // owner Validation Salt
+        SHA256_Update(&context, m_uValue, 48); // U string
         SHA256_Final(hashValue, &context);
         
         ok = CheckKey(hashValue, m_oValue);
         
         if(ok)
+		{
             m_ownerPass = password;
+			// ISO 32000: "Compute an intermediate owner key by computing the SHA-256 hash of
+			// the UTF-8 password concatenated with the 8 bytes of owner Key Salt, concatenated with the 48-byte U string."
+			SHA256_Init(&context);
+			SHA256_Update(&context, pswd_sasl, pswdLen); // password
+			SHA256_Update(&context, m_oValue + 40, 8); // owner Key Salt
+			SHA256_Update(&context, m_uValue, 48); // U string
+			SHA256_Final(hashValue, &context);
+
+			// ISO 32000: "The 32-byte result is the key used to decrypt the 32-byte OE string using
+			// AES-256 in CBC mode with no padding and an initialization vector of zero.
+			// The 32-byte result is the file encryption key"
+			EVP_CIPHER_CTX* aes = m_aes->getEngine();
+			EVP_DecryptInit_ex( aes, EVP_aes_256_cbc(), NULL, hashValue, 0 ); // iv zero
+			EVP_CIPHER_CTX_set_padding( aes, 0 ); // no padding
+			int lOutLen;
+			EVP_DecryptUpdate( aes, m_encryptionKey, &lOutLen, m_oeValue, 32 );
+		}
     }
     else
+	{
         m_userPass = password;
+		// ISO 32000: "Compute an intermediate user key by computing the SHA-256 hash of
+		// the UTF-8 password concatenated with the 8 bytes of user Key Salt"
+		SHA256_Init(&context);
+		SHA256_Update(&context, pswd_sasl, pswdLen); // password
+		SHA256_Update(&context, m_uValue + 40, 8); // user Key Salt
+		SHA256_Final(hashValue, &context);
+
+		// ISO 32000: "The 32-byte result is the key used to decrypt the 32-byte UE string using
+		// AES-256 in CBC mode with no padding and an initialization vector of zero.
+		// The 32-byte result is the file encryption key"
+		EVP_CIPHER_CTX* aes = m_aes->getEngine();
+		EVP_DecryptInit_ex( aes, EVP_aes_256_cbc(), NULL, hashValue, 0 ); // iv zero
+		EVP_CIPHER_CTX_set_padding( aes, 0 ); // no padding
+		int lOutLen;
+		EVP_DecryptUpdate( aes, m_encryptionKey, &lOutLen, m_ueValue, 32 );
+	}
     
     // TODO Validate permissions (or not...)
     
@@ -1804,9 +1828,9 @@ PdfEncryptAESV3::CalculateStreamLength(pdf_long length) const
     return realLength;
 }
 
-PdfInputStream* PdfEncryptAESV3::CreateEncryptionInputStream( PdfInputStream* )
+PdfInputStream* PdfEncryptAESV3::CreateEncryptionInputStream( PdfInputStream* pInputStream )
 {
-    PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "CreateEncryptionInputStream does not yet support AESV3" );
+	return new PdfAESInputStream( pInputStream, m_encryptionKey, 32 );
 }
 
 PdfOutputStream* PdfEncryptAESV3::CreateEncryptionOutputStream( PdfOutputStream* )
