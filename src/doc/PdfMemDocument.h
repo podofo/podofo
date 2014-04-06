@@ -36,6 +36,7 @@
 
 #include "podofo/base/PdfDefines.h"
 #include "podofo/base/PdfObject.h"
+#include "podofo/base/PdfExtension.h"
 
 #include "PdfDocument.h"
 #include "PdfFontCache.h"
@@ -232,6 +233,31 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  \returns EPdfVersion version of the pdf document
      */
     EPdfVersion GetPdfVersion() const { return m_eVersion; }
+    
+    /** Add a vendor-specific extension to the current PDF version.
+     *  \param ns  namespace of the extension
+     *  \param level  level of the extension
+     */
+    void AddPdfExtension( const char* ns, pdf_int64 level );
+    
+    /** Checks whether the documents is tagged to imlpement a vendor-specific 
+     *  extension to the current PDF version.
+     *  \param ns  namespace of the extension
+     *  \param level  level of the extension
+     */
+    bool HasPdfExtension( const char* ns, pdf_int64 level ) const;
+    
+    /** Remove a vendor-specific extension to the current PDF version.
+     *  \param ns  namespace of the extension
+     *  \param level  level of the extension
+     */
+    void RemovePdfExtension( const char* ns, pdf_int64 level );
+    
+    /** Return the list of all vendor-specific extensions to the current PDF version.
+     *  \param ns  namespace of the extension
+     *  \param level  level of the extension
+     */
+    std::vector<PdfExtension> GetPdfExtensions() const;
 
     /** If you try to open an encrypted PDF file, which requires
      *  a password to open, PoDoFo will throw a PdfError( ePdfError_InvalidPassword ) 

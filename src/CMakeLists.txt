@@ -132,6 +132,7 @@ SET(PODOFO_BASE_HEADERS
    base/PdfEncoding.h
    base/PdfEncodingFactory.h
    base/PdfEncrypt.h
+   base/PdfExtension.h
    base/PdfError.h
    base/PdfFileStream.h
    base/PdfFilter.h

@@ -248,6 +248,103 @@ void PdfMemDocument::Load( const PdfRefCountedInputDevice & rDevice )
     delete m_pParser;
     m_pParser = NULL;
 }
+    
+/** Add a vendor-specific extension to the current PDF version.
+ *  \param ns  namespace of the extension
+ *  \param level  level of the extension
+ */
+void PdfMemDocument::AddPdfExtension( const char* ns, pdf_int64 level ) {
+    
+    if (!this->HasPdfExtension(ns, level)) {
+        
+        PdfObject* pExtensions = this->GetCatalog()->GetIndirectKey("Extensions");
+        PdfDictionary newExtension;
+        
+        newExtension.AddKey("BaseVersion", PdfName(s_szPdfVersionNums[m_eVersion]));
+        newExtension.AddKey("ExtensionLevel", PdfVariant(level));
+        
+        if (pExtensions && pExtensions->IsDictionary()) {
+            
+            pExtensions->GetDictionary().AddKey(ns, newExtension);
+            
+        } else {
+            
+            PdfDictionary extensions;
+            extensions.AddKey(ns, newExtension);
+            this->GetCatalog()->GetDictionary().AddKey("Extensions", extensions);
+        }
+    }
+}
+
+/** Checks whether the documents is tagged to imlpement a vendor-specific
+ *  extension to the current PDF version.
+ *  \param ns  namespace of the extension
+ *  \param level  level of the extension
+ */
+bool PdfMemDocument::HasPdfExtension( const char* ns, pdf_int64 level ) const {
+    
+    PdfObject* pExtensions = this->GetCatalog()->GetIndirectKey("Extensions");
+    
+    if (pExtensions) {
+        
+        PdfObject* pExtension = pExtensions->GetIndirectKey(ns);
+        
+        if (pExtension) {
+            
+            PdfObject* pLevel = pExtension->GetIndirectKey("ExtensionLevel");
+            
+            if (pLevel && pLevel->IsNumber() && pLevel->GetNumber() == level)
+                return true;
+        }
+    }
+    
+    return false;
+}
+
+/** Return the list of all vendor-specific extensions to the current PDF version.
+ *  \param ns  namespace of the extension
+ *  \param level  level of the extension
+ */
+std::vector<PdfExtension> PdfMemDocument::GetPdfExtensions() const {
+    
+    std::vector<PdfExtension> result;
+    
+    PdfObject* pExtensions = this->GetCatalog()->GetIndirectKey("Extensions");
+
+    if (pExtensions) {
+
+        // Loop through all declared extensions
+        for (TKeyMap::const_iterator it = pExtensions->GetDictionary().GetKeys().begin(); it != pExtensions->GetDictionary().GetKeys().end(); ++it) {
+
+            PdfObject *bv = it->second->GetIndirectKey("BaseVersion");
+            PdfObject *el = it->second->GetIndirectKey("ExtensionLevel");
+            
+            if (bv && el && bv->IsName() && el->IsNumber()) {
+
+                // Convert BaseVersion name to EPdfVersion
+                for(int i=0; i<=MAX_PDF_VERSION_STRING_INDEX; i++) {
+                    if(bv->GetName().GetName() == s_szPdfVersionNums[i]) {
+                        result.push_back(PdfExtension(it->first.GetName().c_str(), static_cast<EPdfVersion>(i), el->GetNumber()));
+                    }
+                }
+            }
+        }
+    }
+    
+    return result;
+}
+    
+
+    
+/** Remove a vendor-specific extension to the current PDF version.
+ *  \param ns  namespace of the extension
+ *  \param level  level of the extension
+ */
+void PdfMemDocument::RemovePdfExtension( const char* ns, pdf_int64 level ) {
+    
+    if (this->HasPdfExtension(ns, level))
+        this->GetCatalog()->GetIndirectKey("Extensions")->GetDictionary().RemoveKey("ns");
+}
 
 void PdfMemDocument::SetPassword( const std::string & sPassword )
 {
