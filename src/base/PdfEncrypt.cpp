@@ -38,19 +38,11 @@
 // AES-256 dependencies :
 // SASL
 #include <stringprep.h>
-#ifndef __APPLE__
 #include <openssl/sha.h>
-#endif // !__APPLE__
 #endif // PODOFO_HAVE_LIBIDN
 
-#ifdef __APPLE__
-#define COMMON_DIGEST_FOR_OPENSSL
-#include <CommonCrypto/CommonCryptor.h>
-#include <CommonCrypto/CommonDigest.h>
-#else // __APPLE__
 #include <openssl/md5.h>
 #include <openssl/evp.h>
-#endif // __APPLE__
 
 namespace
 {
@@ -79,41 +71,24 @@ ePdfEncryptAlgorithm_AESV2;
 #define AES_IV_LENGTH 16
 
 // A class that holds the AES Crypto object
-// Either CCCrpytor or EVP_CIPHER_CTX
 class AESCryptoEngine {
     public:
     
         AESCryptoEngine()
         {
-#ifdef __APPLE__
-            aes = NULL;
-#else
             EVP_CIPHER_CTX_init(&aes);
-#endif // __APPLE__
         }
     
-#ifdef __APPLE__
-        CCCryptorRef* getEngine() {return &aes;}
-#else // __APPLE__
         EVP_CIPHER_CTX* getEngine() {return &aes;}
-#endif // __APPLE__
     
         ~AESCryptoEngine()
         {
-#ifdef __APPLE__
-            CCCryptorRelease(aes);
-#else // __APPLE__
             EVP_CIPHER_CTX_cleanup(&aes);
-#endif // __APPLE__
         }
     
     private:
     
-#ifdef __APPLE__
-        CCCryptorRef aes;
-#else // __APPLE__
         EVP_CIPHER_CTX aes;
-#endif // __APPLE__
 };
 
 // A class that holds the RC4 Crypto object
@@ -123,35 +98,19 @@ public:
     
     RC4CryptoEngine()
     {
-#ifdef __APPLE__
-        rc4 = NULL;
-#else
         EVP_CIPHER_CTX_init(&rc4);
-#endif // __APPLE__
     }
     
-#ifdef __APPLE__
-    CCCryptorRef* getEngine() {return &rc4;}
-#else // __APPLE__
     EVP_CIPHER_CTX* getEngine() {return &rc4;}
-#endif // __APPLE__
     
     ~RC4CryptoEngine()
     {
-#ifdef __APPLE__
-        CCCryptorRelease(rc4);
-#else // __APPLE__
         EVP_CIPHER_CTX_cleanup(&rc4);
-#endif // __APPLE__
     }
     
 private:
     
-#ifdef __APPLE__
-    CCCryptorRef rc4;
-#else // __APPLE__
     EVP_CIPHER_CTX rc4;
-#endif // __APPLE__
 };
     
 /** A class that can encrypt/decrpyt streamed data block wise
@@ -941,34 +900,6 @@ PdfEncryptRC4Base::~PdfEncryptRC4Base()
  * RC4 is the standard encryption algorithm used in PDF format
  */
 
-#ifdef __APPLE__
-void
-PdfEncryptRC4Base::RC4(const unsigned char* key, int keylen,
-                       const unsigned char* textin, pdf_long textlen,
-                       unsigned char* textout, pdf_long textoutlen)
-{
-    CCCryptorRef* rc4 = m_rc4->getEngine();
-    
-    CCCryptorStatus status = CCCryptorCreate(kCCEncrypt, kCCAlgorithmRC4, 0, key, keylen, NULL, rc4);
-    if(status != kCCSuccess)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing RC4 encryption engine" );
-    
-    pdf_long requiredOutputLength = CCCryptorGetOutputLength(*rc4, textlen, true);
-    if(requiredOutputLength != textoutlen)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error RC4-encrypting data" );
-    
-    size_t dataOutMoved;
-    status = CCCryptorUpdate(*rc4, textin, textlen, textout, textoutlen, &dataOutMoved);
-    if(status != kCCSuccess)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error RC4-encrypting data" );
-    
-    status = CCCryptorFinal(*rc4, &textout[dataOutMoved], textoutlen-dataOutMoved, &dataOutMoved);
-    if(status != kCCSuccess)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error RC4-encrypting data" );
-}
-    
-#else // __APPLE__
-    
 void
 PdfEncryptRC4Base::RC4(const unsigned char* key, int keylen,
                        const unsigned char* textin, pdf_long textlen,
@@ -1002,7 +933,6 @@ PdfEncryptRC4Base::RC4(const unsigned char* key, int keylen,
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error RC4-encrypting data" );
 }
-#endif // __APPLE__
         
 void
 PdfEncryptMD5Base::GetMD5Binary(const unsigned char* data, int length, unsigned char* digest)
@@ -1252,34 +1182,6 @@ PdfEncryptAESBase::~PdfEncryptAESBase()
 {
     delete m_aes;
 }
-    
-#ifdef __APPLE__
-    void
-PdfEncryptAESBase::Encrypt(const unsigned char* key, int keyLen, const unsigned char* iv,
-                       const unsigned char* textin, pdf_long textlen,
-                       unsigned char* textout, pdf_long textoutlen)
-{   
-    CCCryptorRef* aes = m_aes->getEngine();
-    
-    CCCryptorStatus status = CCCryptorCreate(kCCEncrypt, kCCAlgorithmAES128, kCCOptionPKCS7Padding, key, keyLen, iv, aes);
-    if(status != kCCSuccess)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing AES encryption engine" );
-    
-    pdf_long requiredOutputLength = CCCryptorGetOutputLength(*aes, textlen, true);
-    if(requiredOutputLength != textoutlen)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
-    
-    size_t dataOutMoved;
-    status = CCCryptorUpdate(*aes, textin, textlen, textout, textoutlen, &dataOutMoved);
-    if(status != kCCSuccess)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
-    
-    status = CCCryptorFinal(*aes, &textout[dataOutMoved], textoutlen-dataOutMoved, &dataOutMoved);
-    if(status != kCCSuccess)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
-}
-    
-#else // __APPLE__
 
 void
 PdfEncryptAESBase::BaseDecrypt(const unsigned char* key, int keyLen, const unsigned char* iv,
@@ -1343,7 +1245,6 @@ PdfEncryptAESBase::BaseEncrypt(const unsigned char* key, int keyLen, const unsig
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
 }
-#endif // __APPLE__
     
 void
 PdfEncryptAESV2::GenerateEncryptionKey(const PdfString & documentId)
@@ -1557,15 +1458,6 @@ void PdfEncryptSHABase::ComputeUserKey(const unsigned char * userpswd, int len)
     
     // UE = AES-256 encoded file encryption key with key=hash
     // CBC mode, no padding, init vector=0
-#ifdef __APPLE__
-    
-    size_t dataOutMoved;
-    CCCryptorStatus status = CCCrypt(kCCEncrypt, kCCAlgorithmAES128, 0, hashValue, 32, NULL, m_encryptionKey, m_keyLength, m_ueValue, 32, &dataOutMoved);
-    if(status != kCCSuccess) {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing AES encryption engine" );
-    }
-    
-#else // __APPLE__
     
     EVP_CIPHER_CTX aes;
     EVP_CIPHER_CTX_init(&aes);
@@ -1585,8 +1477,6 @@ void PdfEncryptSHABase::ComputeUserKey(const unsigned char * userpswd, int len)
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
     
     EVP_CIPHER_CTX_cleanup(&aes);
-    
-#endif // __APPLE__
 }
 
 void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char * ownerpswd, int len)
@@ -1624,14 +1514,6 @@ void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char * ownerpswd, int len
     
     // OE = AES-256 encoded file encryption key with key=hash
     // CBC mode, no padding, init vector=0
-#ifdef __APPLE__
-    
-    size_t dataOutMoved;
-    CCCryptorStatus status = CCCrypt(kCCEncrypt, kCCAlgorithmAES128, 0, hashValue, 32, NULL, m_encryptionKey, m_keyLength, m_oeValue, 32, &dataOutMoved);
-    if(status != kCCSuccess)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing AES encryption engine" );
-    
-#else // __APPLE__
     
     EVP_CIPHER_CTX aes;
     EVP_CIPHER_CTX_init(&aes);
@@ -1651,8 +1533,6 @@ void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char * ownerpswd, int len
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
     
     EVP_CIPHER_CTX_cleanup(&aes);
-    
-#endif // __APPLE__
 }
 
 void PdfEncryptSHABase::PreprocessPassword( const std::string &password, unsigned char* outBuf, int &len)
@@ -1782,14 +1662,6 @@ PdfEncryptAESV3::GenerateEncryptionKey(const PdfString &)
     perms[15] = 0;
     
     // Encrypt Perms value
-#ifdef __APPLE__
-    
-    size_t dataOutMoved;
-    CCCryptorStatus status = CCCrypt(kCCEncrypt, kCCAlgorithmAES128, kCCOptionECBMode, m_encryptionKey, 32, NULL, perms, 16, m_permsValue, 16, &dataOutMoved);
-    if(status != kCCSuccess)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing AES encryption engine" );
-    
-#else // __APPLE__
     
     EVP_CIPHER_CTX aes;
     EVP_CIPHER_CTX_init(&aes);
@@ -1809,8 +1681,6 @@ PdfEncryptAESV3::GenerateEncryptionKey(const PdfString &)
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
     
     EVP_CIPHER_CTX_cleanup(&aes);
-    
-#endif // __APPLE__
 }
 
 bool PdfEncryptAESV3::Authenticate( const std::string & password, const PdfString & )
