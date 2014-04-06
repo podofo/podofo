@@ -83,7 +83,8 @@ enum EPdfAnnotation {
     ePdfAnnotation_TrapNet,        // PDF 1.3
     ePdfAnnotation_Watermark,      // PDF 1.6
     ePdfAnnotation_3D,             // PDF 1.6
-    ePdfAnnotation_RichMedia,      // PDF 1.? ALX: Petr P. Petrov
+    ePdfAnnotation_RichMedia,      // PDF 1.7 ADBE ExtensionLevel 3 ALX: Petr P. Petrov
+    ePdfAnnotation_WebMedia,       // PDF 1.7 IPDF ExtensionLevel 3
 
     ePdfAnnotation_Unknown = 0xff
 };

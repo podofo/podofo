@@ -46,7 +46,7 @@
 
 namespace PoDoFo {
 
-const long  PdfAnnotation::s_lNumActions = 26;
+const long  PdfAnnotation::s_lNumActions = 27;
 const char* PdfAnnotation::s_names[] = {
     "Text",                       // - supported
     "Link",
@@ -73,7 +73,8 @@ const char* PdfAnnotation::s_names[] = {
     "TrapNet",        // PDF 1.3
     "Watermark",      // PDF 1.6
     "3D",             // PDF 1.6
-    "RichMedia",      // PDF 1.7 ALX: Petr P. Petrov
+    "RichMedia",      // PDF 1.7 ADBE ExtensionLevel 3 ALX: Petr P. Petrov
+    "WebMedia",       // PDF 1.7 IPDF ExtensionLevel 1
     NULL
 };
 
