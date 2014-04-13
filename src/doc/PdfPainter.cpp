@@ -1228,7 +1228,7 @@ void PdfPainter::CubicBezierTo( double dX1, double dY1, double dX2, double dY2, 
     m_pCanvas->Append( m_oss.str() );
 }
 
-void PdfPainter::HorizonalLineTo( double inX )
+void PdfPainter::HorizontalLineTo( double inX )
 {
     LineTo( inX, lpy3 );
 }

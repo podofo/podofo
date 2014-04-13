@@ -557,7 +557,7 @@ class PODOFO_DOC_API PdfPainter {
      *
      *  \param dX x coordinate to draw the line to
      */
-    void HorizonalLineTo( double dX );
+    void HorizontalLineTo( double dX );
 
     /** Append a vertical line to the current path
      *  Matches the SVG 'V' operator
