@@ -102,7 +102,7 @@ inline unsigned short ShortFromBigEndian(unsigned short i)
 
 namespace PoDoFo {
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
 // The function receives a buffer containing a true type collection and replaces the buffer
 // by a new buffer with the extracted font.
 // On error the function returns false.
@@ -454,7 +454,7 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
 	        
 			if( sPath.empty() )
 			{
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
 				pFont = GetWin32Font( it.first, m_vecFonts, pszFontName, bBold, bItalic, bEmbedd, pEncoding );
 #endif // _WIN32
 			}
@@ -471,7 +471,7 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
     else
         pFont = (*it.first).m_pFont;
 
-#ifndef WIN32
+#if !(defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER))
 		if (!pFont)
 	        PdfError::LogMessage( eLogSeverity_Critical, "No path was found for the specified fontname: %s\n", pszFontName );
 #endif             
@@ -479,7 +479,7 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
     return pFont;
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
 PdfFont* PdfFontCache::GetFont( const wchar_t* pszFontName, bool bBold, bool bItalic, 
                                 bool bEmbedd, const PdfEncoding * const pEncoding )
 {
@@ -598,7 +598,7 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
             sPath = this->GetFontPath( pszFontName, bBold, bItalic );
             if( sPath.empty() )
             {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
                 // TODO: GetWin32Font
                 PODOFO_ASSERT( 0 );
 #else	    
@@ -623,10 +623,12 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
         PdfFontTTFSubset        subset( &input, pMetrics, PdfFontTTFSubset::eFontFileType_TTF );
         PdfEncoding::const_iterator itChar
             = pEncoding->begin();
+        int cpt = 0;
         while( itChar != pEncoding->end() )
         {
             subset.AddCharacter( *itChar );
             ++itChar;
+            cpt++;
         }
         subset.BuildFont( &output );
         
@@ -660,7 +662,7 @@ void PdfFontCache::EmbedSubsetFonts()
     }
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
 PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList & vecContainer, 
                                      const char* pszFontName, bool bBold, bool bItalic, 
                                      bool bEmbedd, const PdfEncoding * const pEncoding )

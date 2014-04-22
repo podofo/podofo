@@ -205,7 +205,7 @@ PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bBold, bool bIta
     return m_fontCache.GetFont( pszFontName, bBold, bItalic, bEmbedd, eFontCreationFlags, pEncoding, pszFileName );
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
 PdfFont* PdfDocument::CreateFont( const wchar_t* pszFontName, const PdfEncoding * const pEncoding, 
                                   bool bEmbedd )
 {
@@ -225,7 +225,7 @@ PdfFont* PdfDocument::CreateFontSubset( const char* pszFontName, bool bBold, boo
     return m_fontCache.GetFontSubset( pszFontName, bBold, bItalic, pEncoding, pszFileName );
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
 PdfFont* PdfDocument::CreateFontSubset( const wchar_t* pszFontName, bool bBold, bool bItalic, 
 					                    const PdfEncoding * const pEncoding)
 {

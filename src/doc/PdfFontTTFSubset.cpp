@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #include "PdfFontTTFSubset.h"
 
@@ -165,7 +166,7 @@ void PdfFontTTFSubset::GetNumberOfGlyphs()
     GetData( ulMaxpOffset+__LENGTH_DWORD*1,&m_numGlyphs,__LENGTH_DWORD);
     m_numGlyphs = Big2Little(m_numGlyphs);
 
-    std::cout << "Number of Glyphs:	"<< m_numGlyphs << std::endl;
+    //std::cout << "Number of Glyphs:	"<< m_numGlyphs << std::endl;
 }
 
 void PdfFontTTFSubset::InitTables()
@@ -294,12 +295,12 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
     std::vector<TTrueTypeTable> vOldTable = m_vTable;	//vOldTable will be used later.
 
     //Print the old table information:
-    for ( i = 0; i < m_numTables; i++)
-    {
-        std::cout << "OldTable:\t" << m_vTable[i].m_strTableName << std::endl;
-        std::cout << "\tOffSet:\t" << m_vTable[i].m_offset << std::endl;
-        std::cout << "\t\tLength:\t"<<m_vTable[i].m_length << std::endl;
-    }
+//    for ( i = 0; i < m_numTables; i++)
+//    {
+//        std::cout << "OldTable:\t" << m_vTable[i].m_strTableName << std::endl;
+//        std::cout << "\tOffSet:\t" << m_vTable[i].m_offset << std::endl;
+//        std::cout << "\t\tLength:\t"<<m_vTable[i].m_length << std::endl;
+//    }
 	
     //Change the offsets:
     m_vTable[0].m_offset = __LENGTH_HEADER12+__LENGTH_OFFSETTABLE16*m_numTables;
@@ -311,12 +312,12 @@ void PdfFontTTFSubset::BuildFont( PdfOutputDevice* pOutputDevice )
     }
 	
     //Print the new table information:
-    for ( i = 0; i < m_numTables; i++)
-    {
-        std::cout << "NewTable:\t" << m_vTable[i].m_strTableName <<std::endl;
-        std::cout << "\tOffSet:\t" << m_vTable[i].m_offset <<std::endl;
-        std::cout << "\t\tLength:\t"<<m_vTable[i].m_length <<std::endl;
-    }
+//    for ( i = 0; i < m_numTables; i++)
+//    {
+//        std::cout << "NewTable:\t" << m_vTable[i].m_strTableName <<std::endl;
+//        std::cout << "\tOffSet:\t" << m_vTable[i].m_offset <<std::endl;
+//        std::cout << "\t\tLength:\t"<<m_vTable[i].m_length <<std::endl;
+//    }
 
     //The glyph data:
     if (m_bIsLongLoca)

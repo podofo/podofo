@@ -39,6 +39,9 @@
 /* Endianness */
 #cmakedefine TEST_BIG
 
+/* Features */
+#cmakedefine PODOFO_NO_FONTMANAGER
+
 /* Libraries */
 #cmakedefine PODOFO_HAVE_JPEG_LIB
 #cmakedefine PODOFO_HAVE_PNG_LIB

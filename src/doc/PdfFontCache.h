@@ -65,7 +65,7 @@ struct TFontCacheElement {
     {
     }
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
     TFontCacheElement( const wchar_t* pszFontName, bool bBold, bool bItalic, 
 		       const PdfEncoding * const pEncoding )
         : m_pFont(NULL), m_pEncoding( pEncoding ), m_bBold( bBold ), 
@@ -211,7 +211,7 @@ class PODOFO_DOC_API PdfFontCache {
                       const PdfEncoding * const = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
                       const char* pszFileName = NULL );
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
     /** Get a font from the cache. If the font does not yet
      *  exist, add it to the cache.
      *
@@ -357,7 +357,7 @@ class PODOFO_DOC_API PdfFontCache {
     PdfFont* CreateFontSubset( PdfFontMetrics* pMetrics, const char* pszFontName, bool bBold, 
                                bool bItalic, const std::vector<int> & vecCharacters );
     */
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
     /** Load and create a font with windows API calls
      *
      *  This method is only available on Windows systems.

@@ -94,7 +94,7 @@ PdfFontMetrics::~PdfFontMetrics()
 {
 }
 
-#if defined(__APPLE_CC__) && !defined(PODOFO_HAVE_FONTCONFIG)
+#if defined(__APPLE_CC__) && !defined(PODOFO_HAVE_FONTCONFIG) && !defined(PODOFO_NO_FONTMANAGER)
 FT_Error
 My_FT_GetFile_From_Mac_ATS_Name( const char*  fontName,
                                  FSSpec*  pathSpec, FT_Long*     face_index )
