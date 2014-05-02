@@ -28,7 +28,8 @@
  *   version of the file(s), but you are not obligated to do so.  If you   *
  *   do not wish to do so, delete this exception statement from your       *
  *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       * ***************************************************************************/
+ *   files in the program, then also delete it here.                       *
+ ***************************************************************************/
 
 #include "PdfXRefStream.h"
 
@@ -50,7 +51,7 @@ namespace PoDoFo {
 PdfXRefStream::PdfXRefStream( PdfVecObjects* pParent, PdfWriter* pWriter )
     : m_pParent( pParent ), m_pWriter( pWriter ), m_pObject( NULL )
 {
-    m_bufferLen = 2 + sizeof( pdf_uint64 );
+    m_bufferLen = 2 + sizeof( pdf_uint32 );
 
     m_pObject    = pParent->CreateObject( "XRef" );
     m_offset    = 0;
@@ -60,7 +61,7 @@ PdfXRefStream::~PdfXRefStream()
 {
 }
 
-void PdfXRefStream::BeginWrite( PdfOutputDevice* ) 
+void PdfXRefStream::BeginWrite( PdfOutputDevice* )
 {
     m_pObject->GetStream()->BeginAppend();
 }
@@ -84,18 +85,18 @@ void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, pdf_uint64 offset, pdf_gen
     buffer[0]             = static_cast<char>( cMode == 'n' ? 1 : 0 );
     buffer[m_bufferLen-1] = static_cast<char>( cMode == 'n' ? 0 : generation );
 
-    const pdf_uint64 offset_be = ::PoDoFo::compat::podofo_htonl(static_cast<pdf_uint32>(offset));
-    memcpy( &buffer[1], reinterpret_cast<const char*>(&offset_be), sizeof(pdf_uint64) );
-    
+    const pdf_uint32 offset_be = ::PoDoFo::compat::podofo_htonl(static_cast<pdf_uint32>(offset));
+    memcpy( &buffer[1], reinterpret_cast<const char*>(&offset_be), sizeof(pdf_uint32) );
+
     m_pObject->GetStream()->Append( buffer, m_bufferLen );
 }
 
-void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice ) 
+void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
 {
     PdfArray w;
 
     w.push_back( static_cast<pdf_int64>(1) );
-    w.push_back( static_cast<pdf_int64>(sizeof(pdf_uint64)) );
+    w.push_back( static_cast<pdf_int64>(sizeof(pdf_uint32)) );
     w.push_back( static_cast<pdf_int64>(1) );
 
     // Add our self to the XRef table
