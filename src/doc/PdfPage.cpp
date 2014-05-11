@@ -553,8 +553,7 @@ int PdfPage::GetNumFields() const
     {
         pAnnot = const_cast<PdfPage*>(this)->GetAnnotation( i );
         // Count every widget annotation with a FieldType as PdfField
-        if( pAnnot->GetType() == ePdfAnnotation_Widget && 
-            pAnnot->GetObject()->GetDictionary().HasKey( PdfName("FT") ) )
+        if( pAnnot->GetType() == ePdfAnnotation_Widget )
             ++nCount;
     }
 
@@ -570,8 +569,7 @@ PdfField PdfPage::GetField( int index )
     {
         pAnnot = this->GetAnnotation( i );
         // Count every widget annotation with a FieldType as PdfField
-        if( pAnnot->GetType() == ePdfAnnotation_Widget && 
-            pAnnot->GetObject()->GetDictionary().HasKey( PdfName("FT") ) )
+        if( pAnnot->GetType() == ePdfAnnotation_Widget )
         {
             if( nCount == index )
             {

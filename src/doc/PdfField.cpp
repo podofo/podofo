@@ -168,8 +168,26 @@ void PdfField::Init( PdfAcroForm* pParent )
 PdfField::PdfField( PdfObject* pObject, PdfAnnotation* pWidget )
     : m_pObject( pObject ), m_pWidget( pWidget ), m_eField( ePdfField_Unknown )
 {
+    // ISO 32000:2008, Section 12.7.3.1, Table 220, Page #432.
+    const PdfObject *pFT = m_pObject->GetDictionary().GetKey(PdfName("FT") );
 
-    PdfName fieldType = m_pObject->GetDictionary().GetKey( PdfName("FT") )->GetName();
+    if (!pFT && m_pObject->GetDictionary().HasKey( PdfName ("Parent") ) )
+    {
+        const PdfObject *pTemp =  m_pObject->GetIndirectKey ( PdfName("Parent") );
+        if (!pTemp)
+        {
+            PODOFO_RAISE_ERROR (ePdfError_InvalidDataType);
+        }
+
+        pFT = pTemp->GetDictionary().GetKey( PdfName ("FT") );
+    }
+
+    if (!pFT)
+    {
+        PODOFO_RAISE_ERROR (ePdfError_NoObject);
+    }
+
+    const PdfName fieldType = pFT->GetName();
 
     if( fieldType == PdfName("Btn") )
     {
