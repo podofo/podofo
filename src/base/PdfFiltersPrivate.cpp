@@ -1164,8 +1164,10 @@ void PdfCCITTFilter::EndEncodeImpl()
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
+#ifndef _MSC_VER
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 void PdfCCITTFilter::BeginDecodeImpl( const PdfDictionary* pDict )
 { 
 #ifdef DS_CCITT_DEVELOPMENT_CODE
@@ -1222,7 +1224,9 @@ void PdfCCITTFilter::BeginDecodeImpl( const PdfDictionary* pDict )
 
 
 }
+#ifndef _MSC_VER
 #pragma GCC diagnostic pop
+#endif
 
 void PdfCCITTFilter::DecodeBlockImpl( const char*, pdf_long )
 {

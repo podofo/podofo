@@ -50,7 +50,7 @@ namespace PoDoFo {
         
         const std::string& getNamespace() const { return _ns; }
         EPdfVersion getBaseVersion() const { return _baseVersion; }
-        pdf_int16 getLevel() const { return _level; }
+        pdf_int64 getLevel() const { return _level; }
         
     private:
         

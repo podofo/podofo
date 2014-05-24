@@ -333,6 +333,9 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_NotImplemented:
             pszMsg = "ePdfError_NotImplemented";
             break;
+        case ePdfError_NotCompiled:
+            pszMsg = "ePdfError_NotCompiled";
+            break;
         case ePdfError_DestinationAlreadyPresent:
             pszMsg = "ePdfError_DestinationAlreadyPresent"; 
             break;
@@ -471,6 +474,9 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
             break;
         case ePdfError_NotImplemented:
             pszMsg = "This feature is currently not implemented.";
+            break;
+        case ePdfError_NotCompiled:
+            pszMsg = "This feature was disabled during compile time.";
             break;
         case ePdfError_Unknown:
             pszMsg = "Error code unknown.";

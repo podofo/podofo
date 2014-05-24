@@ -37,6 +37,7 @@
 
 #include "base/PdfColor.h"
 #include "base/PdfStream.h"
+#include "base/PdfFiltersPrivate.h"
 
 #include <stdio.h>
 #include <wchar.h>
@@ -243,10 +244,6 @@ void PdfImage::LoadFromFile( const char* pszFilename )
 }
 
 #ifdef PODOFO_HAVE_JPEG_LIB
-#if !defined(PODOFO_JPEG_RUNTIME_COMPATIBLE)
-void jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize);
-#endif // PODOFO_JPEG_RUNTIME_COMPATIBLE
-
 extern "C" {
 static void JPegErrorExit(j_common_ptr cinfo)
 {
@@ -373,7 +370,7 @@ void PdfImage::LoadFromJpegData(unsigned char* pData, pdf_long dwLen)
 
     jpeg_create_decompress(&cinfo);
 
-    jpeg_mem_src(&cinfo, pData, dwLen);
+    jpeg_memory_src(&cinfo, pData, dwLen);
 
     if( jpeg_read_header(&cinfo, TRUE) <= 0 )
     {

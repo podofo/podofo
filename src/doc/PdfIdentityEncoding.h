@@ -128,7 +128,7 @@ class PODOFO_DOC_API PdfIdentityEncoding : public PdfEncoding {
      *
      *  \returns an unicode value
      */
-    pdf_utf16be GetUnicodeValue( long lCharCode ) const;
+    pdf_utf16be GetUnicodeValue( pdf_utf16be lCharCode ) const;
     
     /** Gets the char code from a uniode value
      *
@@ -136,7 +136,7 @@ class PODOFO_DOC_API PdfIdentityEncoding : public PdfEncoding {
      *
      *  \returns the character code (i.e. glyph id)
      */
-    long GetCIDValue( pdf_utf16be lUnicodeValue ) const;
+    pdf_utf16be GetCIDValue( pdf_utf16be lUnicodeValue ) const;
  
  private:
     bool    m_bAutoDelete;      ///< If true this encoding is deleted by its font.

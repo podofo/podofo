@@ -158,7 +158,7 @@ PdfRefCountedBuffer PdfIdentityEncoding::ConvertToEncoding( const PdfString & rS
     return buffer;
 }
 
-pdf_utf16be PdfIdentityEncoding::GetUnicodeValue( long  value ) const
+pdf_utf16be PdfIdentityEncoding::GetUnicodeValue( pdf_utf16be  value ) const
 {
     if(m_bToUnicodeIsLoaded)
     {
@@ -169,7 +169,7 @@ pdf_utf16be PdfIdentityEncoding::GetUnicodeValue( long  value ) const
         return 0;
 }
     
-long PdfIdentityEncoding::GetCIDValue( pdf_utf16be lUnicodeValue ) const
+pdf_utf16be PdfIdentityEncoding::GetCIDValue( pdf_utf16be lUnicodeValue ) const
 {
     if(m_bToUnicodeIsLoaded)
     {

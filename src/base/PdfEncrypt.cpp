@@ -33,6 +33,7 @@
 #include <string.h>
 #include <sstream>
 
+#ifdef PODOFO_HAVE_OPENSSL
 // SHA-256
 #ifdef PODOFO_HAVE_LIBIDN
 // AES-256 dependencies :
@@ -43,6 +44,7 @@
 
 #include <openssl/md5.h>
 #include <openssl/evp.h>
+#endif //PODOFO_HAVE_OPENSSL
 
 namespace
 {
@@ -65,6 +67,7 @@ ePdfEncryptAlgorithm_RC4V2 |
 ePdfEncryptAlgorithm_AESV2;
 #endif // PODOFO_HAVE_LIBIDN
 
+#ifdef PODOFO_HAVE_OPENSSL
 // Default value for P (permissions) = no permission
 #define PERMS_DEFAULT 0xFFFFF0C0
 
@@ -1839,4 +1842,40 @@ PdfOutputStream* PdfEncryptAESV3::CreateEncryptionOutputStream( PdfOutputStream*
 }
     
 #endif // PODOFO_HAVE_LIBIDN
+#else  // PODOFO_HAVE_OPENSSL
+PdfEncrypt *
+PdfEncrypt::CreatePdfEncrypt( const std::string & userPassword, 
+                              const std::string & ownerPassword, 
+                              int protection,
+                              EPdfEncryptAlgorithm eAlgorithm, 
+                              EPdfKeyLength eKeyLength )
+{
+    PODOFO_RAISE_ERROR_INFO( ePdfError_NotCompiled, "PdfEncrypt::CreatePdfEncrypt: Encryption support was disabled during compile time" );
+    return NULL;
+}
+
+PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
+{
+    PODOFO_RAISE_ERROR_INFO( ePdfError_NotCompiled, "PdfEncrypt::CreatePdfEncrypt: Encryption support was disabled during compile time" );
+    return NULL;
+}
+
+PdfEncrypt *
+PdfEncrypt::CreatePdfEncrypt(const PdfEncrypt & rhs )  
+{
+    PODOFO_RAISE_ERROR_INFO( ePdfError_NotCompiled, "PdfEncrypt::CreatePdfEncrypt: Encryption support was disabled during compile time" );
+    return NULL;
+}
+
+PdfEncrypt::~PdfEncrypt()
+{
+}
+
+PdfString PdfEncryptMD5Base::GetMD5String( const unsigned char* pBuffer, int nLength )
+{
+    PODOFO_RAISE_ERROR_INFO( ePdfError_NotCompiled, "PdfEncryptMD5Base::GetMD5String: Encryption support was disabled during compile time" );
+    return PdfString();
+}
+
+#endif // PODOFO_HAVE_OPENSSL
 }

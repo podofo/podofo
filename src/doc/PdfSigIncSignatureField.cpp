@@ -171,6 +171,7 @@ void PdfSigIncSignatureField::SetImageChromaKeyMask(pdf_int64 r, pdf_int64 g, pd
 PdfImage *PdfSigIncSignatureField::CreateSignatureImage(PdfDocument *pParent)
 {
    PdfImage *pPdfImage = NULL;
+#ifdef PODOFO_HAVE_JPEG_LIB
    if(m_ImageFile.GetLength() > 0)
    {
       pPdfImage = new PdfImage(pParent);
@@ -181,8 +182,9 @@ PdfImage *PdfSigIncSignatureField::CreateSignatureImage(PdfDocument *pParent)
       pPdfImage = new PdfImage(pParent);
       pPdfImage->LoadFromJpegData((unsigned char*)m_pImageData, m_ImageLen); 
    }
-   
-   if(m_Threshold >= 0)
+#endif
+
+   if(pPdfImage != NULL  &&  m_Threshold >= 0)
    {
       pPdfImage->SetImageChromaKeyMask(m_Red, m_Green, m_Blue, m_Threshold);
    }
