@@ -294,9 +294,9 @@ void PdfParserObject::ParseStream()
             PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "/Length key referenced indirect object that could not be loaded" );
         }
 
-        PdfError::LogMessage(eLogSeverity_Information,
+        /*PdfError::LogMessage(eLogSeverity_Information,
                              "Reading object %i 0 R with type: %s\n", 
-                             pObj->Reference().ObjectNumber(), pObj->GetDataTypeString());
+                             pObj->Reference().ObjectNumber(), pObj->GetDataTypeString());*/
 
         if( !pObj->IsNumber() )
         {

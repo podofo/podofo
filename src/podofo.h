@@ -75,6 +75,7 @@
 #include "doc/PdfFontTTFSubset.h"
 #include "doc/PdfFontType1Base14.h"
 #include "doc/PdfFontType1.h"
+#include "doc/PdfFontType3.h"
 #include "doc/PdfFunction.h"
 #include "doc/PdfHintStream.h"
 #include "doc/PdfIdentityEncoding.h"

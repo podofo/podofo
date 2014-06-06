@@ -51,7 +51,7 @@ using namespace std;
 namespace PoDoFo
 {
 
-const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *pObject, PdfObject *pToUnicode)
+const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *pObject, PdfObject *pToUnicode, bool bExplicitNames)
 {
     if (pObject->IsReference ())
     {
@@ -85,7 +85,7 @@ const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *pObject,
   	else if (pObject->IsDictionary ())
     {
 
-		return new PdfDifferenceEncoding (pObject);
+		return new PdfDifferenceEncoding (pObject, true, bExplicitNames);
     }
     
     

@@ -46,35 +46,44 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
     : PdfFontMetrics( ePdfFontType_Unknown, "", NULL ),
       m_pEncoding( pEncoding ), m_dDefWidth(0.0)
 {
-    if( !pDescriptor )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-	const PdfName & rSubType = pFont->GetDictionary().GetKey( PdfName::KeySubtype )->GetName();
+    const PdfName & rSubType = pFont->GetDictionary().GetKey( PdfName::KeySubtype )->GetName();
 
     // OC 15.08.2010 BugFix: /FirstChar /LastChar /Widths are in the Font dictionary and not in the FontDescriptor
-	if ( rSubType == PdfName("Type1") || rSubType == PdfName("TrueType") ) {
-		m_sName        = pDescriptor->GetIndirectKey( "FontName" )->GetName();
-		m_bbox         = pDescriptor->GetIndirectKey( "FontBBox" )->GetArray();
-    m_nFirst       = static_cast<int>(pFont->GetDictionary().GetKeyAsLong( "FirstChar", 0L ));
-    m_nLast        = static_cast<int>(pFont->GetDictionary().GetKeyAsLong( "LastChar", 0L ));
-	 // OC 15.08.2010 BugFix: GetIndirectKey() instead of GetDictionary().GetKey() and "Widths" instead of "Width"
-    PdfObject* widths = pFont->GetIndirectKey( "Widths" );
-    if( widths != NULL )
-    {
-        m_width        = widths->GetArray();
-        m_missingWidth = NULL;
-    }
-    else
-    {
-        widths = pDescriptor->GetDictionary().GetKey( "MissingWidth" );
-        if( widths == NULL ) 
-        {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, "Font object defines neither Widths, nor MissingWidth values!" );
-            m_missingWidth = widths;
+	if ( rSubType == PdfName("Type1") || rSubType == PdfName("Type3") || rSubType == PdfName("TrueType") ) {
+        if ( pDescriptor ) {
+            m_sName        = pDescriptor->GetIndirectKey( "FontName" )->GetName();
+            m_bbox         = pDescriptor->GetIndirectKey( "FontBBox" )->GetArray();
+        } else {
+            m_sName        = pFont->GetIndirectKey( "Name" )->GetName();
+            m_bbox         = pFont->GetIndirectKey( "FontBBox" )->GetArray();
         }
-    }
+        if (pFont->GetDictionary().HasKey( "FontMatrix" )) {
+            // Type3 fonts have a custom FontMatrix
+            m_matrix = pFont->GetIndirectKey( "FontMatrix" )->GetArray();
+        }
+		m_nFirst       = static_cast<int>(pFont->GetDictionary().GetKeyAsLong( "FirstChar", 0L ));
+        m_nLast        = static_cast<int>(pFont->GetDictionary().GetKeyAsLong( "LastChar", 0L ));
+        // OC 15.08.2010 BugFix: GetIndirectKey() instead of GetDictionary().GetKey() and "Widths" instead of "Width"
+        PdfObject* widths = pFont->GetIndirectKey( "Widths" );
+        
+        if( widths != NULL )
+        {
+            m_width        = widths->GetArray();
+            m_missingWidth = NULL;
+        }
+        else
+        {
+            if ( pDescriptor ) {
+                widths = pDescriptor->GetDictionary().GetKey( "MissingWidth" );
+            } else {
+                widths = pFont->GetDictionary().GetKey( "MissingWidth" );
+            }
+            if( widths == NULL ) 
+            {
+                PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, "Font object defines neither Widths, nor MissingWidth values!" );
+                m_missingWidth = widths;
+            }
+        }
 	} else if ( rSubType == PdfName("CIDFontType0") || rSubType == PdfName("CIDFontType2") ) {
 		PdfObject *pObj = pDescriptor->GetIndirectKey( "FontName" );
 		if (pObj) {
@@ -124,18 +133,34 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
 			}
 		}
 		m_nLast = m_width.GetSize() - 1;
-	} else {
+    } else {
         PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFontFormat, rSubType.GetEscapedName().c_str() );
 	}
-
-
-    m_nWeight      = static_cast<unsigned int>(pDescriptor->GetDictionary().GetKeyAsLong( "FontWeight", 400L ));
-    m_nItalicAngle = static_cast<int>(pDescriptor->GetDictionary().GetKeyAsLong( "ItalicAngle", 0L ));
-
-    m_dPdfAscent   = pDescriptor->GetDictionary().GetKeyAsReal( "Ascent", 0.0 );
-    m_dAscent      = m_dPdfAscent / 1000.0;
-    m_dPdfDescent  = pDescriptor->GetDictionary().GetKeyAsReal( "Descent", 0.0 );
-    m_dDescent     = m_dPdfDescent / 1000.0;
+    
+    if ( pDescriptor ) {
+        m_nWeight      = static_cast<unsigned int>(pDescriptor->GetDictionary().GetKeyAsLong( "FontWeight", 400L ));
+        m_nItalicAngle = static_cast<int>(pDescriptor->GetDictionary().GetKeyAsLong( "ItalicAngle", 0L ));
+        m_dPdfAscent   = pDescriptor->GetDictionary().GetKeyAsReal( "Ascent", 0.0 );
+        m_dPdfDescent  = pDescriptor->GetDictionary().GetKeyAsReal( "Descent", 0.0 );
+    } else {
+        m_nWeight      = 400L;
+        m_nItalicAngle = 0L;
+        m_dPdfAscent   = 0.0;
+        m_dPdfDescent  = 0.0;
+    }
+    
+    if (m_matrix.size() == 0) {
+        // Default FontMatrix for all font types: [0.001 0 0 0.001 0 0]
+        m_matrix.push_back(0.001);
+        m_matrix.push_back(0.0);
+        m_matrix.push_back(0.0);
+        m_matrix.push_back(0.001);
+        m_matrix.push_back(0.0);
+        m_matrix.push_back(0.0);
+    }
+    
+    m_dAscent      = m_dPdfAscent * m_matrix[3].GetReal();
+    m_dDescent     = m_dPdfDescent * m_matrix[3].GetReal();
     m_dLineSpacing = m_dAscent + m_dDescent;
     
     // Try to fine some sensible values
@@ -165,10 +190,10 @@ double PdfFontMetricsObject::CharWidth( unsigned char c ) const
 {
     if( c >= m_nFirst && c <= m_nLast
         && c - m_nFirst < static_cast<int>(m_width.GetSize()) )
-    { 
+    {
         double dWidth = m_width[c - m_nFirst].GetReal();
         
-        return dWidth * static_cast<double>(this->GetFontSize() * this->GetFontScale() / 100.0) / 1000.0 +
+        return dWidth * static_cast<double>(this->GetFontSize() * this->GetFontScale() / 100.0) * m_matrix.front().GetReal() +
             static_cast<double>( this->GetFontSize() * this->GetFontScale() / 100.0 * this->GetFontCharSpace() / 100.0);
 
     }
@@ -186,7 +211,7 @@ double PdfFontMetricsObject::UnicodeCharWidth( unsigned short c ) const
     {
         double dWidth = m_width[c - m_nFirst].GetReal();
 
-        return dWidth * static_cast<double>(this->GetFontSize() * this->GetFontScale() / 100.0) / 1000.0 +
+        return dWidth * static_cast<double>(this->GetFontSize() * this->GetFontScale() / 100.0) * m_matrix.front().GetReal() +
             static_cast<double>( this->GetFontSize() * this->GetFontScale() / 100.0 * this->GetFontCharSpace() / 100.0);
 
     }

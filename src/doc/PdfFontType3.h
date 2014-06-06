@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2010 by Dominik Seichter                                *
+ *   Copyright (C) 2007 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -31,39 +31,60 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#ifndef _PDF_ENCODING_OBJECT_FACTORY_H_
-#define _PDF_ENCODING_OBJECT_FACTORY_H_
+#ifndef _PDF_FONT_TYPE3_H_
+#define _PDF_FONT_TYPE3_H_
 
 #include "podofo/base/PdfDefines.h"
+#include "PdfFontSimple.h"
 
 namespace PoDoFo {
 
-class PdfEncoding;
-class PdfObject;
-
-/** This factory creates a PdfEncoding
- *  from an existing object in the PDF.
+/** A PdfFont implementation that can be used
+ *  to embedd type3 fonts into a PDF file
+ *  or to draw with type3 fonts.
+ *
+ *  Type3 fonts are always embedded.
  */
-class PODOFO_DOC_API PdfEncodingObjectFactory {
+class PdfFontType3 : public PdfFontSimple {
  public:
-    /** Create a new PdfEncoding from either an
-     *  encoding name or an encoding dictionary.
-     *
-     *  \param pObject must be a name or an encoding dictionary
-     *  \param pToUnicode the optional ToUnicode dictionary
-     *  \param bExplicitNames if true, glyph names are meaningless explicit keys on the font (used for Type3 fonts)
-     *
-     *  \returns a PdfEncoding or NULL
-     */
-    static const PdfEncoding* CreateEncoding( PdfObject* pObject, PdfObject *pToUnicode = NULL, bool bExplicitNames = false );
 
-private:
-    /**
-     * Hidden default constructor
+    /** Create a new Type3 font.
+     *
+     *  It will get embedded automatically.
+     * 
+     *  \param pMetrics pointer to a font metrics object. The font in the PDF
+     *         file will match this fontmetrics object. The metrics object is 
+     *         deleted along with the font.
+     *  \param pEncoding the encoding of this font. The font will take ownership of this object
+     *                   depending on pEncoding->IsAutoDelete()
+     *  \param pParent parent of the font object
+     *  \param bEmbed if true the font will get embedded.
+     *  
      */
-    PdfEncodingObjectFactory();
+    PdfFontType3( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
+                     PdfVecObjects* pParent, bool bEmbed );
+
+    /** Create a PdfFont based on an existing PdfObject
+     *  \param pMetrics pointer to a font metrics object. The font in the PDF
+     *         file will match this fontmetrics object. The metrics object is 
+     *         deleted along with the font.
+     *  \param pEncoding the encoding of this font. The font will take ownership of this object
+     *                   depending on pEncoding->IsAutoDelete()
+     *  \param pObject an existing PdfObject
+     */
+    PdfFontType3( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
+                     PdfObject* pObject );
+
+ private:
+
+    /** Embed the font file directly into the PDF file.
+     *
+     *  \param pDescriptor font descriptor object
+     */
+    void EmbedFontFile( PdfObject* pDescriptor );
 };
 
-}; /* namespace PoDoFo */
+};
 
-#endif // _PDF_ENCODING_OBJECT_FACTORY_H_
+#endif // _PDF_FONT_TYPE3_H_
+

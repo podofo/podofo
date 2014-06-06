@@ -230,6 +230,7 @@ enum EPdfFontType {
     ePdfFontType_Type1Pfa,
     ePdfFontType_Type1Pfb,
 	ePdfFontType_Type1Base14,
+    ePdfFontType_Type3,
     ePdfFontType_Unknown = 0xff
 };
 

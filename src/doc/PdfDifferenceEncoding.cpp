@@ -2228,7 +2228,7 @@ void PdfEncodingDifference::AddDifference( int nCode )
     this->AddDifference( nCode, PdfDifferenceEncoding::UnicodeIDToName( inCodePoint ) );
 }
 
-void PdfEncodingDifference::AddDifference( int nCode, const PdfName & rName )
+void PdfEncodingDifference::AddDifference( int nCode, const PdfName & rName, bool bExplicitNames )
 {
     if( nCode > 255 || nCode < 0 ) 
     {
@@ -2238,7 +2238,22 @@ void PdfEncodingDifference::AddDifference( int nCode, const PdfName & rName )
     TDifference dif;
     dif.nCode        = nCode;
     dif.name         = rName;
-    dif.unicodeValue = 0;
+    // In type3 fonts, glyph names are explicit keys from the font's CharProcs
+    // dictionary, therefore they have no meaning.
+    // By setting unicodeValue to nCode, we keep PdfEncodingDifference::Contains
+    // from calling PdfDifferenceEncoding::NameToUnicodeID, which would return 0
+    // after looking it up in the unicode tables. This allows us, provided the
+    // font's encoding is unicode-compatible, to preserve the characters' codes
+    // in the process. This seems to be Adobe Reader's behaviour as well.
+    if (bExplicitNames) {
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+        dif.unicodeValue = ((nCode & 0xff00) >> 8) | ((nCode & 0xff) << 8);
+#else
+        dif.unicodeValue = nCode;
+#endif // PODOFO_IS_LITTLE_ENDIAN
+    } else {
+        dif.unicodeValue = 0;
+    }
 
     std::pair<TIVecDifferences,TCIVecDifferences> it = 
         std::equal_range( m_vecDifferences.begin(), m_vecDifferences.end(), dif, DifferenceComparatorPredicate() );
@@ -2349,7 +2364,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( const PdfEncodingDifference & rDif
     Init();
 }
 
-PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDelete )
+PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDelete, bool bExplicitNames )
     : PdfEncoding( 0x00, 0xff ), PdfElement( NULL, pObject ),
       m_bAutoDelete( bAutoDelete )
 {
@@ -2383,7 +2398,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDele
                 curCode = (*it).GetNumber();
             else if( (*it).IsName() ) 
             {
-                m_differences.AddDifference( static_cast<int>(curCode), (*it).GetName() );
+                m_differences.AddDifference( static_cast<int>(curCode), (*it).GetName(), bExplicitNames );
                 ++curCode;
             }
             

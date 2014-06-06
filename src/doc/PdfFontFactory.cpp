@@ -47,6 +47,7 @@
 #include "PdfFontMetricsBase14.h"
 #include "PdfFontMetricsObject.h"
 #include "PdfFontType1.h"
+#include "PdfFontType3.h"
 #include "PdfFontType1Base14.h"
 #include "PdfFontTrueType.h"
 #include "PdfFontFactoryBase14Data.h"
@@ -136,7 +137,9 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
 				else
 					pFont = new PdfFontType1( pMetrics, pEncoding, pParent, bEmbed );
                 break;
-                
+            case ePdfFontType_Type3:
+                pFont = new PdfFontType3( pMetrics, pEncoding, pParent, bEmbed );
+                break;
             case ePdfFontType_Unknown:
             case ePdfFontType_Type1Base14:
             default:
@@ -156,6 +159,7 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
             case ePdfFontType_Type1Pfa:
             case ePdfFontType_Type1Pfb:
             case ePdfFontType_Type1Base14:
+            case ePdfFontType_Type3:
             case ePdfFontType_Unknown:
             default:
                 PdfError::LogMessage( eLogSeverity_Error, 
@@ -265,7 +269,21 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
             pFont       = new PdfFontType1( pMetrics, pPdfEncoding, pObject );
         }
     }
-    else if( rSubType == PdfName("TrueType") ) 
+    else if( rSubType == PdfName("Type3") )
+    {
+        pDescriptor = pObject->GetIndirectKey( "FontDescriptor" );
+        pEncoding   = pObject->GetIndirectKey( "Encoding" );
+        
+        if ( pEncoding ) // FontDescriptor may only be present in PDF 1.5+
+        {
+            const PdfEncoding* const pPdfEncoding =
+            PdfEncodingObjectFactory::CreateEncoding( pEncoding, NULL, true );
+            
+            pMetrics    = new PdfFontMetricsObject( pObject, pDescriptor, pPdfEncoding );
+            pFont       = new PdfFontType3( pMetrics, pPdfEncoding, pObject );
+        }
+    }
+    else if( rSubType == PdfName("TrueType") )
     {
         pDescriptor = pObject->GetIndirectKey( "FontDescriptor" );
         pEncoding   = pObject->GetIndirectKey( "Encoding" );

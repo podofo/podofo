@@ -83,8 +83,9 @@ class PODOFO_DOC_API PdfEncodingDifference {
      * 
      *  \param nCode unicode code point of the difference (0 to 255 are legal values)
      *  \param rName name of the different code point or .notdef if none
+     *  \param bExplicitKeys if true, the unicode value is set to nCode as rName is meaningless (Type3 fonts)
      */
-    void AddDifference( int nCode, const PdfName & rName );
+    void AddDifference( int nCode, const PdfName & rName, bool bExplicitNames = false );
 
     /** Tests if the specified code is part of the 
      *  differences.
@@ -199,8 +200,9 @@ class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElem
      *
      *  \param pObject an existing differences encoding
      *  \param bAutoDelete if true the encoding is deleted by its owning font
+     *  \param bExplicitNames if true, glyph names are meaningless explicit keys on the font (used for Type3 fonts)
      */
-    PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDelete = true );
+    PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDelete = true, bool bExplicitNames = false );
 
     /** Convert a standard character name to a unicode code point
      * 

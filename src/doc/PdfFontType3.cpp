@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2010 by Dominik Seichter                                *
+ *   Copyright (C) 2005 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -31,39 +31,34 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#ifndef _PDF_ENCODING_OBJECT_FACTORY_H_
-#define _PDF_ENCODING_OBJECT_FACTORY_H_
+#include "PdfFontType3.h"
 
-#include "podofo/base/PdfDefines.h"
+#include "base/PdfDefinesPrivate.h"
+
+#include "base/PdfArray.h"
+#include "base/PdfDictionary.h"
+#include "base/PdfName.h"
+#include "base/PdfStream.h"
 
 namespace PoDoFo {
 
-class PdfEncoding;
-class PdfObject;
+PdfFontType3::PdfFontType3( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding,
+                            PdfVecObjects* pParent, bool bEmbed )
+    : PdfFontSimple( pMetrics, pEncoding, pParent )
+{
+    this->Init( bEmbed, PdfName("Type3") );
+}
 
-/** This factory creates a PdfEncoding
- *  from an existing object in the PDF.
- */
-class PODOFO_DOC_API PdfEncodingObjectFactory {
- public:
-    /** Create a new PdfEncoding from either an
-     *  encoding name or an encoding dictionary.
-     *
-     *  \param pObject must be a name or an encoding dictionary
-     *  \param pToUnicode the optional ToUnicode dictionary
-     *  \param bExplicitNames if true, glyph names are meaningless explicit keys on the font (used for Type3 fonts)
-     *
-     *  \returns a PdfEncoding or NULL
-     */
-    static const PdfEncoding* CreateEncoding( PdfObject* pObject, PdfObject *pToUnicode = NULL, bool bExplicitNames = false );
+PdfFontType3::PdfFontType3( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding,
+                            PdfObject* pObject )
+    : PdfFontSimple( pMetrics, pEncoding, pObject )
+{
 
-private:
-    /**
-     * Hidden default constructor
-     */
-    PdfEncodingObjectFactory();
+}
+
+void PdfFontType3::EmbedFontFile( PdfObject* pDescriptor )
+{
+    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFontFormat );
+}
 };
 
-}; /* namespace PoDoFo */
-
-#endif // _PDF_ENCODING_OBJECT_FACTORY_H_

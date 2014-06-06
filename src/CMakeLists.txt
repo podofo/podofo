@@ -80,6 +80,7 @@ SET(PODOFO_DOC_SOURCES
   doc/PdfFontTTFSubset.cpp
   doc/PdfFontTrueType.cpp
   doc/PdfFontType1.cpp
+  doc/PdfFontType3.cpp
   doc/PdfFontType1Base14.cpp
   doc/PdfFunction.cpp
   doc/PdfHintStream.cpp
@@ -204,6 +205,7 @@ SET(PODOFO_DOC_HEADERS
   doc/PdfFontTTFSubset.h
   doc/PdfFontTrueType.h
   doc/PdfFontType1.h
+  doc/PdfFontType3.h
   doc/PdfFontType1Base14.h
   doc/PdfFunction.h
   doc/PdfHintStream.h
