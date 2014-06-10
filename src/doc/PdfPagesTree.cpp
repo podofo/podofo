@@ -71,8 +71,13 @@ PdfPagesTree::~PdfPagesTree()
 
 int PdfPagesTree::GetTotalNumberOfPages() const
 {
-    return ( ( this->GetObject()->GetDictionary().HasKey( "Count" ) ) ?
-             static_cast<int>(this->GetObject()->GetDictionary().GetKeyAsLong( "Count", 0LL )) : 0 );
+    const PdfObject *pObject = GetObject()->GetIndirectKey( "Count" );
+    if ( pObject != NULL ) {
+        return (pObject->GetDataType() == ePdfDataType_Number) ?
+                static_cast<int>( pObject->GetNumber() ) : 0;
+    } else {
+        return 0;
+    }
 }
 
 PdfPage* PdfPagesTree::GetPage( int nIndex )
