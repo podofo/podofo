@@ -177,28 +177,9 @@ class PODOFO_API PdfEncoding {
      */
     virtual PdfRefCountedBuffer ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const = 0;
 
-    /* bcc32 doesn't match PdfDifferenceEncoding::IsAutoDelete() with this pure
-       virtual function and crashes in runtime; this is a workaround for it */
-    #ifdef __BORLANDC__
-    virtual bool IsAutoDelete() const;
-    #else
-    /** 
-     * \returns true if this encoding should be deleted automatically with the
-     *          font.
-     */
     virtual bool IsAutoDelete() const = 0;
-    #endif
 
-    /* bcc32 doesn't match PdfDifferenceEncoding::IsSingleByteEncoding() with this pure
-       virtual function and crashes in runtime; this is a workaround for it */
-    #ifdef __BORLANDC__
-    virtual bool IsSingleByteEncoding() const;
-    #else
-    /** 
-     *  \returns true if this is a single byte encoding with a maximum of 256 values.
-     */
     virtual bool IsSingleByteEncoding() const = 0;
-    #endif
 
     /** 
      * \returns the first character code that is defined for this encoding
