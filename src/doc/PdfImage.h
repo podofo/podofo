@@ -161,6 +161,19 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
     void SetImageData( unsigned int nWidth, unsigned int nHeight, 
                        unsigned int nBitsPerComponent, PdfInputStream* pStream, const TVecFilters & vecFilters );
 
+    /** Set the actual image data from an input stream.
+     *  The data has to be encoded already and an appropriate
+     *  filters key entry has to be set manually before!
+     *  
+     *  \param nWidth width of the image in pixels
+     *  \param nHeight height of the image in pixels
+     *  \param nBitsPerComponent bits per color component of the image (depends on the image colorspace you have set
+     *                           but is 8 in most cases)
+     *  \param pStream stream supplieding raw image data
+     */
+    void SetImageDataRaw( unsigned int nWidth, unsigned int nHeight, 
+                          unsigned int nBitsPerComponent, PdfInputStream* pStream );
+
     /** Load the image data from a file
      *  \param pszFilename
      */
@@ -221,18 +234,6 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
     void SetInterpolate(bool bValue);
 
  private:
-    /** Set the actual image data from an input stream.
-     *  The data has to be encoded already and an appropriate
-     *  filters key entry has to be set manually before!
-     *  
-     *  \param nWidth width of the image in pixels
-     *  \param nHeight height of the image in pixels
-     *  \param nBitsPerComponent bits per color component of the image (depends on the image colorspace you have set
-     *                           but is 8 in most cases)
-     *  \param pStream stream supplieding raw image data
-     */
-    void SetImageDataRaw( unsigned int nWidth, unsigned int nHeight, 
-                          unsigned int nBitsPerComponent, PdfInputStream* pStream );
 
     /** Converts a EPdfColorSpace enum to a name key which can be used in a
      *  PDF dictionary.
