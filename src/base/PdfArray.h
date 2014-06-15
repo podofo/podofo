@@ -349,7 +349,7 @@ const PdfObject& PdfArray::operator[](size_type __n) const
 // -----------------------------------------------------
 void PdfArray::resize(size_t __n, value_type __x)
 {
-    return PdfArrayBaseClass::resize(__n, __x);
+    PdfArrayBaseClass::resize(__n, __x);
 }
 
 // -----------------------------------------------------

@@ -117,7 +117,7 @@ void PdfExtGState::SetStrokeOverprint( bool enable )
 
 void PdfExtGState::SetNonZeroOverprint( bool enable )
 {
-    this->GetObject()->GetDictionary().AddKey( "OPM", PdfVariant( static_cast<pdf_int64>(enable ? 1LL : 0LL) ) );
+    this->GetObject()->GetDictionary().AddKey( "OPM", PdfVariant( static_cast<pdf_int64>(enable ? PODOFO_LL_LITERAL(1) : PODOFO_LL_LITERAL(0)) ) );
 }
 
 void PdfExtGState::SetRenderingIntent( const char* intent )
@@ -128,7 +128,7 @@ void PdfExtGState::SetRenderingIntent( const char* intent )
 void PdfExtGState::SetFrequency( double frequency )
 {
 	PdfDictionary halftoneDict;
-	halftoneDict.AddKey( "HalftoneType", PdfVariant( static_cast<pdf_int64>(1LL) ) );
+	halftoneDict.AddKey( "HalftoneType", PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(1)) ) );
 	halftoneDict.AddKey( "Frequency", PdfVariant( frequency ) );
 	halftoneDict.AddKey( "Angle", PdfVariant( 45.0 ) );
 	halftoneDict.AddKey( "SpotFunction", PdfName( "SimpleDot" ) );

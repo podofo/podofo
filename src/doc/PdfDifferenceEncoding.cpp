@@ -2390,7 +2390,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDele
         const PdfArray & rDifferences = this->GetObject()->GetIndirectKey( PdfName("Differences") )->GetArray();
         PdfArray::const_iterator it = rDifferences.begin();
 
-        long long curCode = -1;
+        pdf_int64 curCode = -1;
 
         while( it != rDifferences.end() ) 
         {

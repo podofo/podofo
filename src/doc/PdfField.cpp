@@ -246,7 +246,7 @@ void PdfField::SetFieldFlag( long lValue, bool bSet )
 
 bool PdfField::GetFieldFlag( long lValue, bool bDefault ) const
 {
-    long long lCur = 0;
+    pdf_int64 lCur = 0;
 
     if( m_pObject->GetDictionary().HasKey( PdfName("Ff") ) )
     {

@@ -208,7 +208,15 @@ void FillTextField( PdfTextField & rField )
 
     std::string value;
     std::cout << "  Enter new value (if empty value is unchanged):" << std::endl;
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200 // Visual Studio 6
+	 {
+		 char buff[10240];
+		 if (gets(buff))
+			 value = buff;
+	 }
+#else
     getline( std::cin, value );
+#endif
 
     if( value.length() )
     {

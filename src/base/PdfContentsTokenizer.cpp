@@ -224,7 +224,7 @@ bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpsz
 bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, const char*&, PdfVariant & rVariant )
 {
     int  c;
-    long long  counter  = 0;
+    pdf_int64  counter  = 0;
     if( !m_device.Device() )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
@@ -269,7 +269,7 @@ bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, const ch
             ++counter;
         }
         
-        if (counter ==  static_cast<long long>(m_buffer.GetSize())) 
+        if (counter ==  static_cast<pdf_int64>(m_buffer.GetSize())) 
         {
             // image is larger than buffer => resize buffer
             m_buffer.Resize(m_buffer.GetSize()*2);

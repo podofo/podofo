@@ -425,7 +425,7 @@ void PdfParser::HasLinearizationDict()
         return;
     }
     
-    long long      lXRef      = -1;
+    pdf_int64      lXRef      = -1;
     lXRef = m_pLinearization->GetDictionary().GetKeyAsLong( "T", lXRef );
     if( lXRef == -1 )
     {
@@ -638,8 +638,8 @@ void PdfParser::ReadXRef( pdf_long* pXRefOffset )
 
 void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
 {
-    long long nFirstObject = 0;
-    long long nNumObjects  = 0;
+    pdf_int64 nFirstObject = 0;
+    pdf_int64 nNumObjects  = 0;
 
     size_t curPosition = m_device.Device()->Tell();
     m_device.Device()->Seek(0,std::ios_base::end);
@@ -741,7 +741,7 @@ void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
     }
 }
 
-void PdfParser::ReadXRefSubsection( long long & nFirstObject, long long & nNumObjects )
+void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumObjects )
 {
     int count = 0;
 
@@ -795,7 +795,7 @@ void PdfParser::ReadXRefSubsection( long long & nFirstObject, long long & nNumOb
                     &(m_offsets[objID].lOffset), 
                     &(m_offsets[objID].lGeneration), &(m_offsets[objID].cUsed), &empty1, &empty2 );
 #else
-            long long int tmp1;
+            pdf_int64 tmp1;
             long int tmp2;
             sscanf( m_buffer.GetBuffer(), "%10lld %5ld %c%c%c", 
                     &tmp1, &tmp2, &(m_offsets[objID].cUsed), &empty1, &empty2 );
@@ -1060,7 +1060,7 @@ void PdfParser::ReadObjectsInternal()
             {
                 PdfError::LogMessage( eLogSeverity_Warning, 
                                       "Treating object %i 0 R as a free object." );
-                m_vecObjects->AddFreeObject( PdfReference( i, 1LL ) );
+                m_vecObjects->AddFreeObject( PdfReference( i, PODOFO_LL_LITERAL(1) ) );
             }
         }
 // Ulrich Arnold 30.7.2009: the linked free list in the xref section is not always correct in pdf's
@@ -1071,11 +1071,11 @@ void PdfParser::ReadObjectsInternal()
 //							robustly from all places which are either free or unparsed
 //      else if( m_offsets[i].bParsed && m_offsets[i].cUsed == 'f' && m_offsets[i].lOffset )
 //      {
-//          m_vecObjects->AddFreeObject( PdfReference( static_cast<int>(m_offsets[i].lOffset), 1LL ) ); // TODO: do not hard code
+//          m_vecObjects->AddFreeObject( PdfReference( static_cast<int>(m_offsets[i].lOffset), PODOFO_LL_LITERAL(1) ) ); // TODO: do not hard code
 //      }
         else if( (!m_offsets[i].bParsed || m_offsets[i].cUsed == 'f') && i != 0 )
         {
-			m_vecObjects->AddFreeObject( PdfReference( static_cast<int>(i), 1LL ) ); // TODO: do not hard code generation number
+			m_vecObjects->AddFreeObject( PdfReference( static_cast<int>(i), PODOFO_LL_LITERAL(1) ) ); // TODO: do not hard code generation number
         }
     }
 
@@ -1169,7 +1169,7 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int )
         if( m_offsets[i].bParsed && m_offsets[i].cUsed == 's' &&
 			m_offsets[i].lGeneration == nObjNo) 
         {
-            list.push_back(static_cast<long long>(i));
+            list.push_back(static_cast<pdf_int64>(i));
 		}
 	}
     

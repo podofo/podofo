@@ -263,7 +263,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
     double dStroke = 0.01;
     double dLine   = pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
-    for( int i=0;i<23; i++ ) 
+    for( i=0;i<23; i++ ) 
     {
         sprintf( buffer, "Linewidth: %.3fpt", dStroke );
         pPainter->DrawText( x, y, PdfString( buffer ) ); 

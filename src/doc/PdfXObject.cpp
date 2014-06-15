@@ -189,18 +189,18 @@ void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
     if( s_matrix.empty() )
     {
         // This matrix is the same for all PdfXObjects so cache it
-        s_matrix.push_back( PdfVariant( static_cast<pdf_int64>(1LL) ) );
-        s_matrix.push_back( PdfVariant( static_cast<pdf_int64>(0LL) ) );
-        s_matrix.push_back( PdfVariant( static_cast<pdf_int64>(0LL) ) );
-        s_matrix.push_back( PdfVariant( static_cast<pdf_int64>(1LL) ) );
-        s_matrix.push_back( PdfVariant( static_cast<pdf_int64>(0LL) ) );
-        s_matrix.push_back( PdfVariant( static_cast<pdf_int64>(0LL) ) );
+        s_matrix.push_back( PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(1)) ) );
+        s_matrix.push_back( PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(0)) ) );
+        s_matrix.push_back( PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(0)) ) );
+        s_matrix.push_back( PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(1)) ) );
+        s_matrix.push_back( PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(0)) ) );
+        s_matrix.push_back( PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(0)) ) );
     }
 
     rRect.ToVariant( var );
     this->GetObject()->GetDictionary().AddKey( "BBox", var );
     this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Form") );
-    this->GetObject()->GetDictionary().AddKey( "FormType", PdfVariant( static_cast<pdf_int64>(1LL) ) ); // only 1 is only defined in the specification.
+    this->GetObject()->GetDictionary().AddKey( "FormType", PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(1)) ) ); // only 1 is only defined in the specification.
     this->GetObject()->GetDictionary().AddKey( "Matrix", s_matrix );
 
     // The PDF specification suggests that we send all available PDF Procedure sets

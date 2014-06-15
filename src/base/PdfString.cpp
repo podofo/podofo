@@ -83,7 +83,7 @@ const char * const PdfString::m_escMap        = PdfStringNameSpace::genStrEscMap
 
 const PdfString PdfString::StringNull        = PdfString();
 #ifdef _MSC_VER
-const char  PdfString::s_pszUnicodeMarker[]  = { 0xFE, 0xFF };
+const char  PdfString::s_pszUnicodeMarker[]  = { static_cast<char>(0xFE), static_cast<char>(0xFF) };
 #else
 const char  PdfString::s_pszUnicodeMarker[]  = { static_cast<char>(0xFE), static_cast<char>(0xFF) };
 #endif

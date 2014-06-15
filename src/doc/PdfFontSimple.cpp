@@ -93,13 +93,13 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
 
     pDescriptor->GetDictionary().AddKey( "FontName", PdfName( name ) );
     //pDescriptor->GetDictionary().AddKey( "FontWeight", (long)m_pMetrics->Weight() );
-    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( static_cast<pdf_int64>(32LL) ) ); // TODO: 0 ????
+    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(32)) ) ); // TODO: 0 ????
     pDescriptor->GetDictionary().AddKey( "FontBBox", array );
     pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<pdf_int64>(m_pMetrics->GetItalicAngle()) ) );
     pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetPdfAscent() );
     pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetPdfDescent() );
     pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetPdfAscent() ); // m_pMetrics->CapHeight() );
-    pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( static_cast<pdf_int64>(1LL) ) );               // m_pMetrics->StemV() );
+    pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(1)) ) );               // m_pMetrics->StemV() );
 
     // Peter Petrov 24 September 2008
     m_pDescriptor = pDescriptor;

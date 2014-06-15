@@ -61,8 +61,8 @@ PdfObjectStreamParserObject::~PdfObjectStreamParserObject()
 
 void PdfObjectStreamParserObject::Parse(ObjectIdList const & list)
 {
-    long long lNum   = m_pParser->GetDictionary().GetKeyAsLong( "N", 0 );
-    long long lFirst = m_pParser->GetDictionary().GetKeyAsLong( "First", 0 );
+    pdf_int64 lNum   = m_pParser->GetDictionary().GetKeyAsLong( "N", 0 );
+    pdf_int64 lFirst = m_pParser->GetDictionary().GetKeyAsLong( "First", 0 );
     
     char* pBuffer;
     pdf_long lBufferLen;
@@ -82,17 +82,17 @@ void PdfObjectStreamParserObject::Parse(ObjectIdList const & list)
     }
 }
 
-void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long lBufferLen, long long lNum, long long lFirst, ObjectIdList const & list)
+void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long lBufferLen, pdf_int64 lNum, pdf_int64 lFirst, ObjectIdList const & list)
 {
     PdfRefCountedInputDevice device( pBuffer, lBufferLen );
     PdfTokenizer             tokenizer( device, m_buffer );
     PdfVariant               var;
     int                      i = 0;
 
-    while( static_cast<long long>(i) < lNum )
+    while( static_cast<pdf_int64>(i) < lNum )
     {
-        const long long lObj     = tokenizer.GetNextNumber();
-        const long long lOff     = tokenizer.GetNextNumber();
+        const pdf_int64 lObj     = tokenizer.GetNextNumber();
+        const pdf_int64 lOff     = tokenizer.GetNextNumber();
         const std::streamoff pos = device.Device()->Tell();
 
         // move to the position of the object in the stream
@@ -112,12 +112,12 @@ void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long
 #endif
 		if (should_read)
         {
-			if(m_vecObjects->GetObject(PdfReference( static_cast<int>(lObj), 0LL ))) 
+			if(m_vecObjects->GetObject(PdfReference( static_cast<int>(lObj), PODOFO_LL_LITERAL(0) ))) 
             {
                 PdfError::LogMessage( eLogSeverity_Warning, "Object: %li 0 R will be deleted and loaded again.\n", lObj );
-                delete m_vecObjects->RemoveObject(PdfReference( static_cast<int>(lObj), 0LL ),false);
+                delete m_vecObjects->RemoveObject(PdfReference( static_cast<int>(lObj), PODOFO_LL_LITERAL(0) ),false);
             }
-            m_vecObjects->insert_sorted( new PdfObject( PdfReference( static_cast<int>(lObj), 0LL ), var ) );
+            m_vecObjects->insert_sorted( new PdfObject( PdfReference( static_cast<int>(lObj), PODOFO_LL_LITERAL(0) ), var ) );
 		}
 
         // move back to the position inside of the table of contents

@@ -207,7 +207,7 @@ PdfTokenizer::~PdfTokenizer()
 bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
 {
     int  c; 
-    long long  counter  = 0;
+    pdf_int64  counter  = 0;
 
     // check first if there are quequed tokens and return them first
     if( m_deqQueque.size() )
@@ -232,7 +232,7 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
         *peType = ePdfTokenType_Token;
 
     while( (c = m_device.Device()->Look()) != EOF
-           && counter < static_cast<long long>(m_buffer.GetSize()) )
+           && counter < static_cast<pdf_int64>(m_buffer.GetSize()) )
     {
         // ignore leading whitespaces
         if( !counter && IsWhitespace( c ) )

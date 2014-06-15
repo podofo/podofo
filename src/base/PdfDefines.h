@@ -41,7 +41,11 @@
  *        supporting platforms it will be precompiled to speed compilation.
  */ 
 
+#ifndef PODOFO_COMPILE_RC
+
 #include "PdfCompilerCompat.h"
+
+#endif // !PODOFO_COMPILE_RC
 
 /**
  * PoDoFo version - 24-bit integer representation.
@@ -63,6 +67,8 @@
 #define PODOFO_MAKE_VERSION_STR_REAL(M,m,p) ("\"" #M "." #m "." #p "\"")
 #define PODOFO_MAKE_VERSION_STR(M,m,p) PODOFO_MAKE_VERSION_STR_REAL(M,m,p)
 #define PODOFO_VERSION_STR PODOFO_MAKE_VERSION_STR(PODOFO_VERSION_MAJOR, PODOFO_VERSION_MINOR, PODOFO_VERSION_PATCH)
+
+#ifndef PODOFO_COMPILE_RC
 
 // Include common system files
 // (most are now pulled in my PdfCompilerCompat.h)
@@ -507,5 +513,7 @@ template <typename T> const T PDF_MIN ( const T a, const T b ) {
  * \verbinclude CODINGSTYLE.txt
  *
  */
+
+#endif // !PODOFO_COMPILE_RC
 
 #endif // _PDF_DEFINES_H_

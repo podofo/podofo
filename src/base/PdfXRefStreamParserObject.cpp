@@ -90,7 +90,7 @@ void PdfXRefStreamParserObject::Parse()
 
 void PdfXRefStreamParserObject::ReadXRefTable() 
 {
-    long long  lSize   = this->GetDictionary().GetKeyAsLong( PdfName::KeySize, 0 );
+    pdf_int64  lSize   = this->GetDictionary().GetKeyAsLong( PdfName::KeySize, 0 );
     PdfVariant vWArray = *(this->GetDictionary().GetKey( "W" ));
 
     // The pdf reference states that W is always an array with 3 entries

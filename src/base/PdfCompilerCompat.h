@@ -106,12 +106,23 @@ namespace PoDoFo {
  * Some elderly compilers, notably VC6, don't support LL literals.
  * In those cases we can use the oversized literal without any suffix.
  */
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200 // Visual Studio 6
+#  define PODOFO_LL_LITERAL(x) x
+#  define PODOFO_ULL_LITERAL(x) x
+#else
 #if defined(PODOFO_COMPILER_LACKS_LL_LITERALS)
 #  define PODOFO_LL_LITERAL(x) x
 #  define PODOFO_ULL_LITERAL(x) x
 #else
 #  define PODOFO_LL_LITERAL(x) x##LL
 #  define PODOFO_ULL_LITERAL(x) x##ULL
+#endif
+#endif
+
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200 // Visual Studio 6
+#   define PODOFO_MIN(_a, _b) ((_a) < (_b) ? (_a) : (_b))
+#else
+#   define PODOFO_MIN(_a, _b) (std::min((_a), (_b)))
 #endif
 
 // pdf_long is defined as ptrdiff_t . It's a pointer-sized signed quantity

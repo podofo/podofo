@@ -1,7 +1,11 @@
+#define PODOFO_COMPILE_RC
+
 #include "base/podofoapi.h"
 #include "base/PdfDefines.h"
 #include "base/PdfVersion.h"
 #include "WinResrc.h"
+
+#undef PODOFO_COMPILE_RC
 
 #define VER_PRODUCTVERSION          PODOFO_MAJOR,PODOFO_MINOR,PODOFO_REVISION,0 
 #define VER_PRODUCTVERSION_STR      PODOFO_VERSION_STRING

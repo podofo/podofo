@@ -172,7 +172,7 @@ size_t PdfSignOutputDevice::ReadForSignature(char* pBuffer, size_t lLen)
 	// Check if we are before beacon
 	if(pos<m_sBeaconPos)
 	{
-		size_t readSize = std::min(lLen, m_sBeaconPos-pos);
+		size_t readSize = PODOFO_MIN(lLen, m_sBeaconPos-pos);
 		if(readSize>0) {
 			numRead = m_pRealDevice->Read(pBuffer, readSize);
 			pBuffer += numRead;
@@ -187,7 +187,7 @@ size_t PdfSignOutputDevice::ReadForSignature(char* pBuffer, size_t lLen)
 		m_pRealDevice->Seek(m_sBeaconPos+(m_pSignatureBeacon->data().size()+2) );
 	}
 	// read after beacon
-	lLen = std::min(lLen, m_pRealDevice->GetLength()-m_pRealDevice->Tell());
+	lLen = PODOFO_MIN(lLen, m_pRealDevice->GetLength()-m_pRealDevice->Tell());
 	if(lLen==0) return numRead;
 	return numRead+m_pRealDevice->Read(pBuffer, lLen);
 }

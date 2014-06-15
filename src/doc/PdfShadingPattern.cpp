@@ -179,7 +179,7 @@ void PdfShadingPattern::Init( EPdfShadingPatternType eShadingType )
     PdfDictionary shading;
     shading.AddKey( PdfName("ShadingType"), static_cast<pdf_int64>(eShadingType) );
 
-    this->GetObject()->GetDictionary().AddKey( PdfName("PatternType"), static_cast<pdf_int64>(2LL) ); // Shading pattern
+    this->GetObject()->GetDictionary().AddKey( PdfName("PatternType"), static_cast<pdf_int64>(PODOFO_LL_LITERAL(2)) ); // Shading pattern
     this->GetObject()->GetDictionary().AddKey( PdfName("Shading"), shading );
 }
 

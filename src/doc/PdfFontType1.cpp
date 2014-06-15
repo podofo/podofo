@@ -120,6 +120,7 @@ void PdfFontType1::EmbedSubsetFont()
     PdfObject*  pContents;
     const char* pBuffer;
     char*       pAllocated = NULL;
+    int         i;
 
     m_bWasEmbedded = true;
 
@@ -185,7 +186,7 @@ void PdfFontType1::EmbedSubsetFont()
 	// transfer ascii-part, modify encoding dictionary (dup ...), if present
 	std::string line;
 	bool dupFound = false;
-	for ( int i = 0; i < length; i++ )
+	for ( i = 0; i < length; i++ )
 	{
 		line += static_cast<char>( inBuff[inIndex+i] );
 		if ( inBuff[inIndex+i] == '\r' )
@@ -214,7 +215,11 @@ void PdfFontType1::EmbedSubsetFont()
 					dupFound = true;
 				}
 			}
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200 // Visual Studio 6
+			line.erase();
+#else
 			line.clear();
+#endif
 		}
 	}
 	inIndex += length;
@@ -240,7 +245,11 @@ void PdfFontType1::EmbedSubsetFont()
 		PdfType1EncryptEexec inCrypt;
 		
 		outIndex = outIndexStart;
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200 // Visual Studio 6
+		line.erase();
+#else
 		line.clear();
+#endif
 		foundSeacGlyph = false;
 		bool inCharString = false;
 		for ( int i = 0; i < length;  )
@@ -340,14 +349,18 @@ void PdfFontType1::EmbedSubsetFont()
 				// parse for /CharStrings = begin of glyphs
 				if ( line.find( "/CharStrings" ) != static_cast<size_t>(-1) )
 					inCharString = true;
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200 // Visual Studio 6
+				line.erase();
+#else
 				line.clear();
+#endif
 			}
 		}
 	} while ( foundSeacGlyph );
 
 	// now encrypt resulting output-buffer
 	PdfType1EncryptEexec outCrypt;
-	for ( int i = outIndexStart; i < outIndex; i++ )
+	for ( i = outIndexStart; i < outIndex; i++ )
 		outBuff[i] = outCrypt.Encrypt( outBuff[i] );
 
 	lLength2 = outIndex - outIndexStart;

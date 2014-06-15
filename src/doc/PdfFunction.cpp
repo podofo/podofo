@@ -87,8 +87,8 @@ void PdfSampledFunction::Init( const PdfArray & rDomain,  const PdfArray & rRang
     this->GetObject()->GetDictionary().AddKey( PdfName("Domain"), rDomain );
     this->GetObject()->GetDictionary().AddKey( PdfName("Range"), rRange );
     this->GetObject()->GetDictionary().AddKey( PdfName("Size"), Size );
-    this->GetObject()->GetDictionary().AddKey( PdfName("Order"), PdfObject( static_cast<pdf_int64>(1LL) ) );
-    this->GetObject()->GetDictionary().AddKey( PdfName("BitsPerSample"), PdfObject( static_cast<pdf_int64>(8LL) ) );
+    this->GetObject()->GetDictionary().AddKey( PdfName("Order"), PdfObject( static_cast<pdf_int64>(PODOFO_LL_LITERAL(1)) ) );
+    this->GetObject()->GetDictionary().AddKey( PdfName("BitsPerSample"), PdfObject( static_cast<pdf_int64>(PODOFO_LL_LITERAL(8)) ) );
 
     this->GetObject()->GetStream()->BeginAppend();
     PdfFunction::Sample::const_iterator it = rlstSamples.begin();
