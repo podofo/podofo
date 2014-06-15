@@ -56,7 +56,7 @@ PdfPagesTree::PdfPagesTree( PdfVecObjects* pParent )
 
 PdfPagesTree::PdfPagesTree( PdfObject* pPagesRoot )
     : PdfElement( "Pages", pPagesRoot ),
-      m_cache( static_cast<int>(pPagesRoot->GetDictionary().GetKeyAsLong( "Count", static_cast<pdf_int64>(PODOFO_LL_LITERAL(0)) )) )
+      m_cache( GetChildCount( pPagesRoot ) )
 {
     if( !this->GetObject() ) 
     {
@@ -71,13 +71,7 @@ PdfPagesTree::~PdfPagesTree()
 
 int PdfPagesTree::GetTotalNumberOfPages() const
 {
-    const PdfObject *pObject = GetObject()->GetIndirectKey( "Count" );
-    if ( pObject != NULL ) {
-        return (pObject->GetDataType() == ePdfDataType_Number) ?
-                static_cast<int>( pObject->GetNumber() ) : 0;
-    } else {
-        return 0;
-    }
+    return GetChildCount( GetObject() );
 }
 
 PdfPage* PdfPagesTree::GetPage( int nIndex )
@@ -331,7 +325,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
     PdfArray::const_iterator it = rKidsArray.begin();
 
     const size_t numDirectKids = rKidsArray.size();
-    const size_t numKids = static_cast<size_t>(pParent->GetDictionary().GetKeyAsLong( "Count", PODOFO_LL_LITERAL(0) ));
+    const size_t numKids = GetChildCount(pParent);
 
     if( static_cast<int>(numKids) < nPageNum ) 
     {
@@ -379,7 +373,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
 
                 if( this->IsTypePages(pChild) ) 
                 {
-                    int childCount = this->GetChildCount( pChild );
+                    int childCount = GetChildCount( pChild );
                     if( childCount < nPageNum + 1 ) // Pages are 0 based, but count is not
                     {
                         // skip this page node
@@ -498,7 +492,13 @@ int PdfPagesTree::GetChildCount( const PdfObject* pNode ) const
     if( !pNode ) 
         return 0;
 
-    return static_cast<int>(pNode->GetDictionary().GetKeyAsLong("Count", 0L));
+    const PdfObject *pCount = pNode->GetIndirectKey( "Count" );
+    if( pCount != 0 ) {
+        return (pCount->GetDataType() == PoDoFo::ePdfDataType_Number) ?  
+            static_cast<int>( pCount->GetNumber() ):0;
+    } else {
+        return 0;
+    }
 }
 
 int PdfPagesTree::GetPosInKids( PdfObject* pPageObj, PdfObject* pPageParent )
@@ -702,7 +702,7 @@ int PdfPagesTree::ChangePagesCount( PdfObject* pPageObj, int nDelta )
 {
     // Increment or decrement inPagesDict's Count by inDelta, and return the new count.
     // Simply return the current count if inDelta is 0.
-    int	cnt = static_cast<int>(pPageObj->GetDictionary().GetKey( "Count" )->GetNumber());
+    int	cnt = GetChildCount( pPageObj );
     if( 0 != nDelta ) 
     {
         cnt += nDelta ;
@@ -714,7 +714,7 @@ int PdfPagesTree::ChangePagesCount( PdfObject* pPageObj, int nDelta )
 
 bool PdfPagesTree::IsEmptyPageNode( PdfObject* pPageNode ) 
 {
-    long lCount = static_cast<long>(pPageNode->GetDictionary().GetKeyAsLong( PdfName("Count"), static_cast<pdf_int64>(PODOFO_LL_LITERAL(0)) ));
+    long lCount = GetChildCount( pPageNode );
     bool bKidsEmpty = true;
 
     if( pPageNode->GetDictionary().HasKey( PdfName("Kids") ) )
@@ -741,7 +741,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject,
 
     PdfArray&	kidsArray = pObj->GetArray();
     size_t	numKids   = kidsArray.size();
-    size_t      kidsCount = pPagesObject->GetDictionary().GetKeyAsLong( "Count", 0 );
+    size_t      kidsCount = GetChildCount( pPagesObject );
 
     // All parents of the page node will be added to this lists,
     // so that the PdfPage can later access inherited attributes

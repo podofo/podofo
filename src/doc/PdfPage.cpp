@@ -526,7 +526,10 @@ unsigned int PdfPage::GetPageNumber() const
                 if( pNode->GetDictionary().GetKey( PdfName::KeyType ) != NULL 
                     && pNode->GetDictionary().GetKey( PdfName::KeyType )->GetName() == PdfName( "Pages" ) )
                 {
-                    nPageNumber += static_cast<int>(pNode->GetDictionary().GetKey( "Count" )->GetNumber());
+                    PdfObject* pCount = pNode->GetIndirectKey( "Count" );
+                    if( pCount != NULL ) {
+                        nPageNumber += static_cast<int>(pCount->GetNumber());
+                    }
                 } else {
                     // if we do not have a page tree node, 
                     // we most likely have a page object:
