@@ -87,6 +87,15 @@ class PODOFO_DOC_API PdfXObject : public PdfElement, public PdfCanvas {
      */
     PdfXObject( const PdfMemDocument & rSourceDoc, int nPage, PdfDocument* pParent, const char* pszPrefix = NULL, bool bUseTrimBox = false );
 
+    /** Create a new XObject from an existing page
+     * 
+     *  \param pDoc the document to create the XObject at
+     *  \param nPage the page-number in pDoc to create the XObject from
+     *  \param pszPrefix optional prefix for XObject-name
+     *  \param bUseTrimBox if true try to use trimbox for size of xobject
+     */
+    PdfXObject( PdfDocument *pDoc, int nPage, const char* pszPrefix = NULL, bool bUseTrimBox = false );
+
     /** Create a XObject from an existing PdfObject
      *  
      *  \param pObject an existing object which has to be

@@ -163,6 +163,92 @@ PdfXObject::PdfXObject( const PdfMemDocument & rDoc, int nPage, PdfDocument* pPa
     this->GetObject()->GetDictionary().AddKey( "Matrix", matrix );
 }
 
+PdfXObject::PdfXObject( PdfDocument *pDoc, int nPage, const char* pszPrefix, bool bUseTrimBox )
+    : PdfElement( "XObject", pDoc ), PdfCanvas()
+{
+    m_rRect = PdfRect();
+
+    InitXObject( m_rRect, pszPrefix );
+
+    // After filling set correct BBox, independent of rotation
+    m_rRect = pDoc->FillXObjectFromExistingPage( this, nPage, bUseTrimBox );
+
+    PdfVariant    var;
+    m_rRect.ToVariant( var );
+    this->GetObject()->GetDictionary().AddKey( "BBox", var );
+
+ 	int rotation = pDoc->GetPage( nPage )->GetRotation();
+	// correct negative rotation
+	if ( rotation < 0 )
+		rotation = 360 + rotation;
+
+	// Swap offsets/width/height for vertical rotation
+ 	switch ( rotation )
+ 	{
+ 		case 90:
+ 		case 270:
+ 		{
+ 			double temp;
+			
+			temp = m_rRect.GetWidth();
+ 			m_rRect.SetWidth( m_rRect.GetHeight() );
+ 			m_rRect.SetHeight( temp );
+
+			temp = m_rRect.GetLeft();
+ 			m_rRect.SetLeft( m_rRect.GetBottom() );
+ 			m_rRect.SetBottom( temp );
+ 		}
+ 		break;
+        
+ 		default:
+            break;
+ 	}
+ 
+ 	// Build matrix for rotation and cropping
+ 	double alpha = -rotation / 360.0 * 2.0 * PI;
+    
+ 	double a, b, c, d, e, f;
+    
+ 	a = cos( alpha );
+ 	b = sin( alpha );
+ 	c = -sin( alpha );
+ 	d = cos( alpha );
+ 
+ 	switch ( rotation )
+ 	{
+ 		case 90:
+ 			e = - m_rRect.GetLeft();
+			f = m_rRect.GetBottom() + m_rRect.GetHeight();
+            break;
+  
+  		case 180:
+ 			e = m_rRect.GetLeft() + m_rRect.GetWidth();
+ 			f = m_rRect.GetBottom() + m_rRect.GetHeight();
+            break;
+            
+ 		case 270:
+ 			e = m_rRect.GetLeft() + m_rRect.GetWidth();
+ 			f = - m_rRect.GetBottom();
+            break;
+ 
+ 		case 0:
+ 		default:
+ 			e = - m_rRect.GetLeft();
+ 			f = - m_rRect.GetBottom();
+            break;
+ 	}
+
+    PdfArray      matrix;
+    matrix.push_back( PdfVariant( a ) );
+    matrix.push_back( PdfVariant( b ) );
+    matrix.push_back( PdfVariant( c ) );
+    matrix.push_back( PdfVariant( d ) );
+    matrix.push_back( PdfVariant( e ) );
+    matrix.push_back( PdfVariant( f ) );
+    
+    this->GetObject()->GetDictionary().AddKey( "Matrix", matrix );
+}
+
 PdfXObject::PdfXObject( PdfObject* pObject )
     : PdfElement( "XObject", pObject ), PdfCanvas()
 {
