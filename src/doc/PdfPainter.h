@@ -104,7 +104,13 @@ class PODOFO_DOC_API PdfPainter {
      *
      *  \returns the current page of the painter or NULL if none is set
      */
-    inline const PdfCanvas* GetPage() const;
+    inline PdfCanvas* GetPage() const;
+
+    /** Return the current page canvas stream that is set on the painter.
+     *
+     *  \returns the current page canvas stream of the painter or NULL if none is set
+     */
+    inline PdfStream* GetCanvas() const;
 
     /** Finish drawing onto a page.
      * 
@@ -753,17 +759,11 @@ class PODOFO_DOC_API PdfPainter {
     inline unsigned short GetPrecision() const;
 
 
-    /** Get current path string. This can be later used in \ref AddRawCommands.
+    /** Get current path string stream.
      * Stroke/Fill commands clear current path.
-     * \returns std::string representing current path
+     * \returns std::ostringstream representing current path
      */
-    inline std::string GetCurrentPath(void) const;
-
-    /** Adds raw commands into Canvas stream.
-     *  \param commands raw PDF commands
-     *  \param addToPath whether to add also to current path; default is false
-     */
-    void AddRawCommands(const std::string &commands, bool addToPath = false);
+    inline std::ostringstream &GetCurrentPath(void);
 
  private:
  
@@ -876,9 +876,17 @@ class PODOFO_DOC_API PdfPainter {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const PdfCanvas* PdfPainter::GetPage() const
+PdfCanvas* PdfPainter::GetPage() const
 {
     return m_pPage;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+PdfStream* PdfPainter::GetCanvas() const
+{
+    return m_pCanvas;
 }
 
 // -----------------------------------------------------
@@ -931,9 +939,9 @@ unsigned short PdfPainter::GetPrecision() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline std::string PdfPainter::GetCurrentPath(void) const
+inline std::ostringstream &PdfPainter::GetCurrentPath(void)
 {
-	return m_curPath.str();
+	return m_curPath;
 }
 
 // -----------------------------------------------------

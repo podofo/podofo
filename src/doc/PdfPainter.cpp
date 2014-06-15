@@ -1684,20 +1684,6 @@ void PdfPainter::AddToPageResources( const PdfName & rIdentifier, const PdfRefer
     m_pPage->AddResource( rIdentifier, rRef, rName );
 }
 
-void PdfPainter::AddRawCommands(const std::string &commands, bool addToPath)
-{
-    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
-
-    if (commands.empty()) {
-        return;
-    }
-
-    if (addToPath)
-        m_curPath << commands;
-
-    m_pCanvas->Append( commands.c_str() );
-}
-
 void PdfPainter::ConvertRectToBezier( double dX, double dY, double dWidth, double dHeight, double pdPointX[], double pdPointY[] )
 {
     // this function is based on code from:
