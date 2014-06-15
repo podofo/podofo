@@ -152,6 +152,16 @@ class PODOFO_DOC_API PdfPagesTree : public PdfElement
      */
     void CreatePages( const std::vector<PdfRect>& vecSizes );
 
+    /** Creates a new page object and inserts it at index atIndex.
+     *  The returned page is owned by the pages tree and will get deleted along
+     *  with it!
+     *
+     *  \param rSize a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
+     *  \param atIndex index where to insert the new page (0-based)
+     *  \returns a pointer to a PdfPage object
+     */
+    PdfPage* InsertPage( const PdfRect & rSize, int atIndex);
+
     /**  Delete the specified page object from the internal pages tree.
      *   It does NOT remove any PdfObjects from memory - just the reference from the tree
      *

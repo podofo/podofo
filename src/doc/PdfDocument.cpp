@@ -264,6 +264,11 @@ void PdfDocument::CreatePages( const std::vector<PdfRect>& vecSizes )
     m_pPagesTree->CreatePages( vecSizes );
 }
 
+PdfPage* PdfDocument::InsertPage( const PdfRect & rSize, int atIndex)
+{
+	return m_pPagesTree->InsertPage( rSize, atIndex );
+}
+
 void PdfDocument::EmbedSubsetFonts()
 {
 	m_fontCache.EmbedSubsetFonts();
@@ -354,6 +359,100 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
             PdfReference ref( pAppendRoot->First()->GetObject()->Reference().ObjectNumber() + difference, pAppendRoot->First()->GetObject()->Reference().GenerationNumber() );
             pRoot->InsertChild( new PdfOutlines( m_vecObjects.GetObject( ref ) ) );
         }
+    }
+    
+    // TODO: merge name trees
+    // ToDictionary -> then iteratate over all keys and add them to the new one
+    return *this;
+}
+
+const PdfDocument &PdfDocument::InsertExistingPageAt( const PdfMemDocument & rDoc, int nPageIndex, int nAtIndex)
+{
+	/* copy of PdfDocument::Append, only restricts which page to add */
+    unsigned int difference = static_cast<unsigned int>(m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size());
+
+
+    // Ulrich Arnold 30.7.2009: Because GetNextObject uses m_nObjectCount instead 
+    //                          of m_vecObjects.GetSize()+m_vecObjects.GetFreeObjects().size()+1
+    //                          make sure the free objects are already present before appending to
+	//                          prevent overlapping obj-numbers
+
+    // create all free objects again, to have a clean free object list
+    TCIPdfReferenceList itFree = rDoc.GetObjects().GetFreeObjects().begin();
+    while( itFree != rDoc.GetObjects().GetFreeObjects().end() )
+    {
+        m_vecObjects.AddFreeObject( PdfReference( (*itFree).ObjectNumber() + difference, (*itFree).GenerationNumber() ) );
+
+        ++itFree;
+    }
+
+	// append all objects first and fix their references
+    TCIVecObjects it           = rDoc.GetObjects().begin();
+    while( it != rDoc.GetObjects().end() )
+    {
+        PdfObject* pObj = new PdfObject( PdfReference( 
+                                             static_cast<unsigned int>((*it)->Reference().ObjectNumber() + difference), (*it)->Reference().GenerationNumber() ), *(*it) );
+        m_vecObjects.push_back( pObj );
+
+        if( (*it)->IsDictionary() && (*it)->HasStream() )
+            *(pObj->GetStream()) = *((*it)->GetStream());
+
+        PdfError::LogMessage( eLogSeverity_Information,
+                              "Fixing references in %i %i R by %i\n", pObj->Reference().ObjectNumber(), pObj->Reference().GenerationNumber(), difference );
+        FixObjectReferences( pObj, difference );
+
+        ++it;
+    }
+
+    const PdfName inheritableAttributes[] = {
+        PdfName("Resources"),
+        PdfName("MediaBox"),
+        PdfName("CropBox"),
+        PdfName("Rotate"),
+        PdfName::KeyNull
+    };
+
+    // append all pages now to our page tree
+    for(int i=0;i<rDoc.GetPageCount();i++ )
+    {
+        if (i != nPageIndex) {
+            continue;
+        }
+
+        PdfPage*      pPage = rDoc.GetPage( i );
+        PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, pPage->GetObject()->Reference().GenerationNumber() ) );
+        if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Parent" ) )
+            pObj->GetDictionary().RemoveKey( "Parent" );
+
+        // Deal with inherited attributes
+        const PdfName* pInherited = inheritableAttributes;
+        while( pInherited->GetLength() != 0 ) 
+        {
+	    const PdfObject* pAttribute = pPage->GetInheritedKey( *pInherited ); 
+	    if( pAttribute )
+	    {
+	        PdfObject attribute( *pAttribute );
+	        FixObjectReferences( &attribute, difference );
+	        pObj->GetDictionary().AddKey( *pInherited, attribute );
+	    }
+
+	    ++pInherited;
+        }
+
+        m_pPagesTree->InsertPage( nAtIndex <= 0 ? ePdfPageInsertionPoint_InsertBeforeFirstPage : nAtIndex - 1, pObj );
+    }
+
+    // append all outlines
+    PdfOutlineItem* pRoot       = this->GetOutlines();
+    PdfOutlines*    pAppendRoot = const_cast<PdfMemDocument&>(rDoc).GetOutlines( PoDoFo::ePdfDontCreateObject );
+    if( pAppendRoot && pAppendRoot->First() ) 
+    {
+        // only append outlines if appended document has outlines
+        while( pRoot && pRoot->Next() ) 
+	    pRoot = pRoot->Next();
+    
+        PdfReference ref( pAppendRoot->First()->GetObject()->Reference().ObjectNumber() + difference, pAppendRoot->First()->GetObject()->Reference().GenerationNumber() );
+        pRoot->InsertChild( new PdfOutlines( m_vecObjects.GetObject( ref ) ) );
     }
     
     // TODO: merge name trees

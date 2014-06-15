@@ -240,6 +240,20 @@ PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
     return pPage;
 }
 
+PdfPage* PdfPagesTree::InsertPage( const PdfRect & rSize, int atIndex)
+{
+    PdfPage* pPage = new PdfPage( rSize, GetRoot()->GetOwner() );
+
+	 if (atIndex < 0 || atIndex >= this->GetTotalNumberOfPages()) {
+		 atIndex = this->GetTotalNumberOfPages() - 1;
+	 }
+
+	 InsertPage( atIndex - 1, pPage );
+    m_cache.AddPageObject( atIndex, pPage );
+
+    return pPage;
+}
+
 void PdfPagesTree::CreatePages( const std::vector<PdfRect>& vecSizes )
 {
     std::vector<PdfPage*> vecPages;

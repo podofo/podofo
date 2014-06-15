@@ -329,6 +329,15 @@ class PODOFO_DOC_API PdfDocument {
      */
     void CreatePages( const std::vector<PdfRect>& vecSizes );
 
+    /** Creates a new page object and inserts it at index atIndex.
+     *  The returned page is owned by the pages tree and will get deleted along
+     *  with it!
+     *
+     *  \param rSize a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
+     *  \param atIndex index where to insert the new page (0-based)
+     *  \returns a pointer to a PdfPage object
+     */
+    PdfPage* InsertPage( const PdfRect & rSize, int atIndex);
 
     /** Appends another PdfDocument to this document
      *  \param rDoc the document to append
@@ -336,6 +345,14 @@ class PODOFO_DOC_API PdfDocument {
      *  \returns this document
      */
     const PdfDocument & Append( const PdfMemDocument & rDoc, bool bAppendAll = true  );
+
+    /** Inserts existing page from another PdfMemDocument to this document
+     *  \param rDoc the document to append from
+     *  \param nPageIndex Page index to append (0-based), from rDoc
+     *  \param nAtIndex Index at which add the page in this document
+     *  \returns this document
+     */
+    const PdfDocument &InsertExistingPageAt( const PdfMemDocument & rDoc, int nPageIndex, int nAtIndex);
 
     /** Fill an existing empty XObject from a page of another document
      *  This will append the other document with this one
