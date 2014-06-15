@@ -262,6 +262,27 @@ class PODOFO_DOC_API PdfFont : public PdfElement {
     bool m_bIsSubsetting;
     PdfName m_Identifier;
 
+    /** Used to specify if this represents a bold font
+     *  \param bBold if true this is a bold font.
+     *
+     *  \see IsBold
+     *
+     *  This can be called by PdfFontFactory to tell this font
+     *  object that it belongs to a bold font.
+     */
+    virtual void SetBold( bool bBold );
+
+    /** Used to specify if this represents an italic font
+     *  \param bItalic if true this is an italic font.
+     *
+     *  \see IsItalc
+     *
+     *  This can be called by PdfFontFactory to tell this font
+     *  object that it belongs to an italic font.
+     */
+    virtual void SetItalic( bool bItalic );
+
+
  private:
     /** default constructor, not implemented
      */
@@ -273,51 +294,12 @@ class PODOFO_DOC_API PdfFont : public PdfElement {
      */
     PdfFont& operator=(const PdfFont& rhs);
 
-     /** Initialize all variables
-     */
+    /** Initialize all variables
+    */
     void InitVars();
-
-    /** Used to specify if this represents a bold font
-     *  \param bBold if true this is a bold font.
-     *
-     *  \see IsBold
-     *
-     *  This can be called by PdfFontFactory to tell this font
-     *  object that it belongs to a bold font.
-     */
-    inline void SetBold( bool bBold );
-
-    /** Used to specify if this represents an italic font
-     *  \param bItalic if true this is an italic font.
-     *
-     *  \see IsItalc
-     *
-     *  This can be called by PdfFontFactory to tell this font
-     *  object that it belongs to an italic font.
-     */
-    inline void SetItalic( bool bItalic );
-
-
+ 
     PdfName m_BaseFont;
 };
-
-PdfFont* CreateBase14Font(const char* pszFontName, const PdfEncoding * const pEncoding,PdfVecObjects *pvecObjects);
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-void PdfFont::SetBold( bool bBold )
-{
-    m_bBold = bBold;
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-void PdfFont::SetItalic( bool bItalic )
-{
-    m_bItalic = bItalic;
-}
 
 // -----------------------------------------------------
 //

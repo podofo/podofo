@@ -82,7 +82,7 @@ class PODOFO_DOC_API PdfFontFactory {
      */
     static PdfFont* CreateFont( FT_Library* pLibrary, PdfObject* pObject );
 
-//	static PdfFont* CreateBase14Font(const char* pszFontName, const PdfEncoding * const pEncoding,PdfVecObjects *pvecObjects);
+	 static PdfFont* CreateBase14Font(const char* pszFontName, int nFlags, const PdfEncoding * const pEncoding,PdfVecObjects *pvecObjects);
 
     /** Try to guess the fonttype from a the filename of a font file.
      * 

@@ -453,7 +453,15 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
 		if ( (eFontCreationFlags & eFontCreationFlags_AutoSelectBase14) 
              && PODOFO_Base14FontDef_FindBuiltinData(pszFontName))
 		{  
-			pFont = CreateBase14Font(pszFontName,pEncoding,m_pParent);
+         int nFlags = ePdfFont_Normal;
+
+         if( bBold ) 
+             nFlags |= ePdfFont_Bold;
+
+         if( bItalic )
+             nFlags |= ePdfFont_Italic;
+
+         pFont = PdfFontFactory::CreateBase14Font(pszFontName, nFlags, pEncoding, m_pParent);
 
 			if( pFont ) 
 			{

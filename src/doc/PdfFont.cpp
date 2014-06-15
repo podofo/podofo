@@ -185,5 +185,14 @@ void PdfFont::AddUsedGlyphname( const char * )
     PODOFO_RAISE_ERROR_INFO( ePdfError_NotImplemented, "Subsetting not implemented for this font type." );
 }
 
-};
+void PdfFont::SetBold( bool bBold )
+{
+    m_bBold = bBold;
+}
 
+void PdfFont::SetItalic( bool bItalic )
+{
+    m_bItalic = bItalic;
+}
+
+};
