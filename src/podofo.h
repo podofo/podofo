@@ -96,6 +96,7 @@
 #include "doc/PdfSignOutputDevice.h"
 #include "doc/PdfStreamedDocument.h"
 #include "doc/PdfTable.h"
+#include "doc/PdfTilingPattern.h"
 #include "doc/PdfXObject.h"
 
 #ifdef _PODOFO_NO_NAMESPACE_

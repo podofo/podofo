@@ -54,6 +54,7 @@ class PdfReference;
 class PdfShadingPattern;
 class PdfStream;
 class PdfString;
+class PdfTilingPattern;
 class PdfXObject;
 
 struct TLineElement 
@@ -179,6 +180,36 @@ class PODOFO_DOC_API PdfPainter {
      *  \param rPattern a shading pattern
      */
     void SetShadingPattern( const PdfShadingPattern & rPattern );
+
+    /** Set the tiling pattern for all following stroking operations.
+     *  This operation uses the 'SCN' PDF operator.
+     *
+     *  \param rPattern a tiling pattern
+     */
+    void SetStrokingTilingPattern( const PdfTilingPattern & rPattern );
+	 
+    /** Set the tiling pattern for all following stroking operations by pattern name,
+	  *  Use when it's already in resources.
+     *  This operation uses the 'SCN' PDF operator.
+     *
+     *  \param rPatternName a tiling pattern name
+     */
+	 void SetStrokingTilingPattern( const std::string &rPatternName );
+
+    /** Set the tiling pattern for all following non-stroking operations.
+     *  This operation uses the 'scn' PDF operator.
+     *
+     *  \param rPattern a tiling pattern
+     */
+    void SetTilingPattern( const PdfTilingPattern & rPattern );
+
+    /** Set the tiling pattern for all following non-stroking operations by pattern name.
+	  *  Use when it's already in resources.
+     *  This operation uses the 'scn' PDF operator.
+     *
+     *  \param rPattern a tiling pattern
+     */
+    void SetTilingPattern( const std::string & rPatternName );
 
     /** Set the color for all following stroking operations. 
      * 

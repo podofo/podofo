@@ -59,6 +59,7 @@
 #include "PdfImage.h"
 #include "PdfMemDocument.h"
 #include "PdfShadingPattern.h"
+#include "PdfTilingPattern.h"
 #include "PdfXObject.h"
 
 
@@ -273,6 +274,46 @@ void PdfPainter::SetShadingPattern( const PdfShadingPattern & rPattern )
 
     m_oss.str("");
     m_oss << "/Pattern cs /" << rPattern.GetIdentifier().GetName() << " scn" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
+}
+
+void PdfPainter::SetStrokingTilingPattern( const PdfTilingPattern & rPattern )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
+
+    this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->Reference(), PdfName("Pattern") );
+
+    m_oss.str("");
+    m_oss << "/Pattern CS /" << rPattern.GetIdentifier().GetName() << " SCN" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
+}
+
+void PdfPainter::SetStrokingTilingPattern( const std::string &rPatternName )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
+
+    m_oss.str("");
+    m_oss << "/Pattern CS /" << rPatternName << " SCN" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
+}
+
+void PdfPainter::SetTilingPattern( const PdfTilingPattern & rPattern )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
+
+    this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->Reference(), PdfName("Pattern") );
+
+    m_oss.str("");
+    m_oss << "/Pattern cs /" << rPattern.GetIdentifier().GetName() << " scn" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
+}
+
+void PdfPainter::SetTilingPattern( const std::string &rPatternName )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
+
+    m_oss.str("");
+    m_oss << "/Pattern cs /" << rPatternName << " scn" << std::endl;
     m_pCanvas->Append( m_oss.str() );
 }
 

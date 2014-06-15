@@ -103,6 +103,7 @@ SET(PODOFO_DOC_SOURCES
   doc/PdfSignatureField.cpp
   doc/PdfStreamedDocument.cpp
   doc/PdfTable.cpp
+  doc/PdfTilingPattern.cpp
   doc/PdfXObject.cpp
   )
 
@@ -228,6 +229,7 @@ SET(PODOFO_DOC_HEADERS
   doc/PdfSignatureField.h
   doc/PdfStreamedDocument.h
   doc/PdfTable.h
+  doc/PdfTilingPattern.h
   doc/PdfXObject.h
   )
 

@@ -283,6 +283,19 @@ enum EPdfStrokeStyle {
 };
 
 /**
+ * Enum for predefined tiling patterns.
+ */
+enum EPdfTilingPatternType {
+	ePdfTilingPatternType_BDiagonal = 1,
+	ePdfTilingPatternType_Cross,
+	ePdfTilingPatternType_DiagCross,
+	ePdfTilingPatternType_FDiagonal,
+	ePdfTilingPatternType_Horizontal,
+	ePdfTilingPatternType_Vertical,
+   ePdfTilingPatternType_Image
+};
+
+/**
  * Enum for line cap styles when drawing.
  */
 enum EPdfLineCapStyle {

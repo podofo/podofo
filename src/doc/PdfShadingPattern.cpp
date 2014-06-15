@@ -39,6 +39,7 @@
 #include "base/PdfColor.h"
 #include "base/PdfDictionary.h"
 #include "base/PdfLocale.h"
+#include "base/PdfStream.h"
 #include "base/PdfWriter.h"
 
 #include "PdfFunction.h"
@@ -179,8 +180,14 @@ void PdfShadingPattern::Init( EPdfShadingPatternType eShadingType )
     PdfDictionary shading;
     shading.AddKey( PdfName("ShadingType"), static_cast<pdf_int64>(eShadingType) );
 
-    this->GetObject()->GetDictionary().AddKey( PdfName("PatternType"), static_cast<pdf_int64>(PODOFO_LL_LITERAL(2)) ); // Shading pattern
+    this->GetObject()->GetDictionary().AddKey( PdfName("PatternType"), static_cast<pdf_int64>(2L) ); // Shading pattern
+	 if (eShadingType < ePdfShadingPatternType_FreeForm) {
     this->GetObject()->GetDictionary().AddKey( PdfName("Shading"), shading );
+	 } else {
+		 PdfObject *shadingObject = this->GetObject()->GetOwner()->CreateObject(shading);
+		 this->GetObject()->GetDictionary().AddKey(PdfName("Shading"), shadingObject->Reference());
+		 this->GetObject()->GetDictionary().GetKey(PdfName("Shading"))->SetOwner(this->GetObject()->GetOwner());
+	 }
 }
 
 PdfAxialShadingPattern::PdfAxialShadingPattern( double dX0, double dY0, double dX1, double dY1, const PdfColor & rStart, const PdfColor & rEnd, PdfVecObjects* pParent )
@@ -519,6 +526,91 @@ void PdfRadialShadingPattern::Init( double dX0, double dY0, double dR0, double d
     shading.AddKey( PdfName("Coords"), coords );
     shading.AddKey( PdfName("Function"), function.GetObject()->Reference() );
     shading.AddKey( PdfName("Extend"), extend );
+}
+
+PdfTriangleShadingPattern::PdfTriangleShadingPattern( double dX0, double dY0, const PdfColor &color0, double dX1, double dY1, const PdfColor &color1, double dX2, double dY2, const PdfColor &color2, PdfVecObjects* pParent )
+	: PdfShadingPattern( ePdfShadingPatternType_FreeForm, pParent )
+{
+	Init(dX0, dY0, color0, dX1, dY1, color1, dX2, dY2, color2 );
+}
+
+PdfTriangleShadingPattern::PdfTriangleShadingPattern( double dX0, double dY0, const PdfColor &color0, double dX1, double dY1, const PdfColor &color1, double dX2, double dY2, const PdfColor &color2, PdfDocument* pParent )
+	: PdfShadingPattern( ePdfShadingPatternType_FreeForm, pParent )
+{
+	Init(dX0, dY0, color0, dX1, dY1, color1, dX2, dY2, color2 );
+}
+
+void PdfTriangleShadingPattern::Init( double dX0, double dY0, const PdfColor &color0, double dX1, double dY1, const PdfColor &color1, double dX2, double dY2, const PdfColor &color2 )
+{
+	if (color0.GetColorSpace() != color1.GetColorSpace() || color0.GetColorSpace() != color2.GetColorSpace()) {
+		PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Colorspace of start and end color in PdfTriangleShadingPattern does not match." );
+	}
+
+	PdfColor rgb0 = color0.ConvertToRGB();
+	PdfColor rgb1 = color1.ConvertToRGB();
+	PdfColor rgb2 = color2.ConvertToRGB();
+
+	PdfArray decode;
+	double minx, maxx, miny, maxy;
+
+	#define mMIN(a,b) ((a) < (b) ? (a) : (b))
+	#define mMAX(a,b) ((a) > (b) ? (a) : (b))
+
+	minx = mMIN(mMIN(dX0, dX1), dX2);
+	maxx = mMAX(mMAX(dX0, dX1), dX2);
+	miny = mMIN(mMIN(dY0, dY1), dY2);
+	maxy = mMAX(mMAX(dY0, dY1), dY2);
+
+	#undef mMIN
+	#undef mMAX
+
+	decode.push_back(minx);
+	decode.push_back(maxx);
+	decode.push_back(miny);
+	decode.push_back(maxy);
+
+	decode.push_back(static_cast<pdf_int64>(0));
+	decode.push_back(static_cast<pdf_int64>(1));
+	decode.push_back(static_cast<pdf_int64>(0));
+	decode.push_back(static_cast<pdf_int64>(1));
+	decode.push_back(static_cast<pdf_int64>(0));
+	decode.push_back(static_cast<pdf_int64>(1));
+
+	PdfObject *shadingObject = this->GetObject()->GetIndirectKey(PdfName("Shading"));
+	PdfDictionary &shading = shadingObject->GetDictionary();
+
+	shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceRGB") );
+	shading.AddKey( PdfName("BitsPerCoordinate"), static_cast<pdf_int64>(8));
+	shading.AddKey( PdfName("BitsPerComponent"), static_cast<pdf_int64>(8));
+	shading.AddKey( PdfName("BitsPerFlag"), static_cast<pdf_int64>(8));
+	shading.AddKey( PdfName("Decode"), decode);
+
+	// f x y c1 c2 c3
+	int len = (1 + 1 + 1 + 1 + 1 + 1) * 3;
+	char buff[18];
+
+	buff[ 0] = 0; // flag - start new triangle
+	buff[ 1] = 255.0 * (dX0 - minx) / (maxx - minx);
+	buff[ 2] = 255.0 * (dY0 - miny) / (maxy - miny);
+	buff[ 3] = 255.0 * rgb0.GetRed();
+	buff[ 4] = 255.0 * rgb0.GetGreen();
+	buff[ 5] = 255.0 * rgb0.GetBlue();
+
+	buff[ 6] = 0; // flag - start new triangle
+	buff[ 7] = 255.0 * (dX1 - minx) / (maxx - minx);
+	buff[ 8] = 255.0 * (dY1 - miny) / (maxy - miny);
+	buff[ 9] = 255.0 * rgb1.GetRed();
+	buff[10] = 255.0 * rgb1.GetGreen();
+	buff[11] = 255.0 * rgb1.GetBlue();
+
+	buff[12] = 0; // flag - start new triangle
+	buff[13] = 255.0 * (dX2 - minx) / (maxx - minx);
+	buff[14] = 255.0 * (dY2 - miny) / (maxy - miny);
+	buff[15] = 255.0 * rgb2.GetRed();
+	buff[16] = 255.0 * rgb2.GetGreen();
+	buff[17] = 255.0 * rgb2.GetBlue();
+
+	shadingObject->GetStream()->Set(buff, len);
 }
 
 }	// end namespace

@@ -243,6 +243,59 @@ private:
     void Init( double dX0, double dY0, double dR0, double dX1, double dY1, double dR1, const PdfColor & rStart, const PdfColor & rEnd );
 };
 
+/** A shading pattern that is a simple triangle
+ *  shading between three colors. It's a single-triangle
+ *  simplified variation of a FreeForm shadding pattern.
+ */
+class PODOFO_DOC_API PdfTriangleShadingPattern : public PdfShadingPattern {
+public:
+    /** Create a triangle shading pattern
+     *
+     *  \param dX0 triangle x coordinate of point 0
+     *  \param dY0 triangle y coordinate of point 0
+	  *  \param color0 color of point 0
+     *  \param dX1 triangle x coordinate of point 1
+     *  \param dY1 triangle y coordinate of point 1
+	  *  \param color1 color of point 1
+     *  \param dX2 triangle x coordinate of point 2
+     *  \param dY2 triangle y coordinate of point 2
+	  *  \param color2 color of point 2
+     *  \param pParent the parent
+     */
+    PdfTriangleShadingPattern( double dX0, double dY0, const PdfColor &color0, double dX1, double dY1, const PdfColor &color1, double dX2, double dY2, const PdfColor &color2, PdfVecObjects* pParent );
+
+    /** Create a triangle shading pattern
+     *
+     *  \param dX0 triangle x coordinate of point 0
+     *  \param dY0 triangle y coordinate of point 0
+	  *  \param color0 color of point 0
+     *  \param dX1 triangle x coordinate of point 1
+     *  \param dY1 triangle y coordinate of point 1
+	  *  \param color1 color of point 1
+     *  \param dX2 triangle x coordinate of point 2
+     *  \param dY2 triangle y coordinate of point 2
+	  *  \param color2 color of point 2
+     *  \param pParent the parent
+     */
+    PdfTriangleShadingPattern( double dX0, double dY0, const PdfColor &color0, double dX1, double dY1, const PdfColor &color1, double dX2, double dY2, const PdfColor &color2, PdfDocument* pParent );
+
+private:
+
+    /** Initialize a triangle shading pattern
+     *
+     *  \param dX0 triangle x coordinate of point 0
+     *  \param dY0 triangle y coordinate of point 0
+	  *  \param color0 color of point 0
+     *  \param dX1 triangle x coordinate of point 1
+     *  \param dY1 triangle y coordinate of point 1
+	  *  \param color1 color of point 1
+     *  \param dX2 triangle x coordinate of point 2
+     *  \param dY2 triangle y coordinate of point 2
+	  *  \param color2 color of point 2
+     */
+    void Init( double dX0, double dY0, const PdfColor &color0, double dX1, double dY1, const PdfColor &color1, double dX2, double dY2, const PdfColor &color2 );
+};
+
 };
 
 #endif // _PDF_SHADING_PATTERN_H_
