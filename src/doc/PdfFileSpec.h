@@ -61,6 +61,13 @@ class PODOFO_DOC_API PdfFileSpec : public PdfElement {
     PdfFileSpec( const char* pszFilename, const unsigned char* data, ptrdiff_t size, PdfVecObjects* pParent);
     PdfFileSpec( const char* pszFilename, const unsigned char* data, ptrdiff_t size, PdfDocument* pParent);
 
+#ifdef _WIN32
+    PdfFileSpec( const wchar_t* pszFilename, bool bEmbedd, PdfDocument* pParent );
+    PdfFileSpec( const wchar_t* pszFilename, bool bEmbedd, PdfVecObjects* pParent );
+    PdfFileSpec( const wchar_t* pszFilename, const unsigned char* data, ptrdiff_t size, PdfVecObjects* pParent);
+    PdfFileSpec( const wchar_t* pszFilename, const unsigned char* data, ptrdiff_t size, PdfDocument* pParent);
+#endif
+
     PdfFileSpec( PdfObject* pObject );
 
     /** \returns the filename of this file specification.
@@ -95,6 +102,13 @@ class PODOFO_DOC_API PdfFileSpec : public PdfElement {
      *  \param pszFilename the file to embedd
      */
     void EmbeddFile( PdfObject* pStream, const char* pszFilename ) const;
+
+#ifdef _WIN32
+    void Init( const wchar_t* pszFilename, bool bEmbedd );
+    void Init( const wchar_t* pszFilename, const unsigned char* data, ptrdiff_t size );
+    PdfString CreateFileSpecification( const wchar_t* pszFilename ) const;
+    void EmbeddFile( PdfObject* pStream, const wchar_t* pszFilename ) const;
+#endif
 
     /* Petr P. Petrov 17 September 2009*/
     /** Embeds the file from memory

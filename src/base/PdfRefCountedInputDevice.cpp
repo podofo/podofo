@@ -59,8 +59,6 @@ PdfRefCountedInputDevice::PdfRefCountedInputDevice( const char* pszFilename, con
 }
 
 #ifdef _WIN32
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
-#else
 PdfRefCountedInputDevice::PdfRefCountedInputDevice( const wchar_t* pszFilename, const char* )
     : m_pDevice( NULL )
 {
@@ -74,7 +72,6 @@ PdfRefCountedInputDevice::PdfRefCountedInputDevice( const wchar_t* pszFilename, 
         throw rError;
     }
 }
-#endif
 #endif // _WIN32
 
 PdfRefCountedInputDevice::PdfRefCountedInputDevice( const char* pBuffer, size_t lLen )
