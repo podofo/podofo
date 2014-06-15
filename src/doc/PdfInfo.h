@@ -162,6 +162,11 @@ class PODOFO_DOC_API PdfInfo : public PdfElement {
      */
     inline PdfDate GetModDate() const;
 
+    /** Set custom info key.
+     * \param sName Name of the key.
+     * \param sValue Value of the key.
+     */
+    void SetCustomKey(const PdfName &sName, const PdfString &sValue);
  private:
     /** Add the initial document information to the dictionary.
      *  \param eInitial which information should be 

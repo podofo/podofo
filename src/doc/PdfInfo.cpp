@@ -96,6 +96,11 @@ const PdfName & PdfInfo::GetNameFromInfoDict(const PdfName & rName) const
 	return pObj && pObj->IsName() ? pObj->GetName() : PdfName::KeyNull;
 }
 
+void PdfInfo::SetCustomKey(const PdfName &sName, const PdfString &sValue)
+{
+    this->GetObject()->GetDictionary().AddKey( sName, sValue );
+}
+
 void PdfInfo::SetAuthor( const PdfString & sAuthor )
 {
     this->GetObject()->GetDictionary().AddKey( "Author", sAuthor );
