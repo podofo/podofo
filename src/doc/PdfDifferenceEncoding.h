@@ -73,19 +73,21 @@ class PODOFO_DOC_API PdfEncodingDifference {
     /** Add a difference to the object.
      * 
      *  \param nCode unicode code point of the difference (0 to 255 are legal values)
+     *  \param unicodeValue actual unicode value for nCode; can be 0
      *
      *  \see AddDifference if you know the name of the code point
      *       use the overload below which is faster
      */
-    void AddDifference( int nCode );
+    void AddDifference( int nCode, pdf_utf16be unicodeValue );
 
     /** Add a difference to the object.
      * 
      *  \param nCode unicode code point of the difference (0 to 255 are legal values)
+     *  \param unicodeValue actual unicode value for nCode; can be 0
      *  \param rName name of the different code point or .notdef if none
      *  \param bExplicitKeys if true, the unicode value is set to nCode as rName is meaningless (Type3 fonts)
      */
-    void AddDifference( int nCode, const PdfName & rName, bool bExplicitNames = false );
+    void AddDifference( int nCode, pdf_utf16be unicodeValue, const PdfName & rName, bool bExplicitNames = false );
 
     /** Tests if the specified code is part of the 
      *  differences.
@@ -98,6 +100,8 @@ class PODOFO_DOC_API PdfEncodingDifference {
      *  \returns true if the code is part of the difference
      */
     bool Contains( int nCode, PdfName & rName, pdf_utf16be & rValue ) const;
+
+    bool ContainsUnicodeValue( pdf_utf16be unicodeValue, char &rValue ) const;
 
     /** Convert the PdfEncodingDifference to an array
      *
