@@ -36,6 +36,7 @@
 
 #include "podofo/base/PdfDefines.h"
 #include "PdfFont.h"
+#include <set>
 
 namespace PoDoFo {
 
@@ -55,10 +56,11 @@ class PdfFontCID : public PdfFont {
      *                   depending on pEncoding->IsAutoDelete()
      *  \param pParent parent of the font object
      *  \param bEmbed specifies the embedding of font
+	  *  \param bSubset specifies the subsetting of the font; forces bEmbed to false, if set
      *  
      */
     PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
-                PdfVecObjects* pParent, bool bEmbed = true );
+                PdfVecObjects* pParent, bool bEmbed, bool bSubset );
 
     // Peter Petrov 30 April 2008
     /** Create a PdfFont based on an existing PdfObject
@@ -77,6 +79,9 @@ class PdfFontCID : public PdfFont {
      *
      */
     virtual void EmbedFont();
+
+	 virtual void EmbedSubsetFont();
+	 virtual void AddUsedSubsettingGlyphs (const PdfString &sText, long lStringLen);
 
  private:
     /** Create the DW and W entries which contain
@@ -98,8 +103,9 @@ class PdfFontCID : public PdfFont {
     /** Initialize this font object.
      *
      *  \param bEmbed if true embed the font data into the PDF file.
+	  *  \param bSubset specifies the subsetting of the font; forces bEmbed to false, if set
      */
-    void Init( bool bEmbed );
+    void Init( bool bEmbed, bool bSubset );
 
 
     /** Embed the font file directly into the PDF file.
@@ -111,6 +117,7 @@ class PdfFontCID : public PdfFont {
  protected:
     // Peter Petrov 24 September 2008
     PdfObject* m_pDescriptor;
+	 std::set<pdf_utf16be> m_setUsed;
 };
 
 };

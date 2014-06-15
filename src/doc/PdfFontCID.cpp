@@ -44,6 +44,10 @@
 
 #include "PdfFontMetricsFreetype.h"
 
+#include "PdfFontTTFSubset.h"
+#include "base/PdfInputDevice.h"
+#include "base/PdfOutputDevice.h"
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -56,20 +60,20 @@ struct TBFRange {
     std::vector<int> vecDest;
 };
 
-PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
-                        PdfVecObjects* pParent, bool bEmbed )
-    : PdfFont( pMetrics, pEncoding, pParent )
-{
-    this->Init( bEmbed );
-}
-
 PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject, bool )
     : PdfFont( pMetrics, pEncoding, pObject )
 {
-    /* this->Init( bEmbed ); */
+    /* this->Init( bEmbed, false ); */
 }
 
-void PdfFontCID::Init( bool bEmbed )
+PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
+                        PdfVecObjects* pParent, bool bEmbed, bool bSubset )
+    : PdfFont( pMetrics, pEncoding, pParent )
+{
+    this->Init( bEmbed, bSubset );
+}
+
+void PdfFontCID::Init( bool bEmbed, bool bSubset )
 {
     PdfObject* pDescriptor;
     PdfObject* pDescendantFonts;
@@ -139,7 +143,8 @@ void PdfFontCID::Init( bool bEmbed )
     // Peter Petrov 24 September 2008
     m_pDescriptor = pDescriptor;
     
-    if( bEmbed )
+	 m_bIsSubsetting = bSubset;
+    if( bEmbed && !bSubset)
     {
         this->EmbedFont( pDescriptor );
         m_bWasEmbedded = true;
@@ -155,13 +160,67 @@ void PdfFontCID::EmbedFont()
     }
 }
 
+void PdfFontCID::EmbedSubsetFont()
+{
+	EmbedFont();
+}
+
+void PdfFontCID::AddUsedSubsettingGlyphs (const PdfString &sText, long lStringLen)
+{
+	if (IsSubsetting()) {
+		PODOFO_ASSERT( sText.IsUnicode() );
+
+		const pdf_utf16be *uniChars = sText.GetUnicode();
+		for (long ii = 0; ii < lStringLen; ii++) {
+			m_setUsed.insert(uniChars[ii]);
+		}
+	}
+}
+
 void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
 {
-    PdfObject* pContents;
-    pdf_long       lSize = 0;
+	bool fallback = true;
     
     m_bWasEmbedded = true;    
         
+	if (IsSubsetting() && !m_setUsed.empty()) {
+		PdfFontMetrics *metrics = GetFontMetrics2();
+
+		if (metrics && metrics->GetFontDataLen() && metrics->GetFontData()) {
+			PdfInputDevice input(metrics->GetFontData(), metrics->GetFontDataLen());
+			PdfRefCountedBuffer buffer;
+			PdfOutputDevice output(&buffer);
+        
+			PdfFontTTFSubset subset(&input, metrics, PdfFontTTFSubset::eFontFileType_TTF);
+
+			std::set<pdf_utf16be>::const_iterator it, end = m_setUsed.end();
+			for (it = m_setUsed.begin(); it != end; it++) {
+				subset.AddCharacter(*it);
+			}
+
+			subset.BuildFont( &output );
+
+			PdfObject *pContents;
+
+			pContents = this->GetObject()->GetOwner()->CreateObject();
+			if( !pContents ) {
+				PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+			}
+
+			pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->Reference() );
+
+			pdf_long lSize = buffer.GetSize();
+			pContents->GetDictionary().AddKey("Length1", PdfVariant(static_cast<pdf_int64>(lSize)));
+			pContents->GetStream()->Set(buffer.GetBuffer(), lSize);
+
+			fallback = false;
+		}
+	}
+
+	if (fallback) {
+		PdfObject* pContents;
+		pdf_long       lSize = 0;
+    
     pContents = this->GetObject()->GetOwner()->CreateObject();
     if( !pContents )
     {
@@ -195,6 +254,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
         pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<pdf_int64>(lSize) ) );
         pContents->GetStream()->Set( &stream );
     }
+}
 }
 
 void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const

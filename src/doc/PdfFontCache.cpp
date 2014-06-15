@@ -714,9 +714,9 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
 
 void PdfFontCache::EmbedSubsetFonts()
 {
-    TCISortedFontList it = m_vecFonts.begin();
+    TCISortedFontList it = m_vecFontSubsets.begin();
 
-    while( it != m_vecFonts.end() )
+    while( it != m_vecFontSubsets.end() )
     {
         if( (*it).m_pFont->IsSubsetting() )
         {
