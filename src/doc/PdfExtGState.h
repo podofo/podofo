@@ -55,7 +55,7 @@ class PODOFO_DOC_API PdfExtGState : public PdfElement {
     void SetStrokeOpacity( float opac );
 
     /** Sets the transparency blend mode
-     *  \param blendMode one of the predefined blending modes (see Podofo.h)
+     *  \param blendMode one of the predefined blending modes (see PodofoDefines.h)
      */
     void SetBlendMode( const char* blendMode );
 
