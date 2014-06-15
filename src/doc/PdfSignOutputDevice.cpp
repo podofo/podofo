@@ -200,14 +200,14 @@ void PdfSignOutputDevice::Write( const char* pBuffer, size_t lLen )
         const std::string &data = m_pSignatureBeacon->data();
         if(data.size()<=lLen)
         {
-            const char *pStart = data.c_str();
+            const char *pStart = pBuffer;
             const char *pStop = pStart + (lLen-data.size());
             for(; pStart<=pStop; pStart++) {
                 if(memcmp(pStart, data.c_str(), data.size())==0)
                 {
                     // beacon found
                     m_sBeaconPos = Tell();
-                    m_sBeaconPos += (pStart-data.c_str());
+                    m_sBeaconPos += (pStart - pBuffer - 1);
                     m_bBeaconFound = true;
                 }
             }
