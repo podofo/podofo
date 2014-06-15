@@ -175,6 +175,24 @@ namespace PoDoFo {
 #  define PODOFO__FUNCTION__ __FUNCTION__
 #endif
 
+#if defined(_WIN32)
+
+// Undefined stuff which windows does define that breaks the build
+// e.g. GetObject is defined to either GetObjectA or GetObjectW
+#ifdef GetObject
+#undef GetObject
+#endif // GetObject
+
+#ifdef CreateFont
+#undef CreateFont
+#endif // CreateFont
+
+#ifdef DrawText
+#undef DrawText
+#endif // DrawText
+
+#endif // defined(_WIN32)
+
 /**
  * \page PoDoFo PdfCompilerCompat Header
  * 

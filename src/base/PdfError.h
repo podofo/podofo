@@ -44,6 +44,7 @@
 
 #if defined(_MSC_VER)  &&  _MSC_VER <= 1200 // same pragma as in PdfDefines.h which we cannot include here
 #pragma warning(disable: 4251)
+#pragma warning(disable: 4275)
 #endif
 
 /** \file PdfError.h
