@@ -92,37 +92,21 @@ class PODOFO_DOC_API PdfPainterMM : public PdfPainter {
      */
     inline void DrawLineMM( long lStartX, long lStartY, long lEndX, long lEndY );
 
-    /** Draw a rectangle with the current stroking settings
+    /** Add a rectangle into the current path
      *  \param lX x coordinate of the rectangle
      *  \param lY y coordinate of the rectangle
      *  \param lWidth width of the rectangle
      *  \param lHeight absolute height of the rectangle
      */
-    inline void DrawRectMM( long lX, long lY, long lWidth, long lHeight );
+    inline void RectangleMM( long lX, long lY, long lWidth, long lHeight );
 
-    /** Fill a rectangle with the current fill settings
-     *  \param lX x coordinate of the rectangle
-     *  \param lY y coordinate of the rectangle
-     *  \param lWidth width of the rectangle 
-     *  \param lHeight absolute height of the rectangle
-     */
-    inline void FillRectMM( long lX, long lY, long lWidth, long lHeight );
-
-    /** Draw an ellipse with the current stroking settings
+    /** Add an ellipse into the current path
      *  \param lX x coordinate of the ellipse (left coordinate)
      *  \param lY y coordinate of the ellipse (top coordinate)
      *  \param lWidth width of the ellipse
      *  \param lHeight absolute height of the ellipse
      */
-    inline void DrawEllipseMM( long lX, long lY, long lWidth, long lHeight ); 
-
-    /** Fill an ellipse with the current fill settings
-     *  \param lX x coordinate of the ellipse (left coordinate)
-     *  \param lY y coordinate of the ellipse (top coordinate)
-     *  \param lWidth width of the ellipse 
-     *  \param lHeight absolute height of the ellipse
-     */
-    inline void FillEllipseMM( long lX, long lY, long lWidth, long lHeight ); 
+    inline void EllipseMM( long lX, long lY, long lWidth, long lHeight ); 
 
     /** Draw a text string on a page using a given font object.
      *  You have to call SetFont before calling this function.
@@ -202,31 +186,9 @@ inline void PdfPainterMM::DrawLineMM( long lStartX, long lStartY, long lEndX, lo
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfPainterMM::DrawRectMM( long lX, long lY, long lWidth, long lHeight )
+inline void PdfPainterMM::RectangleMM( long lX, long lY, long lWidth, long lHeight )
 {
-    this->DrawRect( static_cast<double>(lX)      * CONVERSION_CONSTANT,
-                    static_cast<double>(lY)      * CONVERSION_CONSTANT,
-                    static_cast<double>(lWidth)  * CONVERSION_CONSTANT,
-                    static_cast<double>(lHeight) * CONVERSION_CONSTANT );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfPainterMM::FillRectMM( long lX, long lY, long lWidth, long lHeight )
-{
-    this->FillRect( static_cast<double>(lX)      * CONVERSION_CONSTANT,
-                    static_cast<double>(lY)      * CONVERSION_CONSTANT,
-                    static_cast<double>(lWidth)  * CONVERSION_CONSTANT,
-                    static_cast<double>(lHeight) * CONVERSION_CONSTANT );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfPainterMM::DrawEllipseMM( long lX, long lY, long lWidth, long lHeight )
-{
-    this->DrawEllipse( static_cast<double>(lX)      * CONVERSION_CONSTANT,
+    this->Rectangle( static_cast<double>(lX)      * CONVERSION_CONSTANT,
                        static_cast<double>(lY)      * CONVERSION_CONSTANT,
                        static_cast<double>(lWidth)  * CONVERSION_CONSTANT,
                        static_cast<double>(lHeight) * CONVERSION_CONSTANT );
@@ -235,9 +197,9 @@ inline void PdfPainterMM::DrawEllipseMM( long lX, long lY, long lWidth, long lHe
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfPainterMM::FillEllipseMM( long lX, long lY, long lWidth, long lHeight )
+inline void PdfPainterMM::EllipseMM( long lX, long lY, long lWidth, long lHeight )
 {
-    this->FillEllipse( static_cast<double>(lX)      * CONVERSION_CONSTANT,
+    this->Ellipse( static_cast<double>(lX)      * CONVERSION_CONSTANT,
                        static_cast<double>(lY)      * CONVERSION_CONSTANT,
                        static_cast<double>(lWidth)  * CONVERSION_CONSTANT,
                        static_cast<double>(lHeight) * CONVERSION_CONSTANT );

@@ -180,9 +180,10 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
 					// Make sure that FillRect only fills inside the border
 					// rectangle and not over the border. This is necessary
 					// because we draw the border first and than the contents.
-                    pPainter->FillRect( dX + dCurX + dBorder, dY - dCurY + dBorder, 
+                    pPainter->Rectangle( dX + dCurX + dBorder, dY - dCurY + dBorder, 
 						                pdColWidths[i] - 2.0 * dBorder, 
 										pdRowHeights[j] - 2.0 * dBorder );
+						  pPainter->Fill();
                     pPainter->Restore();
                 }
 

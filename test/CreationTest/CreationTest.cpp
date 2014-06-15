@@ -71,7 +71,8 @@ void CreateUnicodeAnnotationFreeText( PdfPage* pPage, PdfDocument* pDocument )
     painter.SetPage( &xObj );
     painter.SetFont( pFont );
     painter.SetColor( 1.0, 0.0, 0.0 );
-    painter.DrawRect( 10.0, 10.0, 100.0, 100.0 );
+    painter.Rectangle( 10.0, 10.0, 100.0, 100.0 );
+    painter.FillAndStroke();
     painter.DrawText( 100.0, 100.0, sJap );
     painter.FinishPage();
     */
@@ -159,7 +160,8 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
     pPainter->SetFont( pFont );
     pPainter->DrawText( 120000 * CONVERSION_CONSTANT, y - pFont->GetFontMetrics()->GetLineSpacing(), msg  );
-    pPainter->DrawRect( 120000 * CONVERSION_CONSTANT, y - pFont->GetFontMetrics()->GetLineSpacing(), w, h );
+    pPainter->Rectangle( 120000 * CONVERSION_CONSTANT, y - pFont->GetFontMetrics()->GetLineSpacing(), w, h );
+    pPainter->Stroke();
 
     // Draw 10 lines in gray scale
     for( i = 0; i < 10; i++ )
@@ -308,7 +310,8 @@ void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
     pPainter->SetStrokeWidth( 100 * CONVERSION_CONSTANT );
     pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
-    pPainter->DrawRect( x, y, dWidth, dHeight );
+    pPainter->Rectangle( x, y, dWidth, dHeight );
+    pPainter->Stroke();
 
     PdfString sMultiLine("Hello World! We try to draw text using PdfPainter and DrawMultiLineText into an rectangle - including wordwrapping.");
     pPainter->DrawMultiLineText( x, y, dWidth, dHeight, sMultiLine );
@@ -318,7 +321,8 @@ void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
     pPainter->SetStrokeWidth( 1000 * CONVERSION_CONSTANT );
     pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
-    pPainter->DrawRect( x, y, dWidth, dHeight );
+    pPainter->Rectangle( x, y, dWidth, dHeight );
+    pPainter->Stroke();
 
     y -= dHeight;
     y -= 10000 * CONVERSION_CONSTANT;
@@ -326,13 +330,15 @@ void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
     pPainter->SetStrokeWidth( 100 * CONVERSION_CONSTANT );
     pPainter->SetStrokingColor( 1.0, 0.0, 0.0 );
-    pPainter->DrawRect( x, y, dWidth, dHeight );
+    pPainter->Rectangle( x, y, dWidth, dHeight );
+    pPainter->Stroke();
 
     x += dWidth;
     x += 10000 * CONVERSION_CONSTANT;
     pPainter->SetStrokeWidth( 1000 * CONVERSION_CONSTANT );
     pPainter->SetStrokingColor( 0.0, 1.0, 0.0 );
-    pPainter->DrawRect( x, y, dWidth, dHeight );
+    pPainter->Rectangle( x, y, dWidth, dHeight );
+    pPainter->Stroke();
 
     y -= dHeight;
     y -= 10000 * CONVERSION_CONSTANT;
@@ -341,8 +347,8 @@ void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->SetStrokeWidth( 100 * CONVERSION_CONSTANT );
     pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
     pPainter->SetColor( 1.0, 0.0, 0.0 );
-    pPainter->FillRect( x, y, dWidth, dHeight );
-    pPainter->DrawRect( x, y, dWidth, dHeight );
+    pPainter->Rectangle( x, y, dWidth, dHeight );
+    pPainter->FillAndStroke();
 
     x += dWidth;
     x += 10000 * CONVERSION_CONSTANT;
@@ -351,8 +357,8 @@ void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->SetColor( 0.0, 0.0, 1.0 );
 	x = 0.0;
 	y = 0.0;
-    pPainter->FillRect( x, y, 50000 * CONVERSION_CONSTANT, 50000 * CONVERSION_CONSTANT);
-    pPainter->DrawRect( x, y, 50000 * CONVERSION_CONSTANT, 50000 * CONVERSION_CONSTANT);
+    pPainter->Rectangle( x, y, 50000 * CONVERSION_CONSTANT, 50000 * CONVERSION_CONSTANT);
+    pPainter->FillAndStroke();
 
     y -= dHeight;
     y -= 10000 * CONVERSION_CONSTANT;
@@ -514,9 +520,11 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pnt.GetFont()->SetFontSize( 8.0 );
     pnt.SetStrokingColor( 1.0, 1.0, 1.0 );
     pnt.SetColor( 1.0, 1.0, 0.0 );
-    pnt.FillRect( 0, 0, xObj.GetPageSize().GetWidth(), xObj.GetPageSize().GetHeight()  );
+    pnt.Rectangle( 0, 0, xObj.GetPageSize().GetWidth(), xObj.GetPageSize().GetHeight()  );
+    pnt.Fill();
     pnt.SetColor( 0.0, 0.0, 0.0 );
-    pnt.DrawRect( 0, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT );
+    pnt.Rectangle( 0, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT );
+    pnt.Stroke();
     pnt.DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am a XObject." );
     pnt.FinishPage();
 
@@ -533,7 +541,8 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 #endif // PODOFO_HAVE_JPEG_LIB
 
     pPainter->DrawXObject( 120000 * CONVERSION_CONSTANT, y - (50000 * CONVERSION_CONSTANT), &xObj );
-	pPainter->FillRect( 120000 * CONVERSION_CONSTANT, y - (50000 * CONVERSION_CONSTANT), 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT ); 
+    pPainter->Rectangle( 120000 * CONVERSION_CONSTANT, y - (50000 * CONVERSION_CONSTANT), 1000 * CONVERSION_CONSTANT, 1000 * CONVERSION_CONSTANT );
+    pPainter->Fill();
 
     PdfAnnotation* pAnnot1 = pPage->CreateAnnotation( ePdfAnnotation_Widget, rect1 );
     PdfAnnotation* pAnnot2 = pPage->CreateAnnotation( ePdfAnnotation_Link, rect2 );
@@ -569,11 +578,13 @@ void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     double        dY     = pPage->GetPageSize().GetHeight() - 40000 * CONVERSION_CONSTANT;
 
     pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
-    pPainter->DrawEllipse( dX, dY, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
+    pPainter->Ellipse( dX, dY, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
+    pPainter->Stroke();
 
     dY -= 30000 * CONVERSION_CONSTANT;
     pPainter->SetColor( 1.0, 0.0, 0.0 );
-    pPainter->FillEllipse( dX, dY, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
+    pPainter->Ellipse( dX, dY, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
+    pPainter->Fill();
 
     PdfFileSpec file( "resources/lena.jpg", true, pDocument );
     pFileAnnotation =  pPage->CreateAnnotation( ePdfAnnotation_FileAttachement, PdfRect( 300.0, 400.0, 250.0, 50.0 ) );
@@ -589,7 +600,8 @@ void XObjectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     const double dHeight = 270000 * CONVERSION_CONSTANT; // 27cm
 
     pPainter->SetColor( 1.0, 0.8, 0.8 );
-    pPainter->FillRect( x, y - dHeight, dWidth, dHeight );
+    pPainter->Rectangle( x, y - dHeight, dWidth, dHeight );
+    pPainter->Fill();
     
     // Das funktioniert immer
     PdfXObject xObj1( "resources/Illust.pdf", 0, pDocument );
@@ -597,11 +609,11 @@ void XObjectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
                            y - dHeight,
 						   &xObj1 );
     pPainter->SetColor( 1.0, 0.0, 0.0 );
-    pPainter->FillRect( x + 90000 * CONVERSION_CONSTANT, 
+    pPainter->Rectangle( x + 90000 * CONVERSION_CONSTANT, 
                         y - dHeight,
                         1000 * CONVERSION_CONSTANT,
                         1000 * CONVERSION_CONSTANT );
-    
+    pPainter->Fill();
     
 
     // Test XObject in XObject
@@ -612,7 +624,8 @@ void XObjectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     // Draw text onto the XObject3
     pPainter->SetPage( &xObj3 );
     pPainter->SetColor( 0.0, 1.0, 0.0 );
-    pPainter->FillRect( 0.0, 0.0, rectX.GetWidth(), rectX.GetHeight() );
+    pPainter->Rectangle( 0.0, 0.0, rectX.GetWidth(), rectX.GetHeight() );
+    pPainter->Fill();
     pPainter->SetFont( pDocument->CreateFont( "Comic Sans MS" ) );
     pPainter->SetColor( 0.0, 0.0, 0.0 );
     pPainter->DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am XObject 3." );
@@ -621,7 +634,8 @@ void XObjectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     // Draw text and pdf onto the XObject4
     pPainter->SetPage( &xObj4 );
     pPainter->SetColor( 0.0, 1.0, 0.0 );
-    pPainter->FillRect( 0.0, 0.0, rectX.GetWidth(), rectX.GetHeight() );
+    pPainter->Rectangle( 0.0, 0.0, rectX.GetWidth(), rectX.GetHeight() );
+    pPainter->Fill();
     pPainter->SetFont( pDocument->CreateFont( "Comic Sans MS" ) );
     pPainter->SetColor( 0.0, 0.0, 0.0 );
     pPainter->DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am XObject 4." );
@@ -650,12 +664,14 @@ void MMTest( PdfPainterMM* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     long        lY     = static_cast<long>(pPage->GetPageSize().GetHeight()/CONVERSION_CONSTANT) - 40000;
 
     pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
-    pPainter->DrawEllipseMM( lX, lY, 20000, 20000 );
+    pPainter->EllipseMM( lX, lY, 20000, 20000 );
+    pPainter->Stroke();
 
     lY -= 30000;
 
     pPainter->SetColor( 1.0, 0.0, 0.0 );
-    pPainter->FillEllipseMM( lX, lY, 20000, 20000 );
+    pPainter->EllipseMM( lX, lY, 20000, 20000 );
+    pPainter->Fill();
 
     lY -= 60000;
 
@@ -664,11 +680,14 @@ void MMTest( PdfPainterMM* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     trans.SetFillOpacity( 0.5 );
     pPainter->SetExtGState( &trans );
     pPainter->SetColor( 1.0, 0.0, 0.0 );
-    pPainter->FillEllipseMM( lX, lY, 20000, 20000 );
+    pPainter->EllipseMM( lX, lY, 20000, 20000 );
+    pPainter->Fill();
     pPainter->SetColor( 0.0, 1.0, 0.0 );
-    pPainter->FillEllipseMM( lX+20000, lY, 20000, 20000 );
+    pPainter->EllipseMM( lX+20000, lY, 20000, 20000 );
+    pPainter->Fill();
     pPainter->SetColor( 0.0, 0.0, 1.0 );
-    pPainter->FillEllipseMM( lX+10000, lY-10000, 20000, 20000 );
+    pPainter->EllipseMM( lX+10000, lY-10000, 20000, 20000 );
+    pPainter->Fill();
 
 
 }

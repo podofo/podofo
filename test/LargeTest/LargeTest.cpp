@@ -66,7 +66,8 @@ void AddPage( PdfDocument* pDoc, const char* pszFontName, const char* pszImagePa
     pFont->SetFontSize( 24.0 );
     dH += pFont->GetFontMetrics()->GetLineSpacing() * 2.0;
 
-    painter.DrawRect( dX, dY, dW, dH );
+    painter.Rectangle( dX, dY, dW, dH );
+    painter.Stroke();
 
     dY -= pFont->GetFontMetrics()->GetLineSpacing();
     painter.DrawText( dX, dY, "Hello World!" );
