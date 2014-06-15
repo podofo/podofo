@@ -194,8 +194,13 @@ void PdfFontTTFSubset::InitTables()
         tbl.m_length = Big2Little(tbl.m_length);
 
         //It seems that the EBDT, EBLC, EBSC table can be erased.
-        if (tbl.m_strTableName == "EBDT")
-            /*||tbl.m_strTableName == string("EBLC")||tbl.m_strTableName == string("EBSC")*/
+        if (PoDoFo::compat::strcasecmp(tbl.m_strTableName.c_str(), "EBDT") == 0
+            /*|| PoDoFo::compat::strcasecmp(tbl.m_strTableName.c_str(), "EBLC") == 0
+            || PoDoFo::compat::strcasecmp(tbl.m_strTableName.c_str(), "EBSC") == 0*/
+            || PoDoFo::compat::strcasecmp(tbl.m_strTableName.c_str(), "DSIG") == 0
+            || PoDoFo::compat::strcasecmp(tbl.m_strTableName.c_str(), "LTSH") == 0
+            || PoDoFo::compat::strcasecmp(tbl.m_strTableName.c_str(), "VDMX") == 0
+            || PoDoFo::compat::strcasecmp(tbl.m_strTableName.c_str(), "HDMX") == 0)
         {
             continue;
         }
