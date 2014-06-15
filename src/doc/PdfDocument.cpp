@@ -899,7 +899,7 @@ void PdfDocument::AttachFile( const PdfFileSpec & rFileSpec )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    pNames->AddValue( "EmbeddedFiles", rFileSpec.GetFilename(), rFileSpec.GetObject()->Reference() );
+    pNames->AddValue( "EmbeddedFiles", rFileSpec.GetFilename(false), rFileSpec.GetObject()->Reference() );
 }
     
 PdfFileSpec* PdfDocument::GetAttachment( const PdfString & rName )

@@ -44,29 +44,29 @@
 
 namespace PoDoFo {
 
-PdfFileSpec::PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfDocument* pParent )
+PdfFileSpec::PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfDocument* pParent, bool bStripPath)
     : PdfElement( "Filespec", pParent )
 {
-    Init( pszFilename, bEmbedd );
+    Init( pszFilename, bEmbedd, bStripPath );
 }
 
-PdfFileSpec::PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfVecObjects* pParent )
+PdfFileSpec::PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfVecObjects* pParent, bool bStripPath)
     : PdfElement( "Filespec", pParent )
 {
-    Init( pszFilename, bEmbedd );
+    Init( pszFilename, bEmbedd, bStripPath );
 }
 
-PdfFileSpec::PdfFileSpec( const char* pszFilename, const unsigned char* data, ptrdiff_t size, PdfVecObjects* pParent)
+PdfFileSpec::PdfFileSpec( const char* pszFilename, const unsigned char* data, ptrdiff_t size, PdfVecObjects* pParent, bool bStripPath)
     : PdfElement( "Filespec", pParent )
 {
-    Init( pszFilename, data, size );
+    Init( pszFilename, data, size, bStripPath );
 }
 
 
-PdfFileSpec::PdfFileSpec( const char* pszFilename, const unsigned char* data, ptrdiff_t size, PdfDocument* pParent)
+PdfFileSpec::PdfFileSpec( const char* pszFilename, const unsigned char* data, ptrdiff_t size, PdfDocument* pParent, bool bStripPath)
     : PdfElement( "Filespec", pParent )
 {
-    Init( pszFilename, data, size );
+    Init( pszFilename, data, size, bStripPath );
 }
 
 PdfFileSpec::PdfFileSpec( PdfObject* pObject )
@@ -76,36 +76,42 @@ PdfFileSpec::PdfFileSpec( PdfObject* pObject )
 
 #ifdef _WIN32
 
-PdfFileSpec::PdfFileSpec( const wchar_t* pszFilename, bool bEmbedd, PdfDocument* pParent )
+PdfFileSpec::PdfFileSpec( const wchar_t* pszFilename, bool bEmbedd, PdfDocument* pParent, bool bStripPath)
     : PdfElement( "Filespec", pParent )
 {
-    Init( pszFilename, bEmbedd );
+    Init( pszFilename, bEmbedd, bStripPath );
 }
 
-PdfFileSpec::PdfFileSpec( const wchar_t* pszFilename, bool bEmbedd, PdfVecObjects* pParent )
+PdfFileSpec::PdfFileSpec( const wchar_t* pszFilename, bool bEmbedd, PdfVecObjects* pParent, bool bStripPath)
     : PdfElement( "Filespec", pParent )
 {
-    Init( pszFilename, bEmbedd );
+    Init( pszFilename, bEmbedd, bStripPath );
 }
 
-PdfFileSpec::PdfFileSpec( const wchar_t* pszFilename, const unsigned char* data, ptrdiff_t size, PdfVecObjects* pParent)
+PdfFileSpec::PdfFileSpec( const wchar_t* pszFilename, const unsigned char* data, ptrdiff_t size, PdfVecObjects* pParent, bool bStripPath)
     : PdfElement( "Filespec", pParent )
 {
-    Init( pszFilename, data, size );
+    Init( pszFilename, data, size, bStripPath );
 }
 
-
-PdfFileSpec::PdfFileSpec( const wchar_t* pszFilename, const unsigned char* data, ptrdiff_t size, PdfDocument* pParent)
+PdfFileSpec::PdfFileSpec( const wchar_t* pszFilename, const unsigned char* data, ptrdiff_t size, PdfDocument* pParent, bool bStripPath)
     : PdfElement( "Filespec", pParent )
 {
-    Init( pszFilename, data, size );
+    Init( pszFilename, data, size, bStripPath );
 }
 
-void PdfFileSpec::Init( const wchar_t* pszFilename, bool bEmbedd ) 
+void PdfFileSpec::Init( const wchar_t* pszFilename, bool bEmbedd, bool bStripPath) 
 {
     PdfObject* pEmbeddedStream;
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200
+    const wchar_t *withoutPath = MaybeStripPath( pszFilename, true);
+    PdfString filename( (const unsigned short *) withoutPath, wcslen(withoutPath), false);
+#else
+    PdfString filename( MaybeStripPath( pszFilename, true) );
+#endif
 
-    this->GetObject()->GetDictionary().AddKey( "F", this->CreateFileSpecification( pszFilename ) );
+    this->GetObject()->GetDictionary().AddKey( "F", this->CreateFileSpecification( MaybeStripPath( pszFilename, bStripPath ) ) );
+    this->GetObject()->GetDictionary().AddKey( "UF", filename.ToUnicode () );
 
     if( bEmbedd ) 
     {
@@ -120,11 +126,18 @@ void PdfFileSpec::Init( const wchar_t* pszFilename, bool bEmbedd )
     }
 }
 
-void PdfFileSpec::Init( const wchar_t* pszFilename, const unsigned char* data, ptrdiff_t size ) 
+void PdfFileSpec::Init( const wchar_t* pszFilename, const unsigned char* data, ptrdiff_t size, bool bStripPath)
 {
     PdfObject* pEmbeddedStream;
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200
+    const wchar_t *withoutPath = MaybeStripPath( pszFilename, true);
+    PdfString filename( (const unsigned short *) withoutPath, wcslen(withoutPath), false);
+#else
+    PdfString filename( MaybeStripPath( pszFilename, true) );
+#endif
 
-    this->GetObject()->GetDictionary().AddKey( "F", this->CreateFileSpecification( pszFilename ) );
+    this->GetObject()->GetDictionary().AddKey( "F", this->CreateFileSpecification( MaybeStripPath( pszFilename, bStripPath ) ) );
+    this->GetObject()->GetDictionary().AddKey( "UF", filename.ToUnicode() );
 
     PdfDictionary ef;
 
@@ -140,15 +153,28 @@ PdfString PdfFileSpec::CreateFileSpecification( const wchar_t* pszFilename ) con
 {
     std::ostringstream str;
     size_t                nLen = wcslen( pszFilename );
+    char buff[5];
 
-    // Not sure if we really get a platform independent file specifier here.
+    // Construct a platform independent file specifier
     
     for( size_t i=0;i<nLen;i++ ) 
     {
-        if( pszFilename[i] == ':' || pszFilename[i] == '\\' ) 
+        wchar_t ch = pszFilename[i];
+        if (ch == L':' || ch == L'\\')
+            ch = L'/';
+        if ((ch >= L'a' && ch <= L'z') ||
+            (ch >= L'A' && ch <= L'Z') ||
+            (ch >= L'0' && ch <= L'9') ||
+             ch == L'_') {
+            str.put( ch & 0xFF );
+        } else if (ch == L'/') {
+            str.put( '\\' );
+            str.put( '\\' );
             str.put( '/' );
-        else 
-            str.put( pszFilename[i] );
+        } else {
+            sprintf(buff, "%04X", ch & 0xFFFF);
+            str << buff;
+        }
     }
 
     return PdfString( str.str() );
@@ -166,13 +192,40 @@ void PdfFileSpec::EmbeddFile( PdfObject* pStream, const wchar_t* pszFilename ) c
     pStream->GetDictionary().AddKey("Params", params );
 }
 
+const wchar_t *PdfFileSpec::MaybeStripPath( const wchar_t* pszFilename, bool bStripPath ) const
+{
+    if (!bStripPath)
+    {
+        return pszFilename;
+    }
+
+    const wchar_t *lastFrom = pszFilename;
+    while (pszFilename && *pszFilename)
+    {
+        if (
+            #ifdef _WIN32
+            *pszFilename == L':' || *pszFilename == L'\\' ||
+            #endif // _WIN32
+            *pszFilename == L'/')
+        {
+            lastFrom = pszFilename + 1;
+        }
+
+        pszFilename++;
+    }
+
+    return lastFrom;
+}
+
 #endif // _WIN32
 
-void PdfFileSpec::Init( const char* pszFilename, bool bEmbedd ) 
+void PdfFileSpec::Init( const char* pszFilename, bool bEmbedd, bool bStripPath ) 
 {
     PdfObject* pEmbeddedStream;
+    PdfString filename( MaybeStripPath( pszFilename, true) );
 
-    this->GetObject()->GetDictionary().AddKey( "F", this->CreateFileSpecification( pszFilename ) );
+    this->GetObject()->GetDictionary().AddKey( "F", this->CreateFileSpecification( MaybeStripPath( pszFilename, bStripPath ) ) );
+    this->GetObject()->GetDictionary().AddKey( "UF", filename.ToUnicode () );
 
     if( bEmbedd ) 
     {
@@ -187,11 +240,13 @@ void PdfFileSpec::Init( const char* pszFilename, bool bEmbedd )
     }
 }
 
-void PdfFileSpec::Init( const char* pszFilename, const unsigned char* data, ptrdiff_t size ) 
+void PdfFileSpec::Init( const char* pszFilename, const unsigned char* data, ptrdiff_t size, bool bStripPath ) 
 {
     PdfObject* pEmbeddedStream;
+    PdfString filename( MaybeStripPath( pszFilename, true) );
 
-    this->GetObject()->GetDictionary().AddKey( "F", this->CreateFileSpecification( pszFilename ) );
+    this->GetObject()->GetDictionary().AddKey( "F", this->CreateFileSpecification( MaybeStripPath( pszFilename, bStripPath) ) );
+    this->GetObject()->GetDictionary().AddKey( "UF", filename.ToUnicode () );
 
     PdfDictionary ef;
 
@@ -207,15 +262,28 @@ PdfString PdfFileSpec::CreateFileSpecification( const char* pszFilename ) const
 {
     std::ostringstream str;
     size_t                nLen = strlen( pszFilename );
+    char buff[5];
 
-    // Not sure if we really get a platform independent file specifier here.
+    // Construct a platform independent file specifier
     
     for( size_t i=0;i<nLen;i++ ) 
     {
-        if( pszFilename[i] == ':' || pszFilename[i] == '\\' ) 
+        char ch = pszFilename[i];
+        if (ch == ':' || ch == '\\')
+            ch = '/';
+        if ((ch >= 'a' && ch <= 'z') ||
+            (ch >= 'A' && ch <= 'Z') ||
+            (ch >= '0' && ch <= '9') ||
+             ch == '_') {
+            str.put( ch & 0xFF );
+        } else if (ch == '/') {
+            str.put( '\\' );
+            str.put( '\\' );
             str.put( '/' );
-        else 
-            str.put( pszFilename[i] );
+        } else {
+            sprintf(buff, "%02X", ch & 0xFF);
+            str << buff;
+        }
     }
 
     return PdfString( str.str() );
@@ -233,6 +301,31 @@ void PdfFileSpec::EmbeddFile( PdfObject* pStream, const char* pszFilename ) cons
     pStream->GetDictionary().AddKey("Params", params );
 }
 
+const char *PdfFileSpec::MaybeStripPath( const char* pszFilename, bool bStripPath ) const
+{
+    if (!bStripPath)
+    {
+        return pszFilename;
+    }
+
+    const char *lastFrom = pszFilename;
+    while (pszFilename && *pszFilename)
+    {
+        if (
+            #ifdef _WIN32
+            *pszFilename == ':' || *pszFilename == '\\' ||
+            #endif // _WIN32
+            *pszFilename == '/')
+        {
+            lastFrom = pszFilename + 1;
+        }
+
+        pszFilename++;
+    }
+
+    return lastFrom;
+}
+
 void PdfFileSpec::EmbeddFileFromMem( PdfObject* pStream, const unsigned char* data, ptrdiff_t size ) const
 {
     PdfMemoryInputStream memstream(reinterpret_cast<const char*>(data),size);
@@ -244,8 +337,13 @@ void PdfFileSpec::EmbeddFileFromMem( PdfObject* pStream, const unsigned char* da
     pStream->GetDictionary().AddKey("Params", params );
 }
 
-const PdfString & PdfFileSpec::GetFilename() const
+const PdfString & PdfFileSpec::GetFilename(bool canUnicode) const
 {
+    if( canUnicode && this->GetObject()->GetDictionary().HasKey( "UF" ) )
+{
+        return this->GetObject()->GetDictionary().GetKey( "UF" )->GetString();
+    }
+
     if( this->GetObject()->GetDictionary().HasKey( "F" ) )
     {
         return this->GetObject()->GetDictionary().GetKey( "F" )->GetString();
