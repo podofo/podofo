@@ -255,6 +255,21 @@ enum EPdfColorSpace {
 };
 
 /**
+ * Enum for text rendering mode (Tr)
+ */
+enum EPdfTextRenderingMode {
+    ePdfTextRenderingMode_Fill = 0,                 /**< Default mode, fill text */
+    ePdfTextRenderingMode_Stroke,                   /**< Stroke text */
+    ePdfTextRenderingMode_FillAndStroke,            /**< Fill, then stroke text */
+    ePdfTextRenderingMode_Invisible,                /**< Neither fill nor stroke text (invisible) */
+    ePdfTextRenderingMode_FillToClipPath,           /**< Fill text and add to path for clipping */
+    ePdfTextRenderingMode_StrokeToClipPath,         /**< Stroke text and add to path for clipping */
+    ePdfTextRenderingMode_FillAndStrokeToClipPath,  /**< Fill, then stroke text and add to path for clipping */
+    ePdfTextRenderingMode_ToClipPath,               /**< Add text to path for clipping */
+    ePdfTextRenderingMode_Unknown = 0xff
+};
+
+/**
  * Enum for the different stroke styles that can be set
  * when drawing to a PDF file (mostly for line drawing).
  */

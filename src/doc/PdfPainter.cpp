@@ -126,6 +126,7 @@ PdfPainter::PdfPainter()
     lcy  = 
     lrx  = 
     lry  = 0.0;
+    currentTextRenderingMode = ePdfTextRenderingMode_Fill;
 }
 
 PdfPainter::~PdfPainter()
@@ -157,16 +158,18 @@ void PdfPainter::SetPage( PdfCanvas* pPage )
     m_pCanvas = pPage ? pPage->GetContentsForAppending()->GetStream() : NULL;
     if ( m_pCanvas ) 
     {
-		// GetLength() must be called before BeginAppend()
+        // GetLength() must be called before BeginAppend()
         if ( m_pCanvas->GetLength() ) 
-		{
-	        m_pCanvas->BeginAppend( false );
+        {
+            m_pCanvas->BeginAppend( false );
             // there is already content here - so let's assume we are appending
             // as such, we MUST put in a "space" to separate whatever we do.
             m_pCanvas->Append( " " );
         }
-		else
-	        m_pCanvas->BeginAppend( false );
+        else
+            m_pCanvas->BeginAppend( false );
+
+        currentTextRenderingMode = ePdfTextRenderingMode_Fill;
     } 
     else 
     {
@@ -189,6 +192,7 @@ void PdfPainter::FinishPage()
 
     m_pCanvas = NULL;
     m_pPage   = NULL;
+    currentTextRenderingMode = ePdfTextRenderingMode_Fill;
 }
 
 void PdfPainter::SetStrokingGray( double g )
@@ -374,32 +378,82 @@ void PdfPainter::SetStrokeWidth( double dWidth )
     m_pCanvas->Append( m_oss.str() );
 }
 
-void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom )
+void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom, bool inverted, double scale, bool subtractJoinCap)
 {
-    const char* pszCurStroke = NULL;
+    bool have = false;
 
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
 
-    // TODO: fix the stroking styles
+    m_oss.str("");
+
+    if (eStyle != ePdfStrokeStyle_Custom) {
+        m_oss << "[";
+    }
+
+    if (inverted && eStyle != ePdfStrokeStyle_Solid && eStyle != ePdfStrokeStyle_Custom) {
+       m_oss << "0 ";
+    }
+
     switch( eStyle )
     {
         case ePdfStrokeStyle_Solid:
-            pszCurStroke = "[] 0";
+            have = true;
             break;
         case ePdfStrokeStyle_Dash:
-            pszCurStroke = "[3] 0";
+            have = true;
+            if (scale >= 1.0 - 1e-5 && scale <= 1.0 + 1e-5) {
+                m_oss << "6 2";
+            } else {
+                if (subtractJoinCap) {
+                    m_oss << scale * 2.0 << " " << scale * 2.0;
+                } else {
+                    m_oss << scale * 3.0 << " " << scale * 1.0;
+                }
+            }
             break;
         case ePdfStrokeStyle_Dot:
-            pszCurStroke = "[1] 0";
+            have = true;
+            if (scale >= 1.0 - 1e-5 && scale <= 1.0 + 1e-5) {
+                m_oss << "2 2";
+            } else {
+                if (subtractJoinCap) {
+                    // zero length segments are drawn anyway here
+                    m_oss << 0.001 << " " << 2.0 * scale << " " << 0 << " " << 2.0 * scale;
+                } else {
+                   m_oss << scale * 1.0 << " " << scale * 1.0;
+                }
+            }
             break;
         case ePdfStrokeStyle_DashDot:
-            pszCurStroke = "[3 1 1] 0";
+            have = true;
+            if (scale >= 1.0 - 1e-5 && scale <= 1.0 + 1e-5) {
+                m_oss << "3 2 1 2";
+            } else {
+                if (subtractJoinCap) {
+                    // zero length segments are drawn anyway here
+                    m_oss << scale * 2.0 << " " << scale * 2.0 << " " << 0 << " " << scale * 2.0;
+                } else {
+                    m_oss << scale * 3.0 << " " << scale * 1.0 << " " << scale * 1.0 << " " << scale * 1.0;
+                }
+            }
             break;
         case ePdfStrokeStyle_DashDotDot:
-            pszCurStroke = "[3 1 1 1 1] 0";
+            have = true;
+            if (scale >= 1.0 - 1e-5 && scale <= 1.0 + 1e-5) {
+                m_oss << "3 1 1 1 1 1";
+            } else {
+                if (subtractJoinCap) {
+                    // zero length segments are drawn anyway here
+                    m_oss << scale * 2.0 << " " << scale * 2.0 << " " << 0 << " " << scale * 2.0 << " " << 0 << " " << scale * 2.0;
+                } else {
+                    m_oss << scale * 3.0 << " " << scale * 1.0 << " " << scale * 1.0 << " " << scale * 1.0 << " " << scale * 1.0 << " " << scale * 1.0;
+                }
+            }
             break;
         case ePdfStrokeStyle_Custom:
-            pszCurStroke = pszCustom;
+            have = pszCustom != NULL;
+            if (have)
+                m_oss << pszCustom;
             break;
         default:
         {
@@ -407,13 +461,20 @@ void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom )
         }
     }
 
-    if( !pszCurStroke )
+    if( !have )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidStrokeStyle );
     }
     
-    m_oss.str("");
-    m_oss << pszCurStroke << " d" << std::endl;
+    if (inverted && eStyle != ePdfStrokeStyle_Solid && eStyle != ePdfStrokeStyle_Custom) {
+        m_oss << " 0";
+    }
+
+    if (eStyle != ePdfStrokeStyle_Custom) {
+        m_oss << "] 0";
+    }
+
+    m_oss << " d" << std::endl;
     m_pCanvas->Append( m_oss.str() );
 }
 
@@ -447,6 +508,26 @@ void PdfPainter::SetFont( PdfFont* pFont )
     m_pFont = pFont;
 }
 
+void PdfPainter::SetTextRenderingMode( EPdfTextRenderingMode mode )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
+
+    if (mode == currentTextRenderingMode) {
+        return;
+    }
+
+    currentTextRenderingMode = mode;
+    if (m_isTextOpen)
+        SetCurrentTextRenderingMode();
+}
+
+void PdfPainter::SetCurrentTextRenderingMode( void )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+
+    m_oss << (int) currentTextRenderingMode << " Tr" << std::endl;
+}
+
 void PdfPainter::SetClipRect( double dX, double dY, double dWidth, double dHeight )
 {
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
@@ -457,6 +538,15 @@ void PdfPainter::SetClipRect( double dX, double dY, double dWidth, double dHeigh
           << dWidth << " "
           << dHeight        
           << " re W n" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
+}
+
+void PdfPainter::SetMiterLimit(double value)
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
+
+    m_oss.str("");
+    m_oss << value << " M" << std::endl;
     m_pCanvas->Append( m_oss.str() );
 }
 
@@ -728,6 +818,10 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
           << " "  << m_pFont->GetFontSize()
           << " Tf" << std::endl;
 
+    if (currentTextRenderingMode != ePdfTextRenderingMode_Fill) {
+        SetCurrentTextRenderingMode();
+    }
+
     //if( m_pFont->GetFontScale() != 100.0F ) - this value is kept between text blocks
     m_oss << m_pFont->GetFontScale() << " Tz" << std::endl;
 
@@ -767,6 +861,10 @@ void PdfPainter::BeginText( double dX, double dY )
     m_oss << "BT" << std::endl << "/" << m_pFont->GetIdentifier().GetName()
           << " "  << m_pFont->GetFontSize()
           << " Tf" << std::endl;
+
+    if (currentTextRenderingMode != ePdfTextRenderingMode_Fill) {
+        SetCurrentTextRenderingMode();
+    }
 
     //if( m_pFont->GetFontScale() != 100.0F ) - this value is kept between text blocks
     m_oss << m_pFont->GetFontScale() << " Tz" << std::endl;
@@ -1505,11 +1603,24 @@ void PdfPainter::Stroke()
     m_pCanvas->Append( "S\n" );
 }
 
-void PdfPainter::Fill()
+void PdfPainter::Fill(bool useEvenOddRule)
 {
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
     
+     if (useEvenOddRule)
+            m_pCanvas->Append( "f*\n" );
+     else
     m_pCanvas->Append( "f\n" );
+}
+
+void PdfPainter::FillAndStroke(bool useEvenOddRule)
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+
+     if (useEvenOddRule)
+            m_pCanvas->Append( "B*\n" );
+     else
+            m_pCanvas->Append( "B\n" );
 }
 
 void PdfPainter::Clip( bool useEvenOddRule )
@@ -1520,6 +1631,13 @@ void PdfPainter::Clip( bool useEvenOddRule )
 	    m_pCanvas->Append( "W* n\n" );
 	else
 	    m_pCanvas->Append( "W n\n" );
+}
+
+void PdfPainter::EndPath(void)
+{
+    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+
+    m_pCanvas->Append( "n\n" );
 }
 
 void PdfPainter::Save()

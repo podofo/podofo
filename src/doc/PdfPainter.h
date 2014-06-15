@@ -201,6 +201,13 @@ class PODOFO_DOC_API PdfPainter {
      *  \param eStyle style of the stroking operations
      *  \param pszCustom a custom stroking style which is used when
      *                   eStyle == ePdfStrokeStyle_Custom.
+      *  \param inverted inverted dash style (gaps for drawn spaces),
+      *                  it is ignored for None, Solid and Custom styles
+      *  \param scale scale factor of the stroke style
+      *                  it is ignored for None, Solid and Custom styles
+      *  \param subtractJoinCap if true, subtracts scaled width on filled parts,
+      *                       thus the line capability still draws into the cell;
+      *                        is used only if scale is not 1.0
      *
      *  Possible values:
      *    ePdfStrokeStyle_None
@@ -212,7 +219,7 @@ class PODOFO_DOC_API PdfPainter {
      *    ePdfStrokeStyle_Custom
      *
      */
-    void SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom = NULL );
+    void SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom = NULL, bool inverted = false, double scale = 1.0, bool subtractJoinCap = false );
 
     /** Set the line cap style for all stroking operations.
      *  \param eCapStyle the cap style. 
@@ -241,6 +248,26 @@ class PODOFO_DOC_API PdfPainter {
      */
     void SetFont( PdfFont* pFont );
 
+    /** Set the text rendering mode
+     *  \param mode What text rendering mode to use.
+     *
+     *  Possible values:
+     *    ePdfTextRenderingMode_Fill (default mode)
+     *    ePdfTextRenderingMode_Stroke
+     *    ePdfTextRenderingMode_FillAndStroke
+     *    ePdfTextRenderingMode_Invisible
+     *    ePdfTextRenderingMode_FillToClipPath
+     *    ePdfTextRenderingMode_StrokeToClipPath
+     *    ePdfTextRenderingMode_FillAndStrokeToClipPath
+     *    ePdfTextRenderingMode_ToClipPath
+     */
+    void SetTextRenderingMode( EPdfTextRenderingMode mode );
+
+    /** Gets current text rendering mode.
+     *  Default mode is ePdfTextRenderingMode_Fill.
+     */
+    inline EPdfTextRenderingMode GetTextRenderingMode(void) const;
+
     /** Get the current font:
      *  \returns a font object or NULL if no font was set.
      */
@@ -260,6 +287,10 @@ class PODOFO_DOC_API PdfPainter {
      *  \param rRect rectangle
      */
     inline void SetClipRect( const PdfRect & rRect );
+
+     /** Set miter limit.
+      */
+     void SetMiterLimit(double value);
 
     /** Draw a line with the current color and line settings.
      *  \param dStartX x coordinate of the starting point
@@ -626,8 +657,16 @@ class PODOFO_DOC_API PdfPainter {
     /** Fill the current path. Matches the PDF 'f' operator.
      *  This function is useful to construct an own path
      *  for drawing or clipping.
+      *
+     *  \param useEvenOddRule select even-odd rule instead of nonzero winding number rule
      */
-    void Fill();
+    void Fill(bool useEvenOddRule = false);
+
+     /** Fill then stroke the current path. Matches the PDF 'B' operator.
+      *
+     *  \param useEvenOddRule select even-odd rule instead of nonzero winding number rule
+     */
+     void FillAndStroke(bool useEvenOddRule = false);
 
     /** Clip the current path. Matches the PDF 'W' operator.
      *  This function is useful to construct an own path
@@ -636,6 +675,11 @@ class PODOFO_DOC_API PdfPainter {
      *  \param useEvenOddRule select even-odd rule instead of nonzero winding number rule
      */
     void Clip( bool useEvenOddRule = false);
+
+     /** End current pathm without filling or stroking it.
+      *  Matches the PDF 'n' operator.
+      */
+     void EndPath(void);
 
     /** Save the current graphics settings onto the graphics
      *  stack. Operator 'q' in PDF.
@@ -810,6 +854,9 @@ class PODOFO_DOC_API PdfPainter {
      */
     std::ostringstream  m_oss;
 
+    EPdfTextRenderingMode currentTextRenderingMode;
+    void SetCurrentTextRenderingMode( void );
+
     double		lpx, lpy, lpx2, lpy2, lpx3, lpy3, 	// points for this operation
         lcx, lcy, 							// last "current" point
         lrx, lry;							// "reflect points"
@@ -823,6 +870,13 @@ const PdfCanvas* PdfPainter::GetPage() const
     return m_pPage;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+EPdfTextRenderingMode PdfPainter::GetTextRenderingMode(void) const
+{
+    return currentTextRenderingMode;
+}
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
