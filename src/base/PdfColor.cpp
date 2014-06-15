@@ -1209,6 +1209,10 @@ EPdfColorSpace PdfColor::GetColorSpaceForName( const PdfName & rName )
     {
         ePdfColorSpace = ePdfColorSpace_DeviceCMYK;
     }
+    else if( PdfName("Indexed") == rName ) 
+    {
+        ePdfColorSpace = ePdfColorSpace_Indexed;
+    }
     else
     {
         // TODO: other are not supported at the moment
@@ -1232,6 +1236,8 @@ PdfName PdfColor::GetNameForColorSpace( EPdfColorSpace eColorSpace )
             return PdfName("Separation");
         case ePdfColorSpace_CieLab:
             return PdfName("Lab");
+        case ePdfColorSpace_Indexed:
+            return PdfName("Indexed");
         case ePdfColorSpace_Unknown:
         default:
             PdfError::LogMessage( eLogSeverity_Information, "Unsupported colorspace enum: %i", eColorSpace );

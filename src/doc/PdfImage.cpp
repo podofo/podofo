@@ -35,6 +35,7 @@
 
 #include "base/PdfDefinesPrivate.h"
 
+#include "base/PdfArray.h"
 #include "base/PdfColor.h"
 #include "base/PdfStream.h"
 #include "base/PdfFiltersPrivate.h"
@@ -131,9 +132,18 @@ const char** PdfImage::GetSupportedFormats()
     return ppszFormats;
 }
 
-void PdfImage::SetImageColorSpace( EPdfColorSpace eColorSpace )
+void PdfImage::SetImageColorSpace( EPdfColorSpace eColorSpace, const PdfArray *indexedData )
 {
-    this->GetObject()->GetDictionary().AddKey( PdfName("ColorSpace"), ColorspaceToName( eColorSpace ) );
+    if (eColorSpace == ePdfColorSpace_Indexed) {
+        PODOFO_RAISE_LOGIC_IF( !indexedData, "PdfImage::SetImageColorSpace: indexedData cannot be NULL for Indexed color space." );
+
+        PdfArray array(*indexedData);
+
+        array.insert(array.begin(), ColorspaceToName( eColorSpace ));
+        this->GetObject()->GetDictionary().AddKey( PdfName("ColorSpace"), array );
+    } else {
+        this->GetObject()->GetDictionary().AddKey( PdfName("ColorSpace"), ColorspaceToName( eColorSpace ) );
+    }
 }
 
 void PdfImage::SetImageICCProfile( PdfInputStream* pStream, long lColorComponents, EPdfColorSpace eAlternateColorSpace ) 

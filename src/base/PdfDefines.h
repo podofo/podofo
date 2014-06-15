@@ -250,6 +250,7 @@ enum EPdfColorSpace {
     ePdfColorSpace_DeviceCMYK,        /**< CMYK */
     ePdfColorSpace_Separation,        /**< Separation */
     ePdfColorSpace_CieLab,            /**< CIE-Lab */
+    ePdfColorSpace_Indexed,           /**< Indexed */
     ePdfColorSpace_Unknown = 0xff
 };
 
