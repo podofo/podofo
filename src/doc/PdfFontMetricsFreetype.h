@@ -243,6 +243,16 @@ class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
      */
     virtual pdf_long GetFontDataLen() const;
 
+    /** Get whether the internal font style flags contain the Bold flag.
+     *  \returns whether the Bold style flag is set on the font
+     */
+    bool IsBold(void) const;
+
+    /** Get whether the internal font style flags contain the Italic flag.
+     *  \returns whether the Italic style flag is set on the font
+     */
+    bool IsItalic(void) const;
+
     /** Get direct access to the internal FreeType handle
      * 
      *  \returns the internal freetype handle
@@ -270,6 +280,8 @@ class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
 
  private:
     bool          m_bSymbol;  ///< Internal member to singnal a symbol font
+    bool          m_bIsBold;
+    bool          m_bIsItalic;
 
     unsigned int  m_nWeight;
     int           m_nItalicAngle;

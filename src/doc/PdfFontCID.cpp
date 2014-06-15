@@ -61,14 +61,14 @@ struct TBFRange {
 };
 
 PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject, bool )
-    : PdfFont( pMetrics, pEncoding, pObject )
+    : PdfFont( pMetrics, pEncoding, pObject ), m_pDescendantFonts( NULL )
 {
     /* this->Init( bEmbed, false ); */
 }
 
 PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
                         PdfVecObjects* pParent, bool bEmbed, bool bSubset )
-    : PdfFont( pMetrics, pEncoding, pParent )
+    : PdfFont( pMetrics, pEncoding, pParent ), m_pDescendantFonts( NULL )
 {
     this->Init( bEmbed, bSubset );
 }
@@ -76,7 +76,6 @@ PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEnco
 void PdfFontCID::Init( bool bEmbed, bool bSubset )
 {
     PdfObject* pDescriptor;
-    PdfObject* pDescendantFonts;
     PdfObject* pCIDSystemInfo;
     PdfObject* pUnicode;
 
@@ -84,7 +83,7 @@ void PdfFontCID::Init( bool bEmbed, bool bSubset )
     PdfArray   array;
 
     // The descendant font is a CIDFont:
-    pDescendantFonts = this->GetObject()->GetOwner()->CreateObject("Font");
+    m_pDescendantFonts = this->GetObject()->GetOwner()->CreateObject("Font");
     pCIDSystemInfo   = this->GetObject()->GetOwner()->CreateObject();
     pDescriptor      = this->GetObject()->GetOwner()->CreateObject("FontDescriptor");
     pUnicode         = this->GetObject()->GetOwner()->CreateObject(); // The ToUnicode CMap
@@ -98,25 +97,25 @@ void PdfFontCID::Init( bool bEmbed, bool bSubset )
     m_pEncoding->AddToDictionary( this->GetObject()->GetDictionary() );
 
     // The DecendantFonts, should be an indirect object:
-    array.push_back( pDescendantFonts->Reference() );
+    array.push_back( m_pDescendantFonts->Reference() );
     this->GetObject()->GetDictionary().AddKey( "DescendantFonts", array );
 
     // Setting the DescendantFonts paras
     // This is a type2 CIDFont, which is also known as TrueType:
-    pDescendantFonts->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("CIDFontType2") );
+    m_pDescendantFonts->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("CIDFontType2") );
 
     // Same base font as the owner font:
-    pDescendantFonts->GetDictionary().AddKey( "BaseFont", this->GetBaseFont() );
+    m_pDescendantFonts->GetDictionary().AddKey( "BaseFont", this->GetBaseFont() );
 
     // The CIDSystemInfo, should be an indirect object:
-    pDescendantFonts->GetDictionary().AddKey( "CIDSystemInfo", pCIDSystemInfo->Reference() );
+    m_pDescendantFonts->GetDictionary().AddKey( "CIDSystemInfo", pCIDSystemInfo->Reference() );
 
     // The FontDescriptor, should be an indirect object:
-    pDescendantFonts->GetDictionary().AddKey( "FontDescriptor", pDescriptor->Reference() );
-    pDescendantFonts->GetDictionary().AddKey( "CIDToGIDMap", PdfName("Identity") );
+    m_pDescendantFonts->GetDictionary().AddKey( "FontDescriptor", pDescriptor->Reference() );
+    m_pDescendantFonts->GetDictionary().AddKey( "CIDToGIDMap", PdfName("Identity") );
 
     // Add the width keys
-    this->CreateWidth( pDescendantFonts );
+    this->CreateWidth( m_pDescendantFonts );
 
     // Create the ToUnicode CMap
     this->CreateCMap( pUnicode );
@@ -563,6 +562,57 @@ void PdfFontCID::CreateCMap( PdfObject* pUnicode ) const
     pStream->Append( out.str().c_str(), out.str().length() );
 */
 
+void PdfFontCID::MaybeUpdateBaseFontKey(void)
+{
+   if (!m_pDescendantFonts) {
+      return;
+   }
+
+   const PdfFontMetricsFreetype *pFreetype = dynamic_cast<const PdfFontMetricsFreetype *>(this->GetFontMetrics());
+   if (!pFreetype) {
+      return;
+   }
+
+   std::string name = this->GetBaseFont().GetName();
+   if (this->IsBold() && this->IsItalic()) {
+      if (pFreetype->IsBold() && pFreetype->IsItalic()) {
+         return;
+      }
+      if (pFreetype->IsBold() && !pFreetype->IsItalic()) {
+         name += ",Italic";
+      } else if (!pFreetype->IsBold() && pFreetype->IsItalic()) {
+         name += ",Bold";
+      } else {
+         name += ",BoldItalic";
+      }
+   } else if (this->IsBold()) {
+      if (pFreetype->IsBold()) {
+         return;
+      }
+      name += ",Bold";
+   } else if (this->IsItalic()) {
+      if (pFreetype->IsItalic()) {
+         return;
+      }
+      name += ",Italic";
+   } else {
+      return;
+   }
+
+   m_pDescendantFonts->GetDictionary().AddKey("BaseFont", PdfName( name ) );
+}
+
+void PdfFontCID::SetBold( bool bBold )
+{
+   PdfFont::SetBold(bBold);
+   MaybeUpdateBaseFontKey();
+}
+
+void PdfFontCID::SetItalic( bool bItalic )
+{
+   PdfFont::SetItalic(bItalic);
+   MaybeUpdateBaseFontKey();
+}
 
 };
 

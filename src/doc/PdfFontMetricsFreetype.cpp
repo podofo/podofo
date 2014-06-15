@@ -169,11 +169,15 @@ void PdfFontMetricsFreetype::InitFromFace(bool pIsSymbol)
     m_dStrikeOutThickness = 0.0;
     m_fFontSize           = 0.0f;
 	 m_bSymbol = pIsSymbol;
+    m_bIsBold = false;
+    m_bIsItalic = false;
 
     if ( m_pFace )
     {	// better be, but just in case...
         m_dPdfAscent  = m_pFace->ascender  * 1000.0 / m_pFace->units_per_EM;
         m_dPdfDescent = m_pFace->descender * 1000.0 / m_pFace->units_per_EM;
+        m_bIsBold = (m_pFace->style_flags & FT_STYLE_FLAG_BOLD) != 0;
+        m_bIsItalic = (m_pFace->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
     }
 
     // Try to get a unicode charmap
@@ -369,6 +373,15 @@ long PdfFontMetricsFreetype::GetGlyphId( long lUnicode ) const
     return lGlyph;
 }
 
+bool PdfFontMetricsFreetype::IsBold(void) const
+{
+    return m_bIsBold;
+}
+
+bool PdfFontMetricsFreetype::IsItalic(void) const
+{
+    return m_bIsItalic;
+}
 
 // -----------------------------------------------------
 // 

@@ -114,10 +114,17 @@ class PdfFontCID : public PdfFont {
      */
     void EmbedFont( PdfObject* pDescriptor );
 
+    PdfObject *m_pDescendantFonts;
  protected:
     // Peter Petrov 24 September 2008
     PdfObject* m_pDescriptor;
 	 std::set<pdf_utf16be> m_setUsed;
+
+    void MaybeUpdateBaseFontKey(void);
+
+    /* to update "BaseFont" key */
+    virtual void SetBold( bool bBold );
+    virtual void SetItalic( bool bItalic );
 };
 
 };
