@@ -68,7 +68,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION( ColorTest );
          else                                                                 \
          {                                                                    \
              cpputMsg_.addDetail( "Error type mismatch. Actual: " #errorType ); \
-             cpputMsg_.addDetail( std::string("What()  : ") + e.what() );     \
+             cpputMsg_.addDetail( std::string("What()  : ") + e.ErrorName(e.GetError()) );     \
          }                                                                    \
       } catch ( const std::exception &e) {                                    \
          cpputMsg_.addDetail( "Actual  : " +                                  \

@@ -419,7 +419,7 @@ void PdfParser::HasLinearizationDict()
             return;
         }
     } catch( PdfError & e ) {
-        PdfError::LogMessage( eLogSeverity_Warning, e.what() );
+        PdfError::LogMessage( eLogSeverity_Warning, e.ErrorName(e.GetError()) );
         delete m_pLinearization;
         m_pLinearization = NULL;
         return;

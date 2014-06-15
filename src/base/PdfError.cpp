@@ -102,7 +102,6 @@ PdfError::PdfError( const EPdfError & eCode, const char* pszFile, int line,
 }
 
 PdfError::PdfError( const PdfError & rhs )
-    : std::exception()
 {
     this->operator=( rhs );
 }
@@ -180,11 +179,6 @@ void PdfError::PrintErrorMsg() const
 
         
     PdfError::LogErrorMessage( eLogSeverity_Error, "\n\n" );
-}
-
-const char* PdfError::what() const throw()
-{
-    return PdfError::ErrorName( m_error );
 }
 
 const char* PdfError::ErrorName( EPdfError eCode )

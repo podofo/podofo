@@ -218,7 +218,7 @@ typedef TDequeErrorInfo::const_iterator TCIDequeErrorInfo;
  *  This class provides also meaningfull
  *  error descriptions.
  */
-class PODOFO_EXCEPTION_API_DOXYGEN PdfError : public std::exception {
+class PODOFO_EXCEPTION_API_DOXYGEN PdfError {
  public:
 
     // OC 17.08.2010 New to optionally replace stderr output by a callback:
@@ -357,12 +357,6 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError : public std::exception {
      */
     void PrintErrorMsg() const;
 
-    /** Reimplemented from std::exception.
-     *  \returns a c string describing the error.
-     *  Annotated throw() in defiance of CODINGSTYLE.txt because we can't discard qualifiers on override.
-     */
-    virtual const char* what() const throw();
-    
     /** Get the name for a certain error code.
      *  \returns the name or NULL if no name for the specified
      *           error code is available.
