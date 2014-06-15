@@ -130,12 +130,15 @@ PdfString::PdfString (const unsigned short *pszString_wchart, pdf_long lLen, boo
     }
 }
 #else
-PdfString::PdfString( const wchar_t* pszString )
+PdfString::PdfString( const wchar_t* pszString, pdf_long lLen )
     : m_bHex( false ), m_bUnicode( true ), m_pEncoding( NULL )
 {
     if( pszString )
     {
-        pdf_long lLen = wcslen( pszString );
+        if (lLen == -1)
+        {
+            lLen = wcslen( pszString );
+        }
         if( sizeof(wchar_t) == 2 ) 
         {
             // We have UTF16

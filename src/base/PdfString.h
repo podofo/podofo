@@ -112,7 +112,7 @@ class PODOFO_API PdfString : public PdfDataType{
 #if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
 	 PdfString (const unsigned short *pszString_wchart, pdf_long lLen, bool dummy);
 #else
-	PdfString( const wchar_t* pszString );
+       PdfString( const wchar_t* pszString, pdf_long lLen = -1 );
 #endif
 
     /** Construct a new PdfString from a string. 
