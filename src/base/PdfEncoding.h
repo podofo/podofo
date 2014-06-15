@@ -398,6 +398,8 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
      */
     virtual pdf_utf16be GetCharCode( int nIndex ) const;
 
+    char GetUnicodeCharCode(pdf_utf16be unicodeValue) const;
+
  private:
     /** Initialize the internal table of mappings from unicode code points
      *  to encoded byte values.

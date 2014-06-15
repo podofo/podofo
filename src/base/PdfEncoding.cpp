@@ -197,6 +197,18 @@ PdfRefCountedBuffer PdfSimpleEncoding::ConvertToEncoding( const PdfString & rStr
     return cDest;
 }
 
+char PdfSimpleEncoding::GetUnicodeCharCode(pdf_utf16be unicodeValue) const
+{
+    if( !m_pEncodingTable )
+        const_cast<PdfSimpleEncoding*>(this)->InitEncodingTable();
+
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+    unicodeValue = ((unicodeValue & 0xff00) >> 8) | ((unicodeValue & 0xff) << 8);
+#endif // PODOFO_IS_LITTLE_ENDIAN
+
+    return m_pEncodingTable[unicodeValue];
+}
+
 // -----------------------------------------------------
 // PdfDocEncoding
 // -----------------------------------------------------
