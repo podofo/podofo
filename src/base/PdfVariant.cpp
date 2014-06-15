@@ -256,9 +256,9 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
             }
 
 #ifdef _WIN64
-            pDevice->Print( "%I64i", m_Data.nNumber );
+            pDevice->Print( "%" PDF_FORMAT_INT64, m_Data.nNumber );
 #else
-            pDevice->Print( "%lld", m_Data.nNumber );
+            pDevice->Print( "%" PDF_FORMAT_INT64, m_Data.nNumber );
 #endif
             break;
         }

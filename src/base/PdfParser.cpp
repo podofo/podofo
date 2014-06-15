@@ -704,7 +704,7 @@ void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
             nNumObjects  = this->GetNextNumber();
 
 #ifdef PODOFO_VERBOSE_DEBUG
-            PdfError::DebugMessage("Reading numbers: %lli %lli\n", nFirstObject, nNumObjects );
+            PdfError::DebugMessage("Reading numbers: %" PDF_FORMAT_INT64 " %" PDF_FORMAT_INT64 "\n", nFirstObject, nNumObjects );
 #endif // PODOFO_VERBOSE_DEBUG
 
             if( bPositionAtEnd )
@@ -746,7 +746,7 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
     int count = 0;
 
 #ifdef PODOFO_VERBOSE_DEBUG
-    PdfError::DebugMessage("Reading XRef Section: %lli with %lli Objects.\n", nFirstObject, nNumObjects );
+    PdfError::DebugMessage("Reading XRef Section: %" PDF_FORMAT_INT64 " with %" PDF_FORMAT_INT64 " Objects.\n", nFirstObject, nNumObjects );
 #endif // PODOFO_VERBOSE_DEBUG 
 
     if ( nFirstObject + nNumObjects > m_nNumObjects )
@@ -755,8 +755,8 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
         // specified in the trailer if any. That's an error unless we're trying
         // to recover from a missing /Size entry.
 		PdfError::LogMessage( eLogSeverity_Warning,
-			      "There are more objects (%lli) in this XRef table than "
-			      "specified in the size key of the trailer directory (%li)!\n",
+			      "There are more objects (%" PDF_FORMAT_INT64 ") in this XRef table than "
+			      "specified in the size key of the trailer directory (%" PDF_FORMAT_INT64 ")!\n",
 			      nFirstObject + nNumObjects, m_nNumObjects );
 
 #ifdef _WIN32
@@ -791,13 +791,13 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
         {
             m_offsets[objID].bParsed = true;
 #if defined(_WIN64) && defined(_MSC_VER)
-            sscanf( m_buffer.GetBuffer(), "%10I64d %5ld %c%c%c", 
+            sscanf( m_buffer.GetBuffer(), "%10" PDF_FORMAT_INT64 " %5ld %c%c%c", 
                     &(m_offsets[objID].lOffset), 
                     &(m_offsets[objID].lGeneration), &(m_offsets[objID].cUsed), &empty1, &empty2 );
 #else
             pdf_int64 tmp1;
             long int tmp2;
-            sscanf( m_buffer.GetBuffer(), "%10lld %5ld %c%c%c", 
+            sscanf( m_buffer.GetBuffer(), "%10" PDF_FORMAT_INT64 " %5ld %c%c%c", 
                     &tmp1, &tmp2, &(m_offsets[objID].cUsed), &empty1, &empty2 );
 
             m_offsets[objID].lOffset = static_cast<pdf_long>(tmp1);
@@ -810,7 +810,7 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
 
     if( count != nNumObjects )
     {
-        PdfError::LogMessage( eLogSeverity_Warning, "Count of readobject is %i. Expected %lli.\n", count, nNumObjects );
+        PdfError::LogMessage( eLogSeverity_Warning, "Count of readobject is %i. Expected %" PDF_FORMAT_INT64 ".\n", count, nNumObjects );
         PODOFO_RAISE_ERROR( ePdfError_NoXRef );
     }
 
