@@ -110,6 +110,25 @@ PdfString::PdfString( const char* pszString, const PdfEncoding * const pEncoding
 }
 
 #if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+PdfString::PdfString (const unsigned short *pszString_wchart, pdf_long lLen, bool dummy)
+	 : m_bHex( false ), m_bUnicode( true ), m_pEncoding( NULL )
+{
+    if( pszString_wchart && lLen)
+    {
+        // We have UTF16
+        lLen *= 2;
+        m_buffer = PdfRefCountedBuffer( lLen + 2 );
+        memcpy( m_buffer.GetBuffer(), pszString_wchart, lLen );
+        m_buffer.GetBuffer()[lLen] = '\0';
+        m_buffer.GetBuffer()[lLen+1] = '\0';
+            
+        // if the buffer is a UTF-16LE string
+        // convert it to UTF-16BE
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+        SwapBytes( m_buffer.GetBuffer(), lLen );
+#endif // PODOFO_IS_LITTLE_ENDIA
+    }
+}
 #else
 PdfString::PdfString( const wchar_t* pszString )
     : m_bHex( false ), m_bUnicode( true ), m_pEncoding( NULL )
@@ -1055,6 +1074,11 @@ pdf_long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_long lL
     return target - pszUtf8;
 }
 
+PdfRefCountedBuffer &PdfString::GetBuffer(void)
+{
+	return m_buffer;
+}
+
 /* ---------------------------------------------------------------------
 
     Note A.
@@ -1076,5 +1100,3 @@ pdf_long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_long lL
 
 
 };
-
-
