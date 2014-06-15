@@ -253,6 +253,12 @@ void ColorChanger::ReplaceColorsInPage( PdfCanvas* pPage )
                             PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
                             break;
                         }
+                        case ePdfColorSpace_Indexed:
+                        {
+                            PdfError::LogMessage( eLogSeverity_Error, "Indexed color space not supported.\n" );                
+                            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+                            break;
+                        }
                         case ePdfColorSpace_Unknown:
 
                         default:
@@ -295,6 +301,7 @@ void ColorChanger::ReplaceColorsInPage( PdfCanvas* pPage )
 
                         case ePdfColorSpace_Separation:
                         case ePdfColorSpace_CieLab:
+                        case ePdfColorSpace_Indexed:
                         case ePdfColorSpace_Unknown:
 
                         default:
@@ -386,6 +393,7 @@ void ColorChanger::PutColorOnStack( const PdfColor & rColor, std::vector<PdfVari
     
         case ePdfColorSpace_Separation:
         case ePdfColorSpace_CieLab:
+        case ePdfColorSpace_Indexed:
         case ePdfColorSpace_Unknown:
 
         default:
@@ -526,6 +534,7 @@ const char* ColorChanger::GetKeywordForColor( const PdfColor & rColor, bool bIsS
 
         case ePdfColorSpace_Separation:
         case ePdfColorSpace_CieLab:
+        case ePdfColorSpace_Indexed:
         case ePdfColorSpace_Unknown:
         
         default:

@@ -55,16 +55,16 @@ void EncodingTest::testDifferences()
 
 
     // Adding 0 should work
-    difference.AddDifference( 0, PdfName("A") );
+    difference.AddDifference( 0, 0, PdfName("A") );
     CPPUNIT_ASSERT_EQUAL( static_cast<int>(difference.GetCount()), 1 );
 
     // Adding 255 should work
-    difference.AddDifference( 255, PdfName("B") );
+    difference.AddDifference( 255, 0, PdfName("B") );
     CPPUNIT_ASSERT_EQUAL( static_cast<int>(difference.GetCount()), 2 );
 
     // Adding out of range should throw exception
-    CPPUNIT_ASSERT_THROW( difference.AddDifference( -1, PdfName("C") );, PdfError );
-    CPPUNIT_ASSERT_THROW( difference.AddDifference( 256, PdfName("D") );, PdfError );
+    CPPUNIT_ASSERT_THROW( difference.AddDifference( -1, 0, PdfName("C") );, PdfError );
+    CPPUNIT_ASSERT_THROW( difference.AddDifference( 256, 0, PdfName("D") );, PdfError );
 
     CPPUNIT_ASSERT_EQUAL( static_cast<int>(difference.GetCount()), 2 );
 
@@ -90,7 +90,7 @@ void EncodingTest::testDifferences()
     expected.push_back( static_cast<pdf_int64>(255LL) );
     expected.push_back( PdfName("X") );
 
-    difference.AddDifference( 255, PdfName("X") );
+    difference.AddDifference( 255, 0, PdfName("X") );
 
     difference.ToArray( data );
 
@@ -113,11 +113,11 @@ void EncodingTest::testDifferences()
     expected.push_back( static_cast<pdf_int64>(255LL) );
     expected.push_back( PdfName("X") );
 
-    difference.AddDifference( 1, PdfName("B") );
-    difference.AddDifference( 2, PdfName("C") );
-    difference.AddDifference( 4, PdfName("D") );
-    difference.AddDifference( 5, PdfName("E") );
-    difference.AddDifference( 9, PdfName("F") );
+    difference.AddDifference( 1, 0, PdfName("B") );
+    difference.AddDifference( 2, 0, PdfName("C") );
+    difference.AddDifference( 4, 0, PdfName("D") );
+    difference.AddDifference( 5, 0, PdfName("E") );
+    difference.AddDifference( 9, 0, PdfName("F") );
 
     difference.ToArray( data );
 
@@ -161,11 +161,11 @@ void EncodingTest::testDifferencesObject()
 {
     PdfMemDocument doc;
     PdfEncodingDifference difference;
-    difference.AddDifference( 1, PdfName("B") );
-    difference.AddDifference( 2, PdfName("C") );
-    difference.AddDifference( 4, PdfName("D") );
-    difference.AddDifference( 5, PdfName("E") );
-    difference.AddDifference( 9, PdfName("F") );
+    difference.AddDifference( 1, 0, PdfName("B") );
+    difference.AddDifference( 2, 0, PdfName("C") );
+    difference.AddDifference( 4, 0, PdfName("D") );
+    difference.AddDifference( 5, 0, PdfName("E") );
+    difference.AddDifference( 9, 0, PdfName("F") );
 
     PdfDifferenceEncoding encoding( difference, PdfDifferenceEncoding::eBaseEncoding_MacRoman, &doc );
 
@@ -209,8 +209,8 @@ void EncodingTest::testDifferencesEncoding()
 
     // Create a differences encoding where A and B are exchanged
     PdfEncodingDifference difference;
-    difference.AddDifference( 0x0041, PdfName("B") );
-    difference.AddDifference( 0x0042, PdfName("A") );
+    difference.AddDifference( 0x0041, 0, PdfName("B") );
+    difference.AddDifference( 0x0042, 0, PdfName("A") );
 
     PdfDifferenceEncoding encoding( difference, PdfDifferenceEncoding::eBaseEncoding_WinAnsi, &doc );
 
@@ -308,8 +308,8 @@ void EncodingTest::testGetCharCode()
     PdfVecObjects vec;
     vec.SetAutoDelete( true );
     PdfEncodingDifference difference;
-    difference.AddDifference( 0x0041, PdfName("B") );
-    difference.AddDifference( 0x0042, PdfName("A") );
+    difference.AddDifference( 0x0041, 0, PdfName("B") );
+    difference.AddDifference( 0x0042, 0, PdfName("A") );
     PdfDifferenceEncoding cDifferenceEncoding( difference, PdfDifferenceEncoding::eBaseEncoding_WinAnsi, &vec );
     ret = outofRangeHelper( &cDifferenceEncoding, msg, "PdfDifferenceEncoding" );
     CPPUNIT_ASSERT_EQUAL_MESSAGE( msg, ret, true );

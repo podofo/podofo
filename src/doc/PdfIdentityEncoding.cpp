@@ -127,7 +127,7 @@ PdfString PdfIdentityEncoding::ConvertToUnicode( const PdfString & rEncodedStrin
         return(PdfString("\0"));
 }
 
-PdfRefCountedBuffer PdfIdentityEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const
+PdfRefCountedBuffer PdfIdentityEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* /*pFont*/ ) const
 {
     // Get the string in UTF-16be format
     PdfString sStr = rString.ToUnicode();

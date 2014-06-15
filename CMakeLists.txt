@@ -80,6 +80,8 @@ CHECK_INCLUDE_FILE("stdint.h" PODOFO_HAVE_STDINT_H)
 # See: http://msdn.microsoft.com/en-us/library/aa384264(VS.85).aspx
 CHECK_INCLUDE_FILE("BaseTsd.h" PODOFO_HAVE_BASETSD_H) 
 
+CHECK_TYPE_SIZE("long int" SZ_LONG)
+
 # We cache integer type detection results, and don't repeat them
 # (and overwrite the user's manual changes) if they've been done already.
 IF(NOT PDF_INT64_TYPENAME)
@@ -93,6 +95,7 @@ IF(NOT PDF_INT64_TYPENAME)
     SET(pdfuint16 "uint16_t")
     SET(pdfuint32 "uint32_t")
     SET(pdfuint64 "uint64_t")
+    CHECK_TYPE_SIZE("int64_t" SZ_INT64)
   ELSE(PODOFO_HAVE_STDINT_H)
     # No stdint.h . Try BaseTsd.h windows types.
     IF(PODOFO_HAVE_BASETSD_H)
@@ -105,6 +108,7 @@ IF(NOT PDF_INT64_TYPENAME)
        SET(pdfuint16 "unsigned short")
        SET(pdfuint32 "UINT32")
        SET(pdfuint64 "UINT64")
+       CHECK_TYPE_SIZE("INT64" SZ_INT64)
     ELSE(PODOFO_HAVE_BASETSD_H)
        # No BaseTsd.h either. Assume the standard types, and go poking
        # for a sane 64-bit integer.
@@ -132,21 +136,22 @@ IF(NOT PDF_INT64_TYPENAME)
        #
        # Do we have VC >= 6's __uint64 and __int64?
        # See: http://icfun.blogspot.com/2008/04/use-of-int64-variable-in-c.html
-       CHECK_TYPE_SIZE("__uint64" SZ___INT64)
-       CHECK_TYPE_SIZE("__int64"  SZ___UINT64)
+       CHECK_TYPE_SIZE("__int64" SZ___INT64)
+       CHECK_TYPE_SIZE("__uint64"  SZ___UINT64)
        IF(SZ___INT64 == 8 AND SZ___UINT64 == 8)
          # MS compiler, VC6 or newer without BaseTsd.h in SDK
          SET(pdfint64 "__int64")
          SET(pdfuint64 "__uint64")
+	 CHECK_TYPE_SIZE("__int64" SZ_INT64)
        ELSE(SZ___INT64 AND SZ___UINT64)
          # Still no luck. Old unix compiler, Borland, or some other monster?
          # Are we lucky and sizeof(long) == 8?
-         CHECK_TYPE_SIZE("long int", SZ_LONG)
-         CHECK_TYPE_SIZE("unsigned long int", SZ_ULONG)
+         CHECK_TYPE_SIZE("unsigned long int" SZ_ULONG)
          IF(SZ_LONG == 8 AND SZ_ULONG == 8)
            # Must be on a LP64 platform, sizeof(long) = 8
            SET(pdfint64 "long int")
            SET(pdfuint64 "unsigned long int")
+	   CHECK_TYPE_SIZE("long int" SZ_INT64)
          ELSE(SZ_LONG == 8 AND SZ_ULONG == 8)
            # See if the compiler implements "long long int", _int64, int64, __int64 or int64_t
            IF(PODOFO_HAVE_SYS_TYPES_H)
@@ -157,24 +162,28 @@ IF(NOT PDF_INT64_TYPENAME)
            IF(SZ_LONG_LONG == 8 AND SZ_UNSIGNED_LONG_LONG == 8)
              SET(pdfint64 "long int")
              SET(pdfuint64 "unsigned long int")
+	     CHECK_TYPE_SIZE("long int" SZ_INT64)
            ELSE(SZ_LONG_LONG == 8 AND SZ_UNSIGNED_LONG_LONG == 8)
              CHECK_TYPE_SIZE("int64_t"                SZ_INT64_T)
              CHECK_TYPE_SIZE("uint64_t"               SZ_UINT64_T)
              IF(SZ_INT64_T AND SZ_UINT64_T)
                SET(pdfint64 "int64_t")
                SET(pdfuint64 "uint64_t")
+	       CHECK_TYPE_SIZE("int64_t" SZ_INT64)
              ELSE(SZ_INT64_T AND SZ_UINT64_T)
                CHECK_TYPE_SIZE("int64"                SZ_INT64)
                CHECK_TYPE_SIZE("uint64"               SZ_UINT64)
                IF(SZ_INT64 AND SZ_UINT64)
                  SET(pdfint64 "int64")
                  SET(pdfuint64 "uint64")
+		 CHECK_TYPE_SIZE("int64" SZ_INT64)
                ELSE(SZ_INT64 AND SZ_UINT64)
                  CHECK_TYPE_SIZE("_int64"                SZ__INT64)
                  CHECK_TYPE_SIZE("_uint64"               SZ__UINT64)
                  IF(SZ__INT64 AND SZ__UINT64)
                    SET(pdfint64 "_int64")
                    SET(pdfuint64 "_uint64")
+		   CHECK_TYPE_SIZE("_int64" SZ_INT64)
                  ELSE(SZ__INT64 AND SZ__UINT64)
                    MESSAGE("Oh my lord, your compiler doesn't seem to support any of the int64 type flavours we tried.")
                    MESSAGE(WARNING "You must set the PDF_INTxx_TYPENAME and PDF_UINTxx_TYPENAME variables manually")
@@ -199,7 +208,6 @@ IF(NOT PDF_INT64_TYPENAME AND pdfint64)
   SET(PDF_UINT16_TYPENAME "${pdfuint16}" CACHE STRING "Name of detected 16-bit unsigned integer type to use")
   SET(PDF_UINT8_TYPENAME  "${pdfuint8}" CACHE STRING "Name of detected 8-bit unsigned integer type to use")
 ENDIF(NOT PDF_INT64_TYPENAME AND pdfint64)
-
 
 # Linux packagers want an uninstall target.
 CONFIGURE_FILE(

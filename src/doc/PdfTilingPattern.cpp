@@ -79,7 +79,6 @@ PdfTilingPattern::PdfTilingPattern( EPdfTilingPatternType eTilingType,
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
     out << "Ptrn" << this->GetObject()->Reference().ObjectNumber();
 
-	 const char *buff = out.str().c_str();
     m_Identifier = PdfName( out.str().c_str() );
 
     this->Init( eTilingType, strokeR, strokeG, strokeB,
@@ -223,6 +222,8 @@ void PdfTilingPattern::Init( EPdfTilingPatternType eTilingType,
 		case ePdfTilingPatternType_Vertical:
 			out << left + whalf  << " " << bottom         << " m " << left + whalf  << " " << top            << " l" << std::endl;
 			break;
+		case ePdfTilingPatternType_Image:
+			/* This is handled above, based on the 'pImage' variable */
 		default:
 			PODOFO_RAISE_ERROR (ePdfError_InvalidEnumValue);
 			break;

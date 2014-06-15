@@ -228,8 +228,6 @@ void PdfFontMetricsFreetype::InitFromFace(bool pIsSymbol)
 
 void PdfFontMetricsFreetype::InitFontSizes()
 {
-    FT_Error ftErr;
-
     if( !m_pFace )
     {
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "Cannot set font size on invalid font!" );
@@ -237,7 +235,7 @@ void PdfFontMetricsFreetype::InitFontSizes()
  
     float fSize = 1.0f;
     // TODO: Maybe we have to set this for charwidth!!!
-    ftErr = FT_Set_Char_Size( m_pFace, static_cast<int>(fSize*64.0), 0, 72, 72 );
+    FT_Set_Char_Size( m_pFace, static_cast<int>(fSize*64.0), 0, 72, 72 );
 
     // calculate the line spacing now, as it changes only with the font size
     m_dLineSpacing        = (static_cast<double>(m_pFace->height) / m_pFace->units_per_EM);

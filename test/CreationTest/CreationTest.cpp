@@ -46,7 +46,7 @@ void WriteStringToStream( const PdfString & rsString, std::ostringstream & oss, 
     delete pEncoding;
 }
 
-void CreateUnicodeAnnotationText( PdfPage* pPage, PdfDocument* pDocument )
+void CreateUnicodeAnnotationText( PdfPage* pPage, PdfDocument* /*pDocument*/ )
 {
     PdfString sJap(reinterpret_cast<const pdf_utf8*>("「PoDoFo」は今から日本語も話せます。"));
     PdfAnnotation* pAnnotation = 

@@ -69,7 +69,8 @@ void DateTest::testDateValue()
     PdfDate date(PdfString("D:20120530235959Z00'00'"));
     CPPUNIT_ASSERT_EQUAL(true,date.IsValid());
     const time_t &time = date.GetTime();
-    struct tm  _tm = {0};
+    struct tm  _tm;
+    memset (&_tm, 0, sizeof(struct tm));
     _tm.tm_year = 2012-1900;
     _tm.tm_mon = 4;
     _tm.tm_mday = 30;

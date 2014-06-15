@@ -180,7 +180,7 @@ PdfImage *PdfSigIncSignatureField::CreateSignatureImage(PdfDocument *pParent)
    else if(m_ImageLen > 0 && m_pImageData != NULL)
    {
       pPdfImage = new PdfImage(pParent);
-      pPdfImage->LoadFromJpegData((unsigned char*)m_pImageData, m_ImageLen); 
+      pPdfImage->LoadFromJpegData((const unsigned char *) m_pImageData, m_ImageLen); 
    }
 #endif
 

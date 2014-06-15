@@ -260,6 +260,7 @@ void PdfAxialShadingPattern::Init( double dX0, double dY0, double dX1, double dY
 		}
 		break;
 
+	case ePdfColorSpace_Indexed:
         case ePdfColorSpace_Unknown:
 		default:
 	        PODOFO_RAISE_ERROR_INFO( ePdfError_CannotConvertColor, "Colorspace not supported in PdfAxialShadingPattern." );
@@ -433,6 +434,7 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
 		}
 		break;
 
+        case ePdfColorSpace_Indexed:
         case ePdfColorSpace_Unknown:
 		default:
 	        PODOFO_RAISE_ERROR_INFO( ePdfError_CannotConvertColor, "Colorspace not supported in PdfFunctionBaseShadingPattern." );
@@ -517,6 +519,7 @@ void PdfRadialShadingPattern::Init( double dX0, double dY0, double dR0, double d
 		}
 		break;
 
+        case ePdfColorSpace_Indexed:
         case ePdfColorSpace_Unknown:
 		default:
 	        PODOFO_RAISE_ERROR_INFO( ePdfError_CannotConvertColor, "Colorspace not supported in PdfRadialShadingPattern." );

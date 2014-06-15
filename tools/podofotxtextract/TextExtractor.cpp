@@ -59,7 +59,6 @@ void TextExtractor::ExtractText( PdfMemDocument* pDocument, PdfPage* pPage )
 
     double dCurPosX     = 0.0;
     double dCurPosY     = 0.0;
-    double dCurFontSize = 0.0;
     bool   bTextBlock   = false;
     PdfFont* pCurFont   = NULL;
 
@@ -82,7 +81,6 @@ void TextExtractor::ExtractText( PdfMemDocument* pDocument, PdfPage* pPage )
             {
                 bTextBlock   = true;     
                 // BT does not reset font
-                // dCurFontSize = 0.0;
                 // pCurFont     = NULL;
             }
             else if( strcmp( pszToken, "ET" ) == 0 ) 
@@ -95,7 +93,6 @@ void TextExtractor::ExtractText( PdfMemDocument* pDocument, PdfPage* pPage )
             {
                 if( strcmp( pszToken, "Tf" ) == 0 ) 
                 {
-                    dCurFontSize = stack.top().GetReal();
                     stack.pop();
                     PdfName fontName = stack.top().GetName();
                     PdfObject* pFont = pPage->GetFromResources( PdfName("Font"), fontName );

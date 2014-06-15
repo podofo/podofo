@@ -552,6 +552,7 @@ PdfColorSeparation::PdfColorSeparation( const std::string & sName, double dDensi
             break;
         }
         case ePdfColorSpace_Unknown:
+        case ePdfColorSpace_Indexed:
         default:
         {
             PODOFO_RAISE_ERROR( ePdfError_InvalidEnumValue );
@@ -623,6 +624,7 @@ PdfColor PdfColor::ConvertToGrayScale() const
             break;
         }
         case ePdfColorSpace_CieLab:
+        case ePdfColorSpace_Indexed:
         case ePdfColorSpace_Unknown:
         {
             PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
@@ -686,6 +688,7 @@ PdfColor PdfColor::ConvertToRGB() const
             break;
         }
         case ePdfColorSpace_CieLab:
+        case ePdfColorSpace_Indexed:
         case ePdfColorSpace_Unknown:
         {
             PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
@@ -736,6 +739,7 @@ PdfColor PdfColor::ConvertToCMYK() const
         }
         case ePdfColorSpace_Separation:
         case ePdfColorSpace_CieLab:
+        case ePdfColorSpace_Indexed:
         case ePdfColorSpace_Unknown:
         {
             PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
@@ -787,6 +791,7 @@ PdfArray PdfColor::ToArray() const
             array.push_back( m_separationDensity );
             break;
         }
+        case ePdfColorSpace_Indexed:
         case ePdfColorSpace_Unknown:
         {
             PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
@@ -1131,6 +1136,7 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
                 break;
 
                 case ePdfColorSpace_Separation:
+                case ePdfColorSpace_Indexed:
                 {
                     break;
                 }
@@ -1178,6 +1184,7 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
         case ePdfColorSpace_DeviceGray:
         case ePdfColorSpace_DeviceRGB:
         case ePdfColorSpace_DeviceCMYK:
+        case ePdfColorSpace_Indexed:
         {
             break;
         }

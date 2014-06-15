@@ -105,6 +105,7 @@ void PdfCanvas::AddColorResource( const PdfColor & rColor )
         case ePdfColorSpace_DeviceGray:
         case ePdfColorSpace_DeviceRGB:
         case ePdfColorSpace_DeviceCMYK:
+	case ePdfColorSpace_Indexed:
             // No colorspace needed
         case ePdfColorSpace_Unknown:
 		default:

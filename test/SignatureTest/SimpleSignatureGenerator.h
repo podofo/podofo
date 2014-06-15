@@ -19,7 +19,7 @@ public:
 	virtual ~SimpleSignatureGenerator() {
 		delete pSignature;
 	}
-	virtual bool appendData(const char *pData, unsigned int dataSize)
+	virtual bool appendData(const char * /*pData*/, unsigned int /*dataSize*/)
 	{
 		return true;
 	}

@@ -150,7 +150,7 @@ void PdfXRefStreamParserObject::ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], c
             //printf("nCount=%i ", static_cast<int>(nCount));
             //printf("pBuffer=%li ", (long)(pBuffer - pStart));
             //printf("pEnd=%li ", lBufferLen);
-            if ( nFirstObj >= 0 && nFirstObj < m_pOffsets->size() 
+            if ( nFirstObj >= 0 && nFirstObj < static_cast<pdf_int64>(m_pOffsets->size()) 
                  && ! (*m_pOffsets)[static_cast<int>(nFirstObj)].bParsed)
             {
 	        ReadXRefStreamEntry( pBuffer, lBufferLen, nW, static_cast<int>(nFirstObj) );

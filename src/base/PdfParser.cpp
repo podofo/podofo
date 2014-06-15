@@ -796,7 +796,7 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
                     &(m_offsets[objID].lGeneration), &(m_offsets[objID].cUsed), &empty1, &empty2 );
 #else
             pdf_int64 tmp1;
-            long int tmp2;
+            pdf_int64 tmp2;
             sscanf( m_buffer.GetBuffer(), "%10" PDF_FORMAT_INT64 " %5ld %c%c%c", 
                     &tmp1, &tmp2, &(m_offsets[objID].cUsed), &empty1, &empty2 );
 

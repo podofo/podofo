@@ -36,6 +36,10 @@
 #cmakedefine PDF_UINT32_TYPENAME @PDF_UINT32_TYPENAME@
 #cmakedefine PDF_UINT64_TYPENAME @PDF_UINT64_TYPENAME@
 
+/* Sizes of int64 and long, to pick proper printf format */
+#cmakedefine SZ_INT64 @SZ_INT64@
+#cmakedefine SZ_LONG @SZ_LONG@
+
 /* Endianness */
 #cmakedefine TEST_BIG
 

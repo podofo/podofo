@@ -369,7 +369,7 @@ void PdfImage::LoadFromJpegHandle( PdfFileInputStream* pInStream )
     (void) jpeg_destroy_decompress(&cinfo);
 }
 
-void PdfImage::LoadFromJpegData(unsigned char* pData, pdf_long dwLen)
+void PdfImage::LoadFromJpegData(const unsigned char* pData, pdf_long dwLen)
 {
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr         jerr;

@@ -149,6 +149,9 @@ namespace PoDoFo {
 #if defined(_MSC_VER)
 #  define PDF_FORMAT_INT64 "I64d"
 #  define PDF_FORMAT_UINT64 "I64u"
+#elif defined(SZ_INT64) && defined(SZ_LONG) && SZ_INT64 == SZ_LONG
+#  define PDF_FORMAT_INT64 "ld"
+#  define PDF_FORMAT_UINT64 "lu"
 #else
 #  define PDF_FORMAT_INT64 "lld"
 #  define PDF_FORMAT_UINT64 "llu"
