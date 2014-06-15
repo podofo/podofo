@@ -58,12 +58,12 @@ namespace PoDoFo {
 #endif
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype( FT_Library* pLibrary, const char* pszFilename, 
-                                                const char* pszSubsetPrefix )
+															   bool pIsSymbol, const char* pszSubsetPrefix )
     : PdfFontMetrics( PdfFontMetrics::FontTypeFromFilename( pszFilename ),
                       pszFilename, pszSubsetPrefix ),
       m_pLibrary( pLibrary ),
       m_pFace( NULL ),
-      m_bSymbol( false )
+      m_bSymbol( pIsSymbol )
 {
     FT_Error err = FT_New_Face( *pLibrary, pszFilename, 0, &m_pFace );
     if ( err )
@@ -74,37 +74,40 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype( FT_Library* pLibrary, const char
         PODOFO_RAISE_ERROR( ePdfError_FreeType );
     }
     
-    InitFromFace();
+    InitFromFace(pIsSymbol);
 }
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype( FT_Library* pLibrary, 
                                                 const char* pBuffer, unsigned int nBufLen,
+																bool pIsSymbol,
                                                 const char* pszSubsetPrefix )
     : PdfFontMetrics( ePdfFontType_Unknown, "", pszSubsetPrefix ),
       m_pLibrary( pLibrary ),
       m_pFace( NULL ),
-      m_bSymbol( false )
+      m_bSymbol( pIsSymbol )
 {
     m_bufFontData = PdfRefCountedBuffer( nBufLen ); // const_cast is ok, because we SetTakePossension to false!
     memcpy( m_bufFontData.GetBuffer(), pBuffer, nBufLen );
 
-    InitFromBuffer();
+    InitFromBuffer(pIsSymbol);
 }
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype( FT_Library* pLibrary, 
                                                 const PdfRefCountedBuffer & rBuffer,
+																bool pIsSymbol,
                                                 const char* pszSubsetPrefix ) 
     : PdfFontMetrics( ePdfFontType_Unknown, "", pszSubsetPrefix ),
       m_pLibrary( pLibrary ),
       m_pFace( NULL ),
-      m_bSymbol( false ),
+      m_bSymbol( pIsSymbol ),
       m_bufFontData( rBuffer )
 {
-    InitFromBuffer();
+    InitFromBuffer(pIsSymbol);
 }
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype( FT_Library* pLibrary, 
                                                 FT_Face face, 
+																bool pIsSymbol,
                                                 const char* pszSubsetPrefix  )
     : PdfFontMetrics( ePdfFontType_TrueType, 
                       // Try to initialize the pathname from m_face
@@ -114,12 +117,12 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype( FT_Library* pLibrary,
                       pszSubsetPrefix ),
       m_pLibrary( pLibrary ),
       m_pFace( face ),
-      m_bSymbol( false )
+      m_bSymbol( pIsSymbol )
 {
     // asume true type
     // m_eFontType = ePdfFontType_TrueType;
 
-    InitFromFace();
+    InitFromFace(pIsSymbol);
 }
 
 PdfFontMetricsFreetype::~PdfFontMetricsFreetype()
@@ -130,7 +133,7 @@ PdfFontMetricsFreetype::~PdfFontMetricsFreetype()
     }
 }
 
-void PdfFontMetricsFreetype::InitFromBuffer() 
+void PdfFontMetricsFreetype::InitFromBuffer(bool pIsSymbol)
 {
     FT_Error error = FT_New_Memory_Face( *m_pLibrary, 
                                          reinterpret_cast<const unsigned char*>(m_bufFontData.GetBuffer()), 
@@ -146,10 +149,10 @@ void PdfFontMetricsFreetype::InitFromBuffer()
         this->SetFontType( ePdfFontType_TrueType );
     }
 
-    InitFromFace();
+    InitFromFace(pIsSymbol);
 }
 
-void PdfFontMetricsFreetype::InitFromFace()
+void PdfFontMetricsFreetype::InitFromFace(bool pIsSymbol)
 {
     if ( m_eFontType == ePdfFontType_Unknown ) {
         // We need to have identified the font type by this point
@@ -165,6 +168,7 @@ void PdfFontMetricsFreetype::InitFromFace()
     m_dStrikeOutPosition  = 0.0;
     m_dStrikeOutThickness = 0.0;
     m_fFontSize           = 0.0f;
+	 m_bSymbol = pIsSymbol;
 
     if ( m_pFace )
     {	// better be, but just in case...
@@ -173,7 +177,7 @@ void PdfFontMetricsFreetype::InitFromFace()
     }
 
     // Try to get a unicode charmap
-    FT_Select_Charmap( m_pFace, FT_ENCODING_UNICODE );
+    FT_Select_Charmap( m_pFace, pIsSymbol ? FT_ENCODING_MS_SYMBOL : FT_ENCODING_UNICODE );
 
     // Try to determine if it is a symbol font
     for( int c=0;c<m_pFace->num_charmaps;c++ ) 

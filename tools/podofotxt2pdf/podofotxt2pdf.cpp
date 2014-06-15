@@ -67,7 +67,7 @@ void draw( char* pszBuffer, PdfDocument* pDocument, bool bUtf8, const char* pszF
     }
 
     size            = PdfPage::CreateStandardPageSize( ePdfPageSize_A4 );
-    pFont = pDocument->CreateFont( pszFontName, pEncoding );
+    pFont = pDocument->CreateFont( pszFontName, false, pEncoding );
     pPage = pDocument->CreatePage( size );
     dY    = size.GetHeight() - dY;
 

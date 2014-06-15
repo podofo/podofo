@@ -50,35 +50,39 @@ class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
     /** Create a font metrics object for a given true type file
      *  \param pLibrary handle to an initialized FreeType2 library handle
      *  \param pszFilename filename of a truetype file
+	  *  \param pIsSymbol whether use a symbol encoding, rather than unicode
      *  \param pszSubsetPrefix unique prefix for font subsets (see GetFontSubsetPrefix)
      */
     PdfFontMetricsFreetype( FT_Library* pLibrary, const char* pszFilename, 
-		    const char* pszSubsetPrefix = NULL );
+			 bool pIsSymbol, const char* pszSubsetPrefix = NULL );
 
     /** Create a font metrics object for a given memory buffer
      *  \param pLibrary handle to an initialized FreeType2 library handle
      *  \param pBuffer block of memory representing the font data (PdfFontMetricsFreetype will copy the buffer)
      *  \param nBufLen the length of the buffer
+	  *  \param pIsSymbol whether use a symbol encoding, rather than unicode
      *  \param pszSubsetPrefix unique prefix for font subsets (see GetFontSubsetPrefix)
      */
     PdfFontMetricsFreetype( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen,
-		    const char* pszSubsetPrefix = NULL);
+			 bool  pIsSymbol, const char* pszSubsetPrefix = NULL);
 
     /** Create a font metrics object for a given true type file
      *  \param pLibrary handle to an initialized FreeType2 library handle
      *  \param rBuffer a buffer containing a font file
+	  *  \param pIsSymbol whether use a symbol encoding, rather than unicode
      *  \param pszSubsetPrefix unique prefix for font subsets (see GetFontSubsetPrefix)
      */
     PdfFontMetricsFreetype( FT_Library* pLibrary, const PdfRefCountedBuffer & rBuffer,
-		    const char* pszSubsetPrefix = NULL);
+		    bool  pIsSymbol, const char* pszSubsetPrefix = NULL);
 
     /** Create a font metrics object for a given freetype font.
      *  \param pLibrary handle to an initialized FreeType2 library handle
      *  \param face a valid freetype font face
+	  *  \param pIsSymbol whether use a symbol encoding, rather than unicode
      *  \param pszSubsetPrefix unique prefix for font subsets (see GetFontSubsetPrefix)
      */
     PdfFontMetricsFreetype( FT_Library* pLibrary, FT_Face face,
-		    const char* pszSubsetPrefix = NULL);
+		    bool  pIsSymbol, const char* pszSubsetPrefix = NULL);
 
     /** Create a font metrics object based on an existing PdfObject
      *
@@ -249,13 +253,15 @@ class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
     
     /** Initialize this object from an in memory buffer
      *  Called internally by the constructors
+	  * \param pIsSymbol Whether use a symbol charset, rather than unicode
      */
-    void InitFromBuffer();
+    void InitFromBuffer(bool pIsSymbol);
 
     /** Load the metric data from the FTFace data
      *		Called internally by the constructors
+	  * \param pIsSymbol Whether use a symbol charset, rather than unicode
      */
-    void InitFromFace();
+    void InitFromFace(bool pIsSymbol);
 
     void InitFontSizes();
  protected:

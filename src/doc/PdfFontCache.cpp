@@ -309,26 +309,32 @@ static bool GetDataFromLPFONT( const LOGFONTW* inFont, char** outFontBuffer, uns
     }
     return ok;
 }
+
+static bool GetDataFromLPFONT( const LOGFONTA* inFont, char** outFontBuffer, unsigned int& outFontBufferLen )
+{
+    bool ok = false;
+    HFONT hf = CreateFontIndirectA(inFont);
+    if(hf)
+    {
+        LOGFONTW inFontW;
+        GetObjectW(hf, sizeof(LOGFONTW), &inFontW);
+        ok = GetDataFromHFONT( hf, outFontBuffer, outFontBufferLen, &inFontW);
+        DeleteObject(hf);
+    }
+    return ok;
+}
 #endif // _WIN32
 
 PdfFontCache::PdfFontCache( PdfVecObjects* pParent )
     : m_pParent( pParent )
 {
-    // Initialize all the fonts stuff
-    if( FT_Init_FreeType( &m_ftLibrary ) )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_FreeType );
-    }
+    Init();
 }
 
 PdfFontCache::PdfFontCache( const PdfFontConfigWrapper & rFontConfig, PdfVecObjects* pParent )
     : m_pParent( pParent ), m_fontConfig( rFontConfig )
 {
-    // Initialize all the fonts stuff
-    if( FT_Init_FreeType( &m_ftLibrary ) )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_FreeType );
-    }
+    Init();
 }
 
 PdfFontCache::~PdfFontCache()
@@ -339,6 +345,26 @@ PdfFontCache::~PdfFontCache()
     {
         FT_Done_FreeType( m_ftLibrary );
         m_ftLibrary = NULL;
+    }
+}
+
+void PdfFontCache::Init(void)
+{
+    m_sSubsetBasename[0] = 0;
+    char *p = m_sSubsetBasename;
+    int ii;
+    for (ii = 0; ii < SUBSET_BASENAME_LEN; ii++, p++) {
+        *p = 'A';
+    }
+    p[0] = '+';
+    p[1] = 0;
+
+    m_sSubsetBasename[0]--;
+
+    // Initialize all the fonts stuff
+    if( FT_Init_FreeType( &m_ftLibrary ) )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_FreeType );
     }
 }
 
@@ -397,6 +423,7 @@ PdfFont* PdfFontCache::GetFont( PdfObject* pObject )
         element.m_bItalic   = pFont->IsItalic();
         element.m_sFontName = pFont->GetFontMetrics()->GetFontname();
         element.m_pEncoding = NULL;
+		  element.m_bIsSymbolCharset = pFont->GetFontMetrics()->IsSymbol();
         m_vecFonts  .push_back( element );
         
         // Now sort the font list
@@ -406,7 +433,7 @@ PdfFont* PdfFontCache::GetFont( PdfObject* pObject )
     return pFont;
 }
 
-PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItalic, 
+PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
                                 bool bEmbedd, EFontCreationFlags eFontCreationFlags,
                                 const PdfEncoding * const pEncoding, 
                                 const char* pszFileName)
@@ -418,7 +445,7 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
     std::pair<TISortedFontList,TCISortedFontList> it;
 
     it = std::equal_range( m_vecFonts.begin(), m_vecFonts.end(), 
-			   TFontCacheElement( pszFontName, bBold, bItalic, pEncoding ) );
+			   TFontCacheElement( pszFontName, bBold, bItalic, bSymbolCharset, pEncoding ) );
 
 		
     if( it.first == it.second )
@@ -436,6 +463,7 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
 				element.m_bItalic   = pFont->IsItalic();
 				element.m_sFontName = pszFontName;
 				element.m_pEncoding = pEncoding;
+				element.m_bIsSymbolCharset = bSymbolCharset;
 
 				// Do a sorted insert, so no need to sort again
 				//rvecContainer.insert( itSorted, element ); 
@@ -456,13 +484,13 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
 			if( sPath.empty() )
 			{
 #if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
-				pFont = GetWin32Font( it.first, m_vecFonts, pszFontName, bBold, bItalic, bEmbedd, pEncoding );
+				pFont = GetWin32Font( it.first, m_vecFonts, pszFontName, bBold, bItalic, bSymbolCharset, bEmbedd, pEncoding );
 #endif // _WIN32
 			}
 			else
 			{
 				bool bSubsetting = (eFontCreationFlags & eFontCreationFlags_Type1Subsetting) != 0;
-				pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, sPath.c_str() );
+				pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, sPath.c_str(), bSymbolCharset, bSubsetting ? genSubsetBasename() : NULL );
 				pFont    = this->CreateFontObject( it.first, m_vecFonts, pMetrics, 
 						   bEmbedd, bBold, bItalic, pszFontName, pEncoding, bSubsetting );
 			}
@@ -481,7 +509,7 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
 }
 
 #if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
-PdfFont* PdfFontCache::GetFont( const wchar_t* pszFontName, bool bBold, bool bItalic, 
+PdfFont* PdfFontCache::GetFont( const wchar_t* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
                                 bool bEmbedd, const PdfEncoding * const pEncoding )
 {
     PODOFO_ASSERT( pEncoding );
@@ -490,9 +518,45 @@ PdfFont* PdfFontCache::GetFont( const wchar_t* pszFontName, bool bBold, bool bIt
     std::pair<TISortedFontList,TCISortedFontList> it;
 
     it = std::equal_range( m_vecFonts.begin(), m_vecFonts.end(), 
-			   TFontCacheElement( pszFontName, bBold, bItalic, pEncoding ) );
+                          TFontCacheElement( pszFontName, bBold, bItalic, bSymbolCharset, pEncoding ) );
     if( it.first == it.second )
-        return GetWin32Font( it.first, m_vecFonts, pszFontName, bBold, bItalic, bEmbedd, pEncoding );
+        return GetWin32Font( it.first, m_vecFonts, pszFontName, bBold, bItalic, bSymbolCharset, bEmbedd, pEncoding );
+    else
+        pFont = (*it.first).m_pFont;
+    
+    return pFont;
+}
+
+PdfFont* PdfFontCache::GetFont( const LOGFONTA &logFont, 
+                                bool bEmbedd, const PdfEncoding * const pEncoding )
+{
+    PODOFO_ASSERT( pEncoding );
+
+    PdfFont*          pFont;
+    std::pair<TISortedFontList,TCISortedFontList> it;
+
+    it = std::equal_range( m_vecFonts.begin(), m_vecFonts.end(), 
+		 TFontCacheElement( logFont.lfFaceName, logFont.lfWeight >= FW_BOLD ? true : false, logFont.lfItalic ? true : false, logFont.lfCharSet == SYMBOL_CHARSET, pEncoding ) );
+    if( it.first == it.second )
+        return GetWin32Font( it.first, m_vecFonts, logFont, bEmbedd, pEncoding );
+    else
+        pFont = (*it.first).m_pFont;
+    
+    return pFont;
+}
+
+PdfFont* PdfFontCache::GetFont( const LOGFONTW &logFont, 
+                                bool bEmbedd, const PdfEncoding * const pEncoding )
+{
+    PODOFO_ASSERT( pEncoding );
+
+    PdfFont*          pFont;
+    std::pair<TISortedFontList,TCISortedFontList> it;
+
+    it = std::equal_range( m_vecFonts.begin(), m_vecFonts.end(), 
+		 TFontCacheElement( logFont.lfFaceName, logFont.lfWeight >= FW_BOLD ? true : false, logFont.lfItalic ? true : false, logFont.lfCharSet == SYMBOL_CHARSET, pEncoding ) );
+    if( it.first == it.second )
+        return GetWin32Font( it.first, m_vecFonts, logFont, bEmbedd, pEncoding );
     else
         pFont = (*it.first).m_pFont;
     
@@ -500,7 +564,7 @@ PdfFont* PdfFontCache::GetFont( const wchar_t* pszFontName, bool bBold, bool bIt
 }
 #endif // _WIN32
 
-PdfFont* PdfFontCache::GetFont( FT_Face face, bool bEmbedd, const PdfEncoding * const pEncoding )
+PdfFont* PdfFontCache::GetFont( FT_Face face, bool bSymbolCharset, bool bEmbedd, const PdfEncoding * const pEncoding )
 {
     PdfFont*          pFont;
     PdfFontMetrics*   pMetrics;
@@ -517,10 +581,10 @@ PdfFont* PdfFontCache::GetFont( FT_Face face, bool bEmbedd, const PdfEncoding * 
     bool bItalic = ((face->style_flags & FT_STYLE_FLAG_ITALIC) != 0);
 
     it = std::equal_range( m_vecFonts.begin(), m_vecFonts.end(), 
-			   TFontCacheElement( sName.c_str(), bBold, bItalic, pEncoding ) );
+			   TFontCacheElement( sName.c_str(), bBold, bItalic, bSymbolCharset, pEncoding ) );
     if( it.first == it.second )
     {
-        pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, face );
+        pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, face, bSymbolCharset );
         pFont    = this->CreateFontObject( it.first, m_vecFonts, pMetrics, 
 					   bEmbedd, bBold, bItalic, sName.c_str(), pEncoding );
     }
@@ -558,7 +622,7 @@ PdfFont* PdfFontCache::GetDuplicateFontType1( PdfFont * pFont, const char* pszSu
 
     // Create a copy of the font
 	PODOFO_ASSERT( pFont->GetFontMetrics()->GetFontType() == ePdfFontType_Type1Pfb );
-	PdfFontMetrics* pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, pFont->GetFontMetrics()->GetFilename() );
+	PdfFontMetrics* pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, pFont->GetFontMetrics()->GetFilename(), pFont->GetFontMetrics()->IsSymbol() );
 	PdfFont* newFont = new PdfFontType1( static_cast<PdfFontType1 *>(pFont), pMetrics, pszSuffix, m_pParent );
     if( newFont ) 
     {
@@ -570,6 +634,7 @@ PdfFont* PdfFontCache::GetDuplicateFontType1( PdfFont * pFont, const char* pszSu
         element.m_bItalic   = newFont->IsItalic();
         element.m_sFontName = name;
         element.m_pEncoding = newFont->GetEncoding();
+		  element.m_bIsSymbolCharset = pFont->GetFontMetrics()->IsSymbol();
         m_vecFonts  .push_back( element );
         
         // Now sort the font list
@@ -579,7 +644,7 @@ PdfFont* PdfFontCache::GetDuplicateFontType1( PdfFont * pFont, const char* pszSu
     return newFont;
 }
 
-PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool bItalic, 
+PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
 				      const PdfEncoding * const pEncoding,
 				      const char* pszFileName )
 {
@@ -590,7 +655,7 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
     // WARNING: The characters are completely ignored right now!
 
     it = std::equal_range( m_vecFontSubsets.begin(), m_vecFontSubsets.end(), 
-			   TFontCacheElement( pszFontName, bBold, bItalic, pEncoding ) );
+			   TFontCacheElement( pszFontName, bBold, bItalic, bSymbolCharset, pEncoding ) );
     if( it.first == it.second )
     {
         std::string sPath; 
@@ -600,8 +665,7 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
             if( sPath.empty() )
             {
 #if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
-                // TODO: GetWin32Font
-                PODOFO_ASSERT( 0 );
+                return GetWin32Font( it.first, m_vecFontSubsets, pszFontName, bBold, bItalic, bSymbolCharset, true, pEncoding, true );
 #else	    
                 PdfError::LogMessage( eLogSeverity_Critical, "No path was found for the specified fontname: %s\n", pszFontName );
                 return NULL;
@@ -611,7 +675,7 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
         else
             sPath = pszFileName;
         
-        pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, sPath.c_str() );
+        pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, sPath.c_str(), bSymbolCharset );
         if( !(pMetrics && pMetrics->GetFontType() == ePdfFontType_TrueType ) )
         {
             PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidFontFile, "Subsetting is only supported for TrueType fonts." );
@@ -636,8 +700,8 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
         // Delete metrics object, as it was only used so that PdfFontTTFSubset could
         // match unicode character points to glyph indeces
         delete pMetrics;
-        // TODO: Do not hardcode unique basenames...
-        pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, buffer, "ABCDEF+" );
+
+        pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, buffer, bSymbolCharset, genSubsetBasename() );
         pFont = this->CreateFontObject( it.first, m_vecFontSubsets, pMetrics, 
                                         true, bBold, bItalic, pszFontName, pEncoding );
     }
@@ -665,8 +729,8 @@ void PdfFontCache::EmbedSubsetFonts()
 
 #if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
 PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList & vecContainer, 
-                                     const char* pszFontName, bool bBold, bool bItalic, 
-                                     bool bEmbedd, const PdfEncoding * const pEncoding )
+                                     const char* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
+                                     bool bEmbedd, const PdfEncoding * const pEncoding, bool pSubsetting )
 {
     LOGFONTW lf;
     
@@ -678,7 +742,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     lf.lfItalic			= bItalic;
     lf.lfUnderline		= 0;
     lf.lfStrikeOut		= 0;
-    lf.lfCharSet		= DEFAULT_CHARSET;
+    lf.lfCharSet		   = bSymbolCharset ? SYMBOL_CHARSET : DEFAULT_CHARSET;
     lf.lfOutPrecision	= OUT_DEFAULT_PRECIS;
     lf.lfClipPrecision	= CLIP_DEFAULT_PRECIS;
     lf.lfQuality		= DEFAULT_QUALITY;
@@ -691,29 +755,12 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     //strcpy( lf.lfFaceName, pszFontName );
     /*int destLen =*/ MultiByteToWideChar (0, 0, pszFontName, -1, lf.lfFaceName, LF_FACESIZE);
 
-    char* pBuffer = NULL;
-    unsigned int nLen;
-    if( !GetDataFromLPFONT( &lf, &pBuffer, nLen ) )
-        return NULL;
-    
-    PdfFontMetrics* pMetrics;
-    PdfFont*        pFont = NULL;
-    try {
-        pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, pBuffer, nLen );
-        pFont    = this->CreateFontObject( itSorted, vecContainer, pMetrics, 
-					   bEmbedd, bBold, bItalic, pszFontName, pEncoding );
-    } catch( PdfError & error ) {
-        free( pBuffer );
-        throw error;
-    }
-    
-    free( pBuffer );
-    return pFont;
+	 return GetWin32Font(itSorted, vecContainer, lf, bEmbedd, pEncoding, pSubsetting);
 }
 
 PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList & vecContainer, 
-                                     const wchar_t* pszFontName, bool bBold, bool bItalic, 
-                                     bool bEmbedd, const PdfEncoding * const pEncoding )
+                                     const wchar_t* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
+                                     bool bEmbedd, const PdfEncoding * const pEncoding, bool pSubsetting )
 {
     LOGFONTW	lf;
     
@@ -725,7 +772,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     lf.lfItalic			= bItalic;
     lf.lfUnderline		= 0;
     lf.lfStrikeOut		= 0;
-    lf.lfCharSet		= DEFAULT_CHARSET;
+    lf.lfCharSet		   = bSymbolCharset ? SYMBOL_CHARSET : DEFAULT_CHARSET;
     lf.lfOutPrecision	= OUT_DEFAULT_PRECIS;
     lf.lfClipPrecision	= CLIP_DEFAULT_PRECIS;
     lf.lfQuality		= DEFAULT_QUALITY;
@@ -738,9 +785,43 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     memset(&(lf.lfFaceName), 0, LF_FACESIZE);
     wcscpy( static_cast<wchar_t*>(lf.lfFaceName), pszFontName );
     
+    return GetWin32Font(itSorted, vecContainer, lf, bEmbedd, pEncoding, pSubsetting);
+}
+
+PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList & vecContainer, const LOGFONTA &logFont,
+								bool bEmbedd, const PdfEncoding * const pEncoding, bool pSubsetting)
+{
     char*        pBuffer = NULL;
     unsigned int nLen;
-    if( !GetDataFromLPFONT( &lf, &pBuffer, nLen ) )
+
+    if( !GetDataFromLPFONT( &logFont, &pBuffer, nLen ) )
+        return NULL;
+    
+    PdfFontMetrics* pMetrics;
+    PdfFont*        pFont = NULL;
+    try {
+		 pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, pBuffer, nLen, logFont.lfCharSet == SYMBOL_CHARSET, pSubsetting ? genSubsetBasename() : NULL );
+        pFont    = this->CreateFontObject( itSorted, vecContainer, pMetrics, 
+			  bEmbedd, logFont.lfWeight >= FW_BOLD ? true : false, logFont.lfItalic ? true : false, logFont.lfFaceName, pEncoding, pSubsetting );
+    } catch( PdfError & error ) {
+        free( pBuffer );
+        throw error;
+    }
+    
+    free( pBuffer );
+    return pFont;
+}
+
+PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList & vecContainer, const LOGFONTW &logFont,
+								bool bEmbedd, const PdfEncoding * const pEncoding, bool pSubsetting)
+{
+    pdf_long lFontNameLen = wcslen(logFont.lfFaceName);
+    if (lFontNameLen >= LF_FACESIZE)
+        return NULL;
+
+    char*        pBuffer = NULL;
+    unsigned int nLen;
+    if( !GetDataFromLPFONT( &logFont, &pBuffer, nLen ) )
         return NULL;
     
     pdf_long lMaxLen = lFontNameLen * 5;
@@ -751,7 +832,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
         PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
-    if( wcstombs( pmbFontName, pszFontName, lMaxLen ) <= 0 )
+    if( wcstombs( pmbFontName, logFont.lfFaceName, lMaxLen ) <= 0 )
     {
         free( pBuffer );
         free( pmbFontName );
@@ -761,9 +842,9 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     PdfFontMetrics* pMetrics;
     PdfFont*        pFont = NULL;
     try {
-        pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, pBuffer, nLen );
+        pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, pBuffer, nLen, logFont.lfCharSet == SYMBOL_CHARSET, pSubsetting ? genSubsetBasename() : NULL );
         pFont    = this->CreateFontObject( itSorted, vecContainer, pMetrics, 
-					   bEmbedd, bBold, bItalic, pmbFontName, pEncoding );
+			  bEmbedd, logFont.lfWeight >= FW_BOLD ? true : false, logFont.lfItalic ? true : false, pmbFontName, pEncoding, pSubsetting );
         free( pmbFontName );
         pmbFontName = NULL;
     } catch( PdfError & error ) {
@@ -776,6 +857,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     free( pBuffer );
     return pFont;
 }
+
 #endif // _WIN32
 
 #if defined(PODOFO_HAVE_FONTCONFIG)
@@ -862,6 +944,7 @@ PdfFont* PdfFontCache::CreateFontObject( TISortedFontList itSorted, TSortedFontL
             element.m_bItalic   = pFont->IsItalic();
             element.m_sFontName = pszFontName;
             element.m_pEncoding = pEncoding;
+				element.m_bIsSymbolCharset = pMetrics->IsSymbol();
 
             // Do a sorted insert, so no need to sort again
             rvecContainer.insert( itSorted, element );
@@ -874,6 +957,22 @@ PdfFont* PdfFontCache::CreateFontObject( TISortedFontList itSorted, TSortedFontL
     }
 
     return pFont;
+}
+
+const char *PdfFontCache::genSubsetBasename(void)
+{
+	int ii = 0;
+	while(ii < SUBSET_BASENAME_LEN) {
+		m_sSubsetBasename[ii]++;
+		if (m_sSubsetBasename[ii] <= 'Z') {
+			break;
+		}
+
+		m_sSubsetBasename[ii] = 'A';
+		ii++;
+	}
+
+	return m_sSubsetBasename;
 }
 
 };

@@ -189,53 +189,64 @@ PdfPage* PdfDocument::GetPage( int nIndex ) const
     return m_pPagesTree->GetPage( nIndex );
 }
 
-PdfFont* PdfDocument::CreateFont( const char* pszFontName,                                   
+PdfFont* PdfDocument::CreateFont( const char* pszFontName,
+                                  bool bSymbolCharset,
                                   const PdfEncoding * const pEncoding, 
                                   PdfFontCache::EFontCreationFlags eFontCreationFlags, 
                                   bool bEmbedd )
 {
-    return m_fontCache.GetFont( pszFontName, false, false, bEmbedd, eFontCreationFlags, pEncoding );
+    return m_fontCache.GetFont( pszFontName, false, false, bSymbolCharset, bEmbedd, eFontCreationFlags, pEncoding );
 }
 
-PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bBold, bool bItalic, 
+PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
                                   const PdfEncoding * const pEncoding, 
                                   PdfFontCache::EFontCreationFlags eFontCreationFlags,
                                   bool bEmbedd, const char* pszFileName )
 {
-    return m_fontCache.GetFont( pszFontName, bBold, bItalic, bEmbedd, eFontCreationFlags, pEncoding, pszFileName );
+    return m_fontCache.GetFont( pszFontName, bBold, bItalic, bSymbolCharset, bEmbedd, eFontCreationFlags, pEncoding, pszFileName );
 }
 
 #if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
-PdfFont* PdfDocument::CreateFont( const wchar_t* pszFontName, const PdfEncoding * const pEncoding, 
+PdfFont* PdfDocument::CreateFont( const wchar_t* pszFontName, bool bSymbolCharset, const PdfEncoding * const pEncoding, 
                                   bool bEmbedd )
 {
-    return m_fontCache.GetFont( pszFontName, false, false, bEmbedd, pEncoding );
+    return m_fontCache.GetFont( pszFontName, false, false, bSymbolCharset, bEmbedd, pEncoding );
 }
 
-PdfFont* PdfDocument::CreateFont( const wchar_t* pszFontName, bool bBold, bool bItalic, 
+PdfFont* PdfDocument::CreateFont( const wchar_t* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
                                   const PdfEncoding * const pEncoding, bool bEmbedd )
 {
-    return m_fontCache.GetFont( pszFontName, bBold, bItalic, bEmbedd, pEncoding );
+    return m_fontCache.GetFont( pszFontName, bBold, bItalic, bSymbolCharset, bEmbedd, pEncoding );
+}
+
+PdfFont* PdfDocument::CreateFont( const LOGFONTA &logFont, const PdfEncoding * const pEncoding, bool bEmbedd )
+{
+    return m_fontCache.GetFont( logFont, bEmbedd, pEncoding );
+}
+
+PdfFont* PdfDocument::CreateFont( const LOGFONTW &logFont, const PdfEncoding * const pEncoding, bool bEmbedd )
+{
+    return m_fontCache.GetFont( logFont, bEmbedd, pEncoding );
 }
 #endif // _WIN32
 
-PdfFont* PdfDocument::CreateFontSubset( const char* pszFontName, bool bBold, bool bItalic, 
-					                    const PdfEncoding * const pEncoding, const char* pszFileName )
+PdfFont* PdfDocument::CreateFontSubset( const char* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
+                                        const PdfEncoding * const pEncoding, const char* pszFileName )
 {
-    return m_fontCache.GetFontSubset( pszFontName, bBold, bItalic, pEncoding, pszFileName );
+    return m_fontCache.GetFontSubset( pszFontName, bBold, bItalic, bSymbolCharset, pEncoding, pszFileName );
 }
 
 #if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
-PdfFont* PdfDocument::CreateFontSubset( const wchar_t* pszFontName, bool bBold, bool bItalic, 
-					                    const PdfEncoding * const pEncoding)
+PdfFont* PdfDocument::CreateFontSubset( const wchar_t* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
+                                        const PdfEncoding * const pEncoding)
 {
     PODOFO_RAISE_ERROR_INFO( ePdfError_Unknown, "Subsets are not yet implemented for unicode on windows." );
 }
 #endif // _WIN32
 
-PdfFont* PdfDocument::CreateFont( FT_Face face, const PdfEncoding * const pEncoding, bool bEmbedd )
+PdfFont* PdfDocument::CreateFont( FT_Face face, bool bSymbolCharset, const PdfEncoding * const pEncoding, bool bEmbedd )
 {
-    return m_fontCache.GetFont( face, bEmbedd, pEncoding );
+    return m_fontCache.GetFont( face, bSymbolCharset, bEmbedd, pEncoding );
 }
 
 PdfFont* PdfDocument::CreateDuplicateFontType1( PdfFont * pFont, const char * pszSuffix )

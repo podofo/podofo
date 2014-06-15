@@ -74,7 +74,7 @@ void PdfAcroForm::Init( EPdfAcroFormDefaulAppearance eDefaultAppearance )
     if( !this->GetObject()->GetDictionary().HasKey("DA") && 
         eDefaultAppearance == ePdfAcroFormDefaultAppearance_BlackText12pt )
     {
-        PdfFont* pFont = m_pDocument->CreateFont( "Helvetica",
+        PdfFont* pFont = m_pDocument->CreateFont( "Helvetica", false,
                                                  PdfEncodingFactory::GlobalWinAnsiEncodingInstance(),
                                                  PdfFontCache::eFontCreationFlags_AutoSelectBase14,
                                                  false );

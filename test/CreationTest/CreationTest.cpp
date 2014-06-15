@@ -61,7 +61,7 @@ void CreateUnicodeAnnotationText( PdfPage* pPage, PdfDocument* pDocument )
 void CreateUnicodeAnnotationFreeText( PdfPage* pPage, PdfDocument* pDocument )
 {
     PdfString sJap(reinterpret_cast<const pdf_utf8*>("「PoDoFo」は今から日本語も話せます。"));
-    PdfFont* pFont = pDocument->CreateFont( "Arial Unicode MS", new PdfIdentityEncoding( 0, 0xffff, true ) ); 
+    PdfFont* pFont = pDocument->CreateFont( "Arial Unicode MS", false, new PdfIdentityEncoding( 0, 0xffff, true ) ); 
 
     PdfRect rect( 200.0, 200.0, 200.0, 200.0 );
     /*
