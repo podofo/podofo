@@ -58,6 +58,19 @@ PdfEncoding::~PdfEncoding()
 
 }
 
+/* bcc32 workarounds */
+#ifdef __BORLANDC__
+bool PdfEncoding::IsAutoDelete() const
+{
+    return false;
+}
+
+bool PdfEncoding::IsSingleByteEncoding() const
+{
+    return true;
+}
+#endif // __BORLANDC__
+
 // -----------------------------------------------------
 // PdfSimpleEncoding
 // -----------------------------------------------------

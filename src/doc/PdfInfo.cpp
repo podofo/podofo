@@ -39,7 +39,7 @@
 #include "base/PdfDictionary.h"
 #include "base/PdfString.h"
 
-#define PRODUCER_STRING "PoDoFo - http://podofo.sf.net"
+#define PRODUCER_STRING "PoDoFo - http:/" "/podofo.sf.net"
 
 namespace PoDoFo {
 
