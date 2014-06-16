@@ -54,7 +54,7 @@ class PdfOutputDevice;
 /**
  * A reference is a pointer to a object in the PDF file of the form
  * "4 0 R", where 4 is the object number and 0 is the generation number.
- * Every object in the PDF file can be indetified this way.
+ * Every object in the PDF file can be identified this way.
  *
  * This class is a indirect reference in a PDF file.
  */
