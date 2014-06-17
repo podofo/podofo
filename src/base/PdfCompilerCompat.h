@@ -10,6 +10,8 @@
 
 #include "podofo_config.h"
 
+#ifndef PODOFO_COMPILE_RC
+
 // Silence some annoying warnings from Visual Studio
 #ifdef _MSC_VER
 #if _MSC_VER <= 1200 // Visual Studio 6
@@ -212,5 +214,7 @@ namespace PoDoFo {
  * a "using" directive. Always explicitly reference names so it's clear that
  * you're pulling them from the compat cruft.
  */
+
+#endif // !PODOFO_COMPILE_RC
 
 #endif

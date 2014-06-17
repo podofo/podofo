@@ -41,11 +41,7 @@
  *        supporting platforms it will be precompiled to speed compilation.
  */ 
 
-#ifndef PODOFO_COMPILE_RC
-
 #include "PdfCompilerCompat.h"
-
-#endif // !PODOFO_COMPILE_RC
 
 /**
  * PoDoFo version - 24-bit integer representation.
