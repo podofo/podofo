@@ -489,7 +489,7 @@ void PdfSigIncMemDocument::AddVisualSign(PdfPage *pPage)
       if(m_pSignField->HasSignatureText()) {
          if(m_pFont == NULL) {
             PdfIdentityEncoding *pdfEnc = new PdfIdentityEncoding();
-            m_pFont = pDocument->CreateFont("Arial", pdfEnc);
+            m_pFont = pDocument->CreateFont("Arial", false, pdfEnc);
             m_pFont->SetFontSize(m_pSignField->GetFontSize());
          }
          pnt.SetFont(m_pFont);
