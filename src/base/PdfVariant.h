@@ -34,7 +34,11 @@
 #ifndef _PDF_VARIANT_H_
 #define _PDF_VARIANT_H_
 
+#if defined(__BORLANDC__) || defined( __TURBOC__)
+#include <math.h>
+#else
 #include <cmath>
+#endif
 
 #include "PdfDefines.h"
 #include "PdfRefCountedBuffer.h"
