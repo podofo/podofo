@@ -127,7 +127,7 @@ PdfString PdfIdentityEncoding::ConvertToUnicode( const PdfString & rEncodedStrin
         return(PdfString("\0"));
 }
 
-PdfRefCountedBuffer PdfIdentityEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* /*pFont*/ ) const
+PdfRefCountedBuffer PdfIdentityEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const
 {
     // Get the string in UTF-16be format
     PdfString sStr = rString.ToUnicode();
@@ -147,6 +147,13 @@ PdfRefCountedBuffer PdfIdentityEncoding::ConvertToEncoding( const PdfString & rS
 #endif // PODOFO_IS_LITTLE_ENDIAN
         
         lCID = this->GetCIDValue(lUnicodeValue);
+        if (lCID == 0 && pFont) {
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+            lCID = pFont->GetFontMetrics()->GetGlyphId( (((*pStr & 0xff) << 8) | ((*pStr & 0xff00) >> 8)) );
+#else
+            lCID = pFont->GetFontMetrics()->GetGlyphId( *pStr );
+#endif // PODOFO_IS_LITTLE_ENDIAN
+        }
         
         out << static_cast<unsigned char>((lCID & 0xff00) >> 8);
         out << static_cast<unsigned char>(lCID & 0x00ff);
