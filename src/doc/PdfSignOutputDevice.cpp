@@ -158,7 +158,15 @@ void PdfSignOutputDevice::AdjustByteRange()
         sPosition+=']';
     }
 
-    m_pRealDevice->Seek(m_sBeaconPos-sPosition.size()-11);
+    m_pRealDevice->Seek(m_sBeaconPos-sPosition.size()-9);
+    char ch;
+    size_t offset = m_pRealDevice->Tell();
+    /* Sanity test, the file position should be at the '[' now */
+    if (m_pRealDevice->Read(&ch, 1) != 1 || ch != '[') {
+        PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+    } else {
+       m_pRealDevice->Seek(offset);
+    }
     m_pRealDevice->Write(sPosition.c_str(), sPosition.size());
 }
 
