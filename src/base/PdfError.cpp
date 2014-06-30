@@ -181,6 +181,11 @@ void PdfError::PrintErrorMsg() const
     PdfError::LogErrorMessage( eLogSeverity_Error, "\n\n" );
 }
 
+const char* PdfError::what() const
+{
+    return PdfError::ErrorName( m_error );
+}
+
 const char* PdfError::ErrorName( EPdfError eCode )
 {
     const char* pszMsg = NULL;

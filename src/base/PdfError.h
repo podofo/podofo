@@ -358,6 +358,11 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError {
      */
     void PrintErrorMsg() const;
 
+    /** Obtain error description.
+     *  \returns a c string describing the error.
+     */
+    const char* what() const;
+
     /** Get the name for a certain error code.
      *  \returns the name or NULL if no name for the specified
      *           error code is available.
