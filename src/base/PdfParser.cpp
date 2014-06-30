@@ -836,8 +836,18 @@ void PdfParser::ReadXRefStreamContents( pdf_long lOffset, bool bReadOnlyTrailer 
     // Check for a previous XRef stream
     if(xrefObject.HasPrevious()) 
     {
-        m_nIncrementalUpdates++;
-        this->ReadXRefStreamContents( xrefObject.GetPreviousOffset(), bReadOnlyTrailer );
+        try {
+            m_nIncrementalUpdates++;
+            this->ReadXRefStreamContents( xrefObject.GetPreviousOffset(), bReadOnlyTrailer );
+        } catch(PdfError &e) {
+            /* Be forgiving, the error happens when an entry in XRef stream points
+               to a wrong place (offset) in the PDF file. */
+            if( e != ePdfError_NoNumber )
+            {
+                e.AddToCallstack( __FILE__, __LINE__ );
+                throw e;
+            }
+        }
     }
 }
 
