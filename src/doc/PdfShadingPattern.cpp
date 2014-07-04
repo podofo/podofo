@@ -593,25 +593,25 @@ void PdfTriangleShadingPattern::Init( double dX0, double dY0, const PdfColor &co
 	char buff[18];
 
 	buff[ 0] = 0; // flag - start new triangle
-	buff[ 1] = 255.0 * (dX0 - minx) / (maxx - minx);
-	buff[ 2] = 255.0 * (dY0 - miny) / (maxy - miny);
-	buff[ 3] = 255.0 * rgb0.GetRed();
-	buff[ 4] = 255.0 * rgb0.GetGreen();
-	buff[ 5] = 255.0 * rgb0.GetBlue();
+	buff[ 1] = static_cast<char>(255.0 * (dX0 - minx) / (maxx - minx));
+	buff[ 2] = static_cast<char>(255.0 * (dY0 - miny) / (maxy - miny));
+	buff[ 3] = static_cast<char>(255.0 * rgb0.GetRed());
+	buff[ 4] = static_cast<char>(255.0 * rgb0.GetGreen());
+	buff[ 5] = static_cast<char>(255.0 * rgb0.GetBlue());
 
 	buff[ 6] = 0; // flag - start new triangle
-	buff[ 7] = 255.0 * (dX1 - minx) / (maxx - minx);
-	buff[ 8] = 255.0 * (dY1 - miny) / (maxy - miny);
-	buff[ 9] = 255.0 * rgb1.GetRed();
-	buff[10] = 255.0 * rgb1.GetGreen();
-	buff[11] = 255.0 * rgb1.GetBlue();
+	buff[ 7] = static_cast<char>(255.0 * (dX1 - minx) / (maxx - minx));
+	buff[ 8] = static_cast<char>(255.0 * (dY1 - miny) / (maxy - miny));
+	buff[ 9] = static_cast<char>(255.0 * rgb1.GetRed());
+	buff[10] = static_cast<char>(255.0 * rgb1.GetGreen());
+	buff[11] = static_cast<char>(255.0 * rgb1.GetBlue());
 
 	buff[12] = 0; // flag - start new triangle
-	buff[13] = 255.0 * (dX2 - minx) / (maxx - minx);
-	buff[14] = 255.0 * (dY2 - miny) / (maxy - miny);
-	buff[15] = 255.0 * rgb2.GetRed();
-	buff[16] = 255.0 * rgb2.GetGreen();
-	buff[17] = 255.0 * rgb2.GetBlue();
+	buff[13] = static_cast<char>(255.0 * (dX2 - minx) / (maxx - minx));
+	buff[14] = static_cast<char>(255.0 * (dY2 - miny) / (maxy - miny));
+	buff[15] = static_cast<char>(255.0 * rgb2.GetRed());
+	buff[16] = static_cast<char>(255.0 * rgb2.GetGreen());
+	buff[17] = static_cast<char>(255.0 * rgb2.GetBlue());
 
 	shadingObject->GetStream()->Set(buff, len);
 }

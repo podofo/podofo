@@ -801,7 +801,7 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
                     &tmp1, &tmp2, &(m_offsets[objID].cUsed), &empty1, &empty2 );
 
             m_offsets[objID].lOffset = static_cast<pdf_long>(tmp1);
-            m_offsets[objID].lGeneration = tmp2;
+            m_offsets[objID].lGeneration = static_cast<long>(tmp2);
 #endif
        }
 

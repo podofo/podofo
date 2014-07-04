@@ -189,7 +189,7 @@ void PdfTilingPattern::Init( EPdfTilingPatternType eTilingType,
 		out << "2 J" << " "; // line capability style
 		out << "0.5 w" <<  " "; //line width
 
-		int left, bottom, right, top, whalf, hhalf;
+		double left, bottom, right, top, whalf, hhalf;
 		left = rRect.GetLeft();
 		bottom = rRect.GetBottom();
 		right = left + rRect.GetWidth();

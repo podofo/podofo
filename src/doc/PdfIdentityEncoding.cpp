@@ -149,9 +149,9 @@ PdfRefCountedBuffer PdfIdentityEncoding::ConvertToEncoding( const PdfString & rS
         lCID = this->GetCIDValue(lUnicodeValue);
         if (lCID == 0 && pFont) {
 #ifdef PODOFO_IS_LITTLE_ENDIAN
-            lCID = pFont->GetFontMetrics()->GetGlyphId( (((*pStr & 0xff) << 8) | ((*pStr & 0xff00) >> 8)) );
+            lCID = static_cast<pdf_utf16be>(pFont->GetFontMetrics()->GetGlyphId( (((*pStr & 0xff) << 8) | ((*pStr & 0xff00) >> 8)) ));
 #else
-            lCID = pFont->GetFontMetrics()->GetGlyphId( *pStr );
+            lCID = static_cast<pdf_utf16be>(pFont->GetFontMetrics()->GetGlyphId( *pStr ));
 #endif // PODOFO_IS_LITTLE_ENDIAN
         }
         
