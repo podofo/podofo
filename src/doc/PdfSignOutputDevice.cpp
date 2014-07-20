@@ -161,12 +161,20 @@ void PdfSignOutputDevice::AdjustByteRange()
     m_pRealDevice->Seek(m_sBeaconPos-sPosition.size()-9);
     char ch;
     size_t offset = m_pRealDevice->Tell();
-    /* Sanity test, the file position should be at the '[' now */
-    if (m_pRealDevice->Read(&ch, 1) != 1 || ch != '[') {
-        PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
-    } else {
-       m_pRealDevice->Seek(offset);
+
+    /* Sanity tests... */
+    PODOFO_RAISE_LOGIC_IF( m_pRealDevice->Read(&ch, 1) != 1, "Failed to read 1 byte." );
+    if (ch == '0') {
+       /* probably clean write mode, whic means two more bytes back */
+       m_pRealDevice->Seek(m_sBeaconPos-sPosition.size()-11);
+       offset = m_pRealDevice->Tell();
+       PODOFO_RAISE_LOGIC_IF( m_pRealDevice->Read(&ch, 1) != 1, "Failed to read 1 byte." );
     }
+
+    /* ...the file position should be at the '[' now */
+    PODOFO_RAISE_LOGIC_IF( ch != '[', "Failed to find byte range array start in the stream." );
+
+    m_pRealDevice->Seek(offset);
     m_pRealDevice->Write(sPosition.c_str(), sPosition.size());
 }
 
