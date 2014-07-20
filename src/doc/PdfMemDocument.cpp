@@ -353,6 +353,9 @@ void PdfMemDocument::SetPassword( const std::string & sPassword )
     m_pParser->SetPassword( sPassword );
     InitFromParser( m_pParser );
     InitPagesTree();
+
+    delete m_pParser;
+    m_pParser = NULL;
 }
 
 void PdfMemDocument::Write( const char* pszFilename )

@@ -181,6 +181,10 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      */
     void Load( const PdfRefCountedInputDevice & rDevice );
 
+    /** Returns whether the document is fully loaded.
+     */
+    inline bool IsLoaded( void ) const;
+
     /** Writes the complete document to a file
      *
      *  \param pszFilename filename of the document 
@@ -564,6 +568,14 @@ protected:
     PdfParser*      m_pParser; ///< This will be temporarily initialized to a PdfParser object so that SetPassword can work
     EPdfWriteMode   m_eWriteMode;
 };
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfMemDocument::IsLoaded( void ) const
+{
+    return m_pParser == NULL;
+}
 
 // -----------------------------------------------------
 // 
