@@ -73,6 +73,13 @@ namespace PoDoFo {
 
 ////////////////////////////PdfExMemDocument/////////////////////////////////
 
+PdfExMemDocument::PdfExMemDocument()
+   : PdfMemDocument()
+{
+   m_XRefOffset = 0;
+   m_bXRefStream = false;
+}
+
 PdfExMemDocument::PdfExMemDocument(const char* pszInpFilename)
    : PdfMemDocument()
 {
@@ -82,7 +89,6 @@ PdfExMemDocument::PdfExMemDocument(const char* pszInpFilename)
 }
 
 PdfExMemDocument::PdfExMemDocument(const PdfRefCountedInputDevice &rInputDevice)
-   : PdfMemDocument()
 {
    m_XRefOffset = 0;
    m_bXRefStream = false;
@@ -103,12 +109,12 @@ void PdfExMemDocument::InitFromParser( PdfParser* pParser )
 
 ////////////////////////////PdfSigIncMemDocument/////////////////////////////////
 
-PdfSigIncMemDocument::PdfSigIncMemDocument(const char* pszInpFilename)
+PdfSigIncMemDocument::PdfSigIncMemDocument()
    : PdfMemDocument(true)
 {
-   m_InpFilename = pszInpFilename;
+   m_InpFilename = NULL;
 
-   m_Document = new PdfExMemDocument(pszInpFilename);
+   m_Document = new PdfExMemDocument();
    m_pSignField = new PdfSigIncSignatureField(m_Document);
    m_pImgXObj = NULL;
    m_n2XObj = NULL;
@@ -116,12 +122,31 @@ PdfSigIncMemDocument::PdfSigIncMemDocument(const char* pszInpFilename)
    m_bLinearized = false;
 }
 
+PdfSigIncMemDocument::PdfSigIncMemDocument(const char* pszInpFilename)
+   : PdfMemDocument(true)
+{
+   m_InpFilename = strdup(pszInpFilename);
+
+   m_Document = new PdfExMemDocument(pszInpFilename);
+   m_pSignField = new PdfSigIncSignatureField(m_Document);
+   m_pImgXObj = NULL;
+   m_n2XObj = NULL;
+   m_pFont = NULL;
+   m_bLinearized = false;
+
+   m_Document->Load(pszInpFilename);
+}
+
 PdfSigIncMemDocument::~PdfSigIncMemDocument()
 {
-   PdfAcroForm *pOldAcroForm = m_Document->GetAcroForm(false, ePdfAcroFormDefaultAppearance_None);
-   if(pOldAcroForm == m_pAcroForms) 
-      m_pAcroForms = NULL;
+   if (m_Document && m_Document->IsLoaded()) {
+      PdfAcroForm *pOldAcroForm = m_Document->GetAcroForm(false, ePdfAcroFormDefaultAppearance_None);
+      if(pOldAcroForm == m_pAcroForms)
+         m_pAcroForms = NULL;
+   }
 
+   if(m_InpFilename)
+      free( m_InpFilename );
    if(m_pSignField)
       delete m_pSignField;
    if(m_Document)
@@ -246,6 +271,12 @@ void PdfSigIncMemDocument::Initialize()
     m_pTrailer->GetDictionary().AddKey( "Info", m_pInfo->GetObject()->Reference() );
 }
 
+void PdfSigIncMemDocument::Load(const PdfRefCountedInputDevice &rInputDevice)
+{
+   m_InpDeviceRef = rInputDevice;
+   m_Document->Load(m_InpDeviceRef);
+}
+
 PdfAcroForm* PdfSigIncMemDocument::GetExistedAcroForm(PdfAcroForm *pOldAcroForm)
 {
     if( !m_pAcroForms )  {
@@ -283,18 +314,31 @@ void PdfSigIncMemDocument::Write( PdfSignOutputDevice* pDevice )
     if(m_bLinearized) {
        m_Document->Write(pDevice);
     } else {
-            
-       PdfFileInputStream inputStream(m_InpFilename);
        char *pBuffer = new char[BUFFER_SIZE];
        pdf_long read = 0;
        pdf_long tmpRead = 0;
-       do {
-          tmpRead = inputStream.Read(pBuffer, BUFFER_SIZE);
-          if(tmpRead != -1) {
-            pDevice->Write(pBuffer, tmpRead);
-            read += tmpRead;
-          }
-       } while(read < inputStream.GetFileLength() && tmpRead != -1);
+       if (m_InpFilename) {
+          PdfFileInputStream inputStream(m_InpFilename);
+          do {
+             tmpRead = inputStream.Read(pBuffer, BUFFER_SIZE);
+             if(tmpRead != -1) {
+               pDevice->Write(pBuffer, tmpRead);
+               read += tmpRead;
+             }
+          } while(read < inputStream.GetFileLength() && tmpRead != -1);
+       } else {
+          PdfInputDevice *inputDevice = m_InpDeviceRef.Device();
+          PODOFO_RAISE_LOGIC_IF( !inputDevice, "No input device set." );
+
+          inputDevice->Seek(0);
+          do {
+             tmpRead = inputDevice->Read(pBuffer, BUFFER_SIZE);
+             if(tmpRead > 0) {
+               pDevice->Write(pBuffer, tmpRead);
+               read += tmpRead;
+             }
+          } while(!inputDevice->Eof() && tmpRead > 0);
+       }
        delete [] pBuffer;
     }
      
@@ -318,7 +362,7 @@ void PdfSigIncMemDocument::Write( PdfSignOutputDevice* pDevice )
 
     PdfSigIncWriter writer( &(this->GetObjects()), this->GetTrailer());
     writer.SetPdfVersion( this->GetPdfVersion() );
-    writer.SetWriteMode( ePdfWriteMode_Clean);
+    writer.SetWriteMode( ePdfWriteMode_Compact);
                 
     writer.Write( pDevice, m_LastXRefOffset);    
 

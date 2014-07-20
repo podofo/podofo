@@ -62,6 +62,7 @@ protected:
    virtual void InitFromParser( PdfParser* pParser );
 
 public:
+    PdfExMemDocument();
     PdfExMemDocument(const char* pszInpFilename);
     PdfExMemDocument(const PdfRefCountedInputDevice &rInputDevice);
     virtual ~PdfExMemDocument();
@@ -73,7 +74,8 @@ public:
 class PODOFO_DOC_API PdfSigIncMemDocument : private PdfMemDocument {
 
  private:
-    const char* m_InpFilename;
+    char* m_InpFilename;
+    PdfRefCountedInputDevice m_InpDeviceRef;
     PdfRect m_SignRect;
     PdfExMemDocument *m_Document;
     pdf_int64 m_LastXRefOffset;
@@ -100,10 +102,12 @@ protected:
    void AddVisualSign(PdfPage *pPage);
 
  public:
+    PdfSigIncMemDocument();
     PdfSigIncMemDocument(const char* pszInpFilename);
     virtual ~PdfSigIncMemDocument();
 
     void Initialize();
+    void Load(const PdfRefCountedInputDevice &rInputDevice);
     int GetPageCount(void);
     PdfPage *GetPage(int page);
     PdfMemDocument *GetMainPdfDocument(void) {return m_Document;}
