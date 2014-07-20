@@ -36,6 +36,7 @@
 
 #include <istream>
 #include <ios>
+#include <cstdio>
 
 #include "PdfDefines.h"
 #include "PdfLocale.h"
@@ -187,17 +188,26 @@ void PdfInputDevice::SetSeekable(bool bIsSeekable)
 
 bool PdfInputDevice::Bad() const
 {
-    return m_pStream->bad();
+    if (m_pStream)
+        return m_pStream->bad();
+    return m_pFile != NULL;
 }
 
 bool PdfInputDevice::Eof() const
 {
-    return m_pStream->eof();
+    if (m_pStream)
+        return m_pStream->eof();
+    if (m_pFile)
+        return feof(m_pFile) != 0;
+    PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
 }
 
 void PdfInputDevice::Clear(std::ios_base::iostate state) const
 {
-    m_pStream->clear(state);
+    if (m_pStream)
+        m_pStream->clear(state);
+    if (!m_pFile)
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
 }
 
 };
