@@ -58,6 +58,11 @@ PdfSigIncSignatureField::~PdfSigIncSignatureField()
 {
 }
 
+void PdfSigIncSignatureField::SetSignatureReason(const PdfString &text)
+{
+   m_SignReason = text;
+}
+
 void PdfSigIncSignatureField::SetSignatureReason(const wchar_t *text)
 {
     m_SignReason =  CreatePdfString(text);

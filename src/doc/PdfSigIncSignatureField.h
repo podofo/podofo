@@ -73,6 +73,7 @@ public:
     PdfSigIncSignatureField(PdfDocument *pDocument);
     virtual ~PdfSigIncSignatureField();
 
+    void SetSignatureReason(const PdfString &text);
     void SetSignatureReason(const wchar_t *text);
     PdfString &GetSignatuReason(void) {return m_SignReason;}
     void SetSignatureDate(const PdfDate &sigDate);
