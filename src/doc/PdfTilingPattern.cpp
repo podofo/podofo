@@ -36,7 +36,6 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
-#include <strstream>
 
 namespace PoDoFo {
 
@@ -165,7 +164,7 @@ void PdfTilingPattern::Init( EPdfTilingPatternType eTilingType,
 		this->GetObject()->GetDictionary().AddKey( PdfName("Matrix"), array );
 	}
 
-   std::ostrstream out;
+   std::ostringstream out;
    out.flags( std::ios_base::fixed );
    out.precision( 1L /* clPainterDefaultPrecision */ );
    PdfLocaleImbue(out);
@@ -236,7 +235,8 @@ void PdfTilingPattern::Init( EPdfTilingPatternType eTilingType,
 	TVecFilters vecFlate;
 	vecFlate.push_back( ePdfFilter_FlateDecode );
 
-	PdfMemoryInputStream stream(out.str(), out.pcount());
+	std::string str = out.str();
+	PdfMemoryInputStream stream(str.c_str(), str.length());
 
 	this->GetObject()->GetStream()->Set(&stream, vecFlate);
 }
