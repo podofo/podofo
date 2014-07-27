@@ -45,6 +45,9 @@ PdfSigIncSignatureField::PdfSigIncSignatureField(PdfDocument *pDocument)
    m_ImageLen= 0;
    m_SignReason = PdfString("I agree");
    m_FontSize = 8;
+   m_FontName = "Helvetica";
+   m_FontIsSymbolic = false;
+   m_FontEncoding = PdfEncodingFactory::GlobalIdentityEncodingInstance();
    m_pDocument = pDocument;
 
    m_Red = 0;
@@ -52,6 +55,8 @@ PdfSigIncSignatureField::PdfSigIncSignatureField(PdfDocument *pDocument)
    m_Blue = 0;
    m_Threshold = -1;
 
+   createFontFunc = NULL;
+   createFontUserData = NULL;
 }
 
 PdfSigIncSignatureField::~PdfSigIncSignatureField()
@@ -65,7 +70,7 @@ void PdfSigIncSignatureField::SetSignatureReason(const PdfString &text)
 
 void PdfSigIncSignatureField::SetSignatureReason(const wchar_t *text)
 {
-    m_SignReason =  CreatePdfString(text);
+    m_SignReason.setFromWchar_t(text);
 }
 
 void PdfSigIncSignatureField::SetSignatureDate(const PdfDate &sigDate)
@@ -83,35 +88,7 @@ bool PdfSigIncSignatureField::HasSignatureImage(void)
    return m_ImageFile.GetLength() > 0 || (m_ImageLen > 0 && m_pImageData != NULL);
 }
 
-PdfString PdfSigIncSignatureField::CreatePdfString(const wchar_t *text)
-{
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200
-   #ifdef PODOFO_IS_LITTLE_ENDIAN
-      if(sizeof(wchar_t) == 2) {
-         const size_t strLen = wcslen(text);
-         wchar_t *buffer = new wchar_t[strLen + 2];
-         wcscpy(buffer, text);
-		   buffer[strLen] = '\0';
-		   buffer[strLen] = '\0';
-         wchar_t *pszTxt = buffer;
-         while( *pszTxt ) {
-           *pszTxt = ((*pszTxt) << 8 | (*pszTxt) >> 8);
-           ++pszTxt;
-         }
-         PdfString result(buffer);
-         delete []buffer;
-         return result;
-      } else 
-         return PdfString(text);
-   #else
-      return PdfString(text);
-   #endif
-#else
-   return PdfString(text);
-#endif
-}
-
-void PdfSigIncSignatureField::SetSignatureText(const wchar_t *text, int page, int x, int y, int width, int height, float fontSize)
+void PdfSigIncSignatureField::SetSignatureText(const wchar_t *text, int page, int x, int y, int width, int height, float fontSize, const char *fontName, bool fontIsSymbolic, const PdfEncoding *fontEncoding)
 {
    PdfRect pdfRect(x, y, width, height);
    PdfPage *pPage = m_pDocument->GetPage(page);
@@ -125,11 +102,16 @@ void PdfSigIncSignatureField::SetSignatureText(const wchar_t *text, int page, in
    
    m_SignTextRect = pdfRect;
    m_SignPage = page;
-   //Visual Studio 6
-   m_SignText = CreatePdfString(text);
+   m_SignText.setFromWchar_t(text);
+   m_FontIsSymbolic = fontIsSymbolic;
+   m_FontEncoding = fontEncoding;
    if(fontSize > 0) 
    {
       m_FontSize = fontSize;
+   }
+   if (fontName)
+   {
+      m_FontName = fontName;
    }
 }
 

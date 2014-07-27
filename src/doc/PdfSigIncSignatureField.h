@@ -39,14 +39,20 @@
 #include "podofo/base/PdfDate.h"
 #include "PdfImage.h"
 #include "PdfDocument.h"
+#include <string>
 
 namespace PoDoFo {
+
+typedef PdfFont * (*PdfSigIncCreateFont)(PdfDocument *document, void *user_data);
 
 class PODOFO_DOC_API PdfSigIncSignatureField 
 {
 private:
     int m_SignPage;
     float m_FontSize;
+    std::string m_FontName;
+    const PdfEncoding *m_FontEncoding;
+    bool m_FontIsSymbolic;
 
     PdfString m_SignText;
     PdfRect m_SignTextRect;
@@ -67,7 +73,6 @@ private:
     pdf_int64 m_Threshold;
 
 private:
-   PdfString CreatePdfString(const wchar_t *text);
 
 public:
     PdfSigIncSignatureField(PdfDocument *pDocument);
@@ -83,13 +88,19 @@ public:
     PdfRect &GetTextRect(void) {return m_SignTextRect;}
     PdfRect &GetImageRect(void) {return m_SignImageRect;}
     PdfString &GetSignatureText(void) {return m_SignText;}
+    const char *GetFontName(void) { return m_FontName.c_str(); }
+    bool GetFontIsSymbolic(void) { return m_FontIsSymbolic; }
+    const PdfEncoding *GetFontEncoding(void) { return m_FontEncoding; }
     int GetPage(void) {return m_SignPage;}
     float GetFontSize(void) {return m_FontSize;}
+
+    PdfSigIncCreateFont createFontFunc;
+    void *createFontUserData;
 
     PdfImage *CreateSignatureImage(PdfDocument *pParent);
     void FreeSignatureImage(PdfImage *img);
 
-    void SetSignatureText(const wchar_t *text, int page, int x, int y, int width, int height, float fontSize);
+    void SetSignatureText(const wchar_t *text, int page, int x, int y, int width, int height, float fontSize, const char *fontName, bool fontIsSymbolic, const PdfEncoding *fontEncoding);
     void SetSignatureImage(const char *fileName, int page, int x, int y, int width, int height);
     void SetSignatureImage(const unsigned char *pData, pdf_long lLen, int page, int x, int y, int width, int height);
     void SetImageChromaKeyMask(pdf_int64 r, pdf_int64 g, pdf_int64 b, pdf_int64 threshold);

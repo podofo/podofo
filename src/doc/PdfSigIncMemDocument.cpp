@@ -490,66 +490,79 @@ void PdfSigIncMemDocument::AddVisualSign(PdfPage *pPage)
       PdfDocument *pDocument = bLinear ? (PdfDocument*) m_Document : this;
       m_pImgXObj = new PdfXObject(objRect, pDocument);
 
-      PdfSigIncPainter pnt(pDocument, bLinear); 
-      pnt.SetPageCanvas(pPage, m_pImgXObj->GetContents());
+      PdfSigIncPainter pnt(pDocument, bLinear);
 
-      PdfXObject frmXObj(objRect, pDocument, "FRM", true);
-      
-      m_pImgXObj->AddResource(PdfName("FRM"), frmXObj.GetObjectReference(), PdfName("XObject"));
-      pnt.DrawXObject(0,0, &frmXObj);
-      pnt.EndCanvas();
-                
-      pnt.SetPageCanvas(pPage, frmXObj.GetContents());
-          
-      PdfXObject n0XObj(objRect, pDocument, "n0", true);
-      PdfXObject n2XObj(objRect, pDocument, "n2", true);
+      try {
+          pnt.SetPageCanvas(pPage, m_pImgXObj->GetContents());
 
-      frmXObj.AddResource(PdfName("n0"), n0XObj.GetObjectReference(), PdfName("XObject"));
-      frmXObj.AddResource(PdfName("n2"), n2XObj.GetObjectReference(), PdfName("XObject"));
+          PdfXObject frmXObj(objRect, pDocument, "FRM", true);
 
-      pnt.DrawXObject(0,0, &n0XObj);
-      pnt.DrawXObject(0,0, &n2XObj);
-      pnt.EndCanvas();
-   
-      PdfImage *pdfImage = NULL;
-      if(m_pSignField->HasSignatureImage()) {
-         pdfImage = m_pSignField->CreateSignatureImage(pDocument);
-      }
-      if(m_pSignField->HasSignatureText() || pdfImage != NULL) {
-         pnt.SetPageCanvas(pPage, n2XObj.GetContents());
-      }
-      if(pdfImage) {
-         PdfRect imgRect = m_pSignField->GetImageRect();
-         n2XObj.AddResource(pdfImage->GetIdentifier(), pdfImage->GetObjectReference(), PdfName("XObject"));
+          m_pImgXObj->AddResource(PdfName("FRM"), frmXObj.GetObjectReference(), PdfName("XObject"));
+          pnt.DrawXObject(0,0, &frmXObj);
+          pnt.EndCanvas();
 
-         double scaleX = imgRect.GetWidth() / pdfImage->GetWidth();
-         double scaleY = imgRect.GetHeight() / pdfImage->GetHeight();
+          pnt.SetPageCanvas(pPage, frmXObj.GetContents());
 
-         pnt.DrawImage(imgRect.GetLeft() - m_SignRect.GetLeft(), imgRect.GetBottom() - m_SignRect.GetBottom(), 
-                        pdfImage, scaleX, scaleY);
-         m_pSignField->FreeSignatureImage(pdfImage);
-      }
+          PdfXObject n0XObj(objRect, pDocument, "n0", true);
+          PdfXObject n2XObj(objRect, pDocument, "n2", true);
 
-      if(m_pSignField->HasSignatureText()) {
-         if(m_pFont == NULL) {
-            PdfIdentityEncoding *pdfEnc = new PdfIdentityEncoding();
-            m_pFont = pDocument->CreateFont("Arial", false, pdfEnc);
-            m_pFont->SetFontSize(m_pSignField->GetFontSize());
-         }
-         pnt.SetFont(m_pFont);
+          frmXObj.AddResource(PdfName("n0"), n0XObj.GetObjectReference(), PdfName("XObject"));
+          frmXObj.AddResource(PdfName("n2"), n2XObj.GetObjectReference(), PdfName("XObject"));
 
-         n2XObj.AddResource(m_pFont->GetIdentifier(), m_pFont->GetObject()->Reference(), PdfName("Font"));
+          pnt.DrawXObject(0,0, &n0XObj);
+          pnt.DrawXObject(0,0, &n2XObj);
+          pnt.EndCanvas();
 
-         PdfRect tRect = m_pSignField->GetTextRect();
-         PdfString text = m_pSignField->GetSignatureText();
-         PdfRect txtRect(tRect.GetLeft() - m_SignRect.GetLeft(), tRect.GetBottom() - m_SignRect.GetBottom(), 
-                         tRect.GetWidth(), tRect.GetHeight());
-         pnt.DrawMultiLineText(txtRect, text);
-         //pnt.DrawText(10,50, text);
+          PdfImage *pdfImage = NULL;
+          if(m_pSignField->HasSignatureImage()) {
+             pdfImage = m_pSignField->CreateSignatureImage(pDocument);
+          }
+          if(m_pSignField->HasSignatureText() || pdfImage != NULL) {
+             pnt.SetPageCanvas(pPage, n2XObj.GetContents());
+          }
+          if(pdfImage) {
+             PdfRect imgRect = m_pSignField->GetImageRect();
+             n2XObj.AddResource(pdfImage->GetIdentifier(), pdfImage->GetObjectReference(), PdfName("XObject"));
+
+             double scaleX = imgRect.GetWidth() / pdfImage->GetWidth();
+             double scaleY = imgRect.GetHeight() / pdfImage->GetHeight();
+
+             pnt.DrawImage(imgRect.GetLeft() - m_SignRect.GetLeft(), imgRect.GetBottom() - m_SignRect.GetBottom(),
+                            pdfImage, scaleX, scaleY);
+             m_pSignField->FreeSignatureImage(pdfImage);
+          }
+
+          if(m_pSignField->HasSignatureText()) {
+             if(m_pFont == NULL) {
+                if (m_pSignField->createFontFunc) {
+                    m_pFont = m_pSignField->createFontFunc (pDocument, m_pSignField->createFontUserData);
+                }
+                if (!m_pFont) {
+                    m_pFont = pDocument->CreateFont(m_pSignField->GetFontName(), m_pSignField->GetFontIsSymbolic(), m_pSignField->GetFontEncoding());
+                }
+                m_pFont->SetFontSize(m_pSignField->GetFontSize());
+             }
+             pnt.SetFont(m_pFont);
+
+             n2XObj.AddResource(m_pFont->GetIdentifier(), m_pFont->GetObject()->Reference(), PdfName("Font"));
+
+             PdfRect tRect = m_pSignField->GetTextRect();
+             PdfString text = m_pSignField->GetSignatureText();
+             PdfRect txtRect(tRect.GetLeft() - m_SignRect.GetLeft(), tRect.GetBottom() - m_SignRect.GetBottom(),
+                             tRect.GetWidth(), tRect.GetHeight());
+             pnt.DrawMultiLineText(txtRect, text);
+             //pnt.DrawText(10,50, text);
+          }
+      } catch (const PdfError &e) {
+          try {
+              pnt.FinishPage();
+          } catch(...) {
+          }
+          throw e;
       }
 
       pnt.FinishPage();
-   } else 
+   } else
       PODOFO_RAISE_ERROR(ePdfError_InternalLogic);
 
 }
