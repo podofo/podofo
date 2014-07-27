@@ -251,9 +251,7 @@ void PdfParser::Clear()
 void PdfParser::ReadDocumentStructure()
 {
 // Ulrich Arnold 8.9.2009, deactivated because of problems during reading xref's
-   //begin L.K - na test povoleno
-    HasLinearizationDict();
-    //begin L.K
+    // HasLinearizationDict();
     
     // position at the end of the file to search the xref table.
     m_device.Device()->Seek( 0, std::ios_base::end );
