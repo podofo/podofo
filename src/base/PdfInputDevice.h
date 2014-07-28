@@ -199,15 +199,13 @@ bool PdfInputDevice::Eof() const
         return m_pStream->eof();
     if (m_pFile)
         return feof(m_pFile) != 0;
-    PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    return true;
 }
 
 void PdfInputDevice::Clear(std::ios_base::iostate state) const
 {
     if (m_pStream)
         m_pStream->clear(state);
-    if (!m_pFile)
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
 }
 
 };
