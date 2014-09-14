@@ -137,7 +137,11 @@ static bool GetFontFromCollection(char *&buffer, unsigned int &bufferLen, unsign
         ULONG offset   = FromBigEndian(*(ULONG *)(entry+8));
         ULONG length   = FromBigEndian(*(ULONG *)(entry+12));
         length = (length+3) & ~3;
-        if(offset+length > bufferLen) return false; // truncated or corrupted buffer
+        if(offset+length > bufferLen){
+            return false; // truncated or corrupted buffer
+        }
+
+		
         if(strcmp(tag, "name") == 0)
         {
             //us: see "http://www.microsoft.com/typography/otspec/name.htm"
@@ -147,14 +151,18 @@ static bool GetFontFromCollection(char *&buffer, unsigned int &bufferLen, unsign
             USHORT stringOffset = ShortFromBigEndian(*(USHORT *)(nameTable+4));
             char *stringArea = nameTable + stringOffset;
             char *nameRecord = nameTable + 6;
+
+            int systemLCID = GetUserDefaultLCID(); // systemcall to get the locale user ID
+
             for(int n=0; n<nameCount; n++)
             {
                 USHORT platformID = ShortFromBigEndian(*(USHORT *)(nameRecord));
                 USHORT encodingID = ShortFromBigEndian(*(USHORT *)(nameRecord+2));
                 USHORT languageID = ShortFromBigEndian(*(USHORT *)(nameRecord+4));
+
                 if(platformID == 0 && languageID == 0)
                 {
-                    // only Unicode platform / english
+                    // Unicode platform / unicode 1.0
                     USHORT nameID     = ShortFromBigEndian(*(USHORT *)(nameRecord+6));
                     USHORT length     = ShortFromBigEndian(*(USHORT *)(nameRecord+8));
                     USHORT offset     = ShortFromBigEndian(*(USHORT *)(nameRecord+10));
@@ -166,6 +174,39 @@ static bool GetFontFromCollection(char *&buffer, unsigned int &bufferLen, unsign
                         name[i] = ShortFromBigEndian(((USHORT *)(stringArea + offset))[i]);
                     }
                     name[charCount] = 0;
+
+                    switch(nameID)
+                    {
+                    case 1:
+                        wcscpy(fontFamily, name);
+                        break;
+                    case 2:
+                        wcscpy(fontStyle, name);
+                        break;
+                    case 4:
+                        wcscpy(fontFullName, name);
+                        break;
+                    case 6:
+                        wcscpy(fontPostscriptName, name);
+                        break;
+                    }
+                }
+                // dv: see "http://www.microsoft.com/typography/otspec/name.htm"
+                if(platformID == 3 && encodingID == 1 && (languageID == systemLCID || languageID == 1033)) //1033 == English(US)
+                {
+                    //Platform Windows -> Unicode (UCS-2)
+                    USHORT nameID     = ShortFromBigEndian(*(USHORT *)(nameRecord+6));
+                    USHORT length     = ShortFromBigEndian(*(USHORT *)(nameRecord+8));
+                    USHORT offset     = ShortFromBigEndian(*(USHORT *)(nameRecord+10));
+                    wchar_t name[1024];
+                    if(length >= sizeof(name)) length = sizeof(name) - sizeof(wchar_t);
+                    unsigned int charCount = length / sizeof(wchar_t);
+                    for(unsigned int i=0; i<charCount; i++)
+                    {
+                        name[i] = ShortFromBigEndian(((USHORT *)(stringArea + offset))[i]);
+                    }
+                    name[charCount] = 0;
+
                     switch(nameID)
                     {
                     case 1:
