@@ -314,6 +314,10 @@ EPdfFontType PdfFontFactory::GetFontType( const char* pszFilename )
         const char* pszExtension = pszFilename + strlen( pszFilename ) - 3;
         if( PoDoFo::compat::strncasecmp( pszExtension, "ttf", 3 ) == 0 )
             eFontType = ePdfFontType_TrueType;
+        else if( PoDoFo::compat::strncasecmp( pszExtension, "otf", 3 ) == 0 )
+            eFontType = ePdfFontType_TrueType;
+        else if( PoDoFo::compat::strncasecmp( pszExtension, "ttc", 3 ) == 0 )
+            eFontType = ePdfFontType_TrueType;
         else if( PoDoFo::compat::strncasecmp( pszExtension, "pfa", 3 ) == 0 )
             eFontType = ePdfFontType_Type1Pfa;
         else if( PoDoFo::compat::strncasecmp( pszExtension, "pfb", 3 ) == 0 )
