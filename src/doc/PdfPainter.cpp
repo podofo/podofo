@@ -1226,9 +1226,11 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 		}
 	}
 
-	// mark glyph as used in basefont (needed for subsetting)
-	m_pFont->AddUsedGlyphname( pszGlyphname );
-    
+	if( m_pFont->IsSubsetting() ) {
+		// mark glyph as used in basefont (needed for subsetting)
+		m_pFont->AddUsedGlyphname( pszGlyphname );
+	}
+
     // output
 	SetFont( pGlyphFont );
 	char temp[2];
