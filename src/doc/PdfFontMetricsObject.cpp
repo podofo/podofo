@@ -51,11 +51,15 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
     // OC 15.08.2010 BugFix: /FirstChar /LastChar /Widths are in the Font dictionary and not in the FontDescriptor
 	if ( rSubType == PdfName("Type1") || rSubType == PdfName("Type3") || rSubType == PdfName("TrueType") ) {
         if ( pDescriptor ) {
-            m_sName        = pDescriptor->GetIndirectKey( "FontName" )->GetName();
-            m_bbox         = pDescriptor->GetIndirectKey( "FontBBox" )->GetArray();
+            if (pDescriptor->GetDictionary().HasKey( "FontName" ))
+                m_sName        = pDescriptor->GetIndirectKey( "FontName" )->GetName();
+            if (pDescriptor->GetDictionary().HasKey( "FontBBox" ))
+                m_bbox         = pDescriptor->GetIndirectKey( "FontBBox" )->GetArray();
         } else {
-            m_sName        = pFont->GetIndirectKey( "Name" )->GetName();
-            m_bbox         = pFont->GetIndirectKey( "FontBBox" )->GetArray();
+            if (pFont->GetDictionary().HasKey( "Name" ))
+                m_sName        = pFont->GetIndirectKey( "Name" )->GetName();
+            if (pFont->GetDictionary().HasKey( "FontBBox" ))
+                m_bbox         = pFont->GetIndirectKey( "FontBBox" )->GetArray();
         }
         if (pFont->GetDictionary().HasKey( "FontMatrix" )) {
             // Type3 fonts have a custom FontMatrix
