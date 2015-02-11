@@ -228,7 +228,7 @@ void PdfXRefStreamParserObject::ReadXRefStreamEntry( char* pBuffer, pdf_long, co
 
     //printf("OBJ=%i nData = [ %i %i %i ]\n", nObjNo, static_cast<int>(nData[0]), static_cast<int>(nData[1]), static_cast<int>(nData[2]) );
     (*m_pOffsets)[nObjNo].bParsed = true;
-    switch( nData[0] ) // nData[0] contains the type information of this entry
+    switch( lW[0] == 0 ? 1 : nData[0] ) // nData[0] contains the type information of this entry
     {
         case 0:
             // a free object
