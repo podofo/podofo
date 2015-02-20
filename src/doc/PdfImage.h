@@ -178,6 +178,12 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param pszFilename
      */
     void LoadFromFile( const char* pszFilename );
+    
+    /** Load the image data from bytes
+     *  \param pData bytes
+     *  \param dwLen number of bytes
+     */
+    void LoadFromData(const unsigned char* pData, pdf_long dwLen);
 
 #ifdef PODOFO_HAVE_JPEG_LIB
     /** Load the image data from a JPEG file
@@ -207,12 +213,24 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param pszFilename
      */
     void LoadFromTiff( const char* pszFilename );
+    
+    /** Load the image data from TIFF bytes
+     *  \param pData TIFF bytes
+     *  \param dwLen number of bytes
+     */
+    void LoadFromTiffData(const unsigned char* pData, pdf_long dwLen);
 #endif // PODOFO_HAVE_TIFF_LIB
 #ifdef PODOFO_HAVE_PNG_LIB
     /** Load the image data from a PNG file
      *  \param pszFilename
      */
     void LoadFromPng( const char* pszFilename );
+    
+    /** Load the image data from PNG bytes
+     *  \param pData PNG bytes
+     *  \param dwLen number of bytes
+     */
+    void LoadFromPngData(const unsigned char* pData, pdf_long dwLen);
 #endif // PODOFO_HAVE_PNG_LIB
 
     /** Set an color/chroma-key mask on an image.
@@ -245,6 +263,9 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
 #ifdef PODOFO_HAVE_JPEG_LIB
 	void LoadFromJpegHandle( PdfFileInputStream* pInStream );
 #endif // PODOFO_HAVE_JPEG_LIB
+#ifdef PODOFO_HAVE_TIFF_LIB
+    void LoadFromTiffHandle( void* pInStream );
+#endif // PODOFO_HAVE_TIFF_LIB
 };
 
 // -----------------------------------------------------
