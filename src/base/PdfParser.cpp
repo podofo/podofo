@@ -831,12 +831,16 @@ void PdfParser::ReadXRefStreamContents( pdf_long lOffset, bool bReadOnlyTrailer 
 
     xrefObject.ReadXRefTable();
 
-    // Check for a previous XRef stream
+    // Check for a previous XRefStm or xref table
     if(xrefObject.HasPrevious()) 
     {
         try {
             m_nIncrementalUpdates++;
-            this->ReadXRefStreamContents( xrefObject.GetPreviousOffset(), bReadOnlyTrailer );
+
+            // PDFs that have been through multiple PDF tools may have a mix of xref tables (ISO 32000-1 7.5.4) 
+            // and XRefStm streams (ISO 32000-1 7.5.8.1) and in the Prev chain, 
+            // so call ReadXRefContents (which deals with both) instead of ReadXRefStreamContents 
+            ReadXRefContents( xrefObject.GetPreviousOffset(), bReadOnlyTrailer );
         } catch(PdfError &e) {
             /* Be forgiving, the error happens when an entry in XRef stream points
                to a wrong place (offset) in the PDF file. */
