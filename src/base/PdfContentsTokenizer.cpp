@@ -65,6 +65,12 @@ PdfContentsTokenizer::PdfContentsTokenizer( PdfCanvas* pCanvas )
 
             }
 
+            if ( !pContents->GetOwner()->GetObject( (*it).GetReference() ) )
+            {
+                // some damaged PDFs may have dangling references
+                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "/Contents array NULL reference" );
+            }
+
             m_lstContents.push_back( pContents->GetOwner()->GetObject( (*it).GetReference() ) );
         }
     }
