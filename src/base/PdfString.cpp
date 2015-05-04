@@ -315,7 +315,11 @@ void PdfString::SetHexData( const char* pszHex, pdf_long lLen, PdfEncrypt* pEncr
                            static_cast<unsigned int>(m_buffer.GetSize()-2),
                           reinterpret_cast<unsigned char*>(outBuffer.GetBuffer()),
                           outBufferLen);
-        outBuffer.Resize(outBufferLen);
+        // Add trailing pair of zeros
+        outBuffer.Resize(outBufferLen + 2);
+        outBuffer.GetBuffer()[outBufferLen] = '\0';
+        outBuffer.GetBuffer()[outBufferLen + 1] = '\0';
+
         // Replace buffer with decrypted value
         m_buffer = outBuffer;
     }
@@ -344,7 +348,7 @@ void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
     // Now we are not encrypting the empty strings (was access violation)!
     if( pEncrypt && m_buffer.GetSize())
     {
-        pdf_long nInputBufferLen = m_buffer.GetSize();
+        pdf_long nInputBufferLen = m_buffer.GetSize() - 2; // Cut off the trailing pair of zeros
         pdf_long nUnicodeMarkerOffet = sizeof( PdfString::s_pszUnicodeMarker );
         if( m_bUnicode )
             nInputBufferLen += nUnicodeMarkerOffet;
@@ -354,10 +358,10 @@ void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
         if( m_bUnicode )
         {
             memcpy(pInputBuffer, PdfString::s_pszUnicodeMarker, nUnicodeMarkerOffet);
-            memcpy(&pInputBuffer[nUnicodeMarkerOffet], m_buffer.GetBuffer(), m_buffer.GetSize());
+            memcpy(&pInputBuffer[nUnicodeMarkerOffet], m_buffer.GetBuffer(), nInputBufferLen - nUnicodeMarkerOffet);
         }
         else
-            memcpy(pInputBuffer, m_buffer.GetBuffer(), m_buffer.GetSize());
+            memcpy(pInputBuffer, m_buffer.GetBuffer(), nInputBufferLen);
         
         pdf_long nOutputBufferLen = pEncrypt->CalculateStreamLength(nInputBufferLen);
         
@@ -378,7 +382,7 @@ void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
     if( m_buffer.GetSize() )
     {
         char* pBuf = m_buffer.GetBuffer();
-        pdf_long  lLen = m_buffer.GetSize() - 2;
+        pdf_long  lLen = m_buffer.GetSize() - 2; // Cut off the trailing pair of zeros
 
         if( m_bHex ) 
         {
