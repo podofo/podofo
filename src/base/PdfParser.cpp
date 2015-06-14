@@ -785,7 +785,7 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
 		const int objID = nFirstObject+count;
 #endif // _WIN32
 
-        if( !m_offsets[objID].bParsed )
+        if( static_cast<size_t>(objID) < m_offsets.size() && !m_offsets[objID].bParsed )
         {
             m_offsets[objID].bParsed = true;
 #if defined(_WIN64) && defined(_MSC_VER)
