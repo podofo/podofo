@@ -258,7 +258,7 @@ void PdfIdentityEncoding::ParseToUnicode()
                         }
                         if (i % 3 == 2)
                         {
-                            for (int k = range_start; k < range_end; k++)
+                            for (int k = range_start; k <= range_end; k++)
                             {
                                 m_cMapEncoding[k] = num_value;
                                 num_value++;
@@ -309,6 +309,7 @@ void PdfIdentityEncoding::ParseToUnicode()
             
             if (strcmp (streamToken, "beginbfrange") == 0)
             {
+                loop = 0;
                 in_beginbfrange = 1;
                 stkToken.pop ();
                 std::stringstream ss;
@@ -324,6 +325,7 @@ void PdfIdentityEncoding::ParseToUnicode()
             
             if (strcmp (streamToken, "beginbfchar") == 0)
             {
+                loop = 0;
                 in_beginbfchar = 1;
                 stkToken.pop ();
                 std::stringstream ss;
