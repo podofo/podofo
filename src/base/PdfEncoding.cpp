@@ -122,7 +122,7 @@ PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString,
     pdf_long           lLen           = rEncodedString.GetLength();
 
     if( lLen  <= 0 )
-        return PdfString("");
+        return PdfString(L"");
 
     pdf_utf16be* pszStringUtf16 = static_cast<pdf_utf16be*>(malloc(sizeof(pdf_utf16be) * (lLen + 1)) );
     if( !pszStringUtf16 ) 

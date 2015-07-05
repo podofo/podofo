@@ -309,7 +309,7 @@ void PdfIdentityEncoding::ParseToUnicode()
             
             if (strcmp (streamToken, "beginbfrange") == 0)
             {
-                loop = 0;
+                i = loop = 0;
                 in_beginbfrange = 1;
                 stkToken.pop ();
                 std::stringstream ss;
@@ -325,7 +325,7 @@ void PdfIdentityEncoding::ParseToUnicode()
             
             if (strcmp (streamToken, "beginbfchar") == 0)
             {
-                loop = 0;
+                i = loop = 0;
                 in_beginbfchar = 1;
                 stkToken.pop ();
                 std::stringstream ss;

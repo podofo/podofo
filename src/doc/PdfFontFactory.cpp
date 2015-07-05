@@ -191,9 +191,14 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
         // some applications (e.g. MS Word) put the array into an indirect object though.
         const PdfArray & descendant  = 
             pObject->GetIndirectKey( "DescendantFonts" )->GetArray();
-        PdfObject* pFontObject = pObject->GetOwner()->GetObject( descendant[0].GetReference() );
+        PdfObject* pFontObject = NULL;
+        
+        if (descendant.size() && descendant[0].IsReference())
+        {
+            pFontObject = pObject->GetOwner()->GetObject( descendant[0].GetReference() );
 
-        pDescriptor = pFontObject->GetIndirectKey( "FontDescriptor" );
+            pDescriptor = pFontObject->GetIndirectKey( "FontDescriptor" );
+        }
         pEncoding   = pObject->GetIndirectKey( "Encoding" );
 
         if ( pEncoding && pDescriptor ) // OC 18.08.2010: Avoid sigsegv
