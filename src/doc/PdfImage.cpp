@@ -44,7 +44,6 @@
 #include <wchar.h>
 #include <sstream>
 
-#define PODOFO_JPEG_RUNTIME_COMPATIBLE
 #ifdef PODOFO_HAVE_TIFF_LIB
 extern "C" {
 #  include "tiffio.h"
@@ -253,6 +252,45 @@ void PdfImage::LoadFromFile( const char* pszFilename )
 	PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedImageFormat, pszFilename );
 }
     
+#ifdef _WIN32
+void PdfImage::LoadFromFile( const wchar_t* pszFilename )
+{
+    if( pszFilename && wcslen( pszFilename ) > 3 )
+    {
+        const wchar_t* pszExtension = pszFilename + wcslen( pszFilename ) - 3;
+
+#ifdef PODOFO_HAVE_TIFF_LIB
+		if( _wcsnicmp( pszExtension, L"tif", 3 ) == 0 ||
+            _wcsnicmp( pszExtension, L"iff", 3 ) == 0 ) // "tiff"
+        {
+            LoadFromTiff( pszFilename );
+            return;
+        }
+#endif
+
+#ifdef PODOFO_HAVE_JPEG_LIB
+        if( _wcsnicmp( pszExtension, L"jpg", 3 ) == 0 )
+        {
+            LoadFromJpeg( pszFilename );
+            return;
+        }
+#endif
+
+#ifdef PODOFO_HAVE_PNG_LIB
+        if( _wcsnicmp( pszExtension, L"png", 3 ) == 0 )
+        {
+            LoadFromPng( pszFilename );
+            return;
+        }
+#endif
+	}
+
+	PdfError e( ePdfError_UnsupportedImageFormat, __FILE__, __LINE__ );
+    e.SetErrorInformation( pszFilename );
+    throw e;
+}
+#endif // _WIN32
+
 void PdfImage::LoadFromData(const unsigned char* pData, pdf_long dwLen)
 {
     if (dwLen > 4) {
@@ -345,21 +383,7 @@ void PdfImage::LoadFromJpegHandle( PdfFileInputStream* pInStream )
 
     jpeg_create_decompress(&cinfo);
 
-#if !defined(PODOFO_JPEG_RUNTIME_COMPATIBLE)
-    const long lSize = 1024;
-    PdfRefCountedBuffer buffer( lSize );
-    fread( buffer.GetBuffer(), sizeof(char), lSize, hInfile );
-    
-    // On WIN32, you can only pass a FILE Handle to DLLs which where compiled using the same
-    // C library. This is usually not the case with LibJpeg on WIN32. 
-    // As a reason we use a memory buffer to determine the header information.
-    //
-    // If you are sure that libJpeg is compiled against the same C library as your application
-    // you can removed this ifdef.
-    jpeg_memory_src ( &cinfo, reinterpret_cast<JOCTET*>(buffer.GetBuffer()), buffer.GetSize() );
-#else
     jpeg_stdio_src(&cinfo, pInStream->GetHandle());
-#endif // PODOFO_JPEG_RUNTIME_COMPATIBLE
 
     if( jpeg_read_header(&cinfo, TRUE) <= 0 )
     {
@@ -697,6 +721,30 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
     LoadFromTiffHandle(hInfile);
 }
 
+#ifdef _WIN32
+void PdfImage::LoadFromTiff( const wchar_t* pszFilename )
+{
+    TIFFSetErrorHandler(TIFFErrorWarningHandler);
+    TIFFSetWarningHandler(TIFFErrorWarningHandler);
+    
+    if( !pszFilename )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    TIFF* hInfile = TIFFOpenW(pszFilename, "rb");
+
+    if( !hInfile )
+    {
+		PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
+        e.SetErrorInformation( pszFilename );
+        throw e;
+    }
+
+	LoadFromTiffHandle(hInfile);
+}
+#endif // _WIN32
+
 struct tiffData
 {
     tiffData(const unsigned char* data, tsize_t size):_data(data), _pos(0), _size(size) {}
@@ -825,17 +873,21 @@ void PdfImage::LoadFromTiffData(const unsigned char* pData, pdf_long dwLen)
 #ifdef PODOFO_HAVE_PNG_LIB
 void PdfImage::LoadFromPng( const char* pszFilename )
 {
-    if( !pszFilename )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+    PdfFileInputStream stream( pszFilename );
+    LoadFromPngHandle( &stream );
+}
 
-    FILE* hFile = fopen(pszFilename, "rb");
-    if( !hFile )
-    {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
-    }
+#ifdef _WIN32
+void PdfImage::LoadFromPng( const wchar_t* pszFilename )
+{
+    PdfFileInputStream stream( pszFilename );
+    LoadFromPngHandle( &stream );
+}
+#endif // _WIN32
 
+void PdfImage::LoadFromPngHandle( PdfFileInputStream* pInStream ) 
+{
+    FILE* hFile = pInStream->GetHandle();
     png_byte header[8];
     fread(header, 1, 8, hFile);
     if( png_sig_cmp(header, 0, 8) )

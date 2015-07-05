@@ -185,6 +185,17 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      */
     void LoadFromData(const unsigned char* pData, pdf_long dwLen);
 
+#ifdef _WIN32
+    /** Load the image data from a file
+     *  \param pszFilename
+     *
+     *  This is an overloaded member function to allow working
+     *  with unicode characters. On Unix systems you can also pass
+     *  UTF-8 to the const char* overload.
+     */
+    void LoadFromFile( const wchar_t* pszFilename );
+#endif // _WIN32
+
 #ifdef PODOFO_HAVE_JPEG_LIB
     /** Load the image data from a JPEG file
      *  \param pszFilename
@@ -202,7 +213,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param pszFilename
      *
      *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systes you can also path
+     *  with unicode characters. On Unix systems you can also pass
      *  UTF-8 to the const char* overload.
      */
     void LoadFromJpeg( const wchar_t* pszFilename );
@@ -219,6 +230,17 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param dwLen number of bytes
      */
     void LoadFromTiffData(const unsigned char* pData, pdf_long dwLen);
+
+#ifdef _WIN32
+    /** Load the image data from a TIFF file
+     *  \param pszFilename
+     *
+     *  This is an overloaded member function to allow working
+     *  with unicode characters. On Unix systems you can also pass
+     *  UTF-8 to the const char* overload.
+     */
+    void LoadFromTiff( const wchar_t* pszFilename );
+#endif // _WIN32
 #endif // PODOFO_HAVE_TIFF_LIB
 #ifdef PODOFO_HAVE_PNG_LIB
     /** Load the image data from a PNG file
@@ -231,6 +253,17 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param dwLen number of bytes
      */
     void LoadFromPngData(const unsigned char* pData, pdf_long dwLen);
+
+#ifdef _WIN32
+    /** Load the image data from a PNG file
+     *  \param pszFilename
+     *
+     *  This is an overloaded member function to allow working
+     *  with unicode characters. On Unix systems you can also pass
+     *  UTF-8 to the const char* overload.
+     */
+    void LoadFromPng( const wchar_t* pszFilename );
+#endif // _WIN32
 #endif // PODOFO_HAVE_PNG_LIB
 
     /** Set an color/chroma-key mask on an image.
@@ -266,6 +299,9 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
 #ifdef PODOFO_HAVE_TIFF_LIB
     void LoadFromTiffHandle( void* pInStream );
 #endif // PODOFO_HAVE_TIFF_LIB
+#ifdef PODOFO_HAVE_PNG_LIB
+	void LoadFromPngHandle( PdfFileInputStream* pInStream );
+#endif // PODOFO_HAVE_PNG_LIB
 };
 
 // -----------------------------------------------------
