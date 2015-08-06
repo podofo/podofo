@@ -47,6 +47,8 @@
 
 namespace PoDoFo {
 
+typedef std::vector<PdfObject> PdfArrayBaseClass;
+
 /** This class represents a PdfArray
  *  Use it for all arrays that are written to a PDF file.
  *  
@@ -54,8 +56,6 @@ namespace PoDoFo {
  *
  *  \see PdfVariant
  */
-typedef std::vector<PdfObject> PdfArrayBaseClass;
-
 class PODOFO_API PdfArray : private PdfArrayBaseClass, public PdfDataType {
  public:
     typedef PdfArrayBaseClass::iterator               iterator;

@@ -83,6 +83,9 @@ typedef TKeyMap::const_iterator           TCIKeyMap;
 
 class PdfOutputDevice;
 
+/** The PDF dictionary data type of PoDoFo (inherits from PdfDataType,
+ *  the base class for such representations)
+ */
 class PODOFO_API PdfDictionary : public PdfDataType {
  public:
     /** Create a new, empty dictionary

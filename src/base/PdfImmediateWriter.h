@@ -44,6 +44,9 @@ class PdfEncrypt;
 class PdfOutputDevice;
 class PdfXRef;
 
+/** A kind of PdfWriter that writes objects with streams immediately to
+ *  a PdfOutputDevice
+ */
 class PODOFO_API PdfImmediateWriter : private PdfWriter, 
     private PdfVecObjects::Observer, 
     private PdfVecObjects::StreamFactory {
