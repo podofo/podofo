@@ -55,11 +55,11 @@ typedef TVecFilters::const_iterator        TCIVecFilters;
 
 /** Every filter in PoDoFo has to implement this interface.
  * 
- *  The two methods Encode and Decode have to be implemented 
+ *  The two methods Encode() and Decode() have to be implemented 
  *  for every filter.
  *
- *  The output buffers are malloc'ed in the functions and have
- *  to be free'd by the caller.
+ *  The output buffers are malloc()'ed in the functions and have
+ *  to be free()'d by the caller.
  */
 class PODOFO_API PdfFilter {
  public:
@@ -71,14 +71,14 @@ class PODOFO_API PdfFilter {
      */
     inline virtual ~PdfFilter();
 
-    /** Check wether encoding is implemented for this filter.
+    /** Check whether encoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to encode data
      */
     virtual bool CanEncode() const = 0; 
 
-    /** Encodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
+    /** Encodes a buffer using a filter. The buffer will malloc()'d and
+     *  has to be free()'d by the caller.
      *
      *  This function uses BeginEncode()/EncodeBlock()/EndEncode()
      *  internally, so it's not safe to use when progressive encoding
@@ -86,8 +86,8 @@ class PODOFO_API PdfFilter {
      *
      *  \param pInBuffer input buffer
      *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the encoded data
-     *  \param plOutLen pointer to the length of the output buffer
+     *  \param ppOutBuffer receives pointer to the buffer of the encoded data
+     *  \param plOutLen pointer to where to write the output buffer's length
      */
     void Encode( const char* pInBuffer, pdf_long lInLen, char** ppOutBuffer, pdf_long* plOutLen ) const;
 
@@ -97,9 +97,9 @@ class PODOFO_API PdfFilter {
      *  perform other operations defined by particular filter
      *  implementations. It calls BeginEncodeImpl().
      *
-     *  \param pOutput encoded data will be written to this stream.
+     *  \param pOutput Encoded data will be written to this stream.
      *
-     *  Call EncodeBlock() to encode blocks of data and use EndEncode
+     *  Call EncodeBlock() to encode blocks of data and use EndEncode()
      *  to finish the encoding process.
      *
      *  \see EncodeBlock
@@ -108,7 +108,7 @@ class PODOFO_API PdfFilter {
     inline void BeginEncode( PdfOutputStream* pOutput );
 
     /** Encode a block of data and write it to the PdfOutputStream
-     *  specified by BeginEncode. Ownership of the block is not taken
+     *  specified by BeginEncode(). Ownership of the block is not taken
      *  and remains with the caller.
      *
      *  The filter implementation need not immediately process the buffer,
@@ -123,7 +123,7 @@ class PODOFO_API PdfFilter {
      *  \param pBuffer pointer to a buffer with data to encode
      *  \param lLen length of data to encode.
      *
-     *  Call EndEncode() after all data has been encoded
+     *  Call EndEncode() after all data has been encoded.
      *
      *  \see BeginEncode
      *  \see EndEncode
@@ -138,23 +138,23 @@ class PODOFO_API PdfFilter {
      */
     inline void EndEncode();
 
-    /** Check wether the decoding is implemented for this filter.
+    /** Check whether the decoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to decode data
      */
     virtual bool CanDecode() const = 0; 
 
-    /** Decodes a buffer using a filter. The buffer will malloc'ed and
-     *  has to be free'd by the caller.
+    /** Decodes a buffer using a filter. The buffer will malloc()'d and
+     *  has to be free()'d by the caller.
      *  
      *  \param pInBuffer input buffer
      *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer pointer to the buffer of the decoded data
-     *  \param plOutLen pointer to the length of the output buffer
-     *  \param pDecodeParms optional pointer to an decode parameters dictionary
-     *                      containing additional information to decode the data.
-     *                      This pointer must be NULL if no decode parameter dictionary
-     *                      is available.
+     *  \param ppOutBuffer receives pointer to the buffer of the decoded data
+     *  \param plOutLen pointer to where to write the output buffer's length  
+     *  \param pDecodeParms optional pointer to a decode-parameters dictionary
+     *                      containing additional information to decode
+     *                      the data. This pointer must be NULL if no
+     *                      decode-parameters dictionary is available.
      */
     void Decode( const char* pInBuffer, pdf_long lInLen, char** ppOutBuffer, pdf_long* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
 
@@ -164,10 +164,11 @@ class PODOFO_API PdfFilter {
      *  perform other operations defined by particular filter
      *  implementations. It calls BeginDecodeImpl().
      *
-     *  \param pOutput decoded data will be written to this stream.
-     *  \param pDecodeParms a dictionary containing addiational information for decoding
+     *  \param pOutput decoded data will be written to this stream
+     *  \param pDecodeParms a dictionary containing additional information
+     *                      for decoding
      *
-     *  Call DecodeBlock() to decode blocks of data and use EndDecode
+     *  Call DecodeBlock() to decode blocks of data and use EndDecode()
      *  to finish the decoding process.
      *
      *  \see DecodeBlock
@@ -176,7 +177,7 @@ class PODOFO_API PdfFilter {
     inline void BeginDecode( PdfOutputStream* pOutput, const PdfDictionary* pDecodeParms = NULL );
 
     /** Decode a block of data and write it to the PdfOutputStream
-     *  specified by BeginDecode. Ownership of the block is not taken
+     *  specified by BeginDecode(). Ownership of the block is not taken
      *  and remains with the caller.
      *
      *  The filter implementation need not immediately process the buffer,
@@ -191,7 +192,7 @@ class PODOFO_API PdfFilter {
      *  \param pBuffer pointer to a buffer with data to encode
      *  \param lLen length of data to encode.
      *
-     *  Call EndDecode() after all data has been decoded
+     *  Call EndDecode() after all data has been decoded.
      *
      *  \see BeginDecode
      *  \see EndDecode
@@ -215,30 +216,33 @@ class PODOFO_API PdfFilter {
 
  protected:
     /**
-     * Indicate that the filter has failed, and will be non-functional until BeginEncode()
-     * or BeginDecode() is next called. Call this instead of EndEncode() or EndDecode if 
-     * something went wrong. It clears the stream output but otherwise does nothing.
+     * Indicate that the filter has failed, and will be non-functional
+     * until BeginEncode() or BeginDecode() is next called. Call this
+     * instead of EndEncode() or EndDecode if something went wrong.
+     * It clears the stream output but otherwise does nothing.
      *
-     * After this method is called futher calls to EncodeBlock(), DecodeBlock(), EndDecode() and
-     * EndEncode() before the next BeginEncode() or BeginDecode() are guaranteed to throw
+     * After this method is called further calls to EncodeBlock(),
+     * DecodeBlock(), EndDecode() and EndEncode() before the next
+     * BeginEncode() or BeginDecode() are guaranteed to throw
      * without calling their virtual implementations.
      */
     PODOFO_NOTHROW inline void FailEncodeDecode();
 
-    /** Real implementation of `BeginEncode()'. NEVER call this method directly.
+    /** Real implementation of BeginEncode(). NEVER call this method directly.
      *
-     *  By default this function does nothing. If your filter needs to do setup for encoding,
-     *  you should override this method.
+     *  By default this function does nothing. If your filter needs to do setup
+     *  for encoding, you should override this method.
      *
-     *  PdfFilter ensures that a valid stream is available when this method is called, and
-     *  that EndEncode() was called since the last BeginEncode()/EncodeBlock().
-     *
-     * \see BeginEncode */
+     *  PdfFilter ensures that a valid stream is available when this method is
+     *  called, and that EndEncode() was called since the last BeginEncode()/
+     *  EncodeBlock().
+     * \see BeginEncode
+     */
     virtual void BeginEncodeImpl( ) { }
 
-    /** Real implementation of `EncodeBlock()'. NEVER call this method directly.
+    /** Real implementation of EncodeBlock(). NEVER call this method directly.
      *
-     *  You must override this method to encode the buffer passed by the caller.
+     *  You must method-override it to encode the buffer passed by the caller.
      *
      *  You are not obliged to immediately process any or all of the data in
      *  the passed buffer, but you must ensure that you have processed it and
@@ -250,34 +254,37 @@ class PODOFO_API PdfFilter {
      *  called, ensures that BeginEncode() has been called, and ensures that
      *  EndEncode() has not been called since the last BeginEncode().
      *
-     * \see EncodeBlock */
+     * \see EncodeBlock
+     */
     virtual void EncodeBlockImpl( const char* pBuffer, pdf_long lLen ) = 0;
 
-    /** Real implementation of `EndEncode()'. NEVER call this method directly.
+    /** Real implementation of EndEncode(). NEVER call this method directly.
      *
-     * By the time this method returns, all filtered data must be written to the stream
-     * and the filter must be in a state where BeginEncode() can be safely called.
+     * By the time this method returns, all filtered data must be written to
+     * the stream and the filter must be in a state where BeginEncode() can
+     * be safely called.
+     * PdfFilter ensures that a valid stream is available when this method is
+     * called, and ensures that BeginEncodeImpl() has been called.
      *
-     *  PdfFilter ensures that a valid stream is available when this method is
-     *  called, and ensures that BeginEncodeImpl() has been called.
-     *
-     * \see EndEncode */
+     * \see EndEncode
+     */
     virtual void EndEncodeImpl() { }
 
-    /** Real implementation of `BeginDecode()'. NEVER call this method directly.
+    /** Real implementation of BeginDecode(). NEVER call this method directly.
      *
-     *  By default this function does nothing. If your filter needs to do setup for decoding,
-     *  you should override this method.
+     *  By default this function does nothing. If your filter needs to do setup
+     *  for decoding, you should override this method.
      *
-     *  PdfFilter ensures that a valid stream is available when this method is called, and
-     *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
-     *
-     * \see BeginDecode */
+     *  PdfFilter ensures that a valid stream is available when this method is
+     *  called, and that EndDecode() was called since the last BeginDecode()/
+     *  DecodeBlock().
+     * \see BeginDecode
+     */
     virtual void BeginDecodeImpl( const PdfDictionary* ) { }
 
-    /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
+    /** Real implementation of DecodeBlock(). NEVER call this method directly.
      *
-     *  You must override this method to decode the buffer passed by the caller.
+     *  You must method-override it to decode the buffer passed by the caller.
      *
      *  You are not obliged to immediately process any or all of the data in
      *  the passed buffer, but you must ensure that you have processed it and
@@ -289,18 +296,20 @@ class PODOFO_API PdfFilter {
      *  called, ensures that BeginDecode() has been called, and ensures that
      *  EndDecode() has not been called since the last BeginDecode().
      *
-     * \see DecodeBlock */
+     * \see DecodeBlock
+     */
     virtual void DecodeBlockImpl( const char* pBuffer, pdf_long lLen ) = 0;
 
-    /** Real implementation of `EndDecode()'. NEVER call this method directly.
+    /** Real implementation of EndDecode(). NEVER call this method directly.
      *
-     * By the time this method returns, all filtered data must be written to the stream
-     * and the filter must be in a state where BeginDecode() can be safely called.
-     *
+     *  By the time this method returns, all filtered data must be written to
+     *  the stream and the filter must be in a state where BeginDecode() can be
+     *  safely called.
      *  PdfFilter ensures that a valid stream is available when this method is
      *  called, and ensures that BeginDecodeImpl() has been called.
      *
-     * \see EndDecode */
+     * \see EndDecode
+     */
     virtual void EndDecodeImpl() { }
 
  private:
@@ -437,21 +446,21 @@ PdfFilter::~PdfFilter()
 }
 
 
-/** A factory to create a filter object for a filter GetType from the EPdfFilter enum.
- * 
+/** A factory to create a filter object for a filter type (as GetType() gives)
+ *  from the EPdfFilter enum. 
  *  All filters should be created using this factory.
  */
 class PODOFO_API PdfFilterFactory {
  public:
     /** Create a filter from an enum.
      *
-     *  Ownership is transferred to the caller, who should let the auto_ptr the
-     *  filter is returned in take care of freeing it when they're done with
-     *  it.
+     *  Ownership is transferred to the caller, who should let the auto_ptr
+     *  the filter is returned in take care of freeing it when they're done
+     *  with it.
      *
-     *  \param eFilter the GetType of filter that should be created.
+     *  \param eFilter return value of GetType() for filter to be created
      *
-     *  \returns a new PdfFilter allocated using new or NULL if no
+     *  \returns a new PdfFilter allocated using new, or NULL if no
      *           filter is available for this type.
      */
     static std::auto_ptr<PdfFilter> Create( const EPdfFilter eFilter );
@@ -460,7 +469,8 @@ class PODOFO_API PdfFilterFactory {
      *  on all data written to it.
      *
      *  \param filters a list of filters
-     *  \param pStream write all data to this PdfOutputStream after it has been encoded.
+     *  \param pStream write all data to this PdfOutputStream after it has been
+     *         encoded
      *  \returns a new PdfOutputStream that has to be deleted by the caller.
      *
      *  \see PdfFilterFactory::CreateFilterList
@@ -471,12 +481,13 @@ class PODOFO_API PdfFilterFactory {
      *  on all data written to it.
      *
      *  \param filters a list of filters
-     *  \param pStream write all data to this PdfOutputStream after it has been decoded.
-     *  \param pDictionary pointer to a dictionary that might contain additional parameters
-     *                     for decoding the stream.
-     *                     CreateDecodeStream will look for a key named DecodeParms in this dictionary
-     *                     and pass the information found in this dictionary to the filters.
-     *
+     *  \param pStream write all data to this PdfOutputStream
+     *         after it has been decoded.
+     *  \param pDictionary pointer to a dictionary that might
+     *         contain additional parameters for stream decoding.
+     *         This method will look for a key named DecodeParms
+     *         in this dictionary and pass the information found
+     *         in that dictionary to the filters.
      *  \returns a new PdfOutputStream that has to be deleted by the caller.
      *
      *  \see PdfFilterFactory::CreateFilterList
@@ -486,7 +497,7 @@ class PODOFO_API PdfFilterFactory {
 
     /** Converts a filter name to the corresponding enum
      *  \param name of the filter without leading
-     *  \param bSupportShortNames the PDF Reference supports several
+     *  \param bSupportShortNames The PDF Reference supports several
      *         short names for filters (e.g. AHx for AsciiHexDecode), if true
      *         support for these short names will be enabled. 
      *         This is often used in inline images.
@@ -501,9 +512,10 @@ class PODOFO_API PdfFilterFactory {
     static const char* FilterTypeToName( EPdfFilter eFilter );
 
     /** The passed PdfObject has to be a dictionary with a Filters key,
-     *  an array of filter names or a filter name.
+     *  a (possibly empty) array of filter names or a filter name.
      *
-     *  \param pObject must define a list of filters.
+     *  \param pObject must define a filter or list of filters (can be
+     *         empty, although then you should use TVecFilters' default)
      *
      *  \returns a list of filters
      */

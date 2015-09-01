@@ -81,7 +81,7 @@ class PODOFO_API PdfStream {
 
     /** Set a binary buffer as stream data.
      *
-     * Use PdfFilterFactory::CreateFilterList if you want to use the contents
+     * Use PdfFilterFactory::CreateFilterList() if you want to use the contents
      * of the stream dictionary's existing filter key.
      *
      *  \param szBuffer buffer containing the stream data
@@ -91,7 +91,7 @@ class PODOFO_API PdfStream {
     void Set( const char* szBuffer, pdf_long lLen, const TVecFilters & vecFilters );
 
     /** Set a binary buffer as stream data.
-     *  All data will be flate encoded.
+     *  All data will be Flate-encoded.
      *
      *  \param szBuffer buffer containing the stream data
      *  \param lLen length of the buffer
@@ -99,7 +99,7 @@ class PODOFO_API PdfStream {
     void Set( const char* szBuffer, pdf_long lLen );
 
     /** Set a binary buffer whose contents are read from a PdfInputStream
-     *  All data will be flate encoded.
+     *  All data will be Flate-encoded.
      * 
      *  \param pStream read stream contents from this PdfInputStream
      */
@@ -107,7 +107,7 @@ class PODOFO_API PdfStream {
 
     /** Set a binary buffer whose contents are read from a PdfInputStream
      * 
-     * Use PdfFilterFactory::CreateFilterList if you want to use the contents
+     * Use PdfFilterFactory::CreateFilterList() if you want to use the contents
      * of the stream dictionary's existing filter key.
      *
      *  \param pStream read stream contents from this PdfInputStream
@@ -115,31 +115,33 @@ class PODOFO_API PdfStream {
      */
     void Set( PdfInputStream* pStream, const TVecFilters & vecFilters );
 
-    /** Set a null-terminated char* buffer  as the streams contents.
+    /** Set a null-terminated char* buffer as the stream's contents.
      *
      *  The string will be copied into a newly allocated buffer.
-     *  \param pszString a zero terminated string buffer containing only ASCII text data
+     *  \param pszString a zero terminated string buffer containing only
+     *         ASCII text data
      */
     inline void Set( const char* pszString );
 
-    /** Sets raw data for this filter which is read from an input stream.
+    /** Sets raw data for this stream which is read from an input stream.
      *  This method does neither encode nor decode the read data.
-     *  The filters of the object are not modified and the data is expected to be
-     *  encoded as stated by the /Filters key in the streams object.
+     *  The filters of the object are not modified and the data is expected
+     *  encoded as stated by the /Filters key in the stream's object.
      *
      *  \param pStream read data from this input stream
-     *  \param lLen    read excactly lLen bytes from the input stream
-     *                 if lLen = -1 read until the end of the input stream was reached.
+     *  \param lLen    read exactly lLen bytes from the input stream,
+     *                 if lLen = -1 read until the end of the input stream
+     *                 was reached.
      */
     void SetRawData( PdfInputStream* pStream, pdf_long lLen = -1 );
 
     /** Start appending data to this stream.
      *
      *  This method has to be called before any of the append methods.
-     *  All appended data will be flate decoded!
+     *  All appended data will be Flate-encoded.
      *
-     *  \param bClearExisting if true any existing stream contents will be
-     *         cleared.
+     *  \param bClearExisting if true any existing stream contents will
+     *         be cleared.
      *
      *  \see Append
      *  \see EndAppend
@@ -149,13 +151,14 @@ class PODOFO_API PdfStream {
     /** Start appending data to this stream.
      *  This method has to be called before any of the append methods.
      *
-     * Use PdfFilterFactory::CreateFilterList if you want to use the contents
+     * Use PdfFilterFactory::CreateFilterList() if you want to use the contents
      * of the stream dictionary's existing filter key.
      *
      *  \param vecFilters a list of filters to use when appending data
-     *  \param bClearExisting if true any existing stream contents will be cleared.
+     *  \param bClearExisting if true any existing stream contents will
+               be cleared.
      *  \param bDeleteFilters if true existing filter keys are deleted if an
-     *                        empty list of filters is passed (required for SetRawData)
+     *         empty list of filters is passed (required for SetRawData())
      *
      *  \see Append
      *  \see EndAppend
@@ -164,7 +167,7 @@ class PODOFO_API PdfStream {
 
     /** Append a binary buffer to the current stream contents.
      *
-     *  Make sure BeginAppend has been called before.
+     *  Make sure BeginAppend() has been called before.
      *
      *  \param pszString a buffer
      *  \param lLen length of the buffer
@@ -176,9 +179,10 @@ class PODOFO_API PdfStream {
 
     /** Append a null-terminated string to the current stream contents. 
      *
-     *  Make sure BeginAppend has been called before.
+     *  Make sure BeginAppend() has been called before.
      *
-     *  \param pszString a zero terminated string buffer containing only ASCII text data
+     *  \param pszString a zero-terminated string buffer containing only
+     *         ASCII text data
      *
      *  \see BeginAppend
      *  \see EndAppend
@@ -187,9 +191,9 @@ class PODOFO_API PdfStream {
 
     /** Append to the current stream contents.
      *
-     *  Make sure BeginAppend has been called before.
+     *  Make sure BeginAppend() has been called before.
      *
-     *  \param sString a std::string containing ASCII text data
+     *  \param sString a std::string containing only ASCII text data
      *
      *  \see BeginAppend
      *  \see EndAppend
@@ -206,24 +210,24 @@ class PODOFO_API PdfStream {
 
     /**
      * \returns true if code is between BeginAppend()
-     *          and EndAppend() at the moment. I.e.
-     *          it is save to call EndAppend now.
+     *          and EndAppend() at the moment, i.e. it
+     *          is safe to call EndAppend() now.
      *
      *  \see BeginAppend
      *  \see Append
      */
     inline bool IsAppending() const;
 
-    /** Get the stream's length with all filters applied (eg if the stream is
-     * Flate compressed, the length of the compressed data stream).
+    /** Get the stream's length with all filters applied (e.g. if the stream is
+     * Flate-compressed, the length of the compressed data stream).
      *
      *  \returns the length of the internal buffer
      */
     virtual pdf_long GetLength() const = 0;
 
-    /** Get a malloced buffer of the current stream.
+    /** Get a malloc()'d buffer of the current stream.
      *  No filters will be applied to the buffer, so
-     *  if the stream is Flate compressed the compressed copy
+     *  if the stream is Flate-compressed the compressed copy
      *  will be returned.
      *
      *  The caller has to free() the buffer.
@@ -239,9 +243,9 @@ class PODOFO_API PdfStream {
      */
     virtual void GetCopy( PdfOutputStream* pStream ) const = 0;
 
-    /** Get a malloced buffer of the current stream which has been
+    /** Get a malloc()'d buffer of the current stream which has been
      *  filtered by all filters as specified in the dictionary's
-     *  /Filter key. For example, if the stream is Flate compressed,
+     *  /Filter key. For example, if the stream is Flate-compressed,
      *  the buffer returned from this method will have been decompressed.
      *
      *  The caller has to free() the buffer.
@@ -264,12 +268,12 @@ class PODOFO_API PdfStream {
     const PdfStream & operator=( const PdfStream & rhs );
 
  protected:
-    /** Required for the GetFilteredCopy implementation
+    /** Required for the GetFilteredCopy() implementation
      *  \returns a handle to the internal buffer
      */
     virtual const char* GetInternalBuffer() const = 0;
 
-    /** Required for the GetFilteredCopy implementation
+    /** Required for the GetFilteredCopy() implementation
      *  \returns the size of the internal buffer
      */
     virtual pdf_long GetInternalBufferSize() const = 0;
@@ -277,10 +281,11 @@ class PODOFO_API PdfStream {
     /** Begin appending data to this stream.
      *  Clears the current stream contents.
      *
-     * Use PdfFilterFactory::CreateFilterList if you want to use the contents
+     * Use PdfFilterFactory::CreateFilterList() if you want to use the contents
      * of the stream dictionary's existing filter key.
      *
-     *  \param vecFilters use this filters to encode any data written to the stream.
+     *  \param vecFilters use these filters to encode any data written
+     *         to the stream.
      */
     virtual void BeginAppendImpl( const TVecFilters & vecFilters ) = 0;
 
