@@ -125,7 +125,6 @@ class PODOFO_API PdfOutputDevice {
      *           as the output might depend on the current locale.
      *
      *  \param pszFormat a format string as you would use it with printf
-     *  \returns ErrOk on success
      *
      *  \see Write
      */
@@ -139,7 +138,6 @@ class PODOFO_API PdfOutputDevice {
      *  \param pszFormat a format string as you would use it with printf
      *  \param lBytes length of the format string in bytes when written
      *  \param argptr variable argument list
-     *  \returns ErrOk on success
      *
      *  \see Write
      */
@@ -162,7 +160,6 @@ class PODOFO_API PdfOutputDevice {
      *
      *  \param pBuffer a pointer to the data buffer
      *  \param lLen write lLen bytes of pBuffer to the PdfOutputDevice
-     *  \returns ErrOk on success
      * 
      *  \see Print
      */

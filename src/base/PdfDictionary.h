@@ -208,8 +208,7 @@ class PODOFO_API PdfDictionary : public PdfDataType {
      */
     bool RemoveKey( const PdfName & identifier );
 
-    /** Write the complete dictionary to a file.  \param pDevice write the
-     * object to this device \returns ErrOk on success
+    /** Write the complete dictionary to a file.
      *
      *  \param pDevice write the object to this device
      *  \param eWriteMode additional options for writing this object
@@ -218,10 +217,7 @@ class PODOFO_API PdfDictionary : public PdfDataType {
      */
     inline void Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt = NULL ) const;
 
-    /** Write the complete dictionary to a file.  \param pDevice write the
-     * object to this device \param keyStop if not KeyNull and a key == keyStop
-     * is found writing will stop right before this key!  \returns ErrOk on
-     * success
+    /** Write the complete dictionary to a file.
      *
      *  \param pDevice write the object to this device
      *  \param eWriteMode additional options for writing this object

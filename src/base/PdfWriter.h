@@ -177,11 +177,11 @@ class PODOFO_API PdfWriter {
      *  
      *  Better use a PdfOutputDevice that writes to a PdfRefCountedBuffer.
      *
-     *  \param ppBuffer will be malloc'ed and the document 
-     *         will be written to this buffer.
-     *  \param pulLen the length of the buffer will be returned in this parameter
-     *  \returns ErrOk on success
-     *  
+     *  \param ppBuffer where this points the address of the buffer will
+     *         be written after that being malloc()'d and the document
+     *         will be written to that buffer.
+     *  \param pulLen the buffer length will be returned in this parameter
+     *
      *  \see Write
      */
     void WriteToBuffer( char** ppBuffer, pdf_long* pulLen );

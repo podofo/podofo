@@ -89,9 +89,8 @@ class PODOFO_API PdfMemStream : public PdfStream {
      *
      *  The caller has to free() the buffer.
      *
-     *  \param pBuffer pointer to the buffer
-     *  \param lLen    pointer to the buffer length
-     *  \returns ErrOk on success.
+     *  \param pBuffer pointer to where the buffer's address will be stored
+     *  \param lLen    pointer to the buffer length (output parameter)
      */
     virtual void GetCopy( char** pBuffer, pdf_long* lLen ) const;
 
@@ -178,9 +177,8 @@ class PODOFO_API PdfMemStream : public PdfStream {
     virtual void EndAppendImpl();
 
  private:
-    /** Compress the current data using the FlateDecode(ZIP) algorithm
+    /** Compress the current data using the FlateDecode (zlib) algorithm
      *  Expects that all filters are setup correctly.
-     *  \returns ErrOk on success
      */
     void FlateCompressStreamData();
 

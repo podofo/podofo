@@ -95,9 +95,8 @@ class PODOFO_API PdfFileStream : public PdfStream {
      *  This is currently not implemented for PdfFileStreams 
      *  and will raise an ePdfError_InternalLogic exception
      *
-     *  \param pBuffer pointer to the buffer
-     *  \param lLen    pointer to the buffer length
-     *  \returns ErrOk on success.
+     *  \param pBuffer pointer to the buffer address (output parameter)
+     *  \param lLen    pointer to the buffer length  (output parameter)
      */
     virtual void GetCopy( char** pBuffer, pdf_long* lLen ) const;
 

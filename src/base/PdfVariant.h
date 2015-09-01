@@ -113,14 +113,12 @@ class PODOFO_API PdfVariant {
      */        
     PdfVariant( const PdfReference & rRef );
 
-    /** Initalize a PdfVariant object with array data.
+    /** Construct a PdfVariant object with array data.
      *  The variant will automatically get the datatype
-     *  ePdfDataType_Array. This Init call is the fastest
+     *  ePdfDataType_Array. This constructor is the fastest
      *  way to create a new PdfVariant that is an array.
      *
      *  \param tList a list of variants
-     *
-     *  \returns ErrOk on sucess
      */
     PdfVariant( const PdfArray & tList );
 
@@ -372,7 +370,7 @@ class PODOFO_API PdfVariant {
      * This is used by PdfImmediateWriter and PdfStreamedDocument so 
      * that no keys can be added to an object after setting stream data on it.
      *
-     * @returns true if the object is immutable
+     * \returns true if the object is immutable
      */
     inline bool GetImmutable() const;
 
@@ -454,12 +452,12 @@ class PODOFO_API PdfVariant {
     inline PdfDictionary & GetDictionary_NoDL(); 
 
     /** Version of GetArray() that doesn't trigger a delayed load
-     *  \returns a array
+     *  \returns a PdfArray
      */
     inline const PdfArray & GetArray_NoDL() const;
 
     /** Version of GetArray() that doesn't trigger a delayed load.
-     *  \returns a array
+     *  \returns a PdfArray
      */
     inline PdfArray & GetArray_NoDL();
 
