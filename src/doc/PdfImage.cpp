@@ -892,14 +892,12 @@ void PdfImage::LoadFromPngHandle( PdfFileInputStream* pInStream )
     fread(header, 1, 8, hFile);
     if( png_sig_cmp(header, 0, 8) )
     {
-        fclose( hFile );
         PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedImageFormat, "The file could not be recognized as a PNG file." );
     }
     
     png_structp pPng = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if( !pPng )
     {
-        fclose( hFile );
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
@@ -907,14 +905,12 @@ void PdfImage::LoadFromPngHandle( PdfFileInputStream* pInStream )
     if( !pInfo )
     {
         png_destroy_read_struct(&pPng, (png_infopp)NULL, (png_infopp)NULL);
-        fclose( hFile );
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
     if( setjmp(png_jmpbuf(pPng)) )
     {
         png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
-        fclose( hFile );
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
@@ -982,7 +978,6 @@ void PdfImage::LoadFromPngHandle( PdfFileInputStream* pInStream )
     if( setjmp(png_jmpbuf(pPng)) ) 
     {
         png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
-        fclose( hFile );
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
@@ -996,7 +991,6 @@ void PdfImage::LoadFromPngHandle( PdfFileInputStream* pInStream )
     }
 
     png_read_image(pPng, pRows);
-    fclose(hFile);
 
     m_rRect.SetWidth( width );
     m_rRect.SetHeight( height );
