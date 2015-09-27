@@ -142,14 +142,6 @@ class PODOFO_DOC_API PdfIdentityEncoding : public PdfEncoding {
  private:
     bool    m_bAutoDelete;      ///< If true this encoding is deleted by its font.
     PdfName m_id;               ///< Unique ID of this encoding
-    
-    PdfObject* m_pToUnicode;    ///< Pointer to /ToUnicode object, if any
-    bool m_bToUnicodeIsLoaded;  ///< If true, ToUnicode has been parsed
-    std::map<pdf_utf16be, pdf_utf16be> m_cMapEncoding;
-    
-    /** Parse the /ToUnicode object
-     */
-    void ParseToUnicode();
 };
 
 // -----------------------------------------------------

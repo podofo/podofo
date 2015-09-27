@@ -45,6 +45,7 @@ namespace PoDoFo {
 
 class PdfDictionary;
 class PdfFont;
+class PdfObject;
 
 /** 
  * A PdfEncoding is in PdfFont to transform a text string
@@ -65,7 +66,7 @@ class PODOFO_API PdfEncoding {
 -     *                    (either a byte value in the current encoding or a unicode value)
      *
      */
-    PdfEncoding( int nFirstChar, int nLastChar );
+    PdfEncoding( int nFirstChar, int nLastChar, PdfObject* = NULL );
 
     /** Get a unique ID for this encoding
      *  which can used for comparisons!
@@ -165,7 +166,7 @@ class PODOFO_API PdfEncoding {
      *
      *  \returns an unicode PdfString.
      */
-    virtual PdfString ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const = 0;
+    virtual PdfString ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const;
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *
@@ -175,7 +176,7 @@ class PODOFO_API PdfEncoding {
      *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes
      *           and is allowed to have 0 bytes. The returned buffer must not be a unicode string.
      */
-    virtual PdfRefCountedBuffer ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const = 0;
+    virtual PdfRefCountedBuffer ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const;
 
     virtual bool IsAutoDelete() const = 0;
 
@@ -219,9 +220,20 @@ class PODOFO_API PdfEncoding {
      */
     virtual pdf_utf16be GetCharCode( int nIndex ) const = 0;
 
+ protected:
+    bool m_bToUnicodeIsLoaded;  ///< If true, ToUnicode has been parse
+                             
  private:
     int     m_nFirstChar;   ///< The first defined character code
     int     m_nLastChar;    ///< The last defined character code
+    PdfObject* m_pToUnicode;    ///< Pointer to /ToUnicode object, if any
+    std::map<pdf_utf16be, pdf_utf16be> m_toUnicode;
+    
+    /** Parse the /ToUnicode object
+    */
+    void ParseToUnicode();
+    pdf_utf16be GetUnicodeValue( pdf_utf16be ) const;
+    pdf_utf16be GetCIDValue( pdf_utf16be ) const;
 };
 
 // -----------------------------------------------------

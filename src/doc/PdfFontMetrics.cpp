@@ -942,7 +942,7 @@ double PdfFontMetrics::StringWidth( const char* pszText, pdf_long nLength ) cons
     {
         dWidth += CharWidth( *localText );
         if (*localText == 0x20)
-            dWidth += m_fWordSpace;
+            dWidth += m_fWordSpace * this->GetFontScale() / 100.0;
         localText++;
     }
 
@@ -977,7 +977,7 @@ double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, unsigned int nLe
 #endif // PODOFO_IS_LITTLE_ENDIAN
         dWidth += UnicodeCharWidth( uChar );
         if ( uChar == 0x0020 )
-            dWidth += m_fWordSpace;
+            dWidth += m_fWordSpace * this->GetFontScale() / 100.0;
         localText++;
     }
 
@@ -1002,7 +1002,7 @@ double PdfFontMetrics::StringWidth( const wchar_t* pszText, unsigned int nLength
     {
         dWidth += CharWidth( static_cast<int>(*localText) );
         if ( static_cast<int>(*localText) == 0x0020 )
-            dWidth += m_fWordSpace;
+            dWidth += m_fWordSpace * this->GetFontScale() / 100.0;
         localText++;
     }
 

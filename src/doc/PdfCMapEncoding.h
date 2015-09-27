@@ -64,9 +64,8 @@ public:
     const PdfEncoding* GetBaseEncoding() const;
 private:
 
-    pdf_utf16be *cMapEncoding;
     EBaseEncoding m_baseEncoding;
-
+    std::map<pdf_utf16be, pdf_utf16be> m_cMap;
 };
 
 }; /*PoDoFo namespace end*/

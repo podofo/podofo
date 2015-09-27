@@ -37,27 +37,302 @@
 #include "PdfLocale.h"
 #include "util/PdfMutexWrapper.h"
 #include "PdfDefinesPrivate.h"
+#include "base/PdfStream.h"
+#include "base/PdfContentsTokenizer.h"
 
+#include "doc/PdfFont.h"
+
+#include <stack>
 #include <stdlib.h>
 #include <string.h>
 #include <sstream>
 
 namespace PoDoFo {
 
-PdfEncoding::PdfEncoding( int nFirstChar, int nLastChar )
-    : m_nFirstChar( nFirstChar ), m_nLastChar( nLastChar )
+PdfEncoding::PdfEncoding( int nFirstChar, int nLastChar, PdfObject* pToUnicode )
+    : m_bToUnicodeIsLoaded(false), m_nFirstChar( nFirstChar ), m_nLastChar( nLastChar ), m_pToUnicode(pToUnicode)
 {
     if( !(m_nFirstChar < m_nLastChar) )
     {
         PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange, "PdfEncoding: nFirstChar must be smaller than nLastChar" ); 
     }
+    
+    ParseToUnicode();
 }
 
 PdfEncoding::~PdfEncoding()
 {
 
 }
+    
+PdfString PdfEncoding::ConvertToUnicode(const PdfString & rEncodedString, const PdfFont*) const
+{
+    
+    if(m_bToUnicodeIsLoaded)
+    {
+        
+        const pdf_utf16be* pStr = reinterpret_cast<const pdf_utf16be*>(rEncodedString.GetString());
+        const size_t lLen = rEncodedString.GetLength()/2;
+        pdf_utf16be lCID, lUnicodeValue;
+        
+        pdf_utf16be* pszUtf16 = static_cast<pdf_utf16be*>(malloc(sizeof(pdf_utf16be)*lLen));
+        if( !pszUtf16 )
+        {
+            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        }
+        
+        for(size_t i = 0 ; i<lLen ; i++)
+        {
+            
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+            lCID = (pStr[i] << 8) | (pStr[i] >> 8 );
+#else
+            lCID = pStr[i];
+#endif // PODOFO_IS_LITTLE_ENDIAN
+            
+            lUnicodeValue = this->GetUnicodeValue(lCID);
+            
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+            pszUtf16[i] = (lUnicodeValue << 8) | (lUnicodeValue >> 8 );
+#else
+            pszUtf16[i] = lUnicodeValue;
+#endif // PODOFO_IS_LITTLE_ENDIAN
+        }
+        
+        PdfString ret( pszUtf16, lLen );
+        free( pszUtf16 );
+        
+        return ret;
+        
+    }
+    else
+        return(PdfString("\0"));
+}
 
+PdfRefCountedBuffer PdfEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const
+{
+    if(m_bToUnicodeIsLoaded)
+    {
+        // Get the string in UTF-16be format
+        PdfString sStr = rString.ToUnicode();
+        const pdf_utf16be* pStr = sStr.GetUnicode();
+        pdf_utf16be lUnicodeValue, lCID;
+        
+        std::ostringstream out;
+        PdfLocaleImbue(out);
+        
+        while( *pStr )
+        {
+            
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+            lUnicodeValue = (*pStr << 8) | (*pStr >> 8);
+#else
+            lUnicodeValue = *pStr;
+#endif // PODOFO_IS_LITTLE_ENDIAN
+            
+            lCID = this->GetCIDValue(lUnicodeValue);
+            if (lCID == 0 && pFont) {
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+                lCID = static_cast<pdf_utf16be>(pFont->GetFontMetrics()->GetGlyphId( (((*pStr & 0xff) << 8) | ((*pStr & 0xff00) >> 8)) ));
+#else
+                lCID = static_cast<pdf_utf16be>(pFont->GetFontMetrics()->GetGlyphId( *pStr ));
+#endif // PODOFO_IS_LITTLE_ENDIAN
+            }
+            
+            out << static_cast<unsigned char>((lCID & 0xff00) >> 8);
+            out << static_cast<unsigned char>(lCID & 0x00ff);
+            
+            ++pStr;
+        }
+        
+        PdfRefCountedBuffer buffer( out.str().length() );
+        memcpy( buffer.GetBuffer(), out.str().c_str(), out.str().length() );
+        return buffer;
+    }
+    else
+        return PdfRefCountedBuffer();
+}
+
+void PdfEncoding::ParseToUnicode()
+{
+    if (m_pToUnicode && m_pToUnicode->HasStream())
+    {
+        std::stack<std::string> stkToken;
+        pdf_uint16 loop = 0;
+        char *streamBuffer;
+        const char *streamToken = NULL;
+        EPdfTokenType *streamTokenType = NULL;
+        pdf_long streamBufferLen;
+        bool in_beginbfrange = 0;
+        bool in_beginbfchar = 0;
+        pdf_uint16 range_entries = 0;
+        pdf_uint16 char_entries = 0;
+        pdf_uint16 inside_hex_string = 0;
+        pdf_uint16 inside_array = 0;
+        pdf_uint16 range_start;
+        pdf_uint16 range_end;
+        pdf_uint16 i = 0;
+        pdf_utf16be firstvalue = 0;
+        const PdfStream *CIDStreamdata = m_pToUnicode->GetStream ();
+        CIDStreamdata->GetFilteredCopy (&streamBuffer, &streamBufferLen);
+        
+        PdfContentsTokenizer streamTokenizer (streamBuffer, streamBufferLen);
+        while (streamTokenizer.GetNextToken (streamToken, streamTokenType))
+        {
+            stkToken.push (streamToken);
+            
+            if (strcmp (streamToken, ">") == 0)
+            {
+                if (inside_hex_string == 0)
+                    PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap Error, got > before <")
+                    else
+                        inside_hex_string = 0;
+                
+                i++;
+                
+            }
+            
+            if (strcmp (streamToken, "]") == 0)
+            {
+                if (inside_array == 0)
+                    PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap Error, got ] before [")
+                    else
+                        inside_array = 0;
+                
+                i++;
+                
+            }
+            
+            if (in_beginbfrange == 1)
+            {
+                if (loop < range_entries)
+                {
+                    if (inside_hex_string == 1)
+                    {
+                        pdf_utf16be num_value;
+                        std::stringstream ss;
+                        ss << std::hex << streamToken;
+                        ss >> num_value;
+                        if (i % 3 == 0)
+                            range_start = num_value;
+                        if (i % 3 == 1)
+                        {
+                            range_end = num_value;
+                        }
+                        if (i % 3 == 2)
+                        {
+                            for (int k = range_start; k <= range_end; k++)
+                            {
+                                m_toUnicode[k] = num_value;
+                                num_value++;
+                            }
+                            
+                            loop++;
+                            
+                        }
+                    }
+                }
+            }
+            
+            if (in_beginbfchar == 1)
+            {
+                if (loop < char_entries)
+                {
+                    if (inside_hex_string == 1)
+                    {
+                        pdf_utf16be num_value;
+                        std::stringstream ss;
+                        ss << std::hex << streamToken;
+                        ss >> num_value;
+                        if (i % 2 == 0)
+                        {
+                            firstvalue = num_value;
+                        }
+                        if (i % 2 == 1)
+                        {
+                            m_toUnicode[firstvalue] = num_value;
+                        }
+                    }
+                }
+            }
+            
+            
+            if (strcmp (streamToken, "<") == 0)
+            {
+                inside_hex_string = 1;
+            }
+            
+            
+            
+            if (strcmp (streamToken, "[") == 0)
+            {
+                inside_array = 1;
+            }
+            
+            
+            if (strcmp (streamToken, "beginbfrange") == 0)
+            {
+                i = loop = 0;
+                in_beginbfrange = 1;
+                stkToken.pop ();
+                std::stringstream ss;
+                ss << std::hex << stkToken.top ();
+                ss >> range_entries;
+            }
+            
+            if (strcmp (streamToken, "endbfrange") == 0)
+            {
+                in_beginbfrange = 0;
+                i = 0;
+            }
+            
+            if (strcmp (streamToken, "beginbfchar") == 0)
+            {
+                i = loop = 0;
+                in_beginbfchar = 1;
+                stkToken.pop ();
+                std::stringstream ss;
+                ss << std::hex << stkToken.top ();
+                ss >> char_entries;
+            }
+            
+            if (strcmp (streamToken, "endbfchar") == 0)
+            {
+                in_beginbfchar = 0;
+                i = 0;
+            }
+        }
+        
+        free(streamBuffer);
+        
+        m_bToUnicodeIsLoaded = true;
+    }
+}
+
+pdf_utf16be PdfEncoding::GetUnicodeValue( pdf_utf16be  value ) const
+{
+    if(m_bToUnicodeIsLoaded)
+    {
+        const std::map<pdf_utf16be, pdf_utf16be>::const_iterator found = m_toUnicode.find(value);
+        return (found == m_toUnicode.end() ? 0 : found->second);
+    }
+    
+    return 0;
+}
+
+pdf_utf16be PdfEncoding::GetCIDValue( pdf_utf16be lUnicodeValue ) const
+{
+    if(m_bToUnicodeIsLoaded)
+    {
+        // TODO: optimize
+        for(std::map<pdf_utf16be, pdf_utf16be>::const_iterator it = m_toUnicode.begin(); it != m_toUnicode.end(); ++it)
+            if(it->second == lUnicodeValue)
+                return it->first;
+    }
+    
+    return 0;
+}
+    
 // -----------------------------------------------------
 // PdfSimpleEncoding
 // -----------------------------------------------------
@@ -80,10 +355,8 @@ void PdfSimpleEncoding::InitEncodingTable()
 
     if( !m_pEncodingTable ) // double check
     {
-        m_pEncodingTable = static_cast<char*>(malloc(sizeof(char)*lTableLength));
+        m_pEncodingTable = static_cast<char*>(calloc(sizeof(char), lTableLength));
     
-        // fill the table with 0
-        memset( m_pEncodingTable, 0, lTableLength * sizeof(char) ); 
         // fill the table with data
         for( size_t i=0; i<256; i++ )
         {
@@ -116,85 +389,99 @@ pdf_utf16be PdfSimpleEncoding::GetCharCode( int nIndex ) const
 
 }
 
-PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* ) const
+PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont) const
 {
-    const pdf_utf16be* cpUnicodeTable = this->GetToUnicodeTable();
-    pdf_long           lLen           = rEncodedString.GetLength();
-
-    if( lLen  <= 0 )
-        return PdfString(L"");
-
-    pdf_utf16be* pszStringUtf16 = static_cast<pdf_utf16be*>(malloc(sizeof(pdf_utf16be) * (lLen + 1)) );
-    if( !pszStringUtf16 ) 
+    if(m_bToUnicodeIsLoaded)
     {
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        return PdfEncoding::ConvertToUnicode(rEncodedString, pFont);
     }
-
-    const char* pszString = rEncodedString.GetString();
-    for( int i=0;i<lLen;i++ )
+    else
     {
+        const pdf_utf16be* cpUnicodeTable = this->GetToUnicodeTable();
+        pdf_long           lLen           = rEncodedString.GetLength();
+        
+        if( lLen  <= 0 )
+            return PdfString(L"");
+        
+        pdf_utf16be* pszStringUtf16 = static_cast<pdf_utf16be*>(malloc(sizeof(pdf_utf16be) * (lLen + 1)) );
+        if( !pszStringUtf16 )
+        {
+            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        }
+        
+        const char* pszString = rEncodedString.GetString();
+        for( int i=0;i<lLen;i++ )
+        {
 #ifdef PODOFO_IS_BIG_ENDIAN
-        pszStringUtf16[i] = cpUnicodeTable[ static_cast<unsigned char>(*pszString) ];
+            pszStringUtf16[i] = cpUnicodeTable[ static_cast<unsigned char>(*pszString) ];
 #else
-        pszStringUtf16[i] =             
-            ((( cpUnicodeTable[ static_cast<unsigned char>(*pszString) ] << 8 ) & 0xff00) | 
+            pszStringUtf16[i] =
+            ((( cpUnicodeTable[ static_cast<unsigned char>(*pszString) ] << 8 ) & 0xff00) |
              (( cpUnicodeTable[ static_cast<unsigned char>(*pszString) ] >> 8 ) & 0x00ff));
 #endif // PODOFO_IS_BIG_ENDIAN
-        ++pszString;
+            ++pszString;
+        }
+        
+        pszStringUtf16[lLen] = 0;
+        
+        PdfString sStr( pszStringUtf16 );
+        free( pszStringUtf16 );
+        
+        return sStr;
     }
-
-    pszStringUtf16[lLen] = 0;
-
-    PdfString sStr( pszStringUtf16 );
-    free( pszStringUtf16 );
-    
-    return sStr;
 }
 
-PdfRefCountedBuffer PdfSimpleEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* ) const
+PdfRefCountedBuffer PdfSimpleEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* pFont) const
 {
-    if( !m_pEncodingTable )
-        const_cast<PdfSimpleEncoding*>(this)->InitEncodingTable();
-
-    PdfString sSrc = rString.ToUnicode(); // make sure the string is unicode and not PdfDocEncoding!
-    pdf_long  lLen = sSrc.GetCharacterLength();
-
-    if( !lLen )
-        return PdfRefCountedBuffer();
-
-    char* pDest = static_cast<char*>(malloc( sizeof(char) * (lLen + 1) ));
-    if( !pDest ) 
+    if(m_bToUnicodeIsLoaded)
     {
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        return PdfEncoding::ConvertToEncoding(rString, pFont);
     }
+    else
+    {
+        if( !m_pEncodingTable )
+            const_cast<PdfSimpleEncoding*>(this)->InitEncodingTable();
         
-    const pdf_utf16be* pszUtf16 = sSrc.GetUnicode();
-    char*              pCur     = pDest;
-    long               lNewLen  = 0L;
-
-    for( int i=0;i<lLen;i++ ) 
-    {
-        pdf_utf16be val = pszUtf16[i];
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-        val = ((val & 0xff00) >> 8) | ((val & 0xff) << 8);
-#endif // PODOFO_IS_LITTLE_ENDIAN
-
-        *pCur = m_pEncodingTable[val]; 
-        if( *pCur ) // ignore 0 characters, as they cannot be converted to the current encoding
+        PdfString sSrc = rString.ToUnicode(); // make sure the string is unicode and not PdfDocEncoding!
+        pdf_long  lLen = sSrc.GetCharacterLength();
+        
+        if( !lLen )
+            return PdfRefCountedBuffer();
+        
+        char* pDest = static_cast<char*>(malloc( sizeof(char) * (lLen + 1) ));
+        if( !pDest )
         {
-            ++pCur; 
-            ++lNewLen;
+            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
         }
+        
+        const pdf_utf16be* pszUtf16 = sSrc.GetUnicode();
+        char*              pCur     = pDest;
+        long               lNewLen  = 0L;
+        
+        for( int i=0;i<lLen;i++ )
+        {
+            pdf_utf16be val = pszUtf16[i];
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+            val = ((val & 0xff00) >> 8) | ((val & 0xff) << 8);
+#endif // PODOFO_IS_LITTLE_ENDIAN
+            
+            *pCur = m_pEncodingTable[val];
+            if( *pCur ) // ignore 0 characters, as they cannot be converted to the current encoding
+            {
+                ++pCur;
+                ++lNewLen;
+            }
+        }
+        
+        *pCur = '\0';
+        
+        
+        PdfRefCountedBuffer cDest( lNewLen );
+        memcpy( cDest.GetBuffer(), pDest, lNewLen );
+        free( pDest );
+        
+        return cDest;
     }
-    
-    *pCur = '\0';
-    
-
-    PdfRefCountedBuffer cDest( lNewLen );
-    memcpy( cDest.GetBuffer(), pDest, lNewLen );
-    free( pDest );
-
-    return cDest;
 }
 
 char PdfSimpleEncoding::GetUnicodeCharCode(pdf_utf16be unicodeValue) const

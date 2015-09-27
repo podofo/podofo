@@ -197,8 +197,7 @@ double PdfFontMetricsObject::CharWidth( unsigned char c ) const
     {
         double dWidth = m_width[c - m_nFirst].GetReal();
         
-        return dWidth * static_cast<double>(this->GetFontSize() * this->GetFontScale() / 100.0) * m_matrix.front().GetReal() +
-            static_cast<double>( this->GetFontSize() * this->GetFontScale() / 100.0 * this->GetFontCharSpace() / 100.0);
+        return (dWidth * m_matrix.front().GetReal() * this->GetFontSize() + this->GetFontCharSpace()) * this->GetFontScale() / 100.0;
 
     }
 
@@ -214,10 +213,8 @@ double PdfFontMetricsObject::UnicodeCharWidth( unsigned short c ) const
         && c - m_nFirst < static_cast<int>(m_width.GetSize()) )
     {
         double dWidth = m_width[c - m_nFirst].GetReal();
-
-        return dWidth * static_cast<double>(this->GetFontSize() * this->GetFontScale() / 100.0) * m_matrix.front().GetReal() +
-            static_cast<double>( this->GetFontSize() * this->GetFontScale() / 100.0 * this->GetFontCharSpace() / 100.0);
-
+        
+        return (dWidth * m_matrix.front().GetReal() * this->GetFontSize() + this->GetFontCharSpace()) * this->GetFontScale() / 100.0;
     }
 
     if( m_missingWidth != NULL )

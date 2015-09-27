@@ -38,6 +38,7 @@
 #include "base/PdfEncodingFactory.h"
 #include "base/PdfObject.h"
 #include "base/PdfVariant.h"
+#include "base/PdfLocale.h"
 #include "base/PdfStream.h"
 #include "base/PdfContentsTokenizer.h"
 
@@ -53,31 +54,26 @@ namespace PoDoFo
 {
 
 
-PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject * /*pToUnicode*/) : PdfEncoding(0x0000, 0xffff), PdfElement(NULL, pObject), m_baseEncoding( eBaseEncoding_Font )
+PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject * pToUnicode) : PdfEncoding(0x0000, 0xffff, pToUnicode), PdfElement(NULL, pObject), m_baseEncoding( eBaseEncoding_Font )
 {
-
-    if(pObject->HasStream())
+    if (pObject && pObject->HasStream())
     {
-
-        stack < string > stkToken;
-        int loop = 0;
+        std::stack<std::string> stkToken;
+        pdf_uint16 loop = 0;
         char *streamBuffer;
         const char *streamToken = NULL;
         EPdfTokenType *streamTokenType = NULL;
         pdf_long streamBufferLen;
-        bool in_codespacerange = 0;
-        bool in_beginbfrange = 0;
-        bool in_beginbfchar = 0;
-        int code_space_entries = 0;
-        int range_entries = 0;
-        int char_entries = 0;
-        int inside_hex_string = 0;
-        int inside_array = 0;
-        int range_start;
-        int range_end;
-        int i = 0;
-        int firstvalue = 0;
-        pair < long, long >encodingRange;
+        bool in_begincidrange = 0;
+        bool in_begincidchar = 0;
+        pdf_uint16 range_entries = 0;
+        pdf_uint16 char_entries = 0;
+        pdf_uint16 inside_hex_string = 0;
+        pdf_uint16 inside_array = 0;
+        pdf_uint16 range_start;
+        pdf_uint16 range_end;
+        pdf_uint16 i = 0;
+        pdf_utf16be firstvalue = 0;
         const PdfStream *CIDStreamdata = pObject->GetStream ();
         CIDStreamdata->GetFilteredCopy (&streamBuffer, &streamBufferLen);
 
@@ -89,10 +85,10 @@ PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject * /*pToUnicode*
             if (strcmp (streamToken, ">") == 0)
             {
                 if (inside_hex_string == 0)
-                    cout << "\n Pdf Error, got > before <";
-                else
-                    inside_hex_string = 0;
-
+                    PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap Error, got > before <")
+                    else
+                        inside_hex_string = 0;
+                
                 i++;
 
             }
@@ -100,52 +96,21 @@ PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject * /*pToUnicode*
             if (strcmp (streamToken, "]") == 0)
             {
                 if (inside_array == 0)
-                    cout << "\n Pdf Error, got ] before [";
-                else
-                    inside_array = 0;
-
+                    PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap Error, got ] before [")
+                    else
+                        inside_array = 0;
+                
                 i++;
 
             }
-
-
-            if (in_codespacerange == 1)
-            {
-                if (loop < code_space_entries)
-                {
-                    if (inside_hex_string == 1)
-                    {
-                        unsigned int num_value;
-                        std::stringstream ss;
-                        ss << std::hex << streamToken;
-                        ss >> num_value;
-                        if (i % 2 == 0)
-                        {
-                            encodingRange.first = num_value;
-                        }
-                        if (i % 2 == 1)
-                        {
-                            encodingRange.second = num_value;
-                            loop++;
-                        }
-
-
-
-                    }
-
-                }
-
-            }
-
-
-
-            if (in_beginbfrange == 1)
+            
+            if (in_begincidrange == 1)
             {
                 if (loop < range_entries)
                 {
                     if (inside_hex_string == 1)
                     {
-                        unsigned int num_value;
+                        pdf_utf16be num_value;
                         std::stringstream ss;
                         ss << std::hex << streamToken;
                         ss >> num_value;
@@ -157,9 +122,9 @@ PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject * /*pToUnicode*
                         }
                         if (i % 3 == 2)
                         {
-                            for (int k = range_start; k < range_end; k++)
+                            for (int k = range_start; k <= range_end; k++)
                             {
-                                *(cMapEncoding + k) = num_value;
+                                m_cMap[k] = num_value;
                                 num_value++;
                             }
 
@@ -173,13 +138,13 @@ PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject * /*pToUnicode*
 
 
 
-            if (in_beginbfchar == 1)
+            if (in_begincidchar == 1)
             {
                 if (loop < char_entries)
                 {
                     if (inside_hex_string == 1)
                     {
-                        unsigned int num_value;
+                        pdf_utf16be num_value;
                         std::stringstream ss;
                         ss << std::hex << streamToken;
                         ss >> num_value;
@@ -189,11 +154,7 @@ PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject * /*pToUnicode*
                         }
                         if (i % 2 == 1)
                         {
-                            if (encodingRange.first <= static_cast<int>(num_value)
-                                && static_cast<int>(num_value) <= encodingRange.second)
-                                *(cMapEncoding + firstvalue-1) = num_value;
-                            else
-                                cout << "\n Error ... Value out of range" << endl;
+                            m_cMap[firstvalue] = num_value;
                         }
 
                     }
@@ -219,62 +180,47 @@ PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject * /*pToUnicode*
 
 
 
-            if (strcmp (streamToken, "begincodespacerange") == 0)
+            
+            
+            if (strcmp (streamToken, "begincidrange") == 0)
             {
-                in_codespacerange = 1;
-                stkToken.pop ();
-                std::stringstream ss;
-                ss << std::hex << stkToken.top ();
-                ss >> code_space_entries;
-            }
-
-            if (strcmp (streamToken, "endcodespacerange") == 0)
-            {
-                if (in_codespacerange == 0)
-                    cout <<
-                        "\nError in pdf document got endcodespacerange before begincodespacerange";
-                in_codespacerange = 0;
-                cMapEncoding = static_cast <pdf_utf16be *>(calloc((encodingRange.second - encodingRange.first + 1), sizeof(pdf_utf16be)));
-                i = 0;
-            }
-
-            if (strcmp (streamToken, "beginbfrange") == 0)
-            {
-                in_beginbfrange = 1;
+                i = loop = 0;
+                in_begincidrange = 1;
                 stkToken.pop ();
                 std::stringstream ss;
                 ss << std::hex << stkToken.top ();
                 ss >> range_entries;
 
             }
-
-            if (strcmp (streamToken, "endbfrange") == 0)
+            
+            if (strcmp (streamToken, "endcidrange") == 0)
             {
-                in_beginbfrange = 0;
+                in_begincidrange = 0;
                 i = 0;
             }
-
-            if (strcmp (streamToken, "beginbfchar") == 0)
+            
+            if (strcmp (streamToken, "begincidchar") == 0)
             {
-                in_beginbfchar = 1;
+                i = loop = 0;
+                in_begincidchar = 1;
                 stkToken.pop ();
                 std::stringstream ss;
                 ss << std::hex << stkToken.top ();
                 ss >> char_entries;
 
             }
-
-            if (strcmp (streamToken, "endbfchar") == 0)
+            
+            if (strcmp (streamToken, "endcidchar") == 0)
             {
-                in_beginbfchar = 0;
+                in_begincidchar = 0;
                 i = 0;
             }
 
 
 
         }
-
-        *(cMapEncoding + encodingRange.second-1) = 0;
+        
+        free(streamBuffer);
     }
 
 
@@ -313,37 +259,25 @@ const PdfEncoding* PdfCMapEncoding::GetBaseEncoding() const
     return pEncoding;
 }
 
-PdfString PdfCMapEncoding::ConvertToUnicode(const PdfString & rEncodedString, const PdfFont*) const
+PdfString PdfCMapEncoding::ConvertToUnicode(const PdfString & rEncodedString, const PdfFont* pFont) const
 {
 
-	const PdfEncoding* const pEncoding = PdfEncodingFactory::GlobalPdfDocEncodingInstance();
-	if(rEncodedString.IsHex())
-	{
-		PdfString PdfUnicodeString = rEncodedString.ToUnicode();
-		char * ptrHexString = static_cast<char *>( malloc( sizeof(char) * (rEncodedString.GetLength() + 2 ) ) );
-		pdf_utf16be* pszUtf16 = static_cast<pdf_utf16be*>(malloc(sizeof(pdf_utf16be)*rEncodedString.GetLength()));
-		memcpy( ptrHexString, rEncodedString.GetString(), rEncodedString.GetLength() );
-		for ( int strIndex = 0; strIndex < static_cast<int>(rEncodedString.GetLength()); strIndex++ )
-        {
-            *(pszUtf16 + strIndex) = pEncoding->GetCharCode(*(cMapEncoding + static_cast<int>(ptrHexString[strIndex]) -1));
-        }
-		PdfString ret(pszUtf16, rEncodedString.GetLength());
-	   	free( ptrHexString ); 
-		free( pszUtf16 );
-		return ret;
-	}
-	else
-	{
-
-		return(PdfString("\0"));
-	}
+    if(m_bToUnicodeIsLoaded)
+    {
+        return PdfEncoding::ConvertToUnicode(rEncodedString, pFont);
+    }
+    else
+        PODOFO_RAISE_ERROR( ePdfError_NotImplemented );
 }
 
-PdfRefCountedBuffer PdfCMapEncoding::ConvertToEncoding(const PdfString &, const PdfFont*) const
+PdfRefCountedBuffer PdfCMapEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const
 {
-    PODOFO_RAISE_ERROR( ePdfError_NotImplemented );
-
-    return PdfRefCountedBuffer();
+    if(m_bToUnicodeIsLoaded)
+    {
+        return PdfEncoding::ConvertToEncoding(rString, pFont);
+    }
+    else
+        PODOFO_RAISE_ERROR( ePdfError_NotImplemented );
 }
 
 
@@ -359,11 +293,19 @@ bool PdfCMapEncoding::IsAutoDelete() const
 }
 
 
-pdf_utf16be PdfCMapEncoding::GetCharCode(int) const
+pdf_utf16be PdfCMapEncoding::GetCharCode( int nIndex ) const
 {
-    PODOFO_RAISE_ERROR( ePdfError_NotImplemented );
-
-    return static_cast<pdf_utf16be>(0);
+    if( nIndex < this->GetFirstChar() ||
+       nIndex > this->GetLastChar() )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+    }
+    
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+    return ((nIndex & 0xff00) >> 8) | ((nIndex & 0xff) << 8);
+#else
+    return static_cast<pdf_utf16be>(nIndex);
+#endif // PODOFO_IS_LITTLE_ENDIAN
 }
 
 
