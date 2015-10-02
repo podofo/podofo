@@ -327,9 +327,11 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
     const size_t numDirectKids = rKidsArray.size();
     const size_t numKids = GetChildCount(pParent);
 
-    if( static_cast<int>(numKids) < nPageNum ) 
+    // use <= since nPageNum is 0-based
+    if( static_cast<int>(numKids) <= nPageNum ) 
     {
-        PdfError::LogMessage( eLogSeverity_Critical, "Cannot retrieve page %i from a document with only %i pages.",
+        PdfError::LogMessage( eLogSeverity_Critical,
+	    "Cannot retrieve page %i from a document with only %i pages.",
                               nPageNum, static_cast<int>(numKids) );
         return NULL;
     }
@@ -342,24 +344,51 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
         rLstParents.push_back( pParent );
         return GetPageNodeFromArray( nPageNum, rKidsArray, rLstParents );
     } 
-    else if( numDirectKids == numKids && static_cast<size_t>(nPageNum) < numDirectKids )
-    {
-        // This node has only page nodes as kids,
-        // but does not contain our page,
-        // skip it - this case should never occur because
-        // of handling of childs in the else part below.
-        return NULL;
-    }
     else
     {
         // We have to traverse the tree
         while( it != rKidsArray.end() ) 
         {
             if( (*it).IsArray() ) 
-            {
-                // Fixes some broken PDFs who have trees with 1 element kids arrays
+            { // Fixes PDFs broken by having trees with arrays nested once
+                
                 rLstParents.push_back( pParent );
-                return GetPageNodeFromArray( nPageNum, (*it).GetArray(), rLstParents ); 
+
+                // the following code is to find the reference to log this with
+                const PdfReference & rIterArrayRef = (*it).Reference();
+                PdfReference refToLog;
+                bool isDirectObject // don't worry about 0-num. indirect ones
+                    = ( !(rIterArrayRef.ObjectNumber() ) );
+                if ( isDirectObject ) 
+		{
+                    if ( !(pObj->Reference().ObjectNumber() ) ) // rKidsArray's
+		    {
+                        refToLog = pParent->Reference();
+                    }
+		    else
+                    {
+                        refToLog = pObj->Reference();
+                    }
+                }
+                else
+                {
+                    refToLog = rIterArrayRef;
+                }
+                PdfError::LogMessage( eLogSeverity_Error,
+                                    "Entry in Kids array is itself an array"
+                    "%s reference: %s\n", isDirectObject ? " (direct object)"
+                    ", in object with" : ",", refToLog.ToString().c_str() );
+
+                    const PdfArray & rIterArray = (*it).GetArray();
+
+                    // is the array large enough to potentially have the page?
+                    if( static_cast<size_t>(nPageNum) < rIterArray.GetSize() )
+                    {
+                        PdfObject* pPageNode = GetPageNodeFromArray( nPageNum,
+                                                    rIterArray, rLstParents );
+                        if ( pPageNode ) // and if not, search further
+                            return pPageNode;
+                    }
             }
             else if( (*it).IsReference() ) 
             {
@@ -386,7 +415,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
                         return this->GetPageNode( nPageNum, pChild, rLstParents );
                     }
                 }
-                else // Type == Page
+                else if( this->IsTypePage(pChild) ) 
                 {
                     if( 0 == nPageNum )
                     {
@@ -397,6 +426,17 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
                     // Skip a normal page
                     if(nPageNum > 0 )
                         nPageNum--;
+                }
+		else
+		{
+                    const PdfReference & rLogRef = pChild->Reference();
+                    pdf_objnum nLogObjNum = rLogRef.ObjectNumber();
+                    pdf_gennum nLogGenNum = rLogRef.GenerationNumber();
+		    PdfError::LogMessage( eLogSeverity_Critical,
+                                          "Requesting page index %i. "
+                        "Invalid datatype referenced in kids array: %s\n"
+                        "Reference to invalid object: %i %i R\n", nPageNum,
+                        pChild->GetDataTypeString(), nLogObjNum, nLogGenNum);
                 }
             }
             else
