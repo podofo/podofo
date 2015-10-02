@@ -293,10 +293,13 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
         pDescriptor = pObject->GetIndirectKey( "FontDescriptor" );
         pEncoding   = pObject->GetIndirectKey( "Encoding" );
 
+        if (!pEncoding)
+            pEncoding = pObject->GetIndirectKey( "ToUnicode" );
+
         if ( pEncoding && pDescriptor ) // OC 18.08.2010: Avoid sigsegv
         {
            const PdfEncoding* const pPdfEncoding = 
-               PdfEncodingObjectFactory::CreateEncoding( pEncoding );
+               PdfEncodingObjectFactory::CreateEncoding( pEncoding, pObject->GetIndirectKey( "ToUnicode" ) );
 
            // OC 15.08.2010 BugFix: Parameter pObject added:
            pMetrics    = new PdfFontMetricsObject( pObject, pDescriptor, pPdfEncoding );
