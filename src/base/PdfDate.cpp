@@ -154,10 +154,15 @@ void PdfDate::CreateStringRepresentation()
 
 #ifdef _WIN32
     // On win32, strftime with %z returns a verbose time zone name
-    // like "W. Australia Standard time". We use tzset and timezone
+    // like "W. Australia Standard time". We use time/gmtime/mktime
     // instead.
-    _tzset();
-    snprintf( szZone, ZONE_STRING_SIZE, "%+03d", -_timezone/3600 );
+    time_t cur_time = time( NULL );
+    struct tm* cur_gmt = gmtime( &cur_time );
+    // assumes _timezone cannot include DST (mabri: documentation unclear IMHO)
+
+    time_t time_off = cur_time - mktime( cur_gmt ); // interpreted as local
+    snprintf( szZone, ZONE_STRING_SIZE, "%+03d",
+            static_cast<int>( time_off/3600 ) );
 #else
     if( strftime( szZone, ZONE_STRING_SIZE, "%z", stm ) == 0 )
     {
