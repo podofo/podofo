@@ -82,22 +82,53 @@ pdf_utf16be PdfIdentityEncoding::GetCharCode( int nIndex ) const
 
 PdfString PdfIdentityEncoding::ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const
 {
-    if(m_bToUnicodeIsLoaded)
+    if(!m_toUnicode.empty())
     {
         return PdfEncoding::ConvertToUnicode(rEncodedString, pFont);
     }
-    else
-        PODOFO_RAISE_ERROR( ePdfError_NotImplemented );
+    else {
+        /* Identity-H means 1-1 mapping */	  
+        //std::cout << "convertToUnicode(" << rEncodedString.IsUnicode() << ")" << std::endl;
+        return ( rEncodedString.IsUnicode() ) ? PdfString(rEncodedString) : rEncodedString.ToUnicode();
+    }
 }
 
 PdfRefCountedBuffer PdfIdentityEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const
 {
-    if(m_bToUnicodeIsLoaded)
+    if(!m_toUnicode.empty())
     {
         return PdfEncoding::ConvertToEncoding(rString, pFont);
     }
+    else if( pFont ) 
+    {
+        PdfString sStr = rString.ToUnicode();
+        const pdf_utf16be* pStr = sStr.GetUnicode();
+        PdfRefCountedBuffer buffer( sStr.GetLength() );
+        char* outp = buffer.GetBuffer();
+ 
+        // Get the string in UTF-16be format
+        long  lGlyphId;
+        while( *pStr ) 
+        {
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+            lGlyphId = pFont->GetFontMetrics()->GetGlyphId( (((*pStr & 0xff) << 8) | ((*pStr & 0xff00) >> 8)) );
+#else
+            lGlyphId = pFont->GetFontMetrics()->GetGlyphId( *pStr );
+#endif // PODOFO_IS_LITTLE_ENDIAN
+
+            outp[0] = static_cast<char>((lGlyphId >> 8) & 0x00ff);
+            outp[1] = static_cast<char>(lGlyphId & 0x00ff);
+            outp += 2;
+
+            ++pStr;
+        }
+        return buffer;
+    }
     else
-        PODOFO_RAISE_ERROR( ePdfError_NotImplemented );
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        return PdfRefCountedBuffer();
+    }
 }
     
 }; /* namespace PoDoFo */

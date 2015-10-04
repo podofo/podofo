@@ -68,7 +68,7 @@ PdfEncoding::~PdfEncoding()
 PdfString PdfEncoding::ConvertToUnicode(const PdfString & rEncodedString, const PdfFont*) const
 {
     
-    if(m_bToUnicodeIsLoaded)
+    if(!m_toUnicode.empty())
     {
         
         const pdf_utf16be* pStr = reinterpret_cast<const pdf_utf16be*>(rEncodedString.GetString());
@@ -111,7 +111,7 @@ PdfString PdfEncoding::ConvertToUnicode(const PdfString & rEncodedString, const 
 
 PdfRefCountedBuffer PdfEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const
 {
-    if(m_bToUnicodeIsLoaded)
+    if(!m_toUnicode.empty())
     {
         // Get the string in UTF-16be format
         PdfString sStr = rString.ToUnicode();
@@ -311,7 +311,7 @@ void PdfEncoding::ParseToUnicode()
 
 pdf_utf16be PdfEncoding::GetUnicodeValue( pdf_utf16be  value ) const
 {
-    if(m_bToUnicodeIsLoaded)
+    if(!m_toUnicode.empty())
     {
         const std::map<pdf_utf16be, pdf_utf16be>::const_iterator found = m_toUnicode.find(value);
         return (found == m_toUnicode.end() ? 0 : found->second);
@@ -322,7 +322,7 @@ pdf_utf16be PdfEncoding::GetUnicodeValue( pdf_utf16be  value ) const
 
 pdf_utf16be PdfEncoding::GetCIDValue( pdf_utf16be lUnicodeValue ) const
 {
-    if(m_bToUnicodeIsLoaded)
+    if(!m_toUnicode.empty())
     {
         // TODO: optimize
         for(std::map<pdf_utf16be, pdf_utf16be>::const_iterator it = m_toUnicode.begin(); it != m_toUnicode.end(); ++it)

@@ -63,7 +63,7 @@ class PODOFO_API PdfEncoding {
      *  \param nFirstChar the first supported character code 
      *                    (either a byte value in the current encoding or a unicode value)
      *  \param nLastChar the last supported character code, must be larger than nFirstChar 
--     *                    (either a byte value in the current encoding or a unicode value)
+     *                    (either a byte value in the current encoding or a unicode value)
      *
      */
     PdfEncoding( int nFirstChar, int nLastChar, PdfObject* = NULL );
@@ -227,7 +227,9 @@ class PODOFO_API PdfEncoding {
     int     m_nFirstChar;   ///< The first defined character code
     int     m_nLastChar;    ///< The last defined character code
     PdfObject* m_pToUnicode;    ///< Pointer to /ToUnicode object, if any
+ protected:
     std::map<pdf_utf16be, pdf_utf16be> m_toUnicode;
+ private:
     
     /** Parse the /ToUnicode object
     */
