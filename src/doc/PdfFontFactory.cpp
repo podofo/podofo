@@ -354,14 +354,17 @@ PODOFO_Base14FontDef_FindBuiltinData(const char  *font_name)
 	return found ? &PODOFO_BUILTIN_FONTS[i] : NULL;
 }
 
-PdfFont *PdfFontFactory::CreateBase14Font(const char* pszFontName, int nFlags, const PdfEncoding * const pEncoding, PdfVecObjects *pvecObjects)
+PdfFont *PdfFontFactory::CreateBase14Font(const char* pszFontName,
+                    EPdfFontFlags eFlags, const PdfEncoding * const pEncoding,
+                    PdfVecObjects *pParent)
 {
-   PdfFont *pFont = new PdfFontType1Base14(PODOFO_Base14FontDef_FindBuiltinData(pszFontName), pEncoding, pvecObjects);
-   if (pFont) {
-      pFont->SetBold( nFlags & ePdfFont_Bold ? true : false );
-      pFont->SetItalic( nFlags & ePdfFont_Italic ? true : false );
-   }
-   return pFont;
+    PdfFont *pFont = new PdfFontType1Base14(
+        PODOFO_Base14FontDef_FindBuiltinData(pszFontName), pEncoding, pParent);
+    if (pFont) {
+        pFont->SetBold( eFlags & ePdfFont_Bold ? true : false );
+        pFont->SetItalic( eFlags & ePdfFont_Italic ? true : false );
+    }
+    return pFont;
 }
 
 };

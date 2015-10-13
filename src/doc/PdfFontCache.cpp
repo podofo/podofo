@@ -491,19 +491,25 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
 		
     if( it.first == it.second )
     {
-		if ( (eFontCreationFlags & eFontCreationFlags_AutoSelectBase14) 
-             && PODOFO_Base14FontDef_FindBuiltinData(pszFontName))
-		{  
-         int nFlags = ePdfFont_Normal;
+        if ( (eFontCreationFlags & eFontCreationFlags_AutoSelectBase14) 
+             && PODOFO_Base14FontDef_FindBuiltinData(pszFontName) )
+        {
+            EPdfFontFlags eFlags = ePdfFont_Normal;
+            if( bBold )
+            {
+                if( bItalic )
+                {
+                    eFlags = ePdfFont_BoldItalic;
+                }
+                else
+                {
+                    eFlags = ePdfFont_Bold;
+                }
+            } else if( bItalic )
+                eFlags = ePdfFont_Italic;
 
-         if( bBold ) 
-             nFlags |= ePdfFont_Bold;
-
-         if( bItalic )
-             nFlags |= ePdfFont_Italic;
-
-         pFont = PdfFontFactory::CreateBase14Font(pszFontName, nFlags, pEncoding, m_pParent);
-
+            pFont = PdfFontFactory::CreateBase14Font(pszFontName, eFlags,
+                        pEncoding, m_pParent);
 			if( pFont ) 
 			{
 				TFontCacheElement element;
