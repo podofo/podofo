@@ -140,9 +140,13 @@ void PdfPagesTree::InsertPage( int nAfterPageIndex, PdfObject* pPage )
 
     //printf("Fetching page node: %i\n", nAfterPageIndex);
     PdfObjectList lstParents;
+    PdfObject* pPageBefore = NULL;
     //printf("Searching page=%i\n", nAfterPageIndex );
-    PdfObject* pPageBefore = this->GetPageNode( nAfterPageIndex, this->GetRoot(), lstParents );
-    
+    if( this->GetTotalNumberOfPages() != 0 ) // no GetPageNode call w/o pages
+    {
+        pPageBefore = this->GetPageNode( nAfterPageIndex, this->GetRoot(),
+                                        lstParents );
+    }
     //printf("pPageBefore=%p lstParents=%i\n", pPageBefore,lstParents.size() );
     if( !pPageBefore || lstParents.size() == 0 ) 
     {
@@ -193,8 +197,12 @@ void PdfPagesTree::InsertPages( int nAfterPageIndex, const std::vector<PdfObject
     }
 
     PdfObjectList lstParents;
-    PdfObject* pPageBefore = this->GetPageNode( nAfterPageIndex, this->GetRoot(), lstParents );
-    
+    PdfObject* pPageBefore = NULL;
+    if( this->GetTotalNumberOfPages() != 0 ) // no GetPageNode call w/o pages
+    {
+        pPageBefore = this->GetPageNode( nAfterPageIndex, this->GetRoot(),
+                                        lstParents );
+    }
     if( !pPageBefore || lstParents.size() == 0 ) 
     {
         if( this->GetTotalNumberOfPages() != 0 ) 
