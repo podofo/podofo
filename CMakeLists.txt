@@ -285,13 +285,7 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
         SET(PODOFO_USE_VISIBILITY ${PODOFO_HAVE_GCC4})
     ENDIF(NOT DEFINED PODOFO_USE_VISIBILITY)
 
-    # We can't request C++98 compliance on win32, because mingw
-    # will hide _tzset() and _timezone, which we need for PdfDate.
-    # At least until that code is replaced with something better,
-    # just don't enable it on win32.
-    IF(NOT WIN32)
-        ADD_DEFINITIONS(-std=c++98)
-    ENDIF(NOT WIN32)
+    ADD_DEFINITIONS(-std=c++98)
 
     ADD_DEFINITIONS(
         -Wall
