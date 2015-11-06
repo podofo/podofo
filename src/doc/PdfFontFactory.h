@@ -82,6 +82,16 @@ class PODOFO_DOC_API PdfFontFactory {
      */
     static PdfFont* CreateFont( FT_Library* pLibrary, PdfObject* pObject );
 
+    /**
+     *    Creates a new base-14 font object (of class PdfFontType1Base14) if
+     *    the font name (has to include variant) is one of the base 14 fonts.
+     *    The font name is to be given as specified (with an ASCII hyphen).
+     *
+     *    \param pszFontName ASCII C string (zero-terminated) of the font name
+     *    \param eFlags one flag for font variant (Bold, Italic or BoldItalic)
+     *    \param pEncoding an encoding compatible with the font
+     *    \param pParent a vector of PDF objects to be the font object's owner
+     */
     static PdfFont* CreateBase14Font( const char* pszFontName,
                                     EPdfFontFlags eFlags,
                                     const PdfEncoding * const pEncoding,
