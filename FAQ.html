@@ -38,7 +38,7 @@
 			<li><a href="#q_platforms">What platforms are supported by PoDoFo?</a></li>
 			<li><a href="#commercial">Can I use PoDoFo in my commercial application?</a></li>
 			<li><a href="#q_language">What language is PoDoFo written in?</a></li>
-			<li><a href="#q_stability">Does PoDoFo offer a stable API or ABI</a></li>
+			<li><a href="#q_stability">Does PoDoFo offer a stable API or ABI?</a></li>
 			<li><a href="#q_mailinglists">Does PoDoFo have a mailing list?</a></li>
 			<li><a href="#q_contact">My question isn't answered here. Where do I go next?"</a></li>
 		</ul>
@@ -55,7 +55,7 @@
 	and produces a traceback including a call to
 	<code>std::terminate()</code>. Why?</a></li>
 			<li><a href="#q_sigabrt">Why does my program crash with a SIGABRT (Signal #6) in a call to PoDoFo?</a></li>
-			<li><a href="#q_setlocale">PoDoFo creates invalid PDF files because <b>,</b> is used in floats instead of <b>.</b>?</a></li>
+			<li><a href="#q_setlocale">PoDoFo creates invalid PDF files because <b>,</b> is used in floats instead of <b>.</b> Why?</a></li>
 
 		</ul>
 	</ul>
@@ -64,19 +64,19 @@
 
 	<a name="q_platforms"><p class="question">What platforms are supported by PoDoFo?</p></a>
 	<p class="answer">PoDoFo has been tested on Linux, Mac OS X and
-	Windows. It is developed in a way platform independent way so that
+	Windows. It is developed in a platform-independent way so that
 	porting to any other system should be no problem.</p>
 
 	<a name="q_commercial"><p class="question">Can I use PoDoFo in my commercial application?</p></a>
 	<div class="answer">
 		<p>Yes, though you must follow the terms of the LGPL license
 		for PoDoFo. The license permits you to use PoDoFo in any
-		commercial application, though the LGTL obliges you to provide
-		source to PoDoFo its self and any changes you made to it under
+		commercial application, though the LGPL obliges you to provide
+		source to PoDoFo itself and any changes you made to it under
 		the LGPL. That means that you may link code to PoDoFo that is
-		not GPL or LGPL licensed so long as you follow the LGPL's
+		not GPL- or LGPL-licensed so long as you follow the LGPL's
 		rules. You need not fear "viral code" here - not unless you
-		start copying chunks of podofo into your own application, of
+		start copying chunks of PoDoFo into your own application, of
 		course. The inlining done by the compiler is considered
 		"linking" for the purposes of the license and thus not an
 		issue.</p>
@@ -87,8 +87,8 @@
 	</div>
 
 	<a name="q_language"><p class="question">What language is PoDoFo written in?</p></a>
-	<p class="answer">PoDoFo is written entirely in C++ . If you're interested in using it from other languages, see the
-	section <a href="#s_otherlang">below</a>.</p>
+	<p class="answer">PoDoFo is written entirely in C++. If you're interested in using it from other languages, see the
+	<a href="#s_otherlang">section on those below</a>.</p>
 
 	<a name="q_stability"><p class="question">Does PoDoFo offer a stable API or ABI?</p></a>
 	<div class="answer">
@@ -115,8 +115,8 @@
 
 	<a name="q_mailinglists"><p class="question">Does PoDoFo have a mailing list?</p></a>
 	<p class="answer">Yes. See our <a href="http://podofo.sourceforge.net/support.html">support</a> pages. You're very welcome on the lists,
-	and they're not high traffic. If you have a question, make sure to tell us your compiler and version, platform / OS and version, PoDoFo version,
-	where you got PoDoFo / how it was built, and the details of any error messages. If possible, upload a problem PDF somewhere that we can
+	and they're not high-traffic. If you have a question, make sure to tell us your compiler and version, platform / OS and version, PoDoFo version,
+	where you got PoDoFo / how it was built, and the details of any error messages. If possible, upload a problem PDF document somewhere so that we can
 	get to it, too.</p>
 
 	<a name="q_contact"><p class="question">My question isn't answered here. Where do I go next?</p></a>
@@ -154,7 +154,7 @@
 	<div class="answer">
 		<p>Not as yet.</p>
 
-		<p>As PoDoFo does not make heavy use of templates in its general public API, it would be possible to write a fairly full featured C wrapper around PoDoFo's public C++ APIs. Most of what'd be needed would be to:</p>
+		<p>As PoDoFo does not make heavy use of templates in its general public API, it would be possible to write a fairly full-featured C wrapper around PoDoFo's public C++ APIs. Most of what'd be needed would be to:</p>
 
 		<ul>
 			<li>provide factory functions for PoDoFo objects</li>
@@ -170,17 +170,17 @@
 
 	<a name="q_java"><p class="question">I'm a Java developer. Can I use PoDoFo?</p></a>
 	<p class="answer">Not with Java, no, though we don't discriminate if
-	you've used it but want to move to another language ;-) . In all
+	you've used it but want to move to another language ;-)&nbsp;. In all
 	seriousness a wrapper for Java may be possible, but nobody has been in
 	touch with the PoDoFo developers to express an interest in writing
 	one. Java users will probably want to look at <a href="http://sourceforge.net/project/showfiles.php?group_id=2435">iText</a>.</p>
 
-	<a name="q_dotnet"><p class="question">I'm a C# or other .NET develiper. Can I use PoDoFo?</p></a>
+	<a name="q_dotnet"><p class="question">I'm a C# or other .NET developer. Can I use PoDoFo?</p></a>
 	<p class="answer">Not easily. Since PoDoFo is unmanaged C++ code, you can use it with P/Invoke and a glue layer, but I wouldn't recommend
 	this as a pleasant way to use a library. If writing your PDF output code in C++ is an option, you may well be able to use PoDoFo.</p>
 
 	<a name="q_otherlang"><p class="question">Are any other languages supported?</p></a>
-	<p class="answer">No. Python bindings would be a fun <a href=http://www.boost.org/libs/python/doc/">Boost::Python</a> project, though.</p>
+	<p class="answer">No. Python bindings would be a fun <a href="http://www.boost.org/libs/python/doc/">Boost::Python</a> project, though.</p>
 
 	<a name="s_troubleshooting"><h2>Troubleshooting</h2></a>
 
@@ -190,13 +190,13 @@
 	<div class="answer">
 		<p>If you're seeing a traceback including a call to <code>std::terminate()</code>, 
 		like the (simplified) one shown below, the problem is probably that you're
-		not catching an exception being thrown by podofo.</p>
+		not catching an exception being thrown by PoDoFo.</p>
 
 			<code>
 			raise()<br/>
-			abort ()<br/>
-			std::set_unexpected ()<br/>
-			<b>std::terminate</b> ()<br/>
+			abort()<br/>
+			std::set_unexpected()<br/>
+			<b>std::terminate</b>()<br/>
 			PoDoFo::SomePoDoFoMethod()<br/>
 			main()<br/>
 			</code>
@@ -206,7 +206,7 @@
 		thrown by PoDoFo. Your program should call all PoDoFo methods
 		that are not annotated `nothrow()' in a try/catch block, or be
 		prepared to handle the exception further up the call chain.
-		Code that calls PoDoFo should also be exception safe.</p>
+		Code that calls PoDoFo should also be exception-safe.</p>
 
 		<p>In simplified terms, if you fail to catch an exception and
 		allow it to unroll the stack past your main() function, the
@@ -220,22 +220,22 @@
 
 	<a name="q_sigabrt"><p class="question">Why does my program crash with a SIGABRT (Signal #6) in a call to PoDoFo?</p></a>
 	<p class="answer">You're probably not catching an exception being
-	thrown by podofo. See the answer for std::terminate . Alternately, you
+	thrown by PoDoFo. See the answer for std::terminate. Alternately, you
 	might be hitting an internal assertion in PoDoFo, indicating you've
 	found a library bug. If your problem isn't covered by the answer for
-	std::terminate, please report a bug and include the full podofo library
+	std::terminate, please report a bug and include the full PoDoFo library
 	version, a backtrace of the crash (this is critical), the code that
-	causes the crash if possible, the PDF that causes the crash if
+	causes the crash if possible, the PDF document that causes the crash if
 	possible, and full information about your platform (OS/distro and
 	version, what the CPU is, etc).</p>
 
 	<a name="q_unusual_terminate"><p class="question">Why does my program exit with the message "Application has requested runtime to terminate it in an unusual way" ? </p>
 	<p class="answer">This is the Windows equivalent of a crash on a signal. This could easily be an error in your code, or an error from PoDoFo
-	crashing your program. You need to attach a debugger to find out. If you're using MinGW, install GDB from <a href="http://sourceforge.net/project/showfiles.php?group_id=2435">this page under "GNU Source Level Debugger"</a> then run <code>gdb --args myprogram.exe</code>. Visual Studio users should use the integrated debugger. If the crash does appear to come from PoDoFo, make sure that you are correctly catching and handling exceptions thrown by PoDoFo - see the answer to <code>std::terminate</code>.</p>
+	crashing your program. You need to attach a debugger to find out. If you're using MinGW, install GDB from <a href="http://sourceforge.net/project/showfiles.php?group_id=2435">this page under "GNU Source Level Debugger"</a>, then run <code>gdb --args myprogram.exe</code>. Visual Studio users should use the integrated debugger. If the crash does appear to come from PoDoFo, make sure that you are correctly catching and handling exceptions thrown by PoDoFo - see the answer to <code>std::terminate</code>.</p>
 
 
 	<a name="q_setlocale"><p class="question">PoDoFo creates invalid PDF
-	files because <b>,</b> is used in floats instead of <b>.</b>?</p></a>
+	files because <b>,</b> is used in floats instead of <b>.</b> Why?</p></a>
 	<p class="answer">PDF files use floating point numbers for almost all 
 	drawing operations as coordinates. Those floating point numbers have to
 	be written in the English format with a <b>.</b> (point) as a separator.
@@ -247,9 +247,9 @@
 	<a name="q_testsuites"><p class="question">Where can I get test PDF files?</p>
 	<p class="answer">
 		<ul>
-		<li>Misc PDF test files
+		<li>Misc. PDF test files
 			<ul>
-			<li><a href="http://acroeng.adobe.com/">Adobe - acroeng.adobe.com</a>. Mostly browser-plugin related, plus misc tests.</li>
+			<li><a href="http://acroeng.adobe.com/">Adobe - acroeng.adobe.com</a>. Mostly browser-plugin related, plus misc. tests.</li>
 			</ul>
 		</li>
 		<li>Colour and ICC:
