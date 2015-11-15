@@ -829,6 +829,28 @@ void PdfLZWFilter::InitTable()
 #ifdef PODOFO_HAVE_JPEG_LIB
 
 /*
+ * Handlers for errors inside the JPeg library
+ */
+extern "C" {
+void JPegErrorExit(j_common_ptr cinfo)
+{
+#if 1
+    char buffer[JMSG_LENGTH_MAX];
+
+    /* Create the message */
+    (*cinfo->err->format_message) (cinfo, buffer);
+#endif
+    jpeg_destroy(cinfo);
+    PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedImageFormat, buffer);
+}
+
+void JPegErrorOutput(j_common_ptr, int)
+{
+}
+
+};
+
+/*
  * The actual filter implementation
  */
 PdfDCTFilter::PdfDCTFilter()
@@ -859,6 +881,9 @@ void PdfDCTFilter::BeginDecodeImpl( const PdfDictionary* )
 { 
     // Setup variables for JPEGLib
     m_cinfo.err = jpeg_std_error( &m_jerr );
+    m_jerr.error_exit = &JPegErrorExit;
+    m_jerr.emit_message = &JPegErrorOutput;
+
 
     jpeg_create_decompress( &m_cinfo );
 

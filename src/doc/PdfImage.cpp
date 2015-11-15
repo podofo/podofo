@@ -337,25 +337,6 @@ void PdfImage::LoadFromData(const unsigned char* pData, pdf_long dwLen)
 }
 
 #ifdef PODOFO_HAVE_JPEG_LIB
-extern "C" {
-static void JPegErrorExit(j_common_ptr cinfo)
-{
-#if 1	
-    char buffer[JMSG_LENGTH_MAX];
-
-    /* Create the message */
-    (*cinfo->err->format_message) (cinfo, buffer);
-#endif
-    jpeg_destroy(cinfo);
-    PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedImageFormat, buffer);
-}
-
-static void JPegErrorOutput(j_common_ptr, int)
-{
-}
-
-};
-
 
 void PdfImage::LoadFromJpeg( const char* pszFilename )
     {

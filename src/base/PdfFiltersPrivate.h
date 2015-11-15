@@ -705,6 +705,12 @@ EPdfFilter PdfLZWFilter::GetType() const
 
 void PODOFO_API jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize);
 
+extern "C" {
+void JPegErrorExit(j_common_ptr cinfo);
+
+void JPegErrorOutput(j_common_ptr, int);
+};
+
 /** The DCT filter can decoded JPEG compressed data.
  *  
  *  This filter requires JPEG lib to be available
