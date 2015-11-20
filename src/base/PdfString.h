@@ -331,29 +331,31 @@ class PODOFO_API PdfString : public PdfDataType{
      */
     bool operator!=(const PdfString& rhs) const { return !operator==(rhs); }
 
-    /** Converts this string to a hex encoded string.
+#ifdef PODOFO_PUBLIC_STRING_HEX_CODEC // never set, impl. even says REMOVE :(
+    /** Converts this string to a hex-encoded string.
      *  
      *  If IsHex returns true, a copy of this string is returned
-     *  otherwise the strings data is hex encoded and returned.
+     *  otherwise the string's data is hex-encoded and returned.
      *
-     *  \returns a hex encoded version of this string or this string
-     *           if it is already hex ecoded.
+     *  \returns a hex-encoded version of this string, or this string if it is
+     *           already hex-encoded.
      *
      *  \see IsHex
      */
-    //PdfString HexEncode() const; 
+    PdfString HexEncode() const; 
 
-    /** Converts this string to a ascii string (not hex encoded)
+    /** Converts this string to an ASCII string (not hex-encoded)
      *  
-     *  If IsHex returns false, a copy of this string is returned
-     *  otherwise the strings data is hex decoded and returned.
+     *  If IsHex returns false, a copy of this string is returned,
+     *  otherwise the string's data is hex-decoded and returned.
      *
-     *  \returns a plain version of this string which is not hex encoded
-     *           or this string if it is already a plain not hex encoded string.
+     *  \returns a plain version, which is not hex-encoded, of this string, or
+     *           this string if it is already a plain not hex-encoded string.
      *
      *  \see IsHex
      */
-    //PdfString HexDecode() const; 
+    PdfString HexDecode() const; 
+#endif
 
     /** Converts this string to a unicode string
      *  

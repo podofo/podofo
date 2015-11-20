@@ -620,7 +620,7 @@ const std::wstring PdfString::GetStringW() const
 
 #endif // _WIN32
 
-/*
+#ifdef PODOFO_PUBLIC_STRING_HEX_CODEC // never set, Decode even says REMOVE :(
 PdfString PdfString::HexEncode() const
 {
     if( this->IsHex() )
@@ -674,8 +674,8 @@ PdfString PdfString::HexDecode() const
 
         return str;
     }
-} 
-*/
+}
+#endif // PODOFO_PUBLIC_STRING_HEX_CODEC 
 
 PdfString PdfString::ToUnicode() const
 {
