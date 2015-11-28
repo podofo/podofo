@@ -41,6 +41,7 @@
 
 #include "PdfFontFactory.h"
 
+#include <iostream>
 #include <sstream>
 
 #include <wchar.h>
@@ -56,6 +57,46 @@ namespace PoDoFo {
 #if defined(__APPLE_CC__) && !defined(PODOFO_HAVE_FONTCONFIG)
 #include <Carbon/Carbon.h>
 #endif
+
+struct Scoped_FT_Face {
+	Scoped_FT_Face() : ftFace(0) {
+	}
+	~Scoped_FT_Face() {
+		if (ftFace) {
+			FT_Done_Face(ftFace);
+		}
+	}
+	FT_Face ftFace;
+};
+
+PdfFontMetricsFreetype* PdfFontMetricsFreetype::CreateForSubsetting(FT_Library* pLibrary, const char* pszFilename, bool pIsSymbol, const char* pszSubsetPrefix ) 
+{
+	Scoped_FT_Face scoped_face;
+
+	FT_Error err = FT_New_Face( *pLibrary, pszFilename, 0, &scoped_face.ftFace );
+	if (!err) {
+		FT_ULong  length = 0;
+		err = FT_Load_Sfnt_Table( scoped_face.ftFace, 0, 0, NULL, &length );
+		if (!err) {
+			PdfRefCountedBuffer buffer(length);
+			err = FT_Load_Sfnt_Table( scoped_face.ftFace, 0, 0, reinterpret_cast<FT_Byte*>(buffer.GetBuffer()), &length );
+			if (!err) {
+				return new PdfFontMetricsFreetype( pLibrary, buffer, pIsSymbol, pszSubsetPrefix );
+			}
+		}
+        // throw an exception
+        PdfError::LogMessage( eLogSeverity_Critical, "FreeType returned the error %i when calling FT_Load_Sfnt_Table for font %s.", 
+                              err, pszFilename );
+        PODOFO_RAISE_ERROR( ePdfError_FreeType );
+	}
+	else {
+        // throw an exception
+        PdfError::LogMessage( eLogSeverity_Critical, "FreeType returned the error %i when calling FT_New_Face for font %s.", 
+                              err, pszFilename );
+        PODOFO_RAISE_ERROR( ePdfError_FreeType );
+	}
+	return 0;
+}
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype( FT_Library* pLibrary, const char* pszFilename, 
 															   bool pIsSymbol, const char* pszSubsetPrefix )
@@ -135,12 +176,15 @@ PdfFontMetricsFreetype::~PdfFontMetricsFreetype()
 
 void PdfFontMetricsFreetype::InitFromBuffer(bool pIsSymbol)
 {
-    FT_Error error = FT_New_Memory_Face( *m_pLibrary, 
-                                         reinterpret_cast<const unsigned char*>(m_bufFontData.GetBuffer()), 
-                                         static_cast<long>(m_bufFontData.GetSize()), 0, &m_pFace );
+    FT_Open_Args openArgs;
+    memset(&openArgs, 0, sizeof(openArgs));
+	openArgs.flags = FT_OPEN_MEMORY;
+	openArgs.memory_base = reinterpret_cast<FT_Byte*>(m_bufFontData.GetBuffer()), 
+	openArgs.memory_size = static_cast<FT_Long>(m_bufFontData.GetSize());
+	FT_Error error = FT_Open_Face( *m_pLibrary, &openArgs, 0, &m_pFace ); 
     if( error ) 
     {
-        PdfError::LogMessage( eLogSeverity_Critical, "FreeType return edthe error %i when calling FT_New_Face for a buffered font.", error );
+        PdfError::LogMessage( eLogSeverity_Critical, "FreeType returned the error %i when calling FT_New_Face for a buffered font.", error );
         PODOFO_RAISE_ERROR( ePdfError_FreeType );
     }
     else
@@ -184,7 +228,7 @@ void PdfFontMetricsFreetype::InitFromFace(bool pIsSymbol)
     FT_Select_Charmap( m_pFace, pIsSymbol ? FT_ENCODING_MS_SYMBOL : FT_ENCODING_UNICODE );
 
     // Try to determine if it is a symbol font
-    for( int c=0;c<m_pFace->num_charmaps;c++ ) 
+    for( int c=0; c<m_pFace->num_charmaps; c++ ) 
     {  
         FT_CharMap charmap = m_pFace->charmaps[c]; 
 
@@ -201,7 +245,7 @@ void PdfFontMetricsFreetype::InitFromFace(bool pIsSymbol)
     // are most likely needed quite often
     m_vecWidth.clear();
     m_vecWidth.reserve( PODOFO_WIDTH_CACHE_SIZE );
-    for( unsigned int i=0;i<PODOFO_WIDTH_CACHE_SIZE;i++ )
+    for( unsigned int i=0; i < PODOFO_WIDTH_CACHE_SIZE; i++ )
     {
         if( i < PODOFO_FIRST_READABLE || !m_pFace )
             m_vecWidth.push_back( 0.0  );
@@ -214,13 +258,13 @@ void PdfFontMetricsFreetype::InitFromFace(bool pIsSymbol)
                 index = index | 0xf000;
             }
 
-            if( !FT_Load_Char( m_pFace, index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP ) )  // | FT_LOAD_NO_RENDER
+            if( FT_Load_Char( m_pFace, index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP) == 0 )  // | FT_LOAD_NO_RENDER
             {
-                //m_vecWidth.push_back( 0.0  );
-                //continue;
-            }
             m_vecWidth.push_back( static_cast<double>(m_pFace->glyph->metrics.horiAdvance) * 1000.0 / m_pFace->units_per_EM );
+                continue;
         }
+            m_vecWidth.push_back( 0.0  );
+    }
     }
 
     InitFontSizes();
@@ -277,16 +321,16 @@ void PdfFontMetricsFreetype::GetWidthArray( PdfVariant & var, unsigned int nFirs
             list.push_back( PdfVariant( m_vecWidth[i] ) );
         else
         {
-            if( !FT_Load_Char( m_pFace, i, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP ) )  // | FT_LOAD_NO_RENDER
+            if( FT_Load_Char( m_pFace, i, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP ) == 0 )  // | FT_LOAD_NO_RENDER
             {
-                //PODOFO_RAISE_ERROR( ePdfError_FreeType );
-                list.push_back( PdfVariant( 0.0 ) );
+                // zero return code is success!
+                list.push_back( PdfVariant( m_pFace->glyph->metrics.horiAdvance * 1000.0 / m_pFace->units_per_EM ) );
                 continue;
             }
-
-            list.push_back( PdfVariant( m_pFace->glyph->metrics.horiAdvance * 1000.0 / m_pFace->units_per_EM ) );
+                //PODOFO_RAISE_ERROR( ePdfError_FreeType );
+                list.push_back( PdfVariant( 0.0 ) );
+            }
         }
-    }
 
     var = PdfVariant( list );
 }
@@ -338,7 +382,6 @@ double PdfFontMetricsFreetype::UnicodeCharWidth( unsigned short c ) const
 {
     FT_Error ftErr;
     double   dWidth = 0.0;
-
 
     if( static_cast<int>(c) < PODOFO_WIDTH_CACHE_SIZE ) 
     {

@@ -124,7 +124,12 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
         {
             case ePdfFontType_TrueType:
                 // Peter Petrov 30 April 2008 - added bEmbed parameter
+		        if (bSubsetting) {
+		            pFont = new PdfFontCID( pMetrics, pEncoding, pParent, bEmbed, true );
+		        }
+		        else {
                 pFont = new PdfFontTrueType( pMetrics, pEncoding, pParent, bEmbed );
+		        }
                 break;
                 
             case ePdfFontType_Type1Pfa:

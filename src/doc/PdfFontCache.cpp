@@ -133,7 +133,7 @@ static bool GetFontFromCollection(char *&buffer, unsigned int &bufferLen, unsign
         tag[2] = entry[2];
         tag[3] = entry[3];
         tag[4] = 0;
-        ULONG checkSum = FromBigEndian(*(ULONG *)(entry+4));
+        //ULONG checkSum = FromBigEndian(*(ULONG *)(entry+4));
         ULONG offset   = FromBigEndian(*(ULONG *)(entry+8));
         ULONG length   = FromBigEndian(*(ULONG *)(entry+12));
         length = (length+3) & ~3;
@@ -146,7 +146,7 @@ static bool GetFontFromCollection(char *&buffer, unsigned int &bufferLen, unsign
         {
             //us: see "http://www.microsoft.com/typography/otspec/name.htm"
             char *nameTable = buffer + offset;
-            USHORT format       = ShortFromBigEndian(*(USHORT *)(nameTable));
+            //USHORT format       = ShortFromBigEndian(*(USHORT *)(nameTable));
             USHORT nameCount    = ShortFromBigEndian(*(USHORT *)(nameTable+2));
             USHORT stringOffset = ShortFromBigEndian(*(USHORT *)(nameTable+4));
             char *stringArea = nameTable + stringOffset;
@@ -291,10 +291,12 @@ static bool GetDataFromHFONT( HFONT hf, char** outFontBuffer, unsigned int& outF
     const DWORD ttcf_const = 0x66637474;
     DWORD dwTable = ttcf_const;
     bufferLen = GetFontData(hdc, dwTable, 0, 0, 0);
+
     if (bufferLen == GDI_ERROR)
     {
         dwTable = 0;
         bufferLen = GetFontData(hdc, dwTable, 0, 0, 0);
+
     }
     if (bufferLen != GDI_ERROR)
     {
@@ -530,6 +532,7 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
 
 		if (!pFont)
 		{
+            bool bSubsetting = (eFontCreationFlags & eFontCreationFlags_Type1Subsetting) != 0;
 			std::string sPath;
 			if ( pszFileName == NULL )
 				sPath = this->GetFontPath( pszFontName, bBold, bItalic );
@@ -539,12 +542,11 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
 			if( sPath.empty() )
 			{
 #if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
-				pFont = GetWin32Font( it.first, m_vecFonts, pszFontName, bBold, bItalic, bSymbolCharset, bEmbedd, pEncoding );
+                pFont = GetWin32Font( it.first, m_vecFonts, pszFontName, bBold, bItalic, bSymbolCharset, bEmbedd, pEncoding, bSubsetting  );
 #endif // _WIN32
 			}
 			else
 			{
-				bool bSubsetting = (eFontCreationFlags & eFontCreationFlags_Type1Subsetting) != 0;
 				pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, sPath.c_str(), bSymbolCharset, bSubsetting ? genSubsetBasename() : NULL );
 				pFont    = this->CreateFontObject( it.first, m_vecFonts, pMetrics, 
 						   bEmbedd, bBold, bItalic, pszFontName, pEncoding, bSubsetting );
@@ -703,7 +705,7 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
 				      const PdfEncoding * const pEncoding,
 				      const char* pszFileName )
 {
-    PdfFont*        pFont;
+    PdfFont*        pFont = 0;
     PdfFontMetrics* pMetrics;
     std::pair<TISortedFontList,TCISortedFontList> it;
 
@@ -714,7 +716,7 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
     if( it.first == it.second )
     {
         std::string sPath; 
-        if( pszFileName == NULL ) 
+        if( pszFileName == NULL || *pszFileName == 0) 
         {
             sPath = this->GetFontPath( pszFontName, bBold, bItalic );
             if( sPath.empty() )
@@ -726,39 +728,15 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
                 return NULL;
 #endif // _WIN32
             }
+            sPath = pszFontName;
         }
-        else
+        else {
             sPath = pszFileName;
-        
-        pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, sPath.c_str(), bSymbolCharset );
-        if( !(pMetrics && pMetrics->GetFontType() == ePdfFontType_TrueType ) )
-        {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidFontFile, "Subsetting is only supported for TrueType fonts." );
         }
         
-        PdfInputDevice          input( sPath.c_str() );
-        PdfRefCountedBuffer     buffer;
-        PdfOutputDevice         output( &buffer );
-        
-        PdfFontTTFSubset        subset( &input, pMetrics, PdfFontTTFSubset::eFontFileType_TTF );
-        PdfEncoding::const_iterator itChar
-            = pEncoding->begin();
-        int cpt = 0;
-        while( itChar != pEncoding->end() )
-        {
-            subset.AddCharacter( *itChar );
-            ++itChar;
-            cpt++;
-        }
-        subset.BuildFont( &output );
-        
-        // Delete metrics object, as it was only used so that PdfFontTTFSubset could
-        // match unicode character points to glyph indeces
-        delete pMetrics;
-
-        pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, buffer, bSymbolCharset, genSubsetBasename() );
+        pMetrics = PdfFontMetricsFreetype::CreateForSubsetting( &m_ftLibrary, sPath.c_str(), bSymbolCharset, genSubsetBasename() );
         pFont = this->CreateFontObject( it.first, m_vecFontSubsets, pMetrics, 
-                                        true, bBold, bItalic, pszFontName, pEncoding );
+                                        true, bBold, bItalic, pszFontName, pEncoding, true );
     }
     else
         pFont = (*it.first).m_pFont;

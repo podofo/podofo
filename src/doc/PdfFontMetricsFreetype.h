@@ -91,6 +91,14 @@ class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
      */
     PdfFontMetricsFreetype( FT_Library* pLibrary, PdfObject* pDescriptor );
 
+    /** Create a font metrics object suitable for subsetting for a given true type file
+     *  \param pLibrary handle to an initialized FreeType2 library handle
+     *  \param pszFilename filename of a truetype file
+	 *  \param pIsSymbol whether use a symbol encoding, rather than unicode
+     *  \param pszSubsetPrefix unique prefix for font subsets (see GetFontSubsetPrefix)
+     */
+    static PdfFontMetricsFreetype* CreateForSubsetting(FT_Library* pLibrary, const char* pszFilename, bool pIsSymbol, const char* pszSubsetPrefix );
+
     virtual ~PdfFontMetricsFreetype();
 
     /** Create a width array for this font which is a required part

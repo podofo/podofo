@@ -95,28 +95,7 @@ class PODOFO_DOC_API PdfFontTTFSubset {
      *
      * @param pOutputDevice write the font to this device
      */
-    void BuildFont( PdfOutputDevice* pOutputDevice ); 
-
-    /** Add a new glyph index to the subset.
-     *
-     *  @param nGlyphIndex include this glyph in the final font
-     *
-     *  Already existing values are ignored, so that every
-     *  glyph can be added only once.
-     */
-    void AddGlyph( unsigned short nGlyphIndex );
-
-    /** Add an unicode character to the subset
-     *
-     *  @param nCharCode unicode character code
-     */
-    inline void AddCharacter( pdf_utf16be nCharCode );
-
-    /** Get the number of glyphs in this font.
-     *
-     *  @returns the number of glyphs in this font.
-     */
-    inline size_t GetSize() const;
+    void BuildFont( PdfRefCountedBuffer& outputBuffer, const std::set<pdf_utf16be>& usedChars, std::vector<unsigned char>& cidSet );
 
  private:
     /** Hide default constructor
@@ -135,7 +114,7 @@ class PODOFO_DOC_API PdfFontTTFSubset {
     /** Get the offset of a specified table. 
      *  @param pszTableName name of the table
      */
-    unsigned long GetTableOffset( const char* pszTableName );
+    unsigned long GetTableOffset( unsigned long tag );
 
     void GetNumberOfTables();
     void GetNumberOfGlyphs();
@@ -152,31 +131,65 @@ class PODOFO_DOC_API PdfFontTTFSubset {
     /** Information of TrueType tables.
      */
     struct TTrueTypeTable {
-	unsigned char m_tableName[4];
-	unsigned long m_checksum;
-	unsigned long m_length;
-	unsigned long m_offset;
-	std::string  m_strTableName; // TODO: DS: REMOVE FIELD?
+	    unsigned long tag;
+	    unsigned long checksum;
+	    unsigned long length;
+	    unsigned long offset;
     };
 
     /** GlyphData contains the glyph address relative 
      *  to the beginning of the glyf table.
      */
     struct TGlyphData {
-	unsigned long glyphIndex;
 	unsigned long glyphLength;
-	unsigned long glyphOldAddress;	//In the original truetype file.
-	unsigned long glyphNewAddress;	//In the new generated truetype file.
+	    unsigned long glyphAddress;	//In the original truetype file.
     };
 
-    struct TGlyphDataShort {
-	unsigned long	glyphIndex;
-	unsigned short	glyphLength;
-	unsigned short	glyphOldAddress;
-	unsigned long	glyphOldAddressLong;	//Real address, which is 2 times of glyphOldAddress.
-	unsigned short	glyphNewAddress;
-	unsigned long	glyphNewAddressLong;
+    typedef unsigned short GID;
+    typedef unsigned long CodePoint;
+    typedef std::map<GID, TGlyphData> GlyphMap;
+    typedef std::map<CodePoint, GID> CodePointToGid;
+
+    struct CMapv4Range {
+	    unsigned short endCode;
+	    unsigned short startCode;
+	    short delta;
+	    unsigned short offset;
     };
+
+    typedef std::vector<CMapv4Range> CMapRanges;
+
+    struct CMap {
+	    unsigned short segCount;
+	    CMapRanges ranges;
+	    std::vector<unsigned short> glyphArray;
+    };
+
+    struct GlyphContext {
+        unsigned long ulGlyfTableOffset;
+        unsigned long ulLocaTableOffset;
+        /* Used internaly during recursive load */
+        TGlyphData glyphData;
+        short contourCount;
+        unsigned short shortOffset;
+    };
+
+    void BuildUsedCodes(CodePointToGid& usedCodes, const std::set<pdf_utf16be>& usedChars );
+    void LoadGlyphs(GlyphContext& ctx, const CodePointToGid& usedCodes);
+    void LoadGID(GlyphContext& ctx, GID gid);
+    void LoadCompound(GlyphContext& ctx, unsigned long offset);
+    void CreateCmapTable( const CodePointToGid& usedCodes );
+    void FillGlyphArray(const CodePointToGid& usedCodes, GID gid, unsigned short count);
+    unsigned long GetCmapTableSize();
+    unsigned long WriteCmapTable(char*);
+    unsigned long GetGlyphTableSize();
+    unsigned long WriteGlyphTable(char* bufp, unsigned long ulGlyphTableOffset);
+    unsigned long GetLocaTableSize();
+    unsigned long WriteLocaTable(char* bufp);
+    unsigned long GetHmtxTableSize();
+    unsigned long WriteHmtxTable(char* bufp, unsigned long ulHmtxTableOffset);
+    unsigned long CalculateSubsetSize();
+    void WriteTables(PdfRefCountedBuffer& fontData);
 
     PdfFontMetrics* m_pMetrics;                ///< FontMetrics object which is required to convert unicode character points to glyph ids
     EFontFileType   m_eFontFileType;
@@ -184,9 +197,13 @@ class PODOFO_DOC_API PdfFontTTFSubset {
     
     unsigned short  m_numTables;
     unsigned short  m_numGlyphs;
+    unsigned short  m_numHMetrics;
     
     std::vector<TTrueTypeTable> m_vTable;
-    std::vector<unsigned short> m_vGlyphIndice;
+    GlyphMap m_mGlyphMap;
+    CMap m_sCMap;
+    
+    /* temp storage during load */
 
     unsigned short  m_faceIndex;
 
@@ -199,22 +216,7 @@ class PODOFO_DOC_API PdfFontTTFSubset {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline size_t PdfFontTTFSubset::GetSize() const 
-{
-    return m_vGlyphIndice.size();
-}
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfFontTTFSubset::AddCharacter( pdf_utf16be nCharCode )
-{
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-    this->AddGlyph( static_cast<unsigned short>(m_pMetrics->GetGlyphId( ((nCharCode & 0xff00) >> 8) | ((nCharCode & 0xff) << 8) )) );
-#else
-    this->AddGlyph( static_cast<unsigned short>(m_pMetrics->GetGlyphId( nCharCode )) );
-#endif // PODOFO_IS_LITTLE_ENDIAN
-}
 
 }; /* PoDoFo */
 

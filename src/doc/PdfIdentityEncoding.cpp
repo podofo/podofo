@@ -74,7 +74,7 @@ pdf_utf16be PdfIdentityEncoding::GetCharCode( int nIndex ) const
     }
 
 #ifdef PODOFO_IS_LITTLE_ENDIAN
-    return ((nIndex & 0xff00) >> 8) | ((nIndex & 0xff) << 8);
+    return ((nIndex & 0xFF00) >> 8) | ((nIndex & 0x00FF) << 8);
 #else
     return static_cast<pdf_utf16be>(nIndex);
 #endif // PODOFO_IS_LITTLE_ENDIAN
@@ -111,13 +111,13 @@ PdfRefCountedBuffer PdfIdentityEncoding::ConvertToEncoding( const PdfString & rS
         while( *pStr ) 
         {
 #ifdef PODOFO_IS_LITTLE_ENDIAN
-            lGlyphId = pFont->GetFontMetrics()->GetGlyphId( (((*pStr & 0xff) << 8) | ((*pStr & 0xff00) >> 8)) );
+            lGlyphId = pFont->GetFontMetrics()->GetGlyphId( (((*pStr << 8) & 0xFF00) | ((*pStr >> 8) & 0x00FF)) );
 #else
             lGlyphId = pFont->GetFontMetrics()->GetGlyphId( *pStr );
 #endif // PODOFO_IS_LITTLE_ENDIAN
 
-            outp[0] = static_cast<char>((lGlyphId >> 8) & 0x00ff);
-            outp[1] = static_cast<char>(lGlyphId & 0x00ff);
+            outp[0] = static_cast<char>(lGlyphId >> 8);
+            outp[1] = static_cast<char>(lGlyphId);
             outp += 2;
 
             ++pStr;

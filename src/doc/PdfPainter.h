@@ -765,7 +765,7 @@ class PODOFO_DOC_API PdfPainter {
      */
     inline std::ostringstream &GetCurrentPath(void);
 
- private:
+ protected:
  
     /** Coverts a rectangle to an array of points which can be used 
      *  to draw an ellipse using 4 bezier curves.
