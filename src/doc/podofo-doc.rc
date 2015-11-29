@@ -3,7 +3,7 @@
 #include "base/podofoapi.h"
 #include "base/PdfDefines.h"
 #include "base/PdfVersion.h"
-#include "WinResrc.h"
+#include "winresrc.h"
 
 #undef PODOFO_COMPILE_RC
 
@@ -50,8 +50,8 @@ BEGIN
     BEGIN
         BLOCK "040904E4"
         BEGIN
-            VALUE "FileVersion", VER_FILEVERSION
-            VALUE "ProductVersion", VER_PRODUCTVERSION
+            VALUE "FileVersion", VER_FILEVERSION_STR
+            VALUE "ProductVersion", VER_PRODUCTVERSION_STR
             VALUE "Comments", "PoDoFo Doc PDF Library\0"
             VALUE "CompanyName", "PoDoFo\0"
             VALUE "InternalName", "podofo\0"

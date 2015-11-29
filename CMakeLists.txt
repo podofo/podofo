@@ -241,7 +241,7 @@ IF(WIN32)
     ENDIF(PODOFO_BUILD_SHARED AND PODOFO_BUILD_STATIC)
     # We must explicitly link to the core win32 libraries, and we need winsock2
     # to get some byte-order conversion routines too.
-    SET(PLATFORM_SYSTEM_LIBRARIES kernel32 user32 gdi32 winspool comdlg32 advapi32 shell32 ole32 oleaut32 uuid WS2_32)
+    SET(PLATFORM_SYSTEM_LIBRARIES kernel32 user32 gdi32 winspool comdlg32 advapi32 shell32 ole32 oleaut32 uuid ws2_32)
     # Microsoft deprecate certain POSIX functions that we use.
     # for now, turn off these warnings.
     ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE)
@@ -285,16 +285,16 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
         SET(PODOFO_USE_VISIBILITY ${PODOFO_HAVE_GCC4})
     ENDIF(NOT DEFINED PODOFO_USE_VISIBILITY)
 
-    ADD_DEFINITIONS(-std=c++98)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++98")
 
-    ADD_DEFINITIONS(
-        -Wall
-        -Woverloaded-virtual
-        -Wswitch-enum
-        -Wcast-qual
-        -Wwrite-strings
-        -Wredundant-decls
-        -Wreorder
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
+        -Wall \
+        -Woverloaded-virtual \
+        -Wswitch-enum \
+        -Wcast-qual \
+        -Wwrite-strings \
+        -Wredundant-decls \
+        -Wreorder"
 		#-Wold-style-cast
        )
     #

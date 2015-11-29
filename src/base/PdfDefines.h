@@ -60,8 +60,11 @@
 /**
  * PoDoFo version represented as a string literal, eg '0.7.99'
  */
-#define PODOFO_MAKE_VERSION_STR_REAL(M,m,p) ("\"" #M "." #m "." #p "\"")
-#define PODOFO_MAKE_VERSION_STR(M,m,p) PODOFO_MAKE_VERSION_STR_REAL(M,m,p)
+// The \0 is from Win32 example resources and the other values in PoDoFo's one
+#define PODOFO_MAKE_VERSION_STR_REAL(M,m,p) M ## . ## m ## . ## p
+#define PODOFO_STR(x) #x "\0"
+#define PODOFO_XSTR(x) PODOFO_STR(x)
+#define PODOFO_MAKE_VERSION_STR(M,m,p) PODOFO_XSTR(PODOFO_MAKE_VERSION_STR_REAL(M,m,p))
 #define PODOFO_VERSION_STR PODOFO_MAKE_VERSION_STR(PODOFO_VERSION_MAJOR, PODOFO_VERSION_MINOR, PODOFO_VERSION_PATCH)
 
 #ifndef PODOFO_COMPILE_RC
