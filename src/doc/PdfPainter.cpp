@@ -1013,8 +1013,8 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
         if( IsNewLineChar( *pszCurrentCharacter ) ) // hard-break! 
         {
             vecLines.push_back( PdfString( pszLineBegin, pszCurrentCharacter - pszLineBegin ) );
-            ++pszCurrentCharacter; // skip the line feed
-            pszLineBegin = pszCurrentCharacter;
+
+            pszLineBegin = pszCurrentCharacter+1;// skip the line feed
             startOfWord = true;
             dCurWidthOfLine = 0.0;
         }
