@@ -1,4 +1,4 @@
-# LUA_FOUND - system has Fontconfig
+# LUA_FOUND - system has LUA
 # LUA_LIBRARIES - Link these to use LUA
 # LUA_DEFINITIONS - Compiler switches required for using LUA
 #
