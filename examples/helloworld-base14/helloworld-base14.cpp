@@ -25,13 +25,6 @@
  */
 #include <iostream>
 
-/* Include appropriate system header for standard integer types
-*/
-#ifdef _WIN32
-#include <BaseTsd.h>
-#else
-#include <stdint.h>
-#endif
 /*
  * Now include all podofo header files, to have access
  * to all functions of podofo and so that you do not have

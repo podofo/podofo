@@ -462,9 +462,12 @@ IF(WANT_BOOST)
     ENDIF(BOOST_FOUND)
 ENDIF(WANT_BOOST)
 
+INCLUDE_DIRECTORIES(BEFORE # before toolchain include dir (to ignore installed)
+    ${PoDoFo_SOURCE_DIR}   # order will be reversed, so this is the second dir
+    ${PoDoFo_BINARY_DIR}   # because of BEFORE, this is the first include dir
+    )
+
 INCLUDE_DIRECTORIES(
-    ${PoDoFo_BINARY_DIR}
-    ${PoDoFo_SOURCE_DIR}
     ${PoDoFo_SOURCE_DIR}/src
     ${FREETYPE_INCLUDE_DIR}
     ${ZLIB_INCLUDE_DIR}
