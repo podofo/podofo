@@ -260,6 +260,10 @@ void PdfFilter::Decode( const char* pInBuffer, pdf_long lInLen, char** ppOutBuff
 // PdfFilterFactory code
 // -----------------------------------------------------
 
+PdfFilterFactory::PdfFilterFactory()
+{
+}
+
 std::auto_ptr<PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter ) 
 {
     PdfFilter* pFilter = NULL;

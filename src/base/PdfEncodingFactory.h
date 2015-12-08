@@ -132,6 +132,9 @@ class PODOFO_API PdfEncodingFactory {
     static void PoDoFoClientAttached();
 
  private:
+    // prohibit instantiating all-methods-static factory from outside
+    PdfEncodingFactory();
+
     /** Always use this static declaration,
      *  if you need an instance of PdfDocEncoding
      *  as heap allocation is expensive for PdfDocEncoding.

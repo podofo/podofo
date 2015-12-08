@@ -53,6 +53,10 @@ const PdfIdentityEncoding *    PdfEncodingFactory::s_pIdentityEncoding = NULL;
 
 Util::PdfMutex PdfEncodingFactory::s_mutex;
 
+PdfEncodingFactory::PdfEncodingFactory()
+{
+}
+	
 const PdfEncoding* PdfEncodingFactory::GlobalPdfDocEncodingInstance()
 {
     if(!s_pDocEncoding) // First check

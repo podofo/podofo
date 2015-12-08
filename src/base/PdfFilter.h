@@ -520,6 +520,10 @@ class PODOFO_API PdfFilterFactory {
      *  \returns a list of filters
      */
     static TVecFilters CreateFilterList( const PdfObject* pObject );
+
+ private:
+    // prohibit instantiation of all-methods-static factory from outside
+    PdfFilterFactory();
 };
 
 

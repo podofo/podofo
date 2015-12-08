@@ -54,6 +54,10 @@
 
 namespace PoDoFo {
 
+PdfFontFactory::PdfFontFactory()
+{
+}
+
 PdfFont* PdfFontFactory::CreateFontObject( PdfFontMetrics* pMetrics, int nFlags, 
                                            const PdfEncoding* const pEncoding,
                                            PdfVecObjects* pParent )

@@ -105,6 +105,9 @@ class PODOFO_DOC_API PdfFontFactory {
     static EPdfFontType GetFontType( const char* pszFilename );
 
  private:
+    // prohibit instantiation of all-methods-static factory from outside 
+    PdfFontFactory();
+
     /** Actually creates the font object for the requested type.
      *  Throws an exception in case of an error.
      *
@@ -113,7 +116,6 @@ class PODOFO_DOC_API PdfFontFactory {
     static PdfFont* CreateFontForType( EPdfFontType eType, PdfFontMetrics* pMetrics, 
                                        const PdfEncoding* const pEncoding, 
                                        bool bEmbed, bool bSubsetting, PdfVecObjects* pParent );
-
 };
 
 };
