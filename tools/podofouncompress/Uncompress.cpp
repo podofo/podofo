@@ -61,7 +61,7 @@ void UnCompress::UncompressObjects()
                 printf("-> Uncompressing object %i %i\n", 
                        (*it)->Reference().ObjectNumber(), (*it)->Reference().GenerationNumber() );
                 PdfMemStream* pStream = dynamic_cast<PdfMemStream*>((*it)->GetStream());
-                printf("-> Original Length: %"PDF_FORMAT_INT64"\n", 
+                printf("-> Original Length: %" PDF_FORMAT_INT64 "\n", 
                        static_cast<pdf_int64>(pStream->GetLength()) );
                 try {
                     pStream->Uncompress();
@@ -74,7 +74,7 @@ void UnCompress::UncompressObjects()
                     else
                         throw e;
                 }
-                printf("-> Uncompressed Length: %"PDF_FORMAT_INT64"\n", 
+                printf("-> Uncompressed Length: %" PDF_FORMAT_INT64 "\n", 
                        static_cast<pdf_int64>(pStream->GetLength()) );
             } catch( const PdfError & e ) {
                 e.PrintErrorMsg();
