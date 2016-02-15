@@ -287,16 +287,8 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
 
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++98")
 
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
-        -Wall \
-        -Woverloaded-virtual \
-        -Wswitch-enum \
-        -Wcast-qual \
-        -Wwrite-strings \
-        -Wredundant-decls \
-        -Wreorder"
-		#-Wold-style-cast
-       )
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Woverloaded-virtual -Wswitch-enum -Wcast-qual -Wwrite-strings -Wredundant-decls -Wreorder")
+
     #
     # Note that we do not need debug definitions here. Set
     # -DCMAKE_BUILD_TYPE=debug or (if you want an optimised
