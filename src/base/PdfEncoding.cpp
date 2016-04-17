@@ -46,6 +46,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sstream>
+#include "PdfArray.h"
+#include "doc/PdfDifferenceEncoding.h"
 
 namespace PoDoFo {
 
@@ -775,6 +777,36 @@ const pdf_utf16be PdfDocEncoding::s_cEncoding[256] = {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
+void PdfWinAnsiEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
+{
+    PdfArray arDifferences;
+
+    for (int i = 0; i < 256; i++)
+    {
+        if (PdfWinAnsiEncoding::GetToUnicodeTable()[i] != this->GetToUnicodeTable()[i])
+        {
+            arDifferences.push_back(PdfObject((pdf_int64)i));
+            unsigned short shCode = this->GetToUnicodeTable()[i];
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+            shCode = ((shCode & 0x00FF) << 8) | ((shCode & 0xFF00) >> 8);
+#endif
+            arDifferences.push_back( PdfDifferenceEncoding::UnicodeIDToName(shCode) );
+        }
+    }
+
+    if (!arDifferences.empty())
+    {
+        PdfDictionary dictEncoding;
+        dictEncoding.AddKey(PdfName("BaseEncoding"), PdfWinAnsiEncoding::GetName());
+        dictEncoding.AddKey(PdfName("Differences"), arDifferences);
+        rDictionary.AddKey(PdfName("Encoding"), dictEncoding);
+    }
+    else
+    {
+        PdfSimpleEncoding::AddToDictionary(rDictionary);
+    }
+}
+
 const pdf_utf16be* PdfWinAnsiEncoding::GetToUnicodeTable() const
 {
     return PdfWinAnsiEncoding::s_cEncoding;

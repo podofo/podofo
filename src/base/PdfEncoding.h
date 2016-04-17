@@ -547,6 +547,17 @@ class PODOFO_API PdfWinAnsiEncoding : public PdfSimpleEncoding {
      */
     virtual const pdf_utf16be* GetToUnicodeTable() const;
 
+    /** Add this encoding object to a dictionary
+     *  usually be adding an /Encoding key in font dictionaries.
+     *  
+     *  This method generates array of differences into /Encoding
+     *  dictionary if called from derived class with
+     *  different unicode table.
+     *
+     *  \param rDictionary add the encoding to this dictionary
+     */
+    virtual void AddToDictionary( PdfDictionary & rDictionary ) const;
+
  private:
     static const pdf_utf16be s_cEncoding[256]; ///< conversion table from WinAnsiEncoding to UTF16
 
