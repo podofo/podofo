@@ -517,6 +517,9 @@ class PODOFO_API PdfDocEncoding : public PdfSimpleEncoding {
  * contents on PDF pages.
  *
  * It is also called CP-1252 encoding.
+ * This class may be used as base for derived encodings.
+ *
+ * \see PdfWin1250Encoding
  *
  * Do not allocate this class yourself, as allocations
  * might be expensive. Try using PdfFont::WinAnsiEncoding.
@@ -735,6 +738,66 @@ class PODOFO_API PdfZapfDingbatsEncoding : public PdfSimpleEncoding {
  private:
     static const pdf_utf16be s_cEncoding[256]; ///< conversion table from ZapfDingbatsEncoding to UTF16
 
+};
+
+/**
+* WINDOWS-1250 encoding
+*/
+class PODOFO_API PdfWin1250Encoding : public PdfWinAnsiEncoding
+{
+ public:
+   
+    /** Create a new PdfWin1250Encoding
+     */
+    PdfWin1250Encoding()
+    {
+    }
+
+ protected:
+
+    /** Gets a table of 256 short values which are the 
+     *  big endian unicode code points that are assigned
+     *  to the 256 values of this encoding.
+     *
+     *  This table is used internally to convert an encoded
+     *  string of this encoding to and from unicode.
+     *
+     *  \returns an array of 256 big endian unicode code points
+     */
+    virtual const pdf_utf16be* GetToUnicodeTable() const;
+
+ private:
+    static const pdf_utf16be s_cEncoding[256]; ///< conversion table from ZapfDingbatsEncoding to UTF16
+};
+
+/**
+* ISO-8859-2 encoding
+*/
+class PODOFO_API PdfIso88592Encoding : public PdfWinAnsiEncoding
+{
+ public:
+   
+    /** Create a new PdfIso88592Encoding
+     */
+    PdfIso88592Encoding()
+    {
+    }
+
+ protected:
+
+    /** Gets a table of 256 short values which are the 
+     *  big endian unicode code points that are assigned
+     *  to the 256 values of this encoding.
+     *
+     *  This table is used internally to convert an encoded
+     *  string of this encoding to and from unicode.
+     *
+     *  \returns an array of 256 big endian unicode code points
+     */
+    virtual const pdf_utf16be* GetToUnicodeTable() const;
+
+ private:
+    static const pdf_utf16be s_cEncoding[256]; ///< conversion table from ZapfDingbatsEncoding to UTF16
 };
 
 }; /* namespace PoDoFo */
