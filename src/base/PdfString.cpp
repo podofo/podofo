@@ -529,7 +529,7 @@ void PdfString::Init( const char* pszString, pdf_long lLen )
     }
     
     // skip the first two bytes 
-    if( m_bUnicode )
+    if( m_bUnicode || bUft16LE )
     {
         lLen      -= 2;
         pszString += 2;
