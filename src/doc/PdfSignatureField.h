@@ -50,6 +50,13 @@ protected:
 
     void Init();
 public:
+
+    typedef enum {
+        ePdfCertPermission_NoPerms = 1,
+        ePdfCertPermission_FormFill = 2,
+        ePdfCertPermission_Annotations = 3,
+    } EPdfCertPermission;
+
     /** Create a new PdfSignatureField
      */
     PdfSignatureField( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
@@ -76,9 +83,22 @@ public:
      */
     void SetSignatureReason(const PdfString & rsText);
 
+    /** Set location of the signature
+     *
+     *  \param rsText the location of signature
+     */
+    void SetSignatureLocation(const PdfString & rsText);
+
 	/** Date of signature
 	 */
 	void SetSignatureDate(const PdfDate &sigDate);
+
+    /** Add certification dictionaries and references to document catalog.
+     *
+     *  \param pDocumentCatalog the catalog of current document
+     *  \param perm document modification permission
+     */
+    void AddCerifiacionReference(PdfObject *pDocumentCatalog, EPdfCertPermission perm = ePdfCertPermission_NoPerms);
 };
 
 }

@@ -151,4 +151,57 @@ void PdfSignatureField::SetSignature(const PdfData &sSignatureData)
     m_pSignatureObj->GetDictionary().AddKey(PdfName::KeyContents, PdfVariant(signatureData) );
 }
 
+void PdfSignatureField::SetSignatureLocation( const PdfString & rsText )
+{
+    if( !m_pSignatureObj )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+    if(m_pSignatureObj->GetDictionary().HasKey(PdfName("Location")))
+    {
+        m_pSignatureObj->GetDictionary().RemoveKey(PdfName("Location"));
+    }
+    m_pSignatureObj->GetDictionary().AddKey(PdfName("Location"), rsText);
+}
+
+void PdfSignatureField::AddCerifiacionReference( PdfObject* pDocumentCatalog, EPdfCertPermission perm )
+{
+    if( !m_pSignatureObj )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    if (m_pSignatureObj->GetDictionary().HasKey(PdfName("Reference")))
+    {
+        m_pSignatureObj->GetDictionary().RemoveKey(PdfName("Reference"));
+    }
+
+    PdfObject *pSigRef = this->GetFieldObject()->GetOwner()->CreateObject( "SigRef" );
+    pSigRef->GetDictionary().AddKey(PdfName("TransformMethod"), PdfName("DocMDP"));
+
+    PdfObject *pTransParams = this->GetFieldObject()->GetOwner()->CreateObject( "TransformParams" );
+    pTransParams->GetDictionary().AddKey(PdfName("V"), PdfName("1.2"));
+    pTransParams->GetDictionary().AddKey(PdfName("P"), PdfVariant((pdf_int64)perm));
+    pSigRef->GetDictionary().AddKey(PdfName("TransformParams"), pTransParams);
+
+    if (pDocumentCatalog != NULL)
+    {
+        PdfObject permObject;
+        permObject.GetDictionary().AddKey("DocMDP", this->GetFieldObject()->GetDictionary().GetKey("V")->GetReference());
+
+        if (pDocumentCatalog->GetDictionary().HasKey(PdfName("Perms")))
+        {
+            pDocumentCatalog->GetDictionary().RemoveKey(PdfName("Perms"));
+        }
+
+        pDocumentCatalog->GetDictionary().AddKey(PdfName("Perms"), permObject);
+    }
+
+    PdfArray refers;
+    refers.push_back(*pSigRef);
+
+    m_pSignatureObj->GetDictionary().AddKey(PdfName("Reference"), PdfVariant(refers));
+}
+
+
 }
