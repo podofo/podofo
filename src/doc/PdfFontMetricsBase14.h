@@ -235,7 +235,13 @@ public:
 
     inline double GetCapHeight() const;
 
-private:
+    /** Get a glyph ID by Unicode value. This is needed for generation
+    *  array of widths to /Font element.
+    *
+    *  \param lUnicode the unicode character value
+    *  \returns a glyph ID
+    *  \see PdfFontType1Base14
+    */
     long GetGlyphIdUnicode( long lUnicode ) const;
 
 private :
