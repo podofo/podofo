@@ -50,6 +50,8 @@ class PdfMacExpertEncoding; // OC 13.08.2010
 class PdfSymbolEncoding; // OC 13.08.2010
 class PdfZapfDingbatsEncoding; // OC 13.08.2010
 class PdfIdentityEncoding;
+class PdfWin1250Encoding;
+class PdfIso88592Encoding;
 
 /** This factory creates a PdfEncoding
  *  from an existing object in the PDF.
@@ -67,6 +69,8 @@ class PODOFO_API PdfEncodingFactory {
      *  of WinAnsiEncoding.
      *
      *  \returns global instance of WinAnsiEncoding
+     *
+     *  \see GlobalWin1250EncodingInstance, GlobalIso88592EncodingInstance
      */
     static const PdfEncoding* GlobalWinAnsiEncodingInstance();
 
@@ -115,6 +119,24 @@ class PODOFO_API PdfEncodingFactory {
      *  \returns global instance of IdentityEncoding
      */
     static const PdfEncoding* GlobalIdentityEncodingInstance();
+
+    /** Singleton method which returns a global instance
+     *  of Win1250Encoding.
+     *
+     *  \returns global instance of Win1250Encoding
+     *
+     *  \see GlobalWinAnsiEncodingInstance, GlobalIso88592EncodingInstance
+     */
+    static const PdfEncoding* GlobalWin1250EncodingInstance();
+
+    /** Singleton method which returns a global instance
+     *  of Iso88592Encoding.
+     *
+     *  \returns global instance of Iso88592Encoding
+     *
+     *  \see GlobalWinAnsiEncodingInstance, GlobalWin1250EncodingInstance
+     */
+    static const PdfEncoding* GlobalIso88592EncodingInstance();
 
     /** Free's the memory allocated by
      *  the global encoding instancess in this singleton.
@@ -182,6 +204,18 @@ class PODOFO_API PdfEncodingFactory {
     static const PdfZapfDingbatsEncoding* s_pZapfDingbatsEncoding;
 
     static const PdfIdentityEncoding *s_pIdentityEncoding;
+
+    /** Always use this static declaration,
+     *  if you need an instance of PdfWin1250Encoding
+     *  as heap allocation is expensive for PdfWin1250Encoding.
+     */
+    static const PdfWin1250Encoding* s_pWin1250Encoding;
+
+    /** Always use this static declaration,
+     *  if you need an instance of PdfIso88592Encoding
+     *  as heap allocation is expensive for PdfIso88592Encoding.
+     */
+    static const PdfIso88592Encoding* s_pIso88592Encoding;
 
     static Util::PdfMutex s_mutex;
 };

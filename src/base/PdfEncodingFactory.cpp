@@ -50,6 +50,8 @@ const PdfMacExpertEncoding*    PdfEncodingFactory::s_pMacExpertEncoding    = NUL
 const PdfSymbolEncoding*       PdfEncodingFactory::s_pSymbolEncoding       = NULL; // OC 13.08.2010 New.
 const PdfZapfDingbatsEncoding* PdfEncodingFactory::s_pZapfDingbatsEncoding = NULL; // OC 13.08.2010 New.
 const PdfIdentityEncoding *    PdfEncodingFactory::s_pIdentityEncoding = NULL;
+const PdfWin1250Encoding *     PdfEncodingFactory::s_pWin1250Encoding = NULL;
+const PdfIso88592Encoding *    PdfEncodingFactory::s_pIso88592Encoding = NULL;
 
 Util::PdfMutex PdfEncodingFactory::s_mutex;
 
@@ -165,6 +167,32 @@ const PdfEncoding* PdfEncodingFactory::GlobalIdentityEncodingInstance()
     return s_pIdentityEncoding;
 }
 
+const PdfEncoding* PdfEncodingFactory::GlobalWin1250EncodingInstance()
+{
+    if(!s_pWin1250Encoding) // First check
+    {
+        Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
+        
+        if(!s_pWin1250Encoding) // Double check
+            s_pWin1250Encoding = new PdfWin1250Encoding();
+    }
+
+    return s_pWin1250Encoding;
+}
+
+const PdfEncoding* PdfEncodingFactory::GlobalIso88592EncodingInstance()
+{
+    if(!s_pIso88592Encoding) // First check
+    {
+        Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
+        
+        if(!s_pIso88592Encoding) // Double check
+            s_pIso88592Encoding = new PdfIso88592Encoding();
+    }
+
+    return s_pIso88592Encoding;
+}
+
 int podofo_number_of_clients = 0;
 
 void PdfEncodingFactory::FreeGlobalEncodingInstances()
@@ -204,10 +232,18 @@ void PdfEncodingFactory::FreeGlobalEncodingInstances()
         {
             delete s_pZapfDingbatsEncoding;
         }
-		  if (NULL != s_pIdentityEncoding)
-		  {
-				delete s_pIdentityEncoding;
-		  }
+        if (NULL != s_pIdentityEncoding)
+        {
+            delete s_pIdentityEncoding;
+        }
+        if (NULL != s_pWin1250Encoding)
+        {
+            delete s_pWin1250Encoding;
+        }
+        if (NULL != s_pIso88592Encoding)
+        {
+            delete s_pIso88592Encoding;
+        }
 
         s_pMacRomanEncoding     = NULL;
         s_pWinAnsiEncoding      = NULL;
@@ -216,7 +252,9 @@ void PdfEncodingFactory::FreeGlobalEncodingInstances()
         s_pMacExpertEncoding    = NULL; // OC 13.08.2010
         s_pSymbolEncoding       = NULL; // OC 13.08.2010
         s_pZapfDingbatsEncoding = NULL; // OC 13.08.2010
-		  s_pIdentityEncoding     = NULL;
+        s_pIdentityEncoding     = NULL;
+        s_pWin1250Encoding      = NULL;
+        s_pIso88592Encoding     = NULL;
     }
 }
 
