@@ -164,7 +164,7 @@ void PdfSignatureField::SetSignatureLocation( const PdfString & rsText )
     m_pSignatureObj->GetDictionary().AddKey(PdfName("Location"), rsText);
 }
 
-void PdfSignatureField::AddCerifiacionReference( PdfObject* pDocumentCatalog, EPdfCertPermission perm )
+void PdfSignatureField::AddCertificationReference( PdfObject* pDocumentCatalog, EPdfCertPermission perm )
 {
     if( !m_pSignatureObj )
     {

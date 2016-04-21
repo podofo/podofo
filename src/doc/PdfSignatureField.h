@@ -98,7 +98,7 @@ public:
      *  \param pDocumentCatalog the catalog of current document
      *  \param perm document modification permission
      */
-    void AddCerifiacionReference(PdfObject *pDocumentCatalog, EPdfCertPermission perm = ePdfCertPermission_NoPerms);
+    void AddCertificationReference(PdfObject *pDocumentCatalog, EPdfCertPermission perm = ePdfCertPermission_NoPerms);
 };
 
 }
