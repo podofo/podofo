@@ -26,6 +26,15 @@ INCLUDE(UsePkgConfig)
 INCLUDE(TestBigEndian)
 INCLUDE(CheckTypeSize)
 
+#
+# Setup CMake Policies
+#
+
+# Prefer files in CMAKE_MODULE_PATH over shipped ones in module directory
+CMAKE_POLICY(SET CMP0017 NEW) # https://cmake.org/cmake/help/v3.0/policy/CMP0017.html
+# Do not use export_library_dependencies() anymore
+CMAKE_POLICY(SET CMP0033 NEW) # https://cmake.org/cmake/help/v3.0/policy/CMP0033.html
+
 # Load modules from our source tree too
 SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
@@ -531,6 +540,10 @@ CONFIGURE_FILE(${PoDoFo_SOURCE_DIR}/podofo_config.h.in ${PoDoFo_BINARY_DIR}/podo
 # To use these dependencies set PODOFO_DIR to the podofo BUILD directory in
 # your build (eg -DPODOFO_DIR=/path/to/podofo when running cmake to configure
 # the app that'll use podofo). See: FIND_PACKAGE(...) in the cmake docs.
-EXPORT_LIBRARY_DEPENDENCIES(
-	"${CMAKE_CURRENT_BINARY_DIR}/PoDoFoConfig.cmake"
-	APPEND)
+IF(PODOFO_BUILD_SHARED)
+  EXPORT(TARGETS podofo_shared FILE "${CMAKE_CURRENT_BINARY_DIR}/PoDoFoConfig.cmake")
+ENDIF(PODOFO_BUILD_SHARED)
+IF(PODOFO_BUILD_STATIC)
+  EXPORT(TARGETS podofo_static FILE "${CMAKE_CURRENT_BINARY_DIR}/PoDoFoConfig.cmake")
+ENDIF(PODOFO_BUILD_STATIC)
+
