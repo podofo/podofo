@@ -67,6 +67,26 @@ ePdfEncryptAlgorithm_RC4V2 |
 ePdfEncryptAlgorithm_AESV2;
 #endif // PODOFO_HAVE_LIBIDN
 
+PdfEncrypt::~PdfEncrypt()
+{
+}
+    
+int PdfEncrypt::GetEnabledEncryptionAlgorithms()
+{
+    return PdfEncrypt::s_nEnabledEncryptionAlgorithms;
+}
+
+void PdfEncrypt::SetEnabledEncryptionAlgorithms(int nEncryptionAlgorithms)
+{
+    PdfEncrypt::s_nEnabledEncryptionAlgorithms = nEncryptionAlgorithms;
+}
+
+bool PdfEncrypt::IsEncryptionEnabled(EPdfEncryptAlgorithm eAlgorithm)
+{
+    return (PdfEncrypt::s_nEnabledEncryptionAlgorithms & eAlgorithm) != 0;
+}
+
+  
 #ifdef PODOFO_HAVE_OPENSSL
 // Default value for P (permissions) = no permission
 #define PERMS_DEFAULT 0xFFFFF0C0
@@ -580,25 +600,6 @@ PdfEncrypt::CreatePdfEncrypt(const PdfEncrypt & rhs )
     else
         pdfEncrypt = new PdfEncryptRC4(rhs);
     return pdfEncrypt;
-}
-
-PdfEncrypt::~PdfEncrypt()
-{
-}
-    
-int PdfEncrypt::GetEnabledEncryptionAlgorithms()
-{
-    return PdfEncrypt::s_nEnabledEncryptionAlgorithms;
-}
-
-void PdfEncrypt::SetEnabledEncryptionAlgorithms(int nEncryptionAlgorithms)
-{
-    PdfEncrypt::s_nEnabledEncryptionAlgorithms = nEncryptionAlgorithms;
-}
-
-bool PdfEncrypt::IsEncryptionEnabled(EPdfEncryptAlgorithm eAlgorithm)
-{
-    return (PdfEncrypt::s_nEnabledEncryptionAlgorithms & eAlgorithm) != 0;
 }
 
 PdfEncrypt::PdfEncrypt( const PdfEncrypt & rhs )
@@ -2071,31 +2072,27 @@ static void MD5Transform(unsigned int buf[4], unsigned int const in[16])
 }
 
 PdfEncrypt *
-PdfEncrypt::CreatePdfEncrypt( const std::string & userPassword, 
-                              const std::string & ownerPassword, 
-                              int protection,
-                              EPdfEncryptAlgorithm eAlgorithm, 
-                              EPdfKeyLength eKeyLength )
+PdfEncrypt::CreatePdfEncrypt( const std::string &, 
+                              const std::string &, 
+                              int,
+                              EPdfEncryptAlgorithm, 
+                              EPdfKeyLength )
 {
     PODOFO_RAISE_ERROR_INFO( ePdfError_NotCompiled, "PdfEncrypt::CreatePdfEncrypt: Encryption support was disabled during compile time" );
     return NULL;
 }
 
-PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
+PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* )
 {
     PODOFO_RAISE_ERROR_INFO( ePdfError_NotCompiled, "PdfEncrypt::CreatePdfEncrypt: Encryption support was disabled during compile time" );
     return NULL;
 }
 
 PdfEncrypt *
-PdfEncrypt::CreatePdfEncrypt(const PdfEncrypt & rhs )  
+PdfEncrypt::CreatePdfEncrypt(const PdfEncrypt & )  
 {
     PODOFO_RAISE_ERROR_INFO( ePdfError_NotCompiled, "PdfEncrypt::CreatePdfEncrypt: Encryption support was disabled during compile time" );
     return NULL;
-}
-
-PdfEncrypt::~PdfEncrypt()
-{
 }
 
 void PdfEncryptMD5Base::GetMD5Binary(const unsigned char* data, int length, unsigned char* digest)

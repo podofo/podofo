@@ -851,4 +851,4 @@ bool PdfEncrypt::IsHighPrintAllowed() const
 
 } //end namespace PoDoFo
 
-#endif
+#endif // _PDFENCRYPT_H_
