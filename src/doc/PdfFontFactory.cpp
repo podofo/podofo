@@ -59,7 +59,7 @@ PdfFontFactory::PdfFontFactory()
 }
 
 PdfFont* PdfFontFactory::CreateFontObject( PdfFontMetrics* pMetrics, int nFlags, 
-                                           const PdfEncoding* const pEncoding,
+                                           const PdfEncoding* pEncoding,
                                            PdfVecObjects* pParent )
 {
     PdfFont*     pFont  = NULL;
@@ -81,11 +81,15 @@ PdfFont* PdfFontFactory::CreateFontObject( PdfFontMetrics* pMetrics, int nFlags,
             // something went wrong, so we have to delete
             // the font metrics
             delete pMetrics;
+	    pMetrics = NULL;
             // make sure this will be done before the catch block
             // as the encoding might be deleted already
             // afterwars, but we cannot set the pointer to NULL
             if( pEncoding && pEncoding->IsAutoDelete() )
+	    {
                 delete pEncoding;
+		pEncoding = NULL;
+	    }
         }
     }
     catch( PdfError & e ) 

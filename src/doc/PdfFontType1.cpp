@@ -68,11 +68,11 @@ PdfFontType1::PdfFontType1( PdfFontType1* pFont, PdfFontMetrics* pMetrics, const
 {
 	memset( m_bUsed, 0, sizeof( m_bUsed ) );
 	// don't embedd font
-    Init( false, PdfName("Type1") );
+	Init( false, PdfName("Type1") );
 
 	// Use identical subset-names
 	if ( pFont->IsSubsetting() )
-		GetObject()->GetDictionary().AddKey( "BaseFont", pFont->GetObject()->GetDictionary().GetKey( "BaseFont" ) );
+	  GetObject()->GetDictionary().AddKey( "BaseFont", pFont->GetObject()->GetDictionary().GetKey( "BaseFont" ) );
 
 	// set identifier
 	std::string id = pFont->GetIdentifier().GetName();
@@ -489,13 +489,14 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 				pBinary = &pBinary[lSegmentLength];
 				break;
 			case 3:									// end-of-file
+			  // First set pContents keys before writing stream, so that PdfTFontType1 works with streamed document
+			        pContents->GetDictionary().AddKey( "Length1", PdfVariant( lLength1 ) );
+				pContents->GetDictionary().AddKey( "Length2", PdfVariant( lLength2 ) );
+				pContents->GetDictionary().AddKey( "Length3", PdfVariant( lLength3 ) );
+
 				pContents->GetStream()->Set( pBuffer, lSize - 2L );
 				if( pAllocated )
 					free( pAllocated );
-
-				pContents->GetDictionary().AddKey( "Length1", PdfVariant( lLength1 ) );
-                pContents->GetDictionary().AddKey( "Length2", PdfVariant( lLength2 ) );
-                pContents->GetDictionary().AddKey( "Length3", PdfVariant( lLength3 ) );
 
 				return;
 			default:

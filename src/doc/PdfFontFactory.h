@@ -71,7 +71,7 @@ class PODOFO_DOC_API PdfFontFactory {
      *  \returns a new PdfFont object or NULL
      */
     static PdfFont* CreateFontObject( PdfFontMetrics* pMetrics, int nFlags, 
-                                      const PdfEncoding* const pEncoding, PdfVecObjects* pParent );
+                                      const PdfEncoding* pEncoding, PdfVecObjects* pParent );
 
     /** Create a new PdfFont from an existing
      *  font in a PDF file.

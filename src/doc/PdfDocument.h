@@ -159,7 +159,7 @@ class PODOFO_DOC_API PdfDocument {
 
     /** Creates a PdfFont object
      *  \param pszFontName name of the font as it is known to the system
-	  *  \param bSymbolCharset whether to use symbol charset, rather than unicode charset
+     *  \param bSymbolCharset whether to use symbol charset, rather than unicode charset
      *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
      *  \param eFontCreationFlags special flag to specify how fonts should be created
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
@@ -177,7 +177,7 @@ class PODOFO_DOC_API PdfDocument {
      *  \param pszFontName name of the font as it is known to the system
      *  \param bBold if true search for a bold font
      *  \param bItalic if true search for an italic font
-	  *  \param bSymbolCharset whether to use symbol charset, rather than unicode charset
+     *  \param bSymbolCharset whether to use symbol charset, rather than unicode charset
      *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
      *  \param eFontCreationFlags special flag to specify how fonts should be created
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
@@ -194,14 +194,14 @@ class PODOFO_DOC_API PdfDocument {
 #ifdef _WIN32
     /** Creates a PdfFont object
      *  \param pszFontName name of the font as it is known to the system
-	  *  \param bSymbolCharset whether to use symbol charset, rather than unicode charset
+     *  \param bSymbolCharset whether to use symbol charset, rather than unicode charset
      *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
      *
      *  \returns PdfFont* a pointer to a new PdfFont object.
      *           The returned object is owned by the PdfDocument.
-	 *
+     *
      *  This is an overloaded member function to allow working
      *  with unicode characters. On Unix systes you can also path
      *  UTF-8 to the const char* overload.
@@ -213,14 +213,14 @@ class PODOFO_DOC_API PdfDocument {
      *  \param pszFontName name of the font as it is known to the system
      *  \param bBold if true search for a bold font
      *  \param bItalic if true search for an italic font
-	  *  \param bSymbolCharset whether to use symbol charset, rather than unicode charset
+     *  \param bSymbolCharset whether to use symbol charset, rather than unicode charset
      *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
      *  \param optional: pszFileName path to a valid font file
      *
      *  \returns PdfFont* a pointer to a new PdfFont object.
- 	 *
+     *
      *  This is an overloaded member function to allow working
      *  with unicode characters. On Unix systes you can also path
      *  UTF-8 to the const char* overload.

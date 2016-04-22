@@ -955,11 +955,11 @@ PdfFont* PdfFontCache::CreateFontObject( TISortedFontList itSorted, TSortedFontL
     try {
         int nFlags = ePdfFont_Normal;
 
-		if ( bSubsetting )
-			nFlags |= ePdfFont_Subsetting;
-
-		if( bEmbedd )
-            nFlags |= ePdfFont_Embedded;
+	if ( bSubsetting )
+	    nFlags |= ePdfFont_Subsetting;
+	
+	if( bEmbedd )
+	    nFlags |= ePdfFont_Embedded;
 
         if( bBold ) 
             nFlags |= ePdfFont_Bold;
