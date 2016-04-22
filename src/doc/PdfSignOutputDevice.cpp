@@ -161,14 +161,17 @@ void PdfSignOutputDevice::AdjustByteRange()
     m_pRealDevice->Seek(m_sBeaconPos-sPosition.size()-9);
     char ch;
     size_t offset = m_pRealDevice->Tell();
+	size_t size;
 
     /* Sanity tests... */
-    PODOFO_RAISE_LOGIC_IF( m_pRealDevice->Read(&ch, 1) != 1, "Failed to read 1 byte." );
+    size = m_pRealDevice->Read(&ch, 1);
+    PODOFO_RAISE_LOGIC_IF( size != 1, "Failed to read 1 byte." );
     if (ch == '0') {
        /* probably clean write mode, whic means two more bytes back */
        m_pRealDevice->Seek(m_sBeaconPos-sPosition.size()-11);
        offset = m_pRealDevice->Tell();
-       PODOFO_RAISE_LOGIC_IF( m_pRealDevice->Read(&ch, 1) != 1, "Failed to read 1 byte." );
+       size = m_pRealDevice->Read(&ch, 1);
+       PODOFO_RAISE_LOGIC_IF( size != 1, "Failed to read 1 byte." );
     }
 
     /* ...the file position should be at the '[' now */

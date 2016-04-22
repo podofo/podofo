@@ -284,8 +284,12 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
                     PdfObject* cidSet = pDescriptor->GetOwner()->CreateObject();
                     TVecFilters vecFlate;
                     vecFlate.push_back(ePdfFilter_FlateDecode);
+#if defined(_MSC_VER)  &&  _MSC_VER < 1700	// MSC before VC11 has no data member 
+                    PdfMemoryInputStream stream(reinterpret_cast<const char*>(&array[0]), array.size());
+#else
                     PdfMemoryInputStream stream(reinterpret_cast<const char*>(array.data()), array.size());
-                    cidSet->GetStream()->Set(&stream, vecFlate);
+#endif
+					cidSet->GetStream()->Set(&stream, vecFlate);
                     pDescriptor->GetDictionary().AddKey("CIDSet", cidSet->Reference());
 			}
             }

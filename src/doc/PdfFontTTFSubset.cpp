@@ -344,7 +344,7 @@ void PdfFontTTFSubset::BuildUsedCodes(CodePointToGid& usedCodes, const std::set<
 
     for (std::set<pdf_utf16be>::const_iterator it = usedChars.begin(); it != usedChars.end(); ++it) {
         codePoint = *it;
-        gid = m_pMetrics->GetGlyphId( codePoint );
+        gid = static_cast<GID>( m_pMetrics->GetGlyphId( codePoint ) );
         usedCodes[codePoint] = gid;
     }
 }
@@ -471,8 +471,8 @@ void PdfFontTTFSubset::CreateCmapTable( const CodePointToGid& usedCodes )
     CodePointToGid::const_iterator cit = usedCodes.begin();
     while (cit != usedCodes.end())
         {
-        range.endCode = range.startCode = cit->first;
-        range.delta   = cit->second - cit->first;
+        range.endCode = range.startCode = static_cast<unsigned short>(cit->first);
+        range.delta   = static_cast<short>( cit->second - cit->first );
         range.offset  = 0;
 
         while (++cit != usedCodes.end()) {
@@ -528,7 +528,7 @@ void PdfFontTTFSubset::FillGlyphArray(const CodePointToGid& usedCodes, GID gid, 
 
 unsigned long PdfFontTTFSubset::WriteCmapTable(char* bufp)
 {
-    unsigned long offset = 12;
+    unsigned short offset = 12;
     /* version and number of subtables */
     TTFWriteUInt16(bufp + 0, 0);
     TTFWriteUInt16(bufp + 2, 1);

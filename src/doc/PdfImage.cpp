@@ -260,12 +260,14 @@ void PdfImage::LoadFromFile( const wchar_t* pszFilename )
         const wchar_t* pszExtension = pszFilename + wcslen( pszFilename ) - 3;
 
 #ifdef PODOFO_HAVE_TIFF_LIB
+#if TIFFLIB_VERSION >= 20120922		// TiffOpenW needs at least version 4.0.3
 		if( _wcsnicmp( pszExtension, L"tif", 3 ) == 0 ||
             _wcsnicmp( pszExtension, L"iff", 3 ) == 0 ) // "tiff"
         {
             LoadFromTiff( pszFilename );
             return;
         }
+#endif
 #endif
 
 #ifdef PODOFO_HAVE_JPEG_LIB
@@ -555,7 +557,7 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
                 this->GetObject()->GetDictionary().AddKey( PdfName("ImageMask"), PdfVariant( true ) );
                 this->GetObject()->GetDictionary().RemoveKey( PdfName("ColorSpace") );
             }
-            else if ( bitsPixel == 8)
+            else if ( bitsPixel == 8  ||  bitsPixel == 16)
                 SetImageColorSpace(ePdfColorSpace_DeviceGray);
             else
             {
@@ -576,7 +578,7 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
                 this->GetObject()->GetDictionary().AddKey( PdfName("ImageMask"), PdfVariant( true ) );
                 this->GetObject()->GetDictionary().RemoveKey( PdfName("ColorSpace") );
             }
-            else if ( bitsPixel == 8)
+            else if ( bitsPixel == 8  ||  bitsPixel == 16)
                 SetImageColorSpace(ePdfColorSpace_DeviceGray);
             else
             {
@@ -703,6 +705,7 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
 }
 
 #ifdef _WIN32
+#if TIFFLIB_VERSION >= 20120922		// TiffOpenW needs at least version 4.0.3
 void PdfImage::LoadFromTiff( const wchar_t* pszFilename )
 {
     TIFFSetErrorHandler(TIFFErrorWarningHandler);
@@ -724,6 +727,7 @@ void PdfImage::LoadFromTiff( const wchar_t* pszFilename )
 
 	LoadFromTiffHandle(hInfile);
 }
+#endif // TIFFLIB_VERSION
 #endif // _WIN32
 
 struct tiffData
@@ -733,7 +737,7 @@ struct tiffData
     tsize_t read(tdata_t data, tsize_t length)
     {
         tsize_t bytesRead = 0;
-        if (length > _size - _pos)
+        if (length > _size - static_cast<tsize_t>(_pos))
         {
             memcpy(data, &_data[_pos], _size - _pos);
             bytesRead = _size - _pos;
@@ -761,7 +765,7 @@ struct tiffData
         switch(whence)
         {
             case SEEK_SET:
-                if (pos > _size)
+                if (static_cast<tsize_t>(pos) > _size)
                 {
                     _pos = _size;
                 }
@@ -771,7 +775,7 @@ struct tiffData
                 }
                 break;
             case SEEK_CUR:
-                if (pos + _pos > _size)
+                if (static_cast<tsize_t>(pos + _pos) > _size)
                 {
                     _pos = _size;
                 }
@@ -781,7 +785,7 @@ struct tiffData
                 }
                 break;
             case SEEK_END:
-                if (pos > _size)
+                if (static_cast<tsize_t>(pos) > _size)
                 {
                     _pos = 0;
                 }
