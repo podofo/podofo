@@ -1,7 +1,6 @@
 SUBDIRS(
 	ContentParser
 	CreationTest
-	DeviceTest
 	FilterTest
 	FormTest
 	LargeTest

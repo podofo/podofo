@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
+ *   Copyright (C) 2016 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,7 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "../PdfTest.h"
+#include "DeviceTest.h"
+#include <podofo.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -26,13 +27,27 @@
 
 using namespace PoDoFo;
 
-void RefCountedBufferTest() 
+// Registers the fixture into the 'registry'
+CPPUNIT_TEST_SUITE_REGISTRATION( DeviceTest );
+
+void DeviceTest::setUp()
+{
+}
+
+void DeviceTest::tearDown()
+{
+}
+
+
+void DeviceTest::testDevices() 
 {
     const char* pszTestString = "Hello World Buffer!";
     long        lLen          = strlen( pszTestString );
 
     PdfRefCountedBuffer buffer1;
     PdfRefCountedBuffer buffer2;
+
+    printf("-> Testing PdfRefCountedBuffer...\n");
 
     // test simple append 
     printf("\t -> Appending\n");
@@ -105,26 +120,3 @@ void RefCountedBufferTest()
     
 }
 
-int main( int argc, char** )
-{
-    printf("Device Test\n");
-    printf("==============\n");
-
-    if( argc != 1 )
-    {
-        printf("Usage: DeviceTest\n");
-        return 0;
-    }
-
-    try {
-        printf("-> Testing PdfRefCountedBuffer...\n");
-        RefCountedBufferTest();
-    } catch( const PdfError & e ) {
-        e.PrintErrorMsg();
-        return e.GetError();
-    }
-
-    printf("All tests successfull!\n");
-
-    return 0;
-}
