@@ -211,15 +211,17 @@ void EncodingTest::testDifferencesEncoding()
     PdfEncodingDifference difference;
     difference.AddDifference( 0x0041, 0, PdfName("B") );
     difference.AddDifference( 0x0042, 0, PdfName("A") );
+    difference.AddDifference( 0x0043, 0, PdfName("D") );
 
     PdfDifferenceEncoding encoding( difference, PdfDifferenceEncoding::eBaseEncoding_WinAnsi, &doc );
 
-    PdfString unicodeStr = encoding.ConvertToUnicode( PdfString("BAAB"), NULL );
-    CPPUNIT_ASSERT_EQUAL( PdfString("ABBA"), unicodeStr );
+    PdfString unicodeStr = encoding.ConvertToUnicode( PdfString("BAABC"), NULL );
+    CPPUNIT_ASSERT_EQUAL( PdfString("ABBAD"), unicodeStr );
 
-    PdfRefCountedBuffer encodingStr = encoding.ConvertToEncoding( PdfString("ABBA"), NULL );
-    CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(4), encodingStr.GetSize() );
-    CPPUNIT_ASSERT_EQUAL( memcmp("BAAB", encodingStr.GetBuffer(), encodingStr.GetSize()), 0 );
+    PdfRefCountedBuffer encodingStr = encoding.ConvertToEncoding( PdfString("ABBAD"), NULL );
+    CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(5), encodingStr.GetSize() );
+    PdfString str(reinterpret_cast<pdf_utf16be*>(encodingStr.GetBuffer()), encodingStr.GetSize());
+    CPPUNIT_ASSERT_EQUAL( memcmp("BAABC", encodingStr.GetBuffer(), encodingStr.GetSize()), 0 );
 }
 
 void EncodingTest::testUnicodeNames()

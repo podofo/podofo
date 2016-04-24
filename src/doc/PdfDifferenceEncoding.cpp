@@ -2306,6 +2306,9 @@ bool PdfEncodingDifference::ContainsUnicodeValue( pdf_utf16be unicodeValue, char
 	TCIVecDifferences it, end = m_vecDifferences.end();
 	for (it = m_vecDifferences.begin(); it != end; it++) {
 		pdf_utf16be uv = it->unicodeValue;
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+		uv = ((uv & 0xff00) >> 8) | ((uv & 0xff) << 8);
+#endif // PODOFO_IS_LITTLE_ENDIAN
 		if (uv == unicodeValue) {
 			rValue = it->nCode;
 			return true;
@@ -2641,7 +2644,10 @@ PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & 
         pdf_utf16be val = pszUtf16[i];
 
         if (!m_differences.ContainsUnicodeValue(val, *pCur))
-            *pCur = static_cast<const PdfSimpleEncoding *>(pEncoding)->GetUnicodeCharCode(val);
+	{
+          *pCur = static_cast<const PdfSimpleEncoding *>(pEncoding)->GetUnicodeCharCode(*pCur);
+	}
+	  
         if( *pCur) // ignore 0 characters, as they cannot be converted to the current encoding
         {
             ++pCur; 
