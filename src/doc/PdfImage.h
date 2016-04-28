@@ -38,6 +38,10 @@
 #include "podofo/base/PdfFilter.h"
 #include "PdfXObject.h"
 
+#ifdef PODOFO_HAVE_TIFF_LIB
+#  include "tiffio.h"
+#endif // PODOFO_HAVE_TIFF_LIB
+
 namespace PoDoFo {
 
 class PdfArray;
