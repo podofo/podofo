@@ -112,11 +112,16 @@ static bool GetFontFromCollection(char *&buffer, unsigned int &bufferLen, unsign
     bool ok = false;
 
     // these properties are extracted to match the font
-    wchar_t fontFamily[1024];
+    wchar_t fontFamilyLocale[1024];
+	// if you have a languagePack installed EnumFontFamiliesEx Call will still give you english names
+	// even though the systemLCID is set to the language pack -> resulting in conflicts when comparing fontnames with 
+	// the LOGFONTW->lfFaceName
+	wchar_t fontFamilyEngl[1024];	
     wchar_t fontStyle[1024];
     wchar_t fontFullName[1024];
     wchar_t fontPostscriptName[1024];
-    fontFamily[0]   = 0;
+	fontFamilyLocale[0]   = 0;
+	fontFamilyEngl[0] = 0;
     fontStyle[0]    = 0;
     fontFullName[0] = 0;
     fontPostscriptName[0] = 0;
@@ -178,7 +183,7 @@ static bool GetFontFromCollection(char *&buffer, unsigned int &bufferLen, unsign
                     switch(nameID)
                     {
                     case 1:
-                        wcscpy(fontFamily, name);
+                        wcscpy(fontFamilyLocale, name);
                         break;
                     case 2:
                         wcscpy(fontStyle, name);
@@ -192,36 +197,45 @@ static bool GetFontFromCollection(char *&buffer, unsigned int &bufferLen, unsign
                     }
                 }
                 // dv: see "http://www.microsoft.com/typography/otspec/name.htm"
-                if(platformID == 3 && encodingID == 1 && (languageID == systemLCID || languageID == 1033)) //1033 == English(US)
+                if (platformID == 3 && encodingID == 1) //Platform Windows -> Unicode (UCS-2)
                 {
-                    //Platform Windows -> Unicode (UCS-2)
-                    USHORT nameID     = ShortFromBigEndian(*(USHORT *)(nameRecord+6));
-                    USHORT length     = ShortFromBigEndian(*(USHORT *)(nameRecord+8));
-                    USHORT offset     = ShortFromBigEndian(*(USHORT *)(nameRecord+10));
+					USHORT nameID = ShortFromBigEndian(*(USHORT *)(nameRecord + 6));
+					USHORT length = ShortFromBigEndian(*(USHORT *)(nameRecord + 8));
+					USHORT offset = ShortFromBigEndian(*(USHORT *)(nameRecord + 10));
                     wchar_t name[1024];
-                    if(length >= sizeof(name)) length = sizeof(name) - sizeof(wchar_t);
+					if (length >= sizeof(name)) length = sizeof(name) - sizeof(wchar_t);
                     unsigned int charCount = length / sizeof(wchar_t);
-                    for(unsigned int i=0; i<charCount; i++)
+					for (unsigned int i = 0; i < charCount; i++)
                     {
                         name[i] = ShortFromBigEndian(((USHORT *)(stringArea + offset))[i]);
                     }
                     name[charCount] = 0;
 
-                    switch(nameID)
-                    {
-                    case 1:
-                        wcscpy(fontFamily, name);
-                        break;
-                    case 2:
-                        wcscpy(fontStyle, name);
-                        break;
-                    case 4:
-                        wcscpy(fontFullName, name);
-                        break;
-                    case 6:
-                        wcscpy(fontPostscriptName, name);
-                        break;
-                    }
+					if (languageID == systemLCID) {					
+						switch (nameID)
+						{
+						case 1:
+							wcscpy(fontFamilyLocale, name);
+							break;
+						case 2:
+							wcscpy(fontStyle, name);
+							break;
+						case 4:
+							wcscpy(fontFullName, name);
+							break;
+						case 6:
+							wcscpy(fontPostscriptName, name);
+							break;
+						}
+					}
+					else if (languageID == 1033) { // English - United States
+						switch (nameID)
+						{
+						case 1:
+							wcscpy(fontFamilyEngl, name);
+							break;
+						}
+					}
                 }
                 nameRecord += 12;
             }
@@ -231,7 +245,7 @@ static bool GetFontFromCollection(char *&buffer, unsigned int &bufferLen, unsign
     }
 
     // check if font matches the wanted properties
-    unsigned int isMatchingFont = _wcsicmp(fontFamily, inFont->lfFaceName) == 0;
+    unsigned int isMatchingFont = _wcsicmp(fontFamilyLocale, inFont->lfFaceName) == 0 || _wcsicmp(fontFamilyEngl, inFont->lfFaceName) == 0;
     //..TODO.. check additional styles (check fontStyle, fontFullName, fontPostscriptName) ?
 
     // extract font
@@ -574,8 +588,30 @@ PdfFont* PdfFontCache::GetFont( const wchar_t* pszFontName, bool bBold, bool bIt
     PdfFont*          pFont;
     std::pair<TISortedFontList,TCISortedFontList> it;
 
-    it = std::equal_range( m_vecFonts.begin(), m_vecFonts.end(), 
-                          TFontCacheElement( pszFontName, bBold, bItalic, bSymbolCharset, pEncoding ) );
+	size_t lMaxLen = wcslen(pszFontName) * 5;
+
+	if (lMaxLen == 0) 
+		PODOFO_RAISE_ERROR_INFO(ePdfError_InternalLogic, "Font name is empty");
+		
+	char* pmbFontName = static_cast<char*>(malloc(lMaxLen));
+	if (!pmbFontName)
+	{
+		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+	}
+	if (wcstombs(pmbFontName, pszFontName, lMaxLen) == -1)
+	{
+		free(pmbFontName);
+		PODOFO_RAISE_ERROR_INFO(ePdfError_InternalLogic, "Conversion to multibyte char failed");
+	}
+
+	TFontCacheElement element;
+	element.m_bBold = bBold;
+	element.m_bItalic = bItalic;
+	element.m_pEncoding = pEncoding;
+	element.m_sFontName = pmbFontName;
+
+    it = std::equal_range( m_vecFonts.begin(), m_vecFonts.end(), element );
+	
     if( it.first == it.second )
         return GetWin32Font( it.first, m_vecFonts, pszFontName, bBold, bItalic, bSymbolCharset, bEmbedd, pEncoding );
     else
@@ -814,6 +850,8 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     pdf_long lFontNameLen = wcslen(pszFontName);
     if (lFontNameLen >= LF_FACESIZE)
         return NULL;
+	if (lFontNameLen == 0)
+		PODOFO_RAISE_ERROR_INFO(ePdfError_InternalLogic, "Font name is empty");
     
     memset(&(lf.lfFaceName), 0, LF_FACESIZE);
     wcscpy( static_cast<wchar_t*>(lf.lfFaceName), pszFontName );
@@ -852,25 +890,23 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     if (lFontNameLen >= LF_FACESIZE)
         return NULL;
 
-    char*        pBuffer = NULL;
-    unsigned int nLen;
-    if( !GetDataFromLPFONT( &logFont, &pBuffer, nLen ) )
-        return NULL;
-    
     pdf_long lMaxLen = lFontNameLen * 5;
     char* pmbFontName = static_cast<char*>(malloc(lMaxLen));
     if( !pmbFontName )
     {
-        free( pBuffer );
         PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
-    if( wcstombs( pmbFontName, logFont.lfFaceName, lMaxLen ) <= 0 )
+    if( wcstombs( pmbFontName, logFont.lfFaceName, lMaxLen ) == -1 )
     {
-        free( pBuffer );
         free( pmbFontName );
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Conversion to multibyte char failed" );
     }
+
+	char*        pBuffer = NULL;
+	unsigned int nLen;
+	if (!GetDataFromLPFONT(&logFont, &pBuffer, nLen))
+		return NULL;
 
     PdfFontMetrics* pMetrics;
     PdfFont*        pFont = NULL;
