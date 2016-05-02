@@ -767,7 +767,7 @@ class PODOFO_API PdfWin1250Encoding : public PdfWinAnsiEncoding
     virtual const pdf_utf16be* GetToUnicodeTable() const;
 
  private:
-    static const pdf_utf16be s_cEncoding[256]; ///< conversion table from ZapfDingbatsEncoding to UTF16
+    static const pdf_utf16be s_cEncoding[256]; ///< conversion table from Win1250Encoding to UTF16
 };
 
 /**
@@ -797,7 +797,7 @@ class PODOFO_API PdfIso88592Encoding : public PdfWinAnsiEncoding
     virtual const pdf_utf16be* GetToUnicodeTable() const;
 
  private:
-    static const pdf_utf16be s_cEncoding[256]; ///< conversion table from ZapfDingbatsEncoding to UTF16
+    static const pdf_utf16be s_cEncoding[256]; ///< conversion table from Iso88592Encoding to UTF16
 };
 
 }; /* namespace PoDoFo */
