@@ -18,7 +18,7 @@ else (LUA_LIBRARIES AND LUA_INCLUDE_DIR)
 
   FIND_PACKAGE(Lua51)
 
-  include(PoDoFoFindPackageHandleStandardArgs)
+  include(FindPackageHandleStandardArgs)
   FIND_PACKAGE_HANDLE_STANDARD_ARGS(Lua DEFAULT_MSG LUA_LIBRARIES LUA_INCLUDE_DIR )
   
   mark_as_advanced(LUA_LIBRARIES LUA_INCLUDE_DIR)
