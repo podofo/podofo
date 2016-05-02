@@ -808,7 +808,7 @@ tsize_t tiff_Read(thandle_t st, tdata_t buffer, tsize_t size)
     tiffData* data = (tiffData*)st;
     return data->read(buffer, size);
 };
-tsize_t tiff_Write(thandle_t st, tdata_t buffer, tsize_t size)
+tsize_t tiff_Write(thandle_t /*st*/, tdata_t /*buffer*/, tsize_t /*size*/)
 {
     return 0;
 };
