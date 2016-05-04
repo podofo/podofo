@@ -255,11 +255,7 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
                 pDevice->Write( " ", 1 ); // Write space before numbers
             }
 
-#ifdef _WIN64
             pDevice->Print( "%" PDF_FORMAT_INT64, m_Data.nNumber );
-#else
-            pDevice->Print( "%" PDF_FORMAT_INT64, m_Data.nNumber );
-#endif
             break;
         }
         case ePdfDataType_Real:
