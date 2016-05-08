@@ -79,7 +79,7 @@ PdfParser::PdfParser( PdfVecObjects* pVecObjects, const char* pszFilename, bool 
 }
 
 #ifdef _WIN32
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
 #else
 PdfParser::PdfParser( PdfVecObjects* pVecObjects, const wchar_t* pszFilename, bool bLoadOnDemand )
     : PdfTokenizer(), m_vecObjects( pVecObjects )
@@ -158,7 +158,7 @@ void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
 }
 
 #ifdef _WIN32
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// not for MS Visual Studio 6
 #else
 void PdfParser::ParseFile( const wchar_t* pszFilename, bool bLoadOnDemand )
 {

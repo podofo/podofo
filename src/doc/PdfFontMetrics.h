@@ -110,7 +110,7 @@ class PODOFO_DOC_API PdfFontMetrics {
     double StringWidth( const pdf_utf16be* pszText, unsigned int nLength = 0 ) const;
 
 #ifndef _WCHAR_T_DEFINED
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
 #else
     /** Retrieve the width of a given text string in PDF units when
      *  drawn with the current font
@@ -139,7 +139,7 @@ class PODOFO_DOC_API PdfFontMetrics {
     inline unsigned long StringWidthMM( const pdf_utf16be* pszText, unsigned int nLength = 0 ) const;
 
 #ifndef _WCHAR_T_DEFINED
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
 #else
     /** Retrieve the width of a given text string in 1/1000th mm when
      *  drawn with the current font
@@ -433,7 +433,7 @@ unsigned long PdfFontMetrics::StringWidthMM( const pdf_utf16be* pszText, unsigne
 //
 // -----------------------------------------------------
 #ifndef _WCHAR_T_DEFINED
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
 #else
 unsigned long PdfFontMetrics::StringWidthMM( const wchar_t* pszText, unsigned int nLength ) const
 {

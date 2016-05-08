@@ -109,7 +109,7 @@ PdfString::PdfString( const char* pszString, const PdfEncoding * const pEncoding
         Init( pszString, strlen( pszString ) );
 }
 
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
 #else
 PdfString::PdfString( const wchar_t* pszString, pdf_long lLen )
 {

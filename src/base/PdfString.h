@@ -109,7 +109,7 @@ class PODOFO_API PdfString : public PdfDataType{
      *
      *  \param pszString the string to copy
      */
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
 #else
        PdfString( const wchar_t* pszString, pdf_long lLen = -1 );
 #endif

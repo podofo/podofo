@@ -101,7 +101,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     PdfParser( PdfVecObjects* pVecObjects, const char* pszFilename, bool bLoadOnDemand = true );
 
 #ifdef _WIN32
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
 #else
     /** Create a new PdfParser object and open a PDF file and parse
      *  it into memory.

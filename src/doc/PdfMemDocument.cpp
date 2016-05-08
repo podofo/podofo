@@ -89,7 +89,7 @@ PdfMemDocument::PdfMemDocument( const char* pszFilename )
 }
 
 #ifdef _WIN32
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
 #else
 PdfMemDocument::PdfMemDocument( const wchar_t* pszFilename )
     : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL )
@@ -194,7 +194,7 @@ void PdfMemDocument::Load( const char* pszFilename )
 }
 
 #ifdef _WIN32
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
 #else
 void PdfMemDocument::Load( const wchar_t* pszFilename )
 {

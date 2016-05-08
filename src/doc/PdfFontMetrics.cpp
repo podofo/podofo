@@ -985,7 +985,7 @@ double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, unsigned int nLe
 }
 
 #ifndef _WCHAR_T_DEFINED
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// nicht für Visualstudio 6
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
 #else
 double PdfFontMetrics::StringWidth( const wchar_t* pszText, unsigned int nLength ) const
 {
