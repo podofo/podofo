@@ -37,6 +37,7 @@
 #include "podofo/base/PdfDefines.h"
 #include "podofo/base/Pdf3rdPtyForwardDecl.h"
 #include "podofo/base/PdfString.h"
+#include "podofo/base/PdfEncoding.h"
 
 namespace PoDoFo {
 
@@ -60,8 +61,9 @@ class PODOFO_DOC_API PdfFontMetrics {
      *  \param var the final width array is written to this PdfVariant
      *  \param nFirst first character to be in the array
      *  \param nLast last character code to be in the array
+     *  \param pEncoding encoding for correct character widths. If not passed default (latin1) encoding is used
      */
-    virtual void GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast ) const = 0;
+    virtual void GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast, const PdfEncoding* pEncoding = NULL ) const = 0;
 
     /** Get the width of a single glyph id
      *

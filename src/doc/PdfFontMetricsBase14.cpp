@@ -248,14 +248,25 @@ void PdfFontMetricsBase14::GetBoundingBox( PdfArray & array ) const
     return;
 }
 
-void PdfFontMetricsBase14::GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast ) const
+void PdfFontMetricsBase14::GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast, const PdfEncoding* pEncoding ) const
 {
     unsigned int i;
     PdfArray     list;
     
     for( i=nFirst;i<=nLast;i++ )
     {
-		list.push_back( PdfVariant(  double(widths_table[i].width)  ) );
+        if (pEncoding != NULL)
+        {
+            unsigned short shCode = pEncoding->GetCharCode(i);
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+            shCode = ((shCode & 0x00FF) << 8) | ((shCode & 0xFF00) >> 8);
+#endif
+            list.push_back(PdfObject( (pdf_int64)this->GetGlyphWidth(this->GetGlyphIdUnicode(shCode) )));
+        }
+        else
+        {
+            list.push_back( PdfVariant(  double(widths_table[i].width)  ) );
+        }
     }
     
     var = PdfVariant( list );

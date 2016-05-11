@@ -74,32 +74,16 @@ void PdfFontType1Base14::InitBase14Font( PdfFontMetrics* pMetrics )
     this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Type1"));
     this->GetObject()->GetDictionary().AddKey("BaseFont", PdfName( pMetrics->GetFontname() ) );
 
-    PdfFontMetricsBase14 *pBase14Metrics = dynamic_cast<PdfFontMetricsBase14*>(pMetrics);
-
-    if (pBase14Metrics == NULL)
+    PdfObject *pWidth = this->GetObject()->GetOwner()->CreateObject();
+    if( !pWidth )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    // Width array for correct character spacing
-    PdfArray arWidths;
-    for ( int i = m_pEncoding->GetFirstChar(); i <= m_pEncoding->GetLastChar(); i++ )
-    {
-        // Chars below 32 are invisible- don't solve it
-        if (i < 32)
-        {
-            continue;
-        }
+    m_pMetrics->GetWidthArray( *pWidth, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar(), m_pEncoding );
 
-        unsigned short shCode = m_pEncoding->GetCharCode(i);
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-        shCode = ((shCode & 0x00FF) << 8) | ((shCode & 0xFF00) >> 8);
-#endif
-
-        arWidths.push_back(PdfObject( (pdf_int64)pBase14Metrics->GetGlyphWidth(pBase14Metrics->GetGlyphIdUnicode(shCode) )));
-    }
-    this->GetObject()->GetDictionary().AddKey("Widths", arWidths );
-    this->GetObject()->GetDictionary().AddKey("FirstChar", PdfVariant( static_cast<pdf_int64>(32) ) );
+    this->GetObject()->GetDictionary().AddKey("Widths", pWidth->Reference() );
+    this->GetObject()->GetDictionary().AddKey("FirstChar", PdfVariant( static_cast<pdf_int64>(m_pEncoding->GetFirstChar()) ) );
     this->GetObject()->GetDictionary().AddKey("LastChar", PdfVariant( static_cast<pdf_int64>(m_pEncoding->GetLastChar()) ) );
 
     m_pEncoding->AddToDictionary( this->GetObject()->GetDictionary() ); // Add encoding key

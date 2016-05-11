@@ -67,7 +67,7 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    m_pMetrics->GetWidthArray( *pWidth, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar() );
+    m_pMetrics->GetWidthArray( *pWidth, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar(), m_pEncoding );
 
     pDescriptor = this->GetObject()->GetOwner()->CreateObject( "FontDescriptor" );
     if( !pDescriptor )

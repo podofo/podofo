@@ -223,7 +223,7 @@ double PdfFontMetricsObject::UnicodeCharWidth( unsigned short c ) const
         return m_dDefWidth;
 }
 
-void PdfFontMetricsObject::GetWidthArray( PdfVariant & var, unsigned int, unsigned int ) const
+void PdfFontMetricsObject::GetWidthArray( PdfVariant & var, unsigned int, unsigned int, const PdfEncoding* ) const
 {
     var = m_width;
 }

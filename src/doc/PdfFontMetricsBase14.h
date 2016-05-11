@@ -89,8 +89,9 @@ public:
      *  \param var the final width array is written to this PdfVariant
      *  \param nFirst first character to be in the array
      *  \param nLast last character code to be in the array
+     *  \param pEncoding encoding for correct character widths. If not passed default (latin1) encoding is used
      */
-    virtual void GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast ) const;
+    virtual void GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast, const PdfEncoding* pEncoding = NULL ) const;
 
     /** Get the width of a single glyph id
      *
