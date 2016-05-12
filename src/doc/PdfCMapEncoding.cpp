@@ -70,8 +70,8 @@ PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject * pToUnicode) :
         pdf_uint16 char_entries = 0;
         pdf_uint16 inside_hex_string = 0;
         pdf_uint16 inside_array = 0;
-        pdf_uint16 range_start;
-        pdf_uint16 range_end;
+        pdf_uint16 range_start = 0;
+        pdf_uint16 range_end = 0;
         pdf_uint16 i = 0;
         pdf_utf16be firstvalue = 0;
         const PdfStream *CIDStreamdata = pObject->GetStream ();

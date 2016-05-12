@@ -420,7 +420,7 @@ namespace PoDoFo
 			const groups_t::const_iterator gitEnd = groups.end();
 			while ( git != gitEnd )
 			{
-				PdfPage * newpage;
+				PdfPage * newpage = NULL;
 				// Allow "holes" in dest. pages sequence.
 				unsigned int curPlate(git->first);
 				while(lastPlate != curPlate)
@@ -486,6 +486,8 @@ namespace PoDoFo
 						buffer << "Q\n";
 					}
 				}
+				if (!newpage)
+					PODOFO_RAISE_ERROR (ePdfError_ValueOutOfRange);
 				string bufStr = buffer.str();
 				newpage->GetContentsForAppending()->GetStream()->Set ( bufStr.data(), bufStr.size() );
 				newpage->GetResources()->GetDictionary().AddKey ( PdfName ( "XObject" ), xdict );
