@@ -314,7 +314,7 @@ void RectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->Stroke();
 
     PdfString sMultiLine("Hello World! We try to draw text using PdfPainter and DrawMultiLineText into an rectangle - including wordwrapping.");
-    pPainter->DrawMultiLineText( x, y, dWidth, dHeight, sMultiLine );
+    pPainter->DrawMultiLineText( x, y, dWidth, dHeight, sMultiLine);
 
     x += dWidth;
     x += 10000 * CONVERSION_CONSTANT;
@@ -739,9 +739,44 @@ void TableTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
     PdfTable table2( nCols2, nRows2 );
     table2.SetModel( &model2 );
-    table2.Draw( dX, dY, pPainter );
+    table2.Draw( dX, dY, pPainter );    
+}
 
-    
+void LargeMultiLineTextTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
+{
+    double     x     = 10000 * CONVERSION_CONSTANT;
+    double     y     = pPage->GetPageSize().GetHeight() - 10000 * CONVERSION_CONSTANT;
+    PdfFont* pFont;
+
+    const double dWidth  = 100000 * CONVERSION_CONSTANT; // 10cm
+    const double dHeight = 50000 * CONVERSION_CONSTANT; // 5cm
+
+    y -= dHeight;
+
+    pFont = pDocument->CreateFont( "Arial" );
+    if( !pFont )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    pFont->SetFontSize( 48.0 );
+    pPainter->SetFont( pFont );
+
+    pPainter->SetStrokeWidth( 100 * CONVERSION_CONSTANT );
+    pPainter->SetStrokingColor( 0.0, 0.0, 0.0 );
+    pPainter->Rectangle( x, y, dWidth, dHeight );
+    pPainter->Stroke();
+
+    PdfString sMultiLine("PoDoFo is a library to work with the PDF file format and includes also a few tools. The name comes from the first three letters of PDF (Portable Document Format).");
+    pPainter->DrawMultiLineText( x, y, dWidth, dHeight, sMultiLine, ePdfAlignment_Left, ePdfVerticalAlignment_Top );
+
+    y = y - dHeight - dHeight / 2.0;
+
+    pPainter->Rectangle( x, y, dWidth, dHeight );
+    pPainter->Stroke();
+
+    pFont->SetFontSize( 12.0 );
+    pPainter->DrawMultiLineText( x, y, dWidth, dHeight, sMultiLine, ePdfAlignment_Left, ePdfVerticalAlignment_Top );   
 }
 
 int main( int argc, char* argv[] ) 
@@ -789,7 +824,7 @@ int main( int argc, char* argv[] )
                                pPage->GetMediaBox().GetWidth() - 100.0,
                                pPage->GetMediaBox().GetHeight() - 100.0, sLoremIpsum );
     painter.FinishPage();
-    /*
+
     pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_Letter ) );
     painter.SetPage( pPage );
     pRoot->Last()->CreateNext( "Rectangles Test", PdfDestination( pPage ) );
@@ -836,11 +871,17 @@ int main( int argc, char* argv[] )
     pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
     painterMM.SetPage( pPage );
     pRoot->Last()->CreateNext( "MM Test", PdfDestination( pPage ) );
-
     TEST_SAFE_OP( MMTest( &painterMM, pPage, &writer ) );
-
     painterMM.FinishPage();
-    */
+
+    printf("Drawing using PdfPainter MultilineText.\n");
+    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+    painter.SetPage( pPage );
+    pRoot->Last()->CreateNext( "Large MultilineText Test", PdfDestination( pPage ) );
+    TEST_SAFE_OP( LargeMultiLineTextTest( &painter, pPage, &writer ) );
+    painter.FinishPage();
+
+    
 #if 0
     /** Create a really large name tree to test the name tree implementation
      */
