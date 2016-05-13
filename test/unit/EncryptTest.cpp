@@ -169,7 +169,7 @@ void EncryptTest::testAESV3()
 }
 #endif // PODOFO_HAVE_LIBIDN
 
-void EncryptTest::TestAuthenticate( PdfEncrypt* pEncrypt, int keyLength, int rValue ) 
+void EncryptTest::TestAuthenticate( PdfEncrypt* pEncrypt, int PODOFO_UNUSED_PARAM(keyLength), int PODOFO_UNUSED_PARAM(rValue) ) 
 {
     PdfString documentId;
     documentId.SetHexData( "BF37541A9083A51619AD5924ECF156DF", 32 );

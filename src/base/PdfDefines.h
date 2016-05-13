@@ -69,6 +69,10 @@
 
 #ifndef PODOFO_COMPILE_RC
 
+#ifndef PODOFO_UNUSED_PARAM
+#define PODOFO_UNUSED_PARAM(x)
+#endif
+
 // Include common system files
 // (most are now pulled in my PdfCompilerCompat.h)
 #include <wchar.h>
@@ -96,13 +100,6 @@
 //#define PODOFO_VERBOSE_DEBUG
 #endif //PODOFO_VERBOSE_DEBUG
 
-#ifdef DEBUG
-#include <assert.h>
-#define PODOFO_ASSERT( x ) assert( x );
-#else
-#define PODOFO_ASSERT( x )
-#endif // DEBUG
-
 // Should we do lots of extra (expensive) sanity checking?  You should not
 // define this on production builds because of the runtime cost and because it
 // might cause the library to abort() if it notices something nasty.
@@ -123,6 +120,13 @@
 
 // Include API macro definitions
 #include "podofoapi.h"
+
+#ifdef DEBUG
+#include <assert.h>
+#define PODOFO_ASSERT( x ) assert( x );
+#else
+#define PODOFO_ASSERT( x ) do { if (!(x)) PODOFO_RAISE_ERROR_INFO(ePdfError_InternalLogic, #x); } while (false)
+#endif // DEBUG
 
 // By default, PoDoFo will use C++ locale support to ensure that
 // it doesn't write bad PDF data - particularly floating point numbers.

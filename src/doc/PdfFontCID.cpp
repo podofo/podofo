@@ -33,6 +33,7 @@
 
 #include "PdfFontCID.h"
 
+#include "base/PdfDefines.h"
 #include "base/PdfDefinesPrivate.h"
 
 #include "base/PdfArray.h"
@@ -114,7 +115,7 @@ public:
     void finishSBE();
 };
 
-PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject, bool bEmbed )
+PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject, bool PODOFO_UNUSED_PARAM(bEmbed) )
     : PdfFont( pMetrics, pEncoding, pObject ), m_pDescendantFonts( NULL )
 {
     /* this->Init( bEmbed, false ); No changes to dictionary */
@@ -443,7 +444,7 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
     free( pdWidth );
 }
 
-void PdfFontCID::CreateCMap( PdfObject* pUnicode ) const
+void PdfFontCID::CreateCMap( PdfObject* PODOFO_UNUSED_PARAM(pUnicode) ) const
 {
     GidToCodePoint gidToCodePoint;
     if (fillGidToCodePoint(gidToCodePoint, m_pMetrics)) 
@@ -599,7 +600,7 @@ fillUnicodeStream( PdfStream* pStream , const GidToCodePoint& gidToCodePoint, in
 }
 
 static GidToCodePoint
-getGidToCodePoint(const PdfEncoding* pEncoding, PdfFontMetrics* pMetrics, const std::set<pdf_utf16be>& setUsed, const UnicodeToIndex& unicodeToIndex)
+getGidToCodePoint(const PdfEncoding* PODOFO_UNUSED_PARAM(pEncoding), PdfFontMetrics* pMetrics, const std::set<pdf_utf16be>& setUsed, const UnicodeToIndex& unicodeToIndex)
 {
     GidToCodePoint gidToCodePoint;
     pdf_utf16be codePoint;
@@ -627,7 +628,7 @@ getGidToCodePoint(const PdfEncoding* pEncoding, PdfFontMetrics* pMetrics, const 
 }
 
 static GidToCodePoint
-getGidToCodePoint(const PdfEncoding* pEncoding, PdfFontMetrics* pMetrics, const std::set<pdf_utf16be>& setUsed)
+getGidToCodePoint(const PdfEncoding* PODOFO_UNUSED_PARAM(pEncoding), PdfFontMetrics* pMetrics, const std::set<pdf_utf16be>& setUsed)
 {
     GidToCodePoint gidToCodePoint;
     pdf_utf16be codePoint;

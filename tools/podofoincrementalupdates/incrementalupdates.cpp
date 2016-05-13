@@ -53,7 +53,7 @@ int get_info( const char* pszFilename )
     return nUpdates;
 }
 
-void extract(const char* pszFilename, int nExtract, const char* pszOutputFilename)
+void extract(const char* PODOFO_UNUSED_PARAM(pszFilename), int PODOFO_UNUSED_PARAM(nExtract), const char* PODOFO_UNUSED_PARAM(pszOutputFilename))
 {
     //int nUpdates = 0;
 
@@ -62,7 +62,8 @@ void extract(const char* pszFilename, int nExtract, const char* pszOutputFilenam
     //parser.ParseFile( pszOutputFilename, true, nExtract );
 
     // TODO
-    
+    fprintf( stderr, "extraction is not implemented\n" );
+    exit( -2 );
 }
 
 int main( int argc, char* argv[] )

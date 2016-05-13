@@ -60,6 +60,7 @@ typedef std::vector<TPageEntrySharedObjectInfo>       TVecPageEntrySharedObjectI
 typedef TVecPageEntrySharedObjectInfo::iterator       TIVecPageEntrySharedObjectInfo;
 typedef TVecPageEntrySharedObjectInfo::const_iterator TCIVecPageEntrySharedObjectInfo;
 
+#if 0
 class PdfPageOffsetEntry {
 public:
     PdfPageOffsetEntry()
@@ -112,6 +113,7 @@ void PdfPageOffsetEntry::Write( PoDoFo::NonPublic::PdfHintStream* pHint )
     pHint->WriteUInt16( nContentsOffset );
     pHint->WriteUInt16( nContentsLength );
 }
+#endif
 
 class PdfPageOffsetHeader {
 public:
