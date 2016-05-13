@@ -777,6 +777,23 @@ void LargeMultiLineTextTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* 
 
     pFont->SetFontSize( 12.0 );
     pPainter->DrawMultiLineText( x, y, dWidth, dHeight, sMultiLine, ePdfAlignment_Left, ePdfVerticalAlignment_Top );   
+
+    y = y - dHeight - dHeight / 2.0;
+
+    pPainter->Rectangle( x, y, dWidth, dHeight );
+    pPainter->Stroke();
+
+    pFont->SetFontSize( 16.0 );
+    pPainter->DrawMultiLineText( x, y, dWidth, dHeight, sMultiLine, ePdfAlignment_Left, ePdfVerticalAlignment_Center );
+
+    y = y - dHeight - dHeight / 2.0;
+
+    pPainter->Rectangle( x, y, dWidth, dHeight );
+    pPainter->Stroke();
+
+    pFont->SetFontSize( 32.0 );
+    pPainter->DrawMultiLineText( x, y, dWidth, dHeight, PdfString("PoDoFo is spelled without a g."), ePdfAlignment_Left, ePdfVerticalAlignment_Bottom );
+
 }
 
 int main( int argc, char* argv[] ) 

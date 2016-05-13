@@ -953,7 +953,7 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
     {
         default:
 	    case ePdfVerticalAlignment_Top:
-            dY += (dHeight - m_pFont->GetFontMetrics()->GetAscent() + m_pFont->GetFontMetrics()->GetLineSpacing()); break;
+            dY += dHeight; break;
         case ePdfVerticalAlignment_Bottom:
             dY += m_pFont->GetFontMetrics()->GetLineSpacing() * vecLines.size(); break;
         case ePdfVerticalAlignment_Center:
@@ -965,10 +965,10 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
     std::vector<PdfString>::const_iterator it = vecLines.begin();
     while( it != vecLines.end() )
     {
+        if( (*it).GetCharacterLength() )
+            this->DrawTextAligned( dX, dY - m_pFont->GetFontMetrics()->GetAscent(), dWidth, *it, eAlignment );
         dY -= m_pFont->GetFontMetrics()->GetLineSpacing();
-		if( (*it).GetCharacterLength() )
-            this->DrawTextAligned( dX, dY, dWidth, *it, eAlignment );
-
+       
         ++it;
     }
     this->Restore();
