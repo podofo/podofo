@@ -25,6 +25,10 @@ simple editor settings.
 1.1 Indentation
 
      The code is indented by 4 spaces. No tabs and no discussion ;)
+     EMACS users might apply those settings:
+         (setq tab-width 4)                    ;; the the preferred tab-width
+         (setq indent-tabs-mode nil)           ;; indent using spaces instead of tabs
+         (setq c-basic-offset tab-width)
 
 1.2 Brackets
 

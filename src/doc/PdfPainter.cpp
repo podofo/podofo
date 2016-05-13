@@ -100,7 +100,7 @@ static inline unsigned short SwapCharBytesIfRequired(pdf_utf16be ch)
 
 static inline bool IsNewLineChar(pdf_utf16be ch)
 {
-	return SwapCharBytesIfRequired(ch) == '\n';
+    return SwapCharBytesIfRequired(ch) == '\n';
 }
 
 static inline bool IsSpaceChar(pdf_utf16be ch)
@@ -952,8 +952,8 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
     switch( eVertical ) 
     {
         default:
-        case ePdfVerticalAlignment_Top:
-	    dY += (dHeight - m_pFont->GetFontMetrics()->GetAscent() + m_pFont->GetFontMetrics()->GetLineSpacing()); break;
+	    case ePdfVerticalAlignment_Top:
+            dY += (dHeight - m_pFont->GetFontMetrics()->GetAscent() + m_pFont->GetFontMetrics()->GetLineSpacing()); break;
         case ePdfVerticalAlignment_Bottom:
             dY += m_pFont->GetFontMetrics()->GetLineSpacing() * vecLines.size(); break;
         case ePdfVerticalAlignment_Center:
@@ -1302,10 +1302,10 @@ void PdfPainter::MoveTo( double dX, double dY )
 {
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
     
-	 m_curPath
-			 << dX << " "
-          << dY
-          << " m" << std::endl;
+    m_curPath
+        << dX << " "
+        << dY
+        << " m" << std::endl;
 
     m_oss.str("");
     m_oss << dX << " "
@@ -1319,13 +1319,13 @@ void PdfPainter::CubicBezierTo( double dX1, double dY1, double dX2, double dY2, 
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
 	 m_curPath
-			 << dX1 << " "
-          << dY1 << " "
-          << dX2 << " "
-          << dY2 << " "
-          << dX3 << " "
-          << dY3 
-          << " c" << std::endl;
+         << dX1 << " "
+         << dY1 << " "
+         << dX2 << " "
+         << dY2 << " "
+         << dX3 << " "
+         << dY3 
+         << " c" << std::endl;
 
     m_oss.str("");
     m_oss << dX1 << " "
@@ -1350,9 +1350,10 @@ void PdfPainter::VerticalLineTo( double inY )
 
 void PdfPainter::SmoothCurveTo( double inX2, double inY2, double inX3, double inY3 )
 {
-    double    px, py, px2 = inX2, 
-            py2 = inY2, 
-            px3 = inX3, py3 = inY3;
+    double
+        px, py, px2 = inX2, 
+        py2 = inY2, 
+        px3 = inX3, py3 = inY3;
 
     // compute the reflective points (thanks Raph!)
     px = 2 * lcx - lrx;
@@ -1422,10 +1423,10 @@ void PdfPainter::ArcTo( double inX, double inY, double inRadiusX, double inRadiu
 
     sin_th     = sin (rot * (PI / 180.0));
     cos_th     = cos (rot * (PI / 180.0));
-    a00     = cos_th / rx;
-    a01     = sin_th / rx;
-    a10     = -sin_th / ry;
-    a11     = cos_th / ry;
+    a00        = cos_th / rx;
+    a01        = sin_th / rx;
+    a10        = -sin_th / ry;
+    a11        = cos_th / ry;
     x0         = a00 * lcx + a01 * lcy;
     y0         = a10 * lcx + a11 * lcy;
     x1         = a00 * px + a01 * py;
@@ -1919,5 +1920,4 @@ PdfString PdfPainter::ExpandTabs( const PdfString & rsString, pdf_long lStringLe
 }
 
 } /* namespace PoDoFo */
-
 
