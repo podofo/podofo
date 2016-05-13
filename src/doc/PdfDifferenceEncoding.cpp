@@ -2569,7 +2569,7 @@ PdfString PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedStr
     PdfString str  = pEncoding->ConvertToUnicode( rEncodedString, pFont );
     pdf_long      lLen = str.GetCharacterLength();
 
-    pdf_utf16be* pszUtf16 = static_cast<pdf_utf16be*>(malloc(sizeof(pdf_utf16be)*lLen));
+    pdf_utf16be* pszUtf16 = static_cast<pdf_utf16be*>(podofo_calloc(lLen, sizeof(pdf_utf16be)));
     if( !pszUtf16 )
     {
         PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
@@ -2591,7 +2591,7 @@ PdfString PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedStr
     }
 
     PdfString ret( pszUtf16, lLen );
-    free( pszUtf16 );
+    podofo_free( pszUtf16 );
 
     return ret;
 }
@@ -2608,7 +2608,7 @@ PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & 
         lLen = rString.GetCharacterLength();
         if( !lLen )
              return PdfRefCountedBuffer();
-        pszUtf16 = static_cast<pdf_utf16be*>(malloc(sizeof(pdf_utf16be)*lLen));
+        pszUtf16 = static_cast<pdf_utf16be*>(podofo_calloc(lLen,sizeof(pdf_utf16be)));
         if( !pszUtf16 )
         {
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
@@ -2622,7 +2622,7 @@ PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & 
         lLen = str.GetCharacterLength();
         if( !lLen )
             return PdfRefCountedBuffer();
-        pszUtf16 = static_cast<pdf_utf16be*>(malloc(sizeof(pdf_utf16be)*lLen));
+        pszUtf16 = static_cast<pdf_utf16be*>(podofo_calloc(lLen,sizeof(pdf_utf16be)));
         if( !pszUtf16 )
         {
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
@@ -2630,7 +2630,7 @@ PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & 
         memcpy( pszUtf16, str.GetUnicode(), lLen * sizeof(pdf_utf16be) );
     }
 
-    char* pDest = static_cast<char*>(malloc( sizeof(char) * (lLen + 1) ));
+    char* pDest = static_cast<char*>(podofo_calloc( (lLen + 1), sizeof(char) ));
     if( !pDest ) 
     {
         PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
@@ -2659,8 +2659,8 @@ PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & 
 
     PdfRefCountedBuffer cDest( lNewLen );
     memcpy( cDest.GetBuffer(), pDest, lNewLen );
-    free( pDest );
-    free( pszUtf16 );
+    podofo_free( pDest );
+    podofo_free( pszUtf16 );
 
     return cDest;
 }

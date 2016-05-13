@@ -47,6 +47,13 @@ namespace PoDoFo {
 PODOFO_API void* podofo_malloc( size_t size );
 
 /**
+* Wrapper around calloc of the c-library used by PoDoFo.
+*
+* Is used to allocate buffers inside of PoDoFo, guarding against count*size size_t overflow.
+*/
+PODOFO_API void* podofo_calloc( size_t count, size_t size );
+
+/**
  * Wrapper around realloc of the c-library used by PoDoFo.
  */
 PODOFO_API void* podofo_realloc( void* buffer, size_t size );

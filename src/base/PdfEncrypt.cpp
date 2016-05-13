@@ -239,7 +239,7 @@ public:
         if( !lLen )
             return lLen;
         
-        char* pOutputBuffer = static_cast<char*>(malloc( sizeof(char) * lLen ));
+        char* pOutputBuffer = static_cast<char*>(podofo_calloc( lLen, sizeof(char) ));
         if( !pOutputBuffer )
         {
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
@@ -250,7 +250,7 @@ public:
         m_stream.Encrypt( pOutputBuffer, lLen );
         m_pOutputStream->Write( pOutputBuffer, lLen );
         
-        free( pOutputBuffer );
+        podofo_free( pOutputBuffer );
         return lLen;
     }
     
@@ -1548,7 +1548,7 @@ void PdfEncryptSHABase::PreprocessPassword( const std::string &password, unsigne
     len = l > 127 ? 127 : l;
     
     memcpy(outBuf, password_sasl, len);
-    free(password_sasl);
+    free(password_sasl); // Do not change to podofo_free, as memory is allocated by stringprep_profile
 }
 
 void

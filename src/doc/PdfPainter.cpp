@@ -829,7 +829,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
     pFilter->Encode( sString.GetString(), sString.GetLength(), &pBuffer, &lLen );
 
     m_pCanvas->Append( pBuffer, lLen );
-    free( pBuffer );
+    podofo_free( pBuffer );
     */
 
     m_pCanvas->Append( " Tj\nET\n" );
@@ -1780,7 +1780,7 @@ void PdfPainter::SetRenderingIntent( char* intent )
 PdfString PdfPainter::ExpandTabs_char( const char* pszText, long lStringLen, int nTabCnt, const char cTab, const char cSpace ) const
 {
     long lLen    = lStringLen + nTabCnt*(m_nTabWidth-1) + sizeof(char);
-    char*   pszTab  = static_cast<char*>(malloc( sizeof( char ) * lLen ));
+    char*   pszTab  = static_cast<char*>(podofo_calloc( lLen, sizeof(char) ));
 
     if( !pszTab )
     {
@@ -1805,7 +1805,7 @@ PdfString PdfPainter::ExpandTabs_char( const char* pszText, long lStringLen, int
     
     pszTab[i]  = 0;
     PdfString str( pszTab );
-    free( pszTab );
+    podofo_free( pszTab );
     
     return str;
 }
@@ -1813,7 +1813,7 @@ PdfString PdfPainter::ExpandTabs_char( const char* pszText, long lStringLen, int
 PdfString PdfPainter::ExpandTabs_pdf_utf16be( const pdf_utf16be* pszText, long lStringLen, int nTabCnt, const pdf_utf16be cTab, const pdf_utf16be cSpace ) const
 {
     long lLen    = lStringLen + nTabCnt*(m_nTabWidth-1) + sizeof(pdf_utf16be);
-    pdf_utf16be*   pszTab  = static_cast<pdf_utf16be*>(malloc( sizeof( pdf_utf16be ) * lLen ));
+    pdf_utf16be*   pszTab  = static_cast<pdf_utf16be*>(podofo_calloc( lLen, sizeof(pdf_utf16be) ));
 
     if( !pszTab )
     {
@@ -1839,7 +1839,7 @@ PdfString PdfPainter::ExpandTabs_pdf_utf16be( const pdf_utf16be* pszText, long l
     pszTab[i]  = 0;
 
     PdfString str( pszTab );
-    free( pszTab );
+    podofo_free( pszTab );
     
     return str;
 }
@@ -1848,7 +1848,7 @@ template<typename C>
 PdfString PdfPainter::ExpandTabsPrivate( const C* pszText, pdf_long lStringLen, int nTabCnt, const C cTab, const C cSpace ) const
 {
     pdf_long lLen    = lStringLen + nTabCnt*(m_nTabWidth-1) + sizeof(C);
-    C*   pszTab  = static_cast<C*>(malloc( sizeof( C ) * lLen ));
+    C*   pszTab  = static_cast<C*>(podofo_calloc( lLen, sizeof(C) ));
 
     if( !pszTab )
     {
@@ -1874,7 +1874,7 @@ PdfString PdfPainter::ExpandTabsPrivate( const C* pszText, pdf_long lStringLen, 
     pszTab[i]  = 0;
 
     PdfString str( pszTab );
-    free( pszTab );
+    podofo_free( pszTab );
     
     return str;
 }

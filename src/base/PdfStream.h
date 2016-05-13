@@ -230,7 +230,7 @@ class PODOFO_API PdfStream {
      *  if the stream is Flate-compressed the compressed copy
      *  will be returned.
      *
-     *  The caller has to free() the buffer.
+     *  The caller has to podofo_free() the buffer.
      *
      *  \param pBuffer pointer to the buffer
      *  \param lLen    pointer to the buffer length
@@ -248,7 +248,7 @@ class PODOFO_API PdfStream {
      *  /Filter key. For example, if the stream is Flate-compressed,
      *  the buffer returned from this method will have been decompressed.
      *
-     *  The caller has to free() the buffer.
+     *  The caller has to podofo_free() the buffer.
      *
      *  \param pBuffer pointer to the buffer
      *  \param lLen    pointer to the buffer length

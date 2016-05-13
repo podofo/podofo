@@ -90,7 +90,7 @@ class PODOFO_API PdfFileStream : public PdfStream {
      *  if the stream is Flate compressed the compressed copy
      *  will be returned.
      *
-     *  The caller has to free() the buffer.
+     *  The caller has to podofo_free() the buffer.
      *
      *  This is currently not implemented for PdfFileStreams 
      *  and will raise an ePdfError_InternalLogic exception

@@ -60,7 +60,7 @@ void PdfRefCountedBuffer::FreeBuffer()
 
     // last owner of the file!
     if( m_pBuffer->m_bOnHeap && m_pBuffer->m_bPossesion )
-        free( m_pBuffer->m_pHeapBuffer );
+        podofo_free( m_pBuffer->m_pHeapBuffer );
     delete m_pBuffer;
 }
 
@@ -74,7 +74,7 @@ void PdfRefCountedBuffer::ReallyDetach( size_t lExtraLen )
 
     pBuffer->m_bOnHeap = (lSize > TRefCountedBuffer::INTERNAL_BUFSIZE);
     if ( pBuffer->m_bOnHeap )
-        pBuffer->m_pHeapBuffer  = static_cast<char*>(malloc( sizeof(char)*lSize ));
+        pBuffer->m_pHeapBuffer  = static_cast<char*>(podofo_calloc( lSize, sizeof(char) ));
     else
         pBuffer->m_pHeapBuffer = 0;
     pBuffer->m_lBufferSize     = PDF_MAX( lSize, static_cast<size_t>(+TRefCountedBuffer::INTERNAL_BUFSIZE) );
@@ -118,7 +118,7 @@ void PdfRefCountedBuffer::ReallyResize( const size_t lSize )
             {
                 // We have an existing on-heap buffer that we own. Realloc()
                 // it, potentially saving us a memcpy and free().
-                void* temp = realloc( m_pBuffer->m_pHeapBuffer, lAllocSize );
+                void* temp = podofo_realloc( m_pBuffer->m_pHeapBuffer, lAllocSize );
                 if (!temp)
                 {
                     PODOFO_RAISE_ERROR_INFO( ePdfError_OutOfMemory, "PdfRefCountedBuffer::Resize failed!" );
@@ -130,7 +130,7 @@ void PdfRefCountedBuffer::ReallyResize( const size_t lSize )
             {
                 // Either we don't own the buffer or it's a local static buffer that's no longer big enough.
                 // Either way, it's time to move to a heap-allocated buffer we own.
-                char* pBuffer = static_cast<char*>(malloc( sizeof(char) * lAllocSize ));
+                char* pBuffer = static_cast<char*>(podofo_calloc( lAllocSize, sizeof(char) ));
                 if( !pBuffer ) 
                 {
                     PODOFO_RAISE_ERROR_INFO( ePdfError_OutOfMemory, "PdfRefCountedBuffer::Resize failed!" );
@@ -157,7 +157,7 @@ void PdfRefCountedBuffer::ReallyResize( const size_t lSize )
         m_pBuffer->m_bOnHeap   = (lSize > TRefCountedBuffer::INTERNAL_BUFSIZE);
         if ( m_pBuffer->m_bOnHeap )
         {
-            m_pBuffer->m_pHeapBuffer = static_cast<char*>(malloc( sizeof(char)*lSize ));
+            m_pBuffer->m_pHeapBuffer = static_cast<char*>(podofo_calloc( lSize, sizeof(char) ));
         }
         else
         {

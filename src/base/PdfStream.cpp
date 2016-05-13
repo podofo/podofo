@@ -236,7 +236,7 @@ void PdfStream::BeginAppend( const TVecFilters & vecFilters, bool bClearExisting
     if( pBuffer ) 
     {
         this->Append( pBuffer, lLen );
-        free( pBuffer );
+        podofo_free( pBuffer );
     }
 }
 

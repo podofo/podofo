@@ -220,7 +220,7 @@ PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject * pToUnicode) :
 
         }
         
-        free(streamBuffer);
+        podofo_free(streamBuffer);
     }
 
 

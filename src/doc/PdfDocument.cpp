@@ -539,7 +539,7 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
                             pcontStream->GetFilteredCopy( &pcontStreamBuffer, &pcontStreamLength );
     
                             pObjStream->Append( pcontStreamBuffer, pcontStreamLength );
-                            free( pcontStreamBuffer );
+                            podofo_free( pcontStreamBuffer );
                             break;
                         }
                         else
@@ -573,7 +573,7 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
             pObjStream->BeginAppend( vFilters );
             pcontStream->GetFilteredCopy( &pcontStreamBuffer, &pcontStreamLength );
             pObjStream->Append( pcontStreamBuffer, pcontStreamLength );
-            free( pcontStreamBuffer );
+            podofo_free( pcontStreamBuffer );
             pObjStream->EndAppend();
         }
         else

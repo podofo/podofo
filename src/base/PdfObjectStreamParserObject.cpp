@@ -70,14 +70,14 @@ void PdfObjectStreamParserObject::Parse(ObjectIdList const & list)
 
     try {
         this->ReadObjectsFromStream( pBuffer, lBufferLen, lNum, lFirst, list );
-        free( pBuffer );
+        podofo_free( pBuffer );
 
         // the object stream is not needed anymore in the final PDF
         delete m_vecObjects->RemoveObject( m_pParser->Reference() );
         m_pParser = NULL;
 
     } catch( const PdfError & rError ) {
-        free( pBuffer );
+        podofo_free( pBuffer );
         throw rError;
     }
 }

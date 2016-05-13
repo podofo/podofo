@@ -123,12 +123,17 @@ void PdfSignatureField::SetSignature(const PdfData &sSignatureData)
 {
     // Prepare source data
     size_t lSigLen = sSignatureData.data().size();
-    char* pData = static_cast<char*>(malloc(lSigLen+2));
+    char* pData = static_cast<char*>(podofo_malloc(lSigLen+2));
+ 	if (!pData)
+ 	{
+ 		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+    }
+    
     pData[0]='<';
     pData[lSigLen+1]='>';
     memcpy(pData+1, sSignatureData.data().c_str(), lSigLen);
     PdfData signatureData(pData, lSigLen+2);
-    free(pData);
+    podofo_free(pData);
     // Content of the signature
     if( !m_pSignatureObj )
     {

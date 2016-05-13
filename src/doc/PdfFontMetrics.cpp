@@ -479,7 +479,7 @@ static void
       last_code = code;
     }
 
-    buffer = (unsigned char*)malloc( total_size );
+    buffer = (unsigned char*)podofo_malloc( total_size );
     if ( buffer == NULL )
       goto Error;
 
@@ -856,7 +856,7 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
             CFURLRef    url = CFURLCreateFromFSRef( kCFAllocatorDefault, &ref );
             CFStringRef pathRef = CFURLCopyFileSystemPath( url, kCFURLPOSIXPathStyle );
             CFIndex     length = CFStringGetLength( pathRef ) + 0x02;
-            char*       path = (char *)calloc( length, sizeof( *path ) );
+            char*       path = (char *)podofo_calloc( length, sizeof( *path ) );
             if ( CFStringGetCString( pathRef, path, length, kCFStringEncodingUTF8 ) ) {
                 std::string fontPath( path );
                 if ( (fontPath.find( ".ttf" ) != fontPath.npos) || (fontPath.find( ".otf" ) != fontPath.npos) ) {
@@ -870,7 +870,7 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
                     if (fontBufferLen == 0) {
                         CFRelease( pathRef );
                         CFRelease( url );
-                        free(path);
+                        podofo_free(path);
                         return NULL;
                     }
                     char*	fontBuffer = (char*)ASmalloc( fontBufferLen );
@@ -916,7 +916,7 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
             // mLog.Debug( boost::format("Unable to locate a matching font for '%s'\n") % pszFontname );
             }
 
-            free( path );
+            podofo_free( path );
             CFRelease( pathRef );
             CFRelease( url );
         }

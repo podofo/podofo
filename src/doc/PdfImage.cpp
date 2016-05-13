@@ -968,8 +968,18 @@ void PdfImage::LoadFromPngHandle( PdfFileInputStream* pInStream )
 
 
     long lLen = static_cast<long>(png_get_rowbytes(pPng, pInfo) * height);
-    char* pBuffer = static_cast<char*>(malloc(sizeof(char) * lLen));
-    png_bytepp pRows = static_cast<png_bytepp>(malloc(sizeof(png_bytep)*height));
+    char* pBuffer = static_cast<char*>(podofo_calloc(lLen, sizeof(char)));
+ 	if (!pBuffer)
+ 	{
+ 		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+ 	}
+
+    png_bytepp pRows = static_cast<png_bytepp>(podofo_calloc(height, sizeof(png_bytep)));
+ 	if (!pRows)
+ 	{
+ 		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+    }
+
     for(unsigned int y=0; y<height; y++)
     {
         pRows[y] = reinterpret_cast<png_bytep>(pBuffer + (y * png_get_rowbytes(pPng, pInfo)));
@@ -1012,8 +1022,8 @@ void PdfImage::LoadFromPngHandle( PdfFileInputStream* pInStream )
     PdfMemoryInputStream stream( pBuffer, lLen );
     this->SetImageData( width, height, depth, &stream );
     
-    free(pBuffer);
-    free(pRows);
+    podofo_free(pBuffer);
+    podofo_free(pRows);
     
     png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
 
@@ -1151,8 +1161,18 @@ void PdfImage::LoadFromPngData(const unsigned char* pData, pdf_long dwLen)
     
     
     long lLen = static_cast<long>(png_get_rowbytes(pPng, pInfo) * height);
-    char* pBuffer = static_cast<char*>(malloc(sizeof(char) * lLen));
-    png_bytepp pRows = static_cast<png_bytepp>(malloc(sizeof(png_bytep)*height));
+    char* pBuffer = static_cast<char*>(podofo_calloc(lLen, sizeof(char)));
+ 	if (!pBuffer)
+ 	{
+ 		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+ 	}
+    
+    png_bytepp pRows = static_cast<png_bytepp>(podofo_calloc(height, sizeof(png_bytep)));
+    if (!pRows)
+ 	{
+ 		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+    }
+    
     for(unsigned int y=0; y<height; y++)
     {
         pRows[y] = reinterpret_cast<png_bytep>(pBuffer + (y * png_get_rowbytes(pPng, pInfo)));
@@ -1195,8 +1215,8 @@ void PdfImage::LoadFromPngData(const unsigned char* pData, pdf_long dwLen)
     PdfMemoryInputStream stream( pBuffer, lLen );
     this->SetImageData( width, height, depth, &stream );
     
-    free(pBuffer);
-    free(pRows);
+    podofo_free(pBuffer);
+    podofo_free(pRows);
     
     png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
 }

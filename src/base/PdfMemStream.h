@@ -87,7 +87,7 @@ class PODOFO_API PdfMemStream : public PdfStream {
      *  if the stream is Flate compressed the compressed copy
      *  will be returned.
      *
-     *  The caller has to free() the buffer.
+     *  The caller has to podofo_free() the buffer.
      *
      *  \param pBuffer pointer to where the buffer's address will be stored
      *  \param lLen    pointer to the buffer length (output parameter)

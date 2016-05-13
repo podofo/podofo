@@ -77,7 +77,7 @@ PdfString PdfEncoding::ConvertToUnicode(const PdfString & rEncodedString, const 
         const size_t lLen = rEncodedString.GetLength()/2;
         pdf_utf16be lCID, lUnicodeValue;
         
-        pdf_utf16be* pszUtf16 = static_cast<pdf_utf16be*>(malloc(sizeof(pdf_utf16be)*lLen));
+        pdf_utf16be* pszUtf16 = static_cast<pdf_utf16be*>(podofo_calloc(lLen, sizeof(pdf_utf16be)));
         if( !pszUtf16 )
         {
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
@@ -102,7 +102,7 @@ PdfString PdfEncoding::ConvertToUnicode(const PdfString & rEncodedString, const 
         }
         
         PdfString ret( pszUtf16, lLen );
-        free( pszUtf16 );
+        podofo_free( pszUtf16 );
         
         return ret;
         
@@ -305,7 +305,7 @@ void PdfEncoding::ParseToUnicode()
             }
         }
         
-        free(streamBuffer);
+        podofo_free(streamBuffer);
         
         m_bToUnicodeIsLoaded = true;
     }
@@ -345,7 +345,7 @@ PdfSimpleEncoding::PdfSimpleEncoding( const PdfName & rName )
 
 PdfSimpleEncoding::~PdfSimpleEncoding() 
 {
-    free( m_pEncodingTable );
+    podofo_free( m_pEncodingTable );
     delete m_mutex;
 }
 
@@ -405,7 +405,7 @@ PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString,
         if( lLen  <= 0 )
             return PdfString(L"");
         
-        pdf_utf16be* pszStringUtf16 = static_cast<pdf_utf16be*>(malloc(sizeof(pdf_utf16be) * (lLen + 1)) );
+        pdf_utf16be* pszStringUtf16 = static_cast<pdf_utf16be*>(podofo_calloc( (lLen + 1), sizeof(pdf_utf16be)));
         if( !pszStringUtf16 )
         {
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
@@ -427,7 +427,7 @@ PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString,
         pszStringUtf16[lLen] = 0;
         
         PdfString sStr( pszStringUtf16 );
-        free( pszStringUtf16 );
+        podofo_free( pszStringUtf16 );
         
         return sStr;
     }
@@ -450,7 +450,7 @@ PdfRefCountedBuffer PdfSimpleEncoding::ConvertToEncoding( const PdfString & rStr
         if( !lLen )
             return PdfRefCountedBuffer();
         
-        char* pDest = static_cast<char*>(malloc( sizeof(char) * (lLen + 1) ));
+        char* pDest = static_cast<char*>(podofo_calloc( (lLen + 1), sizeof(char) ));
         if( !pDest )
         {
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
@@ -480,7 +480,7 @@ PdfRefCountedBuffer PdfSimpleEncoding::ConvertToEncoding( const PdfString & rStr
         
         PdfRefCountedBuffer cDest( lNewLen );
         memcpy( cDest.GetBuffer(), pDest, lNewLen );
-        free( pDest );
+        podofo_free( pDest );
         
         return cDest;
     }

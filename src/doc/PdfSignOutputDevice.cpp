@@ -89,13 +89,18 @@ void PdfSignOutputDevice::SetSignatureSize(size_t lSignatureSize)
     size_t lLen = sizeof(srcBeacon);
 
 	lSignatureSize = 2*lSignatureSize;
-    char* pData = static_cast<char*>(malloc(lSignatureSize));
+    char* pData = static_cast<char*>(podofo_malloc(lSignatureSize));
+ 	if (!pData)
+ 	{
+ 		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+    }
+    
     for(size_t i=0; i<lSignatureSize; i++)
     {
         pData[i]=srcBeacon[i%lLen];
     }
     m_pSignatureBeacon = new PdfData(pData, lSignatureSize);
-    free(pData);
+    podofo_free(pData);
 }
 
 size_t PdfSignOutputDevice::GetSignatureSize()const

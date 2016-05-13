@@ -146,7 +146,7 @@ PdfSigIncMemDocument::~PdfSigIncMemDocument()
    }
 
    if(m_InpFilename)
-      free( m_InpFilename );
+      podofo_free( m_InpFilename );
    if(m_pSignField)
       delete m_pSignField;
    if(m_Document)

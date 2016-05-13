@@ -331,7 +331,7 @@ void PdfWriter::WriteToBuffer( char** ppBuffer, pdf_long* pulLen )
     this->Write( &device );
 
     *pulLen = device.GetLength();
-    *ppBuffer = static_cast<char*>(malloc( *pulLen * sizeof(char) ));
+    *ppBuffer = static_cast<char*>(podofo_calloc( *pulLen, sizeof(char) ));
     if( !*ppBuffer )
     {
         PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
@@ -609,7 +609,7 @@ void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* p
 
     pInfo->WriteObject( &length, m_eWriteMode, NULL );
 
-    pBuffer = static_cast<char*>(malloc( sizeof(char) * length.GetLength() ));
+    pBuffer = static_cast<char*>(podofo_calloc( length.GetLength(), sizeof(char) ));
     if( !pBuffer )
     {
         delete pInfo;
@@ -622,7 +622,7 @@ void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* p
     // calculate the MD5 Sum
     identifier = PdfEncryptMD5Base::GetMD5String( reinterpret_cast<unsigned char*>(pBuffer),
                                            static_cast<unsigned int>(length.GetLength()) );
-    free( pBuffer );
+    podofo_free( pBuffer );
 
     delete pInfo;
 }

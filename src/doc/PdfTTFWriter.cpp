@@ -277,7 +277,7 @@ void PdfTTFWriter::Read( PdfInputDevice* pDevice )
             TTable table;
             table.tag    = (*it).tag;
             table.length = (*it).length; 
-            table.data   = static_cast<char*>(malloc( sizeof(char) * (*it).length ));
+            table.data   = static_cast<char*>(podofo_calloc( (*it).length, sizeof(char) ));
             
             pDevice->Seek( (*it).offset );
             pDevice->Read( table.data, (*it).length ); 
@@ -752,7 +752,7 @@ void PdfTTFWriter::LoadGlyph( int nIndex, long lOffset, PdfInputDevice* pDevice 
         printf("Reading instructions: %i\n", glyph.m_nInstructionLength );
         if( glyph.m_nInstructionLength ) 
         {
-            glyph.m_pInstructions = static_cast<char*>(malloc( glyph.m_nInstructionLength * sizeof(char) ));
+            glyph.m_pInstructions = static_cast<char*>(podofo_calloc( glyph.m_nInstructionLength, sizeof(char) ));
             if( !glyph.m_pInstructions ) 
             {
                 PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
@@ -896,7 +896,7 @@ void PdfTTFWriter::LoadGlyph( int nIndex, long lOffset, PdfInputDevice* pDevice 
             
             if( glyph.m_nInstructionLength ) 
             {
-                glyph.m_pInstructions = static_cast<char*>(malloc( glyph.m_nInstructionLength * sizeof(char) ));
+                glyph.m_pInstructions = static_cast<char*>(podofo_calloc( glyph.m_nInstructionLength,  sizeof(char) ));
                 if( !glyph.m_pInstructions ) 
                 {
                     PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
@@ -956,7 +956,9 @@ void PdfTTFWriter::Write( PdfOutputDevice* pDevice )
                       this->CreateTag( 'h', 'm', 't', 'x' ), &PdfTTFWriter::WriteHmtxTable );
     this->WriteTable( pDevice, vecToc, 
                       this->CreateTag( 'p', 'o', 's', 't' ), &PdfTTFWriter::WritePostTable );
-    
+
+
+    // TODO:Check why this is commented. Without this code, we will have a memory leak because (*it).data is never podofo_free'ed
     /*
     TCIVecTable it = m_vecTableData.begin();
     while( it != m_vecTableData.end() ) 
@@ -970,7 +972,7 @@ void PdfTTFWriter::Write( PdfOutputDevice* pDevice )
         vecToc.push_back( entry );
 
         pDevice->Write( (*it).data, (*it).length );
-        free( (*it).data );
+        podofo_free( (*it).data );
         ++it;
     }
     */

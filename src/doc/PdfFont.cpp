@@ -152,7 +152,7 @@ void PdfFont::WriteStringToStream( const PdfString & rsString, PdfStream* pStrea
     pStream->Append( pBuffer, lLen );
     pStream->Append( ">", 1 );
 
-    free( pBuffer );
+    podofo_free( pBuffer );
 }
 
 // Peter Petrov 5 January 2009

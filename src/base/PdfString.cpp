@@ -148,17 +148,18 @@ void PdfString::setFromWchar_t(const wchar_t* pszString, pdf_long lLen )
         {
             // Try to convert to UTF8
             pdf_long   lDest = 5 * lLen; // At max 5 bytes per UTF8 char
-            char*  pDest = static_cast<char*>(malloc( lDest ));
+            char*  pDest = static_cast<char*>(podofo_malloc( lDest ));
+
             size_t cnt   = wcstombs(pDest, pszString, lDest);
             if( cnt != static_cast<size_t>(-1) )
             {
                 // No error
                 InitFromUtf8( reinterpret_cast<pdf_utf8*>(pDest), cnt );
-                free( pDest );
+                podofo_free( pDest );
 	    }
             else
             {
-                free( pDest );
+                podofo_free( pDest );
                 PdfError e( ePdfError_InternalLogic, __FILE__, __LINE__ );
                 e.SetErrorInformation( pszString );
                 throw e;
@@ -577,7 +578,7 @@ void PdfString::InitUtf8()
         // UTF8 is at maximum 5 * characterlenght.
 
         pdf_long  lBufferLen = (5*this->GetUnicodeLength())+2;
-        char* pBuffer    = static_cast<char*>(malloc(sizeof(char)*lBufferLen));
+        char* pBuffer    = static_cast<char*>(podofo_calloc( lBufferLen, sizeof(char) ));
         if( !pBuffer )
         {
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
@@ -590,7 +591,7 @@ void PdfString::InitUtf8()
         pBuffer[lUtf8-1] = '\0';
         pBuffer[lUtf8] = '\0';
         m_sUtf8 = pBuffer;
-        free( pBuffer );
+        podofo_free( pBuffer );
     }
     else
     {

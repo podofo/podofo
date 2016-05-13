@@ -65,7 +65,7 @@ PdfSimpleTableModel::PdfSimpleTableModel( int nCols, int nRows )
       m_nCols( nCols ), m_nRows( nRows ),
 	  m_bBorder( true ), m_dBorder( 1.0 )
 {
-    m_ppData = static_cast<PdfString**>(malloc( sizeof(PdfString*) * nRows ));
+    m_ppData = static_cast<PdfString**>(podofo_calloc( nRows, sizeof(PdfString*) ));
     if( !m_ppData )
     {
         PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
@@ -82,7 +82,7 @@ PdfSimpleTableModel::~PdfSimpleTableModel()
         for( int i=0;i<m_nRows;i++ ) 
             delete [] m_ppData[i];
 
-        free( m_ppData );
+        podofo_free( m_ppData );
     }
 }
 

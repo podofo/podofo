@@ -151,7 +151,7 @@ void PdfFontType1::EmbedSubsetFont()
         lSize = ftell( hFile );
         fseek( hFile, 0L, SEEK_SET );
 
-        pAllocated = static_cast<char*>(malloc( sizeof(char) * lSize ));
+        pAllocated = static_cast<char*>(podofo_calloc( lSize, sizeof(char) ));
         if( !pAllocated )
         {
             fclose( hFile );
@@ -387,8 +387,8 @@ void PdfFontType1::EmbedSubsetFont()
 
 	// cleanup memory
     if( pAllocated )
-        free( pAllocated );
-	free( outBuff );
+        podofo_free( pAllocated );
+    delete[] outBuff;
 
 	// enter length in dictionary
     pContents->GetDictionary().AddKey( "Length1", PdfVariant( lLength1 ) );
@@ -441,7 +441,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
         lSize = ftell( hFile );
         fseek( hFile, 0L, SEEK_SET );
 
-        pAllocated = static_cast<char*>(malloc( sizeof(char) * lSize ));
+        pAllocated = static_cast<char*>(podofo_calloc( lSize, sizeof(char) ));
         if( !pAllocated )
         {
             fclose( hFile );
@@ -496,7 +496,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 
 				pContents->GetStream()->Set( pBuffer, lSize - 2L );
 				if( pAllocated )
-					free( pAllocated );
+					podofo_free( pAllocated );
 
 				return;
 			default:
@@ -525,7 +525,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 	// TODO: Pdf Supports only Type1 fonts with binary encrypted sections and not the hex format
 	pContents->GetStream()->Set( pBuffer, lSize );
     if( pAllocated )
-        free( pAllocated );
+        podofo_free( pAllocated );
 
     pContents->GetDictionary().AddKey( "Length1", PdfVariant( lLength1 ) );
     pContents->GetDictionary().AddKey( "Length2", PdfVariant( lLength2 ) );

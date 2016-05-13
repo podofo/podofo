@@ -66,7 +66,7 @@ PdfMemoryOutputStream::PdfMemoryOutputStream( pdf_long lInitial )
     : m_lLen( 0 ), m_bOwnBuffer( true )
 {
     m_lSize   = lInitial;
-    m_pBuffer = static_cast<char*>(podofo_malloc( m_lSize * sizeof(char) ));
+    m_pBuffer = static_cast<char*>(podofo_calloc( m_lSize, sizeof(char) ));
     
     if( !m_pBuffer ) 
     {

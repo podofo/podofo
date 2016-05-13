@@ -355,7 +355,7 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
 
     // Allocate an initialize an array, large enough to 
     // hold a width value for every possible glyph index
-    double* pdWidth = static_cast<double*>(malloc( sizeof(double) * cAbsoluteMax ) );
+    double* pdWidth = static_cast<double*>(podofo_calloc( cAbsoluteMax, sizeof(double) ) );
     if( !pdWidth )
     {
         PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
@@ -441,7 +441,7 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
         pFontDict->GetDictionary().AddKey( PdfName("W"), array ); 
     }
 
-    free( pdWidth );
+    podofo_free( pdWidth );
 }
 
 void PdfFontCID::CreateCMap( PdfObject* PODOFO_UNUSED_PARAM(pUnicode) ) const

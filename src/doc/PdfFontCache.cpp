@@ -256,7 +256,7 @@ static bool GetFontFromCollection(char *&buffer, unsigned int &bufferLen, unsign
     // extract font
     if(isMatchingFont)
     {
-        char *newBuffer = (char *) malloc(fontFileSize);
+        char *newBuffer = (char *) podofo_malloc(fontFileSize);
 
         // copy font header and table index (offsets need to be still adjusted)
         memcpy(newBuffer, buffer + bufferOffset, 12+16*numTables);
@@ -287,7 +287,7 @@ static bool GetFontFromCollection(char *&buffer, unsigned int &bufferLen, unsign
 
         // replace old buffer
         //assert(dstDataOffset==fontFileSize)
-        free(buffer);
+        podofo_free(buffer);
         buffer = newBuffer;
         bufferLen = fontFileSize;
         ok = true;
@@ -320,7 +320,7 @@ static bool GetDataFromHFONT( HFONT hf, char** outFontBuffer, unsigned int& outF
     }
     if (bufferLen != GDI_ERROR)
     {
-        buffer = (char *) malloc( bufferLen );
+        buffer = (char *) podofo_malloc( bufferLen );
         hasData = GetFontData( hdc, dwTable, 0, buffer, (DWORD) bufferLen ) != GDI_ERROR;
     }
 
@@ -356,7 +356,7 @@ static bool GetDataFromHFONT( HFONT hf, char** outFontBuffer, unsigned int& outF
     else if(buffer)
     {
         // on failure free local buffer
-        free(buffer);
+        podofo_free(buffer);
     }
     return ok;
 }
@@ -600,14 +600,14 @@ PdfFont* PdfFontCache::GetFont( const wchar_t* pszFontName, bool bBold, bool bIt
     if (lMaxLen == 0) 
         PODOFO_RAISE_ERROR_INFO(ePdfError_InternalLogic, "Font name is empty");
         
-    char* pmbFontName = static_cast<char*>(malloc(lMaxLen));
+    char* pmbFontName = static_cast<char*>(podofo_malloc(lMaxLen));
     if (!pmbFontName)
     {
         PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
     }
     if (wcstombs(pmbFontName, pszFontName, lMaxLen) == -1)
     {
-        free(pmbFontName);
+        podofo_free(pmbFontName);
         PODOFO_RAISE_ERROR_INFO(ePdfError_InternalLogic, "Conversion to multibyte char failed");
     }
 
@@ -882,11 +882,11 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
         pFont    = this->CreateFontObject( itSorted, vecContainer, pMetrics, 
               bEmbedd, logFont.lfWeight >= FW_BOLD ? true : false, logFont.lfItalic ? true : false, logFont.lfFaceName, pEncoding, pSubsetting );
     } catch( PdfError & error ) {
-        free( pBuffer );
+        podofo_free( pBuffer );
         throw error;
     }
     
-    free( pBuffer );
+    podofo_free( pBuffer );
     return pFont;
 }
 
@@ -898,7 +898,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
         return NULL;
 
     pdf_long lMaxLen = lFontNameLen * 5;
-    char* pmbFontName = static_cast<char*>(malloc(lMaxLen));
+    char* pmbFontName = static_cast<char*>(podofo_malloc(lMaxLen));
     if( !pmbFontName )
     {
         PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
@@ -906,7 +906,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
 
     if( wcstombs( pmbFontName, logFont.lfFaceName, lMaxLen ) == -1 )
     {
-        free( pmbFontName );
+        podofo_free( pmbFontName );
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Conversion to multibyte char failed" );
     }
 
@@ -921,16 +921,16 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
         pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, pBuffer, nLen, logFont.lfCharSet == SYMBOL_CHARSET, pSubsetting ? genSubsetBasename() : NULL );
         pFont    = this->CreateFontObject( itSorted, vecContainer, pMetrics, 
               bEmbedd, logFont.lfWeight >= FW_BOLD ? true : false, logFont.lfItalic ? true : false, pmbFontName, pEncoding, pSubsetting );
-        free( pmbFontName );
+        podofo_free( pmbFontName );
         pmbFontName = NULL;
     } catch( PdfError & error ) {
-        free( pmbFontName );
+        podofo_free( pmbFontName );
         pmbFontName = NULL;
-        free( pBuffer );
+        podofo_free( pBuffer );
         throw error;
     }
     
-    free( pBuffer );
+    podofo_free( pBuffer );
     return pFont;
 }
 

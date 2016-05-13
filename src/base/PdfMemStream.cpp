@@ -113,7 +113,7 @@ void PdfMemStream::GetCopy( char** pBuffer, pdf_long* lLen ) const
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    *pBuffer = static_cast<char*>(malloc( sizeof( char ) * m_lLength ));
+    *pBuffer = static_cast<char*>(podofo_calloc( m_lLength, sizeof(char) ));
     *lLen    = m_lLength;
     
     if( !*pBuffer )
@@ -216,7 +216,7 @@ void PdfMemStream::Uncompress()
             this->GetFilteredCopy( &pBuffer, &lLen );
         } catch( PdfError & e ) {
             if( pBuffer )
-                free( pBuffer );
+                podofo_free( pBuffer );
 
             throw e;
         }

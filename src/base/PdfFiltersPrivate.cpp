@@ -109,7 +109,7 @@ public:
         m_nBpp  = (m_nBPC * m_nColors) >> 3;
         m_nRows = (m_nColumns * m_nColors * m_nBPC) >> 3;
 
-        m_pPrev = static_cast<char*>(malloc( sizeof(char) * m_nRows));
+        m_pPrev = static_cast<char*>(podofo_calloc( m_nRows, sizeof(char) ));
         if( !m_pPrev )
         {
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
@@ -120,7 +120,7 @@ public:
 
     ~PdfPredictorDecoder()
     {
-        free( m_pPrev );
+        podofo_free( m_pPrev );
     }
 
     void Decode( const char* pBuffer, pdf_long lLen, PdfOutputStream* pStream ) 
@@ -919,7 +919,7 @@ void PdfDCTFilter::EndDecodeImpl()
 
     // pBuffer will be deleted by jpeg_destroy_decompress
     pBuffer    = (*m_cinfo.mem->alloc_sarray)( reinterpret_cast<j_common_ptr>( &m_cinfo ), JPOOL_IMAGE, lRowBytes, 1);
-    pOutBuffer = static_cast<char*>(malloc( lRowBytes * sizeof(char)) );
+    pOutBuffer = static_cast<char*>(podofo_calloc( lRowBytes, sizeof(char)) );
 
     while( m_cinfo.output_scanline < m_cinfo.output_height ) 
     {
@@ -955,7 +955,7 @@ void PdfDCTFilter::EndDecodeImpl()
         GetStream()->Write( reinterpret_cast<char*>(pOutBuffer), lRowBytes );
     }
 
-    free( pOutBuffer );
+    podofo_free( pOutBuffer );
     (void) jpeg_destroy_decompress( &m_cinfo );
 }
 

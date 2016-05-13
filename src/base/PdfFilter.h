@@ -58,8 +58,8 @@ typedef TVecFilters::const_iterator        TCIVecFilters;
  *  The two methods Encode() and Decode() have to be implemented 
  *  for every filter.
  *
- *  The output buffers are malloc()'ed in the functions and have
- *  to be free()'d by the caller.
+ *  The output buffers are podofo_malloc()'ed in the functions and have
+ *  to be podofo_free()'d by the caller.
  */
 class PODOFO_API PdfFilter {
  public:
@@ -77,8 +77,8 @@ class PODOFO_API PdfFilter {
      */
     virtual bool CanEncode() const = 0; 
 
-    /** Encodes a buffer using a filter. The buffer will malloc()'d and
-     *  has to be free()'d by the caller.
+    /** Encodes a buffer using a filter. The buffer will podofo_malloc()'d and
+     *  has to be podofo_free()'d by the caller.
      *
      *  This function uses BeginEncode()/EncodeBlock()/EndEncode()
      *  internally, so it's not safe to use when progressive encoding
@@ -144,8 +144,8 @@ class PODOFO_API PdfFilter {
      */
     virtual bool CanDecode() const = 0; 
 
-    /** Decodes a buffer using a filter. The buffer will malloc()'d and
-     *  has to be free()'d by the caller.
+    /** Decodes a buffer using a filter. The buffer will podofo_malloc()'d and
+     *  has to be podofo_free()'d by the caller.
      *  
      *  \param pInBuffer input buffer
      *  \param lInLen    length of the input buffer
