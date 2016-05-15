@@ -112,7 +112,9 @@ static unsigned long TableCheksum(const char* bufp, unsigned long size)
 }
 
 PdfFontTTFSubset::PdfFontTTFSubset( const char* pszFontFileName, PdfFontMetrics* pMetrics, unsigned short nFaceIndex )
-    : m_pMetrics( pMetrics ), m_faceIndex( nFaceIndex ), m_bOwnDevice( true )
+    : m_pMetrics( pMetrics ), 
+      m_bIsLongLoca( false ), m_numTables( 0 ), m_numGlyphs( 0 ), m_numHMetrics( 0 ), m_faceIndex( nFaceIndex ), m_ulStartOfTTFOffsets( 0 ),
+      m_bOwnDevice( true )
 {
     //File type is now distinguished by ext, which might cause problems.
     const char* pname = pszFontFileName;
@@ -139,7 +141,8 @@ PdfFontTTFSubset::PdfFontTTFSubset( const char* pszFontFileName, PdfFontMetrics*
 }
 
 PdfFontTTFSubset::PdfFontTTFSubset( PdfInputDevice* pDevice, PdfFontMetrics* pMetrics, EFontFileType eType, unsigned short nFaceIndex )
-    : m_pMetrics( pMetrics ), m_eFontFileType( eType ), m_faceIndex(nFaceIndex),
+    : m_pMetrics( pMetrics ), m_eFontFileType( eType ),
+      m_bIsLongLoca( false ), m_numTables( 0 ), m_numGlyphs( 0 ), m_numHMetrics( 0 ), m_faceIndex( nFaceIndex ), m_ulStartOfTTFOffsets( 0 ),
       m_pDevice( pDevice ), m_bOwnDevice( false )
 {
 }
@@ -152,7 +155,7 @@ PdfFontTTFSubset::~PdfFontTTFSubset()
     }
 }
 
-    void PdfFontTTFSubset::Init()
+void PdfFontTTFSubset::Init()
 {
     GetStartOfTTFOffsets();
     GetNumberOfTables();
@@ -203,7 +206,7 @@ static void logTag(unsigned long tag)
 void PdfFontTTFSubset::InitTables()
 {
     unsigned short tableMask = 0;
-        TTrueTypeTable tbl;
+    TTrueTypeTable tbl;
 
     //std::cout << "ttfTables" << std::endl;
     for (unsigned short i = 0; i < m_numTables; i++)
@@ -719,7 +722,7 @@ void PdfFontTTFSubset::WriteTables(PdfRefCountedBuffer& fontData)
     char *bufp = fontData.GetBuffer();
         
     /* write TFF Offset table */
-                    {
+    {
         unsigned short es = xln2(m_numTables);
         unsigned short sr = es << 4;
 
@@ -729,7 +732,7 @@ void PdfFontTTFSubset::WriteTables(PdfRefCountedBuffer& fontData)
         TTFWriteUInt16(bufp + 8, es);
         es  = (m_numTables << 4) - sr;
         TTFWriteUInt16(bufp + 10, es);
-                    }
+    }
 
     unsigned long headOffset = 0;
     unsigned long dirOffset = __LENGTH_HEADER12;

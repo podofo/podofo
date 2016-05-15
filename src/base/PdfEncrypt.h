@@ -38,6 +38,8 @@
 #include "PdfString.h"
 #include "PdfReference.h"
 
+#include <string.h>
+
 namespace PoDoFo {
 
 class PdfDictionary;
@@ -385,7 +387,15 @@ public:
     inline void SetCurrentReference( const PdfReference & rRef );
 
 protected:
-    PdfEncrypt() : m_bEncryptMetadata(true) {};
+    PdfEncrypt()
+        : m_eAlgorithm( ePdfEncryptAlgorithm_RC4V1 ), m_keyLength( 0 ), m_rValue( 0 ), m_pValue( 0 ),
+        m_eKeyLength( ePdfKeyLength_40 ), m_bEncryptMetadata(true)
+    {
+        memset( m_uValue, 0, 48 );
+        memset( m_oValue, 0, 48 );
+        memset( m_encryptionKey, 0, 32 );
+    };
+
     PdfEncrypt( const PdfEncrypt & rhs );
     
     /// Check two keys for equality

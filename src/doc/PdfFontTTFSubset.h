@@ -45,7 +45,7 @@ namespace PoDoFo {
 class PdfInputDevice;
 class PdfOutputDevice;
 
-// This code is based heabily on code by ZhangYang 
+// This code is based heavily on code by ZhangYang 
 // (张杨.国际) <zhang_yang@founder.com>
 //
 // (Do not put this into doxygen documentation blocks
@@ -130,7 +130,13 @@ class PODOFO_DOC_API PdfFontTTFSubset {
 
     /** Information of TrueType tables.
      */
-    struct TTrueTypeTable {
+    class TTrueTypeTable {
+    public:
+        TTrueTypeTable()
+            : tag( 0L ), checksum( 0L ), length( 0L ), offset( 0L )
+        {
+        }
+        
 	    unsigned long tag;
 	    unsigned long checksum;
 	    unsigned long length;
@@ -140,8 +146,14 @@ class PODOFO_DOC_API PdfFontTTFSubset {
     /** GlyphData contains the glyph address relative 
      *  to the beginning of the glyf table.
      */
-    struct TGlyphData {
-	unsigned long glyphLength;
+    class TGlyphData {
+    public:
+        TGlyphData()
+            : glyphLength( 0L ), glyphAddress( 0L )
+        {
+        }
+        
+        unsigned long glyphLength;
 	    unsigned long glyphAddress;	//In the original truetype file.
     };
 
@@ -150,7 +162,13 @@ class PODOFO_DOC_API PdfFontTTFSubset {
     typedef std::map<GID, TGlyphData> GlyphMap;
     typedef std::map<CodePoint, GID> CodePointToGid;
 
-    struct CMapv4Range {
+    class CMapv4Range {
+    public:
+        CMapv4Range()
+            : endCode( 0 ), startCode( 0 ), delta( 0 ), offset( 0 )
+        {
+        }
+        
 	    unsigned short endCode;
 	    unsigned short startCode;
 	    short delta;
@@ -159,13 +177,25 @@ class PODOFO_DOC_API PdfFontTTFSubset {
 
     typedef std::vector<CMapv4Range> CMapRanges;
 
-    struct CMap {
+    class CMap {
+    public:
+        CMap()
+            : segCount( 0 )
+        {
+        }
+        
 	    unsigned short segCount;
 	    CMapRanges ranges;
 	    std::vector<unsigned short> glyphArray;
     };
 
-    struct GlyphContext {
+    class GlyphContext {
+    public:
+        GlyphContext()
+            : ulGlyfTableOffset( 0 ), ulLocaTableOffset( 0 ), contourCount( 0 ) , shortOffset( 0 )
+        {
+        }
+        
         unsigned long ulGlyfTableOffset;
         unsigned long ulLocaTableOffset;
         /* Used internaly during recursive load */
@@ -193,7 +223,7 @@ class PODOFO_DOC_API PdfFontTTFSubset {
 
     PdfFontMetrics* m_pMetrics;                ///< FontMetrics object which is required to convert unicode character points to glyph ids
     EFontFileType   m_eFontFileType;
-    bool	    m_bIsLongLoca;
+    bool	        m_bIsLongLoca;
     
     unsigned short  m_numTables;
     unsigned short  m_numGlyphs;

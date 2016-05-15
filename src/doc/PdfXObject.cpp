@@ -56,7 +56,7 @@ namespace PoDoFo {
 PdfArray PdfXObject::s_matrix;
 
 PdfXObject::PdfXObject( const PdfRect & rRect, PdfDocument* pParent, const char* pszPrefix, bool bWithoutIdentifier )
-    : PdfElement( "XObject", pParent ), PdfCanvas(), m_rRect( rRect )
+    : PdfElement( "XObject", pParent ), PdfCanvas(), m_rRect( rRect ), m_pResources( NULL )
 {
     InitXObject( rRect, pszPrefix );
     if( bWithoutIdentifier )
@@ -66,13 +66,13 @@ PdfXObject::PdfXObject( const PdfRect & rRect, PdfDocument* pParent, const char*
 }
 
 PdfXObject::PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent, const char* pszPrefix )
-    : PdfElement( "XObject", pParent ), PdfCanvas(), m_rRect( rRect )
+    : PdfElement( "XObject", pParent ), PdfCanvas(), m_rRect( rRect ), m_pResources( NULL )
 {
     InitXObject( rRect, pszPrefix );
 }
 
 PdfXObject::PdfXObject( const PdfMemDocument & rDoc, int nPage, PdfDocument* pParent, const char* pszPrefix, bool bUseTrimBox )
-    : PdfElement( "XObject", pParent ), PdfCanvas()
+    : PdfElement( "XObject", pParent ), PdfCanvas(), m_pResources( NULL )
 {
     m_rRect = PdfRect();
 
@@ -164,7 +164,7 @@ PdfXObject::PdfXObject( const PdfMemDocument & rDoc, int nPage, PdfDocument* pPa
 }
 
 PdfXObject::PdfXObject( PdfDocument *pDoc, int nPage, const char* pszPrefix, bool bUseTrimBox )
-    : PdfElement( "XObject", pDoc ), PdfCanvas()
+    : PdfElement( "XObject", pDoc ), PdfCanvas(), m_pResources( NULL )
 {
     m_rRect = PdfRect();
 
@@ -250,7 +250,7 @@ PdfXObject::PdfXObject( PdfDocument *pDoc, int nPage, const char* pszPrefix, boo
 }
 
 PdfXObject::PdfXObject( PdfObject* pObject )
-    : PdfElement( "XObject", pObject ), PdfCanvas()
+    : PdfElement( "XObject", pObject ), PdfCanvas(), m_pResources( NULL )
 {
     ostringstream out;
     PdfLocaleImbue(out);

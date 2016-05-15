@@ -67,6 +67,7 @@ void PdfSignOutputDevice::Init()
     m_pSignatureBeacon = NULL;
     m_bBeaconFound = false;
     m_bDevOwner = false;
+    m_sBeaconPos = 0;
 }
 
 PdfSignOutputDevice::~PdfSignOutputDevice()

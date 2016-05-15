@@ -696,9 +696,10 @@ PdfType1EncryptCharstring::PdfType1EncryptCharstring()
     : PdfType1Encrypt()
 {
  	m_r = 4330;
- }
+}
 
 PdfType1Encrypt::PdfType1Encrypt()
+    : m_r( -1 ) // will be initialized in subclasses with real value
 {
 	m_c1 = 52845;
 	m_c2 = 22719;

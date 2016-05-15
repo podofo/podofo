@@ -52,12 +52,6 @@ namespace PoDoFo
  */
 class PODOFO_DOC_API PdfSignOutputDevice :public PdfOutputDevice 
 {
-    PdfOutputDevice *m_pRealDevice;
-    bool m_bDevOwner;
-    PdfData *m_pSignatureBeacon;
-    size_t m_sBeaconPos;
-    bool m_bBeaconFound;
-    void Init();
 public:
     PdfSignOutputDevice(PdfOutputDevice *pRealDevice);
     PdfSignOutputDevice(const char* pszFilename);
@@ -135,6 +129,15 @@ public:
     {
         m_pRealDevice->Flush();
     }
+
+private:
+    void Init();
+
+    PdfOutputDevice* m_pRealDevice;
+    bool m_bDevOwner;
+    PdfData* m_pSignatureBeacon;
+    size_t m_sBeaconPos;
+    bool m_bBeaconFound;
 };
 
 }

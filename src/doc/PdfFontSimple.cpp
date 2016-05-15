@@ -45,12 +45,12 @@
 namespace PoDoFo {
 
 PdfFontSimple::PdfFontSimple( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent )
-    : PdfFont( pMetrics, pEncoding, pParent )
+    : PdfFont( pMetrics, pEncoding, pParent ), m_pDescriptor( NULL) 
 {
 }
 
 PdfFontSimple::PdfFontSimple( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject )
-    : PdfFont( pMetrics, pEncoding, pObject )
+    : PdfFont( pMetrics, pEncoding, pObject ), m_pDescriptor( NULL) 
 {
 }
 
