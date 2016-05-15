@@ -591,7 +591,7 @@ std::string PdfVecObjects::GetNextSubsetPrefix()
 	else
 	{
 		PODOFO_ASSERT( m_sSubsetPrefix.length() == 7 );
-		PODOFO_ASSERT( m_sSubsetPrefix[6] = '+' );
+		PODOFO_ASSERT( m_sSubsetPrefix[6] == '+' );
 	
 		for ( int i = 5; i >= 0; i-- )
 		{
