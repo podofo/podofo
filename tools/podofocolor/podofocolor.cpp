@@ -63,6 +63,8 @@ static IConverter* ConverterForName( const std::string & converter, const std::s
     {
         pConverter = new LuaConverter( lua );
     }
+#else
+    PODOFO_UNUSED_PARAM( lua )
 #endif //  PODOFO_HAVE_LUA
 
     return pConverter;
