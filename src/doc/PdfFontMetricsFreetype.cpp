@@ -222,49 +222,50 @@ void PdfFontMetricsFreetype::InitFromFace(bool pIsSymbol)
         m_dPdfDescent = m_pFace->descender * 1000.0 / m_pFace->units_per_EM;
         m_bIsBold = (m_pFace->style_flags & FT_STYLE_FLAG_BOLD) != 0;
         m_bIsItalic = (m_pFace->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
-    }
 
-    // Try to get a unicode charmap
-    FT_Select_Charmap( m_pFace, pIsSymbol ? FT_ENCODING_MS_SYMBOL : FT_ENCODING_UNICODE );
+        // Try to get a unicode charmap
+        FT_Select_Charmap( m_pFace, pIsSymbol ? FT_ENCODING_MS_SYMBOL : FT_ENCODING_UNICODE );
 
-    // Try to determine if it is a symbol font
-    for( int c=0; c<m_pFace->num_charmaps; c++ ) 
-    {  
-        FT_CharMap charmap = m_pFace->charmaps[c]; 
+        // Try to determine if it is a symbol font
+        for( int c=0; c<m_pFace->num_charmaps; c++ ) 
+        {  
+            FT_CharMap charmap = m_pFace->charmaps[c]; 
 
-        if( charmap->encoding == FT_ENCODING_MS_SYMBOL ) 
-        {
-            m_bSymbol = true;
-            FT_Set_Charmap( m_pFace, charmap );
-            break;
-        }
-        // TODO: Also check for FT_ENCODING_ADOBE_CUSTOM and set it?
-    }
-    
-    // we cache the 256 first width entries as they 
-    // are most likely needed quite often
-    m_vecWidth.clear();
-    m_vecWidth.reserve( PODOFO_WIDTH_CACHE_SIZE );
-    for( unsigned int i=0; i < PODOFO_WIDTH_CACHE_SIZE; i++ )
-    {
-        if( i < PODOFO_FIRST_READABLE || !m_pFace )
-            m_vecWidth.push_back( 0.0  );
-        else
-        {
-            int index = i;
-            // Handle symbol fonts
-            if( m_bSymbol ) 
+            if( charmap->encoding == FT_ENCODING_MS_SYMBOL ) 
             {
-                index = index | 0xf000;
+                m_bSymbol = true;
+                FT_Set_Charmap( m_pFace, charmap );
+                break;
             }
-
-            if( FT_Load_Char( m_pFace, index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP) == 0 )  // | FT_LOAD_NO_RENDER
-            {
-            m_vecWidth.push_back( static_cast<double>(m_pFace->glyph->metrics.horiAdvance) * 1000.0 / m_pFace->units_per_EM );
-                continue;
+            // TODO: Also check for FT_ENCODING_ADOBE_CUSTOM and set it?
         }
-            m_vecWidth.push_back( 0.0  );
-    }
+    
+        // we cache the 256 first width entries as they
+        // are most likely needed quite often
+        m_vecWidth.clear();
+        m_vecWidth.reserve( PODOFO_WIDTH_CACHE_SIZE );
+        for( unsigned int i=0; i < PODOFO_WIDTH_CACHE_SIZE; i++ )
+        {
+            if( i < PODOFO_FIRST_READABLE || !m_pFace )
+                m_vecWidth.push_back( 0.0  );
+            else
+            {
+                int index = i;
+                // Handle symbol fonts
+                if( m_bSymbol ) 
+                {
+                    index = index | 0xf000;
+                }
+
+                if( FT_Load_Char( m_pFace, index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP) == 0 )  // | FT_LOAD_NO_RENDER
+                {
+                    m_vecWidth.push_back( static_cast<double>(m_pFace->glyph->metrics.horiAdvance) * 1000.0 / m_pFace->units_per_EM );
+                    continue;
+                }
+                
+                m_vecWidth.push_back( 0.0  );
+            }
+        }
     }
 
     InitFontSizes();

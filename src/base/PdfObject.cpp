@@ -138,7 +138,7 @@ PdfObject::PdfObject( const PdfObject & rhs )
     const_cast<PdfObject*>(&rhs)->DelayedStreamLoad();
     m_bDelayedStreamLoadDone = rhs.DelayedStreamLoadDone();
 
-    if( rhs.m_pStream )
+    if( rhs.m_pStream && m_pOwner )
         m_pStream = m_pOwner->CreateStream( *(rhs.m_pStream) );
 
 #if defined(PODOFO_EXTRA_CHECKS)

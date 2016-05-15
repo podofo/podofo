@@ -68,7 +68,13 @@ void PdfRefCountedBuffer::ReallyDetach( size_t lExtraLen )
 {
     PODOFO_RAISE_LOGIC_IF( m_pBuffer && m_pBuffer->m_lRefCount == 1, "Use Detach() rather than calling ReallyDetach() directly." )
 
-    size_t lSize                 = m_pBuffer->m_lBufferSize + lExtraLen; 
+    if( !m_pBuffer )
+    {
+        // throw error rather than de-referencing NULL
+        PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+    }
+    
+    size_t lSize                 = m_pBuffer->m_lBufferSize + lExtraLen;
     TRefCountedBuffer* pBuffer = new TRefCountedBuffer();
     pBuffer->m_lRefCount       = 1;
 

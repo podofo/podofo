@@ -149,6 +149,10 @@ void PdfString::setFromWchar_t(const wchar_t* pszString, pdf_long lLen )
             // Try to convert to UTF8
             pdf_long   lDest = 5 * lLen; // At max 5 bytes per UTF8 char
             char*  pDest = static_cast<char*>(podofo_malloc( lDest ));
+			if (!pDest)
+			{
+				PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+			}
 
             size_t cnt   = wcstombs(pDest, pszString, lDest);
             if( cnt != static_cast<size_t>(-1) )
@@ -258,55 +262,58 @@ void PdfString::SetHexData( const char* pszHex, pdf_long lLen, PdfEncrypt* pEncr
     m_buffer = PdfRefCountedBuffer( lLen % 2 ? ((lLen + 1) >> 1) + 2 : (lLen >> 1) + 2 );
     m_bHex   = true;
     char* pBuffer = m_buffer.GetBuffer();
-    char val;
-    char cDecodedByte = 0;
-    bool bLow = true;
-
-    while( lLen-- ) 
+    if ( pBuffer != NULL )
     {
-        if( PdfTokenizer::IsWhitespace( *pszHex ) )
+        char val;
+        char cDecodedByte = 0;
+        bool bLow = true;
+
+        while( lLen-- ) 
         {
+            if( PdfTokenizer::IsWhitespace( *pszHex ) )
+            {
+                ++pszHex;
+                continue;
+            }
+
+            val = PdfTokenizer::GetHexValue( *pszHex );
+            if( bLow ) 
+            {
+                cDecodedByte = (val & 0x0F);
+                bLow         = false;
+            }
+            else
+            {
+                cDecodedByte = ((cDecodedByte << 4) | val);
+                bLow         = true;
+
+                *pBuffer++ = cDecodedByte;
+            }
+
             ++pszHex;
-            continue;
         }
 
-        val = PdfTokenizer::GetHexValue( *pszHex );
-        if( bLow ) 
+        if( !bLow ) 
         {
-            cDecodedByte = (val & 0x0F);
-            bLow         = false;
-        }
-        else
-        {
-            cDecodedByte = ((cDecodedByte << 4) | val);
-            bLow         = true;
-
+            // an odd number of bytes was read,
+            // so the last byte is 0
             *pBuffer++ = cDecodedByte;
         }
 
-        ++pszHex;
+        *pBuffer++ = '\0';
+        *pBuffer++ = '\0';
+
+        // If the allocated internal buffer is too big (e.g. because of whitespaces in the data)
+        // copy to a smaller buffer so that PdfString::GetLength() will be correct
+        lLen = pBuffer - m_buffer.GetBuffer();
+        if( static_cast<size_t>(lLen) != m_buffer.GetSize() )
+        {
+            PdfRefCountedBuffer temp( lLen );
+            memcpy( temp.GetBuffer(), m_buffer.GetBuffer(), lLen );
+            m_buffer = temp;
+        }
     }
-
-    if( !bLow ) 
-    {
-        // an odd number of bytes was read,
-        // so the last byte is 0
-        *pBuffer++ = cDecodedByte;
-    }
-
-    *pBuffer++ = '\0';
-    *pBuffer++ = '\0';
-
-    // If the allocated internal buffer is too big (e.g. because of whitespaces in the data)
-    // copy to a smaller buffer so that PdfString::GetLength() will be correct
-    lLen = pBuffer - m_buffer.GetBuffer();
-    if( static_cast<size_t>(lLen) != m_buffer.GetSize() )
-    {
-        PdfRefCountedBuffer temp( lLen );
-        memcpy( temp.GetBuffer(), m_buffer.GetBuffer(), lLen );
-        m_buffer = temp;
-    }
-
+    
     if( pEncrypt )
     {
         pdf_long outBufferLen = m_buffer.GetSize() - 2 - pEncrypt->CalculateStreamOffset();

@@ -920,6 +920,10 @@ void PdfDCTFilter::EndDecodeImpl()
     // pBuffer will be deleted by jpeg_destroy_decompress
     pBuffer    = (*m_cinfo.mem->alloc_sarray)( reinterpret_cast<j_common_ptr>( &m_cinfo ), JPOOL_IMAGE, lRowBytes, 1);
     pOutBuffer = static_cast<char*>(podofo_calloc( lRowBytes, sizeof(char)) );
+	if (!pOutBuffer)
+	{
+		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+	}
 
     while( m_cinfo.output_scanline < m_cinfo.output_height ) 
     {

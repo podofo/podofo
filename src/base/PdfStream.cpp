@@ -209,16 +209,16 @@ void PdfStream::BeginAppend( const TVecFilters & vecFilters, bool bClearExisting
     if( !bClearExisting && this->GetLength() ) 
         this->GetFilteredCopy( &pBuffer, &lLen );
 
-    if( !vecFilters.size() && bDeleteFilters )
+    if( !vecFilters.size() && bDeleteFilters && m_pParent)
     {
         m_pParent->GetDictionary().RemoveKey( PdfName::KeyFilter );
     }
-    if( vecFilters.size() == 1 )
+    if( vecFilters.size() == 1 && m_pParent)
     {
         m_pParent->GetDictionary().AddKey( PdfName::KeyFilter, 
                                            PdfName( PdfFilterFactory::FilterTypeToName( vecFilters.front() ) ) );
     }
-    else if( vecFilters.size() > 1 )
+    else if( vecFilters.size() > 1 && m_pParent)
     {
         PdfArray filters;
         TCIVecFilters it = vecFilters.begin();

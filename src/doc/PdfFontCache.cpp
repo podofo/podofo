@@ -257,6 +257,10 @@ static bool GetFontFromCollection(char *&buffer, unsigned int &bufferLen, unsign
     if(isMatchingFont)
     {
         char *newBuffer = (char *) podofo_malloc(fontFileSize);
+		if (!newBuffer)
+		{
+			PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+		}
 
         // copy font header and table index (offsets need to be still adjusted)
         memcpy(newBuffer, buffer + bufferOffset, 12+16*numTables);
@@ -321,6 +325,11 @@ static bool GetDataFromHFONT( HFONT hf, char** outFontBuffer, unsigned int& outF
     if (bufferLen != GDI_ERROR)
     {
         buffer = (char *) podofo_malloc( bufferLen );
+		if (!buffer)
+		{
+			PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+		}
+
         hasData = GetFontData( hdc, dwTable, 0, buffer, (DWORD) bufferLen ) != GDI_ERROR;
     }
 

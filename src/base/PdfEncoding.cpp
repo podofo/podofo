@@ -357,8 +357,12 @@ void PdfSimpleEncoding::InitEncodingTable()
 
     if( !m_pEncodingTable ) // double check
     {
-        m_pEncodingTable = static_cast<char*>(calloc(sizeof(char), lTableLength));
-    
+        m_pEncodingTable = static_cast<char*>(podofo_calloc(lTableLength, sizeof(char)));
+		if (!m_pEncodingTable)
+		{
+			PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+		}
+
         // fill the table with data
         for( size_t i=0; i<256; i++ )
         {

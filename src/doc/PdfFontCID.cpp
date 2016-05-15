@@ -311,7 +311,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
 		pdf_long       lSize = 0;
     
     pContents = this->GetObject()->GetOwner()->CreateObject();
-    if( !pContents )
+    if( !pContents || !m_pMetrics )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }

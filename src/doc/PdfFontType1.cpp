@@ -672,14 +672,17 @@ pdf_long PdfFontType1::FindInBuffer( const char* pszNeedle, const char* pszHayst
     const char* pszEnd   = pszHaystack + lLen - lNeedleLen; 
     const char* pszStart = pszHaystack;
 
-    while( pszHaystack < pszEnd ) 
+    if ( pszNeedle )
     {
-        if( strncmp( pszHaystack, pszNeedle, lNeedleLen ) == 0 )
-            return pszHaystack - pszStart;
+        while( pszHaystack < pszEnd )
+        {
+            if( strncmp( pszHaystack, pszNeedle, lNeedleLen ) == 0 )
+                return pszHaystack - pszStart;
 
-        ++pszHaystack;
+            ++pszHaystack;
+        }
     }
-
+    
     return -1;
 }
 
