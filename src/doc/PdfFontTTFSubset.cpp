@@ -491,7 +491,7 @@ void PdfFontTTFSubset::CreateCmapTable( const CodePointToGid& usedCodes )
         //std::cout << " sc=" << std::hex << range.startCode << " ec=" << range.endCode << " dc=" << range.startCode + range.delta << " of=" << range.offset << std::dec << std::endl;
         m_sCMap.ranges.push_back(range);
                 }
-    m_sCMap.segCount = m_sCMap.ranges.size() + 1;
+    m_sCMap.segCount = static_cast<unsigned short>(m_sCMap.ranges.size() + 1);
     /* fill glyphArray */
     if (arrayCount) {
         m_sCMap.glyphArray.reserve(arrayCount);

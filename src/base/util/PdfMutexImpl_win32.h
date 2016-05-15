@@ -81,7 +81,21 @@ class PdfMutexImpl {
 
 PdfMutexImpl::PdfMutexImpl()
 {
+	// Visual Studio Code Analyzer warns that InitializeCriticalSection must be within try/catch block
+	// because InitializeCriticalSection can raise a STATUS_NO_MEMORY exception in low memory conditions
+	// on Windows XP / Server 2003. The exception was eliminated in Windows Vista / Server 2008,
+	// so don't warn if building for Vista or later.
+
+#if ( WINVER >= _WIN32_WINNT_VISTA )
+	#pragma warning(disable : 28125)
+#endif
+
     InitializeCriticalSection( &m_cs );
+
+#if ( WINVER >= _WIN32_WINNT_VISTA )
+	#pragma warning(default : 28125)
+#endif
+
 }
 
 PdfMutexImpl::~PdfMutexImpl()
