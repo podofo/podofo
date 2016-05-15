@@ -567,7 +567,11 @@ void PdfString::InitFromUtf8( const pdf_utf8* pszStringUtf8, pdf_long lLen )
     pdf_long        lBufLen = (lLen << 1) + sizeof(wchar_t);
     // twice as large buffer should always be enough
     std::vector<char>	bytes(lBufLen);
+#if (defined(_MSC_VER)  &&  _MSC_VER < 1700) || (defined(__BORLANDC__))	// MSC before VC11 has no data member, same as BorlandC
+    pdf_utf16be *pBuffer = reinterpret_cast<pdf_utf16be *>(&bytes[0]); 
+#else
     pdf_utf16be *pBuffer = reinterpret_cast<pdf_utf16be *>(bytes.data()); 
+#endif
 
     lBufLen = PdfString::ConvertUTF8toUTF16( pszStringUtf8, lLen, pBuffer, lBufLen );
 

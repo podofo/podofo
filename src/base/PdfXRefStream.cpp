@@ -78,7 +78,11 @@ void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, pdf_uint64 offset, pdf_gen
                                     char cMode, pdf_objnum objectNumber ) 
 {
     std::vector<char>	bytes(m_bufferLen);
+#if (defined(_MSC_VER)  &&  _MSC_VER < 1700) || (defined(__BORLANDC__))	// MSC before VC11 has no data member, same as BorlandC
+    char * buffer = &bytes[0];
+#else
     char * buffer = bytes.data();
+#endif
 
     if( cMode == 'n' && objectNumber == m_pObject->Reference().ObjectNumber() )
         m_offset = offset;

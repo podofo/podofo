@@ -356,11 +356,11 @@ void PdfFontTTFSubset::LoadGlyphs(GlyphContext& ctx, const CodePointToGid& usedC
 {
     // For any fonts, assume that glyph 0 is needed.
     LoadGID(ctx, 0);
-    for (CodePointToGid::const_iterator it = usedCodes.begin(); it != usedCodes.end(); ++it) {
-        LoadGID(ctx, it->second);
+    for (CodePointToGid::const_iterator cit = usedCodes.begin(); cit != usedCodes.end(); ++cit) {
+        LoadGID(ctx, cit->second);
     }
     m_numGlyphs = 0;
-    GlyphMap::const_reverse_iterator it = m_mGlyphMap.rbegin();
+    GlyphMap::reverse_iterator it = m_mGlyphMap.rbegin();
     if (it != m_mGlyphMap.rend()) {
         m_numGlyphs = it->first;
     }
@@ -564,8 +564,10 @@ unsigned long PdfFontTTFSubset::WriteCmapTable(char* bufp)
     /* adjust offset to first array */
     offset = 14;
 
+    CMapRanges::const_iterator it;
+
     /* write endCode array */
-    for (CMapRanges::const_iterator it = m_sCMap.ranges.begin(); it != m_sCMap.ranges.end(); ++it) {
+    for (it = m_sCMap.ranges.begin(); it != m_sCMap.ranges.end(); ++it) {
         TTFWriteUInt16(bufp + offset, it->endCode);
         offset += __LENGTH_WORD;
         }
@@ -573,23 +575,24 @@ unsigned long PdfFontTTFSubset::WriteCmapTable(char* bufp)
     TTFWriteUInt16(bufp + offset, 0);
     offset += __LENGTH_WORD;
     /* write startCode array */
-    for (CMapRanges::const_iterator it = m_sCMap.ranges.begin(); it != m_sCMap.ranges.end(); ++it) {
+    for (it = m_sCMap.ranges.begin(); it != m_sCMap.ranges.end(); ++it) {
         TTFWriteUInt16(bufp + offset, it->startCode);
         offset += __LENGTH_WORD;
     }
     /* write idDelta array */
-    for (CMapRanges::const_iterator it = m_sCMap.ranges.begin(); it != m_sCMap.ranges.end(); ++it) {
+    for (it = m_sCMap.ranges.begin(); it != m_sCMap.ranges.end(); ++it) {
         TTFWriteUInt16(bufp + offset, it->delta);
         offset += __LENGTH_WORD;
             }
     /* write idRangeOffset array */
-    for (CMapRanges::const_iterator it = m_sCMap.ranges.begin(); it != m_sCMap.ranges.end(); ++it) {
+    for (it = m_sCMap.ranges.begin(); it != m_sCMap.ranges.end(); ++it) {
         TTFWriteUInt16(bufp + offset, it->offset);
         offset += __LENGTH_WORD;
             }
+    std::vector<unsigned short>::const_iterator uit;
     /* write glyphIndexArray */
-    for (std::vector<unsigned short>::const_iterator it = m_sCMap.glyphArray.begin(); it != m_sCMap.glyphArray.end(); ++it) {
-        TTFWriteUInt16(bufp + offset, *it);
+    for (uit = m_sCMap.glyphArray.begin(); uit != m_sCMap.glyphArray.end(); ++uit) {
+        TTFWriteUInt16(bufp + offset, *uit);
         offset += __LENGTH_WORD;
         }
     /* update length of this table */
@@ -834,7 +837,7 @@ void PdfFontTTFSubset::BuildFont( PdfRefCountedBuffer& outputBuffer, const std::
     if (m_numGlyphs)
         {
         cidSet.assign((m_numGlyphs + 7) >> 3, 0);
-        GlyphMap::const_reverse_iterator rit = m_mGlyphMap.rbegin();
+        GlyphMap::reverse_iterator rit = m_mGlyphMap.rbegin();
         //std::cout << "createCIDSet n=" << gidToCodePoint.size() << std::endl;
         if (rit != m_mGlyphMap.rend()) {
             static const unsigned char bits[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };

@@ -285,7 +285,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
                     PdfObject* cidSet = pDescriptor->GetOwner()->CreateObject();
                     TVecFilters vecFlate;
                     vecFlate.push_back(ePdfFilter_FlateDecode);
-#if defined(_MSC_VER)  &&  _MSC_VER < 1700	// MSC before VC11 has no data member 
+#if (defined(_MSC_VER)  &&  _MSC_VER < 1700) || (defined(__BORLANDC__))	// MSC before VC11 has no data member, same as BorlandC
                     PdfMemoryInputStream stream(reinterpret_cast<const char*>(&array[0]), array.size());
 #else
                     PdfMemoryInputStream stream(reinterpret_cast<const char*>(array.data()), array.size());

@@ -34,6 +34,16 @@
 #include "PdfMemoryManagement.h"
 #include "PdfDefinesPrivate.h"
 
+#ifdef _WIN32
+#ifndef SIZE_MAX
+#ifdef _WIN64
+#define SIZE_MAX _UI64_MAX
+#else
+#define SIZE_MAX UINT_MAX
+#endif
+#endif
+#endif // _WIN32
+
 #if defined(_MSC_VER) &&  ( _MSC_VER <= 1200 )
 // errno.h isn't available in Visual C++ 6 (definitions are in stdlib.h which is already included)
 #else
