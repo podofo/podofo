@@ -705,9 +705,9 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
 }
 
 #ifdef _WIN32
-#if TIFFLIB_VERSION >= 20120922		// TiffOpenW needs at least version 4.0.3
 void PdfImage::LoadFromTiff( const wchar_t* pszFilename )
 {
+#if TIFFLIB_VERSION >= 20120922		// TiffOpenW needs at least version 4.0.3
     TIFFSetErrorHandler(TIFFErrorWarningHandler);
     TIFFSetWarningHandler(TIFFErrorWarningHandler);
     
@@ -725,9 +725,11 @@ void PdfImage::LoadFromTiff( const wchar_t* pszFilename )
         throw e;
     }
 
-	LoadFromTiffHandle(hInfile);
-}
+    LoadFromTiffHandle(hInfile);
+#else
+    PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
 #endif // TIFFLIB_VERSION
+}
 #endif // _WIN32
 
 struct tiffData

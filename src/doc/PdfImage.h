@@ -232,7 +232,6 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
     void LoadFromTiffData(const unsigned char* pData, pdf_long dwLen);
 
 #ifdef _WIN32
-#if TIFFLIB_VERSION >= 20120922		// TiffOpenW needs at least version 4.0.3
     /** Load the image data from a TIFF file
      *  \param pszFilename
      *
@@ -241,7 +240,6 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  UTF-8 to the const char* overload.
      */
     void LoadFromTiff( const wchar_t* pszFilename );
-#endif // TIFFLIB_VERSION
 #endif // _WIN32
 #endif // PODOFO_HAVE_TIFF_LIB
 #ifdef PODOFO_HAVE_PNG_LIB
