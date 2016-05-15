@@ -218,7 +218,14 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
         if( peType )
             *peType = pair.second;
 
-        strcpy( m_buffer.GetBuffer(), pair.first.c_str() );
+        if ( !m_buffer.GetBuffer() || m_buffer.GetSize() == 0)
+        {
+            PODOFO_RAISE_ERROR(ePdfError_InvalidHandle);
+        }
+
+        // make sure buffer is \0 terminated
+        strncpy(m_buffer.GetBuffer(), pair.first.c_str(), m_buffer.GetSize());
+        m_buffer.GetBuffer()[m_buffer.GetSize() - 1] = 0;
         pszToken = m_buffer.GetBuffer();
         return true;
     }
