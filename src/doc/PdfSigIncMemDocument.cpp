@@ -388,7 +388,7 @@ void PdfSigIncMemDocument::CreateAnnotation(PdfSignOutputDevice* pDevice, PdfPag
       PdfSignatureField signField( pAnnot, pAcroForm, this);
 
       //TODO - musi byt unikatni
-      char fldName[30];
+      char fldName[40]; // 31 bytes would be enough, use bigger buffer to make sure sprintf does never overflow
       sprintf(fldName, "SignatureFieldName %d", pAnnot->GetObject()->Reference().ObjectNumber());
       PdfString name(fldName);
       signField.SetFieldName(name);
