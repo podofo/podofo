@@ -77,7 +77,8 @@ void PdfXRefStream::WriteSubSection( PdfOutputDevice*, pdf_objnum first, pdf_uin
 void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, pdf_uint64 offset, pdf_gennum generation, 
                                     char cMode, pdf_objnum objectNumber ) 
 {
-    char * buffer = reinterpret_cast<char*>(alloca(m_bufferLen));
+    std::vector<char>	bytes(m_bufferLen);
+    char * buffer = bytes.data();
 
     if( cMode == 'n' && objectNumber == m_pObject->Reference().ObjectNumber() )
         m_offset = offset;

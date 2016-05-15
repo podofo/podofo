@@ -294,7 +294,7 @@ void StringTest::testEmptyString()
     CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(0), str5.GetCharacterLength() );
     CPPUNIT_ASSERT_EQUAL( std::string(), str5.GetStringUtf8() );
     CPPUNIT_ASSERT_EQUAL( std::string(""), str5.GetStringUtf8() );
-
+    
     CPPUNIT_ASSERT( str6.IsValid() );
     CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(0), str6.GetLength() );
     CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(0), str6.GetCharacterLength() );
@@ -313,6 +313,18 @@ void StringTest::testEmptyString()
     CPPUNIT_ASSERT_EQUAL( std::string(), str8.GetStringUtf8() );
     CPPUNIT_ASSERT_EQUAL( std::string(""), str8.GetStringUtf8() );
 
+}
+
+void StringTest::testInitFromUtf8()
+{
+    const char* pszUtf8 = "This string contains UTF-8 Characters: ÄÖÜ.";
+    const PdfString str( reinterpret_cast<const pdf_utf8*>(pszUtf8) );
+    
+    CPPUNIT_ASSERT_EQUAL( true, str.IsUnicode() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(43*2), str.GetLength() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<pdf_long>(43), str.GetCharacterLength() );
+    CPPUNIT_ASSERT_EQUAL( std::string(pszUtf8), str.GetStringUtf8() );
+    
 }
 
 #endif // __clang__

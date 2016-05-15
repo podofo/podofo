@@ -29,28 +29,31 @@
  */
 class StringTest : public CppUnit::TestFixture
 {
-  CPPUNIT_TEST_SUITE( StringTest );
-  CPPUNIT_TEST( testGetStringUtf8 );
-  CPPUNIT_TEST( testUtf16beContructor );
-  CPPUNIT_TEST( testWCharConstructor );
-  CPPUNIT_TEST( testEscapeBrackets );
-  CPPUNIT_TEST( testWriteEscapeSequences );
-  CPPUNIT_TEST( testEmptyString );
-  CPPUNIT_TEST_SUITE_END();
+    CPPUNIT_TEST_SUITE( StringTest );
+    CPPUNIT_TEST( testGetStringUtf8 );
+    CPPUNIT_TEST( testUtf16beContructor );
+    CPPUNIT_TEST( testWCharConstructor );
+    CPPUNIT_TEST( testEscapeBrackets );
+    CPPUNIT_TEST( testWriteEscapeSequences );
+    CPPUNIT_TEST( testEmptyString );
+    CPPUNIT_TEST( testInitFromUtf8 );
+    CPPUNIT_TEST_SUITE_END();
+
 
  public:
-  void setUp();
-  void tearDown();
-
-  void testGetStringUtf8();
-  void testUtf16beContructor();
-  void testWCharConstructor();
-  void testEscapeBrackets();
-  void testWriteEscapeSequences();
-  void testEmptyString();
-
+    void setUp();
+    void tearDown();
+    
+    void testGetStringUtf8();
+    void testUtf16beContructor();
+    void testWCharConstructor();
+    void testEscapeBrackets();
+    void testWriteEscapeSequences();
+    void testEmptyString();
+    void testInitFromUtf8();
+    
  private:
-  void TestWriteEscapeSequences(const char* pszSource, const char* pszExpected);
+    void TestWriteEscapeSequences(const char* pszSource, const char* pszExpected);
 
 };
 

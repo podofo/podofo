@@ -566,7 +566,8 @@ void PdfString::InitFromUtf8( const pdf_utf8* pszStringUtf8, pdf_long lLen )
 
     pdf_long        lBufLen = (lLen << 1) + sizeof(wchar_t);
     // twice as large buffer should always be enough
-    pdf_utf16be *pBuffer = static_cast<pdf_utf16be *>(alloca(lBufLen)); 
+    std::vector<char>	bytes(lBufLen);
+    pdf_utf16be *pBuffer = reinterpret_cast<pdf_utf16be *>(bytes.data()); 
 
     lBufLen = PdfString::ConvertUTF8toUTF16( pszStringUtf8, lLen, pBuffer, lBufLen );
 
