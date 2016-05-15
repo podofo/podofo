@@ -642,13 +642,16 @@ void PdfError::DebugMessage( const char* pszMsg, ... )
     if ( m_fLogMessageCallback != NULL )
     {
         m_fLogMessageCallback->LogMessage(eLogSeverity_Debug, pszPrefix, pszMsg, args);
-        return;
+    }
+    else
+    {
+        if( pszPrefix )
+            fprintf( stderr, "%s", pszPrefix );
+
+        vfprintf( stderr, pszMsg, args );
     }
 
-	if( pszPrefix )
-		fprintf( stderr, "%s", pszPrefix );
-
-	vfprintf( stderr, pszMsg, args );
+    // must call va_end after calling va_start (which allocates memory on some platforms)
 	va_end( args );
 }
 
