@@ -61,6 +61,13 @@ using std::flush;
 #define PDF_XREF_ENTRY_SIZE 20
 #define PDF_XREF_BUF        512
 
+#if defined( PTRDIFF_MAX )
+#define PDF_LONG_MAX PTRDIFF_MAX
+#else
+// only old compilers don't define PTRDIFF_MAX (all 32-bit only?)
+#define PDF_LONG_MAX INT_MAX
+#endif
+
 namespace PoDoFo {
 
 long PdfParser::s_nMaxObjects = std::numeric_limits<long>::max();
@@ -787,22 +794,39 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
 
         if( static_cast<size_t>(objID) < m_offsets.size() && !m_offsets[objID].bParsed )
         {
+            // don't scan directly into m_offsets since TXRefEntry structure member sizes change between platforms and compilers
+            //
+            //  pdf_long lOffset; // pdf_long is ptrdiff_t: 64 bits on Mac64, Linux64, Win64; 32 bits on Mac32, Linux32, Win32
+            //  long lGeneration; // 64 bits on Mac64, Linux64; 32 bits on Win64, Mac32, Linux32, Win32
+            //  char cUsed;       // always 8 bits
+            //
+            pdf_int64 llOffset = 0;
+            pdf_int64 llGeneration = 0;
+            char cUsed = 0;
+            
+            // XRefEntry is defined in PDF spec section 7.5.4 Cross-Reference Table as
+            // nnnnnnnnnn ggggg n eol
+            // nnnnnnnnnn is 10-digit offset number with max value 9999999999 (bigger than 2**32 = 4GB)
+            // ggggg is a 5-digit generation number with max value 99999 (smaller than 2**17)
+            int read = sscanf( m_buffer.GetBuffer(), "%10" PDF_FORMAT_INT64 " %5" PDF_FORMAT_INT64 " %c%c%c",
+                              &llOffset, &llGeneration, &cUsed, &empty1, &empty2 );
+            
+            if ( read != 5 )
+            {
+                // part of XrefEntry is missing, or i/o error
+                PODOFO_RAISE_ERROR( ePdfError_InvalidXRef );
+            }
+            
+            if ( llOffset > PDF_LONG_MAX )
+            {
+                // pdf_long max size is PTRDIFF_MAX, so throw error if llOffset too big
+                PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange ); 
+            }
+            
+            m_offsets[objID].lOffset = static_cast<pdf_long>(llOffset);
+            m_offsets[objID].lGeneration = static_cast<long>(llGeneration);
+            m_offsets[objID].cUsed = cUsed;
             m_offsets[objID].bParsed = true;
-#if defined(_WIN64) && defined(_MSC_VER)
-            m_offsets[objID].lOffset = 0L;
-            m_offsets[objID].lGeneration = 0L;
-            sscanf( m_buffer.GetBuffer(), "%10" PDF_FORMAT_INT64 " %5" PDF_FORMAT_INT64 " %c%c%c", 
-                    &(m_offsets[objID].lOffset), 
-                    &(m_offsets[objID].lGeneration), &(m_offsets[objID].cUsed), &empty1, &empty2 );
-#else
-            pdf_int64 tmp1 = 0; // initialize values in case sscanf reads less values than expected
-            pdf_int64 tmp2 = 0;
-            sscanf( m_buffer.GetBuffer(), "%10" PDF_FORMAT_INT64 " %5" PDF_FORMAT_INT64 " %c%c%c", 
-                    &tmp1, &tmp2, &(m_offsets[objID].cUsed), &empty1, &empty2 );
-
-            m_offsets[objID].lOffset = static_cast<pdf_long>(tmp1);
-            m_offsets[objID].lGeneration = static_cast<long>(tmp2);
-#endif
        }
 
         ++count;
