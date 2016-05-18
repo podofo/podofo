@@ -306,7 +306,7 @@ void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
 }
 
 PdfXObject::PdfXObject( const char* pszSubType, PdfDocument* pParent, const char* pszPrefix )
-    : PdfElement( "XObject", pParent ) 
+    : PdfElement( "XObject", pParent ), m_pResources( NULL )
 {
     ostringstream out;
     PdfLocaleImbue(out);
@@ -324,7 +324,7 @@ PdfXObject::PdfXObject( const char* pszSubType, PdfDocument* pParent, const char
 }
 
 PdfXObject::PdfXObject( const char* pszSubType, PdfVecObjects* pParent, const char* pszPrefix )
-    : PdfElement( "XObject", pParent ) 
+    : PdfElement( "XObject", pParent ), m_pResources( NULL )
 {
     ostringstream out;
     PdfLocaleImbue(out);
@@ -342,7 +342,7 @@ PdfXObject::PdfXObject( const char* pszSubType, PdfVecObjects* pParent, const ch
 }
 
 PdfXObject::PdfXObject( const char* pszSubType, PdfObject* pObject )
-    : PdfElement( "XObject", pObject ) 
+    : PdfElement( "XObject", pObject ), m_pResources( NULL ) 
 {
     ostringstream out;
     PdfLocaleImbue(out);
