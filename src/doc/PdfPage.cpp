@@ -445,7 +445,9 @@ bool PdfPage::SetPageWidth(int newWidth)
     // assign the value of the box from the array
     if ( pObjMediaBox && pObjMediaBox->IsArray() )
     {
-        pObjMediaBox->GetArray()[2].SetNumber(newWidth);
+        // in PdfRect::FromArray(), the Left value is subtracted from Width
+        double dLeftMediaBox = pObjMediaBox->GetArray()[0].GetReal();
+        pObjMediaBox->GetArray()[2].SetReal( newWidth + dLeftMediaBox );
 
         PdfObject*   pObjCropBox;
 
@@ -454,13 +456,17 @@ bool PdfPage::SetPageWidth(int newWidth)
 
         if ( pObjCropBox && pObjCropBox->IsArray() )
         {
-            pObjCropBox->GetArray()[2].SetNumber(newWidth);
+            // in PdfRect::FromArray(), the Left value is subtracted from Width
+            double dLeftCropBox = pObjCropBox->GetArray()[0].GetReal();
+            pObjCropBox->GetArray()[2].SetReal( newWidth + dLeftCropBox );
             return true;
-        }else
+        }
+        else
         {
             return false;
         }
-    }else
+    }
+    else
     {
         return false;
     }
@@ -477,7 +483,9 @@ bool PdfPage::SetPageHeight(int newHeight)
     // assign the value of the box from the array
     if ( pObj && pObj->IsArray() )
     {
-        pObj->GetArray()[3].SetNumber(newHeight);
+        // in PdfRect::FromArray(), the Bottom value is subtracted from Height
+        double dBottom = pObj->GetArray()[1].GetReal();
+        pObj->GetArray()[3].SetReal( newHeight + dBottom );
 
         PdfObject*   pObjCropBox;
 
@@ -486,13 +494,17 @@ bool PdfPage::SetPageHeight(int newHeight)
 
         if ( pObjCropBox && pObjCropBox->IsArray() )
         {
-            pObjCropBox->GetArray()[3].SetNumber(newHeight);
+        // in PdfRect::FromArray(), the Bottom value is subtracted from Height
+            double dBottomCropBox = pObjCropBox->GetArray()[1].GetReal();
+            pObjCropBox->GetArray()[3].SetReal( newHeight + dBottomCropBox );
             return true;
-        }else
+        }
+        else
         {
             return false;
         }
-    }else
+    }
+    else
     {
         return false;
     }
