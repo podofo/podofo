@@ -99,7 +99,7 @@ PdfFontMetricsFreetype* PdfFontMetricsFreetype::CreateForSubsetting(FT_Library* 
 }
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype( FT_Library* pLibrary, const char* pszFilename, 
-                                                               bool pIsSymbol, const char* pszSubsetPrefix )
+                                                bool pIsSymbol, const char* pszSubsetPrefix )
     : PdfFontMetrics( PdfFontMetrics::FontTypeFromFilename( pszFilename ),
                       pszFilename, pszSubsetPrefix ),
       m_pLibrary( pLibrary ),

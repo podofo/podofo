@@ -81,15 +81,15 @@ PdfFont* PdfFontFactory::CreateFontObject( PdfFontMetrics* pMetrics, int nFlags,
             // something went wrong, so we have to delete
             // the font metrics
             delete pMetrics;
-	    pMetrics = NULL;
+            pMetrics = NULL;
             // make sure this will be done before the catch block
             // as the encoding might be deleted already
             // afterwars, but we cannot set the pointer to NULL
             if( pEncoding && pEncoding->IsAutoDelete() )
-	    {
+            {
                 delete pEncoding;
-		pEncoding = NULL;
-	    }
+                pEncoding = NULL;
+            }
         }
     }
     catch( PdfError & e ) 
@@ -136,7 +136,7 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
 		            pFont = new PdfFontCID( pMetrics, pEncoding, pParent, bEmbed, true );
 		        }
 		        else {
-                pFont = new PdfFontTrueType( pMetrics, pEncoding, pParent, bEmbed );
+                    pFont = new PdfFontTrueType( pMetrics, pEncoding, pParent, bEmbed );
 		        }
                 break;
                 
