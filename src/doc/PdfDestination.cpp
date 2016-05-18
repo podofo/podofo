@@ -37,7 +37,7 @@
 #include "base/PdfDefinesPrivate.h"
 
 #include "PdfAction.h"
-#include "PdfDocument.h"
+#include "PdfMemDocument.h"
 #include "PdfNamesTree.h"
 #include "PdfPage.h"
 #include "PdfPagesTree.h"
@@ -156,9 +156,13 @@ const PdfDestination & PdfDestination::operator=( const PdfDestination & rhs )
 
 void PdfDestination::Init( PdfObject* pObject, PdfDocument* pDocument )
 {
+    bool bValueExpected = false;
+    PdfObject* pValue = NULL;
+
     if ( pObject->GetDataType() == ePdfDataType_Array ) 
     {
         m_array = pObject->GetArray();
+        m_pObject = pObject;
     }
     else if( pObject->GetDataType() == ePdfDataType_String ) 
     {
@@ -168,7 +172,44 @@ void PdfDestination::Init( PdfObject* pObject, PdfDocument* pDocument )
             PODOFO_RAISE_ERROR( ePdfError_NoObject );
         }
             
-        PdfObject* pValue = pNames->GetValue( "Dests", pObject->GetString() );
+        pValue = pNames->GetValue( "Dests", pObject->GetString() );
+        bValueExpected = true;
+    }
+    else if( pObject->GetDataType() == ePdfDataType_Name )
+    {
+        PdfMemDocument* pMemDoc = dynamic_cast<PdfMemDocument*>(pDocument);
+        if ( !pMemDoc )
+        { 
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle,
+                "For reading from a document, only use PdfMemDocument." );
+        }
+
+        PdfObject* pCatalog = pMemDoc->GetCatalog();
+        if ( !pCatalog )
+        {
+            PODOFO_RAISE_ERROR( ePdfError_NoObject );
+        }
+ 
+        PdfObject* pDests = pCatalog->GetIndirectKey( PdfName( "Dests" ) );
+        if( !pDests )
+        {
+            // The error code has been chosen for its distinguishability.
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidKey,
+                "No PDF-1.1-compatible destination dictionary found." );
+        }
+        pValue = pDests->GetIndirectKey( pObject->GetName() );
+        bValueExpected = true;
+    } 
+    else
+    {
+        PdfError::LogMessage( eLogSeverity_Error, "Unsupported object given to"
+            " PdfDestination::Init of type %s", pObject->GetDataTypeString() );
+        m_array = PdfArray(); // needed to prevent crash on method calls
+        // needed for GetObject() use w/o checking its return value for NULL
+        m_pObject = pDocument->GetObjects()->CreateObject( m_array );
+    }
+    if ( bValueExpected )
+    {
         if( !pValue ) 
         {
             PODOFO_RAISE_ERROR( ePdfError_InvalidName );
@@ -178,9 +219,8 @@ void PdfDestination::Init( PdfObject* pObject, PdfDocument* pDocument )
             m_array = pValue->GetArray();
         else if( pValue->IsDictionary() )
             m_array = pValue->GetDictionary().GetKey( "D" )->GetArray();
+        m_pObject = pValue;
     }
-
-    m_pObject = pObject;
 }
 
 void PdfDestination::AddToDictionary( PdfDictionary & dictionary ) const
