@@ -780,7 +780,6 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
                 return NULL;
 #endif // _WIN32
             }
-            sPath = pszFontName;
         }
         else {
             sPath = pszFileName;
@@ -1007,18 +1006,18 @@ PdfFont* PdfFontCache::CreateFontObject( TISortedFontList itSorted, TSortedFontL
     try {
         int nFlags = ePdfFont_Normal;
 
-    if ( bSubsetting )
-        nFlags |= ePdfFont_Subsetting;
-    
-    if( bEmbedd )
-        nFlags |= ePdfFont_Embedded;
-
+        if ( bSubsetting )
+            nFlags |= ePdfFont_Subsetting;
+        
+        if( bEmbedd )
+            nFlags |= ePdfFont_Embedded;
+        
         if( bBold ) 
             nFlags |= ePdfFont_Bold;
 
         if( bItalic )
             nFlags |= ePdfFont_Italic;
-
+        
         pFont    = PdfFontFactory::CreateFontObject( pMetrics, nFlags, pEncoding, m_pParent );
 
         if( pFont ) 
@@ -1029,8 +1028,8 @@ PdfFont* PdfFontCache::CreateFontObject( TISortedFontList itSorted, TSortedFontL
             element.m_bItalic   = pFont->IsItalic();
             element.m_sFontName = pszFontName;
             element.m_pEncoding = pEncoding;
-                element.m_bIsSymbolCharset = pMetrics->IsSymbol();
-
+            element.m_bIsSymbolCharset = pMetrics->IsSymbol();
+            
             // Do a sorted insert, so no need to sort again
             rvecContainer.insert( itSorted, element );
         }
@@ -1040,7 +1039,7 @@ PdfFont* PdfFontCache::CreateFontObject( TISortedFontList itSorted, TSortedFontL
         PdfError::LogMessage( eLogSeverity_Error, "Cannot initialize font: %s\n", pszFontName ? pszFontName : "" );
         return NULL;
     }
-
+    
     return pFont;
 }
 

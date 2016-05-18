@@ -796,6 +796,32 @@ void LargeMultiLineTextTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* 
 
 }
 
+void FontSubsetTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
+{
+    double     x     = 10000 * CONVERSION_CONSTANT;
+    double     y     = pPage->GetPageSize().GetHeight() - 10000 * CONVERSION_CONSTANT;
+    PdfFont* pFont;
+
+    const double dHeight = 50000 * CONVERSION_CONSTANT; // 5cm
+
+    y -= dHeight;
+
+    PdfEncoding* pEncoding = new PdfIdentityEncoding();
+    pFont = pDocument->CreateFontSubset( "Verdana", false, false, false, pEncoding );
+    if( !pFont )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    pFont->SetFontSize( 16.0 );
+    pPainter->DrawText(x, y, "Hello World!");
+
+    y -= dHeight;
+
+    pFont->SetFontSize( 32.0 );
+    pPainter->DrawText(x, y, "Subsetting in action!");
+}
+    
 int main( int argc, char* argv[] ) 
 {
     PdfMemDocument  writer;
@@ -898,6 +924,12 @@ int main( int argc, char* argv[] )
     TEST_SAFE_OP( LargeMultiLineTextTest( &painter, pPage, &writer ) );
     painter.FinishPage();
 
+    printf("Drawing using Font Subset.\n");
+    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+    painter.SetPage( pPage );
+    pRoot->Last()->CreateNext( "Font Subset Test", PdfDestination( pPage ) );
+    TEST_SAFE_OP( FontSubsetTest( &painter, pPage, &writer ) );
+    painter.FinishPage();
     
 #if 0
     /** Create a really large name tree to test the name tree implementation
