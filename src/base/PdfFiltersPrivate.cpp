@@ -471,6 +471,8 @@ void PdfAscii85Filter::WidePut( unsigned long tuple, int bytes ) const
 PdfFlateFilter::PdfFlateFilter()
     : m_pPredictor( 0 )
 {
+    memset( m_buffer, 0, sizeof(m_buffer) );
+    memset( &m_stream, 0, sizeof(m_stream) );
 }
 
 PdfFlateFilter::~PdfFlateFilter()
@@ -663,7 +665,11 @@ const unsigned short PdfLZWFilter::s_clear  = 0x0100;      // clear table
 const unsigned short PdfLZWFilter::s_eod    = 0x0101;      // end of data
 
 PdfLZWFilter::PdfLZWFilter()
-    : m_pPredictor( 0 )
+    : m_mask(0),
+    m_code_len(0),
+    m_character(0),
+    m_bFirst(false),
+    m_pPredictor( 0 )
 {
 }
 
