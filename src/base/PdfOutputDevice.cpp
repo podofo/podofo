@@ -58,6 +58,7 @@ PdfOutputDevice::PdfOutputDevice( const char* pszFilename )
 
 	std::fstream *pStream = new std::fstream(pszFilename, std::fstream::binary|std::ios_base::in | std::ios_base::out | std::ios_base::trunc);
 	if(pStream->fail()) {
+        delete pStream;
 		PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
 	}
 	m_pStream = pStream;
