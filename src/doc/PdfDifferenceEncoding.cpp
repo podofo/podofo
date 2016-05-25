@@ -2645,7 +2645,7 @@ PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & 
 
         if (!m_differences.ContainsUnicodeValue(val, *pCur))
 	{
-          *pCur = static_cast<const PdfSimpleEncoding *>(pEncoding)->GetUnicodeCharCode(*pCur);
+            *pCur = static_cast<const PdfSimpleEncoding *>(pEncoding)->GetUnicodeCharCode(val);
 	}
 	  
         if( *pCur) // ignore 0 characters, as they cannot be converted to the current encoding
