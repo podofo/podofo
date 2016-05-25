@@ -181,13 +181,19 @@ PdfOutlineItem* PdfOutlineItem::CreateNext ( const PdfString & sTitle, const Pdf
 void PdfOutlineItem::SetPrevious( PdfOutlineItem* pItem )
 {
     m_pPrev = pItem;
-    this->GetObject()->GetDictionary().AddKey( "Prev", m_pPrev->GetObject()->Reference() );
+    if( m_pPrev )
+        this->GetObject()->GetDictionary().AddKey( "Prev", m_pPrev->GetObject()->Reference() );
+    else
+        this->GetObject()->GetDictionary().RemoveKey( "Prev" );
 }
 
 void PdfOutlineItem::SetNext( PdfOutlineItem* pItem )
 {
     m_pNext = pItem;
-    this->GetObject()->GetDictionary().AddKey( "Next", m_pNext->GetObject()->Reference() );
+    if( m_pNext )
+        this->GetObject()->GetDictionary().AddKey( "Next", m_pNext->GetObject()->Reference() );
+    else
+        this->GetObject()->GetDictionary().RemoveKey( "Next" );
 }
 
 void PdfOutlineItem::SetLast( PdfOutlineItem* pItem )
@@ -217,16 +223,20 @@ void PdfOutlineItem::Erase()
         m_pFirst->Erase();
     }
 
-    if( m_pPrev && m_pNext ) 
+    if( m_pPrev ) 
     {
-        m_pPrev->SetNext    ( m_pNext );
+        m_pPrev->SetNext( m_pNext );
+    }
+
+    if( m_pNext ) 
+    {
         m_pNext->SetPrevious( m_pPrev );
     }
 
-    if( !m_pPrev && m_pParentOutline )
+    if( !m_pPrev && m_pParentOutline && this == m_pParentOutline->First() )
         m_pParentOutline->SetFirst( m_pNext );
 
-    if( !m_pNext && m_pParentOutline )
+    if( !m_pNext && m_pParentOutline && this == m_pParentOutline->Last() )
         m_pParentOutline->SetLast( m_pPrev );
 
     m_pNext = NULL;
