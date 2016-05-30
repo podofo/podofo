@@ -177,6 +177,9 @@ class PODOFO_API PdfString : public PdfDataType{
     void SetHexData( const char* pszHex, pdf_long lLen = -1, PdfEncrypt* pEncrypt = NULL );
 
     /** The string is valid if no error in the constructor has occurred.
+     *  The default constructor PdfString() creates an invalid string, as do
+     *  other constructors when passed a NULL char* or NULL wchar_t*.
+     *  PdfString::StringNull uses the default constructor so is also invalid.
      *  If it is valid it is safe to call all the other member functions.
      *  \returns true if this is a valid initialized PdfString
      */
@@ -229,7 +232,8 @@ class PODOFO_API PdfString : public PdfDataType{
      *  characters. Better use GetUnicode() in this case.
      * 
      *  \returns the strings contents which is guaranteed to be zero terminated
-     *           but might also contain 0 bytes in the string.
+     *           but might also contain 0 bytes in the string,
+     *           returns NULL if PdfString::IsValid() returns false
      *
      *  \see IsHex
      *  \see IsUnicode
@@ -245,7 +249,8 @@ class PODOFO_API PdfString : public PdfDataType{
      *
      *  This is the prefered way to access the strings contents.
      *
-     *  \returns the string contents always as UTF8.
+     *  \returns the string contents always as UTF8,
+     *           returns NULL if PdfString::IsValid() returns false
      */
     inline const std::string & GetStringUtf8() const;
 
@@ -253,6 +258,7 @@ class PODOFO_API PdfString : public PdfDataType{
     /** The contents of the string as wide character string.
      *
      *  \returns the string contents as wide character string.
+     *           returns an empty string if PdfString::IsValid() returns false
      */
     const std::wstring GetStringW() const;
 #endif // _WIN32
@@ -260,7 +266,8 @@ class PODOFO_API PdfString : public PdfDataType{
     /** The length of the string data returned by GetString() 
      *  in bytes not including terminating zeros.
      *
-     *  \returns the length of the string. 
+     *  \returns the length of the string,
+     *           returns zero if PdfString::IsValid() returns false
      *
      *  \see GetCharacterLength to determine the number of characters in the string
      */
@@ -269,7 +276,8 @@ class PODOFO_API PdfString : public PdfDataType{
     /** The length of the string data returned by GetUnicode() 
      *  in characters not including the terminating zero 
      *
-     *  \returns the length of the string. 
+     *  \returns the length of the string,
+     *           returns zero if PdfString::IsValid() returns false
      *
      *  \see GetCharacterLength to determine the number of characters in the string
      */
@@ -283,7 +291,8 @@ class PODOFO_API PdfString : public PdfDataType{
      *  as GetLength() will returns the number of bytes used for unicode strings!
      *
      * 
-     *  \returns the number of characters in the string
+     *  \returns the number of characters in the string,
+     *           returns zero if PdfString::IsValid() returns false
      */
     inline pdf_long GetCharacterLength() const;
 
@@ -362,13 +371,15 @@ class PODOFO_API PdfString : public PdfDataType{
      *  If IsUnicode() returns true a copy of this string is returned
      *  otherwise the string data is converted to UTF-16be and returned.
      *
-     *  \returns a unicode version of this string
+     *  \returns a unicode version of this string,
+     *           returns *this if if PdfString::IsValid() returns false
      */
     PdfString ToUnicode() const;
 
 	 /** Returns internal buffer; do not free it, it's owned by the PdfString
 	  *
 	  * \returns internal buffer; do not free it, it's owned by the PdfString
+      *          returns a NULL zero size buffer if PdfString::IsValid() returns false
 	  */
 	 PdfRefCountedBuffer &GetBuffer(void);
 
@@ -503,6 +514,14 @@ const std::string & PdfString::GetStringUtf8() const
 // -----------------------------------------------------
 pdf_long PdfString::GetLength() const
 {
+    if ( !IsValid() )
+    {
+        PdfError::LogMessage( eLogSeverity_Error, "PdfString::GetLength invalid PdfString" );
+        return 0;
+    }
+    
+    PODOFO_ASSERT( m_buffer.GetSize() >= 2 );
+    
     return m_buffer.GetSize() - 2;
 }
 
@@ -519,6 +538,14 @@ pdf_long PdfString::GetCharacterLength() const
 // -----------------------------------------------------
 pdf_long PdfString::GetUnicodeLength() const
 {
+    if ( !IsValid() )
+    {
+        PdfError::LogMessage( eLogSeverity_Error, "PdfString::GetUnicodeLength invalid PdfString" );
+        return 0;
+    }
+    
+    PODOFO_ASSERT( (m_buffer.GetSize() / sizeof(pdf_utf16be)) >= 1 );
+    
     return (m_buffer.GetSize() / sizeof(pdf_utf16be)) - 1;
 }
 

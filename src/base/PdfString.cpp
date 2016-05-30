@@ -354,7 +354,7 @@ void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
     // Peter Petrov: 17 May 2008
     // Added check - m_buffer.GetSize()
     // Now we are not encrypting the empty strings (was access violation)!
-    if( pEncrypt && m_buffer.GetSize())
+    if( pEncrypt && m_buffer.GetSize() && IsValid() )
     {
         pdf_long nInputBufferLen = m_buffer.GetSize() - 2; // Cut off the trailing pair of zeros
         pdf_long nUnicodeMarkerOffet = sizeof( PdfString::s_pszUnicodeMarker );
@@ -387,7 +387,7 @@ void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
     }
 
     pDevice->Print( m_bHex ? "<" : "(" );
-    if( m_buffer.GetSize() )
+    if( m_buffer.GetSize() && IsValid() )
     {
         char* pBuf = m_buffer.GetBuffer();
         pdf_long  lLen = m_buffer.GetSize() - 2; // Cut off the trailing pair of zeros
@@ -452,6 +452,12 @@ const PdfString & PdfString::operator=( const PdfString & rhs )
 
 bool PdfString::operator>( const PdfString & rhs ) const
 {
+    if ( !this->IsValid() || !rhs.IsValid() )
+    {
+        PdfError::LogMessage( eLogSeverity_Error, "PdfString::operator> LHS or RHS was invalid PdfString" );
+        return false;
+    }
+    
     const PdfString & str1 = *this;
     const PdfString & str2 = rhs;
 
@@ -475,6 +481,12 @@ bool PdfString::operator>( const PdfString & rhs ) const
 
 bool PdfString::operator<( const PdfString & rhs ) const
 {
+    if ( !this->IsValid() || !rhs.IsValid() )
+    {
+        PdfError::LogMessage( eLogSeverity_Error, "PdfString::operator< LHS or RHS was invalid PdfString" );
+        return false;
+    }
+    
     const PdfString & str1 = *this;
     const PdfString & str2 = rhs;
 
@@ -498,6 +510,17 @@ bool PdfString::operator<( const PdfString & rhs ) const
 
 bool PdfString::operator==( const PdfString & rhs ) const
 {
+    if ( !this->IsValid() && !rhs.IsValid() )
+    {
+        PdfError::LogMessage( eLogSeverity_Error, "PdfString::operator== LHS and RHS both invalid PdfStrings" );
+        return true;
+    }
+    else if ( !this->IsValid() || !rhs.IsValid() )
+    {
+        PdfError::LogMessage( eLogSeverity_Error, "PdfString::operator== LHS or RHS was invalid PdfString" );
+        return false;
+    }
+
     PdfString str1 = *this;
     PdfString str2 = rhs;
 
@@ -615,6 +638,12 @@ void PdfString::InitUtf8()
 #ifdef _WIN32
 const std::wstring PdfString::GetStringW() const
 {
+    if ( !IsValid() )
+    {
+        PdfError::LogMessage( eLogSeverity_Error, "PdfString::GetStringW invalid PdfString" );
+        return std::wstring();
+    }
+    
     if( !this->IsUnicode() )
     {
         return this->ToUnicode().GetStringW();
@@ -693,13 +722,24 @@ PdfString PdfString::HexDecode() const
 PdfString PdfString::ToUnicode() const
 {
     if( this->IsUnicode() )
+    {
         return *this;
-    else
+    }
+    else if ( this->IsValid() )
     {
         const PdfEncoding* const pEncoding = (m_pEncoding ? 
                                               m_pEncoding : 
                                               PdfEncodingFactory::GlobalPdfDocEncodingInstance());
         return pEncoding->ConvertToUnicode( *this, NULL );
+    }
+    else
+    {
+        // can't convert because PdfString is invalid and has no buffer, so return *this
+        // which means trying to convert an invalid string returns another invalid string
+        // and in the special case where *this is PdfString::StringNull then ToUnicode()
+        // returns PdfString::StringNull
+        PdfError::LogMessage( eLogSeverity_Error, "PdfString::ToUnicode invalid PdfString" );
+        return *this;
     }
 }
 
