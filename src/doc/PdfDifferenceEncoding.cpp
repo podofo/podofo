@@ -2306,9 +2306,6 @@ bool PdfEncodingDifference::ContainsUnicodeValue( pdf_utf16be unicodeValue, char
 	TCIVecDifferences it, end = m_vecDifferences.end();
 	for (it = m_vecDifferences.begin(); it != end; it++) {
 		pdf_utf16be uv = it->unicodeValue;
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-		uv = ((uv & 0xff00) >> 8) | ((uv & 0xff) << 8);
-#endif // PODOFO_IS_LITTLE_ENDIAN
 		if (uv == unicodeValue) {
 			rValue = it->nCode;
 			return true;
