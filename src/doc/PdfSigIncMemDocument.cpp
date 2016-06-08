@@ -62,10 +62,17 @@ extern "C" {
 #  ifndef XMD_H
 #    define XMD_H
 #  endif
-#  ifdef _WIN32		// Collision between win and jpeg-headers
+#  ifdef _WIN32		// Collision between Win32 and libjpeg headers
 #    undef FAR
+#    ifndef HAVE_BOOLEAN
+#      define HAVE_BOOLEAN
+#      define PODOFO_JPEG_HAVE_BOOLEAN // not to be defined in the build system
+#    endif
 #  endif
 #  include "jpeglib.h"
+#  ifdef PODOFO_JPEG_HAVE_BOOLEAN
+#    undef HAVE_BOOLEAN 
+#  endif
 }
 #endif // PODOFO_HAVE_JPEG_LIB
 

@@ -44,27 +44,8 @@
 #include <wchar.h>
 #include <sstream>
 
-#ifdef PODOFO_HAVE_TIFF_LIB
-extern "C" {
-#  include "tiffio.h"
-#  ifdef _WIN32		// Collision between tiff and jpeg-headers
-#    ifndef XMD_H
-#    define XMD_H
-#    endif
-#    undef FAR
-#  endif
-}
-#endif // PODOFO_HAVE_TIFF_LIB
-
-#ifdef PODOFO_HAVE_JPEG_LIB
-extern "C" {
-#  ifndef XMD_H
-#    define XMD_H
-#  endif
-#  include "jpeglib.h"
-}
-
-#endif // PODOFO_HAVE_JPEG_LIB
+// TIFF and JPEG headers already included through "base/PdfFiltersPrivate.h",
+// although in opposite order (first JPEG, then TIFF), if available of course
 
 #ifdef PODOFO_HAVE_PNG_LIB
 #include <png.h>
