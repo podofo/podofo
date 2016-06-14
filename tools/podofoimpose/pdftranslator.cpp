@@ -125,7 +125,7 @@ namespace PoDoFo
 					}
 					catch(PdfError& e)
 					{
-						std::cerr<<"Unable to create Document: " <<PdfError::ErrorMessage( e. GetError() )<<endl;
+                        std::cerr << "Unable to create Document: " << PdfError::ErrorMessage( e.GetError() ) << std::endl;
 						return;
 					}
 				}

@@ -165,9 +165,9 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
      *
      *  The internal buffer is now owned by the caller
      *  and will not be deleted by PdfMemoryOutputStream.
-     *  Further calls to write are not allowed.
+     *  Further calls to Write() are not allowed.
      *
-     *  The caller has to free the returned malloc'ed buffer!
+     *  The caller has to free() the returned malloc()'ed buffer!
      */
     inline char* TakeBuffer();
 

@@ -209,7 +209,7 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
     int  c; 
     pdf_int64  counter  = 0;
 
-    // check first if there are quequed tokens and return them first
+    // check first if there are queued tokens and return them first
     if( m_deqQueque.size() )
     {
         TTokenizerPair pair = m_deqQueque.front();
@@ -810,7 +810,7 @@ void PdfTokenizer::ReadName( PdfVariant& rVariant )
         // Some weird PDFs even use them.
         rVariant = PdfName();
 
-        // Queque the token again
+        // Enqueue the token again
         if( gotToken )
             QuequeToken( pszToken, eType );
     }

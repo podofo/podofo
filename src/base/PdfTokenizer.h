@@ -234,8 +234,8 @@ class PODOFO_API PdfTokenizer {
      */
     void ReadName( PdfVariant& rVariant );
 
-    /** Add a token to the queque of tokens.
-     *  GetNextToken() will return all quequed tokens first before
+    /** Add a token to the queue of tokens.
+     *  GetNextToken() will return all enqueued tokens first before
      *  reading new tokens from the input device.
      *
      *  \param pszToken string of the token
@@ -257,8 +257,8 @@ class PODOFO_API PdfTokenizer {
     static const char * const s_whitespaceMap;
     static const char s_octMap[]; ///< Map of bool values, if a certain char
                                   ///< is a valid octal digit
-    static const char * const s_escMap; ///< Mapping of escape sequences to there value
-    static const char * const s_hexMap; ///< Mapping of hex characters to there value
+    static const char * const s_escMap; ///< Mapping of escape sequences to their value
+    static const char * const s_hexMap; ///< Mapping of hex characters to their value
 
 
     TTokenizerQueque m_deqQueque;

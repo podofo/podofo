@@ -924,7 +924,7 @@ class PODOFO_DOC_API PdfTextField : public PdfField {
      *
      *  \param bCombs if true enable division into combs
      *
-     *  By default coms are disabled. Requires the max len
+     *  By default combs are disabled. Requires the max-len
      *  property to be set.
      *
      *  \see SetMaxLen
@@ -932,7 +932,7 @@ class PODOFO_DOC_API PdfTextField : public PdfField {
     inline void SetCombs( bool bCombs );
 
     /**
-     * \returns true if the text field is divided in to equal combs
+     * \returns true if the text field has a division into equal combs set on it
      */
     inline bool IsCombs() const;
 

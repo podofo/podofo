@@ -55,8 +55,8 @@ namespace PoDoFo {
 
 /** Error Code defines which are used in PdfError to describe the error.
  *
- *  If you add an error code to this enum, please also add it to PdfError::ErrorName
- *  and PdfError::ErrorMessage.
+ *  If you add an error code to this enum, please also add it to PdfError::ErrorName()
+ *  and PdfError::ErrorMessage().
  * 
  *  \see PdfError
  */
@@ -80,7 +80,7 @@ enum EPdfError {
     ePdfError_NoXRef,                   /**< The PDF file has no or an invalid XRef table. */
     ePdfError_NoTrailer,                /**< The PDF file has no or an invalid trailer. */
     ePdfError_NoNumber,                 /**< A number was expected in the PDF file, but the read string is no number. */
-    ePdfError_NoObject,                 /**< A object was expected and non was found. */
+    ePdfError_NoObject,                 /**< A object was expected and none was found. */
     ePdfError_NoEOFToken,               /**< The PDF file has no or an invalid EOF marker. */
 
     ePdfError_InvalidTrailerSize,       /**< The trailer size is invalid. */
@@ -102,7 +102,7 @@ enum EPdfError {
     ePdfError_InvalidContentStream,     /**< The content stream is invalid due to mismatched context pairing or other problems */
 
     ePdfError_UnsupportedFilter,        /**< The requested filter is not yet implemented. */
-    ePdfError_UnsupportedFontFormat,    /**< This font format is not supported by PoDoFO. */
+    ePdfError_UnsupportedFontFormat,    /**< This font format is not supported by PoDoFo. */
     ePdfError_ActionAlreadyPresent,     /**< An Action was already present when trying to add a Destination */
     ePdfError_WrongDestinationType,     /**< The requested field is not available for the given destination type */
 
@@ -114,15 +114,15 @@ enum EPdfError {
 
     ePdfError_MutexError,               /**< Error during a mutex operation */
 
-    ePdfError_UnsupportedImageFormat,   /**< This image format is not supported by PoDoFO. */
+    ePdfError_UnsupportedImageFormat,   /**< This image format is not supported by PoDoFo. */
     ePdfError_CannotConvertColor,       /**< This color format cannot be converted. */
 
     ePdfError_NotImplemented,           /**< This feature is currently not implemented. */
 
-    ePdfError_DestinationAlreadyPresent,/**< An destination was already present when trying to add a Action */
+    ePdfError_DestinationAlreadyPresent,/**< An destination was already present when trying to add an Action */
     ePdfError_ChangeOnImmutable,        /**< Changing values on immutable objects is not allowed. */
 
-    ePdfError_NotCompiled,              /**< This feature was disabled during compile time. */
+    ePdfError_NotCompiled,              /**< This feature was disabled at compile time. */
 
     ePdfError_Unknown = 0xffff          /**< Unknown error */
 };
@@ -180,7 +180,7 @@ class PODOFO_API PdfErrorInfo {
     PdfErrorInfo();
     PdfErrorInfo( int line, const char* pszFile, const char* pszInfo );
     PdfErrorInfo( int line, const char* pszFile, const wchar_t* pszInfo );
-	PdfErrorInfo( const PdfErrorInfo & rhs );
+    PdfErrorInfo( const PdfErrorInfo & rhs );
 
     const PdfErrorInfo & operator=( const PdfErrorInfo & rhs );
 
@@ -196,7 +196,7 @@ class PODOFO_API PdfErrorInfo {
     int          m_nLine;
     std::string  m_sFile;
     std::string  m_sInfo;
-	std::wstring m_swInfo;
+    std::wstring m_swInfo;
 };
 
 
@@ -377,13 +377,13 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError {
     static const char* ErrorMessage( EPdfError eCode );
 
     /** Log a message to the logging system defined for PoDoFo.
-     *  \param eLogSeverity the sevirity of the log message
+     *  \param eLogSeverity the severity of the log message
      *  \param pszMsg       the message to be logged
      */
     static void LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... );
 
     /** Log a message to the logging system defined for PoDoFo.
-     *  \param eLogSeverity the sevirity of the log message
+     *  \param eLogSeverity the severity of the log message
      *  \param pszMsg       the message to be logged
      */
     static void LogMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ... );
@@ -415,9 +415,9 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError {
     /** Log a message to the logging system defined for PoDoFo.
      *
      *  This call does not check if logging is enabled and always
-     *  prints the error message
+     *  prints the error message.
      *
-     *  \param eLogSeverity the sevirity of the log message
+     *  \param eLogSeverity the severity of the log message
      *  \param pszMsg       the message to be logged
      */
     static void LogErrorMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... );
@@ -427,7 +427,7 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError {
      *  This call does not check if logging is enabled and always
      *  prints the error message
      *
-     *  \param eLogSeverity the sevirity of the log message
+     *  \param eLogSeverity the severity of the log message
      *  \param pszMsg       the message to be logged
      */
     static void LogErrorMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ... );

@@ -264,7 +264,7 @@ void PdfVecObjects::AddFreeObject( const PdfReference & rReference )
     if( it.first != it.second && !m_lstFreeObjects.empty() ) 
     {
         // Be sure that no reference is added twice to free list
-        PdfError::DebugMessage( "Adding %d to freelist, is already contained !!", rReference.ObjectNumber() );
+        PdfError::DebugMessage( "Adding %d to free list, is already contained in it!", rReference.ObjectNumber() );
         return;
     }
     else

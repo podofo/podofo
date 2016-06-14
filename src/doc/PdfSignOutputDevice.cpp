@@ -106,7 +106,7 @@ void PdfSignOutputDevice::SetSignatureSize(size_t lSignatureSize)
 
 size_t PdfSignOutputDevice::GetSignatureSize()const
 {
-	return (m_pSignatureBeacon == NULL)?0:(m_pSignatureBeacon->data().size()/2);
+	return (m_pSignatureBeacon == NULL) ? 0 : ( m_pSignatureBeacon->data().size() / 2 );
 }
 
 void PdfSignOutputDevice::SetSignature(const PdfData &sigData)
@@ -205,12 +205,12 @@ size_t PdfSignOutputDevice::ReadForSignature(char* pBuffer, size_t lLen)
 			if(lLen==0) return numRead;
 		}
 	}
-	// shift at the end of beacon
-	if( (pos+numRead)>= m_sBeaconPos && 
-		pos < (m_sBeaconPos+(m_pSignatureBeacon->data().size()+2) )
-		) {
-		m_pRealDevice->Seek(m_sBeaconPos+(m_pSignatureBeacon->data().size()+2) );
-	}
+    // shift at the end of beacon
+    if ( (pos + numRead) >= m_sBeaconPos && 
+        pos < ( m_sBeaconPos + (m_pSignatureBeacon->data().size() + 2) )
+    ) {
+        m_pRealDevice->Seek( m_sBeaconPos + (m_pSignatureBeacon->data().size() + 2) );
+    }
 	// read after beacon
 	lLen = PODOFO_MIN(lLen, m_pRealDevice->GetLength()-m_pRealDevice->Tell());
 	if(lLen==0) return numRead;
@@ -220,10 +220,10 @@ size_t PdfSignOutputDevice::ReadForSignature(char* pBuffer, size_t lLen)
 void PdfSignOutputDevice::Write( const char* pBuffer, size_t lLen )
 {
     // Check if data with beacon
-    if(m_pSignatureBeacon!=NULL)
+    if(m_pSignatureBeacon != NULL)
     {
-        const std::string &data = m_pSignatureBeacon->data();
-        if(data.size()<=lLen)
+        const std::string & data = m_pSignatureBeacon->data();
+        if(data.size() <= lLen)
         {
             const char *pStart = pBuffer;
             const char *pStop = pStart + (lLen-data.size());

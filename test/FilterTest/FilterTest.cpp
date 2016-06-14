@@ -127,7 +127,7 @@ void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const pdf_long l
     printf("\t-> Test succeeded!\n");
 }
 
-void test_filter_queque( const char* pBuffer, long lLen )
+void test_filter_queue( const char* pBuffer, long lLen )
 {
     char*    pEncoded;
     pdf_long lEncoded;
@@ -291,8 +291,8 @@ int main()
         }
 
 
-        test_filter_queque( pTestBuffer1, lTestLength1 );
-        test_filter_queque( pTestBuffer2, lTestLength2 );
+        test_filter_queue( pTestBuffer1, lTestLength1 );
+        test_filter_queue( pTestBuffer2, lTestLength2 );
         
         test_stream( pTestBuffer1, lTestLength1 );
         test_stream( pTestBuffer2, lTestLength2 );

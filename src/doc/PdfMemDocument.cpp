@@ -166,8 +166,8 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
 
     if( pParser->GetEncrypted() ) 
     {
-        // All PdfParserObjects have a pointer to the PdfEncrypt obkect
-        // So we have to take ownership of it.
+        // All PdfParser instances have a pointer to a PdfEncrypt object.
+        // So we have to take ownership of it (command the parser to give it).
         delete m_pEncrypt;
         m_pEncrypt = pParser->TakeEncrypt();
     }
