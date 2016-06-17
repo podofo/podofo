@@ -83,7 +83,7 @@ class PODOFO_DOC_API PdfDocument {
      */
     virtual ~PdfDocument();
 
-    /** Get the write mode used for wirting the PDF
+    /** Get the write mode used for writing the PDF
      *  \returns the write mode
      */
     virtual EPdfWriteMode GetWriteMode() const = 0;
@@ -93,8 +93,8 @@ class PODOFO_DOC_API PdfDocument {
      */
     virtual EPdfVersion GetPdfVersion() const = 0;
 
-    /** Returns wether this PDF document is linearized, aka
-     *  weboptimized
+    /** Returns whether this PDF document is linearized, aka
+     *  web-optimized
      *  \returns true if the PDF document is linearized
      */
     virtual bool IsLinearized() const = 0;
@@ -137,7 +137,7 @@ class PODOFO_DOC_API PdfDocument {
                               EPdfAcroFormDefaulAppearance eDefaultAppearance = ePdfAcroFormDefaultAppearance_BlackText12pt);
 
     /** Get access to the pages tree.
-     *  Better use GetPage and CreatePage methods.
+     *  Better use the GetPage() and CreatePage() methods.
      *  \returns the PdfPagesTree of this document.
      */
     inline PdfPagesTree* GetPagesTree() const;
@@ -159,7 +159,7 @@ class PODOFO_DOC_API PdfDocument {
 
     /** Creates a PdfFont object
      *  \param pszFontName name of the font as it is known to the system
-     *  \param bSymbolCharset whether to use symbol charset, rather than unicode charset
+     *  \param bSymbolCharset whether to use the symbol charset, rather than unicode charset
      *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
      *  \param eFontCreationFlags special flag to specify how fonts should be created
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
@@ -177,7 +177,7 @@ class PODOFO_DOC_API PdfDocument {
      *  \param pszFontName name of the font as it is known to the system
      *  \param bBold if true search for a bold font
      *  \param bItalic if true search for an italic font
-     *  \param bSymbolCharset whether to use symbol charset, rather than unicode charset
+     *  \param bSymbolCharset whether to use the symbol charset, rather than unicode charset
      *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
      *  \param eFontCreationFlags special flag to specify how fonts should be created
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
@@ -194,7 +194,7 @@ class PODOFO_DOC_API PdfDocument {
 #ifdef _WIN32
     /** Creates a PdfFont object
      *  \param pszFontName name of the font as it is known to the system
-     *  \param bSymbolCharset whether to use symbol charset, rather than unicode charset
+     *  \param bSymbolCharset whether to use the symbol charset, rather than unicode charset
      *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
@@ -203,7 +203,7 @@ class PODOFO_DOC_API PdfDocument {
      *           The returned object is owned by the PdfDocument.
      *
      *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systes you can also path
+     *  with unicode characters. On Unix/Unix-like systems you can also pass
      *  UTF-8 to the const char* overload.
      */
     PdfFont* CreateFont( const wchar_t* pszFontName, bool bSymbolCharset = false, const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
@@ -222,7 +222,7 @@ class PODOFO_DOC_API PdfDocument {
      *  \returns PdfFont* a pointer to a new PdfFont object.
      *
      *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systes you can also path
+     *  with unicode characters. On Unix/Unix-like systems you can also pass
      *  UTF-8 to the const char* overload.
      */
     PdfFont* CreateFont( const wchar_t* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset = false,
@@ -238,19 +238,21 @@ class PODOFO_DOC_API PdfDocument {
 #endif // _WIN32
 
     /** Creates a PdfFont object
-     *  \param face a valid freetype font handle (will be free'd by PoDoFo)
-	  *  \param bSymbolCharset whether to use symbol charset, rather than unicode charset
+     *  \param face a valid freetype font handle (will be free()'d by PoDoFo)
+     *  \param bSymbolCharset whether to use the symbol charset, rather than unicode charset
      *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
      *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
      *         Embedding fonts is usually a good idea.
      *  \returns PdfFont* a pointer to a new PdfFont object.
      *           The returned object is owned by the PdfDocument.
      */
-    PdfFont* CreateFont( FT_Face face, bool bSymbolCharset = false, const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), bool bEmbedd = true );
+    PdfFont* CreateFont( FT_Face face, bool bSymbolCharset = false,
+                         const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(),
+                         bool bEmbedd = true );
 
-    /** Creates a duplicate Type1-PdfFont with a new Id
+    /** Creates a duplicate Type1 PdfFont with a new ID
      *  \param pFont is the existing font 
-     *  \param pszSuffix Suffix to add to font-id 
+     *  \param pszSuffix Suffix to add to font ID
      *           The returned object is owned by the PdfDocument.
      *
      *  TODO: DS: Make this generic so that it will work 
@@ -258,16 +260,16 @@ class PODOFO_DOC_API PdfDocument {
      */
     PdfFont* CreateDuplicateFontType1( PdfFont * pFont, const char * pszSuffix );
 
-	/** Creates a font subset which contains only a few characters and is embedded.
+    /** Creates a font subset which contains only a few characters and is embedded.
      *
      *  THIS WORKS ONLY FOR TTF FONTS!
      *
      *  \param pszFontName name of the font as it is known to the system
      *  \param bBold if true search for a bold font
      *  \param bItalic if true search for an italic font
-	  *  \param bSymbolCharset whether to use symbol charset, rather than unicode charset
+     *  \param bSymbolCharset whether to use the symbol charset, rather than unicode charset
      *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
-     *  \param pszFileName optional path of a fontfile which should be used
+     *  \param pszFileName optional path of a font file which should be used
      *
      *  \returns PdfFont* a pointer to a new PdfFont object.
      */
@@ -283,13 +285,13 @@ class PODOFO_DOC_API PdfDocument {
      *  \param pszFontName name of the font as it is known to the system
      *  \param bBold if true search for a bold font
      *  \param bItalic if true search for an italic font
-	  *  \param bSymbolCharset whether to use symbol charset, rather than unicode charset
+     *  \param bSymbolCharset whether to use the symbol charset, rather than unicode charset
      *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
      *
      *  \returns PdfFont* a pointer to a new PdfFont object.
      *
      *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systes you can also path
+     *  with unicode characters. On Unix systems/Unix-like you can also pass
      *  UTF-8 to the const char* overload.
      */
     PdfFont* CreateFontSubset( const wchar_t* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset = false,
@@ -303,8 +305,8 @@ class PODOFO_DOC_API PdfDocument {
      */
     inline FT_Library GetFontLibrary() const;
 	
-    /** Embeds all pending subset-fonts, is automatically done on Write().
-     *  Just call explicit in case PdfDocument is needed as XObject
+    /** Embeds all pending subset fonts, is automatically done on Write().
+     *  Just call explicitly in case the PdfDocument is needed as PdfXObject.
      *
      */
     void EmbedSubsetFonts();
@@ -314,7 +316,7 @@ class PODOFO_DOC_API PdfDocument {
      *  The returned page is owned by the PdfDocument
      *  and will get deleted along with it!
      *
-     *  \param rSize a PdfRect spezifying the size of the page (i.e the /MediaBox key) in 1/1000th mm
+     *  \param rSize a PdfRect specifying the size of the page (i.e the /MediaBox key) in 1/1000th mm
      *  \returns a pointer to a PdfPage object
      */
     PdfPage* CreatePage( const PdfRect & rSize );
@@ -325,7 +327,7 @@ class PODOFO_DOC_API PdfDocument {
      *  The created pages are owned by the PdfDocument
      *  and will get deleted along with it!
      *
-     *  \param vecSizes a vector PdfRect's specifying the size of the pages (i.e the /MediaBox key) in PDF Units
+     *  \param vecSizes a vector of PdfRect instances specifying the size of the pages (i.e the /MediaBox key) in PDF Units
      */
     void CreatePages( const std::vector<PdfRect>& vecSizes );
 
@@ -339,45 +341,47 @@ class PODOFO_DOC_API PdfDocument {
      */
     PdfPage* InsertPage( const PdfRect & rSize, int atIndex);
 
-    /** Appends another PdfDocument to this document
+    /** Appends another PdfDocument to this document.
      *  \param rDoc the document to append
      *  \param bAppendAll specifies whether pages and outlines are appended too
      *  \returns this document
      */
     const PdfDocument & Append( const PdfMemDocument & rDoc, bool bAppendAll = true  );
 
-    /** Inserts existing page from another PdfMemDocument to this document
+    /** Inserts existing page from another PdfMemDocument to this document.
      *  \param rDoc the document to append from
-     *  \param nPageIndex Page index to append (0-based), from rDoc
-     *  \param nAtIndex Index at which add the page in this document
+     *  \param nPageIndex index of page to append (0-based), from rDoc
+     *  \param nAtIndex index at which to add the page in this document
      *  \returns this document
      */
     const PdfDocument &InsertExistingPageAt( const PdfMemDocument & rDoc, int nPageIndex, int nAtIndex);
 
-    /** Fill an existing empty XObject from a page of another document
-     *  This will append the other document with this one
-     *  \param pXObj pointer to the XOject
-     *  \param rDoc the document to embedd into XObject
-     *  \param nPage page-number to embedd into XObject
-     *  \param bUseTrimBox if true try to use trimbox for size of xobject
+    /** Fill an existing empty PdfXObject from a page of another document.
+     *  This will append the other document to this one.
+     *  \param pXObj pointer to the PdfXObject
+     *  \param rDoc the document to embed into the PdfXObject
+     *  \param nPage number of page to embed into the PdfXObject
+     *  \param bUseTrimBox if true try to use page's TrimBox for size of PdfXObject
      *  \returns the bounding box
      */
     PdfRect FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfMemDocument & rDoc, int nPage, bool bUseTrimBox );
 
-    /** Fill an existing empty XObject from an existing page from the current document
-     *  If you need a page from another document use FillXObjectFromDocumentPage, or append the documents manually
-     *  \param pXObj pointer to the XOject
-     *  \param nPage page-number to embedd into XObject
-     *  \param bUseTrimBox if true try to use trimbox for size of xobject
+    /** Fill an existing empty PdfXObject from an existing page from the current document.
+     *  If you need a page from another document use FillXObjectFromDocumentPage(), or
+     *  append the document manually.
+     *  \param pXObj pointer to the PdfXObject
+     *  \param nPage number of page to embed into the PdfXObject
+     *  \param bUseTrimBox if true try to use page's TrimBox for size of PdfXObject
      *  \returns the bounding box
      */
     PdfRect FillXObjectFromExistingPage( PdfXObject * pXObj, int nPage, bool bUseTrimBox );
 
-    /** Fill an existing empty XObject from an existing page pointer from the current document
-     *  This is the implementation for FillXObjectFromDocumentPage and FillXObjectFromExistingPage, you should use those directly instead of this
-     *  \param pXObj pointer to the XOject
-     *  \param pPage pointer to the page to embedd into XObject
-     *  \param bUseTrimBox if true try to use trimbox for size of xobject
+    /** Fill an existing empty PdfXObject from an existing page pointer from the current document.
+     *  This is the implementation for FillXObjectFromDocumentPage() and FillXObjectFromExistingPage(),
+     *  you should use those directly instead of this.
+     *  \param pXObj pointer to the PdfXObject
+     *  \param pPage pointer to the page to embed into PdfXObject
+     *  \param bUseTrimBox if true try to use page's TrimBox for size of PdfXObject
      *  \returns the bounding box
      */
     PdfRect FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pPage, bool bUseTrimBox, unsigned int difference );
@@ -387,7 +391,7 @@ class PODOFO_DOC_API PdfDocument {
      */
     void AttachFile( const PdfFileSpec & rFileSpec );
 
-    /** Get an attached file's filespec
+    /** Get an attached file's filespec.
      *  \param rName the name of the attachment
      *  \return the file specification object if the file exists, NULL otherwise
      *          The file specification object is not owned by the document and must be deleted by the caller
@@ -395,53 +399,53 @@ class PODOFO_DOC_API PdfDocument {
     PdfFileSpec* GetAttachment( const PdfString & rName );
     
     /** Adds a PdfDestination into the global Names tree
-     *  with the specified name, optionally replacing one of the same name
+     *  with the specified name, optionally replacing one of the same name.
      *  \param rDest the destination to be assigned
      *  \param rsName the name for the destination
      */
     void AddNamedDestination( const PdfDestination& rDest, const PdfString & rsName );
 
-    /** Sets the opening mode for a document
+    /** Sets the opening mode for a document.
      *  \param inMode which mode to set
      */
     void SetPageMode( EPdfPageMode inMode );
 
-    /** Gets the opening mode for a document
+    /** Gets the opening mode for a document.
      *  \returns which mode is set
      */
     EPdfPageMode GetPageMode( void ) const;
 
-    /** Sets the opening mode for a document to be in full screen
+    /** Sets the opening mode for a document to be in full screen.
      */
     void SetUseFullScreen( void );
     
-    /** Sets the page layout for a document
+    /** Sets the page layout for a document.
      */
     void SetPageLayout( EPdfPageLayout inLayout );
     
     /** Set the document's Viewer Preferences:
-     *  Hide the toolbar in the viewer
+     *  Hide the toolbar in the viewer.
      */
     void SetHideToolbar( void );
 
     /** Set the document's Viewer Preferences:
-     *  Hide the menubar in the viewer
+     *  Hide the menubar in the viewer.
      */
     void SetHideMenubar( void );
 
     /** Set the document's Viewer Preferences:
-     *  Show only the documents contents and no controll
-     *  elements such as buttons and scrollbars in the viewer
+     *  Show only the documents contents and no control
+     *  elements such as buttons and scrollbars in the viewer.
      */
     void SetHideWindowUI( void );
 
     /** Set the document's Viewer Preferences:
-     *  Fit the document in the viewers window
+     *  Fit the document in the viewer's window.
      */
     void SetFitWindow( void );
 
     /** Set the document's Viewer Preferences:
-     *  Center the document in the viewers window
+     *  Center the document in the viewer's window.
      */
     void SetCenterWindow( void );
 
@@ -454,30 +458,31 @@ class PODOFO_DOC_API PdfDocument {
     void SetDisplayDocTitle( void );
 
     /** Set the document's Viewer Preferences:
-     *  Set the default print scaling of the document
+     *  Set the default print scaling of the document.
      *
      *  TODO: DS use an enum here!
      */   
     void SetPrintScaling( PdfName& inScalingType );
 
     /** Set the document's Viewer Preferences:
-     *  Set the base URI of the document
+     *  Set the base URI of the document.
      *
      *  TODO: DS document value!
      */
     void SetBaseURI( const std::string& inBaseURI );
 
     /** Set the document's Viewer Preferences:
-     *  Set the language of the document
+     *  Set the language of the document.
      */    
     void SetLanguage( const std::string& inLanguage );
 
     /** Set the document's Viewer Preferences:
+        Set the document's binding direction.
      */    
     void SetBindingDirection( PdfName& inDirection );
 
     /** Checks if printing this document is allowed.
-     *  Every PDF consuming applications has to adhere this value!
+     *  Every PDF-consuming application has to adhere to this value!
      *
      *  \returns true if you are allowed to print this document
      *
@@ -485,8 +490,8 @@ class PODOFO_DOC_API PdfDocument {
      */
     virtual bool IsPrintAllowed() const = 0; 
 
-    /** Checks if modifiying this document (besides annotations, form fields or changing pages) is allowed.
-     *  Every PDF consuming applications has to adhere this value!
+    /** Checks if modifying this document (besides annotations, form fields or substituting pages) is allowed.
+     *  Every PDF-consuming application has to adhere to this value!
      *
      *  \returns true if you are allowed to modfiy this document
      *
@@ -495,7 +500,7 @@ class PODOFO_DOC_API PdfDocument {
     virtual bool IsEditAllowed() const = 0;
 
     /** Checks if text and graphics extraction is allowed.
-     *  Every PDF consuming applications has to adhere this value!
+     *  Every PDF-consuming application has to adhere to this value!
      *
      *  \returns true if you are allowed to extract text and graphics from this document
      *
@@ -503,8 +508,8 @@ class PODOFO_DOC_API PdfDocument {
      */
     virtual bool IsCopyAllowed() const = 0;
 
-    /** Checks if it is allowed to add or modify annotations or form fields
-     *  Every PDF consuming applications has to adhere this value!
+    /** Checks if it is allowed to add or modify annotations or form fields.
+     *  Every PDF-consuming application has to adhere to this value!
      *
      *  \returns true if you are allowed to add or modify annotations or form fields
      *
@@ -512,8 +517,8 @@ class PODOFO_DOC_API PdfDocument {
      */
     virtual bool IsEditNotesAllowed() const = 0;
 
-    /** Checks if it is allowed to fill in existing form or signature fields
-     *  Every PDF consuming applications has to adhere this value!
+    /** Checks if it is allowed to fill in existing form or signature fields.
+     *  Every PDF-consuming application has to adhere to this value!
      *
      *  \returns true if you are allowed to fill in existing form or signature fields
      *
@@ -521,26 +526,26 @@ class PODOFO_DOC_API PdfDocument {
      */
     virtual bool IsFillAndSignAllowed() const = 0;
 
-    /** Checks if it is allowed to extract text and graphics to support users with disabillities
-     *  Every PDF consuming applications has to adhere this value!
+    /** Checks if it is allowed to extract text and graphics to support users with disabilities.
+     *  Every PDF-consuming application has to adhere to this value!
      *
-     *  \returns true if you are allowed to extract text and graphics to support users with disabillities
+     *  \returns true if you are allowed to extract text and graphics to support users with disabilities
      *
      *  \see PdfEncrypt to set own document permissions.
      */
     virtual bool IsAccessibilityAllowed() const = 0;
 
-    /** Checks if it is allowed to insert, create, rotate, delete pages or add bookmarks
-     *  Every PDF consuming applications has to adhere this value!
+    /** Checks if it is allowed to insert, create, rotate, or delete pages or add bookmarks.
+     *  Every PDF-consuming application has to adhere to this value!
      *
-     *  \returns true if you are allowed  to insert, create, rotate, delete pages or add bookmarks
+     *  \returns true if you are allowed  to insert, create, rotate, or delete pages or add bookmarks
      *
      *  \see PdfEncrypt to set own document permissions.
      */
     virtual bool IsDocAssemblyAllowed() const = 0;
 
     /** Checks if it is allowed to print a high quality version of this document 
-     *  Every PDF consuming applications has to adhere this value!
+     *  Every PDF-consuming application has to adhere to this value!
      *
      *  \returns true if you are allowed to print a high quality version of this document 
      *
@@ -575,7 +580,7 @@ class PODOFO_DOC_API PdfDocument {
 
  protected:
     /** Construct a new (empty) PdfDocument
-     *  \param bEmtpy if true NO default objects (such as catalog) are created.
+     *  \param bEmpty if true NO default objects (such as catalog) are created.
      */
     PdfDocument( bool bEmpty = false );
 
@@ -603,7 +608,7 @@ class PODOFO_DOC_API PdfDocument {
     /** Set the catalog of this PdfDocument
      *  deleting the old one.
      *
-     *  @param pObject the new catalog object
+     *  \param pObject the new catalog object
      *         It will be owned by PdfDocument.
      */
     inline void SetCatalog( PdfObject* pObject );
@@ -630,7 +635,7 @@ class PODOFO_DOC_API PdfDocument {
      */
     void SetTrailer( PdfObject* pObject );
 
-    /** Get a dictioary from the catalog dictionary by its name.
+    /** Get a dictionary from the catalog dictionary by its name.
      *  \param pszName will be converted into a PdfName
      *  \returns the dictionary if it was found or NULL
      */
@@ -643,27 +648,27 @@ class PODOFO_DOC_API PdfDocument {
     /** Recursively changes every PdfReference in the PdfObject and in any child
      *  that is either an PdfArray or a direct object.
      *  The reference is changed so that difference is added to the object number
-     *  if the reference.
+     *  of the reference.
      *  \param pObject object to change
      *  \param difference add this value to every reference that is encountered
      */
     void FixObjectReferences( PdfObject* pObject, int difference );
 
-    /** Low level APIs for setting a viewer preference
+    /** Low-level APIs for setting a viewer preference.
      *  \param whichPref the dictionary key to set
      *  \param valueObj the object to be set
      */
     void SetViewerPreference( const PdfName& whichPref, const PdfObject & valueObj );
 
-    /** Low level APIs for setting a viewer preference
-     *  Convinience overload.
+    /** Low-level APIs for setting a viewer preference.
+     *  Convenience overload.
      *  \param whichPref the dictionary key to set
      *  \param inValue the object to be set
      */
     void SetViewerPreference( const PdfName& whichPref, bool inValue );
 
     /** Clear all internal variables
-     *  And reset PdfDocument to an intial state
+     *  and reset PdfDocument to an intial state.
      */
     void Clear();
 

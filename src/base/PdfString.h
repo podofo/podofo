@@ -56,26 +56,26 @@ enum EPdfStringConversion {
  *  converted into a hex string, otherwise a normal PDF 
  *  string is written to the document.
  *
- *  PdfStrings representing text are either in PDFDocEncoding
- *  (ISO Latin1) encoded or UTF-16BE encoded.
+ *  PdfStrings representing text are encoded either in PDFDocEncoding
+ *  (ISO Latin1) or UTF-16BE.
  *
  *  PoDoFo contains methods to convert between these 
- *  encodings. For convinience conversion to UTF-8
- *  is possible to. Please not that strings are
+ *  encodings. For convenience conversion to UTF-8
+ *  is possible too. Please note that strings are
  *  always stored as UTF-16BE or ISO Latin1 (PdfDocEncoding)
  *  in the PDF file.
  *
- *  UTF-16BE strings have to start with the byts 0xFE 0xFF
+ *  UTF-16BE strings have to start with the bytes 0xFE 0xFF
  *  to be recognized by PoDoFo as unicode strings.
  *
  *
- *  PdfStrings is an implicitly shared class. As a reason
+ *  PdfString is an implicitly shared class. As a reason
  *  it is very fast to copy PdfString objects.
  *
  *  The internal string buffer is guaranteed to be always terminated 
- *  by 2 zeros.
+ *  by 2 zero ('\0') bytes.
  */
-class PODOFO_API PdfString : public PdfDataType{
+class PODOFO_API PdfString : public PdfDataType {
  public:
 
     /** Create an empty and invalid string 
@@ -89,22 +89,20 @@ class PODOFO_API PdfString : public PdfDataType{
      *
      *  \param sString the string to copy
      *  \param pEncoding the encoding of this string, if it is no unicode string.
-	 *         This is ignored for unicode strings. If NULL PdfDocEncoding will be used as a default.
+     *         This is ignored for unicode strings. If NULL, PdfDocEncoding will be used as a default.
      */
     PdfString( const std::string& sString, const PdfEncoding * const pEncoding = NULL );
 
-    /** Construct a new PdfString from a 0 terminated
-     *  string. 
+    /** Construct a new PdfString from a 0-terminated C-style string.
      *  The input string will be copied.
      *
      *  \param pszString the string to copy
- 	 *  \param pEncoding the encoding of this string, if it is no unicode string.
-	 *         This is ignored for unicode strings. If NULL PdfDocEncoding will be used as a default.
+     *  \param pEncoding the encoding of this string, if it is no unicode string.
+     *         This is ignored for unicode strings. If NULL, PdfDocEncoding will be used as a default.
      */
     PdfString( const char* pszString, const PdfEncoding * const pEncoding = NULL );
 
-    /** Construct a new PdfString from a 0 terminated
-     *  string. 
+    /** Construct a new PdfString from a 0-terminated C-style string.
      *  The input string will be copied.
      *
      *  \param pszString the string to copy
@@ -122,10 +120,9 @@ class PODOFO_API PdfString : public PdfDataType{
      *
      *  \param pszString the string to copy
      *  \param lLen length of the string data to encode
-     *  \param bHex if true the data will be 
-     *              hex encoded during writeout of the string and IsHex() will return true.
- 	 *  \param pEncoding the encoding of this string, if it is no unicode string.
-	 *         This is ignored for unicode strings. If NULL PdfDocEncoding will be used as a default.
+     *  \param bHex if true the data will be hex-encoded during writing out the string and IsHex() will return true.
+     *  \param pEncoding the encoding of this string, if it is no unicode string.
+     *         This is ignored for unicode strings. If NULL, PdfDocEncoding will be used as a default.
      */
     PdfString( const char* pszString, pdf_long lLen, bool bHex = false, const PdfEncoding * const pEncoding = NULL );
 
@@ -133,13 +130,13 @@ class PODOFO_API PdfString : public PdfDataType{
      *  
      *  The string is converted to UTF-16BE internally.
      *
-     *  \param pszStringUtf8 a UTF-8 encoded string.
+     *  \param pszStringUtf8 an UTF-8 encoded string.
      */
     PdfString( const pdf_utf8* pszStringUtf8 );
 
-    /** Construct a new PdfString from an UTF-16be encoded zero terminated string.
+    /** Construct a new PdfString from an UTF-16BE encoded zero-terminated C-style string.
      *
-     *  \param pszStringUtf16 a UTF-16BE encoded string.
+     *  \param pszStringUtf16 an UTF-16BE encoded string.
      */
     PdfString( const pdf_utf16be* pszStringUtf16 );
 
@@ -152,7 +149,7 @@ class PODOFO_API PdfString : public PdfDataType{
      */
     PdfString( const pdf_utf8* pszStringUtf8, pdf_long lLen );
 
-    /** Construct a new PdfString from an UTF-16be encoded zero terminated string.
+    /** Construct a new PdfString from an UTF-16BE encoded zero-terminated string.
      *
      *  \param pszStringUtf16 a UTF-16BE encoded string.
      *  \param lLen number of words to convert
@@ -166,13 +163,13 @@ class PODOFO_API PdfString : public PdfDataType{
 
     ~PdfString();
 
-    /** Set hex encoded data as the strings data. 
-     *  \param pszHex must be hex encoded data.
-     *  \param lLen   length of the hex encoded data.
+    /** Set hex-encoded data as the strings data. 
+     *  \param pszHex must be hex-encoded data.
+     *  \param lLen   length of the hex-encoded data.
      *                if lLen == -1 then strlen( pszHex ) will
-     *                be used as length of the hex data. 
-     *                pszHex has to be zero terminated in this case.
-     *  \param pEncrypt if !NULL assume the hex data is encrypted and should be decrypted after hexdecoding 
+     *                be used as length of the hex data.
+     *                pszHex has to be zero-terminated in this case.
+     *  \param pEncrypt if !NULL, assume the hex data is encrypted and should be decrypted after hex-decoding.
      */
     void SetHexData( const char* pszHex, pdf_long lLen = -1, PdfEncrypt* pEncrypt = NULL );
 
@@ -187,53 +184,50 @@ class PODOFO_API PdfString : public PdfDataType{
 
     /** Check if this is a hex string.
      *  
-     *  If true the data will be hex encoded when the string is written to
+     *  If true the data will be hex-encoded when the string is written to
      *  a PDF file.
      *
      *  \returns true if this is a hex string.
-     *  \see GetString() will return the raw string contents (not hex encoded)
+     *  \see GetString() will return the raw string contents (not hex-encoded)
      */
     inline bool IsHex () const;
 
     /**
-     * PdfStrings are either Latin1 encoded or UTF-16BE
-     * encoded unicode strings.
-     * This functions returns true if this is a unicode
-     * string object.
+     * PdfStrings are either Latin1-encoded or UTF-16BE-encoded unicode strings.
+     *
+     * This function returns true if this is a unicode string object.
      *
      * \returns true if this is a unicode string.
      */
     inline bool IsUnicode () const;
 
-    /** The contents of the strings can be read
-     *  by this function.
+    /** The contents of the string can be read by this function.
      *
-     *  The returned data is never hex encoded may contain 0 bytes.
+     *  The returned data is never hex-encoded may contain '\0' bytes.
      *
-     *  if IsUnicode() returns true, the return value
+     *  If IsUnicode() returns true, the return value
      *  points to a UTF-16BE string buffer with Length()
      *  characters. Better use GetUnicode() in this case.
      * 
-     *  \returns the strings contents which is guaranteed to be zero terminated
-     *           but might also contain 0 bytes in the string.
+     *  \returns the string's contents which are guaranteed to be zero-terminated
+     *           but might also contain '\0' bytes in the string.
      *  \see IsHex
      *  \see IsUnicode
      *  \see Length
      */
     inline const char* GetString() const;
 
-    /** The contents of the strings can be read
-     *  by this function.
+    /** The contents of the string can be read by this function.
      *
-     *  The returned data is never hex encoded any maycontain 0 bytes.
+     *  The returned data is never hex-encoded any may contain '\0' bytes.
      *
-     *  if IsUnicode() returns true, the return value
+     *  If IsUnicode() returns true, the return value
      *  points to a UTF-16BE string buffer with Length()
      *  characters. Better use GetUnicode() in this case.
      * 
-     *  \returns the strings contents which is guaranteed to be zero terminated
-     *           but might also contain 0 bytes in the string,
-     *           returns NULL if PdfString::IsValid() returns false
+     *  \returns the string's contents which are guaranteed to be zero-terminated
+     *           but might also contain '\0' bytes in the string,
+     *           returns NULL if PdfString::IsValid() returns false.
      *
      *  \see IsHex
      *  \see IsUnicode
@@ -241,30 +235,30 @@ class PODOFO_API PdfString : public PdfDataType{
      */
     inline const pdf_utf16be* GetUnicode() const;
 
-    /** The contents of the string as UTF8 string.
+    /** The contents of the string as UTF-8 string.
      *
-     *  The strings contents are always returned as
-     *  UTF8 by this function. Works for unicode strings 
-     *  and for non unicode strings.
+     *  The string's contents are always returned as
+     *  UTF-8 by this function. Works for unicode strings 
+     *  and for non-unicode strings.
      *
-     *  This is the prefered way to access the strings contents.
+     *  This is the preferred way to access the string's contents.
      *
-     *  \returns the string contents always as UTF8,
+     *  \returns the string's contents always as UTF-8,
      *           returns NULL if PdfString::IsValid() returns false
      */
     inline const std::string & GetStringUtf8() const;
 
 #ifdef _WIN32
-    /** The contents of the string as wide character string.
+    /** The contents of the string as wide-character string.
      *
-     *  \returns the string contents as wide character string.
+     *  \returns the string contents as wide-character string.
      *           returns an empty string if PdfString::IsValid() returns false
      */
     const std::wstring GetStringW() const;
 #endif // _WIN32
 
     /** The length of the string data returned by GetString() 
-     *  in bytes not including terminating zeros.
+     *  in bytes not including terminating zero ('\0') bytes.
      *
      *  \returns the length of the string,
      *           returns zero if PdfString::IsValid() returns false
@@ -274,7 +268,7 @@ class PODOFO_API PdfString : public PdfDataType{
     inline pdf_long GetLength() const;
 
     /** The length of the string data returned by GetUnicode() 
-     *  in characters not including the terminating zero 
+     *  in characters not including the terminating zero ('\0') bytes.
      *
      *  \returns the length of the string,
      *           returns zero if PdfString::IsValid() returns false
@@ -286,9 +280,9 @@ class PODOFO_API PdfString : public PdfDataType{
     /** Get the number of characters in the string.
      *  
      *  This function returns the correct number of characters in the string
-     *  for unicode and ansi strings. Always use this method if you want to 
+     *  for unicode and ANSI strings. Always use this method if you want to 
      *  know the number of characters in the string
-     *  as GetLength() will returns the number of bytes used for unicode strings!
+     *  as GetLength() will return the number of bytes used for unicode strings!
      *
      * 
      *  \returns the number of characters in the string,
@@ -296,11 +290,11 @@ class PODOFO_API PdfString : public PdfDataType{
      */
     inline pdf_long GetCharacterLength() const;
 
-    /** Write this PdfString in PDF format to a PdfOutputDevice 
+    /** Write this PdfString in PDF format to a PdfOutputDevice.
      *  
      *  \param pDevice the output device.
      *  \param eWriteMode additional options for writing this object
-     *  \param pEncrypt an encryption object which is used to encrypt this object
+     *  \param pEncrypt an encryption object which is used to encrypt this object,
      *                  or NULL to not encrypt this object
      */
     void Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt = NULL ) const;
@@ -312,13 +306,13 @@ class PODOFO_API PdfString : public PdfDataType{
     const PdfString & operator=( const PdfString & rhs );
 
     /** Compare two PdfString objects
-     *  \param rhs another PdfString to compare
+     *  \param rhs another PdfString to compare with
      *  \returns this object
      */
     bool operator>( const PdfString & rhs ) const;
 
     /** Compare two PdfString objects
-     *  \param rhs another PdfString to compare
+     *  \param rhs another PdfString to compare with
      *  \returns this object
      */
     bool operator<( const PdfString & rhs ) const;
@@ -404,14 +398,14 @@ class PODOFO_API PdfString : public PdfDataType{
     void Allocate();
 
     /** Frees the internal buffer
-     *  if it was allocated using malloc
+     *  if it was allocated using podofo_malloc()
      */
     void FreeBuffer();
 
-    /** Construct a new PdfString from a 0 terminated
-     *  string. 
+    /** Construct a new PdfString from a 0-terminated string.
+     * 
      *  The input string will be copied.
-     *  if m_bhex is true the copied data will be hex encoded.
+     *  if m_bHex is true the copied data will be hex-encoded.
      *
      *  \param pszString the string to copy, must not be NULL
      *  \param lLen length of the string data to copy
@@ -419,24 +413,24 @@ class PODOFO_API PdfString : public PdfDataType{
      */
     void Init( const char* pszString, pdf_long lLen );
 
-    /** Construct a new PdfString from a UTF8
-     *  string. 
-     *  The input string will be copied and converted to UTF-16be.
+    /** Construct a new PdfString from a UTF-8 string. 
+     * 
+     *  The input string will be copied and converted to UTF-16BE.
      *
-     *  \param pszStringUtf8 the string to copy, ust not be NULL
+     *  \param pszStringUtf8 the string to copy, must not be NULL
      *  \param lLen number of bytes of the string data to copy
      *  
      */
     void InitFromUtf8( const pdf_utf8* pszStringUtf8, pdf_long lLen );
 
-    /** Swap the bytes in the buffer (UTF16be -> UTF16le)
+    /** Swap the bytes in the buffer (UTF-16BE -> UTF-16LE)
      *  \param pBuf buffer
      *  \param lLen length of buffer
      */
     static void SwapBytes( char* pBuf, pdf_long lLen ); 
 
     /** Initialise the data member containing a
-     *  UTF8 version of this string.
+     *  UTF-8 version of this string.
      *
      *  This is only done once and only if necessary.
      */
@@ -444,18 +438,18 @@ class PODOFO_API PdfString : public PdfDataType{
 
  private:
     static const char        s_pszUnicodeMarker[];   ///< The unicode marker used to indicate unicode strings in PDF
-    static const char*       s_pszUnicodeMarkerHex;  ///< The unicode marker converted to HEX
-    static const pdf_utf16be s_cPdfDocEncoding[256]; ///< conversion table from PDFDocEncoding to UTF16
-    static const char * const m_escMap;              ///< Mapping of escape sequences to there value
+    static const char*       s_pszUnicodeMarkerHex;  ///< The unicode marker converted to hex
+    static const pdf_utf16be s_cPdfDocEncoding[256]; ///< conversion table from PDFDocEncoding to UTF-16
+    static const char * const m_escMap;              ///< Mapping of escape sequences to their value
 
  private:
-    PdfRefCountedBuffer m_buffer;                    ///< String data (always binary), may contain 0 bytes
+    PdfRefCountedBuffer m_buffer;                    ///< String data (always binary), may contain '\0' bytes
 
-    bool                m_bHex;                      ///< This string is converted to hex during write out
+    bool                m_bHex;                      ///< This string is converted to hex during writing it out
     bool                m_bUnicode;                  ///< This string contains unicode data
 
-    std::string         m_sUtf8;                     ///< The UTF8 version of the strings contents.
-    const PdfEncoding*  m_pEncoding;                 ///< Encoding for non Unicode strings. NULL for unicode strings.
+    std::string         m_sUtf8;                     ///< The UTF-8 version of the string's contents.
+    const PdfEncoding*  m_pEncoding;                 ///< Encoding for non-unicode strings. NULL for unicode strings.
 };
 
 // -----------------------------------------------------
