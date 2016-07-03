@@ -1142,79 +1142,95 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-	// search for a copy of this font to enter difference-encoding, create a new one if not found
-	PdfFont* pGlyphFont = pDocument->CreateDuplicateFontType1( m_pFont, "Glyph1" );
-
-	// select identical sizes
-	pGlyphFont->SetFontSize( m_pFont->GetFontSize() );
-	pGlyphFont->SetFontCharSpace( m_pFont->GetFontCharSpace() );
-	pGlyphFont->SetFontScale( m_pFont->GetFontScale() );
-	PdfObject* pGlyphFontObj = pGlyphFont->GetObject();
-
-	// get width of glyph
-	int width = static_cast<int>(pGlyphFont->GetFontMetrics()->GetGlyphWidth( pszGlyphname ) );
-
-	// change encoding to difference-encoding and adapt width
-	PdfObject* pEncoding = pGlyphFontObj->GetDictionary().GetKey( "Encoding" );
-
+	PdfFont* pGlyphFont = NULL;
 	int code = 32;
-	if ( pEncoding == NULL  ||  pEncoding->IsReference() == false )
+
+	for ( int num = 1; num <= 999; num++ )
 	{
+		// search for a copy of this font to enter difference-encoding, create a new one if not found
+		char suffix[256];
+		sprintf( suffix, "Glyph%i", num ); 
+		pGlyphFont = pDocument->CreateDuplicateFontType1( m_pFont, suffix );
+
+		PdfObject* pGlyphFontObj = pGlyphFont->GetObject();
+		PdfObject* pEncoding = pGlyphFontObj->GetDictionary().GetKey( "Encoding" );
+
 		// first time: create difference-encoding as reference, enter glyph
-		pEncoding = pDocument->GetObjects().CreateObject( "Encoding" );
-        
-		code++;
-        
-		PdfArray diffs;
-		diffs.push_back( PdfVariant( static_cast<pdf_int64>( code ) ) );
-		diffs.push_back( PdfName( pszGlyphname ) );
-        
-		pEncoding->GetDictionary().AddKey( "Differences", diffs );
-		pGlyphFontObj->GetDictionary().AddKey("Encoding", pEncoding->Reference() );
-
-		// clear Widths-array and enter width of this glyph
-		PdfObject* pWidthObj = pGlyphFontObj->GetIndirectKey( "Widths" );
-		PdfArray & rWidthArr = pWidthObj->GetArray();
-		for ( unsigned int i = 0; i < rWidthArr.size(); i++ )
-        {
-			rWidthArr[i] = PdfVariant( static_cast<pdf_int64>( 0 ) );
-        }
-        rWidthArr[code] = PdfVariant( static_cast<pdf_int64>( width ) );
-    }
-	else
-	{
-		// search glyph in existing Encoding/Difference, create if not found
-		pEncoding = pDocument->GetObjects().GetObject( pEncoding->GetReference() );
-        
-		PODOFO_ASSERT( pEncoding != NULL ); // paranoia
-
-		PdfArray diffs;
-		diffs = pEncoding->GetDictionary().GetKey( "Differences" )->GetArray();
-
-		bool foundIt = false;
-
-		TCIVariantList it = diffs.begin();
-		while( it != diffs.end() )
+		if ( pEncoding == NULL  ||  pEncoding->IsReference() == false )
 		{
-			if( (*it).GetDataType() == ePdfDataType_Name )
+
+			// get width of glyph to enter in difference-encoding
+			int width = static_cast<int>(pGlyphFont->GetFontMetrics()->GetGlyphWidth( pszGlyphname ) );
+			pEncoding = pDocument->GetObjects().CreateObject( "Encoding" );
+	        
+			code++;
+	        
+			PdfArray diffs;
+			diffs.push_back( PdfVariant( static_cast<pdf_int64>( code ) ) );
+			diffs.push_back( PdfName( pszGlyphname ) );
+	        
+			pEncoding->GetDictionary().AddKey( "Differences", diffs );
+			pGlyphFontObj->GetDictionary().AddKey("Encoding", pEncoding->Reference() );
+
+			// clear Widths-array and enter width of this glyph
+			PdfObject* pWidthObj = pGlyphFontObj->GetIndirectKey( "Widths" );
+			PdfArray & rWidthArr = pWidthObj->GetArray();
+			for ( unsigned int i = 0; i < rWidthArr.size(); i++ )
 			{
-				code++;
-				if ( (*it).GetName().GetName() == pszGlyphname )
-				{
-					foundIt = true;
-					break;
-				}
+				rWidthArr[i] = PdfVariant( static_cast<pdf_int64>( 0 ) );
 			}
-				
-			++it;
+			rWidthArr[code] = PdfVariant( static_cast<pdf_int64>( width ) );
+
+			break;
 		}
 
-		// TODO: if code exceeds 255, create a new font-copy and start again with code 33
-		PODOFO_ASSERT( code <= 255 );
 
-		if ( foundIt == false )
+		// Existing font, search for glyph in existing difference-encoding
 		{
+			pEncoding = pDocument->GetObjects().GetObject( pEncoding->GetReference() );
+	        
+			PODOFO_ASSERT( pEncoding != NULL ); // paranoia
+
+			PdfArray diffs;
+			diffs = pEncoding->GetDictionary().GetKey( "Differences" )->GetArray();
+
+			bool foundIt = false;
+
+			TCIVariantList it = diffs.begin();
+			while( it != diffs.end() )
+			{
+				if( (*it).GetDataType() == ePdfDataType_Name )
+				{
+					code++;
+					if ( (*it).GetName().GetName() == pszGlyphname )
+					{
+						foundIt = true;
+						break;
+					}
+				}
+					
+				++it;
+			}
+			if ( foundIt )	// glyph fount, use it
+				break;
+		}
+
+		// limit to codes <= 127, make new duplicate font if more
+		if ( code+1 >= 127 )
+		{
+			code = 32;
+			continue;
+		}
+
+		// add glyph to existing difference-encoding
+		{
+			// get width of glyph to enter in difference-encoding
+			int width = static_cast<int>(pGlyphFont->GetFontMetrics()->GetGlyphWidth( pszGlyphname ) );
+
 			code++;
+
+			PdfArray diffs;
+			diffs = pEncoding->GetDictionary().GetKey( "Differences" )->GetArray();
 			diffs.push_back( PdfName( pszGlyphname ) );
 
 			pEncoding->GetDictionary().AddKey( "Differences", diffs );
@@ -1223,10 +1239,21 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 			PdfObject* pWidthObj = pGlyphFontObj->GetIndirectKey( "Widths" );
 			PdfArray & rWidthArr = pWidthObj->GetArray();
 			rWidthArr[code] = PdfVariant( static_cast<pdf_int64>( width ) );
+
+			break;
 		}
 	}
 
-	if( m_pFont->IsSubsetting() ) {
+	// select identical sizes
+	pGlyphFont->SetFontSize( m_pFont->GetFontSize() );
+	pGlyphFont->SetFontCharSpace( m_pFont->GetFontCharSpace() );
+	pGlyphFont->SetFontScale( m_pFont->GetFontScale() );
+	PdfObject* pGlyphFontObj = pGlyphFont->GetObject();
+
+	PODOFO_ASSERT( code > 32  &&  code <= 127 );
+
+	if( m_pFont->IsSubsetting() ) 
+	{
 		// mark glyph as used in basefont (needed for subsetting)
 		m_pFont->AddUsedGlyphname( pszGlyphname );
 	}
