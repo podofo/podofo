@@ -947,7 +947,7 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
     PdfString   sString  = this->ExpandTabs( rsText, rsText.GetCharacterLength() );
 
 	std::vector<PdfString> vecLines = GetMultiLineTextAsLines(dWidth, sString);
-
+    double dLineGap = m_pFont->GetFontMetrics()->GetLineSpacing() - m_pFont->GetFontMetrics()->GetAscent() + m_pFont->GetFontMetrics()->GetDescent();
     // Do vertical alignment
     switch( eVertical ) 
     {
@@ -962,13 +962,14 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
             break;
     }
 
+    dY -= (m_pFont->GetFontMetrics()->GetAscent() + dLineGap / (2.0));
+
     std::vector<PdfString>::const_iterator it = vecLines.begin();
     while( it != vecLines.end() )
     {
         if( (*it).GetCharacterLength() )
-            this->DrawTextAligned( dX, dY - m_pFont->GetFontMetrics()->GetAscent(), dWidth, *it, eAlignment );
+            this->DrawTextAligned( dX, dY, dWidth, *it, eAlignment );
         dY -= m_pFont->GetFontMetrics()->GetLineSpacing();
-       
         ++it;
     }
     this->Restore();
@@ -1014,7 +1015,7 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
         {
             vecLines.push_back( PdfString( pszLineBegin, pszCurrentCharacter - pszLineBegin ) );
 
-            pszLineBegin = pszCurrentCharacter+1;// skip the line feed
+            pszLineBegin = pszCurrentCharacter + 1;// skip the line feed
             startOfWord = true;
             dCurWidthOfLine = 0.0;
         }
@@ -1024,7 +1025,19 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
             {
                 // The previous word does not fit in the current line.
                 // -> Move it to the next one.
-                vecLines.push_back( PdfString( pszLineBegin, pszStartOfCurrentWord - pszLineBegin ) );
+                if( pszStartOfCurrentWord > pszLineBegin )
+                {
+                    vecLines.push_back( PdfString( pszLineBegin, pszStartOfCurrentWord - pszLineBegin ) );
+                }
+                else
+                {
+                    vecLines.push_back( PdfString( pszLineBegin, pszCurrentCharacter - pszLineBegin ) );
+                    // Skip all spaces at the end of the line
+                    while (IsSpaceChar(*(pszCurrentCharacter + 1)))
+                        pszCurrentCharacter++;
+
+                    pszStartOfCurrentWord = pszCurrentCharacter + 1;
+                }
                 pszLineBegin = pszStartOfCurrentWord;
 
                 if (!startOfWord)
@@ -1059,10 +1072,20 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
                 {
                     // This word takes up the whole line.
                     // Put as much as possible on this line.                    
-                    vecLines.push_back( PdfString( pszLineBegin, pszCurrentCharacter - pszLineBegin ) );
-                    pszLineBegin = pszCurrentCharacter;
-                    pszStartOfCurrentWord = pszCurrentCharacter;
-                    dCurWidthOfLine = m_pFont->GetFontMetrics()->UnicodeCharWidth( SwapCharBytesIfRequired( *pszCurrentCharacter ) );
+                    if (pszLineBegin == pszCurrentCharacter)
+                    {
+                        vecLines.push_back( PdfString( pszCurrentCharacter, 1 ) );
+                        pszLineBegin = pszCurrentCharacter + 1;
+                        pszStartOfCurrentWord = pszCurrentCharacter + 1;
+                        dCurWidthOfLine = 0;
+                    }
+                    else
+                    {
+                        vecLines.push_back(PdfString(pszLineBegin, pszCurrentCharacter - pszLineBegin));
+                        pszLineBegin = pszCurrentCharacter;
+                        pszStartOfCurrentWord = pszCurrentCharacter;
+                        dCurWidthOfLine = m_pFont->GetFontMetrics()->UnicodeCharWidth( SwapCharBytesIfRequired( *pszCurrentCharacter ) );
+                    }
                 }
                 else
                 {
@@ -1070,7 +1093,7 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
                     // -> Move it to the next one.                    
                     vecLines.push_back( PdfString( pszLineBegin, pszStartOfCurrentWord - pszLineBegin ) );
                     pszLineBegin = pszStartOfCurrentWord;
-                    dCurWidthOfLine = m_pFont->GetFontMetrics()->StringWidth( pszStartOfCurrentWord, (pszCurrentCharacter-pszStartOfCurrentWord) + 1 );
+                    dCurWidthOfLine = m_pFont->GetFontMetrics()->StringWidth( pszStartOfCurrentWord, (pszCurrentCharacter - pszStartOfCurrentWord) + 1);
                 }
             }
             else 
@@ -1083,7 +1106,7 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
 
     if( (pszCurrentCharacter - pszLineBegin) > 0 ) 
     {
-        if( dCurWidthOfLine > dWidth )
+        if( dCurWidthOfLine > dWidth && pszStartOfCurrentWord > pszLineBegin )
         {
             // The previous word does not fit in the current line.
             // -> Move it to the next one.
