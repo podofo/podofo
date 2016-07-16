@@ -215,7 +215,21 @@ void PdfInputDevice::Seek( std::streamoff off, std::ios_base::seekdir dir )
 
         if (m_pFile)
         {
-            fseeko( m_pFile, off, dir );
+            int whence;
+            switch( dir )
+            {
+                default:
+                case std::ios_base::beg:
+                    whence = SEEK_SET;
+                    break;
+                case std::ios_base::end:
+                    whence = SEEK_END;
+                    break;
+                case std::ios_base::cur:
+                    whence = SEEK_CUR;
+                    break;
+            }
+            fseeko( m_pFile, off, whence );
         }
     }
     else
