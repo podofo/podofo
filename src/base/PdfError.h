@@ -93,7 +93,7 @@ enum EPdfError {
     ePdfError_InvalidStrokeStyle,       /**< Invalid stroke style during drawing */
     ePdfError_InvalidHexString,         /**< Invalid hex string */
     ePdfError_InvalidStream,            /**< The stream is invalid */
-    ePdfError_InvalidStreamLength,      /**< The stream length is invlaid */
+    ePdfError_InvalidStreamLength,      /**< The stream length is invalid */
     ePdfError_InvalidKey,               /**< The specified key is invalid */
     ePdfError_InvalidName,              /**< The specified Name is not valid in this context */
     ePdfError_InvalidEncryptionDict,    /**< The encryption dictionary is invalid or misses a required key */
@@ -119,10 +119,12 @@ enum EPdfError {
 
     ePdfError_NotImplemented,           /**< This feature is currently not implemented. */
 
-    ePdfError_DestinationAlreadyPresent,/**< An destination was already present when trying to add an Action */
+    ePdfError_DestinationAlreadyPresent,/**< A destination was already present when trying to add an Action */
     ePdfError_ChangeOnImmutable,        /**< Changing values on immutable objects is not allowed. */
 
     ePdfError_NotCompiled,              /**< This feature was disabled at compile time. */
+
+    ePdfError_OutlineItemAlreadyPresent,/**< An outline item to be inserted was already in that outlines tree. */
 
     ePdfError_Unknown = 0xffff          /**< Unknown error */
 };

@@ -121,6 +121,39 @@ PdfOutlineItem* PdfOutlineItem::CreateChild( const PdfString & sTitle, const Pdf
 
 void PdfOutlineItem::InsertChild( PdfOutlineItem* pItem )
 {
+    PdfOutlineItem* pItemToCheckParent = pItem;
+    PdfOutlineItem* pRoot = NULL;
+    PdfOutlineItem* pRootOfThis = NULL;
+
+    if ( !pItemToCheckParent )
+        return;
+
+    while ( pItemToCheckParent )
+    {
+        while ( pItemToCheckParent->GetParentOutline() )
+            pItemToCheckParent = pItemToCheckParent->GetParentOutline();
+
+        if ( pItemToCheckParent == pItem ) // item can't have a parent
+        {
+            pRoot = pItem; // needed later, "root" can mean "standalone" here
+            break;         // for performance in standalone or doc-merge case
+        }
+
+        if ( !pRoot )
+        {
+            pRoot = pItemToCheckParent;
+            pItemToCheckParent = this;
+        }
+        else
+        {
+            pRootOfThis = pItemToCheckParent;
+            pItemToCheckParent = NULL;
+        }
+    }
+
+    if ( pRoot == pRootOfThis ) // latter NULL if check skipped for performance
+        PODOFO_RAISE_ERROR( ePdfError_OutlineItemAlreadyPresent );
+
     if( m_pLast )
     {
         m_pLast->SetNext( pItem );

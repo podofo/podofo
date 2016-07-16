@@ -154,7 +154,7 @@ void PdfError::PrintErrorMsg() const
 
     int i                = 0;
 
-    PdfError::LogErrorMessage( eLogSeverity_Error, "\n\nPoDoFo encounter an error. Error: %i %s\n", m_error, pszName ? pszName : "" );
+    PdfError::LogErrorMessage( eLogSeverity_Error, "\n\nPoDoFo encountered an error. Error: %i %s\n", m_error, pszName ? pszName : "" );
 
     if( pszMsg )
         PdfError::LogErrorMessage( eLogSeverity_Error, "\tError Description: %s\n", pszMsg );
@@ -342,6 +342,9 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_ChangeOnImmutable:
             pszMsg = "ePdfError_ChangeOnImmutable";
             break;
+        case ePdfError_OutlineItemAlreadyPresent:
+            pszMsg = "ePdfError_OutlineItemAlreadyPresent"; 
+            break;
         case ePdfError_Unknown:
             pszMsg = "ePdfError_Unknown"; 
             break;
@@ -477,6 +480,9 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
             break;
         case ePdfError_NotCompiled:
             pszMsg = "This feature was disabled during compile time.";
+            break;
+        case ePdfError_OutlineItemAlreadyPresent:
+            pszMsg = "Given OutlineItem already present in destination tree.";
             break;
         case ePdfError_Unknown:
             pszMsg = "Error code unknown.";

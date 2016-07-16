@@ -90,8 +90,14 @@ class PODOFO_DOC_API PdfOutlineItem : public PdfElement {
      */
     PdfOutlineItem* CreateNext ( const PdfString & sTitle, const PdfAction & rAction );
 
-	/** Inserts an existing PdfOutlineItem as a child
-     *  of this outline item.
+    /** Inserts a new PdfOutlineItem as a child of this outline item.
+     *  The former can't be in the same tree as this one, as the tree property
+     *  would be broken. If this prerequisite is violated, a PdfError
+     *  exception (code ePdfError_OutlineItemAlreadyPresent) is thrown and
+     *  nothing is changed.
+     *  The item inserted is not copied, i.e. Erase() calls affect the original!
+     *  Therefore also shared ownership is in effect, i.e. deletion by where it
+     *  comes from damages the data structure it's inserted into.
      *
      *  \param pItem an existing outline item
      */
