@@ -1248,7 +1248,6 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 	pGlyphFont->SetFontSize( m_pFont->GetFontSize() );
 	pGlyphFont->SetFontCharSpace( m_pFont->GetFontCharSpace() );
 	pGlyphFont->SetFontScale( m_pFont->GetFontScale() );
-	PdfObject* pGlyphFontObj = pGlyphFont->GetObject();
 
 	PODOFO_ASSERT( code > 32  &&  code <= 127 );
 
