@@ -124,7 +124,7 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
     double* pdColWidths  = new double[this->GetCols()];
     double* pdRowHeights = new double[this->GetRows()];
 
-	bool bBorders = !m_pModel || (m_pModel && m_pModel->HasBorders() );
+	bool bBorders = !m_pModel || m_pModel->HasBorders();
 
     // Calculate all necessary sizes
     this->CalculateTableSize( dX, dY, pPainter->GetPage(), 
