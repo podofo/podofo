@@ -73,13 +73,14 @@ namespace PoDoFo {
 long PdfParser::s_nMaxObjects = std::numeric_limits<long>::max();
 
 PdfParser::PdfParser( PdfVecObjects* pVecObjects )
-    : PdfTokenizer(), m_vecObjects( pVecObjects )
+    : PdfTokenizer(), m_vecObjects( pVecObjects ), m_bStrictParsing( false )
+
 {
     this->Init();
 }
 
 PdfParser::PdfParser( PdfVecObjects* pVecObjects, const char* pszFilename, bool bLoadOnDemand )
-    : PdfTokenizer(), m_vecObjects( pVecObjects )
+    : PdfTokenizer(), m_vecObjects( pVecObjects ), m_bStrictParsing( false )
 {
     this->Init();
     this->ParseFile( pszFilename, bLoadOnDemand );
@@ -89,7 +90,7 @@ PdfParser::PdfParser( PdfVecObjects* pVecObjects, const char* pszFilename, bool 
 #if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
 #else
 PdfParser::PdfParser( PdfVecObjects* pVecObjects, const wchar_t* pszFilename, bool bLoadOnDemand )
-    : PdfTokenizer(), m_vecObjects( pVecObjects )
+    : PdfTokenizer(), m_vecObjects( pVecObjects ), m_bStrictParsing( false )
 {
     this->Init();
     this->ParseFile( pszFilename, bLoadOnDemand );
@@ -98,7 +99,7 @@ PdfParser::PdfParser( PdfVecObjects* pVecObjects, const wchar_t* pszFilename, bo
 #endif // _WIN32
 
 PdfParser::PdfParser( PdfVecObjects* pVecObjects, const char* pBuffer, long lLen, bool bLoadOnDemand )
-    : PdfTokenizer(), m_vecObjects( pVecObjects )
+    : PdfTokenizer(), m_vecObjects( pVecObjects ), m_bStrictParsing( false )
 {
     this->Init();
     this->ParseFile( pBuffer, lLen, bLoadOnDemand );
@@ -106,7 +107,7 @@ PdfParser::PdfParser( PdfVecObjects* pVecObjects, const char* pBuffer, long lLen
 
 PdfParser::PdfParser( PdfVecObjects* pVecObjects, const PdfRefCountedInputDevice & rDevice, 
                       bool bLoadOnDemand )
-    : PdfTokenizer(), m_vecObjects( pVecObjects )
+    : PdfTokenizer(), m_vecObjects( pVecObjects ), m_bStrictParsing( false )
 {
     this->Init();
 
@@ -142,7 +143,6 @@ void PdfParser::Init()
     m_nXRefLinearizedOffset = 0;
     m_lLastEOFOffset  = 0;
 
-    m_bStrictParsing  = false;
     m_bIgnoreBrokenObjects = false;
     m_nIncrementalUpdates = 0;
     m_nReadNextTrailerLevel = 0;
@@ -1333,7 +1333,13 @@ void PdfParser::UpdateDocumentVersion()
             PdfObject* pVersion = pCatalog->GetDictionary().GetKey( PdfName( "Version" ) );
             for(int i=0;i<=MAX_PDF_VERSION_STRING_INDEX;i++)
             {
-                if(pVersion->GetName().GetName() == s_szPdfVersionNums[i])
+                if( IsStrictParsing() && !pVersion->IsName())
+                {
+                    // Version must be of type name, according to PDF Specification
+                    PODOFO_RAISE_ERROR( ePdfError_InvalidName );
+                }
+                
+                if( pVersion->IsName() && pVersion->GetName().GetName() == s_szPdfVersionNums[i] )
                 {
                     PdfError::LogMessage( eLogSeverity_Information,
                                           "Updating version from %s to %s\n", 
