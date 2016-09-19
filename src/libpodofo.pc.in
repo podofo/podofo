@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/@LIBDIRNAME@
+includedir=${prefix}/include/podofo
+
+Name: @CMAKE_PROJECT_NAME@
+Description: A C++ library to work with the PDF file format
+Version: @PODOFO_VERSION@
+Libs: -L${libdir} -lpodofo-@PODOFO_VERSION_MAJOR@
+Cflags: -I${includedir}

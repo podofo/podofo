@@ -308,6 +308,25 @@ IF(PODOFO_BUILD_SHARED)
         LIBRARY DESTINATION "${LIBDIRNAME}"
         ARCHIVE DESTINATION "${LIBDIRNAME}"
         )
+
+
+      # Create a pkg-config file for linking against shared library
+      # if pkg-config is available on the system.
+      # Add a version to the file name corresponding to the API compatibility.
+
+      FIND_PROGRAM(PKG_CONFIG_FOUND pkg-config)
+      IF(PKG_CONFIG_FOUND)
+        MESSAGE("Pkg-config found, creating a pkg-config file for linking against shared library.")
+        CONFIGURE_FILE(
+          "libpodofo.pc.in"
+          "${PoDoFo_BINARY_DIR}/libpodofo-${PODOFO_VERSION_MAJOR}.pc"
+          @ONLY)
+        INSTALL(
+          FILES "${PoDoFo_BINARY_DIR}/libpodofo-${PODOFO_VERSION_MAJOR}.pc"
+          DESTINATION "${LIBDIRNAME}/pkgconfig")
+      ELSE(PKG_CONFIG_FOUND)
+        MESSAGE("Pkg-config not found. No pkg-config file will be created.")
+      ENDIF(PKG_CONFIG_FOUND)
 ENDIF(PODOFO_BUILD_SHARED)
 
 # Use these flags when compiling code that includes PoDoFo headers.
