@@ -104,200 +104,96 @@ inline unsigned short ShortFromBigEndian(unsigned short i)
 namespace PoDoFo {
 
 #if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
-// The function receives a buffer containing a true type collection and replaces the buffer
-// by a new buffer with the extracted font.
-// On error the function returns false.
-static bool GetFontFromCollection(char *&buffer, unsigned int &bufferLen, unsigned int bufferOffset, const LOGFONTW* inFont)
+//This function will recieve the device context for the ttc font, it will then extract necessary tables,and create the correct buffer.
+//On error function return false
+static bool GetFontFromCollection(HDC &hdc, char *&buffer, unsigned int &bufferLen)
 {
-    bool ok = false;
+    const DWORD ttcf_const = 0x66637474;
+    unsigned int fileLen = GetFontData(hdc, ttcf_const, 0, 0, 0);
+    unsigned int ttcLen = GetFontData(hdc, 0, 0, 0, 0);
+    if (fileLen == GDI_ERROR || ttcLen == GDI_ERROR)
+    {
+        return false;
+    }
 
-    // these properties are extracted to match the font
-    wchar_t fontFamilyLocale[1024];
-    // if you have a languagePack installed EnumFontFamiliesEx Call will still give you english names
-    // even though the systemLCID is set to the language pack -> resulting in conflicts when comparing fontnames with 
-    // the LOGFONTW->lfFaceName
-    wchar_t fontFamilyEngl[1024];   
-    wchar_t fontStyle[1024];
-    wchar_t fontFullName[1024];
-    wchar_t fontPostscriptName[1024];
-    fontFamilyLocale[0]   = 0;
-    fontFamilyEngl[0] = 0;
-    fontStyle[0]    = 0;
-    fontFullName[0] = 0;
-    fontPostscriptName[0] = 0;
-    unsigned int fontFileSize = 12;
+    char *fileBuffer = (char*)podofo_malloc(fileLen);
+    if (!fileBuffer)
+    {
+        PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+    }
+
+    char *ttcBuffer = (char*)podofo_malloc(ttcLen);
+    if (!ttcBuffer)
+    {
+        podofo_free(fileBuffer);
+        PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+    }
+
+    if (GetFontData(hdc, ttcf_const, 0, fileBuffer, fileLen) == GDI_ERROR)
+    {
+        podofo_free(fileBuffer);
+        podofo_free(ttcBuffer);
+        return false;
+    }
+
+    if (GetFontData(hdc, 0, 0, ttcBuffer, ttcLen) == GDI_ERROR)
+    {
+        podofo_free(fileBuffer);
+        podofo_free(ttcBuffer);
+        return false;
+    }
+
+    USHORT numTables = ShortFromBigEndian(*(USHORT *)(ttcBuffer + 4));
+    unsigned int outLen = 12+16* numTables;
+    char *entry = ttcBuffer + 12;
 
     //us: see "http://www.microsoft.com/typography/otspec/otff.htm"
-    USHORT numTables = ShortFromBigEndian(*(USHORT *)(buffer + bufferOffset + 4));
-    char *entry = buffer + bufferOffset + 12;
-    for(int i=0; i<numTables; i++)
+    for (int table = 0; table < numTables; table++)
     {
-        char tag[5];
-        tag[0] = entry[0];
-        tag[1] = entry[1];
-        tag[2] = entry[2];
-        tag[3] = entry[3];
-        tag[4] = 0;
-        //ULONG checkSum = FromBigEndian(*(ULONG *)(entry+4));
-        ULONG offset   = FromBigEndian(*(ULONG *)(entry+8));
-        ULONG length   = FromBigEndian(*(ULONG *)(entry+12));
-        length = (length+3) & ~3;
-        if(offset+length > bufferLen)
-        {
-            return false; // truncated or corrupted buffer
-        }
-
-        
-        if(strcmp(tag, "name") == 0)
-        {
-            //us: see "http://www.microsoft.com/typography/otspec/name.htm"
-            char *nameTable = buffer + offset;
-            //USHORT format       = ShortFromBigEndian(*(USHORT *)(nameTable));
-            USHORT nameCount    = ShortFromBigEndian(*(USHORT *)(nameTable+2));
-            USHORT stringOffset = ShortFromBigEndian(*(USHORT *)(nameTable+4));
-            char *stringArea = nameTable + stringOffset;
-            char *nameRecord = nameTable + 6;
-
-            int systemLCID = GetUserDefaultLCID(); // systemcall to get the locale user ID
-
-            for(int n=0; n<nameCount; n++)
-            {
-                USHORT platformID = ShortFromBigEndian(*(USHORT *)(nameRecord));
-                USHORT encodingID = ShortFromBigEndian(*(USHORT *)(nameRecord+2));
-                USHORT languageID = ShortFromBigEndian(*(USHORT *)(nameRecord+4));
-
-                if(platformID == 0 && languageID == 0)
-                {
-                    // Unicode platform / unicode 1.0
-                    USHORT nameID = ShortFromBigEndian(*(USHORT *)(nameRecord+6));
-                    USHORT length = ShortFromBigEndian(*(USHORT *)(nameRecord+8));
-                    USHORT offset = ShortFromBigEndian(*(USHORT *)(nameRecord+10));
-                    wchar_t name[1024];
-                    if( length >= sizeof(name) )
-                        length = sizeof(name) - sizeof(wchar_t);
-                    unsigned int charCount = length / sizeof(wchar_t);
-                    for(unsigned int i=0; i<charCount; i++)
-                    {
-                        name[i] = ShortFromBigEndian(((USHORT *)(stringArea + offset))[i]);
-                    }
-                    name[charCount] = 0;
-
-                    switch(nameID)
-                    {
-                    case 1:
-                        wcscpy(fontFamilyLocale, name);
-                        break;
-                    case 2:
-                        wcscpy(fontStyle, name);
-                        break;
-                    case 4:
-                        wcscpy(fontFullName, name);
-                        break;
-                    case 6:
-                        wcscpy(fontPostscriptName, name);
-                        break;
-                    }
-                }
-                // dv: see "http://www.microsoft.com/typography/otspec/name.htm"
-                if (platformID == 3 && encodingID == 1) //Platform Windows -> Unicode (UCS-2)
-                {
-                    USHORT nameID = ShortFromBigEndian(*(USHORT *)(nameRecord + 6));
-                    USHORT length = ShortFromBigEndian(*(USHORT *)(nameRecord + 8));
-                    USHORT offset = ShortFromBigEndian(*(USHORT *)(nameRecord + 10));
-                    wchar_t name[1024];
-                    if( length >= sizeof(name) )
-                        length = sizeof(name) - sizeof(wchar_t);
-                    unsigned int charCount = length / sizeof(wchar_t);
-                    for (unsigned int i = 0; i < charCount; i++)
-                    {
-                        name[i] = ShortFromBigEndian(((USHORT *)(stringArea + offset))[i]);
-                    }
-                    name[charCount] = 0;
-
-                    if (languageID == systemLCID)
-                    {                 
-                        switch (nameID)
-                        {
-                        case 1:
-                            wcscpy(fontFamilyLocale, name);
-                            break;
-                        case 2:
-                            wcscpy(fontStyle, name);
-                            break;
-                        case 4:
-                            wcscpy(fontFullName, name);
-                            break;
-                        case 6:
-                            wcscpy(fontPostscriptName, name);
-                            break;
-                        }
-                    }
-                    else if (languageID == 1033) // English - United States
-                    {
-                        switch (nameID)
-                        {
-                        case 1:
-                            wcscpy(fontFamilyEngl, name);
-                            break;
-                        }
-                    }
-                }
-                nameRecord += 12;
-            }
-        }
+        ULONG length = FromBigEndian(*(ULONG *)(entry + 12));
+        length = (length + 3) & ~3;
         entry += 16;
-        fontFileSize += 16 + length;
+        outLen += length;
     }
-
-    // check if font matches the wanted properties
-    unsigned int isMatchingFont = _wcsicmp(fontFamilyLocale, inFont->lfFaceName) == 0 || _wcsicmp(fontFamilyEngl, inFont->lfFaceName) == 0;
-    //..TODO.. check additional styles (check fontStyle, fontFullName, fontPostscriptName) ?
-
-    // extract font
-    if(isMatchingFont)
+    char *outBuffer = (char*)podofo_malloc(outLen);
+    if (!outBuffer)
     {
-        char *newBuffer = (char *) podofo_malloc(fontFileSize);
-		if (!newBuffer)
-		{
-			PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
-		}
+        podofo_free(fileBuffer);
+        podofo_free(ttcBuffer);
+        PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+    }
+    // copy font header and table index (offsets need to be still adjusted)
+    memcpy(outBuffer, ttcBuffer, 12 + 16 * numTables);
+    unsigned int dstDataOffset = 12 + 16 * numTables;
 
-        // copy font header and table index (offsets need to be still adjusted)
-        memcpy(newBuffer, buffer + bufferOffset, 12+16*numTables);
-        unsigned int dstDataOffset = 12+16*numTables;
+    // process tables
+    char *srcEntry = ttcBuffer + 12;
+    char *dstEntry = outBuffer + 12;
+    for (int table = 0; table < numTables; table++)
+    {
+        // read source entry
+        ULONG offset = FromBigEndian(*(ULONG *)(srcEntry + 8));
+        ULONG length = FromBigEndian(*(ULONG *)(srcEntry + 12));
+        length = (length + 3) & ~3;
 
-        // process tables
-        char *srcEntry = buffer + bufferOffset + 12;
-        char *dstEntry = newBuffer + 12;
-        for(int table=0; table < numTables; table++)
-        {
-            // read source entry
-            ULONG offset   = FromBigEndian(*(ULONG *)(srcEntry+8));
-            ULONG length   = FromBigEndian(*(ULONG *)(srcEntry+12));
-            length = (length+3) & ~3;
+        // adjust offset
+        // U can use FromBigEndian() also to convert _to_ big endian
+        *(ULONG *)(dstEntry + 8) = FromBigEndian(dstDataOffset);
 
-            // adjust offset
-            // U can use FromBigEndian() also to convert _to_ big endian 
-            *(ULONG *)(dstEntry+8) = FromBigEndian(dstDataOffset);
+        //copy data
+        memcpy(outBuffer + dstDataOffset, fileBuffer + offset, length);
+        dstDataOffset += length;
 
-            //copy data
-            memcpy(newBuffer + dstDataOffset, buffer + offset, length);
-            dstDataOffset += length;
-
-            // adjust table entry pointers for loop
-            srcEntry += 16;
-            dstEntry += 16;
-        }
-
-        // replace old buffer
-        //assert(dstDataOffset==fontFileSize)
-        podofo_free(buffer);
-        buffer = newBuffer;
-        bufferLen = fontFileSize;
-        ok = true;
+        // adjust table entry pointers for loop
+        srcEntry += 16;
+        dstEntry += 16;
     }
 
-    return ok;
+    podofo_free(fileBuffer);
+    podofo_free(ttcBuffer);
+    buffer = outBuffer;
+    bufferLen = outLen;
+    return true;
 }
 
 static bool GetDataFromHFONT( HFONT hf, char** outFontBuffer, unsigned int& outFontBufferLen, const LOGFONTW* inFont )
@@ -310,19 +206,11 @@ static bool GetDataFromHFONT( HFONT hf, char** outFontBuffer, unsigned int& outF
 
     // try get data from true type collection
     char *buffer = NULL;
-    unsigned int bufferLen = 0;
-    bool hasData = false;
     const DWORD ttcf_const = 0x66637474;
-    DWORD dwTable = ttcf_const;
-    bufferLen = GetFontData(hdc, dwTable, 0, 0, 0);
+    unsigned int bufferLen = GetFontData(hdc, 0, 0, 0, 0);
+    unsigned int ttcLen = GetFontData(hdc, ttcf_const, 0, 0, 0);
 
-    if (bufferLen == GDI_ERROR)
-    {
-        dwTable = 0;
-        bufferLen = GetFontData(hdc, dwTable, 0, 0, 0);
-
-    }
-    if (bufferLen != GDI_ERROR)
+	if (bufferLen != GDI_ERROR && ttcLen == GDI_ERROR)
     {
         buffer = (char *) podofo_malloc( bufferLen );
 		if (!buffer)
@@ -330,27 +218,11 @@ static bool GetDataFromHFONT( HFONT hf, char** outFontBuffer, unsigned int& outF
 			PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
 		}
 
-        hasData = GetFontData( hdc, dwTable, 0, buffer, (DWORD) bufferLen ) != GDI_ERROR;
+        ok = GetFontData(hdc, 0, 0, buffer, (DWORD)bufferLen) != GDI_ERROR;
     }
-
-    if(hasData)
+	else if (bufferLen != GDI_ERROR)
     {
-        if(((DWORD *)buffer)[0] == ttcf_const)
-        {
-            // true type collection data
-            unsigned int numFonts = FromBigEndian(((unsigned int *)buffer)[2]);
-            for(unsigned int i=0; i<numFonts; i++)
-            {
-                unsigned int offset = FromBigEndian(((unsigned int *)buffer)[3+i]);
-                ok = GetFontFromCollection(buffer, bufferLen, offset, inFont);
-                if(ok) break;
-            }
-        }
-        else
-        {
-            // "normal" font data
-            ok = true;
-        }
+        ok = GetFontFromCollection(hdc, buffer, bufferLen);
     }
 
     // clean up
