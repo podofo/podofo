@@ -39,6 +39,7 @@
 #include "PdfReference.h"
 
 #include <string.h>
+#include <openssl/opensslconf.h>
 
 namespace PoDoFo {
 
@@ -47,7 +48,9 @@ class PdfInputStream;
 class PdfObject;
 class PdfOutputStream;
 class AESCryptoEngine;
+#ifndef OPENSSL_NO_RC4
 class RC4CryptoEngine;
+#endif // OPENSSL_NO_RC4
     
 /// Class representing PDF encryption methods. (For internal use only)
 /// Based on code from Ulrich Telle: http://wxcode.sourceforge.net/components/wxpdfdoc/
@@ -111,8 +114,10 @@ public:
      * The encryption algorithm.
      */
     typedef enum {
+#ifndef OPENSSL_NO_RC4
         ePdfEncryptAlgorithm_RC4V1 = 1, ///< RC4 Version 1 encryption using a 40bit key
         ePdfEncryptAlgorithm_RC4V2 = 2, ///< RC4 Version 2 encryption using a key with 40-128bit
+#endif // OPENSSL_NO_RC4
         ePdfEncryptAlgorithm_AESV2 = 4  ///< AES encryption with a 128 bit key (PDF1.6)
 #ifdef PODOFO_HAVE_LIBIDN
         ,ePdfEncryptAlgorithm_AESV3 = 8 ///< AES encryption with a 256 bit key (PDF1.7 extension 3) - Support added by P. Zent
@@ -143,7 +148,7 @@ public:
                                           ePdfPermissions_Accessible |
                                           ePdfPermissions_DocAssembly |
                                           ePdfPermissions_HighPrint,
-                                          EPdfEncryptAlgorithm eAlgorithm = ePdfEncryptAlgorithm_RC4V1, 
+                                          EPdfEncryptAlgorithm eAlgorithm = ePdfEncryptAlgorithm_AESV2, 
                                           EPdfKeyLength eKeyLength = ePdfKeyLength_40 );
 
     /** Initialize a PdfEncrypt object from an encryption dictionary in a PDF file.
@@ -388,8 +393,8 @@ public:
 
 protected:
     PdfEncrypt()
-        : m_eAlgorithm( ePdfEncryptAlgorithm_RC4V1 ), m_keyLength( 0 ), m_rValue( 0 ), m_pValue( 0 ),
-        m_eKeyLength( ePdfKeyLength_40 ), m_bEncryptMetadata(true)
+        : m_eAlgorithm( ePdfEncryptAlgorithm_AESV2 ), m_keyLength( 0 ), m_rValue( 0 ), m_pValue( 0 ),
+        m_eKeyLength( ePdfKeyLength_128 ), m_bEncryptMetadata(true)
     {
         memset( m_uValue, 0, 48 );
         memset( m_oValue, 0, 48 );
@@ -529,6 +534,7 @@ protected:
     AESCryptoEngine*   m_aes;                ///< AES encryptor
 };
 
+#ifndef OPENSSL_NO_RC4
 /** A pure virtual class that is used to encrypt a PDF file (RC4-40..128)
  *  This class is the base for classes that implement algorithms based on RC4
  *
@@ -551,8 +557,13 @@ protected:
     
     RC4CryptoEngine*   m_rc4;                ///< AES encryptor
 };
+#endif // OPENSSL_NO_RC4
     
+#ifdef OPENSSL_NO_RC4
+class PdfEncryptMD5Base : public PdfEncrypt {
+#else
 class PdfEncryptMD5Base : public PdfEncrypt, public PdfEncryptRC4Base {
+#endif // OPENSSL_NO_RC4
 public:
     
     PdfEncryptMD5Base() {};
@@ -728,6 +739,7 @@ public:
 
 #endif // PODOFO_HAVE_LIBIDN
 
+#ifndef OPENSSL_NO_RC4
 /** A class that is used to encrypt a PDF file (RC4 40-bit and 128-bit)
  *
  *  Client code is working only with PdfEncrypt class and knows nothing
@@ -778,6 +790,7 @@ public:
     
     virtual pdf_long CalculateStreamLength(pdf_long length) const;
 };
+#endif // OPENSSL_NO_RC4
 
 // -----------------------------------------------------
 // 

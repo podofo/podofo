@@ -303,7 +303,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
                                         PdfEncrypt::ePdfPermissions_Accessible |
                                         PdfEncrypt::ePdfPermissions_DocAssembly |
                                         PdfEncrypt::ePdfPermissions_HighPrint,
-                       PdfEncrypt::EPdfEncryptAlgorithm eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_RC4V1,
+                       PdfEncrypt::EPdfEncryptAlgorithm eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_AESV2,
                        PdfEncrypt::EPdfKeyLength eKeyLength = PdfEncrypt::ePdfKeyLength_40 );
 
     /** Encrypt the document during writing using a PdfEncrypt object

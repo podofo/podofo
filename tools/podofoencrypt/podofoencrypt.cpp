@@ -43,17 +43,21 @@ void encrypt( const char* pszInput, const char* pszOutput,
     EPdfVersion   eVersion;
     switch( eAlgorithm ) 
     {
+#ifndef OPENSSL_NO_RC4
         case PdfEncrypt::ePdfEncryptAlgorithm_RC4V1:
             eKeyLength = PdfEncrypt::ePdfKeyLength_40;
             eVersion   = ePdfVersion_1_3;
             break;
+#endif // OPENSSL_NO_RC4
 #ifdef PODOFO_HAVE_LIBIDN
         case PdfEncrypt::ePdfEncryptAlgorithm_AESV3:;
             eKeyLength = PdfEncrypt::ePdfKeyLength_256;
             eVersion   = ePdfVersion_1_7;
             break;
 #endif // PODOFO_HAVE_LIBIDN
+#ifndef OPENSSL_NO_RC4
         case PdfEncrypt::ePdfEncryptAlgorithm_RC4V2:
+#endif // OPENSSL_NO_RC4
         case PdfEncrypt::ePdfEncryptAlgorithm_AESV2:
         default:
             eKeyLength = PdfEncrypt::ePdfKeyLength_128;
@@ -102,7 +106,7 @@ int main( int argc, char* argv[] )
 {
   const char*                      pszInput   = NULL;
   const char*                      pszOutput  = NULL;
-  PdfEncrypt::EPdfEncryptAlgorithm eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_RC4V1;
+  PdfEncrypt::EPdfEncryptAlgorithm eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_AESV2;
   int                              nPerm      = 0;
   std::string                      userPass;
   std::string                      ownerPass;
@@ -118,11 +122,14 @@ int main( int argc, char* argv[] )
   {
       if( argv[i][0] == '-' ) 
       {
+#ifndef OPENSSL_NO_RC4
           if( strcmp( argv[i], "--rc4v1" ) == 0 ) 
               eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_RC4V1;
           else if( strcmp( argv[i], "--rc4v2" ) == 0 ) 
               eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_RC4V2;
-          else if( strcmp( argv[i], "--aesv2" ) == 0 ) 
+          else
+#endif // OPENSSL_NO_RC4
+          if( strcmp( argv[i], "--aesv2" ) == 0 ) 
               eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_AESV2;
 #ifdef PODOFO_HAVE_LIBIDN
           else if( strcmp( argv[i], "--aesv3" ) == 0 ) 

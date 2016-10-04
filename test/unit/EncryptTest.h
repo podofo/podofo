@@ -34,12 +34,14 @@ class EncryptTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE( EncryptTest );
   CPPUNIT_TEST( testDefault );
+#ifndef OPENSSL_NO_RC4
   CPPUNIT_TEST( testRC4 );
   CPPUNIT_TEST( testRC4v2_40 );
   CPPUNIT_TEST( testRC4v2_56 );
   CPPUNIT_TEST( testRC4v2_80 );
   CPPUNIT_TEST( testRC4v2_96 );
   CPPUNIT_TEST( testRC4v2_128 );
+#endif // OPENSSL_NO_RC4
   CPPUNIT_TEST( testAESV2 );
 #ifdef PODOFO_HAVE_LIBIDN
   CPPUNIT_TEST( testAESV3 );
@@ -54,12 +56,14 @@ class EncryptTest : public CppUnit::TestFixture
   void tearDown();
 
   void testDefault();
+#ifndef OPENSSL_NO_RC4
   void testRC4();
   void testRC4v2_40();
   void testRC4v2_56();
   void testRC4v2_80();
   void testRC4v2_96();
   void testRC4v2_128();
+#endif // OPENSSL_NO_RC4
   void testAESV2();
 #ifdef PODOFO_HAVE_LIBIDN
   void testAESV3();
