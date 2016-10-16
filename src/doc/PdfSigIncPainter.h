@@ -67,7 +67,7 @@ public:
     void DrawMultiLineText( const PdfRect & rRect, const PdfString & rsText, 
                             EPdfAlignment eAlignment = ePdfAlignment_Left, EPdfVerticalAlignment eVertical=ePdfVerticalAlignment_Top);
 
-    
+    PdfDocument *GetDocument() const { return m_pDocument; }
 protected:
     int IsSpace(const char *pszChar);
     int IsLf(const char *pszChar);

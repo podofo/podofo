@@ -424,6 +424,11 @@ void PdfSigIncMemDocument::CreateAnnotation(PdfSignOutputDevice* pDevice, PdfPag
       if(m_pImgXObj != NULL) {
          signField.SetAppearanceStream(m_pImgXObj);
       }
+
+      if( m_pSignField->fillSignatureFieldFunc ) {
+          m_pSignField->fillSignatureFieldFunc( this, signField, m_pSignField->fillSignatureFieldUserData );
+      }
+
       if(m_PagesRef.size() > 0) {
          PdfPage *pPage = m_PagesRef[0];
 
@@ -541,24 +546,11 @@ void PdfSigIncMemDocument::AddVisualSign(PdfPage *pPage)
           pnt.DrawXObject(0,0, &n2XObj);
           pnt.EndCanvas();
 
-          PdfImage *pdfImage = NULL;
-          if(m_pSignField->HasSignatureImage()) {
-             pdfImage = m_pSignField->CreateSignatureImage(pDocument);
-          }
-          if(m_pSignField->HasSignatureText() || pdfImage != NULL) {
+          if(m_pSignField->HasSignatureText() || m_pSignField->HasSignatureImage() || m_pSignField->drawInSignatureXObjectFunc) {
              pnt.SetPageCanvas(pPage, n2XObj.GetContents());
           }
-          if(pdfImage) {
-             PdfRect imgRect = m_pSignField->GetImageRect();
-             n2XObj.AddResource(pdfImage->GetIdentifier(), pdfImage->GetObjectReference(), PdfName("XObject"));
 
-             double scaleX = imgRect.GetWidth() / pdfImage->GetWidth();
-             double scaleY = imgRect.GetHeight() / pdfImage->GetHeight();
-
-             pnt.DrawImage(imgRect.GetLeft() - m_SignRect.GetLeft(), imgRect.GetBottom() - m_SignRect.GetBottom(),
-                            pdfImage, scaleX, scaleY);
-             m_pSignField->FreeSignatureImage(pdfImage);
-          }
+          m_pSignField->DrawImage( pnt, n2XObj, m_SignRect);
 
           if(m_pSignField->HasSignatureText()) {
              if(m_pFont == NULL) {
@@ -581,6 +573,9 @@ void PdfSigIncMemDocument::AddVisualSign(PdfPage *pPage)
              pnt.DrawMultiLineText(txtRect, text);
              //pnt.DrawText(10,50, text);
           }
+          if( m_pSignField->drawInSignatureXObjectFunc ) {
+             m_pSignField->drawInSignatureXObjectFunc( this, m_pSignField, pnt, n2XObj, m_SignRect, m_pSignField->drawInSignatureXObjectUserData );
+          }
       } catch (const PdfError &e) {
           try {
               pnt.FinishPage();
@@ -602,7 +597,7 @@ void PdfSigIncMemDocument::CreateVisualSign(void)
    if(m_pSignField->GetPage() >= m_Document->GetPageCount())
       PODOFO_RAISE_ERROR(ePdfError_InternalLogic);
 
-   if(!m_pSignField->HasSignatureImage() && !m_pSignField->HasSignatureText())
+   if(!m_pSignField->HasSignatureImage() && !m_pSignField->HasSignatureText() && !m_pSignField->drawInSignatureXObjectFunc)
       return;
 
    PdfPage *pPage = m_Document->GetPage(m_pSignField->GetPage());

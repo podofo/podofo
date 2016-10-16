@@ -34,16 +34,32 @@
 #ifndef _PDF_SIGINCSIGNATURE_FIELD_H_
 #define _PDF_SIGINCSIGNATURE_FIELD_H_
 
+#include "PdfFont.h"
 #include "PdfField.h"
 #include "PdfSignatureField.h"
+#include "PdfSigIncPainter.h"
 #include "podofo/base/PdfDate.h"
 #include "PdfImage.h"
 #include "PdfDocument.h"
+#include "PdfFont.h"
 #include <string>
 
 namespace PoDoFo {
 
+class PdfSigIncSignatureField;
+
 typedef PdfFont * (*PdfSigIncCreateFont)(PdfDocument *document, void *user_data);
+
+typedef void (* PdfSigIncFillSignatureFieldFunc) (PdfDocument *document,
+						  PdfSignatureField &signField,
+						  void *user_data);
+
+typedef void (* PdfSigIncDrawInSignatureXObjectFunc) (PdfDocument *document,
+						      PdfSigIncSignatureField *incSignField,
+						      PdfSigIncPainter &painter,
+						      PdfXObject &xObject,
+						      const PdfRect &signatureRect,
+						      void *user_data);
 
 class PODOFO_DOC_API PdfSigIncSignatureField 
 {
@@ -97,6 +113,12 @@ public:
     PdfSigIncCreateFont createFontFunc;
     void *createFontUserData;
 
+    PdfSigIncFillSignatureFieldFunc fillSignatureFieldFunc;
+    void *fillSignatureFieldUserData;
+
+    PdfSigIncDrawInSignatureXObjectFunc drawInSignatureXObjectFunc;
+    void *drawInSignatureXObjectUserData;
+
     PdfImage *CreateSignatureImage(PdfDocument *pParent);
     void FreeSignatureImage(PdfImage *img);
 
@@ -104,6 +126,8 @@ public:
     void SetSignatureImage(const char *fileName, int page, int x, int y, int width, int height);
     void SetSignatureImage(const unsigned char *pData, pdf_long lLen, int page, int x, int y, int width, int height);
     void SetImageChromaKeyMask(pdf_int64 r, pdf_int64 g, pdf_int64 b, pdf_int64 threshold);
+
+    void DrawImage( PdfSigIncPainter &painter, PdfXObject &xObject, const PdfRect &signatureRect);
     
 };
 

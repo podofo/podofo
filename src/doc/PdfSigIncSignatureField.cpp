@@ -57,6 +57,10 @@ PdfSigIncSignatureField::PdfSigIncSignatureField(PdfDocument *pDocument)
 
    createFontFunc = NULL;
    createFontUserData = NULL;
+   fillSignatureFieldFunc = NULL;
+   fillSignatureFieldUserData = NULL;
+   drawInSignatureXObjectFunc = NULL;
+   drawInSignatureXObjectUserData = NULL;
 }
 
 PdfSigIncSignatureField::~PdfSigIncSignatureField()
@@ -91,7 +95,7 @@ bool PdfSigIncSignatureField::HasSignatureImage(void)
 void PdfSigIncSignatureField::SetSignatureText(const wchar_t *text, int page, int x, int y, int width, int height, float fontSize, const char *fontName, bool fontIsSymbolic, const PdfEncoding *fontEncoding)
 {
    PdfRect pdfRect(x, y, width, height);
-   PdfPage *pPage = m_pDocument->GetPage(page);
+   PdfPage *pPage = m_pDocument->GetPage(page < 0 ? m_SignPage : page);
    if(pPage) 
    {
       PdfRect size = pPage->GetPageSize();
@@ -101,7 +105,7 @@ void PdfSigIncSignatureField::SetSignatureText(const wchar_t *text, int page, in
    }
    
    m_SignTextRect = pdfRect;
-   m_SignPage = page;
+   m_SignPage = page < 0 ? m_SignPage : page;
    m_SignText.setFromWchar_t(text);
    m_FontIsSymbolic = fontIsSymbolic;
    m_FontEncoding = fontEncoding;
@@ -119,7 +123,7 @@ void PdfSigIncSignatureField::SetSignatureText(const wchar_t *text, int page, in
 void PdfSigIncSignatureField::SetSignatureImage(const char *fileName, int page, int x, int y, int width, int height)
 {
    PdfRect pdfRect(x, y, width, height);
-   PdfPage *pPage = m_pDocument->GetPage(page);
+   PdfPage *pPage = m_pDocument->GetPage(page < 0 ? m_SignPage : page);
    if(pPage)
    {
       PdfRect size = pPage->GetPageSize();
@@ -129,13 +133,13 @@ void PdfSigIncSignatureField::SetSignatureImage(const char *fileName, int page, 
    }
    m_SignImageRect = pdfRect;
    m_ImageFile = fileName;
-   m_SignPage = page;
+   m_SignPage = page < 0 ? m_SignPage : page;
 }
 
 void PdfSigIncSignatureField::SetSignatureImage(const unsigned char *pData, pdf_long lLen, int page, int x, int y, int width, int height)
 {
    PdfRect pdfRect(x, y, width, height);
-   PdfPage *pPage = m_pDocument->GetPage(page);
+   PdfPage *pPage = m_pDocument->GetPage(page < 0 ? m_SignPage : page);
    if(pPage)
    {
       PdfRect size = pPage->GetPageSize();
@@ -146,7 +150,7 @@ void PdfSigIncSignatureField::SetSignatureImage(const unsigned char *pData, pdf_
    m_SignImageRect = pdfRect;
    m_pImageData = pData;
    m_ImageLen = lLen;
-   m_SignPage = page;
+   m_SignPage = page < 0 ? m_SignPage : page;
 }
 
 void PdfSigIncSignatureField::SetImageChromaKeyMask(pdf_int64 r, pdf_int64 g, pdf_int64 b, pdf_int64 threshold)
@@ -185,6 +189,27 @@ void PdfSigIncSignatureField::FreeSignatureImage(PdfImage *img)
    {
       delete img;
    }
+}
+
+void PdfSigIncSignatureField::DrawImage( PdfSigIncPainter &painter, PdfXObject &xObject, const PdfRect &signatureRect)
+{
+    if ( !HasSignatureImage() )
+        return;
+
+    PdfImage *pdfImage = CreateSignatureImage(painter.GetDocument());
+    if (!pdfImage)
+        return;
+
+    PdfRect imgRect = GetImageRect();
+    xObject.AddResource(pdfImage->GetIdentifier(), pdfImage->GetObjectReference(), PdfName("XObject"));
+
+    double scaleX = imgRect.GetWidth() / pdfImage->GetWidth();
+    double scaleY = imgRect.GetHeight() / pdfImage->GetHeight();
+
+    painter.DrawImage(imgRect.GetLeft() - signatureRect.GetLeft(), imgRect.GetBottom() - signatureRect.GetBottom(),
+	    pdfImage, scaleX, scaleY);
+
+    FreeSignatureImage(pdfImage);
 }
 
 }
