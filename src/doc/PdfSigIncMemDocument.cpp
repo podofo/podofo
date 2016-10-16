@@ -368,7 +368,8 @@ void PdfSigIncMemDocument::Write( PdfSignOutputDevice* pDevice )
      
 
     //TODO - co kdyz nema zadnou page?
-    PdfPage *pPage = m_Document->GetPage(m_Document->GetPageCount() - 1);
+    PdfPage *pPage = m_Document->GetPage(m_pSignField->GetPage() < 0 || m_pSignField->GetPage() >= m_Document->GetPageCount() ?
+	m_Document->GetPageCount() - 1 : m_pSignField->GetPage());
     CreateAnnotation(pDevice, pPage);
 
     const PdfObject *pTrailer = m_Document->GetTrailer();
