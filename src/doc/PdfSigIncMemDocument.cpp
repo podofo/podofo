@@ -127,6 +127,7 @@ PdfSigIncMemDocument::PdfSigIncMemDocument()
    m_n2XObj = NULL;
    m_pFont = NULL;
    m_bLinearized = false;
+   m_stolenPage = NULL;
 }
 
 PdfSigIncMemDocument::PdfSigIncMemDocument(const char* pszInpFilename)
@@ -140,6 +141,7 @@ PdfSigIncMemDocument::PdfSigIncMemDocument(const char* pszInpFilename)
    m_n2XObj = NULL;
    m_pFont = NULL;
    m_bLinearized = false;
+   m_stolenPage = NULL;
 
    m_Document->Load(pszInpFilename);
 }
@@ -151,6 +153,11 @@ PdfSigIncMemDocument::~PdfSigIncMemDocument()
       if(pOldAcroForm == m_pAcroForms)
          m_pAcroForms = NULL;
    }
+
+   if (m_stolenPage && m_Document && m_stolenPage->GetOwner()) {
+       m_stolenPage->GetOwner()->RemoveObject(m_stolenPage->Reference());
+   }
+   m_stolenPage = NULL;
 
    if(m_InpFilename)
       podofo_free( m_InpFilename );
@@ -188,6 +195,16 @@ void PdfSigIncMemDocument::Initialize()
       delete m_Document;
       m_Document = new PdfExMemDocument(inpDvc);
    }
+
+   /* Preload whole file into the memory */
+   TIVecObjects it, end = m_Document->GetObjects().end();
+   for (it = m_Document->GetObjects().begin(); it != end; it++) {
+      PdfObject *obj = *it;
+
+      if (obj)
+         obj->DelayedStreamLoad();
+   }
+
    CreateVisualSignRect();
    m_LastXRefOffset = m_Document->GetXRefOffset();
    
@@ -481,6 +498,9 @@ bool PdfSigIncMemDocument::AddPageToIncDocument(PdfPage *pPage)
       if(!obj) {
          this->GetObjects().push_back(objPage);
          this->GetObjects().Sort();
+         if (objPage->GetOwner()) {
+             m_stolenPage = objPage;
+         }
       }
    } else
       bResult = false;

@@ -89,6 +89,7 @@ class PODOFO_DOC_API PdfSigIncMemDocument : private PdfMemDocument {
     PdfSigIncSignatureField *m_pSignField;
 
     bool m_bLinearized;
+    PdfObject *m_stolenPage;
        
 protected:
    void CreateAnnotation(PdfSignOutputDevice* pDevice, PdfPage* pPage);
