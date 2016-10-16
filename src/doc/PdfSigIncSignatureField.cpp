@@ -80,12 +80,12 @@ void PdfSigIncSignatureField::SetSignatureDate(const PdfDate &sigDate)
 
 bool PdfSigIncSignatureField::HasSignatureText(void)
 {
-   return m_SignText.GetLength() > 0;
+   return m_SignText.IsValid() && m_SignText.GetLength() > 0;
 }
 
 bool PdfSigIncSignatureField::HasSignatureImage(void)
 {
-   return m_ImageFile.GetLength() > 0 || (m_ImageLen > 0 && m_pImageData != NULL);
+   return (m_ImageFile.IsValid() && m_ImageFile.GetLength() > 0) || (m_ImageLen > 0 && m_pImageData != NULL);
 }
 
 void PdfSigIncSignatureField::SetSignatureText(const wchar_t *text, int page, int x, int y, int width, int height, float fontSize, const char *fontName, bool fontIsSymbolic, const PdfEncoding *fontEncoding)
@@ -159,7 +159,7 @@ PdfImage *PdfSigIncSignatureField::CreateSignatureImage(PdfDocument *pParent)
 {
    PdfImage *pPdfImage = NULL;
 #ifdef PODOFO_HAVE_JPEG_LIB
-   if(m_ImageFile.GetLength() > 0)
+   if(m_ImageFile.IsValid() && m_ImageFile.GetLength() > 0)
    {
       pPdfImage = new PdfImage(pParent);
       pPdfImage->LoadFromJpeg(m_ImageFile.GetString());
