@@ -194,6 +194,8 @@ void PdfSigIncMemDocument::Initialize()
       PdfRefCountedInputDevice inpDvc(outBuff.GetBuffer(), outBuff.GetSize());
       delete m_Document;
       m_Document = new PdfExMemDocument(inpDvc);
+      delete m_pSignField;
+      m_pSignField = new PdfSigIncSignatureField(m_Document);
    }
 
    /* Preload whole file into the memory */
