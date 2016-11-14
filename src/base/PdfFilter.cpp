@@ -269,6 +269,9 @@ std::auto_ptr<PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter )
     PdfFilter* pFilter = NULL;
     switch( eFilter )
     {
+        case ePdfFilter_None:
+            break;
+
         case ePdfFilter_ASCIIHexDecode:
             pFilter = new PdfHexFilter();
             break;

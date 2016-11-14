@@ -218,6 +218,7 @@ enum EPdfDataType {
  * ePdfFilter_ASCIIHexDecode
  */
 enum EPdfFilter {
+    ePdfFilter_None = -1,                 /**< Do not use any filtering */
     ePdfFilter_ASCIIHexDecode,            /**< Converts data from and to hexadecimal. Increases size of the data by a factor of 2! \see PdfHexFilter */
     ePdfFilter_ASCII85Decode,             /**< Converts to and from Ascii85 encoding. \see PdfAscii85Filter */
     ePdfFilter_LZWDecode,                 
@@ -238,7 +239,7 @@ enum EPdfFontType {
     ePdfFontType_TrueType,
     ePdfFontType_Type1Pfa,
     ePdfFontType_Type1Pfb,
-	ePdfFontType_Type1Base14,
+    ePdfFontType_Type1Base14,
     ePdfFontType_Type3,
     ePdfFontType_Unknown = 0xff
 };
@@ -289,13 +290,13 @@ enum EPdfStrokeStyle {
  * Enum for predefined tiling patterns.
  */
 enum EPdfTilingPatternType {
-	ePdfTilingPatternType_BDiagonal = 1,
-	ePdfTilingPatternType_Cross,
-	ePdfTilingPatternType_DiagCross,
-	ePdfTilingPatternType_FDiagonal,
-	ePdfTilingPatternType_Horizontal,
-	ePdfTilingPatternType_Vertical,
-   ePdfTilingPatternType_Image
+    ePdfTilingPatternType_BDiagonal = 1,
+    ePdfTilingPatternType_Cross,
+    ePdfTilingPatternType_DiagCross,
+    ePdfTilingPatternType_FDiagonal,
+    ePdfTilingPatternType_Horizontal,
+    ePdfTilingPatternType_Vertical,
+    ePdfTilingPatternType_Image
 };
 
 /**

@@ -64,6 +64,13 @@ class PdfOutputStream;
 class PODOFO_API PdfStream {
 
  public:
+
+    /** The default filter to use when changing the stream content.
+     *  It's a static member and applies to all newly created/changed streams.
+     *  The default value is ePdfFilter_FlateDecode.
+     */
+    static enum EPdfFilter eDefaultFilter;
+
     /** Create a new PdfStream object which has a parent PdfObject.
      *  The stream will be deleted along with the parent.
      *  This constructor will be called by PdfObject::Stream() for you.
@@ -145,6 +152,7 @@ class PODOFO_API PdfStream {
      *
      *  \see Append
      *  \see EndAppend
+     *  \see eDefaultFilter
      */
     void BeginAppend( bool bClearExisting = true );
 
