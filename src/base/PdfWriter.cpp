@@ -39,6 +39,7 @@
 //#include "PdfHintStream.h"
 #include "PdfObject.h"
 #include "PdfParser.h"
+#include "PdfParserObject.h"
 #include "PdfStream.h"
 #include "PdfVariant.h"
 #include "PdfXRef.h"
@@ -58,6 +59,8 @@ PdfWriter::PdfWriter( PdfParser* pParser )
     : m_bXRefStream( false ), m_pEncrypt( NULL ), 
       m_pEncryptObj( NULL ), 
       m_eWriteMode( ePdfWriteMode_Compact ),
+      m_lPrevXRefOffset( 0 ),
+      m_bIncrementalUpdate( false ),
       m_bLinearized( false ), m_lFirstInXRef( 0 ),
       m_lLinearizedOffset(0),
       m_lLinearizedLastOffset(0),
@@ -77,6 +80,8 @@ PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
     : m_bXRefStream( false ), m_pEncrypt( NULL ), 
       m_pEncryptObj( NULL ), 
       m_eWriteMode( ePdfWriteMode_Compact ),
+      m_lPrevXRefOffset( 0 ),
+      m_bIncrementalUpdate( false ),
       m_bLinearized( false ), m_lFirstInXRef( 0 ),
       m_lLinearizedOffset(0),
       m_lLinearizedLastOffset(0),
@@ -95,7 +100,9 @@ PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
 PdfWriter::PdfWriter( PdfVecObjects* pVecObjects )
     : m_bXRefStream( false ), m_pEncrypt( NULL ), 
       m_pEncryptObj( NULL ), 
-      m_eWriteMode( ePdfWriteMode_Compact ), 
+      m_eWriteMode( ePdfWriteMode_Compact ),
+      m_lPrevXRefOffset( 0 ),
+      m_bIncrementalUpdate( false ),
       m_bLinearized( false ), m_lFirstInXRef( 0 ),
       m_lLinearizedOffset(0),
       m_lLinearizedLastOffset(0),
@@ -133,7 +140,12 @@ void PdfWriter::Write( const wchar_t* pszFilename )
 
 void PdfWriter::Write( PdfOutputDevice* pDevice )
 {
-    CreateFileIdentifier( m_identifier, m_pTrailer );
+    this->Write( pDevice, false );
+}
+
+void PdfWriter::Write( PdfOutputDevice* pDevice, bool bRewriteXRefTable )
+{
+    CreateFileIdentifier( m_identifier, m_pTrailer, &m_originalIdentifier );
 
     if( !pDevice )
     {
@@ -152,6 +164,9 @@ void PdfWriter::Write( PdfOutputDevice* pDevice )
 
     if( m_bLinearized ) 
     {
+        if( m_bIncrementalUpdate )
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Cannot write an incremental update as a linearized document." );
+
         this->WriteLinearized( pDevice );
     }
     else
@@ -159,8 +174,13 @@ void PdfWriter::Write( PdfOutputDevice* pDevice )
         PdfXRef* pXRef = m_bXRefStream ? new PdfXRefStream( m_vecObjects, this ) : new PdfXRef();
 
         try {
-            WritePdfHeader  ( pDevice );
-            WritePdfObjects ( pDevice, *m_vecObjects, pXRef );
+            if( !m_bIncrementalUpdate )
+                WritePdfHeader( pDevice );
+
+            WritePdfObjects( pDevice, *m_vecObjects, pXRef, bRewriteXRefTable );
+
+            if( m_bIncrementalUpdate )
+                pXRef->SetFirstEmptyBlock();
 
             pXRef->Write( pDevice );
             
@@ -170,10 +190,10 @@ void PdfWriter::Write( PdfOutputDevice* pDevice )
                 PdfObject  trailer;
                 
                 // if we have a dummy offset we write also a prev entry to the trailer
-                FillTrailerObject( &trailer, pXRef->GetSize(), false, false );
+                FillTrailerObject( &trailer, pXRef->GetSize(), false );
                 
                 pDevice->Print("trailer\n");
-                trailer.WriteObject( pDevice, m_eWriteMode, NULL ); // Do not encrypt the trailer dicionary!!!
+                trailer.WriteObject( pDevice, m_eWriteMode, NULL ); // Do not encrypt the trailer dictionary!!!
             }
             
             pDevice->Print( "startxref\n%li\n%%%%EOF\n", pXRef->GetOffset() );
@@ -200,8 +220,45 @@ void PdfWriter::Write( PdfOutputDevice* pDevice )
     }
 }
 
+void PdfWriter::WriteUpdate( PdfOutputDevice* pDevice, PdfInputDevice* pSourceInputDevice, bool bRewriteXRefTable )
+{
+    if( !pDevice )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    // make sure it's set that this is an incremental update
+    m_bIncrementalUpdate = true;
+
+    // the source device can be NULL, then the output device
+    // is positioned at the end of the original file by the caller
+    if( pSourceInputDevice )
+    {
+        #define BUFFER_SIZE 16384
+
+        // copy the original file content first
+        char pBuffer[ BUFFER_SIZE ];
+
+        pSourceInputDevice->Seek(0);
+
+        while( !pSourceInputDevice->Eof() )
+        {
+            std::streamoff didRead;
+
+            didRead = pSourceInputDevice->Read( pBuffer, BUFFER_SIZE );
+            if( didRead > 0)
+                pDevice->Write( pBuffer, didRead );
+        }
+    }
+
+    // then write the changes
+    this->Write (pDevice, bRewriteXRefTable );
+}
+
 void PdfWriter::WriteLinearized( PdfOutputDevice* /* pDevice */ )
 {
+    PODOFO_RAISE_ERROR( ePdfError_NotImplemented );
+
     /*
     PdfObject*      pLinearize  = NULL;
     PdfPage*        pPage;
@@ -282,25 +339,50 @@ void PdfWriter::WritePdfHeader( PdfOutputDevice* pDevice )
     pDevice->Print( "%s\n%%%s", s_szPdfVersions[static_cast<int>(m_eVersion)], PDF_MAGIC );
 }
 
-void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& vecObjects, PdfXRef* pXref )
+void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& vecObjects, PdfXRef* pXref, bool bRewriteXRefTable )
 {
-    TCIVecObjects       itObjects  = vecObjects.begin();
-    TCIPdfReferenceList itFree     = vecObjects.GetFreeObjects().begin();
+    TCIVecObjects itObjects, itObjectsEnd = vecObjects.end();
 
-    while( itObjects != vecObjects.end() )
+    for( itObjects = vecObjects.begin(); itObjects !=  itObjectsEnd; ++itObjects )
     {
-        pXref->AddObject( (*itObjects)->Reference(), pDevice->Tell(), true );
-        // Make sure that we do not encrypt the encryption dictionary!
-        (*itObjects)->WriteObject( pDevice, m_eWriteMode, 
-                                   ((*itObjects) == m_pEncryptObj ? NULL : m_pEncrypt) );
+        PdfObject *pObject = *itObjects;
 
-        ++itObjects;
+	if( m_bIncrementalUpdate )
+        {
+            if( !pObject->IsDirty() )
+            {
+                bool canSkip = !bRewriteXRefTable;
+
+                if( bRewriteXRefTable )
+                {
+                    const PdfParserObject *parserObject = dynamic_cast<const PdfParserObject *>(pObject);
+                    // the reference looks like "0 0 R", while the object identifier like "0 0 obj", thus add two letters
+                    int objRefLength = pObject->Reference().ToString().length() + 2;
+
+                    // the offset points just after the "0 0 obj" string
+                    if( parserObject && parserObject->GetOffset() - objRefLength > 0)
+                    {
+                        pXref->AddObject( pObject->Reference(), parserObject->GetOffset() - objRefLength, true );
+                        canSkip = true;
+                    }
+                }
+
+                if( canSkip )
+                    continue;
+            }
+        }
+
+        pXref->AddObject( pObject->Reference(), pDevice->Tell(), true );
+
+        // Make sure that we do not encrypt the encryption dictionary!
+        pObject->WriteObject( pDevice, m_eWriteMode, 
+                              (pObject == m_pEncryptObj ? NULL : m_pEncrypt) );
     }
 
-    while( itFree != vecObjects.GetFreeObjects().end() )
+    TCIPdfReferenceList itFree, itFreeEnd = vecObjects.GetFreeObjects().end();
+    for( itFree = vecObjects.GetFreeObjects().begin(); itFree != itFreeEnd; ++itFree )
     {
         pXref->AddObject( *itFree, 0, false );
-        ++itFree;
     }
 }
 
@@ -468,11 +550,8 @@ void PdfWriter::FindCatalogDependencies( PdfObject* pCatalog, const PdfName & rN
     }
     }*/
 
-void PdfWriter::FillTrailerObject( PdfObject* pTrailer, pdf_long lSize, bool bPrevEntry, bool bOnlySizeKey ) const
+void PdfWriter::FillTrailerObject( PdfObject* pTrailer, pdf_long lSize, bool bOnlySizeKey ) const
 {
-    // this will be overwritten later with valid data
-    PdfVariant place_holder( PdfData( LINEARIZATION_PADDING ) );
-
     pTrailer->GetDictionary().AddKey( PdfName::KeySize, static_cast<pdf_int64>(lSize) );
 
     if( !bOnlySizeKey ) 
@@ -492,18 +571,27 @@ void PdfWriter::FillTrailerObject( PdfObject* pTrailer, pdf_long lSize, bool bPr
         if( m_pEncryptObj ) 
             pTrailer->GetDictionary().AddKey( PdfName("Encrypt"), m_pEncryptObj->Reference() );
 
-        // maybe only call this function if bPrevEntry is false
         PdfArray array;
         // The ID is the same unless the PDF was incrementally updated
-        array.push_back( m_identifier );
+        if( m_bIncrementalUpdate && m_originalIdentifier.IsValid() && m_originalIdentifier.GetLength() > 0 )
+        {
+            array.push_back( m_originalIdentifier );
+        }
+        else
+        {
+            array.push_back( m_identifier );
+        }
         array.push_back( m_identifier );
 
         // finally add the key to the trailer dictionary
         pTrailer->GetDictionary().AddKey( "ID", array );
 
-        if( bPrevEntry )
+        if( m_lPrevXRefOffset > 0 )
         {
-            pTrailer->GetDictionary().AddKey( "Prev", place_holder );
+            PdfVariant value( 0l );
+            value.SetNumber( m_lPrevXRefOffset );
+
+            pTrailer->GetDictionary().AddKey( "Prev", value );
         }
     }
 }
@@ -564,9 +652,8 @@ NonPublic::PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset )
     pLinearize->WriteObject( pDevice );
     pDevice->Seek( lFileSize );
 
-    value.SetNumber( pVecXRefOffset->back() );
-    FillTrailerObject( &trailer, pLast->Reference().ObjectNumber()+1, true, false );
-    trailer.GetDictionary().AddKey("Prev", value );
+    m_lPrevXRefOffset = pVecXRefOffset->back();
+    FillTrailerObject( &trailer, pLast->Reference().ObjectNumber()+1, false );
 
     pDevice->Seek( m_lTrailerOffset );
     trailer.WriteObject( pDevice );
@@ -574,12 +661,27 @@ NonPublic::PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset )
 }
 */
 
-void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* pTrailer ) const
+void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* pTrailer, PdfString* pOriginalIdentifier ) const
 {
     PdfOutputDevice length;
     PdfObject*      pInfo;
     char*           pBuffer;
+    bool            bOriginalIdentifierFound = false;
     
+    if( pOriginalIdentifier && pTrailer->GetDictionary().HasKey( "ID" ))
+    {
+        const PdfObject* idObj = pTrailer->GetDictionary().GetKey("ID");
+
+        TCIVariantList it = idObj->GetArray().begin();
+        if( it != idObj->GetArray().end() &&
+            it->GetDataType() == ePdfDataType_HexString )
+        {
+            PdfVariant var = (*it);
+            *pOriginalIdentifier = var.GetString();
+            bOriginalIdentifierFound = true;
+        }
+    }
+
     // create a dictionary with some unique information.
     // This dictionary is based on the PDF files information
     // dictionary if it exists.
@@ -634,6 +736,9 @@ void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* p
     podofo_free( pBuffer );
 
     delete pInfo;
+
+    if( pOriginalIdentifier && !bOriginalIdentifierFound )
+        *pOriginalIdentifier = identifier;
 }
 
 void PdfWriter::SetEncrypted( const PdfEncrypt & rEncrypt )

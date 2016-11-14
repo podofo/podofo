@@ -332,7 +332,6 @@ PdfObject& PdfArray::operator[](size_type __n)
 {
     AssertMutable();
 
-    m_bDirty = true;
     return PdfArrayBaseClass::operator[](__n);
 }
 

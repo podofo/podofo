@@ -87,9 +87,9 @@ class PODOFO_API PdfRefCountedInputDevice {
      */
     PdfRefCountedInputDevice( PdfInputDevice* pDevice );
 
-    /** Copy an existing PdfRefCountedFile and increase
+    /** Copy an existing PdfRefCountedInputDevice and increase
      *  the reference count
-     *  \param rhs the PdfRefCountedFile to copy
+     *  \param rhs the PdfRefCountedInputDevice to copy
      */
     PdfRefCountedInputDevice( const PdfRefCountedInputDevice & rhs );
 

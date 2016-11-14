@@ -65,20 +65,32 @@ class PODOFO_API PdfOutputDevice {
      *
      *  \param pszFilename path to a file that will be opened and all data
      *                     is written to this file.
+     *  \param bTruncate whether to truncate the file after open. This is useful
+     *                   for incremental updates, to not truncate the file when
+     *                   writing to the same file as the loaded. Default is true.
+     *
+     *  When the bTruncate is false, the device is automatically positioned
+     *  to the end of the file.
      */
-    PdfOutputDevice( const char* pszFilename );
+    PdfOutputDevice( const char* pszFilename, bool bTruncate = true );
 
 #ifdef _WIN32
     /** Construct a new PdfOutputDevice that writes all data to a file.
      *
      *  \param pszFilename path to a file that will be opened and all data
      *                     is written to this file.
+     *  \param bTruncate whether to truncate the file after open. This is useful
+     *                   for incremental updates, to not truncate the file when
+     *                   writing to the same file as the loaded. Default is true.
+     *
+     *  When the bTruncate is false, the device is automatically positioned
+     *  to the end of the file.
      *
      *  This is an overloaded member function to allow working
      *  with unicode characters. On Unix systes you can also path
      *  UTF-8 to the const char* overload.
      */
-    PdfOutputDevice( const wchar_t* pszFilename );
+    PdfOutputDevice( const wchar_t* pszFilename, bool bTruncate = true );
 #endif // _WIN32
 
     /** Construct a new PdfOutputDevice that writes all data to a memory buffer.
@@ -141,7 +153,7 @@ class PODOFO_API PdfOutputDevice {
      *
      *  \see Write
      */
-	virtual void PrintV( const char* pszFormat, long lBytes, va_list argptr );
+    virtual void PrintV( const char* pszFormat, long lBytes, va_list argptr );
 
     /**
      * Determine the length of a format string in bytes
@@ -165,12 +177,12 @@ class PODOFO_API PdfOutputDevice {
      */
     virtual void Write( const char* pBuffer, size_t lLen );
 
-	/** Read data from the device
+    /** Read data from the device
      *  \param pBuffer a pointer to the data buffer
      *  \param lLen length of the output buffer
-	 *  \returns Number of read bytes. Return 0 if EOF
-	 */
-	virtual size_t Read( char* pBuffer, size_t lLen );
+     *  \returns Number of read bytes. Return 0 if EOF
+     */
+    virtual size_t Read( char* pBuffer, size_t lLen );
 
     /** Seek the device to the position offset from the begining
      *  \param offset from the beginning of the file
@@ -201,7 +213,7 @@ class PODOFO_API PdfOutputDevice {
     size_t               m_lBufferLen;
 
     std::ostream*        m_pStream;
-	std::istream*        m_pReadStream;
+    std::istream*        m_pReadStream;
     bool                 m_pStreamOwned;
 
 #if USE_CXX_LOCALE

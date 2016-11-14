@@ -108,7 +108,7 @@ void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
     this->WriteXRefEntry( pDevice, pDevice->Tell(), 0, 'n' );
 
     m_pObject->GetStream()->EndAppend();
-    m_pWriter->FillTrailerObject( m_pObject, this->GetSize(), false, false );
+    m_pWriter->FillTrailerObject( m_pObject, this->GetSize(), false );
 
     m_pObject->GetDictionary().AddKey( "Index", m_indeces );
     m_pObject->GetDictionary().AddKey( "W", w );

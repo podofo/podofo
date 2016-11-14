@@ -125,6 +125,7 @@ enum EPdfError {
     ePdfError_NotCompiled,              /**< This feature was disabled at compile time. */
 
     ePdfError_OutlineItemAlreadyPresent,/**< An outline item to be inserted was already in that outlines tree. */
+    ePdfError_NotLoadedForUpdate,       /**< The document had not been loaded for update. */
 
     ePdfError_Unknown = 0xffff          /**< Unknown error */
 };

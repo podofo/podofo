@@ -132,6 +132,14 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
      */
     void FreeObjectMemory( bool bForce = false );
 
+    /** Gets an offset in which the object beginning is stored in the file.
+     *  Note the offset points just after the object identificator ("0 0 obj").
+     *
+     * \returns an offset in which the object is stored in the source device,
+     *     or -1, if the object was created on demand.
+     */
+    inline pdf_int64 GetOffset( void ) const;
+
  protected:
     /** Load all data of the object if load object on demand is enabled.
      *  Reimplemented from PdfVariant. Do not call this directly, use
@@ -215,6 +223,14 @@ void PdfParserObject::SetLoadOnDemand( bool bDelayed )
 bool PdfParserObject::HasStreamToParse() const
 {
     return m_bStream;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+pdf_int64 PdfParserObject::GetOffset( void ) const
+{
+	return static_cast<pdf_int64>(m_lOffset);
 }
 
 };

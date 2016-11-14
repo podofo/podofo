@@ -47,7 +47,7 @@ PdfOutputDevice::PdfOutputDevice()
     this->Init();
 }
 
-PdfOutputDevice::PdfOutputDevice( const char* pszFilename )
+PdfOutputDevice::PdfOutputDevice( const char* pszFilename, bool bTruncate )
 {
     this->Init();
 
@@ -56,27 +56,32 @@ PdfOutputDevice::PdfOutputDevice( const char* pszFilename )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-	std::fstream *pStream = new std::fstream(pszFilename, std::fstream::binary|std::ios_base::in | std::ios_base::out | std::ios_base::trunc);
-	if(pStream->fail()) {
-        delete pStream;
-		PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-	}
-	m_pStream = pStream;
-	m_pReadStream = pStream;
-    PdfLocaleImbue(*m_pStream);
+    std::ios_base::openmode openmode = std::fstream::binary | std::ios_base::in | std::ios_base::out;
+    if( bTruncate )
+        openmode |= std::ios_base::trunc;
 
-    /*
-    m_hFile = fopen( pszFilename, "wb" );
-    if( !m_hFile )
+    std::fstream *pStream = new std::fstream( pszFilename, openmode );
+    if( pStream->fail() )
     {
+        delete pStream;
         PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
     }
-    */
+
+    m_pStream = pStream;
+    m_pReadStream = pStream;
+    PdfLocaleImbue( *m_pStream );
+
+    if( !bTruncate )
+    {
+        m_pStream->seekp( 0, std::ios_base::end );
+
+        m_ulPosition = m_pStream->tellp();
+        m_ulLength = m_ulPosition;
+    }
 }
 
-
 #ifdef _WIN32
-PdfOutputDevice::PdfOutputDevice( const wchar_t* pszFilename )
+PdfOutputDevice::PdfOutputDevice( const wchar_t* pszFilename, bool bTruncate )
 {
     this->Init();
 
@@ -85,12 +90,23 @@ PdfOutputDevice::PdfOutputDevice( const wchar_t* pszFilename )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    m_hFile = _wfopen( pszFilename, L"w+b" );
+    m_hFile = _wfopen( pszFilename, bTruncate ? L"w+b" : L"r+b" );
     if( !m_hFile )
     {
         PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
         e.SetErrorInformation( pszFilename );
         throw e;
+    }
+
+    if( !bTruncate )
+    {
+        if( fseeko( m_hFile, offset, SEEK_END ) == -1 )
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange, "Failed to seek to the end of the file" );
+        }
+
+        m_ulPosition = ftello( m_hFile );
+        m_ulLength = m_ulPosition;
     }
 }
 #endif // _WIN32

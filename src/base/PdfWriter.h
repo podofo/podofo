@@ -35,6 +35,7 @@
 #define _PDF_WRITER_H_
 
 #include "PdfDefines.h"
+#include "PdfInputDevice.h"
 #include "PdfOutputDevice.h"
 #include "PdfVecObjects.h"
 
@@ -90,7 +91,7 @@ class PODOFO_API PdfWriter {
      *  \param pszFilename filename of a PDF file.
      *
      *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systes you can also path
+     *  with unicode characters. On Unix systems you can also path
      *  UTF-8 to the const char* overload.
      */
     void Write( const wchar_t* pszFilename );
@@ -98,9 +99,28 @@ class PODOFO_API PdfWriter {
 
     /** Writes the complete document to a PdfOutputDevice
      *
-     *  \param pDevice write to the specified device 
+     *  \param pDevice write to the specified device
+     *
+     *  \see WriteUpdate
      */
     void Write( PdfOutputDevice* pDevice );
+
+    /** Writes the document changes to an output device
+     *
+     *  \param pDevice write to the specified device
+     *  \param pSourceInputDevice where to copy original content from; can be NULL
+     *  \param bRewriteXRefTable whether to rewrite whole XRef table
+     *
+     *  Writes an incremental update to the pDevice, using the pSourceInputDevice
+     *  content as the original file content.
+     *  When the pSourceInputDevice is NULL, the caller is responsible to have the pDevice
+     *  filled with the previous content and to have it positioned at the end of the stream.
+     *
+     *  Calling this also switches the writer to the incremental update mode.
+     *
+     *  \see SetIncrementalUpdate
+     */
+    void WriteUpdate( PdfOutputDevice* pDevice, PdfInputDevice* pSourceInputDevice, bool bRewriteXRefTable );
 
     /** Set the write mode to use when writing the PDF.
      *  \param eWriteMode write mode
@@ -146,6 +166,32 @@ class PODOFO_API PdfWriter {
      */
     inline bool GetUseXRefStream() const;
 
+    /** Sets an offset to the previous XRef table. Set it to lower than
+     *  or equal to 0, to not write a reference to the previous XRef table.
+     *  The default is 0.
+     *  \param lPrevXRefOffset the previous XRef table offset
+     */
+    inline void SetPrevXRefOffset( pdf_int64 lPrevXRefOffset );
+
+    /** 
+     *  \returns offset to the previous XRef table, as previously set
+     *     by SetPrevXRefOffset.
+     *
+     * \see SetPrevXRefOffset
+     */
+    inline pdf_int64 GetPrevXRefOffset() const;
+
+    /** Set whether writing an incremental update.
+     *  Default is false.
+     *  \param bIncrementalUpdate if true an incremental update will be written
+     */
+    inline void SetIncrementalUpdate( bool bIncrementalUpdate );
+
+    /** 
+     *  \returns whether writing an incremental update
+     */
+    inline bool GetIncrementalUpdate( void ) const;
+
     /** Get the file format version of the pdf
      *  \returns the file format version as string
      */
@@ -189,10 +235,9 @@ class PODOFO_API PdfWriter {
     /** Add required keys to a trailer object
      *  \param pTrailer add keys to this object
      *  \param lSize number of objects in the PDF file
-     *  \param bPrevEntry if true a prev entry is added to the trailer object with a value of 0
      *  \param bOnlySizeKey write only the size key
      */
-    void FillTrailerObject( PdfObject* pTrailer, pdf_long lSize, bool bPrevEntry, bool bOnlySizeKey ) const;
+    void FillTrailerObject( PdfObject* pTrailer, pdf_long lSize, bool bOnlySizeKey ) const;
 
  protected:
     /**
@@ -209,8 +254,9 @@ class PODOFO_API PdfWriter {
      *  \param pDevice write to this output device
      *  \param vecObjects write all objects in this vector to the file
      *  \param pXref add all written objects to this XRefTable
+     *  \param bRewriteXRefTable whether will rewrite whole XRef table (used only if GetIncrementalUpdate() returns true)
      */ 
-    void WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& vecObjects, PdfXRef* pXref ) PODOFO_LOCAL;
+    void WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& vecObjects, PdfXRef* pXref, bool bRewriteXRefTable = false ) PODOFO_LOCAL;
 
     /** Creates a file identifier which is required in several
      *  PDF workflows. 
@@ -219,8 +265,15 @@ class PODOFO_API PdfWriter {
      *
      *  \param identifier write the identifier to this string
      *  \param pTrailer trailer object
+     *  \param pOriginalIdentifier write the original identifier (when using incremental update) to this string
      */
-    void CreateFileIdentifier( PdfString & identifier, const PdfObject* pTrailer ) const PODOFO_LOCAL;
+    void CreateFileIdentifier( PdfString& identifier, const PdfObject* pTrailer, PdfString* pOriginalIdentifier = NULL ) const PODOFO_LOCAL;
+
+    /** Internal implementation of the Write() call with the common code
+     *  \param pDevice write to this output device
+     *  \param bRewriteXRefTable whether will rewrite whole XRef table (used only if GetIncrementalUpdate() returns true)
+     */ 
+    void Write( PdfOutputDevice* pDevice, bool bRewriteXRefTable );
 
  protected:
     /** Writes a linearized PDF file
@@ -275,10 +328,13 @@ class PODOFO_API PdfWriter {
     PdfObject*      m_pEncryptObj; ///< Used to temporarly store the encryption dictionary
 
     PdfString       m_identifier;
+    PdfString       m_originalIdentifier; // used for incremental update
 
  private:
     EPdfWriteMode   m_eWriteMode;
     EPdfVersion     m_eVersion;
+    pdf_int64       m_lPrevXRefOffset;
+    bool            m_bIncrementalUpdate;
 
     bool            m_bLinearized;
  
@@ -330,6 +386,37 @@ bool PdfWriter::GetUseXRefStream() const
     return m_bXRefStream;
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfWriter::SetPrevXRefOffset( pdf_int64 lPrevXRefOffset )
+{
+    m_lPrevXRefOffset = lPrevXRefOffset;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+pdf_int64 PdfWriter::GetPrevXRefOffset() const
+{
+    return m_lPrevXRefOffset;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfWriter::SetIncrementalUpdate( bool bIncrementalUpdate )
+{
+    m_bIncrementalUpdate = bIncrementalUpdate;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+bool PdfWriter::GetIncrementalUpdate( void ) const
+{
+    return m_bIncrementalUpdate;
+}
 
 };
 

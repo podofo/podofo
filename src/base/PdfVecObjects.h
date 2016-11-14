@@ -185,6 +185,20 @@ class PODOFO_API PdfVecObjects {
      */
     inline bool AutoDelete() const;
 
+    /** Enable/disable object numbers re-use.
+     *  By default object numbers re-use is enabled.
+     *
+     *  \param bCanReuseObjectNumbers if true, free object numbers can be re-used when creating new objects.
+     *
+     *  If set to false, the list of free object numbers is automatically cleared.
+     */
+    void SetCanReuseObjectNumbers( bool bCanReuseObjectNumbers );
+
+    /** 
+     *  \returns whether can re-use free object numbers when creating new objects.
+     */
+    inline bool GetCanReuseObjectNumbers() const;
+
     /** Removes all objects from the vector
      *  and resets it to the default state.
      *
@@ -257,6 +271,8 @@ class PODOFO_API PdfVecObjects {
 
     /** Mark a reference as unused so that it can be reused for new objects.
      *  \param rReference the reference to reuse
+     *
+     *  \see GetCanReuseObjectNumbers
      */
     void AddFreeObject( const PdfReference & rReference );
 
@@ -450,6 +466,7 @@ class PODOFO_API PdfVecObjects {
 
  private:
     bool                m_bAutoDelete;
+    bool                m_bCanReuseObjectNumbers;
     size_t              m_nObjectCount;
     bool                m_bSorted;
     TVecObjects         m_vector;
@@ -512,6 +529,14 @@ inline void PdfVecObjects::SetAutoDelete( bool bAutoDelete )
 inline bool PdfVecObjects::AutoDelete() const
 {
     return m_bAutoDelete;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline bool PdfVecObjects::GetCanReuseObjectNumbers() const
+{
+    return m_bCanReuseObjectNumbers;
 }
 
 // -----------------------------------------------------

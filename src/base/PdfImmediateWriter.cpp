@@ -132,7 +132,7 @@ void PdfImmediateWriter::Finish()
         PdfObject trailer;
         
         // if we have a dummy offset we write also a prev entry to the trailer
-        FillTrailerObject( &trailer, m_pXRef->GetSize(), false, false );
+        FillTrailerObject( &trailer, m_pXRef->GetSize(), false );
         
         m_pDevice->Print("trailer\n");
         trailer.WriteObject( m_pDevice, this->GetWriteMode(), NULL );

@@ -148,7 +148,7 @@ void PdfSigIncWriter::Write( PdfOutputDevice* pDevice, pdf_int64 prevOffset)
                 PdfObject  trailer;
                 
                 // if we have a dummy offset we write also a prev entry to the trailer
-                FillTrailerObject( &trailer, pXRef->GetSize(), false, false );
+                FillTrailerObject( &trailer, pXRef->GetSize(), false );
 
                 PdfObject prevOffsetObj(prevOffset);
                 trailer.GetDictionary().AddKey( "Prev", prevOffsetObj);

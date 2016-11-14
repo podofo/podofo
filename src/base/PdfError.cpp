@@ -345,6 +345,9 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_OutlineItemAlreadyPresent:
             pszMsg = "ePdfError_OutlineItemAlreadyPresent"; 
             break;
+        case ePdfError_NotLoadedForUpdate:
+            pszMsg = "ePdfError_NotLoadedForUpdate"; 
+            break;
         case ePdfError_Unknown:
             pszMsg = "ePdfError_Unknown"; 
             break;
@@ -483,6 +486,9 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
             break;
         case ePdfError_OutlineItemAlreadyPresent:
             pszMsg = "Given OutlineItem already present in destination tree.";
+            break;
+        case ePdfError_NotLoadedForUpdate:
+            pszMsg = "The document had not been loaded for update.";
             break;
         case ePdfError_Unknown:
             pszMsg = "Error code unknown.";

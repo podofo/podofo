@@ -123,6 +123,7 @@ void PdfDictionary::Clear()
         }
 
         m_mapKeys.clear();
+        m_bDirty = true;
     }
 }
 

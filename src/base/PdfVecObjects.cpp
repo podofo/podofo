@@ -101,7 +101,7 @@ private:
 };
 
 PdfVecObjects::PdfVecObjects()
-    : m_bAutoDelete( false ), m_nObjectCount( 1 ), m_bSorted( true ), m_pDocument( NULL ), m_pStreamFactory( NULL )
+    : m_bAutoDelete( false ), m_bCanReuseObjectNumbers( true ), m_nObjectCount( 1 ), m_bSorted( true ), m_pDocument( NULL ), m_pStreamFactory( NULL )
 {
 }
 
@@ -225,7 +225,7 @@ PdfReference PdfVecObjects::GetNextFreeObject()
 {
     PdfReference ref( static_cast<unsigned int>(m_nObjectCount), 0 );
 
-    if( !m_lstFreeObjects.empty() )
+    if( m_bCanReuseObjectNumbers && !m_lstFreeObjects.empty() )
     {
         ref = m_lstFreeObjects.front();
         m_lstFreeObjects.pop_front();
@@ -605,6 +605,16 @@ std::string PdfVecObjects::GetNextSubsetPrefix()
 	}
 
 	return m_sSubsetPrefix;
+}
+
+void PdfVecObjects::SetCanReuseObjectNumbers( bool bCanReuseObjectNumbers )
+{
+    m_bCanReuseObjectNumbers = bCanReuseObjectNumbers;
+
+    if( !m_bCanReuseObjectNumbers )
+    {
+        m_lstFreeObjects.clear();
+    }
 }
 
 };
