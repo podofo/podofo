@@ -289,18 +289,23 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
     /** Writes the document changes to an output device
      *
      *  \param pDevice write to this output device
+     *  \param bTruncate whether to truncate the pDevice first and fill it
+     *                   with the content of the source document; the default is true.
      *
      *  Writes the document changes to the output device as an incremental update.
      *  The document should be loaded with bForUpdate = true, otherwise
      *  an exception is thrown.
      *
-     *  Beware when overwriting existing files. The destination file cannot
-     *  be the same as the source file, because the destination file is truncated
-     *  first and only then the source file content is copied into it.
+     *  The bTruncate is used to determine whether saving to the same file or not.
+     *  In case the bTruncate is true, a new source stream is opened and its whole
+     *  content is copied to the pDevice first. Otherwise the pDevice is the same
+     *  file which had been loaded and the caller is responsible to position
+     *  the pDevice at the place, where the update should be written (basically
+     *  at the end of the stream).
      *
      *  \see Write, WriteUpdate
      */
-    void WriteUpdate( PdfOutputDevice* pDevice );
+    void WriteUpdate( PdfOutputDevice* pDevice, bool bTruncate = true );
 
     /** Set the write mode to use when writing the PDF.
      *  \param eWriteMode write mode
@@ -636,19 +641,6 @@ protected:
      */
     void SetViewerPreference( const PdfName& whichPref, const PdfObject & valueObj ) const;
     void SetViewerPreference( const PdfName& whichPref, bool inValue ) const;
-
-    /** A helper function for writing incremental updates
-     *  \param pDevice an output device to write to
-     *  \param bRequireSourceDevice whether the source device is required
-     *
-     *  The bRequireSourceDevice is used to determine whether saving to the same file
-     *  or not. In case the bRequireSourceDevice is true, the source stream is opened
-     *  and its whole content is copied to the pDevice first. Otherwise the pDevice
-     *  is the same file which had been loaded and the caller is responsible to
-     *  position the pDevice at the place, where the update should be written (basically
-     *  at the end of the stream).
-     */
-    void WriteUpdate( PdfOutputDevice* pDevice, bool bRequireSourceDevice );
 
  private:
     // Prevent use of copy constructor and assignment operator.  These methods

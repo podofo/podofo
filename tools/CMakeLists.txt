@@ -10,6 +10,7 @@ SUBDIRS(
 	podofomerge
 	podofopages
 	podofopdfinfo
+	podofosign
 	podofotxt2pdf
 	podofotxtextract
 	podofouncompress

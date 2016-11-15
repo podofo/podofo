@@ -547,22 +547,7 @@ void PdfMemDocument::WriteUpdate( const wchar_t* pszFilename )
 }
 #endif // _WIN32
 
-void PdfMemDocument::WriteUpdate( PdfOutputDevice* pDevice ) 
-{
-    if( !IsLoadedForUpdate() )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_NotLoadedForUpdate );
-    }
-
-    if( !pDevice )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    WriteUpdate( pDevice, true );
-}
-
-void PdfMemDocument::WriteUpdate( PdfOutputDevice* pDevice, bool bRequireSourceDevice )
+void PdfMemDocument::WriteUpdate( PdfOutputDevice* pDevice, bool bTruncate )
 {
     if( !IsLoadedForUpdate() )
     {
@@ -588,7 +573,6 @@ void PdfMemDocument::WriteUpdate( PdfOutputDevice* pDevice, bool bRequireSourceD
     PdfWriter writer( &(this->GetObjects()), this->GetTrailer() );
     writer.SetPdfVersion( this->GetPdfVersion() );
     writer.SetWriteMode( m_eWriteMode );
-    writer.SetPrevXRefOffset( m_lPrevXRefOffset );
     writer.SetIncrementalUpdate( true ); // PdfWriter::WriteUpdate() does it too, but let's make it explicit
 
     if( m_pEncrypt ) 
@@ -614,7 +598,7 @@ void PdfMemDocument::WriteUpdate( PdfOutputDevice* pDevice, bool bRequireSourceD
     bool bRewriteXRefTable;
 
     try {
-        if( bRequireSourceDevice )
+        if( bTruncate )
         {
             if( m_pszUpdatingFilename )
             {
@@ -641,8 +625,13 @@ void PdfMemDocument::WriteUpdate( PdfOutputDevice* pDevice, bool bRequireSourceD
 
         /* Rewrite the XRef table when the document is linearized or contains
          * an XRef stream, to make sure that the objects can be read properly.
+         * Also do not reference the previous XRef table in such cases.
          */
         bRewriteXRefTable = this->IsLinearized() || m_bSoureHasXRefStream;
+        if( bRewriteXRefTable )
+            writer.SetPrevXRefOffset( 0 );
+        else
+            writer.SetPrevXRefOffset( m_lPrevXRefOffset );
 
         writer.WriteUpdate( pDevice, pSourceContent, bRewriteXRefTable );
     } catch( PdfError & e ) {
