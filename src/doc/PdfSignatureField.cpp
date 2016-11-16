@@ -49,7 +49,6 @@ PdfSignatureField::PdfSignatureField( PdfPage* pPage, const PdfRect & rRect, Pdf
     Init();
 }
 
-//begin L.K
 PdfSignatureField::PdfSignatureField( PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc)
 	:PdfField(PoDoFo::ePdfField_Signature, pWidget,  pParent, pDoc)
 {
@@ -86,7 +85,6 @@ void PdfSignatureField::SetAppearanceStream( PdfXObject* pObject )
     
     this->GetAppearanceCharacteristics(true);
 }
-//end L.K
 
 void PdfSignatureField::Init()
 {
