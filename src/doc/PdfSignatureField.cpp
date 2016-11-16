@@ -57,6 +57,18 @@ PdfSignatureField::PdfSignatureField( PdfAnnotation* pWidget, PdfAcroForm* pPare
     Init();
 }
 
+PdfSignatureField::PdfSignatureField( PdfAnnotation* pWidget )
+	:PdfField( pWidget->GetObject(), pWidget )
+{
+    m_pSignatureObj = NULL;
+
+    // do not call Init() here
+    if( this->GetFieldObject()->GetDictionary().HasKey( "V" ) )
+    {
+        m_pSignatureObj = this->GetFieldObject()->GetOwner()->GetObject( this->GetFieldObject()->GetDictionary().GetKey( "V" )->GetReference() );
+    }
+}
+
 void PdfSignatureField::SetAppearanceStream( PdfXObject* pObject )
 {
     if( !pObject )
@@ -78,17 +90,9 @@ void PdfSignatureField::SetAppearanceStream( PdfXObject* pObject )
 
 void PdfSignatureField::Init()
 {
-    m_pSignatureObj = this->GetFieldObject()->GetOwner()->CreateObject( "Sig" );
-    if( !m_pSignatureObj )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-    GetFieldObject()->GetDictionary().AddKey("V", m_pSignatureObj->Reference());
+    m_pSignatureObj = NULL;
 
-    PdfDictionary &dict = m_pSignatureObj->GetDictionary();
-
-    dict.AddKey(PdfName::KeyFilter, PdfName("Adobe.PPKLite") );
-    dict.AddKey("SubFilter", PdfName("adbe.pkcs7.detached") );
+    EnsureSignatureObject ();
 }
 
 void PdfSignatureField::SetSignatureReason(const PdfString & rsText)
@@ -208,5 +212,27 @@ void PdfSignatureField::AddCertificationReference( PdfObject* pDocumentCatalog, 
     m_pSignatureObj->GetDictionary().AddKey(PdfName("Reference"), PdfVariant(refers));
 }
 
+PdfObject* PdfSignatureField::GetSignatureObject( void ) const
+{
+    return m_pSignatureObj;
+}
+
+void PdfSignatureField::EnsureSignatureObject( void )
+{
+    if( m_pSignatureObj )
+        return;
+
+    m_pSignatureObj = this->GetFieldObject()->GetOwner()->CreateObject( "Sig" );
+    if( !m_pSignatureObj )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+    GetFieldObject()->GetDictionary().AddKey( "V" , m_pSignatureObj->Reference() );
+
+    PdfDictionary &dict = m_pSignatureObj->GetDictionary();
+
+    dict.AddKey( PdfName::KeyFilter, PdfName( "Adobe.PPKLite" ) );
+    dict.AddKey( "SubFilter", PdfName( "adbe.pkcs7.detached" ) );
+}
 
 }

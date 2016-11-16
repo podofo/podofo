@@ -291,9 +291,11 @@ static void print_help( bool bOnlyUsage )
     std::cout << "  -password [password] ... a password to unlock the private key file" << std::endl;
     std::cout << "  -reason [utf8-string] ... a UTF-8 encoded string with the reason of the signature; default reason is \"I agree\"" << std::endl;
     std::cout << "  -sigsize [size] ... how many bytes to allocate for the signature; the default is derived from the certificate and private key file size" << std::endl;
+    std::cout << "  -field-name [name] ... field name to use; defaults to 'PoDoFoSignatureFieldXXX', where XXX is the object number" << std::endl;
+    std::cout << "  -field-use-existing ... whether to use existing signature field, if such named exists; the field type should be a signature" << std::endl;
     std::cout << "  -annot-units [mm|inch] ... set units for the annotation positions; default is mm" << std::endl;
     std::cout << "  -annot-position [page,left,top,width,height] ... where to place the annotation" << std::endl;
-    std::cout << "       page ... a 0-based page index (integer)" << std::endl;
+    std::cout << "       page ... a 1-based page index (integer), where '1' means the first page, '2' the second, and so on" << std::endl;
     std::cout << "       left,top,width,height ... a rectangle (in annot-units) where to place the annotation on the page (double)" << std::endl;
     std::cout << "  -annot-print ... use that to have the annotation printable, otherwise it's not printed (the default is not to print it)" << std::endl;
     std::cout << "  -annot-font [size,rrggbb,name] ... sets a font for the following annot-text; default is \"5,000000,Helvetica\" in mm" << std::endl;
@@ -309,6 +311,7 @@ static void print_help( bool bOnlyUsage )
     std::cout << "The annotation arguments can be repeated, except of the -annot-position and -annot-print, which can appear up to once." << std::endl;
     std::cout << "The -annot-print, -annot-font, -annot-text and -annot-image can appear only after -annot-position." << std::endl;
     std::cout << "All the left,top positions are treated with 0,0 being at the left-top of the page." << std::endl;
+    std::cout << "No drawing is done when using existing field." << std::endl;
 }
 
 static double convert_to_pdf_units( const char *annot_units, double value )
@@ -350,6 +353,11 @@ static bool parse_annot_position( const char *annot_position,
     annot_top = convert_to_pdf_units( annot_units, fTop );
     annot_width = convert_to_pdf_units( annot_units, fWidth );
     annot_height = convert_to_pdf_units( annot_units, fHeight );
+
+    if( annot_page < 1)
+        return false;
+
+    annot_page--;
 
     return true;
 }
@@ -493,10 +501,76 @@ static void draw_annotation( PdfDocument& document,
             painter.DrawImage( fLeft, annot_rect.GetHeight() - fTop - fHeight, &image, dScaleX, dScaleY );
         }
 
-        // this is the only parameter without additional value
-        if( strcmp( argv[ii], "-annot-print" ) != 0 )
+        // these are the only parameters without additional value
+        if( strcmp( argv[ii], "-annot-print" ) != 0 &&
+            strcmp( argv[ii], "-field-use-existing" ) != 0 )
             ii++;
     }
+}
+
+static PdfObject* find_existing_signature_field( PdfAcroForm* pAcroForm, const PdfString& name )
+{
+    if( !pAcroForm )
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+
+    PdfObject* pFields = pAcroForm->GetObject()->GetDictionary().GetKey( PdfName( "Fields" ) );
+    if( pFields )
+    {
+        if( pFields->GetDataType() == ePdfDataType_Reference )
+            pFields = pAcroForm->GetDocument()->GetObjects()->GetObject( pFields->GetReference() );
+
+        if( pFields && pFields->GetDataType() == ePdfDataType_Array )
+        {
+            PdfArray &rArray = pFields->GetArray();
+            PdfArray::iterator it, end = rArray.end();
+            for( it = rArray.begin(); it != end; it++ )
+            {
+                // require references in the Fields array
+                if( it->GetDataType() == ePdfDataType_Reference )
+                {
+                    PdfObject *item = pAcroForm->GetDocument()->GetObjects()->GetObject( it->GetReference() );
+
+                    if( item && item->GetDictionary().HasKey( PdfName( "T" ) ) &&
+                        item->GetDictionary().GetKey( PdfName( "T" ) )->GetString() == name )
+                    {
+                        // fount a field with the same name
+                        const PdfObject *pFT = item->GetDictionary().GetKey( PdfName( "FT" ) );
+                        if (!pFT && item->GetDictionary().HasKey( PdfName( "Parent" ) ) )
+                        {
+                            const PdfObject *pTemp = item->GetIndirectKey( PdfName( "Parent" ) );
+                            if (!pTemp)
+                            {
+                                PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+                            }
+
+                            pFT = pTemp->GetDictionary().GetKey( PdfName( "FT" ) );
+                        }
+
+                        if (!pFT)
+                        {
+                            PODOFO_RAISE_ERROR( ePdfError_NoObject );
+                        }
+
+                        const PdfName fieldType = pFT->GetName();
+                        if( fieldType != PdfName( "Sig" ) )
+                        {
+                            std::string err = "Existing field '";
+                            err += name.GetString();
+                            err += "' isn't of a signature type, but '";
+                            err += fieldType.GetName().c_str();
+                            err += "' instead";
+
+                            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidName, err.c_str() );
+                        }
+
+                        return item;
+                    }
+                }
+            }
+        }
+    }
+
+    return NULL;
 }
 
 int main( int argc, char* argv[] )
@@ -510,9 +584,11 @@ int main( int argc, char* argv[] )
     const char *sigsizestr = NULL;
     const char *annot_units = "mm";
     const char *annot_position = NULL;
+    const char *field_name = NULL;
     int annot_page = 0;
     double annot_left = 0.0, annot_top = 0.0, annot_width = 0.0, annot_height = 0.0;
     bool annot_print = false;
+    bool field_use_existing = false;
     int ii;
 
     PdfError::EnableDebug( false );
@@ -594,6 +670,22 @@ int main( int argc, char* argv[] )
                 return -2;
             }
             // value is left NULL, these are parsed later
+        }
+        else if( strcmp( argv[ii], "-field-name" ) == 0 )
+        {
+            value = &field_name;
+        }
+        else if( strcmp( argv[ii], "-field-use-existing" ) == 0 )
+        {
+            if( field_use_existing )
+            {
+                std::cerr << "Only one -field-use-existing can be specified" << std::endl;
+
+                return -1;
+            }
+
+            field_use_existing = !field_use_existing;
+            continue;
         }
         else
         {
@@ -679,6 +771,10 @@ int main( int argc, char* argv[] )
     if( sigsize > 0 )
         min_signature_size = sigsize;
 
+    int result = 0;
+    PdfSignatureField *pSignField = NULL;
+    PdfAnnotation *pTemporaryAnnot = NULL; // for existing signature fields
+
     try
     {
         PdfMemDocument document;
@@ -706,90 +802,142 @@ int main( int argc, char* argv[] )
         PdfOutputDevice outputDevice( outputfile ? outputfile : inputfile, outputfile != NULL );
         PdfSignOutputDevice signer( &outputDevice );
 
-        char fldName[96]; // use bigger buffer to make sure sprintf does never overflow
-        sprintf( fldName, "PodofoSignatureField%" PDF_FORMAT_INT64, static_cast<pdf_int64>( document.GetObjects().GetObjectCount() ) );
+        PdfString name;
+        PdfObject* pExistingSigField = NULL;
 
-        PdfString name( fldName );
-
-        PdfPage* pPage = document.GetPage( annot_page );
-        if( !pPage )
-            PODOFO_RAISE_ERROR( ePdfError_PageNotFound );
-
-        PdfRect annot_rect;
-        if( annot_position )
+        if( field_name )
         {
-            annot_rect = PdfRect( annot_left, pPage->GetPageSize().GetHeight() - annot_top - annot_height, annot_width, annot_height );
+            name = PdfString( field_name );
+
+            pExistingSigField = find_existing_signature_field( pAcroForm, name );
+            if( pExistingSigField && !field_use_existing)
+            {
+                std::string err = "Signature field named '";
+                err += name.GetString();
+                err += "' already exists";
+
+                PODOFO_RAISE_ERROR_INFO( ePdfError_WrongDestinationType, err.c_str() );
+            }
+        }
+        else
+        {
+            char fldName[96]; // use bigger buffer to make sure sprintf does never overflow
+            sprintf( fldName, "PodofoSignatureField%" PDF_FORMAT_INT64, static_cast<pdf_int64>( document.GetObjects().GetObjectCount() ) );
+
+            name = PdfString( fldName );
         }
 
-        PdfAnnotation* pAnnot = pPage->CreateAnnotation( ePdfAnnotation_Widget, annot_rect );
-        if( !pAnnot )
-            PODOFO_RAISE_ERROR_INFO( ePdfError_OutOfMemory, "Cannot allocate annotation object" );
-
-        if( annot_position && annot_print )
-            pAnnot->SetFlags( ePdfAnnotationFlags_Print );
-        else if( !annot_position )
-            pAnnot->SetFlags( ePdfAnnotationFlags_Invisible | ePdfAnnotationFlags_Hidden );
-
-        PdfSignatureField signField( pAnnot, pAcroForm, &document );
-
-        if( annot_position )
+        if( pExistingSigField )
         {
-            PdfRect annotSize( 0.0, 0.0, annot_rect.GetWidth(), annot_rect.GetHeight() );
-            PdfXObject sigXObject( annotSize, &document );
-            PdfPainter painter;
-
-            try
+            if( !pExistingSigField->GetDictionary().HasKey( "P" ) )
             {
-                painter.SetPage( &sigXObject );
+                std::string err = "Signature field named '";
+                err += name.GetString();
+                err += "' doesn't have a page reference";
 
-                PdfXObject frmXObj( annotSize, &document, "FRM", true);
-
-                sigXObject.AddResource( PdfName( "FRM" ), frmXObj.GetObjectReference(), PdfName( "XObject" ) );
-                painter.DrawXObject( 0, 0, &frmXObj );
-                painter.FinishPage();
-
-                painter.SetPage( &frmXObj );
-
-                PdfXObject n0XObj( annotSize, &document, "n0", true );
-                PdfXObject n2XObj( annotSize, &document, "n2", true );
-
-                frmXObj.AddResource( PdfName( "n0" ), n0XObj.GetObjectReference(), PdfName( "XObject" ) );
-                frmXObj.AddResource( PdfName( "n2" ), n2XObj.GetObjectReference(), PdfName( "XObject" ) );
-
-                painter.DrawXObject( 0, 0, &n0XObj );
-                painter.DrawXObject( 0, 0, &n2XObj );
-                painter.FinishPage();
-
-                painter.SetPage( &n2XObj );
-
-                draw_annotation( document, painter, argc, argv, annot_rect );
-
-                signField.SetAppearanceStream( &sigXObject );
+                PODOFO_RAISE_ERROR_INFO( ePdfError_PageNotFound, err.c_str() );
             }
-            catch( PdfError & e )
+
+            PdfPage* pPage;
+
+            pPage = document.GetPagesTree()->GetPage( pExistingSigField->GetDictionary().GetKey( "P" )->GetReference() );
+            if( !pPage )
+                PODOFO_RAISE_ERROR( ePdfError_PageNotFound );
+
+            pTemporaryAnnot = new PdfAnnotation( pExistingSigField, pPage );
+            if( !pTemporaryAnnot )
+                PODOFO_RAISE_ERROR_INFO( ePdfError_OutOfMemory, "Cannot allocate annotation object for existing signature field" );
+
+            pSignField = new PdfSignatureField( pTemporaryAnnot );
+            if( !pSignField )
+                PODOFO_RAISE_ERROR_INFO( ePdfError_OutOfMemory, "Cannot allocate existing signature field object" );
+
+            pSignField->EnsureSignatureObject();
+        }
+        else
+        {
+            PdfPage* pPage = document.GetPage( annot_page );
+            if( !pPage )
+                PODOFO_RAISE_ERROR( ePdfError_PageNotFound );
+
+            PdfRect annot_rect;
+            if( annot_position )
             {
-                if( painter.GetPage() )
+                annot_rect = PdfRect( annot_left, pPage->GetPageSize().GetHeight() - annot_top - annot_height, annot_width, annot_height );
+            }
+
+            PdfAnnotation* pAnnot = pPage->CreateAnnotation( ePdfAnnotation_Widget, annot_rect );
+            if( !pAnnot )
+                PODOFO_RAISE_ERROR_INFO( ePdfError_OutOfMemory, "Cannot allocate annotation object" );
+
+            if( annot_position && annot_print )
+                pAnnot->SetFlags( ePdfAnnotationFlags_Print );
+            else if( !annot_position && ( !field_name || !field_use_existing ) )
+                pAnnot->SetFlags( ePdfAnnotationFlags_Invisible | ePdfAnnotationFlags_Hidden );
+
+            pSignField = new PdfSignatureField( pAnnot, pAcroForm, &document );
+            if( !pSignField )
+                PODOFO_RAISE_ERROR_INFO( ePdfError_OutOfMemory, "Cannot allocate signature field object" );
+
+            if( annot_position )
+            {
+                PdfRect annotSize( 0.0, 0.0, annot_rect.GetWidth(), annot_rect.GetHeight() );
+                PdfXObject sigXObject( annotSize, &document );
+                PdfPainter painter;
+
+                try
                 {
-                    try
+                    painter.SetPage( &sigXObject );
+
+                    PdfXObject frmXObj( annotSize, &document, "FRM", true);
+
+                    sigXObject.AddResource( PdfName( "FRM" ), frmXObj.GetObjectReference(), PdfName( "XObject" ) );
+                    painter.DrawXObject( 0, 0, &frmXObj );
+                    painter.FinishPage();
+
+                    painter.SetPage( &frmXObj );
+
+                    PdfXObject n0XObj( annotSize, &document, "n0", true );
+                    PdfXObject n2XObj( annotSize, &document, "n2", true );
+
+                    frmXObj.AddResource( PdfName( "n0" ), n0XObj.GetObjectReference(), PdfName( "XObject" ) );
+                    frmXObj.AddResource( PdfName( "n2" ), n2XObj.GetObjectReference(), PdfName( "XObject" ) );
+
+                    painter.DrawXObject( 0, 0, &n0XObj );
+                    painter.DrawXObject( 0, 0, &n2XObj );
+                    painter.FinishPage();
+
+                    painter.SetPage( &n2XObj );
+
+                    draw_annotation( document, painter, argc, argv, annot_rect );
+
+                    pSignField->SetAppearanceStream( &sigXObject );
+                }
+                catch( PdfError & e )
+                {
+                    if( painter.GetPage() )
                     {
-                        painter.FinishPage();
-                    }
-                    catch( ... )
-                    {
+                        try
+                        {
+                            painter.FinishPage();
+                        }
+                        catch( ... )
+                        {
+                        }
                     }
                 }
-            }
 
-            painter.FinishPage();
+                painter.FinishPage();
+            }
         }
 
         // use large-enough buffer to hold the signature with the certificate
         signer.SetSignatureSize( min_signature_size );
 
-        signField.SetFieldName( name );
-        signField.SetSignatureReason( PdfString( reinterpret_cast<const pdf_utf8 *>( reason ) ) );
-        signField.SetSignatureDate( PdfDate() );
-        signField.SetSignature( *signer.GetSignatureBeacon() );
+        pSignField->SetFieldName( name );
+        pSignField->SetSignatureReason( PdfString( reinterpret_cast<const pdf_utf8 *>( reason ) ) );
+        pSignField->SetSignatureDate( PdfDate() );
+        pSignField->SetSignature( *signer.GetSignatureBeacon() );
 
         // The outputfile != NULL means that the write happens to a new file,
         // which will be truncated first and then the content of the inputfile
@@ -815,18 +963,16 @@ int main( int argc, char* argv[] )
         std::cerr << "Error: An error " << e.GetError() << " occurred during the sign of the pdf file:" << std::endl;
         e.PrintErrorMsg();
 
-        ERR_free_strings();
-
-        if( pkey )
-            EVP_PKEY_free( pkey );
-
-        if( cert )
-            X509_free( cert );
-
-        return e.GetError();
+        result = e.GetError();
     }
 
     ERR_free_strings();
+
+    if( pSignField )
+        delete pSignField;
+
+    if( pTemporaryAnnot )
+        delete pTemporaryAnnot;
 
     if( pkey )
         EVP_PKEY_free( pkey );
@@ -834,5 +980,5 @@ int main( int argc, char* argv[] )
     if( cert )
         X509_free( cert );
 
-    return 0;
+    return result;
 }

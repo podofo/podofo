@@ -63,6 +63,12 @@ public:
 
     PdfSignatureField( PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc);
 
+    /** Creates a PdfSignatureField from an existing PdfAnnotation, which should
+     *  be an annotation with a field type Sig.
+     *	\param pWidget the annotation to create from
+     */
+    PdfSignatureField( PdfAnnotation* pWidget );
+
     void SetAppearanceStream(PdfXObject *pObject);
 
     /** Create space for signature
@@ -89,9 +95,9 @@ public:
      */
     void SetSignatureLocation(const PdfString & rsText);
 
-	/** Date of signature
-	 */
-	void SetSignatureDate(const PdfDate &sigDate);
+    /** Date of signature
+     */
+    void SetSignatureDate(const PdfDate &sigDate);
 
     /** Add certification dictionaries and references to document catalog.
      *
@@ -99,6 +105,21 @@ public:
      *  \param perm document modification permission
      */
     void AddCertificationReference(PdfObject *pDocumentCatalog, EPdfCertPermission perm = ePdfCertPermission_NoPerms);
+
+    /** Returns signature object for this signature field.
+     *  It can be NULL, when the signature field was created
+     *  from an existing annotation and it didn't have set it.
+     *
+     *  \returns associated signature object, or NULL
+     */
+    PdfObject* GetSignatureObject( void ) const;
+
+    /** Ensures that the signature field has set a signature object.
+     *  The function does nothing, if the signature object is already
+     *  set. This is useful for cases when the signature field had been
+     *  created from an existing annotation, which didn't have it set.
+     */
+    void EnsureSignatureObject( void );
 };
 
 }
