@@ -104,19 +104,38 @@ class AESCryptoEngine {
     
         AESCryptoEngine()
         {
+    #ifdef PODOFO_HAVE_OPENSSL_1_1
+            aes = EVP_CIPHER_CTX_new();
+    #else
             EVP_CIPHER_CTX_init(&aes);
+    #endif
         }
     
-        EVP_CIPHER_CTX* getEngine() {return &aes;}
+        EVP_CIPHER_CTX* getEngine()
+        {
+    #ifdef PODOFO_HAVE_OPENSSL_1_1
+            return aes;
+    #else
+            return &aes;
+    #endif
+        }
     
         ~AESCryptoEngine()
         {
+    #ifdef PODOFO_HAVE_OPENSSL_1_1
+            EVP_CIPHER_CTX_free(aes);
+    #else
             EVP_CIPHER_CTX_cleanup(&aes);
+    #endif
         }
     
     private:
-    
+
+    #ifdef PODOFO_HAVE_OPENSSL_1_1
+        EVP_CIPHER_CTX *aes;
+    #else
         EVP_CIPHER_CTX aes;
+    #endif
 };
 
 #ifndef OPENSSL_NO_RC4
@@ -127,19 +146,38 @@ public:
     
     RC4CryptoEngine()
     {
+    #ifdef PODOFO_HAVE_OPENSSL_1_1
+        rc4 = EVP_CIPHER_CTX_new();
+    #else
         EVP_CIPHER_CTX_init(&rc4);
+    #endif
     }
     
-    EVP_CIPHER_CTX* getEngine() {return &rc4;}
+    EVP_CIPHER_CTX* getEngine()
+    {
+    #ifdef PODOFO_HAVE_OPENSSL_1_1
+        return rc4;
+    #else
+        return &rc4;
+    #endif
+    }
     
     ~RC4CryptoEngine()
     {
+    #ifdef PODOFO_HAVE_OPENSSL_1_1
+        EVP_CIPHER_CTX_free(rc4);
+    #else
         EVP_CIPHER_CTX_cleanup(&rc4);
+    #endif
     }
     
 private:
     
+    #ifdef PODOFO_HAVE_OPENSSL_1_1
+    EVP_CIPHER_CTX *rc4;
+    #else
     EVP_CIPHER_CTX rc4;
+    #endif
 };
     
 /** A class that can encrypt/decrpyt streamed data block wise
@@ -1489,24 +1527,34 @@ void PdfEncryptSHABase::ComputeUserKey(const unsigned char * userpswd, int len)
     // UE = AES-256 encoded file encryption key with key=hash
     // CBC mode, no padding, init vector=0
     
-    EVP_CIPHER_CTX aes;
-    EVP_CIPHER_CTX_init(&aes);
+    EVP_CIPHER_CTX *aes;
+    #ifdef PODOFO_HAVE_OPENSSL_1_1
+    aes = EVP_CIPHER_CTX_new();
+    #else
+    EVP_CIPHER_CTX aes_local;
+    EVP_CIPHER_CTX_init(&aes_local);
+    aes = &aes_local;
+    #endif
     
-    int status = EVP_EncryptInit_ex(&aes, EVP_aes_256_cbc(), NULL, hashValue, NULL);
+    int status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), NULL, hashValue, NULL);
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing AES encryption engine" );
-    EVP_CIPHER_CTX_set_padding(&aes, 0); // disable padding
+    EVP_CIPHER_CTX_set_padding(aes, 0); // disable padding
     
     int dataOutMoved;
-    status = EVP_EncryptUpdate(&aes, m_ueValue, &dataOutMoved, m_encryptionKey, m_keyLength);
+    status = EVP_EncryptUpdate(aes, m_ueValue, &dataOutMoved, m_encryptionKey, m_keyLength);
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
     
-    status = EVP_EncryptFinal_ex(&aes, &m_ueValue[dataOutMoved], &dataOutMoved);
+    status = EVP_EncryptFinal_ex(aes, &m_ueValue[dataOutMoved], &dataOutMoved);
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
     
-    EVP_CIPHER_CTX_cleanup(&aes);
+    #ifdef PODOFO_HAVE_OPENSSL_1_1
+    EVP_CIPHER_CTX_free(aes);
+    #else
+    EVP_CIPHER_CTX_cleanup(&aes_local);
+    #endif
 }
 
 void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char * ownerpswd, int len)
@@ -1545,24 +1593,34 @@ void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char * ownerpswd, int len
     // OE = AES-256 encoded file encryption key with key=hash
     // CBC mode, no padding, init vector=0
     
-    EVP_CIPHER_CTX aes;
-    EVP_CIPHER_CTX_init(&aes);
+    EVP_CIPHER_CTX *aes;
+    #ifdef PODOFO_HAVE_OPENSSL_1_1
+    aes = EVP_CIPHER_CTX_new();
+    #else
+    EVP_CIPHER_CTX aes_local;
+    EVP_CIPHER_CTX_init(&aes_local);
+    aes = &aes_local;
+    #endif
     
-    int status = EVP_EncryptInit_ex(&aes, EVP_aes_256_cbc(), NULL, hashValue, NULL);
+    int status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), NULL, hashValue, NULL);
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing AES encryption engine" );
-    EVP_CIPHER_CTX_set_padding(&aes, 0); // disable padding
+    EVP_CIPHER_CTX_set_padding(aes, 0); // disable padding
     
     int dataOutMoved;
-    status = EVP_EncryptUpdate(&aes, m_oeValue, &dataOutMoved, m_encryptionKey, m_keyLength);
+    status = EVP_EncryptUpdate(aes, m_oeValue, &dataOutMoved, m_encryptionKey, m_keyLength);
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
     
-    status = EVP_EncryptFinal_ex(&aes, &m_oeValue[dataOutMoved], &dataOutMoved);
+    status = EVP_EncryptFinal_ex(aes, &m_oeValue[dataOutMoved], &dataOutMoved);
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
     
-    EVP_CIPHER_CTX_cleanup(&aes);
+    #ifdef PODOFO_HAVE_OPENSSL_1_1
+    EVP_CIPHER_CTX_free(aes);
+    #else
+    EVP_CIPHER_CTX_cleanup(&aes_local);
+    #endif
 }
 
 void PdfEncryptSHABase::PreprocessPassword( const std::string &password, unsigned char* outBuf, int &len)
@@ -1693,24 +1751,34 @@ PdfEncryptAESV3::GenerateEncryptionKey(const PdfString &)
     
     // Encrypt Perms value
     
-    EVP_CIPHER_CTX aes;
-    EVP_CIPHER_CTX_init(&aes);
+    EVP_CIPHER_CTX *aes;
+    #ifdef PODOFO_HAVE_OPENSSL_1_1
+    aes = EVP_CIPHER_CTX_new();
+    #else
+    EVP_CIPHER_CTX aes_local;
+    EVP_CIPHER_CTX_init(&aes_local);
+    aes = &aes_local;
+    #endif
     
-    int status = EVP_EncryptInit_ex(&aes, EVP_aes_256_ecb(), NULL, m_encryptionKey, NULL);
+    int status = EVP_EncryptInit_ex(aes, EVP_aes_256_ecb(), NULL, m_encryptionKey, NULL);
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing AES encryption engine" );
-    EVP_CIPHER_CTX_set_padding(&aes, 0); // disable padding
+    EVP_CIPHER_CTX_set_padding(aes, 0); // disable padding
     
     int dataOutMoved;
-    status = EVP_EncryptUpdate(&aes, m_permsValue, &dataOutMoved, perms, 16);
+    status = EVP_EncryptUpdate(aes, m_permsValue, &dataOutMoved, perms, 16);
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
     
-    status = EVP_EncryptFinal_ex(&aes, &m_permsValue[dataOutMoved], &dataOutMoved);
+    status = EVP_EncryptFinal_ex(aes, &m_permsValue[dataOutMoved], &dataOutMoved);
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
     
-    EVP_CIPHER_CTX_cleanup(&aes);
+    #ifdef PODOFO_HAVE_OPENSSL_1_1
+    EVP_CIPHER_CTX_free(aes);
+    #else
+    EVP_CIPHER_CTX_cleanup(&aes_local);
+    #endif
 }
 
 bool PdfEncryptAESV3::Authenticate( const std::string & password, const PdfString & )

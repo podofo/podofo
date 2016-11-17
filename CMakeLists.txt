@@ -22,7 +22,6 @@ SET(PODOFO_LIBVERSION "${PODOFO_SOVERSION}")
 #
 INCLUDE(CheckIncludeFile)
 INCLUDE(CheckLibraryExists)
-INCLUDE(UsePkgConfig)
 INCLUDE(TestBigEndian)
 INCLUDE(CheckTypeSize)
 
@@ -485,9 +484,14 @@ LINK_DIRECTORIES(
 # will include these and the correct podofo target, so clients
 # should specify only PODOFO_LIB .
 #
+# The LIBCRYPTO_LDFLAGS is defined only if the libcrypto was found
+# by pkg-config, otherwise it will be empty. It can contain proper
+# path for the libcrypto too, thus it's added here.
+#
 SET(PODOFO_LIB_DEPENDS
   ${ZLIB_LIBRARIES}
   ${LIBIDN_LIBRARIES}
+  ${LIBCRYPTO_LDFLAGS}
   ${LIBCRYPTO_LIBRARIES}
   ${LIBJPEG_LIBRARIES}
   ${PLATFORM_SYSTEM_LIBRARIES}
