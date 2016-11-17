@@ -889,26 +889,6 @@ int main( int argc, char* argv[] )
                 {
                     painter.SetPage( &sigXObject );
 
-                    PdfXObject frmXObj( annotSize, &document, "FRM", true);
-
-                    sigXObject.AddResource( PdfName( "FRM" ), frmXObj.GetObjectReference(), PdfName( "XObject" ) );
-                    painter.DrawXObject( 0, 0, &frmXObj );
-                    painter.FinishPage();
-
-                    painter.SetPage( &frmXObj );
-
-                    PdfXObject n0XObj( annotSize, &document, "n0", true );
-                    PdfXObject n2XObj( annotSize, &document, "n2", true );
-
-                    frmXObj.AddResource( PdfName( "n0" ), n0XObj.GetObjectReference(), PdfName( "XObject" ) );
-                    frmXObj.AddResource( PdfName( "n2" ), n2XObj.GetObjectReference(), PdfName( "XObject" ) );
-
-                    painter.DrawXObject( 0, 0, &n0XObj );
-                    painter.DrawXObject( 0, 0, &n2XObj );
-                    painter.FinishPage();
-
-                    painter.SetPage( &n2XObj );
-
                     draw_annotation( document, painter, argc, argv, annot_rect );
 
                     pSignField->SetAppearanceStream( &sigXObject );
