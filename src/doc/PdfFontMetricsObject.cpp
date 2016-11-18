@@ -46,6 +46,8 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
     : PdfFontMetrics( ePdfFontType_Unknown, "", NULL ),
       m_pEncoding( pEncoding ), m_dDefWidth(0.0)
 {
+    m_missingWidth = NULL;
+
     const PdfName & rSubType = pFont->GetDictionary().GetKey( PdfName::KeySubtype )->GetName();
 
     // OC 15.08.2010 BugFix: /FirstChar /LastChar /Widths are in the Font dictionary and not in the FontDescriptor
@@ -85,8 +87,8 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
             if( widths == NULL ) 
             {
                 PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, "Font object defines neither Widths, nor MissingWidth values!" );
-                m_missingWidth = widths;
             }
+            m_missingWidth = widths;
         }
 	} else if ( rSubType == PdfName("CIDFontType0") || rSubType == PdfName("CIDFontType2") ) {
 		PdfObject *pObj = pDescriptor->GetIndirectKey( "FontName" );

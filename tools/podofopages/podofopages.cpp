@@ -49,27 +49,27 @@ void print_help()
   printf("Usage: podofopages [inputfile] [outputfile]\n");
   printf("Options:\n");
   printf("\t--delete NUMBER\n");
-  printf("\tDeletes the page NUMBER (number is 0-based)\n"); 
+  printf("\tDeletes the page NUMBER (number is 0-based)\n");
   printf("\tThe page will not really be deleted from the PDF.\n");
   printf("\tIt is only removed from the so called pagestree and\n");
   printf("\ttherefore invisible. The content of the page can still\n");
   printf("\tbe retrieved from the document though.\n\n");
   printf("\t--move FROM TO\n");
-  printf("\tMoves a page FROM TO in the document (FROM and TO are 0-based)\n\n"); 
-  printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);  
+  printf("\tMoves a page FROM TO in the document (FROM and TO are 0-based)\n\n");
+  printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
 }
 
 void work(const char* pszInput, const char* pszOutput, std::vector<Operation*> & rvecOperations)
 {
     std::cout << "Input file: " << pszInput << std::endl;
     std::cout << "Output file: " << pszOutput << std::endl;
-    
+
     PdfMemDocument doc(pszInput);
 
     int total = rvecOperations.size();
     int i = 1;
     std::vector<Operation*>::iterator it = rvecOperations.begin();
-    while( it != rvecOperations.end() ) 
+    while( it != rvecOperations.end() )
     {
         std::string msg = (*it)->ToString();
         std::cout << "Operation " << i << " of " << total << ": " << msg;
@@ -109,30 +109,30 @@ int main( int argc, char* argv[] )
 
   // Fill operations vector
   std::vector<Operation*> vecOperations;
-  for( int i=1; i < argc; i++ ) 
+  for( int i=1; i < argc; i++ )
   {
       std::string argument = argv[i];
-      if( argument == "--delete" || argument == "-delete" ) 
+      if( argument == "--delete" || argument == "-delete" )
       {
           int page = static_cast<int>(convertToInt( std::string(argv[i+1]) ));
           vecOperations.push_back( new DeleteOperation( page ) );
           ++i;
       }
-      else if( argument == "--move" || argument == "-move" ) 
+      else if( argument == "--move" || argument == "-move" )
       {
           int from = static_cast<int>(convertToInt( std::string(argv[i+1]) ));
           int to = static_cast<int>(convertToInt( std::string(argv[i+2]) ));
           vecOperations.push_back( new MoveOperation( from, to ) );
           ++i;
-          ++i;          
+          ++i;
       }
       else
       {
-          if( pszInput == NULL ) 
+          if( pszInput == NULL )
           {
               pszInput = argv[i];
           }
-          else if( pszOutput == NULL ) 
+          else if( pszOutput == NULL )
           {
               pszOutput = argv[i];
           }
@@ -143,19 +143,19 @@ int main( int argc, char* argv[] )
       }
   }
 
-  if( !pszInput ) 
+  if( !pszInput )
   {
       std::cerr << "Please specify an input file." << std::endl;
       exit( -2 );
   }
 
-  if( !pszOutput ) 
+  if( !pszOutput )
   {
       std::cerr << "Please specify an output file." << std::endl;
       exit( -3 );
   }
 
-  if( std::string(pszInput) == std::string(pszOutput) ) 
+  if( std::string(pszInput) == std::string(pszOutput) )
   {
       std::cerr << "Input and outpuf file must point to different files." << std::endl;
       exit( -4 );
@@ -167,11 +167,14 @@ int main( int argc, char* argv[] )
       std::cerr << "Error: An error " << e.GetError() << " ocurred." << std::endl;
       e.PrintErrorMsg();
       return e.GetError();
+  } catch( std::runtime_error & re ) {
+      std::cerr << "Error: An error " << re.what() << " ocurred." << std::endl;
+      return -1;
   }
 
   // Delete operations vectore
   std::vector<Operation*>::iterator it = vecOperations.begin();
-  while( it != vecOperations.end() ) 
+  while( it != vecOperations.end() )
   {
       delete (*it);
       ++it;

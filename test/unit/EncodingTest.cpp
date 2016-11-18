@@ -332,7 +332,7 @@ bool EncodingTest::outofRangeHelper( PdfEncoding* pEncoding, std::string & rMsg,
     try {
 	pEncoding->GetCharCode( pEncoding->GetFirstChar() );
     } 
-    catch( const PdfError & rError ) 
+    catch( PdfError & rError ) 
     {
 	// This may not throw!
 	rMsg = "pEncoding->GetCharCode( pEncoding->GetFirstChar() ) failed";
@@ -342,7 +342,7 @@ bool EncodingTest::outofRangeHelper( PdfEncoding* pEncoding, std::string & rMsg,
     try {
 	pEncoding->GetCharCode( pEncoding->GetFirstChar() - 1 );
     } 
-    catch( const PdfError & rError ) 
+    catch( PdfError & rError ) 
     {
 	// This has to throw!
 	exception = true;
@@ -357,7 +357,7 @@ bool EncodingTest::outofRangeHelper( PdfEncoding* pEncoding, std::string & rMsg,
     try {
 	pEncoding->GetCharCode( pEncoding->GetLastChar() );
     } 
-    catch( const PdfError & rError ) 
+    catch( PdfError & rError ) 
     {
 	// This may not throw!
 	rMsg = "pEncoding->GetCharCode( pEncoding->GetLastChar()  ); failed";
@@ -368,7 +368,7 @@ bool EncodingTest::outofRangeHelper( PdfEncoding* pEncoding, std::string & rMsg,
     try {
 	pEncoding->GetCharCode( pEncoding->GetLastChar() + 1 );
     } 
-    catch( const PdfError & rError ) 
+    catch( PdfError & rError ) 
     {
 	// This has to throw!
 	exception = true;

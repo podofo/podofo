@@ -187,7 +187,7 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
         try {
             m_filter->DecodeBlock( pBuffer, lLen );
         }
-        catch( const PdfError & e ) 
+        catch( PdfError & e ) 
         {
             m_bFilterFailed = true;
             throw e;

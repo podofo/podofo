@@ -130,7 +130,7 @@ class PODOFO_API PdfDate {
 
  private:
     time_t m_time;
-    char   m_szDate[PDF_DATE_BUFFER_SIZE];
+    char   m_szDate[PDF_DATE_BUFFER_SIZE + 1]; // include also room for a nul-terminator in the buffer
 
     bool   m_bValid;
 };

@@ -57,6 +57,7 @@ PdfFontConfigWrapper::PdfFontConfigWrapper()
 }
 
 PdfFontConfigWrapper::PdfFontConfigWrapper(const PdfFontConfigWrapper & rhs)
+    : m_pFontConfig( NULL )
 {
     this->operator=(rhs);
 }

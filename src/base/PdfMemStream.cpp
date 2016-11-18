@@ -87,8 +87,12 @@ void PdfMemStream::EndAppendImpl()
     {
         m_pStream->Close();
 
-        if( !m_pBufferStream ) 
-            m_lLength = dynamic_cast<PdfBufferOutputStream*>(m_pStream)->GetLength();
+        if( !m_pBufferStream )
+        {
+            PdfBufferOutputStream* pBufferOutputStream = dynamic_cast<PdfBufferOutputStream*>(m_pStream);
+            if( pBufferOutputStream )
+                m_lLength = pBufferOutputStream->GetLength();
+        }
 
         delete m_pStream;
         m_pStream = NULL;

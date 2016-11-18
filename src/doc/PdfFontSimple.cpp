@@ -56,6 +56,11 @@ PdfFontSimple::PdfFontSimple( PdfFontMetrics* pMetrics, const PdfEncoding* const
 
 void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
 {
+    if( !m_pEncoding )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
     PdfObject*    pWidth;
     PdfObject*    pDescriptor;
     PdfVariant    var;

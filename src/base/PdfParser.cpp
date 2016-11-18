@@ -952,6 +952,9 @@ void PdfParser::ReadObjects()
         {
             i = pEncrypt->GetReference().ObjectNumber();
             pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, m_offsets[i].lOffset );
+            if( !pObject )
+                PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+
             pObject->SetLoadOnDemand( false ); // Never load this on demand, as we will use it immediately
             try {
                 pObject->ParseFile( NULL ); // The encryption dictionary is not encrypted :)
@@ -963,12 +966,9 @@ void PdfParser::ReadObjects()
                 delete pObject;
             } catch( PdfError & e ) {
                 std::ostringstream oss;
-                if( pObject )
-                {
-                    oss << "Error while loading object " << pObject->Reference().ObjectNumber() << " " 
-                        << pObject->Reference().GenerationNumber() << std::endl;
-                    delete pObject;
-                }
+                oss << "Error while loading object " << pObject->Reference().ObjectNumber() << " " 
+                    << pObject->Reference().GenerationNumber() << std::endl;
+                delete pObject;
 
                 e.AddToCallstack( __FILE__, __LINE__, oss.str().c_str() );
                 throw e;
@@ -1024,6 +1024,9 @@ void PdfParser::ReadObjectsInternal()
             //printf("Reading object %i 0 R from %li\n", i, m_offsets[i].lOffset );
             
             pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, m_offsets[i].lOffset );
+            if( !pObject )
+                PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+
             pObject->SetLoadOnDemand( m_bLoadOnDemand );
             try {
 				pObject->ParseFile( m_pEncrypt );
@@ -1062,14 +1065,11 @@ void PdfParser::ReadObjectsInternal()
                     m_vecObjects->push_back( pObject );
             } catch( PdfError & e ) {
                 std::ostringstream oss;
-                if( pObject )
-                {
-                    oss << "Error while loading object " << pObject->Reference().ObjectNumber() 
-                        << " " << pObject->Reference().GenerationNumber() 
-                        << " Offset = " << m_offsets[i].lOffset
-                        << " Index = " << i << std::endl;
-                    delete pObject;
-                }
+                oss << "Error while loading object " << pObject->Reference().ObjectNumber() 
+                    << " " << pObject->Reference().GenerationNumber() 
+                    << " Offset = " << m_offsets[i].lOffset
+                    << " Index = " << i << std::endl;
+                delete pObject;
 
                 if( m_bIgnoreBrokenObjects ) 
                 {

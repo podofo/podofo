@@ -76,7 +76,7 @@ void PdfObjectStreamParserObject::Parse(ObjectIdList const & list)
         delete m_vecObjects->RemoveObject( m_pParser->Reference() );
         m_pParser = NULL;
 
-    } catch( const PdfError & rError ) {
+    } catch( PdfError & rError ) {
         podofo_free( pBuffer );
         throw rError;
     }

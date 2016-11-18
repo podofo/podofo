@@ -180,24 +180,24 @@ static void sign_with_signer( PdfSignOutputDevice &signer, X509 *cert, EVP_PKEY 
     if( !pkey )
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "pkey == NULL" );
 
-    unsigned int buffLen = 65535, len;
-    char *buff;
+    unsigned int uBufferLen = 65535, len;
+    char *pBuffer;
 
-    while( buff = reinterpret_cast<char *>( malloc( sizeof( char ) * buffLen) ), !buff )
+    while( pBuffer = reinterpret_cast<char *>( podofo_malloc( sizeof( char ) * uBufferLen) ), !pBuffer )
     {
-        buffLen = buffLen / 2;
-        if( !buffLen )
+        uBufferLen = uBufferLen / 2;
+        if( !uBufferLen )
             break;
     }
 
-    if( !buff )
+    if( !pBuffer )
         PODOFO_RAISE_ERROR (ePdfError_OutOfMemory);
 
     int rc;
     BIO *mem = BIO_new( BIO_s_mem() );
     if( !mem )
     {
-        free( buff );
+        podofo_free( pBuffer );
         raise_podofo_error_with_opensslerror( "Failed to create input BIO" );
     }
 
@@ -206,23 +206,23 @@ static void sign_with_signer( PdfSignOutputDevice &signer, X509 *cert, EVP_PKEY 
     if( !pkcs7 )
     {
         BIO_free( mem );
-        free( buff );
+        podofo_free( pBuffer );
         raise_podofo_error_with_opensslerror( "PKCS7_sign failed" );
     }
 
-    while( len = signer.ReadForSignature( buff, buffLen ), len > 0 )
+    while( len = signer.ReadForSignature( pBuffer, uBufferLen ), len > 0 )
     {
-        rc = BIO_write( mem, buff, len );
+        rc = BIO_write( mem, pBuffer, len );
         if( static_cast<unsigned int>( rc ) != len )
         {
             PKCS7_free( pkcs7 );
             BIO_free( mem );
-            free( buff );
+            podofo_free( pBuffer );
             raise_podofo_error_with_opensslerror( "BIO_write failed" );
         }
     }
 
-    free( buff );
+    podofo_free( pBuffer );
 
     if( PKCS7_final( pkcs7, mem, flags ) <= 0 )
     {
@@ -714,8 +714,14 @@ int main( int argc, char* argv[] )
                 return -5;
             }
 
-            if( *value == annot_position && !parse_annot_position( annot_position, annot_units, annot_page, annot_left, annot_top, annot_width, annot_height ) )
-            {
+            try {
+                if( *value == annot_position && !parse_annot_position( annot_position, annot_units, annot_page, annot_left, annot_top, annot_width, annot_height ) )
+                {
+                    std::cerr << "Invalid -annot-position value '" << *value << "', expected format \"page,left,top,width,height\"" << std::endl;
+
+                    return -6;
+                }
+            } catch( PdfError & e ) {
                 std::cerr << "Invalid -annot-position value '" << *value << "', expected format \"page,left,top,width,height\"" << std::endl;
 
                 return -6;

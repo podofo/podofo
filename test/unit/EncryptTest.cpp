@@ -238,7 +238,7 @@ void EncryptTest::testLoadEncrypedFilePdfParser()
 
             // Must throw an exception
             CPPUNIT_FAIL("Encrypted file not recognized!");
-        } catch( const PdfError & e ) {
+        } catch( PdfError & e ) {
             if( e.GetError() != ePdfError_InvalidPassword ) 
             {
                 CPPUNIT_FAIL("Invalid encryption exception thrown!");
@@ -272,7 +272,7 @@ void EncryptTest::testLoadEncrypedFilePdfMemDocument()
 
             // Must throw an exception
             CPPUNIT_FAIL("Encrypted file not recognized!");
-        } catch( const PdfError & e ) {
+        } catch( PdfError & e ) {
             if( e.GetError() != ePdfError_InvalidPassword ) 
             {
                 CPPUNIT_FAIL("Invalid encryption exception thrown!");

@@ -49,7 +49,7 @@ void PrintHelp()
     std::cout << "  examplehelloworld [outputfile.pdf]" << std::endl << std::endl;
 }
 
-void HelloWorld( const char* pszFilename ) 
+void HelloWorld( const char* pszFilename )
 {
     /*
      * PdfStreamedDocument is the class that can actually write a PDF file.
@@ -68,7 +68,7 @@ void HelloWorld( const char* pszFilename )
     PdfPainter painter;
 
 	/*
-     * This pointer will hold the page object later. 
+     * This pointer will hold the page object later.
      * PdfSimpleWriter can write several PdfPage's to a PDF file.
      */
     PdfPage* pPage;
@@ -77,7 +77,7 @@ void HelloWorld( const char* pszFilename )
      * A PdfFont object is required to draw text on a PdfPage using a PdfPainter.
      * PoDoFo will find the font using fontconfig on your system and embedd truetype
      * fonts automatically in the PDF file.
-     */     
+     */
     PdfFont* pFont;
 
 	try {
@@ -98,7 +98,7 @@ void HelloWorld( const char* pszFilename )
 		 * The raise error macro initializes a PdfError object with a given error code and
 		 * the location in the file in which the error ocurred and throws it as an exception.
 		 */
-		if( !pPage ) 
+		if( !pPage )
 		{
 			PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
 		}
@@ -117,7 +117,7 @@ void HelloWorld( const char* pszFilename )
 		 * The created PdfFont will be deleted by the PdfDocument.
 		 */
 		pFont = document.CreateFont( "Arial" );
-	    
+
 		/*
 		 * If the PdfFont object cannot be allocated return an error.
 		 */
@@ -147,11 +147,11 @@ void HelloWorld( const char* pszFilename )
 
 		/*
 		 * Actually draw the line "Hello World!" on to the PdfPage at
-		 * the position 2cm,2cm from the top left corner. 
-		 * Please remember that PDF files have their origin at the 
-		 * bottom left corner. Therefore we substract the y coordinate 
+		 * the position 2cm,2cm from the top left corner.
+		 * Please remember that PDF files have their origin at the
+		 * bottom left corner. Therefore we substract the y coordinate
 		 * from the page height.
-		 * 
+		 *
 		 * The position specifies the start of the baseline of the text.
 		 *
 		 * All coordinates in PoDoFo are in PDF units.
@@ -180,7 +180,7 @@ void HelloWorld( const char* pszFilename )
 		 * The last step is to close the document.
 		 */
 		document.Close();
-	} catch ( const PdfError & e ) {
+	} catch ( PdfError & e ) {
 		/*
 		 * All PoDoFo methods may throw exceptions
 		 * make sure that painter.FinishPage() is called
@@ -227,7 +227,7 @@ int main( int argc, char* argv[] )
          * with the filename of the output file as argument.
          */
          HelloWorld( argv[1] );
-    } catch( const PdfError & eCode ) {
+    } catch( PdfError & eCode ) {
         /*
          * We have to check if an error has occurred.
          * If yes, we return and print an error message
@@ -238,23 +238,33 @@ int main( int argc, char* argv[] )
     }
 
 
-    /**
-     * Free global memory allocated by PoDoFo.
-     * This is normally not necessary as memory
-     * will be free'd when the application terminates.
-     * 
-     * If you want to free all memory allocated by
-     * PoDoFo you have to call this method.
-     * 
-     * PoDoFo will reallocate the memory if necessary.
-     */
-    PdfEncodingFactory::FreeGlobalEncodingInstances();
+    try {
+        /**
+         * Free global memory allocated by PoDoFo.
+         * This is normally not necessary as memory
+         * will be free'd when the application terminates.
+         *
+         * If you want to free all memory allocated by
+         * PoDoFo you have to call this method.
+         *
+         * PoDoFo will reallocate the memory if necessary.
+         */
+        PdfEncodingFactory::FreeGlobalEncodingInstances();
+    } catch( PdfError & eCode ) {
+        /*
+         * We have to check if an error has occurred.
+         * If yes, we return and print an error message
+         * to the commandline.
+         */
+        eCode.PrintErrorMsg();
+        return eCode.GetError();
+    }
 
     /*
      * The PDF was created sucessfully.
      */
     std::cout << std::endl
               << "Created a PDF file containing the line \"Hello World!\": " << argv[1] << std::endl << std::endl;
-    
+
     return 0;
 }

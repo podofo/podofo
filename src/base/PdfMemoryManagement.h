@@ -34,7 +34,10 @@
 #ifndef _PDF_MEMORY_MANAGEMENT_H_
 #define _PDF_MEMORY_MANAGEMENT_H_
 
-#include "PdfDefines.h"
+// PdfMemoryManagement.h should not include PdfDefines.h, since it is included by it.
+// It should avoid depending on anything defined in PdfDefines.h .
+
+#include "podofoapi.h"
 #include <stdlib.h>
 
 namespace PoDoFo {
@@ -75,5 +78,5 @@ PODOFO_API bool podofo_is_little_endian();
 
 };
 
-#endif // _PDF_XREF_STREAM_PARSER_OBJECT_H_
+#endif // _PDF_MEMORY_MANAGEMENT_H_
 

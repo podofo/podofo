@@ -51,7 +51,7 @@ void CreateSimpleForm( PdfPage* pPage, PdfStreamedDocument* pDoc, const PdfData 
 }
 
 
-int main( int argc, char* argv[] ) 
+int main( int argc, char* argv[] )
 {
     PdfPage*            pPage;
 
@@ -62,42 +62,47 @@ int main( int argc, char* argv[] )
         return 0;
     }
 
-    PdfSignOutputDevice signer(argv[1]);
-	// Reserve space for signature
-    signer.SetSignatureSize(1024);
+    try {
+        PdfSignOutputDevice signer(argv[1]);
+        // Reserve space for signature
+        signer.SetSignatureSize(1024);
 
-	PdfStreamedDocument writer( &signer, PoDoFo::ePdfVersion_1_5 );
-    // Disable default appearance
-    writer.GetAcroForm(ePdfCreateObject, PdfAcroForm::ePdfAcroFormDefaultAppearance_None);
+        PdfStreamedDocument writer( &signer, PoDoFo::ePdfVersion_1_5 );
+        // Disable default appearance
+        writer.GetAcroForm(ePdfCreateObject, PdfAcroForm::ePdfAcroFormDefaultAppearance_None);
 
-    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    TEST_SAFE_OP( CreateSimpleForm( pPage, &writer, *signer.GetSignatureBeacon() ) );
+        pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+        TEST_SAFE_OP( CreateSimpleForm( pPage, &writer, *signer.GetSignatureBeacon() ) );
 
-    TEST_SAFE_OP( writer.Close() );
+        TEST_SAFE_OP( writer.Close() );
 
-    // Adjust ByteRange for signature
-    if(signer.HasSignaturePosition()) {
-        signer.AdjustByteRange();
-		
-		// read data for signature and count it
-		signer.Seek(0);
+        // Adjust ByteRange for signature
+        if(signer.HasSignaturePosition()) {
+            signer.AdjustByteRange();
 
-		// generate digest and count signature
-		// use NSS, MS Crypto API or OpenSSL 
-		// to generate signature in DER format
-		char buff[65536];
-		size_t len;
-		while( (len = signer.ReadForSignature(buff, 65536))>0 )
-		{
-		}
+            // read data for signature and count it
+            signer.Seek(0);
 
-		// Paste signature to the file
-        PdfData sigData("my-real-signature");
-        signer.SetSignature(sigData);
+            // generate digest and count signature
+            // use NSS, MS Crypto API or OpenSSL
+            // to generate signature in DER format
+            char buff[65536];
+            size_t len;
+            while( (len = signer.ReadForSignature(buff, 65536))>0 )
+            {
+            }
+
+            // Paste signature to the file
+            PdfData sigData("my-real-signature");
+            signer.SetSignature(sigData);
+        }
+
+        signer.Flush();
+    } catch( PdfError & e ) {
+        std::cerr << "Error: An error " << e.GetError() << " ocurred." << std::endl;
+        e.PrintErrorMsg();
+        return e.GetError();
     }
-
-	signer.Flush();
-
 
     return 0;
 }

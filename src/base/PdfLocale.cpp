@@ -16,14 +16,14 @@ void PdfLocaleImbue(std::ios_base& s)
     try {
     	s.imbue( cachedLocale );
     } catch (const std::runtime_error & e) {
-        std::ostringstream s;
-        s << "Failed to set safe locale on stream being used for PDF I/O.";
-        s << "Locale set was: \"" << PdfIOLocale << "\".";
-        s << "Error reported by STL std::locale: \"" << e.what() << "\"";
+        std::ostringstream err;
+        err << "Failed to set safe locale on stream being used for PDF I/O.";
+        err << "Locale set was: \"" << PdfIOLocale << "\".";
+        err << "Error reported by STL std::locale: \"" << e.what() << "\"";
         // The info string is copied by PdfError so we're ok to just:
         PODOFO_RAISE_ERROR_INFO(
             ePdfError_InvalidDeviceOperation,
-            s.str().c_str()
+            err.str().c_str()
             );
     }
 #endif

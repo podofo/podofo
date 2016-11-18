@@ -146,7 +146,7 @@ PdfPainter::~PdfPainter()
         PdfError::LogMessage( eLogSeverity_Error, 
                               "PdfPainter::~PdfPainter(): FinishPage() has to be called after a page is completed!" );
 
-    assert(!m_pCanvas);
+    PODOFO_ASSERT( !m_pCanvas );
 }
 
 void PdfPainter::SetPage( PdfCanvas* pPage )
@@ -187,7 +187,7 @@ void PdfPainter::FinishPage()
 	try { 
 		if( m_pCanvas )
 			m_pCanvas->EndAppend();
-	} catch( const PdfError & e ) {
+	} catch( PdfError & e ) {
 	    // clean up, even in case of error
 		m_pCanvas = NULL;
 		m_pPage   = NULL;
@@ -994,11 +994,11 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
     // fast and easy individual characters access    
     const std::string& stringUtf8 = rsText.GetStringUtf8();
     std::vector<pdf_utf16be> stringUtf16(stringUtf8.length() + 1, 0);
-	assert(stringUtf16.size() > 0);	
+    PODOFO_ASSERT( stringUtf16.size() > 0 );
     const pdf_long converted = PdfString::ConvertUTF8toUTF16(
 	    reinterpret_cast<const pdf_utf8*>(stringUtf8.c_str()), &stringUtf16[0], stringUtf16.size());
 	//const pdf_long len = rsText.GetCharacterLength();
-    assert( converted == (rsText.GetCharacterLength() + 1) );
+    PODOFO_ASSERT( converted == (rsText.GetCharacterLength() + 1) );
 
 	const pdf_utf16be* const stringUtf16Begin = &stringUtf16[0];
     const pdf_utf16be* pszLineBegin = stringUtf16Begin;

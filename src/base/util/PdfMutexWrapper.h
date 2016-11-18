@@ -89,7 +89,7 @@ PdfMutexWrapper::~PdfMutexWrapper()
     try {
 	m_rMutex.UnLock();
     }
-    catch( const PdfError & rError ) 
+    catch( PdfError & rError ) 
     {
 	rError.PrintErrorMsg();
         throw rError;

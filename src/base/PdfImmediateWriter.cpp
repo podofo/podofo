@@ -172,7 +172,7 @@ void PdfImmediateWriter::BeginAppendStream( const PdfStream* pStream )
     if( pFileStream ) 
     {
         // Only one open file stream is allowed at a time
-        assert( !m_bOpenStream );
+        PODOFO_ASSERT( !m_bOpenStream );
         m_bOpenStream = true;
 
         if( m_pEncrypt )
@@ -186,7 +186,7 @@ void PdfImmediateWriter::EndAppendStream( const PdfStream* pStream )
     if( pFileStream ) 
     {
         // A PdfFileStream has to be opened before
-        assert( m_bOpenStream );
+        PODOFO_ASSERT( m_bOpenStream );
         m_bOpenStream = false;
     }
 }

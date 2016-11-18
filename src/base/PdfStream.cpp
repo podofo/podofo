@@ -71,7 +71,7 @@ void PdfStream::GetFilteredCopy( PdfOutputStream* pStream ) const
             pDecodeStream->Write( const_cast<char*>(this->GetInternalBuffer()), this->GetInternalBufferSize() );
             pDecodeStream->Close();
         }
-        catch( const PdfError & e ) 
+        catch( PdfError & e ) 
         {
             delete pDecodeStream;
             throw e;

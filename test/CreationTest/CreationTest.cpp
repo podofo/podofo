@@ -20,8 +20,9 @@
 
 #include "../PdfTest.h"
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <cstdio>
+#include <iostream>
 
 using namespace PoDoFo;
 
@@ -36,7 +37,7 @@ void WriteStringToStream( const PdfString & rsString, std::ostringstream & oss, 
     pdf_long  lLen    = 0;
     char* pBuffer = NULL;
 
-    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );    
+    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
     pFilter->Encode( buffer.GetBuffer(), buffer.GetSize(), &pBuffer, &lLen );
 
     oss << "<";
@@ -49,7 +50,7 @@ void WriteStringToStream( const PdfString & rsString, std::ostringstream & oss, 
 void CreateUnicodeAnnotationText( PdfPage* pPage, PdfDocument* /*pDocument*/ )
 {
     PdfString sJap(reinterpret_cast<const pdf_utf8*>("「PoDoFo」は今から日本語も話せます。"));
-    PdfAnnotation* pAnnotation = 
+    PdfAnnotation* pAnnotation =
         pPage->CreateAnnotation( ePdfAnnotation_Text, PdfRect( 400.0, 200.0, 20.0, 20.0 ) );
 
     PdfString sGerman(reinterpret_cast<const pdf_utf8*>("Unicode Umlauts: ÄÖÜß"));
@@ -61,12 +62,12 @@ void CreateUnicodeAnnotationText( PdfPage* pPage, PdfDocument* /*pDocument*/ )
 void CreateUnicodeAnnotationFreeText( PdfPage* pPage, PdfDocument* pDocument )
 {
     PdfString sJap(reinterpret_cast<const pdf_utf8*>("「PoDoFo」は今から日本語も話せます。"));
-    PdfFont* pFont = pDocument->CreateFont( "Arial Unicode MS", false, new PdfIdentityEncoding( 0, 0xffff, true ) ); 
+    PdfFont* pFont = pDocument->CreateFont( "Arial Unicode MS", false, new PdfIdentityEncoding( 0, 0xffff, true ) );
 
     PdfRect rect( 200.0, 200.0, 200.0, 200.0 );
     /*
     PdfXObject xObj( rect, pDocument );
-    
+
     PdfPainter painter;
     painter.SetPage( &xObj );
     painter.SetFont( pFont );
@@ -90,7 +91,7 @@ void CreateUnicodeAnnotationFreeText( PdfPage* pPage, PdfDocument* pDocument )
     PdfDictionary resources;
     resources.AddKey( PdfName("Fonts"), fonts );
 
-    PdfAnnotation* pAnnotation = 
+    PdfAnnotation* pAnnotation =
         pPage->CreateAnnotation( ePdfAnnotation_FreeText, rect );
 
     PdfString sGerman(reinterpret_cast<const pdf_utf8*>("Unicode Umlauts: ÄÖÜß"));
@@ -99,7 +100,7 @@ void CreateUnicodeAnnotationFreeText( PdfPage* pPage, PdfDocument* pDocument )
     //pAnnotation->SetAppearanceStream( &xObj );
     pAnnotation->GetObject()->GetDictionary().AddKey( PdfName("DA"), PdfString(oss.str()) );
     pAnnotation->GetObject()->GetDictionary().AddKey( PdfName("DR"), resources );
-    
+
 
 }
 
@@ -265,10 +266,10 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
     double dStroke = 0.01;
     double dLine   = pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
-    for( i=0;i<23; i++ ) 
+    for( i=0;i<23; i++ )
     {
         sprintf( buffer, "Linewidth: %.3fpt", dStroke );
-        pPainter->DrawText( x, y, PdfString( buffer ) ); 
+        pPainter->DrawText( x, y, PdfString( buffer ) );
 
         pPainter->Save();
         pPainter->SetStrokeWidth( dStroke );
@@ -281,7 +282,7 @@ void LineTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
         pPainter->Restore();
         dStroke += 0.05;
- 
+
         y -= dLine*2.0;
     }
 }
@@ -400,7 +401,7 @@ void TextTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
     pPainter->SetColor( 0.0, 0.0, 0.0 );
     pPainter->DrawText( x, y, "Hallo Welt!" );
-    
+
     y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
     pPainter->GetFont()->SetUnderlined( true );
     pPainter->SetStrokingColor( 1.0, 0.0, 0.0 );
@@ -410,10 +411,10 @@ void TextTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
     pPainter->DrawText( x, y, "Disabled the underline again..." );
     y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
-    
+
     PdfFont* pFont = pDocument->CreateFont( "Arial" );
     pFont->SetFontSize( 12.0 );
-    
+
     pPainter->SetFont( pFont );
 
     pPainter->DrawText( x, y, "Normal" );
@@ -427,7 +428,7 @@ void TextTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pFont->SetFontCharSpace( 100.0 );
     pPainter->DrawText( x, y, "Mormal+spaced" );
     y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
-	
+
     pPainter->GetFont()->SetUnderlined( true );
     pPainter->DrawText( x, y, "Normal+underlined+spaced" );
     y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
@@ -452,7 +453,7 @@ void TextTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->DrawText( x, y, "Condensed+spaced" );
     y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
 
-    
+
     pPainter->GetFont()->SetUnderlined( true );
     pPainter->DrawText( x, y, "Condensed+underlined+spaced" );
     y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
@@ -469,7 +470,7 @@ void TextTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->GetFont()->SetUnderlined( true );
     pPainter->DrawText( x, y, "Expanded+underlinded" );
     y -= pPainter->GetFont()->GetFontMetrics()->GetLineSpacing();
-    
+
     pPainter->GetFont()->SetUnderlined( false );
     pFont->SetFontCharSpace( 100.0 );
     pPainter->DrawText( x, y, "Expanded+spaced" );
@@ -529,7 +530,7 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pnt.FinishPage();
 
     printf("Drawing on the page!\n");
-    // Draw onto the page 
+    // Draw onto the page
 
 #ifdef PODOFO_HAVE_JPEG_LIB
 	/*
@@ -602,25 +603,25 @@ void XObjectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->SetColor( 1.0, 0.8, 0.8 );
     pPainter->Rectangle( x, y - dHeight, dWidth, dHeight );
     pPainter->Fill();
-    
+
     // Das funktioniert immer
     PdfXObject xObj1( "resources/Illust.pdf", 0, pDocument );
-    pPainter->DrawXObject( x + 90000 * CONVERSION_CONSTANT, 
+    pPainter->DrawXObject( x + 90000 * CONVERSION_CONSTANT,
                            y - dHeight,
 						   &xObj1 );
     pPainter->SetColor( 1.0, 0.0, 0.0 );
-    pPainter->Rectangle( x + 90000 * CONVERSION_CONSTANT, 
+    pPainter->Rectangle( x + 90000 * CONVERSION_CONSTANT,
                         y - dHeight,
                         1000 * CONVERSION_CONSTANT,
                         1000 * CONVERSION_CONSTANT );
     pPainter->Fill();
-    
+
 
     // Test XObject in XObject
     PdfRect        rectX( 0, 0, 50000 * CONVERSION_CONSTANT, 50000 * CONVERSION_CONSTANT );
     PdfXObject     xObj3( rectX, pDocument );
     PdfXObject     xObj4( rectX, pDocument );
-    
+
     // Draw text onto the XObject3
     pPainter->SetPage( &xObj3 );
     pPainter->SetColor( 0.0, 1.0, 0.0 );
@@ -630,7 +631,7 @@ void XObjectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->SetColor( 0.0, 0.0, 0.0 );
     pPainter->DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am XObject 3." );
     pPainter->FinishPage();
-    
+
     // Draw text and pdf onto the XObject4
     pPainter->SetPage( &xObj4 );
     pPainter->SetColor( 0.0, 1.0, 0.0 );
@@ -640,21 +641,21 @@ void XObjectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->SetColor( 0.0, 0.0, 0.0 );
     pPainter->DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am XObject 4." );
     PdfXObject xObj5( "resources/Illust.pdf", 0, pDocument );
-    pPainter->DrawXObject( 5000 * CONVERSION_CONSTANT, 
-                           5000 * CONVERSION_CONSTANT, 
-                           &xObj5, 
-                           0.1, 
+    pPainter->DrawXObject( 5000 * CONVERSION_CONSTANT,
+                           5000 * CONVERSION_CONSTANT,
+                           &xObj5,
+                           0.1,
                            0.1 );
     pPainter->FinishPage();
-    
-    
+
+
     // Switch back to page and draw Xobject 3+4
     pPainter->SetPage( pPage );
-    pPainter->DrawXObject( 20000 * CONVERSION_CONSTANT, 
-                           y - 60000 * CONVERSION_CONSTANT, 
+    pPainter->DrawXObject( 20000 * CONVERSION_CONSTANT,
+                           y - 60000 * CONVERSION_CONSTANT,
                            &xObj3 );
-    pPainter->DrawXObject( 120000 * CONVERSION_CONSTANT, 
-						   y - 60000 * CONVERSION_CONSTANT, 
+    pPainter->DrawXObject( 120000 * CONVERSION_CONSTANT,
+						   y - 60000 * CONVERSION_CONSTANT,
                            &xObj4 );
 }
 
@@ -706,7 +707,7 @@ void TableTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     const int nRows = 10;
     PdfSimpleTableModel model( nCols, nRows );
     for(i=0;i<nCols;i++)
-        for(z=0;z<nRows;z++) 
+        for(z=0;z<nRows;z++)
         {
             std::ostringstream oss;
             oss << "Cell " << i << " " << z;
@@ -730,7 +731,7 @@ void TableTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     model2.SetBackgroundColor( PdfColor( 0.3 ) );
     model2.SetBackgroundEnabled( true );
     for(i=0;i<nCols2;i++)
-        for(z=0;z<nRows2;z++) 
+        for(z=0;z<nRows2;z++)
         {
             std::ostringstream oss;
             oss << rand();
@@ -739,7 +740,7 @@ void TableTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
 
     PdfTable table2( nCols2, nRows2 );
     table2.SetModel( &model2 );
-    table2.Draw( dX, dY, pPainter );    
+    table2.Draw( dX, dY, pPainter );
 }
 
 void LargeMultiLineTextTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
@@ -776,7 +777,7 @@ void LargeMultiLineTextTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* 
     pPainter->Stroke();
 
     pFont->SetFontSize( 12.0 );
-    pPainter->DrawMultiLineText( x, y, dWidth, dHeight, sMultiLine, ePdfAlignment_Left, ePdfVerticalAlignment_Top );   
+    pPainter->DrawMultiLineText( x, y, dWidth, dHeight, sMultiLine, ePdfAlignment_Left, ePdfVerticalAlignment_Top );
 
     y = y - dHeight - dHeight / 2.0;
 
@@ -821,167 +822,173 @@ void FontSubsetTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocumen
     pFont->SetFontSize( 32.0 );
     pPainter->DrawText(x, y, "Subsetting in action!");
 }
-    
-int main( int argc, char* argv[] ) 
+
+int main( int argc, char* argv[] )
 {
-    PdfMemDocument  writer;
-    //PdfStreamedDocument  writer ( argv[1], ePdfVersion_1_5, &PdfEncrypt( "dominik", "owner" ) );
-    PdfPage*        pPage;
-    PdfPainter      painter;
-    PdfPainterMM    painterMM;
-    PdfOutlines*    outlines;
-    PdfOutlineItem* pRoot;
-    if( argc != 2 )
-    {
-        printf("Usage: CreationTest [output_filename]\n");
-        return 0;
-    }
+    try {
+        PdfMemDocument  writer;
+        //PdfStreamedDocument  writer ( argv[1], ePdfVersion_1_5, &PdfEncrypt( "dominik", "owner" ) );
+        PdfPage*        pPage;
+        PdfPainter      painter;
+        PdfPainterMM    painterMM;
+        PdfOutlines*    outlines;
+        PdfOutlineItem* pRoot;
+        if( argc != 2 )
+        {
+            printf("Usage: CreationTest [output_filename]\n");
+            return 0;
+        }
 
-    printf("This test tests the PdfWriter and PdfDocument classes.\n");
-    printf("It creates a new PdfFile from scratch.\n");
-    printf("---\n");
+        printf("This test tests the PdfWriter and PdfDocument classes.\n");
+        printf("It creates a new PdfFile from scratch.\n");
+        printf("---\n");
 
-    printf("PoDoFo DataType Size Information:\n");
-    printf("---\n");
-    printf("sizeof variant=%lu\n", sizeof(PdfVariant) );
-    printf("sizeof object=%lu\n", sizeof(PdfObject) );
-    printf("sizeof reference=%lu\n", sizeof(PdfReference) );
-    printf("---\n\n");
- 
-    outlines = writer.GetOutlines();
-    pRoot = outlines->CreateRoot("PoDoFo Test Document" );
+        printf("PoDoFo DataType Size Information:\n");
+        printf("---\n");
+        printf("sizeof variant=%lu\n", sizeof(PdfVariant) );
+        printf("sizeof object=%lu\n", sizeof(PdfObject) );
+        printf("sizeof reference=%lu\n", sizeof(PdfReference) );
+        printf("---\n\n");
 
-    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    painter.SetPage( pPage );
-    pRoot->CreateChild( "Line Test", PdfDestination( pPage ) );
+        outlines = writer.GetOutlines();
+        pRoot = outlines->CreateRoot("PoDoFo Test Document" );
 
-    printf("Drawing the first page with various lines.\n");
-    TEST_SAFE_OP( LineTest( &painter, pPage, &writer ) );
+        pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+        painter.SetPage( pPage );
+        pRoot->CreateChild( "Line Test", PdfDestination( pPage ) );
 
-    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_Letter ) );
-    painter.SetPage( pPage );
+        printf("Drawing the first page with various lines.\n");
+        TEST_SAFE_OP( LineTest( &painter, pPage, &writer ) );
 
-    PdfString sLoremIpsum( pszLoremIpsum );
+        pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_Letter ) );
+        painter.SetPage( pPage );
 
-    painter.DrawMultiLineText( 50.0, 50.0,
-                               pPage->GetMediaBox().GetWidth() - 100.0,
-                               pPage->GetMediaBox().GetHeight() - 100.0, sLoremIpsum );
-    painter.FinishPage();
+        PdfString sLoremIpsum( pszLoremIpsum );
 
-    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_Letter ) );
-    painter.SetPage( pPage );
-    pRoot->Last()->CreateNext( "Rectangles Test", PdfDestination( pPage ) );
+        painter.DrawMultiLineText( 50.0, 50.0,
+                                   pPage->GetMediaBox().GetWidth() - 100.0,
+                                   pPage->GetMediaBox().GetHeight() - 100.0, sLoremIpsum );
+        painter.FinishPage();
 
-    printf("Drawing the second page with various rectangle and triangles.\n");
-    TEST_SAFE_OP( RectTest( &painter, pPage, &writer ) );
+        pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_Letter ) );
+        painter.SetPage( pPage );
+        pRoot->Last()->CreateNext( "Rectangles Test", PdfDestination( pPage ) );
 
-    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    painter.SetPage( pPage );
-    pRoot->Last()->CreateNext( "Text Test", PdfDestination( pPage ) );
+        printf("Drawing the second page with various rectangle and triangles.\n");
+        TEST_SAFE_OP( RectTest( &painter, pPage, &writer ) );
 
-    printf("Drawing some text.\n");
-    TEST_SAFE_OP( TextTest( &painter, pPage, &writer ) );
+        pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+        painter.SetPage( pPage );
+        pRoot->Last()->CreateNext( "Text Test", PdfDestination( pPage ) );
 
-    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    painter.SetPage( pPage );
-    pRoot->Last()->CreateNext( "Image Test", PdfDestination( pPage ) );
+        printf("Drawing some text.\n");
+        TEST_SAFE_OP( TextTest( &painter, pPage, &writer ) );
 
-    printf("Drawing some images.\n");
-    TEST_SAFE_OP( ImageTest( &painter, pPage, &writer ) );
+        pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+        painter.SetPage( pPage );
+        pRoot->Last()->CreateNext( "Image Test", PdfDestination( pPage ) );
 
-    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    painter.SetPage( pPage );
-    pRoot->Last()->CreateNext( "Circle Test", PdfDestination( pPage ) );
+        printf("Drawing some images.\n");
+        TEST_SAFE_OP( ImageTest( &painter, pPage, &writer ) );
 
-    printf("Drawing some circles and ellipsis.\n");
-    TEST_SAFE_OP( EllipseTest( &painter, pPage, &writer ) );
-    painter.FinishPage();
+        pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+        painter.SetPage( pPage );
+        pRoot->Last()->CreateNext( "Circle Test", PdfDestination( pPage ) );
 
-    printf("Drawing some XObject's.\n");
-    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    painter.SetPage( pPage );
-    TEST_SAFE_OP( XObjectTest( &painter, pPage, &writer ) );
-    painter.FinishPage();
+        printf("Drawing some circles and ellipsis.\n");
+        TEST_SAFE_OP( EllipseTest( &painter, pPage, &writer ) );
+        painter.FinishPage();
 
-    printf("Drawing using PdfTable.\n");
-    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    painter.SetPage( pPage );
-    pRoot->Last()->CreateNext( "PdfTable Test", PdfDestination( pPage ) );
-    TEST_SAFE_OP( TableTest( &painter, pPage, &writer ) );
-    painter.FinishPage();
+        printf("Drawing some XObject's.\n");
+        pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+        painter.SetPage( pPage );
+        TEST_SAFE_OP( XObjectTest( &painter, pPage, &writer ) );
+        painter.FinishPage();
 
-    printf("Drawing using PdfPainterMM.\n");
-    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    painterMM.SetPage( pPage );
-    pRoot->Last()->CreateNext( "MM Test", PdfDestination( pPage ) );
-    TEST_SAFE_OP( MMTest( &painterMM, pPage, &writer ) );
-    painterMM.FinishPage();
+        printf("Drawing using PdfTable.\n");
+        pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+        painter.SetPage( pPage );
+        pRoot->Last()->CreateNext( "PdfTable Test", PdfDestination( pPage ) );
+        TEST_SAFE_OP( TableTest( &painter, pPage, &writer ) );
+        painter.FinishPage();
 
-    printf("Drawing using PdfPainter MultilineText.\n");
-    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    painter.SetPage( pPage );
-    pRoot->Last()->CreateNext( "Large MultilineText Test", PdfDestination( pPage ) );
-    TEST_SAFE_OP( LargeMultiLineTextTest( &painter, pPage, &writer ) );
-    painter.FinishPage();
+        printf("Drawing using PdfPainterMM.\n");
+        pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+        painterMM.SetPage( pPage );
+        pRoot->Last()->CreateNext( "MM Test", PdfDestination( pPage ) );
+        TEST_SAFE_OP( MMTest( &painterMM, pPage, &writer ) );
+        painterMM.FinishPage();
 
-    printf("Drawing using Font Subset.\n");
-    pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    painter.SetPage( pPage );
-    pRoot->Last()->CreateNext( "Font Subset Test", PdfDestination( pPage ) );
-    TEST_SAFE_OP( FontSubsetTest( &painter, pPage, &writer ) );
-    painter.FinishPage();
-    
+        printf("Drawing using PdfPainter MultilineText.\n");
+        pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+        painter.SetPage( pPage );
+        pRoot->Last()->CreateNext( "Large MultilineText Test", PdfDestination( pPage ) );
+        TEST_SAFE_OP( LargeMultiLineTextTest( &painter, pPage, &writer ) );
+        painter.FinishPage();
+
+        printf("Drawing using Font Subset.\n");
+        pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+        painter.SetPage( pPage );
+        pRoot->Last()->CreateNext( "Font Subset Test", PdfDestination( pPage ) );
+        TEST_SAFE_OP( FontSubsetTest( &painter, pPage, &writer ) );
+        painter.FinishPage();
+
 #if 0
-    /** Create a really large name tree to test the name tree implementation
-     */
-    for( int zz=1;zz<500;zz++ ) 
-    {
-        std::ostringstream oss;
-        oss << "A" << zz;
+        /** Create a really large name tree to test the name tree implementation
+         */
+        for( int zz=1;zz<500;zz++ )
+        {
+            std::ostringstream oss;
+            oss << "A" << zz;
 
-        writer.GetNamesTree()->AddValue( "TestDict", PdfString( oss.str() ), PdfVariant( static_cast<long>(zz) )  );
-    }
+            writer.GetNamesTree()->AddValue( "TestDict", PdfString( oss.str() ), PdfVariant( static_cast<long>(zz) )  );
+        }
 
-    writer.GetNamesTree()->AddValue( "TestDict", PdfString( "Berta" ), PdfVariant( 42L )  );
+        writer.GetNamesTree()->AddValue( "TestDict", PdfString( "Berta" ), PdfVariant( 42L )  );
 #endif
 
-    printf("Setting document informations.\n\n");
-    // Setup the document information dictionary
-    TEST_SAFE_OP( writer.GetInfo()->SetCreator ( PdfString("CreationTest - A simple test application") ) );
-    TEST_SAFE_OP( writer.GetInfo()->SetAuthor  ( PdfString("Dominik Seichter") ) );
-    TEST_SAFE_OP( writer.GetInfo()->SetTitle   ( PdfString("Test Document") ) );
-    //TEST_SAFE_OP( writer.GetInfo()->SetSubject ( PdfString("Testing the PDF Library") ) );
-    TEST_SAFE_OP( writer.GetInfo()->SetSubject ( 
-                      PdfString(reinterpret_cast<const pdf_utf8*>("「PoDoFo」は今から日本語も話せます。") ) ) );
-    TEST_SAFE_OP( writer.GetInfo()->SetKeywords( PdfString("Test;PDF;") ) );
+        printf("Setting document informations.\n\n");
+        // Setup the document information dictionary
+        TEST_SAFE_OP( writer.GetInfo()->SetCreator ( PdfString("CreationTest - A simple test application") ) );
+        TEST_SAFE_OP( writer.GetInfo()->SetAuthor  ( PdfString("Dominik Seichter") ) );
+        TEST_SAFE_OP( writer.GetInfo()->SetTitle   ( PdfString("Test Document") ) );
+        //TEST_SAFE_OP( writer.GetInfo()->SetSubject ( PdfString("Testing the PDF Library") ) );
+        TEST_SAFE_OP( writer.GetInfo()->SetSubject (
+                          PdfString(reinterpret_cast<const pdf_utf8*>("「PoDoFo」は今から日本語も話せます。") ) ) );
+        TEST_SAFE_OP( writer.GetInfo()->SetKeywords( PdfString("Test;PDF;") ) );
 
-    //xTEST_SAFE_OP( writer.AttachFile( PdfFileSpec("../../../podofo/test/CreationTest/CreationTest.cpp", true, &writer ) ) );
+        //xTEST_SAFE_OP( writer.AttachFile( PdfFileSpec("../../../podofo/test/CreationTest/CreationTest.cpp", true, &writer ) ) );
 
-    TEST_SAFE_OP( writer.Write( argv[1] ) );
-    //TEST_SAFE_OP( writer.Close() );
+        TEST_SAFE_OP( writer.Write( argv[1] ) );
+        //TEST_SAFE_OP( writer.Close() );
 
 #ifdef TEST_MEM_BUFFER
-    // ---
-    const char*   pszMemFile = "./mem_out.pdf";
-    FILE*         hFile;
+        // ---
+        const char*   pszMemFile = "./mem_out.pdf";
+        FILE*         hFile;
 
-    PdfRefCountedBuffer buffer;
-    PdfOutputDevice device( &buffer );
-    printf("Writing document from a memory buffer to: %s\n", pszMemFile );
-    TEST_SAFE_OP( writer.Write( &device ) );
+        PdfRefCountedBuffer buffer;
+        PdfOutputDevice device( &buffer );
+        printf("Writing document from a memory buffer to: %s\n", pszMemFile );
+        TEST_SAFE_OP( writer.Write( &device ) );
 
-    hFile = fopen( pszMemFile, "wb" );
-    if( !hFile )
-    {
-        fprintf( stderr, "Cannot open file %s for writing.\n", pszMemFile );
-        return ePdfError_InvalidHandle;
-    }
+        hFile = fopen( pszMemFile, "wb" );
+        if( !hFile )
+        {
+            fprintf( stderr, "Cannot open file %s for writing.\n", pszMemFile );
+            return ePdfError_InvalidHandle;
+        }
 
-    long lBufferLen = device.GetLength();
-    printf("lBufferLen=%li\n", lBufferLen );
-    printf("Wrote=%i\n", static_cast<int>(fwrite( buffer.GetBuffer(), lBufferLen, sizeof( char ), hFile )) );
-    fclose( hFile );
+        long lBufferLen = device.GetLength();
+        printf("lBufferLen=%li\n", lBufferLen );
+        printf("Wrote=%i\n", static_cast<int>(fwrite( buffer.GetBuffer(), lBufferLen, sizeof( char ), hFile )) );
+        fclose( hFile );
 #endif
+    } catch( PdfError & e ) {
+        std::cerr << "Error: An error " << e.GetError() << " ocurred." << std::endl;
+        e.PrintErrorMsg();
+        return e.GetError();
+    }
 
     return 0;
 }

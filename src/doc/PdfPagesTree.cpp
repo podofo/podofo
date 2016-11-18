@@ -836,7 +836,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject,
     }
 
     // we should never exit from here - we should always have been able to return a page from above
-    // assert( false ) ;
+    // PODOFO_ASSERT( false ) ;
     return NULL;
 }
 */

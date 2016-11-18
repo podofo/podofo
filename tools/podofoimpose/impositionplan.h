@@ -85,7 +85,6 @@ class PageRecord
 		PageRecord( );
 		~PageRecord() {};
 		int sourcePage;
-		int xobjIndex;
 		int destPage;
 		double rotate;
 		double transX;

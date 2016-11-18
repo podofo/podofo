@@ -72,7 +72,7 @@ int main( int argc, char* argv[] )
     try {
         WatermarkFile( argv[1], argv[2] );
     } 
-    catch( const PdfError & e ) 
+    catch( PdfError & e ) 
     {
         e.PrintErrorMsg();
         return e.GetError();

@@ -92,7 +92,8 @@ bool PdfXRef::PdfXRefBlock::InsertItem( const TXRefItem & rItem, bool bUsed )
     return false;
 }
 
-PdfXRef::PdfXRef() 
+PdfXRef::PdfXRef()
+    : m_offset( 0 )
 {
 
 }

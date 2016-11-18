@@ -144,7 +144,7 @@ inline double PdfFontMetricsBase14::GetStrikeoutThickness() const
 const char* PdfFontMetricsBase14::GetFontname() const 
 {
 #ifdef MYASSERT
-    assert(font_name != NULL);
+    PODOFO_ASSERT(font_name != NULL);
 #endif
     return font_name;
 }

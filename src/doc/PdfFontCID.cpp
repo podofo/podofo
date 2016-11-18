@@ -118,6 +118,7 @@ public:
 PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject, bool PODOFO_UNUSED_PARAM(bEmbed) )
     : PdfFont( pMetrics, pEncoding, pObject ), m_pDescendantFonts( NULL )
 {
+    m_pDescriptor = NULL;
     /* this->Init( bEmbed, false ); No changes to dictionary */
     m_bWasEmbedded = true; /* embedding on this path is not allowed at all, so
                             pretend like it's already done */
@@ -127,6 +128,8 @@ PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEnco
                         PdfVecObjects* pParent, bool bEmbed, bool bSubset )
     : PdfFont( pMetrics, pEncoding, pParent ), m_pDescendantFonts( NULL )
 {
+    m_pDescriptor = NULL;
+
     this->Init( bEmbed, bSubset );
 }
 

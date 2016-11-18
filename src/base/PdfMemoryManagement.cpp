@@ -32,6 +32,7 @@
  ***************************************************************************/
 
 #include "PdfMemoryManagement.h"
+#include "PdfDefines.h"
 #include "PdfDefinesPrivate.h"
 
 #ifndef SIZE_MAX

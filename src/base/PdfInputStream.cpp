@@ -91,9 +91,18 @@ pdf_long PdfFileInputStream::GetFileLength()
     pdf_long lOffset = ftello( m_hFile );
     pdf_long lLen;
 
-    fseeko( m_hFile, 0L, SEEK_END );
+    if( lOffset == -1 )
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to read current position in the file" );
+
+    if( fseeko( m_hFile, 0L, SEEK_END ) == -1 )
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to seek at the end of the file" );
+
     lLen = ftello( m_hFile );
-    fseeko( m_hFile, lOffset, SEEK_SET );
+    if( lLen == -1 )
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to read file length" );
+
+    if( fseeko( m_hFile, lOffset, SEEK_SET ) == -1 )
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to seek back to the previous position of the file" );
 
     return lLen;
 }

@@ -1108,7 +1108,7 @@ pdf_long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_long lL
             target += bytesToWrite;
         }
     }
-    catch( const PdfError & e ) 
+    catch( PdfError & e ) 
     {
         if( bOwnBuf )
             delete[] const_cast<pdf_utf16be *>(pszUtf16);

@@ -174,7 +174,7 @@ void HelloWorld( const char* pszFilename )
 		 */
 		document.Close();
 
-	} catch ( const PdfError & e ) {
+	} catch ( PdfError & e ) {
 		/*
 		 * All PoDoFo methods may throw exceptions
 		 * make sure that painter.FinishPage() is called
@@ -221,7 +221,7 @@ int main( int argc, char* argv[] )
          * with the filename of the output file as argument.
          */
          HelloWorld( argv[1] );
-    } catch( const PdfError & eCode ) {
+    } catch( PdfError & eCode ) {
         /*
          * We have to check if an error has occurred.
          * If yes, we return and print an error message

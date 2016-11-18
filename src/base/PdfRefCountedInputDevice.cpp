@@ -52,7 +52,7 @@ PdfRefCountedInputDevice::PdfRefCountedInputDevice( const char* pszFilename, con
 
     try {
         m_pDevice->m_pDevice = new PdfInputDevice( pszFilename );
-    } catch( const PdfError & rError ) {
+    } catch( PdfError & rError ) {
         delete m_pDevice;
         throw rError;
     }
@@ -67,7 +67,7 @@ PdfRefCountedInputDevice::PdfRefCountedInputDevice( const wchar_t* pszFilename, 
 
     try {
         m_pDevice->m_pDevice = new PdfInputDevice( pszFilename );
-    } catch( const PdfError & rError ) {
+    } catch( PdfError & rError ) {
         delete m_pDevice;
         throw rError;
     }
@@ -83,7 +83,7 @@ PdfRefCountedInputDevice::PdfRefCountedInputDevice( const char* pBuffer, size_t 
 
     try {
         m_pDevice->m_pDevice   = new PdfInputDevice( pBuffer, lLen );
-    } catch( const PdfError & rError ) {
+    } catch( PdfError & rError ) {
         delete m_pDevice;
         throw rError;
     }

@@ -43,7 +43,6 @@
 #include "PdfVariant.h"
 #include "PdfDefinesPrivate.h"
 
-#include <cassert>
 #include <iostream>
 #include <sstream>
 
@@ -177,8 +176,8 @@ void PdfParserObject::ParseFile( PdfEncrypt* pEncrypt, bool bIsTrailer )
 void PdfParserObject::ParseFileComplete( bool bIsTrailer )
 {
 #if defined(PODOFO_EXTRA_CHECKS)
-    assert(DelayedLoadInProgress());
-    assert(!DelayedLoadDone());
+    PODOFO_ASSERT( DelayedLoadInProgress() );
+    PODOFO_ASSERT( !DelayedLoadDone() );
 #endif
     const char* pszToken;
 
@@ -244,9 +243,9 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
 void PdfParserObject::ParseStream()
 {
 #if defined(PODOFO_EXTRA_CHECKS)
-    assert(DelayedLoadDone());
-    assert(DelayedStreamLoadInProgress());
-    assert(!DelayedStreamLoadDone());
+    PODOFO_ASSERT( DelayedLoadDone() );
+    PODOFO_ASSERT( DelayedStreamLoadInProgress() );
+    PODOFO_ASSERT( !DelayedStreamLoadDone() );
 #endif
 
     pdf_int64         lLen  = -1;
@@ -365,8 +364,8 @@ void PdfParserObject::DelayedLoadImpl()
 #if defined(PODOFO_EXTRA_CHECKS)
     // DelayedLoadImpl() should only ever be called via DelayedLoad(),
     // which ensures that it is never called repeatedly.
-    assert(!DelayedLoadDone());
-    assert(DelayedLoadInProgress());
+    PODOFO_ASSERT( !DelayedLoadDone() );
+    PODOFO_ASSERT( DelayedLoadInProgress() );
 #endif
 
     ParseFileComplete( m_bIsTrailer );
@@ -381,12 +380,12 @@ void PdfParserObject::DelayedStreamLoadImpl()
     // DelayedLoad() must've been called, either directly earlier
     // or via DelayedStreamLoad. DelayedLoad() will throw if the load
     // failed, so if we're being called this condition must be true.
-    assert(DelayedLoadDone());
+    PODOFO_ASSERT( DelayedLoadDone() );
 
     // Similarly, we should not be being called unless the stream isn't
     // already loaded.
-    assert(!DelayedStreamLoadDone());
-    assert(DelayedStreamLoadInProgress());
+    PODOFO_ASSERT( !DelayedStreamLoadDone() );
+    PODOFO_ASSERT( DelayedStreamLoadInProgress() );
 #endif
 
     // Note: we can't use HasStream() here because it'll call DelayedStreamLoad()

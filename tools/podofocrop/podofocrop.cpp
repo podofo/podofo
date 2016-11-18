@@ -161,7 +161,11 @@ std::vector<PdfRect> get_crop_boxes( const char* pszInput )
         if( strncmp( "%%BoundingBox: ", sLine.c_str(), 15 ) == 0 )
         {
             int x, y, w, h;
-            sscanf(sLine.c_str()+15, "%i %i %i %i\n", &x, &y, &w, &h);
+            if( sscanf( sLine.c_str() + 15, "%i %i %i %i\n", &x, &y, &w, &h ) != 4 )
+            {
+                printf( "Failed to read bounding box's four numbers from '%s'\n", sLine.c_str() + 15 );
+                exit( 1 );
+            }
             curRect = PdfRect( static_cast<double>(x), 
                                static_cast<double>(y),
                                static_cast<double>(w-x),

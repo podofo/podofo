@@ -174,16 +174,23 @@ int PdfInputDevice::GetChar() const
 
 int PdfInputDevice::Look() const 
 {
-	if (m_pStream)
-    return m_pStream->peek();
-	if (m_pFile) {
-		pdf_long lOffset = ftello( m_pFile );
-		int ch = GetChar();
-		fseeko( m_pFile, lOffset, SEEK_SET );
-		return ch;
-	}
+    if (m_pStream)
+        return m_pStream->peek();
+    if (m_pFile) {
+        pdf_long lOffset = ftello( m_pFile );
 
-	return 0;
+        if( lOffset == -1 )
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to read the current file position" );
+
+        int ch = GetChar();
+
+        if( fseeko( m_pFile, lOffset, SEEK_SET ) == -1 )
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to seek back to the previous position" );
+
+        return ch;
+    }
+
+    return 0;
 }
 
 std::streamoff PdfInputDevice::Tell() const
@@ -229,7 +236,8 @@ void PdfInputDevice::Seek( std::streamoff off, std::ios_base::seekdir dir )
                     whence = SEEK_CUR;
                     break;
             }
-            fseeko( m_pFile, off, whence );
+            if( fseeko( m_pFile, off, whence ) == -1)
+                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to seek to given position in the file" );
         }
     }
     else

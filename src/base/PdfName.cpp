@@ -176,7 +176,10 @@ PdfName PdfName::FromEscaped( const std::string & sName )
 
 PdfName PdfName::FromEscaped( const char * pszName, pdf_long ilen )
 {
-    if( !ilen && pszName )
+    if( !pszName )
+        return PdfName();
+
+    if( !ilen )
         ilen = strlen( pszName );
 
     return PdfName(UnescapeName(pszName, ilen));

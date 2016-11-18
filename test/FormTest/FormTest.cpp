@@ -55,7 +55,7 @@ void CreateComplexForm( PdfPage* pPage, PdfStreamedDocument* pDoc )
     // Name
     y -= 10000.0 * CONVERSION_CONSTANT;
     painter.DrawText( x, y, "Your Name:" );
-    PdfTextField textName( pPage, PdfRect( 80000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT, 
+    PdfTextField textName( pPage, PdfRect( 80000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT,
                                            80000.0 * CONVERSION_CONSTANT, h ), pDoc );
     textName.SetFieldName("field_name");
     textName.SetBorderColor( 1.0 );
@@ -63,16 +63,16 @@ void CreateComplexForm( PdfPage* pPage, PdfStreamedDocument* pDoc )
     // E-Mail
     y -= 10000.0 * CONVERSION_CONSTANT;
     painter.DrawText( x, y, "E-Mail Address:" );
-    PdfTextField textMail( pPage, PdfRect( 80000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT, 
+    PdfTextField textMail( pPage, PdfRect( 80000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT,
                                            80000.0 * CONVERSION_CONSTANT, h ), pDoc );
     textMail.SetFieldName("field_mail");
     textMail.SetBorderColor( 1.0 );
-    
+
     // Interest
     y -= 10000.0 * CONVERSION_CONSTANT;
     painter.DrawText( x, y, "Job:" );
 
-    PdfComboBox comboJob( pPage, PdfRect( 80000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT, 
+    PdfComboBox comboJob( pPage, PdfRect( 80000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT,
                                           80000.0 * CONVERSION_CONSTANT, h ), pDoc );
     comboJob.SetFieldName("field_combo");
     comboJob.SetBorderColor( 1.0 );
@@ -85,14 +85,14 @@ void CreateComplexForm( PdfPage* pPage, PdfStreamedDocument* pDoc )
     // Open Source
     y -= 11000.0 * CONVERSION_CONSTANT;
     painter.DrawText( x, y, "I wan't to use PoDoFo in an Open Source application" );
-    PdfCheckBox checkOpenSource( pPage, PdfRect( 120000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT, 
+    PdfCheckBox checkOpenSource( pPage, PdfRect( 120000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT,
                                                  h, h ), pDoc );
     checkOpenSource.SetFieldName("field_check_oss");
 
     // Commercial
     y -= 11000.0 * CONVERSION_CONSTANT;
     painter.DrawText( x, y, "I wan't to use PoDoFo in a commercial application" );
-    PdfCheckBox checkCom( pPage, PdfRect( 120000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT, 
+    PdfCheckBox checkCom( pPage, PdfRect( 120000.0 * CONVERSION_CONSTANT, y - 2500.0 * CONVERSION_CONSTANT,
                                           h, h ), pDoc );
     checkCom.SetFieldName("field_check_com");
 
@@ -118,21 +118,21 @@ void CreateComplexForm( PdfPage* pPage, PdfStreamedDocument* pDoc )
     buttonClear.SetBackgroundColor( 0.5 );
 
     PdfAction actionClear( ePdfAction_JavaScript, pDoc );
-    actionClear.SetScript( 
+    actionClear.SetScript(
         PdfString("this.getField(\"field_name\").value = \"\";" \
                   "this.getField(\"field_mail\").value = \"\";" \
-                  "this.getField(\"field_combo\").value = \"\";" 
+                  "this.getField(\"field_combo\").value = \"\";"
                   "this.getField(\"field_check_oss.\").checkThisBox( 0, false );" \
                   "this.getField(\"field_check_com.\").checkThisBox( 0, false );" \
                   "this.getField(\"field_comment\").value = \"\";" ) );
 
 
     buttonClear.SetMouseDownAction( actionClear );
-                  
+
     PdfAction actionSubmit( ePdfAction_SubmitForm, pDoc );
 
     buttonSend.SetMouseDownAction( actionSubmit );
-    
+
     painter.FinishPage();
 }
 
@@ -156,7 +156,7 @@ void CreateSimpleForm( PdfPage* pPage, PdfStreamedDocument* pDoc )
 
 
     PdfAction action( ePdfAction_JavaScript, pDoc );
-    action.SetScript( 
+    action.SetScript(
         PdfString("var str = this.getField(\"TextFieldName\").value;" \
                   "var j = 4*5;" \
                   "app.alert(\"Hello World! 4 * 5 = \" + j + \" Text Field: \" + str );") );
@@ -201,7 +201,7 @@ void CreateSimpleForm( PdfPage* pPage, PdfStreamedDocument* pDoc )
     listBox.SetSelectedItem( 2 );
 }
 
-void FillTextField( PdfTextField & rField ) 
+void FillTextField( PdfTextField & rField )
 {
     const char* pszCur = rField.GetText().GetString();
     std::cout << "  Current value:" << (pszCur ? pszCur : "") << std::endl;
@@ -224,13 +224,13 @@ void FillTextField( PdfTextField & rField )
     }
 }
 
-void FillListField( PdfListField & rField ) 
+void FillListField( PdfListField & rField )
 {
-    const char* pszCur = ( rField.GetSelectedItem() == -1 ? NULL : 
+    const char* pszCur = ( rField.GetSelectedItem() == -1 ? NULL :
                            rField.GetItemDisplayText( rField.GetSelectedItem() ).GetString() );
     std::cout << "  Current value:" << (pszCur ? pszCur : "") << std::endl;
     std::cout << "  Values:" << std::endl;
-    
+
     for( int i=0;i<static_cast<int>(rField.GetItemCount());i++ )
     {
         pszCur = rField.GetItemDisplayText( i ).GetString();
@@ -245,7 +245,7 @@ void FillListField( PdfListField & rField )
         rField.SetSelectedItem( nValue );
 }
 
-void FillForm( const char* pszFilename, const char* pszOutput ) 
+void FillForm( const char* pszFilename, const char* pszOutput )
 {
     PdfMemDocument doc( pszFilename );
     PdfPage*       pPage;
@@ -281,7 +281,7 @@ void FillForm( const char* pszFilename, const char* pszOutput )
                 case ePdfField_TextField:
                 {
                     std::cout << "TextField" << std::endl;
-                    PdfTextField text( field ); 
+                    PdfTextField text( field );
                     FillTextField( text );
                     break;
                 }
@@ -289,14 +289,14 @@ void FillForm( const char* pszFilename, const char* pszOutput )
                 {
                     std::cout << "ComboBox" << std::endl;
                     PdfListField lst( field );
-                    FillListField( lst ); 
+                    FillListField( lst );
                     break;
                 }
                 case ePdfField_ListBox:
                 {
                     std::cout << "ListBox" << std::endl;
                     PdfListField lst( field );
-                    FillListField( lst ); 
+                    FillListField( lst );
                     break;
                 }
                 case ePdfField_Signature:
@@ -315,7 +315,7 @@ void FillForm( const char* pszFilename, const char* pszOutput )
     doc.Write( pszOutput );
 }
 
-int main( int argc, char* argv[] ) 
+int main( int argc, char* argv[] )
 {
     PdfPage*            pPage;
 
@@ -323,26 +323,32 @@ int main( int argc, char* argv[] )
     {
         printf("Usage: FormTest [output_filename]\n");
         printf("       - Create a new example PDF form\n");
-        printf("       Formtest [input_filename] [output_filename]\n"); 
+        printf("       Formtest [input_filename] [output_filename]\n");
         printf("       - Fill out an existing form and save it to a PDF file\n");
         return 0;
     }
 
-    if( argc == 3 )
-    {
-        TEST_SAFE_OP( FillForm( argv[1], argv[2] ) );
-    }
-    else
-    {
-        PdfStreamedDocument writer( argv[1] );
+    try {
+        if( argc == 3 )
+        {
+            TEST_SAFE_OP( FillForm( argv[1], argv[2] ) );
+        }
+        else
+        {
+            PdfStreamedDocument writer( argv[1] );
 
-        pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-        TEST_SAFE_OP( CreateComplexForm( pPage, &writer ) );
+            pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+            TEST_SAFE_OP( CreateComplexForm( pPage, &writer ) );
 
-        pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-        TEST_SAFE_OP( CreateSimpleForm( pPage, &writer ) );
+            pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+            TEST_SAFE_OP( CreateSimpleForm( pPage, &writer ) );
 
-        TEST_SAFE_OP( writer.Close() );
+            TEST_SAFE_OP( writer.Close() );
+        }
+    } catch( PdfError & e ) {
+        std::cerr << "Error: An error " << e.GetError() << " ocurred." << std::endl;
+        e.PrintErrorMsg();
+        return e.GetError();
     }
 
     return 0;

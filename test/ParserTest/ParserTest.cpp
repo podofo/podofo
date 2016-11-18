@@ -205,7 +205,7 @@ int main( int argc, char*  argv[] )
                     parser.SetPassword( pw );
                 
                 bIncorrectPw = false;
-            } catch( const PdfError & e ) {
+            } catch( PdfError & e ) {
                 if( e.GetError() == ePdfError_InvalidPassword ) 
                 {
                     cout << endl << "Password :";

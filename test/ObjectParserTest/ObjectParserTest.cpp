@@ -206,7 +206,7 @@ void TestObject( const string & sFilename,
 
         cerr << "  -> Has Stream, loading ... " << flush;
         PdfMemStream * const ps = dynamic_cast<PdfMemStream*>(obj.GetStream());
-        assert(ps);
+        PODOFO_ASSERT(ps);
         cerr << " ok, length: " << ps->GetLength() << endl;
 
         ps->GetFilteredCopy( &pBuffer, &lLen );
@@ -214,6 +214,8 @@ void TestObject( const string & sFilename,
         cerr << "Data:\n" << endl;
         cerr.write( pBuffer, lLen );
         cerr << "\n====\n" << endl;
+
+        podofo_free( pBuffer );
     }
 
     string str;
@@ -297,7 +299,7 @@ void TestObject_String( const string & sData,
 // This may only be used for objects without associated streams.
 void TestObject_String( const string & sData, long lObjNo, long lGenNo, const char * expectedData )
 {
-    TestObject_String(sData, lObjNo, lGenNo, expectedData != NULL, string(expectedData), false);
+    TestObject_String(sData, lObjNo, lGenNo, expectedData != NULL, string( expectedData ? expectedData : "" ), false);
 }
 
 // Test an object stored in a file against the expected value, also a file (if provided).
@@ -404,7 +406,7 @@ const char * pszObject6 = "33 0 obj\n"
         "endobj\n";
 
 // Comment tokenizer test adapted from PDF Reference, section 3.1.2 . Should parse as [ /abc 123 ] .
-const char* pszCommentObject       = "91 0 obj\n[/abc\% comment {/%) blah blah blah\n123]\nendobj\n";
+const char* pszCommentObject       = "91 0 obj\n[/abc% comment {/%) blah blah blah\n123]\nendobj\n";
 
 // Use a FULL statement in this macro, it will not add any trailing
 // semicolons etc.

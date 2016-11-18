@@ -127,8 +127,9 @@ PdfRefCountedBuffer PdfIdentityEncoding::ConvertToEncoding( const PdfString & rS
     else
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-        return PdfRefCountedBuffer();
     }
+
+    return PdfRefCountedBuffer();
 }
     
 }; /* namespace PoDoFo */

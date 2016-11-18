@@ -145,7 +145,7 @@ inline void PdfDataType::AssertMutable() const
 {
     if(m_bImmutable) 
     {
-        throw PdfError( ePdfError_ChangeOnImmutable );
+        PODOFO_RAISE_ERROR( ePdfError_ChangeOnImmutable );
     }
 }
 

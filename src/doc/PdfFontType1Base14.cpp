@@ -71,6 +71,11 @@ void PdfFontType1Base14::InitBase14Font( PdfFontMetrics* pMetrics )
 {
     PdfVariant    var;
     
+    if( !m_pEncoding )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
     this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Type1"));
     this->GetObject()->GetDictionary().AddKey("BaseFont", PdfName( pMetrics->GetFontname() ) );
 

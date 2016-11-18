@@ -117,8 +117,8 @@ void init( const char* pszInput, const char* pszOutput, bool bUtf8, const char* 
 
     PdfStreamedDocument doc( pszOutput );
 
-    char*  pszBuf;
-    size_t lSize;
+    char* pszBuf;
+    long lSize;
 
     hFile = fopen( pszInput, "rb" );	// read it as binary if we are going to compare sizes!
     if( !hFile )
@@ -126,13 +126,24 @@ void init( const char* pszInput, const char* pszOutput, bool bUtf8, const char* 
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    fseek( hFile, 0x00, SEEK_END );
+    if( fseek( hFile, 0x00, SEEK_END ) == -1 )
+    {
+        fclose( hFile );
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to seek to the end of the file" );
+    }
+
     lSize  = ftell( hFile );
+    if( lSize == -1 )
+    {
+        fclose( hFile );
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to read size of the file" );
+    }
 
     pszBuf = static_cast<char*>(malloc( sizeof( char ) * (lSize+1) ));
     fseek( hFile, 0x00, SEEK_SET );
     if( !pszBuf )
     {
+        fclose( hFile );
         PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
@@ -140,9 +151,10 @@ void init( const char* pszInput, const char* pszOutput, bool bUtf8, const char* 
     // this not very efficient, but as this is 
     // a library demonstration I do not care.
     // If anyone wants to improve this: Go for it!
-    if( fread( pszBuf, sizeof(char), lSize, hFile ) != lSize )
+    if( static_cast<long>( fread( pszBuf, sizeof(char), lSize, hFile ) ) != lSize )
     {
         free( pszBuf );
+        fclose( hFile );
         PODOFO_RAISE_ERROR( ePdfError_UnexpectedEOF );
     }
 

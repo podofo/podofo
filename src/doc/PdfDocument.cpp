@@ -544,7 +544,7 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
                         }
                         else
                         {
-                            throw ePdfError_InvalidStream;
+                            PODOFO_RAISE_ERROR( ePdfError_InvalidStream );
                             break;
                         }
                     }

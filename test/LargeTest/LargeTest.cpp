@@ -39,7 +39,7 @@ void AddPage( PdfDocument* pDoc, const char* pszFontName, const char* pszImagePa
  
     try {
         pFont  = pDoc->CreateFont( pszFontName );
-    } catch ( const PdfError & e ) {
+    } catch ( PdfError & e ) {
         e.PrintErrorMsg();
         return;
     }
@@ -86,7 +86,7 @@ void AddPage( PdfDocument* pDoc, const char* pszFontName, const char* pszImagePa
     try {
         pImage->LoadFromFile( pszImagePath );
     }
-    catch( const PdfError & e ) 
+    catch( PdfError & e ) 
     {
         e.PrintErrorMsg();
     }

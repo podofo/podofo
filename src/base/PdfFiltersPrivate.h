@@ -93,6 +93,8 @@ class PdfOutputDevice;
  */
 class PdfHexFilter : public PdfFilter {
  public:
+    PdfHexFilter();
+
     virtual ~PdfHexFilter() { }
 
     /** Check wether the encoding is implemented for this filter.
@@ -200,6 +202,7 @@ EPdfFilter PdfHexFilter::GetType() const
  */
 class PdfAscii85Filter : public PdfFilter {
  public:
+    PdfAscii85Filter();
     virtual ~PdfAscii85Filter() { }
 
     /** Check wether the encoding is implemented for this filter.
@@ -460,6 +463,7 @@ EPdfFilter PdfFlateFilter::GetType() const
  */
 class PdfRLEFilter : public PdfFilter {
  public:
+    PdfRLEFilter();
     virtual ~PdfRLEFilter() {}
 
     /** Check wether the encoding is implemented for this filter.

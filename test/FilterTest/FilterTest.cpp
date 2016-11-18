@@ -34,7 +34,7 @@ const char pTestBuffer1[]  = "Man is distinguished, not only by his reason, but 
 // We treat the buffer as _excluding_ the trailing \0
 const pdf_long lTestLength1 = strlen(pTestBuffer1);
 
-const char pTestBuffer2[]  = { 
+const char pTestBuffer2[]  = {
     0x01, 0x64, 0x65, static_cast<char>(0xFE), 0x6B, static_cast<char>(0x80), 0x45, 0x32,
     static_cast<char>(0x88), 0x12, static_cast<char>(0x71), static_cast<char>(0xEA), 0x01,
     0x01, 0x64, 0x65, static_cast<char>(0xFE), 0x6B, static_cast<char>(0x80), 0x45, 0x32,
@@ -56,7 +56,7 @@ void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const pdf_long l
     char*      pDecoded;
     pdf_long   lEncoded;
     pdf_long   lDecoded;
-   
+
     std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( eFilter );
     if( !pFilter.get() )
     {
@@ -69,7 +69,7 @@ void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const pdf_long l
     try {
         pFilter->Encode( pTestBuffer, lTestLength, &pEncoded, &lEncoded );
     } catch( PdfError & e ) {
-        if( e == ePdfError_UnsupportedFilter ) 
+        if( e == ePdfError_UnsupportedFilter )
         {
             printf("\t-> Encoding not supported for filter %i.\n", eFilter );
             return;
@@ -85,7 +85,7 @@ void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const pdf_long l
     try {
         pFilter->Decode( pEncoded, lEncoded, &pDecoded, &lDecoded );
     } catch( PdfError & e ) {
-        if( e == ePdfError_UnsupportedFilter ) 
+        if( e == ePdfError_UnsupportedFilter )
         {
             printf("\t-> Decoding not supported for filter %i.\n", eFilter);
             return;
@@ -101,7 +101,7 @@ void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const pdf_long l
     printf("\t-> Encoded  Data Length: %li\n", lEncoded );
     printf("\t-> Decoded  Data Length: %li\n", lDecoded );
 
-    if( static_cast<pdf_long>(lTestLength) != lDecoded ) 
+    if( static_cast<pdf_long>(lTestLength) != lDecoded )
     {
         fprintf( stderr, "Error: Decoded Length != Original Length\n");
 
@@ -147,7 +147,7 @@ void test_filter_queue( const char* pBuffer, long lLen )
 
     PdfMemoryOutputStream  stream;
     PdfOutputStream*       pEncode = PdfFilterFactory::CreateEncodeStream( filters, &stream );
-    
+
     pEncode->Write( pBuffer, lLen );
     pEncode->Close();
 
@@ -158,10 +158,10 @@ void test_filter_queue( const char* pBuffer, long lLen )
 
     PdfMemoryOutputStream stream2;
     PdfOutputStream* pDecode = PdfFilterFactory::CreateDecodeStream( filters, &stream2 );
-    
+
     pDecode->Write( pEncoded, lEncoded );
     pDecode->Close();
-    
+
     delete pDecode;
 
     lDecoded = stream2.GetLength();
@@ -171,7 +171,7 @@ void test_filter_queue( const char* pBuffer, long lLen )
     printf("\t-> Encoded  Data Length: %li\n", lEncoded );
     printf("\t-> Decoded  Data Length: %li\n", lDecoded );
 
-    if( lDecoded != lLen ) 
+    if( lDecoded != lLen )
     {
         fprintf( stderr, "Error: Decoded data length does not match original data length.\n");
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
@@ -209,7 +209,7 @@ void test_stream( const char* pBuffer, pdf_long lLen )
     printf("\t-> Encoded  Data Length: %lu\n", stream.GetLength() );
     printf("\t-> Decoded  Data Length: %li\n", lDecoded );
 
-    if( lDecoded != lLen ) 
+    if( lDecoded != lLen )
     {
         fprintf( stderr, "Error: Decoded data length does not match original data length.\n");
         PODOFO_RAISE_ERROR( ePdfError_TestFailed );
@@ -225,13 +225,13 @@ void test_stream( const char* pBuffer, pdf_long lLen )
     }
 
     free( pDecoded );
-    
-    
+
+
 }
 
 } // end anon namespace
 
-int main() 
+int main()
 {
     printf("This test tests all filters of PoDoFo\n");
     printf("---\n");
@@ -247,7 +247,7 @@ int main()
     printf("ePdfFilter_JPXDecode          = 8\n");
     printf("ePdfFilter_Crypt              = 9\n");
 
-    // Data from stream  of obj 9 0 R 
+    // Data from stream  of obj 9 0 R
     const char pszInputAscii85Lzw[] = "J..)6T`?q0\"W37&!thJ^C,m/iL/?:-g&uFOK1b,*F;>>qM[VuU#oJ230p2o6!o^dK\r=tpu7Tr'VZ1gWb9&Im[N#Q~>";
 
     pdf_long lLargeBufer1  = strlen(pszInputAscii85Lzw) * 6;
@@ -255,35 +255,35 @@ int main()
     char*    pLargeBuffer1 = static_cast<char*>(malloc( strlen(pszInputAscii85Lzw) * 6 ));
     char*    pLargeBuffer2 = static_cast<char*>(malloc( strlen(pszInputAscii85Lzw) * 6 ));
 
-    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCII85Decode );
-    pFilter->Decode( pszInputAscii85Lzw, strlen(pszInputAscii85Lzw),
-                     &pLargeBuffer1, &lLargeBufer1 );
-    pFilter->Encode( pLargeBuffer1, lLargeBufer1,
-                     &pLargeBuffer2, &lLargeBufer2 );
-
-    if( memcmp( pszInputAscii85Lzw, pLargeBuffer2, lLargeBufer2 ) != 0 )
-    {
-        printf("\tROACH -> Original Data: <%s>\n", pszInputAscii85Lzw );
-        printf("\tROACH -> Encoded  Data: <%s>\n", pLargeBuffer1 );
-        printf("\tROACH -> Decoded  Data: <%s>\n", pLargeBuffer2 );
-
-        fprintf( stderr, "Error: Decoded Data does not match original data.\n");
-        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
-    }
-
-    if( static_cast<pdf_long>(strlen(pszInputAscii85Lzw)) != lLargeBufer2 ) 
-    {
-        fprintf( stderr, "ROACH Error: Decoded Length != Original Length\n");
-        fprintf( stderr, "ROACH Original: %li\n", strlen(pszInputAscii85Lzw) );
-        fprintf( stderr, "ROACH Encode: %li\n", lLargeBufer2 );
-        PODOFO_RAISE_ERROR( ePdfError_TestFailed );
-    }
-
-
-    // ASCII 85 decode and re-encode delivers same results
-    printf("ROACH ASCII encode/decode OK\n");
-
     try {
+        std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCII85Decode );
+        pFilter->Decode( pszInputAscii85Lzw, strlen(pszInputAscii85Lzw),
+                         &pLargeBuffer1, &lLargeBufer1 );
+        pFilter->Encode( pLargeBuffer1, lLargeBufer1,
+                         &pLargeBuffer2, &lLargeBufer2 );
+
+        if( memcmp( pszInputAscii85Lzw, pLargeBuffer2, lLargeBufer2 ) != 0 )
+        {
+            printf("\tROACH -> Original Data: <%s>\n", pszInputAscii85Lzw );
+            printf("\tROACH -> Encoded  Data: <%s>\n", pLargeBuffer1 );
+            printf("\tROACH -> Decoded  Data: <%s>\n", pLargeBuffer2 );
+
+            fprintf( stderr, "Error: Decoded Data does not match original data.\n");
+            PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+        }
+
+        if( static_cast<pdf_long>(strlen(pszInputAscii85Lzw)) != lLargeBufer2 )
+        {
+            fprintf( stderr, "ROACH Error: Decoded Length != Original Length\n");
+            fprintf( stderr, "ROACH Original: %li\n", strlen(pszInputAscii85Lzw) );
+            fprintf( stderr, "ROACH Encode: %li\n", lLargeBufer2 );
+            PODOFO_RAISE_ERROR( ePdfError_TestFailed );
+        }
+
+
+        // ASCII 85 decode and re-encode delivers same results
+        printf("ROACH ASCII encode/decode OK\n");
+
         for( int i =0; i<=ePdfFilter_Crypt; i++ )
         {
             test_filter( static_cast<EPdfFilter>(i), pTestBuffer1, lTestLength1 );
@@ -293,7 +293,7 @@ int main()
 
         test_filter_queue( pTestBuffer1, lTestLength1 );
         test_filter_queue( pTestBuffer2, lTestLength2 );
-        
+
         test_stream( pTestBuffer1, lTestLength1 );
         test_stream( pTestBuffer2, lTestLength2 );
 

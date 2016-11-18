@@ -48,7 +48,7 @@ int main( int argc, char* argv[] )
             printf("Got token: %s\n", pszToken );
         }
 
-    } catch( const PdfError & e ) {
+    } catch( PdfError & e ) {
         e.PrintErrorMsg();
         return e.GetError();
     }

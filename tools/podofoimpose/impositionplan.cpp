@@ -57,7 +57,8 @@ PageRecord::PageRecord ( )
 		destPage ( 0 ),
 		rotate ( 0 ),
 		transX ( 0 ),
-		transY ( 0 )
+		transY ( 0 ),
+		duplicateOf( 0 )
 {};
 
 void PageRecord::load ( const std::string& buffer, const std::map<std::string, std::string>& vars )

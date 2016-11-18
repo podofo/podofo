@@ -857,8 +857,8 @@ void PdfImage::LoadFromPngHandle( PdfFileInputStream* pInStream )
 {
     FILE* hFile = pInStream->GetHandle();
     png_byte header[8];
-    fread(header, 1, 8, hFile);
-    if( png_sig_cmp(header, 0, 8) )
+    if( fread( header, 1, 8, hFile ) != 8 ||
+        png_sig_cmp( header, 0, 8 ) )
     {
         PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedImageFormat, "The file could not be recognized as a PNG file." );
     }

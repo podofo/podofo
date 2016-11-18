@@ -234,20 +234,36 @@ void PdfWriter::WriteUpdate( PdfOutputDevice* pDevice, PdfInputDevice* pSourceIn
     // is positioned at the end of the original file by the caller
     if( pSourceInputDevice )
     {
-        #define BUFFER_SIZE 16384
-
         // copy the original file content first
-        char pBuffer[ BUFFER_SIZE ];
+        unsigned int uBufferLen = 65535;
+        char *pBuffer;
 
-        pSourceInputDevice->Seek(0);
-
-        while( !pSourceInputDevice->Eof() )
+        while( pBuffer = reinterpret_cast<char *>( podofo_malloc( sizeof( char ) * uBufferLen) ), !pBuffer )
         {
-            std::streamoff didRead;
+            uBufferLen = uBufferLen / 2;
+            if( !uBufferLen )
+                break;
+        }
 
-            didRead = pSourceInputDevice->Read( pBuffer, BUFFER_SIZE );
-            if( didRead > 0)
-                pDevice->Write( pBuffer, didRead );
+        if( !pBuffer )
+            PODOFO_RAISE_ERROR (ePdfError_OutOfMemory);
+
+        try {
+            pSourceInputDevice->Seek(0);
+
+            while( !pSourceInputDevice->Eof() )
+            {
+                std::streamoff didRead;
+
+                didRead = pSourceInputDevice->Read( pBuffer, uBufferLen );
+                if( didRead > 0)
+                    pDevice->Write( pBuffer, didRead );
+            }
+
+            podofo_free( pBuffer );
+        } catch( PdfError & e ) {
+            podofo_free( pBuffer );
+            throw e;
         }
     }
 

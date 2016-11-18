@@ -4,7 +4,6 @@
 #error This module requires boost::graph
 #endif
 
-#include <cassert>
 #include <string>
 #include <iostream>
 #include <map>
@@ -354,47 +353,47 @@ PdfContentsGraph::PdfContentsGraph( PdfContentsTokenizer & contentsTokenizer )
                 Vertex v = add_vertex( m_graph );
                 // Switch any waiting arguments into the new node's data.
                 m_graph[v].first.GetArgs().swap( args );
-                assert(!args.size());
+                PODOFO_ASSERT( !args.size() );
 
                 if (ki.kw == KW_Unknown)
                 {
                     // No idea what this keyword is. We have to assume it's an ordinary
                     // one, possibly with arguments, and just push it in as a node at the
                     // current level.
-                    assert(!m_graph[v].first.IsDefined());
+                    PODOFO_ASSERT( !m_graph[v].first.IsDefined() );
                     m_graph[v].first.SetKw( string(kwText) );
                     add_edge( parentage.top(), v, m_graph );
-                    assert( m_graph[v].first.GetKwId() == ki.kw );
-                    assert( m_graph[v].first.GetKwString() == kwText );
+                    PODOFO_ASSERT( m_graph[v].first.GetKwId() == ki.kw );
+                    PODOFO_ASSERT( m_graph[v].first.GetKwString() == kwText );
                 }
                 else if (ki.kt == KT_Standalone)
                 {
                     // Plain operator, shove it in the newly reserved vertex (which might already contain
                     // arguments) and add an edge from the top to it.
-                    assert(ki.kw != KW_Undefined && ki.kw != KW_Unknown && ki.kw != KW_RootNode );
-                    assert(!m_graph[v].first.IsDefined());
+                    PODOFO_ASSERT( ki.kw != KW_Undefined && ki.kw != KW_Unknown && ki.kw != KW_RootNode );
+                    PODOFO_ASSERT( !m_graph[v].first.IsDefined() );
                     m_graph[v].first.SetKw( ki.kw );
                     add_edge( parentage.top(), v, m_graph );
-                    assert( m_graph[v].first.GetKwId() == ki.kw );
-                    assert( m_graph[v].first.GetKwString() == kwText );
+                    PODOFO_ASSERT( m_graph[v].first.GetKwId() == ki.kw );
+                    PODOFO_ASSERT( m_graph[v].first.GetKwString() == kwText );
                 }
                 else if (ki.kt == KT_Opening)
                 {
                     PrintStack(m_graph, parentage, "OS: ");
-                    assert(ki.kw != KW_Undefined && ki.kw != KW_Unknown && ki.kw != KW_RootNode );
-                    assert(!m_graph[v].first.IsDefined());
+                    PODOFO_ASSERT( ki.kw != KW_Undefined && ki.kw != KW_Unknown && ki.kw != KW_RootNode );
+                    PODOFO_ASSERT( !m_graph[v].first.IsDefined() );
                     m_graph[v].first.SetKw( ki.kw );
                     // add an edge from the current top to it
                     add_edge( parentage.top(), v, m_graph );
                     // and push it to the top of the parentage stack
                     parentage.push( v );
-                    assert( m_graph[v].first.GetKwId() == ki.kw );
-                    assert( m_graph[v].first.GetKwString() == kwText );
+                    PODOFO_ASSERT( m_graph[v].first.GetKwId() == ki.kw );
+                    PODOFO_ASSERT( m_graph[v].first.GetKwString() == kwText );
                     PrintStack(m_graph, parentage, "OF: ");
                 }
                 else
                 {
-                    assert(false);
+                    PODOFO_ASSERT( false );
                 }
             }
             else if (ki.kt == KT_Closing)
@@ -403,7 +402,7 @@ PdfContentsGraph::PdfContentsGraph( PdfContentsTokenizer & contentsTokenizer )
                 // be a node whose KWInstance is the matching opening keyword. We'll check
                 // that, then set the second KWInstance appropriately.
                 PrintStack(m_graph, parentage, "CS: ");
-                assert(ki.kw != KW_Undefined && ki.kw != KW_Unknown && ki.kw != KW_RootNode );
+                PODOFO_ASSERT( ki.kw != KW_Undefined && ki.kw != KW_Unknown && ki.kw != KW_RootNode );
                 // Get a reference to the node data for the current parent
                 NodeData & n ( m_graph[parentage.top()] );
                 PODOFO_RAISE_LOGIC_IF( n.second.IsDefined(), "Closing already closed group" );
@@ -411,7 +410,7 @@ PdfContentsGraph::PdfContentsGraph( PdfContentsTokenizer & contentsTokenizer )
                 // a valid match for
                 PdfContentStreamKeyword expectedCloseKw = n.first.GetKwInfo().kwClose;
                 // Ensure there aren't any args to the close kw
-                assert(!args.size());
+                PODOFO_ASSERT( !args.size() );
                 // and handle the close matching
                 if ( ki.kw != expectedCloseKw )
                 {
@@ -437,12 +436,12 @@ PdfContentsGraph::PdfContentsGraph( PdfContentsTokenizer & contentsTokenizer )
             }
             else
             {
-                assert(false);
+                PODOFO_ASSERT( false );
             }
         }
         else
         {
-            assert(false);
+            PODOFO_ASSERT( false );
         }
     }
 

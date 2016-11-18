@@ -694,8 +694,6 @@ class PODOFO_DOC_API PdfDocument {
 
     PdfOutlines*    m_pOutlines;
     PdfNamesTree*   m_pNamesTree;
-
-    EPdfVersion     m_eVersion;
 };
 
 // -----------------------------------------------------

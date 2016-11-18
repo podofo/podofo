@@ -93,6 +93,8 @@ class PODOFO_API PdfFileOutputStream : public PdfOutputStream {
      */
     PdfFileOutputStream( const char* pszFilename );
 
+    virtual ~PdfFileOutputStream();
+
     /** Write data to the output stream
      *  
      *  \param pBuffer the data is read from this buffer

@@ -173,7 +173,7 @@ int main( int argc, char* argv[] )
             cout << " - page ok" << endl;
         }
     }
-    catch( const PdfError & e )
+    catch( PdfError & e )
     {
         e.PrintErrorMsg();
         return e.GetError();

@@ -44,7 +44,6 @@
 
 #include <sstream>
 #include <fstream>
-#include <cassert>
 
 #include <string.h>
 
@@ -143,8 +142,8 @@ PdfObject::PdfObject( const PdfObject & rhs )
 
 #if defined(PODOFO_EXTRA_CHECKS)
     // Must've been demand loaded or already done
-    assert(DelayedLoadDone());
-    assert(DelayedStreamLoadDone());
+    PODOFO_ASSERT( DelayedLoadDone() );
+    PODOFO_ASSERT( DelayedStreamLoadDone() );
 #endif
 }
 
@@ -323,8 +322,8 @@ const PdfObject & PdfObject::operator=( const PdfObject & rhs )
 
 #if defined(PODOFO_EXTRA_CHECKS)
     // Must've been demand loaded or already done
-    assert(DelayedLoadDone());
-    assert(DelayedStreamLoadDone());
+    PODOFO_ASSERT( DelayedLoadDone() );
+    PODOFO_ASSERT( DelayedStreamLoadDone() );
 #endif
 
     return *this;

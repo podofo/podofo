@@ -74,10 +74,17 @@ namespace PoDoFo
 		PdfTranslator::PdfTranslator ( )
 		{
 			std::cerr<<"PdfTranslator::PdfTranslator"<<std::endl;
-			sourceDoc = 0;
-			targetDoc = 0;
+			sourceDoc = NULL;
+			targetDoc = NULL;
+			planImposition = NULL;
+			duplicate = 0;
 			extraSpace = 0;
 			scaleFactor = 1.0;
+			pcount = 0;
+			sourceWidth = 0.0;
+			sourceHeight = 0.0;
+			destWidth = 0.0;
+			destHeight = 0.0;
 		}
 
 		void PdfTranslator::setSource ( const std::string & source )
@@ -111,7 +118,7 @@ namespace PoDoFo
 				}
 				while ( !in.eof() );
 				in.close();
-				delete filenameBuffer;
+				delete [] filenameBuffer;
 			}
 			std::cerr<< ++dbg <<std::endl;
 

@@ -56,6 +56,8 @@ PdfDate::PdfDate( const time_t & t )
 PdfDate::PdfDate( const PdfString & sDate )
     : m_bValid( false )
 {
+    m_time = -1;
+
     if ( !sDate.IsValid() ) 
     {
         m_szDate[0] = 0;

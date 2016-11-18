@@ -326,7 +326,7 @@ void PdfFilter::BeginEncode( PdfOutputStream* pOutput )
 
 	try {
 		BeginEncodeImpl();
-	} catch( const PdfError & e ) {
+	} catch( PdfError & e ) {
 		// Clean up and close stream
 		this->FailEncodeDecode();
 		throw e;
@@ -342,7 +342,7 @@ void PdfFilter::EncodeBlock( const char* pBuffer, pdf_long lLen )
 
 	try {
 		EncodeBlockImpl(pBuffer, lLen);
-	} catch( const PdfError & e ) {
+	} catch( PdfError & e ) {
 		// Clean up and close stream
 		this->FailEncodeDecode();
 		throw e;
@@ -358,7 +358,7 @@ void PdfFilter::EndEncode()
 
 	try {
 		EndEncodeImpl();
-	} catch( const PdfError & e ) {
+	} catch( PdfError & e ) {
 		// Clean up and close stream
 		this->FailEncodeDecode();
 		throw e;
@@ -378,7 +378,7 @@ void PdfFilter::BeginDecode( PdfOutputStream* pOutput, const PdfDictionary* pDec
 
 	try {
 		BeginDecodeImpl( pDecodeParms );
-	} catch( const PdfError & e ) {
+	} catch( PdfError & e ) {
 		// Clean up and close stream
 		this->FailEncodeDecode();
 		throw e;
@@ -394,7 +394,7 @@ void PdfFilter::DecodeBlock( const char* pBuffer, pdf_long lLen )
 
 	try {
 		DecodeBlockImpl(pBuffer, lLen);
-	} catch( const PdfError & e ) {
+	} catch( PdfError & e ) {
 		// Clean up and close stream
 		this->FailEncodeDecode();
 		throw e;
@@ -410,7 +410,7 @@ void PdfFilter::EndDecode()
 
 	try {
 	    EndDecodeImpl();
-	} catch( const PdfError & e ) {
+	} catch( PdfError & e ) {
 		// Clean up and close stream
 		this->FailEncodeDecode();
 		throw e;
@@ -442,7 +442,7 @@ PdfFilter::~PdfFilter()
     // Note that we can't do this for the user, since EndEncode() might
     // throw and we can't safely have that in a dtor. That also means
     // we can't throw here, but must abort.
-    assert(!m_pOutputStream);
+    assert( !m_pOutputStream );
 }
 
 
