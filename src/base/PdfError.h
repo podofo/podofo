@@ -126,6 +126,7 @@ enum EPdfError {
 
     ePdfError_OutlineItemAlreadyPresent,/**< An outline item to be inserted was already in that outlines tree. */
     ePdfError_NotLoadedForUpdate,       /**< The document had not been loaded for update. */
+    ePdfError_CannotEncryptedForUpdate, /**< Cannot load encrypted documents for update. */
 
     ePdfError_Unknown = 0xffff          /**< Unknown error */
 };

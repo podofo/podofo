@@ -348,6 +348,9 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_NotLoadedForUpdate:
             pszMsg = "ePdfError_NotLoadedForUpdate"; 
             break;
+        case ePdfError_CannotEncryptedForUpdate:
+            pszMsg = "ePdfError_CannotEncryptedForUpdate"; 
+            break;
         case ePdfError_Unknown:
             pszMsg = "ePdfError_Unknown"; 
             break;
@@ -489,6 +492,9 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
             break;
         case ePdfError_NotLoadedForUpdate:
             pszMsg = "The document had not been loaded for update.";
+            break;
+        case ePdfError_CannotEncryptedForUpdate:
+            pszMsg = "Cannot load encrypted documents for update.";
             break;
         case ePdfError_Unknown:
             pszMsg = "Error code unknown.";

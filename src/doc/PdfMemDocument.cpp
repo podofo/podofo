@@ -219,6 +219,18 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
 
     this->SetCatalog ( pCatalog );
     this->SetInfo    ( pInfoObj );
+
+    InitPagesTree();
+
+    // Delete the temporary pdfparser object.
+    // It is only set to m_pParser so that SetPassword can work
+    delete m_pParser;
+    m_pParser = NULL;
+
+    if( m_pEncrypt && this->IsLoadedForUpdate() )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_CannotEncryptedForUpdate );
+    }
 }
 
 void PdfMemDocument::Load( const char* pszFilename, bool bForUpdate )
@@ -243,12 +255,6 @@ void PdfMemDocument::Load( const char* pszFilename, bool bForUpdate )
     m_pParser = new PdfParser( PdfDocument::GetObjects() );
     m_pParser->ParseFile( pszFilename, true );
     InitFromParser( m_pParser );
-    InitPagesTree();
-
-    // Delete the temporary pdfparser object.
-    // It is only set to m_pParser so that SetPassword can work
-    delete m_pParser;
-    m_pParser = NULL;
 }
 
 #ifdef _WIN32
@@ -274,12 +280,6 @@ void PdfMemDocument::Load( const wchar_t* pszFilename, bool bForUpdate )
     m_pParser = new PdfParser( PdfDocument::GetObjects() );
     m_pParser->ParseFile( pszFilename, true );
     InitFromParser( m_pParser );
-    InitPagesTree();
-
-    // Delete the temporary pdfparser object.
-    // It is only set to m_pParser so that SetPassword can work
-    delete m_pParser;
-    m_pParser = NULL;
 }
 #endif // _WIN32
 
@@ -302,12 +302,6 @@ void PdfMemDocument::Load( const char* pBuffer, long lLen, bool bForUpdate )
     m_pParser = new PdfParser( PdfDocument::GetObjects() );
     m_pParser->ParseFile( pBuffer, lLen, true );
     InitFromParser( m_pParser );
-    InitPagesTree();
-
-    // Delete the temporary pdfparser object.
-    // It is only set to m_pParser so that SetPassword can work
-    delete m_pParser;
-    m_pParser = NULL;
 }
 
 void PdfMemDocument::Load( const PdfRefCountedInputDevice & rDevice, bool bForUpdate )
@@ -324,12 +318,6 @@ void PdfMemDocument::Load( const PdfRefCountedInputDevice & rDevice, bool bForUp
     m_pParser = new PdfParser( PdfDocument::GetObjects() );
     m_pParser->ParseFile( rDevice, true );
     InitFromParser( m_pParser );
-    InitPagesTree();
-
-    // Delete the temporary pdfparser object.
-    // It is only set to m_pParser so that SetPassword can work
-    delete m_pParser;
-    m_pParser = NULL;
 }
     
 /** Add a vendor-specific extension to the current PDF version.
@@ -435,10 +423,6 @@ void PdfMemDocument::SetPassword( const std::string & sPassword )
 
     m_pParser->SetPassword( sPassword );
     InitFromParser( m_pParser );
-    InitPagesTree();
-
-    delete m_pParser;
-    m_pParser = NULL;
 }
 
 void PdfMemDocument::Write( const char* pszFilename )
