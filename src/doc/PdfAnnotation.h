@@ -109,6 +109,15 @@ enum EPdfAnnotationFlags {
     ePdfAnnotationFlags_Unknow       = 0xffff
 };
 
+/**
+ * Type of the annotation appearance.
+ */
+enum EPdfAnnotationAppearance {
+    ePdfAnnotationAppearance_Normal = 0, /**< Normal appearance */
+    ePdfAnnotationAppearance_Rollover,   /**< Rollover appearance; the default is ePdfAnnotationAppearance_Normal */
+    ePdfAnnotationAppearance_Down        /**< Down appearance; the default is ePdfAnnotationAppearance_Normal */
+};
+
 /** An annotation to a PdfPage 
  *  To create an annotation use PdfPage::CreateAnnotation
  * 
@@ -139,8 +148,10 @@ class PODOFO_DOC_API PdfAnnotation : public PdfElement {
     /** Set an appearance stream for this object
      *  to specify its visual appearance
      *  \param pObject an XObject
+     *  \param eApperance an apperance type to set
+     *  \param state the state for which set it the pObject; states depend on the annotation type
      */
-    void SetAppearanceStream( PdfXObject* pObject );
+    void SetAppearanceStream( PdfXObject* pObject, EPdfAnnotationAppearance eAppearance = ePdfAnnotationAppearance_Normal, const PdfName & state = "" );
 
     /** 
      * \returns true if this annotation has an appearance stream
@@ -396,6 +407,9 @@ class PODOFO_DOC_API PdfAnnotation : public PdfElement {
 
     PdfPage*       m_pPage;
 };
+
+// helper function, to avoid code duplication
+void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* pObject, EPdfAnnotationAppearance eAppearance, const PdfName & state );
 
 // -----------------------------------------------------
 // 

@@ -125,23 +125,108 @@ PdfRect PdfAnnotation::GetRect() const
    return PdfRect();
 }
 
-void PdfAnnotation::SetAppearanceStream( PdfXObject* pObject )
+void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* pObject, EPdfAnnotationAppearance eAppearance, const PdfName & state )
 {
     PdfDictionary dict;
     PdfDictionary internal;
+    PdfName name;
 
-    if( !pObject )
+    if( !pForObject || !pObject )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    internal.AddKey( "On", pObject->GetObject()->Reference() );
-    internal.AddKey( "Off", pObject->GetObject()->Reference() );
+    if( eAppearance == ePdfAnnotationAppearance_Rollover )
+    {
+        name = "R";
+    }
+    else if( eAppearance == ePdfAnnotationAppearance_Down )
+    {
+        name = "D";
+    }
+    else // ePdfAnnotationAppearance_Normal
+    {
+        name = "N";
+    }
 
-    dict.AddKey( "N", internal );
+    if( pForObject->GetDictionary().HasKey( "AP" ) )
+    {
+        PdfObject* objAP = pForObject->GetDictionary().GetKey( "AP" );
+        if( objAP->GetDataType() == ePdfDataType_Reference )
+        {
+            if( !objAP->GetOwner() )
+            {
+                PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+            }
 
-    this->GetObject()->GetDictionary().AddKey( "AP", dict );
-    this->GetObject()->GetDictionary().AddKey( "AS", PdfName("On") );
+            objAP = objAP->GetOwner()->GetObject( objAP->GetReference() );
+            if( !objAP )
+            {
+                PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+            }
+        }
+
+        if( objAP->GetDataType() != ePdfDataType_Dictionary )
+        {
+            PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+        }
+
+        if( !state.GetLength() )
+        {
+            // allow overwrite only reference by a reference
+            if( objAP->GetDictionary().HasKey( name ) && objAP->GetDictionary().GetKey( name )->GetDataType() != ePdfDataType_Reference )
+            {
+                PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+            }
+
+            objAP->GetDictionary().AddKey( name, pObject->GetObject()->Reference() );
+        }
+        else
+        {
+            // when the state is defined, then the appearance is expected to be a dictionary
+            if( objAP->GetDictionary().HasKey( name ) && objAP->GetDictionary().GetKey( name )->GetDataType() != ePdfDataType_Dictionary )
+            {
+                PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+            }
+
+            if( objAP->GetDictionary().HasKey( name ) )
+            {
+                objAP->GetDictionary().GetKey( name )->GetDictionary().AddKey( state, pObject->GetObject()->Reference() );
+            }
+            else
+            {
+                internal.AddKey( state, pObject->GetObject()->Reference() );
+                objAP->GetDictionary().AddKey( name, internal );
+            }
+        }
+    }
+    else
+    {
+        if( !state.GetLength() )
+        {
+            dict.AddKey( name, pObject->GetObject()->Reference() );
+            pForObject->GetDictionary().AddKey( "AP", dict );
+        }
+        else
+        {
+            internal.AddKey( state, pObject->GetObject()->Reference() );
+            dict.AddKey( name, internal );
+            pForObject->GetDictionary().AddKey( "AP", dict );
+        }
+    }
+
+    if( state.GetLength() )
+    {
+        if( !pForObject->GetDictionary().HasKey( "AS" ) )
+        {
+            pForObject->GetDictionary().AddKey( "AS", state );
+        }
+    }
+}
+
+void PdfAnnotation::SetAppearanceStream( PdfXObject* pObject, EPdfAnnotationAppearance eAppearance, const PdfName & state )
+{
+    SetAppearanceStreamForObject( this->GetObject(), pObject, eAppearance, state );
 }
 
 bool PdfAnnotation::HasAppearanceStream() const

@@ -68,22 +68,16 @@ PdfSignatureField::PdfSignatureField( PdfAnnotation* pWidget )
     }
 }
 
-void PdfSignatureField::SetAppearanceStream( PdfXObject* pObject )
+void PdfSignatureField::SetAppearanceStream( PdfXObject* pObject, EPdfAnnotationAppearance eAppearance, const PdfName & state )
 {
     if( !pObject )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    if( !m_pObject->GetDictionary().HasKey( PdfName("AP") ) )
-        m_pObject->GetDictionary().AddKey( PdfName("AP"), PdfDictionary() );
-
-    if( m_pObject->GetDictionary().GetKey( PdfName("AP") )->GetDictionary().HasKey( PdfName("N") ) )
-       m_pObject->GetDictionary().GetKey( PdfName("AP") )->GetDictionary().RemoveKey(PdfName("N"));
+    SetAppearanceStreamForObject( m_pObject, pObject, eAppearance, state );
     
-    m_pObject->GetDictionary().GetKey( PdfName("AP") )->GetDictionary().AddKey( PdfName("N"), pObject->GetObject()->Reference() );
-    
-    this->GetAppearanceCharacteristics(true);
+    this->GetAppearanceCharacteristics( true );
 }
 
 void PdfSignatureField::Init()

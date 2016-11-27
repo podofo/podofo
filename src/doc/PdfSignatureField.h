@@ -35,6 +35,7 @@
 #ifndef _PDF_SIGNATURE_FIELD_H_
 #define _PDF_SIGNATURE_FIELD_H_
 
+#include "PdfAnnotation.h"
 #include "PdfField.h"
 #include "podofo/base/PdfDate.h"
 
@@ -69,7 +70,13 @@ public:
      */
     PdfSignatureField( PdfAnnotation* pWidget );
 
-    void SetAppearanceStream(PdfXObject *pObject);
+    /** Set an appearance stream for this signature field
+     *  to specify its visual appearance
+     *  \param pObject an XObject
+     *  \param eApperance an apperance type to set
+     *  \param state the state for which set it the pObject; states depend on the annotation type
+     */
+    void SetAppearanceStream(PdfXObject *pObject, EPdfAnnotationAppearance eAppearance = ePdfAnnotationAppearance_Normal, const PdfName & state = "" );
 
     /** Create space for signature
      *
