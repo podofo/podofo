@@ -604,8 +604,7 @@ void PdfWriter::FillTrailerObject( PdfObject* pTrailer, pdf_long lSize, bool bOn
 
         if( m_lPrevXRefOffset > 0 )
         {
-            PdfVariant value( 0l );
-            value.SetNumber( m_lPrevXRefOffset );
+            PdfVariant value( m_lPrevXRefOffset );
 
             pTrailer->GetDictionary().AddKey( "Prev", value );
         }

@@ -100,7 +100,7 @@ PdfOutputDevice::PdfOutputDevice( const wchar_t* pszFilename, bool bTruncate )
 
     if( !bTruncate )
     {
-        if( fseeko( m_hFile, offset, SEEK_END ) == -1 )
+        if( fseeko( m_hFile, 0, SEEK_END ) == -1 )
         {
             PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange, "Failed to seek to the end of the file" );
         }
