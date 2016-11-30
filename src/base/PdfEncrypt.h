@@ -39,7 +39,10 @@
 #include "PdfReference.h"
 
 #include <string.h>
+
+#ifdef PODOFO_HAVE_OPENSSL
 #include <openssl/opensslconf.h>
+#endif // PODOFO_HAVE_OPENSSL
 
 namespace PoDoFo {
 

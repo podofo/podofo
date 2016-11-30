@@ -10,7 +10,6 @@ SUBDIRS(
 	podofomerge
 	podofopages
 	podofopdfinfo
-	podofosign
 	podofotxt2pdf
 	podofotxtextract
 	podofouncompress
@@ -18,3 +17,7 @@ SUBDIRS(
 	podofoincrementalupdates
 	podofoxmp
 	)
+
+IF(PODOFO_HAVE_OPENSSL)
+	SUBDIRS(podofosign)
+ENDIF(PODOFO_HAVE_OPENSSL)
