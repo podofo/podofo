@@ -573,6 +573,113 @@ static PdfObject* find_existing_signature_field( PdfAcroForm* pAcroForm, const P
     return NULL;
 }
 
+#if 0 /* TODO */
+static void update_default_appearance_streams( PdfAcroForm* pAcroForm )
+{
+    if( !pAcroForm ||
+        !pAcroForm->GetObject()->GetDictionary().HasKey( "Fields" ) ||
+        pAcroForm->GetObject()->GetDictionary().GetKey( "Fields" )->GetDataType() != ePdfDataType_Array )
+        return;
+
+    PdfArray& rFields = pAcroForm->GetObject()->GetDictionary().GetKey( "Fields" )->GetArray();
+
+    PdfArray::iterator it, end = rFields.end();
+    for( it = rFields.begin(); it != end; it++ )
+    {
+        if( it->GetDataType() == ePdfDataType_Reference )
+        {
+            PdfObject *pObject = pAcroForm->GetDocument()->GetObjects()->GetObject( it->GetReference() );
+            if( !pObject || pObject->GetDataType() != ePdfDataType_Dictionary )
+                continue;
+
+            PdfDictionary &rFielDict = pObject->GetDictionary();
+            if( rFielDict.HasKey( "FT" ) &&
+                rFielDict.GetKey( "FT" )->GetDataType() == ePdfDataType_Name &&
+                (rFielDict.GetKey( "FT" )->GetName() == PdfName( "Tx" ) || rFielDict.GetKey( "FT" )->GetName() == PdfName( "Ch" ) ) )
+            {
+                PdfString rDA, rV, rDV;
+
+                if( rFielDict.HasKey( "V" ) &&
+                    ( rFielDict.GetKey( "V" )->GetDataType() == ePdfDataType_String || rFielDict.GetKey( "V" )->GetDataType() == ePdfDataType_HexString ) )
+                {
+                    rV = rFielDict.GetKey( "V" )->GetString();
+                }
+
+                if( rFielDict.HasKey( "DV" ) &&
+                    ( rFielDict.GetKey( "DV" )->GetDataType() == ePdfDataType_String || rFielDict.GetKey( "DV" )->GetDataType() == ePdfDataType_HexString ) )
+                {
+                    rDV = rFielDict.GetKey( "DV" )->GetString();
+                }
+
+                if( rV.IsValid() && rV.GetCharacterLength() > 0 )
+                {
+                    rDV = rV;
+                }
+
+                if( !rDV.IsValid() || rDV.GetCharacterLength() <= 0 )
+                    continue;
+
+                if( rDV.GetLength() >= 2 && rDV.GetString()[0] == static_cast<char>( 0xFE ) && rDV.GetString()[1] == static_cast<char>( 0xFF ) )
+                {
+                    if( rDV.GetLength() == 2 )
+                        continue;
+                }
+
+                if( rFielDict.HasKey( "DA" ) &&
+                    rFielDict.GetKey( "DA" )->GetDataType() == ePdfDataType_String )
+                {
+                    rDA = rFielDict.GetKey( "DA" )->GetString();
+                }
+
+                if( rFielDict.HasKey( "AP" ) &&
+                    rFielDict.GetKey( "AP" )->GetDataType() == ePdfDataType_Dictionary &&
+                    rFielDict.GetKey( "AP" )->GetDictionary().HasKey( "N" ) &&
+                    rFielDict.GetKey( "AP" )->GetDictionary().GetKey( "N" )->GetDataType() == ePdfDataType_Reference )
+                {
+                    pObject = pAcroForm->GetDocument()->GetObjects()->GetObject( rFielDict.GetKey( "AP" )->GetDictionary().GetKey( "N" )->GetReference() );
+                    if( pObject->GetDataType() == ePdfDataType_Dictionary &&
+                        pObject->GetDictionary().HasKey( "Type" ) &&
+                        pObject->GetDictionary().GetKey( "Type" )->GetDataType() == ePdfDataType_Name &&
+                        pObject->GetDictionary().GetKey( "Type" )->GetName() == PdfName( "XObject" ) )
+                    {
+                        PdfXObject xObject(pObject);
+                        PdfStream *pCanvas = xObject.GetContentsForAppending()->GetStream();
+
+                        if( rFielDict.GetKey( "FT" )->GetName() == PdfName( "Tx" ) )
+                        {
+                            pCanvas->BeginAppend(true);
+
+                            PdfRefCountedBuffer rBuffer;
+                            PdfOutputDevice rOutputDevice( &rBuffer );
+
+                            rDV.Write( &rOutputDevice, ePdfWriteMode_Compact );
+
+                            std::ostringstream oss;
+
+                            oss << "/Tx BMC" << std::endl;
+                            oss << "BT" << std::endl;
+                            if( rDA.IsValid() )
+                                oss << rDA.GetString() << std::endl;
+                            oss << "2.0 2.0 Td" << std::endl;
+                            oss << rBuffer.GetBuffer() << " Tj" << std::endl;
+                            oss << "ET" << std::endl;
+                            oss << "EMC" << std::endl;
+
+                            pCanvas->Append( oss.str() );
+
+                            pCanvas->EndAppend();
+                        }
+                        else if( rFielDict.GetKey( "FT" )->GetName() == PdfName( "Ch" ) )
+                        {
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+#endif
+
 int main( int argc, char* argv[] )
 {
     const char *inputfile = NULL;
@@ -803,6 +910,15 @@ int main( int argc, char* argv[] )
 
             pdf_int64 val = 3;
             pAcroForm->GetObject()->GetDictionary().AddKey( PdfName( "SigFlags" ), PdfObject( val ) );
+        }
+
+        if( pAcroForm->GetNeedAppearances() )
+        {
+            #if 0 /* TODO */
+            update_default_appearance_streams( pAcroForm );
+            #endif
+
+            pAcroForm->SetNeedAppearances( false );
         }
 
         PdfOutputDevice outputDevice( outputfile ? outputfile : inputfile, outputfile != NULL );
