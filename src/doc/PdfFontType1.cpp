@@ -519,7 +519,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 				else
 					lLength3 = lSegmentLength;
 				lSize -= cHeaderLength;
-				memmove( pBinary, &pBinary[cHeaderLength], lSegmentDelta );
+				memmove( pBinary, &pBinary[cHeaderLength], lSegmentDelta - cHeaderLength );
 				pBinary = &pBinary[lSegmentLength];
 				break;
 			case 2:									// binary data
@@ -529,7 +529,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 								 pBinary[5] * 16777216L;
 				lLength2 = lSegmentLength;
 				lSize -= cHeaderLength;
-				memmove( pBinary, &pBinary[cHeaderLength], lSegmentDelta );
+				memmove( pBinary, &pBinary[cHeaderLength], lSegmentDelta - cHeaderLength );
 				pBinary = &pBinary[lSegmentLength];
 				break;
 			case 3:									// end-of-file
