@@ -165,6 +165,37 @@ void PdfSignatureField::SetSignatureLocation( const PdfString & rsText )
     m_pSignatureObj->GetDictionary().AddKey(PdfName("Location"), rsText);
 }
 
+void PdfSignatureField::SetSignatureCreator( const PdfName & creator )
+{
+    if( !m_pSignatureObj )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    if( m_pSignatureObj->GetDictionary().HasKey( PdfName( "Prop_Build" ) ) )
+    {
+        PdfObject* propBuild = m_pSignatureObj->GetDictionary().GetKey( PdfName( "Prop_Build" ) );
+        if( propBuild->GetDictionary().HasKey( PdfName( "App" ) ) )
+        {
+            PdfObject* app = propBuild->GetDictionary().GetKey( PdfName( "App" ) );
+            if( app->GetDictionary().HasKey( PdfName( "Name" ) ) )
+            {
+                app->GetDictionary().RemoveKey( PdfName( "Name" ) );
+            }
+
+            propBuild->GetDictionary().RemoveKey( PdfName("App") );
+        }
+
+        m_pSignatureObj->GetDictionary().RemoveKey(PdfName("Prop_Build"));
+    }
+
+    m_pSignatureObj->GetDictionary().AddKey( PdfName( "Prop_Build" ), PdfDictionary() );
+    PdfObject* propBuild = m_pSignatureObj->GetDictionary().GetKey( PdfName( "Prop_Build" ) );
+    propBuild->GetDictionary().AddKey( PdfName( "App" ), PdfDictionary() );
+    PdfObject* app = propBuild->GetDictionary().GetKey( PdfName( "App" ) );
+    app->GetDictionary().AddKey( PdfName( "Name" ), creator );
+}
+
 void PdfSignatureField::AddCertificationReference( PdfObject* pDocumentCatalog, EPdfCertPermission perm )
 {
     if( !m_pSignatureObj )

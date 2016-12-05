@@ -102,6 +102,12 @@ public:
      */
     void SetSignatureLocation(const PdfString & rsText);
 
+    /** Set the creator of the signature
+     *
+     *  \param creator the creator of the signature
+     */
+    void SetSignatureCreator( const PdfName & creator );
+
     /** Date of signature
      */
     void SetSignatureDate(const PdfDate &sigDate);
