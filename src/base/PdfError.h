@@ -395,11 +395,11 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError {
      /** Enable or disable Logging
      *  \param bEnable       enable (true) or disable (false)
      */
-    static void EnableLogging( bool bEnable ) { PdfError::s_LogEnabled = bEnable; }
+    static void EnableLogging( bool bEnable );
 	
     /** Is the display of debugging messages enabled or not?
      */
-    static bool LoggingEnabled() { return PdfError::s_LogEnabled; }
+    static bool LoggingEnabled();
     
     /** Log a message to the logging system defined for PoDoFo for debugging
      *  \param pszMsg       the message to be logged
@@ -409,11 +409,11 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError {
     /** Enable or disable the display of debugging messages
      *  \param bEnable       enable (true) or disable (false)
      */
-    static void EnableDebug( bool bEnable ) { PdfError::s_DgbEnabled = bEnable; }
+    static void EnableDebug( bool bEnable );
 	
     /** Is the display of debugging messages enabled or not?
      */
-    static bool DebugEnabled() { return PdfError::s_DgbEnabled; }
+    static bool DebugEnabled();
 
  private:
     /** Log a message to the logging system defined for PoDoFo.

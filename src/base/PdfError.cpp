@@ -599,6 +599,16 @@ void PdfError::LogMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ...
     va_end( args );
 }
 
+void PdfError::EnableLogging( bool bEnable )
+{
+    PdfError::s_LogEnabled = bEnable;
+}
+
+bool PdfError::LoggingEnabled()
+{
+    return PdfError::s_LogEnabled;
+}
+
 void PdfError::LogErrorMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ... )
 {
     va_list  args;
@@ -671,6 +681,16 @@ void PdfError::DebugMessage( const char* pszMsg, ... )
 
     // must call va_end after calling va_start (which allocates memory on some platforms)
 	va_end( args );
+}
+
+void PdfError::EnableDebug( bool bEnable )
+{
+	PdfError::s_DgbEnabled = bEnable;
+}
+
+bool PdfError::DebugEnabled()
+{
+	return PdfError::s_DgbEnabled;
 }
 
 };
