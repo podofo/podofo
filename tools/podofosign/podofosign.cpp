@@ -1011,6 +1011,12 @@ int main( int argc, char* argv[] )
                 {
                     painter.SetPage( &sigXObject );
 
+                    /* Workaround Adobe's reader error 'Expected a dict object.' when the stream
+                       contains only one object which does Save()/Restore() on its own, like
+                       the image XObject. */
+                    painter.Save();
+                    painter.Restore();
+
                     draw_annotation( document, painter, argc, argv, annot_rect );
 
                     pSignField->SetAppearanceStream( &sigXObject );
