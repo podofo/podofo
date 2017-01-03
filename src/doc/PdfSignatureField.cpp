@@ -49,11 +49,12 @@ PdfSignatureField::PdfSignatureField( PdfPage* pPage, const PdfRect & rRect, Pdf
     Init();
 }
 
-PdfSignatureField::PdfSignatureField( PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc)
+PdfSignatureField::PdfSignatureField( PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc, bool bInit )
 	:PdfField(PoDoFo::ePdfField_Signature, pWidget,  pParent, pDoc)
 {
     m_pSignatureObj = NULL;
-    Init();
+    if( bInit )
+        Init();
 }
 
 PdfSignatureField::PdfSignatureField( PdfAnnotation* pWidget )
