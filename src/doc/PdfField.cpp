@@ -156,9 +156,6 @@ void PdfField::Init( PdfAcroForm* pParent )
         break;
     }
 
-
-    m_pWidget->SetBorderStyle( 0.0, 0.0, 5.0 );
-
     // Create a unique fieldname, because Acrobat Reader crashes if the field has no field name 
     std::ostringstream out;
     PdfLocaleImbue(out);
