@@ -190,19 +190,21 @@ void PdfEncoding::ParseToUnicode()
                     else
                         inside_hex_string = 0;
                 
-                i++;
-                
+                if (inside_array == 0)
+                {
+                    i++;
+                }
             }
             
             if (strcmp (streamToken, "]") == 0)
             {
                 if (inside_array == 0)
                     PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap Error, got ] before [")
-                    else
-                        inside_array = 0;
+                else
+                    inside_array = 0;
                 
                 i++;
-                
+                loop++;
             }
             
             if (in_beginbfrange == 1)
@@ -228,9 +230,12 @@ void PdfEncoding::ParseToUnicode()
                                 m_toUnicode[k] = num_value;
                                 num_value++;
                             }
-                            
-                            loop++;
-                            
+							
+                            range_start++;
+                            if (inside_array == 0)
+                            {
+                                loop++;
+                            }
                         }
                     }
                 }

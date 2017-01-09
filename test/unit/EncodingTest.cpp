@@ -325,6 +325,43 @@ void EncodingTest::testGetCharCode()
 #endif // PODOFO_IS_LITTLE_ENDIAN
 }
 
+void EncodingTest::testToUnicodeParse()
+{
+    const char *toUnicode =
+        "3 beginbfrange\n"
+        "<0001> <0004> <1001>\n"
+        "<0005> <000A> [<000A> <0009> <0008> <0007> <0006> <0005>]\n"
+        "<000B> <000F> <100B>\n"
+        "endbfrange\n";
+    const pdf_utf16be *encodedStr = reinterpret_cast< const pdf_utf16be *>( "\x0\x1\x0\x2\x0\x3\x0\x4\x0\x5\x0\x6\x0\x7\x0\x8\x0\x9\x0\xA\x0\xB\x0\xC\x0\xD\x0\xE\x0\xF\x0\x0" );
+    const pdf_utf16be expected[] = {
+        0x1001, 0x1002, 0x1003, 0x1004,
+        0x000A, 0x0009, 0x0008, 0x0007, 0x0006, 0x0005,
+        0x100B, 0x100C, 0x100D, 0x100E, 0x100F,
+        0 };
+    PdfVecObjects vec;
+    PdfObject *strmObject;
+
+    vec.SetAutoDelete( true );
+
+    strmObject = vec.CreateObject( PdfVariant( PdfDictionary() ) );
+    strmObject->GetStream()->Set( toUnicode, strlen( toUnicode ) );
+
+    PdfIdentityEncoding encoding(0x0001, 0x000F, true, strmObject);
+
+    PdfString unicodeString = encoding.ConvertToUnicode( PdfString( encodedStr ), NULL );
+    const pdf_utf16be *unicodeStr = reinterpret_cast<const pdf_utf16be *>( unicodeString.GetString() );
+    int ii;
+
+    for( ii = 0; expected[ii]; ii++ ) {
+        pdf_utf16be expects = expected[ii];
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+        expects = (expects << 8) | (expects >> 8 );
+#endif
+        CPPUNIT_ASSERT_EQUAL( expects, unicodeStr[ii] );
+    }
+}
+
 bool EncodingTest::outofRangeHelper( PdfEncoding* pEncoding, std::string & rMsg, const char* pszName )
 {
     bool exception = false;
