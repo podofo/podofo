@@ -76,7 +76,7 @@ public:
     /** Set an appearance stream for this signature field
      *  to specify its visual appearance
      *  \param pObject an XObject
-     *  \param eApperance an apperance type to set
+     *  \param eAppearance an appearance type to set
      *  \param state the state for which set it the pObject; states depend on the annotation type
      */
     void SetAppearanceStream(PdfXObject *pObject, EPdfAnnotationAppearance eAppearance = ePdfAnnotationAppearance_Normal, const PdfName & state = "" );

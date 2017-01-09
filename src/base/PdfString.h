@@ -115,7 +115,7 @@ class PODOFO_API PdfString : public PdfDataType {
 
     /** Construct a new PdfString from a string. 
      *  The input string will be copied.
-     *  If the first to bytes of the string are 0xFE and 0xFF
+     *  If the first two bytes of the string are 0xFE and 0xFF
      *  this string is treated as UTF-16BE encoded unicode string.
      *
      *  \param pszString the string to copy
