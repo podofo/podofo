@@ -225,17 +225,22 @@ void PdfEncoding::ParseToUnicode()
                         }
                         if (i % 3 == 2)
                         {
-                            for (int k = range_start; k <= range_end; k++)
-                            {
-                                m_toUnicode[k] = num_value;
-                                num_value++;
-                            }
-							
-                            range_start++;
                             if (inside_array == 0)
                             {
+                                for (int k = range_start; k <= range_end; k++)
+                                {
+                                    m_toUnicode[k] = num_value;
+                                    num_value++;
+                                }
+							
                                 loop++;
                             }
+                            else
+                            {
+                                m_toUnicode[range_start] = num_value;
+                            }
+
+                            range_start++;
                         }
                     }
                 }
