@@ -198,6 +198,16 @@ namespace PoDoFo {
 
 #endif // defined(_WIN32)
 
+// Visual C++ 2015 (_MSC_VER 1900) still uses __cplusplus = 199711 so, we need both tests
+// this shrinks enum types from sizeof(int) to sizeof(char) which creates significant
+// space savings on PdfObject / PdfVariant
+#if (defined(_MSC_VER) && _MSC_VER < 1900) || (!defined(_MSC_VER) &&  __cplusplus < 201103)
+#define PODOFO_ENUM_UINT8
+#else 
+#define PODOFO_ENUM_UINT8	: uint8_t
+#endif 
+
+
 /**
  * \page PoDoFo PdfCompilerCompat Header
  * 
