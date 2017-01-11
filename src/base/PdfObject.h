@@ -318,14 +318,6 @@ class PODOFO_API PdfObject : public PdfVariant {
      */
     PdfStream* GetStream_NoDL();
 
- protected:
-    PdfReference   m_reference;
-    
-    PdfStream*     m_pStream;
-    PdfVecObjects* m_pOwner;
-
-    PODOFO_NOTHROW inline bool DelayedStreamLoadDone() const;
-
  private:
     /* See PdfVariant.h for a detailed explanation of this member, which is
      * here to prevent accidental construction of a PdfObject of integer type
@@ -347,6 +339,18 @@ class PODOFO_API PdfObject : public PdfVariant {
 private:
     mutable bool m_bDelayedStreamLoadInProgress;
 #endif
+
+	// order of member variables has significant effect on sizeof(PdfObject) which
+	// is important in PDFs with many objects (PDF32000_2008.pdf has 750,000 PdfObjects)
+	// be very careful to test class sizes on 32-bit and 64-bit platforms when adding 
+	// or re-ordering objects
+ protected:
+	 PdfReference   m_reference;
+
+	 PdfStream*     m_pStream;
+	 PdfVecObjects* m_pOwner;
+
+	 PODOFO_NOTHROW inline bool DelayedStreamLoadDone() const;
 };
 
 // -----------------------------------------------------
