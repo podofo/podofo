@@ -65,7 +65,7 @@ class PODOFO_API PdfReference : public PdfDataType {
      * initialized to 0.
      */
     PdfReference()
-        : m_nObjectNo( 0 ), m_nGenerationNo( 0 )
+        : m_nGenerationNo( 0 ), m_nObjectNo( 0 )
     {
     }
 
@@ -76,7 +76,7 @@ class PODOFO_API PdfReference : public PdfDataType {
      * \param nGenerationNo the generation number
      */
     PdfReference( const pdf_objnum nObjectNo, const pdf_gennum nGenerationNo )
-        : m_nObjectNo( nObjectNo ), m_nGenerationNo( nGenerationNo ) 
+        : m_nGenerationNo( nGenerationNo ), m_nObjectNo( nObjectNo )
     {
     }
 
@@ -166,8 +166,13 @@ class PODOFO_API PdfReference : public PdfDataType {
     PODOFO_NOTHROW inline bool IsIndirect() const;
 
  private:
-    pdf_objnum    m_nObjectNo;
+    // pdf_gennum (2 bytes) should appear before pdf_objnum (4 bytes)
+    // because this reduces sizeof(PdfObject) from 64 bytes to 56 bytes
+    // on 64-bit platforms by eliminating compiler alignment padding
+    // order has no effect on structure size on 32-bit platforms
+    // can save up 12.5% on some documents
     pdf_gennum    m_nGenerationNo;
+    pdf_objnum    m_nObjectNo;
 };
 
 // -----------------------------------------------------
