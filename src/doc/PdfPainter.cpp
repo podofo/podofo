@@ -1037,6 +1037,7 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
                         pszCurrentCharacter++;
 
                     pszStartOfCurrentWord = pszCurrentCharacter + 1;
+                    startOfWord=true;
                 }
                 pszLineBegin = pszStartOfCurrentWord;
 
