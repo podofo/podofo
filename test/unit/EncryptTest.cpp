@@ -196,7 +196,7 @@ void EncryptTest::TestEncrypt( PdfEncrypt* pEncrypt )
 {
     pEncrypt->SetCurrentReference( PdfReference( 7, 0 ) );
     
-    int nOutputLen = pEncrypt->CalculateStreamLength(m_lLen);
+    pdf_long nOutputLen = pEncrypt->CalculateStreamLength(m_lLen);
 
     unsigned char *pEncryptedBuffer = new unsigned char[nOutputLen];
     unsigned char *pDecryptedBuffer = new unsigned char[m_lLen];
