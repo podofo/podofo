@@ -36,6 +36,8 @@
 #include "PdfDefinesPrivate.h"
 
 #ifndef SIZE_MAX
+#include <limits>
+
 #define SIZE_MAX std::numeric_limits<size_t>::max()
 #endif
 

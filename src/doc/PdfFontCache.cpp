@@ -146,9 +146,10 @@ static bool GetFontFromCollection(HDC &hdc, char *&buffer, unsigned int &bufferL
     USHORT numTables = ShortFromBigEndian(*(USHORT *)(ttcBuffer + 4));
     unsigned int outLen = 12+16* numTables;
     char *entry = ttcBuffer + 12;
+    int table;
 
     //us: see "http://www.microsoft.com/typography/otspec/otff.htm"
-    for (int table = 0; table < numTables; table++)
+    for (table = 0; table < numTables; table++)
     {
         ULONG length = FromBigEndian(*(ULONG *)(entry + 12));
         length = (length + 3) & ~3;
@@ -169,7 +170,7 @@ static bool GetFontFromCollection(HDC &hdc, char *&buffer, unsigned int &bufferL
     // process tables
     char *srcEntry = ttcBuffer + 12;
     char *dstEntry = outBuffer + 12;
-    for (int table = 0; table < numTables; table++)
+    for (table = 0; table < numTables; table++)
     {
         // read source entry
         ULONG offset = FromBigEndian(*(ULONG *)(srcEntry + 8));
