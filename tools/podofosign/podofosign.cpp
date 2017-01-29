@@ -533,12 +533,12 @@ static PdfObject* find_existing_signature_field( PdfAcroForm* pAcroForm, const P
                     if( item && item->GetDictionary().HasKey( PdfName( "T" ) ) &&
                         item->GetDictionary().GetKey( PdfName( "T" ) )->GetString() == name )
                     {
-                        // fount a field with the same name
+                        // found a field with the same name
                         const PdfObject *pFT = item->GetDictionary().GetKey( PdfName( "FT" ) );
-                        if (!pFT && item->GetDictionary().HasKey( PdfName( "Parent" ) ) )
+                        if( !pFT && item->GetDictionary().HasKey( PdfName( "Parent" ) ) )
                         {
                             const PdfObject *pTemp = item->GetIndirectKey( PdfName( "Parent" ) );
-                            if (!pTemp)
+                            if( !pTemp )
                             {
                                 PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
                             }
@@ -546,7 +546,7 @@ static PdfObject* find_existing_signature_field( PdfAcroForm* pAcroForm, const P
                             pFT = pTemp->GetDictionary().GetKey( PdfName( "FT" ) );
                         }
 
-                        if (!pFT)
+                        if( !pFT )
                         {
                             PODOFO_RAISE_ERROR( ePdfError_NoObject );
                         }
@@ -943,7 +943,7 @@ int main( int argc, char* argv[] )
         }
         else
         {
-            char fldName[96]; // use bigger buffer to make sure sprintf does never overflow
+            char fldName[96]; // use bigger buffer to make sure sprintf does not overflow
             sprintf( fldName, "PodofoSignatureField%" PDF_FORMAT_INT64, static_cast<pdf_int64>( document.GetObjects().GetObjectCount() ) );
 
             name = PdfString( fldName );
@@ -1049,7 +1049,7 @@ int main( int argc, char* argv[] )
 
         // The outputfile != NULL means that the write happens to a new file,
         // which will be truncated first and then the content of the inputfile
-        // will be copied into the document, follwed by the changes write.
+        // will be copied into the document, follwed by the changes.
         document.WriteUpdate( &signer, outputfile != NULL );
 
         if( !signer.HasSignaturePosition() )
