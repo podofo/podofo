@@ -87,7 +87,7 @@ class EncryptTest : public CppUnit::TestFixture
 
  private:
   char* m_pEncBuffer;
-  long  m_lLen;
+  PoDoFo::pdf_long m_lLen;
   int   m_protection;
   
 };
