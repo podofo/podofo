@@ -194,7 +194,7 @@ const EPdfWriteMode ePdfWriteMode_Default = ePdfWriteMode_Compact;
  *
  * Remember to update PdfVariant::GetDataTypeString() when adding members here.
  */
-enum EPdfDataType PODOFO_ENUM_UINT8 {
+enum EPdfDataType {
     ePdfDataType_Bool,                  /**< Boolean datatype: Accepts the values "true" and "false" */
     ePdfDataType_Number,                /**< Number datatype for integer values */
     ePdfDataType_Real,                  /**< Real datatype for floating point numbers */
