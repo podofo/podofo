@@ -152,7 +152,17 @@ void PdfDate::CreateStringRepresentation()
     char szZone[ZONE_STRING_SIZE];
     char szDate[PDF_DATE_BUFFER_SIZE];
 
-    struct tm* stm = localtime( &m_time );
+    struct tm* pstm = localtime( &m_time );
+    if( !pstm )
+    {
+        std::ostringstream ss;
+        ss << "Invalid date specified with time_t value " << m_time << "\n";
+        PdfError::DebugMessage( ss.str().c_str() );
+        strcpy( m_szDate, INVALIDDATE );
+        return;
+    }
+
+    struct tm stm = *pstm;
 
 #ifdef _WIN32
     // On win32, strftime with %z returns a verbose time zone name
@@ -166,7 +176,7 @@ void PdfDate::CreateStringRepresentation()
     snprintf( szZone, ZONE_STRING_SIZE, "%+03d",
             static_cast<int>( time_off/3600 ) );
 #else
-    if( strftime( szZone, ZONE_STRING_SIZE, "%z", stm ) == 0 )
+    if( strftime( szZone, ZONE_STRING_SIZE, "%z", &stm ) == 0 )
     {
         std::ostringstream ss;
         ss << "Generated invalid date from time_t value " << m_time
@@ -181,7 +191,7 @@ void PdfDate::CreateStringRepresentation()
     // e.g. +01 instead off +0100
     szZone[3] = '\0';
 
-    if( strftime( szDate, PDF_DATE_BUFFER_SIZE, "D:%Y%m%d%H%M%S", stm ) == 0 )
+    if( strftime( szDate, PDF_DATE_BUFFER_SIZE, "D:%Y%m%d%H%M%S", &stm ) == 0 )
     {
         std::ostringstream ss;
         ss << "Generated invalid date from time_t value " << m_time
