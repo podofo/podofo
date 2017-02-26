@@ -101,9 +101,9 @@ void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long
 		// use a second tokenizer here so that anything that gets dequeued isn't left in the tokenizer that reads the offsets and lengths
 	    PdfTokenizer variantTokenizer( device, m_buffer );
 		if( m_pEncrypt && (m_pEncrypt->GetEncryptAlgorithm() == PdfEncrypt::ePdfEncryptAlgorithm_AESV2
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
 			|| m_pEncrypt->GetEncryptAlgorithm() == PdfEncrypt::ePdfEncryptAlgorithm_RC4V2 
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
 			                                                                              ) )
 			variantTokenizer.GetNextVariant( var, 0 ); // Stream is already decrypted
 		else

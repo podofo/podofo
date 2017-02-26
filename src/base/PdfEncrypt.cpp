@@ -57,18 +57,18 @@ namespace PoDoFo {
 
 #ifdef PODOFO_HAVE_LIBIDN
 int PdfEncrypt::s_nEnabledEncryptionAlgorithms = 
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
 ePdfEncryptAlgorithm_RC4V1 |
 ePdfEncryptAlgorithm_RC4V2 |
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
 ePdfEncryptAlgorithm_AESV2 |
 ePdfEncryptAlgorithm_AESV3;
 #else // PODOFO_HAVE_LIBIDN
 int PdfEncrypt::s_nEnabledEncryptionAlgorithms =
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
 ePdfEncryptAlgorithm_RC4V1 |
 ePdfEncryptAlgorithm_RC4V2 |
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
 ePdfEncryptAlgorithm_AESV2;
 #endif // PODOFO_HAVE_LIBIDN
 
@@ -138,7 +138,7 @@ class AESCryptoEngine {
     #endif
 };
 
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
 // A class that holds the RC4 Crypto object
 // Either CCCrpytor or EVP_CIPHER_CTX
 class RC4CryptoEngine {
@@ -354,7 +354,7 @@ private:
     PdfInputStream* m_pInputStream;
     PdfRC4Stream    m_stream;
 };
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
 
 /** A class that can encrypt/decrpyt streamed data block wise
  *  This is used in the input and output stream encryption implementation.
@@ -520,12 +520,12 @@ PdfEncrypt::CreatePdfEncrypt( const std::string & userPassword,
             pdfEncrypt = new PdfEncryptAESV3(userPassword, ownerPassword, protection);
             break;
 #endif // PODOFO_HAVE_LIBIDN
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
         case ePdfEncryptAlgorithm_RC4V2:           
         case ePdfEncryptAlgorithm_RC4V1:
             pdfEncrypt = new PdfEncryptRC4(userPassword, ownerPassword, protection, eAlgorithm, eKeyLength);
             break;
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
     }
     return pdfEncrypt;
 }
@@ -597,7 +597,7 @@ PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
         throw e;
     }
     
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
     if( (lV == 1L) && (rValue == 2L || rValue == 3L)
        && PdfEncrypt::IsEncryptionEnabled( ePdfEncryptAlgorithm_RC4V1 ) ) 
     {
@@ -610,7 +610,7 @@ PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
         pdfEncrypt = new PdfEncryptRC4(oValue, uValue, pValue, rValue, ePdfEncryptAlgorithm_RC4V2, static_cast<int>(lLength), encryptMetadata);
     }
     else 
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
     if( (lV == 4L) && (rValue == 4L)
             && PdfEncrypt::IsEncryptionEnabled( ePdfEncryptAlgorithm_AESV2 ) ) 
     {
@@ -647,10 +647,10 @@ PdfEncrypt::CreatePdfEncrypt(const PdfEncrypt & rhs )
     else if (rhs.m_eAlgorithm == ePdfEncryptAlgorithm_AESV3)
         pdfEncrypt = new PdfEncryptAESV3(rhs);
 #endif // PODOFO_HAVE_LIBIDN
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
     else
         pdfEncrypt = new PdfEncryptRC4(rhs);
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
     return pdfEncrypt;
 }
 
@@ -777,17 +777,17 @@ PdfEncryptMD5Base::ComputeOwnerKey(unsigned char userPad[32], unsigned char owne
                 else
                     mkey[j] = static_cast<unsigned char>(static_cast<unsigned int>(digest[j] ^ i));
             }
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
             RC4(mkey, keyLength, ownerKey, 32, ownerKey, 32);
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
         }
     }
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
     else
     {
         RC4(digest, 5, userPad, 32, ownerKey, 32);
     }
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
 }
 
 void
@@ -896,17 +896,17 @@ PdfEncryptMD5Base::ComputeEncryptionKey(const std::string& documentId,
                 digest[j] = static_cast<unsigned char>(m_encryptionKey[j] ^ k);
             }
             
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
             RC4(digest, m_keyLength, userKey, 16, userKey, 16);
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
         }
     }
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
     else
     {
         RC4(m_encryptionKey, m_keyLength, padding, 32, userKey, 32);
     }
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
     if (docId != NULL)
     {
         delete [] docId;
@@ -946,7 +946,7 @@ void PdfEncryptMD5Base::CreateObjKey( unsigned char objkey[16], int* pnKeyLen ) 
     *pnKeyLen = (m_keyLength <= 11) ? m_keyLength+5 : 16;
 }
 
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
 PdfEncryptRC4Base::PdfEncryptRC4Base()
 {
     m_rc4 = new RC4CryptoEngine();
@@ -994,7 +994,7 @@ PdfEncryptRC4Base::RC4(const unsigned char* key, int keylen,
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error RC4-encrypting data" );
 }
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
         
 void
 PdfEncryptMD5Base::GetMD5Binary(const unsigned char* data, int length, unsigned char* digest)
@@ -1036,11 +1036,11 @@ void PdfEncryptMD5Base::CreateEncryptionDictionary( PdfDictionary & rDictionary 
         PdfDictionary cf;
         PdfDictionary stdCf;
         
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
 		if(m_eAlgorithm == ePdfEncryptAlgorithm_RC4V2)
 			stdCf.AddKey( PdfName("CFM"), PdfName("V2") );
 		else
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
 			stdCf.AddKey( PdfName("CFM"), PdfName("AESV2") );
         stdCf.AddKey( PdfName("Length"), static_cast<pdf_int64>(PODOFO_LL_LITERAL(16)) );
         
@@ -1060,7 +1060,7 @@ void PdfEncryptMD5Base::CreateEncryptionDictionary( PdfDictionary & rDictionary 
 		if(!m_bEncryptMetadata)
 			rDictionary.AddKey( PdfName("EncryptMetadata"), PdfVariant( false ) );
     }
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
     else if(m_eAlgorithm == ePdfEncryptAlgorithm_RC4V1)
     {
         rDictionary.AddKey( PdfName("V"), static_cast<pdf_int64>(PODOFO_LL_LITERAL(1)) );
@@ -1073,14 +1073,14 @@ void PdfEncryptMD5Base::CreateEncryptionDictionary( PdfDictionary & rDictionary 
         rDictionary.AddKey( PdfName("R"), static_cast<pdf_int64>(PODOFO_LL_LITERAL(3)) );
 		rDictionary.AddKey( PdfName("Length"), PdfVariant( static_cast<pdf_int64>(m_eKeyLength) ) );
     }
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
     
     rDictionary.AddKey( PdfName("O"), PdfString( reinterpret_cast<const char*>(this->GetOValue()), 32, true ) );
     rDictionary.AddKey( PdfName("U"), PdfString( reinterpret_cast<const char*>(this->GetUValue()), 32, true ) );
     rDictionary.AddKey( PdfName("P"), PdfVariant( static_cast<pdf_int64>(this->GetPValue()) ) );
 }
     
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
 void
 PdfEncryptRC4::GenerateEncryptionKey(const PdfString & documentId)
 {
@@ -1239,7 +1239,7 @@ PdfOutputStream* PdfEncryptRC4::CreateEncryptionOutputStream( PdfOutputStream* p
     
     return new PdfRC4OutputStream( pOutputStream, m_rc4key, m_rc4last, objkey, keylen );
 }
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
     
 PdfEncryptAESBase::PdfEncryptAESBase()
 {

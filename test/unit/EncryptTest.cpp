@@ -66,7 +66,7 @@ void EncryptTest::testDefault()
     delete pEncrypt;
 }
 
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
 void EncryptTest::testRC4() 
 {
     PdfEncrypt* pEncrypt = PdfEncrypt::CreatePdfEncrypt( "user", "podofo", m_protection,
@@ -139,7 +139,7 @@ void EncryptTest::testRC4v2_128()
 
     delete pEncrypt;
 }
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
 
 void EncryptTest::testAESV2() 
 {
@@ -323,19 +323,19 @@ void EncryptTest::testEnableAlgorithms()
     int nDefault = PdfEncrypt::GetEnabledEncryptionAlgorithms();
 
     // By default every algorithms should be enabled
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
     CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 ) );
     CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_RC4V2 ) );
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
     CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_AESV2 ) );
 #ifdef PODOFO_HAVE_LIBIDN
     CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_AESV3 ) );
 #endif // PODOFO_HAVE_LIBIDN
     CPPUNIT_ASSERT_EQUAL( 
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
                           PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 |
                           PdfEncrypt::ePdfEncryptAlgorithm_RC4V2 |
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
                           PdfEncrypt::ePdfEncryptAlgorithm_AESV2
 #ifdef PODOFO_HAVE_LIBIDN
                           | PdfEncrypt::ePdfEncryptAlgorithm_AESV3
@@ -343,20 +343,20 @@ void EncryptTest::testEnableAlgorithms()
                                                                    ,
                           PdfEncrypt::GetEnabledEncryptionAlgorithms() );
     // Disable AES
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
     PdfEncrypt::SetEnabledEncryptionAlgorithms( PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 |
                                                 PdfEncrypt::ePdfEncryptAlgorithm_RC4V2 );
 
     CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 ) );
     CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_RC4V2 ) );
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
     CPPUNIT_ASSERT( !PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_AESV2 ) );
 
-#ifndef OPENSSL_NO_RC4
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
     CPPUNIT_ASSERT_EQUAL( PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 |
                           PdfEncrypt::ePdfEncryptAlgorithm_RC4V2,
                           PdfEncrypt::GetEnabledEncryptionAlgorithms() );
-#endif // OPENSSL_NO_RC4
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
 
 
     PdfObject object;
