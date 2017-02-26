@@ -220,6 +220,8 @@ class PODOFO_DOC_API PdfOutlineItem : public PdfElement {
     void SetLast    ( PdfOutlineItem* pItem );
     void SetFirst   ( PdfOutlineItem* pItem );
 
+    void InsertChildInternal( PdfOutlineItem* pItem, bool bCheckParent );
+
  protected:
     /** Create a new PdfOutlineItem dictionary
      *  \param pParent parent vector of objects

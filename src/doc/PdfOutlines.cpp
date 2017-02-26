@@ -114,12 +114,17 @@ PdfOutlineItem* PdfOutlineItem::CreateChild( const PdfString & sTitle, const Pdf
 {
     PdfOutlineItem* pItem = new PdfOutlineItem( sTitle, rDest, this, this->GetObject()->GetOwner() );
 
-    this->InsertChild( pItem );
+    this->InsertChildInternal( pItem, false );
 
     return pItem;
 }
 
 void PdfOutlineItem::InsertChild( PdfOutlineItem* pItem )
+{
+    this->InsertChildInternal( pItem, true );
+}
+
+void PdfOutlineItem::InsertChildInternal( PdfOutlineItem* pItem, bool bCheckParent )
 {
     PdfOutlineItem* pItemToCheckParent = pItem;
     PdfOutlineItem* pRoot = NULL;
@@ -128,31 +133,34 @@ void PdfOutlineItem::InsertChild( PdfOutlineItem* pItem )
     if ( !pItemToCheckParent )
         return;
 
-    while ( pItemToCheckParent )
+    if( bCheckParent )
     {
-        while ( pItemToCheckParent->GetParentOutline() )
-            pItemToCheckParent = pItemToCheckParent->GetParentOutline();
+        while( pItemToCheckParent )
+        {
+            while( pItemToCheckParent->GetParentOutline() )
+                pItemToCheckParent = pItemToCheckParent->GetParentOutline();
 
-        if ( pItemToCheckParent == pItem ) // item can't have a parent
-        {
-            pRoot = pItem; // needed later, "root" can mean "standalone" here
-            break;         // for performance in standalone or doc-merge case
+            if( pItemToCheckParent == pItem ) // item can't have a parent
+            {
+                pRoot = pItem; // needed later, "root" can mean "standalone" here
+                break;         // for performance in standalone or doc-merge case
+            }
+
+            if( !pRoot )
+            {
+                pRoot = pItemToCheckParent;
+                pItemToCheckParent = this;
+            }
+            else
+            {
+                pRootOfThis = pItemToCheckParent;
+                pItemToCheckParent = NULL;
+            }
         }
 
-        if ( !pRoot )
-        {
-            pRoot = pItemToCheckParent;
-            pItemToCheckParent = this;
-        }
-        else
-        {
-            pRootOfThis = pItemToCheckParent;
-            pItemToCheckParent = NULL;
-        }
+        if( pRoot == pRootOfThis ) // later NULL if check skipped for performance
+            PODOFO_RAISE_ERROR( ePdfError_OutlineItemAlreadyPresent );
     }
-
-    if ( pRoot == pRootOfThis ) // latter NULL if check skipped for performance
-        PODOFO_RAISE_ERROR( ePdfError_OutlineItemAlreadyPresent );
 
     if( m_pLast )
     {
