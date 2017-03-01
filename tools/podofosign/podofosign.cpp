@@ -29,6 +29,14 @@
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 
+#if defined(_WIN64)
+#define fseeko _fseeki64
+#define ftello _ftelli64
+#else
+#define fseeko fseek
+#define ftello ftell
+#endif
+
 using namespace PoDoFo;
 
 static int print_errors_string( const char *str, size_t len, void *u )
