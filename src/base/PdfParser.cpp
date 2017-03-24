@@ -855,7 +855,7 @@ void PdfParser::ReadXRefStreamContents( pdf_long lOffset, bool bReadOnlyTrailer 
     xrefObject.ReadXRefTable();
 
     // Check for a previous XRefStm or xref table
-    if(xrefObject.HasPrevious()) 
+    if(xrefObject.HasPrevious() && xrefObject.GetPreviousOffset() != lOffset) 
     {
         try {
             m_nIncrementalUpdates++;
