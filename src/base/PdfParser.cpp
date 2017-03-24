@@ -948,6 +948,14 @@ void PdfParser::ReadObjects()
         if( pEncrypt->IsReference() ) 
         {
             i = pEncrypt->GetReference().ObjectNumber();
+            if( i <= 0 || static_cast<size_t>( i ) >= m_offsets.size () )
+            {
+                std::ostringstream oss;
+                oss << "Encryption dictionary references a nonexistent object " << pEncrypt->GetReference().ObjectNumber() << " " 
+                    << pEncrypt->GetReference().GenerationNumber();
+                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidEncryptionDict, oss.str().c_str() );
+            }
+
             pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, m_offsets[i].lOffset );
             if( !pObject )
                 PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
