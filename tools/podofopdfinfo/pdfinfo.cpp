@@ -207,6 +207,10 @@ std::string PdfInfo::GuessFormat()
 	for ( int pg=0; pg<pgCount; pg++ ) 
 	{
 		curPage = mDoc->GetPage( pg );
+		if( !curPage )
+		{
+			PODOFO_RAISE_ERROR( PoDoFo::ePdfError_PageNotFound );
+		}
 		rect = curPage->GetMediaBox();
 		Format s( rect.GetWidth() - rect.GetLeft(), rect.GetHeight() - rect.GetBottom());
 		sIt = sizes.find(s);
