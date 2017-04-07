@@ -239,7 +239,7 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
         *peType = ePdfTokenType_Token;
 
     while( (c = m_device.Device()->Look()) != EOF
-           && counter < static_cast<pdf_int64>(m_buffer.GetSize()) )
+           && counter + 1 < static_cast<pdf_int64>(m_buffer.GetSize()) )
     {
         // ignore leading whitespaces
         if( !counter && IsWhitespace( c ) )
@@ -317,7 +317,6 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
     }
 
     m_buffer.GetBuffer()[counter] = '\0';
-
 
     if( c == EOF && !counter )
     {
