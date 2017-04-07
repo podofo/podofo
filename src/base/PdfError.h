@@ -73,6 +73,7 @@ enum EPdfError {
     ePdfError_ValueOutOfRange,          /**< The specified memory is out of the allowed range. */
     ePdfError_InternalLogic,            /**< An internal sanity check or assertion failed. */ 
     ePdfError_InvalidEnumValue,         /**< An invalid enum value was specified. */
+    ePdfError_BrokenFile,               /**< The file content is broken. */
 
     ePdfError_PageNotFound,             /**< The requested page could not be found in the PDF. */
 

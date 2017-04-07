@@ -222,6 +222,9 @@ const char* PdfError::ErrorName( EPdfError eCode )
         case ePdfError_InvalidEnumValue:
             pszMsg = "ePdfError_InvalidEnumValue";
             break;
+        case ePdfError_BrokenFile:
+            pszMsg = "ePdfError_BrokenFile";
+            break;
         case ePdfError_PageNotFound:
             pszMsg = "ePdfError_PageNotFound";
             break;
@@ -396,6 +399,9 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
             break;
         case ePdfError_InvalidEnumValue:
             pszMsg = "An invalid enum value was specified.";
+            break;
+        case ePdfError_BrokenFile:
+            pszMsg = "The file content is broken.";
             break;
         case ePdfError_PageNotFound:
             pszMsg = "The requested page could not be found in the PDF.";
