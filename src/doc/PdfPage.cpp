@@ -212,7 +212,7 @@ PdfRect PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize, bool bLan
     return rect;
 }
 
-const PdfObject* PdfPage::GetInheritedKeyFromObject( const char* inKey, const PdfObject* inObject ) const
+const PdfObject* PdfPage::GetInheritedKeyFromObject( const char* inKey, const PdfObject* inObject, int depth ) const
 {
     const PdfObject* pObj = NULL;
 
@@ -227,6 +227,18 @@ const PdfObject* PdfPage::GetInheritedKeyFromObject( const char* inKey, const Pd
     // if we get here, we need to go check the parent - if there is one!
     if( inObject->GetDictionary().HasKey( "Parent" ) ) 
     {
+        // CVE-2017-5852 - prevent stack overflow if Parent chain contains a loop, or is very long
+        // e.g. pObj->GetParent() == pObj or pObj->GetParent()->GetParent() == pObj
+        // default stack sizes
+        // Windows: 1 MB
+        // Linux: 2 MB
+        // macOS: 8 MB for main thread, 0.5 MB for secondary threads
+        // 0.5 MB is enough space for 1000 512 byte stack frames and 2000 256 byte stack frames
+        const int maxRecursionDepth = 1000;
+
+        if ( depth > maxRecursionDepth )
+            PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+
         pObj = inObject->GetIndirectKey( "Parent" );
         if( pObj == inObject )
         {
@@ -237,7 +249,7 @@ const PdfObject* PdfPage::GetInheritedKeyFromObject( const char* inKey, const Pd
         }
 
         if( pObj )
-            pObj = GetInheritedKeyFromObject( inKey, pObj );
+            pObj = GetInheritedKeyFromObject( inKey, pObj, depth + 1 );
     }
 
     return pObj;
