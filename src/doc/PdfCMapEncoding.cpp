@@ -264,6 +264,61 @@ PdfString PdfCMapEncoding::ConvertToUnicode(const PdfString & rEncodedString, co
 
     if(m_bToUnicodeIsLoaded)
     {
+      if(!m_toUnicode.empty())
+      {
+        
+        const pdf_uint8* pStr = reinterpret_cast<const pdf_uint8*>(rEncodedString.GetString());
+        const size_t lLen = rEncodedString.GetLength();
+        
+        pdf_utf16be* pszUtf16 = static_cast<pdf_utf16be*>(podofo_calloc(lLen, sizeof(pdf_utf16be)));
+        if( !pszUtf16 )
+        {
+          PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        }
+        
+        size_t lDstLen = 0;
+        pdf_utf16be lCID, lUnicodeValue;
+        pdf_uint8* const pCID = reinterpret_cast<pdf_uint8*>(&lCID);
+        for(size_t iSrc = 0 ; iSrc<lLen ;)
+        {
+          lCID = 0;
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+          pCID[0] = pStr[iSrc];
+#else
+          pCID[1] = pStr[iSrc];
+#endif // PODOFO_IS_LITTLE_ENDIAN
+
+          iSrc++;
+          
+          lUnicodeValue = this->GetUnicodeValue(lCID);
+
+          if (lUnicodeValue == 0)
+          {
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+            pCID[1] = pStr[iSrc];
+#else
+            pCID[0] = pStr[iSrc];
+#endif // PODOFO_IS_LITTLE_ENDIAN
+          
+            iSrc++;
+            lUnicodeValue = this->GetUnicodeValue(lCID);
+          }
+          
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+          pszUtf16[lDstLen] = (lUnicodeValue << 8) | (lUnicodeValue >> 8 );
+#else
+          pszUtf16[lDstLen] = lUnicodeValue;
+#endif // PODOFO_IS_LITTLE_ENDIAN
+          lDstLen++;
+        }
+        
+        PdfString ret( pszUtf16, lDstLen );
+        podofo_free( pszUtf16 );
+        
+        return ret;
+        
+      }
+      else
         return PdfEncoding::ConvertToUnicode(rEncodedString, pFont);
     }
     else

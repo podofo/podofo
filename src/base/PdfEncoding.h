@@ -229,12 +229,13 @@ class PODOFO_API PdfEncoding {
     PdfObject* m_pToUnicode;    ///< Pointer to /ToUnicode object, if any
  protected:
     std::map<pdf_utf16be, pdf_utf16be> m_toUnicode;
+               
+    pdf_utf16be GetUnicodeValue( pdf_utf16be ) const;
  private:
     
     /** Parse the /ToUnicode object
     */
     void ParseToUnicode();
-    pdf_utf16be GetUnicodeValue( pdf_utf16be ) const;
     pdf_utf16be GetCIDValue( pdf_utf16be ) const;
 };
 
