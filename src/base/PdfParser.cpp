@@ -745,21 +745,39 @@ void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
 
 void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumObjects )
 {
-    int count = 0;
+    pdf_int64 count = 0;
 
 #ifdef PODOFO_VERBOSE_DEBUG
     PdfError::DebugMessage("Reading XRef Section: %" PDF_FORMAT_INT64 " with %" PDF_FORMAT_INT64 " Objects.\n", nFirstObject, nNumObjects );
 #endif // PODOFO_VERBOSE_DEBUG 
 
-    if ( nFirstObject + nNumObjects > m_nNumObjects )
+    if ( nFirstObject < 0 )
+        PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange, "ReadXRefSubsection: nFirstObject is negative" );
+    if ( nNumObjects < 0 )
+        PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange, "ReadXRefSubsection: nNumObjects is negative" );
+
+    const pdf_int64 maxNum
+      = static_cast<pdf_int64>(PdfParser::s_nMaxObjects);
+
+    // overflow guard, fixes CVE-2017-5853 (signed integer overflow)
+    // also fixes CVE-2017-6844 (buffer overflow) together with below size check
+    if( (maxNum >= nNumObjects) && (nFirstObject <= maxNum - nNumObjects) )
     {
-        // Total number of xref entries to read is greater than the /Size
-        // specified in the trailer if any. That's an error unless we're trying
-        // to recover from a missing /Size entry.
-		PdfError::LogMessage( eLogSeverity_Warning,
-			      "There are more objects (%" PDF_FORMAT_INT64 ") in this XRef table than "
-			      "specified in the size key of the trailer directory (%" PDF_FORMAT_INT64 ")!\n",
-			      nFirstObject + nNumObjects, m_nNumObjects );
+        if( nFirstObject + nNumObjects > m_nNumObjects )
+        {
+            // Total number of xref entries to read is greater than the /Size
+            // specified in the trailer if any. That's an error unless we're
+            // trying to recover from a missing /Size entry.
+            PdfError::LogMessage( eLogSeverity_Warning,
+              "There are more objects (%" PDF_FORMAT_INT64 ") in this XRef "
+              "table than specified in the size key of the trailer directory "
+              "(%" PDF_FORMAT_INT64 ")!\n", nFirstObject + nNumObjects,
+              static_cast<pdf_int64>( m_nNumObjects ));
+        }
+
+        if ( static_cast<pdf_uint64>( nFirstObject ) + static_cast<pdf_uint64>( nNumObjects ) > static_cast<pdf_uint64>( std::numeric_limits<size_t>::max() ) )
+            PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange,
+                "xref subsection's given entry numbers together too large" );
 
 #ifdef _WIN32
 		m_nNumObjects = static_cast<long>(nFirstObject + nNumObjects);
@@ -768,7 +786,16 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
 		m_nNumObjects = nFirstObject + nNumObjects;
 		m_offsets.resize(nFirstObject+nNumObjects);
 #endif // _WIN32
-	}
+
+    }
+    else
+    {
+        PdfError::LogMessage( eLogSeverity_Error, "There are more objects (%" PDF_FORMAT_INT64
+            " + %" PDF_FORMAT_INT64 " seemingly) in this XRef"
+            " table than supported by standard PDF, or it's inconsistent.\n",
+            nFirstObject, nNumObjects);
+        PODOFO_RAISE_ERROR( ePdfError_InvalidXRef );
+    }
 
     // consume all whitespaces
     int charcode;
