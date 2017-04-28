@@ -543,6 +543,11 @@ unsigned int PdfPage::GetPageNumber() const
     PdfObject*          pParent     = this->GetObject()->GetIndirectKey( "Parent" );
     PdfReference ref                = this->GetObject()->Reference();
 
+    // CVE-2017-5852 - prevent infinite loop if Parent chain contains a loop
+    // e.g. pParent->GetIndirectKey( "Parent" ) == pParent or pParent->GetIndirectKey( "Parent" )->GetIndirectKey( "Parent" ) == pParent
+    const int maxRecursionDepth = 1000;
+    int depth = 0;
+
     while( pParent ) 
     {
         PdfObject* pKids = pParent->GetIndirectKey( "Kids" );
@@ -574,6 +579,12 @@ unsigned int PdfPage::GetPageNumber() const
 
         ref     = pParent->Reference();
         pParent = pParent->GetIndirectKey( "Parent" );
+        ++depth;
+
+        if ( depth > maxRecursionDepth )
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_BrokenFile, "Loop in Parent chain" );
+        }
     }
 
     return ++nPageNumber;
