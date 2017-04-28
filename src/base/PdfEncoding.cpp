@@ -45,6 +45,7 @@
 #include <stack>
 #include <stdlib.h>
 #include <string.h>
+#include <limits>
 #include <sstream>
 #include "PdfArray.h"
 #include "doc/PdfDifferenceEncoding.h"
@@ -362,7 +363,9 @@ PdfSimpleEncoding::~PdfSimpleEncoding()
 void PdfSimpleEncoding::InitEncodingTable() 
 {
     Util::PdfMutexWrapper wrapper( *m_mutex );
-    const long         lTableLength     = 0xffff;
+	// CVE-2017-7379 - previously lTableLength was 0xffff, but pdf_utf16be characters can be in range 0..0xffff so this
+	// caused out-by-one heap overflow when character 0xffff was encoded
+    const long         lTableLength     = std::numeric_limits<pdf_utf16be>::max() + 1;
     const pdf_utf16be* cpUnicodeTable   = this->GetToUnicodeTable();
 
     if( !m_pEncodingTable ) // double check
