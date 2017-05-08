@@ -181,6 +181,13 @@ void ColorChanger::ReplaceColorsInPage( PdfCanvas* pPage )
             int nNumArgs = pInfo->nNumArguments;
             EPdfColorSpace eColorSpace;
 
+            if( args.size() != static_cast<size_t>( pInfo->nNumArguments ) )
+            {
+                std::ostringstream oss;
+                oss << "Expected " << pInfo->nNumArguments << " argument(s) for keyword '" << pszKeyword << "', but " << args.size() << " given instead.";
+                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidContentStream, oss.str().c_str() );
+            }
+
             switch( pInfo->eKeywordType )
             {
                 case eKeyword_GraphicsStack_Push:
