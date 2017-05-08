@@ -642,7 +642,7 @@ PdfObject* PdfPage::GetFromResources( const PdfName & rType, const PdfName & rKe
         // OC 15.08.2010 BugFix: Ghostscript creates here sometimes an indirect reference to a directory
      // PdfObject* pType = m_pResources->GetDictionary().GetKey( rType );
         PdfObject* pType = m_pResources->GetIndirectKey( rType );
-        if( pType->IsDictionary() && pType->GetDictionary().HasKey( rKey ) )
+        if( pType && pType->IsDictionary() && pType->GetDictionary().HasKey( rKey ) )
         {
             const PdfReference & ref = pType->GetDictionary().GetKey( rKey )->GetReference();
             return this->GetObject()->GetOwner()->GetObject( ref );
