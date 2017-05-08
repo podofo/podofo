@@ -261,8 +261,10 @@ PdfXObject::PdfXObject( PdfObject* pObject )
     
     m_pResources = pObject->GetIndirectKey( "Resources" );
     m_Identifier = PdfName( out.str().c_str() );
-    m_rRect      = PdfRect( this->GetObject()->GetIndirectKey( "BBox" )->GetArray() );
     m_Reference  = this->GetObject()->Reference();
+
+    if( this->GetObject()->GetIndirectKey( "BBox" ) )
+        m_rRect = PdfRect( this->GetObject()->GetIndirectKey( "BBox" )->GetArray() );
 }
 
 void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
