@@ -779,6 +779,7 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
             PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange,
                 "xref subsection's given entry numbers together too large" );
 
+        try {
 #ifdef _WIN32
 		m_nNumObjects = static_cast<long>(nFirstObject + nNumObjects);
 		m_offsets.resize(static_cast<long>(nFirstObject+nNumObjects));
@@ -786,7 +787,9 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
 		m_nNumObjects = nFirstObject + nNumObjects;
 		m_offsets.resize(nFirstObject+nNumObjects);
 #endif // _WIN32
-
+        } catch (std::bad_alloc &ex) {
+            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        }
     }
     else
     {
