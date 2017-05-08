@@ -1938,16 +1938,27 @@ PdfString PdfPainter::ExpandTabs( const PdfString & rsString, pdf_long lStringLe
     const pdf_utf16be cTab     = 0x0900;
     const pdf_utf16be cSpace   = 0x2000;
 
+    if( lStringLen == -1 )
+        lStringLen = rsString.GetCharacterLength();
+
+    if (lStringLen > rsString.GetCharacterLength())
+    {
+        PdfError::DebugMessage( "Requested to expand tabs in string of %" PDF_FORMAT_INT64 " chars, while it has only %" PDF_FORMAT_INT64 "; correcting the value\n",
+            static_cast<pdf_int64>( lStringLen ), static_cast<pdf_int64>( rsString.GetCharacterLength() ) );
+
+        lStringLen = rsString.GetCharacterLength();
+    }
+
     // count the number of tabs in the string
     if( bUnicode ) 
     {
-        for( i=0;i<=lStringLen;i++ )
+        for( i=0;i<lStringLen;i++ )
             if( rsString.GetUnicode()[i] == cTab ) 
                 ++nTabCnt;
     }
     else
     {
-        for( i=0;i<=lStringLen;i++ )
+        for( i=0;i<lStringLen;i++ )
             if( rsString.GetString()[i] == '\t' )
                 ++nTabCnt;
     }
