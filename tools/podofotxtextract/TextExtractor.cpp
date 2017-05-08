@@ -72,10 +72,21 @@ void TextExtractor::ExtractText( PdfMemDocument* pDocument, PdfPage* pPage )
             if( strcmp( pszToken, "l" ) == 0 || 
                 strcmp( pszToken, "m" ) == 0 )
             {
-                dCurPosX = stack.top().GetReal();
-                stack.pop();
-                dCurPosY = stack.top().GetReal();
-                stack.pop();
+                if( stack.size() == 2 )
+                {
+                    dCurPosX = stack.top().GetReal();
+                    stack.pop();
+                    dCurPosY = stack.top().GetReal();
+                    stack.pop();
+                }
+                else
+                {
+                    fprintf( stderr, "WARNING: Token '%s' expects two arguments, but %" PDF_FORMAT_INT64 " given; ignoring\n",
+                        pszToken, static_cast<pdf_int64>( stack.size() ) );
+
+                    while( !stack.empty() )
+                        stack.pop();
+                }
             }
             else if( strcmp( pszToken, "BT" ) == 0 ) 
             {
@@ -93,6 +104,13 @@ void TextExtractor::ExtractText( PdfMemDocument* pDocument, PdfPage* pPage )
             {
                 if( strcmp( pszToken, "Tf" ) == 0 ) 
                 {
+                    if( stack.size() < 2 )
+                    {
+                        fprintf( stderr, "WARNING: Expects two arguments for 'Tf', ignoring\n" );
+                        pCurFont = NULL;
+                        continue;
+                    }
+
                     stack.pop();
                     PdfName fontName = stack.top().GetName();
                     PdfObject* pFont = pPage->GetFromResources( PdfName("Font"), fontName );
@@ -102,21 +120,37 @@ void TextExtractor::ExtractText( PdfMemDocument* pDocument, PdfPage* pPage )
                     }
 
                     pCurFont = pDocument->GetFont( pFont );
-                    if( !pCurFont ) 
+                    if( !pCurFont )
                     {
-                        fprintf( stderr, "WARNING: Unable to create font for object %i %i R\n",
-                                 pFont->Reference().ObjectNumber(),
-                                 pFont->Reference().GenerationNumber() );
+                        fprintf( stderr, "WARNING: Unable to create font for object %" PDF_FORMAT_INT64 " %" PDF_FORMAT_INT64 " R\n",
+                                 static_cast<pdf_int64>( pFont->Reference().ObjectNumber() ),
+                                 static_cast<pdf_int64>( pFont->Reference().GenerationNumber() ) );
                     }
                 }
                 else if( strcmp( pszToken, "Tj" ) == 0 ||
                          strcmp( pszToken, "'" ) == 0 ) 
                 {
+                    if( stack.size() < 1 )
+                    {
+                        fprintf( stderr, "WARNING: Expects one argument for '%s', ignoring\n", pszToken );
+                        continue;
+                    }
+
                     AddTextElement( dCurPosX, dCurPosY, pCurFont, stack.top().GetString() );
                     stack.pop();
                 }
                 else if( strcmp( pszToken, "\"" ) == 0 )
                 {
+                    if( stack.size() < 3 )
+                    {
+                        fprintf( stderr, "WARNING: Expects three arguments for '%s', ignoring\n", pszToken );
+
+                        while( !stack.empty() )
+                            stack.pop();
+
+                        continue;
+                    }
+
                     AddTextElement( dCurPosX, dCurPosY, pCurFont, stack.top().GetString() );
                     stack.pop();
                     stack.pop(); // remove char spacing from stack
@@ -124,6 +158,12 @@ void TextExtractor::ExtractText( PdfMemDocument* pDocument, PdfPage* pPage )
                 }
                 else if( strcmp( pszToken, "TJ" ) == 0 ) 
                 {
+                    if( stack.size() < 3 )
+                    {
+                        fprintf( stderr, "WARNING: Expects one argument for '%s', ignoring\n", pszToken );
+                        continue;
+                    }
+
                     PdfArray array = stack.top().GetArray();
                     stack.pop();
                     
