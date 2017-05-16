@@ -38,7 +38,9 @@ void TextExtractor::Init( const char* pszInput )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    PdfMemDocument document( pszInput );
+    PdfMemDocument document;
+
+    document.Load( pszInput );
 
     int nCount = document.GetPageCount();
     for( int i=0; i<nCount; i++ ) 
