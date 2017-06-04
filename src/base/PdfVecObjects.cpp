@@ -149,17 +149,11 @@ PdfObject* PdfVecObjects::GetObject( const PdfReference & ref ) const
         const_cast<PdfVecObjects*>(this)->Sort();
 
     PdfObject refObj( ref, NULL );
-    std::pair<TCIVecObjects,TCIVecObjects> it = 
-        std::equal_range( m_vector.begin(), m_vector.end(), &refObj, ObjectComparatorPredicate() );
-
-    if( it.first != it.second )
-        return *(it.first);
-
-    /*
-    const TCIVecObjects it ( std::find_if( this->begin(), this->end(), ObjectsComparator( ref ) ) );
-    if( it != this->end() )
-        return (*it);
-    */
+    TCIVecObjects it = std::lower_bound( m_vector.begin(), m_vector.end(), &refObj, ObjectComparatorPredicate() );
+    if( it != m_vector.end() && (refObj.Reference() == (*it)->Reference()) )
+    {
+        return *it;
+    }
 
     return NULL;
 }
