@@ -124,6 +124,11 @@ void PdfXRefStreamParserObject::ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], c
     pdf_long     lBufferLen;
     const size_t entryLen  = static_cast<size_t>(nW[0] + nW[1] + nW[2]);
 
+    if( nW[0] + nW[1] + nW[2] < 0 )
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_NoXRef, "Invalid entry length in XRef stream" );
+    }
+
     this->GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
 
     
