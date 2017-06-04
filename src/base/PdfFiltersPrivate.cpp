@@ -154,7 +154,7 @@ public:
                         }
 
                         // TODO: implement tiff predictor for other than 8 BPC
-                        PODOFO_RAISE_ERROR( ePdfError_InvalidPredictor );
+                        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidPredictor, "tiff predictors other than 8 BPC are not implemented" );
                         break;
                     }
                     case 10: // png none
@@ -182,8 +182,11 @@ public:
                         break;
                     }
                     case 14: // png paeth
+                        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidPredictor, "png paeth predictor is not implemented" );
+                        break;
+
                     case 15: // png optimum
-                        PODOFO_RAISE_ERROR( ePdfError_InvalidPredictor );
+                        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidPredictor, "png optimum predictor is not implemented" );
                         break;
                         
                     default:
