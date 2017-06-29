@@ -63,6 +63,8 @@ using std::flush;
 
 #if defined( PTRDIFF_MAX )
 #define PDF_LONG_MAX PTRDIFF_MAX
+#elif defined( __PTRDIFF_MAX__ )
+#define PDF_LONG_MAX __PTRDIFF_MAX__
 #else
 // only old compilers don't define PTRDIFF_MAX (all 32-bit only?)
 #define PDF_LONG_MAX INT_MAX

@@ -32,7 +32,9 @@ INCLUDE(CheckTypeSize)
 # Prefer files in CMAKE_MODULE_PATH over shipped ones in module directory
 CMAKE_POLICY(SET CMP0017 NEW) # https://cmake.org/cmake/help/v3.0/policy/CMP0017.html
 # Do not use export_library_dependencies() anymore
+if(POLICY CMP0033)
 CMAKE_POLICY(SET CMP0033 NEW) # https://cmake.org/cmake/help/v3.0/policy/CMP0033.html
+endif()
 
 # Load modules from our source tree too
 SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
