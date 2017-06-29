@@ -115,8 +115,17 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
 			while (pos < static_cast<int>(w.GetSize())) {
 				int start = static_cast<int>(w[pos++].GetNumber());
 				PODOFO_ASSERT (start >= 0);
-				if (w[pos].IsArray()) {
-					PdfArray widths = w[pos++].GetArray();
+				PdfObject * second = &w[pos];
+				if (second->IsReference()) {
+					// Make sure array referenced is available:
+					second->DelayedStreamLoad();
+					// second do not have an associated owner; use the one in pw
+					second = pw->GetOwner()->GetObject(second->GetReference());
+					PODOFO_ASSERT (!second->IsNull());
+				}
+				if (second->IsArray()) {
+					PdfArray widths = second->GetArray();
+					++pos;
 					int length = start + static_cast<int>(widths.GetSize());
 					PODOFO_ASSERT (length >= start);
 					if (length > static_cast<int>(m_width.GetSize())) {
