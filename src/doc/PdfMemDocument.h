@@ -143,7 +143,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  When the bForUpdate is set to true, the pszFilename is copied
      *  for later use by WriteUpdate.
      *  
-     *  \see SetPassword, WriteUpdate
+     *  \see SetPassword, WriteUpdate, LoadFromBuffer, LoadFromDevice
      */
     void Load( const char* pszFilename, bool bForUpdate = false );
 
@@ -164,7 +164,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  with unicode characters. On Unix systems you can also path
      *  UTF-8 to the const char* overload.
      *
-     *  \see SetPassword, WriteUpdate
+     *  \see SetPassword, WriteUpdate, LoadFromBuffer, LoadFromDevice
      */
     void Load( const wchar_t* pszFilename, bool bForUpdate = false );
 #endif // _WIN32
@@ -182,9 +182,9 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  When the bForUpdate is set to true, the memory buffer is copied
      *  for later use by WriteUpdate.
      *  
-     *  \see SetPassword, WriteUpdate
+     *  \see SetPassword, WriteUpdate, Load, LoadFromDevice
      */
-    void Load( const char* pBuffer, long lLen, bool bForUpdate = false );
+    void LoadFromBuffer( const char* pBuffer, long lLen, bool bForUpdate = false );
 
     /** Load a PdfMemDocument from a PdfRefCountedInputDevice
      *
@@ -198,9 +198,9 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  When the bForUpdate is set to true, the rDevice is referenced
      *  for later use by WriteUpdate.
      *  
-     *  \see SetPassword, WriteUpdate
+     *  \see SetPassword, WriteUpdate, Load, LoadFromBuffer
      */
-    void Load( const PdfRefCountedInputDevice & rDevice, bool bForUpdate = false );
+    void LoadFromDevice( const PdfRefCountedInputDevice & rDevice, bool bForUpdate = false );
 
     /** Returns whether the document is fully loaded.
      */

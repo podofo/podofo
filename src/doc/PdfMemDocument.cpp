@@ -283,7 +283,7 @@ void PdfMemDocument::Load( const wchar_t* pszFilename, bool bForUpdate )
 }
 #endif // _WIN32
 
-void PdfMemDocument::Load( const char* pBuffer, long lLen, bool bForUpdate )
+void PdfMemDocument::LoadFromBuffer( const char* pBuffer, long lLen, bool bForUpdate )
 {
     if( !pBuffer || !lLen )
     {
@@ -304,7 +304,7 @@ void PdfMemDocument::Load( const char* pBuffer, long lLen, bool bForUpdate )
     InitFromParser( m_pParser );
 }
 
-void PdfMemDocument::Load( const PdfRefCountedInputDevice & rDevice, bool bForUpdate )
+void PdfMemDocument::LoadFromDevice( const PdfRefCountedInputDevice & rDevice, bool bForUpdate )
 {
     this->Clear();
 

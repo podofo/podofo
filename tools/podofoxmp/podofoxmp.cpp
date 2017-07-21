@@ -61,7 +61,7 @@ int main (int argc, char *argv[])
             istream_iterator<char> end;
             string buffer(it, end);
             doc = new PoDoFo::PdfMemDocument();
-            doc->Load( buffer.c_str(), (long)buffer.size() );
+            doc->LoadFromBuffer( buffer.c_str(), (long)buffer.size() );
         }
         else
         {
