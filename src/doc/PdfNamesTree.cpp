@@ -401,8 +401,8 @@ PdfObject* PdfNamesTree::GetKeyValue( PdfObject* pObj, const PdfString & key ) c
     }
     else
     {
-        const PdfArray & names      = pObj->GetDictionary().GetKey("Names")->GetArray();
-        PdfArray::const_iterator it = names.begin();
+        PdfArray & names      = pObj->GetDictionary().GetKey("Names")->GetArray();
+        PdfArray::iterator it = names.begin();
 
         // a names array is a set of PdfString/PdfObject pairs
         // so we loop in sets of two - getting each pair
@@ -411,7 +411,10 @@ PdfObject* PdfNamesTree::GetKeyValue( PdfObject* pObj, const PdfString & key ) c
             if( (*it).GetString() == key ) 
             {
                 ++it;
-                return this->GetObject()->GetOwner()->GetObject( (*it).GetReference() );
+                if( it->IsReference() )
+                    return this->GetObject()->GetOwner()->GetObject( (*it).GetReference() );
+
+                return &(*it);
             }
 
             it += 2;
