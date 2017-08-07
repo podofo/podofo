@@ -923,7 +923,7 @@ void PdfPainter::EndText()
 }
 
 void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double dHeight, const PdfString & rsText, 
-                                    EPdfAlignment eAlignment, EPdfVerticalAlignment eVertical, bool bClip )
+                                    EPdfAlignment eAlignment, EPdfVerticalAlignment eVertical, bool bClip, bool bSkipSpaces )
 {
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
@@ -946,7 +946,7 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
 
     PdfString   sString  = this->ExpandTabs( rsText, rsText.GetCharacterLength() );
 
-	std::vector<PdfString> vecLines = GetMultiLineTextAsLines(dWidth, sString);
+	std::vector<PdfString> vecLines = GetMultiLineTextAsLines( dWidth, sString, bSkipSpaces );
     double dLineGap = m_pFont->GetFontMetrics()->GetLineSpacing() - m_pFont->GetFontMetrics()->GetAscent() + m_pFont->GetFontMetrics()->GetDescent();
     // Do vertical alignment
     switch( eVertical ) 
@@ -975,7 +975,7 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
     this->Restore();
 }
 
-std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const PdfString & rsText)
+std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const PdfString & rsText, bool bSkipSpaces )
 {
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
 
@@ -1032,11 +1032,18 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
                 else
                 {
                     vecLines.push_back( PdfString( pszLineBegin, pszCurrentCharacter - pszLineBegin ) );
-                    // Skip all spaces at the end of the line
-                    while (IsSpaceChar(*(pszCurrentCharacter + 1)))
-                        pszCurrentCharacter++;
+                    if (bSkipSpaces)
+                    {
+                        // Skip all spaces at the end of the line
+                        while( IsSpaceChar( *( pszCurrentCharacter + 1 ) ) )
+                            pszCurrentCharacter++;
 
-                    pszStartOfCurrentWord = pszCurrentCharacter + 1;
+                        pszStartOfCurrentWord = pszCurrentCharacter + 1;
+                    }
+                    else
+                    {
+                        pszStartOfCurrentWord = pszCurrentCharacter;
+                    }
                     startOfWord=true;
                 }
                 pszLineBegin = pszStartOfCurrentWord;
@@ -1050,6 +1057,25 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
                 {
                     dCurWidthOfLine = 0.0;
                 }
+            }
+            else if( ( dCurWidthOfLine + m_pFont->GetFontMetrics()->UnicodeCharWidth( SwapCharBytesIfRequired( *pszCurrentCharacter ) ) ) > dWidth )
+            {
+                vecLines.push_back( PdfString( pszLineBegin, pszCurrentCharacter - pszLineBegin ) );
+                if( bSkipSpaces )
+                {
+                    // Skip all spaces at the end of the line
+                    while( IsSpaceChar( *( pszCurrentCharacter + 1 ) ) )
+                        pszCurrentCharacter++;
+
+                    pszStartOfCurrentWord = pszCurrentCharacter + 1;
+                }
+                else
+                {
+                    pszStartOfCurrentWord = pszCurrentCharacter;
+                }
+                pszLineBegin = pszStartOfCurrentWord;
+                startOfWord = true;
+                dCurWidthOfLine = 0.0;
             }
             else 
             {           
