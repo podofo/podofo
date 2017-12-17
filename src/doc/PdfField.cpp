@@ -891,7 +891,7 @@ const PdfString PdfListField::GetItemDisplayText( int nIndex ) const
     if( m_pObject->GetDictionary().HasKey( PdfName("Opt") ) )
         opt = m_pObject->GetDictionary().GetKey( PdfName("Opt") )->GetArray();
     
-    if( nIndex < 0 || nIndex > static_cast<int>(opt.size()) )
+    if( nIndex < 0 || nIndex >= static_cast<int>(opt.size()) )
     {
         PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
     }
