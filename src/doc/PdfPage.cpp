@@ -87,13 +87,18 @@ PdfPage::PdfPage( PdfObject* pObject, const std::deque<PdfObject*> & rListOfPare
 
 PdfPage::~PdfPage()
 {
-    TIMapAnnotation it = m_mapAnnotations.begin();
+    TIMapAnnotation ait, aend = m_mapAnnotations.end();
 
-    while( it != m_mapAnnotations.end() )
+    for( ait = m_mapAnnotations.begin(); ait != aend; ait++ )
     {
-        delete (*it).second;
+        delete ait->second;
+    }
 
-        ++it;
+    TIMapAnnotationDirect dit, dend = m_mapAnnotationsDirect.end();
+
+    for( dit = m_mapAnnotationsDirect.begin(); dit != dend; dit++ )
+    {
+        delete dit->second;
     }
 
     delete m_pContents;	// just clears the C++ object from memory, NOT the PdfObject
@@ -369,19 +374,32 @@ PdfAnnotation* PdfPage::GetAnnotation( int index )
         PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
     }
 
-    ref    = pObj->GetArray()[index].GetReference();
-    pAnnot = m_mapAnnotations[ref];
-    if( !pAnnot )
+    PdfObject* pItem = &(pObj->GetArray()[index]);
+    if( pItem->IsDictionary() )
     {
-        pObj = this->GetObject()->GetOwner()->GetObject( ref );
-        if( !pObj )
+        pAnnot = m_mapAnnotationsDirect[pObj];
+        if( !pAnnot )
         {
-            PdfError::DebugMessage( "Error looking up object %i %i R\n", ref.ObjectNumber(), ref.GenerationNumber() );
-            PODOFO_RAISE_ERROR( ePdfError_NoObject );
+            pAnnot = new PdfAnnotation( pItem, this );
+            m_mapAnnotationsDirect[pItem] = pAnnot;
         }
-     
-        pAnnot = new PdfAnnotation( pObj, this );
-        m_mapAnnotations[ref] = pAnnot;
+    }
+    else
+    {
+        ref = pItem->GetReference();
+        pAnnot = m_mapAnnotations[ref];
+        if( !pAnnot )
+        {
+            pObj = this->GetObject()->GetOwner()->GetObject( ref );
+            if( !pObj )
+            {
+                PdfError::DebugMessage( "Error looking up object %i %i R\n", ref.ObjectNumber(), ref.GenerationNumber() );
+                PODOFO_RAISE_ERROR( ePdfError_NoObject );
+            }
+
+            pAnnot = new PdfAnnotation( pObj, this );
+            m_mapAnnotations[ref] = pAnnot;
+        }
     }
 
     return pAnnot;
@@ -389,22 +407,39 @@ PdfAnnotation* PdfPage::GetAnnotation( int index )
 
 void PdfPage::DeleteAnnotation( int index )
 {
-    PdfReference   ref;
-    PdfObject*     pObj   = this->GetAnnotationsArray( false );
-    
+    PdfObject* pObj = this->GetAnnotationsArray( false );
+    PdfObject* pItem;
+
     if( !(pObj && pObj->IsArray()) )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
-    
+
     if( index < 0 && static_cast<unsigned int>(index) >= pObj->GetArray().size() )
     {
         PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
     }
 
-    ref    = pObj->GetArray()[index].GetReference();
+    pItem = &(pObj->GetArray()[index]);
 
-    this->DeleteAnnotation( ref );
+    if( pItem->IsDictionary() )
+    {
+        PdfAnnotation* pAnnot;
+
+        pObj->GetArray().erase( pObj->GetArray().begin() + index );
+
+        // delete any cached PdfAnnotations
+        pAnnot = m_mapAnnotationsDirect[pItem];
+        if( pAnnot )
+        {
+            delete pAnnot;
+            m_mapAnnotationsDirect.erase( pItem );
+        }
+    }
+    else
+    {
+        this->DeleteAnnotation( pItem->GetReference() );
+    }
 }
 
 void PdfPage::DeleteAnnotation( const PdfReference & ref )
@@ -424,7 +459,7 @@ void PdfPage::DeleteAnnotation( const PdfReference & ref )
     it = pObj->GetArray().begin();
     while( it != pObj->GetArray().end() ) 
     {
-        if( (*it).GetReference() == ref ) 
+        if( it->IsReference() && it->GetReference() == ref ) 
         {
             pObj->GetArray().erase( it );
             bFound = true;

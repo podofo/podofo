@@ -54,6 +54,9 @@ class PdfVecObjects;
 typedef std::map<PdfReference,PdfAnnotation*> TMapAnnotation;
 typedef TMapAnnotation::iterator              TIMapAnnotation;
 typedef TMapAnnotation::const_iterator        TCIMapAnnotation;
+typedef std::map<PdfObject *,PdfAnnotation*>  TMapAnnotationDirect;
+typedef TMapAnnotationDirect::iterator        TIMapAnnotationDirect;
+typedef TMapAnnotationDirect::const_iterator  TCIMapAnnotationDirect;
 
 /** PdfPage is one page in the pdf document. 
  *  It is possible to draw on a page using a PdfPainter object.
@@ -305,6 +308,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
     PdfObject*     m_pResources;
 
     TMapAnnotation m_mapAnnotations;
+    TMapAnnotationDirect m_mapAnnotationsDirect;
 };
 
 // -----------------------------------------------------
