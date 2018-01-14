@@ -1276,9 +1276,9 @@ void PdfCCITTFilter::BeginDecodeImpl( const PdfDictionary* pDict )
     }
     */
 
+#else // DS_CCITT_DEVELOPMENT_CODE
+    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 #endif // DS_CCITT_DEVELOPMENT_CODE
-
-
 }
 #ifndef _MSC_VER
 #pragma GCC diagnostic pop
@@ -1286,11 +1286,12 @@ void PdfCCITTFilter::BeginDecodeImpl( const PdfDictionary* pDict )
 
 void PdfCCITTFilter::DecodeBlockImpl( const char*, pdf_long )
 {
-
+    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
 void PdfCCITTFilter::EndDecodeImpl()
 {
+    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
 #endif // PODOFO_HAVE_TIFF_LIB
