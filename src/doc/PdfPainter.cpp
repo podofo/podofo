@@ -146,7 +146,9 @@ PdfPainter::~PdfPainter()
         PdfError::LogMessage( eLogSeverity_Error, 
                               "PdfPainter::~PdfPainter(): FinishPage() has to be called after a page is completed!" );
 
+    #ifdef DEBUG
     PODOFO_ASSERT( !m_pCanvas );
+    #endif
 }
 
 void PdfPainter::SetPage( PdfCanvas* pPage )
