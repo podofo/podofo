@@ -91,14 +91,14 @@ PdfPage::~PdfPage()
 
     for( ait = m_mapAnnotations.begin(); ait != aend; ait++ )
     {
-        delete ait->second;
+        delete (*ait).second;
     }
 
     TIMapAnnotationDirect dit, dend = m_mapAnnotationsDirect.end();
 
     for( dit = m_mapAnnotationsDirect.begin(); dit != dend; dit++ )
     {
-        delete dit->second;
+        delete (*dit).second;
     }
 
     delete m_pContents;	// just clears the C++ object from memory, NOT the PdfObject
@@ -377,7 +377,7 @@ PdfAnnotation* PdfPage::GetAnnotation( int index )
     PdfObject* pItem = &(pObj->GetArray()[index]);
     if( pItem->IsDictionary() )
     {
-        pAnnot = m_mapAnnotationsDirect[pObj];
+        pAnnot = m_mapAnnotationsDirect[pItem];
         if( !pAnnot )
         {
             pAnnot = new PdfAnnotation( pItem, this );
@@ -459,7 +459,7 @@ void PdfPage::DeleteAnnotation( const PdfReference & ref )
     it = pObj->GetArray().begin();
     while( it != pObj->GetArray().end() ) 
     {
-        if( it->IsReference() && it->GetReference() == ref ) 
+        if( (*it).IsReference() && (*it).GetReference() == ref ) 
         {
             pObj->GetArray().erase( it );
             bFound = true;
