@@ -98,7 +98,7 @@ PdfMemoryOutputStream::~PdfMemoryOutputStream()
 
 pdf_long PdfMemoryOutputStream::Write( const char* pBuffer, pdf_long lLen )
 {
-    if( !m_pBuffer ) 
+    if( !pBuffer ) 
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
