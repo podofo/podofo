@@ -41,20 +41,16 @@
 
 namespace PoDoFo {
 
-PdfArray PdfCanvas::s_procset;
-
-const PdfArray & PdfCanvas::GetProcSet()
+const PdfArray PdfCanvas::GetProcSet()
 {
-    if( s_procset.empty() ) 
-    {
-        s_procset.push_back( PdfName( "PDF" ) );
-        s_procset.push_back( PdfName( "Text" ) );
-        s_procset.push_back( PdfName( "ImageB" ) );
-        s_procset.push_back( PdfName( "ImageC" ) );
-        s_procset.push_back( PdfName( "ImageI" ) );
-    }
-
-    return s_procset;
+    PdfArray procset;
+    procset.push_back( PdfName( "PDF" ) );
+    procset.push_back( PdfName( "Text" ) );
+    procset.push_back( PdfName( "ImageB" ) );
+    procset.push_back( PdfName( "ImageC" ) );
+    procset.push_back( PdfName( "ImageI" ) );
+    
+    return procset;
 }
 
 void PdfCanvas::AddColorResource( const PdfColor & rColor )

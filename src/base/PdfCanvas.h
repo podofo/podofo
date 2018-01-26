@@ -79,10 +79,10 @@ class PODOFO_API PdfCanvas {
      */
     virtual const PdfRect GetPageSize() const = 0;
 
-    /** Get a reference to a static procset PdfArray.
-     *  \returns a reference to a static procset PdfArray
+    /** Get a copy of procset PdfArray.
+     *  \returns a procset PdfArray
      */
-    static const PdfArray & GetProcSet();
+    static const PdfArray GetProcSet();
 
 	/** Register a colourspace for a (separation) colour in the resource dictionary 
 	 *  of this page or XObbject so that it can be used for any following drawing 
@@ -101,11 +101,6 @@ class PODOFO_API PdfCanvas {
      */
     void AddResource( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName );
 
- private:
-    /** The procset is the same for all 
-     *  PdfContents objects
-     */
-    static PdfArray s_procset;
 };
 
 };

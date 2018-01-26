@@ -162,7 +162,7 @@ class PODOFO_DOC_API PdfXObject : public PdfElement, public PdfCanvas {
     PdfRect          m_rRect;
 
  private:
-    static PdfArray  s_matrix;
+    PdfArray         m_matrix;
 
     PdfObject*       m_pResources;
 
