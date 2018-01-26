@@ -497,9 +497,11 @@ PdfObject* PdfPagesTree::GetPageNodeFromArray( int nPageNum, const PdfArray & rK
         }
 
         PdfObject* pgObject = GetRoot()->GetOwner()->GetObject( rVar.GetReference() );
-		if(pgObject==NULL) {
+		if(pgObject==NULL)
+        {
 			PODOFO_RAISE_ERROR_INFO( ePdfError_PageNotFound, "Invalid reference." );
 		}
+
         //printf("Reading %s\n", pgObject->Reference().ToString().c_str());
         // make sure the object is a /Page and not a /Pages with a single kid
         if( this->IsTypePage(pgObject) ) 
@@ -528,9 +530,9 @@ PdfObject* PdfPagesTree::GetPageNodeFromArray( int nPageNum, const PdfArray & rK
             rLstParents.push_back( pgObject );
             rVar = *(pgObject->GetDictionary().GetKey( "Kids" ));
         } else {
-	  // Reference to unexpected object
-	  PODOFO_RAISE_ERROR_INFO( ePdfError_PageNotFound, "Reference to unexpected object." );
-	}
+            // Reference to unexpected object
+            PODOFO_RAISE_ERROR_INFO( ePdfError_PageNotFound, "Reference to unexpected object." );
+        }
     }
 
     return NULL;
