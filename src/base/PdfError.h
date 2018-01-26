@@ -158,8 +158,8 @@ enum ELogSeverity {
 /** \def PODOFO_RAISE_ERROR_INFO( x, y )
  *  
  *  Set the value of the variable eCode (which has to exist in the current function) to x
- *  and return the eCode. Additionally additional information on the error y is set. y has 
- *  to be an c-string.
+ *  and return the eCode. Additionally additional information on the error y is set. 
+ *  y can be a C string, but can also be a C++ std::string.
  */
 #define PODOFO_RAISE_ERROR_INFO( x, y ) throw ::PoDoFo::PdfError( x, __FILE__, __LINE__, y );
 
@@ -184,6 +184,7 @@ class PODOFO_API PdfErrorInfo {
  public:
     PdfErrorInfo();
     PdfErrorInfo( int line, const char* pszFile, const char* pszInfo );
+    PdfErrorInfo( int line, const char* pszFile, std::string pszInfo );
     PdfErrorInfo( int line, const char* pszFile, const wchar_t* pszInfo );
     PdfErrorInfo( const PdfErrorInfo & rhs );
 
@@ -195,6 +196,7 @@ class PODOFO_API PdfErrorInfo {
     inline const std::wstring & GetInformationW() const { return m_swInfo; }
 
     inline void SetInformation( const char* pszInfo ) { m_sInfo = pszInfo ? pszInfo : ""; }
+    inline void SetInformation( std::string pszInfo ) { m_sInfo = pszInfo; }
     inline void SetInformation( const wchar_t* pszInfo ) { m_swInfo = pszInfo ? pszInfo : L""; }
 
  private:
@@ -252,11 +254,21 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError {
      *         Use the compiler macro __FILE__ to initialize the field.
      *  \param line the line in which the error has occured.
      *         Use the compiler macro __LINE__ to initialize the field.
-     *  \param pszInformation additional information on this error which mayy
-     *                        be formatted like printf
+     *  \param pszInformation additional information on this error
      */
     PdfError( const EPdfError & eCode, const char* pszFile = NULL, int line = 0, 
               const char* pszInformation = NULL );
+
+    /** Create a PdfError object with a given error code.
+     *  \param eCode the error code of this object
+     *  \param pszFile the file in which the error has occured. 
+     *         Use the compiler macro __FILE__ to initialize the field.
+     *  \param line the line in which the error has occured.
+     *         Use the compiler macro __LINE__ to initialize the field.
+     *  \param sInformation additional information on this error
+     */
+    explicit PdfError( const EPdfError & eCode, const char* pszFile, int line, 
+                        std::string sInformation );
 
     /** Copy constructor
      *  \param rhs copy the contents of rhs into this object
@@ -319,6 +331,21 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError {
      *  \param line    the line of source causing the error
      *                 or 0. Typically you will use the gcc 
      *                 macro __LINE__ here.
+     *  \param sInformation additional information on the error.
+     *         e.g. how to fix the error. This string is intended to 
+     *         be shown to the user.
+     */
+    inline void SetError( const EPdfError & eCode, const char* pszFile, int line,
+                        std::string sInformation );
+
+    /** Set the error code of this object.
+     *  \param eCode the error code of this object
+     *  \param pszFile the filename of the source file causing
+     *                 the error or NULL. Typically you will use
+     *                 the gcc macro __FILE__ here.
+     *  \param line    the line of source causing the error
+     *                 or 0. Typically you will use the gcc 
+     *                 macro __LINE__ here.
      *  \param pszInformation additional information on the error.
      *         e.g. how to fix the error. This string is intended to 
      *         be shown to the user.
@@ -353,6 +380,21 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError {
      *         be shown to the user.
      */
     inline void AddToCallstack( const char* pszFile = NULL, int line = 0, const char* pszInformation = NULL );
+
+	/** Add callstack information to an error object. Always call this function
+     *  if you get an error object but do not handle the error but throw it again.
+     *
+     *  \param pszFile the filename of the source file causing
+     *                 the error or NULL. Typically you will use
+     *                 the gcc macro __FILE__ here.
+     *  \param line    the line of source causing the error
+     *                 or 0. Typically you will use the gcc 
+     *                 macro __LINE__ here.
+     *  \param sInformation additional information on the error.
+     *         e.g. how to fix the error. This string is intended to 
+     *         be shown to the user.
+     */
+    inline void AddToCallstack( const char* pszFile, int line, std::string sInformation );
 
     /** \returns true if an error code was set 
      *           and false if the error code is ePdfError_ErrOk
@@ -485,6 +527,22 @@ void PdfError::AddToCallstack( const char* pszFile, int line, const char* pszInf
     m_callStack.push_front( PdfErrorInfo( line, pszFile, pszInformation ) );
 }
 
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfError::SetError( const EPdfError & eCode, const char* pszFile, int line, std::string sInformation )
+{
+    m_error = eCode;
+    this->AddToCallstack( pszFile, line, sInformation );
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfError::AddToCallstack( const char* pszFile, int line, std::string sInformation )
+{
+    m_callStack.push_front( PdfErrorInfo( line, pszFile, sInformation ) );
+}
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------

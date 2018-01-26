@@ -34,6 +34,7 @@
 #include "PdfPagesTree.h"
 
 #include "base/PdfDefinesPrivate.h"
+#include <algorithm>
 
 #include "base/PdfArray.h"
 #include "base/PdfDictionary.h"
@@ -478,7 +479,17 @@ PdfObject* PdfPagesTree::GetPageNodeFromArray( int nPageNum, const PdfArray & rK
         if( rVar.IsArray() ) 
         {
             // Fixes some broken PDFs who have trees with 1 element kids arrays
-            return GetPageNodeFromArray( 0, rVar.GetArray(), rLstParents );
+            // Recursive call removed to prevent stack overflow, replaced by:
+            // all the following inside this conditional, plus restart looping
+            const PdfArray & rVarArray = rVar.GetArray();
+            if (rVarArray.GetSize() == 0)
+            {
+                PdfError::LogMessage( eLogSeverity_Critical, "Trying to access"
+                    " first page index of empty array" );
+                return NULL;
+            }
+            rVar = rVarArray[0];
+            continue;
         }
         else if( !rVar.IsReference() )
         {
@@ -501,6 +512,18 @@ PdfObject* PdfPagesTree::GetPageNodeFromArray( int nPageNum, const PdfArray & rK
         {
             if( !pgObject->GetDictionary().HasKey( "Kids" ) )
                 return NULL;
+
+            if ( std::find( rLstParents.begin(), rLstParents.end(), pgObject )
+                != rLstParents.end() ) // cycle in parent list detected, fend
+            { // off security vulnerability CVE-2017-8054 (infinite recursion)
+                std::ostringstream oss;
+                oss << "Cycle in page tree: child in /Kids array of object "
+                    << ( *(rLstParents.rbegin()) )->Reference().ToString()
+                    << " back-references to object " << pgObject->Reference()
+                    .ToString() << " one of whose descendants the former is.";
+
+                PODOFO_RAISE_ERROR_INFO( ePdfError_PageNotFound, oss.str() );
+            }
 
             rLstParents.push_back( pgObject );
             rVar = *(pgObject->GetDictionary().GetKey( "Kids" ));
