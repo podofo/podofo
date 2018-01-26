@@ -50,6 +50,7 @@ class ColorTest : public CppUnit::TestFixture
     CPPUNIT_TEST( testColorCieLabConstructor );
 
     CPPUNIT_TEST( testRGBtoCMYKConversions );
+    CPPUNIT_TEST( testAssignNull );
 
     CPPUNIT_TEST_SUITE_END();
 
@@ -83,6 +84,7 @@ protected:
 
     void testRGBtoCMYKConversions();
 
+    void testAssignNull();
 };
 
 #endif
