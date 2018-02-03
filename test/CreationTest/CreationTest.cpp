@@ -511,7 +511,7 @@ void ImageTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     PdfPainter     pnt;    // XObject painter
 
 #ifdef PODOFO_HAVE_JPEG_LIB
-    image.LoadFromFile( "resources/lena.jpg" );
+    image.LoadFromFile( "resources/watzmann.jpg" );
 #endif // PODOFO_HAVE_JPEG_LIB
 
     pnt.SetPage( &xObj );
@@ -587,9 +587,9 @@ void EllipseTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->Ellipse( dX, dY, 20000 * CONVERSION_CONSTANT, 20000 * CONVERSION_CONSTANT );
     pPainter->Fill();
 
-    PdfFileSpec file( "resources/lena.jpg", true, pDocument );
+    PdfFileSpec file( "resources/watzmann.jpg", true, pDocument );
     pFileAnnotation =  pPage->CreateAnnotation( ePdfAnnotation_FileAttachement, PdfRect( 300.0, 400.0, 250.0, 50.0 ) );
-    pFileAnnotation->SetContents( "A JPEG image of Lena" );
+    pFileAnnotation->SetContents( "A JPEG image of the Watzmann mountain, taken by Dominik 2016-07-05." );
     pFileAnnotation->SetFileAttachement( file );
 }
 
