@@ -30,6 +30,8 @@
 class StringTest : public CppUnit::TestFixture
 {
     CPPUNIT_TEST_SUITE( StringTest );
+    CPPUNIT_TEST( testLibUnistringSimple );
+    CPPUNIT_TEST( testLibUnistringUtf8 );
     CPPUNIT_TEST( testGetStringUtf8 );
     CPPUNIT_TEST( testUtf16beContructor );
     CPPUNIT_TEST( testWCharConstructor );
@@ -43,7 +45,9 @@ class StringTest : public CppUnit::TestFixture
  public:
     void setUp();
     void tearDown();
-    
+
+    void testLibUnistringSimple();
+    void testLibUnistringUtf8();
     void testGetStringUtf8();
     void testUtf16beContructor();
     void testWCharConstructor();
@@ -54,7 +58,7 @@ class StringTest : public CppUnit::TestFixture
     
  private:
     void TestWriteEscapeSequences(const char* pszSource, const char* pszExpected);
-
+    void TestLibUnistringInternal(const char* pszString, const long lLenUtf8, const long lLenUtf16);
 };
 
 #endif // __clang__

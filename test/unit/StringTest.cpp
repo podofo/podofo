@@ -42,6 +42,65 @@ void StringTest::tearDown()
 {
 }
 
+void print(pdf_utf16be* pszUtf16, pdf_long lLen)
+{
+    printf("start lLen=%li\n", lLen);
+
+    const char* pszTmp = reinterpret_cast<const char*>(pszUtf16);
+    for(int i=0;i<lLen*2;i++) {
+        printf("pos=%i %02x\n", i, pszTmp[i] );
+    }
+
+    printf("UTF16:\n");
+    for(int i=0;i<lLen;i++) {
+        printf("pos=%i %02x\n", i, pszUtf16[i] );
+    }
+    
+    
+    printf("ende\n");
+}
+
+void StringTest::TestLibUnistringInternal(const char* pszString, const long lLenUtf8, const long lLenUtf16)
+{
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "Test initial string len.", static_cast<size_t>(lLenUtf8), strlen(pszString) );
+    
+    pdf_utf16be pszUtf16[lLenUtf16 + 1];
+    pdf_long result1 = PdfString::ConvertUTF8toUTF16( reinterpret_cast<const pdf_utf8*>(pszString), lLenUtf8, pszUtf16, lLenUtf16 + 1 );
+
+    print(pszUtf16, result1);
+    
+    // Buffer is one byte longer, because it ends with two zero bytes
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "Comparing length of output buffer after utf8 -> utf16 conversion.", lLenUtf16 + 1, result1 );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "Make sure utf16 string is 0 terminated.", static_cast<pdf_utf16be>(0), pszUtf16[result1-1] );
+    
+    pdf_utf8 pszUtf8[lLenUtf8 + 1];
+    pdf_long result2 = PdfString::ConvertUTF16toUTF8( pszUtf16, lLenUtf16, pszUtf8, lLenUtf8 + 1 );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "Comparing length of output buffer after utf8 -> utf16 -> utf8 conversion.", lLenUtf8 + 1, result2 );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "Make sure utf8 string is 0 terminated.", static_cast<pdf_utf8>(0), pszUtf8[result2 - 1] );
+
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "Comparing input string after utf8 -> utf16 -> utf8", strncmp(pszString, reinterpret_cast<char*>(pszUtf8), lLenUtf8 ), 0);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "Comparing string length after utf8 -> utf16 -> utf8", static_cast<size_t>(lLenUtf8), strlen(reinterpret_cast<char*>(pszUtf8)) );
+}
+
+void StringTest::testLibUnistringSimple()
+{
+    const pdf_long lLenUtf8 = 13;
+    const char* pszString = "Hallo PoDoFo!";
+    const pdf_long lLenUtf16 = lLenUtf8;
+    
+    TestLibUnistringInternal(pszString, lLenUtf8, lLenUtf16);
+}
+
+void StringTest::testLibUnistringUtf8()
+{
+    const char* pszStringJapUtf8 = "「PoDoFo」は今から日本語も話せます。";
+    const pdf_long lLenUtf8 = strlen(pszStringJapUtf8);
+    const pdf_long lLenUtf16 = 21;
+
+    TestLibUnistringInternal(pszStringJapUtf8, lLenUtf8, lLenUtf16);
+}
+
+
 void StringTest::testGetStringUtf8()
 {
     const std::string src1 = "Hello World!";
@@ -199,40 +258,40 @@ void StringTest::testEscapeBrackets()
 
 void StringTest::testWriteEscapeSequences()
 {
-    TestWriteEscapeSequences("(Hello\\nWorld)", "(Hello\\nWorld)");
+    TestWriteEscapeSequences("(1Hello\\nWorld)", "(1Hello\\nWorld)");
     TestWriteEscapeSequences("(Hello\nWorld)", "(Hello\\nWorld)");
     TestWriteEscapeSequences("(Hello\012World)", "(Hello\\nWorld)");
     TestWriteEscapeSequences("(Hello\\012World)", "(Hello\\nWorld)");
 
-    TestWriteEscapeSequences("(Hello\\rWorld)", "(Hello\\rWorld)");
+    TestWriteEscapeSequences("(2Hello\\rWorld)", "(2Hello\\rWorld)");
     TestWriteEscapeSequences("(Hello\rWorld)", "(Hello\\rWorld)");
     TestWriteEscapeSequences("(Hello\015World)", "(Hello\\rWorld)");
     TestWriteEscapeSequences("(Hello\\015World)", "(Hello\\rWorld)");
 
-    TestWriteEscapeSequences("(Hello\\tWorld)", "(Hello\\tWorld)");
+    TestWriteEscapeSequences("(3Hello\\tWorld)", "(3Hello\\tWorld)");
     TestWriteEscapeSequences("(Hello\tWorld)", "(Hello\\tWorld)");
     TestWriteEscapeSequences("(Hello\011World)", "(Hello\\tWorld)");
     TestWriteEscapeSequences("(Hello\\011World)", "(Hello\\tWorld)");
 
-    TestWriteEscapeSequences("(Hello\\fWorld)", "(Hello\\fWorld)");
+    TestWriteEscapeSequences("(4Hello\\fWorld)", "(4Hello\\fWorld)");
     TestWriteEscapeSequences("(Hello\fWorld)", "(Hello\\fWorld)");
     TestWriteEscapeSequences("(Hello\014World)", "(Hello\\fWorld)");
     TestWriteEscapeSequences("(Hello\\014World)", "(Hello\\fWorld)");
 
-    TestWriteEscapeSequences("(Hello\\(World)", "(Hello\\(World)");
+    TestWriteEscapeSequences("(5Hello\\(World)", "(5Hello\\(World)");
     TestWriteEscapeSequences("(Hello\\050World)", "(Hello\\(World)");
 
-    TestWriteEscapeSequences("(Hello\\)World)", "(Hello\\)World)");
+    TestWriteEscapeSequences("(6Hello\\)World)", "(6Hello\\)World)");
     TestWriteEscapeSequences("(Hello\\051World)", "(Hello\\)World)");
 
-    TestWriteEscapeSequences("(Hello\\\\World)", "(Hello\\\\World)");
+    TestWriteEscapeSequences("(7Hello\\\\World)", "(7Hello\\\\World)");
     TestWriteEscapeSequences("(Hello\\\134World)", "(Hello\\\\World)");
 
     // Special case, \ at end of line
-    TestWriteEscapeSequences("(Hello\\\nWorld)", "(HelloWorld)");
+    TestWriteEscapeSequences("(8Hello\\\nWorld)", "(8HelloWorld)");
 
 
-    TestWriteEscapeSequences("(Hello\003World)", "(Hello\003World)");
+    TestWriteEscapeSequences("(9Hello\003World)", "(9Hello\003World)");
 }
 
 void StringTest::TestWriteEscapeSequences(const char* pszSource, const char* pszExpected)

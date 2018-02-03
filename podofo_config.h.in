@@ -58,3 +58,4 @@
 #cmakedefine PODOFO_HAVE_OPENSSL_1_1
 #cmakedefine PODOFO_HAVE_OPENSSL_NO_RC4
 #cmakedefine PODOFO_HAVE_LIBIDN
+#cmakedefine PODOFO_HAVE_UNISTRING_LIB
