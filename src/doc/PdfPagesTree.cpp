@@ -479,7 +479,18 @@ PdfObject* PdfPagesTree::GetPageNodeFromArray( int nPageNum, const PdfArray & rK
         if( rVar.IsArray() ) 
         {
             // Fixes some broken PDFs who have trees with 1 element kids arrays
-            return GetPageNodeFromArray( 0, rVar.GetArray(), rLstParents );
+            // Recursive call removed to prevent stack overflow, replaced by:
+            // all the following inside this conditional, plus restart looping
+            const PdfArray & rVarArray = rVar.GetArray();
+            if (rVarArray.GetSize() == 0)
+            {
+                PdfError::LogMessage( eLogSeverity_Critical, "Trying to access"
+                    " first page index of empty array" );
+                return NULL;
+            }
+            PdfVariant rVarFirstEntry = rVarArray[0]; // avoids use-after-free
+            rVar = rVarFirstEntry; // in this line (rVar-ref'd array is freed)
+            continue;
         }
         else if( !rVar.IsReference() )
         {
