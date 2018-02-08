@@ -479,8 +479,8 @@ PdfObject* PdfPagesTree::GetPageNodeFromArray( int nPageNum, const PdfArray & rK
         if( rVar.IsArray() ) 
         {
             // Fixes some broken PDFs who have trees with 1 element kids arrays
-            // Recursive call removed to prevent stack overflow, replaced by:
-            // all the following inside this conditional, plus restart looping
+            // Recursive call removed to prevent stack overflow (CVE-2017-8054)
+            // replaced by the following inside this conditional incl. continue
             const PdfArray & rVarArray = rVar.GetArray();
             if (rVarArray.GetSize() == 0)
             {
