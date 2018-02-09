@@ -31,7 +31,7 @@ inline std::ostream& operator<<(std::ostream& o, const PdfVariant& s)
     return o << str;
 }
 
-// Needs to be included after the redifition of operator<<
+// Needs to be included after the redefinition of operator<<
 // or it won't compile using clang
 #include "EncodingTest.h"
 
@@ -51,16 +51,16 @@ void EncodingTest::testDifferences()
     PdfEncodingDifference difference;
 
     // Newly created encoding should be empty
-    CPPUNIT_ASSERT_EQUAL( static_cast<int>(difference.GetCount()), 0 );
+    CPPUNIT_ASSERT_EQUAL( 0, static_cast<int>(difference.GetCount()) );
 
 
     // Adding 0 should work
     difference.AddDifference( 0, 0, PdfName("A") );
-    CPPUNIT_ASSERT_EQUAL( static_cast<int>(difference.GetCount()), 1 );
+    CPPUNIT_ASSERT_EQUAL( 1, static_cast<int>(difference.GetCount()) );
 
     // Adding 255 should work
     difference.AddDifference( 255, 0, PdfName("B") );
-    CPPUNIT_ASSERT_EQUAL( static_cast<int>(difference.GetCount()), 2 );
+    CPPUNIT_ASSERT_EQUAL( 2, static_cast<int>(difference.GetCount()) );
 
     // Adding out of range should throw exception
     CPPUNIT_ASSERT_THROW( difference.AddDifference( -1, 0, PdfName("C") );, PdfError );
@@ -78,9 +78,9 @@ void EncodingTest::testDifferences()
 
     difference.ToArray( data );
 
-    CPPUNIT_ASSERT_EQUAL( data.GetSize(), expected.GetSize() );
+    CPPUNIT_ASSERT_EQUAL( expected.GetSize(), data.GetSize() );
     for( unsigned int i=0;i<data.GetSize(); i++ )
-        CPPUNIT_ASSERT_EQUAL( data[i], expected[i] );
+        CPPUNIT_ASSERT_EQUAL( expected[i], data[i] );
 
 
     // Test replace
@@ -94,9 +94,9 @@ void EncodingTest::testDifferences()
 
     difference.ToArray( data );
 
-    CPPUNIT_ASSERT_EQUAL( data.GetSize(), expected.GetSize() );
+    CPPUNIT_ASSERT_EQUAL( expected.GetSize(), data.GetSize() );
     for( unsigned int i=0;i<data.GetSize(); i++ )
-        CPPUNIT_ASSERT_EQUAL( data[i], expected[i] );
+        CPPUNIT_ASSERT_EQUAL( expected[i], data[i] );
 
 
     // Test more complicated array
@@ -121,39 +121,39 @@ void EncodingTest::testDifferences()
 
     difference.ToArray( data );
 
-    CPPUNIT_ASSERT_EQUAL( data.GetSize(), expected.GetSize() );
+    CPPUNIT_ASSERT_EQUAL( expected.GetSize(), data.GetSize() );
     for( unsigned int i=0;i<data.GetSize(); i++ )
-        CPPUNIT_ASSERT_EQUAL( data[i], expected[i] );
+        CPPUNIT_ASSERT_EQUAL( expected[i], data[i] );
 
 
     // Test if contains works correctly
     PdfName name;
     pdf_utf16be value;
-    CPPUNIT_ASSERT_EQUAL( difference.Contains( 0, name, value ), true );
-    CPPUNIT_ASSERT_EQUAL( name, PdfName("A") ); 
+    CPPUNIT_ASSERT_EQUAL( true, difference.Contains( 0, name, value ) );
+    CPPUNIT_ASSERT_EQUAL( PdfName("A"), name ); 
 #ifdef PODOFO_IS_LITTLE_ENDIAN
-    CPPUNIT_ASSERT_EQUAL( static_cast<int>(value), 0x4100 ); 
+    CPPUNIT_ASSERT_EQUAL( 0x4100, static_cast<int>(value) ); 
 #else
-    CPPUNIT_ASSERT_EQUAL( static_cast<int>(value), 0x0041 ); 
+    CPPUNIT_ASSERT_EQUAL( 0x0041, static_cast<int>(value) ); 
 #endif //PODOFO_IS_LITTLE_ENDIAN
 
-    CPPUNIT_ASSERT_EQUAL( difference.Contains( 9, name, value ), true );
-    CPPUNIT_ASSERT_EQUAL( name, PdfName("F") ); 
+    CPPUNIT_ASSERT_EQUAL( true, difference.Contains( 9, name, value ) );
+    CPPUNIT_ASSERT_EQUAL( PdfName("F"), name ); 
 #ifdef PODOFO_IS_LITTLE_ENDIAN
-    CPPUNIT_ASSERT_EQUAL( static_cast<int>(value), 0x4600 ); 
+    CPPUNIT_ASSERT_EQUAL( 0x4600, static_cast<int>(value) ); 
 #else
-    CPPUNIT_ASSERT_EQUAL( static_cast<int>(value), 0x0046 ); 
+    CPPUNIT_ASSERT_EQUAL( 0x0046, static_cast<int>(value) ); 
 #endif //PODOFO_IS_LITTLE_ENDIAN
 
-    CPPUNIT_ASSERT_EQUAL( difference.Contains( 255, name, value ), true );
-    CPPUNIT_ASSERT_EQUAL( name, PdfName("X") ); 
+    CPPUNIT_ASSERT_EQUAL( true, difference.Contains( 255, name, value ) );
+    CPPUNIT_ASSERT_EQUAL( PdfName("X"), name ); 
 #ifdef PODOFO_IS_LITTLE_ENDIAN
-    CPPUNIT_ASSERT_EQUAL( static_cast<int>(value), 0x5800 ); 
+    CPPUNIT_ASSERT_EQUAL( 0x5800, static_cast<int>(value) ); 
 #else
-    CPPUNIT_ASSERT_EQUAL( static_cast<int>(value), 0x0058 ); 
+    CPPUNIT_ASSERT_EQUAL( 0x0058, static_cast<int>(value) ); 
 #endif //PODOFO_IS_LITTLE_ENDIAN
 
-    CPPUNIT_ASSERT_EQUAL( difference.Contains( 100, name,value ), false );
+    CPPUNIT_ASSERT_EQUAL( false, difference.Contains( 100, name,value ) );
    
 }
 
@@ -182,7 +182,7 @@ void EncodingTest::testDifferencesObject()
 
     // Test BaseEncoding
     PdfObject* pBase = pEncoding->GetDictionary().GetKey( PdfName("BaseEncoding" ) );
-    CPPUNIT_ASSERT_EQUAL( pBase->GetName(), PdfName("MacRomanEncoding") );
+    CPPUNIT_ASSERT_EQUAL( PdfName("MacRomanEncoding"), pBase->GetName() );
     
     // Test differences
     PdfObject* pDiff = pEncoding->GetDictionary().GetKey( PdfName("Differences" ) );
@@ -198,9 +198,9 @@ void EncodingTest::testDifferencesObject()
     expected.push_back( PdfName("F") );
 
     const PdfArray & data = pDiff->GetArray();
-    CPPUNIT_ASSERT_EQUAL( data.GetSize(), expected.GetSize() );
+    CPPUNIT_ASSERT_EQUAL( expected.GetSize(), data.GetSize() );
     for( unsigned int i=0;i<data.GetSize(); i++ )
-        CPPUNIT_ASSERT_EQUAL( data[i], expected[i] );
+        CPPUNIT_ASSERT_EQUAL( expected[i], data[i] );
 }
 
 void EncodingTest::testDifferencesEncoding()
@@ -221,7 +221,7 @@ void EncodingTest::testDifferencesEncoding()
     PdfRefCountedBuffer encodingStr = encoding.ConvertToEncoding( PdfString("ABBAD"), NULL );
     CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(5), encodingStr.GetSize() );
     PdfString str(reinterpret_cast<pdf_utf16be*>(encodingStr.GetBuffer()), encodingStr.GetSize());
-    CPPUNIT_ASSERT_EQUAL( memcmp("BAABC", encodingStr.GetBuffer(), encodingStr.GetSize()), 0 );
+    CPPUNIT_ASSERT_EQUAL( 0, memcmp("BAABC", encodingStr.GetBuffer(), encodingStr.GetSize()) );
 }
 
 void EncodingTest::testUnicodeNames()
@@ -280,7 +280,7 @@ void EncodingTest::testUnicodeNames()
 
         if( !bFound )
         {
-            // Does not work because of 2 many duplicates...
+            // Does not work because of too many duplicates...
             //CPPUNIT_ASSERT_EQUAL_MESSAGE( name.GetName(), id, static_cast<pdf_utf16be>(i) );
             if( id == static_cast<pdf_utf16be>(i) )
                 ++nCount;
@@ -297,15 +297,15 @@ void EncodingTest::testGetCharCode()
 
     PdfWinAnsiEncoding cWinAnsiEncoding;
     ret = outofRangeHelper( &cWinAnsiEncoding, msg, "PdfWinAnsiEncoding" );
-    CPPUNIT_ASSERT_EQUAL_MESSAGE( msg, ret, true );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( msg, true, ret );
 
     PdfMacRomanEncoding cMacRomanEncoding;
     ret = outofRangeHelper( &cMacRomanEncoding, msg, "PdfMacRomanEncoding" );
-    CPPUNIT_ASSERT_EQUAL_MESSAGE( msg, ret, true );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( msg, true, ret );
 
     PdfIdentityEncoding cIdentityEncoding;
     ret = outofRangeHelper( &cIdentityEncoding, msg, "PdfIdentityEncoding" );
-    CPPUNIT_ASSERT_EQUAL_MESSAGE( msg, ret, true );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( msg, true, ret );
 
     PdfVecObjects vec;
     vec.SetAutoDelete( true );
@@ -314,7 +314,7 @@ void EncodingTest::testGetCharCode()
     difference.AddDifference( 0x0042, 0, PdfName("A") );
     PdfDifferenceEncoding cDifferenceEncoding( difference, PdfDifferenceEncoding::eBaseEncoding_WinAnsi, &vec );
     ret = outofRangeHelper( &cDifferenceEncoding, msg, "PdfDifferenceEncoding" );
-    CPPUNIT_ASSERT_EQUAL_MESSAGE( msg, ret, true );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( msg, true, ret );
 
 #ifdef PODOFO_IS_LITTLE_ENDIAN
     CPPUNIT_ASSERT_EQUAL( static_cast<pdf_utf16be>(0x4200), cDifferenceEncoding.GetCharCode( 0x0041 ) );
