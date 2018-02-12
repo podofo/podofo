@@ -1,6 +1,5 @@
 
 INSTALL(FILES
-  podofobox.1
   podofocolor.1
   podofocountpages.1
   podofocrop.1
