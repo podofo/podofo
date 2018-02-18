@@ -302,11 +302,15 @@ void PdfObject::FlateCompressStream()
 
 const PdfObject & PdfObject::operator=( const PdfObject & rhs )
 {
+    if( &rhs == this)
+        return *this;
+
     // DS: If you change this code, also change the copy constructor.
     //     As the copy constructor is called very often,
     //     it contains a copy of parts of this code to be faster.
 
     delete m_pStream;
+    m_pStream = NULL;
 
     const_cast<PdfObject*>(&rhs)->DelayedStreamLoad();
 
