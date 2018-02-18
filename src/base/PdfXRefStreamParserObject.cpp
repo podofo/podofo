@@ -38,7 +38,7 @@
 #include "PdfStream.h"
 #include "PdfVariant.h"
 
-#include <stdio.h>
+#include <limits>
 
 namespace PoDoFo {
 
@@ -122,12 +122,26 @@ void PdfXRefStreamParserObject::ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], c
 {
     char*        pBuffer;
     pdf_long     lBufferLen;
-    const size_t entryLen  = static_cast<size_t>(nW[0] + nW[1] + nW[2]);
 
-    if( nW[0] + nW[1] + nW[2] < 0 )
+    for(pdf_int64 nLengthSum = 0, i = 0; i < W_ARRAY_SIZE; i++ )
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_NoXRef, "Invalid entry length in XRef stream" );
+        if ( nW[i] < 0 )
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_NoXRef,
+                                    "Negative field length in XRef stream" );
+        }
+        if ( std::numeric_limits<pdf_int64>::max() - nLengthSum < nW[i] )
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_NoXRef,
+                                    "Invalid entry length in XRef stream" );
+        }
+        else
+        {
+            nLengthSum += nW[i];
+        }
     }
+
+    const size_t entryLen  = static_cast<size_t>(nW[0] + nW[1] + nW[2]);
 
     this->GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
 
