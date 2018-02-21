@@ -570,13 +570,6 @@ PdfColorSeparation::~PdfColorSeparation()
 
 const PdfColor & PdfColor::operator=( const PdfColor & rhs )
 {
-    // Null check necessary due to memcpy despite compiler warning.
-    // See: CVE-2017-6845
-    if( NULL == &rhs )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-    
     if ( this != &rhs )
     {
          memcpy( &m_uColor, &rhs.m_uColor, sizeof(m_uColor) );

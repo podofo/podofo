@@ -2474,14 +2474,3 @@ void ColorTest::testRGBtoCMYKConversions()
     }
 }
 
-// See: CVE-2017-6845
-void ColorTest::testAssignNull()
-{
-    PdfColor c;
-    PdfColor* pNull = NULL;
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE( 
-        (c = *pNull), 
-        PdfError, 
-        ePdfError_InvalidHandle);
-}
