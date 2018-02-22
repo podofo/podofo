@@ -169,18 +169,8 @@ enum ELogSeverity {
  *
  *  Evaluate `x' as a binary predicate and if it is true, raise a logic error with the
  *  info string `y' .
- *
- *  This macro will be undefined when NDEBUG is set, so it's compiled out for release
- *  builds. Use it for expensive or extremely frequent sanity checking.
- *
- *  We define it then UNDEF it to help out doxygen.
  */
-#ifndef NDEBUG
-    // Woo for double-negatives. We define PODOFO_RAISE_LOGIC_IF unless we've been told not to by NDEBUG.
-    #define PODOFO_RAISE_LOGIC_IF( x, y ) { if (x) throw ::PoDoFo::PdfError( ePdfError_InternalLogic, __FILE__, __LINE__, y ); };
-#else
-    #define PODOFO_RAISE_LOGIC_IF( x, y ) {};
-#endif
+#define PODOFO_RAISE_LOGIC_IF( x, y ) { if (x) throw ::PoDoFo::PdfError( ePdfError_InternalLogic, __FILE__, __LINE__, y ); };
 
 class PODOFO_API PdfErrorInfo {
  public:
