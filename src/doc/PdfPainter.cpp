@@ -1320,7 +1320,7 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 
 void PdfPainter::DrawImage( double dX, double dY, PdfImage* pObject, double dScaleX, double dScaleY )
 {
-    this->DrawXObject( dX, dY, reinterpret_cast<PdfXObject*>(pObject), 
+    this->DrawXObject( dX, dY, pObject, 
                        dScaleX * pObject->GetPageSize().GetWidth(), 
                        dScaleY * pObject->GetPageSize().GetHeight() );
 }
