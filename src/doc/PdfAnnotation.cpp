@@ -93,10 +93,6 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
     }
 
     rRect.ToVariant( rect );
-
-    this->GetObject()->GetDictionary().AddKey( PdfName::KeyRect, rect );
-
-    rRect.ToVariant( rect );
     date.ToString( sDate );
     
     this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, name );
