@@ -247,11 +247,13 @@ PdfPage* PdfPagesTree::InsertPage( const PdfRect & rSize, int atIndex)
 {
     PdfPage* pPage = new PdfPage( rSize, GetRoot()->GetOwner() );
 
-	 if (atIndex < 0 || atIndex >= this->GetTotalNumberOfPages()) {
-		 atIndex = this->GetTotalNumberOfPages() - 1;
-	 }
+    int pageCount;
+    if ( atIndex < 0 )
+        atIndex = 0;
+    else if ( atIndex > ( pageCount = this->GetTotalNumberOfPages() ) )
+        atIndex = pageCount;
 
-	 InsertPage( atIndex - 1, pPage );
+    InsertPage( atIndex - 1, pPage );
     m_cache.AddPageObject( atIndex, pPage );
 
     return pPage;
