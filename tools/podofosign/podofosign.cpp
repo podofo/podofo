@@ -876,7 +876,7 @@ int main( int argc, char* argv[] )
     }
 
 #ifdef PODOFO_HAVE_OPENSSL_1_1
-    OPENSSL_init_ssl(0, NULL);
+    OPENSSL_init_crypto(0, NULL);
 #else
     OpenSSL_add_all_algorithms();
     ERR_load_crypto_strings();
