@@ -196,7 +196,7 @@ void PdfWriter::Write( PdfOutputDevice* pDevice, bool bRewriteXRefTable )
                 trailer.WriteObject( pDevice, m_eWriteMode, NULL ); // Do not encrypt the trailer dictionary!!!
             }
             
-            pDevice->Print( "startxref\n%li\n%%%%EOF\n", pXRef->GetOffset() );
+            pDevice->Print( "startxref\n%" PDF_FORMAT_UINT64 "\n%%%%EOF\n", pXRef->GetOffset() );
             delete pXRef;
         } catch( PdfError & e ) {
             // Make sure pXRef is always deleted

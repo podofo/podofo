@@ -97,9 +97,9 @@ void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const pdf_long l
         }
     }
 
-    printf("\t-> Original Data Length: %li\n", lTestLength );
-    printf("\t-> Encoded  Data Length: %li\n", lEncoded );
-    printf("\t-> Decoded  Data Length: %li\n", lDecoded );
+    printf("\t-> Original Data Length: %" PDF_FORMAT_INT64 "\n", lTestLength );
+    printf("\t-> Encoded  Data Length: %" PDF_FORMAT_INT64 "\n", lEncoded );
+    printf("\t-> Decoded  Data Length: %" PDF_FORMAT_INT64 "\n", lDecoded );
 
     if( static_cast<pdf_long>(lTestLength) != lDecoded )
     {
@@ -168,8 +168,8 @@ void test_filter_queue( const char* pBuffer, long lLen )
     pDecoded = stream2.TakeBuffer();
 
     printf("\t-> Original Data Length: %li\n", lLen );
-    printf("\t-> Encoded  Data Length: %li\n", lEncoded );
-    printf("\t-> Decoded  Data Length: %li\n", lDecoded );
+    printf("\t-> Encoded  Data Length: %" PDF_FORMAT_INT64 "\n", lEncoded );
+    printf("\t-> Decoded  Data Length: %" PDF_FORMAT_INT64 "\n", lDecoded );
 
     if( lDecoded != lLen )
     {
@@ -205,9 +205,9 @@ void test_stream( const char* pBuffer, pdf_long lLen )
     stream.Set( const_cast<char*>(pBuffer), lLen );
     stream.GetFilteredCopy( &pDecoded, &lDecoded );
 
-    printf("\t-> Original Data Length: %li\n", lLen );
-    printf("\t-> Encoded  Data Length: %lu\n", stream.GetLength() );
-    printf("\t-> Decoded  Data Length: %li\n", lDecoded );
+    printf("\t-> Original Data Length: %" PDF_FORMAT_INT64 "\n", lLen );
+    printf("\t-> Encoded  Data Length: %" PDF_FORMAT_UINT64 "\n", stream.GetLength() );
+    printf("\t-> Decoded  Data Length: %" PDF_FORMAT_INT64 "\n", lDecoded );
 
     if( lDecoded != lLen )
     {
@@ -275,8 +275,8 @@ int main()
         if( static_cast<pdf_long>(strlen(pszInputAscii85Lzw)) != lLargeBufer2 )
         {
             fprintf( stderr, "ROACH Error: Decoded Length != Original Length\n");
-            fprintf( stderr, "ROACH Original: %li\n", strlen(pszInputAscii85Lzw) );
-            fprintf( stderr, "ROACH Encode: %li\n", lLargeBufer2 );
+            fprintf( stderr, "ROACH Original: %" PDF_FORMAT_UINT64 "\n", static_cast<pdf_uint64>(strlen(pszInputAscii85Lzw)) );
+            fprintf( stderr, "ROACH Encode: %" PDF_FORMAT_INT64 "\n", lLargeBufer2 );
             PODOFO_RAISE_ERROR( ePdfError_TestFailed );
         }
 

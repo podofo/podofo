@@ -138,7 +138,7 @@ void PdfImmediateWriter::Finish()
         trailer.WriteObject( m_pDevice, this->GetWriteMode(), NULL );
     }
     
-    m_pDevice->Print( "startxref\n%li\n%%%%EOF\n", lXRefOffset );
+    m_pDevice->Print( "startxref\n%" PDF_FORMAT_INT64 "\n%%%%EOF\n", lXRefOffset );
     m_pDevice->Flush();
 
     // we are done now

@@ -845,9 +845,9 @@ int main( int argc, char* argv[] )
 
         printf("PoDoFo DataType Size Information:\n");
         printf("---\n");
-        printf("sizeof variant=%lu\n", sizeof(PdfVariant) );
-        printf("sizeof object=%lu\n", sizeof(PdfObject) );
-        printf("sizeof reference=%lu\n", sizeof(PdfReference) );
+        printf("sizeof variant=%" PDF_FORMAT_UINT64 "\n", static_cast<pdf_uint64>(sizeof(PdfVariant)) );
+        printf("sizeof object=%" PDF_FORMAT_UINT64 "\n", static_cast<pdf_uint64>(sizeof(PdfObject)) );
+        printf("sizeof reference=%" PDF_FORMAT_UINT64 "\n", static_cast<pdf_uint64>(sizeof(PdfReference)) );
         printf("---\n\n");
 
         outlines = writer.GetOutlines();

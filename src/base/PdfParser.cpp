@@ -614,7 +614,7 @@ void PdfParser::ReadTrailer()
             throw e;
         }
 #ifdef PODOFO_VERBOSE_DEBUG
-        PdfError::DebugMessage("Size=%li\n", m_pTrailer->GetDictionary().GetKeyAsLong( PdfName::KeySize, 0 ) );
+        PdfError::DebugMessage("Size=%" PDF_FORMAT_INT64 "\n", m_pTrailer->GetDictionary().GetKeyAsLong( PdfName::KeySize, 0 ) );
 #endif // PODOFO_VERBOSE_DEBUG
     }
 }

@@ -118,7 +118,7 @@ void ImageExtractor::ExtractImage( PdfObject* pObject, bool bJpeg )
         // TODO: Handle colorspaces
 
         // Create a ppm image
-        const char* pszPpmHeader = "P6\n# Image extracted by PoDoFo\n%li %li\n%li\n";
+        const char* pszPpmHeader = "P6\n# Image extracted by PoDoFo\n%" PDF_FORMAT_INT64 " %" PDF_FORMAT_INT64 "\n%li\n";
         
         
         fprintf( hFile, pszPpmHeader, 
