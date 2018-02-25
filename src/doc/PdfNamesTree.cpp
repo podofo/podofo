@@ -315,8 +315,8 @@ bool PdfNameTreeNode::Rebalance()
         // of the children first,
         // because SetLimits( pParent )
         // depends on the /Limits key of all its children!
-        PdfNameTreeNode( NULL, pChild1 ).SetLimits();
-        PdfNameTreeNode( NULL, pChild2 ).SetLimits();
+        PdfNameTreeNode( m_pParent != NULL ? m_pParent : this, pChild1 ).SetLimits();
+        PdfNameTreeNode( this, pChild2 ).SetLimits();
 
         // limits do only change if splitting name arrays
         if( m_bHasKids ) 
