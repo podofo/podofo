@@ -111,7 +111,7 @@ static inline bool IsSpaceChar(pdf_utf16be ch)
 PdfPainter::PdfPainter()
 : m_pCanvas( NULL ), m_pPage( NULL ), m_pFont( NULL ), m_nTabWidth( 4 ),
   m_curColor( PdfColor( 0.0, 0.0, 0.0 ) ),
-  m_isTextOpen( false ), m_oss(), m_curPath()
+  m_isTextOpen( false ), m_oss(), m_curPath(), m_isCurColorICCDepend( false ), m_CSTag()
 {
     m_oss.flags( std::ios_base::fixed );
     m_oss.precision( clPainterDefaultPrecision );
@@ -373,6 +373,8 @@ void PdfPainter::SetStrokingColor( const PdfColor & rColor )
 void PdfPainter::SetColor( const PdfColor & rColor )
 {
     PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );    
+
+    m_isCurColorICCDepend = false;
 
     m_oss.str("");
 
@@ -1811,7 +1813,20 @@ void PdfPainter::ConvertRectToBezier( double dX, double dY, double dWidth, doubl
 
 void PdfPainter::SetCurrentStrokingColor()
 {
-	SetStrokingColor( m_curColor );
+    if ( m_isCurColorICCDepend )
+    {
+        m_oss.str("");
+        m_oss << "/" << m_CSTag     << " CS ";
+        m_oss << m_curColor.GetRed()   << " "
+              << m_curColor.GetGreen() << " "
+              << m_curColor.GetBlue()
+              << " SC" << std::endl;
+        m_pCanvas->Append( m_oss.str() );
+    }
+    else
+    {
+        SetStrokingColor( m_curColor );
+    }
 }
 
 void PdfPainter::SetTransformationMatrix( double a, double b, double c, double d, double e, double f )
@@ -1851,6 +1866,21 @@ void PdfPainter::SetRenderingIntent( char* intent )
     m_oss.str("");
     m_oss << "/" << intent
           << " ri" << std::endl;
+    m_pCanvas->Append( m_oss.str() );
+}
+
+void PdfPainter::SetDependICCProfileColor( const PdfColor &rColor, const std::string &pCSTag )
+{
+    m_isCurColorICCDepend = true;
+    m_curColor = rColor;
+    m_CSTag = pCSTag;
+
+    m_oss.str("");
+    m_oss << "/" << m_CSTag << " cs ";
+    m_oss << rColor.GetRed()   << " "
+          << rColor.GetGreen() << " "
+          << rColor.GetBlue()
+          << " sc" << std::endl;
     m_pCanvas->Append( m_oss.str() );
 }
 

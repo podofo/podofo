@@ -40,6 +40,7 @@
 #include "base/PdfVariant.h"
 #include "base/PdfWriter.h"
 #include "base/PdfStream.h"
+#include "base/PdfColor.h"
 
 #include "PdfDocument.h"
 
@@ -721,6 +722,35 @@ PdfObject* PdfPage::GetOwnAnnotationsArray( bool bCreate, PdfDocument *pDocument
     }
 
     return NULL;
+}
+
+void PdfPage::SetICCProfile( const char *pszCSTag, PdfInputStream *pStream, pdf_int64 nColorComponents, EPdfColorSpace eAlternateColorSpace )
+{
+    // Check nColorComponents for a valid value
+    if ( nColorComponents != 1 &&
+         nColorComponents != 3 &&
+         nColorComponents != 4 )
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange, "SetICCProfile nColorComponents must be 1, 3 or 4!" );
+    }
+
+    // Create a colorspace object
+    PdfObject* iccObject = this->GetObject()->GetOwner()->CreateObject();
+    PdfName nameForCS = PdfColor::GetNameForColorSpace( eAlternateColorSpace );
+    iccObject->GetDictionary().AddKey( PdfName("Alternate"), nameForCS );
+    iccObject->GetDictionary().AddKey( PdfName("N"), nColorComponents );
+    iccObject->GetStream()->Set( pStream );
+
+    // Add the colorspace
+    PdfArray array;
+    array.push_back( PdfName("ICCBased") );
+    array.push_back( iccObject->Reference() );
+
+    PoDoFo::PdfDictionary iccBasedDictionary;
+    iccBasedDictionary.AddKey( PdfName(pszCSTag), array );
+
+    // Add the colorspace to resource
+    GetResources()->GetDictionary().AddKey( PdfName("ColorSpace"), iccBasedDictionary );
 }
 
 

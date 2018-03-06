@@ -768,6 +768,15 @@ class PODOFO_DOC_API PdfPainter {
      */
     inline std::ostringstream &GetCurrentPath(void);
 
+    /** Set rgb color that depend on color space setting, "cs" tag.
+     *
+     * \param rColor a PdfColor object
+     * \param pCSTag a CS tag used in PdfPage::SetICCProfile
+     *
+     * \see PdfPage::SetICCProfile()
+     */
+    void SetDependICCProfileColor( const PdfColor & rColor, const std::string & pCSTag );
+
  protected:
  
     /** Coverts a rectangle to an array of points which can be used 
@@ -867,6 +876,13 @@ class PODOFO_DOC_API PdfPainter {
     /** current path
      */
     std::ostringstream  m_curPath;
+
+    /** True if should use color with ICC Profile
+     */
+    bool m_isCurColorICCDepend;
+    /** ColorSpace tag
+     */
+    std::string m_CSTag;
 
     EPdfTextRenderingMode currentTextRenderingMode;
     void SetCurrentTextRenderingMode( void );

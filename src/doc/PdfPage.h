@@ -50,6 +50,7 @@ namespace PoDoFo {
 class PdfDocument;
 class PdfDictionary;
 class PdfVecObjects;
+class PdfInputStream;
 
 typedef std::map<PdfReference,PdfAnnotation*> TMapAnnotation;
 typedef TMapAnnotation::iterator              TIMapAnnotation;
@@ -268,6 +269,17 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
 
     PdfObject* GetOwnAnnotationsArray( bool bCreate, PdfDocument *pDocument);
 
+    /** Set an ICC profile for this page
+     *
+     *  \param pszCSTag a ColorSpace tag
+     *  \param pStream an input stream from which the ICC profiles data can be read
+     *  \param nColorComponents the number of colorcomponents of the ICC profile (expected is 1, 3 or 4 components)
+     *  \param eAlternateColorSpace an alternate colorspace to use if the ICC profile cannot be used
+     *
+     *  \see PdfPainter::SetDependICCProfileColor()
+     */
+    virtual void SetICCProfile( const char* pszCSTag, PdfInputStream* pStream, pdf_int64 nColorComponents,
+                                EPdfColorSpace eAlternateColorSpace = ePdfColorSpace_DeviceRGB );
  private:
 
     /**
