@@ -960,7 +960,9 @@ static bool isLegalUTF8(const pdf_utf8 *source, int length) {
     default: return false;
 	/* Everything else falls through when "true"... */
     case 4: if ((a = (*--srcptr)) < 0x80 || a > 0xBF) return false;
+    // fall through
     case 3: if ((a = (*--srcptr)) < 0x80 || a > 0xBF) return false;
+    // fall through
     case 2: if ((a = (*--srcptr)) > 0xBF) return false;
 
 	switch (*source) {
@@ -972,6 +974,7 @@ static bool isLegalUTF8(const pdf_utf8 *source, int length) {
 	    default:   if (a < 0x80) return false;
 	}
 
+    // fall through
     case 1: if (*source >= 0x80 && *source < 0xC2) return false;
     }
     if (*source > 0xF4) return false;
@@ -1026,10 +1029,15 @@ pdf_long PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_long lLenUt
 	 */
 	switch (extraBytesToRead) {
 	    case 5: ch += *source++; ch <<= 6; /* remember, illegal UTF-8 */
+            // fall through
 	    case 4: ch += *source++; ch <<= 6; /* remember, illegal UTF-8 */
+            // fall through
 	    case 3: ch += *source++; ch <<= 6;
+            // fall through
 	    case 2: ch += *source++; ch <<= 6;
+            // fall through
 	    case 1: ch += *source++; ch <<= 6;
+            // fall through
 	    case 0: ch += *source++;
 	}
 	ch -= offsetsFromUTF8[extraBytesToRead];
@@ -1185,8 +1193,11 @@ pdf_long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_long lL
         
             switch (bytesToWrite) { /* note: everything falls through. */
                 case 4: *--target = static_cast<pdf_utf8>((ch | byteMark) & byteMask); ch >>= 6;
+                // fall through
                 case 3: *--target = static_cast<pdf_utf8>((ch | byteMark) & byteMask); ch >>= 6;
+                // fall through
                 case 2: *--target = static_cast<pdf_utf8>((ch | byteMark) & byteMask); ch >>= 6;
+                // fall through
                 case 1: *--target = static_cast<pdf_utf8>(ch | firstByteMark[bytesToWrite]);
             }
             target += bytesToWrite;
