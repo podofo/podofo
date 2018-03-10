@@ -220,7 +220,6 @@ void EncodingTest::testDifferencesEncoding()
 
     PdfRefCountedBuffer encodingStr = encoding.ConvertToEncoding( PdfString("ABBAD"), NULL );
     CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(5), encodingStr.GetSize() );
-    PdfString str(reinterpret_cast<pdf_utf16be*>(encodingStr.GetBuffer()), encodingStr.GetSize());
     CPPUNIT_ASSERT_EQUAL( 0, memcmp("BAABC", encodingStr.GetBuffer(), encodingStr.GetSize()) );
 }
 

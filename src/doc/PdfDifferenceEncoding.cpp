@@ -2639,6 +2639,9 @@ PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & 
     for( int i=0;i<lLen;i++ ) 
     {
         pdf_utf16be val = pszUtf16[i];
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+        val = ((val & 0xff00) >> 8) | ((val & 0xff) << 8);
+#endif // PODOFO_IS_LITTLE_ENDIAN
 
         if (!m_differences.ContainsUnicodeValue(val, *pCur))
 	{
