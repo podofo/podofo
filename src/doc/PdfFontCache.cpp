@@ -487,7 +487,7 @@ PdfFont* PdfFontCache::GetFont( const wchar_t* pszFontName, bool bBold, bool bIt
     {
         PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
     }
-    if (wcstombs(pmbFontName, pszFontName, lMaxLen) == -1)
+    if( wcstombs(pmbFontName, pszFontName, lMaxLen) == static_cast<size_t>(-1) )
     {
         podofo_free(pmbFontName);
         PODOFO_RAISE_ERROR_INFO(ePdfError_InternalLogic, "Conversion to multibyte char failed");
@@ -785,7 +785,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
         PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
     }
 
-    if( wcstombs( pmbFontName, logFont.lfFaceName, lMaxLen ) == -1 )
+    if( wcstombs( pmbFontName, logFont.lfFaceName, lMaxLen ) == static_cast<size_t>(-1) )
     {
         podofo_free( pmbFontName );
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Conversion to multibyte char failed" );
