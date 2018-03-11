@@ -680,8 +680,13 @@ PdfObject* PdfPage::GetFromResources( const PdfName & rType, const PdfName & rKe
         PdfObject* pType = m_pResources->GetIndirectKey( rType );
         if( pType && pType->IsDictionary() && pType->GetDictionary().HasKey( rKey ) )
         {
-            const PdfReference & ref = pType->GetDictionary().GetKey( rKey )->GetReference();
-            return this->GetObject()->GetOwner()->GetObject( ref );
+            PdfObject* pObj = pType->GetDictionary().GetKey( rKey ); // CB 08.12.2017 Can be an array
+            if (pObj->IsReference())
+            {
+                const PdfReference & ref = pType->GetDictionary().GetKey( rKey )->GetReference();
+                return this->GetObject()->GetOwner()->GetObject( ref );
+            }
+            return pObj; // END
         }
     }
     
