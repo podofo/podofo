@@ -226,14 +226,17 @@ SET(PODOFO_DOC_HEADERS
   doc/PdfXObject.h
   )
 
+SET(PODOFO_HEADER_FILES
+  ${PODOFO_HEADERS}
+  ${PODOFO_BASE_HEADERS}
+  ${PODOFO_BASE_HEADERS2}
+  ${PODOFO_DOC_HEADERS}
+  )
+
 # Create a Source Group for Visual Studio
 # so that headers are listed in the folder view
 # and are easier accessible
-SOURCE_GROUP(Headers FILES 
-  ${PODOFO_HEADERS} 
-  ${PODOFO_BASE_HEADERS} 
-  ${PODOFO_BASE_HEADERS2} 
-  ${PODOFO_DOC_HEADERS})
+SOURCE_GROUP("Header Files" FILES ${PODOFO_HEADER_FILES})
 
 INSTALL(FILES ${PODOFO_HEADERS}
   DESTINATION "include/podofo"
@@ -257,7 +260,7 @@ ENDIF(NOT PODOFO_BUILD_SHARED AND NOT PODOFO_BUILD_STATIC)
 
 IF(PODOFO_BUILD_STATIC)
     MESSAGE("Building static PoDoFo library")
-    ADD_LIBRARY(podofo_static STATIC ${PODOFO_BASE_SOURCES} ${PODOFO_DOC_SOURCES})
+    ADD_LIBRARY(podofo_static STATIC ${PODOFO_BASE_SOURCES} ${PODOFO_DOC_SOURCES} ${PODOFO_HEADER_FILES})
     TARGET_LINK_LIBRARIES(podofo_static ${PODOFO_LIB_DEPENDS})
     SET_TARGET_PROPERTIES(podofo_static PROPERTIES
         VERSION "${PODOFO_LIBVERSION}"
@@ -278,7 +281,7 @@ ENDIF(PODOFO_BUILD_STATIC)
 
 IF(PODOFO_BUILD_SHARED)
     MESSAGE("Building shared PoDoFo library")
-    ADD_LIBRARY(podofo_shared SHARED ${PODOFO_BASE_SOURCES} ${PODOFO_DOC_SOURCES})
+    ADD_LIBRARY(podofo_shared SHARED ${PODOFO_BASE_SOURCES} ${PODOFO_DOC_SOURCES} ${PODOFO_HEADER_FILES})
     TARGET_LINK_LIBRARIES(podofo_shared ${PODOFO_LIB_DEPENDS})
     # TODO: set /wd4251 flag if we're doing a debug build with
     # Visual Studio, since it produces invalid warnings about STL
