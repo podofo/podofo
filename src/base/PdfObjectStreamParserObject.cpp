@@ -95,6 +95,12 @@ void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long
         const pdf_int64 lOff     = tokenizer.GetNextNumber();
         const std::streamoff pos = device.Device()->Tell();
 
+        if( lFirst >= std::numeric_limits<pdf_int64>::max() - lOff )
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_BrokenFile,
+                                    "Object position out of max limit" );
+        }
+
         // move to the position of the object in the stream
         device.Device()->Seek( static_cast<std::streamoff>(lFirst + lOff) );
 
