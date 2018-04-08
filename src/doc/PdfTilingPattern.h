@@ -61,10 +61,12 @@ class PODOFO_DOC_API PdfTilingPattern : public PdfElement {
      *  \param offsetY tile offset on Y axis
      *  \param pImage image to use - can be set only if eTilingType is ePdfTilingPatternType_Image
      *  \param pParent parent vector of objects
-	  *
-	  *  \note stroke and fill colors are ignored if eTilingType is ePdfTilingPatternType_Image
-	  *  \note fill color is ignored if doFill is false
-	  *  \note pImage is ignored for all but ePdfTilingPatternType_Image eTilingType types, where it cannot be NULL
+     *  
+     *  \note stroke and fill colors are ignored if eTilingType is ePdfTilingPatternType_Image
+     *
+     *  \note fill color is ignored if doFill is false
+     *
+     *  \note pImage is ignored for all but ePdfTilingPatternType_Image eTilingType types, where it cannot be NULL
      *  
      */
     PdfTilingPattern( EPdfTilingPatternType eTilingType,
@@ -89,10 +91,12 @@ class PODOFO_DOC_API PdfTilingPattern : public PdfElement {
      *  \param offsetY tile offset on Y axis
      *  \param pImage image to use - can be set only if eTilingType is ePdfTilingPatternType_Image
      *  \param pParent parent document
-	  *
-	  *  \note stroke and fill colors are ignored if eTilingType is ePdfTilingPatternType_Image
-	  *  \note fill color is ignored if doFill is false
-	  *  \note pImage is ignored for all but ePdfTilingPatternType_Image eTilingType types, where it cannot be NULL
+     *
+     *  \note stroke and fill colors are ignored if eTilingType is ePdfTilingPatternType_Image
+     *
+     *  \note fill color is ignored if doFill is false
+     *
+     *  \note pImage is ignored for all but ePdfTilingPatternType_Image eTilingType types, where it cannot be NULL
      *  
      */
     PdfTilingPattern( EPdfTilingPatternType eTilingType,
