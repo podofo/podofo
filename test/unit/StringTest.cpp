@@ -44,8 +44,8 @@ void StringTest::tearDown()
 
 void print(pdf_utf16be* pszUtf16, pdf_long lLen)
 {
-    printf("start lLen=%li\n", lLen);
-
+    printf("start lLen=%li\n", static_cast<long>(lLen));
+  
     const char* pszTmp = reinterpret_cast<const char*>(pszUtf16);
     for(int i=0;i<lLen*2;i++) {
         printf("pos=%i %02x\n", i, pszTmp[i] );
@@ -70,12 +70,12 @@ void StringTest::TestLibUnistringInternal(const char* pszString, const long lLen
     print(pszUtf16, result1);
     
     // Buffer is one byte longer, because it ends with two zero bytes
-    CPPUNIT_ASSERT_EQUAL_MESSAGE( "Comparing length of output buffer after utf8 -> utf16 conversion.", lLenUtf16 + 1, result1 );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "Comparing length of output buffer after utf8 -> utf16 conversion.", lLenUtf16 + 1, static_cast<long>(result1) );
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "Make sure utf16 string is 0 terminated.", static_cast<pdf_utf16be>(0), pszUtf16[result1-1] );
     
     pdf_utf8 pszUtf8[lLenUtf8 + 1];
     pdf_long result2 = PdfString::ConvertUTF16toUTF8( pszUtf16, lLenUtf16, pszUtf8, lLenUtf8 + 1 );
-    CPPUNIT_ASSERT_EQUAL_MESSAGE( "Comparing length of output buffer after utf8 -> utf16 -> utf8 conversion.", lLenUtf8 + 1, result2 );
+    CPPUNIT_ASSERT_EQUAL_MESSAGE( "Comparing length of output buffer after utf8 -> utf16 -> utf8 conversion.", lLenUtf8 + 1, static_cast<long>(result2) );
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "Make sure utf8 string is 0 terminated.", static_cast<pdf_utf8>(0), pszUtf8[result2 - 1] );
 
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "Comparing input string after utf8 -> utf16 -> utf8", strncmp(pszString, reinterpret_cast<char*>(pszUtf8), lLenUtf8 ), 0);
