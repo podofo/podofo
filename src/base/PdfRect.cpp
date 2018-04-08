@@ -41,6 +41,8 @@
 #include <sstream>
 #include <iomanip>
 
+static void NormalizeCoordinates( double &coord1, double &coord2 );
+
 namespace PoDoFo {
 
 PdfRect::PdfRect()
@@ -104,10 +106,19 @@ void PdfRect::FromArray( const PdfArray& inArray )
 {
     if ( inArray.size() == 4 ) 
     {
-        m_dLeft   = inArray[0].GetReal();
-        m_dBottom = inArray[1].GetReal();
-        m_dWidth  = inArray[2].GetReal() - m_dLeft;
-        m_dHeight = inArray[3].GetReal() - m_dBottom;
+        double x1 = inArray[0].GetReal();
+        double y1 = inArray[1].GetReal();
+        double x2 = inArray[2].GetReal();
+        double y2 = inArray[3].GetReal();
+
+        // See Pdf Reference 1.7, 3.8.4 Rectangles
+        NormalizeCoordinates( x1, x2 );
+        NormalizeCoordinates( y1, y2 );
+
+        m_dLeft   = x1;
+        m_dBottom = y1;
+        m_dWidth  = x2 - x1;
+        m_dHeight = y2 - y1;
     }
     else 
     {
@@ -160,3 +171,13 @@ PdfRect & PdfRect::operator=( const PdfRect & rhs )
 }
 
 };
+
+void NormalizeCoordinates( double & coord1, double & coord2 )
+{
+    if ( coord1 > coord2 )
+    {
+        double temp = coord1;
+        coord1 = coord2;
+        coord2 = temp;
+    }
+}
