@@ -92,9 +92,9 @@ void print_help()
     printf("       -o <password> The required owner password\n");
     printf(" Permissions:\n");
     printf("       --print       Allow printing the document\n");
-    printf("       --edit        Allow modifying the document besides annotations, form fields or chaning pages\n");
+    printf("       --edit        Allow modifying the document besides annotations, form fields or changing pages\n");
     printf("       --copy        Allow text and graphic extraction\n");
-    printf("       --editnotes   Add or modify text annoations or form fields (if ePdfPermissions_Edit is set also allow to create interactive form fields including signature)\n");
+    printf("       --editnotes   Add or modify text annoations or form fields (if ePdfPermissions_Edit is set also allow the creation interactive form fields including signature)\n");
     printf("       --fillandsign Fill in existing form or signature fields\n");
     printf("       --accessible  Extract text and graphics to support user with disabillities\n");
     printf("       --assemble    Assemble the document: insert, create, rotate delete pages or add bookmarks\n");
@@ -231,7 +231,7 @@ int main( int argc, char* argv[] )
   }
 
 
-  printf("%s was sucessfully encrypted to: %s\n", pszInput, pszOutput );
+  printf("%s was successfully encrypted to: %s\n", pszInput, pszOutput );
   
   return 0;
 }

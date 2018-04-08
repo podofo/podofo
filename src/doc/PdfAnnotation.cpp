@@ -375,7 +375,7 @@ void PdfAnnotation::SetQuadPoints( const PdfArray & rQuadPoints )
          m_eAnnotation != ePdfAnnotation_Underline &&
 	 m_eAnnotation != ePdfAnnotation_Squiggly  &&
 	 m_eAnnotation != ePdfAnnotation_StrikeOut )
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Must be a text markup annotation (hilight, underline, squiggly or strikeout) to set quad points" );
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Must be a text markup annotation (highlight, underline, squiggly or strikeout) to set quad points" );
 
     this->GetObject()->GetDictionary().AddKey( "QuadPoints", rQuadPoints );
 }

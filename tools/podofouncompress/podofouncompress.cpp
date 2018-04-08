@@ -67,7 +67,7 @@ int main( int argc, char* argv[] )
       */
 
 
-  printf("%s was sucessfully uncompressed to: %s\n", pszInput, pszOutput );
+  printf("%s was successfully uncompressed to: %s\n", pszInput, pszOutput );
   
   return 0;
 }

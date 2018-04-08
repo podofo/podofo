@@ -154,7 +154,7 @@ int main( int argc, char* argv[] )
 
   }
   
-//   std::cerr << "All information written sucessfully.\n" << std::endl << std::endl;
+//   std::cerr << "All information written successfully.\n" << std::endl << std::endl;
 
   return 0;
 }
