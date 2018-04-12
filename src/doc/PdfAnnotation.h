@@ -158,11 +158,16 @@ class PODOFO_DOC_API PdfAnnotation : public PdfElement {
      */
     bool HasAppearanceStream() const;
 
-    /** Get the rectangle of this annotation
+    /** Get the rectangle of this annotation.
      *  \returns a rectangle
      */
     PdfRect GetRect() const;
 
+    /** Set the rectangle of this annotation.
+     * \param rRect rectangle to set
+     */
+    void SetRect( const PdfRect & rRect );
+ 
     /** Set the flags of this annotation.
      *  \param uiFlags is an unsigned 32bit integer with different 
      *                 EPdfAnnotationFlags OR'ed together.

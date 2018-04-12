@@ -121,6 +121,13 @@ PdfRect PdfAnnotation::GetRect() const
    return PdfRect();
 }
 
+void PdfAnnotation::SetRect(const PdfRect & rRect)
+{
+    PdfVariant rect;
+    rRect.ToVariant( rect );
+    this->GetObject()->GetDictionary().AddKey( PdfName::KeyRect, rect );
+}
+
 void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* pObject, EPdfAnnotationAppearance eAppearance, const PdfName & state )
 {
     PdfDictionary dict;
