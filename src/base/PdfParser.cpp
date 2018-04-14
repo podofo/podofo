@@ -805,7 +805,13 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
                 m_nNumObjects = nFirstObject + nNumObjects;
                 m_offsets.resize(nFirstObject+nNumObjects);
 #endif // _WIN32
-            } catch (std::bad_alloc &) {
+            } catch (std::exception &) {
+                // If m_nNumObjects*sizeof(TXRefEntry) > std::numeric_limits<size_t>::max() then
+                // resize() throws std::length_error, for smaller allocations that fail it may throw
+                // std::bad_alloc (implementation-dependent). "20.5.5.12 Restrictions on exception 
+                // handling" in the C++ Standard says any function that throws an exception is allowed 
+                // to throw implementation-defined exceptions derived the base type (std::exception)
+                // so we need to catch all std::exceptions here
                 PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
             }
         }
