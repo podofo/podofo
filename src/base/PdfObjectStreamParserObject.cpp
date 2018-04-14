@@ -40,6 +40,7 @@
 #include "PdfStream.h"
 #include "PdfVecObjects.h"
 
+#include <limits>
 #include <algorithm>
 
 #if defined(PODOFO_VERBOSE_DEBUG)
