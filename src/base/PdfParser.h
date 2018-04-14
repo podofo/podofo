@@ -594,6 +594,8 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     int           m_nReadNextTrailerLevel;
 
     static long   s_nMaxObjects;
+
+    std::set<pdf_long> m_visitedXRefOffsets;
 };
 
 // -----------------------------------------------------

@@ -645,6 +645,20 @@ void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
     pdf_int64 nFirstObject = 0;
     pdf_int64 nNumObjects  = 0;
 
+    if( m_visitedXRefOffsets.find( lOffset ) != m_visitedXRefOffsets.end() )
+    {
+        std::ostringstream oss;
+        oss << "Cycle in xref structure. Offset  "
+            << lOffset << " already visited.";
+        
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidXRef, oss.str() );
+    }
+    else
+    {
+        m_visitedXRefOffsets.insert( lOffset );
+    }
+    
+    
     size_t curPosition = m_device.Device()->Tell();
     m_device.Device()->Seek(0,std::ios_base::end);
     std::streamoff fileSize = m_device.Device()->Tell();
