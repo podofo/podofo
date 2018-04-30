@@ -72,8 +72,10 @@ using std::flush;
 
 namespace PoDoFo {
 
-long PdfParser::s_nMaxObjects = std::numeric_limits<long>::max();
-
+const long nMaxNumIndirectObjects = (1L << 23) - 1L;
+long PdfParser::s_nMaxObjects = nMaxNumIndirectObjects;
+  
+    
 class PdfRecursionGuard
 {
   // RAII recursion guard ensures m_nRecursionDepth is always decremented
@@ -352,13 +354,10 @@ void PdfParser::ReadDocumentStructure()
         m_nNumObjects = 0;
     }
 
-    // allow caller to specify a max object count to avoid very slow load times on large documents
-    if (s_nMaxObjects != std::numeric_limits<long>::max()
-        && m_nNumObjects > s_nMaxObjects)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange,  "m_nNumObjects is greater than m_nMaxObjects." );
-
     if (m_nNumObjects > 0)
-        m_offsets.resize(m_nNumObjects);
+    {
+      ResizeOffsets( m_nNumObjects );
+    }
 
     if( m_pLinearization )
     {
@@ -769,7 +768,7 @@ void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
             if( e == ePdfError_NoNumber || e == ePdfError_InvalidXRef || e == ePdfError_UnexpectedEOF ) 
                 break;
             else 
-            {
+	    {
                 e.AddToCallstack( __FILE__, __LINE__ );
                 throw e;
             }
@@ -820,19 +819,22 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
         }
 
         if ( static_cast<pdf_uint64>( nFirstObject ) + static_cast<pdf_uint64>( nNumObjects ) > static_cast<pdf_uint64>( std::numeric_limits<size_t>::max() ) )
+        {
             PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange,
                 "xref subsection's given entry numbers together too large" );
-
+        }
+        
         if( nFirstObject + nNumObjects > m_nNumObjects )
         {
             try {
+  	      
 #ifdef _WIN32
-                m_nNumObjects = static_cast<long>(nFirstObject + nNumObjects);
-                m_offsets.resize(static_cast<long>(nFirstObject+nNumObjects));
+                m_nNumObjects = static_cast<long>(nFirstObject+nNumObjects);
 #else
                 m_nNumObjects = nFirstObject + nNumObjects;
-                m_offsets.resize(nFirstObject+nNumObjects);
 #endif // _WIN32
+                ResizeOffsets(nFirstObject + nNumObjects);
+
             } catch (std::exception &) {
                 // If m_nNumObjects*sizeof(TXRefEntry) > std::numeric_limits<size_t>::max() then
                 // resize() throws std::length_error, for smaller allocations that fail it may throw
@@ -1442,6 +1444,17 @@ void PdfParser::UpdateDocumentVersion()
         }
     }
     
+}
+
+void PdfParser::ResizeOffsets( pdf_long nNewSize )
+{
+    // allow caller to specify a max object count to avoid very slow load times on large documents
+    if (nNewSize > s_nMaxObjects)
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange,  "nNewSize is greater than m_nMaxObjects." );
+    }
+    
+    m_offsets.resize( nNewSize );  
 }
 
 void PdfParser::CheckEOFMarker()

@@ -381,8 +381,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     inline void SetIgnoreBrokenObjects( bool bBroken );
 
     /**
-     * \return maximum object count to read (default is LONG_MAX
-     * which means no limit)
+     * \return maximum object count to read
      */
     inline static long GetMaxObjectCount();
     
@@ -393,6 +392,10 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      * documents with millions of objects, which use 500MB of
      * working set and spend 15 mins in Load() before throwing
      * an out of memory exception.
+     *
+     * By default, the maximum object count is set to 8388607 
+     * which is the maximum number of indirect objects according 
+     * to the PDF specification.
      *
      * \param nMaxObjects set max number of objects
      */
@@ -564,6 +567,15 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      */
     void         UpdateDocumentVersion();
 
+
+    /** Resize the internal structure m_offsets in a safe manner.
+     *  The limit for the maximum number of indirect objects in a PDF file is checked by this method.
+     *  The maximum is 2^23-1 (8.388.607). 
+     *
+     *  \param nNewSize new size of the vector
+     */
+    void ResizeOffsets( pdf_long nNewSize );
+    
  private:
     EPdfVersion   m_ePdfVersion;
 
@@ -594,7 +606,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     int           m_nRecursionDepth;
 
     static long   s_nMaxObjects;
-
+    
     std::set<pdf_long> m_visitedXRefOffsets;
 };
 

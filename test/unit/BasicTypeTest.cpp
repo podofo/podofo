@@ -40,3 +40,8 @@ void BasicTypeTest::testXrefOffsetTypeSize()
 {
     CPPUNIT_ASSERT_MESSAGE("pdf_uint64 is big enough to hold an xref entry", std::numeric_limits<pdf_uint64>::max() >= PODOFO_ULL_LITERAL(9999999999) );
 }
+
+void BasicTypeTest::testDefaultMaximumNumberOfObjects()
+{
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("PdfReference allows 8,388,607 indirect objects.", 8388607L, PdfParser::GetMaxObjectCount() );
+}

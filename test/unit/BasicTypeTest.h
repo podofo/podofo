@@ -31,16 +31,18 @@
  */
 class BasicTypeTest : public CppUnit::TestFixture
 {
-  CPPUNIT_TEST_SUITE( BasicTypeTest );
-  CPPUNIT_TEST( testXrefOffsetTypeSize );
-  CPPUNIT_TEST_SUITE_END();
-
+    CPPUNIT_TEST_SUITE( BasicTypeTest );
+    CPPUNIT_TEST( testXrefOffsetTypeSize );
+    CPPUNIT_TEST( testDefaultMaximumNumberOfObjects );
+    CPPUNIT_TEST_SUITE_END();
+    
  public:
-  void setUp();
-  void tearDown();
-
-  void testXrefOffsetTypeSize();
-
+    void setUp();
+    void tearDown();
+    
+    void testXrefOffsetTypeSize();
+    void testDefaultMaximumNumberOfObjects();
+    
  private:
 };
 
