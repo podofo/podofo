@@ -357,4 +357,14 @@ void PdfDictionary::SetDirty( bool bDirty )
     }
 }
 
+TCIKeyMap PdfDictionary::begin() const
+{
+    return m_mapKeys.begin();
+}
+
+TCIKeyMap PdfDictionary::end() const
+{
+    return m_mapKeys.end();
+}
+
 };
