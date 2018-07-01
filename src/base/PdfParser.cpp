@@ -591,7 +591,12 @@ void PdfParser::ReadNextTrailer()
             m_nIncrementalUpdates++;
 
             try {
-                ReadXRefContents( static_cast<pdf_long>(trailer.GetDictionary().GetKeyAsLong( "Prev", 0 )) );
+                pdf_long lOffset = static_cast<pdf_long>(trailer.GetDictionary().GetKeyAsLong( "Prev", 0 ));
+
+                if( m_visitedXRefOffsets.find( lOffset ) == m_visitedXRefOffsets.end() )
+                    ReadXRefContents( lOffset );
+                else
+                    PdfError::LogMessage( eLogSeverity_Warning, "XRef contents at offset %" PDF_FORMAT_INT64 " requested twice, skipping the second read\n", static_cast<pdf_int64>( lOffset ));
             } catch( PdfError & e ) {
                 e.AddToCallstack( __FILE__, __LINE__, "Unable to load /Prev xref entries." );
                 throw e;
