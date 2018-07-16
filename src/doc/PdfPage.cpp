@@ -673,6 +673,10 @@ const PdfField PdfPage::GetField( int index ) const
 
 PdfObject* PdfPage::GetFromResources( const PdfName & rType, const PdfName & rKey )
 {
+    if( m_pResources == NULL ) // Fix CVE-2017-7381
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "No Resources" );
+    } 
     if( m_pResources->GetDictionary().HasKey( rType ) ) 
     {
         // OC 15.08.2010 BugFix: Ghostscript creates here sometimes an indirect reference to a directory
