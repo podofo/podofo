@@ -97,10 +97,24 @@ void FontTest::testSingleFont(FcPattern* pFont, FcConfig* pConfig)
         EPdfFontType eFontType = PdfFontFactory::GetFontType( sPath.c_str() );
         if( eFontType == ePdfFontType_TrueType ) 
         {
-            // Only TTF fonts can use identity encoding
-            PdfFont* pFont = m_pDoc->CreateFont( sFamily.c_str(), bBold, bItalic,
-                                                 new PdfIdentityEncoding() );
-            CPPUNIT_ASSERT_EQUAL_MESSAGE( msg, pFont != NULL, true ); 
+            try
+            {
+                // Only TTF fonts can use identity encoding
+                PdfFont* pFont = m_pDoc->CreateFont( sFamily.c_str(), bBold, bItalic,
+                                                     new PdfIdentityEncoding() );
+                CPPUNIT_ASSERT_EQUAL_MESSAGE( msg, pFont != NULL, true );
+            }
+            catch( PdfError &error )
+            {
+                if( error.GetError() == ePdfError_UnsupportedFontFormat )
+                {
+                    printf("Unsupported font format: %s\n", sPodofoFontPath.c_str());
+                }
+                else
+                {
+                    throw error;
+                }
+            }
         }
         else if( eFontType != ePdfFontType_Unknown ) 
         {
