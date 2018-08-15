@@ -182,7 +182,8 @@ int PdfFontMetricsBase14::GetItalicAngle() const
 long PdfFontMetricsBase14::GetGlyphIdUnicode( long lUnicode ) const
 {
     long lGlyph = 0;
-    
+    long lSwappedUnicode = ((lUnicode & 0xFF00) >> 8) | ((lUnicode & 0x00FF) << 8);
+
     // Handle symbol fonts!
     /*
       if( m_bSymbol ) 
@@ -193,7 +194,8 @@ long PdfFontMetricsBase14::GetGlyphIdUnicode( long lUnicode ) const
     
     for(int i = 0; widths_table[i].unicode != 0xFFFF ; ++i)
     {
-        if (widths_table[i].unicode == lUnicode) 
+        if( widths_table[i].unicode == lUnicode ||
+            widths_table[i].unicode == lSwappedUnicode )
         {
             lGlyph = i; //widths_table[i].char_cd ;
             break;
@@ -258,9 +260,7 @@ void PdfFontMetricsBase14::GetWidthArray( PdfVariant & var, unsigned int nFirst,
         if (pEncoding != NULL)
         {
             unsigned short shCode = pEncoding->GetCharCode(i);
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-            shCode = ((shCode & 0x00FF) << 8) | ((shCode & 0xFF00) >> 8);
-#endif
+
             list.push_back(PdfObject( (pdf_int64)this->GetGlyphWidth(this->GetGlyphIdUnicode(shCode) )));
         }
         else
