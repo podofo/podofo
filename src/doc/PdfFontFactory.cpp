@@ -197,7 +197,13 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    const PdfName & rSubType = pObject->GetDictionary().GetKey( PdfName::KeySubtype )->GetName();
+    PdfVariant* pSubTypeKey = pObject->GetDictionary()
+                            .GetKey( PdfName::KeySubtype );
+    if ( NULL == pSubTypeKey )
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Font: No SubType" );
+    }
+    const PdfName & rSubType = pSubTypeKey->GetName();
     if( rSubType == PdfName("Type0") ) 
     {
         // The PDF reference states that DescendantFonts must be an array,
