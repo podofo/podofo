@@ -325,6 +325,12 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
         for(int i=0;i<rDoc.GetPageCount();i++ )
         {
             PdfPage*      pPage = rDoc.GetPage( i );
+            if (NULL == pPage)
+            {
+                std::ostringstream oss;
+                oss << "No page " << i << " (the first is 0) found.";
+                PODOFO_RAISE_ERROR_INFO( ePdfError_PageNotFound, oss.str() );
+            }
             PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, pPage->GetObject()->Reference().GenerationNumber() ) );
             if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Parent" ) )
                 pObj->GetDictionary().RemoveKey( "Parent" );
