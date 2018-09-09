@@ -188,6 +188,18 @@ void PdfFontCID::Init( bool bEmbed, bool bSubset )
         // The FontDescriptor, should be an indirect object:
         m_pDescendantFonts->GetDictionary().AddKey( "FontDescriptor", pDescriptor->Reference() );
         m_pDescendantFonts->GetDictionary().AddKey( "CIDToGIDMap", PdfName("Identity") );
+
+        if( !bSubset )
+        {
+            // Add the width keys
+            this->CreateWidth( m_pDescendantFonts );
+
+            // Create the ToUnicode CMap
+            PdfObject* pUnicode = this->GetObject()->GetOwner()->CreateObject();
+
+            this->CreateCMap( pUnicode );
+            this->GetObject()->GetDictionary().AddKey( "ToUnicode", pUnicode->Reference() );
+        }
     }
 
     // Setting the FontDescriptor paras:
@@ -447,12 +459,12 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
     podofo_free( pdWidth );
 }
 
-void PdfFontCID::CreateCMap( PdfObject* PODOFO_UNUSED_PARAM(pUnicode) ) const
+void PdfFontCID::CreateCMap( PdfObject* pUnicode ) const
 {
     GidToCodePoint gidToCodePoint;
     if (fillGidToCodePoint(gidToCodePoint, m_pMetrics)) 
     {
-        //createCMap(pUnicode, gidToCodePoint, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar(), m_pEncoding->IsSingleByteEncoding() );
+        fillUnicodeStream( pUnicode->GetStream(), gidToCodePoint, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar(), m_pEncoding->IsSingleByteEncoding() );
     }
 }
 
