@@ -70,14 +70,16 @@ class PdfArray;
  */
 class PODOFO_DOC_API PdfFontMetricsBase14 : public PdfFontMetrics {
 public:
-	PdfFontMetricsBase14(const char      *mfont_name,
+	PdfFontMetricsBase14(const char   *mfont_name,
                          const PODOFO_CharData  *mwidths_table,
                          bool             mis_font_specific,
-                         pdf_int16            mascent,
-                         pdf_int16            mdescent,
-                         pdf_uint16           mx_height,
-                         pdf_uint16           mcap_height,
-                         const PdfRect &      mbbox);
+                         pdf_int16         mascent,
+                         pdf_int16         mdescent,
+                         pdf_uint16        mx_height,
+                         pdf_uint16        mcap_height,
+                         pdf_int16         mstrikeout_pos,
+                         pdf_int16         munderline_pos,
+                         const PdfRect &  mbbox);
 
     ~PdfFontMetricsBase14();
 

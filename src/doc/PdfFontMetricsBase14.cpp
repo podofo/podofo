@@ -43,12 +43,14 @@ namespace PoDoFo {
 
 PdfFontMetricsBase14::PdfFontMetricsBase14(const char      *mfont_name,
                                            const PODOFO_CharData  *mwidths_table,
-                                           bool             mis_font_specific,
-                                           pdf_int16            mascent,
-                                           pdf_int16            mdescent,
-                                           pdf_uint16           mx_height,
-                                           pdf_uint16           mcap_height,
-                                           const PdfRect &      mbbox)
+                                           bool              mis_font_specific,
+                                           pdf_int16         mascent,
+                                           pdf_int16         mdescent,
+                                           pdf_uint16        mx_height,
+                                           pdf_uint16        mcap_height,
+                                           pdf_int16         mstrikeout_pos,
+                                           pdf_int16         munderline_pos,
+                                           const PdfRect &  mbbox)
     : PdfFontMetrics( ePdfFontType_Type1Base14, "", NULL),
       font_name(mfont_name),
       widths_table(mwidths_table),
@@ -63,25 +65,21 @@ PdfFontMetricsBase14::PdfFontMetricsBase14(const char      *mfont_name,
     m_nWeight             = 500;
     m_nItalicAngle        = 0;
     m_dLineSpacing        = 0.0;
-    m_dUnderlineThickness = 0.0;
-    m_dUnderlinePosition  = 0.0;
-    m_dStrikeOutPosition  = 0.0;
-    m_dStrikeOutThickness = 0.0;
+    m_dUnderlineThickness = 0.05;
+    m_dStrikeOutThickness = m_dUnderlineThickness;
     units_per_EM          = 1000;
     m_dPdfAscent          = ascent * 1000 / units_per_EM;
     m_dPdfDescent         = descent * 1000 / units_per_EM;
     
     m_dAscent             = ascent;
-    m_dDescent            = descent;	     
+    m_dDescent            = descent;
+    m_dUnderlinePosition  = static_cast<double>(munderline_pos) / units_per_EM;
+    m_dStrikeOutPosition  = static_cast<double>(mstrikeout_pos) / units_per_EM;
 
     // calculate the line spacing now, as it changes only with the font size
     m_dLineSpacing        = (static_cast<double>(ascent + abs(descent)) / units_per_EM);
     m_dAscent             = static_cast<double>(ascent) /  units_per_EM;
     m_dDescent            = static_cast<double>(descent) /  units_per_EM;
-    
-    // Set default values for strikeout, in case the font has no direct values
-    m_dStrikeOutPosition  = m_dAscent / 2.0; 
-	//	m_dStrikeOutThickness = m_dUnderlineThickness;
 }
 
 PdfFontMetricsBase14::~PdfFontMetricsBase14()
