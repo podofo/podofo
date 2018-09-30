@@ -314,10 +314,10 @@ IF(PODOFO_BUILD_SHARED)
         MESSAGE("Pkg-config found, creating a pkg-config file for linking against shared library.")
         CONFIGURE_FILE(
           "libpodofo.pc.in"
-          "${PoDoFo_BINARY_DIR}/libpodofo-${PODOFO_VERSION_MAJOR}.pc"
+          "${PoDoFo_BINARY_DIR}/libpodofo.pc"
           @ONLY)
         INSTALL(
-          FILES "${PoDoFo_BINARY_DIR}/libpodofo-${PODOFO_VERSION_MAJOR}.pc"
+          FILES "${PoDoFo_BINARY_DIR}/libpodofo.pc"
           DESTINATION "${LIBDIRNAME}/pkgconfig")
       ELSE(PKG_CONFIG_FOUND)
         MESSAGE("Pkg-config not found. No pkg-config file will be created.")
@@ -342,7 +342,3 @@ FILE(APPEND
      "${PoDoFo_BINARY_DIR}/PoDoFoConfig.cmake"
      "SET(PODOFO_DEPEND_TARGET ${PODOFO_DEPEND_TARGET})\n"
      )
-
-
-
-

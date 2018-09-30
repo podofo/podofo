@@ -6,5 +6,5 @@ includedir=${prefix}/include/podofo
 Name: @CMAKE_PROJECT_NAME@
 Description: A C++ library to work with the PDF file format
 Version: @PODOFO_VERSION@
-Libs: -L${libdir} -lpodofo-@PODOFO_VERSION_MAJOR@
+Libs: -L${libdir} -lpodofo
 Cflags: -I${includedir}
