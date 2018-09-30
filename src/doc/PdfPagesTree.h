@@ -190,7 +190,6 @@ class PODOFO_DOC_API PdfPagesTree : public PdfElement
     PdfPagesTree();	// don't allow construction from nothing!
 
     PdfObject* GetPageNode( int nPageNum, PdfObject* pParent, PdfObjectList & rLstParents );
-    PdfObject* GetPageNodeFromArray( int nPageNum, const PdfArray & rKidsArray, PdfObjectList & rLstParents );
 
     int GetChildCount( const PdfObject* pNode ) const;
 

@@ -21,11 +21,14 @@
 #ifndef _PAGES_TREE_TEST_H_
 #define _PAGES_TREE_TEST_H_
 
+#include <vector>
+
 #include <cppunit/extensions/HelperMacros.h>
 
 namespace PoDoFo {
 class PdfMemDocument;
 class PdfPage;
+class PdfObject;
 };
 
 /** This test tests the class PdfPagesTree
@@ -35,6 +38,9 @@ class PagesTreeTest : public CppUnit::TestFixture
   CPPUNIT_TEST_SUITE( PagesTreeTest );
   CPPUNIT_TEST( testEmptyTree );
   CPPUNIT_TEST( testEmptyDoc );
+  CPPUNIT_TEST( testCyclicTree );
+  CPPUNIT_TEST( testEmptyKidsTree );
+  CPPUNIT_TEST( testNestedArrayTree );
   CPPUNIT_TEST( testCreateDelete );
   CPPUNIT_TEST( testGetPagesCustom );
   CPPUNIT_TEST( testGetPagesPoDoFo );
@@ -52,6 +58,9 @@ class PagesTreeTest : public CppUnit::TestFixture
 
   void testEmptyTree();
   void testEmptyDoc();
+  void testCyclicTree();
+  void testEmptyKidsTree();
+  void testNestedArrayTree();
   void testCreateDelete();
   void testGetPagesCustom();
   void testGetPagesPoDoFo();
@@ -98,7 +107,58 @@ class PagesTreeTest : public CppUnit::TestFixture
    */
   void CreateTestTreeCustom( PoDoFo::PdfMemDocument & rDoc );
 
+  /**
+   * Create a pages tree with cycles to test prevention of endless
+   * recursion as mentioned in different CVE reports.
+   *
+   * \param bCreateCycle if true a cyclic tree is created, otherwise a
+   *                     valid tree without cycles
+   */
+  void CreateCyclicTree( PoDoFo::PdfMemDocument & rDoc,
+                         bool bCreateCycle );
+
+  /**
+   * Create a pages tree with nodes containing empty kids.
+   *
+   * This is completely valid according to the PDF spec, i.e. the
+   * required keys may have the values "/Kids [ ]" and "/Count 0"
+   * Such a tree must still be parsable by a conforming reader:
+   *
+   * <BLOCKQUOTE>The tree contains nodes of two types—intermediate
+   * nodes, called page tree nodes, and leaf nodes, called page
+   * objects—whose form is described in the subsequent subclauses.
+   * Conforming products shall be prepared to handle any form
+   * of tree structure built of such nodes.</BLOCKQUOTE>
+   */
+  void CreateEmptyKidsTree( PoDoFo::PdfMemDocument & rDoc );
+  
+  /**
+  * Ceate a pages tree with a nested kids array.
+  *
+  * Such a tree is not valid to the PDF spec, which requires they key
+  * "Kids" to be an array of indirect references. And the children shall
+  * only be page objects or other page tree nodes.
+  */
+  void CreateNestedArrayTree( PoDoFo::PdfMemDocument & rDoc );
+
+ /**
+  * Create page object nodes (leaf nodes),
+  * where every page object has an additional
+  * key PoDoFoTestPageNumber with the original 
+  * page number of the page.
+  */  
+  std::vector<PoDoFo::PdfPage*> CreateSamplePages( PoDoFo::PdfMemDocument & rDoc,
+                                                   int nPageCount);
+
+  /**
+  * Create page tree nodes (internal nodes)
+  */
+  std::vector<PoDoFo::PdfObject*> CreateNodes( PoDoFo::PdfMemDocument & rDoc,
+                                               int nNodeCount);
+
   bool IsPageNumber( PoDoFo::PdfPage* pPage, int nNumber );
+
+  void AppendChildNode(PoDoFo::PdfObject* pParent, PoDoFo::PdfObject* pChild);
 };
 
 #endif // _PAGES_TREE_TEST_H_

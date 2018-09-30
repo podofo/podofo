@@ -22,6 +22,8 @@
 
 #include <podofo.h>
 
+#include <sstream>
+
 #define PODOFO_TEST_PAGE_KEY "PoDoFoTestPageNumber"
 #define PODOFO_TEST_NUM_PAGES 100
 
@@ -68,6 +70,58 @@ void PagesTreeTest::testEmptyDoc()
     CPPUNIT_ASSERT_THROW( writer.GetPage( 0 ), PdfError );
     CPPUNIT_ASSERT_THROW( writer.GetPage( -1 ), PdfError );
     CPPUNIT_ASSERT_THROW( writer.GetPage( 1 ), PdfError );
+}
+
+void PagesTreeTest::testCyclicTree()
+{
+    for (int pass=0; pass < 2; pass++)
+    {
+        PdfMemDocument doc;
+        CreateCyclicTree( doc, pass==1);
+        //doc.Write(pass==0?"tree_valid.pdf":"tree_cyclic.pdf");
+        for (int pagenum=0; pagenum < doc.GetPageCount(); pagenum++)
+        {
+            if (pass==0)
+            {    
+                // pass 0:
+                // valid tree without cycles should yield all pages
+                PdfPage* pPage = doc.GetPage( pagenum );
+                CPPUNIT_ASSERT_EQUAL( pPage != NULL, true );
+                CPPUNIT_ASSERT_EQUAL( IsPageNumber( pPage, pagenum ), true );
+            }
+            else
+            {
+                // pass 1:
+                // cyclic tree must throw exception to prevent infinite recursion
+                CPPUNIT_ASSERT_THROW( doc.GetPage( pagenum ), PdfError );
+            }
+        }
+    }
+}
+
+void PagesTreeTest::testEmptyKidsTree()
+{
+    PdfMemDocument doc;
+    CreateEmptyKidsTree(doc);
+    //doc.Write("tree_zerokids.pdf");
+    for (int pagenum=0; pagenum < doc.GetPageCount(); pagenum++)
+    {
+        PdfPage* pPage = doc.GetPage( pagenum );
+        CPPUNIT_ASSERT_EQUAL( pPage != NULL, true );
+        CPPUNIT_ASSERT_EQUAL( IsPageNumber( pPage, pagenum ), true );
+    }
+}
+
+void PagesTreeTest::testNestedArrayTree()
+{
+    PdfMemDocument doc;
+    CreateNestedArrayTree(doc);
+    //doc.Write("tree_nested_array.pdf");
+    for (int pagenum=0; pagenum < doc.GetPageCount(); pagenum++)
+    {
+        PdfPage* pPage = doc.GetPage( pagenum );
+        CPPUNIT_ASSERT_EQUAL( pPage == NULL, true );
+    }
 }
 
 void PagesTreeTest::testCreateDelete()
@@ -354,6 +408,152 @@ void PagesTreeTest::CreateTestTreeCustom( PoDoFo::PdfMemDocument & rDoc )
     pRoot->GetDictionary().AddKey( PdfName("Count"), static_cast<pdf_int64>(PODOFO_TEST_NUM_PAGES) );
 }
 
+std::vector<PdfPage*> PagesTreeTest::CreateSamplePages( PdfMemDocument & rDoc,
+                                                        int nPageCount)
+{
+    PdfFont* pFont;
+
+    // create font
+    pFont = rDoc.CreateFont( "Arial" );
+    if( !pFont )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+    pFont->SetFontSize( 16.0 );
+
+    std::vector<PdfPage*> pPage(nPageCount);
+    for (int i = 0; i < nPageCount; ++i)
+    {
+        pPage[i] = new PdfPage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ),
+                                &(rDoc.GetObjects()) );
+        pPage[i]->GetObject()->GetDictionary().AddKey( PODOFO_TEST_PAGE_KEY, 
+                                                       static_cast<pdf_int64>(i) );
+
+        PdfPainter painter;
+        painter.SetPage( pPage[i] );
+        painter.SetFont( pFont );
+        std::ostringstream os;
+        os << "Page " << i+1;
+        painter.DrawText( 200, 200, os.str()  );
+        painter.FinishPage();
+    }
+
+    return pPage;
+}
+
+std::vector<PdfObject*> PagesTreeTest::CreateNodes( PdfMemDocument & rDoc,
+                                                    int nNodeCount)
+{
+    std::vector<PdfObject*> pNode(nNodeCount);
+
+    for (int i = 0; i < nNodeCount; ++i)
+    {
+        pNode[i]=rDoc.GetObjects().CreateObject("Pages");
+        // init required keys
+        pNode[i]->GetDictionary().AddKey( "Kids", PdfArray());
+        pNode[i]->GetDictionary().AddKey( "Count", PdfVariant(static_cast<pdf_int64>(0L)));
+    }
+
+    return pNode;
+}
+
+void PagesTreeTest::CreateCyclicTree( PoDoFo::PdfMemDocument & rDoc,
+                                      bool bCreateCycle )
+{
+    const int COUNT = 3;
+
+    std::vector<PdfPage*> pPage=CreateSamplePages( rDoc, COUNT );
+    std::vector<PdfObject*> pNode=CreateNodes( rDoc, 2 );
+    
+    // manually insert pages into pagetree
+    PdfObject* pRoot = rDoc.GetPagesTree()->GetObject();
+
+    // tree layout (for !bCreateCycle):
+    //
+    //    root
+    //    +-- node0
+    //        +-- node1
+    //        |   +-- page0
+    //        |   +-- page1
+    //        \-- page2
+
+    // root node
+    AppendChildNode(pRoot, pNode[0]);
+
+    // tree node 0
+    AppendChildNode(pNode[0], pNode[1]);
+    AppendChildNode(pNode[0], pPage[2]->GetObject());
+
+    // tree node 1
+    AppendChildNode(pNode[1], pPage[0]->GetObject());
+    AppendChildNode(pNode[1], pPage[1]->GetObject());
+
+    if (bCreateCycle)
+    {
+        // invalid tree: Cycle!!!
+        // was not detected in PdfPagesTree::GetPageNode() rev. 1937
+        pNode[0]->GetIndirectKey("Kids")->GetArray()[0]=pRoot->Reference();
+    }
+}
+
+void PagesTreeTest::CreateEmptyKidsTree( PoDoFo::PdfMemDocument & rDoc )
+{
+    const int COUNT = 3;
+
+    std::vector<PdfPage*> pPage=CreateSamplePages( rDoc, COUNT );
+    std::vector<PdfObject*> pNode=CreateNodes( rDoc, 3 );
+    
+    // manually insert pages into pagetree
+    PdfObject* pRoot = rDoc.GetPagesTree()->GetObject();
+    
+    // tree layout:
+    //
+    //    root
+    //    +-- node0
+    //    |   +-- page0
+    //    |   +-- page1
+    //    |   +-- page2
+    //    +-- node1
+    //    \-- node2
+
+    // root node
+    AppendChildNode(pRoot, pNode[0]);
+    AppendChildNode(pRoot, pNode[1]);
+    AppendChildNode(pRoot, pNode[2]);
+    
+    // tree node 0
+    AppendChildNode(pNode[0], pPage[0]->GetObject());
+    AppendChildNode(pNode[0], pPage[1]->GetObject());
+    AppendChildNode(pNode[0], pPage[2]->GetObject());
+
+    // tree node 1 and node 2 are left empty: this is completely valid
+    // according to the PDF spec, i.e. the required keys may have the
+    // values "/Kids [ ]" and "/Count 0"
+}
+
+void PagesTreeTest::CreateNestedArrayTree( PoDoFo::PdfMemDocument & rDoc )
+{
+    const int COUNT = 3;
+
+    std::vector<PdfPage*> pPage=CreateSamplePages( rDoc, COUNT );
+    PdfObject* pRoot = rDoc.GetPagesTree()->GetObject();
+
+    // create kids array
+    PdfArray kids;
+    for (int i=0; i < COUNT; i++)
+    {
+        kids.push_back( pPage[i]->GetObject()->Reference() );
+        pPage[i]->GetObject()->GetDictionary().AddKey( PdfName("Parent"), pRoot->Reference());
+    }
+
+    // create nested kids array
+    PdfArray nested;
+    nested.push_back(kids);
+
+    // manually insert pages into pagetree
+    pRoot->GetDictionary().AddKey( PdfName("Count"), static_cast<pdf_int64>(COUNT) );
+    pRoot->GetDictionary().AddKey( PdfName("Kids"), nested);
+}
 
 bool PagesTreeTest::IsPageNumber( PoDoFo::PdfPage* pPage, int nNumber )
 {
@@ -366,4 +566,34 @@ bool PagesTreeTest::IsPageNumber( PoDoFo::PdfPage* pPage, int nNumber )
     }
     else
         return true;
+}
+
+void PagesTreeTest::AppendChildNode(PdfObject* pParent, PdfObject* pChild)
+{
+    // 1. Add the reference of the new child to the kids array of pParent
+    PdfArray kids;
+    PdfObject* oldKids=pParent->GetIndirectKey("Kids");
+    if (oldKids && oldKids->IsArray()) kids=oldKids->GetArray();
+    kids.push_back(pChild->Reference());
+    pParent->GetDictionary().AddKey( PdfName("Kids"), kids);
+
+    // 2. If the child is a page (leaf node), increase count of every parent
+    //    (which also includes pParent)
+    if( pChild->GetDictionary().GetKeyAsName( PdfName( "Type" ) )
+        == PdfName( "Page" ) )
+    {
+        PdfObject* node=pParent;
+        while (node)
+        {
+            pdf_int64 count=0;
+            if (node->GetIndirectKey("Count")) count=node->GetIndirectKey("Count")->GetNumber();
+            count++;
+            node->GetDictionary().AddKey( PdfName("Count"), count);
+            
+            node=node->GetIndirectKey("Parent");
+        }
+    }
+    
+    // 3. Add Parent key to the child
+    pChild->GetDictionary().AddKey( PdfName("Parent"), pParent->Reference());
 }
