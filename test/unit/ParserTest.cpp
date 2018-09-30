@@ -2037,7 +2037,7 @@ bool ParserTest::canOutOfMemoryKillUnitTests()
 #elif defined( __linux__ )
     // TODO do big allocs succeed then trigger OOM-killer fiasco??
     bool bCanTerminateProcess = false;
-#elif
+#else
     // other systems - assume big allocs faily gracefully and throw bad_alloc
     bool bCanTerminateProcess = false;
 #endif
