@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sstream>
+#include <vector>
 
 #ifdef PODOFO_HAVE_OPENSSL
 // SHA-256
@@ -384,8 +385,8 @@ public:
 		EVP_CIPHER_CTX* aes = m_aes->getEngine();
 		int lOutLen = 0, lStepOutLen;
 		int status = 1;
+		int bufferOffset = 0;
 		if( bFirstRead ) {
-			bFirstRead = false;
 			if( keyLen == PdfEncrypt::ePdfKeyLength_128/8 ) {
 				status = EVP_DecryptInit_ex( aes, EVP_aes_128_cbc(), NULL, key, pBuffer );
 #ifdef PODOFO_HAVE_LIBIDN
@@ -397,15 +398,18 @@ public:
 			}
 			if(status != 1)
 				PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing AES encryption engine" );
-			status = EVP_DecryptUpdate( aes, pBuffer, &lOutLen, pBuffer + AES_IV_LENGTH, lLen - AES_IV_LENGTH );
-		} else if( !bOnlyFinalLeft ) {
+
+			bufferOffset = AES_IV_LENGTH;
+			bFirstRead = false;
+		}
+
+		if( !bOnlyFinalLeft ) {
 			// Quote openssl.org: "the decrypted data buffer out passed to EVP_DecryptUpdate() should have sufficient room
 			//  for (inl + cipher_block_size) bytes unless the cipher block size is 1 in which case inl bytes is sufficient."
 			// So we need to create a buffer that is bigger than lLen.
-			unsigned char* tempBuffer = new unsigned char[lLen + 16];
-			status = EVP_DecryptUpdate( aes, tempBuffer, &lOutLen, pBuffer, lLen );
-			memcpy( pBuffer, tempBuffer, lOutLen );
-			delete[] tempBuffer;
+			tempBuffer.resize( lLen + 16 );
+			status = EVP_DecryptUpdate( aes, &tempBuffer[0], &lOutLen, pBuffer + bufferOffset, lLen - bufferOffset );
+			memcpy( pBuffer, &tempBuffer[0], lOutLen );
 		}
 		if( status != 1 )
 			PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-decryption data" );
@@ -427,6 +431,7 @@ public:
     }
     
 private:
+	std::vector<unsigned char> tempBuffer;
 	unsigned char key[32];
 	const size_t keyLen;
 	bool bFirstRead;
