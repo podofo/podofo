@@ -41,6 +41,7 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_TEST( testReadXRefStreamContents );
     CPPUNIT_TEST( testReadObjects );
     CPPUNIT_TEST( testIsPdfFile );
+    CPPUNIT_TEST( testRoundTripIndirectTrailerID );
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -76,6 +77,8 @@ public:
     void testIsPdfFile();
     //void testReadNextTrailer();
     //void testCheckEOFMarker();
+
+    void testRoundTripIndirectTrailerID();
 
 private:
     std::string generateXRefEntries( size_t count );
