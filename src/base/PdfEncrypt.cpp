@@ -564,15 +564,13 @@ PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
 	bool encryptMetadata = true;
     
     try {
-        PdfString sTmp;
+        lV     = static_cast<long>(pObject->GetDictionary().MustGetKey( PdfName("V") ).GetNumber());
+        rValue = static_cast<int>( pObject->GetDictionary().MustGetKey( PdfName("R") ).GetNumber());
         
-        lV           = static_cast<long>(pObject->GetDictionary().GetKey( PdfName("V") )->GetNumber());
-        rValue       = static_cast<int>(pObject->GetDictionary().GetKey( PdfName("R") )->GetNumber());
+        pValue = static_cast<int>( pObject->GetDictionary().MustGetKey( PdfName("P") ).GetNumber());
         
-        pValue       = static_cast<int>(pObject->GetDictionary().GetKey( PdfName("P") )->GetNumber());
-        
-        oValue       = pObject->GetDictionary().GetKey( PdfName("O") )->GetString();        
-        uValue       = pObject->GetDictionary().GetKey( PdfName("U") )->GetString();
+        oValue =                   pObject->GetDictionary().MustGetKey( PdfName("O") ).GetString();        
+        uValue =                   pObject->GetDictionary().MustGetKey( PdfName("U") ).GetString();
         
         if( pObject->GetDictionary().HasKey( PdfName("Length") ) )
         {
@@ -598,7 +596,7 @@ PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
 			}
 		}
     } catch( PdfError & e ) {
-        e.AddToCallstack( __FILE__, __LINE__, "Invalid key in encryption dictionary" );
+        e.AddToCallstack( __FILE__, __LINE__, "Invalid or missing key in encryption dictionary" );
         throw e;
     }
     

@@ -180,6 +180,21 @@ class PODOFO_API PdfDictionary : public PdfDataType {
      */
     PdfObject* GetKey( const PdfName & key );
 
+    /** Get the key's value out of the dictionary.
+     *
+     * The returned value is a reference to the internal object in the dictionary
+     * so it MUST not be deleted. If the key is not found, this throws a PdfError
+     * exception with error code ePdfError_NoObject, instead of returning.
+     * This is intended to make code more readable by sparing (especially multiple)
+     * NULL checks.
+     *
+     *  \param key look for the key named key in the dictionary
+     * 
+     *  \returns reference to the found value (never 0).
+     *  \throws PdfError(ePdfError_NoObject).
+     */
+    inline const PdfObject& MustGetKey( const PdfName & key ) const;
+
     pdf_int64 GetKeyAsLong( const PdfName & key, pdf_int64 lDefault = 0 ) const;
 
     double GetKeyAsReal( const PdfName & key, double dDefault = 0.0 ) const;
@@ -300,6 +315,17 @@ const TKeyMap & PdfDictionary::GetKeys() const
 TKeyMap & PdfDictionary::GetKeys() 
 { 
     return m_mapKeys; 
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+const PdfObject& PdfDictionary::MustGetKey( const PdfName & key ) const
+{
+    const PdfObject* obj = GetKey( key );
+    if (!obj)
+        PODOFO_RAISE_ERROR( ePdfError_NoObject );
+    return *obj;
 }
 
 // -----------------------------------------------------
