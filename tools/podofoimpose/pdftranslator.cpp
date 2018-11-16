@@ -256,7 +256,13 @@ namespace PoDoFo
 				PdfPage * page = sourceDoc->GetPage ( i );
 				PdfMemoryOutputStream outMemStream ( 1 );
 
-				PdfXObject *xobj = new PdfXObject ( page->GetMediaBox(), targetDoc );
+				if (!page) // Fix issue #32
+                {
+                    std::ostringstream oss;
+                    oss << "Page " << i << " (0-based) of " << pcount << " in source doc not found!";
+                    PODOFO_RAISE_ERROR_INFO( ePdfError_PageNotFound, oss.str() );
+                }
+                PdfXObject *xobj = new PdfXObject ( page->GetMediaBox(), targetDoc );
 				if ( page->GetContents()->HasStream() )
 				{
 					page->GetContents()->GetStream()->GetFilteredCopy ( &outMemStream );
