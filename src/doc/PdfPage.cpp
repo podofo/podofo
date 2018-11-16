@@ -595,6 +595,13 @@ unsigned int PdfPage::GetPageNumber() const
             while( it != kids.end() && (*it).GetReference() != ref )
             {
                 PdfObject* pNode = this->GetObject()->GetOwner()->GetObject( (*it).GetReference() );
+                if (!pNode)
+                {
+                    std::ostringstream oss;
+                    oss << "Object " << (*it).GetReference().ToString() << " not found from Kids array "
+                        << pKids->Reference().ToString(); 
+                    PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, oss.str() );
+                }
 
                 if( pNode->GetDictionary().GetKey( PdfName::KeyType ) != NULL 
                     && pNode->GetDictionary().GetKey( PdfName::KeyType )->GetName() == PdfName( "Pages" ) )
