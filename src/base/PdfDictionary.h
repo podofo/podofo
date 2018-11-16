@@ -149,25 +149,25 @@ class PODOFO_API PdfDictionary : public PdfDataType {
      *  This is an overloaded member function.
      *
      *  \param identifier the key is identified by this name in the dictionary
-     *  \param rObject a variant object containing the data. The object is copied.
+     *  \param pObject pointer to a variant object containing the data. The object is copied.
      *
      *  This will set the dirty flag of this object.
      *  \see IsDirty
      */
     void AddKey( const PdfName & identifier, const PdfObject* pObject );
 
-    /** Get the keys value out of the dictionary.
+    /** Get the key's value out of the dictionary.
      *
      * The returned value is a pointer to the internal object in the dictionary
      * so it MUST not be deleted.
      *
-     *  \param key look for the key names pszKey in the dictionary
+     *  \param key look for the key named key in the dictionary
      * 
-     *  \returns pointer to the found value or 0 if the key was not found.
+     *  \returns pointer to the found value, or 0 if the key was not found.
      */
     const PdfObject* GetKey( const PdfName & key ) const;
 
-    /** Get the keys value out of the dictionary.  This is an overloaded member
+    /** Get the key's value out of the dictionary.  This is an overloaded member
      * function.
      *
      * The returned value is a pointer to the internal object in the dictionary.
@@ -176,7 +176,7 @@ class PODOFO_API PdfDictionary : public PdfDataType {
      *
      *  \param key look for the key named key in the dictionary
      * 
-     *  \returns the found value or 0 if the key was not found.
+     *  \returns the found value, or 0 if the key was not found.
      */
     PdfObject* GetKey( const PdfName & key );
 
@@ -203,20 +203,20 @@ class PODOFO_API PdfDictionary : public PdfDataType {
 
     PdfName GetKeyAsName( const PdfName & key ) const;
 
-    /** Allows to check if a dictionary contains a certain key.  \param key
-     * look for the key named key.Name() in the dictionary
+    /** Allows to check if a dictionary contains a certain key.
+     * \param key look for the key named key.Name() in the dictionary
      *
      *  \returns true if the key is part of the dictionary, otherwise false.
      */
     bool  HasKey( const PdfName & key  ) const;
 
-    /** Remove a key from this dictionary.  If the key does not exists, this
+    /** Remove a key from this dictionary.  If the key does not exist, this
      * function does nothing.
      *
      *  \param identifier the name of the key to delete
      * 
-     *  \returns true if the key was found in the object and was removed if
-     *  there was is no key with this name, false is returned.
+     *  \returns true if the key was found in the object and was removed.
+     *  If there was no key with this name, false is returned.
      *
      *  This will set the dirty flag of this object.
      *  \see IsDirty
@@ -255,8 +255,8 @@ class PODOFO_API PdfDictionary : public PdfDataType {
      */
     inline const TKeyMap & GetKeys() const;
 
-    /** Get access to the internal map of keys.  \returns all keys of this
-     *  dictionary
+    /** Get access to the internal map of keys.
+     * \returns all keys of this dictionary
      */
     inline TKeyMap & GetKeys();
 
