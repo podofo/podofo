@@ -285,6 +285,12 @@ void PdfEncoding::ParseToUnicode()
             
             if (strcmp (streamToken, "beginbfrange") == 0)
             {
+                // need 2 entries - one to pop() and one for top()
+                if ( stkToken.size() < 2 )
+                {
+                    PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap missing object number before beginbfrange");
+                }
+                
                 i = loop = 0;
                 in_beginbfrange = 1;
                 stkToken.pop ();
@@ -301,6 +307,12 @@ void PdfEncoding::ParseToUnicode()
             
             if (strcmp (streamToken, "beginbfchar") == 0)
             {
+                // need 2 entries - one to pop() and one for top()
+                if ( stkToken.size() < 2 )
+                {
+                    PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap missing object number before beginbfchar");
+                }
+                
                 i = loop = 0;
                 in_beginbfchar = 1;
                 stkToken.pop ();

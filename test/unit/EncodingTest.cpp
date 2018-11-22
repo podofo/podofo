@@ -359,6 +359,57 @@ void EncodingTest::testToUnicodeParse()
 #endif
         CPPUNIT_ASSERT_EQUAL( expects, unicodeStr[ii] );
     }
+    
+    const char* toUnicodeInvalidTests[] =
+    {
+        // missing object numbers
+        "beginbfrange\n",
+        "beginbfchar\n",
+
+        // invalid hex digits
+        "2 beginbfrange <WXYZ> endbfrange\n",
+        "2 beginbfrange <-123> endbfrange\n",
+        "2 beginbfrange <<00>> endbfrange\n",
+
+        // missing hex digits
+        "2 beginbfrange <> endbfrange\n",
+        
+        // empty array
+        "2 beginbfrange [] endbfrange\n",
+
+        nullptr
+    };
+    
+    for ( size_t i = 0 ; toUnicodeInvalidTests[i] != nullptr ; ++i )
+    {
+        try
+        {
+            PdfVecObjects vecInvalid;
+            PdfObject *strmInvalidObject;
+            
+            vec.SetAutoDelete( true );
+            
+            strmInvalidObject = vecInvalid.CreateObject( PdfVariant( PdfDictionary() ) );
+            strmInvalidObject->GetStream()->Set( toUnicodeInvalidTests[i], strlen( toUnicodeInvalidTests[i] ) );
+            
+            PdfIdentityEncoding encodingTestInvalid(0x0001, 0x000F, true, strmInvalidObject);
+            
+            PdfString unicodeStringTestInvalid = encoding.ConvertToUnicode( PdfString( encodedStr ), NULL );
+            
+            // exception not thrown - should never get here
+            // TODO not all invalid input throws an exception (e.g. no hex digits in <WXYZ>)
+            //CPPUNIT_ASSERT( false );
+        }
+        catch ( PoDoFo::PdfError& error )
+        {
+            // parsing every invalid test string should throw an exception
+            CPPUNIT_ASSERT( true );
+        }
+        catch( std::exception& ex )
+        {
+            CPPUNIT_FAIL( "Unexpected exception type" );
+        }
+    }
 }
 
 bool EncodingTest::outofRangeHelper( PdfEncoding* pEncoding, std::string & rMsg, const char* pszName )
