@@ -61,6 +61,11 @@ void crop_page( PdfPage* pPage, const PdfRect & rCropBox )
            rCropBox.GetHeight());
     */
     rCropBox.ToVariant( var );
+    if (!pPage)
+    {
+        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle,
+                                "crop_page: No page pointer given" );
+    }
     pPage->GetObject()->GetDictionary().AddKey( PdfName("MediaBox"), var );
 }
 
