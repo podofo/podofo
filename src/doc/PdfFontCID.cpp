@@ -422,18 +422,18 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
                     array.push_back( lCurIndex );
                     pdf_int64 temp = lCurIndex + lCurLength - 1;
                     array.push_back( temp ); 
-                    array.push_back( dCurWidth ); 
+                    array.push_back( static_cast<pdf_int64>(dCurWidth + 0.5) );
                 }
                 else
                 {
                     if( array.size() && array.back().IsArray() ) 
                     {
-                        array.back().GetArray().push_back( dCurWidth );
+                        array.back().GetArray().push_back( static_cast<pdf_int64>(dCurWidth + 0.5) );
                     }
                     else
                     {
                         PdfArray tmp;
-                        tmp.push_back( dCurWidth );
+                        tmp.push_back( static_cast<pdf_int64>(dCurWidth + 0.5) );
                         
                         array.push_back( lCurIndex );
                         array.push_back( tmp );
@@ -450,7 +450,7 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
         {
             array.push_back( lCurIndex = nMin );
             array.push_back( lCurIndex = nMax );
-            array.push_back( dCurWidth ); 
+            array.push_back( static_cast<pdf_int64>(dCurWidth + 0.5) );
         }
         
         pFontDict->GetDictionary().AddKey( PdfName("W"), array ); 
