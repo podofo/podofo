@@ -144,6 +144,20 @@ PdfOutputDevice::PdfOutputDevice( PdfRefCountedBuffer* pOutBuffer )
     m_pRefCountedBuffer = pOutBuffer;
 }
 
+PdfOutputDevice::PdfOutputDevice( std::iostream* pStream )
+{
+    this->Init();
+
+    m_pStream = pStream;
+    m_pReadStream = pStream;
+    m_pStreamOwned = false;
+
+#if USE_CXX_LOCALE
+    m_pStreamSavedLocale = m_pStream->getloc();
+    PdfLocaleImbue(*m_pStream);
+#endif	
+}
+
 PdfOutputDevice::~PdfOutputDevice()
 {
     if( m_pStreamOwned ) 

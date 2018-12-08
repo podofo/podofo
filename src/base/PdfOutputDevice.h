@@ -36,6 +36,7 @@
 
 #include <cstdarg>
 #include <ostream>
+#include <iostream>
 
 #include "PdfDefines.h"
 #include "PdfLocale.h"
@@ -119,6 +120,16 @@ class PODOFO_API PdfOutputDevice {
      *  \see PdfRefCountedBuffer
      */
     PdfOutputDevice( PdfRefCountedBuffer* pOutBuffer );
+
+    /** Construct a new PdfOutputDevice that writes all data to a std::iostream
+     *  and reads from it as well.
+     *
+     *  WARNING: PoDoFo will change the stream's locale.  It will be restored when
+     *  the PdfOutputStream controlling the stream is destroyed.
+     *
+     *  \param pStream read/write from/to this std::iostream
+     */
+    PdfOutputDevice( std::iostream* pStream );
 
     /** Destruct the PdfOutputDevice object and close any open files.
      */
