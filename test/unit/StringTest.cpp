@@ -64,7 +64,8 @@ void StringTest::TestLibUnistringInternal(const char* pszString, const long lLen
 {
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "Test initial string len.", static_cast<size_t>(lLenUtf8), strlen(pszString) );
     
-    pdf_utf16be pszUtf16[lLenUtf16 + 1];
+    pdf_utf16be* pszUtf16 = static_cast< pdf_utf16be* >( podofo_malloc( sizeof( pdf_utf16be ) * ( lLenUtf16 + 1 ) ) );
+    CPPUNIT_ASSERT( pszUtf16!= NULL );
     pdf_long result1 = PdfString::ConvertUTF8toUTF16( reinterpret_cast<const pdf_utf8*>(pszString), lLenUtf8, pszUtf16, lLenUtf16 + 1 );
 
     print(pszUtf16, result1);
@@ -73,13 +74,17 @@ void StringTest::TestLibUnistringInternal(const char* pszString, const long lLen
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "Comparing length of output buffer after utf8 -> utf16 conversion.", lLenUtf16 + 1, static_cast<long>(result1) );
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "Make sure utf16 string is 0 terminated.", static_cast<pdf_utf16be>(0), pszUtf16[result1-1] );
     
-    pdf_utf8 pszUtf8[lLenUtf8 + 1];
+    pdf_utf8* pszUtf8 = static_cast< pdf_utf8* >( podofo_malloc( sizeof( pdf_utf8 ) * ( lLenUtf8 + 1 ) ) );
+    CPPUNIT_ASSERT( pszUtf8 != NULL );
     pdf_long result2 = PdfString::ConvertUTF16toUTF8( pszUtf16, lLenUtf16, pszUtf8, lLenUtf8 + 1 );
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "Comparing length of output buffer after utf8 -> utf16 -> utf8 conversion.", lLenUtf8 + 1, static_cast<long>(result2) );
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "Make sure utf8 string is 0 terminated.", static_cast<pdf_utf8>(0), pszUtf8[result2 - 1] );
 
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "Comparing input string after utf8 -> utf16 -> utf8", strncmp(pszString, reinterpret_cast<char*>(pszUtf8), lLenUtf8 ), 0);
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "Comparing string length after utf8 -> utf16 -> utf8", static_cast<size_t>(lLenUtf8), strlen(reinterpret_cast<char*>(pszUtf8)) );
+
+    podofo_free( pszUtf8 );
+    podofo_free( pszUtf16 );
 }
 
 void StringTest::testLibUnistringSimple()

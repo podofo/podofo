@@ -331,17 +331,16 @@ void EncryptTest::testEnableAlgorithms()
 #ifdef PODOFO_HAVE_LIBIDN
     CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_AESV3 ) );
 #endif // PODOFO_HAVE_LIBIDN
-    CPPUNIT_ASSERT_EQUAL( 
+
+    int testAlgorithms = PdfEncrypt::ePdfEncryptAlgorithm_AESV2;
 #ifndef PODOFO_HAVE_OPENSSL_NO_RC4
-                          PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 |
-                          PdfEncrypt::ePdfEncryptAlgorithm_RC4V2 |
+    testAlgorithms |= PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 | PdfEncrypt::ePdfEncryptAlgorithm_RC4V2;
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
-                          PdfEncrypt::ePdfEncryptAlgorithm_AESV2
 #ifdef PODOFO_HAVE_LIBIDN
-                          | PdfEncrypt::ePdfEncryptAlgorithm_AESV3
+    testAlgorithms |= PdfEncrypt::ePdfEncryptAlgorithm_AESV3;
 #endif // PODOFO_HAVE_LIBIDN
-                                                                   ,
-                          PdfEncrypt::GetEnabledEncryptionAlgorithms() );
+    CPPUNIT_ASSERT_EQUAL( testAlgorithms, PdfEncrypt::GetEnabledEncryptionAlgorithms() );
+
     // Disable AES
 #ifndef PODOFO_HAVE_OPENSSL_NO_RC4
     PdfEncrypt::SetEnabledEncryptionAlgorithms( PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 |

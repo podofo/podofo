@@ -39,6 +39,11 @@
 #ifdef PODOFO_HAVE_LIBIDN
 // AES-256 dependencies :
 // SASL
+#if defined(_MSC_VER)
+// Fix missing posix "ssize_t" typedef in MSVC
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
 #include <stringprep.h>
 #include <openssl/sha.h>
 #endif // PODOFO_HAVE_LIBIDN

@@ -79,7 +79,7 @@ std::string get_ghostscript_output( const char* pszInput )
     DWORD count;
 	char cmd[lBufferLen];
 
-    STARTUPINFO si;
+    STARTUPINFOA si;
     PROCESS_INFORMATION pi;
 
     ZeroMemory( &si, sizeof(si) );
@@ -100,7 +100,7 @@ std::string get_ghostscript_output( const char* pszInput )
 	
 	_snprintf(cmd, lBufferLen, "gs -dSAFER -sDEVICE=bbox -sNOPAUSE -q %s -c quit", pszInput);
 	printf("Running %s\n", cmd );
-    if( !CreateProcess( NULL, cmd, NULL, NULL, TRUE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL, &si, &pi ) ) 
+    if( !CreateProcessA( NULL, cmd, NULL, NULL, TRUE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL, &si, &pi ) ) 
     {
 		printf("CreateProcess failed.");
         exit(1);
