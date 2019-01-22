@@ -521,7 +521,7 @@ class PODOFO_API PdfVariant {
      *  required to access the correct member of 
      *  the union UVariant.
      */
-    pdf_int8 m_eDataType;
+    pdf_uint8 m_eDataType;
 
     // No touchy. Only for use by PdfVariant's internal tracking of the delayed
     // loading state. Use DelayedLoadDone() to test this if you need to.
