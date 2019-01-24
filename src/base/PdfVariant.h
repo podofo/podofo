@@ -514,12 +514,14 @@ class PODOFO_API PdfVariant {
     UVariant     m_Data;
 
     bool         m_bDirty; ///< Indicates if this object was modified after construction
-    bool         m_bImmutable; ///< Indicates if this object maybe modified
+    bool         m_bImmutable; ///< Indicates if this object may be modified
 
 
-    /** Datatype of the variant.
-     *  required to access the correct member of 
-     *  the union UVariant.
+    /** Datatype of the variant, required to access the correct member of the union UVariant.
+     *  The data type is to save RAM space because this class is used in very many instances.
+     *  No fixed-underlying-type enum is used, for pre-C++11 compatibility.
+     *  The type is unsigned because there's no negative value in the enum PdfDataType and
+     *  to cleanly enable the ePdfDataType_Unknown value to be 0xff (as sentinel value).
      */
     pdf_uint8 m_eDataType;
 

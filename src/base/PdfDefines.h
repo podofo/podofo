@@ -208,7 +208,7 @@ enum EPdfDataType {
     ePdfDataType_Reference,             /**< The reference datatype contains references to PDF objects in the PDF file of the form 4 0 R. \see PdfObject */
     ePdfDataType_RawData,               /**< Raw PDF data */
 
-    ePdfDataType_Unknown                /**< The Datatype is unknown */
+    ePdfDataType_Unknown = 0xff         /**< The Datatype is unknown. The value is chosen to enable value storage in 8-bit unsigned integer. */
 };
 
 /**
