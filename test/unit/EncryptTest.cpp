@@ -199,7 +199,7 @@ void EncryptTest::TestEncrypt( PdfEncrypt* pEncrypt )
     pdf_long nOutputLen = pEncrypt->CalculateStreamLength(m_lLen);
 
     unsigned char *pEncryptedBuffer = new unsigned char[nOutputLen];
-    unsigned char *pDecryptedBuffer = new unsigned char[m_lLen];
+    unsigned char *pDecryptedBuffer = new unsigned char[nOutputLen];
 
     // Encrypt buffer
     try {
