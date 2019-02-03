@@ -504,7 +504,17 @@ void PdfNamesTree::AddToDictionary( PdfObject* pObj, PdfDictionary & rDict )
             // convert all strings into names 
             PdfName name( (*it).GetString().GetString() );
             ++it;
-            rDict.AddKey( name, *(it) );
+            // fixes (security) issue #39 in PoDoFo's tracker (sourceforge.net)
+            if ( it == names.end() )
+            {
+                PdfError::LogMessage( eLogSeverity_Warning,
+                                "No reference in /Names array last element in "
+                                "object %lu %lu, possible\nexploit attempt!\n",
+                                pObj->Reference().ObjectNumber(),
+                                pObj->Reference().GenerationNumber() );
+                break;
+            }
+            rDict.AddKey( name, (*it) );
             ++it;
         }
         
