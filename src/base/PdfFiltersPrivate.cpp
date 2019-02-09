@@ -116,11 +116,20 @@ public:
         }
 
         memset( m_pPrev, 0, sizeof(char) * m_nRows );
+
+        m_pUpperLeftPixelComponents = static_cast<char*>(podofo_calloc( m_nBpp, sizeof(char) ));
+        if( !m_pUpperLeftPixelComponents )
+        {
+            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        }
+
+        memset( m_pUpperLeftPixelComponents, 0, sizeof(char) * m_nBpp );
     };
 
     ~PdfPredictorDecoder()
     {
         podofo_free( m_pPrev );
+        podofo_free( m_pUpperLeftPixelComponents );
     }
 
     void Decode( const char* pBuffer, pdf_long lLen, PdfOutputStream* pStream ) 
@@ -182,9 +191,40 @@ public:
                         break;
                     }
                     case 14: // png paeth
-                        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidPredictor, "png paeth predictor is not implemented" );
-                        break;
+                    {
+                        int nLeftByteIndex = m_nCurRowIndex - m_nBpp;
 
+                        int a = nLeftByteIndex < 0 ? 0 : static_cast<unsigned char>( m_pPrev[nLeftByteIndex] );
+                        int b = static_cast<unsigned char>( m_pPrev[m_nCurRowIndex] );
+
+                        int nCurrComponentIndex = m_nCurRowIndex % m_nBpp;
+                        int c = nLeftByteIndex < 0 ? 0 : static_cast<unsigned char>( m_pUpperLeftPixelComponents[nCurrComponentIndex] );
+
+                        int p = a + b - c;
+
+                        int pa = p - a;
+                        if( pa < 0 ) pa = -pa;
+
+                        int pb = p - b;
+                        if( pb < 0 ) pb = -pb;
+
+                        int pc = p - c;
+                        if( pc < 0 ) pc = -pc;
+
+                        char closestByte;
+                        if( pa <= pb && pa <= pc )
+                            closestByte = a;
+                        else if( pb <= pc )
+                            closestByte = b;
+                        else
+                            closestByte = c;
+
+                        // Save the byte we're about to clobber for the next pixel's prediction
+                        m_pUpperLeftPixelComponents[nCurrComponentIndex] = m_pPrev[m_nCurRowIndex];
+
+                        m_pPrev[m_nCurRowIndex] = *pBuffer + closestByte;
+                        break;
+                    }
                     case 15: // png optimum
                         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidPredictor, "png optimum predictor is not implemented" );
                         break;
@@ -226,6 +266,11 @@ private:
     bool m_bNextByteIsPredictor;
 
     char* m_pPrev;
+
+    // The PNG Paeth predictor uses the values of the pixel above and to the left
+    // of the current pixel. But we overwrite the row above as we go, so we'll
+    // have to store the bytes of the upper-left pixel separately.
+    char* m_pUpperLeftPixelComponents;
 };
 
 
