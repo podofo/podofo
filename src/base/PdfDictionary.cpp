@@ -139,14 +139,14 @@ void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObjec
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
     */
-
-    if( m_mapKeys.find( identifier ) != m_mapKeys.end() )
+    PdfObject *objToInsert = new PdfObject(rObject);
+    std::pair<TKeyMap::iterator, bool> inserted = m_mapKeys.insert( std::make_pair( identifier, objToInsert ) );
+    if ( !inserted.second )
     {
-        delete m_mapKeys[identifier];
-        m_mapKeys.erase( identifier );
+        delete inserted.first->second;
+        inserted.first->second = objToInsert;
     }
 
-	m_mapKeys[identifier] = new PdfObject( rObject );
     m_bDirty = true;
 }
 
@@ -246,12 +246,12 @@ bool PdfDictionary::HasKey( const PdfName & key ) const
 
 bool PdfDictionary::RemoveKey( const PdfName & identifier )
 {
-    if( HasKey( identifier ) )
+    TKeyMap::iterator found = m_mapKeys.find( identifier );
+    if( found != m_mapKeys.end() )
     {
         AssertMutable();
-        delete m_mapKeys[identifier];
-
-        m_mapKeys.erase( identifier );
+        delete found->second;
+        m_mapKeys.erase( found );
         m_bDirty = true;
         return true;
     }
