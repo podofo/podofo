@@ -225,6 +225,13 @@ class PODOFO_API PdfTokenizer {
      */
     void ReadHexString( PdfVariant& rVariant, PdfEncrypt* pEncrypt );
 
+    /** Read a hex string from the input device
+     *  and store it into a vector.
+     *
+     *  \param rVecBuffer store the hex string into this variable
+     */
+    void ReadHexString( std::vector<char> &rVecBuffer );
+
     /** Read a name from the input device
      *  and store it into a variant.
      * 

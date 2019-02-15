@@ -45,6 +45,7 @@
 
 #include <limits>
 #include <sstream>
+#include <memory>
 
 #include <stdlib.h>
 #include <string.h>
@@ -597,6 +598,7 @@ void PdfTokenizer::ReadDictionary( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
     PdfDictionary dict;
     EPdfTokenType eType;
     const char *  pszToken;
+    std::auto_ptr<std::vector<char>> contentsHexBuffer;
 
     for( ;; )
     {
@@ -612,16 +614,71 @@ void PdfTokenizer::ReadDictionary( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
         // Convert the read variant to a name; throws InvalidDataType if not a name.
         key = val.GetName();
 
-        // 'Contents' key of a /Type/Sig dictionary is an unencrypted Hex string
-        bool bIsSigContents = key == PdfName( "Contents" ) &&
-            dict.HasKey( "Type" ) &&
-            dict.GetKey( "Type" )->GetDataType() == ePdfDataType_Name &&
-            dict.GetKey( "Type" )->GetName() == PdfName( "Sig" );
+        // Try to get the next variant
+        gotToken = this->GetNextToken( pszToken, &eType );
+        if ( !gotToken )
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_UnexpectedEOF, "Expected variant." );
+        }
 
-        // Get the next variant. If there isn't one, it'll throw UnexpectedEOF.
-        this->GetNextVariant( val, bIsSigContents ? NULL : pEncrypt );
+        EPdfDataType eDataType = this->DetermineDataType( pszToken, eType, val );
+        if ( key == "Contents" && eDataType == ePdfDataType_HexString )
+        {
+            // 'Contents' key in signature dictionaries is an unencrypted Hex string:
+            // save the string buffer for later check if it needed decryption
+            contentsHexBuffer = std::auto_ptr<std::vector<char>>( new std::vector<char>() );
+            ReadHexString( *contentsHexBuffer );
+            continue;
+        }
+
+        switch ( eDataType )
+        {
+            case ePdfDataType_Null:
+            case ePdfDataType_Bool:
+            case ePdfDataType_Number:
+            case ePdfDataType_Real:
+            case ePdfDataType_Reference:
+            {
+                // the data was already read into rVariant by the DetermineDataType function
+                break;
+            }
+            case ePdfDataType_Name:
+            case ePdfDataType_String:
+            case ePdfDataType_HexString:
+            case ePdfDataType_Array:
+            case ePdfDataType_Dictionary:
+            {
+                this->ReadDataType( eDataType, val, pEncrypt );
+                break;
+            }
+            case ePdfDataType_RawData:
+            case ePdfDataType_Unknown:
+            default:
+            {
+                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Unexpected data type" );
+            }
+        }
 
         dict.AddKey( key, val );
+    }
+
+    if ( contentsHexBuffer.get() != NULL )
+    {
+        PdfObject *type = dict.GetKey( "Type" );
+        // "Contents" is unencrypted in /Type/Sig and /Type/DocTimeStamp dictionaries 
+        // https://issues.apache.org/jira/browse/PDFBOX-3173
+        bool contentsUnencrypted = type != NULL && type->GetDataType() == ePdfDataType_Name &&
+            (type->GetName() == PdfName( "Sig" ) || type->GetName() == PdfName( "DocTimeStamp" ));
+
+        PdfEncrypt *encrypt = NULL;
+        if ( !contentsUnencrypted )
+            encrypt = pEncrypt;
+
+        PdfString string;
+        string.SetHexData( contentsHexBuffer->size() ? &(*contentsHexBuffer)[0] : "", contentsHexBuffer->size(), encrypt );
+
+        val = string;
+        dict.AddKey( "Contents", val );
     }
 
     rVariant = dict;
@@ -764,9 +821,18 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 
 void PdfTokenizer::ReadHexString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 {
-    int        c;
+    ReadHexString( m_vecBuffer );
 
-    m_vecBuffer.clear();
+    PdfString string;
+    string.SetHexData( m_vecBuffer.size() ? &(m_vecBuffer[0]) : "", m_vecBuffer.size(), pEncrypt );
+
+    rVariant = string;
+}
+
+void PdfTokenizer::ReadHexString( std::vector<char>& rVecBuffer)
+{
+    rVecBuffer.clear();
+    int        c;
 
     while( (c = m_device.Device()->GetChar()) != EOF )
     {
@@ -778,17 +844,12 @@ void PdfTokenizer::ReadHexString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
         if( isdigit( c ) ||
             ( c >= 'A' && c <= 'F') ||
             ( c >= 'a' && c <= 'f'))
-            m_vecBuffer.push_back( c );
+            rVecBuffer.push_back( c );
     }
 
     // pad to an even length if necessary
-    if( m_vecBuffer.size() % 2 )
-        m_vecBuffer.push_back( '0' );
-
-    PdfString string;
-    string.SetHexData( m_vecBuffer.size() ? &(m_vecBuffer[0]) : "", m_vecBuffer.size(), pEncrypt );
-
-    rVariant = string;
+    if(rVecBuffer.size() % 2 )
+        rVecBuffer.push_back( '0' );
 }
 
 void PdfTokenizer::ReadName( PdfVariant& rVariant )
