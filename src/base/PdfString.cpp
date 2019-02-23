@@ -626,8 +626,19 @@ void PdfString::InitUtf8()
         pdf_long lUtf8 = PdfString::ConvertUTF16toUTF8( reinterpret_cast<const pdf_utf16be*>(m_buffer.GetBuffer()), 
                                                     this->GetUnicodeLength(), 
                                                     reinterpret_cast<pdf_utf8*>(pBuffer), lBufferLen, ePdfStringConversion_Lenient );
+        if (lUtf8 + 1 > lBufferLen) // + 1 to account for 2 bytes termination here vs. 1 byte there
+        {
+            pBuffer = static_cast<char*>(podofo_realloc( pBuffer, lUtf8 + 1 ) );
+            if( !pBuffer )
+            {
+                PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+            }
+            if (lUtf8 - 1 > lBufferLen)
+                lUtf8 = PdfString::ConvertUTF16toUTF8( reinterpret_cast<const pdf_utf16be*>(m_buffer.GetBuffer()),
+                                                       this->GetUnicodeLength(), reinterpret_cast<pdf_utf8*>(pBuffer), lUtf8 + 1);
+        }
 
-        pBuffer[lUtf8-1] = '\0';
+        pBuffer[lUtf8 - 1] = '\0';
         pBuffer[lUtf8] = '\0';
         m_sUtf8 = pBuffer;
         podofo_free( pBuffer );
@@ -811,6 +822,7 @@ pdf_long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_utf8* p
     return ConvertUTF16toUTF8( pszUtf16, lLen, pszUtf8, lLenUtf8 );
 }
 
+// returns used, or if not enough memory passed in, needed length incl. 1 byte termination
 pdf_long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_long lLenUtf16, 
                                     pdf_utf8* pszUtf8, pdf_long lLenUtf8, 
                                     EPdfStringConversion eConversion  )
@@ -828,12 +840,21 @@ pdf_long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_long lL
     size_t sLength = lLenUtf16;
     size_t resultBufLength = lLenUtf8;
 
-    u16_to_u8 ( s, sLength, pResultBuf, &resultBufLength);
+    uint8_t* pReturnBuf = u16_to_u8( s, sLength, pResultBuf, &resultBufLength );
+    if (pReturnBuf != pResultBuf)
+    {
+        free(pReturnBuf); // allocated by libunistring, so don't use podofo_free()
+        PdfError::LogMessage( eLogSeverity_Warning, "Output string size too little to hold it\n" );
+        return resultBufLength + 1;
+    }
 
     pdf_long lBufferLen = PODOFO_MIN( static_cast<pdf_long>(resultBufLength + 1), lLenUtf8 );
 
-    // Make sure buffer is 0 termnated
-    pszUtf8[resultBufLength] = 0; 
+    // Make sure buffer is 0 terminated
+    if ( static_cast<pdf_long>(resultBufLength + 1) <= lLenUtf8 )
+        pszUtf8[resultBufLength] = 0;
+    else
+        return resultBufLength + 1; // means: check for this in the caller to detect non-termination
     
     return lBufferLen;
 }
