@@ -72,6 +72,8 @@ const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *pObject,
             return PdfEncodingFactory::GlobalMacExpertEncodingInstance ();
         else if (rName == PdfName ("SymbolEncoding"))	// OC 13.08.2010
             return PdfEncodingFactory::GlobalSymbolEncodingInstance ();
+        else if (rName == PdfName ("SymbolSetEncoding"))	// CB 21.02.2019
+            return PdfEncodingFactory::GlobalSymbolEncodingInstance ();
         else if (rName == PdfName ("ZapfDingbatsEncoding"))	// OC 13.08.2010
             return PdfEncodingFactory::GlobalZapfDingbatsEncodingInstance ();
         else if (rName == PdfName ("Identity-H"))
