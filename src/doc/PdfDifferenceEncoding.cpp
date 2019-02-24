@@ -2560,7 +2560,7 @@ PdfString PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedStr
     const PdfEncoding* pEncoding = GetBaseEncoding();
     
     PdfString str  = pEncoding->ConvertToUnicode( rEncodedString, pFont );
-    pdf_long      lLen = str.GetCharacterLength();
+    size_t lLen = str.GetCharacterLength();
 
     pdf_utf16be* pszUtf16 = static_cast<pdf_utf16be*>(podofo_calloc(lLen, sizeof(pdf_utf16be)));
     if( !pszUtf16 )
@@ -2569,17 +2569,15 @@ PdfString PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedStr
     }
 
     memcpy( pszUtf16, str.GetUnicode(), lLen * sizeof(pdf_utf16be) );
-
-    for( pdf_long i=0;i<lLen;i++ ) 
+    const unsigned char* pszInput = (const unsigned char*) rEncodedString.GetString();
+    for( size_t i = 0; i < lLen; i++ ) 
     {
-        pdf_utf16be val = pszUtf16[i];
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-        val = ((val & 0xff00) >> 8) | ((val & 0xff) << 8);
-#endif // PODOFO_IS_LITTLE_ENDIAN
-
         PdfName     name;
         pdf_utf16be value;
-        if( m_differences.Contains( static_cast<int>(val), name, value ) )
+        //TODO: This method should take pdf_uint8 instead of int because of its
+        // domain (0 to 255) for 1st param, but PoDoFo still has known security
+        // issues so an API change is a Bad Thing (IMO at least) to do now.
+        if( m_differences.Contains( static_cast<int>(pszInput[i]), name, value ) )
             pszUtf16[i] = value;
     }
 
