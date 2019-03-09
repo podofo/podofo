@@ -148,7 +148,12 @@ namespace PoDoFo
 // 	std::cerr << "Document has "<< pcount << " page(s) " << endl;
 			if ( pcount > 0 ) // only here to avoid possible segfault, but PDF without page is not conform IIRC
 			{
-				PoDoFo::PdfRect rect ( sourceDoc->GetPage ( 0 )->GetMediaBox() );
+                PoDoFo::PdfPage* pFirstPage = sourceDoc->GetPage ( 0 );
+                if ( NULL == pFirstPage ) // Fixes CVE-2019-9199 (issue #40)
+                {
+                    PODOFO_RAISE_ERROR_INFO( ePdfError_PageNotFound, "First page (0) of source document not found" );
+                }
+                PoDoFo::PdfRect rect ( pFirstPage->GetMediaBox() );
 				// keep in mind it’s just a hint since PDF can have different page sizes in a same doc
 				sourceWidth =  rect.GetWidth() - rect.GetLeft();
 				sourceHeight =  rect.GetHeight() - rect.GetBottom() ;
