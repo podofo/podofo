@@ -2576,7 +2576,7 @@ PdfString PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedStr
         pdf_utf16be value;
         //TODO: This method should take pdf_uint8 instead of int because of its
         // domain (0 to 255) for 1st param, but PoDoFo still has known security
-        // issues so an API change is a Bad Thing (IMO at least) to do now.
+        // issues so an API change is a Bad Thing (mabri: IMO at least) to do now.
         if( m_differences.Contains( static_cast<int>(pszInput[i]), name, value ) )
             pszUtf16[i] = value;
     }

@@ -203,17 +203,18 @@ class PODOFO_API PdfString : public PdfDataType {
 
     /** The contents of the string can be read by this function.
      *
-     *  The returned data is never hex-encoded may contain '\0' bytes.
+     *  The returned data is never hex-encoded and may contain '\0' bytes.
      *
      *  If IsUnicode() returns true, the return value
-     *  points to a UTF-16BE string buffer with Length()
-     *  characters. Better use GetUnicode() in this case.
-     * 
+     *  points to a UTF-16BE string buffer with GetCharacterLength()
+     *  characters (GetLength() bytes without the terminating '\0').
+     *  Better use GetUnicode() in this case.
+     *) 
      *  \returns the string's contents which are guaranteed to be zero-terminated
      *           but might also contain '\0' bytes in the string.
      *  \see IsHex
      *  \see IsUnicode
-     *  \see Length
+     *  \see GetLength
      */
     inline const char* GetString() const;
 
@@ -221,9 +222,14 @@ class PODOFO_API PdfString : public PdfDataType {
      *
      *  The returned data is never hex-encoded any may contain '\0' bytes.
      *
-     *  If IsUnicode() returns true, the return value
-     *  points to a UTF-16BE string buffer with Length()
-     *  characters. Better use GetUnicode() in this case.
+     *  If IsUnicode() returns true, the return value points to a UTF-16BE
+     *  string with GetCharacterLength() characters (GetLength() bytes without
+     *  the terminating '\0' bytes).
+     *
+     *  If IsUnicode() returns false, the return value
+     *  points to a PdfDocEncoding string buffer with GetLength()
+     *  characters (so may well not be valid as UTF-16BE).
+     *  Better use GetString() in this case.
      * 
      *  \returns the string's contents which are guaranteed to be zero-terminated
      *           but might also contain '\0' bytes in the string,
@@ -231,7 +237,7 @@ class PODOFO_API PdfString : public PdfDataType {
      *
      *  \see IsHex
      *  \see IsUnicode
-     *  \see Length
+     *  \see GetUnicodeLength
      */
     inline const pdf_utf16be* GetUnicode() const;
 
@@ -362,8 +368,8 @@ class PODOFO_API PdfString : public PdfDataType {
 
     /** Converts this string to a unicode string
      *  
-     *  If IsUnicode() returns true a copy of this string is returned
-     *  otherwise the string data is converted to UTF-16be and returned.
+     *  If IsUnicode() returns true a copy of this string is returned,
+     *  otherwise the string data is converted to UTF-16BE and returned.
      *
      *  \returns a unicode version of this string,
      *           returns *this if if PdfString::IsValid() returns false
@@ -373,7 +379,8 @@ class PODOFO_API PdfString : public PdfDataType {
 	 /** Returns internal buffer; do not free it, it's owned by the PdfString
 	  *
 	  * \returns internal buffer; do not free it, it's owned by the PdfString
-      *          returns a NULL zero size buffer if PdfString::IsValid() returns false
+      *          (zero size buffer, internally NULL, if PdfString::IsValid()
+      *          returns false).
 	  */
 	 PdfRefCountedBuffer &GetBuffer(void);
 
