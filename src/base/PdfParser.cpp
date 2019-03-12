@@ -791,6 +791,15 @@ void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
     }
 }
 
+static bool CheckEOL( char e1, char e2 )
+{   
+    // From pdf reference, page 94:
+    // If the file's end-of-line marker is a single character (either a carriage return or a line feed),
+    // it is preceded by a single space; if the marker is 2 characters (both a carriage return and a line feed),
+    // it is not preceded by a space.            
+    return ( (e1 == '\r' && e2 == '\n') || (e1 == '\n' && e2 == '\r') || (e1 == ' ' && (e2 == '\r' || e2 == '\n')) );
+}
+
 void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumObjects )
 {
     pdf_int64 count = 0;
@@ -895,10 +904,11 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
             // nnnnnnnnnn ggggg n eol
             // nnnnnnnnnn is 10-digit offset number with max value 9999999999 (bigger than 2**32 = 4GB)
             // ggggg is a 5-digit generation number with max value 99999 (smaller than 2**17)
+            // eol is a 2-character end-of-line sequence
             int read = sscanf( m_buffer.GetBuffer(), "%10" PDF_FORMAT_INT64 " %5" PDF_FORMAT_INT64 " %c%c%c",
                               &llOffset, &llGeneration, &cUsed, &empty1, &empty2 );
             
-            if ( read != 5 )
+            if ( read != 5 || !CheckEOL( empty1, empty2 ) )
             {
                 // part of XrefEntry is missing, or i/o error
                 PODOFO_RAISE_ERROR( ePdfError_InvalidXRef );
