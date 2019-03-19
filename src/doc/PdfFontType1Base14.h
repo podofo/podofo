@@ -69,8 +69,6 @@ class PdfFontType1Base14 : public PdfFontSimple {
     PdfFontType1Base14( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
                   PdfObject* pObject );
 
-    ~PdfFontType1Base14();
-
  protected:
     /** Embed the font file directly into the PDF file.
      *

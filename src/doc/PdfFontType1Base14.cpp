@@ -57,12 +57,6 @@ PdfFontType1Base14::PdfFontType1Base14( PdfFontMetrics* pMetrics, const PdfEncod
     InitBase14Font( pMetrics );
 }
 
-PdfFontType1Base14::~PdfFontType1Base14()
-{
-    // FontMetrics of base14 fonts may not be deleted
-    m_pMetrics = NULL;
-}
-
 /*
 kausik : April 12th 2010
 This is the font dictionary. It gets added to the page resources dictionary of the pdf.

@@ -4457,7 +4457,7 @@ static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
 };	 
 */
 
-static   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
+static const   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_COURIER,
         CHAR_DATA_COURIER,

@@ -83,7 +83,7 @@ public:
 
     ~PdfFontMetricsBase14();
 
-	friend  PdfFontMetricsBase14*
+	friend  const PdfFontMetricsBase14*
 		PODOFO_Base14FontDef_FindBuiltinData  (const char  *font_name);
 
     /** Create a width array for this font which is a required part
@@ -280,7 +280,7 @@ private :
 };
 
 
-PdfFontMetricsBase14*
+const PdfFontMetricsBase14*
 PODOFO_Base14FontDef_FindBuiltinData  (const char  *font_name);
 
 // -----------------------------------------------------

@@ -253,7 +253,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
            PdfObject* pBaseFont = NULL;
            pBaseFont = pObject->GetIndirectKey( "BaseFont" );
            const char* pszBaseFontName = pBaseFont->GetName().GetName().c_str();
-           PdfFontMetricsBase14* pMetrics = PODOFO_Base14FontDef_FindBuiltinData(pszBaseFontName);
+           const PdfFontMetricsBase14* pMetrics = PODOFO_Base14FontDef_FindBuiltinData(pszBaseFontName);
            if ( pMetrics != NULL )
            {
                // pEncoding may be undefined, found a valid pdf with
@@ -276,7 +276,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
                    pPdfEncoding = PdfEncodingFactory::GlobalSymbolEncodingInstance();
                else if ( strcmp(pszBaseFontName, "ZapfDingbats") == 0 )
                    pPdfEncoding = PdfEncodingFactory::GlobalZapfDingbatsEncodingInstance();
-               return new PdfFontType1Base14(pMetrics, pPdfEncoding, pObject);
+               return new PdfFontType1Base14(new PdfFontMetricsBase14(*pMetrics), pPdfEncoding, pObject);
            }
         }
         const PdfEncoding* pPdfEncoding = NULL;
@@ -361,7 +361,7 @@ EPdfFontType PdfFontFactory::GetFontType( const char* pszFilename )
 }
 
 
-PdfFontMetricsBase14*
+const PdfFontMetricsBase14*
 PODOFO_Base14FontDef_FindBuiltinData(const char  *font_name)
 {
     unsigned int i = 0;
@@ -384,7 +384,7 @@ PdfFont *PdfFontFactory::CreateBase14Font(const char* pszFontName,
                     PdfVecObjects *pParent)
 {
     PdfFont *pFont = new PdfFontType1Base14(
-        PODOFO_Base14FontDef_FindBuiltinData(pszFontName), pEncoding, pParent);
+        new PdfFontMetricsBase14(*PODOFO_Base14FontDef_FindBuiltinData(pszFontName)), pEncoding, pParent);
     if (pFont) {
         pFont->SetBold( eFlags & ePdfFont_Bold ? true : false );
         pFont->SetItalic( eFlags & ePdfFont_Italic ? true : false );
