@@ -438,9 +438,6 @@ void PdfMemDocument::Write( const char* pszFilename )
      *  it writeable.
      */
 
-    // makes sure pending subset-fonts are embedded
-    m_fontCache.EmbedSubsetFonts();
-
     PdfOutputDevice device( pszFilename );
 
     this->Write( &device );
@@ -449,16 +446,6 @@ void PdfMemDocument::Write( const char* pszFilename )
 #ifdef _WIN32
 void PdfMemDocument::Write( const wchar_t* pszFilename )
 {
-    /** TODO:
-     *  We will get problems here on linux,
-     *  if we write to the same filename we read the 
-     *  document from.
-     *  Because the PdfParserObjects will read there streams 
-     *  data from the file while we are writing it.
-     *  The problem is that the stream data won't exist at this time
-     *  as we truncated the file already to zero length by opening
-     *  it writeable.
-     */
     PdfOutputDevice device( pszFilename );
 
     this->Write( &device );
@@ -477,6 +464,9 @@ void PdfMemDocument::Write( PdfOutputDevice* pDevice )
      *  as we truncated the file already to zero length by opening
      *  it writeable.
      */
+
+     // makes sure pending subset-fonts are embedded
+    m_fontCache.EmbedSubsetFonts();
 
     PdfWriter writer( &(this->GetObjects()), this->GetTrailer() );
     writer.SetPdfVersion( this->GetPdfVersion() );
@@ -499,9 +489,6 @@ void PdfMemDocument::WriteUpdate( const char* pszFilename )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
-
-    // makes sure pending subset-fonts are embedded
-    m_fontCache.EmbedSubsetFonts();
 
     bool bTruncate = !m_pszUpdatingFilename || strcmp( m_pszUpdatingFilename, pszFilename) != 0;
 
@@ -542,6 +529,9 @@ void PdfMemDocument::WriteUpdate( PdfOutputDevice* pDevice, bool bTruncate )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
+
+    // makes sure pending subset-fonts are embedded
+    m_fontCache.EmbedSubsetFonts();
 
     /** TODO:
      *  We will get problems here on linux,
