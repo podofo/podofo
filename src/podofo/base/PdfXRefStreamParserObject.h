@@ -48,7 +48,7 @@ namespace PoDoFo {
  *
  * It is mainly here to make PdfParser more modular.
  */
-class PdfXRefStreamParserObject : public PdfParserObject {
+class PODOFO_API PdfXRefStreamParserObject : public PdfParserObject {
 public:
 
     /** Parse the object data from the given file handle starting at
