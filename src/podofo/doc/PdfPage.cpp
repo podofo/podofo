@@ -450,7 +450,7 @@ void PdfPage::DeleteAnnotation( const PdfReference & ref )
     PdfObject*         pObj   = this->GetAnnotationsArray( false );
     bool               bFound = false;
 
-    // delete the annotation from the array
+    // find the array iterator pointing to the annotation, so it can be deleted later
 
     if( !(pObj && pObj->IsArray()) )
     {
@@ -462,7 +462,10 @@ void PdfPage::DeleteAnnotation( const PdfReference & ref )
     {
         if( (*it).IsReference() && (*it).GetReference() == ref ) 
         {
-            pObj->GetArray().erase( it );
+            // Element may not be deleted from the array at this point, because doing
+            // this invalidates all PdfReferences references derived from the array.
+            // This includes the 'ref' parameter, when it is never copied by value,
+            // as it happens when this function is called via DeleteAnnotation( int )!
             bFound = true;
             break;
         }
@@ -488,6 +491,11 @@ void PdfPage::DeleteAnnotation( const PdfReference & ref )
 
     // delete the PdfObject in the file
     delete this->GetObject()->GetOwner()->RemoveObject( ref );
+    
+    // Delete the annotation from the annotation array.
+	// Has to be performed at last, since it will invalidate 'ref' when
+	// it was derived from the array itself and never copied by value!
+    pObj->GetArray().erase( it );
 }
 
 // added by Petr P. Petrov 21 Febrary 2010
