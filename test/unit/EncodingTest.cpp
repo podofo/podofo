@@ -377,10 +377,10 @@ void EncodingTest::testToUnicodeParse()
         // empty array
         "2 beginbfrange [] endbfrange\n",
 
-        nullptr
+        NULL
     };
     
-    for ( size_t i = 0 ; toUnicodeInvalidTests[i] != nullptr ; ++i )
+    for ( size_t i = 0 ; toUnicodeInvalidTests[i] != NULL ; ++i )
     {
         try
         {
