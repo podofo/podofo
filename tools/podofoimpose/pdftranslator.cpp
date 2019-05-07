@@ -108,7 +108,9 @@ namespace PoDoFo
 				char *filenameBuffer = new char[1000];
 				do
 				{
-					in.getline ( filenameBuffer, 1000 );
+					if ( !in.getline ( filenameBuffer, 1000 ) )
+						throw runtime_error ( "failed reading line from input file" );
+
 					std::string ts ( filenameBuffer, in.gcount() );
 					if ( ts.size() > 4 ) // at least ".pdf" because just test if ts is empty doesn't work.
 					{
