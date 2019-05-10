@@ -187,7 +187,9 @@ PlanReader_Legacy::PlanReader_Legacy(const std::string & plan, PoDoFo::Impose::I
 	std::vector<std::string> memfile;
 	do
 	{
-		in.getline ( cbuffer, MAX_RECORD_SIZE );
+		if ( !in.getline ( cbuffer, MAX_RECORD_SIZE ) )
+			throw runtime_error ( "Failed to read line from plan" );
+
 		blen = in.gcount() ;
 		std::string buffer ( cbuffer, blen );
 		
