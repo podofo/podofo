@@ -179,6 +179,10 @@ namespace PoDoFo
 // 			std::cerr<<"PdfTranslator::migrateResource"<<std::endl;
 			PdfObject *ret ( 0 );
 
+			if ( !obj )
+				PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "migrateResource called"
+                                         " with NULL object" );
+
 			if ( obj->IsDictionary() )
 			{
 				ret = targetDoc->GetObjects().CreateObject ( *obj );
