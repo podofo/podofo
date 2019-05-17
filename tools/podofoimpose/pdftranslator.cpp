@@ -124,6 +124,9 @@ namespace PoDoFo
 			}
 			std::cerr<< ++dbg <<std::endl;
 
+			if (multiSource.empty())
+				throw runtime_error( "No recognized source given" );
+
 			for ( std::vector<std::string>::const_iterator ms = multiSource.begin(); ms != multiSource.end(); ++ms )
 			{
 				if ( ms == multiSource.begin() )
