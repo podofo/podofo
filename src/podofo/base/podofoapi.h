@@ -173,9 +173,22 @@
 
 /* Set up some other compiler-specific but not platform-specific macros */
 
-#if defined(__GNUC__)
-    /* gcc will issue a warning if a function or variable so annotated is used */
-    #define PODOFO_DEPRECATED       __attribute__((deprecated))
+#ifdef __GNU__
+  #define PODOFO_HAS_GCC_ATTRIBUTE_DEPRECATED 1
+#elif defined(__has_attribute)
+  #if __has_attribute(__deprecated__)
+    #define PODOFO_HAS_GCC_ATTRIBUTE_DEPRECATED 1
+  #endif
+#endif
+
+#ifdef PODOFO_HAS_GCC_ATTRIBUTE_DEPRECATED
+    /* gcc (or compat. clang) will issue a warning if a function or variable so annotated is used */
+    #define PODOFO_DEPRECATED       __attribute__((__deprecated__))
+#else
+    #define PODOFO_DEPRECATED
+#endif
+
+#ifdef __GNU__
     /* gcc can do some additional optimisations on functions annotated as pure.
      * See the documentation on __attribute__((pure)) in the gcc docs. */
     #define PODOFO_PURE_FUNCTION    __attribute__((pure))
@@ -185,9 +198,12 @@
      * (see CODINGSTYLE.txt) .*/
     #define PODOFO_NOTHROW          __attribute__((nothrow))
 #else
-    #define PODOFO_DEPRECATED
-    #define PODOFO_PURE_FUNCTION
-    #define PODOFO_NOTHROW          __declspec(nothrow)
+  #define PODOFO_PURE_FUNCTION
+    #ifdef _MSC_VER
+      #define PODOFO_NOTHROW        __declspec(nothrow)
+    #else
+      #define PODOFO_NOTHROW
+    #endif
 #endif
 
 // Peter Petrov 27 April 2008

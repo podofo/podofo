@@ -47,8 +47,11 @@ namespace PoDoFo {
  * an XRef stream object.
  *
  * It is mainly here to make PdfParser more modular.
+ * This is only marked PODOFO_API for the benefit of the tests,
+ * the class is for internal use only. It is deprecated, so
+ * don't ever rely on it (i.e. externally or in PoDoFo tools).
  */
-class PODOFO_API PdfXRefStreamParserObject : public PdfParserObject {
+class PODOFO_DEPRECATED PODOFO_API PdfXRefStreamParserObject : public PdfParserObject {
 public:
 
     /** Parse the object data from the given file handle starting at
