@@ -253,8 +253,17 @@ void PdfMemDocument::Load( const char* pszFilename, bool bForUpdate )
     // Call parse file instead of using the constructor
     // so that m_pParser is initialized for encrypted documents
     m_pParser = new PdfParser( PdfDocument::GetObjects() );
-    m_pParser->ParseFile( pszFilename, true );
-    InitFromParser( m_pParser );
+    try {
+        m_pParser->ParseFile( pszFilename, true );
+        InitFromParser( m_pParser );
+    } catch (PdfError& e) {
+        if ( e.GetError() != ePdfError_InvalidPassword )
+        {
+            Clear(); // avoid m_pParser leak (issue #49)
+            e.AddToCallstack( __FILE__, __LINE__, "Handler fixes issue #49" );
+        }
+        throw;
+    }
 }
 
 #ifdef _WIN32
