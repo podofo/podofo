@@ -25,6 +25,7 @@
 
 #include <string>
 #include <map>
+#include <set>
 #include <vector>
 #include <sstream>
 #include <istream>
@@ -131,6 +132,7 @@ class PdfTranslator
 		std::vector<std::string> multiSource;
 		
 		std::map<std::string, PdfObject*> migrateMap;
+		std::set<PdfObject*> setMigrationPending;
 	public:
 		int pcount;
 		double sourceWidth;

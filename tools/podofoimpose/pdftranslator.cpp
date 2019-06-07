@@ -194,7 +194,18 @@ namespace PoDoFo
 				for ( TCIKeyMap itres = resmap.begin(); itres != resmap.end(); ++itres )
 				{
 					PdfObject *o = itres->second;
-					ret->GetDictionary().AddKey ( itres->first , migrateResource ( o ) );
+					std::pair<std::set<PdfObject*>::iterator,bool> res = setMigrationPending.insert( o );
+					if (!res.second)
+					{
+						std::ostringstream oss;
+						oss << "Cycle detected: Object with ref " << o->Reference().ToString()
+							<< " is already pending migration to the target.\n";
+						PdfError::LogMessage( eLogSeverity_Warning, oss.str().c_str() );
+						continue;
+					}
+					PdfObject *migrated = migrateResource ( o );
+					if (NULL != migrated)
+						ret->GetDictionary().AddKey ( itres->first, migrated ); // 2nd arg non-NULL!
 				}
 
 				if ( obj->HasStream() )
@@ -220,10 +231,20 @@ namespace PoDoFo
 					return migrateMap[obj->GetReference().ToString() ];
 				}
 
-				PdfObject * o ( migrateResource ( sourceDoc->GetObjects().GetObject ( obj->GetReference() ) ) );
+				PdfObject *to_migrate = sourceDoc->GetObjects().GetObject ( obj->GetReference() );
 
-                                ret  = new PdfObject ( o->Reference() ) ;
-
+				std::pair<std::set<PdfObject*>::iterator, bool> res
+						= setMigrationPending.insert( to_migrate );
+				if (!res.second)
+				{
+					std::ostringstream oss;
+					oss << "Cycle detected: Object with ref " << obj->GetReference().ToString()
+						<< " is already pending migration to the target.\n";
+					PdfError::LogMessage( eLogSeverity_Warning, oss.str().c_str() );	
+					return NULL; // skip this migration
+				}
+				PdfObject * o ( migrateResource ( to_migrate ) );
+				ret  = new PdfObject ( o->Reference() ) ;
 			}
 			else
 			{
