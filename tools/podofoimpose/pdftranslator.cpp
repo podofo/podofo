@@ -220,6 +220,8 @@ namespace PoDoFo
 				for ( unsigned int ci = 0; ci < carray.GetSize(); ++ci )
 				{
 					PdfObject *co ( migrateResource ( &carray[ci] ) );
+					if ( NULL == co )
+						continue;
 					narray.push_back ( *co );
 				}
 				ret = targetDoc->GetObjects().CreateObject ( narray );
@@ -244,7 +246,10 @@ namespace PoDoFo
 					return NULL; // skip this migration
 				}
 				PdfObject * o ( migrateResource ( to_migrate ) );
-				ret  = new PdfObject ( o->Reference() ) ;
+				if ( NULL != o )
+					ret  = new PdfObject ( o->Reference() );
+				else
+					return NULL; // avoid going through rest of method
 			}
 			else
 			{
@@ -342,7 +347,10 @@ namespace PoDoFo
 					PoDoFo::PdfName keyname ( *itKey );
 					if ( page->GetObject()->GetDictionary().HasKey ( keyname ) )
 					{
-						xobj->GetObject()->GetDictionary().AddKey ( keyname, migrateResource ( page->GetObject()->GetDictionary().GetKey ( keyname ) ) );
+						PdfObject* migObj = migrateResource ( page->GetObject()->GetDictionary().GetKey ( keyname ) );
+						if ( NULL == migObj )
+							continue;
+						xobj->GetObject()->GetDictionary().AddKey ( keyname, migObj ); 
 					}
 				}
 
