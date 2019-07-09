@@ -252,6 +252,9 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
            // Check if its a PdfFontType1Base14
            PdfObject* pBaseFont = NULL;
            pBaseFont = pObject->GetIndirectKey( "BaseFont" );
+           if ( NULL == pBaseFont )
+               PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, "No BaseFont object found"
+                                       " by reference in given object" );
            const char* pszBaseFontName = pBaseFont->GetName().GetName().c_str();
            const PdfFontMetricsBase14* pMetrics = PODOFO_Base14FontDef_FindBuiltinData(pszBaseFontName);
            if ( pMetrics != NULL )
