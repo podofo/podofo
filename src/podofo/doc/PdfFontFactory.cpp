@@ -214,8 +214,12 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
     {
         // The PDF reference states that DescendantFonts must be an array,
         // some applications (e.g. MS Word) put the array into an indirect object though.
-        const PdfArray & descendant  = 
-            pObject->GetIndirectKey( "DescendantFonts" )->GetArray();
+        const PdfObject* const pDescendantObj = pObject->GetIndirectKey( "DescendantFonts" );
+
+        if ( NULL == pDescendantObj )
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Type0 Font: No DescendantFonts" );
+        
+        const PdfArray & descendant = pDescendantObj->GetArray();
         PdfObject* pFontObject = NULL;
         
         if (descendant.size() && descendant[0].IsReference())
