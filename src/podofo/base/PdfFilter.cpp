@@ -140,7 +140,7 @@ private:
  *  filter and written to another PdfOutputStream.
  *
  *  The passed output stream is owned by this PdfOutputStream
- *  and deleted along with it.
+ *  and deleted along with it (optionally, see constructor).
  */
 class PdfFilteredDecodeStream : public PdfOutputStream {
  public:
@@ -148,12 +148,12 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
      *
      *  All data written to this stream is decoded using the passed filter type
      *  and written to the passed output stream which will be deleted 
-     *  by this PdfFilteredEncodeStream.
+     *  by this PdfFilteredDecodeStream if the parameter bOwnStream is true.
      *
      *  \param pOutputStream write all data to this output stream after decoding the data.
-     *                       The PdfOutputStream is deleted along with this object.
+     *         The PdfOutputStream is deleted along with this object if bOwnStream is true.
      *  \param eFilter use this filter for decoding.
-     *  \param bOwnStream if true pOutputStream will be deleted along with this filter
+     *  \param bOwnStream if true pOutputStream will be deleted along with this stream
      *  \param pDecodeParms additional parameters for decoding
      */
     PdfFilteredDecodeStream( PdfOutputStream* pOutputStream, const EPdfFilter eFilter, bool bOwnStream,
@@ -189,6 +189,7 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
         }
         catch( PdfError & e ) 
         {
+            e.AddToCallstack( __FILE__, __LINE__ );
             m_bFilterFailed = true;
             throw e;
         }
@@ -198,10 +199,22 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
 
     virtual void Close() 
     {
-        if( !m_bFilterFailed ) 
-        {
-            m_filter->EndDecode();
+        try {
+            if( !m_bFilterFailed ) 
+            {
+                m_filter->EndDecode();
+            }
         }
+        catch( PdfError & e )
+        {
+            std::ostringstream oss;
+            oss << "PdfFilter::EndDecode() failed in filter of type "
+                << PdfFilterFactory::FilterTypeToName( m_filter->GetType() ) << ".\n";
+            e.AddToCallstack( __FILE__, __LINE__, oss.str() );
+            m_bFilterFailed = true;
+            throw e;
+        }
+
     }
 
 private:
@@ -348,16 +361,16 @@ PdfOutputStream* PdfFilterFactory::CreateDecodeStream( const TVecFilters & filte
     if( pDictionary && pDictionary->HasKey( "DecodeParms" ) && pDictionary->GetKey( "DecodeParms" )->IsDictionary() )
         pDictionary = &(pDictionary->GetKey( "DecodeParms" )->GetDictionary());
 
-    PdfFilteredDecodeStream* pFilter = new PdfFilteredDecodeStream( pStream, *it, false, pDictionary );
+    PdfFilteredDecodeStream* pFilterStream = new PdfFilteredDecodeStream( pStream, *it, false, pDictionary );
     ++it;
 
     while( it != filters.rend() ) 
     {
-        pFilter = new PdfFilteredDecodeStream( pFilter, *it, true, pDictionary );
+        pFilterStream = new PdfFilteredDecodeStream( pFilterStream, *it, true, pDictionary );
         ++it;
     }
 
-    return pFilter;
+    return pFilterStream;
 }
 
 EPdfFilter PdfFilterFactory::FilterNameToType( const PdfName & name, bool bSupportShortNames )

@@ -404,6 +404,7 @@ void PdfFilter::DecodeBlock( const char* pBuffer, pdf_long lLen )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
+
 void PdfFilter::EndDecode()
 {
     PODOFO_RAISE_LOGIC_IF( !m_pOutputStream, "EndDecode() without BeginDecode() or on failed filter" )
@@ -411,16 +412,23 @@ void PdfFilter::EndDecode()
 	try {
 	    EndDecodeImpl();
 	} catch( PdfError & e ) {
+	    e.AddToCallstack( __FILE__, __LINE__ );
 		// Clean up and close stream
 		this->FailEncodeDecode();
 		throw e;
-	}    
-
-    if( m_pOutputStream ) 
-    {
-        m_pOutputStream->Close();
-        m_pOutputStream = NULL;
-    }
+	}
+    try { // introduced to fix issue #58
+        if( m_pOutputStream ) 
+        {
+            m_pOutputStream->Close();
+            m_pOutputStream = NULL;
+        }
+    } catch( PdfError & e ) {
+            e.AddToCallstack( __FILE__, __LINE__, "Exception caught closing filter's output stream.\n");
+            // Closing stream failed, just get rid of it
+            m_pOutputStream = NULL;
+            throw e;
+    } 
 }
 
 // -----------------------------------------------------
@@ -429,7 +437,7 @@ void PdfFilter::EndDecode()
 void PdfFilter::FailEncodeDecode()
 {
     if ( m_pOutputStream != NULL ) // OC 19.08.2010 BugFix: Sometimes FailEncodeDecode() is called twice
-        m_pOutputStream->Close();
+        m_pOutputStream->Close(); // mabri: issue #58 seems fixed without exception safety here ...
     m_pOutputStream = NULL;
 }
 
