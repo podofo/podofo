@@ -177,7 +177,7 @@ namespace PoDoFo
 
 		}
 
-		PdfObject* PdfTranslator::migrateResource ( PdfObject * obj )
+		PdfObject* PdfTranslator::migrateResource ( const PdfObject * obj )
 		{
 // 			std::cerr<<"PdfTranslator::migrateResource"<<std::endl;
 			PdfObject *ret ( 0 );
@@ -188,8 +188,14 @@ namespace PoDoFo
 
 			if ( obj->IsDictionary() )
 			{
-				ret = targetDoc->GetObjects().CreateObject ( *obj );
-
+				if ( obj->Reference().IsIndirect() )
+				{
+					ret = targetDoc->GetObjects().CreateObject ( *obj );
+				}
+				else
+				{
+					ret = new PdfObject( *obj );
+				}
 				TKeyMap resmap = obj->GetDictionary().GetKeys();
 				for ( TCIKeyMap itres = resmap.begin(); itres != resmap.end(); ++itres )
 				{
@@ -205,7 +211,13 @@ namespace PoDoFo
 					}
 					PdfObject *migrated = migrateResource ( o );
 					if (NULL != migrated)
-						ret->GetDictionary().AddKey ( itres->first, migrated ); // 2nd arg non-NULL!
+					{
+						ret->GetDictionary().AddKey ( itres->first, migrated );
+						if ( !(migrated->Reference().IsIndirect()) )
+						{
+							delete migrated;
+						}
+					}
 				}
 
 				if ( obj->HasStream() )
@@ -223,14 +235,32 @@ namespace PoDoFo
 					if ( NULL == co )
 						continue;
 					narray.push_back ( *co );
+
+					if ( !(co->Reference().IsIndirect()) )
+					{
+						delete co;
+					}
 				}
-				ret = targetDoc->GetObjects().CreateObject ( narray );
+				if ( obj->Reference().IsIndirect() )
+				{
+					ret = targetDoc->GetObjects().CreateObject ( narray );
+				}
+				else
+				{
+					ret = new PdfObject( narray );
+				}
 			}
 			else if ( obj->IsReference() )
 			{
 				if ( migrateMap.find ( obj->GetReference().ToString() ) != migrateMap.end() )
 				{
-					return migrateMap[obj->GetReference().ToString() ];
+					std::ostringstream oss;
+					oss << "Referenced object " << obj->GetReference().ToString()
+					    << " already migrated." << std::endl;
+					PdfError::DebugMessage( oss.str().c_str() );
+
+					const PdfObject* const found = migrateMap[ obj->GetReference().ToString() ];
+					return new PdfObject( found->Reference() );
 				}
 
 				PdfObject *to_migrate = sourceDoc->GetObjects().GetObject ( obj->GetReference() );
@@ -256,30 +286,27 @@ namespace PoDoFo
 				ret = new PdfObject ( *obj );//targetDoc->GetObjects().CreateObject(*obj);
 			}
 
-
-			migrateMap.insert ( std::pair<std::string, PdfObject*> ( obj->Reference().ToString(), ret ) );
-
+			if ( obj->Reference().IsIndirect() )
+			{
+				migrateMap.insert ( std::pair<std::string, PdfObject*> ( obj->Reference().ToString(), ret ) );
+			}
 
 			return ret;
-
 		}
 
 		PdfObject* PdfTranslator::getInheritedResources ( PdfPage* page )
 		{
 // 			std::cerr<<"PdfTranslator::getInheritedResources"<<std::endl;
-			PdfObject *res ( 0 ); // = new PdfObject;
-			PdfObject *rparent = page->GetObject();
-			while ( rparent && rparent->IsDictionary() )
+			PdfObject *res ( 0 );
+			// mabri: resources are inherited as whole dict, not at all if the page has the dict
+			// mabri: specified in PDF32000_2008.pdf section 7.7.3.4 Inheritance of Page Attributes
+			// mabri: and in section 7.8.3 Resource Dictionaries
+			const PdfObject *sourceRes = page->GetInheritedKey( PdfName ( "Resources" ) );
+			if ( sourceRes )
 			{
-				PdfObject *curRes = rparent->GetDictionary().GetKey ( PdfName ( "Resources" ) );
-				if ( curRes )
-				{
-					res = migrateResource ( curRes );
-				}
-				rparent = rparent->GetIndirectKey ( "Parent" );
+			    res = migrateResource( sourceRes );
 			}
 			return res;
-
 		}
 
 		void PdfTranslator::setTarget ( const std::string & target )
@@ -508,6 +535,7 @@ namespace PoDoFo
 						{
 							PdfObject bb;
 							// DominikS: Fix compilation using Visual Studio on Windows
+							// mabri: ML post archive URL is https://sourceforge.net/p/podofo/mailman/message/24609746/
 							// bbIndex->at(resourceIndex).ToVariant( bb );							
 							((*bbIndex)[resourceIndex]).ToVariant( bb );
 							xo->GetObject()->GetDictionary().AddKey ( PdfName ( "BBox" ), bb );
@@ -552,6 +580,13 @@ namespace PoDoFo
 
 			targetDoc->Write ( outFilePath.c_str() );
 
+			// The following is necessary to avoid line 195 being detected as allocation having a memory leak
+			// without changing other files than this one (thorough leak prevention shall be applied later).
+			for (std::map<int, PdfObject*>::iterator it = resources.begin(); it != resources.end(); it++)
+			{
+				delete (*it).second;
+			}
+			resources.clear(); 
 		}
 
 

@@ -181,18 +181,15 @@ PlanReader_Legacy::PlanReader_Legacy(const std::string & plan, PoDoFo::Impose::I
 		throw runtime_error ( "Failed to open plan file" );
 
 // 	duplicate = MAX_SOURCE_PAGES;
-	std::string line;
-	char cbuffer[MAX_RECORD_SIZE];
-	int blen (0);
 	std::vector<std::string> memfile;
 	do
 	{
-		if ( !in.getline ( cbuffer, MAX_RECORD_SIZE ) )
+		std::string buffer;
+		if ( !std::getline ( in, buffer ) && ( !in.eof() || in.bad() ) )
+		{
 			throw runtime_error ( "Failed to read line from plan" );
+		}
 
-		blen = in.gcount() ;
-		std::string buffer ( cbuffer, blen );
-		
 #ifdef PODOFO_HAVE_LUA
 // This was "supposed" to be a legacy file, but if it starts 
 // with two dashes, it must be a lua file, so process it accordingly:
@@ -203,7 +200,7 @@ PlanReader_Legacy::PlanReader_Legacy(const std::string & plan, PoDoFo::Impose::I
         }
 #endif // PODOFO_HAVE_LUA
 
-		if ( blen < 2 ) // Nothing
+		if ( buffer.length() < 2 ) // Nothing
 			continue;
 		
 		PoDoFo::Impose::Util::trimmed_str(buffer);
