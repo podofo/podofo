@@ -412,7 +412,7 @@ TVecFilters PdfFilterFactory::CreateFilterList( const PdfObject* pObject )
     const PdfObject* pObj    = NULL;
 
     if( pObject->IsDictionary() && pObject->GetDictionary().HasKey( "Filter" ) )
-        pObj = pObject->GetDictionary().GetKey( "Filter" );
+        pObj = pObject->GetIndirectKey( "Filter" );
     else if( pObject->IsArray() )
         pObj = pObject;
     else if( pObject->IsName() ) 

@@ -440,7 +440,7 @@ bool PdfPagesTree::IsTypePage(const PdfObject* pObject) const
     if( !pObject )
         return false;
 
-    if( pObject->GetDictionary().GetKeyAsName( PdfName( "Type" ) ) == PdfName( "Page" ) )
+    if( pObject->GetIndirectKeyAsName( PdfName( "Type" ) ) == PdfName( "Page" ) )
         return true;
 
     return false;
@@ -451,7 +451,7 @@ bool PdfPagesTree::IsTypePages(const PdfObject* pObject) const
     if( !pObject )
         return false;
 
-    if( pObject->GetDictionary().GetKeyAsName( PdfName( "Type" ) ) == PdfName( "Pages" ) )
+    if( pObject->GetIndirectKeyAsName( PdfName( "Type" ) ) == PdfName( "Pages" ) )
         return true;
 
     return false;
@@ -479,7 +479,7 @@ int PdfPagesTree::GetPosInKids( PdfObject* pPageObj, PdfObject* pPageParent )
         return -1;
     }
 
-    const PdfArray & rKids = pPageParent->GetDictionary().GetKey( PdfName("Kids") )->GetArray();
+    const PdfArray & rKids = pPageParent->MustGetIndirectKey( PdfName("Kids") )->GetArray();
     PdfArray::const_iterator it = rKids.begin();
 
     int index = 0;
@@ -513,7 +513,7 @@ void PdfPagesTree::InsertPageIntoNode( PdfObject* pParent, const PdfObjectList &
     // 3. Add Parent key to the page
 
     // 1. Add reference
-    const PdfArray oldKids = pParent->GetDictionary().GetKey( PdfName("Kids") )->GetArray();
+    const PdfArray oldKids = pParent->MustGetIndirectKey( PdfName("Kids") )->GetArray();
     PdfArray::const_iterator it = oldKids.begin();
     PdfArray newKids;
 
@@ -571,7 +571,7 @@ void PdfPagesTree::InsertPagesIntoNode( PdfObject* pParent, const PdfObjectList 
     // 3. Add Parent key to the page
 
     // 1. Add reference
-    const PdfArray oldKids = pParent->GetDictionary().GetKey( PdfName("Kids") )->GetArray();
+    const PdfArray oldKids = pParent->MustGetIndirectKey( PdfName("Kids") )->GetArray();
     PdfArray newKids;
     newKids.reserve( oldKids.GetSize() + vecPages.size() );
 
@@ -663,7 +663,7 @@ void PdfPagesTree::DeletePageFromNode( PdfObject* pParent, const PdfObjectList &
 
 void PdfPagesTree::DeletePageNode( PdfObject* pParent, int nIndex ) 
 {
-    PdfArray kids = pParent->GetDictionary().GetKey( PdfName("Kids") )->GetArray();
+    PdfArray kids = pParent->MustGetIndirectKey( PdfName("Kids") )->GetArray();
     kids.erase( kids.begin() + nIndex );
     pParent->GetDictionary().AddKey( PdfName("Kids"), kids );
 }
@@ -689,7 +689,7 @@ bool PdfPagesTree::IsEmptyPageNode( PdfObject* pPageNode )
 
     if( pPageNode->GetDictionary().HasKey( PdfName("Kids") ) )
     {
-        bKidsEmpty = pPageNode->GetDictionary().GetKey( PdfName("Kids") )->GetArray().empty();
+        bKidsEmpty = pPageNode->MustGetIndirectKey( PdfName("Kids") )->GetArray().empty();
     }
 
     return ( lCount == 0L || bKidsEmpty );

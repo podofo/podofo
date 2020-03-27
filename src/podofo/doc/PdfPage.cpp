@@ -225,7 +225,7 @@ const PdfObject* PdfPage::GetInheritedKeyFromObject( const char* inKey, const Pd
     // check for it in the object itself
     if ( inObject->GetDictionary().HasKey( inKey ) ) 
     {
-        pObj = inObject->GetDictionary().GetKey( inKey );
+        pObj = inObject->MustGetIndirectKey( inKey );
         if ( !pObj->IsNull() ) 
             return pObj;
     }
@@ -269,13 +269,6 @@ const PdfRect PdfPage::GetPageBox( const char* inBox ) const
     // Take advantage of inherited values - walking up the tree if necessary
     pObj = GetInheritedKeyFromObject( inBox, this->GetObject() );
     
-
-    // Sometime page boxes are defined using reference objects
-    while ( pObj && pObj->IsReference() )
-    {
-        pObj = this->GetObject()->GetOwner()->GetObject( pObj->GetReference() );
-    }
-
     // assign the value of the box from the array
     if ( pObj && pObj->IsArray() )
     {
@@ -611,8 +604,8 @@ unsigned int PdfPage::GetPageNumber() const
                     PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, oss.str() );
                 }
 
-                if( pNode->GetDictionary().GetKey( PdfName::KeyType ) != NULL 
-                    && pNode->GetDictionary().GetKey( PdfName::KeyType )->GetName() == PdfName( "Pages" ) )
+                if( pNode->GetDictionary().HasKey( PdfName::KeyType )
+                    && pNode->MustGetIndirectKey( PdfName::KeyType )->GetName() == PdfName( "Pages" ) )
                 {
                     PdfObject* pCount = pNode->GetIndirectKey( "Count" );
                     if( pCount != NULL ) {

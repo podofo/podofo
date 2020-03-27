@@ -48,27 +48,27 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
 {
     m_missingWidth = NULL;
 
-    const PdfName & rSubType = pFont->GetDictionary().GetKey( PdfName::KeySubtype )->GetName();
+    const PdfName & rSubType = pFont->MustGetIndirectKey( PdfName::KeySubtype )->GetName();
 
     // OC 15.08.2010 BugFix: /FirstChar /LastChar /Widths are in the Font dictionary and not in the FontDescriptor
 	if ( rSubType == PdfName("Type1") || rSubType == PdfName("Type3") || rSubType == PdfName("TrueType") ) {
         if ( pDescriptor ) {
             if (pDescriptor->GetDictionary().HasKey( "FontName" ))
-                m_sName        = pDescriptor->GetIndirectKey( "FontName" )->GetName();
+                m_sName        = pDescriptor->MustGetIndirectKey( "FontName" )->GetName();
             if (pDescriptor->GetDictionary().HasKey( "FontBBox" ))
-                m_bbox         = pDescriptor->GetIndirectKey( "FontBBox" )->GetArray();
+                m_bbox         = pDescriptor->MustGetIndirectKey( "FontBBox" )->GetArray();
         } else {
             if (pFont->GetDictionary().HasKey( "Name" ))
-                m_sName        = pFont->GetIndirectKey( "Name" )->GetName();
+                m_sName        = pFont->MustGetIndirectKey( "Name" )->GetName();
             if (pFont->GetDictionary().HasKey( "FontBBox" ))
-                m_bbox         = pFont->GetIndirectKey( "FontBBox" )->GetArray();
+                m_bbox         = pFont->MustGetIndirectKey( "FontBBox" )->GetArray();
         }
         if (pFont->GetDictionary().HasKey( "FontMatrix" )) {
             // Type3 fonts have a custom FontMatrix
-            m_matrix = pFont->GetIndirectKey( "FontMatrix" )->GetArray();
+            m_matrix = pFont->MustGetIndirectKey( "FontMatrix" )->GetArray();
         }
-		m_nFirst       = static_cast<int>(pFont->GetDictionary().GetKeyAsLong( "FirstChar", 0L ));
-        m_nLast        = static_cast<int>(pFont->GetDictionary().GetKeyAsLong( "LastChar", 0L ));
+        m_nFirst       = static_cast<int>(pFont->GetIndirectKeyAsLong( "FirstChar", 0L ));
+        m_nLast        = static_cast<int>(pFont->GetIndirectKeyAsLong( "LastChar", 0L ));
         // OC 15.08.2010 BugFix: GetIndirectKey() instead of GetDictionary().GetKey() and "Widths" instead of "Width"
         PdfObject* widths = pFont->GetIndirectKey( "Widths" );
         
@@ -80,9 +80,9 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
         else
         {
             if ( pDescriptor ) {
-                widths = pDescriptor->GetDictionary().GetKey( "MissingWidth" );
+                widths = pDescriptor->GetIndirectKey( "MissingWidth" );
             } else {
-                widths = pFont->GetDictionary().GetKey( "MissingWidth" );
+                widths = pFont->GetIndirectKey( "MissingWidth" );
             }
             if( widths == NULL ) 
             {
@@ -102,7 +102,7 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
 		m_nFirst = 0;
 		m_nLast = 0;
 
-		m_dDefWidth = static_cast<double>(pFont->GetDictionary().GetKeyAsLong( "DW", 1000L ));
+        m_dDefWidth = static_cast<double>(pFont->GetIndirectKeyAsLong( "DW", 1000L ));
 		PdfVariant default_width(m_dDefWidth);
 		PdfObject * pw = pFont->GetIndirectKey( "W" );
 
@@ -153,10 +153,10 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
 	}
     
     if ( pDescriptor ) {
-        m_nWeight      = static_cast<unsigned int>(pDescriptor->GetDictionary().GetKeyAsLong( "FontWeight", 400L ));
-        m_nItalicAngle = static_cast<int>(pDescriptor->GetDictionary().GetKeyAsLong( "ItalicAngle", 0L ));
-        m_dPdfAscent   = pDescriptor->GetDictionary().GetKeyAsReal( "Ascent", 0.0 );
-        m_dPdfDescent  = pDescriptor->GetDictionary().GetKeyAsReal( "Descent", 0.0 );
+        m_nWeight      = static_cast<unsigned int>(pDescriptor->GetIndirectKeyAsLong( "FontWeight", 400L ));
+        m_nItalicAngle = static_cast<int>(pDescriptor->GetIndirectKeyAsLong( "ItalicAngle", 0L ));
+        m_dPdfAscent   = pDescriptor->GetIndirectKeyAsReal( "Ascent", 0.0 );
+        m_dPdfDescent  = pDescriptor->GetIndirectKeyAsReal( "Descent", 0.0 );
     } else {
         m_nWeight      = 400L;
         m_nItalicAngle = 0L;

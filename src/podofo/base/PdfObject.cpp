@@ -268,6 +268,56 @@ PdfObject* PdfObject::GetIndirectKey( const PdfName & key ) const
     return const_cast<PdfObject*>( this->GetDictionary().FindKey( key ) );
 }
 
+pdf_int64 PdfObject::GetIndirectKeyAsLong( const PdfName & key, pdf_int64 lDefault ) const
+{
+    const PdfObject* pObject = GetIndirectKey( key );
+    
+    if( pObject && pObject->GetDataType() == ePdfDataType_Number ) 
+    {
+        return pObject->GetNumber();
+    }
+
+    return lDefault;
+}
+
+double PdfObject::GetIndirectKeyAsReal( const PdfName & key, double dDefault ) const
+{
+    const PdfObject* pObject = GetIndirectKey( key );
+    
+    if( pObject && (
+        pObject->GetDataType() == ePdfDataType_Real ||
+        pObject->GetDataType() == ePdfDataType_Number))
+    {
+        return pObject->GetReal();
+    }
+
+    return dDefault;
+}
+
+bool PdfObject::GetIndirectKeyAsBool( const PdfName & key, bool bDefault ) const
+{
+    const PdfObject* pObject = GetIndirectKey( key );
+
+    if( pObject && pObject->GetDataType() == ePdfDataType_Bool ) 
+    {
+        return pObject->GetBool();
+    }
+
+    return bDefault;
+}
+
+PdfName PdfObject::GetIndirectKeyAsName( const PdfName & key ) const
+{
+    const PdfObject* pObject = GetIndirectKey( key );
+
+    if( pObject && pObject->GetDataType() == ePdfDataType_Name ) 
+    {
+        return pObject->GetName();
+    }
+    
+    return PdfName(""); // return an empty name
+}
+
 pdf_long PdfObject::GetObjectLength( EPdfWriteMode eWriteMode )
 {
     PdfOutputDevice device;

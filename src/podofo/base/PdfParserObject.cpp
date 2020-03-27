@@ -331,11 +331,16 @@ void PdfParserObject::ParseStream()
 	if( m_pEncrypt && !m_pEncrypt->IsMetadataEncrypted() ) {
 		// If metadata is not encrypted the Filter is set to "Crypt"
 		PdfObject* pFilterObj = this->GetDictionary_NoDL().GetKey( PdfName::KeyFilter );
+        if( pFilterObj && pFilterObj->IsReference() )
+            pFilterObj = m_pOwner->GetObject( pFilterObj->GetReference() );
 		if( pFilterObj && pFilterObj->IsArray() ) {
 			PdfArray filters = pFilterObj->GetArray();
 			for(PdfArray::iterator it = filters.begin(); it != filters.end(); it++) {
-				if( (*it).IsName() )
-					if( (*it).GetName() == "Crypt" )
+                PdfObject *filter = &*it;
+                if( filter->IsReference() )
+                    filter = m_pOwner->GetObject( filter->GetReference() );
+                if( filter && filter->IsName() )
+                    if( filter->GetName() == "Crypt" )
 						m_pEncrypt = 0;
 			}
 		}

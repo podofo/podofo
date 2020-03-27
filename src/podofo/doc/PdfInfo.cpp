@@ -84,14 +84,14 @@ void PdfInfo::Init( int eInitial )
 
 const PdfString & PdfInfo::GetStringFromInfoDict( const PdfName & rName ) const
 {
-    const PdfObject* pObj = this->GetObject()->GetDictionary().GetKey( rName );
+    const PdfObject* pObj = this->GetObject()->GetIndirectKey( rName );
     
     return pObj && (pObj->IsString() || pObj->IsHexString()) ? pObj->GetString() : PdfString::StringNull;
 }
 
 const PdfName & PdfInfo::GetNameFromInfoDict(const PdfName & rName) const
 {
-	const PdfObject* pObj = this->GetObject()->GetDictionary().GetKey( rName );
+    const PdfObject* pObj = this->GetObject()->GetIndirectKey( rName );
     
 	return pObj && pObj->IsName() ? pObj->GetName() : PdfName::KeyNull;
 }

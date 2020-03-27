@@ -1445,7 +1445,7 @@ void PdfParser::UpdateDocumentVersion()
             && pCatalog->IsDictionary() 
             && pCatalog->GetDictionary().HasKey( PdfName("Version" ) ) ) 
         {
-            PdfObject* pVersion = pCatalog->GetDictionary().GetKey( PdfName( "Version" ) );
+            PdfObject* pVersion = pCatalog->MustGetIndirectKey( PdfName( "Version" ) );
             for(int i=0;i<=MAX_PDF_VERSION_STRING_INDEX;i++)
             {
                 if( IsStrictParsing() && !pVersion->IsName())

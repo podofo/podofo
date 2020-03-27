@@ -2388,7 +2388,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDele
 
     if( this->GetObject()->GetDictionary().HasKey( PdfName("BaseEncoding") ) )
     {
-        const PdfName & rBase = this->GetObject()->GetDictionary().GetKey( PdfName("BaseEncoding") )->GetName();
+        const PdfName & rBase = this->GetObject()->MustGetIndirectKey( PdfName("BaseEncoding") )->GetName();
         
         if( rBase == PdfName("WinAnsiEncoding") )
             m_baseEncoding = eBaseEncoding_WinAnsi;

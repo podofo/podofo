@@ -78,7 +78,7 @@ bool PdfNameTreeNode::AddValue( const PdfString & key, const PdfObject & rValue 
 {
     if( m_bHasKids )
     {
-        const PdfArray &         kids   = this->GetObject()->GetDictionary().GetKey("Kids")->GetArray();
+        const PdfArray &         kids   = this->GetObject()->MustGetIndirectKey("Kids")->GetArray();
         PdfArray::const_iterator it     = kids.begin();
         PdfObject*               pChild = NULL;
         EPdfNameLimits           eLimits = ePdfNameLimits_Before; // RG: TODO Compiler complains that this variable should be initialised
@@ -135,7 +135,7 @@ bool PdfNameTreeNode::AddValue( const PdfString & key, const PdfObject & rValue 
 
         if( this->GetObject()->GetDictionary().HasKey( "Names" ) ) 
         {
-            PdfArray& array = this->GetObject()->GetDictionary().GetKey("Names")->GetArray();
+            PdfArray& array = this->GetObject()->MustGetIndirectKey("Names")->GetArray();
             PdfArray::iterator it = array.begin();
             
             while( it != array.end() )
@@ -208,19 +208,19 @@ void PdfNameTreeNode::SetLimits()
     if( m_bHasKids ) 
     {
         if( this->GetObject()->GetDictionary().HasKey( PdfName("Kids") ) &&
-            this->GetObject()->GetDictionary().GetKey( PdfName("Kids") )->IsArray() )
+            this->GetObject()->MustGetIndirectKey( PdfName("Kids") )->IsArray() )
         {
-            const PdfReference & rRefFirst = (*this->GetObject()->GetDictionary().GetKey("Kids")->GetArray().begin()).GetReference();
+            const PdfReference & rRefFirst = (*this->GetObject()->MustGetIndirectKey("Kids")->GetArray().begin()).GetReference();
             PdfObject* pChild = this->GetObject()->GetOwner()->GetObject( rRefFirst );
             if( pChild && pChild->GetDictionary().HasKey( PdfName("Limits") ) &&
-                pChild->GetDictionary().GetKey( PdfName("Limits") )->IsArray() ) 
-                limits.push_back( *(pChild->GetDictionary().GetKey("Limits")->GetArray().begin()) );
+                pChild->MustGetIndirectKey( PdfName("Limits") )->IsArray() ) 
+                limits.push_back( *(pChild->MustGetIndirectKey("Limits")->GetArray().begin()) );
             
-            const PdfReference & rRefLast = this->GetObject()->GetDictionary().GetKey("Kids")->GetArray().back().GetReference();
+            const PdfReference & rRefLast = this->GetObject()->MustGetIndirectKey("Kids")->GetArray().back().GetReference();
             pChild = this->GetObject()->GetOwner()->GetObject( rRefLast );
             if( pChild && pChild->GetDictionary().HasKey( PdfName("Limits") ) &&
-                pChild->GetDictionary().GetKey( PdfName("Limits") )->IsArray() ) 
-                limits.push_back( pChild->GetDictionary().GetKey("Limits")->GetArray().back() );
+                pChild->MustGetIndirectKey( PdfName("Limits") )->IsArray() ) 
+                limits.push_back( pChild->MustGetIndirectKey("Limits")->GetArray().back() );
         }
         else
             PdfError::LogMessage( eLogSeverity_Error, 
@@ -231,10 +231,10 @@ void PdfNameTreeNode::SetLimits()
     else // has "Names"
     {
         if( this->GetObject()->GetDictionary().HasKey( PdfName("Names") ) &&
-            this->GetObject()->GetDictionary().GetKey( PdfName("Names") )->IsArray() )
+            this->GetObject()->MustGetIndirectKey( PdfName("Names") )->IsArray() )
         {
-            limits.push_back( (*this->GetObject()->GetDictionary().GetKey("Names")->GetArray().begin()) );
-            limits.push_back( (*(this->GetObject()->GetDictionary().GetKey("Names")->GetArray().end()-2)) );
+            limits.push_back( (*this->GetObject()->MustGetIndirectKey("Names")->GetArray().begin()) );
+            limits.push_back( (*(this->GetObject()->MustGetIndirectKey("Names")->GetArray().end()-2)) );
         }
         else
             PdfError::LogMessage( eLogSeverity_Error, 
@@ -252,8 +252,8 @@ void PdfNameTreeNode::SetLimits()
 
 bool PdfNameTreeNode::Rebalance()
 {
-    PdfArray* pArray            = m_bHasKids ? &(this->GetObject()->GetDictionary().GetKey("Kids")->GetArray()) :
-                                               &(this->GetObject()->GetDictionary().GetKey("Names")->GetArray());
+    PdfArray* pArray            = m_bHasKids ? &(this->GetObject()->MustGetIndirectKey("Kids")->GetArray()) :
+                                               &(this->GetObject()->MustGetIndirectKey("Names")->GetArray());
     const PdfName& key          = m_bHasKids ? PdfName("Kids") : PdfName("Names");
     const unsigned int nLength  = m_bHasKids ? BALANCE_TREE_MAX : BALANCE_TREE_MAX * 2;
 
@@ -281,7 +281,7 @@ bool PdfNameTreeNode::Rebalance()
         else
         {
             pChild1 = this->GetObject();
-            kids    = m_pParent->GetObject()->GetDictionary().GetKey("Kids")->GetArray();
+            kids    = m_pParent->GetObject()->MustGetIndirectKey("Kids")->GetArray();
         }
 
         pChild1->GetDictionary().AddKey( key, first );
@@ -377,7 +377,7 @@ PdfObject* PdfNamesTree::GetKeyValue( PdfObject* pObj, const PdfString & key ) c
 
     if( pObj->GetDictionary().HasKey("Kids") )
     {
-        const PdfArray & kids       = pObj->GetDictionary().GetKey("Kids")->GetArray();
+        const PdfArray & kids       = pObj->MustGetIndirectKey("Kids")->GetArray();
         PdfArray::const_iterator it = kids.begin();
 
         while( it != kids.end() )
@@ -401,7 +401,7 @@ PdfObject* PdfNamesTree::GetKeyValue( PdfObject* pObj, const PdfString & key ) c
     }
     else
     {
-        PdfArray & names      = pObj->GetDictionary().GetKey("Names")->GetArray();
+        PdfArray & names      = pObj->MustGetIndirectKey("Names")->GetArray();
         PdfArray::iterator it = names.begin();
 
         // a names array is a set of PdfString/PdfObject pairs
@@ -446,7 +446,7 @@ EPdfNameLimits PdfNamesTree::CheckLimits( const PdfObject* pObj, const PdfString
 {
     if( pObj->GetDictionary().HasKey("Limits") ) 
     {
-        const PdfArray & limits = pObj->GetDictionary().GetKey("Limits")->GetArray();
+        const PdfArray & limits = pObj->MustGetIndirectKey("Limits")->GetArray();
 
         if( limits[0].GetString() > key )
             return ePdfNameLimits_Before;
@@ -476,7 +476,7 @@ void PdfNamesTree::AddToDictionary( PdfObject* pObj, PdfDictionary & rDict )
 {
     if( pObj->GetDictionary().HasKey("Kids") )
     {
-        const PdfArray & kids       = pObj->GetDictionary().GetKey("Kids")->GetArray();
+        const PdfArray & kids       = pObj->MustGetIndirectKey("Kids")->GetArray();
         PdfArray::const_iterator it = kids.begin();
 
         while( it != kids.end() )
@@ -494,7 +494,7 @@ void PdfNamesTree::AddToDictionary( PdfObject* pObj, PdfDictionary & rDict )
     }
     else if( pObj->GetDictionary().HasKey("Names") )
     {
-        const PdfArray & names      = pObj->GetDictionary().GetKey("Names")->GetArray();
+        const PdfArray & names      = pObj->MustGetIndirectKey("Names")->GetArray();
         PdfArray::const_iterator it = names.begin();
 
         // a names array is a set of PdfString/PdfObject pairs

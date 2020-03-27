@@ -72,7 +72,7 @@ void PdfCanvas::AddColorResource( const PdfColor & rColor )
             
 			if ( 
 				! pResource->GetDictionary().HasKey( "ColorSpace" )	||
-				! pResource->GetDictionary().GetKey( "ColorSpace" )->GetDictionary().HasKey( csPrefix + csName )
+                ! pResource->MustGetIndirectKey( "ColorSpace" )->GetDictionary().HasKey( csPrefix + csName )
                 )
 			{
 				// Build color-spaces for separation
@@ -87,7 +87,7 @@ void PdfCanvas::AddColorResource( const PdfColor & rColor )
 		{
 			if ( 
 				! pResource->GetDictionary().HasKey( "ColorSpace" )	||
-				! pResource->GetDictionary().GetKey( "ColorSpace" )->GetDictionary().HasKey( "ColorSpaceLab" )
+                ! pResource->MustGetIndirectKey( "ColorSpace" )->GetDictionary().HasKey( "ColorSpaceLab" )
 			   )
 			{
 				// Build color-spaces for CIE-lab

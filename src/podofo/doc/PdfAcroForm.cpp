@@ -85,15 +85,11 @@ void PdfAcroForm::Init( EPdfAcroFormDefaulAppearance eDefaultAppearance )
         // Create DR key
         if( !this->GetObject()->GetDictionary().HasKey( PdfName("DR") ) )
             this->GetObject()->GetDictionary().AddKey( PdfName("DR"), PdfDictionary() );
-        pResource = this->GetObject()->GetDictionary().GetKey( PdfName("DR") );
-        if( pResource->IsReference() )
-            pResource = m_pDocument->GetObjects()->GetObject( pResource->GetReference() );
+        pResource = this->GetObject()->MustGetIndirectKey( PdfName("DR") );
         
         if( !pResource->GetDictionary().HasKey( PdfName("Font") ) )
             pResource->GetDictionary().AddKey( PdfName("Font"), PdfDictionary() );
-        pFontDict = pResource->GetDictionary().GetKey( PdfName("Font") );
-        if( pFontDict->IsReference() )
-            pFontDict = m_pDocument->GetObjects()->GetObject( pFontDict->GetReference() );
+        pFontDict = pResource->MustGetIndirectKey( PdfName("Font") );
 
         pFontDict->GetDictionary().AddKey( pFont->GetIdentifier(), pFont->GetObject()->Reference() );
         
@@ -127,7 +123,7 @@ void PdfAcroForm::SetNeedAppearances( bool bNeedAppearances )
 
 bool PdfAcroForm::GetNeedAppearances() const
 {
-    return this->GetObject()->GetDictionary().GetKeyAsBool( PdfName("NeedAppearances"), false );
+    return this->GetObject()->GetIndirectKeyAsBool( PdfName("NeedAppearances"), false );
 }
 
 };

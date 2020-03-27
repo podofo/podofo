@@ -183,6 +183,14 @@ class PODOFO_API PdfObject : public PdfVariant {
      */
     inline PdfObject* MustGetIndirectKey( const PdfName & key ) const;
 
+    pdf_int64 GetIndirectKeyAsLong( const PdfName & key, pdf_int64 lDefault = 0 ) const;
+
+    double GetIndirectKeyAsReal( const PdfName & key, double dDefault = 0.0 ) const;
+
+    bool GetIndirectKeyAsBool( const PdfName & key, bool bDefault = false ) const;
+
+    PdfName GetIndirectKeyAsName( const PdfName & key ) const;
+
     /** Write the complete object to a file.
      *  \param pDevice write the object to this device
      *  \param pEncrypt an encryption object which is used to encrypt this object

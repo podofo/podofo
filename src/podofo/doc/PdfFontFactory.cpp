@@ -192,7 +192,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
     PdfObject*      pDescriptor = NULL;
     PdfObject*      pEncoding   = NULL;
 
-    PdfVariant* pTypeKey = pObject->GetDictionary().GetKey( PdfName::KeyType );
+    PdfVariant* pTypeKey = pObject->GetIndirectKey( PdfName::KeyType );
     if ( NULL == pTypeKey )
     {
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Font: No Type" );
@@ -203,8 +203,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
 
-    PdfVariant* pSubTypeKey = pObject->GetDictionary()
-                            .GetKey( PdfName::KeySubtype );
+    PdfVariant* pSubTypeKey = pObject->GetIndirectKey( PdfName::KeySubtype );
     if ( NULL == pSubTypeKey )
     {
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Font: No SubType" );
@@ -307,7 +306,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
            // Its extremely complicated to interpret the type1 font programs
            // so i try to determine if its a symbolic font by reading the FontDescriptor Flags
            // Flags & 4 --> Symbolic, Flags & 32 --> Nonsymbolic
-            pdf_int32 lFlags = static_cast<pdf_int32>(pDescriptor->GetDictionary().GetKeyAsLong( "Flags", 0L ));
+            pdf_int32 lFlags = static_cast<pdf_int32>(pDescriptor->GetIndirectKeyAsLong( "Flags", 0L ));
             if ( lFlags & 32 ) // Nonsymbolic, otherwise pEncoding remains NULL
                 pPdfEncoding = PdfEncodingFactory::GlobalStandardEncodingInstance();
         }

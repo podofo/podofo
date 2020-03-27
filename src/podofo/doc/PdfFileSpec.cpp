@@ -335,12 +335,12 @@ const PdfString & PdfFileSpec::GetFilename(bool canUnicode) const
 {
     if( canUnicode && this->GetObject()->GetDictionary().HasKey( "UF" ) )
 {
-        return this->GetObject()->GetDictionary().GetKey( "UF" )->GetString();
+        return this->GetObject()->MustGetIndirectKey( "UF" )->GetString();
     }
 
     if( this->GetObject()->GetDictionary().HasKey( "F" ) )
     {
-        return this->GetObject()->GetDictionary().GetKey( "F" )->GetString();
+        return this->GetObject()->MustGetIndirectKey( "F" )->GetString();
     }
 
     PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );

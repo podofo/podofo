@@ -1246,7 +1246,7 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 			PODOFO_ASSERT( pEncoding != NULL ); // paranoia
 
 			PdfArray diffs;
-			diffs = pEncoding->GetDictionary().GetKey( "Differences" )->GetArray();
+            diffs = pEncoding->MustGetIndirectKey( "Differences" )->GetArray();
 
 			bool foundIt = false;
 
@@ -1284,13 +1284,13 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 			code++;
 
 			PdfArray diffs;
-			diffs = pEncoding->GetDictionary().GetKey( "Differences" )->GetArray();
+            diffs = pEncoding->MustGetIndirectKey( "Differences" )->GetArray();
 			diffs.push_back( PdfName( pszGlyphname ) );
 
 			pEncoding->GetDictionary().AddKey( "Differences", diffs );
 
 			// enter width of glyph
-			PdfObject* pWidthObj = pGlyphFontObj->GetIndirectKey( "Widths" );
+            PdfObject* pWidthObj = pGlyphFontObj->MustGetIndirectKey( "Widths" );
 			PdfArray & rWidthArr = pWidthObj->GetArray();
 			rWidthArr[code] = PdfVariant( static_cast<pdf_int64>( width ) );
 

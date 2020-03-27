@@ -504,11 +504,7 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
     if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Contents" ) )
     {
         // get direct pointer to contents
-        PdfObject* pContents;
-        if( pObj->GetDictionary().GetKey( "Contents" )->IsReference() )
-            pContents = m_vecObjects.GetObject( pObj->GetDictionary().GetKey( "Contents" )->GetReference() );
-        else
-            pContents = pObj->GetDictionary().GetKey( "Contents" );
+        PdfObject* pContents = pObj->MustGetIndirectKey( "Contents" );
 
         if( pContents->IsArray() )
         {

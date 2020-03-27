@@ -65,7 +65,7 @@ PdfSignatureField::PdfSignatureField( PdfAnnotation* pWidget )
     // do not call Init() here
     if( this->GetFieldObject()->GetDictionary().HasKey( "V" ) )
     {
-        m_pSignatureObj = this->GetFieldObject()->GetOwner()->GetObject( this->GetFieldObject()->GetDictionary().GetKey( "V" )->GetReference() );
+        m_pSignatureObj = GetFieldObject()->GetIndirectKey( "V" );
     }
 }
 

@@ -347,7 +347,7 @@ PdfXObject::PdfXObject( const char* pszSubType, PdfObject* pObject )
     ostringstream out;
     PdfLocaleImbue(out);
 
-    if( this->GetObject()->GetDictionary().GetKeyAsName( PdfName::KeySubtype ) != pszSubType ) 
+    if( this->GetObject()->GetIndirectKeyAsName( PdfName::KeySubtype ) != pszSubType ) 
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
     }
