@@ -40,7 +40,6 @@
 
 namespace PoDoFo {
 
-class PdfEncrypt;
 class PdfParserObject;
 class PdfVecObjects;
 
@@ -61,9 +60,8 @@ public:
      * \param pParser PdfParserObject for an object stream
      * \param pVecObjects add loaded objecs to this vector of objects
      * \param rBuffer use this allocated buffer for caching
-     * \param pEncrypt encryption object used to decrypt streams
      */
-    PdfObjectStreamParserObject(PdfParserObject* pParser, PdfVecObjects* pVecObjects, const PdfRefCountedBuffer & rBuffer, PdfEncrypt* pEncrypt );
+    PdfObjectStreamParserObject(PdfParserObject* pParser, PdfVecObjects* pVecObjects, const PdfRefCountedBuffer & rBuffer);
 
     ~PdfObjectStreamParserObject();
 
@@ -76,7 +74,6 @@ private:
     PdfParserObject* m_pParser;
     PdfVecObjects* m_vecObjects;
     PdfRefCountedBuffer m_buffer;
-    PdfEncrypt* m_pEncrypt;
 };
 
 };

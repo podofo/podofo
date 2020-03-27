@@ -34,7 +34,6 @@
 #include "PdfObjectStreamParserObject.h"
 
 #include "PdfDictionary.h"
-#include "PdfEncrypt.h"
 #include "PdfInputDevice.h"
 #include "PdfParserObject.h"
 #include "PdfStream.h"
@@ -49,8 +48,8 @@
 
 namespace PoDoFo {
 
-PdfObjectStreamParserObject::PdfObjectStreamParserObject(PdfParserObject* pParser, PdfVecObjects* pVecObjects, const PdfRefCountedBuffer & rBuffer, PdfEncrypt* pEncrypt )
-    : m_pParser( pParser ), m_vecObjects( pVecObjects ), m_buffer( rBuffer ), m_pEncrypt( pEncrypt )
+PdfObjectStreamParserObject::PdfObjectStreamParserObject(PdfParserObject* pParser, PdfVecObjects* pVecObjects, const PdfRefCountedBuffer & rBuffer)
+    : m_pParser( pParser ), m_vecObjects( pVecObjects ), m_buffer( rBuffer )
 {
 
 }
@@ -107,14 +106,7 @@ void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long
 
 		// use a second tokenizer here so that anything that gets dequeued isn't left in the tokenizer that reads the offsets and lengths
 	    PdfTokenizer variantTokenizer( device, m_buffer );
-		if( m_pEncrypt && (m_pEncrypt->GetEncryptAlgorithm() == PdfEncrypt::ePdfEncryptAlgorithm_AESV2
-#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
-			|| m_pEncrypt->GetEncryptAlgorithm() == PdfEncrypt::ePdfEncryptAlgorithm_RC4V2 
-#endif // PODOFO_HAVE_OPENSSL_NO_RC4
-			                                                                              ) )
-			variantTokenizer.GetNextVariant( var, 0 ); // Stream is already decrypted
-		else
-			variantTokenizer.GetNextVariant( var, m_pEncrypt );
+        variantTokenizer.GetNextVariant( var, 0 ); // Stream is already decrypted
 		bool should_read = std::find(list.begin(), list.end(), lObj) != list.end();
 #if defined(PODOFO_VERBOSE_DEBUG)
         std::cerr << "ReadObjectsFromStream STREAM=" << m_pParser->Reference().ToString() <<
