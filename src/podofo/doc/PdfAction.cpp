@@ -107,7 +107,7 @@ void PdfAction::SetURI( const PdfString & sUri )
 
 PdfString PdfAction::GetURI() const
 {
-    return this->GetObject()->GetIndirectKey( "URI" )->GetString();
+    return this->GetObject()->MustGetIndirectKey( "URI" )->GetString();
 }
 
 bool PdfAction::HasURI() const

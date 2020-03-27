@@ -153,7 +153,7 @@ void PdfMemStream::FlateCompress()
     // TODO: Handle DecodeParms
     if( m_pParent->GetDictionary().HasKey( "Filter" ) )
     {
-        pObj = m_pParent->GetIndirectKey( "Filter" );
+        pObj = m_pParent->MustGetIndirectKey( "Filter" );
 
         if( pObj->IsName() )
         {

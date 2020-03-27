@@ -714,7 +714,7 @@ void PdfDocument::SetUseFullScreen( void )
     
     // if current mode is anything but "don't care", we need to move that to non-full-screen
     if ( curMode != ePdfPageModeDontCare )
-        SetViewerPreference( PdfName( "NonFullScreenPageMode" ), PdfObject( *(GetCatalog()->GetIndirectKey( PdfName( "PageMode" ) )) ) );
+        SetViewerPreference( PdfName( "NonFullScreenPageMode" ), PdfObject( *(GetCatalog()->MustGetIndirectKey( PdfName( "PageMode" ) )) ) );
     
     SetPageMode( ePdfPageModeFullScreen );
 }

@@ -1227,7 +1227,7 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 			pGlyphFontObj->GetDictionary().AddKey("Encoding", pEncoding->Reference() );
 
 			// clear Widths-array and enter width of this glyph
-			PdfObject* pWidthObj = pGlyphFontObj->GetIndirectKey( "Widths" );
+			PdfObject* pWidthObj = pGlyphFontObj->MustGetIndirectKey( "Widths" );
 			PdfArray & rWidthArr = pWidthObj->GetArray();
 			for ( unsigned int i = 0; i < rWidthArr.size(); i++ )
 			{
