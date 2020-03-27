@@ -41,7 +41,18 @@
 namespace PoDoFo {
 
 PdfArray::PdfArray()
-    : PdfArrayBaseClass(), PdfDataType(), m_bDirty( false )
+    : m_bDirty( false )
+{
+}
+
+PdfArray::PdfArray( const PdfObject &var )
+    : m_bDirty( false )
+{
+    this->push_back( var );
+}
+
+PdfArray::PdfArray(const PdfArray & rhs)
+    : PdfOwnedDataType( rhs ), m_bDirty( rhs.m_bDirty ), m_objects( rhs.m_objects )
 {
 }
 
@@ -49,25 +60,60 @@ PdfArray::~PdfArray()
 {
 }
 
-PdfArray::PdfArray( const PdfObject & var )
-    : PdfArrayBaseClass(), PdfDataType(), m_bDirty( false )
+PdfObject * PdfArray::findAt( size_type idx ) const
 {
-    this->push_back( var );
+    PdfObject *obj = &const_cast<PdfArray *>( this )->m_objects[idx];
+    if ( obj->IsReference() )
+        return GetIndirectObject( obj->GetReference() );
+    else
+        return obj;
 }
 
-PdfArray::PdfArray( const PdfArray & rhs )
-    : PdfArrayBaseClass(rhs), PdfDataType(rhs), m_bDirty(rhs.m_bDirty)
+void PdfArray::clear()
 {
-    this->operator=( rhs );
+    AssertMutable();
+    if ( m_objects.size() == 0 )
+        return;
+
+    m_objects.clear();
+    m_bDirty = true;
 }
 
+PdfArray::iterator PdfArray::insert( const iterator &pos, const PdfObject &val )
+{
+    AssertMutable();
+
+    m_bDirty = true;
+    iterator ret = m_objects.insert( pos, val );
+    PdfVecObjects *pOwner = GetObjectOwner();
+    if ( pOwner != NULL )
+        ret->SetOwner( pOwner );
+    return ret;
+}
+
+void PdfArray::erase( const iterator &pos )
+{
+    AssertMutable();
+
+    m_objects.erase( pos );
+    m_bDirty = true;
+}
+
+void PdfArray::erase( const iterator &first, const iterator &last )
+{
+    AssertMutable();
+
+    m_objects.erase( first, last );
+    m_bDirty = true;
+}
  
-PdfArray& PdfArray::operator=(const PdfArray& rhs)
+PdfArray& PdfArray::operator=( const PdfArray &rhs )
 {
     if (this != &rhs)
     {
         m_bDirty = rhs.m_bDirty;
-        PdfArrayBaseClass::operator=( rhs );
+        m_objects = rhs.m_objects;
+        this->PdfOwnedDataType::operator=( rhs );
     }
     else
     {
@@ -75,6 +121,22 @@ PdfArray& PdfArray::operator=(const PdfArray& rhs)
     }
     
     return *this;
+}
+
+void PdfArray::resize( size_t count, value_type val )
+{
+    AssertMutable();
+
+    size_t currentSize = size();
+    m_objects.resize( count, val );
+    PdfVecObjects *pOwner = GetObjectOwner();
+    if ( pOwner != NULL )
+    {
+        for ( size_t i = currentSize; i < count; i++ )
+            m_objects[i].SetOwner( pOwner );
+    }
+
+    m_bDirty = currentSize != count;
 }
 
 void PdfArray::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, 
@@ -180,6 +242,20 @@ void PdfArray::SetDirty( bool bDirty )
             (*it).SetDirty( m_bDirty );
             ++it;
         }
+    }
+}
+
+void PdfArray::SetOwner( PdfObject *pOwner )
+{
+    PdfOwnedDataType::SetOwner( pOwner );
+    PdfVecObjects *pVecOwner = pOwner->GetOwner();
+    if ( pVecOwner != NULL )
+    {
+        // Set owmership for all children
+        PdfArray::iterator it = this->begin();
+        PdfArray::iterator end = this->end();
+        for ( ; it != end; it++ )
+            it->SetOwner( pVecOwner );
     }
 }
 

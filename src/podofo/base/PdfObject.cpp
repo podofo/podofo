@@ -126,6 +126,8 @@ PdfObject::PdfObject( const PdfDictionary & rDict )
     InitPdfObject();
 }
 
+// NOTE: Don't copy owner. Copied objects must be always detached.
+// Ownership will be set automatically elsewhere
 PdfObject::PdfObject( const PdfObject & rhs ) 
     : PdfVariant( rhs ), m_reference( rhs.m_reference )
 {
@@ -137,8 +139,12 @@ PdfObject::PdfObject( const PdfObject & rhs )
     const_cast<PdfObject*>(&rhs)->DelayedStreamLoad();
     m_bDelayedStreamLoadDone = rhs.DelayedStreamLoadDone();
 
-    if( rhs.m_pStream && m_pOwner )
-        m_pStream = m_pOwner->CreateStream( *(rhs.m_pStream) );
+    // FIXME:
+    // Copying stream is currently broken:
+    // 1) PdfVecObjects::CreateStream( const PdfStream & ) is broken as it just returns NULL
+    // 2) Stream should be copyable also when m_pOwner is NULL (which is the case for copy constructor)
+    //if( rhs.m_pStream && m_pOwner )
+    //    m_pStream = m_pOwner->CreateStream( *(rhs.m_pStream) );
 
 #if defined(PODOFO_EXTRA_CHECKS)
     // Must've been demand loaded or already done
@@ -153,12 +159,46 @@ PdfObject::~PdfObject()
     m_pStream = NULL;
 }
 
+void PdfObject::SetOwner( PdfVecObjects* pVecObjects )
+{
+    PODOFO_ASSERT( pVecObjects != NULL );
+    if ( m_pOwner == pVecObjects )
+    {
+        // The inner owner for variant data objects is guaranteed to be same
+        return;
+    }
+
+    m_pOwner = pVecObjects;
+    if ( DelayedLoadDone() )
+        SetVariantOwner( GetDataType() );
+}
+
+void PdfObject::AfterDelayedLoad( EPdfDataType eDataType )
+{
+    SetVariantOwner( eDataType );
+}
+
+void PdfObject::SetVariantOwner( EPdfDataType eDataType )
+{
+    switch ( eDataType )
+    {
+        case ePdfDataType_Dictionary:
+            static_cast<PdfOwnedDataType &>( GetDictionary_NoDL() ).SetOwner( this );
+            break;
+        case ePdfDataType_Array:
+            static_cast<PdfOwnedDataType &>( GetArray_NoDL() ).SetOwner( this );
+            break;
+        default:
+            break;
+    }
+}
+
 void PdfObject::InitPdfObject()
 {
     m_pStream                 = NULL;
     m_pOwner                  = NULL;
-
     m_bDelayedStreamLoadDone  = true;
+    SetVariantOwner( GetDataType() );
 
 #if defined(PODOFO_EXTRA_CHECKS)
     m_bDelayedStreamLoadInProgress = false;
@@ -221,26 +261,11 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode,
 
 PdfObject* PdfObject::GetIndirectKey( const PdfName & key ) const
 {
-    const PdfObject* pObj = NULL;
-
-    if( this->IsDictionary() && this->GetDictionary().HasKey( key ) )
-    {
-        pObj = this->GetDictionary().GetKey( key );
-        if( pObj->IsReference() ) 
-        {
-            if( !m_pOwner )
-            {
-                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "Object is a reference but does not have an owner!" );
-            }
-
-            pObj = m_pOwner->GetObject( pObj->GetReference() );
-        }
-        else
-            const_cast<PdfObject*>(pObj)->SetOwner( GetOwner() );// even directs might want an owner...
-    }
+    if ( !this->IsDictionary() )
+        return NULL;
 
     // DominikS: TODO Remove const on GetIndirectKey
-    return const_cast<PdfObject*>(pObj);
+    return const_cast<PdfObject*>( this->GetDictionary().FindKey( key ) );
 }
 
 pdf_long PdfObject::GetObjectLength( EPdfWriteMode eWriteMode )
@@ -314,15 +339,18 @@ const PdfObject & PdfObject::operator=( const PdfObject & rhs )
 
     const_cast<PdfObject*>(&rhs)->DelayedStreamLoad();
 
+    // NOTE: Don't copy owner. Objects being assigned always keep current ownership
+    PdfVariant::operator=(rhs);
     m_reference     = rhs.m_reference;
-    m_pOwner        = rhs.m_pOwner;
-
-    PdfVariant::operator=( rhs );
-
     m_bDelayedStreamLoadDone = rhs.DelayedStreamLoadDone();
+    SetVariantOwner( GetDataType() );
 
-    if( rhs.m_pStream )
-        m_pStream = m_pOwner->CreateStream( *(rhs.m_pStream) );
+    // FIXME:
+    // Copying stream is currently broken:
+    // 1) PdfVecObjects::CreateStream( const PdfStream & ) is broken as it just returns NULL
+    // 2) Stream should be copyable also when m_pOwner is NULL
+    //if( rhs.m_pStream )
+    //    m_pStream = m_pOwner->CreateStream( *(rhs.m_pStream) );
 
 #if defined(PODOFO_EXTRA_CHECKS)
     // Must've been demand loaded or already done

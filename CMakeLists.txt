@@ -290,7 +290,7 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
 
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Woverloaded-virtual -Wswitch-enum -Wcast-qual -Wwrite-strings -Wredundant-decls -Wreorder -Wno-deprecated-declarations")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Woverloaded-virtual -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wreorder -Wno-deprecated-declarations")
 
     #
     # Note that we do not need debug definitions here. Set

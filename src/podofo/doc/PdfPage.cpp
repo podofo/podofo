@@ -728,11 +728,7 @@ PdfObject* PdfPage::GetOwnAnnotationsArray( bool bCreate, PdfDocument *pDocument
             }
 
             pObj = pDocument->GetObjects()->GetObject( pObj->GetReference() );
-            if(pObj) {
-               pObj->SetOwner(this->GetObject()->GetOwner());
-            }
-         } else
-            pObj->SetOwner( this->GetObject()->GetOwner() );// even directs might want an owner...
+         }
       }
 
       if( pObj && pObj->IsArray() )

@@ -44,7 +44,7 @@ PdfDictionary::PdfDictionary()
 }
 
 PdfDictionary::PdfDictionary( const PdfDictionary & rhs )
-    : PdfDataType()
+    : PdfOwnedDataType()
 {
     this->operator=( rhs );
     m_bDirty = false;
@@ -68,7 +68,8 @@ const PdfDictionary & PdfDictionary::operator=( const PdfDictionary & rhs )
         m_mapKeys[(*it).first] = new PdfObject( *(*it).second );
         ++it;
     }
-    
+
+    PdfOwnedDataType::operator=( rhs );
     m_bDirty = true;
     return *this;
 }
@@ -147,6 +148,9 @@ void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObjec
         inserted.first->second = objToInsert;
     }
 
+    PdfVecObjects *pOwner = GetObjectOwner();
+    if ( pOwner != NULL )
+        inserted.first->second->SetOwner( pOwner );
     m_bDirty = true;
 }
 
@@ -155,7 +159,7 @@ void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject* pObject
     this->AddKey( identifier, *pObject );
 }
 
-const PdfObject* PdfDictionary::GetKey( const PdfName & key ) const
+PdfObject * PdfDictionary::getKey( const PdfName & key ) const
 {
     if( !key.GetLength() )
         return NULL;
@@ -170,19 +174,42 @@ const PdfObject* PdfDictionary::GetKey( const PdfName & key ) const
     return (*it).second;
 }
 
-PdfObject* PdfDictionary::GetKey( const PdfName & key )
+PdfObject * PdfDictionary::findKey( const PdfName &key ) const
 {
-    if( !key.GetLength() )
-        return NULL;
+    PdfObject *obj = getKey( key );
+    if ( obj != NULL )
+    {
+        if ( obj->IsReference() )
+            return GetIndirectObject( obj->GetReference() );
+        else
+            return obj;
+    }
 
-    TIKeyMap it;
+    return NULL;
+}
 
-    it = m_mapKeys.find( key );
-
-    if( it == m_mapKeys.end() )
-        return NULL;
-
-    return (*it).second;
+PdfObject * PdfDictionary::findKeyParent( const PdfName & key ) const
+{
+    PdfObject *obj = findKey( key );
+    if (obj == NULL)
+    {
+        PdfObject *parent = findKey( "Parent" );
+        if ( parent == NULL )
+        {
+            return NULL;
+        }
+        else
+        {
+            if ( parent->IsDictionary() )
+                return parent->GetDictionary().findKeyParent( key );
+            else
+                return NULL;
+        }
+    }
+    else
+    {
+        return obj;
+    }
 }
 
 pdf_int64 PdfDictionary::GetKeyAsLong( const PdfName & key, pdf_int64 lDefault ) const
@@ -365,6 +392,20 @@ TCIKeyMap PdfDictionary::begin() const
 TCIKeyMap PdfDictionary::end() const
 {
     return m_mapKeys.end();
+}
+
+void PdfDictionary::SetOwner( PdfObject *pOwner )
+{
+    PdfOwnedDataType::SetOwner( pOwner );
+    PdfVecObjects *pVecOwner = pOwner->GetOwner();
+    if ( pVecOwner != NULL )
+    {
+        // Set owmership for all children
+        TCIKeyMap it = this->begin();
+        TCIKeyMap end = this->end();
+        for ( ; it != end; it++ )
+            it->second->SetOwner( pVecOwner );
+    }
 }
 
 };

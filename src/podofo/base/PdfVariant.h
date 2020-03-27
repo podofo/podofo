@@ -436,6 +436,11 @@ class PODOFO_API PdfVariant {
      */
     inline virtual void DelayedLoadImpl();
 
+    /** Called after delayed load
+     *  \param eDataType Detected data type
+     */
+    inline virtual void AfterDelayedLoad( EPdfDataType eDataType );
+
     /**
      * Returns true if delayed loading is disabled, or if it is enabled
      * and loading has completed. External callers should never need to
@@ -564,6 +569,7 @@ inline void PdfVariant::DelayedLoad() const
 #if defined(PODOFO_EXTRA_CHECKS)
         m_bDelayedLoadInProgress = false;
 #endif
+        const_cast<PdfVariant*>(this)->AfterDelayedLoad( ( EPdfDataType )m_eDataType );
     }
 }
 
@@ -940,6 +946,15 @@ void PdfVariant::DelayedLoadImpl()
     // Default implementation of virtual void DelayedLoadImpl() throws, since delayed
     // loading should not be enabled except by types that support it.
     PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+}
+
+// -----------------------------------------------------
+//
+// -----------------------------------------------------
+void PdfVariant::AfterDelayedLoad( EPdfDataType eDataType )
+{
+    ( void )eDataType;
+    // Do nothing
 }
 
 // -----------------------------------------------------

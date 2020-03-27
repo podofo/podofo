@@ -42,12 +42,10 @@
 #endif // _WIN32
 
 #include "PdfDefines.h"
-#include "PdfDataType.h"
+#include "PdfOwnedDataType.h"
 #include "PdfObject.h"
 
 namespace PoDoFo {
-
-typedef std::vector<PdfObject> PdfArrayBaseClass;
 
 /** This class represents a PdfArray
  *  Use it for all arrays that are written to a PDF file.
@@ -56,12 +54,16 @@ typedef std::vector<PdfObject> PdfArrayBaseClass;
  *
  *  \see PdfVariant
  */
-class PODOFO_API PdfArray : private PdfArrayBaseClass, public PdfDataType {
+class PODOFO_API PdfArray : public PdfOwnedDataType {
  public:
-    typedef PdfArrayBaseClass::iterator               iterator;
-    typedef PdfArrayBaseClass::const_iterator         const_iterator;
-    typedef PdfArrayBaseClass::reverse_iterator       reverse_iterator;
-    typedef PdfArrayBaseClass::const_reverse_iterator const_reverse_iterator;
+    typedef size_t                                          size_type;
+    typedef PdfObject                                       value_type;
+    typedef value_type &                                    reference;
+    typedef const value_type &                              const_reference;
+    typedef std::vector<value_type>::iterator               iterator;
+    typedef std::vector<value_type>::const_iterator         const_iterator;
+    typedef std::vector<value_type>::reverse_iterator       reverse_iterator;
+    typedef std::vector<value_type>::const_reverse_iterator const_reverse_iterator;
 
     /** Create an empty array 
      */
@@ -124,6 +126,18 @@ class PODOFO_API PdfArray : private PdfArrayBaseClass, public PdfDataType {
      */
     size_t GetStringIndex( const std::string& cmpString ) const;
 
+    /** Get the object at the given index out of the array.
+     *
+     * Lookup in the indirect objects as well, if the shallow object was a reference.
+     * The returned value is a pointer to the internal object in the dictionary
+     * so it MUST not be deleted.
+     *
+     *  \param idx
+     *  \returns pointer to the found value. NULL if the index was out of the boundaries
+     */
+    inline const PdfObject * FindAt( size_type idx ) const;
+    inline PdfObject * FindAt( size_type idx );
+
     /** Adds a PdfObject to the array
      *
      *  \param var add a PdfObject to the array
@@ -132,6 +146,10 @@ class PODOFO_API PdfArray : private PdfArrayBaseClass, public PdfDataType {
      *  \see IsDirty
      */
     inline void push_back( const PdfObject & var );
+
+    /** Remove all elements from the array
+     */
+    void clear();
 
     /** 
      *  \returns the size of the array
@@ -148,9 +166,10 @@ class PODOFO_API PdfArray : private PdfArrayBaseClass, public PdfDataType {
 
     /**
      * Resize the internal vector.
-     * \param __n new size
+     * \param count new size
+     * \param value refernce value
      */
-    inline void resize(size_t __n, value_type __x = PdfArrayBaseClass::value_type());
+    void resize( size_t count, value_type val = value_type() );
     
     /**
      *  Returns a read/write iterator that points to the first
@@ -219,10 +238,10 @@ class PODOFO_API PdfArray : private PdfArrayBaseClass, public PdfDataType {
                     const _InputIterator& __last);
 #endif
 
-    inline PdfArray::iterator insert(const iterator& __position, const PdfObject & val );
+    iterator insert( const iterator &pos, const PdfObject &val );
 
-    inline void erase( const iterator& pos );
-    inline void erase( const iterator& first, const iterator& last );
+    void erase( const iterator& pos );
+    void erase( const iterator& first, const iterator& last );
 
     inline void reserve(size_type __n);
 
@@ -275,19 +294,31 @@ class PODOFO_API PdfArray : private PdfArrayBaseClass, public PdfDataType {
      */
     virtual void SetDirty( bool bDirty );
 
+ protected:
+     void SetOwner( PdfObject* pOwner );
+
+ private:
+    PdfObject * findAt(size_type idx) const;
+
  private:
     bool         m_bDirty; ///< Indicates if this object was modified after construction
-
+    std::vector<PdfObject> m_objects;
 };
 
 // -----------------------------------------------------
-// 
+//
 // -----------------------------------------------------
-void PdfArray::Clear() 
+inline const PdfObject * PdfArray::FindAt( size_type idx ) const
 {
-    AssertMutable();
+    return findAt( idx );
+}
 
-    this->clear();
+// -----------------------------------------------------
+//
+// -----------------------------------------------------
+inline PdfObject * PdfArray::FindAt( size_type idx )
+{
+    return findAt( idx );
 }
 
 // -----------------------------------------------------
@@ -295,7 +326,7 @@ void PdfArray::Clear()
 // -----------------------------------------------------
 size_t PdfArray::GetSize() const
 {
-    return this->size();
+    return m_objects.size();
 }
 
 // -----------------------------------------------------
@@ -303,10 +334,15 @@ size_t PdfArray::GetSize() const
 // -----------------------------------------------------
 void PdfArray::push_back( const PdfObject & var )
 {
-    AssertMutable();
+    insert( end(), var );
+}
 
-    PdfArrayBaseClass::push_back( var );
-    m_bDirty = true;
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfArray::Clear()
+{
+    clear();
 }
 
 // -----------------------------------------------------
@@ -314,7 +350,7 @@ void PdfArray::push_back( const PdfObject & var )
 // -----------------------------------------------------
 size_t PdfArray::size() const
 {
-    return PdfArrayBaseClass::size();
+    return m_objects.size();
 }
 
 // -----------------------------------------------------
@@ -322,7 +358,7 @@ size_t PdfArray::size() const
 // -----------------------------------------------------
 bool PdfArray::empty() const
 {
-    return PdfArrayBaseClass::empty();
+    return m_objects.empty();
 }
 
 // -----------------------------------------------------
@@ -332,7 +368,7 @@ PdfObject& PdfArray::operator[](size_type __n)
 {
     AssertMutable();
 
-    return PdfArrayBaseClass::operator[](__n);
+    return m_objects[__n];
 }
 
 // -----------------------------------------------------
@@ -340,15 +376,7 @@ PdfObject& PdfArray::operator[](size_type __n)
 // -----------------------------------------------------
 const PdfObject& PdfArray::operator[](size_type __n) const
 {
-    return PdfArrayBaseClass::operator[](__n);
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfArray::resize(size_t __n, value_type __x)
-{
-    PdfArrayBaseClass::resize(__n, __x);
+    return m_objects[__n];
 }
 
 // -----------------------------------------------------
@@ -356,7 +384,7 @@ void PdfArray::resize(size_t __n, value_type __x)
 // -----------------------------------------------------
 PdfArray::iterator PdfArray::begin()
 {
-    return PdfArrayBaseClass::begin();
+    return m_objects.begin();
 }
 
 // -----------------------------------------------------
@@ -364,7 +392,7 @@ PdfArray::iterator PdfArray::begin()
 // -----------------------------------------------------
 PdfArray::const_iterator PdfArray::begin() const
 {
-    return PdfArrayBaseClass::begin();
+    return m_objects.begin();
 }
 
 // -----------------------------------------------------
@@ -372,7 +400,7 @@ PdfArray::const_iterator PdfArray::begin() const
 // -----------------------------------------------------
 PdfArray::iterator PdfArray::end()
 {
-    return PdfArrayBaseClass::end();
+    return m_objects.end();
 }
 
 // -----------------------------------------------------
@@ -380,7 +408,7 @@ PdfArray::iterator PdfArray::end()
 // -----------------------------------------------------
 PdfArray::const_iterator PdfArray::end() const
 {
-    return PdfArrayBaseClass::end();
+    return m_objects.end();
 }
 
 // -----------------------------------------------------
@@ -388,7 +416,7 @@ PdfArray::const_iterator PdfArray::end() const
 // -----------------------------------------------------
 PdfArray::reverse_iterator PdfArray::rbegin()
 {
-    return PdfArrayBaseClass::rbegin();
+    return m_objects.rbegin();
 }
 
 // -----------------------------------------------------
@@ -396,7 +424,7 @@ PdfArray::reverse_iterator PdfArray::rbegin()
 // -----------------------------------------------------
 PdfArray::const_reverse_iterator PdfArray::rbegin() const
 {
-    return PdfArrayBaseClass::rbegin();
+    return m_objects.rbegin();
 }
 
 // -----------------------------------------------------
@@ -404,7 +432,7 @@ PdfArray::const_reverse_iterator PdfArray::rbegin() const
 // -----------------------------------------------------
 PdfArray::reverse_iterator PdfArray::rend()
 {
-    return PdfArrayBaseClass::rend();
+    return m_objects.rend();
 }
 
 // -----------------------------------------------------
@@ -412,7 +440,7 @@ PdfArray::reverse_iterator PdfArray::rend()
 // -----------------------------------------------------
 PdfArray::const_reverse_iterator PdfArray::rend() const
 {
-    return PdfArrayBaseClass::rend();
+    return m_objects.rend();
 }
 
 // -----------------------------------------------------
@@ -431,49 +459,27 @@ void PdfArray::insert(const PdfArray::iterator& __position,
 {
     AssertMutable();
 
-    PdfArrayBaseClass::insert( __position, __first, __last );
+    PdfVecObjects *pOwner = GetObjectOwner();
+    iterator it1 = __first;
+    iterator it2 = __position;
+    for ( ; it1 != __last; it1++, it2++ )
+    {
+        it2 = m_objects.insert( it2, *it1 );
+        if ( pOwner != NULL )
+            it2->SetOwner( pOwner );
+    }
+
     m_bDirty = true;
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-PdfArray::iterator PdfArray::insert(const iterator& __position, const PdfObject & val )
+void PdfArray::reserve( size_type __n )
 {
     AssertMutable();
 
-    m_bDirty = true;
-    return PdfArrayBaseClass::insert( __position, val );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfArray::erase( const iterator& pos )
-{
-    AssertMutable();
-
-    PdfArrayBaseClass::erase( pos );
-    m_bDirty = true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfArray::erase( const iterator& first, const iterator& last )
-{
-    AssertMutable();
-
-    PdfArrayBaseClass::erase( first, last );
-    m_bDirty = true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfArray::reserve(size_type __n)
-{
-    PdfArrayBaseClass::reserve( __n );
+    m_objects.reserve( __n );
 }
 
 // -----------------------------------------------------
@@ -481,7 +487,7 @@ void PdfArray::reserve(size_type __n)
 // -----------------------------------------------------
 PdfObject & PdfArray::front()
 {
-    return PdfArrayBaseClass::front();
+    return m_objects.front();
 }
 
 // -----------------------------------------------------
@@ -489,7 +495,7 @@ PdfObject & PdfArray::front()
 // -----------------------------------------------------
 const PdfObject & PdfArray::front() const
 {
-    return PdfArrayBaseClass::front();
+    return m_objects.front();
 }
 
 // -----------------------------------------------------
@@ -497,7 +503,7 @@ const PdfObject & PdfArray::front() const
 // -----------------------------------------------------
 PdfObject & PdfArray::back()
 {
-    return PdfArrayBaseClass::back();
+    return m_objects.back();
 }
       
 // -----------------------------------------------------
@@ -505,7 +511,7 @@ PdfObject & PdfArray::back()
 // -----------------------------------------------------
 const PdfObject & PdfArray::back() const
 {
-    return PdfArrayBaseClass::back();
+    return m_objects.back();
 }
 
 // -----------------------------------------------------
@@ -514,7 +520,7 @@ const PdfObject & PdfArray::back() const
 bool PdfArray::operator==( const PdfArray & rhs ) const
 {
     //TODO: This operator does not check for m_bDirty. Add comparison or add explanation why it should not be there
-    return (static_cast< PdfArrayBaseClass >(*this) == static_cast< PdfArrayBaseClass >(rhs) );
+    return m_objects == rhs.m_objects;
 }
 
 // -----------------------------------------------------
@@ -523,7 +529,7 @@ bool PdfArray::operator==( const PdfArray & rhs ) const
 bool PdfArray::operator!=( const PdfArray & rhs ) const
 {
     //TODO: This operator does not check for m_bDirty. Add comparison or add explanation why it should not be there
-    return (static_cast< PdfArrayBaseClass >(*this) != static_cast< PdfArrayBaseClass >(rhs) );
+    return m_objects != rhs.m_objects;
 }
 
 typedef PdfArray                 TVariantList;

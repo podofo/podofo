@@ -186,7 +186,6 @@ void PdfShadingPattern::Init( EPdfShadingPatternType eShadingType )
 	 } else {
 		 PdfObject *shadingObject = this->GetObject()->GetOwner()->CreateObject(shading);
 		 this->GetObject()->GetDictionary().AddKey(PdfName("Shading"), shadingObject->Reference());
-		 this->GetObject()->GetDictionary().GetKey(PdfName("Shading"))->SetOwner(this->GetObject()->GetOwner());
 	 }
 }
 
