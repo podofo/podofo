@@ -684,14 +684,12 @@ PdfString PdfString::HexEncode() const
         return *this;
     else
     {
-        std::auto_ptr<PdfFilter> pFilter;
-
         pdf_long                  lLen  = (m_buffer.GetSize() - 1) << 1;
         PdfString             str;
         PdfRefCountedBuffer   buffer( lLen + 1 );
         PdfMemoryOutputStream stream( buffer.GetBuffer(), lLen );
 
-        pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+        PODOFO_UNIQUEU_PTR<PdfFilter> pFilter( PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode ) );
         pFilter->BeginEncode( &stream );
         pFilter->EncodeBlock( m_buffer.GetBuffer(), (m_buffer.GetSize() - 1) );
         pFilter->EndEncode();
@@ -713,14 +711,12 @@ PdfString PdfString::HexDecode() const
         return *this;
     else
     {
-        std::auto_ptr<PdfFilter> pFilter;
-
         pdf_long                  lLen = m_buffer.GetSize() >> 1;
         PdfString             str;
         PdfRefCountedBuffer   buffer( lLen );
         PdfMemoryOutputStream stream( buffer.GetBuffer(), lLen );
 
-        pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+        PODOFO_UNIQUEU_PTR<PdfFilter> pFilter( PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode ) );
         pFilter->BeginDecode( &stream );
         pFilter->DecodeBlock( m_buffer.GetBuffer(), m_buffer.GetSize() );
         pFilter->EndDecode();

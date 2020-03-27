@@ -57,7 +57,7 @@ void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const pdf_long l
     pdf_long   lEncoded;
     pdf_long   lDecoded;
 
-    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( eFilter );
+    PODOFO_UNIQUEU_PTR<PdfFilter> pFilter( PdfFilterFactory::Create( eFilter ) );
     if( !pFilter.get() )
     {
         printf("!!! Filter %i not implemented.\n", eFilter);
@@ -256,7 +256,7 @@ int main()
     char*    pLargeBuffer2 = static_cast<char*>(malloc( strlen(pszInputAscii85Lzw) * 6 ));
 
     try {
-        std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCII85Decode );
+        PODOFO_UNIQUEU_PTR<PdfFilter> pFilter( PdfFilterFactory::Create( ePdfFilter_ASCII85Decode ) );
         pFilter->Decode( pszInputAscii85Lzw, strlen(pszInputAscii85Lzw),
                          &pLargeBuffer1, &lLargeBufer1 );
         pFilter->Encode( pLargeBuffer1, lLargeBufer1,

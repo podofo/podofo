@@ -20,6 +20,7 @@ SET(PODOFO_LIBVERSION "${PODOFO_SOVERSION}")
 #
 # Main includes
 #
+INCLUDE(CheckCXXSourceCompiles)
 INCLUDE(CheckIncludeFile)
 INCLUDE(CheckLibraryExists)
 INCLUDE(TestBigEndian)
@@ -91,6 +92,14 @@ ENDIF(WANT_LIB64)
 
 ENDIF(DEFINED LIB_SUFFIX)
 MESSAGE("Will install libraries to ${CMAKE_INSTALL_PREFIX}/${LIBDIRNAME}")
+
+CHECK_CXX_SOURCE_COMPILES("#include <memory>
+			class Cls {
+			public:
+			Cls() {}
+			~Cls() {}
+			};
+			int main(void) { std::unique_ptr<Cls> cls; return 0; }" PODOFO_HAVE_UNIQUE_PTR)
 
 # Some headers that tend to vary a bit
 CHECK_INCLUDE_FILE("strings.h" PODOFO_HAVE_STRINGS_H) 

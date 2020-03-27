@@ -37,7 +37,7 @@ void WriteStringToStream( const PdfString & rsString, std::ostringstream & oss, 
     pdf_long  lLen    = 0;
     char* pBuffer = NULL;
 
-    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+    PODOFO_UNIQUEU_PTR<PdfFilter> pFilter( PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode ) );
     pFilter->Encode( buffer.GetBuffer(), buffer.GetSize(), &pBuffer, &lLen );
 
     oss << "<";

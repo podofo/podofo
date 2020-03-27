@@ -91,11 +91,11 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, pdf_long* lLen ) const
     PdfMemoryOutputStream  stream;
     if( vecFilters.size() )
     {
-        // Use std::auto_ptr so that pDecodeStream is deleted 
+        // Use std::uniqueu_ptr so that pDecodeStream is deleted 
         // even in the case of an exception 
-        std::auto_ptr<PdfOutputStream> pDecodeStream( PdfFilterFactory::CreateDecodeStream( vecFilters, &stream, 
-                                                                                            m_pParent ? 
-                                                                                            &(m_pParent->GetDictionary()) : NULL  ) );
+        PODOFO_UNIQUEU_PTR<PdfOutputStream> pDecodeStream( PdfFilterFactory::CreateDecodeStream( vecFilters, &stream, 
+                                                                                                 m_pParent ? 
+                                                                                                 &(m_pParent->GetDictionary()) : NULL  ) );
 
         pDecodeStream->Write( this->GetInternalBuffer(), this->GetInternalBufferSize() );
         pDecodeStream->Close();

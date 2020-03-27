@@ -92,16 +92,16 @@ class PdfFilteredEncodeStream : public PdfOutputStream{
      *  \param bOwnStream if true pOutputStream will be deleted along with this filter
      */
     PdfFilteredEncodeStream( PdfOutputStream* pOutputStream, const EPdfFilter eFilter, bool bOwnStream )
-        : m_pOutputStream( pOutputStream )
+        : m_pOutputStream( pOutputStream ), m_pFilter( NULL )
     {
-        m_filter = PdfFilterFactory::Create( eFilter );
+        m_pFilter = PdfFilterFactory::Create( eFilter );
 
-        if( !m_filter.get() ) 
+        if( !m_pFilter ) 
         {
             PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
         }
 
-        m_filter->BeginEncode( pOutputStream );
+        m_pFilter->BeginEncode( pOutputStream );
 
         if( !bOwnStream )
             m_pOutputStream = NULL;
@@ -110,6 +110,7 @@ class PdfFilteredEncodeStream : public PdfOutputStream{
     virtual ~PdfFilteredEncodeStream()
     {
         delete m_pOutputStream;
+        delete m_pFilter;
     }
 
     /** Write data to the output stream
@@ -119,19 +120,19 @@ class PdfFilteredEncodeStream : public PdfOutputStream{
      */
     virtual pdf_long Write( const char* pBuffer, pdf_long lLen )
     {
-        m_filter->EncodeBlock( pBuffer, lLen );
+        m_pFilter->EncodeBlock( pBuffer, lLen );
         
         return 0;
     }
 
     virtual void Close() 
     {
-        m_filter->EndEncode();
+        m_pFilter->EndEncode();
     }
 
 private:
-    PdfOutputStream*         m_pOutputStream;
-    std::auto_ptr<PdfFilter> m_filter;
+    PdfOutputStream* m_pOutputStream;
+    PdfFilter*       m_pFilter;
 };
 
 /** Create a filter that is a PdfOutputStream.
@@ -158,15 +159,15 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
      */
     PdfFilteredDecodeStream( PdfOutputStream* pOutputStream, const EPdfFilter eFilter, bool bOwnStream,
                              const PdfDictionary* pDecodeParms = NULL )
-        : m_pOutputStream( pOutputStream ), m_bFilterFailed( false )
+        : m_pOutputStream( pOutputStream ), m_pFilter( NULL ), m_bFilterFailed( false )
     {
-        m_filter = PdfFilterFactory::Create( eFilter );
-        if( !m_filter.get() ) 
+        m_pFilter = PdfFilterFactory::Create( eFilter );
+        if( !m_pFilter ) 
         {
             PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
         }
 
-        m_filter->BeginDecode( pOutputStream, pDecodeParms );
+        m_pFilter->BeginDecode( pOutputStream, pDecodeParms );
 
         if( !bOwnStream )
             m_pOutputStream = NULL;
@@ -175,6 +176,7 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
     virtual ~PdfFilteredDecodeStream()
     {
         delete m_pOutputStream;
+        delete m_pFilter;
     }
 
     /** Write data to the output stream
@@ -185,7 +187,7 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
     virtual pdf_long Write( const char* pBuffer, pdf_long lLen )
     {
         try {
-            m_filter->DecodeBlock( pBuffer, lLen );
+            m_pFilter->DecodeBlock( pBuffer, lLen );
         }
         catch( PdfError & e ) 
         {
@@ -202,14 +204,14 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
         try {
             if( !m_bFilterFailed ) 
             {
-                m_filter->EndDecode();
+                m_pFilter->EndDecode();
             }
         }
         catch( PdfError & e )
         {
             std::ostringstream oss;
             oss << "PdfFilter::EndDecode() failed in filter of type "
-                << PdfFilterFactory::FilterTypeToName( m_filter->GetType() ) << ".\n";
+                << PdfFilterFactory::FilterTypeToName( m_pFilter->GetType() ) << ".\n";
             e.AddToCallstack( __FILE__, __LINE__, oss.str() );
             m_bFilterFailed = true;
             throw e;
@@ -218,9 +220,9 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
     }
 
 private:
-    PdfOutputStream*         m_pOutputStream;
-    std::auto_ptr<PdfFilter> m_filter;
-    bool                     m_bFilterFailed;
+    PdfOutputStream* m_pOutputStream;
+    PdfFilter*       m_pFilter;
+    bool             m_bFilterFailed;
 };
 
 
@@ -277,7 +279,7 @@ PdfFilterFactory::PdfFilterFactory()
 {
 }
 
-std::auto_ptr<PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter ) 
+PdfFilter* PdfFilterFactory::Create( const EPdfFilter eFilter ) 
 {
     PdfFilter* pFilter = NULL;
     switch( eFilter )
@@ -329,7 +331,7 @@ std::auto_ptr<PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter )
             break;
     }
 
-    return std::auto_ptr<PdfFilter>(pFilter);
+    return pFilter;
 }
 
 PdfOutputStream* PdfFilterFactory::CreateEncodeStream( const TVecFilters & filters, PdfOutputStream* pStream ) 

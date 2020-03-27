@@ -245,6 +245,13 @@ inline void podofo_unused(T &t) { (void)t; }
 #endif // _DEBUG
 #endif // _MSC_VER
 
+// prefer std::unique_ptr over std::auto_ptr
+#ifdef PODOFO_HAVE_UNIQUE_PTR
+#define PODOFO_UNIQUEU_PTR std::unique_ptr
+#else
+#define PODOFO_UNIQUEU_PTR std::auto_ptr
+#endif
+
 /**
  * \page PoDoFo PdfCompilerCompatPrivate Header
  * 

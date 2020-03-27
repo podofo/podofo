@@ -598,7 +598,7 @@ void PdfTokenizer::ReadDictionary( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
     PdfDictionary dict;
     EPdfTokenType eType;
     const char *  pszToken;
-    std::auto_ptr<std::vector<char> > contentsHexBuffer;
+    PODOFO_UNIQUEU_PTR<std::vector<char> > contentsHexBuffer;
 
     for( ;; )
     {
@@ -626,7 +626,7 @@ void PdfTokenizer::ReadDictionary( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
         {
             // 'Contents' key in signature dictionaries is an unencrypted Hex string:
             // save the string buffer for later check if it needed decryption
-            contentsHexBuffer = std::auto_ptr<std::vector<char> >( new std::vector<char>() );
+            contentsHexBuffer = PODOFO_UNIQUEU_PTR<std::vector<char> >( new std::vector<char>() );
             ReadHexString( *contentsHexBuffer );
             continue;
         }

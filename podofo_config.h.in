@@ -16,6 +16,7 @@
 #cmakedefine PODOFO_MULTI_THREAD
 
 /* somewhat platform-specific headers */
+#cmakedefine PODOFO_HAVE_UNIQUE_PTR 1
 #cmakedefine PODOFO_HAVE_STRINGS_H 1
 #cmakedefine PODOFO_HAVE_ARPA_INET_H 1
 #cmakedefine PODOFO_HAVE_WINSOCK2_H 1

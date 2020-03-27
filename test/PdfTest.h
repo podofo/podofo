@@ -13,3 +13,10 @@
                        e.AddToCallstack( __FILE__, __LINE__, NULL ); \
                        e.PrintErrorMsg();\
                      }
+
+// prefer std::unique_ptr over std::auto_ptr
+#ifdef PODOFO_HAVE_UNIQUE_PTR
+#define PODOFO_UNIQUEU_PTR std::unique_ptr
+#else
+#define PODOFO_UNIQUEU_PTR std::auto_ptr
+#endif

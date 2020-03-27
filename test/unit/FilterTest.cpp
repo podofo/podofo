@@ -24,6 +24,13 @@
 
 #include <stdlib.h>
 
+// prefer std::unique_ptr over std::auto_ptr
+#ifdef PODOFO_HAVE_UNIQUE_PTR
+#define PODOFO_UNIQUEU_PTR std::unique_ptr
+#else
+#define PODOFO_UNIQUEU_PTR std::auto_ptr
+#endif
+
 using namespace PoDoFo;
 
 CPPUNIT_TEST_SUITE_REGISTRATION( FilterTest );
@@ -59,7 +66,7 @@ void FilterTest::TestFilter( EPdfFilter eFilter, const char * pTestBuffer, const
     pdf_long   lEncoded;
     pdf_long   lDecoded;
    
-    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( eFilter );
+    PODOFO_UNIQUEU_PTR<PdfFilter> pFilter( PdfFilterFactory::Create( eFilter ) );
     if( !pFilter.get() )
     {
         printf("!!! Filter %i not implemented.\n", eFilter);
@@ -123,7 +130,7 @@ void FilterTest::testFilters()
 
 void FilterTest::testCCITT()
 {
-    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_CCITTFaxDecode );
+    PODOFO_UNIQUEU_PTR<PdfFilter> pFilter( PdfFilterFactory::Create( ePdfFilter_CCITTFaxDecode ) );
     if( !pFilter.get() )
     {
         printf("!!! ePdfFilter_CCITTFaxDecode not implemented skipping test!\n");
