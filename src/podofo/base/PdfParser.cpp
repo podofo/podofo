@@ -72,6 +72,7 @@ using std::flush;
 
 namespace PoDoFo {
 
+bool PdfParser::s_bIgnoreBrokenObjects = true;
 const long nMaxNumIndirectObjects = (1L << 23) - 1L;
 long PdfParser::s_nMaxObjects = nMaxNumIndirectObjects;
   
@@ -185,7 +186,6 @@ void PdfParser::Init()
     m_nXRefLinearizedOffset = 0;
     m_lLastEOFOffset  = 0;
 
-    m_bIgnoreBrokenObjects = false;
     m_nIncrementalUpdates = 0;
     m_nRecursionDepth = 0;
 }
@@ -1178,7 +1178,7 @@ void PdfParser::ReadObjectsInternal()
                     << " Index = " << i << std::endl;
                 delete pObject;
 
-                if( m_bIgnoreBrokenObjects ) 
+                if( s_bIgnoreBrokenObjects )
                 {
                     PdfError::LogMessage( eLogSeverity_Error, oss.str().c_str() );
                     m_vecObjects->AddFreeObject( PdfReference( i, 0 ) );
@@ -1304,7 +1304,15 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int )
         std::ostringstream oss;
         oss << "Loading of object " << nObjNo << " 0 R failed!" << std::endl;
 
-        PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, oss.str().c_str() );
+        if( s_bIgnoreBrokenObjects )
+        {
+            PdfError::LogMessage( eLogSeverity_Error, oss.str().c_str() );
+            return;
+        }
+        else
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, oss.str().c_str() );
+        }
     }
     
 

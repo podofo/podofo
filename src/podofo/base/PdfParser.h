@@ -366,19 +366,19 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     /**
      * \return if broken objects are ignored while parsing
      */
-    inline bool GetIgnoreBrokenObjects();
+    inline static bool GetIgnoreBrokenObjects();
 
     /**
      * Specify if the parser should ignore broken
      * objects, i.e. XRef entries that do not point
      * to valid objects.
      *
-     * Default is to not ignore broken objects and
-     * throw an exception if one is found.
+     * Default is to ignore broken objects and
+     * to not throw an exception if one is found.
      *
      * \param bBroken if true broken objects will be ignored
      */
-    inline void SetIgnoreBrokenObjects( bool bBroken );
+    inline static void SetIgnoreBrokenObjects( bool bBroken );
 
     /**
      * \return maximum object count to read
@@ -600,10 +600,11 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     std::set<int> m_setObjectStreams;
 
     bool          m_bStrictParsing;
-    bool          m_bIgnoreBrokenObjects;
 
     int           m_nIncrementalUpdates;
     int           m_nRecursionDepth;
+
+    static bool   s_bIgnoreBrokenObjects;
 
     static long   s_nMaxObjects;
     
@@ -681,7 +682,7 @@ void PdfParser::SetStrictParsing( bool bStrict )
 // -----------------------------------------------------
 bool PdfParser::GetIgnoreBrokenObjects()
 {
-    return m_bIgnoreBrokenObjects;
+    return s_bIgnoreBrokenObjects;
 }
 
 // -----------------------------------------------------
@@ -689,7 +690,7 @@ bool PdfParser::GetIgnoreBrokenObjects()
 // -----------------------------------------------------
 void PdfParser::SetIgnoreBrokenObjects( bool bBroken )
 {
-    m_bIgnoreBrokenObjects = bBroken;
+    s_bIgnoreBrokenObjects = bBroken;
 }
 
 // -----------------------------------------------------
