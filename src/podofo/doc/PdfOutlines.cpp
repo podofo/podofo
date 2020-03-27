@@ -79,13 +79,13 @@ PdfOutlineItem::PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutli
     if( this->GetObject()->GetDictionary().HasKey( "First" ) )
     {
         first    = this->GetObject()->GetDictionary().GetKey("First")->GetReference();
-        m_pFirst = new PdfOutlineItem( pObject->GetOwner()->GetObject( first ), this, NULL );
+        m_pFirst = new PdfOutlineItem( pObject->GetOwner()->MustGetObject( first ), this, NULL );
     }
 
     if( this->GetObject()->GetDictionary().HasKey( "Next" ) )
     {
         next     = this->GetObject()->GetDictionary().GetKey("Next")->GetReference();
-        PdfObject* pObj = pObject->GetOwner()->GetObject( next );
+        PdfObject* pObj = pObject->GetOwner()->MustGetObject( next );
 
         m_pNext  = new PdfOutlineItem( pObj, pParentOutline, this );
     }

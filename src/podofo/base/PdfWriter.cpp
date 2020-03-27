@@ -690,7 +690,7 @@ void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* p
         // indirect as long as the PDF is not encrypted. Handle that
         // case.
         if ( idObj->IsReference() ) {
-            idObj = m_vecObjects->GetObject( idObj->GetReference() );
+            idObj = m_vecObjects->MustGetObject( idObj->GetReference() );
         }
 
         TCIVariantList it = idObj->GetArray().begin();

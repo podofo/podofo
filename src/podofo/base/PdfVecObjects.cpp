@@ -162,6 +162,14 @@ PdfObject* PdfVecObjects::GetObject( const PdfReference & ref ) const
     return NULL;
 }
 
+PdfObject* PdfVecObjects::MustGetObject( const PdfReference & ref ) const
+{
+    PdfObject* obj = GetObject( ref );
+    if (!obj)
+        PODOFO_RAISE_ERROR( ePdfError_NoObject );
+    return obj;
+}
+
 size_t PdfVecObjects::GetIndex( const PdfReference & ref ) const
 {
     if( !m_bSorted )

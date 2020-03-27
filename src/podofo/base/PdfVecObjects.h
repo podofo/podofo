@@ -228,6 +228,15 @@ class PODOFO_API PdfVecObjects {
     PdfObject* GetObject( const PdfReference & ref ) const;
 
     /** Finds the object with the given reference in m_vecOffsets 
+     *  and returns a pointer to it if it is found. Throws a PdfError
+     *  exception with error code ePdfError_NoObject if no object was found
+     *  \param ref the object to be found
+     *  \returns the found object
+     *  \throws PdfError(ePdfError_NoObject)
+     */
+    PdfObject* MustGetObject( const PdfReference & ref ) const;
+
+    /** Finds the object with the given reference in m_vecOffsets
      *  and returns the index to it.
      *  \param ref the object to be found
      *  \returns the found object or NULL if no object was found.

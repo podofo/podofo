@@ -56,7 +56,7 @@ const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *pObject,
     if (pObject->IsReference ())
     {
         // resolve any references
-        pObject = pObject->GetOwner ()->GetObject (pObject->GetReference ());
+        pObject = pObject->GetOwner ()->MustGetObject (pObject->GetReference ());
     }
 
     if (pObject->IsName ())

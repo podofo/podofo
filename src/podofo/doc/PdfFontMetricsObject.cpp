@@ -120,7 +120,7 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
 					// Make sure array referenced is available:
 					second->DelayedStreamLoad();
 					// second do not have an associated owner; use the one in pw
-					second = pw->GetOwner()->GetObject(second->GetReference());
+					second = pw->GetOwner()->MustGetObject(second->GetReference());
 					PODOFO_ASSERT (!second->IsNull());
 				}
 				if (second->IsArray()) {

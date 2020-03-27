@@ -67,7 +67,7 @@ PdfContents::PdfContents( PdfObject* inObj )
     : PdfElement( inObj->GetDataType(), inObj )
 {
     if ( this->GetObject()->GetDataType() == ePdfDataType_Reference )
-        mContObj = inObj->GetOwner()->GetObject( this->GetObject()->GetReference() );
+        mContObj = inObj->GetOwner()->MustGetObject( this->GetObject()->GetReference() );
     else
         mContObj = this->GetObject();
 }
