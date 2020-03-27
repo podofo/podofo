@@ -82,16 +82,10 @@ PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, Pdf
     Init( pDoc->GetAcroForm() );
 }
 
-PdfField::PdfField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc)
+PdfField::PdfField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument*)
     : m_pObject( pWidget->GetObject() ), m_pWidget( pWidget ), m_eField( eField )
 {
     Init( pParent );
-    PdfObject* pFields = pParent->GetObject()->GetDictionary().GetKey( PdfName("Fields") );
-    if( pFields && pFields->IsReference())  {
-       PdfObject *pRefFld = pDoc->GetObjects()->GetObject(pFields->GetReference());
-       if(pRefFld)
-         pRefFld->GetArray().push_back( m_pObject->Reference() );
-    }
 }
 
 PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc, bool bAppearanceNone)
@@ -116,18 +110,7 @@ PdfField::PdfField( const PdfField & rhs )
 void PdfField::Init( PdfAcroForm* pParent )
 {
     // Insert into the parents kids array
-    PdfObject* pFields = pParent->GetObject()->GetDictionary().GetKey( PdfName("Fields") );
-    if( pFields ) 
-    {
-        if(!pFields->IsReference() ) 
-	{
-            pFields->GetArray().push_back( m_pObject->Reference() );
-	}
-    }
-    else
-    {
-        PODOFO_RAISE_ERROR( ePdfError_NoObject );
-    }
+    pParent->GetObject()->MustGetIndirectKey( "Fields" )->GetArray().push_back( m_pObject->Reference() );
 
     switch( m_eField ) 
     {
