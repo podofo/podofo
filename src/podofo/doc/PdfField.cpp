@@ -110,6 +110,8 @@ PdfField::PdfField( const PdfField & rhs )
 void PdfField::Init( PdfAcroForm* pParent )
 {
     // Insert into the parents kids array
+    if( !pParent->GetObject()->GetDictionary().HasKey( "Fields" ) )
+        pParent->GetObject()->GetDictionary().AddKey( "Fields", PdfArray() );
     pParent->GetObject()->MustGetIndirectKey( "Fields" )->GetArray().push_back( m_pObject->Reference() );
 
     switch( m_eField ) 
