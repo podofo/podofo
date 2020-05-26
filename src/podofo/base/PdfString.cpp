@@ -133,7 +133,7 @@ void PdfString::setFromWchar_t(const wchar_t* pszString, pdf_long lLen )
         {
             lLen = wcslen( pszString );
         }
-        constexpr bool wchar_t_is_two_bytes = sizeof(wchar_t) == 2;
+        const bool wchar_t_is_two_bytes = sizeof(wchar_t) == 2;
         if( wchar_t_is_two_bytes ) 
         {
             // We have UTF16
