@@ -853,6 +853,171 @@ void PdfImage::LoadFromPng( const wchar_t* pszFilename )
 }
 #endif // _WIN32
 
+static void LoadFromPngContent(png_structp pPng, png_infop pInfo, PdfImage *image)
+{
+    png_set_sig_bytes(pPng, 8);
+    png_read_info(pPng, pInfo);
+
+// Begin
+    png_uint_32 width;
+    png_uint_32 height;
+    int depth;
+    int color_type;
+    int interlace;
+
+    png_get_IHDR (pPng, pInfo,
+                  &width, &height, &depth,
+                  &color_type, &interlace, NULL, NULL);
+
+    /* convert palette/gray image to rgb */
+    /* expand gray bit depth if needed */
+    if (color_type == PNG_COLOR_TYPE_GRAY) {
+#if PNG_LIBPNG_VER >= 10209
+        png_set_expand_gray_1_2_4_to_8 (pPng);
+#else
+        png_set_gray_1_2_4_to_8 (pPng);
+#endif
+    } else if (color_type != PNG_COLOR_TYPE_PALETTE && depth < 8) {
+        png_set_packing(pPng);
+    }
+
+    /* transform transparency to alpha */
+    if (color_type != PNG_COLOR_TYPE_PALETTE && png_get_valid (pPng, pInfo, PNG_INFO_tRNS))
+        png_set_tRNS_to_alpha (pPng);
+
+    if (depth == 16)
+        png_set_strip_16(pPng);
+
+    if (interlace != PNG_INTERLACE_NONE)
+        png_set_interlace_handling(pPng);
+
+    //png_set_filler (pPng, 0xff, PNG_FILLER_AFTER);
+
+    /* recheck header after setting EXPAND options */
+    png_read_update_info(pPng, pInfo);
+    png_get_IHDR (pPng, pInfo,
+                  &width, &height, &depth,
+                  &color_type, &interlace, NULL, NULL);
+// End //
+    
+    // Read the file
+    if( setjmp(png_jmpbuf(pPng)) ) 
+    {
+        png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    }
+
+    size_t lRowLen = png_get_rowbytes(pPng, pInfo);
+    size_t lLen = lRowLen * height;
+    char* pBuffer = static_cast<char*>(podofo_calloc(lLen, sizeof(char)));
+ 	if (!pBuffer)
+ 	{
+ 		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+ 	}
+
+    png_bytepp pRows = static_cast<png_bytepp>(podofo_calloc(height, sizeof(png_bytep)));
+ 	if (!pRows)
+ 	{
+ 		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+    }
+
+    for(unsigned int y=0; y<height; y++)
+    {
+        pRows[y] = reinterpret_cast<png_bytep>(pBuffer + y * lRowLen);
+    }
+
+    png_read_image(pPng, pRows);
+
+    png_bytep paletteTrans;
+    int numTransColors;
+    if (color_type & PNG_COLOR_MASK_ALPHA ||
+        (color_type == PNG_COLOR_TYPE_PALETTE && png_get_valid(pPng, pInfo, PNG_INFO_tRNS) && png_get_tRNS(pPng, pInfo, &paletteTrans, &numTransColors, NULL)))
+    {
+        // Handle alpha channel and create smask
+        char *smask = static_cast<char*>(podofo_calloc(height, width));
+        png_uint_32 smaskIndex = 0;
+        if (color_type == PNG_COLOR_TYPE_PALETTE) {
+            for (png_uint_32 r = 0; r < height; r++) {
+                png_bytep row = pRows[r];
+                for (png_uint_32 c = 0; c < width; c++) {
+                    png_byte color;
+                    if (depth == 8) {
+                        color = row[c];
+                    } else if (depth == 4) {
+                        color = c % 2 ? row[c / 2] >> 4 : row[c / 2] & 0xF;
+                    } else if (depth == 2) {
+                        color = (row[c / 4] >> c % 4 * 2) & 3;
+                    } else if (depth == 1) {
+                        color = (row[c / 4] >> c % 8) & 1;
+                    }
+                    smask[smaskIndex++] = color < numTransColors ? paletteTrans[color] : 0xFF;
+                }
+            }
+        } else if (color_type == PNG_COLOR_TYPE_RGB_ALPHA) {
+            for (png_uint_32 r = 0; r < height; r++) {
+                png_bytep row = pRows[r];
+                for (png_uint_32 c = 0; c < width; c++) {
+                    memmove(pBuffer + 3 * smaskIndex, row + 4 * c, 3); // 3 byte for rgb
+                    smask[smaskIndex++] = row[c * 4 + 3]; // 4th byte for alpha
+                }
+            }
+            lLen = 3 * width * height;
+        } else if (color_type == PNG_COLOR_TYPE_GRAY_ALPHA) {
+            for (png_uint_32 r = 0; r < height; r++) {
+                png_bytep row = pRows[r];
+                for (png_uint_32 c = 0; c < width; c++) {
+                    pBuffer[smaskIndex] = row[c * 2]; // 1 byte for gray
+                    smask[smaskIndex++] = row[c * 2 + 1]; // 2nd byte for alpha
+                }
+            }
+            lLen = width * height;
+        }
+        PdfMemoryInputStream smaskstream(smask, width * height);
+        PdfImage smakeImage(image->GetObject()->GetOwner());
+        smakeImage.SetImageColorSpace(ePdfColorSpace_DeviceGray);
+        smakeImage.SetImageData(width, height, 8, &smaskstream);
+        image->SetImageSoftmask(&smakeImage);
+        podofo_free(smask);
+    }
+
+    // Set color space
+    if (color_type == PNG_COLOR_TYPE_PALETTE) {
+        png_color *pColors;
+        int numColors;
+        png_get_PLTE(pPng, pInfo, &pColors, &numColors);
+
+        char *datap = new char[numColors * 3];
+        for (int i = 0; i < numColors; i++, pColors++)
+        {
+            datap[3 * i + 0] = pColors->red;
+            datap[3 * i + 1] = pColors->green;
+            datap[3 * i + 2] = pColors->blue;
+        }
+        PdfMemoryInputStream stream(datap, numColors * 3);
+        PdfObject* pIdxObject = image->GetObject()->GetOwner()->CreateObject();
+        pIdxObject->GetStream()->Set(&stream);
+
+        PdfArray array;
+        array.push_back(PdfName("DeviceRGB"));
+        array.push_back(static_cast<pdf_int64>(numColors - 1));
+        array.push_back(pIdxObject->Reference());
+        image->SetImageColorSpace(ePdfColorSpace_Indexed, &array);
+    } else if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA) {
+        image->SetImageColorSpace(ePdfColorSpace_DeviceGray);
+    } else {
+        image->SetImageColorSpace(ePdfColorSpace_DeviceRGB);
+    }
+
+    // Set the image data and flate compress it
+    PdfMemoryInputStream stream( pBuffer, lLen );
+    image->SetImageData( width, height, depth, &stream );
+    
+    podofo_free(pBuffer);
+    podofo_free(pRows);
+    
+    png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
+}
+
 void PdfImage::LoadFromPngHandle( PdfFileInputStream* pInStream ) 
 {
     FILE* hFile = pInStream->GetHandle();
@@ -883,133 +1048,8 @@ void PdfImage::LoadFromPngHandle( PdfFileInputStream* pInStream )
     }
 
     png_init_io(pPng, hFile);
-    png_set_sig_bytes(pPng, 8);
-    png_read_info(pPng, pInfo);
 
-// Begin
-    png_uint_32 width;
-    png_uint_32 height;
-    int depth;
-    int color_type;
-    int interlace;
-
-    png_get_IHDR (pPng, pInfo,
-                  &width, &height, &depth,
-                  &color_type, &interlace, NULL, NULL);
-
-    /* convert palette/gray image to rgb */
-    if (color_type == PNG_COLOR_TYPE_PALETTE)
-        png_set_palette_to_rgb(pPng);
-
-    if (color_type & PNG_COLOR_MASK_ALPHA)
-       png_set_strip_alpha(pPng);
-#if 0
-    /* expand gray bit depth if needed */
-    if (color_type == PNG_COLOR_TYPE_GRAY) {
-#if PNG_LIBPNG_VER >= 10209
-        png_set_expand_gray_1_2_4_to_8 (pPng);
-#else
-        png_set_gray_1_2_4_to_8 (pPng);
-#endif
-    }
-#endif
-    /* transform transparency to alpha */
-    if (png_get_valid (pPng, pInfo, PNG_INFO_tRNS))
-        png_set_tRNS_to_alpha (pPng);
-
-    if (depth == 16)
-        png_set_strip_16(pPng);
-
-    if (depth < 8)
-        png_set_packing(pPng);
-#if 0
-    /* convert grayscale to RGB */
-    if (color_type == PNG_COLOR_TYPE_GRAY ||
-	color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
-    {
-	png_set_gray_to_rgb (pPng);
-    }
-#endif
-    if (interlace != PNG_INTERLACE_NONE)
-        png_set_interlace_handling(pPng);
-
-    //png_set_filler (pPng, 0xff, PNG_FILLER_AFTER);
-
-    /* recheck header after setting EXPAND options */
-    png_read_update_info(pPng, pInfo);
-    png_get_IHDR (pPng, pInfo,
-                  &width, &height, &depth,
-                  &color_type, &interlace, NULL, NULL);
-// End //
-    
-    // Read the file
-    if( setjmp(png_jmpbuf(pPng)) ) 
-    {
-        png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-
-    long lLen = static_cast<long>(png_get_rowbytes(pPng, pInfo) * height);
-    char* pBuffer = static_cast<char*>(podofo_calloc(lLen, sizeof(char)));
- 	if (!pBuffer)
- 	{
- 		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
- 	}
-
-    png_bytepp pRows = static_cast<png_bytepp>(podofo_calloc(height, sizeof(png_bytep)));
- 	if (!pRows)
- 	{
- 		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
-    }
-
-    for(unsigned int y=0; y<height; y++)
-    {
-        pRows[y] = reinterpret_cast<png_bytep>(pBuffer + (y * png_get_rowbytes(pPng, pInfo)));
-    }
-
-    png_read_image(pPng, pRows);
-
-    m_rRect.SetWidth( width );
-    m_rRect.SetHeight( height );
-
-    switch( png_get_channels( pPng, pInfo ) )
-    {
-        case 3:
-            this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
-            break;
-        case 4:
-        {
-            this->SetImageColorSpace( ePdfColorSpace_DeviceCMYK );
-            // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
-            // in a inverted fashion. Fix by attaching a decode array
-            PdfArray decode;
-            decode.push_back( 1.0 );
-            decode.push_back( 0.0 );
-            decode.push_back( 1.0 );
-            decode.push_back( 0.0 );
-            decode.push_back( 1.0 );
-            decode.push_back( 0.0 );
-            decode.push_back( 1.0 );
-            decode.push_back( 0.0 );
-            
-            this->GetObject()->GetDictionary().AddKey( PdfName("Decode"), decode );
-        }
-        break;
-        default:
-            this->SetImageColorSpace( ePdfColorSpace_DeviceGray );
-            break;
-    }
-
-    // Set the image data and flate compress it
-    PdfMemoryInputStream stream( pBuffer, lLen );
-    this->SetImageData( width, height, depth, &stream );
-    
-    podofo_free(pBuffer);
-    podofo_free(pRows);
-    
-    png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
-
+    LoadFromPngContent(pPng, pInfo, this);
 }
 
 struct pngData
@@ -1076,132 +1116,8 @@ void PdfImage::LoadFromPngData(const unsigned char* pData, pdf_long dwLen)
     }
     
     png_set_read_fn(pPng, (png_voidp)&data, pngReadData);
-    png_set_sig_bytes(pPng, 8);
-    png_read_info(pPng, pInfo);
     
-    // Begin
-    png_uint_32 width;
-    png_uint_32 height;
-    int depth;
-    int color_type;
-    int interlace;
-    
-    png_get_IHDR (pPng, pInfo,
-                  &width, &height, &depth,
-                  &color_type, &interlace, NULL, NULL);
-    
-    /* convert palette/gray image to rgb */
-    if (color_type == PNG_COLOR_TYPE_PALETTE)
-        png_set_palette_to_rgb(pPng);
-    
-    if (color_type & PNG_COLOR_MASK_ALPHA)
-        png_set_strip_alpha(pPng);
-#if 0
-    /* expand gray bit depth if needed */
-    if (color_type == PNG_COLOR_TYPE_GRAY) {
-#if PNG_LIBPNG_VER >= 10209
-        png_set_expand_gray_1_2_4_to_8 (pPng);
-#else
-        png_set_gray_1_2_4_to_8 (pPng);
-#endif
-    }
-#endif
-    /* transform transparency to alpha */
-    if (png_get_valid (pPng, pInfo, PNG_INFO_tRNS))
-        png_set_tRNS_to_alpha (pPng);
-    
-    if (depth == 16)
-        png_set_strip_16(pPng);
-    
-    if (depth < 8)
-        png_set_packing(pPng);
-#if 0
-    /* convert grayscale to RGB */
-    if (color_type == PNG_COLOR_TYPE_GRAY ||
-        color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
-    {
-        png_set_gray_to_rgb (pPng);
-    }
-#endif
-    if (interlace != PNG_INTERLACE_NONE)
-        png_set_interlace_handling(pPng);
-    
-    //png_set_filler (pPng, 0xff, PNG_FILLER_AFTER);
-    
-    /* recheck header after setting EXPAND options */
-    png_read_update_info(pPng, pInfo);
-    png_get_IHDR (pPng, pInfo,
-                  &width, &height, &depth,
-                  &color_type, &interlace, NULL, NULL);
-    // End //
-    
-    // Read the file
-    if( setjmp(png_jmpbuf(pPng)) )
-    {
-        png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-    
-    
-    long lLen = static_cast<long>(png_get_rowbytes(pPng, pInfo) * height);
-    char* pBuffer = static_cast<char*>(podofo_calloc(lLen, sizeof(char)));
- 	if (!pBuffer)
- 	{
- 		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
- 	}
-    
-    png_bytepp pRows = static_cast<png_bytepp>(podofo_calloc(height, sizeof(png_bytep)));
-    if (!pRows)
- 	{
- 		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
-    }
-    
-    for(unsigned int y=0; y<height; y++)
-    {
-        pRows[y] = reinterpret_cast<png_bytep>(pBuffer + (y * png_get_rowbytes(pPng, pInfo)));
-    }
-    
-    png_read_image(pPng, pRows);
-    
-    m_rRect.SetWidth( width );
-    m_rRect.SetHeight( height );
-    
-    switch( png_get_channels( pPng, pInfo ) )
-    {
-        case 3:
-            this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
-            break;
-        case 4:
-        {
-            this->SetImageColorSpace( ePdfColorSpace_DeviceCMYK );
-            // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
-            // in a inverted fashion. Fix by attaching a decode array
-            PdfArray decode;
-            decode.push_back( 1.0 );
-            decode.push_back( 0.0 );
-            decode.push_back( 1.0 );
-            decode.push_back( 0.0 );
-            decode.push_back( 1.0 );
-            decode.push_back( 0.0 );
-            decode.push_back( 1.0 );
-            decode.push_back( 0.0 );
-            
-            this->GetObject()->GetDictionary().AddKey( PdfName("Decode"), decode );
-        }
-            break;
-        default:
-            this->SetImageColorSpace( ePdfColorSpace_DeviceGray );
-            break;
-    }
-    
-    // Set the image data and flate compress it
-    PdfMemoryInputStream stream( pBuffer, lLen );
-    this->SetImageData( width, height, depth, &stream );
-    
-    podofo_free(pBuffer);
-    podofo_free(pRows);
-    
-    png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
+    LoadFromPngContent(pPng, pInfo, this);
 }
 #endif // PODOFO_HAVE_PNG_LIB
 
