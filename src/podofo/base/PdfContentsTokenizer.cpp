@@ -108,15 +108,16 @@ PdfContentsTokenizer::PdfContentsTokenizer( PdfCanvas* pCanvas )
     }
 }
 
-void PdfContentsTokenizer::SetCurrentContentsStream( PdfObject* pObject )
+void PdfContentsTokenizer::SetCurrentContentsStream( const PdfObject* pObject )
 {
     PODOFO_RAISE_LOGIC_IF( pObject == NULL, "Content stream object == NULL!" );
 
-    PdfStream* pStream = pObject->GetStream();
+    const PdfStream* pStream = pObject->GetStream();
 
-	PdfRefCountedBuffer buffer;
+    PdfRefCountedBuffer buffer(0);
     PdfBufferOutputStream stream( &buffer );
-    pStream->GetFilteredCopy( &stream );
+    if( pStream )
+        pStream->GetFilteredCopy( &stream );
 
     m_device = PdfRefCountedInputDevice( buffer.GetBuffer(), buffer.GetSize() );
 }

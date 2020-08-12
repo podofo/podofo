@@ -302,7 +302,7 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
         m_vecObjects.push_back( pObj );
 
         if( (*it)->IsDictionary() && (*it)->HasStream() )
-            *(pObj->GetStream()) = *((*it)->GetStream());
+            *(pObj->GetStream()) = *(static_cast<const PdfObject*>(*it)->GetStream());
 
         PdfError::LogMessage( eLogSeverity_Information,
                               "Fixing references in %i %i R by %i\n", pObj->Reference().ObjectNumber(), pObj->Reference().GenerationNumber(), difference );
@@ -401,7 +401,7 @@ const PdfDocument &PdfDocument::InsertExistingPageAt( const PdfMemDocument & rDo
         m_vecObjects.push_back( pObj );
 
         if( (*it)->IsDictionary() && (*it)->HasStream() )
-            *(pObj->GetStream()) = *((*it)->GetStream());
+            *(pObj->GetStream()) = *(static_cast<const PdfObject*>(*it)->GetStream());
 
         PdfError::LogMessage( eLogSeverity_Information,
                               "Fixing references in %i %i R by %i\n", pObj->Reference().ObjectNumber(), pObj->Reference().GenerationNumber(), difference );
@@ -504,7 +504,7 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
     if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Contents" ) )
     {
         // get direct pointer to contents
-        PdfObject* pContents = pObj->MustGetIndirectKey( "Contents" );
+        const PdfObject* pContents = pObj->MustGetIndirectKey( "Contents" );
 
         if( pContents->IsArray() )
         {
@@ -524,7 +524,7 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
                 if ( it->IsReference() )
                 {
                     // TODO: not very efficient !!
-                    PdfObject*  pObj = GetObjects()->GetObject( it->GetReference() );
+                    const PdfObject*  pObj = GetObjects()->GetObject( it->GetReference() );
 
                     while (pObj!=NULL)
                     {
@@ -534,7 +534,7 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
                         }
                         else if (pObj->HasStream())
                         {
-                            PdfStream*  pcontStream = pObj->GetStream();
+                            const PdfStream*  pcontStream = pObj->GetStream();
 
                             char*       pcontStreamBuffer;
                             pdf_long    pcontStreamLength;
@@ -566,7 +566,7 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
             // copy stream to xobject
             PdfObject*  pObj = pXObj->GetContentsForAppending();
             PdfStream*  pObjStream = pObj->GetStream();
-            PdfStream*  pcontStream = pContents->GetStream();
+            const PdfStream*  pcontStream = pContents->GetStream();
             char*       pcontStreamBuffer;
             pdf_long    pcontStreamLength;
 

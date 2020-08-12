@@ -70,7 +70,6 @@ void PdfObjectStreamParserObject::Parse(ObjectIdList const & list)
 
     try {
         this->ReadObjectsFromStream( pBuffer, lBufferLen, lNum, lFirst, list );
-        podofo_free( pBuffer );
 
         // the object stream is not needed anymore in the final PDF
         delete m_vecObjects->RemoveObject( m_pParser->Reference() );
@@ -80,6 +79,8 @@ void PdfObjectStreamParserObject::Parse(ObjectIdList const & list)
         podofo_free( pBuffer );
         throw rError;
     }
+
+    podofo_free( pBuffer );
 }
 
 void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long lBufferLen, pdf_int64 lNum, pdf_int64 lFirst, ObjectIdList const & list)

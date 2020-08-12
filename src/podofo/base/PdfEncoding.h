@@ -226,7 +226,7 @@ class PODOFO_API PdfEncoding {
  private:
     int     m_nFirstChar;   ///< The first defined character code
     int     m_nLastChar;    ///< The last defined character code
-    PdfObject* m_pToUnicode;    ///< Pointer to /ToUnicode object, if any
+    const PdfObject* m_pToUnicode;    ///< Pointer to /ToUnicode object, if any
  protected:
     std::map<pdf_utf16be, pdf_utf16be> m_toUnicode;
                

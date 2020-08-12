@@ -74,7 +74,7 @@ PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject * pToUnicode) :
         pdf_uint16 range_end = 0;
         pdf_uint16 i = 0;
         pdf_utf16be firstvalue = 0;
-        const PdfStream *CIDStreamdata = pObject->GetStream ();
+        const PdfStream *CIDStreamdata = static_cast<const PdfObject*>(pObject)->GetStream ();
         CIDStreamdata->GetFilteredCopy (&streamBuffer, &streamBufferLen);
 
         PdfContentsTokenizer streamTokenizer (streamBuffer, streamBufferLen);

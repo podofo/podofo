@@ -1252,7 +1252,7 @@ void PdfParser::ReadObjectsInternal()
              itObjects != m_vecObjects->end();
              ++itObjects)
         {
-            pObject = dynamic_cast<PdfParserObject*>(*itObjects);
+            const PdfParserObject* pObject = dynamic_cast<PdfParserObject*>(*itObjects);
             // only parse streams for objects that have not yet parsed
             // their streams
             if( pObject && pObject->HasStreamToParse() && !pObject->HasStream() )
