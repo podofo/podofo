@@ -34,6 +34,7 @@
 #include "PdfXRefStreamParserObject.h"
 
 #include "PdfArray.h"
+#include "PdfDefinesPrivate.h"
 #include "PdfDictionary.h"
 #include "PdfStream.h"
 #include "PdfVariant.h"
@@ -147,7 +148,22 @@ void PdfXRefStreamParserObject::ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], c
 
     
     std::vector<pdf_int64>::const_iterator it = rvecIndeces.begin();
-    char* const pStart = pBuffer;
+    #ifdef PODOFO_HAVE_UNIQUE_PTR
+    std::unique_ptr<char, decltype( &podofo_free )> pStart( pBuffer, &podofo_free );
+    #else // PODOFO_HAVE_UNIQUE_PTR
+    class StrAutoPtr {
+    private:
+        char *str;
+    public:
+        StrAutoPtr( char *in_str ) : str( in_str ) {}
+        ~StrAutoPtr() {
+            podofo_free( str );
+        }
+        char *get( void ) const { return str; }
+    };
+    StrAutoPtr pStart( pBuffer );
+    #endif // PODOFO_HAVE_UNIQUE_PTR
+
     while( it != rvecIndeces.end() )
     {
         pdf_int64 nFirstObj = *it; ++it;
@@ -161,7 +177,7 @@ void PdfXRefStreamParserObject::ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], c
         //printf("nCount=%i\n", static_cast<int>(nCount));
         while( nCount > 0 )
         {
-            if( (pBuffer - pStart) >= lBufferLen ) 
+            if( (pBuffer - pStart.get()) >= lBufferLen ) 
             {
                 PODOFO_RAISE_ERROR_INFO( ePdfError_NoXRef, "Invalid count in XRef stream" );
             }
@@ -182,8 +198,6 @@ void PdfXRefStreamParserObject::ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], c
         //printf("Exp: nFirstObj=%i nFirstObjOrg + nCount=%i\n", nFirstObj - 1, nFirstObjOrg + nCountOrg - 1 );
         //printf("===\n");
     }
-    podofo_free( pStart );
-
 }
 
 void PdfXRefStreamParserObject::GetIndeces( std::vector<pdf_int64> & rvecIndeces, pdf_int64 size ) 
