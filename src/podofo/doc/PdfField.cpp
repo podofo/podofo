@@ -734,8 +734,8 @@ void PdfTextField::SetText( const PdfString & rsText )
 
     // if rsText is longer than maxlen, truncate it
     pdf_long nMax = this->GetMaxLen();
-    if( nMax != -1 && rsText.GetLength() > nMax )
-        m_pObject->GetDictionary().AddKey( key, PdfString( rsText.GetString(), nMax ) );
+    if( nMax != -1 && (rsText.IsUnicode() ? rsText.GetUnicodeLength() : rsText.GetLength()) > nMax )
+        m_pObject->GetDictionary().AddKey( key, rsText.IsUnicode() ? PdfString( rsText.GetUnicode(), nMax) : PdfString( rsText.GetString(), nMax ) );
     else
         m_pObject->GetDictionary().AddKey( key, rsText );
 }
