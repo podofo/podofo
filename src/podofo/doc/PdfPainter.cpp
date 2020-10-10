@@ -105,7 +105,7 @@ static inline bool IsNewLineChar(pdf_utf16be ch)
 
 static inline bool IsSpaceChar(pdf_utf16be ch)
 {
-	return isspace( SwapCharBytesIfRequired(ch) & 0x00FF ) != 0;
+	return iswspace( SwapCharBytesIfRequired(ch) ) != 0;
 }
 
 PdfPainter::PdfPainter()
