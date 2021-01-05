@@ -41,12 +41,12 @@ struct _params
 
 void usage()
 {
-	cerr << "Usage : " << params.executablePath << " Input Output Plan [Interpretor]" << endl;
+	cerr << "Usage : " << params.executablePath << " Input Output Plan [Interpreter]" << endl;
 	cerr << "***" << endl;
 	cerr << "\tInput is a PDF file or a file which contains a list of PDF file paths" << endl<< endl;
 	cerr << "\tOutput will be a PDF file" << endl<< endl;
 	cerr << "\tPlan is an imposition plan file" <<endl<< endl;
-	cerr << "\t[Interpretor] Can be \"native\" (default value) or \"lua\""<< endl<< endl;
+	cerr << "\t[Interpreter] Can be \"native\" (default value) or \"lua\""<< endl<< endl;
     cerr << "PoDoFo Version: " << PODOFO_VERSION_STRING << endl << endl;
 }
 
@@ -68,11 +68,11 @@ int parseCommandLine ( int argc, char* argv[] )
 	{
 		std::string native ( "native" );
 		std::string lua ( "lua" );
-		std::string interpretor ( argv[4] );
+		std::string interpreter ( argv[4] );
 
-		if ( !interpretor.compare ( native ) )
+		if ( !interpreter.compare ( native ) )
 			params.planReader = PoDoFo::Impose::Legacy;
-		else if ( !interpretor.compare ( lua ) )
+		else if ( !interpreter.compare ( lua ) )
 			params.planReader = PoDoFo::Impose::Lua;
 	}
 
