@@ -16,6 +16,7 @@ SUBDIRS(
 	podofoimpose
 	podofoincrementalupdates
 	podofoxmp
+	podofonooc
 	)
 
 IF(PODOFO_HAVE_OPENSSL)
