@@ -258,12 +258,20 @@ void PdfParserObject::ParseStream()
 
     m_device.Device()->Seek( m_lStreamOffset );
 
+    do
+    {
+        // Skip spaces between the stream keyword and the carriage return/line feed or line feed
+        // Actually, this is not required by PDF Reference, but certain PDFs have additionals whitespaces
+        c = m_device.Device()->Look();
+        if ( c == ' ' )
+            c = m_device.Device()->GetChar();
+    } while ( c == ' ' );
+
     // From the PDF Reference manual
     // The keyword stream that follows
     // the stream dictionary should be followed by an end-of-line marker consisting of
     // either a carriage return and a line feed or just a line feed, and not by a carriage re-
     // turn alone.
-    c = m_device.Device()->Look();
     if( PdfTokenizer::IsWhitespace( c ) )
     {
         c = m_device.Device()->GetChar();
@@ -277,7 +285,7 @@ void PdfParserObject::ParseStream()
             }
         }
     } 
-    
+
     pdf_long fLoc = m_device.Device()->Tell();	// we need to save this, since loading the Length key could disturb it!
 
     PdfObject* pObj = this->GetDictionary_NoDL().GetKey( PdfName::KeyLength );  
