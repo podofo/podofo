@@ -36,6 +36,139 @@
 
 #include <string.h>
 #include <sstream>
+namespace  {
+
+/** Parse fixed length number from string
+  *  \param in string to read number from
+  *  \param length exact number characters to read
+  *  \param min minimal value of number
+  *  \param max maximal value of number
+  *  \param ret parsed number (updated only on success)
+  */
+enum EParseFixLenNumberResult {Ok, Missing, Error};
+EParseFixLenNumberResult ParseFixLenNumber(const char *&in, unsigned int length, int min, int max, int &ret_)
+{
+    if ( in == NULL || *in == '\0' || *in == '+' || *in == '-' || *in == 'Z') return Missing;
+    int ret = 0;
+    for(unsigned int i=0;i<length;i++)
+    {
+        if ( in == NULL || !isdigit(*in)) return Error;
+        ret = ret*10+ (*in-'0');
+        in++;
+    }
+    if ( ret < min || ret > max ) return Error;
+    ret_ = ret;
+    return Ok;
+}
+
+bool ParseOptionalFields(const char *&pszDate, tm& _tm)
+{
+    EParseFixLenNumberResult res = ParseFixLenNumber(pszDate,2,1,12,_tm.tm_mon);
+    if ( res == Error )
+    {
+        return false;
+    }
+    else if( res == Missing)
+    {
+        return true;
+    }
+    _tm.tm_mon--;
+
+    res = ParseFixLenNumber(pszDate,2,1,31,_tm.tm_mday);
+    if ( res == Error )
+    {
+        return false;
+    }
+    else if( res == Missing)
+    {
+        return true;
+    }
+
+    res = ParseFixLenNumber(pszDate,2,0,23,_tm.tm_hour);
+    if ( res == Error )
+    {
+        return false;
+    }
+    else if( res == Missing)
+    {
+        return true;
+    }
+
+    res = ParseFixLenNumber(pszDate,2,0,59,_tm.tm_min);
+    if ( res == Error )
+    {
+        return false;
+    }
+    else if( res == Missing)
+    {
+        return true;
+    }
+
+    res = ParseFixLenNumber(pszDate,2,0,59,_tm.tm_sec);
+    if ( res == Error )
+    {
+        return false;
+    }
+    return true;
+}
+
+
+time_t ParseZoneShift(const char *&pszDate, tm& _tm)
+{
+    int nZoneShift = 0;
+    int nZoneHour = 0;
+    int nZoneMin = 0;
+
+    if ( *pszDate != '\0' )
+    {
+        switch (*pszDate) {
+        case '+':
+            nZoneShift = -1;
+            break;
+        case '-':
+            nZoneShift = 1;
+            break;
+        case 'Z':
+            nZoneShift = 0;
+            break;
+        default:
+            return time_t(-1);
+        }
+        pszDate++;
+        if ( ParseFixLenNumber(pszDate,2,0,59,nZoneHour) != Ok)
+        {
+            return time_t(-1);
+        }
+        if (*pszDate == '\'') {
+            pszDate++;
+            if ( ParseFixLenNumber(pszDate,2,0,59,nZoneMin) != Ok)
+            {
+                return time_t(-1);
+            }
+            if (*pszDate != '\'')
+            {
+                return time_t(-1);
+            }
+            pszDate++;
+        }
+    }
+    if ( *pszDate != '\0' ) 
+    {
+        return time_t(-1);
+    }
+
+    // convert to 
+    time_t m_time = mktime(&_tm);
+    if ( m_time == -1 ) 
+    {
+        return m_time;
+    }
+
+    m_time += nZoneShift*(nZoneHour*3600 + nZoneMin*60);
+    return m_time;
+}
+
+}
 
 namespace PoDoFo {
 
@@ -47,18 +180,15 @@ PdfDate::PdfDate()
 }
 
 PdfDate::PdfDate( const time_t & t )
-    : m_bValid( false )
+    : m_time( t ), m_bValid( false )
 {
-    m_time = t;
     CreateStringRepresentation();
 }
 
 PdfDate::PdfDate( const PdfString & sDate )
-    : m_bValid( false )
+    : m_time( -1 ), m_bValid( false )
 {
-    m_time = -1;
-
-    if ( !sDate.IsValid() ) 
+    if ( !sDate.IsValid() )
     {
         m_szDate[0] = 0;
         return;
@@ -66,11 +196,8 @@ PdfDate::PdfDate( const PdfString & sDate )
 
     strncpy(m_szDate,sDate.GetString(),PDF_DATE_BUFFER_SIZE);
 
-    struct tm _tm;
-    memset( &_tm, 0, sizeof(_tm) );
-    int nZoneShift = 0;
-    int nZoneHour = 0;
-    int nZoneMin = 0;
+    struct tm _tm{};
+    _tm.tm_mday = 1;
 
     const char * pszDate = sDate.GetString();
     if ( pszDate == NULL ) return;
@@ -79,65 +206,20 @@ PdfDate::PdfDate( const PdfString & sDate )
         if ( *pszDate++ != ':' ) return;
     }
 
-    if ( ParseFixLenNumber(pszDate,4,0,9999,_tm.tm_year) == false ) 
+    // year is not optional
+    if ( ParseFixLenNumber(pszDate,4,0,9999,_tm.tm_year) != Ok)
         return;
-
     _tm.tm_year -= 1900;
-    if ( *pszDate != '\0' ) {
-        if ( ParseFixLenNumber(pszDate,2,1,12,_tm.tm_mon) == false ) 
-            return;
 
-        _tm.tm_mon--;
-        if ( *pszDate != '\0' ) {
-            if ( ParseFixLenNumber(pszDate,2,1,31,_tm.tm_mday) == false ) return;
-            if ( *pszDate != '\0' ) {
-                if ( ParseFixLenNumber(pszDate,2,0,23,_tm.tm_hour) == false ) return;
-                if ( *pszDate != '\0' ) {
-                    if ( ParseFixLenNumber(pszDate,2,0,59,_tm.tm_min) == false ) return;
-                    if ( *pszDate != '\0' ) {
-                        if ( ParseFixLenNumber(pszDate,2,0,59,_tm.tm_sec) == false ) return;
-                        if ( *pszDate != '\0' ) {
-                            switch(*pszDate++) {
-                            case '+':
-                                nZoneShift = -1;
-                                break;
-                            case '-':
-                                nZoneShift = 1;
-                                break;
-                            case 'Z':
-                                nZoneShift = 0;
-                                break;
-                            default:
-                                return;
-                            }
-                            if ( ParseFixLenNumber(pszDate,2,0,59,nZoneHour) == false ) return;
-                            if ( *pszDate == '\'' ) {
-                                pszDate++;
-                                if ( ParseFixLenNumber(pszDate,2,0,59,nZoneMin) == false ) return;
-                                if ( *pszDate != '\'' ) return;
-                                pszDate++;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if ( *pszDate != '\0' ) 
+    // all other values are optional, if not set they are 0-init (except mday)
+    if(!ParseOptionalFields(pszDate, _tm))
     {
         return;
     }
 
-    // convert to 
-    m_time = mktime(&_tm);
-    if ( m_time == -1 ) 
-    {
-        return;
-    }
-
-    m_time += nZoneShift*(nZoneHour*3600 + nZoneMin*60);
-    m_bValid = true;
+    // zone is optional
+    m_time = ParseZoneShift(pszDate, _tm);
+    m_bValid = ( m_time != -1);
 }
 
 PdfDate::~PdfDate()
@@ -205,20 +287,4 @@ void PdfDate::CreateStringRepresentation()
     m_bValid = true;
 }
 
-
-bool PdfDate::ParseFixLenNumber(const char *&in, unsigned int length, int min, int max, int &ret)
-{
-    ret = 0;
-    for(unsigned int i=0;i<length;i++)
-    {
-        if ( in == NULL || !isdigit(*in)) return false;
-        ret = ret*10+ (*in-'0');
-        in++;
-    }
-    if ( ret < min || ret > max ) return false;
-    return true;
-}
-
 };
-
-

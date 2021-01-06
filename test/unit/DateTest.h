@@ -29,13 +29,20 @@ class DateTest : public CppUnit::TestFixture
     CPPUNIT_TEST_SUITE( DateTest );
     CPPUNIT_TEST( testCreateDateFromString );
     CPPUNIT_TEST( testDateValue );
+    CPPUNIT_TEST( testAdditional );
+    CPPUNIT_TEST( testParseDateValid );
+    CPPUNIT_TEST( testParseDateInvalid );
     CPPUNIT_TEST_SUITE_END();
+
 public:
     void setUp();
     void tearDown();
 
     void testCreateDateFromString();
     void testDateValue();
+    void testAdditional();
+    void testParseDateInvalid();
+    void testParseDateValid();
 };
 
 #endif

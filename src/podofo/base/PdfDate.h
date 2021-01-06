@@ -119,15 +119,6 @@ class PODOFO_API PdfDate {
      */
     void CreateStringRepresentation();
 
-    /** Parse fixed length number from string
-     *  \param in string to read number from
-     *  \param length of number to read 
-     *  \param min minimal value of number
-     *  \param max maximal value of number
-     *  \param ret parsed number
-     */
-    bool ParseFixLenNumber(const char *&in, unsigned int length, int min, int max, int &ret);
-
  private:
     time_t m_time;
     char   m_szDate[PDF_DATE_BUFFER_SIZE + 1]; // include also room for a nul-terminator in the buffer
