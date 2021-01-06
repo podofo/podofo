@@ -47,14 +47,17 @@ PdfDate::PdfDate()
 }
 
 PdfDate::PdfDate( const time_t & t )
-    : m_time( t ), m_bValid( false )
+    : m_bValid( false )
 {
+    m_time = t;
     CreateStringRepresentation();
 }
 
 PdfDate::PdfDate( const PdfString & sDate )
-    : m_time( -1 ), m_bValid( false )
+    : m_bValid( false )
 {
+    m_time = -1;
+
     if ( !sDate.IsValid() ) 
     {
         m_szDate[0] = 0;
@@ -63,8 +66,11 @@ PdfDate::PdfDate( const PdfString & sDate )
 
     strncpy(m_szDate,sDate.GetString(),PDF_DATE_BUFFER_SIZE);
 
-    struct tm _tm{};
-    _tm.tm_mday = 1;
+    struct tm _tm;
+    memset( &_tm, 0, sizeof(_tm) );
+    int nZoneShift = 0;
+    int nZoneHour = 0;
+    int nZoneMin = 0;
 
     const char * pszDate = sDate.GetString();
     if ( pszDate == NULL ) return;
@@ -73,55 +79,51 @@ PdfDate::PdfDate( const PdfString & sDate )
         if ( *pszDate++ != ':' ) return;
     }
 
-    // year is not optional
-    if ( !ParseFixLenNumber(pszDate,4,0,9999,_tm.tm_year) )
+    if ( ParseFixLenNumber(pszDate,4,0,9999,_tm.tm_year) == false ) 
         return;
-    _tm.tm_year -= 1900;
 
-    // all other values are optional, if not set they are 0-init (except mday)
-    if ( ParseFixLenNumber(pszDate,2,1,12,_tm.tm_mon) )
-    {
+    _tm.tm_year -= 1900;
+    if ( *pszDate != '\0' ) {
+        if ( ParseFixLenNumber(pszDate,2,1,12,_tm.tm_mon) == false ) 
+            return;
+
         _tm.tm_mon--;
-        if ( ParseFixLenNumber(pszDate,2,1,31,_tm.tm_mday) )
-        {
-            if ( ParseFixLenNumber(pszDate,2,0,23,_tm.tm_hour) )
-            {
-                if ( ParseFixLenNumber(pszDate,2,0,59,_tm.tm_min) )
-                    ParseFixLenNumber(pszDate,2,0,59,_tm.tm_sec);
+        if ( *pszDate != '\0' ) {
+            if ( ParseFixLenNumber(pszDate,2,1,31,_tm.tm_mday) == false ) return;
+            if ( *pszDate != '\0' ) {
+                if ( ParseFixLenNumber(pszDate,2,0,23,_tm.tm_hour) == false ) return;
+                if ( *pszDate != '\0' ) {
+                    if ( ParseFixLenNumber(pszDate,2,0,59,_tm.tm_min) == false ) return;
+                    if ( *pszDate != '\0' ) {
+                        if ( ParseFixLenNumber(pszDate,2,0,59,_tm.tm_sec) == false ) return;
+                        if ( *pszDate != '\0' ) {
+                            switch(*pszDate++) {
+                            case '+':
+                                nZoneShift = -1;
+                                break;
+                            case '-':
+                                nZoneShift = 1;
+                                break;
+                            case 'Z':
+                                nZoneShift = 0;
+                                break;
+                            default:
+                                return;
+                            }
+                            if ( ParseFixLenNumber(pszDate,2,0,59,nZoneHour) == false ) return;
+                            if ( *pszDate == '\'' ) {
+                                pszDate++;
+                                if ( ParseFixLenNumber(pszDate,2,0,59,nZoneMin) == false ) return;
+                                if ( *pszDate != '\'' ) return;
+                                pszDate++;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
-    // zone is optional
-    int nZoneShift = 0;
-    int nZoneHour = 0;
-    int nZoneMin = 0;
-
-    if ( *pszDate != '\0' ) 
-    {
-        switch (*pszDate) {
-        case '+':
-            nZoneShift = -1;
-            break;
-        case '-':
-            nZoneShift = 1;
-            break;
-        case 'Z':
-            nZoneShift = 0;
-            break;
-        default:
-            return;
-        }
-        pszDate++;
-        if ( !ParseFixLenNumber(pszDate,2,0,59,nZoneHour) ) return;
-        if (*pszDate == '\'') {
-            pszDate++;
-            if ( !ParseFixLenNumber(pszDate,2,0,59,nZoneMin) ) return;
-            if (*pszDate != '\'')
-                return;
-            pszDate++;
-        }
-    }
     if ( *pszDate != '\0' ) 
     {
         return;
@@ -134,7 +136,7 @@ PdfDate::PdfDate( const PdfString & sDate )
         return;
     }
 
-    m_time += nZoneShift*(nZoneHour*3600 + nZoneMin*60) ;//- timezone;
+    m_time += nZoneShift*(nZoneHour*3600 + nZoneMin*60);
     m_bValid = true;
 }
 
@@ -204,9 +206,9 @@ void PdfDate::CreateStringRepresentation()
 }
 
 
-bool PdfDate::ParseFixLenNumber(const char *&in, unsigned int length, int min, int max, int &ret_)
+bool PdfDate::ParseFixLenNumber(const char *&in, unsigned int length, int min, int max, int &ret)
 {
-    int ret = 0;
+    ret = 0;
     for(unsigned int i=0;i<length;i++)
     {
         if ( in == NULL || !isdigit(*in)) return false;
@@ -214,7 +216,6 @@ bool PdfDate::ParseFixLenNumber(const char *&in, unsigned int length, int min, i
         in++;
     }
     if ( ret < min || ret > max ) return false;
-    ret_ = ret;
     return true;
 }
 

@@ -121,10 +121,10 @@ class PODOFO_API PdfDate {
 
     /** Parse fixed length number from string
      *  \param in string to read number from
-     *  \param length exact number characters to read 
+     *  \param length of number to read 
      *  \param min minimal value of number
      *  \param max maximal value of number
-     *  \param ret parsed number (updated only on success)
+     *  \param ret parsed number
      */
     bool ParseFixLenNumber(const char *&in, unsigned int length, int min, int max, int &ret);
 
