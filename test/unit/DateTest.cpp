@@ -126,15 +126,9 @@ void DateTest::testParseDateInvalid()
     memset (&_tm, 0, sizeof(struct tm));
 
     const time_t t = date.GetTime();
-    localtime_r(&t, &_tm);
 
     CPPUNIT_ASSERT_EQUAL(false, date.IsValid());
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Year", 1970, _tm.tm_year + 1900);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Month", 1, _tm.tm_mon + 1);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Day", 1, _tm.tm_mday);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Hour", 0, _tm.tm_hour);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Minute", 59, _tm.tm_min);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Second", 59, _tm.tm_sec);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Invalid date should be equal to time_t(-1)", time_t(-1), t);
 }
 
 void DateTest::testParseDateValid()
