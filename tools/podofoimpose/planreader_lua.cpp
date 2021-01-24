@@ -111,6 +111,12 @@ int PlanReader_Lua::PushRecord ( lua_State * L )
 	                            lua_tonumber ( L, 3 ),
 	                            lua_tonumber ( L, 4 ),
 	                            lua_tonumber ( L, 5 ));
+
+	if (lua_isnumber ( L, 6 ))
+		P.scaleX = lua_tonumber ( L, 6 );
+	if (lua_isnumber ( L, 7 ))
+		P.scaleY = lua_tonumber ( L, 7 );
+
 	if(P.isValid())
 		that->plan->push_back ( P );
 

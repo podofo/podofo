@@ -81,7 +81,7 @@ class Util
 class PageRecord
 {
 	public:
-		PageRecord ( int s,int d,double r, double tx, double ty , int du = 0 );
+		PageRecord ( int s,int d,double r, double tx, double ty , int du = 0, double sx = 1.0, double sy = 1.0 );
 		PageRecord( );
 		~PageRecord() {};
 		int sourcePage;
@@ -89,6 +89,8 @@ class PageRecord
 		double rotate;
 		double transX;
 		double transY;
+		double scaleX;
+		double scaleY;
 		int duplicateOf;
 		bool isValid() const;
 

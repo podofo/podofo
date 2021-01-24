@@ -431,6 +431,59 @@ namespace PoDoFo
 // 	delete sourceDoc;
 		}
 
+		void PdfTranslator::transform(double a, double b, double c, double d, double e, double f)
+		{
+			if (transformMatrix.empty()) {
+				transformMatrix.push_back(a);
+				transformMatrix.push_back(b);
+				transformMatrix.push_back(c);
+				transformMatrix.push_back(d);
+				transformMatrix.push_back(e);
+				transformMatrix.push_back(f);
+
+			} else {
+				std::vector<double> m0 = transformMatrix;
+				std::vector<double> m;
+
+				m.push_back(m0.at(0)*a + m0.at(1)*c);
+				m.push_back(m0.at(0)*b + m0.at(1)*d);
+				m.push_back(m0.at(2)*a + m0.at(3)*c);
+				m.push_back(m0.at(2)*b + m0.at(3)*d);
+
+				m.push_back(m0.at(4)*a + m0.at(5)*c + e);
+				m.push_back(m0.at(4)*b + m0.at(5)*d + f);
+
+				transformMatrix = m;
+			}
+		}
+
+		void PdfTranslator::rotate_and_translate(double theta, double dx, double dy)
+		{
+			double cosR = cos ( theta * 3.14159 / 180.0 );
+			double sinR = sin ( theta * 3.14159 / 180.0 );
+			transform(cosR, sinR, -sinR, cosR, dx, dy);
+		}
+
+		void PdfTranslator::translate(double dx, double dy)
+		{
+			transform(1, 0, 0, 1, dx, dy);
+		}
+
+		void PdfTranslator::scale(double sx, double sy)
+		{
+			transform(sx, 0, 0, sy, 0, 0);
+		}
+
+		void PdfTranslator::rotate(double theta)
+		{
+			double cosR = cos ( theta  *  3.14159 / 180.0 );
+			double sinR = sin ( theta  *  3.14159 / 180.0 );
+			// Counter-clockwise rotation (default):
+			transform(cosR, sinR, -sinR, cosR, 0, 0);
+			// Clockwise rotation:
+			// transform(cosR, -sinR, sinR, cosR, 0, 0);
+		}
+
 		void PdfTranslator::loadPlan ( const std::string & planFile , PoDoFo::Impose::PlanReader loader )
 		{
 // 			std::cerr<< "loadPlan" << planFile<<std::endl;
@@ -524,10 +577,11 @@ namespace PoDoFo
 // 					std::cerr<<curRecord.sourcePage<< " " << curRecord.destPage<<std::endl;
 					if(curRecord.sourcePage <= pcount)
 					{
-						double cosR = cos ( curRecord.rotate  *  3.14159 / 180.0 );
-						double sinR = sin ( curRecord.rotate  *  3.14159 / 180.0 );
+						double rot = curRecord.rotate;
 						double tx = curRecord.transX ;
 						double ty = curRecord.transY ;
+						double sx = curRecord.scaleX ;
+						double sy = curRecord.scaleY ;
 	
 						int resourceIndex ( /*(curRecord.duplicateOf > 0) ? curRecord.duplicateOf : */curRecord.sourcePage );
 						PdfXObject *xo = xobjects[resourceIndex];
@@ -563,9 +617,18 @@ namespace PoDoFo
 								std::cerr<<"ERROR Unknown type resource "<<resources[resourceIndex]->GetDataTypeString()  <<  std::endl;
 	
 						}
+						// Make sure we start with an empty transformMatrix.
+						transformMatrix.clear();
+						translate(0, 0);
+						// 1. Rotate, 2. Translate, 3. Scale
+						if (rot != 0 || tx != 0 || ty != 0) {
+							rotate_and_translate(rot, tx, ty);
+						}
+						scale(sx, sy);
+
 						// Very primitive but it makes it easy to track down imposition plan into content stream.
 						buffer << "q\n";
-						buffer << std::fixed << cosR <<" "<< sinR<<" "<<-sinR<<" "<< cosR<<" "<< tx <<" "<<  ty << " cm\n";
+						buffer << std::fixed << transformMatrix[0] <<" "<< transformMatrix[1] <<" "<< transformMatrix[2] <<" "<< transformMatrix[3] <<" "<< transformMatrix[4] <<" "<<  transformMatrix[5] << " cm\n";
 						buffer << "/OriginalPage" << resourceIndex << " Do\n";
 						buffer << "Q\n";
 					}

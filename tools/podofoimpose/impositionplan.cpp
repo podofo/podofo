@@ -42,12 +42,14 @@ using std::runtime_error;
 
 #include <iostream> //XXX
 namespace PoDoFo { namespace Impose {
-PageRecord::PageRecord ( int s,int d,double r, double tx, double ty, int du )
+PageRecord::PageRecord ( int s,int d,double r, double tx, double ty, int du, double sx, double sy )
 		: sourcePage ( s ),
 		destPage ( d ),
 		rotate ( r ),
 		transX ( tx ),
 		transY ( ty ),
+		scaleX ( sx ),
+		scaleY ( sy ),
 		duplicateOf( du )
 {
 };
@@ -58,6 +60,8 @@ PageRecord::PageRecord ( )
 		rotate ( 0 ),
 		transX ( 0 ),
 		transY ( 0 ),
+		scaleX ( 1 ),
+		scaleY ( 1 ),
 		duplicateOf( 0 )
 {};
 
@@ -80,7 +84,7 @@ void PageRecord::load ( const std::string& buffer, const std::map<std::string, s
 		ts += ci;
 	}
 
-	if ( tokens.size() != 5 )
+	if ( tokens.size() != 5 && tokens.size() != 7 )
 	{
 		sourcePage = destPage = 0; // will return false for isValid()
 		std::cerr<<"INVALID_RECORD("<< tokens.size() <<") "<<buffer<<std::endl;
@@ -98,8 +102,14 @@ void PageRecord::load ( const std::string& buffer, const std::map<std::string, s
 	rotate	= calc ( tokens.at ( 2 ) , vars);
 	transX	= calc ( tokens.at ( 3 ) , vars);
 	transY	= calc ( tokens.at ( 4 ) , vars);
+	if (tokens.size() == 7) {
+		scaleX = calc ( tokens.at ( 5 ) , vars);
+		scaleY = calc ( tokens.at ( 6 ) , vars);
+	} else {
+		scaleX = scaleY = 1.0;
+	}
 
-	std::cerr<<" "<<sourcePage<<" "<<destPage<<" "<<rotate<<" "<<transX<<" "<<transY <<std::endl;
+	std::cerr<<" "<<sourcePage<<" "<<destPage<<" "<<rotate<<" "<<transX<<" "<<transY<<" "<<scaleX<<" "<<scaleY <<std::endl;
 
 }
 

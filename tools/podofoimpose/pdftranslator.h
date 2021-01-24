@@ -133,6 +133,13 @@ class PdfTranslator
 		
 		std::map<std::string, PdfObject*> migrateMap;
 		std::set<PdfObject*> setMigrationPending;
+
+		std::vector<double> transformMatrix;
+		void transform(double a, double b, double c, double d, double e, double f);
+		void translate(double dx, double dy);
+		void scale(double sx, double sy);
+		void rotate(double theta);
+		void rotate_and_translate(double theta, double dx, double dy);
 	public:
 		int pcount;
 		double sourceWidth;
