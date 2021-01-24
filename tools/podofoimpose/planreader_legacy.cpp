@@ -268,6 +268,8 @@ PlanReader_Legacy::PlanReader_Legacy(const std::string & plan, PoDoFo::Impose::I
 	/// SUPPORTED
 	if ( I->vars.find("$ScaleFactor") != I->vars.end() )
 		I->setScale( PoDoFo::Impose::PageRecord::calc( I->vars["$ScaleFactor"] , I->vars));
+	if ( I->vars.find("$BoundingBox") != I->vars.end() )
+		I->setBoundingBox(I->vars["$BoundingBox"]);
 	/// END OF SUPPORTED
 	
 	
