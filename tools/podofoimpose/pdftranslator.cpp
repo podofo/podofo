@@ -281,6 +281,10 @@ namespace PoDoFo
 				else
 					return NULL; // avoid going through rest of method
 			}
+			else if ( obj->IsName() )
+			{
+				ret = targetDoc->GetObjects().CreateObject(obj->GetName());
+			}
 			else
 			{
 				ret = new PdfObject ( *obj );//targetDoc->GetObjects().CreateObject(*obj);
