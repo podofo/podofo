@@ -220,6 +220,16 @@ class PODOFO_API PdfEncoding {
      */
     virtual pdf_utf16be GetCharCode( int nIndex ) const = 0;
 
+    virtual pdf_uint16 GetEncodedUnicode( pdf_uint16 unicodeValue ) const
+    {
+        if( m_bToUnicodeIsLoaded )
+        {
+            return GetCIDValue( unicodeValue );
+        }
+
+        return unicodeValue;
+    }
+
  protected:
     bool m_bToUnicodeIsLoaded;  ///< If true, ToUnicode has been parsed
                              
@@ -407,6 +417,20 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
     virtual pdf_utf16be GetCharCode( int nIndex ) const;
 
     char GetUnicodeCharCode(pdf_utf16be unicodeValue) const;
+
+    pdf_uint16 GetEncodedUnicode( pdf_uint16 unicodeValue ) const
+    {
+        if( m_bToUnicodeIsLoaded )
+        {
+            return PdfEncoding::GetEncodedUnicode( unicodeValue );
+        }
+
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+        unicodeValue = ((unicodeValue & 0xff00) >> 8) | ((unicodeValue & 0xff) << 8);
+#endif // PODOFO_IS_LITTLE_ENDIAN
+
+        return static_cast<unsigned char>(GetUnicodeCharCode( unicodeValue ));
+    }
 
  private:
     /** Initialize the internal table of mappings from Unicode code points

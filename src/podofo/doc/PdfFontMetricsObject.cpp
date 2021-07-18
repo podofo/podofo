@@ -203,23 +203,13 @@ void PdfFontMetricsObject::GetBoundingBox( PdfArray & array ) const
 
 double PdfFontMetricsObject::CharWidth( unsigned char c ) const
 {
-    if( c >= m_nFirst && c <= m_nLast
-        && c - m_nFirst < static_cast<int>(m_width.GetSize()) )
-    {
-        double dWidth = m_width[c - m_nFirst].GetReal();
-        
-        return (dWidth * m_matrix.front().GetReal() * this->GetFontSize() + this->GetFontCharSpace()) * this->GetFontScale() / 100.0;
-
-    }
-
-    if( m_missingWidth != NULL )
-        return m_missingWidth->GetReal ();
-    else
-        return m_dDefWidth;
+    return UnicodeCharWidth(c);
 }
 
 double PdfFontMetricsObject::UnicodeCharWidth( unsigned short c ) const
 {
+    c = m_pEncoding->GetEncodedUnicode(c);
+
     if( c >= m_nFirst && c <= m_nLast
         && c - m_nFirst < static_cast<int>(m_width.GetSize()) )
     {

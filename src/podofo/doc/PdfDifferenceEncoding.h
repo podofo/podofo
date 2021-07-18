@@ -283,6 +283,21 @@ class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElem
      */
     virtual pdf_utf16be GetCharCode( int nIndex ) const;
 
+    pdf_uint16 GetEncodedUnicode( pdf_uint16 unicodeValue ) const
+    {
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+        unicodeValue = ((unicodeValue & 0xff00) >> 8) | ((unicodeValue & 0xff) << 8);
+#endif // PODOFO_IS_LITTLE_ENDIAN
+
+        char val;
+        if (!m_differences.ContainsUnicodeValue( unicodeValue, val ))
+        {
+            val = static_cast<const PdfSimpleEncoding*>(GetBaseEncoding())->GetUnicodeCharCode( unicodeValue );
+        }
+
+        return static_cast<unsigned char>(val);
+    }
+
  protected:
 
     /** Get a unique ID for this encoding
