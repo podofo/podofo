@@ -84,7 +84,7 @@ public:
 private:
     /**
      * Read the /Index key from the current dictionary
-     * and write uit to a vector.
+     * and write it to a vector.
      *
      * \param rvecIndeces store the indeces hare
      * \param size default value from /Size key

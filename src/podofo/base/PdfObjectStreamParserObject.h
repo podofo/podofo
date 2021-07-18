@@ -58,7 +58,7 @@ public:
      * All objects from the object stream will be read into memory.
      *
      * \param pParser PdfParserObject for an object stream
-     * \param pVecObjects add loaded objecs to this vector of objects
+     * \param pVecObjects add loaded objects to this vector of objects
      * \param rBuffer use this allocated buffer for caching
      */
     PdfObjectStreamParserObject(PdfParserObject* pParser, PdfVecObjects* pVecObjects, const PdfRefCountedBuffer & rBuffer);

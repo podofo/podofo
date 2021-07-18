@@ -67,7 +67,7 @@ class PODOFO_API PdfRefCountedInputDevice {
      *  \param pszMode a mode string that can be passed to fopen
      *
      *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systes you can also path
+     *  with Unicode characters. On Unix systems you can also path
      *  UTF-8 to the const char* overload.
      *
      */

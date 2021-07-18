@@ -63,7 +63,7 @@ class PdfReference;
  *
  * \warning All methods not marked otherwise may trigger a deferred load. This means
  *          that they are unsafe to call while a deferred load is already in progress
- *          (as recursion will occurr).
+ *          (as recursion will occur).
  *
  * TODO: domseichter: Make this class implicitly shared
  */
@@ -981,7 +981,7 @@ bool PdfVariant::IsDirty() const
         case ePdfDataType_Array:
         case ePdfDataType_Dictionary:
             // Arrays and Dictionaries
-            // handle dirty status by themselfes
+            // handle dirty status by themselves
             return m_Data.pData->IsDirty();
 
         case ePdfDataType_Bool:
@@ -1008,13 +1008,13 @@ void PdfVariant::SetDirty( bool bDirty )
 
     if( !m_bDirty ) 
     {
-        // Propogate new dirty state to subclasses
+        // Propagate new dirty state to subclasses
         switch( m_eDataType ) 
         {
             case ePdfDataType_Array:
             case ePdfDataType_Dictionary:
                 // Arrays and Dictionaries
-                // handle dirty status by themselfes
+                // handle dirty status by themselves
                 m_Data.pData->SetDirty( m_bDirty );
 
             case ePdfDataType_Bool:
@@ -1046,7 +1046,7 @@ inline void PdfVariant::SetImmutable(bool bImmutable)
         case ePdfDataType_Array:
         case ePdfDataType_Dictionary:
             // Arrays and Dictionaries
-            // handle dirty status by themselfes
+            // handle dirty status by themselves
             m_Data.pData->SetImmutable( m_bImmutable );
             
         case ePdfDataType_Bool:

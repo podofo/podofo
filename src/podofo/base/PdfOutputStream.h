@@ -58,7 +58,7 @@ class PODOFO_API PdfOutputStream {
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer 
      *
-     *  \returns the number of bytes written, -1 if an error ocurred
+     *  \returns the number of bytes written, -1 if an error occurred
      */
     virtual pdf_long Write( const char* pBuffer, pdf_long lLen ) = 0;
 
@@ -69,7 +69,7 @@ class PODOFO_API PdfOutputStream {
 
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
-     *  before the descructor to end writing.
+     *  before the destructor to end writing.
      *
      *  No more data may be written to the output device
      *  after calling close.
@@ -100,13 +100,13 @@ class PODOFO_API PdfFileOutputStream : public PdfOutputStream {
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer 
      *
-     *  \returns the number of bytes written, -1 if an error ocurred
+     *  \returns the number of bytes written, -1 if an error occurred
      */
     virtual pdf_long Write( const char* pBuffer, pdf_long lLen );
 
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
-     *  before the descructor to end writing.
+     *  before the destructor to end writing.
      *
      *  No more data may be written to the output device
      *  after calling close.
@@ -145,13 +145,13 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer 
      *
-     *  \returns the number of bytes written, -1 if an error ocurred
+     *  \returns the number of bytes written, -1 if an error occurred
      */
     virtual pdf_long Write( const char* pBuffer, pdf_long lLen );
 
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
-     *  before the descructor to end writing.
+     *  before the destructor to end writing.
      *
      *  No more data may be written to the output device
      *  after calling close.
@@ -217,13 +217,13 @@ class PODOFO_API PdfDeviceOutputStream : public PdfOutputStream {
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer 
      *
-     *  \returns the number of bytes written, -1 if an error ocurred
+     *  \returns the number of bytes written, -1 if an error occurred
      */
     virtual pdf_long Write( const char* pBuffer, pdf_long lLen );
 
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
-     *  before the descructor to end writing.
+     *  before the destructor to end writing.
      *
      *  No more data may be written to the output device
      *  after calling close.
@@ -256,7 +256,7 @@ class PODOFO_API PdfBufferOutputStream : public PdfOutputStream {
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer 
      *
-     *  \returns the number of bytes written, -1 if an error ocurred
+     *  \returns the number of bytes written, -1 if an error occurred
      */
     virtual pdf_long Write( const char* pBuffer, pdf_long lLen );
 

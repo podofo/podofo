@@ -48,7 +48,7 @@ class PdfVariant;
 
 // Use deque as many insertions are here way faster than with using std::list
 // This is especially useful for PDFs like PDFReference17.pdf with
-// lot's of free objects.
+// lots of free objects.
 typedef std::deque<PdfReference>                 TPdfReferenceList;
 typedef TPdfReferenceList::iterator              TIPdfReferenceList;
 typedef TPdfReferenceList::const_iterator        TCIPdfReferenceList;
@@ -85,7 +85,7 @@ typedef TVecObjects::const_iterator  TCIVecObjects;
  *  and writes it to a PDF file later with an appropriate table of 
  *  contents.
  *
- *  These class contains also advanced funtions for searching of PdfObject's
+ *  These class contains also advanced functions for searching of PdfObject's
  *  in a PdfVecObject. 
  */
 class PODOFO_API PdfVecObjects {
@@ -111,7 +111,7 @@ class PODOFO_API PdfVecObjects {
         virtual void WriteObject( const PdfObject* pObject ) = 0;
             
         /**
-         * This method is called when the observed PdfVecObjects is delted. 
+         * This method is called when the observed PdfVecObjects is deleted. 
          *
          * No more method may be called on the observable
          * after this method was called on the observer.
@@ -246,7 +246,7 @@ class PODOFO_API PdfVecObjects {
     /** Remove the object with the given object and generation number from the list
      *  of objects.
      *  The object is returned if it was found. Otherwise NULL is returned.
-     *  The caller has to delete the object by hisself.
+     *  The caller has to delete the object by himself.
      *
      *  \param ref the object to be found
      *  \param bMarkAsFree if true the removed object reference is marked as free object
@@ -265,7 +265,7 @@ class PODOFO_API PdfVecObjects {
     /** Creates a new object and inserts it into the vector.
      *  This function assigns the next free object number to the PdfObject.
      *
-     *  \param pszType optionall value of the /Type key of the object
+     *  \param pszType optional value of the /Type key of the object
      *  \returns PdfObject pointer to the new PdfObject
      */
     PdfObject* CreateObject( const char* pszType = NULL );
@@ -413,12 +413,12 @@ class PODOFO_API PdfVecObjects {
      */
     void EndAppendStream( const PdfStream* pStream );
 
-    /** Iterator pointing at the begining of the vector
+    /** Iterator pointing at the beginning of the vector
      *  \returns beginning iterator
      */
     inline TIVecObjects begin();
 
-    /** Iterator pointing at the begining of the vector
+    /** Iterator pointing at the beginning of the vector
      *  \returns beginning iterator
      */
     inline TCIVecObjects begin() const;
@@ -437,7 +437,7 @@ class PODOFO_API PdfVecObjects {
 
     /** Get the last object in the vector
      *  \returns the last object in the vector or NULL 
-     *           if the vector is emtpy.
+     *           if the vector is empty.
      */
     inline PdfObject* GetBack();
 

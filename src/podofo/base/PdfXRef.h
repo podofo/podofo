@@ -209,7 +209,7 @@ class PdfXRef {
     /** Merge all xref blocks that follow immediately after each other
      *  into a single block.
      *
-     *  This results in slitely smaller PDF files which are easier to parse
+     *  This results in slightly smaller PDF files which are easier to parse
      *  for other applications.
      */
     void MergeBlocks();

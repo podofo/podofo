@@ -39,7 +39,7 @@
 
 #include <ctime>
 
-// a PDF date has a maximum of 26 bytes incuding the terminating \0
+// a PDF date has a maximum of 26 bytes including the terminating \0
 #define PDF_DATE_BUFFER_SIZE 26
 
 namespace PoDoFo {
@@ -69,7 +69,7 @@ class PODOFO_API PdfDate {
     /** Create a PdfDate with a specified date and time
      *  \param t the date and time of this object
      *  
-     *  Use IsValid to check wether the time_t could be 
+     *  Use IsValid to check whether the time_t could be 
      *  converted to a valid PdfDate object.
      *
      *  \see IsValid()
@@ -82,7 +82,7 @@ class PODOFO_API PdfDate {
      *         the format  (D:YYYYMMDDHHmmSSOHH'mm').
      *         Otherwise IsValid will return false.
      *  
-     *  Use IsValid to check wether the string could be 
+     *  Use IsValid to check whether the string could be 
      *  converted to a valid PdfDate object.
      *
      *  \see IsValid()
@@ -93,7 +93,7 @@ class PODOFO_API PdfDate {
      */
     virtual ~PdfDate();
 
-    /** You can use this function to check wether the date
+    /** You can use this function to check whether the date
      *  you passed to the constructor could be converted to
      *  a valid pdf date string or a valid time_t.
      *

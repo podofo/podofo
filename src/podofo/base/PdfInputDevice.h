@@ -48,7 +48,7 @@ namespace PoDoFo {
  *
  *  This class is suitable for inheritance to provide input 
  *  devices of your own for PoDoFo.
- *  Just overide the required virtual methods.
+ *  Just override the required virtual methods.
  */
 class PODOFO_API PdfInputDevice {
  public:
@@ -67,7 +67,7 @@ class PODOFO_API PdfInputDevice {
      *                     is read from this file.
      *
      *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systes you can also path
+     *  with Unicode characters. On Unix systems you can also path
      *  UTF-8 to the const char* overload.
      */
     PdfInputDevice( const wchar_t* pszFilename );
@@ -112,7 +112,7 @@ class PODOFO_API PdfInputDevice {
      */
     virtual int Look() const;
 
-    /** Seek the device to the position offset from the begining
+    /** Seek the device to the position offset from the beginning
      *  \param off from the beginning of the file
      *  \param dir where to start (start, cur, end)
      *
@@ -126,7 +126,7 @@ class PODOFO_API PdfInputDevice {
      *                 The buffer has to be large enough.
      *  \param lLen    number of bytes to read.
      *  \returns the number of bytes that have been read.
-     *           If reading was successfull the number of read bytes
+     *           If reading was successful the number of read bytes
      *           is equal to lLen.
      */
     virtual std::streamoff Read( char* pBuffer, std::streamsize lLen );

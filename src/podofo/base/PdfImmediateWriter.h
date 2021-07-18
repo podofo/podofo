@@ -75,7 +75,7 @@ class PODOFO_API PdfImmediateWriter : private PdfWriter,
 
     ~PdfImmediateWriter();
 
-    /** Get the write mode used for wirting the PDF
+    /** Get the write mode used for writing the PDF
      *  \returns the write mode
      */
     inline EPdfWriteMode GetWriteMode() const;

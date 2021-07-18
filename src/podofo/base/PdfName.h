@@ -162,7 +162,7 @@ class PODOFO_API PdfName : public PdfDataType {
      */
     PODOFO_NOTHROW inline bool operator==( const PdfName & rhs ) const;
 
-    /** overloaded operator for convinience
+    /** overloaded operator for convenience
      *
      * The string argument is treated as an unescaped name.
      *
@@ -171,7 +171,7 @@ class PODOFO_API PdfName : public PdfDataType {
      */
     bool operator==( const char* rhs ) const;
 
-    /** overloaded operator for convinience
+    /** overloaded operator for convenience
      *
      * The string argument is treated as an unescaped name.
      *
@@ -185,7 +185,7 @@ class PODOFO_API PdfName : public PdfDataType {
      */
     PODOFO_NOTHROW inline bool operator!=( const PdfName & rhs ) const;
 
-    /** overloaded operator for convinience
+    /** overloaded operator for convenience
      *
      * The string argument is treated as an unescaped name.
      *

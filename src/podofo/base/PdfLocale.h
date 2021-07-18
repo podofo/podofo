@@ -50,7 +50,7 @@ static const char PdfIOLocale[] = "C";
  * PDF document structure I/O is done with the C++ standard library
  * IOStreams code. By default, this will adapt to the current locale.
  * That's not good at all when doing I/O of PDF data structures, which
- * follow POSIX/english locale conventions irrespective of runtime locale.
+ * follow POSIX/English locale conventions irrespective of runtime locale.
  * Make sure to to call this function on any stream you intend to use for
  * PDF I/O. Avoid using this stream for anything that should be done in the
  * regional locale.

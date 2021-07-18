@@ -101,8 +101,8 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
      */
     virtual ~PdfDictionary();
 
-    /** Asignment operator.
-     *  Asign another PdfDictionary to this dictionary. This is a deep copy;
+    /** Assignment operator.
+     *  Assign another PdfDictionary to this dictionary. This is a deep copy;
      *  all elements of the source dictionary are duplicated.
      *
      *  \param rhs the PdfDictionary to copy.

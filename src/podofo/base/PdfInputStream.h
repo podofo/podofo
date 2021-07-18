@@ -55,7 +55,7 @@ class PODOFO_API PdfInputStream {
      *                    that will be read
      *  \param pTotalLeft total bytes left (needed for AES IV and padding)
      *
-     *  \returns the number of bytes read, -1 if an error ocurred
+     *  \returns the number of bytes read, -1 if an error occurred
      *           and zero if no more bytes are available for reading.
      */
     virtual pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long *pTotalLeft = 0 ) = 0;
@@ -79,7 +79,7 @@ class PODOFO_API PdfFileInputStream : public PdfInputStream {
      *  \param pszFilename the filename of the file to read
      *
      *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systes you can also path
+     *  with Unicode characters. On Unix systems you can also path
      *  UTF-8 to the const char* overload.
      */
     PdfFileInputStream( const wchar_t* pszFilename );
@@ -93,7 +93,7 @@ class PODOFO_API PdfFileInputStream : public PdfInputStream {
      *  \param lLen    the size of the buffer and number of bytes
      *                 that will be read
      *
-     *  \returns the number of bytes read, -1 if an error ocurred
+     *  \returns the number of bytes read, -1 if an error occurred
      *           and zero if no more bytes are available for reading.
      */
     virtual pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* = 0 );
@@ -131,7 +131,7 @@ class PODOFO_API PdfMemoryInputStream : public PdfInputStream {
      *  \param lLen    the size of the buffer and number of bytes
      *                 that will be read
      *
-     *  \returns the number of bytes read, -1 if an error ocurred
+     *  \returns the number of bytes read, -1 if an error occurred
      *           and zero if no more bytes are available for reading.
      */
     virtual pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* );
@@ -148,7 +148,7 @@ class PODOFO_API PdfDeviceInputStream : public PdfInputStream {
  public:
     
     /** 
-     *  Read from an alread opened input device
+     *  Read from an already opened input device
      * 
      *  \param pDevice an input device
      */
@@ -161,7 +161,7 @@ class PODOFO_API PdfDeviceInputStream : public PdfInputStream {
      *  \param lLen    the size of the buffer and number of bytes
      *                 that will be read
      *
-     *  \returns the number of bytes read, -1 if an error ocurred
+     *  \returns the number of bytes read, -1 if an error occurred
      *           and zero if no more bytes are available for reading.
      */
     virtual pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* );

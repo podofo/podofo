@@ -83,7 +83,7 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
      *  \param pEncrypt an encryption dictionary which is used to decrypt 
      *                  strings and streams during parsing or NULL if the PDF
      *                  file was not encrypted
-     *  \param bIsTrailer wether this is a trailer dictionary or not.
+     *  \param bIsTrailer whether this is a trailer dictionary or not.
      *                    trailer dictionaries do not have a object number etc.
      */
     void ParseFile( PdfEncrypt* pEncrypt, bool bIsTrailer = false );
@@ -101,7 +101,7 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
      */
     inline bool IsLoadOnDemand() const;
 
-    /** Sets wether this object shall be loaded on demand
+    /** Sets whether this object shall be loaded on demand
      *  when it's data is accessed for the first time.
      *  \param bDelayed if true the object is loaded delayed.
      */
@@ -167,7 +167,7 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
     void InitPdfParserObject();
 
     /** Parse the object data from the given file handle 
-     *  \param bIsTrailer wether this is a trailer dictionary or not.
+     *  \param bIsTrailer whether this is a trailer dictionary or not.
      *                    trailer dictionaries do not have a object number etc.
      */
     void ParseFileComplete( bool bIsTrailer );

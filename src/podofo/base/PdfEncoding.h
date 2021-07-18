@@ -61,9 +61,9 @@ class PODOFO_API PdfEncoding {
      *  Create a new PdfEncoding.
      *
      *  \param nFirstChar the first supported character code 
-     *                    (either a byte value in the current encoding or a unicode value)
+     *                    (either a byte value in the current encoding or a Unicode value)
      *  \param nLastChar the last supported character code, must be larger than nFirstChar 
-     *                    (either a byte value in the current encoding or a unicode value)
+     *                    (either a byte value in the current encoding or a Unicode value)
      *
      */
     PdfEncoding( int nFirstChar, int nLastChar, PdfObject* = NULL );
@@ -76,7 +76,7 @@ class PODOFO_API PdfEncoding {
     virtual const PdfName & GetID() const = 0;
 
  public:
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// ab Visualstudio 6
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// Visual Studio 6 or earlier
     class PODOFO_API const_iterator : public std::iterator<
                                              std::forward_iterator_tag, 
 						 int, ptrdiff_t> {
@@ -158,23 +158,23 @@ class PODOFO_API PdfEncoding {
     virtual void AddToDictionary( PdfDictionary & rDictionary ) const = 0;
 
     /** Convert a string that is encoded with this encoding
-     *  to an unicode PdfString.
+     *  to a Unicode PdfString.
      *
      *  \param rEncodedString a string encoded by this encoding. 
      *         Usually this string was read from a content stream.
      *  \param pFont the font for which this string is converted
      *
-     *  \returns an unicode PdfString.
+     *  \returns a Unicode PdfString.
      */
     virtual PdfString ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const;
 
-    /** Convert a unicode PdfString to a string encoded with this encoding.
+    /** Convert a Unicode PdfString to a string encoded with this encoding.
      *
-     *  \param rString an unicode PdfString.
+     *  \param rString a Unicode PdfString.
      *  \param pFont the font for which this string is converted
      *
      *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes
-     *           and is allowed to have 0 bytes. The returned buffer must not be a unicode string.
+     *           and is allowed to have 0 bytes. The returned buffer must not be a Unicode string.
      */
     virtual PdfRefCountedBuffer ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const;
 
@@ -192,26 +192,26 @@ class PODOFO_API PdfEncoding {
      */
     inline int GetLastChar() const;
 
-    /** Iterate over all unicode character points in this
+    /** Iterate over all Unicode character points in this
      *  encoding, beginning with the first.
      *
-     *  \returns iterator pointing to the first defined unicode character
+     *  \returns iterator pointing to the first defined Unicode character
      */
     inline const_iterator begin() const;
 
-    /** Iterate over all unicode character points in this
+    /** Iterate over all Unicode character points in this
      *  encoding, beginning with the first.
      *
      *  \returns iterator pointing at the end
      */
     inline const_iterator end() const;
 
-    /** Get the unicode character code for this encoding
+    /** Get the Unicode character code for this encoding
      *  at the position nIndex. nIndex is a position between
      *  GetFirstChar() and GetLastChar()
      *
      *  \param nIndex character code at position index
-     *  \returns unicode character code 
+     *  \returns Unicode character code 
      * 
      *  \see GetFirstChar 
      *  \see GetLastChar
@@ -221,7 +221,7 @@ class PODOFO_API PdfEncoding {
     virtual pdf_utf16be GetCharCode( int nIndex ) const = 0;
 
  protected:
-    bool m_bToUnicodeIsLoaded;  ///< If true, ToUnicode has been parse
+    bool m_bToUnicodeIsLoaded;  ///< If true, ToUnicode has been parsed
                              
  private:
     int     m_nFirstChar;   ///< The first defined character code
@@ -331,7 +331,7 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
      *  \see PdfZapfDingbatsEncoding
      *
      *  This will allocate a table of 65535 short values
-     *  to make conversion from unicode to encoded strings
+     *  to make conversion from Unicode to encoded strings
      *  faster. As this requires a lot of memory, make sure that
      *  only one object of a certain encoding exists at one
      *  time, which is no problem as all methods are const anyways!
@@ -349,28 +349,28 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
     virtual void AddToDictionary( PdfDictionary & rDictionary ) const;
 
     /** Convert a string that is encoded with this encoding
-     *  to an unicode PdfString.
+     *  to a Unicode PdfString.
      *
      *  \param rEncodedString a string encoded by this encoding. 
      *         Usually this string was read from a content stream.
      *  \param pFont the font for which this string is converted
      *
-     *  \returns an unicode PdfString.
+     *  \returns a Unicode PdfString.
      */
     virtual PdfString ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const;
 
-    /** Convert a unicode PdfString to a string encoded with this encoding.
+    /** Convert a Unicode PdfString to a string encoded with this encoding.
      *
-     *  \param rString an unicode PdfString.
+     *  \param rString a Unicode PdfString.
      *  \param pFont the font for which this string is converted
      *
      *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes
-     *           and is allowed to have 0 bytes. The returned buffer must not be a unicode string.
+     *           and is allowed to have 0 bytes. The returned buffer must not be a Unicode string.
      */
     virtual PdfRefCountedBuffer ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const;
 
     /** 
-     * PdfSimpleEncoding subclasses are usuylla not auto-deleted, as
+     * PdfSimpleEncoding subclasses are usually not auto-deleted, as
      * they are allocated statically only once.
      *
      * \returns true if this encoding should be deleted automatically with the
@@ -392,12 +392,12 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
      */
     inline const PdfName & GetName() const;
 
-    /** Get the unicode character code for this encoding
+    /** Get the Unicode character code for this encoding
      *  at the position nIndex. nIndex is a position between
      *  GetFirstChar() and GetLastChar()
      *
      *  \param nIndex character code at position index
-     *  \returns unicode character code 
+     *  \returns Unicode character code 
      * 
      *  \see GetFirstChar 
      *  \see GetLastChar
@@ -409,7 +409,7 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
     char GetUnicodeCharCode(pdf_utf16be unicodeValue) const;
 
  private:
-    /** Initialize the internal table of mappings from unicode code points
+    /** Initialize the internal table of mappings from Unicode code points
      *  to encoded byte values.
      */
     void InitEncodingTable();
@@ -424,13 +424,13 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
     inline virtual const PdfName & GetID() const;
 
     /** Gets a table of 256 short values which are the 
-     *  big endian unicode code points that are assigned
+     *  big endian Unicode code points that are assigned
      *  to the 256 values of this encoding.
      *
      *  This table is used internally to convert an encoded
-     *  string of this encoding to and from unicode.
+     *  string of this encoding to and from Unicode.
      *
-     *  \returns an array of 256 big endian unicode code points
+     *  \returns an array of 256 big endian Unicode code points
      */
     virtual const pdf_utf16be* GetToUnicodeTable() const = 0;
 
@@ -498,13 +498,13 @@ class PODOFO_API PdfDocEncoding : public PdfSimpleEncoding {
  protected:
 
     /** Gets a table of 256 short values which are the 
-     *  big endian unicode code points that are assigned
+     *  big endian Unicode code points that are assigned
      *  to the 256 values of this encoding.
      *
      *  This table is used internally to convert an encoded
-     *  string of this encoding to and from unicode.
+     *  string of this encoding to and from Unicode.
      *
-     *  \returns an array of 256 big endian unicode code points
+     *  \returns an array of 256 big endian Unicode code points
      */
     virtual const pdf_utf16be* GetToUnicodeTable() const;
 
@@ -541,13 +541,13 @@ class PODOFO_API PdfWinAnsiEncoding : public PdfSimpleEncoding {
  protected:
 
     /** Gets a table of 256 short values which are the 
-     *  big endian unicode code points that are assigned
+     *  big endian Unicode code points that are assigned
      *  to the 256 values of this encoding.
      *
      *  This table is used internally to convert an encoded
-     *  string of this encoding to and from unicode.
+     *  string of this encoding to and from Unicode.
      *
-     *  \returns an array of 256 big endian unicode code points
+     *  \returns an array of 256 big endian Unicode code points
      */
     virtual const pdf_utf16be* GetToUnicodeTable() const;
 
@@ -556,7 +556,7 @@ class PODOFO_API PdfWinAnsiEncoding : public PdfSimpleEncoding {
      *  
      *  This method generates array of differences into /Encoding
      *  dictionary if called from derived class with
-     *  different unicode table.
+     *  different Unicode table.
      *
      *  \param rDictionary add the encoding to this dictionary
      */
@@ -587,13 +587,13 @@ class PODOFO_API PdfMacRomanEncoding : public PdfSimpleEncoding {
  protected:
 
     /** Gets a table of 256 short values which are the 
-     *  big endian unicode code points that are assigned
+     *  big endian Unicode code points that are assigned
      *  to the 256 values of this encoding.
      *
      *  This table is used internally to convert an encoded
-     *  string of this encoding to and from unicode.
+     *  string of this encoding to and from Unicode.
      *
-     *  \returns an array of 256 big endian unicode code points
+     *  \returns an array of 256 big endian Unicode code points
      */
     virtual const pdf_utf16be* GetToUnicodeTable() const;
 
@@ -618,13 +618,13 @@ class PODOFO_API PdfMacExpertEncoding : public PdfSimpleEncoding {
  protected:
 
     /** Gets a table of 256 short values which are the 
-     *  big endian unicode code points that are assigned
+     *  big endian Unicode code points that are assigned
      *  to the 256 values of this encoding.
      *
      *  This table is used internally to convert an encoded
-     *  string of this encoding to and from unicode.
+     *  string of this encoding to and from Unicode.
      *
-     *  \returns an array of 256 big endian unicode code points
+     *  \returns an array of 256 big endian Unicode code points
      */
     virtual const pdf_utf16be* GetToUnicodeTable() const;
 
@@ -633,7 +633,7 @@ class PODOFO_API PdfMacExpertEncoding : public PdfSimpleEncoding {
 
 };
 
-// OC 13.08.2010 Neu: StandardEncoding
+// OC 13.08.2010 New: StandardEncoding
 /** 
  * Do not allocate this class yourself, as allocations
  * might be expensive. Try using PdfFont::StandardEncoding.
@@ -654,13 +654,13 @@ class PODOFO_API PdfStandardEncoding : public PdfSimpleEncoding {
  protected:
 
     /** Gets a table of 256 short values which are the 
-     *  big endian unicode code points that are assigned
+     *  big endian Unicode code points that are assigned
      *  to the 256 values of this encoding.
      *
      *  This table is used internally to convert an encoded
-     *  string of this encoding to and from unicode.
+     *  string of this encoding to and from Unicode.
      *
-     *  \returns an array of 256 big endian unicode code points
+     *  \returns an array of 256 big endian Unicode code points
      */
     virtual const pdf_utf16be* GetToUnicodeTable() const;
 
@@ -669,7 +669,7 @@ class PODOFO_API PdfStandardEncoding : public PdfSimpleEncoding {
 
 };
 
-// OC 13.08.2010 Neu: SymbolEncoding
+// OC 13.08.2010 New: SymbolEncoding
 /** 
  * Do not allocate this class yourself, as allocations
  * might be expensive. Try using PdfFont::SymbolEncoding.
@@ -690,13 +690,13 @@ class PODOFO_API PdfSymbolEncoding : public PdfSimpleEncoding {
  protected:
 
     /** Gets a table of 256 short values which are the 
-     *  big endian unicode code points that are assigned
+     *  big endian Unicode code points that are assigned
      *  to the 256 values of this encoding.
      *
      *  This table is used internally to convert an encoded
-     *  string of this encoding to and from unicode.
+     *  string of this encoding to and from Unicode.
      *
-     *  \returns an array of 256 big endian unicode code points
+     *  \returns an array of 256 big endian Unicode code points
      */
     virtual const pdf_utf16be* GetToUnicodeTable() const;
 
@@ -705,7 +705,7 @@ class PODOFO_API PdfSymbolEncoding : public PdfSimpleEncoding {
 
 };
 
-// OC 13.08.2010 Neu: ZapfDingbatsEncoding
+// OC 13.08.2010 New: ZapfDingbatsEncoding
 /** 
  * Do not allocate this class yourself, as allocations
  * might be expensive. Try using PdfFont::ZapfDingbats.
@@ -726,13 +726,13 @@ class PODOFO_API PdfZapfDingbatsEncoding : public PdfSimpleEncoding {
  protected:
 
     /** Gets a table of 256 short values which are the 
-     *  big endian unicode code points that are assigned
+     *  big endian Unicode code points that are assigned
      *  to the 256 values of this encoding.
      *
      *  This table is used internally to convert an encoded
-     *  string of this encoding to and from unicode.
+     *  string of this encoding to and from Unicode.
      *
-     *  \returns an array of 256 big endian unicode code points
+     *  \returns an array of 256 big endian Unicode code points
      */
     virtual const pdf_utf16be* GetToUnicodeTable() const;
 
@@ -763,13 +763,13 @@ class PODOFO_API PdfWin1250Encoding : public PdfWinAnsiEncoding
     }
 
     /** Gets a table of 256 short values which are the 
-     *  big endian unicode code points that are assigned
+     *  big endian Unicode code points that are assigned
      *  to the 256 values of this encoding.
      *
      *  This table is used internally to convert an encoded
-     *  string of this encoding to and from unicode.
+     *  string of this encoding to and from Unicode.
      *
-     *  \returns an array of 256 big endian unicode code points
+     *  \returns an array of 256 big endian Unicode code points
      */
     virtual const pdf_utf16be* GetToUnicodeTable() const;
 
@@ -800,13 +800,13 @@ class PODOFO_API PdfIso88592Encoding : public PdfWinAnsiEncoding
     }
 
     /** Gets a table of 256 short values which are the 
-     *  big endian unicode code points that are assigned
+     *  big endian Unicode code points that are assigned
      *  to the 256 values of this encoding.
      *
      *  This table is used internally to convert an encoded
-     *  string of this encoding to and from unicode.
+     *  string of this encoding to and from Unicode.
      *
-     *  \returns an array of 256 big endian unicode code points
+     *  \returns an array of 256 big endian Unicode code points
      */
     virtual const pdf_utf16be* GetToUnicodeTable() const;
 

@@ -47,7 +47,7 @@ class PdfName;
 class PdfObject;
 
 /** A PDF stream can be appended to any PdfObject
- *  and can contain abitrary data.
+ *  and can contain arbitrary data.
  *
  *  A PDF memory stream is held completely in memory.
  *
@@ -132,7 +132,7 @@ class PODOFO_API PdfMemStream : public PdfStream {
      */
     void Uncompress();
 
-    /** Empty's the stream and set the streams buffer size to 0
+    /** Empties the stream and set the streams buffer size to 0
      */
     void Empty();
 

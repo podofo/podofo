@@ -63,7 +63,7 @@ class PODOFO_API PdfColor {
     /** Create a new PdfColor object with
      *  a grayscale value.
      *
-     *  \param dGray a grayscalue value between 0.0 and 1.0
+     *  \param dGray a grayscale value between 0.0 and 1.0
      */
     explicit PdfColor( double dGray );
 
@@ -106,7 +106,7 @@ class PODOFO_API PdfColor {
 
     /** Test for equality of colors.
      * 
-     *  \param rhs color to compare ro
+     *  \param rhs color to compare to
      *
      *  \returns true if object color is equal to rhs
      */
@@ -114,7 +114,7 @@ class PODOFO_API PdfColor {
 
     /** Test for inequality of colors.
      * 
-     *  \param rhs color to compare ro
+     *  \param rhs color to compare to
      *
      *  \returns true if object color is not equal to rhs
      */
@@ -307,7 +307,7 @@ class PODOFO_API PdfColor {
     /** Converts the color object into a grayscale
      *  color object.
      *
-     *  This is only a convinience function. It might be useful
+     *  This is only a convenience function. It might be useful
      *  for on screen display but is in NO WAY suitable to
      *  professional printing!
      *
@@ -319,7 +319,7 @@ class PODOFO_API PdfColor {
     /** Converts the color object into a RGB
      *  color object.
      *
-     *  This is only a convinience function. It might be useful
+     *  This is only a convenience function. It might be useful
      *  for on screen display but is in NO WAY suitable to
      *  professional printing!
      *
@@ -331,7 +331,7 @@ class PODOFO_API PdfColor {
     /** Converts the color object into a CMYK
      *  color object.
      *
-     *  This is only a convinience function. It might be useful
+     *  This is only a convenience function. It might be useful
      *  for on screen display but is in NO WAY suitable to
      *  professional printing!
      *
@@ -351,7 +351,7 @@ class PODOFO_API PdfColor {
      *
      *  Supported values are:
      *  - single gray values as string (e.g. '0.5')
-     *  - a named color (e.g. 'auquamarine' or 'magenta')
+     *  - a named color (e.g. 'aquamarine' or 'magenta')
      *  - hex values (e.g. #FF002A (RGB) or #FF12AB3D (CMYK))
      *  - PdfArray's
      *
@@ -369,18 +369,20 @@ class PODOFO_API PdfColor {
     static PdfColor FromArray( const PdfArray & rArray );
 
     /**
-     * Convert a name into a colorspace enum.
-     * @param rName name representing a colorspace such as DeviceGray
-     * @returns colorspace enum or ePdfColorSpace_Unknown if name is unknown
-     * @see GetNameForColorSpace
+     *  Convert a name into a colorspace enum.
+     *
+     *  \param rName name representing a colorspace such as DeviceGray
+     *  \returns colorspace enum or ePdfColorSpace_Unknown if name is unknown
+     *  \see GetNameForColorSpace
      */
     static EPdfColorSpace GetColorSpaceForName( const PdfName & rName );
 
     /**
-     * Convert a colorspace enum value into a name such as DeviceRGB
-     * @param eColorSpace a colorspace
-     * @returns a name
-     * @see GetColorSpaceForName
+     *  Convert a colorspace enum value into a name such as DeviceRGB
+     *
+     *  \param eColorSpace a colorspace
+     *  \returns a name
+     *  \see GetColorSpaceForName
      */
     static PdfName GetNameForColorSpace( EPdfColorSpace eColorSpace );
 
@@ -410,10 +412,9 @@ class PODOFO_API PdfColor {
 class PODOFO_API PdfColorGray : public PdfColor {
  public:
     
-    /** Create a new PdfColor object with
-     *  a grayscale value.
+    /** Create a new PdfColor object with a grayscale value.
      *
-     *  \param dGray a grayscalue value between 0.0 and 1.0
+     *  \param dGray a grayscale value between 0.0 and 1.0
      */
     explicit PdfColorGray( double dGray );
 
@@ -437,8 +438,7 @@ class PODOFO_API PdfColorGray : public PdfColor {
 
 class PODOFO_API PdfColorRGB : public PdfColor {
  public:
-    /** Create a new PdfColor object with
-     *  a RGB color
+    /** Create a new PdfColor object with an RGB color
      *
      *  \param dRed the value of the red component, must be between 0.0 and 1.0
      *  \param dGreen the value of the green component, must be between 0.0 and 1.0
@@ -467,8 +467,7 @@ class PODOFO_API PdfColorRGB : public PdfColor {
 class PODOFO_API PdfColorCMYK : public PdfColor {
  public:
 
-    /** Create a new PdfColor object with
-     *  a CMYK color
+    /** Create a new PdfColor object with a CMYK color
      *
      *  \param dCyan the value of the cyan component, must be between 0.0 and 1.0
      *  \param dMagenta the value of the magenta component, must be between 0.0 and 1.0
@@ -549,7 +548,7 @@ class PODOFO_API PdfColorSeparation : public PdfColor {
      *
      *  \param sName Name of the separation color
      *  \param sDensity the density value of the separation color
-     *  \param alternateColor the alternate color, must be of typ gray, rgb, cmyk or cie
+     *  \param alternateColor the alternate color, must be of type gray, rgb, cmyk or cie
      */
     PdfColorSeparation( const std::string & sName, double dDensity, const PdfColor & alternateColor );
 
@@ -575,7 +574,7 @@ class PODOFO_API PdfColorCieLab : public PdfColor {
  public:
 
     /** Create a new PdfColor object with
-     *  a CIE-LAB-values
+     *  a CIE-LAB-value
      *
      *  \param dCieL the value of the L component, must be between 0.0 and 100.0
      *  \param dCieA the value of the A component, must be between -128.0 and 127.0

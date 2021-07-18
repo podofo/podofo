@@ -119,7 +119,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *  Call SetPassword() with the correct password in this case.
      *  
      *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systems you can also pass
+     *  with Unicode characters. On Unix systems you can also pass
      *  UTF-8 to the const char* overload.
      *
      *  \see SetPassword
@@ -195,7 +195,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *
      *  \param pszFilename filename of the file which is going to be parsed
      *  \param bLoadOnDemand If true all objects will be read from the file at
-     *                       the time they are accesed first.
+     *                       the time they are accessed first.
      *                       If false all objects will be read immediately.
      *                       This is faster if you do not need the complete PDF 
      *                       file in memory.
@@ -206,7 +206,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *  Call SetPassword with the correct password in this case.
      *  
      *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systes you can also path
+     *  with Unicode characters. On Unix systems you can also path
      *  UTF-8 to the const char* overload.
      *
      *  \see SetPassword
@@ -413,7 +413,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      * 
      *  \param pszToken a token to find
      *  \param lRange range in bytes in which to search
-     *                begining at the end of the file
+     *                beginning at the end of the file
      */
     void FindToken( const char* pszToken, const long lRange );
 
@@ -424,7 +424,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      * 
      *  \param pszToken a token to find
      *  \param lRange range in bytes in which to search
-     *                begining at the specified position of the file
+     *                beginning at the specified position of the file
      *  \param searchEnd specifies position 
      */
     void FindToken2( const char* pszToken, const long lRange, size_t searchEnd );
@@ -435,8 +435,8 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      */
     void ReadDocumentStructure();
 
-    /** Checks wether this pdf is linearized or not.
-     *  Initializes the linearization directory on sucess.
+    /** Checks whether this pdf is linearized or not.
+     *  Initializes the linearization directory on success.
      */
     void HasLinearizationDict();
 
@@ -477,7 +477,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      */
     void ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumObjects );
 
-    /** Reads a xref stream contens object
+    /** Reads an XRef stream contents object
      *  \param lOffset read the stream from this offset
      *  \param bReadOnlyTrailer only the trailer is skipped over, the contents
      *         of the xref stream are not parsed

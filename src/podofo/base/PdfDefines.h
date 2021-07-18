@@ -90,11 +90,11 @@
 
 /** \def PODOFO_VERBOSE_DEBUG
  *  Debug define. Enable it, if you need
- *  more debuf output to the commandline from PoDoFo
+ *  more debug output to the command line from PoDoFo
  *
  *  Setting PDF_VERBOSE_DEBUG will make PoDoFo
  *  EXTREMELY slow and verbose, so it's not practical
- *  even for regular debuggin.
+ *  even for regular debugging.
  */
 #ifndef PODOFO_VERBOSE_DEBUG
 //#define PODOFO_VERBOSE_DEBUG
@@ -150,7 +150,7 @@
  */ 
 namespace PoDoFo {
 
-/* Explicitly big-endian short, suitable for unicode text */
+/* Explicitly big-endian short, suitable for Unicode text */
 typedef pdf_uint16     pdf_utf16be;
 /* Typedef to indicate utf-8 encoded data */
 typedef unsigned char  pdf_utf8;
@@ -158,7 +158,7 @@ typedef unsigned char  pdf_utf8;
 // Enums
 
 /**
- * Enum to identify diferent versions of the PDF file format
+ * Enum to identify different versions of the PDF file format
  */
 enum EPdfVersion {
     ePdfVersion_1_0 = 0,       /**< PDF 1.0 */

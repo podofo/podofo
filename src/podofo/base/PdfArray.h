@@ -227,7 +227,7 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
      */
     inline const_reverse_iterator rend() const;
 
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // workaround template-error in Visualstudio 6
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // workaround template-error in Visual Studio 6
     inline void insert(iterator __position, 
                        iterator __first,
                        iterator __last);
@@ -446,7 +446,7 @@ PdfArray::const_reverse_iterator PdfArray::rend() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200        // workaround template-error in Visualstudio 6
+#if defined(_MSC_VER)  &&  _MSC_VER <= 1200        // workaround template-error in Visual Studio 6
 void PdfArray::insert(PdfArray::iterator __position, 
                       PdfArray::iterator __first,
                       PdfArray::iterator __last)

@@ -13,7 +13,7 @@
  *
  *  - They dump a huge amount of cruft into the top level namespace
  *
- *  - Programs that haven't gone through the apallingly convoluted process required
+ *  - Programs that haven't gone through the appallingly convoluted process required
  *    to add freetype's header path can't include podofo's headers even if they have no
  *    intention of using any freetype-related font features.
  */

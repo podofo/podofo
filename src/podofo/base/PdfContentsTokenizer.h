@@ -77,7 +77,7 @@ public:
     /** Construct a PdfContentsTokenizer from a PdfCanvas
      *  (i.e. PdfPage or a PdfXObject).
      *
-     *  This is more convinient as you do not have
+     *  This is more convenient as you do not have
      *  to care about buffers yourself.
      *
      *  \param pCanvas an object that hold a PDF contents stream

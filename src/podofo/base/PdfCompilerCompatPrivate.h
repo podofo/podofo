@@ -231,7 +231,7 @@ inline void podofo_unused(T &t) { (void)t; }
 // See: <afx.h>  looking for _AFX_NO_DEBUG_CRT
 #ifdef _MSC_VER
 #if defined(_DEBUG) && defined(DEFINE_NEW_DEBUG_NEW)
-  // fuer crtdbg.h und malloc.h
+  // for crtdbg.h and malloc.h
   #define _CRTDBG_MAP_ALLOC
   #include <malloc.h>
   #include <crtdbg.h>
@@ -239,7 +239,7 @@ inline void podofo_unused(T &t) { (void)t; }
   void operator delete(void* av_Ptr_, const char* ac_File_, int ai_Line);
   #define DEBUG_NEW new(__FILE__, __LINE__)
   #define new DEBUG_NEW
-  // doesnt work:
+  // doesn't work:
   // // _NEW_CRT is defined in <xdebug>
   // // #define new _NEW_CRT
 #endif // _DEBUG
@@ -255,7 +255,7 @@ inline void podofo_unused(T &t) { (void)t; }
 /**
  * \page PoDoFo PdfCompilerCompatPrivate Header
  * 
- * <b>PdfCompilerCompatPrivate.h</b> gathers up nastyness required for various
+ * <b>PdfCompilerCompatPrivate.h</b> gathers up nastiness required for various
  * compiler compatibility into a central place. All compiler-specific defines,
  * wrappers, and the like should be included here and (if necessary) in
  * PdfCompilerCompatPrivate.cpp. If the must be visible to library users

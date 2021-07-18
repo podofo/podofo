@@ -242,9 +242,9 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError {
 
     /** Create a PdfError object with a given error code.
      *  \param eCode the error code of this object
-     *  \param pszFile the file in which the error has occured. 
+     *  \param pszFile the file in which the error has occurred. 
      *         Use the compiler macro __FILE__ to initialize the field.
-     *  \param line the line in which the error has occured.
+     *  \param line the line in which the error has occurred.
      *         Use the compiler macro __LINE__ to initialize the field.
      *  \param pszInformation additional information on this error
      */
@@ -253,9 +253,9 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError {
 
     /** Create a PdfError object with a given error code.
      *  \param eCode the error code of this object
-     *  \param pszFile the file in which the error has occured. 
+     *  \param pszFile the file in which the error has occurred. 
      *         Use the compiler macro __FILE__ to initialize the field.
-     *  \param line the line in which the error has occured.
+     *  \param line the line in which the error has occurred.
      *         Use the compiler macro __LINE__ to initialize the field.
      *  \param sInformation additional information on this error
      */

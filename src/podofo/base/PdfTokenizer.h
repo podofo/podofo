@@ -144,7 +144,7 @@ class PODOFO_API PdfTokenizer {
     /**
      * True if the passed character is a regular character according to the PDF
      * reference (Section 3.1.1, Character Set); ie it is neither a white-space
-     * nor a delimeter character.
+     * nor a delimiter character.
      */
     PODOFO_NOTHROW inline static bool IsRegular(const unsigned char ch);
 
@@ -273,7 +273,7 @@ class PODOFO_API PdfTokenizer {
     // A vector which is used as a buffer to read strings.
     // It is a member of the class to avoid reallocations while parsing.
     std::vector<char> m_vecBuffer; // we use a vector instead of a string
-                                   // because we might read a unicode
+                                   // because we might read a Unicode
                                    // string which is allowed to contain 0 bytes.
 
     /// An istringstream which is used

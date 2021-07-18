@@ -42,7 +42,7 @@ namespace PoDoFo {
 
 class PdfOutputDevice;
 
-/** A datatype that allows to write abitrary data
+/** A datatype that allows to write arbitrary data
  *  to a PDF file. 
  *  The user of this class has to ensure that the data
  *  written to the PDF file using this class is valid data

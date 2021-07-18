@@ -51,7 +51,7 @@ namespace PoDoFo {
  *
  *  This class is suitable for inheritance to provide output 
  *  devices of your own for PoDoFo.
- *  Just overide the required virtual methods.
+ *  Just override the required virtual methods.
  */
 class PODOFO_API PdfOutputDevice {
  public:
@@ -88,7 +88,7 @@ class PODOFO_API PdfOutputDevice {
      *  to the end of the file.
      *
      *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systes you can also path
+     *  with Unicode characters. On Unix systems you can also path
      *  UTF-8 to the const char* overload.
      */
     PdfOutputDevice( const wchar_t* pszFilename, bool bTruncate = true );
@@ -195,7 +195,7 @@ class PODOFO_API PdfOutputDevice {
      */
     virtual size_t Read( char* pBuffer, size_t lLen );
 
-    /** Seek the device to the position offset from the begining
+    /** Seek the device to the position offset from the beginning
      *  \param offset from the beginning of the file
      */
     virtual void Seek( size_t offset );

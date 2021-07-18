@@ -91,7 +91,7 @@ class PODOFO_API PdfWriter {
      *  \param pszFilename filename of a PDF file.
      *
      *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systems you can also path
+     *  with Unicode characters. On Unix systems you can also path
      *  UTF-8 to the const char* overload.
      */
     void Write( const wchar_t* pszFilename );
@@ -127,7 +127,7 @@ class PODOFO_API PdfWriter {
      */
     void SetWriteMode( EPdfWriteMode eWriteMode ) { m_eWriteMode = eWriteMode; }
 
-    /** Get the write mode used for wirting the PDF
+    /** Get the write mode used for writing the PDF
      *  \returns the write mode
      */
     EPdfWriteMode GetWriteMode() const { return m_eWriteMode; }
@@ -162,7 +162,7 @@ class PODOFO_API PdfWriter {
     inline void SetUseXRefStream( bool bStream );
 
     /** 
-     *  \returns wether a XRef stream is used or not
+     *  \returns whether an XRef stream is used or not
      */
     inline bool GetUseXRefStream() const;
 
@@ -301,7 +301,7 @@ class PODOFO_API PdfWriter {
     //void ReorderObjectsLinearized( PdfObject* pLinearize, NonPublic::PdfHintStream* pHint, PdfPage* pPage, PdfObject** ppLast ) PODOFO_LOCAL;
 
     /** Initialize m_pPagesTree with its correct value
-     *  Always call this function befre accessing the pages tree.
+     *  Always call this function before accessing the pages tree.
      */
     //void FetchPagesTree();
 
@@ -312,7 +312,7 @@ class PODOFO_API PdfWriter {
     /** Fill all keys in the linearization dictionary with their values
      *  \param pLinearize a linearization dictionary
      *  \param pHint the hint stream
-     *  \param pPage the first page in the linerarized PDF file
+     *  \param pPage the first page in the linearized PDF file
      *  \param pLast pointer of the last object belonging to the first page
      *  \param pVecXRefOffset xref table entries for previous entry
      */
@@ -325,7 +325,7 @@ class PODOFO_API PdfWriter {
     bool            m_bXRefStream;
 
     PdfEncrypt*     m_pEncrypt;    ///< If not NULL encrypt all strings and streams and create an encryption dictionary in the trailer
-    PdfObject*      m_pEncryptObj; ///< Used to temporarly store the encryption dictionary
+    PdfObject*      m_pEncryptObj; ///< Used to temporarily store the encryption dictionary
 
     PdfString       m_identifier;
     PdfString       m_originalIdentifier; // used for incremental update

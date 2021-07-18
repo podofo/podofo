@@ -97,7 +97,7 @@ class PdfHexFilter : public PdfFilter {
 
     virtual ~PdfHexFilter() { }
 
-    /** Check wether the encoding is implemented for this filter.
+    /** Check whether the encoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to encode data
      */
@@ -119,7 +119,7 @@ class PdfHexFilter : public PdfFilter {
      */
     virtual void EncodeBlockImpl( const char* pBuffer, pdf_long lLen );
 
-    /** Check wether the decoding is implemented for this filter.
+    /** Check whether the decoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to decode data
      */
@@ -205,7 +205,7 @@ class PdfAscii85Filter : public PdfFilter {
     PdfAscii85Filter();
     virtual ~PdfAscii85Filter() { }
 
-    /** Check wether the encoding is implemented for this filter.
+    /** Check whether the encoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to encode data
      */
@@ -243,7 +243,7 @@ class PdfAscii85Filter : public PdfFilter {
      */
     virtual void EndEncodeImpl();
 
-    /** Check wether the decoding is implemented for this filter.
+    /** Check whether the decoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to decode data
      */
@@ -333,7 +333,7 @@ class PdfFlateFilter : public PdfFilter {
     PdfFlateFilter();
     virtual ~PdfFlateFilter();
 
-    /** Check wether the encoding is implemented for this filter.
+    /** Check whether the encoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to encode data
      */
@@ -371,7 +371,7 @@ class PdfFlateFilter : public PdfFilter {
      */
     virtual void EndEncodeImpl();
 
-    /** Check wether the decoding is implemented for this filter.
+    /** Check whether the decoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to decode data
      */
@@ -466,7 +466,7 @@ class PdfRLEFilter : public PdfFilter {
     PdfRLEFilter();
     virtual ~PdfRLEFilter() {}
 
-    /** Check wether the encoding is implemented for this filter.
+    /** Check whether the encoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to encode data
      */
@@ -498,7 +498,7 @@ class PdfRLEFilter : public PdfFilter {
      */
     virtual void EndEncodeImpl();
 
-    /** Check wether the decoding is implemented for this filter.
+    /** Check whether the decoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to decode data
      */
@@ -581,7 +581,7 @@ class PdfLZWFilter : public PdfFilter {
 
     virtual ~PdfLZWFilter();
 
-    /** Check wether the encoding is implemented for this filter.
+    /** Check whether the encoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to encode data
      */
@@ -619,7 +619,7 @@ class PdfLZWFilter : public PdfFilter {
      */
     virtual void EndEncodeImpl();
 
-    /** Check wether the decoding is implemented for this filter.
+    /** Check whether the decoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to decode data
      */
@@ -735,7 +735,7 @@ class PdfDCTFilter : public PdfFilter {
 
     virtual ~PdfDCTFilter();
 
-    /** Check wether the encoding is implemented for this filter.
+    /** Check whether the encoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to encode data
      */
@@ -773,7 +773,7 @@ class PdfDCTFilter : public PdfFilter {
      */
     virtual void EndEncodeImpl();
 
-    /** Check wether the decoding is implemented for this filter.
+    /** Check whether the decoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to decode data
      */
@@ -868,7 +868,7 @@ class PdfCCITTFilter : public PdfFilter {
 
     virtual ~PdfCCITTFilter();
 
-    /** Check wether the encoding is implemented for this filter.
+    /** Check whether the encoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to encode data
      */
@@ -906,7 +906,7 @@ class PdfCCITTFilter : public PdfFilter {
      */
     virtual void EndEncodeImpl();
 
-    /** Check wether the decoding is implemented for this filter.
+    /** Check whether the decoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to decode data
      */
