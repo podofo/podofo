@@ -262,6 +262,17 @@ public:
      */
     inline EPdfEncryptAlgorithm GetEncryptAlgorithm() const;
 
+    /** Checks if an owner password is set.
+     *  An application reading PDF must adhere to permissions for printing,
+     *  copying, etc., unless the owner password was used to open it.
+     *
+     *  \returns true if the owner password is set, in which case
+     *  IsPrintAllowed etc. should be ignored
+     *
+     *  \see PdfEncrypt to set own document permissions.
+     */
+    inline bool IsOwnerPasswordSet() const { return !m_ownerPass.empty(); }; 
+
     /** Checks if printing this document is allowed.
      *  Every PDF consuming applications has to adhere this value!
      *
