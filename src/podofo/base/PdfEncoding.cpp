@@ -455,7 +455,7 @@ PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString,
         
         pszStringUtf16[lLen] = 0;
         
-        PdfString sStr( pszStringUtf16 );
+        PdfString sStr( pszStringUtf16, lLen );
         podofo_free( pszStringUtf16 );
         
         return sStr;
