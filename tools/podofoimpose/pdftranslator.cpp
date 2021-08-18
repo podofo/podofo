@@ -285,6 +285,15 @@ namespace PoDoFo
 			{
 				ret = targetDoc->GetObjects().CreateObject(obj->GetName());
 			}
+			else if ( obj->IsNumber() )
+			{
+			    ret = targetDoc->GetObjects().CreateObject(obj->GetNumber());
+			}
+			else if ( obj->IsNull() )
+			{
+			    ret = targetDoc->GetObjects().CreateObject();
+			    ret->Clear();
+			}
 			else
 			{
 				ret = new PdfObject ( *obj );//targetDoc->GetObjects().CreateObject(*obj);
