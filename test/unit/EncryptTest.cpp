@@ -301,7 +301,12 @@ void EncryptTest::CreateEncryptedPdf( const char* pszFilename )
     PdfPainter painter;
     painter.SetPage( pPage );
 
-    PdfFont* pFont = writer.CreateFont( "Arial", PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), false );
+    PdfFont* pFont = NULL;
+    try {
+        pFont = writer.CreateFont( "Arial", PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), false );
+    } catch( PdfError & e ) {
+        pFont = writer.CreateFont( "Helvetica", PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), false );
+    }
     if( !pFont )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
