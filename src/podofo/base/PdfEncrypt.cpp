@@ -615,6 +615,12 @@ PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
             && PdfEncrypt::IsEncryptionEnabled( ePdfEncryptAlgorithm_RC4V2 ) ) 
     {
         // [Alexey] - lLength is pdf_int64. Please make changes in encryption algorithms
+        // [mabri] - Fix CVE-2018-12983: Check key length lLength here
+        // to prevent stack-based buffer over-read later in this file
+        if (lLength > MD5_DIGEST_LENGTH * 8) // lLength in bits, md5 in bytes 
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange, "Given key length too large for MD5." );
+        }
         pdfEncrypt = new PdfEncryptRC4(oValue, uValue, pValue, rValue, ePdfEncryptAlgorithm_RC4V2, static_cast<int>(lLength), encryptMetadata);
     }
     else 
