@@ -2412,7 +2412,8 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDele
                 curCode = (*it).GetNumber();
             else if( (*it).IsName() ) 
             {
-                m_differences.AddDifference( static_cast<int>(curCode), 0, (*it).GetName(), bExplicitNames );
+                pdf_utf16be unicodeValue = PdfDifferenceEncoding::NameToUnicodeID( (*it).GetName() );
+                m_differences.AddDifference( static_cast<int>(curCode), unicodeValue, (*it).GetName(), bExplicitNames );
                 ++curCode;
             }
             
