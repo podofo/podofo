@@ -113,13 +113,13 @@ void PdfXRefStreamParserObject::ReadXRefTable()
         nW[i] = static_cast<pdf_int64>(vWArray.GetArray()[i].GetNumber());
     }
 
-    std::vector<pdf_int64> vecIndeces;
-    GetIndeces( vecIndeces, static_cast<pdf_int64>(lSize) );
+    std::vector<pdf_int64> vecIndices;
+    GetIndices( vecIndices, static_cast<pdf_int64>(lSize) );
 
-    ParseStream( nW, vecIndeces );
+    ParseStream( nW, vecIndices );
 }
 
-void PdfXRefStreamParserObject::ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], const std::vector<pdf_int64> & rvecIndeces )
+void PdfXRefStreamParserObject::ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], const std::vector<pdf_int64> & rvecIndices )
 {
     char*        pBuffer;
     pdf_long     lBufferLen;
@@ -147,7 +147,7 @@ void PdfXRefStreamParserObject::ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], c
     this->GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
 
     
-    std::vector<pdf_int64>::const_iterator it = rvecIndeces.begin();
+    std::vector<pdf_int64>::const_iterator it = rvecIndices.begin();
     #ifdef PODOFO_HAVE_UNIQUE_PTR
     std::unique_ptr<char, decltype( &podofo_free )> pStart( pBuffer, &podofo_free );
     #else // PODOFO_HAVE_UNIQUE_PTR
@@ -164,7 +164,7 @@ void PdfXRefStreamParserObject::ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], c
     StrAutoPtr pStart( pBuffer );
     #endif // PODOFO_HAVE_UNIQUE_PTR
 
-    while( it != rvecIndeces.end() )
+    while( it != rvecIndices.end() )
     {
         pdf_int64 nFirstObj = *it; ++it;
         pdf_int64 nCount    = *it; ++it;
@@ -200,7 +200,7 @@ void PdfXRefStreamParserObject::ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], c
     }
 }
 
-void PdfXRefStreamParserObject::GetIndeces( std::vector<pdf_int64> & rvecIndeces, pdf_int64 size ) 
+void PdfXRefStreamParserObject::GetIndices( std::vector<pdf_int64> & rvecIndices, pdf_int64 size ) 
 {
     // get the first object number in this crossref stream.
     // it is not required to have an index key though.
@@ -215,19 +215,19 @@ void PdfXRefStreamParserObject::GetIndeces( std::vector<pdf_int64> & rvecIndeces
         TCIVariantList it = array.GetArray().begin();
         while ( it != array.GetArray().end() )
         {
-            rvecIndeces.push_back( (*it).GetNumber() );
+            rvecIndices.push_back( (*it).GetNumber() );
             ++it;
         }
     }
     else
     {
         // Default
-        rvecIndeces.push_back( static_cast<pdf_int64>(0) );
-        rvecIndeces.push_back( size );
+        rvecIndices.push_back( static_cast<pdf_int64>(0) );
+        rvecIndices.push_back( size );
     }
 
-    // vecIndeces must be a multiple of 2
-    if( rvecIndeces.size() % 2 != 0)
+    // vecIndices must be a multiple of 2
+    if( rvecIndices.size() % 2 != 0)
     {
         PODOFO_RAISE_ERROR( ePdfError_NoXRef );
     }

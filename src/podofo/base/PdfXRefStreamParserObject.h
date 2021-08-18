@@ -86,20 +86,20 @@ private:
      * Read the /Index key from the current dictionary
      * and write it to a vector.
      *
-     * \param rvecIndeces store the indeces hare
+     * \param rvecIndices store the indices hare
      * \param size default value from /Size key
      */
-    void GetIndeces( std::vector<pdf_int64> & rvecIndeces, pdf_int64 size );
+    void GetIndices( std::vector<pdf_int64> & rvecIndices, pdf_int64 size );
 
     /**
      * Parse the stream contents
      *
      * \param nW /W key
-     * \param rvecIndeces indeces as filled by GetIndeces
+     * \param rvecIndices indices as filled by GetIndices
      *
-     * \see GetIndeces
+     * \see GetIndices
      */
-    void ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], const std::vector<pdf_int64> & rvecIndeces );
+    void ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], const std::vector<pdf_int64> & rvecIndices );
 
     void ReadXRefStreamEntry( char* pBuffer, pdf_long, const pdf_int64 lW[W_ARRAY_SIZE], int nObjNo );
 private:
