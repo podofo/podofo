@@ -206,7 +206,9 @@ class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElem
      *  \param bAutoDelete if true the encoding is deleted by its owning font
      *  \param bExplicitNames if true, glyph names are meaningless explicit keys on the font (used for Type3 fonts)
      */
-    PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDelete = true, bool bExplicitNames = false );
+    PdfDifferenceEncoding(PdfObject* pObject, bool bAutoDelete = true,
+                          bool bExplicitNames = false,
+                          PdfObject* pToUnicode = NULL);
 
     /** Convert a standard character name to a unicode code point
      * 

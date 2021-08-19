@@ -86,8 +86,7 @@ const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *pObject,
 
   	else if (pObject->IsDictionary ())
     {
-
-		return new PdfDifferenceEncoding (pObject, true, bExplicitNames);
+		return new PdfDifferenceEncoding (pObject, true, bExplicitNames, pToUnicode);
     }
     
     

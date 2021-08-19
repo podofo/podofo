@@ -325,7 +325,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
         if ( pEncoding ) // FontDescriptor may only be present in PDF 1.5+
         {
             const PdfEncoding* const pPdfEncoding =
-            PdfEncodingObjectFactory::CreateEncoding( pEncoding, NULL, true );
+            PdfEncodingObjectFactory::CreateEncoding( pEncoding, pObject->GetIndirectKey("ToUnicode"), true );
             
             pMetrics    = new PdfFontMetricsObject( pObject, pDescriptor, pPdfEncoding );
             pFont       = new PdfFontType3( pMetrics, pPdfEncoding, pObject );
