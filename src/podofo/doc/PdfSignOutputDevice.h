@@ -38,6 +38,7 @@
 #include "../base/PdfOutputDevice.h"
 #include "../base/PdfData.h"
 #include "../base/PdfString.h"
+#include "../base/PdfArray.h"
 
 namespace PoDoFo 
 {
@@ -83,7 +84,7 @@ public:
     /** Modify ByteRange entry according to signature position
      *
      */
-    virtual void AdjustByteRange();
+    virtual PdfArray AdjustByteRange();
 
     /** Read data for signature
      */

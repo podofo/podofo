@@ -137,7 +137,7 @@ void PdfSignOutputDevice::SetSignature(const PdfData &sigData)
     }
 }
 
-void PdfSignOutputDevice::AdjustByteRange()
+PdfArray PdfSignOutputDevice::AdjustByteRange()
 {
     if(!m_bBeaconFound) {
         PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
@@ -185,6 +185,7 @@ void PdfSignOutputDevice::AdjustByteRange()
 
     m_pRealDevice->Seek(offset);
     m_pRealDevice->Write(sPosition.c_str(), sPosition.size());
+    return arr;
 }
 
 size_t PdfSignOutputDevice::ReadForSignature(char* pBuffer, size_t lLen)
