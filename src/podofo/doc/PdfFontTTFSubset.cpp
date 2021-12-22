@@ -70,7 +70,7 @@ inline unsigned short Big2Little(unsigned short big)
 
 inline short Big2Little(short big)
 {
-    return ((big << 8) & 0xFF00) | ((big >> 8) & 0x00FF);
+    return Big2Little(static_cast<unsigned short>(big));
 }
 #else
 #define Big2Little( x ) x
