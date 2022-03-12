@@ -474,6 +474,8 @@ void PdfNamesTree::ToDictionary( const PdfName & tree, PdfDictionary& rDict )
 
 void PdfNamesTree::AddToDictionary( PdfObject* pObj, PdfDictionary & rDict )
 {
+    PdfTokenizer::RecursionGuard guard;
+    
     if( pObj->GetDictionary().HasKey("Kids") )
     {
         const PdfArray & kids       = pObj->MustGetIndirectKey("Kids")->GetArray();

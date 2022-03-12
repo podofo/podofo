@@ -315,6 +315,8 @@ void PdfPagesTree::DeletePage( int nPageNumber )
 PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent, 
                                       PdfObjectList & rLstParents ) 
 {
+    PdfTokenizer::RecursionGuard guard;
+    
     if( !pParent ) 
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );

@@ -59,6 +59,48 @@
 
 namespace PoDoFo {
 
+// default stack sizes
+// Windows: 1MB on x32, x64, ARM https://docs.microsoft.com/en-us/cpp/build/reference/stack-stack-allocations?view=msvc-160
+// Windows IIS: 512 KB for 64-bit worker processes, 256 KB for 32-bit worker processes
+// macOS: 8MB on main thread, 512KB on secondary threads https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Multithreading/CreatingThreads/CreatingThreads.html
+// iOS: 1MB on main thread, 512KB on secondary threads
+// Modern Linux distros: usually 8MB on main and secondary threads (but setting ulimit RLIMIT_STACK to unlimited *reduces* the secondary stack size on most architectures: see https://man7.org/linux/man-pages/man3/pthread_create.3.html#NOTES )
+// the amount allocated on stack for local variables and function parameters varies between x86 and x64 
+// in x86 pointers are 32-bit but all function parameters are on stack
+// in x64 pointers are 64-bit but first 4 function params are passed in registers
+// the biggest difference is between debug and non-debug stacks: a debug stack frame can be around 3x larger
+// due to instrumentation like ASAN which put guard bytes around stack variables to detect buffer overflows
+
+const int maxRecursionDepthDefault = 256;
+int PdfTokenizer::RecursionGuard::s_maxRecursionDepth = maxRecursionDepthDefault;
+
+#if defined(PODOFO_MULTI_THREAD)
+thread_local int PdfTokenizer::RecursionGuard::s_nRecursionDepth = 0; // PoDoFo is multi-threaded and requires a C++11 compiler with thread_local support
+#else
+int PdfTokenizer::RecursionGuard::s_nRecursionDepth = 0; // PoDoFo is single-threaded
+#endif   
+
+void PdfTokenizer::RecursionGuard::Enter()
+{
+    ++s_nRecursionDepth;
+
+    if ( s_nRecursionDepth > s_maxRecursionDepth )
+    {
+        // avoid stack overflow on documents that have circular cross references, loops
+        // or very deeply nested structures, can happen with
+        // /Prev entries in trailer and XRef streams (possible via a chain of entries with a loop)
+        // /Kids entries that loop back to self or parent
+        // deeply nested Dictionary or Array objects (possible with lots of [[[[[[[[]]]]]]]] brackets)
+        // mutually recursive loops involving several objects are possible
+        PODOFO_RAISE_ERROR( ePdfError_InvalidXRef );
+    }    
+}
+
+void PdfTokenizer::RecursionGuard::Exit()
+{
+    --s_nRecursionDepth;
+}
+
 namespace PdfTokenizerNameSpace{
 
 static const int g_MapAllocLen = 256;
@@ -392,6 +434,7 @@ void PdfTokenizer::GetNextVariant( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 
 void PdfTokenizer::GetNextVariant( const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 {
+    PdfTokenizer::RecursionGuard guard;
     EPdfDataType eDataType = this->DetermineDataType( pszToken, eType, rVariant );
 
     if( eDataType == ePdfDataType_Null ||

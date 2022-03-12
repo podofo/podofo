@@ -602,7 +602,6 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     bool          m_bStrictParsing;
 
     int           m_nIncrementalUpdates;
-    int           m_nRecursionDepth;
 
     static bool   s_bIgnoreBrokenObjects;
 

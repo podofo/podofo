@@ -75,45 +75,6 @@ namespace PoDoFo {
 bool PdfParser::s_bIgnoreBrokenObjects = true;
 const long nMaxNumIndirectObjects = (1L << 23) - 1L;
 long PdfParser::s_nMaxObjects = nMaxNumIndirectObjects;
-  
-    
-class PdfRecursionGuard
-{
-  // RAII recursion guard ensures m_nRecursionDepth is always decremented
-  // because the destructor is always called when control leaves a method
-  // via return or an exception.
-  // see http://en.cppreference.com/w/cpp/language/raii
-
-  // It's used like this in PdfParser methods
-  // PdfRecursionGuard guard(m_nRecursionDepth);
-
-  public:
-    PdfRecursionGuard( int& nRecursionDepth ) 
-    : m_nRecursionDepth(nRecursionDepth) 
-    { 
-        // be careful changing this limit - overflow limits depend on the OS, linker settings, and how much stack space compiler allocates
-        // 500 limit prevents overflow on Win7 with VC++ 2005 with default linker stack size (1000 caused overflow with same compiler/OS)
-        const int maxRecursionDepth = 500;
-
-        ++m_nRecursionDepth;
-
-        if ( m_nRecursionDepth > maxRecursionDepth )
-        {
-            // avoid stack overflow on documents that have circular cross references in /Prev entries
-            // in trailer and XRef streams (possible via a chain of entries with a loop)
-            PODOFO_RAISE_ERROR( ePdfError_InvalidXRef );
-        }    
-    }
-
-    ~PdfRecursionGuard() 
-    { 
-        --m_nRecursionDepth;    
-    }
-
-  private:
-    // must be a reference so that we modify m_nRecursionDepth in parent class
-    int& m_nRecursionDepth;
-};
 
 PdfParser::PdfParser( PdfVecObjects* pVecObjects )
     : PdfTokenizer(), m_vecObjects( pVecObjects ), m_bStrictParsing( false )
@@ -187,7 +148,6 @@ void PdfParser::Init()
     m_lLastEOFOffset  = 0;
 
     m_nIncrementalUpdates = 0;
-    m_nRecursionDepth = 0;
 }
 
 void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
@@ -551,7 +511,7 @@ void PdfParser::MergeTrailer( const PdfObject* pTrailer )
 
 void PdfParser::ReadNextTrailer()
 {
-    PdfRecursionGuard guard(m_nRecursionDepth);
+    PdfTokenizer::RecursionGuard guard;
 
     // ReadXRefcontents has read the first 't' from "trailer" so just check for "railer"
     if( this->IsNextToken( "trailer" ) )
@@ -672,7 +632,7 @@ void PdfParser::ReadXRef( pdf_long* pXRefOffset )
 
 void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
 {
-    PdfRecursionGuard guard(m_nRecursionDepth);
+    PdfTokenizer::RecursionGuard guard;
 
     pdf_int64 nFirstObject = 0;
     pdf_int64 nNumObjects  = 0;
@@ -939,7 +899,7 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
 
 void PdfParser::ReadXRefStreamContents( pdf_long lOffset, bool bReadOnlyTrailer )
 {
-    PdfRecursionGuard guard(m_nRecursionDepth);
+    PdfTokenizer::RecursionGuard guard;
 
     m_device.Device()->Seek( lOffset );
 
