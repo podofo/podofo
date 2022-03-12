@@ -38,6 +38,7 @@ class FontTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testFonts );
   CPPUNIT_TEST( testCreateFontFtFace );
 #endif
+  CPPUNIT_TEST( testBig2Little );
   CPPUNIT_TEST_SUITE_END();
 
  public:
@@ -48,6 +49,7 @@ class FontTest : public CppUnit::TestFixture
   void testFonts();
   void testCreateFontFtFace();
 #endif
+  void testBig2Little();
 
 private:
 #if defined(PODOFO_HAVE_FONTCONFIG)

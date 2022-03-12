@@ -189,3 +189,29 @@ bool FontTest::GetFontInfo( FcPattern* pFont, std::string & rsFamily, std::strin
 }
 
 #endif
+
+void FontTest::testBig2Little()
+{
+    PdfMemDocument doc;
+    PoDoFo::PdfPage* pPage;
+    pPage = doc.CreatePage( PoDoFo::PdfPage::CreateStandardPageSize( PoDoFo::ePdfPageSize_A4, false ) );
+    PdfPainter painter;
+    painter.SetPage( pPage );
+    PdfFont * pFont = doc.CreateFontSubset( "Arial", false, false, false, PdfEncodingFactory::GlobalWinAnsiEncodingInstance());
+    pFont->SetFontSize( 30.0 );
+    painter.SetFont( pFont );
+    PdfString str((const pdf_utf8*)"ěščř");
+    painter.DrawText( 100.0, 700.0, str );
+    painter.FinishPage();
+    try
+    {
+        PdfOutputDevice output;
+        doc.Write( &output );
+    }
+    catch( PoDoFo::PdfError &error )
+    {
+        // it's okay to error this way
+        if( error.GetError() != ePdfError_UnsupportedFontFormat )
+            throw;
+    }
+}
