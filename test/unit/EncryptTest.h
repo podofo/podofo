@@ -45,6 +45,7 @@ class EncryptTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testAESV2 );
 #ifdef PODOFO_HAVE_LIBIDN
   CPPUNIT_TEST( testAESV3 );
+  CPPUNIT_TEST( testAESV3R6 );
 #endif // PODOFO_HAVE_LIBIDN
   CPPUNIT_TEST( testLoadEncrypedFilePdfParser );
   CPPUNIT_TEST( testLoadEncrypedFilePdfMemDocument );
@@ -67,6 +68,7 @@ class EncryptTest : public CppUnit::TestFixture
   void testAESV2();
 #ifdef PODOFO_HAVE_LIBIDN
   void testAESV3();
+  void testAESV3R6();
 #endif // PODOFO_HAVE_LIBIDN
 
   void testLoadEncrypedFilePdfParser();

@@ -169,6 +169,20 @@ void EncryptTest::testAESV3()
     
     delete pEncrypt;
 }
+
+void EncryptTest::testAESV3R6()
+{
+    PdfEncrypt* pEncrypt = PdfEncrypt::CreatePdfEncrypt( "user", "podofo", m_protection,
+                                                        PdfEncrypt::ePdfEncryptAlgorithm_AESV3R6,
+                                                        PdfEncrypt::ePdfKeyLength_256 );
+
+    TestAuthenticate( pEncrypt, 256, 5 );
+    // AES decryption is not yet implemented.
+    // Therefore we have to disable this test.
+    // TestEncrypt( pEncrypt );
+
+    delete pEncrypt;
+}
 #endif // PODOFO_HAVE_LIBIDN
 
 void EncryptTest::TestAuthenticate( PdfEncrypt* pEncrypt, int PODOFO_UNUSED_PARAM(keyLength), int PODOFO_UNUSED_PARAM(rValue) ) 
@@ -335,6 +349,7 @@ void EncryptTest::testEnableAlgorithms()
     CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_AESV2 ) );
 #ifdef PODOFO_HAVE_LIBIDN
     CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_AESV3 ) );
+    CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_AESV3R6 ) );
 #endif // PODOFO_HAVE_LIBIDN
 
     int testAlgorithms = PdfEncrypt::ePdfEncryptAlgorithm_AESV2;
@@ -342,7 +357,7 @@ void EncryptTest::testEnableAlgorithms()
     testAlgorithms |= PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 | PdfEncrypt::ePdfEncryptAlgorithm_RC4V2;
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
 #ifdef PODOFO_HAVE_LIBIDN
-    testAlgorithms |= PdfEncrypt::ePdfEncryptAlgorithm_AESV3;
+    testAlgorithms |= PdfEncrypt::ePdfEncryptAlgorithm_AESV3 | PdfEncrypt::ePdfEncryptAlgorithm_AESV3R6;
 #endif // PODOFO_HAVE_LIBIDN
     CPPUNIT_ASSERT_EQUAL( testAlgorithms, PdfEncrypt::GetEnabledEncryptionAlgorithms() );
 

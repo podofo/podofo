@@ -120,6 +120,7 @@ public:
         ePdfEncryptAlgorithm_AESV2 = 4  ///< AES encryption with a 128 bit key (PDF1.6)
 #ifdef PODOFO_HAVE_LIBIDN
         ,ePdfEncryptAlgorithm_AESV3 = 8 ///< AES encryption with a 256 bit key (PDF1.7 extension 3) - Support added by P. Zent
+        ,ePdfEncryptAlgorithm_AESV3R6 = 16 ///< AES encryption with a 256 bit key, Revision 6 (PDF1.7 extension 8, PDF 2.0)
 #endif //PODOFO_HAVE_LIBIDN
     } EPdfEncryptAlgorithm;
 
@@ -495,6 +496,9 @@ protected:
     /// Compute encryption key to be used with AES-256
     void ComputeEncryptionKey();
     
+    /// Compute hash for password and salt with optional uValue
+    void ComputeHash(const unsigned char * pswd, int pswdLen, unsigned char salt[8], unsigned char uValue[48], unsigned char hashValue[32]);
+    
     /// Generate the U and UE entries 
     void ComputeUserKey(const unsigned char * userpswd, int len);
     
@@ -710,7 +714,7 @@ public:
     /*
      *	Constructors of PdfEncryptAESV3
      */
-    PdfEncryptAESV3(PdfString oValue, PdfString oeValue, PdfString uValue, PdfString ueValue, int pValue, PdfString permsValue);
+    PdfEncryptAESV3(PdfString oValue, PdfString oeValue, PdfString uValue, PdfString ueValue, int pValue, PdfString permsValue, EPdfEncryptAlgorithm eAlgorithm = ePdfEncryptAlgorithm_AESV3);
     PdfEncryptAESV3( const PdfEncrypt & rhs ) : PdfEncryptSHABase(rhs) {}
     PdfEncryptAESV3( const std::string & userPassword,
                   const std::string & ownerPassword, 
@@ -721,7 +725,8 @@ public:
                   ePdfPermissions_FillAndSign |
                   ePdfPermissions_Accessible |
                   ePdfPermissions_DocAssembly |
-                  ePdfPermissions_HighPrint
+                  ePdfPermissions_HighPrint,
+                  EPdfEncryptAlgorithm eAlgorithm = ePdfEncryptAlgorithm_AESV3
                   );	
     
     /*
