@@ -65,7 +65,8 @@ inline unsigned long Big2Little(unsigned long big)
 
 inline unsigned short Big2Little(unsigned short big)
 {
-    return ((big << 8) & 0xFF00) | ((big >> 8) & 0x00FF);
+    unsigned short little = Big2Little(*reinterpret_cast<unsigned short*>(&big));
+    return *reinterpret_cast<short*>(&little);
 }
 
 inline short Big2Little(short big)
