@@ -41,6 +41,14 @@ class ParserTest : public CppUnit::TestFixture
     CPPUNIT_TEST( testReadXRefStreamContents );
     CPPUNIT_TEST( testReadObjects );
     CPPUNIT_TEST( testIsPdfFile );
+    CPPUNIT_TEST( testNestedArrays );
+    CPPUNIT_TEST( testNestedDictionaries );
+    CPPUNIT_TEST( testNestedNameTree );
+    CPPUNIT_TEST( testLoopingNameTree );        
+    CPPUNIT_TEST( testNestedPageTree );
+    CPPUNIT_TEST( testLoopingPageTree );    
+    CPPUNIT_TEST( testNestedOutlines );
+    CPPUNIT_TEST( testLoopingOutlines );
     CPPUNIT_TEST( testRoundTripIndirectTrailerID );
     CPPUNIT_TEST_SUITE_END();
 
@@ -78,11 +86,26 @@ public:
     //void testReadNextTrailer();
     //void testCheckEOFMarker();
 
+    // CVE-2018-8002, CVE-2021-30470
+    void testNestedArrays();
+    void testNestedDictionaries();
+    
+    // CVE-2021-30471
+    void testNestedNameTree();
+    void testLoopingNameTree();
+    void testNestedPageTree();
+    void testLoopingPageTree();
+
+    // CVE-2020-18971
+    void testNestedOutlines();
+    void testLoopingOutlines();
+
     void testRoundTripIndirectTrailerID();
 
 private:
     std::string generateXRefEntries( size_t count );
     bool canOutOfMemoryKillUnitTests();
+    size_t getStackOverflowDepth();
 };
 
 #endif // _PARSER_TEST_H_

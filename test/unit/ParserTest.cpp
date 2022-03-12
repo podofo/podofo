@@ -1981,6 +1981,773 @@ void ParserTest::testIsPdfFile()
     }     
 }
 
+void ParserTest::testNestedArrays()
+{
+    // test valid stream
+    try
+    {
+        // generate an XRef stream with no deeply nested arrays
+        std::ostringstream oss;
+        size_t offsetStream;
+        size_t offsetEndstream;
+
+        // XRef stream with 5 entries
+        size_t lengthXRefObject = 57; 
+        size_t offsetXRefObject = oss.str().length();        
+        oss << "2 0 obj ";
+        oss << "<< /Type /XRef ";
+        oss << "/Length " << lengthXRefObject << " ";
+        oss << "/Index [2 2] ";
+        oss << "/Size 5 ";
+        oss << "/W [1 2 1] ";
+        oss << "/Filter /ASCIIHexDecode ";
+        oss << ">>\r\n";
+        oss << "stream\r\n";
+        offsetStream = oss.str().length();
+        oss << "01 0E8A 0\r\n";
+        oss << "02 0002 00\r\n";
+        oss << "02 0002 01\r\n";
+        oss << "02 0002 02\r\n";
+        oss << "02 0002 03\r\n";
+        offsetEndstream = oss.str().length();
+        oss << "endstream\r\n";
+        oss << "endobj\r\n";
+        CPPUNIT_ASSERT( offsetEndstream-offsetStream-strlen("\r\n") == lengthXRefObject ); // hard-coded in /Length entry in XRef stream above
+
+        // trailer        
+        oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
+        oss << "startxref " << offsetXRefObject << "\r\n";
+        oss << "%EOF";
+        
+        PoDoFo::PdfVecObjects objects;
+        PdfParserTestWrapper parser( &objects, oss.str().c_str(), oss.str().length() );
+        
+        parser.SetupTrailer();
+        parser.ReadXRefStreamContents( offsetXRefObject, false );
+        // should succeed
+    }
+    catch ( PoDoFo::PdfError& error )
+    {
+        CPPUNIT_FAIL( "Unexpected PdfError" );
+    }
+    catch( std::exception& ex )
+    {
+        CPPUNIT_FAIL( "Unexpected exception type" );
+    }
+
+    // CVE-2021-30470 - lots of [[[[[]]]]] brackets represent nested arrays which caused stack overflow
+    try
+    {
+        // generate an XRef stream with deeply nested arrays
+        std::ostringstream oss;
+        size_t offsetStream;
+        size_t offsetEndstream;
+        size_t maxNesting = getStackOverflowDepth(); // big enough to cause stack overflow
+        // XRef stream with 5 entries
+        size_t lengthXRefObject = 57; 
+        size_t offsetXRefObject = oss.str().length();        
+        oss << "2 0 obj ";
+        oss << "<< /Type /XRef ";
+        oss << "/Length " << lengthXRefObject << " ";
+        oss << "/Index [2 2] ";
+        oss << "/Size 5 ";
+        oss << "/W [1 2 1] ";
+
+        // output [[[[[[[[[[[0]]]]]]]]]]]
+        for ( size_t i = 0 ; i < maxNesting ; ++i )
+        {
+            oss << "[";
+        }
+        oss << "0";
+        for ( size_t i = 0 ; i < maxNesting ; ++i )
+        {
+            oss << "]";
+        }        
+        oss << " ";
+
+        oss << "/Filter /ASCIIHexDecode ";
+        oss << ">>\r\n";
+        oss << "stream\r\n";
+        offsetStream = oss.str().length();
+        oss << "01 0E8A 0\r\n";
+        oss << "02 0002 00\r\n";
+        oss << "02 0002 01\r\n";
+        oss << "02 0002 02\r\n";
+        oss << "02 0002 03\r\n";
+        offsetEndstream = oss.str().length();
+        oss << "endstream\r\n";
+        oss << "endobj\r\n";
+        CPPUNIT_ASSERT( offsetEndstream-offsetStream-strlen("\r\n") == lengthXRefObject ); // hard-coded in /Length entry in XRef stream above
+
+        // trailer        
+        oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
+        oss << "startxref " << offsetXRefObject << "\r\n";
+        oss << "%EOF";
+        
+        PoDoFo::PdfVecObjects objects;
+        PdfParserTestWrapper parser( &objects, oss.str().c_str(), oss.str().length() );
+        
+        parser.SetupTrailer();
+        parser.ReadXRefStreamContents( offsetXRefObject, false );
+        CPPUNIT_FAIL( "Should throw exception" );
+    }
+    catch ( PoDoFo::PdfError& error )
+    {
+        // this must match the error value thrown by PdfRecursionGuard
+        CPPUNIT_ASSERT( error.GetError() == PoDoFo::ePdfError_InvalidXRef );
+    }
+    catch( std::exception& ex )
+    {
+        CPPUNIT_FAIL( "Unexpected exception type" );
+    } 
+}
+
+void ParserTest::testNestedDictionaries()
+{
+    // test valid stream
+    try
+    {
+        // generate an XRef stream with no deeply nested dictionaries
+        std::ostringstream oss;
+        size_t offsetStream;
+        size_t offsetEndstream;
+
+        // XRef stream with 5 entries
+        size_t lengthXRefObject = 57; 
+        size_t offsetXRefObject = oss.str().length();        
+        oss << "2 0 obj ";
+        oss << "<< /Type /XRef ";
+        oss << "/Length " << lengthXRefObject << " ";
+        oss << "/Index [2 2] ";
+        oss << "/Size 5 ";
+        oss << "/W [1 2 1] ";
+        oss << "/Filter /ASCIIHexDecode ";
+        oss << ">>\r\n";
+        oss << "stream\r\n";
+        offsetStream = oss.str().length();
+        oss << "01 0E8A 0\r\n";
+        oss << "02 0002 00\r\n";
+        oss << "02 0002 01\r\n";
+        oss << "02 0002 02\r\n";
+        oss << "02 0002 03\r\n";
+        offsetEndstream = oss.str().length();
+        oss << "endstream\r\n";
+        oss << "endobj\r\n";
+        CPPUNIT_ASSERT( offsetEndstream-offsetStream-strlen("\r\n") == lengthXRefObject ); // hard-coded in /Length entry in XRef stream above
+
+        // trailer        
+        oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
+        oss << "startxref " << offsetXRefObject << "\r\n";
+        oss << "%EOF";
+        
+        PoDoFo::PdfVecObjects objects;
+        PdfParserTestWrapper parser( &objects, oss.str().c_str(), oss.str().length() );
+        
+        parser.SetupTrailer();
+        parser.ReadXRefStreamContents( offsetXRefObject, false );
+        // should succeed
+    }
+    catch ( PoDoFo::PdfError& error )
+    {
+        CPPUNIT_FAIL( "Unexpected PdfError" );
+    }
+    catch( std::exception& ex )
+    {
+        CPPUNIT_FAIL( "Unexpected exception type" );
+    }
+
+    // CVE-2021-30470 - lots of <<<>>> brackets represent nested dictionaries which caused stack overflow
+    try
+    {
+        // generate an XRef stream with deeply nested dictionaries
+        std::ostringstream oss;
+        size_t offsetStream;
+        size_t offsetEndstream;
+        size_t maxNesting = getStackOverflowDepth(); // big enough to cause stack overflow 
+        // XRef stream with 5 entries
+        size_t lengthXRefObject = 57; 
+        size_t offsetXRefObject = oss.str().length();        
+        oss << "2 0 obj ";
+        oss << "<< /Type /XRef ";
+        oss << "/Length " << lengthXRefObject << " ";
+        oss << "/Index [2 2] ";
+        oss << "/Size 5 ";
+        oss << "/W [1 2 1] ";
+
+        // output << << << /Test 0 >> >> >>
+        for ( size_t i = 0 ; i < maxNesting ; ++i )
+        {
+            oss << "<< ";
+        }
+        oss << " /Test 0";
+        for ( size_t i = 0 ; i < maxNesting ; ++i )
+        {
+            oss << " >>";
+        }        
+        oss << " ";
+
+        oss << "/Filter /ASCIIHexDecode ";
+        oss << ">>\r\n";
+        oss << "stream\r\n";
+        offsetStream = oss.str().length();
+        oss << "01 0E8A 0\r\n";
+        oss << "02 0002 00\r\n";
+        oss << "02 0002 01\r\n";
+        oss << "02 0002 02\r\n";
+        oss << "02 0002 03\r\n";
+        offsetEndstream = oss.str().length();
+        oss << "endstream\r\n";
+        oss << "endobj\r\n";
+        CPPUNIT_ASSERT( offsetEndstream-offsetStream-strlen("\r\n") == lengthXRefObject ); // hard-coded in /Length entry in XRef stream above
+
+        // trailer        
+        oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
+        oss << "startxref " << offsetXRefObject << "\r\n";
+        oss << "%EOF";
+        
+        PoDoFo::PdfVecObjects objects;
+        PdfParserTestWrapper parser( &objects, oss.str().c_str(), oss.str().length() );
+        
+        parser.SetupTrailer();
+        parser.ReadXRefStreamContents( offsetXRefObject, false );
+        CPPUNIT_FAIL( "Should throw exception" );
+    }
+    catch ( PoDoFo::PdfError& error )
+    {
+        // this must match the error value thrown by PdfRecursionGuard
+        CPPUNIT_ASSERT( error.GetError() == PoDoFo::ePdfError_InvalidXRef );
+    }
+    catch( std::exception& ex )
+    {
+        CPPUNIT_FAIL( "Unexpected exception type" );
+    }
+}
+
+void ParserTest::testNestedNameTree()
+{
+    // test for valid but deeply nested name tree
+    // maxDepth must be less than GetMaxObjectCount otherwise PdfParser::ResizeOffsets
+    // throws an error when reading the xref offsets table, and no outlines are read
+    std::ostringstream oss;
+    const long maxDepth = getStackOverflowDepth() - 6 - 1;
+    //const long maxDepth = 8;
+    const long numObjects = maxDepth + 6;
+    std::vector<size_t> offsets( numObjects );
+    size_t xrefOffset = 0;
+
+    offsets[0] = 0;
+    oss << "%PDF-1.0\r\n";
+
+    offsets[1] = oss.tellp();
+    oss << "1 0 obj<</Type/Catalog /Pages 2 0 R /Names 4 0 R>>endobj ";
+
+    offsets[2] = oss.tellp();
+    oss << "2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj ";
+    
+    offsets[3] = oss.tellp();
+    oss << "3 0 obj<</Type/Page/MediaBox[0 0 3 3]>>endobj ";
+
+    // the name dictionary
+    offsets[4] = oss.tellp();
+    oss << "4 0 obj<</Dests 5 0 R>>endobj ";
+
+    // root of /Dests name tree
+    offsets[5] = oss.tellp();
+    oss << "5 0 obj<</Kids [6 0 R]>>endobj ";
+
+    // create name tree nested to maxDepth where each intermediate node has one child
+    // except single leaf node at maxDepth
+    for ( int obj = 6 ; obj < numObjects ; ++obj )
+    {
+        offsets[obj] = oss.tellp();
+
+        if ( obj < numObjects - 1 )
+            oss << obj << " 0 obj<</Kids [" << obj+1 << " 0 R] /Limits [(A) (Z)]>>endobj ";
+        else
+            oss << obj << " 0 obj<</Limits [(A) (Z)] /Names [ (A) (Avalue) (Z) (Zvalue) ] >>endobj ";
+    }
+
+    // output xref table
+    oss <<  "\r\n";
+    xrefOffset = oss.tellp();
+    oss << "xref\r\n";
+    oss << "0 " << numObjects << "\r\n";
+
+    oss << "0000000000 65535 f\r\n";
+
+    for ( size_t obj = 1 ; obj < offsets.size() ; ++obj )
+    {
+        // write xref entries like
+        // "0000000010 00000 n\r\n"
+        char szXrefEntry[21];
+        snprintf( szXrefEntry, 21, "%010zu 00000 n\r\n", offsets[obj] );
+
+        oss << szXrefEntry;
+    }
+
+    oss << "trailer<</Size " << numObjects << "/Root 1 0 R>>\r\n";
+    oss << "startxref\r\n";
+    oss << xrefOffset << "\r\n";
+    oss << "%%EOF";
+
+    try
+    {
+        PoDoFo::PdfMemDocument doc;
+        doc.LoadFromBuffer( oss.str().c_str(), oss.str().size(), true );
+
+        PoDoFo::PdfNamesTree* pNamesObj = doc.GetNamesTree( PoDoFo::ePdfDontCreateObject );
+        if ( pNamesObj != nullptr )
+        {
+            PoDoFo::PdfDictionary dict;
+            pNamesObj->ToDictionary( PoDoFo::PdfName( "Dests" ), dict );
+        }
+        
+        CPPUNIT_FAIL( "Should throw exception" );
+    }
+    catch ( PoDoFo::PdfError& error )
+    {
+        // this must match the error value thrown by PdfRecursionGuard
+        CPPUNIT_ASSERT( error.GetError() == PoDoFo::ePdfError_InvalidXRef );
+    }
+}
+
+void ParserTest::testLoopingNameTree()
+{
+    std::string strNoLoop =
+    "%PDF-1.0\r\n"
+    "1 0 obj<</Type/Catalog/Pages 2 0 R /Names 4 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 3 3]>>endobj 4 0 obj<</Dests 2 0 R>>endobj\r\n"
+    "xref\r\n"
+    "0 5\r\n"
+    "0000000000 65535 f\r\n"
+    "0000000010 00000 n\r\n"
+    "0000000066 00000 n\r\n"
+    "0000000115 00000 n\r\n"
+    "0000000161 00000 n\r\n"
+    "trailer<</Size 4/Root 1 0 R>>\r\n"
+    "startxref\r\n"
+    "192\r\n"
+    "%%EOF";
+
+    try
+    {
+        PoDoFo::PdfMemDocument doc;
+        doc.LoadFromBuffer( strNoLoop.c_str(), strNoLoop.size(), true );
+
+		PoDoFo::PdfNamesTree* pNamesObj = doc.GetNamesTree( PoDoFo::ePdfDontCreateObject );
+		if ( pNamesObj != nullptr )
+		{
+			PoDoFo::PdfDictionary dict;
+			pNamesObj->ToDictionary( PoDoFo::PdfName( "Dests" ), dict );
+		}
+        
+        // should not throw
+        CPPUNIT_ASSERT( true );
+    } 
+    catch ( PoDoFo::PdfError& error ) 
+    {
+        CPPUNIT_FAIL( "Unexpected PdfError" );
+    }
+
+    // CVE-2021-30471 /Dests points at pages tree root which has a /Kids entry loooping back to pages tree root
+    std::string strSelfLoop =
+    "%PDF-1.0\r\n"
+    "1 0 obj<</Type/Catalog/Pages 2 0 R /Names 4 0 R>>endobj 2 0 obj<</Type/Pages/Kids[2 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 3 3]>>endobj 4 0 obj<</Dests 2 0 R>>endobj\r\n"
+    "xref\r\n"
+    "0 5\r\n"
+    "0000000000 65535 f\r\n"
+    "0000000010 00000 n\r\n"
+    "0000000066 00000 n\r\n"
+    "0000000115 00000 n\r\n"
+    "0000000161 00000 n\r\n"
+    "trailer<</Size 4/Root 1 0 R>>\r\n"
+    "startxref\r\n"
+    "192\r\n"
+    "%%EOF";
+
+    try
+    {
+        PoDoFo::PdfMemDocument doc;
+        doc.LoadFromBuffer( strSelfLoop.c_str(), strSelfLoop.size(), true );
+
+        PoDoFo::PdfNamesTree* pNamesObj = doc.GetNamesTree( PoDoFo::ePdfDontCreateObject );
+        if ( pNamesObj != nullptr )
+        {
+            PoDoFo::PdfDictionary dict;
+            pNamesObj->ToDictionary( PoDoFo::PdfName( "Dests" ), dict );
+        }
+        
+        CPPUNIT_FAIL( "Should throw exception" );
+    }
+    catch ( PoDoFo::PdfError& error )
+    {
+        // this must match the error value thrown by PdfRecursionGuard
+        CPPUNIT_ASSERT( error.GetError() == PoDoFo::ePdfError_InvalidXRef );
+    }    
+    
+    // CVE-2021-30471 /Dests points at pages tree which has a /Kids entry loooping back to ancestor (document root)
+    std::string strAncestorLoop =
+    "%PDF-1.0\r\n"
+    "1 0 obj<</Type/Catalog/Pages 2 0 R /Names 4 0 R>>endobj 2 0 obj<</Type/Pages/Kids[1 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 3 3]>>endobj 4 0 obj<</Dests 2 0 R>>endobj\r\n"
+    "xref\r\n"
+    "0 5\r\n"
+    "0000000000 65535 f\r\n"
+    "0000000010 00000 n\r\n"
+    "0000000066 00000 n\r\n"
+    "0000000115 00000 n\r\n"
+    "0000000161 00000 n\r\n"
+    "trailer<</Size 4/Root 1 0 R>>\r\n"
+    "startxref\r\n"
+    "192\r\n"
+    "%%EOF";
+
+    try
+    {
+        PoDoFo::PdfMemDocument doc;
+        doc.LoadFromBuffer( strAncestorLoop.c_str(), strAncestorLoop.size(), true );
+
+        PoDoFo::PdfNamesTree* pNamesObj = doc.GetNamesTree( PoDoFo::ePdfDontCreateObject );
+        if ( pNamesObj != nullptr )
+        {
+            PoDoFo::PdfDictionary dict;
+            pNamesObj->ToDictionary( PoDoFo::PdfName( "Dests" ), dict );
+        }
+        
+        CPPUNIT_FAIL( "Should throw exception" );
+    }
+    catch ( PoDoFo::PdfError& error )
+    {
+        CPPUNIT_ASSERT( error.GetError() == PoDoFo::ePdfError_InvalidDataType );
+    }
+}
+
+void ParserTest::testNestedPageTree()
+{
+    // test for valid but deeply nested page tree
+    // maxDepth must be less than GetMaxObjectCount otherwise PdfParser::ResizeOffsets
+    // throws an error when reading the xref offsets table, and no outlines are read
+    std::ostringstream oss;
+    const long maxDepth = getStackOverflowDepth() - 4 - 1;
+    const long numObjects = maxDepth + 4 ;
+    std::vector<size_t> offsets( numObjects );
+    size_t xrefOffset = 0;
+
+    offsets[0] = 0;
+    oss << "%PDF-1.0\r\n";
+
+    offsets[1] = oss.tellp();
+    oss << "1 0 obj<</Type/Catalog /AcroForm 2 0 R /Pages 3 0 R>>endobj ";
+
+    offsets[2] = oss.tellp();
+    oss << "2 0 obj<</Type/AcroForm >>endobj ";
+    
+    offsets[3] = oss.tellp();
+    oss << "3 0 obj<</Type/Pages /Kids [4 0 R] /Count 1 >>endobj ";
+
+    // create pages tree nested to maxDepth where each node has one child 
+    // except single leaf node at maxDepth
+    for ( int obj = 4 ; obj < numObjects ; ++obj )
+    {
+        offsets[obj] = oss.tellp();
+
+        if ( obj < numObjects - 1 )
+            oss << obj << " 0 obj<</Type/Pages /Kids [" << obj+1 << " 0 R] /Parent " << obj-1 << " 0 R /Count 1 >>endobj ";
+        else
+            oss << obj << " 0 obj<</Type/Page  /Parent " << obj-1 << " 0 R >>endobj ";
+    }
+
+    // output xref table
+    oss <<  "\r\n";
+    xrefOffset = oss.tellp();
+    oss << "xref\r\n";
+    oss << "0 " << numObjects << "\r\n";
+
+    oss << "0000000000 65535 f\r\n";
+
+    for ( size_t obj = 1 ; obj < offsets.size() ; ++obj )
+    {
+        // write xref entries like
+        // "0000000010 00000 n\r\n"
+        char szXrefEntry[21];
+        snprintf( szXrefEntry, 21, "%010zu 00000 n\r\n", offsets[obj] );
+
+        oss << szXrefEntry;
+    }
+
+    oss << "trailer<</Size " << numObjects << "/Root 1 0 R>>\r\n";
+    oss << "startxref\r\n";
+    oss << xrefOffset << "\r\n";
+    oss << "%%EOF";
+
+    try
+    {
+        PoDoFo::PdfMemDocument doc;
+        doc.LoadFromBuffer( oss.str().c_str(), oss.str().size(), true );
+
+        for (int pageNo = 0; pageNo < doc.GetPageCount(); pageNo++)
+        {
+            PoDoFo::PdfPage* pPage = doc.GetPage( pageNo );
+            CPPUNIT_ASSERT( pPage != NULL );
+        }
+
+        CPPUNIT_FAIL( "Should throw exception" );
+    }
+    catch ( PoDoFo::PdfError& error )
+    {
+        CPPUNIT_ASSERT( error.GetError() == PoDoFo::ePdfError_InvalidXRef );
+    }
+}
+
+void ParserTest::testLoopingPageTree()
+{
+    // test PDF without nested kids
+    std::string strNoLoop =
+    "%PDF-1.0\r\n"
+    "1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 3 3]>>endobj\r\n"
+    "xref\r\n"
+    "0 4\r\n"
+    "0000000000 65535 f\r\n"
+    "0000000010 00000 n\r\n"
+    "0000000053 00000 n\r\n"
+    "0000000102 00000 n\r\n"
+    "trailer<</Size 4/Root 1 0 R>>\r\n"
+    "startxref\r\n"
+    "149\r\n"
+    "%%EOF";
+
+    try
+    {
+        PoDoFo::PdfMemDocument doc;
+        doc.LoadFromBuffer( strNoLoop.c_str(), strNoLoop.size(), true );
+
+        for (int pageNo = 0; pageNo < doc.GetPageCount(); pageNo++)
+        {
+            PoDoFo::PdfPage* pPage = doc.GetPage( pageNo );
+            CPPUNIT_ASSERT( pPage != NULL );
+        }
+                
+        // should not throw
+        CPPUNIT_ASSERT( true );
+    } 
+    catch ( PoDoFo::PdfError& error ) 
+    {
+        CPPUNIT_FAIL( "Unexpected PdfError" );
+    }
+
+    // CVE-2021-30471 test for pages tree /Kids array that refer back to pages tree root
+    std::string strSelfLoop =
+    "%PDF-1.0\r\n"
+    "1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[2 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 3 3]>>endobj\r\n"
+    "xref\r\n"
+    "0 4\r\n"
+    "0000000000 65535 f\r\n"
+    "0000000010 00000 n\r\n"
+    "0000000053 00000 n\r\n"
+    "0000000102 00000 n\r\n"
+    "trailer<</Size 4/Root 1 0 R>>\r\n"
+    "startxref\r\n"
+    "149\r\n"
+    "%%EOF";
+    
+    try
+    {
+        PoDoFo::PdfMemDocument doc;
+        doc.LoadFromBuffer( strSelfLoop.c_str(), strSelfLoop.size(), true );
+
+        for (int pageNo = 0; pageNo < doc.GetPageCount(); pageNo++)
+        {
+            PoDoFo::PdfPage* pPage = doc.GetPage( pageNo );
+            CPPUNIT_ASSERT( pPage == NULL );
+        }
+        
+        CPPUNIT_FAIL( "Should throw exception" );
+
+    }
+    catch ( PoDoFo::PdfError& error )
+    {
+        CPPUNIT_ASSERT( error.GetError() == PoDoFo::ePdfError_PageNotFound );
+    }
+
+    // CVE-2021-30471 test for pages tree /Kids array that refer back to an ancestor (document root object)
+    std::string strAncestorLoop =
+    "%PDF-1.0\r\n"
+    "1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[1 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 3 3]>>endobj\r\n"
+    "xref\r\n"
+    "0 4\r\n"
+    "0000000000 65535 f\r\n"
+    "0000000010 00000 n\r\n"
+    "0000000053 00000 n\r\n"
+    "0000000102 00000 n\r\n"
+    "trailer<</Size 4/Root 1 0 R>>\r\n"
+    "startxref\r\n"
+    "149\r\n"
+    "%%EOF";
+    
+    try
+    {
+        PoDoFo::PdfMemDocument doc;
+        doc.LoadFromBuffer( strAncestorLoop.c_str(), strAncestorLoop.size(), true );
+
+        for (int pageNo = 0; pageNo < doc.GetPageCount(); pageNo++)
+        {
+            PoDoFo::PdfPage* pPage = doc.GetPage( pageNo );
+            CPPUNIT_ASSERT( pPage == NULL );
+        }
+        
+        // should return null for doc.GetPage and not throw
+        CPPUNIT_ASSERT( true );
+    }
+    catch ( PoDoFo::PdfError& error )
+    {
+        CPPUNIT_FAIL( "Unexpected PdfError" );
+    }
+}
+
+void ParserTest::testNestedOutlines()
+{
+    // test for valid but deeply nested outlines
+    // maxDepth must be less than GetMaxObjectCount otherwise PdfParser::ResizeOffsets
+    // throws an error when reading the xref offsets table, and no outlines are read
+    std::ostringstream oss;
+    const long maxDepth = getStackOverflowDepth() - 4 - 1;
+    const long numObjects = maxDepth + 4 ;
+    std::vector<size_t> offsets( numObjects );
+    size_t xrefOffset = 0;
+
+    offsets[0] = 0;
+    oss << "%PDF-1.0\r\n";
+
+    offsets[1] = oss.tellp();
+    oss << "1 0 obj<</Type/Catalog /AcroForm 2 0 R /Outlines 3 0 R>>endobj ";
+
+    offsets[2] = oss.tellp();
+    oss << "2 0 obj<</Type/AcroForm >>endobj ";
+    
+    offsets[3] = oss.tellp();
+    oss << "3 0 obj<</Type/Outlines /First 4 0 R /Count " << maxDepth << " /Last 5 0 R >>endobj ";
+
+    // create outlines tree nested to maxDepth where each node has one child 
+    // except single leaf node at maxDepth
+    for ( int obj = 4 ; obj < numObjects ; ++obj )
+    {
+        offsets[obj] = oss.tellp();
+
+        if ( obj < numObjects - 1 )
+            oss << obj << " 0 obj<</Title (Outline Item) /First " << obj+1 << " 0 R /Last " << obj+1 << " 0 R>>endobj ";
+        else
+            oss << obj << " 0 obj<</Title (Outline Item)>>endobj ";
+    }
+
+    // output xref table
+    oss <<  "\r\n";
+    xrefOffset = oss.tellp();
+    oss << "xref\r\n";
+    oss << "0 " << numObjects << "\r\n";
+
+    oss << "0000000000 65535 f\r\n";
+
+    for ( size_t obj = 1 ; obj < offsets.size() ; ++obj )
+    {
+        // write xref entries like
+        // "0000000010 00000 n\r\n"
+        char szXrefEntry[21];
+        snprintf( szXrefEntry, 21, "%010zu 00000 n\r\n", offsets[obj] );
+
+        oss << szXrefEntry;
+    }
+
+    oss << "trailer<</Size " << numObjects << "/Root 1 0 R>>\r\n";
+    oss << "startxref\r\n";
+    oss << xrefOffset << "\r\n";
+    oss << "%%EOF";
+
+    try
+    {
+        PoDoFo::PdfMemDocument doc;
+        doc.LoadFromBuffer( oss.str().c_str(), oss.str().size(), true );
+
+        // load should succeed, then GetOutlines goes recursive due to /Outlines deep nesting
+        PoDoFo::PdfOutlines* pOutlines = doc.GetOutlines();
+        CPPUNIT_ASSERT_MESSAGE( "Should throw exception", pOutlines != nullptr );
+        CPPUNIT_FAIL( "Should throw exception" );
+    }
+    catch ( PoDoFo::PdfError& error )
+    {
+        CPPUNIT_ASSERT( error.GetError() == PoDoFo::ePdfError_InvalidXRef );
+    }
+}
+
+void ParserTest::testLoopingOutlines()
+{
+    // CVE-2020-18971 - PdfOutlineItem /Next refers a preceding sibling
+    std::string strNextLoop =
+    "%PDF-1.0\r\n"
+    "1 0 obj<</Type/Catalog /AcroForm 2 0 R /Outlines 3 0 R>>endobj "
+    "2 0 obj<</Type/AcroForm >>endobj "
+    "3 0 obj<</Type/Outlines /First 4 0 R /Count 2 /Last 5 0 R >>endobj "
+    "4 0 obj<</Title (Outline Item 1) /Next 5 0 R>>endobj "
+    "5 0 obj<</Title (Outline Item 2) /Next 4 0 R>>endobj " // /Next loops back to previous outline item
+    "\r\n"
+    "xref\r\n"
+    "0 6\r\n"
+    "0000000000 65535 f\r\n"
+    "0000000010 00000 n\r\n"
+    "0000000073 00000 n\r\n"
+    "0000000106 00000 n\r\n"
+    "0000000173 00000 n\r\n"
+    "0000000226 00000 n\r\n"
+    "trailer<</Size 6/Root 1 0 R>>\r\n"
+    "startxref\r\n"
+    "281\r\n"
+    "%%EOF";
+
+    try
+    {
+        PoDoFo::PdfMemDocument doc;
+        doc.LoadFromBuffer( strNextLoop.c_str(), strNextLoop.size(), true );
+
+        // load should succeed, then GetOutlines goes recursive due to /Outlines loop
+        PoDoFo::PdfOutlines* pOutlines = doc.GetOutlines();
+        CPPUNIT_ASSERT_MESSAGE( "Should throw exception", pOutlines != nullptr );
+        CPPUNIT_FAIL( "Should throw exception" );
+    }
+    catch ( PoDoFo::PdfError& error )
+    {
+        CPPUNIT_ASSERT( error.GetError() == PoDoFo::ePdfError_InvalidXRef );
+    }
+
+    // https://sourceforge.net/p/podofo/tickets/25/
+    std::string strSelfLoop =
+    "%PDF-1.0\r\n"
+    "1 0 obj<</Type/Catalog/Outlines 2 0 R>>endobj "
+    "2 0 obj<</Type/Outlines /First 2 0 R /Last 2 0 R /Count 1>>endobj" // /First and /Last loop to self
+    "\r\n"
+    "xref\r\n"
+    "0 3\r\n"
+    "0000000000 65535 f\r\n"
+    "0000000010 00000 n\r\n"
+    "0000000056 00000 n\r\n"
+    "trailer<</Size 3/Root 1 0 R>>\r\n"
+    "startxref\r\n"
+    "123\r\n"
+    "%%EOF";
+
+    try
+    {
+        PoDoFo::PdfMemDocument doc;
+        doc.LoadFromBuffer( strSelfLoop.c_str(), strSelfLoop.size(), true );
+
+        // load should succeed, then GetOutlines goes recursive due to /Outlines loop
+        PoDoFo::PdfOutlines* pOutlines = doc.GetOutlines();
+        CPPUNIT_ASSERT_MESSAGE( "Should throw exception", pOutlines != nullptr );
+        CPPUNIT_FAIL( "Should throw exception" );
+    }
+    catch ( PoDoFo::PdfError& error )
+    {
+        CPPUNIT_ASSERT( error.GetError() == PoDoFo::ePdfError_InvalidXRef );
+    }
+}
+
+
 void ParserTest::testRoundTripIndirectTrailerID()
 {
     std::ostringstream oss;
@@ -2109,4 +2876,45 @@ bool ParserTest::canOutOfMemoryKillUnitTests()
     return bCanTerminateProcess;
 }
 
+size_t ParserTest::getStackOverflowDepth()
+{
+    // calculate stack overflow depth - need to do this because a value that consistently overflows a 64-bit stack
+    // doesn't work on 32-bit systems because they run out of heap in ReadObjects before they get a chance to overflow stack
+    // this is because sizeof(PdfParserObject) = 472 bytes (and there's one of these for every object read)
+    const size_t parserObjectSize = sizeof( PoDoFo::PdfParserObject );
 
+#if defined(_WIN64)
+    // 1 MB default stack size, 64-bit address space, Windows x64 ABI
+    // each stack frame has at least 4 64-bit stack params, 4 64-bit register params, plus 64-bit return address
+    // stack frame size increases if function contains local variables or more than 4 parameters  
+    // see https://docs.microsoft.com/en-us/cpp/build/stack-usage?view=msvc-170
+    const size_t stackSize = 1 * 1024 * 1024;
+    const size_t frameSize = sizeof( void* ) * (4 + 4 + 1); // 4 stack params + 4 register params + return address
+    const size_t maxFrames = stackSize / frameSize; // overflows at 14,563 recursive calls (or sooner if functions contain local variables)
+#elif defined(_WIN32)
+    // 1 MB default stack size, 32-bit address space (can't allocate more than 2GB), Windows x86 thiscall calling convention
+    // each stack frame has at least 32-bit EBP and return address
+    // stack frame size increases if function contains local variables or any parameters  
+    const size_t stackSize = 1 * 1024 * 1024;
+    const size_t frameSize = sizeof( void* ) * (1 + 1); // EBP and return address
+    const size_t maxFrames = stackSize / frameSize; // overflows at 131,072 recursive calls (or sooner if functions contain local variables or has parameters)
+#else
+    // assume 8MB macOS / Linux default stack size, 64-bit address space, System V AMD64 ABI
+    // each stack frame has at least 64-bit EBP and return address
+    // stack frame size increases if function contains local variables or any parameters  
+    const size_t stackSize = 8 * 1024 * 1024;
+    const size_t frameSize = sizeof( void* ) * (1 + 1); // EBP and return address
+    const size_t maxFrames = stackSize / frameSize; // overflows at 524,288 recursive calls (or sooner if functions contain local variables or has parameters)
+#endif
+
+    // add a few frames to sure we go beyond end of stack
+    const size_t overflowDepth = maxFrames + 1000;
+
+    // overflowDepth must be less than GetMaxObjectCount otherwise PdfParser::ResizeOffsets
+    // throws an error when reading the xref offsets table, and no recursive calls are made
+    // must also be allocate less than half of address space to prevent out-of-memory exceptions
+    CPPUNIT_ASSERT( overflowDepth < static_cast <size_t> (PoDoFo::PdfParser::GetMaxObjectCount() ) );
+    CPPUNIT_ASSERT( overflowDepth * parserObjectSize < std::numeric_limits<size_t>::max() / 2 );
+
+    return overflowDepth;
+}
