@@ -546,12 +546,17 @@ void PdfParser::ReadNextTrailer()
 
         if( trailer.GetDictionary().HasKey( "Prev" ) )
         {
-            // Whenever we read a Prev key, 
-            // we know that the file was updated.
-            m_nIncrementalUpdates++;
-
             try {
                 pdf_long lOffset = static_cast<pdf_long>(trailer.GetDictionary().GetKeyAsLong( "Prev", 0 ));
+                if( 0 == lOffset )
+                {
+                    PdfError::LogMessage( eLogSeverity_Warning, "XRef contents at offset %" PDF_FORMAT_INT64 " is invalid, skipping the read\n", static_cast<pdf_int64>( lOffset ));
+                    return;
+                }
+                
+                // Whenever we read a Prev key (!= 0), 
+                // we know that the file was updated.
+                m_nIncrementalUpdates++;                
 
                 if( m_visitedXRefOffsets.find( lOffset ) == m_visitedXRefOffsets.end() )
                     ReadXRefContents( lOffset );
