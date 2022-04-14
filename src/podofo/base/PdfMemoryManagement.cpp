@@ -113,21 +113,7 @@ void* podofo_calloc(size_t nmemb, size_t size)
 	if (nmemb == 0)
 		nmemb = 1;
 
-	/*
-		This overflow check is from OpenBSD reallocarray.c, and is also used in GifLib 5.1.2 onwards.
-		
-        Very old versions of calloc() in NetBSD and OS X 10.4 just multiplied size*nmemb which can
-        overflow size_t and allocate much less memory than expected e.g. 2*(SIZE_MAX/2+1) = 2 bytes. 
-        The calloc() overflow is also present in GCC 3.1.1, GNU Libc 2.2.5 and Visual C++ 6.
-        http://cert.uni-stuttgart.de/ticker/advisories/calloc.html
-
-		MUL_NO_OVERFLOW is sqrt(SIZE_MAX+1), as s1*s2 <= SIZE_MAX
-		if both s1 < MUL_NO_OVERFLOW and s2 < MUL_NO_OVERFLOW
-	*/
-	#define MUL_NO_OVERFLOW	((size_t)1 << (sizeof(size_t) * 4))
-    
-	if ((nmemb >= MUL_NO_OVERFLOW || size >= MUL_NO_OVERFLOW) &&
-		nmemb > 0 && SIZE_MAX / nmemb < size) 
+	if ( podofo_multiplication_overflow( nmemb, size ) )
 	{
 		errno = ENOMEM;
 		return NULL;
@@ -165,6 +151,30 @@ void* podofo_realloc( void* buffer, size_t size )
 void podofo_free( void* buffer )
 {
     free( buffer );
+}
+
+bool podofo_multiplication_overflow(size_t nmemb, size_t size)
+{
+	/*
+		This overflow check is from OpenBSD reallocarray.c, and is also used in GifLib 5.1.2 onwards.
+		
+        Very old versions of calloc() in NetBSD and OS X 10.4 just multiplied size*nmemb which can
+        overflow size_t and allocate much less memory than expected e.g. 2*(SIZE_MAX/2+1) = 2 bytes. 
+        The calloc() overflow is also present in GCC 3.1.1, GNU Libc 2.2.5 and Visual C++ 6.
+        http://cert.uni-stuttgart.de/ticker/advisories/calloc.html
+
+		MUL_NO_OVERFLOW is sqrt(SIZE_MAX+1), as s1*s2 <= SIZE_MAX
+		if both s1 < MUL_NO_OVERFLOW and s2 < MUL_NO_OVERFLOW
+	*/
+	#define MUL_NO_OVERFLOW	((size_t)1 << (sizeof(size_t) * 4))
+    
+	if ((nmemb >= MUL_NO_OVERFLOW || size >= MUL_NO_OVERFLOW) &&
+		nmemb > 0 && SIZE_MAX / nmemb < size) 
+	{
+		return true;
+	}
+
+	return false;
 }
 
 };

@@ -75,6 +75,11 @@ PODOFO_API void podofo_free( void* buffer );
  */
 PODOFO_API bool podofo_is_little_endian();
 
+/**
+ * Check if multiplying two numbers will overflow. This is crucial when calculating buffer sizes that are the product of two numbers/
+ * \returns true if multiplication will overflow
+ */
+PODOFO_API bool podofo_multiplication_overflow( size_t nmemb, size_t size );
 
 };
 

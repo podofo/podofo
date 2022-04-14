@@ -93,6 +93,14 @@ public:
         m_nBPC         = static_cast<int>(pDecodeParms->GetKeyAsLong( "BitsPerComponent", 8L ));
         m_nColumns     = static_cast<int>(pDecodeParms->GetKeyAsLong( "Columns", 1L ));
         m_nEarlyChange = static_cast<int>(pDecodeParms->GetKeyAsLong( "EarlyChange", 1L ));
+        
+        // check that input values are in range (CVE-2018-20797)
+        // ISO 32000-2008 specifies these values as all 1 or greater
+        // negative values for m_nColumns / m_nColors / m_nBPC result in huge podofo_calloc
+        if ( m_nColumns < 1 || m_nColors < 1 || m_nBPC < 1 )
+        {
+            PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+        }
 
         if( m_nPredictor >= 10)
         {
@@ -108,6 +116,18 @@ public:
         m_nCurRowIndex  = 0;
         m_nBpp  = (m_nBPC * m_nColors) >> 3;
         m_nRows = (m_nColumns * m_nColors * m_nBPC) >> 3;
+
+        // check for multiplication overflow on buffer sizes (e.g. if m_nBPC=2 and m_nColors=SIZE_MAX/2+1)
+        if ( podofo_multiplication_overflow( m_nBPC, m_nColors ) || podofo_multiplication_overflow( m_nColumns, m_nBPC * m_nColors ) )
+        {
+            PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+        }
+
+        // check that computed allocation sizes are > 0 (CVE-2018-20797)
+        if ( m_nRows < 1 || m_nBpp < 1 )
+        {
+            PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+        }
 
         m_pPrev = static_cast<char*>(podofo_calloc( m_nRows, sizeof(char) ));
         if( !m_pPrev )
