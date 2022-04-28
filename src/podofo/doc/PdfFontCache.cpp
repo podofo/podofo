@@ -708,7 +708,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     if (strlen(pszFontName) >= LF_FACESIZE)
         return NULL;
     
-    memset(&(lf.lfFaceName), 0, LF_FACESIZE);
+    memset(&(lf.lfFaceName), 0, sizeof(lf.lfFaceName[0]) * LF_FACESIZE);
     //strcpy( lf.lfFaceName, pszFontName );
     /*int destLen =*/ MultiByteToWideChar (0, 0, pszFontName, -1, lf.lfFaceName, LF_FACESIZE);
 
@@ -741,7 +741,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     if (lFontNameLen == 0)
         PODOFO_RAISE_ERROR_INFO(ePdfError_InternalLogic, "Font name is empty");
     
-    memset(&(lf.lfFaceName), 0, LF_FACESIZE);
+    memset(&(lf.lfFaceName), 0, sizeof(lf.lfFaceName[0]) * LF_FACESIZE);
     wcscpy( static_cast<wchar_t*>(lf.lfFaceName), pszFontName );
     
     return GetWin32Font(itSorted, vecContainer, lf, bEmbedd, pEncoding, pSubsetting);
