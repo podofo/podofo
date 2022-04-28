@@ -1,3 +1,6 @@
+#ifndef LUA_COMPAT_H_IMPOSE
+#define LUA_COMPAT_H_IMPOSE
+
 extern "C" {
 #include "lua.h"
 // Note: If you're missing these, you're using lua 5.0 and haven't installed
@@ -34,3 +37,5 @@ inline int imp_lua_dofile(lua_State* L, const char * path) {
     return lua_dofile(L, path);
 }
 #endif
+
+#endif // LUA_COMPAT_H_IMPOSE

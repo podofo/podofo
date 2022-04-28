@@ -18,6 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#ifndef IMAGECONVERTER_H
+#define IMAGECONVERTER_H
+
 #include <string>
 #include <vector>
 
@@ -45,3 +48,5 @@ private:
     std::string              m_sOutputFilename;
     bool                     m_bUseImageSize;
 };
+
+#endif // IMAGECONVERTER_H

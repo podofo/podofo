@@ -1,3 +1,6 @@
+#ifndef LUA_COMPAT_H_COLOR
+#define LUA_COMPAT_H_COLOR
+
 extern "C" {
 #include "lua.h"
 // Note: If you're missing these, you're using lua 5.0 and haven't installed
@@ -46,3 +49,5 @@ inline int imp_lua_getn(lua_State *L, int t) {
     return luaL_getn(L, t);
 }
 #endif
+
+#endif // LUA_COMPAT_H_COLOR

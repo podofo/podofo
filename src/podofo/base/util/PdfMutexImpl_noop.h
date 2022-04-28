@@ -31,6 +31,9 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
+#ifndef PDFMUTEXIMPL_NOOP_H
+#define PDFMUTEXIMPL_NOOP_H
+
 #include "../PdfDefines.h"
 #include "../PdfDefinesPrivate.h"
 
@@ -77,3 +80,5 @@ class PdfMutexImpl {
 
 }; // Util
 }; // PoDoFo
+
+#endif // PDFMUTEXIMPL_NOOP_H

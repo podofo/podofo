@@ -163,6 +163,13 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
     inline pdf_long GetLength() const;
 
     /**
+     * \returns a const handle to the internal buffer.
+     *
+     * The returned buffer is still owned by the PdfMemoryOutputStream.
+     */
+    inline const char* GetBuffer() const;
+
+    /**
      *  \returns a handle to the internal buffer.
      *
      *  The internal buffer is now owned by the caller
@@ -188,6 +195,14 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
 inline pdf_long PdfMemoryOutputStream::GetLength() const
 {
     return m_lLen;
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+inline const char* PdfMemoryOutputStream::GetBuffer() const
+{
+    return m_pBuffer;
 }
 
 // -----------------------------------------------------

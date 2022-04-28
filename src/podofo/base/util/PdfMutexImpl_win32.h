@@ -31,6 +31,9 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
+#ifndef PDFMUTEXIMPL_WIN32_H
+#define PDFMUTEXIMPL_WIN32_H
+
 #include "../PdfDefines.h"
 #include "../PdfDefinesPrivate.h"
 
@@ -121,3 +124,5 @@ void PdfMutexImpl::UnLock()
 
 }; // Util
 }; // PoDoFo
+
+#endif // PDFMUTEXIMPL_WIN32_H

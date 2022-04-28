@@ -1,4 +1,7 @@
 
+#ifndef PDFTEST_H
+#define PDFTEST_H
+
 #include <podofo.h>
 
 /* Common defines needed in all tests */
@@ -20,3 +23,5 @@
 #else
 #define PODOFO_UNIQUEU_PTR std::auto_ptr
 #endif
+
+#endif // PDFTEST_H

@@ -18,6 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#ifndef CPPUNITEXTENSIONS_H
+#define CPPUNITEXTENSIONS_H
+
 #include <cppunit/extensions/HelperMacros.h>
 #include <new>
 #include <exception>
@@ -98,3 +101,4 @@ CPPUNIT_TEST_SUITE_REGISTRATION( ColorTest );
 #define EXPECT_DOUBLE_EQ(expected, actual, delta) CPPUNIT_ASSERT_DOUBLES_EQUAL(expected, actual, delta)
 #define ASSERT_DOUBLE_EQ(expected, actual, delta) CPPUNIT_ASSERT_DOUBLES_EQUAL(expected, actual, delta)
 
+#endif // CPPUNITEXTENSIONS_H

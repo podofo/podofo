@@ -2299,6 +2299,7 @@ bool PdfEncodingDifference::Contains( int nCode, PdfName & rName, pdf_utf16be & 
 
 bool PdfEncodingDifference::ContainsUnicodeValue( pdf_utf16be unicodeValue, char &rValue ) const
 {
+	printf ("%s:\n", __FUNCTION__);
 	TCIVecDifferences it, end = m_vecDifferences.end();
 	for (it = m_vecDifferences.begin(); it != end; it++) {
 		pdf_utf16be uv = it->unicodeValue;
