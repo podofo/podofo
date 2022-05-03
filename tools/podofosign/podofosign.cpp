@@ -182,7 +182,7 @@ static bool load_cert_and_key( const char *certfile, const char *pkeyfile, const
     return true;
 }
 
-static void sign_with_signer( PdfSignOutputDevice &signer, X509 *cert, EVP_PKEY *pkey )
+static void sign_with_signer( PdfSignOutputDevice &signer, X509 *cert, EVP_PKEY *pkey, const EVP_MD *md_digest )
 {
     if( !cert )
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "cert == NULL" );
@@ -211,12 +211,20 @@ static void sign_with_signer( PdfSignOutputDevice &signer, X509 *cert, EVP_PKEY 
     }
 
     unsigned int flags = PKCS7_DETACHED | PKCS7_BINARY;
-    PKCS7 *pkcs7 = PKCS7_sign( cert, pkey, NULL, mem, flags );
+    PKCS7 *pkcs7 = PKCS7_sign( cert, pkey, NULL, mem, flags | PKCS7_PARTIAL );
     if( !pkcs7 )
     {
         BIO_free( mem );
         podofo_free( pBuffer );
         raise_podofo_error_with_opensslerror( "PKCS7_sign failed" );
+    }
+
+    if( !PKCS7_sign_add_signer( pkcs7, cert, pkey, md_digest, 0 ))
+    {
+        BIO_free( mem );
+        PKCS7_free( pkcs7 );
+        podofo_free( pBuffer );
+        raise_podofo_error_with_opensslerror( "PKCS7_sign_add_signer failed" );
     }
 
     while( len = signer.ReadForSignature( pBuffer, uBufferLen ), len > 0 )
@@ -298,6 +306,7 @@ static void print_help( bool bOnlyUsage )
     std::cout << "The optional arguments:" << std::endl;
     std::cout << "  -out [outputfile] ... an output file to save the signed document to; cannot be the same as the input file" << std::endl;
     std::cout << "  -password [password] ... a password to unlock the private key file" << std::endl;
+    std::cout << "  -digest [name] ... a digest name to use for the signature; default is SHA512" << std::endl;
     std::cout << "  -reason [utf8-string] ... a UTF-8 encoded string with the reason of the signature; default reason is \"I agree\"" << std::endl;
     std::cout << "  -sigsize [size] ... how many bytes to allocate for the signature; the default is derived from the certificate and private key file size" << std::endl;
     std::cout << "  -field-name [name] ... field name to use; defaults to 'PoDoFoSignatureFieldXXX', where XXX is the object number" << std::endl;
@@ -696,6 +705,7 @@ int main( int argc, char* argv[] )
     const char *certfile = NULL;
     const char *pkeyfile = NULL;
     const char *password = NULL;
+    const char *digest = NULL;
     const char *reason = "I agree";
     const char *sigsizestr = NULL;
     const char *annot_units = "mm";
@@ -728,6 +738,10 @@ int main( int argc, char* argv[] )
         else if( strcmp( argv[ii], "-pkey" ) == 0 )
         {
             value = &pkeyfile;
+        }
+        else if( strcmp( argv[ii], "-digest" ) == 0 )
+        {
+            value = &digest;
         }
         else if( strcmp( argv[ii], "-password" ) == 0 )
         {
@@ -896,6 +910,8 @@ int main( int argc, char* argv[] )
 
     if( sigsize > 0 )
         min_signature_size = sigsize;
+    else
+        min_signature_size += 1024;
 
     int result = 0;
     PdfSignatureField *pSignField = NULL;
@@ -903,6 +919,26 @@ int main( int argc, char* argv[] )
 
     try
     {
+        const EVP_MD *md_digest;
+
+        if( digest != NULL )
+        {
+            md_digest = EVP_get_digestbyname( digest );
+            if( !md_digest )
+            {
+                std::string err = "Unknown digest '";
+                err += digest;
+                err += "'";
+                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidName, err.c_str() );
+            }
+        }
+        else
+        {
+            md_digest = EVP_sha512();
+            if( !md_digest )
+                std::cerr << "Cannot get SHA512 digest, using default OpenSSL digest instead." << std::endl;
+        }
+
         PdfMemDocument document;
 
         document.Load( inputfile, true );
@@ -1075,7 +1111,7 @@ int main( int argc, char* argv[] )
         // We seek at the beginning of the file
         signer.Seek( 0 );
 
-        sign_with_signer( signer, cert, pkey );
+        sign_with_signer( signer, cert, pkey, md_digest );
 
         signer.Flush();
     }
