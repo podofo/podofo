@@ -29,9 +29,13 @@ using namespace PoDoFo;
 // Registers the fixture into the 'registry'
 CPPUNIT_TEST_SUITE_REGISTRATION( StringTest );
 
+namespace PoDoFo {
+
 inline std::ostream& operator<<(std::ostream& o, const PdfString& s)
 {
     return o << s.GetStringUtf8();
+}
+
 }
 
 void StringTest::setUp()
