@@ -1,0 +1,2 @@
+- [ ] Accept to license the code under the terms of the [LGPL 2.0](https://spdx.org/licenses/LGPL-2.0-or-later.html) or later
+- [ ] Accept to license the code under the terms of the [MPL 2.0](https://spdx.org/licenses/MPL-2.0)
