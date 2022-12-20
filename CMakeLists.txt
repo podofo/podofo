@@ -25,6 +25,7 @@ INCLUDE(CheckIncludeFile)
 INCLUDE(CheckLibraryExists)
 INCLUDE(TestBigEndian)
 INCLUDE(CheckTypeSize)
+INCLUDE(GNUInstallDirs)
 
 #
 # Setup CMake Policies
@@ -72,26 +73,7 @@ IF(NOT DEFINED PODOFO_BUILD_SHARED AND DEFINED PODOFO_BUILD_STATIC)
     ENDIF(PODOFO_BUILD_STATIC)
 ENDIF(NOT DEFINED PODOFO_BUILD_SHARED AND DEFINED PODOFO_BUILD_STATIC)
 
-IF(DEFINED LIB_SUFFIX)
-	SET(LIBDIRNAME "lib${LIB_SUFFIX}")
-ELSE(DEFINED LIB_SUFFIX)
-
-# Some 64 bit linux distros use /usr/lib64 for 64 bit libraries.
-# on these platforms we must
-IF(NOT DEFINED WANT_LIB64)
-	# TODO: detect 64-bit build and existance of /usr/lib64 and set to TRUE.
-	MESSAGE("WANT_LIB64 unset; assuming normal library directory names")
-	SET(WANT_LIB64 FALSE)
-ENDIF(NOT DEFINED WANT_LIB64)
-
-IF(WANT_LIB64)
-	SET(LIBDIRNAME "lib64")
-ELSE(WANT_LIB64)
-	SET(LIBDIRNAME "lib")
-ENDIF(WANT_LIB64)
-
-ENDIF(DEFINED LIB_SUFFIX)
-MESSAGE("Will install libraries to ${CMAKE_INSTALL_PREFIX}/${LIBDIRNAME}")
+MESSAGE("Will install libraries to ${CMAKE_INSTALL_FULL_LIBDIR}")
 
 CHECK_CXX_SOURCE_COMPILES("#include <memory>
 			class Cls {
