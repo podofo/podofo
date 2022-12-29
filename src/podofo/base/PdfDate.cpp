@@ -36,6 +36,12 @@
 
 #include <string.h>
 #include <sstream>
+
+#if _WIN32
+#include <Windows.h>
+#define timegm _mkgmtime
+#endif
+
 namespace  {
 
 /** Parse fixed length number from string
@@ -152,19 +158,19 @@ time_t ParseZoneShift(const char *&pszDate, tm& _tm)
             pszDate++;
         }
     }
-    if ( *pszDate != '\0' ) 
+    if ( *pszDate != '\0' )
     {
         return time_t(-1);
     }
 
-    // convert to 
-    time_t m_time = mktime(&_tm);
-    if ( m_time == -1 ) 
+    // convert to
+    time_t m_time = timegm(&_tm);
+    if ( m_time == -1 )
     {
         return m_time;
     }
 
-    m_time += nZoneShift*(nZoneHour*3600 + nZoneMin*60);
+    m_time += nZoneShift * (nZoneHour * 3600 + nZoneMin * 60);
     return m_time;
 }
 
@@ -248,15 +254,15 @@ void PdfDate::CreateStringRepresentation()
 
 #ifdef _WIN32
     // On win32, strftime with %z returns a verbose time zone name
-    // like "W. Australia Standard time". We use time/gmtime/mktime
-    // instead.
-    time_t cur_time = time( NULL );
-    struct tm* cur_gmt = gmtime( &cur_time );
-    // assumes _timezone cannot include DST (mabri: documentation unclear IMHO)
+        // like "W. Australia Standard time". We use TIME_ZONE_INFORMATION
+        // instead.
 
-    time_t time_off = cur_time - mktime( cur_gmt ); // interpreted as local
-    snprintf( szZone, ZONE_STRING_SIZE, "%+03d",
-            static_cast<int>( time_off/3600 ) );
+        TIME_ZONE_INFORMATION timezoninfo;
+        GetTimeZoneInformation(&timezoninfo);
+
+        // TODO: Handle bias minutes
+        int bias = -(timezoninfo.Bias + (pstm->tm_isdst ? timezoninfo.DaylightBias : timezoninfo.StandardBias)) / 60;
+        snprintf(szZone, ZONE_STRING_SIZE, "%+03d", bias);
 #else
     if( strftime( szZone, ZONE_STRING_SIZE, "%z", &stm ) == 0 )
     {
