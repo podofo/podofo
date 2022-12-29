@@ -32,6 +32,7 @@ class DateTest : public CppUnit::TestFixture
     CPPUNIT_TEST( testAdditional );
     CPPUNIT_TEST( testParseDateValid );
     CPPUNIT_TEST( testParseDateInvalid );
+    CPPUNIT_TEST( testRoundTrip );
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -43,6 +44,7 @@ public:
     void testAdditional();
     void testParseDateInvalid();
     void testParseDateValid();
+    void testRoundTrip();
 };
 
 #endif

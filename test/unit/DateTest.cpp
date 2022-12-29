@@ -17,9 +17,12 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-
 #include "DateTest.h"
 #include <podofo.h>
+
+#if _WIN32
+#define timegm _mkgmtime
+#endif
 
 using namespace PoDoFo;
 
@@ -88,7 +91,8 @@ void DateTest::testDateValue()
     _tm.tm_hour = 23;
     _tm.tm_min = 59;
     _tm.tm_sec = 59;
-    time_t time2 = mktime(&_tm);
+
+    time_t time2 = timegm(&_tm);
     CPPUNIT_ASSERT_EQUAL(true,time==time2);
 }
 
@@ -133,23 +137,45 @@ void DateTest::testParseDateInvalid()
 
 void DateTest::testParseDateValid()
 {
+    time_t timeExpected = 1328448296; // (Sun Feb 05 2012 13:24:56 GMT+0000)
     PdfString tmp("D:20120205132456");
+
     PdfDate date(tmp);
-
-    struct tm  _tm;
-    memset (&_tm, 0, sizeof(struct tm));
-
-    const time_t t = date.GetTime();
-    localtime_r(&t, &_tm);
-
     CPPUNIT_ASSERT_EQUAL(true, date.IsValid());
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Year", 2012, _tm.tm_year + 1900);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Month", 2, _tm.tm_mon + 1);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Day", 5, _tm.tm_mday);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Hour", 13, _tm.tm_hour);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Minute", 24, _tm.tm_min);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Second", 56, _tm.tm_sec);
+    CPPUNIT_ASSERT_EQUAL(timeExpected, date.GetTime());
 
+    tmp = "D:20120205192456+06'00'";
+    PdfDate date2(tmp);
+    CPPUNIT_ASSERT_EQUAL(true, date2.IsValid());
+    CPPUNIT_ASSERT_EQUAL(timeExpected, date2.GetTime());
+
+    tmp = "D:20120205072456-06'00'";
+    PdfDate date3(tmp);
+    CPPUNIT_ASSERT_EQUAL(true, date3.IsValid());
+    CPPUNIT_ASSERT_EQUAL(timeExpected, date3.GetTime());
+
+    tmp = "D:20120205175456+04'30'";
+    PdfDate date4(tmp);
+    CPPUNIT_ASSERT_EQUAL(true, date4.IsValid());
+    CPPUNIT_ASSERT_EQUAL(timeExpected, date4.GetTime());
+}
+
+void DateTest::testRoundTrip()
+{
+    PdfDate curDate;
+    PdfString strDate;
+
+    curDate.ToString(strDate);
+    PdfDate parsedDate(strDate);
+
+    PdfString strParsedDate;
+    parsedDate.ToString(strParsedDate);
+
+    std::string str1 = strDate.GetString();
+    std::string str2 = strParsedDate.GetString();
+
+    CPPUNIT_ASSERT_EQUAL(curDate.GetTime(), parsedDate.GetTime());
+    CPPUNIT_ASSERT_EQUAL(str1, str2);
 }
 
 
