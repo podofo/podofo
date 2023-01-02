@@ -64,6 +64,7 @@ namespace PoDoFo {
 
 PdfImage::PdfImage( PdfVecObjects* pParent, const char* pszPrefix )
     : PdfXObject( "Image", pParent, pszPrefix )
+	, m_dpi( 300 )
 {
     m_rRect = PdfRect();
 
@@ -72,6 +73,7 @@ PdfImage::PdfImage( PdfVecObjects* pParent, const char* pszPrefix )
 
 PdfImage::PdfImage( PdfDocument* pParent, const char* pszPrefix )
     : PdfXObject( "Image", pParent, pszPrefix )
+	, m_dpi( 300 )
 {
     m_rRect = PdfRect();
 
@@ -80,6 +82,7 @@ PdfImage::PdfImage( PdfDocument* pParent, const char* pszPrefix )
 
 PdfImage::PdfImage( PdfObject* pObject )
     : PdfXObject( "Image", pObject )
+	, m_dpi( 300 )
 {
     m_rRect.SetHeight( static_cast<double>(this->GetObject()->MustGetIndirectKey( "Height" )->GetNumber()) );
     m_rRect.SetWidth ( static_cast<double>(this->GetObject()->MustGetIndirectKey( "Width" )->GetNumber()) );
@@ -167,11 +170,14 @@ void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight,
                              unsigned int nBitsPerComponent, PdfInputStream* pStream, 
                              const TVecFilters & vecFilters )
 {
-    m_rRect.SetWidth( nWidth );
-    m_rRect.SetHeight( nHeight );
+	const unsigned int w = std::round( (double) nWidth / (double) m_dpi * 72.0 );
+	const unsigned int h = std::round( (double) nHeight / (double) m_dpi * 72.0 );
 
-    this->GetObject()->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<pdf_int64>(nWidth) ) );
-    this->GetObject()->GetDictionary().AddKey( "Height", PdfVariant( static_cast<pdf_int64>(nHeight) ) );
+	m_rRect.SetWidth( w );
+	m_rRect.SetHeight( h );
+
+	this->GetObject()->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<pdf_int64>(nWidth) ) );
+	this->GetObject()->GetDictionary().AddKey( "Height", PdfVariant( static_cast<pdf_int64>(nHeight) ) );
     this->GetObject()->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<pdf_int64>(nBitsPerComponent) ) );
 
     PdfVariant var;
@@ -184,11 +190,14 @@ void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight,
 void PdfImage::SetImageDataRaw( unsigned int nWidth, unsigned int nHeight, 
                                 unsigned int nBitsPerComponent, PdfInputStream* pStream )
 {
-    m_rRect.SetWidth( nWidth );
-    m_rRect.SetHeight( nHeight );
+	const unsigned int w = std::round( (double) nWidth / (double) m_dpi * 72.0 );
+	const unsigned int h = std::round( (double) nHeight / (double) m_dpi * 72.0 );
 
-    this->GetObject()->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<pdf_int64>(nWidth) ) );
-    this->GetObject()->GetDictionary().AddKey( "Height", PdfVariant( static_cast<pdf_int64>(nHeight) ) );
+	m_rRect.SetWidth( w );
+	m_rRect.SetHeight( h );
+
+	this->GetObject()->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<pdf_int64>(nWidth) ) );
+	this->GetObject()->GetDictionary().AddKey( "Height", PdfVariant( static_cast<pdf_int64>(nHeight) ) );
     this->GetObject()->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<pdf_int64>(nBitsPerComponent) ) );
 
     PdfVariant var;
