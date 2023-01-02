@@ -131,7 +131,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      */
     inline double GetHeight() const;
 
-	inline void SetDpi( pdf_uint16 dpi );
+    inline void SetDpi( pdf_uint16 dpi );
 
     /** Set the actual image data from an input stream
      *  
@@ -305,7 +305,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
 	void LoadFromPngHandle( PdfFileInputStream* pInStream );
 #endif // PODOFO_HAVE_PNG_LIB
 
-	pdf_uint16 m_dpi;
+    pdf_uint16 m_dpi;
 };
 
 // -----------------------------------------------------
@@ -326,7 +326,7 @@ inline double PdfImage::GetHeight() const
 
 inline void PdfImage::SetDpi( pdf_uint16 dpi )
 {
-	m_dpi = dpi;
+    m_dpi = dpi;
 }
 
 };
