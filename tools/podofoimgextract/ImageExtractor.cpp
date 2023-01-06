@@ -65,7 +65,7 @@ void ImageExtractor::ExtractImage(const PdfObject& obj, bool jpeg)
     // Do not overwrite existing files:
     do
     {
-        snprintf(m_buffer, MAX_PATH, "%s/pdfimage_%04i.%s", m_outputDirectory, m_fileCounter++, extension);
+        snprintf(m_buffer, MAX_PATH, "%s/pdfimage_%04i.%s", m_outputDirectory.data(), m_fileCounter++, extension);
     }
     while (FileExists(m_buffer));
 
