@@ -1,0 +1,36 @@
+name: build-mac
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: macos-11
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+          submodules: true
+
+    - name: Install deps
+      # NOTE: We need to ensure jpeg-turbo is at least version 2.14
+      run: brew update
+           && brew install fontconfig freetype openssl@1.1 libxml2 jpeg-turbo libpng libtiff libidn
+
+    - name: Configure CMake
+      # NOTE: OpenSSL prefix must be explicitly set
+      run:
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_PREFIX_PATH=`brew --prefix` -DFontconfig_INCLUDE_DIR=`brew --prefix fontconfig`/include -DOPENSSL_ROOT_DIR=`brew --prefix openssl@1.1` 
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      run: ctest
