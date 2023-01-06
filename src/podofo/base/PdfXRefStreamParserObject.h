@@ -1,129 +1,91 @@
-/***************************************************************************
- *   Copyright (C) 2009 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2009 Dominik Seichter <domseichter@web.de>
+ * SPDX-FileCopyrightText: (C) 2020 Francesco Pretto <ceztko@gmail.com>
+ * SPDX-License-Identifier: LGPL-2.0-or-later
+ */
 
-#ifndef _PDF_XREF_STREAM_PARSER_OBJECT_H_
-#define _PDF_XREF_STREAM_PARSER_OBJECT_H_
+#ifndef PDF_XREF_STREAM_PARSER_OBJECT_H
+#define PDF_XREF_STREAM_PARSER_OBJECT_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
+#include "PdfXRefEntry.h"
 #include "PdfParserObject.h"
 
-#define W_ARRAY_SIZE 3
-#define W_MAX_BYTES  4
-
-namespace PoDoFo {
-
+namespace PoDoFo
+{
+// CHECK-ME: Consider make this class not inherit PdfParserObject and consider mark that final
 /**
  * A utility class for PdfParser that can parse
  * an XRef stream object.
  *
  * It is mainly here to make PdfParser more modular.
  * This is only marked PODOFO_API for the benefit of the tests,
- * the class is for internal use only. It is deprecated, so
- * don't ever rely on it (i.e. externally or in PoDoFo tools).
+ * the class is for internal use only.
  */
-class PODOFO_DEPRECATED PODOFO_API PdfXRefStreamParserObject : public PdfParserObject {
-public:
+class PODOFO_API PdfXRefStreamParserObject final : public PdfParserObject
+{
+    friend class PdfParser;
 
+    static constexpr unsigned W_ARRAY_SIZE = 3;
+    static constexpr unsigned W_MAX_BYTES = 4;
+
+private:
     /** Parse the object data from the given file handle starting at
-     *  the current position.
-     *  \param pCreator pointer to a PdfVecObjects to resolve object references
-     *  \param rDevice an open reference counted input device which is positioned in
+     * the current position.
+     * To be called by PdfParser
+     *  \param doc document where to resolve object references
+     *  \param device an open reference counted input device which is positioned in
      *                 front of the object which is going to be parsed.
-     *  \param rBuffer buffer to use for parsing to avoid reallocations
-     *  \param pOffsets XRef entries are stored into this array
+     *  \param buffer buffer to use for parsing to avoid reallocations
      */
-    PdfXRefStreamParserObject(PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, 
-                              const PdfRefCountedBuffer & rBuffer, PdfParser::TVecOffsets* pOffsets );
+    PdfXRefStreamParserObject(PdfDocument& doc, InputStreamDevice& device, PdfXRefEntries& entries);
 
-    ~PdfXRefStreamParserObject();
+public:
+    /**
+     *  \warning This constructor is for testing usage only
+     */
+    PdfXRefStreamParserObject(InputStreamDevice& device, PdfXRefEntries& entries);
 
-    void Parse();
+public:
+    void DelayedLoadImpl() override;
 
     void ReadXRefTable();
 
     /**
-     * \returns true if there is a previous XRefStream
-     */
-    inline bool HasPrevious();
-
-    /**
      * \returns the offset of the previous XRef table
      */
-    inline pdf_long GetPreviousOffset();
+    bool TryGetPreviousOffset(size_t& previousOffset) const;
 
 private:
+    PdfXRefStreamParserObject(PdfDocument* doc, InputStreamDevice& device,
+        PdfXRefEntries& entries);
+
     /**
      * Read the /Index key from the current dictionary
      * and write it to a vector.
      *
-     * \param rvecIndices store the indices hare
+     * \param indices store the indices hare
      * \param size default value from /Size key
      */
-    void GetIndices( std::vector<pdf_int64> & rvecIndices, pdf_int64 size );
+    void getIndices(std::vector<int64_t>& indices, int64_t size);
 
     /**
      * Parse the stream contents
      *
-     * \param nW /W key
-     * \param rvecIndices indices as filled by GetIndices
+     * \param wArray /W key
+     * \param indices indices as filled by GetIndices
      *
      * \see GetIndices
      */
-    void ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], const std::vector<pdf_int64> & rvecIndices );
+    void parseStream(const int64_t wArray[W_ARRAY_SIZE], const std::vector<int64_t>& indices);
 
-    void ReadXRefStreamEntry( char* pBuffer, pdf_long, const pdf_int64 lW[W_ARRAY_SIZE], int nObjNo );
+    void readXRefStreamEntry(PdfXRefEntry& entry, char* buffer, const int64_t wArray[W_ARRAY_SIZE]);
+
 private:
-    pdf_long m_lNextOffset;
-
-    PdfParser::TVecOffsets* m_pOffsets;
+    ssize_t m_NextOffset;
+    PdfXRefEntries* m_entries;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfXRefStreamParserObject::HasPrevious()
-{
-    return (m_lNextOffset != -1);
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline pdf_long PdfXRefStreamParserObject::GetPreviousOffset()
-{
-    return m_lNextOffset;
-}
 
 };
 
-#endif // _PDF_XREF_STREAM_PARSER_OBJECT_H_
+#endif // PDF_XREF_STREAM_PARSER_OBJECT_H

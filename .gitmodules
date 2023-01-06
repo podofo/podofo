@@ -1,0 +1,6 @@
+[submodule "extern/deps"]
+	path = extern/deps
+	url = https://github.com/podofo/podofo-deps.git
+[submodule "extern/resources"]
+	path = extern/resources
+	url = https://github.com/podofo/podofo-resources.git

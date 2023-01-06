@@ -1,130 +1,137 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2006 Dominik Seichter <domseichter@web.de>
+ * SPDX-FileCopyrightText: (C) 2020 Francesco Pretto <ceztko@gmail.com>
+ * SPDX-License-Identifier: LGPL-2.0-or-later
+ */
 
-#ifndef _PDF_ARRAY_H_
-#define _PDF_ARRAY_H_
+#ifndef PDF_ARRAY_H
+#define PDF_ARRAY_H
 
-#ifdef _WIN32
-#ifdef _MSC_VER
-// IC: VS2008 suppress dll warning
-#pragma warning(disable: 4275)
-#endif // _MSC_VER
-#endif // _WIN32
-
-#include "PdfDefines.h"
-#include "PdfOwnedDataType.h"
-#include "PdfObject.h"
+#include "PdfDeclarations.h"
+#include "PdfDataContainer.h"
 
 namespace PoDoFo {
 
+class PdfArray;
+using PdfArrayList = std::vector<PdfObject>;
+
+/**
+ * Helper class to iterate through array indirect objects
+ */
+template <typename TObject, typename TListIterator>
+class PdfArrayIndirectIterableBase final : public PdfIndirectIterableBase
+{
+    friend class PdfArray;
+
+public:
+    PdfArrayIndirectIterableBase();
+
+private:
+    PdfArrayIndirectIterableBase(PdfArray& arr);
+
+public:
+    class iterator final
+    {
+        friend class PdfArrayIndirectIterableBase;
+    public:
+        using difference_type = void;
+        using value_type = TObject*;
+        using pointer = void;
+        using reference = void;
+        using iterator_category = std::forward_iterator_tag;
+    public:
+        iterator();
+    private:
+        iterator(TListIterator&& iterator, PdfIndirectObjectList* objects);
+    public:
+        iterator(const iterator&) = default;
+        iterator& operator=(const iterator&) = default;
+        bool operator==(const iterator& rhs) const;
+        bool operator!=(const iterator& rhs) const;
+        iterator& operator++();
+        value_type operator*();
+        value_type operator->();
+    private:
+        value_type resolve();
+    private:
+        TListIterator m_iterator;
+        PdfIndirectObjectList* m_objects;
+    };
+
+public:
+    iterator begin() const;
+    iterator end() const;
+
+private:
+    PdfArray* m_arr;
+};
+
+using PdfArrayIndirectIterable = PdfArrayIndirectIterableBase<PdfObject, PdfArrayList::iterator>;
+using PdfArrayConstIndirectIterable = PdfArrayIndirectIterableBase<const PdfObject, PdfArrayList::const_iterator>;
+
 /** This class represents a PdfArray
  *  Use it for all arrays that are written to a PDF file.
- *  
+ *
  *  A PdfArray can hold any PdfVariant.
  *
  *  \see PdfVariant
  */
-class PODOFO_API PdfArray : public PdfOwnedDataType {
- public:
-    typedef size_t                                          size_type;
-    typedef PdfObject                                       value_type;
-    typedef value_type &                                    reference;
-    typedef const value_type &                              const_reference;
-    typedef std::vector<value_type>::iterator               iterator;
-    typedef std::vector<value_type>::const_iterator         const_iterator;
-    typedef std::vector<value_type>::reverse_iterator       reverse_iterator;
-    typedef std::vector<value_type>::const_reverse_iterator const_reverse_iterator;
+class PODOFO_API PdfArray final : public PdfDataContainer
+{
+    friend class PdfObject;
+public:
+    using size_type = size_t;
+    using value_type = PdfObject;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using iterator = PdfArrayList::iterator;
+    using const_iterator = PdfArrayList::const_iterator;
+    using reverse_iterator = PdfArrayList::reverse_iterator;
+    using const_reverse_iterator = PdfArrayList::const_reverse_iterator;
 
-    /** Create an empty array 
+    /** Create an empty array
      */
     PdfArray();
-
-    /** Create an array and add one value to it.
-     *  The value is copied.
-     *
-     *  \param var add this object to the array.
-     */
-    explicit PdfArray( const PdfObject & var );
 
     /** Deep copy an existing PdfArray
      *
      *  \param rhs the array to copy
      */
-    PdfArray( const PdfArray & rhs );
-
-    virtual ~PdfArray();
+    PdfArray(const PdfArray& rhs);
+    PdfArray(PdfArray&& rhs) noexcept;
 
     /** assignment operator
      *
      *  \param rhs the array to assign
      */
     PdfArray& operator=(const PdfArray& rhs);
+    PdfArray& operator=(PdfArray&& rhs) noexcept;
 
-    /** 
+    /**
      *  \returns the size of the array
      */
-    inline size_t GetSize() const;
+    unsigned GetSize() const;
+
+    /**
+     *  \returns true if is empty
+     */
+    bool IsEmpty() const;
 
     /** Remove all elements from the array
      */
-    inline void Clear();
+    void Clear();
 
-    /** Write the array to an output device.
-     *  This is an overloaded member function.
-     *
-     *  \param pDevice write the object to this device
-     *  \param eWriteMode additional options for writing this object
-     *  \param pEncrypt an encryption object which is used to encrypt this object
-     *                  or NULL to not encrypt this object
-     */
-    virtual void Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, 
-                        const PdfEncrypt* pEncrypt = NULL ) const;
+    void Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
+        const PdfStatefulEncrypt& encrypt, charbuff& buffer) const override;
 
-    /** Utility method to determine if the array contains
-     *  contains any objects of ePdfDataType_String whose
-     *  value is the passed string.
-     *  \param cmpString the string to compare against
-     *  \returns true if success, false if not
-     */
-    bool ContainsString( const std::string& cmpString ) const;
-    
-    /** Utility method to return the actual index in the
-     *  array which contains an object of ePdfDataType_String whose
-     *  value is the passed string.
-     *  \param cmpString the string to compare against
-     *  \returns true if success, false if not
-     */
-    size_t GetStringIndex( const std::string& cmpString ) const;
+    template <typename T>
+    T GetAtAs(unsigned idx) const;
+
+    template <typename T>
+    T GetAtAsSafe(unsigned idx, const std::common_type_t<T>& defvalue = { }) const;
+
+    template <typename T>
+    bool TryGetAtAs(unsigned idx, T& value) const;
 
     /** Get the object at the given index out of the array.
      *
@@ -133,409 +140,340 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
      * so it MUST not be deleted.
      *
      *  \param idx
-     *  \returns pointer to the found value. NULL if the index was out of the boundaries
+     *  \returns pointer to the found value. nullptr if the index was out of the boundaries
      */
-    inline const PdfObject * FindAt( size_type idx ) const;
-    inline PdfObject * FindAt( size_type idx );
+    const PdfObject* FindAt(unsigned idx) const;
+    PdfObject* FindAt(unsigned idx);
 
-    /** Adds a PdfObject to the array
-     *
-     *  \param var add a PdfObject to the array
-     *
-     *  This will set the dirty flag of this object.
-     *  \see IsDirty
-     */
-    inline void push_back( const PdfObject & var );
+    const PdfObject& MustFindAt(unsigned idx) const;
+    PdfObject& MustFindAt(unsigned idx);
 
-    /** Remove all elements from the array
-     */
-    void clear();
+    template <typename T>
+    T FindAtAs(unsigned idx, const std::common_type_t<T>& defvalue = { }) const;
 
-    /** 
-     *  \returns the size of the array
-     */
-    inline size_t size() const;
+    template <typename T>
+    T FindAtAsSafe(unsigned idx, const std::common_type_t<T>& defvalue = { }) const;
 
-    /**
-     *  \returns true if the array is empty.
-     */
-    inline bool empty() const;
+    template <typename T>
+    bool TryFindAtAs(unsigned idx, T& value) const;
 
-    inline PdfObject & operator[](size_type __n);
-    inline const PdfObject & operator[](size_type __n) const;
+    void RemoveAt(unsigned idx);
+
+    PdfObject& Add(const PdfObject& obj);
+
+    PdfObject& Add(PdfObject&& obj);
+
+    void AddIndirect(const PdfObject& obj);
+
+    PdfObject& AddIndirectSafe(const PdfObject& obj);
+
+    PdfObject& SetAt(unsigned idx, const PdfObject& obj);
+
+    PdfObject& SetAt(unsigned idx, PdfObject&& obj);
+
+    void SetAtIndirect(unsigned idx, const PdfObject* obj);
+
+    PdfObject& SetAtIndirectSafe(unsigned idx, const PdfObject& obj);
+
+    PdfArrayIndirectIterable GetIndirectIterator();
+
+    PdfArrayConstIndirectIterable GetIndirectIterator() const;
 
     /**
      * Resize the internal vector.
      * \param count new size
      * \param value refernce value
      */
-    void resize( size_t count, value_type val = value_type() );
-    
+    void Resize(unsigned count, const PdfObject& val = PdfObject());
+
+    void Reserve(unsigned n);
+
+public:
+    /**
+     *  \returns the size of the array
+     */
+    size_t size() const;
+
+    PdfObject& operator[](size_type idx);
+    const PdfObject& operator[](size_type idx) const;
+
     /**
      *  Returns a read/write iterator that points to the first
      *  element in the array.  Iteration is done in ordinary
      *  element order.
      */
-    inline iterator begin();
+    iterator begin();
 
     /**
      *  Returns a read-only (constant) iterator that points to the
      *  first element in the array.  Iteration is done in ordinary
      *  element order.
      */
-    inline const_iterator begin() const;
+    const_iterator begin() const;
 
     /**
      *  Returns a read/write iterator that points one past the last
      *  element in the array.  Iteration is done in ordinary
      *  element order.
      */
-    inline iterator end();
+    iterator end();
 
     /**
      *  Returns a read-only (constant) iterator that points one past
      *  the last element in the array.  Iteration is done in
      *  ordinary element order.
      */
-    inline const_iterator end() const;
+    const_iterator end() const;
 
     /**
      *  Returns a read/write reverse iterator that points to the
      *  last element in the array.  Iteration is done in reverse
      *  element order.
      */
-    inline reverse_iterator rbegin();
+    reverse_iterator rbegin();
 
     /**
      *  Returns a read-only (constant) reverse iterator that points
      *  to the last element in the array.  Iteration is done in
      *  reverse element order.
      */
-    inline const_reverse_iterator rbegin() const;
+    const_reverse_iterator rbegin() const;
 
     /**
      *  Returns a read/write reverse iterator that points to one
      *  before the first element in the array.  Iteration is done
      *  in reverse element order.
      */
-    inline reverse_iterator rend();
+    reverse_iterator rend();
 
     /**
      *  Returns a read-only (constant) reverse iterator that points
      *  to one before the first element in the array.  Iteration
      *  is done in reverse element order.
      */
-    inline const_reverse_iterator rend() const;
+    const_reverse_iterator rend() const;
 
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // workaround template-error in Visual Studio 6
-    inline void insert(iterator __position, 
-                       iterator __first,
-                       iterator __last);
-#else
-    template<typename _InputIterator> 
-        void insert(const iterator& __position, 
-                    const _InputIterator& __first,
-                    const _InputIterator& __last);
-#endif
+    void resize(size_t size);
 
-    iterator insert( const iterator &pos, const PdfObject &val );
+    void reserve(size_t size);
 
-    void erase( const iterator& pos );
-    void erase( const iterator& first, const iterator& last );
+    iterator insert(const iterator& pos, const PdfObject& obj);
+    iterator insert(const iterator& pos, PdfObject&& obj);
 
-    inline void reserve(size_type __n);
+    template<typename InputIterator>
+    inline void insert(const iterator& pos, const InputIterator& first, const InputIterator& last);
+
+    void erase(const iterator& pos);
+    void erase(const iterator& first, const iterator& last);
 
     /**
      *  \returns a read/write reference to the data at the first
      *           element of the array.
      */
-    inline reference front();
+    reference front();
 
     /**
      *  \returns a read-only (constant) reference to the data at the first
      *           element of the array.
      */
-    inline const_reference front() const;
+    const_reference front() const;
 
     /**
      *  \returns a read/write reference to the data at the last
      *           element of the array.
      */
-    inline reference back();
-      
+    reference back();
+
     /**
      *  \returns a read-only (constant) reference to the data at the
      *           last element of the array.
      */
-    inline const_reference back() const;
+    const_reference back() const;
 
-    inline bool operator==( const PdfArray & rhs ) const;
-    inline bool operator!=( const PdfArray & rhs ) const;
+public:
+    bool operator==(const PdfArray& rhs) const;
+    bool operator!=(const PdfArray& rhs) const;
 
-    /** The dirty flag is set if this variant
-     *  has been modified after construction.
-     *  
-     *  Usually the dirty flag is also set
-     *  if you call any non-const member function
-     *  as we cannot determine if you actually changed 
-     *  something or not.
-     *
-     *  \returns true if the value is dirty and has been 
-     *                modified since construction
-     */
-    virtual bool IsDirty() const;
+protected:
+    void ResetDirtyInternal() override;
+    void setChildrenParent() override;
 
-    /** Sets the dirty flag of this PdfVariant
-     *
-     *  \param bDirty true if this PdfVariant has been
-     *                modified from the outside
-     *
-     *  \see IsDirty
-     */
-    virtual void SetDirty( bool bDirty );
+private:
+    PdfObject& add(PdfObject&& obj);
+    iterator insertAt(const iterator& pos, PdfObject&& obj);
+    PdfObject& getAt(unsigned idx) const;
+    PdfObject* findAt(unsigned idx) const;
 
- protected:
-     void SetOwner( PdfObject* pOwner );
-
- private:
-    PdfObject * findAt(size_type idx) const;
-
- private:
-    bool         m_bDirty; ///< Indicates if this object was modified after construction
-    std::vector<PdfObject> m_objects;
+private:
+    PdfArrayList m_Objects;
 };
 
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-inline const PdfObject * PdfArray::FindAt( size_type idx ) const
+template<typename T>
+T PdfArray::GetAtAs(unsigned idx) const
 {
-    return findAt( idx );
+    return Object<T>::Get(getAt(idx));
 }
 
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-inline PdfObject * PdfArray::FindAt( size_type idx )
+template<typename T>
+T PdfArray::GetAtAsSafe(unsigned idx, const std::common_type_t<T>& defvalue) const
 {
-    return findAt( idx );
+    T value;
+    if (Object<T>::TryGet(getAt(idx), value))
+        return value;
+    else
+        return defvalue;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-size_t PdfArray::GetSize() const
+template<typename T>
+bool PdfArray::TryGetAtAs(unsigned idx, T& value) const
 {
-    return m_objects.size();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfArray::push_back( const PdfObject & var )
-{
-    insert( end(), var );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfArray::Clear()
-{
-    clear();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-size_t PdfArray::size() const
-{
-    return m_objects.size();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfArray::empty() const
-{
-    return m_objects.empty();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfObject& PdfArray::operator[](size_type __n)
-{
-    AssertMutable();
-
-    return m_objects[__n];
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfObject& PdfArray::operator[](size_type __n) const
-{
-    return m_objects[__n];
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfArray::iterator PdfArray::begin()
-{
-    return m_objects.begin();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfArray::const_iterator PdfArray::begin() const
-{
-    return m_objects.begin();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfArray::iterator PdfArray::end()
-{
-    return m_objects.end();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfArray::const_iterator PdfArray::end() const
-{
-    return m_objects.end();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfArray::reverse_iterator PdfArray::rbegin()
-{
-    return m_objects.rbegin();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfArray::const_reverse_iterator PdfArray::rbegin() const
-{
-    return m_objects.rbegin();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfArray::reverse_iterator PdfArray::rend()
-{
-    return m_objects.rend();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfArray::const_reverse_iterator PdfArray::rend() const
-{
-    return m_objects.rend();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200        // workaround template-error in Visual Studio 6
-void PdfArray::insert(PdfArray::iterator __position, 
-                      PdfArray::iterator __first,
-                      PdfArray::iterator __last)
-#else
-template<typename _InputIterator>
-void PdfArray::insert(const PdfArray::iterator& __position, 
-                      const _InputIterator& __first,
-                      const _InputIterator& __last)
-#endif
-{
-    AssertMutable();
-
-    PdfVecObjects *pOwner = GetObjectOwner();
-    iterator it1 = __first;
-    iterator it2 = __position;
-    for ( ; it1 != __last; it1++, it2++ )
+    if (Object<T>::TryGet(getAt(idx), value))
     {
-        it2 = m_objects.insert( it2, *it1 );
-        if ( pOwner != NULL )
-            it2->SetOwner( pOwner );
+        return true;
+    }
+    else
+    {
+        value = { };
+        return false;
+    }
+}
+
+template<typename T>
+T PdfArray::FindAtAs(unsigned idx, const std::common_type_t<T>& defvalue) const
+{
+    auto obj = findAt(idx);
+    if (obj == nullptr)
+        return defvalue;
+
+    return Object<T>::Get(*obj);
+}
+
+template<typename T>
+T PdfArray::FindAtAsSafe(unsigned idx, const std::common_type_t<T>& defvalue) const
+{
+    T value;
+    auto obj = findAt(idx);
+    if (obj != nullptr && Object<T>::TryGet(*obj, value))
+        return value;
+    else
+        return defvalue;
+}
+
+template<typename T>
+bool PdfArray::TryFindAtAs(unsigned idx, T& value) const
+{
+    auto obj = findAt(idx);
+    if (obj != nullptr && Object<T>::TryGet(*obj, value))
+    {
+        return true;
+    }
+    else
+    {
+        value = { };
+        return false;
+    }
+}
+
+template<typename InputIterator>
+void PdfArray::insert(const PdfArray::iterator& pos,
+    const InputIterator& first,
+    const InputIterator& last)
+{
+    auto document = GetObjectDocument();
+    InputIterator it1 = first;
+    iterator it2 = pos;
+    for (; it1 != last; it1++, it2++)
+    {
+        it2 = m_Objects.insert(it2, *it1);
+        it2->SetDocument(document);
     }
 
-    m_bDirty = true;
+    SetDirty();
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfArray::reserve( size_type __n )
+template<typename TObject, typename TListIterator>
+PdfArrayIndirectIterableBase<TObject, TListIterator>::PdfArrayIndirectIterableBase()
+    : m_arr(nullptr) { }
+
+template<typename TObject, typename TListIterator>
+PdfArrayIndirectIterableBase<TObject, TListIterator>::PdfArrayIndirectIterableBase(PdfArray& arr)
+    : PdfIndirectIterableBase(arr), m_arr(&arr) { }
+
+template<typename TObject, typename TListIterator>
+typename PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator PdfArrayIndirectIterableBase<TObject, TListIterator>::begin() const
 {
-    AssertMutable();
-
-    m_objects.reserve( __n );
+    if (m_arr == nullptr)
+        return iterator();
+    else
+        return iterator(m_arr->begin(), GetObjects());
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfObject & PdfArray::front()
+template<typename TObject, typename TListIterator>
+typename PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator PdfArrayIndirectIterableBase<TObject, TListIterator>::end() const
 {
-    return m_objects.front();
+    if (m_arr == nullptr)
+        return iterator();
+    else
+        return iterator(m_arr->end(), GetObjects());
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfObject & PdfArray::front() const
+template<typename TObject, typename TListIterator>
+PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator::iterator() : m_objects(nullptr) { }
+
+template<typename TObject, typename TListIterator>
+PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator::iterator(TListIterator&& iterator, PdfIndirectObjectList* objects)
+    : m_iterator(std::move(iterator)), m_objects(objects) { }
+
+template<typename TObject, typename TListIterator>
+bool PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator::operator==(const iterator& rhs) const
 {
-    return m_objects.front();
+    return m_iterator == rhs.m_iterator;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfObject & PdfArray::back()
+template<typename TObject, typename TListIterator>
+bool PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator::operator!=(const iterator& rhs) const
 {
-    return m_objects.back();
-}
-      
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfObject & PdfArray::back() const
-{
-    return m_objects.back();
+    return m_iterator != rhs.m_iterator;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfArray::operator==( const PdfArray & rhs ) const
+template<typename TObject, typename TListIterator>
+typename PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator& PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator::operator++()
 {
-    //TODO: This operator does not check for m_bDirty. Add comparison or add explanation why it should not be there
-    return m_objects == rhs.m_objects;
+    m_iterator++;
+    return *this;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfArray::operator!=( const PdfArray & rhs ) const
+template<typename TObject, typename TListIterator>
+typename PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator::value_type PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator::operator*()
 {
-    //TODO: This operator does not check for m_bDirty. Add comparison or add explanation why it should not be there
-    return m_objects != rhs.m_objects;
+    return resolve();
 }
 
-typedef PdfArray                 TVariantList;
-typedef PdfArray::iterator       TIVariantList;
-typedef PdfArray::const_iterator TCIVariantList;
+template<typename TObject, typename TListIterator>
+typename PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator::value_type PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator::operator->()
+{
+    return resolve();
+}
+
+template<typename TObject, typename TListIterator>
+typename PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator::value_type PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator::resolve()
+{
+    TObject& robj = *m_iterator;
+    TObject* indirectobj;
+    PdfReference ref;
+    if (m_objects != nullptr
+        && robj.TryGetReference(ref)
+        && ref.IsIndirect()
+        && (indirectobj = GetObject(*m_objects, ref)) != nullptr)
+    {
+       return indirectobj;
+    }
+    else
+    {
+        return &robj;
+    }
+}
 
 };
 
-#endif // _PDF_ARRAY_H_
+#endif // PDF_ARRAY_H

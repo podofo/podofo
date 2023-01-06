@@ -1,4 +1,4 @@
-SET(color_srcs
+set(color_srcs
   podofocolor.cpp 
   colorchanger.cpp 
   colorspace.cpp
@@ -6,24 +6,22 @@ SET(color_srcs
   iconverter.cpp
   dummyconverter.cpp
   grayscaleconverter.cpp
-  )
-
-
-SET(color_extra_libs)
-
-IF(LUA_FOUND)
-  SET(color_extra_libs ${LUA_LIBRARIES})
-  SET(color_srcs ${color_srcs} luaconverter.cpp)
-ENDIF(LUA_FOUND)
-
-ADD_EXECUTABLE(podofocolor ${color_srcs} )
-
-TARGET_LINK_LIBRARIES(podofocolor 
-  ${PODOFO_LIB}
-  ${color_extra_libs}
 )
 
-SET_TARGET_PROPERTIES(podofocolor PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
-ADD_DEPENDENCIES(podofocolor ${PODOFO_DEPEND_TARGET})
-INSTALL(TARGETS podofocolor
-	RUNTIME DESTINATION "bin")
+set(color_extra_libs)
+
+if(LUA_FOUND)
+  set(color_extra_libs ${LUA_LIBRARIES})
+  set(color_srcs ${color_srcs} luaconverter.cpp)
+endif()
+
+add_executable(podofocolor ${color_srcs})
+
+target_link_libraries(podofocolor 
+  ${PODOFO_LIBRARIES}
+  ${color_extra_libs}
+  podofo_private
+  ${PODOFO_LIB_DEPENDS}
+)
+
+install(TARGETS podofocolor RUNTIME DESTINATION "bin")

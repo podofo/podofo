@@ -1,81 +1,58 @@
-/***************************************************************************
- *   Copyright (C) 2010 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2005 Dominik Seichter <domseichter@web.de>
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
 #include "ImageConverter.h"
 
-#include <podofo.h>
+#include <podofo/podofo.h>
 
-ImageConverter::ImageConverter() 
-    : m_bUseImageSize( false )
+using namespace std;
+using namespace PoDoFo;
+
+ImageConverter::ImageConverter()
+    : m_useImageSize(false)
 {
 }
 
-ImageConverter::~ImageConverter() 
+void ImageConverter::Work()
 {
-}
+    PdfMemDocument document;
 
-void ImageConverter::Work() 
-{
-    PoDoFo::PdfMemDocument document;
+    PdfRect size = PdfPage::CreateStandardPageSize(PdfPageSize::A4, false);
+    PdfPainter painter;
+    double scaleX = 1.0;
+    double scaleY = 1.0;
+    double scale = 1.0;
 
-    std::vector<std::string>::const_iterator it = m_vecImages.begin();
-    PoDoFo::PdfRect size = PoDoFo::PdfPage::CreateStandardPageSize( PoDoFo::ePdfPageSize_A4, false );
-    PoDoFo::PdfPainter painter;
-    double dScaleX = 1.0;
-    double dScaleY = 1.0;
-    double dScale  = 1.0;
-
-    while( it != m_vecImages.end() ) 
+    for (auto& file : m_images)
     {
-        PoDoFo::PdfPage* pPage;
-        PoDoFo::PdfImage image( &document );
-        image.LoadFromFile( (*it).c_str() );
+        auto image = document.CreateImage();
+        image->LoadFromFile(file);
 
-        if( m_bUseImageSize ) 
+        if (m_useImageSize)
+            size = PdfRect(0.0, 0.0, image->GetWidth(), image->GetHeight());
+
+        auto& page = document.GetPages().CreatePage(size);
+        scaleX = size.GetWidth() / image->GetWidth();
+        scaleY = size.GetHeight() / image->GetHeight();
+        scale = std::min(scaleX, scaleY);
+
+        painter.SetCanvas(page);
+        if (scale < 1.0)
         {
-            size = PoDoFo::PdfRect( 0.0, 0.0, image.GetWidth(), image.GetHeight() );
-        }
-
-        pPage = document.CreatePage( size );
-        dScaleX = size.GetWidth() / image.GetWidth();
-        dScaleY = size.GetHeight() / image.GetHeight();
-        dScale  = PoDoFo::PDF_MIN( dScaleX, dScaleY );
-
-        painter.SetPage( pPage );
-        if( dScale < 1.0 ) 
-        {
-            painter.DrawImage( 0.0, 0.0, &image, dScale, dScale );
+            painter.DrawImage(*image, 0.0, 0.0, scale, scale);
         }
         else
         {
             // Center Image
-            double dX = (size.GetWidth() - image.GetWidth())/2.0;
-            double dY = (size.GetHeight() - image.GetHeight())/2.0;
-            painter.DrawImage( dX, dY, &image );
+            double x = (size.GetWidth() - image->GetWidth()) / 2.0;
+            double y = (size.GetHeight() - image->GetHeight()) / 2.0;
+            painter.DrawImage(*image, x, y);
         }
 
-        painter.FinishPage();
-
-        ++it;
+        painter.FinishDrawing();
     }
 
-    document.Write( m_sOutputFilename.c_str() );
+    document.Save(m_outputPath.c_str());
 }
-

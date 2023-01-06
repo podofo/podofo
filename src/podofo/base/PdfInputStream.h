@@ -1,175 +1,87 @@
-/***************************************************************************
- *   Copyright (C) 2007 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2007 Dominik Seichter <domseichter@web.de>
+ * SPDX-FileCopyrightText: (C) 2020 Francesco Pretto <ceztko@gmail.com>
+ * SPDX-License-Identifier: LGPL-2.0-or-later
+ */
 
-#ifndef _PDF_INPUT_STREAM_H_
-#define _PDF_INPUT_STREAM_H_
+#ifndef PDF_INPUT_STREAM_H
+#define PDF_INPUT_STREAM_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 namespace PoDoFo {
 
-class PdfInputDevice;
+class OutputStream;
 
-/** An interface for reading blocks of data from an 
- *  a data source.
- */     
-class PODOFO_API PdfInputStream {
- public:
-
-    virtual ~PdfInputStream() { };
-
-    /** Read data from the input stream
-     *  
-     *  \param pBuffer    the data will be stored into this buffer
-     *  \param lLen       the size of the buffer and number of bytes
-     *                    that will be read
-     *  \param pTotalLeft total bytes left (needed for AES IV and padding)
-     *
-     *  \returns the number of bytes read, -1 if an error occurred
-     *           and zero if no more bytes are available for reading.
-     */
-    virtual pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long *pTotalLeft = 0 ) = 0;
-
-};
-
-/** An input stream that reads data from a file
+/** An interface for reading blocks of data from a data source.
+ * It supports non-blocking read operations
  */
-class PODOFO_API PdfFileInputStream : public PdfInputStream {
- public:
-    
-    /** Open a file for reading data
-     *  
-     *  \param pszFilename the filename of the file to read
+class PODOFO_API InputStream
+{
+public:
+    InputStream();
+    virtual ~InputStream();
+
+    /** Read data from the device
+     * \param buffer a pointer to the data buffer
+     * \param size length of the output buffer
+     * \remarks throws if EOF is encountered before
+     * reading the required size
      */
-    PdfFileInputStream( const char* pszFilename );
+    void Read(char* buffer, size_t size);
 
-#ifdef _WIN32
-    /** Open a file for reading data
-     *  
-     *  \param pszFilename the filename of the file to read
-     *
-     *  This is an overloaded member function to allow working
-     *  with Unicode characters. On Unix systems you can also path
-     *  UTF-8 to the const char* overload.
+    /** Read data from the device
+     * \param buffer a pointer to the data buffer
+     * \param size length of the output buffer
+     * \param eof stream encountered EOF during the read
+     * \returns Number of read bytes
      */
-    PdfFileInputStream( const wchar_t* pszFilename );
-#endif // _WIN32
+    size_t Read(char* buffer, size_t size, bool& eof);
 
-    ~PdfFileInputStream();
-
-    /** Read data from the input stream
-     *  
-     *  \param pBuffer the data will be stored into this buffer
-     *  \param lLen    the size of the buffer and number of bytes
-     *                 that will be read
-     *
-     *  \returns the number of bytes read, -1 if an error occurred
-     *           and zero if no more bytes are available for reading.
+    /** Get next char from stream.
+     * \returns the next character from the stream
+     * \remarks throws if EOF is encountered before
+     * reading the character
      */
-    virtual pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* = 0 );
+    char ReadChar();
 
-    /** Get the length of the file.
-     *  \return the file length
+    /** Get next char from stream.
+     * \param ch the read character
+     * \returns true if success, false if EOF is encountered
+     * before reading the character
      */
-    pdf_long GetFileLength();
+    bool Read(char& ch);
 
-    /** Get the internal FILE handle.
-     *  \return the internal FILE handle
+    void CopyTo(OutputStream& stream);
+
+    void CopyTo(OutputStream& stream, size_t size);
+
+protected:
+    static size_t ReadBuffer(InputStream& stream, char* buffer, size_t size, bool& eof);
+    static bool ReadChar(InputStream& stream, char& ch);
+
+protected:
+    /** Read a buffer from the stream
+     * /param eof true if the stream reached eof during read
+     * /returns number of read bytes
      */
-    FILE* GetHandle();
+    virtual size_t readBuffer(char* buffer, size_t size, bool& eof) = 0;
 
- private:
-    FILE* m_hFile;
-};
-
-/** An input stream that reads data from a memory buffer
- */
-class PODOFO_API PdfMemoryInputStream : public PdfInputStream {
- public:
-    
-    /** Open a file for reading data
-     *  
-     *  \param pBuffer buffer to read from
-     *  \param lBufferLen length of the buffer
+    /** Read the next char in stream.
+     *  /returns true if success, false if EOF
      */
-    PdfMemoryInputStream( const char* pBuffer, pdf_long lBufferLen );
-    ~PdfMemoryInputStream();
+    virtual bool readChar(char& ch);
 
-    /** Read data from the input stream
-     *  
-     *  \param pBuffer the data will be stored into this buffer
-     *  \param lLen    the size of the buffer and number of bytes
-     *                 that will be read
-     *
-     *  \returns the number of bytes read, -1 if an error occurred
-     *           and zero if no more bytes are available for reading.
+    /** Optional checks before reading
+     * By default does nothing
      */
-    virtual pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* );
+    virtual void checkRead() const;
 
- private:
-    const char* m_pBuffer;
-    const char* m_pCur;
-    pdf_long        m_lBufferLen;
-};
-
-/** An input stream that reads data from an input device
- */
-class PODOFO_API PdfDeviceInputStream : public PdfInputStream {
- public:
-    
-    /** 
-     *  Read from an already opened input device
-     * 
-     *  \param pDevice an input device
-     */
-    PdfDeviceInputStream( PdfInputDevice* pDevice );
-    ~PdfDeviceInputStream();
-
-    /** Read data from the input stream
-     *  
-     *  \param pBuffer the data will be stored into this buffer
-     *  \param lLen    the size of the buffer and number of bytes
-     *                 that will be read
-     *
-     *  \returns the number of bytes read, -1 if an error occurred
-     *           and zero if no more bytes are available for reading.
-     */
-    virtual pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* );
-
- private:
-    PdfInputDevice* m_pDevice;
+private:
+    InputStream(const InputStream&) = delete;
+    InputStream& operator=(const InputStream&) = delete;
 };
 
 };
 
-#endif // _PDF_INPUT_STREAM_H_
+#endif // PDF_INPUT_STREAM_H

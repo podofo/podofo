@@ -1,6 +1,3 @@
-ADD_EXECUTABLE(podofoimg2pdf podofoimg2pdf.cpp ImageConverter.cpp)
-TARGET_LINK_LIBRARIES(podofoimg2pdf ${PODOFO_LIB})
-SET_TARGET_PROPERTIES(podofoimg2pdf PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
-ADD_DEPENDENCIES(podofoimg2pdf ${PODOFO_DEPEND_TARGET})
-INSTALL(TARGETS podofoimg2pdf
-	RUNTIME DESTINATION "bin")
+add_executable(podofoimg2pdf podofoimg2pdf.cpp ImageConverter.cpp ImageConverter.h)
+target_link_libraries(podofoimg2pdf ${PODOFO_LIBRARIES})
+install(TARGETS podofoimg2pdf RUNTIME DESTINATION "bin")

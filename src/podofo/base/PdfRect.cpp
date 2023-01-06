@@ -1,180 +1,160 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2006 Dominik Seichter <domseichter@web.de>
+ * SPDX-FileCopyrightText: (C) 2020 Francesco Pretto <ceztko@gmail.com>
+ * SPDX-License-Identifier: LGPL-2.0-or-later
+ */
 
+#include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfRect.h"
 
 #include "PdfArray.h"
 #include "PdfVariant.h"
-#include "PdfDefinesPrivate.h"
+#include "PdfMath.h"
 
-#include <iostream>
-#include <sstream>
 #include <iomanip>
 
-static void NormalizeCoordinates( double &coord1, double &coord2 );
+static void CreateRect(double x1, double y1, double x2, double y2,
+    double& left, double& bottom, double& width, double& height);
+static void NormalizeCoordinates(double& coord1, double& coord2);
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
 PdfRect::PdfRect()
 {
-    m_dBottom = m_dLeft = m_dWidth = m_dHeight = 0;
+    m_Bottom = m_Left = m_Width = m_Height = 0;
 }
 
-PdfRect::PdfRect( double dLeft, double dBottom, double dWidth, double dHeight )
+PdfRect::PdfRect(double left, double bottom, double width, double height)
 {
-    m_dBottom = dBottom;
-    m_dLeft   = dLeft;
-    m_dWidth  = dWidth;
-    m_dHeight = dHeight;
+    m_Bottom = bottom;
+    m_Left = left;
+    m_Width = width;
+    m_Height = height;
 }
 
-PdfRect::PdfRect( const PdfArray& inArray )
+PdfRect PdfRect::FromCorners(double x1, double y1, double x2, double y2)
 {
-    m_dBottom = m_dLeft = m_dWidth = m_dHeight = 0;
-    FromArray( inArray );
+    PdfRect rect;
+    CreateRect(x1, y1, x2, y2, rect.m_Left, rect.m_Bottom, rect.m_Width, rect.m_Height);
+    return rect;
 }
 
-PdfRect::PdfRect( const PdfRect & rhs )
+PdfRect::PdfRect(const PdfArray& arr)
 {
-    this->operator=( rhs );
+    m_Bottom = m_Left = m_Width = m_Height = 0;
+    FromArray(arr);
 }
 
-void PdfRect::ToVariant( PdfVariant & var ) const
+void PdfRect::ToArray(PdfArray& arr) const
 {
-    PdfArray array;
-    
-    array.push_back( PdfVariant( m_dLeft ) );
-    array.push_back( PdfVariant( m_dBottom ) );
-    array.push_back( PdfVariant( (m_dWidth+m_dLeft) ) );
-    array.push_back( PdfVariant( (m_dHeight+m_dBottom) ) );
-
-    var = array;
+    arr.Clear();
+    arr.Add(PdfObject(m_Left));
+    arr.Add(PdfObject(m_Bottom));
+    arr.Add(PdfObject((m_Width + m_Left)));
+    arr.Add(PdfObject((m_Height + m_Bottom)));
 }
 
-std::string PdfRect::ToString() const
+string PdfRect::ToString() const
 {
-    PdfVariant  var;
-    std::string str;
-    this->ToVariant( var );
-    var.ToString( str );
-
+    PdfArray arr;
+    string str;
+    this->ToArray(arr);
+    PdfVariant(arr).ToString(str);
     return str;
-
-    /*
-    std::ostringstream	oStr;
-    oStr << "[ ";
-    oStr << std::setprecision( 3 ) << m_dLeft << " ";
-    oStr << std::setprecision( 3 ) << m_dBottom << " ";
-    oStr << std::setprecision( 3 ) << m_dWidth + m_dLeft << " ";
-    oStr << std::setprecision( 3 ) << m_dHeight - m_dBottom << " ]";
-    
-    return oStr.str();
-    */
 }
 
-void PdfRect::FromArray( const PdfArray& inArray )
+bool PdfRect::Contains(double x, double y) const
 {
-    if ( inArray.size() == 4 ) 
+	return x >= m_Left && x <= m_Left + m_Width
+		&& y >= m_Bottom && y <= m_Bottom + m_Height;
+}
+
+void PdfRect::FromArray(const PdfArray& arr)
+{
+    if (arr.size() == 4)
     {
-        double x1 = inArray[0].GetReal();
-        double y1 = inArray[1].GetReal();
-        double x2 = inArray[2].GetReal();
-        double y2 = inArray[3].GetReal();
+        double x1 = arr[0].GetReal();
+        double y1 = arr[1].GetReal();
+        double x2 = arr[2].GetReal();
+        double y2 = arr[3].GetReal();
 
-        // See Pdf Reference 1.7, 3.8.4 Rectangles
-        NormalizeCoordinates( x1, x2 );
-        NormalizeCoordinates( y1, y2 );
-
-        m_dLeft   = x1;
-        m_dBottom = y1;
-        m_dWidth  = x2 - x1;
-        m_dHeight = y2 - y1;
+        CreateRect(x1, y1, x2, y2, m_Left, m_Bottom, m_Width, m_Height);
     }
-    else 
+    else
     {
-        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+        PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
     }
 }
 
-void PdfRect::Intersect( const PdfRect & rRect )
+double PdfRect::GetRight() const
 {
-	if( rRect.GetBottom() != 0 || rRect.GetHeight() != 0 || rRect.GetLeft() != 0 || rRect.GetWidth() != 0 )
-	{
-		double diff;
-		
-		diff = rRect.m_dLeft - m_dLeft;
-		if ( diff > 0.0 )
-		{
-			m_dLeft += diff;
-			m_dWidth -= diff;
-		}
-
-		diff = (m_dLeft + m_dWidth) - (rRect.m_dLeft + rRect.m_dWidth);
-		if ( diff > 0.0 )
-		{
-			m_dWidth -= diff;
-		}
-
-		diff = rRect.m_dBottom - m_dBottom;
-		if ( diff > 0.0 )
-		{
-			m_dBottom += diff;
-			m_dHeight -= diff;
-		}
-
-		diff = (m_dBottom + m_dHeight) - (rRect.m_dBottom + rRect.m_dHeight);
-		if ( diff > 0.0 )
-		{
-			m_dHeight -= diff;
-		}
-	}
+    return m_Left + m_Width;
 }
 
-PdfRect & PdfRect::operator=( const PdfRect & rhs )
+double PdfRect::GetTop() const
 {
-    this->m_dBottom = rhs.m_dBottom;
-    this->m_dLeft   = rhs.m_dLeft;
-    this->m_dWidth  = rhs.m_dWidth;
-    this->m_dHeight = rhs.m_dHeight;
-
-    return *this;
+    return m_Bottom + m_Height;
 }
 
-};
-
-void NormalizeCoordinates( double & coord1, double & coord2 )
+void PdfRect::Intersect(const PdfRect& rect)
 {
-    if ( coord1 > coord2 )
+    if (rect.GetBottom() != 0 || rect.GetHeight() != 0 || rect.GetLeft() != 0 || rect.GetWidth() != 0)
+    {
+        double diff;
+
+        diff = rect.m_Left - m_Left;
+        if (diff > 0.0)
+        {
+            m_Left += diff;
+            m_Width -= diff;
+        }
+
+        diff = (m_Left + m_Width) - (rect.m_Left + rect.m_Width);
+        if (diff > 0.0)
+        {
+            m_Width -= diff;
+        }
+
+        diff = rect.m_Bottom - m_Bottom;
+        if (diff > 0.0)
+        {
+            m_Bottom += diff;
+            m_Height -= diff;
+        }
+
+        diff = (m_Bottom + m_Height) - (rect.m_Bottom + rect.m_Height);
+        if (diff > 0.0)
+        {
+            m_Height -= diff;
+        }
+    }
+}
+
+PdfRect PdfRect::operator*(const Matrix& m) const
+{
+    Vector2 corner1(m_Left, m_Bottom);
+    Vector2 corner2(GetRight(), GetTop());
+    corner1 = corner1 * m;
+    corner2 = corner2 * m;
+    return PdfRect::FromCorners(corner1.X, corner1.Y, corner2.X, corner2.Y);
+}
+
+void CreateRect(double x1, double y1, double x2, double y2, double& left, double& bottom, double& width, double& height)
+{
+    // See Pdf Reference 1.7, 3.8.4 Rectangles
+    NormalizeCoordinates(x1, x2);
+    NormalizeCoordinates(y1, y2);
+
+    left = x1;
+    bottom = y1;
+    width = x2 - x1;
+    height = y2 - y1;
+}
+
+void NormalizeCoordinates(double& coord1, double& coord2)
+{
+    if (coord1 > coord2)
     {
         double temp = coord1;
         coord1 = coord2;

@@ -1,84 +1,111 @@
-/***************************************************************************
- *   Copyright (C) 2010 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2006 Dominik Seichter <domseichter@web.de>
+ * SPDX-FileCopyrightText: (C) 2021 Francesco Pretto <ceztko@gmail.com>
+ * SPDX-License-Identifier: LGPL-2.0-or-later
+ * SPDX-License-Identifier: MPL-2.0
+ */
 
-#ifndef _PODOFO_BASE_H_
-#define _PODOFO_BASE_H_
+#ifndef PODOFO_BASE_H
+#define PODOFO_BASE_H
 
-// Include files from PoDoFo-base
-
-#include "base/PdfVersion.h"
-#include "base/PdfDefines.h"
-#include "base/Pdf3rdPtyForwardDecl.h"
+#include "base/PdfDeclarations.h"
+#include "base/PdfError.h"
+#include "base/PdfCommon.h"
+#include "base/PdfMath.h"
+#include "base/PdfOperatorUtils.h"
 #include "base/PdfArray.h"
 #include "base/PdfCanvas.h"
 #include "base/PdfColor.h"
-#include "base/PdfContentsTokenizer.h"
+#include "base/PdfContentsReader.h"
+#include "base/PdfPostScriptTokenizer.h"
 #include "base/PdfData.h"
-#include "base/PdfDataType.h"
+#include "base/PdfDataProvider.h"
 #include "base/PdfDate.h"
 #include "base/PdfDictionary.h"
-#include "base/PdfEncodingFactory.h"
 #include "base/PdfEncoding.h"
+#include "base/PdfCMapEncoding.h"
+#include "base/PdfEncodingFactory.h"
+#include "base/PdfEncodingMapFactory.h"
+#include "base/PdfDifferenceEncoding.h"
+#include "base/PdfIdentityEncoding.h"
+#include "base/PdfPredefinedEncoding.h"
 #include "base/PdfEncrypt.h"
-#include "base/PdfError.h"
 #include "base/PdfExtension.h"
-#include "base/PdfFileStream.h"
+#include "base/PdfStreamedObjectStream.h"
 #include "base/PdfFilter.h"
-#include "base/PdfImmediateWriter.h"
-#include "base/PdfInputDevice.h"
+#include "base/PdfStreamDeviceBase.h"
 #include "base/PdfInputStream.h"
-#include "base/PdfLocale.h"
-#include "base/PdfMemoryManagement.h"
-#include "base/PdfMemStream.h"
+#include "base/PdfInputDevice.h"
+#include "base/PdfCanvasInputDevice.h"
+#include "base/PdfOutputStream.h"
+#include "base/PdfOutputDevice.h"
+#include "base/PdfStreamDevice.h"
+#include "base/PdfImmediateWriter.h"
+#include "base/PdfMemoryObjectStream.h"
 #include "base/PdfName.h"
 #include "base/PdfObject.h"
-#include "base/PdfObjectStreamParserObject.h"
-#include "base/PdfOutputDevice.h"
-#include "base/PdfOutputStream.h"
+#include "base/PdfObjectStreamParser.h"
 #include "base/PdfParser.h"
 #include "base/PdfParserObject.h"
+#include "base/PdfXRefStreamParserObject.h"
 #include "base/PdfRect.h"
-#include "base/PdfRefCountedBuffer.h"
-#include "base/PdfRefCountedInputDevice.h"
 #include "base/PdfReference.h"
-#include "base/PdfStream.h"
+#include "base/PdfSigner.h"
+#include "base/PdfObjectStream.h"
 #include "base/PdfString.h"
 #include "base/PdfTokenizer.h"
 #include "base/PdfVariant.h"
-#include "base/PdfVecObjects.h"
+#include "base/PdfIndirectObjectList.h"
 #include "base/PdfWriter.h"
 #include "base/PdfXRef.h"
 #include "base/PdfXRefStream.h"
-#include "base/PdfXRefStreamParserObject.h"
+#include "base/PdfAcroForm.h"
+#include "base/PdfAction.h"
+#include "base/PdfAnnotation.h"
+#include "base/PdfAnnotation_Types.h"
+#include "base/PdfAnnotationWidget.h"
+#include "base/PdfContents.h"
+#include "base/PdfDestination.h"
+#include "base/PdfDocument.h"
+#include "base/PdfElement.h"
+#include "base/PdfExtGState.h"
+#include "base/PdfField.h"
+#include "base/PdfTextBox.h"
+#include "base/PdfButton.h"
+#include "base/PdfCheckBox.h"
+#include "base/PdfButton.h"
+#include "base/PdfPushButton.h"
+#include "base/PdfCheckBox.h"
+#include "base/PdfRadioButton.h"
+#include "base/PdfChoiceField.h"
+#include "base/PdfComboBox.h"
+#include "base/PdfListBox.h"
+#include "base/PdfSignature.h"
+#include "base/PdfFileSpec.h"
+#include "base/PdfFontManager.h"
+#include "base/PdfFontCIDTrueType.h"
+#include "base/PdfFont.h"
+#include "base/PdfFontMetricsStandard14.h"
+#include "base/PdfFontMetricsFreetype.h"
+#include "base/PdfFontMetrics.h"
+#include "base/PdfFontMetricsObject.h"
+#include "base/PdfFontSimple.h"
+#include "base/PdfFontTrueType.h"
+#include "base/PdfFontTrueTypeSubset.h"
+#include "base/PdfFontType1.h"
+#include "base/PdfFontType3.h"
+#include "base/PdfImage.h"
+#include "base/PdfInfo.h"
+#include "base/PdfMemDocument.h"
+#include "base/PdfNameTree.h"
+#include "base/PdfOutlines.h"
+#include "base/PdfPage.h"
+#include "base/PdfPageTreeCache.h"
+#include "base/PdfPageCollection.h"
+#include "base/PdfPainter.h"
+#include "base/PdfStreamedDocument.h"
+#include "base/PdfXObject.h"
+#include "base/PdfXObjectForm.h"
+#include "base/PdfXObjectPostScript.h"
 
-#endif // _PODOFO_BASE_H_
+#endif // PODOFO_BASE_H

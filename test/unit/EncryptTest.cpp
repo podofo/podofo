@@ -1,417 +1,318 @@
-/***************************************************************************
- *   Copyright (C) 2008 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * Copyright (C) 2008 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2021 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#include "EncryptTest.h"
-#include "TestUtils.h"
+#include <PdfTest.h>
 
-#include <stdlib.h>
-
+using namespace std;
 using namespace PoDoFo;
 
-// Registers the fixture into the 'registry'
-CPPUNIT_TEST_SUITE_REGISTRATION( EncryptTest );
+static void testAuthenticate(PdfEncrypt& encrypt);
+static void testEncrypt(PdfEncrypt& encrypt);
+static void createEncryptedPdf(const string_view& filename);
 
-void EncryptTest::setUp()
+charbuff s_encBuffer;
+PdfPermissions s_protection;
+
+#define PDF_USER_PASSWORD "user"
+#define PDF_OWNER_PASSWORD "podofo"
+
+struct Paths
 {
-    const char* pBuffer1 = "Somekind of drawing \001 buffer that possibly \003 could contain PDF drawing commands";
-    const char* pBuffer2 = " possibly could contain PDF drawing\003  commands";
-    
-    m_lLen       = strlen( pBuffer1 ) + 2 * strlen( pBuffer2 );
-    m_pEncBuffer = static_cast<char*>(malloc( sizeof(char) * m_lLen ));
+    Paths()
+    {
+        const char* buffer1 = "Somekind of drawing \001 buffer that possibly \003 could contain PDF drawing commands";
+        const char* buffer2 = " possibly could contain PDF drawing\003  commands";
 
-    memcpy( m_pEncBuffer, pBuffer1, strlen( pBuffer1 ) * sizeof(char) );
-    memcpy( m_pEncBuffer + strlen(pBuffer1), pBuffer2, strlen( pBuffer2 ) );
-    memcpy( m_pEncBuffer + strlen(pBuffer1) + strlen( pBuffer2 ), pBuffer2, strlen( pBuffer2 ) );
+        size_t len = strlen(buffer1) + 2 * strlen(buffer2);
+        s_encBuffer.resize(len);
 
-    m_protection = PdfEncrypt::ePdfPermissions_Print | 
-        PdfEncrypt::ePdfPermissions_Edit |
-        PdfEncrypt::ePdfPermissions_Copy |
-        PdfEncrypt::ePdfPermissions_EditNotes | 
-        PdfEncrypt::ePdfPermissions_FillAndSign |
-        PdfEncrypt::ePdfPermissions_Accessible |
-        PdfEncrypt::ePdfPermissions_DocAssembly |
-        PdfEncrypt::ePdfPermissions_HighPrint;
+        memcpy(s_encBuffer.data(), buffer1, strlen(buffer1) * sizeof(char));
+        memcpy(s_encBuffer.data() + strlen(buffer1), buffer2, strlen(buffer2));
+        memcpy(s_encBuffer.data() + strlen(buffer1) + strlen(buffer2), buffer2, strlen(buffer2));
 
+        s_protection = PdfPermissions::Print |
+            PdfPermissions::Edit |
+            PdfPermissions::Copy |
+            PdfPermissions::EditNotes |
+            PdfPermissions::FillAndSign |
+            PdfPermissions::Accessible |
+            PdfPermissions::DocAssembly |
+            PdfPermissions::HighPrint;
+    }
+} s_init;
+
+TEST_CASE("testDefault")
+{
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD);
+    testAuthenticate(*encrypt);
+    testEncrypt(*encrypt);
 }
 
-void EncryptTest::tearDown()
+TEST_CASE("testRC4")
 {
-    free( m_pEncBuffer );
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+        PdfEncryptAlgorithm::RC4V1,
+        PdfKeyLength::L40);
+
+    testAuthenticate(*encrypt);
+    testEncrypt(*encrypt);
 }
 
-void EncryptTest::testDefault() 
+TEST_CASE("testRC4v2_40")
 {
-    PdfEncrypt* pEncrypt = PdfEncrypt::CreatePdfEncrypt( "user", "podofo" );
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+        PdfEncryptAlgorithm::RC4V2,
+        PdfKeyLength::L40);
 
-    TestAuthenticate( pEncrypt, 40, 2 );
-    TestEncrypt( pEncrypt );
-
-    delete pEncrypt;
+    testAuthenticate(*encrypt);
+    testEncrypt(*encrypt);
 }
 
-#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
-void EncryptTest::testRC4() 
+TEST_CASE("testRC4v2_56")
 {
-    PdfEncrypt* pEncrypt = PdfEncrypt::CreatePdfEncrypt( "user", "podofo", m_protection,
-                                                        PdfEncrypt::ePdfEncryptAlgorithm_RC4V1,
-                                                        PdfEncrypt::ePdfKeyLength_40 );
-    
-    TestAuthenticate( pEncrypt, 40, 3 );
-    TestEncrypt( pEncrypt );
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+        PdfEncryptAlgorithm::RC4V2,
+        PdfKeyLength::L56);
 
-    delete pEncrypt;
+    testAuthenticate(*encrypt);
+    testEncrypt(*encrypt);
 }
 
-void EncryptTest::testRC4v2_40() 
+TEST_CASE("testRC4v2_80")
 {
-    PdfEncrypt* pEncrypt = PdfEncrypt::CreatePdfEncrypt( "user", "podofo", m_protection, 
-                                                         PdfEncrypt::ePdfEncryptAlgorithm_RC4V2, 
-                                                         PdfEncrypt::ePdfKeyLength_40 );
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+        PdfEncryptAlgorithm::RC4V2,
+        PdfKeyLength::L80);
 
-    TestAuthenticate( pEncrypt, 40, 3 );
-    TestEncrypt( pEncrypt );
-
-
-    delete pEncrypt;
+    testAuthenticate(*encrypt);
+    testEncrypt(*encrypt);
 }
 
-void EncryptTest::testRC4v2_56() 
+TEST_CASE("testRC4v2_96")
 {
-    PdfEncrypt* pEncrypt = PdfEncrypt::CreatePdfEncrypt( "user", "podofo", m_protection, 
-                                                         PdfEncrypt::ePdfEncryptAlgorithm_RC4V2, 
-                                                         PdfEncrypt::ePdfKeyLength_56 );
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+        PdfEncryptAlgorithm::RC4V2,
+        PdfKeyLength::L96);
 
-    TestAuthenticate( pEncrypt, 56, 3 );
-    TestEncrypt( pEncrypt );
-
-    delete pEncrypt;
+    testAuthenticate(*encrypt);
+    testEncrypt(*encrypt);
 }
 
-void EncryptTest::testRC4v2_80() 
+TEST_CASE("testRC4v2_128")
 {
-    PdfEncrypt* pEncrypt = PdfEncrypt::CreatePdfEncrypt( "user", "podofo", m_protection, 
-                                                         PdfEncrypt::ePdfEncryptAlgorithm_RC4V2, 
-                                                         PdfEncrypt::ePdfKeyLength_80 );
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+        PdfEncryptAlgorithm::RC4V2,
+        PdfKeyLength::L128);
 
-    TestAuthenticate( pEncrypt, 80, 3 );
-    TestEncrypt( pEncrypt );
-
-    delete pEncrypt;
+    testAuthenticate(*encrypt);
+    testEncrypt(*encrypt);
 }
 
-void EncryptTest::testRC4v2_96() 
+TEST_CASE("testAESV2")
 {
-    PdfEncrypt* pEncrypt = PdfEncrypt::CreatePdfEncrypt( "user", "podofo", m_protection, 
-                                                         PdfEncrypt::ePdfEncryptAlgorithm_RC4V2, 
-                                                         PdfEncrypt::ePdfKeyLength_96 );
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+        PdfEncryptAlgorithm::AESV2,
+        PdfKeyLength::L128);
 
-    TestAuthenticate( pEncrypt, 96, 3 );
-    TestEncrypt( pEncrypt );
-
-    delete pEncrypt;
-}
-
-void EncryptTest::testRC4v2_128() 
-{
-    PdfEncrypt* pEncrypt = PdfEncrypt::CreatePdfEncrypt( "user", "podofo", m_protection, 
-                                                         PdfEncrypt::ePdfEncryptAlgorithm_RC4V2, 
-                                                         PdfEncrypt::ePdfKeyLength_128 );
-
-    TestAuthenticate( pEncrypt, 128, 3 );
-    TestEncrypt( pEncrypt );
-
-    delete pEncrypt;
-}
-#endif // PODOFO_HAVE_OPENSSL_NO_RC4
-
-void EncryptTest::testAESV2() 
-{
-    PdfEncrypt* pEncrypt = PdfEncrypt::CreatePdfEncrypt( "user", "podofo", m_protection, 
-                                                         PdfEncrypt::ePdfEncryptAlgorithm_AESV2, 
-                                                         PdfEncrypt::ePdfKeyLength_128 );
-
-    TestAuthenticate( pEncrypt, 128, 4 );
+    testAuthenticate(*encrypt);
     // AES decryption is not yet implemented.
     // Therefore we have to disable this test.
-    // TestEncrypt( pEncrypt );
-
-    delete pEncrypt;
+    //TestEncrypt(encrypt);
 }
 
 #ifdef PODOFO_HAVE_LIBIDN
-void EncryptTest::testAESV3() 
+
+TEST_CASE("testAESV3")
 {
-    PdfEncrypt* pEncrypt = PdfEncrypt::CreatePdfEncrypt( "user", "podofo", m_protection, 
-                                                        PdfEncrypt::ePdfEncryptAlgorithm_AESV3, 
-                                                        PdfEncrypt::ePdfKeyLength_256 );
-    
-    TestAuthenticate( pEncrypt, 256, 5 );
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+        PdfEncryptAlgorithm::AESV3,
+        PdfKeyLength::L256);
+
+    testAuthenticate(*encrypt);
     // AES decryption is not yet implemented.
     // Therefore we have to disable this test.
-    // TestEncrypt( pEncrypt );
-    
-    delete pEncrypt;
+    //TestEncrypt(encrypt);
 }
 
-void EncryptTest::testAESV3R6()
+TEST_CASE("testAESV3R6")
 {
-    PdfEncrypt* pEncrypt = PdfEncrypt::CreatePdfEncrypt( "user", "podofo", m_protection,
-                                                        PdfEncrypt::ePdfEncryptAlgorithm_AESV3R6,
-                                                        PdfEncrypt::ePdfKeyLength_256 );
+    auto encrypt = PdfEncrypt::Create(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+        PdfEncryptAlgorithm::AESV3R6,
+        PdfKeyLength::L256);
 
-    TestAuthenticate( pEncrypt, 256, 5 );
+    testAuthenticate(*encrypt);
     // AES decryption is not yet implemented.
     // Therefore we have to disable this test.
-    // TestEncrypt( pEncrypt );
-
-    delete pEncrypt;
+    //TestEncrypt(encrypt);
 }
+
 #endif // PODOFO_HAVE_LIBIDN
 
-void EncryptTest::TestAuthenticate( PdfEncrypt* pEncrypt, int PODOFO_UNUSED_PARAM(keyLength), int PODOFO_UNUSED_PARAM(rValue) ) 
+TEST_CASE("testEnableAlgorithms")
 {
-    PdfString documentId;
-    documentId.SetHexData( "BF37541A9083A51619AD5924ECF156DF", 32 );
-
-    pEncrypt->GenerateEncryptionKey( documentId );
-
-    CPPUNIT_ASSERT_EQUAL_MESSAGE( "authenticate using user password",
-                                 pEncrypt->Authenticate(std::string("user"), documentId),
-                                 true );
-    CPPUNIT_ASSERT_EQUAL_MESSAGE( "authenticate using wrong user password",
-                                 pEncrypt->Authenticate(std::string("wrongpassword"), documentId),
-                                 false );
-    CPPUNIT_ASSERT_EQUAL_MESSAGE( "authenticate using owner password",
-                                 pEncrypt->Authenticate(std::string("podofo"), documentId),
-                                 true );
-    CPPUNIT_ASSERT_EQUAL_MESSAGE( "authenticate using wrong owner password",
-                                 pEncrypt->Authenticate(std::string("wrongpassword"), documentId),
-                                 false );
-}
-
-void EncryptTest::TestEncrypt( PdfEncrypt* pEncrypt ) 
-{
-    pEncrypt->SetCurrentReference( PdfReference( 7, 0 ) );
-    
-    pdf_long nOutputLen = pEncrypt->CalculateStreamLength(m_lLen);
-
-    unsigned char *pEncryptedBuffer = new unsigned char[nOutputLen];
-    unsigned char *pDecryptedBuffer = new unsigned char[nOutputLen];
-
-    // Encrypt buffer
-    try {
-        pEncrypt->Encrypt( reinterpret_cast<unsigned char*>(m_pEncBuffer), m_lLen, pEncryptedBuffer, nOutputLen );
-    } catch (PdfError &e) {
-        CPPUNIT_FAIL(e.ErrorMessage(e.GetError()));
-    }
-    
-    // Decrypt buffer
-    try {
-        pEncrypt->Decrypt( pEncryptedBuffer, nOutputLen, pDecryptedBuffer, m_lLen );
-    } catch (PdfError &e) {
-        CPPUNIT_FAIL(e.ErrorMessage(e.GetError()));
-    }
-
-    CPPUNIT_ASSERT_EQUAL_MESSAGE( "compare encrypted and decrypted buffers",
-                                  0, memcmp( m_pEncBuffer, pDecryptedBuffer, m_lLen ) );
-
-    delete[] pEncryptedBuffer;
-    delete[] pDecryptedBuffer;
-}
-
-void EncryptTest::testLoadEncrypedFilePdfParser()
-{
-    std::string sFilename = TestUtils::getTempFilename();
-
-    try {
-        CreateEncryptedPdf( sFilename.c_str() );
-    
-        // Try loading with PdfParser
-        PdfVecObjects objects;
-        PdfParser     parser( &objects );
-
-        try {
-            parser.ParseFile( sFilename.c_str(), true );
-
-            // Must throw an exception
-            CPPUNIT_FAIL("Encrypted file not recognized!");
-        } catch( PdfError & e ) {
-            if( e.GetError() != ePdfError_InvalidPassword ) 
-            {
-                CPPUNIT_FAIL("Invalid encryption exception thrown!");
-            }
-        }
-
-        parser.SetPassword( "user" );
-    } catch( PdfError & e ) {
-        e.PrintErrorMsg();
-
-        printf("Removing temp file: %s\n", sFilename.c_str());
-        TestUtils::deleteFile(sFilename.c_str());
-        throw e;
-    }
-
-    printf("Removing temp file: %s\n", sFilename.c_str());
-    TestUtils::deleteFile(sFilename.c_str());
-}
-
-void EncryptTest::testLoadEncrypedFilePdfMemDocument()
-{
-    std::string sFilename = TestUtils::getTempFilename();
-
-    try {
-        CreateEncryptedPdf( sFilename.c_str() );
-    
-        // Try loading with PdfParser
-        PdfMemDocument document;
-        try {
-            document.Load( sFilename.c_str() );
-
-            // Must throw an exception
-            CPPUNIT_FAIL("Encrypted file not recognized!");
-        } catch( PdfError & e ) {
-            if( e.GetError() != ePdfError_InvalidPassword ) 
-            {
-                CPPUNIT_FAIL("Invalid encryption exception thrown!");
-            }
-        }
-        
-        document.SetPassword( "user" );
-
-    } catch( PdfError & e ) {
-        e.PrintErrorMsg();
-
-        printf("Removing temp file: %s\n", sFilename.c_str());
-        TestUtils::deleteFile(sFilename.c_str());
-
-        throw e;
-    }
-
-    printf("Removing temp file: %s\n", sFilename.c_str());
-    TestUtils::deleteFile(sFilename.c_str());
-}
-
-void EncryptTest::CreateEncryptedPdf( const char* pszFilename )
-{
-    PdfMemDocument  writer;
-    PdfPage* pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    PdfPainter painter;
-    painter.SetPage( pPage );
-
-    PdfFont* pFont = NULL;
-    try {
-        pFont = writer.CreateFont( "Arial", PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), false );
-    } catch( PdfError & e ) {
-        pFont = writer.CreateFont( "Helvetica", PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), false );
-    }
-    if( !pFont )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-    pFont->SetFontSize( 16.0 );
-    painter.SetFont( pFont );
-    painter.DrawText( 100, 100, "Hello World" );
-    painter.FinishPage();
-
-    writer.SetEncrypted( "user", "owner" );
-    writer.Write( pszFilename );
-
-    printf( "Wrote: %s (R=%i)\n", pszFilename, writer.GetEncrypt()->GetRevision() );
-}
-
-void EncryptTest::testEnableAlgorithms()
-{
-    int nDefault = PdfEncrypt::GetEnabledEncryptionAlgorithms();
+    auto enabledAlgorithms = PdfEncrypt::GetEnabledEncryptionAlgorithms();
 
     // By default every algorithms should be enabled
-#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
-    CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 ) );
-    CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_RC4V2 ) );
-#endif // PODOFO_HAVE_OPENSSL_NO_RC4
-    CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_AESV2 ) );
+    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V1));
+    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V2));
+    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV2));
 #ifdef PODOFO_HAVE_LIBIDN
-    CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_AESV3 ) );
-    CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_AESV3R6 ) );
+    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3));
+    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3R6));
 #endif // PODOFO_HAVE_LIBIDN
 
-    int testAlgorithms = PdfEncrypt::ePdfEncryptAlgorithm_AESV2;
-#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
-    testAlgorithms |= PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 | PdfEncrypt::ePdfEncryptAlgorithm_RC4V2;
-#endif // PODOFO_HAVE_OPENSSL_NO_RC4
+    PdfEncryptAlgorithm testAlgorithms = PdfEncryptAlgorithm::AESV2;
+    testAlgorithms |= PdfEncryptAlgorithm::RC4V1 | PdfEncryptAlgorithm::RC4V2;
 #ifdef PODOFO_HAVE_LIBIDN
-    testAlgorithms |= PdfEncrypt::ePdfEncryptAlgorithm_AESV3 | PdfEncrypt::ePdfEncryptAlgorithm_AESV3R6;
+    testAlgorithms |= PdfEncryptAlgorithm::AESV3 | PdfEncryptAlgorithm::AESV3R6;;
 #endif // PODOFO_HAVE_LIBIDN
-    CPPUNIT_ASSERT_EQUAL( testAlgorithms, PdfEncrypt::GetEnabledEncryptionAlgorithms() );
+    REQUIRE(testAlgorithms == PdfEncrypt::GetEnabledEncryptionAlgorithms());
 
     // Disable AES
-#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
-    PdfEncrypt::SetEnabledEncryptionAlgorithms( PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 |
-                                                PdfEncrypt::ePdfEncryptAlgorithm_RC4V2 );
+    PdfEncrypt::SetEnabledEncryptionAlgorithms(PdfEncryptAlgorithm::RC4V1 |
+        PdfEncryptAlgorithm::RC4V2);
 
-    CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 ) );
-    CPPUNIT_ASSERT( PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_RC4V2 ) );
-#endif // PODOFO_HAVE_OPENSSL_NO_RC4
-    CPPUNIT_ASSERT( !PdfEncrypt::IsEncryptionEnabled( PdfEncrypt::ePdfEncryptAlgorithm_AESV2 ) );
+    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V1));
+    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V2));
+    REQUIRE(!PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV2));
 
-#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
-    CPPUNIT_ASSERT_EQUAL( PdfEncrypt::ePdfEncryptAlgorithm_RC4V1 |
-                          PdfEncrypt::ePdfEncryptAlgorithm_RC4V2,
-                          PdfEncrypt::GetEnabledEncryptionAlgorithms() );
-#endif // PODOFO_HAVE_OPENSSL_NO_RC4
-
+    REQUIRE((PdfEncryptAlgorithm::RC4V1 | PdfEncryptAlgorithm::RC4V2) ==
+        PdfEncrypt::GetEnabledEncryptionAlgorithms());
 
     PdfObject object;
-    object.GetDictionary().AddKey(PdfName("Filter"), PdfName("Standard"));
-    object.GetDictionary().AddKey(PdfName("V"), static_cast<pdf_int64>(4L));
-    object.GetDictionary().AddKey(PdfName("R"), static_cast<pdf_int64>(4L));
-    object.GetDictionary().AddKey(PdfName("P"), static_cast<pdf_int64>(1L));
-    object.GetDictionary().AddKey(PdfName("O"), PdfString(""));
-    object.GetDictionary().AddKey(PdfName("U"), PdfString(""));
+    object.GetDictionary().AddKey("Filter", PdfName("Standard"));
+    object.GetDictionary().AddKey("V", static_cast<int64_t>(4L));
+    object.GetDictionary().AddKey("R", static_cast<int64_t>(4L));
+    object.GetDictionary().AddKey("P", static_cast<int64_t>(1L));
+    object.GetDictionary().AddKey("O", PdfString(""));
+    object.GetDictionary().AddKey("U", PdfString(""));
 
-    try {
-        (void)PdfEncrypt::CreatePdfEncrypt( &object );
-        CPPUNIT_ASSERT( false );
-    } catch( PdfError & rError ) {
-        CPPUNIT_ASSERT_EQUAL( rError.GetError(), ePdfError_UnsupportedFilter );
+    try
+    {
+        (void)PdfEncrypt::CreateFromObject(object);
+        REQUIRE(false);
+    }
+    catch (PdfError& error)
+    {
+        REQUIRE(error.GetError() == PdfErrorCode::UnsupportedFilter);
     }
 
     // Restore default
-    PdfEncrypt::SetEnabledEncryptionAlgorithms( nDefault );
+    PdfEncrypt::SetEnabledEncryptionAlgorithms(enabledAlgorithms);
 }
 
+TEST_CASE("testLoadEncrypedFilePdfParser")
+{
+    string tempFile = TestUtils::GetTestOutputFilePath("testLoadEncrypedFilePdfParser.pdf");
+    createEncryptedPdf(tempFile);
 
-                                  /*
+    auto device = std::make_shared<FileStreamDevice>(tempFile);
+    // Try loading with PdfParser
+    PdfIndirectObjectList objects;
+    PdfParser parser(objects);
 
+    try
+    {
+        parser.Parse(*device, true);
 
-    PdfMemoryOutputStream mem( lLen );
-    PdfOutputStream* pStream = enc.CreateEncryptionOutputStream( &mem ); 
-    pStream->Write( pBuffer1, strlen( pBuffer1 ) );
-    pStream->Write( pBuffer2, strlen( pBuffer2 ) );
-    pStream->Write( pBuffer2, strlen( pBuffer2 ) );
-    pStream->Close();
+        // Must throw an exception
+        FAIL("Encrypted file not recognized!");
+    }
+    catch (PdfError& e)
+    {
+        if (e.GetError() != PdfErrorCode::InvalidPassword)
+            FAIL("Invalid encryption exception thrown!");
+    }
 
-    printf("Result: %i \n", memcmp( pEncBuffer, mem.TakeBuffer(), lLen ) );
+    parser.SetPassword(PDF_USER_PASSWORD);
+}
 
+TEST_CASE("testLoadEncrypedFilePdfMemDocument")
+{
+    string tempFile = TestUtils::GetTestOutputFilePath("testLoadEncrypedFilePdfMemDocument.pdf");
+    createEncryptedPdf(tempFile);
 
-    enc.Encrypt( reinterpret_cast<unsigned char*>(pEncBuffer), lLen );
-    printf("Decrypted buffer: %s\n", pEncBuffer );
-    */
+    // Try loading with PdfParser
+    PdfMemDocument document;
+    try
+    {
+        document.Load(tempFile);
 
+        // Must throw an exception
+        FAIL("Encrypted file not recognized!");
+    }
+    catch (...)
+    {
+
+    }
+
+    document.Load(tempFile, PDF_USER_PASSWORD);
+}
+
+void testAuthenticate(PdfEncrypt& encrypt)
+{
+    PdfString documentId = PdfString::FromHexData("BF37541A9083A51619AD5924ECF156DF");
+
+    encrypt.GenerateEncryptionKey(documentId);
+
+    INFO("authenticate using user password");
+    REQUIRE(encrypt.Authenticate(PDF_USER_PASSWORD, documentId));
+    INFO("authenticate using owner password");
+    REQUIRE(encrypt.Authenticate(PDF_OWNER_PASSWORD, documentId));
+    INFO("authenticate using wrong password");
+    REQUIRE(!encrypt.Authenticate("wrongpassword", documentId));
+}
+
+void testEncrypt(PdfEncrypt& encrypt)
+{
+    charbuff encrypted;
+    // Encrypt buffer
+    try
+    {
+        encrypt.EncryptTo(encrypted, s_encBuffer, PdfReference(7, 0));
+    }
+    catch (PdfError& e)
+    {
+        FAIL(e.ErrorMessage(e.GetError()));
+    }
+
+    charbuff decrypted;
+    // Decrypt buffer
+    try
+    {
+        encrypt.DecryptTo(decrypted, encrypted, PdfReference(7, 0));
+    }
+    catch (PdfError& e)
+    {
+        FAIL(e.ErrorMessage(e.GetError()));
+    }
+
+    INFO("compare encrypted and decrypted buffers");
+    REQUIRE(memcmp(s_encBuffer.data(), decrypted.data(), s_encBuffer.size()) == 0);
+}
+
+void createEncryptedPdf(const string_view& filename)
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    PdfPainter painter;
+    painter.SetCanvas(page);
+
+    auto font = doc.GetFonts().GetFont("LiberationSans");
+    if (font == nullptr)
+        FAIL("Coult not find Arial font");
+
+    painter.GetTextState().SetFont(*font, 16);
+    painter.DrawText("Hello World", 100, 100);
+    painter.FinishDrawing();
+
+    doc.SetEncrypted(PDF_USER_PASSWORD, "owner");
+    doc.Save(filename);
+
+    INFO(utls::Format("Wrote: {} (R={})", filename, doc.GetEncrypt()->GetRevision()));
+}

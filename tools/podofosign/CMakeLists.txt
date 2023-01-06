@@ -1,14 +1,16 @@
-ADD_EXECUTABLE(podofosign podofosign.cpp)
+add_executable(podofosign podofosign.cpp)
+include_directories(${OPENSSL_INCLUDE_DIR})
 
-TARGET_INCLUDE_DIRECTORIES(podofosign PUBLIC ${LIBCRYPTO_INCLUDE_DIR})
+set (PLATFORM_LIBRARIES)
+if (WIN32)
+    set (PLATFORM_LIBRARIES Ws2_32)
+endif()
 
-TARGET_LINK_LIBRARIES(podofosign
-	${LIBCRYPTO_LDFLAGS}
-	${LIBCRYPTO_LIBRARIES}
-	${OPENSSL_LIBRARIES}
-	${PODOFO_LIB}
+target_link_libraries(podofosign
+	${PODOFO_LIBRARIES}
+	podofo_private
+    ${OPENSSL_CRYPTO_LIBRARIES}
+    ${PLATFORM_LIBRARIES}
 )
-SET_TARGET_PROPERTIES(podofosign PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
-ADD_DEPENDENCIES(podofosign ${PODOFO_DEPEND_TARGET})
-INSTALL(TARGETS podofosign
-	RUNTIME DESTINATION "bin")
+
+install(TARGETS podofosign RUNTIME DESTINATION "bin")

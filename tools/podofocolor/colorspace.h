@@ -21,7 +21,7 @@
 #ifndef _COLORSPACE_H_
 #define _COLORSPACE_H_
 
-#include <podofo.h>
+#include <podofo/podofo.h>
 
 /**
  * A more powerful representation
@@ -60,7 +60,7 @@ public:
      * enum.
      * \returns enum value if possible or ePdfColorSpace_Unknown
      */
-    PoDoFo::EPdfColorSpace ConvertToPdfColorSpace() const;
+    PoDoFo::PdfColorSpace ConvertToPdfColorSpace() const;
 
     /**
      * Retrieve the internal name.

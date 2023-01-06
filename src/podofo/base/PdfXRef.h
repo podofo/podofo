@@ -1,210 +1,178 @@
-/***************************************************************************
- *   Copyright (C) 2007 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2007 Dominik Seichter <domseichter@web.de>
+ * SPDX-FileCopyrightText: (C) 2020 Francesco Pretto <ceztko@gmail.com>
+ * SPDX-License-Identifier: LGPL-2.0-or-later
+ */
 
-#ifndef _PDF_XREF_H_
-#define _PDF_XREF_H_
+#ifndef PDF_XREF_H
+#define PDF_XREF_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfReference.h"
+#include "PdfXRefEntry.h"
 
 namespace PoDoFo {
 
-#define EMPTY_OBJECT_OFFSET   65535
-
-class PdfOutputDevice;
+class PdfWriter;
 
 /**
  * Creates an XRef table.
  *
  * This is an internal class of PoDoFo used by PdfWriter.
  */
-class PdfXRef {
- protected:
-    struct TXRefItem{
-        TXRefItem( const PdfReference & rRef, const pdf_uint64 & off ) 
-            : reference( rRef ), offset( off )
-            {
-            }
+class PdfXRef
+{
+protected:
+    struct XRefItem
+    {
+        XRefItem(const PdfReference& ref, uint64_t off)
+            : Reference(ref), Offset(off) { }
 
-        PdfReference reference;
-        pdf_uint64   offset;
+        PdfReference Reference;
+        uint64_t Offset;
 
-        bool operator<( const TXRefItem & rhs ) const
+        bool operator<(const XRefItem& rhs) const
         {
-            return this->reference < rhs.reference;
+            return this->Reference < rhs.Reference;
         }
     };
 
-    typedef std::vector<TXRefItem>         TVecXRefItems;
-    typedef TVecXRefItems::iterator        TIVecXRefItems;
-    typedef TVecXRefItems::const_iterator  TCIVecXRefItems;
+    using XRefItemList = std::vector<XRefItem>;
+    using ReferenceList = std::vector<PdfReference>;
 
-    typedef std::vector<PdfReference>      TVecReferences;
-    typedef TVecReferences::iterator       TIVecReferences;
-    typedef TVecReferences::const_iterator TCIVecReferences;
+    struct PdfXRefBlock
+    {
+        PdfXRefBlock()
+            : First(0), Count(0) { }
 
-    class PdfXRefBlock {
-    public:
-        PdfXRefBlock() 
-            : m_nFirst( 0 ), m_nCount( 0 )
+        PdfXRefBlock(const PdfXRefBlock& rhs) = default;
+
+        bool InsertItem(const PdfReference& ref, nullable<uint64_t> offset, bool bUsed);
+
+        bool operator<(const PdfXRefBlock& rhs) const
         {
+            return First < rhs.First;
         }
 
-        PdfXRefBlock( const PdfXRefBlock & rhs )
-            : m_nFirst( 0 ), m_nCount( 0 )
-        {
-            this->operator=( rhs );
-        }
-        
-        bool InsertItem( const TXRefItem & rItem, bool bUsed );
+        PdfXRefBlock& operator=(const PdfXRefBlock& rhs) = default;
 
-        bool operator<( const PdfXRefBlock & rhs ) const
-        {
-            return m_nFirst < rhs.m_nFirst;
-        }
-
-        const PdfXRefBlock & operator=( const PdfXRefBlock & rhs )
-        {
-            m_nFirst  = rhs.m_nFirst;
-            m_nCount  = rhs.m_nCount;
-            
-            items     = rhs.items;
-            freeItems = rhs.freeItems;
-
-            return *this;
-        }
-
-        pdf_objnum   m_nFirst;
-        pdf_uint32   m_nCount;
-        
-        TVecXRefItems items;
-        TVecReferences freeItems;
+        uint32_t First;
+        uint32_t Count;
+        XRefItemList Items;
+        ReferenceList FreeItems;
     };
-    
-    typedef std::vector<PdfXRefBlock>      TVecXRefBlock;
-    typedef TVecXRefBlock::iterator        TIVecXRefBlock;
-    typedef TVecXRefBlock::const_iterator  TCIVecXRefBlock;
 
- public:
-    /** Create a new XRef table
-     */
-    PdfXRef();
+    using XRefBlockList = std::vector<PdfXRefBlock>;
 
-    /** Destruct the XRef table
-     */
+public:
+    PdfXRef(PdfWriter& pWriter);
     virtual ~PdfXRef();
 
-    /** Add an object to the XRef table.
+public:
+
+    /** Add an used object to the XRef table.
      *  The object should have been written to an output device already.
-     *  
-     *  \param rRef reference of this object
+     *
+     *  \param ref reference of this object
      *  \param offset the offset where on the device the object was written
-     *  \param bUsed specifies wether this is an used or free object.
+     *                if std::nullopt, the object will be accounted for
+     *                 trailer's /Size but not written in the entries list
+     */
+    void AddInUseObject(const PdfReference& ref, nullable<uint64_t> offset);
+
+    /** Add a free object to the XRef table.
+     *
+     *  \param ref reference of this object
+     *  \param offset the offset where on the device the object was written
+     *  \param bUsed specifies whether this is an used or free object.
      *               Set this value to true for all normal objects and to false
      *               for free object references.
      */
-    void AddObject( const PdfReference & rRef, pdf_uint64 offset, bool bUsed );
+    void AddFreeObject(const PdfReference& ref);
 
     /** Write the XRef table to an output device.
-     * 
-     *  \param pDevice an output device (usually a PDF file)
+     *
+     *  \param device an output device (usually a PDF file)
      *
      */
-    void Write( PdfOutputDevice* pDevice );
+    void Write(OutputStreamDevice& device, charbuff& buffer);
 
     /** Get the size of the XRef table.
      *  I.e. the highest object number + 1.
      *
      *  \returns the size of the xref table
      */
-    pdf_uint32 GetSize() const;
-
-    /**
-     * \returns the offset in the file at which the XRef table
-     *          starts after it was written
-     */
-    inline virtual pdf_uint64 GetOffset() const;
+    uint32_t GetSize() const;
 
     /**
      * Mark as empty block.
      */
     void SetFirstEmptyBlock();
 
- protected:
+    /** Should skip writing for this object
+     *  \param ref reference of the object
+     */
+    virtual bool ShouldSkipWrite(const PdfReference& ref);
+
+public:
+    inline PdfWriter& GetWriter() const { return *m_writer; }
+
+    /**
+     * \returns the offset in the file at which the XRef table
+     *          starts after it was written
+     */
+    inline virtual uint64_t GetOffset() const { return m_offset; }
+
+protected:
     /** Called at the start of writing the XRef table.
      *  This method can be overwritten in subclasses
      *  to write a general header for the XRef table.
      *
-     *  @param pDevice the output device to which the XRef table 
+     *  \param device the output device to which the XRef table
      *                 should be written.
      */
-    virtual void BeginWrite( PdfOutputDevice* pDevice );
+    virtual void BeginWrite(OutputStreamDevice& device, charbuff& buffer);
 
     /** Begin an XRef subsection.
      *  All following calls of WriteXRefEntry belong to this XRef subsection.
      *
-     *  @param pDevice the output device to which the XRef table 
+     *  \param device the output device to which the XRef table
      *                 should be written.
-     *  @param nFirst the object number of the first object in this subsection
-     *  @param nCount the number of entries in this subsection
+     *  \param first the object number of the first object in this subsection
+     *  \param count the number of entries in this subsection
      */
-    virtual void WriteSubSection( PdfOutputDevice* pDevice, pdf_objnum nFirst, pdf_uint32 nCount );
+    virtual void WriteSubSection(OutputStreamDevice& device, uint32_t first, uint32_t count, charbuff& buffer);
 
     /** Write a single entry to the XRef table
-     *  
-     *  @param pDevice the output device to which the XRef table 
+     *
+     *  \param device the output device to which the XRef table
      *                 should be written.
-     *  @param offset the offset of the object
-     *  @param generation the generation number
-     *  @param cMode the mode 'n' for object and 'f' for free objects
-     *  @param objectNumber the object number of the currently written object if cMode = 'n' 
-     *                       otherwise undefined
+     *  \param ref the reference of object of the entry
+     *  \param entry the XRefEntry of this object
      */
-    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, pdf_uint64 offset, pdf_gennum generation, 
-                                 char cMode, pdf_objnum objectNumber = 0 );
+    virtual void WriteXRefEntry(OutputStreamDevice& device, const PdfReference& ref, const PdfXRefEntry& entry, charbuff& buffer);
+
+    /**  Sub classes can overload this method to finish a XRef table.
+     *
+     *  \param device the output device to which the XRef table
+     *                 should be written.
+     */
+    virtual void EndWriteImpl(OutputStreamDevice& device, charbuff& buffer);
+
+private:
+    void addObject(const PdfReference& ref, nullable<uint64_t> offset, bool inUse);
 
     /** Called at the end of writing the XRef table.
      *  Sub classes can overload this method to finish a XRef table.
      *
-     *  @param pDevice the output device to which the XRef table 
+     *  \param device the output device to which the XRef table
      *                 should be written.
      */
-    virtual void EndWrite( PdfOutputDevice* pDevice );
+    void endWrite(OutputStreamDevice& device, charbuff& buffer);
 
- private:
-    const PdfReference* GetFirstFreeObject( PdfXRef::TCIVecXRefBlock itBlock, PdfXRef::TCIVecReferences itFree ) const;
-    const PdfReference* GetNextFreeObject( PdfXRef::TCIVecXRefBlock itBlock, PdfXRef::TCIVecReferences itFree ) const;
+    const PdfReference* getFirstFreeObject(XRefBlockList::const_iterator itBlock, ReferenceList::const_iterator itFree) const;
+    const PdfReference* getNextFreeObject(XRefBlockList::const_iterator itBlock, ReferenceList::const_iterator itFree) const;
 
     /** Merge all xref blocks that follow immediately after each other
      *  into a single block.
@@ -212,23 +180,15 @@ class PdfXRef {
      *  This results in slightly smaller PDF files which are easier to parse
      *  for other applications.
      */
-    void MergeBlocks();
+    void mergeBlocks();
 
- private:
-    pdf_uint64 m_offset;
-
- protected:
-    TVecXRefBlock  m_vecBlocks;
+private:
+    uint32_t m_maxObjCount;
+    XRefBlockList m_blocks;
+    PdfWriter* m_writer;
+    uint64_t m_offset;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline pdf_uint64 PdfXRef::GetOffset() const
-{
-    return m_offset;
-}
 
 };
 
-#endif /* _PDF_XREF_H_ */
+#endif // PDF_XREF_H

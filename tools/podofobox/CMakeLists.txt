@@ -1,7 +1,5 @@
-ADD_EXECUTABLE(podofobox podofobox.cpp boxsetter.cpp)
-
-TARGET_LINK_LIBRARIES(podofobox ${PODOFO_LIB})
-SET_TARGET_PROPERTIES(podofobox PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
-ADD_DEPENDENCIES(podofobox ${PODOFO_DEPEND_TARGET})
-INSTALL(TARGETS podofobox
-	RUNTIME DESTINATION "bin")
+file(GLOB SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.h" "*.cpp")
+source_group("" FILES ${SOURCE_FILES})
+add_executable(podofobox ${SOURCE_FILES})
+target_link_libraries(podofobox ${PODOFO_LIBRARIES})
+install(TARGETS podofobox RUNTIME DESTINATION "bin")

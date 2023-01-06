@@ -1,46 +1,42 @@
-/***************************************************************************
- *   Copyright (C) 2007 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2007 Dominik Seichter <domseichter@web.de>
+ * SPDX-FileCopyrightText: (C) 2020 Francesco Pretto <ceztko@gmail.com>
+ * SPDX-License-Identifier: LGPL-2.0-or-later
+ */
 
+#include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfData.h"
 
 #include "PdfOutputDevice.h"
-#include "PdfDefinesPrivate.h"
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
-void PdfData::Write( PdfOutputDevice* pDevice, EPdfWriteMode, const PdfEncrypt* ) const
+PdfData::PdfData() { }
+
+PdfData::PdfData(charbuff&& data, const shared_ptr<size_t>& writeBeacon)
+    : m_data(std::move(data)), m_writeBeacon(writeBeacon)
 {
-    pDevice->Write( m_sData.c_str(), m_sData.length() );
 }
 
-};
+PdfData::PdfData(const bufferview& data, const shared_ptr<size_t>& writeBeacon)
+    : m_data(charbuff(data)), m_writeBeacon(writeBeacon)
+{
+}
+
+PdfData& PdfData::operator=(const bufferview& data)
+{
+    m_data = data;
+    return *this;
+}
+
+void PdfData::Write(OutputStreamDevice& device, PdfWriteFlags,
+    const PdfStatefulEncrypt& encrypt, charbuff& buffer) const
+{
+    (void)encrypt;
+    (void)buffer;
+    if (m_writeBeacon != nullptr)
+        *m_writeBeacon = device.GetPosition();
+
+    device.Write(m_data);
+}

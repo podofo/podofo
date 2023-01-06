@@ -23,7 +23,7 @@
 
 #include <string>
 #include <vector>
-#include <podofo.h>
+#include <podofo/podofo.h>
 
 class IConverter;
 class GraphicsStack;
@@ -32,10 +32,11 @@ class GraphicsStack;
  * This class provides a tool to change all colors
  * in a PDF file.
  */
-class ColorChanger {
-
+class ColorChanger
+{
 public:
-    enum EKeywordType {
+    enum EKeywordType
+    {
         eKeyword_GraphicsStack_Push,
         eKeyword_GraphicsStack_Pop,
 
@@ -63,7 +64,8 @@ public:
     /**
      * KWInfo describes a single PDF keyword's characteristics. See kwInfo[] .
      */
-    struct KWInfo {
+    struct KWInfo
+    {
         ColorChanger::EKeywordType eKeywordType;
         /// null-terminated keyword text
         const char pszText[6];
@@ -79,7 +81,7 @@ public:
      * @param sInput the input PDF file
      * @param sOutput write output to this filename
      */
-    ColorChanger( IConverter* pConvert, const std::string & sInput, const std::string & sOutput );
+    ColorChanger(IConverter* convert, const std::string& input, const std::string& output);
 
     /**
      * Start processing the input file.
@@ -91,22 +93,22 @@ private:
      * Replace all colors in the given page.
      * @param pPage may not be NULL
      */
-    void ReplaceColorsInPage( PoDoFo::PdfCanvas* pPage );
+    void ReplaceColorsInPage(PoDoFo::PdfCanvas& page);
 
     /**
      * Convert a keyword name to a keyword typee
      * @param pszKeyword name of a keyword
      * @return the keyword type or eKeywordType_Undefined if unknown
      */
-    const KWInfo* FindKeyWordByName(const char* pszKeyword);
+    const KWInfo* FindKeyWordByName(const std::string_view& keyword);
 
-    PoDoFo::PdfColor GetColorFromStack( int nArgs, std::vector<PoDoFo::PdfVariant> & args );
-    void PutColorOnStack( const PoDoFo::PdfColor & rColor, std::vector<PoDoFo::PdfVariant> 
-& args );
+    PoDoFo::PdfColor GetColorFromStack(int argCount, std::vector<PoDoFo::PdfVariant>& args);
+    void PutColorOnStack(const PoDoFo::PdfColor& color, std::vector<PoDoFo::PdfVariant>
+        & args);
 
-    const char* ProcessColor( EKeywordType eKeywordType, int nNumArgs, std::vector<PoDoFo::PdfVariant> & args, GraphicsStack & rGraphicsStack );
+    const char* ProcessColor(EKeywordType keywordType, int numArgs, std::vector<PoDoFo::PdfVariant>& args, GraphicsStack& graphicsStack);
 
-    const char* GetKeywordForColor( const PoDoFo::PdfColor & rColor, bool bIsStroking );
+    const char* GetKeywordForColor(const PoDoFo::PdfColor& color, bool isStroking);
 
     /** Write a list of arguments and optionally a keyword
      *  to an output device
@@ -115,22 +117,21 @@ private:
      *  @param pszKeyword a keyword or NULL to be written after the arguments
      *  @param rDevice output device
      */
-    void WriteArgumentsAndKeyword( std::vector<PoDoFo::PdfVariant> & rArgs, const char* pszKeyword, PoDoFo::PdfOutputDevice & rDevice );
-
-
-    /**
-     * unused
-     */
-    PoDoFo::EPdfColorSpace GetColorSpaceForName( const PoDoFo::PdfName & rName, PoDoFo::PdfCanvas* pPage );
+    void WriteArgumentsAndKeyword(std::vector<PoDoFo::PdfVariant>& args, const std::string_view& keyword, PoDoFo::OutputStreamDevice& stream);
 
     /**
      * unused
      */
-    PoDoFo::EPdfColorSpace GetColorSpaceForArray( const PoDoFo::PdfArray & rArray, PoDoFo::PdfCanvas* pPage );
+    PoDoFo::PdfColorSpace GetColorSpaceForName(const PoDoFo::PdfName& name, PoDoFo::PdfCanvas& page);
+
+    /**
+     * unused
+     */
+    PoDoFo::PdfColorSpace GetColorSpaceForArray(const PoDoFo::PdfArray& arr, PoDoFo::PdfCanvas& page);
 private:
-    IConverter* m_pConverter;
-    std::string m_sInput;
-    std::string m_sOutput;
+    IConverter* m_converter;
+    std::string m_input;
+    std::string m_output;
 };
 
 #endif // _COLORCHANGER_H_

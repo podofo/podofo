@@ -1,35 +1,20 @@
-/***************************************************************************
- *   Copyright (C) 2010 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2010 Dominik Seichter <domseichter@web.de>
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
 #ifndef _ICONVERTER_H_
 #define _ICONVERTER_H_
 
-#include <podofo.h>
+#include <podofo/podofo.h>
 
-/**
- * Interface for a converter that can be used
- * together with a ColorChanger object
- * to convert colors in a PDF file.
- */
+ /**
+  * Interface for a converter that can be used
+  * together with a ColorChanger object
+  * to convert colors in a PDF file.
+  */
 class IConverter {
-    
+
 public:
     IConverter();
     virtual ~IConverter();
@@ -37,36 +22,36 @@ public:
     /**
      * A helper method that is called to inform the converter
      * when a new page is analyzed.
-     * 
-     * @param pPage page object
+     *
+     * @param page page object
      * @param nPageIndex index of the page in the document
      */
-    virtual void StartPage( PoDoFo::PdfPage* pPage, int nPageIndex ) = 0;
+    virtual void StartPage(PoDoFo::PdfPage& page, int pageIndex) = 0;
 
     /**
      * A helper method that is called to inform the converter
      * when a new page has been analyzed completely.
-     * 
-     * @param pPage page object
+     *
+     * @param page page object
      * @param nPageIndex index of the page in the document
      */
-    virtual void EndPage( PoDoFo::PdfPage* pPage, int nPageIndex ) = 0;
+    virtual void EndPage(PoDoFo::PdfPage& page, int pageIndex) = 0;
 
     /**
      * A helper method that is called to inform the converter
      * when a new xobjext is analyzed.
-     * 
-     * @param pObj the xobject
+     *
+     * @param obj the xobject
      */
-    virtual void StartXObject( PoDoFo::PdfXObject* pObj ) = 0;
+    virtual void StartXObject(PoDoFo::PdfXObject& obj) = 0;
 
     /**
      * A helper method that is called to inform the converter
      * when a xobjext has been analyzed.
-     * 
-     * @param pObj the xobject
+     *
+     * @param obj the xobject
      */
-    virtual void EndXObject( PoDoFo::PdfXObject* pObj ) = 0;
+    virtual void EndXObject(PoDoFo::PdfXObject& obj) = 0;
 
     /**
      * This method is called whenever a gray stroking color is set
@@ -75,7 +60,7 @@ public:
      * @param a grayscale color object
      * @returns a new color which should be set instead (any colorspace)
      */
-    virtual PoDoFo::PdfColor SetStrokingColorGray( const PoDoFo::PdfColor & rColor ) = 0;
+    virtual PoDoFo::PdfColor SetStrokingColorGray(const PoDoFo::PdfColor& color) = 0;
 
     /**
      * This method is called whenever a RGB stroking color is set
@@ -84,7 +69,7 @@ public:
      * @param a RGB color object
      * @returns a new color which should be set instead (any colorspace)
      */
-    virtual PoDoFo::PdfColor SetStrokingColorRGB( const PoDoFo::PdfColor & rColor ) = 0;
+    virtual PoDoFo::PdfColor SetStrokingColorRGB(const PoDoFo::PdfColor& color) = 0;
 
     /**
      * This method is called whenever a CMYK stroking color is set
@@ -93,7 +78,7 @@ public:
      * @param a CMYK color object
      * @returns a new color which should be set instead (any colorspace)
      */
-    virtual PoDoFo::PdfColor SetStrokingColorCMYK( const PoDoFo::PdfColor & rColor ) = 0;
+    virtual PoDoFo::PdfColor SetStrokingColorCMYK(const PoDoFo::PdfColor& color) = 0;
 
     /**
      * This method is called whenever a gray non-stroking color is set
@@ -102,7 +87,7 @@ public:
      * @param a grayscale color object
      * @returns a new color which should be set instead (any colorspace)
      */
-    virtual PoDoFo::PdfColor SetNonStrokingColorGray( const PoDoFo::PdfColor & rColor ) = 0;
+    virtual PoDoFo::PdfColor SetNonStrokingColorGray(const PoDoFo::PdfColor& color) = 0;
 
     /**
      * This method is called whenever a RGB non-stroking color is set
@@ -111,7 +96,7 @@ public:
      * @param a RGB color object
      * @returns a new color which should be set instead (any colorspace)
      */
-    virtual PoDoFo::PdfColor SetNonStrokingColorRGB( const PoDoFo::PdfColor & rColor ) = 0;
+    virtual PoDoFo::PdfColor SetNonStrokingColorRGB(const PoDoFo::PdfColor& color) = 0;
 
     /**
      * This method is called whenever a CMYK non-stroking color is set
@@ -120,7 +105,7 @@ public:
      * @param a CMYK color object
      * @returns a new color which should be set instead (any colorspace)
      */
-    virtual PoDoFo::PdfColor SetNonStrokingColorCMYK( const PoDoFo::PdfColor & rColor ) = 0;
+    virtual PoDoFo::PdfColor SetNonStrokingColorCMYK(const PoDoFo::PdfColor& color) = 0;
 
 };
 

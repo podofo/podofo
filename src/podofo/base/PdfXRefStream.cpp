@@ -1,122 +1,106 @@
-/***************************************************************************
- *   Copyright (C) 2007 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2007 Dominik Seichter <domseichter@web.de>
+ * SPDX-FileCopyrightText: (C) 2020 Francesco Pretto <ceztko@gmail.com>
+ * SPDX-License-Identifier: LGPL-2.0-or-later
+ */
 
+#include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfXRefStream.h"
 
 #include "PdfObject.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 #include "PdfWriter.h"
-#include "PdfDefinesPrivate.h"
+#include "PdfDictionary.h"
 
-#if defined(_AIX) || defined(__sun)
-#include <alloca.h>
-#elif defined(__APPLE__) || defined(__linux)
-#include <cstdlib>
-#elif defined(_WIN32)
-#include <malloc.h>
-#endif
+using namespace PoDoFo;
 
-namespace PoDoFo {
-
-PdfXRefStream::PdfXRefStream( PdfVecObjects* pParent, PdfWriter* pWriter )
-    : m_pParent( pParent ), m_pWriter( pWriter ), m_pObject( NULL )
-{
-    m_bufferLen = 2 + sizeof( pdf_uint32 );
-
-    m_pObject    = pParent->CreateObject( "XRef" );
-    m_offset    = 0;
-}
-
-PdfXRefStream::~PdfXRefStream()
+PdfXRefStream::PdfXRefStream(PdfWriter& writer) :
+    PdfXRef(writer),
+    m_xrefStreamEntryIndex(-1),
+    m_xrefStreamObj(&writer.GetObjects().CreateDictionaryObject("XRef")),
+    m_offset(-1)
 {
 }
 
-void PdfXRefStream::BeginWrite( PdfOutputDevice* )
+uint64_t PdfXRefStream::GetOffset() const
 {
-    m_pObject->GetStream()->BeginAppend();
+    if (m_offset < 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "XRefStm has not been written yet");
+
+    return (uint64_t)m_offset;
 }
 
-void PdfXRefStream::WriteSubSection( PdfOutputDevice*, pdf_objnum first, pdf_uint32 count )
+bool PdfXRefStream::ShouldSkipWrite(const PdfReference& ref)
 {
-    PdfError::DebugMessage("Writing XRef section: %u %u\n", first, count );
-
-    m_indeces.push_back( static_cast<pdf_int64>(first) );
-    m_indeces.push_back( static_cast<pdf_int64>(count) );
+    // We handle writing for the XRefStm object
+    if (m_xrefStreamObj->GetIndirectReference() == ref)
+        return true;
+    else
+        return false;
 }
 
-void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, pdf_uint64 offset, pdf_gennum generation, 
-                                    char cMode, pdf_objnum objectNumber ) 
+void PdfXRefStream::BeginWrite(OutputStreamDevice& device, charbuff& buffer)
 {
-    std::vector<char>	bytes(m_bufferLen);
-#if (defined(_MSC_VER)  &&  _MSC_VER < 1700) || (defined(__BORLANDC__))	// MSC before VC11 has no data member, same as BorlandC
-    char * buffer = &bytes[0];
-#else
-    char * buffer = bytes.data();
-#endif
-
-    if( cMode == 'n' && objectNumber == m_pObject->Reference().ObjectNumber() )
-        m_offset = offset;
-    
-    buffer[0]             = static_cast<char>( cMode == 'n' ? 1 : 0 );
-    buffer[m_bufferLen-1] = static_cast<char>( cMode == 'n' ? 0 : generation );
-
-    const pdf_uint32 offset_be = ::PoDoFo::compat::podofo_htonl(static_cast<pdf_uint32>(offset));
-    memcpy( &buffer[1], reinterpret_cast<const char*>(&offset_be), sizeof(pdf_uint32) );
-
-    m_pObject->GetStream()->Append( buffer, m_bufferLen );
+    (void)device;
+    (void)buffer;
+    // Do nothing
 }
 
-void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
+void PdfXRefStream::WriteSubSection(OutputStreamDevice& device, uint32_t first, uint32_t count, charbuff& buffer)
 {
-    PdfArray w;
-
-    w.push_back( static_cast<pdf_int64>(1) );
-    w.push_back( static_cast<pdf_int64>(sizeof(pdf_uint32)) );
-    w.push_back( static_cast<pdf_int64>(1) );
-
-    // Add our self to the XRef table
-    this->WriteXRefEntry( pDevice, pDevice->Tell(), 0, 'n' );
-
-    m_pObject->GetStream()->EndAppend();
-    m_pWriter->FillTrailerObject( m_pObject, this->GetSize(), false );
-
-    m_pObject->GetDictionary().AddKey( "Index", m_indeces );
-    m_pObject->GetDictionary().AddKey( "W", w );
-
-    pDevice->Seek( static_cast<size_t>(m_offset) );
-    m_pObject->WriteObject( pDevice, m_pWriter->GetWriteMode(), NULL ); // DominikS: Requires encryption info??
-    m_indeces.Clear();
+    (void)device;
+    (void)buffer;
+    m_indices.Add(static_cast<int64_t>(first));
+    m_indices.Add(static_cast<int64_t>(count));
 }
 
-};
+void PdfXRefStream::WriteXRefEntry(OutputStreamDevice& device, const PdfReference& ref,
+    const PdfXRefEntry& entry, charbuff& buffer)
+{
+    (void)device;
+    (void)buffer;
+    XRefStreamEntry stmEntry;
+    stmEntry.Type = static_cast<uint8_t>(entry.Type);
 
+    if (m_xrefStreamObj->GetIndirectReference() == ref)
+        m_xrefStreamEntryIndex = (int)m_rawEntries.size();
+
+    switch (entry.Type)
+    {
+        case XRefEntryType::Free:
+            stmEntry.Variant = AS_BIG_ENDIAN(static_cast<uint32_t>(entry.ObjectNumber));
+            break;
+        case XRefEntryType::InUse:
+            stmEntry.Variant = AS_BIG_ENDIAN(static_cast<uint32_t>(entry.Offset));
+            break;
+        default:
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+
+    stmEntry.Generation = AS_BIG_ENDIAN(static_cast<uint16_t>(entry.Generation));
+    m_rawEntries.push_back(stmEntry);
+}
+
+void PdfXRefStream::EndWriteImpl(OutputStreamDevice& device, charbuff& buffer)
+{
+    PdfArray wArr;
+    wArr.Add(static_cast<int64_t>(sizeof(XRefStreamEntry::Type)));
+    wArr.Add(static_cast<int64_t>(sizeof(XRefStreamEntry::Variant)));
+    wArr.Add(static_cast<int64_t>(sizeof(XRefStreamEntry::Generation)));
+ 
+    m_xrefStreamObj->GetDictionary().AddKey("Index", m_indices);
+    m_xrefStreamObj->GetDictionary().AddKey("W", wArr);
+ 
+    // Set the actual offset of the XRefStm object
+    uint32_t offset = (uint32_t)device.GetPosition();
+    PODOFO_ASSERT(m_xrefStreamEntryIndex >= 0);
+    m_rawEntries[m_xrefStreamEntryIndex].Variant = AS_BIG_ENDIAN(offset);
+ 
+    // Write the actual entries data to the XRefStm object stream
+    auto& stream = m_xrefStreamObj->GetOrCreateStream();
+    stream.SetData(bufferview((const char*)m_rawEntries.data(), m_rawEntries.size() * sizeof(XRefStreamEntry)));
+    GetWriter().FillTrailerObject(*m_xrefStreamObj, this->GetSize(), false);
+
+    m_xrefStreamObj->Write(device, GetWriter().GetWriteFlags(), nullptr, buffer); // CHECK-ME: Requires encryption info??
+    m_offset = offset;
+}

@@ -1,30 +1,14 @@
-/***************************************************************************
- *   Copyright (C) 2010 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2010 Dominik Seichter <domseichter@web.de>
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
-#include "podofo.h"
+#include <podofo/podofo.h>
 
 #include <cstdlib>
 #include <string>
 #include <iostream>
 
-#include "podofo_config.h"
 #include "colorchanger.h"
 #include "dummyconverter.h"
 #include "grayscaleconverter.h"
@@ -32,64 +16,67 @@
 #include "luaconverter.h"
 #endif //  PODOFO_HAVE_LUA
 
+using namespace std;
+using namespace PoDoFo;
+
 static void print_help()
 {
-	std::cerr << "Usage: podofocolor [converter] [inputfile] [outpufile]\n";
+    cerr << "Usage: podofocolor [converter] [inputfile] [outpufile]\n";
 #ifdef PODOFO_HAVE_LUA
-    std::cerr << "\t[converter] can be one of: dummy|grayscale|lua [planfile]\n";
+    cerr << "\t[converter] can be one of: dummy|grayscale|lua [planfile]\n";
 #else
-    std::cerr << "\t[converter] can be one of: dummy|grayscale\n";
+    cerr << "\t[converter] can be one of: dummy|grayscale\n";
 #endif //  PODOFO_HAVE_LUA
-	std::cerr << "\tpodofocolor is a tool to change all colors in a PDF file based on a predefined or Lua description.\n";
-	std::cerr << "\nPoDoFo Version: "<< PODOFO_VERSION_STRING <<"\n\n";
+    cerr << "\tpodofocolor is a tool to change all colors in a PDF file based on a predefined or Lua description.\n";
+    cerr << "\nPoDoFo Version: " << PODOFO_VERSION_STRING << "\n\n";
 }
 
 /**
  * @return a converter implementation or NULL if unknown
  */
-static IConverter* ConverterForName( const std::string & converter, const std::string & lua )
+static IConverter* ConverterForName(const string& converterName, const string& lua)
 {
-    IConverter* pConverter = NULL;
-    if( converter == "dummy" ) 
+    IConverter* converter = NULL;
+    if (converterName == "dummy")
     {
-        pConverter = new DummyConverter();
+        converter = new DummyConverter();
     }
-    else if( converter == "grayscale" )
+    else if (converterName == "grayscale")
     {
-        pConverter = new GrayscaleConverter();
+        converter = new GrayscaleConverter();
     }
 #ifdef PODOFO_HAVE_LUA
-    else if( converter == "lua" )
+    else if (converterName == "lua")
     {
-        pConverter = new LuaConverter( lua );
+        converter = new LuaConverter(lua);
     }
 #else
-    PODOFO_UNUSED_PARAM( lua )
+    (void)lua;
 #endif //  PODOFO_HAVE_LUA
 
-    return pConverter;
+    return converter;
 }
 
-int main( int argc, char* argv[] )
+int main(int argc, char* argv[])
 {
-	if( !(argc == 4 || argc == 5) )
-	{
-		print_help();
-		exit( -1 );
-	}
+    if (!(argc == 4 || argc == 5))
+    {
+        print_help();
+        exit(-1);
+    }
 
-    std::string converter = argv[1];
-	std::string input   = argv[2];
-	std::string output = argv[3];
-    std::string lua;
-    
-    if( argc == 4 && converter != "lua" )
+    string converterName = argv[1];
+    string input = argv[2];
+    string output = argv[3];
+    string lua;
+
+    if (argc == 4 && converterName != "lua")
     {
         input = argv[2];
         output = argv[3];
     }
 #ifdef PODOFO_HAVE_LUA
-    else if( argc == 5 && converter == "lua" )
+    else if (argc == 5 && converterName == "lua")
     {
         lua = argv[2];
         input = argv[3];
@@ -99,29 +86,29 @@ int main( int argc, char* argv[] )
     else
     {
         print_help();
-        exit( -3 );
+        exit(-3);
     }
 
-    IConverter* pConverter = ConverterForName( converter, lua );
-    if( !pConverter ) 
+    IConverter* converter = ConverterForName(converterName, lua);
+    if (!converter)
     {
-        std::cerr << "Aborting! Unknown converter: " << converter << std::endl;
+        cerr << "Aborting! Unknown converter: " << converterName << endl;
         print_help();
-        exit( -2 );
+        exit(-2);
     }
-    
-	try
-	{
-        ColorChanger cc(pConverter, input, output);
+
+    try
+    {
+        ColorChanger cc(converter, input, output);
         cc.start();
     }
-	catch( PoDoFo::PdfError & e )
-	{
-		std::cerr << "Error: An error "<< e.GetError() <<" ocurred during processing the pdf file\n";
-		e.PrintErrorMsg();
-		return e.GetError();
-	}
+    catch (PoDoFo::PdfError& e)
+    {
+        cerr << "Error: An error " << e.what() << " ocurred during processing the pdf file\n";
+        e.PrintErrorMsg();
+        return (int)e.GetError();
+    }
 
-    delete pConverter;
-	return 0;
+    delete converter;
+    return 0;
 }

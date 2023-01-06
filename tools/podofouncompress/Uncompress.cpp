@@ -1,90 +1,79 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2005 Dominik Seichter <domseichter@web.de>
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
 #include "Uncompress.h"
 
 #include <cstdio>
 
+using namespace std;
 using namespace PoDoFo;
 
 UnCompress::UnCompress()
-    : m_pDocument( NULL )
+    : m_document(nullptr)
 {
 }
 
 UnCompress::~UnCompress()
 {
-    delete m_pDocument;
+    delete m_document;
 }
 
-void UnCompress::Init( const char* pszInput, const char* pszOutput )
+void UnCompress::Init(const string_view& input, const string_view& output)
 {
-    if( m_pDocument )
-        delete m_pDocument;
+    if (m_document)
+        delete m_document;
 
-    m_pDocument = new PdfMemDocument( pszInput );
+    m_document = new PdfMemDocument();
+    m_document->Load(input);
 
     this->UncompressObjects();
 
-    PdfWriter writer( &(m_pDocument->GetObjects()), new PdfObject( *(m_pDocument->GetTrailer() ) ) );
-    writer.SetWriteMode( ePdfWriteMode_Clean );
-    writer.Write( pszOutput );
+    m_document->Save(output, PdfSaveOptions::Clean
+        | PdfSaveOptions::NoModifyDateUpdate | PdfSaveOptions::NoFlateCompress);
 }
 
 void UnCompress::UncompressObjects()
 {
-    TIVecObjects it     = m_pDocument->GetObjects().begin();
+    auto& objects = m_document->GetObjects();
 
-    while( it != m_pDocument->GetObjects().end() )
+    for (auto obj : objects)
     {
-        printf("Reading %i %i R\n", (*it)->Reference().ObjectNumber(), (*it)->Reference().GenerationNumber() );
-        if( (*it)->HasStream() )
+        printf("Reading %i %i R\n", obj->GetIndirectReference().ObjectNumber(), obj->GetIndirectReference().GenerationNumber());
+        auto stream = obj->GetStream();
+        if (stream == nullptr)
+            continue;
+
         {
-            try {
-                printf("-> Uncompressing object %i %i\n", 
-                       (*it)->Reference().ObjectNumber(), (*it)->Reference().GenerationNumber() );
-                PdfMemStream* pStream = dynamic_cast<PdfMemStream*>((*it)->GetStream());
-                if( !pStream )
-                    PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-                printf("-> Original Length: %" PDF_FORMAT_INT64 "\n", 
-                       static_cast<pdf_int64>(pStream->GetLength()) );
-                try {
-                    pStream->Uncompress();
-                } catch( PdfError & e ) {
-                    if( e.GetError() == ePdfError_Flate )
+            try
+            {
+                printf("-> Uncompressing object %i %i\n",
+                    obj->GetIndirectReference().ObjectNumber(), obj->GetIndirectReference().GenerationNumber());
+
+                printf("-> Original Length: %zu\n", stream->GetLength());
+                try
+                {
+                    stream->Unwrap();
+                }
+                catch (PdfError& e)
+                {
+                    if (e.GetError() == PdfErrorCode::Flate)
                     {
                         // Ignore ZLib errors
-                        fprintf( stderr, "WARNING: ZLib error ignored for this object.\n");
+                        fprintf(stderr, "WARNING: ZLib error ignored for this object.\n");
                     }
                     else
                         throw e;
                 }
-                printf("-> Uncompressed Length: %" PDF_FORMAT_INT64 "\n", 
-                       static_cast<pdf_int64>(pStream->GetLength()) );
-            } catch( PdfError & e ) {
+                printf("-> Uncompressed Length: %zu\n", stream->GetLength());
+            }
+            catch (PdfError& e)
+            {
                 e.PrintErrorMsg();
-                if( e.GetError() != ePdfError_UnsupportedFilter )
+                if (e.GetError() != PdfErrorCode::UnsupportedFilter)
                     throw e;
             }
         }
-
-        ++it;
     }
 }

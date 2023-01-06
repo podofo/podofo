@@ -1,209 +1,166 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2006 Dominik Seichter <domseichter@web.de>
+ * SPDX-FileCopyrightText: (C) 2020 Francesco Pretto <ceztko@gmail.com>
+ * SPDX-License-Identifier: LGPL-2.0-or-later
+ */
 
+#include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfDictionary.h"
 
 #include "PdfOutputDevice.h"
-#include "PdfDefinesPrivate.h"
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
-PdfDictionary::PdfDictionary()
-    : m_bDirty( false )
+PdfDictionary::PdfDictionary() { }
+
+PdfDictionary::PdfDictionary(const PdfDictionary& rhs)
+    : m_Map(rhs.m_Map)
 {
+    setChildrenParent();
 }
 
-PdfDictionary::PdfDictionary( const PdfDictionary & rhs )
-    : PdfOwnedDataType()
+PdfDictionary::PdfDictionary(PdfDictionary&& rhs) noexcept
+    : m_Map(std::move(rhs.m_Map))
 {
-    this->operator=( rhs );
-    m_bDirty = false;
+    setChildrenParent();
 }
 
-PdfDictionary::~PdfDictionary()
+PdfDictionary& PdfDictionary::operator=(const PdfDictionary& rhs)
 {
-    this->SetImmutable(false); // Destructor may change things, i.e. delete
-    this->Clear();
-}
-
-const PdfDictionary & PdfDictionary::operator=( const PdfDictionary & rhs )
-{
-    TCIKeyMap it;
-
-    this->Clear();
-
-    it = rhs.m_mapKeys.begin();
-    while( it != rhs.m_mapKeys.end() )
-    {
-        m_mapKeys[(*it).first] = new PdfObject( *(*it).second );
-        ++it;
-    }
-
-    PdfOwnedDataType::operator=( rhs );
-    m_bDirty = true;
+    m_Map = rhs.m_Map;
+    setChildrenParent();
     return *this;
 }
 
-bool PdfDictionary::operator==( const PdfDictionary& rhs ) const
+PdfDictionary& PdfDictionary::operator=(PdfDictionary&& rhs) noexcept
+{
+    m_Map = std::move(rhs.m_Map);
+    setChildrenParent();
+    return *this;
+}
+
+bool PdfDictionary::operator==(const PdfDictionary& rhs) const
 {
     if (this == &rhs)
         return true;
 
-    if ( m_mapKeys.size() != rhs.m_mapKeys.size() )
-        return false;
+    // We don't check owner
+    return m_Map == rhs.m_Map;
+}
 
-    // It's not enough to test that our internal maps are equal, because
-    // we store variants by pointer not value. However, since a dictionary's
-    // keys are stored in a SORTED map, and there may be only one instance of
-    // every key, we can do lockstep iteration and compare that way.
+bool PdfDictionary::operator!=(const PdfDictionary& rhs) const
+{
+    if (this != &rhs)
+        return true;
 
-    const TCIKeyMap thisIt = m_mapKeys.begin();
-    const TCIKeyMap thisEnd = m_mapKeys.end();
-    const TCIKeyMap rhsIt = rhs.m_mapKeys.begin();
-    const TCIKeyMap rhsEnd = rhs.m_mapKeys.end();
-    while ( thisIt != thisEnd && rhsIt != rhsEnd )
-    {
-        if ( (*thisIt).first != (*rhsIt).first )
-            // Name mismatch. Since the keys are sorted that means that there's a key present
-            // in one dictionary but not the other.
-            return false;
-        if ( *(*thisIt).second != *(*rhsIt).second )
-            // Value mismatch on same-named keys.
-            return false;
-    }
-    // BOTH dictionaries must now be on their end iterators - since we checked that they were
-    // the same size initially, we know they should run out of keys at the same time.
-    PODOFO_RAISE_LOGIC_IF( thisIt != thisEnd || rhsIt != rhsEnd, "Dictionary compare error" );
-    // We didn't find any mismatches
-    return true;
+    // We don't check owner
+    return m_Map != rhs.m_Map;
 }
 
 void PdfDictionary::Clear()
 {
-    AssertMutable();
-
-    if( !m_mapKeys.empty() )
+    if (!m_Map.empty())
     {
-        TIKeyMap it;
-
-        it = m_mapKeys.begin();
-        while( it != m_mapKeys.end() )
-        {
-            delete (*it).second;
-            ++it;
-        }
-
-        m_mapKeys.clear();
-        m_bDirty = true;
+        m_Map.clear();
+        SetDirty();
     }
 }
 
-void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObject )
+PdfObject& PdfDictionary::AddKey(const PdfName& key, const PdfObject& obj)
 {
-    AssertMutable();
-
-    // Empty PdfNames are legal according to the PDF specification
-    // weird but true. As a reason we cannot throw an error here
-    /*
-    if( !identifier.GetLength() )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
-    }
-    */
-    PdfObject *objToInsert = new PdfObject(rObject);
-    std::pair<TKeyMap::iterator, bool> inserted = m_mapKeys.insert( std::make_pair( identifier, objToInsert ) );
-    if ( !inserted.second )
-    {
-        delete inserted.first->second;
-        inserted.first->second = objToInsert;
-    }
-
-    PdfVecObjects *pOwner = GetObjectOwner();
-    if ( pOwner != NULL )
-        inserted.first->second->SetOwner( pOwner );
-    m_bDirty = true;
+    return addKey(key, PdfObject(obj));
 }
 
-void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject* pObject )
+PdfObject& PdfDictionary::AddKey(const PdfName& key, PdfObject&& obj)
 {
-    this->AddKey( identifier, *pObject );
+    return addKey(key, std::move(obj));
 }
 
-PdfObject * PdfDictionary::getKey( const PdfName & key ) const
+void PdfDictionary::AddKeyIndirect(const PdfName& key, const PdfObject& obj)
 {
-    if( !key.GetLength() )
-        return NULL;
-
-    TCIKeyMap it;
-
-    it = m_mapKeys.find( key );
-
-    if( it == m_mapKeys.end() )
-        return NULL;
-
-    return (*it).second;
+    if (IsIndirectReferenceAllowed(obj))
+        (void)addKey(key, obj.GetIndirectReference());
+    else
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Given object shall allow indirect insertion");
 }
 
-PdfObject * PdfDictionary::findKey( const PdfName &key ) const
+PdfObject& PdfDictionary::AddKeyIndirectSafe(const PdfName& key, const PdfObject& obj)
 {
-    PdfObject *obj = getKey( key );
-    if ( obj != NULL )
+    if (IsIndirectReferenceAllowed(obj))
+        return addKey(key, obj.GetIndirectReference());
+    else
+        return addKey(key, PdfObject(obj));
+}
+
+PdfObject& PdfDictionary::addKey(const PdfName& key, PdfObject&& obj)
+{
+    auto added = AddKey(key, std::move(obj), false);
+    if (added.second)
+        SetDirty();
+
+    return added.first->second;
+}
+
+pair<PdfDictionaryMap::iterator, bool> PdfDictionary::AddKey(const PdfName& key, PdfObject&& obj, bool noDirtySet)
+{
+    // NOTE: Empty PdfNames are legal according to the PDF specification.
+    // Don't check for it
+
+    pair<PdfDictionaryMap::iterator, bool> inserted = m_Map.try_emplace(key, std::move(obj));
+    if (!inserted.second)
     {
-        if ( obj->IsReference() )
-            return GetIndirectObject( obj->GetReference() );
+        if (noDirtySet)
+            inserted.first->second.Assign(obj);
         else
-            return obj;
+            inserted.first->second = obj;
     }
 
-    return NULL;
+    inserted.first->second.SetParent(*this);
+    return inserted;
 }
 
-PdfObject * PdfDictionary::findKeyParent( const PdfName & key ) const
+PdfObject* PdfDictionary::getKey(const string_view& key) const
 {
-    PdfObject *obj = findKey( key );
-    if (obj == NULL)
+    // NOTE: Empty PdfNames are legal according to the PDF,
+    // specification don't check for it
+    auto it = m_Map.find(key);
+    if (it == m_Map.end())
+        return nullptr;
+
+    return &const_cast<PdfObject&>(it->second);
+}
+
+PdfObject* PdfDictionary::findKey(const string_view& key) const
+{
+    PdfObject* obj = getKey(key);
+    if (obj == nullptr)
+        return nullptr;
+
+    if (obj->IsReference())
+        return GetIndirectObject(obj->GetReference());
+    else
+        return obj;
+
+    return nullptr;
+}
+
+PdfObject* PdfDictionary::findKeyParent(const string_view& key) const
+{
+    PdfObject* obj = findKey(key);
+    if (obj == nullptr)
     {
-        PdfObject *parent = findKey( "Parent" );
-        if ( parent == NULL )
+        PdfObject* parent = findKey("Parent");
+        if (parent == nullptr)
         {
-            return NULL;
+            return nullptr;
         }
         else
         {
-            if ( parent->IsDictionary() )
-                return parent->GetDictionary().findKeyParent( key );
+            if (parent->IsDictionary())
+                return parent->GetDictionary().findKeyParent(key);
             else
-                return NULL;
+                return nullptr;
         }
     }
     else
@@ -212,200 +169,197 @@ PdfObject * PdfDictionary::findKeyParent( const PdfName & key ) const
     }
 }
 
-pdf_int64 PdfDictionary::GetKeyAsLong( const PdfName & key, pdf_int64 lDefault ) const
+bool PdfDictionary::HasKey(const string_view& key) const
 {
-    const PdfObject* pObject = GetKey( key );
-    
-    if( pObject && pObject->GetDataType() == ePdfDataType_Number ) 
-    {
-        return pObject->GetNumber();
-    }
-
-    return lDefault;
+    // NOTE: Empty PdfNames are legal according to the PDF,
+    // specification don't check for it
+    return m_Map.find(key) != m_Map.end();
 }
 
-double PdfDictionary::GetKeyAsReal( const PdfName & key, double dDefault ) const
+bool PdfDictionary::RemoveKey(const string_view& key)
 {
-    const PdfObject* pObject = GetKey( key );
-    
-    if( pObject && (
-        pObject->GetDataType() == ePdfDataType_Real ||
-        pObject->GetDataType() == ePdfDataType_Number))
-    {
-        return pObject->GetReal();
-    }
-
-    return dDefault;
-}
-
-bool PdfDictionary::GetKeyAsBool( const PdfName & key, bool bDefault ) const
-{
-    const PdfObject* pObject = GetKey( key );
-
-    if( pObject && pObject->GetDataType() == ePdfDataType_Bool ) 
-    {
-        return pObject->GetBool();
-    }
-
-    return bDefault;
-}
-
-PdfName PdfDictionary::GetKeyAsName( const PdfName & key ) const
-{
-    const PdfObject* pObject = GetKey( key );
-
-    if( pObject && pObject->GetDataType() == ePdfDataType_Name ) 
-    {
-        return pObject->GetName();
-    }
-    
-    return PdfName("");	// return an empty name
-        
-}
-
-bool PdfDictionary::HasKey( const PdfName & key ) const
-{
-    if( !key.GetLength() )
+    PdfDictionaryMap::iterator found = m_Map.find(key);
+    if (found == m_Map.end())
         return false;
-    
-    return ( m_mapKeys.find( key ) != m_mapKeys.end() );
+
+    m_Map.erase(found);
+    SetDirty();
+    return true;
 }
 
-bool PdfDictionary::RemoveKey( const PdfName & identifier )
+void PdfDictionary::Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
+    const PdfStatefulEncrypt& encrypt, charbuff& buffer) const
 {
-    TKeyMap::iterator found = m_mapKeys.find( identifier );
-    if( found != m_mapKeys.end() )
-    {
-        AssertMutable();
-        delete found->second;
-        m_mapKeys.erase( found );
-        m_bDirty = true;
-        return true;
-    }
-
-    return false;
-}
-
-void PdfDictionary::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt, const PdfName & keyStop ) const
-{
-    TCIKeyMap     itKeys;
-
-    if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
-    {
-        pDevice->Print( "<<\n" );
-    } 
+    if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
+        device.Write("<<\n");
     else
-    {
-        pDevice->Print( "<<" );
-    }
-    itKeys     = m_mapKeys.begin();
+        device.Write("<<");
 
-    if( keyStop != PdfName::KeyNull && keyStop.GetLength() && keyStop == PdfName::KeyType )
-        return;
-
-    if( this->HasKey( PdfName::KeyType ) ) 
+    if (this->HasKey(PdfName::KeyType))
     {
         // Type has to be the first key in any dictionary
-        if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
-        {
-            pDevice->Print( "/Type " );
-        }
+        if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
+            device.Write("/Type ");
         else
-        {
-            pDevice->Print( "/Type" );
-        }
+            device.Write("/Type");
 
-        this->GetKey( PdfName::KeyType )->Write( pDevice, eWriteMode, pEncrypt );
+        this->getKey(PdfName::KeyType)->GetVariant().Write(device, writeMode, encrypt, buffer);
 
-        if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
-        {
-            pDevice->Print( "\n" );
-        }
+        if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
+            device.Write('\n');
     }
 
-    while( itKeys != m_mapKeys.end() )
+    for (auto& pair : m_Map)
     {
-        if( (*itKeys).first != PdfName::KeyType )
+        if (pair.first != PdfName::KeyType)
         {
-            if( keyStop != PdfName::KeyNull && keyStop.GetLength() && (*itKeys).first == keyStop )
-                return;
+            pair.first.Write(device, writeMode, encrypt, buffer);
+            if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
+                device.Write(' '); // write a separator
 
-            (*itKeys).first.Write( pDevice, eWriteMode );
-            if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
-            {
-                pDevice->Write( " ", 1 ); // write a separator
-            }
-            (*itKeys).second->Write( pDevice, eWriteMode, pEncrypt );
-            if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
-            {
-                pDevice->Write( "\n", 1 );
-            }
-        }
-        
-        ++itKeys;
-    }
-
-    pDevice->Print( ">>" );
-}
-
-bool PdfDictionary::IsDirty() const
-{
-    // If the dictionary itself is dirty
-    // return immediately
-    // otherwise check all children.
-    if( m_bDirty ) 
-        return m_bDirty;
-
-    TKeyMap::const_iterator it = this->GetKeys().begin();
-    while( it != this->GetKeys().end() )
-    {
-        if( (*it).second->IsDirty() )
-            return true;
-
-        ++it;
-    }
-
-    return false;
-}
-
-void PdfDictionary::SetDirty( bool bDirty )
-{
-    m_bDirty = bDirty;
-
-    if( !m_bDirty )
-    {
-        // Propagate state to all subclasses
-        TKeyMap::iterator it = this->GetKeys().begin();
-        while( it != this->GetKeys().end() )
-        {
-            (*it).second->SetDirty( m_bDirty );
-            ++it;
+            pair.second.GetVariant().Write(device, writeMode, encrypt, buffer);
+            if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
+                device.Write('\n');
         }
     }
+
+    device.Write(">>");
 }
 
-TCIKeyMap PdfDictionary::begin() const
+void PdfDictionary::ResetDirtyInternal()
 {
-    return m_mapKeys.begin();
+    // Propagate state to all sub objects
+    for (auto& pair : m_Map)
+        pair.second.ResetDirty();
 }
 
-TCIKeyMap PdfDictionary::end() const
+void PdfDictionary::setChildrenParent()
 {
-    return m_mapKeys.end();
+    // Set parent for all children
+    for (auto& pair : m_Map)
+        pair.second.SetParent(*this);
 }
 
-void PdfDictionary::SetOwner( PdfObject *pOwner )
+const PdfObject* PdfDictionary::GetKey(const string_view& key) const
 {
-    PdfOwnedDataType::SetOwner( pOwner );
-    PdfVecObjects *pVecOwner = pOwner->GetOwner();
-    if ( pVecOwner != NULL )
-    {
-        // Set owmership for all children
-        TCIKeyMap it = this->begin();
-        TCIKeyMap end = this->end();
-        for ( ; it != end; it++ )
-            it->second->SetOwner( pVecOwner );
-    }
+    return getKey(key);
 }
 
-};
+PdfObject* PdfDictionary::GetKey(const string_view& key)
+{
+    return getKey(key);
+}
+
+const PdfObject* PdfDictionary::FindKey(const string_view& key) const
+{
+    return findKey(key);
+}
+
+PdfObject* PdfDictionary::FindKey(const string_view& key)
+{
+    return findKey(key);
+}
+
+const PdfObject& PdfDictionary::MustFindKey(const string_view& key) const
+{
+    auto obj = findKey(key);
+    if (obj == nullptr)
+        PODOFO_RAISE_ERROR(PdfErrorCode::NoObject);
+
+    return *obj;
+}
+
+PdfObject& PdfDictionary::MustFindKey(const string_view& key)
+{
+    auto obj = findKey(key);
+    if (obj == nullptr)
+        PODOFO_RAISE_ERROR(PdfErrorCode::NoObject);
+
+    return *obj;
+}
+
+const PdfObject* PdfDictionary::FindKeyParent(const string_view& key) const
+{
+    return findKeyParent(key);
+}
+
+PdfObject* PdfDictionary::FindKeyParent(const string_view& key)
+{
+    return findKeyParent(key);
+}
+
+const PdfObject& PdfDictionary::MustFindKeyParent(const string_view& key) const
+{
+    auto obj = findKeyParent(key);
+    if (obj == nullptr)
+        PODOFO_RAISE_ERROR(PdfErrorCode::NoObject);
+
+    return *obj;
+}
+
+PdfObject& PdfDictionary::MustFindKeyParent(const string_view& key)
+{
+    auto obj = findKeyParent(key);
+    if (obj == nullptr)
+        PODOFO_RAISE_ERROR(PdfErrorCode::NoObject);
+
+    return *obj;
+}
+
+unsigned PdfDictionary::GetSize() const
+{
+    return (unsigned)m_Map.size();
+}
+
+PdfDictionaryIndirectIterable PdfDictionary::GetIndirectIterator()
+{
+    return PdfDictionaryIndirectIterable(*this);
+}
+
+PdfDictionaryConstIndirectIterable PdfDictionary::GetIndirectIterator() const
+{
+    return PdfDictionaryConstIndirectIterable(const_cast<PdfDictionary&>(*this));
+}
+
+const PdfObject& PdfDictionary::MustGetKey(const string_view& key) const
+{
+    auto obj = getKey(key);
+    if (obj == nullptr)
+        PODOFO_RAISE_ERROR(PdfErrorCode::NoObject);
+
+    return *obj;
+}
+
+PdfObject& PdfDictionary::MustGetKey(const string_view& key)
+{
+    auto obj = getKey(key);
+    if (obj == nullptr)
+        PODOFO_RAISE_ERROR(PdfErrorCode::NoObject);
+
+    return *obj;
+}
+
+PdfDictionary::iterator PdfDictionary::begin()
+{
+    return m_Map.begin();
+}
+
+PdfDictionary::iterator PdfDictionary::end()
+{
+    return m_Map.end();
+}
+
+PdfDictionary::const_iterator PdfDictionary::begin() const
+{
+    return m_Map.begin();
+}
+
+PdfDictionary::const_iterator PdfDictionary::end() const
+{
+    return m_Map.end();
+}
+
+size_t PdfDictionary::size() const
+{
+    return m_Map.size();
+}

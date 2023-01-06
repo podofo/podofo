@@ -1,0 +1,3 @@
+# Disable text normalization. We assume normalization
+# is done by editors with .editorconfig
+* -text

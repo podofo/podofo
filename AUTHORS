@@ -1,8 +1,0 @@
-PoDoFo library, tools and tests:
-	Dominik Seichter <domseichter@web.de>
-	Leonard Rosenthol <leonardr@pdfsages.com>
-	Craig Ringer <craig@postnewspapers.com.au>
-
-PoDoFoImpose:
-	Contributed by Pierre Marchand <pierre@moulindetouvois.com> as `pdfimpose'
-	Qt-to-STL conversion by Craig Ringer <craig@postnewspapers.com.au>

@@ -1,71 +1,44 @@
-/***************************************************************************
- *   Copyright (C) 2010 by Pierre Marchand   *
- *   pierre@oep-h.com   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2010 Pierre Marchand <pierre@oep-h.com>
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
 #include "boxsetter.h"
 
-BoxSetter::BoxSetter(const std::string& in, const std::string& out, const std::string& box, const PoDoFo::PdfRect& rect)
-	:m_box(box), m_rect(rect)
+using namespace std;
+using namespace PoDoFo;
+
+BoxSetter::BoxSetter(const string_view& in, const string& out, const string_view& box, const PdfRect& rect)
+    : m_box(box), m_rect(rect)
 {
-	PoDoFo::PdfMemDocument* source = new PoDoFo::PdfMemDocument(in.c_str());
-	int pcount(source->GetPageCount());
-	for ( int i = 0; i < pcount ; ++i )
-	{
-		SetBox(source->GetPage ( i ));
-	}
+    PdfMemDocument source;
+    source.Load(in);
+    int pcount(source.GetPages().GetCount());
+    for (int i = 0; i < pcount; ++i)
+        SetBox(source.GetPages().GetPageAt(i));
 
-	source->Write(out.c_str());
-
+    source.Save(out);
 }
 
-void BoxSetter::SetBox(PoDoFo::PdfPage *page)
+void BoxSetter::SetBox(PdfPage& page)
 {
-	if(!page)
-		return;
-	PoDoFo::PdfObject r;
-	m_rect.ToVariant( r );
-	if(m_box.find("media") != std::string::npos)
-	{
-		page->GetObject()->GetDictionary().AddKey ( PoDoFo::PdfName ( "MediaBox" ), r );
-	}
-	else if(m_box.find("crop") != std::string::npos)
-	{
-		page->GetObject()->GetDictionary().AddKey ( PoDoFo::PdfName ( "CropBox" ), r );
-	}
-	else if(m_box.find("bleed") != std::string::npos)
-	{
-		page->GetObject()->GetDictionary().AddKey ( PoDoFo::PdfName ( "BleedBox" ), r );
-	}
-	else if(m_box.find("trim") != std::string::npos)
-	{
-		page->GetObject()->GetDictionary().AddKey ( PoDoFo::PdfName ( "TrimBox" ), r );
-	}
-	else if(m_box.find("art") != std::string::npos)
-	{
-		page->GetObject()->GetDictionary().AddKey ( PoDoFo::PdfName ( "ArtBox" ), r );
-	}
+    PdfArray r;
+    m_rect.ToArray(r);
+    if (m_box.find("media") != string::npos)
+        page.GetObject().GetDictionary().AddKey("MediaBox", r);
+    else if (m_box.find("crop") != string::npos)
+        page.GetObject().GetDictionary().AddKey("CropBox", r);
+    else if (m_box.find("bleed") != string::npos)
+        page.GetObject().GetDictionary().AddKey("BleedBox", r);
+    else if (m_box.find("trim") != string::npos)
+        page.GetObject().GetDictionary().AddKey("TrimBox", r);
+    else if (m_box.find("art") != string::npos)
+        page.GetObject().GetDictionary().AddKey("ArtBox", r);
 
-	// TODO check that box sizes are ordered
+    // TODO check that box sizes are ordered
 }
 
-bool BoxSetter::CompareBox(const PoDoFo::PdfRect &rect1, const PoDoFo::PdfRect &rect2)
+bool BoxSetter::CompareBox(const PdfRect &rect1, const PdfRect &rect2)
 {
 	return rect1.ToString() == rect2.ToString();
 }
-

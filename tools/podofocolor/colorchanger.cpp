@@ -1,34 +1,20 @@
-/***************************************************************************
- *   Copyright (C) 2010 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
-x1 ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2010 Dominik Seichter <domseichter@web.de>
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
+#include <podofo/private/PdfDeclarationsPrivate.h>
 #include "colorchanger.h"
 
-#include <podofo.h>
-
 #include <iostream>
+#include <sstream>
 #include <cstdlib>
 #include <iomanip>
 
 #include "graphicsstack.h"
 #include "iconverter.h"
 
+using namespace std;
 using namespace PoDoFo;
 
 static const ColorChanger::KWInfo kwInfo[] = {
@@ -96,99 +82,100 @@ static const ColorChanger::KWInfo kwInfo[] = {
 //  q Push
 //  Q Pop
 
-ColorChanger::ColorChanger( IConverter* pConvert, const std::string & sInput, const std::string & sOutput )
-    : m_pConverter( pConvert ), m_sInput( sInput ), m_sOutput( sOutput )
+ColorChanger::ColorChanger(IConverter* convert, const string& sInput, const string& sOutput)
+    : m_converter(convert), m_input(sInput), m_output(sOutput)
 {
-    if( !m_pConverter ) 
+    if (!m_converter)
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    } 
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+    }
 }
 
 void ColorChanger::start()
 {
-    PdfMemDocument input( m_sInput.c_str() );
-
-    for( int i = 0; i < input.GetPageCount(); i++ )
+    PdfMemDocument input;
+    input.LoadFromBuffer(m_input);
+    for (int i = 0; i < input.GetPages().GetCount(); i++)
     {
-        std::cout << "Processing page " << std::setw(6) << (i+1) << "..." << std::endl << std::flush;
+        cout << "Processing page " << std::setw(6) << (i + 1) << "..." << endl << flush;
 
-        PdfPage* pPage = input.GetPage( i );
-        PODOFO_RAISE_LOGIC_IF( !pPage, "Got null page pointer within valid page range" );
+        auto& page = input.GetPages().GetPageAt(i);;
 
-        m_pConverter->StartPage( pPage, i );
-        this->ReplaceColorsInPage( pPage );
-        m_pConverter->EndPage( pPage, i );
+        m_converter->StartPage(page, i);
+        this->ReplaceColorsInPage(page);
+        m_converter->EndPage(page, i);
     }
 
     // Go through all XObjects
-    PdfVecObjects::iterator it = input.GetObjects().begin();
-    while( it != input.GetObjects().end() )
+    PdfIndirectObjectList::iterator it = input.GetObjects().begin();
+    while (it != input.GetObjects().end())
     {
-        if( (*it)->IsDictionary() && (*it)->GetDictionary().HasKey( "Type") ) 
+        if ((*it)->IsDictionary() && (*it)->GetDictionary().HasKey("Type"))
         {
-            if( PdfName("XObject") == (*it)->GetDictionary().GetKey("Type")->GetName() 
-                && (*it)->GetDictionary().HasKey("Subtype") 
-                && PdfName("Image") != (*it)->GetDictionary().GetKey("Subtype")->GetName() )
+            if (PdfName("XObject") == (*it)->GetDictionary().GetKey("Type")->GetName()
+                && (*it)->GetDictionary().HasKey("Subtype")
+                && PdfName("Image") != (*it)->GetDictionary().GetKey("Subtype")->GetName())
             {
-                std::cout << "Processing XObject " << (*it)->Reference().ObjectNumber() << " " 
-                          << (*it)->Reference().GenerationNumber() << std::endl;
-                
-                PdfXObject xObject( *it );
-                m_pConverter->StartXObject( &xObject );
-                this->ReplaceColorsInPage( &xObject ); 
-                m_pConverter->EndXObject( &xObject );
+                cout << "Processing XObject " << (*it)->GetReference().ObjectNumber() << " "
+                    << (*it)->GetReference().GenerationNumber() << endl;
+
+                unique_ptr<PdfXObjectForm> xobj;
+                (void)PdfXObject::TryCreateFromObject(**it, xobj);
+                m_converter->StartXObject(*xobj);
+                this->ReplaceColorsInPage(*xobj);
+                m_converter->EndXObject(*xobj);
             }
         }
-        ++it;
+        it++;
     }
 
-
-    input.Write( m_sOutput.c_str() );
+    input.Save(m_output);
 }
 
-void ColorChanger::ReplaceColorsInPage( PdfCanvas* pPage )
+void ColorChanger::ReplaceColorsInPage(PdfCanvas& page)
 {
-    EPdfContentsType t;
-    const char* pszKeyword;
+    PdfPostScriptTokenType t;
+    string_view keyword;
     PdfVariant var;
-    bool bReadToken;
+    bool readToken;
 
     GraphicsStack graphicsStack;
-    PdfContentsTokenizer tokenizer( pPage );
-    std::vector<PdfVariant> args;
+    PdfPostScriptTokenizer tokenizer;
+    vector<PdfVariant> args;
 
-    PdfRefCountedBuffer buffer;
-    PdfOutputDevice device( &buffer );
+    PdfCanvasInputDevice input(page);
 
-    while( (bReadToken = tokenizer.ReadNext(t, pszKeyword, var)) )
+    charbuff buffer;
+    BufferStreamDevice device(buffer);
+
+    while ((readToken = tokenizer.TryReadNext(input, t, keyword, var)))
     {
-        if (t == ePdfContentsType_Variant)
+        if (t == PdfPostScriptTokenType::Variant)
         {
             // arguments come before operators, but we want to group them up before
             // their operator.
             args.push_back(var);
         }
-        else if (t == ePdfContentsType_ImageData) 
+        ////else if (t == PdfPostScriptTokenType::ImageData)
+        ////{
+        ////    // Handle inline images (Internally using PdfData)
+        ////    args.push_back(var);
+        ////}
+        else if (t == PdfPostScriptTokenType::Keyword)
         {
-            // Handle inline images (Internally using PdfData)
-            args.push_back(var);
-        }
-        else if (t == ePdfContentsType_Keyword)
-        {
-            const KWInfo* pInfo = FindKeyWordByName(pszKeyword);
+            const KWInfo* info = FindKeyWordByName(keyword.data());
             PdfColor color, newColor;
-            int nNumArgs = pInfo->nNumArguments;
-            EPdfColorSpace eColorSpace;
+            int nNumArgs = info->nNumArguments;
+            PdfColorSpace colorSpace;
 
-            if( pInfo->nNumArguments > 0 && args.size() != static_cast<size_t>( pInfo->nNumArguments ) )
+            if (info->nNumArguments > 0 && args.size() != static_cast<size_t>(info->nNumArguments))
             {
-                std::ostringstream oss;
-                oss << "Expected " << pInfo->nNumArguments << " argument(s) for keyword '" << pszKeyword << "', but " << args.size() << " given instead.";
-                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidContentStream, oss.str().c_str() );
+                ostringstream oss;
+                oss << "Expected " << info->nNumArguments << " argument(s) for keyword '" << keyword << "', but " << args.size() << " given instead.";
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidContentStream, oss.str().c_str());
             }
 
-            switch( pInfo->eKeywordType )
+            switch (info->eKeywordType)
             {
                 case eKeyword_GraphicsStack_Push:
                     graphicsStack.Push();
@@ -198,16 +185,16 @@ void ColorChanger::ReplaceColorsInPage( PdfCanvas* pPage )
                     break;
 
                 case eKeyword_SelectColorSpace_Stroking:
-                    eColorSpace = this->GetColorSpaceForName( args.back().GetName(), pPage );
-                    eColorSpace = PdfColor::GetColorSpaceForName( args.back().GetName() );
+                    colorSpace = this->GetColorSpaceForName(args.back().GetName(), page);
+                    colorSpace = PoDoFo::NameToColorSpaceRaw(args.back().GetName());
                     args.pop_back();
-                    graphicsStack.SetStrokingColorSpace( eColorSpace );
+                    graphicsStack.SetStrokingColorSpace(colorSpace);
                     break;
 
                 case eKeyword_SelectColorSpace_NonStroking:
-                    eColorSpace = PdfColor::GetColorSpaceForName( args.back().GetName() );
+                    colorSpace = PoDoFo::NameToColorSpaceRaw(args.back().GetName());
                     args.pop_back();
-                    graphicsStack.SetNonStrokingColorSpace( eColorSpace );
+                    graphicsStack.SetNonStrokingColorSpace(colorSpace);
                     break;
 
                 case eKeyword_SelectGray_Stroking:
@@ -216,66 +203,66 @@ void ColorChanger::ReplaceColorsInPage( PdfCanvas* pPage )
                 case eKeyword_SelectGray_NonStroking:
                 case eKeyword_SelectRGB_NonStroking:
                 case eKeyword_SelectCMYK_NonStroking:
-                    
-                    pszKeyword = 
-                        this->ProcessColor( pInfo->eKeywordType, nNumArgs, args, graphicsStack );
-                    
+
+                    keyword =
+                        this->ProcessColor(info->eKeywordType, nNumArgs, args, graphicsStack);
+
                     break;
 
                 case eKeyword_SelectColor_Stroking:
                 case eKeyword_SelectColor_Stroking2:
                 {
                     /*
-                    PdfError::LogMessage( eLogSeverity_Information, "SCN called for colorspace: %s\n",
-                                          PdfColor::GetNameForColorSpace( 
+                    PdfError::LogMessage( LogSeverity::Information, "SCN called for colorspace: %s\n",
+                                          PdfColor::GetNameForColorSpace(
                                               graphicsStack.GetStrokingColorSpace() ).GetName().c_str() );
                     */
                     int nTmpArgs;
                     EKeywordType eTempKeyword;
 
-                    switch( graphicsStack.GetStrokingColorSpace() )
+                    switch (graphicsStack.GetStrokingColorSpace())
                     {
-                        case ePdfColorSpace_DeviceGray:
+                        case PdfColorSpace::DeviceGray:
                             nTmpArgs = 1;
                             eTempKeyword = eKeyword_SelectGray_Stroking;
                             break;
-                        case ePdfColorSpace_DeviceRGB:
+                        case PdfColorSpace::DeviceRGB:
                             nTmpArgs = 3;
                             eTempKeyword = eKeyword_SelectRGB_Stroking;
                             break;
-                        case ePdfColorSpace_DeviceCMYK:
+                        case PdfColorSpace::DeviceCMYK:
                             nTmpArgs = 4;
                             eTempKeyword = eKeyword_SelectCMYK_Stroking;
                             break;
 
-                        case ePdfColorSpace_Separation:
+                        case PdfColorSpace::Separation:
                         {
-                            PdfError::LogMessage( eLogSeverity_Error, "Separation color space not supported.\n" );                
-                            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+                            PoDoFo::LogMessage(PdfLogSeverity::Error, "Separation color space not supported.\n");
+                            PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
                             break;
                         }
-                        case ePdfColorSpace_CieLab:
+                        case PdfColorSpace::Lab:
                         {
-                            PdfError::LogMessage( eLogSeverity_Error, "CieLab color space not supported.\n" );                
-                            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+                            PoDoFo::LogMessage(PdfLogSeverity::Error, "CieLab color space not supported.\n");
+                            PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
                             break;
                         }
-                        case ePdfColorSpace_Indexed:
+                        case PdfColorSpace::Indexed:
                         {
-                            PdfError::LogMessage( eLogSeverity_Error, "Indexed color space not supported.\n" );                
-                            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+                            PoDoFo::LogMessage(PdfLogSeverity::Error, "Indexed color space not supported.\n");
+                            PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
                             break;
                         }
-                        case ePdfColorSpace_Unknown:
+                        case PdfColorSpace::Unknown:
 
                         default:
                         {
-                            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+                            PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
                         }
                     }
 
-                    pszKeyword = 
-                        this->ProcessColor( eTempKeyword, nTmpArgs, args, graphicsStack );
+                    keyword =
+                        this->ProcessColor(eTempKeyword, nTmpArgs, args, graphicsStack);
                     break;
                 }
 
@@ -283,146 +270,149 @@ void ColorChanger::ReplaceColorsInPage( PdfCanvas* pPage )
                 case eKeyword_SelectColor_NonStroking2:
                 {
                     /*
-                    PdfError::LogMessage( eLogSeverity_Information, 
+                    PdfError::LogMessage( LogSeverity::Information,
                                           "scn called for colorspace: %s\n",
-                                          PdfColor::GetNameForColorSpace( 
+                                          PdfColor::GetNameForColorSpace(
                                           graphicsStack.GetNonStrokingColorSpace() ).GetName().c_str() );*/
 
                     int nTmpArgs;
                     EKeywordType eTempKeyword;
 
-                    switch( graphicsStack.GetNonStrokingColorSpace() )
+                    switch (graphicsStack.GetNonStrokingColorSpace())
                     {
-                        case ePdfColorSpace_DeviceGray:
+                        case PdfColorSpace::DeviceGray:
                             nTmpArgs = 1;
                             eTempKeyword = eKeyword_SelectGray_NonStroking;
                             break;
-                        case ePdfColorSpace_DeviceRGB:
+                        case PdfColorSpace::DeviceRGB:
                             nTmpArgs = 3;
                             eTempKeyword = eKeyword_SelectRGB_NonStroking;
                             break;
-                        case ePdfColorSpace_DeviceCMYK:
+                        case PdfColorSpace::DeviceCMYK:
                             nTmpArgs = 4;
                             eTempKeyword = eKeyword_SelectCMYK_NonStroking;
                             break;
 
-                        case ePdfColorSpace_Separation:
-                        case ePdfColorSpace_CieLab:
-                        case ePdfColorSpace_Indexed:
-                        case ePdfColorSpace_Unknown:
+                        case PdfColorSpace::Separation:
+                        case PdfColorSpace::Lab:
+                        case PdfColorSpace::Indexed:
+                        case PdfColorSpace::Unknown:
 
                         default:
                         {
-                            PdfError::LogMessage( eLogSeverity_Error, "Unknown color space %i type.\n", graphicsStack.GetNonStrokingColorSpace() );
-                            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+                            PoDoFo::LogMessage(PdfLogSeverity::Error, "Unknown color space {} type.\n",
+                                PoDoFo::ColorSpaceToNameRaw(graphicsStack.GetNonStrokingColorSpace()));
+                            PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
                         }
                     }
 
-                    pszKeyword = 
-                        this->ProcessColor( eTempKeyword, nTmpArgs, args, graphicsStack );
+                    keyword =
+                        this->ProcessColor(eTempKeyword, nTmpArgs, args, graphicsStack);
                     break;
                 }
                 case eKeyword_Undefined:
-                    //PdfError::LogMessage( eLogSeverity_Error, "Unknown keyword type.\n" );
+                    //PdfError::LogMessage( LogSeverity::Error, "Unknown keyword type.\n" );
                     break;
                 default:
                     break;
             }
 
-            WriteArgumentsAndKeyword( args, pszKeyword, device );
+            WriteArgumentsAndKeyword(args, keyword, device);
         }
     }
 
     // Write arguments if there are any left
-    WriteArgumentsAndKeyword( args, NULL, device );
+    WriteArgumentsAndKeyword(args, { }, device);
     // Set new contents stream
-    pPage->GetContentsForAppending()->GetStream()->Set( buffer.GetBuffer(), buffer.GetSize() );
+    page.GetStreamForAppending(PdfStreamAppendFlags::None).
+        SetData(buffer);
 }
 
-void ColorChanger::WriteArgumentsAndKeyword( std::vector<PdfVariant> & rArgs, const char* pszKeyword, PdfOutputDevice & rDevice )
+void ColorChanger::WriteArgumentsAndKeyword(vector<PdfVariant>& args, const string_view& keyword, OutputStreamDevice& device)
 {
-    std::vector<PdfVariant>::const_iterator it = rArgs.begin();
-    while( it != rArgs.end() )
+    charbuff buffer;
+    vector<PdfVariant>::const_iterator it = args.begin();
+    while (it != args.end())
     {
-        (*it).Write( &rDevice, ePdfWriteMode_Compact );
-        ++it;
+        (*it).Write(device, PdfWriteFlags::None, { }, buffer);
+        it++;
     }
-    
-    rArgs.clear();
-    
-    if( pszKeyword ) 
+
+    args.clear();
+
+    if (!keyword.empty())
     {
-        rDevice.Write( " ", 1 );
-        rDevice.Write( pszKeyword, strlen( pszKeyword ) );
-        rDevice.Write( "\n", 1 );
+        device.Write(" ", 1);
+        device.Write(keyword);
+        device.Write("\n", 1);
     }
 }
 
-const ColorChanger::KWInfo* ColorChanger::FindKeyWordByName(const char* pszKeyword)
+const ColorChanger::KWInfo* ColorChanger::FindKeyWordByName(const string_view& keyword)
 {
-    PODOFO_RAISE_LOGIC_IF( !pszKeyword, "Keyword cannot be NULL.");
-    
+    PODOFO_RAISE_LOGIC_IF(keyword.empty(), "Keyword cannot be NULL.");
+
     const KWInfo* pInfo = &(kwInfo[0]);
-    while( pInfo->eKeywordType != eKeyword_Undefined )
+    while (pInfo->eKeywordType != eKeyword_Undefined)
     {
-        if( strcmp( pInfo->pszText, pszKeyword ) == 0 )
+        if (strcmp(pInfo->pszText, keyword.data()) == 0)
         {
             return pInfo;
         }
 
-        ++pInfo;
+        pInfo++;
     }
 
 
     return pInfo;
 }
 
-void ColorChanger::PutColorOnStack( const PdfColor & rColor, std::vector<PdfVariant> & args )
+void ColorChanger::PutColorOnStack(const PdfColor& rColor, vector<PdfVariant>& args)
 {
-    switch( rColor.GetColorSpace() )
+    switch (rColor.GetColorSpace())
     {
-        case ePdfColorSpace_DeviceGray:
-            args.push_back( rColor.GetGrayScale() );
+        case PdfColorSpace::DeviceGray:
+            args.push_back(rColor.GetGrayScale());
             break;
 
-        case ePdfColorSpace_DeviceRGB:
-            args.push_back( rColor.GetRed() );
-            args.push_back( rColor.GetGreen() );
-            args.push_back( rColor.GetBlue() );
+        case PdfColorSpace::DeviceRGB:
+            args.push_back(rColor.GetRed());
+            args.push_back(rColor.GetGreen());
+            args.push_back(rColor.GetBlue());
             break;
 
-        case ePdfColorSpace_DeviceCMYK:
-            args.push_back( rColor.GetCyan() );
-            args.push_back( rColor.GetMagenta() );
-            args.push_back( rColor.GetYellow() );
-            args.push_back( rColor.GetBlack() );
+        case PdfColorSpace::DeviceCMYK:
+            args.push_back(rColor.GetCyan());
+            args.push_back(rColor.GetMagenta());
+            args.push_back(rColor.GetYellow());
+            args.push_back(rColor.GetBlack());
             break;
-    
-        case ePdfColorSpace_Separation:
-        case ePdfColorSpace_CieLab:
-        case ePdfColorSpace_Indexed:
-        case ePdfColorSpace_Unknown:
+
+        case PdfColorSpace::Separation:
+        case PdfColorSpace::Lab:
+        case PdfColorSpace::Indexed:
+        case PdfColorSpace::Unknown:
 
         default:
         {
-            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+            PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
         }
     }
 }
 
-PdfColor ColorChanger::GetColorFromStack( int nArgs, std::vector<PdfVariant> & args )
+PdfColor ColorChanger::GetColorFromStack(int nArgs, vector<PdfVariant>& args)
 {
     PdfColor color;
 
     double gray = -1.0;
     double red = -1.0, green = -1.0, blue = -1.0;
     double cyan = -1.0, magenta = -1.0, yellow = -1.0, black = -1.0;
-    switch( nArgs ) 
+    switch (nArgs)
     {
         case 1:
             gray = args.back().GetReal();
             args.pop_back();
-            color = PdfColor( gray );
+            color = PdfColor(gray);
             break;
         case 3:
             blue = args.back().GetReal();
@@ -431,7 +421,7 @@ PdfColor ColorChanger::GetColorFromStack( int nArgs, std::vector<PdfVariant> & a
             args.pop_back();
             red = args.back().GetReal();
             args.pop_back();
-            color = PdfColor( red, green, blue );
+            color = PdfColor(red, green, blue);
             break;
         case 4:
             black = args.back().GetReal();
@@ -442,53 +432,53 @@ PdfColor ColorChanger::GetColorFromStack( int nArgs, std::vector<PdfVariant> & a
             args.pop_back();
             cyan = args.back().GetReal();
             args.pop_back();
-            color = PdfColor( cyan, magenta, yellow, black );
+            color = PdfColor(cyan, magenta, yellow, black);
             break;
     }
 
     return color;
 }
 
-const char* ColorChanger::ProcessColor( EKeywordType eKeywordType, int nNumArgs, std::vector<PdfVariant> & args, GraphicsStack & rGraphicsStack )
+const char* ColorChanger::ProcessColor(EKeywordType eKeywordType, int nNumArgs, vector<PdfVariant>& args, GraphicsStack& rGraphicsStack)
 {
     PdfColor newColor;
     bool bStroking = false;
-    PdfColor color = this->GetColorFromStack( nNumArgs, args ); 
+    PdfColor color = this->GetColorFromStack(nNumArgs, args);
 
-    switch( eKeywordType )
+    switch (eKeywordType)
     {
 
         case eKeyword_SelectGray_Stroking:
             bStroking = true;
-            rGraphicsStack.SetStrokingColorSpace( ePdfColorSpace_DeviceGray );
-            newColor = m_pConverter->SetStrokingColorGray( color );
+            rGraphicsStack.SetStrokingColorSpace(PdfColorSpace::DeviceGray);
+            newColor = m_converter->SetStrokingColorGray(color);
             break;
 
         case eKeyword_SelectRGB_Stroking:
             bStroking = true;
-            rGraphicsStack.SetStrokingColorSpace( ePdfColorSpace_DeviceRGB );
-            newColor = m_pConverter->SetStrokingColorRGB( color );
+            rGraphicsStack.SetStrokingColorSpace(PdfColorSpace::DeviceRGB);
+            newColor = m_converter->SetStrokingColorRGB(color);
             break;
 
         case eKeyword_SelectCMYK_Stroking:
             bStroking = true;
-            rGraphicsStack.SetStrokingColorSpace( ePdfColorSpace_DeviceCMYK );
-            newColor = m_pConverter->SetStrokingColorCMYK( color );
+            rGraphicsStack.SetStrokingColorSpace(PdfColorSpace::DeviceCMYK);
+            newColor = m_converter->SetStrokingColorCMYK(color);
             break;
- 
+
         case eKeyword_SelectGray_NonStroking:
-            rGraphicsStack.SetNonStrokingColorSpace( ePdfColorSpace_DeviceGray );
-            newColor = m_pConverter->SetNonStrokingColorGray( color );
+            rGraphicsStack.SetNonStrokingColorSpace(PdfColorSpace::DeviceGray);
+            newColor = m_converter->SetNonStrokingColorGray(color);
             break;
 
         case eKeyword_SelectRGB_NonStroking:
-            rGraphicsStack.SetNonStrokingColorSpace( ePdfColorSpace_DeviceRGB );
-            newColor = m_pConverter->SetNonStrokingColorRGB( color );
+            rGraphicsStack.SetNonStrokingColorSpace(PdfColorSpace::DeviceRGB);
+            newColor = m_converter->SetNonStrokingColorRGB(color);
             break;
 
         case eKeyword_SelectCMYK_NonStroking:
-            rGraphicsStack.SetNonStrokingColorSpace( ePdfColorSpace_DeviceCMYK );
-            newColor = m_pConverter->SetNonStrokingColorCMYK( color );
+            rGraphicsStack.SetNonStrokingColorSpace(PdfColorSpace::DeviceCMYK);
+            newColor = m_converter->SetNonStrokingColorCMYK(color);
             break;
 
         case eKeyword_GraphicsStack_Push:
@@ -503,94 +493,94 @@ const char* ColorChanger::ProcessColor( EKeywordType eKeywordType, int nNumArgs,
 
         default:
         {
-            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+            PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
         }
     }
 
 
-    this->PutColorOnStack( newColor, args );
-    if( bStroking ) 
+    this->PutColorOnStack(newColor, args);
+    if (bStroking)
     {
-        rGraphicsStack.SetStrokingColor( newColor );
+        rGraphicsStack.SetStrokingColor(newColor);
     }
     else
     {
-        rGraphicsStack.SetNonStrokingColor( newColor );
+        rGraphicsStack.SetNonStrokingColor(newColor);
     }
 
-    return this->GetKeywordForColor( newColor, bStroking );
+    return this->GetKeywordForColor(newColor, bStroking);
 }
 
-const char* ColorChanger::GetKeywordForColor( const PdfColor & rColor, bool bIsStroking )
+const char* ColorChanger::GetKeywordForColor(const PdfColor& rColor, bool bIsStroking)
 {
     const char* pszKeyword = NULL;
 
-    switch( rColor.GetColorSpace() )
+    switch (rColor.GetColorSpace())
     {
-        case ePdfColorSpace_DeviceGray:
-            pszKeyword = ( bIsStroking ? "G" : "g" );
+        case PdfColorSpace::DeviceGray:
+            pszKeyword = (bIsStroking ? "G" : "g");
             break;
 
-        case ePdfColorSpace_DeviceRGB:
-            pszKeyword = ( bIsStroking ? "RG" : "rg" );
+        case PdfColorSpace::DeviceRGB:
+            pszKeyword = (bIsStroking ? "RG" : "rg");
             break;
 
-        case ePdfColorSpace_DeviceCMYK:
-            pszKeyword = ( bIsStroking ? "K" : "k" );
+        case PdfColorSpace::DeviceCMYK:
+            pszKeyword = (bIsStroking ? "K" : "k");
             break;
 
-        case ePdfColorSpace_Separation:
-        case ePdfColorSpace_CieLab:
-        case ePdfColorSpace_Indexed:
-        case ePdfColorSpace_Unknown:
-        
+        case PdfColorSpace::Separation:
+        case PdfColorSpace::Lab:
+        case PdfColorSpace::Indexed:
+        case PdfColorSpace::Unknown:
+
         default:
         {
-            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+            PODOFO_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
         }
     }
 
     return pszKeyword;
 }
 
-EPdfColorSpace ColorChanger::GetColorSpaceForName( const PdfName & rName, PdfCanvas* pPage ) 
+PdfColorSpace ColorChanger::GetColorSpaceForName(const PdfName& name, PdfCanvas& page)
 {
-    EPdfColorSpace eColorSpace = PdfColor::GetColorSpaceForName( rName );
+    PdfColorSpace colorSpace = PoDoFo::NameToColorSpaceRaw(name);
 
-    if( eColorSpace == ePdfColorSpace_Unknown ) 
+    if (colorSpace == PdfColorSpace::Unknown)
     {
         // See if we can find it in the resource dictionary of the current page
-        PdfObject* pResources = pPage->GetResources();
-        if( pResources != NULL
-            && pResources->GetDictionary().HasKey( PdfName("ColorSpace") ) )
+        auto resources = page.GetResources();
+        if (resources != NULL
+            && resources->GetDictionary().HasKey("ColorSpace"))
         {
-            PdfObject* pColorSpaces = pResources->GetIndirectKey( PdfName("ColorSpace") );
-            if( pColorSpaces != NULL
-                && pColorSpaces->GetDictionary().HasKey( rName ) )
+            auto colorSpaces = resources->GetDictionary().FindKey("ColorSpace");
+            if (colorSpaces != NULL
+                && colorSpaces->GetDictionary().HasKey(name))
             {
-                PdfObject* pCS = pColorSpaces->GetIndirectKey( rName );
-                if( !pCS )
+                auto cs = colorSpaces->GetDictionary().FindKey(name);
+                if (!cs)
                 {
-                    PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+                    PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
                 }
-                else if( pCS->IsName() )
+                else if (cs->IsName())
                 {
-                    return this->GetColorSpaceForName( pCS->GetName(), pPage ); 
+                    return this->GetColorSpaceForName(cs->GetName(), page);
                 }
-                else if( pCS->IsArray() )
+                else if (cs->IsArray())
                 {
-                    return this->GetColorSpaceForArray( pCS->GetArray(), pPage );
+                    return this->GetColorSpaceForArray(cs->GetArray(), page);
                 }
             }
         }
     }
 
-    return eColorSpace;
+    return colorSpace;
 }
 
-EPdfColorSpace ColorChanger::GetColorSpaceForArray( const PdfArray &, PdfCanvas* )
+PdfColorSpace ColorChanger::GetColorSpaceForArray(const PdfArray&, PdfCanvas&)
 {
-    EPdfColorSpace eColorSpace = ePdfColorSpace_Unknown;
+    PdfColorSpace colorSpace = PdfColorSpace::Unknown;
 
     // CIE Based: [name dictionary]
     //     CalGray
@@ -605,5 +595,5 @@ EPdfColorSpace ColorChanger::GetColorSpaceForArray( const PdfArray &, PdfCanvas*
     //             [/DeviceN names alternateSpace tintTransform attributes]
     // 
 
-    return eColorSpace;
+    return colorSpace;
 }

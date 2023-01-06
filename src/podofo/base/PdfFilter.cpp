@@ -1,462 +1,484 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2006 Dominik Seichter <domseichter@web.de>
+ * SPDX-License-Identifier: LGPL-2.0-or-later
+ */
 
-#include "PdfDefines.h"
+#include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfFilter.h"
 
+#include <podofo/private/PdfFiltersPrivate.h>
+
+#include "PdfDocument.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
-#include "PdfFiltersPrivate.h"
-#include "PdfOutputStream.h"
-#include "PdfDefinesPrivate.h"
+#include "PdfStreamDevice.h"
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
-// All known filters
-static const char* aszFilters[] = {
-    "ASCIIHexDecode",
-    "ASCII85Decode",
-    "LZWDecode",
-    "FlateDecode",
-    "RunLengthDecode",
-    "CCITTFaxDecode", 
-    "JBIG2Decode",
-    "DCTDecode",
-    "JPXDecode",
-    "Crypt",
-    NULL
-};
-
-static const char* aszShortFilters[] = {
-    "AHx",
-    "A85",
-    "LZW",
-    "Fl",
-    "RL",
-    "CCF", 
-    "", ///< There is no shortname for JBIG2Decode
-    "DCT",
-    "", ///< There is no shortname for JPXDecode 
-    "", ///< There is no shortname for Crypt
-    NULL
-};
-
-/** Create a filter that is a PdfOutputStream.
- *
- *  All data written to this stream is encoded using a
- *  filter and written to another PdfOutputStream.
- *
- *  The passed output stream is owned by this PdfOutputStream
- *  and deleted along with it.
- */
-class PdfFilteredEncodeStream : public PdfOutputStream{
- public:
-    /** Create a filtered output stream.
-     *
-     *  All data written to this stream is encoded using the passed filter type
-     *  and written to the passed output stream which will be deleted 
-     *  by this PdfFilteredEncodeStream.
-     *
-     *  \param pOutputStream write all data to this output stream after encoding the data.
-     *  \param eFilter use this filter for encoding.
-     *  \param bOwnStream if true pOutputStream will be deleted along with this filter
-     */
-    PdfFilteredEncodeStream( PdfOutputStream* pOutputStream, const EPdfFilter eFilter, bool bOwnStream )
-        : m_pOutputStream( pOutputStream ), m_pFilter( NULL )
+// An OutputStream class that actually perform the encoding
+class PdfFilteredEncodeStream : public OutputStream
+{
+private:
+    void init(OutputStream& outputStream, PdfFilterType filterType)
     {
-        m_pFilter = PdfFilterFactory::Create( eFilter );
+        m_filter = PdfFilterFactory::Create(filterType);
+        if (m_filter == nullptr)
+            PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 
-        if( !m_pFilter ) 
+        m_filter->BeginEncode(outputStream);
+    }
+    ~PdfFilteredEncodeStream()
+    {
+        m_filter->EndEncode();
+    }
+public:
+    PdfFilteredEncodeStream(const shared_ptr<OutputStream>& outputStream, PdfFilterType filterType)
+        : m_OutputStream(outputStream)
+    {
+        init(*outputStream, filterType);
+    }
+protected:
+    void writeBuffer(const char* buffer, size_t len) override
+    {
+        m_filter->EncodeBlock({ buffer, len });
+    }
+private:
+    shared_ptr<OutputStream> m_OutputStream;
+    unique_ptr<PdfFilter> m_filter;
+};
+
+// An OutputStream class that actually perform the deecoding
+class PdfFilteredDecodeStream : public OutputStream
+{
+private:
+    void init(OutputStream& outputStream, const PdfFilterType filterType,
+        const PdfDictionary* decodeParms)
+    {
+        m_filter = PdfFilterFactory::Create(filterType);
+        if (m_filter == nullptr)
+            PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
+
+        m_filter->BeginDecode(outputStream, decodeParms);
+    }
+
+public:
+    PdfFilteredDecodeStream(OutputStream& outputStream, const PdfFilterType filterType,
+        const PdfDictionary* decodeParms)
+        : m_FilterFailed(false)
+    {
+        init(outputStream, filterType, decodeParms);
+    }
+
+    PdfFilteredDecodeStream(unique_ptr<OutputStream> outputStream, const PdfFilterType filterType,
+        const PdfDictionary* decodeParms)
+        : m_OutputStream(std::move(outputStream)), m_FilterFailed(false)
+    {
+        if (m_OutputStream == nullptr)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Output stream must be not null");
+
+        init(*m_OutputStream, filterType, decodeParms);
+    }
+
+protected:
+    void writeBuffer(const char* buffer, size_t len) override
+    {
+        try
         {
-            PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+            m_filter->DecodeBlock({ buffer, len });
         }
-
-        m_pFilter->BeginEncode( pOutputStream );
-
-        if( !bOwnStream )
-            m_pOutputStream = NULL;
+        catch (PdfError& e)
+        {
+            PODOFO_PUSH_FRAME(e);
+            m_FilterFailed = true;
+            throw;
+        }
     }
-
-    virtual ~PdfFilteredEncodeStream()
+    void flush() override
     {
-        delete m_pOutputStream;
-        delete m_pFilter;
-    }
-
-    /** Write data to the output stream
-     *  
-     *  \param pBuffer the data is read from this buffer
-     *  \param lLen    the size of the buffer 
-     */
-    virtual pdf_long Write( const char* pBuffer, pdf_long lLen )
-    {
-        m_pFilter->EncodeBlock( pBuffer, lLen );
-        
-        return 0;
-    }
-
-    virtual void Close() 
-    {
-        m_pFilter->EndEncode();
+        try
+        {
+            if (!m_FilterFailed)
+                m_filter->EndDecode();
+        }
+        catch (PdfError& e)
+        {
+            PODOFO_PUSH_FRAME_INFO(e, "PdfFilter::EndDecode() failed in filter of type {}",
+                PoDoFo::FilterToName(m_filter->GetType()));
+            m_FilterFailed = true;
+            throw;
+        }
     }
 
 private:
-    PdfOutputStream* m_pOutputStream;
-    PdfFilter*       m_pFilter;
+    shared_ptr<OutputStream> m_OutputStream;
+    unique_ptr<PdfFilter> m_filter;
+    bool m_FilterFailed;
 };
 
-/** Create a filter that is a PdfOutputStream.
- *
- *  All data written to this stream is decoded using a
- *  filter and written to another PdfOutputStream.
- *
- *  The passed output stream is owned by this PdfOutputStream
- *  and deleted along with it (optionally, see constructor).
- */
-class PdfFilteredDecodeStream : public PdfOutputStream {
- public:
-    /** Create a filtered output stream.
-     *
-     *  All data written to this stream is decoded using the passed filter type
-     *  and written to the passed output stream which will be deleted 
-     *  by this PdfFilteredDecodeStream if the parameter bOwnStream is true.
-     *
-     *  \param pOutputStream write all data to this output stream after decoding the data.
-     *         The PdfOutputStream is deleted along with this object if bOwnStream is true.
-     *  \param eFilter use this filter for decoding.
-     *  \param bOwnStream if true pOutputStream will be deleted along with this stream
-     *  \param pDecodeParms additional parameters for decoding
-     */
-    PdfFilteredDecodeStream( PdfOutputStream* pOutputStream, const EPdfFilter eFilter, bool bOwnStream,
-                             const PdfDictionary* pDecodeParms = NULL )
-        : m_pOutputStream( pOutputStream ), m_pFilter( NULL ), m_bFilterFailed( false )
+// An InputStream class that will actually perform the decoding
+class PdfBufferedDecodeStream : public InputStream, private OutputStream
+{
+public:
+    PdfBufferedDecodeStream(const shared_ptr<InputStream>& inputStream, const PdfFilterList& filters,
+            const vector<const PdfDictionary*>& decodeParms)
+        : m_inputEof(false), m_inputStream(inputStream), m_offset(0)
     {
-        m_pFilter = PdfFilterFactory::Create( eFilter );
-        if( !m_pFilter ) 
+        PODOFO_INVARIANT(filters.size() != 0);
+        int i = (int)filters.size() - 1;
+        m_filterStream.reset(new PdfFilteredDecodeStream(*this, filters[i], decodeParms[i]));
+        i--;
+
+        while (i >= 0)
         {
-            PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+            m_filterStream.reset(new PdfFilteredDecodeStream(std::move(m_filterStream), filters[i], decodeParms[i]));
+            i--;
         }
-
-        m_pFilter->BeginDecode( pOutputStream, pDecodeParms );
-
-        if( !bOwnStream )
-            m_pOutputStream = NULL;
     }
-
-    virtual ~PdfFilteredDecodeStream()
+protected:
+    size_t readBuffer(char* buffer, size_t size, bool& eof) override
     {
-        delete m_pOutputStream;
-        delete m_pFilter;
-    }
-
-    /** Write data to the output stream
-     *  
-     *  \param pBuffer the data is read from this buffer
-     *  \param lLen    the size of the buffer 
-     */
-    virtual pdf_long Write( const char* pBuffer, pdf_long lLen )
-    {
-        try {
-            m_pFilter->DecodeBlock( pBuffer, lLen );
-        }
-        catch( PdfError & e ) 
+        if (m_offset < m_buffer.size())
         {
-            e.AddToCallstack( __FILE__, __LINE__ );
-            m_bFilterFailed = true;
-            throw e;
+            size = std::min(size, m_buffer.size() - m_offset);
+            std::memcpy(buffer, m_buffer.data() + m_offset, size);
+            m_offset += size;
+            eof = false;
+            return size;
         }
 
-        return 0;
-    }
-
-    virtual void Close() 
-    {
-        try {
-            if( !m_bFilterFailed ) 
-            {
-                m_pFilter->EndDecode();
-            }
-        }
-        catch( PdfError & e )
+        if (m_inputEof)
         {
-            std::ostringstream oss;
-            oss << "PdfFilter::EndDecode() failed in filter of type "
-                << PdfFilterFactory::FilterTypeToName( m_pFilter->GetType() ) << ".\n";
-            e.AddToCallstack( __FILE__, __LINE__, oss.str() );
-            m_bFilterFailed = true;
-            throw e;
+            eof = true;
+            return 0;
         }
 
+        auto readSize = ReadBuffer(*m_inputStream, buffer, size, m_inputEof);
+        m_buffer.clear();
+        m_filterStream->Write(buffer, readSize);
+        if (m_inputEof)
+            m_filterStream->Flush();
+
+        size = std::min(size, m_buffer.size());
+        std::memcpy(buffer, m_buffer.data(), size);
+        m_offset = size;
+        eof = false;
+        return size;
     }
 
+    void writeBuffer(const char* buffer, size_t size) override
+    {
+        m_buffer.append(buffer, size);
+    }
 private:
-    PdfOutputStream* m_pOutputStream;
-    PdfFilter*       m_pFilter;
-    bool             m_bFilterFailed;
+    bool m_inputEof;
+    shared_ptr<InputStream> m_inputStream;
+    size_t m_offset;
+    charbuff m_buffer;
+    unique_ptr<OutputStream> m_filterStream;
 };
 
-
-// -----------------------------------------------------
+//
 // Actual PdfFilter code
-// -----------------------------------------------------
+//
 
-
-PdfFilter::PdfFilter() 
-    : m_pOutputStream( NULL )
+PdfFilter::PdfFilter()
+    : m_OutputStream(nullptr)
 {
 }
 
-void PdfFilter::Encode( const char* pInBuffer, pdf_long lInLen, char** ppOutBuffer, pdf_long* plOutLen ) const
+PdfFilter::~PdfFilter()
 {
-    if( !this->CanEncode() )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
-    }
-
-    PdfMemoryOutputStream stream;
-
-    const_cast<PdfFilter*>(this)->BeginEncode( &stream );
-    const_cast<PdfFilter*>(this)->EncodeBlock( pInBuffer, lInLen );
-    const_cast<PdfFilter*>(this)->EndEncode();
-
-    *ppOutBuffer = stream.TakeBuffer();
-    *plOutLen    = stream.GetLength();
+    // Whoops! Didn't call EndEncode() before destroying the filter!
+    // Note that we can't do this for the user, since EndEncode() might
+    // throw and we can't safely have that in a dtor. That also means
+    // we can't throw here, but must abort.
+    PODOFO_ASSERT(m_OutputStream == nullptr);
 }
 
-void PdfFilter::Decode( const char* pInBuffer, pdf_long lInLen, char** ppOutBuffer, pdf_long* plOutLen, 
-                        const PdfDictionary* pDecodeParms ) const
+void PdfFilter::EncodeTo(charbuff& outBuffer, const bufferview& inBuffer) const
 {
-    if( !this->CanDecode() )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
-    }
+    if (!this->CanEncode())
+        PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 
-    PdfMemoryOutputStream stream;
-
-    const_cast<PdfFilter*>(this)->BeginDecode( &stream, pDecodeParms );
-    const_cast<PdfFilter*>(this)->DecodeBlock( pInBuffer, lInLen );
-    const_cast<PdfFilter*>(this)->EndDecode();
-
-    *ppOutBuffer = stream.TakeBuffer();
-    *plOutLen    = stream.GetLength();
+    BufferStreamDevice stream(outBuffer);
+    const_cast<PdfFilter&>(*this).encodeTo(stream, inBuffer);
 }
 
-// -----------------------------------------------------
+void PdfFilter::EncodeTo(OutputStream& stream, const bufferview& inBuffer) const
+{
+    if (!this->CanEncode())
+        PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
+
+    const_cast<PdfFilter&>(*this).encodeTo(stream, inBuffer);
+}
+
+void PdfFilter::encodeTo(OutputStream& stream, const bufferview& inBuffer)
+{
+    BeginEncode(stream);
+    EncodeBlock(inBuffer);
+    EndEncode();
+}
+
+void PdfFilter::DecodeTo(charbuff& outBuffer, const bufferview& inBuffer,
+    const PdfDictionary* decodeParms) const
+{
+    if (!this->CanDecode())
+        PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
+
+    BufferStreamDevice stream(outBuffer);
+    const_cast<PdfFilter&>(*this).decodeTo(stream, inBuffer, decodeParms);
+}
+
+void PdfFilter::DecodeTo(OutputStream& stream, const bufferview& inBuffer, const PdfDictionary* decodeParms) const
+{
+    if (!this->CanDecode())
+        PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
+
+    const_cast<PdfFilter&>(*this).decodeTo(stream, inBuffer, decodeParms);
+}
+
+void PdfFilter::decodeTo(OutputStream& stream, const bufferview& inBuffer, const PdfDictionary* decodeParms)
+{
+    BeginDecode(stream, decodeParms);
+    DecodeBlock(inBuffer);
+    EndDecode();
+}
+
+//
 // PdfFilterFactory code
-// -----------------------------------------------------
+//
 
-PdfFilterFactory::PdfFilterFactory()
+unique_ptr<PdfFilter> PdfFilterFactory::Create(PdfFilterType filterType)
 {
-}
-
-PdfFilter* PdfFilterFactory::Create( const EPdfFilter eFilter ) 
-{
-    PdfFilter* pFilter = NULL;
-    switch( eFilter )
+    PdfFilter* filter = nullptr;
+    switch (filterType)
     {
-        case ePdfFilter_None:
+        case PdfFilterType::ASCIIHexDecode:
+            filter = new PdfHexFilter();
             break;
-
-        case ePdfFilter_ASCIIHexDecode:
-            pFilter = new PdfHexFilter();
+        case PdfFilterType::ASCII85Decode:
+            filter = new PdfAscii85Filter();
             break;
-            
-        case ePdfFilter_ASCII85Decode:
-            pFilter = new PdfAscii85Filter();
+        case PdfFilterType::LZWDecode:
+            filter = new PdfLZWFilter();
             break;
-            
-        case ePdfFilter_LZWDecode:
-            pFilter = new PdfLZWFilter();
+        case PdfFilterType::FlateDecode:
+            filter = new PdfFlateFilter();
             break;
-            
-        case ePdfFilter_FlateDecode:
-            pFilter = new PdfFlateFilter();
+        case PdfFilterType::RunLengthDecode:
+            filter = new PdfRLEFilter();
             break;
-            
-        case ePdfFilter_RunLengthDecode:
-            pFilter = new PdfRLEFilter();
-            break;
-            
-        case ePdfFilter_DCTDecode:
-#ifdef PODOFO_HAVE_JPEG_LIB
-            pFilter = new PdfDCTFilter();
-            break;
-#else
-            break;
-#endif // PODOFO_HAVE_JPEG_LIB
-
-        case ePdfFilter_CCITTFaxDecode:
-#ifdef PODOFO_HAVE_TIFF_LIB
-            pFilter = new PdfCCITTFilter();
-            break;
-#else
-            break;
-#endif // PODOFO_HAVE_TIFF_LIB
-
-
-        case ePdfFilter_JBIG2Decode:
-        case ePdfFilter_JPXDecode:
-        case ePdfFilter_Crypt:
+        case PdfFilterType::None:
+        case PdfFilterType::DCTDecode:
+        case PdfFilterType::CCITTFaxDecode:
+        case PdfFilterType::JBIG2Decode:
+        case PdfFilterType::JPXDecode:
+        case PdfFilterType::Crypt:
         default:
             break;
     }
 
-    return pFilter;
+    return unique_ptr<PdfFilter>(filter);
 }
 
-PdfOutputStream* PdfFilterFactory::CreateEncodeStream( const TVecFilters & filters, PdfOutputStream* pStream ) 
+unique_ptr<OutputStream> PdfFilterFactory::CreateEncodeStream(const shared_ptr<OutputStream>& stream,
+    const PdfFilterList& filters)
 {
-    TVecFilters::const_iterator it = filters.begin();
+    PODOFO_RAISE_LOGIC_IF(!filters.size(), "Cannot create an EncodeStream from an empty list of filters");
 
-    PODOFO_RAISE_LOGIC_IF( !filters.size(), "Cannot create an EncodeStream from an empty list of filters" );
+    PdfFilterList::const_iterator it = filters.begin();
+    unique_ptr<OutputStream> filter(new PdfFilteredEncodeStream(stream, *it));
+    it++;
 
-    PdfFilteredEncodeStream* pFilter = new PdfFilteredEncodeStream( pStream, *it, false );
-    ++it;
-
-    while( it != filters.end() ) 
+    while (it != filters.end())
     {
-        pFilter = new PdfFilteredEncodeStream( pFilter, *it, true );
-        ++it;
+        filter.reset(new PdfFilteredEncodeStream(std::move(filter), *it));
+        it++;
     }
 
-    return pFilter;
+    return filter;
 }
 
-PdfOutputStream* PdfFilterFactory::CreateDecodeStream( const TVecFilters & filters, PdfOutputStream* pStream,
-                                                       const PdfDictionary* pDictionary ) 
+unique_ptr<InputStream> PdfFilterFactory::CreateDecodeStream(const shared_ptr<InputStream>& stream,
+    const PdfFilterList& filters, const std::vector<const PdfDictionary*>& decodeParms)
 {
-    TVecFilters::const_reverse_iterator it = filters.rbegin();
-
-    PODOFO_RAISE_LOGIC_IF( !filters.size(), "Cannot create an DecodeStream from an empty list of filters" );
-
-    // TODO: support arrays and indirect objects here and the short name /DP
-    if( pDictionary && pDictionary->HasKey( "DecodeParms" ) && pDictionary->GetKey( "DecodeParms" )->IsDictionary() )
-        pDictionary = &(pDictionary->GetKey( "DecodeParms" )->GetDictionary());
-
-    PdfFilteredDecodeStream* pFilterStream = new PdfFilteredDecodeStream( pStream, *it, false, pDictionary );
-    ++it;
-
-    while( it != filters.rend() ) 
-    {
-        pFilterStream = new PdfFilteredDecodeStream( pFilterStream, *it, true, pDictionary );
-        ++it;
-    }
-
-    return pFilterStream;
+    PODOFO_RAISE_LOGIC_IF(stream == nullptr, "Cannot create an DecodeStream from an empty stream");
+    PODOFO_RAISE_LOGIC_IF(filters.size() == 0, "Cannot create an DecodeStream from an empty list of filters");
+    return std::make_unique<PdfBufferedDecodeStream>(stream, filters, decodeParms);
 }
 
-EPdfFilter PdfFilterFactory::FilterNameToType( const PdfName & name, bool bSupportShortNames )
+PdfFilterList PdfFilterFactory::CreateFilterList(const PdfObject& filtersObj)
 {
-    int i = 0;
-
-    while( aszFilters[i] )
+    PdfFilterList filters;
+    const PdfObject* filterKeyObj = nullptr;
+    if (filtersObj.IsDictionary()
+        && (filterKeyObj = filtersObj.GetDictionary().FindKey(PdfName::KeyFilter)) == nullptr
+        && filtersObj.IsArray())
     {
-        if( name == aszFilters[i] )
-            return static_cast<EPdfFilter>(i);
-        
-        ++i;
+        filterKeyObj = &filtersObj;
+    }
+    else if (filtersObj.IsName())
+    {
+        filterKeyObj = &filtersObj;
     }
 
-    if( bSupportShortNames )
+    if (filterKeyObj == nullptr)
     {
-        i = 0;
-        while( aszShortFilters[i] )
+        // Object had no /Filter key . Return a null filter list.
+        return filters;
+    }
+
+    if (filterKeyObj->IsName())
+    {
+        addFilterTo(filters, filterKeyObj->GetName().GetString());
+    }
+    else if (filterKeyObj->IsArray())
+    {
+        for (auto filter : filterKeyObj->GetArray().GetIndirectIterator())
         {
-            if( name == aszShortFilters[i] )
-                return static_cast<EPdfFilter>(i);
-            
-            ++i;
-        }        
-    }
+            if (!filter->IsName())
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Filter array contained unexpected non-name type");
 
-    PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFilter, name.GetName().c_str() );
-}
-
-const char* PdfFilterFactory::FilterTypeToName( EPdfFilter eFilter )
-{
-    return aszFilters[static_cast<int>(eFilter)];
-}
-
-TVecFilters PdfFilterFactory::CreateFilterList( const PdfObject* pObject )
-{
-    TVecFilters filters;
-
-    const PdfObject* pObj    = NULL;
-
-    if( pObject->IsDictionary() && pObject->GetDictionary().HasKey( "Filter" ) )
-        pObj = pObject->GetIndirectKey( "Filter" );
-    else if( pObject->IsArray() )
-        pObj = pObject;
-    else if( pObject->IsName() ) 
-        pObj = pObject;
-
-
-    if (!pObj)
-	// Object had no /Filter key . Return a null filter list.
-	return filters;
-
-    if( pObj->IsName() ) 
-        filters.push_back( PdfFilterFactory::FilterNameToType( pObj->GetName() ) );
-    else if( pObj->IsArray() ) 
-    {
-        TCIVariantList it = pObj->GetArray().begin();
-
-        while( it != pObj->GetArray().end() )
-        {
-            if ( (*it).IsName() )
-			{
-                filters.push_back( PdfFilterFactory::FilterNameToType( (*it).GetName() ) );
-            }
-            else if ( (*it).IsReference() )
-            {
-                PdfObject* pFilter = pObject->GetOwner()->GetObject( (*it).GetReference() );
-                if( pFilter == NULL ) 
-                {
-                    PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Filter array contained unexpected reference" );
-                }
-
-                filters.push_back( PdfFilterFactory::FilterNameToType( pFilter->GetName() ) );
-            }
-            else 
-            {
-                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Filter array contained unexpected non-name type" );
-			}
-                
-            ++it;
+            addFilterTo(filters, filter->GetName().GetString());
         }
+    }
+    else
+    {
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Unexpected filter container type");
     }
 
     return filters;
 }
 
-};
+
+void PdfFilterFactory::addFilterTo(PdfFilterList& filters, const string_view& filter)
+{
+    auto type = PoDoFo::NameToFilter(filter);
+    filters.push_back(type);
+}
+
+void PdfFilter::BeginEncode(OutputStream& output)
+{
+    PODOFO_RAISE_LOGIC_IF(m_OutputStream != nullptr, "BeginEncode() on failed filter or without EndEncode()");
+    m_OutputStream = &output;
+
+    try
+    {
+        BeginEncodeImpl();
+    }
+    catch (...)
+    {
+        // Clean up and close stream
+        this->FailEncodeDecode();
+        throw;
+    }
+}
+
+void PdfFilter::EncodeBlock(const bufferview& view)
+{
+    PODOFO_RAISE_LOGIC_IF(m_OutputStream == nullptr, "EncodeBlock() without BeginEncode() or on failed filter");
+
+    try
+    {
+        EncodeBlockImpl(view.data(), view.size());
+    }
+    catch (...)
+    {
+        // Clean up and close stream
+        this->FailEncodeDecode();
+        throw;
+    }
+}
+
+void PdfFilter::EndEncode()
+{
+    PODOFO_RAISE_LOGIC_IF(m_OutputStream == nullptr, "EndEncode() without BeginEncode() or on failed filter");
+
+    try
+    {
+        EndEncodeImpl();
+    }
+    catch (...)
+    {
+        // Clean up and close stream
+        this->FailEncodeDecode();
+        throw;
+    }
+
+    m_OutputStream->Flush();
+    m_OutputStream = nullptr;
+}
+
+void PdfFilter::BeginDecode(OutputStream& output, const PdfDictionary* decodeParms)
+{
+    PODOFO_RAISE_LOGIC_IF(m_OutputStream != nullptr, "BeginDecode() on failed filter or without EndDecode()");
+    m_OutputStream = &output;
+
+    try
+    {
+        BeginDecodeImpl(decodeParms);
+    }
+    catch (...)
+    {
+        // Clean up and close stream
+        this->FailEncodeDecode();
+        throw;
+    }
+}
+
+void PdfFilter::DecodeBlock(const bufferview& view)
+{
+    PODOFO_RAISE_LOGIC_IF(m_OutputStream == nullptr, "DecodeBlock() without BeginDecode() or on failed filter")
+
+    try
+    {
+        DecodeBlockImpl(view.data(), view.size());
+    }
+    catch (...)
+    {
+        // Clean up and close stream
+        this->FailEncodeDecode();
+        throw;
+    }
+}
+
+void PdfFilter::EndDecode()
+{
+    PODOFO_RAISE_LOGIC_IF(m_OutputStream == nullptr, "EndDecode() without BeginDecode() or on failed filter")
+
+    try
+    {
+        EndDecodeImpl();
+    }
+    catch (PdfError& e)
+    {
+        PODOFO_PUSH_FRAME(e);
+        // Clean up and close stream
+        this->FailEncodeDecode();
+        throw;
+    }
+    try
+    {
+        if (m_OutputStream != nullptr)
+        {
+            m_OutputStream->Flush();
+            m_OutputStream = nullptr;
+        }
+    }
+    catch (PdfError& e)
+    {
+        PODOFO_PUSH_FRAME_INFO(e, "Exception caught closing filter's output stream");
+        // Closing stream failed, just get rid of it
+        m_OutputStream = nullptr;
+        throw;
+    }
+}
+
+void PdfFilter::FailEncodeDecode()
+{
+    if (m_OutputStream != nullptr)
+        m_OutputStream->Flush();
+
+    m_OutputStream = nullptr;
+}

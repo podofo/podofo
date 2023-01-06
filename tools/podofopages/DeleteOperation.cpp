@@ -1,43 +1,29 @@
-/***************************************************************************
- *   Copyright (C) 2009 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2009 Dominik Seichter <domseichter@web.de>
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
 #include "DeleteOperation.h"
 
-#include <podofo.h>
+#include <podofo/podofo.h>
+#include <sstream>
 
-DeleteOperation::DeleteOperation( int nPage )
-    : m_nPage( nPage )
+using namespace std;
+using namespace PoDoFo;
+
+DeleteOperation::DeleteOperation(unsigned pageIndex)
+    : m_pageIndex(pageIndex)
 {
-
 }
 
-void DeleteOperation::Perform( PoDoFo::PdfDocument & rDoc )
+void DeleteOperation::Perform(PdfDocument& doc)
 {
-    rDoc.GetPagesTree()->DeletePage( m_nPage );
+    doc.GetPages().RemovePageAt(m_pageIndex);
 }
 
-std::string DeleteOperation::ToString() const
+string DeleteOperation::ToString() const
 {
-    std::ostringstream oss;
-
-    oss << "Deleting page: " << m_nPage << "." << std::endl;
-
+    ostringstream oss;
+    oss << "Deleting page: " << m_pageIndex << "." << std::endl;
     return oss.str();
 }

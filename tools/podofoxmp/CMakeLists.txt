@@ -1,7 +1,3 @@
-ADD_EXECUTABLE(podofoxmp podofoxmp.cpp)
-
-TARGET_LINK_LIBRARIES(podofoxmp ${PODOFO_LIB})
-SET_TARGET_PROPERTIES(podofoxmp PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
-ADD_DEPENDENCIES(podofoxmp ${PODOFO_DEPEND_TARGET})
-INSTALL(TARGETS podofoxmp
-	RUNTIME DESTINATION "bin")
+add_executable(podofoxmp podofoxmp.cpp)
+target_link_libraries(podofoxmp ${PODOFO_LIBRARIES})
+install(TARGETS podofoxmp RUNTIME DESTINATION "bin")

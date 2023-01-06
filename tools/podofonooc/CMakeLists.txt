@@ -1,7 +1,3 @@
-ADD_EXECUTABLE(podofonooc podofonooc.cpp)
-
-TARGET_LINK_LIBRARIES(podofonooc ${PODOFO_LIB})
-SET_TARGET_PROPERTIES(podofonooc PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
-ADD_DEPENDENCIES(podofonooc ${PODOFO_DEPEND_TARGET})
-INSTALL(TARGETS podofonooc
-	RUNTIME DESTINATION "bin")
+add_executable(podofonooc podofonooc.cpp)
+target_link_libraries(podofonooc ${PODOFO_LIBRARIES})
+install(TARGETS podofonooc RUNTIME DESTINATION "bin")

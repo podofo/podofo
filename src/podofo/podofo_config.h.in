@@ -1,0 +1,20 @@
+#ifndef PODOFO_CONFIG_H
+#define PODOFO_CONFIG_H
+
+// Template filled out by CMake
+
+#define PODOFO_VERSION_MAJOR @PODOFO_VERSION_MAJOR@
+#define PODOFO_VERSION_MINOR @PODOFO_VERSION_MINOR@
+#define PODOFO_VERSION_PATCH @PODOFO_VERSION_PATCH@
+
+// PoDoFo configuration options
+
+// Libraries
+#cmakedefine PODOFO_HAVE_JPEG_LIB
+#cmakedefine PODOFO_HAVE_PNG_LIB
+#cmakedefine PODOFO_HAVE_TIFF_LIB
+#cmakedefine PODOFO_HAVE_FONTCONFIG
+#cmakedefine PODOFO_HAVE_WIN32GDI
+#cmakedefine PODOFO_HAVE_LIBIDN
+
+#endif // PODOFO_CONFIG_H

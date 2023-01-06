@@ -1,46 +1,27 @@
-/***************************************************************************
- *   Copyright (C) 2010 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2010 Dominik Seichter <domseichter@web.de>
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
-#include <podofo.h>
+#include <podofo/private/PdfDeclarationsPrivate.h>
+#include <podofo/podofo.h>
 
 #include <cstdlib>
 #include <cstdio>
 
+#include <sstream>
 #include <vector>
 
 #ifdef _WIN32
-# include <windows.h>
-# ifdef GetObject
-#  undef GetObject
-# endif 
+#include <podofo/private/WindowsLeanMean.h>
 #else
 # include <unistd.h>
 # include <sys/types.h> 
 # include <sys/wait.h> 
 #endif // _WIN32
 
+using namespace std;
 using namespace PoDoFo;
-
-#ifdef _HAVE_CONFIG
-#include <config.h>
-#endif // _HAVE_CONFIG
 
 void print_help()
 {
@@ -50,9 +31,9 @@ void print_help()
     printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
 }
 
-void crop_page( PdfPage* pPage, const PdfRect & rCropBox ) 
+void crop_page(PdfPage& page, const PdfRect& cropBox)
 {
-    PdfVariant var;
+    PdfArray arr;
     /*
     printf("%f %f %f %f\n",
            rCropBox.GetLeft(),
@@ -60,185 +41,179 @@ void crop_page( PdfPage* pPage, const PdfRect & rCropBox )
            rCropBox.GetWidth(),
            rCropBox.GetHeight());
     */
-    rCropBox.ToVariant( var );
-    if (!pPage)
-    {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle,
-                                "crop_page: No page pointer given" );
-    }
-    pPage->GetObject()->GetDictionary().AddKey( PdfName("MediaBox"), var );
+    cropBox.ToArray(arr);
+    page.GetDictionary().AddKey("MediaBox", arr);
 }
 
-std::string get_ghostscript_output( const char* pszInput )
+string get_ghostscript_output(const string_view& inputPath)
 {
-	std::string sOutput;
-    const int lBufferLen = 256;
-    char buffer[lBufferLen];
+    string output;
+    constexpr unsigned BufferLen = 256;
+    char buffer[BufferLen];
 
 #ifdef _WIN32
     DWORD count;
-	char cmd[lBufferLen];
+    char cmd[BufferLen];
 
     STARTUPINFOA si;
     PROCESS_INFORMATION pi;
 
-    ZeroMemory( &si, sizeof(si) );
+    ZeroMemory(&si, sizeof(si));
     si.cb = sizeof(si);
-    ZeroMemory( &pi, sizeof(pi) );
+    ZeroMemory(&pi, sizeof(pi));
 
     // Fenster nicht sichtbar
-    si.dwFlags=STARTF_USESHOWWINDOW;
-    si.wShowWindow=SW_HIDE;
+    si.dwFlags = STARTF_USESHOWWINDOW;
+    si.wShowWindow = SW_HIDE;
 
     // Ausgabe umleiten
     HANDLE pipe;
-    CreatePipe(&pipe, 0, 0, 0 );
-    si.dwFlags|=STARTF_USESTDHANDLES;
+    CreatePipe(&pipe, 0, 0, 0);
+    si.dwFlags |= STARTF_USESTDHANDLES;
     //si.hStdOutput=pipe_wr;
-	si.hStdError = pipe;
+    si.hStdError = pipe;
 
-	
-	_snprintf(cmd, lBufferLen, "gs -dSAFER -sDEVICE=bbox -sNOPAUSE -q %s -c quit", pszInput);
-	printf("Running %s\n", cmd );
-    if( !CreateProcessA( NULL, cmd, NULL, NULL, TRUE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL, &si, &pi ) ) 
+    _snprintf(cmd, BufferLen, "gs -dSAFER -sDEVICE=bbox -sNOPAUSE -q %s -c quit", inputPath.data());
+    printf("Running %s\n", cmd);
+    if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL, &si, &pi))
     {
-		printf("CreateProcess failed.");
+        printf("CreateProcess failed.");
         exit(1);
     }
 
-    while( ReadFile(pipe,buffer,lBufferLen,&count,NULL) && GetLastError() != ERROR_BROKEN_PIPE && count > 0)
+    while (ReadFile(pipe, buffer, BufferLen, &count, NULL) && GetLastError() != ERROR_BROKEN_PIPE && count > 0)
     {
-		printf("%s",buffer);
-        sOutput.append( buffer, count );
+        printf("%s", buffer);
+        output.append(buffer, count);
     }
 
-	// eigenes Handle schliessen
+    // eigenes Handle schliessen
     CloseHandle(pipe);
-	CloseHandle( pi.hProcess );
-	CloseHandle( pi.hThread ); 
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
 #else
     pid_t pid;
     int p[2];
     int count;
 
-    pipe( p );
+    pipe(p);
 
-    if( (pid = fork()) == 0 ) 
-    {        
+    if ((pid = fork()) == 0)
+    {
         // Child, launch ghostscript
-        close( p[0] ); // Close unused read end
+        close(p[0]); // Close unused read end
 
         dup2(p[1], 2); // redirect stderr to stdout
-        dup2(p[1], 1); 
+        dup2(p[1], 1);
 
         //printf("HELLO\n");
-        execlp( "gs", "gs", "-dSAFER", "-sDEVICE=bbox",
-                          "-sNOPAUSE", "-q", pszInput, "-c", "quit", NULL );
+        execlp("gs", "gs", "-dSAFER", "-sDEVICE=bbox",
+            "-sNOPAUSE", "-q", inputPath.data(), "-c", "quit", NULL);
         printf("Fatal error, cannot launch ghostscript\n");
         exit(0);
     }
     else
     {
-        close( p[1] ); // Close unused write end
-
-        while( (count = read( p[0], buffer, lBufferLen )) > 0 )
+        close(p[1]); // Close unused write end
+        while ((count = read(p[0], buffer, BufferLen)) > 0)
         {
-            sOutput.append( buffer, count );
+            output.append(buffer, count);
         }
         wait(NULL);
     }
-
 #endif // _WIN32
-	return sOutput;
+    return output;
 }
 
-std::vector<PdfRect> get_crop_boxes( const char* pszInput )
+vector<PdfRect> get_crop_boxes(const string_view& input)
 {
-    std::vector<PdfRect> rects;
-	std::string sOutput = get_ghostscript_output( pszInput );
+    vector<PdfRect> rects;
+    string output = get_ghostscript_output(input);
 
-	std::stringstream ss(sOutput);
-    std::string sLine;
+    stringstream ss(output);
+    string line;
     PdfRect curRect;
-    bool bHaveRect = false;
-    while(std::getline(ss, sLine)) 
+    bool haveRect = false;
+    while (std::getline(ss, line))
     {
-        if( strncmp( "%%BoundingBox: ", sLine.c_str(), 15 ) == 0 )
+        if (strncmp("%%BoundingBox: ", line.c_str(), 15) == 0)
         {
             int x, y, w, h;
-            if( sscanf( sLine.c_str() + 15, "%i %i %i %i\n", &x, &y, &w, &h ) != 4 )
+            if (sscanf(line.c_str() + 15, "%i %i %i %i\n", &x, &y, &w, &h) != 4)
             {
-                printf( "Failed to read bounding box's four numbers from '%s'\n", sLine.c_str() + 15 );
-                exit( 1 );
+                printf("Failed to read bounding box's four numbers from '%s'\n", line.c_str() + 15);
+                exit(1);
             }
-            curRect = PdfRect( static_cast<double>(x), 
-                               static_cast<double>(y),
-                               static_cast<double>(w-x),
-                               static_cast<double>(h-y) );
-            bHaveRect = true;
-        } 
-        else if( strncmp( "%%HiResBoundingBox: ", sLine.c_str(), 17 ) == 0 ) 
+            curRect = PdfRect(static_cast<double>(x),
+                static_cast<double>(y),
+                static_cast<double>(w - x),
+                static_cast<double>(h - y));
+            haveRect = true;
+        }
+        else if (strncmp("%%HiResBoundingBox: ", line.c_str(), 17) == 0)
         {
-            if( bHaveRect ) 
+            if (haveRect)
             {
                 // I have no idea, while gs writes BoundingBoxes twice to stdout ..
-                printf("Using bounding box: [ %f %f %f %f ]\n", 
-                       curRect.GetLeft(),
-                       curRect.GetBottom(),
-                       curRect.GetWidth(),
-                       curRect.GetHeight());
-                rects.push_back( curRect );
-                bHaveRect = false;
+                printf("Using bounding box: [ %f %f %f %f ]\n",
+                    curRect.GetLeft(),
+                    curRect.GetBottom(),
+                    curRect.GetWidth(),
+                    curRect.GetHeight());
+                rects.push_back(curRect);
+                haveRect = false;
             }
         }
     }
-	
+
     return rects;
 }
 
-int main( int argc, char* argv[] )
+int main(int argc, char* argv[])
 {
-    PdfError::EnableDebug( false );
+    PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::None);
 
-    if( argc != 3 )
+    if (argc != 3)
     {
         print_help();
-        exit( -1 );
+        exit(-1);
     }
-    
-    const char* pszInput = argv[1];
-    const char* pszOutput = argv[2];
 
-    try {
-        printf("Cropping file:\t%s\n", pszInput);
-        printf("Writing to   :\t%s\n", pszOutput);
- 
-        std::vector<PdfRect> cropBoxes = get_crop_boxes( pszInput );
+    const char* inputPath = argv[1];
+    const char* outputPath = argv[2];
+
+    try
+    {
+        printf("Cropping file:\t%s\n", inputPath);
+        printf("Writing to   :\t%s\n", outputPath);
+
+        vector<PdfRect> cropBoxes = get_crop_boxes(inputPath);
 
         PdfMemDocument doc;
-        doc.Load( pszInput );
+        doc.Load(inputPath);
 
-        if( static_cast<int>(cropBoxes.size()) != doc.GetPageCount() ) 
+        if (cropBoxes.size() != doc.GetPages().GetCount())
         {
-            printf("Number of cropboxes obtained form ghostscript does not match with page count (%i, %i)\n",
-                   static_cast<int>(cropBoxes.size()), doc.GetPageCount() );
-            PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+            printf("Number of cropboxes obtained form ghostscript does not match with page count (%u, %u)\n",
+                static_cast<unsigned>(cropBoxes.size()), doc.GetPages().GetCount());
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
         }
 
-        for( int i=0;i<doc.GetPageCount(); i++ ) 
+        for (unsigned i = 0; i < doc.GetPages().GetCount(); i++)
         {
-            PdfPage* pPage = doc.GetPage( i ); 
-            crop_page( pPage, cropBoxes[i] );
+            auto& page = doc.GetPages().GetPageAt(i);
+            crop_page(page, cropBoxes[i]);
         }
 
-        doc.Write( pszOutput );
-        
-    } catch( PdfError & e ) {
-        fprintf( stderr, "Error: An error %i ocurred during croppping pages in the pdf file.\n", e.GetError() );
-        e.PrintErrorMsg();
-        return e.GetError();
+        doc.Save(outputPath);
+
     }
-    
+    catch (PdfError& e)
+    {
+        fprintf(stderr, "Error: An error %i ocurred during croppping pages in the pdf file.\n", e.GetError());
+        e.PrintErrorMsg();
+        return (int)e.GetError();
+    }
+
     return 0;
 }
-

@@ -1,22 +1,7 @@
-/***************************************************************************
- *   Copyright (C) 2007 by Pierre Marchand   *
- *   pierre@moulindetouvois.com   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2007 Pierre Marchand <pierre@moulindetouvois.com>
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
 #include "pdftranslator.h"
 
@@ -25,58 +10,57 @@
 #include <string>
 #include <cstdio>
 
-using std::cerr;
-using std::endl;
-using std::strtod;
-using std::string;
+using namespace std;
+using namespace PoDoFo;
+using namespace PoDoFo::Impose;
 
 struct _params
 {
-	string executablePath;
-	string inFilePath;
-	string outFilePath;
-	string planFilePath;
-	PoDoFo::Impose::PlanReader planReader;
+    string executablePath;
+    string inFilePath;
+    string outFilePath;
+    string planFilePath;
+    PlanReader planReader;
 } params;
 
 void usage()
 {
-	cerr << "Usage : " << params.executablePath << " Input Output Plan [Interpreter]" << endl;
-	cerr << "***" << endl;
-	cerr << "\tInput is a PDF file or a file which contains a list of PDF file paths" << endl<< endl;
-	cerr << "\tOutput will be a PDF file" << endl<< endl;
-	cerr << "\tPlan is an imposition plan file" <<endl<< endl;
-	cerr << "\t[Interpreter] Can be \"native\" (default value) or \"lua\""<< endl<< endl;
+    cerr << "Usage : " << params.executablePath << " Input Output Plan [Interpreter]" << endl;
+    cerr << "***" << endl;
+    cerr << "\tInput is a PDF file or a file which contains a list of PDF file paths" << endl << endl;
+    cerr << "\tOutput will be a PDF file" << endl << endl;
+    cerr << "\tPlan is an imposition plan file" << endl << endl;
+    cerr << "\t[Interpreter] Can be \"native\" (default value) or \"lua\"" << endl << endl;
     cerr << "PoDoFo Version: " << PODOFO_VERSION_STRING << endl << endl;
 }
 
-int parseCommandLine ( int argc, char* argv[] )
+int parseCommandLine(int argc, char* argv[])
 {
-	params.executablePath = argv[0];
+    params.executablePath = argv[0];
 
-	if ( argc <  4 )
-	{
-		usage();
-		return 1;
-	}
+    if (argc < 4)
+    {
+        usage();
+        return 1;
+    }
 
-	params.inFilePath = argv[1];
-	params.outFilePath = argv[2];
-	params.planFilePath = argv[3];
-	params.planReader = PoDoFo::Impose::Legacy;
-	if ( argc >= 5 )
-	{
-		std::string native ( "native" );
-		std::string lua ( "lua" );
-		std::string interpreter ( argv[4] );
+    params.inFilePath = argv[1];
+    params.outFilePath = argv[2];
+    params.planFilePath = argv[3];
+    params.planReader = PlanReader::Legacy;
+    if (argc >= 5)
+    {
+        string native("native");
+        string lua("lua");
+        string interpreter(argv[4]);
 
-		if ( !interpreter.compare ( native ) )
-			params.planReader = PoDoFo::Impose::Legacy;
-		else if ( !interpreter.compare ( lua ) )
-			params.planReader = PoDoFo::Impose::Lua;
-	}
+        if (!interpreter.compare(native))
+            params.planReader = PlanReader::Legacy;
+        else if (!interpreter.compare(lua))
+            params.planReader = PlanReader::Lua;
+    }
 
-	return 0;
+    return 0;
 }
 
 /**
@@ -85,43 +69,42 @@ int parseCommandLine ( int argc, char* argv[] )
  * 0 : success
  * 1 : bad command line arguments
  */
-int main ( int argc, char *argv[] )
+int main(int argc, char* argv[])
 {
 #if 0
-	PoDoFo::PdfError::EnableDebug ( false );
-	PoDoFo::PdfError::EnableLogging ( false );
+    PdfError::EnableDebug(false);
+    PdfError::EnableLogging(false);
 #endif
-	int ret = parseCommandLine ( argc, argv );
-	if ( ret )
-		return ret;
+    int ret = parseCommandLine(argc, argv);
+    if (ret)
+        return ret;
 
-	std::cerr<<"Source : "<<params.inFilePath<<std::endl;
-	std::cerr<<"Target : "<<params.outFilePath<<std::endl;
-	std::cerr<<"Plan   : "<<params.planFilePath<<std::endl;
+    cerr << "Source : " << params.inFilePath << endl;
+    cerr << "Target : " << params.outFilePath << endl;
+    cerr << "Plan   : " << params.planFilePath << endl;
 
 
-	try
-	{
-		PoDoFo::Impose::PdfTranslator *translator = new  PoDoFo::Impose::PdfTranslator;
+    try
+    {
+        PdfTranslator* translator = new  PdfTranslator;
 
-		translator->setSource ( params.inFilePath );
-		translator->setTarget ( params.outFilePath );
-		translator->loadPlan ( params.planFilePath, params.planReader );
+        translator->setSource(params.inFilePath);
+        translator->setTarget(params.outFilePath);
+        translator->loadPlan(params.planFilePath, params.planReader);
 
-		translator->impose();
-	}
-	catch ( PoDoFo::PdfError & e )
-	{
-		e.GetCallstack();
-		e.PrintErrorMsg();
-		return 3;
-	}
-	catch ( std::exception & e )
-	{
-		cerr << e.what() << endl;
-		return 4;
-	}
+        translator->impose();
+    }
+    catch (PdfError& e)
+    {
+        e.GetCallstack();
+        e.PrintErrorMsg();
+        return 3;
+    }
+    catch (exception& e)
+    {
+        cerr << e.what() << endl;
+        return 4;
+    }
 
-	return 0;
+    return 0;
 }
-

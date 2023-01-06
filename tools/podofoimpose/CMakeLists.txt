@@ -1,29 +1,25 @@
-# PoDoFoImpose
-
-SET(impose_srcs
-	podofoimpose.cpp
-	pdftranslator.cpp
+set(SOURCE_FILES
+    charpainter.h
+    charpainter.cpp
+    impositionplan.h
 	impositionplan.cpp
+    pdftranslator.h
+	pdftranslator.cpp
+    planreader_legacy.h
 	planreader_legacy.cpp
+	podofoimpose.cpp
 )
 
-SET(impose_extra_libs)
+set(IMPOSE_EXTRA_LIBS)
+if(LUA_FOUND)
+	set(IMPOSE_EXTRA_LIBS ${LUA_LIBRARIES})
+	set(SOURCE_FILES ${SOURCE_FILES} lua_compat.h planreader_lua.h planreader_lua.cpp)
+endif()
 
-IF(LUA_FOUND)
-	SET(impose_extra_libs ${LUA_LIBRARIES})
-	SET(impose_srcs ${impose_srcs} planreader_lua.cpp)
-ENDIF(LUA_FOUND)
-
-ADD_EXECUTABLE(podofoimpose ${impose_srcs} )
-
-TARGET_LINK_LIBRARIES(podofoimpose 
-	${PODOFO_LIB}
-	${impose_extra_libs}
+add_executable(podofoimpose ${SOURCE_FILES})
+target_link_libraries(podofoimpose
+	${PODOFO_LIBRARIES}
+	podofo_private
+	${IMPOSE_EXTRA_LIBS}
 )
-
-SET_TARGET_PROPERTIES(podofoimpose PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
-
-ADD_DEPENDENCIES(podofoimpose ${PODOFO_DEPEND_TARGET})
-
-INSTALL(TARGETS podofoimpose
-	RUNTIME DESTINATION "bin")
+install(TARGETS podofoimpose RUNTIME DESTINATION "bin")

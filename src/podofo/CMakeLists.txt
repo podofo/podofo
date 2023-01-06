@@ -1,346 +1,149 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+if(NOT PODOFO_MAIN_CMAKELISTS_READ)
+    message(FATAL_ERROR "Run cmake on the CMakeLists.txt in the project root, not the one in the 'src' directory. You will need to delete CMakeCache.txt from the current directory.")
+endif()
 
-IF(NOT PODOFO_MAIN_CMAKELISTS_READ)
-  MESSAGE(FATAL_ERROR "Run cmake on the CMakeLists.txt in the project root, not the one in the 'src' directory. You will need to delete CMakeCache.txt from the current directory.")
-ENDIF(NOT PODOFO_MAIN_CMAKELISTS_READ)
+# Generate our configure file
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/podofo_config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/podofo_config.h")
 
-SET(PODOFO_BASE_DEPEND_TARGET CACHE INTERNAL
-    "Which PoDoFo library target to depend on when building tools and tests")
-SET(PODOFO_DEPEND_TARGET CACHE INTERNAL
-    "Which PoDoFo library target to depend on when building tools and tests")
+# Needed for <date/date.h>
+add_compile_definitions(HAS_UNCAUGHT_EXCEPTIONS=1)
 
-SET(PODOFO_BASE_SOURCES
-  base/PdfArray.cpp
-  base/PdfCanvas.cpp
-  base/PdfColor.cpp
-  base/PdfContentsTokenizer.cpp
-  base/PdfData.cpp
-  base/PdfDataType.cpp
-  base/PdfOwnedDataType.cpp
-  base/PdfDate.cpp
-  base/PdfDictionary.cpp
-  base/PdfEncoding.cpp
-  base/PdfEncodingFactory.cpp
-  base/PdfEncrypt.cpp
-  base/PdfError.cpp
-  base/PdfFileStream.cpp
-  base/PdfFilter.cpp
-  base/PdfFiltersPrivate.cpp
-  base/PdfImmediateWriter.cpp
-  base/PdfInputDevice.cpp
-  base/PdfInputStream.cpp
-  base/PdfLocale.cpp
-  base/PdfMemStream.cpp
-  base/PdfMemoryManagement.cpp
-  base/PdfName.cpp
-  base/PdfObject.cpp
-  base/PdfObjectStreamParserObject.cpp
-  base/PdfOutputDevice.cpp
-  base/PdfOutputStream.cpp
-  base/PdfParser.cpp
-  base/PdfParserObject.cpp
-  base/PdfRect.cpp
-  base/PdfRefCountedBuffer.cpp
-  base/PdfRefCountedInputDevice.cpp
-  base/PdfReference.cpp
-  base/PdfStream.cpp
-  base/PdfString.cpp
-  base/PdfTokenizer.cpp
-  base/PdfVariant.cpp
-  base/PdfVecObjects.cpp
-  base/PdfWriter.cpp
-  base/PdfXRef.cpp
-  base/PdfXRefStream.cpp
-  base/PdfXRefStreamParserObject.cpp
-  )
+set(PODOFO_INCLUDE_DIRS
+    ${CMAKE_CURRENT_BINARY_DIR}
+    "${PROJECT_SOURCE_DIR}/src"
+    "${PROJECT_SOURCE_DIR}/3rdparty"
+    CACHE INTERNAL "podofo include directories"
+)
 
-SET(PODOFO_DOC_SOURCES
-  doc/PdfAcroForm.cpp
-  doc/PdfAction.cpp
-  doc/PdfAnnotation.cpp
-  doc/PdfCMapEncoding.cpp
-  doc/PdfContents.cpp
-  doc/PdfDestination.cpp
-  doc/PdfDifferenceEncoding.cpp
-  doc/PdfDocument.cpp
-  doc/PdfElement.cpp
-  doc/PdfEncodingObjectFactory.cpp
-  doc/PdfExtGState.cpp
-  doc/PdfField.cpp
-  doc/PdfFileSpec.cpp
-  doc/PdfFont.cpp
-  doc/PdfFontCID.cpp
-  doc/PdfFontCache.cpp
-  doc/PdfFontConfigWrapper.cpp
-  doc/PdfFontFactory.cpp
-  doc/PdfFontMetrics.cpp
-  doc/PdfFontMetricsBase14.cpp
-  doc/PdfFontMetricsFreetype.cpp
-  doc/PdfFontMetricsObject.cpp
-  doc/PdfFontSimple.cpp
-  doc/PdfFontTTFSubset.cpp
-  doc/PdfFontTrueType.cpp
-  doc/PdfFontType1.cpp
-  doc/PdfFontType3.cpp
-  doc/PdfFontType1Base14.cpp
-  doc/PdfFunction.cpp
-  doc/PdfHintStream.cpp
-  doc/PdfIdentityEncoding.cpp
-  doc/PdfImage.cpp
-  doc/PdfInfo.cpp
-  doc/PdfMemDocument.cpp
-  doc/PdfNamesTree.cpp
-  doc/PdfOutlines.cpp
-  doc/PdfPage.cpp
-  doc/PdfPagesTree.cpp
-  doc/PdfPagesTreeCache.cpp
-  doc/PdfPainter.cpp
-  doc/PdfPainterMM.cpp
-  doc/PdfShadingPattern.cpp
-  doc/PdfSignOutputDevice.cpp
-  doc/PdfSignatureField.cpp
-  doc/PdfStreamedDocument.cpp
-  doc/PdfTable.cpp
-  doc/PdfTilingPattern.cpp
-  doc/PdfXObject.cpp
-  )
+include_directories(
+    ${PODOFO_INCLUDE_DIRS}
+    ${PODOFO_HEADERS_DEPENDS}
+)
 
-IF(WIN32)
+add_subdirectory(private)
+
+set(PODOFO_BASE_HEADERS
+    podofo-base.h
+    podofo-contrib.h
+    podofo.h
+)
+set(PODOFO_CONFIG_HEADER "${CMAKE_CURRENT_BINARY_DIR}/podofo_config.h")
+
+install(FILES ${PODOFO_BASE_HEADERS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/podofo")
+install(FILES ${PODOFO_CONFIG_HEADER} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/podofo/base")
+
+set(PODOFO_SOURCES ${PODOFO_BASE_HEADERS} ${PODOFO_CONFIG_HEADER})
+if(PODOFO_SHARED AND WIN32)
     # If we build for windows systems, we also include the resource file
-    SET(PODOFO_DOC_SOURCES ${PODOFO_DOC_SOURCES} doc/podofo-doc.rc)
-ENDIF(WIN32)
+    list(APPEND PODOFO_SOURCES podofo.rc)
+endif()
 
-SET(PODOFO_HEADERS
-  podofo-base.h
-  podofo.h)
+# Set visual studio source group
+source_group("" FILES ${PODOFO_SOURCES})
 
-SET(PODOFO_BASE_HEADERS
-   ${PoDoFo_BINARY_DIR}/podofo_config.h
-   base/Pdf3rdPtyForwardDecl.h
-   base/PdfArray.h
-   base/PdfCanvas.h
-   base/PdfColor.h
-   base/PdfCompilerCompat.h
-   base/PdfCompilerCompatPrivate.h
-   base/PdfContentsTokenizer.h
-   base/PdfData.h
-   base/PdfDataType.h
-   base/PdfOwnedDataType.h
-   base/PdfDate.h
-   base/PdfDefines.h
-   base/PdfDefinesPrivate.h
-   base/PdfDictionary.h
-   base/PdfEncoding.h
-   base/PdfEncodingFactory.h
-   base/PdfEncrypt.h
-   base/PdfExtension.h
-   base/PdfError.h
-   base/PdfFileStream.h
-   base/PdfFilter.h
-   base/PdfFiltersPrivate.h
-   base/PdfImmediateWriter.h
-   base/PdfInputDevice.h
-   base/PdfInputStream.h
-   base/PdfLocale.h
-   base/PdfMemStream.h
-   base/PdfMemoryManagement.h
-   base/PdfName.h
-   base/PdfObject.h
-   base/PdfObjectStreamParserObject.h
-   base/PdfOutputDevice.h
-   base/PdfOutputStream.h
-   base/PdfParser.h
-   base/PdfParserObject.h
-   base/PdfRect.h
-   base/PdfRefCountedBuffer.h
-   base/PdfRefCountedInputDevice.h
-   base/PdfReference.h
-   base/PdfStream.h
-   base/PdfString.h
-   base/PdfTokenizer.h
-   base/PdfVariant.h
-   base/PdfVecObjects.h
-   base/PdfVersion.h
-   base/PdfWriter.h
-   base/PdfXRef.h
-   base/PdfXRefStream.h
-   base/PdfXRefStreamParserObject.h
-   base/podofoapi.h
-   )
+macro(add_source subdir subdir_path)
+    file(GLOB_RECURSE SOURCE_FILES "${subdir_path}/*")
+    # Set visual studio source group
+    source_group(${subdir} FILES ${SOURCE_FILES})
+    # Add subdir to source files
+    list(APPEND PODOFO_SOURCES ${SOURCE_FILES})
+    # Set non private headers for install
+    set(HEADER_FILES ${SOURCE_FILES})
+    list(FILTER HEADER_FILES EXCLUDE REGEX "\.cpp$")
+endmacro()
 
-SET(PODOFO_BASE_HEADERS2 
-    base/util/PdfMutex.h
-    base/util/PdfMutexImpl_noop.h
-    base/util/PdfMutexImpl_win32.h
-    base/util/PdfMutexImpl_pthread.h
-    base/util/PdfMutexWrapper.h
+foreach(subdir common base contrib)
+    add_source(${subdir} "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}")
+    install(FILES ${HEADER_FILES} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/podofo/${subdir}")
+endforeach()
+
+if(NOT PODOFO_HAVE_FONTCONFIG)
+    # Remove FontConfig source if not needed
+    list(REMOVE_ITEM PODOFO_SOURCES
+        base/PdfFontConfigWrapper.h
+        base/PdfFontConfigWrapper.cpp
     )
+endif()
 
-SET(PODOFO_DOC_HEADERS
-  doc/PdfAcroForm.h
-  doc/PdfAction.h
-  doc/PdfAnnotation.h
-  doc/PdfCMapEncoding.h
-  doc/PdfContents.h
-  doc/PdfDestination.h
-  doc/PdfDifferenceEncoding.h
-  doc/PdfDocument.h
-  doc/PdfElement.h
-  doc/PdfEncodingObjectFactory.h
-  doc/PdfExtGState.h
-  doc/PdfField.h
-  doc/PdfFileSpec.h
-  doc/PdfFont.h
-  doc/PdfFontCID.h
-  doc/PdfFontCache.h
-  doc/PdfFontConfigWrapper.h
-  doc/PdfFontFactory.h
-  doc/PdfFontFactoryBase14Data.h
-  doc/PdfFontMetrics.h
-  doc/PdfFontMetricsBase14.h
-  doc/PdfFontMetricsFreetype.h
-  doc/PdfFontMetricsObject.h
-  doc/PdfFontSimple.h
-  doc/PdfFontTTFSubset.h
-  doc/PdfFontTrueType.h
-  doc/PdfFontType1.h
-  doc/PdfFontType3.h
-  doc/PdfFontType1Base14.h
-  doc/PdfFunction.h
-  doc/PdfHintStream.h
-  doc/PdfIdentityEncoding.h
-  doc/PdfImage.h
-  doc/PdfInfo.h
-  doc/PdfMemDocument.h
-  doc/PdfNamesTree.h
-  doc/PdfOutlines.h
-  doc/PdfPage.h
-  doc/PdfPagesTree.h
-  doc/PdfPagesTreeCache.h
-  doc/PdfPainter.h
-  doc/PdfPainterMM.h
-  doc/PdfShadingPattern.h
-  doc/PdfSignOutputDevice.h
-  doc/PdfSignatureField.h
-  doc/PdfStreamedDocument.h
-  doc/PdfTable.h
-  doc/PdfTilingPattern.h
-  doc/PdfXObject.h
-  )
+add_source("3rdparty/pdfium" "${PROJECT_SOURCE_DIR}/3rdparty/pdfium")
 
-SET(PODOFO_HEADER_FILES
-  ${PODOFO_HEADERS}
-  ${PODOFO_BASE_HEADERS}
-  ${PODOFO_BASE_HEADERS2}
-  ${PODOFO_DOC_HEADERS}
-  )
-
-# Create a Source Group for Visual Studio
-# so that headers are listed in the folder view
-# and are easier accessible
-SOURCE_GROUP("Header Files" FILES ${PODOFO_HEADER_FILES})
-
-INSTALL(FILES ${PODOFO_HEADERS}
-  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/podofo"
-  )
-
-INSTALL(FILES ${PODOFO_BASE_HEADERS}
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/podofo/base"
-    )
-
-INSTALL(FILES ${PODOFO_BASE_HEADERS2}
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/podofo/base/util"
-    )
-
-INSTALL(FILES ${PODOFO_DOC_HEADERS}
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/podofo/doc"
-    )
-
-IF(NOT PODOFO_BUILD_SHARED AND NOT PODOFO_BUILD_STATIC)
-    MESSAGE(FATAL_ERROR "At least one of PODOFO_BUILD_SHARED and PODOF_BUILD_STATIC must be set")
-ENDIF(NOT PODOFO_BUILD_SHARED AND NOT PODOFO_BUILD_STATIC)
-
-IF(PODOFO_BUILD_STATIC)
-    MESSAGE("Building static PoDoFo library")
-    ADD_LIBRARY(podofo_static STATIC ${PODOFO_BASE_SOURCES} ${PODOFO_DOC_SOURCES} ${PODOFO_HEADER_FILES})
-    TARGET_LINK_LIBRARIES(podofo_static ${PODOFO_LIB_DEPENDS})
-    SET_TARGET_PROPERTIES(podofo_static PROPERTIES
+if(PODOFO_STATIC)
+    message("Building static podofo library")
+    add_library(podofo_static STATIC ${PODOFO_SOURCES})
+    target_link_libraries(podofo_static podofo_private ${PODOFO_LIB_DEPENDS})
+    set_target_properties(podofo_static PROPERTIES
         VERSION "${PODOFO_LIBVERSION}"
         SOVERSION "${PODOFO_SOVERSION}"
         CLEAN_DIRECT_OUTPUT 1
         OUTPUT_NAME "podofo"
-        COMPILE_FLAGS "-DBUILDING_PODOFO"
-        )
-    SET(PODOFO_DEPEND_TARGET podofo_static
-        CACHE INTERNAL "Which PoDoFo library variant to depend on")
-    SET(USING_SHARED_PODOFO FALSE)
-    INSTALL(TARGETS podofo_static
+    )
+    install(TARGETS podofo_static
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        )
-ENDIF(PODOFO_BUILD_STATIC)
+    )
+    set(PODOFO_LIBRARIES podofo_static podofo_private
+        CACHE INTERNAL "Which podofo library variant to depend on")
+endif()
 
-IF(PODOFO_BUILD_SHARED)
-    MESSAGE("Building shared PoDoFo library")
-    ADD_LIBRARY(podofo_shared SHARED ${PODOFO_BASE_SOURCES} ${PODOFO_DOC_SOURCES} ${PODOFO_HEADER_FILES})
-    TARGET_LINK_LIBRARIES(podofo_shared ${PODOFO_LIB_DEPENDS})
+if(PODOFO_SHARED)
+    message("Building shared podofo library")
+    add_library(podofo_shared SHARED ${PODOFO_SOURCES})
+    target_link_libraries(podofo_shared PRIVATE podofo_private PRIVATE ${PODOFO_LIB_DEPENDS})
     # TODO: set /wd4251 flag if we're doing a debug build with
     # Visual Studio, since it produces invalid warnings about STL
     # use.
-    SET_TARGET_PROPERTIES(podofo_shared PROPERTIES
+    set_target_properties(podofo_shared PROPERTIES
         VERSION "${PODOFO_LIBVERSION}"
         SOVERSION "${PODOFO_SOVERSION}"
         CLEAN_DIRECT_OUTPUT 1
         OUTPUT_NAME "podofo"
-        COMPILE_FLAGS "-DBUILDING_PODOFO"
-        )
+    )
     # Since we're building a shared podofo, prefer to depend on this one for
     # tests and tools over the static library (if built).
-    SET(PODOFO_DEPEND_TARGET podofo_shared
-        CACHE INTERNAL "Which PoDoFo library variant to depend on")
-    SET(USING_SHARED_PODOFO TRUE)
-    INSTALL(TARGETS podofo_shared
+    install(TARGETS podofo_shared
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        )
+    )
 
+    # Create a pkg-config file for linking against shared library
+    # if pkg-config is available on the system.
+    # Add a version to the file name corresponding to the API compatibility.
 
-      # Create a pkg-config file for linking against shared library
-      # if pkg-config is available on the system.
-      # Add a version to the file name corresponding to the API compatibility.
+    find_program(PKG_CONFIG_FOUND pkg-config)
+    if(PKG_CONFIG_FOUND)
+        message("Pkg-config found, creating a pkg-config file for linking against shared library.")
+        configure_file(
+            "libpodofo.pc.in"
+            "${PROJECT_BINARY_DIR}/libpodofo.pc"
+            @ONLY)
+        install(
+            FILES "${PROJECT_BINARY_DIR}/libpodofo.pc"
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+    else()
+        message("Pkg-config not found. No pkg-config file will be created.")
+    endif()
 
-      FIND_PROGRAM(PKG_CONFIG_FOUND pkg-config)
-      IF(PKG_CONFIG_FOUND)
-        MESSAGE("Pkg-config found, creating a pkg-config file for linking against shared library.")
-        CONFIGURE_FILE(
-          "libpodofo.pc.in"
-          "${PoDoFo_BINARY_DIR}/libpodofo.pc"
-          @ONLY)
-        INSTALL(
-          FILES "${PoDoFo_BINARY_DIR}/libpodofo.pc"
-          DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
-      ELSE(PKG_CONFIG_FOUND)
-        MESSAGE("Pkg-config not found. No pkg-config file will be created.")
-      ENDIF(PKG_CONFIG_FOUND)
-ENDIF(PODOFO_BUILD_SHARED)
+    set(PODOFO_LIBRARIES podofo_shared
+        CACHE INTERNAL "Which podofo library variant to depend on")
+endif()
 
-# Use these flags when compiling code that includes PoDoFo headers.
+# Use these flags when compiling code that includes podofo headers.
 # Failure to do so will result in compilation or link-time errors
 # on some platforms, and can even cause undefined results at runtime.
-IF(WIN32 AND USING_SHARED_PODOFO)
-    SET(PODOFO_CFLAGS "-DUSING_SHARED_PODOFO" CACHE INTERNAL "Extra flags required when linking to PoDoFo")
-ELSE(WIN32 AND USING_SHARED_PODOFO)
-    SET(PODOFO_CFLAGS "" CACHE INTERNAL "Extra flags required when linking to PoDoFo")
-ENDIF(WIN32 AND USING_SHARED_PODOFO)
+if(STATIC_PODOFO)
+    set(PODOFO_CFLAGS "-DPODOFO_STATIC" CACHE INTERNAL "Extra flags required when linking to podofo")
+else()
+    set(PODOFO_CFLAGS "" CACHE INTERNAL "Extra flags required when linking to podofo")
+endif()
 
 # Write the cflags and depend target to the config file
-FILE(APPEND 
-     "${PoDoFo_BINARY_DIR}/PoDoFoConfig.cmake"
-     "SET(PODOFO_CFLAGS ${PODOFO_CFLAGS})\n"
-     )
-FILE(APPEND
-     "${PoDoFo_BINARY_DIR}/PoDoFoConfig.cmake"
-     "SET(PODOFO_DEPEND_TARGET ${PODOFO_DEPEND_TARGET})\n"
-     )
+file(APPEND
+    "${PROJECT_BINARY_DIR}/podofoConfig.cmake"
+    "set(PODOFO_CFLAGS ${PODOFO_CFLAGS})\n"
+)
+file(APPEND
+    "${PROJECT_BINARY_DIR}/podofoConfig.cmake"
+    "set(PODOFO_LIBRARIES ${PODOFO_LIBRARIES})\n"
+)

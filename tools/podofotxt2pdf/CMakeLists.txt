@@ -1,6 +1,3 @@
-ADD_EXECUTABLE(podofotxt2pdf podofotxt2pdf.cpp)
-TARGET_LINK_LIBRARIES(podofotxt2pdf ${PODOFO_LIB})
-SET_TARGET_PROPERTIES(podofotxt2pdf PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
-ADD_DEPENDENCIES(podofotxt2pdf ${PODOFO_DEPEND_TARGET})
-INSTALL(TARGETS podofotxt2pdf
-	RUNTIME DESTINATION "bin")
+add_executable(podofotxt2pdf podofotxt2pdf.cpp)
+target_link_libraries(podofotxt2pdf ${PODOFO_LIBRARIES})
+install(TARGETS podofotxt2pdf RUNTIME DESTINATION "bin")

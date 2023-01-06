@@ -1,6 +1,3 @@
-ADD_EXECUTABLE(podofomerge podofomerge.cpp)
-TARGET_LINK_LIBRARIES(podofomerge ${PODOFO_LIB})
-SET_TARGET_PROPERTIES(podofomerge PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
-ADD_DEPENDENCIES(podofomerge ${PODOFO_DEPEND_TARGET})
-INSTALL(TARGETS podofomerge
-	RUNTIME DESTINATION "bin")
+add_executable(podofomerge podofomerge.cpp)
+target_link_libraries(podofomerge ${PODOFO_LIBRARIES})
+install(TARGETS podofomerge RUNTIME DESTINATION "bin")

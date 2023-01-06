@@ -1,21 +1,7 @@
-/***************************************************************************
- *   Copyright (C) 2020  Ivan Romanov <drizt72@zoho.eu                     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   51 Franklin Street, Fifth Floor, Boston, MA 02110, USA                *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2020 Ivan Romanov <drizt72@zoho.eu>
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
 #include <iostream>
 #include <iterator>
@@ -25,22 +11,24 @@
 #include <algorithm>
 
 #ifdef _MSC_VER
-    #include <io.h>
-    #include <fcntl.h>
+#include <io.h>
+#include <fcntl.h>
 #endif
 
-#include <podofo.h>
+#include <podofo/podofo.h>
 
 using namespace std;
+using namespace PoDoFo;
 
-int main (int argc, char * argv[])
+int main(int argc, char* argv[])
 {
     using namespace PoDoFo;
-    PoDoFo::PdfMemDocument * doc = NULL;
+    PdfMemDocument* doc = nullptr;
     int result = 0;
 
-    try {
-        PoDoFo::PdfError::EnableDebug(false);
+    try
+    {
+        PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::None);
         if (argc < 3)
         {
             cout << "Usage" << endl;
@@ -48,7 +36,7 @@ int main (int argc, char * argv[])
             return EXIT_FAILURE;
         }
 
-        if ( string("-") == argv[1] )
+        if (argv[1] == string_view("-"))
         {
             cin >> std::noskipws;
 #ifdef _MSC_VER
@@ -58,83 +46,84 @@ int main (int argc, char * argv[])
             istream_iterator<char> it(std::cin);
             istream_iterator<char> end;
             string buffer(it, end);
-            doc = new PoDoFo::PdfMemDocument();
-            doc->LoadFromBuffer( buffer.c_str(), static_cast<long>(buffer.size()) );
+            doc = new PdfMemDocument();
+            doc->LoadFromBuffer(buffer);
         }
         else
         {
-            doc = new PoDoFo::PdfMemDocument(argv[1]);
+            doc = new PdfMemDocument();
+            doc->Load(argv[1]);
         }
 
         vector<string> ocToRemove;
-
         for (int i = 3; i < argc; i++)
         {
             ocToRemove.push_back(string(argv[i]));
         }
 
         int ocCount = 0;
-        PdfObject * ocProperties = doc->GetTrailer()->MustGetIndirectKey("Root")->GetIndirectKey("OCProperties");
+        PdfObject* ocProperties = doc->GetTrailer().GetDictionary().MustFindKey("Root").GetDictionary().FindKey("OCProperties");
 
-        if (ocProperties) {
-            PdfObject * ocgs = ocProperties->GetIndirectKey("OCGs");
-
+        if (ocProperties)
+        {
+            auto ocgs = ocProperties->GetDictionary().FindKey("OCGs");
             if (ocgs)
             {
-                PdfVecObjects & docObjects = doc->GetObjects();
+                auto& objects = doc->GetObjects();
                 PdfArray ocgsArr = ocgs->GetArray();
                 for (PdfArray::iterator it = ocgsArr.begin(); it != ocgsArr.end(); it++)
                 {
                     PdfReference ocgRef = (*it).GetReference();
-                    if (!docObjects.GetObject(ocgRef))
+                    if (!objects.GetObject(ocgRef))
                         continue;
 
-                    const string &ocgName = docObjects.GetObject(ocgRef)->MustGetIndirectKey("Name")->GetString().GetStringUtf8();
+                    const string& ocgName = objects.MustGetObject(ocgRef).GetDictionary().MustFindKey("Name").GetString().GetString();
 
                     if (!ocToRemove.empty() && find(ocToRemove.begin(), ocToRemove.end(), ocgName) == ocToRemove.end())
-                    {
                         continue;
-                    }
 
-                    for (int i = docObjects.GetSize() - 1; i >= 0; i--)
+                    for (auto it = objects.rbegin(); it != objects.rend(); it++)
                     {
-                        PdfObject * ob = docObjects[i];
-
+                        auto ob = *it;
                         if (ob->IsDictionary())
                         {
-                            PdfObject * oc = ob->GetDictionary().GetKey("OC");
-                            if (oc) {
+                            auto oc = ob->GetDictionary().GetKey("OC");
+                            if (oc != nullptr)
+                            {
                                 PdfReference ocRef = oc->GetReference();
-                                if (ocRef == ocgRef || (docObjects.GetObject(ocRef)->GetIndirectKey("OCGs") && docObjects.GetObject(ocRef)->GetDictionary().GetKey("OCGs")->GetReference() == ocgRef))
+                                const PdfObject* ocgs;
+                                if (ocRef == ocgRef || (ocgs = objects.MustGetObject(ocRef).GetDictionary().GetKey("OCGs")) != nullptr
+                                    && ocgs->GetReference() == ocgRef)
                                 {
-                                    docObjects.RemoveObject(ob->Reference());
+                                    objects.RemoveObject(ob->GetIndirectReference());
                                     ocCount++;
                                 }
                             }
                         }
                     }
 
-                    docObjects.RemoveObject(ocgRef);
+                    objects.RemoveObject(ocgRef);
                 }
             }
         }
 
         if (ocCount)
         {
-            doc->Write(argv[2]);
+            doc->Save(argv[2]);
         }
         else
         {
             cout << "No optional content in this PDF" << endl;
         }
-    } catch( PdfError & e ) {
-        std::cerr << "Error: An error " << e.GetError() << " occurred during the process of the pdf file:" << std::endl;
+    }
+    catch (PdfError& e)
+    {
+        std::cerr << "Error: An error " << (int)e.GetError() << " occurred during the process of the pdf file:" << std::endl;
         e.PrintErrorMsg();
-
-        result = e.GetError();
+        result = (int)e.GetError();
     }
 
-    if( doc )
+    if (doc)
         delete doc;
 
     return result;

@@ -1,33 +1,15 @@
-/***************************************************************************
- *   Copyright (C) 2009 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2009 Dominik Seichter <domseichter@web.de>
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
-#include <podofo.h>
+#include <podofo/podofo.h>
 
 #include <cstdlib>
 #include <cstdio>
 
+using namespace std;
 using namespace PoDoFo;
-
-#ifdef _HAVE_CONFIG
-#include <config.h>
-#endif // _HAVE_CONFIG
 
 void print_help()
 {
@@ -39,69 +21,71 @@ void print_help()
     printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
 }
 
-int get_info( const char* pszFilename )
+int get_info(const string_view& filepath)
 {
-    int nUpdates = 0;
+    int updateCount = 0;
 
-    PdfVecObjects vecObjects;
-    PdfParser parser( &vecObjects, pszFilename, true );
+    PdfIndirectObjectList objects;
+    PdfParser parser(objects);
 
-    nUpdates = parser.GetNumberOfIncrementalUpdates();
+    FileStreamDevice input(filepath);
+    parser.Parse(input);
 
-    printf( "%s\t=\t%i\t(Number of incremental updates)\n", pszFilename, nUpdates );
+    updateCount = parser.GetNumberOfIncrementalUpdates();
 
-    return nUpdates;
+    printf("%s\t=\t%i\t(Number of incremental updates)\n", filepath.data(), updateCount);
+
+    return updateCount;
 }
 
-void extract(const char* PODOFO_UNUSED_PARAM(pszFilename), int PODOFO_UNUSED_PARAM(nExtract), const char* PODOFO_UNUSED_PARAM(pszOutputFilename))
+void extract(const char* pszFilename, int requestedNthUpdate, const char* pszOutputFilename)
 {
-    //int nUpdates = 0;
-
-    PdfVecObjects vecObjects;
-    PdfParser parser( &vecObjects );
+    PdfIndirectObjectList objects;
+    PdfParser parser(objects);
     //parser.ParseFile( pszOutputFilename, true, nExtract );
 
     // TODO
-    fprintf( stderr, "extraction is not implemented\n" );
-    exit( -2 );
+    fprintf(stderr, "extraction is not implemented\n");
+    exit(-2);
 }
 
-int main( int argc, char* argv[] )
+int main(int argc, char* argv[])
 {
-    PdfError::EnableDebug( false );
+    PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::None);
 
-    if( argc != 2 && argc != 5 )
+    if (argc != 2 && argc != 5)
     {
         print_help();
-        exit( -1 );
+        exit(-1);
     }
-    
-    
-    try {
-        const char* pszFilename;
-        const char* pszOutputFilename;
-        int nExtract = -1;
 
-        if(argc == 2) 
+    try
+    {
+        const char* inputPath;
+        const char* outputPath;
+        int requestedNthUpdate = -1;
+
+        if (argc == 2)
         {
-            pszFilename = argv[1];
-            get_info(pszFilename);
+            inputPath = argv[1];
+            get_info(inputPath);
         }
-        else if(argc == 5) 
+        else if (argc == 5)
         {
-            nExtract = strtol(argv[2], NULL, 10);
-            pszOutputFilename = argv[3];
-            pszFilename = argv[4];
-            extract(pszFilename, nExtract, pszOutputFilename);
+            requestedNthUpdate = strtol(argv[2], NULL, 10);
+            outputPath = argv[3];
+            inputPath = argv[4];
+            extract(inputPath, requestedNthUpdate, outputPath);
         }
 
 
-    } catch( PdfError & e ) {
-        fprintf( stderr, "Error: An error %i ocurred during counting pages in the pdf file.\n", e.GetError() );
+    }
+    catch (PdfError& e)
+    {
+        fprintf(stderr, "Error: An error %i ocurred during counting pages in the pdf file.\n", (int)e.GetError());
         e.PrintErrorMsg();
-        return e.GetError();
+        return (int)e.GetError();
     }
-    
+
     return 0;
 }
-

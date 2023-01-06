@@ -1,7 +1,5 @@
-ADD_EXECUTABLE(podofocountpages countpages.cpp)
-
-TARGET_LINK_LIBRARIES(podofocountpages ${PODOFO_LIB})
-SET_TARGET_PROPERTIES(podofocountpages PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
-ADD_DEPENDENCIES(podofocountpages ${PODOFO_DEPEND_TARGET})
-INSTALL(TARGETS podofocountpages
-	RUNTIME DESTINATION "bin")
+file(GLOB SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.h" "*.cpp")
+source_group("" FILES ${SOURCE_FILES})
+add_executable(podofocountpages ${SOURCE_FILES})
+target_link_libraries(podofocountpages ${PODOFO_LIBRARIES})
+install(TARGETS podofocountpages RUNTIME DESTINATION "bin")

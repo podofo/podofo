@@ -1,116 +1,87 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2005 Dominik Seichter <domseichter@web.de>
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
+#include <podofo/private/PdfDeclarationsPrivate.h>
 #include "ImageExtractor.h"
 
 #include <sys/stat.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <cstdio>
 
 #ifdef _MSC_VER
 #define snprintf _snprintf
 #endif
 
+using namespace std;
+using namespace PoDoFo;
+
 ImageExtractor::ImageExtractor()
-    : m_pszOutputDirectory( NULL ), m_nSuccess( 0 ), m_nCount( 0 )
-{
-
-}
-
-ImageExtractor::~ImageExtractor()
+    : m_buffer{}, m_ImageCount(0), m_fileCounter(0)
 {
 }
 
-void ImageExtractor::Init( const char* pszInput, const char* pszOutput, int* pnNum )
+void ImageExtractor::Init(const string_view& input, const string_view& output)
 {
-    PdfObject*  pObj  = NULL;
+    PdfMemDocument document;
+    document.Load(input);
 
-    if( !pszInput || !pszOutput )
+    m_outputDirectory = output;
+
+    for (auto obj : document.GetObjects())
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
-
-
-    PdfMemDocument document( pszInput );
-
-    m_pszOutputDirectory = const_cast<char*>(pszOutput);
-
-    TCIVecObjects it = document.GetObjects().begin();
-
-    if( pnNum )
-        *pnNum = 0;
-
-    while( it != document.GetObjects().end() )
-    {
-        if( (*it)->IsDictionary() )
-        {            
-            PdfObject* pObjType = (*it)->GetDictionary().GetKey( PdfName::KeyType );
-            PdfObject* pObjSubType = (*it)->GetDictionary().GetKey( PdfName::KeySubtype );
-            if( ( pObjType && pObjType->IsName() && ( pObjType->GetName().GetName() == "XObject" ) ) ||
-                ( pObjSubType && pObjSubType->IsName() && ( pObjSubType->GetName().GetName() == "Image" ) ) )
+        if (obj->IsDictionary())
+        {
+            PdfObject* typeObj = obj->GetDictionary().GetKey(PdfName::KeyType);
+            PdfObject* subtypeObj = obj->GetDictionary().GetKey(PdfName::KeySubtype);
+            if ((typeObj && typeObj->IsName() && (typeObj->GetName() == "XObject")) ||
+                (subtypeObj && subtypeObj->IsName() && (subtypeObj->GetName() == "Image")))
             {
-                pObj = (*it)->GetDictionary().GetKey( PdfName::KeyFilter );
-                if( pObj && pObj->IsArray() && pObj->GetArray().GetSize() == 1 && 
-                    pObj->GetArray()[0].IsName() && (pObj->GetArray()[0].GetName().GetName() == "DCTDecode") )
-                    pObj = &pObj->GetArray()[0];
+                auto filter = obj->GetDictionary().GetKey(PdfName::KeyFilter);
+                if (filter != nullptr && filter->IsArray() && filter->GetArray().GetSize() == 1 &&
+                    filter->GetArray()[0].IsName() && (filter->GetArray()[0].GetName() == "DCTDecode"))
+                    filter = &filter->GetArray()[0];
 
-                if( pObj && pObj->IsName() && ( pObj->GetName().GetName() == "DCTDecode" ) )
+                if (filter && filter->IsName() && (filter->GetName() == "DCTDecode"))
                 {
                     // The only filter is JPEG -> create a JPEG file
-                    ExtractImage( *it, true );
+                    ExtractImage(*obj, true);
                 }
                 else
                 {
-                    ExtractImage( *it, false );
+                    ExtractImage(*obj, false);
                 }
-                
-                document.FreeObjectMemory( *it );
             }
         }
-
-        ++it;
     }
 }
 
-void ImageExtractor::ExtractImage( PdfObject* pObject, bool bJpeg )
+void ImageExtractor::ExtractImage(const PdfObject& obj, bool jpeg)
 {
-    FILE*       hFile        = NULL;
-    const char* pszExtension = bJpeg ? "jpg" : "ppm"; 
+    FILE* file = nullptr;
+    const char* extension = jpeg ? "jpg" : "ppm";
 
     // Do not overwrite existing files:
-    do {
-        snprintf( m_szBuffer, MAX_PATH, "%s/pdfimage_%04i.%s", m_pszOutputDirectory, m_nCount++, pszExtension );
-    } while( FileExists( m_szBuffer ) );
-
-    hFile = fopen( m_szBuffer, "wb" );
-    if( !hFile )
+    do
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        snprintf(m_buffer, MAX_PATH, "%s/pdfimage_%04i.%s", m_outputDirectory, m_fileCounter++, extension);
+    }
+    while (FileExists(m_buffer));
+
+    file = fopen(m_buffer, "wb");
+    if (file == nullptr)
+    {
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
     }
 
-    printf("-> Writing image object %s to the file: %s\n", pObject->Reference().ToString().c_str(), m_szBuffer);
+    printf("-> Writing image object %s to the file: %s\n", obj.GetIndirectReference().ToString().data(), m_buffer);
 
-    if( bJpeg ) 
+    if (jpeg)
     {
-        PdfMemStream* pStream = dynamic_cast<PdfMemStream*>(pObject->GetStream());
-        fwrite( pStream->Get(), pStream->GetLength(), sizeof(char), hFile );
+        auto& memprovider = dynamic_cast<const PdfMemoryObjectStream&>(obj.GetStream()->GetProvider());
+        auto& buffer = memprovider.GetBuffer();
+        fwrite(buffer.data(), buffer.size(), sizeof(char), file);
     }
     else
     {
@@ -118,33 +89,29 @@ void ImageExtractor::ExtractImage( PdfObject* pObject, bool bJpeg )
         // TODO: Handle colorspaces
 
         // Create a ppm image
-        const char* pszPpmHeader = "P6\n# Image extracted by PoDoFo\n%" PDF_FORMAT_INT64 " %" PDF_FORMAT_INT64 "\n%li\n";
-        
-        
-        fprintf( hFile, pszPpmHeader, 
-                 pObject->GetDictionary().GetKey( PdfName("Width" ) )->GetNumber(),
-                 pObject->GetDictionary().GetKey( PdfName("Height" ) )->GetNumber(),
-                 255 );
-                 
-        char*    pBuffer;
-        pdf_long lLen;
-        pObject->GetStream()->GetFilteredCopy( &pBuffer, &lLen );
-        fwrite( pBuffer, lLen, sizeof(char), hFile );
-        free( pBuffer );
+        const char* ppmHeader = "P6\n# Image extracted by PoDoFo\n%u %u\n%li\n";
+
+        fprintf(file, ppmHeader,
+            (unsigned)obj.GetDictionary().GetKey("Width")->GetNumber(),
+            (unsigned)obj.GetDictionary().GetKey("Height")->GetNumber(),
+            255);
+
+        auto buffer = obj.GetStream()->GetCopy();
+        fwrite(buffer.data(), buffer.size(), sizeof(char), file);
     }
 
-    fclose( hFile );
-
-    ++m_nSuccess;
+    fclose(file);
+    m_ImageCount++;
 }
 
-bool ImageExtractor::FileExists( const char* pszFilename )
+bool ImageExtractor::FileExists(const string_view& filepath)
 {
     bool result = true;
-    
+
     // if there is an error, it's probably because the file doesn't yet exist
     struct stat	stBuf;
-    if ( stat( pszFilename, &stBuf ) == -1 )	result = false;
+    if (stat(filepath.data(), &stBuf) == -1)
+        result = false;
 
     return result;
 }

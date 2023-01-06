@@ -1,110 +1,84 @@
-/***************************************************************************
- *   Copyright (C) 2007 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2007 Dominik Seichter <domseichter@web.de>
+ * SPDX-License-Identifier: LGPL-2.0-or-later
+ */
 
+#include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfImmediateWriter.h"
 
-#include "PdfFileStream.h"
-#include "PdfMemStream.h"
+#include "PdfStreamedObjectStream.h"
+#include "PdfMemoryObjectStream.h"
 #include "PdfObject.h"
 #include "PdfXRef.h"
 #include "PdfXRefStream.h"
-#include "PdfDefinesPrivate.h"
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
-PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, 
-                                        const PdfObject* pTrailer, EPdfVersion eVersion, 
-                                        PdfEncrypt* pEncrypt, EPdfWriteMode eWriteMode )
-    : PdfWriter( pVecObjects ), m_pParent( pVecObjects ), 
-      m_pDevice( pDevice ), m_pLast( NULL ), m_bOpenStream( false )
+PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const PdfObject& trailer,
+        OutputStreamDevice& device, PdfVersion version, PdfEncrypt* encrypt, PdfSaveOptions opts) :
+    PdfWriter(objects, trailer),
+    m_attached(true),
+    m_Device(&device),
+    m_Last(nullptr),
+    m_OpenStream(false)
 {
-    if( m_pTrailer )
-        delete m_pTrailer;
-    m_pTrailer = new PdfObject( *pTrailer );
+    // register as observer for PdfIndirectObjectList
+    GetObjects().Attach(*this);
+    // register as stream factory for PdfIndirectObjectList
+    GetObjects().SetStreamFactory(this);
 
-    // register as observer for PdfVecObjects
-    m_pParent->Attach( this );
-    // register as stream factory for PdfVecObjects
-    m_pParent->SetStreamFactory( this );
+    PdfString identifier;
+    this->CreateFileIdentifier(identifier, trailer);
+    SetIdentifier(identifier);
 
-    this->CreateFileIdentifier( m_identifier, m_pTrailer );
     // setup encryption
-    if( pEncrypt )
+    if (encrypt != nullptr)
     {
-        this->SetEncrypted( *pEncrypt );
-        m_pEncrypt->GenerateEncryptionKey( m_identifier );
+        this->SetEncrypt(*encrypt);
+        encrypt->GenerateEncryptionKey(GetIdentifier());
     }
 
     // start with writing the header
-    this->SetPdfVersion( eVersion );
-    this->SetWriteMode( eWriteMode );
-    this->WritePdfHeader( m_pDevice );
+    this->SetPdfVersion(version);
+    this->SetSaveOptions(opts);
+    this->WritePdfHeader(*m_Device);
 
-    m_pXRef = m_bXRefStream ? new PdfXRefStream( m_vecObjects, this ) : new PdfXRef();
-
+    m_xRef.reset(GetUseXRefStream() ? new PdfXRefStream(*this) : new PdfXRef(*this));
 }
 
 PdfImmediateWriter::~PdfImmediateWriter()
 {
-    if( m_pParent ) 
-        m_pParent->Detach( this );
-    
-    delete m_pXRef;
+    if (m_attached)
+        GetObjects().Detach(*this);
 }
 
-void PdfImmediateWriter::WriteObject( const PdfObject* pObject )
+PdfWriteFlags PdfImmediateWriter::GetWriteFlags() const
+{
+    return PdfWriter::GetWriteFlags();
+}
+
+PdfVersion PdfImmediateWriter::GetPdfVersion() const
+{
+    return PdfWriter::GetPdfVersion();
+}
+
+void PdfImmediateWriter::WriteObject(const PdfObject& obj)
 {
     const int endObjLenght = 7;
 
     this->FinishLastObject();
 
-    m_pXRef->AddObject( pObject->Reference(), m_pDevice->Tell(), true );
-    pObject->WriteObject( m_pDevice, this->GetWriteMode(), m_pEncrypt );
-    // Make sure, no one will add keys now to the object
-    const_cast<PdfObject*>(pObject)->SetImmutable(true);
+    m_xRef->AddInUseObject(obj.GetIndirectReference(), m_Device->GetPosition());
+    obj.Write(*m_Device, this->GetWriteFlags(), GetEncrypt(), m_buffer);
 
     // Let's cheat a bit:
-    // pObject has written an "endobj\n" as last data to the file.
+    // obj has written an "endobj\n" as last data to the file.
     // we simply overwrite this string with "stream\n" which 
     // has excatly the same length.
-    m_pDevice->Seek( m_pDevice->Tell() - endObjLenght );
-    m_pDevice->Print( "stream\n" );
-    m_pLast = const_cast<PdfObject*>(pObject);
-}
-
-void PdfImmediateWriter::ParentDestructed()
-{
-    m_pParent = NULL;
+    m_Device->Seek(m_Device->GetPosition() - endObjLenght);
+    m_Device->Write("stream\n");
+    m_Last = const_cast<PdfObject*>(&obj);
 }
 
 void PdfImmediateWriter::Finish()
@@ -113,83 +87,84 @@ void PdfImmediateWriter::Finish()
     this->FinishLastObject();
 
     // setup encrypt dictionary
-    if( m_pEncrypt )
+    if (GetEncrypt() != nullptr)
     {
         // Add our own Encryption dictionary
-        m_pEncryptObj = m_vecObjects->CreateObject();
-        m_pEncrypt->CreateEncryptionDictionary( m_pEncryptObj->GetDictionary() );
+        SetEncryptObj(GetObjects().CreateDictionaryObject());
+        GetEncrypt()->CreateEncryptionDictionary(GetEncryptObj()->GetDictionary());
     }
 
-    this->WritePdfObjects( m_pDevice, *m_pParent, m_pXRef );
+    this->WritePdfObjects(*m_Device, GetObjects(), *m_xRef);
 
     // write the XRef
-    pdf_uint64 lXRefOffset = static_cast<pdf_uint64>( m_pDevice->Tell() );
-    m_pXRef->Write( m_pDevice );
-            
+    uint64_t lXRefOffset = static_cast<uint64_t>(m_Device->GetPosition());
+    m_xRef->Write(*m_Device, m_buffer);
+
+    // FIX-ME: The following is already done by PdfXRef now
+    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
+
     // XRef streams contain the trailer in the XRef
-    if( !m_bXRefStream ) 
+    if (!GetUseXRefStream())
     {
         PdfObject trailer;
-        
+
         // if we have a dummy offset we write also a prev entry to the trailer
-        FillTrailerObject( &trailer, m_pXRef->GetSize(), false );
-        
-        m_pDevice->Print("trailer\n");
-        trailer.WriteObject( m_pDevice, this->GetWriteMode(), NULL );
+        FillTrailerObject(trailer, m_xRef->GetSize(), false);
+
+        m_Device->Write("trailer\n");
+        trailer.Write(*m_Device, this->GetWriteFlags(), nullptr, m_buffer);
     }
-    
-    m_pDevice->Print( "startxref\n%" PDF_FORMAT_UINT64 "\n%%%%EOF\n", lXRefOffset );
-    m_pDevice->Flush();
+
+    utls::FormatTo(m_buffer, "startxref\n{}\n%%EOF\n", lXRefOffset);
+    m_Device->Write(m_buffer);
+    m_Device->Flush();
 
     // we are done now
-    m_pParent->Detach( this );
-    m_pParent = NULL;
+    GetObjects().Detach(*this);
+    m_attached = false;
 }
 
-PdfStream* PdfImmediateWriter::CreateStream( PdfObject* pParent )
+unique_ptr<PdfObjectStreamProvider> PdfImmediateWriter::CreateStream()
 {
-    return m_bOpenStream ? 
-        static_cast<PdfStream*>(new PdfMemStream( pParent )) :
-        static_cast<PdfStream*>(new PdfFileStream( pParent, m_pDevice ));
+    return unique_ptr<PdfObjectStreamProvider>(m_OpenStream ?
+        static_cast<PdfObjectStreamProvider*>(new PdfMemoryObjectStream()) :
+        static_cast<PdfObjectStreamProvider*>(new PdfStreamedObjectStream(*m_Device)));
 }
 
 void PdfImmediateWriter::FinishLastObject()
 {
-    if( m_pLast ) 
-    {
-        m_pDevice->Print( "\nendstream\n" );
-        m_pDevice->Print( "endobj\n" );
-        
-        delete m_pParent->RemoveObject( m_pLast->Reference(), false );
-        m_pLast = NULL;
+    if (m_Last == nullptr)
+        return;
 
-    }
+    m_Device->Write("\nendstream\n");
+    m_Device->Write("endobj\n");
+
+    GetObjects().RemoveObject(m_Last->GetIndirectReference(), false);
+    m_Last = nullptr;
 }
 
-void PdfImmediateWriter::BeginAppendStream( const PdfStream* pStream )
+void PdfImmediateWriter::BeginAppendStream(PdfObjectStream& stream)
 {
-    const PdfFileStream* pFileStream = dynamic_cast<const PdfFileStream*>(pStream );
-    if( pFileStream ) 
+    auto streamedObjectStream = dynamic_cast<PdfStreamedObjectStream*>(&stream.GetProvider());
+    if (streamedObjectStream != nullptr)
     {
         // Only one open file stream is allowed at a time
-        PODOFO_ASSERT( !m_bOpenStream );
-        m_bOpenStream = true;
+        PODOFO_ASSERT(!m_OpenStream);
+        m_OpenStream = true;
 
-        if( m_pEncrypt )
-            const_cast<PdfFileStream*>(pFileStream)->SetEncrypted( m_pEncrypt );
+        auto encrypt = GetEncrypt();
+        if (encrypt != nullptr)
+            streamedObjectStream->SetEncrypted(*encrypt);
     }
 }
-    
-void PdfImmediateWriter::EndAppendStream( const PdfStream* pStream )
+
+void PdfImmediateWriter::EndAppendStream(PdfObjectStream& stream)
 {
-    const PdfFileStream* pFileStream = dynamic_cast<const PdfFileStream*>(pStream );
-    if( pFileStream ) 
+    auto fileStream = dynamic_cast<const PdfStreamedObjectStream*>(&stream);
+    if (fileStream != nullptr)
     {
         // A PdfFileStream has to be opened before
-        PODOFO_ASSERT( m_bOpenStream );
-        m_bOpenStream = false;
+        PODOFO_ASSERT(m_OpenStream);
+        m_OpenStream = false;
     }
 }
-
-};
-

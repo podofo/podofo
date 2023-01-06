@@ -1,0 +1,8 @@
+"The rdf: Description element is used in three ways in XMP: as a container for properties, as a container
+for structure fields, and as a container for general qualifiers. These are the places where the use of Typed Nodes
+requires definition."
+
+"If a value has any qualifier other than xml:lang, the value shall be serialized as a nested rdf:Description
+element. The element content of that rdf: Description element shall consist of exactly one rdf:value
+element and one or more XML elements whose names are the names of the qualifiers. This form should
+not be used when there are no qualifiers other than xml:lang"

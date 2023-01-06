@@ -1,81 +1,61 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2005 Dominik Seichter <domseichter@web.de>
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
-#ifndef _IMAGE_EXTRACTOR_H_
-#define _IMAGE_EXTRACTOR_H_
+#ifndef IMAGE_EXTRACTOR_H
+#define IMAGE_EXTRACTOR_H
 
-#include <podofo.h>
+#include <podofo/podofo.h>
 
-using namespace PoDoFo;
-
-#ifndef MAX_PATH
-#define MAX_PATH 512
-#endif // MAX_PATH
-
-/** This class uses the PoDoFo lib to parse 
+/** This class uses the PoDoFo lib to parse
  *  a PDF file and to write all images it finds
  *  in this PDF document to a given directory.
  */
-class ImageExtractor {
- public:
+class ImageExtractor
+{
+    static constexpr unsigned MAX_PATH = 512;
+
+public:
     ImageExtractor();
-    virtual ~ImageExtractor();
 
     /**
-     * \param pnNum pointer to an integer were 
+     * \param pnNum pointer to an integer were
      *        the number of processed images can be stored
      *        or null if you do not want this information.
      */
-    void Init( const char* pszInput, const char* pszOutput, int* pnNum = NULL );
+    void Init(const std::string_view& input, const std::string_view& output);
 
     /**
      * \returns the number of succesfully extracted images
      */
-    inline int GetNumImagesExtracted() const;
+    inline unsigned GetNumImagesExtracted() const;
 
- private:
+private:
     /** Extracts the image form the given PdfObject
      *  which has to be an XObject with Subtype "Image"
-     *  \param pObject a handle to a PDF object
-     *  \param bJpeg if true extract as a jpeg, otherwise create a ppm
+     *  \param obj a handle to a PDF object
+     *  \param jpeg if true extract as a jpeg, otherwise create a ppm
      *  \returns ErrOk on success
      */
-    void ExtractImage( PoDoFo::PdfObject* pObject, bool bJpeg );
+    void ExtractImage(const PoDoFo::PdfObject& obj, bool jpeg);
 
-    /** This function checks wether a file with the 
+    /** This function checks wether a file with the
      *  given filename does exist.
      *  \returns true if the file exists otherwise false
      */
-    bool    FileExists( const char* pszFilename );
+    bool FileExists(const std::string_view& filepath);
 
- private:
-    char*        m_pszOutputDirectory;
-    unsigned int m_nSuccess;
-    unsigned int m_nCount;
-
-    char         m_szBuffer[MAX_PATH];
+private:
+    std::string_view m_outputDirectory;
+    unsigned m_ImageCount;
+    unsigned m_fileCounter;
+    char m_buffer[MAX_PATH];
 };
 
-inline int ImageExtractor::GetNumImagesExtracted() const
+inline unsigned ImageExtractor::GetNumImagesExtracted() const
 {
-    return m_nSuccess;
+    return m_ImageCount;
 }
 
-#endif // _IMAGE_EXTRACTOR_H_
+#endif // IMAGE_EXTRACTOR_H

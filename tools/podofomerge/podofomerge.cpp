@@ -1,54 +1,33 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2006 Dominik Seichter <domseichter@web.de>
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
-#include <podofo.h>
+#include <podofo/podofo.h>
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <cstdio>
 
+using namespace std;
 using namespace PoDoFo;
-
-#ifdef _HAVE_CONFIG
-#include <config.h>
-#endif // _HAVE_CONFIG
 
 void print_help()
 {
-  printf("Usage: podofomerge [inputfile1] [inputfile2] [outputfile]\n\n");
-  printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
+    printf("Usage: podofomerge [inputfile1] [inputfile2] [outputfile]\n\n");
+    printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
 }
 
-void merge( const char* pszInput1, const char* pszInput2, const char* pszOutput )
+void merge(const char* input1Path, const char* input2Path, const char* outputPath)
 {
-    printf("Reading file: %s\n", pszInput1 );
-    PdfMemDocument input1( pszInput1 );
-    printf("Reading file: %s\n", pszInput2 );
-    PdfMemDocument input2( pszInput2 );
+    printf("Reading file: %s\n", input1Path);
+    PdfMemDocument input1;
+    input1.Load(input1Path);
+    printf("Reading file: %s\n", input2Path);
+    PdfMemDocument input2;
+    input2.Load(input2Path);
 
-// #define TEST_ONLY_SOME_PAGES
-#ifdef TEST_ONLY_SOME_PAGES
-    input1.InsertPages( input2, 1, 2 );
-#else
-    printf("Appending %i pages on a document with %i pages.\n", input2.GetPageCount(), input1.GetPageCount() );
-    input1.Append( input2 );
-#endif
+    printf("Appending %i pages on a document with %i pages.\n", input2.GetPages().GetCount(), input1.GetPages().GetCount());
+    input1.GetPages().AppendDocumentPages(input2);
 
     // we are going to bookmark the insertions
     // using destinations - also adding each as a NamedDest
@@ -62,43 +41,45 @@ void merge( const char* pszInput1, const char* pszInput2, const char* pszOutput 
     input1.AddNamedDestination( p2Dest, std::string("Input2") );
     child1->CreateNext( pszInput2, p2Dest );
     */
-    
+
 #ifdef TEST_FULL_SCREEN
-    input1.SetUseFullScreen();
+    input1.GetCatalog().SetUseFullScreen();
 #else
-    input1.SetPageMode( ePdfPageModeUseBookmarks );
-    input1.SetHideToolbar();
-    input1.SetPageLayout( ePdfPageLayoutTwoColumnLeft );
+    input1.GetCatalog().SetPageMode(PdfPageMode::UseBookmarks);
+    input1.GetCatalog().SetHideToolbar();
+    input1.GetCatalog().SetPageLayout(PdfPageLayout::TwoColumnLeft);
 #endif
 
-    printf("Writing file: %s\n", pszOutput );
-    input1.Write( pszOutput );
+    printf("Writing file: %s\n", outputPath);
+    input1.Save(outputPath);
 }
 
-int main( int argc, char* argv[] )
+int main(int argc, char* argv[])
 {
-  char*   pszInput1;
-  char*   pszInput2;
-  char*   pszOutput;
+    char* input1Path;
+    char* input2Path;
+    char* outputPath;
 
-  if( argc != 4 )
-  {
-    print_help();
-    exit( -1 );
-  }
+    if (argc != 4)
+    {
+        print_help();
+        exit(-1);
+    }
 
-  pszInput1 = argv[1];
-  pszInput2 = argv[2];
-  pszOutput = argv[3];
+    input1Path = argv[1];
+    input2Path = argv[2];
+    outputPath = argv[3];
 
-  try {
-        merge( pszInput1, pszInput2, pszOutput );
-  } catch( PdfError & e ) {
-      fprintf( stderr, "Error %i occurred!\n", e.GetError() );
-      e.PrintErrorMsg();
-      return e.GetError();
-  }
+    try
+    {
+        merge(input1Path, input2Path, outputPath);
+    }
+    catch (PdfError& e)
+    {
+        fprintf(stderr, "Error %i occurred!\n", (int)e.GetError());
+        e.PrintErrorMsg();
+        return (int)e.GetError();
+    }
 
-  return 0;
+    return 0;
 }
-

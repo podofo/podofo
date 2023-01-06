@@ -1,89 +1,368 @@
-/***************************************************************************
- *   Copyright (C) 2007 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2007 Dominik Seichter <domseichter@web.de>
+ * SPDX-FileCopyrightText: (C) 2020 Francesco Pretto <ceztko@gmail.com>
+ * SPDX-License-Identifier: LGPL-2.0-or-later
+ */
 
+#include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfXRef.h"
 
+#include "PdfObject.h"
 #include "PdfOutputDevice.h"
-#include "PdfDefinesPrivate.h"
+#include "PdfWriter.h"
 
 #include <algorithm>
 
-namespace PoDoFo {
+#define EMPTY_OBJECT_GENERATION 65535
 
+using namespace std;
+using namespace PoDoFo;
 
-bool PdfXRef::PdfXRefBlock::InsertItem( const TXRefItem & rItem, bool bUsed )
+PdfXRef::PdfXRef(PdfWriter& writer)
+    : m_maxObjCount(0), m_writer(&writer), m_offset(0)
 {
-    if( rItem.reference.ObjectNumber() == m_nFirst + m_nCount ) 
+
+}
+
+PdfXRef::~PdfXRef() { }
+
+void PdfXRef::AddInUseObject(const PdfReference& ref, nullable<uint64_t> offset)
+{
+    addObject(ref, offset, true);
+}
+
+void PdfXRef::AddFreeObject(const PdfReference& ref)
+{
+    addObject(ref, nullptr, false);
+}
+
+void PdfXRef::addObject(const PdfReference& ref, nullable<uint64_t> offset, bool inUse)
+{
+    if (ref.ObjectNumber() > m_maxObjCount)
+        m_maxObjCount = ref.ObjectNumber();
+
+    if (inUse && offset == nullptr)
     {
-        // Insert at back
-        m_nCount++;
-
-        if( bUsed ) 
-            items.push_back( rItem );
-        else
-            freeItems.push_back( rItem.reference );
-
-        return true; // no sorting required
+        // Objects with no offset provided will not be written
+        // in the entry list
+        return;
     }
-    else if( rItem.reference.ObjectNumber() ==  m_nFirst - 1 )
-    {
-        // Insert at front 
-        m_nFirst--;
-        m_nCount++;
-        
-        // This is known to be slow, but should not occur actually
-        if( bUsed ) 
-            items.insert( items.begin(), rItem );
-        else
-            freeItems.insert( freeItems.begin(), rItem.reference );
 
-        return true; // no sorting required
-    }
-    else if( rItem.reference.ObjectNumber() > m_nFirst - 1 &&
-             rItem.reference.ObjectNumber() < m_nFirst + m_nCount ) 
-    {
-        // Insert at back
-        m_nCount++;
+    bool insertDone = false;
 
-        if( bUsed ) 
+    for (auto& block : m_blocks)
+    {
+        if (block.InsertItem(ref, offset, inUse))
         {
-            items.push_back( rItem );
-            std::sort( items.begin(), items.end() );
+            insertDone = true;
+            break;
+        }
+    }
+
+    if (!insertDone)
+    {
+        PdfXRefBlock block;
+        block.First = ref.ObjectNumber();
+        block.Count = 1;
+        if (inUse)
+            block.Items.push_back(XRefItem(ref, offset.value()));
+        else
+            block.FreeItems.push_back(ref);
+
+        m_blocks.push_back(block);
+        std::sort(m_blocks.begin(), m_blocks.end());
+    }
+}
+
+void PdfXRef::Write(OutputStreamDevice& device, charbuff& buffer)
+{
+    auto it = m_blocks.begin();
+    XRefItemList::const_iterator itItems;
+    ReferenceList::const_iterator itFree;
+    const PdfReference* nextFree = nullptr;
+
+    uint32_t first = 0;
+    uint32_t count = 0;
+
+    mergeBlocks();
+
+    m_offset = device.GetPosition();
+    this->BeginWrite(device, buffer);
+    while (it != m_blocks.end())
+    {
+        auto& block = *it;
+        count = block.Count;
+        first = block.First;
+        itFree = block.FreeItems.begin();
+        itItems = block.Items.begin();
+
+        if (first == 1)
+        {
+            first--;
+            count++;
+        }
+
+        // when there is only one, then we need to start with 0 and the bogus object...
+        this->WriteSubSection(device, first, count, buffer);
+
+        if (first == 0)
+        {
+            const PdfReference* firstFree = getFirstFreeObject(it, itFree);
+            this->WriteXRefEntry(device, PdfReference(0, EMPTY_OBJECT_GENERATION),
+                PdfXRefEntry::CreateFree(firstFree == nullptr ? 0 : firstFree->ObjectNumber(), EMPTY_OBJECT_GENERATION),
+                buffer);
+        }
+
+        while (itItems != block.Items.end())
+        {
+            // check if there is a free object at the current position
+            while (itFree != block.FreeItems.end() &&
+                *itFree < itItems->Reference)
+            {
+                uint16_t genNo = itFree->GenerationNumber();
+
+                // get a pointer to the next free object
+                nextFree = this->getNextFreeObject(it, itFree);
+
+                // write free object
+                this->WriteXRefEntry(device, *itFree,
+                    PdfXRefEntry::CreateFree(nextFree == nullptr ? 0 : nextFree->ObjectNumber(), genNo), buffer);
+                itFree++;
+            }
+
+            this->WriteXRefEntry(device, itItems->Reference,
+                PdfXRefEntry::CreateInUse(itItems->Offset, itItems->Reference.GenerationNumber()), buffer);
+            itItems++;
+        }
+
+        // Check if there are any free objects left!
+        while (itFree != block.FreeItems.end())
+        {
+            uint16_t genNo = itFree->GenerationNumber();
+
+            // get a pointer to the next free object
+            nextFree = this->getNextFreeObject(it, itFree);
+
+            // write free object
+            this->WriteXRefEntry(device, *itFree,
+                PdfXRefEntry::CreateFree(nextFree  == nullptr ? 0 : nextFree->ObjectNumber(), genNo), buffer);
+            itFree++;
+        }
+
+        it++;
+    }
+
+    endWrite(device, buffer);
+}
+
+const PdfReference* PdfXRef::getFirstFreeObject(XRefBlockList::const_iterator itBlock, ReferenceList::const_iterator itFree) const
+{
+    // find the next free object
+    while (itBlock != m_blocks.end())
+    {
+        if (itFree != itBlock->FreeItems.end())
+            break; // got a free object
+
+        itBlock++;
+        if (itBlock != m_blocks.end())
+            itFree = itBlock->FreeItems.begin();
+    }
+
+    // if there is another free object, return it
+    if (itBlock != m_blocks.end() &&
+        itFree != itBlock->FreeItems.end())
+    {
+        return &(*itFree);
+    }
+
+    return nullptr;
+}
+
+const PdfReference* PdfXRef::getNextFreeObject(XRefBlockList::const_iterator itBlock, ReferenceList::const_iterator itFree) const
+{
+    // check if itFree points to a valid free object at the moment
+    if (itFree != itBlock->FreeItems.end())
+        itFree++; // we currently have a free object, so go to the next one
+
+    // find the next free object
+    while (itBlock != m_blocks.end())
+    {
+        if (itFree != itBlock->FreeItems.end())
+            break; // got a free object
+
+        itBlock++;
+        if (itBlock != m_blocks.end())
+            itFree = itBlock->FreeItems.begin();
+    }
+
+    // if there is another free object, return it
+    if (itBlock != m_blocks.end() &&
+        itFree != itBlock->FreeItems.end())
+    {
+        return &(*itFree);
+    }
+
+    return nullptr;
+}
+
+uint32_t PdfXRef::GetSize() const
+{
+    // From the PdfReference: /Size's value is 1 greater than the highes object number used in the file.
+    return m_maxObjCount + 1;
+}
+
+void PdfXRef::mergeBlocks()
+{
+    auto it = m_blocks.begin();
+    auto itNext = it + 1;
+
+    // Stop in case we have no blocks at all
+    if (it == m_blocks.end())
+        PODOFO_RAISE_ERROR(PdfErrorCode::NoXRef);
+
+    while (itNext != m_blocks.end())
+    {
+        auto& curr = *it;
+        auto& next = *itNext;
+        if (next.First == curr.First + curr.Count)
+        {
+            // merge the two 
+            curr.Count += next.Count;
+
+            curr.Items.reserve(curr.Items.size() + next.Items.size());
+            curr.Items.insert(curr.Items.end(), next.Items.begin(), next.Items.end());
+
+            curr.FreeItems.reserve(curr.FreeItems.size() + next.FreeItems.size());
+            curr.FreeItems.insert(curr.FreeItems.end(), next.FreeItems.begin(), next.FreeItems.end());
+
+            itNext = m_blocks.erase(itNext);
+            it = itNext - 1;
         }
         else
         {
-            freeItems.push_back( rItem.reference );
-            std::sort( freeItems.begin(), freeItems.end() );
+            it = itNext++;
+        }
+    }
+}
+
+void PdfXRef::BeginWrite(OutputStreamDevice& device, charbuff& buffer)
+{
+    (void)buffer;
+    device.Write("xref\n");
+}
+
+void PdfXRef::WriteSubSection(OutputStreamDevice& device, uint32_t first, uint32_t count, charbuff& buffer)
+{
+#ifndef VERBOSE_DEBUG_DISABLED
+    PoDoFo::LogMessage(PdfLogSeverity::Debug, "Writing XRef section: {} {}", first, count);
+#endif // DEBUG
+    utls::FormatTo(buffer, "{} {}\n", first, count);
+    device.Write(buffer);
+}
+
+void PdfXRef::WriteXRefEntry(OutputStreamDevice& device, const PdfReference& ref, const PdfXRefEntry& entry, charbuff& buffer)
+{
+    (void)ref;
+    uint64_t variant;
+    switch (entry.Type)
+    {
+        case XRefEntryType::Free:
+        {
+            variant = entry.ObjectNumber;
+            break;
+        }
+        case XRefEntryType::InUse:
+        {
+            variant = entry.Offset;
+            break;
+        }
+        default:
+            PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+
+    utls::FormatTo(buffer, "{:010d} {:05d} {} \n", variant, entry.Generation, XRefEntryTypeToChar(entry.Type));
+    device.Write(buffer);
+}
+
+void PdfXRef::EndWriteImpl(OutputStreamDevice& device, charbuff& buffer)
+{
+    PdfObject  trailer;
+
+    // if we have a dummy offset we write also a prev entry to the trailer
+    m_writer->FillTrailerObject(trailer, GetSize(), false);
+
+    device.Write("trailer\n");
+
+    // NOTE: Do not encrypt the trailer dictionary
+    trailer.Write(device, m_writer->GetWriteFlags(), nullptr, buffer);
+}
+
+void PdfXRef::endWrite(OutputStreamDevice& device, charbuff& buffer)
+{
+    EndWriteImpl(device, buffer);
+    utls::FormatTo(buffer, "startxref\n{}\n%%EOF\n", GetOffset());
+    device.Write(buffer);
+}
+
+void PdfXRef::SetFirstEmptyBlock()
+{
+    PdfXRefBlock block;
+    block.First = 0;
+    block.Count = 1;
+    m_blocks.insert(m_blocks.begin(), block);
+}
+
+bool PdfXRef::ShouldSkipWrite(const PdfReference& ref)
+{
+    (void)ref;
+    // No object to skip in PdfXRef table
+    return false;
+}
+
+bool PdfXRef::PdfXRefBlock::InsertItem(const PdfReference& ref, nullable<uint64_t> offset, bool inUse)
+{
+    PODOFO_ASSERT(!inUse || offset.has_value());
+    if (ref.ObjectNumber() == First + Count)
+    {
+        // Insert at back
+        Count++;
+
+        if (inUse)
+            Items.push_back(XRefItem(ref, offset.value()));
+        else
+            FreeItems.push_back(ref);
+
+        return true; // no sorting required
+    }
+    else if (ref.ObjectNumber() == First - 1)
+    {
+        // Insert at front 
+        First--;
+        Count++;
+
+        // This is known to be slow, but should not occur actually
+        if (inUse)
+            Items.insert(Items.begin(), XRefItem(ref, offset.value()));
+        else
+            FreeItems.insert(FreeItems.begin(), ref);
+
+        return true; // no sorting required
+    }
+    else if (ref.ObjectNumber() > First - 1 &&
+        ref.ObjectNumber() < First + Count)
+    {
+        // Insert at back
+        Count++;
+
+        if (inUse)
+        {
+            Items.push_back(XRefItem(ref, offset.value()));
+            std::sort(Items.begin(), Items.end());
+        }
+        else
+        {
+            FreeItems.push_back(ref);
+            std::sort(FreeItems.begin(), FreeItems.end());
         }
 
         return true;
@@ -91,271 +370,3 @@ bool PdfXRef::PdfXRefBlock::InsertItem( const TXRefItem & rItem, bool bUsed )
 
     return false;
 }
-
-PdfXRef::PdfXRef()
-    : m_offset( 0 )
-{
-
-}
-
-PdfXRef::~PdfXRef() 
-{
-
-}
-
-void PdfXRef::AddObject( const PdfReference & rRef, pdf_uint64 offset, bool bUsed )
-{
-    TIVecXRefBlock     it = m_vecBlocks.begin();
-    PdfXRef::TXRefItem item( rRef, offset );
-    bool               bInsertDone = false;
-
-    while( it != m_vecBlocks.end() )
-    {
-        if( (*it).InsertItem( item, bUsed ) )
-        {
-            bInsertDone = true;
-            break;
-        }
-
-        ++it;
-    }
-
-    if( !bInsertDone ) 
-    {
-        PdfXRefBlock block;
-        block.m_nFirst = rRef.ObjectNumber();
-        block.m_nCount = 1;
-        if( bUsed )
-            block.items.push_back( item );
-        else
-            block.freeItems.push_back( rRef );
-
-        m_vecBlocks.push_back( block );
-        std::sort( m_vecBlocks.begin(), m_vecBlocks.end() );
-    }
-}
-
-void PdfXRef::Write( PdfOutputDevice* pDevice )
-{
-    PdfXRef::TCIVecXRefBlock  it         = m_vecBlocks.begin();
-    PdfXRef::TCIVecXRefItems  itItems;
-    PdfXRef::TCIVecReferences itFree;
-    const PdfReference*       pNextFree  = NULL;
-
-    pdf_objnum nFirst = 0;
-    pdf_uint32 nCount = 0;
-
-    MergeBlocks();
-
-    m_offset = pDevice->Tell();
-    this->BeginWrite( pDevice );
-    while( it != m_vecBlocks.end() )
-    {
-        nCount       = (*it).m_nCount;
-        nFirst       = (*it).m_nFirst;
-        itFree       = (*it).freeItems.begin();
-        itItems      = (*it).items.begin();
-
-        if( nFirst == 1 )
-        {
-            --nFirst;
-            ++nCount;
-        }
-
-        // when there is only one, then we need to start with 0 and the bogus object...
-        this->WriteSubSection( pDevice, nFirst, nCount );
-
-        if( !nFirst ) 
-        {
-            const PdfReference* pFirstFree = this->GetFirstFreeObject( it, itFree );
-            this->WriteXRefEntry( pDevice, pFirstFree ? pFirstFree->ObjectNumber() : 0, EMPTY_OBJECT_OFFSET, 'f' );
-        }
-
-        while( itItems != (*it).items.end() )
-        {
-            // check if there is a free object at the current position
-            while( itFree != (*it).freeItems.end() &&
-                   *itFree < (*itItems).reference )
-            {
-                pdf_gennum nGen  = (*itFree).GenerationNumber();
-
-                // get a pointer to the next free object
-                pNextFree = this->GetNextFreeObject( it, itFree );
-                
-                // write free object
-                this->WriteXRefEntry( pDevice, pNextFree ? pNextFree->ObjectNumber() : 0, nGen, 'f' );
-                ++itFree;
-            }
-
-            this->WriteXRefEntry( pDevice, (*itItems).offset, (*itItems).reference.GenerationNumber(), 'n', 
-                                  (*itItems).reference.ObjectNumber()  );
-            ++itItems;
-        }
-
-        // Check if there are any free objects left!
-        while( itFree != (*it).freeItems.end() )
-        {
-            pdf_gennum nGen  = (*itFree).GenerationNumber();
-            
-            // get a pointer to the next free object
-            pNextFree = this->GetNextFreeObject( it, itFree );
-            
-            // write free object
-            this->WriteXRefEntry( pDevice, pNextFree ? pNextFree->ObjectNumber() : 0, nGen, 'f' );
-            ++itFree;
-        }
-
-        ++it;
-    }
-
-    this->EndWrite( pDevice );
-}
-
-const PdfReference* PdfXRef::GetFirstFreeObject( PdfXRef::TCIVecXRefBlock itBlock, PdfXRef::TCIVecReferences itFree ) const 
-{
-    const PdfReference* pRef      = NULL;
-
-    // find the next free object
-    while( itBlock != m_vecBlocks.end() )
-    {
-        if( itFree != (*itBlock).freeItems.end() )
-            break; // got a free object
-        
-        ++itBlock;
-        if(itBlock != m_vecBlocks.end())
-            itFree = (*itBlock).freeItems.begin();
-    }
-
-    // if there is another free object, return it
-    if( itBlock != m_vecBlocks.end() &&
-        itFree != (*itBlock).freeItems.end() )
-    {
-        pRef = &(*itFree);
-                
-        return pRef;
-    }
-
-    return pRef;
-}
-
-const PdfReference* PdfXRef::GetNextFreeObject( PdfXRef::TCIVecXRefBlock itBlock, PdfXRef::TCIVecReferences itFree ) const 
-{
-    const PdfReference* pRef      = NULL;
-
-    // check if itFree points to a valid free object at the moment
-    if( itFree != (*itBlock).freeItems.end() )
-        ++itFree; // we currently have a free object, so go to the next one
-
-    // find the next free object
-    while( itBlock != m_vecBlocks.end() )
-    {
-        if( itFree != (*itBlock).freeItems.end() )
-            break; // got a free object
-        
-        ++itBlock;
-        if( itBlock != m_vecBlocks.end() )
-            itFree = (*itBlock).freeItems.begin();
-    }
-
-    // if there is another free object, return it
-    if( itBlock != m_vecBlocks.end() &&
-        itFree != (*itBlock).freeItems.end() )
-    {
-        pRef = &(*itFree);
-                
-        return pRef;
-    }
-
-    return pRef;
-}
-
-pdf_uint32 PdfXRef::GetSize() const
-{
-
-    pdf_uint32 nCount = 0;
-    PdfXRef::TCIVecXRefBlock  it = m_vecBlocks.begin();
-
-    while( it != m_vecBlocks.end() )
-    {
-        nCount += (*it).m_nCount;
-        ++it;
-    }
-    
-    //return nCount;
-    if( !m_vecBlocks.size() )
-        return 0;
-
-    const PdfXRefBlock& lastBlock = m_vecBlocks.back();
-    pdf_objnum highObj  = lastBlock.items.size() ? lastBlock.items.back().reference.ObjectNumber() : 0;
-    pdf_objnum highFree = lastBlock.freeItems.size() ? lastBlock.freeItems.back().ObjectNumber() : 0;
-
-    pdf_uint32 max = PDF_MAX( highObj, highFree );
-
-    // From the PdfReference: /Size's value is 1 greater than the highes object number used in the file.
-    return max+1;
-}
-
-void PdfXRef::MergeBlocks() 
-{
-    PdfXRef::TIVecXRefBlock  it     = m_vecBlocks.begin();
-    PdfXRef::TIVecXRefBlock  itNext = it+1;
-
-    // Do not crash in case we have no blocks at all
-    if( it == m_vecBlocks.end() )
-    {
-	PODOFO_RAISE_ERROR( ePdfError_NoXRef );
-    }
-
-    while( itNext != m_vecBlocks.end() )
-    {
-        if( (*itNext).m_nFirst == (*it).m_nFirst + (*it).m_nCount ) 
-        {
-            // merge the two 
-            (*it).m_nCount += (*itNext).m_nCount;
-
-            (*it).items.reserve( (*it).items.size() + (*itNext).items.size() );
-            (*it).items.insert( (*it).items.end(), (*itNext).items.begin(), (*itNext).items.end() );
-
-            (*it).freeItems.reserve( (*it).freeItems.size() + (*itNext).freeItems.size() );
-            (*it).freeItems.insert( (*it).freeItems.end(), (*itNext).freeItems.begin(), (*itNext).freeItems.end() );
-
-            itNext = m_vecBlocks.erase( itNext );
-            it     = itNext - 1;
-        }
-        else
-            it = itNext++;
-    }
-}
-
-void PdfXRef::BeginWrite( PdfOutputDevice* pDevice ) 
-{
-    pDevice->Print( "xref\n" );
-}
-
-void PdfXRef::WriteSubSection( PdfOutputDevice* pDevice, pdf_objnum nFirst, pdf_uint32 nCount )
-{
-#ifdef DEBUG
-    PdfError::DebugMessage("Writing XRef section: %u %u\n", nFirst, nCount );
-#endif // DEBUG
-    pDevice->Print( "%u %u\n", nFirst, nCount );
-}
-
-void PdfXRef::WriteXRefEntry( PdfOutputDevice* pDevice, pdf_uint64 offset, 
-                              pdf_gennum generation, char cMode, pdf_objnum ) 
-{
-    pDevice->Print( "%0.10" PDF_FORMAT_UINT64 " %0.5hu %c \n", offset, generation, cMode );
-}
-
-void PdfXRef::EndWrite( PdfOutputDevice* ) 
-{
-}
-
-void PdfXRef::SetFirstEmptyBlock() 
-{
-    PdfXRefBlock block;
-    block.m_nFirst = 0;
-    block.m_nCount = 1;
-    m_vecBlocks.insert(m_vecBlocks.begin(), block );
-}
-
-};

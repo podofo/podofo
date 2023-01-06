@@ -1,24 +1,11 @@
-/***************************************************************************
- *   Copyright (C) 2010 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2010 Dominik Seichter <domseichter@web.de>
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
 #include "grayscaleconverter.h"
+
+using namespace PoDoFo;
 
 GrayscaleConverter::GrayscaleConverter()
     : IConverter()
@@ -29,48 +16,48 @@ GrayscaleConverter::~GrayscaleConverter()
 {
 }
 
-void GrayscaleConverter::StartPage( PoDoFo::PdfPage*, int )
+void GrayscaleConverter::StartPage(PdfPage&, int)
 {
 }
 
-void GrayscaleConverter::EndPage( PoDoFo::PdfPage*, int )
+void GrayscaleConverter::EndPage(PdfPage&, int)
 {
 }
 
-void GrayscaleConverter::StartXObject( PoDoFo::PdfXObject* )
+void GrayscaleConverter::StartXObject(PdfXObject&)
 {
 }
 
-void GrayscaleConverter::EndXObject( PoDoFo::PdfXObject* )
+void GrayscaleConverter::EndXObject(PdfXObject&)
 {
 }
 
-PoDoFo::PdfColor GrayscaleConverter::SetStrokingColorGray( const PoDoFo::PdfColor & rColor )
+PoDoFo::PdfColor GrayscaleConverter::SetStrokingColorGray(const PdfColor& color)
 {
-    return rColor;
+    return color;
 }
 
-PoDoFo::PdfColor GrayscaleConverter::SetStrokingColorRGB( const PoDoFo::PdfColor & rColor )
+PoDoFo::PdfColor GrayscaleConverter::SetStrokingColorRGB(const PdfColor& color)
 {
-    return rColor.ConvertToGrayScale();
+    return color.ConvertToGrayScale();
 }
 
-PoDoFo::PdfColor GrayscaleConverter::SetStrokingColorCMYK( const PoDoFo::PdfColor & rColor )
+PoDoFo::PdfColor GrayscaleConverter::SetStrokingColorCMYK(const PdfColor& color)
 {
-    return rColor.ConvertToGrayScale();
-}
-  
-PoDoFo::PdfColor GrayscaleConverter::SetNonStrokingColorGray( const PoDoFo::PdfColor & rColor )
-{
-    return rColor.ConvertToGrayScale();
+    return color.ConvertToGrayScale();
 }
 
-PoDoFo::PdfColor GrayscaleConverter::SetNonStrokingColorRGB( const PoDoFo::PdfColor & rColor )
+PoDoFo::PdfColor GrayscaleConverter::SetNonStrokingColorGray(const PdfColor& color)
 {
-    return rColor.ConvertToGrayScale();
+    return color.ConvertToGrayScale();
 }
 
-PoDoFo::PdfColor GrayscaleConverter::SetNonStrokingColorCMYK( const PoDoFo::PdfColor & rColor )
+PoDoFo::PdfColor GrayscaleConverter::SetNonStrokingColorRGB(const PdfColor& color)
 {
-    return rColor.ConvertToGrayScale();
+    return color.ConvertToGrayScale();
+}
+
+PoDoFo::PdfColor GrayscaleConverter::SetNonStrokingColorCMYK(const PdfColor& color)
+{
+    return color.ConvertToGrayScale();
 }

@@ -1,72 +1,47 @@
-/***************************************************************************
- *   Copyright (C) 2011 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * Copyright (C) 2011 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2021 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#include "PainterTest.h"
-#include "TestUtils.h"
+#include <PdfTest.h>
 
-#include <podofo.h>
-
+using namespace std;
 using namespace PoDoFo;
 
-// Registers the fixture into the 'registry'
-CPPUNIT_TEST_SUITE_REGISTRATION( PainterTest );
+static void CompareStreamContent(PdfObjectStream& stream, const string_view& expected);
 
-void PainterTest::setUp()
+TEST_CASE("testAppend")
 {
-
-}
-
-void PainterTest::tearDown()
-{
-}
-
-void PainterTest::CompareStreamContent(PdfStream* pStream, const char* pszExpected)
-{
-    char* pBuffer;
-    pdf_long lLen;
-    pStream->GetFilteredCopy( &pBuffer, &lLen );
-
-    std::string str(pBuffer, lLen);
-    CPPUNIT_ASSERT_EQUAL( std::string(pszExpected), str );
-
-    free( pBuffer );
-}
-
-void PainterTest::testAppend()
-{
-    const char* pszExample1 = "BT (Hallo) Tj ET";
-    const char* pszColor = " 1.000 1.000 1.000 rg\n";
+    string_view example = "BT (Hello) Tj ET";
 
     PdfMemDocument doc;
-    PdfPage* pPage = doc.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
-    pPage->GetContents()->GetStream()->Set(pszExample1) ;
-    
-    this->CompareStreamContent(pPage->GetContents()->GetStream(), pszExample1);
+    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+
+    auto& contents = page.GetOrCreateContents();
+    auto& stream = contents.GetStreamForAppending();
+    stream.SetData(example);
+
+    CompareStreamContent(stream, example);
 
     PdfPainter painter;
-    painter.SetPage( pPage );
-    painter.SetColor( 1.0, 1.0, 1.0 );
-    painter.FinishPage();
+    painter.SetCanvas(page);
+    painter.GetGraphicsState().SetFillColor(PdfColor(1.0, 1.0, 1.0));
+    painter.FinishDrawing();
 
-    std::string newContent = pszExample1;
-    newContent += pszColor;
+    PdfCanvasInputDevice input(doc.GetPages().GetPageAt(0));
+    string out;
+    StringStreamDevice output(out);
+    input.CopyTo(output);
 
-    this->CompareStreamContent(pPage->GetContents()->GetStream(), newContent.c_str());
+    REQUIRE(out == "q\nBT (Hello) Tj ET\nQ\nq\n1 1 1 rg\nQ\n");
+}
+
+void CompareStreamContent(PdfObjectStream& stream, const string_view& expected)
+{
+    charbuff buffer;
+    stream.CopyTo(buffer);
+    REQUIRE(buffer == expected);
 }

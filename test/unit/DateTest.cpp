@@ -1,182 +1,183 @@
-/***************************************************************************
- *   Copyright (C) 2012 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
-#include "DateTest.h"
-#include <podofo.h>
+/**
+ * Copyright (C) 20012 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2021 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#if _WIN32
-#define timegm _mkgmtime
-#endif
+#include <PdfTest.h>
 
+#include <date/date.h>
+
+using namespace std;
 using namespace PoDoFo;
 
-// Registers the fixture into the 'registry'
-CPPUNIT_TEST_SUITE_REGISTRATION( DateTest );
+static void deconstruct(const PdfDate& date, short& y, unsigned char& m, unsigned char& d,
+    unsigned char& h, unsigned char& M, unsigned char& s);
+static void deconstruct(const PdfDate& date, date::year_month_day& ymd, date::hh_mm_ss<chrono::seconds>& time);
 
-void DateTest::setUp()
+static void checkExpected(const string_view& datestr, bool expectedValid)
 {
-}
+    auto now = PdfDate::LocalNow();
+    bool valid = PdfDate::TryParse(datestr, now);
 
-void DateTest::tearDown()
-{
-}
-
-void checkExpected(const char *pszDate, bool bExpected)
-{
-    PdfString tmp(pszDate);
-    PdfDate date(tmp);
-    if( pszDate != NULL )
+    if (datestr.empty())
     {
-      CPPUNIT_ASSERT_EQUAL_MESSAGE(pszDate,bExpected,date.IsValid());
+        INFO("NULL");
     }
     else
     {
-      CPPUNIT_ASSERT_EQUAL_MESSAGE("NULL",bExpected,date.IsValid());
+        INFO(datestr);
     }
+
+    REQUIRE(valid == expectedValid);
 }
 
-void DateTest::testCreateDateFromString()
+TEST_CASE("testCreateDateFromString")
 {
-    checkExpected(NULL,false);
-    checkExpected("D:2012",true);
-    checkExpected("D:20120",false);
-    checkExpected("D:201201",true);
-    checkExpected("D:2012010",false);
-    checkExpected("D:20120101",true);
-    checkExpected("D:201201012",false);
-    checkExpected("D:2012010123",true);
-    checkExpected("D:20120101235",false);
-    checkExpected("D:201201012359",true);
-    checkExpected("D:2012010123595",false);
-    checkExpected("D:20120101235959",true);
-    checkExpected("D:20120120135959Z",false);
-    checkExpected("D:20120120135959Z0",false);
-    checkExpected("D:20120120135959Z00",true);
-    checkExpected("D:20120120135959Z00'",false);
-    checkExpected("D:20120120135959Z00'0",false);
-    checkExpected("D:20120120135959Z00'00",false);
-    checkExpected("D:20120120135959Z00'00'",true);
+    checkExpected({ }, false);
+    checkExpected("D:2012", true);
+    checkExpected("D:20120", true);
+    checkExpected("D:201201", true);
+    checkExpected("D:201213", false);
+    checkExpected("D:2012010", true);
+    checkExpected("D:20120101", true);
+    checkExpected("D:201201012", true);
+    checkExpected("D:20120132", false);
+    checkExpected("D:2012010123", true);
+    checkExpected("D:2012010125", false);
+    checkExpected("D:20120101235", true);
+    checkExpected("D:201201012359", true);
+    checkExpected("D:2012010123595", true);
+    checkExpected("D:20120101235959", true);
+    checkExpected("D:20120120135959Z", true);
+    checkExpected("D:20120120135959Z00", true);
+    checkExpected("D:20120120135959Z00'", true);
+    checkExpected("D:20120120135959Z00'00", true);
+    checkExpected("D:20120120135959Z00'00'", true);
+    checkExpected("D:20120120135959+0", true);
+    checkExpected("D:20120120135959+00", true);
+    checkExpected("D:20120120135959+00'", true);
+    checkExpected("D:20120120135959+00'0", true);
+    checkExpected("D:20120120135959+00'00", true);
+    checkExpected("D:20120120135959-00'00", true);
 
     checkExpected("INVALID", false);
 }
 
-void DateTest::testDateValue()
+TEST_CASE("testRoundTrip")
 {
-    const char* pszDate = "D:20120530235959Z00'00'";
-    PdfString tmp(pszDate);
-    PdfDate date(tmp);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE(std::string(pszDate),true,date.IsValid());
-    const time_t &time = date.GetTime();
-    struct tm  _tm;
-    memset (&_tm, 0, sizeof(struct tm));
-    _tm.tm_year = 2012-1900;
-    _tm.tm_mon = 4;
-    _tm.tm_mday = 30;
-    _tm.tm_hour = 23;
-    _tm.tm_min = 59;
-    _tm.tm_sec = 59;
+    auto testRoundTrip = [](const string_view& datestr)
+    {
+        string dateStr1 = (string)datestr;
+        auto date1 = PdfDate::Parse(dateStr1);
+        string dateStr2 = date1.ToString().GetString();
+        auto date2 = PdfDate::Parse(dateStr2);
+        REQUIRE(dateStr1 == dateStr2);
+        REQUIRE(date1 == date2);
+    };
 
-    time_t time2 = timegm(&_tm);
-    CPPUNIT_ASSERT_EQUAL(true,time==time2);
+    testRoundTrip("D:20221217220858+01'00'");
+    testRoundTrip("D:20221217220858");
 }
 
-void DateTest::testAdditional()
+TEST_CASE("testNoZoneShift")
 {
-  struct name_date {
-    std::string name;
-    std::string date;
-  };
-
-  const name_date data[] = {
-			    {"sample from pdf_reference_1_7.pdf", "D:199812231952-08'00'"},
-			    // UTC 1998-12-24 03:52:00
-			    {"all fields set", "D:20201223195200-08'00'"},   // UTC 2020-12-03:52:00
-			    {"set year", "D:2020"},   // UTC 2020-01-01 00:00:00
-			    {"set year, month", "D:202001"},   // UTC 2020-01-01 00:00:00
-			    {"set year, month, day", "D:20200101"},   // UTC 202001-01 00:00:00
-			    {"only year and timezone set", "D:2020-08'00'"},   // UTC 2020-01-01 08:00:00
-			    {"berlin", "D:20200315120820+01'00'"},   // UTC 2020-03-15 11:08:20
-  };
-
-  for (const auto& d : data) {
-    std::cout << "Parse " << d.name << "\n";
-    assert(PoDoFo::PdfDate(d.date).IsValid());
-  }
+    auto date1 = PdfDate::Parse("D:20221217220858+00'00'");
+    auto date2 = PdfDate::Parse("D:20221217220858");
+    // No zone shift should be equivalent to UTC
+    REQUIRE(date1.GetSecondsFromEpoch() == date2.GetSecondsFromEpoch());
 }
 
-
-void DateTest::testParseDateInvalid()
+TEST_CASE("testAdditional")
 {
-    PdfString tmp("D:2012020");
-    PdfDate date(tmp);
+    struct name_date
+    {
+        string name;
+        string date;
+    };
 
-    struct tm  _tm;
-    memset (&_tm, 0, sizeof(struct tm));
+    name_date data[] = {
+        {"sample from pdf_reference_1_7.pdf", "D:199812231952-08'00'"},
+        // UTC 1998-12-24 03:52:00
+        {"all fields set", "D:20201223195200-08'00'"},   // UTC 2020-12-03:52:00
+        {"set year", "D:2020"},   // UTC 2020-01-01 00:00:00
+        {"set year, month", "D:202001"},   // UTC 2020-01-01 00:00:00
+        {"set year, month, day", "D:20200101"},   // UTC 202001-01 00:00:00
+        {"only year and timezone set", "D:2020-08'00'"},   // UTC 2020-01-01 08:00:00
+        {"berlin", "D:20200315120820+01'00'"},   // UTC 2020-03-15 11:08:20
+    };
 
-    const time_t t = date.GetTime();
-
-    CPPUNIT_ASSERT_EQUAL(false, date.IsValid());
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Invalid date should be equal to time_t(-1)", time_t(-1), t);
+    for (auto& d : data)
+    {
+        INFO(utls::Format("Parse {}", d.name));
+        checkExpected(d.date, true);
+    }
 }
 
-void DateTest::testParseDateValid()
+TEST_CASE("testParseDateValid")
 {
-    time_t timeExpected = 1328448296; // (Sun Feb 05 2012 13:24:56 GMT+0000)
-    PdfString tmp("D:20120205132456");
+    // (Sun Feb 05 2012 13:24:56 GMT+0000)
+    auto date = PdfDate::Parse("D:20120205132456");
 
-    PdfDate date(tmp);
-    CPPUNIT_ASSERT_EQUAL(true, date.IsValid());
-    CPPUNIT_ASSERT_EQUAL(timeExpected, date.GetTime());
+    short y; unsigned char m, d, h, M, s;
+    deconstruct(date, y, m, d, h, M, s);
 
-    tmp = "D:20120205192456+06'00'";
-    PdfDate date2(tmp);
-    CPPUNIT_ASSERT_EQUAL(true, date2.IsValid());
-    CPPUNIT_ASSERT_EQUAL(timeExpected, date2.GetTime());
+    INFO("Year"); REQUIRE(y == 2012);
+    INFO("Month"); REQUIRE(m == 2);
+    INFO("Day"); REQUIRE(d == 5);
+    INFO("Hour"); REQUIRE(h == 13);
+    INFO("Minute"); REQUIRE(M == 24);
+    INFO("Second"); REQUIRE(s == 56);
 
-    tmp = "D:20120205072456-06'00'";
-    PdfDate date3(tmp);
-    CPPUNIT_ASSERT_EQUAL(true, date3.IsValid());
-    CPPUNIT_ASSERT_EQUAL(timeExpected, date3.GetTime());
+    unsigned timeExpected = 1328448296;
+    REQUIRE(date.GetSecondsFromEpoch().count() == timeExpected);
 
-    tmp = "D:20120205175456+04'30'";
-    PdfDate date4(tmp);
-    CPPUNIT_ASSERT_EQUAL(true, date4.IsValid());
-    CPPUNIT_ASSERT_EQUAL(timeExpected, date4.GetTime());
-}
+    PdfDate date2 = PdfDate::Parse("D:20120205192456+06'00'");
+    REQUIRE(date2.GetSecondsFromEpoch().count() == timeExpected);
 
-void DateTest::testRoundTrip()
-{
-    PdfDate curDate;
-    PdfString strDate;
+    PdfDate date3 = PdfDate::Parse("D:20120205072456-06'00'");
+    REQUIRE(date3.GetSecondsFromEpoch().count() == timeExpected);
 
-    curDate.ToString(strDate);
-    PdfDate parsedDate(strDate);
-
-    PdfString strParsedDate;
-    parsedDate.ToString(strParsedDate);
-
-    std::string str1 = strDate.GetString();
-    std::string str2 = strParsedDate.GetString();
-
-    CPPUNIT_ASSERT_EQUAL(curDate.GetTime(), parsedDate.GetTime());
-    CPPUNIT_ASSERT_EQUAL(str1, str2);
+    PdfDate date4 = PdfDate::Parse("D:20120205175456+04'30'");
+    REQUIRE(date4.GetSecondsFromEpoch().count() == timeExpected);
 }
 
 
+static void deconstruct(const PdfDate& date, short& y, unsigned char& m, unsigned char& d,
+    unsigned char& h, unsigned char& M, unsigned char& s)
+{
 
+    date::year_month_day ymd;
+    date::hh_mm_ss<chrono::seconds> time;
+    deconstruct(date, ymd, time);
+
+    y = (short)(int)ymd.year();
+    m = (unsigned char)(unsigned)ymd.month();
+    d = (unsigned char)(unsigned)ymd.day();
+    h = (unsigned char)time.hours().count();
+    M = (unsigned char)time.minutes().count();
+    s = (unsigned char)time.seconds().count();
+}
+
+void deconstruct(const PdfDate& date, date::year_month_day& ymd, date::hh_mm_ss<chrono::seconds>& time)
+{
+    auto minutesFromUtc = date.GetMinutesFromUtc();
+    if (minutesFromUtc.has_value())
+    {
+        // Assume sys time
+        auto secondsFromEpoch = (date::sys_seconds)(date.GetSecondsFromEpoch() + *minutesFromUtc);
+        auto dp = date::floor<date::days>(secondsFromEpoch);
+        ymd = date::year_month_day(dp);
+        time = date::hh_mm_ss<chrono::seconds>(chrono::floor<chrono::seconds>(secondsFromEpoch - dp));
+    }
+    else
+    {
+        // Assume local time
+        auto secondsFromEpoch = (date::local_seconds)date.GetSecondsFromEpoch();
+        auto dp = date::floor<date::days>(secondsFromEpoch);
+        ymd = date::year_month_day(dp);
+        time = date::hh_mm_ss<chrono::seconds>(chrono::floor<chrono::seconds>(secondsFromEpoch - dp));
+    }
+}

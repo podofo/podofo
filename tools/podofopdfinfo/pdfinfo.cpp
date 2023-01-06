@@ -1,246 +1,252 @@
-/***************************************************************************
-*   Copyright (C) 2005 by Dominik Seichter                                *
-*   domseichter@web.de                                                    *
-*                                                                         *
-*   This program is free software; you can redistribute it and/or modify  *
-*   it under the terms of the GNU General Public License as published by  *
-*   the Free Software Foundation; either version 2 of the License, or     *
-*   (at your option) any later version.                                   *
-*                                                                         *
-*   This program is distributed in the hope that it will be useful,       *
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
-*   GNU General Public License for more details.                          *
-*                                                                         *
-*   You should have received a copy of the GNU General Public License     *
-*   along with this program; if not, write to the                         *
-*   Free Software Foundation, Inc.,                                       *
-*   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
-***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2005 Dominik Seichter <domseichter@web.de>
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
+#include <podofo/private/PdfDeclarationsPrivate.h>
 #include "pdfinfo.h"
+#include <sstream>
 
-PdfInfo::PdfInfo( const std::string& inPathname )
+using namespace std;
+using namespace PoDoFo;
+
+PdfInfoHelper::PdfInfoHelper(const string& filepath)
 {
-    mDoc = new PoDoFo::PdfMemDocument( inPathname.c_str() );
+    m_doc = new PdfMemDocument();
+    m_doc->Load(filepath);
 }
 
-PdfInfo::~PdfInfo()
+PdfInfoHelper::~PdfInfoHelper()
 {
-    if ( mDoc ) {
-        delete mDoc;
-        mDoc = NULL;
+    if (m_doc)
+    {
+        delete m_doc;
+        m_doc = nullptr;
     }
 }
 
-void PdfInfo::OutputDocumentInfo( std::ostream& sOutStream )
+void PdfInfoHelper::OutputDocumentInfo(ostream& sOutStream)
 {
-	sOutStream << "\tPDF Version: " << PoDoFo::s_szPdfVersionNums[static_cast<int>(mDoc->GetPdfVersion())] << std::endl;
-	sOutStream << "\tPage Count: " << mDoc->GetPageCount() << std::endl;
-	sOutStream << "\tPage Size: " << GuessFormat() << std::endl; 
-    sOutStream << std::endl;
-    sOutStream << "\tFast Web View Enabled: " << (mDoc->IsLinearized() ? "Yes" : "No") << std::endl;
-    sOutStream << "\tTagged: " << (static_cast<PoDoFo::PdfMemDocument*>(mDoc)->GetStructTreeRoot() != NULL ? "Yes" : "No") << std::endl;
-    sOutStream << "\tEncrypted: " << (static_cast<PoDoFo::PdfMemDocument*>(mDoc)->GetEncrypted() ? "Yes" : "No") << std::endl;
-    sOutStream << "\tPrinting Allowed: "  << (mDoc->IsPrintAllowed() ? "Yes" : "No") << std::endl;
-    sOutStream << "\tModification Allowed: "  << (mDoc->IsEditAllowed() ? "Yes" : "No") << std::endl;
-    sOutStream << "\tCopy&Paste Allowed: "  << (mDoc->IsCopyAllowed() ? "Yes" : "No") << std::endl;
-    sOutStream << "\tAdd/Modify Annotations Allowed: "  << (mDoc->IsEditNotesAllowed() ? "Yes" : "No") << std::endl;
-    sOutStream << "\tFill&Sign Allowed: "  << (mDoc->IsFillAndSignAllowed() ? "Yes" : "No") << std::endl;
-    sOutStream << "\tAccessibility Allowed: "  << (mDoc->IsAccessibilityAllowed() ? "Yes" : "No") << std::endl;
-    sOutStream << "\tDocument Assembly Allowed: "  << (mDoc->IsDocAssemblyAllowed() ? "Yes" : "No") << std::endl;
-    sOutStream << "\tHigh Quality Print Allowed: "  << (mDoc->IsHighPrintAllowed() ? "Yes" : "No") << std::endl;
+    sOutStream << "\tPDF Version: " << PoDoFo::GetPdfVersionName(m_doc->GetMetadata().GetPdfVersion()) << endl;
+    sOutStream << "\tPage Count: " << m_doc->GetPages().GetCount() << endl;
+    sOutStream << "\tPage Size: " << GuessFormat() << endl;
+    sOutStream << endl;
+    sOutStream << "\tTagged: " << (m_doc->GetCatalog().GetStructTreeRootObject() != nullptr ? "Yes" : "No") << endl;
+    sOutStream << "\tEncrypted: " << (m_doc->GetEncrypt() != nullptr ? "Yes" : "No") << endl;
+    sOutStream << "\tPrinting Allowed: " << (m_doc->IsPrintAllowed() ? "Yes" : "No") << endl;
+    sOutStream << "\tModification Allowed: " << (m_doc->IsEditAllowed() ? "Yes" : "No") << endl;
+    sOutStream << "\tCopy&Paste Allowed: " << (m_doc->IsCopyAllowed() ? "Yes" : "No") << endl;
+    sOutStream << "\tAdd/Modify Annotations Allowed: " << (m_doc->IsEditNotesAllowed() ? "Yes" : "No") << endl;
+    sOutStream << "\tFill&Sign Allowed: " << (m_doc->IsFillAndSignAllowed() ? "Yes" : "No") << endl;
+    sOutStream << "\tAccessibility Allowed: " << (m_doc->IsAccessibilityAllowed() ? "Yes" : "No") << endl;
+    sOutStream << "\tDocument Assembly Allowed: " << (m_doc->IsDocAssemblyAllowed() ? "Yes" : "No") << endl;
+    sOutStream << "\tHigh Quality Print Allowed: " << (m_doc->IsHighPrintAllowed() ? "Yes" : "No") << endl;
 }
 
-void PdfInfo::OutputInfoDict( std::ostream& sOutStream )
+void PdfInfoHelper::OutputInfoDict(ostream& outStream)
 {
-    if( !mDoc->GetInfo() )
-        sOutStream << "No info dictionary in this PDF file!" << std::endl;
+    if (m_doc->GetInfo() == nullptr)
+    {
+        outStream << "No info dictionary in this PDF file!" << endl;
+    }
     else
     {
+        auto author = m_doc->GetInfo()->GetAuthor();
+        if (author != nullptr)
+            outStream << "\tAuthor: " << author->GetString() << endl;
 
-        sOutStream << "\tAuthor: "   << mDoc->GetInfo()->GetAuthor().GetStringUtf8() << std::endl;
-        sOutStream << "\tCreator: "  << mDoc->GetInfo()->GetCreator().GetStringUtf8() << std::endl;
-        sOutStream << "\tSubject: "  << mDoc->GetInfo()->GetSubject().GetStringUtf8() << std::endl;
-        sOutStream << "\tTitle: "    << mDoc->GetInfo()->GetTitle().GetStringUtf8() << std::endl;
-        sOutStream << "\tKeywords: " << mDoc->GetInfo()->GetKeywords().GetStringUtf8() << std::endl;
-	sOutStream << "\tTrapped: "  << mDoc->GetInfo()->GetTrapped().GetEscapedName() << std::endl;
+        auto creator = m_doc->GetInfo()->GetCreator();
+        if (creator != nullptr)
+            outStream << "\tCreator: " << creator->GetString() << endl;
+
+        auto subject = m_doc->GetInfo()->GetSubject();
+        if (subject != nullptr)
+            outStream << "\tSubject: " << subject->GetString() << endl;
+
+        auto title = m_doc->GetInfo()->GetTitle();
+        if (title != nullptr)
+            outStream << "\tTitle: " << title->GetString() << endl;
+
+        auto keywords = m_doc->GetInfo()->GetKeywords();
+        if (keywords != nullptr)
+            outStream << "\tKeywords: " << keywords->GetString() << endl;
+
+        auto trapped = m_doc->GetInfo()->GetTrapped();
+        if (trapped != nullptr)
+            outStream << "\tTrapped: " << trapped->GetEscapedName() << endl;
     }
 }
 
-void PdfInfo::OutputPageInfo( std::ostream& sOutStream )
+void PdfInfoHelper::OutputPageInfo(ostream& outstream)
 {
-    PoDoFo::PdfPage*       curPage;
-    PoDoFo::PdfAnnotation* curAnnot;
+    PdfArray arr;
+    string str;
 
-    PoDoFo::PdfVariant  var;
-    std::string str;
-
-    int annotCount;
-    int	pgCount = mDoc->GetPageCount();
-    sOutStream << "Page Count: " << pgCount << std::endl;
-    for ( int pg=0; pg<pgCount; pg++ ) 
+    unsigned annotCount;
+    unsigned pageCount = m_doc->GetPages().GetCount();
+    outstream << "Page Count: " << pageCount << endl;
+    for (int pg = 0; pg < pageCount; pg++)
     {
-        sOutStream << "Page " << pg << ":" << std::endl;
-        
-        curPage = mDoc->GetPage( pg );
-        sOutStream << "->Internal Number:" << curPage->GetPageNumber() << std::endl;
-        sOutStream << "->Object Number:" << curPage->GetObject()->Reference().ObjectNumber() 
-                   << " " <<  curPage->GetObject()->Reference().GenerationNumber() << " R" << std::endl;
-        
-        curPage->GetMediaBox().ToVariant( var );
-        var.ToString( str );
+        outstream << "Page " << pg << ":" << endl;
 
-        annotCount = curPage->GetNumAnnots();
-        sOutStream << "\tMediaBox: " << str << std::endl;
-        sOutStream << "\tRotation: " << curPage->GetRotation() << std::endl;
-        sOutStream << "\t# of Annotations: " << annotCount << std::endl;
+        auto& curPage = m_doc->GetPages().GetPageAt(pg);
+        outstream << "->Internal Number:" << curPage.GetPageNumber() << endl;
+        outstream << "->Object Number:" << curPage.GetObject().GetIndirectReference().ObjectNumber()
+            << " " << curPage.GetObject().GetIndirectReference().GenerationNumber() << " R" << endl;
 
-        for( int i=0; i < annotCount; i++ ) 
+        curPage.GetMediaBox().ToArray(arr);
+        arr.ToString(str);
+
+        annotCount = curPage.GetAnnotations().GetCount();
+        outstream << "\tMediaBox: " << str << endl;
+        outstream << "\tRotation: " << curPage.GetRotationRaw() << endl;
+        outstream << "\t# of Annotations: " << annotCount << endl;
+
+        for (int i = 0; i < annotCount; i++)
         {
-            curAnnot = curPage->GetAnnotation( i );
+            auto& curAnnot = curPage.GetAnnotations().GetAnnotAt(i);
 
-            curAnnot->GetRect().ToVariant( var );
-            var.ToString( str );
+            curAnnot.GetRect().ToArray(arr);
+            arr.ToString(str);
 
-            sOutStream << std::endl;
-            sOutStream << "\tAnnotation "  << i << std::endl;
-            sOutStream << "\t\tType: "     << curAnnot->GetType() << std::endl;
-            sOutStream << "\t\tContents: " << curAnnot->GetContents().GetStringUtf8() << std::endl;
-            sOutStream << "\t\tTitle: "    << curAnnot->GetTitle().GetStringUtf8() << std::endl;
-            sOutStream << "\t\tFlags: "    << curAnnot->GetFlags() << std::endl;
-            sOutStream << "\t\tRect: "     << str << std::endl;
-            sOutStream << "\t\tOpen: "     << (curAnnot->GetOpen() ? "true" : "false" ) << std::endl;
+            outstream << endl;
+            outstream << "\tAnnotation " << i << endl;
+            outstream << "\t\tType: " << PoDoFo::AnnotationTypeToName(curAnnot.GetType()) << endl;
+            auto contents = curAnnot.GetContents();
+            if (contents != nullptr)
+                outstream << "\t\tContents: " << contents->GetString() << endl;
 
-            if( curAnnot->GetType() == PoDoFo::ePdfAnnotation_Link ) 
+            auto title = curAnnot.GetTitle();
+            if (title != nullptr)
+                outstream << "\t\tTitle: " << title->GetString() << endl;
+
+            outstream << "\t\tFlags: " << (int)curAnnot.GetFlags() << endl;
+            outstream << "\t\tRect: " << str << endl;
+            if (curAnnot.GetType() == PdfAnnotationType::Link)
             {
-                sOutStream << "\t\tLink Target: " << curAnnot->GetType() << std::endl;
-                if( curAnnot->HasAction() && curAnnot->GetAction()->HasURI() )
-                    sOutStream << "\t\tAction URI: " << curAnnot->GetAction()->GetURI().GetStringUtf8()  << std::endl;
+                auto& link = static_cast<PdfAnnotationLink&>(curAnnot);
+                if (link.GetAction() != nullptr && link.GetAction()->HasURI())
+                    outstream << "\t\tAction URI: " << link.GetAction()->GetURI().GetString() << endl;
             }
-        }        
+        }
     }
 }
 
-void PdfInfo::OutputOutlines( std::ostream& sOutStream, PoDoFo::PdfOutlineItem* pItem, int level )
+void PdfInfoHelper::OutputOutlines(ostream& outstream, PdfOutlineItem* item, int level)
 {
-    PoDoFo::PdfOutlines* pOutlines;
-    int          i;
-
-    if( !pItem ) 
+    if (item == nullptr)
     {
-        pOutlines = mDoc->GetOutlines( PoDoFo::ePdfDontCreateObject );
-        if ( !pOutlines || !pOutlines->First() ) {
-            sOutStream << "\tNone Found" << std::endl;
+        auto outlines = m_doc->GetOutlines();
+        if (outlines == nullptr || !outlines->First())
+        {
+            outstream << "\tNone Found" << endl;
             return;
         }
-        pItem     = pOutlines->First();
+        item = outlines->First();
     }
 
-    for( i=0;i<level;i++ )
-        sOutStream << "-";
+    for (int i = 0; i < level; i++)
+        outstream << "-";
 
-    sOutStream << ">" << pItem->GetTitle().GetString();
-    PoDoFo::PdfDestination* pDest = pItem->GetDestination( mDoc );
-    if ( pDest ) {	// then it's a destination
-
-        PoDoFo::PdfPage* pPage = pDest->GetPage( mDoc );
-        if( pPage ) 
-            sOutStream << "\tDestination: Page #" << pPage->GetPageNumber();
-        else
-            sOutStream << "\tDestination: Page #" << "???";
-
-    } else {		// then it's one or more actions
-        sOutStream << "\tAction: " << "???";
-    }
-    sOutStream << std::endl;
-
-    if( pItem->First() )
-        this->OutputOutlines( sOutStream, pItem->First(), level+1 );
-    
-    if( pItem->Next() )
-        this->OutputOutlines( sOutStream, pItem->Next(), level );
-}
-
-void PdfInfo::OutputOneName( std::ostream& sOutStream, PoDoFo::PdfNamesTree* inTreeObj, 
-							 const std::string& inTitle, const std::string& inKey )
-{
-    sOutStream << "\t" << inTitle << std::endl;
-    PoDoFo::PdfDictionary dict;
-    inTreeObj->ToDictionary( PoDoFo::PdfName( inKey ), dict );
-
-    const PoDoFo::TKeyMap& keys = dict.GetKeys();
-    PoDoFo::TCIKeyMap      it   = keys.begin();
-
-    std::string str;
-    while( it != keys.end() )
+    outstream << ">" << item->GetTitle().GetString();
+    auto dest = item->GetDestination();
+    if (dest == nullptr)
     {
-        (*it).second->ToString( str );
-        sOutStream << "\t-> " << (*it).first.GetName().c_str() << "=" << str << std::endl;
-        ++it;
+        // then it's one or more actions
+        outstream << "\tAction: " << "???";
+    }
+    else
+    {
+        // then it's a destination
+        auto page = dest->GetPage();
+        if (page == nullptr)
+            outstream << "\tDestination: Page #" << "???";
+        else
+            outstream << "\tDestination: Page #" << page->GetPageNumber();
     }
 
-    sOutStream << std::endl;
+    outstream << endl;
+
+    if (item->First())
+        this->OutputOutlines(outstream, item->First(), level + 1);
+
+    if (item->Next())
+        this->OutputOutlines(outstream, item->Next(), level);
 }
 
-void PdfInfo::OutputNames( std::ostream& sOutStream )
+void PdfInfoHelper::OutputOneName(ostream& outStream, PdfNameTree& nameTree,
+    const string_view& title, const string_view& key)
 {
-    PoDoFo::PdfNamesTree*	namesObj = mDoc->GetNamesTree( PoDoFo::ePdfDontCreateObject );
-    if ( namesObj ) {
-        OutputOneName( sOutStream, namesObj, "Destinations", "Dests" );
-        OutputOneName( sOutStream, namesObj, "JavaScripts", "JavaScript" );
-        OutputOneName( sOutStream, namesObj, "Embedded Files", "EmbeddedFiles" );
-    } else {
-        sOutStream << "\t\tNone Found" << std::endl;
+    outStream << "\t" << title << endl;
+    PdfDictionary dict;
+    nameTree.ToDictionary(key, dict);
+
+    string str;
+    for (auto& pair : dict)
+    {
+        pair.second.ToString(str);
+        outStream << "\t-> " << pair.first.GetString() << "=" << str << endl;
+    }
+
+    outStream << endl;
+}
+
+void PdfInfoHelper::OutputNames(ostream& outStream)
+{
+    auto nameTree = m_doc->GetNames();
+    if (nameTree == nullptr)
+    {
+        outStream << "\t\tNone Found" << endl;
+    }
+    else
+    {
+        OutputOneName(outStream, *nameTree, "Destinations", "Dests");
+        OutputOneName(outStream, *nameTree, "JavaScripts", "JavaScript");
+        OutputOneName(outStream, *nameTree, "Embedded Files", "EmbeddedFiles");
     }
 }
 
-std::string PdfInfo::GuessFormat()
+string PdfInfoHelper::GuessFormat()
 {
-	typedef std::pair<double,double> Format;
-	
-	PoDoFo::PdfPage*  curPage;
-	int	pgCount = mDoc->GetPageCount();
-	std::map<  Format , int > sizes;
-	std::map<  Format , int >::iterator sIt;
-	PoDoFo::PdfRect  rect;
-	for ( int pg=0; pg<pgCount; pg++ ) 
-	{
-		curPage = mDoc->GetPage( pg );
-		if( !curPage )
-		{
-			PODOFO_RAISE_ERROR( PoDoFo::ePdfError_PageNotFound );
-		}
-		rect = curPage->GetMediaBox();
-		Format s( rect.GetWidth() - rect.GetLeft(), rect.GetHeight() - rect.GetBottom());
-		sIt = sizes.find(s);
-		if(sIt == sizes.end())
-			sizes.insert(std::pair<Format,int>(s,1));
-		else
-			++(sIt->second);
-	}
-	
-	Format format;
-	std::stringstream ss;
-	if(sizes.size() == 1)
-	{
-		format = sizes.begin()->first;
-		ss << format.first << " x " << format.second << " pts"  ;
-	}
-	else
-	{
-		// We’re looking for the most represented format
-		int max=0;
-		for(sIt = sizes.begin();sIt != sizes.end(); ++sIt)
-		{
-			if(sIt->second > max)
-			{
-				max = sIt->second;
-				format = sIt->first;
-			}
-		}
-		ss << format.first << " x " << format.second << " pts "<<std::string(sizes.size(), '*');
-	}
-	
-	return ss.str();
+    using Format = pair<double, double>;
+
+    int	pageCount = m_doc->GetPages().GetCount();
+    map<Format, int> sizes;
+    map<Format, int>::iterator it;
+    PdfRect rect;
+    for (int i = 0; i < pageCount; i++)
+    {
+        auto& currPage = m_doc->GetPages().GetPageAt(i);
+        rect = currPage.GetMediaBox();
+        Format s(rect.GetWidth() - rect.GetLeft(), rect.GetHeight() - rect.GetBottom());
+        it = sizes.find(s);
+        if (it == sizes.end())
+            sizes.insert(pair<Format, int>(s, 1));
+        else
+            it->second++;
+    }
+
+    Format format;
+    stringstream ss;
+    if (sizes.size() == 1)
+    {
+        format = sizes.begin()->first;
+        ss << format.first << " x " << format.second << " pts";
+    }
+    else
+    {
+        // We’re looking for the most represented format
+        int max = 0;
+        for (it = sizes.begin(); it != sizes.end(); ++it)
+        {
+            if (it->second > max)
+            {
+                max = it->second;
+                format = it->first;
+            }
+        }
+        ss << format.first << " x " << format.second << " pts " << string(sizes.size(), '*');
+    }
+
+    return ss.str();
 }

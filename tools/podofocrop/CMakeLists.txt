@@ -1,7 +1,3 @@
-ADD_EXECUTABLE(podofocrop podofocrop.cpp)
-
-TARGET_LINK_LIBRARIES(podofocrop ${PODOFO_LIB})
-SET_TARGET_PROPERTIES(podofocrop PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
-ADD_DEPENDENCIES(podofocrop ${PODOFO_DEPEND_TARGET})
-INSTALL(TARGETS podofocrop
-	RUNTIME DESTINATION "bin")
+add_executable(podofocrop podofocrop.cpp)
+target_link_libraries(podofocrop ${PODOFO_LIBRARIES})
+install(TARGETS podofocrop RUNTIME DESTINATION "bin")

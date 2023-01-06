@@ -1,161 +1,145 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * SPDX-FileCopyrightText: (C) 2005 Dominik Seichter <domseichter@web.de>
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
 #include <iostream>
 #include "pdfinfo.h"
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <cstdio>
 
-#ifdef _HAVE_CONFIG
-#include <config.h>
-#endif // _HAVE_CONFIG
+using namespace std;
+using namespace PoDoFo;
 
 void print_help()
 {
-  printf("Usage: podofopdfinfo [DCPON] [inputfile] \n\n");
-  printf("       This tool displays information about the PDF file\n");
-  printf("       according to format instruction (if not provided, displays all).\n");
-  printf("       D displays Document Info.\n");
-  printf("       C displays Classic Metadata.\n");
-  printf("       P displays Page Info.\n");
-  printf("       O displays Outlines.\n");
-  printf("       N displays Names.\n");
-  printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
+    printf("Usage: podofopdfinfo [DCPON] [inputfile] \n\n");
+    printf("       This tool displays information about the PDF file\n");
+    printf("       according to format instruction (if not provided, displays all).\n");
+    printf("       D displays Document Info.\n");
+    printf("       C displays Classic Metadata.\n");
+    printf("       P displays Page Info.\n");
+    printf("       O displays Outlines.\n");
+    printf("       N displays Names.\n");
+    printf("\nPoDoFo Version: %s\n\n", PODOFO_VERSION_STRING);
 }
 
-struct Format {
-	bool document; // D
-	bool classic; // C
-	bool pages; // P
-	bool outlines; // O
-	bool names; // N
-	Format():document(true),classic(true),pages(true),outlines(true),names(true){}
+struct Format
+{
+    bool document; // D
+    bool classic; // C
+    bool pages; // P
+    bool outlines; // O
+    bool names; // N
+    Format() :document(true), classic(true), pages(true), outlines(true), names(true) {}
 };
 
-Format ParseFormat(const std::string& fs)
+Format ParseFormat(const string& fs)
 {
-	Format ret;
-	
-	if(fs.find('D') == std::string::npos)
-		ret.document = false;
-	
-	if(fs.find('C') == std::string::npos)
-		ret.classic = false;
-	
-	if(fs.find('P') == std::string::npos)
-		ret.pages = false;
-	
-	if(fs.find('O') == std::string::npos)
-		ret.outlines = false;
-	
-	if(fs.find('N') == std::string::npos)
-		ret.names = false;
-	
-	return ret;
+    Format ret;
+
+    if (fs.find('D') == string::npos)
+        ret.document = false;
+
+    if (fs.find('C') == string::npos)
+        ret.classic = false;
+
+    if (fs.find('P') == string::npos)
+        ret.pages = false;
+
+    if (fs.find('O') == string::npos)
+        ret.outlines = false;
+
+    if (fs.find('N') == string::npos)
+        ret.names = false;
+
+    return ret;
 }
 
-int main( int argc, char* argv[] )
+int main(int argc, char* argv[])
 {
 #if 1
-  PoDoFo::PdfError::EnableDebug( false );	// turn it off to better view the output from this app!
-  PoDoFo::PdfError::EnableLogging( false );
+    PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::None);	// turn it off to better view the output from this app!
 #endif
-			 
-  if( (argc < 2) ||  (argc > 3) )
-  {
-    print_help();
-    return ( -1 );
-  }
 
-  
-  char* pszInput = 0;
-  Format format;
-  std::string fName;
+    if ((argc < 2) || (argc > 3))
+    {
+        print_help();
+        return (-1);
+    }
 
-  if(argc == 2)
-  {
-      pszInput  = argv[1];
-  }
-  else if(argc == 3)
-  {
-      pszInput  = argv[2];
-      format = ParseFormat(std::string(argv[1]));
-  }
+    char* input = 0;
+    Format format;
+    string filepath;
 
-  if (pszInput!= NULL)
-  {
-      fName = pszInput;
-  }
-  //else leave empty
+    if (argc == 2)
+    {
+        input = argv[1];
+    }
+    else if (argc == 3)
+    {
+        input = argv[2];
+        format = ParseFormat(string(argv[1]));
+    }
 
-  try {
-      PdfInfo	myInfo( fName );
+    if (input != nullptr)
+    {
+        filepath = input;
+    }
+    //else leave empty
 
-      if(format.document)
-      {
-          std::cout << "Document Info" << std::endl;
-          std::cout << "-------------" << std::endl;
-          std::cout << "\tFile: " << fName << std::endl;
-          myInfo.OutputDocumentInfo( std::cout );
-          std::cout << std::endl;
-      }
-      
-      if(format.classic)
-      {
-      std::cout << "Classic Metadata" << std::endl;
-      std::cout << "----------------" << std::endl;
-      myInfo.OutputInfoDict( std::cout );
-      std::cout << std::endl;
-      }
-      
-      if(format.pages)
-      {
-      std::cout << "Page Info" << std::endl;
-      std::cout << "---------" << std::endl;
-      myInfo.OutputPageInfo( std::cout );
-      }
-      
-      if(format.outlines)
-      {
-      std::cout << "Outlines" << std::endl;
-      std::cout << "--------" << std::endl;
-      myInfo.OutputOutlines( std::cout );
-      }
-      
-      if(format.names)
-      {
-      std::cout << "Names" << std::endl;
-      std::cout << "-----" << std::endl;
-      myInfo.OutputNames( std::cout );
-      }
+    try
+    {
+        PdfInfoHelper info(filepath);
 
-  } catch( PoDoFo::PdfError & e ) {
-      fprintf( stderr, "Error: An error %i ocurred during uncompressing the pdf file.\n", e.GetError() );
-      e.PrintErrorMsg();
-      return e.GetError();
+        if (format.document)
+        {
+            cout << "Document Info" << endl;
+            cout << "-------------" << endl;
+            cout << "\tFile: " << filepath << endl;
+            info.OutputDocumentInfo(cout);
+            cout << endl;
+        }
 
-  }
-  
-//   std::cerr << "All information written successfully.\n" << std::endl << std::endl;
+        if (format.classic)
+        {
+            cout << "Classic Metadata" << endl;
+            cout << "----------------" << endl;
+            info.OutputInfoDict(cout);
+            cout << endl;
+        }
 
-  return 0;
+        if (format.pages)
+        {
+            cout << "Page Info" << endl;
+            cout << "---------" << endl;
+            info.OutputPageInfo(cout);
+        }
+
+        if (format.outlines)
+        {
+            cout << "Outlines" << endl;
+            cout << "--------" << endl;
+            info.OutputOutlines(cout);
+        }
+
+        if (format.names)
+        {
+            cout << "Names" << endl;
+            cout << "-----" << endl;
+            info.OutputNames(cout);
+        }
+
+    }
+    catch (PdfError& e)
+    {
+        fprintf(stderr, "Error: An error %i ocurred during uncompressing the pdf file.\n", e.GetError());
+        e.PrintErrorMsg();
+        return (int)e.GetError();
+    }
+
+    //   cerr << "All information written successfully.\n" << endl << endl;
+
+    return 0;
 }
-
