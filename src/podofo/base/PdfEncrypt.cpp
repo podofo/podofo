@@ -668,16 +668,18 @@ void PdfEncryptMD5Base::ComputeOwnerKey(const unsigned char userPad[32], const u
 {
     unsigned char mkey[MD5_DIGEST_LENGTH];
     unsigned char digest[MD5_DIGEST_LENGTH];
+    int rc;
 
-    MD5_CTX ctx;
-    int status = MD5_Init(&ctx);
-    if (status != 1)
+    unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(EVP_MD_CTX_new(), EVP_MD_CTX_free);
+    if (ctx == nullptr || (rc = EVP_DigestInit_ex(ctx.get(), EVP_md5(), nullptr)) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing MD5 hashing engine");
-    status = MD5_Update(&ctx, ownerPad, 32);
-    if (status != 1)
+
+    rc = EVP_DigestUpdate(ctx.get(), ownerPad, 32);
+    if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
-    status = MD5_Final(digest, &ctx);
-    if (status != 1)
+
+    rc = EVP_DigestFinal_ex(ctx.get(), digest, nullptr);
+    if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
     if ((revision == 3) || (revision == 4))
@@ -685,14 +687,16 @@ void PdfEncryptMD5Base::ComputeOwnerKey(const unsigned char userPad[32], const u
         // only use for the input as many bit as the key consists of
         for (int k = 0; k < 50; ++k)
         {
-            status = MD5_Init(&ctx);
-            if (status != 1)
+            rc = EVP_DigestInit_ex(ctx.get(), EVP_md5(), nullptr);
+            if (rc != 1)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing MD5 hashing engine");
-            status = MD5_Update(&ctx, digest, keyLength);
-            if (status != 1)
+
+            rc = EVP_DigestUpdate(ctx.get(), digest, keyLength);
+            if (rc != 1)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
-            status = MD5_Final(digest, &ctx);
-            if (status != 1)
+
+            rc = EVP_DigestFinal_ex(ctx.get(), digest, nullptr);
+            if (rc != 1)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
         }
         std::memcpy(ownerKey, userPad, 32);
@@ -722,18 +726,18 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     unsigned j;
     unsigned k;
     m_keyLength = (int)keyLength / 8;
+    int rc;
 
-    MD5_CTX ctx;
-    int status = MD5_Init(&ctx);
-    if (status != 1)
+    unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(EVP_MD_CTX_new(), EVP_MD_CTX_free);
+    if (ctx == nullptr || (rc = EVP_DigestInit_ex(ctx.get(), EVP_md5(), nullptr)) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing MD5 hashing engine");
 
-    status = MD5_Update(&ctx, userPad, 32);
-    if (status != 1)
+    rc = EVP_DigestUpdate(ctx.get(), userPad, 32);
+    if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
-    status = MD5_Update(&ctx, ownerKey, 32);
-    if (status != 1)
+    rc = EVP_DigestUpdate(ctx.get(), ownerKey, 32);
+    if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
     unsigned char ext[4];
@@ -741,22 +745,22 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     ext[1] = static_cast<unsigned char> (((unsigned)pValue >> 8) & 0xFF);
     ext[2] = static_cast<unsigned char> (((unsigned)pValue >> 16) & 0xFF);
     ext[3] = static_cast<unsigned char> (((unsigned)pValue >> 24) & 0xFF);
-    status = MD5_Update(&ctx, ext, 4);
-    if (status != 1)
+    rc = EVP_DigestUpdate(ctx.get(), ext, 4);
+    if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
     unsigned docIdLength = static_cast<unsigned>(documentId.length());
-    unsigned char* docId = nullptr;
+    vector<unsigned char> docId;
     if (docIdLength > 0)
     {
-        docId = new unsigned char[docIdLength];
+        docId.resize(docIdLength);
         size_t j;
         for (j = 0; j < docIdLength; j++)
         {
             docId[j] = static_cast<unsigned char>(documentId[j]);
         }
-        status = MD5_Update(&ctx, docId, docIdLength);
-        if (status != 1)
+        rc = EVP_DigestUpdate(ctx.get(), docId.data(), docIdLength);
+        if (rc != 1)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
     }
 
@@ -765,12 +769,14 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     if (!encryptMetadata)
     {
         unsigned char noMetaAddition[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
-        status = MD5_Update(&ctx, noMetaAddition, 4);
+        rc = EVP_DigestUpdate(ctx.get(), noMetaAddition, 4);
+        if (rc != 1)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
     }
 
     unsigned char digest[MD5_DIGEST_LENGTH];
-    status = MD5_Final(digest, &ctx);
-    if (status != 1)
+    rc = EVP_DigestFinal_ex(ctx.get(), digest, nullptr);
+    if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
     // only use the really needed bits as input for the hash
@@ -778,16 +784,16 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     {
         for (k = 0; k < 50; ++k)
         {
-            status = MD5_Init(&ctx);
-            if (status != 1)
+            rc = EVP_DigestInit_ex(ctx.get(), EVP_md5(), nullptr);
+            if (rc != 1)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing MD5 hashing engine");
 
-            status = MD5_Update(&ctx, digest, m_keyLength);
-            if (status != 1)
+            rc = EVP_DigestUpdate(ctx.get(), digest, m_keyLength);
+            if (rc != 1)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
-            status = MD5_Final(digest, &ctx);
-            if (status != 1)
+            rc = EVP_DigestFinal_ex(ctx.get(), digest, nullptr);
+            if (rc != 1)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
         }
     }
@@ -797,23 +803,23 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     // Setup user key
     if (revision == 3 || revision == 4)
     {
-        status = MD5_Init(&ctx);
-        if (status != 1)
+        rc = EVP_DigestInit_ex(ctx.get(), EVP_md5(), nullptr);
+        if (rc != 1)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing MD5 hashing engine");
 
-        status = MD5_Update(&ctx, padding, 32);
-        if (status != 1)
+        rc = EVP_DigestUpdate(ctx.get(), padding, 32);
+        if (rc != 1)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
-        if (docId != nullptr)
+        if (docId.size() != 0)
         {
-            status = MD5_Update(&ctx, docId, docIdLength);
-            if (status != 1)
+            rc = EVP_DigestUpdate(ctx.get(), docId.data(), docIdLength);
+            if (rc != 1)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
         }
 
-        status = MD5_Final(digest, &ctx);
-        if (status != 1)
+        rc = EVP_DigestFinal_ex(ctx.get(), digest, nullptr);
+        if (rc != 1)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
         std::memcpy(userKey, digest, 16);
@@ -834,9 +840,6 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     {
         RC4(m_encryptionKey, m_keyLength, padding, 32, userKey, 32);
     }
-
-    if (docId != nullptr)
-        delete[] docId;
 }
 
 void PdfEncryptMD5Base::CreateObjKey(unsigned char objkey[16], unsigned& pnKeyLen, const PdfReference& objref) const
@@ -918,18 +921,17 @@ void PdfEncryptRC4Base::RC4(const unsigned char* key, unsigned keylen,
         
 void PdfEncryptMD5Base::GetMD5Binary(const unsigned char* data, unsigned length, unsigned char* digest)
 {
-    int status;
-    MD5_CTX ctx;
-    status = MD5_Init(&ctx);
-    if (status != 1)
+    int rc;
+    unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(EVP_MD_CTX_new(), EVP_MD_CTX_free);
+    if (ctx == nullptr || (rc = EVP_DigestInit_ex(ctx.get(), EVP_md5(), nullptr)) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing MD5 hashing engine");
 
-    status = MD5_Update(&ctx, data, length);
-    if (status != 1)
+    rc = EVP_DigestUpdate(ctx.get(), data, length);
+    if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
-    status = MD5_Final(digest, &ctx);
-    if (status != 1)
+    rc = EVP_DigestFinal_ex(ctx.get(), digest, nullptr);
+    if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 }
 
@@ -1414,20 +1416,35 @@ PdfEncryptSHABase::PdfEncryptSHABase(const PdfEncrypt& rhs) : PdfEncrypt(rhs)
 
 void PdfEncryptSHABase::ComputeHash(const unsigned char* pswd, int pswdLen, unsigned char salt[8], unsigned char uValue[48], unsigned char hashValue[32])
 {
-    SHA256_CTX sha256;
-    SHA256_Init(&sha256);
-    if (pswdLen)
-        SHA256_Update(&sha256, pswd, pswdLen);
-    SHA256_Update(&sha256, salt, 8);
-    if (uValue)
-        SHA256_Update(&sha256, uValue, 48);
-    SHA256_Final(hashValue, &sha256);
+    int rc;
+    unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> sha256(EVP_MD_CTX_new(), EVP_MD_CTX_free);
+    if (sha256 == nullptr || (rc = EVP_DigestInit_ex(sha256.get(), EVP_sha256(), nullptr)) != 1)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing sha256 hashing engine");
+
+    if (pswdLen != 0)
+    {
+        rc = EVP_DigestUpdate(sha256.get(), pswd, pswdLen);
+    }
+
+    rc = EVP_DigestUpdate(sha256.get(), salt, 8);
+    if (uValue != nullptr)
+    {
+        rc = EVP_DigestUpdate(sha256.get(), uValue, 48);
+    }
+
+    rc = EVP_DigestFinal_ex(sha256.get(), hashValue, nullptr);
 
     if (m_rValue > 5) // AES-256 according to PDF 1.7 Adobe Extension Level 8 (PDF 2.0)
     {
-        SHA512_CTX sha384;
-        SHA512_CTX sha512;
+        unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> sha384(EVP_MD_CTX_new(), EVP_MD_CTX_free);
+        if (sha384 == nullptr)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing sha384 hashing engine");
+
+        unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> sha512(EVP_MD_CTX_new(), EVP_MD_CTX_free);
+        if (sha512 == nullptr)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing sha512 hashing engine");
         AES_KEY aes;
+
         int dataLen = 0;
         int blockLen = 32; // Start with current SHA256 hash
         unsigned char data[(127 + 64 + 48) * 64]; // 127 for password, 64 for hash up to SHA512, 48 for uValue
@@ -1456,21 +1473,21 @@ void PdfEncryptSHABase::ComputeHash(const unsigned char* pswd, int pswdLen, unsi
 
             if (blockLen == 32)
             {
-                SHA256_Init(&sha256);
-                SHA256_Update(&sha256, data, dataLen);
-                SHA256_Final(block, &sha256);
+                rc = EVP_DigestInit_ex(sha256.get(), EVP_sha256(), nullptr);
+                rc = EVP_DigestUpdate(sha256.get(), data, dataLen);
+                rc = EVP_DigestFinal_ex(sha256.get(), block, nullptr);
             }
             else if (blockLen == 48)
             {
-                SHA384_Init(&sha384);
-                SHA384_Update(&sha384, data, dataLen);
-                SHA384_Final(block, &sha384);
+                rc = EVP_DigestInit_ex(sha384.get(), EVP_sha384(), nullptr);
+                rc = EVP_DigestUpdate(sha384.get(), data, dataLen);
+                rc = EVP_DigestFinal_ex(sha384.get(), block, nullptr);
             }
             else
             {
-                SHA512_Init(&sha512);
-                SHA512_Update(&sha512, data, dataLen);
-                SHA512_Final(block, &sha512);
+                rc = EVP_DigestInit_ex(sha512.get(), EVP_sha512(), nullptr);
+                rc = EVP_DigestUpdate(sha512.get(), data, dataLen);
+                rc = EVP_DigestFinal_ex(sha512.get(), block, nullptr);
             }
         }
         memcpy(hashValue, block, 32);
@@ -1505,24 +1522,21 @@ void PdfEncryptSHABase::ComputeUserKey(const unsigned char* userpswd, size_t len
     // UE = AES-256 encoded file encryption key with key=hash
     // CBC mode, no padding, init vector=0
 
-    EVP_CIPHER_CTX* aes;
-    aes = EVP_CIPHER_CTX_new();
-
-    int status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), nullptr, hashValue, nullptr);
-    if (status != 1)
+    int rc;
+    unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> aes(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
+    if (aes == nullptr || (rc = EVP_EncryptInit_ex(aes.get(), EVP_aes_256_cbc(), nullptr, hashValue, nullptr)) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
-    EVP_CIPHER_CTX_set_padding(aes, 0); // disable padding
+
+    EVP_CIPHER_CTX_set_padding(aes.get(), 0); // disable padding
 
     int dataOutMoved;
-    status = EVP_EncryptUpdate(aes, m_ueValue, &dataOutMoved, m_encryptionKey, m_keyLength);
-    if (status != 1)
+    rc = EVP_EncryptUpdate(aes.get(), m_ueValue, &dataOutMoved, m_encryptionKey, m_keyLength);
+    if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 
-    status = EVP_EncryptFinal_ex(aes, &m_ueValue[dataOutMoved], &dataOutMoved);
-    if (status != 1)
+    rc = EVP_EncryptFinal_ex(aes.get(), &m_ueValue[dataOutMoved], &dataOutMoved);
+    if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
-
-    EVP_CIPHER_CTX_free(aes);
 }
 
 void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char* ownerpswd, size_t len)
@@ -1552,24 +1566,21 @@ void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char* ownerpswd, size_t l
     // OE = AES-256 encoded file encryption key with key=hash
     // CBC mode, no padding, init vector=0
 
-    EVP_CIPHER_CTX* aes;
-    aes = EVP_CIPHER_CTX_new();
-
-    int status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), nullptr, hashValue, nullptr);
-    if (status != 1)
+    int rc;
+    unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> aes(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
+    if (aes == nullptr || (rc = EVP_EncryptInit_ex(aes.get(), EVP_aes_256_cbc(), nullptr, hashValue, nullptr)) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
-    EVP_CIPHER_CTX_set_padding(aes, 0); // disable padding
+
+    EVP_CIPHER_CTX_set_padding(aes.get(), 0); // disable padding
 
     int dataOutMoved;
-    status = EVP_EncryptUpdate(aes, m_oeValue, &dataOutMoved, m_encryptionKey, m_keyLength);
-    if (status != 1)
+    rc = EVP_EncryptUpdate(aes.get(), m_oeValue, &dataOutMoved, m_encryptionKey, m_keyLength);
+    if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 
-    status = EVP_EncryptFinal_ex(aes, &m_oeValue[dataOutMoved], &dataOutMoved);
-    if (status != 1)
+    rc = EVP_EncryptFinal_ex(aes.get(), &m_oeValue[dataOutMoved], &dataOutMoved);
+    if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
-
-    EVP_CIPHER_CTX_free(aes);
 }
 
 void PdfEncryptSHABase::PreprocessPassword(const string_view& password, unsigned char* outBuf, size_t& len)
@@ -1700,24 +1711,21 @@ void PdfEncryptAESV3::GenerateEncryptionKey(const string_view& documentId)
 
     // Encrypt Perms value
 
-    EVP_CIPHER_CTX* aes;
-    aes = EVP_CIPHER_CTX_new();
-
-    int status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), nullptr, m_encryptionKey, nullptr);
-    if (status != 1)
+    int rc;
+    unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> aes(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
+    if (aes == nullptr || (rc = EVP_EncryptInit_ex(aes.get(), EVP_aes_256_cbc(), nullptr, m_encryptionKey, nullptr)) != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
-    EVP_CIPHER_CTX_set_padding(aes, 0); // disable padding
+
+    EVP_CIPHER_CTX_set_padding(aes.get(), 0); // disable padding
 
     int dataOutMoved;
-    status = EVP_EncryptUpdate(aes, m_permsValue, &dataOutMoved, perms, 16);
-    if (status != 1)
+    rc = EVP_EncryptUpdate(aes.get(), m_permsValue, &dataOutMoved, perms, 16);
+    if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 
-    status = EVP_EncryptFinal_ex(aes, &m_permsValue[dataOutMoved], &dataOutMoved);
-    if (status != 1)
+    rc = EVP_EncryptFinal_ex(aes.get(), &m_permsValue[dataOutMoved], &dataOutMoved);
+    if (rc != 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
-
-    EVP_CIPHER_CTX_free(aes);
 }
 
 bool PdfEncryptAESV3::Authenticate(const string_view& password, const string_view& documentId)
