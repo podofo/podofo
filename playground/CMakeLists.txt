@@ -28,7 +28,7 @@ if ("${DEPS_PATH}" STREQUAL "")
 endif()
 
 if(NOT EXISTS "${DEPS_PATH}")
-    message(FATAL_ERROR "Deps path doesn't exists: try fetch git submodules")
+    message(FATAL_ERROR "Deps path doesn't exists: try fetch git submodules with:\n    git submodule update --init")
 endif()
 
 if (MSVC)
