@@ -1457,7 +1457,7 @@ void PdfEncryptSHABase::ComputeHash(const unsigned char* pswd, unsigned pswdLen,
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
 
         int dataOutMoved;
-        for (unsigned i = 0; i < 64 || i < 32 + data[dataLen - 1]; i++)
+        for (unsigned i = 0; i < 64 || i < (unsigned)(32 + data[dataLen - 1]); i++)
         {
             dataLen = pswdLen + blockLen;
             std::memcpy(data, pswd, pswdLen);
