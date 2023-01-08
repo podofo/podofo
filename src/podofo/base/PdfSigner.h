@@ -32,6 +32,7 @@ namespace PoDoFo
          * \param data incremental raw data 
          */
         virtual void AppendData(const bufferview& data) = 0;
+
         /**
          * Called to compute the signature 
          * \param buffer The buffer that will hold the signature
@@ -40,6 +41,12 @@ namespace PoDoFo
          *   infer the signature size
          */
         virtual void ComputeSignature(charbuff& buffer, bool dryrun) = 0;
+
+        /**
+         * Determines if the buffer should not be cleared amid
+         * ComputeSignature(buffer, dryrun) calls. The default is false
+         */
+        virtual bool SkipBufferClear() const;
 
         /**
          * Should return the signature /Filter, for example "Adobe.PPKLite"

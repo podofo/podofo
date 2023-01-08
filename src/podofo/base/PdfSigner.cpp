@@ -26,6 +26,11 @@ static void prepareBeaconsData(size_t signatureSize, string& contentsBeacon, str
 
 PdfSigner::~PdfSigner() { }
 
+bool PdfSigner::SkipBufferClear() const
+{
+    return false;
+}
+
 string PdfSigner::GetSignatureFilter() const
 {
     // Default value
@@ -75,6 +80,9 @@ void PoDoFo::SignDocument(PdfMemDocument& doc, StreamDevice& device, PdfSigner& 
     {
         signer.AppendData({ buffer.data(), readBytes });
     }
+
+    if (!signer.SkipBufferClear())
+        signatureBuf.clear();
 
     signer.ComputeSignature(signatureBuf, false);
     if (signatureBuf.size() > beaconSize)
