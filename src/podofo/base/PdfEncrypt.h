@@ -448,17 +448,17 @@ protected:
     void ComputeEncryptionKey();
 
     // Compute hash for password and salt with optional uValue
-    void ComputeHash(const unsigned char* pswd, int pswdLen, unsigned char salt[8], unsigned char uValue[48], unsigned char hashValue[32]);
+    void ComputeHash(const unsigned char* pswd, unsigned pswdLen, unsigned char salt[8], unsigned char uValue[48], unsigned char hashValue[32]);
 
     // Generate the U and UE entries
-    void ComputeUserKey(const unsigned char* userpswd, size_t len);
+    void ComputeUserKey(const unsigned char* userpswd, unsigned len);
 
     // Generate the O and OE entries
-    void ComputeOwnerKey(const unsigned char* userpswd, size_t len);
+    void ComputeOwnerKey(const unsigned char* userpswd, unsigned len);
 
     // Preprocess password for use in EAS-256 Algorithm
     // outBuf needs to be at least 127 bytes long
-    void PreprocessPassword(const std::string_view& password, unsigned char* outBuf, size_t& len);
+    void PreprocessPassword(const std::string_view& password, unsigned char* outBuf, unsigned& len);
 
     unsigned char m_ueValue[32];        // UE entry in pdf document
     unsigned char m_oeValue[32];        // OE entry in pdf document

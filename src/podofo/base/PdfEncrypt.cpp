@@ -1414,8 +1414,10 @@ PdfEncryptSHABase::PdfEncryptSHABase(const PdfEncrypt& rhs) : PdfEncrypt(rhs)
     std::memcpy(m_oeValue, static_cast<const PdfEncryptSHABase*>(ptr)->m_oeValue, sizeof(unsigned char) * 32);
 }
 
-void PdfEncryptSHABase::ComputeHash(const unsigned char* pswd, int pswdLen, unsigned char salt[8], unsigned char uValue[48], unsigned char hashValue[32])
+void PdfEncryptSHABase::ComputeHash(const unsigned char* pswd, unsigned pswdLen, unsigned char salt[8], unsigned char uValue[48], unsigned char hashValue[32])
 {
+    PODOFO_ASSERT(pswdLen <= 127);
+
     int rc;
     unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> sha256(EVP_MD_CTX_new(), EVP_MD_CTX_free);
     if (sha256 == nullptr || (rc = EVP_DigestInit_ex(sha256.get(), EVP_sha256(), nullptr)) != 1)
@@ -1445,29 +1447,31 @@ void PdfEncryptSHABase::ComputeHash(const unsigned char* pswd, int pswdLen, unsi
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing sha512 hashing engine");
         AES_KEY aes;
 
-        int dataLen = 0;
-        int blockLen = 32; // Start with current SHA256 hash
+        unsigned dataLen = 0;
+        unsigned blockLen = 32; // Start with current SHA256 hash
         unsigned char data[(127 + 64 + 48) * 64]; // 127 for password, 64 for hash up to SHA512, 48 for uValue
         unsigned char block[64];
-        memcpy(block, hashValue, 32);
+        std::memcpy(block, hashValue, 32);
 
-        for (int i = 0; i < 64 || i < 32 + data[dataLen - 1]; i++)
+        for (unsigned i = 0; i < 64 || i < 32 + data[dataLen - 1]; i++)
         {
             dataLen = pswdLen + blockLen;
-            memcpy(data, pswd, pswdLen);
-            memcpy(data + pswdLen, block, blockLen);
-            if (uValue) {
-                memcpy(data + dataLen, uValue, 48);
+            std::memcpy(data, pswd, pswdLen);
+            std::memcpy(data + pswdLen, block, blockLen);
+            if (uValue)
+            {
+                std::memcpy(data + dataLen, uValue, 48);
                 dataLen += 48;
             }
-            for (int j = 1; j < 64; j++)
-                memcpy(data + j * dataLen, data, dataLen);
+            for (unsigned j = 1; j < 64; j++)
+                std::memcpy(data + j * dataLen, data, dataLen);
+
             dataLen *= 64;
 
             AES_set_encrypt_key(block, 128, &aes);
             AES_cbc_encrypt(data, data, dataLen, &aes, block + 16, AES_ENCRYPT);
-            int sum = 0;
-            for (int j = 0; j < 16; j++)
+            unsigned sum = 0;
+            for (unsigned j = 0; j < 16; j++)
                 sum += data[j];
             blockLen = 32 + (sum % 3) * 16;
 
@@ -1490,17 +1494,17 @@ void PdfEncryptSHABase::ComputeHash(const unsigned char* pswd, int pswdLen, unsi
                 rc = EVP_DigestFinal_ex(sha512.get(), block, nullptr);
             }
         }
-        memcpy(hashValue, block, 32);
+        std::memcpy(hashValue, block, 32);
     }
 }
 
-void PdfEncryptSHABase::ComputeUserKey(const unsigned char* userpswd, size_t len)
+void PdfEncryptSHABase::ComputeUserKey(const unsigned char* userpswd, unsigned len)
 {
     // Generate User Salts
     unsigned char vSalt[8];
     unsigned char kSalt[8];
 
-    for (int i = 0; i < 8; i++)
+    for (unsigned i = 0; i < 8; i++)
     {
         vSalt[i] = rand() % 255;
         kSalt[i] = rand() % 255;
@@ -1539,13 +1543,13 @@ void PdfEncryptSHABase::ComputeUserKey(const unsigned char* userpswd, size_t len
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 }
 
-void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char* ownerpswd, size_t len)
+void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char* ownerpswd, unsigned len)
 {
     // Generate User Salts
     unsigned char vSalt[8];
     unsigned char kSalt[8];
 
-    for (int i = 0; i < 8; i++)
+    for (unsigned i = 0; i < 8; i++)
     {
         vSalt[i] = rand() % 255;
         kSalt[i] = rand() % 255;
@@ -1583,7 +1587,7 @@ void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char* ownerpswd, size_t l
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 }
 
-void PdfEncryptSHABase::PreprocessPassword(const string_view& password, unsigned char* outBuf, size_t& len)
+void PdfEncryptSHABase::PreprocessPassword(const string_view& password, unsigned char* outBuf, unsigned& len)
 {
     char* password_sasl;
     // NOTE: password view may be unterminated. Wrap it for stringprep_profile
@@ -1591,7 +1595,7 @@ void PdfEncryptSHABase::PreprocessPassword(const string_view& password, unsigned
     if (rc != STRINGPREP_OK)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidPassword, "Error processing password through SASLprep");
 
-    size_t l = strlen(password_sasl);
+    size_t l = std::strlen(password_sasl);
     len = l > 127 ? 127 : l;
 
     std::memcpy(outBuf, password_sasl, len);
@@ -1630,7 +1634,7 @@ bool PdfEncryptSHABase::Authenticate(const std::string_view& documentID, const s
     
 void PdfEncryptSHABase::GenerateInitialVector(unsigned char iv[]) const
 {
-    for (int i = 0; i < AES_IV_LENGTH; i++)
+    for (unsigned i = 0; i < AES_IV_LENGTH; i++)
         iv[i] = rand() % 255;
 }
     
@@ -1671,8 +1675,8 @@ void PdfEncryptAESV3::GenerateEncryptionKey(const string_view& documentId)
     // Prepare passwords
     unsigned char userpswd[127];
     unsigned char ownerpswd[127];
-    size_t userpswdLen;
-    size_t ownerpswdLen;
+    unsigned userpswdLen;
+    unsigned ownerpswdLen;
     PreprocessPassword(m_userPass, userpswd, userpswdLen);
     PreprocessPassword(m_ownerPass, ownerpswd, ownerpswdLen);
 
@@ -1735,7 +1739,7 @@ bool PdfEncryptAESV3::Authenticate(const string_view& password, const string_vie
 
     // Prepare password
     unsigned char pswd_sasl[127];
-    size_t pswdLen;
+    unsigned pswdLen;
     PreprocessPassword(password, pswd_sasl, pswdLen);
 
     // Test 1: is it the user key ?
