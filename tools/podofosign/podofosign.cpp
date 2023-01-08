@@ -1044,7 +1044,8 @@ void MySigner::ComputeSignature(charbuff& buffer, bool dryrun)
 
     outLen = BIO_get_mem_data(out, &outBuff);
 
-    buffer.append(outBuff, outLen);
+    buffer.resize(outLen);
+    std::memcpy(buffer.data(), outBuff, outLen);
 
     PKCS7_free(pkcs7);
     BIO_free(out);
