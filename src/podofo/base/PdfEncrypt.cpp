@@ -55,17 +55,30 @@ public:
     OpenSSLInit()
     {
 #if OPENSSL_VERSION_MAJOR >= 3
+        m_libCtx = OSSL_LIB_CTX_new();
+        if (m_libCtx == nullptr)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to create OpenSSL library context");
+
         // NOTE: Load required legacy providers, such as RC4, together regular ones,
         // as explained in https://wiki.openssl.org/index.php/OpenSSL_3.0#Providers
-        m_legacyProvider = OSSL_PROVIDER_load(NULL, "legacy");
+        m_legacyProvider = OSSL_PROVIDER_load(m_libCtx, "legacy");
         if (m_legacyProvider == nullptr)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to load legacy providers in OpenSSL >= 3.x.x");
 
-        m_defaultProvider = OSSL_PROVIDER_load(NULL, "default");
+        m_defaultProvider = OSSL_PROVIDER_load(m_libCtx, "default");
         if (m_defaultProvider == nullptr)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to load default providers in OpenSSL >= 3.x.x");
-#endif // OPENSSL_VERSION_MAJOR >= 3
-        // TODO: Use providers in OpenSSL 3.0
+
+        // https://www.openssl.org/docs/man3.0/man7/crypto.html#FETCHING-EXAMPLES
+        Rc4 = EVP_CIPHER_fetch(m_libCtx, "RC4", "provider=legacy");
+        Aes128 = EVP_CIPHER_fetch(m_libCtx, "AES-128-CBC", "provider=default");
+        Aes256 = EVP_CIPHER_fetch(m_libCtx, "AES-256-CBC", "provider=default");
+        MD5 = EVP_MD_fetch(m_libCtx, "MD5", "provider=default");
+        SHA256 = EVP_MD_fetch(m_libCtx, "SHA2-256", "provider=default");
+        SHA384 = EVP_MD_fetch(m_libCtx, "SHA2-384", "provider=default");
+        SHA512 = EVP_MD_fetch(m_libCtx, "SHA2-512", "provider=default");
+
+#else // OPENSSL_VERSION_MAJOR < 3
         Rc4 = EVP_rc4();
         Aes128 = EVP_aes_128_cbc();
         Aes256 = EVP_aes_256_cbc();
@@ -73,6 +86,7 @@ public:
         SHA256 = EVP_sha256();
         SHA384 = EVP_sha384();
         SHA512 = EVP_sha512();
+#endif // OPENSSL_VERSION_MAJOR >= 3
     }
 
     ~OpenSSLInit()
@@ -80,6 +94,7 @@ public:
 #if OPENSSL_VERSION_MAJOR >= 3
         OSSL_PROVIDER_unload(m_legacyProvider);
         OSSL_PROVIDER_unload(m_defaultProvider);
+        OSSL_LIB_CTX_free(m_libCtx);
 #endif // OPENSSL_VERSION_MAJOR >= 3
     }
 public:
@@ -92,6 +107,7 @@ public:
     const EVP_MD* SHA512;
 private:
 #if OPENSSL_VERSION_MAJOR >= 3
+    OSSL_LIB_CTX *m_libCtx;
     OSSL_PROVIDER *m_legacyProvider;
     OSSL_PROVIDER *m_defaultProvider;
 #endif // OPENSSL_VERSION_MAJOR >= 3
