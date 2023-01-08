@@ -1445,7 +1445,6 @@ void PdfEncryptSHABase::ComputeHash(const unsigned char* pswd, unsigned pswdLen,
         unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> sha512(EVP_MD_CTX_new(), EVP_MD_CTX_free);
         if (sha512 == nullptr)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing sha512 hashing engine");
-        AES_KEY aes;
 
         unsigned dataLen = 0;
         unsigned blockLen = 32; // Start with current SHA256 hash
@@ -1453,6 +1452,11 @@ void PdfEncryptSHABase::ComputeHash(const unsigned char* pswd, unsigned pswdLen,
         unsigned char block[64];
         std::memcpy(block, hashValue, 32);
 
+        unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)> aes(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
+        if (aes == nullptr)
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
+
+        int dataOutMoved;
         for (unsigned i = 0; i < 64 || i < 32 + data[dataLen - 1]; i++)
         {
             dataLen = pswdLen + blockLen;
@@ -1468,8 +1472,15 @@ void PdfEncryptSHABase::ComputeHash(const unsigned char* pswd, unsigned pswdLen,
 
             dataLen *= 64;
 
-            AES_set_encrypt_key(block, 128, &aes);
-            AES_cbc_encrypt(data, data, dataLen, &aes, block + 16, AES_ENCRYPT);
+            // CHECK-ME: The following was converted to new EVP_Encrypt API
+            // from old internal API which is deprecated in OpenSSL 3.0 but
+            // I'm not 100% sure the conversion is correct, since we don't
+            // finalize the context. It may be unecessary because of some
+            // preconditions, but these should be clearly stated
+            rc = EVP_EncryptInit_ex(aes.get(), EVP_aes_128_cbc(), nullptr, block, block + 16);
+            rc = EVP_EncryptUpdate(aes.get(), data, &dataOutMoved, data, dataLen);
+            PODOFO_ASSERT(dataOutMoved == dataLen);
+
             unsigned sum = 0;
             for (unsigned j = 0; j < 16; j++)
                 sum += data[j];
