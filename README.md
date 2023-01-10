@@ -97,6 +97,27 @@ in the [issue](https://github.com/podofo/podofo/issues) tracker.
 
 ## FAQ
 
+**Q: How do I sign a document?**
+
+**A:** The signing procedure is still low level as it was PoDoFo. This is gonna
+change, soon!, whith a new high-level API for signining being worked on,
+which will be fully unit tested. For now you should check the `podofosign`
+tool (**WARNING**: untested) which should give you the idea how to sign documents
+creating a *CMS* structure directly with OpenSSL.
+To describe the procedure briefly, one has to fully Implement a `PdfSigner`,
+retrieve or create a `PdfSignature` field, create an output device (see next question)
+and use `PoDoFo::SignDocument(doc, device, signer, signature)`. When signing,
+the sequence of calls of `PdfSignature` works in this way: method `PdfSigner::Reset()`
+is called first, then  the `PdfSigner::ComputeSignature(buffer, dryrun)` is called with
+an empty buffer and the `dryrun` argument set to `true`. In this call one can just
+resize the buffer overestimating the required size for the signature, or just
+compute a fake signature that must be saved on the buffer. Then a sequence of
+`PdfSigner::AppendData(buffer)` are called, receiving all the document data to
+be signed. A final `PdfSigner::ComputeSignature(buffer, dryrun)` is called, with
+the `dryrun` parameter set to `false`. The buffer on this call is cleared (capacity
+is not altered) or not accordingly to the value of `PdfSigner::SkipBufferClear()`.
+
+
 **Q: `PdfMemDocument::SaveUpdate()` or `PoDoFo::SignDocument()` write only a partial
 file: why so and why there's no mechanism to seamlessly handle the incremental
 update as it was in PoDoFo? What should be done to correctly update/sign the
@@ -144,10 +165,36 @@ Sign a buffer loaded document:
 
     PdfMemDocument doc;
     doc.LoadFromDevice(input);
-
-    // Retrieve signature, create the signer, ...
-
+    // Retrieve/create the signature, create the signer, ...
     PoDoFo::SignDocument(doc, output, signer, signature);
+```
+
+**Q: Can I sign a document a second time?**
+
+**A:** Yes, this is tested, but to make sure this will work you'll to re-parse the document a second time,
+as re-using the already loaded document is still untested (this may change later). For example do as it follows:
+
+```
+    bufferview inputBuffer;
+    charbuff outputBuffer;
+    auto input = std::make_shared<SpanStreamDevice>(inputBuffer);
+    BufferStreamDevice output(outputBuffer);
+    input->CopyTo(output);
+
+    {
+        PdfMemDocument doc;
+        doc.LoadFromDevice(input);
+        // Retrieve/create the signature, create the signer, ...
+        PoDoFo::SignDocument(doc, output, signer, signature);
+    }
+
+    input = std::make_shared<SpanStreamDevice>(output);
+    {
+        PdfMemDocument doc;
+        doc.LoadFromDevice(input);
+        // Retrieve/create the signature, create the signer, ...
+        PoDoFo::SignDocument(doc, output, signer, signature);
+    }
 ```
 
 ## No warranty
