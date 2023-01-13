@@ -1258,7 +1258,7 @@ double TextState::GetWordSpacingLength() const
 
 void TextState::ScanString(const PdfString& encodedStr, string& decoded, vector<double>& lengths, vector<unsigned>& positions)
 {
-    (void)PdfState.Font->TryScanString(encodedStr, PdfState, decoded, lengths, positions);
+    (void)PdfState.Font->TryScanEncodedString(encodedStr, PdfState, decoded, lengths, positions);
 }
 
 // Concatenate all strings, lengths and string positions

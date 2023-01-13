@@ -166,19 +166,19 @@ public:
      *  \returns the width in PDF units
      *  \remarks Doesn't throw if string glyphs could not be partially or totally found
      */
-    double GetStringLength(const PdfString& encodedStr, const PdfTextState& state) const;
+    double GetEncodedStringLength(const PdfString& encodedStr, const PdfTextState& state) const;
 
     /**
      * \remarks Produces a partial result also in case of failures
      */
-    bool TryGetStringLength(const PdfString& encodedStr, const PdfTextState& state, double& length) const;
+    bool TryGetEncodedStringLength(const PdfString& encodedStr, const PdfTextState& state, double& length) const;
 
     /** Scan string decoding unicode codepoints and obtaining glyphs lengths
      * \param lengths lengths of the glyphs
      * \param positions position of the CIDs in the utf8string
      * \remarks Produces a partial result also in case of failures
      */
-    bool TryScanString(const PdfString& encodedStr, const PdfTextState& state, std::string& utf8str,
+    bool TryScanEncodedString(const PdfString& encodedStr, const PdfTextState& state, std::string& utf8str,
         std::vector<double>& lengths, std::vector<unsigned>& positions) const;
 
     /**
@@ -197,10 +197,11 @@ public:
 
     double GetDefaultCharLength(const PdfTextState& state, bool ignoreCharSpacing = false) const;
 
+    // TODO: Implement me
     /** Split the given string by white spaces
      * \remarks Also return separator chunks
      */
-    std::vector<PdfSplittedString> SplitByWhiteSpaces(const PdfString& str) const;
+    //std::vector<PdfSplittedString> SplitEncodedString(const PdfString& str) const;
 
     /** Add used GIDs to this font for subsetting from an encoded string
      *

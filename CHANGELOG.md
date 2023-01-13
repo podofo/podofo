@@ -1,4 +1,6 @@
 ## Version 0.10.0
+- PdfFont: Renamed GetStringLength() overloads with
+  PdfString to GetEncodedStringLength()
 - PdfFontManager: Renamed GetFont() -> SearchFont()
   Re-Added better GetOrCreateFont() from file/buffer
 - PdfEncrypt: Cleaned factory methods

@@ -299,15 +299,15 @@ bool PdfFont::TryGetStringLength(const string_view& str, const PdfTextState& sta
     return success;
 }
 
-double PdfFont::GetStringLength(const PdfString& encodedStr, const PdfTextState& state) const
+double PdfFont::GetEncodedStringLength(const PdfString& encodedStr, const PdfTextState& state) const
 {
     // Ignore failures
     double length;
-    (void)TryGetStringLength(encodedStr, state, length);
+    (void)TryGetEncodedStringLength(encodedStr, state, length);
     return length;
 }
 
-bool PdfFont::TryGetStringLength(const PdfString& encodedStr, const PdfTextState& state, double& length) const
+bool PdfFont::TryGetEncodedStringLength(const PdfString& encodedStr, const PdfTextState& state, double& length) const
 {
     vector<PdfCID> cids;
     bool success = true;
@@ -318,7 +318,7 @@ bool PdfFont::TryGetStringLength(const PdfString& encodedStr, const PdfTextState
     return success;
 }
 
-bool PdfFont::TryScanString(const PdfString& encodedStr, const PdfTextState& state, string& utf8str, vector<double>& lengths, vector<unsigned>& positions) const
+bool PdfFont::TryScanEncodedString(const PdfString& encodedStr, const PdfTextState& state, string& utf8str, vector<double>& lengths, vector<unsigned>& positions) const
 {
     utf8str.clear();
     lengths.clear();
@@ -398,13 +398,15 @@ double PdfFont::GetDefaultCharLength(const PdfTextState& state, bool ignoreCharS
     }
 }
 
-vector<PdfSplittedString> PdfFont::SplitByWhiteSpaces(const PdfString& str) const
+/*
+vector<PdfSplittedString> PdfFont::SplitEncodedString(const PdfString& str) const
 {
     (void)str;
     // TODO: retrieve space character codes with m_Encoding->GetToUnicodeMapSafe().TryGetCharCode(codePoint, codeUnit),
     // then iterate char codes and return splitted strings
     PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
+*/
 
 double PdfFont::GetCIDLengthRaw(unsigned cid) const
 {
