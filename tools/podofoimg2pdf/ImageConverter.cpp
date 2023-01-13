@@ -28,7 +28,7 @@ void ImageConverter::Work()
     for (auto& file : m_images)
     {
         auto image = document.CreateImage();
-        image->LoadFromFile(file);
+        image->Load(file);
 
         if (m_useImageSize)
             size = PdfRect(0.0, 0.0, image->GetWidth(), image->GetHeight());

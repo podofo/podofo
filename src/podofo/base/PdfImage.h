@@ -133,7 +133,7 @@ public:
 
     /** Load the image data from a file
      */
-    void LoadFromFile(const std::string_view& filepath);
+    void Load(const std::string_view& filepath);
 
     /** Load the image data from bytes
      */

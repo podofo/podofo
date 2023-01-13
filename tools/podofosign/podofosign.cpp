@@ -437,7 +437,7 @@ static void draw_annotation(PdfDocument& document,
             height = convert_to_pdf_units(annot_units, height);
 
             auto image = document.CreateImage();
-            image->LoadFromFile(filename);
+            image->Load(filename);
 
             double dScaleX = left / image->GetWidth();
             double dScaleY = height / image->GetHeight();

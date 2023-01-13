@@ -387,7 +387,7 @@ void PdfImage::SetDataRaw(InputStream& stream, const PdfImageInfo& info)
     }
 }
 
-void PdfImage::LoadFromFile(const string_view& filepath)
+void PdfImage::Load(const string_view& filepath)
 {
     if (filepath.length() > 3)
     {
