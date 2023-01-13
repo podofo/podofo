@@ -97,7 +97,7 @@ bool PdfFont::TryGetSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& subst
             PdfFontSearchParams params;
             params.Style = metrics.GetStyle();
 
-            newMetrics = PdfFontManager::GetFontMetrics(metrics.GetFontNameSafe(true), params);
+            newMetrics = PdfFontManager::SearchFontMetrics(metrics.GetFontNameSafe(true), params);
             if (newMetrics == nullptr)
             {
                 substFont = nullptr;

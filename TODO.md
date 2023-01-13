@@ -1,3 +1,7 @@
+### 0.11
+- PdfFontManager: Add font hash to cache descriptor
+- Add high-level signing API
+
 ### 1.0
 - Restore manuals
 - PdfFontManager: Add font load from file/better debugging
@@ -52,7 +56,7 @@ either assume UTF-8 and/or checks for used codepoints
   bundled. See comments in utls::DoesMultiplicationOverflow()
 
 ### After 1.0
-- Add high-level signing API (supporting new signing standard PAdES B-B)
+- high-level signing API: Add PAdES B-B support
 - Add fail safe sign/update mechanism, meaning the stream gets trimmed
   to initial length if there's a crash. Not so easy, especially since
   we are now using STL streams and it's not easy to trim files

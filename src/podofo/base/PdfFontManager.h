@@ -79,12 +79,24 @@ public:
      *  \returns a PdfFont object or nullptr if the font could
      *           not be created or found.
      */
-    PdfFont* GetFont(const std::string_view& fontName,
+    PdfFont* SearchFont(const std::string_view& fontName,
         const PdfFontSearchParams& searchParams = { }, const PdfFontCreateParams& createParams = { });
 
-    PdfFont* GetFont(const std::string_view& fontName, const PdfFontCreateParams& createParams);
+    PdfFont* SearchFont(const std::string_view& fontName, const PdfFontCreateParams& createParams);
 
-    PdfFont* GetStandard14Font(PdfStandard14FontType stdFont,
+    PdfFont& GetStandard14Font(PdfStandard14FontType stdFont,
+        const PdfFontCreateParams& params = { });
+
+    PdfFont& GetOrCreateFont(const std::string_view& fontPath, unsigned faceIndex,
+        const PdfFontCreateParams& params = { });
+
+    PdfFont& GetOrCreateFontFromBuffer(const bufferview& buffer, unsigned faceIndex,
+        const PdfFontCreateParams& params = { });
+
+    PdfFont& GetOrCreateFont(const std::string_view& fontPath,
+        const PdfFontCreateParams& params = { });
+
+    PdfFont& GetOrCreateFontFromBuffer(const bufferview& buffer,
         const PdfFontCreateParams& params = { });
 
     /**
@@ -95,17 +107,17 @@ public:
      * \returns a PdfFont object or nullptr if the font could
      *          not be created or found.
      */
-    PdfFont* GetFont(FT_Face face, const PdfFontCreateParams& params = { });
+    PdfFont& GetOrCreateFont(FT_Face face, const PdfFontCreateParams& params = { });
 
     /** Try to search for fontmetrics from the given fontname and parameters
      *
      * \returns the found metrics. Null if not found
      */
-    static PdfFontMetricsConstPtr GetFontMetrics(const std::string_view& fontName,
+    static PdfFontMetricsConstPtr SearchFontMetrics(const std::string_view& fontName,
         const PdfFontSearchParams& params = { });
 
 #if defined(_WIN32) && defined(PODOFO_HAVE_WIN32GDI)
-    PdfFont* GetFont(HFONT font, const PdfFontCreateParams& params = { });
+    PdfFont& GetOrCreateFont(HFONT font, const PdfFontCreateParams& params = { });
 #endif
 
 #ifdef PODOFO_HAVE_FONTCONFIG
@@ -181,7 +193,6 @@ private:
 
     using FontMap = std::unordered_map<PdfReference, Storage>;
 
-    using FontMatcher = std::function<PdfFont*(const mspan<PdfFont*>&)>;
 private:
 #ifdef PODOFO_HAVE_FONTCONFIG
     static std::shared_ptr<PdfFontConfigWrapper> ensureInitializedFontConfig();
@@ -195,9 +206,8 @@ private:
         const PdfFontSearchParams& searchParams, const PdfFontCreateParams& createParams);
     static std::string adaptSearchParams(const std::string_view& fontName,
         PdfFontSearchParams& searchParams);
-    PdfFont* getImportedFont(const PdfFontMetricsConstPtr& metrics,
-        const PdfFontCreateParams& params, const FontMatcher& matchFont);
     PdfFont* addImported(std::vector<PdfFont*>& fonts, std::unique_ptr<PdfFont>&& font);
+    PdfFont& getOrCreateFontHashed(const std::shared_ptr<PdfFontMetrics>& metrics, const PdfFontCreateParams& params);
 
 #if defined(_WIN32) && defined(PODOFO_HAVE_WIN32GDI)
     static std::unique_ptr<charbuff> getWin32FontData(const std::string_view& fontName,

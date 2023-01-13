@@ -1,4 +1,6 @@
 ## Version 0.10.0
+- PdfFontManager: Renamed GetFont() -> SearchFont()
+  Re-Added better GetOrCreateFont() from file/buffer
 - PdfEncrypt: Cleaned factory methods
 - Added PdfArray::FindAtAs(), PdfArray::FindAtAsSafe(), PdfArray::TryFindAtAs(),
   PdfArray::GetAtAs(), PdfArray::GetAtAsSafe(), PdfArray::TryGetAtAs()

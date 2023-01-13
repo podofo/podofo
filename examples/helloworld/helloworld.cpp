@@ -63,7 +63,7 @@ void HelloWorld(const string_view& filename)
         // PDF file. If Arial is not available, a default font will be used.
         // 
         // The created PdfFont will be deleted by the PdfDocument.
-        font = document.GetFonts().GetFont("Arial");
+        font = document.GetFonts().SearchFont("Arial");
 
         // If the PdfFont object cannot be allocated return an error.
         if (font == nullptr)

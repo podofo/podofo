@@ -73,7 +73,7 @@ void HelloWorld(const string_view& filename)
         // The created PdfFont will be deleted by the PdfDocument.
         PdfFontSearchParams params;
         params.AutoSelect = PdfFontAutoSelectBehavior::Standard14;
-        font = document.GetFonts().GetFont("Helvetica", params);
+        font = document.GetFonts().SearchFont("Helvetica", params);
 
         // If the PdfFont object cannot be allocated return an error.
         if (font == nullptr)
@@ -227,7 +227,7 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
         string text = (string)demo_text;
         text.append(GetBase14FontName(i));
 
-        PdfFont* font = document.GetFonts().GetFont(GetBase14FontName(i), params);
+        PdfFont* font = document.GetFonts().SearchFont(GetBase14FontName(i), params);
         if (font == nullptr)
             throw runtime_error("Font not found");
 
@@ -258,7 +258,7 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
         else
             text = (string)demo_text2.substr(i, 1);
 
-        PdfFont* font = document.GetFonts().GetFont("Helvetica", params);
+        PdfFont* font = document.GetFonts().SearchFont("Helvetica", params);
         painter.GetTextState().SetFont(*font, 12);
         height = font->GetMetrics().GetLineSpacing();
         width = font->GetStringLength(text, painter.GetTextState());
@@ -272,7 +272,7 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
         if (i > 0)
         {
             // draw again, with non-Base14 font
-            PdfFont* font2 = document.GetFonts().GetFont("Arial", params);
+            PdfFont* font2 = document.GetFonts().SearchFont("Arial", params);
             painter.GetTextState().SetFont(*font2, 12);
             height = font2->GetMetrics().GetLineSpacing();
             width = font2->GetStringLength((string_view)text, painter.GetTextState());

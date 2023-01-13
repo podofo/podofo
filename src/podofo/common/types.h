@@ -36,10 +36,6 @@ namespace COMMON_NAMESPACE
     class charbuff_t final : public std::string
     {
     public:
-        using ptr = std::shared_ptr<charbuff_t>;
-        using const_ptr = std::shared_ptr<charbuff_t>;
-
-    public:
         charbuff_t() { }
         charbuff_t(const charbuff_t&) = default;
         charbuff_t(charbuff_t&&) noexcept = default;
@@ -148,13 +144,13 @@ namespace COMMON_NAMESPACE
         datahandle_t() { }
         datahandle_t(const bufferview& view)
             : m_view(view) { }
-        datahandle_t(const charbuff_t<>::const_ptr& buff)
+        datahandle_t(const std::shared_ptr<const charbuff_t<>>& buff)
             : m_view(*buff), m_buff(buff) { }
     public:
         const bufferview& view() const { return m_view; }
     private:
         bufferview m_view;
-        charbuff_t<>::const_ptr m_buff;
+        std::shared_ptr<const charbuff_t<>> m_buff;
     };
 
     using datahandle = datahandle_t<>;

@@ -303,7 +303,7 @@ void createEncryptedPdf(const string_view& filename)
     PdfPainter painter;
     painter.SetCanvas(page);
 
-    auto font = doc.GetFonts().GetFont("LiberationSans");
+    auto font = doc.GetFonts().SearchFont("LiberationSans");
     if (font == nullptr)
         FAIL("Coult not find Arial font");
 

@@ -161,9 +161,12 @@ find_package(Fontconfig)
 if(Fontconfig_FOUND)
     set(PODOFO_HAVE_FONTCONFIG TRUE)
     message("Found fontconfig headers in ${Fontconfig_INCLUDE_DIRS}, library at ${Fontconfig_LIBRARIES}")
-elseif(WIN32)
+endif()
+
+if(WIN32 AND NOT PODOFO_HAVE_FONTCONFIG OR PODOFO_WANT_WIN32GDI)
     # Fallback to GDI if FontConfig is missing in Windows
     set(PODOFO_HAVE_WIN32GDI TRUE)
+    message("Enabled Windows GDI API")
 endif()
 
 find_package(LibXml2 REQUIRED)

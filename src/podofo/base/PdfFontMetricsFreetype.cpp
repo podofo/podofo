@@ -51,9 +51,9 @@ unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromMetrics(const Pdf
         metrics.GetFaceHandle(), &metrics));
 }
 
-unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromBuffer(const charbuff::const_ptr& buffer)
+unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromBuffer(const std::shared_ptr<const charbuff>& buffer)
 {
-    FreeTypeFacePtr face = PoDoFo::CreateFreeTypeFace(*buffer);
+    FreeTypeFacePtr face = FT::CreateFaceFromBuffer(*buffer);
     return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(buffer, face));
 }
 
@@ -62,10 +62,10 @@ unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromFace(FT_Face face
     if (face == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Face can't be null");
 
-    auto data = PoDoFo::GetDataFromFace(face);
     // Increment the refcount for the face
     FT_Reference_Face(face);
-    return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(std::make_shared<charbuff>(data), face));
+    return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(
+        shared_ptr<const charbuff>(new charbuff(FT::GetDataFromFace(face))), face));
 }
 
 void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)

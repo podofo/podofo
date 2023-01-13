@@ -97,7 +97,7 @@ TEST_CASE("testCreateDelete")
     PdfPainter painter;
 
     // create font
-    auto font = doc.GetFonts().GetFont("LiberationSans");
+    auto font = doc.GetFonts().SearchFont("LiberationSans");
     if (font == nullptr)
         FAIL("Coult not find Arial font");
 
@@ -332,7 +332,7 @@ void PdfPageTest::CreateTestTreeCustom(PdfMemDocument& doc)
 vector<unique_ptr<PdfPage>> PdfPageTest::CreateSamplePages(PdfMemDocument& doc, unsigned pageCount)
 {
     // create font
-    auto font = doc.GetFonts().GetFont("LiberationSans");
+    auto font = doc.GetFonts().SearchFont("LiberationSans");
     if (font == nullptr)
         FAIL("Coult not find Arial font");
 

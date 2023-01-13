@@ -394,7 +394,7 @@ static void draw_annotation(PdfDocument& document,
             {
                 PdfFont* font;
 
-                font = document.GetFonts().GetFont(font_name);
+                font = document.GetFonts().SearchFont(font_name);
                 if (!font)
                 {
                     string err = "Failed to create font '";

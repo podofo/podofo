@@ -24,14 +24,20 @@ static struct TestPaths
 } s_paths;
 
 
+void utls::CombinePaths(std::filesystem::path& path, std::initializer_list<std::string_view> paths)
+{
+    for (auto& entry : paths)
+        path /= std::filesystem::u8path(entry);
+}
+
 string TestUtils::GetTestOutputFilePath(const string_view& filename)
 {
-    return (s_paths.Output / filename).u8string();
+    return (s_paths.Output / fs::u8path(filename)).u8string();
 }
 
 string TestUtils::GetTestInputFilePath(const string_view& filename)
 {
-    return (s_paths.Input / filename).u8string();
+    return (s_paths.Input / fs::u8path(filename)).u8string();
 }
 
 const fs::path& TestUtils::GetTestInputPath()

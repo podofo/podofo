@@ -67,6 +67,21 @@
 
 #define ASSERT_EQUAL(expected, actual) TestUtils::AssertEqual(expected, actual)
 
+namespace utls
+{
+    void CombinePaths(std::filesystem::path& path, std::initializer_list<std::string_view> paths);
+
+    template<typename ... Ts>
+    std::filesystem::path CombinePaths(const std::string_view& path1, const std::string_view& path2,
+        Ts&&... paths)
+    {
+        auto ret = std::filesystem::u8path(path1);
+        ret /= std::filesystem::u8path(path2);
+        CombinePaths(ret, { paths... });
+        return ret;
+    }
+}
+
 namespace PoDoFo
 {
     namespace fs = std::filesystem;
@@ -82,6 +97,15 @@ namespace PoDoFo
 
         static std::string GetTestOutputFilePath(const std::string_view& filename);
         static std::string GetTestInputFilePath(const std::string_view& filename);
+
+        template<typename ... Ts>
+        static std::string GetTestOutputFilePath(const std::string_view& path1,
+            Ts&&... paths);
+
+        template<typename ... Ts>
+        static std::string GetTestInputFilePath(const std::string_view& path1,
+            Ts&&... paths);
+
         static const fs::path& GetTestInputPath();
         static const fs::path& GetTestOutputPath();
         static void ReadTestInputFileTo(std::string& str, const std::string_view& filename);
@@ -91,6 +115,22 @@ namespace PoDoFo
         static void SaveFramePPM(OutputStream& stream, const void* data,
             PdfPixelFormat srcPixelFormat, unsigned width, unsigned height);
     };
+
+    template<typename ...Ts>
+    inline std::string TestUtils::GetTestOutputFilePath(const std::string_view& path1, Ts && ...paths)
+    {
+        auto ret = GetTestOutputPath() / std::filesystem::u8path(path1);
+        utls::CombinePaths(ret, { paths... });
+        return ret.u8string();
+    }
+
+    template<typename ...Ts>
+    inline std::string TestUtils::GetTestInputFilePath(const std::string_view& path1, Ts && ...paths)
+    {
+        auto ret = GetTestInputPath() / std::filesystem::u8path(path1);
+        utls::CombinePaths(ret, { paths... });
+        return ret.u8string();
+    }
 }
 
 #endif // PDF_TEST_H

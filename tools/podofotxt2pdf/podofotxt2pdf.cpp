@@ -38,7 +38,7 @@ void draw(const char* buffer, PdfDocument& document, const string_view& fontName
     const char* cursor = buffer;
 
     size = PdfPage::CreateStandardPageSize(PdfPageSize::A4);
-    auto font = document.GetFonts().GetFont(fontName);
+    auto font = document.GetFonts().SearchFont(fontName);
     auto page = &document.GetPages().CreatePage(size);
     y = size.GetHeight() - y;
     if (font == nullptr)

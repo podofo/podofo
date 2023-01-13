@@ -166,12 +166,12 @@ TEST_CASE("testDifferencesEncoding")
 
     PdfFontCreateParams params;
     params.Encoding = PdfEncoding(std::make_shared<PdfDifferenceEncoding>(difference, PdfEncodingMapFactory::WinAnsiEncodingInstance()));
-    auto font = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica, params);
+    auto& font = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica, params);
 
     charbuff encoded;
     INFO("'C' in \"BAABC\" is already reserved for mapping in 'D'");
-    REQUIRE(!font->GetEncoding().TryConvertToEncoded("BAABC", encoded));
-    encoded = font->GetEncoding().ConvertToEncoded("BAABI");
+    REQUIRE(!font.GetEncoding().TryConvertToEncoded("BAABC", encoded));
+    encoded = font.GetEncoding().ConvertToEncoded("BAABI");
     REQUIRE(encoded == "ABBAI");
     auto unicode = params.Encoding.ConvertToUtf8(PdfString::FromRaw(encoded));
     REQUIRE(unicode == "BAABI");

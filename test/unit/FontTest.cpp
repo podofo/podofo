@@ -44,7 +44,7 @@ TEST_CASE("testFonts")
     FcFontSetDestroy(fontSet);
 }
 
-TEST_CASE("testBig2Little")
+TEST_CASE("TestCreateFontExtract")
 {
     PdfMemDocument doc;
     auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
@@ -52,13 +52,13 @@ TEST_CASE("testBig2Little")
     {
         PdfPainter painter;
         painter.SetCanvas(page);
-        auto font = doc.GetFonts().GetFont("Arial");
-        painter.GetTextState().SetFont(*font, 30.0);
+        auto& font = doc.GetFonts().GetOrCreateFont(TestUtils::GetTestInputFilePath("Fonts", "LiberationSans-Regular.ttf"));
+        painter.GetTextState().SetFont(font, 30.0);
         painter.DrawText("ěščř", 100, 600);
         painter.FinishDrawing();
     }
 
-    auto outputpath = TestUtils::GetTestOutputFilePath("testBig2Little.pdf");
+    auto outputpath = TestUtils::GetTestOutputFilePath("TestCreateFontExtract.pdf");
 
     try
     {
@@ -104,7 +104,7 @@ void testSingleFont(FcPattern* font)
         {
             PdfFontSearchParams params;
             params.Style = style;
-            (void)doc.GetFonts().GetFont(fontFamily, params);
+            (void)doc.GetFonts().SearchFont(fontFamily, params);
             INFO(utls::Format("Font failed: {}", fontPath));
         }
     }

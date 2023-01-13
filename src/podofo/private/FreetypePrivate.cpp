@@ -8,9 +8,10 @@
 #include "FreetypePrivate.h"
 #include FT_TRUETYPE_TABLES_H
 
+using namespace std;
 using namespace PoDoFo;
 
-FT_Library PoDoFo::GetFreeTypeLibrary()
+FT_Library FT::GetLibrary()
 {
     struct Init
     {
@@ -34,7 +35,12 @@ FT_Library PoDoFo::GetFreeTypeLibrary()
     return init.Library;
 }
 
-bool PoDoFo::TryCreateFreeTypeFace(const bufferview& view, FT_Face& face)
+bool FT::TryCreateFaceFromBuffer(const bufferview& view, FT_Face& face)
+{
+    return TryCreateFaceFromBuffer(view, 0, face);
+}
+
+bool FT::TryCreateFaceFromBuffer(const bufferview& view, unsigned faceIndex, FT_Face& face)
 {
     FT_Error rc;
     FT_Open_Args openArgs{ };
@@ -44,7 +50,7 @@ bool PoDoFo::TryCreateFreeTypeFace(const bufferview& view, FT_Face& face)
     openArgs.memory_base = (const FT_Byte*)view.data();
     openArgs.memory_size = (FT_Long)view.size();
 
-    rc = FT_Open_Face(PoDoFo::GetFreeTypeLibrary(), &openArgs, 0, &face);
+    rc = FT_Open_Face(FT::GetLibrary(), &openArgs, 0, &face);
     if (rc != 0)
     {
         face = nullptr;
@@ -54,16 +60,45 @@ bool PoDoFo::TryCreateFreeTypeFace(const bufferview& view, FT_Face& face)
     return true;
 }
 
-FT_Face PoDoFo::CreateFreeTypeFace(const bufferview& view)
+FT_Face FT::CreateFaceFromBuffer(const bufferview& view, unsigned faceIndex)
 {
     FT_Face face;
-    if (!TryCreateFreeTypeFace(view, face))
+    if (!TryCreateFaceFromBuffer(view, faceIndex, face))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::FreeType, "Error loading FreeType face");
 
     return face;
 }
 
-charbuff PoDoFo::GetDataFromFace(FT_Face face)
+bool FT::TryCreateFaceFromFile(const string_view& filepath, FT_Face& face)
+{
+    return TryCreateFaceFromFile(filepath, 0, face);
+}
+
+bool FT::TryCreateFaceFromFile(const string_view& filepath, unsigned faceIndex, FT_Face& face)
+{
+    FT_Error rc;
+    FT_ULong length = 0;
+    unique_ptr<charbuff> buffer;
+    rc = FT_New_Face(FT::GetLibrary(), filepath.data(), faceIndex, &face);
+    if (rc != 0)
+    {
+        face = nullptr;
+        return false;
+    }
+
+    return true;
+}
+
+FT_Face FT::CreateFaceFromFile(const string_view& filepath, unsigned faceIndex)
+{
+    FT_Face face;
+    if (!TryCreateFaceFromFile(filepath, faceIndex, face))
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::FreeType, "Error loading FreeType face");
+
+    return face;
+}
+
+charbuff FT::GetDataFromFace(FT_Face face)
 {
     FT_Error rc;
 
