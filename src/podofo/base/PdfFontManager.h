@@ -199,9 +199,8 @@ private:
 #endif // PODOFO_HAVE_FONTCONFIG
 
     static std::unique_ptr<charbuff> getFontData(const std::string_view& fontName,
-        const PdfFontSearchParams& params);
-    static std::unique_ptr<charbuff> getFontData(const std::string_view& fontName,
-        std::string filepath, unsigned faceIndex, const PdfFontSearchParams& params);
+        const PdfFontSearchParams& params, std::string& fontpath,
+        unsigned& faceIndex);
     PdfFont* getImportedFont(const std::string_view& fontName, const std::string_view& baseFontName,
         const PdfFontSearchParams& searchParams, const PdfFontCreateParams& createParams);
     static std::string adaptSearchParams(const std::string_view& fontName,

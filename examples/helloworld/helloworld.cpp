@@ -23,11 +23,11 @@ using namespace PoDoFo;
 
 void PrintHelp()
 {
-    std::cout << "This is a example application for the PoDoFo PDF library." << std::endl
-        << "It creates a small PDF file containing the text >Hello World!<" << std::endl
-        << "Please see https://github.com/podofo/podofo for more information" << std::endl << std::endl;
-    std::cout << "Usage:" << std::endl;
-    std::cout << "  helloworld [outputfile.pdf]" << std::endl << std::endl;
+    cout << "This is a example application for the PoDoFo PDF library." << endl
+        << "It creates a small PDF file containing the text >Hello World!<" << endl
+        << "Please see https://github.com/podofo/podofo for more information" << endl << endl;
+    cout << "Usage:" << endl;
+    cout << "  helloworld [outputfile.pdf]" << endl << endl;
 }
 
 void HelloWorld(const string_view& filename)
@@ -68,6 +68,12 @@ void HelloWorld(const string_view& filename)
         // If the PdfFont object cannot be allocated return an error.
         if (font == nullptr)
             throw runtime_error("Invalid handle");
+
+        auto& metrics = font->GetMetrics();
+        cout << "The font name is "<< metrics.GetFontNameSafe() << endl;
+        cout << "The family font name is " << metrics.GetFontFamilyName() << endl;
+        cout << "The font file path is " << metrics.GetFilePath() << endl;
+        cout << "The font face index is " << metrics.GetFaceIndex() << endl;
 
         // Set the font as default font for drawing.
         // A font has to be set before you can draw text on
@@ -161,8 +167,8 @@ int main(int argc, char* argv[])
     }
 
     // The PDF was created sucessfully.
-    std::cout << std::endl
-        << "Created a PDF file containing the line \"Hello World!\": " << argv[1] << std::endl << std::endl;
+    cout << endl
+        << "Created a PDF file containing the line \"Hello World!\": " << argv[1] << endl << endl;
 
     return 0;
 }

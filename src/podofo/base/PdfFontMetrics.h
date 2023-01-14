@@ -36,6 +36,7 @@ public:
 class PODOFO_API PdfFontMetrics
 {
     friend class PdfFont;
+    friend class PdfFontManager;
     friend class PdfFontMetricsFreetype;
 
 protected:
@@ -301,12 +302,19 @@ public:
 
     PdfCIDToGIDMapConstPtr GetCIDToGIDMap() const;
 
+public:
+    const std::string& GetFilePath() const { return m_FilePath; }
+    unsigned GetFaceIndex() const { return m_FaceIndex; }
+
 protected:
     virtual const PdfCIDToGIDMapConstPtr& getCIDToGIDMap() const;
     virtual bool getIsBoldHint() const = 0;
     virtual bool getIsItalicHint() const = 0;
     virtual const datahandle& GetFontFileDataHandle() const = 0;
     virtual const FreeTypeFacePtr& GetFaceHandle() const = 0;
+
+private:
+    void SetFilePath(std::string&& filepath, unsigned faceIndex);
 
 private:
     PdfFontMetrics(const PdfFontMetrics& rhs) = delete;
@@ -316,6 +324,8 @@ private:
 
 private:
     nullable<PdfFontStyle> m_Style;
+    std::string m_FilePath;
+    unsigned m_FaceIndex;
 };
 
 class PODOFO_API PdfFontMetricsBase : public PdfFontMetrics

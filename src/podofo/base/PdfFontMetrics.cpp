@@ -367,3 +367,9 @@ void FreeTypeFacePtr::reset(FT_Face face)
 {
     shared_ptr<FT_FaceRec_>::reset(face, FT_Done_Face);
 }
+
+void PdfFontMetrics::SetFilePath(std::string&& filepath, unsigned faceIndex)
+{
+    m_FilePath = std::move(filepath);
+    m_FaceIndex = faceIndex;
+}

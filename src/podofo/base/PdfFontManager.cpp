@@ -173,6 +173,7 @@ PdfFont& PdfFontManager::GetOrCreateFont(const string_view& fontPath, unsigned f
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Could not parse a valid font from path {}", fontPath);
 
     shared_ptr<PdfFontMetrics> metrics = PdfFontMetricsFreetype::FromBuffer(data);
+    metrics->SetFilePath(string(fontPath), faceIndex);
     return getOrCreateFontHashed(metrics, params);
 }
 
@@ -230,11 +231,14 @@ PdfFont* PdfFontManager::getImportedFont(const string_view& fontName, const stri
     if (found != m_importedFonts.end())
         return matchFont(found->second, fontName, searchParams);
 
-    shared_ptr<charbuff> data = getFontData(baseFontName, searchParams);
+    string fontpath;
+    unsigned faceIndex;
+    auto data = getFontData(baseFontName, searchParams, fontpath, faceIndex);
     if (data == nullptr)
         return nullptr;
 
-    shared_ptr<PdfFontMetrics> metrics = PdfFontMetricsFreetype::FromBuffer(data);
+    shared_ptr<PdfFontMetrics> metrics = PdfFontMetricsFreetype::FromBuffer(std::move(data));
+    metrics->SetFilePath(std::move(fontpath), faceIndex);
     Descriptor descriptor(metrics->GetBaseFontName(),
         PdfStandard14FontType::Unknown,
         createParams.Encoding,
@@ -265,11 +269,15 @@ PdfFontMetricsConstPtr PdfFontManager::SearchFontMetrics(const string_view& font
     }
 
     PdfFontSearchParams newParams = params;
-    auto fontData = getFontData(adaptSearchParams(fontName, newParams), newParams);
+    string fontpath;
+    unsigned faceIndex;
+    auto fontData = getFontData(adaptSearchParams(fontName, newParams), newParams, fontpath, faceIndex);
     if (fontData == nullptr)
         return nullptr;
 
-    return PdfFontMetricsFreetype::FromBuffer(std::move(fontData));
+    auto ret = PdfFontMetricsFreetype::FromBuffer(std::move(fontData));
+    ret->SetFilePath(std::move(fontpath), faceIndex);
+    return ret;
 }
 
 void PdfFontManager::AddFontDirectory(const string_view& path)
@@ -311,30 +319,31 @@ void PdfFontManager::AddFontDirectory(const string_view& path)
 }
 
 unique_ptr<charbuff> PdfFontManager::getFontData(const string_view& fontName,
-    const PdfFontSearchParams& params)
+    const PdfFontSearchParams& params, string& fontpath, unsigned& fontFaceIndex)
 {
-    return getFontData(fontName, { }, 0, params);
-}
-
-unique_ptr<charbuff> PdfFontManager::getFontData(const string_view& fontName,
-    string filepath, unsigned faceIndex, const PdfFontSearchParams& params)
-{
-    if (filepath.empty())
-    {
+    string path;
+    unsigned faceIndex;
 #ifdef PODOFO_HAVE_FONTCONFIG
-        auto& fc = GetFontConfigWrapper();
-        filepath = fc.GetFontConfigFontPath(fontName, params.Style, faceIndex);
+    auto& fc = GetFontConfigWrapper();
+    path = fc.GetFontConfigFontPath(fontName, params.Style, faceIndex);
 #endif
-    }
 
     unique_ptr<charbuff> ret;
-    if (!filepath.empty())
-        ret = ::getFontDataFromFile(filepath, faceIndex);
+    if (!path.empty())
+        ret = ::getFontDataFromFile(path, faceIndex);
 
+    if (ret != nullptr)
+    {
+        fontpath = path;
+        fontFaceIndex = faceIndex;
+    }
+    else
+    {
+        fontFaceIndex = 0;
 #if defined(_WIN32) && defined(PODOFO_HAVE_WIN32GDI)
-    if (ret == nullptr)
         ret = getWin32FontData(fontName, params);
 #endif
+    }
 
     return ret;
 }

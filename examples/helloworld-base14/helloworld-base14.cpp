@@ -248,6 +248,14 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
     // draw some individual characters:
     string_view demo_text2 = " @_1jiPlg .;";
 
+    auto font2 = document.GetFonts().SearchFont("Arial", params);
+    auto& metrics = font2->GetMetrics();
+    cout << "Non base 14 font characteristics" << endl;
+    cout << "Font name: " << metrics.GetFontNameSafe() << endl;
+    cout << "Family font name: " << metrics.GetFontFamilyName() << endl;
+    cout << "Font file path: " << metrics.GetFilePath() << endl;
+    cout << "Font face index: " << metrics.GetFaceIndex() << endl;
+
     // draw  individuals
     for (unsigned i = 0; i < demo_text2.length(); i++)
     {
@@ -272,7 +280,6 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
         if (i > 0)
         {
             // draw again, with non-Base14 font
-            PdfFont* font2 = document.GetFonts().SearchFont("Arial", params);
             painter.GetTextState().SetFont(*font2, 12);
             height = font2->GetMetrics().GetLineSpacing();
             width = font2->GetStringLength((string_view)text, painter.GetTextState());
