@@ -82,7 +82,7 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
     else if (format == "CFF")
         m_FontFileType = PdfFontFileType::Type1CCF;
     else
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Unsupported font type");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Unsupported font type");
 
     // Get the postscript name of the font and ensures it has no space:
     // 5.5.2 TrueType Fonts, "If the name contains any spaces, the spaces are removed"

@@ -79,7 +79,7 @@ charbuff PdfEncoding::ConvertToEncoded(const string_view& str) const
 {
     charbuff ret;
     if (!TryConvertToEncoded(str, ret))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The provided string can't be converted to CID encoding");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "The provided string can't be converted to CID encoding");
 
     return ret;
 }

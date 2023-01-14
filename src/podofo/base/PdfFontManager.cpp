@@ -108,7 +108,7 @@ PdfFont* PdfFontManager::GetLoadedFont(const PdfObject& obj)
     if (found != m_fonts.end())
     {
         if (!found->second.IsLoaded)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Invalid imported font queried");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Invalid imported font queried");
 
         return found->second.Font.get();
     }
@@ -170,7 +170,7 @@ PdfFont& PdfFontManager::GetOrCreateFont(const string_view& fontPath, unsigned f
 {
     shared_ptr<charbuff> data = getFontDataFromFile(fontPath, faceIndex);
     if (data == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Could not parse a valid font from path {}", fontPath);
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Could not parse a valid font from path {}", fontPath);
 
     shared_ptr<PdfFontMetrics> metrics = PdfFontMetricsFreetype::FromBuffer(data);
     metrics->SetFilePath(string(fontPath), faceIndex);
@@ -186,7 +186,7 @@ PdfFont& PdfFontManager::GetOrCreateFontFromBuffer(const bufferview& buffer, uns
 {
     shared_ptr<charbuff> data = getFontDataFromBuffer(buffer, faceIndex);
     if (data == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Could not parse a valid font from the buffer");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Could not parse a valid font from the buffer");
 
     shared_ptr<PdfFontMetrics> metrics = PdfFontMetricsFreetype::FromBuffer(data);
     return getOrCreateFontHashed(metrics, params);
@@ -352,7 +352,7 @@ PdfFont& PdfFontManager::GetOrCreateFont(FT_Face face, const PdfFontCreateParams
 {
     string fontName = FT_Get_Postscript_Name(face);
     if (fontName.empty())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Could not retrieve fontname for font!");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Could not retrieve fontname for font!");
 
     string baseFontName = PdfFont::ExtractBaseName(fontName);
     bool italic = (face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
@@ -398,13 +398,13 @@ PdfFont& PdfFontManager::GetOrCreateFont(HFONT font, const PdfFontCreateParams& 
 
     LOGFONTW logFont;
     if (::GetObjectW(font, sizeof(LOGFONTW), &logFont) == 0)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Invalid font");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Invalid font");
 
     // CHECK-ME: Normalize name or not?
     string fontName;
     utf8::utf16to8((char16_t*)logFont.lfFaceName, (char16_t*)logFont.lfFaceName + LF_FACESIZE, std::back_inserter(fontName));
     if (fontName.empty())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Could not retrieve fontname for font!");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Could not retrieve fontname for font!");
 
     auto baseFontName = PdfFont::ExtractBaseName(fontName);
     PdfFontStyle style = PdfFontStyle::Regular;
@@ -423,7 +423,7 @@ PdfFont& PdfFontManager::GetOrCreateFont(HFONT font, const PdfFontCreateParams& 
 
     shared_ptr<charbuff> data = ::getFontData(logFont);
     if (data == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Could not retrieve buffer for font!");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Could not retrieve buffer for font!");
 
     shared_ptr<PdfFontMetricsFreetype> metrics = PdfFontMetricsFreetype::FromBuffer(data);
     return getOrCreateFontHashed(metrics, params);

@@ -2513,7 +2513,7 @@ unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
         else if (baseEncodingName == "MacExpertEncoding")
             baseEncoding = PdfEncodingMapFactory::MacExpertEncodingInstance();
         else
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Invalid /BaseEncoding {}", baseEncodingName.GetString());;
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Invalid /BaseEncoding {}", baseEncodingName.GetString());;
     }
 
     PdfEncodingMapConstPtr implicitEncoding;

@@ -7307,6 +7307,6 @@ const Standard14FontData& PoDoFo::GetStandard14FontData(
             return PODOFO_BUILTIN_STD14FONT_DATA[13];
         case PdfStandard14FontType::Unknown:
         default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Invalid Standard14 font type");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Invalid Standard14 font type");
     }
 }

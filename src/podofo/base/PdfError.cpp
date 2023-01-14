@@ -153,8 +153,8 @@ string_view PdfError::ErrorName(PdfErrorCode code)
             return "PdfErrorCode::InvalidEncryptionDict"sv;
         case PdfErrorCode::InvalidPassword:                    ///< The password used to open the PDF file was invalid
             return "PdfErrorCode::InvalidPassword"sv;
-        case PdfErrorCode::InvalidFontFile:
-            return "PdfErrorCode::InvalidFontFile"sv;
+        case PdfErrorCode::InvalidFontData:
+            return "PdfErrorCode::InvalidFontData"sv;
         case PdfErrorCode::InvalidContentStream:
             return "PdfErrorCode::InvalidContentStream"sv;
         case PdfErrorCode::UnsupportedFilter:
@@ -255,8 +255,8 @@ string_view PdfError::ErrorMessage(PdfErrorCode code)
             return "The encryption dictionary is invalid or misses a required key."sv;
         case PdfErrorCode::InvalidPassword:
             return "The password used to open the PDF file was invalid."sv;
-        case PdfErrorCode::InvalidFontFile:
-            return "The font file is invalid."sv;
+        case PdfErrorCode::InvalidFontData:
+            return "The font data is invalid."sv;
         case PdfErrorCode::InvalidContentStream:
             return "The content stream is invalid due to mismatched context pairing or other problems."sv;
         case PdfErrorCode::UnsupportedFilter:

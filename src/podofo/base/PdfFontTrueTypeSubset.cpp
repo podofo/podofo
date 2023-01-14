@@ -62,7 +62,7 @@ void PdfFontTrueTypeSubset::BuildFont(std::string& output, const PdfFontMetrics&
         case PdfFontFileType::OpenType:
             break;
         default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "The font to be subsetted is not a TrueType font");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "The font to be subsetted is not a TrueType font");
     }
 
     SpanStreamDevice input(metrics.GetOrLoadFontFileData());

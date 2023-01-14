@@ -90,6 +90,6 @@ PdfEncodingMapConstPtr PdfEncodingMapFactory::GetStandard14FontEncodingMap(PdfSt
             return ZapfDingbatsEncodingInstance();
         case PdfStandard14FontType::Unknown:
         default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Invalid Standard14 font type");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Invalid Standard14 font type");
     }
 }

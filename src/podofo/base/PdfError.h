@@ -61,7 +61,7 @@ enum class PdfErrorCode
     InvalidName,              ///< The specified Name is not valid in this context
     InvalidEncryptionDict,    ///< The encryption dictionary is invalid or misses a required key
     InvalidPassword,          ///< The password used to open the PDF file was invalid
-    InvalidFontFile,          ///< The font file is invalid
+    InvalidFontData,          ///< The font file is invalid
     InvalidContentStream,     ///< The content stream is invalid due to mismatched context pairing or other problems
 
     UnsupportedFilter,        ///< The requested filter is not yet implemented.

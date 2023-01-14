@@ -422,7 +422,7 @@ void PdfEncodingMapOneByte::AppendToUnicodeEntries(OutputStream& stream, charbuf
     for (; code < lastCode; code++)
     {
         if (!TryGetCodePoints(PdfCharCode(code), codePoints))
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Unable to find character code");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Unable to find character code");
 
         AppendUTF16CodeTo(stream, codePoints, u16tmp);
         stream.Write("\n");
@@ -450,7 +450,7 @@ void PdfEncodingMapOneByte::AppendCIDMappingEntries(OutputStream& stream, const 
     {
         PdfCharCode charCode(code);
         if (!TryGetCodePoints(charCode, codePoints))
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Unable to find character code");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Unable to find character code");
 
         // NOTE: CID mapping entries in a CMap also map CIDs to glyph
         // indices within the font program, unless a /CIDToGID map is

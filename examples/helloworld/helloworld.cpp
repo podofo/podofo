@@ -96,8 +96,16 @@ void HelloWorld(const string_view& filename)
         // All coordinates in PoDoFo are in PDF units.
         painter.DrawText("ABCDEFGHIKLMNOPQRSTVXYZ", 56.69, page.GetRect().GetHeight() - 56.69);
 
-        // Add also some non-ASCII characters (Cyrillic alphabet)
-        painter.DrawText("АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЫЭЮЯ", 56.69, page.GetRect().GetHeight() - 80);
+        try
+        {
+            // Add also some non-ASCII characters (Cyrillic alphabet)
+            painter.DrawText("АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЫЭЮЯ", 56.69, page.GetRect().GetHeight() - 80);
+        }
+        catch (PdfError& err)
+        {
+            if (err.GetError() == PdfErrorCode::InvalidFontData)
+                cerr << "ERROR: The matched font \"" << metrics.GetFontName() << "\" doesn't support cyrillic" << endl;
+        }
 
         // Tell PoDoFo that the page has been drawn completely.
         // This required to optimize drawing operations inside in PoDoFo

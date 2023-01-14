@@ -362,7 +362,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             return PODOFO_BUILTIN_FONTS[13];
         case PdfStandard14FontType::Unknown:
         default:
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Invalid Standard14 font type");
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Invalid Standard14 font type");
     }
 }
 

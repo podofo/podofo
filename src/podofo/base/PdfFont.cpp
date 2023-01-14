@@ -254,7 +254,7 @@ unsigned PdfFont::GetGID(char32_t codePoint, PdfGlyphAccess access) const
 {
     unsigned gid;
     if (!TryGetGID(codePoint, access, gid))
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Can't find a gid");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Can't find a gid");
 
     return gid;
 }
@@ -665,7 +665,7 @@ PdfCID PdfFont::AddSubsetGIDSafe(unsigned gid, const unicodeview& codePoints)
     PdfCID ret;
     if (!tryAddSubsetGID(gid, codePoints, ret))
     {
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile,
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData,
             "The encoding doesn't support these characters or the gid is already present");
     }
 
