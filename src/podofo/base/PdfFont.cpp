@@ -741,7 +741,6 @@ bool PdfFont::tryConvertToGIDs(const std::string_view& utf8Str, PdfGlyphAccess a
     {
         auto it = utf8Str.begin();
         auto end = utf8Str.end();
-        vector<unsigned> gids;
         while (it != end)
         {
             char32_t cp = utf8::next(it, end);
