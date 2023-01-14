@@ -37,7 +37,7 @@
         }                                                                       \
         catch (const PdfError &e)                                               \
         {                                                                       \
-            if (e.GetError() == errorCode)                                      \
+            if (e.GetCode() == errorCode)                                       \
             {                                                                   \
                 cpputCorrectExceptionThrown_ = true;                            \
             }                                                                   \
@@ -45,7 +45,7 @@
             {                                                                   \
                 stream << "Error type mismatch. Actual: " << #errorCode         \
                     << std::endl;                                               \
-                stream << "What: " << PdfError::ErrorName(e.GetError());        \
+                stream << "What: " << e.GetName();                              \
             }                                                                   \
         }                                                                       \
         catch (const std::exception &e)                                         \
