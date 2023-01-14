@@ -115,13 +115,13 @@
    *
    * Add frame to error callastack
    */
-#define PODOFO_PUSH_FRAME(err) err.AddToCallstack(__FILE__, __LINE__)
+#define PODOFO_PUSH_FRAME(err) err.AddToCallStack(__FILE__, __LINE__)
 
    /** \def PODOFO_PUSH_FRAME_INFO(err, msg)
     *
     * Add frame to error callastack with msg information
     */
-#define PODOFO_PUSH_FRAME_INFO(err, msg, ...) err.AddToCallstack(__FILE__, __LINE__, COMMON_FORMAT(msg, ##__VA_ARGS__))
+#define PODOFO_PUSH_FRAME_INFO(err, msg, ...) err.AddToCallStack(__FILE__, __LINE__, COMMON_FORMAT(msg, ##__VA_ARGS__))
 
     /** \def PODOFO_PUSH_FRAME(err, msg)
      *
