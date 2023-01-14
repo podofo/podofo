@@ -166,7 +166,7 @@ TEST_CASE("TestReadXRefContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
     catch (exception&)
     {
@@ -204,7 +204,7 @@ TEST_CASE("TestReadXRefContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
     catch (exception&)
     {
@@ -272,7 +272,7 @@ TEST_CASE("TestReadXRefContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRefType);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRefType);
     }
     catch (exception&)
     {
@@ -349,7 +349,7 @@ TEST_CASE("TestReadXRefContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRefType);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRefType);
     }
     catch (exception&)
     {
@@ -425,7 +425,7 @@ TEST_CASE("TestReadXRefContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRefType);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRefType);
     }
     catch (exception&)
     {
@@ -500,7 +500,7 @@ void testReadXRefSubsection()
         {
             // too many indirect objects in Trailer /Size key throws PdfErrorCode::ValueOutOfRange
             // but too many indirect objects in xref table throws PdfErrorCode::InvalidXRef
-            REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+            REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
         }
         catch (exception&)
         {
@@ -528,9 +528,9 @@ void testReadXRefSubsection()
     {
         // if objectCount > PdfParser::GetMaxObjectCount() then we'll see PdfErrorCode::InvalidXRef
         // otherwise we'll see PdfErrorCode::ValueOutOfRange or PdfErrorCode::OutOfMemory (see testMaxObjectCount)
-        REQUIRE((error.GetError() == PdfErrorCode::InvalidXRef
-            || error.GetError() == PdfErrorCode::ValueOutOfRange
-            || error.GetError() == PdfErrorCode::OutOfMemory));
+        REQUIRE((error.GetCode() == PdfErrorCode::InvalidXRef
+            || error.GetCode() == PdfErrorCode::ValueOutOfRange
+            || error.GetCode() == PdfErrorCode::OutOfMemory));
     }
     catch (exception&)
     {
@@ -555,9 +555,9 @@ void testReadXRefSubsection()
         catch (PdfError& error)
         {
             if (maxObjects >= (size_t)PdfParser::GetMaxObjectCount())
-                REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+                REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
             else
-                REQUIRE(error.GetError() == PdfErrorCode::OutOfMemory);
+                REQUIRE(error.GetCode() == PdfErrorCode::OutOfMemory);
         }
         catch (exception&)
         {
@@ -597,7 +597,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE((error.GetError() == PdfErrorCode::ValueOutOfRange || error.GetError() == PdfErrorCode::NoXRef));
+        REQUIRE((error.GetCode() == PdfErrorCode::ValueOutOfRange || error.GetCode() == PdfErrorCode::NoXRef));
     }
     catch (exception&)
     {
@@ -636,7 +636,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
     catch (exception&)
     {
@@ -655,7 +655,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::ValueOutOfRange);
+        REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
     }
     catch (exception&)
     {
@@ -682,7 +682,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::ValueOutOfRange);
+        REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
     }
     catch (exception&)
     {
@@ -702,7 +702,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::UnexpectedEOF);
+        REQUIRE(error.GetCode() == PdfErrorCode::UnexpectedEOF);
     }
     catch (exception&)
     {
@@ -722,7 +722,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::ValueOutOfRange);
+        REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
     }
     catch (exception&)
     {
@@ -745,7 +745,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
     catch (exception&)
     {
@@ -765,7 +765,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::ValueOutOfRange);
+        REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
     }
     catch (exception&)
     {
@@ -786,8 +786,8 @@ void testReadXRefSubsection()
     catch (PdfError& error)
     {
         // weird: different errors returned depending on architecture 
-        REQUIRE((error.GetError() == PdfErrorCode::ValueOutOfRange || sizeof(size_t) == 4));
-        REQUIRE((error.GetError() == PdfErrorCode::InvalidXRef || sizeof(size_t) == 8));
+        REQUIRE((error.GetCode() == PdfErrorCode::ValueOutOfRange || sizeof(size_t) == 4));
+        REQUIRE((error.GetCode() == PdfErrorCode::InvalidXRef || sizeof(size_t) == 8));
     }
     catch (exception&)
     {
@@ -808,7 +808,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
     catch (exception&)
     {
@@ -828,7 +828,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::ValueOutOfRange);
+        REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
     }
     catch (exception&)
     {
@@ -848,7 +848,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::ValueOutOfRange);
+        REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
     }
     catch (exception&)
     {
@@ -868,7 +868,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::ValueOutOfRange);
+        REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
     }
     catch (exception&)
     {
@@ -892,7 +892,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
     catch (exception&)
     {
@@ -912,7 +912,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::ValueOutOfRange);
+        REQUIRE(error.GetCode() == PdfErrorCode::ValueOutOfRange);
     }
     catch (exception&)
     {
@@ -933,8 +933,8 @@ void testReadXRefSubsection()
     catch (PdfError& error)
     {
         // weird: different errors returned depending on architecture 
-        REQUIRE((error.GetError() == PdfErrorCode::ValueOutOfRange || sizeof(size_t) == 4));
-        REQUIRE((error.GetError() == PdfErrorCode::InvalidXRef || sizeof(size_t) == 8));
+        REQUIRE((error.GetCode() == PdfErrorCode::ValueOutOfRange || sizeof(size_t) == 4));
+        REQUIRE((error.GetCode() == PdfErrorCode::InvalidXRef || sizeof(size_t) == 8));
     }
     catch (exception&)
     {
@@ -954,7 +954,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
     catch (exception&)
     {
@@ -1047,9 +1047,9 @@ void testReadXRefSubsection()
             {
                 // other combinations of firstObject/objectCount from s_values are illegal 
                 // if we reach here it should be an invalid xref value of some type
-                REQUIRE((error.GetError() == PdfErrorCode::InvalidXRef || error.GetError() == PdfErrorCode::ValueOutOfRange
-                    || error.GetError() == PdfErrorCode::UnexpectedEOF
-                    || error.GetError() == PdfErrorCode::OutOfMemory));
+                REQUIRE((error.GetCode() == PdfErrorCode::InvalidXRef || error.GetCode() == PdfErrorCode::ValueOutOfRange
+                    || error.GetCode() == PdfErrorCode::UnexpectedEOF
+                    || error.GetCode() == PdfErrorCode::OutOfMemory));
             }
             catch (exception&)
             {
@@ -1157,7 +1157,7 @@ TEST_CASE("testReadXRefStreamContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::NoXRef);
     }
     catch (exception&)
     {
@@ -1210,7 +1210,7 @@ TEST_CASE("testReadXRefStreamContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::NoXRef);
     }
     catch (exception&)
     {
@@ -1262,7 +1262,7 @@ TEST_CASE("testReadXRefStreamContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRefStream);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRefStream);
     }
     catch (exception&)
     {
@@ -1314,7 +1314,7 @@ TEST_CASE("testReadXRefStreamContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRefType);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRefType);
     }
     catch (exception&)
     {
@@ -1363,7 +1363,7 @@ TEST_CASE("testReadXRefStreamContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::NoXRef);
     }
     catch (exception&)
     {
@@ -1717,7 +1717,7 @@ TEST_CASE("testReadXRefStreamContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::NoXRef);
     }
     catch (exception&)
     {
@@ -1767,7 +1767,7 @@ TEST_CASE("testReadXRefStreamContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::NoXRef);
     }
     catch (exception&)
     {
@@ -1796,7 +1796,7 @@ TEST_CASE("testReadObjects")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidEncryptionDict);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidEncryptionDict);
     }
     catch (exception&)
     {
@@ -2088,7 +2088,7 @@ TEST_CASE("testNestedArrays")
     catch (PdfError& error)
     {
         // this must match the error value thrown by PdfRecursionGuard
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
 }
 
@@ -2197,7 +2197,7 @@ TEST_CASE("testNestedDictionaries")
     catch (PdfError& error)
     {
         // this must match the error value thrown by PdfRecursionGuard
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
 }
 
@@ -2287,7 +2287,7 @@ TEST_CASE("testNestedNameTree")
     catch (PdfError& error)
     {
         // this must match the error value thrown by PdfRecursionGuard
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
 }
 
@@ -2352,7 +2352,7 @@ TEST_CASE("testLoopingNameTree")
     catch (PdfError& error)
     {
         // this must match the error value thrown by PdfRecursionGuard
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
 
     // CVE-2021-30471 /Dests points at pages tree which has a /Kids entry loooping back to ancestor (document root)
@@ -2387,7 +2387,7 @@ TEST_CASE("testLoopingNameTree")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidDataType);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidDataType);
     }
 }
 
@@ -2464,7 +2464,7 @@ TEST_CASE("testNestedPageTree")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
 }
 
@@ -2522,7 +2522,7 @@ TEST_CASE("testLoopingPageTree")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::PageNotFound);
+        REQUIRE(error.GetCode() == PdfErrorCode::PageNotFound);
     }
 
     // CVE-2021-30471 test for pages tree /Kids array that refer back to an ancestor (document root object)
@@ -2550,7 +2550,7 @@ TEST_CASE("testLoopingPageTree")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::PageNotFound);
+        REQUIRE(error.GetCode() == PdfErrorCode::PageNotFound);
     }
 }
 
@@ -2625,7 +2625,7 @@ TEST_CASE("testNestedOutlines")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
 }
 
@@ -2665,7 +2665,7 @@ TEST_CASE("testLoopingOutlines")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
 
     // https://sourceforge.net/p/podofo/tickets/25/
@@ -2695,7 +2695,7 @@ TEST_CASE("testLoopingOutlines")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetCode() == PdfErrorCode::InvalidXRef);
     }
 }
 

@@ -199,7 +199,7 @@ TEST_CASE("testEnableAlgorithms")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::UnsupportedFilter);
+        REQUIRE(error.GetCode() == PdfErrorCode::UnsupportedFilter);
     }
 
     // Restore default
@@ -225,7 +225,7 @@ TEST_CASE("testLoadEncrypedFilePdfParser")
     }
     catch (PdfError& e)
     {
-        if (e.GetError() != PdfErrorCode::InvalidPassword)
+        if (e.GetCode() != PdfErrorCode::InvalidPassword)
             FAIL("Invalid encryption exception thrown!");
     }
 
@@ -278,7 +278,7 @@ void testEncrypt(PdfEncrypt& encrypt)
     }
     catch (PdfError& e)
     {
-        FAIL(e.ErrorMessage(e.GetError()));
+        FAIL(e.ErrorMessage(e.GetCode()));
     }
 
     charbuff decrypted;
@@ -289,7 +289,7 @@ void testEncrypt(PdfEncrypt& encrypt)
     }
     catch (PdfError& e)
     {
-        FAIL(e.ErrorMessage(e.GetError()));
+        FAIL(e.ErrorMessage(e.GetCode()));
     }
 
     INFO("compare encrypted and decrypted buffers");

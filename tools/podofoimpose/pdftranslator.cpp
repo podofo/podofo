@@ -111,7 +111,7 @@ void PdfTranslator::setSource(const string& source)
             }
             catch (PdfError& e)
             {
-                cerr << "Unable to create Document: " << PdfError::ErrorMessage(e.GetError()) << endl;
+                cerr << "Unable to create Document: " << PdfError::ErrorMessage(e.GetCode()) << endl;
                 return;
             }
         }

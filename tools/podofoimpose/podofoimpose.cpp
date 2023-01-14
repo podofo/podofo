@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
     }
     catch (PdfError& e)
     {
-        e.GetCallstack();
+        e.GetCallStack();
         e.PrintErrorMsg();
         return 3;
     }

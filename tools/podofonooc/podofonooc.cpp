@@ -118,9 +118,9 @@ int main(int argc, char* argv[])
     }
     catch (PdfError& e)
     {
-        std::cerr << "Error: An error " << (int)e.GetError() << " occurred during the process of the pdf file:" << std::endl;
+        std::cerr << "Error: An error " << (int)e.GetCode() << " occurred during the process of the pdf file:" << std::endl;
         e.PrintErrorMsg();
-        result = (int)e.GetError();
+        result = (int)e.GetCode();
     }
 
     if (doc)

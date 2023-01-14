@@ -83,9 +83,9 @@ int main(int argc, char* argv[])
     }
     catch (PdfError& e)
     {
-        fprintf(stderr, "Error: An error %i ocurred during processing the pdf file.\n", (int)e.GetError());
+        fprintf(stderr, "Error: An error %i ocurred during processing the pdf file.\n", (int)e.GetCode());
         e.PrintErrorMsg();
-        return (int)e.GetError();
+        return (int)e.GetCode();
     }
 
     printf("Wrote PDF successfully: %s.\n", outputFilename);

@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
             }
             catch (PdfError& e)
             {
-                if (e.GetError() == PdfErrorCode::InvalidPassword)
+                if (e.GetCode() == PdfErrorCode::InvalidPassword)
                 {
                     cout << endl << "Password :";
                     std::getline(cin, pw);
@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
     catch (PdfError& e)
     {
         e.PrintErrorMsg();
-        return (int)e.GetError();
+        return (int)e.GetCode();
     }
 
     cerr << "Parsed and wrote successfully" << endl;

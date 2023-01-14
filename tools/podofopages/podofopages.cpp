@@ -148,9 +148,9 @@ int main(int argc, char* argv[])
     }
     catch (PdfError& e)
     {
-        cerr << "Error: An error " << (int)e.GetError() << " ocurred." << endl;
+        cerr << "Error: An error " << (int)e.GetCode() << " ocurred." << endl;
         e.PrintErrorMsg();
-        return (int)e.GetError();
+        return (int)e.GetCode();
     }
     catch (runtime_error& re)
     {

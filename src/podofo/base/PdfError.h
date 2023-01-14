@@ -128,7 +128,7 @@ private:
     std::string m_Info;
 };
 
-using PdErrorInfoQueue = std::deque<PdfErrorInfo>;
+using PdErrorInfoStack = std::deque<PdfErrorInfo>;
 using LogMessageCallback = std::function<void(PdfLogSeverity logSeverity, const std::string_view& msg)>;
 
 // This is required to generate the documentation with Doxygen.
@@ -190,15 +190,17 @@ public:
      */
     bool operator!=(PdfErrorCode code);
 
+    std::string_view GetName() const;
+
     /** Return the error code of this object.
      *  \returns the error code of this object
      */
-    inline PdfErrorCode GetError() const { return m_error; }
+    inline PdfErrorCode GetCode() const { return m_Code; }
 
     /** Get access to the internal callstack of this error.
      *  \returns the callstack deque of PdfErrorInfo objects.
      */
-    inline const PdErrorInfoQueue& GetCallstack() const { return m_callStack; }
+    inline const PdErrorInfoStack& GetCallStack() const { return m_CallStack; }
 
     /** Add callstack information to an error object. Always call this function
      *  if you get an error object but do not handle the error but throw it again.
@@ -213,7 +215,7 @@ public:
      *         e.g. how to fix the error. This string is intended to
      *         be shown to the user.
      */
-    void AddToCallstack(std::string filepath, unsigned line, std::string information = { });
+    void AddToCallStack(std::string filepath, unsigned line, std::string information = { });
 
     /** Print an error message to stderr. This includes callstack
      *  and extra info, if any of either was set.
@@ -240,8 +242,8 @@ public:
     static std::string_view ErrorMessage(PdfErrorCode code);
 
 private:
-    PdfErrorCode m_error;
-    PdErrorInfoQueue m_callStack;
+    PdfErrorCode m_Code;
+    PdErrorInfoStack m_CallStack;
 };
 
 };

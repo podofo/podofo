@@ -68,7 +68,7 @@ TEST_CASE("TestCreateFontExtract")
     catch (const PdfError& error)
     {
         // Don't continue further the test in this case
-        if (error.GetError() == PdfErrorCode::UnsupportedFontFormat)
+        if (error.GetCode() == PdfErrorCode::UnsupportedFontFormat)
             return;
 
         throw;

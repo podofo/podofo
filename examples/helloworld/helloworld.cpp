@@ -103,7 +103,7 @@ void HelloWorld(const string_view& filename)
         }
         catch (PdfError& err)
         {
-            if (err.GetError() == PdfErrorCode::InvalidFontData)
+            if (err.GetCode() == PdfErrorCode::InvalidFontData)
                 cerr << "ERROR: The matched font \"" << metrics.GetFontName() << "\" doesn't support cyrillic" << endl;
         }
 
@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
         // If yes, we return and print an error message
         // to the commandline.
         err.PrintErrorMsg();
-        return (int)err.GetError();
+        return (int)err.GetCode();
     }
 
     // The PDF was created sucessfully.

@@ -134,9 +134,9 @@ int main(int argc, char* argv[])
     }
     catch (PdfError& e)
     {
-        fprintf(stderr, "Error: An error %i ocurred during uncompressing the pdf file.\n", e.GetError());
+        fprintf(stderr, "Error: An error %i ocurred during uncompressing the pdf file.\n", e.GetCode());
         e.PrintErrorMsg();
-        return (int)e.GetError();
+        return (int)e.GetCode();
     }
 
     //   cerr << "All information written successfully.\n" << endl << endl;

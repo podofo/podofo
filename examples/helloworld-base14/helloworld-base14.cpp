@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
         // If yes, we return and print an error message
         // to the commandline.
         err.PrintErrorMsg();
-        return (int)err.GetError();
+        return (int)err.GetCode();
     }
 
     // The PDF was created sucessfully.

@@ -977,9 +977,9 @@ int main(int argc, char* argv[])
     }
     catch (PdfError& e)
     {
-        cerr << "Error: An error " << (int)e.GetError() << " occurred during the sign of the pdf file:" << endl;
+        cerr << "Error: An error " << (int)e.GetCode() << " occurred during the sign of the pdf file:" << endl;
         e.PrintErrorMsg();
-        result = (int)e.GetError();
+        result = (int)e.GetCode();
     }
 
     if (pkey)

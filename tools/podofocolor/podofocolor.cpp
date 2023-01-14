@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
     {
         cerr << "Error: An error " << e.what() << " ocurred during processing the pdf file\n";
         e.PrintErrorMsg();
-        return (int)e.GetError();
+        return (int)e.GetCode();
     }
 
     delete converter;

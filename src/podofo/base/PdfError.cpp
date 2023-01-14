@@ -32,43 +32,48 @@ PdfErrorInfo::PdfErrorInfo(string filepath, unsigned line, string info)
 PdfError::PdfError(PdfErrorCode code, string filepath, unsigned line,
     string information)
 {
-    m_error = code;
-    this->AddToCallstack(std::move(filepath), line, std::move(information));
+    m_Code = code;
+    this->AddToCallStack(std::move(filepath), line, std::move(information));
 }
 
 PdfError& PdfError::operator=(const PdfErrorCode& code)
 {
-    m_error = code;
-    m_callStack.clear();
+    m_Code = code;
+    m_CallStack.clear();
     return *this;
 }
 
 bool PdfError::operator==(PdfErrorCode code)
 {
-    return m_error == code;
+    return m_Code == code;
 }
 
 bool PdfError::operator!=(PdfErrorCode code)
 {
-    return m_error != code;
+    return m_Code != code;
+}
+
+string_view PdfError::GetName() const
+{
+    return ErrorName(m_Code);
 }
 
 void PdfError::PrintErrorMsg() const
 {
-    auto msg = PdfError::ErrorMessage(m_error);
-    auto name = PdfError::ErrorName(m_error);
+    auto msg = PdfError::ErrorMessage(m_Code);
+    auto name = PdfError::ErrorName(m_Code);
 
     outstringstream stream;
-    stream << endl << endl << "PoDoFo encountered an error. Error: " << (int)m_error << name;
+    stream << endl << endl << "PoDoFo encountered an error. Error: " << (int)m_Code << name;
 
     if (msg.length() != 0)
         stream << "\tError Description: " << msg;
 
-    if (m_callStack.size() != 0)
+    if (m_CallStack.size() != 0)
         stream << "\tCallstack:";
 
     unsigned i = 0;
-    for (auto& info: m_callStack)
+    for (auto& info: m_CallStack)
     {
         auto filepath = info.GetFilePath();
         if (!filepath.empty())
@@ -86,7 +91,7 @@ void PdfError::PrintErrorMsg() const
 
 const char* PdfError::what() const noexcept
 {
-    return PdfError::ErrorName(m_error).data();
+    return PdfError::ErrorName(m_Code).data();
 }
 
 string_view PdfError::ErrorName(PdfErrorCode code)
@@ -304,9 +309,9 @@ string_view PdfError::ErrorMessage(PdfErrorCode code)
     return { };
 }
 
-void PdfError::AddToCallstack(string filepath, unsigned line, string information)
+void PdfError::AddToCallStack(string filepath, unsigned line, string information)
 {
-    m_callStack.push_front(PdfErrorInfo(std::move(filepath), line, information));
+    m_CallStack.push_front(PdfErrorInfo(std::move(filepath), line, information));
 }
 
 string_view PdfErrorInfo::GetFilePath() const
