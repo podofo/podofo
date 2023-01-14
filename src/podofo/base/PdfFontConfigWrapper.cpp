@@ -73,6 +73,12 @@ string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName,
 
     FcPatternDestroy(pattern);
     FcPatternDestroy(matched);
+
+#if _WIN32
+    // Font config in Windows returns unix conventional path
+    // separator. Fix it
+    std::replace(path.begin(), path.end(), '/', '\\');
+#endif
     return path;
 }
 
