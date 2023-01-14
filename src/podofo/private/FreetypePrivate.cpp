@@ -50,7 +50,7 @@ bool FT::TryCreateFaceFromBuffer(const bufferview& view, unsigned faceIndex, FT_
     openArgs.memory_base = (const FT_Byte*)view.data();
     openArgs.memory_size = (FT_Long)view.size();
 
-    rc = FT_Open_Face(FT::GetLibrary(), &openArgs, 0, &face);
+    rc = FT_Open_Face(FT::GetLibrary(), &openArgs, faceIndex, &face);
     if (rc != 0)
     {
         face = nullptr;
@@ -77,7 +77,6 @@ bool FT::TryCreateFaceFromFile(const string_view& filepath, FT_Face& face)
 bool FT::TryCreateFaceFromFile(const string_view& filepath, unsigned faceIndex, FT_Face& face)
 {
     FT_Error rc;
-    FT_ULong length = 0;
     unique_ptr<charbuff> buffer;
     rc = FT_New_Face(FT::GetLibrary(), filepath.data(), faceIndex, &face);
     if (rc != 0)
