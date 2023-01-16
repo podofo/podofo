@@ -34,19 +34,25 @@ PdfObjectStream::~PdfObjectStream() { }
 PdfObjectOutputStream PdfObjectStream::GetOutputStreamRaw(bool append)
 {
     ensureClosed();
-    return PdfObjectOutputStream(*this, PdfFilterList(), append);
+    return PdfObjectOutputStream(*this, PdfFilterList(), true, append);
+}
+
+PdfObjectOutputStream PoDoFo::PdfObjectStream::GetOutputStreamRaw(const PdfFilterList& filters, bool append)
+{
+    ensureClosed();
+    return PdfObjectOutputStream(*this, PdfFilterList(filters), true, append);
 }
 
 PdfObjectOutputStream PdfObjectStream::GetOutputStream(bool append)
 {
     ensureClosed();
-    return PdfObjectOutputStream(*this, { DefaultFilter }, append);
+    return PdfObjectOutputStream(*this, { DefaultFilter }, false, append);
 }
 
 PdfObjectOutputStream PdfObjectStream::GetOutputStream(const PdfFilterList& filters, bool append)
 {
     ensureClosed();
-    return PdfObjectOutputStream(*this, PdfFilterList(filters), append);
+    return PdfObjectOutputStream(*this, PdfFilterList(filters), false, append);
 }
 
 PdfObjectInputStream PdfObjectStream::GetInputStream(bool raw) const
@@ -269,31 +275,31 @@ void PdfObjectStream::SetData(const bufferview& buffer, bool raw)
     ensureClosed();
     SpanStreamDevice stream(buffer);
     if (raw)
-        setData(stream, { }, -1, true);
+        setData(stream, { }, raw, -1, true);
     else
-        setData(stream, { DefaultFilter }, -1, true);
+        setData(stream, { DefaultFilter }, raw, -1, true);
 }
 
-void PdfObjectStream::SetData(const bufferview& buffer, const PdfFilterList& filters)
+void PdfObjectStream::SetData(const bufferview& buffer, const PdfFilterList& filters, bool raw)
 {
     ensureClosed();
     SpanStreamDevice stream(buffer);
-    setData(stream, filters, -1, true);
+    setData(stream, filters, raw, -1, true);
 }
 
 void PdfObjectStream::SetData(InputStream& stream, bool raw)
 {
     ensureClosed();
     if (raw)
-        setData(stream, { }, -1, true);
+        setData(stream, { }, raw, -1, true);
     else
-        setData(stream, { DefaultFilter }, -1, true);
+        setData(stream, { DefaultFilter }, raw, -1, true);
 }
 
-void PdfObjectStream::SetData(InputStream& stream, const PdfFilterList& filters)
+void PdfObjectStream::SetData(InputStream& stream, const PdfFilterList& filters, bool raw)
 {
     ensureClosed();
-    setData(stream, filters, -1, true);
+    setData(stream, filters, raw, -1, true);
 }
 
 unique_ptr<InputStream> PdfObjectStream::getInputStream(bool raw, PdfFilterList& mediaFilters,
@@ -350,7 +356,8 @@ unique_ptr<InputStream> PdfObjectStream::getInputStream(bool raw, PdfFilterList&
     }
 }
 
-void PdfObjectStream::setData(InputStream& stream, PdfFilterList filters, ssize_t size, bool markObjectDirty)
+void PdfObjectStream::setData(InputStream& stream, PdfFilterList filters,
+    bool raw, ssize_t size, bool markObjectDirty)
 {
     if (markObjectDirty)
     {
@@ -359,7 +366,7 @@ void PdfObjectStream::setData(InputStream& stream, PdfFilterList filters, ssize_
         m_Parent->SetDirty();
     }
 
-    PdfObjectOutputStream output(*this, std::move(filters), false);
+    PdfObjectOutputStream output(*this, std::move(filters), raw, false);
     if (size < 0)
         stream.CopyTo(output);
     else
@@ -417,7 +424,7 @@ PdfObjectInputStream& PdfObjectInputStream::operator=(PdfObjectInputStream&& rhs
 }
 
 PdfObjectOutputStream::PdfObjectOutputStream()
-    : m_stream(nullptr) { }
+    : m_stream(nullptr), m_raw(false) { }
 
 PdfObjectOutputStream::~PdfObjectOutputStream()
 {
@@ -463,22 +470,24 @@ PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectOutputStream&& rhs) noexce
     : m_filters(std::move(rhs.m_filters))
 {
     utls::move(rhs.m_stream, m_stream);
+    utls::move(rhs.m_raw, m_raw);
 }
 
 PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream,
-        PdfFilterList&& filters, bool append)
-    : PdfObjectOutputStream(stream, nullable<PdfFilterList>(std::move(filters)), append)
+        PdfFilterList&& filters, bool raw, bool append)
+    : PdfObjectOutputStream(stream, nullable<PdfFilterList>(std::move(filters)),
+        raw, append)
 {
 }
 
 PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream)
-    : PdfObjectOutputStream(stream, nullptr, false)
+    : PdfObjectOutputStream(stream, nullptr, false, false)
 {
 }
 
 PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream,
-        nullable<PdfFilterList> filters, bool append)
-    : m_stream(&stream), m_filters(std::move(filters))
+        nullable<PdfFilterList> filters, bool raw, bool append)
+    : m_stream(&stream), m_filters(std::move(filters)), m_raw(raw)
 {
     auto document = stream.GetParent().GetDocument();
     if (document != nullptr)
@@ -491,7 +500,7 @@ PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream,
     if (m_filters.has_value())
     {
         auto& filters = *m_filters;
-        if (filters.size() == 0)
+        if (filters.size() == 0 || raw)
         {
             m_output = stream.m_Provider->GetOutputStream(stream.GetParent());
         }
@@ -525,6 +534,7 @@ void PdfObjectOutputStream::flush()
 PdfObjectOutputStream& PdfObjectOutputStream::operator=(PdfObjectOutputStream&& rhs) noexcept
 {
     utls::move(rhs.m_stream, m_stream);
+    utls::move(rhs.m_raw, m_raw);
     m_output = std::move(rhs.m_output);
     m_filters = std::move(rhs.m_filters);
     return *this;

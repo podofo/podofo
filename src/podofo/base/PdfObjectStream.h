@@ -53,11 +53,11 @@ public:
     PdfObjectOutputStream(PdfObjectOutputStream&& rhs) noexcept;
 private:
     PdfObjectOutputStream(PdfObjectStream& stream, PdfFilterList&& filters,
-        bool append);
+        bool raw, bool append);
     PdfObjectOutputStream(PdfObjectStream& stream);
 private:
     PdfObjectOutputStream(PdfObjectStream& stream, nullable<PdfFilterList> filters,
-        bool append);
+        bool raw, bool append);
 protected:
     void writeBuffer(const char* buffer, size_t size) override;
     void flush() override;
@@ -65,6 +65,7 @@ public:
     PdfObjectOutputStream& operator=(PdfObjectOutputStream&& rhs) noexcept;
 private:
     PdfObjectStream* m_stream;
+    bool m_raw;
     nullable<PdfFilterList> m_filters;
     std::unique_ptr<OutputStream> m_output;
 };
@@ -102,6 +103,8 @@ public:
 
     PdfObjectOutputStream GetOutputStreamRaw(bool append = false);
 
+    PdfObjectOutputStream GetOutputStreamRaw(const PdfFilterList& filters, bool append = false);
+
     PdfObjectOutputStream GetOutputStream(bool append = false);
 
     PdfObjectOutputStream GetOutputStream(const PdfFilterList& filters, bool append = false);
@@ -123,7 +126,7 @@ public:
      *  \param buffer buffer containing the stream data
      *  \param filters a list of filters to use when appending data
      */
-    void SetData(const bufferview& buffer, const PdfFilterList& filters);
+    void SetData(const bufferview& buffer, const PdfFilterList& filters, bool raw = false);
 
     /** Set the data contents reading from an InputStream
      *  All data will be Flate-encoded.
@@ -140,7 +143,7 @@ public:
      *  \param stream read stream contents from this InputStream
      *  \param filters a list of filters to use when appending data
      */
-    void SetData(InputStream& stream, const PdfFilterList& filters);
+    void SetData(InputStream& stream, const PdfFilterList& filters, bool raw = false);
 
     /** Get an unwrapped copy of the stream, unpacking non media filters
      * \remarks throws if the stream contains media filters, like DCTDecode
@@ -219,7 +222,8 @@ private:
     std::unique_ptr<InputStream> getInputStream(bool raw, PdfFilterList& mediaFilters,
         std::vector<const PdfDictionary*>& decodeParms);
 
-    void setData(InputStream& stream, PdfFilterList filters, ssize_t size, bool markObjectDirty);
+    void setData(InputStream& stream, PdfFilterList filters, bool raw,
+        ssize_t size, bool markObjectDirty);
 
 private:
     PdfObjectStream(const PdfObjectStream& rhs) = delete;

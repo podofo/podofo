@@ -82,7 +82,7 @@ public:
      *  \param pSoftmask a PdfImage pointer to the image, which is to be set as softmask, must be 8-Bit-Grayscale
      *
      */
-    void SetSoftmask(const PdfImage& softmask);
+    void SetSoftMask(const PdfImage& softmask);
 
     /** Get the width of the image when drawn in PDF units
      *  \returns the width in PDF units

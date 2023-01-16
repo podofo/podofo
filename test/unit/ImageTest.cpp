@@ -65,6 +65,30 @@ TEST_CASE("TestImage2")
 #endif // PODOFO_PLAYGROUND
 }
 
+static void testReferenceImage(const PdfDocument& doc)
+{
+    auto& page = doc.GetPages().GetPageAt(0);
+    auto resources = page.MustGetResources().GetResourceIterator("XObject");
+    for (auto& res : resources)
+    {
+        unique_ptr<const PdfImage> image;
+        REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(*res.second, image));
+
+        charbuff buffer;
+        image->DecodeTo(buffer, PdfPixelFormat::BGRA);
+        charbuff ppmbuffer;
+        TestUtils::SaveFramePPM(ppmbuffer, buffer.data(),
+            PdfPixelFormat::BGRA, image->GetWidth(), image->GetHeight());
+
+        string expectedImage;
+        TestUtils::ReadTestInputFileTo(expectedImage, "ReferenceImage.ppm");
+
+        REQUIRE(ppmbuffer == expectedImage);
+
+        break;
+    }
+}
+
 TEST_CASE("TestImage3")
 {
     auto outputFile = TestUtils::GetTestOutputFilePath("TestImage3.pdf");
@@ -83,26 +107,37 @@ TEST_CASE("TestImage3")
     {
         PdfMemDocument doc;
         doc.Load(outputFile);
-        auto& page = doc.GetPages().GetPageAt(0);
-        auto resources = page.MustGetResources().GetResourceIterator("XObject");
-        for (auto& res : resources)
-        {
-            unique_ptr<PdfImage> image;
-            REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(*res.second, image));
-
-            charbuff buffer;
-            image->DecodeTo(buffer, PdfPixelFormat::BGRA);
-            charbuff ppmbuffer;
-            TestUtils::SaveFramePPM(ppmbuffer, buffer.data(),
-                PdfPixelFormat::BGRA, image->GetWidth(), image->GetHeight());
-
-            string expectedImage;
-            TestUtils::ReadTestInputFileTo(expectedImage, "ReferenceImage.ppm");
-
-            REQUIRE(ppmbuffer == expectedImage);
-
-            break;
-        }
+        testReferenceImage(doc);
     }
 }
 
+TEST_CASE("TestImage4")
+{
+    auto outputFile = TestUtils::GetTestOutputFilePath("TestImage4.pdf");
+    {
+        PdfMemDocument doc;
+        PdfPainter painter;
+        auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+        painter.SetCanvas(page);
+        auto img = doc.CreateImage();
+        img->Load(TestUtils::GetTestInputFilePath("ReferenceImage.jpg"));
+        auto alpha = doc.CreateImage();
+        FileStreamDevice alphaInput(TestUtils::GetTestInputFilePath("ReferenceImage.alpha"));
+        PdfImageInfo info;
+        info.Width = 128;
+        info.Height = 128;
+        info.ColorSpace = PdfColorSpace::DeviceGray;
+        info.BitsPerComponent = 8;
+        alpha->SetDataRaw(alphaInput, info);
+        img->SetSoftMask(*alpha);
+        painter.DrawImage(*img.get(), 50.0, 50.0);
+        painter.FinishDrawing();
+        doc.Save(outputFile);
+    }
+
+    {
+        PdfMemDocument doc;
+        doc.Load(outputFile);
+        testReferenceImage(doc);
+    }
+}

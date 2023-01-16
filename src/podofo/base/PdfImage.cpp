@@ -263,7 +263,7 @@ void PdfImage::SetICCProfile(InputStream& stream, unsigned colorComponents, PdfC
     this->GetDictionary().AddKey("ColorSpace", array);
 }
 
-void PdfImage::SetSoftmask(const PdfImage& softmask)
+void PdfImage::SetSoftMask(const PdfImage& softmask)
 {
     GetDictionary().AddKeyIndirect("SMask", softmask.GetObject());
 }
@@ -369,22 +369,10 @@ void PdfImage::SetDataRaw(InputStream& stream, const PdfImageInfo& info)
         dict.AddKey("ColorSpace", info.ColorSpaceArray);
     }
 
-    GetObject().GetOrCreateStream().SetData(stream, true);
-
-    // If the filter list is supplied, set it now after stream writing
-    if (info.Filters.size() == 1)
-    {
-        dict.AddKey(PdfName::KeyFilter,
-            PdfName(PoDoFo::FilterToName(info.Filters.front())));
-    }
-    else if (info.Filters.size() > 1)
-    {
-        PdfArray arrFilters;
-        for (auto filterType : info.Filters)
-            arrFilters.Add(PdfName(PoDoFo::FilterToName(filterType)));
-
-        dict.AddKey(PdfName::KeyFilter, arrFilters);
-    }
+    if (info.Filters.size() == 0)
+        GetObject().GetOrCreateStream().SetData(stream, true);
+    else
+        GetObject().GetOrCreateStream().SetData(stream, info.Filters, true);
 }
 
 void PdfImage::Load(const string_view& filepath)
@@ -1241,7 +1229,7 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
 
         auto smakeImage = image.GetDocument().CreateImage();
         smakeImage->SetDataRaw(smask, smaksInfo);
-        image.SetSoftmask(*smakeImage);
+        image.SetSoftMask(*smakeImage);
     }
 
     PdfImageInfo info;
