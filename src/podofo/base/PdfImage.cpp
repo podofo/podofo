@@ -1233,7 +1233,6 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
             }
             len = width * height;
         }
-        SpanStreamDevice smaskinput(smask);
         PdfImageInfo smaksInfo;
         smaksInfo.Width = (unsigned)width;
         smaksInfo.Height = (unsigned)height;
@@ -1241,7 +1240,7 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
         smaksInfo.ColorSpace = PdfColorSpace::DeviceGray;
 
         auto smakeImage = image.GetDocument().CreateImage();
-        smakeImage->SetDataRaw(smaskinput, smaksInfo);
+        smakeImage->SetDataRaw(smask, smaksInfo);
         image.SetSoftmask(*smakeImage);
     }
 
@@ -1282,8 +1281,7 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
     }
 
     // Set the image data and flate compress it
-    SpanStreamDevice input(buffer);
-    image.SetDataRaw(input, info);
+    image.SetDataRaw(buffer, info);
 
     png_destroy_read_struct(&png, &pnginfo, (png_infopp)NULL);
 }

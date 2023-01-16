@@ -21,12 +21,12 @@ class InputStream;
 
 struct PdfImageInfo
 {
-    unsigned Width;
-    unsigned Height;
+    unsigned Width = 0;
+    unsigned Height = 0;
     PdfFilterList Filters;
-    PdfColorSpace ColorSpace;
+    PdfColorSpace ColorSpace = PdfColorSpace::Unknown;
     PdfArray ColorSpaceArray;
-    unsigned char BitsPerComponent;
+    unsigned char BitsPerComponent = 0;
     PdfArray Decode;
 };
 

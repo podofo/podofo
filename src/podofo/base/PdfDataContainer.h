@@ -55,7 +55,7 @@ private:
     PdfObject* m_Owner;
 };
 
-class PdfIndirectIterableBase
+class PODOFO_API PdfIndirectIterableBase
 {
     template <typename TObject, typename TListIterator>
     friend class PdfArrayIndirectIterableBase;

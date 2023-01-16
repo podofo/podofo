@@ -251,7 +251,7 @@ void PdfObject::Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
                 input.CopyTo(output);
             }
 
-            stream.MoveFrom(*m_Stream);
+            m_Stream->MoveFrom(stream);
         }
 
         // Set length if it's not handled by the underlying provider
