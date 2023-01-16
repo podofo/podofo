@@ -230,6 +230,11 @@ Vector2& Vector2::operator-=(const Vector2& v)
     return *this;
 }
 
+double PoDoFo::Vector2::Dot(const Vector2& v) const
+{
+	return X * v.X + Y * v.Y;
+}
+
 Matrix PoDoFo::GetFrameRotationTransform(const PdfRect& rect, double teta)
 {
     auto R = Matrix::CreateRotation(teta);

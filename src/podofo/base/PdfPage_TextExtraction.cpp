@@ -141,6 +141,7 @@ private:
     void addEntry();
     void tryAddEntry(const StatefulString& currStr);
     const PdfCanvas& getActualCanvas();
+    const StatefulString& getPreviouString() const;
 private:
     const PdfPage& m_page;
 public:
@@ -337,23 +338,25 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                         auto& array = content.Stack[0].GetArray();
                         for (unsigned i = 0; i < array.GetSize(); i++)
                         {
+                            const PdfString* str;
+                            double real;
                             auto& obj = array[i];
-                            if (obj.IsString())
+                            if (obj.TryGetString(str))
                             {
-                                if (decodeString(obj.GetString(), *context.States.Current, decoded, lengths, positions)
+                                if (decodeString(*str, *context.States.Current, decoded, lengths, positions)
                                     && decoded.length() != 0)
                                 {
                                     context.PushString(StatefulString(std::move(decoded), *context.States.Current,
                                         std::move(lengths), std::move(positions)));
                                 }
                             }
-                            else if (obj.IsNumberOrReal())
+                            else if (obj.TryGetReal(real))
                             {
                                 // pg. 408, Pdf Reference 1.7: "The number is expressed in thousandths of a unit
                                 // of text space. [...] This amount is subtracted from from the current horizontal or
                                 // vertical coordinate, depending on the writing mode"
                                 // It must be scaled by the font size
-                                double space = (-obj.GetReal() / 1000) * context.States.Current->PdfState.FontSize;
+                                double space = (-real / 1000) * context.States.Current->PdfState.FontSize;
                                 context.AdvanceSpace(space);
                             }
                             else
@@ -1025,6 +1028,22 @@ const PdfCanvas& ExtractionContext::getActualCanvas()
     return *XObjectStateIndices.back().Form;
 }
 
+const StatefulString& ExtractionContext::getPreviouString() const
+{
+    const StatefulString* prevString;
+    if (Chunk->size() > 0)
+    {
+        prevString = &Chunk->back();
+    }
+    else
+    {
+        PODOFO_INVARIANT(Chunks.back()->size() != 0);
+        prevString = &Chunks.back()->back();
+    }
+
+    return *prevString;
+}
+
 void ExtractionContext::addEntry()
 {
     ::addEntry(Entries, Chunks, Pattern, Options, ClipRect, PageIndex, Rotation.get());
@@ -1051,20 +1070,10 @@ void ExtractionContext::tryAddEntry(const StatefulString& currStr)
                 }
                 else
                 {
-                    const StatefulString* prevString;
-                    if (Chunk->size() > 0)
-                    {
-                        prevString = &Chunk->back();
-                    }
-                    else
-                    {
-                        PODOFO_INVARIANT(Chunks.back()->size() != 0);
-                        prevString = &Chunks.back()->back();
-                    }
-
                     // Add "fake" space
-                    if (!(prevString->EndsWithWhiteSpace() || currStr.BeginsWithWhiteSpace()))
-                        Chunk->push_back(StatefulString(" ", prevString->State, { distance }, { 0 }));
+                    auto& prevString = getPreviouString();
+                    if (!(prevString.EndsWithWhiteSpace() || currStr.BeginsWithWhiteSpace()))
+                        Chunk->push_back(StatefulString(" ", prevString.State, { distance }, { 0 }));
                 }
             }
         }
@@ -1080,12 +1089,25 @@ void ExtractionContext::tryAddEntry(const StatefulString& currStr)
 bool ExtractionContext::areChunksSpaced(double& distance)
 {
     // TODO
-    // 1) Handle arbitraries rotations
-    // 2) Handle the word spacing Tw state
-    // 3) Handle the char spacing Tc state (is it actually needed?)
+    // 1) Handle the word spacing Tw state
+    // 2) Handle the char spacing Tc state (is it actually needed?)
+    // 3) Handle arbitrary rotations
     // 4) Handle vertical scripts (HARD)
-    distance = (States.Current->T_rm.GetTranslationVector() - PrevChunkT_rm_Pos).GetLength();
-    return distance + SEPARATION_EPSILON >= States.Current->WordSpacingLength;
+    // 5) Try to avoid computing GetLength() and use only dot product
+    auto curr = States.Current->T_rm.GetTranslationVector();
+    auto prev_curr = curr - PrevChunkT_rm_Pos;
+    distance = prev_curr.GetLength();
+    double dot1 = prev_curr.Dot(Vector2(1, 0)); // Hardcoded for horizontal text
+    bool spaced = distance + SEPARATION_EPSILON >= States.Current->WordSpacingLength;
+    if (dot1 < 0 && spaced)
+    {
+        auto& prevString = getPreviouString();
+        auto prev_init = prevString.Position - PrevChunkT_rm_Pos;
+        double dot2 = prev_init.Dot(Vector2(1, 0));
+        return dot1 < dot2;
+    }
+
+    return spaced;
 }
 
 // Separate chunk words by spaces

@@ -34,6 +34,8 @@ namespace PoDoFo
         Vector2& operator+=(const Vector2& v);
         Vector2& operator-=(const Vector2& v);
 
+        double Dot(const Vector2& v) const;
+
     public:
         Vector2(const Vector2&) = default;
         Vector2& operator=(const Vector2&) = default;
