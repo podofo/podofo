@@ -192,7 +192,7 @@ PdfReference PdfIndirectObjectList::getNextFreeObject()
     }
 
     // If no free objects are available, create a new object with generation 0
-    uint16_t nextObjectNum = static_cast<uint16_t>(m_ObjectCount);
+    uint32_t nextObjectNum = static_cast<uint32_t>(m_ObjectCount);
     while (true)
     {
         if ((size_t)(nextObjectNum + 1) == MaxReserveSize)
