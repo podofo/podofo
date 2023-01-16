@@ -135,9 +135,13 @@ TEST_CASE("TestImage4")
         doc.Save(outputFile);
     }
 
+#ifdef PODOFO_PLAYGROUND
+    // NOTE: The following check may file using different,
+    // jpeg libraries such as libjpeg-turbo
     {
         PdfMemDocument doc;
         doc.Load(outputFile);
         testReferenceImage(doc);
     }
+#endif // PODOFO_PLAYGROUND
 }
