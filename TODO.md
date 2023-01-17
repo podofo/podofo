@@ -4,8 +4,6 @@
 
 ### 1.0
 - Restore manuals
-- PdfFontManager: Add font load from file/better debugging
-  in lookup (eg. to spot found font with different name)
 - Review all page import functions to check correct working/improve
   the code
 - PdfCanvas: Add CopyTo facilities, see PdfContents
@@ -57,6 +55,7 @@ either assume UTF-8 and/or checks for used codepoints
 
 ### After 1.0
 - high-level signing API: Add PAdES B-B support
+- Add text shaping witg Harfbuzz https://github.com/harfbuzz/harfbuzz
 - Add fail safe sign/update mechanism, meaning the stream gets trimmed
   to initial length if there's a crash. Not so easy, especially since
   we are now using STL streams and it's not easy to trim files

@@ -1,4 +1,5 @@
 ## Version 0.10.0
+- PdfFontMetrics: Added FilePath/FaceIndex for debugging, when avaialable
 - PdfFont: Renamed GetStringLength() overloads with
   PdfString to GetEncodedStringLength()
 - PdfFontManager: Renamed GetFont() -> SearchFont()
