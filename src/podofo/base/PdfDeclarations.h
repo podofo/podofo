@@ -337,11 +337,12 @@ enum class PdfPixelFormat
 
 /**
  * Enum for text rendering mode (Tr)
+ *
+ * Compare ISO 32000-1:2008, Table 106 "Text rendering modes"
  */
 enum class PdfTextRenderingMode
 {
-    Unknown = 0,
-    Fill,                      ///< Default mode, fill text
+    Fill = 0,                  ///< Default mode, fill text
     Stroke,                    ///< Stroke text
     FillStroke,                ///< Fill, then stroke text
     Invisible,                 ///< Neither fill nor stroke text (invisible)
