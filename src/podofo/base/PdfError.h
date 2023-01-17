@@ -242,8 +242,12 @@ public:
     static std::string_view ErrorMessage(PdfErrorCode code);
 
 private:
+    void initFullDescription();
+
+private:
     PdfErrorCode m_Code;
     PdErrorInfoStack m_CallStack;
+    std::string m_FullDescription;
 };
 
 };

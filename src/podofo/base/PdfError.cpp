@@ -60,38 +60,14 @@ string_view PdfError::GetName() const
 
 void PdfError::PrintErrorMsg() const
 {
-    auto msg = PdfError::ErrorMessage(m_Code);
-    auto name = PdfError::ErrorName(m_Code);
-
-    outstringstream stream;
-    stream << endl << endl << "PoDoFo encountered an error. Error: " << (int)m_Code << name;
-
-    if (msg.length() != 0)
-        stream << "\tError Description: " << msg;
-
-    if (m_CallStack.size() != 0)
-        stream << "\tCallstack:";
-
-    unsigned i = 0;
-    for (auto& info: m_CallStack)
-    {
-        auto filepath = info.GetFilePath();
-        if (!filepath.empty())
-            stream << "\t#" << i << " Error Source : " << filepath << ": " << info.GetLine();
-
-        if (!info.GetInformation().empty())
-            stream << "\t\t" << "Information: " << info.GetInformation();
-
-        stream << endl;
-        i++;
-    }
-
-    PoDoFo::LogMessage(PdfLogSeverity::Error, stream.str());
+    const_cast<PdfError&>(*this).initFullDescription();
+    PoDoFo::LogMessage(PdfLogSeverity::Error, m_FullDescription);
 }
 
 const char* PdfError::what() const noexcept
 {
-    return PdfError::ErrorName(m_Code).data();
+    const_cast<PdfError&>(*this).initFullDescription();
+    return m_FullDescription.c_str();
 }
 
 string_view PdfError::ErrorName(PdfErrorCode code)
@@ -307,6 +283,40 @@ string_view PdfError::ErrorMessage(PdfErrorCode code)
     }
 
     return { };
+}
+
+void PdfError::initFullDescription()
+{
+    if (m_FullDescription.length() != 0)
+        return;
+
+    auto msg = PdfError::ErrorMessage(m_Code);
+    auto name = PdfError::ErrorName(m_Code);
+
+    outstringstream stream;
+    stream << endl << endl << "PoDoFo encountered an error. Error: " << (int)m_Code << name;
+
+    if (msg.length() != 0)
+        stream << "\tError Description: " << msg;
+
+    if (m_CallStack.size() != 0)
+        stream << "\tCallstack:";
+
+    unsigned i = 0;
+    for (auto& info : m_CallStack)
+    {
+        auto filepath = info.GetFilePath();
+        if (!filepath.empty())
+            stream << "\t#" << i << " Error Source : " << filepath << ": " << info.GetLine();
+
+        if (!info.GetInformation().empty())
+            stream << "\t\t" << "Information: " << info.GetInformation();
+
+        stream << endl;
+        i++;
+    }
+
+    m_FullDescription = stream.take_str();
 }
 
 void PdfError::AddToCallStack(string filepath, unsigned line, string information)
