@@ -30,7 +30,7 @@ jobs:
     - name: Configure CMake
       # NOTE: OpenSSL prefix must be explicitly set
       run:
-        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_PREFIX_PATH=`brew --prefix` -DPNG_INCLUDE_DIR=`brew --prefix libpng`/include -DFontconfig_INCLUDE_DIR=`brew --prefix fontconfig`/include -DOPENSSL_ROOT_DIR=`brew --prefix openssl@1.1` 
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_FIND_FRAMEWORK=NEVER -DCMAKE_PREFIX_PATH=`brew --prefix` -DFontconfig_INCLUDE_DIR=`brew --prefix fontconfig`/include -DOPENSSL_ROOT_DIR=`brew --prefix openssl@1.1` 
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build
