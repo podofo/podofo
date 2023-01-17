@@ -5,6 +5,10 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      ctestArgs:
+        description: 'CTest arguments'
 
 env:
   BUILD_TYPE: Release
@@ -33,4 +37,4 @@ jobs:
 
     - name: Test
       working-directory: ${{github.workspace}}/build
-      run: ctest
+      run: ctest ${{ github.event.inputs.ctestArgs }}
