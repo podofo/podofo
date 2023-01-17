@@ -113,8 +113,7 @@ find_package(ZLIB REQUIRED)
 message("Found zlib headers in ${ZLIB_INCLUDE_DIR}, library at ${ZLIB_LIBRARIES}")
 
 find_package(OpenSSL REQUIRED)
-
-message("OPENSSL_VERSION: ${OPENSSL_LIBRARIES}")
+message("OPENSSL_LIBRARIES: ${OPENSSL_LIBRARIES}")
 
 find_package(Libidn)
 
