@@ -65,8 +65,8 @@ public:
     PdfObjectOutputStream& operator=(PdfObjectOutputStream&& rhs) noexcept;
 private:
     PdfObjectStream* m_stream;
-    bool m_raw;
     nullable<PdfFilterList> m_filters;
+    bool m_raw;
     std::unique_ptr<OutputStream> m_output;
 };
 

@@ -645,12 +645,12 @@ void PdfImage::loadFromTiffHandle(void* handle)
 {
     TIFF* hInTiffHandle = (TIFF*)handle;
 
-    int32 row, width, height;
-    uint16 samplesPerPixel, bitsPerSample;
-    uint16* sampleInfo;
-    uint16 extraSamples;
-    uint16 planarConfig, photoMetric, orientation;
-    int32 resolutionUnit;
+    int32_t row, width, height;
+    uint16_t samplesPerPixel, bitsPerSample;
+    uint16_t* sampleInfo;
+    uint16_t extraSamples;
+    uint16_t planarConfig, photoMetric, orientation;
+    int32_t resolutionUnit;
 
     TIFFGetField(hInTiffHandle, TIFFTAG_IMAGEWIDTH, &width);
     TIFFGetField(hInTiffHandle, TIFFTAG_IMAGELENGTH, &height);
@@ -766,9 +766,9 @@ void PdfImage::loadFromTiffHandle(void* handle)
             decode.insert(decode.end(), PdfObject(static_cast<int64_t>(numColors) - 1));
             info.Decode = std::move(decode);
 
-            uint16* rgbRed;
-            uint16* rgbGreen;
-            uint16* rgbBlue;
+            uint16_t* rgbRed;
+            uint16_t* rgbGreen;
+            uint16_t* rgbBlue;
             TIFFGetField(hInTiffHandle, TIFFTAG_COLORMAP, &rgbRed, &rgbGreen, &rgbBlue);
 
             charbuff data(numColors * 3);
