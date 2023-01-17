@@ -7,9 +7,9 @@ if (WIN32)
 endif()
 
 target_link_libraries(podofosign
+    ${OPENSSL_CRYPTO_LIBRARIES} # NOTE: For mac linking, this must be first
 	${PODOFO_LIBRARIES}
 	podofo_private
-    ${OPENSSL_CRYPTO_LIBRARIES}
     ${PLATFORM_LIBRARIES}
 )
 
