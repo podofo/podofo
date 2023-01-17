@@ -1261,14 +1261,14 @@ void createPngContext(png_structp& png, png_infop& pnginfo)
 {
     png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     if (png == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle, "png_create_read_struct");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "png_create_read_struct");
 
     pnginfo = png_create_info_struct(png);
     if (pnginfo == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle, "png_create_info_struct");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "png_create_info_struct");
 
     if (setjmp(png_jmpbuf(png)))
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle, "Error when reading the image");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Error when reading the image");
 }
 
 void pngReadData(png_structp pngPtr, png_bytep data, png_size_t length)
