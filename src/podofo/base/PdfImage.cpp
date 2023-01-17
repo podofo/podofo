@@ -37,7 +37,8 @@ using namespace PoDoFo;
 #ifdef PODOFO_HAVE_PNG_LIB
 #include <png.h>
 static void pngReadData(png_structp pngPtr, png_bytep data, png_size_t length);
-static void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info);
+static void loadFromPngContent(PdfImage& image, png_structp png, png_infop info);
+static void createPngContext(png_structp& png, png_infop& pnginfo);
 #endif // PODOFO_HAVE_PNG_LIB
 
 static void fetchPDFScanLineRGB(unsigned char* dstScanLine,
@@ -980,7 +981,7 @@ void PdfImage::loadFromTiffData(const unsigned char* data, size_t len)
 
 #ifdef PODOFO_HAVE_PNG_LIB
 
-void PdfImage::loadFromPng(const std::string_view& filename)
+void PdfImage::loadFromPng(const string_view& filename)
 {
     FILE* file = utls::fopen(filename, "rb");
 
@@ -1006,25 +1007,21 @@ void PdfImage::loadFromPngHandle(FILE* stream)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The file could not be recognized as a PNG file");
     }
 
-    png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-    if (png == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
-    png_infop info = png_create_info_struct(png);
-    if (info == nullptr)
+    png_structp png = nullptr;
+    png_infop pnginfo = nullptr;
+    try
     {
-        png_destroy_read_struct(&png, (png_infopp)nullptr, (png_infopp)nullptr);
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+        createPngContext(png, pnginfo);
+        png_init_io(png, stream);
+        loadFromPngContent(*this, png, pnginfo);
+    }
+    catch (...)
+    {
+        png_destroy_read_struct(&png, &pnginfo, (png_infopp)nullptr);
+        throw;
     }
 
-    if (setjmp(png_jmpbuf(png)))
-    {
-        png_destroy_read_struct(&png, &info, (png_infopp)nullptr);
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-    }
-
-    png_init_io(png, stream);
-    LoadFromPngContent(*this, png, info);
+    png_destroy_read_struct(&png, &pnginfo, (png_infopp)nullptr);
 }
 
 struct PngData
@@ -1061,32 +1058,26 @@ void PdfImage::loadFromPngData(const unsigned char* data, size_t len)
     png_byte header[8];
     pngData.read(header, 8);
     if (png_sig_cmp(header, 0, 8))
-    {
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The file could not be recognized as a PNG file");
-    }
 
-    png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-    if (png == nullptr)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
-    png_infop pnginfo = png_create_info_struct(png);
-    if (pnginfo == nullptr)
+    png_structp png;
+    png_infop pnginfo;
+    try
     {
-        png_destroy_read_struct(&png, (png_infopp)nullptr, (png_infopp)nullptr);
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+        createPngContext(png, pnginfo);
+        png_set_read_fn(png, (png_voidp)&pngData, pngReadData);
+        loadFromPngContent(*this, png, pnginfo);
     }
-
-    if (setjmp(png_jmpbuf(png)))
+    catch (...)
     {
         png_destroy_read_struct(&png, &pnginfo, (png_infopp)nullptr);
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+        throw;
     }
 
-    png_set_read_fn(png, (png_voidp)&pngData, pngReadData);
-    LoadFromPngContent(*this, png, pnginfo);
+    png_destroy_read_struct(&png, &pnginfo, (png_infopp)nullptr);
 }
 
-void LoadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
+void loadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
 {
     png_set_sig_bytes(png, 8);
     png_read_info(png, pnginfo);
@@ -1137,12 +1128,6 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
     // End
 
     // Read the file
-    if (setjmp(png_jmpbuf(png)) != 0)
-    {
-        png_destroy_read_struct(&png, &pnginfo, (png_infopp)NULL);
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-    }
-
     size_t rowLen = png_get_rowbytes(png, pnginfo);
     size_t len = rowLen * height;
     charbuff buffer(len);
@@ -1155,8 +1140,8 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
 
     png_read_image(png, rows.get());
 
-    png_bytep paletteTrans;
-    int numTransColors;
+    png_bytep paletteTrans = nullptr;
+    int numTransColors = 0;
     if (color_type & PNG_COLOR_MASK_ALPHA
         || (color_type == PNG_COLOR_TYPE_PALETTE
             && png_get_valid(png, pnginfo, PNG_INFO_tRNS)
@@ -1270,8 +1255,20 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
 
     // Set the image data and flate compress it
     image.SetDataRaw(buffer, info);
+}
 
-    png_destroy_read_struct(&png, &pnginfo, (png_infopp)NULL);
+void createPngContext(png_structp& png, png_infop& pnginfo)
+{
+    png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+    if (png == nullptr)
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle, "png_create_read_struct");
+
+    pnginfo = png_create_info_struct(png);
+    if (pnginfo == nullptr)
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle, "png_create_info_struct");
+
+    if (setjmp(png_jmpbuf(png)))
+        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle, "Error when reading the image");
 }
 
 void pngReadData(png_structp pngPtr, png_bytep data, png_size_t length)

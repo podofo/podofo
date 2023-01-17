@@ -212,7 +212,7 @@ string_view PdfError::ErrorMessage(PdfErrorCode code)
     switch (code)
     {
         case PdfErrorCode::InvalidHandle:
-            return "A nullptr handle was passed, but initialized data was expected."sv;
+            return "An invalid handle was passed or returned, but initialized data was expected."sv;
         case PdfErrorCode::FileNotFound:
             return "The specified file was not found."sv;
         case PdfErrorCode::InvalidDeviceOperation:
