@@ -427,7 +427,7 @@ public:
     void EndText();
 
     /** Draw an image on the current page.
-     *  \param x the x coordinate (bottom left position of the image)
+     *  \param x the x coordinate (left position of the image)
      *  \param y the y coordinate (bottom position of the image)
      *  \param obj an PdfXObject
      *  \param scaleX option scaling factor in x direction
@@ -437,7 +437,7 @@ public:
 
     /** Draw an XObject on the current page. For PdfImage use DrawImage.
      *
-     *  \param x the x coordinate (bottom left position of the XObject)
+     *  \param x the x coordinate (left position of the XObject)
      *  \param y the y coordinate (bottom position of the XObject)
      *  \param obj an PdfXObject
      *  \param scaleX option scaling factor in x direction

@@ -1,6 +1,11 @@
+### 0.10
+- PdfPainter: Review API, move SmoothCurveTo, QuadCurveTo,
+  SmoothQuadCurveTo, ArcTo, Arc() an helper structure
+
 ### 0.11
 - PdfFontManager: Add font hash to cache descriptor
 - Add high-level signing API
+- PdfPainter: Fix PdfPainter::Arc(), PdfPainter::getMultiLineTextAsLines
 
 ### 1.0
 - Restore manuals
@@ -42,7 +47,6 @@ either assume UTF-8 and/or checks for used codepoints
 - Review PdfPage::SetICCProfile()
 - Review PdfPageCollection::AppendDocumentPages(),
   PdfPageCollection::InsertDocumentPageAt(), PdfPage::MoveAt()
-- PdfPainter: Fix PdfPainter::Arc(), PdfPainter::getMultiLineTextAsLines
   Add proper text/graphics state stack check/handling
 - PdfWriter: Check if SetEncrypt() should accept mutable reference instead
 - Add a "on rails" incremental update/sign facilities, so it's more
