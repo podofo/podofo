@@ -43,19 +43,22 @@ string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName,
     bool isBold = (style & PdfFontStyle::Bold) == PdfFontStyle::Bold;
 
     // Build a pattern to search using postscript name, bold and italic
-    pattern = FcPatternBuild(0, FC_POSTSCRIPT_NAME, FcTypeString, fontName.data(),
+    pattern = FcPatternBuild(0,
+        FC_FAMILY, FcTypeString, fontName.data(),
         FC_WEIGHT, FcTypeInteger, (isBold ? FC_WEIGHT_BOLD : FC_WEIGHT_MEDIUM),
         FC_SLANT, FcTypeInteger, (isItalic ? FC_SLANT_ITALIC : FC_SLANT_ROMAN),
         static_cast<char*>(0));
 
-    FcDefaultSubstitute(pattern);
-
-    if (!FcConfigSubstitute(m_FcConfig, pattern, FcMatchFont))
+    // Follow fc-match procedure which proved to be more reliable
+    // https://github.com/freedesktop/fontconfig/blob/e291fda7d42e5d64379555097a066d9c2c4efce3/fc-match/fc-match.c#L188
+    if (!FcConfigSubstitute(m_FcConfig, pattern, FcMatchPattern))
     {
         FcPatternDestroy(pattern);
         faceIndex = 0;
         return { };
     }
+
+    FcDefaultSubstitute(pattern);
 
     string path;
     matched = FcFontMatch(m_FcConfig, pattern, &result);

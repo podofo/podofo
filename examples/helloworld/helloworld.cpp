@@ -104,7 +104,7 @@ void HelloWorld(const string_view& filename)
         catch (PdfError& err)
         {
             if (err.GetCode() == PdfErrorCode::InvalidFontData)
-                cerr << "ERROR: The matched font \"" << metrics.GetFontName() << "\" doesn't support cyrillic" << endl;
+                cout << "WARNING: The matched font \"" << metrics.GetFontName() << "\" doesn't support cyrillic" << endl;
         }
 
         // Tell PoDoFo that the page has been drawn completely.
