@@ -18,7 +18,7 @@ using namespace std;
 using namespace PoDoFo;
 
 ImageExtractor::ImageExtractor()
-    : m_buffer{}, m_ImageCount(0), m_fileCounter(0)
+    : m_ImageCount(0), m_fileCounter(0), m_buffer{}
 {
 }
 

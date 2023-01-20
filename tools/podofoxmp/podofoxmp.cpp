@@ -93,13 +93,14 @@ int main(int argc, char* argv[])
                     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to seek to the end of the file");
                 }
 
-                size_t xmpLen = ftell(fp);
-                if (xmpLen == -1)
+                long rc = ftell(fp);
+                if (rc == -1)
                 {
                     fclose(fp);
                     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to read size of the file");
                 }
 
+                size_t xmpLen = (size_t)rc;
                 xmpBuf = new char[xmpLen];
                 if (!xmpBuf)
                 {
@@ -115,7 +116,7 @@ int main(int argc, char* argv[])
                     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to seek to the beginning of the file");
                 }
 
-                if (static_cast<long>(fread(xmpBuf, 1, xmpLen, fp)) != xmpLen)
+                if (fread(xmpBuf, 1, xmpLen, fp) != xmpLen)
                 {
                     delete[] xmpBuf;
                     fclose(fp);

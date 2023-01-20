@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
     }
     catch (PdfError& e)
     {
-        fprintf(stderr, "Error: An error %i ocurred during uncompressing the pdf file.\n", e.GetCode());
+        fprintf(stderr, "Error: An error %i ocurred during uncompressing the pdf file.\n", (int)e.GetCode());
         e.PrintErrorMsg();
         return (int)e.GetCode();
     }

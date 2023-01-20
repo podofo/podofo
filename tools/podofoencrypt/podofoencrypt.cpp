@@ -44,6 +44,7 @@ void encrypt(const string_view& inputPath, const string_view& outputPath,
             break;
     }
 
+    doc.GetMetadata().SetPdfVersion(version);
     doc.SetEncrypted(userPass, ownerPass, permissions, algorithm, keyLength);
     doc.Save(outputPath);
 }
@@ -200,7 +201,7 @@ int main(int argc, char* argv[])
     }
     catch (PdfError& e)
     {
-        fprintf(stderr, "Error: An error %i ocurred during encrypting the pdf file.\n", e.GetCode());
+        fprintf(stderr, "Error: An error %i ocurred during encrypting the pdf file.\n", (int)e.GetCode());
         e.PrintErrorMsg();
         return (int)e.GetCode();
     }

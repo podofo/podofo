@@ -85,7 +85,7 @@ void PdfInfoHelper::OutputPageInfo(ostream& outstream)
     unsigned annotCount;
     unsigned pageCount = m_doc->GetPages().GetCount();
     outstream << "Page Count: " << pageCount << endl;
-    for (int pg = 0; pg < pageCount; pg++)
+    for (unsigned pg = 0; pg < pageCount; pg++)
     {
         outstream << "Page " << pg << ":" << endl;
 
@@ -102,7 +102,7 @@ void PdfInfoHelper::OutputPageInfo(ostream& outstream)
         outstream << "\tRotation: " << curPage.GetRotationRaw() << endl;
         outstream << "\t# of Annotations: " << annotCount << endl;
 
-        for (int i = 0; i < annotCount; i++)
+        for (unsigned i = 0; i < annotCount; i++)
         {
             auto& curAnnot = curPage.GetAnnotations().GetAnnotAt(i);
 
@@ -210,11 +210,11 @@ string PdfInfoHelper::GuessFormat()
 {
     using Format = pair<double, double>;
 
-    int	pageCount = m_doc->GetPages().GetCount();
+    unsigned pageCount = m_doc->GetPages().GetCount();
     map<Format, int> sizes;
     map<Format, int>::iterator it;
     PdfRect rect;
-    for (int i = 0; i < pageCount; i++)
+    for (unsigned i = 0; i < pageCount; i++)
     {
         auto& currPage = m_doc->GetPages().GetPageAt(i);
         rect = currPage.GetMediaBox();

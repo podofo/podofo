@@ -38,12 +38,11 @@ int get_info(const string_view& filepath)
     return updateCount;
 }
 
-void extract(const char* pszFilename, int requestedNthUpdate, const char* pszOutputFilename)
+void extract(const string_view& filePath, int requestedNthUpdate, const string_view& outputFilePath)
 {
-    PdfIndirectObjectList objects;
-    PdfParser parser(objects);
-    //parser.ParseFile( pszOutputFilename, true, nExtract );
-
+    (void)filePath;
+    (void)requestedNthUpdate;
+    (void)outputFilePath;
     // TODO
     fprintf(stderr, "extraction is not implemented\n");
     exit(-2);

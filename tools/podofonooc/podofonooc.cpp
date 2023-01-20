@@ -92,8 +92,8 @@ int main(int argc, char* argv[])
                             {
                                 PdfReference ocRef = oc->GetReference();
                                 const PdfObject* ocgs;
-                                if (ocRef == ocgRef || (ocgs = objects.MustGetObject(ocRef).GetDictionary().GetKey("OCGs")) != nullptr
-                                    && ocgs->GetReference() == ocgRef)
+                                if (ocRef == ocgRef || ((ocgs = objects.MustGetObject(ocRef).GetDictionary().GetKey("OCGs")) != nullptr
+                                    && ocgs->GetReference() == ocgRef))
                                 {
                                     objects.RemoveObject(ob->GetIndirectReference());
                                     ocCount++;

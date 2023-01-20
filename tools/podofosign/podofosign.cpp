@@ -994,6 +994,7 @@ int main(int argc, char* argv[])
 // TODO: Optmize so the process is buffered
 void MySigner::ComputeSignature(charbuff& buffer, bool dryrun)
 {
+    (void)dryrun;
     int rc;
     BIO* mem = BIO_new(BIO_s_mem());
     if (!mem)
@@ -1015,7 +1016,7 @@ void MySigner::ComputeSignature(charbuff& buffer, bool dryrun)
     }
 
     rc = BIO_write(mem, m_buffer.data(), (int)m_buffer.size());
-    if (static_cast<unsigned int>(rc) != (int)m_buffer.size())
+    if (rc != (int)m_buffer.size())
     {
         PKCS7_free(pkcs7);
         BIO_free(mem);

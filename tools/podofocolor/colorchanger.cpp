@@ -95,7 +95,7 @@ void ColorChanger::start()
 {
     PdfMemDocument input;
     input.LoadFromBuffer(m_input);
-    for (int i = 0; i < input.GetPages().GetCount(); i++)
+    for (unsigned i = 0; i < input.GetPages().GetCount(); i++)
     {
         cout << "Processing page " << std::setw(6) << (i + 1) << "..." << endl << flush;
 
