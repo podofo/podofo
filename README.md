@@ -61,12 +61,15 @@ PoDoFo tools are licensed under the [GPL 2.0](https://spdx.org/licenses/GPL-2.0-
 
 ## Development quickstart
 
-There's a playground area in the repository where you can find
-have access to pre-build dependencies for some popular architectures/operating
-systems. Have a look in the [Readme](https://github.com/podofo/podofo/tree/master/playground) there.
-Also the github workflow [definition](https://github.com/podofo/podofo/tree/master/.github/workflows)
-files are very useful as they provide booststrap commands to build
-PoDoFo with latest packages from [brew](https://brew.sh/) under mac and `apt-get` under ubuntu.
+Learn by example by looking at the github workflow [definitions](https://github.com/podofo/podofo/tree/master/.github/workflows).
+There are examples using [vcpkg](https://vcpkg.io/en/getting-started.html) under
+[Windows](https://github.com/podofo/podofo/blob/master/.github/workflows/build-win-vcpkg.yml),
+[brew](https://brew.sh/) under [macos](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml),
+and `apt-get` under [ubuntu](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml), installing all the
+required dependencies and correctly bootstrapping the CMake project, building and testing the library. There's
+also playground area in the repository where you can have access to pre-build
+dependencies for some popular architectures/operating systems. Have a look in the
+[Readme](https://github.com/podofo/podofo/tree/master/playground) there.
 
 ## String encoding and buffer conventions
 

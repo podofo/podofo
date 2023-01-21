@@ -2,15 +2,15 @@
 # Playground
 
 In this folder you can find some ready to use bootstrap scripts.
-You must download deps first by running the following command:
+You must download dependencies first by running the following command:
 
     git submodule update --init
 
 Then pick the appropriate script for your platform:
 
- - linux x86_64: `bootstrap-linux.sh`;
- - macos x86_64: `bootstrap-macos.sh`;
- - Windows x64: `bootstrap-win.cmd`;
+ - linux x86_64: `bootstrap-linux.sh`
+ - macos x86_64: `bootstrap-macos.sh`
+ - Windows x64: `bootstrap-win.cmd`
 
 Run it from the command line and then either:
 
@@ -23,3 +23,8 @@ Run it from the command line and then either:
 You can run the tests in the library by entering the
 build directory and using [`ctest`](https://cmake.org/cmake/help/latest/manual/ctest.1.html),
 for example `cd build-linux-debug && ctest`.
+
+# Disclaimer
+
+The dependencies are supplied only for development purposes and comes
+with no warranty. They may contain security flaws and be unsafe to use.
