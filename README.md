@@ -62,18 +62,22 @@ PoDoFo tools are licensed under the [GPL 2.0](https://spdx.org/licenses/GPL-2.0-
 ## Development quickstart
 
 Learn by example by looking at the github workflow [definitions](https://github.com/podofo/podofo/tree/master/.github/workflows).
-There are examples using [vcpkg](https://vcpkg.io/en/getting-started.html) under
+There are examples using [`vcpkg`](https://vcpkg.io/) under
 [Windows](https://github.com/podofo/podofo/blob/master/.github/workflows/build-win-vcpkg.yml),
-[brew](https://brew.sh/) under [macos](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml),
+[`brew`](https://brew.sh/) under [macos](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml),
 and `apt-get` under [ubuntu](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml), installing all the
-required dependencies and correctly bootstrapping the CMake project, building and testing the library. There's
-also playground area in the repository where you can have access to pre-build
+required dependencies, bootstrapping the CMake project, building and testing the library. In Windows,
+follow the vcpkg [quickstart](https://vcpkg.io/en/getting-started.html) guide to setup the package manager repository first.
+It may be also useful to set the enviroment variable `VCPKG_DEFAULT_TRIPLET` to `x64-windows` to default installing 64 bit dependencies
+and define a `VCPKG_INSTALLATION_ROOT` variable with the location of the repository as created in the quickstart.
+
+Additionally there's a playground area in the repository where you can have access to pre-build
 dependencies for some popular architectures/operating systems. Have a look in the
 [Readme](https://github.com/podofo/podofo/tree/master/playground) there.
 
 ## String encoding and buffer conventions
 
-All ```std::strings``` or ```std::string_view``` in the library are inteded
+All ```std::strings``` or ```std::string_view``` in the library are intended
 to hold UTF-8 encoded string content. ```PdfString``` and ```PdfName``` constructors
 accept UTF-8 encoded strings by default (```PdfName``` accept only characters in the
 ```PdfDocEncoding``` char set, though). ```charbuff``` abd ```bufferview```
@@ -139,7 +143,7 @@ The idea is to implement a more explicit mehcanism that makes more clear
 and/or enforces the fact that the incremental update must be performed on the
 same file in case of file loaded documents or that underlying buffer will grow
 following subsequent operations in case of buffer loaded documents.
-Before that, as a workardound, a couple of examples showing the correct operation
+Before that, as a workaround, a couple of examples showing the correct operation
 to either update or sign a document (file or buffer loaded) are presented.
 Save an update on a file loaded document, by copying the source to another
 destination:
@@ -232,7 +236,7 @@ to receive some feedback and discuss some basic design choices.
 ## Authors
 
 PoDoFo is currently developed and mantained by
-[Francesco Pretto](mailto:ceztko@gmail.com), together Dominik Seichter an others. See the file
+[Francesco Pretto](mailto:ceztko@gmail.com), together with Dominik Seichter an others. See the file
 [AUTHORS.md](https://github.com/podofo/podofo/blob/master/AUTHORS.md) for more details.
 Please don't use personal emails for technical support requests, but create
-a github [issue](https://github.com/podofo/podofo/issues) instead.
+github [issues](https://github.com/podofo/podofo/issues) instead.

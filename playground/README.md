@@ -26,5 +26,6 @@ for example `cd build-linux-debug && ctest`.
 
 # Disclaimer
 
-The dependencies are supplied only for development purposes and comes
-with no warranty. They may contain security flaws and be unsafe to use.
+The dependencies are supplied only for development purposes and come
+with no warranty. They are not frequently updated, may contain security
+flaws and be unsafe to use.
