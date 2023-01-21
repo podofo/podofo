@@ -37,6 +37,7 @@ template <typename T,
           typename std::enable_if<std::is_integral<T>::value &&
                                   !std::is_signed<T>::value>::type* = nullptr>
 constexpr T SaturatedNegWrapper(T value) {
+  (void)value;
   return T(0);
 }
 

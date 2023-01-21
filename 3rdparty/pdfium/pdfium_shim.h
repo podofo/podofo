@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <numerics/safe_math.h>
 
-#define DCHECK
+#define DCHECK(cond)
 #define DCHECK_EQ(x, y)
 
 namespace fxcrt

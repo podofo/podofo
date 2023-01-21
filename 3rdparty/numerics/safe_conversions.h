@@ -166,6 +166,7 @@ template <typename Dst, typename Src, typename Enable = void>
 struct SaturateFastOp {
   static constexpr bool is_supported = false;
   static constexpr Dst Do(Src value) {
+    (void)value;
     // Force a compile failure if instantiated.
     return CheckOnFailure::template HandleFailure<Dst>();
   }

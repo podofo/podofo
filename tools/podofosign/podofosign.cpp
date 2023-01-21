@@ -50,7 +50,7 @@ protected:
     /**
      * Should return the signature /Filter, for example "Adobe.PPKLite"
      */
-    virtual string GetSignatureFilter() const
+    string GetSignatureFilter() const override
     {
         return "Adobe.PPKLite";
     }
@@ -58,12 +58,12 @@ protected:
     /**
      * Should return the signature /SubFilter, for example "ETSI.CAdES.detached"
      */
-    virtual string GetSignatureSubFilter() const
+    string GetSignatureSubFilter() const override
     {
         return "adbe.pkcs7.detached";
     }
 
-    virtual string GetSignatureType() const
+    string GetSignatureType() const override
     {
         return "Sig";
     }

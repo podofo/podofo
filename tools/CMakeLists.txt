@@ -4,6 +4,11 @@ else()
     return()
 endif()
 
+if (NOT MSVC)
+    # TODO: Remove me when all the tools are cleaned of use of C functions
+    add_compile_options(-Wno-deprecated-declarations)
+endif()
+
 add_subdirectory(podofobox)
 add_subdirectory(podofocolor)
 add_subdirectory(podofocountpages)
