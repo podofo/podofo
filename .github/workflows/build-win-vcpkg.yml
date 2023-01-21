@@ -23,10 +23,10 @@ jobs:
           submodules: true
 
     - name: Install deps
-      run: vcpkg install fontconfig freetype libxml2 openssl libjpeg-turbo libpng tiff
+      run: vcpkg install fontconfig freetype libxml2 openssl libjpeg-turbo libpng tiff zlib
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -A x64 -DARCH=Win64 -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
+      run: cmake -B ${{github.workspace}}\build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -A x64 -DARCH=Win64 -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
 
       # NOTE: The cmake build is forced to be single
       # configuration (either Debug or Release) but it
@@ -34,8 +34,8 @@ jobs:
       # because of MSVC solution oddities
 
     - name: Build
-      run: cmake --build ${{github.workspace}}/build -config ${{env.BUILD_TYPE}}
+      run: cmake --build ${{github.workspace}}\build -config ${{env.BUILD_TYPE}}
 
     - name: Test
-      working-directory: ${{github.workspace}}/build
+      working-directory: ${{github.workspace}}\build
       run: ctest ${{ github.event.inputs.ctestArgs }}
