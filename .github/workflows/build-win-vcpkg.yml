@@ -12,6 +12,8 @@ on:
 
 env:
   BUILD_TYPE: Release
+  VCPKG_DEFAULT_TRIPLET: x64-windows
+  # NOTE: The default is "x86-windows"
 
 jobs:
   build:
@@ -26,7 +28,7 @@ jobs:
       run: vcpkg install fontconfig freetype libxml2 openssl libjpeg-turbo libpng tiff zlib
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}\build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -A x64 -DARCH=Win64 -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
+      run: cmake -B ${{github.workspace}}\build -S . -A x64 -DCMAKE_TOOLCHAIN_FILE=$($env:VCPKG_INSTALLATION_ROOT)\scripts\buildsystems\vcpkg.cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DARCH=Win64
 
       # NOTE: The cmake build is forced to be single
       # configuration (either Debug or Release) but it
