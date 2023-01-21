@@ -28,7 +28,7 @@ jobs:
       run: vcpkg install fontconfig freetype libxml2 openssl libjpeg-turbo libpng tiff zlib
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}\build -S . -A x64 -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DARCH=Win64
+      run: cmake -B ${{github.workspace}}\build -S . -A x64 -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       # NOTE1: The cmake build is forced to be single
       # configuration (either Debug or Release) but it
