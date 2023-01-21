@@ -1516,7 +1516,7 @@ void PdfEncryptSHABase::ComputeHash(const unsigned char* pswd, unsigned pswdLen,
             // preconditions, but these should be clearly stated
             rc = EVP_EncryptInit_ex(aes.get(), s_SSL.Aes128, nullptr, block, block + 16);
             rc = EVP_EncryptUpdate(aes.get(), data, &dataOutMoved, data, dataLen);
-            PODOFO_ASSERT(dataOutMoved == dataLen);
+            PODOFO_ASSERT((unsigned)dataOutMoved == dataLen);
 
             unsigned sum = 0;
             for (unsigned j = 0; j < 16; j++)
