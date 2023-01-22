@@ -7,7 +7,7 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfPainterExtensions.h"
 #include <podofo/private/numbers_compat.h>
-#include <podofo/base/PdfPainter.h>
+#include <podofo/main/PdfPainter.h>
 
 using namespace std;
 using namespace PoDoFo;

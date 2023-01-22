@@ -11,7 +11,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include <podofo/base/basedefs.h>
+#include <podofo/main/basedefs.h>
 
 #define CHECK_FT_RC(rc, func) if (rc != 0)\
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::FreeType, "Function " #func " failed")

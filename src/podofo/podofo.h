@@ -13,7 +13,7 @@
  * all files required by podofo at once.
  */
 
-#include "podofo-base.h"
+#include "podofo-main.h"
 #include "podofo-staging.h"
 
 #endif // PODOFO_H

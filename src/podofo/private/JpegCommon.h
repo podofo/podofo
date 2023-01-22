@@ -1,7 +1,7 @@
 #ifndef JPEG_COMMON_H
 #define JPEG_COMMON_H
 
-#include <podofo/base/PdfDeclarations.h>
+#include <podofo/main/PdfDeclarations.h>
 #include <csetjmp>
 
 extern "C" {

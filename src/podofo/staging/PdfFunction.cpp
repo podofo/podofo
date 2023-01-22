@@ -6,9 +6,9 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfFunction.h"
 
-#include <podofo/base/PdfArray.h>
-#include <podofo/base/PdfDictionary.h>
-#include <podofo/base/PdfObjectStream.h>
+#include <podofo/main/PdfArray.h>
+#include <podofo/main/PdfDictionary.h>
+#include <podofo/main/PdfObjectStream.h>
 
 using namespace PoDoFo;
 

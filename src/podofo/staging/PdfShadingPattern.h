@@ -6,9 +6,9 @@
 #ifndef PDF_SHADING_PATTERN_H
 #define PDF_SHADING_PATTERN_H
 
-#include <podofo/base/PdfDeclarations.h>
-#include <podofo/base/PdfName.h>
-#include <podofo/base/PdfElement.h>
+#include <podofo/main/PdfDeclarations.h>
+#include <podofo/main/PdfName.h>
+#include <podofo/main/PdfElement.h>
 
 namespace PoDoFo {
 

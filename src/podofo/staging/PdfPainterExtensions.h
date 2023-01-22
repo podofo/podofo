@@ -7,7 +7,7 @@
 #ifndef PDF_PAINTER_EXTENSIONS_H
 #define PDF_PAINTER_EXTENSIONS_H
 
-#include <podofo/base/PdfDeclarations.h>
+#include <podofo/main/PdfDeclarations.h>
 
 namespace PoDoFo {
 

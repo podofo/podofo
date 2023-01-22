@@ -6,11 +6,11 @@
 #ifndef PDF_FUNCTION_H
 #define PDF_FUNCTION_H
 
-#include <podofo/base/PdfDeclarations.h>
+#include <podofo/main/PdfDeclarations.h>
 
 #include <list>
 
-#include <podofo/base/PdfElement.h>
+#include <podofo/main/PdfElement.h>
 
 namespace PoDoFo {
 

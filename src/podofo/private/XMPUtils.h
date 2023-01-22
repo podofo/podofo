@@ -7,8 +7,8 @@
 #ifndef PODOFO_PDFA_FUNCTIONS_H
 #define PODOFO_PDFA_FUNCTIONS_H
 
-#include <podofo/base/PdfXMPMetadata.h>
-#include <podofo/base/PdfXMPPacket.h>
+#include <podofo/main/PdfXMPMetadata.h>
+#include <podofo/main/PdfXMPPacket.h>
 
 namespace PoDoFo
 {

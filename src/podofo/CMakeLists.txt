@@ -23,14 +23,14 @@ include_directories(
 add_subdirectory(private)
 
 set(PODOFO_BASE_HEADERS
-    podofo-base.h
+    podofo-main.h
     podofo-staging.h
     podofo.h
 )
 set(PODOFO_CONFIG_HEADER "${CMAKE_CURRENT_BINARY_DIR}/podofo_config.h")
 
 install(FILES ${PODOFO_BASE_HEADERS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/podofo")
-install(FILES ${PODOFO_CONFIG_HEADER} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/podofo/base")
+install(FILES ${PODOFO_CONFIG_HEADER} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/podofo/main")
 
 set(PODOFO_SOURCES ${PODOFO_BASE_HEADERS} ${PODOFO_CONFIG_HEADER})
 if(PODOFO_SHARED AND WIN32)
@@ -52,7 +52,7 @@ macro(add_source subdir subdir_path)
     list(FILTER HEADER_FILES EXCLUDE REGEX "\.cpp$")
 endmacro()
 
-foreach(subdir common base staging)
+foreach(subdir common main staging)
     add_source(${subdir} "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}")
     install(FILES ${HEADER_FILES} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/podofo/${subdir}")
 endforeach()
@@ -60,8 +60,8 @@ endforeach()
 if(NOT PODOFO_HAVE_FONTCONFIG)
     # Remove FontConfig source if not needed
     list(REMOVE_ITEM PODOFO_SOURCES
-        base/PdfFontConfigWrapper.h
-        base/PdfFontConfigWrapper.cpp
+        main/PdfFontConfigWrapper.h
+        main/PdfFontConfigWrapper.cpp
     )
 endif()
 

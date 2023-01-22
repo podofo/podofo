@@ -8,7 +8,7 @@
 #define PDF_FONT_STANDARD14_DATA_H
 
 #include "PdfDeclarationsPrivate.h"
-#include <podofo/base/PdfFontMetricsStandard14.h>
+#include <podofo/main/PdfFontMetricsStandard14.h>
 
 namespace PoDoFo {
 

@@ -7,7 +7,7 @@
 #ifndef PODOFO_OPERATOR_UTILS_H
 #define PODOFO_OPERATOR_UTILS_H
 
-#include <podofo/base/PdfDeclarations.h>
+#include <podofo/main/PdfDeclarations.h>
 
 namespace PoDoFo
 {

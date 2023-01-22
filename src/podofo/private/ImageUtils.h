@@ -7,7 +7,7 @@
 #ifndef IMAGE_UTILS_H
 #define IMAGE_UTILS_H
 
-#include <podofo/base/PdfOutputStream.h>
+#include <podofo/main/PdfOutputStream.h>
 
 #ifdef PODOFO_HAVE_JPEG_LIB
 #include <podofo/private/JpegCommon.h>

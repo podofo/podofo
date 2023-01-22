@@ -30,6 +30,6 @@ TEST_CASE("ErrorFilePath")
     catch (const PdfError& err)
     {
         auto path = err.GetCallStack().front().GetFilePath();
-        REQUIRE(fs::u8path(path) == fs::u8path("base") / "PdfVariant.cpp");
+        REQUIRE(fs::u8path(path) == fs::u8path("main") / "PdfVariant.cpp");
     }
 }

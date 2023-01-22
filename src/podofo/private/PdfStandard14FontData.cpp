@@ -6,7 +6,7 @@
 
 #include "PdfDeclarationsPrivate.h"
 #include "PdfStandard14FontData.h"
-#include <podofo/base/PdfFontMetricsStandard14.h>
+#include <podofo/main/PdfFontMetricsStandard14.h>
 
 using namespace std;
 using namespace PoDoFo;

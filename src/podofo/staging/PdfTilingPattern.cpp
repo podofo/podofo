@@ -8,16 +8,16 @@
 
 #include <iomanip>
 
-#include <podofo/base/PdfDocument.h>
-#include <podofo/base/PdfArray.h>
-#include <podofo/base/PdfColor.h>
-#include <podofo/base/PdfDictionary.h>
-#include <podofo/base/PdfRect.h>
-#include <podofo/base/PdfObjectStream.h>
-#include <podofo/base/PdfWriter.h>
-#include <podofo/base/PdfImage.h>
-#include <podofo/base/PdfStringStream.h>
-#include <podofo/base/PdfStreamDevice.h>
+#include <podofo/main/PdfDocument.h>
+#include <podofo/main/PdfArray.h>
+#include <podofo/main/PdfColor.h>
+#include <podofo/main/PdfDictionary.h>
+#include <podofo/main/PdfRect.h>
+#include <podofo/main/PdfObjectStream.h>
+#include <podofo/main/PdfWriter.h>
+#include <podofo/main/PdfImage.h>
+#include <podofo/main/PdfStringStream.h>
+#include <podofo/main/PdfStreamDevice.h>
 
 #include "PdfFunction.h"
 

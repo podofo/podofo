@@ -6,9 +6,9 @@
 #include "PdfDeclarationsPrivate.h"
 #include "PdfFiltersPrivate.h"
 
-#include <podofo/base/PdfDictionary.h>
-#include <podofo/base/PdfTokenizer.h>
-#include <podofo/base/PdfStreamDevice.h>
+#include <podofo/main/PdfDictionary.h>
+#include <podofo/main/PdfTokenizer.h>
+#include <podofo/main/PdfStreamDevice.h>
 
 using namespace std;
 using namespace PoDoFo;

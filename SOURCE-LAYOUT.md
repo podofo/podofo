@@ -16,7 +16,7 @@ In this way it's easy to just include `src` when using PoDoFo
 externally of the source tree, simulating the layout of prefixed
 `include` after installation. The content of `podofo` is:
 
-- `base`: base source directory with most of the library classes;
+- `main`: source directory with most of the library classes;
 - `common`: directory with common general purpose headers that
   are deployed as part of the public API;
 - `staging`: directory with immature PoDoFo API extensions classes,

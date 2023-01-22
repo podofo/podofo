@@ -29,7 +29,7 @@
  // Must be defined before base declarations
 #define PODOFO_UNIT_TEST(classname) friend class classname
 
-#include <podofo/base/PdfDeclarations.h>
+#include <podofo/main/PdfDeclarations.h>
 
 #ifdef _WIN32
 // Microsft itself assumes little endian
