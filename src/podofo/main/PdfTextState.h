@@ -16,15 +16,12 @@ namespace PoDoFo
     // TODO: Add missing properties ISO 32000-1:2008 "9.3 Text State Parameters and Operators"
     struct PODOFO_API PdfTextState final
     {
-    public:
-        PdfTextState();
-    public:
-        const PdfFont* Font;
-        double FontSize;
-        double FontScale;
-        double CharSpacing;
-        double WordSpacing;
-        PdfTextRenderingMode RenderingMode;
+        const PdfFont* Font = nullptr;
+        double FontSize = -1;
+        double FontScale = 1;
+        double CharSpacing = 0;
+        double WordSpacing = 0;
+        PdfTextRenderingMode RenderingMode = PdfTextRenderingMode::Fill;
     };
 }
 

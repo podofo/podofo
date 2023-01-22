@@ -15,14 +15,11 @@ namespace PoDoFo
     // TODO: Add missing properties ISO 32000-1:2008 "8.4 Graphics State"
     struct PODOFO_API PdfGraphicsState final
     {
-    public:
-        PdfGraphicsState();
-    public:
         Matrix CTM;
-        double LineWidth;
-        double MiterLimit;
-        PdfLineCapStyle LineCapStyle;
-        PdfLineJoinStyle LineJoinStyle;
+        double LineWidth = 0;
+        double MiterLimit = 10;
+        PdfLineCapStyle LineCapStyle = PdfLineCapStyle::Square;
+        PdfLineJoinStyle LineJoinStyle = PdfLineJoinStyle::Miter;
         std::string RenderingIntent;
         PdfColor FillColor;
         PdfColor StrokeColor;
