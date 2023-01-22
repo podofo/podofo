@@ -11,5 +11,6 @@
 #include "contrib/PdfFunction.h"
 #include "contrib/PdfShadingPattern.h"
 #include "contrib/PdfTilingPattern.h"
+#include "contrib/PdfPainterExtensions.h"
 
 #endif // PODOFO_CONTRIB_H

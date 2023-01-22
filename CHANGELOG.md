@@ -1,4 +1,7 @@
 ## Version 0.10.0
+- PdfPainter: Reviewed API, added full state inspection,
+  Moved SmoothCurveTo, QuadCurveTo,
+  SmoothQuadCurveTo, ArcTo, Arc() to an helper structure
 - PdfFontMetrics: Added FilePath/FaceIndex for debugging, when avaialable
 - PdfFont: Renamed GetStringLength() overloads with
   PdfString to GetEncodedStringLength()

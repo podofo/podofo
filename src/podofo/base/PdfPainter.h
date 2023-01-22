@@ -10,11 +10,11 @@
 #include "PdfDeclarations.h"
 
 #include "PdfRect.h"
-#include "PdfColor.h"
 #include "PdfCanvas.h"
 #include "PdfTextState.h"
 #include "PdfGraphicsState.h"
 #include "PdfStringStream.h"
+#include <podofo/common/StateStack.h>
 
 #include <podofo/contrib/PdfShadingPattern.h>
 #include <podofo/contrib/PdfTilingPattern.h>
@@ -24,10 +24,6 @@ namespace PoDoFo {
 class PdfExtGState;
 class PdfFont;
 class PdfImage;
-class PdfMemDocument;
-class PdfName;
-class PdfObject;
-class PdfReference;
 class PdfObjectStream;
 class PdfXObject;
 
@@ -41,6 +37,16 @@ enum class PdfPainterFlags
 };
 
 class PdfPainter;
+
+struct PODOFO_API PdfPainterState final
+{
+    Matrix CTM;
+    PdfGraphicsState GraphicsState;
+    PdfTextState TextState;
+    unsigned TextObjectCount = 0;
+};
+
+using PdfPainterStateStack = StateStack<PdfPainterState>;
 
 class PODOFO_API PdfGraphicsStateWrapper final
 {
@@ -307,6 +313,14 @@ public:
      */
     void Ellipse(double x, double y, double width, double height);
 
+    /** Add an arc into the current path
+     *  \param x x coordinate of the ellipse (left coordinate)
+     *  \param y y coordinate of the ellipse (top coord
+     *	\angle1 in radians
+     *	\angle2 in radians
+     */
+    void Arc(double x, double y, double radius, double angle1, double angle2);
+
     /** Add a circle into the current path
      *  \param x x center coordinate of the circle
      *  \param y y coordinate of the circle
@@ -482,68 +496,6 @@ public:
      */
     void CubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3);
 
-    /** Append a horizontal line to the current path
-     *  Matches the SVG 'H' operator
-     *
-     *  \param x x coordinate to draw the line to
-     */
-    void HorizontalLineTo(double x);
-
-    /** Append a vertical line to the current path
-     *  Matches the SVG 'V' operator
-     *
-     *  \param y y coordinate to draw the line to
-     */
-    void VerticalLineTo(double y);
-
-    /** Append a smooth bezier curve to the current path
-     *  Matches the SVG 'S' operator.
-     *
-     *  \param x2 x coordinate of the second control point
-     *  \param y2 y coordinate of the second control point
-     *  \param x3 x coordinate of the end point, which is the new current point
-     *  \param y3 y coordinate of the end point, which is the new current point
-     */
-    void SmoothCurveTo(double x2, double y2, double x3, double y3);
-
-    /** Append a quadratic bezier curve to the current path
-     *  Matches the SVG 'Q' operator.
-     *
-     *  \param x1 x coordinate of the first control point
-     *  \param y1 y coordinate of the first control point
-     *  \param x3 x coordinate of the end point, which is the new current point
-     *  \param y3 y coordinate of the end point, which is the new current point
-     */
-    void QuadCurveTo(double x1, double y1, double x3, double y3);
-
-    /** Append a smooth quadratic bezier curve to the current path
-     *  Matches the SVG 'T' operator.
-     *
-     *  \param x3 x coordinate of the end point, which is the new current point
-     *  \param y3 y coordinate of the end point, which is the new current point
-     */
-    void SmoothQuadCurveTo(double x3, double y3);
-
-    /** Append a Arc to the current path
-     *  Matches the SVG 'A' operator.
-     *
-     *  \param x x coordinate of the start point
-     *  \param y y coordinate of the start point
-     *  \param radiusX x coordinate of the end point, which is the new current point
-     *  \param radiusY y coordinate of the end point, which is the new current point
-     *	\param rotation degree of rotation in radians
-     *	\param large large or small portion of the arc
-     *	\param sweep sweep?
-     */
-    void ArcTo(double x, double y, double radiusX, double radiusY,
-        double rotation, bool large, bool sweep);
-
-    /**
-     *	\angle1 in radians
-     *	\angle2 in radians
-     */
-    bool Arc(double x, double y, double radius, double angle1, double angle2);
-
     /** Close the current path. Matches the PDF 'h' operator.
      */
     void Close();
@@ -581,6 +533,10 @@ public:
      */
     void EndPath();
 
+    void BeginMarkedContext(const std::string_view& tag);
+
+    void EndMarkedContext();
+
     /** Save the current graphics settings onto the graphics
      *  stack. Operator 'q' in PDF.
      *  This call has to be balanced with a corresponding call
@@ -615,15 +571,14 @@ public:
      */
     unsigned short GetPrecision() const;
 
-    void BeginMarkedContext(const std::string_view & tag);
-    void EndMarkedContext();
-
 public:
-    inline const PdfTextStateWrapper& GetTextState() const { return m_PainterTextState; }
-    inline PdfTextStateWrapper& GetTextState() { return m_PainterTextState; }
+    inline const PdfPainterStateStack& GetStateStack() const { return m_StateStack; }
 
-    inline const PdfGraphicsStateWrapper& GetGraphicsState() const { return m_PainterGraphicsState; }
-    inline PdfGraphicsStateWrapper& GetGraphicsState() { return m_PainterGraphicsState; }
+    inline const PdfTextStateWrapper& GetTextState() const { return m_TextState; }
+    inline PdfTextStateWrapper& GetTextState() { return m_TextState; }
+
+    inline const PdfGraphicsStateWrapper& GetGraphicsState() const { return m_GraphicsState; }
+    inline PdfGraphicsStateWrapper& GetGraphicsState() { return m_GraphicsState; }
 
     /** Set the tab width for the DrawText operation.
      *  Every tab '\\t' is replaced with tabWidth
@@ -679,8 +634,23 @@ private:
     void setCharSpacing(double value);
     void setWordSpacing(double value);
     void setTextRenderingMode(PdfTextRenderingMode value);
+    void save();
+    void restore();
+    void reset();
 
 private:
+    enum PainterStatus
+    {
+        Default = 1,
+        TextObject = 2,
+    };
+
+private:
+    void moveTo(double x, double y);
+    void lineTo(double x, double y);
+    void cubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3);
+    void close();
+
     /** Gets the text divided into individual lines, using the current font and clipping rectangle.
      *
      *  \param str the text which should be drawn
@@ -722,8 +692,6 @@ private:
     void drawMultiLineText(const std::string_view& str, double x, double y, double width, double height,
         PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool clip, bool skipSpaces);
 
-    void internalArc(double x, double y, double ray, double ang1, double ang2, bool contFlg);
-
     void setLineWidth(double width);
 
     /** Expand all tab characters in a string
@@ -738,12 +706,15 @@ private:
     std::string expandTabs(const std::string_view& str) const;
     void checkStream();
     void checkFont();
-    void checkTextModeOpened();
-    void checkTextModeClosed();
     void finishDrawing();
+    void checkStatus(int expectedStatus);
+
+    void openTextObject();
+    void closeTextObject();
 
 private:
     PdfPainterFlags m_flags;
+    PainterStatus m_painterStatus;
 
     /** All drawing operations work on this stream.
      *  This object may not be nullptr. If it is nullptr any function accessing it should
@@ -756,41 +727,19 @@ private:
      */
     PdfCanvas* m_canvas;
 
-    PdfGraphicsState m_GraphicsState;
-    PdfTextState m_TextState;
-    PdfGraphicsStateWrapper m_PainterGraphicsState;
-    PdfTextStateWrapper m_PainterTextState;
+    PdfPainterStateStack m_StateStack;
+
+    PdfGraphicsStateWrapper m_GraphicsState;
+    PdfTextStateWrapper m_TextState;
 
     /** Every tab '\\t' is replaced with m_TabWidth
      *  spaces before drawing text. Default is a value of 4
      */
     unsigned short m_TabWidth;
 
-    /** Is between BT and ET
-     */
-    bool m_isTextOpen;
-
     /** temporary stream buffer
      */
     PdfStringStream  m_tmpStream;
-
-    // TODO: Next comment was found like this and it's is really bad.
-    // Document the next fields accurately, possibly moving them
-    // to a structure
-
-    // points for this operation
-    // last "current" point
-    // "reflect points"
-    double m_lpx;
-    double m_lpy;
-    double m_lpx2;
-    double m_lpy2;
-    double m_lpx3;
-    double m_lpy3;
-    double m_lcx;
-    double m_lcy;
-    double m_lrx;
-    double m_lry;
 };
 
 }

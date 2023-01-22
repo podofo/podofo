@@ -1,11 +1,9 @@
 ### 0.10
-- PdfPainter: Review API, move SmoothCurveTo, QuadCurveTo,
-  SmoothQuadCurveTo, ArcTo, Arc() an helper structure
+- PdfPainter: Fix Arc(), getMultiLineTextAsLines()
 
 ### 0.11
 - PdfFontManager: Add font hash to cache descriptor
 - Add high-level signing API
-- PdfPainter: Fix PdfPainter::Arc(), PdfPainter::getMultiLineTextAsLines
 
 ### 1.0
 - Restore manuals

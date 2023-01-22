@@ -115,6 +115,7 @@ TEST_CASE("testCreateDelete")
         // write 2. page
         auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
         painter.SetCanvas(page);
+        painter.GetTextState().SetFont(*font, 16.0);
         painter.DrawText("Page 2", 200, 200);
         painter.FinishDrawing();
         REQUIRE(doc.GetPages().GetCount() == 2);
@@ -128,6 +129,7 @@ TEST_CASE("testCreateDelete")
         // write 3. page
         auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
         painter.SetCanvas(page);
+        painter.GetTextState().SetFont(*font, 16.0);
         painter.DrawText("Page 3", 200, 200);
         painter.FinishDrawing();
         REQUIRE(doc.GetPages().GetCount() == 2);
