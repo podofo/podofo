@@ -1,4 +1,5 @@
 ## Version 0.10.0
+- Renamed base source folder -> main
 - PdfPainter: Reviewed API, added full state inspection,
   Moved SmoothCurveTo, QuadCurveTo,
   SmoothQuadCurveTo, ArcTo, Arc() to an helper structure
