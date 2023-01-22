@@ -16,8 +16,8 @@
 #include "PdfStringStream.h"
 #include <podofo/common/StateStack.h>
 
-#include <podofo/contrib/PdfShadingPattern.h>
-#include <podofo/contrib/PdfTilingPattern.h>
+#include <podofo/staging/PdfShadingPattern.h>
+#include <podofo/staging/PdfTilingPattern.h>
 
 namespace PoDoFo {
 

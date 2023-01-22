@@ -14,6 +14,6 @@
  */
 
 #include "podofo-base.h"
-#include "podofo-contrib.h"
+#include "podofo-staging.h"
 
 #endif // PODOFO_H

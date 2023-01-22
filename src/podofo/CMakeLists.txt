@@ -24,7 +24,7 @@ add_subdirectory(private)
 
 set(PODOFO_BASE_HEADERS
     podofo-base.h
-    podofo-contrib.h
+    podofo-staging.h
     podofo.h
 )
 set(PODOFO_CONFIG_HEADER "${CMAKE_CURRENT_BINARY_DIR}/podofo_config.h")
@@ -52,7 +52,7 @@ macro(add_source subdir subdir_path)
     list(FILTER HEADER_FILES EXCLUDE REGEX "\.cpp$")
 endmacro()
 
-foreach(subdir common base contrib)
+foreach(subdir common base staging)
     add_source(${subdir} "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}")
     install(FILES ${HEADER_FILES} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/podofo/${subdir}")
 endforeach()
