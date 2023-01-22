@@ -21,6 +21,7 @@
 #include "PdfFont.h"
 
 #include <podofo/private/outstringstream.h>
+#include <podofo/common/StateStack.h>
 
 using namespace std;
 using namespace cmn;
@@ -94,22 +95,7 @@ using StringChunk = list<StatefulString>;
 using StringChunkPtr = unique_ptr<StringChunk>;
 using StringChunkList = list<StringChunkPtr>;
 using StringChunkListPtr = unique_ptr<StringChunkList>;
-
-class TextStateStack
-{
-private:
-    stack<TextState> m_states;
-    TextState *m_current;
-public:
-    TextState * const & Current;
-public:
-    TextStateStack();
-    void Push();
-    void Pop(unsigned popCount = 1);
-    unsigned GetSize() const;
-private:
-    void push(const TextState &state);
-};
+using TextStateStack = StateStack<TextState>;
 
 struct XObjectState
 {
@@ -851,39 +837,6 @@ vector<double> StatefulString::computeLengths(const vector<double>& rawLengths)
         ret.push_back((Vector2(rawLengths[i], 0) * State.CTM.GetScalingRotation()).GetLength());
 
     return ret;
-}
-
-TextStateStack::TextStateStack()
-    : m_current(nullptr), Current(m_current)
-{
-    push({ });
-}
-
-void TextStateStack::Push()
-{
-    push(m_states.top());
-}
-
-void TextStateStack::Pop(unsigned popCount)
-{
-    if (popCount >= m_states.size())
-        throw runtime_error("Can't pop out all the states in the stack");
-
-    for (unsigned i = 0; i < popCount; i++)
-        m_states.pop();
-
-    m_current = &m_states.top();
-}
-
-unsigned TextStateStack::GetSize() const
-{
-    return (unsigned)m_states.size();
-}
-
-void TextStateStack::push(const TextState & state)
-{
-    m_states.push(state);
-    m_current = &m_states.top();
 }
 
 ExtractionContext::ExtractionContext(vector<PdfTextEntry>& entries, const PdfPage& page, const string_view& pattern,
