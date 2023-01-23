@@ -2512,6 +2512,8 @@ unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
             baseEncoding = PdfEncodingMapFactory::MacRomanEncodingInstance();
         else if (baseEncodingName == "MacExpertEncoding")
             baseEncoding = PdfEncodingMapFactory::MacExpertEncodingInstance();
+        else if (baseEncodingName == "StandardEncoding")
+            baseEncoding = PdfEncodingMapFactory::StandardEncodingInstance();
         else
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Invalid /BaseEncoding {}", baseEncodingName.GetString());;
     }
