@@ -71,7 +71,7 @@ add_custom_target(uninstall "${CMAKE_COMMAND}"
 
 if(WIN32)
     # We must explicitly link to the core win32 libraries
-    set(PLATFORM_SYSTEM_LIBRARIES kernel32 user32 gdi32 winspool comdlg32 advapi32 shell32 ole32 oleaut32 uuid ws2_32)
+    set(PLATFORM_SYSTEM_LIBRARIES kernel32 user32 gdi32 winspool comdlg32 advapi32 shell32 ole32 oleaut32 uuid ws2_32 Crypt32)
 else()
     set(PLATFORM_SYSTEM_LIBRARIES)
 endif()

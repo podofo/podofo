@@ -75,15 +75,15 @@ add_compile_definitions(LIBIDN_STATIC)
 
 if(WIN32)
     # Manually specify SSL
-    set(OPENSSL_INCLUDE_DIR "${DEPS_PATH}/openssl/include" CACHE PATH "" FORCE)
-    set(LIB_EAY_DEBUG "${DEPS_PATH}/openssl/lib/${ARCH}/cryptod.lib;Crypt32.lib" CACHE FILEPATH "" FORCE)
-    set(LIB_EAY_RELEASE "${DEPS_PATH}/openssl/lib/${ARCH}/crypto.lib;Crypt32.lib" CACHE FILEPATH "" FORCE)
-    set(SSL_EAY_DEBUG "${DEPS_PATH}/openssl/lib/${ARCH}/ssld.lib" CACHE FILEPATH "" FORCE)
-    set(SSL_EAY_RELEASE "${DEPS_PATH}/openssl/lib/${ARCH}/ssl.lib" CACHE FILEPATH "" FORCE)
+    #set(OPENSSL_INCLUDE_DIR "${DEPS_PATH}/openssl/include" CACHE PATH "" FORCE)
+    #set(LIB_EAY_DEBUG "${DEPS_PATH}/openssl/lib/${ARCH}/cryptod.lib;Crypt32.lib" CACHE FILEPATH "" FORCE)
+    #set(LIB_EAY_RELEASE "${DEPS_PATH}/openssl/lib/${ARCH}/crypto.lib;Crypt32.lib" CACHE FILEPATH "" FORCE)
+    #set(SSL_EAY_DEBUG "${DEPS_PATH}/openssl/lib/${ARCH}/ssld.lib" CACHE FILEPATH "" FORCE)
+    #set(SSL_EAY_RELEASE "${DEPS_PATH}/openssl/lib/${ARCH}/ssl.lib" CACHE FILEPATH "" FORCE)
     # Libxml2
-    set(LIBXML2_LIBRARY "optimized;${DEPS_PATH}/libxml2/lib/${ARCH}/libxml2.lib;debug;${DEPS_PATH}/libxml2/lib/${ARCH}/libxml2d.lib" CACHE FILEPATH "" FORCE)
+    #set(LIBXML2_LIBRARY "optimized;${DEPS_PATH}/libxml2/lib/${ARCH}/libxml2.lib;debug;${DEPS_PATH}/libxml2/lib/${ARCH}/libxml2d.lib" CACHE FILEPATH "" FORCE)
     # Fontconfig
-    set(Fontconfig_LIBRARY "optimized;${DEPS_PATH}/fontconfig/lib/${ARCH}/fontconfig.lib;debug;${DEPS_PATH}/fontconfig/lib/${ARCH}/fontconfigd.lib" CACHE FILEPATH "" FORCE)
+    #set(Fontconfig_LIBRARY "optimized;${DEPS_PATH}/fontconfig/lib/${ARCH}/fontconfig.lib;debug;${DEPS_PATH}/fontconfig/lib/${ARCH}/fontconfigd.lib" CACHE FILEPATH "" FORCE)
 else()
     # Freetype
     set(FREETYPE_INCLUDE_DIR_ft2build "${DEPS_PATH}/freetype/include/freetype2" CACHE PATH "" FORCE)
