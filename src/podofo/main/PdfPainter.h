@@ -27,6 +27,22 @@ class PdfImage;
 class PdfObjectStream;
 class PdfXObject;
 
+enum class PdfDrawTextStyle
+{
+    Regular = 0,
+    StrikeOut = 1,
+    Underline = 2,
+};
+
+struct PODOFO_API PdfDrawTextMultiLineParams final
+{
+    PdfDrawTextStyle Style = PdfDrawTextStyle::Regular;                         ///< style of the draw text operation
+    PdfHorizontalAlignment HorizontalAlignment = PdfHorizontalAlignment::Left;  ///< alignment of the individual text lines in the given bounding box
+    PdfVerticalAlignment VerticalAlignment = PdfVerticalAlignment::Top;         ///< vertical alignment of the text in the given bounding box
+    bool Clip = true;                                                           ///< set the clipping rectangle to the given rect, otherwise no clipping is performed
+    bool SkipSpaces = true;                                                     ///< whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
+};
+
 enum class PdfPainterFlags
 {
     None = 0,
@@ -336,7 +352,8 @@ public:
      *
      *  \see SetFont()
      */
-    void DrawText(const std::string_view& str, double x, double y);
+    void DrawText(const std::string_view& str, double x, double y,
+        PdfDrawTextStyle style = PdfDrawTextStyle::Regular);
 
     /** Draw multiline text into a rectangle doing automatic wordwrapping.
      *  The current font is used and SetFont has to be called at least once
@@ -347,14 +364,10 @@ public:
      *  \param y the y coordinate of the text area (bottom)
      *  \param width width of the text area
      *  \param height height of the text area
-     *  \param hAlignment alignment of the individual text lines in the given bounding box
-     *  \param vAlignment vertical alignment of the text in the given bounding box
-     *  \param clip set the clipping rectangle to the given rect, otherwise no clipping is performed
-     *  \param skipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
+     *  \param params parameters of the draw operation
      */
-    void DrawMultiLineText(const std::string_view& str, double x, double y, double width, double height,
-        PdfHorizontalAlignment hAlignment = PdfHorizontalAlignment::Left,
-        PdfVerticalAlignment vAlignment = PdfVerticalAlignment::Top, bool clip = true, bool skipSpaces = true);
+    void DrawTextMultiLine(const std::string_view& str, double x, double y, double width, double height,
+        const PdfDrawTextMultiLineParams& params = { });
 
     /** Draw multiline text into a rectangle doing automatic wordwrapping.
      *  The current font is used and SetFont has to be called at least once
@@ -362,13 +375,10 @@ public:
      *
      *  \param str the text which should be drawn
      *  \param rect bounding rectangle of the text
-     *  \param hAlignment alignment of the individual text lines in the given bounding box
-     *  \param vAlignment vertical alignment of the text in the given bounding box
-     *  \param clip set the clipping rectangle to the given rect, otherwise no clipping is performed
-     *  \param skipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
+     *  \param params parameters of the draw operation
      */
-    void DrawMultiLineText(const std::string_view& str, const PdfRect& rect, PdfHorizontalAlignment hAlignment = PdfHorizontalAlignment::Left,
-        PdfVerticalAlignment vAlignment = PdfVerticalAlignment::Top, bool clip = true, bool skipSpaces = true);
+    void DrawTextMultiLine(const std::string_view& str, const PdfRect& rect,
+        const PdfDrawTextMultiLineParams& params = { });
 
     /** Draw a single line of text horizontally aligned.
      *  \param str the text to draw
@@ -376,8 +386,11 @@ public:
      *  \param y the y coordinate of the text line
      *  \param width the width of the text line
      *  \param hAlignment alignment of the text line
+     *  \param style style of the draw text operation
      */
-    void DrawTextAligned(const std::string_view& str, double x, double y, double width, PdfHorizontalAlignment hAlignment);
+    void DrawTextAligned(const std::string_view& str, double x, double y,
+        double width, PdfHorizontalAlignment hAlignment,
+        PdfDrawTextStyle style = PdfDrawTextStyle::Regular);
 
     /** Begin drawing multiple text strings on a page using a given font object.
      *  You have to call SetFont before calling this function.
@@ -685,12 +698,14 @@ private:
      */
     void addToPageResources(const PdfName& type, const PdfName& identifier, const PdfObject& obj);
 
-    void drawTextAligned(const std::string_view& str, double x, double y, double width, PdfHorizontalAlignment hAlignment);
+    void drawTextAligned(const std::string_view& str, double x, double y, double width,
+        PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style);
 
     void drawText(const std::string_view& str, double x, double y, bool isUnderline, bool isStrikeOut);
 
     void drawMultiLineText(const std::string_view& str, double x, double y, double width, double height,
-        PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool clip, bool skipSpaces);
+        PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool clip, bool skipSpaces,
+        PdfDrawTextStyle style);
 
     void setLineWidth(double width);
 
@@ -745,5 +760,6 @@ private:
 }
 
 ENABLE_BITMASK_OPERATORS(PoDoFo::PdfPainterFlags);
+ENABLE_BITMASK_OPERATORS(PoDoFo::PdfDrawTextStyle);
 
 #endif // PDF_PAINTER_H

@@ -441,7 +441,8 @@ void PdfPainter::Circle(double x, double y, double radius)
     close();
 }
 
-void PdfPainter::DrawText(const string_view& str, double x, double y)
+void PdfPainter::DrawText(const string_view& str, double x, double y,
+    PdfDrawTextStyle style)
 {
     checkStream();
     checkStatus(PainterStatus::Default);
@@ -449,7 +450,9 @@ void PdfPainter::DrawText(const string_view& str, double x, double y)
 
     m_tmpStream << "BT" << endl;
     writeTextState();
-    drawText(str, x, y, false, false);
+    drawText(str, x, y,
+        (style & PdfDrawTextStyle::Underline) != PdfDrawTextStyle::Regular,
+        (style & PdfDrawTextStyle::StrikeOut) != PdfDrawTextStyle::Regular);
     m_tmpStream << "ET" << endl;
 }
 
@@ -533,15 +536,15 @@ void PdfPainter::EndText()
     closeTextObject();
 }
 
-void PdfPainter::DrawMultiLineText(const string_view& str, const PdfRect& rect,
-    PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool clip, bool skipSpaces)
+void PdfPainter::DrawTextMultiLine(const string_view& str, const PdfRect& rect,
+    const PdfDrawTextMultiLineParams& params)
 {
-    this->DrawMultiLineText(str, rect.GetLeft(), rect.GetBottom(), rect.GetWidth(), rect.GetHeight(),
-        hAlignment, vAlignment, clip, skipSpaces);
+    this->DrawTextMultiLine(str, rect.GetLeft(), rect.GetBottom(), rect.GetWidth(), rect.GetHeight(),
+        params);
 }
 
-void PdfPainter::DrawMultiLineText(const string_view& str, double x, double y, double width, double height,
-    PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool clip, bool skipSpaces)
+void PdfPainter::DrawTextMultiLine(const string_view& str, double x, double y, double width, double height,
+    const PdfDrawTextMultiLineParams& params)
 {
     checkStream();
     checkStatus(PainterStatus::Default | PainterStatus::TextObject);
@@ -552,11 +555,14 @@ void PdfPainter::DrawMultiLineText(const string_view& str, double x, double y, d
 
     m_tmpStream << "BT" << endl;
     writeTextState();
-    drawMultiLineText(str, x, y, width, height, hAlignment, vAlignment, clip, skipSpaces);
+    drawMultiLineText(str, x, y, width, height,
+        params.HorizontalAlignment, params.VerticalAlignment,
+        params.Clip, params.SkipSpaces, params.Style);
     m_tmpStream << "ET" << endl;
 }
 
-void PdfPainter::DrawTextAligned(const string_view& str, double x, double y, double width, PdfHorizontalAlignment hAlignment)
+void PdfPainter::DrawTextAligned(const string_view& str, double x, double y, double width,
+    PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style)
 {
     if (width <= 0.0) // nonsense arguments
         return;
@@ -567,11 +573,13 @@ void PdfPainter::DrawTextAligned(const string_view& str, double x, double y, dou
 
     m_tmpStream << "BT" << endl;
     writeTextState();
-    drawTextAligned(str, x, y, width, hAlignment);
+    drawTextAligned(str, x, y, width, hAlignment, style);
     m_tmpStream << "ET" << endl;
 }
 
-void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, double width, double height, PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool clip, bool skipSpaces)
+void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, double width, double height,
+    PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool clip, bool skipSpaces,
+    PdfDrawTextStyle style)
 {
     auto& textState = m_StateStack.Current->TextState;
     auto& font = *textState.Font;
@@ -606,7 +614,7 @@ void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, d
     while (it != lines.end())
     {
         if (it->length() != 0)
-            this->drawTextAligned(*it, x, y, width, hAlignment);
+            this->drawTextAligned(*it, x, y, width, hAlignment, style);
 
         y -= font.GetLineSpacing(textState);
         it++;
@@ -783,7 +791,8 @@ vector<string> PdfPainter::getMultiLineTextAsLines(const string_view& str, doubl
     return lines;
 }
 
-void PdfPainter::drawTextAligned(const string_view& str, double x, double y, double width, PdfHorizontalAlignment hAlignment)
+void PdfPainter::drawTextAligned(const string_view& str, double x, double y, double width,
+    PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style)
 {
     auto& textState = m_StateStack.Current->TextState;
     switch (hAlignment)
@@ -799,7 +808,9 @@ void PdfPainter::drawTextAligned(const string_view& str, double x, double y, dou
             break;
     }
 
-    this->drawText(str, x, y, false, false);
+    this->drawText(str, x, y,
+        (style & PdfDrawTextStyle::Underline) != PdfDrawTextStyle::Regular,
+        (style & PdfDrawTextStyle::StrikeOut) != PdfDrawTextStyle::Regular);
 }
 
 void PdfPainter::DrawImage(const PdfImage& obj, double x, double y, double scaleX, double scaleY)

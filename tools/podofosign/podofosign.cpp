@@ -411,7 +411,7 @@ static void draw_annotation(PdfDocument& document,
             left = convert_to_pdf_units(annot_units, left);
             top = convert_to_pdf_units(annot_units, top);
 
-            painter.DrawMultiLineText(text, left,
+            painter.DrawTextMultiLine(text, left,
                 0.0,
                 annot_rect.GetWidth() - left,
                 annot_rect.GetHeight() - top);
