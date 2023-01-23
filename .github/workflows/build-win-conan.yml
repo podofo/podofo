@@ -1,0 +1,44 @@
+name: build-win-conan
+
+on:
+#  push:
+#    branches: [ master ]
+#  pull_request:
+#    branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      ctestArgs:
+        description: 'CTest arguments'
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: windows-2019
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+          submodules: true
+
+    - name: Install Conan
+      uses: turtlebrowser/get-conan@main
+      
+    - run: mkdir build
+    
+    - run: cd build
+
+    - name: Install deps
+      run: conan install ..
+
+    - name: Configure CMake
+      run: cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ..
+
+    - name: Build
+      run: cmake --build . --config ${{env.BUILD_TYPE}}
+      
+    - run: echo "${{github.workspace}}\build\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - name: Test
+      run: ctest ${{ github.event.inputs.ctestArgs }}
