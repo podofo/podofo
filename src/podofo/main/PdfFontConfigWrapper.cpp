@@ -31,23 +31,39 @@ PdfFontConfigWrapper::~PdfFontConfigWrapper()
     FcConfigDestroy(m_FcConfig);
 }
 
-string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName,
-    PdfFontStyle style, unsigned& faceIndex)
+string PdfFontConfigWrapper::SearchFontPath(const string_view fontPattern, unsigned& faceIndex)
+{
+    return SearchFontPath(fontPattern, { }, faceIndex);
+}
+
+string PdfFontConfigWrapper::SearchFontPath(const string_view fontPattern,
+    const PdfFontConfigSearchParams& params, unsigned& faceIndex)
 {
     FcPattern* pattern;
     FcPattern* matched;
     FcResult result = FcResultMatch;
     FcValue value;
 
-    bool isItalic = (style & PdfFontStyle::Italic) == PdfFontStyle::Italic;
-    bool isBold = (style & PdfFontStyle::Bold) == PdfFontStyle::Bold;
+    bool isItalic = (params.Style & PdfFontStyle::Italic) == PdfFontStyle::Italic;
+    bool isBold = (params.Style & PdfFontStyle::Bold) == PdfFontStyle::Bold;
 
     // Build a pattern to search using postscript name, bold and italic
-    pattern = FcPatternBuild(0,
-        FC_FAMILY, FcTypeString, fontName.data(),
-        FC_WEIGHT, FcTypeInteger, (isBold ? FC_WEIGHT_BOLD : FC_WEIGHT_MEDIUM),
-        FC_SLANT, FcTypeInteger, (isItalic ? FC_SLANT_ITALIC : FC_SLANT_ROMAN),
-        static_cast<char*>(0));
+    if ((params.Flags & PdfFontConfigSearchFlags::MatchPostScriptName) == PdfFontConfigSearchFlags::None)
+    {
+        pattern = FcPatternBuild(nullptr,
+            FC_FAMILY, FcTypeString, fontPattern.data(),
+            FC_WEIGHT, FcTypeInteger, (isBold ? FC_WEIGHT_BOLD : FC_WEIGHT_MEDIUM),
+            FC_SLANT, FcTypeInteger, (isItalic ? FC_SLANT_ITALIC : FC_SLANT_ROMAN),
+            static_cast<char*>(nullptr));
+    }
+    else
+    {
+        pattern = FcPatternBuild(nullptr,
+            FC_POSTSCRIPT_NAME, FcTypeString, fontPattern.data(),
+            FC_WEIGHT, FcTypeInteger, (isBold ? FC_WEIGHT_BOLD : FC_WEIGHT_MEDIUM),
+            FC_SLANT, FcTypeInteger, (isItalic ? FC_SLANT_ITALIC : FC_SLANT_ROMAN),
+            static_cast<char*>(nullptr));
+    }
 
     // Follow fc-match procedure which proved to be more reliable
     // https://github.com/freedesktop/fontconfig/blob/e291fda7d42e5d64379555097a066d9c2c4efce3/fc-match/fc-match.c#L188

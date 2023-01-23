@@ -30,12 +30,6 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
 {
     const PdfObject* obj;
     const PdfName& subType = font.GetDictionary().MustFindKey(PdfName::KeySubtype).GetName();
-    // Accorting to ISO 32000-1:2008, /FontName "shall be the
-    // same as the value of /BaseFont in the font or CIDFont
-    //  dictionary that refers to this font descriptor".
-    // We consider 
-    if ((obj = font.GetDictionary().FindKey("BaseFont")) != nullptr)
-        m_FontName = obj->GetName().GetString();
 
     // Widths of a Type 1 font, which are in thousandths
     // of a unit of text space
@@ -61,16 +55,16 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         if (descriptor == nullptr && m_FontFileType == PdfFontFileType::Type3)
         {
             const PdfObject* obj;
-            if (m_FontName.length() == 0 && (obj = font.GetDictionary().FindKey("Name")) != nullptr)
-                m_FontName = obj->GetName().GetString();
+            if ((obj = font.GetDictionary().FindKey("Name")) != nullptr)
+                m_FontNameRaw = obj->GetName().GetString();
 
             if ((obj = font.GetDictionary().FindKey("FontBBox")) != nullptr)
                 m_BBox = getBBox(*obj);
         }
         else
         {
-            if (m_FontName.length() == 0 && (obj = descriptor->GetDictionary().FindKey("FontName")) != nullptr)
-                m_FontName = obj->GetName().GetString();
+            if ((obj = descriptor->GetDictionary().FindKey("FontName")) != nullptr)
+                m_FontNameRaw = obj->GetName().GetString();
 
             if ((obj = descriptor->GetDictionary().FindKey("FontBBox")) != nullptr)
                 m_BBox = getBBox(*obj);
@@ -136,8 +130,8 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "Missing descriptor for CID ont");
 
         const PdfObject* obj;
-        if (m_FontName.length() == 0 && (obj = descriptor->GetDictionary().FindKey("FontName")) != nullptr)
-            m_FontName = obj->GetName().GetString();
+        if ((obj = descriptor->GetDictionary().FindKey("FontName")) != nullptr)
+            m_FontNameRaw = obj->GetName().GetString();
 
         if ((obj = descriptor->GetDictionary().FindKey("FontBBox")) != nullptr)
             m_BBox = getBBox(*obj);
@@ -307,6 +301,15 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         m_MaxWidth = dict.FindKeyAs<double>("MaxWidth", -1) * m_Matrix[0];
     }
 
+    // Accorting to ISO 32000-1:2008, /FontName "shall be the
+    // same as the value of /BaseFont in the font or CIDFont
+    // dictionary that refers to this font descriptor".
+    // We prioritize /BaseFont, over /FontName
+    if ((obj = font.GetDictionary().FindKey("BaseFont")) != nullptr)
+        m_FontName = obj->GetName().GetString();
+    if (m_FontName.length() == 0)
+        m_FontNameRaw;
+
     m_FontBaseName = PdfFont::ExtractBaseName(m_FontName, m_IsItalicHint, m_IsBoldHint);
     m_LineSpacing = m_Ascent + m_Descent;
 
@@ -317,17 +320,22 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     m_StrikeOutPosition = m_Ascent / 2.0;
 }
 
-string PdfFontMetricsObject::GetFontName() const
+string_view PdfFontMetricsObject::GetFontName() const
 {
     return m_FontName;
 }
 
-string PdfFontMetricsObject::GetBaseFontName() const
+std::string_view PdfFontMetricsObject::GetFontNameRaw() const
+{
+    return m_FontNameRaw;
+}
+
+string_view PdfFontMetricsObject::GetBaseFontName() const
 {
     return m_FontBaseName;
 }
 
-string PdfFontMetricsObject::GetFontFamilyName() const
+string_view PdfFontMetricsObject::GetFontFamilyName() const
 {
     return m_FontFamilyName;
 }

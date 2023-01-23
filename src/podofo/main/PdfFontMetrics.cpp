@@ -22,7 +22,7 @@ using namespace PoDoFo;
 // Default matrix: thousands of PDF units
 static Matrix2D s_DefaultMatrix = { 1e-3, 0.0, 0.0, 1e-3, 0, 0 };
 
-PdfFontMetrics::PdfFontMetrics() { }
+PdfFontMetrics::PdfFontMetrics() : m_FaceIndex(0) { }
 
 PdfFontMetrics::~PdfFontMetrics() { }
 
@@ -73,11 +73,11 @@ const PdfObject* PdfFontMetrics::GetFontFileObject() const
     return nullptr;
 }
 
-string PdfFontMetrics::GetFontNameSafe(bool baseFirst) const
+string_view PdfFontMetrics::GetFontNameSafe(bool familyFirst) const
 {
-    if (baseFirst)
+    if (familyFirst)
     {
-        string baseFontName = GetBaseFontName();
+        auto baseFontName = GetFontFamilyName();
         if (!baseFontName.empty())
             return baseFontName;
 
@@ -85,24 +85,33 @@ string PdfFontMetrics::GetFontNameSafe(bool baseFirst) const
     }
     else
     {
-        string fontName = GetFontName();
+        auto fontName = GetFontName();
         if (!fontName.empty())
             return fontName;
 
-        return GetBaseFontName();
+        return GetFontFamilyName();
     }
 }
 
-string PdfFontMetrics::GetBaseFontName() const
+string_view PdfFontMetrics::GetBaseFontNameSafe() const
 {
-    // By default return empty string
-    return string();
+    const_cast<PdfFontMetrics&>(*this).initBaseFontNameSafe();
+    return *m_BaseFontNameSafe;
 }
 
-string PdfFontMetrics::GetFontName() const
+void PdfFontMetrics::initBaseFontNameSafe()
 {
-    // By default return empty string
-    return string();
+    if (m_BaseFontNameSafe != nullptr)
+        return;
+
+    m_BaseFontNameSafe.reset(new string(GetBaseFontName()));
+    if (m_BaseFontNameSafe->length() == 0)
+        *m_BaseFontNameSafe = PdfFont::ExtractBaseName(GetFontFamilyName());;
+}
+
+string_view PdfFontMetrics::GetFontNameRaw() const
+{
+    return GetFontName();
 }
 
 unsigned PdfFontMetrics::GetWeight() const

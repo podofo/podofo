@@ -70,7 +70,7 @@ void HelloWorld(const string_view& filename)
             throw runtime_error("Invalid handle");
 
         auto& metrics = font->GetMetrics();
-        cout << "The font name is "<< metrics.GetFontNameSafe() << endl;
+        cout << "The font name is "<< metrics.GetFontName() << endl;
         cout << "The family font name is " << metrics.GetFontFamilyName() << endl;
         cout << "The font file path is " << metrics.GetFilePath() << endl;
         cout << "The font face index is " << metrics.GetFaceIndex() << endl;

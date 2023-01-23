@@ -88,7 +88,7 @@ bool PdfFont::TryGetSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& subst
         // Early intercept Standard14 fonts
         PdfStandard14FontType std14Font;
         if (m_Metrics->IsStandard14FontMetrics(std14Font) ||
-            PdfFont::IsStandard14Font(metrics.GetFontNameSafe(), true, std14Font))
+            PdfFont::IsStandard14Font(metrics.GetFontNameSafe(), false, std14Font))
         {
             newMetrics = PdfFontMetricsStandard14::GetInstance(std14Font);
         }
@@ -96,8 +96,10 @@ bool PdfFont::TryGetSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& subst
         {
             PdfFontSearchParams params;
             params.Style = metrics.GetStyle();
-
-            newMetrics = PdfFontManager::SearchFontMetrics(metrics.GetFontNameSafe(true), params);
+            // NOTE: We prefer matching the postscript name as
+            // we need to better fit the font being replaced
+            params.MatchBehavior = PdfFontMatchBehaviorFlags::MatchPostScriptName;
+            newMetrics = PdfFontManager::SearchFontMetrics(metrics.GetBaseFontNameSafe(), params);
             if (newMetrics == nullptr)
             {
                 substFont = nullptr;
@@ -151,8 +153,8 @@ void PdfFont::initBase(const PdfEncoding& encoding)
     out << "Ft" << this->GetObject().GetIndirectReference().ObjectNumber();
     m_Identifier = PdfName(out.GetString());
 
-    // By default ensure the font has the /BaseFont name read
-    // from the loaded metrics or inferred from a font file
+    // By default ensure the font has the /BaseFont name or /FontName
+    // or, the name inferred from a font file
     m_Name = m_Metrics->GetFontNameSafe();
 }
 

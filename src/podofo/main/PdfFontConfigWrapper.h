@@ -13,6 +13,18 @@ FORWARD_DECLARE_FCONFIG();
 
 namespace PoDoFo {
 
+enum class PdfFontConfigSearchFlags
+{
+    None = 0,
+    MatchPostScriptName = 1,        ///< Match postscript font name. The default is match family name. This search may be more specific
+};
+
+struct PdfFontConfigSearchParams
+{
+    PdfFontStyle Style = PdfFontStyle::Regular;
+    PdfFontConfigSearchFlags Flags = PdfFontConfigSearchFlags::None;
+};
+
 /**
  * This class initializes and destroys the FontConfig library.
  * 
@@ -41,12 +53,14 @@ public:
      *  fontconfig support. Make sure to lock any FontConfig mutexes before
      *  calling this method by yourself!
      *
-     *  \param fontName name of the requested font
+     *  \param fontPattern search pattern of the requested font
      *  \param style font style
      *  \param faceIndex index of the face
      *  \returns the path to the fontfile or an empty string
      */
-    std::string GetFontConfigFontPath(const std::string_view fontName, PdfFontStyle style, unsigned& faceIndex);
+    std::string SearchFontPath(const std::string_view fontPattern, unsigned& faceIndex);
+    std::string SearchFontPath(const std::string_view fontPattern, const PdfFontConfigSearchParams& params,
+        unsigned& faceIndex);
 
     void AddFontDirectory(const std::string_view& path);
 
@@ -63,5 +77,7 @@ private:
 };
 
 };
+
+ENABLE_BITMASK_OPERATORS(PoDoFo::PdfFontConfigSearchFlags);
 
 #endif // PDF_FONT_CONFIG_WRAPPER_H

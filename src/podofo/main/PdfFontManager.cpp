@@ -122,24 +122,24 @@ PdfFont* PdfFontManager::GetLoadedFont(const PdfObject& obj)
     return inserted.first->second.Font.get();
 }
 
-PdfFont* PdfFontManager::SearchFont(const string_view& fontName, const PdfFontCreateParams& createParams)
+PdfFont* PdfFontManager::SearchFont(const string_view& fontPattern, const PdfFontCreateParams& createParams)
 {
-    return SearchFont(fontName, PdfFontSearchParams(), createParams);
+    return SearchFont(fontPattern, PdfFontSearchParams(), createParams);
 }
 
-PdfFont* PdfFontManager::SearchFont(const string_view& fontName, const PdfFontSearchParams& searchParams, const PdfFontCreateParams& createParams)
+PdfFont* PdfFontManager::SearchFont(const string_view& fontPattern, const PdfFontSearchParams& searchParams, const PdfFontCreateParams& createParams)
 {
     // NOTE: We don't support standard 14 fonts on subset
     PdfStandard14FontType stdFont;
     if (searchParams.AutoSelect != PdfFontAutoSelectBehavior::None
-        && PdfFont::IsStandard14Font(fontName,
+        && PdfFont::IsStandard14Font(fontPattern,
             searchParams.AutoSelect == PdfFontAutoSelectBehavior::Standard14Alt, stdFont))
     {
         return &GetStandard14Font(stdFont, createParams);
     }
 
     PdfFontSearchParams newSearchParams = searchParams;
-    return getImportedFont(fontName, adaptSearchParams(fontName, newSearchParams), newSearchParams, createParams);
+    return getImportedFont(fontPattern, adaptSearchParams(fontPattern, newSearchParams), newSearchParams, createParams);
 }
 
 PdfFont& PdfFontManager::GetStandard14Font(PdfStandard14FontType stdFont, const PdfFontCreateParams& params)
@@ -257,12 +257,12 @@ PdfFont* PdfFontManager::getImportedFont(const string_view& fontName, const stri
     return addImported(fonts, std::move(newfont));
 }
 
-PdfFontMetricsConstPtr PdfFontManager::SearchFontMetrics(const string_view& fontName, const PdfFontSearchParams& params)
+PdfFontMetricsConstPtr PdfFontManager::SearchFontMetrics(const string_view& fontPattern, const PdfFontSearchParams& params)
 {
     // Early intercept Standard14 fonts
     PdfStandard14FontType stdFont;
     if (params.AutoSelect != PdfFontAutoSelectBehavior::None
-        && PdfFont::IsStandard14Font(fontName,
+        && PdfFont::IsStandard14Font(fontPattern,
             params.AutoSelect == PdfFontAutoSelectBehavior::Standard14Alt, stdFont))
     {
         return PdfFontMetricsStandard14::GetInstance(stdFont);
@@ -271,7 +271,7 @@ PdfFontMetricsConstPtr PdfFontManager::SearchFontMetrics(const string_view& font
     PdfFontSearchParams newParams = params;
     string fontpath;
     unsigned faceIndex;
-    auto fontData = getFontData(adaptSearchParams(fontName, newParams), newParams, fontpath, faceIndex);
+    auto fontData = getFontData(adaptSearchParams(fontPattern, newParams), newParams, fontpath, faceIndex);
     if (fontData == nullptr)
         return nullptr;
 
@@ -323,9 +323,15 @@ unique_ptr<charbuff> PdfFontManager::getFontData(const string_view& fontName,
 {
     string path;
     unsigned faceIndex;
+    PdfFontConfigSearchParams fcParams;
+    fcParams.Style = params.Style;
+    fcParams.Flags = (params.MatchBehavior & PdfFontMatchBehaviorFlags::MatchPostScriptName) == PdfFontMatchBehaviorFlags::None
+        ? PdfFontConfigSearchFlags::None
+        : PdfFontConfigSearchFlags::MatchPostScriptName;
+
 #ifdef PODOFO_HAVE_FONTCONFIG
     auto& fc = GetFontConfigWrapper();
-    path = fc.GetFontConfigFontPath(fontName, params.Style, faceIndex);
+    path = fc.SearchFontPath(fontName, fcParams, faceIndex);
 #endif
 
     unique_ptr<charbuff> ret;

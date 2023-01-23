@@ -178,19 +178,19 @@ double PdfFontMetricsStandard14::GetLeadingRaw() const
     return -1;
 }
 
-string PdfFontMetricsStandard14::GetFontName() const
+string_view PdfFontMetricsStandard14::GetFontName() const
 {
-    return (string)GetStandard14FontName(m_Std14FontType);
+    return GetStandard14FontName(m_Std14FontType);
 }
 
-string PdfFontMetricsStandard14::GetBaseFontName() const
+string_view PdfFontMetricsStandard14::GetBaseFontName() const
 {
-    return (string)GetStandard14FontBaseName(m_Std14FontType);
+    return GetStandard14FontBaseName(m_Std14FontType);
 }
 
-string PdfFontMetricsStandard14::GetFontFamilyName() const
+string_view PdfFontMetricsStandard14::GetFontFamilyName() const
 {
-    return (string)GetStandard14FontFamilyName(m_Std14FontType);
+    return GetStandard14FontFamilyName(m_Std14FontType);
 }
 
 PdfFontStretch PdfFontMetricsStandard14::GetFontStretch() const

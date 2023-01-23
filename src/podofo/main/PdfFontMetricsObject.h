@@ -56,11 +56,13 @@ public:
 
     double GetStrikeOutThickness() const override;
 
-    std::string GetFontName() const override;
+    std::string_view GetFontName() const override;
 
-    std::string GetBaseFontName() const override;
+    std::string_view GetFontNameRaw() const override;
 
-    std::string GetFontFamilyName() const override;
+    std::string_view GetBaseFontName() const override;
+
+    std::string_view GetFontFamilyName() const override;
 
     PdfFontStretch GetFontStretch() const override;
 
@@ -123,8 +125,9 @@ private:
     Matrix2D m_Matrix;
     std::vector<double> m_Widths;
 
-    std::string m_FontBaseName;
     std::string m_FontName;
+    std::string m_FontNameRaw;
+    std::string m_FontBaseName;
     std::string m_FontFamilyName;
     PdfFontStretch m_FontStretch;
     int m_Weight;

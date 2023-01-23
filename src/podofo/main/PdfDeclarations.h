@@ -302,7 +302,8 @@ enum class PdfFontCreateFlags
 enum class PdfFontMatchBehaviorFlags
 {
     None,
-    MatchExactName,           ///< Match exact font name
+    MatchExactName = 1,           ///< Match exact font name
+    MatchPostScriptName = 2       ///< Match postscript font name. The default is match family name. This search may be more specific
 };
 
 /**
@@ -757,6 +758,7 @@ ENABLE_BITMASK_OPERATORS(PoDoFo::PdfInfoInitial);
 ENABLE_BITMASK_OPERATORS(PoDoFo::PdfFontStyle);
 ENABLE_BITMASK_OPERATORS(PoDoFo::PdfFontCreateFlags);
 ENABLE_BITMASK_OPERATORS(PoDoFo::PdfFontAutoSelectBehavior);
+ENABLE_BITMASK_OPERATORS(PoDoFo::PdfFontMatchBehaviorFlags);
 ENABLE_BITMASK_OPERATORS(PoDoFo::PdfFontDescriptorFlags);
 ENABLE_BITMASK_OPERATORS(PoDoFo::PdfGlyphAccess);
 ENABLE_BITMASK_OPERATORS(PoDoFo::PdfTextExtractFlags);

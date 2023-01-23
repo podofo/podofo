@@ -73,16 +73,16 @@ public:
     /** Get a font from the cache. If the font does not yet
      *  exist, add it to the cache.
      *
-     *  \param fontName a valid fontname
+     *  \param fontPattern a search font pattern
      *  \param params font creation params
      *
      *  \returns a PdfFont object or nullptr if the font could
      *           not be created or found.
      */
-    PdfFont* SearchFont(const std::string_view& fontName,
+    PdfFont* SearchFont(const std::string_view& fontPattern,
         const PdfFontSearchParams& searchParams = { }, const PdfFontCreateParams& createParams = { });
 
-    PdfFont* SearchFont(const std::string_view& fontName, const PdfFontCreateParams& createParams);
+    PdfFont* SearchFont(const std::string_view& fontPattern, const PdfFontCreateParams& createParams);
 
     PdfFont& GetStandard14Font(PdfStandard14FontType stdFont,
         const PdfFontCreateParams& params = { });
@@ -113,7 +113,7 @@ public:
      *
      * \returns the found metrics. Null if not found
      */
-    static PdfFontMetricsConstPtr SearchFontMetrics(const std::string_view& fontName,
+    static PdfFontMetricsConstPtr SearchFontMetrics(const std::string_view& fontPattern,
         const PdfFontSearchParams& params = { });
 
 #if defined(_WIN32) && defined(PODOFO_HAVE_WIN32GDI)

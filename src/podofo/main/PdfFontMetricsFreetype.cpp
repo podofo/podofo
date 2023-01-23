@@ -316,17 +316,17 @@ void PdfFontMetricsFreetype::initType1Lengths(const bufferview& view)
     m_Length3 = (unsigned)sview.length() - m_Length2;
 }
 
-string PdfFontMetricsFreetype::GetBaseFontName() const
-{
-    return m_FontBaseName;
-}
-
-string PdfFontMetricsFreetype::GetFontName() const
+string_view PdfFontMetricsFreetype::GetFontName() const
 {
     return m_FontName;
 }
 
-string PdfFontMetricsFreetype::GetFontFamilyName() const
+string_view PdfFontMetricsFreetype::GetBaseFontName() const
+{
+    return m_FontBaseName;
+}
+
+string_view PdfFontMetricsFreetype::GetFontFamilyName() const
 {
     return m_FontFamilyName;
 }

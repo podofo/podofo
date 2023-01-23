@@ -94,12 +94,14 @@ void testSingleFont(FcPattern* font)
     string fontFamily;
     string fontPath;
     PdfFontStyle style;
+    PdfFontConfigSearchParams params;
     auto& fcWrapper = PdfFontManager::GetFontConfigWrapper();
 
     if (getFontInfo(font, fontFamily, fontPath, style))
     {
         unsigned faceIndex;
-        string fontPath = fcWrapper.GetFontConfigFontPath(fontFamily, style, faceIndex);
+        params.Style = style;
+        string fontPath = fcWrapper.SearchFontPath(fontFamily, params, faceIndex);
         if (fontPath.length() != 0)
         {
             PdfFontSearchParams params;

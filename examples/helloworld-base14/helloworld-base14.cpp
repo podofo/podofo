@@ -251,7 +251,7 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
     auto font2 = document.GetFonts().SearchFont("Arial", params);
     auto& metrics = font2->GetMetrics();
     cout << "Non base 14 font characteristics" << endl;
-    cout << "Font name: " << metrics.GetFontNameSafe() << endl;
+    cout << "Font name: " << metrics.GetFontName() << endl;
     cout << "Family font name: " << metrics.GetFontFamilyName() << endl;
     cout << "Font file path: " << metrics.GetFilePath() << endl;
     cout << "Font face index: " << metrics.GetFaceIndex() << endl;

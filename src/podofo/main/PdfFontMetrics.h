@@ -144,29 +144,43 @@ public:
      */
     virtual unsigned GetFontFileLength3() const = 0;
 
-    /** Get a string with either the actual /FontName or a base font name
-     * inferred from a font file
+    /** Get a string with either the actual /BaseFont, /FontName or
+     * /FontFamily name, depending on exsistences of such entries
      */
-    std::string GetFontNameSafe(bool baseFirst = false) const;
+    std::string_view GetFontNameSafe(bool familyFirst = false) const;
 
     /** Get a semantical base name for the font that can be used to
-     * compose the final name, eg. "Arial".
-     * 
-     * It's a preprocessed value and it's not supposed to correspond
-     * to any entry in the descriptor. Returns empty string by default
+     * compose the final name, eg. from "AAAAAA+Arial,Bold" to "Arial"
+     *
+     * The string is constructed either from the actual /BaseFont,
+     * /FontName or /FontFamily name, depending on exsistences of
+     * such entries
+     * \remarks It doesn't correspond to /BaseFont name entry in the font
      */
-    virtual std::string GetBaseFontName() const;
+    std::string_view GetBaseFontNameSafe() const;
+
+    /** Get a semantical base name for the font that can be used to
+     * compose the final name, eg. from "AAAAAA+Arial,Bold" to "Arial"
+     *
+     * \remarks It doesn't correspond to /BaseFont name entry in the font
+     */
+    virtual std::string_view GetBaseFontName() const = 0;
 
     /** Get the actual /FontName, eg. "AAAAAA+Arial,Bold", if available
      *
      *  By default returns empty string
      *  \returns the postscript name of the font or empty string if no postscript name is available.
      */
-    virtual std::string GetFontName() const;
+    virtual std::string_view GetFontName() const = 0;
+
+    /** Get the actual /FontName, eg. "AAAAAA+Arial,Bold", if available
+     *  By default returns GetFontName()
+     */
+    virtual std::string_view GetFontNameRaw() const;
 
     /** Get the actual /FontFamily, eg. "Times", if available
      */
-    virtual std::string GetFontFamilyName() const = 0;
+    virtual std::string_view GetFontFamilyName() const = 0;
 
     virtual PdfFontStretch GetFontStretch() const = 0;
 
@@ -317,14 +331,17 @@ private:
     void SetFilePath(std::string&& filepath, unsigned faceIndex);
 
 private:
-    PdfFontMetrics(const PdfFontMetrics& rhs) = delete;
-    PdfFontMetrics& operator=(const PdfFontMetrics& rhs) = delete;
-
+    void initBaseFontNameSafe();
     static PdfEncodingMapConstPtr getFontType1Encoding(FT_Face face);
 
 private:
-    nullable<PdfFontStyle> m_Style;
+    PdfFontMetrics(const PdfFontMetrics& rhs) = delete;
+    PdfFontMetrics& operator=(const PdfFontMetrics& rhs) = delete;
+
+private:
     std::string m_FilePath;
+    nullable<PdfFontStyle> m_Style;
+    std::unique_ptr<std::string> m_BaseFontNameSafe;
     unsigned m_FaceIndex;
 };
 
