@@ -36,7 +36,7 @@ include(GNUInstallDirs)
 set(CMAKE_CXX_STANDARD 17)
 
 # Load modules from our source tree too
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules" "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Builds must use this CMakeLists.txt, not the one in src/ or somewhere else.
 # If users try to use something else the results can be confusing. We set a
@@ -174,31 +174,32 @@ message("Found libxml2 library at ${LIBXML2_LIBRARIES}, headers ${LIBXML2_INCLUD
 # The podofo library needs to be linked to these libraries
 # NOTE: Be careful when adding/removing: the order may be
 # platform sensible, so don't modify the current order
-set(PODOFO_LIB_DEPENDS
-    ${OPENSSL_LIBRARIES}
-    ${Fontconfig_LIBRARIES}
-    ${FREETYPE_LIBRARIES}
-    ${LIBXML2_LIBRARIES}
-    ${PNG_LIBRARIES}
-    ${TIFF_LIBRARIES}
-    ${JPEG_LIBRARIES}
-    ${ZLIB_LIBRARIES}
-    ${PLATFORM_SYSTEM_LIBRARIES}
-)
+set(PODOFO_LIB_DEPENDS OpenSSL::SSL)
+if(Fontconfig_FOUND)
+	list(APPEND PODOFO_LIB_DEPENDS Fontconfig::Fontconfig)
+endif()
+list(APPEND PODOFO_LIB_DEPENDS Fontconfig::Fontconfig)
+list(APPEND PODOFO_LIB_DEPENDS Freetype::Freetype)
+list(APPEND PODOFO_LIB_DEPENDS LibXml2::LibXml2)
+if(PNG_FOUND)
+	list(APPEND PODOFO_LIB_DEPENDS PNG::PNG)
+endif()
+if(TIFF_FOUND)
+	list(APPEND PODOFO_LIB_DEPENDS TIFF::TIFF)
+endif()
+if(JPEG_FOUND)
+	list(APPEND PODOFO_LIB_DEPENDS JPEG::JPEG)
+endif()
+list(APPEND PODOFO_LIB_DEPENDS ZLIB::ZLIB)
+list(APPEND PODOFO_LIB_DEPENDS ${PLATFORM_SYSTEM_LIBRARIES})
 
-set(PODOFO_HEADERS_DEPENDS
-    ${OPENSSL_INCLUDE_DIR}
-    ${Fontconfig_INCLUDE_DIRS}
-    ${FREETYPE_INCLUDE_DIRS}
-    ${LIBXML2_INCLUDE_DIRS}
-    ${PNG_INCLUDE_DIR}
-    ${TIFF_INCLUDE_DIR}
-    ${JPEG_INCLUDE_DIR} 
-    ${ZLIB_INCLUDE_DIR}
-    ${PLATFORM_SYSTEM_HEADERS}
-)
+# Strange behavior of LibXml2 and Fretype targets force to set
+# its include directories by hands.
+set(PODOFO_HEADERS_DEPENDS ${LIBXML2_INCLUDE_DIRS}
+	${FREETYPE_INCLUDE_DIRS})
 
 if(LIBIDN_FOUND)
+	# libidn doesn't provide targets.
     list(APPEND PODOFO_LIB_DEPENDS ${LIBIDN_LIBRARIES})
     list(APPEND PODOFO_HEADERS_DEPENDS ${LIBIDN_INCLUDE_DIR})
 endif()
