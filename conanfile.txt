@@ -7,6 +7,7 @@ zlib/1.2.13
 libtiff/4.4.0
 fontconfig/2.13.93
 libxml2/2.10.3
+libiconv/1.17 
 
 [generators]
 cmake_find_package
@@ -21,3 +22,7 @@ fontconfig:shared=True
 libtiff:shared=True
 fontconfig:shared=True
 libxml2:shared=True
+libiconv:shared=True
+
+[imports]
+bin, *.dll -> ./bin

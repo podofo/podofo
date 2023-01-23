@@ -171,6 +171,8 @@ endif()
 find_package(LibXml2 REQUIRED)
 message("Found libxml2 library at ${LIBXML2_LIBRARIES}, headers ${LIBXML2_INCLUDE_DIRS}")
 
+find_package(Iconv)
+
 # The podofo library needs to be linked to these libraries
 # NOTE: Be careful when adding/removing: the order may be
 # platform sensible, so don't modify the current order
@@ -191,6 +193,9 @@ if(JPEG_FOUND)
 	list(APPEND PODOFO_LIB_DEPENDS JPEG::JPEG)
 endif()
 list(APPEND PODOFO_LIB_DEPENDS ZLIB::ZLIB)
+if(Iconv_FOUND)
+	list(APPEND PODOFO_LIB_DEPENDS Iconv::Iconv)
+endif()
 list(APPEND PODOFO_LIB_DEPENDS ${PLATFORM_SYSTEM_LIBRARIES})
 
 if(LIBIDN_FOUND)
