@@ -89,7 +89,7 @@ endif()
 if(PODOFO_SHARED)
     message("Building shared podofo library")
     add_library(podofo_shared SHARED ${PODOFO_SOURCES})
-    target_link_libraries(podofo_shared PRIVATE podofo_private PRIVATE ${PODOFO_LIB_DEPENDS})
+    target_link_libraries(podofo_shared PRIVATE podofo_private ${PODOFO_LIB_DEPENDS})
     # TODO: set /wd4251 flag if we're doing a debug build with
     # Visual Studio, since it produces invalid warnings about STL
     # use.

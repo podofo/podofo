@@ -193,15 +193,10 @@ endif()
 list(APPEND PODOFO_LIB_DEPENDS ZLIB::ZLIB)
 list(APPEND PODOFO_LIB_DEPENDS ${PLATFORM_SYSTEM_LIBRARIES})
 
-# Strange behavior of LibXml2 and Fretype targets force to set
-# its include directories by hands.
-set(PODOFO_HEADERS_DEPENDS ${LIBXML2_INCLUDE_DIRS}
-	${FREETYPE_INCLUDE_DIRS})
-
 if(LIBIDN_FOUND)
 	# libidn doesn't provide targets.
     list(APPEND PODOFO_LIB_DEPENDS ${LIBIDN_LIBRARIES})
-    list(APPEND PODOFO_HEADERS_DEPENDS ${LIBIDN_INCLUDE_DIR})
+    set(PODOFO_HEADERS_DEPENDS ${LIBIDN_INCLUDE_DIR})
 endif()
 
 # Create the config file. It'll be appended to as the subdirs run though
