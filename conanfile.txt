@@ -26,3 +26,4 @@ libiconv:shared=True
 
 [imports]
 bin, *.dll -> ./bin
+lib, *.dylib* -> ./bin
