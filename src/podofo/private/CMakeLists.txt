@@ -18,3 +18,5 @@ if (PODOFO_SHARED AND NOT MSVC)
 endif()
 
 add_library(podofo_private STATIC ${SOURCE_FILES})
+
+target_link_libraries(podofo_private PRIVATE ${PODOFO_LIB_DEPENDS})
