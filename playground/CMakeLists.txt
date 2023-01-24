@@ -74,23 +74,31 @@ add_compile_definitions(LIBXML_STATIC)
 add_compile_definitions(LIBIDN_STATIC)
 
 if(WIN32)
-    # Manually specify SSL
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+        set(LIB_SUFFIX "d")
+    endif()
+
+    # Following libraries find-modules have issues in correctly
+    # determining the right optimized/debug library so we do it manually
+
+    # OpenSSL
     set(OPENSSL_INCLUDE_DIR "${DEPS_PATH}/openssl/include" CACHE PATH "" FORCE)
-    set(LIB_EAY_DEBUG "${DEPS_PATH}/openssl/lib/${ARCH}/cryptod.lib;Crypt32.lib" CACHE FILEPATH "" FORCE)
-    set(LIB_EAY_RELEASE "${DEPS_PATH}/openssl/lib/${ARCH}/crypto.lib;Crypt32.lib" CACHE FILEPATH "" FORCE)
+    set(LIB_EAY_DEBUG "${DEPS_PATH}/openssl/lib/${ARCH}/cryptod.lib" CACHE FILEPATH "" FORCE)
+    set(LIB_EAY_RELEASE "${DEPS_PATH}/openssl/lib/${ARCH}/crypto.lib" CACHE FILEPATH "" FORCE)
     set(SSL_EAY_DEBUG "${DEPS_PATH}/openssl/lib/${ARCH}/ssld.lib" CACHE FILEPATH "" FORCE)
     set(SSL_EAY_RELEASE "${DEPS_PATH}/openssl/lib/${ARCH}/ssl.lib" CACHE FILEPATH "" FORCE)
     # Libxml2
-    set(LIBXML2_LIBRARY "optimized;${DEPS_PATH}/libxml2/lib/${ARCH}/libxml2.lib;debug;${DEPS_PATH}/libxml2/lib/${ARCH}/libxml2d.lib" CACHE FILEPATH "" FORCE)
+    set(LIBXML2_LIBRARY "${DEPS_PATH}/libxml2/lib/${ARCH}/libxml2${LIB_SUFFIX}.lib" CACHE FILEPATH "" FORCE)
     # Fontconfig
-    set(Fontconfig_LIBRARY "optimized;${DEPS_PATH}/fontconfig/lib/${ARCH}/fontconfig.lib;debug;${DEPS_PATH}/fontconfig/lib/${ARCH}/fontconfigd.lib" CACHE FILEPATH "" FORCE)
+    set(Fontconfig_LIBRARY "${DEPS_PATH}/fontconfig/lib/${ARCH}/fontconfig${LIB_SUFFIX}.lib" CACHE FILEPATH "" FORCE)
 else()
     # Freetype
     set(FREETYPE_INCLUDE_DIR_ft2build "${DEPS_PATH}/freetype/include/freetype2" CACHE PATH "" FORCE)
     set(FREETYPE_INCLUDE_DIR_freetype2 "${DEPS_PATH}/freetype/include" CACHE PATH "" FORCE)
-    set(FREETYPE_LIBRARY_RELEASE "${DEPS_PATH}/freetype/lib/${ARCH}/libfreetype.a;${DEPS_PATH}/bzip2/lib/${ARCH}/libbz2.a" CACHE FILEPATH "" FORCE)
+    set(FREETYPE_LIBRARY_RELEASE "${DEPS_PATH}/freetype/lib/${ARCH}/libfreetype.a" CACHE FILEPATH "" FORCE)
     # Fontconfig
-    set(Fontconfig_LIBRARY "${DEPS_PATH}/fontconfig/lib/${ARCH}/libfontconfig.a;${DEPS_PATH}/libuuid/lib/${ARCH}/libuuid.a" CACHE FILEPATH "" FORCE)
+    set(Fontconfig_LIBRARY "${DEPS_PATH}/fontconfig/lib/${ARCH}/libfontconfig.a" CACHE FILEPATH "" FORCE)
+    set(PLATFORM_SYSTEM_LIBRARIES "${DEPS_PATH}/bzip2/lib/${ARCH}/libbz2.a" "${DEPS_PATH}/libuuid/lib/${ARCH}/libuuid.a")
 endif()
 
 add_subdirectory("${PODOFO_DIR}" "${CMAKE_BINARY_DIR}/podofo")
