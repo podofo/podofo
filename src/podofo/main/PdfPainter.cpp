@@ -425,7 +425,7 @@ void PdfPainter::Circle(double x, double y, double radius)
     checkStatus(PainterStatus::Default);
 
     // draw four Bezier curves to approximate a circle
-    lineTo(x + radius, y);
+    moveTo(x + radius, y);
     cubicBezierTo(x + radius, y + radius * ARC_MAGIC,
         x + radius * ARC_MAGIC, y + radius,
         x, y + radius);
