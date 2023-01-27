@@ -175,36 +175,42 @@ Eof:
     goto Exit;
 }
 
-bool PdfTokenizer::IsNextToken(InputStreamDevice& device, const string_view& token)
+nullable<string_view> PdfTokenizer::PeekNextToken(InputStreamDevice& device)
 {
-    if (token.length() == 0)
-        PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+    PdfTokenType tokenType;
+    string_view token;
+    if (!this->TryReadNextToken(device, token, tokenType))
+        return { };
 
-    string_view readToken;
-    bool gotToken = this->TryReadNextToken(device, readToken);
-    if (!gotToken)
-        PODOFO_RAISE_ERROR(PdfErrorCode::UnexpectedEOF);
-
-    return token == readToken;
+    // Don't consume the token
+    this->EnqueueToken(token, tokenType);
+    return token;
 }
 
 int64_t PdfTokenizer::ReadNextNumber(InputStreamDevice& device)
 {
+    int64_t ret;
+    if (!TryReadNextNumber(device, ret))
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoNumber, "Could not read number");
+
+    return ret;
+}
+
+bool PdfTokenizer::TryReadNextNumber(InputStreamDevice& device, int64_t& value)
+{
     PdfTokenType tokenType;
     string_view token;
-    bool gotToken = this->TryReadNextToken(device, token, tokenType);
-    if (!gotToken)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected number");
+    if (!this->TryReadNextToken(device, token, tokenType))
+        return false;
 
-    int64_t num;
-    if (std::from_chars(token.data(), token.data() + token.size(), num).ec != std::errc())
+    if (std::from_chars(token.data(), token.data() + token.size(), value).ec != std::errc())
     {
         // Don't consume the token
         this->EnqueueToken(token, tokenType);
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoNumber, "Could not read number");
+        return false;
     }
 
-    return static_cast<int64_t>(num);
+    return true;
 }
 
 void PdfTokenizer::ReadNextVariant(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)

@@ -39,7 +39,6 @@ enum class PdfTokenType
  */
 class PODOFO_API PdfTokenizer
 {
-    friend class PdfParser;
     friend class PdfParserObject;
 
 public:
@@ -69,18 +68,12 @@ public:
     bool TryReadNextToken(InputStreamDevice& device, std::string_view& token);
     bool TryReadNextToken(InputStreamDevice& device, std::string_view& token, PdfTokenType& tokenType);
 
-    /** Reads the next token from the current file position
-     *  ignoring all comments and compare the passed token
-     *  to the read token.
+    /** Try peek the next token from the current file position
+     * ignoring all comments, without actually consuming it
      *
-     *  If there is no next token available, throws UnexpectedEOF.
-     *
-     *  \param token a token that is compared to the
-     *                  read token
-     *
-     *  \returns true if the read token equals the passed token.
+     * \returns the peeked token. Null if EOF
      */
-    bool IsNextToken(InputStreamDevice& device, const std::string_view& token);
+    nullable<std::string_view> PeekNextToken(InputStreamDevice& device);
 
     /** Read the next number from the current file position
      *  ignoring all comments.
@@ -92,6 +85,7 @@ public:
      *  \returns a number read from the input device.
      */
     int64_t ReadNextNumber(InputStreamDevice& device);
+    bool TryReadNextNumber(InputStreamDevice& device, int64_t& value);
 
     /** Read the next variant from the current file position
      *  ignoring all comments.

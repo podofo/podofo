@@ -227,6 +227,7 @@ void TestStreamIsNextToken(const string_view& buffer, const char* tokens[])
     PdfTokenizer tokenizer;
 
     unsigned i = 0;
+    string_view token;
     while (tokens[i] != nullptr)
-        REQUIRE(tokenizer.IsNextToken(device, tokens[i++]));
+        REQUIRE((tokenizer.TryReadNextToken(device, token) && token == tokens[i++]));
 }

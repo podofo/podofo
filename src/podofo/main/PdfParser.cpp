@@ -217,76 +217,73 @@ void PdfParser::MergeTrailer(const PdfObject& trailer)
 void PdfParser::ReadNextTrailer(InputStreamDevice& device)
 {
     utls::RecursionGuard guard;
-    if (m_tokenizer.IsNextToken(device, "trailer"))
+    string_view token;
+    if (!m_tokenizer.TryReadNextToken(device, token) || token != "trailer")
+        PODOFO_RAISE_ERROR(PdfErrorCode::NoTrailer);
+
+    // Ignore the encryption in the trailer as the trailer may not be encrypted
+    auto trailer = new PdfParserObject(m_Objects->GetDocument(), device);
+    trailer->SetIsTrailer(true);
+
+    unique_ptr<PdfParserObject> trailerTemp;
+    if (m_Trailer == nullptr)
     {
-        // Ignore the encryption in the trailer as the trailer may not be encrypted
-        auto trailer = new PdfParserObject(m_Objects->GetDocument(), device);
-        trailer->SetIsTrailer(true);
+        m_Trailer.reset(trailer);
+    }
+    else
+    {
+        trailerTemp.reset(trailer);
+        // now merge the information of this trailer with the main documents trailer
+        MergeTrailer(*trailer);
+    }
 
-        unique_ptr<PdfParserObject> trailerTemp;
-        if (m_Trailer == nullptr)
-        {
-            m_Trailer.reset(trailer);
-        }
-        else
-        {
-            trailerTemp.reset(trailer);
-            // now merge the information of this trailer with the main documents trailer
-            MergeTrailer(*trailer);
-        }
+    if (trailer->GetDictionary().HasKey("XRefStm"))
+    {
+        // Whenever we read a XRefStm key, 
+        // we know that the file was updated.
+        if (!trailer->GetDictionary().HasKey("Prev"))
+            m_IncrementalUpdateCount++;
 
-        if (trailer->GetDictionary().HasKey("XRefStm"))
+        try
         {
-            // Whenever we read a XRefStm key, 
+            ReadXRefStreamContents(device, static_cast<size_t>(trailer->GetDictionary().FindKeyAs<int64_t>("XRefStm", 0)), false);
+        }
+        catch (PdfError& e)
+        {
+            PODOFO_PUSH_FRAME_INFO(e, "Unable to load /XRefStm xref stream");
+            throw e;
+        }
+    }
+
+    auto prevObj = trailer->GetDictionary().FindKey("Prev");
+    int64_t offset;
+    if (prevObj != nullptr
+        && prevObj->TryGetNumber(offset))
+    {
+        if (offset > 0)
+        {
+            // Whenever we read a Prev key, 
             // we know that the file was updated.
-            if (!trailer->GetDictionary().HasKey("Prev"))
-                m_IncrementalUpdateCount++;
+            m_IncrementalUpdateCount++;
 
             try
             {
-                ReadXRefStreamContents(device, static_cast<size_t>(trailer->GetDictionary().FindKeyAs<int64_t>("XRefStm", 0)), false);
+                if (m_visitedXRefOffsets.find((size_t)offset) == m_visitedXRefOffsets.end())
+                    ReadXRefContents(device, (size_t)offset);
+                else
+                    PoDoFo::LogMessage(PdfLogSeverity::Warning, "XRef contents at offset {} requested twice, skipping the second read",
+                        static_cast<int64_t>(offset));
             }
             catch (PdfError& e)
             {
-                PODOFO_PUSH_FRAME_INFO(e, "Unable to load /XRefStm xref stream");
+                PODOFO_PUSH_FRAME_INFO(e, "Unable to load /Prev xref entries");
                 throw e;
             }
         }
-
-        auto prevObj = trailer->GetDictionary().FindKey("Prev");
-        int64_t offset;
-        if (prevObj != nullptr
-            && prevObj->TryGetNumber(offset))
+        else
         {
-            if (offset > 0)
-            {
-                // Whenever we read a Prev key, 
-                // we know that the file was updated.
-                m_IncrementalUpdateCount++;
-
-                try
-                {
-                    if (m_visitedXRefOffsets.find((size_t)offset) == m_visitedXRefOffsets.end())
-                        ReadXRefContents(device, (size_t)offset);
-                    else
-                        PoDoFo::LogMessage(PdfLogSeverity::Warning, "XRef contents at offset {} requested twice, skipping the second read",
-                            static_cast<int64_t>(offset));
-                }
-                catch (PdfError& e)
-                {
-                    PODOFO_PUSH_FRAME_INFO(e, "Unable to load /Prev xref entries");
-                    throw e;
-                }
-            }
-            else
-            {
-                PoDoFo::LogMessage(PdfLogSeverity::Warning, "XRef offset {} is invalid, skipping the read", offset);
-            }
+            PoDoFo::LogMessage(PdfLogSeverity::Warning, "XRef offset {} is invalid, skipping the read", offset);
         }
-    }
-    else // Else belongs to IsNextToken("trailer") and not to HasKey("Prev")
-    {
-        PODOFO_RAISE_ERROR(PdfErrorCode::NoTrailer);
     }
 }
 
@@ -294,13 +291,15 @@ void PdfParser::FindXRef(InputStreamDevice& device, size_t* xRefOffset)
 {
     // ISO32000-1:2008, 7.5.5 File Trailer "Conforming readers should read a PDF file from its end"
     FindTokenBackward(device, "startxref", PDF_XREF_BUF);
-    if (!m_tokenizer.IsNextToken(device, "startxref"))
+
+    string_view token;
+    if (!m_tokenizer.TryReadNextToken(device, token) || token != "startxref")
     {
         // Could be non-standard startref
         if (!m_StrictParsing)
         {
             FindTokenBackward(device, "startref", PDF_XREF_BUF);
-            if (!m_tokenizer.IsNextToken(device, "startref"))
+            if (!m_tokenizer.TryReadNextToken(device, token) || token != "startref")
                 PODOFO_RAISE_ERROR(PdfErrorCode::NoXRef);
         }
         else
@@ -380,16 +379,12 @@ void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset, bool 
 
         try
         {
-            // something like PeekNextToken()
-            PdfTokenType tokenType;
-            string_view readToken;
-            bool gotToken = m_tokenizer.TryReadNextToken(device, readToken, tokenType);
-            if (gotToken)
-            {
-                m_tokenizer.EnqueueToken(readToken, tokenType);
-                if (readToken == "trailer")
-                    break;
-            }
+            auto peeked = m_tokenizer.PeekNextToken(device);
+            if (peeked == nullptr)
+                PODOFO_RAISE_ERROR(PdfErrorCode::NoXRef);
+
+            if (*peeked == "trailer")
+                break;
 
             firstObject = m_tokenizer.ReadNextNumber(device);
             objectCount = m_tokenizer.ReadNextNumber(device);

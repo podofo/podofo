@@ -271,7 +271,8 @@ PdfReference PdfParserObject::readReference(PdfTokenizer& tokenizer)
         throw e;
     }
 
-    if (!tokenizer.IsNextToken(*m_device, "obj"))
+    string_view token;
+    if (!tokenizer.TryReadNextToken(*m_device, token) || token != "obj")
     {
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "Error while reading object {} {} R: Next token is not 'obj'",
             reference.ObjectNumber(), reference.GenerationNumber());
