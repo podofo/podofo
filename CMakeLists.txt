@@ -36,7 +36,7 @@ include(GNUInstallDirs)
 set(CMAKE_CXX_STANDARD 17)
 
 # Load modules from our source tree too
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules" "${CMAKE_CURRENT_BINARY_DIR}")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules" "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Builds must use this CMakeLists.txt, not the one in src/ or somewhere else.
 # If users try to use something else the results can be confusing. We set a
