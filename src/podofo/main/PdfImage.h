@@ -25,7 +25,7 @@ struct PdfImageInfo
     unsigned Height = 0;
     PdfFilterList Filters;
     PdfColorSpace ColorSpace = PdfColorSpace::Unknown;
-    PdfArray ColorSpaceArray;
+    PdfArray ColorSpaceArray;       ///< Additional /ColorSpace array entries. The first entry is always the one in ColorSpace
     unsigned char BitsPerComponent = 0;
     PdfArray Decode;
 };

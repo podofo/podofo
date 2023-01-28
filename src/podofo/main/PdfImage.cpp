@@ -786,8 +786,8 @@ void PdfImage::loadFromTiffHandle(void* handle)
             idxObj.GetOrCreateStream().SetData(data);
 
             // Add the colorspace to our image
+            info.ColorSpace = PdfColorSpace::Indexed;
             PdfArray colorSpace;
-            colorSpace.Add(PdfName("Indexed"));
             colorSpace.Add(PdfName("DeviceRGB"));
             colorSpace.Add(static_cast<int64_t>(numColors) - 1);
             colorSpace.Add(idxObj.GetIndirectReference());
@@ -1238,8 +1238,8 @@ void loadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
         auto& idxObj = image.GetDocument().GetObjects().CreateDictionaryObject();
         idxObj.GetOrCreateStream().SetData(data);
 
+        info.ColorSpace = PdfColorSpace::DeviceRGB;
         PdfArray array;
-        array.Add(PdfName("DeviceRGB"));
         array.Add(static_cast<int64_t>(colorCount - 1));
         array.Add(idxObj.GetIndirectReference());
         info.ColorSpaceArray = std::move(array);
