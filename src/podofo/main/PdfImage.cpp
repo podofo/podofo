@@ -1238,8 +1238,9 @@ void loadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
         auto& idxObj = image.GetDocument().GetObjects().CreateDictionaryObject();
         idxObj.GetOrCreateStream().SetData(data);
 
-        info.ColorSpace = PdfColorSpace::DeviceRGB;
+        info.ColorSpace = PdfColorSpace::Indexed;
         PdfArray array;
+        array.Add(PdfName("DeviceRGB"));
         array.Add(static_cast<int64_t>(colorCount - 1));
         array.Add(idxObj.GetIndirectReference());
         info.ColorSpaceArray = std::move(array);
