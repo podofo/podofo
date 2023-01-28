@@ -1,4 +1,5 @@
 ## Version 0.10.0
+- PdfParser: Cleaned FindToken2 -> FindTokenBackward
 - Renamed base source folder -> main
 - PdfPainter: Reviewed API, added full state inspection,
   Moved SmoothCurveTo, QuadCurveTo,

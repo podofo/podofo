@@ -100,7 +100,8 @@ public:
      *  \param password a user or owner password which can be used to open an encrypted PDF file
      *                   If the password is invalid, a PdfError( PdfErrorCode::InvalidPassword ) exception is thrown!
      */
-    inline void SetPassword(const std::string_view& password) { m_password = password; }
+    inline void SetPassword(const std::string_view& password) { m_Password = password; }
+    inline const std::string& GetPassword() { return m_Password; }
 
     /**
      * Retrieve the number of incremental updates that
@@ -181,43 +182,10 @@ public:
     inline bool HasXRefStream() const { return m_HasXRefStream; }
 
 private:
-    /** Searches backwards from the end of the file
-     *  and tries to find a token.
-     *  The current file is positioned right after the token.
-     *
-     *  \param token a token to find
-     *  \param range range in bytes in which to search
-     *                beginning at the end of the file
-     */
-    void FindTokenBackward(InputStreamDevice& device, const char* token, size_t range);
-
-    /** Searches backwards from the specified position of the file
-     *  and tries to find a token.
-     *  The current file is positioned right after the token.
-     *
-     *  \param token a token to find
-     *  \param range range in bytes in which to search
-     *                beginning at the specified position of the file
-     *  \param searchEnd specifies position
-     */
-    void FindToken2(InputStreamDevice& device, const char* token, size_t range, size_t searchEnd);
-
     /** Reads the xref sections and the trailers of the file
      *  in the correct order in the memory
      */
     void ReadDocumentStructure(InputStreamDevice& device);
-
-    /** Merge the information of this trailer object
-     *  in the parsers main trailer object.
-     *  \param trailer take the keys to merge from this dictionary.
-     */
-    void MergeTrailer(const PdfObject& trailer);
-
-    /** Looks for a startxref entry at the current file position
-     *  and saves its byteoffset to pXRefOffset.
-     *  \param xRefOffset store the byte offset of the xref section into this variable.
-     */
-    void FindXRef(InputStreamDevice& device, size_t* xRefOffset);
 
     /** Reads the xref table from a pdf file.
      *  If there is no xref table, ReadXRefStreamContents() is called.
@@ -258,6 +226,38 @@ private:
      */
     void ReadObjects(InputStreamDevice& device);
 
+    /** Checks the magic number at the start of the pdf file
+     *  and sets the m_PdfVersion member to the correct version
+     *  of the pdf file.
+     *
+     *  \returns true if this is a pdf file, otherwise false
+     */
+    bool IsPdfFile(InputStreamDevice& device);
+
+private:
+    /** Searches backwards from the specified position of the file
+     *  and tries to find a token.
+     *  The current file is positioned right after the token.
+     *
+     *  \param token a token to find
+     *  \param range range in bytes in which to search
+     *                beginning at the specified position of the file
+     *  \param searchEnd specifies position
+     */
+    void findTokenBackward(InputStreamDevice& device, const char* token, size_t range, size_t searchEnd);
+
+    /** Merge the information of this trailer object
+     *  in the parsers main trailer object.
+     *  \param trailer take the keys to merge from this dictionary.
+     */
+    void mergeTrailer(const PdfObject& trailer);
+
+    /** Looks for a startxref entry at the current file position
+     *  and saves its byteoffset to pXRefOffset.
+     *  \param xRefOffset store the byte offset of the xref section into this variable.
+     */
+    void findXRef(InputStreamDevice& device, size_t* xRefOffset);
+
     /** Reads all objects from the pdf into memory
      *  from the previously read entries
      *
@@ -270,7 +270,7 @@ private:
      *  \see ReadObjects
      *  \see SetPassword
      */
-    void ReadObjectsInternal(InputStreamDevice& device);
+    void readObjectsInternal(InputStreamDevice& device);
 
     /** Read the object with index from the object stream nObjNo
      *  and push it on the objects vector
@@ -283,17 +283,9 @@ private:
      *  \param index index of the object which should be parsed
      *
      */
-    void ReadCompressedObjectFromStream(uint32_t objNo, const cspan<int64_t>& objectList);
+    void readCompressedObjectFromStream(uint32_t objNo, const cspan<int64_t>& objectList);
 
-    /** Checks the magic number at the start of the pdf file
-     *  and sets the m_PdfVersion member to the correct version
-     *  of the pdf file.
-     *
-     *  \returns true if this is a pdf file, otherwise false
-     */
-    bool IsPdfFile(InputStreamDevice& device);
-
-    void ReadNextTrailer(InputStreamDevice& device);
+    void readNextTrailer(InputStreamDevice& device);
 
 
     /** Checks for the existence of the %%EOF marker at the end of the file.
@@ -302,18 +294,18 @@ private:
      *  Simply raises an error if there is a problem with the marker.
      *
      */
-    void CheckEOFMarker(InputStreamDevice& device);
+    void checkEOFMarker(InputStreamDevice& device);
 
     /** Initializes all private members
      *  with their initial values.
      */
-    void Reset();
+    void reset();
 
     /** Small helper method to retrieve the document id from the trailer
      *
      *  \returns the document id of this PDF document
      */
-    const PdfString& GetDocumentId();
+    const PdfString& getDocumentId();
 
     /** Determines the correct version of the PDF
      *  from the document catalog (if available),
@@ -323,7 +315,7 @@ private:
      *  key is available, the version from the file header will
      *  be used.
      */
-    void UpdateDocumentVersion();
+    void updateDocumentVersion();
 
 private:
     std::shared_ptr<charbuff> m_buffer;
@@ -335,9 +327,8 @@ private:
     size_t m_magicOffset;
     bool m_HasXRefStream;
     size_t m_XRefOffset;
-    size_t m_XRefLinearizedOffset;
     size_t m_FileSize;
-    size_t m_LastEOFOffset;
+    size_t m_lastEOFOffset;
 
     PdfXRefEntries m_entries;
     PdfIndirectObjectList* m_Objects;
@@ -345,7 +336,7 @@ private:
     std::unique_ptr<PdfParserObject> m_Trailer;
     std::unique_ptr<PdfEncrypt> m_Encrypt;
 
-    std::string m_password;
+    std::string m_Password;
 
     bool m_StrictParsing;
     bool m_IgnoreBrokenObjects;

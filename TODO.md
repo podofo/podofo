@@ -58,8 +58,12 @@ either assume UTF-8 and/or checks for used codepoints
 - PdfResources: Improve API
 - Do more overflow cheks using Chromium numerics, which is now
   bundled. See comments in utls::DoesMultiplicationOverflow()
+- PdfParser: Handle all pdfs in
+  https://www.mail-archive.com/podofo-users@lists.sourceforge.net/msg04801.html
 
 ### After 1.0
+- PdfParser: Handle invalid startxref by rebuilding the index,
+  similary to what pdf.js does
 - high-level signing API: Add PAdES B-B support
 - Add text shaping witg Harfbuzz https://github.com/harfbuzz/harfbuzz
 - Add fail safe sign/update mechanism, meaning the stream gets trimmed
