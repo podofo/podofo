@@ -378,11 +378,10 @@ void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset, bool 
 
         try
         {
-            auto peeked = m_tokenizer.PeekNextToken(device);
-            if (peeked == nullptr)
+            if (!m_tokenizer.TryPeekNextToken(device, token))
                 PODOFO_RAISE_ERROR(PdfErrorCode::NoXRef);
 
-            if (*peeked == "trailer")
+            if (token == "trailer")
                 break;
 
             firstObject = m_tokenizer.ReadNextNumber(device);

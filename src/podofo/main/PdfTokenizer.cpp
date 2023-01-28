@@ -175,16 +175,20 @@ Eof:
     goto Exit;
 }
 
-nullable<string_view> PdfTokenizer::PeekNextToken(InputStreamDevice& device)
+bool PdfTokenizer::TryPeekNextToken(InputStreamDevice& device, string_view& token)
 {
     PdfTokenType tokenType;
-    string_view token;
+    return TryPeekNextToken(device, token, tokenType);
+}
+
+bool PdfTokenizer::TryPeekNextToken(InputStreamDevice& device, string_view& token, PdfTokenType& tokenType)
+{
     if (!this->TryReadNextToken(device, token, tokenType))
-        return { };
+        return false;
 
     // Don't consume the token
     this->EnqueueToken(token, tokenType);
-    return token;
+    return true;
 }
 
 int64_t PdfTokenizer::ReadNextNumber(InputStreamDevice& device)

@@ -71,9 +71,10 @@ public:
     /** Try peek the next token from the current file position
      * ignoring all comments, without actually consuming it
      *
-     * \returns the peeked token. Null if EOF
+     * \returns false if EOF
      */
-    nullable<std::string_view> PeekNextToken(InputStreamDevice& device);
+    bool TryPeekNextToken(InputStreamDevice& device, std::string_view& token);
+    bool TryPeekNextToken(InputStreamDevice& device, std::string_view& token, PdfTokenType& tokenType);
 
     /** Read the next number from the current file position
      *  ignoring all comments.
