@@ -99,8 +99,8 @@ Tools are already enabled in the playground.
 
 ## TODO
 
-There's a [TODO](https://github.com/podofo/podofo/blob/master/TODO.md) list in the wiki.
-in the [issue](https://github.com/podofo/podofo/issues) tracker.
+There's a [TODO](https://github.com/podofo/podofo/blob/master/TODO.md) list, or look
+at the [issue](https://github.com/podofo/podofo/issues) tracker.
 
 ## FAQ
 
@@ -217,9 +217,11 @@ which is still followed by several of the original developers of PoDoFO.
 A gitter [community](https://gitter.im/podofo/community) has also been created to ease some more informal chatter.
 If you find a bug and know how to fix it, or you want to add a small feature, you're welcome to send a [pull request](https://github.com/podofo/podofo/pulls),
 providing it follows the [coding style](https://github.com/podofo/podofo/blob/master/CODING-STYLE.md)
-of the project. Also, as a minimum requisite, any contribution should be valuable for a multitude of people,
-to avoid it to be only self relevant for the contributor. Other reasons for the rejection, or hold,
-of a pull request may be:
+of the project. As a minimum requisite, any contribution should be:
+* valuable for a multitude of people and not only self relevant for the contributor;
+* consistent with surrounding code and not result in unpredictable behavior and/or bugs.
+
+Other reasons for the rejection, or hold, of a pull request may be:
 
 * the change doesn't fit the scope of PoDoFo;
 * the change shows lack of knowledge/mastery of the PDF specification and/or C++ language;
