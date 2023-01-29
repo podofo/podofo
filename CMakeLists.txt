@@ -51,8 +51,13 @@ if(NOT PODOFO_BUILD_LIB_ONLY)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/target)
 endif()
 
+if (DEFINED PODOFO_STATIC)
+    message(FATAL_ERROR "PODOFO_STATIC shouldn't be defined externally. Set PODOFO_SHARED to FALSE if you need a static build")
+endif()
+
 option(PODOFO_SHARED "Build shared libraries (.dll/.so)" ON)
 if(PODOFO_SHARED)
+    set(PODOFO_STATIC FALSE)
     add_compile_definitions(PODOFO_SHARED)
 else()
     set(PODOFO_STATIC TRUE)
