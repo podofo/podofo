@@ -57,11 +57,11 @@ endif()
 
 option(PODOFO_STATIC "Build static libraries (.a/.lib)" FALSE)
 if(PODOFO_STATIC)
+    set(PODOFO_BUILD_STATIC TRUE)
     set(PODOFO_SHARED FALSE)
-    add_compile_definitions(PODOFO_STATIC)
 else()
+    set(PODOFO_BUILD_SHARED TRUE)
     set(PODOFO_SHARED TRUE)
-    add_compile_definitions(PODOFO_SHARED)
 endif()
 
 message("Will install libraries to ${CMAKE_INSTALL_FULL_LIBDIR}")
@@ -220,7 +220,18 @@ file(APPEND
 )
 
 add_subdirectory(src/podofo)
+
+if(PODOFO_STATIC)
+    set(PODOFO_CXX_FLAGS ${PODOFO_CXX_FLAGS_STATIC} CACHE INTERNAL "")
+    set(PODOFO_LIBRARIES ${PODOFO_LIBRARIES_STATIC} CACHE INTERNAL "") 
+else()
+    set(PODOFO_CXX_FLAGS ${PODOFO_CXX_FLAGS_SHARED} CACHE INTERNAL "")
+    set(PODOFO_LIBRARIES ${PODOFO_LIBRARIES_SHARED} CACHE INTERNAL "")
+endif()
+
+# Add global build configurations for non library targets
 include_directories(${PODOFO_INCLUDE_DIRS})
+add_compile_options(${PODOFO_CXX_FLAGS})
 
 if(NOT PODOFO_BUILD_LIB_ONLY)
     enable_testing()

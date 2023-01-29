@@ -67,7 +67,9 @@ endif()
 
 add_source("3rdparty/pdfium" "${PROJECT_SOURCE_DIR}/3rdparty/pdfium")
 
-if(PODOFO_STATIC)
+add_compile_definitions(PODOFO_BUILD)
+
+if(PODOFO_BUILD_STATIC)
     message("Building static podofo library")
     add_library(podofo_static STATIC ${PODOFO_SOURCES})
     target_link_libraries(podofo_static podofo_private ${PODOFO_LIB_DEPENDS})
@@ -76,17 +78,19 @@ if(PODOFO_STATIC)
         SOVERSION "${PODOFO_SOVERSION}"
         CLEAN_DIRECT_OUTPUT 1
         OUTPUT_NAME "podofo"
+        COMPILE_FLAGS "-DPODOFO_STATIC"
     )
     install(TARGETS podofo_static
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
-    set(PODOFO_LIBRARIES podofo_static podofo_private
-        CACHE INTERNAL "Which podofo library variant to depend on")
+    
+    set(PODOFO_CXX_FLAGS_STATIC "-DPODOFO_STATIC" CACHE INTERNAL "") 
+    set(PODOFO_LIBRARIES_STATIC podofo_static podofo_private CACHE INTERNAL "")
 endif()
 
-if(PODOFO_SHARED)
+if(PODOFO_BUILD_SHARED)
     message("Building shared podofo library")
     add_library(podofo_shared SHARED ${PODOFO_SOURCES})
     target_link_libraries(podofo_shared PRIVATE podofo_private ${PODOFO_LIB_DEPENDS})
@@ -98,6 +102,7 @@ if(PODOFO_SHARED)
         SOVERSION "${PODOFO_SOVERSION}"
         CLEAN_DIRECT_OUTPUT 1
         OUTPUT_NAME "podofo"
+        COMPILE_FLAGS "-DPODOFO_SHARED"
     )
     # Since we're building a shared podofo, prefer to depend on this one for
     # tests and tools over the static library (if built).
@@ -124,9 +129,9 @@ if(PODOFO_SHARED)
     else()
         message("Pkg-config not found. No pkg-config file will be created.")
     endif()
-
-    set(PODOFO_LIBRARIES podofo_shared
-        CACHE INTERNAL "Which podofo library variant to depend on")
+    
+    set(PODOFO_CXX_FLAGS_SHARED "-DPODOFO_SHARED" CACHE INTERNAL "")
+    set(PODOFO_LIBRARIES_SHARED podofo_shared CACHE INTERNAL "")
 endif()
 
 # Use these flags when compiling code that includes podofo headers.
