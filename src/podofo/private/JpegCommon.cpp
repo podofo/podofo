@@ -23,9 +23,9 @@ extern "C"
 #pragma warning(disable: 4297)
     void cust_error_exit(j_common_ptr ctx)
     {
-        std::string error;
+        string error;
         error.resize(JMSG_LENGTH_MAX);
-        (*ctx->err->format_message) ((jpeg_common_struct*)&ctx, error.data()); \
+        (*ctx->err->format_message)(ctx, error.data());
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, error);
     }
 #pragma warning(pop)
