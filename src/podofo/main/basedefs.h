@@ -43,12 +43,12 @@
 #endif
 
 // Sanity check - can't be both compiling and using shared PoDoFo
-#if defined(PODOFO_SHARED) && defined(STATIC_PODOFO)
-    #error "Both PODOFO_SHARED and STATIC_PODOFO defined!"
+#if defined(PODOFO_SHARED) && defined(PODOFO_STATIC)
+    #error "Both PODOFO_SHARED and PODOFO_STATIC defined!"
 #endif
 
 // Define PODOFO_SHARED when building the PoDoFo library as a
-// DLL. When building code that uses that DLL, define STATIC_PODOFO.
+// DLL. When building code that uses that DLL, define PODOFO_STATIC.
 //
 // Building or linking to a static library does not require either
 // preprocessor symbol.
@@ -80,7 +80,7 @@
 #endif
 
 #else
-#error Neither STATIC_PODOFO or PODOFO_SHARED defined
+#error Neither PODOFO_STATIC or PODOFO_SHARED defined
 #endif
 
 // Throwable classes must always be exported by all binaries when

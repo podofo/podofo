@@ -132,7 +132,7 @@ endif()
 # Use these flags when compiling code that includes podofo headers.
 # Failure to do so will result in compilation or link-time errors
 # on some platforms, and can even cause undefined results at runtime.
-if(STATIC_PODOFO)
+if(PODOFO_STATIC)
     set(PODOFO_CFLAGS "-DPODOFO_STATIC" CACHE INTERNAL "Extra flags required when linking to podofo")
 else()
     set(PODOFO_CFLAGS "" CACHE INTERNAL "Extra flags required when linking to podofo")
