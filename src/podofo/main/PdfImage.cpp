@@ -366,7 +366,7 @@ void PdfImage::SetDataRaw(InputStream& stream, const PdfImageInfo& info)
     {
         PdfArray arr;
         arr.Add(PdfName(PoDoFo::ColorSpaceToNameRaw(info.ColorSpace)));
-        arr.insert(arr.begin(), info.ColorSpaceArray.begin(), info.ColorSpaceArray.end());
+        arr.insert(arr.begin() + 1, info.ColorSpaceArray.begin(), info.ColorSpaceArray.end());
         dict.AddKey("ColorSpace", info.ColorSpaceArray);
     }
 
