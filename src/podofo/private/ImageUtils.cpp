@@ -176,6 +176,26 @@ void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat
 {
     switch (format)
     {
+        case PdfPixelFormat::RGB24:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 3 + 0] = srcScanLine[i * 3 + 0];
+                dstScanLine[i * 3 + 1] = srcScanLine[i * 3 + 1];
+                dstScanLine[i * 3 + 2] = srcScanLine[i * 3 + 2];
+            }
+            break;
+        }
+        case PdfPixelFormat::BGR24:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 3 + 0] = srcScanLine[i * 3 + 2];
+                dstScanLine[i * 3 + 1] = srcScanLine[i * 3 + 1];
+                dstScanLine[i * 3 + 2] = srcScanLine[i * 3 + 0];
+            }
+            break;
+        }
         case PdfPixelFormat::RGBA:
         {
             for (unsigned i = 0; i < width; i++)
@@ -198,23 +218,25 @@ void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat
             }
             break;
         }
-        case PdfPixelFormat::RGB24:
+        case PdfPixelFormat::ARGB:
         {
             for (unsigned i = 0; i < width; i++)
             {
-                dstScanLine[i * 3 + 0] = srcScanLine[i * 3 + 0];
-                dstScanLine[i * 3 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 3 + 2] = srcScanLine[i * 3 + 2];
+                dstScanLine[i * 4 + 0] = 255;
+                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 0];
+                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 1];
+                dstScanLine[i * 4 + 3] = srcScanLine[i * 3 + 2];
             }
             break;
         }
-        case PdfPixelFormat::BGR24:
+        case PdfPixelFormat::ABGR:
         {
             for (unsigned i = 0; i < width; i++)
             {
-                dstScanLine[i * 3 + 0] = srcScanLine[i * 3 + 2];
-                dstScanLine[i * 3 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 3 + 2] = srcScanLine[i * 3 + 0];
+                dstScanLine[i * 4 + 0] = 255;
+                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 2];
+                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 1];
+                dstScanLine[i * 4 + 3] = srcScanLine[i * 3 + 0];
             }
             break;
         }
@@ -228,28 +250,6 @@ void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat
 {
     switch (format)
     {
-        case PdfPixelFormat::RGBA:
-        {
-            for (unsigned i = 0; i < width; i++)
-            {
-                dstScanLine[i * 4 + 0] = srcScanLine[i * 3 + 0];
-                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 2];
-                dstScanLine[i * 4 + 3] = srcAphaLine[i];
-            }
-            break;
-        }
-        case PdfPixelFormat::BGRA:
-        {
-            for (unsigned i = 0; i < width; i++)
-            {
-                dstScanLine[i * 4 + 0] = srcScanLine[i * 3 + 2];
-                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 0];
-                dstScanLine[i * 4 + 3] = srcAphaLine[i];
-            }
-            break;
-        }
         // TODO: Handle alpha?
         case PdfPixelFormat::RGB24:
         {
@@ -272,6 +272,50 @@ void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat
             }
             break;
         }
+        case PdfPixelFormat::RGBA:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 4 + 0] = srcScanLine[i * 3 + 0];
+                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 1];
+                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 2];
+                dstScanLine[i * 4 + 3] = srcAphaLine[i];
+            }
+            break;
+        }
+        case PdfPixelFormat::BGRA:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 4 + 0] = srcScanLine[i * 3 + 2];
+                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 1];
+                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 0];
+                dstScanLine[i * 4 + 3] = srcAphaLine[i];
+            }
+            break;
+        }
+        case PdfPixelFormat::ARGB:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 4 + 0] = srcAphaLine[i];
+                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 0];
+                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 1];
+                dstScanLine[i * 4 + 3] = srcScanLine[i * 3 + 2];
+            }
+            break;
+        }
+        case PdfPixelFormat::ABGR:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 4 + 0] = srcAphaLine[i];
+                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 2];
+                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 1];
+                dstScanLine[i * 4 + 3] = srcScanLine[i * 3 + 0];
+            }
+            break;
+        }
         default:
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "Unsupported pixel format");
     }
@@ -282,17 +326,10 @@ void fetchScanLineGrayScale(unsigned char* dstScanLine, unsigned width, PdfPixel
 {
     switch (format)
     {
-        case PdfPixelFormat::RGBA:
-        case PdfPixelFormat::BGRA:
+        case PdfPixelFormat::Grayscale:
         {
             for (unsigned i = 0; i < width; i++)
-            {
-                unsigned char gray = srcScanLine[i];
-                dstScanLine[i * 4 + 0] = gray;
-                dstScanLine[i * 4 + 1] = gray;
-                dstScanLine[i * 4 + 2] = gray;
-                dstScanLine[i * 4 + 3] = 255;
-            }
+                dstScanLine[i] = srcScanLine[i];
             break;
         }
         case PdfPixelFormat::RGB24:
@@ -307,10 +344,30 @@ void fetchScanLineGrayScale(unsigned char* dstScanLine, unsigned width, PdfPixel
             }
             break;
         }
-        case PdfPixelFormat::Grayscale:
+        case PdfPixelFormat::RGBA:
+        case PdfPixelFormat::BGRA:
         {
             for (unsigned i = 0; i < width; i++)
-                dstScanLine[i] = srcScanLine[i];
+            {
+                unsigned char gray = srcScanLine[i];
+                dstScanLine[i * 4 + 0] = gray;
+                dstScanLine[i * 4 + 1] = gray;
+                dstScanLine[i * 4 + 2] = gray;
+                dstScanLine[i * 4 + 3] = 255;
+            }
+            break;
+        }
+        case PdfPixelFormat::ARGB:
+        case PdfPixelFormat::ABGR:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                unsigned char gray = srcScanLine[i];
+                dstScanLine[i * 4 + 0] = 255;
+                dstScanLine[i * 4 + 1] = gray;
+                dstScanLine[i * 4 + 2] = gray;
+                dstScanLine[i * 4 + 3] = gray;
+            }
             break;
         }
         default:
@@ -323,6 +380,26 @@ void fetchScanLineGrayScale(unsigned char* dstScanLine, unsigned width, PdfPixel
 {
     switch (format)
     {
+        // TODO: Handle alpha?
+        case PdfPixelFormat::Grayscale:
+        {
+            for (unsigned i = 0; i < width; i++)
+                dstScanLine[i] = srcScanLine[i];
+            break;
+        }
+        // TODO: Handle alpha?
+        case PdfPixelFormat::RGB24:
+        case PdfPixelFormat::BGR24:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                unsigned char gray = srcScanLine[i];
+                dstScanLine[i * 3 + 0] = gray;
+                dstScanLine[i * 3 + 1] = gray;
+                dstScanLine[i * 3 + 2] = gray;
+            }
+            break;
+        }
         case PdfPixelFormat::RGBA:
         case PdfPixelFormat::BGRA:
         {
@@ -336,24 +413,17 @@ void fetchScanLineGrayScale(unsigned char* dstScanLine, unsigned width, PdfPixel
             }
             break;
         }
-        // TODO: Handle alpha?
-        case PdfPixelFormat::RGB24:
-        case PdfPixelFormat::BGR24:
+        case PdfPixelFormat::ARGB:
+        case PdfPixelFormat::ABGR:
         {
             for (unsigned i = 0; i < width; i++)
             {
                 unsigned char gray = srcScanLine[i];
-                dstScanLine[i * 3 + 0] = gray;
-                dstScanLine[i * 3 + 1] = gray;
-                dstScanLine[i * 3 + 2] = gray;
+                dstScanLine[i * 4 + 0] = srcAphaLine[i];
+                dstScanLine[i * 4 + 1] = gray;
+                dstScanLine[i * 4 + 2] = gray;
+                dstScanLine[i * 4 + 3] = gray;
             }
-            break;
-        }
-        // TODO: Handle alpha?
-        case PdfPixelFormat::Grayscale:
-        {
-            for (unsigned i = 0; i < width; i++)
-                dstScanLine[i] = srcScanLine[i];
             break;
         }
         default:
@@ -366,17 +436,10 @@ void fetchScanLineBW(unsigned char* dstScanLine, unsigned width,
 {
     switch (format)
     {
-        case PdfPixelFormat::RGBA:
-        case PdfPixelFormat::BGRA:
+        case PdfPixelFormat::Grayscale:
         {
             for (unsigned i = 0; i < width; i++)
-            {
-                unsigned char value = (unsigned char)(FETCH_BIT(srcScanLine, i) * 255);
-                dstScanLine[i * 4 + 0] = value;
-                dstScanLine[i * 4 + 1] = value;
-                dstScanLine[i * 4 + 2] = value;
-                dstScanLine[i * 4 + 3] = 255;
-            }
+                dstScanLine[i] = (unsigned char)(FETCH_BIT(srcScanLine, i) * 255);
             break;
         }
         case PdfPixelFormat::RGB24:
@@ -391,10 +454,30 @@ void fetchScanLineBW(unsigned char* dstScanLine, unsigned width,
             }
             break;
         }
-        case PdfPixelFormat::Grayscale:
+        case PdfPixelFormat::RGBA:
+        case PdfPixelFormat::BGRA:
         {
             for (unsigned i = 0; i < width; i++)
-                dstScanLine[i] = (unsigned char)(FETCH_BIT(srcScanLine, i) * 255);
+            {
+                unsigned char value = (unsigned char)(FETCH_BIT(srcScanLine, i) * 255);
+                dstScanLine[i * 4 + 0] = value;
+                dstScanLine[i * 4 + 1] = value;
+                dstScanLine[i * 4 + 2] = value;
+                dstScanLine[i * 4 + 3] = 255;
+            }
+            break;
+        }
+        case PdfPixelFormat::ARGB:
+        case PdfPixelFormat::ABGR:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                unsigned char value = (unsigned char)(FETCH_BIT(srcScanLine, i) * 255);
+                dstScanLine[i * 4 + 0] = 255;
+                dstScanLine[i * 4 + 1] = value;
+                dstScanLine[i * 4 + 2] = value;
+                dstScanLine[i * 4 + 3] = value;
+            }
             break;
         }
         default:
@@ -408,17 +491,11 @@ void fetchScanLineBW(unsigned char* dstScanLine, unsigned width,
 {
     switch (format)
     {
-        case PdfPixelFormat::RGBA:
-        case PdfPixelFormat::BGRA:
+        // TODO: Handle alpha?
+        case PdfPixelFormat::Grayscale:
         {
             for (unsigned i = 0; i < width; i++)
-            {
-                unsigned char value = (unsigned char)(FETCH_BIT(srcScanLine, i) * 255);
-                dstScanLine[i * 4 + 0] = value;
-                dstScanLine[i * 4 + 1] = value;
-                dstScanLine[i * 4 + 2] = value;
-                dstScanLine[i * 4 + 3] = srcAphaLine[i];
-            }
+                dstScanLine[i] = (unsigned char)(FETCH_BIT(srcScanLine, i) * 255);
             break;
         }
         // TODO: Handle alpha?
@@ -434,11 +511,30 @@ void fetchScanLineBW(unsigned char* dstScanLine, unsigned width,
             }
             break;
         }
-        // TODO: Handle alpha?
-        case PdfPixelFormat::Grayscale:
+        case PdfPixelFormat::RGBA:
+        case PdfPixelFormat::BGRA:
         {
             for (unsigned i = 0; i < width; i++)
-                dstScanLine[i] = (unsigned char)(FETCH_BIT(srcScanLine, i) * 255);
+            {
+                unsigned char value = (unsigned char)(FETCH_BIT(srcScanLine, i) * 255);
+                dstScanLine[i * 4 + 0] = value;
+                dstScanLine[i * 4 + 1] = value;
+                dstScanLine[i * 4 + 2] = value;
+                dstScanLine[i * 4 + 3] = srcAphaLine[i];
+            }
+            break;
+        }
+        case PdfPixelFormat::ARGB:
+        case PdfPixelFormat::ABGR:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                unsigned char value = (unsigned char)(FETCH_BIT(srcScanLine, i) * 255);
+                dstScanLine[i * 4 + 0] = srcAphaLine[i];
+                dstScanLine[i * 4 + 1] = value;
+                dstScanLine[i * 4 + 2] = value;
+                dstScanLine[i * 4 + 3] = value;
+            }
             break;
         }
         default:

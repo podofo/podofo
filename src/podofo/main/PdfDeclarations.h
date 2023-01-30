@@ -332,8 +332,10 @@ enum class PdfPixelFormat
     Grayscale,
     RGB24,
     BGR24,
-    RGBA,
-    BGRA,
+    RGBA,           ///< This is known to be working in Apple CGImage created with rgb colorspace and kCGBitmapByteOrder32Big | kCGImageAlphaLast bitmapInfo
+    BGRA,           ///< This is known to be used in Windows GDI Bitmap
+    ARGB,
+    ABGR,           ///< This is known to be used in JDK BufferedImage.TYPE_4BYTE_ABGR
 };
 
 /**
