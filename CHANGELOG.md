@@ -2,8 +2,10 @@
 - PdfParser: Cleaned FindToken2 -> FindTokenBackward
 - Renamed base source folder -> main
 - PdfPainter: Reviewed API, added full state inspection,
-  Moved SmoothCurveTo, QuadCurveTo,
-  SmoothQuadCurveTo, ArcTo, Arc() to an helper structure
+  added PdfPainterPath to create a path (eg. PdfPainterPath, with
+  AddLine, AddArc, etc.) and close it automatically,
+  moved SmoothCurveTo, QuadCurveTo,
+  SmoothQuadCurveTo, ArcTo, Arc() to an helper structure until cleaned
 - PdfFontMetrics: Added FilePath/FaceIndex for debugging, when avaialable
 - PdfFont: Renamed GetStringLength() overloads with
   PdfString to GetEncodedStringLength()

@@ -11,14 +11,22 @@
 
 namespace PoDoFo {
 
-    class PdfPainter;
+    class PdfPainterPath;
 
-    class PODOFO_API PdfPainterExtensions final
+    /**
+     * This class cointains some extensions methods to PdfPainterPath
+     * The class mostly implements some SVG commands by using
+     * regular PDF operators by maintaining an internal state
+     * \remarks This class is not maintained and its use
+     * is not recommended until problems found are solved
+     * https://www.mail-archive.com/podofo-users@lists.sourceforge.net/msg04879.html
+     */
+    class PODOFO_API PdfPainterPathExtensions final
     {
-        friend class PdfPainter;
+        friend class PdfPainterPath;
 
     public:
-        PdfPainterExtensions(PdfPainter& painter);
+        PdfPainterPathExtensions(PdfPainterPath& path);
 
     public:
         /** Append a horizontal line to the current path
@@ -26,14 +34,14 @@ namespace PoDoFo {
          *
          *  \param x x coordinate to draw the line to
          */
-        void HorizontalLineTo(double x);
+        void AddHorizontalLine(double x);
 
         /** Append a vertical line to the current path
          *  Matches the SVG 'V' operator
          *
          *  \param y y coordinate to draw the line to
          */
-        void VerticalLineTo(double y);
+        void AddVerticalLine(double y);
 
         /** Append a smooth bezier curve to the current path
          *  Matches the SVG 'S' operator.
@@ -43,7 +51,7 @@ namespace PoDoFo {
          *  \param x3 x coordinate of the end point, which is the new current point
          *  \param y3 y coordinate of the end point, which is the new current point
          */
-        void SmoothCurveTo(double x2, double y2, double x3, double y3);
+        void AddSmoothCurve(double x2, double y2, double x3, double y3);
 
         /** Append a quadratic bezier curve to the current path
          *  Matches the SVG 'Q' operator.
@@ -53,7 +61,7 @@ namespace PoDoFo {
          *  \param x3 x coordinate of the end point, which is the new current point
          *  \param y3 y coordinate of the end point, which is the new current point
          */
-        void QuadCurveTo(double x1, double y1, double x3, double y3);
+        void AddQuadCurve(double x1, double y1, double x3, double y3);
 
         /** Append a smooth quadratic bezier curve to the current path
          *  Matches the SVG 'T' operator.
@@ -61,7 +69,7 @@ namespace PoDoFo {
          *  \param x3 x coordinate of the end point, which is the new current point
          *  \param y3 y coordinate of the end point, which is the new current point
          */
-        void SmoothQuadCurveTo(double x3, double y3);
+        void AddSmoothQuadCurve(double x3, double y3);
 
         /** Append a Arc to the current path
          *  Matches the SVG 'A' operator.
@@ -74,15 +82,15 @@ namespace PoDoFo {
          *	\param large large or small portion of the arc
          *	\param sweep sweep?
          */
-        void ArcTo(double x, double y, double radiusX, double radiusY,
+        void AddArcTo(double x, double y, double radiusX, double radiusY,
             double rotation, bool large, bool sweep);
 
     private:
-        PdfPainterExtensions(const PdfPainterExtensions&) = delete;
-        PdfPainterExtensions& operator=(const PdfPainterExtensions&) = delete;
+        PdfPainterPathExtensions(const PdfPainterPathExtensions&) = delete;
+        PdfPainterPathExtensions& operator=(const PdfPainterPathExtensions&) = delete;
 
     private:
-        PdfPainter* m_painter;
+        PdfPainterPath* m_path;
 
         // TODO: Next comment was found like this and it's is really bad.
         // Document the next fields accurately, possibly moving them

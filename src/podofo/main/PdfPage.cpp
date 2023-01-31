@@ -419,12 +419,12 @@ PdfContents& PdfPage::GetOrCreateContents()
     return *m_Contents;
 }
 
-PdfResources* PdfPage::getResources() const
+PdfResources* PdfPage::getResources()
 {
     return m_Resources.get();
 }
 
-PdfObject* PdfPage::getContentsObject() const
+PdfObject* PdfPage::getContentsObject()
 {
     if (m_Contents == nullptr)
         return nullptr;
@@ -432,7 +432,7 @@ PdfObject* PdfPage::getContentsObject() const
     return &const_cast<PdfContents&>(*m_Contents).GetObject();
 }
 
-PdfElement& PdfPage::getElement() const
+PdfElement& PdfPage::getElement()
 {
     return const_cast<PdfPage&>(*this);
 }

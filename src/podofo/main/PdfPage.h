@@ -196,11 +196,11 @@ public:
 private:
     PdfField& createField(const std::string_view& name, const std::type_info& typeInfo, const PdfRect& rect);
 
-    PdfResources* getResources() const override;
+    PdfResources* getResources() override;
 
-    PdfObject* getContentsObject() const override;
+    PdfObject* getContentsObject() override;
 
-    PdfElement& getElement() const override;
+    PdfElement& getElement() override;
 
     PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
 

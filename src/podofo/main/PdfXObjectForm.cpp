@@ -60,12 +60,12 @@ void PdfXObjectForm::SetRect(const PdfRect& rect)
     m_Rect = rect;
 }
 
-PdfResources* PdfXObjectForm::getResources() const
+PdfResources* PdfXObjectForm::getResources()
 {
     return m_Resources.get();
 }
 
-PdfElement& PdfXObjectForm::getElement() const
+PdfElement& PdfXObjectForm::getElement()
 {
     return const_cast<PdfXObjectForm&>(*this);
 }
@@ -81,7 +81,7 @@ PdfRect PdfXObjectForm::GetRect() const
     return m_Rect;
 }
 
-PdfObject* PdfXObjectForm::getContentsObject() const
+PdfObject* PdfXObjectForm::getContentsObject()
 {
     return &const_cast<PdfXObjectForm&>(*this).GetObject();
 }

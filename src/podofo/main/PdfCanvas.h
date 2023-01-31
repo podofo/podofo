@@ -93,12 +93,12 @@ public:
     static PdfArray GetProcSet();
 
 protected:
-    virtual PdfObject* getContentsObject() const = 0;
-    virtual PdfResources* getResources() const = 0;
-    virtual PdfElement& getElement() const = 0;
+    virtual PdfObject* getContentsObject() = 0;
+    virtual PdfResources* getResources() = 0;
+    virtual PdfElement& getElement() = 0;
 
 private:
-    PdfObject* getFromResources(const std::string_view& type, const std::string_view& key) const;
+    PdfObject* getFromResources(const std::string_view& type, const std::string_view& key);
 };
 
 };

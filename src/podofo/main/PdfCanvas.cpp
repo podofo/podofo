@@ -19,7 +19,7 @@ PdfCanvas::~PdfCanvas() { }
 
 const PdfObject* PdfCanvas::GetContentsObject() const
 {
-    return getContentsObject();
+    return const_cast<PdfCanvas&>(*this).getContentsObject();
 }
 
 PdfObject* PdfCanvas::GetContentsObject()
@@ -34,7 +34,7 @@ PdfObject* PdfCanvas::GetFromResources(const string_view& type, const string_vie
 
 const PdfObject* PdfCanvas::GetFromResources(const string_view& type, const string_view& key) const
 {
-    return getFromResources(type, key);
+    return const_cast<PdfCanvas&>(*this).getFromResources(type, key);
 }
 
 PdfResources* PdfCanvas::GetResources()
@@ -44,7 +44,7 @@ PdfResources* PdfCanvas::GetResources()
 
 const PdfResources* PdfCanvas::GetResources() const
 {
-    return getResources();
+    return const_cast<PdfCanvas&>(*this).getResources();
 }
 
 PdfElement& PdfCanvas::GetElement()
@@ -54,10 +54,10 @@ PdfElement& PdfCanvas::GetElement()
 
 const PdfElement& PdfCanvas::GetElement() const
 {
-    return getElement();
+    return const_cast<PdfCanvas&>(*this).getElement();
 }
 
-PdfObject* PdfCanvas::getFromResources(const string_view& type, const string_view& key) const
+PdfObject* PdfCanvas::getFromResources(const string_view& type, const string_view& key)
 {
     auto resources = getResources();
     if (resources == nullptr)

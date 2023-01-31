@@ -12,8 +12,8 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfPainterExtensions::PdfPainterExtensions(PdfPainter& painter) :
-    m_painter(&painter),
+PdfPainterPathExtensions::PdfPainterPathExtensions(PdfPainterPath& path) :
+    m_path(&path),
     m_lpx(0),
     m_lpy(0),
     m_lpx2(0),
@@ -27,17 +27,17 @@ PdfPainterExtensions::PdfPainterExtensions(PdfPainter& painter) :
 {
 }
 
-void PdfPainterExtensions::HorizontalLineTo(double x)
+void PdfPainterPathExtensions::AddHorizontalLine(double x)
 {
-    m_painter->LineTo(x, m_lpy3);
+    m_path->AddLine(x, m_lpy3);
 }
 
-void PdfPainterExtensions::VerticalLineTo(double y)
+void PdfPainterPathExtensions::AddVerticalLine(double y)
 {
-    m_painter->LineTo(m_lpx3, y);
+    m_path->AddLine(m_lpx3, y);
 }
 
-void PdfPainterExtensions::SmoothCurveTo(double x2, double y2, double x3, double y3)
+void PdfPainterPathExtensions::AddSmoothCurve(double x2, double y2, double x3, double y3)
 {
     double px, py, px2 = x2;
     double py2 = y2;
@@ -59,10 +59,10 @@ void PdfPainterExtensions::SmoothCurveTo(double x2, double y2, double x3, double
     m_lrx = px2;
     m_lry = py2;
 
-    m_painter->CubicBezierTo(px, py, px2, py2, px3, py3);
+    m_path->AddCubicBezier(px, py, px2, py2, px3, py3);
 }
 
-void PdfPainterExtensions::QuadCurveTo(double x1, double y1, double x3, double y3)
+void PdfPainterPathExtensions::AddQuadCurve(double x1, double y1, double x3, double y3)
 {
     double px = x1, py = y1,
         px2, py2,
@@ -86,10 +86,10 @@ void PdfPainterExtensions::QuadCurveTo(double x1, double y1, double x3, double y
     m_lrx = px2;
     m_lry = py2;
 
-    m_painter->CubicBezierTo(px, py, px2, py2, px3, py3);
+    m_path->AddCubicBezier(px, py, px2, py2, px3, py3);
 }
 
-void PdfPainterExtensions::SmoothQuadCurveTo(double x3, double y3)
+void PdfPainterPathExtensions::AddSmoothQuadCurve(double x3, double y3)
 {
     double px, py, px2, py2,
         px3 = x3, py3 = y3;
@@ -107,10 +107,10 @@ void PdfPainterExtensions::SmoothQuadCurveTo(double x3, double y3)
     m_lpx = px; m_lpy = py; m_lpx2 = px2; m_lpy2 = py2; m_lpx3 = px3; m_lpy3 = py3;
     m_lcx = px3;    m_lcy = py3;    m_lrx = xc;    m_lry = yc;    // thanks Raph!
 
-    m_painter->CubicBezierTo(px, py, px2, py2, px3, py3);
+    m_path->AddCubicBezier(px, py, px2, py2, px3, py3);
 }
 
-void PdfPainterExtensions::ArcTo(double x, double y, double radiusX, double radiusY,
+void PdfPainterPathExtensions::AddArcTo(double x, double y, double radiusX, double radiusY,
     double rotation, bool large, bool sweep)
 {
     double px = x, py = y;
@@ -200,7 +200,7 @@ void PdfPainterExtensions::ArcTo(double x, double y, double radiusX, double radi
         ny2 = na10 * nx2 + na11 * ny2;
         nx3 = na00 * nx3 + na01 * ny3;
         ny3 = na10 * nx3 + na11 * ny3;
-        m_painter->CubicBezierTo(nx1, ny1, nx2, ny2, nx3, ny3);
+        m_path->AddCubicBezier(nx1, ny1, nx2, ny2, nx3, ny3);
     }
 
     m_lpx = m_lpx2 = m_lpx3 = px;

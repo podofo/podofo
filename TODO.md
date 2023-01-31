@@ -1,8 +1,4 @@
 ### 0.10
-- PdfPainter: Make Circle(), Arc(), Rectangle alctual Draw()
-  functions (and not "add to path" functions) and add a facility
-  to create a path (eg. PdfPainterPath, with AddLine, AddArc, etc.)
-  and close it automatically.
 - PdfPainter: Fix Arc(), getMultiLineTextAsLines()
 
 ### 0.11
