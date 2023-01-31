@@ -1324,6 +1324,8 @@ unsigned PdfImage::getBufferSize(PdfPixelFormat format) const
     {
         case PdfPixelFormat::RGBA:
         case PdfPixelFormat::BGRA:
+        case PdfPixelFormat::ARGB:
+        case PdfPixelFormat::ABGR:
             return 4 * m_Width * m_Height;
         case PdfPixelFormat::RGB24:
         case PdfPixelFormat::BGR24:
