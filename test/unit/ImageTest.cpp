@@ -28,7 +28,7 @@ TEST_CASE("TestImage1")
         PdfPixelFormat::BGRA, image->GetWidth(), image->GetHeight());
 
     string expectedImage;
-    TestUtils::ReadTestInputFileTo(expectedImage, "ReferenceImage.ppm");
+    TestUtils::ReadTestInputFile("ReferenceImage.ppm", expectedImage);
 
     REQUIRE(ppmbuffer == expectedImage);
 }
@@ -59,7 +59,7 @@ TEST_CASE("TestImage2")
     // NOTE: The following check may file using different,
     // jpeg libraries such as libjpeg-turbo
     string expectedImage;
-    TestUtils::ReadTestInputFileTo(expectedImage, "ReferenceImage.ppm");
+    TestUtils::ReadTestInputFile("ReferenceImage.ppm", expectedImage);
 
     REQUIRE(ppmbuffer == expectedImage);
 #endif // PODOFO_PLAYGROUND
@@ -81,7 +81,7 @@ static void testReferenceImage(const PdfDocument& doc)
             PdfPixelFormat::BGRA, image->GetWidth(), image->GetHeight());
 
         string expectedImage;
-        TestUtils::ReadTestInputFileTo(expectedImage, "ReferenceImage.ppm");
+        TestUtils::ReadTestInputFile("ReferenceImage.ppm", expectedImage);
 
         REQUIRE(ppmbuffer == expectedImage);
 

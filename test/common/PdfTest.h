@@ -108,7 +108,8 @@ namespace PoDoFo
 
         static const fs::path& GetTestInputPath();
         static const fs::path& GetTestOutputPath();
-        static void ReadTestInputFileTo(std::string& str, const std::string_view& filename);
+        static void ReadTestInputFile(const std::string_view& filename, std::string& str);
+        static void WriteTestOutputFile(const std::string_view& filename, const std::string_view& view);
         static void AssertEqual(double expected, double actual, double threshold = THRESHOLD);
         static void SaveFramePPM(charbuff& buffer, const void* data,
             PdfPixelFormat srcPixelFormat, unsigned width, unsigned height);

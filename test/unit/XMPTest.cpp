@@ -15,14 +15,14 @@ using namespace PoDoFo;
 static void TestNormalizeXMP(string_view filename)
 {
     string sourceXmp;
-    TestUtils::ReadTestInputFileTo(sourceXmp, string(filename) + ".xml");
+    TestUtils::ReadTestInputFile(string(filename) + ".xml", sourceXmp);
 
     unique_ptr<PdfXMPPacket> packet;
     auto metadata = PoDoFo::GetXMPMetadata(sourceXmp, packet);
     auto normalizedXmp = packet->ToString();
 
     string expectedXmp;
-    TestUtils::ReadTestInputFileTo(expectedXmp, string(filename) + "-Expected.xml");
+    TestUtils::ReadTestInputFile(string(filename) + "-Expected.xml", expectedXmp);
 
     REQUIRE(normalizedXmp == expectedXmp);
 }

@@ -13,7 +13,8 @@
 using namespace std;
 using namespace PoDoFo;
 
-static void readTestInputFileTo(string& str, const string_view& filepath);
+static void readTestInputFile(const string_view& filepath, string& str);
+static void writeTestOutputFile(const string_view& filepath, const string_view& view);
 
 static struct TestPaths
 {
@@ -50,9 +51,14 @@ const fs::path& TestUtils::GetTestOutputPath()
     return s_paths.Output;
 }
 
-void TestUtils::ReadTestInputFileTo(string& str, const string_view& filename)
+void TestUtils::ReadTestInputFile(const string_view& filename, string& str)
 {
-    readTestInputFileTo(str, GetTestInputFilePath(filename));
+    readTestInputFile(GetTestInputFilePath(filename), str);
+}
+
+void TestUtils::WriteTestOutputFile(const string_view& filename, const string_view& view)
+{
+    writeTestOutputFile(GetTestOutputFilePath(filename), view);
 }
 
 void TestUtils::AssertEqual(double expected, double actual, double threshold)
@@ -112,13 +118,13 @@ void TestUtils::SaveFramePPM(OutputStream& stream, const void* data,
     stream.Flush();
 }
 
-void readTestInputFileTo(string& str, const string_view& filepath)
+void readTestInputFile(const string_view& filepath, string& str)
 {
 #ifdef _WIN32
     auto filepath16 = utf8::utf8to16((string)filepath);
-    ifstream stream((wchar_t*)filepath16.c_str(), ios_base::in | ios_base::binary);
+    ifstream stream((wchar_t*)filepath16.c_str(), ios_base::binary);
 #else
-    ifstream stream((string)filepath, ios_base::in | ios_base::binary);
+    ifstream stream((string)filepath, ios_base::binary);
 #endif
 
     stream.seekg(0, ios::end);
@@ -129,4 +135,19 @@ void readTestInputFileTo(string& str, const string_view& filepath)
     stream.seekg(0, ios::beg);
 
     str.assign((istreambuf_iterator<char>(stream)), istreambuf_iterator<char>());
+}
+
+void writeTestOutputFile(const string_view& filepath, const string_view& view)
+{
+#ifdef _WIN32
+    auto filepath16 = utf8::utf8to16((string)filepath);
+    ofstream stream((wchar_t*)filepath16.c_str(), ios_base::binary);
+#else
+    ofstream stream((string)filepath, ios_base::binary);
+#endif
+
+    stream.write(view.data(), view.size());
+    stream.close();
+    if (stream.fail())
+        throw runtime_error("Error writing to stream");
 }
