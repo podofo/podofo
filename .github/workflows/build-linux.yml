@@ -9,6 +9,9 @@ on:
     inputs:
       ctestArgs:
         description: 'CTest arguments'
+      runCodeQL:
+        description: 'Run CodeQL analysis'
+        type: boolean
 
 env:
   BUILD_TYPE: Release
@@ -17,10 +20,21 @@ jobs:
   build:
     runs-on: ubuntu-20.04
 
+    strategy:
+      matrix:
+        language: [ 'cpp' ]
+
     steps:
     - uses: actions/checkout@v2
       with:
           submodules: true
+
+    - name: Initialize CodeQL
+        if:  ${{ runCodeQL }}
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+          config-file: ./.github/codeql/codeql-config.yml
 
     - name: Install deps
       run: sudo apt-get install -y libfontconfig1-dev libfreetype-dev libxml2-dev libssl-dev libjpeg-dev libpng-dev libtiff-dev libidn11-dev
@@ -34,3 +48,9 @@ jobs:
     - name: Test
       working-directory: ${{github.workspace}}/build
       run: ctest ${{ github.event.inputs.ctestArgs }}
+
+    - name: Perform CodeQL Analysis
+      if:  ${{ runCodeQL }}
+      uses: github/codeql-action/analyze@v2
+      with:
+        category: "/language:${{matrix.language}}"
