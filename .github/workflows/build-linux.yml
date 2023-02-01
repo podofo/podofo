@@ -30,11 +30,11 @@ jobs:
           submodules: true
 
     - name: Initialize CodeQL
-        if:  ${{ github.event.inputs.runCodeQL }}
-        uses: github/codeql-action/init@v2
-        with:
-          languages: ${{ matrix.language }}
-          config-file: ./.github/codeql/codeql-config.yml
+      if: ${{ github.event.inputs.runCodeQL }}
+      uses: github/codeql-action/init@v2
+      with:
+        languages: ${{ matrix.language }}
+        config-file: ./.github/codeql/codeql-config.yml
 
     - name: Install deps
       run: sudo apt-get install -y libfontconfig1-dev libfreetype-dev libxml2-dev libssl-dev libjpeg-dev libpng-dev libtiff-dev libidn11-dev
@@ -50,7 +50,7 @@ jobs:
       run: ctest ${{ github.event.inputs.ctestArgs }}
 
     - name: Perform CodeQL Analysis
-      if:  ${{ github.event.inputs.runCodeQL }}
+      if: ${{ github.event.inputs.runCodeQL }}
       uses: github/codeql-action/analyze@v2
       with:
         category: "/language:${{matrix.language}}"
