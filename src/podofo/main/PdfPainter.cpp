@@ -1216,7 +1216,7 @@ void PdfPainterPath::AddLine(double x, double y)
 void PdfPainterPath::AddLineTo(double x1, double y1, double x2, double y2)
 {
     checkClosed();
-    beginPath(*m_stream, x1, x2);
+    beginPath(*m_stream, x1, y1);
     addLine(*m_stream, x2, y2);
     closePath(*m_stream);
 }
@@ -1230,7 +1230,7 @@ void PdfPainterPath::AddCubicBezier(double x1, double y1, double x2, double y2, 
 void PdfPainterPath::AddCubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
 {
     checkClosed();
-    beginPath(*m_stream, x1, y2);
+    beginPath(*m_stream, x1, y1);
     addCubicBezier(*m_stream, x2, y2, x3, y3, x4, y4);
     closePath(*m_stream);
 }
