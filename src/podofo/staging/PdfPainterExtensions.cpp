@@ -29,12 +29,12 @@ PdfPainterPathExtensions::PdfPainterPathExtensions(PdfPainterPath& path) :
 
 void PdfPainterPathExtensions::AddHorizontalLine(double x)
 {
-    m_path->AddLine(x, m_lpy3);
+    m_path->AppendLine(x, m_lpy3);
 }
 
 void PdfPainterPathExtensions::AddVerticalLine(double y)
 {
-    m_path->AddLine(m_lpx3, y);
+    m_path->AppendLine(m_lpx3, y);
 }
 
 void PdfPainterPathExtensions::AddSmoothCurve(double x2, double y2, double x3, double y3)
@@ -59,7 +59,7 @@ void PdfPainterPathExtensions::AddSmoothCurve(double x2, double y2, double x3, d
     m_lrx = px2;
     m_lry = py2;
 
-    m_path->AddCubicBezier(px, py, px2, py2, px3, py3);
+    m_path->AppendCubicBezier(px, py, px2, py2, px3, py3);
 }
 
 void PdfPainterPathExtensions::AddQuadCurve(double x1, double y1, double x3, double y3)
@@ -86,7 +86,7 @@ void PdfPainterPathExtensions::AddQuadCurve(double x1, double y1, double x3, dou
     m_lrx = px2;
     m_lry = py2;
 
-    m_path->AddCubicBezier(px, py, px2, py2, px3, py3);
+    m_path->AppendCubicBezier(px, py, px2, py2, px3, py3);
 }
 
 void PdfPainterPathExtensions::AddSmoothQuadCurve(double x3, double y3)
@@ -107,7 +107,7 @@ void PdfPainterPathExtensions::AddSmoothQuadCurve(double x3, double y3)
     m_lpx = px; m_lpy = py; m_lpx2 = px2; m_lpy2 = py2; m_lpx3 = px3; m_lpy3 = py3;
     m_lcx = px3;    m_lcy = py3;    m_lrx = xc;    m_lry = yc;    // thanks Raph!
 
-    m_path->AddCubicBezier(px, py, px2, py2, px3, py3);
+    m_path->AppendCubicBezier(px, py, px2, py2, px3, py3);
 }
 
 void PdfPainterPathExtensions::AddArcTo(double x, double y, double radiusX, double radiusY,
@@ -200,7 +200,7 @@ void PdfPainterPathExtensions::AddArcTo(double x, double y, double radiusX, doub
         ny2 = na10 * nx2 + na11 * ny2;
         nx3 = na00 * nx3 + na01 * ny3;
         ny3 = na10 * nx3 + na11 * ny3;
-        m_path->AddCubicBezier(nx1, ny1, nx2, ny2, nx3, ny3);
+        m_path->AppendCubicBezier(nx1, ny1, nx2, ny2, nx3, ny3);
     }
 
     m_lpx = m_lpx2 = m_lpx3 = px;

@@ -166,7 +166,7 @@ TEST_CASE("TestAppend")
 
 static void drawSample(PdfPainter& painter)
 {
-    painter.DrawCircle(100, 500, 20, PdfDrawMode::Fill);
+    painter.DrawCircle(100, 500, 20, PdfPainterDrawMode::Fill);
 }
 
 void compareStreamContent(PdfObjectStream& stream, const string_view& expected)

@@ -240,7 +240,7 @@ public:
     /** Set the tiling pattern for all following non-stroking operations.
      *  This operation uses the 'scn' PDF operator.
      *
-     *  \param rPattern a tiling pattern
+     *  \param pattern a tiling pattern
      */
     void SetTilingPattern(const PdfTilingPattern& pattern);
 
@@ -248,7 +248,7 @@ public:
       *  Use when it's already in resources.
      *  This operation uses the 'scn' PDF operator.
      *
-     *  \param rPattern a tiling pattern
+     *  \param pattern a tiling pattern
      */
     void SetTilingPattern(const std::string_view& patternName);
 
@@ -291,7 +291,7 @@ public:
      */
     void SetClipRect(const PdfRect& rect);
 
-    /** Draw a line with current color and line settings.
+    /** Stroke a line with current color and line settings.
      *  \param x1 x coordinate of the starting point
      *  \param y1 y coordinate of the starting point
      *  \param x2 x coordinate of the ending point
@@ -299,8 +299,7 @@ public:
      */
     void DrawLine(double x1, double y1, double x2, double y2);
 
-    /** Draw a cubic bezier with current color and line settings.
-     *  Matches the PDF 'c' operator.
+    /** Stroke a cubic bezier with current color and line settings.
      *  \param x1 x coordinate of the starting point
      *  \param y1 y coordinate of the starting point
      *  \param x2 x coordinate of the first control point
@@ -312,12 +311,30 @@ public:
      */
     void DrawBezier(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4);
 
+    /** Stroke an arc to the given coordinate, with angles and radius
+     *  \param x x coordinate of the center of the arc (left coordinate)
+     *  \param y y coordinate of the center of the arc (top coordinate)
+     *	\param radius radius
+     *	\param angle1 angle1 in radians
+     *	\param angle2 angle2 in radians
+     */
+    void DrawArc(double x, double y, double radius, double angle1, double angle2);
+
+    /** Stroke an arc to the given coordinates and radius
+     *  \param x1 x coordinate the first control point
+     *  \param y1 y coordinate the first control point
+     *  \param x2 x coordinate the second control point
+     *  \param y2 y coordinate the second control point
+     *	\param radius radius
+     */
+    void DrawArcTo(double x1, double y1, double x2, double y2, double radius);
+
     /** Draw a circle
      *  \param x x center coordinate of the circle
      *  \param y y coordinate of the circle
      *  \param radius radius of the circle
      */
-    void DrawCircle(double x, double y, double radius, PdfDrawMode mode = PdfDrawMode::Stroke);
+    void DrawCircle(double x, double y, double radius, PdfPainterDrawMode mode = PdfPainterDrawMode::Stroke);
 
     /** Draw an ellipse to the given coordinates
      *  \param x x coordinate of the ellipse (left coordinate)
@@ -326,7 +343,7 @@ public:
      *  \param height absolute height of the ellipse
      */
     void DrawEllipse(double x, double y, double width, double height,
-        PdfDrawMode mode = PdfDrawMode::Stroke);
+        PdfPainterDrawMode mode = PdfPainterDrawMode::Stroke);
 
     /** Draw a rectangle to the given coordinates
      *  \param x x coordinate of the rectangle (left coordinate)
@@ -337,14 +354,14 @@ public:
      *  \param roundY rounding factor, y direction
      */
     void DrawRectangle(double x, double y, double width, double height,
-        PdfDrawMode mode = PdfDrawMode::Stroke, double roundX = 0.0, double roundY = 0.0);
+        PdfPainterDrawMode mode = PdfPainterDrawMode::Stroke, double roundX = 0.0, double roundY = 0.0);
 
     /** Draw a rectangle into the current path to the given coordinates
      *  \param rect the rectangle area
      *  \param roundX rounding factor, x direction
      *  \param roundY rounding factor, y direction
      */
-    void DrawRectangle(const PdfRect& rect, PdfDrawMode mode = PdfDrawMode::Stroke,
+    void DrawRectangle(const PdfRect& rect, PdfPainterDrawMode mode = PdfPainterDrawMode::Stroke,
         double roundX = 0.0, double roundY = 0.0);
 
     /** Draw a single-line text string on a page using a given font object.

@@ -26,12 +26,13 @@ static void addLine(PdfStringStream& stream, double x, double y);
 static void addCubicBezier(PdfStringStream& stream, double x1, double y1, double x2, double y2, double x3, double y3);
 static void beginPath(PdfStringStream& stream, double x, double y);
 static void closePath(PdfStringStream& stream);
-static void addDrawTo(PdfStringStream& stream, double x, double y, double radius, double angle1, double angle2);
+static void addArc(PdfStringStream& stream, double x, double y, double radius, double angle1, double angle2);
+static void addArcTo(PdfStringStream& stream, double x1, double y1, double x2, double y2, double radius);
 static void addCircleTo(PdfStringStream& stream, double x, double y, double radius);
 static void addEllipseTo(PdfStringStream& stream, double x, double y, double width, double height);
 static void addRectangleTo(PdfStringStream& stream, double x, double y, double width, double height, double roundX, double roundY);
 
-static void drawPath(PdfStringStream& stream, PdfDrawMode mode);
+static void drawPath(PdfStringStream& stream, PdfPainterDrawMode mode);
 static void stroke(PdfStringStream& stream);
 static void fill(PdfStringStream& stream, bool useEvenOddRule);
 static void strokeAndFill(PdfStringStream& stream, bool useEvenOddRule);
@@ -369,7 +370,23 @@ void PdfPainter::DrawBezier(double x1, double y1, double x2, double y2, double x
     stroke(m_stream);
 }
 
-void PdfPainter::DrawCircle(double x, double y, double radius, PdfDrawMode mode)
+void PdfPainter::DrawArc(double x, double y, double radius, double angle1, double angle2)
+{
+    checkStream();
+    checkStatus(PainterStatus::Default);
+    addArc(m_stream, x, y, radius, angle1, angle2);
+    stroke(m_stream);
+}
+
+void PdfPainter::DrawArcTo(double x1, double y1, double x2, double y2, double radius)
+{
+    checkStream();
+    checkStatus(PainterStatus::Default);
+    addArcTo(m_stream, x1, y1, x2, y2, radius);
+    stroke(m_stream);
+}
+
+void PdfPainter::DrawCircle(double x, double y, double radius, PdfPainterDrawMode mode)
 {
     checkStream();
     checkStatus(PainterStatus::Default);
@@ -377,7 +394,7 @@ void PdfPainter::DrawCircle(double x, double y, double radius, PdfDrawMode mode)
     drawPath(m_stream, mode);
 }
 
-void PdfPainter::DrawEllipse(double x, double y, double width, double height, PdfDrawMode mode)
+void PdfPainter::DrawEllipse(double x, double y, double width, double height, PdfPainterDrawMode mode)
 {
     checkStream();
     checkStatus(PainterStatus::Default);
@@ -385,7 +402,7 @@ void PdfPainter::DrawEllipse(double x, double y, double width, double height, Pd
     drawPath(m_stream, mode);
 }
 
-void PdfPainter::DrawRectangle(double x, double y, double width, double height, PdfDrawMode mode, double roundX, double roundY)
+void PdfPainter::DrawRectangle(double x, double y, double width, double height, PdfPainterDrawMode mode, double roundX, double roundY)
 {
     checkStream();
     checkStatus(PainterStatus::Default);
@@ -393,7 +410,7 @@ void PdfPainter::DrawRectangle(double x, double y, double width, double height, 
     drawPath(m_stream, mode);
 }
 
-void PdfPainter::DrawRectangle(const PdfRect& rect, PdfDrawMode mode, double roundX, double roundY)
+void PdfPainter::DrawRectangle(const PdfRect& rect, PdfPainterDrawMode mode, double roundX, double roundY)
 {
     checkStream();
     checkStatus(PainterStatus::Default);
@@ -1174,7 +1191,7 @@ PdfPainterPath::PdfPainterPath() :
     m_painter(nullptr),
     m_stream(nullptr),
     m_closed(true),
-    m_DrawMode(PdfDrawMode::Fill)
+    m_DrawMode(PdfPainterDrawMode::Fill)
 {
 }
 
@@ -1182,7 +1199,7 @@ PdfPainterPath::PdfPainterPath(PdfPainter& painter) :
     m_painter(&painter),
     m_stream(&painter.m_stream),
     m_closed(false),
-    m_DrawMode(PdfDrawMode::Fill)
+    m_DrawMode(PdfPainterDrawMode::Fill)
 {
     m_painter->m_painterStatus = PdfPainter::PainterStatus::Path;
 }
@@ -1196,7 +1213,7 @@ PdfPainterPath::PdfPainterPath(PdfPainterPath&& path) noexcept :
     path.m_painter = nullptr;
     path.m_stream = nullptr;
     path.m_closed = true;
-    path.m_DrawMode = PdfDrawMode::Fill;
+    path.m_DrawMode = PdfPainterDrawMode::Fill;
 }
 
 PdfPainterPath::~PdfPainterPath()
@@ -1207,13 +1224,13 @@ PdfPainterPath::~PdfPainterPath()
     m_painter->m_painterStatus = PdfPainter::PainterStatus::Default;
 }
 
-void PdfPainterPath::AddLine(double x, double y)
+void PdfPainterPath::AppendLine(double x, double y)
 {
     checkClosed();
     addLine(*m_stream, x, y);
 }
 
-void PdfPainterPath::AddLineTo(double x1, double y1, double x2, double y2)
+void PdfPainterPath::AddLine(double x1, double y1, double x2, double y2)
 {
     checkClosed();
     beginPath(*m_stream, x1, y1);
@@ -1221,13 +1238,13 @@ void PdfPainterPath::AddLineTo(double x1, double y1, double x2, double y2)
     closePath(*m_stream);
 }
 
-void PdfPainterPath::AddCubicBezier(double x1, double y1, double x2, double y2, double x3, double y3)
+void PdfPainterPath::AppendCubicBezier(double x1, double y1, double x2, double y2, double x3, double y3)
 {
     checkClosed();
     addCubicBezier(*m_stream, x1, y1, x2, y2, x3, y3);
 }
 
-void PdfPainterPath::AddCubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
+void PdfPainterPath::AddCubicBezier(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
 {
     checkClosed();
     beginPath(*m_stream, x1, y1);
@@ -1235,7 +1252,7 @@ void PdfPainterPath::AddCubicBezierTo(double x1, double y1, double x2, double y2
     closePath(*m_stream);
 }
 
-void PdfPainterPath::AddCircleTo(double x, double y, double radius)
+void PdfPainterPath::AddCircle(double x, double y, double radius)
 {
     checkClosed();
     addCircleTo(*m_stream, x, y, radius);
@@ -1250,30 +1267,36 @@ void PdfPainterPath::Clip(bool useEvenOddRule)
         *m_stream << "W n" << endl;
 }
 
-void PdfPainterPath::AddRectangleTo(const PdfRect& rect, double roundX, double roundY)
+void PdfPainterPath::AddRectangle(const PdfRect& rect, double roundX, double roundY)
 {
     checkClosed();
     addRectangleTo(*m_stream, rect.GetLeft(), rect.GetBottom(),
         rect.GetWidth(), rect.GetHeight(), roundX, roundY);
 }
 
-void PdfPainterPath::AddRectangleTo(double x, double y, double width, double height,
+void PdfPainterPath::AddRectangle(double x, double y, double width, double height,
     double roundX, double roundY)
 {
     checkClosed();
     addRectangleTo(*m_stream, x, y, width, height, roundX, roundY);
 }
 
-void PdfPainterPath::AddEllipseTo(double x, double y, double width, double height)
+void PdfPainterPath::AddEllipse(double x, double y, double width, double height)
 {
     checkClosed();
     addEllipseTo(*m_stream, x, y, width, height);
 }
 
-void PdfPainterPath::AddArcTo(double x, double y, double radius, double angle1, double angle2)
+void PdfPainterPath::AddArc(double x, double y, double radius, double angle1, double angle2)
 {
     checkClosed();
-    addDrawTo(*m_stream, x, y, radius, angle1, angle2);
+    addArc(*m_stream, x, y, radius, angle1, angle2);
+}
+
+void PdfPainterPath::AddArcTo(double x1, double y1, double x2, double y2, double radius)
+{
+    checkClosed();
+    addArcTo(*m_stream, x1, y1, x2, y2, radius);
 }
 
 void PdfPainterPath::Discard()
@@ -1293,7 +1316,7 @@ PdfPainterPath& PdfPainterPath::operator=(PdfPainterPath&& path) noexcept
     path.m_painter = nullptr;
     path.m_stream = nullptr;
     path.m_closed = true;
-    path.m_DrawMode = PdfDrawMode::Fill;
+    path.m_DrawMode = PdfPainterDrawMode::Fill;
     return *this;
 }
 
@@ -1449,18 +1472,27 @@ void closePath(PdfStringStream& stream)
     stream << "h" << endl;
 }
 
-void addDrawTo(PdfStringStream& stream, double x, double y, double radius, double angle1, double angle2)
+void addArc(PdfStringStream& stream, double x, double y, double radius, double angle1, double angle2)
 {
     (void)x;
     (void)y;
     (void)radius;
     (void)angle1;
     (void)angle2;
-    beginPath(stream, x + radius, y);
+    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
+}
+
+void addArcTo(PdfStringStream& stream, double x1, double y1, double x2, double y2, double radius)
+{
+    (void)x1;
+    (void)y1;
+    (void)x2;
+    (void)y2;
+    (void)radius;
+    beginPath(stream, x1 + radius, y1);
     // ...
     closePath(stream);
     PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
-    // https://github.com/podofo/podofo/blob/5723d09bbab68340a3a32923d90910c3d6912cdd/src/podofo/doc/PdfPainter.cpp#L1591
 }
 
 void addCircleTo(PdfStringStream& stream, double x, double y, double radius)
@@ -1526,23 +1558,23 @@ void addRectangleTo(PdfStringStream& stream, double x, double y, double width, d
     }
 }
 
-void drawPath(PdfStringStream& stream, PdfDrawMode mode)
+void drawPath(PdfStringStream& stream, PdfPainterDrawMode mode)
 {
     switch (mode)
     {
-        case PdfDrawMode::Stroke:
+        case PdfPainterDrawMode::Stroke:
             stroke(stream);
             break;
-        case PdfDrawMode::Fill:
+        case PdfPainterDrawMode::Fill:
             fill(stream, false);
             break;
-        case PdfDrawMode::StrokeFill:
+        case PdfPainterDrawMode::StrokeFill:
             strokeAndFill(stream, false);
             break;
-        case PdfDrawMode::FillEvenOdd:
+        case PdfPainterDrawMode::FillEvenOdd:
             fill(stream, true);
             break;
-        case PdfDrawMode::StrokeFillEvenOdd:
+        case PdfPainterDrawMode::StrokeFillEvenOdd:
             strokeAndFill(stream, true);
             break;
         default:
