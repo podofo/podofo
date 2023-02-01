@@ -30,7 +30,7 @@ jobs:
           submodules: true
 
     - name: Initialize CodeQL
-        if:  ${{ inputs.runCodeQL }}
+        if:  ${{ github.event.inputs.runCodeQL }}
         uses: github/codeql-action/init@v2
         with:
           languages: ${{ matrix.language }}
@@ -50,7 +50,7 @@ jobs:
       run: ctest ${{ github.event.inputs.ctestArgs }}
 
     - name: Perform CodeQL Analysis
-      if:  ${{ inputs.runCodeQL }}
+      if:  ${{ github.event.inputs.runCodeQL }}
       uses: github/codeql-action/analyze@v2
       with:
         category: "/language:${{matrix.language}}"
