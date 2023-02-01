@@ -602,10 +602,14 @@ void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, d
 // in this deprecable state while cleaning the code
 vector<string> PdfPainter::getMultiLineTextAsLines(const string_view& str, double width, bool skipSpaces)
 {
+    (void)str;
+    (void)width;
+    (void)skipSpaces;
+
     // FIX-ME: This method is currently broken, just rewrite it later
     vector<string> ret = { (string)str };
     return ret;
-
+    /*
     if (width <= 0.0) // nonsense arguments
         return vector<string>();
 
@@ -765,6 +769,7 @@ vector<string> PdfPainter::getMultiLineTextAsLines(const string_view& str, doubl
     }
 
     return lines;
+    */
 }
 
 void PdfPainter::drawTextAligned(const string_view& str, double x, double y, double width,
@@ -1474,6 +1479,7 @@ void closePath(PdfStringStream& stream)
 
 void addArc(PdfStringStream& stream, double x, double y, double radius, double angle1, double angle2)
 {
+    (void)stream;
     (void)x;
     (void)y;
     (void)radius;
@@ -1484,6 +1490,7 @@ void addArc(PdfStringStream& stream, double x, double y, double radius, double a
 
 void addArcTo(PdfStringStream& stream, double x1, double y1, double x2, double y2, double radius)
 {
+    (void)stream;
     (void)x1;
     (void)y1;
     (void)x2;

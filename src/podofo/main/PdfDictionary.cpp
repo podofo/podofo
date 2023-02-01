@@ -141,8 +141,6 @@ PdfObject* PdfDictionary::findKey(const string_view& key) const
         return GetIndirectObject(obj->GetReference());
     else
         return obj;
-
-    return nullptr;
 }
 
 PdfObject* PdfDictionary::findKeyParent(const string_view& key) const

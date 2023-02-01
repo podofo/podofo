@@ -357,7 +357,7 @@ static uint32_t getCodeFromVariant(const PdfVariant& var, unsigned char& codeSiz
         ret += code << i * 8;
     }
 
-    codeSize = len;
+    codeSize = (unsigned char)len;
     return ret;
 }
 

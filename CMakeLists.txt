@@ -89,7 +89,7 @@ if (MSVC)
     # /w34389: 'operator': signed/unsigned mismatch
     # /we4287: unsigned/negative constant mismatch
     # /w34100: unreferenced formal parameter
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive- /w34388 /w34389 /we4287 /w34100 /Zc:__cplusplus")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive- /we4287 /W4 /Zc:__cplusplus")
 
     # Microsoft deprecate certain POSIX functions that we use.
     # for now, turn off these warnings.

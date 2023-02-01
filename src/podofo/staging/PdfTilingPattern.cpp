@@ -105,8 +105,7 @@ void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
 
     if (offsetX < -1e-9 || offsetX > 1e-9 || offsetY < -1e-9 || offsetY > 1e-9)
     {
-        PdfArray arr;
-
+        arr.Clear();
         arr.Add(static_cast<int64_t>(1));
         arr.Add(static_cast<int64_t>(0));
         arr.Add(static_cast<int64_t>(0));

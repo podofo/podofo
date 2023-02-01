@@ -297,7 +297,7 @@ void PdfTranslator::setTarget(const string& target)
     targetDoc = new PdfMemDocument;
     outFilePath = target;
 
-    for (int i = 0; i < pageCount; i++)
+    for (unsigned i = 0; i < pageCount; i++)
     {
         auto& page = sourceDoc->GetPages().GetPageAt(i);
         charbuff buff;

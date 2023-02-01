@@ -71,9 +71,9 @@ int main(int argc, char* argv[])
             {
                 auto& objects = doc->GetObjects();
                 PdfArray ocgsArr = ocgs->GetArray();
-                for (PdfArray::iterator it = ocgsArr.begin(); it != ocgsArr.end(); it++)
+                for (PdfArray::iterator it1 = ocgsArr.begin(); it1 != ocgsArr.end(); it1++)
                 {
-                    PdfReference ocgRef = (*it).GetReference();
+                    PdfReference ocgRef = (*it1).GetReference();
                     if (!objects.GetObject(ocgRef))
                         continue;
 
@@ -82,16 +82,15 @@ int main(int argc, char* argv[])
                     if (!ocToRemove.empty() && find(ocToRemove.begin(), ocToRemove.end(), ocgName) == ocToRemove.end())
                         continue;
 
-                    for (auto it = objects.rbegin(); it != objects.rend(); it++)
+                    for (auto it2 = objects.rbegin(); it2 != objects.rend(); it2++)
                     {
-                        auto ob = *it;
+                        auto ob = *it2;
                         if (ob->IsDictionary())
                         {
                             auto oc = ob->GetDictionary().GetKey("OC");
                             if (oc != nullptr)
                             {
                                 PdfReference ocRef = oc->GetReference();
-                                const PdfObject* ocgs;
                                 if (ocRef == ocgRef || ((ocgs = objects.MustGetObject(ocRef).GetDictionary().GetKey("OCGs")) != nullptr
                                     && ocgs->GetReference() == ocgRef))
                                 {

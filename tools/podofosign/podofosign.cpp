@@ -114,7 +114,7 @@ static int pkey_password_cb(char* buf, int bufsize, int rwflag, void* userdata)
     if (!password)
         return 0;
 
-    int res = strlen(password);
+    int res = (int)strlen(password);
 
     if (res > bufsize)
         res = bufsize;
@@ -124,10 +124,8 @@ static int pkey_password_cb(char* buf, int bufsize, int rwflag, void* userdata)
     return res;
 }
 
-static bool load_cert_and_key(const char* certfile, const char* pkeyfile, const char* pkey_password, X509** out_cert, EVP_PKEY** out_pkey, int32_t& min_signature_size)
+static bool load_cert_and_key(const char* certfile, const char* pkeyfile, const char* pkey_password, X509** out_cert, EVP_PKEY** out_pkey)
 {
-    min_signature_size = 0;
-
     if (!certfile || !*certfile)
     {
         cerr << "Certificate file not specified" << endl;
@@ -159,11 +157,6 @@ static bool load_cert_and_key(const char* certfile, const char* pkeyfile, const 
 
     *out_cert = PEM_read_X509(fp, NULL, NULL, NULL);
 
-    if (fseeko(fp, 0, SEEK_END) != -1)
-        min_signature_size += ftello(fp);
-    else
-        min_signature_size += 3072;
-
     fclose(fp);
 
     if (!*out_cert)
@@ -191,11 +184,6 @@ static bool load_cert_and_key(const char* certfile, const char* pkeyfile, const 
     }
 
     *out_pkey = PEM_read_PrivateKey(fp, NULL, pkey_password_cb, const_cast<char*>(pkey_password));
-
-    if (fseeko(fp, 0, SEEK_END) != -1)
-        min_signature_size += ftello(fp);
-    else
-        min_signature_size += 1024;
 
     fclose(fp);
 
@@ -260,15 +248,15 @@ static void print_help(bool bOnlyUsage)
     cout << "No drawing is done when using existing field." << endl;
 }
 
-static double convert_to_pdf_units(const char* annot_units, double value)
+static float convert_to_pdf_units(const char* annot_units, float value)
 {
     if (strcmp(annot_units, "mm") == 0)
     {
-        return 72.0 * value / 25.4;
+        return 72.f * value / 25.4f;
     }
     else if (strcmp(annot_units, "inch") == 0)
     {
-        return 72.0 * value;
+        return 72.f * value;
     }
     else
     {
@@ -767,7 +755,8 @@ int main(int argc, char* argv[])
                 return -5;
             }
 
-            try {
+            try
+            {
                 if (*value == annot_position && !parse_annot_position(annot_position, annot_units, annot_page, annot_left, annot_top, annot_width, annot_height))
                 {
                     cerr << "Invalid -annot-position value '" << *value << "', expected format \"page,left,top,width,height\"" << endl;
@@ -775,7 +764,8 @@ int main(int argc, char* argv[])
                     return -6;
                 }
             }
-            catch (PdfError& e) {
+            catch (...)
+            {
                 cerr << "Invalid -annot-position value '" << *value << "', expected format \"page,left,top,width,height\"" << endl;
 
                 return -6;
@@ -817,17 +807,10 @@ int main(int argc, char* argv[])
 
     X509* cert = NULL;
     EVP_PKEY* pkey = NULL;
-    int32_t min_signature_size = 0;
-
-    if (!load_cert_and_key(certfile, pkeyfile, password, &cert, &pkey, min_signature_size))
+    if (!load_cert_and_key(certfile, pkeyfile, password, &cert, &pkey))
     {
         return -9;
     }
-
-    if (sigsize > 0)
-        min_signature_size = sigsize;
-    else
-        min_signature_size += 1024;
 
     int result = 0;
     PdfSignature* signature = NULL;
@@ -958,7 +941,7 @@ int main(int argc, char* argv[])
 
                     signature->SetAppearanceStream(*sigXObject);
                 }
-                catch (PdfError& e)
+                catch (...)
                 {
                 }
 

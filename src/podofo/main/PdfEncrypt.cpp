@@ -318,7 +318,7 @@ public:
         m_inputEof(false),
         m_init(true),
         m_keyLen(keylen),
-        m_drainLeft(-1)
+        m_drainLeft(0)
     {
         m_ctx = EVP_CIPHER_CTX_new();
         if (m_ctx == nullptr)
@@ -791,7 +791,6 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     if (docIdLength > 0)
     {
         docId.resize(docIdLength);
-        size_t j;
         for (j = 0; j < docIdLength; j++)
         {
             docId[j] = static_cast<unsigned char>(documentId[j]);
@@ -860,12 +859,12 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
         std::memcpy(userKey, digest, 16);
-        for (k = 16; k < 32; ++k)
+        for (k = 16; k < 32; k++)
             userKey[k] = 0;
 
         for (k = 0; k < 20; k++)
         {
-            for (j = 0; j < m_keyLength; ++j)
+            for (j = 0; j < m_keyLength; j++)
             {
                 digest[j] = static_cast<unsigned char>(m_encryptionKey[j] ^ k);
             }
@@ -1644,7 +1643,7 @@ void PdfEncryptSHABase::PreprocessPassword(const string_view& password, unsigned
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidPassword, "Error processing password through SASLprep");
 
     size_t l = std::strlen(password_sasl);
-    len = l > 127 ? 127 : l;
+    len = l > 127 ? 127 : (unsigned)l;
 
     std::memcpy(outBuf, password_sasl, len);
     // password_sasl is allocated by stringprep_profile (libidn), so use idn_free

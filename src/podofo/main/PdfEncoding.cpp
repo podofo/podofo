@@ -412,7 +412,6 @@ bool PdfEncoding::IsSimpleEncoding() const
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
-    return m_Encoding->GetType() == PdfEncodingMapType::Simple;
 }
 
 bool PdfEncoding::HasParsedLimits() const

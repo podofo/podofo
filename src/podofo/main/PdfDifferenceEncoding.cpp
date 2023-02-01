@@ -2541,7 +2541,7 @@ unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
             }
             else if (diff.IsName())
             {
-                difference.AddDifference(static_cast<unsigned>(curCode), diff.GetName(), explicitNames);
+                difference.AddDifference(static_cast<unsigned char>(curCode), diff.GetName(), explicitNames);
                 curCode++;
             }
         }
@@ -2626,7 +2626,7 @@ void PdfDifferenceEncoding::buildReverseMap()
         if (m_differences.TryGetMappedName((unsigned char)code, name, codePoints[0]))
         {
             // If there's a difference, use that instead
-            m_reverseMap[codePoints[0]] = code;
+            m_reverseMap[codePoints[0]] = (unsigned char)code;
             continue;
         }
 
@@ -2638,7 +2638,7 @@ void PdfDifferenceEncoding::buildReverseMap()
         }
 
         // NOTE: It's safe to assume the base encoding maps to single code point
-        m_reverseMap[codePoints[0]] = code;
+        m_reverseMap[codePoints[0]] = (unsigned char)code;
     }
 
     m_reverseMapBuilt = true;

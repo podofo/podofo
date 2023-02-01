@@ -120,7 +120,7 @@ namespace PoDoFo::Impose
         void rotate(double theta);
         void rotate_and_translate(double theta, double dx, double dy);
     public:
-        int pageCount;
+        unsigned pageCount;
         double sourceWidth;
         double sourceHeight;
         double destWidth;

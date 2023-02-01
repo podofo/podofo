@@ -40,10 +40,10 @@ PageRecord::PageRecord()
 
 void PageRecord::load(const string& buffer, const map<string, string>& vars)
 {
-    int blen(buffer.length());
+    unsigned len = (unsigned)buffer.length();
     vector<string> tokens;
     string ts;
-    for (int i(0); i < blen; ++i)
+    for (unsigned i = 0; i < len; i++)
     {
         char ci(buffer.at(i));
         if (ci == ' ')
@@ -91,9 +91,9 @@ double PageRecord::calc(const string& s, const map<string, string>& vars)
 {
     // 	cerr<< s;
     vector<string> tokens;
-    int tlen(s.length());
+    unsigned tokenCount = (unsigned)s.length();
     string ts;
-    for (int i(0); i < tlen; ++i)
+    for (unsigned i = 0; i < tokenCount; i++)
     {
         char ci(s.at(i));
         // 		if ( ci == 0x20 || ci == 0x9 )// skip spaces and horizontal tabs

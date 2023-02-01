@@ -54,7 +54,6 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
 
         if (descriptor == nullptr && m_FontFileType == PdfFontFileType::Type3)
         {
-            const PdfObject* obj;
             if ((obj = font.GetDictionary().FindKey("Name")) != nullptr)
                 m_FontNameRaw = obj->GetName().GetString();
 
@@ -120,8 +119,8 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         {
             auto& arrWidths = widths->GetArray();
             m_Widths.reserve(arrWidths.size());
-            for (auto& obj : arrWidths)
-                m_Widths.push_back(obj.GetReal() * m_Matrix[0]);
+            for (auto& width : arrWidths)
+                m_Widths.push_back(width.GetReal() * m_Matrix[0]);
         }
     }
     else if (subType == "CIDFontType0" || subType == "CIDFontType2")
@@ -129,7 +128,6 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         if (descriptor == nullptr)
             PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "Missing descriptor for CID ont");
 
-        const PdfObject* obj;
         if ((obj = descriptor->GetDictionary().FindKey("FontName")) != nullptr)
             m_FontNameRaw = obj->GetName().GetString();
 

@@ -36,8 +36,8 @@ static void getFontDataTTC(charbuff& buffer, const charbuff& fileBuffer, const c
 
 #endif // defined(_WIN32) && defined(PODOFO_HAVE_WIN32GDI)
 
-static unique_ptr<charbuff> getFontDataFromFile(const string_view& filename, unsigned short faceIndex);
-static unique_ptr<charbuff> getFontDataFromBuffer(const bufferview& buffer, unsigned short faceIndex);
+static unique_ptr<charbuff> getFontDataFromFile(const string_view& filename, unsigned faceIndex);
+static unique_ptr<charbuff> getFontDataFromBuffer(const bufferview& buffer, unsigned faceIndex);
 static unique_ptr<charbuff> getFontData(FT_Face face);
 static PdfFont* matchFont(const mspan<PdfFont*>& fonts, const string_view& fontName, const PdfFontSearchParams& params);
 static PdfFont* matchFont(const mspan<PdfFont*>& fonts, const string_view& fontName,
@@ -524,7 +524,7 @@ bool PdfFontManager::EqualElement::operator()(const Descriptor& lhs, const Descr
     return lhs.EncodingId == rhs.EncodingId && lhs.Style == rhs.Style && lhs.FontName == rhs.FontName;
 }
 
-unique_ptr<charbuff> getFontDataFromFile(const string_view& filename, unsigned short faceIndex)
+unique_ptr<charbuff> getFontDataFromFile(const string_view& filename, unsigned faceIndex)
 {
     FT_Face face;
     if (!FT::TryCreateFaceFromFile(filename, faceIndex, face))
@@ -539,7 +539,7 @@ unique_ptr<charbuff> getFontDataFromFile(const string_view& filename, unsigned s
     return getFontData(face);
 }
 
-unique_ptr<charbuff> getFontDataFromBuffer(const bufferview& buffer, unsigned short faceIndex)
+unique_ptr<charbuff> getFontDataFromBuffer(const bufferview& buffer, unsigned faceIndex)
 {
     FT_Face face;
     if (!FT::TryCreateFaceFromBuffer(buffer, faceIndex, face))

@@ -598,8 +598,6 @@ bool isStringDelimter(char32_t ch)
         default:
             return false;
     }
-
-    return false;
 }
 
 bool utls::IsStringEmptyOrWhiteSpace(const string_view& str)

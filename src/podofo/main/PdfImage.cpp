@@ -781,9 +781,9 @@ void PdfImage::loadFromTiffHandle(void* handle)
 
             for (unsigned clr = 0; clr < numColors; clr++)
             {
-                data[3 * clr + 0] = rgbRed[clr] / 257;
-                data[3 * clr + 1] = rgbGreen[clr] / 257;
-                data[3 * clr + 2] = rgbBlue[clr] / 257;
+                data[3 * clr + 0] = (char)(rgbRed[clr] / 257);
+                data[3 * clr + 1] = (char)(rgbGreen[clr] / 257);
+                data[3 * clr + 2] = (char)(rgbBlue[clr] / 257);
             }
 
             // Create a colorspace object

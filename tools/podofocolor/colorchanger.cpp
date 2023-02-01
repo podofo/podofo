@@ -137,7 +137,6 @@ void ColorChanger::ReplaceColorsInPage(PdfCanvas& page)
     PdfPostScriptTokenType t;
     string_view keyword;
     PdfVariant var;
-    bool readToken;
 
     GraphicsStack graphicsStack;
     PdfPostScriptTokenizer tokenizer;
@@ -148,7 +147,7 @@ void ColorChanger::ReplaceColorsInPage(PdfCanvas& page)
     charbuff buffer;
     BufferStreamDevice device(buffer);
 
-    while ((readToken = tokenizer.TryReadNext(input, t, keyword, var)))
+    while (tokenizer.TryReadNext(input, t, keyword, var))
     {
         if (t == PdfPostScriptTokenType::Variant)
         {

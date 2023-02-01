@@ -153,16 +153,15 @@ void PdfMemDocument::AddPdfExtension(const PdfName& ns, int64_t level)
 {
     if (!this->HasPdfExtension(ns, level))
     {
-
-        PdfObject* extensions = this->GetCatalog().GetDictionary().FindKey("Extensions");
+        auto extensionsObj = this->GetCatalog().GetDictionary().FindKey("Extensions");
         PdfDictionary newExtension;
 
         newExtension.AddKey("BaseVersion", PdfName(PoDoFo::GetPdfVersionName(m_Version)));
         newExtension.AddKey("ExtensionLevel", PdfVariant(level));
 
-        if (extensions != nullptr && extensions->IsDictionary())
+        if (extensionsObj != nullptr && extensionsObj->IsDictionary())
         {
-            extensions->GetDictionary().AddKey(ns, newExtension);
+            extensionsObj->GetDictionary().AddKey(ns, newExtension);
         }
         else
         {

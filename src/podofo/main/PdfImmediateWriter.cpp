@@ -100,9 +100,10 @@ void PdfImmediateWriter::Finish()
     uint64_t lXRefOffset = static_cast<uint64_t>(m_Device->GetPosition());
     m_xRef->Write(*m_Device, m_buffer);
 
-    // FIX-ME: The following is already done by PdfXRef now
-    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
-
+    (void)lXRefOffset;
+    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "FIX-ME: The following is already done by PdfXRef now");
+    
+    /*
     // XRef streams contain the trailer in the XRef
     if (!GetUseXRefStream())
     {
@@ -122,6 +123,7 @@ void PdfImmediateWriter::Finish()
     // we are done now
     GetObjects().Detach(*this);
     m_attached = false;
+    */
 }
 
 unique_ptr<PdfObjectStreamProvider> PdfImmediateWriter::CreateStream()

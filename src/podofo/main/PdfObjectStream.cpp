@@ -152,7 +152,7 @@ void PdfObjectStream::Unwrap()
             if (mediaDecodeParms.size() != 0)
             {
                 PdfArray decodeParms;
-                decodeParms.Reserve(mediaDecodeParms.size());
+                decodeParms.Reserve((unsigned)mediaDecodeParms.size());
                 for (unsigned i = 0; i < mediaDecodeParms.size(); i++)
                 {
                     auto decodeParmsDict = mediaDecodeParms[i];
@@ -499,15 +499,15 @@ PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream,
 
     if (m_filters.has_value())
     {
-        auto& filters = *m_filters;
-        if (filters.size() == 0 || raw)
+        auto& filterLst = *m_filters;
+        if (filterLst.size() == 0 || raw)
         {
             m_output = stream.m_Provider->GetOutputStream(stream.GetParent());
         }
         else
         {
             m_output = PdfFilterFactory::CreateEncodeStream(
-                stream.m_Provider->GetOutputStream(stream.GetParent()), filters);
+                stream.m_Provider->GetOutputStream(stream.GetParent()), filterLst);
         }
     }
     else

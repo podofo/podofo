@@ -1462,6 +1462,7 @@ TEST_CASE("testReadXRefStreamContents")
     }
     catch (PdfError& error)
     {
+        (void)error;
         // FIXME We should throw on exact error
         //REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
     }
@@ -1513,6 +1514,7 @@ TEST_CASE("testReadXRefStreamContents")
     }
     catch (PdfError& error)
     {
+        (void)error;
         // FIXME We should throw on exact error
         //REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
     }
@@ -1564,6 +1566,7 @@ TEST_CASE("testReadXRefStreamContents")
     }
     catch (PdfError& error)
     {
+        (void)error;
         // FIXME We should throw on exact error
         //REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
     }
@@ -1615,6 +1618,7 @@ TEST_CASE("testReadXRefStreamContents")
     }
     catch (PdfError& error)
     {
+        (void)error;
         // FIXME We should throw on exact error
         //REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
     }
@@ -1666,6 +1670,7 @@ TEST_CASE("testReadXRefStreamContents")
     }
     catch (PdfError& error)
     {
+        (void)error;
         // FIXME We should throw on exact error
         //REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
     }
@@ -1991,10 +1996,13 @@ TEST_CASE("testNestedArrays")
     ostringstream oss;
     size_t offsetStream;
     size_t offsetEndstream;
+    size_t offsetXRefObject;
+    string buffer;
 
     // XRef stream with 5 entries
     constexpr size_t lengthXRefObject = 58;
-    size_t offsetXRefObject = oss.str().length();
+
+    offsetXRefObject = oss.str().length();
     oss << "2 0 obj ";
     oss << "<< /Type /XRef ";
     oss << "/Length " << lengthXRefObject << " ";
@@ -2020,7 +2028,7 @@ TEST_CASE("testNestedArrays")
     oss << "startxref " << offsetXRefObject << "\r\n";
     oss << "%EOF";
 
-    auto buffer = oss.str();
+    buffer = oss.str();
 
     {
         PdfIndirectObjectList objects;
@@ -2033,20 +2041,17 @@ TEST_CASE("testNestedArrays")
     try
     {
         // generate an XRef stream with deeply nested arrays
-        ostringstream oss;
-        size_t offsetStream;
-        size_t offsetEndstream;
+        oss.str("");
         const size_t maxNesting = getStackOverflowDepth(); // big enough to cause stack overflow
         // XRef stream with 5 entries
-        constexpr size_t lengthXRefObject = 58;
-        size_t offsetXRefObject = oss.str().length();
+        offsetXRefObject = oss.str().length();
         oss << "2 0 obj ";
         oss << "<< /Type /XRef ";
         oss << "/Length " << lengthXRefObject << " ";
         oss << "/Index [2 2] ";
         oss << "/Size 5 ";
         oss << "/W [1 2 1] ";
-
+        
         // output [[[[[[[[[[[0]]]]]]]]]]]
         for (size_t i = 0; i < maxNesting; i++)
         {
@@ -2078,7 +2083,7 @@ TEST_CASE("testNestedArrays")
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%EOF";
 
-        auto buffer = oss.str();
+        buffer = oss.str();
 
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, buffer);
@@ -2100,10 +2105,13 @@ TEST_CASE("testNestedDictionaries")
     ostringstream oss;
     size_t offsetStream;
     size_t offsetEndstream;
+    size_t offsetXRefObject;
+    string buffer;
 
     // XRef stream with 5 entries
     constexpr size_t lengthXRefObject = 58;
-    size_t offsetXRefObject = oss.str().length();
+
+    offsetXRefObject = oss.str().length();
     oss << "2 0 obj ";
     oss << "<< /Type /XRef ";
     oss << "/Length " << lengthXRefObject << " ";
@@ -2129,7 +2137,7 @@ TEST_CASE("testNestedDictionaries")
     oss << "startxref " << offsetXRefObject << "\r\n";
     oss << "%EOF";
 
-    auto buffer = oss.str();
+    buffer = oss.str();
 
     {
         PdfIndirectObjectList objects;
@@ -2142,13 +2150,11 @@ TEST_CASE("testNestedDictionaries")
     try
     {
         // generate an XRef stream with deeply nested dictionaries
-        ostringstream oss;
-        size_t offsetStream;
-        size_t offsetEndstream;
+        oss.str("");
+
         const size_t maxNesting = getStackOverflowDepth(); // big enough to cause stack overflow 
         // XRef stream with 5 entries
-        constexpr size_t lengthXRefObject = 58;
-        size_t offsetXRefObject = oss.str().length();
+        offsetXRefObject = oss.str().length();
         oss << "2 0 obj ";
         oss << "<< /Type /XRef ";
         oss << "/Length " << lengthXRefObject << " ";
@@ -2187,7 +2193,7 @@ TEST_CASE("testNestedDictionaries")
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%EOF";
 
-        auto buffer = oss.str();
+        buffer = oss.str();
 
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, buffer);
@@ -2309,14 +2315,16 @@ TEST_CASE("testLoopingNameTree")
         "192\r\n"
         "%%EOF";
 
-    PdfMemDocument doc;
-    doc.LoadFromBuffer(strNoLoop);
-
-    auto names = doc.GetNames();
-    if (names != nullptr)
     {
-        PdfDictionary dict;
-        names->ToDictionary("Dests", dict);
+        PdfMemDocument doc;
+        doc.LoadFromBuffer(strNoLoop);
+
+        auto names = doc.GetNames();
+        if (names != nullptr)
+        {
+            PdfDictionary dict;
+            names->ToDictionary("Dests", dict);
+        }
     }
 
     // CVE-2021-30471 /Dests points at pages tree root which has a /Kids entry loooping back to pages tree root

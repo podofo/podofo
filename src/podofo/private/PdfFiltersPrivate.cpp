@@ -99,7 +99,7 @@ public:
                     {
                         if (m_BitsPerComponent == 8)
                         {   // Same as png sub
-                            int prev = (m_CurrRowIndex - m_BytesPerPixel < 0
+                            char prev = (m_CurrRowIndex - m_BytesPerPixel < 0
                                 ? 0 : m_Prev[m_CurrRowIndex - m_BytesPerPixel]);
                             m_Prev[m_CurrRowIndex] = *buffer + prev;
                             break;
@@ -116,7 +116,7 @@ public:
                     }
                     case 11: // png sub
                     {
-                        int prev = (m_CurrRowIndex - m_BytesPerPixel < 0
+                        char prev = (m_CurrRowIndex - m_BytesPerPixel < 0
                             ? 0 : m_Prev[m_CurrRowIndex - m_BytesPerPixel]);
                         m_Prev[m_CurrRowIndex] = *buffer + prev;
                         break;
@@ -130,7 +130,7 @@ public:
                     {
                         int prev = (m_CurrRowIndex - m_BytesPerPixel < 0
                             ? 0 : m_Prev[m_CurrRowIndex - m_BytesPerPixel]);
-                        m_Prev[m_CurrRowIndex] = ((prev + m_Prev[m_CurrRowIndex]) >> 1) + *buffer;
+                        m_Prev[m_CurrRowIndex] = (char)((prev + m_Prev[m_CurrRowIndex]) >> 1) + *buffer;
                         break;
                     }
                     case 14: // png paeth
@@ -157,7 +157,7 @@ public:
                         if (pc < 0)
                             pc = -pc;
 
-                        char closestByte;
+                        int closestByte;
                         if (pa <= pb && pa <= pc)
                             closestByte = a;
                         else if (pb <= pc)
@@ -168,7 +168,7 @@ public:
                         // Save the byte we're about to clobber for the next pixel's prediction
                         m_UpperLeftPixelComponents[nCurrComponentIndex] = m_Prev[m_CurrRowIndex];
 
-                        m_Prev[m_CurrRowIndex] = *buffer + closestByte;
+                        m_Prev[m_CurrRowIndex] = *buffer + (char)closestByte;
                         break;
                     }
                     case 15: // png optimum

@@ -507,8 +507,6 @@ PdfColor PdfColor::ConvertToGrayScale() const
             break;
         }
     };
-
-    return PdfColor();
 }
 
 PdfColor PdfColor::ConvertToRGB() const
@@ -571,8 +569,6 @@ PdfColor PdfColor::ConvertToRGB() const
             break;
         }
     };
-
-    return PdfColor();
 }
 
 PdfColor PdfColor::ConvertToCMYK() const

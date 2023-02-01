@@ -49,8 +49,8 @@ void work(const string_view& inputPath, const string_view& outputPath, const vec
     PdfMemDocument doc;
     doc.Load(inputPath);
 
-    int total = operations.size();
-    int i = 1;
+    unsigned total = (unsigned)operations.size();
+    unsigned i = 1;
     for (auto operation : operations)
     {
         string msg = operation->ToString();

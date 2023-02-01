@@ -448,9 +448,9 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
 
     nullable<size_t> headOffset;
     size_t tableOffset;
-    for (unsigned i = 0; i < m_tables.size(); i++)
+    for (unsigned i1 = 0; i1 < m_tables.size(); i1++)
     {
-        auto& table = m_tables[i];
+        auto& table = m_tables[i1];
         tableOffset = output.GetPosition();
         switch (table.Tag)
         {
@@ -501,11 +501,11 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
         // Align the table length to 4 bytes and pad remaing space with zeroes
         size_t tableLength = output.GetPosition() - tableOffset;
         size_t tableLengthPadded = (tableLength + 3) & ~3;
-        for (size_t i = tableLength; i < tableLengthPadded; i++)
+        for (size_t i2 = tableLength; i2 < tableLengthPadded; i2++)
             output.Write('\0');
 
         // Write dynamic font directory table entries
-        size_t currDirTableOffset = directoryTableOffset + i * LENGTH_OFFSETTABLE16;
+        size_t currDirTableOffset = directoryTableOffset + i1 * LENGTH_OFFSETTABLE16;
         utls::WriteUInt32BE(buffer.data() + currDirTableOffset + 4, GetTableCheksum(buffer.data() + tableOffset, (uint32_t)tableLength));
         utls::WriteUInt32BE(buffer.data() + currDirTableOffset + 8, (uint32_t)tableOffset);
         utls::WriteUInt32BE(buffer.data() + currDirTableOffset + 12, (uint32_t)tableLength);

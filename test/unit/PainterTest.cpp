@@ -21,6 +21,7 @@ namespace
     public:
         PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags)
         {
+            (void)flags;
             return m_resourceObj.GetOrCreateStream();
         }
 

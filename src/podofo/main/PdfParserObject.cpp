@@ -132,7 +132,7 @@ void PdfParserObject::Parse(PdfTokenizer& tokenizer)
 
         if (!m_IsTrailer)
         {
-            bool gotToken = tokenizer.TryReadNextToken(*m_device, token);
+            gotToken = tokenizer.TryReadNextToken(*m_device, token);
             if (!gotToken)
                 PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected 'endobj' or (if dict) 'stream', got EOF");
 

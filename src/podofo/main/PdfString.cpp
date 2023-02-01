@@ -168,19 +168,19 @@ void PdfString::Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
     device.Write(m_isHex ? '<' : '(');
     if (dataview.size() > 0)
     {
-        char ch;
-        const char* buffer = dataview.data();
+        const char* cursor = dataview.data();
         size_t len = dataview.size();
 
         if (m_isHex)
         {
+            char ch;
             char data[2];
             while (len-- != 0)
             {
-                ch = *buffer;
+                ch = *cursor;
                 utls::WriteCharHexTo(data, ch);
                 device.Write(string_view(data, 2));
-                buffer++;
+                cursor++;
             }
         }
         else
@@ -188,7 +188,7 @@ void PdfString::Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
             char ch;
             while (len-- != 0)
             {
-                ch = *buffer;
+                ch = *cursor;
                 char escaped = getEscapedCharacter(ch);
                 if (escaped == '\0')
                 {
@@ -200,7 +200,7 @@ void PdfString::Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
                     device.Write(escaped);
                 }
 
-                buffer++;
+                cursor++;
             }
         }
     }

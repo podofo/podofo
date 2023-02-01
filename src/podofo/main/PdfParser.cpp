@@ -747,7 +747,7 @@ void PdfParser::readObjectsInternal(InputStreamDevice& device)
                     // NOTE: We don't need entry.ObjectNumber, which is supposed to be
                     // the entry of the next free object
                     if (i != 0)
-                        m_Objects->SafeAddFreeObject(PdfReference(i, entry.Generation));
+                        m_Objects->SafeAddFreeObject(PdfReference(i, (uint16_t)entry.Generation));
 
                     break;
                 }

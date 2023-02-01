@@ -26,7 +26,7 @@ int PlanReader_Legacy::sortLoop(vector<string>& memfile, int numline)
 {
     // 	cerr<<"===================================== "<<numline<<endl;
         //Debug
-    // 	for(map<string, double>::iterator dit(localvars.begin());dit!=localvars.end();++dit)
+    // 	for(map<string, double>::iterator dit(localvars.begin());dit!=localvars.end(); dit++)
     // 	{
     // 		cerr<<"R "<<dit->first<<" = "<<dit->second<<endl;
     // 	}
@@ -34,11 +34,11 @@ int PlanReader_Legacy::sortLoop(vector<string>& memfile, int numline)
     map<string, string> storedvars = I->vars;
     int startAt(numline);
     string buffer(memfile.at(numline));
-    int blen = buffer.length();
+    unsigned len = (unsigned)buffer.length();
     string iterN;
-    int a(1);
-    char ca(0);
-    for (; a < blen; a++)
+    unsigned a = 1;
+    char ca = 0;
+    for (; a < len; a++)
     {
         ca = buffer.at(a);
         if (ca == '[')
@@ -51,9 +51,9 @@ int PlanReader_Legacy::sortLoop(vector<string>& memfile, int numline)
     map<string, double> increments;
     string tvar;
     string tinc;
-    ++a;
+    a++;
     bool varside(true);
-    for (; a < blen; ++a)
+    for (; a < len; a++)
     {
         ca = buffer.at(a);
         // 		if(ca == 0x20 || ca == 0x9 )
@@ -86,37 +86,37 @@ int PlanReader_Legacy::sortLoop(vector<string>& memfile, int numline)
         }
     }
 
-    int endOfloopBlock(numline + 1);
-    int openLoop(0);
-    for (unsigned int bolb2 = (numline + 1); bolb2 < memfile.size(); ++bolb2)
+    int endOfloopBlock = numline + 1;
+    int openLoop = 0;
+    for (unsigned int bolb2 = (numline + 1); bolb2 < memfile.size(); bolb2++)
     {
         // 		cerr<<"| "<< memfile.at ( bolb2 ) <<" |"<<endl;
         if (memfile.at(bolb2).at(0) == '<')
-            ++openLoop;
+            openLoop++;
         else if (memfile.at(bolb2).at(0) == '>')
         {
             if (openLoop == 0)
                 break;
             else
-                --openLoop;
+                openLoop--;
         }
         else
             endOfloopBlock = bolb2 + 1;
     }
 
-    int maxIter(PageRecord::calc(iterN, I->vars));
-    for (int iter(0); iter < maxIter; ++iter)
+    unsigned maxIter = (unsigned)PageRecord::calc(iterN, I->vars);
+    for (unsigned iter = 0; iter < maxIter; iter++)
     {
         if (iter != 0)
         {
             // we set the vars
             map<string, double>::iterator vit;
-            for (vit = increments.begin(); vit != increments.end(); ++vit)
+            for (vit = increments.begin(); vit != increments.end(); vit++)
             {
                 I->vars[vit->first] = Util::dToStr(std::atof(I->vars[vit->first].c_str()) + vit->second);
             }
         }
-        for (int subi(numline + 1); subi < endOfloopBlock; ++subi)
+        for (int subi(numline + 1); subi < endOfloopBlock; subi++)
         {
             // 					cerr<< subi <<"/"<< endOfloopBlock <<" - "<<memfile.at(subi) <<endl;
 
@@ -136,7 +136,7 @@ int PlanReader_Legacy::sortLoop(vector<string>& memfile, int numline)
                 }
                 // 				maxPageDest = std::max ( maxPageDest, p.destPage );
                 // 				bool isDup(false);
-                // 				for(ImpositionPlan::const_iterator ipIt(planImposition.begin());ipIt != planImposition.end(); ++ipIt)
+                // 				for(ImpositionPlan::const_iterator ipIt(planImposition.begin());ipIt != planImposition.end(); ipIt++)
                 // 				{
                 // 					if(ipIt->sourcePage == p.sourcePage)
                 // 					{
@@ -203,17 +203,17 @@ PlanReader_Legacy::PlanReader_Legacy(const string& plan, ImpositionPlan* Imp)
         }
     } while (!in.eof());
     /// PROVIDED 
-    I->vars[string("$PagesCount")] = Util::iToStr(I->sourceVars.PageCount);
+    I->vars[string("$PagesCount")] = Util::uToStr(I->sourceVars.PageCount);
     I->vars[string("$SourceWidth")] = Util::dToStr(I->sourceVars.PageWidth);
     I->vars[string("$SourceHeight")] = Util::dToStr(I->sourceVars.PageHeight);
     /// END OF PROVIDED
 
-    for (unsigned int numline = 0; numline < memfile.size(); ++numline)
+    for (unsigned int numline = 0; numline < memfile.size(); numline++)
     {
         string buffer(memfile.at(numline));
         if (buffer.at(0) == '$') // Variable
         {
-            int sepPos(buffer.find_first_of('='));
+            unsigned sepPos = (unsigned)buffer.find_first_of('=');
             string key(buffer.substr(0, sepPos));
             string value(buffer.substr(sepPos + 1));
 

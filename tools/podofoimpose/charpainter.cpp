@@ -114,7 +114,7 @@ void CharPainter::multipaint(ostream& s, int n, double size, double x, double y)
     digits(n, d);
 
     vector<int>::const_reverse_iterator itEnd = d.rend();
-    int i = d.size() - 1;
-    for (vector<int>::const_reverse_iterator it = d.rbegin(); it != itEnd; ++it, --i)
+    int i = (int)d.size() - 1;
+    for (vector<int>::const_reverse_iterator it = d.rbegin(); it != itEnd; it++, i--)
         paint(s, *it, size, x + (size * i / 1.6), y);
 }

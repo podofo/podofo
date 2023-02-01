@@ -23,7 +23,7 @@ namespace PoDoFo::Impose
 
     struct SourceVars
     {
-        double PageCount;
+        unsigned PageCount;
         double PageWidth;
         double PageHeight;
     };
@@ -54,10 +54,10 @@ namespace PoDoFo::Impose
             return ret;
 
         }
-        static std::string iToStr(int i)
+        static std::string uToStr(unsigned i)
         {
             char buffer[126];
-            sprintf(buffer, "%d", i);
+            sprintf(buffer, "%u", i);
             std::string ret(buffer);
             return ret;
         }
@@ -73,8 +73,8 @@ namespace PoDoFo::Impose
         PageRecord(int s, int d, double r, double tx, double ty, int du = 0, double sx = 1.0, double sy = 1.0);
         PageRecord();
         ~PageRecord() {};
-        int sourcePage;
-        int destPage;
+        unsigned sourcePage;
+        unsigned destPage;
         double rotate;
         double transX;
         double transY;
