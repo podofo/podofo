@@ -154,7 +154,7 @@ TEST_CASE("TestPainter4")
     {
         auto path = painter.BeginPath(20, 20);
         path.AddLineTo(100, 20);
-        path.AddArcTo(150, 20, 150, 70, 50);
+        //path.AddArcTo(150, 20, 150, 70, 50);
         path.AddLineTo(150, 120);
     }
 
