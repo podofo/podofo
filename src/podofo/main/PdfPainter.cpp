@@ -32,7 +32,7 @@ static void addCircleTo(PdfStringStream& stream, double x, double y, double radi
 static void addEllipseTo(PdfStringStream& stream, double x, double y, double width, double height);
 static void addRectangleTo(PdfStringStream& stream, double x, double y, double width, double height, double roundX, double roundY);
 
-static void drawPath(PdfStringStream& stream, PdfPainterDrawMode mode);
+static void drawPath(PdfStringStream& stream, PdfPathDrawMode mode);
 static void stroke(PdfStringStream& stream);
 static void fill(PdfStringStream& stream, bool useEvenOddRule);
 static void strokeAndFill(PdfStringStream& stream, bool useEvenOddRule);
@@ -378,7 +378,7 @@ void PdfPainter::DrawArc(double x, double y, double radius, double angle1, doubl
     stroke(m_stream);
 }
 
-void PdfPainter::DrawCircle(double x, double y, double radius, PdfPainterDrawMode mode)
+void PdfPainter::DrawCircle(double x, double y, double radius, PdfPathDrawMode mode)
 {
     checkStream();
     checkStatus(PainterStatus::Default);
@@ -386,7 +386,7 @@ void PdfPainter::DrawCircle(double x, double y, double radius, PdfPainterDrawMod
     drawPath(m_stream, mode);
 }
 
-void PdfPainter::DrawEllipse(double x, double y, double width, double height, PdfPainterDrawMode mode)
+void PdfPainter::DrawEllipse(double x, double y, double width, double height, PdfPathDrawMode mode)
 {
     checkStream();
     checkStatus(PainterStatus::Default);
@@ -394,7 +394,7 @@ void PdfPainter::DrawEllipse(double x, double y, double width, double height, Pd
     drawPath(m_stream, mode);
 }
 
-void PdfPainter::DrawRectangle(double x, double y, double width, double height, PdfPainterDrawMode mode, double roundX, double roundY)
+void PdfPainter::DrawRectangle(double x, double y, double width, double height, PdfPathDrawMode mode, double roundX, double roundY)
 {
     checkStream();
     checkStatus(PainterStatus::Default);
@@ -402,7 +402,7 @@ void PdfPainter::DrawRectangle(double x, double y, double width, double height, 
     drawPath(m_stream, mode);
 }
 
-void PdfPainter::DrawRectangle(const PdfRect& rect, PdfPainterDrawMode mode, double roundX, double roundY)
+void PdfPainter::DrawRectangle(const PdfRect& rect, PdfPathDrawMode mode, double roundX, double roundY)
 {
     checkStream();
     checkStatus(PainterStatus::Default);
@@ -1188,7 +1188,7 @@ PdfPainterPath::PdfPainterPath() :
     m_painter(nullptr),
     m_stream(nullptr),
     m_closed(true),
-    m_DrawMode(PdfPainterDrawMode::Fill)
+    m_DrawMode(PdfPathDrawMode::Fill)
 {
 }
 
@@ -1196,7 +1196,7 @@ PdfPainterPath::PdfPainterPath(PdfPainter& painter) :
     m_painter(&painter),
     m_stream(&painter.m_stream),
     m_closed(false),
-    m_DrawMode(PdfPainterDrawMode::Fill)
+    m_DrawMode(PdfPathDrawMode::Fill)
 {
     m_painter->m_painterStatus = PdfPainter::PainterStatus::Path;
 }
@@ -1210,7 +1210,7 @@ PdfPainterPath::PdfPainterPath(PdfPainterPath&& path) noexcept :
     path.m_painter = nullptr;
     path.m_stream = nullptr;
     path.m_closed = true;
-    path.m_DrawMode = PdfPainterDrawMode::Fill;
+    path.m_DrawMode = PdfPathDrawMode::Fill;
 }
 
 PdfPainterPath::~PdfPainterPath()
@@ -1313,7 +1313,7 @@ PdfPainterPath& PdfPainterPath::operator=(PdfPainterPath&& path) noexcept
     path.m_painter = nullptr;
     path.m_stream = nullptr;
     path.m_closed = true;
-    path.m_DrawMode = PdfPainterDrawMode::Fill;
+    path.m_DrawMode = PdfPathDrawMode::Fill;
     return *this;
 }
 
@@ -1556,23 +1556,23 @@ void addRectangleTo(PdfStringStream& stream, double x, double y, double width, d
     }
 }
 
-void drawPath(PdfStringStream& stream, PdfPainterDrawMode mode)
+void drawPath(PdfStringStream& stream, PdfPathDrawMode mode)
 {
     switch (mode)
     {
-        case PdfPainterDrawMode::Stroke:
+        case PdfPathDrawMode::Stroke:
             stroke(stream);
             break;
-        case PdfPainterDrawMode::Fill:
+        case PdfPathDrawMode::Fill:
             fill(stream, false);
             break;
-        case PdfPainterDrawMode::StrokeFill:
+        case PdfPathDrawMode::StrokeFill:
             strokeAndFill(stream, false);
             break;
-        case PdfPainterDrawMode::FillEvenOdd:
+        case PdfPathDrawMode::FillEvenOdd:
             fill(stream, true);
             break;
-        case PdfPainterDrawMode::StrokeFillEvenOdd:
+        case PdfPathDrawMode::StrokeFillEvenOdd:
             strokeAndFill(stream, true);
             break;
         default:
