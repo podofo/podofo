@@ -325,7 +325,7 @@ public:
      *  \param y y coordinate of the circle
      *  \param radius radius of the circle
      */
-    void DrawCircle(double x, double y, double radius, PdfPainterDrawMode mode = PdfPainterDrawMode::Stroke);
+    void DrawCircle(double x, double y, double radius, PdfPathDrawMode mode = PdfPathDrawMode::Stroke);
 
     /** Draw an ellipse to the given coordinates
      *  \param x x coordinate of the ellipse (left coordinate)
@@ -334,7 +334,7 @@ public:
      *  \param height absolute height of the ellipse
      */
     void DrawEllipse(double x, double y, double width, double height,
-        PdfPainterDrawMode mode = PdfPainterDrawMode::Stroke);
+        PdfPathDrawMode mode = PdfPathDrawMode::Stroke);
 
     /** Draw a rectangle to the given coordinates
      *  \param x x coordinate of the rectangle (left coordinate)
@@ -345,14 +345,14 @@ public:
      *  \param roundY rounding factor, y direction
      */
     void DrawRectangle(double x, double y, double width, double height,
-        PdfPainterDrawMode mode = PdfPainterDrawMode::Stroke, double roundX = 0.0, double roundY = 0.0);
+        PdfPathDrawMode mode = PdfPathDrawMode::Stroke, double roundX = 0.0, double roundY = 0.0);
 
     /** Draw a rectangle into the current path to the given coordinates
      *  \param rect the rectangle area
      *  \param roundX rounding factor, x direction
      *  \param roundY rounding factor, y direction
      */
-    void DrawRectangle(const PdfRect& rect, PdfPainterDrawMode mode = PdfPainterDrawMode::Stroke,
+    void DrawRectangle(const PdfRect& rect, PdfPathDrawMode mode = PdfPathDrawMode::Stroke,
         double roundX = 0.0, double roundY = 0.0);
 
     /** Draw a single-line text string on a page using a given font object.

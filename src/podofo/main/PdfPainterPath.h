@@ -14,7 +14,7 @@ namespace PoDoFo {
 /**
  * An enum describing modes to draw paths and figures
  */
-enum class PdfPainterDrawMode
+enum class PdfPathDrawMode
 {
     Stroke = 1,
     Fill = 2,               ///< Fill using the the non-zero winding number rule to determine the region to fill
@@ -145,8 +145,8 @@ public:
     void Discard();
 
 public:
-    PdfPainterDrawMode GetDrawMode() const { return m_DrawMode; }
-    void SetDrawMode(PdfPainterDrawMode mode) { m_DrawMode = mode; }
+    PdfPathDrawMode GetDrawMode() const { return m_DrawMode; }
+    void SetDrawMode(PdfPathDrawMode mode) { m_DrawMode = mode; }
 
 public:
     PdfPainterPath& operator=(PdfPainterPath&& path) noexcept;
@@ -162,7 +162,7 @@ private:
     PdfPainter* m_painter;
     PdfStringStream* m_stream;
     bool m_closed;
-    PdfPainterDrawMode m_DrawMode;
+    PdfPathDrawMode m_DrawMode;
 };
 
 }
