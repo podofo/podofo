@@ -320,15 +320,6 @@ public:
      */
     void DrawArc(double x, double y, double radius, double angle1, double angle2);
 
-    /** Stroke an arc to the given coordinates and radius
-     *  \param x1 x coordinate the first control point
-     *  \param y1 y coordinate the first control point
-     *  \param x2 x coordinate the second control point
-     *  \param y2 y coordinate the second control point
-     *	\param radius radius
-     */
-    void DrawArcTo(double x1, double y1, double x2, double y2, double radius);
-
     /** Draw a circle
      *  \param x x center coordinate of the circle
      *  \param y y coordinate of the circle

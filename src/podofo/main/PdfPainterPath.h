@@ -49,7 +49,7 @@ public:
      *  \param x x position
      *  \param y y position
      */
-    void AppendLine(double x, double y);
+    void AddLineTo(double x, double y);
 
     /** Add straight line segment from the point (x1, y1) to (x2, y2) the path
      *  Matches the PDF 'l' operator.
@@ -69,7 +69,7 @@ public:
      *  \param x3 x coordinate of the end point, which is the new current point
      *  \param y3 y coordinate of the end point, which is the new current point
      */
-    void AppendCubicBezier(double x1, double y1, double x2, double y2, double x3, double y3);
+    void AddCubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3);
 
     /** Add a cubic bezier curve starting from the (x1,y1) point to the current path
      *  \param x1 x coordinate of the starting point
@@ -107,11 +107,11 @@ public:
      */
     void AddArc(double x, double y, double radius, double angle1, double angle2);
 
-    /** Add an arc into the current path to the given coordinates and radius
+    /** Append an arc from the current point to the current path
      *  \param x1 x coordinate the first control point
      *  \param y1 y coordinate the first control point
-     *  \param x2 x coordinate the second control point
-     *  \param y2 y coordinate the second control point
+     *  \param x2 x coordinate of the end point, which is the new current point
+     *  \param y2 y coordinate of the end point, which is the new current point
      *	\param radius radius
      */
     void AddArcTo(double x1, double y1, double x2, double y2, double radius);

@@ -71,6 +71,7 @@ namespace
 static string getContents(const PdfPage& page);
 static void compareStreamContent(PdfObjectStream& stream, const string_view& expected);
 static void drawSample(PdfPainter& painter);
+static void drawSquareWithCross(PdfPainter& painter, double x, double y);
 
 auto s_expected = R"(q
 120 500 m
@@ -143,6 +144,28 @@ Q
     REQUIRE(out == expected);
 }
 
+// FIXME: This test is not working yet
+TEST_CASE("TestPainter4")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    PdfPainter painter;
+    painter.SetCanvas(page);
+    {
+        auto path = painter.BeginPath(20, 20);
+        path.AddLineTo(100, 20);
+        path.AddArcTo(150, 20, 150, 70, 50);
+        path.AddLineTo(150, 120);
+    }
+
+    drawSquareWithCross(painter, 100, 20);
+    drawSquareWithCross(painter, 100, 70);
+    drawSquareWithCross(painter, 150, 70);
+
+    painter.FinishDrawing();
+    doc.Save(TestUtils::GetTestOutputFilePath("TestPainter4.pdf"));
+}
+
 TEST_CASE("TestAppend")
 {
     string_view example = "BT (Hello) Tj ET";
@@ -184,4 +207,17 @@ string getContents(const PdfPage& page)
     StringStreamDevice output(ret);
     input.CopyTo(output);
     return ret;
+}
+
+void drawSquareWithCross(PdfPainter& painter, double x, double y)
+{
+    painter.Save();
+    const double SquareSize = 6;
+    painter.GetGraphicsState().SetLineWidth(0.6);
+    painter.DrawRectangle(x - SquareSize / 2, y - SquareSize / 2, SquareSize, SquareSize);
+
+    painter.GetGraphicsState().SetLineWidth(0);
+    painter.DrawLine(x, y - SquareSize / 2, x, y + SquareSize / 2);
+    painter.DrawLine(x - SquareSize / 2, y, x + SquareSize / 2, y);
+    painter.Restore();
 }

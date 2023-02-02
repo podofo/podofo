@@ -378,14 +378,6 @@ void PdfPainter::DrawArc(double x, double y, double radius, double angle1, doubl
     stroke(m_stream);
 }
 
-void PdfPainter::DrawArcTo(double x1, double y1, double x2, double y2, double radius)
-{
-    checkStream();
-    checkStatus(PainterStatus::Default);
-    addArcTo(m_stream, x1, y1, x2, y2, radius);
-    stroke(m_stream);
-}
-
 void PdfPainter::DrawCircle(double x, double y, double radius, PdfPainterDrawMode mode)
 {
     checkStream();
@@ -1229,7 +1221,7 @@ PdfPainterPath::~PdfPainterPath()
     m_painter->m_painterStatus = PdfPainter::PainterStatus::Default;
 }
 
-void PdfPainterPath::AppendLine(double x, double y)
+void PdfPainterPath::AddLineTo(double x, double y)
 {
     checkClosed();
     addLine(*m_stream, x, y);
@@ -1243,7 +1235,7 @@ void PdfPainterPath::AddLine(double x1, double y1, double x2, double y2)
     closePath(*m_stream);
 }
 
-void PdfPainterPath::AppendCubicBezier(double x1, double y1, double x2, double y2, double x3, double y3)
+void PdfPainterPath::AddCubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3)
 {
     checkClosed();
     addCubicBezier(*m_stream, x1, y1, x2, y2, x3, y3);
@@ -1479,13 +1471,12 @@ void closePath(PdfStringStream& stream)
 
 void addArc(PdfStringStream& stream, double x, double y, double radius, double angle1, double angle2)
 {
-    (void)stream;
-    (void)x;
-    (void)y;
-    (void)radius;
-    (void)angle1;
-    (void)angle2;
-    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
+    // Calculate the start and end points of the arc
+    double startX = x + radius * std::cos(angle1);
+    double startY = y + radius * std::sin(angle2);
+    double endX = x + radius * std::cos(angle2);
+    double endY = y + radius * std::sin(angle2);
+    addArcTo(stream, startX, startY, endX, endY, radius);
 }
 
 void addArcTo(PdfStringStream& stream, double x1, double y1, double x2, double y2, double radius)
