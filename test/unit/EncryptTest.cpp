@@ -307,7 +307,7 @@ void createEncryptedPdf(const string_view& filename)
     if (font == nullptr)
         FAIL("Coult not find Arial font");
 
-    painter.GetTextState().SetFont(*font, 16);
+    painter.TextState.SetFont(*font, 16);
     painter.DrawText("Hello World", 100, 100);
     painter.FinishDrawing();
 

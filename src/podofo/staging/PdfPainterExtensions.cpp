@@ -12,7 +12,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfPainterPathExtensions::PdfPainterPathExtensions(PdfPainterPath& path) :
+PdfPainterPathExtensions::PdfPainterPathExtensions(PdfPainterPathContext& path) :
     m_path(&path),
     m_lpx(0),
     m_lpy(0),

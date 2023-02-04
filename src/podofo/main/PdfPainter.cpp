@@ -22,21 +22,6 @@ constexpr unsigned BEZIER_POINTS = 13;
 // 4/3 * (1-cos 45<-,A0<-(B)/sin 45<-,A0<-(B = 4/3 * sqrt(2) - 1
 constexpr double ARC_MAGIC = 0.552284749;
 
-static void addLine(PdfStringStream& stream, double x, double y);
-static void addCubicBezier(PdfStringStream& stream, double x1, double y1, double x2, double y2, double x3, double y3);
-static void beginPath(PdfStringStream& stream, double x, double y);
-static void closePath(PdfStringStream& stream);
-static void addArc(PdfStringStream& stream, double x, double y, double radius, double angle1, double angle2);
-static void addArcTo(PdfStringStream& stream, double x1, double y1, double x2, double y2, double radius);
-static void addCircleTo(PdfStringStream& stream, double x, double y, double radius);
-static void addEllipseTo(PdfStringStream& stream, double x, double y, double width, double height);
-static void addRectangleTo(PdfStringStream& stream, double x, double y, double width, double height, double roundX, double roundY);
-
-static void drawPath(PdfStringStream& stream, PdfPathDrawMode mode);
-static void stroke(PdfStringStream& stream);
-static void fill(PdfStringStream& stream, bool useEvenOddRule);
-static void strokeAndFill(PdfStringStream& stream, bool useEvenOddRule);
-
 static void convertRectToBezier(double x, double y, double width, double height, double pointsX[], double pointsY[]);
 static string expandTabs(const string_view& str, unsigned tabWidth, unsigned tabCount);
 
@@ -57,11 +42,14 @@ inline bool IsSpaceChar(char32_t ch)
 
 PdfPainter::PdfPainter(PdfPainterFlags flags) :
     m_flags(flags),
-    m_painterStatus(PainterStatus::Default),
+    m_painterStatus(StatusDefault),
+    m_textStackCount(0),
+    GraphicsState(*this, m_StateStack.Current->GraphicsState),
+    TextState(*this, m_StateStack.Current->TextState),
+    Path(*this),
+    Text(*this),
     m_objStream(nullptr),
     m_canvas(nullptr),
-    m_GraphicsState(*this, m_StateStack.Current->GraphicsState),
-    m_TextState(*this, m_StateStack.Current->TextState),
     m_TabWidth(4)
 {
 }
@@ -93,22 +81,18 @@ void PdfPainter::SetCanvas(PdfCanvas& canvas)
 
 void PdfPainter::FinishDrawing()
 {
-    try
-    {
-        finishDrawing();
-    }
-    catch (PdfError& e)
-    {
-        // clean up, even in case of error
-        reset();
-        throw e;
-    }
-
+    finishDrawing();
     reset();
 }
 
 void PdfPainter::finishDrawing()
 {
+    if (m_subPaths.size() != 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "{} paths are unbalanced. Call painter.Path.End()", m_subPaths.size());
+
+    if (m_textStackCount != 0)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "{} text objects are unbalanced. Call painter.Text.End()", m_textStackCount);
+
     if (m_objStream != nullptr)
     {
         PdfObjectOutputStream output;
@@ -164,7 +148,7 @@ void PdfPainter::reset()
 {
     m_StateStack.Clear();
     m_stream.Clear();
-    m_painterStatus = PainterStatus::Default;
+    m_painterStatus = StatusDefault;
     m_objStream = nullptr;
     m_canvas = nullptr;
 }
@@ -172,7 +156,7 @@ void PdfPainter::reset()
 void PdfPainter::SetStrokingShadingPattern(const PdfShadingPattern& pattern)
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
+    checkStatus(StatusDefault);
     this->addToPageResources("Pattern", pattern.GetIdentifier(), pattern.GetObject());
     m_stream << "/Pattern CS /" << pattern.GetIdentifier().GetString() << " SCN" << endl;
 }
@@ -180,7 +164,7 @@ void PdfPainter::SetStrokingShadingPattern(const PdfShadingPattern& pattern)
 void PdfPainter::SetShadingPattern(const PdfShadingPattern& pattern)
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
+    checkStatus(StatusDefault);
     this->addToPageResources("Pattern", pattern.GetIdentifier(), pattern.GetObject());
     m_stream << "/Pattern cs /" << pattern.GetIdentifier().GetString() << " scn" << endl;
 }
@@ -188,7 +172,7 @@ void PdfPainter::SetShadingPattern(const PdfShadingPattern& pattern)
 void PdfPainter::SetStrokingTilingPattern(const PdfTilingPattern& pattern)
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
+    checkStatus(StatusDefault);
     this->addToPageResources("Pattern", pattern.GetIdentifier(), pattern.GetObject());
     m_stream << "/Pattern CS /" << pattern.GetIdentifier().GetString() << " SCN" << endl;
 }
@@ -196,14 +180,14 @@ void PdfPainter::SetStrokingTilingPattern(const PdfTilingPattern& pattern)
 void PdfPainter::SetStrokingTilingPattern(const string_view& patternName)
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
+    checkStatus(StatusDefault);
     m_stream << "/Pattern CS /" << patternName << " SCN" << endl;
 }
 
 void PdfPainter::SetTilingPattern(const PdfTilingPattern& pattern)
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
+    checkStatus(StatusDefault);
     this->addToPageResources("Pattern", pattern.GetIdentifier(), pattern.GetObject());
     m_stream << "/Pattern cs /" << pattern.GetIdentifier().GetString() << " scn" << endl;
 }
@@ -211,7 +195,7 @@ void PdfPainter::SetTilingPattern(const PdfTilingPattern& pattern)
 void PdfPainter::SetTilingPattern(const string_view& patternName)
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
+    checkStatus(StatusDefault);
     m_stream << "/Pattern cs /" << patternName << " scn" << endl;
 }
 
@@ -219,7 +203,7 @@ void PdfPainter::SetStrokeStyle(PdfStrokeStyle strokeStyle, const string_view& c
 {
     bool have = false;
     checkStream();
-    checkStatus(PainterStatus::Default);
+    checkStatus(StatusDefault);
 
     if (strokeStyle != PdfStrokeStyle::Custom)
         m_stream << "[";
@@ -345,7 +329,7 @@ void PdfPainter::SetClipRect(const PdfRect& rect)
 void PdfPainter::SetClipRect(double x, double y, double width, double height)
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
+    checkStatus(StatusDefault);
     m_stream    << x     << " "  << y      << " "
                 << width << " "  << height << " re W n" << endl;
 }
@@ -353,69 +337,67 @@ void PdfPainter::SetClipRect(double x, double y, double width, double height)
 void PdfPainter::DrawLine(double x1, double y1, double x2, double y2)
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
-    beginPath(m_stream, x1, y1);
-    addLine(m_stream, x2, y2);
-    closePath(m_stream);
-    stroke(m_stream);
+    checkStatus(StatusDefault);
+    pathMoveTo(x1, y1);
+    addLineTo(x2, y2);
+    stroke();
 }
 
-void PdfPainter::DrawBezier(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
+void PdfPainter::DrawCubicBezier(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
-    beginPath(m_stream, x1, y1);
-    addCubicBezier(m_stream, x2, y2, x3, y3, x4, y4);
-    closePath(m_stream);
-    stroke(m_stream);
+    checkStatus(StatusDefault);
+    pathMoveTo(x1, y1);
+    addCubicBezierTo(x2, y2, x3, y3, x4, y4);
+    stroke();
 }
 
 void PdfPainter::DrawArc(double x, double y, double radius, double angle1, double angle2)
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
-    addArc(m_stream, x, y, radius, angle1, angle2);
-    stroke(m_stream);
+    checkStatus(StatusDefault);
+    addArc(x, y, radius, angle1, angle2);
+    stroke();
 }
 
 void PdfPainter::DrawCircle(double x, double y, double radius, PdfPathDrawMode mode)
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
-    addCircleTo(m_stream, x, y, radius);
-    drawPath(m_stream, mode);
+    checkStatus(StatusDefault);
+    addCircle(x, y, radius);
+    drawPath(mode);
 }
 
 void PdfPainter::DrawEllipse(double x, double y, double width, double height, PdfPathDrawMode mode)
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
-    addEllipseTo(m_stream, x, y, width, height);
-    drawPath(m_stream, mode);
+    checkStatus(StatusDefault);
+    addEllipse(x, y, width, height);
+    drawPath(mode);
 }
 
 void PdfPainter::DrawRectangle(double x, double y, double width, double height, PdfPathDrawMode mode, double roundX, double roundY)
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
-    addRectangleTo(m_stream, x, y, width, height, roundX, roundY);
-    drawPath(m_stream, mode);
+    checkStatus(StatusDefault);
+    addRectangle(x, y, width, height, roundX, roundY);
+    drawPath(mode);
 }
 
 void PdfPainter::DrawRectangle(const PdfRect& rect, PdfPathDrawMode mode, double roundX, double roundY)
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
-    addRectangleTo(m_stream, rect.GetLeft(), rect.GetBottom(),
+    checkStatus(StatusDefault);
+    addRectangle(rect.GetLeft(), rect.GetBottom(),
         rect.GetWidth(), rect.GetHeight(), roundX, roundY);
-    drawPath(m_stream, mode);
+    drawPath(mode);
 }
 
 void PdfPainter::DrawText(const string_view& str, double x, double y,
     PdfDrawTextStyle style)
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
+    checkStatus(StatusDefault);
     checkFont();
 
     m_stream << "BT" << endl;
@@ -465,45 +447,6 @@ void PdfPainter::drawText(const string_view& str, double x, double y, bool isUnd
     m_stream << " Tj" << endl;
 }
 
-void PdfPainter::BeginText(double x, double y)
-{
-    checkStream();
-    checkStatus(PainterStatus::Default | PainterStatus::TextObject);
-
-    m_stream << "BT" << endl;
-    m_stream << x << " " << y << " Td" << endl;
-    openTextObject();
-}
-
-void PdfPainter::MoveTextTo(double x, double y)
-{
-    checkStream();
-    checkStatus(PainterStatus::TextObject);
-
-    m_stream << x << " " << y << " Td" << endl;
-}
-
-void PdfPainter::AddText(const string_view& str)
-{
-    checkStream();
-    checkStatus(PainterStatus::TextObject);
-    checkFont();
-
-    auto expStr = this->expandTabs(str);
-
-    m_StateStack.Current->TextState.Font->WriteStringToStream(m_stream, expStr);
-    m_stream << " Tj" << endl;
-}
-
-void PdfPainter::EndText()
-{
-    checkStream();
-    checkStatus(PainterStatus::TextObject);
-
-    m_stream << "ET" << endl;
-    closeTextObject();
-}
-
 void PdfPainter::DrawTextMultiLine(const string_view& str, const PdfRect& rect,
     const PdfDrawTextMultiLineParams& params)
 {
@@ -515,7 +458,7 @@ void PdfPainter::DrawTextMultiLine(const string_view& str, double x, double y, d
     const PdfDrawTextMultiLineParams& params)
 {
     checkStream();
-    checkStatus(PainterStatus::Default | PainterStatus::TextObject);
+    checkStatus(StatusDefault | StatusText);
     checkFont();
 
     if (width <= 0.0 || height <= 0.0) // nonsense arguments
@@ -536,7 +479,7 @@ void PdfPainter::DrawTextAligned(const string_view& str, double x, double y, dou
         return;
 
     checkStream();
-    checkStatus(PainterStatus::Default | PainterStatus::TextObject);
+    checkStatus(StatusDefault | StatusText);
     checkFont();
 
     m_stream << "BT" << endl;
@@ -796,7 +739,7 @@ void PdfPainter::DrawImage(const PdfImage& obj, double x, double y, double scale
 void PdfPainter::DrawXObject(const PdfXObject& obj, double x, double y, double scaleX, double scaleY)
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
+    checkStatus(StatusDefault);
 
     // use OriginalReference() as the XObject might have been written to disk
     // already and is not in memory anymore in this case.
@@ -807,18 +750,10 @@ void PdfPainter::DrawXObject(const PdfXObject& obj, double x, double y, double s
         << "/" << obj.GetIdentifier().GetString() << " Do" << endl << "Q" << endl;
 }
 
-PdfPainterPath PdfPainter::BeginPath(double x, double y)
-{
-    checkStream();
-    checkStatus(PainterStatus::Default);
-    beginPath(m_stream, x, y);
-    return PdfPainterPath(*this);
-}
-
 void PdfPainter::Save()
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
+    checkStatus(StatusDefault);
     save();
 }
 
@@ -827,14 +762,14 @@ void PdfPainter::save()
     m_stream << "q" << endl;
     m_StateStack.Push();
     auto& current = *m_StateStack.Current;
-    m_GraphicsState.SetState(current.GraphicsState);
-    m_TextState.SetState(current.TextState);
+    GraphicsState.SetState(current.GraphicsState);
+    TextState.SetState(current.TextState);
 }
 
 void PdfPainter::Restore()
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
+    checkStatus(StatusDefault);
 
     if (m_StateStack.GetSize() == 1)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Can't restore the state when only default state is opened");
@@ -847,14 +782,14 @@ void PdfPainter::restore()
     m_stream << "Q" << endl;
     m_StateStack.Pop();
     auto& current = *m_StateStack.Current;
-    m_GraphicsState.SetState(current.GraphicsState);
-    m_TextState.SetState(current.TextState);
+    GraphicsState.SetState(current.GraphicsState);
+    TextState.SetState(current.TextState);
 }
 
 void PdfPainter::SetExtGState(const PdfExtGState& inGState)
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
+    checkStatus(StatusDefault);
     this->addToPageResources("ExtGState", inGState.GetIdentifier(), inGState.GetObject());
     m_stream << "/" << inGState.GetIdentifier().GetString() << " gs" << endl;
 }
@@ -862,20 +797,20 @@ void PdfPainter::SetExtGState(const PdfExtGState& inGState)
 // TODO: Validate when marked context can be put
 void PdfPainter::BeginMarkedContext(const string_view& tag)
 {
-    checkStatus(PainterStatus::Default);
+    checkStatus(StatusDefault);
     m_stream << '/' << tag << " BMC" << endl;
 }
 
 void PdfPainter::EndMarkedContext()
 {
-    checkStatus(PainterStatus::Default);
+    checkStatus(StatusDefault);
     m_stream << "EMC" << endl;
 }
 
 void PdfPainter::SetTransformationMatrix(const Matrix& matrix)
 {
     checkStream();
-    checkStatus(PainterStatus::Default);
+    checkStatus(StatusDefault);
     m_stream
         << matrix[0] << " "
         << matrix[1] << " "
@@ -883,7 +818,6 @@ void PdfPainter::SetTransformationMatrix(const Matrix& matrix)
         << matrix[3] << " "
         << matrix[4] << " "
         << matrix[5] << " cm" << endl;
-    m_StateStack.Current->CTM = matrix;
 }
 
 void PdfPainter::SetPrecision(unsigned short precision)
@@ -894,6 +828,82 @@ void PdfPainter::SetPrecision(unsigned short precision)
 unsigned short PdfPainter::GetPrecision() const
 {
     return static_cast<unsigned char>(m_stream.GetPrecision());
+}
+
+void PdfPainter::BeginPath(double x, double y)
+{
+    checkStream();
+    checkStatus(StatusDefault | StatusPath);
+    pathMoveTo(x, y);
+    m_subPaths.push_back(Vector2(x, y));
+    m_painterStatus = StatusPath;
+}
+
+void PdfPainter::ClosePath()
+{
+    checkStream();
+    checkStatus(StatusPath);
+    closePath();
+}
+
+void PdfPainter::closePath()
+{
+    m_stream << "h" << endl;
+    // TODO: should update last point with last point in 'x y m' call
+    // or something similar, needs testing
+}
+
+void PdfPainter::EndPath()
+{
+    checkStream();
+    checkStatus(StatusPath);
+    m_stream << "n" << endl;
+    endPath();
+}
+
+void PdfPainter::endPath()
+{
+    PODOFO_INVARIANT(m_subPaths.size() != 0);
+    m_subPaths.clear();
+    m_painterStatus = StatusDefault;
+}
+
+void PdfPainter::BeginText()
+{
+    checkStream();
+    checkStatus(StatusDefault | StatusText);
+    m_stream << "BT" << endl;
+    m_textStackCount++;
+    m_painterStatus = StatusText;
+    writeTextState();
+}
+
+void PdfPainter::TextMoveTo(double x, double y)
+{
+    checkStream();
+    checkStatus(StatusText);
+    m_stream << x << " " << y << " Td" << endl;
+}
+
+void PdfPainter::AddText(const string_view& str)
+{
+    checkStream();
+    checkStatus(StatusText);
+    checkFont();
+    auto expStr = this->expandTabs(str);
+    m_StateStack.Current->TextState.Font->WriteStringToStream(m_stream, expStr);
+    m_stream << " Tj" << endl;
+}
+
+void PdfPainter::EndText()
+{
+    checkStream();
+    checkStatus(StatusText);
+    m_stream << "ET" << endl;
+    PODOFO_ASSERT(m_textStackCount != 0);
+    m_textStackCount--;
+    if (m_textStackCount == 0)
+        m_painterStatus = StatusDefault;
 }
 
 void PdfPainter::SetLineWidth(double value)
@@ -1040,65 +1050,95 @@ void PdfPainter::SetFont(const PdfFont* font, double fontSize)
     if (font == nullptr)
         return;
 
+    checkStream();
     this->addToPageResources("Font", font->GetIdentifier(), font->GetObject());
-    if (m_painterStatus == PainterStatus::TextObject)
+    if (m_painterStatus == StatusText)
         setFont(font, fontSize);
 }
 
 void PdfPainter::setFont(const PdfFont* font, double fontSize)
 {
-    checkStream();
+    auto& textState = m_StateStack.Current->EmittedTextState;
+    if (textState.Font == font
+        && textState.FontSize == fontSize)
+    {
+        return;
+    }
+
     m_stream << "/" << font->GetIdentifier().GetString()
         << " " << fontSize
         << " Tf" << endl;
+
+    textState.Font = font;
+    textState.FontSize = fontSize;
 }
 
 void PdfPainter::SetFontScale(double value)
 {
-    if (m_painterStatus == PainterStatus::TextObject)
+    checkStream();
+    if (m_painterStatus == StatusText)
         setFontScale(value);
 }
 
 void PdfPainter::setFontScale(double value)
 {
-    checkStream();
+    auto& textState = m_StateStack.Current->EmittedTextState;
+    if (textState.FontScale == value)
+        return;
+
     m_stream << value * 100 << " Tz" << endl;
+    textState.FontScale = value;
 }
 
 void PdfPainter::SetCharSpacing(double value)
 {
-    if (m_painterStatus == PainterStatus::TextObject)
+    checkStream();
+    if (m_painterStatus == StatusText)
         setCharSpacing(value);
 }
 
 void PdfPainter::setCharSpacing(double value)
 {
-    checkStream();
+    auto& textState = m_StateStack.Current->EmittedTextState;
+    if (textState.CharSpacing == value)
+        return;
+
     m_stream << value << " Tc" << endl;
+    textState.CharSpacing = value;
 }
 
 void PdfPainter::SetWordSpacing(double value)
 {
-    if (m_painterStatus == PainterStatus::TextObject)
+    checkStream();
+    if (m_painterStatus == StatusText)
         setWordSpacing(value);
 }
 
 void PdfPainter::setWordSpacing(double value)
 {
-    checkStream();
+    auto& textState = m_StateStack.Current->EmittedTextState;
+    if (textState.WordSpacing == value)
+        return;
+
     m_stream << value << " Tw" << endl;
+    textState.WordSpacing = value;
 }
 
 void PdfPainter::SetTextRenderingMode(PdfTextRenderingMode value)
 {
-    if (m_painterStatus == PainterStatus::TextObject)
+    checkStream();
+    if (m_painterStatus == StatusText)
         setTextRenderingMode(value);
 }
 
 void PdfPainter::setTextRenderingMode(PdfTextRenderingMode value)
 {
-    checkStream();
+    auto& textState = m_StateStack.Current->EmittedTextState;
+    if (textState.RenderingMode == value)
+        return;
+
     m_stream << (int)value << " Tr" << endl;
+    textState.RenderingMode = value;
 }
 
 void PdfPainter::writeTextState()
@@ -1169,158 +1209,113 @@ void PdfPainter::checkStatus(int expectedStatus)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unsupported operation at this time");
 }
 
-void PdfPainter::openTextObject()
-{
-    m_StateStack.Current->TextObjectCount++;
-    m_painterStatus = PainterStatus::TextObject;
-}
-
-void PdfPainter::closeTextObject()
-{
-    auto& current = *m_StateStack.Current;
-    PODOFO_ASSERT(current.TextObjectCount != 0);
-    current.TextObjectCount--;
-    if (current.TextObjectCount == 0)
-        m_painterStatus = PainterStatus::Default;
-}
-
-PdfPainterPath::PdfPainterPath() :
-    m_painter(nullptr),
-    m_stream(nullptr),
-    m_closed(true),
-    m_DrawMode(PdfPathDrawMode::Fill)
+PdfPainterPathContext::PdfPainterPathContext(PdfPainter& painter) :
+    m_painter(&painter)
 {
 }
 
-PdfPainterPath::PdfPainterPath(PdfPainter& painter) :
-    m_painter(&painter),
-    m_stream(&painter.m_stream),
-    m_closed(false),
-    m_DrawMode(PdfPathDrawMode::Fill)
+void PdfPainterPathContext::Begin(double x, double y)
 {
-    m_painter->m_painterStatus = PdfPainter::PainterStatus::Path;
+    m_painter->BeginPath(x, y);
 }
 
-PdfPainterPath::PdfPainterPath(PdfPainterPath&& path) noexcept :
-    m_painter(path.m_painter),
-    m_stream(path.m_stream),
-    m_closed(path.m_closed),
-    m_DrawMode(path.m_DrawMode)
+void PdfPainterPathContext::AddLineTo(double x, double y)
 {
-    path.m_painter = nullptr;
-    path.m_stream = nullptr;
-    path.m_closed = true;
-    path.m_DrawMode = PdfPathDrawMode::Fill;
+    m_painter->AddLineTo(x, y);
 }
 
-PdfPainterPath::~PdfPainterPath()
+void PdfPainterPathContext::AddLine(double x1, double y1, double x2, double y2)
 {
-    if (!m_closed)
-        drawPath(*m_stream, m_DrawMode);
-
-    m_painter->m_painterStatus = PdfPainter::PainterStatus::Default;
+    m_painter->BeginPath(x1, y1);
+    m_painter->addLineTo(x2, y2);
 }
 
-void PdfPainterPath::AddLineTo(double x, double y)
+void PdfPainterPathContext::AddCubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3)
 {
-    checkClosed();
-    addLine(*m_stream, x, y);
+    m_painter->AddCubicBezierTo(x1, y1, x2, y2, x3, y3);
 }
 
-void PdfPainterPath::AddLine(double x1, double y1, double x2, double y2)
+void PdfPainterPathContext::AddCubicBezier(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
 {
-    checkClosed();
-    beginPath(*m_stream, x1, y1);
-    addLine(*m_stream, x2, y2);
-    closePath(*m_stream);
+    m_painter->BeginPath(x1, y1);
+    m_painter->addCubicBezierTo(x2, y2, x3, y3, x4, y4);
 }
 
-void PdfPainterPath::AddCubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3)
+void PdfPainterPathContext::AddCircle(double x, double y, double radius)
 {
-    checkClosed();
-    addCubicBezier(*m_stream, x1, y1, x2, y2, x3, y3);
+    m_painter->AddCircle(x, y, radius);
 }
 
-void PdfPainterPath::AddCubicBezier(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
+void PdfPainterPathContext::AddRectangle(const PdfRect& rect, double roundX, double roundY)
 {
-    checkClosed();
-    beginPath(*m_stream, x1, y1);
-    addCubicBezier(*m_stream, x2, y2, x3, y3, x4, y4);
-    closePath(*m_stream);
-}
-
-void PdfPainterPath::AddCircle(double x, double y, double radius)
-{
-    checkClosed();
-    addCircleTo(*m_stream, x, y, radius);
-}
-
-void PdfPainterPath::Clip(bool useEvenOddRule)
-{
-    checkClosed();
-    if (useEvenOddRule)
-        *m_stream << "W* n" << endl;
-    else
-        *m_stream << "W n" << endl;
-}
-
-void PdfPainterPath::AddRectangle(const PdfRect& rect, double roundX, double roundY)
-{
-    checkClosed();
-    addRectangleTo(*m_stream, rect.GetLeft(), rect.GetBottom(),
+    m_painter->AddRectangle(rect.GetLeft(), rect.GetBottom(),
         rect.GetWidth(), rect.GetHeight(), roundX, roundY);
 }
 
-void PdfPainterPath::AddRectangle(double x, double y, double width, double height,
+void PdfPainterPathContext::AddRectangle(double x, double y, double width, double height,
     double roundX, double roundY)
 {
-    checkClosed();
-    addRectangleTo(*m_stream, x, y, width, height, roundX, roundY);
+    m_painter->AddRectangle(x, y, width, height, roundX, roundY);
 }
 
-void PdfPainterPath::AddEllipse(double x, double y, double width, double height)
+void PdfPainterPathContext::AddEllipse(double x, double y, double width, double height)
 {
-    checkClosed();
-    addEllipseTo(*m_stream, x, y, width, height);
+    m_painter->AddEllipse(x, y, width, height);
 }
 
-void PdfPainterPath::AddArc(double x, double y, double radius, double angle1, double angle2)
+void PdfPainterPathContext::AddArc(double x, double y, double radius, double angle1, double angle2)
 {
-    checkClosed();
-    addArc(*m_stream, x, y, radius, angle1, angle2);
+    m_painter->AddArc(x, y, radius, angle1, angle2);
 }
 
-void PdfPainterPath::AddArcTo(double x1, double y1, double x2, double y2, double radius)
+void PdfPainterPathContext::AddArcTo(double x1, double y1, double x2, double y2, double radius)
 {
-    checkClosed();
-    addArcTo(*m_stream, x1, y1, x2, y2, radius);
+    m_painter->AddArcTo(x1, y1, x2, y2, radius);
 }
 
-void PdfPainterPath::Discard()
+void PdfPainterPathContext::Discard()
 {
-    checkClosed();
-    closePath(*m_stream);
-    *m_stream << "n" << endl;
-    m_closed = true;
+    m_painter->EndPath();
 }
 
-PdfPainterPath& PdfPainterPath::operator=(PdfPainterPath&& path) noexcept
+void PdfPainterPathContext::Close()
 {
-    m_painter = path.m_painter;
-    m_stream = path.m_stream;
-    m_closed = path.m_closed;
-    m_DrawMode = path.m_DrawMode;
-    path.m_painter = nullptr;
-    path.m_stream = nullptr;
-    path.m_closed = true;
-    path.m_DrawMode = PdfPathDrawMode::Fill;
-    return *this;
+    m_painter->ClosePath();
 }
 
-void PdfPainterPath::checkClosed()
+void PdfPainterPathContext::Draw(PdfPathDrawMode drawMode)
 {
-    if (m_closed)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The path is closed");
+    m_painter->DrawPath(drawMode);
+}
+
+void PdfPainterPathContext::Clip(bool useEvenOddRule)
+{
+    m_painter->Clip(useEvenOddRule);
+}
+
+PdfPainterTextContext::PdfPainterTextContext(PdfPainter& painter)
+    : m_painter(&painter)
+{
+}
+
+void PdfPainterTextContext::Begin()
+{
+    m_painter->BeginText();
+}
+
+void PdfPainterTextContext::MoveTo(double x, double y)
+{
+    m_painter->TextMoveTo(x, y);
+}
+
+void PdfPainterTextContext::AddText(const string_view& str)
+{
+    m_painter->AddText(str);
+}
+
+void PdfPainterTextContext::End()
+{
+    m_painter->EndText();
 }
 
 PdfGraphicsStateWrapper::PdfGraphicsStateWrapper(PdfPainter& painter, PdfGraphicsState& state)
@@ -1447,88 +1442,197 @@ void PdfTextStateWrapper::SetRenderingMode(PdfTextRenderingMode mode)
     m_painter->SetTextRenderingMode(m_state->RenderingMode);
 }
 
-void addLine(PdfStringStream& stream, double x, double y)
+void PdfPainter::AddLineTo(double x, double y)
 {
-    stream << x << " " << y << " l" << endl;
+    checkStream();
+    checkStatus(StatusPath);
+    addLineTo(x, y);
 }
 
-void addCubicBezier(PdfStringStream& stream, double x1, double y1, double x2, double y2, double x3, double y3)
+void PdfPainter::addLineTo(double x, double y)
 {
-    stream  << x1 << " " << y1 << " "
-            << x2 << " " << y2 << " "
-            << x3 << " " << y3 << " c" << endl;
+    m_stream << x << " " << y << " l" << endl;
+    m_StateStack.Current->CurrentPoint = Vector2(x, y);
 }
 
-void beginPath(PdfStringStream& stream, double x, double y)
+void PdfPainter::AddCubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3)
 {
-    stream << x << " " << y << " m" << endl;
+    checkStream();
+    checkStatus(StatusPath);
+    addCubicBezierTo(x1, y1, x2, y2, x3, y3);
 }
 
-void closePath(PdfStringStream& stream)
+void PdfPainter::addCubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3)
 {
-    stream << "h" << endl;
+    m_stream << x1 << " " << y1 << " "
+             << x2 << " " << y2 << " "
+             << x3 << " " << y3 << " c" << endl;
+    m_StateStack.Current->CurrentPoint = Vector2(x3, y3);
 }
 
-void addArc(PdfStringStream& stream, double x, double y, double radius, double angle1, double angle2)
+void PdfPainter::PathMoveTo(double x, double y)
 {
-    // Calculate the start and end points of the arc
-    double startX = x + radius * std::cos(angle1);
-    double startY = y + radius * std::sin(angle2);
-    double endX = x + radius * std::cos(angle2);
-    double endY = y + radius * std::sin(angle2);
-    addArcTo(stream, startX, startY, endX, endY, radius);
+    checkStream();
+    checkStatus(StatusPath);
+    pathMoveTo(x, y);
 }
 
-void addArcTo(PdfStringStream& stream, double x1, double y1, double x2, double y2, double radius)
+void PdfPainter::pathMoveTo(double x, double y)
 {
-    (void)stream;
-    (void)x1;
-    (void)y1;
-    (void)x2;
-    (void)y2;
+    m_stream << x << " " << y << " m" << endl;
+    m_StateStack.Current->CurrentPoint = Vector2(x, y);
+}
+
+void PdfPainter::AddArcTo(double x1, double y1, double x2, double y2, double r)
+{
+    checkStream();
+    checkStatus(StatusPath);
+    addArcTo(x1, y1, x2, y2, r);
+}
+
+void PdfPainter::addArcTo(double x1, double y1, double x2, double y2, double r)
+{
+    double x0 = m_StateStack.Current->CurrentPoint.X;
+    double y0 = m_StateStack.Current->CurrentPoint.Y;
+
+    // https://math.stackexchange.com/questions/191942/find-arc-center-from-tangent-lines-and-rounding-value
+
+    double x1_0 = x0 - x1;
+    double y1_0 = y0 - y1;
+    double x1_2 = x2 - x1;
+    double y1_2 = y2 - y1;
+
+    double norm1 = std::sqrt(x1_0 * x1_0 + y1_0 * y1_0);
+    double norm2 = std::sqrt(x1_2 * x1_2 + y1_2 * y1_2);
+
+    // Compute the tagent points
+    double x1t = x1 + x1_0 / norm1 * r;
+    double y1t = y1 + y1_0 / norm1 * r;
+    double x2t = x1 + x1_2 / norm2 * r;
+    double y2t = y1 + y1_2 / norm2 * r;
+
+    // Compute a two-point form -(y2–y1)*(x-x1) + (x2-x1)*(y-y1) = 0 and then find the normal
+    // https://math.stackexchange.com/a/1801955/12907
+
+    // Compute the coefficientes of a line passing through (x1t, y1t) and perpendicular to the arc tangent
+    double a0 = -y1_0;
+    double b0 = x1_0;
+
+    double a0t = b0;
+    double b0t = -a0;
+    double c0t = a0 * y1t - b0 * x1t;
+
+    // Compute the coefficientes of a line passing through (x2t, y2t) and perpendicular to the arc tangent
+    double a2 = -y1_2;
+    double b2 = x1_2;
+
+    double a2t = b2;
+    double b2t = -a2;
+    double c2t = a2 * y2t - b2 * x2t;
+
+    // Compute the center of the arc
+    // https://www.cuemath.com/geometry/intersection-of-two-lines/
+    double xc = (b0t * c2t - b2t * c0t) / (a0t * b2t - a2t * b0t);
+    double yc = (c0t * a2t - c2t * a0t) / (a0t * b2t - a2t * b0t);
+
+    double ax = x1t - xc;
+    double ay = y1t - yc;
+    double bx = x2t - xc;
+    double by = y2t - yc;
+    double q1 = ax * ax + ay * ay;
+    double q2 = q1 + ax * bx + ay * by;
+    double k2 = (4 / 3.) * (sqrt(2 * q1 * q2) - q2) / (ax * by - ay * bx);
+
+    double c1x = xc + ax - k2 * ay;
+    double c1y = yc + ay + k2 * ax;
+    double c2x = xc + bx + k2 * by;
+    double c2y = yc + by - k2 * bx;
+
+    // Draw the advancement to the first tangent point
+    addLineTo(x1t, y1t);
+    // Draw the bezier curve
+    addCubicBezierTo(c1x, c1y, c2x, c2y, x2t, y2t);
+
+    // According to testing of HTML5 canvas, it's not
+    // needed to continue the line to the point (x2, y2)
+    m_StateStack.Current->CurrentPoint = Vector2(x2t, y2t);
+}
+
+void PdfPainter::AddArc(double x, double y, double radius, double angle1, double angle2)
+{
+    checkStream();
+    checkStatus(StatusPath);
+    addArc(x, y, radius, angle1, angle2);
+}
+
+void PdfPainter::addArc(double x, double y, double radius, double angle1, double angle2)
+{
+    (void)x;
+    (void)y;
     (void)radius;
-    beginPath(stream, x1 + radius, y1);
-    // ...
-    closePath(stream);
+    (void)angle1;
+    (void)angle2;
+    pathMoveTo(x, y);
     PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
-void addCircleTo(PdfStringStream& stream, double x, double y, double radius)
+void PdfPainter::AddCircle(double x, double y, double radius)
 {
-    // draw four Bezier curves to approximate a circle
-    beginPath(stream, x + radius, y);
-    addCubicBezier(stream, x + radius, y + radius * ARC_MAGIC,
-        x + radius * ARC_MAGIC, y + radius,
-        x, y + radius);
-    addCubicBezier(stream, x - radius * ARC_MAGIC, y + radius,
-        x - radius, y + radius * ARC_MAGIC,
-        x - radius, y);
-    addCubicBezier(stream, x - radius, y - radius * ARC_MAGIC,
-        x - radius * ARC_MAGIC, y - radius,
-        x, y - radius);
-    addCubicBezier(stream, x + radius * ARC_MAGIC, y - radius,
-        x + radius, y - radius * ARC_MAGIC,
-        x + radius, y);
-    closePath(stream);
+    checkStream();
+    checkStatus(StatusPath);
+    addCircle(x, y, radius);
 }
 
-void addEllipseTo(PdfStringStream& stream, double x, double y, double width, double height)
+void PdfPainter::addCircle(double x, double y, double radius)
+{
+    // draw four Bezier curves to approximate a circle
+    pathMoveTo(x + radius, y);
+    addCubicBezierTo(x + radius, y + radius * ARC_MAGIC,
+        x + radius * ARC_MAGIC, y + radius,
+        x, y + radius);
+    addCubicBezierTo(x - radius * ARC_MAGIC, y + radius,
+        x - radius, y + radius * ARC_MAGIC,
+        x - radius, y);
+    addCubicBezierTo(x - radius, y - radius * ARC_MAGIC,
+        x - radius * ARC_MAGIC, y - radius,
+        x, y - radius);
+    addCubicBezierTo(x + radius * ARC_MAGIC, y - radius,
+        x + radius, y - radius * ARC_MAGIC,
+        x + radius, y);
+    closePath();
+}
+
+void PdfPainter::AddEllipse(double x, double y, double width, double height)
+{
+    checkStream();
+    checkStatus(StatusPath);
+    addEllipse(x, y, width, height);
+}
+
+void PdfPainter::addEllipse(double x, double y, double width, double height)
 {
     double pointsX[BEZIER_POINTS];
     double pointsY[BEZIER_POINTS];
     convertRectToBezier(x, y, width, height, pointsX, pointsY);
 
-    beginPath(stream, x, y);
+    pathMoveTo(x, y);
     for (unsigned i = 1; i < BEZIER_POINTS; i += 3)
     {
-        stream  << pointsX[i]     << " " << pointsY[i]     << " "
-                << pointsX[i + 1] << " " << pointsY[i + 1] << " "
-                << pointsX[i + 2] << " " << pointsY[i + 2] << " c" << endl;
+        m_stream << pointsX[i]     << " " << pointsY[i]     << " "
+                 << pointsX[i + 1] << " " << pointsY[i + 1] << " "
+                 << pointsX[i + 2] << " " << pointsY[i + 2] << " c" << endl;
     }
-    closePath(stream);
+    closePath();
 }
 
-void addRectangleTo(PdfStringStream& stream, double x, double y, double width, double height, double roundX, double roundY)
+void PdfPainter::AddRectangle(double x, double y, double width, double height, double roundX, double roundY)
+{
+    checkStream();
+    checkStatus(StatusPath);
+    addRectangle(x, y, width, height, roundX, roundY);
+}
+
+void PdfPainter::addRectangle(double x, double y, double width, double height, double roundX, double roundY)
 {
     if (static_cast<int>(roundX) || static_cast<int>(roundY))
     {
@@ -1538,67 +1642,92 @@ void addRectangleTo(PdfStringStream& stream, double x, double y, double width, d
         double ry = roundY;
         double b = 0.4477f;
 
-        beginPath(stream, x + rx, y);
-        addLine(stream, x + w - rx, y);
-        addCubicBezier(stream, x + w - rx * b, y, x + w, y + ry * b, x + w, y + ry);
-        addLine(stream, x + w, y + h - ry);
-        addCubicBezier(stream, x + w, y + h - ry * b, x + w - rx * b, y + h, x + w - rx, y + h);
-        addLine(stream, x + rx, y + h);
-        addCubicBezier(stream, x + rx * b, y + h, x, y + h - ry * b, x, y + h - ry);
-        addLine(stream, x, y + ry);
-        addCubicBezier(stream, x, y + ry * b, x + rx * b, y, x + rx, y);
-        closePath(stream);
+        pathMoveTo(x + rx, y);
+        addLineTo(x + w - rx, y);
+        addCubicBezierTo(x + w - rx * b, y, x + w, y + ry * b, x + w, y + ry);
+        addLineTo(x + w, y + h - ry);
+        addCubicBezierTo(x + w, y + h - ry * b, x + w - rx * b, y + h, x + w - rx, y + h);
+        addLineTo(x + rx, y + h);
+        addCubicBezierTo(x + rx * b, y + h, x, y + h - ry * b, x, y + h - ry);
+        addLineTo(x, y + ry);
+        addCubicBezierTo(x, y + ry * b, x + rx * b, y, x + rx, y);
+        closePath();
     }
     else
     {
-        stream  << x     << " " << y      << " "
-                << width << " " << height << " re" << endl;
+        m_stream << x     << " " << y      << " "
+                 << width << " " << height << " re" << endl;
+        m_StateStack.Current->CurrentPoint = Vector2(x + width, y + width);
     }
 }
 
-void drawPath(PdfStringStream& stream, PdfPathDrawMode mode)
+void PdfPainter::Clip(bool useEvenOddRule)
+{
+    checkStream();
+    checkStatus(StatusPath);
+    if (useEvenOddRule)
+        m_stream << "W* n" << endl;
+    else
+        m_stream << "W n" << endl;
+    endPath();
+}
+
+void PdfPainter::DrawPath(PdfPathDrawMode mode)
+{
+    // ISO 32000-2:2020, 8.5.3.1 General "Attempting to execute
+    // a painting operator when the current path is undefined
+    // (at the beginning of a new page or immediately after a
+    // painting operator has been executed) shall generate an error"
+
+    checkStream();
+    checkStatus(StatusPath);
+    drawPath(mode);
+    endPath();
+}
+
+void PdfPainter::drawPath(PdfPathDrawMode mode)
 {
     switch (mode)
     {
         case PdfPathDrawMode::Stroke:
-            stroke(stream);
+            stroke();
             break;
         case PdfPathDrawMode::Fill:
-            fill(stream, false);
+            fill(false);
             break;
         case PdfPathDrawMode::StrokeFill:
-            strokeAndFill(stream, false);
+            strokeAndFill(false);
             break;
         case PdfPathDrawMode::FillEvenOdd:
-            fill(stream, true);
+            fill(true);
             break;
         case PdfPathDrawMode::StrokeFillEvenOdd:
-            strokeAndFill(stream, true);
+            strokeAndFill(true);
             break;
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 }
 
-void stroke(PdfStringStream& stream)
+void PdfPainter::stroke()
 {
-    stream << "S" << endl;
+    m_stream << "S" << endl;
 }
 
-void fill(PdfStringStream& stream, bool useEvenOddRule)
+void PdfPainter::fill(bool useEvenOddRule)
 {
     if (useEvenOddRule)
-        stream << "f*" << endl;
+        m_stream << "f*" << endl;
     else
-        stream << "f" << endl;
+        m_stream << "f" << endl;
 }
 
-void strokeAndFill(PdfStringStream& stream, bool useEvenOddRule)
+void PdfPainter::strokeAndFill(bool useEvenOddRule)
 {
     if (useEvenOddRule)
-        stream << "B*" << endl;
+        m_stream << "B*" << endl;
     else
-        stream << "B" << endl;
+        m_stream << "B" << endl;
 }
 
 /** Coverts a rectangle to an array of points which can be used

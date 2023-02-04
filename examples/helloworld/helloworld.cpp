@@ -78,7 +78,7 @@ void HelloWorld(const string_view& filename)
         // Set the font as default font for drawing.
         // A font has to be set before you can draw text on
         // a PdfPainter.
-        painter.GetTextState().SetFont(*font, 18);
+        painter.TextState.SetFont(*font, 18);
 
         // You could set a different color than black to draw
         // the text.

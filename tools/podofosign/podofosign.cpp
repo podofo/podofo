@@ -392,8 +392,8 @@ static void draw_annotation(PdfDocument& document,
                     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, err.c_str());
                 }
 
-                painter.GetTextState().SetFont(*font, font_size);
-                painter.GetGraphicsState().SetStrokeColor(font_color);
+                painter.TextState.SetFont(*font, font_size);
+                painter.GraphicsState.SetStrokeColor(font_color);
             }
 
             left = convert_to_pdf_units(annot_units, left);

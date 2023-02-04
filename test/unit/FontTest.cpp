@@ -53,7 +53,7 @@ TEST_CASE("TestCreateFontExtract")
         PdfPainter painter;
         painter.SetCanvas(page);
         auto& font = doc.GetFonts().GetOrCreateFont(TestUtils::GetTestInputFilePath("Fonts", "LiberationSans-Regular.ttf"));
-        painter.GetTextState().SetFont(font, 30.0);
+        painter.TextState.SetFont(font, 30.0);
         painter.DrawText("ěščř", 100, 600);
         painter.FinishDrawing();
     }

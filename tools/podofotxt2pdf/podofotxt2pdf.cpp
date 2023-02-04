@@ -45,7 +45,7 @@ void draw(const char* buffer, PdfDocument& document, const string_view& fontName
         PODOFO_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     painter.SetCanvas(*page);
-    painter.GetTextState().SetFont(*font, FONT_SIZE);
+    painter.TextState.SetFont(*font, FONT_SIZE);
 
     while (*buffer)
     {

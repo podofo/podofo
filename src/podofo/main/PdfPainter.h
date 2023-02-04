@@ -11,7 +11,7 @@
 #include "PdfCanvas.h"
 #include "PdfTextState.h"
 #include "PdfGraphicsState.h"
-#include "PdfPainterPath.h"
+#include "PdfPainterContexts.h"
 #include <podofo/common/StateStack.h>
 
 #include <podofo/staging/PdfShadingPattern.h>
@@ -54,10 +54,13 @@ class PdfPainter;
 
 struct PODOFO_API PdfPainterState final
 {
-    Matrix CTM;
+    Vector2 CurrentPoint;
     PdfGraphicsState GraphicsState;
-    PdfTextState TextState;
-    unsigned TextObjectCount = 0;
+    PdfTextState TextState;         ///< The current sematical text state
+private:
+    friend class PdfPainter;
+private:
+    PdfTextState EmittedTextState;  ///< The actually emitted text state
 };
 
 using PdfPainterStateStack = StateStack<PdfPainterState>;
@@ -178,7 +181,8 @@ class PODOFO_API PdfPainter final
 {
     friend class PdfGraphicsStateWrapper;
     friend class PdfTextStateWrapper;
-    friend class PdfPainterPath;
+    friend class PdfPainterPathContext;
+    friend class PdfPainterTextContext;
 
 public:
     /** Create a new PdfPainter object.
@@ -309,7 +313,7 @@ public:
      *  \param x4 x coordinate of the end point, which is the new current point
      *  \param y5 y coordinate of the end point, which is the new current point
      */
-    void DrawBezier(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4);
+    void DrawCubicBezier(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4);
 
     /** Stroke an arc to the given coordinate, with angles and radius
      *  \param x x coordinate of the center of the arc (left coordinate)
@@ -403,67 +407,6 @@ public:
         double width, PdfHorizontalAlignment hAlignment,
         PdfDrawTextStyle style = PdfDrawTextStyle::Regular);
 
-    /** Begin drawing multiple text strings on a page using a given font object.
-     *  You have to call SetFont before calling this function.
-     *
-     *  If you want more simpler text output and do not need
-     *  the advanced text position features of MoveTextPos
-     *  use DrawText which is easier.
-     *
-     *  \param x the x coordinate
-     *  \param y the y coordinate
-     *
-     *  \see SetFont()
-     *  \see AddText()
-     *  \see MoveTextPos()
-     *  \see EndText()
-     */
-    void BeginText(double x, double y);
-
-    /** Draw a string on a page.
-     *  You have to call BeginText before the first call of this function
-     *  and EndText after the last call.
-     *
-     *  If you want more simpler text output and do not need
-     *  the advanced text position features of MoveTextPos
-     *  use DrawText which is easier.
-     *
-     *  \param str the text string which should be printed
-     *
-     *  \see SetFont()
-     *  \see MoveTextPos()
-     *  \see EndText()
-     */
-    void AddText(const std::string_view& str);
-
-    /** Move position for text drawing on a page.
-     *  You have to call BeginText before calling this function
-     *
-     *  If you want more simpler text output and do not need
-     *  the advanced text position features of MoveTextPos
-     *  use DrawText which is easier.
-     *
-     *  \param x the x offset relative to pos of BeginText or last MoveTextPos
-     *  \param y the y offset relative to pos of BeginText or last MoveTextPos
-     *
-     *  \see BeginText()
-     *  \see AddText()
-     *  \see EndText()
-     */
-    void MoveTextTo(double x, double y);
-
-    /** End drawing multiple text strings on a page
-     *
-     *  If you want more simpler text output and do not need
-     *  the advanced text position features of MoveTextPos
-     *  use DrawText which is easier.
-     *
-     *  \see BeginText()
-     *  \see AddText()
-     *  \see MoveTextPos()
-     */
-    void EndText();
-
     /** Draw an image on the current page.
      *  \param x the x coordinate (left position of the image)
      *  \param y the y coordinate (bottom position of the image)
@@ -484,14 +427,6 @@ public:
      *  \see DrawImage
      */
     void DrawXObject(const PdfXObject& obj, double x, double y, double scaleX = 1.0, double scaleY = 1.0);
-
-    /** Begin a new path. Matches the PDF 'm' operator.
-     *  This function is useful to construct an own path
-     *  for drawing or clipping.
-     *  \param x x position
-     *  \param y y position
-     */
-    PdfPainterPath BeginPath(double x, double y);
 
     void BeginMarkedContext(const std::string_view& tag);
 
@@ -534,12 +469,6 @@ public:
 public:
     inline const PdfPainterStateStack& GetStateStack() const { return m_StateStack; }
 
-    inline const PdfTextStateWrapper& GetTextState() const { return m_TextState; }
-    inline PdfTextStateWrapper& GetTextState() { return m_TextState; }
-
-    inline const PdfGraphicsStateWrapper& GetGraphicsState() const { return m_GraphicsState; }
-    inline PdfGraphicsStateWrapper& GetGraphicsState() { return m_GraphicsState; }
-
     /** Set the tab width for the DrawText operation.
      *  Every tab '\\t' is replaced with tabWidth
      *  spaces before drawing text. Default is a value of 4
@@ -572,6 +501,28 @@ public:
     inline PdfObjectStream* GetStream() const { return m_objStream; }
 
 private:
+    // To be called by PdfPainterTextContext
+    void BeginText();
+    void TextMoveTo(double x, double y);
+    void AddText(const std::string_view& str);
+    void EndText();
+
+    // To be called by PdfPainterPathContext
+    void BeginPath(double x, double y);
+    void EndPath();
+    void DrawPath(PdfPathDrawMode mode);
+    void PathMoveTo(double x, double y);
+    void AddLineTo(double x, double y);
+    void AddCubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3);
+    void AddArcTo(double x1, double y1, double x2, double y2, double radius);
+    void AddArc(double x, double y, double radius, double angle1, double angle2);
+    void AddCircle(double x, double y, double radius);
+    void AddEllipse(double x, double y, double width, double height);
+    void AddRectangle(double x, double y, double width, double height, double roundX, double roundY);
+    void Clip(bool useEvenOddRule);
+    void ClosePath();
+
+private:
     // To be called by state wrappers
     void SetLineWidth(double value);
     void SetMiterLimit(double value);
@@ -597,13 +548,27 @@ private:
     void save();
     void restore();
     void reset();
+    void pathMoveTo(double x, double y);
+    void endPath();
+    void addLineTo(double x, double y);
+    void addCubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3);
+    void addArcTo(double x1, double y1, double x2, double y2, double radius);
+    void addArc(double x, double y, double radius, double angle1, double angle2);
+    void addCircle(double x, double y, double radius);
+    void addEllipse(double x, double y, double width, double height);
+    void addRectangle(double x, double y, double width, double height, double roundX, double roundY);
+    void closePath();
+    void drawPath(PdfPathDrawMode mode);
+    void stroke();
+    void fill(bool useEvenOddRule);
+    void strokeAndFill(bool useEvenOddRule);
 
 private:
     enum PainterStatus
     {
-        Default = 1,
-        TextObject = 2,
-        Path = 4,
+        StatusDefault = 1,
+        StatusText = 2,
+        StatusPath = 4,
     };
 
 private:
@@ -650,13 +615,20 @@ private:
     void finishDrawing();
     void checkStatus(int expectedStatus);
 
-    void openTextObject();
-    void closeTextObject();
-
 private:
     PdfPainterFlags m_flags;
     PainterStatus m_painterStatus;
+    PdfPainterStateStack m_StateStack;
+    unsigned m_textStackCount;
+    std::vector<Vector2> m_subPaths;
 
+public:
+    PdfGraphicsStateWrapper GraphicsState;
+    PdfTextStateWrapper TextState;
+    PdfPainterPathContext Path;
+    PdfPainterTextContext Text;
+
+private:
     /** All drawing operations work on this stream.
      *  This object may not be nullptr. If it is nullptr any function accessing it should
      *  return ERROR_PDF_INVALID_HANDLE
@@ -667,11 +639,6 @@ private:
      *  to the page resource dictionary as appropriate.
      */
     PdfCanvas* m_canvas;
-
-    PdfPainterStateStack m_StateStack;
-
-    PdfGraphicsStateWrapper m_GraphicsState;
-    PdfTextStateWrapper m_TextState;
 
     /** Every tab '\\t' is replaced with m_TabWidth
      *  spaces before drawing text. Default is a value of 4

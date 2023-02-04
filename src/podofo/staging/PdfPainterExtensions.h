@@ -11,7 +11,7 @@
 
 namespace PoDoFo {
 
-    class PdfPainterPath;
+    class PdfPainterPathContext;
 
     /**
      * This class cointains some extensions methods to PdfPainterPath
@@ -23,10 +23,10 @@ namespace PoDoFo {
      */
     class PODOFO_API PdfPainterPathExtensions final
     {
-        friend class PdfPainterPath;
+        friend class PdfPainterPathContext;
 
     public:
-        PdfPainterPathExtensions(PdfPainterPath& path);
+        PdfPainterPathExtensions(PdfPainterPathContext& path);
 
     public:
         /** Append a horizontal line to the current path
@@ -90,7 +90,7 @@ namespace PoDoFo {
         PdfPainterPathExtensions& operator=(const PdfPainterPathExtensions&) = delete;
 
     private:
-        PdfPainterPath* m_path;
+        PdfPainterPathContext* m_path;
 
         // TODO: Next comment was found like this and it's is really bad.
         // Document the next fields accurately, possibly moving them

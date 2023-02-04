@@ -111,6 +111,15 @@ TEST_CASE("TestPainter2")
 
 TEST_CASE("TestPainter3")
 {
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    PdfPainter painter;
+    painter.SetCanvas(page);
+    painter.TextState.SetFont(doc.GetFonts().GetStandard14Font(PdfStandard14FontType::TimesRoman), 15);
+    painter.DrawText("Hello world", 100, 500, PdfDrawTextStyle::StrikeOut | PdfDrawTextStyle::Underline);
+    painter.FinishDrawing();
+    doc.Save(TestUtils::GetTestOutputFilePath("TestPainter3.pdf"));
+
     auto expected = R"(q
 BT
 /Ft5 15 Tf
@@ -118,27 +127,16 @@ BT
 0.75 w
 100 498.5 m
 172.075 498.5 l
-h
 S
 0.75 w
 100 503.93 m
 172.075 503.93 l
-h
 S
 Q
 <0001020203040503060207> Tj
 ET
 Q
 )"sv;
-
-    PdfMemDocument doc;
-    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
-    PdfPainter painter;
-    painter.SetCanvas(page);
-    painter.GetTextState().SetFont(doc.GetFonts().GetStandard14Font(PdfStandard14FontType::TimesRoman), 15);
-    painter.DrawText("Hello world", 100, 500, PdfDrawTextStyle::StrikeOut | PdfDrawTextStyle::Underline);
-    painter.FinishDrawing();
-    doc.Save(TestUtils::GetTestOutputFilePath("TestPainter3.pdf"));
 
     auto out = getContents(page);
     REQUIRE(out == expected);
@@ -149,21 +147,81 @@ TEST_CASE("TestPainter4")
 {
     PdfMemDocument doc;
     auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+
+    PdfFontCreateParams params;
+    params.Encoding = PdfEncodingMapFactory::WinAnsiEncodingInstance();
+    auto& font = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica, params);
+
     PdfPainter painter;
     painter.SetCanvas(page);
-    {
-        auto path = painter.BeginPath(20, 20);
-        path.AddLineTo(100, 20);
-        //path.AddArcTo(150, 20, 150, 70, 50);
-        path.AddLineTo(150, 120);
-    }
-
+    painter.TextState.SetFont(font, 15);
+    painter.Text.Begin();
+    painter.Text.MoveTo(100, 500);
+    painter.Text.AddText("Test");
+    painter.Text.End();
+    painter.Path.Begin(20, 20);
+    painter.Path.AddArcTo(150, 20, 150, 70, 50);
+    painter.Path.AddLineTo(150, 120);
+    painter.Path.Draw(PdfPathDrawMode::Stroke);
+    
     drawSquareWithCross(painter, 100, 20);
     drawSquareWithCross(painter, 100, 70);
     drawSquareWithCross(painter, 150, 70);
 
     painter.FinishDrawing();
     doc.Save(TestUtils::GetTestOutputFilePath("TestPainter4.pdf"));
+
+    auto expected = R"(q
+BT
+/Ft5 15 Tf
+100 500 Td
+<54657374> Tj
+ET
+20 20 m
+100 20 l
+127.614237 20 150 42.385763 150 70 c
+150 120 l
+S
+q
+0.6 w
+97 17 6 6 re
+S
+0 w
+100 17 m
+100 23 l
+S
+97 20 m
+103 20 l
+S
+Q
+q
+0.6 w
+97 67 6 6 re
+S
+0 w
+100 67 m
+100 73 l
+S
+97 70 m
+103 70 l
+S
+Q
+q
+0.6 w
+147 67 6 6 re
+S
+0 w
+150 67 m
+150 73 l
+S
+147 70 m
+153 70 l
+S
+Q
+Q
+)";
+    auto out = getContents(page);
+    REQUIRE(out == expected);
 }
 
 TEST_CASE("TestAppend")
@@ -181,7 +239,7 @@ TEST_CASE("TestAppend")
 
     PdfPainter painter;
     painter.SetCanvas(page);
-    painter.GetGraphicsState().SetFillColor(PdfColor(1.0, 1.0, 1.0));
+    painter.GraphicsState.SetFillColor(PdfColor(1.0, 1.0, 1.0));
     painter.FinishDrawing();
 
     auto out = getContents(page);
@@ -213,10 +271,10 @@ void drawSquareWithCross(PdfPainter& painter, double x, double y)
 {
     painter.Save();
     const double SquareSize = 6;
-    painter.GetGraphicsState().SetLineWidth(0.6);
+    painter.GraphicsState.SetLineWidth(0.6);
     painter.DrawRectangle(x - SquareSize / 2, y - SquareSize / 2, SquareSize, SquareSize);
 
-    painter.GetGraphicsState().SetLineWidth(0);
+    painter.GraphicsState.SetLineWidth(0);
     painter.DrawLine(x, y - SquareSize / 2, x, y + SquareSize / 2);
     painter.DrawLine(x - SquareSize / 2, y, x + SquareSize / 2, y);
     painter.Restore();
