@@ -352,11 +352,11 @@ void PdfPainter::DrawCubicBezier(double x1, double y1, double x2, double y2, dou
     stroke();
 }
 
-void PdfPainter::DrawArc(double x, double y, double radius, double angle1, double angle2)
+void PdfPainter::DrawArc(double x, double y, double radius, double angle1, double angle2, bool counterclockwise)
 {
     checkStream();
     checkStatus(StatusDefault);
-    addArc(x, y, radius, angle1, angle2);
+    addArc(x, y, radius, angle1, angle2, counterclockwise);
     stroke();
 }
 
@@ -1263,9 +1263,10 @@ void PdfPainterPathContext::AddEllipse(double x, double y, double width, double 
     m_painter->AddEllipse(x, y, width, height);
 }
 
-void PdfPainterPathContext::AddArc(double x, double y, double radius, double angle1, double angle2)
+void PdfPainterPathContext::AddArc(double x, double y, double radius,
+    double angle1, double angle2, bool counterclockwise)
 {
-    m_painter->AddArc(x, y, radius, angle1, angle2);
+    m_painter->AddArc(x, y, radius, angle1, angle2, counterclockwise);
 }
 
 void PdfPainterPathContext::AddArcTo(double x1, double y1, double x2, double y2, double radius)
@@ -1551,21 +1552,23 @@ void PdfPainter::addArcTo(double x1, double y1, double x2, double y2, double r)
     m_StateStack.Current->CurrentPoint = Vector2(x2t, y2t);
 }
 
-void PdfPainter::AddArc(double x, double y, double radius, double angle1, double angle2)
+void PdfPainter::AddArc(double x, double y, double radius, double startAngle, double endAngle, double counterclockwise)
 {
     checkStream();
     checkStatus(StatusPath);
-    addArc(x, y, radius, angle1, angle2);
+    addArc(x, y, radius, startAngle, endAngle, counterclockwise);
 }
 
-void PdfPainter::addArc(double x, double y, double radius, double angle1, double angle2)
+void PdfPainter::addArc(double x, double y, double radius, double startAngle, double endAngle, double counterclockwise)
 {
     (void)x;
     (void)y;
     (void)radius;
-    (void)angle1;
-    (void)angle2;
+    (void)startAngle;
+    (void)endAngle;
+    (void)counterclockwise;
     pathMoveTo(x, y);
+    // https://www.w3.org/2015/04/2dcontext-lc-sample.html#dom-context-2d-arc
     PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 

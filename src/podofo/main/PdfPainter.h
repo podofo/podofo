@@ -322,7 +322,7 @@ public:
      *	\param angle1 angle1 in radians
      *	\param angle2 angle2 in radians
      */
-    void DrawArc(double x, double y, double radius, double angle1, double angle2);
+    void DrawArc(double x, double y, double radius, double angle1, double angle2, bool counterclockwise = false);
 
     /** Draw a circle
      *  \param x x center coordinate of the circle
@@ -515,7 +515,7 @@ private:
     void AddLineTo(double x, double y);
     void AddCubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3);
     void AddArcTo(double x1, double y1, double x2, double y2, double radius);
-    void AddArc(double x, double y, double radius, double angle1, double angle2);
+    void AddArc(double x, double y, double radius, double startAngle, double endAngle, double counterclockwise);
     void AddCircle(double x, double y, double radius);
     void AddEllipse(double x, double y, double width, double height);
     void AddRectangle(double x, double y, double width, double height, double roundX, double roundY);
@@ -553,7 +553,7 @@ private:
     void addLineTo(double x, double y);
     void addCubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3);
     void addArcTo(double x1, double y1, double x2, double y2, double radius);
-    void addArc(double x, double y, double radius, double angle1, double angle2);
+    void addArc(double x, double y, double radius, double startAngle, double endAngle, double counterclockwise);
     void addCircle(double x, double y, double radius);
     void addEllipse(double x, double y, double width, double height);
     void addRectangle(double x, double y, double width, double height, double roundX, double roundY);

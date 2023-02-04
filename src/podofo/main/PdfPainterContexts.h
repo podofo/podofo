@@ -103,7 +103,7 @@ public:
      *	\param angle1 angle1 in radians
      *	\param angle2 angle2 in radians
      */
-    void AddArc(double x, double y, double radius, double angle1, double angle2);
+    void AddArc(double x, double y, double radius, double angle1, double angle2, bool counterclockwise = false);
 
     /** Append an arc from the current point to the current path
      *  \param x1 x coordinate the first control point
