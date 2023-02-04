@@ -142,7 +142,6 @@ Q
     REQUIRE(out == expected);
 }
 
-// FIXME: This test is not working yet
 TEST_CASE("TestPainter4")
 {
     PdfMemDocument doc;

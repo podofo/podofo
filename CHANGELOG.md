@@ -1,9 +1,10 @@
 ## Version 0.10.0
 - PdfParser: Cleaned FindToken2 -> FindTokenBackward
 - Renamed base source folder -> main
-- PdfPainter: Reviewed API, added full state inspection,
-  added PdfPainterPath to create a path (eg. PdfPainterPath, with
-  AddLine, AddArc, etc.) and close it automatically,
+- PdfPainter: Revamped API, added full state inspection with current point,
+  added PdfPainterPathContext to create a continuous path (eg. with
+  AddLine, AddArc, etc.), added PdfPainterTextContext to create continous text
+  Use them through PdfPainter::Path and PdfPainter::Text
   moved SmoothCurveTo, QuadCurveTo,
   SmoothQuadCurveTo, ArcTo, Arc() to an helper structure until cleaned
 - PdfFontMetrics: Added FilePath/FaceIndex for debugging, when avaialable
