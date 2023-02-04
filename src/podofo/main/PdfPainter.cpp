@@ -1495,42 +1495,35 @@ void PdfPainter::addArcTo(double x1, double y1, double x2, double y2, double r)
     double x0 = m_StateStack.Current->CurrentPoint.X;
     double y0 = m_StateStack.Current->CurrentPoint.Y;
 
-    // https://math.stackexchange.com/questions/191942/find-arc-center-from-tangent-lines-and-rounding-value
+    // Reference https://math.stackexchange.com/questions/191942/find-arc-center-from-tangent-lines-and-rounding-value
 
     double x1_0 = x0 - x1;
     double y1_0 = y0 - y1;
     double x1_2 = x2 - x1;
     double y1_2 = y2 - y1;
 
+    // Compute the tagent points
     double norm1 = std::sqrt(x1_0 * x1_0 + y1_0 * y1_0);
     double norm2 = std::sqrt(x1_2 * x1_2 + y1_2 * y1_2);
 
-    // Compute the tagent points
     double x1t = x1 + x1_0 / norm1 * r;
     double y1t = y1 + y1_0 / norm1 * r;
     double x2t = x1 + x1_2 / norm2 * r;
     double y2t = y1 + y1_2 / norm2 * r;
 
-    // Compute a two-point form -(y2–y1)*(x-x1) + (x2-x1)*(y-y1) = 0 and then find the normal
-    // https://math.stackexchange.com/a/1801955/12907
+    // Compute a two-point form -(y2–y1)*(x-x1) + (x2-x1)*(y-y1) = 0 and
+    // then find the equation of perpendicular on the point (x1,y1) with b*x - a*y + a * y1 − b * x1 = 0
 
     // Compute the coefficientes of a line passing through (x1t, y1t) and perpendicular to the arc tangent
-    double a0 = -y1_0;
-    double b0 = x1_0;
-
-    double a0t = b0;
-    double b0t = -a0;
-    double c0t = a0 * y1t - b0 * x1t;
+    double a0t = x1_0;
+    double b0t = y1_0;
+    double c0t = -x1_0 * x1t - y1_0 * y1t;
 
     // Compute the coefficientes of a line passing through (x2t, y2t) and perpendicular to the arc tangent
-    double a2 = -y1_2;
-    double b2 = x1_2;
+    double a2t = x1_2;
+    double b2t = y1_2;
+    double c2t = -x1_2 * x2t - y1_2 * y2t;
 
-    double a2t = b2;
-    double b2t = -a2;
-    double c2t = a2 * y2t - b2 * x2t;
-
-    // Compute the center of the arc
     // https://www.cuemath.com/geometry/intersection-of-two-lines/
     double xc = (b0t * c2t - b2t * c0t) / (a0t * b2t - a2t * b0t);
     double yc = (c0t * a2t - c2t * a0t) / (a0t * b2t - a2t * b0t);
