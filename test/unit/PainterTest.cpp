@@ -174,7 +174,7 @@ TEST_CASE("TestPainter4")
 BT
 /Ft5 15 Tf
 100 500 Td
-<54657374> Tj
+(Test) Tj
 ET
 20 20 m
 100 20 l

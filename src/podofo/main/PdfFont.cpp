@@ -160,11 +160,12 @@ void PdfFont::initBase(const PdfEncoding& encoding)
 
 void PdfFont::WriteStringToStream(OutputStream& stream, const string_view& str) const
 {
-    stream.Write("<");
+    // Optimize serialization for simple encodings
     auto encoded = m_Encoding->ConvertToEncoded(str);
-    unique_ptr<PdfFilter> filter = PdfFilterFactory::Create(PdfFilterType::ASCIIHexDecode);
-    filter->EncodeTo(stream, encoded);
-    stream.Write(">");
+    if (m_Encoding->IsSimpleEncoding())
+        utls::SerializeEncodedString(stream, encoded, false);
+    else
+        utls::SerializeEncodedString(stream, encoded, true);
 }
 
 void PdfFont::InitImported(bool wantEmbed, bool wantSubset)

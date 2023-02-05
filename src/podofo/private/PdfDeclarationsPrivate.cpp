@@ -47,6 +47,7 @@ static const locale s_cachedLocale("C");
 extern PODOFO_IMPORT PdfLogSeverity s_MaxLogSeverity;
 extern PODOFO_IMPORT LogMessageCallback s_LogMessageCallback;
 
+static char getEscapedCharacter(char ch);
 static void removeTrailingZeroes(string& str);
 static bool isStringDelimter(char32_t ch);
 
@@ -1006,6 +1007,51 @@ void utls::ByteSwap(u16string& str)
         str[i] = (char16_t)utls::ByteSwap((uint16_t)str[i]);
 }
 
+void utls::SerializeEncodedString(OutputStream& stream, const string_view& encoded, bool wantHex)
+{
+    stream.Write(wantHex ? '<' : '(');
+    if (encoded.size() > 0)
+    {
+        const char* cursor = encoded.data();
+        size_t len = encoded.size();
+
+        if (wantHex)
+        {
+            char ch;
+            char data[2];
+            while (len-- != 0)
+            {
+                ch = *cursor;
+                utls::WriteCharHexTo(data, ch);
+                stream.Write(string_view(data, 2));
+                cursor++;
+            }
+        }
+        else
+        {
+            char ch;
+            while (len-- != 0)
+            {
+                ch = *cursor;
+                char escaped = getEscapedCharacter(ch);
+                if (escaped == '\0')
+                {
+                    stream.Write(ch);
+                }
+                else
+                {
+                    stream.Write('\\');
+                    stream.Write(escaped);
+                }
+
+                cursor++;
+            }
+        }
+    }
+
+    stream.Write(wantHex ? '>' : ')');
+}
+
 // TODO: Substitute this function using Chromium numerics,
 // which is now included in the code (see 3rdparty/numerics)
 // https://chromium.googlesource.com/chromium/src/base/+/master/numerics/
@@ -1196,28 +1242,6 @@ void utls::ReadInt16BE(const char* buf, int16_t& value)
     value = AS_BIG_ENDIAN(value);
 }
 
-void removeTrailingZeroes(string& str)
-{
-    // Remove trailing zeroes
-    const char* cursor = str.data();
-    size_t len = str.size();
-    while (cursor[len - 1] == '0')
-        len--;
-
-    if (cursor[len - 1] == '.')
-        len--;
-
-    if (len == 0)
-    {
-        str.resize(1);
-        str[0] = '0';
-    }
-    else
-    {
-        str.resize(len);
-    }
-}
-
 void utls::RecursionGuard::Enter()
 {
     s_recursionDepth++;
@@ -1257,4 +1281,51 @@ void utls::RecursionGuard::SetMaxRecursionDepth(unsigned maxRecursionDepth)
 unsigned utls::RecursionGuard::GetMaxRecursionDepth()
 {
     return s_MaxRecursionDepth;
+}
+
+void removeTrailingZeroes(string& str)
+{
+    // Remove trailing zeroes
+    const char* cursor = str.data();
+    size_t len = str.size();
+    while (cursor[len - 1] == '0')
+        len--;
+
+    if (cursor[len - 1] == '.')
+        len--;
+
+    if (len == 0)
+    {
+        str.resize(1);
+        str[0] = '0';
+    }
+    else
+    {
+        str.resize(len);
+    }
+}
+
+char getEscapedCharacter(char ch)
+{
+    switch (ch)
+    {
+        case '\n':           // Line feed (LF)
+            return 'n';
+        case '\r':           // Carriage return (CR)
+            return 'r';
+        case '\t':           // Horizontal tab (HT)
+            return 't';
+        case '\b':           // Backspace (BS)
+            return 'b';
+        case '\f':           // Form feed (FF)
+            return 'f';
+        case '(':
+            return '(';
+        case ')':
+            return ')';
+        case '\\':
+            return '\\';
+        default:
+            return '\0';
+    }
 }

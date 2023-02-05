@@ -29,7 +29,6 @@ enum class StringEncoding
     PdfDocEncoding
 };
 
-static char getEscapedCharacter(char ch);
 static StringEncoding getEncoding(const string_view& view);
 
 PdfString::PdfString()
@@ -165,47 +164,7 @@ void PdfString::Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
         dataview = string_view(tempBuffer.data(), tempBuffer.size());
     }
 
-    device.Write(m_isHex ? '<' : '(');
-    if (dataview.size() > 0)
-    {
-        const char* cursor = dataview.data();
-        size_t len = dataview.size();
-
-        if (m_isHex)
-        {
-            char ch;
-            char data[2];
-            while (len-- != 0)
-            {
-                ch = *cursor;
-                utls::WriteCharHexTo(data, ch);
-                device.Write(string_view(data, 2));
-                cursor++;
-            }
-        }
-        else
-        {
-            char ch;
-            while (len-- != 0)
-            {
-                ch = *cursor;
-                char escaped = getEscapedCharacter(ch);
-                if (escaped == '\0')
-                {
-                    device.Write(ch);
-                }
-                else
-                {
-                    device.Write('\\');
-                    device.Write(escaped);
-                }
-
-                cursor++;
-            }
-        }
-    }
-
-    device.Write(m_isHex ? '>' : ')');
+    utls::SerializeEncodedString(device, dataview, m_isHex);
 }
 
 PdfStringState PdfString::GetState() const
@@ -429,29 +388,4 @@ StringEncoding getEncoding(const string_view& view)
         return StringEncoding::utf8;
 
     return StringEncoding::PdfDocEncoding;
-}
-
-char getEscapedCharacter(char ch)
-{
-    switch (ch)
-    {
-        case '\n':           // Line feed (LF)
-            return 'n';
-        case '\r':           // Carriage return (CR)
-            return 'r';
-        case '\t':           // Horizontal tab (HT)
-            return 't';
-        case '\b':           // Backspace (BS)
-            return 'b';
-        case '\f':           // Form feed (FF)
-            return 'f';
-        case '(':
-            return '(';
-        case ')':
-            return ')';
-        case '\\':
-            return '\\';
-        default:
-            return '\0';
-    }
 }
