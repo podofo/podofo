@@ -76,7 +76,7 @@ struct PdfContentReaderArgs
 
 /** Reader class to read content streams
  */
-class PdfContentsReader final
+class PODOFO_API PdfContentsReader final
 {
 public:
     PdfContentsReader(const PdfCanvas& canvas, nullable<const PdfContentReaderArgs&> args = { });
