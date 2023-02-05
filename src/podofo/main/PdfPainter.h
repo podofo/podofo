@@ -428,9 +428,15 @@ public:
      */
     void DrawXObject(const PdfXObject& obj, double x, double y, double scaleX = 1.0, double scaleY = 1.0);
 
-    void BeginMarkedContext(const std::string_view& tag);
+    /**
+     * Begin a marked-content sequence (operator BMC) 
+     */
+    void BeginMarkedContent(const std::string_view& tag);
 
-    void EndMarkedContext();
+    /**
+     * End a marked-content sequence begun by a BMC or BDC operator
+     */ 
+    void EndMarkedContent();
 
     /** Save the current graphics settings onto the graphics
      *  stack. Operator 'q' in PDF.

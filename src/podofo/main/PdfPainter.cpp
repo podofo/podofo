@@ -794,14 +794,14 @@ void PdfPainter::SetExtGState(const PdfExtGState& inGState)
     m_stream << "/" << inGState.GetIdentifier().GetString() << " gs" << endl;
 }
 
-// TODO: Validate when marked context can be put
-void PdfPainter::BeginMarkedContext(const string_view& tag)
+// TODO: Validate when marked content can be put
+void PdfPainter::BeginMarkedContent(const string_view& tag)
 {
     checkStatus(StatusDefault);
     m_stream << '/' << tag << " BMC" << endl;
 }
 
-void PdfPainter::EndMarkedContext()
+void PdfPainter::EndMarkedContent()
 {
     checkStatus(StatusDefault);
     m_stream << "EMC" << endl;
