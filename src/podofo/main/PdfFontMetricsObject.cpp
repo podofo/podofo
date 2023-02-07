@@ -323,7 +323,7 @@ string_view PdfFontMetricsObject::GetFontName() const
     return m_FontName;
 }
 
-std::string_view PdfFontMetricsObject::GetFontNameRaw() const
+string_view PdfFontMetricsObject::GetFontNameRaw() const
 {
     return m_FontNameRaw;
 }

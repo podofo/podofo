@@ -39,9 +39,6 @@ static void getFontDataTTC(charbuff& buffer, const charbuff& fileBuffer, const c
 static unique_ptr<charbuff> getFontDataFromFile(const string_view& filename, unsigned faceIndex);
 static unique_ptr<charbuff> getFontDataFromBuffer(const bufferview& buffer, unsigned faceIndex);
 static unique_ptr<charbuff> getFontData(FT_Face face);
-static PdfFont* matchFont(const mspan<PdfFont*>& fonts, const string_view& fontName, const PdfFontSearchParams& params);
-static PdfFont* matchFont(const mspan<PdfFont*>& fonts, const string_view& fontName,
-    PdfFontMatchBehaviorFlags matchBehavior = PdfFontMatchBehaviorFlags::None);
 
 #if defined(PODOFO_HAVE_FONTCONFIG)
 shared_ptr<PdfFontConfigWrapper> PdfFontManager::m_fontConfig;
@@ -55,24 +52,10 @@ PdfFontManager::PdfFontManager(PdfDocument& doc)
     m_currentPrefix = "AAAAAA+";
 }
 
-PdfFontManager::~PdfFontManager()
-{
-    this->Clear();
-}
-
 void PdfFontManager::Clear()
 {
-    m_importedFonts.clear();
+    m_cachedQueries.clear();
     m_fonts.clear();
-}
-
-PdfFont* PdfFontManager::AddImported(unique_ptr<PdfFont>&& font)
-{
-    Descriptor descriptor(font->GetMetrics().GetBaseFontName(),
-        PdfStandard14FontType::Unknown,
-        font->GetEncoding(),
-        font->GetMetrics().GetStyle());
-    return addImported(m_importedFonts[descriptor], std::move(font));
 }
 
 string PdfFontManager::GenerateSubsetPrefix()
@@ -89,12 +72,23 @@ string PdfFontManager::GenerateSubsetPrefix()
     return m_currentPrefix;
 }
 
+PdfFont* PdfFontManager::AddImported(unique_ptr<PdfFont>&& font)
+{
+    // Explicitly cache the font with its name and font style
+    Descriptor descriptor(font->GetMetrics().GetFontNameSafe(),
+        PdfStandard14FontType::Unknown,
+        font->GetEncoding(),
+        true,
+        font->GetMetrics().GetStyle());
+    return addImported(m_cachedQueries[descriptor], std::move(font));
+}
+
 PdfFont* PdfFontManager::addImported(vector<PdfFont*>& fonts, unique_ptr<PdfFont>&& font)
 {
     auto fontPtr = font.get();
     fonts.push_back(fontPtr);
-    auto inserted = m_fonts.insert({ fontPtr->GetObject().GetIndirectReference(), Storage{ false, std::move(font) }});
-    return inserted.first->second.Font.get();
+    auto inserted = m_fonts.insert({ fontPtr->GetObject().GetIndirectReference(), Storage{ false, std::move(font) } });
+    return fontPtr;
 }
 
 PdfFont* PdfFontManager::GetLoadedFont(const PdfObject& obj)
@@ -138,19 +132,20 @@ PdfFont* PdfFontManager::SearchFont(const string_view& fontPattern, const PdfFon
         return &GetStandard14Font(stdFont, createParams);
     }
 
-    PdfFontSearchParams newSearchParams = searchParams;
-    return getImportedFont(fontPattern, adaptSearchParams(fontPattern, newSearchParams), newSearchParams, createParams);
+    return getImportedFont(fontPattern, searchParams, createParams);
 }
 
 PdfFont& PdfFontManager::GetStandard14Font(PdfStandard14FontType stdFont, const PdfFontCreateParams& params)
 {
     // Create a special descriptor cache that just specify the standard type and encoding
+     // NOTE: We assume font name and style are implicit in the standard font type
     Descriptor descriptor(
         { },
         stdFont,
         params.Encoding,
+        false,
         PdfFontStyle::Regular);
-    auto& fonts = m_importedFonts[descriptor];
+    auto& fonts = m_cachedQueries[descriptor];
     if (fonts.size() != 0)
     {
         PODOFO_ASSERT(fonts.size() == 1);
@@ -194,12 +189,14 @@ PdfFont& PdfFontManager::GetOrCreateFontFromBuffer(const bufferview& buffer, uns
 
 PdfFont& PdfFontManager::getOrCreateFontHashed(const shared_ptr<PdfFontMetrics>& metrics, const PdfFontCreateParams& params)
 {
-    // TODO: Add font hash to Descriptor
+    // TODO: Create a map indexed only on the hash of the font data
+    // and search on that. Then remove the following
     Descriptor descriptor(metrics->GetBaseFontName(),
         PdfStandard14FontType::Unknown,
         params.Encoding,
+        true,
         metrics->GetStyle());
-    auto& fonts = m_importedFonts[descriptor];
+    auto& fonts = m_cachedQueries[descriptor];
     if (fonts.size() != 0)
         return *fonts[0];
 
@@ -207,71 +204,79 @@ PdfFont& PdfFontManager::getOrCreateFontHashed(const shared_ptr<PdfFontMetrics>&
     return *addImported(fonts, std::move(newfont));
 }
 
-string PdfFontManager::adaptSearchParams(const string_view& fontName, PdfFontSearchParams& searchParams)
+void PdfFontManager::adaptSearchParams(string& fontName, PdfFontSearchParams& searchParams)
 {
+    if ((searchParams.MatchBehavior & PdfFontMatchBehaviorFlags::NormalizePattern)
+        != PdfFontMatchBehaviorFlags::None)
+    {
+        return;
+    }
+
     bool italic;
     bool bold;
-    auto ret = PdfFont::ExtractBaseName(fontName, italic, bold);
+    fontName = PdfFont::ExtractBaseName(fontName, italic, bold);
+    PdfFontStyle style = PdfFontStyle::Regular;
     if (italic)
-        searchParams.Style |= PdfFontStyle::Italic;
+        style |= PdfFontStyle::Italic;
     if (bold)
-        searchParams.Style |= PdfFontStyle::Bold;
-    return ret;
+        style |= PdfFontStyle::Bold;
+
+    // Alter search style only if italic/bold was extracted from the name
+    if (style != PdfFontStyle::Regular)
+        searchParams.Style = style;
 }
 
 // NOTE: baseFontName is already normalized and cleaned from known suffixes
-PdfFont* PdfFontManager::getImportedFont(const string_view& fontName, const string_view& baseFontName,
+PdfFont* PdfFontManager::getImportedFont(const string_view& patternName,
     const PdfFontSearchParams& searchParams, const PdfFontCreateParams& createParams)
 {
-    auto found = m_importedFonts.find(Descriptor(
-        baseFontName,
+    auto found = m_cachedQueries.find(Descriptor(
+        patternName,
         PdfStandard14FontType::Unknown,
         createParams.Encoding,
-        searchParams.Style));
-    if (found != m_importedFonts.end())
-        return matchFont(found->second, fontName, searchParams);
+        searchParams.Style != nullptr,
+        searchParams.Style == nullptr ? PdfFontStyle::Regular : *searchParams.Style));
+    if (found != m_cachedQueries.end())
+    {
+        if (searchParams.FontSelector == nullptr)
+            return found->second[0];
+        else
+            searchParams.FontSelector(found->second);
+    }
 
+    PdfFontSearchParams newParams = searchParams;
+    string newPattern = (string)patternName;
+    adaptSearchParams(newPattern, newParams);
     string fontpath;
     unsigned faceIndex;
-    auto data = getFontData(baseFontName, searchParams, fontpath, faceIndex);
+    auto data = getFontData(patternName, searchParams, fontpath, faceIndex);
     if (data == nullptr)
         return nullptr;
 
     shared_ptr<PdfFontMetrics> metrics = PdfFontMetricsFreetype::FromBuffer(std::move(data));
     metrics->SetFilePath(std::move(fontpath), faceIndex);
-    Descriptor descriptor(metrics->GetBaseFontName(),
-        PdfStandard14FontType::Unknown,
-        createParams.Encoding,
-        metrics->GetStyle());
-    auto& fonts = m_importedFonts[descriptor];
-    PdfFont* font;
-    if (fonts.size() != 0 && (font = matchFont(fonts, fontName, searchParams)) != nullptr)
-        return font;
 
     auto newfont = PdfFont::Create(*m_doc, metrics, createParams);
-    font = newfont.get();
-    // Also try to match newly created font
-    if (font == nullptr || (matchFont(mspan<PdfFont*>(&font, 1), fontName, searchParams) == nullptr))
-        return nullptr;
-
-    return addImported(fonts, std::move(newfont));
+    return AddImported(std::move(newfont));
 }
 
-PdfFontMetricsConstPtr PdfFontManager::SearchFontMetrics(const string_view& fontPattern, const PdfFontSearchParams& params)
+PdfFontMetricsConstPtr PdfFontManager::SearchFontMetrics(const string_view& patternName, const PdfFontSearchParams& params)
 {
     // Early intercept Standard14 fonts
     PdfStandard14FontType stdFont;
     if (params.AutoSelect != PdfFontAutoSelectBehavior::None
-        && PdfFont::IsStandard14Font(fontPattern,
+        && PdfFont::IsStandard14Font(patternName,
             params.AutoSelect == PdfFontAutoSelectBehavior::Standard14Alt, stdFont))
     {
         return PdfFontMetricsStandard14::GetInstance(stdFont);
     }
 
     PdfFontSearchParams newParams = params;
+    string newPattern = (string)patternName;
+    adaptSearchParams(newPattern, newParams);
     string fontpath;
     unsigned faceIndex;
-    auto fontData = getFontData(adaptSearchParams(fontPattern, newParams), newParams, fontpath, faceIndex);
+    auto fontData = getFontData(newPattern, newParams, fontpath, faceIndex);
     if (fontData == nullptr)
         return nullptr;
 
@@ -360,7 +365,6 @@ PdfFont& PdfFontManager::GetOrCreateFont(FT_Face face, const PdfFontCreateParams
     if (fontName.empty())
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Could not retrieve fontname for font!");
 
-    string baseFontName = PdfFont::ExtractBaseName(fontName);
     bool italic = (face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
     bool bold = (face->style_flags & FT_STYLE_FLAG_BOLD) != 0;
     PdfFontStyle style = PdfFontStyle::Regular;
@@ -369,13 +373,15 @@ PdfFont& PdfFontManager::GetOrCreateFont(FT_Face face, const PdfFontCreateParams
     if (bold)
         style |= PdfFontStyle::Bold;
 
-    auto found = m_importedFonts.find(Descriptor(
-        baseFontName,
+    // Explicitly search the cached fonts with the given name and font style
+    auto found = m_cachedQueries.find(Descriptor(
+        fontName,
         PdfStandard14FontType::Unknown,
         params.Encoding,
+        true,
         style));
-    if (found != m_importedFonts.end())
-        return *matchFont(found->second, fontName);
+    if (found != m_cachedQueries.end())
+        return *found->second[0];
 
     shared_ptr<PdfFontMetricsFreetype> metrics = PdfFontMetricsFreetype::FromFace(face);
     return getOrCreateFontHashed(metrics, params);
@@ -384,7 +390,7 @@ PdfFont& PdfFontManager::GetOrCreateFont(FT_Face face, const PdfFontCreateParams
 void PdfFontManager::EmbedFonts()
 {
     // Embed all imported fonts
-    for (auto& pair : m_importedFonts)
+    for (auto& pair : m_cachedQueries)
     {
         for (auto& font : pair.second)
             font->EmbedFont();
@@ -392,7 +398,7 @@ void PdfFontManager::EmbedFonts()
 
     // Clear imported font cache
     // TODO: Don't clean standard14 and full embedded fonts
-    m_importedFonts.clear();
+    m_cachedQueries.clear();
 }
 
 #if defined(_WIN32) && defined(PODOFO_HAVE_WIN32GDI)
@@ -406,26 +412,26 @@ PdfFont& PdfFontManager::GetOrCreateFont(HFONT font, const PdfFontCreateParams& 
     if (::GetObjectW(font, sizeof(LOGFONTW), &logFont) == 0)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Invalid font");
 
-    // CHECK-ME: Normalize name or not?
     string fontName;
     utf8::utf16to8((char16_t*)logFont.lfFaceName, (char16_t*)logFont.lfFaceName + LF_FACESIZE, std::back_inserter(fontName));
     if (fontName.empty())
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Could not retrieve fontname for font!");
 
-    auto baseFontName = PdfFont::ExtractBaseName(fontName);
     PdfFontStyle style = PdfFontStyle::Regular;
     if (logFont.lfItalic != 0)
         style |= PdfFontStyle::Italic;
     if (logFont.lfWeight >= FW_BOLD)
         style |= PdfFontStyle::Bold;
 
-    auto found = m_importedFonts.find(Descriptor(
-        baseFontName,
+    // Explicitly search the cached fonts with the given name and font style
+    auto found = m_cachedQueries.find(Descriptor(
+        fontName,
         PdfStandard14FontType::Unknown,
         params.Encoding,
+        true,
         style));
-    if (found != m_importedFonts.end())
-        return *matchFont(found->second, fontName);
+    if (found != m_cachedQueries.end())
+        return *found->second[0];
 
     shared_ptr<charbuff> data = ::getFontData(logFont);
     if (data == nullptr)
@@ -446,15 +452,7 @@ std::unique_ptr<charbuff> PdfFontManager::getWin32FontData(
     if (fontnamew.length() >= LF_FACESIZE)
         return nullptr;
 
-    LOGFONTW lf;
-    lf.lfHeight = 0;
-    lf.lfWidth = 0;
-    lf.lfEscapement = 0;
-    lf.lfOrientation = 0;
-    lf.lfWeight = (params.Style & PdfFontStyle::Bold) != (PdfFontStyle)0 ? FW_BOLD : 0;
-    lf.lfItalic = (params.Style & PdfFontStyle::Italic) != (PdfFontStyle)0;
-    lf.lfUnderline = 0;
-    lf.lfStrikeOut = 0;
+    LOGFONTW lf{ };
     // NOTE: ANSI_CHARSET should give a consistent result among
     // different locale configurations but sometimes dont' match fonts.
     // We prefer OEM_CHARSET over DEFAULT_CHARSET because it configures
@@ -464,6 +462,12 @@ std::unique_ptr<charbuff> PdfFontManager::getWin32FontData(
     lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
     lf.lfQuality = DEFAULT_QUALITY;
     lf.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
+
+    if (params.Style.has_value())
+    {
+        lf.lfWeight = (*params.Style & PdfFontStyle::Bold) != (PdfFontStyle)0 ? FW_BOLD : 0;
+        lf.lfItalic = (*params.Style & PdfFontStyle::Italic) != (PdfFontStyle)0;
+    }
 
     memset(lf.lfFaceName, 0, LF_FACESIZE * sizeof(char16_t));
     memcpy(lf.lfFaceName, fontnamew.c_str(), fontnamew.length() * sizeof(char16_t));
@@ -505,23 +509,29 @@ shared_ptr<PdfFontConfigWrapper> PdfFontManager::ensureInitializedFontConfig()
 
 #endif // PODOFO_HAVE_FONTCONFIG
 
-PdfFontManager::Descriptor::Descriptor(const string_view& fontname, PdfStandard14FontType stdType,
-    const PdfEncoding& encoding, PdfFontStyle style) :
-    FontName(fontname),
+PdfFontManager::Descriptor::Descriptor(const string_view& name, PdfStandard14FontType stdType,
+    const PdfEncoding& encoding, bool hasFontStyle, PdfFontStyle style) :
+    Name(name),
     StdType(stdType),
     EncodingId(encoding.GetId()),
+    HasFontStyle(hasFontStyle),
     Style(style) { }
 
 size_t PdfFontManager::HashElement::operator()(const Descriptor& elem) const
 {
     size_t hash = 0;
-    utls::hash_combine(hash, elem.FontName, elem.StdType, elem.EncodingId, (size_t)elem.Style);
+    utls::hash_combine(hash, elem.Name, elem.StdType,
+        elem.EncodingId, elem.HasFontStyle, (size_t)elem.Style);
     return hash;
 }
 
 bool PdfFontManager::EqualElement::operator()(const Descriptor& lhs, const Descriptor& rhs) const
 {
-    return lhs.EncodingId == rhs.EncodingId && lhs.Style == rhs.Style && lhs.FontName == rhs.FontName;
+    return lhs.EncodingId == rhs.EncodingId
+        && lhs.Name == rhs.Name
+        && lhs.StdType == rhs.StdType
+        && lhs.HasFontStyle == rhs.HasFontStyle
+        && lhs.Style == rhs.Style;
 }
 
 unique_ptr<charbuff> getFontDataFromFile(const string_view& filename, unsigned faceIndex)
@@ -571,44 +581,6 @@ unique_ptr<charbuff> getFontData(FT_Face face)
 Error:
     PoDoFo::LogMessage(PdfLogSeverity::Error, "FreeType returned the error {} when calling FT_Load_Sfnt_Table for font",
         (int)rc);
-    return nullptr;
-}
-
-PdfFont* matchFont(const mspan<PdfFont*>& fonts, const string_view& fontName, const PdfFontSearchParams& params)
-{
-    // NOTE: Matching base name is implied by the main lookup
-    return matchFont(fonts, fontName, params.MatchBehavior);
-}
-
-PdfFont* matchFont(const mspan<PdfFont*>& fonts, const string_view& fontName, PdfFontMatchBehaviorFlags matchBehavior)
-{
-    PODOFO_ASSERT(fonts.size() != 0);
-    if (matchBehavior == PdfFontMatchBehaviorFlags::MatchExactName)
-    {
-        for (auto font : fonts)
-        {
-            if (font->GetMetrics().GetFontName() == fontName)
-                return font;
-        }
-    }
-    else // !matchExactName
-    {
-        // NOTE: Font is assumed to be already matched
-        if (fonts.size() == 1)
-            return fonts[0];
-
-        // If there are more than one font, return one that has
-        // base font name equal to font name, if present
-        for (auto font : fonts)
-        {
-            if (font->GetName() == font->GetMetrics().GetBaseFontName())
-                return font;
-        }
-
-        // Otherwise just return the first font
-        return fonts[0];
-    }
-
     return nullptr;
 }
 

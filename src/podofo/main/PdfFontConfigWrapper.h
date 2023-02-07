@@ -21,7 +21,7 @@ enum class PdfFontConfigSearchFlags
 
 struct PdfFontConfigSearchParams
 {
-    PdfFontStyle Style = PdfFontStyle::Regular;
+    nullable<PdfFontStyle> Style;
     PdfFontConfigSearchFlags Flags = PdfFontConfigSearchFlags::None;
 };
 

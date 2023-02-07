@@ -27,9 +27,12 @@ class PdfIndirectObjectList;
 
 struct PdfFontSearchParams
 {
-    PdfFontStyle Style = PdfFontStyle::Regular;
+    nullable<PdfFontStyle> Style;
     PdfFontAutoSelectBehavior AutoSelect = PdfFontAutoSelectBehavior::None;
     PdfFontMatchBehaviorFlags MatchBehavior = PdfFontMatchBehaviorFlags::None;
+
+    ///< A function to select the font in case multiple fonts with same characteristics found. Default return first
+    std::function<PdfFont* (const std::vector<PdfFont*>)> FontSelector;
 };
 
 /**
@@ -53,14 +56,7 @@ class PODOFO_API PdfFontManager final
     friend class PdfFont;
     friend class PdfCommon;
 
-    PdfFontManager(const PdfFontManager&) = delete;
-    PdfFontManager& operator=(const PdfFontManager&) = delete;
-
 public:
-    /** Destroy and empty the font cache
-     */
-    ~PdfFontManager();
-
     /** Get a font from the cache of objects loaded fonts
      *
      *  \param obj a PdfObject that is a font
@@ -161,15 +157,16 @@ private:
      */
     struct Descriptor
     {
-        Descriptor(const std::string_view& fontname, PdfStandard14FontType stdType,
-            const PdfEncoding& encoding, PdfFontStyle style);
+        Descriptor(const std::string_view& name, PdfStandard14FontType stdType,
+            const PdfEncoding& encoding, bool hasFontStyle, PdfFontStyle style);
 
         Descriptor(const Descriptor& rhs) = default;
         Descriptor& operator=(const Descriptor& rhs) = default;
 
-        std::string FontName;
+        std::string Name;               ///< Name of the font or pattern
         PdfStandard14FontType StdType;
         size_t EncodingId;
+        bool HasFontStyle;
         PdfFontStyle Style;
     };
 
@@ -183,7 +180,7 @@ private:
         bool operator()(const Descriptor& lhs, const Descriptor& rhs) const;
     };
 
-    using ImportedFontMap = std::unordered_map<Descriptor, std::vector<PdfFont*>, HashElement, EqualElement>;
+    using CachedQueries = std::unordered_map<Descriptor, std::vector<PdfFont*>, HashElement, EqualElement>;
 
     struct Storage
     {
@@ -201,9 +198,9 @@ private:
     static std::unique_ptr<charbuff> getFontData(const std::string_view& fontName,
         const PdfFontSearchParams& params, std::string& fontpath,
         unsigned& faceIndex);
-    PdfFont* getImportedFont(const std::string_view& fontName, const std::string_view& baseFontName,
+    PdfFont* getImportedFont(const std::string_view& patternName,
         const PdfFontSearchParams& searchParams, const PdfFontCreateParams& createParams);
-    static std::string adaptSearchParams(const std::string_view& fontName,
+    static void adaptSearchParams(std::string& patternName,
         PdfFontSearchParams& searchParams);
     PdfFont* addImported(std::vector<PdfFont*>& fonts, std::unique_ptr<PdfFont>&& font);
     PdfFont& getOrCreateFontHashed(const std::shared_ptr<PdfFontMetrics>& metrics, const PdfFontCreateParams& params);
@@ -214,11 +211,16 @@ private:
 #endif
 
 private:
+    PdfFontManager(const PdfFontManager&) = delete;
+    PdfFontManager& operator=(const PdfFontManager&) = delete;
+
+private:
     PdfDocument* m_doc;
     std::string m_currentPrefix;
 
-    // Map of all imported fonts
-    ImportedFontMap m_importedFonts;
+    // Map of cached font queries
+    CachedQueries m_cachedQueries;
+
     // Map of all fonts
     FontMap m_fonts;
 

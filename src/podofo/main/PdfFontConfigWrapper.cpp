@@ -44,25 +44,23 @@ string PdfFontConfigWrapper::SearchFontPath(const string_view fontPattern,
     FcResult result = FcResultMatch;
     FcValue value;
 
-    bool isItalic = (params.Style & PdfFontStyle::Italic) == PdfFontStyle::Italic;
-    bool isBold = (params.Style & PdfFontStyle::Bold) == PdfFontStyle::Bold;
+    pattern = FcPatternCreate();
+    if (pattern == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "FcPatternCreate returned NULL");
 
     // Build a pattern to search using postscript name, bold and italic
     if ((params.Flags & PdfFontConfigSearchFlags::MatchPostScriptName) == PdfFontConfigSearchFlags::None)
-    {
-        pattern = FcPatternBuild(nullptr,
-            FC_FAMILY, FcTypeString, fontPattern.data(),
-            FC_WEIGHT, FcTypeInteger, (isBold ? FC_WEIGHT_BOLD : FC_WEIGHT_MEDIUM),
-            FC_SLANT, FcTypeInteger, (isItalic ? FC_SLANT_ITALIC : FC_SLANT_ROMAN),
-            static_cast<char*>(nullptr));
-    }
+        FcPatternAddString(pattern, FC_FAMILY, (const FcChar8*)fontPattern.data());
     else
+        FcPatternAddString(pattern, FC_POSTSCRIPT_NAME, (const FcChar8*)fontPattern.data());
+
+    if (params.Style.has_value())
     {
-        pattern = FcPatternBuild(nullptr,
-            FC_POSTSCRIPT_NAME, FcTypeString, fontPattern.data(),
-            FC_WEIGHT, FcTypeInteger, (isBold ? FC_WEIGHT_BOLD : FC_WEIGHT_MEDIUM),
-            FC_SLANT, FcTypeInteger, (isItalic ? FC_SLANT_ITALIC : FC_SLANT_ROMAN),
-            static_cast<char*>(nullptr));
+        bool isItalic = (*params.Style & PdfFontStyle::Italic) == PdfFontStyle::Italic;
+        bool isBold = (*params.Style & PdfFontStyle::Bold) == PdfFontStyle::Bold;
+
+        FcPatternAddInteger(pattern, FC_WEIGHT, (isBold ? FC_WEIGHT_BOLD : FC_WEIGHT_MEDIUM));
+        FcPatternAddInteger(pattern, FC_SLANT, (isItalic ? FC_SLANT_ITALIC : FC_SLANT_ROMAN));
     }
 
     // Follow fc-match procedure which proved to be more reliable

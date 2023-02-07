@@ -302,8 +302,8 @@ enum class PdfFontCreateFlags
 enum class PdfFontMatchBehaviorFlags
 {
     None,
-    MatchExactName = 1,           ///< Match exact font name
-    MatchPostScriptName = 2       ///< Match postscript font name. The default is match family name. This search may be more specific
+    NormalizePattern = 1,     ///< Normalize search pattern, removing subset prefixes like "ABCDEF+" and extract flags from it (like ",Bold", "-Italic")
+    MatchPostScriptName = 2,  ///< Match postscript font name. The default is match family name. This search may be more specific
 };
 
 /**
