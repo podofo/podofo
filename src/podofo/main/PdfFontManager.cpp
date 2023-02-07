@@ -207,7 +207,7 @@ PdfFont& PdfFontManager::getOrCreateFontHashed(const shared_ptr<PdfFontMetrics>&
 void PdfFontManager::adaptSearchParams(string& fontName, PdfFontSearchParams& searchParams)
 {
     if ((searchParams.MatchBehavior & PdfFontMatchBehaviorFlags::NormalizePattern)
-        != PdfFontMatchBehaviorFlags::None)
+        == PdfFontMatchBehaviorFlags::None)
     {
         return;
     }
