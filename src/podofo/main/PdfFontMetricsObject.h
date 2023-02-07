@@ -114,6 +114,8 @@ protected:
     const PdfCIDToGIDMapConstPtr& getCIDToGIDMap() const override;
 
 private:
+    void extractFontHints();
+
     std::vector<double> getBBox(const PdfObject& obj);
 
     void tryLoadBuiltinCIDToGIDMap();
@@ -157,8 +159,8 @@ private:
     double m_StrikeOutThickness;
     double m_StrikeOutPosition;
 
-    bool m_IsBoldHint;
     bool m_IsItalicHint;
+    bool m_IsBoldHint;
 };
 
 };

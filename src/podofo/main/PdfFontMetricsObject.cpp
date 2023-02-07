@@ -26,7 +26,9 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     m_FontFileType(PdfFontFileType::Unknown),
     m_Length1(0),
     m_Length2(0),
-    m_Length3(0)
+    m_Length3(0),
+    m_IsItalicHint(false),
+    m_IsBoldHint(false)
 {
     const PdfObject* obj;
     const PdfName& subType = font.GetDictionary().MustFindKey(PdfName::KeySubtype).GetName();
@@ -305,10 +307,28 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     // We prioritize /BaseFont, over /FontName
     if ((obj = font.GetDictionary().FindKey("BaseFont")) != nullptr)
         m_FontName = obj->GetName().GetString();
-    if (m_FontName.length() == 0)
-        m_FontName = m_FontNameRaw;
+    if (m_FontName.empty())
+    {
+        if (m_FontNameRaw.empty())
+        {
+            if (m_FontFamilyName.empty())
+            {
+                // Set a fallback name
+                m_FontName = utls::Format("Font{}_{}",
+                    font.GetIndirectReference().ObjectNumber(),
+                    font.GetIndirectReference().GenerationNumber());
+            }
+            else
+            {
+                m_FontName = m_FontFamilyName;
+            }
+        }
+        else
+        {
+            m_FontName = m_FontNameRaw;
+        }
+    }
 
-    m_FontBaseName = PdfFont::ExtractBaseName(m_FontName, m_IsItalicHint, m_IsBoldHint);
     m_LineSpacing = m_Ascent + m_Descent;
 
     // Try to fine some sensible values
@@ -330,6 +350,7 @@ string_view PdfFontMetricsObject::GetFontNameRaw() const
 
 string_view PdfFontMetricsObject::GetBaseFontName() const
 {
+    const_cast<PdfFontMetricsObject&>(*this).extractFontHints();
     return m_FontBaseName;
 }
 
@@ -488,11 +509,13 @@ const Matrix2D& PdfFontMetricsObject::GetMatrix() const
 
 bool PdfFontMetricsObject::getIsBoldHint() const
 {
+    const_cast<PdfFontMetricsObject&>(*this).extractFontHints();
     return m_IsBoldHint;
 }
 
 bool PdfFontMetricsObject::getIsItalicHint() const
 {
+    const_cast<PdfFontMetricsObject&>(*this).extractFontHints();
     return m_IsItalicHint;
 }
 
@@ -528,6 +551,15 @@ unsigned PdfFontMetricsObject::GetFontFileLength2() const
 unsigned PdfFontMetricsObject::GetFontFileLength3() const
 {
     return m_Length3;
+}
+
+void PdfFontMetricsObject::extractFontHints()
+{
+    if (m_FontBaseName.length() != 0)
+        return;
+
+    PODOFO_ASSERT(m_FontName.length() != 0);
+    m_FontBaseName = PdfFont::ExtractBaseName(m_FontName, m_IsItalicHint, m_IsBoldHint);
 }
 
 vector<double> PdfFontMetricsObject::getBBox(const PdfObject& obj)

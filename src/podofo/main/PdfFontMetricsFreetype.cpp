@@ -88,9 +88,11 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
     // 5.5.2 TrueType Fonts, "If the name contains any spaces, the spaces are removed"
     auto psname = FT_Get_Postscript_Name(m_Face.get());
     if (psname != nullptr)
+    {
         m_FontName = psname;
-    m_FontName.erase(std::remove(m_FontName.begin(), m_FontName.end(), ' '), m_FontName.end());
-    m_FontBaseName = PdfFont::ExtractBaseName(m_FontName);
+        m_FontName.erase(std::remove(m_FontName.begin(), m_FontName.end(), ' '), m_FontName.end());
+    }
+
     if (m_Face->family_name != nullptr)
         m_FontFamilyName = m_Face->family_name;
 
@@ -159,8 +161,6 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
 
         if (m_FontName.empty())
             m_FontName = refMetrics->GetFontName();
-        if (m_FontBaseName.empty())
-            m_FontBaseName = refMetrics->GetBaseFontName();
         if (m_FontFamilyName.empty())
             m_FontFamilyName = refMetrics->GetFontFamilyName();
 
@@ -199,6 +199,15 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
         m_ItalicAngle = (double)psTable->italicAngle;
         if (psTable->isFixedPitch != 0)
             m_Flags |= PdfFontDescriptorFlags::FixedPitch;
+    }
+
+    if (m_FontName.empty())
+    {
+        // Determine a fallback for the font name
+        if (m_FontFamilyName.empty())
+            m_FontName = "FreeTypeFont";
+        else
+            m_FontName = m_FontFamilyName;
     }
 
     // FontInfo Table is available only in type1 fonts
@@ -323,6 +332,11 @@ string_view PdfFontMetricsFreetype::GetFontName() const
 
 string_view PdfFontMetricsFreetype::GetBaseFontName() const
 {
+    if (m_FontBaseName.length() == 0)
+    {
+        PODOFO_ASSERT(m_FontName.length() != 0);
+        const_cast<PdfFontMetricsFreetype&>(*this).m_FontBaseName = PdfFont::ExtractBaseName(m_FontName);
+    }
     return m_FontBaseName;
 }
 
