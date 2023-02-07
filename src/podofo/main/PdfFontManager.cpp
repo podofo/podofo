@@ -191,7 +191,7 @@ PdfFont& PdfFontManager::getOrCreateFontHashed(const shared_ptr<PdfFontMetrics>&
 {
     // TODO: Create a map indexed only on the hash of the font data
     // and search on that. Then remove the following
-    Descriptor descriptor(metrics->GetBaseFontName(),
+    Descriptor descriptor(metrics->GetFontNameSafe(),
         PdfStandard14FontType::Unknown,
         params.Encoding,
         true,
