@@ -303,13 +303,15 @@ void PdfMemDocument::beforeWrite(PdfSaveOptions opts)
         GetMetadata().SetModifyDate(PdfDate::LocalNow(), true);
     }
 
+    GetFonts().EmbedFonts();
+
+    // After we are done with all operations on objects,
+    // we can collect garbage
     if ((opts & PdfSaveOptions::NoCollectGarbage) ==
         PdfSaveOptions::None)
     {
         CollectGarbage();
     }
-
-    GetFonts().EmbedFonts();
 }
 
 void PdfMemDocument::SetEncrypted(const string_view& userPassword, const string_view& ownerPassword,
