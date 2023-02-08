@@ -60,7 +60,7 @@ public:
 
         // check for multiplication overflow on buffer sizes (e.g. if m_nBPC=2 and m_nColors=SIZE_MAX/2+1)
         if (utls::DoesMultiplicationOverflow(m_BitsPerComponent, m_Colors)
-            || utls::DoesMultiplicationOverflow(m_ColumnCount, m_BitsPerComponent * m_Colors))
+            || utls::DoesMultiplicationOverflow(m_ColumnCount, (size_t)m_BitsPerComponent * m_Colors))
         {
             PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
         }

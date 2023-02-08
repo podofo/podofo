@@ -91,7 +91,7 @@ void TestUtils::SaveFramePPM(OutputStream& stream, const void* data,
     {
         case PdfPixelFormat::RGBA:
         {
-            stream.Write((const char*)data, width * height * 4);
+            stream.Write((const char*)data, (size_t)width * height * 4ULL);
             break;
         }
         case PdfPixelFormat::BGRA:

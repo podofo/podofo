@@ -1788,7 +1788,7 @@ string expandTabs(const string_view& str, unsigned tabWidth, unsigned tabCount)
     auto end = str.end();
 
     string ret;
-    ret.reserve(str.length() + tabCount * (tabWidth - 1));
+    ret.reserve(str.length() + tabCount * ((size_t)tabWidth - 1));
     while (it != end)
     {
         char32_t ch = (char32_t)utf8::next(it, end);

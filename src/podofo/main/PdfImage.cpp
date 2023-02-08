@@ -1153,7 +1153,7 @@ void loadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
             && png_get_tRNS(png, pnginfo, &paletteTrans, &numTransColors, NULL)))
     {
         // Handle alpha channel and create smask
-        charbuff smask(width * height);
+        charbuff smask((size_t)width * height);
         png_uint_32 smaskIndex = 0;
         if (color_type == PNG_COLOR_TYPE_PALETTE)
         {
@@ -1196,7 +1196,7 @@ void loadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
                     smask[smaskIndex++] = row[c * 4 + 3]; // 4th byte for alpha
                 }
             }
-            len = 3 * width * height;
+            len = 3 * (size_t)width * height;
         }
         else if (color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
         {
@@ -1209,7 +1209,7 @@ void loadFromPngContent(PdfImage& image, png_structp png, png_infop pnginfo)
                     smask[smaskIndex++] = row[c * 2 + 1]; // 2nd byte for alpha
                 }
             }
-            len = width * height;
+            len = (size_t)width * height;
         }
         PdfImageInfo smaksInfo;
         smaksInfo.Width = (unsigned)width;
