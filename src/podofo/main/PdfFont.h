@@ -265,14 +265,6 @@ public:
 
     bool IsStandard14Font(PdfStandard14FontType& std14Font) const;
 
-    /** Extract base font name, removing known bold/italic/subset prefixes/suffixes
-     */
-    static std::string ExtractBaseName(const std::string_view& fontName, bool& isItalic, bool& isBold);
-
-    /** Extract base font name, removing known bold/italic/subset prefixes/suffixes
-     */
-    static std::string ExtractBaseName(const std::string_view& fontName);
-
     static std::string_view GetStandard14FontName(PdfStandard14FontType stdFont);
 
     /** Determine if font name is a Standard14 font

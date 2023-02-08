@@ -7,7 +7,6 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfFont.h"
 
-#include <regex>
 #include <utfcpp/utf8.h>
 
 #include <podofo/private/PdfEncodingPrivate.h>
@@ -895,79 +894,6 @@ PdfObject* PdfFont::getDescendantFontObject()
 {
     // By default return null
     return nullptr;
-}
-
-string PdfFont::ExtractBaseName(const string_view& fontName, bool& isItalic, bool& isBold)
-{
-    // TABLE H.3 Names of standard fonts
-    string name = (string)fontName;
-    regex regex;
-    smatch matches;
-    isItalic = false;
-    isBold = false;
-    
-    // NOTE: For some reasons, "^[A-Z]{6}\+" doesn't work
-    regex = std::regex("^[A-Z][A-Z][A-Z][A-Z][A-Z][A-Z]\\+", regex_constants::ECMAScript);
-    if (std::regex_search(name, matches, regex))
-    {
-        // 5.5.3 Font Subsets: Remove EOODIA+ like prefixes
-        name.erase(matches[0].first - name.begin(), 7);
-    }
-
-    regex = std::regex("[,-]BoldItalic", regex_constants::ECMAScript);
-    if (std::regex_search(name, matches, regex))
-    {
-        name.erase(matches[0].first - name.begin(), char_traits<char>::length("BoldItalic") + 1);
-        isBold = true;
-        isItalic = true;
-    }
-
-    regex = std::regex("[,-]BoldOblique", regex_constants::ECMAScript);
-    if (std::regex_search(name, matches, regex))
-    {
-        name.erase(matches[0].first - name.begin(), char_traits<char>::length("BoldOblique") + 1);
-        isBold = true;
-        isItalic = true;
-    }
-
-    regex = std::regex("[,-]Bold", regex_constants::ECMAScript);
-    if (std::regex_search(name, matches, regex))
-    {
-        name.erase(matches[0].first - name.begin(), char_traits<char>::length("Bold") + 1);
-        isBold = true;
-    }
-
-    regex = std::regex("[,-]Italic", regex_constants::ECMAScript);
-    if (std::regex_search(name, matches, regex))
-    {
-        name.erase(matches[0].first - name.begin(), char_traits<char>::length("Italic") + 1);
-        isItalic = true;
-    }
-
-    regex = std::regex("[,-]Oblique", regex_constants::ECMAScript);
-    if (std::regex_search(name, matches, regex))
-    {
-        name.erase(matches[0].first - name.begin(), char_traits<char>::length("Oblique") + 1);
-        isItalic = true;
-    }
-
-    regex = std::regex("[,-]Regular", regex_constants::ECMAScript);
-    if (std::regex_search(name, matches, regex))
-    {
-        name.erase(matches[0].first - name.begin(), char_traits<char>::length("Oblique") + 1);
-        // Nothing to set
-    }
-
-    // 5.5.2 TrueType Fonts: If the name contains any spaces, the spaces are removed
-    name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
-    return name;
-}
-
-string PdfFont::ExtractBaseName(const string_view& fontName)
-{
-    bool isItalic;
-    bool isBold;
-    return ExtractBaseName(fontName, isItalic, isBold);
 }
 
 string_view PdfFont::GetStandard14FontName(PdfStandard14FontType stdFont)

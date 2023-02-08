@@ -138,6 +138,9 @@ namespace PoDoFo
     class OutputStream;
     class InputStream;
 
+    constexpr double DEG2RAD = std::numbers::pi / 180;
+    constexpr double RAD2DEG = 180 / std::numbers::pi;
+
     PdfVersion GetPdfVersion(const std::string_view& str);
 
     std::string_view GetPdfVersionName(PdfVersion version);
@@ -161,8 +164,15 @@ namespace PoDoFo
     std::string_view AnnotationTypeToName(PdfAnnotationType type);
     PdfAnnotationType NameToAnnotationType(const std::string_view& str);
 
-    constexpr double DEG2RAD = std::numbers::pi / 180;
-    constexpr double RAD2DEG = 180 / std::numbers::pi;
+    /** Normalize base font name, removing known bold/italic/subset prefixes/suffixes
+     */
+    std::string NormalizeFontName(const std::string_view& fontName);
+
+    /** Extract base font name, removing known bold/italic/subset prefixes/suffixes
+     * \returns normalized font name
+     */
+    std::string ExtractFontHints(const std::string_view& fontName,
+        bool& isItalic, bool& isBold);
 
     std::vector<std::string> ToPdfKeywordsList(const std::string_view& str);
     std::string ToPdfKeywordsString(const cspan<std::string>&keywords);

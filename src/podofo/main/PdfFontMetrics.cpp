@@ -106,7 +106,7 @@ void PdfFontMetrics::initBaseFontNameSafe()
 
     m_BaseFontNameSafe.reset(new string(GetBaseFontName()));
     if (m_BaseFontNameSafe->length() == 0)
-        *m_BaseFontNameSafe = PdfFont::ExtractBaseName(GetFontFamilyName());;
+        *m_BaseFontNameSafe = PoDoFo::NormalizeFontName(GetFontFamilyName());;
 }
 
 string_view PdfFontMetrics::GetFontNameRaw() const

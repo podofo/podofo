@@ -210,6 +210,8 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
             m_FontName = m_FontFamilyName;
     }
 
+    m_FontBaseName = PoDoFo::NormalizeFontName(m_FontName);
+
     // FontInfo Table is available only in type1 fonts
     PS_FontInfoRec type1Info;
     rc = FT_Get_PS_Font_Info(m_Face.get(), &type1Info);
@@ -332,11 +334,6 @@ string_view PdfFontMetricsFreetype::GetFontName() const
 
 string_view PdfFontMetricsFreetype::GetBaseFontName() const
 {
-    if (m_FontBaseName.length() == 0)
-    {
-        PODOFO_ASSERT(m_FontName.length() != 0);
-        const_cast<PdfFontMetricsFreetype&>(*this).m_FontBaseName = PdfFont::ExtractBaseName(m_FontName);
-    }
     return m_FontBaseName;
 }
 

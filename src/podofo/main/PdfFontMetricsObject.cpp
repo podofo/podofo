@@ -559,7 +559,7 @@ void PdfFontMetricsObject::extractFontHints()
         return;
 
     PODOFO_ASSERT(m_FontName.length() != 0);
-    m_FontBaseName = PdfFont::ExtractBaseName(m_FontName, m_IsItalicHint, m_IsBoldHint);
+    m_FontBaseName = PoDoFo::ExtractFontHints(m_FontName, m_IsItalicHint, m_IsBoldHint);
 }
 
 vector<double> PdfFontMetricsObject::getBBox(const PdfObject& obj)

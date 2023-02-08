@@ -5,6 +5,7 @@
  */
 #include "PdfDeclarationsPrivate.h"
 
+#include <regex>
 #include <utfcpp/utf8.h>
 #include <podofo/private/charconv_compat.h>
 #include <podofo/private/utfcpp_extensions.h>
@@ -50,6 +51,9 @@ extern PODOFO_IMPORT LogMessageCallback s_LogMessageCallback;
 static char getEscapedCharacter(char ch);
 static void removeTrailingZeroes(string& str);
 static bool isStringDelimter(char32_t ch);
+static string extractFontHints(const std::string_view& fontName,
+    bool trimSubsetPrefix, bool& isItalic, bool& isBold);
+static bool trimSuffix(string& name, const string_view& suffix);
 
 struct VersionIdentity
 {
@@ -485,6 +489,76 @@ vector<string> PoDoFo::ToPdfKeywordsList(const string_view& str)
     return ret;
 }
 
+string PoDoFo::NormalizeFontName(const string_view& fontName)
+{
+    bool isItalic;
+    bool isBold;
+    return extractFontHints(fontName, false, isItalic, isBold);
+}
+
+string PoDoFo::ExtractFontHints(const string_view& fontName, bool& isItalic, bool& isBold)
+{
+    return extractFontHints(fontName, true, isItalic, isBold);
+}
+
+// NOTE: This function is condsidered to be slow. Avoid calling it frequently
+// https://github.com/podofo/podofo/issues/30
+string extractFontHints(const string_view& fontName, bool trimSubsetPrefix, bool& isItalic, bool& isBold)
+{
+    // TABLE H.3 Names of standard fonts
+    string name = (string)fontName;
+    isItalic = false;
+    isBold = false;
+
+    if (trimSubsetPrefix)
+    {
+        // NOTE: For some reasons, "^[A-Z]{6}\+" doesn't work
+        regex regex = std::regex("^[A-Z][A-Z][A-Z][A-Z][A-Z][A-Z]\\+", regex_constants::ECMAScript);
+        smatch matches;
+        if (std::regex_search(name, matches, regex))
+        {
+            // 5.5.3 Font Subsets: Remove EOODIA+ like prefixes
+            name.erase(matches[0].first - name.begin(), 7);
+        }
+    }
+
+    if (trimSuffix(name, "BoldItalic"))
+    {
+        isBold = true;
+        isItalic = true;
+    }
+
+    if (trimSuffix(name, "BoldOblique"))
+    {
+        isBold = true;
+        isItalic = true;
+    }
+
+    if (trimSuffix(name, "Bold"))
+    {
+        isBold = true;
+    }
+
+    if (trimSuffix(name, "Italic"))
+    {
+        isItalic = true;
+    }
+
+    if (trimSuffix(name, "Oblique"))
+    {
+        isItalic = true;
+    }
+
+    if (trimSuffix(name, "Regular"))
+    {
+        // Nothing to set
+    }
+
+    // 5.5.2 TrueType Fonts: If the name contains any spaces, the spaces are removed
+    name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
+    return name;
+}
+
 string PoDoFo::ToPdfKeywordsString(const cspan<string>& keywords)
 {
     string ret;
@@ -599,6 +673,26 @@ bool isStringDelimter(char32_t ch)
         default:
             return false;
     }
+}
+
+// Trim the suffix from the name. Returns true if suffix is found
+bool trimSuffix(string& name, const string_view& suffix)
+{
+    size_t found = name.find(suffix);
+    if (found == string::npos)
+        return false;
+
+    // Try to find prefix including ',' or '-'
+    char prevCh;
+    size_t patternLenth = suffix.length();
+    if (found > 0 && ((prevCh = name[found - 1]) == ',' || prevCh == '-'))
+    {
+        found--;
+        patternLenth++;
+    }
+
+    name.erase(found, patternLenth);
+    return true;
 }
 
 bool utls::IsStringEmptyOrWhiteSpace(const string_view& str)
@@ -1261,7 +1355,6 @@ void utls::RecursionGuard::Exit()
 {
     s_recursionDepth--;
 }
-
 
 utls::RecursionGuard::RecursionGuard()
 {

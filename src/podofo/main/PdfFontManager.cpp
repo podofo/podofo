@@ -214,7 +214,7 @@ void PdfFontManager::adaptSearchParams(string& fontName, PdfFontSearchParams& se
 
     bool italic;
     bool bold;
-    fontName = PdfFont::ExtractBaseName(fontName, italic, bold);
+    fontName = PoDoFo::ExtractFontHints(fontName, italic, bold);
     PdfFontStyle style = PdfFontStyle::Regular;
     if (italic)
         style |= PdfFontStyle::Italic;
