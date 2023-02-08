@@ -87,7 +87,7 @@ PdfFont* PdfFontManager::addImported(vector<PdfFont*>& fonts, unique_ptr<PdfFont
 {
     auto fontPtr = font.get();
     fonts.push_back(fontPtr);
-    auto inserted = m_fonts.insert({ fontPtr->GetObject().GetIndirectReference(), Storage{ false, std::move(font) } });
+    m_fonts.insert({ fontPtr->GetObject().GetIndirectReference(), Storage{ false, std::move(font) } });
     return fontPtr;
 }
 
@@ -249,7 +249,7 @@ PdfFont* PdfFontManager::getImportedFont(const string_view& patternName,
     adaptSearchParams(newPattern, newParams);
     string fontpath;
     unsigned faceIndex;
-    auto data = getFontData(patternName, searchParams, fontpath, faceIndex);
+    auto data = getFontData(newPattern, newParams, fontpath, faceIndex);
     if (data == nullptr)
         return nullptr;
 
