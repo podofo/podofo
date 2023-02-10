@@ -22,6 +22,8 @@ struct PdfEncodingLimits;
 
 class PODOFO_API PdfFontMetricsFreetype final : public PdfFontMetrics
 {
+    friend class PdfFontManager;
+
 public:
     static std::unique_ptr<PdfFontMetricsFreetype> FromMetrics(const PdfFontMetrics& metrics);
 
@@ -109,9 +111,9 @@ protected:
     const PdfCIDToGIDMapConstPtr& getCIDToGIDMap() const override;
 
 private:
-    PdfFontMetricsFreetype(const datahandle& data, const FreeTypeFacePtr& face, const PdfFontMetrics* refMetrics);
+    PdfFontMetricsFreetype(const FreeTypeFacePtr& face, const datahandle& data, const PdfFontMetrics* refMetrics);
 
-    PdfFontMetricsFreetype(const datahandle& data, const FreeTypeFacePtr& face);
+    PdfFontMetricsFreetype(const FreeTypeFacePtr& face, const datahandle& data);
 
     /** Load the metric data from the FTFace data
      * Called internally by the constructors
@@ -123,9 +125,9 @@ private:
     void initType1Lengths(const bufferview& view);
 
 private:
+    FreeTypeFacePtr m_Face;
     datahandle m_Data;
     PdfCIDToGIDMapConstPtr m_CIDToGIDMap;
-    FreeTypeFacePtr m_Face;
     PdfFontFileType m_FontFileType;
 
     bool m_HasUnicodeMapping;

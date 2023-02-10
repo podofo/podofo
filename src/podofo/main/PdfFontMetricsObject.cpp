@@ -307,6 +307,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     // We prioritize /BaseFont, over /FontName
     if ((obj = font.GetDictionary().FindKey("BaseFont")) != nullptr)
         m_FontName = obj->GetName().GetString();
+
     if (m_FontName.empty())
     {
         if (m_FontNameRaw.empty())

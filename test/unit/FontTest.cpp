@@ -21,7 +21,7 @@ static bool getFontInfo(FcPattern* font, string& fontFamily, string& fontPath,
     PdfFontStyle& style);
 static void testSingleFont(FcPattern* font);
 
-TEST_CASE("testFonts")
+TEST_CASE("TestFonts")
 {
     // Get all installed fonts
     auto pattern = FcPatternCreate();
@@ -112,7 +112,7 @@ void testSingleFont(FcPattern* font)
     }
 }
 
-bool getFontInfo(FcPattern* pFont, string& fontFamily, string& fontPath,
+bool getFontInfo(FcPattern* font, string& fontFamily, string& fontPath,
     PdfFontStyle& style)
 {
     FcChar8* family = nullptr;
@@ -121,19 +121,19 @@ bool getFontInfo(FcPattern* pFont, string& fontFamily, string& fontPath,
     int weight;
     style = PdfFontStyle::Regular;
 
-    if (FcPatternGetString(pFont, FC_FAMILY, 0, &family) == FcResultMatch)
+    if (FcPatternGetString(font, FC_FAMILY, 0, &family) == FcResultMatch)
     {
         fontFamily = reinterpret_cast<char*>(family);
-        if (FcPatternGetString(pFont, FC_FILE, 0, &path) == FcResultMatch)
+        if (FcPatternGetString(font, FC_FILE, 0, &path) == FcResultMatch)
         {
             fontPath = reinterpret_cast<char*>(path);
 
-            if (FcPatternGetInteger(pFont, FC_SLANT, 0, &slant) == FcResultMatch)
+            if (FcPatternGetInteger(font, FC_SLANT, 0, &slant) == FcResultMatch)
             {
                 if (slant == FC_SLANT_ITALIC || slant == FC_SLANT_OBLIQUE)
                     style |= PdfFontStyle::Italic;
 
-                if (FcPatternGetInteger(pFont, FC_WEIGHT, 0, &weight) == FcResultMatch)
+                if (FcPatternGetInteger(font, FC_WEIGHT, 0, &weight) == FcResultMatch)
                 {
                     if (weight >= FC_WEIGHT_BOLD)
                         style |= PdfFontStyle::Bold;

@@ -75,3 +75,8 @@ either assume UTF-8 and/or checks for used codepoints
 - Option to convert Unicode ligatures <-> separate codepoints when drawing strings/converting to encoded
 - Optimize charbuff to not initialize memory, keeping std::string compatibility
 - Add backtrace: https://github.com/boostorg/stacktrace
+
+Ideas:
+- Consider converting protected PdfFontMetrics::GetFaceHandle() to return just FT_Face,
+and reference the face with FT_Reference_Face
+- PdfFontManager: Consider also statically caching the queries for the font filepath

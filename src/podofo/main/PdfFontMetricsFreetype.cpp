@@ -8,10 +8,8 @@
 #include "PdfFontMetricsFreetype.h"
 
 #include <podofo/private/FreetypePrivate.h>
-#include FT_TRUETYPE_TAGS_H
 #include FT_TRUETYPE_TABLES_H
 #include FT_TYPE1_TABLES_H
-#include FT_FONT_FORMATS_H
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
@@ -22,13 +20,12 @@
 using namespace std;
 using namespace PoDoFo;
 
-static PdfFontFileType determineTrueTypeFormat(FT_Face face);
 static int determineType1FontWeight(const string_view& weight);
 
-PdfFontMetricsFreetype::PdfFontMetricsFreetype(const datahandle& data, const FreeTypeFacePtr& face,
+PdfFontMetricsFreetype::PdfFontMetricsFreetype(const FreeTypeFacePtr& face, const datahandle& data,
         const PdfFontMetrics* refMetrics) :
-    m_Data(data),
     m_Face(face),
+    m_Data(data),
     m_LengthsReady(false),
     m_Length1(0),
     m_Length2(0),
@@ -40,21 +37,21 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype(const datahandle& data, const Fre
     initFromFace(refMetrics);
 }
 
-PdfFontMetricsFreetype::PdfFontMetricsFreetype(const datahandle& data, const FreeTypeFacePtr& face)
-    : PdfFontMetricsFreetype(data, face, nullptr)
+PdfFontMetricsFreetype::PdfFontMetricsFreetype(const FreeTypeFacePtr& face, const datahandle& data)
+    : PdfFontMetricsFreetype(face, data, nullptr)
 {
 }
 
 unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromMetrics(const PdfFontMetrics& metrics)
 {
-    return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(metrics.GetFontFileDataHandle(),
-        metrics.GetFaceHandle(), &metrics));
+    return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(metrics.GetFaceHandle(),
+        metrics.GetFontFileDataHandle(), &metrics));
 }
 
 unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromBuffer(const std::shared_ptr<const charbuff>& buffer)
 {
     FreeTypeFacePtr face = FT::CreateFaceFromBuffer(*buffer);
-    return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(buffer, face));
+    return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(face, buffer));
 }
 
 unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromFace(FT_Face face)
@@ -64,24 +61,15 @@ unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromFace(FT_Face face
 
     // Increment the refcount for the face
     FT_Reference_Face(face);
-    return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(
-        shared_ptr<const charbuff>(new charbuff(FT::GetDataFromFace(face))), face));
+    return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(face,
+        shared_ptr<const charbuff>(new charbuff(FT::GetDataFromFace(face)))));
 }
 
 void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
 {
     FT_Error rc;
 
-    string format = FT_Get_Font_Format(m_Face.get());
-    if (format == "TrueType")
-        m_FontFileType = determineTrueTypeFormat(m_Face.get());
-    else if (format == "Type 1")
-        m_FontFileType = PdfFontFileType::Type1;
-    else if (format == "CID Type 1")
-        m_FontFileType = PdfFontFileType::CIDType1;
-    else if (format == "CFF")
-        m_FontFileType = PdfFontFileType::Type1CCF;
-    else
+    if (!FT::TryGetFontFileFormat(m_Face.get(), m_FontFileType))
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Unsupported font type");
 
     // Get the postscript name of the font and ensures it has no space:
@@ -548,80 +536,6 @@ double PdfFontMetricsFreetype::GetItalicAngle() const
 PdfFontFileType PdfFontMetricsFreetype::GetFontFileType() const
 {
     return m_FontFileType;
-}
-
-// Determines if the font is legacy TrueType or OpenType
-PdfFontFileType determineTrueTypeFormat(FT_Face face)
-{
-    FT_Error rc;
-    FT_ULong size;
-    FT_ULong tag;
-    rc = FT_Sfnt_Table_Info(face, 0, nullptr, &size);
-    CHECK_FT_RC(rc, FT_Sfnt_Table_Info);
-    for (FT_ULong i = 0, count = size; i < count; i++)
-    {
-        rc = FT_Sfnt_Table_Info(face, i, &tag, &size);
-        switch (tag)
-        {
-            // Legacy TrueType tables
-            // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6.html
-            case TTAG_acnt:
-            case TTAG_ankr:
-            case TTAG_avar:
-            case TTAG_bdat:
-            case TTAG_bhed:
-            case TTAG_bloc:
-            case TTAG_bsln:
-            case TTAG_cmap:
-            case TTAG_cvar:
-            case TTAG_cvt:
-            case TTAG_EBSC:
-            case TTAG_fdsc:
-            case TTAG_feat:
-            case TTAG_fmtx:
-            case TTAG_fond:
-            case TTAG_fpgm:
-            case TTAG_fvar:
-            case TTAG_gasp:
-            case TTAG_gcid:
-            case TTAG_glyf:
-            case TTAG_gvar:
-            case TTAG_hdmx:
-            case TTAG_head:
-            case TTAG_hhea:
-            case TTAG_hmtx:
-            case TTAG_just:
-            case TTAG_kern:
-            case TTAG_kerx:
-            case TTAG_lcar:
-            case TTAG_loca:
-            case TTAG_ltag:
-            case TTAG_maxp:
-            case TTAG_meta:
-            case TTAG_mort:
-            case TTAG_morx:
-            case TTAG_name:
-            case TTAG_opbd:
-            case TTAG_OS2:
-            case TTAG_post:
-            case TTAG_prep:
-            case TTAG_prop:
-            case TTAG_sbix:
-            case TTAG_trak:
-            case TTAG_vhea:
-            case TTAG_vmtx:
-            case TTAG_xref:
-            case TTAG_Zapf:
-                // Continue on legacy tables
-                break;
-            default:
-                // Return OpenType on all other tables
-                return PdfFontFileType::OpenType;
-        }
-    }
-
-    // Default legay TrueType
-    return PdfFontFileType::TrueType;
 }
 
 int determineType1FontWeight(const string_view& weightraw)

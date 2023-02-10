@@ -11,7 +11,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include <podofo/main/basedefs.h>
+#include <podofo/main/PdfDeclarations.h>
 
 #define CHECK_FT_RC(rc, func) if (rc != 0)\
     PODOFO_RAISE_ERROR_INFO(PdfErrorCode::FreeType, "Function " #func " failed")
@@ -26,6 +26,7 @@ namespace FT
     bool TryCreateFaceFromFile(const std::string_view& filepath, unsigned faceIndex, FT_Face& face);
     FT_Face CreateFaceFromFile(const std::string_view& filepath, unsigned faceIndex = 0);
     PoDoFo::charbuff GetDataFromFace(FT_Face face);
+    bool TryGetFontFileFormat(FT_Face face, PoDoFo::PdfFontFileType& format);
 }
 
 // Other legacy TrueType tables defined in Apple documentation

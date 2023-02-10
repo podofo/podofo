@@ -6,10 +6,14 @@
 
 #include "PdfDeclarationsPrivate.h"
 #include "FreetypePrivate.h"
+#include FT_TRUETYPE_TAGS_H
 #include FT_TRUETYPE_TABLES_H
+#include FT_FONT_FORMATS_H
 
 using namespace std;
 using namespace PoDoFo;
+
+static PdfFontFileType determineTrueTypeFormat(FT_Face face);
 
 FT_Library FT::GetLibrary()
 {
@@ -111,4 +115,99 @@ charbuff FT::GetDataFromFace(FT_Face face)
     rc = FT_Load_Sfnt_Table(face, 0, 0, (FT_Byte*)buffer.data(), &size);
     CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
     return buffer;
+}
+
+
+bool FT::TryGetFontFileFormat(FT_Face face, PdfFontFileType& format)
+{
+    string_view formatstr = FT_Get_Font_Format(face);
+    if (formatstr == "TrueType")
+        format = determineTrueTypeFormat(face);
+    else if (formatstr == "Type 1")
+        format = PdfFontFileType::Type1;
+    else if (formatstr == "CID Type 1")
+        format = PdfFontFileType::CIDType1;
+    else if (formatstr == "CFF")
+        format = PdfFontFileType::Type1CCF;
+    else
+    {
+        format = PdfFontFileType::Unknown;
+        return false;
+    }
+
+    return true;
+}
+
+// Determines if the font is legacy TrueType or OpenType
+PdfFontFileType determineTrueTypeFormat(FT_Face face)
+{
+    FT_Error rc;
+    FT_ULong size;
+    FT_ULong tag;
+    rc = FT_Sfnt_Table_Info(face, 0, nullptr, &size);
+    CHECK_FT_RC(rc, FT_Sfnt_Table_Info);
+    for (FT_ULong i = 0, count = size; i < count; i++)
+    {
+        rc = FT_Sfnt_Table_Info(face, i, &tag, &size);
+        switch (tag)
+        {
+            // Legacy TrueType tables
+            // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6.html
+            case TTAG_acnt:
+            case TTAG_ankr:
+            case TTAG_avar:
+            case TTAG_bdat:
+            case TTAG_bhed:
+            case TTAG_bloc:
+            case TTAG_bsln:
+            case TTAG_cmap:
+            case TTAG_cvar:
+            case TTAG_cvt:
+            case TTAG_EBSC:
+            case TTAG_fdsc:
+            case TTAG_feat:
+            case TTAG_fmtx:
+            case TTAG_fond:
+            case TTAG_fpgm:
+            case TTAG_fvar:
+            case TTAG_gasp:
+            case TTAG_gcid:
+            case TTAG_glyf:
+            case TTAG_gvar:
+            case TTAG_hdmx:
+            case TTAG_head:
+            case TTAG_hhea:
+            case TTAG_hmtx:
+            case TTAG_just:
+            case TTAG_kern:
+            case TTAG_kerx:
+            case TTAG_lcar:
+            case TTAG_loca:
+            case TTAG_ltag:
+            case TTAG_maxp:
+            case TTAG_meta:
+            case TTAG_mort:
+            case TTAG_morx:
+            case TTAG_name:
+            case TTAG_opbd:
+            case TTAG_OS2:
+            case TTAG_post:
+            case TTAG_prep:
+            case TTAG_prop:
+            case TTAG_sbix:
+            case TTAG_trak:
+            case TTAG_vhea:
+            case TTAG_vmtx:
+            case TTAG_xref:
+            case TTAG_Zapf:
+                // Continue on legacy tables
+                break;
+            default:
+                // Return OpenType on all other tables
+                return PdfFontFileType::OpenType;
+        }
+    }
+
+    // Default legay TrueType
+    return PdfFontFileType::TrueType;
 }

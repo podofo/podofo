@@ -864,14 +864,15 @@ void utls::ReadTo(charbuff& str, const string_view& filepath)
 void utls::ReadTo(charbuff& str, istream& stream)
 {
     stream.seekg(0, ios::end);
-    if (stream.tellg() == -1)
+    auto tellg = stream.tellg();
+    if (tellg == -1)
         throw runtime_error("Error reading from stream");
 
-    str.reserve((size_t)stream.tellg());
+    str.resize((size_t)tellg);
     stream.seekg(0, ios::beg);
-
-    str.assign((istreambuf_iterator<char>(stream)),
-        istreambuf_iterator<char>());
+    stream.read(str.data(), str.size());
+    if (stream.fail())
+        throw runtime_error("Error reading from stream");
 }
 
 void utls::WriteTo(const string_view& filepath, const bufferview& view)

@@ -195,9 +195,9 @@ private:
     static std::shared_ptr<PdfFontConfigWrapper> ensureInitializedFontConfig();
 #endif // PODOFO_HAVE_FONTCONFIG
 
-    static std::unique_ptr<charbuff> getFontData(const std::string_view& fontName,
-        const PdfFontSearchParams& params, std::string& fontpath,
-        unsigned& faceIndex);
+    static FT_Face getFontFace(const std::string_view& fontName,
+        const PdfFontSearchParams& params, std::unique_ptr<charbuff>& data,
+        std::string& fontpath, unsigned& faceIndex);
     PdfFont* getImportedFont(const std::string_view& patternName,
         const PdfFontSearchParams& searchParams, const PdfFontCreateParams& createParams);
     static void adaptSearchParams(std::string& patternName,

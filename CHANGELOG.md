@@ -1,4 +1,5 @@
 ## Version 0.10.0
+- PdfImage: Added support for CYMK jpeg
 - PdfParser: Cleaned FindToken2 -> FindTokenBackward
 - Renamed base source folder -> main
 - PdfPainter: Revamped API, added full state inspection with current point,
