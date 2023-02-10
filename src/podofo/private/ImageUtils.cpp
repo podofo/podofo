@@ -16,8 +16,10 @@ using namespace PoDoFo;
 #define FETCH_BIT(bytes, idx) ((bytes[idx / 8] >> (idx % 8)) & 1)
 #endif
 
+template <int bpp>
 static void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width,
     PdfPixelFormat format, const unsigned char* srcScanLine);
+template <int bpp>
 static void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width,
     PdfPixelFormat format, const unsigned char* srcScanLine,
     const unsigned char* srcAphaLine);
@@ -40,7 +42,7 @@ void utls::FetchImageRGB(OutputStream& stream, unsigned width, unsigned heigth, 
     {
         for (unsigned i = 0; i < heigth; i++)
         {
-            fetchScanLineRGB((unsigned char*)scanLine.data(),
+            fetchScanLineRGB<3>((unsigned char*)scanLine.data(),
                 width, format, imageData + i * srcRowSize);
             stream.Write(scanLine.data(), scanLine.size());
         }
@@ -49,7 +51,7 @@ void utls::FetchImageRGB(OutputStream& stream, unsigned width, unsigned heigth, 
     {
         for (unsigned i = 0; i < heigth; i++)
         {
-            fetchScanLineRGB((unsigned char*)scanLine.data(),
+            fetchScanLineRGB<3>((unsigned char*)scanLine.data(),
                 width, format, imageData + i * srcRowSize,
                 (const unsigned char*)smaskData.data() + i * width);
             stream.Write(scanLine.data(), scanLine.size());
@@ -121,7 +123,7 @@ void utls::FetchImageJPEG(OutputStream& stream, PdfPixelFormat format,
                 for (unsigned i = 0; i < ctx->output_height; i++)
                 {
                     jpeg_read_scanlines(ctx, jScanLine, 1);
-                    fetchScanLineRGB((unsigned char*)scanLine.data(),
+                    fetchScanLineRGB<3>((unsigned char*)scanLine.data(),
                         ctx->output_width, format, jScanLine[0]);
                     stream.Write(scanLine.data(), scanLine.size());
                 }
@@ -131,7 +133,7 @@ void utls::FetchImageJPEG(OutputStream& stream, PdfPixelFormat format,
                 for (unsigned i = 0; i < ctx->output_height; i++)
                 {
                     jpeg_read_scanlines(ctx, jScanLine, 1);
-                    fetchScanLineRGB((unsigned char*)scanLine.data(), ctx->output_width, format,
+                    fetchScanLineRGB<3>((unsigned char*)scanLine.data(), ctx->output_width, format,
                         jScanLine[0], (const unsigned char*)smaskData.data()
                         + i * ctx->output_width);
                     stream.Write(scanLine.data(), scanLine.size());
@@ -164,13 +166,40 @@ void utls::FetchImageJPEG(OutputStream& stream, PdfPixelFormat format,
             }
             break;
         }
+        case JCS_CMYK:
+        {
+            if (smaskData.size() == 0)
+            {
+                for (unsigned i = 0; i < ctx->output_height; i++)
+                {
+                    jpeg_read_scanlines(ctx, jScanLine, 1);
+                    ConvertScanlineCYMKToRGB(ctx, jScanLine[0]);
+                    fetchScanLineRGB<4>((unsigned char*)scanLine.data(),
+                        ctx->output_width, format, jScanLine[0]);
+                    stream.Write(scanLine.data(), scanLine.size());
+                }
+            }
+            else
+            {
+                for (unsigned i = 0; i < ctx->output_height; i++)
+                {
+                    jpeg_read_scanlines(ctx, jScanLine, 1);
+                    ConvertScanlineCYMKToRGB(ctx, jScanLine[0]);
+                    fetchScanLineRGB<4>((unsigned char*)scanLine.data(), ctx->output_width, format,
+                        jScanLine[0], (const unsigned char*)smaskData.data()
+                        + i * ctx->output_width);
+                    stream.Write(scanLine.data(), scanLine.size());
+                }
+            }
+            break;
+        }
         default:
             PODOFO_RAISE_ERROR(PdfErrorCode::InternalLogic);
     }
-
 }
 #endif // PODOFO_HAVE_JPEG_LIB
 
+template <int bpp>
 void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat format,
     const unsigned char* srcScanLine)
 {
@@ -180,9 +209,9 @@ void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat
         {
             for (unsigned i = 0; i < width; i++)
             {
-                dstScanLine[i * 3 + 0] = srcScanLine[i * 3 + 0];
-                dstScanLine[i * 3 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 3 + 2] = srcScanLine[i * 3 + 2];
+                dstScanLine[i * 3 + 0] = srcScanLine[i * bpp + 0];
+                dstScanLine[i * 3 + 1] = srcScanLine[i * bpp + 1];
+                dstScanLine[i * 3 + 2] = srcScanLine[i * bpp + 2];
             }
             break;
         }
@@ -190,9 +219,9 @@ void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat
         {
             for (unsigned i = 0; i < width; i++)
             {
-                dstScanLine[i * 3 + 0] = srcScanLine[i * 3 + 2];
-                dstScanLine[i * 3 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 3 + 2] = srcScanLine[i * 3 + 0];
+                dstScanLine[i * 3 + 0] = srcScanLine[i * bpp + 2];
+                dstScanLine[i * 3 + 1] = srcScanLine[i * bpp + 1];
+                dstScanLine[i * 3 + 2] = srcScanLine[i * bpp + 0];
             }
             break;
         }
@@ -200,9 +229,9 @@ void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat
         {
             for (unsigned i = 0; i < width; i++)
             {
-                dstScanLine[i * 4 + 0] = srcScanLine[i * 3 + 0];
-                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 2];
+                dstScanLine[i * 4 + 0] = srcScanLine[i * bpp + 0];
+                dstScanLine[i * 4 + 1] = srcScanLine[i * bpp + 1];
+                dstScanLine[i * 4 + 2] = srcScanLine[i * bpp + 2];
                 dstScanLine[i * 4 + 3] = 255;
             }
             break;
@@ -211,9 +240,9 @@ void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat
         {
             for (unsigned i = 0; i < width; i++)
             {
-                dstScanLine[i * 4 + 0] = srcScanLine[i * 3 + 2];
-                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 0];
+                dstScanLine[i * 4 + 0] = srcScanLine[i * bpp + 2];
+                dstScanLine[i * 4 + 1] = srcScanLine[i * bpp + 1];
+                dstScanLine[i * 4 + 2] = srcScanLine[i * bpp + 0];
                 dstScanLine[i * 4 + 3] = 255;
             }
             break;
@@ -223,9 +252,9 @@ void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat
             for (unsigned i = 0; i < width; i++)
             {
                 dstScanLine[i * 4 + 0] = 255;
-                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 0];
-                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 4 + 3] = srcScanLine[i * 3 + 2];
+                dstScanLine[i * 4 + 1] = srcScanLine[i * bpp + 0];
+                dstScanLine[i * 4 + 2] = srcScanLine[i * bpp + 1];
+                dstScanLine[i * 4 + 3] = srcScanLine[i * bpp + 2];
             }
             break;
         }
@@ -234,9 +263,9 @@ void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat
             for (unsigned i = 0; i < width; i++)
             {
                 dstScanLine[i * 4 + 0] = 255;
-                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 2];
-                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 4 + 3] = srcScanLine[i * 3 + 0];
+                dstScanLine[i * 4 + 1] = srcScanLine[i * bpp + 2];
+                dstScanLine[i * 4 + 2] = srcScanLine[i * bpp + 1];
+                dstScanLine[i * 4 + 3] = srcScanLine[i * bpp + 0];
             }
             break;
         }
@@ -245,6 +274,7 @@ void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat
     }
 }
 
+template <int bpp>
 void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat format,
     const unsigned char* srcScanLine, const unsigned char* srcAphaLine)
 {
@@ -255,9 +285,9 @@ void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat
         {
             for (unsigned i = 0; i < width; i++)
             {
-                dstScanLine[i * 3 + 0] = srcScanLine[i * 3 + 0];
-                dstScanLine[i * 3 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 3 + 2] = srcScanLine[i * 3 + 2];
+                dstScanLine[i * 3 + 0] = srcScanLine[i * bpp + 0];
+                dstScanLine[i * 3 + 1] = srcScanLine[i * bpp + 1];
+                dstScanLine[i * 3 + 2] = srcScanLine[i * bpp + 2];
             }
             break;
         }
@@ -266,9 +296,9 @@ void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat
         {
             for (unsigned i = 0; i < width; i++)
             {
-                dstScanLine[i * 3 + 0] = srcScanLine[i * 3 + 2];
-                dstScanLine[i * 3 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 3 + 2] = srcScanLine[i * 3 + 0];
+                dstScanLine[i * 3 + 0] = srcScanLine[i * bpp + 2];
+                dstScanLine[i * 3 + 1] = srcScanLine[i * bpp + 1];
+                dstScanLine[i * 3 + 2] = srcScanLine[i * bpp + 0];
             }
             break;
         }
@@ -276,9 +306,9 @@ void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat
         {
             for (unsigned i = 0; i < width; i++)
             {
-                dstScanLine[i * 4 + 0] = srcScanLine[i * 3 + 0];
-                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 2];
+                dstScanLine[i * 4 + 0] = srcScanLine[i * bpp + 0];
+                dstScanLine[i * 4 + 1] = srcScanLine[i * bpp + 1];
+                dstScanLine[i * 4 + 2] = srcScanLine[i * bpp + 2];
                 dstScanLine[i * 4 + 3] = srcAphaLine[i];
             }
             break;
@@ -287,9 +317,9 @@ void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat
         {
             for (unsigned i = 0; i < width; i++)
             {
-                dstScanLine[i * 4 + 0] = srcScanLine[i * 3 + 2];
-                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 0];
+                dstScanLine[i * 4 + 0] = srcScanLine[i * bpp + 2];
+                dstScanLine[i * 4 + 1] = srcScanLine[i * bpp + 1];
+                dstScanLine[i * 4 + 2] = srcScanLine[i * bpp + 0];
                 dstScanLine[i * 4 + 3] = srcAphaLine[i];
             }
             break;
@@ -299,9 +329,9 @@ void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat
             for (unsigned i = 0; i < width; i++)
             {
                 dstScanLine[i * 4 + 0] = srcAphaLine[i];
-                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 0];
-                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 4 + 3] = srcScanLine[i * 3 + 2];
+                dstScanLine[i * 4 + 1] = srcScanLine[i * bpp + 0];
+                dstScanLine[i * 4 + 2] = srcScanLine[i * bpp + 1];
+                dstScanLine[i * 4 + 3] = srcScanLine[i * bpp + 2];
             }
             break;
         }
@@ -310,9 +340,9 @@ void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat
             for (unsigned i = 0; i < width; i++)
             {
                 dstScanLine[i * 4 + 0] = srcAphaLine[i];
-                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 2];
-                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 4 + 3] = srcScanLine[i * 3 + 0];
+                dstScanLine[i * 4 + 1] = srcScanLine[i * bpp + 2];
+                dstScanLine[i * 4 + 2] = srcScanLine[i * bpp + 1];
+                dstScanLine[i * 4 + 3] = srcScanLine[i * bpp + 0];
             }
             break;
         }

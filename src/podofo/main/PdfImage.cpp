@@ -97,8 +97,6 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize
 #ifdef PODOFO_HAVE_JPEG_LIB
                 jpeg_decompress_struct ctx;
 
-                // Setup variables for JPEGLib
-                ctx.out_color_space = format == PdfPixelFormat::Grayscale ? JCS_GRAYSCALE : JCS_RGB;
                 JpegErrorHandler jerr;
                 try
                 {
@@ -108,6 +106,12 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize
 
                     if (jpeg_read_header(&ctx, TRUE) <= 0)
                         PODOFO_RAISE_ERROR(PdfErrorCode::UnexpectedEOF);
+
+                    if (ctx.out_color_space != JCS_CMYK)
+                    {
+                        // out_color_space must be set after jpeg_read_header() and before jpeg_start_decompress()
+                        ctx.out_color_space = format == PdfPixelFormat::Grayscale ? JCS_GRAYSCALE : JCS_RGB;
+                    }
 
                     jpeg_start_decompress(&ctx);
 

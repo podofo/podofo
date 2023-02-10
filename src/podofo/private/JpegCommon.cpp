@@ -75,6 +75,44 @@ void PoDoFo::InitJpegDecompressContext(jpeg_decompress_struct& ctx, JpegErrorHan
     jpeg_create_decompress(&ctx);
 }
 
+void PoDoFo::ConvertScanlineCYMKToRGB(j_decompress_ptr info, JSAMPROW scanLine)
+{
+    int c;
+    int m;
+    int y;
+    int k;
+
+    // As found in https://github.com/petewarden/tensorflow_makefile/blob/49c08e4d4ff3b6e7d99374dc2fbf8b358150ef9c/tensorflow/core/lib/jpeg/jpeg_mem.cc#L199
+    if (info->saw_Adobe_marker)
+    {
+        for (unsigned i = 0; i < info->image_width; i++)
+        {
+            c = scanLine[i * 4 + 0];
+            m = scanLine[i * 4 + 1];
+            y = scanLine[i * 4 + 2];
+            k = scanLine[i * 4 + 3];
+
+            scanLine[i * 4 + 0] = (unsigned char)std::clamp((k * c) / 255, 0, 255);
+            scanLine[i * 4 + 1] = (unsigned char)std::clamp((k * m) / 255, 0, 255);
+            scanLine[i * 4 + 2] = (unsigned char)std::clamp((k * y) / 255, 0, 255);
+        }
+    }
+    else
+    {
+        for (unsigned i = 0; i < info->image_width; i++)
+        {
+            c = scanLine[i * 4 + 0];
+            m = scanLine[i * 4 + 1];
+            y = scanLine[i * 4 + 2];
+            k = scanLine[i * 4 + 3];
+
+            scanLine[i * 4 + 0] = (unsigned char)std::clamp((255 - k) * (255 - c) / 255, 0, 255);
+            scanLine[i * 4 + 1] = (unsigned char)std::clamp((255 - k) * (255 - m) / 255, 0, 255);
+            scanLine[i * 4 + 2] = (unsigned char)std::clamp((255 - k) * (255 - y) / 255, 0, 255);
+        }
+    }
+}
+
 void PoDoFo::InitJpegCompressContext(jpeg_compress_struct& ctx, JpegErrorHandler& handler)
 {
     setErrorHandler((jpeg_common_struct&)ctx, handler);

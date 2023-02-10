@@ -145,3 +145,43 @@ TEST_CASE("TestImage4")
     }
 #endif // PODOFO_PLAYGROUND
 }
+
+// TODO: Hash test
+TEST_CASE("TestImage5")
+{
+    {
+        // Image found at:
+        // https://github.com/tyranron/mozjpeg-sys-issue-23-example/blob/master/ignucius.jpg
+        PdfMemDocument doc;
+        doc.Load(TestUtils::GetTestInputFilePath("YCbCr-jpeg.pdf"));
+        auto imageObj = doc.GetObjects().GetObject(PdfReference(11, 0));
+        unique_ptr<PdfImage> image;
+        REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(*imageObj, image));
+
+        charbuff buffer;
+        image->DecodeTo(buffer, PdfPixelFormat::BGRA);
+        charbuff ppmbuffer;
+        TestUtils::SaveFramePPM(ppmbuffer, buffer.data(),
+            PdfPixelFormat::BGRA, image->GetWidth(), image->GetHeight());
+
+        TestUtils::WriteTestOutputFile(TestUtils::GetTestOutputFilePath("YCbCr-jpeg.ppm"), ppmbuffer);
+    }
+
+    {
+        // Image found at:
+        // https://bugzilla.redhat.com/show_bug.cgi?id=166460
+        PdfMemDocument doc;
+        doc.Load(TestUtils::GetTestInputFilePath("YCCK-jpeg.pdf"));
+        auto imageObj = doc.GetObjects().GetObject(PdfReference(11, 0));
+        unique_ptr<PdfImage> image;
+        REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(*imageObj, image));
+
+        charbuff buffer;
+        image->DecodeTo(buffer, PdfPixelFormat::BGRA);
+        charbuff ppmbuffer;
+        TestUtils::SaveFramePPM(ppmbuffer, buffer.data(),
+            PdfPixelFormat::BGRA, image->GetWidth(), image->GetHeight());
+
+        TestUtils::WriteTestOutputFile(TestUtils::GetTestOutputFilePath("YCCK-jpeg.ppm"), ppmbuffer);
+    }
+}

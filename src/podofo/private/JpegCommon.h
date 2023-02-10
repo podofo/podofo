@@ -24,6 +24,7 @@ namespace PoDoFo
     void InitJpegDecompressContext(jpeg_decompress_struct& ctx, JpegErrorHandler& jerr);
     void SetJpegBufferDestination(jpeg_compress_struct& ctx, charbuff& buff, JpegBufferDestination& jdest);
     void jpeg_memory_src(j_decompress_ptr cinfo, const JOCTET* buffer, size_t bufsize);
+    void ConvertScanlineCYMKToRGB(j_decompress_ptr info, JSAMPROW scanLine);
 }
 
 #endif // JPEG_COMMON_H
