@@ -37,21 +37,11 @@
  *
  */
 
-// Automatically defined by CMake when building a shared library
-#if defined(podofo_shared_EXPORTS)
-    #define COMPILING_SHARED_PODOFO
-#endif
-
-// Sanity check - can't be both compiling and using shared PoDoFo
+// Sanity check, can't compile both shared and static library
 #if defined(PODOFO_SHARED) && defined(PODOFO_STATIC)
     #error "Both PODOFO_SHARED and PODOFO_STATIC defined!"
 #endif
 
-// Define PODOFO_SHARED when building the PoDoFo library as a
-// DLL. When building code that uses that DLL, define PODOFO_STATIC.
-//
-// Building or linking to a static library does not require either
-// preprocessor symbol.
 #ifdef PODOFO_STATIC
 
 #define PODOFO_API
@@ -73,7 +63,7 @@
     #define PODOFO_IMPORT __attribute__ ((visibility("default")))
 #endif
 
-#if defined(COMPILING_SHARED_PODOFO)
+#if defined(PODOFO_BUILD)
 #define PODOFO_API PODOFO_EXPORT
 #else
 #define PODOFO_API PODOFO_IMPORT

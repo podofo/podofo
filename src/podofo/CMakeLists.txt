@@ -67,6 +67,8 @@ endif()
 
 add_source("3rdparty/pdfium" "${PROJECT_SOURCE_DIR}/3rdparty/pdfium")
 
+add_compile_definitions(PODOFO_BUILD)
+
 if(PODOFO_STATIC)
     message("Building static podofo library")
     add_library(podofo_static STATIC ${PODOFO_SOURCES})
