@@ -8,6 +8,7 @@
 #include "PdfFontManager.h"
 
 #include <algorithm>
+#include <podofo/private/FileSystem.h>
 
 #if defined(_WIN32) && defined(PODOFO_HAVE_WIN32GDI)
 #include <podofo/private/WindowsLeanMean.h>
@@ -162,6 +163,13 @@ PdfFont& PdfFontManager::GetOrCreateFont(const string_view& fontPath, const PdfF
 
 PdfFont& PdfFontManager::GetOrCreateFont(const string_view& fontPath, unsigned faceIndex, const PdfFontCreateParams& params)
 {
+    // NOTE: Canonical seems to handle also case insensitive paths,
+    // converting them to actual casing
+    auto normalizedPath = fs::canonical(fs::u8path(fontPath)).u8string();
+    auto found = m_cachedPaths.find(normalizedPath);
+    if (found != m_cachedPaths.end())
+        return *found->second;
+
     unique_ptr<charbuff> data;
     auto face = getFontFaceFromFile(fontPath, faceIndex, data);
     if (face == nullptr)
@@ -169,7 +177,9 @@ PdfFont& PdfFontManager::GetOrCreateFont(const string_view& fontPath, unsigned f
 
     shared_ptr<PdfFontMetrics> metrics(new PdfFontMetricsFreetype(face, datahandle(std::move(data))));
     metrics->SetFilePath(string(fontPath), faceIndex);
-    return getOrCreateFontHashed(metrics, params);
+    auto& ret = getOrCreateFontHashed(metrics, params);
+    m_cachedPaths[std::move(normalizedPath)] = &ret;
+    return ret;
 }
 
 PdfFont& PdfFontManager::GetOrCreateFontFromBuffer(const bufferview& buffer, const PdfFontCreateParams& createParams)

@@ -190,6 +190,8 @@ private:
 
     using FontMap = std::unordered_map<PdfReference, Storage>;
 
+    using CachedPaths = std::unordered_map<std::string, PdfFont*>;
+
 private:
 #ifdef PODOFO_HAVE_FONTCONFIG
     static std::shared_ptr<PdfFontConfigWrapper> ensureInitializedFontConfig();
@@ -220,6 +222,9 @@ private:
 
     // Map of cached font queries
     CachedQueries m_cachedQueries;
+
+    // Map of cached font paths
+    CachedPaths m_cachedPaths;
 
     // Map of all fonts
     FontMap m_fonts;

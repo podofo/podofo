@@ -76,7 +76,8 @@ either assume UTF-8 and/or checks for used codepoints
 - Optimize charbuff to not initialize memory, keeping std::string compatibility
 - Add backtrace: https://github.com/boostorg/stacktrace
 
-Ideas:
+### Ideas:
 - Consider converting protected PdfFontMetrics::GetFaceHandle() to return just FT_Face,
 and reference the face with FT_Reference_Face
-- PdfFontManager: Consider also statically caching the queries for the font filepath
+- PdfFontManager: Consider also statically caching the queries and filepaths.
+  Maybe we could also weakely (weak shared pointer) cache metrics instead of fonts

@@ -49,10 +49,19 @@ TEST_CASE("TestCreateFontExtract")
     PdfMemDocument doc;
     auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
 
+    // Play a bit with font path caching
+    auto fontPath1 = TestUtils::GetTestInputFilePath("Fonts", "LiberationSans-Regular.ttf");
+    auto fontPath2 = TestUtils::GetTestInputFilePath("Fonts", "..", "Fonts", "LiberationSans-Regular.ttf");
+    auto fontRef = &doc.GetFonts().GetOrCreateFont(fontPath1);
+    auto& font = doc.GetFonts().GetOrCreateFont(fontPath2);
+
+    // The matched fonts should be the same one
+    REQUIRE(&font == fontRef);
+
     {
         PdfPainter painter;
         painter.SetCanvas(page);
-        auto& font = doc.GetFonts().GetOrCreateFont(TestUtils::GetTestInputFilePath("Fonts", "LiberationSans-Regular.ttf"));
+
         painter.TextState.SetFont(font, 30.0);
         painter.DrawText("ěščř", 100, 600);
         painter.FinishDrawing();
