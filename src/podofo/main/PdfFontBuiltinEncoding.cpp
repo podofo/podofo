@@ -45,13 +45,16 @@ PdfEncodingMapConstPtr PdfFontMetrics::getFontType1Encoding(FT_Face face)
 
     map<FT_UInt, FT_ULong> unicodeMap;
     rc = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
-    CHECK_FT_RC(rc, FT_Select_Charmap);
-
-    code = FT_Get_First_Char(face, &index);
-    while (index != 0)
+    if (rc == 0)
     {
-        unicodeMap[index] = code;
-        code = FT_Get_Next_Char(face, code, &index);
+        // If an Unicode compatible charmap is found,
+        // create a an unicode map
+        code = FT_Get_First_Char(face, &index);
+        while (index != 0)
+        {
+            unicodeMap[index] = code;
+            code = FT_Get_Next_Char(face, code, &index);
+        }
     }
 
     // Search for a custom char map
@@ -66,8 +69,12 @@ PdfEncodingMapConstPtr PdfFontMetrics::getFontType1Encoding(FT_Face face)
             code = FT_Get_Next_Char(face, code, &index);
         }
 
-        rc = FT_Set_Charmap(face, oldCharmap);
-        CHECK_FT_RC(rc, FT_Select_Charmap);
+        // NOTE: Initial charmap may be null
+        if (oldCharmap != nullptr)
+        {
+            rc = FT_Set_Charmap(face, oldCharmap);
+            CHECK_FT_RC(rc, FT_Select_Charmap);
+        }
 
         for (auto& pair : customMap)
         {
