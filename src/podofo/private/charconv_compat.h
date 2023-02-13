@@ -4,10 +4,10 @@
 #include <charconv>
 
 // Older gcc and clang may have no floating point from_chars
-#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 11
-#define WANT_FROM_CHARS
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 10
 #define WANT_CHARS_FORMAT
-#elif defined(__clang__)
+#endif
+#if (defined(__GNUC__) && __GNUC__ < 11) || defined(__clang__)
 #define WANT_FROM_CHARS
 #endif
 
