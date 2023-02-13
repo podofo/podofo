@@ -6,7 +6,6 @@
 #include "PdfDeclarationsPrivate.h"
 
 #include <regex>
-#include <utfcpp/utf8.h>
 #include <podofo/private/charconv_compat.h>
 #include <podofo/private/utfcpp_extensions.h>
 
@@ -14,6 +13,8 @@
 #include <podofo/main/PdfOutputStream.h>
 
 #include <podofo/private/istringviewstream.h>
+
+#include <podofo/private/utfcpp_extensions.h>
 
 #ifdef _WIN32
 #include <podofo/private/WindowsLeanMean.h>
@@ -1009,13 +1010,13 @@ void utls::WriteUtf16BETo(u16string& str, char32_t codePoint)
 void utls::ReadUtf16BEString(const bufferview& buffer, string& utf8str)
 {
     utf8::u16bechariterable iterable(buffer.data(), buffer.size());
-    utf8::utf16to8(iterable.begin(), iterable.end(), std::back_inserter(utf8str));
+    utf8::utf16to8_lenient(iterable.begin(), iterable.end(), std::back_inserter(utf8str));
 }
 
 void utls::ReadUtf16LEString(const bufferview& buffer, string& utf8str)
 {
     utf8::u16lechariterable iterable(buffer.data(), buffer.size());
-    utf8::utf16to8(iterable.begin(), iterable.end(), std::back_inserter(utf8str));
+    utf8::utf16to8_lenient(iterable.begin(), iterable.end(), std::back_inserter(utf8str));
 }
 
 void utls::FormatTo(string& str, signed char value)

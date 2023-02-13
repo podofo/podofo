@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <stdexcept>
+#include <utfcpp/utf8.h>
 
 namespace utf8
 {
@@ -178,6 +179,50 @@ namespace utf8
             uint32_t cp_1 = cp - 0x10000u;
             *(result++) = static_cast<uint16_t>(cp_1 / 0x400u + 0xd800u);
             *(result++) = static_cast<uint16_t>(cp_1 % 0x400u + 0xdc00u);
+        }
+
+        return result;
+    }
+
+    namespace internal
+    {
+        template <typename u16bit_iterator>
+        utf_error utf16_validate_next(u16bit_iterator& start, u16bit_iterator end, uint32_t& code_point)
+        {
+            uint32_t cp = utf8::internal::mask16(*start++);
+            if (utf8::internal::is_lead_surrogate(cp))
+            {
+                if (start != end)
+                {
+                    uint32_t trail_surrogate = utf8::internal::mask16(*start++);
+                    if (utf8::internal::is_trail_surrogate(trail_surrogate))
+                        cp = (cp << 10) + trail_surrogate + internal::SURROGATE_OFFSET;
+                    else
+                        return utf_error::INVALID_CODE_POINT;
+                }
+                else
+                    return utf_error::INCOMPLETE_SEQUENCE;
+            }
+            // Lone trail surrogate
+            else if (utf8::internal::is_trail_surrogate(cp))
+                return utf_error::INVALID_LEAD;
+
+            code_point = cp;
+            return utf_error::UTF8_OK;
+        }
+    }
+
+    template <typename u16bit_iterator, typename octet_iterator>
+    octet_iterator utf16to8_lenient(u16bit_iterator start, u16bit_iterator end, octet_iterator result)
+    {
+        uint32_t cp;
+        while (start != end)
+        {
+            auto err_code = internal::utf16_validate_next(start, end, cp);
+            if (err_code != internal::utf_error::UTF8_OK)
+                return result;
+
+            result = unchecked::append(cp, result);
         }
 
         return result;

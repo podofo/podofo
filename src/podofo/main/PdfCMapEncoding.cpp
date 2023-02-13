@@ -169,7 +169,8 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
                         {
                             // pp. 474 PdfReference 1.7
                             auto dstCodeLo = handleStringMapping(var->GetString());
-                            handleRangeMapping(ret, srcCodeLo, dstCodeLo, codeSize, rangeSize);
+                            if (dstCodeLo.size() != 0)
+                                handleRangeMapping(ret, srcCodeLo, dstCodeLo, codeSize, rangeSize);
                         }
                         else if (var->IsName())
                         {
