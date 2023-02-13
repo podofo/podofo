@@ -11,7 +11,7 @@
   the code
 - PdfCanvas: Add CopyTo facilities, see PdfContents
 - Review PdfNameTree/PdfFileSpec
-- Check accessibility of PdfEncrypt.h classe, check AESV3 namings
+- Check accessibility of PdfEncrypt.h classes, check AESV3 naming
 - PdfFilterFactory: Move CreateFilterList somewhere else (PdfFilter), make it private
 - Rename NameToColorSpaceRaw/ColorSpaceToNameRaw to something more consistent?
 - More enum <-> strings functions and make them public
@@ -52,16 +52,16 @@ either assume UTF-8 and/or checks for used codepoints
   or a buffer is copied from the source file
 - Reintroduce other non-unit tests, possibly migrating them into unit ones
 - PdfResources: Improve API
-- Do more overflow cheks using Chromium numerics, which is now
+- Do more overflow checks using Chromium numerics, which is now
   bundled. See comments in utls::DoesMultiplicationOverflow()
 - PdfParser: Handle all pdfs in
   https://www.mail-archive.com/podofo-users@lists.sourceforge.net/msg04801.html
 
 ### After 1.0
 - PdfParser: Handle invalid startxref by rebuilding the index,
-  similary to what pdf.js does
+  similarly to what pdf.js does
 - high-level signing API: Add PAdES B-B support
-- Add text shaping witg Harfbuzz https://github.com/harfbuzz/harfbuzz
+- Add text shaping with Harfbuzz https://github.com/harfbuzz/harfbuzz
 - Add fail safe sign/update mechanism, meaning the stream gets trimmed
   to initial length if there's a crash. Not so easy, especially since
   we are now using STL streams and it's not easy to trim files
@@ -80,4 +80,4 @@ either assume UTF-8 and/or checks for used codepoints
 - Consider converting protected PdfFontMetrics::GetFaceHandle() to return just FT_Face,
 and reference the face with FT_Reference_Face
 - PdfFontManager: Consider also statically caching the queries and filepaths.
-  Maybe we could also weakely (weak shared pointer) cache metrics instead of fonts
+  Maybe we could also weakly (weak shared pointer) cache metrics instead of fonts
