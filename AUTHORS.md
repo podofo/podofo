@@ -11,4 +11,4 @@
 * Raph Levien
 * Ulrich Arnold
 
-Work on revamp authors file is traked in [this](https://github.com/podofo/podofo/issues/26) issue.
+Work on revamp authors file is tracked in [this](https://github.com/podofo/podofo/issues/26) issue.

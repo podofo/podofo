@@ -20,6 +20,6 @@ externally of the source tree, simulating the layout of prefixed
 - `common`: directory with common general purpose headers that
   are deployed as part of the public API;
 - `staging`: directory with immature PoDoFo API extensions classes,
-  or with unclear ownership/mainteneance. May be promoted to
+  or with unclear ownership/maintenance. May be promoted to
   main API or removed at any time;
 - `private`: directory with private headers/data needed to compile PoDoFo.

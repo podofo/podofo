@@ -4,11 +4,11 @@
 - Renamed base source folder -> main
 - PdfPainter: Revamped API, added full state inspection with current point,
   added PdfPainterPathContext to create a continuous path (eg. with
-  AddLine, AddArc, etc.), added PdfPainterTextContext to create continous text
+  AddLine, AddArc, etc.), added PdfPainterTextContext to create continuous text
   Use them through PdfPainter::Path and PdfPainter::Text
   moved SmoothCurveTo, QuadCurveTo,
   SmoothQuadCurveTo, ArcTo, Arc() to an helper structure until cleaned
-- PdfFontMetrics: Added FilePath/FaceIndex for debugging, when avaialable
+- PdfFontMetrics: Added FilePath/FaceIndex for debugging, when available
 - PdfFont: Renamed GetStringLength() overloads with
   PdfString to GetEncodedStringLength()
 - PdfFontManager: Renamed GetFont() -> SearchFont()
@@ -41,7 +41,7 @@
 - PdfImage: Added DecodeTo(pixelFormat)
 
 ## Version 0.9.22
-- Fixed serialization of strings with non ascii PdfDocEncoding
+- Fixed serialization of strings with non ASCII PdfDocEncoding
   characters
 - Removed PdfLocaleImbue
 - PdfEncrypt: Removed PdfReference state. Added PdfStatefulEncrypt
