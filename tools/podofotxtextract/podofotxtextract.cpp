@@ -51,6 +51,16 @@ int main(int argc, char* argv[])
         e.PrintErrorMsg();
         return (int)e.GetCode();
     }
+    catch (std::range_error& e)
+    {
+        fprintf(stderr, "Error: A std::range_error(\"%s\") was thrown during processing the pdf file.\n", e.what());
+        return 127;
+    }
+    catch (std::runtime_error& e)
+    {
+        fprintf(stderr, "Error: A std::runtime_error(\"%s\") was thrown during processing the pdf file.\n", e.what());
+        return 127;
+    }
 
     return 0;
 }
