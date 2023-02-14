@@ -54,13 +54,20 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
             m_FontFileType = PdfFontFileType::Type3;
         }
 
-        if (descriptor == nullptr && m_FontFileType == PdfFontFileType::Type3)
+        if (descriptor == nullptr)
         {
-            if ((obj = font.GetDictionary().FindKey("Name")) != nullptr)
-                m_FontNameRaw = obj->GetName().GetString();
+            if (m_FontFileType == PdfFontFileType::Type3)
+            {
+                if ((obj = font.GetDictionary().FindKey("Name")) != nullptr)
+                    m_FontNameRaw = obj->GetName().GetString();
 
-            if ((obj = font.GetDictionary().FindKey("FontBBox")) != nullptr)
-                m_BBox = getBBox(*obj);
+                if ((obj = font.GetDictionary().FindKey("FontBBox")) != nullptr)
+                    m_BBox = getBBox(*obj);
+            }
+            else
+            {
+                PODOFO_RAISE_ERROR(PdfErrorCode::InvalidFontData);
+            }
         }
         else
         {
