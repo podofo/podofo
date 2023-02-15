@@ -91,11 +91,14 @@ See [API Stability](https://github.com/podofo/podofo/wiki/API-Stability) for mor
 
 ## PoDoFo Tools
 
+> **Warning**: Tools are currently **untested** and **unmaintained**
+
 PoDoFo tools are still available in the source [tree](https://github.com/podofo/podofo/)
-but are currently untested and unmaintained. It's currently not recommended
-to include them in software distributions. If you want to build them make sure
-to bootstrap the CMake project with ```-DPODOFO_ENABLE_TOOLS=TRUE```.
-Tools are already enabled in the playground.
+but their compilation is disabled by default because they are unsted/unmaintained,
+and will not receive support until their status is cleared. It's not recommended to include them in software distributions.
+If you want to build them make sure to bootstrap the CMake project with ```-DPODOFO_ENABLE_TOOLS=TRUE```.
+Tools are conveniently enabled in the [playground](https://github.com/podofo/podofo/tree/master/playground)
+at least to ensure library changes won't break their compilation.
 
 ## TODO
 
@@ -214,7 +217,7 @@ timeframes, or not fixed at all.
 ## Contributions
 
 Please subscribe to the project mailing [list](https://sourceforge.net/projects/podofo/lists/podofo-users)
-which is still followed by several of the original developers of PoDoFO.
+which is still followed by several of the original developers of PoDoFo.
 A gitter [community](https://gitter.im/podofo/community) has also been created to ease some more informal chatter.
 If you find a bug and know how to fix it, or you want to add a small feature, you're welcome to send a [pull request](https://github.com/podofo/podofo/pulls),
 providing it follows the [coding style](https://github.com/podofo/podofo/blob/master/CODING-STYLE.md)
