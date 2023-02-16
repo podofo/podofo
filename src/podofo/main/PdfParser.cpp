@@ -598,7 +598,9 @@ void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset,
 
 void PdfParser::ReadObjects(InputStreamDevice& device)
 {
-    PODOFO_ASSERT(m_Trailer != nullptr);
+    if (m_Trailer == nullptr) {
+        PODOFO_RAISE_ERROR(PdfErrorCode::NoTrailer);
+    }
     // Check for encryption and make sure that the encryption object
     // is loaded before all other objects
     PdfObject* encrypt = m_Trailer->GetDictionary().GetKey("Encrypt");
