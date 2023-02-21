@@ -11,6 +11,8 @@
 
 namespace PoDoFo {
 
+class PdfPainter;
+
 enum class PdfDrawTextStyle
 {
     Regular = 0,
