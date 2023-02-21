@@ -39,6 +39,9 @@ public:
     virtual void fStar_Operator() = 0;
     virtual void W_Operator() = 0;
     virtual void WStar_Operator() = 0;
+    virtual void MP_Operator(const std::string_view& tag) = 0;
+    virtual void DP_Operator(const std::string_view& tag, const PdfDictionary& properties) = 0;
+    virtual void DP_Operator(const std::string_view& tag, const std::string_view& propertyDictName) = 0;
     virtual void BMC_Operator(const std::string_view& tag) = 0;
     virtual void BDC_Operator(const std::string_view& tag, const PdfDictionary& properties) = 0;
     virtual void BDC_Operator(const std::string_view& tag, const std::string_view& propertyDictName) = 0;

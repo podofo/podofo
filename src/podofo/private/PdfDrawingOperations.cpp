@@ -245,22 +245,40 @@ void PoDoFo::WriteOperator_WStar(PdfStringStream& stream)
     stream << "W*\n";
 }
 
+void PoDoFo::WriteOperator_MP(PdfStringStream& stream, const string_view& tag)
+{
+    stream << '/' << tag << " MP\n";
+}
+
+void PoDoFo::WriteOperator_DP(PdfStringStream& stream, const string_view& tag, const PdfDictionary& properties)
+{
+    charbuff buffer;
+    stream << '/' << tag << ' ';
+    properties.Write(stream, PdfWriteFlags::None, { }, buffer);
+    stream << " DP\n";
+}
+
+void PoDoFo::WriteOperator_DP(PdfStringStream& stream, const string_view& tag, const string_view& propertyDictName)
+{
+    stream << '/' << tag << ' ' << '/' << propertyDictName << " DP\n";
+}
+
 void PoDoFo::WriteOperator_BMC(PdfStringStream& stream, const string_view& tag)
 {
-    stream << tag << " BMC\n";
+    stream << '/' << tag << " BMC\n";
 }
 
 void PoDoFo::WriteOperator_BDC(PdfStringStream& stream, const string_view& tag, const PdfDictionary& properties)
 {
     charbuff buffer;
-    stream << tag << ' ';
+    stream << '/' << tag << ' ';
     properties.Write(stream, PdfWriteFlags::None, { }, buffer);
     stream << " BDC\n";
 }
 
 void PoDoFo::WriteOperator_BDC(PdfStringStream& stream, const string_view& tag, const string_view& propertyDictName)
 {
-    stream << tag << ' ' << '/' << propertyDictName << " BDC\n";
+    stream << '/' << tag << ' ' << '/' << propertyDictName << " BDC\n";
 }
 
 void PoDoFo::WriteOperator_EMC(PdfStringStream& stream)

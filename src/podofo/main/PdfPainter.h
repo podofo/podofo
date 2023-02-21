@@ -528,6 +528,9 @@ private:
     void fStar_Operator() override;
     void W_Operator() override;
     void WStar_Operator() override;
+    void MP_Operator(const std::string_view& tag) override;
+    void DP_Operator(const std::string_view& tag, const PdfDictionary& properties) override;
+    void DP_Operator(const std::string_view& tag, const std::string_view& propertyDictName) override;
     void BMC_Operator(const std::string_view& tag) override;
     void BDC_Operator(const std::string_view& tag, const PdfDictionary& properties) override;
     void BDC_Operator(const std::string_view& tag, const std::string_view& propertyDictName) override;

@@ -123,6 +123,27 @@ void PdfPainter::WStar_Operator()
     PoDoFo::WriteOperator_WStar(m_stream);
 }
 
+void PdfPainter::MP_Operator(const string_view& tag)
+{
+    checkStream();
+    checkStatus(StatusDefault | StatusTextObject);
+    PoDoFo::WriteOperator_MP(m_stream, tag);
+}
+
+void PdfPainter::DP_Operator(const string_view& tag, const PdfDictionary& properties)
+{
+    checkStream();
+    checkStatus(StatusDefault | StatusTextObject);
+    PoDoFo::WriteOperator_DP(m_stream, tag, properties);
+}
+
+void PdfPainter::DP_Operator(const string_view& tag, const std::string_view& propertyDictName)
+{
+    checkStream();
+    checkStatus(StatusDefault | StatusTextObject);
+    PoDoFo::WriteOperator_DP(m_stream, tag, propertyDictName);
+}
+
 void PdfPainter::BMC_Operator(const string_view& tag)
 {
     checkStream();
