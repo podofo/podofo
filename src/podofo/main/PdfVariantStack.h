@@ -13,7 +13,7 @@ namespace PoDoFo {
 
 class PODOFO_API PdfVariantStack final
 {
-    friend class PdfContentsReader;
+    friend class PdfContentStreamReader;
 
 public:
     using Stack = std::vector<PdfVariant>;

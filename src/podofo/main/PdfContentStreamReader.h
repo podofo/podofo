@@ -76,15 +76,15 @@ struct PdfContentReaderArgs
 
 /** Reader class to read content streams
  */
-class PODOFO_API PdfContentsReader final
+class PODOFO_API PdfContentStreamReader final
 {
 public:
-    PdfContentsReader(const PdfCanvas& canvas, nullable<const PdfContentReaderArgs&> args = { });
+    PdfContentStreamReader(const PdfCanvas& canvas, nullable<const PdfContentReaderArgs&> args = { });
 
-    PdfContentsReader(const std::shared_ptr<InputStreamDevice>& device, nullable<const PdfContentReaderArgs&> args = { });
+    PdfContentStreamReader(const std::shared_ptr<InputStreamDevice>& device, nullable<const PdfContentReaderArgs&> args = { });
 
 private:
-    PdfContentsReader(const std::shared_ptr<InputStreamDevice>& device, const PdfCanvas* canvas,
+    PdfContentStreamReader(const std::shared_ptr<InputStreamDevice>& device, const PdfCanvas* canvas,
         nullable<const PdfContentReaderArgs&> args);
 
 public:

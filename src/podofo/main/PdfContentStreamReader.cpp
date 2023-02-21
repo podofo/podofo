@@ -5,7 +5,7 @@
  */
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
-#include "PdfContentsReader.h"
+#include "PdfContentStreamReader.h"
 
 #include "PdfXObjectForm.h"
 #include "PdfOperatorUtils.h"
@@ -16,16 +16,16 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfContentsReader::PdfContentsReader(const PdfCanvas& canvas,
+PdfContentStreamReader::PdfContentStreamReader(const PdfCanvas& canvas,
         nullable<const PdfContentReaderArgs&> args) :
-    PdfContentsReader(std::make_shared<PdfCanvasInputDevice>(canvas),
+    PdfContentStreamReader(std::make_shared<PdfCanvasInputDevice>(canvas),
         &canvas, args) { }
 
-PdfContentsReader::PdfContentsReader(const shared_ptr<InputStreamDevice>& device,
+PdfContentStreamReader::PdfContentStreamReader(const shared_ptr<InputStreamDevice>& device,
         nullable<const PdfContentReaderArgs&> args) :
-    PdfContentsReader(device, nullptr, args) { }
+    PdfContentStreamReader(device, nullptr, args) { }
 
-PdfContentsReader::PdfContentsReader(const shared_ptr<InputStreamDevice>& device,
+PdfContentStreamReader::PdfContentStreamReader(const shared_ptr<InputStreamDevice>& device,
     const PdfCanvas* canvas, nullable<const PdfContentReaderArgs&> args) :
     m_args(args.has_value() ? *args : PdfContentReaderArgs()),
     m_buffer(std::make_shared<charbuff>(PdfTokenizer::BufferSize)),
@@ -39,7 +39,7 @@ PdfContentsReader::PdfContentsReader(const shared_ptr<InputStreamDevice>& device
     m_inputs.push_back({ nullptr, device, canvas });
 }
 
-bool PdfContentsReader::TryReadNext(PdfContent& content)
+bool PdfContentStreamReader::TryReadNext(PdfContent& content)
 {
     beforeReadReset(content);
 
@@ -112,7 +112,7 @@ bool PdfContentsReader::TryReadNext(PdfContent& content)
 }
 
 // Returns false in case of EOF
-bool PdfContentsReader::tryReadNextContent(PdfContent& content)
+bool PdfContentStreamReader::tryReadNextContent(PdfContent& content)
 {
     while (true)
     {
@@ -167,13 +167,13 @@ bool PdfContentsReader::tryReadNextContent(PdfContent& content)
     }
 }
 
-void PdfContentsReader::beforeReadReset(PdfContent& content)
+void PdfContentStreamReader::beforeReadReset(PdfContent& content)
 {
     content.Stack.Clear();
     content.Warnings = PdfContentWarnings::None;
 }
 
-void PdfContentsReader::afterReadClear(PdfContent& content)
+void PdfContentStreamReader::afterReadClear(PdfContent& content)
 {
     // Do some cleaning
     switch (content.Type)
@@ -241,7 +241,7 @@ void PdfContentsReader::afterReadClear(PdfContent& content)
 }
 
 // Returns false in case of EOF
-bool PdfContentsReader::tryHandleOperator(PdfContent& content)
+bool PdfContentStreamReader::tryHandleOperator(PdfContent& content)
 {
     // By default it's not handled
     switch (content.Operator)
@@ -275,7 +275,7 @@ bool PdfContentsReader::tryHandleOperator(PdfContent& content)
 }
 
 // Returns false in case of EOF
-bool PdfContentsReader::tryReadInlineImgDict(PdfContent& content)
+bool PdfContentStreamReader::tryReadInlineImgDict(PdfContent& content)
 {
     while (true)
     {
@@ -316,7 +316,7 @@ bool PdfContentsReader::tryReadInlineImgDict(PdfContent& content)
 }
 
 // Returns false in case of errors
-void PdfContentsReader::tryFollowXObject(PdfContent& content)
+void PdfContentStreamReader::tryFollowXObject(PdfContent& content)
 {
     PODOFO_ASSERT(m_inputs.back().Canvas != nullptr);
     const PdfResources* resources;
@@ -352,7 +352,7 @@ void PdfContentsReader::tryFollowXObject(PdfContent& content)
 }
 
 // Returns false in case of EOF
-bool PdfContentsReader::tryReadInlineImgData(charbuff& data)
+bool PdfContentStreamReader::tryReadInlineImgData(charbuff& data)
 {
     // Consume one whitespace between ID and data
     char ch;
@@ -423,13 +423,13 @@ bool PdfContentsReader::tryReadInlineImgData(charbuff& data)
     return false;
 }
 
-void PdfContentsReader::handleWarnings()
+void PdfContentStreamReader::handleWarnings()
 {
     if ((m_args.Flags & PdfContentReaderFlags::ThrowOnWarnings) != PdfContentReaderFlags::None)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidContentStream, "Unsupported PostScript content");
 }
 
-bool PdfContentsReader::isCalledRecursively(const PdfObject* xobj)
+bool PdfContentStreamReader::isCalledRecursively(const PdfObject* xobj)
 {
     // Determines if the given object is called recursively
     for (auto& input : m_inputs)

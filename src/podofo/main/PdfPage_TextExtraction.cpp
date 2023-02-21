@@ -17,7 +17,7 @@
 #include "PdfTextState.h"
 #include "PdfMath.h"
 #include "PdfXObjectForm.h"
-#include "PdfContentsReader.h"
+#include "PdfContentStreamReader.h"
 #include "PdfFont.h"
 
 #include <podofo/private/outstringstream.h>
@@ -190,7 +190,7 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
     ExtractionContext context(entries, *this, pattern, params.Flags, params.ClipRect);
 
     // Look FIGURE 4.1 Graphics objects
-    PdfContentsReader reader(*this);
+    PdfContentStreamReader reader(*this);
     PdfContent content;
     vector<double> lengths;
     vector<unsigned> positions;
