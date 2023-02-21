@@ -10,6 +10,7 @@
 #include "PdfDocument.h"
 #include "PdfExtension.h"
 #include "PdfInputDevice.h"
+#include "PdfOutputDevice.h"
 
 namespace PoDoFo {
 

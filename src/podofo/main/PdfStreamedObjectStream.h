@@ -12,7 +12,7 @@
 
 namespace PoDoFo {
 
-class OutputStream;
+class OutputStreamDevice;
 
 /** A PDF stream can be appended to any PdfObject
  *  and can contain arbitrary data.

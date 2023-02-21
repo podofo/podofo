@@ -93,7 +93,7 @@ PdfName PdfName::FromRaw(const bufferview& rawcontent)
     return PdfName((charbuff)rawcontent);
 }
 
-void PdfName::Write(OutputStreamDevice& device, PdfWriteFlags,
+void PdfName::Write(OutputStream& device, PdfWriteFlags,
     const PdfStatefulEncrypt& encrypt, charbuff& buffer) const
 {
     (void)encrypt;

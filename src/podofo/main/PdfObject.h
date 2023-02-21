@@ -298,14 +298,14 @@ public:
     void ForceCreateStream();
 
     /** Write the complete object to a file.
-     *  \param device write the object to this device
+     *  \param stream write the object to this device
      *  \param encrypt an encryption object which is used to encrypt this object
      *                  or nullptr to not encrypt this object
      *  \param writeMode additional options for writing the object
      *  \param keyStop if not KeyNull and a key == keyStop is found
      *                 writing will stop right before this key!
      */
-    void Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
+    void Write(OutputStream& stream, PdfWriteFlags writeMode,
         const PdfEncrypt* encrypt, charbuff& buffer) const;
 
     /** Get a handle to a PDF stream object.

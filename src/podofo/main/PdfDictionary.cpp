@@ -185,7 +185,7 @@ bool PdfDictionary::RemoveKey(const string_view& key)
     return true;
 }
 
-void PdfDictionary::Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
+void PdfDictionary::Write(OutputStream& device, PdfWriteFlags writeMode,
     const PdfStatefulEncrypt& encrypt, charbuff& buffer) const
 {
     if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)

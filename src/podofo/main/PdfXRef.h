@@ -15,6 +15,7 @@
 namespace PoDoFo {
 
 class PdfWriter;
+class OutputStreamDevice;
 
 /**
  * Creates an XRef table.

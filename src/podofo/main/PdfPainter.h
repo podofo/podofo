@@ -11,7 +11,10 @@
 #include "PdfCanvas.h"
 #include "PdfTextState.h"
 #include "PdfGraphicsState.h"
-#include "PdfPainterContexts.h"
+#include "PdfPainterPath.h"
+#include "PdfPainterTextContext.h"
+#include "PdfContentStreamOperators.h"
+
 #include <podofo/common/StateStack.h>
 
 #include <podofo/staging/PdfShadingPattern.h>
@@ -25,22 +28,6 @@ class PdfImage;
 class PdfObjectStream;
 class PdfXObject;
 
-enum class PdfDrawTextStyle
-{
-    Regular = 0,
-    StrikeOut = 1,
-    Underline = 2,
-};
-
-struct PODOFO_API PdfDrawTextMultiLineParams final
-{
-    PdfDrawTextStyle Style = PdfDrawTextStyle::Regular;                         ///< style of the draw text operation
-    PdfHorizontalAlignment HorizontalAlignment = PdfHorizontalAlignment::Left;  ///< alignment of the individual text lines in the given bounding box
-    PdfVerticalAlignment VerticalAlignment = PdfVerticalAlignment::Top;         ///< vertical alignment of the text in the given bounding box
-    bool Clip = true;                                                           ///< set the clipping rectangle to the given rect, otherwise no clipping is performed
-    bool SkipSpaces = true;                                                     ///< whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
-};
-
 enum class PdfPainterFlags
 {
     None = 0,
@@ -48,6 +35,18 @@ enum class PdfPainterFlags
     NoSaveRestorePrior = 2, ///< Do not perform a Save/Restore or previous content. Implies RawCoordinates
     NoSaveRestore = 4,      ///< Do not perform a Save/Restore of added content in this painting session
     RawCoordinates = 8,     ///< Does nothing for now
+};
+
+/**
+ * An enum describing modes to draw paths and figures
+ */
+enum class PdfPathDrawMode
+{
+    Stroke = 1,
+    Fill = 2,               ///< Fill using the the non-zero winding number rule to determine the region to fill
+    StrokeFill = 3,         ///< Stroke and fill using the the even-odd rule to determine the region to fill
+    FillEvenOdd = 4,        ///< Fill using the the even-odd rule to determine the region to fill
+    StrokeFillEvenOdd = 5,  ///< Stroke and fill using the the even-odd rule to determine the region to fill
 };
 
 class PdfPainter;
@@ -177,7 +176,7 @@ private:
  * All functions that take coordinates expect these to be in PDF User Units. Keep in mind that PDF has
  * its coordinate system origin at the bottom left corner.
  */
-class PODOFO_API PdfPainter final
+class PODOFO_API PdfPainter final : public PdfContentStreamOperators
 {
     friend class PdfGraphicsStateWrapper;
     friend class PdfTextStateWrapper;
@@ -191,7 +190,7 @@ public:
      */
     PdfPainter(PdfPainterFlags flags = PdfPainterFlags::None);
 
-    virtual ~PdfPainter() noexcept(false);
+    ~PdfPainter() noexcept(false);
 
     /** Set the page on which the painter should draw.
      *  The painter will draw of course on the pages
@@ -233,28 +232,12 @@ public:
      */
     void SetStrokingTilingPattern(const PdfTilingPattern& pattern);
 
-    /** Set the tiling pattern for all following stroking operations by pattern name,
-     *  Use when it's already in resources.
-     *  This operation uses the 'SCN' PDF operator.
-     *
-     *  \param patternName a tiling pattern name
-     */
-    void SetStrokingTilingPattern(const std::string_view& patternName);
-
     /** Set the tiling pattern for all following non-stroking operations.
      *  This operation uses the 'scn' PDF operator.
      *
      *  \param pattern a tiling pattern
      */
     void SetTilingPattern(const PdfTilingPattern& pattern);
-
-    /** Set the tiling pattern for all following non-stroking operations by pattern name.
-      *  Use when it's already in resources.
-     *  This operation uses the 'scn' PDF operator.
-     *
-     *  \param pattern a tiling pattern
-     */
-    void SetTilingPattern(const std::string_view& patternName);
 
     /** Set the stoke style for all stroking operations.
      *  \param strokeStyle style of the stroking operations
@@ -275,10 +258,11 @@ public:
      *    PdfStrokeStyle::Dot
      *    PdfStrokeStyle::DashDot
      *    PdfStrokeStyle::DashDotDot
-     *    PdfStrokeStyle::Custom
      *
      */
-    void SetStrokeStyle(PdfStrokeStyle strokeStyle, const std::string_view& custom = { }, bool inverted = false, double scale = 1.0, bool subtractJoinCap = false);
+    void SetStrokeStyle(PdfStrokeStyle strokeStyle, bool inverted = false, double scale = 1.0, bool subtractJoinCap = false);
+
+    void SetStrokeStyle(const cspan<double>& dashArray, double phase);
 
     /** Set a clipping rectangle
      *
@@ -359,54 +343,6 @@ public:
     void DrawRectangle(const PdfRect& rect, PdfPathDrawMode mode = PdfPathDrawMode::Stroke,
         double roundX = 0.0, double roundY = 0.0);
 
-    /** Draw a single-line text string on a page using a given font object.
-     *  You have to call SetFont before calling this function.
-     *  \param str the text string which should be printed
-     *  \param x the x coordinate
-     *  \param y the y coordinate
-     *
-     *  \see SetFont()
-     */
-    void DrawText(const std::string_view& str, double x, double y,
-        PdfDrawTextStyle style = PdfDrawTextStyle::Regular);
-
-    /** Draw multiline text into a rectangle doing automatic wordwrapping.
-     *  The current font is used and SetFont has to be called at least once
-     *  before using this function
-     *
-     *  \param str the text which should be drawn
-     *  \param x the x coordinate of the text area (left)
-     *  \param y the y coordinate of the text area (bottom)
-     *  \param width width of the text area
-     *  \param height height of the text area
-     *  \param params parameters of the draw operation
-     */
-    void DrawTextMultiLine(const std::string_view& str, double x, double y, double width, double height,
-        const PdfDrawTextMultiLineParams& params = { });
-
-    /** Draw multiline text into a rectangle doing automatic wordwrapping.
-     *  The current font is used and SetFont has to be called at least once
-     *  before using this function
-     *
-     *  \param str the text which should be drawn
-     *  \param rect bounding rectangle of the text
-     *  \param params parameters of the draw operation
-     */
-    void DrawTextMultiLine(const std::string_view& str, const PdfRect& rect,
-        const PdfDrawTextMultiLineParams& params = { });
-
-    /** Draw a single line of text horizontally aligned.
-     *  \param str the text to draw
-     *  \param x the x coordinate of the text line
-     *  \param y the y coordinate of the text line
-     *  \param width the width of the text line
-     *  \param hAlignment alignment of the text line
-     *  \param style style of the draw text operation
-     */
-    void DrawTextAligned(const std::string_view& str, double x, double y,
-        double width, PdfHorizontalAlignment hAlignment,
-        PdfDrawTextStyle style = PdfDrawTextStyle::Regular);
-
     /** Draw an image on the current page.
      *  \param x the x coordinate (left position of the image)
      *  \param y the y coordinate (bottom position of the image)
@@ -427,6 +363,16 @@ public:
      *  \see DrawImage
      */
     void DrawXObject(const PdfXObject& obj, double x, double y, double scaleX = 1.0, double scaleY = 1.0);
+
+    /**
+     * Draw the current path with the given
+     */
+    void DrawPath(const PdfPainterPath& path, PdfPathDrawMode drawMode = PdfPathDrawMode::Stroke);
+
+    /** Clip the current path. Matches the PDF 'W' operator.
+     *  \param useEvenOddRule select even-odd rule instead of nonzero winding number rule
+     */
+    void ClipPath(const PdfPainterPath& path, bool useEvenOddRule = false);
 
     /**
      * Begin a marked-content sequence (operator BMC) 
@@ -509,29 +455,23 @@ public:
 private:
     // To be called by PdfPainterTextContext
     void BeginText();
+    void EndText();
     void TextMoveTo(double x, double y);
     void AddText(const std::string_view& str);
-    void EndText();
-
-    // To be called by PdfPainterPathContext
-    void BeginPath(double x, double y);
-    void EndPath();
-    void DrawPath(PdfPathDrawMode mode);
-    void PathMoveTo(double x, double y);
-    void AddLineTo(double x, double y);
-    void AddCubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3);
-    void AddArcTo(double x1, double y1, double x2, double y2, double radius);
-    void AddArc(double x, double y, double radius, double startAngle, double endAngle, double counterclockwise);
-    void AddCircle(double x, double y, double radius);
-    void AddEllipse(double x, double y, double width, double height);
-    void AddRectangle(double x, double y, double width, double height, double roundX, double roundY);
-    void Clip(bool useEvenOddRule);
-    void ClosePath();
+    void DrawText(const std::string_view& str, double x, double y,
+        PdfDrawTextStyle style);
+    void DrawTextMultiLine(const std::string_view& str, double x, double y, double width, double height,
+        const PdfDrawTextMultiLineParams& params);
+    void DrawTextMultiLine(const std::string_view& str, const PdfRect& rect,
+        const PdfDrawTextMultiLineParams& params);
+    void DrawTextAligned(const std::string_view& str, double x, double y,
+        double width, PdfHorizontalAlignment hAlignment,
+        PdfDrawTextStyle style);
 
 private:
     // To be called by state wrappers
     void SetLineWidth(double value);
-    void SetMiterLimit(double value);
+    void SetMiterLimit(double miterLimit);
     void SetLineCapStyle(PdfLineCapStyle style);
     void SetLineJoinStyle(PdfLineJoinStyle style);
     void SetFillColor(const PdfColor& color);
@@ -555,7 +495,6 @@ private:
     void restore();
     void reset();
     void pathMoveTo(double x, double y);
-    void endPath();
     void addLineTo(double x, double y);
     void addCubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3);
     void addArcTo(double x1, double y1, double x2, double y2, double radius);
@@ -570,11 +509,84 @@ private:
     void strokeAndFill(bool useEvenOddRule);
 
 private:
+    // PdfContentStreamOperators implementation
+    void re_Operator(double x, double y, double width, double height) override;
+    void m_Operator(double x, double y) override;
+    void l_Operator(double x, double y) override;
+    void c_Operator(double c1x, double c1y, double c2x, double c2y, double x, double y) override;
+    void n_Operator() override;
+    void h_Operator() override;
+    void b_Operator() override;
+    void B_Operator() override;
+    void bStar_Operator() override;
+    void BStar_Operator() override;
+    void s_Operator() override;
+    void S_Operator() override;
+    void f_Operator() override;
+    void fStar_Operator() override;
+    void W_Operator() override;
+    void WStar_Operator() override;
+    void BMC_Operator(const std::string_view& tag) override;
+    void BDC_Operator(const std::string_view& tag, const PdfDictionary& properties) override;
+    void BDC_Operator(const std::string_view& tag, const std::string_view& propertyDictName) override;
+    void EMC_Operator() override;
+    void q_Operator() override;
+    void Q_Operator() override;
+    void BT_Operator() override;
+    void ET_Operator() override;
+    void Td_Operator(double tx, double ty) override;
+    void Tm_Operator(double a, double b, double c, double d, double e, double f) override;
+    void Tr_Operator(PdfTextRenderingMode mode) override;
+    void Ts_Operator(double rise) override;
+    void Tc_Operator(double charSpace) override;
+    void TL_Operator(double leading) override;
+    void Tf_Operator(const std::string_view& fontName, double fontSize) override;
+    void Tw_Operator(double wordSpace) override;
+    void Tz_Operator(double scale) override;
+    void Tj_Operator(const std::string_view& encoded, bool hex) override;
+    void TJ_Operator_Begin() override;
+    void TJ_Operator_Delta(double delta) override;
+    void TJ_Operator_String(const std::string_view& encoded, bool hex) override;
+    void TJ_Operator_End() override;
+    void cm_Operator(double a, double b, double c, double d, double e, double f) override;
+    void w_Operator(double lineWidth) override;
+    void J_Operator(PdfLineCapStyle style) override;
+    void j_Operator(PdfLineJoinStyle style) override;
+    void M_Operator(double miterLimit) override;
+    void d_Operator(const cspan<double>& dashArray, double fase) override;
+    void ri_Operator(const std::string_view& intent) override;
+    void i_Operator(double flatness) override;
+    void gs_Operator(const std::string_view& dictName) override;
+    void Do_Operator(const std::string_view& xobjname) override;
+    void cs_Operator(PdfColorSpace colorSpace) override;
+    void cs_Operator(const std::string_view& name) override;
+    void CS_Operator(PdfColorSpace colorSpace) override;
+    void CS_Operator(const std::string_view& name) override;
+    void sc_Operator(const cspan<double>& components) override;
+    void SC_Operator(const cspan<double>& components) override;
+    void scn_Operator(const cspan<double>& components) override;
+    void SCN_Operator(const cspan<double>& components) override;
+    void scn_Operator(const cspan<double>& components, const std::string_view& patternName) override;
+    void SCN_Operator(const cspan<double>& components, const std::string_view& patternName) override;
+    void scn_Operator(const std::string_view& patternName) override;
+    void SCN_Operator(const std::string_view& patternName) override;
+    void G_Operator(double gray) override;
+    void g_Operator(double gray) override;
+    void RG_Operator(double red, double green, double blue) override;
+    void rg_Operator(double red, double green, double blue) override;
+    void K_Operator(double cyan, double magenta, double yellow, double black) override;
+    void k_Operator(double cyan, double magenta, double yellow, double black) override;
+    void BX_Operator() override;
+    void EX_Operator() override;
+    void Extension_Operator(const std::string_view& opName, const cspan<PdfObject>& operands) override;
+
+private:
     enum PainterStatus
     {
         StatusDefault = 1,
-        StatusText = 2,
-        StatusPath = 4,
+        StatusTextObject = 2,       ///< A text (BT ... ET) object is opened
+        StatusTextArray = 4,        ///< A text array [ ... ] TJ
+        StatusExtension = 8,        ///< Extension operators between BX .. EX
     };
 
 private:
@@ -620,18 +632,18 @@ private:
     void checkFont();
     void finishDrawing();
     void checkStatus(int expectedStatus);
+    void enterTextObject();
+    void exitTextObject();
 
 private:
     PdfPainterFlags m_flags;
     PainterStatus m_painterStatus;
     PdfPainterStateStack m_StateStack;
     unsigned m_textStackCount;
-    std::vector<Vector2> m_subPaths;
 
 public:
     PdfGraphicsStateWrapper GraphicsState;
     PdfTextStateWrapper TextState;
-    PdfPainterPathContext Path;
     PdfPainterTextContext Text;
 
 private:

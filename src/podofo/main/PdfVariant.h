@@ -284,12 +284,12 @@ public:
     void SetReference(const PdfReference& ref);
 
     /** Write the complete variant to an output device.
-     *  \param device write the object to this device
+     *  \param stream write the object to this stream
      *  \param writeMode additional options for writing this object
      *  \param encrypt an encryption object which is used to encrypt this object
      *                  or nullptr to not encrypt this object
      */
-    void Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
+    void Write(OutputStream& stream, PdfWriteFlags writeMode,
         const PdfStatefulEncrypt& encrypt, charbuff& buffer) const;
 
     /** Assign the values of another PdfVariant to this one.

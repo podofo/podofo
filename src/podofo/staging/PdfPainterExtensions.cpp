@@ -11,7 +11,7 @@
 
 using namespace std;
 using namespace PoDoFo;
-
+/*
 PdfPainterPathExtensions::PdfPainterPathExtensions(PdfPainterPathContext& path) :
     m_path(&path),
     m_lpx(0),
@@ -180,7 +180,7 @@ void PdfPainterPathExtensions::AddArcTo(double x, double y, double radiusX, doub
 
         nsin_th = sin(rot);
         ncos_th = cos(rot);
-        /* inverse transform compared with rsvg_path_arc */
+        // inverse transform compared with rsvg_path_arc
         na00 = ncos_th * rx;
         na01 = -nsin_th * ry;
         na10 = nsin_th * rx;
@@ -210,3 +210,4 @@ void PdfPainterPathExtensions::AddArcTo(double x, double y, double radiusX, doub
     m_lrx = px;
     m_lry = py;
 }
+*/

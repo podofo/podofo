@@ -22,7 +22,7 @@ PdfReference::PdfReference(const uint32_t objectNo, const uint16_t generationNo)
 {
 }
 
-void PdfReference::Write(OutputStreamDevice& device, PdfWriteFlags writeMode, charbuff& buffer) const
+void PdfReference::Write(OutputStream& device, PdfWriteFlags writeMode, charbuff& buffer) const
 {
     if ((writeMode & PdfWriteFlags::NoInlineLiteral) == PdfWriteFlags::None)
         device.Write(' '); // Write space before the reference

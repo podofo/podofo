@@ -142,7 +142,7 @@ void PdfVariant::clear()
     }
 }
 
-void PdfVariant::Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
+void PdfVariant::Write(OutputStream& device, PdfWriteFlags writeMode,
     const PdfStatefulEncrypt& encrypt, charbuff& buffer) const
 {
     switch (m_DataType)

@@ -12,7 +12,7 @@
 
 namespace PoDoFo {
 
-class OutputStreamDevice;
+class OutputStream;
 
 /** An interface for data provider classes that are stored in a PdfVariant
  *  
@@ -43,7 +43,7 @@ public:
      *  \param encrypt an encryption object which is used to encrypt this object
      *                  or nullptr to not encrypt this object
      */
-    virtual void Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
+    virtual void Write(OutputStream& stream, PdfWriteFlags writeMode,
         const PdfStatefulEncrypt& encrypt, charbuff& buffer) const = 0;
 
 protected:

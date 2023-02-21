@@ -205,7 +205,7 @@ void PdfObject::initObject()
     m_IsDelayedLoadStreamDone = true;
 }
 
-void PdfObject::Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
+void PdfObject::Write(OutputStream& device, PdfWriteFlags writeMode,
     const PdfEncrypt* encrypt_, charbuff& buffer) const
 {
     DelayedLoad();

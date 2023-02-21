@@ -116,14 +116,15 @@ TEST_CASE("TestPainter3")
     PdfPainter painter;
     painter.SetCanvas(page);
     painter.TextState.SetFont(doc.GetFonts().GetStandard14Font(PdfStandard14FontType::TimesRoman), 15);
-    painter.DrawText("Hello world", 100, 500, PdfDrawTextStyle::StrikeOut | PdfDrawTextStyle::Underline);
+    painter.Text.DrawText("Hello world", 100, 500, PdfDrawTextStyle::StrikeOut | PdfDrawTextStyle::Underline);
     painter.FinishDrawing();
     doc.Save(TestUtils::GetTestOutputFilePath("TestPainter3.pdf"));
 
     auto expected = R"(q
 BT
 /Ft5 15 Tf
-100 500 Td q
+100 500 Td
+q
 0.75 w
 100 498.5 m
 172.075 498.5 l
@@ -158,10 +159,12 @@ TEST_CASE("TestPainter4")
     painter.Text.MoveTo(100, 500);
     painter.Text.AddText("Test");
     painter.Text.End();
-    painter.Path.Begin(20, 20);
-    painter.Path.AddArcTo(150, 20, 150, 70, 50);
-    painter.Path.AddLineTo(150, 120);
-    painter.Path.Draw(PdfPathDrawMode::Stroke);
+
+    PdfPainterPath path;
+    path.MoveTo(20, 20);
+    path.AddArcTo(150, 20, 150, 70, 50);
+    path.AddLineTo(150, 120);
+    painter.DrawPath(path, PdfPathDrawMode::Stroke);
     
     drawSquareWithCross(painter, 100, 20);
     drawSquareWithCross(painter, 100, 70);

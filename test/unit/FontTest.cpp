@@ -63,7 +63,7 @@ TEST_CASE("TestCreateFontExtract")
         painter.SetCanvas(page);
 
         painter.TextState.SetFont(font, 30.0);
-        painter.DrawText("ěščř", 100, 600);
+        painter.Text.DrawText("ěščř", 100, 600);
         painter.FinishDrawing();
     }
 

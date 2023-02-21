@@ -94,12 +94,12 @@ void HelloWorld(const string_view& filename)
         // The position specifies the start of the baseline of the text.
         // 
         // All coordinates in PoDoFo are in PDF units.
-        painter.DrawText("ABCDEFGHIKLMNOPQRSTVXYZ", 56.69, page.GetRect().GetHeight() - 56.69);
+        painter.Text.DrawText("ABCDEFGHIKLMNOPQRSTVXYZ", 56.69, page.GetRect().GetHeight() - 56.69);
 
         try
         {
             // Add also some non-ASCII characters (Cyrillic alphabet)
-            painter.DrawText("АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЫЭЮЯ", 56.69, page.GetRect().GetHeight() - 80);
+            painter.Text.DrawText("АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЫЭЮЯ", 56.69, page.GetRect().GetHeight() - 80);
         }
         catch (PdfError& err)
         {

@@ -4,43 +4,28 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#ifndef PDF_PAINTER_PATH_H
-#define PDF_PAINTER_PATH_H
+#ifndef PDF_GRAPHICS_PATH_H
+#define PDF_GRAPHICS_PATH_H
 
 #include "PdfStringStream.h"
+#include "PdfRect.h"
 
 namespace PoDoFo {
 
 /**
- * An enum describing modes to draw paths and figures
- */
-enum class PdfPathDrawMode
-{
-    Stroke = 1,
-    Fill = 2,               ///< Fill using the the non-zero winding number rule to determine the region to fill
-    StrokeFill = 3,         ///< Stroke and fill using the the even-odd rule to determine the region to fill
-    FillEvenOdd = 4,        ///< Fill using the the even-odd rule to determine the region to fill
-    StrokeFillEvenOdd = 5,  ///< Stroke and fill using the the even-odd rule to determine the region to fill
-};
-
-class PdfPainter;
-
-/**
  * This class describes PDF paths being written to a PdfPainter
  */
-class PODOFO_API PdfPainterPathContext final
+class PODOFO_API PdfPainterPath final
 {
-    friend class PdfPainter;
-
-private:
-    PdfPainterPathContext(PdfPainter& painter);
+public:
+    PdfPainterPath();
 
 public:
     /** Begin a new path. Matches the PDF 'm' operator.
      *  This function is useful to construct an own path
      *  for drawing or clipping
      */
-    void Begin(double x, double y);
+    void MoveTo(double x, double y);
 
     /** Append a straight line segment from the current point to the point (x, y) to the path
      *  Matches the PDF 'l' operator.
@@ -138,102 +123,23 @@ public:
      */
     void Close();
 
-    /**
-     * Draw the current path with the given
-     */
-    void Draw(PdfPathDrawMode drawMode);
-
-    /** End current path without filling or stroking it.
-     *  Matches the PDF 'n' operator.
-     */
-    void Discard();
-
-    /** Clip the current path. Matches the PDF 'W' operator.
-     *  \param useEvenOddRule select even-odd rule instead of nonzero winding number rule
-     */
-    void Clip(bool useEvenOddRule = false);
-
-private:
-    PdfPainterPathContext(const PdfPainter& painter) = delete;
-    PdfPainterPathContext& operator=(const PdfPainter& painter) = delete;
-
-private:
-    PdfPainter* m_painter;
-};
-
-/**
- * This class describes PDF paths being written to a PdfPainter
- */
-class PODOFO_API PdfPainterTextContext final
-{
-    friend class PdfPainter;
-
-private:
-    PdfPainterTextContext(PdfPainter& painter);
-
 public:
-    /** Begin drawing multiple text strings on a page using a given font object.
-     *  You have to call SetFont before calling this function.
-     *
-     *  If you want more simpler text output and do not need
-     *  the advanced text position features of MoveTextPos
-     *  use DrawText which is easier.
- 
-     *
-     *  \see AddText()
-     *  \see MoveTo()
-     *  \see EndText()
-     */
-    void Begin();
-
-    /** Draw a string on a page.
-     *  You have to call BeginText before the first call of this function
-     *  and EndText after the last call.
-     *
-     *  If you want more simpler text output and do not need
-     *  the advanced text position features of MoveTextPos
-     *  use DrawText which is easier.
-     *
-     *  \param str the text string which should be printed
-     *
-     *  \see SetFont()
-     *  \see MoveTo()
-     *  \see End()
-     */
-    void AddText(const std::string_view& str);
-
-    /** Move position for text drawing on a page.
-     *  You have to call BeginText before calling this function
-     *
-     *  If you want more simpler text output and do not need
-     *  the advanced text position features of MoveTextPos
-     *  use DrawText which is easier.
-     *
-     *  \param x the x offset relative to pos of BeginText or last MoveTextPos
-     *  \param y the y offset relative to pos of BeginText or last MoveTextPos
-     *
-     *  \see Begin()
-     *  \see AddText()
-     *  \see End()
-     */
-    void MoveTo(double x, double y);
-
-    /** End drawing multiple text strings on a page
-     *
-     *  If you want more simpler text output and do not need
-     *  the advanced text position features of MoveTextPos
-     *  use DrawText which is easier.
-     *
-     *  \see Begin()
-     *  \see AddText()
-     *  \see MoveTo()
-     */
-    void End();
+    std::string_view GetString() const;
+    const Vector2& GetCurrentPoint() const;
 
 private:
-    PdfPainter* m_painter;
+    void checkOpened() const;
+
+private:
+    PdfPainterPath(const PdfPainterPath& painter) = delete;
+    PdfPainterPath& operator=(const PdfPainterPath& painter) = delete;
+
+private:
+    PdfStringStream m_stream;
+    bool m_opened;
+    Vector2 m_CurrentPoint;
 };
 
 }
 
-#endif // PDF_PAINTER_PATH_H
+#endif // PDF_GRAPHICS_PATH_H

@@ -1,5 +1,6 @@
 ### 0.10
-- PdfPainter: Fix Arc(), getMultiLineTextAsLines()
+- PdfPainter: Fix Arc(), getMultiLineTextAsLines(),
+  current point handling in various shape drawing
 
 ### 0.11
 - PdfFontManager: Add font hash to cache descriptor

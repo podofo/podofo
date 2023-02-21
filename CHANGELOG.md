@@ -3,11 +3,11 @@
 - PdfParser: Cleaned FindToken2 -> FindTokenBackward
 - Renamed base source folder -> main
 - PdfPainter: Revamped API, added full state inspection with current point,
-  added PdfPainterPathContext to create a continuous path (eg. with
-  AddLine, AddArc, etc.), added PdfPainterTextContext to create continuous text
-  Use them through PdfPainter::Path and PdfPainter::Text
-  moved SmoothCurveTo, QuadCurveTo,
-  SmoothQuadCurveTo, ArcTo, Arc() to an helper structure until cleaned
+  added added PdfPainterTextContext to handle text object operations
+  Use it with PdfPainter::Text instance member.
+  Added PdfContentStreamOperators low level interface for PdfPainter
+  moved SmoothCurveTo, QuadCurveTo SmoothQuadCurveTo, ArcTo, Arc,
+  to an helper structure until cleaned
 - PdfFontMetrics: Added FilePath/FaceIndex for debugging, when available
 - PdfFont: Renamed GetStringLength() overloads with
   PdfString to GetEncodedStringLength()

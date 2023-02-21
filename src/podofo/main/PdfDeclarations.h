@@ -365,8 +365,7 @@ enum class PdfStrokeStyle
     Dash,
     Dot,
     DashDot,
-    DashDotDot,
-    Custom
+    DashDotDot
 };
 
 /**

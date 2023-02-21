@@ -94,7 +94,7 @@ public:
 
     const std::string& GetRawData() const;
 
-    void Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
+    void Write(OutputStream& stream, PdfWriteFlags writeMode,
         const PdfStatefulEncrypt& encrypt, charbuff& buffer) const override;
 
     /** Copy an existing PdfString

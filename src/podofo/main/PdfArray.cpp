@@ -189,7 +189,7 @@ void PdfArray::Clear()
     SetDirty();
 }
 
-void PdfArray::Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
+void PdfArray::Write(OutputStream& device, PdfWriteFlags writeMode,
     const PdfStatefulEncrypt& encrypt, charbuff& buffer) const
 {
     auto it = m_Objects.begin();
