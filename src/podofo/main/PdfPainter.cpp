@@ -735,7 +735,7 @@ void PdfPainter::DrawPath(const PdfPainterPath& path, PdfPathDrawMode drawMode)
     // (at the beginning of a new page or immediately after a
     // painting operator has been executed) shall generate an error"
 
-    ((OutputStream&)m_stream).Write(path.GetString());
+    ((OutputStream&)m_stream).Write(path.GetView());
     drawPath(drawMode);
     m_StateStack.Current->CurrentPoint = path.GetCurrentPoint();
 }
@@ -745,7 +745,7 @@ void PdfPainter::ClipPath(const PdfPainterPath& path, bool useEvenOddRule)
     checkStream();
     checkStatus(StatusDefault);
 
-    ((OutputStream&)m_stream).Write(path.GetString());
+    ((OutputStream&)m_stream).Write(path.GetView());
     if (useEvenOddRule)
         PoDoFo::WriteOperator_WStar(m_stream);
     else
@@ -827,6 +827,11 @@ void PdfPainter::SetPrecision(unsigned short precision)
 unsigned short PdfPainter::GetPrecision() const
 {
     return static_cast<unsigned char>(m_stream.GetPrecision());
+}
+
+string_view PdfPainter::GetView() const
+{
+    return m_stream.GetString();
 }
 
 void PdfPainter::closePath()

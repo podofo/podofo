@@ -418,6 +418,8 @@ public:
      */
     unsigned short GetPrecision() const;
 
+    std::string_view GetView() const;
+
 public:
     inline const PdfPainterStateStack& GetStateStack() const { return m_StateStack; }
 

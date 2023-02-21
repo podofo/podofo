@@ -103,7 +103,7 @@ void PdfPainterPath::Reset()
     m_CurrentPoint = Vector2();
 }
 
-string_view PdfPainterPath::GetString() const
+string_view PdfPainterPath::GetView() const
 {
     return m_stream.GetString();
 }

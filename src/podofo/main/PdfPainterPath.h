@@ -129,7 +129,7 @@ public:
     void Reset();
 
 public:
-    std::string_view GetString() const;
+    std::string_view GetView() const;
     const Vector2& GetCurrentPoint() const;
 
 private:
