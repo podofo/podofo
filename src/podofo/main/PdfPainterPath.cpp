@@ -96,6 +96,13 @@ void PdfPainterPath::Close()
     //// CHECK-ME: How to update current point? Probably should track first point of the path
 }
 
+void PdfPainterPath::Reset()
+{
+    m_stream.Clear();
+    m_opened = false;
+    m_CurrentPoint = Vector2();
+}
+
 string_view PdfPainterPath::GetString() const
 {
     return m_stream.GetString();

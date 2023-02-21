@@ -123,6 +123,11 @@ public:
      */
     void Close();
 
+    /**
+     * Clear the path currently building and reset the internal state
+     */
+    void Reset();
+
 public:
     std::string_view GetString() const;
     const Vector2& GetCurrentPoint() const;
