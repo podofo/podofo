@@ -267,7 +267,7 @@ void PdfPainter::TJ_Operator_Delta(double delta)
     PoDoFo::WriteOperator_TJ_Delta(m_stream, delta);
 }
 
-void PdfPainter::TJ_Operator_String(const string_view& encoded, bool hex)
+void PdfPainter::TJ_Operator_Glyphs(const string_view& encoded, bool hex)
 {
     checkStream();
     checkStatus(StatusTextArray);

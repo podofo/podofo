@@ -546,7 +546,7 @@ private:
     void Tj_Operator(const std::string_view& encoded, bool hex) override;
     void TJ_Operator_Begin() override;
     void TJ_Operator_Delta(double delta) override;
-    void TJ_Operator_String(const std::string_view& encoded, bool hex) override;
+    void TJ_Operator_Glyphs(const std::string_view& encoded, bool hex) override;
     void TJ_Operator_End() override;
     void cm_Operator(double a, double b, double c, double d, double e, double f) override;
     void w_Operator(double lineWidth) override;

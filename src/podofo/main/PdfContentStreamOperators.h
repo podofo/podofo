@@ -59,7 +59,7 @@ public:
     virtual void Tj_Operator(const std::string_view& encoded, bool hex) = 0;
     virtual void TJ_Operator_Begin() = 0;
     virtual void TJ_Operator_Delta(double delta) = 0;
-    virtual void TJ_Operator_String(const std::string_view& encoded, bool hex) = 0;
+    virtual void TJ_Operator_Glyphs(const std::string_view& encoded, bool hex) = 0;
     virtual void TJ_Operator_End() = 0;
     virtual void cm_Operator(double a, double b, double c, double d, double e, double f) = 0;
     virtual void w_Operator(double lineWidth) = 0;
