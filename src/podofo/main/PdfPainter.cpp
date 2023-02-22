@@ -42,7 +42,7 @@ PdfPainter::PdfPainter(PdfPainterFlags flags) :
     m_textStackCount(0),
     GraphicsState(*this, m_StateStack.Current->GraphicsState),
     TextState(*this, m_StateStack.Current->TextState),
-    Text(*this),
+    TextObject(*this),
     m_objStream(nullptr),
     m_canvas(nullptr),
     m_TabWidth(4)
@@ -1170,49 +1170,29 @@ void PdfPainter::exitTextObject()
         m_painterStatus = StatusDefault;
 }
 
-PdfPainterTextContext::PdfPainterTextContext(PdfPainter& painter)
+PdfPainterTextObject::PdfPainterTextObject(PdfPainter& painter)
     : m_painter(&painter)
 {
 }
 
-void PdfPainterTextContext::Begin()
+void PdfPainterTextObject::Begin()
 {
     m_painter->BeginText();
 }
 
-void PdfPainterTextContext::MoveTo(double x, double y)
+void PdfPainterTextObject::MoveTo(double x, double y)
 {
     m_painter->TextMoveTo(x, y);
 }
 
-void PdfPainterTextContext::AddText(const string_view& str)
+void PdfPainterTextObject::AddText(const string_view& str)
 {
     m_painter->AddText(str);
 }
 
-void PdfPainterTextContext::End()
+void PdfPainterTextObject::End()
 {
     m_painter->EndText();
-}
-
-void PdfPainterTextContext::DrawText(const string_view& str, double x, double y, PdfDrawTextStyle style)
-{
-    m_painter->DrawText(str, x, y, style);
-}
-
-void PdfPainterTextContext::DrawTextMultiLine(const string_view& str, double x, double y, double width, double height, const PdfDrawTextMultiLineParams& params)
-{
-    m_painter->DrawTextMultiLine(str, x, y, width, height, params);
-}
-
-void PdfPainterTextContext::DrawTextMultiLine(const string_view& str, const PdfRect& rect, const PdfDrawTextMultiLineParams& params)
-{
-    m_painter->DrawTextMultiLine(str, rect.GetLeft(), rect.GetBottom(), rect.GetWidth(), rect.GetHeight(), params);
-}
-
-void PdfPainterTextContext::DrawTextAligned(const string_view& str, double x, double y, double width, PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style)
-{
-    m_painter->DrawTextAligned(str, x, y, width, hAlignment, style);
 }
 
 PdfGraphicsStateWrapper::PdfGraphicsStateWrapper(PdfPainter& painter, PdfGraphicsState& state)

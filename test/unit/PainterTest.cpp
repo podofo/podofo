@@ -116,7 +116,7 @@ TEST_CASE("TestPainter3")
     PdfPainter painter;
     painter.SetCanvas(page);
     painter.TextState.SetFont(doc.GetFonts().GetStandard14Font(PdfStandard14FontType::TimesRoman), 15);
-    painter.Text.DrawText("Hello world", 100, 500, PdfDrawTextStyle::StrikeOut | PdfDrawTextStyle::Underline);
+    painter.DrawText("Hello world", 100, 500, PdfDrawTextStyle::StrikeOut | PdfDrawTextStyle::Underline);
     painter.FinishDrawing();
     doc.Save(TestUtils::GetTestOutputFilePath("TestPainter3.pdf"));
 
@@ -156,17 +156,17 @@ TEST_CASE("TestPainter4")
     auto& operators = static_cast<PdfContentStreamOperators&>(painter);
     painter.SetCanvas(page);
     painter.TextState.SetFont(font, 15);
-    painter.Text.Begin();
-    painter.Text.MoveTo(100, 500);
-    painter.Text.AddText("Test1");
+    painter.TextObject.Begin();
+    painter.TextObject.MoveTo(100, 500);
+    painter.TextObject.AddText("Test1");
     // Some low level operations
     operators.TJ_Operator_Begin();
     operators.TJ_Operator_Glyphs("_W", false);
     operators.TJ_Operator_Delta(-500);
     operators.TJ_Operator_Glyphs("orld", false);
     operators.TJ_Operator_End();
-    painter.Text.End();
-    painter.Text.DrawText("Test2", 100, 600, PdfDrawTextStyle::StrikeOut);
+    painter.TextObject.End();
+    painter.DrawText("Test2", 100, 600, PdfDrawTextStyle::StrikeOut);
 
     PdfPainterPath path;
     path.MoveTo(20, 20);

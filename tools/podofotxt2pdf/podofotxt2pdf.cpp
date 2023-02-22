@@ -51,7 +51,7 @@ void draw(const char* buffer, PdfDocument& document, const string_view& fontName
     {
         if (*buffer == '\n')
         {
-            painter.Text.DrawText(cursor, x, y);
+            painter.DrawText(cursor, x, y);
             cursor = ++buffer;
             y -= font->GetMetrics().GetLineSpacing();
             if (y < BORDER_TOP)

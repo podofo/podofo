@@ -12,7 +12,7 @@
 #include "PdfTextState.h"
 #include "PdfGraphicsState.h"
 #include "PdfPainterPath.h"
-#include "PdfPainterTextContext.h"
+#include "PdfPainterTextObject.h"
 #include "PdfContentStreamOperators.h"
 
 #include <podofo/common/StateStack.h>
@@ -27,6 +27,7 @@ class PdfFont;
 class PdfImage;
 class PdfObjectStream;
 class PdfXObject;
+class PdfPainter;
 
 enum class PdfPainterFlags
 {
@@ -49,7 +50,21 @@ enum class PdfPathDrawMode
     StrokeFillEvenOdd = 5,  ///< Stroke and fill using the the even-odd rule to determine the region to fill
 };
 
-class PdfPainter;
+enum class PdfDrawTextStyle
+{
+    Regular = 0,
+    StrikeOut = 1,
+    Underline = 2,
+};
+
+struct PODOFO_API PdfDrawTextMultiLineParams final
+{
+    PdfDrawTextStyle Style = PdfDrawTextStyle::Regular;                         ///< style of the draw text operation
+    PdfHorizontalAlignment HorizontalAlignment = PdfHorizontalAlignment::Left;  ///< alignment of the individual text lines in the given bounding box
+    PdfVerticalAlignment VerticalAlignment = PdfVerticalAlignment::Top;         ///< vertical alignment of the text in the given bounding box
+    bool Clip = true;                                                           ///< set the clipping rectangle to the given rect, otherwise no clipping is performed
+    bool SkipSpaces = true;                                                     ///< whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
+};
 
 struct PODOFO_API PdfPainterState final
 {
@@ -181,7 +196,7 @@ class PODOFO_API PdfPainter final : public PdfContentStreamOperators
     friend class PdfGraphicsStateWrapper;
     friend class PdfTextStateWrapper;
     friend class PdfPainterPathContext;
-    friend class PdfPainterTextContext;
+    friend class PdfPainterTextObject;
 
 public:
     /** Create a new PdfPainter object.
@@ -343,6 +358,52 @@ public:
     void DrawRectangle(const PdfRect& rect, PdfPathDrawMode mode = PdfPathDrawMode::Stroke,
         double roundX = 0.0, double roundY = 0.0);
 
+    /** Draw a single-line text string on a page using a given font object.
+     *  You have to call SetFont before calling this function.
+     *  \param str the text string which should be printed
+     *  \param x the x coordinate
+     *  \param y the y coordinate
+     */
+    void DrawText(const std::string_view& str, double x, double y,
+        PdfDrawTextStyle style = PdfDrawTextStyle::Regular);
+
+    /** Draw multiline text into a rectangle doing automatic wordwrapping.
+     *  The current font is used and SetFont has to be called at least once
+     *  before using this function
+     *
+     *  \param str the text which should be drawn
+     *  \param x the x coordinate of the text area (left)
+     *  \param y the y coordinate of the text area (bottom)
+     *  \param width width of the text area
+     *  \param height height of the text area
+     *  \param params parameters of the draw operation
+     */
+    void DrawTextMultiLine(const std::string_view& str, double x, double y, double width, double height,
+        const PdfDrawTextMultiLineParams& params = { });
+
+    /** Draw multiline text into a rectangle doing automatic wordwrapping.
+     *  The current font is used and SetFont has to be called at least once
+     *  before using this function
+     *
+     *  \param str the text which should be drawn
+     *  \param rect bounding rectangle of the text
+     *  \param params parameters of the draw operation
+     */
+    void DrawTextMultiLine(const std::string_view& str, const PdfRect& rect,
+        const PdfDrawTextMultiLineParams& params = { });
+
+    /** Draw a single line of text horizontally aligned.
+     *  \param str the text to draw
+     *  \param x the x coordinate of the text line
+     *  \param y the y coordinate of the text line
+     *  \param width the width of the text line
+     *  \param hAlignment alignment of the text line
+     *  \param style style of the draw text operation
+     */
+    void DrawTextAligned(const std::string_view& str, double x, double y,
+        double width, PdfHorizontalAlignment hAlignment,
+        PdfDrawTextStyle style = PdfDrawTextStyle::Regular);
+
     /** Draw an image on the current page.
      *  \param x the x coordinate (left position of the image)
      *  \param y the y coordinate (bottom position of the image)
@@ -455,20 +516,11 @@ public:
     inline PdfObjectStream* GetStream() const { return m_objStream; }
 
 private:
-    // To be called by PdfPainterTextContext
+    // To be called by PdfPainterTextObject
     void BeginText();
     void EndText();
     void TextMoveTo(double x, double y);
     void AddText(const std::string_view& str);
-    void DrawText(const std::string_view& str, double x, double y,
-        PdfDrawTextStyle style);
-    void DrawTextMultiLine(const std::string_view& str, double x, double y, double width, double height,
-        const PdfDrawTextMultiLineParams& params);
-    void DrawTextMultiLine(const std::string_view& str, const PdfRect& rect,
-        const PdfDrawTextMultiLineParams& params);
-    void DrawTextAligned(const std::string_view& str, double x, double y,
-        double width, PdfHorizontalAlignment hAlignment,
-        PdfDrawTextStyle style);
 
 private:
     // To be called by state wrappers
@@ -649,7 +701,7 @@ private:
 public:
     PdfGraphicsStateWrapper GraphicsState;
     PdfTextStateWrapper TextState;
-    PdfPainterTextContext Text;
+    PdfPainterTextObject TextObject;
 
 private:
     /** All drawing operations work on this stream.

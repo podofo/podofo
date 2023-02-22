@@ -106,7 +106,7 @@ TEST_CASE("testCreateDelete")
         auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
         painter.SetCanvas(page);
         painter.TextState.SetFont(*font, 16.0);
-        painter.Text.DrawText("Page 1", 200, 200);
+        painter.DrawText("Page 1", 200, 200);
         painter.FinishDrawing();
         REQUIRE(doc.GetPages().GetCount() == 1);
     }
@@ -116,7 +116,7 @@ TEST_CASE("testCreateDelete")
         auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
         painter.SetCanvas(page);
         painter.TextState.SetFont(*font, 16.0);
-        painter.Text.DrawText("Page 2", 200, 200);
+        painter.DrawText("Page 2", 200, 200);
         painter.FinishDrawing();
         REQUIRE(doc.GetPages().GetCount() == 2);
     }
@@ -130,7 +130,7 @@ TEST_CASE("testCreateDelete")
         auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
         painter.SetCanvas(page);
         painter.TextState.SetFont(*font, 16.0);
-        painter.Text.DrawText("Page 3", 200, 200);
+        painter.DrawText("Page 3", 200, 200);
         painter.FinishDrawing();
         REQUIRE(doc.GetPages().GetCount() == 2);
     }
@@ -349,7 +349,7 @@ vector<unique_ptr<PdfPage>> PdfPageTest::CreateSamplePages(PdfMemDocument& doc, 
         painter.TextState.SetFont(*font, 16.0);
         ostringstream os;
         os << "Page " << i + 1;
-        painter.Text.DrawText(os.str(), 200, 200);
+        painter.DrawText(os.str(), 200, 200);
         painter.FinishDrawing();
     }
 

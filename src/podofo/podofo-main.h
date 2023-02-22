@@ -102,7 +102,7 @@
 #include "main/PdfPage.h"
 #include "main/PdfPageTreeCache.h"
 #include "main/PdfPageCollection.h"
-#include "main/PdfPainterTextContext.h"
+#include "main/PdfPainterTextObject.h"
 #include "main/PdfPainterPath.h"
 #include "main/PdfPainter.h"
 #include "main/PdfStreamedDocument.h"
