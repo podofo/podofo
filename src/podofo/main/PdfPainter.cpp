@@ -369,14 +369,12 @@ void PdfPainter::DrawText(const string_view& str, double x, double y,
     checkStatus(StatusDefault);
     checkFont();
 
-    if (m_painterStatus == StatusDefault)
-        PoDoFo::WriteOperator_BT(m_stream);
+    PoDoFo::WriteOperator_BT(m_stream);
     writeTextState();
     drawText(str, x, y,
         (style & PdfDrawTextStyle::Underline) != PdfDrawTextStyle::Regular,
         (style & PdfDrawTextStyle::StrikeOut) != PdfDrawTextStyle::Regular);
-    if (m_painterStatus == StatusDefault)
-        PoDoFo::WriteOperator_ET(m_stream);
+    PoDoFo::WriteOperator_ET(m_stream);
 }
 
 void PdfPainter::drawText(const string_view& str, double x, double y, bool isUnderline, bool isStrikeOut)
@@ -435,14 +433,12 @@ void PdfPainter::DrawTextMultiLine(const string_view& str, double x, double y, d
     if (width <= 0.0 || height <= 0.0) // nonsense arguments
         return;
 
-    if (m_painterStatus == StatusDefault)
-        PoDoFo::WriteOperator_BT(m_stream);
+    PoDoFo::WriteOperator_BT(m_stream);
     writeTextState();
     drawMultiLineText(str, x, y, width, height,
         params.HorizontalAlignment, params.VerticalAlignment,
         params.Clip, params.SkipSpaces, params.Style);
-    if (m_painterStatus == StatusDefault)
-        PoDoFo::WriteOperator_ET(m_stream);
+    PoDoFo::WriteOperator_ET(m_stream);
 }
 
 void PdfPainter::DrawTextAligned(const string_view& str, double x, double y, double width,
@@ -455,12 +451,10 @@ void PdfPainter::DrawTextAligned(const string_view& str, double x, double y, dou
     checkStatus(StatusDefault | StatusTextObject);
     checkFont();
 
-    if (m_painterStatus == StatusDefault)
-        PoDoFo::WriteOperator_BT(m_stream);
+    PoDoFo::WriteOperator_BT(m_stream);
     writeTextState();
     drawTextAligned(str, x, y, width, hAlignment, style);
-    if (m_painterStatus == StatusDefault)
-        PoDoFo::WriteOperator_ET(m_stream);
+    PoDoFo::WriteOperator_ET(m_stream);
 }
 
 void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, double width, double height,
