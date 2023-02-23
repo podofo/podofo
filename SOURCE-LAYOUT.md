@@ -5,7 +5,8 @@
 - `3rdparty`: 3rd party headers and sources needed to compile PoDoFo;
 - `cmake`: [CMake](https://cmake.org/) scripts and includes needed to compile PoDoFo;
 - `examples`: Samples that use the PoDoFo API;
-- `extern`: external git submodules needed to compile PoDoFo (no one is currently needed);
+- `extern`: external git submodules. No one is currently needed to
+  compile PoDoFo library, but they may be needed to build the playground or tests;
 - `src`: the main source directory;
 - `test`: test suite;
 - `tools`: the PoDoFo tools suite.
