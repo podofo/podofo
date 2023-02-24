@@ -344,14 +344,14 @@ FT_Face PdfFontManager::getFontFace(const string_view& fontName,
     string& fontpath, unsigned& fontFaceIndex)
 {
     string path;
-    unsigned faceIndex;
+    unsigned faceIndex = 0;
+#ifdef PODOFO_HAVE_FONTCONFIG
     PdfFontConfigSearchParams fcParams;
     fcParams.Style = params.Style;
     fcParams.Flags = (params.MatchBehavior & PdfFontMatchBehaviorFlags::MatchPostScriptName) == PdfFontMatchBehaviorFlags::None
         ? PdfFontConfigSearchFlags::None
         : PdfFontConfigSearchFlags::MatchPostScriptName;
 
-#ifdef PODOFO_HAVE_FONTCONFIG
     auto& fc = GetFontConfigWrapper();
     path = fc.SearchFontPath(fontName, fcParams, faceIndex);
 #endif

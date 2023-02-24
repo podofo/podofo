@@ -60,8 +60,8 @@ endforeach()
 if(NOT PODOFO_HAVE_FONTCONFIG)
     # Remove FontConfig source if not needed
     list(REMOVE_ITEM PODOFO_SOURCES
-        main/PdfFontConfigWrapper.h
-        main/PdfFontConfigWrapper.cpp
+        "${CMAKE_CURRENT_SOURCE_DIR}/main/PdfFontConfigWrapper.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/main/PdfFontConfigWrapper.cpp"
     )
 endif()
 
