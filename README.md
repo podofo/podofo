@@ -30,7 +30,7 @@ CMake 3.16 and the following libraries:
 
 * freetype2
 * fontconfig (required for Unix platforms, optional for Windows)
-* OpenSSL
+* OpenSSL (1.1 and 3.0 are supported)
 * LibXml2
 * zlib
 * libjpeg (optional)
@@ -61,26 +61,81 @@ PoDoFo tools are licensed under the [GPL 2.0](https://spdx.org/licenses/GPL-2.0-
 
 ## Development quickstart
 
-Learn by example by looking at the github workflow [definitions](https://github.com/podofo/podofo/tree/master/.github/workflows).
-There are examples using [`vcpkg`](https://vcpkg.io/) under
-[Windows](https://github.com/podofo/podofo/blob/master/.github/workflows/build-win-vcpkg.yml),
-[`brew`](https://brew.sh/) under [macos](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml),
-and `apt-get` under [ubuntu](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml), installing all the
-required dependencies, bootstrapping the CMake project, building and testing the library. In Windows,
-follow the vcpkg [quickstart](https://vcpkg.io/en/getting-started.html) guide to setup the package manager repository first.
-It may be also useful to set the enviroment variable `VCPKG_DEFAULT_TRIPLET` to `x64-windows` to default installing 64 bit dependencies
+PoDoFo is known to compile through a multitude of package managers (including `apt-get`, [brew](https://brew.sh/), [vcpkg](https://vcpkg.io/), [Conan](https://conan.io/)), and has public continous integration working in [Ubuntu Linux](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml), [MacOS](https://github.com/podofo/podofo/blob/master/.github/workflows/build-linux.yml) and
+[Windows](https://github.com/podofo/podofo/blob/master/.github/workflows/build-win.yml), bootstrapping the CMake project, building and testing the library. It's highly recommended to build PoDoFo using such package managers. 
+
+There's also a playground area in the repository where you can have
+access to pre-build dependencies for some popular architectures/operating systems:
+the playground is the recommended setting to develop the library and reproduce bugs,
+while it's not recommended for the deployment of your application using PoDoFo.
+Have a look to the [Readme](https://github.com/podofo/podofo/tree/master/playground) there.
+
+> **Warning**: PoDoFo is known to be working in cross-compilation toolchains (eg. Android/iOS development), but support may not provided in such scenarios. If you decide to manually build dependencies you are assumed to know how to identity possible library clashes/mismatches and how to deal with compilation/linking problems that can arise in your system.
+
+### Build with apt-get
+
+From the source root run:
+
+```
+sudo apt-get install -y libfontconfig1-dev libfreetype-dev libxml2-dev libssl-dev libjpeg-dev libpng-dev libtiff-dev libidn11-dev
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake --build . --config Debug
+```
+
+### Build with brew
+
+Install [brew](https://brew.sh/), then from the source root run:
+
+```
+brew install fontconfig freetype openssl libxml2 jpeg-turbo libpng libtiff libidn
+mkdir build
+cd build
+cmake  -DCMAKE_BUILD_TYPE=Debug -DCMAKE_FIND_FRAMEWORK=NEVER -DCMAKE_PREFIX_PATH=`brew --prefix` -DFontconfig_INCLUDE_DIR=`brew --prefix fontconfig`/include -DOPENSSL_ROOT_DIR=`brew --prefix openssl@3` ..
+cmake --build . --config Debug
+```
+
+### Build with Conan
+
+Install [conan](https://docs.conan.io/1/installation.html), then from source root run:
+
+```
+mkdir build
+cd build
+conan install ..
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake --build . --config Debug
+```
+
+### Build with vcpkg
+
+Follow the vcpkg [quickstart](https://vcpkg.io/en/getting-started.html) guide to setup the package manager repository first.
+In Windows, it may be also useful to set the enviroment variable `VCPKG_DEFAULT_TRIPLET` to `x64-windows` to default installing 64 bit dependencies
 and define a `VCPKG_INSTALLATION_ROOT` variable with the location of the repository as created in the quickstart.
 
-Additionally there's a playground area in the repository where you can have access to pre-build
-dependencies for some popular architectures/operating systems. Have a look in the
-[Readme](https://github.com/podofo/podofo/tree/master/playground) there.
+Then from source root run:
+
+```
+vcpkg install fontconfig freetype libxml2 openssl libjpeg-turbo libpng tiff zlib
+mkdir build
+cd build
+cmake -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake --build . --config Debug
+```
+
+### CMake switches
+
+- `-DPODOFO_BUILD_LIB_ONLY=TRUE`: Build only the library component, ignoring tests, examples and tools targets;
+
+- `-DPODOFO_STATIC=TRUE`: Build the library as a static object.
 
 ## String encoding and buffer conventions
 
-All ```std::strings``` or ```std::string_view``` in the library are intended
-to hold UTF-8 encoded string content. ```PdfString``` and ```PdfName``` constructors
-accept UTF-8 encoded strings by default (```PdfName``` accept only characters in the
-```PdfDocEncoding``` char set, though). ```charbuff``` abd ```bufferview```
+All `std::strings` or `std::string_view` in the library are intended
+to hold UTF-8 encoded string content. `PdfString` and `PdfName` constructors
+accept UTF-8 encoded strings by default (`PdfName` accept only characters in the
+`PdfDocEncoding` char set, though). `charbuff` abd `bufferview`
 instead represent a generic octet buffer.
 
 ## API stability
@@ -91,7 +146,7 @@ See [API Stability](https://github.com/podofo/podofo/wiki/API-Stability) for mor
 
 ## PoDoFo Tools
 
-> **Warning**: Tools are currently **untested** and **unmaintained**
+> **Warning**: Tools are currently **untested** and **unmaintained**.
 
 PoDoFo tools are still available in the source [tree](https://github.com/podofo/podofo/)
 but their compilation is disabled by default because they are unsted/unmaintained,
@@ -241,8 +296,10 @@ to receive some feedback and discuss some basic design choices.
 
 ## Authors
 
+> **Warning**: Please don't use personal email addresses for technical support inquries, but create
+github [issues](https://github.com/podofo/podofo/issues) instead.
+
 PoDoFo is currently developed and maintained by
 [Francesco Pretto](mailto:ceztko@gmail.com), together with Dominik Seichter and others. See the file
 [AUTHORS.md](https://github.com/podofo/podofo/blob/master/AUTHORS.md) for more details.
-Please don't use personal emails for technical support requests, but create
-github [issues](https://github.com/podofo/podofo/issues) instead.
+
