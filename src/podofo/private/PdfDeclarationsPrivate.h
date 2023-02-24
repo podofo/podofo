@@ -242,6 +242,10 @@ namespace utls
 
     bool IsStringDelimiter(char32_t ch);
 
+    bool IsSpaceLikeChar(char32_t ch);
+
+    bool IsNewLineLikeChar(char32_t ch);
+
     bool IsWhiteSpace(char32_t ch);
 
     bool IsStringEmptyOrWhiteSpace(const std::string_view& str);

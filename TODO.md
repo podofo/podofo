@@ -1,5 +1,5 @@
 ### 0.10
-- PdfPainter: Fix Arc(), getMultiLineTextAsLines(),
+- PdfPainter: Fix Arc(),
   current point handling in various shape drawing
 
 ### 0.11

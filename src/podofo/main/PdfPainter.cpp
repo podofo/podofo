@@ -21,21 +21,6 @@ using namespace PoDoFo;
 
 static string expandTabs(const string_view& str, unsigned tabWidth, unsigned tabCount);
 
-// TODO: Remove me after cleaning getMultiLineTextAsLines()
-inline bool IsNewLineChar(char32_t ch)
-{
-    return ch == U'\n' || ch == U'\r';
-}
-
-// TODO: Remove me after cleaning getMultiLineTextAsLines()
-inline bool IsSpaceChar(char32_t ch)
-{
-    if (ch > 255)
-        return false;
-
-    return std::isspace((int)ch) != 0;
-}
-
 PdfPainter::PdfPainter(PdfPainterFlags flags) :
     m_flags(flags),
     m_painterStatus(StatusDefault),
@@ -430,7 +415,7 @@ void PdfPainter::DrawTextMultiLine(const string_view& str, double x, double y, d
     checkStatus(StatusDefault | StatusTextObject);
     checkFont();
 
-    if (width <= 0.0 || height <= 0.0) // nonsense arguments
+    if (width <= 0 || height <= 0) // nonsense arguments
         return;
 
     PoDoFo::WriteOperator_BT(m_stream);
@@ -471,7 +456,7 @@ void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, d
     auto expanded = this->expandTabs(str);
 
     vector<string> lines = getMultiLineTextAsLines(expanded, width, skipSpaces);
-    double dLineGap = font.GetLineSpacing(textState) - font.GetAscent(textState) + font.GetDescent(textState);
+    double lineGap = font.GetLineSpacing(textState) - font.GetAscent(textState) + font.GetDescent(textState);
     // Do vertical alignment
     switch (vAlignment)
     {
@@ -483,38 +468,25 @@ void PdfPainter::drawMultiLineText(const string_view& str, double x, double y, d
             y += font.GetLineSpacing(textState) * lines.size();
             break;
         case PdfVerticalAlignment::Center:
-            y += (height -
-                ((height - (font.GetLineSpacing(textState) * lines.size())) / 2.0));
+            y += height - (height - (font.GetLineSpacing(textState) * lines.size())) / 2;
             break;
     }
 
-    y -= (font.GetAscent(textState) + dLineGap / (2.0));
-
-    vector<string>::const_iterator it = lines.begin();
-    while (it != lines.end())
+    y -= font.GetAscent(textState) + lineGap / 2;
+    for (auto& line : lines)
     {
-        if (it->length() != 0)
-            this->drawTextAligned(*it, x, y, width, hAlignment, style);
+        if (line.length() != 0)
+            this->drawTextAligned(line, x, y, width, hAlignment, style);
 
-        y -= font.GetLineSpacing(textState);
-        it++;
+        x = 0;
+        y = -font.GetLineSpacing(textState);
     }
     this->restore();
 }
 
-// FIX-ME/CLEAN-ME: The following was found
-// in this deprecable state while cleaning the code
 vector<string> PdfPainter::getMultiLineTextAsLines(const string_view& str, double width, bool skipSpaces)
 {
-    (void)str;
-    (void)width;
-    (void)skipSpaces;
-
-    // FIX-ME: This method is currently broken, just rewrite it later
-    vector<string> ret = { (string)str };
-    return ret;
-    /*
-    if (width <= 0.0) // nonsense arguments
+    if (width <= 0) // nonsense arguments
         return vector<string>();
 
     if (str.length() == 0) // empty string
@@ -522,26 +494,29 @@ vector<string> PdfPainter::getMultiLineTextAsLines(const string_view& str, doubl
 
     auto& textState = m_StateStack.Current->TextState;
     auto& font = *textState.Font;
-    const char* const stringBegin = str.data();
-    const char* lineBegin = stringBegin;
-    const char* currentCharacter = stringBegin;
-    const char* startOfCurrentWord = stringBegin;
+
     bool startOfWord = true;
-    double curWidthOfLine = 0.0;
+    double curWidthOfLine = 0;
     vector<string> lines;
 
     // do simple word wrapping
-    while (*currentCharacter)
+    auto it = str.begin();
+    auto end = str.end();
+    auto lineBegin = it;
+    auto prevIt = it;
+    auto startOfCurrentWord = it;
+    while (it != end)
     {
-        if (IsNewLineChar(*currentCharacter)) // hard-break!
+        char32_t ch = (char32_t)utf8::next(it, end);
+        if (utls::IsNewLineLikeChar(ch)) // hard-break!
         {
-            lines.push_back(string(lineBegin, (size_t)(currentCharacter - lineBegin)));
+            lines.push_back((string)str.substr(lineBegin - str.begin(), prevIt - lineBegin));
 
-            lineBegin = currentCharacter + 1; // skip the line feed
+            lineBegin = it; // skip the line feed
             startOfWord = true;
-            curWidthOfLine = 0.0;
+            curWidthOfLine = 0;
         }
-        else if (IsSpaceChar(*currentCharacter))
+        else if (utls::IsSpaceLikeChar(ch))
         {
             if (curWidthOfLine > width)
             {
@@ -549,22 +524,26 @@ vector<string> PdfPainter::getMultiLineTextAsLines(const string_view& str, doubl
                 // -> Move it to the next one.
                 if (startOfCurrentWord > lineBegin)
                 {
-                    lines.push_back(string(lineBegin, (size_t)(startOfCurrentWord - lineBegin)));
+                    lines.push_back((string)str.substr(lineBegin - str.begin(), startOfCurrentWord - lineBegin));
                 }
                 else
                 {
-                    lines.push_back(string(lineBegin, (size_t)(currentCharacter - lineBegin)));
+                    lines.push_back((string)str.substr(lineBegin - str.begin(), prevIt - lineBegin));
                     if (skipSpaces)
                     {
                         // Skip all spaces at the end of the line
-                        while (IsSpaceChar(*(currentCharacter + 1)))
-                            currentCharacter++;
+                        while (it != end)
+                        {
+                            ch = (char32_t)utf8::next(it, end);
+                            if (!utls::IsSpaceLikeChar(ch))
+                                break;
+                        }
 
-                        startOfCurrentWord = currentCharacter + 1;
+                        startOfCurrentWord = it;
                     }
                     else
                     {
-                        startOfCurrentWord = currentCharacter;
+                        startOfCurrentWord = prevIt;
                     }
                     startOfWord = true;
                 }
@@ -573,36 +552,40 @@ vector<string> PdfPainter::getMultiLineTextAsLines(const string_view& str, doubl
                 if (!startOfWord)
                 {
                     curWidthOfLine = font.GetStringLength(
-                        { startOfCurrentWord, (size_t)(currentCharacter - startOfCurrentWord) },
+                        str.substr(startOfCurrentWord - str.begin(), prevIt - startOfCurrentWord),
                         textState);
                 }
                 else
                 {
-                    curWidthOfLine = 0.0;
+                    curWidthOfLine = 0;
                 }
             }
-            ////else if( ( dCurWidthOfLine + font.GetCharWidth( *currentCharacter, textState) ) > width )
+            else if ((curWidthOfLine + font.GetCharLength(ch, textState)) > width)
             {
-                lines.push_back(string(lineBegin, (size_t)(currentCharacter - lineBegin)));
+                lines.push_back((string)str.substr(lineBegin - str.begin(), prevIt - lineBegin));
                 if (skipSpaces)
                 {
                     // Skip all spaces at the end of the line
-                    while (IsSpaceChar(*(currentCharacter + 1)))
-                        currentCharacter++;
+                    while (it != end)
+                    {
+                        ch = (char32_t)utf8::next(it, end);
+                        if (!utls::IsSpaceLikeChar(ch))
+                            break;
+                    }
 
-                    startOfCurrentWord = currentCharacter + 1;
+                    startOfCurrentWord = it;
                 }
                 else
                 {
-                    startOfCurrentWord = currentCharacter;
+                    startOfCurrentWord = prevIt;
                 }
                 lineBegin = startOfCurrentWord;
                 startOfWord = true;
-                curWidthOfLine = 0.0;
+                curWidthOfLine = 0;
             }
-            ////else
+            else
             {
-                ////    dCurWidthOfLine += font.GetCharWidth( *currentCharacter, textState);
+                curWidthOfLine += font.GetCharLength(ch, textState);
             }
 
             startOfWord = true;
@@ -611,69 +594,69 @@ vector<string> PdfPainter::getMultiLineTextAsLines(const string_view& str, doubl
         {
             if (startOfWord)
             {
-                startOfCurrentWord = currentCharacter;
+                startOfCurrentWord = prevIt;
                 startOfWord = false;
             }
             //else do nothing
 
-            ////if ((dCurWidthOfLine + font.GetCharWidth(*currentCharacter, textState)) > width)
+            if ((curWidthOfLine + font.GetCharLength(ch, textState)) > width)
             {
                 if (lineBegin == startOfCurrentWord)
                 {
                     // This word takes up the whole line.
                     // Put as much as possible on this line.
-                    if (lineBegin == currentCharacter)
+                    if (lineBegin == prevIt)
                     {
-                        lines.push_back(string(currentCharacter, 1));
-                        lineBegin = currentCharacter + 1;
-                        startOfCurrentWord = currentCharacter + 1;
+                        lines.push_back((string)str.substr(prevIt - str.begin(), it - prevIt));
+                        lineBegin = it;
+                        startOfCurrentWord = it;
                         curWidthOfLine = 0;
                     }
                     else
                     {
-                        lines.push_back(string(lineBegin, (size_t)(currentCharacter - lineBegin)));
-                        lineBegin = currentCharacter;
-                        startOfCurrentWord = currentCharacter;
-                        ////dCurWidthOfLine = font.GetCharWidth(*currentCharacter, textState);
+                        lines.push_back((string)str.substr(lineBegin - str.begin(), prevIt - lineBegin));
+                        lineBegin = prevIt;
+                        startOfCurrentWord = prevIt;
+                        curWidthOfLine = font.GetCharLength(ch, textState);
                     }
                 }
                 else
                 {
                     // The current word does not fit in the current line.
                     // -> Move it to the next one.
-                    lines.push_back(string(lineBegin, (size_t)(startOfCurrentWord - lineBegin)));
+                    lines.push_back((string)str.substr(lineBegin - str.begin(), startOfCurrentWord - lineBegin));
                     lineBegin = startOfCurrentWord;
-                    curWidthOfLine = font.GetStringLength({ startOfCurrentWord, (size_t)((currentCharacter - startOfCurrentWord) + 1) }, textState);
+                    curWidthOfLine = font.GetStringLength((string)str.substr(startOfCurrentWord - str.begin(), it - startOfCurrentWord), textState);
                 }
             }
-            ////else
+            else
             {
-                ////    dCurWidthOfLine += font.GetCharWidth(*currentCharacter, textState);
+                curWidthOfLine += font.GetCharLength(ch, textState);
             }
         }
-        currentCharacter++;
+
+        prevIt = it;
     }
 
-    if ((currentCharacter - lineBegin) > 0)
+    if ((prevIt - lineBegin) > 0)
     {
         if (curWidthOfLine > width && startOfCurrentWord > lineBegin)
         {
             // The previous word does not fit in the current line.
             // -> Move it to the next one.
-            lines.push_back(string(lineBegin, (size_t)(startOfCurrentWord - lineBegin)));
+            lines.push_back((string)str.substr(lineBegin - str.begin(), startOfCurrentWord - lineBegin));
             lineBegin = startOfCurrentWord;
         }
         //else do nothing
 
-        if (currentCharacter - lineBegin > 0)
+        if (prevIt - lineBegin > 0)
         {
-            lines.push_back(string(lineBegin, (size_t)(currentCharacter - lineBegin)));
+            lines.push_back((string)str.substr(lineBegin - str.begin(), prevIt - lineBegin));
         }
         //else do nothing
     }
 
     return lines;
-    */
 }
 
 void PdfPainter::drawTextAligned(const string_view& str, double x, double y, double width,

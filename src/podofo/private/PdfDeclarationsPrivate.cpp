@@ -632,6 +632,56 @@ bool utls::IsWhiteSpace(char32_t ch)
     }
 }
 
+bool utls::IsSpaceLikeChar(char32_t ch)
+{
+    switch (ch)
+    {
+        // Space separators
+        case U' ':          // SPACE U+0020
+        case U'\x00A0':     // NO-BREAK SPACE
+        case U'\x1680':     // OGHAM SPACE MARK
+        case U'\x2000':     // EN QUAD
+        case U'\x2001':     // EM QUAD
+        case U'\x2002':     // EN SPACE
+        case U'\x2003':     // EM SPACE
+        case U'\x2004':     // THREE-PER-EM SPACE
+        case U'\x2005':     // FOUR-PER-EM SPACE
+        case U'\x2006':     // SIX-PER-EM SPACE
+        case U'\x2007':     // FIGURE SPACE
+        case U'\x2008':     // PUNCTUATION SPAC
+        case U'\x2009':     // THIN SPACE
+        case U'\x200A':     // HAIR SPACE
+        case U'\x202F':     // NARROW NO-BREAK SPAC
+        case U'\x205F':     // MEDIUM MATHEMATICAL SPACE
+        case U'\x3000':     // IDEOGRAPHIC SPACE
+        // Feed
+        case U'\t':         // CHARACTER TABULATION U+0009
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool utls::IsNewLineLikeChar(char32_t ch)
+{
+    switch (ch)
+    {
+        // Line separators
+        case U'\x2028':     // LINE SEPARATOR
+        // Paragraph separators
+        case U'\x2029':     // PARAGRAPH SEPARATOR
+        // Feed
+        case U'\n':         // LINE FEED U+000A
+        case U'\v':         // LINE TABULATION U+000B
+        case U'\f':         // FORM FEED U+000C
+        case U'\r':         // CARRIAGE RETURN U+000D
+        case U'\x0085':     // NEXT LINE
+            return true;
+        default:
+            return false;
+    }
+}
+
 bool isStringDelimter(char32_t ch)
 {
     // TODO: More Unicode punctuation/delimiters

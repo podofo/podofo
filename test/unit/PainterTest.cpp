@@ -265,6 +265,43 @@ Q
     REQUIRE(out == expected);
 }
 
+TEST_CASE("TestPainter5")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+
+    PdfFontCreateParams params;
+    params.Encoding = PdfEncodingMapFactory::WinAnsiEncodingInstance();
+    auto& font = doc.GetFonts().GetStandard14Font(PdfStandard14FontType::Helvetica, params);
+
+    PdfPainter painter;
+    painter.SetCanvas(page);
+    painter.TextState.SetFont(font, 15);
+    painter.DrawTextMultiLine("Hello\nWorld", 100, 600, 100, 40);
+
+    painter.FinishDrawing();
+    doc.Save(TestUtils::GetTestOutputFilePath("TestPainter5.pdf"));
+
+    auto expected = R"(q
+BT
+/Ft5 15 Tf
+q
+100 600 100 40 re
+W
+n
+100 628.75 Td
+(Hello) Tj
+0 -15 Td
+(World) Tj
+Q
+ET
+Q
+)";
+
+    auto out = getContents(page);
+    REQUIRE(out == expected);
+}
+
 TEST_CASE("TestAppend")
 {
     string_view example = "BT (Hello) Tj ET";
