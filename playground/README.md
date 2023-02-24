@@ -26,6 +26,10 @@ for example `cd build-linux-debug && ctest`.
 
 # Disclaimer
 
-The dependencies are supplied only for development purposes and come
+> **Warning**: Read the following carefully
+
+Playground dependencies are supplied only for PoDoFo development purposes and come
 with no warranty. They are not frequently updated, may contain security
-flaws and be unsafe to use.
+flaws and be unsafe to use. The dependencies directory layout is also
+optimized to be used by the `CMakeLists.txt` in this folder and it's
+not recommeded to use them in a different way.
