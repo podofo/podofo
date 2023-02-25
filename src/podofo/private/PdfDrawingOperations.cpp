@@ -17,6 +17,9 @@ constexpr double ARC_MAGIC = 0.552284749;
 
 static void convertRectToBezier(double x, double y, double width, double height, double pointsX[], double pointsY[]);
 static void writeColorComponents(PdfStringStream& stream, const cspan<double>& components);
+static double normalizeAngle(double alpha);
+static void getCirclePoint(double cx, double cy, double radius, double alpha, double& x, double& y);
+static void getControlPoint(double cx, double cy, double x0, double y0, double x2, double y2, double& x1, double& y1);
 
 void PoDoFo::WriteArcTo(PdfStringStream& stream, double x0, double y0, double x1, double y1,
     double x2, double y2, double radius, Vector2& currP)
@@ -79,19 +82,38 @@ void PoDoFo::WriteArcTo(PdfStringStream& stream, double x0, double y0, double x1
     currP.Y = y2t;
 }
 
+// https://www.w3.org/2015/04/2dcontext-lc-sample.html#dom-context-2d-arc
 void PoDoFo::WriteArc(PdfStringStream& stream, double x, double y, double radius,
-    double startAngle, double endAngle, double counterclockwise, Vector2& currP)
+    double startAngle, double endAngle, bool counterclockwise, Vector2& currP)
 {
-    (void)x;
-    (void)y;
-    (void)radius;
-    (void)startAngle;
-    (void)endAngle;
-    (void)counterclockwise;
-    (void)currP;
-    PoDoFo::WriteOperator_m(stream, x, y);
-    // https://www.w3.org/2015/04/2dcontext-lc-sample.html#dom-context-2d-arc
     PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
+
+    // FIXME: Following is wrong
+    startAngle = normalizeAngle(startAngle);
+    endAngle = normalizeAngle(endAngle);
+    double angleDiff = endAngle - startAngle;
+    if (!counterclockwise)
+        angleDiff = -angleDiff;
+
+    unsigned subArcCount = (unsigned)std::ceil(std::abs(angleDiff) / (numbers::pi / 2));
+    double x0;
+    double y0;
+    getCirclePoint(x, y, radius, startAngle, x0, y0);
+    PoDoFo::WriteOperator_l(stream, x0, y0);
+
+    double angleStep = angleDiff / subArcCount;
+    double angleOffset = startAngle;
+    double x1, x2;
+    double y1, y2;
+    for (unsigned i = 0; i < subArcCount; i++)
+    {
+        angleOffset += angleStep;
+        getCirclePoint(x, y, radius, angleOffset, x2, y2);
+        getControlPoint(x, y, x0, y0, x2, y2, x1, y1);
+        PoDoFo::WriteArcTo(stream, x0, y0, x1, y1, x2, y2, radius, currP);
+        x0 = x2;
+        y0 = y2;
+    }
 }
 
 void PoDoFo::WriteCircle(PdfStringStream& stream, double x, double y, double radius, Vector2& currP)
@@ -611,4 +633,35 @@ void writeColorComponents(PdfStringStream& stream, const cspan<double>& componen
 {
     for (unsigned i = 0; i < components.size(); i++)
         stream << components[i] << ' ';
+}
+
+double normalizeAngle(double alpha)
+{
+    return alpha - 2 * numbers::pi * std::floor(alpha / (2 * numbers::pi));
+}
+
+void getCirclePoint(double cx, double cy, double radius, double alpha, double& x, double& y)
+{
+    x = cx + radius * std::cos(-alpha);
+    y = cy + radius * std::sin(-alpha);
+}
+
+void getControlPoint(double cx, double cy, double x0, double y0, double x2, double y2, double& x1, double& y1)
+{
+    // Compute the coefficients of the tantent to the point P0
+    double a0 = cy - y0;
+    double b0 = x0 - cx;
+    double a0t = b0;
+    double b0t = -a0;
+    double c0t = -b0 * x0 + a0 * y0;
+
+    // Compute the coefficients of the tantent to the point P0
+    double a2 = cy - y2;
+    double b2 = x2 - cx;
+    double a2t = b2;
+    double b2t = -a2;
+    double c2t = -b2 * x2 + a2 * y2;
+
+    x1 = (b0t * c2t - b2t * c0t) / (a0t * b2t - a2t * b0t);
+    y1 = (c0t * a2t - c2t * a0t) / (a0t * b2t - a2t * b0t);
 }

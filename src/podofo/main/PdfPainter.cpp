@@ -1328,7 +1328,7 @@ void PdfPainter::addArcTo(double x1, double y1, double x2, double y2, double r)
     PoDoFo::WriteArcTo(m_stream, x0, y0, x1, y1, x2, y2, r, m_StateStack.Current->CurrentPoint);
 }
 
-void PdfPainter::addArc(double x, double y, double radius, double startAngle, double endAngle, double counterclockwise)
+void PdfPainter::addArc(double x, double y, double radius, double startAngle, double endAngle, bool counterclockwise)
 {
     PoDoFo::WriteArc(m_stream, x, y, radius, startAngle, endAngle,
         counterclockwise, m_StateStack.Current->CurrentPoint);

@@ -172,6 +172,7 @@ TEST_CASE("TestPainter4")
     path.MoveTo(20, 20);
     path.AddArcTo(150, 20, 150, 70, 50);
     path.AddLineTo(150, 120);
+    //path.AddArc(200, 120, 50, numbers::pi, -numbers::pi/8, true);
     painter.DrawPath(path, PdfPathDrawMode::Stroke);
     path.Reset();
     path.MoveTo(40, 40);

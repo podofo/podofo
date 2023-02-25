@@ -552,7 +552,7 @@ private:
     void addLineTo(double x, double y);
     void addCubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3);
     void addArcTo(double x1, double y1, double x2, double y2, double radius);
-    void addArc(double x, double y, double radius, double startAngle, double endAngle, double counterclockwise);
+    void addArc(double x, double y, double radius, double startAngle, double endAngle, bool counterclockwise);
     void addCircle(double x, double y, double radius);
     void addEllipse(double x, double y, double width, double height);
     void addRectangle(double x, double y, double width, double height, double roundX, double roundY);
