@@ -1,6 +1,7 @@
 ### 0.10
-- PdfPainter: Fix Arc(),
-  current point handling in various shape drawing
+- PdfPainter: Fix current point handling in
+  various shape drawing
+- PdfPainterPath: Add AddPath()
 
 ### 0.11
 - PdfFontManager: Add font hash to cache descriptor

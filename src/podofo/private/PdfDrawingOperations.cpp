@@ -19,7 +19,8 @@ static void convertRectToBezier(double x, double y, double width, double height,
 static void writeColorComponents(PdfStringStream& stream, const cspan<double>& components);
 static double normalizeAngle(double alpha);
 static void getCirclePoint(double cx, double cy, double radius, double alpha, double& x, double& y);
-static void getControlPoint(double cx, double cy, double x0, double y0, double x2, double y2, double& x1, double& y1);
+static void getArcBezierControlPoints(double cx, double cy, double x0, double y0, double x3, double y3,
+    double& x1, double& y1, double& x2, double& y2);
 
 void PoDoFo::WriteArcTo(PdfStringStream& stream, double x0, double y0, double x1, double y1,
     double x2, double y2, double radius, Vector2& currP)
@@ -57,18 +58,11 @@ void PoDoFo::WriteArcTo(PdfStringStream& stream, double x0, double y0, double x1
     double xc = (b0t * c2t - b2t * c0t) / (a0t * b2t - a2t * b0t);
     double yc = (c0t * a2t - c2t * a0t) / (a0t * b2t - a2t * b0t);
 
-    double ax = x1t - xc;
-    double ay = y1t - yc;
-    double bx = x2t - xc;
-    double by = y2t - yc;
-    double q1 = ax * ax + ay * ay;
-    double q2 = q1 + ax * bx + ay * by;
-    double k2 = (4 / 3.) * (sqrt(2 * q1 * q2) - q2) / (ax * by - ay * bx);
-
-    double c1x = xc + ax - k2 * ay;
-    double c1y = yc + ay + k2 * ax;
-    double c2x = xc + bx + k2 * by;
-    double c2y = yc + by - k2 * bx;
+    double c1x;
+    double c1y;
+    double c2x;
+    double c2y;
+    getArcBezierControlPoints(xc, yc, x1t, y1t, x2t, y2t, c1x, c1y, c2x, c2y);
 
     // Draw the advancement to the first tangent point
     PoDoFo::WriteOperator_l(stream, x1t, y1t);
@@ -86,9 +80,6 @@ void PoDoFo::WriteArcTo(PdfStringStream& stream, double x0, double y0, double x1
 void PoDoFo::WriteArc(PdfStringStream& stream, double x, double y, double radius,
     double startAngle, double endAngle, bool counterclockwise, Vector2& currP)
 {
-    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
-
-    // FIXME: Following is wrong
     startAngle = normalizeAngle(startAngle);
     endAngle = normalizeAngle(endAngle);
     double angleDiff = endAngle - startAngle;
@@ -103,17 +94,20 @@ void PoDoFo::WriteArc(PdfStringStream& stream, double x, double y, double radius
 
     double angleStep = angleDiff / subArcCount;
     double angleOffset = startAngle;
-    double x1, x2;
-    double y1, y2;
+    double x1, x2, x3;
+    double y1, y2, y3;
     for (unsigned i = 0; i < subArcCount; i++)
     {
         angleOffset += angleStep;
-        getCirclePoint(x, y, radius, angleOffset, x2, y2);
-        getControlPoint(x, y, x0, y0, x2, y2, x1, y1);
-        PoDoFo::WriteArcTo(stream, x0, y0, x1, y1, x2, y2, radius, currP);
-        x0 = x2;
-        y0 = y2;
+        getCirclePoint(x, y, radius, angleOffset, x3, y3);
+        getArcBezierControlPoints(x, y, x0, y0, x3, y3, x1, y1, x2, y2);
+        PoDoFo::WriteOperator_c(stream, x1, y1, x2, y2, x3, y3);
+        x0 = x3;
+        y0 = y3;
     }
+
+    currP.X = x3;
+    currP.Y = y3;
 }
 
 void PoDoFo::WriteCircle(PdfStringStream& stream, double x, double y, double radius, Vector2& currP)
@@ -640,10 +634,27 @@ double normalizeAngle(double alpha)
     return alpha - 2 * numbers::pi * std::floor(alpha / (2 * numbers::pi));
 }
 
-void getCirclePoint(double cx, double cy, double radius, double alpha, double& x, double& y)
+void getCirclePoint(double xc, double yc, double radius, double alpha, double& x, double& y)
 {
-    x = cx + radius * std::cos(-alpha);
-    y = cy + radius * std::sin(-alpha);
+    x = xc + radius * std::cos(-alpha);
+    y = yc + radius * std::sin(-alpha);
+}
+
+// Ref. https://stackoverflow.com/a/44829356/213871
+void getArcBezierControlPoints(double xc, double yc, double x0, double y0, double x3, double y3, double& x1, double& y1, double& x2, double& y2)
+{
+    double ax = x0 - xc;
+    double ay = y0 - yc;
+    double bx = x3 - xc;
+    double by = y3 - yc;
+    double q1 = ax * ax + ay * ay;
+    double q2 = q1 + ax * bx + ay * by;
+    double k2 = (4 / 3.) * (sqrt(2 * q1 * q2) - q2) / (ax * by - ay * bx);
+
+    x1 = xc + ax - k2 * ay;
+    y1 = yc + ay + k2 * ax;
+    x2 = xc + bx + k2 * by;
+    y2 = yc + by - k2 * bx;
 }
 
 void getControlPoint(double cx, double cy, double x0, double y0, double x2, double y2, double& x1, double& y1)
