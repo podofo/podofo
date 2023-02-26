@@ -9,6 +9,7 @@
 #include "PdfDictionary.h"
 #include "PdfCanvas.h"
 #include "PdfColor.h"
+#include "PdfDocument.h"
 
 using namespace std;
 using namespace PoDoFo;
@@ -77,6 +78,11 @@ PdfObject* PdfResources::GetResource(const string_view& type, const string_view&
 const PdfObject* PdfResources::GetResource(const string_view& type, const string_view& key) const
 {
     return getResource(type, key);
+}
+
+const PdfFont* PdfResources::GetFont(const string_view& name) const
+{
+    return GetDocument().GetFonts().GetLoadedFont(*this, name);
 }
 
 void PdfResources::AddColorResource(const PdfColor& color)

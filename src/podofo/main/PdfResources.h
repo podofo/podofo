@@ -13,6 +13,8 @@
 
 namespace PoDoFo {
 
+class PdfFont;
+
 // TODO: Use it in PdfResources
 enum class PdfResourceType
 {
@@ -42,6 +44,7 @@ public:
     void RemoveResources(const std::string_view& type);
     PdfObject* GetResource(const std::string_view& type, const std::string_view& key);
     const PdfObject* GetResource(const std::string_view& type, const std::string_view& key) const;
+    const PdfFont* GetFont(const std::string_view& name) const;
     /** Register a colourspace for a (separation) colour in the resource dictionary
      *  of this page or XObject so that it can be used for any following drawing
      *  operations.
@@ -49,6 +52,7 @@ public:
      *  \param color reference to the PdfColor
      */
     void AddColorResource(const PdfColor& color);
+
 private:
     PdfObject* getResource(const std::string_view& type, const std::string_view& key) const;
     bool tryGetDictionary(const std::string_view& type, PdfDictionary*& dict) const;

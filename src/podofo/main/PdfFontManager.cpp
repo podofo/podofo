@@ -25,6 +25,7 @@
 #include "PdfFontMetricsFreetype.h"
 #include "PdfFontMetricsStandard14.h"
 #include "PdfFontType1.h"
+#include "PdfResources.h"
 
 using namespace std;
 using namespace PoDoFo;
@@ -91,29 +92,59 @@ PdfFont* PdfFontManager::addImported(vector<PdfFont*>& fonts, unique_ptr<PdfFont
     return fontPtr;
 }
 
-PdfFont* PdfFontManager::GetLoadedFont(const PdfObject& obj)
+const PdfFont* PdfFontManager::GetLoadedFont(const PdfResources& resources, const string_view& name)
 {
-    // TODO: We should check that the font being loaded
-    // is not present in the imported font cache
-    if (!obj.IsIndirect())
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Object is not indirect");
-
-    auto found = m_fonts.find(obj.GetIndirectReference());
-    if (found != m_fonts.end())
+    auto fontObj = resources.GetResource("Font", name);
+    if (fontObj->IsIndirect())
     {
-        if (!found->second.IsLoaded)
-            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Invalid imported font queried");
+        auto found = m_fonts.find(fontObj->GetIndirectReference());
+        if (found != m_fonts.end())
+        {
+            if (!found->second.IsLoaded)
+                PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontData, "Invalid imported font queried");
 
-        return found->second.Font.get();
+            return found->second.Font.get();
+        }
+
+        // Create a new font
+        unique_ptr<PdfFont> font;
+        if (!PdfFont::TryCreateFromObject(const_cast<PdfObject&>(*fontObj), font))
+            return nullptr;
+
+        auto inserted = m_fonts.emplace(fontObj->GetIndirectReference(), Storage{ true, std::move(font) });
+        return inserted.first->second.Font.get();
     }
+    else
+    {
+        // It's a specification invalid inline font. We must support
+        // it anyway, since Adobe is lenient as usual. We create an id
+        // for this font and put it in the inline fonts map
+        auto obj = &resources.GetObject();
+        PdfReference ref;
+        do
+        {
+            // Find the first indirect ancestor object
+            ref = obj->GetIndirectReference();
+            if (ref.IsIndirect())
+                break;
 
-    // Create a new font
-    unique_ptr<PdfFont> font;
-    if (!PdfFont::TryCreateFromObject(const_cast<PdfObject&>(obj), font))
-        return nullptr;
+            PODOFO_INVARIANT(obj->GetParent() != nullptr);
+            obj = obj->GetParent()->GetOwner();
+        } while (obj != nullptr);
+        auto inlineFontId = utls::Format("R{}_{}-{}", ref.ObjectNumber(), ref.GenerationNumber(), name);
+        auto found = m_inlineFonts.find(inlineFontId);
+        if (found != m_inlineFonts.end())
+            return found->second.get();
 
-    auto inserted = m_fonts.emplace(obj.GetIndirectReference(), Storage{ true, std::move(font) });
-    return inserted.first->second.Font.get();
+
+        // Create a new font
+        unique_ptr<PdfFont> font;
+        if (!PdfFont::TryCreateFromObject(const_cast<PdfObject&>(*fontObj), font))
+            return nullptr;
+
+        auto inserted = m_inlineFonts.emplace(inlineFontId, std::move(font));
+        return inserted.first->second.get();
+    }
 }
 
 PdfFont* PdfFontManager::SearchFont(const string_view& fontPattern, const PdfFontCreateParams& createParams)

@@ -24,6 +24,7 @@ typedef struct HFONT__* HFONT;
 namespace PoDoFo {
 
 class PdfIndirectObjectList;
+class PdfResources;
 
 struct PdfFontSearchParams
 {
@@ -55,17 +56,9 @@ class PODOFO_API PdfFontManager final
     friend class PdfStreamedDocument;
     friend class PdfFont;
     friend class PdfCommon;
+    friend class PdfResources;
 
 public:
-    /** Get a font from the cache of objects loaded fonts
-     *
-     *  \param obj a PdfObject that is a font
-     *
-     *  \returns a PdfFont object or nullptr if the font could
-     *           not be created or found.
-     */
-    PdfFont* GetLoadedFont(const PdfObject& obj);
-
     /** Get a font from the cache. If the font does not yet
      *  exist, add it to the cache.
      *
@@ -136,6 +129,9 @@ public:
     // These methods are reserved to use to selected friend classes
 private:
     PdfFontManager(PdfDocument& doc);
+
+private:
+    const PdfFont* GetLoadedFont(const PdfResources& resources, const std::string_view& name);
 
     /**
      * Empty the internal font cache.
@@ -226,8 +222,11 @@ private:
     // Map of cached font paths
     CachedPaths m_cachedPaths;
 
-    // Map of all fonts
+    // Map of all indirect fonts
     FontMap m_fonts;
+
+    // Map of all invalid inline fonts
+    std::unordered_map<std::string, std::unique_ptr<PdfFont>> m_inlineFonts;
 
 #ifdef PODOFO_HAVE_FONTCONFIG
     static std::shared_ptr<PdfFontConfigWrapper> m_fontConfig;

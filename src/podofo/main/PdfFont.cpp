@@ -68,12 +68,12 @@ PdfFont::PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
 
 PdfFont::~PdfFont() { }
 
-bool PdfFont::TryGetSubstituteFont(PdfFont*& substFont)
+bool PdfFont::TryGetSubstituteFont(PdfFont*& substFont) const
 {
     return TryGetSubstituteFont(PdfFontCreateFlags::None, substFont);
 }
 
-bool PdfFont::TryGetSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& substFont)
+bool PdfFont::TryGetSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& substFont) const
 {
     auto encoding = GetEncoding();
     auto& metrics = GetMetrics();

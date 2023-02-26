@@ -123,8 +123,8 @@ public:
     /** Try get a replacement font based on this font characteristics
      *  \param substFont the created substitute font
      */
-    bool TryGetSubstituteFont(PdfFont*& substFont);
-    bool TryGetSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& substFont);
+    bool TryGetSubstituteFont(PdfFont*& substFont) const;
+    bool TryGetSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& substFont) const;
 
     /** Write a string to a PdfObjectStream in a format so that it can
      *  be used with this font.
