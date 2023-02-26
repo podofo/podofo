@@ -15,15 +15,15 @@ namespace utf8
     class u16beoctetiterable final
     {
     public:
-        u16beoctetiterable(const ByteT* buffer, size_t size, bool checked = true)
+        u16beoctetiterable(const ByteT* buffer, size_t size, bool unchecked = false)
             : m_buffer(buffer), m_size(size)
         {
             if (size % sizeof(uint16_t) == 1)
             {
-                if (checked)
-                    throw std::range_error("Invalid utf16 range");
-                else
+                if (unchecked)
                     m_size -= 1;
+                else
+                    throw std::range_error("Invalid utf16 range");
             }
         }
 
@@ -93,15 +93,15 @@ namespace utf8
     class u16leoctetiterable final
     {
     public:
-        u16leoctetiterable(const ByteT* buffer, size_t size, bool checked = true)
+        u16leoctetiterable(const ByteT* buffer, size_t size, bool unchecked = false)
             : m_buffer(buffer), m_size(size)
         {
             if (size % sizeof(uint16_t) == 1)
             {
-                if (checked)
-                    throw std::range_error("Invalid utf16 range");
-                else
+                if (unchecked)
                     m_size -= 1;
+                else
+                    throw std::range_error("Invalid utf16 range");
             }
         }
 

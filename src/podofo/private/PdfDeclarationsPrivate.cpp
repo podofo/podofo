@@ -1061,13 +1061,13 @@ void utls::WriteUtf16BETo(u16string& str, char32_t codePoint)
 
 void utls::ReadUtf16BEString(const bufferview& buffer, string& utf8str)
 {
-    utf8::u16bechariterable iterable(buffer.data(), buffer.size());
+    utf8::u16bechariterable iterable(buffer.data(), buffer.size(), true);
     utf8::utf16to8_lenient(iterable.begin(), iterable.end(), std::back_inserter(utf8str));
 }
 
 void utls::ReadUtf16LEString(const bufferview& buffer, string& utf8str)
 {
-    utf8::u16lechariterable iterable(buffer.data(), buffer.size());
+    utf8::u16lechariterable iterable(buffer.data(), buffer.size(), true);
     utf8::utf16to8_lenient(iterable.begin(), iterable.end(), std::back_inserter(utf8str));
 }
 
