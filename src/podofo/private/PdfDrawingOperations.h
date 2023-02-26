@@ -16,7 +16,7 @@ namespace PoDoFo {
 void WriteArcTo(PdfStringStream& stream, double x0, double y0, double x1, double y1,
     double x2, double y2, double radius, Vector2& currP);
 void WriteArc(PdfStringStream& stream, double x, double y, double radius,
-    double startAngle, double endAngle, bool counterclockwise, Vector2& currP);
+    double startAngle, double endAngle, bool clockWise, Vector2& currP);
 void WriteCircle(PdfStringStream& stream, double x, double y, double radius, Vector2& currP);
 void WriteEllipse(PdfStringStream& stream, double x, double y,
     double width, double height, Vector2& currP);

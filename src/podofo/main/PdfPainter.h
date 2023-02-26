@@ -314,14 +314,16 @@ public:
      */
     void DrawCubicBezier(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4);
 
-    /** Stroke an arc to the given coordinate, with angles and radius
+    /** Stroke a counterclockwise arc to the given coordinate spanning from given angles and radius
+     *  This is the equivalent of the "arc"/"arcn" operators in PostScript
      *  \param x x coordinate of the center of the arc (left coordinate)
      *  \param y y coordinate of the center of the arc (top coordinate)
      *	\param radius radius
-     *	\param angle1 angle1 in radians
-     *	\param angle2 angle2 in radians
+     *	\param angle1 angle1 in radians measured counterclockwise from the origin
+     *	\param angle2 angle2 in radians measured counterclockwise from the origin
+     *	\param clockwise The arc is drawn clockwise instead
      */
-    void DrawArc(double x, double y, double radius, double angle1, double angle2, bool counterclockwise = false);
+    void DrawArc(double x, double y, double radius, double angle1, double angle2, bool clockwise = false);
 
     /** Draw a circle
      *  \param x x center coordinate of the circle
@@ -552,7 +554,7 @@ private:
     void addLineTo(double x, double y);
     void addCubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3);
     void addArcTo(double x1, double y1, double x2, double y2, double radius);
-    void addArc(double x, double y, double radius, double startAngle, double endAngle, bool counterclockwise);
+    void addArc(double x, double y, double radius, double startAngle, double endAngle, bool clockWise);
     void addCircle(double x, double y, double radius);
     void addEllipse(double x, double y, double width, double height);
     void addRectangle(double x, double y, double width, double height, double roundX, double roundY);

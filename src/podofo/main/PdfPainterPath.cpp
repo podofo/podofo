@@ -57,9 +57,9 @@ void PdfPainterPath::AddArcTo(double x1, double y1, double x2, double y2, double
 }
 
 void PdfPainterPath::AddArc(double x, double y, double radius,
-    double angle1, double angle2, bool counterclockwise)
+    double angle1, double angle2, bool clockwise)
 {
-    PoDoFo::WriteArc(m_stream, x, y, radius, angle1, angle2, counterclockwise, m_CurrentPoint);
+    PoDoFo::WriteArc(m_stream, x, y, radius, angle1, angle2, clockwise, m_CurrentPoint);
     m_opened = true;
 }
 

@@ -306,11 +306,11 @@ void PdfPainter::DrawCubicBezier(double x1, double y1, double x2, double y2, dou
     stroke();
 }
 
-void PdfPainter::DrawArc(double x, double y, double radius, double angle1, double angle2, bool counterclockwise)
+void PdfPainter::DrawArc(double x, double y, double radius, double angle1, double angle2, bool clockWise)
 {
     checkStream();
     checkStatus(StatusDefault);
-    addArc(x, y, radius, angle1, angle2, counterclockwise);
+    addArc(x, y, radius, angle1, angle2, clockWise);
     stroke();
 }
 
@@ -1328,10 +1328,10 @@ void PdfPainter::addArcTo(double x1, double y1, double x2, double y2, double r)
     PoDoFo::WriteArcTo(m_stream, x0, y0, x1, y1, x2, y2, r, m_StateStack.Current->CurrentPoint);
 }
 
-void PdfPainter::addArc(double x, double y, double radius, double startAngle, double endAngle, bool counterclockwise)
+void PdfPainter::addArc(double x, double y, double radius, double startAngle, double endAngle, bool clockWise)
 {
     PoDoFo::WriteArc(m_stream, x, y, radius, startAngle, endAngle,
-        counterclockwise, m_StateStack.Current->CurrentPoint);
+        clockWise, m_StateStack.Current->CurrentPoint);
 }
 
 void PdfPainter::addCircle(double x, double y, double radius)

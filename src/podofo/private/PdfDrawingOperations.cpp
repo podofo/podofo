@@ -22,6 +22,7 @@ static void getCirclePoint(double cx, double cy, double radius, double alpha, do
 static void getArcBezierControlPoints(double cx, double cy, double x0, double y0, double x3, double y3,
     double& x1, double& y1, double& x2, double& y2);
 
+// https://hepunx.rl.ac.uk/~adye/psdocs/ref/PSL2a.html#arct
 void PoDoFo::WriteArcTo(PdfStringStream& stream, double x0, double y0, double x1, double y1,
     double x2, double y2, double radius, Vector2& currP)
 {
@@ -76,14 +77,14 @@ void PoDoFo::WriteArcTo(PdfStringStream& stream, double x0, double y0, double x1
     currP.Y = y2t;
 }
 
-// https://www.w3.org/2015/04/2dcontext-lc-sample.html#dom-context-2d-arc
+// https://hepunx.rl.ac.uk/~adye/psdocs/ref/PSL2a.html#arc
 void PoDoFo::WriteArc(PdfStringStream& stream, double x, double y, double radius,
-    double startAngle, double endAngle, bool counterclockwise, Vector2& currP)
+    double startAngle, double endAngle, bool clockWise, Vector2& currP)
 {
     startAngle = normalizeAngle(startAngle);
     endAngle = normalizeAngle(endAngle);
     double angleDiff = endAngle - startAngle;
-    if (!counterclockwise)
+    if (!clockWise)
         angleDiff = -angleDiff;
 
     unsigned subArcCount = (unsigned)std::ceil(std::abs(angleDiff) / (numbers::pi / 2));
@@ -94,8 +95,8 @@ void PoDoFo::WriteArc(PdfStringStream& stream, double x, double y, double radius
 
     double angleStep = angleDiff / subArcCount;
     double angleOffset = startAngle;
-    double x1, x2, x3;
-    double y1, y2, y3;
+    double x1, x2, x3 = x0;
+    double y1, y2, y3 = y0;
     for (unsigned i = 0; i < subArcCount; i++)
     {
         angleOffset += angleStep;
@@ -636,8 +637,8 @@ double normalizeAngle(double alpha)
 
 void getCirclePoint(double xc, double yc, double radius, double alpha, double& x, double& y)
 {
-    x = xc + radius * std::cos(-alpha);
-    y = yc + radius * std::sin(-alpha);
+    x = xc + radius * std::cos(alpha);
+    y = yc + radius * std::sin(alpha);
 }
 
 // Ref. https://stackoverflow.com/a/44829356/213871
