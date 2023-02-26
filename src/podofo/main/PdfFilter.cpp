@@ -354,7 +354,7 @@ PdfFilterList PdfFilterFactory::CreateFilterList(const PdfObject& filtersObj)
 
 void PdfFilterFactory::addFilterTo(PdfFilterList& filters, const string_view& filter)
 {
-    auto type = PoDoFo::NameToFilter(filter);
+    auto type = PoDoFo::NameToFilter(filter, true);
     filters.push_back(type);
 }
 

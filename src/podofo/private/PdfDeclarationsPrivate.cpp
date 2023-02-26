@@ -356,7 +356,7 @@ string_view PoDoFo::ColorSpaceToNameRaw(PdfColorSpace colorSpace)
     }
 }
 
-PdfFilterType PoDoFo::NameToFilter(const string_view& name)
+PdfFilterType PoDoFo::NameToFilter(const string_view& name, bool lenient)
 {
     if (name == "ASCIIHexDecode")
         return PdfFilterType::ASCIIHexDecode;
@@ -378,29 +378,31 @@ PdfFilterType PoDoFo::NameToFilter(const string_view& name)
         return PdfFilterType::JPXDecode;
     else if (name == "Crypt")
         return PdfFilterType::Crypt;
-    else
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, name);
-}
+    else if (lenient)
+    {
+        // "Acrobat viewers accept the abbreviated filter names shown in table titled
+        // 'Abbreviations for standard filter names' in addition to the standard ones
+        // These abbreviated names are intended for use only in the context of inline images
+        // (see Section 4.8.6, 'Inline Images'), they should not be used as filter names
+        // in any stream object.
+        if (name == "AHx")
+            return PdfFilterType::ASCIIHexDecode;
+        else if (name == "A85")
+            return PdfFilterType::ASCII85Decode;
+        else if (name == "LZW")
+            return PdfFilterType::LZWDecode;
+        else if (name == "Fl")
+            return PdfFilterType::FlateDecode;
+        else if (name == "RL")
+            return PdfFilterType::RunLengthDecode;
+        else if (name == "CCF")
+            return PdfFilterType::CCITTFaxDecode;
+        else if (name == "DCT")
+            return PdfFilterType::DCTDecode;
+        // No short names for JBIG2Decode, JPXDecode, Crypt
+    }
 
-PdfFilterType PoDoFo::NameToFilterShort(const string_view& name)
-{
-    if (name == "AHx")
-        return PdfFilterType::ASCIIHexDecode;
-    else if (name == "A85")
-        return PdfFilterType::ASCII85Decode;
-    else if (name == "LZW")
-        return PdfFilterType::LZWDecode;
-    else if (name == "Fl")
-        return PdfFilterType::FlateDecode;
-    else if (name == "RL")
-        return PdfFilterType::RunLengthDecode;
-    else if (name == "CCF")
-        return PdfFilterType::CCITTFaxDecode;
-    else if (name == "DCT")
-        return PdfFilterType::DCTDecode;
-    // No short names for JBIG2Decode, JPXDecode, Crypt
-    else
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, name);
+    PODOFO_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, name);
 }
 
 string_view PoDoFo::FilterToName(PdfFilterType filterType)
