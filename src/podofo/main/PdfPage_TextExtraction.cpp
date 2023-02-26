@@ -377,7 +377,7 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                     case PdfOperator::Q:
                     {
                         ASSERT(!context.BlockOpen, "Text block must be not open");
-                        context.States.Pop();
+                        ASSERT(context.States.PopLenient(), "Save/restore must be balanced");
                         break;
                     }
                     default:

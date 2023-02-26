@@ -35,6 +35,7 @@ namespace COMMON_NAMESPACE
     public:
         StateStack();
         void Push();
+        bool PopLenient(unsigned popCount = 1);
         void Pop(unsigned popCount = 1);
         void Clear();
         unsigned GetSize() const;
@@ -57,7 +58,20 @@ namespace COMMON_NAMESPACE
     }
 
     template <typename StateT>
-    void StateStack<StateT>::Pop(unsigned popCount)
+    bool StateStack<StateT>::PopLenient(unsigned popCount)
+    {
+        if (popCount >= m_states.size())
+            return false;
+
+        for (unsigned i = 0; i < popCount; i++)
+            m_states.pop();
+
+        Current.Set(m_states.top());
+        return true;
+    }
+
+    template<typename StateT>
+    inline void StateStack<StateT>::Pop(unsigned popCount)
     {
         if (popCount >= m_states.size())
             throw std::runtime_error("Can't pop out all the states in the stack");

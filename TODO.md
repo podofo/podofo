@@ -2,6 +2,7 @@
 - PdfPainter: Fix current point handling in
   various shape drawing
 - PdfPainterPath: Add AddPath()
+- Specify ABI version
 
 ### 0.11
 - PdfFontManager: Add font hash to cache descriptor

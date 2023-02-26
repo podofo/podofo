@@ -32,3 +32,16 @@ TEST_CASE("TextExtraction1")
     ASSERT_EQUAL(entries[3].X, 29.000000232);
     ASSERT_EQUAL(entries[3].Y, 664.872605318981);
 }
+
+TEST_CASE("TextExtraction2")
+{
+    // Extraction with inline fonts
+    PdfMemDocument doc;
+    doc.Load(TestUtils::GetTestInputFilePath("TextExtraction2.pdf"));
+    auto& page = doc.GetPages().GetPageAt(0);
+    vector<PdfTextEntry> entries;
+    page.ExtractTextTo(entries);
+    REQUIRE(entries[0].Text == "Test text");
+    ASSERT_EQUAL(entries[0].X, 31.199999999999999);
+    ASSERT_EQUAL(entries[0].Y, 801.60000000000002);
+}
