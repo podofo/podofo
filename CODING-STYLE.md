@@ -8,7 +8,8 @@ Coding style in PoDoFo follows the following general rules:
 Some language specific programming stylistic choices will be hard enforced, namely:
 - C style programming (`malloc`/`free`, string formatting, etc.) shall be converted to equivalent modern C++ constructs/API calls, unless there's still no other modern C++ alternative (eg. `scanf`). Where possible `new`/`delete` semantics shall be replaced by use of shared pointers;
 - `m_` and `s_` prefixes shall be used respectively for instance member and static fields/variables. For example `m_Value` or `s_instance`. No other Hungarian notation prefixes will be accepted;
-- Implicit confersion from pointer types to bool (eg. `if (!ptr)` or `while (ptr)` conditionals) shall be converted to check for `nullptr`, eg. `if (ptr == nullptr)` or `while (ptr != nullptr)`.
+- Implicit confersion from pointer types to bool (eg. `if (!ptr)` or `while (ptr)` conditionals) shall be converted to check for `nullptr`, eg. `if (ptr == nullptr)` or `while (ptr != nullptr)`;
+- Increment/decrement operators shall always be postfixed in epxressions as in `it++`, unless the prefixed operator is necessary for the correctness of an algorithm or allows to shorten/optimize the code.
 
 It follows other lenient rules that are not truly enforced in all the code base, but that it is still recommended to follow:
 
