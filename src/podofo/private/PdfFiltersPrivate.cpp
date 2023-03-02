@@ -76,11 +76,11 @@ public:
         memset(m_UpperLeftPixelComponents.data(), 0, sizeof(char) * m_BytesPerPixel);
     }
 
-    void Decode(const char* buffer, size_t len, OutputStream* stream)
+    void Decode(const char* buffer, size_t len, OutputStream& stream)
     {
         if (m_Predictor == 1)
         {
-            stream->Write(buffer, len);
+            stream.Write(buffer, len);
             return;
         }
 
@@ -191,7 +191,7 @@ public:
             {   // One line finished
                 m_CurrRowIndex = 0;
                 m_NextByteIsPredictor = (m_CurrPredictor >= 10);
-                stream->Write(m_Prev.data(), m_Rows);
+                stream.Write(m_Prev.data(), m_Rows);
             }
         }
     }
@@ -233,7 +233,7 @@ void PdfHexFilter::EncodeBlockImpl(const char* buffer, size_t len)
     while (len-- != 0)
     {
         utls::WriteCharHexTo(data, *buffer);
-        GetStream()->Write(data, 2);
+        GetStream().Write(data, 2);
         buffer++;
     }
 }
@@ -266,7 +266,7 @@ void PdfHexFilter::DecodeBlockImpl(const char* buffer, size_t len)
             m_DecodedByte = (char)((m_DecodedByte << 4) | val);
             m_Low = true;
 
-            GetStream()->Write(m_DecodedByte);
+            GetStream().Write(m_DecodedByte);
         }
 
         buffer++;
@@ -279,7 +279,7 @@ void PdfHexFilter::EndDecodeImpl()
     {
         // an odd number of bytes was read,
         // so the last byte is 0
-        GetStream()->Write(m_DecodedByte);
+        GetStream().Write(m_DecodedByte);
     }
 }
 
@@ -317,7 +317,7 @@ void PdfAscii85Filter::EncodeTuple(unsigned tuple, int count)
         out[z++] = static_cast<unsigned char>(*--start) + '!';
     } while (i-- > 0);
 
-    GetStream()->Write(out, z);
+    GetStream().Write(out, z);
 }
 
 void PdfAscii85Filter::BeginEncodeImpl()
@@ -342,7 +342,7 @@ void PdfAscii85Filter::EncodeBlockImpl(const char* buffer, size_t len)
                 m_tuple |= c;
                 if (m_tuple == 0)
                 {
-                    GetStream()->Write(z, 1);
+                    GetStream().Write(z, 1);
                 }
                 else
                 {
@@ -362,7 +362,7 @@ void PdfAscii85Filter::EndEncodeImpl()
 {
     if (m_count > 0)
         this->EncodeTuple(m_tuple, m_count);
-    //GetStream()->Write( "~>", 2 );
+    //GetStream().Write( "~>", 2 );
 }
 
 void PdfAscii85Filter::BeginDecodeImpl(const PdfDictionary*)
@@ -455,7 +455,7 @@ void PdfAscii85Filter::WidePut(unsigned tuple, int bytes) const
             break;
     }
 
-    GetStream()->Write(data, bytes);
+    GetStream().Write(data, bytes);
 }
 
 #pragma endregion // PdfAscii85Filter
@@ -506,7 +506,7 @@ void PdfFlateFilter::EncodeBlockInternal(const char* buffer, size_t len, int nMo
         {
             if (nWrittenData > 0)
             {
-                GetStream()->Write(reinterpret_cast<char*>(m_buffer), nWrittenData);
+                GetStream().Write(reinterpret_cast<char*>(m_buffer), nWrittenData);
             }
         }
         catch (PdfError& e)
@@ -573,7 +573,7 @@ void PdfFlateFilter::DecodeBlockImpl(const char* buffer, size_t len)
             if (m_Predictor != nullptr)
                 m_Predictor->Decode(reinterpret_cast<char*>(m_buffer), writtenDataSize, GetStream());
             else
-                GetStream()->Write(reinterpret_cast<char*>(m_buffer), writtenDataSize);
+                GetStream().Write(reinterpret_cast<char*>(m_buffer), writtenDataSize);
         }
         catch (PdfError& e)
         {
@@ -600,19 +600,9 @@ PdfRLEFilter::PdfRLEFilter()
 {
 }
 
-void PdfRLEFilter::BeginEncodeImpl()
-{
-    PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
-}
-
 void PdfRLEFilter::EncodeBlockImpl(const char*, size_t)
 {
-    PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
-}
-
-void PdfRLEFilter::EndEncodeImpl()
-{
-    PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
+    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
 void PdfRLEFilter::BeginDecodeImpl(const PdfDictionary*)
@@ -634,7 +624,7 @@ void PdfRLEFilter::DecodeBlockImpl(const char* buffer, size_t len)
         }
         else if (m_CodeLen <= 127)
         {
-            GetStream()->Write(buffer, 1);
+            GetStream().Write(buffer, 1);
             m_CodeLen--;
         }
         else if (m_CodeLen >= 129)
@@ -642,7 +632,7 @@ void PdfRLEFilter::DecodeBlockImpl(const char* buffer, size_t len)
             m_CodeLen = 257 - m_CodeLen;
 
             while (m_CodeLen--)
-                GetStream()->Write(buffer, 1);
+                GetStream().Write(buffer, 1);
         }
 
         buffer++;
@@ -665,19 +655,9 @@ PdfLZWFilter::PdfLZWFilter() :
 {
 }
 
-void PdfLZWFilter::BeginEncodeImpl()
-{
-    PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
-}
-
 void PdfLZWFilter::EncodeBlockImpl(const char*, size_t)
 {
-    PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
-}
-
-void PdfLZWFilter::EndEncodeImpl()
-{
-    PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
+    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
 void PdfLZWFilter::BeginDecodeImpl(const PdfDictionary* decodeParms)
@@ -761,7 +741,7 @@ void PdfLZWFilter::DecodeBlockImpl(const char* buffer, size_t len)
                 if (m_Predictor != nullptr)
                     m_Predictor->Decode(reinterpret_cast<char*>(data.data()), data.size(), GetStream());
                 else
-                    GetStream()->Write(reinterpret_cast<char*>(data.data()), data.size());
+                    GetStream().Write(reinterpret_cast<char*>(data.data()), data.size());
 
                 m_character = data[0];
                 if (old < m_table.size()) // fix the first loop
@@ -815,3 +795,31 @@ void PdfLZWFilter::InitTable()
 }
 
 #pragma endregion // PdfLZWFilter
+
+#pragma region PdfCryptFilter
+
+PdfCryptFilter::PdfCryptFilter() { }
+
+void PdfCryptFilter::EncodeBlockImpl(const char* buffer, size_t len)
+{
+    (void)buffer;
+    (void)len;
+    PODOFO_RAISE_ERROR(PdfErrorCode::NotImplemented);
+}
+
+void PdfCryptFilter::BeginDecodeImpl(const PdfDictionary* dict)
+{
+    if (dict != nullptr)
+    {
+        const PdfName* name;
+        if (dict->TryFindKeyAs("Name", name) && *name != "Identity")
+            PODOFO_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Unsupported Crypt filter");
+    }
+}
+
+void PdfCryptFilter::DecodeBlockImpl(const char* buffer, size_t len)
+{
+    GetStream().Write(buffer, len);
+}
+
+#pragma endregion // PdfCryptFilter

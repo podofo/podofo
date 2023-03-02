@@ -131,11 +131,7 @@ public:
 
     inline bool CanEncode() const override { return false; }
 
-    void BeginEncodeImpl() override;
-
     void EncodeBlockImpl(const char* buffer, size_t len) override;
-
-    void EndEncodeImpl() override;
 
     inline bool CanDecode() const override { return true; }
 
@@ -167,11 +163,7 @@ public:
 
     inline bool CanEncode() const override { return false; }
 
-    void BeginEncodeImpl() override;
-
     void EncodeBlockImpl(const char* buffer, size_t len) override;
-
-    void EndEncodeImpl() override;
 
     inline bool CanDecode() const override { return true; }
 
@@ -200,6 +192,26 @@ private:
     bool m_First;
 
     std::shared_ptr<PdfPredictorDecoder> m_Predictor;
+};
+
+/** The crypt filter.
+ */
+class PdfCryptFilter final : public PdfFilter
+{
+public:
+    PdfCryptFilter();
+
+    inline bool CanEncode() const override { return false; }
+
+    void EncodeBlockImpl(const char* buffer, size_t len) override;
+
+    inline bool CanDecode() const override { return true; }
+
+    void BeginDecodeImpl(const PdfDictionary*) override;
+
+    void DecodeBlockImpl(const char* buffer, size_t len) override;
+
+    inline PdfFilterType GetType() const override { return PdfFilterType::Crypt; }
 };
 
 }

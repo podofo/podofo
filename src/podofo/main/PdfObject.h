@@ -623,6 +623,20 @@ private:
     };
 
     template <>
+    struct Object<const PdfName*>
+    {
+        static PdfName Get(const PdfObject& obj)
+        {
+            return obj.GetName();
+        }
+
+        static bool TryGet(const PdfObject& obj, const PdfName*& value)
+        {
+            return obj.TryGetName(value);
+        }
+    };
+
+    template <>
     struct Object<PdfString>
     {
         static PdfString Get(const PdfObject& obj)
@@ -636,7 +650,19 @@ private:
         }
     };
 
+    template <>
+    struct Object<const PdfString*>
+    {
+        static PdfString Get(const PdfObject& obj)
+        {
+            return obj.GetString();
+        }
 
+        static bool TryGet(const PdfObject& obj, const PdfString*& value)
+        {
+            return obj.TryGetString(value);
+        }
+    };
 };
 
 #endif // PDF_OBJECT_H
