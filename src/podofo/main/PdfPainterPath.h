@@ -132,7 +132,14 @@ public:
     void Reset();
 
 public:
-    std::string_view GetView() const;
+    /**
+     * Get a string view of the current content stream being built
+     */
+    std::string_view GetContent() const;
+
+    /**
+     * Get the coordiantes of the current point
+     */
     const Vector2& GetCurrentPoint() const;
 
 private:

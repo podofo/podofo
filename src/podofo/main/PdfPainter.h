@@ -481,7 +481,10 @@ public:
      */
     unsigned short GetPrecision() const;
 
-    std::string_view GetView() const;
+    /**
+     * Get a string view of the current content stream being built
+     */
+    std::string_view GetContent() const;
 
 public:
     inline const PdfPainterStateStack& GetStateStack() const { return m_StateStack; }
