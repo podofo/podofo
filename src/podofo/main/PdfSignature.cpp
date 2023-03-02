@@ -220,7 +220,9 @@ nullable<PdfDate> PdfSignature::GetSignatureDate() const
     if (obj == nullptr
         || !obj->TryGetString(str)
         || !PdfDate::TryParse(str->GetString(), date))
+    {
         return nullptr;
+    }
 
     return date;
 }

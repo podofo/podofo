@@ -103,13 +103,20 @@ PdfXMPMetadata PoDoFo::GetXMPMetadata(const string_view& xmpview, unique_ptr<Pdf
     if (childElement != nullptr)
         metadata.Producer = getElementText(childElement);
 
+    PdfDate date;
     childElement = utls::FindChildElement(description, "xmp", "CreateDate");
-    if (childElement != nullptr && (text = getElementText(childElement)) != nullptr)
-        metadata.CreationDate = PdfDate::ParseW3C(*text);
+    if (childElement != nullptr && (text = getElementText(childElement)) != nullptr
+        && PdfDate::TryParseW3C(*text, date))
+    {
+        metadata.CreationDate = date;
+    }
 
     childElement = utls::FindChildElement(description, "xmp", "ModifyDate");
-    if (childElement != nullptr && (text = getElementText(childElement)) != nullptr)
-        metadata.ModDate = PdfDate::ParseW3C(*text);
+    if (childElement != nullptr && (text = getElementText(childElement)) != nullptr
+        && PdfDate::TryParseW3C(*text, date))
+    {
+        metadata.ModDate = date;
+    }
 
     return metadata;
 }

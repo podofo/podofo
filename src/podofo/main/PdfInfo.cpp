@@ -148,19 +148,21 @@ nullable<const PdfString&> PdfInfo::GetProducer() const
 nullable<PdfDate> PdfInfo::GetCreationDate() const
 {
     auto datestr = this->getStringFromInfoDict("CreationDate");
-    if (datestr == nullptr)
+    PdfDate date;
+    if (datestr == nullptr || ! PdfDate::TryParse(*datestr, date))
         return nullptr;
-    else
-        return PdfDate::Parse(*datestr);
+
+    return date;
 }
 
 nullable<PdfDate> PdfInfo::GetModDate() const
 {
     auto datestr = this->getStringFromInfoDict("ModDate");
-    if (datestr == nullptr)
+    PdfDate date;
+    if (datestr == nullptr || !PdfDate::TryParse(*datestr, date))
         return nullptr;
-    else
-        return PdfDate::Parse(*datestr);
+
+    return date;
 }
 
 nullable<const PdfName&> PdfInfo::GetTrapped() const
