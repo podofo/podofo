@@ -33,20 +33,13 @@ TEST_CASE("testFilters")
     }
 }
 
-TEST_CASE("testCCITT")
-{
-    unique_ptr<PdfFilter> filter = PdfFilterFactory::Create(PdfFilterType::CCITTFaxDecode);
-    if (filter == nullptr)
-        INFO("!!! ePdfFilter_CCITTFaxDecode not implemented skipping test!");
-}
-
 void testFilter(PdfFilterType filterType, const bufferview& view)
 {
     charbuff encoded;
     charbuff decoded;
 
-    unique_ptr<PdfFilter> filter = PdfFilterFactory::Create(filterType);
-    if (filter == nullptr)
+    unique_ptr<PdfFilter> filter;
+    if (!PdfFilterFactory::TryCreate(filterType, filter))
     {
         INFO(utls::Format("!!! Filter {} not implemented.\n", (int)filterType));
         return;

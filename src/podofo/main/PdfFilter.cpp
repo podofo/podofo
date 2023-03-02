@@ -245,27 +245,42 @@ void PdfFilter::decodeTo(OutputStream& stream, const bufferview& inBuffer, const
 
 unique_ptr<PdfFilter> PdfFilterFactory::Create(PdfFilterType filterType)
 {
+    unique_ptr<PdfFilter> ret;
+    if (!TryCreate(filterType, ret))
+        PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
+
+    return ret;
+}
+
+bool PdfFilterFactory::TryCreate(PdfFilterType filterType, unique_ptr<PdfFilter>& filter)
+{
     switch (filterType)
     {
         case PdfFilterType::ASCIIHexDecode:
-            return unique_ptr<PdfFilter>(new PdfHexFilter());
+            filter = unique_ptr<PdfFilter>(new PdfHexFilter());
+            return true;
         case PdfFilterType::ASCII85Decode:
-            return unique_ptr<PdfFilter>(new PdfAscii85Filter());
+            filter = unique_ptr<PdfFilter>(new PdfAscii85Filter());
+            return true;
         case PdfFilterType::LZWDecode:
-            return unique_ptr<PdfFilter>(new PdfLZWFilter());
+            filter = unique_ptr<PdfFilter>(new PdfLZWFilter());
+            return true;
         case PdfFilterType::FlateDecode:
-            return unique_ptr<PdfFilter>(new PdfFlateFilter());
+            filter = unique_ptr<PdfFilter>(new PdfFlateFilter());
+            return true;
         case PdfFilterType::RunLengthDecode:
-            return unique_ptr<PdfFilter>(new PdfRLEFilter());
+            filter = unique_ptr<PdfFilter>(new PdfRLEFilter());
+            return true;
         case PdfFilterType::Crypt:
-            return unique_ptr<PdfFilter>(new PdfCryptFilter());
+            filter = unique_ptr<PdfFilter>(new PdfCryptFilter());
+            return true;
         case PdfFilterType::None:
         case PdfFilterType::DCTDecode:
         case PdfFilterType::CCITTFaxDecode:
         case PdfFilterType::JBIG2Decode:
         case PdfFilterType::JPXDecode:
         default:
-            PODOFO_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
+            return false;
     }
 }
 

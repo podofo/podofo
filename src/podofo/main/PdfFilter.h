@@ -299,6 +299,7 @@ public:
      *           filter is available for this type.
      */
     static std::unique_ptr<PdfFilter> Create(PdfFilterType filterType);
+    static bool TryCreate(PdfFilterType filterType, std::unique_ptr<PdfFilter>& filter);
 
     /** Create an OutputStream that applies a list of filters
      *  on all data written to it.
