@@ -173,8 +173,16 @@ TEST_CASE("TestPainter4")
     path.AddArcTo(150, 20, 150, 70, 50);
     path.AddLineTo(150, 120);
     path.AddArc(200, 120, 50, numbers::pi, numbers::pi/8, true);
+
+    auto currPoint1 = path.GetCurrentPoint();
+
+    PdfPainterPath path2;
+    path2.MoveTo(250, 120);
+    path2.AddLineTo(250, 80);
+    path.AddPath(path2, true);
+
     painter.DrawPath(path, PdfPathDrawMode::Stroke);
-    auto currPoint = painter.GetStateStack().Current->CurrentPoint;
+    auto currPoint2 = painter.GetStateStack().Current->CurrentPoint;
     path.Reset();
     path.MoveTo(40, 40);
     path.AddLineTo(100, 40);
@@ -186,7 +194,8 @@ TEST_CASE("TestPainter4")
     drawSquareWithCross(painter, 100, 20);
     drawSquareWithCross(painter, 100, 70);
     drawSquareWithCross(painter, 150, 70);
-    drawSquareWithCross(painter, currPoint.X, currPoint.Y);
+    drawSquareWithCross(painter, currPoint1.X, currPoint1.Y);
+    drawSquareWithCross(painter, currPoint2.X, currPoint2.Y);
 
     painter.FinishDrawing();
     doc.Save(TestUtils::GetTestOutputFilePath("TestPainter4.pdf"));
@@ -217,6 +226,9 @@ ET
 150 120 l
 150 143.853715 166.850112 164.385635 190.245484 169.039264 c
 213.640856 173.692893 237.065555 161.17213 246.193977 139.134172 c
+250 120 l
+250 120 m
+250 80 l
 S
 40 40 m
 100 40 l
@@ -275,6 +287,18 @@ S
 S
 243.193977 139.134172 m
 249.193977 139.134172 l
+S
+Q
+q
+0.6 w
+247 77 6 6 re
+S
+0 w
+250 77 m
+250 83 l
+S
+247 80 m
+253 80 l
 S
 Q
 Q

@@ -120,6 +120,13 @@ public:
      */
     void AddRectangle(const PdfRect& rect, double roundX = 0.0, double roundY = 0.0);
 
+    /**
+     * Add a path to the current path
+     * \param path the path to add
+     * \param connect true if connect the first figure of the given the path to the last figure of this path
+     */
+    void AddPath(const PdfPainterPath& path, bool connect);
+
     /** Closes the current path by drawing a line from the current point
      * to the starting point of the path. Matches the PDF 'h' operator.
      * This function is useful to construct a closed path or clipping.
@@ -138,12 +145,18 @@ public:
     std::string_view GetContent() const;
 
     /**
+     * Get the coordiantes of the first point
+     */
+    const Vector2& GetFirstPoint() const;
+
+    /**
      * Get the coordiantes of the current point
      */
     const Vector2& GetCurrentPoint() const;
 
 private:
     void checkOpened() const;
+    inline void open(double x, double y);
 
 private:
     PdfPainterPath(const PdfPainterPath& painter) = delete;
@@ -152,6 +165,7 @@ private:
 private:
     PdfStringStream m_stream;
     bool m_opened;
+    nullable<Vector2> m_FirstPoint;
     Vector2 m_CurrentPoint;
 };
 
