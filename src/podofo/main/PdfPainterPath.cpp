@@ -11,12 +11,12 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfPainterPath::PdfPainterPath() : m_opened(false) { }
+PdfPainterPath::PdfPainterPath() { }
 
 void PdfPainterPath::MoveTo(double x, double y)
 {
-    PoDoFo::WriteOperator_m(m_stream, x, y);
     open(x, y);
+    PoDoFo::WriteOperator_m(m_stream, x, y);
     m_CurrentPoint = Vector2(x, y);
 }
 
@@ -29,9 +29,9 @@ void PdfPainterPath::AddLineTo(double x, double y)
 
 void PdfPainterPath::AddLine(double x1, double y1, double x2, double y2)
 {
+    open(x1, y1);
     PoDoFo::WriteOperator_m(m_stream, x1, y1);
     PoDoFo::WriteOperator_l(m_stream, x2, y2);
-    open(x1, y1);
     m_CurrentPoint = Vector2(x2, y2);
 }
 
@@ -44,9 +44,9 @@ void PdfPainterPath::AddCubicBezierTo(double x1, double y1, double x2, double y2
 
 void PdfPainterPath::AddCubicBezier(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
 {
+    open(x1, y1);
     PoDoFo::WriteOperator_m(m_stream, x1, y1);
     PoDoFo::WriteOperator_c(m_stream, x2, y2, x3, y3, x4, y4);
-    open(x1, y1);
     m_CurrentPoint = Vector2(x4, y4);
 }
 
@@ -59,59 +59,58 @@ void PdfPainterPath::AddArcTo(double x1, double y1, double x2, double y2, double
 void PdfPainterPath::AddArc(double x, double y, double radius,
     double angle1, double angle2, bool clockwise)
 {
-    PoDoFo::WriteArc(m_stream, x, y, radius, angle1, angle2, clockwise, m_CurrentPoint);
     open(x, y);
+    PoDoFo::WriteArc(m_stream, x, y, radius, angle1, angle2, clockwise, m_CurrentPoint);
 }
 
 void PdfPainterPath::AddCircle(double x, double y, double radius)
 {
-    PoDoFo::WriteCircle(m_stream, x, y, radius, m_CurrentPoint);
     open(x, y);
+    PoDoFo::WriteCircle(m_stream, x, y, radius, m_CurrentPoint);
 }
 
 void PdfPainterPath::AddRectangle(const PdfRect& rect, double roundX, double roundY)
 {
+    open(m_CurrentPoint.X, m_CurrentPoint.Y);
     PoDoFo::WriteRectangle(m_stream, rect.GetLeft(), rect.GetBottom(),
         rect.GetWidth(), rect.GetHeight(), roundX, roundY, m_CurrentPoint);
-    open(rect.GetLeft(), rect.GetBottom());
 }
 
 void PdfPainterPath::AddPath(const PdfPainterPath& path, bool connect)
 {
     auto& first = path.GetFirstPoint();
-    if (connect && m_opened)
+    if (connect && m_FirstPoint != nullptr)
         PoDoFo::WriteOperator_l(m_stream, first.X, first.Y);
 
-    static_cast<OutputStream&>(m_stream).Write(path.GetContent());
     open(first.X, first.Y);
+    static_cast<OutputStream&>(m_stream).Write(path.GetContent());
     m_CurrentPoint = path.GetCurrentPoint();
 }
 
 void PdfPainterPath::AddRectangle(double x, double y, double width, double height,
     double roundX, double roundY)
 {
-    PoDoFo::WriteRectangle(m_stream, x, y, width, height, roundX, roundY, m_CurrentPoint);
     open(x, y);
+    PoDoFo::WriteRectangle(m_stream, x, y, width, height, roundX, roundY, m_CurrentPoint);
 }
 
 void PdfPainterPath::AddEllipse(double x, double y, double width, double height)
 {
-    PoDoFo::WriteEllipse(m_stream, x, y, width, height, m_CurrentPoint);
     open(x, y);
+    PoDoFo::WriteEllipse(m_stream, x, y, width, height, m_CurrentPoint);
 }
 
 void PdfPainterPath::Close()
 {
     checkOpened();
     PoDoFo::WriteOperator_h(m_stream);
-    //// CHECK-ME: How to update current point? Probably should track first point of the path
+    m_CurrentPoint = *m_FirstPoint;
 }
 
 void PdfPainterPath::Reset()
 {
     m_stream.Clear();
-    m_opened = false;
-    m_FirstPoint = Vector2();
+    m_FirstPoint = nullptr;
     m_CurrentPoint = Vector2();
 }
 
@@ -134,15 +133,14 @@ const Vector2& PdfPainterPath::GetCurrentPoint() const
 
 void PdfPainterPath::checkOpened() const
 {
-    if (!m_opened)
+    if (m_FirstPoint == nullptr)
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The path must be opened with MoveTo()");
 }
 
 inline void PdfPainterPath::open(double x, double y)
 {
-    if (m_opened)
+    if (m_FirstPoint != nullptr)
         return;
 
     m_FirstPoint = Vector2(x, y);
-    m_opened = true;
 }

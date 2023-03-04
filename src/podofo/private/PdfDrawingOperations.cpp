@@ -128,9 +128,7 @@ void PoDoFo::WriteCircle(PdfStringStream& stream, double x, double y, double rad
         x + radius, y - radius * ARC_MAGIC,
         x + radius, y);
     PoDoFo::WriteOperator_h(stream);
-
-    // TODO: Add current position
-    (void)currP;
+    currP = Vector2(x + radius, y);
 }
 
 void PoDoFo::WriteEllipse(PdfStringStream& stream, double x, double y,
@@ -145,9 +143,7 @@ void PoDoFo::WriteEllipse(PdfStringStream& stream, double x, double y,
         PoDoFo::WriteOperator_c(stream, pointsX[i], pointsY[i], pointsX[i + 1], pointsY[i + 1], pointsX[i + 2], pointsY[i + 2]);
 
     PoDoFo::WriteOperator_h(stream);
-
-    // TODO: Add current position
-    (void)currP;
+    currP = Vector2(pointsX[BEZIER_POINTS - 1], pointsY[BEZIER_POINTS - 1]);
 }
 
 void PoDoFo::WriteRectangle(PdfStringStream& stream, double x, double y,
@@ -171,14 +167,12 @@ void PoDoFo::WriteRectangle(PdfStringStream& stream, double x, double y,
         PoDoFo::WriteOperator_l(stream, x, y + ry);
         PoDoFo::WriteOperator_c(stream, x, y + ry * b, x + rx * b, y, x + rx, y);
         PoDoFo::WriteOperator_h(stream);
-
-        // TODO: Add current position
-        (void)currP;
+        currP = Vector2(x + rx, y);
     }
     else
     {
         PoDoFo::WriteOperator_re(stream, x, y, width, height);
-        currP = Vector2(x + width, y + width);
+        currP = Vector2(x, y);
     }
 }
 

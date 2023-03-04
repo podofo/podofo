@@ -36,6 +36,9 @@ namespace PoDoFo
 
         double Dot(const Vector2& v) const;
 
+        bool operator==(const Vector2& v) const;
+        bool operator!=(const Vector2& v) const;
+
     public:
         Vector2(const Vector2&) = default;
         Vector2& operator=(const Vector2&) = default;

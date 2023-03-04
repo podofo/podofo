@@ -292,59 +292,60 @@ void PdfPainter::DrawLine(double x1, double y1, double x2, double y2)
 {
     checkStream();
     checkStatus(StatusDefault);
-    pathMoveTo(x1, y1);
-    addLineTo(x2, y2);
+    PoDoFo::WriteOperator_m(m_stream, x1, y1);
+    PoDoFo::WriteOperator_l(m_stream, x2, y2);
     stroke();
+    resetPath();
 }
 
 void PdfPainter::DrawCubicBezier(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
 {
     checkStream();
     checkStatus(StatusDefault);
-    pathMoveTo(x1, y1);
-    addCubicBezierTo(x2, y2, x3, y3, x4, y4);
+    PoDoFo::WriteOperator_m(m_stream, x1, y1);
+    PoDoFo::WriteOperator_c(m_stream, x2, y2, x3, y3, x4, y4);
     stroke();
+    resetPath();
 }
 
-void PdfPainter::DrawArc(double x, double y, double radius, double angle1, double angle2, bool clockWise)
+void PdfPainter::DrawArc(double x, double y, double radius, double startAngle, double endAngle, bool clockWise)
 {
     checkStream();
     checkStatus(StatusDefault);
-    addArc(x, y, radius, angle1, angle2, clockWise);
+    Vector2 currP;
+    PoDoFo::WriteArc(m_stream, x, y, radius, startAngle, endAngle, clockWise, currP);
     stroke();
+    resetPath();
 }
 
 void PdfPainter::DrawCircle(double x, double y, double radius, PdfPathDrawMode mode)
 {
     checkStream();
     checkStatus(StatusDefault);
-    addCircle(x, y, radius);
+    Vector2 currP;
+    PoDoFo::WriteCircle(m_stream, x, y, radius, currP);
     drawPath(mode);
+    resetPath();
 }
 
 void PdfPainter::DrawEllipse(double x, double y, double width, double height, PdfPathDrawMode mode)
 {
     checkStream();
     checkStatus(StatusDefault);
-    addEllipse(x, y, width, height);
+    Vector2 currP;
+    PoDoFo::WriteEllipse(m_stream, x, y, width, height, currP);
     drawPath(mode);
+    resetPath();
 }
 
 void PdfPainter::DrawRectangle(double x, double y, double width, double height, PdfPathDrawMode mode, double roundX, double roundY)
 {
-    checkStream();
-    checkStatus(StatusDefault);
-    addRectangle(x, y, width, height, roundX, roundY);
-    drawPath(mode);
+    drawRectangle(x, y, width, height, mode, roundX, roundY);
 }
 
 void PdfPainter::DrawRectangle(const PdfRect& rect, PdfPathDrawMode mode, double roundX, double roundY)
 {
-    checkStream();
-    checkStatus(StatusDefault);
-    addRectangle(rect.GetLeft(), rect.GetBottom(),
-        rect.GetWidth(), rect.GetHeight(), roundX, roundY);
-    drawPath(mode);
+    drawRectangle(rect.GetLeft(), rect.GetBottom(), rect.GetWidth(), rect.GetHeight(), mode, roundX, roundY);
 }
 
 void PdfPainter::DrawText(const string_view& str, double x, double y,
@@ -714,9 +715,10 @@ void PdfPainter::DrawPath(const PdfPainterPath& path, PdfPathDrawMode drawMode)
 
     ((OutputStream&)m_stream).Write(path.GetContent());
     drawPath(drawMode);
-    m_StateStack.Current->CurrentPoint = path.GetCurrentPoint();
+    resetPath();
 }
 
+// CHECK-ME: Handle of first/current point
 void PdfPainter::ClipPath(const PdfPainterPath& path, bool useEvenOddRule)
 {
     checkStream();
@@ -729,7 +731,7 @@ void PdfPainter::ClipPath(const PdfPainterPath& path, bool useEvenOddRule)
         PoDoFo::WriteOperator_W(m_stream);
 
     PoDoFo::WriteOperator_n(m_stream);
-    m_StateStack.Current->CurrentPoint = path.GetCurrentPoint();
+    resetPath();
 }
 
 void PdfPainter::Save()
@@ -809,13 +811,6 @@ unsigned short PdfPainter::GetPrecision() const
 string_view PdfPainter::GetContent() const
 {
     return m_stream.GetString();
-}
-
-void PdfPainter::closePath()
-{
-    PoDoFo::WriteOperator_h(m_stream);
-    // TODO: should update last point with last point in 'x y m' call
-    // or something similar, needs testing
 }
 
 void PdfPainter::BeginText()
@@ -1117,6 +1112,12 @@ string PdfPainter::expandTabs(const string_view& str) const
     return ::expandTabs(str, m_TabWidth, tabCount);
 }
 
+void PdfPainter::checkPathOpened() const
+{
+    if (m_StateStack.Current->CurrentPoint == nullptr)
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Path should be opened with m operator");
+}
+
 void PdfPainter::checkStream()
 {
     if (m_objStream != nullptr)
@@ -1126,11 +1127,27 @@ void PdfPainter::checkStream()
     m_objStream = &m_canvas->GetStreamForAppending((PdfStreamAppendFlags)(m_flags & (~PdfPainterFlags::NoSaveRestore)));
 }
 
-void PdfPainter::checkFont()
+void PdfPainter::openPath(double x, double y)
+{
+    if (m_StateStack.Current->FirstPoint != nullptr)
+        return;
+
+    m_StateStack.Current->FirstPoint = Vector2(x, y);
+}
+
+// Reset must be done after drawing operators (s, S, b, b*, B, B*, f, f*)
+// and n operator (discard)
+void PdfPainter::resetPath()
+{
+    m_StateStack.Current->FirstPoint = nullptr;
+    m_StateStack.Current->CurrentPoint = nullptr;
+}
+
+void PdfPainter::checkFont() const
 {
     auto& textState = m_StateStack.Current->TextState;
     if (textState.Font == nullptr)
-        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Font should be set prior calling the method");
+        PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Font should be set prior calling the method");
 }
 
 void PdfPainter::checkStatus(int expectedStatus)
@@ -1302,51 +1319,14 @@ void PdfTextStateWrapper::SetRenderingMode(PdfTextRenderingMode mode)
     m_painter->SetTextRenderingMode(m_state->RenderingMode);
 }
 
-void PdfPainter::addLineTo(double x, double y)
+void PdfPainter::drawRectangle(double x, double y, double width, double height, PdfPathDrawMode mode, double roundX, double roundY)
 {
-    PoDoFo::WriteOperator_l(m_stream, x, y);
-    m_StateStack.Current->CurrentPoint = Vector2(x, y);
-}
-
-void PdfPainter::addCubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3)
-{
-    PoDoFo::WriteOperator_c(m_stream, x1, y1, x2, y2, x3, y3);
-    m_StateStack.Current->CurrentPoint = Vector2(x3, y3);
-}
-
-void PdfPainter::pathMoveTo(double x, double y)
-{
-    PoDoFo::WriteOperator_m(m_stream, x, y);
-    m_StateStack.Current->CurrentPoint = Vector2(x, y);
-}
-
-void PdfPainter::addArcTo(double x1, double y1, double x2, double y2, double r)
-{
-    double x0 = m_StateStack.Current->CurrentPoint.X;
-    double y0 = m_StateStack.Current->CurrentPoint.Y;
-
-    PoDoFo::WriteArcTo(m_stream, x0, y0, x1, y1, x2, y2, r, m_StateStack.Current->CurrentPoint);
-}
-
-void PdfPainter::addArc(double x, double y, double radius, double startAngle, double endAngle, bool clockWise)
-{
-    PoDoFo::WriteArc(m_stream, x, y, radius, startAngle, endAngle,
-        clockWise, m_StateStack.Current->CurrentPoint);
-}
-
-void PdfPainter::addCircle(double x, double y, double radius)
-{
-    PoDoFo::WriteCircle(m_stream, x, y, radius, m_StateStack.Current->CurrentPoint);
-}
-
-void PdfPainter::addEllipse(double x, double y, double width, double height)
-{
-    PoDoFo::WriteEllipse(m_stream, x, y, width, height, m_StateStack.Current->CurrentPoint);
-}
-
-void PdfPainter::addRectangle(double x, double y, double width, double height, double roundX, double roundY)
-{
-    PoDoFo::WriteRectangle(m_stream, x, y, width, height, roundX, roundY, m_StateStack.Current->CurrentPoint);
+    checkStream();
+    checkStatus(StatusDefault);
+    Vector2 currP;
+    PoDoFo::WriteRectangle(m_stream, x, y, width, height, roundX, roundY, currP);
+    drawPath(mode);
+    resetPath();
 }
 
 void PdfPainter::drawPath(PdfPathDrawMode mode)

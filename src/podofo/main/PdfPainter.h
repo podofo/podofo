@@ -68,9 +68,10 @@ struct PODOFO_API PdfDrawTextMultiLineParams final
 
 struct PODOFO_API PdfPainterState final
 {
-    Vector2 CurrentPoint;
     PdfGraphicsState GraphicsState;
     PdfTextState TextState;         ///< The current sematical text state
+    nullable<Vector2> FirstPoint;
+    nullable<Vector2> CurrentPoint;
 private:
     friend class PdfPainter;
 private:
@@ -319,11 +320,11 @@ public:
      *  \param x x coordinate of the center of the arc (left coordinate)
      *  \param y y coordinate of the center of the arc (top coordinate)
      *	\param radius radius
-     *	\param angle1 angle1 in radians measured counterclockwise from the origin
-     *	\param angle2 angle2 in radians measured counterclockwise from the origin
+     *	\param startAngle startAngle in radians measured counterclockwise from the origin
+     *	\param endAngle endAngle in radians measured counterclockwise from the origin
      *	\param clockwise The arc is drawn clockwise instead
      */
-    void DrawArc(double x, double y, double radius, double angle1, double angle2, bool clockwise = false);
+    void DrawArc(double x, double y, double radius, double startAngle, double endAngle, bool clockwise = false);
 
     /** Draw a circle
      *  \param x x center coordinate of the circle
@@ -553,15 +554,7 @@ private:
     void save();
     void restore();
     void reset();
-    void pathMoveTo(double x, double y);
-    void addLineTo(double x, double y);
-    void addCubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3);
-    void addArcTo(double x1, double y1, double x2, double y2, double radius);
-    void addArc(double x, double y, double radius, double startAngle, double endAngle, bool clockWise);
-    void addCircle(double x, double y, double radius);
-    void addEllipse(double x, double y, double width, double height);
-    void addRectangle(double x, double y, double width, double height, double roundX, double roundY);
-    void closePath();
+    void drawRectangle(double x, double y, double width, double height, PdfPathDrawMode mode, double roundX, double roundY);
     void drawPath(PdfPathDrawMode mode);
     void stroke();
     void fill(bool useEvenOddRule);
@@ -691,7 +684,10 @@ private:
      */
     std::string expandTabs(const std::string_view& str) const;
     void checkStream();
-    void checkFont();
+    inline void openPath(double x, double y);
+    void resetPath();
+    void checkPathOpened() const;
+    void checkFont() const;
     void finishDrawing();
     void checkStatus(int expectedStatus);
     void enterTextObject();

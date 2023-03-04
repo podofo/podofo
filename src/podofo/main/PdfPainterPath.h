@@ -164,7 +164,6 @@ private:
 
 private:
     PdfStringStream m_stream;
-    bool m_opened;
     nullable<Vector2> m_FirstPoint;
     Vector2 m_CurrentPoint;
 };

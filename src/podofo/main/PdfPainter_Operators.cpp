@@ -15,28 +15,36 @@ void PdfPainter::re_Operator(double x, double y, double width, double height)
 {
     checkStream();
     checkStatus(StatusDefault | StatusTextObject);
+    openPath(x, y);
     PoDoFo::WriteOperator_re(m_stream, x, y, width, height);
+    m_StateStack.Current->CurrentPoint = Vector2(x, y);
 }
 
 void PdfPainter::m_Operator(double x, double y)
 {
     checkStream();
     checkStatus(StatusDefault | StatusTextObject);
+    openPath(x, y);
     PoDoFo::WriteOperator_m(m_stream, x, y);
+    m_StateStack.Current->CurrentPoint = Vector2(x, y);
 }
 
 void PdfPainter::l_Operator(double x, double y)
 {
     checkStream();
     checkStatus(StatusDefault | StatusTextObject);
+    checkPathOpened();
     PoDoFo::WriteOperator_l(m_stream, x, y);
+    m_StateStack.Current->CurrentPoint = Vector2(x, y);
 }
 
 void PdfPainter::c_Operator(double c1x, double c1y, double c2x, double c2y, double x, double y)
 {
     checkStream();
     checkStatus(StatusDefault | StatusTextObject);
+    checkPathOpened();
     PoDoFo::WriteOperator_c(m_stream, c1x, c1y, c2x, c2y, x, y);
+    m_StateStack.Current->CurrentPoint = Vector2(x, y);
 }
 
 void PdfPainter::n_Operator()
@@ -44,13 +52,17 @@ void PdfPainter::n_Operator()
     checkStream();
     checkStatus(StatusDefault | StatusTextObject);
     PoDoFo::WriteOperator_n(m_stream);
+    resetPath();
 }
 
 void PdfPainter::h_Operator()
 {
     checkStream();
     checkStatus(StatusDefault | StatusTextObject);
+    checkPathOpened();
     PoDoFo::WriteOperator_h(m_stream);
+    PODOFO_ASSERT(m_StateStack.Current->FirstPoint != nullptr);
+    m_StateStack.Current->CurrentPoint = *m_StateStack.Current->FirstPoint;
 }
 
 void PdfPainter::b_Operator()
@@ -58,6 +70,7 @@ void PdfPainter::b_Operator()
     checkStream();
     checkStatus(StatusDefault | StatusTextObject);
     PoDoFo::WriteOperator_b(m_stream);
+    resetPath();
 }
 
 void PdfPainter::B_Operator()
@@ -65,6 +78,7 @@ void PdfPainter::B_Operator()
     checkStream();
     checkStatus(StatusDefault | StatusTextObject);
     PoDoFo::WriteOperator_B(m_stream);
+    resetPath();
 }
 
 void PdfPainter::bStar_Operator()
@@ -72,6 +86,7 @@ void PdfPainter::bStar_Operator()
     checkStream();
     checkStatus(StatusDefault | StatusTextObject);
     PoDoFo::WriteOperator_bStar(m_stream);
+    resetPath();
 }
 
 void PdfPainter::BStar_Operator()
@@ -79,6 +94,7 @@ void PdfPainter::BStar_Operator()
     checkStream();
     checkStatus(StatusDefault | StatusTextObject);
     PoDoFo::WriteOperator_BStar(m_stream);
+    resetPath();
 }
 
 void PdfPainter::s_Operator()
@@ -86,6 +102,7 @@ void PdfPainter::s_Operator()
     checkStream();
     checkStatus(StatusDefault | StatusTextObject);
     PoDoFo::WriteOperator_s(m_stream);
+    resetPath();
 }
 
 void PdfPainter::S_Operator()
@@ -93,6 +110,7 @@ void PdfPainter::S_Operator()
     checkStream();
     checkStatus(StatusDefault | StatusTextObject);
     PoDoFo::WriteOperator_S(m_stream);
+    resetPath();
 }
 
 void PdfPainter::f_Operator()
@@ -100,6 +118,7 @@ void PdfPainter::f_Operator()
     checkStream();
     checkStatus(StatusDefault | StatusTextObject);
     PoDoFo::WriteOperator_f(m_stream);
+    resetPath();
 }
 
 void PdfPainter::fStar_Operator()
@@ -107,6 +126,7 @@ void PdfPainter::fStar_Operator()
     checkStream();
     checkStatus(StatusDefault | StatusTextObject);
     PoDoFo::WriteOperator_fStar(m_stream);
+    resetPath();
 }
 
 void PdfPainter::W_Operator()

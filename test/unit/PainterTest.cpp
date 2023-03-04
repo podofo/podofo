@@ -181,8 +181,8 @@ TEST_CASE("TestPainter4")
     path2.AddLineTo(250, 80);
     path.AddPath(path2, true);
 
+    auto currPoint2 = path.GetCurrentPoint();
     painter.DrawPath(path, PdfPathDrawMode::Stroke);
-    auto currPoint2 = painter.GetStateStack().Current->CurrentPoint;
     path.Reset();
     path.MoveTo(40, 40);
     path.AddLineTo(100, 40);
@@ -337,6 +337,43 @@ n
 (World) Tj
 Q
 ET
+Q
+)";
+
+    auto out = getContents(page);
+    REQUIRE(out == expected);
+}
+
+TEST_CASE("TestPainter6")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+
+    PdfFontCreateParams params;
+    params.Encoding = PdfEncodingMapFactory::WinAnsiEncodingInstance();
+
+    PdfPainter painter;
+    painter.SetCanvas(page);
+    REQUIRE(painter.GetStateStack().Current->CurrentPoint == nullptr);
+    PdfPainterPath path;
+    path.AddRectangle(PdfRect(10,10, 100, 50));
+    painter.Save();
+    painter.DrawPath(path);
+    path.GetCurrentPoint() == Vector2(10, 10);
+    REQUIRE(painter.GetStateStack().Current->CurrentPoint == nullptr);
+    painter.Save();
+    auto& operators = static_cast<PdfContentStreamOperators&>(painter);
+    operators.n_Operator();
+    REQUIRE(painter.GetStateStack().Current->CurrentPoint == nullptr);
+    painter.FinishDrawing();
+    doc.Save(TestUtils::GetTestOutputFilePath("TestPainter6.pdf"));
+
+    auto expected = R"(q
+q
+10 10 100 50 re
+S
+q
+n
 Q
 )";
 
