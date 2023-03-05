@@ -684,7 +684,7 @@ private:
      */
     std::string expandTabs(const std::string_view& str) const;
     void checkStream();
-    inline void openPath(double x, double y);
+    void openPath(double x, double y);
     void resetPath();
     void checkPathOpened() const;
     void checkFont() const;

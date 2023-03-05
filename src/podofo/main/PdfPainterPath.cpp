@@ -137,7 +137,7 @@ void PdfPainterPath::checkOpened() const
         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The path must be opened with MoveTo()");
 }
 
-inline void PdfPainterPath::open(double x, double y)
+void PdfPainterPath::open(double x, double y)
 {
     if (m_FirstPoint != nullptr)
         return;

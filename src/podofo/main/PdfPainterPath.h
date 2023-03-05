@@ -156,7 +156,7 @@ public:
 
 private:
     void checkOpened() const;
-    inline void open(double x, double y);
+    void open(double x, double y);
 
 private:
     PdfPainterPath(const PdfPainterPath& painter) = delete;
