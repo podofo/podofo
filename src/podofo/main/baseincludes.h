@@ -19,10 +19,10 @@
 // Include some common headers
 
 #define COMMON_NAMESPACE PoDoFo
-#include <podofo/common/EnumFlags.h>
-#include <podofo/common/span.h>
-#include <podofo/common/nullable.h>
-#include <podofo/common/types.h>
+#include <podofo/auxiliary/EnumFlags.h>
+#include <podofo/auxiliary/span.h>
+#include <podofo/auxiliary/nullable.h>
+#include <podofo/auxiliary/types.h>
 
 #include "podofo_config.h"
 

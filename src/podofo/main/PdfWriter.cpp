@@ -17,7 +17,7 @@
 #include "PdfVariant.h"
 #include "PdfXRef.h"
 #include "PdfXRefStream.h"
-#include "PdfStreamDevice.h"
+#include <podofo/auxiliary/StreamDevice.h>
 
 #define PDF_MAGIC           "\xe2\xe3\xcf\xd3\n"
 // 10 spaces

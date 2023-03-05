@@ -26,7 +26,7 @@ extern "C" {
 #include "PdfArray.h"
 #include "PdfColor.h"
 #include "PdfObjectStream.h"
-#include "PdfStreamDevice.h"
+#include <podofo/auxiliary/StreamDevice.h>
 
 // TIFF and JPEG headers already included through "PdfFiltersPrivate.h",
 // although in opposite order (first JPEG, then TIFF), if available of course

@@ -9,7 +9,7 @@
 #include "PdfDocument.h"
 #include "PdfEncrypt.h"
 #include "PdfFilter.h"
-#include "PdfOutputDevice.h"
+#include <podofo/auxiliary/OutputDevice.h>
 #include "PdfObject.h"
 #include "PdfDictionary.h"
 

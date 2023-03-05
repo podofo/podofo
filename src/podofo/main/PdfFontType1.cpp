@@ -9,7 +9,7 @@
 
 #include <utfcpp/utf8.h>
 
-#include "PdfInputDevice.h"
+#include <podofo/auxiliary/InputDevice.h>
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfName.h"

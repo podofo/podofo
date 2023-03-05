@@ -5,7 +5,7 @@
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfStreamedDocument.h"
-#include "PdfStreamDevice.h"
+#include <podofo/auxiliary/StreamDevice.h>
 
 using namespace std;
 using namespace PoDoFo;

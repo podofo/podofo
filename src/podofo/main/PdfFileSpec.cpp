@@ -12,7 +12,7 @@
 #include "PdfDocument.h"
 #include "PdfObject.h"
 #include "PdfObjectStream.h"
-#include "PdfStreamDevice.h"
+#include <podofo/auxiliary/StreamDevice.h>
 
 using namespace std;
 using namespace cmn;

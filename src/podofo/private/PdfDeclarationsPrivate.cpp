@@ -9,8 +9,8 @@
 #include <podofo/private/charconv_compat.h>
 #include <podofo/private/utfcpp_extensions.h>
 
-#include <podofo/main/PdfInputStream.h>
-#include <podofo/main/PdfOutputStream.h>
+#include <podofo/auxiliary/InputStream.h>
+#include <podofo/auxiliary/OutputStream.h>
 
 #include <podofo/private/istringviewstream.h>
 

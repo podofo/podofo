@@ -36,7 +36,6 @@ either assume UTF-8 and/or checks for used codepoints
 - Add PdfPage::GetRectRaw(), make GetRect() return normalized rotation rect
 - Check PdfStreamedDocument working
 - Check/Review doxygen doc
-- Move IO System headers to common/
 - Extract Matrix PdfMath.h -> Matrix.h, move it to common/
 - PdfToggleButton: Add proper IsChecked/ExportValue handling
 - Review PdfPage::SetICCProfile()

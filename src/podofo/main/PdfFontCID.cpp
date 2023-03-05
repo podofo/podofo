@@ -13,8 +13,8 @@
 #include "PdfName.h"
 #include "PdfObjectStream.h"
 #include "PdfFontMetricsFreetype.h"
-#include "PdfInputDevice.h"
-#include "PdfOutputDevice.h"
+#include <podofo/auxiliary/InputDevice.h>
+#include <podofo/auxiliary/OutputDevice.h>
 
 using namespace std;
 using namespace PoDoFo;

@@ -7,7 +7,7 @@
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfData.h"
 
-#include "PdfOutputDevice.h"
+#include <podofo/auxiliary/OutputDevice.h>
 
 using namespace std;
 using namespace PoDoFo;

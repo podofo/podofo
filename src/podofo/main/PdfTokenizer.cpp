@@ -12,7 +12,7 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfEncrypt.h"
-#include "PdfInputDevice.h"
+#include <podofo/auxiliary/InputDevice.h>
 #include "PdfName.h"
 #include "PdfString.h"
 #include "PdfReference.h"

@@ -8,8 +8,8 @@
 
 #include "PdfDeclarations.h"
 
-#include "PdfInputStream.h"
-#include "PdfOutputStream.h"
+#include <podofo/auxiliary/InputStream.h>
+#include <podofo/auxiliary/OutputStream.h>
 
 namespace PoDoFo {
 

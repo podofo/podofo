@@ -11,8 +11,8 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfEncrypt.h"
-#include "PdfInputDevice.h"
-#include "PdfInputStream.h"
+#include <podofo/auxiliary/InputDevice.h>
+#include <podofo/auxiliary/InputStream.h>
 #include "PdfParser.h"
 #include "PdfObjectStream.h"
 #include "PdfVariant.h"

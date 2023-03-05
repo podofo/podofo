@@ -7,7 +7,7 @@
 #ifndef PDF_DEVICE_BASE_H
 #define PDF_DEVICE_BASE_H
 
-#include "PdfDeclarations.h"
+#include <podofo/main/PdfDeclarations.h>
 
 namespace PoDoFo {
 

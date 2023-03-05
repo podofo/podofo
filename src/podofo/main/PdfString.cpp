@@ -16,7 +16,7 @@
 #include "PdfEncodingFactory.h"
 #include "PdfFilter.h"
 #include "PdfTokenizer.h"
-#include "PdfOutputDevice.h"
+#include <podofo/auxiliary/OutputDevice.h>
 
 using namespace std;
 using namespace PoDoFo;

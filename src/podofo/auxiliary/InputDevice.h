@@ -10,8 +10,8 @@
 #include <istream>
 #include <fstream>
 
-#include "PdfStreamDeviceBase.h"
-#include "PdfInputStream.h"
+#include "StreamDeviceBase.h"
+#include "InputStream.h"
 
 namespace PoDoFo {
 

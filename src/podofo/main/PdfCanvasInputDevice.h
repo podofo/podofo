@@ -7,7 +7,7 @@
 #ifndef PDF_CANVAS_INPUT_DEVICE_H
 #define PDF_CANVAS_INPUT_DEVICE_H
 
-#include "PdfInputDevice.h"
+#include <podofo/auxiliary/InputDevice.h>
 
 #include <list>
 

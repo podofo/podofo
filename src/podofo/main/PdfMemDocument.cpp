@@ -28,7 +28,7 @@
 #include "PdfOutlines.h"
 #include "PdfPage.h"
 #include "PdfPageCollection.h"
-#include "PdfStreamDevice.h"
+#include <podofo/auxiliary/StreamDevice.h>
 #include "PdfCommon.h"
 
 using namespace std;

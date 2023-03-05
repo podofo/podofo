@@ -8,7 +8,7 @@
 #include "PdfXRef.h"
 
 #include "PdfObject.h"
-#include "PdfOutputDevice.h"
+#include <podofo/auxiliary/OutputDevice.h>
 #include "PdfWriter.h"
 
 #include <algorithm>

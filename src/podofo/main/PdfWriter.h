@@ -8,8 +8,8 @@
 #define PDF_WRITER_H
 
 #include "PdfDeclarations.h"
-#include "PdfInputDevice.h"
-#include "PdfOutputDevice.h"
+#include <podofo/auxiliary/InputDevice.h>
+#include <podofo/auxiliary/OutputDevice.h>
 #include "PdfIndirectObjectList.h"
 #include "PdfObject.h"
 

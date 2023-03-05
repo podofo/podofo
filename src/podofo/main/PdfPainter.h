@@ -15,7 +15,7 @@
 #include "PdfPainterTextObject.h"
 #include "PdfContentStreamOperators.h"
 
-#include <podofo/common/StateStack.h>
+#include <podofo/auxiliary/StateStack.h>
 
 #include <podofo/staging/PdfShadingPattern.h>
 #include <podofo/staging/PdfTilingPattern.h>

@@ -5,7 +5,7 @@
  */
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
-#include "PdfOutputDevice.h"
+#include "OutputDevice.h"
 
 using namespace PoDoFo;
 

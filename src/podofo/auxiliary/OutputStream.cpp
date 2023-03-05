@@ -5,7 +5,7 @@
  */
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
-#include "PdfOutputStream.h"
+#include "OutputStream.h"
 
 using namespace std;
 using namespace PoDoFo;

@@ -9,8 +9,8 @@
 
 #include "PdfDocument.h"
 #include "PdfExtension.h"
-#include "PdfInputDevice.h"
-#include "PdfOutputDevice.h"
+#include <podofo/auxiliary/InputDevice.h>
+#include <podofo/auxiliary/OutputDevice.h>
 
 namespace PoDoFo {
 

@@ -8,7 +8,7 @@
 
 #include <podofo/main/PdfDictionary.h>
 #include <podofo/main/PdfTokenizer.h>
-#include <podofo/main/PdfStreamDevice.h>
+#include <podofo/auxiliary/StreamDevice.h>
 
 using namespace std;
 using namespace PoDoFo;

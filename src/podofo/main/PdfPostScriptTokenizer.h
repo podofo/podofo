@@ -9,7 +9,7 @@
 
 #include "PdfTokenizer.h"
 #include "PdfVariant.h"
-#include "PdfInputDevice.h"
+#include <podofo/auxiliary/InputDevice.h>
 
 namespace PoDoFo {
 

@@ -9,7 +9,7 @@
 
 #include <podofo/private/PdfEncodingPrivate.h>
 
-#include "PdfOutputDevice.h"
+#include <podofo/auxiliary/OutputDevice.h>
 #include "PdfTokenizer.h"
 #include "PdfPredefinedEncoding.h"
 

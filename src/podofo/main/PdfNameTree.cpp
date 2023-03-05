@@ -9,7 +9,7 @@
 #include "PdfDocument.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
-#include "PdfOutputDevice.h"
+#include <podofo/auxiliary/OutputDevice.h>
 
 using namespace PoDoFo;
 

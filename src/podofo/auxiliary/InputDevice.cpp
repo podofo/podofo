@@ -5,7 +5,7 @@
  */
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
-#include "PdfInputDevice.h"
+#include "InputDevice.h"
 
 using namespace std;
 using namespace PoDoFo;

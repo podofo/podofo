@@ -7,7 +7,7 @@
 #ifndef PDF_OUTPUT_STREAM_H
 #define PDF_OUTPUT_STREAM_H
 
-#include "PdfDeclarations.h"
+#include <podofo/main/PdfDeclarations.h>
 
 namespace PoDoFo {
 

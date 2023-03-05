@@ -8,7 +8,7 @@
 #define PDF_STRING_STREAM
 
 #include "PdfDeclarations.h"
-#include "PdfOutputStream.h"
+#include <podofo/auxiliary/OutputStream.h>
 
 namespace PoDoFo
 {

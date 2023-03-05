@@ -17,8 +17,8 @@
 #include "PdfObjectStream.h"
 #include "PdfTokenizer.h"
 #include "PdfVariant.h"
-#include "PdfInputDevice.h"
-#include "PdfStreamDevice.h"
+#include <podofo/auxiliary/InputDevice.h>
+#include <podofo/auxiliary/StreamDevice.h>
 
 using namespace std;
 using namespace PoDoFo;

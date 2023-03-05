@@ -6,7 +6,8 @@
 
 #include <podofo/private/PdfDeclarationsPrivate.h>
 #include "PdfArray.h"
-#include "PdfOutputDevice.h"
+
+#include <podofo/auxiliary/OutputDevice.h>
 
 using namespace std;
 using namespace PoDoFo;

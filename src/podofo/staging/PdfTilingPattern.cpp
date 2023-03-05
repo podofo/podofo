@@ -8,6 +8,7 @@
 
 #include <iomanip>
 
+#include <podofo/auxiliary/StreamDevice.h>
 #include <podofo/main/PdfDocument.h>
 #include <podofo/main/PdfArray.h>
 #include <podofo/main/PdfColor.h>
@@ -17,7 +18,6 @@
 #include <podofo/main/PdfWriter.h>
 #include <podofo/main/PdfImage.h>
 #include <podofo/main/PdfStringStream.h>
-#include <podofo/main/PdfStreamDevice.h>
 
 #include "PdfFunction.h"
 

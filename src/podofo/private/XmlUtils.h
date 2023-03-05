@@ -8,7 +8,7 @@
 
 #include <string>
 #include <libxml/tree.h>
-#include <podofo/common/nullable.h>
+#include <podofo/auxiliary/nullable.h>
 
 // Cast macro that keep or enforce const to use
 // instead of BAD_CAST

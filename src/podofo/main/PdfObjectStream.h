@@ -11,8 +11,8 @@
 
 #include "PdfFilter.h"
 #include "PdfEncrypt.h"
-#include "PdfOutputStream.h"
-#include "PdfInputStream.h"
+#include <podofo/auxiliary/OutputStream.h>
+#include <podofo/auxiliary/InputStream.h>
 #include "PdfObjectStreamProvider.h"
 
 namespace PoDoFo {

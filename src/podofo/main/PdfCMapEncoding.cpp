@@ -14,7 +14,7 @@
 #include "PdfPostScriptTokenizer.h"
 #include "PdfArray.h"
 #include "PdfIdentityEncoding.h"
-#include "PdfStreamDevice.h"
+#include <podofo/auxiliary/StreamDevice.h>
 
 using namespace std;
 using namespace PoDoFo;

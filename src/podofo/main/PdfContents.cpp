@@ -10,7 +10,7 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfName.h"
-#include "PdfStreamDevice.h"
+#include <podofo/auxiliary/StreamDevice.h>
 
 #include "PdfDocument.h"
 #include "PdfPage.h"

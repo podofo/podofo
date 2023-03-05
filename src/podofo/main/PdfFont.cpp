@@ -16,7 +16,7 @@
 #include "PdfArray.h"
 #include "PdfEncoding.h"
 #include "PdfEncodingFactory.h"
-#include "PdfInputStream.h"
+#include <podofo/auxiliary/InputStream.h>
 #include "PdfObjectStream.h"
 #include "PdfWriter.h"
 #include "PdfCharCodeMap.h"

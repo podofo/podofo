@@ -8,7 +8,7 @@
 #define PDF_TOKENIZER_H
 
 #include "PdfDeclarations.h"
-#include "PdfInputDevice.h"
+#include <podofo/auxiliary/InputDevice.h>
 #include "PdfStatefulEncrypt.h"
 
 #include <deque>

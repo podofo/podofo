@@ -18,8 +18,8 @@ externally of the source tree, simulating the layout of prefixed
 `include` after installation. The content of `podofo` is:
 
 - `main`: source directory with most of the library classes;
-- `common`: directory with general purpose commodities that
-  are not specific to handling of the PDF specification.
+- `auxiliary`: directory with general purpose types/commodities
+  that are not specific to handling of the PDF specification.
   Headers here are deployed as part of the public API;
 - `private`: directory with private commodities/data needed to
   compile PoDoFo library, and can be called by tools and tests

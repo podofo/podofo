@@ -11,7 +11,7 @@
 #include "PdfDocument.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
-#include "PdfStreamDevice.h"
+#include <podofo/auxiliary/StreamDevice.h>
 
 using namespace std;
 using namespace PoDoFo;

@@ -21,7 +21,7 @@
 #include "PdfFont.h"
 
 #include <podofo/private/outstringstream.h>
-#include <podofo/common/StateStack.h>
+#include <podofo/auxiliary/StateStack.h>
 
 using namespace std;
 using namespace cmn;

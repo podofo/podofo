@@ -10,9 +10,9 @@
 #include "PdfDocument.h"
 #include "PdfArray.h"
 #include "PdfFilter.h"
-#include "PdfInputDevice.h"
+#include <podofo/auxiliary/InputDevice.h>
 #include "PdfDictionary.h"
-#include "PdfStreamDevice.h"
+#include <podofo/auxiliary/StreamDevice.h>
 
 using namespace std;
 using namespace PoDoFo;

@@ -13,7 +13,7 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfObject.h"
-#include "PdfOutputDevice.h"
+#include <podofo/auxiliary/OutputDevice.h>
 #include "PdfPage.h"
 
 using namespace std;

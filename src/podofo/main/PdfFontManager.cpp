@@ -19,8 +19,8 @@
 #include <utfcpp/utf8.h>
 
 #include "PdfDictionary.h"
-#include "PdfInputDevice.h"
-#include "PdfOutputDevice.h"
+#include <podofo/auxiliary/InputDevice.h>
+#include <podofo/auxiliary/OutputDevice.h>
 #include "PdfFont.h"
 #include "PdfFontMetricsFreetype.h"
 #include "PdfFontMetricsStandard14.h"
