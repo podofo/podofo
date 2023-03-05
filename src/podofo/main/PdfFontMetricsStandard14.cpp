@@ -24,12 +24,12 @@ PdfFontMetricsStandard14::PdfFontMetricsStandard14(
 {
     m_LineSpacing = 0.0;
     m_UnderlineThickness = 0.05;
-    m_StrikeOutThickness = m_UnderlineThickness;
+    m_StrikeThroughThickness = m_UnderlineThickness;
     m_Ascent = data.Ascent / 1000.0;
     m_Descent = data.Descent / 1000.0;
 
     m_UnderlinePosition = data.UnderlinePos / 1000.0;
-    m_StrikeOutPosition = data.StrikeoutPos / 1000.0;
+    m_StrikeThroughPosition = data.StrikeThroughPos / 1000.0;
 
     // calculate the line spacing now, as it changes only with the font size
     m_LineSpacing = (data.Ascent + abs(data.Descent)) / 1000.0;
@@ -153,14 +153,14 @@ double PdfFontMetricsStandard14::GetUnderlinePosition() const
     return m_UnderlinePosition;
 }
 
-double PdfFontMetricsStandard14::GetStrikeOutPosition() const
+double PdfFontMetricsStandard14::GetStrikeThroughPosition() const
 {
-    return m_StrikeOutPosition;
+    return m_StrikeThroughPosition;
 }
 
-double PdfFontMetricsStandard14::GetStrikeOutThickness() const
+double PdfFontMetricsStandard14::GetStrikeThroughThickness() const
 {
-    return m_StrikeOutThickness;
+    return m_StrikeThroughThickness;
 }
 
 double PdfFontMetricsStandard14::GetAscent() const

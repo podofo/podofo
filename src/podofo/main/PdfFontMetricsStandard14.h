@@ -15,25 +15,7 @@
 
 namespace PoDoFo {
 
-struct Standard14FontData
-{
-    const unsigned short* Widths;
-    unsigned WidthsSize;
-    PdfFontDescriptorFlags Flags;
-    uint16_t DefaultWidth;
-    PdfFontStretch Stretch;
-    int16_t Ascent;
-    int16_t Descent;
-    uint16_t XHeight;
-    uint16_t CapHeight;
-    int16_t ItalicAngle;
-    int16_t Weight;
-    int16_t StemV;
-    int16_t StemH;
-    int16_t StrikeoutPos;
-    int16_t UnderlinePos;
-    PdfRect BBox;
-};
+struct Standard14FontData;
 
 /**
  * This is the main class to handle the Standard14 metric data.
@@ -71,9 +53,9 @@ public:
 
     double GetUnderlinePosition() const override;
 
-    double GetStrikeOutPosition() const override;
+    double GetStrikeThroughPosition() const override;
 
-    double GetStrikeOutThickness() const override;
+    double GetStrikeThroughThickness() const override;
 
     std::string_view GetFontName() const override;
 
@@ -147,8 +129,8 @@ private:
     double m_LineSpacing;
     double m_UnderlineThickness;
     double m_UnderlinePosition;
-    double m_StrikeOutThickness;
-    double m_StrikeOutPosition;
+    double m_StrikeThroughThickness;
+    double m_StrikeThroughPosition;
 };
 
 }

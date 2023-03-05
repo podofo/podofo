@@ -140,8 +140,8 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
         m_MaxWidth = -1;
         m_DefaultWidth = width;
 
-        m_StrikeOutPosition = m_Ascent / 2.0;
-        m_StrikeOutThickness = m_UnderlineThickness;
+        m_StrikeThroughPosition = m_Ascent / 2.0;
+        m_StrikeThroughThickness = m_UnderlineThickness;
     }
     else
     {
@@ -165,16 +165,16 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
         m_MaxWidth = refMetrics->GetMaxWidthRaw();
         m_DefaultWidth = refMetrics->GetDefaultWidthRaw();
 
-        m_StrikeOutPosition = refMetrics->GetStrikeOutPosition();
-        m_StrikeOutThickness = refMetrics->GetStrikeOutThickness();
+        m_StrikeThroughPosition = refMetrics->GetStrikeThroughPosition();
+        m_StrikeThroughThickness = refMetrics->GetStrikeThroughThickness();
     }
 
     // OS2 Table is available only in TT fonts
     TT_OS2* os2Table = static_cast<TT_OS2*>(FT_Get_Sfnt_Table(m_Face.get(), FT_SFNT_OS2));
     if (os2Table != nullptr)
     {
-        m_StrikeOutPosition = os2Table->yStrikeoutPosition / (double)m_Face->units_per_EM;
-        m_StrikeOutThickness = os2Table->yStrikeoutSize / (double)m_Face->units_per_EM;
+        m_StrikeThroughPosition = os2Table->yStrikeoutPosition / (double)m_Face->units_per_EM;
+        m_StrikeThroughThickness = os2Table->yStrikeoutSize / (double)m_Face->units_per_EM;
         m_CapHeight = os2Table->sCapHeight / (double)m_Face->units_per_EM;
         m_XHeight = os2Table->sxHeight / (double)m_Face->units_per_EM;
         m_Weight = os2Table->usWeightClass;
@@ -429,9 +429,9 @@ double PdfFontMetricsFreetype::GetUnderlinePosition() const
     return m_UnderlinePosition;
 }
 
-double PdfFontMetricsFreetype::GetStrikeOutPosition() const
+double PdfFontMetricsFreetype::GetStrikeThroughPosition() const
 {
-    return m_StrikeOutPosition;
+    return m_StrikeThroughPosition;
 }
 
 double PdfFontMetricsFreetype::GetUnderlineThickness() const
@@ -439,9 +439,9 @@ double PdfFontMetricsFreetype::GetUnderlineThickness() const
     return m_UnderlineThickness;
 }
 
-double PdfFontMetricsFreetype::GetStrikeOutThickness() const
+double PdfFontMetricsFreetype::GetStrikeThroughThickness() const
 {
-    return m_StrikeOutThickness;
+    return m_StrikeThroughThickness;
 }
 
 double PdfFontMetricsFreetype::GetAscent() const

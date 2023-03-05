@@ -53,7 +53,7 @@ enum class PdfPathDrawMode
 enum class PdfDrawTextStyle
 {
     Regular = 0,
-    StrikeOut = 1,
+    StrikeThrough = 1,
     Underline = 2,
 };
 
@@ -665,7 +665,7 @@ private:
     void drawTextAligned(const std::string_view& str, double x, double y, double width,
         PdfHorizontalAlignment hAlignment, PdfDrawTextStyle style);
 
-    void drawText(const std::string_view& str, double x, double y, bool isUnderline, bool isStrikeOut);
+    void drawText(const std::string_view& str, double x, double y, bool isUnderline, bool isStrikeThrough);
 
     void drawMultiLineText(const std::string_view& str, double x, double y, double width, double height,
         PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool clip, bool skipSpaces,

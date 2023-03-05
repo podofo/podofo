@@ -94,17 +94,17 @@ public:
      */
     virtual double GetUnderlinePosition() const = 0;
 
-    /** Return the position of the strikeout for the current font
+    /** Return the position of the strikethrough for the current font
      *  size in PDF units
-     *  \returns the underline position in PDF units
+     *  \returns the strikethrough position in PDF units
      */
-    virtual double GetStrikeOutPosition() const = 0;
+    virtual double GetStrikeThroughPosition() const = 0;
 
-    /** Get the width of the strikeout for the current
+    /** Get the width of the strikethrough for the current
      *  font size in PDF units
-     *  \returns the thickness of the strikeout in PDF units
+     *  \returns the thickness of the strikethrough in PDF units
      */
-    virtual double GetStrikeOutThickness() const = 0;
+    virtual double GetStrikeThroughThickness() const = 0;
 
     virtual PdfFontFileType GetFontFileType() const = 0;
 

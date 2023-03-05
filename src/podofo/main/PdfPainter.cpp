@@ -359,11 +359,11 @@ void PdfPainter::DrawText(const string_view& str, double x, double y,
     writeTextState();
     drawText(str, x, y,
         (style & PdfDrawTextStyle::Underline) != PdfDrawTextStyle::Regular,
-        (style & PdfDrawTextStyle::StrikeOut) != PdfDrawTextStyle::Regular);
+        (style & PdfDrawTextStyle::StrikeThrough) != PdfDrawTextStyle::Regular);
     PoDoFo::WriteOperator_ET(m_stream);
 }
 
-void PdfPainter::drawText(const string_view& str, double x, double y, bool isUnderline, bool isStrikeOut)
+void PdfPainter::drawText(const string_view& str, double x, double y, bool isUnderline, bool isStrikeThrough)
 {
     PoDoFo::WriteOperator_Td(m_stream, x, y);
 
@@ -371,7 +371,7 @@ void PdfPainter::drawText(const string_view& str, double x, double y, bool isUnd
     auto& font = *textState.Font;
     auto expStr = this->expandTabs(str);
 
-    if (isUnderline || isStrikeOut)
+    if (isUnderline || isStrikeThrough)
     {
         this->save();
 
@@ -385,14 +385,14 @@ void PdfPainter::drawText(const string_view& str, double x, double y, bool isUnd
                 y + font.GetUnderlinePosition(textState));
         }
 
-        // Draw strikeout
-        this->setLineWidth(font.GetStrikeOutThickness(textState));
-        if (isStrikeOut)
+        // Draw strikethrough
+        this->setLineWidth(font.GetStrikeThroughThickness(textState));
+        if (isStrikeThrough)
         {
             this->DrawLine(x,
-                y + font.GetStrikeOutPosition(textState),
+                y + font.GetStrikeThroughPosition(textState),
                 x + font.GetStringLength(expStr, textState),
-                y + font.GetStrikeOutPosition(textState));
+                y + font.GetStrikeThroughPosition(textState));
         }
 
         this->restore();
@@ -678,7 +678,7 @@ void PdfPainter::drawTextAligned(const string_view& str, double x, double y, dou
 
     this->drawText(str, x, y,
         (style & PdfDrawTextStyle::Underline) != PdfDrawTextStyle::Regular,
-        (style & PdfDrawTextStyle::StrikeOut) != PdfDrawTextStyle::Regular);
+        (style & PdfDrawTextStyle::StrikeThrough) != PdfDrawTextStyle::Regular);
 }
 
 void PdfPainter::DrawImage(const PdfImage& obj, double x, double y, double scaleX, double scaleY)

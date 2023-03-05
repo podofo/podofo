@@ -116,7 +116,7 @@ TEST_CASE("TestPainter3")
     PdfPainter painter;
     painter.SetCanvas(page);
     painter.TextState.SetFont(doc.GetFonts().GetStandard14Font(PdfStandard14FontType::TimesRoman), 15);
-    painter.DrawText("Hello world", 100, 500, PdfDrawTextStyle::StrikeOut | PdfDrawTextStyle::Underline);
+    painter.DrawText("Hello world", 100, 500, PdfDrawTextStyle::StrikeThrough | PdfDrawTextStyle::Underline);
     painter.FinishDrawing();
     doc.Save(TestUtils::GetTestOutputFilePath("TestPainter3.pdf"));
 
@@ -166,7 +166,7 @@ TEST_CASE("TestPainter4")
     operators.TJ_Operator_Glyphs("orld", false);
     operators.TJ_Operator_End();
     painter.TextObject.End();
-    painter.DrawText("Test2", 100, 600, PdfDrawTextStyle::StrikeOut);
+    painter.DrawText("Test2", 100, 600, PdfDrawTextStyle::StrikeThrough);
 
     PdfPainterPath path;
     path.MoveTo(20, 20);

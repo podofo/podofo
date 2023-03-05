@@ -636,15 +636,15 @@ double PdfFont::GetUnderlinePosition(const PdfTextState& state) const
 }
 
 // CHECK-ME Should state.GetFontScale() be considered?
-double PdfFont::GetStrikeOutPosition(const PdfTextState& state) const
+double PdfFont::GetStrikeThroughPosition(const PdfTextState& state) const
 {
-    return m_Metrics->GetStrikeOutPosition() * state.FontSize;
+    return m_Metrics->GetStrikeThroughPosition() * state.FontSize;
 }
 
 // CHECK-ME Should state.GetFontScale() be considered?
-double PdfFont::GetStrikeOutThickness(const PdfTextState& state) const
+double PdfFont::GetStrikeThroughThickness(const PdfTextState& state) const
 {
-    return m_Metrics->GetStrikeOutThickness() * state.FontSize;
+    return m_Metrics->GetStrikeThroughThickness() * state.FontSize;
 }
 
 double PdfFont::GetAscent(const PdfTextState& state) const

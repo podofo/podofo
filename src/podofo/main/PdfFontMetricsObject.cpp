@@ -347,8 +347,8 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     // Try to fine some sensible values
     m_UnderlineThickness = 1.0;
     m_UnderlinePosition = 0.0;
-    m_StrikeOutThickness = m_UnderlinePosition;
-    m_StrikeOutPosition = m_Ascent / 2.0;
+    m_StrikeThroughThickness = m_UnderlinePosition;
+    m_StrikeThroughPosition = m_Ascent / 2.0;
 }
 
 string_view PdfFontMetricsObject::GetFontName() const
@@ -445,9 +445,9 @@ double PdfFontMetricsObject::GetUnderlinePosition() const
     return m_UnderlinePosition;
 }
 
-double PdfFontMetricsObject::GetStrikeOutPosition() const
+double PdfFontMetricsObject::GetStrikeThroughPosition() const
 {
-    return m_StrikeOutPosition;
+    return m_StrikeThroughPosition;
 }
 
 double PdfFontMetricsObject::GetUnderlineThickness() const
@@ -455,9 +455,9 @@ double PdfFontMetricsObject::GetUnderlineThickness() const
     return m_UnderlineThickness;
 }
 
-double PdfFontMetricsObject::GetStrikeOutThickness() const
+double PdfFontMetricsObject::GetStrikeThroughThickness() const
 {
-    return m_StrikeOutThickness;
+    return m_StrikeThroughThickness;
 }
 
 double PdfFontMetricsObject::GetAscent() const

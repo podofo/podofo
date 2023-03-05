@@ -52,9 +52,9 @@ public:
 
     double GetUnderlinePosition() const override;
 
-    double GetStrikeOutPosition() const override;
+    double GetStrikeThroughPosition() const override;
 
-    double GetStrikeOutThickness() const override;
+    double GetStrikeThroughThickness() const override;
 
     std::string_view GetFontName() const override;
 
@@ -156,8 +156,8 @@ private:
     double m_LineSpacing;
     double m_UnderlineThickness;
     double m_UnderlinePosition;
-    double m_StrikeOutThickness;
-    double m_StrikeOutPosition;
+    double m_StrikeThroughThickness;
+    double m_StrikeThroughPosition;
 
     bool m_IsItalicHint;
     bool m_IsBoldHint;
