@@ -23,7 +23,7 @@ PdfXObjectForm::PdfXObjectForm(PdfObject& obj)
     : PdfXObject(obj, PdfXObjectType::Form)
 {
     if (obj.GetDictionary().HasKey("BBox"))
-        m_Rect = PdfRect(obj.GetDictionary().MustFindKey("BBox").GetArray());
+        m_Rect = PdfRect::FromArray(obj.GetDictionary().MustFindKey("BBox").GetArray());
 
     auto resources = obj.GetDictionary().FindKey("Resources");
     if (resources != nullptr)

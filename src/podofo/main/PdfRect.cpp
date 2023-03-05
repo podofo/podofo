@@ -43,12 +43,6 @@ PdfRect PdfRect::FromCorners(double x1, double y1, double x2, double y2)
     return rect;
 }
 
-PdfRect::PdfRect(const PdfArray& arr)
-{
-    Y = X = Width = Height = 0;
-    FromArray(arr);
-}
-
 void PdfRect::ToArray(PdfArray& arr) const
 {
     arr.Clear();
@@ -73,21 +67,22 @@ bool PdfRect::Contains(double x, double y) const
 		&& y >= Y && y <= Y + Height;
 }
 
-void PdfRect::FromArray(const PdfArray& arr)
+PdfRect PdfRect::FromArray(const PdfArray& arr)
 {
-    if (arr.size() == 4)
-    {
-        double x1 = arr[0].GetReal();
-        double y1 = arr[1].GetReal();
-        double x2 = arr[2].GetReal();
-        double y2 = arr[3].GetReal();
-
-        CreateRect(x1, y1, x2, y2, X, Y, Width, Height);
-    }
-    else
-    {
+    if (arr.size() != 4)
         PODOFO_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
-    }
+
+    double x1 = arr[0].GetReal();
+    double y1 = arr[1].GetReal();
+    double x2 = arr[2].GetReal();
+    double y2 = arr[3].GetReal();
+
+    double x;
+    double y;
+    double width;
+    double height;
+    CreateRect(x1, y1, x2, y2, x, y, width, height);
+    return PdfRect(x, y, width, height);
 }
 
 double PdfRect::GetRight() const

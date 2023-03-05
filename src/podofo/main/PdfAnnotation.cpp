@@ -48,7 +48,7 @@ PdfAnnotation::PdfAnnotation(PdfObject& obj, PdfAnnotationType annotType)
 PdfRect PdfAnnotation::GetRect() const
 {
     if (GetDictionary().HasKey(PdfName::KeyRect))
-        return PdfRect(GetDictionary().MustFindKey(PdfName::KeyRect).GetArray());
+        return PdfRect::FromArray(GetDictionary().MustFindKey(PdfName::KeyRect).GetArray());
 
     return PdfRect();
 }

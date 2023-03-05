@@ -35,11 +35,6 @@ public:
      */
     PdfRect(double x, double y, double width, double height);
 
-    /** Create a rectangle from an array
-     *  All values are in PDF units
-     */
-    PdfRect(const PdfArray& arr);
-
     /** Copy constructor
      */
     PdfRect(const PdfRect& rhs) = default;
@@ -49,6 +44,11 @@ public:
      * \returns the created PdfRect
      */
     static PdfRect FromCorners(double x1, double y1, double x2, double y2);
+
+    /** Create a PdfRect from a the 4 values in the array
+     *  \param arr the array to load the values from
+     */
+    static PdfRect FromArray(const PdfArray& arr);
 
     /** Converts the rectangle into an array
      *  based on PDF units
@@ -62,11 +62,6 @@ public:
     std::string ToString() const;
 
     bool Contains(double x, double y) const;
-
-    /** Assigns the values of this PdfRect from the 4 values in the array
-     *  \param inArray the array to load the values from
-     */
-    void FromArray(const PdfArray& arr);
 
     // REMOVE-ME: The name of this method is bad and it's also
     /** Intersect with another rect
